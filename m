@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2C34C4A1DE9
-	for <mm-commits@vger.kernel.org>; Tue,  8 Sep 2026 19:50:11 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 50DBD4A1DE9
+	for <mm-commits@vger.kernel.org>; Tue,  8 Sep 2026 19:50:14 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788897013; cv=none; b=GMGjibDOe0SwWX9B0+1jf+GAsT9F5k1KBgMKRB/uXr5Src5BUluDB1Y6Sx6cx+IHq2dOQg84B+u9KLg62HhKse/C00M+0ALWdyN3EsxJ+WG0Bmp76QPbqQB1edaDgsXPdXF8ssTHOZgJIaINcNr+TnSGo/rFekbtltbJ7/rGnQg=
+	t=1788897015; cv=none; b=eV/c7dCbiz8UmQL2Kfxk64tddE5AaghFtAQNgMcMi/X6RHsg1IUkjKqocs+0t4FjkpQmURj3nnuYsDGcmiDPUJ6juXazH70/ny8VLRF/vf7Pi8mtkl1OsgtO9PAYjrkBM3cXwI710vyMD7HCnt9YeECSusE/1QY7mGwjqk74HXE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788897013; c=relaxed/simple;
-	bh=2936fruGuHSgJF+9eQCt9cSmsWy+BfRwWD37ha9JRQI=;
-	h=Date:To:From:Subject:Message-Id; b=qDCuN2p5+Qmam1/aQl2XNJ8q2yAGIgzUpfGfyQUcAIjKNKz51/ztR7JW6OtZaie+gMZnsgvtTBt/+TJKAsYA5OuRrq811d9vrpxZg8ob7sB8xtQ5bgudh3LcnFgHJU9Y/yV7pxybwsH4fYPpo4wQoLqss3QWAb8SL0toHrNCMHE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=0HaJwt01; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1788897015; c=relaxed/simple;
+	bh=MWxYFX9HlOC9BUmS2WaDPQ6SME1wtinDlhYr0xD1x5A=;
+	h=Date:To:From:Subject:Message-Id; b=X8tLVFAIQm4fQeiEV/Sf7CaXqr6iUJLa5lKz1m6zLRrCt+2B8FbZHhNNqgfDh6UBBJ3QEN3JURLtD5ciE4oDBgoyTXj2yGYAUZeZQwr+c0wMuKE79fgB4kyHfDcLsNW0UuuRyngQ+HME4/OCD3anFv+RtTIr9zNUFxwTdzC4Omg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=d6taVjI2; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="0HaJwt01"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A07D81F00A3A;
-	Tue,  8 Sep 2026 19:50:11 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="d6taVjI2"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E7D5D1F00A3A;
+	Tue,  8 Sep 2026 19:50:13 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1788897011;
-	bh=IRMhrKOlh3iCCV0sVzcWshuWE/OGrUryioWd94yPOo0=;
+	d=linux-foundation.org; s=korg; t=1788897014;
+	bh=iAQ/QJD4PY8lHmaGc4l78+DnwDwBFw9tROvZLrk7qWg=;
 	h=Date:To:From:Subject;
-	b=0HaJwt01zx6MS/ij/z65UW7Cjt4i8SV8cZucmk5pWr9mCe1SpUQ4qujDsDFlHlBLD
-	 O8Xhl+sdScgUjZCXkqrJtGA79hO28A0AqTlBi8SfcW4NTMnmCGGeDROc0alC0HgBXi
-	 pQ87rivc4VL4RHkg48I91YGRf7oQVogJfxYgfBk0=
-Date: Tue, 08 Sep 2026 12:50:11 -0700
+	b=d6taVjI2kc05eXwz7cZvtzxwImSmXrkZf6UeGz+kswSK4l4J6YEJAO6RWTX3p63Wq
+	 mDABU5czzeH+ft54/GR2R2fXuxoVKw5Mdtip8IwOwd/wS/BFVZtUhPcQVlHjFGkYzO
+	 o3q5GXp6edWj6plRjqZa2hpTqEPhwjjLK6yK2V2M=
+Date: Tue, 08 Sep 2026 12:50:13 -0700
 To: mm-commits@vger.kernel.org,kas@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-mm-make-the-swap-cases-swapout-reliable.patch added to mm-new branch
-Message-Id: <20260908195011.A07D81F00A3A@smtp.kernel.org>
+Subject: + selftests-mm-stop-khugepaged-during-the-madv_collapse-cases.patch added to mm-new branch
+Message-Id: <20260908195013.E7D5D1F00A3A@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: selftests/mm: make the swap cases' swapout reliable
+     Subject: selftests/mm: stop khugepaged during the MADV_COLLAPSE cases
 has been added to the -mm mm-new branch.  Its filename is
-     selftests-mm-make-the-swap-cases-swapout-reliable.patch
+     selftests-mm-stop-khugepaged-during-the-madv_collapse-cases.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-make-the-swap-cases-swapout-reliable.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-stop-khugepaged-during-the-madv_collapse-cases.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,36 +70,25 @@ and is updated there most days
 
 ------------------------------------------------------
 From: "Kiryl Shutsemau (Meta)" <kas@kernel.org>
-Subject: selftests/mm: make the swap cases' swapout reliable
-Date: Tue, 8 Sep 2026 13:50:51 +0100
+Subject: selftests/mm: stop khugepaged during the MADV_COLLAPSE cases
+Date: Tue, 8 Sep 2026 13:50:52 +0100
 
-collapse_swapin_single_pte() and collapse_max_ptes_swap() swap a range out
-and then require smaps to report exactly the count they asked for.  Two
-things keep that count from arriving.
+__madvise_collapse() turns THP off before each MADV_COLLAPSE, both to keep
+khugepaged out of the range and to prove MADV_COLLAPSE ignores the
+setting.  It clears the global controls only, which is no longer enough. 
+A per-order control overrides them, and -s, which makes the cases fault in
+folios of one order, leaves that order's control at "always".  khugepaged
+then collapses the very range the case is working on, and the case fails
+on a collapse that was interfered with rather than refused.
 
-MADV_PAGEOUT is best effort, so the count often turns up a moment late.
+Clear the per-order controls too, setting them to "inherit" rather than
+"never": khugepaged honours the global never and stays out, while
+MADV_COLLAPSE on shmem still finds an order to build.
 
-And wait_for_scan() leaves the range eligible for collapsing, so
-khugepaged is still working on it.  Collapsing reads the swapped-out pages
-back in, so the daemon empties the swap as fast as the case fills it.  On
-arm64 with 64K pages max_ptes_swap is 1024 pages, which is 64M a step, and
-the case loses the race:
-
-    # Swapout 1024 of 8192 pages... Fail
-    not ok 10 collapse_max_ptes_swap
-
-Retry for up to two seconds, holding the range out of khugepaged's reach
-meanwhile.  The collapse each case runs next restores MADV_HUGEPAGE, so
-only the setup is affected.
-
-If the pages still won't swap out, skip: no swap, swap too small or full,
-a memcg cap or busy writeback.  None of that is a kernel bug.
-
-Assisted-by: LLM
-Link: https://lore.kernel.org/20260908125105.1510704-6-kirill@shutemov.name
+Link: https://lore.kernel.org/20260908125105.1510704-7-kirill@shutemov.name
+Fixes: 9f0704eae8a4 ("selftests/mm/khugepaged: enlighten for multi-size THP")
 Signed-off-by: Kiryl Shutsemau (Meta) <kas@kernel.org>
-Reviewed-by: Muhammad Usama Anjum <usama.anjum@arm.com>
-Tested-by: Muhammad Usama Anjum <usama.anjum@arm.com>
+Assisted-by: LLM
 Cc: Alexander Gordeev <agordeev@linux.ibm.com>
 Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
 Cc: Barry Song <baohua@kernel.org>
@@ -113,6 +102,7 @@ Cc: Liam R. Howlett <liam@infradead.org>
 Cc: Lorenzo Stoakes (ARM) <ljs@kernel.org>
 Cc: Michal Hocko <mhocko@suse.com>
 Cc: Mike Rapoport (Microsoft) <rppt@kernel.org>
+Cc: Muhammad Usama Anjum <usama.anjum@arm.com>
 Cc: Ryan Roberts <ryan.roberts@arm.com>
 Cc: Shuah Khan <shuah@kernel.org>
 Cc: Suren Baghdasaryan <surenb@google.com>
@@ -122,86 +112,38 @@ Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/khugepaged.c |   41 +++++++++++++++-------
- 1 file changed, 29 insertions(+), 12 deletions(-)
+ tools/testing/selftests/mm/khugepaged.c |    9 ++++++++-
+ 1 file changed, 8 insertions(+), 1 deletion(-)
 
---- a/tools/testing/selftests/mm/khugepaged.c~selftests-mm-make-the-swap-cases-swapout-reliable
+--- a/tools/testing/selftests/mm/khugepaged.c~selftests-mm-stop-khugepaged-during-the-madv_collapse-cases
 +++ a/tools/testing/selftests/mm/khugepaged.c
-@@ -221,6 +221,29 @@ err_out:
- 	return swap;
- }
- 
-+static bool swapout_range(void *p, unsigned long size)
-+{
-+	int i;
-+
-+	/* keep khugepaged from collapsing the range and swapping it back in */
-+	if (madvise(p, size, MADV_NOHUGEPAGE))
-+		ksft_exit_fail_perror("madvise(MADV_NOHUGEPAGE)");
-+
-+	/*
-+	 * Retry several times because MADV_PAGEOUT is best effort.  Sleep
-+	 * between the retries to give outstanding writeback a chance to
-+	 * finish.
-+	 */
-+	for (i = 0; i < 40; i++) {
-+		if (madvise(p, size, MADV_PAGEOUT))
-+			ksft_exit_fail_perror("madvise(MADV_PAGEOUT)");
-+		if (check_swap(p, size))
-+			return true;
-+		usleep(50 * 1000);
-+	}
-+	return false;
-+}
-+
- static void *alloc_mapping(int nr)
+@@ -538,8 +538,8 @@ static bool is_anon(struct mem_ops *ops)
+ static void __madvise_collapse(const char *msg, char *p, int nr_hpages,
+ 			       struct mem_ops *ops, bool expect)
  {
- 	void *p;
-@@ -828,12 +851,10 @@ static void collapse_swapin_single_pte(s
- 	ops->fault(p, 0, hpage_pmd_size);
+-	int ret;
+ 	struct thp_settings settings = *thp_current_settings();
++	int ret, i;
  
- 	ksft_print_msg("Swapout one page...");
--	if (madvise(p, page_size, MADV_PAGEOUT))
--		ksft_exit_fail_perror("madvise(MADV_PAGEOUT)");
--	if (check_swap(p, page_size)) {
-+	if (swapout_range(p, page_size)) {
- 		success("OK");
- 	} else {
--		fail("Fail");
-+		skip("Could not swap out");
- 		goto out;
- 	}
+ 	ksft_print_msg("%s...", msg);
  
-@@ -854,12 +875,10 @@ static void collapse_max_ptes_swap(struc
- 	ops->fault(p, 0, hpage_pmd_size);
+@@ -552,9 +552,16 @@ static void __madvise_collapse(const cha
+ 	/*
+ 	 * Prevent khugepaged interference and tests that MADV_COLLAPSE
+ 	 * ignores /sys/kernel/mm/transparent_hugepage/enabled
++	 *
++	 * "inherit" rather than "never" so that MADV_COLLAPSE on shmem still
++	 * finds an order to build.
+ 	 */
+ 	settings.thp_enabled = THP_NEVER;
+ 	settings.shmem_enabled = SHMEM_NEVER;
++	for (i = 0; i < NR_ORDERS; i++) {
++		settings.hugepages[i].enabled = THP_INHERIT;
++		settings.shmem_hugepages[i].enabled = SHMEM_INHERIT;
++	}
+ 	thp_push_settings(&settings);
  
- 	ksft_print_msg("Swapout %d of %d pages...", max_ptes_swap + 1, hpage_pmd_nr);
--	if (madvise(p, (max_ptes_swap + 1) * page_size, MADV_PAGEOUT))
--		ksft_exit_fail_perror("madvise(MADV_PAGEOUT)");
--	if (check_swap(p, (max_ptes_swap + 1) * page_size)) {
-+	if (swapout_range(p, (max_ptes_swap + 1) * page_size)) {
- 		success("OK");
- 	} else {
--		fail("Fail");
-+		skip("Could not swap out");
- 		goto out;
- 	}
- 
-@@ -871,12 +890,10 @@ static void collapse_max_ptes_swap(struc
- 		ops->fault(p, 0, hpage_pmd_size);
- 		ksft_print_msg("Swapout %d of %d pages...", max_ptes_swap,
- 		       hpage_pmd_nr);
--		if (madvise(p, max_ptes_swap * page_size, MADV_PAGEOUT))
--			ksft_exit_fail_perror("madvise(MADV_PAGEOUT)");
--		if (check_swap(p, max_ptes_swap * page_size)) {
-+		if (swapout_range(p, max_ptes_swap * page_size)) {
- 			success("OK");
- 		} else {
--			fail("Fail");
-+			skip("Could not swap out");
- 			goto out;
- 		}
- 
+ 	/* Clear VM_NOHUGEPAGE */
 _
 
 Patches currently in -mm which might be from kas@kernel.org are
