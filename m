@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E9F1E4A6CCB
-	for <mm-commits@vger.kernel.org>; Tue,  8 Sep 2026 19:50:02 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BE8AD48E0FA
+	for <mm-commits@vger.kernel.org>; Tue,  8 Sep 2026 19:50:04 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788897004; cv=none; b=P369iXJevhizWFxzb7PQCUzSb/vvov7ExzDApgSckn+aZDFhjdFJ5lw8Z3jTbPXJiH/iipkaSIBeX/9V6o0cvvWkPs71Z6uJVfT+ceJvSB+Sqk6jYk3LS1JCqXanTjmqArnSfjt3ZjYOTb/Be4rGmDpH/oPiNUq+yLfL3atOScg=
+	t=1788897006; cv=none; b=Yl3a/u6/wMIJFgQ3ofml+SqSEBqyWxwuJ/LDT1Z+sANV1h2yBFEF2QBYmoLGyCpeZcba+rjeHZZhwu/EEM6V+5uUWMnk3hy7cOJRxtxkWllzKmdHFF+uw/6cRNeciD0wxnuriCmhjA3ph2ACCCbPwKtQGHD/F1BQScVAydwJV2k=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788897004; c=relaxed/simple;
-	bh=hrjW6+WZxzTWgj0iWtRFe6q0TQE91IsF7quouksDW30=;
-	h=Date:To:From:Subject:Message-Id; b=i9CcEKmP6QfVEA4eX2F03xOe9oKVlYmN0oNHwB42BBWDfbf/g9xP3EeKRazgKXms8tgwf71kj/hWBJOx7b5KxpDt1zWn6CPM0yCnTITF/V8NsbL07LdaiQTlxp3QENZLmhe1XXvKatKzyFUhpQfBTcAFqvQEP0fltiHXHfbKrVs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=KG0YNtQS; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1788897006; c=relaxed/simple;
+	bh=jiHhx4HhoUQiiCVdemJiO9392qLSkt3VKzFXMtfifDg=;
+	h=Date:To:From:Subject:Message-Id; b=gIhPtuvKoHVDY+v2dZoYOVEO+0Gh9GMlfSmey5qV6QBYCbaOBD4Prb0+dZAweKR3MpDRL79dh5Q6Xw/s7wH92QjyJ6C8iN0kiZvXJvC/sck7Po8BsNVo7SSNqU797oEOWgeKBQj7QA3A8TdPO5BstXbw4h+VRKMz58vff+hmKEY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Xo0GgQhO; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="KG0YNtQS"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4C9F61F00A3A;
-	Tue,  8 Sep 2026 19:50:02 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Xo0GgQhO"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7CA6C1F00A3A;
+	Tue,  8 Sep 2026 19:50:04 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1788897002;
-	bh=IyC23B6pG1xrK1ZUDfbx1hUWRoFcFANWubLNYNDjee4=;
+	d=linux-foundation.org; s=korg; t=1788897004;
+	bh=pXGXs7ZFuHxpzefcoMocNghGo7GAdgHRQBdmQGNTot0=;
 	h=Date:To:From:Subject;
-	b=KG0YNtQSDQnxRBQB+A00Uhs9C4OP/kdjRVCl5MsLHdevr7MDimI0h9nJmJYO+WMX+
-	 70PzM4u2Dv2ixb8BZ9o31dmbugPdpFSlwIQwnn1g1rE3QHsyFv6FxpIJ5MWdH/msxi
-	 DebrAhNPasl5sRyJRd+9l8il+4cTjCYUxln8cO+Y=
-Date: Tue, 08 Sep 2026 12:50:01 -0700
+	b=Xo0GgQhOvpPyAVoKDcNbxwacUNfTcgku6T4Z3cEM7wD2rybw3fy22iPklSpOwFMYR
+	 IHF+Zj/LCI2aV1KDPI95/jx8m3AXIbsGBfj1rVhPo8JxENjJ661tvviBCB4JsGnpbg
+	 TAulnbftKJBoCdjm8SwQ8FkjWSEqN9luD6GK5JV0=
+Date: Tue, 08 Sep 2026 12:50:04 -0700
 To: mm-commits@vger.kernel.org,kas@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-mm-raise-the-khugepaged-test-case-cap.patch added to mm-new branch
-Message-Id: <20260908195002.4C9F61F00A3A@smtp.kernel.org>
+Subject: + selftests-mm-skip-collapse_compound_extreme-where-the-pmd-is-too-large.patch added to mm-new branch
+Message-Id: <20260908195004.7CA6C1F00A3A@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: selftests/mm: raise the khugepaged test-case cap
+     Subject: selftests/mm: skip collapse_compound_extreme() where the PMD is too large
 has been added to the -mm mm-new branch.  Its filename is
-     selftests-mm-raise-the-khugepaged-test-case-cap.patch
+     selftests-mm-skip-collapse_compound_extreme-where-the-pmd-is-too-large.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-raise-the-khugepaged-test-case-cap.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-skip-collapse_compound_extreme-where-the-pmd-is-too-large.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,63 +70,29 @@ and is updated there most days
 
 ------------------------------------------------------
 From: "Kiryl Shutsemau (Meta)" <kas@kernel.org>
-Subject: selftests/mm: raise the khugepaged test-case cap
-Date: Tue, 8 Sep 2026 13:50:47 +0100
+Subject: selftests/mm: skip collapse_compound_extreme() where the PMD is too large
+Date: Tue, 8 Sep 2026 13:50:48 +0100
 
-Patch series "selftests/mm: improve khugepaged coverage", v5.
+collapse_compound_extreme() builds a PTE table full of distinct PTE-mapped
+compound pages by cycling hpage_pmd_nr fault-time THPs through mremap.  It
+therefore needs hpage_pmd_nr PMD-order allocations in a row.  That is fine
+at a 2M PMD (4K base pages) or a 32M one (16K).  A 512M PMD -- arm64 with
+64K base pages -- makes each of those an order-13 allocation, which the
+allocator cannot reliably hand out even once, let alone 8192 times.
 
-khugepaged collapses to mTHP orders since 7.2, and 7.3 added three
-selftest cases for it: the generic collapse cases run at one order named
-by -c, with the result detected by counting folios of that order.
+The failure is not a quiet one: the case calls ksft_exit_fail_msg(), so
+the whole binary stops and every case after it is lost.
 
-That leaves the collapse path largely untested.  The suite does not run
-where a PMD is 512M.  A folio count cannot say where a collapse landed. 
-Fixed sleeps cannot tell "not collapsed" from "not scanned yet".  And
-nothing exercises collapse under contention.
-
-Close those gaps in order:
-
- - Make the suite run at a 512M PMD: scale the collapse wait with the PMD
-   size, skip what such a PMD cannot serve, make the swapout the swap
-   cases depend on deterministic, and keep khugepaged out of the
-   MADV_COLLAPSE cases.
-
- - Detect results per window rather than by count, with folio-order
-   helpers in vm_util that are checked against the kernel before any
-   collapse test trusts them.
-
- - Drive khugepaged deterministically: a completion barrier that wakes the
-   daemon and waits for a full pass, and a check that one pass yields one
-   attributed collapse.
-
- - Cover collapse at every supported order by default: which window
-   collapses, occupancy at both limits, sources that are already large
-   folios, and a fork-shared source under concurrent writes.
-
- - Race collapse against everything that can touch its sources, at both
-   occupancy limits and over whole-table zaps, checked by content and by
-   the kernel's own assertions.
-
-Everything passes on an unmodified kernel.
-
-
-This patch (of 19):
-
-TEST() ends the run with "MAX_TEST_CASES is too small" when the table
-fills, and the table holds 64.  A full invocation already registers 63, so
-the next case added anywhere aborts the whole suite before a single test
-runs.
-
-Raise the cap to 256.  The table is a static array of small structs, so
-the room costs nothing worth counting.
+Skip the case where the PMD is larger than 32M.  The MADV_COLLAPSE cases
+still cover PMD-order collapse on those configurations, and 4K and 16K
+PMDs are unaffected.
 
 Assisted-by: LLM
-Link: https://lore.kernel.org/20260908125105.1510704-1-kirill@shutemov.name
-Link: https://lore.kernel.org/20260908125105.1510704-2-kirill@shutemov.name
+Link: https://lore.kernel.org/20260908125105.1510704-3-kirill@shutemov.name
 Signed-off-by: Kiryl Shutsemau (Meta) <kas@kernel.org>
-Acked-by: Usama Arif <usama.arif@linux.dev>
 Acked-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
 Reviewed-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
+Tested-by: Muhammad Usama Anjum <usama.anjum@arm.com>
 Cc: Alexander Gordeev <agordeev@linux.ibm.com>
 Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
 Cc: Barry Song <baohua@kernel.org>
@@ -141,26 +107,34 @@ Cc: Michal Hocko <mhocko@suse.com>
 Cc: Ryan Roberts <ryan.roberts@arm.com>
 Cc: Shuah Khan <shuah@kernel.org>
 Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Usama Arif <usama.arif@linux.dev>
 Cc: Vlastimil Babka <vbabka@kernel.org>
 Cc: Zi Yan <ziy@nvidia.com>
-Cc: Muhammad Usama Anjum <usama.anjum@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/khugepaged.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ tools/testing/selftests/mm/khugepaged.c |   10 ++++++++++
+ 1 file changed, 10 insertions(+)
 
---- a/tools/testing/selftests/mm/khugepaged.c~selftests-mm-raise-the-khugepaged-test-case-cap
+--- a/tools/testing/selftests/mm/khugepaged.c~selftests-mm-skip-collapse_compound_extreme-where-the-pmd-is-too-large
 +++ a/tools/testing/selftests/mm/khugepaged.c
-@@ -1290,7 +1290,7 @@ struct test_case {
- 	test_fn fn;
- };
+@@ -940,6 +940,16 @@ static void collapse_compound_extreme(st
+ 	void *p;
+ 	int i;
  
--#define MAX_TEST_CASES 64
-+#define MAX_TEST_CASES 256
- static struct test_case test_cases[MAX_TEST_CASES];
- static int nr_test_cases;
- 
++	/*
++	 * This needs hpage_pmd_nr PMD-order allocations in a row, which the
++	 * allocator will not supply if the PMD is very large.
++	 */
++	if (hpage_pmd_size > (32UL << 20)) {
++		ksft_test_result_skip("%s: PMD too large for fault-time THP construction\n",
++				      __func__);
++		return;
++	}
++
+ 	p = ops->setup_area(1);
+ 	ksft_print_msg("Construct PTE page table full of different PTE-mapped compound pages\n");
+ 	for (i = 0; i < hpage_pmd_nr; i++) {
 _
 
 Patches currently in -mm which might be from kas@kernel.org are
