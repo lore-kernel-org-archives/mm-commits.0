@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DFF8A56B851;
-	Tue,  8 Sep 2026 18:55:29 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8F2A653A8AB;
+	Tue,  8 Sep 2026 18:57:30 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788893731; cv=none; b=S/INibQFK9ZK+i8kyYbBlgl9cDZYmsERW4oPS0YNcPvkRmgF6OYLR7SjKN0gXZ7XYwX8ttcmDnh3dppJcq943Z0/EHBw5elbsJKKlAUVizpdQL3LA6frVc8pPy9bnRtcRIiT/RcYvsy34NQ9q0VWQTp1OpH7dBn53qgURGje3y0=
+	t=1788893851; cv=none; b=US5D2Fl+ps94ARQmjrYagsjsqRv0i3A9KBG9vGrtKmRp/uxPaBJz/i7xFGv0a/pSuLlYgXMWqyN55m8yWx0F/5Yj1x6tH7a2F6gYyVGbEdAN1RXv5uyg4JdI72jJ6o9b14RvBSMZWjfWScF3tXW64Qrtt3TFoc7A4Pf23PzziGA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788893731; c=relaxed/simple;
-	bh=Y5PfoiBjG9Lv3vq8xevK0wc3T7LZdcmran0efa0EtAo=;
-	h=Date:To:From:Subject:Message-Id; b=rUMmHJT9z7TcPk/brR5By1/J+0sufYFlSN8iJ8mXtk+aNZHusWglDPaCCjK0ccZmuyfXgdBbcWaFqW4255KdsDNWalIpyuBFGUH5Q6OY/+51j394487+p8m4rfv436tY1nPJ/ZTj1oKRVCuC88wdIbxLVPXLJwmDxyOFXHz1fu8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=p3cM095i; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1788893851; c=relaxed/simple;
+	bh=ZGivorTs/D9baPzWl8cA26Rxha3ZIMadnggRXbueW9U=;
+	h=Date:To:From:Subject:Message-Id; b=hgT4mOP+gYIwApcaNlLjGY9qB3DRD774P8CKqLnt34h+R/e3ll9vqTmr0nADhdsmyE9N61+sEDK4kyikzWMvU2X5vGiZpYhxgJ7SS21XZ/wmDASeCBBDeQIUIwqAnH5w7jZUnnq1ltTqdHDlpwVoxmL6sxZNv9CLuiS5qp1LgTU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=YaWccWUB; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="p3cM095i"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 888231F00A3A;
-	Tue,  8 Sep 2026 18:55:29 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="YaWccWUB"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D2CF61F00A3A;
+	Tue,  8 Sep 2026 18:57:29 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1788893729;
-	bh=Dsd/cQxN5YEcxY03RcFqw8Qhawnp1n/TTsJXwmOVBhU=;
+	d=linux-foundation.org; s=korg; t=1788893849;
+	bh=zXlOgcEvrk3B6ALjFm6kXublcRZw/x0IXfVkqR3y0KE=;
 	h=Date:To:From:Subject;
-	b=p3cM095iN/1lA5Cj5oiJsuX8gcxTQDTetmGy9OK/xPdrkQaXVJTgSwenEV4hIS2gv
-	 vgEvVnB/MAcw6fyxAwTg5XbWutbRNRdKi/UeOykmPkRG5IuW+5SHP14/bE2NVe4NfX
-	 qw+Ajzw0Fzmj/ZiR+6S5ljRK+fawJ8SsDRHHuY1w=
-Date: Tue, 08 Sep 2026 11:55:29 -0700
-To: mm-commits@vger.kernel.org,stable@vger.kernel.org,sj@kernel.org,akpm@linux-foundation.org
+	b=YaWccWUBjt98AMoPbdmgT4X6i9siQJ7iGCxcF3LQdLzd+FomzA689MeHdV7eGRo87
+	 hWtyLSOP+Xfok63Gbva47h4xSJ2tvojTLqPy3aordrSqQoO995s2olzfaj/Lk9Wo1P
+	 ONmZsUDJt1OCvjfWNXfg6KrVuWGaI6ZJCVSSvR48=
+Date: Tue, 08 Sep 2026 11:57:29 -0700
+To: mm-commits@vger.kernel.org,stable@vger.kernel.org,baolin.wang@linux.alibaba.com,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-damon-vaddr-avoid-hw-driven-pte-updates-during-damon_hugetlb_mkold.patch added to mm-new branch
-Message-Id: <20260908185529.888231F00A3A@smtp.kernel.org>
+Subject: + mm-damon-vaddr-avoid-hw-driven-pte-updates-during-damon_hugetlb_mkold.patch added to mm-hotfixes-unstable branch
+Message-Id: <20260908185729.D2CF61F00A3A@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -36,25 +36,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 The patch titled
      Subject: mm/damon/vaddr: avoid hw-driven pte updates during damon_hugetlb_mkold()
-has been added to the -mm mm-new branch.  Its filename is
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
      mm-damon-vaddr-avoid-hw-driven-pte-updates-during-damon_hugetlb_mkold.patch
 
 This patch will shortly appear at
      https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-vaddr-avoid-hw-driven-pte-updates-during-damon_hugetlb_mkold.patch
 
-This patch will later appear in the mm-new branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Note, mm-new is a provisional staging ground for work-in-progress
-patches, and acceptance into mm-new is a notification for others take
-notice and to finish up reviews.  Please do not hesitate to respond to
-review feedback and post updated versions to replace or incrementally
-fixup patches in mm-new.
-
-The mm-new branch of mm.git is not included in linux-next
-
-If a few days of testing in mm-new is successful, the patch will me moved
-into mm.git's mm-unstable branch, which is included in linux-next
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -96,6 +85,7 @@ Link: https://lore.kernel.org/20260907170358.100168-1-sj@kernel.org
 Link: https://lore.kernel.org/20260830160545.98969-1-sj@kernel.org [1]
 Fixes: 49f4203aae06 ("mm/damon: add access checking for hugetlb pages")
 Signed-off-by: SJ Park <sj@kernel.org>
+Cc: Baolin Wang <baolin.wang@linux.alibaba.com>, 
 Cc: <stable@vger.kernel.org> # 5.17.x
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
@@ -105,7 +95,7 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 
 --- a/mm/damon/vaddr.c~mm-damon-vaddr-avoid-hw-driven-pte-updates-during-damon_hugetlb_mkold
 +++ a/mm/damon/vaddr.c
-@@ -283,22 +283,29 @@ out:
+@@ -293,22 +293,29 @@ out:
  }
  
  #ifdef CONFIG_HUGETLB_PAGE
@@ -146,6 +136,7 @@ _
 
 Patches currently in -mm which might be from sj@kernel.org are
 
+mm-damon-vaddr-avoid-hw-driven-pte-updates-during-damon_hugetlb_mkold.patch
 mm-damon-core-skip-applying-scheme-if-region-split-for-quota-fails.patch
 mm-damon-paddr-respect-folio-end-for-damos_stat.patch
 mm-damon-paddr-respect-folio-end-for-damos-actions-except-stat.patch
@@ -201,8 +192,4 @@ mm-damon-core-handle-null-ctx-parameter-in-damon_call.patch
 mm-damon-core-set-ctx-call_controls_obsolete-in-damon_new_ctx.patch
 mm-damon-reclaim-remove-unnecessary-damon_call-param-validation.patch
 mm-damon-lru_sort-remove-unnecessary-damon_call-param-validation.patch
-mm-damon-vaddr-avoid-hw-driven-pte-updates-during-damon_hugetlb_mkold.patch
-mm-damon-move-damon_hugetlb_mkold-from-vaddr-to-ops-common.patch
-mm-damon-ops-common-handle-hugetlb-folios-in-folio-mkold-young-rmap-walkers.patch
-mm-damon-paddr-support-hugetlb-folios-in-access-monitoring.patch
 
