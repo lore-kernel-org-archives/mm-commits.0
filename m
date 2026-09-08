@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7CF7C4E80C4
-	for <mm-commits@vger.kernel.org>; Tue,  8 Sep 2026 22:49:08 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6E0655A5156
+	for <mm-commits@vger.kernel.org>; Tue,  8 Sep 2026 22:49:09 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788907750; cv=none; b=dC09VTbNpIjXo+L0ILmiVuY0sII1SM04DFlL8kN0+WJMl6g/9VyXmaUUq5YQBQIGmP7yhqjr0dNSugxOWe89yQJVbWhlHokPtR78+vNKc4qe6749nGeq8GS6UM3qH9Tv2RrgwJekVPrHspIw/t09pFEByVKv9e7b1NEwuxT3XWA=
+	t=1788907751; cv=none; b=G4LR/qnER0OL23WM47gIuanlxGKAOvjj1ovSNewhJcuY3Co1FQkMOGni8GnE7CcKtqNZElNoeeUl70U/AC8Hfy9vPXA9W1iM4HdxxPHDmNdfmazTOxi+mBhKDqf4B7CKB8oJpUk6hHvAfZ2TXh2a+HKtMJYjtdlhhA0P94gVEA4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788907750; c=relaxed/simple;
-	bh=g1EVNKdrYG7pv2nPaYzdy/dxyJLUoDc54LAF10r6/A4=;
-	h=Date:To:From:Subject:Message-Id; b=V1aI08XobgRXQx0SGz7Qu6Aq6mSy0t49ZaA6UmSBjZspu6QvBrVBaRjsbJkjxD+tT1UJovwRqSMcu+xVnjv0yiF86CgGerY03gzQorwXUTdCMGK04oqqVsrQhdDb+f6XS3ibsImiyRkBFagdv3JnRkYFpUwVz75NVQ6V4g4xaNw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=xttd0tG9; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1788907751; c=relaxed/simple;
+	bh=+E+9F5lk+rRzqt1waWbut0vHZzMajlo0XS2Q6hek00o=;
+	h=Date:To:From:Subject:Message-Id; b=KmtmOUccXZKkY2S4ujpVJw6MaMnnUKw/C2d6kXsr8xZCjqPgGimQeWCiXpjW208tkV6R14TQGKzpORK+UL/fwJX7v0oe5c6wu1SpO/ve2GhHgTvK80iwz4UokSpumcyZJ3A9ST48XzlgBNBQ8lym09ZMx3KqX3S4zpQ04RaxTsA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=QNCfOY6N; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="xttd0tG9"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id CD87F1F00A3A;
-	Tue,  8 Sep 2026 22:49:05 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="QNCfOY6N"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id AD5881F00A3D;
+	Tue,  8 Sep 2026 22:49:08 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1788907745;
-	bh=Te2IywBEIr+tGVWig4bpVAclGqIpCtdDz6RTLn6Qn6w=;
+	d=linux-foundation.org; s=korg; t=1788907748;
+	bh=78USJ+To7hVI4M5XWhE7Uz/SORmGJgEwQ6Nd67nA7Qw=;
 	h=Date:To:From:Subject;
-	b=xttd0tG9SZ3xLmWAHzUf026o0blR/jooyCK0PhWbNaVGs8a8rLMCgsjq+L53SX3L7
-	 +kmWw7j4ozIwbsmllHsaLuoU/TM4Dame705XKOkBYMf0ZKSoRONTNa0ObRg7J3U/hj
-	 BskyYVr9kAIqrBt2GGft/ECWBf8lMjwgZ69eL18o=
-Date: Tue, 08 Sep 2026 15:49:05 -0700
+	b=QNCfOY6N5Gil5IOxB4KqBwu+GnBhfIrgEhVjkxGY1rlWGGFqtCYrus8R0nzlj5lqt
+	 eA0ZpuYtmPCxrWc91iBUNOQkpz4T6FajdyCU0shMa2pDZLG8jjJPP7PEdNezjPqY7E
+	 2Z9jrxVTk8AADuD2j/rqfbtawOsS8U1Kaoz6IY+M=
+Date: Tue, 08 Sep 2026 15:49:08 -0700
 To: mm-commits@vger.kernel.org,kas@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-mm-cover-a-shared-source-collapse-write-race-fix.patch added to mm-new branch
-Message-Id: <20260908224905.CD87F1F00A3A@smtp.kernel.org>
+Subject: + selftests-mm-add-khugepaged-race-harness-fix.patch added to mm-new branch
+Message-Id: <20260908224908.AD5881F00A3D@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: selftests-mm-cover-a-shared-source-collapse-write-race-fix
+     Subject: selftests-mm-add-khugepaged-race-harness-fix
 has been added to the -mm mm-new branch.  Its filename is
-     selftests-mm-cover-a-shared-source-collapse-write-race-fix.patch
+     selftests-mm-add-khugepaged-race-harness-fix.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-cover-a-shared-source-collapse-write-race-fix.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-add-khugepaged-race-harness-fix.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,52 +70,34 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Kiryl Shutsemau (Meta) <kas@kernel.org>
-Subject: selftests-mm-cover-a-shared-source-collapse-write-race-fix
-Date: Tue, 8 Sep 2026 22:02:13 +0100
+Subject: selftests-mm-add-khugepaged-race-harness-fix
+Date: Tue, 8 Sep 2026 22:34:08 +0100
 
-Sashiko flagged two issues here:
+Sashiko pointed out that mremap() freed scratch area and it has to be
+re-reserved for next cycle.
 
- - sync[0] never closed. It is fd leak;
-
- - wstatus is garbage if waitpid() fails, returning -1;
-
-Link: https://lore.kernel.org/aqB2ckEupUKnoJt_@thinkstation
+Link: https://lore.kernel.org/aqB-ycE8MlVwZJ7I@thinkstation
 Signed-off-by: Kiryl Shutsemau (Meta) <kas@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/khugepaged.c |    8 +++++++-
- 1 file changed, 7 insertions(+), 1 deletion(-)
+ tools/testing/selftests/mm/khugepaged_race.c |    5 +++++
+ 1 file changed, 5 insertions(+)
 
---- a/tools/testing/selftests/mm/khugepaged.c~selftests-mm-cover-a-shared-source-collapse-write-race-fix
-+++ a/tools/testing/selftests/mm/khugepaged.c
-@@ -1230,6 +1230,7 @@ static void collapse_fork_cow_race(struc
- 	close(sync[1]);
- 	if (read(sync[0], &go, 1) != 1)
- 		ksft_exit_fail_msg("child never reached the collapse\n");
-+	close(sync[0]);
- 
- 	/*
- 	 * Unshare one page at a time: a burst would break CoW on the whole
-@@ -1237,12 +1238,17 @@ static void collapse_fork_cow_race(struc
- 	 */
- 	i = 0;
- 	for (;;) {
-+		pid_t ret;
-+
- 		if (i < n)
- 			ip[i * stride] = i + 0xbeef0000;
- 		i++;
- 		usleep(10 * 1000);
--		if (waitpid(child, &wstatus, WNOHANG))
-+		ret = waitpid(child, &wstatus, WNOHANG);
-+		if (ret == child)
- 			break;
-+		if (ret < 0)
-+			ksft_exit_fail_perror("waitpid()");
+--- a/tools/testing/selftests/mm/khugepaged_race.c~selftests-mm-add-khugepaged-race-harness-fix
++++ a/tools/testing/selftests/mm/khugepaged_race.c
+@@ -194,6 +194,11 @@ static void *mremapper_fn(void *arg)
+ 			   MREMAP_MAYMOVE | MREMAP_FIXED, mremap_area);
+ 		if (p == MAP_FAILED)
+ 			ksft_exit_fail_perror("mremap() back");
++		/* The move back unmapped the scratch address: claim it again */
++		if (mmap(mremap_scratch, hpage_pmd_size, PROT_NONE,
++			MAP_ANONYMOUS | MAP_PRIVATE | MAP_FIXED_NOREPLACE,
++			-1, 0) != (void *)mremap_scratch)
++			ksft_exit_fail_perror("mmap() mremap scratch");
+ 		usleep(rand_r(&seed) % 2000);
  	}
- 
- 	/* Finish whatever the paced sweep did not reach */
+ 	return NULL;
 _
 
 Patches currently in -mm which might be from kas@kernel.org are
