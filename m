@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 85EC95616C8
-	for <mm-commits@vger.kernel.org>; Tue,  8 Sep 2026 22:57:49 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4CE2D499F3F
+	for <mm-commits@vger.kernel.org>; Tue,  8 Sep 2026 23:07:56 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788908272; cv=none; b=T4Nu60JPKrXepSUKQbc2k+SzCsAxvjBK6njt9ocWb7zg6CNv+gpGa9voqLZ2W7lwvZ8wxnzn/qBY/I83K+0sqqhSF/34C7bPBuTqOsjQv73DHyUGpKRI3DnG4Ye83nNd/GsoKMglU+ukiBXer2EMv4QCW9u0so4WApwvJJ+sOAU=
+	t=1788908878; cv=none; b=ZwZsogdGLZ6NH3+kSZvlbt7wq2RnaIh7dXwgt/MDKRCcUA0u9Wl4z53JZd+5zv9w29zi0TmX3Gy5JwxVBk1BNj26s4eM60O0VhXXYkt/rU/h/5AUBg9a+k1oUpAtP7pNEIqoeRW0eP56cuOWxD5o3s5R/shkA9iVlYJCymHQivo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788908272; c=relaxed/simple;
-	bh=MJe9s9PfEMNNaVE0qY1AaKNdj/6BL+VfDqFZfge1APM=;
-	h=Date:To:From:Subject:Message-Id; b=WEHx2OzptoBkXZxoZaRdAEZfZUq/JBwZZ9zXI2Gr6MS4CKfbkOmteIDRGPP6k/Md2HzkHpLy5FhWjiXegRMFYHD9JnJr26pjKUqrXP0ZQLG3ObcIRElf2SH6OOjDtLSvkln6WfVQ17v3eVSkSco7iHV8GpI5qK0HrYOo1MIrgsI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=KTT6shau; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1788908878; c=relaxed/simple;
+	bh=AWBHavZCf4Hx4XQNT5NU8KGCjJChDGdC8tJ4gtv8wug=;
+	h=Date:To:From:Subject:Message-Id; b=XzKur0Od5W1NCABTkjMmV+c/yjG6AKtdXJDXZW2CPKqIlEDOemSzDpdrbm7fPCSs6Hqr75cIkEfcoFv3gZZ8S7zrrzuukfGJWR3eMwevwMVRYWYMuTWOXWzopKvxMk2z1leivDTzcbqNa669jfaJ2Jgl0oyCCRI5lkx+U8sO2G8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=DtryM7Wn; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="KTT6shau"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0A2051F00A3A;
-	Tue,  8 Sep 2026 22:57:49 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="DtryM7Wn"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9E6031F00A3A;
+	Tue,  8 Sep 2026 23:07:56 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1788908269;
-	bh=NHXCAfhFQ7dTZVYfZcwos82GHTNtCLUHdHOA0xBSPF8=;
+	d=linux-foundation.org; s=korg; t=1788908876;
+	bh=KtzrtXup0wsK+eoUzEtgGmQ1nb1FM4X9Avb4HCkv1no=;
 	h=Date:To:From:Subject;
-	b=KTT6shauSn2kqLtKKfJsl7VPqVJtPEbiKRR7AJjlL4Dzpm9qO1v+STkwzrvHjXLUQ
-	 pbX1GmhclHlue5wvfJ/WIBhDKSJBFBgwsfHPA6KTQIVA5Sdsxa4psFtND8GdLVxi1H
-	 2uYAdTLx0yAJLdA7/5ZTmZrE0MDSuL6DBdnkf5qs=
-Date: Tue, 08 Sep 2026 15:57:48 -0700
-To: mm-commits@vger.kernel.org,samitolvanen@google.com,petr.pavlu@suse.com,peterz@infradead.org,ojeda@kernel.org,mhiramat@kernel.org,mcgrof@kernel.org,gregkh@linuxfoundation.org,arnd@arndb.de,atomlin@atomlin.com,akpm@linux-foundation.org
+	b=DtryM7WnG9iJ9yuwXTxSLrAcVek3IbfpCQHalghthtjGX3WU26mO8hBY1SUXzJ5U6
+	 zBQp1P+i0nLEyXs9ZOZdZ58kFSy6G4a1y1k7hGaW/OvvSWR7njNQ1y+7xu9113Mdm+
+	 laU8OWMqqu3PcS/rcyaTbyF+qsO4S5YrlgpAnJJ0=
+Date: Tue, 08 Sep 2026 16:07:56 -0700
+To: mm-commits@vger.kernel.org,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + module-rename-module_blacklist-to-module_denylist.patch added to mm-nonmm-unstable branch
-Message-Id: <20260908225749.0A2051F00A3A@smtp.kernel.org>
+Subject: [to-be-updated] mm-damon-tests-core-kunit-test-damon_commit_filter.patch removed from -mm tree
+Message-Id: <20260908230756.9E6031F00A3A@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,157 +34,156 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The patch titled
-     Subject: module: rename module_blacklist to module_denylist
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     module-rename-module_blacklist-to-module_denylist.patch
+The quilt patch titled
+     Subject: mm/damon/tests/core-kunit: test damon_commit_filter()
+has been removed from the -mm tree.  Its filename was
+     mm-damon-tests-core-kunit-test-damon_commit_filter.patch
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/module-rename-module_blacklist-to-module_denylist.patch
-
-This patch will later appear in the mm-nonmm-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via various
-branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there most days
+This patch was dropped because an updated version will be issued
 
 ------------------------------------------------------
-From: Aaron Tomlin <atomlin@atomlin.com>
-Subject: module: rename module_blacklist to module_denylist
-Date: Tue, 8 Sep 2026 16:32:30 -0400
+From: SJ Park <sj@kernel.org>
+Subject: mm/damon/tests/core-kunit: test damon_commit_filter()
+Date: Wed, 2 Sep 2026 07:03:07 -0700
 
-To preserve the existing user-space ABI, "module_blacklist=" is kept as a
-legacy alias pointing to the same module_denylist variable.
+Patch series "mm/damon: add kunit and selftests for probes and probe
+weights".
 
-This patch addresses the documentation by marking "module_blacklist=" as
-deprecated in admin-guide/kernel-parameters.txt, and documents the new
-"module_denylist=" parameter.  All internal symbols, such as
-module_is_blacklisted(), have been renamed to use "denylist" and all log
-messages now use "denylisted".
+DAMON recently introduced probes and probe weights.  Add kunit and
+selftests for ensuring the parameters for features can be set using the
+core API and the sysfs ABI, respectively.
 
-Link: https://lore.kernel.org/20260908203230.401020-4-atomlin@atomlin.com
-Signed-off-by: Aaron Tomlin <atomlin@atomlin.com>
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Luis Chamberalin <mcgrof@kernel.org>
-Cc: "Masami Hiramatsu (Google)" <mhiramat@kernel.org>
-Cc: Miguel Ojeda <ojeda@kernel.org>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Petr Pavlu <petr.pavlu@suse.com>
-Cc: Sami Tolvanen <samitolvanen@google.com>
+
+This patch (of 6):
+
+Add kunit test to ensure damon_commit_filter() updates destination filter
+as expected for valid inputs.
+
+Link: https://lore.kernel.org/20260902140313.85983-1-sj@kernel.org
+Link: https://lore.kernel.org/20260902140313.85983-2-sj@kernel.org
+Signed-off-by: SJ Park <sj@kernel.org>
+Cc: Brendan Higgins <brendan.higgins@linux.dev>
+Cc: David Gow <davidgow@davidgow.net>
+Cc: Shuah Khan <shuah@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/admin-guide/kernel-parameters.txt |    6 +++-
- include/linux/module.h                          |    2 -
- init/main.c                                     |   19 +++++++-------
- kernel/module/main.c                            |    4 +-
- 4 files changed, 18 insertions(+), 13 deletions(-)
+ mm/damon/tests/core-kunit.h |   40 ++++++++++++++++++++++++++++++++++
+ 1 file changed, 40 insertions(+)
 
---- a/Documentation/admin-guide/kernel-parameters.txt~module-rename-module_blacklist-to-module_denylist
-+++ a/Documentation/admin-guide/kernel-parameters.txt
-@@ -4232,7 +4232,11 @@ Kernel parameters
- 			Note that if CONFIG_MODULE_SIG_FORCE is set, that
- 			is always true, so this option does nothing.
+--- a/mm/damon/tests/core-kunit.h~mm-damon-tests-core-kunit-test-damon_commit_filter
++++ a/mm/damon/tests/core-kunit.h
+@@ -1316,6 +1316,45 @@ static void damon_test_commit_target_reg
+ 			(unsigned long[][2]) {{3, 8}, {8, 10}}, 2);
+ }
  
--	module_blacklist=  [KNL] Do not load a comma-separated list of
-+	module_blacklist=  [KNL] (deprecated)
-+			This parameter has been renamed to module_denylist=.
-+			Please use module_denylist= instead.
++static void damon_test_commit_filter_for(struct kunit *test,
++		struct damon_filter *dst, struct damon_filter *src)
++{
++	damon_commit_filter(dst, src);
++	KUNIT_EXPECT_EQ(test, dst->type, src->type);
++	KUNIT_EXPECT_EQ(test, dst->matching, src->matching);
++	KUNIT_EXPECT_EQ(test, dst->allow, src->allow);
++	switch (src->type) {
++	case DAMON_FILTER_TYPE_MEMCG:
++		KUNIT_EXPECT_EQ(test, dst->memcg_id, src->memcg_id);
++		break;
++	default:
++		break;
++	}
++}
 +
-+	module_denylist=  [KNL] Do not load a comma-separated list of
- 			modules.  Useful for debugging problem modules.
- 
- 	mousedev.tap_time=
---- a/include/linux/module.h~module-rename-module_blacklist-to-module_denylist
-+++ a/include/linux/module.h
-@@ -879,7 +879,7 @@ static inline void module_for_each_mod(i
- }
- #endif /* CONFIG_MODULES */
- 
--bool module_is_blacklisted(const char *module_name);
-+bool module_is_denylisted(const char *module_name);
- 
- #ifdef CONFIG_SYSFS
- extern struct kset *module_kset;
---- a/init/main.c~module-rename-module_blacklist-to-module_denylist
-+++ a/init/main.c
-@@ -1347,17 +1347,17 @@ static inline void do_trace_initcall_lev
- extern struct initcall_modname __start_initcall_modnames[];
- extern struct initcall_modname __stop_initcall_modnames[];
- 
--/* module_blacklist is a comma-separated list of module names */
--static char *module_blacklist;
--bool __init_or_module module_is_blacklisted(const char *module_name)
-+/* module_denylist is a comma-separated list of module names */
-+static char *module_denylist;
-+bool __init_or_module module_is_denylisted(const char *module_name)
++static void damon_test_commit_filter(struct kunit *test)
++{
++	struct damon_filter dst = {
++		.type = DAMON_FILTER_TYPE_ANON,
++		.matching = false,
++		.allow = false,
++	};
++
++	damon_test_commit_filter_for(test, &dst,
++			&(struct damon_filter){
++			.type = DAMON_FILTER_TYPE_ANON,
++			.matching = true,
++			.allow = true,
++			});
++	damon_test_commit_filter_for(test, &dst,
++			&(struct damon_filter){
++			.type = DAMON_FILTER_TYPE_MEMCG,
++			.matching = false,
++			.allow = false,
++			.memcg_id = 123,
++			});
++}
++
+ static void damon_test_commit_ctx(struct kunit *test)
  {
- 	const char *p;
- 	size_t len;
- 
--	if (!module_blacklist)
-+	if (!module_denylist)
- 		return false;
- 
--	for (p = module_blacklist; *p; p += len) {
-+	for (p = module_denylist; *p; p += len) {
- 		len = strcspn(p, ",");
- 		if (strlen(module_name) == len && parameqn(module_name, p, len))
- 			return true;
-@@ -1366,7 +1366,8 @@ bool __init_or_module module_is_blacklis
- 	}
- 	return false;
- }
--core_param(module_blacklist, module_blacklist, charp, 0400);
-+core_param(module_denylist, module_denylist, charp, 0400);
-+core_param(module_blacklist, module_denylist, charp, 0400);
- 
- static const char *__init get_builtin_modname(initcall_t fn)
- {
-@@ -1383,10 +1384,10 @@ static void __init do_one_initcall_built
- {
- 	const char *modname;
- 
--	if (module_blacklist) {
-+	if (module_denylist) {
- 		modname = get_builtin_modname(fn);
--		if (modname && module_is_blacklisted(modname)) {
--			pr_info("Skipping initcall for blacklisted built-in module %s\n",
-+		if (modname && module_is_denylisted(modname)) {
-+			pr_info("Skipping initcall for denylisted built-in module %s\n",
- 				modname);
- 			return;
- 		}
---- a/kernel/module/main.c~module-rename-module_blacklist-to-module_denylist
-+++ a/kernel/module/main.c
-@@ -3382,8 +3382,8 @@ static int early_mod_check(struct load_i
- 	 * Now that we know we have the correct module name, check
- 	 * if it's blacklisted.
- 	 */
--	if (module_is_blacklisted(info->name)) {
--		pr_err("Module %s is blacklisted\n", info->name);
-+	if (module_is_denylisted(info->name)) {
-+		pr_err("Module %s is denylisted\n", info->name);
- 		return -EPERM;
- 	}
- 
+ 	struct damon_ctx *src, *dst;
+@@ -1722,6 +1761,7 @@ static struct kunit_case damon_test_case
+ 	KUNIT_CASE(damos_test_commit_pageout),
+ 	KUNIT_CASE(damos_test_commit_migrate_hot),
+ 	KUNIT_CASE(damon_test_commit_target_regions),
++	KUNIT_CASE(damon_test_commit_filter),
+ 	KUNIT_CASE(damon_test_commit_ctx),
+ 	KUNIT_CASE(damon_test_valid_probe_params),
+ 	KUNIT_CASE(damos_test_filter_out),
 _
 
-Patches currently in -mm which might be from atomlin@atomlin.com are
+Patches currently in -mm which might be from sj@kernel.org are
 
-hung_task-reset-warning-budget-when-problem-gets-resolved.patch
-hung_task-log-summary-line-when-warning-budget-is-exhausted.patch
-module-treat-dashes-and-underscores-interchangeably-in-module_blacklist.patch
-module-extend-module_blacklist-parameter-to-built-in-modules.patch
-module-rename-module_blacklist-to-module_denylist.patch
+mm-damon-vaddr-avoid-hw-driven-pte-updates-during-damon_hugetlb_mkold.patch
+mm-damon-core-skip-applying-scheme-if-region-split-for-quota-fails.patch
+mm-damon-paddr-respect-folio-end-for-damos_stat.patch
+mm-damon-paddr-respect-folio-end-for-damos-actions-except-stat.patch
+mm-damon-vaddr-respect-folio-end-for-damos_stat.patch
+mm-damon-vaddr-respect-folio-end-for-damos_migrate_hotcold.patch
+mm-damon-core-handle-extreme-memory-state-in-damon_get_node_mem_bp.patch
+mm-damon-core-handle-extreme-memory-state-in-get_node_memcg_used_bp.patch
+mm-damon-core-handle-extreme-memory-state-in-get_in_active_mem_bp.patch
+mm-damon-core-introduce-damon_filter_type_pgidle_unset.patch
+mm-damon-paddr-support-pgidle_unset-probe-filter-type.patch
+mm-damon-sysfs-support-pgidle_unset-probe-filter-type.patch
+docs-mm-damon-design-document-pgidle_unset-probe-filter-type.patch
+mm-damon-core-introduce-damon_prep-struct.patch
+mm-damon-core-commit-preps.patch
+mm-damon-core-introduce-damon_operations-prep_probes.patch
+mm-damon-paddr-support-damon_prep.patch
+mm-damon-sysfs-implement-preps-directory.patch
+mm-damon-sysfs-implement-preps-nr_preps-file.patch
+mm-damon-sysfs-create-directories-for-nr_preps-writes.patch
+mm-damon-sysfs-implement-prep_action-file.patch
+mm-damon-sysfs-pass-preps-to-damon-core.patch
+selftests-damon-sysfssh-test-probe-prep-sysfs-files.patch
+docs-mm-damon-design-document-probe-preps.patch
+docs-admin-guide-mm-damon-usage-document-probe-preps-sysfs-files.patch
+docs-abi-damon-document-probe-prep-sysfs-files.patch
+mm-damon-tests-core-kunit-test-committing-psi-goal-to-psi-goal.patch
+mm-damon-core-handle-uninitialized-damos_quota_goal-last_psi_total.patch
+mm-damon-core-copy-nid-for-eligible_mem_bp-damos-quota-goal-commit.patch
+mm-damon-sysfs-set-next-refresh-jiffies-per-sysfs-context.patch
+mm-damon-tests-core-kunit-add-damon_commit_probes-test.patch
+selftests-damon-_damon_sysfs-implement-damonprobes.patch
+selftests-damon-drgn_dump_damon_status-dump-probes.patch
+selftests-damon-sysfspy-extend-commit-assertion-function-for-probes.patch
+selftests-damon-sysfspy-test-damon-probes.patch
+mm-damon-core-use-damon_nr_samples_per_aggr-for-max-merge-threshold.patch
+mm-damon-core-remove-debug-messages.patch
+mm-damon-core-remove-debug-messages-fix.patch
+mm-damon-vaddr-remove-a-debug-message.patch
+mm-damon-core-validate-number-of-probes-in-valid_probe_params.patch
+mm-damon-sysfs-remove-probes-number-validation.patch
+mm-damon-tests-core-kunit-extend-set_regions-test-for-error-case.patch
+mm-damon-tests-core-kunit-test-=0-size-damon_set_regions-inputs.patch
+mm-damon-tests-core-kunit-test-overlapping-ranges-for-set_regions.patch
+mm-damon-tests-core-kunit-test-damon_nr_samples_per_aggr.patch
+selftests-damon-sysfssh-test-hugepage_mem_bp-quota-goal.patch
+docs-mm-damon-maintainer-profile-update-ai-review-for-sashiko-replies.patch
+docs-abi-damon-recommend-subsystem-doc-instead-of-admin-guide.patch
+mm-damon-core-error-damos_commit_quota_goal-for-zero-target_value.patch
+revert-mm-damon-lru_sort-error-out-for-10000-active_mem_bp.patch
+revert-samples-damon-mtier-error-out-for-zero-quota-goal-target-values.patch
+mm-damon-core-handle-null-ctx-parameter-in-damon_call.patch
+mm-damon-core-set-ctx-call_controls_obsolete-in-damon_new_ctx.patch
+mm-damon-reclaim-remove-unnecessary-damon_call-param-validation.patch
+mm-damon-lru_sort-remove-unnecessary-damon_call-param-validation.patch
 
