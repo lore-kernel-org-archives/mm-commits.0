@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1D8294A3412
-	for <mm-commits@vger.kernel.org>; Tue,  8 Sep 2026 19:50:06 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1C0CB2D3ED1
+	for <mm-commits@vger.kernel.org>; Tue,  8 Sep 2026 19:50:09 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788897008; cv=none; b=WDzAThjYaBxcvjZxNmb3k7ggQpRzYo4CKM/BfZqJozvbShy53adwA8t763xO1dCH7vYV74rCFEYJvJ08rZeTGwgKuNKeSLdgpPhbVMcknKRlRf8tnUBVlAQuD2++wn1tT4UtXyD1mE9Zy3r0GvFuobOnLrMrooIYNICaPDDb0no=
+	t=1788897010; cv=none; b=BBZ1FYjIqtGLLF4yDLr8ck0qJrz1sgC8JKYSzOKsFAZXxfgdCEYz398uy4Y/3fj1+1lvzgphYrBMKFrM8RK+IS0sL0Q4IwLX7EyJTK6mQMi60fN5tbaNSRUcdbSPgK8m40U5/lFFnynAOtVJ45gd5kPxuPprYPY1k31qn3ER/is=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788897008; c=relaxed/simple;
-	bh=EgN5hipf8RMf/IT784ayMPCn2AWz+y9fSLs1Y/Vb9WQ=;
-	h=Date:To:From:Subject:Message-Id; b=BSEiWymx5vgx2bD5jnSChrfu5IiZ1ZQgXg3WOZ0zS8+oYiR8RP3jmDNTqBYH6nzo9S471Kpf36o+5YfzLWa2hD7BzZwPJBlqBTU+Yp3X+EuBqzgkfJH+I4kv/8fBiAIeBzQm3PdXbRdvfF+q1zeF0sm3lpj2Pp8Jphyaic2lckI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=jFmV+gIf; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1788897010; c=relaxed/simple;
+	bh=LMdWOEfJaUs1WA29wcoKpOHWdEtmDkpffLfMxpC6hkY=;
+	h=Date:To:From:Subject:Message-Id; b=nAo3NWUzPEMVTKGUGiY3L3CNQggyBhJnqr0fzGA1Kw/Ha43ZTB+MFoQ/FSgtbyRHDAuvealsLC9I9egg/f44B3yTKMShoJ1cFtmgueF9GvZy19jKPp5mRY6Lk/UX8v7jI8kgyuZWPQSoyDjiYBkWzq8hDMWi1Xgc8Z2Aj3yZ6Jk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=XgCITUma; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="jFmV+gIf"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B3D201F00A3A;
-	Tue,  8 Sep 2026 19:50:06 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="XgCITUma"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E51B61F00A3A;
+	Tue,  8 Sep 2026 19:50:08 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1788897006;
-	bh=0oX4RiiJYgR6W07hGZ2bag3kWeu+r33Pvs6FwrOiqe4=;
+	d=linux-foundation.org; s=korg; t=1788897009;
+	bh=EGC9XBGDSqOVyvaMqJHPPAPKeGV+ffCe80w+/aS5Rd4=;
 	h=Date:To:From:Subject;
-	b=jFmV+gIfWe5iP8ZLad8YRxCX1pzSburF7kD75QwVITr6kmnqUnCcU1qpIlB+EPvYz
-	 h/EqkyIZOFcwvCzwO9U8VCULMiUovedyLZ3B5+pbRto8n4Ijorjvn9ScW/XLt2HaBJ
-	 iSIdT57/PEi/VV22alMJm9VKK+3jWdQcy/iRHWEM=
-Date: Tue, 08 Sep 2026 12:50:06 -0700
+	b=XgCITUma4K28smI5heIGqAVPuxn0nvfmGQNM/Cd4Lph7WnU2zxufut4cSp4b2IzrR
+	 fotmbiVa+55wIhbOxNHv3CQzAl1y/nZihR5BDlkSk65RNs5EDelQRfQ7wSD27UzLtl
+	 hiZV+ac5LUicFWysEcMVFx9qGFpqA/2AfWEpDk9k=
+Date: Tue, 08 Sep 2026 12:50:08 -0700
 To: mm-commits@vger.kernel.org,kas@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-mm-scale-khugepageds-collapse-wait-with-the-pmd-size.patch added to mm-new branch
-Message-Id: <20260908195006.B3D201F00A3A@smtp.kernel.org>
+Subject: + selftests-mm-skip-khugepaged-page-cache-cases-without-a-pmd-folio.patch added to mm-new branch
+Message-Id: <20260908195008.E51B61F00A3A@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: selftests/mm: scale khugepaged's collapse wait with the PMD size
+     Subject: selftests/mm: skip khugepaged page cache cases without a PMD folio
 has been added to the -mm mm-new branch.  Its filename is
-     selftests-mm-scale-khugepageds-collapse-wait-with-the-pmd-size.patch
+     selftests-mm-skip-khugepaged-page-cache-cases-without-a-pmd-folio.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-scale-khugepageds-collapse-wait-with-the-pmd-size.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-skip-khugepaged-page-cache-cases-without-a-pmd-folio.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,31 +70,26 @@ and is updated there most days
 
 ------------------------------------------------------
 From: "Kiryl Shutsemau (Meta)" <kas@kernel.org>
-Subject: selftests/mm: scale khugepaged's collapse wait with the PMD size
-Date: Tue, 8 Sep 2026 13:50:49 +0100
+Subject: selftests/mm: skip khugepaged page cache cases without a PMD folio
+Date: Tue, 8 Sep 2026 13:50:50 +0100
 
-wait_for_scan() gives every case the same three seconds, whatever the huge
-page costs to build.  collapse_full() asks for four of them: 8M at a 2M
-PMD, but 2G at a 512M PMD -- arm64 with 64K base pages.  Three seconds is
-thin at that size, and the case has reported a failure for a collapse that
-was still going.
+The page cache caps folio order at MAX_PAGECACHE_ORDER, which is below the
+PMD order on arm64 with 64K pages, where a PMD is 512M.  A PMD-sized page
+cache folio is impossible there, so the kernel refuses these collapses:
+MADV_COLLAPSE answers -EINVAL and khugepaged passes over the range.  Four
+shmem cases ask for a PMD-sized folio anyway, fail, and the run bails out
+in the middle.
 
-The timeout is a ceiling on a poll loop, not a sleep: the loop stops as
-soon as ops->check_huge() sees the collapse, or as soon as full_scans has
-advanced by two.  Raising it costs a passing case nothing.  Across 80 runs
-of collapse_full() on arm64 with 64K pages the wait was half a second in
-73 of them, with a tail to two seconds.
+Skip the shmem and file mem types where the cap is below the PMD order.
 
-Keep three seconds as the floor and add a second per 128M collapsed.  A 2M
-PMD is unchanged, so x86-64 is too; a 512M PMD gets 19 seconds.
+The cap is not shmem-specific: it applies to every file folio.  Add
+thp_file_supported_orders() to read the orders the page cache allows.
 
-On arm64 with 64K pages a passing ./khugepaged all:anon takes 49 seconds
-under TCG before and after this change.
+Anonymous collapse is unaffected: its orders are not capped this way.
 
 Assisted-by: LLM
-Link: https://lore.kernel.org/20260908125105.1510704-4-kirill@shutemov.name
+Link: https://lore.kernel.org/20260908125105.1510704-5-kirill@shutemov.name
 Signed-off-by: Kiryl Shutsemau (Meta) <kas@kernel.org>
-Acked-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
 Reviewed-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
 Tested-by: Muhammad Usama Anjum <usama.anjum@arm.com>
 Cc: Alexander Gordeev <agordeev@linux.ibm.com>
@@ -107,6 +102,7 @@ Cc: Jason Gunthorpe <jgg@ziepe.ca>
 Cc: Lance Yang <lance.yang@linux.dev>
 Cc: Leon Romanovsky <leon@kernel.org>
 Cc: Liam R. Howlett <liam@infradead.org>
+Cc: Lorenzo Stoakes (ARM) <ljs@kernel.org>
 Cc: Michal Hocko <mhocko@suse.com>
 Cc: Ryan Roberts <ryan.roberts@arm.com>
 Cc: Shuah Khan <shuah@kernel.org>
@@ -117,25 +113,56 @@ Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/khugepaged.c |    7 +++++--
- 1 file changed, 5 insertions(+), 2 deletions(-)
+ tools/lib/mm/hugepage_settings.h        |    9 +++++++++
+ tools/testing/selftests/mm/khugepaged.c |   19 +++++++++++++++++++
+ 2 files changed, 28 insertions(+)
 
---- a/tools/testing/selftests/mm/khugepaged.c~selftests-mm-scale-khugepageds-collapse-wait-with-the-pmd-size
-+++ a/tools/testing/selftests/mm/khugepaged.c
-@@ -561,8 +561,11 @@ static bool wait_for_scan(const char *ms
- 		int nr_hpages, int collap_order, struct mem_ops *ops)
- {
- 	unsigned long hpage_size = page_size << collap_order;
--	int full_scans;
--	int timeout = 6; /* 3 seconds */
-+	unsigned long bytes = (unsigned long)nr_hpages * hpage_size;
-+	int timeout, full_scans;
-+
-+	/* Half-second ticks: three seconds floor, plus a second per 128M */
-+	timeout = 6 + 2 * (bytes / (128UL << 20));
+--- a/tools/lib/mm/hugepage_settings.h~selftests-mm-skip-khugepaged-page-cache-cases-without-a-pmd-folio
++++ a/tools/lib/mm/hugepage_settings.h
+@@ -87,6 +87,15 @@ void thp_set_read_ahead_path(char *path)
+ unsigned long thp_supported_orders(void);
+ unsigned long thp_shmem_supported_orders(void);
  
- 	/* Sanity check */
- 	if (!ops->check_huge(p, len, 0, hpage_size))
++/*
++ * The per-order shmem_enabled attribute is created for the orders the page
++ * cache can hold, not just for shmem, so it answers for regular files too.
++ */
++static inline unsigned long thp_file_supported_orders(void)
++{
++	return thp_shmem_supported_orders();
++}
++
+ bool thp_available(void);
+ bool thp_is_enabled(void);
+ 
+--- a/tools/testing/selftests/mm/khugepaged.c~selftests-mm-skip-khugepaged-page-cache-cases-without-a-pmd-folio
++++ a/tools/testing/selftests/mm/khugepaged.c
+@@ -1358,6 +1358,25 @@ int main(int argc, char **argv)
+ 
+ 	setbuf(stdout, NULL);
+ 
++	/*
++	 * Without a PMD-order page cache folio the kernel refuses these
++	 * collapses, so there is nothing to test.
++	 */
++	if (!(thp_file_supported_orders() & (1UL << hpage_pmd_order))) {
++		if (shmem_ops) {
++			ksft_print_msg("no PMD-order page cache folio: skipping shmem\n");
++			shmem_ops = NULL;
++		}
++		if (read_only_file_ops) {
++			ksft_print_msg("no PMD-order page cache folio: skipping file\n");
++			read_only_file_ops = NULL;
++			read_write_file_read_ops = NULL;
++			read_write_file_write_ops = NULL;
++		}
++		if (!anon_ops && !shmem_ops && !read_only_file_ops)
++			ksft_exit_skip("No mem_type left to run\n");
++	}
++
+ 	default_settings.khugepaged.max_ptes_none = hpage_pmd_nr - 1;
+ 	default_settings.khugepaged.max_ptes_swap = hpage_pmd_nr / 8;
+ 	default_settings.khugepaged.max_ptes_shared = hpage_pmd_nr / 2;
 _
 
 Patches currently in -mm which might be from kas@kernel.org are
