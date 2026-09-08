@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 368705111B9
-	for <mm-commits@vger.kernel.org>; Tue,  8 Sep 2026 23:08:03 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 512C0492E21
+	for <mm-commits@vger.kernel.org>; Tue,  8 Sep 2026 23:10:36 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788908888; cv=none; b=ZiZS8Yz+y5BUABKlWDIZR7CbeY23nwmFWSCuVnBwlemoYsbAO1+OD8LZVepbzGt4ABYre5hSReAJ9cc/LXTEtg8hWo0ZMQTdF26cWt1FSsz0hfxfMHFs+mYHT2SiI+hBG6swfoazU5u9D06KE7KJk8BQl/ysovk/UABzOsGoW+8=
+	t=1788909037; cv=none; b=EXShq5+ZN+y+gowCuY85CDwvzJ415Rng+oB6+xN5bFgtum/iwgoCnHHRxwDqYICpsYyPYCbXq1lI6KtR99E18jRLjmy4MklT7aN1eUJqW8+KcEnCCSX/HYsGoeQyqFtJwOnjm76JXWpjBp8g9KItCZPA3cvc1pL6NIAR8AZbHZQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788908888; c=relaxed/simple;
-	bh=gHz1lt/wpbw96Fddy/W4BJcNfzRTeWnNt972L4AUUAY=;
-	h=Date:To:From:Subject:Message-Id; b=HVQDjNhHI2TBps9HGMmwm9/TvC2Dcngl7ssGbJ9QrBqpk6SCp9Bs5F0MOlGUQDg1zRnjvbDSzcsvg/TVp1LvTtqUdut0u8frnintQzkAP4ERf+e8OZ0Ix1MqZMBxUsXSwGiVURei141c+17ywHtOH0w/oh7MHWIZsZ19YvHVswg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=BVi0IeTY; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1788909037; c=relaxed/simple;
+	bh=ZYUKcePGggZ/y8P0FBFOj/TnnVRGSLJjR1UMjTSGFa8=;
+	h=Date:To:From:Subject:Message-Id; b=BRyJECmEig5SlJMftZKjCWa5oV7niVZ1Szs4K9vhqSZSEBgnDDfO5bZNEFzQQnAwBeT7T6ScF0u0dS3zWREyjYYktZl4m4w13D6XdIscJHFPeek6O259+r6P1v55jtAelTwx56L+Q4dHYRdeo0Tqi/Aos8ePNgoG3VoHfOCLW+k=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=tQiRBAGl; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="BVi0IeTY"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 14B511F00A3A;
-	Tue,  8 Sep 2026 23:08:01 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="tQiRBAGl"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D03701F00A3A;
+	Tue,  8 Sep 2026 23:10:35 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1788908881;
-	bh=xyUQkOeIsr1BoH/EttMwYQXkFWb+ZnIaXtkuUCpYFnM=;
+	d=linux-foundation.org; s=korg; t=1788909035;
+	bh=GUsUsj1SvMmi3OTxvSX4rlIVesmuAjfAlDQ5WjnMAmE=;
 	h=Date:To:From:Subject;
-	b=BVi0IeTYAaApxoNVTl3PDLbQZvXGyMXP39mmnnYjSU0YDSPS7hQIUg1TvFZOJZtsv
-	 w5o47/8FkGbWuJ5kdNgYod6BSk/crMXpLgBPrY57jyWqtYyRR1Is51ak//GzvWmD2+
-	 kRchrbiuHHwKGgaNeDBq/8Uh5ytEGNIumPbEheUg=
-Date: Tue, 08 Sep 2026 16:08:00 -0700
+	b=tQiRBAGlu93sZ4bUd7NNLw/a5CuIeHrwLX00T/cyWXlkkFORDTuO4aB98YhSppLe0
+	 ksBpcSh7yMNqS9IJDRy8RTMzJUnBwPBnPAp2DfNzXk/gbPpnAGF0TGN68ar0IVth/t
+	 QAJbBcrq7HXKK7lU2XbnE7Jk2+OaAReHO44IumRY=
+Date: Tue, 08 Sep 2026 16:10:35 -0700
 To: mm-commits@vger.kernel.org,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [to-be-updated] selftests-damon-sysfspy-extend-commit-assertion-function-for-probes.patch removed from -mm tree
-Message-Id: <20260908230801.14B511F00A3A@smtp.kernel.org>
+Subject: + mm-damon-tests-core-kunit-test-damon_commit_filter.patch added to mm-unstable branch
+Message-Id: <20260908231035.D03701F00A3A@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,22 +34,49 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The quilt patch titled
-     Subject: selftests/damon/sysfs.py: extend commit assertion function for probes
-has been removed from the -mm tree.  Its filename was
-     selftests-damon-sysfspy-extend-commit-assertion-function-for-probes.patch
+The patch titled
+     Subject: mm/damon/tests/core-kunit: test damon_commit_filter()
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-damon-tests-core-kunit-test-damon_commit_filter.patch
 
-This patch was dropped because an updated version will be issued
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-tests-core-kunit-test-damon_commit_filter.patch
+
+This patch will later appear in the mm-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via various
+branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there most days
 
 ------------------------------------------------------
 From: SJ Park <sj@kernel.org>
-Subject: selftests/damon/sysfs.py: extend commit assertion function for probes
-Date: Wed, 2 Sep 2026 07:03:11 -0700
+Subject: mm/damon/tests/core-kunit: test damon_commit_filter()
+Date: Wed, 2 Sep 2026 07:03:07 -0700
 
-Extend DAMON sysfs testing commit assertion helper function to check
-probes too.
+Patch series "mm/damon: add kunit and selftests for probes and probe
+weights".
 
-Link: https://lore.kernel.org/20260902140313.85983-6-sj@kernel.org
+DAMON recently introduced probes and probe weights.  Add kunit and
+selftests for ensuring the parameters for features can be set using the
+core API and the sysfs ABI, respectively.
+
+
+This patch (of 6):
+
+Add kunit test to ensure damon_commit_filter() updates destination filter
+as expected for valid inputs.
+
+Link: https://lore.kernel.org/20260902140313.85983-1-sj@kernel.org
+Link: https://lore.kernel.org/20260902140313.85983-2-sj@kernel.org
 Signed-off-by: SJ Park <sj@kernel.org>
 Cc: Brendan Higgins <brendan.higgins@linux.dev>
 Cc: David Gow <davidgow@davidgow.net>
@@ -57,44 +84,65 @@ Cc: Shuah Khan <shuah@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/damon/sysfs.py |   19 +++++++++++++++++++
- 1 file changed, 19 insertions(+)
+ mm/damon/tests/core-kunit.h |   40 ++++++++++++++++++++++++++++++++++
+ 1 file changed, 40 insertions(+)
 
---- a/tools/testing/selftests/damon/sysfs.py~selftests-damon-sysfspy-extend-commit-assertion-function-for-probes
-+++ a/tools/testing/selftests/damon/sysfs.py
-@@ -178,6 +178,24 @@ def assert_monitoring_attrs_committed(at
-     assert_true(dump['max_nr_regions'] == attrs.max_nr_regions,
-                 'max_nr_regions', dump)
+--- a/mm/damon/tests/core-kunit.h~mm-damon-tests-core-kunit-test-damon_commit_filter
++++ a/mm/damon/tests/core-kunit.h
+@@ -1316,6 +1316,45 @@ static void damon_test_commit_target_reg
+ 			(unsigned long[][2]) {{3, 8}, {8, 10}}, 2);
+ }
  
-+def assert_damon_filters_committed(filters, dump):
-+    assert_true(len(dump) == len(filters.filters), 'probe filters', dump)
-+    for idx, damon_filter in enumerate(filters.filters):
-+        filter_dump = dump[idx]
-+        assert_true(filter_dump['type'] == damon_filter.type_, 'type',
-+                    filter_dump)
-+        assert_true(filter_dump['matching'] == damon_filter.matching,
-+                    'matching', filter_dump)
-+        assert_true(filter_dump['allow'] == damon_filter.allow, 'allow',
-+                    filter_dump)
++static void damon_test_commit_filter_for(struct kunit *test,
++		struct damon_filter *dst, struct damon_filter *src)
++{
++	damon_commit_filter(dst, src);
++	KUNIT_EXPECT_EQ(test, dst->type, src->type);
++	KUNIT_EXPECT_EQ(test, dst->matching, src->matching);
++	KUNIT_EXPECT_EQ(test, dst->allow, src->allow);
++	switch (src->type) {
++	case DAMON_FILTER_TYPE_MEMCG:
++		KUNIT_EXPECT_EQ(test, dst->memcg_id, src->memcg_id);
++		break;
++	default:
++		break;
++	}
++}
 +
-+def assert_probes_committed(probes, dump):
-+    assert_true(len(dump) == len(probes.probes), 'probes length', dump)
-+    for idx, probe in enumerate(probes.probes):
-+        probe_dump = dump[idx]
-+        assert_true(probe.weight == probe_dump['weight'], 'weight', probe_dump)
-+        assert_damon_filters_committed(probe.filters, probe_dump['filters'])
++static void damon_test_commit_filter(struct kunit *test)
++{
++	struct damon_filter dst = {
++		.type = DAMON_FILTER_TYPE_ANON,
++		.matching = false,
++		.allow = false,
++	};
 +
- def assert_monitoring_target_committed(target, dump):
-     # target.pid is the pid "number", while dump['pid'] is 'struct pid'
-     # pointer, and hence cannot be compared.
-@@ -196,6 +214,7 @@ def assert_ctx_committed(ctx, dump):
-             }
-     assert_true(dump['ops']['id'] == ops_val[ctx.ops], 'ops_id', dump)
-     assert_monitoring_attrs_committed(ctx.monitoring_attrs, dump['attrs'])
-+    assert_probes_committed(ctx.monitoring_attrs.probes, dump['probes'])
-     assert_monitoring_targets_committed(ctx.targets, dump['adaptive_targets'])
-     assert_schemes_committed(ctx.schemes, dump['schemes'])
-     assert_true(dump['pause'] == ctx.pause, 'pause', dump)
++	damon_test_commit_filter_for(test, &dst,
++			&(struct damon_filter){
++			.type = DAMON_FILTER_TYPE_ANON,
++			.matching = true,
++			.allow = true,
++			});
++	damon_test_commit_filter_for(test, &dst,
++			&(struct damon_filter){
++			.type = DAMON_FILTER_TYPE_MEMCG,
++			.matching = false,
++			.allow = false,
++			.memcg_id = 123,
++			});
++}
++
+ static void damon_test_commit_ctx(struct kunit *test)
+ {
+ 	struct damon_ctx *src, *dst;
+@@ -1722,6 +1761,7 @@ static struct kunit_case damon_test_case
+ 	KUNIT_CASE(damos_test_commit_pageout),
+ 	KUNIT_CASE(damos_test_commit_migrate_hot),
+ 	KUNIT_CASE(damon_test_commit_target_regions),
++	KUNIT_CASE(damon_test_commit_filter),
+ 	KUNIT_CASE(damon_test_commit_ctx),
+ 	KUNIT_CASE(damon_test_valid_probe_params),
+ 	KUNIT_CASE(damos_test_filter_out),
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
@@ -129,6 +177,11 @@ mm-damon-tests-core-kunit-test-committing-psi-goal-to-psi-goal.patch
 mm-damon-core-handle-uninitialized-damos_quota_goal-last_psi_total.patch
 mm-damon-core-copy-nid-for-eligible_mem_bp-damos-quota-goal-commit.patch
 mm-damon-sysfs-set-next-refresh-jiffies-per-sysfs-context.patch
+mm-damon-tests-core-kunit-test-damon_commit_filter.patch
+mm-damon-tests-core-kunit-add-damon_commit_probes-test.patch
+selftests-damon-_damon_sysfs-implement-damonprobes.patch
+selftests-damon-drgn_dump_damon_status-dump-probes.patch
+selftests-damon-sysfspy-extend-commit-assertion-function-for-probes.patch
 selftests-damon-sysfspy-test-damon-probes.patch
 mm-damon-core-use-damon_nr_samples_per_aggr-for-max-merge-threshold.patch
 mm-damon-core-remove-debug-messages.patch
