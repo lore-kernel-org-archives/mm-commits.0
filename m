@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4DF524F6461
-	for <mm-commits@vger.kernel.org>; Tue,  8 Sep 2026 23:33:54 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DCAC24A5C49
+	for <mm-commits@vger.kernel.org>; Tue,  8 Sep 2026 23:33:56 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788910437; cv=none; b=jfBfvzf31V0fiVhBz/GI4aSh/mQExmgs//boMBnHbv8sgKMzr5KJNve3GJzdusUV4CqoP+9jbUVvKI5Xg06+brCi7UHjrlxaxwwV9MVnfdOkvTguX2bqpal7wj63jP/2ktVIPNAW30J9vXL8zkckqrD7XBlq6fFMkA/unVGhct8=
+	t=1788910438; cv=none; b=FE2v9vHJuRr9yKHa5Kxf9UZP4cuiklSVlAxVm6jUlljZ8T+NC016tmpAzEcE50vtVPlYH7CPZyKxBzLgb0k3L/TIy7t9roGuuYdRUTXQ0h4TM9qZf/M1fXwk+jUfUsLT1iuwEuMbxOq/C68FMuZ7sM/ya1ldKnaw3wk+RjpXm5M=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788910437; c=relaxed/simple;
-	bh=ftzpCLBoZyo2qW/2F6p6CaYqsuVb7U3TPol4P/VfvU0=;
-	h=Date:To:From:Subject:Message-Id; b=aQpySkKoS2dZhFkBuVO+KsNHcxA2kuEwjI5U+IsvhDYIxs4VmwcWnim7EKWV4JlDgFyI/SL2lcamZPLSVXpV+20MVaY2QEjtYYv1zrzJ5iT+NWpIfRVTZnL1FVKh1MZJSXwz7lSu2eglgaRh/l6OysGcV4r1hTXN6f2Ypmc0/r4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=CUSywf3X; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1788910438; c=relaxed/simple;
+	bh=s7qIFB8qzHKt046Pxb5AjnpUycNgI0Q2CKMTsQdEIqY=;
+	h=Date:To:From:Subject:Message-Id; b=JtSEjlb51JONj1RENepMdV9ukwPoT/has1f6zvqClja9dA3SofDYc0plJJY2LIulAGrWkqHpd9A7OLkDBzwufzdzzxk7zXCbOH12vciaFm4g7UTVxjJfURTBCwAkIfQDJdDBrjCFasC/159J+19cuRTUtcOWK0uAMIn3gXMzmzE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=l7o9s6To; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="CUSywf3X"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id ABD671F00A3A;
-	Tue,  8 Sep 2026 23:33:54 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="l7o9s6To"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 672C11F00A3D;
+	Tue,  8 Sep 2026 23:33:56 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1788910434;
-	bh=eLp/HZHQR6/MwXACDVpCHx3Knu8RrNhxnb0LFSDIuug=;
+	d=linux-foundation.org; s=korg; t=1788910436;
+	bh=xLU7MaNkX8X+2m+ogtvpJUoXGuw1Y0EFpE7ftFfJK2U=;
 	h=Date:To:From:Subject;
-	b=CUSywf3X+butmDTl5XFSHge14URG1jhirySdzpndfOy+ivOwTM2Sy5wNI/4SfaG4p
-	 wSdNcza7AK54p8jWFwP3OEDg/EqdrIRj9zuTBF94HaLFHR8jjI28PdsVyo+p4n/PIU
-	 0x6dPcTyjq/uFiAY4DUVPu0Omw+o9AlmR9Ck+xxw=
-Date: Tue, 08 Sep 2026 16:33:54 -0700
+	b=l7o9s6TocQkCvfxGzeLbwh1GRdFiXXhoI3EasVo62Sja4pueqJqyOMwuYl9e0Q6yV
+	 /GksKP1v0+DXf4jfHUmGwqMclTVspxMFAomZ8pGZ6tSciJGVo1MQBoryhu+4HVSmRd
+	 aOjMhXuP3BEUj771kGroyvk1mp1+NVEweYsN410k=
+Date: Tue, 08 Sep 2026 16:33:55 -0700
 To: mm-commits@vger.kernel.org,ljs@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [to-be-updated] mm-vma-make-map_private-mapped-dev-zero-mappings-truly-anonymous.patch removed from -mm tree
-Message-Id: <20260908233354.ABD671F00A3A@smtp.kernel.org>
+Subject: [to-be-updated] tools-testing-vma-add-test-to-assert-map_private-dev-zero-is-anon.patch removed from -mm tree
+Message-Id: <20260908233356.672C11F00A3D@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,74 +35,26 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/vma: make MAP_PRIVATE-mapped /dev/zero mappings truly anonymous
+     Subject: tools/testing/vma: add test to assert MAP_PRIVATE-/dev/zero is anon
 has been removed from the -mm tree.  Its filename was
-     mm-vma-make-map_private-mapped-dev-zero-mappings-truly-anonymous.patch
+     tools-testing-vma-add-test-to-assert-map_private-dev-zero-is-anon.patch
 
 This patch was dropped because an updated version will be issued
 
 ------------------------------------------------------
 From: "Lorenzo Stoakes (ARM)" <ljs@kernel.org>
-Subject: mm/vma: make MAP_PRIVATE-mapped /dev/zero mappings truly anonymous
-Date: Wed, 02 Sep 2026 19:00:21 +0100
+Subject: tools/testing/vma: add test to assert MAP_PRIVATE-/dev/zero is anon
+Date: Wed, 02 Sep 2026 19:00:22 +0100
 
-When mapping /dev/zero with MAP_PRIVATE, one ends up with strange VMAs
-originating from Linux's distant past.
+Now we've made MAP_PRIVATE-mapped /dev/zero mappings truly anonymous, add
+a VMA userland test to assert that this is the case and everything is as
+we would expect for an anonymous mapping.
 
-These have vma->vm_file set but NULL vma->vm_ops, meaning they satisfy
-vma_is_anonymous() but otherwise resemble a file-backed VMA.
-
-The introduction of anonymous page offsets and their subsequent use as
-indexes for MAP_PRIVATE-file-backed mappings mean the rmap does the right
-thing with these but we are left with inconsistencies.
-
-The vma_start_pgoff(vma) == vma_start_anon_pgoff(vma) invariant is true
-for all other anonymous VMAs, but not these.
-
-These VMAs are also observable as files in /proc/<pid>/[maps, smaps,
-map_files] but otherwise behave like anonymous mappings.
-
-Therefore let's make these VMAs actually anonymous at mapping time which
-will activate the anonymous code path for mappings.
-
-This means we no longer have to account for this discrepancy anywhere and
-no longer have to think about these at all.
-
-This is user-observable, as MAP_PRIVATE-/dev/zero will no longer appear in
-procfs as a file-backed mapping, but the impact of this change should be
-low as likely nobody is relying upon this.
-
-However in any case, in using MAP_PRIVATE-/dev/zero they are explicitly
-asking anonymous memory, so no longer seeing these as file mappings is in
-fact correct.
-
-A previous commit gave us file_is_dev_zero() to positively identify these
-mappings, so we expressly only do so for these alone.
-
-Update assert_sane_pgoff(), the comment for vma_start_pgoff() and
-linear_anon_page_index() to reflect the change.
-
-We make this change in call_mmap_prepare() alone as /dev/zero has been
-converted to an mmap_prepare hook and we do not permit nested MAP_PRIVATE
-mapping of /dev/zero.
-
-We also remove the now defunct vma_desc_set_anonymous() and eliminate the
-temporary bisection hazard fix from the previous commit.
-
-Also update the VMA userland tests to reflect the change.
-
-Finally, update the procfs self tests proc-self-map-files-001 and
-proc-self-map-files-002 which both intend to map an arbitrary file
-MAP_PRIVATE then assert procfs state, but happen to choose /dev/zero.
-
-Fix them by updating these to /proc/self/exe which is guaranteed to be
-present if procfs is mounted.
-
-Link: https://lore.kernel.org/20260902-map-private-dev-zero-v1-4-a578c730cec7@kernel.org
+Link: https://lore.kernel.org/20260902-map-private-dev-zero-v1-5-a578c730cec7@kernel.org
 Signed-off-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
+Acked-by: David Hildenbrand (Arm) <david@kernel.org>
 Cc: Arnd Bergmann <arnd@arndb.de>
 Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: David Hildenbrand (Arm) <david@kernel.org>
 Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 Cc: Hugh Dickins <hughd@google.com>
 Cc: Jan Kara <jack@suse.cz>
@@ -117,162 +69,56 @@ Cc: Vlastimil Babka <vbabka@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h                                     |   10 ---
- include/linux/pagemap.h                                |    3 -
- mm/vma.c                                               |   26 ++++++----
- mm/vma.h                                               |    3 -
- tools/testing/selftests/proc/proc-self-map-files-001.c |    2 
- tools/testing/selftests/proc/proc-self-map-files-002.c |    2 
- tools/testing/vma/include/dup.h                        |    3 -
- 7 files changed, 23 insertions(+), 26 deletions(-)
+ tools/testing/vma/tests/mmap.c |   37 +++++++++++++++++++++++++++++++
+ 1 file changed, 37 insertions(+)
 
---- a/include/linux/mm.h~mm-vma-make-map_private-mapped-dev-zero-mappings-truly-anonymous
-+++ a/include/linux/mm.h
-@@ -1529,11 +1529,6 @@ static inline void vma_set_anonymous(str
- 	vma->vm_ops = NULL;
+--- a/tools/testing/vma/tests/mmap.c~tools-testing-vma-add-test-to-assert-map_private-dev-zero-is-anon
++++ a/tools/testing/vma/tests/mmap.c
+@@ -45,7 +45,44 @@ static bool test_mmap_region_basic(void)
+ 	return true;
  }
  
--static inline void vma_desc_set_anonymous(struct vm_area_desc *desc)
--{
--	desc->vm_ops = NULL;
--}
--
- static inline bool vma_is_anonymous(const struct vm_area_struct *vma)
- {
- 	return !vma->vm_ops;
-@@ -4389,9 +4384,8 @@ static inline unsigned long vma_pages(co
-  * If @vma is a MAP_PRIVATE file-backed mapping, then this returns the
-  * page offset within the file.
-  *
-- * Edge cases: nommu does not abide by these, MAP_PRIVATE-/dev/zero satisfies
-- * vma_is_anonymous() but has file-backed page offset, and MAP_PRIVATE-pfnmap
-- * regions have their page offset set to the first PFN in the range.
-+ * Edge cases: nommu does not abide by these and CoW MAP_PRIVATE-pfnmap regions
-+ * have their page offset set to the first PFN in the range.
-  *
-  * Returns: The page offset of the start of @vma.
-  */
---- a/include/linux/pagemap.h~mm-vma-make-map_private-mapped-dev-zero-mappings-truly-anonymous
-+++ a/include/linux/pagemap.h
-@@ -1128,8 +1128,7 @@ static inline pgoff_t linear_anon_page_i
- 	const pgoff_t pgoff = __linear_anon_page_index(vma, address);
- 
- 	VM_WARN_ON_ONCE(!vma_is_cow_mapping(vma));
--	/* Account for MAP_PRIVATE-/dev/zero which is only semi-anonymous. */
--	if (vma_is_anonymous(vma) && !vma->vm_file)
-+	if (vma_is_anonymous(vma))
- 		VM_WARN_ON_ONCE(pgoff != linear_page_index(vma, address));
- 
- 	return pgoff;
---- a/mm/vma.c~mm-vma-make-map_private-mapped-dev-zero-mappings-truly-anonymous
-+++ a/mm/vma.c
-@@ -2621,6 +2621,13 @@ static int __mmap_new_file_vma(struct mm
- 	return 0;
- }
- 
-+static void map_set_anon(struct mmap_state *map)
++static bool test_pure_anon_dev_zero(void)
 +{
-+	map->file = NULL;
-+	map->vm_ops = NULL;
-+	map->pgoff = map->addr >> PAGE_SHIFT;
++	const vma_flags_t vma_flags = mk_vma_flags(VMA_READ_BIT, VMA_WRITE_BIT,
++			VMA_MAYREAD_BIT, VMA_MAYWRITE_BIT);
++	struct file file = {
++		.f_op = &zero_fops,
++	};
++	struct mm_struct mm = {};
++	struct vm_area_struct *vma;
++	unsigned long addr;
++	VMA_ITERATOR(vmi, &mm, 0);
++
++	current->mm = &mm;
++
++	/*
++	 * Map a MAP_PRIVATE-/dev/zero mapping at address 0x300000 with a page
++	 * offset of 0x10, which we expect to be reset to the anonymous page
++	 * offset.
++	 */
++	addr = __mmap_region(&file, 0x300000, 0x3000, vma_flags, 0x10, NULL);
++	ASSERT_EQ(addr, 0x300000);
++
++	/* Assert that it truly is an anonymous mapping. */
++	vma = vma_lookup(&mm, addr);
++	ASSERT_NE(vma, NULL);
++	ASSERT_TRUE(vma_is_anonymous(vma));
++	ASSERT_EQ(vma->vm_file, NULL);
++	ASSERT_EQ(vma->vm_private_data, NULL);
++	/* Expect anonymous page offsets. */
++	ASSERT_EQ(vma->vm_pgoff, 0x300);
++	ASSERT_EQ(vma_start_anon_pgoff(vma), 0x300);
++
++	cleanup_mm(&mm, &vmi);
++	return true;
 +}
 +
- static bool map_is_private(const struct mmap_state *map)
+ static void run_mmap_tests(int *num_tests, int *num_fail)
  {
- 	return !vma_flags_test(&map->vma_flags, VMA_SHARED_BIT);
-@@ -2628,10 +2635,7 @@ static bool map_is_private(const struct
- 
- static bool map_is_anon(const struct mmap_state *map)
- {
--	if (!map_is_private(map))
--		return false;
--
--	return !map->file || file_is_dev_zero(map->file);
-+	return map_is_private(map) && !map->file;
+ 	TEST(mmap_region_basic);
++	TEST(pure_anon_dev_zero);
  }
- 
- /*
-@@ -2663,7 +2667,7 @@ static int __mmap_new_vma(struct mmap_st
- 
- 	vma_iter_config(vmi, map->addr, map->end);
- 
--	if (is_anon && !map->file)
-+	if (is_anon)
- 		vma_set_anonymous(vma);
- 
- 	vma_set_range(vma, map->addr, map->end, map->pgoff, map->anon_pgoff);
-@@ -2681,10 +2685,6 @@ static int __mmap_new_vma(struct mmap_st
- 	else if (!is_anon)
- 		error = shmem_zero_setup(vma);
- 
--	/* Temporary MAP_PRIVATE-/dev/zero workaround. */
--	if (is_anon && map->file)
--		vma_set_anonymous(vma);
--
- 	if (error)
- 		goto free_iter_vma;
- 
-@@ -2813,6 +2813,14 @@ static int call_mmap_prepare(struct mmap
- 	map->vm_ops = desc->vm_ops;
- 	map->vm_private_data = desc->private_data;
- 
-+	/*
-+	 * MAP_PRIVATE-/dev/zero mappings are an ancient way of getting
-+	 * anonymous mappings. Rather than allowing these mappings to be odd
-+	 * outliers, simply make them truly anonymous.
-+	 */
-+	if (map_is_private(map) && file_is_dev_zero(map->file))
-+		map_set_anon(map);
-+
- 	return 0;
- }
- 
---- a/mm/vma.h~mm-vma-make-map_private-mapped-dev-zero-mappings-truly-anonymous
-+++ a/mm/vma.h
-@@ -267,9 +267,6 @@ static inline void assert_sane_pgoff(str
- 	 */
- 	if (!vma_is_anonymous(vma))
- 		return;
--	/* MAP_PRIVATE-/dev/zero is anon, non-NULL vm_file, but has file pgoff. */
--	if (vma->vm_file)
--		return;
- 	/* If faulted in, could have been remapped. */
- 	if (vma->anon_vma)
- 		return;
---- a/tools/testing/selftests/proc/proc-self-map-files-001.c~mm-vma-make-map_private-mapped-dev-zero-mappings-truly-anonymous
-+++ a/tools/testing/selftests/proc/proc-self-map-files-001.c
-@@ -51,7 +51,7 @@ int main(void)
- 	int fd;
- 	unsigned long a, b;
- 
--	fd = open("/dev/zero", O_RDONLY);
-+	fd = open("/proc/self/exe", O_RDONLY);
- 	if (fd == -1)
- 		return 1;
- 
---- a/tools/testing/selftests/proc/proc-self-map-files-002.c~mm-vma-make-map_private-mapped-dev-zero-mappings-truly-anonymous
-+++ a/tools/testing/selftests/proc/proc-self-map-files-002.c
-@@ -57,7 +57,7 @@ int main(void)
- 	int fd;
- 	unsigned long a, b;
- 
--	fd = open("/dev/zero", O_RDONLY);
-+	fd = open("/proc/self/exe", O_RDONLY);
- 	if (fd == -1)
- 		return 1;
- 
---- a/tools/testing/vma/include/dup.h~mm-vma-make-map_private-mapped-dev-zero-mappings-truly-anonymous
-+++ a/tools/testing/vma/include/dup.h
-@@ -1635,8 +1635,7 @@ static inline pgoff_t linear_anon_page_i
- 	const pgoff_t pgoff = __linear_anon_page_index(vma, address);
- 
- 	VM_WARN_ON_ONCE(!vma_is_cow_mapping(vma));
--	/* Account for MAP_PRIVATE-/dev/zero which is only semi-anonymous. */
--	if (vma_is_anonymous(vma) && !vma->vm_file)
-+	if (vma_is_anonymous(vma))
- 		VM_WARN_ON_ONCE(pgoff != linear_page_index(vma, address));
- 
- 	return pgoff;
 _
 
 Patches currently in -mm which might be from ljs@kernel.org are
@@ -280,7 +126,6 @@ Patches currently in -mm which might be from ljs@kernel.org are
 mm-vma-correctly-unaccount-on-mmap_prepare-failure.patch
 mm-vmpressure-remove-window-size-todo.patch
 tools-testing-selftests-mm-add-missing-gitignore-entries.patch
-tools-testing-vma-add-test-to-assert-map_private-dev-zero-is-anon.patch
 tools-testing-selftests-mm-add-map_private-dev-zero-merge-tests.patch
 mm-madvise-swap-in-cowd-map_private-file-mappings-on-madv_willneed.patch
 mm-huge_memory-zap-deposited-page-tables-after-an-rcu-grace-period.patch
