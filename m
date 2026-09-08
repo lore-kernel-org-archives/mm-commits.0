@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5A0BF492E21
-	for <mm-commits@vger.kernel.org>; Tue,  8 Sep 2026 23:10:38 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6F113492E21
+	for <mm-commits@vger.kernel.org>; Tue,  8 Sep 2026 23:10:40 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788909039; cv=none; b=VmdNWUYrkwJ8ozSIT6OTenM9GFgvURxQSxlu55jcgoWJewYUOF+dbdY4ifceJSARIuaLOlm2xfYJ8X4C6UtSPoT94ialIFwlr7lOwX/spAaY6xUpFXwUz/+HKQ10FMj3IH/jKrkYK6z6pdf28s4dgvQLcNIEKXEc/pqoWl+x44g=
+	t=1788909041; cv=none; b=KonYL/gfuYkAIWLfZonz9NifqGM/XQLdy31cwiJnrK7TdlJak3d4sjtQZKXjA6YxzkdnG92dPFCdWQtAt3WVM+Kkq0RW4SNPMp+XJHRrz4eo8vs9VenpxnkCAuAb5tcUAmgQXTSscw4hfCs0babO0NWaexdpJCYx69GRCnovJfE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788909039; c=relaxed/simple;
-	bh=mmKyTm24OnK/4/k3f0qWWrhZ4PmgtVoQmeFOtuiD8jg=;
-	h=Date:To:From:Subject:Message-Id; b=BtLRVAID1+bLiXTyiohyciWqlgRa2S4Hb5JoINh1JzKMCMF2W2UKZuLNCWaeB0EY9l9y6solZ0d4gB4xlodO+TkTlmYpO0nqAe3EbKE7OpX+2PkGsFD8RSEfJld5UNEbbpORk4cP0zupvCxcN82b1VOcCsvVYcwizctaacuOSzs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=qgb8qNdi; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1788909041; c=relaxed/simple;
+	bh=M7Al2AIVhBBpk5XHqFaUFxg2567hzhpv9Bt+LIZNv9k=;
+	h=Date:To:From:Subject:Message-Id; b=etUPWxWT2TDi2B5r7Ol5HmMP0eR4tXbR3I7rbP7B3IUEJepdxzhZpIvhCCN5y7GymkVrzj+0rdCVHNrL4VtPsH4GsOO/9T/WlmLrq/Xp7c1j9Wmj4flZLOx8aN/lUWQpXpJR5LXyP7ez2UYR5CLAP0rHYnGuwVWBGzxLNbCaPHY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=vYiCQ73u; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="qgb8qNdi"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D60EC1F00A3A;
-	Tue,  8 Sep 2026 23:10:37 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="vYiCQ73u"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E9BDD1F00A3A;
+	Tue,  8 Sep 2026 23:10:39 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1788909037;
-	bh=a5gNPvL6wT5okrlI3O2t8FynhtpfbEy126M2CDGM/Ag=;
+	d=linux-foundation.org; s=korg; t=1788909040;
+	bh=LzM+KRQ1ck7ZdWeo/6u1wcKORL2z7iY94DQN7qg5BnU=;
 	h=Date:To:From:Subject;
-	b=qgb8qNdijGdapGk9FSVqSUrumOcTaiGbqQWZjzFepC2+yMNz/dn6YXhczGz/k3ZD4
-	 f/gYMqqHZtt+ea1Oc4R/ZHIQM8faAkt7OFwB8Dl9VObuAwUpDzOqpf+cpo+IhFLWFD
-	 e+zjV8N6AFR0rlG4KKzcvp/gEnCufq4Co0Tj2qQI=
-Date: Tue, 08 Sep 2026 16:10:37 -0700
+	b=vYiCQ73uufkcL1bXbA3qSKrk8+JipAEbwy4/RxBy4Os8Ia3H4RoQuYK75RfJW4KLb
+	 8XUfN5hMwJhppUOUbZS1IfMtQThqso3R1J17DnBHAfQyXvqryaZcX2IeEJpHxBTHnM
+	 dR39YbLa02fBuEVpIQJPbxocvFHVNxx4RcnmvEEI=
+Date: Tue, 08 Sep 2026 16:10:39 -0700
 To: mm-commits@vger.kernel.org,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-damon-tests-core-kunit-add-damon_commit_probes-test.patch added to mm-unstable branch
-Message-Id: <20260908231037.D60EC1F00A3A@smtp.kernel.org>
+Subject: + selftests-damon-_damon_sysfs-implement-damonprobes.patch added to mm-unstable branch
+Message-Id: <20260908231039.E9BDD1F00A3A@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/damon/tests/core-kunit: add damon_commit_probes() test
+     Subject: selftests/damon/_damon_sysfs: implement DamonProbes
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-damon-tests-core-kunit-add-damon_commit_probes-test.patch
+     selftests-damon-_damon_sysfs-implement-damonprobes.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-tests-core-kunit-add-damon_commit_probes-test.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-damon-_damon_sysfs-implement-damonprobes.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,13 +59,14 @@ and is updated there most days
 
 ------------------------------------------------------
 From: SJ Park <sj@kernel.org>
-Subject: mm/damon/tests/core-kunit: add damon_commit_probes() test
-Date: Wed, 2 Sep 2026 07:03:08 -0700
+Subject: selftests/damon/_damon_sysfs: implement DamonProbes
+Date: Wed, 2 Sep 2026 07:03:09 -0700
 
-Add kunit test to ensure damon_commit_probes() updates destination DAMON
-context with source probes as expected.
+Extend _damon_sysfs.py to support staging and committing DAMON probes.  It
+will be used for setting DAMON probes via sysfs changes for testing
+purposes.
 
-Link: https://lore.kernel.org/20260902140313.85983-3-sj@kernel.org
+Link: https://lore.kernel.org/20260902140313.85983-4-sj@kernel.org
 Signed-off-by: SJ Park <sj@kernel.org>
 Cc: Brendan Higgins <brendan.higgins@linux.dev>
 Cc: David Gow <davidgow@davidgow.net>
@@ -73,109 +74,175 @@ Cc: Shuah Khan <shuah@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/tests/core-kunit.h |   84 ++++++++++++++++++++++++++++++++++
- 1 file changed, 84 insertions(+)
+ tools/testing/selftests/damon/_damon_sysfs.py |  125 +++++++++++++++-
+ 1 file changed, 124 insertions(+), 1 deletion(-)
 
---- a/mm/damon/tests/core-kunit.h~mm-damon-tests-core-kunit-add-damon_commit_probes-test
-+++ a/mm/damon/tests/core-kunit.h
-@@ -1355,6 +1355,89 @@ static void damon_test_commit_filter(str
- 			});
- }
+--- a/tools/testing/selftests/damon/_damon_sysfs.py~selftests-damon-_damon_sysfs-implement-damonprobes
++++ a/tools/testing/selftests/damon/_damon_sysfs.py
+@@ -570,6 +570,117 @@ class IntervalsGoal:
+             return err
+         return None
  
-+static struct damon_ctx *damon_test_help_setup_probes(unsigned int weights[],
-+		int nr_weights)
-+{
-+	struct damon_ctx *ctx;
-+	struct damon_probe *probe;
-+	int i;
++class DamonFilter:
++    type_ = None
++    matching = None
++    allow = None
++    filters = None
++    path = None
++    idx = None
 +
-+	ctx = damon_new_ctx();
-+	if (!ctx)
-+		return NULL;
-+	for (i = 0; i < nr_weights; i++) {
-+		probe = damon_new_probe();
-+		if (!probe) {
-+			damon_destroy_ctx(ctx);
-+			return NULL;
-+		}
-+		probe->weight = weights[i];
-+		damon_add_probe(ctx, probe);
-+	}
-+	return ctx;
-+}
++    def __init__(self, type_='anon', matching=False, allow=False, path=None):
++        self.type_ = type_
++        self.matching = matching
++        self.allow = allow
++        self.path = path
 +
-+static void damon_test_commit_probes_for(struct kunit *test,
-+		unsigned int dst_weights[], int nr_dst_probes,
-+		unsigned int src_weights[], int nr_src_probes)
-+{
-+	struct damon_ctx *dst, *src;
-+	int err;
-+	struct damon_probe *dst_probe, *src_probe;
++    def sysfs_dir(self):
++        return os.path.join(self.filters.sysfs_dir(), '%d' % self.idx)
 +
-+	dst = damon_test_help_setup_probes(dst_weights, nr_dst_probes);
-+	if (!dst)
-+		kunit_skip(test, "dst alloc fail");
-+	src = damon_test_help_setup_probes(src_weights, nr_src_probes);
-+	if (!src) {
-+		damon_destroy_ctx(dst);
-+		kunit_skip(test, "src alloc fail");
-+	}
++    def stage(self):
++        err = write_file(os.path.join(self.sysfs_dir(), 'type'), self.type_)
++        if err is not None:
++            return err
++        err = write_file(os.path.join(self.sysfs_dir(), 'matching'),
++                         'Y' if self.matching else 'N')
++        if err is not None:
++            return err
++        err = write_file(os.path.join(self.sysfs_dir(), 'allow'),
++                         'Y' if self.allow else 'N')
++        if err is not None:
++            return err
++        if self.type_ == 'memcg':
++            err = write_file(os.path.join(self.sysfs_dir(), 'path'), self.path)
++            if err is not None:
++                return err
++        return None
 +
-+	err = damon_commit_probes(dst, src);
-+	KUNIT_EXPECT_EQ(test, err, 0);
-+	if (err)
-+		goto out;
-+	nr_dst_probes = 0;
-+	damon_for_each_probe(dst_probe, dst)
-+		nr_dst_probes++;
-+	nr_src_probes = 0;
-+	damon_for_each_probe(src_probe, src)
-+		nr_src_probes++;
-+	KUNIT_EXPECT_EQ(test, nr_dst_probes, nr_src_probes);
-+	if (nr_dst_probes != nr_src_probes)
-+		goto out;
-+	nr_dst_probes = 0;
-+	damon_for_each_probe(dst_probe, dst) {
-+		src_probe = damon_nth_probe(nr_dst_probes, src);
-+		KUNIT_EXPECT_EQ(test, src_probe->weight, dst_probe->weight);
-+		nr_dst_probes++;
-+	}
-+out:
-+	damon_destroy_ctx(dst);
-+	damon_destroy_ctx(src);
-+}
++class DamonFilters:
++    filters = None
++    probe = None
 +
-+static void damon_test_commit_probes(struct kunit *test)
-+{
-+	damon_test_commit_probes_for(test,
-+			(unsigned int[]){}, 0, (unsigned int[]){}, 0);
-+	damon_test_commit_probes_for(test,
-+			(unsigned int[]){}, 0, (unsigned int[]){1}, 1);
-+	damon_test_commit_probes_for(test,
-+			(unsigned int[]){}, 0, (unsigned int[]){1, 2}, 2);
-+	damon_test_commit_probes_for(test,
-+			(unsigned int[]){1}, 1, (unsigned int[]){2}, 1);
-+	damon_test_commit_probes_for(test,
-+			(unsigned int[]){1}, 1, (unsigned int[]){2, 3}, 2);
-+	damon_test_commit_probes_for(test,
-+			(unsigned int[]){2, 3}, 2, (unsigned int[]){1}, 1);
-+	damon_test_commit_probes_for(test,
-+			(unsigned int[]){2, 3}, 2, (unsigned int[]){}, 0);
-+	damon_test_commit_probes_for(test,
-+			(unsigned int[]){2}, 1, (unsigned int[]){}, 0);
-+}
++    def __init__(self, filters=None):
++        if filters is None:
++            filters = []
++        self.filters = filters
++        for idx, filter in enumerate(self.filters):
++            filter.filters = self
++            filter.idx = idx
 +
- static void damon_test_commit_ctx(struct kunit *test)
- {
- 	struct damon_ctx *src, *dst;
-@@ -1762,6 +1845,7 @@ static struct kunit_case damon_test_case
- 	KUNIT_CASE(damos_test_commit_migrate_hot),
- 	KUNIT_CASE(damon_test_commit_target_regions),
- 	KUNIT_CASE(damon_test_commit_filter),
-+	KUNIT_CASE(damon_test_commit_probes),
- 	KUNIT_CASE(damon_test_commit_ctx),
- 	KUNIT_CASE(damon_test_valid_probe_params),
- 	KUNIT_CASE(damos_test_filter_out),
++    def sysfs_dir(self):
++        return os.path.join(self.probe.sysfs_dir(), 'filters')
++
++    def stage(self):
++        err = write_file(
++                os.path.join(self.sysfs_dir(), 'nr_filters'),
++                len(self.filters))
++        if err is not None:
++            return err
++        for filter in self.filters:
++            err = filter.stage()
++            if err is not None:
++                return err
++        return None
++
++class DamonProbe:
++    weight = None
++    filters = None
++    probes = None
++    idx = None
++
++    def __init__(self, weight=0, filters=None):
++        self.weight = weight
++        if filters is None:
++            filters = DamonFilters()
++        self.filters = filters
++        self.filters.probe = self
++
++    def sysfs_dir(self):
++        return os.path.join(self.probes.sysfs_dir(), '%d' % self.idx)
++
++    def stage(self):
++        err = write_file(
++                os.path.join(self.sysfs_dir(), 'weight'), '%d' % self.weight)
++        if err is not None:
++            return err
++        return self.filters.stage()
++
++class DamonProbes:
++    probes = None
++    attrs = None
++
++    def __init__(self, probes=None):
++        if probes is None:
++            probes = []
++        self.probes = probes
++        for idx, probe in enumerate(self.probes):
++            probe.probes = self
++            probe.idx = idx
++
++    def sysfs_dir(self):
++        return os.path.join(self.attrs.sysfs_dir(), 'probes')
++
++    def stage(self):
++        err = write_file(os.path.join(self.sysfs_dir(), 'nr_probes'),
++                         len(self.probes))
++        if err is not None:
++            return err
++        for probe in self.probes:
++            err = probe.stage()
++            if err is not None:
++                return err
++        return None
++
+ class DamonAttrs:
+     sample_us = None
+     aggr_us = None
+@@ -577,11 +688,12 @@ class DamonAttrs:
+     update_us = None
+     min_nr_regions = None
+     max_nr_regions = None
++    probes = None
+     context = None
+ 
+     def __init__(self, sample_us=5000, aggr_us=100000,
+                  intervals_goal=None, update_us=1000000, min_nr_regions=10,
+-                 max_nr_regions=1000):
++                 max_nr_regions=1000, probes=None):
+         self.sample_us = sample_us
+         self.aggr_us = aggr_us
+         if intervals_goal is None:
+@@ -591,6 +703,10 @@ class DamonAttrs:
+         self.update_us = update_us
+         self.min_nr_regions = min_nr_regions
+         self.max_nr_regions = max_nr_regions
++        if probes is None:
++            probes = DamonProbes()
++        self.probes = probes
++        self.probes.attrs = self
+ 
+     def interval_sysfs_dir(self):
+         return os.path.join(self.context.sysfs_dir(), 'monitoring_attrs',
+@@ -600,6 +716,9 @@ class DamonAttrs:
+         return os.path.join(self.context.sysfs_dir(), 'monitoring_attrs',
+                 'nr_regions')
+ 
++    def sysfs_dir(self):
++        return os.path.join(self.context.sysfs_dir(), 'monitoring_attrs')
++
+     def stage(self):
+         err = write_file(os.path.join(self.interval_sysfs_dir(), 'sample_us'),
+                 self.sample_us)
+@@ -629,6 +748,10 @@ class DamonAttrs:
+         if err is not None:
+             return err
+ 
++        err = self.probes.stage()
++        if err is not None:
++            return err
++
+ class DamonCtx:
+     ops = None
+     monitoring_attrs = None
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
