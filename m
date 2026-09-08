@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 566645505C4
-	for <mm-commits@vger.kernel.org>; Tue,  8 Sep 2026 19:50:22 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 699B848E0FA
+	for <mm-commits@vger.kernel.org>; Tue,  8 Sep 2026 19:50:27 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788897029; cv=none; b=Qxv4qq48VHNaPgwM+tIzs9c50gz6eIIROMbCbD6r3AxJ0pBk9BBwGsYgnd7UL4iLTvQ4wW4ovZCRZuOYJ0Zd0ETqBlbbbCmM/qWZOqDX+PKxmVxb1gN2VpPAR6xkwEp+SYRBXeJwr9/KkoFP2P2TDnoVudhC7Acrh1bfce7QkoA=
+	t=1788897031; cv=none; b=VuWvVc53PF5iU+2l3MyhiqjN4alec62dEm9dP0fCI4Qw/hin5din2nBUkaxftFi9qiVi3goPex8TLPmCToG9Doc7nSa1VpgNLnRgdg1p3rc/9Tp61M3RDYfZgL+WlajgM+J0hKFHIqvkrAOcpBMTs3anvBjm2A9TA1x+GGDEKL4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788897029; c=relaxed/simple;
-	bh=N57Z26wf26k1pzzdexfuStYJskwPwaS4cCWY99EhhXk=;
-	h=Date:To:From:Subject:Message-Id; b=miWhBZ/CtR5LqZADFydqpb7zxhYZgvvuJFIvzM5nQ8sJKGZPs8g6nsWylys0osY9qASLghwH+e1f6laWYyr9DFmnDvOkTl15ZoHJwnpU9qKUlYpJtX+bn4D8glIz+SgeG9m/pLpw8LbBDiBDE/RTOEjTrI959+o+DbXXvRzUSbY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=B5HkzU2D; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1788897031; c=relaxed/simple;
+	bh=hlZFCvCW/Q/eHJJfH1dFi/9X1bRkT/rWKmtfsRj1ZuY=;
+	h=Date:To:From:Subject:Message-Id; b=kgsn0A4KXYDzd8lAnG4oXFl6GnIcjT8Wu1IBas8SgY//4OqrjM9BTY6CnMiKAjZr+IqLlHslUUJWux0GVxigVnmmEfQ9uiIQB4i4CXVnnQWmxDUN6MoaPeIKvHsj09hMYLP6K7YrGivS6zw2HtMqZCpFujLeNyE5tfdd6ba6ygM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=h0pOZlPr; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="B5HkzU2D"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 234141F00A3A;
-	Tue,  8 Sep 2026 19:50:22 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="h0pOZlPr"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2A9FA1F00A3D;
+	Tue,  8 Sep 2026 19:50:27 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1788897022;
-	bh=C7kPMwVQ45ggeEwzhYsvdunnnbV2S+FQSsZs/4uUbrU=;
+	d=linux-foundation.org; s=korg; t=1788897027;
+	bh=B0PiLlPHC+CsNcqWOC7bEstHbj4QXbePx7bHmXtxnsQ=;
 	h=Date:To:From:Subject;
-	b=B5HkzU2DGlLt45inw4O0pnO0NRibfMqNPQaSJ33X9w1JRypJNBA33FLZpImMncL/K
-	 BhlpzeI2o2UaEl3zV3TQ/eTixlEykJIfnA3h+Q49XihvFjpiFIKHgovZ48gUoygRBh
-	 LZuDqQ27OkWRe3LuhgsE9Snh8CG1u4aC8cXPKpOo=
-Date: Tue, 08 Sep 2026 12:50:21 -0700
+	b=h0pOZlPreHa0EByCJucW1igJGdrZtaoVcFRhpw+nO7oMo0G+maIKksgpTemyn4zM9
+	 HaXY8AZ1iCOFy6yT1GKzu5hiaizrgFe2fMRBPRaWyUpL48lI4k98mTp5nXjU0chaSH
+	 mIiO+fR7c8OlhDEjiozbR7qzj804PY3WmevRDw0A=
+Date: Tue, 08 Sep 2026 12:50:26 -0700
 To: mm-commits@vger.kernel.org,kas@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-mm-add-folio-order-detection-self-check.patch added to mm-new branch
-Message-Id: <20260908195022.234141F00A3A@smtp.kernel.org>
+Subject: + selftests-mm-add-khugepaged-completion-barrier-helper.patch added to mm-new branch
+Message-Id: <20260908195027.2A9FA1F00A3D@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: selftests/mm: add folio-order detection self-check
+     Subject: selftests/mm: add khugepaged completion barrier helper
 has been added to the -mm mm-new branch.  Its filename is
-     selftests-mm-add-folio-order-detection-self-check.patch
+     selftests-mm-add-khugepaged-completion-barrier-helper.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-add-folio-order-detection-self-check.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-add-khugepaged-completion-barrier-helper.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,28 +70,31 @@ and is updated there most days
 
 ------------------------------------------------------
 From: "Kiryl Shutsemau (Meta)" <kas@kernel.org>
-Subject: selftests/mm: add folio-order detection self-check
-Date: Tue, 8 Sep 2026 13:50:55 +0100
+Subject: selftests/mm: add khugepaged completion barrier helper
+Date: Tue, 8 Sep 2026 13:50:56 +0100
 
-The khugepaged mTHP tests detect collapse results with the vm_util
-folio-order helpers rather than smaps AnonHugePages, which only sees PMD
-mappings.  If those helpers are wrong, every case built on them is wrong
-the same way, and nothing says so.
+A khugepaged test has to tell "not collapsed" from "not scanned yet", and
+nothing in the selftests can.  wait_for_scan() in khugepaged.c comes
+closest: it polls full_scans until the counter has advanced by two, since
+the pass in progress may already have passed the test's mm.  But it only
+returns in time if scan_sleep_millisecs happens to be short, and it is
+private to that one test.
 
-Check them directly.  For every anon THP order the kernel supports, fault
-memory in with only that order enabled.  Require the helpers to classify
-the backing as exactly that order: not the order below it, and base-page
-memory as order 0.
+Add khugepaged_full_pass() to hugepage_settings, built on the same
+advance-by-two wait but driven through sysfs: a store to
+scan_sleep_millisecs wakes the daemon, so the barrier completes whatever
+the scan cadence.  A store made while the daemon is scanning rather than
+sleeping is lost, so the helper keeps storing until the pass lands.
 
-Run it in the thp category, ahead of ./khugepaged, so a broken helper is
-reported as itself rather than as a collapse failure.  Verified on x86-64
-4K (orders 0, 2-9) and arm64 64K (orders 0, 2-13).
+One wake completes one pass only if pages_to_scan covers every mm on the
+list, so callers need it large.
 
-The test needs ALIGN(), which hmm-tests.c and migration.c each defined
-privately.  Move it to vm_util.h and drop both copies.
+Settings pushes must not start passes of their own.  A store to either
+sleep knob wakes the daemon, so thp_write_settings() now writes a
+khugepaged knob only when its value changes.
 
 Assisted-by: LLM
-Link: https://lore.kernel.org/20260908125105.1510704-10-kirill@shutemov.name
+Link: https://lore.kernel.org/20260908125105.1510704-11-kirill@shutemov.name
 Signed-off-by: Kiryl Shutsemau (Meta) <kas@kernel.org>
 Tested-by: Muhammad Usama Anjum <usama.anjum@arm.com>
 Cc: Alexander Gordeev <agordeev@linux.ibm.com>
@@ -116,193 +119,104 @@ Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/Makefile            |    1 
- tools/testing/selftests/mm/folio_order_check.c |  122 +++++++++++++++
- tools/testing/selftests/mm/hmm-tests.c         |    1 
- tools/testing/selftests/mm/migration.c         |    1 
- tools/testing/selftests/mm/run_vmtests.sh      |    2 
- tools/testing/selftests/mm/vm_util.h           |    2 
- 6 files changed, 127 insertions(+), 2 deletions(-)
+ tools/lib/mm/hugepage_settings.c |   60 ++++++++++++++++++++++++-----
+ tools/lib/mm/hugepage_settings.h |    2 
+ 2 files changed, 53 insertions(+), 9 deletions(-)
 
-diff --git a/tools/testing/selftests/mm/folio_order_check.c a/tools/testing/selftests/mm/folio_order_check.c
-new file mode 100644
---- /dev/null
-+++ a/tools/testing/selftests/mm/folio_order_check.c
-@@ -0,0 +1,122 @@
-+// SPDX-License-Identifier: GPL-2.0
+--- a/tools/lib/mm/hugepage_settings.c~selftests-mm-add-khugepaged-completion-barrier-helper
++++ a/tools/lib/mm/hugepage_settings.c
+@@ -217,6 +217,13 @@ void thp_read_settings(struct thp_settin
+ 	}
+ }
+ 
++/* A store to either sleep knob wakes khugepaged, so write only on change */
++static void thp_update_num(const char *name, unsigned long num)
++{
++	if (thp_read_num(name) != num)
++		thp_write_num(name, num);
++}
++
+ void thp_write_settings(struct thp_settings *settings)
+ {
+ 	struct khugepaged_settings *khugepaged = &settings->khugepaged;
+@@ -232,15 +239,15 @@ void thp_write_settings(struct thp_setti
+ 			shmem_enabled_strings[settings->shmem_enabled]);
+ 	thp_write_num("use_zero_page", settings->use_zero_page);
+ 
+-	thp_write_num("khugepaged/defrag", khugepaged->defrag);
+-	thp_write_num("khugepaged/alloc_sleep_millisecs",
+-			khugepaged->alloc_sleep_millisecs);
+-	thp_write_num("khugepaged/scan_sleep_millisecs",
+-			khugepaged->scan_sleep_millisecs);
+-	thp_write_num("khugepaged/max_ptes_none", khugepaged->max_ptes_none);
+-	thp_write_num("khugepaged/max_ptes_swap", khugepaged->max_ptes_swap);
+-	thp_write_num("khugepaged/max_ptes_shared", khugepaged->max_ptes_shared);
+-	thp_write_num("khugepaged/pages_to_scan", khugepaged->pages_to_scan);
++	thp_update_num("khugepaged/defrag", khugepaged->defrag);
++	thp_update_num("khugepaged/alloc_sleep_millisecs",
++		       khugepaged->alloc_sleep_millisecs);
++	thp_update_num("khugepaged/scan_sleep_millisecs",
++		       khugepaged->scan_sleep_millisecs);
++	thp_update_num("khugepaged/max_ptes_none", khugepaged->max_ptes_none);
++	thp_update_num("khugepaged/max_ptes_swap", khugepaged->max_ptes_swap);
++	thp_update_num("khugepaged/max_ptes_shared", khugepaged->max_ptes_shared);
++	thp_update_num("khugepaged/pages_to_scan", khugepaged->pages_to_scan);
+ 
+ 	if (dev_queue_read_ahead_path[0]) {
+ 		int ret = write_num(dev_queue_read_ahead_path,
+@@ -271,6 +278,41 @@ void thp_write_settings(struct thp_setti
+ 	}
+ }
+ 
 +/*
-+ * Self-check for the vm_util folio-order helpers, is_backed_by_folio() and
-+ * is_range_backed_by_order(), which the khugepaged mTHP cases use to detect
-+ * collapse results.  For every anon THP order the kernel supports, fault
-+ * memory in with only that order enabled and require the helpers to report
-+ * exactly that order.
++ * Wait for a full khugepaged scan pass that started after this call: the
++ * pass in progress may already have passed this mm, so full_scans has to
++ * advance twice.
++ *
++ * A store to scan_sleep_millisecs wakes the daemon, but one made while it
++ * is scanning rather than sleeping is lost, so keep storing until the pass
++ * lands.
++ *
++ * One wake is one pass only if pages_to_scan covers every mm on the list.
 + */
-+#define _GNU_SOURCE
-+#include <fcntl.h>
-+#include <stdio.h>
-+#include <stdlib.h>
-+#include <sys/mman.h>
-+#include <unistd.h>
-+
-+#include "kselftest.h"
-+#include "vm_util.h"
-+#include "hugepage_settings.h"
-+
-+static int pagemap_fd;
-+static int kpageflags_fd;
-+
-+static char *alloc_aligned(size_t size)
++bool khugepaged_full_pass(unsigned int timeout_s)
 +{
-+	size_t len = size * 2;
-+	char *p, *aligned;
++	unsigned long deadline_ms = timeout_s * 1000UL;
++	unsigned long elapsed_ms = 0, poll_ms = 10;
++	unsigned long sleep_ms;
++	int pass;
 +
-+	p = mmap(NULL, len, PROT_READ | PROT_WRITE,
-+		 MAP_ANONYMOUS | MAP_PRIVATE, -1, 0);
-+	if (p == MAP_FAILED)
-+		ksft_exit_fail_perror("mmap()");
++	sleep_ms = thp_read_num("khugepaged/scan_sleep_millisecs");
++	for (pass = 0; pass < 2; pass++) {
++		unsigned long target =
++			thp_read_num("khugepaged/full_scans") + 1;
 +
-+	aligned = (char *)ALIGN((uintptr_t)p, size);
-+	if (aligned != p)
-+		munmap(p, aligned - p);
-+	if (aligned + size != p + len)
-+		munmap(aligned + size, p + len - aligned - size);
-+
-+	return aligned;
++		while (thp_read_num("khugepaged/full_scans") < target) {
++			if (elapsed_ms >= deadline_ms)
++				return false;
++			thp_write_num("khugepaged/scan_sleep_millisecs",
++				      sleep_ms);
++			usleep(poll_ms * 1000);
++			elapsed_ms += poll_ms;
++		}
++	}
++	return true;
 +}
 +
-+static void check_order(int order)
-+{
-+	struct thp_settings settings = *thp_current_settings();
-+	size_t size = psize() << order;
-+	bool ok = true;
-+	char *p;
-+	int i;
-+
-+	for (i = 0; i < NR_ORDERS; i++)
-+		settings.hugepages[i].enabled = THP_NEVER;
-+	if (order)
-+		settings.hugepages[order].enabled = THP_ALWAYS;
-+	thp_push_settings(&settings);
-+
-+	p = alloc_aligned(size);
-+	*p = 1;
-+
-+	if (!is_range_backed_by_order(p, size, order, pagemap_fd, kpageflags_fd)) {
-+		ksft_print_msg("order %d not detected after fault\n", order);
-+		ok = false;
-+	}
-+
-+	/* A lower order must be rejected: the folio is larger */
-+	if (order && is_range_backed_by_order(p, size, order - 1,
-+					      pagemap_fd, kpageflags_fd)) {
-+		ksft_print_msg("order %d also reported as order %d\n",
-+			       order, order - 1);
-+		ok = false;
-+	}
-+
-+	/* A large folio must not pass as order 0 */
-+	if (order && is_range_backed_by_order(p, size, 0,
-+					      pagemap_fd, kpageflags_fd)) {
-+		ksft_print_msg("order %d also reported as order 0\n", order);
-+		ok = false;
-+	}
-+
-+	munmap(p, size);
-+	thp_pop_settings();
-+
-+	ksft_test_result(ok, "order %d classified\n", order);
-+}
-+
-+int main(void)
-+{
-+	struct thp_settings settings;
-+	unsigned long orders;
-+	int order;
-+
-+	ksft_print_header();
-+
-+	if (!thp_available())
-+		ksft_exit_skip("Transparent Hugepages not available\n");
-+
-+	pagemap_fd = open("/proc/self/pagemap", O_RDONLY);
-+	if (pagemap_fd < 0)
-+		ksft_exit_fail_perror("open(/proc/self/pagemap)");
-+	kpageflags_fd = open("/proc/kpageflags", O_RDONLY);
-+	if (kpageflags_fd < 0)
-+		ksft_exit_skip("open(/proc/kpageflags) requires root\n");
-+
-+	orders = thp_supported_orders();
-+	if (!orders)
-+		ksft_exit_skip("No supported THP orders\n");
-+
-+	ksft_set_plan(__builtin_popcountl(orders) + 1);
-+
-+	thp_save_settings();
-+	thp_read_settings(&settings);
-+	/* Base of the settings stack; the bottom entry is never popped */
-+	thp_push_settings(&settings);
-+
-+	check_order(0);
-+	for (order = 1; order < NR_ORDERS; order++) {
-+		if (!(orders & (1UL << order)))
-+			continue;
-+		check_order(order);
-+	}
-+
-+	ksft_finished();
-+}
---- a/tools/testing/selftests/mm/hmm-tests.c~selftests-mm-add-folio-order-detection-self-check
-+++ a/tools/testing/selftests/mm/hmm-tests.c
-@@ -65,7 +65,6 @@ enum {
- #define HMM_PATH_MAX    64
- #define NTIMES		10
+ struct thp_settings *thp_current_settings(void)
+ {
+ 	if (!settings_index) {
+--- a/tools/lib/mm/hugepage_settings.h~selftests-mm-add-khugepaged-completion-barrier-helper
++++ a/tools/lib/mm/hugepage_settings.h
+@@ -83,6 +83,8 @@ static inline void thp_save_settings(voi
+ 	hugepage_save_settings(/* thp = */ true, /* hugetlb = */ false);
+ }
  
--#define ALIGN(x, a) (((x) + (a - 1)) & (~((a) - 1)))
- /* Just the flags we need, copied from mm.h: */
- 
- #ifndef FOLL_WRITE
---- a/tools/testing/selftests/mm/Makefile~selftests-mm-add-folio-order-detection-self-check
-+++ a/tools/testing/selftests/mm/Makefile
-@@ -105,6 +105,7 @@ TEST_GEN_FILES += guard-regions
- TEST_GEN_FILES += merge
- TEST_GEN_FILES += rmap
- TEST_GEN_FILES += folio_split_race_test
-+TEST_GEN_FILES += folio_order_check
- 
- ifneq ($(ARCH),arm64)
- TEST_GEN_FILES += soft-dirty
---- a/tools/testing/selftests/mm/migration.c~selftests-mm-add-folio-order-detection-self-check
-+++ a/tools/testing/selftests/mm/migration.c
-@@ -20,7 +20,6 @@
- 
- #define TWOMEG		(2<<20)
- #define RUNTIME		(20)
--#define ALIGN(x, a)	(((x) + (a - 1)) & (~((a) - 1)))
- 
- HUGETLB_SETUP_DEFAULT_PAGES(1)
- 
---- a/tools/testing/selftests/mm/run_vmtests.sh~selftests-mm-add-folio-order-detection-self-check
-+++ a/tools/testing/selftests/mm/run_vmtests.sh
-@@ -367,6 +367,8 @@ CATEGORY="pfnmap" run_test ./pfnmap
- # COW tests
- CATEGORY="cow" run_test ./cow
- 
-+CATEGORY="thp" run_test ./folio_order_check
++bool khugepaged_full_pass(unsigned int timeout_s);
 +
- CATEGORY="thp" run_test ./khugepaged
- 
- CATEGORY="thp" run_test ./khugepaged -s 2
---- a/tools/testing/selftests/mm/vm_util.h~selftests-mm-add-folio-order-detection-self-check
-+++ a/tools/testing/selftests/mm/vm_util.h
-@@ -12,6 +12,8 @@
- #include <mm/hugepage_settings.h>
- 
- #define BIT_ULL(nr)                   (1ULL << (nr))
-+#define ALIGN(x, a)                   (((x) + (a) - 1) & ~((a) - 1))
-+
- #define PM_SOFT_DIRTY                 BIT_ULL(55)
- #define PM_MMAP_EXCLUSIVE             BIT_ULL(56)
- #define PM_UFFD_WP                    BIT_ULL(57)
+ void thp_set_read_ahead_path(char *path);
+ unsigned long thp_supported_orders(void);
+ unsigned long thp_shmem_supported_orders(void);
 _
 
 Patches currently in -mm which might be from kas@kernel.org are
