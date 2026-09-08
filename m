@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 286BE449B19
-	for <mm-commits@vger.kernel.org>; Tue,  8 Sep 2026 21:16:31 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 38CE5449B12
+	for <mm-commits@vger.kernel.org>; Tue,  8 Sep 2026 21:16:35 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788902193; cv=none; b=WPjznl3650GLsyxP8w1pDZQ9MJvxOlN6F224OlYfuX0Lof10lOm0QPSQUSKDkBxXz5fMRJLkNg0FlmYfMFDlmDXLDTBDVL/dBJcQDOWrSRLRQW15i37TQrTlLjuyb7rlFf5W+74nLiT5HOHue0CDOA0anuqIxNfgCxGGMFxqHLI=
+	t=1788902196; cv=none; b=Ya+nsUBQiqRRFYIfi/ePsOeRdeLLJ4cL3pQxOWln+U2XJWvTffPs6x8F75fcBOo1fqP3m4WIdOco73G9T9LAi86hIwiqTAkbsOF8YPJGnTmyMcqydcRa3dbuxnTI/xROyz9Qs8L1ccaNlBqpRzZpx+RX2MviWbqkCKteRISA4Hc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788902193; c=relaxed/simple;
-	bh=lYqUtd9JKTAUNj/w9KfrrgAY3cdJgqhxbOt/8Atxthw=;
-	h=Date:To:From:Subject:Message-Id; b=k5NHUZxiXFUZFoOqPP4MPP7DAWW1eCAKrHEu5GwjouMqHzxe/A9WWVICir8Bs9JzgBPmc3zLOlD5EB802a95nnZcSCB1O8rIO+QZyBSdKhxEeDWl/ItjTBes6oHmdUXTTCNc8IoGp4kUVXsWdcREAhrLC7NOta3ngG5oAyLKy90=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=YjmrTqw+; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1788902196; c=relaxed/simple;
+	bh=wlo3tHQ/VY9mTuO95f6lBYfk1IENRWLwJH2Ef6EO0R0=;
+	h=Date:To:From:Subject:Message-Id; b=uERGREhKAY6Suk38t4F2U6JgdVEUXFNvvAzizIL2E8SKkiSxqX/OVgK1L9y+5Vc3xPmiOr4x94aGzi70RtcDjYEusWJhK4dCaW8qfZRYv5ZVc2epsqMGEySJL1IiZV/1YFOqcQ1I5AxS8Mo719x30ezTLMnUDz45c8FisOOpv2M=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=2XOUfdGe; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="YjmrTqw+"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A978A1F00A3A;
-	Tue,  8 Sep 2026 21:16:31 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="2XOUfdGe"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id CE9BD1F00A3A;
+	Tue,  8 Sep 2026 21:16:34 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1788902191;
-	bh=B2oDCvuFpg5zHG5O0o68fNs2HVskcwNO9rLjiswAwdk=;
+	d=linux-foundation.org; s=korg; t=1788902194;
+	bh=+WesHFg95v1gc2CLJkctjpwD68VfsW/JiWnXg2mLGgk=;
 	h=Date:To:From:Subject;
-	b=YjmrTqw+7/CNFKXGY1IwGmUhxHwwKukWDiXmfgx7xovqffV/ZxZe4L3XlQTyweKzy
-	 HS5WAsKadcU3tHmRJ8wqKL/bkeXF29wVNakJYqu0uYy52p4TpzObCwegGosmLcLCBP
-	 kVosv5O7/rwmeqcaGFXyGtwwsQZhIZWqEhoK6kOY=
-Date: Tue, 08 Sep 2026 14:16:31 -0700
+	b=2XOUfdGee6cr+PAmBMxtTsDEf6WGcqYLthuN0coJvMtpZdcTeLhy+/L2+ljnQT3qH
+	 KbdSLdXRWxVE0/xZgR2hQk3QIKeKR5CugRgSFyb7wdx+pKmFaHbJBOMYYmHBGNawSV
+	 B1QxMkUUXGzYEHwHhZZ/PrGOKbWwBFPynoifNLao=
+Date: Tue, 08 Sep 2026 14:16:34 -0700
 To: mm-commits@vger.kernel.org,ljs@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-enable-mmu_gather_rcu_table_free-for-sparc64.patch added to mm-new branch
-Message-Id: <20260908211631.A978A1F00A3A@smtp.kernel.org>
+Subject: + mm-enable-mmu_gather_rcu_table_free-for-m68k-coldfire.patch added to mm-new branch
+Message-Id: <20260908211634.CE9BD1F00A3A@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: enable MMU_GATHER_RCU_TABLE_FREE for sparc64
+     Subject: mm: enable MMU_GATHER_RCU_TABLE_FREE for m68k-coldfire
 has been added to the -mm mm-new branch.  Its filename is
-     mm-enable-mmu_gather_rcu_table_free-for-sparc64.patch
+     mm-enable-mmu_gather_rcu_table_free-for-m68k-coldfire.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-enable-mmu_gather_rcu_table_free-for-sparc64.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-enable-mmu_gather_rcu_table_free-for-m68k-coldfire.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,30 +70,23 @@ and is updated there most days
 
 ------------------------------------------------------
 From: "Lorenzo Stoakes (ARM)" <ljs@kernel.org>
-Subject: mm: enable MMU_GATHER_RCU_TABLE_FREE for sparc64
-Date: Tue, 08 Sep 2026 13:32:15 +0100
+Subject: mm: enable MMU_GATHER_RCU_TABLE_FREE for m68k-coldfire
+Date: Tue, 08 Sep 2026 13:32:16 +0100
 
-Commit 4a0100f7546f ("sparc64: use RCU page table freeing") enabled
-CONFIG_MMU_GATHER_RCU_TABLE_FREE for SMP sparc64 architectures, expressly
-for GUP-fast page table walkers.
+Similar to sun3, the coldfire variant of m68k uses 2-level page tables.
 
-Naturally, UP systems do not have to worry about concurrent GUP fast
-operations.
+Update its __pte_free_tlb() function to use tlb_remove_ptdesc() in order
+that, with CONFIG_MMU_GATHER_RCU_TABLE_FREE, page tables are freed under
+RCU.
 
-However, CONFIG_PREEMPT_RCU is also available even on a UP system, so a
-future pure-RCU page table walker requires MMU_GATHER_RCU_TABLE_FREE to be
-enabled on UP, even if concurrent GUP fast is not possible there.
-
-To enable future pure-RCU page table walkers, enable
-MMU_GATHER_RCU_TABLE_FREE unconditionally.
-
-With this change, it is no longer necessary to have !CONFIG_SMP
-pgtable_free_tlb(), so also remove this now dead code.
+The page tables occupy a page each and have no odd semantics, so this
+change suffices to allow enabling of CONFIG_MMU_GATHER_RCU_TABLE_FREE for
+m68k-coldfire, so do so.
 
 This forms part of an overall effort to switch every architecture to this
 mode.
 
-Link: https://lore.kernel.org/20260908-rcu-pagetable-freeing-v2-6-1f60b64e878e@kernel.org
+Link: https://lore.kernel.org/20260908-rcu-pagetable-freeing-v2-7-1f60b64e878e@kernel.org
 Signed-off-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
 Cc: Albert Ou <aou@eecs.berkeley.edu>
 Cc: Alexander Gordeev <agordeev@linux.ibm.com>
@@ -163,47 +156,35 @@ Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/sparc/Kconfig                  |    4 ++--
- arch/sparc/include/asm/pgalloc_64.h |    8 --------
- 2 files changed, 2 insertions(+), 10 deletions(-)
+ arch/m68k/Kconfig                   |    2 +-
+ arch/m68k/include/asm/mcf_pgalloc.h |    5 +----
+ 2 files changed, 2 insertions(+), 5 deletions(-)
 
---- a/arch/sparc/include/asm/pgalloc_64.h~mm-enable-mmu_gather_rcu_table_free-for-sparc64
-+++ a/arch/sparc/include/asm/pgalloc_64.h
-@@ -74,8 +74,6 @@ void pte_free_defer(struct mm_struct *mm
- 
- void pgtable_free(void *table, bool is_page);
- 
--#ifdef CONFIG_SMP
--
- struct mmu_gather;
- void tlb_remove_table(struct mmu_gather *, void *);
- 
-@@ -96,12 +94,6 @@ static inline void __tlb_remove_table(vo
- 		is_page = true;
- 	pgtable_free(table, is_page);
- }
--#else /* CONFIG_SMP */
--static inline void pgtable_free_tlb(struct mmu_gather *tlb, void *table, bool is_page)
--{
--	pgtable_free(table, is_page);
--}
--#endif /* !CONFIG_SMP */
- 
- static inline void __pte_free_tlb(struct mmu_gather *tlb, pte_t *pte,
+--- a/arch/m68k/include/asm/mcf_pgalloc.h~mm-enable-mmu_gather_rcu_table_free-for-m68k-coldfire
++++ a/arch/m68k/include/asm/mcf_pgalloc.h
+@@ -39,10 +39,7 @@ extern inline pmd_t *pmd_alloc_kernel(pg
+ static inline void __pte_free_tlb(struct mmu_gather *tlb, pgtable_t pgtable,
  				  unsigned long address)
---- a/arch/sparc/Kconfig~mm-enable-mmu_gather_rcu_table_free-for-sparc64
-+++ a/arch/sparc/Kconfig
-@@ -75,8 +75,8 @@ config SPARC64
- 	select HAVE_FUNCTION_GRAPH_TRACER
- 	select HAVE_KRETPROBES
- 	select HAVE_KPROBES
--	select MMU_GATHER_RCU_TABLE_FREE if SMP
--	select HAVE_ARCH_TLB_REMOVE_TABLE if SMP
-+	select MMU_GATHER_RCU_TABLE_FREE
-+	select HAVE_ARCH_TLB_REMOVE_TABLE
- 	select MMU_GATHER_MERGE_VMAS
- 	select MMU_GATHER_NO_FLUSH_CACHE
- 	select HAVE_ARCH_TRANSPARENT_HUGEPAGE
+ {
+-	struct ptdesc *ptdesc = virt_to_ptdesc(pgtable);
+-
+-	pagetable_dtor(ptdesc);
+-	pagetable_free(ptdesc);
++	tlb_remove_ptdesc(tlb, virt_to_ptdesc(pgtable));
+ }
+ 
+ static inline pgtable_t pte_alloc_one(struct mm_struct *mm)
+--- a/arch/m68k/Kconfig~mm-enable-mmu_gather_rcu_table_free-for-m68k-coldfire
++++ a/arch/m68k/Kconfig
+@@ -36,7 +36,7 @@ config M68K
+ 	select HAVE_MOD_ARCH_SPECIFIC
+ 	select HAVE_UID16
+ 	select MMU_GATHER_NO_RANGE if MMU
+-	select MMU_GATHER_RCU_TABLE_FREE if MMU && SUN3
++	select MMU_GATHER_RCU_TABLE_FREE if MMU && (SUN3 || COLDFIRE)
+ 	select MODULES_USE_ELF_REL
+ 	select MODULES_USE_ELF_RELA
+ 	select NO_DMA if !MMU && !COLDFIRE
 _
 
 Patches currently in -mm which might be from ljs@kernel.org are
