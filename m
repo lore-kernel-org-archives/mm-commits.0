@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D38FE2EEE7E
-	for <mm-commits@vger.kernel.org>; Tue,  8 Sep 2026 23:24:29 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DAFBB4A5C49
+	for <mm-commits@vger.kernel.org>; Tue,  8 Sep 2026 23:33:51 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788909871; cv=none; b=b6quenGqpnSrwAiocONpD0JxniBX2ZJ9hb46bDw2qLdnPuHRMLC9ympVGKzkzQUB8edlK8eaJhFt7/wPgA0nXFj7VUzy1RS7vohA047Apik5/pogXKGcYPgkXydeBpDu/3Xpkyh/qwN/kplBycZBiQqiRD2tGH7gnb/0BDNe94E=
+	t=1788910433; cv=none; b=GhPc/GGOPi4gtXcLVrLhoDbfxca9SXihKqySy/ioAgXnagq00TIdtO+zPvI8Uv6f/H46ZlyEQz1HQs4TYJKAPHrQSi6Wl8bHS4yT6snVeJj5Mfk5vlAJ9Euz/P3k1T1X64CzibbE74Zc/YypJ9+nGEbeb64P/N6WEqbsDNuUGwg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788909871; c=relaxed/simple;
-	bh=gMAn4H20gqdnw61kGKgjJNYVWUFCu2leTDOVbSp3Ry4=;
-	h=Date:To:From:Subject:Message-Id; b=S8iC4L6PqdnCZPudJUfQoxkfTfcD2OmMaIhyB7JpgfA+BsPwyIPQq+fMwolGKR5ZuwcTYFXNHbbPQY538pOVz5SFKBb1weFSyUwxhNJFuENa++r/4NfQmHSFvmsEiYMqPO/v8sTAStQdsKjy6NRjfxhcWw4j4VaFpp9QC69SIWo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=QVM+i4+7; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1788910433; c=relaxed/simple;
+	bh=hymrOUxsUL4S7w/I6E6GTfSfWi5HKXcrojYklaK4KQ0=;
+	h=Date:To:From:Subject:Message-Id; b=eLg8mja+m67G9qAgpAaVpbOfA6uvVXiNkWRbMj3GY/4JVa85HM7k/4USkFZXYOnUOxDAIAqIiB4KR22c9IVuol5pVmW6RnwjHLQ9K4OGm337RdJBzXIXK/1IPO5lrf4AdyGiU+9OuxeZTzsJc0lH+pGgaQHZE0lGU0OarE5O5tw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=qdVvLDe1; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="QVM+i4+7"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 57A8B1F00A3A;
-	Tue,  8 Sep 2026 23:24:29 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="qdVvLDe1"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8122B1F00A3D;
+	Tue,  8 Sep 2026 23:33:51 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1788909869;
-	bh=cmP3ZRujAChrr7QoGVLU9VnbmOkorGxwml1oK5e2RTs=;
+	d=linux-foundation.org; s=korg; t=1788910431;
+	bh=DhgumfFg4w5ZSXiQmx1e+28YbdV2sBrm9ll3PDtkjeo=;
 	h=Date:To:From:Subject;
-	b=QVM+i4+7LcSzN59/MPxNqiTCD3Po1TJ+rI+Nui629xxEQ2TZ2e5usSHt8pRl0r/A4
-	 nznVHnxp7SDsdXo2CqZrpKbYFgB0qKyR8e2zegx87ER1yRfwzZo/ggay+XagshFwIm
-	 xwMLicO0esCgtZJuBBHKte0/KLf5DSGFaYQwFhnc=
-Date: Tue, 08 Sep 2026 16:24:28 -0700
-To: mm-commits@vger.kernel.org,shuah@kernel.org,davidgow@davidgow.net,brendan.higgins@linux.dev,sj@kernel.org,akpm@linux-foundation.org
+	b=qdVvLDe1/Kqf5cA1tVmkbciC1G5muO9oe07pG+Yz0D+8Hg9wso9gd+ulzLY1GJprv
+	 qm8SPB+jK7vW3jK/o8DUBuX3eegJBU5gNKZtBO16w6u2pvIw0raLMIr3FvfZYhl8Go
+	 7eEyQrbOVRQ+I75TYD0XqEZ+dPB8KGb3yY76EDJI=
+Date: Tue, 08 Sep 2026 16:33:51 -0700
+To: mm-commits@vger.kernel.org,ljs@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-damon-sysfspy-test-damon-probes.patch added to mm-unstable branch
-Message-Id: <20260908232429.57A8B1F00A3A@smtp.kernel.org>
+Subject: [to-be-updated] mm-implement-file_is_dev_zero-to-uniquely-identify-dev-zero.patch removed from -mm tree
+Message-Id: <20260908233351.8122B1F00A3D@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,131 +34,146 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The patch titled
-     Subject: selftests/damon/sysfs.py: test damon probes
-has been added to the -mm mm-unstable branch.  Its filename is
-     selftests-damon-sysfspy-test-damon-probes.patch
+The quilt patch titled
+     Subject: mm: implement file_is_dev_zero() to uniquely identify /dev/zero
+has been removed from the -mm tree.  Its filename was
+     mm-implement-file_is_dev_zero-to-uniquely-identify-dev-zero.patch
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-damon-sysfspy-test-damon-probes.patch
-
-This patch will later appear in the mm-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via various
-branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there most days
+This patch was dropped because an updated version will be issued
 
 ------------------------------------------------------
-From: SJ Park <sj@kernel.org>
-Subject: selftests/damon/sysfs.py: test damon probes
-Date: Wed, 2 Sep 2026 07:03:12 -0700
+From: "Lorenzo Stoakes (ARM)" <ljs@kernel.org>
+Subject: mm: implement file_is_dev_zero() to uniquely identify /dev/zero
+Date: Wed, 02 Sep 2026 19:00:19 +0100
 
-Extend sysfs.py to commit DAMON probes via sysfs, and see if it changed
-in-kernel DAMON status as expected using drgn.
+To lay the foundation for a future change that converts
+MAP_PRIVATE-/dev/zero mappings to be truly anonymous, add the ability to
+uniquely identify these mappings.
 
-Link: https://lore.kernel.org/20260902140313.85983-7-sj@kernel.org
-Signed-off-by: SJ Park <sj@kernel.org>
-Cc: Brendan Higgins <brendan.higgins@linux.dev>
-Cc: David Gow <davidgow@davidgow.net>
-Cc: Shuah Khan <shuah@kernel.org>
+With the memory character device now part of mm/ this is trivially
+achievable through a file_is_dev_zero() predicate that simply tests that
+the file operation hooks are zero_fops.
+
+Also update userland VMA tests to expose file_is_dev_zero() and provide a
+stub zero_fops for testing.
+
+Link: https://lore.kernel.org/20260902-map-private-dev-zero-v1-2-a578c730cec7@kernel.org
+Signed-off-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
+Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
+Cc: David Hildenbrand (Arm) <david@kernel.org>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Jan Kara <jack@suse.cz>
+Cc: Jann Horn <jannh@google.com>
+Cc: Liam R. Howlett <liam@infradead.org>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Pedro Falcato <pfalcato@suse.de>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Vlastimil Babka <vbabka@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/damon/sysfs.py |   16 +++++++++++++++-
- 1 file changed, 15 insertions(+), 1 deletion(-)
+ mm/char-mem.c                   |   13 +++++++++++++
+ mm/internal.h                   |    3 +++
+ tools/testing/vma/include/dup.h |    7 +++++++
+ tools/testing/vma/shared.c      |    9 +++++++++
+ 4 files changed, 32 insertions(+)
 
---- a/tools/testing/selftests/damon/sysfs.py~selftests-damon-sysfspy-test-damon-probes
-+++ a/tools/testing/selftests/damon/sysfs.py
-@@ -319,7 +319,21 @@ def main():
-                 intervals_goal=_damon_sysfs.IntervalsGoal(
-                     access_bp=400, aggrs=3, min_sample_us=5000,
-                     max_sample_us=10000000),
--                update_us=2000000),
-+                update_us=2000000,
-+                probes=_damon_sysfs.DamonProbes(
-+                    probes=[_damon_sysfs.DamonProbe(
-+                        weight=42,
-+                        filters=_damon_sysfs.DamonFilters(
-+                            filters=[
-+                                _damon_sysfs.DamonFilter(
-+                                    type_='anon',
-+                                    matching=True,
-+                                    allow=True,
-+                                    ),
-+                                ]),
-+                            ),
-+                            ]),
-+                    ),
-             schemes=[_damon_sysfs.Damos(
-                 action='pageout',
-                 access_pattern=_damon_sysfs.DamosAccessPattern(
+--- a/mm/char-mem.c~mm-implement-file_is_dev_zero-to-uniquely-identify-dev-zero
++++ a/mm/char-mem.c
+@@ -31,6 +31,8 @@
+ #include <linux/uaccess.h>
+ #include <linux/security.h>
+ 
++#include "internal.h"
++
+ #define DEVMEM_MINOR	1
+ #define DEVPORT_MINOR	4
+ 
+@@ -707,6 +709,17 @@ static const struct memdev {
+ #endif
+ };
+ 
++/**
++ * file_is_dev_zero() - is the specified @file associated with the /dev/zero
++ * driver?
++ * @file: File to test.
++ * Returns: true if it is, false otherwise.
++ */
++bool file_is_dev_zero(const struct file *file)
++{
++	return file && file->f_op == &zero_fops;
++}
++
+ static int memory_open(struct inode *inode, struct file *filp)
+ {
+ 	int minor;
+--- a/mm/internal.h~mm-implement-file_is_dev_zero-to-uniquely-identify-dev-zero
++++ a/mm/internal.h
+@@ -1638,4 +1638,7 @@ static inline bool can_spin_trylock(void
+ 	return true;
+ }
+ 
++/* char-mem.c */
++bool file_is_dev_zero(const struct file *file);
++
+ #endif	/* __MM_INTERNAL_H */
+--- a/tools/testing/vma/include/dup.h~mm-implement-file_is_dev_zero-to-uniquely-identify-dev-zero
++++ a/tools/testing/vma/include/dup.h
+@@ -1641,3 +1641,10 @@ static inline pgoff_t linear_anon_page_i
+ 
+ 	return pgoff;
+ }
++
++extern const struct file_operations zero_fops;
++
++static inline bool file_is_dev_zero(const struct file *file)
++{
++	return file && file->f_op == &zero_fops;
++}
+--- a/tools/testing/vma/shared.c~mm-implement-file_is_dev_zero-to-uniquely-identify-dev-zero
++++ a/tools/testing/vma/shared.c
+@@ -12,6 +12,15 @@ const struct vm_operations_struct vma_du
+ struct anon_vma dummy_anon_vma;
+ struct task_struct __current;
+ 
++static int mmap_zero_prepare(struct vm_area_desc *desc)
++{
++	return 0;
++}
++
++const struct file_operations zero_fops = {
++	.mmap_prepare = mmap_zero_prepare,
++};
++
+ struct vm_area_struct *alloc_vma(struct mm_struct *mm,
+ 		unsigned long start, unsigned long end,
+ 		pgoff_t pgoff, vma_flags_t vma_flags)
 _
 
-Patches currently in -mm which might be from sj@kernel.org are
+Patches currently in -mm which might be from ljs@kernel.org are
 
-mm-damon-vaddr-avoid-hw-driven-pte-updates-during-damon_hugetlb_mkold.patch
-mm-damon-core-skip-applying-scheme-if-region-split-for-quota-fails.patch
-mm-damon-paddr-respect-folio-end-for-damos_stat.patch
-mm-damon-paddr-respect-folio-end-for-damos-actions-except-stat.patch
-mm-damon-vaddr-respect-folio-end-for-damos_stat.patch
-mm-damon-vaddr-respect-folio-end-for-damos_migrate_hotcold.patch
-mm-damon-core-handle-extreme-memory-state-in-damon_get_node_mem_bp.patch
-mm-damon-core-handle-extreme-memory-state-in-get_node_memcg_used_bp.patch
-mm-damon-core-handle-extreme-memory-state-in-get_in_active_mem_bp.patch
-mm-damon-core-introduce-damon_filter_type_pgidle_unset.patch
-mm-damon-paddr-support-pgidle_unset-probe-filter-type.patch
-mm-damon-sysfs-support-pgidle_unset-probe-filter-type.patch
-docs-mm-damon-design-document-pgidle_unset-probe-filter-type.patch
-mm-damon-core-introduce-damon_prep-struct.patch
-mm-damon-core-commit-preps.patch
-mm-damon-core-introduce-damon_operations-prep_probes.patch
-mm-damon-paddr-support-damon_prep.patch
-mm-damon-sysfs-implement-preps-directory.patch
-mm-damon-sysfs-implement-preps-nr_preps-file.patch
-mm-damon-sysfs-create-directories-for-nr_preps-writes.patch
-mm-damon-sysfs-implement-prep_action-file.patch
-mm-damon-sysfs-pass-preps-to-damon-core.patch
-selftests-damon-sysfssh-test-probe-prep-sysfs-files.patch
-docs-mm-damon-design-document-probe-preps.patch
-docs-admin-guide-mm-damon-usage-document-probe-preps-sysfs-files.patch
-docs-abi-damon-document-probe-prep-sysfs-files.patch
-mm-damon-tests-core-kunit-test-committing-psi-goal-to-psi-goal.patch
-mm-damon-core-handle-uninitialized-damos_quota_goal-last_psi_total.patch
-mm-damon-core-copy-nid-for-eligible_mem_bp-damos-quota-goal-commit.patch
-mm-damon-sysfs-set-next-refresh-jiffies-per-sysfs-context.patch
-mm-damon-tests-core-kunit-test-damon_commit_filter.patch
-mm-damon-tests-core-kunit-add-damon_commit_probes-test.patch
-selftests-damon-_damon_sysfs-implement-damonprobes.patch
-selftests-damon-drgn_dump_damon_status-dump-probes.patch
-selftests-damon-sysfspy-extend-commit-assertion-function-for-probes.patch
-selftests-damon-sysfspy-test-damon-probes.patch
-mm-damon-core-use-damon_nr_samples_per_aggr-for-max-merge-threshold.patch
-mm-damon-core-remove-debug-messages.patch
-mm-damon-core-remove-debug-messages-fix.patch
-mm-damon-vaddr-remove-a-debug-message.patch
-mm-damon-core-validate-number-of-probes-in-valid_probe_params.patch
-mm-damon-sysfs-remove-probes-number-validation.patch
-mm-damon-tests-core-kunit-extend-set_regions-test-for-error-case.patch
-mm-damon-tests-core-kunit-test-=0-size-damon_set_regions-inputs.patch
-mm-damon-tests-core-kunit-test-overlapping-ranges-for-set_regions.patch
-mm-damon-tests-core-kunit-test-damon_nr_samples_per_aggr.patch
-selftests-damon-sysfssh-test-hugepage_mem_bp-quota-goal.patch
-docs-mm-damon-maintainer-profile-update-ai-review-for-sashiko-replies.patch
-docs-abi-damon-recommend-subsystem-doc-instead-of-admin-guide.patch
-mm-damon-core-error-damos_commit_quota_goal-for-zero-target_value.patch
-revert-mm-damon-lru_sort-error-out-for-10000-active_mem_bp.patch
-revert-samples-damon-mtier-error-out-for-zero-quota-goal-target-values.patch
-mm-damon-core-handle-null-ctx-parameter-in-damon_call.patch
-mm-damon-core-set-ctx-call_controls_obsolete-in-damon_new_ctx.patch
-mm-damon-reclaim-remove-unnecessary-damon_call-param-validation.patch
-mm-damon-lru_sort-remove-unnecessary-damon_call-param-validation.patch
+mm-vma-correctly-unaccount-on-mmap_prepare-failure.patch
+mm-vmpressure-remove-window-size-todo.patch
+tools-testing-selftests-mm-add-missing-gitignore-entries.patch
+mm-vma-only-permit-map_private-dev-zero-to-be-mapped-anonymous.patch
+mm-vma-make-map_private-mapped-dev-zero-mappings-truly-anonymous.patch
+tools-testing-vma-add-test-to-assert-map_private-dev-zero-is-anon.patch
+tools-testing-selftests-mm-add-map_private-dev-zero-merge-tests.patch
+mm-madvise-swap-in-cowd-map_private-file-mappings-on-madv_willneed.patch
+mm-huge_memory-zap-deposited-page-tables-after-an-rcu-grace-period.patch
+mm-enable-mmu_gather_rcu_table_free-for-most-2-level-architectures.patch
+mm-enable-mmu_gather_rcu_table_free-for-mmu-riscv.patch
+mm-enable-mmu_gather_rcu_table_free-for-mmu-arm.patch
+mm-enable-mmu_gather_rcu_table_free-for-arc-microblaze-xtensa.patch
+mm-enable-mmu_gather_rcu_table_free-for-sparc64.patch
+mm-enable-mmu_gather_rcu_table_free-for-m68k-coldfire.patch
+mm-enable-mmu_gather_rcu_table_free-for-sh-x2.patch
+mm-enable-mmu_gather_rcu_table_free-for-m68k-motorola.patch
+mm-enable-mmu_gather_rcu_table_free-for-sparc32.patch
+mm-make-userland-page-table-freeing-rcu-safe.patch
+mm-change-the-contract-for-free_pgtables-update-docs.patch
 
