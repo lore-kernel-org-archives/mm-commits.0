@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E094753B61E
-	for <mm-commits@vger.kernel.org>; Tue,  8 Sep 2026 19:50:53 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 649F748E0DD
+	for <mm-commits@vger.kernel.org>; Tue,  8 Sep 2026 19:53:52 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788897055; cv=none; b=tN1+I6BxZvXtOOdUA7gp6SzEUWJHyJ/8u/LSw/qP0/7lF5qk6OWHH24L1isPDv8mGOmUg0TO8wRrM/cuKP1A6KqOV/tTeBMAjv7nZx+tdn5f4ummTJQm4kdIQqBtFxdjyWOWr9AiXk/WaN65/9UOFl+T9MSLYNg479m5lNr41BQ=
+	t=1788897233; cv=none; b=dvjCy2jPofRr49RotAQHFwdUW8i/H8X8fYW/cwtFDd3Rz6zkTJYQlPnRB+YQ6ElpIXU/7Nd8AxaGtELyCz70kvAINAo0Tv1BPSPgTkhKEaYeqqOLkE7bFdHFgOH36AvLCgO5eFA6+NVDYHI8uGkZYpFlBFiQjRP/We0qZtTaNRc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788897055; c=relaxed/simple;
-	bh=EHXJE1qQa8fOVZg0S0S+Kcwz9wLW2YSuGIpAJYSvQNk=;
-	h=Date:To:From:Subject:Message-Id; b=BNYpNk1Rfue0i7AvsX9McXqyrRJYXMIUBNttpi/guh9Q/nq/6ooo80r4YyObW0LImiI9u/jxzJtXGitOcsTLIi+bkoUr67o9QZiPm96JbEM7EHkqwhXEyttHiTv9vWHQYTCtmraxlMyfZujdSY5wEaIPkYJSt35WcZgNLynjHUw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=DlMaFzJX; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1788897233; c=relaxed/simple;
+	bh=ACAnLkKz6qLzMrYPN/xqA3nHwXKd5sWKsrf7KbERiWU=;
+	h=Date:To:From:Subject:Message-Id; b=KpqTFkk4tsqz8dVHdBuE1ox4prYcVwEjAyo1ieTGi6i8hHgFbxuhSSSeGIeltoiBIH9nOnjCkYYU20IsG++/shQcSO4Kqy42n2HZMAz6Y66cgA1cHtI7ecijXJgMCzlLfm1iKW8fmTt9JfQO+WA/wJuY/sXjiaxn1S3ByjxMvBI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ftHFaeSa; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="DlMaFzJX"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4F0451F00A3A;
-	Tue,  8 Sep 2026 19:50:53 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ftHFaeSa"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D6BA61F00A3A;
+	Tue,  8 Sep 2026 19:53:51 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1788897053;
-	bh=f1vGvirlRJN8LfpGDsnDF2oPygqhpq53FkWJkvqka/k=;
+	d=linux-foundation.org; s=korg; t=1788897232;
+	bh=nlTVVpUE1Yn0bBsjpuP11mWxMCcDf0poYZe1QeY2q3E=;
 	h=Date:To:From:Subject;
-	b=DlMaFzJXqY9ePNXHoFwTT8moa2kQU7OnGAME7db7WBaFxha7Oo0Hi7sWpZJ9hHWMv
-	 NGsCtzTBFakLSyTYLAWwVCvptx/L3vt7IewxxM0IxsMtFsFKAuKjh+rlPsn8Zb/yN7
-	 QJOzTtQjn5+gJMxTlWNS+UuRW0LZ+7gJ48A+HUkU=
-Date: Tue, 08 Sep 2026 12:50:52 -0700
-To: mm-commits@vger.kernel.org,kas@kernel.org,akpm@linux-foundation.org
+	b=ftHFaeSa9OKJhyTWslpz5PuckOxHFsMtp1kmcR9SAu1e/2EWHNCODwHY18EOP2+k4
+	 B7UV9cI8FcYAdH2q0woUEyUTy27m5ZCcW5UO91QXFoKHZDIju20L77YcgCXen9KbUe
+	 6sCafRBDkUCd9RaMeEFYqKNcEEYEBmk0DdLc5XZg=
+Date: Tue, 08 Sep 2026 12:53:51 -0700
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,ljs@kernel.org,david@kernel.org,baolin.wang@linux.alibaba.com,balbirs@nvidia.com,kas@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-mm-zap-whole-pte-tables-in-the-khugepaged-race-harness.patch added to mm-new branch
-Message-Id: <20260908195053.4F0451F00A3A@smtp.kernel.org>
+Subject: + mm-huge_memory-add-folio_reset_partially_mapped.patch added to mm-new branch
+Message-Id: <20260908195351.D6BA61F00A3A@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: selftests/mm: zap whole PTE tables in the khugepaged race harness
+     Subject: mm/huge_memory: add folio_reset_partially_mapped()
 has been added to the -mm mm-new branch.  Its filename is
-     selftests-mm-zap-whole-pte-tables-in-the-khugepaged-race-harness.patch
+     mm-huge_memory-add-folio_reset_partially_mapped.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-zap-whole-pte-tables-in-the-khugepaged-race-harness.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-huge_memory-add-folio_reset_partially_mapped.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,72 +70,101 @@ and is updated there most days
 
 ------------------------------------------------------
 From: "Kiryl Shutsemau (Meta)" <kas@kernel.org>
-Subject: selftests/mm: zap whole PTE tables in the khugepaged race harness
-Date: Tue, 8 Sep 2026 13:51:05 +0100
+Subject: mm/huge_memory: add folio_reset_partially_mapped()
+Date: Tue, 8 Sep 2026 14:28:21 +0100
 
-The harness's MADV_DONTNEED thread zaps 1 to 32 pages at a time, never a
-whole PMD-aligned area, and only a zap that covers a full table frees the
-table itself (CONFIG_PT_RECLAIM).
+__folio_unqueue_deferred_split() and __folio_freeze_and_split_unmapped()
+both clear PG_partially_mapped and take the folio out of
+MTHP_STAT_NR_ANON_PARTIALLY_MAPPED with the same five lines.
 
-Make the thread zap a whole PMD-aligned area about one iteration in 64,
-and keep the fine-grained zaps as the common case.  The new case frees
-page tables, racing that against a collapse walking the same table.
+Move the block into folio_reset_partially_mapped() and call it from both
+places.
 
-Assisted-by: LLM
-Link: https://lore.kernel.org/20260908125105.1510704-20-kirill@shutemov.name
+The helper asserts what both callers rely on: the folio is frozen, so
+deferred_split_folio() cannot set the flag again under it, and the folio
+is already off the deferred split queue.  The list check sits behind the
+flag test because order-1 folios have no _deferred_list.
+
+folio_order() is safe to use at this point in the split process: it still
+shows the pre-split order.
+
+Link: https://lore.kernel.org/20260908132821.1517475-1-kirill@shutemov.name
 Signed-off-by: Kiryl Shutsemau (Meta) <kas@kernel.org>
-Tested-by: Muhammad Usama Anjum <usama.anjum@arm.com>
-Cc: Alexander Gordeev <agordeev@linux.ibm.com>
-Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: Barry Song <baohua@kernel.org>
-Cc: David Hildenbrand <david@kernel.org>
-Cc: Dev Jain <dev.jain@arm.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Jason Gunthorpe <jgg@ziepe.ca>
-Cc: Lance Yang <lance.yang@linux.dev>
-Cc: Leon Romanovsky <leon@kernel.org>
-Cc: Liam R. Howlett <liam@infradead.org>
-Cc: Lorenzo Stoakes (ARM) <ljs@kernel.org>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Mike Rapoport (Microsoft) <rppt@kernel.org>
-Cc: Ryan Roberts <ryan.roberts@arm.com>
-Cc: Shuah Khan <shuah@kernel.org>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Usama Arif <usama.arif@linux.dev>
-Cc: Vlastimil Babka <vbabka@kernel.org>
-Cc: Zi Yan <ziy@nvidia.com>
+Suggested-by: David Hildenbrand (Arm) <david@kernel.org>
+Assisted-by: LLM
+Acked-by: David Hildenbrand (Arm) <david@kernel.org>
+Acked-by: Balbir Singh <balbirs@nvidia.com>
+Reviewed-by: Zi Yan <ziy@nvidia.com>
+Reviewed-by: Baolin Wang <baolin.wang@linux.alibaba.com>
+Reviewed-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/khugepaged_race.c |   17 +++++++++++++++--
- 1 file changed, 15 insertions(+), 2 deletions(-)
+ mm/huge_memory.c |   32 +++++++++++++++++++++-----------
+ 1 file changed, 21 insertions(+), 11 deletions(-)
 
---- a/tools/testing/selftests/mm/khugepaged_race.c~selftests-mm-zap-whole-pte-tables-in-the-khugepaged-race-harness
-+++ a/tools/testing/selftests/mm/khugepaged_race.c
-@@ -118,8 +118,21 @@ static void *dontneed_fn(void *arg)
- 		unsigned long page_idx = rand_page(&seed);
- 		unsigned long nr = 1UL << (rand_r(&seed) % 6);	/* 1..32 pages */
+--- a/mm/huge_memory.c~mm-huge_memory-add-folio_reset_partially_mapped
++++ a/mm/huge_memory.c
+@@ -3977,6 +3977,25 @@ static unsigned int folio_cache_ref_coun
+ 	return folio_nr_pages(folio);
+ }
  
--		madvise(region + page_idx * page_size,
--			room_from(page_idx, nr) * page_size, MADV_DONTNEED);
-+		/*
-+		 * Now and then zap a whole PMD-aligned area: only a zap that
-+		 * covers the full table frees the table itself (CONFIG_PT_RECLAIM).
-+		 */
-+		if (!(rand_r(&seed) % 64)) {
-+			unsigned long area = page_idx /
-+					(hpage_pmd_size / page_size);
++static void folio_reset_partially_mapped(struct folio *folio)
++{
++	/* Folio must be frozen. */
++	VM_WARN_ON_FOLIO(folio_ref_count(folio), folio);
 +
-+			madvise(region + area * hpage_pmd_size,
-+				hpage_pmd_size, MADV_DONTNEED);
-+		} else {
-+			madvise(region + page_idx * page_size,
-+				room_from(page_idx, nr) * page_size,
-+				MADV_DONTNEED);
-+		}
- 		usleep(rand_r(&seed) % 500);
++	if (!folio_test_partially_mapped(folio))
++		return;
++
++	/*
++	 * Order-1 folios have no _deferred_list. The flag is only ever set
++	 * on folios that do, so the list can be checked after the flag.
++	 */
++	VM_WARN_ON_FOLIO(!list_empty(&folio->_deferred_list), folio);
++
++	folio_clear_partially_mapped(folio);
++	mod_mthp_stat(folio_order(folio),
++		      MTHP_STAT_NR_ANON_PARTIALLY_MAPPED, -1);
++}
++
+ static int __folio_freeze_and_split_unmapped(struct folio *folio, unsigned int new_order,
+ 					     struct page *split_at, struct xa_state *xas,
+ 					     struct address_space *mapping, bool do_lru,
+@@ -3985,7 +4004,6 @@ static int __folio_freeze_and_split_unma
+ {
+ 	struct folio *end_folio = folio_next(folio);
+ 	struct folio *new_folio, *next;
+-	int old_order = folio_order(folio);
+ 	int ret = 0;
+ 
+ 	VM_WARN_ON_ONCE(!mapping && end);
+@@ -4003,11 +4021,7 @@ static int __folio_freeze_and_split_unma
+ 		 * leaves PG_partially_mapped set.
+ 		 * Clear it here: the flag does not survive the split.
+ 		 */
+-		if (folio_test_partially_mapped(folio)) {
+-			folio_clear_partially_mapped(folio);
+-			mod_mthp_stat(old_order,
+-				      MTHP_STAT_NR_ANON_PARTIALLY_MAPPED, -1);
+-		}
++		folio_reset_partially_mapped(folio);
+ 
+ 		if (mapping) {
+ 			int nr = folio_nr_pages(folio);
+@@ -4521,11 +4535,7 @@ bool __folio_unqueue_deferred_split(stru
+ 	memcg = folio_memcg(folio);
+ 	lru = list_lru_lock_irqsave(&deferred_split_lru, nid, &memcg, &flags);
+ 	if (__list_lru_del(&deferred_split_lru, lru, &folio->_deferred_list, nid)) {
+-		if (folio_test_partially_mapped(folio)) {
+-			folio_clear_partially_mapped(folio);
+-			mod_mthp_stat(folio_order(folio),
+-				      MTHP_STAT_NR_ANON_PARTIALLY_MAPPED, -1);
+-		}
++		folio_reset_partially_mapped(folio);
+ 		unqueued = true;
  	}
- 	return NULL;
+ 	list_lru_unlock_irqrestore(lru, &flags);
 _
 
 Patches currently in -mm which might be from kas@kernel.org are
@@ -161,4 +190,5 @@ selftests-mm-add-khugepaged-race-harness.patch
 selftests-mm-race-the-collapse-of-windows-with-holes.patch
 selftests-mm-add-memory-pressure-threads-to-the-khugepaged-race-harness.patch
 selftests-mm-zap-whole-pte-tables-in-the-khugepaged-race-harness.patch
+mm-huge_memory-add-folio_reset_partially_mapped.patch
 
