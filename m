@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 15EEB3438BB
-	for <mm-commits@vger.kernel.org>; Tue,  8 Sep 2026 18:59:23 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 81DE2356766;
+	Tue,  8 Sep 2026 19:00:18 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788893965; cv=none; b=XOzpv4c3Xo/3Qzh01r0OLC40/MRDRc7u+thjIl9HV93jYWOyTlxMwZXcUyBH0bJ6YWmrqBsqm/f99Ci3gYjZXNJfgd0Yy7/Ixdobwd2ZVvFC+loEx2ADgzLNRwL/vsqJsRKkmWICK06/fXOOLYzAasOzZpCmZunJ1tJ99ii30DE=
+	t=1788894019; cv=none; b=iRsj4oeMMhW3Al402NUGe0D/cLR/gIxdJHtF8M6YbdhvNOvT3s16J1Z3t4A5kRDwHxW7c3RAgpkCNkFXyPu808TS86RGagsN0TBC/lLIW09WQoU/X1Uqrp1X1vY+d7cV88Z2v+RqZHw1xjM08u27jiuL1A9zUMb664TDARqYDFc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788893965; c=relaxed/simple;
-	bh=naxmTwA8AwBVLqBOl11WlN6bi+qUefERkNWyCpuP2PM=;
-	h=Date:To:From:Subject:Message-Id; b=n6H9B5ih0vUDuKsRyk+W1BNrDVSfwE0qGbPzoypkpHyQ3NV/k1BghAe55Rv6pawWKwrQQhSl+iR7FObuudBQaMQVDnnHyop5G+pA37t+sCN5gk8/slTWlkWu7nYplBG+FuUTheu6JpAAUZ5jucYw8c9efVcfW4tFq57uPGTXLmE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=poTBrwsj; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1788894019; c=relaxed/simple;
+	bh=TkMUznrXurED6ouL2kpIGcGJ6tGr5yarQgd2lU0tR0Q=;
+	h=Date:To:From:Subject:Message-Id; b=dt+LLW6aF03++wEON5EQhci3q/bfKs0oSfELalg5Ko9usD6/ynXbbBk7EFRXGjAFI/qeY7J34lP2ggzOjbsIDOJ+uLgiUciASs9yZt3lwJRchRquIJW20XPAA4/RlHtrF82Eje3m1DQWTIA0qdNmnGJdRO6KvqLmA7z/6bFaTXc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Tdu/efGa; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="poTBrwsj"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8BAF61F00A3D;
-	Tue,  8 Sep 2026 18:59:23 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Tdu/efGa"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D34C11F00A3F;
+	Tue,  8 Sep 2026 19:00:17 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1788893963;
-	bh=PJkZCJBOiyw75Kr+roeraP7fFQ5Z8ViwgO4fYmhlZ7g=;
+	d=linux-foundation.org; s=korg; t=1788894017;
+	bh=btL9acUu57VC72oDspwZpJDiNzFfNPHfnyRiBllBNvY=;
 	h=Date:To:From:Subject;
-	b=poTBrwsjfCByf38XKTstnWDWK40Bfe4sqWey5Hc/S2b1WkRl9U3odaYPkgzv2T7zD
-	 mdKhtA4rjkephctxSWgy+Z9XkXPLFgmejTAUCTWD9ae5AeEdodmOTow1OLnyizWWI4
-	 paAH8m/JLy8Oesgu/saq5PpH2pJDfpfYeZ/ia0sY=
-Date: Tue, 08 Sep 2026 11:59:23 -0700
-To: mm-commits@vger.kernel.org,sj@kernel.org,kiyer@crusoe.ai,akpm@linux-foundation.org
+	b=Tdu/efGapWXcAUedOk4nJnGegLbPoX83HtbhUf0XVclt9Mqj0jZPYmjNQYGUjdl7K
+	 /h3pyXtqYZhcaey2G5FIG7amiMloAhCVQ840FVKlM2dfyG7DJEgNaYxhGhX88jdlYe
+	 qaqprgjMl7Gi2dmUwSetc7oOHJ+5JrKbjOyGo0vs=
+Date: Tue, 08 Sep 2026 12:00:17 -0700
+To: mm-commits@vger.kernel.org,stable@vger.kernel.org,sj@kernel.org,aethernet65535@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-damon-paddr-support-hugetlb-folios-in-access-monitoring.patch added to mm-new branch
-Message-Id: <20260908185923.8BAF61F00A3D@smtp.kernel.org>
+Subject: + mm-damon-core-fix-unconditionally-skip-last-region.patch added to mm-hotfixes-unstable branch
+Message-Id: <20260908190017.D34C11F00A3F@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,26 +35,15 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/damon/paddr: support hugetlb folios in access monitoring
-has been added to the -mm mm-new branch.  Its filename is
-     mm-damon-paddr-support-hugetlb-folios-in-access-monitoring.patch
+     Subject: mm/damon/core: fix unconditionally skip last region
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     mm-damon-core-fix-unconditionally-skip-last-region.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-paddr-support-hugetlb-folios-in-access-monitoring.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-core-fix-unconditionally-skip-last-region.patch
 
-This patch will later appear in the mm-new branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Note, mm-new is a provisional staging ground for work-in-progress
-patches, and acceptance into mm-new is a notification for others take
-notice and to finish up reviews.  Please do not hesitate to respond to
-review feedback and post updated versions to replace or incrementally
-fixup patches in mm-new.
-
-The mm-new branch of mm.git is not included in linux-next
-
-If a few days of testing in mm-new is successful, the patch will me moved
-into mm.git's mm-unstable branch, which is included in linux-next
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -69,149 +58,107 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Krishna Iyer <kiyer@crusoe.ai>
-Subject: mm/damon/paddr: support hugetlb folios in access monitoring
-Date: Tue, 8 Sep 2026 06:51:55 -0700
+From: Liew Rui Yan <aethernet65535@gmail.com>
+Subject: mm/damon/core: fix unconditionally skip last region
+Date: Tue, 8 Sep 2026 06:47:38 -0700
 
-DAMON's physical address space monitoring is blind to hugetlb-backed
-memory.  Every access check starts at damon_get_folio(), which rejects
-folios that are not on the LRU lists.  Hugetlb folios are managed outside
-of the LRU by design, so every sampling attempt on hugetlb-backed memory
-silently fails and the pages are reported as never accessed.
+Once quota set, the charge_{target,addr}_from unconditionally skips and
+resets at the last region of the tracked target, so the last region can be
+skipped even when it has not been processed.
 
-This is a significant blind spot on virtualization hosts.  Cloud
-hypervisor hosts commonly back guest memory with 1 GiB hugetlbfs pages,
-covering the vast majority of the machine's memory.  On such hosts,
-modules like DAMON_STAT observe only the host-side remainder (page cache,
-daemons) and report all guest working sets as permanently idle, defeating
-the purpose of host-level access monitoring.  In testing on a 1 TiB host,
-an hour of 4-thread random access over 842 GiB inside a guest was
-statistically indistinguishable from an idle host, while a 40x smaller
-host-side workload produced a quantitatively correct response.
+Example:
 
-Add damon_get_monitor_folio(), which additionally accepts hugetlb folios,
-and use it in the two paddr access monitoring primitives, damon_pa_mkold()
-and damon_pa_young().  With the previous commit teaching the
-folio-granular rmap walkers to age huge PTEs and to call the mmu notifiers
-spanning the whole huge page, this makes guest accesses visible through
-secondary MMU (e.g.  KVM/EPT) young bits.
+    1. Target has 2 regions: R1 (0-100 bytes) and R2 (100-200 bytes).
+    2. Quota is configured to process only 100 bytes per window.
+    3. Window 1: Processes R1 (0-100).  Quota is full.  charge_{target,
+       addr}_from is saved at (Target, 100).
+    4. Window 2: The loop reaches R2.  Because R2 is
+       damon_last_region(t), the old code unconditionally returns true,
+       skipping R2 entirely and resetting the charge_{target,addr}_from.
 
-Free hugetlb pool folios have a zero refcount, so folio_try_get()
-naturally keeps rejecting them.
+    Result: R2 is permanently skipped even though it has never been
+    processed.
 
-The DAMOS action appliers (damon_pa_pageout(),
-damon_pa_mark_accessed_or_deactivate(), damon_pa_migrate(),
-damon_pa_stat()) keep using damon_get_folio(): reclaim, LRU manipulation
-and migration cannot act on hugetlb folios, so their behavior is
-unchanged.
+However, it is important to note that this is a very minor issue.  This is
+because it is triggered only when the previous window saved/kept
+charge_{target,addr}_from, and in the next window, all regions except the
+last region were skipped by damos_skip_charged_region().
 
-Note that the access check granularity for hugetlb-backed memory is the
-huge page size: one touched byte reports the whole (up to 1 GiB) page as
-accessed.  Also, DAMON now consumes secondary MMU young bits that KVM's
-own aging uses; at DAMON's sampling rate (one page per region per sampling
-interval) the interference is negligible.
+Fix this by only resetting the charge_{target,addr}_from when last region
+is reached, only skipping when it is applied or cannot split.
 
-Link: https://lore.kernel.org/20260902025700.17975-4-kiyer@crusoe.ai
-Link: https://lore.kernel.org/20260908135156.97481-4-sj@kernel.org
-Assisted-by: Claude:claude-fable-5
-Signed-off-by: Krishna Iyer <kiyer@crusoe.ai>
+Link: https://lore.kernel.org/20260908134739.96919-1-sj@kernel.org
+Fixes: 50585192bc2e ("mm/damon/schemes: skip already charged targets and regions")
+Signed-off-by: Liew Rui Yan <aethernet65535@gmail.com>
 Reviewed-by: SJ Park <sj@kernel.org>
 Signed-off-by: SJ Park <sj@kernel.org>
+Cc: <stable@vger.kernel.org> # v5.16.x
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/ops-common.c |   25 +++++++++++++++++++++----
- mm/damon/ops-common.h |    1 +
- mm/damon/paddr.c      |    4 ++--
- 3 files changed, 24 insertions(+), 6 deletions(-)
+ mm/damon/core.c |   25 ++++++++++++++-----------
+ 1 file changed, 14 insertions(+), 11 deletions(-)
 
---- a/mm/damon/ops-common.c~mm-damon-paddr-support-hugetlb-folios-in-access-monitoring
-+++ a/mm/damon/ops-common.c
-@@ -15,14 +15,20 @@
- #include "../internal.h"
- #include "ops-common.h"
- 
-+static bool damon_folio_acceptable(struct folio *folio, bool monitor)
-+{
-+	return folio_test_lru(folio) ||
-+		(monitor && folio_test_hugetlb(folio));
-+}
-+
- /*
-- * Get an online page for a pfn if it's in the LRU list.  Otherwise, returns
-- * NULL.
-+ * Get an online page for a pfn if it's in the LRU list, or a hugetlb folio if
-+ * @monitor is set.  Otherwise, returns NULL.
-  *
-  * The body of this function is stolen from the 'page_idle_get_folio()'.  We
-  * steal rather than reuse it because the code is quite simple.
-  */
--struct folio *damon_get_folio(unsigned long pfn)
-+static struct folio *__damon_get_folio(unsigned long pfn, bool monitor)
+--- a/mm/damon/core.c~mm-damon-core-fix-unconditionally-skip-last-region
++++ a/mm/damon/core.c
+@@ -2342,36 +2342,39 @@ static bool damos_skip_charged_region(st
  {
- 	struct page *page = pfn_to_online_page(pfn);
- 	struct folio *folio;
-@@ -33,13 +39,24 @@ struct folio *damon_get_folio(unsigned l
- 	folio = page_folio(page);
- 	if (!folio_try_get(folio))
- 		return NULL;
--	if (unlikely(page_folio(page) != folio) || !folio_test_lru(folio)) {
-+	if (unlikely(page_folio(page) != folio) ||
-+			!damon_folio_acceptable(folio, monitor)) {
- 		folio_put(folio);
- 		folio = NULL;
+ 	struct damos_quota *quota = &s->quota;
+ 	unsigned long sz_to_skip;
++	bool skip = false;
+ 
+ 	/* Skip previously charged regions */
+ 	if (quota->charge_target_from) {
+ 		if (t != quota->charge_target_from)
+ 			return true;
+-		if (r == damon_last_region(t)) {
+-			quota->charge_target_from = NULL;
+-			quota->charge_addr_from = 0;
+-			return true;
+-		}
+ 		if (quota->charge_addr_from &&
+-				r->ar.end <= quota->charge_addr_from)
+-			return true;
++				r->ar.end <= quota->charge_addr_from) {
++			skip = true;
++			goto out;
++		}
+ 
+ 		if (quota->charge_addr_from && r->ar.start <
+ 				quota->charge_addr_from) {
+ 			sz_to_skip = ALIGN_DOWN(quota->charge_addr_from -
+ 					r->ar.start, min_region_sz);
+ 			if (!sz_to_skip) {
+-				if (damon_sz_region(r) <= min_region_sz)
+-					return true;
++				if (damon_sz_region(r) <= min_region_sz) {
++					skip = true;
++					goto out;
++				}
+ 				sz_to_skip = min_region_sz;
+ 			}
+ 			damon_split_region_at(t, r, sz_to_skip);
+-			return true;
++			skip = true;
+ 		}
++	}
++out:
++	if (r == damon_last_region(t)) {
+ 		quota->charge_target_from = NULL;
+ 		quota->charge_addr_from = 0;
  	}
- 	return folio;
+-	return false;
++	return skip;
  }
  
-+struct folio *damon_get_folio(unsigned long pfn)
-+{
-+	return __damon_get_folio(pfn, false);
-+}
-+
-+struct folio *damon_get_monitor_folio(unsigned long pfn)
-+{
-+	return __damon_get_folio(pfn, true);
-+}
-+
- void damon_ptep_mkold(pte_t *pte, struct vm_area_struct *vma, unsigned long addr)
- {
- 	pte_t pteval = ptep_get(pte);
---- a/mm/damon/ops-common.h~mm-damon-paddr-support-hugetlb-folios-in-access-monitoring
-+++ a/mm/damon/ops-common.h
-@@ -6,6 +6,7 @@
- #include <linux/damon.h>
- 
- struct folio *damon_get_folio(unsigned long pfn);
-+struct folio *damon_get_monitor_folio(unsigned long pfn);
- 
- void damon_ptep_mkold(pte_t *pte, struct vm_area_struct *vma, unsigned long addr);
- void damon_pmdp_mkold(pmd_t *pmd, struct vm_area_struct *vma, unsigned long addr);
---- a/mm/damon/paddr.c~mm-damon-paddr-support-hugetlb-folios-in-access-monitoring
-+++ a/mm/damon/paddr.c
-@@ -37,7 +37,7 @@ static unsigned long damon_pa_core_addr(
- 
- static void damon_pa_mkold(phys_addr_t paddr)
- {
--	struct folio *folio = damon_get_folio(PHYS_PFN(paddr));
-+	struct folio *folio = damon_get_monitor_folio(PHYS_PFN(paddr));
- 
- 	if (!folio)
- 		return;
-@@ -67,7 +67,7 @@ static void damon_pa_prepare_access_chec
- 
- static bool damon_pa_young(phys_addr_t paddr)
- {
--	struct folio *folio = damon_get_folio(PHYS_PFN(paddr));
-+	struct folio *folio = damon_get_monitor_folio(PHYS_PFN(paddr));
- 	bool accessed;
- 
- 	if (!folio)
+ static void damos_update_stat(struct damos *s,
 _
 
-Patches currently in -mm which might be from kiyer@crusoe.ai are
+Patches currently in -mm which might be from aethernet65535@gmail.com are
 
-mm-damon-move-damon_hugetlb_mkold-from-vaddr-to-ops-common.patch
-mm-damon-ops-common-handle-hugetlb-folios-in-folio-mkold-young-rmap-walkers.patch
-mm-damon-paddr-support-hugetlb-folios-in-access-monitoring.patch
+mm-damon-core-allow-esz-to-be-set-to-zero.patch
+mm-damon-core-fix-unconditionally-skip-last-region.patch
+docs-mm-damon-design-accurate-semantics-of-nr_snapshots.patch
+docs-mm-damon-design-difference-between-watermarks-and-nr_snapshots.patch
+docs-mm-damon-design-fix-typo-of-max_nr_snapshots.patch
 
