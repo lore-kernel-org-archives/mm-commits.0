@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id ACBE427603A
-	for <mm-commits@vger.kernel.org>; Wed,  9 Sep 2026 01:45:28 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0E3392BE639
+	for <mm-commits@vger.kernel.org>; Wed,  9 Sep 2026 01:45:31 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788918330; cv=none; b=jJGgOD27Kq0u/joZOb19LkEGowA7w9ZaV1qUIpJR5wliuFn8N5cjtgWJnKGeqdLCgzV+q1yT3Vfb1YTmXh2QrMxz7mL7rSEXpsW5UxUJQiyC993hNoP/Umspm15Ko/8B4bpZCr01I/JJGGEWOejiSULZdDsIdV4dP8wlGqoPi9I=
+	t=1788918333; cv=none; b=mkESX6c6EV0FaXeu/cmT15+kQktqO5Vn43rYy7cfc1b8K9fpM4ZX5r/A+dUcyWGluJZSY7d2om+coLKplCkx594IncEqL21ZLjnmtPQS9/HpxLL2x1iMQ+SYRKoo4aN3lZpb4lYzprWADkSoj8XMZcrQdR9V09+9zSa+Wltr75w=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788918330; c=relaxed/simple;
-	bh=btEtQCjhneDzGDNodU4C4ZAKdUibzgAjy5jnP0BsfUg=;
-	h=Date:To:From:Subject:Message-Id; b=jDmkzeoz1sDOlzyUsMpPAnbCM5wNi6JrHQbrB4NpPfMBVG6GWeoPj+YoEstN8ap8II/537tY9AgGePhPJjVv9Y1Z3Bf01ZSHjwR5ACspqUVi7Zj9w0dCPXdrXBDSSDMGSBGRwtKTlmS23YMKMwJ50yB05diE4PSsEWtUuDbIxP8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=2DUW+zsh; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1788918333; c=relaxed/simple;
+	bh=PSFtRrxIgbMYDKHb64D/bzcBw5OcC1swZaujiT+8gEU=;
+	h=Date:To:From:Subject:Message-Id; b=t8vNpZuA6R1u1DnKm/PkKxAKNJ9iUVnbLEhX0NugNgXRTJtxv0VVZPx8lhumjUIFiLo2ISsTcdw4xYSXuWxC6A8KH2soSfHSefG9MiHeXOr05dejc/drRhGIwlw38aDMABs/M/7X8taClKcAC6ma2BYjXDq4K6eZHF4HIvxVKlQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=2tTD0JWV; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="2DUW+zsh"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3B2461F00A3A;
-	Wed,  9 Sep 2026 01:45:28 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="2tTD0JWV"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id AA89E1F00A3A;
+	Wed,  9 Sep 2026 01:45:31 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1788918328;
-	bh=FDenMs4bQYNU1NdqwdIWEdBuzYKYSBZZ+cN63yhQqKw=;
+	d=linux-foundation.org; s=korg; t=1788918331;
+	bh=8m2FytuCqF2qQpMAnvzxulKyEdOgGo+IBxNzMM3Igp4=;
 	h=Date:To:From:Subject;
-	b=2DUW+zshYe5Qm8Nz3PvH8MI3mfSEWhbrY7hbj5LKsXJXgdfw11faiAOrDRLnv0sqL
-	 G6Jso2JR61/28NHS2eIPYjlaOiqE7AJ5k3lPGXPG6n2i82s210eIftFs8LshPoKS+y
-	 UbEHuADqpX3jnCLafn29ZatQoP+V8erfDBanVPe4=
-Date: Tue, 08 Sep 2026 18:45:27 -0700
+	b=2tTD0JWVkHAOQQjvOS0DqBxw5S3+2VIaP8Lpd7Bon1ZeDAcXul/0qTrJeUHO1KtzJ
+	 /ayq8l6qZHwC/5xm6ggNO73IIYX+CsfgPxKbOnmQmLoP4/1gT01zTR+A2jOKjJm93a
+	 ZIBasfwsOK/G2imGE/n9oMziStwddQIXRMPlBJuI=
+Date: Tue, 08 Sep 2026 18:45:31 -0700
 To: mm-commits@vger.kernel.org,rppt@kernel.org,rdunlap@infradead.org,qi.zheng@linux.dev,osalvador@suse.de,npiggin@gmail.com,mpe@ellerman.id.au,maddy@linux.ibm.com,ljs@kernel.org,david@kernel.org,corbet@lwn.net,songmuchun@bytedance.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-sparse-vmemmap-factor-out-shared-vmemmap-tail-page-allocation.patch added to mm-new branch
-Message-Id: <20260909014528.3B2461F00A3A@smtp.kernel.org>
+Subject: + mm-sparse-vmemmap-open-code-init_compound_tail.patch added to mm-new branch
+Message-Id: <20260909014531.AA89E1F00A3A@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/sparse-vmemmap: factor out shared vmemmap tail page allocation
+     Subject: mm/sparse-vmemmap: open-code init_compound_tail()
 has been added to the -mm mm-new branch.  Its filename is
-     mm-sparse-vmemmap-factor-out-shared-vmemmap-tail-page-allocation.patch
+     mm-sparse-vmemmap-open-code-init_compound_tail.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-sparse-vmemmap-factor-out-shared-vmemmap-tail-page-allocation.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-sparse-vmemmap-open-code-init_compound_tail.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,27 +70,20 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Muchun Song <songmuchun@bytedance.com>
-Subject: mm/sparse-vmemmap: factor out shared vmemmap tail page allocation
-Date: Tue, 8 Sep 2026 11:03:26 +0800
+Subject: mm/sparse-vmemmap: open-code init_compound_tail()
+Date: Tue, 8 Sep 2026 11:03:27 +0800
 
-HugeTLB and sparse-vmemmap each have their own helper to allocate the
-shared vmemmap tail page used by vmemmap optimization.
+init_compound_tail() is only used by vmemmap_shared_tail_page(), where the
+shared tail page setup intentionally passes NULL as the compound head.
 
-Factor that logic into a common vmemmap_shared_tail_page() helper.  It
-allocates the page through vmemmap_alloc_block(), and uses cmpxchg() to
-install the per-zone shared page.
-
-Expose zone->vmemmap_tails under CONFIG_SPARSEMEM_VMEMMAP to match the
-shared helper's build condition.  This avoids a
-!CONFIG_SPARSEMEM_VMEMMAP_OPTIMIZATION stub; when optimization is
-disabled, the array has no entries and the compiler folds away the unused
-paths, so no storage or runtime overhead is added.
-
-This removes duplicate allocation logic while still handling both the
-early boot and runtime paths through the same helper.
+Keeping this helper in mm/internal.h exposes that special case to the rest
+of the MM code and can make the NULL head argument look generally valid. 
+Open-code the initialization at the only call site so the special-case use
+stays local to sparse vmemmap optimization.  No functional change
+intended.
 
 Link:
-https://lore.kernel.org/20260908030335.96549-3-songmuchun@bytedance.com
+https://lore.kernel.org/20260908030335.96549-4-songmuchun@bytedance.com
 Signed-off-by: Muchun Song <songmuchun@bytedance.com>
 Acked-by: Qi Zheng <qi.zheng@linux.dev>
 Cc: David Hildenbrand <david@kernel.org>
@@ -105,194 +98,42 @@ Cc: Randy Dunlap <rdunlap@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mmzone.h |    2 -
- mm/hugetlb_vmemmap.c   |   28 --------------
- mm/sparse-vmemmap.c    |   74 +++++++++++++++------------------------
- mm/sparse.h            |    1 
- 4 files changed, 33 insertions(+), 72 deletions(-)
+ mm/internal.h       |    9 ---------
+ mm/sparse-vmemmap.c |    5 ++++-
+ 2 files changed, 4 insertions(+), 10 deletions(-)
 
---- a/include/linux/mmzone.h~mm-sparse-vmemmap-factor-out-shared-vmemmap-tail-page-allocation
-+++ a/include/linux/mmzone.h
-@@ -1156,7 +1156,7 @@ struct zone {
- 	/* Zone statistics */
- 	atomic_long_t		vm_stat[NR_VM_ZONE_STAT_ITEMS];
- 	atomic_long_t		vm_numa_event[NR_VM_NUMA_EVENT_ITEMS];
--#ifdef CONFIG_SPARSEMEM_VMEMMAP_OPTIMIZATION
-+#ifdef CONFIG_SPARSEMEM_VMEMMAP
- 	struct page *vmemmap_tails[VMEMMAP_OPTIMIZATION_NR_ORDERS];
- #endif
- } ____cacheline_internodealigned_in_smp;
---- a/mm/hugetlb_vmemmap.c~mm-sparse-vmemmap-factor-out-shared-vmemmap-tail-page-allocation
-+++ a/mm/hugetlb_vmemmap.c
-@@ -493,32 +493,6 @@ static bool vmemmap_should_optimize_foli
- 	return true;
+--- a/mm/internal.h~mm-sparse-vmemmap-open-code-init_compound_tail
++++ a/mm/internal.h
+@@ -786,15 +786,6 @@ static inline void prep_compound_tail(st
+ 	VM_WARN_ON_ONCE(tail->private);
  }
  
--static struct page *vmemmap_get_tail(unsigned int order, struct zone *zone)
+-static inline void init_compound_tail(struct page *tail,
+-		const struct page *head, unsigned int order, struct zone *zone)
 -{
--	const unsigned int idx = order - VMEMMAP_OPTIMIZATION_MIN_ORDER;
--	struct page *tail, *p;
--	int node = zone_to_nid(zone);
--
--	tail = READ_ONCE(zone->vmemmap_tails[idx]);
--	if (likely(tail))
--		return tail;
--
--	tail = alloc_pages_node(node, GFP_KERNEL | __GFP_ZERO, 0);
--	if (!tail)
--		return NULL;
--
--	p = page_to_virt(tail);
--	for (int i = 0; i < PAGE_SIZE / sizeof(struct page); i++)
--		init_compound_tail(p + i, NULL, order, zone);
--
--	if (cmpxchg(&zone->vmemmap_tails[idx], NULL, tail)) {
--		__free_page(tail);
--		tail = READ_ONCE(zone->vmemmap_tails[idx]);
--	}
--
--	return tail;
+-	atomic_set(&tail->_mapcount, -1);
+-	set_page_node(tail, zone_to_nid(zone));
+-	set_page_zone(tail, zone_idx(zone));
+-	prep_compound_tail(tail, head, order);
 -}
 -
- static int __hugetlb_vmemmap_optimize_folio(const struct hstate *h,
- 					    struct folio *folio,
- 					    struct list_head *vmemmap_pages,
-@@ -535,7 +509,7 @@ static int __hugetlb_vmemmap_optimize_fo
- 		return ret;
+ #if defined CONFIG_COMPACTION || defined CONFIG_CMA
  
- 	nid = folio_nid(folio);
--	vmemmap_tail = vmemmap_get_tail(h->order, folio_zone(folio));
-+	vmemmap_tail = vmemmap_shared_tail_page(h->order, folio_zone(folio));
- 	if (!vmemmap_tail)
- 		return -ENOMEM;
- 
---- a/mm/sparse.h~mm-sparse-vmemmap-factor-out-shared-vmemmap-tail-page-allocation
-+++ a/mm/sparse.h
-@@ -139,6 +139,7 @@ static inline void sparse_sections_init(
-  * mm/sparse-vmemmap.c
-  */
- #ifdef CONFIG_SPARSEMEM_VMEMMAP
-+struct page *vmemmap_shared_tail_page(unsigned int order, struct zone *zone);
- void sparse_init_subsection_map(void);
- int section_nr_vmemmap_pages(unsigned long pfn, unsigned long nr_pages,
- 		struct vmem_altmap *altmap, struct dev_pagemap *pgmap);
---- a/mm/sparse-vmemmap.c~mm-sparse-vmemmap-factor-out-shared-vmemmap-tail-page-allocation
+ /*
+--- a/mm/sparse-vmemmap.c~mm-sparse-vmemmap-open-code-init_compound_tail
 +++ a/mm/sparse-vmemmap.c
-@@ -42,27 +42,13 @@
- #include "mm_init.h"
- #include "sparse.h"
+@@ -189,7 +189,10 @@ struct page __ref *vmemmap_shared_tail_p
+ 	for (int i = 0; i < PAGE_SIZE / sizeof(struct page); i++) {
+ 		page = (struct page *)addr + i;
+ 		mm_zero_struct_page(page);
+-		init_compound_tail(page, NULL, order, zone);
++		atomic_set(&page->_mapcount, -1);
++		set_page_node(page, zone_to_nid(zone));
++		set_page_zone(page, zone_idx(zone));
++		prep_compound_tail(page, NULL, order);
+ 	}
  
--/*
-- * Allocate a block of memory to be used to back the virtual memory map
-- * or to back the page tables that are used to create the mapping.
-- * Uses the main allocators if they are available, else bootmem.
-- */
--
--static void * __ref __earlyonly_bootmem_alloc(int node,
--				unsigned long size,
--				unsigned long align,
--				unsigned long goal)
--{
--	return memmap_alloc(size, align, goal, node, false);
--}
--
--void * __meminit vmemmap_alloc_block(unsigned long size, int node)
-+void __ref *vmemmap_alloc_block(unsigned long size, int node)
- {
- 	/* If the main allocator is up use that, fallback to bootmem. */
- 	if (slab_is_available()) {
- 		gfp_t gfp_mask = GFP_KERNEL|__GFP_RETRY_MAYFAIL|__GFP_NOWARN;
- 		int order = get_order(size);
--		static bool warned __meminitdata;
-+		static bool warned;
- 		struct page *page;
- 
- 		page = alloc_pages_node(node, gfp_mask, order);
-@@ -76,8 +62,7 @@ void * __meminit vmemmap_alloc_block(uns
- 		}
- 		return NULL;
- 	} else
--		return __earlyonly_bootmem_alloc(node, size, size,
--				__pa(MAX_DMA_ADDRESS));
-+		return memmap_alloc(size, size, __pa(MAX_DMA_ADDRESS), node, false);
- }
- 
- static void * __meminit altmap_alloc_block_buf(unsigned long size,
-@@ -184,39 +169,40 @@ static void * __meminit vmemmap_alloc_bl
- 	return p;
- }
- 
--#ifdef CONFIG_HUGETLB_PAGE_OPTIMIZE_VMEMMAP
--static __meminit struct page *vmemmap_get_tail(unsigned int order, struct zone *zone)
-+struct page __ref *vmemmap_shared_tail_page(unsigned int order, struct zone *zone)
- {
--	struct page *p, *tail;
--	unsigned int idx;
--	int node = zone_to_nid(zone);
-+	void *addr;
-+	struct page *page;
-+	const unsigned int idx = order - VMEMMAP_OPTIMIZATION_MIN_ORDER;
- 
--	if (WARN_ON_ONCE(order < VMEMMAP_OPTIMIZATION_MIN_ORDER))
--		return NULL;
--	if (WARN_ON_ONCE(order > MAX_FOLIO_ORDER))
-+	if (WARN_ON_ONCE(idx >= ARRAY_SIZE(zone->vmemmap_tails)))
- 		return NULL;
- 
--	idx = order - VMEMMAP_OPTIMIZATION_MIN_ORDER;
--	tail = zone->vmemmap_tails[idx];
--	if (tail)
--		return tail;
--	p = vmemmap_alloc_block_zero(PAGE_SIZE, node);
--	if (!p)
-+	page = READ_ONCE(zone->vmemmap_tails[idx]);
-+	if (likely(page))
-+		return page;
-+
-+	addr = vmemmap_alloc_block(PAGE_SIZE, zone_to_nid(zone));
-+	if (!addr)
- 		return NULL;
--	for (int i = 0; i < PAGE_SIZE / sizeof(struct page); i++)
--		init_compound_tail(p + i, NULL, order, zone);
- 
--	tail = virt_to_page(p);
--	zone->vmemmap_tails[idx] = tail;
-+	for (int i = 0; i < PAGE_SIZE / sizeof(struct page); i++) {
-+		page = (struct page *)addr + i;
-+		mm_zero_struct_page(page);
-+		init_compound_tail(page, NULL, order, zone);
-+	}
- 
--	return tail;
--}
--#else
--static inline struct page *vmemmap_get_tail(unsigned int order, struct zone *zone)
--{
--	return NULL;
-+	page = virt_to_page(addr);
-+	if (cmpxchg(&zone->vmemmap_tails[idx], NULL, page) != NULL) {
-+		if (slab_is_available())
-+			__free_page(page);
-+		else
-+			memblock_free(addr, PAGE_SIZE);
-+		page = READ_ONCE(zone->vmemmap_tails[idx]);
-+	}
-+
-+	return page;
- }
--#endif
- 
- static __meminit void *vmemmap_alloc_pte(unsigned long pfn, int node,
- 					 struct vmem_altmap *altmap)
-@@ -229,7 +215,7 @@ static __meminit void *vmemmap_alloc_pte
- 		return vmemmap_alloc_block_buf(PAGE_SIZE, node, altmap);
- 
- 	zone = pfn_to_zone(pfn, node);
--	page = vmemmap_get_tail(order, zone);
-+	page = vmemmap_shared_tail_page(order, zone);
- 	if (!page)
- 		return NULL;
- 
+ 	page = virt_to_page(addr);
 _
 
 Patches currently in -mm which might be from songmuchun@bytedance.com are
