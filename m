@@ -1,137 +1,140 @@
-Received: from mail-yx2-f12.google.com (mail-yx2-f12.google.com [74.125.224.140])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E88A130BF70
-	for <mm-commits@vger.kernel.org>; Wed,  9 Sep 2026 15:08:36 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=74.125.224.140
-ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788966518; cv=pass; b=T85w68R3BNokxsNuRgKdPAdivrTb2AcdmSPo5CYdzEe9Yu3Y8PT5qMA2x2sfOT7Lk9VFRCka+KNGhdyRAP/eCSa6z7kFo7I1h3qwNPkDW/So6Pa6D1Kt4NkQZT0tcL2muOGHB08NosGdWUkZGAbhPj6kNYJqx1dCqIuyz41dM2o=
-ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788966518; c=relaxed/simple;
-	bh=jSQnyiVi8XwGjn3yuq+Uup3Eh9fiHdl+7fQ23fVLuhc=;
-	h=From:In-Reply-To:References:MIME-Version:Date:Message-ID:Subject:
-	 To:Content-Type; b=KGRcuFCXC6aIjRWHE7igpy9hfMLe5FdU1RWYF8cacdh1pgENHgCj7pOKKQKwNXu5jgAb9qxmiv5CzFTjHAb7+HYuG5r2Zl8HkaD7L9U9jOWK46FpHi0vvWpDixp5wF4fCLAex/rrRPWTqXbCcvlE3rbiFFe7I9w4DrTDTWoNIBQ=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com; spf=pass smtp.mailfrom=google.com; dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b=ah6YIvwQ; arc=pass smtp.client-ip=74.125.224.140
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=google.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D617F32ED40
+	for <mm-commits@vger.kernel.org>; Wed,  9 Sep 2026 15:28:18 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
+ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1788967700; cv=none; b=fGLmRO1z/faANkLe1CfhhpnIBWo3+IOjpHUYUVUuFC8GRegm0RYmsOmJ9xjbGpD67j2tNPl2Cet2hpXlcRwKFNoTgXr4UU0Asl3XW/bklYHRu76jqTfcoQdcH1oB9fGbEFdk8Hs34axLkORWqqOeZDtYPY5LobZvvwPYLOsrPh0=
+ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1788967700; c=relaxed/simple;
+	bh=aXxDkL1PzR4qYZZMvEvz19Mc/OzeutgNWaO14kAcKH8=;
+	h=Message-ID:Date:MIME-Version:Subject:To:References:From:
+	 In-Reply-To:Content-Type; b=QN555Xumx90KYzfSlkIB81iwR0IT1wwf2HVu3qNt+Y6vC6Plhm/cJQ1JU7RrNKlxYRsWLBYXYc6gBHCgX1OsWrUysRNZ8wcVGS7PMBM3UWeSweNT7giw6YyuEyRDd4VvAypRD5eevu25qOD50qD1hV77AxB1ZnWDlQF0qjsUN80=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=bUNQDnFr; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b="ah6YIvwQ"
-Received: by mail-yx2-f12.google.com with SMTP id 956f58d0204a3-66e4ab201f9so447385d50.0
-        for <mm-commits@vger.kernel.org>; Wed, 09 Sep 2026 08:08:36 -0700 (PDT)
-ARC-Seal: i=1; a=rsa-sha256; t=1788966516; cv=none;
-        d=google.com; s=arc-20260327;
-        b=W099pgq6N13gUsMq0NWaNNiY45sZEnC0ujjUA+Ph0AQkHj5wPBha4krQQi7wAqWm0a
-         Sga/xiJDtAYrINhiEPPWJkmSliP45BU+Ov4IpAm1OkDWkkJtjraJXqmyFEg3P+zsrsAV
-         UifdjsmJ0NIHF+EykrXb7eWsLJ0RtXKmK/C9UemhPAue1vhFgIEYPbbx3/ZOpU2OpCkk
-         lcw7Q+26D9FAeAOoe79eNyj6Bqg5qG1j2FcsVmvrIyR7+IbqTFv/xdGF0jJtFHlIuJyy
-         1Ku4O+4CFctgbqBuWgD2TkkDUrLAl6Uw6PH6UMg0tGrUC9yngw2Un8g7y6PqqG7/7uN7
-         Dzmg==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20260327;
-        h=to:subject:message-id:date:mime-version:references:in-reply-to:from
-         :dkim-signature;
-        bh=94I0hUMtDNmKUxYIy7OV/M7nkeWTAvjSeGub385Un2U=;
-        fh=L77onqX5wK4nHINe7NyDS0mE/xrK0uGJZzxNswJQctg=;
-        b=LjDcEFlxHxLcavi3tw6RyQAR6DINML/2yNhplJVkcg+D86SfLly8FakB1c0Jdgj9K5
-         G+lvoHoMHFjaePXt8i3giY8xGtZo/3i59a7A6IOqN20A0WpKS4YeWEyWiZscM8gcarRe
-         vY1llqbridiCxJVRf4lvLAly4eS/wqXVJVil/d/oZ1TnK90FbCQU8dKNzrefmlCVzhxP
-         7/g7zplNKB9aoXG/VbrO+sikjioYhfNalD+a+a9q33aLSpCiihNiBhY7dpQqADwEmOTf
-         TZPr88lOr2sWXoJzEIqivZ4PDvh9Cpn4oYIvXGP5sCyNfU7oPPJKdxTFWVKuHiGFy3k5
-         N2MQ==;
-        darn=vger.kernel.org
-ARC-Authentication-Results: i=1; mx.google.com; arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=google.com; s=20251104; t=1788966516; x=1789571316; darn=vger.kernel.org;
-        h=content-type:to:subject:message-id:date:mime-version:references
-         :in-reply-to:from:from:to:cc:subject:date:message-id:reply-to
-         :content-type;
-        bh=94I0hUMtDNmKUxYIy7OV/M7nkeWTAvjSeGub385Un2U=;
-        b=ah6YIvwQ6ICIjEiirBZOikxCaZh30LHQLNcvlQelDneqXo7aNvmUFcNzwIoiKtLsIy
-         IvfqJXiy1GO/MK01g4OTHpDMSavLAyGxh6tQ/ZtWEPUTKEv0SXBcWueJgPvvFjCVcSQK
-         fmZNH8TmVfvDa5SAl5SoR9htRb3jVBFCAJfyMs83drWCII78cs+92W79xdAzykMgI36N
-         0XZivnufD8G4XV7UukYAIpRGpxECnJ6Oy4O7lQWHjrCPrQskL/QNQJzbVpSi7pl+55Wx
-         4/m8UbBsjv+40a451CLmFafBTQZ/V5+gDQFQmIfp0BxMVSCVjrQeG78DZezrDKuwY4xm
-         aOhQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1788966516; x=1789571316;
-        h=content-type:to:subject:message-id:date:mime-version:references
-         :in-reply-to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
-         :message-id:reply-to:content-type;
-        bh=94I0hUMtDNmKUxYIy7OV/M7nkeWTAvjSeGub385Un2U=;
-        b=dgUAEQNEXW57+O7Y6lONvMzNUCDD+mMQeTu6dS2gtOygD442egDa6cp2tIQYHVjVaj
-         6LIxMlDQ2w1K0n6Gq/KAhLIBXe7b816mdKn9XeLWKmspMhZkPI0zE8mP+vROmYMFqrmH
-         9X96fCweGf268V/otebzCDJJ8wX5QIKc83iFv+X7bDLQB52KZQp8ebAG7lkNe00R2zZm
-         ScgwnzTyiHR9wXazCcygtbInfNqef1B9kJAgXcr7a6x4LwlVHgJTwrAkIm1Kgp42ithP
-         iQ5waiDS0ZW/lPl4FEqSmYak/kkHTVvnj8jMxaxRwW+HHDotS4RsmnCpsn3fVjLkDBbL
-         grzw==
-X-Forwarded-Encrypted: i=1; AKwUvBwv+HVm8YkOboZEs4GX8Zx65zY0bxbnreslGtp8bIDKgnwwLZfFf6vM/ZCnmFwQIsXWtRCZtf8+kmuu@vger.kernel.org
-X-Gm-Message-State: AFuF++nOnbawdaGy1H8/FP+mD4yIPq29oFoYpJ6tDt4NZMGp8+ipGsq1
-	LoMy2e7PvbQUE9IKtHh3//eywx9PLhdoMQwS2ovid8bLl/R20VDEc5nBD1vW5hS1kg2wVkVsls4
-	QK6kwoH4x3RslQsZ9IN4G+2d2Tz7bICQf16GH9Tt8
-X-Gm-Gg: AYBFou0lpy7cstquqLixPEogcE5Hku2D3Wc85uLTkorGe6lwAV89lJNPjNzN/dXS6ZK
-	eu22CqBIVvDX8qJ3oQy9wYdShEmhxZ2CqxVviLnJ8GUt0M1gteIdJB7OEVAmdMUvbvYNAU2Sg1S
-	41oziWWGzJptELTjXNGB19iOzYQX+YKMo07Tq3PkYnq6GpFclvY/9FkiD73EYPyjHcMJHfX0rTQ
-	eqsRApV77Xvz2OVp//1Mnv38rS5NeuzEFX8+D6qWmDgeGV8NVvxkEx8tPIixXpQEvPS3kzxhaCT
-	EzXY42HUcXddBnMDH9ZOOUj/f/cSyO09dntNEfhfaYpYkRPXczev21FHLrge2r+dwxm6NxcIL2y
-	DlxunM0OEJfo=
-X-Received: by 2002:a53:e1c3:0:b0:66f:c1bc:8804 with SMTP id
- 956f58d0204a3-671100aa4a0mr751213d50.93.1788966514801; Wed, 09 Sep 2026
- 08:08:34 -0700 (PDT)
-Received: from 176938342045 named unknown by gmailapi.google.com with
- HTTPREST; Wed, 9 Sep 2026 08:08:34 -0700
-Received: from 176938342045 named unknown by gmailapi.google.com with
- HTTPREST; Wed, 9 Sep 2026 08:08:33 -0700
-From: Ackerley Tng <ackerleytng@google.com>
-In-Reply-To: <20260909062849.0CFC71F00A3A@smtp.kernel.org>
-References: <20260909062849.0CFC71F00A3A@smtp.kernel.org>
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="bUNQDnFr"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 01DDC1F00A3A;
+	Wed,  9 Sep 2026 15:28:15 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1788967698;
+	bh=91gUc96alYY3IQHpZkn3+Sq8o2K24nPLtdFP7NmqIdQ=;
+	h=Date:Subject:To:References:From:In-Reply-To;
+	b=bUNQDnFrtZlW6Ep4ITE0taykGDDLdWVSqLovJlSkcx/EScQF97tBBlJM/HkE3+knB
+	 bIK7SW53CC9fHtBbaI/bDiXOjM5mIJkInFyrYbyPGCuU11NUcB2xkngEgOipSO7gkw
+	 isbVlYpwAhi+XsAFgV+phxVYjrFbnd7Dz3/xzfFU83S1pd2CBViy8xTTqlq2aD+BMO
+	 tohw3se4yraoMAtdWiMqc/rvdNFHOIHL1QoJGSk8hQHiMBbxsFXCAf2RACnGPQjRcY
+	 F6JtrMsnjg6mzDtqY/+Ii87/WR8z0roVpnltEjarOV0UL77DN22REdI0i3XwKiSZzx
+	 F0y3wfV/iKgVg==
+Message-ID: <8ff3e681-b377-4b32-95f5-31a5cc1dc2f5@kernel.org>
+Date: Wed, 9 Sep 2026 17:28:14 +0200
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Date: Wed, 9 Sep 2026 08:08:33 -0700
-X-Gm-Features: AcwNN1VklKVcWcBWIqQ43VBTM1Y5rXVullNb148O--CoqtZ9WxNcwbmy31x-4Mw
-Message-ID: <CAEvNRgFToiH0H0CfYTUoct3JgWksHOJY7ramUX_PK2k_NQajZA@mail.gmail.com>
-Subject: Re: [merged mm-hotfixes-stable] mm-folio-export_symbol_for_kvmlru_cache_drain_for_folio.patch
- removed from -mm tree
-To: Andrew Morton <akpm@linux-foundation.org>, mm-commits@vger.kernel.org, 
-	willy@infradead.org, vbabka@kernel.org, seanjc@google.com, hughd@google.com, 
-	fuad.tabba@linux.dev, david@kernel.org, binbin.wu@linux.intel.com
-Content-Type: text/plain; charset="UTF-8"
+User-Agent: Mozilla Thunderbird
+Subject: Re: [merged mm-hotfixes-stable]
+ mm-folio-export_symbol_for_kvmlru_cache_drain_for_folio.patch removed from
+ -mm tree
+To: Ackerley Tng <ackerleytng@google.com>,
+ Andrew Morton <akpm@linux-foundation.org>, mm-commits@vger.kernel.org,
+ willy@infradead.org, vbabka@kernel.org, seanjc@google.com, hughd@google.com,
+ fuad.tabba@linux.dev, binbin.wu@linux.intel.com
+References: <20260909062849.0CFC71F00A3A@smtp.kernel.org>
+ <CAEvNRgFToiH0H0CfYTUoct3JgWksHOJY7ramUX_PK2k_NQajZA@mail.gmail.com>
+From: "David Hildenbrand (Arm)" <david@kernel.org>
+Content-Language: en-US
+Autocrypt: addr=david@kernel.org; keydata=
+ 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
+ qIws/H2t
+In-Reply-To: <CAEvNRgFToiH0H0CfYTUoct3JgWksHOJY7ramUX_PK2k_NQajZA@mail.gmail.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 
-Andrew Morton <akpm@linux-foundation.org> writes:
+On 9/9/26 17:08, Ackerley Tng wrote:
+> Andrew Morton <akpm@linux-foundation.org> writes:
+> 
+>>
+>> [...snip...]
+>>
+>> This patch was dropped because it was merged into the mm-hotfixes-stable branch
+>> of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+>>
+>>
+>> [...snip...]
+>>
+>> --- a/mm/folio.c~mm-folio-export_symbol_for_kvmlru_cache_drain_for_folio
+>> +++ a/mm/folio.c
+>> @@ -33,6 +33,7 @@
+>>  #include <linux/page_idle.h>
+>>  #include <linux/local_lock.h>
+>>  #include <linux/buffer_head.h>
+>> +#include <linux/kvm_types.h>
+>>
+>>  #include "internal.h"
+>>  #include "page_alloc.h"
+>> @@ -926,6 +927,7 @@ void lru_cache_drain_for_folio(const str
+>>  			*drained = LRU_CACHE_DRAINED_ALL;
+>>  	}
+>>  }
+>> +EXPORT_SYMBOL_FOR_KVM(lru_cache_drain_for_folio);
+>>
+>>
+>> [...snip...]
+>>
+> 
+> Thanks all!
+> 
+> Would like to check on branch management for mm-hotfixes-stable: Does
+> this patch being on mm-hotfixes-stable now (7.3-rc2) mean that this will
+> make it to 7.3-rc3?
 
->
-> [...snip...]
->
-> This patch was dropped because it was merged into the mm-hotfixes-stable branch
-> of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
->
->
-> [...snip...]
->
-> --- a/mm/folio.c~mm-folio-export_symbol_for_kvmlru_cache_drain_for_folio
-> +++ a/mm/folio.c
-> @@ -33,6 +33,7 @@
->  #include <linux/page_idle.h>
->  #include <linux/local_lock.h>
->  #include <linux/buffer_head.h>
-> +#include <linux/kvm_types.h>
->
->  #include "internal.h"
->  #include "page_alloc.h"
-> @@ -926,6 +927,7 @@ void lru_cache_drain_for_folio(const str
->  			*drained = LRU_CACHE_DRAINED_ALL;
->  	}
->  }
-> +EXPORT_SYMBOL_FOR_KVM(lru_cache_drain_for_folio);
->
->
-> [...snip...]
->
+Unless it gets yanked last minute, which is unlikely given that it is in -stable :)
 
-Thanks all!
+-- 
+Cheers,
 
-Would like to check on branch management for mm-hotfixes-stable: Does
-this patch being on mm-hotfixes-stable now (7.3-rc2) mean that this will
-make it to 7.3-rc3?
+David
