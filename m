@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AED3B3D9670
-	for <mm-commits@vger.kernel.org>; Wed,  9 Sep 2026 23:37:48 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4263D3B42C4;
+	Wed,  9 Sep 2026 23:40:47 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788997069; cv=none; b=NavWJoZQfITzDC+bD6jVfxRBUMdrSnop8tDdcoZr16fQnxybnt4cMjfvzNKjyUHxoxQu/4UCy9xf1fBseO0OdDstmuMvfMxuvmvqn+EGQwombOeEQi+5B/YvIOGAboCH9K3cnx/FyvQCmHOO8KBLqHjQyvwkYcfMyqIiG8NC1xw=
+	t=1788997249; cv=none; b=X/gVOaydCyIklUaUTGttZnfyXWpw7hoG//nzarMUsZ2niOSiW6oltqp3jGSCAeFWIFf+tqziPFmQHlFufhzJMBaB+hQNVXd3suWJ/MhoswwM9JkaCU5ZwsMKUo4S1jxcqZXAyS1/35MRuDTbBzQtdYRtfhMLAcAjjOHTDn39/yU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788997069; c=relaxed/simple;
-	bh=2f4CYi3RVSNWAFhZ49bs8s/PpcJ631BzZV33LUU6OIw=;
-	h=Date:To:From:Subject:Message-Id; b=nktI2ku7Qyf2pnVbWNQgGnIpCar15OC3/tRMswc622gnYNlQBDz1hPSuJdHV6cqGk1qwIzfV7J1UOZAki1Ar5/IVJjmMI+1QwgHWz6Gzz86VDiT6gdrhnFDcwd6RAsl4z87ny8y0V7swQlCVRkPYjmWmctr7aKQcn2FEZx4QNG8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=2ILzMJxf; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1788997249; c=relaxed/simple;
+	bh=pQ2hvIBJ7r7iLugleg/hyDooi3Ia5TyFoTIhtFAkIq8=;
+	h=Date:To:From:Subject:Message-Id; b=NKANaE/jRLPpnhULqx3201y8nitcxHue2fdiNrsDDqdO2EHuvouY3i2LuzmN0G9U9HBWF4yBs5EGlrak4ti9HFa4wUYwDcsRMMsBh+twLUxkuQGo+mdFdmuI83uU4aIOvcShZOmMKfVTobRopc+U9bUaojIA5PSFdFN3GQ9TMx0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=j+8n/MlX; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="2ILzMJxf"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 54C871F00893;
-	Wed,  9 Sep 2026 23:37:48 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="j+8n/MlX"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A37521F000FF;
+	Wed,  9 Sep 2026 23:40:47 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1788997068;
-	bh=JAkFr50lQ1dkVvUiPCu0yayiaDCxJYPvcKpLKfAS1ls=;
+	d=linux-foundation.org; s=korg; t=1788997247;
+	bh=ylzxcwrCMzhtS5T660JDDDgW7skGgyEiHYIa8sch4so=;
 	h=Date:To:From:Subject;
-	b=2ILzMJxfNiml7AGjvNTQaAkn4lMMFU7DRbjSMXGF+oCVwmAtj5n0eyu9zkIbp4wps
-	 qK5SZVkRQhMtkpB84XrkptAN0DXHpQgUk2paMdofxk35US8op/RwdiBJTbJzvw/5/M
-	 nEeWqHEPOxRGVMOC0dqEnXP6u5Coy+zl7lW/Krv4=
-Date: Wed, 09 Sep 2026 16:37:47 -0700
-To: mm-commits@vger.kernel.org,ackerleytng@google.com,akpm@linux-foundation.org
+	b=j+8n/MlX3fcv83puqbQ97f/c2+q4kMVhGvsFTxcQdpVxXnXmHlc0UQgNn541ZM0eX
+	 k8IBbmBrXqGVEgpU4/kLzXMwUfiSg0VU4PIiBFjr1GQsJ66+p40xRryThwi60ueNC5
+	 aZIsoWnJaBc7FadH5U/Z6JCffptWPVGwjg4a1wC8=
+Date: Wed, 09 Sep 2026 16:40:47 -0700
+To: mm-commits@vger.kernel.org,vbabka@kernel.org,vannapurve@google.com,surenb@google.com,stable@vger.kernel.org,si.yanteng@linux.dev,shakeel.butt@linux.dev,rppt@kernel.org,roman.gushchin@linux.dev,rientjes@google.com,peterx@redhat.com,osalvador@suse.de,nphamcs@gmail.com,muchun.song@linux.dev,mhocko@kernel.org,mawupeng1@huawei.com,louhongxiang@huawei.com,ljs@kernel.org,linmiaohe@huawei.com,liam@infradead.org,jthoughton@google.com,joshua.hahnjy@gmail.com,hannes@cmpxchg.org,fvdl@google.com,dzm91@hust.edu.cn,david@kernel.org,corbet@lwn.net,alexs@kernel.org,ackerleytng@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [to-be-updated] mm-hugetlb-drop-refcount-before-freeing-on-memcg-charge-failure.patch removed from -mm tree
-Message-Id: <20260909233748.54C871F00893@smtp.kernel.org>
+Subject: + mm-hugetlb-return-enospc-on-memcg-charge-failure.patch added to mm-unstable branch
+Message-Id: <20260909234047.A37521F000FF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,35 +34,67 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The quilt patch titled
-     Subject: mm: hugetlb: drop refcount before freeing on memcg charge failure
-has been removed from the -mm tree.  Its filename was
-     mm-hugetlb-drop-refcount-before-freeing-on-memcg-charge-failure.patch
+The patch titled
+     Subject: mm: hugetlb: return -ENOSPC on memcg charge failure
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-hugetlb-return-enospc-on-memcg-charge-failure.patch
 
-This patch was dropped because an updated version will be issued
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-hugetlb-return-enospc-on-memcg-charge-failure.patch
+
+This patch will later appear in the mm-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via various
+branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there most days
 
 ------------------------------------------------------
 From: Ackerley Tng <ackerleytng@google.com>
-Subject: mm: hugetlb: drop refcount before freeing on memcg charge failure
-Date: Wed, 02 Sep 2026 01:22:57 -0700
+Subject: mm: hugetlb: return -ENOSPC on memcg charge failure
+Date: Wed, 09 Sep 2026 10:11:00 -0700
 
-When mem_cgroup_charge_hugetlb(folio, gfp) returns -ENOMEM, the folio has
-its refcount set to 1 via folio_ref_unfreeze(folio, 1).
+Patch series "Fix bugs in HugeTLB allocation when
+mem_cgroup_charge_hugetlb() fails", v2.
 
-The error path calls free_huge_folio(folio) directly, which expects a
-refcount of 0.  Hence, VM_BUG_ON_FOLIO(folio_ref_count(folio), folio) is
-triggered.
+In hugetlb_alloc_folio(), when mem_cgroup_charge_hugetlb() fails, there
+are 2 issues:
 
-Even with CONFIG_DEBUG_VM disabled, returning a folio with refcount 1 to
-the freelist can corrupt allocator state later.
+1. free_huge_folio() expects a non-refcounted folio and will
+   VM_BUG_ON_FOLIO().
 
-Use folio_put(folio) instead of free_huge_folio(folio) to properly drop
-the reference before freeing it.
+2. -ENOMEM is returned, causing an infinite loop retrying the fault.
 
-Link: https://lore.kernel.org/20260902-hugetlb-alloc-folio-memcg-charge-error-handling-v1-2-e3e8942c141b@google.com
-Link: https://lore.kernel.org/all/20260722-hugetlb-alloc-failure-fixes-v4-0-88e8b81970dc@google.com/ [1]
-Link: https://lore.kernel.org/all/20260708-hugetlb-alloc-failure-fixes-v2-0-c7f27cbb462b@google.com/ [2]
-Fixes: 991135774c0e ("memcg/hugetlb: introduce mem_cgroup_charge_hugetlb")
+
+This patch (of 2):
+
+When mem_cgroup_charge_hugetlb() fails with -ENOMEM, alloc_hugetlb_folio()
+currently propagates this error.  This results in the page fault handler
+returning VM_FAULT_OOM.
+
+Because HugeTLB allocations are high-order and use __GFP_RETRY_MAYFAIL,
+they bypass the OOM killer.  Returning VM_FAULT_OOM to the #PF handler
+without triggering the OOM killer (or having it make progress) leads to an
+infinite loop of retrying the fault.
+
+Avoid this loop by returning -ENOSPC when charging fails, which maps to
+VM_FAULT_SIGBUS, terminating the process cleanly.
+
+Make mem_cgroup_charge_hugetlb() fault handling use a common error
+handling path, the same handling used for
+hugetlb_cgroup_uncharge_cgroup{,_rsvd}(), which also don't trigger the OOM
+killer and hence opt to terminate the process with a SIGBUS.
+
+Link: https://lore.kernel.org/20260909-hugetlb-alloc-folio-memcg-charge-error-handling-v2-1-4b4a8a19a7f7@google.com
+Fixes: 991135774c0e0 ("memcg/hugetlb: introduce mem_cgroup_charge_hugetlb")
 Signed-off-by: Ackerley Tng <ackerleytng@google.com>
 Reviewed-by: Muchun Song <muchun.song@linux.dev>
 Reviewed-by: Joshua Hahn <joshua.hahnjy@gmail.com>
@@ -94,22 +126,36 @@ Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/hugetlb.c |    7 +++++--
+ 1 file changed, 5 insertions(+), 2 deletions(-)
 
---- a/mm/hugetlb.c~mm-hugetlb-drop-refcount-before-freeing-on-memcg-charge-failure
+--- a/mm/hugetlb.c~mm-hugetlb-return-enospc-on-memcg-charge-failure
 +++ a/mm/hugetlb.c
-@@ -2917,7 +2917,7 @@ struct folio *hugetlb_alloc_folio(struct
- 	lruvec_stat_mod_folio(folio, NR_HUGETLB, nr_pages);
- 
- 	if (ret == -ENOMEM) {
--		free_huge_folio(folio);
-+		folio_put(folio);
- 		/*
- 		 * Skip uncharging hugetlb_cgroup since the charges
+@@ -2851,7 +2851,6 @@ void wait_for_freed_hugetlb_folios(void)
+  *
+  * Return: A pointer to the allocated folio, or an ERR_PTR on failure.
+  *         -ENOSPC if cgroup charging fails or no folio is available.
+- *         -ENOMEM if mem cgroup charging fails.
+  */
+ struct folio *hugetlb_alloc_folio(struct hstate *h,
+ 		struct mempolicy_interpreted *mpoli, u8 alloc_flags)
+@@ -2924,7 +2923,11 @@ struct folio *hugetlb_alloc_folio(struct
  		 * were committed to the folio and freeing the folio
+ 		 * would have cleared those up.
+ 		 */
+-		return ERR_PTR(ret);
++		/*
++		 * Return -ENOSPC, since retrying the fault is futile:
++		 * the OOM killer is not triggered for HugeTLB.
++		 */
++		return ERR_PTR(-ENOSPC);
+ 	}
+ 
+ 	return folio;
 _
 
 Patches currently in -mm which might be from ackerleytng@google.com are
 
+mm-hugetlb-return-enospc-on-memcg-charge-failure.patch
+mm-hugetlb-drop-refcount-before-freeing-on-memcg-charge-failure.patch
 
