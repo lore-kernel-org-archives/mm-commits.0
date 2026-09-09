@@ -1,125 +1,137 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-yx2-f12.google.com (mail-yx2-f12.google.com [74.125.224.140])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7B6733DB964
-	for <mm-commits@vger.kernel.org>; Wed,  9 Sep 2026 07:13:45 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
-ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788938026; cv=none; b=iCI2dZOPQtbSiE+rq94gCJQbeccZInYyC1WkzgNIJL5r4k1k7H7C7lcknFnqcURNMFs4kJPTnJ+ADUWajp9Hws61EEemMVDiGdZkLsQqbdVU4EKUV+XL3ZFyLU3pdwP/MnSTjZS/uUlmh1+tGgZ05tv4xZ+9eMXrkhEVzlyDbAk=
-ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788938026; c=relaxed/simple;
-	bh=u6MnqflHqSzabA7afDuu6bMt1729M+mJ5iMB/IMKY7U=;
-	h=Date:To:From:Subject:Message-Id; b=iTdNQcGKxsJu2XiQ2SSrVh8T0Ru/xAnJIM+PhyDNEMgz3AMO/2q8WsnSEeMIv/B8tReHJR74JshtzjEYIWkOLOxHmXPP9fuybY0SD+MIKx7J9JpIP2F+kIxICDS7JdThJTj9QJluev1XqBjvRUWuQdpNKhsu5efZjN51Mq+JU3o=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=bCU7hpbK; arc=none smtp.client-ip=100.103.45.18
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E88A130BF70
+	for <mm-commits@vger.kernel.org>; Wed,  9 Sep 2026 15:08:36 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=74.125.224.140
+ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1788966518; cv=pass; b=T85w68R3BNokxsNuRgKdPAdivrTb2AcdmSPo5CYdzEe9Yu3Y8PT5qMA2x2sfOT7Lk9VFRCka+KNGhdyRAP/eCSa6z7kFo7I1h3qwNPkDW/So6Pa6D1Kt4NkQZT0tcL2muOGHB08NosGdWUkZGAbhPj6kNYJqx1dCqIuyz41dM2o=
+ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1788966518; c=relaxed/simple;
+	bh=jSQnyiVi8XwGjn3yuq+Uup3Eh9fiHdl+7fQ23fVLuhc=;
+	h=From:In-Reply-To:References:MIME-Version:Date:Message-ID:Subject:
+	 To:Content-Type; b=KGRcuFCXC6aIjRWHE7igpy9hfMLe5FdU1RWYF8cacdh1pgENHgCj7pOKKQKwNXu5jgAb9qxmiv5CzFTjHAb7+HYuG5r2Zl8HkaD7L9U9jOWK46FpHi0vvWpDixp5wF4fCLAex/rrRPWTqXbCcvlE3rbiFFe7I9w4DrTDTWoNIBQ=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com; spf=pass smtp.mailfrom=google.com; dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b=ah6YIvwQ; arc=pass smtp.client-ip=74.125.224.140
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=google.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="bCU7hpbK"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id EBE141F00A3A;
-	Wed,  9 Sep 2026 07:13:44 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b="ah6YIvwQ"
+Received: by mail-yx2-f12.google.com with SMTP id 956f58d0204a3-66e4ab201f9so447385d50.0
+        for <mm-commits@vger.kernel.org>; Wed, 09 Sep 2026 08:08:36 -0700 (PDT)
+ARC-Seal: i=1; a=rsa-sha256; t=1788966516; cv=none;
+        d=google.com; s=arc-20260327;
+        b=W099pgq6N13gUsMq0NWaNNiY45sZEnC0ujjUA+Ph0AQkHj5wPBha4krQQi7wAqWm0a
+         Sga/xiJDtAYrINhiEPPWJkmSliP45BU+Ov4IpAm1OkDWkkJtjraJXqmyFEg3P+zsrsAV
+         UifdjsmJ0NIHF+EykrXb7eWsLJ0RtXKmK/C9UemhPAue1vhFgIEYPbbx3/ZOpU2OpCkk
+         lcw7Q+26D9FAeAOoe79eNyj6Bqg5qG1j2FcsVmvrIyR7+IbqTFv/xdGF0jJtFHlIuJyy
+         1Ku4O+4CFctgbqBuWgD2TkkDUrLAl6Uw6PH6UMg0tGrUC9yngw2Un8g7y6PqqG7/7uN7
+         Dzmg==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20260327;
+        h=to:subject:message-id:date:mime-version:references:in-reply-to:from
+         :dkim-signature;
+        bh=94I0hUMtDNmKUxYIy7OV/M7nkeWTAvjSeGub385Un2U=;
+        fh=L77onqX5wK4nHINe7NyDS0mE/xrK0uGJZzxNswJQctg=;
+        b=LjDcEFlxHxLcavi3tw6RyQAR6DINML/2yNhplJVkcg+D86SfLly8FakB1c0Jdgj9K5
+         G+lvoHoMHFjaePXt8i3giY8xGtZo/3i59a7A6IOqN20A0WpKS4YeWEyWiZscM8gcarRe
+         vY1llqbridiCxJVRf4lvLAly4eS/wqXVJVil/d/oZ1TnK90FbCQU8dKNzrefmlCVzhxP
+         7/g7zplNKB9aoXG/VbrO+sikjioYhfNalD+a+a9q33aLSpCiihNiBhY7dpQqADwEmOTf
+         TZPr88lOr2sWXoJzEIqivZ4PDvh9Cpn4oYIvXGP5sCyNfU7oPPJKdxTFWVKuHiGFy3k5
+         N2MQ==;
+        darn=vger.kernel.org
+ARC-Authentication-Results: i=1; mx.google.com; arc=none
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1788938025;
-	bh=3BtSZGC7MYpgsVLaW4niSzgfd4qgiTLvkccq9hJOWm8=;
-	h=Date:To:From:Subject;
-	b=bCU7hpbKjDq+XhRNOjXY4jOWQoeKjSr3+WosQo26zoGx9lFIF74MUIzhhQXMn74pK
-	 3vE10AHb6o1iausJfKzgccVRZ6fbgsHg89bSDGMqKD/NW+vbJ2iLNYfEoU+Z6T15uY
-	 Gr/5OAuxytkuGoaeBlbv1MKGV0tK46sE00atWsas=
-Date: Wed, 09 Sep 2026 00:13:44 -0700
-To: mm-commits@vger.kernel.org,thehajime@gmail.com,ljs@kernel.org,liam@infradead.org,tasos.papagiannnis@gmail.com,akpm@linux-foundation.org
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-nommu-reject-wrapping-ranges-in-access_remote_vm.patch added to mm-new branch
-Message-Id: <20260909071344.EBE141F00A3A@smtp.kernel.org>
+        d=google.com; s=20251104; t=1788966516; x=1789571316; darn=vger.kernel.org;
+        h=content-type:to:subject:message-id:date:mime-version:references
+         :in-reply-to:from:from:to:cc:subject:date:message-id:reply-to
+         :content-type;
+        bh=94I0hUMtDNmKUxYIy7OV/M7nkeWTAvjSeGub385Un2U=;
+        b=ah6YIvwQ6ICIjEiirBZOikxCaZh30LHQLNcvlQelDneqXo7aNvmUFcNzwIoiKtLsIy
+         IvfqJXiy1GO/MK01g4OTHpDMSavLAyGxh6tQ/ZtWEPUTKEv0SXBcWueJgPvvFjCVcSQK
+         fmZNH8TmVfvDa5SAl5SoR9htRb3jVBFCAJfyMs83drWCII78cs+92W79xdAzykMgI36N
+         0XZivnufD8G4XV7UukYAIpRGpxECnJ6Oy4O7lQWHjrCPrQskL/QNQJzbVpSi7pl+55Wx
+         4/m8UbBsjv+40a451CLmFafBTQZ/V5+gDQFQmIfp0BxMVSCVjrQeG78DZezrDKuwY4xm
+         aOhQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20251104; t=1788966516; x=1789571316;
+        h=content-type:to:subject:message-id:date:mime-version:references
+         :in-reply-to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to:content-type;
+        bh=94I0hUMtDNmKUxYIy7OV/M7nkeWTAvjSeGub385Un2U=;
+        b=dgUAEQNEXW57+O7Y6lONvMzNUCDD+mMQeTu6dS2gtOygD442egDa6cp2tIQYHVjVaj
+         6LIxMlDQ2w1K0n6Gq/KAhLIBXe7b816mdKn9XeLWKmspMhZkPI0zE8mP+vROmYMFqrmH
+         9X96fCweGf268V/otebzCDJJ8wX5QIKc83iFv+X7bDLQB52KZQp8ebAG7lkNe00R2zZm
+         ScgwnzTyiHR9wXazCcygtbInfNqef1B9kJAgXcr7a6x4LwlVHgJTwrAkIm1Kgp42ithP
+         iQ5waiDS0ZW/lPl4FEqSmYak/kkHTVvnj8jMxaxRwW+HHDotS4RsmnCpsn3fVjLkDBbL
+         grzw==
+X-Forwarded-Encrypted: i=1; AKwUvBwv+HVm8YkOboZEs4GX8Zx65zY0bxbnreslGtp8bIDKgnwwLZfFf6vM/ZCnmFwQIsXWtRCZtf8+kmuu@vger.kernel.org
+X-Gm-Message-State: AFuF++nOnbawdaGy1H8/FP+mD4yIPq29oFoYpJ6tDt4NZMGp8+ipGsq1
+	LoMy2e7PvbQUE9IKtHh3//eywx9PLhdoMQwS2ovid8bLl/R20VDEc5nBD1vW5hS1kg2wVkVsls4
+	QK6kwoH4x3RslQsZ9IN4G+2d2Tz7bICQf16GH9Tt8
+X-Gm-Gg: AYBFou0lpy7cstquqLixPEogcE5Hku2D3Wc85uLTkorGe6lwAV89lJNPjNzN/dXS6ZK
+	eu22CqBIVvDX8qJ3oQy9wYdShEmhxZ2CqxVviLnJ8GUt0M1gteIdJB7OEVAmdMUvbvYNAU2Sg1S
+	41oziWWGzJptELTjXNGB19iOzYQX+YKMo07Tq3PkYnq6GpFclvY/9FkiD73EYPyjHcMJHfX0rTQ
+	eqsRApV77Xvz2OVp//1Mnv38rS5NeuzEFX8+D6qWmDgeGV8NVvxkEx8tPIixXpQEvPS3kzxhaCT
+	EzXY42HUcXddBnMDH9ZOOUj/f/cSyO09dntNEfhfaYpYkRPXczev21FHLrge2r+dwxm6NxcIL2y
+	DlxunM0OEJfo=
+X-Received: by 2002:a53:e1c3:0:b0:66f:c1bc:8804 with SMTP id
+ 956f58d0204a3-671100aa4a0mr751213d50.93.1788966514801; Wed, 09 Sep 2026
+ 08:08:34 -0700 (PDT)
+Received: from 176938342045 named unknown by gmailapi.google.com with
+ HTTPREST; Wed, 9 Sep 2026 08:08:34 -0700
+Received: from 176938342045 named unknown by gmailapi.google.com with
+ HTTPREST; Wed, 9 Sep 2026 08:08:33 -0700
+From: Ackerley Tng <ackerleytng@google.com>
+In-Reply-To: <20260909062849.0CFC71F00A3A@smtp.kernel.org>
+References: <20260909062849.0CFC71F00A3A@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
+MIME-Version: 1.0
+Date: Wed, 9 Sep 2026 08:08:33 -0700
+X-Gm-Features: AcwNN1VklKVcWcBWIqQ43VBTM1Y5rXVullNb148O--CoqtZ9WxNcwbmy31x-4Mw
+Message-ID: <CAEvNRgFToiH0H0CfYTUoct3JgWksHOJY7ramUX_PK2k_NQajZA@mail.gmail.com>
+Subject: Re: [merged mm-hotfixes-stable] mm-folio-export_symbol_for_kvmlru_cache_drain_for_folio.patch
+ removed from -mm tree
+To: Andrew Morton <akpm@linux-foundation.org>, mm-commits@vger.kernel.org, 
+	willy@infradead.org, vbabka@kernel.org, seanjc@google.com, hughd@google.com, 
+	fuad.tabba@linux.dev, david@kernel.org, binbin.wu@linux.intel.com
+Content-Type: text/plain; charset="UTF-8"
 
+Andrew Morton <akpm@linux-foundation.org> writes:
 
-The patch titled
-     Subject: mm/nommu: reject wrapping ranges in access_remote_vm()
-has been added to the -mm mm-new branch.  Its filename is
-     mm-nommu-reject-wrapping-ranges-in-access_remote_vm.patch
+>
+> [...snip...]
+>
+> This patch was dropped because it was merged into the mm-hotfixes-stable branch
+> of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+>
+>
+> [...snip...]
+>
+> --- a/mm/folio.c~mm-folio-export_symbol_for_kvmlru_cache_drain_for_folio
+> +++ a/mm/folio.c
+> @@ -33,6 +33,7 @@
+>  #include <linux/page_idle.h>
+>  #include <linux/local_lock.h>
+>  #include <linux/buffer_head.h>
+> +#include <linux/kvm_types.h>
+>
+>  #include "internal.h"
+>  #include "page_alloc.h"
+> @@ -926,6 +927,7 @@ void lru_cache_drain_for_folio(const str
+>  			*drained = LRU_CACHE_DRAINED_ALL;
+>  	}
+>  }
+> +EXPORT_SYMBOL_FOR_KVM(lru_cache_drain_for_folio);
+>
+>
+> [...snip...]
+>
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-nommu-reject-wrapping-ranges-in-access_remote_vm.patch
+Thanks all!
 
-This patch will later appear in the mm-new branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Note, mm-new is a provisional staging ground for work-in-progress
-patches, and acceptance into mm-new is a notification for others take
-notice and to finish up reviews.  Please do not hesitate to respond to
-review feedback and post updated versions to replace or incrementally
-fixup patches in mm-new.
-
-The mm-new branch of mm.git is not included in linux-next
-
-If a few days of testing in mm-new is successful, the patch will me moved
-into mm.git's mm-unstable branch, which is included in linux-next
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via various
-branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there most days
-
-------------------------------------------------------
-From: Anastasios Papagiannis <tasos.papagiannnis@gmail.com>
-Subject: mm/nommu: reject wrapping ranges in access_remote_vm()
-Date: Wed, 9 Sep 2026 09:42:31 +0300
-
-The NOMMU implementation of access_process_vm() rejects address ranges
-whose end wraps around, but access_remote_vm() bypasses this check even
-though both functions delegate to __access_remote_vm().
-
-Move the wraparound check into __access_remote_vm() so it applies to both
-entry points.
-
-This iss originally reported in [1].
-
-Link: https://lore.kernel.org/20260909064231.18693-1-tasos.papagiannnis@gmail.com
-Fixes: f55f199b7d76 ("NOMMU: implement access_remote_vm")
-Signed-off-by: Anastasios Papagiannis <tasos.papagiannnis@gmail.com>
-Closes: https://lore.kernel.org/bpf/4ef240a5bea36ff84df9589671367832860795159386a4c8fba546a0fa8b786f@mail.kernel.org/ [1]
-Cc: Liam R. Howlett <liam@infradead.org>
-Cc: Lorenzo Stoakes <ljs@kernel.org>
-Cc: Hajime Tazaki <thehajime@gmail.com>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
-
- mm/nommu.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
-
---- a/mm/nommu.c~mm-nommu-reject-wrapping-ranges-in-access_remote_vm
-+++ a/mm/nommu.c
-@@ -1674,6 +1674,9 @@ static int __access_remote_vm(struct mm_
- 	struct vm_area_struct *vma;
- 	int write = gup_flags & FOLL_WRITE;
- 
-+	if (addr + len < addr)
-+		return 0;
-+
- 	if (mmap_read_lock_killable(mm))
- 		return 0;
- 
-@@ -1727,9 +1730,6 @@ int access_process_vm(struct task_struct
- {
- 	struct mm_struct *mm;
- 
--	if (addr + len < addr)
--		return 0;
--
- 	mm = get_task_mm(tsk);
- 	if (!mm)
- 		return 0;
-_
-
-Patches currently in -mm which might be from tasos.papagiannnis@gmail.com are
-
-mm-nommu-reject-wrapping-ranges-in-access_remote_vm.patch
-
+Would like to check on branch management for mm-hotfixes-stable: Does
+this patch being on mm-hotfixes-stable now (7.3-rc2) mean that this will
+make it to 7.3-rc3?
