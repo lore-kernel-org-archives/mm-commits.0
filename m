@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8297C33689D
-	for <mm-commits@vger.kernel.org>; Wed,  9 Sep 2026 23:17:35 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 875B138A733
+	for <mm-commits@vger.kernel.org>; Wed,  9 Sep 2026 23:37:47 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788995858; cv=none; b=rHqMRSSoeNCVMPRrbn8/Ej7EJW5fHYjWxOa/wzXfgO3Oc0VHOoZ9EUTFEC+4fSNGu7k7UADXL4R2CUvr+oT6WqxVW7OrXT5WlWtn9kxWPl8f2v7EFvbuQWT+rO0Yt3Z57PuKUDFQgELfhbS36XqY9WXejUwvlUWapxyZ2GfkFt0=
+	t=1788997068; cv=none; b=O8nbooW8jOjtsp63Wgk5kqUbIyOxva+z3lZuFf5vMinfux0fDGxOulxHC0K5lUlb7/QKIjucUYBdwPr8FCkvX068hP1M9Ijgbs1bmnMu+uEe2x0EdY/5ifr2YNXugRnqWYImK64f9pn2D3j87k3LlSWaVeYotxJbGS88zbHsyyc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788995858; c=relaxed/simple;
-	bh=H3zv3LiNJsyljHeiF2HjmP9HWLjcplanYQbX417OR9M=;
-	h=Date:To:From:Subject:Message-Id; b=Sfx1oTEGq0/EjY5GiJyKbT8oun0xI4fpMHtOMHAbW9z9yn9joBF2CB224xCbpXoT2jhKajiVt8s0eiZw3ye8Qdpcmb2LMxM2flLm5ABu+dJaEccyoAoslyLuMHRhcx5vxartT9m+/DNNZ5L0EGvGMqIVyyHTWs9vvhBOB+obw1k=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Ybfn/dRR; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1788997068; c=relaxed/simple;
+	bh=UCaBHwpzqnKxGM3WnnDefSzlrzRMu0jOK3akNp4Q+6k=;
+	h=Date:To:From:Subject:Message-Id; b=YypXEjdDM0Qsf8km2E7o9F29cabnVNq/OUjhdY3B1LUB1kIC1g+eJi7Y6yfFRGF5Al8u4Eod1AzE5oRzIcqF6sj8Ikn9/QYGi+7SGAs72f9I9pvH2vLAjWLBdBSoNqrpBbyowgkdc8G8X9St3vYVPIWiX8u4Jps/JMOP1K6OOSo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=XAk6oYou; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Ybfn/dRR"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 560F41F000FF;
-	Wed,  9 Sep 2026 23:17:34 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="XAk6oYou"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E21ED1F000FF;
+	Wed,  9 Sep 2026 23:37:46 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1788995854;
-	bh=JxopD5mNaLc1aHvbjdanrAYueyj7rCze6fBwnv50Ao8=;
+	d=linux-foundation.org; s=korg; t=1788997067;
+	bh=/Rg+C2Kj5sk0PzC0mBZ8ws4nu4jub6krUUBLIO+B6eI=;
 	h=Date:To:From:Subject;
-	b=Ybfn/dRR+VPbUKUZI4+x7p6Ylq4dAwA6SjSnmVmQAwe4IZMUkWQO7Tjn8FAfdEJT0
-	 lS/mcOnPOKTzuZEa6lHIPirhJ9opbk2fl/fkZTrCYiTiEGJQhQ7qWuTrWpMIcoqpEv
-	 dc3htY7/Ssxypy2cdzMUKviQDuMxBqejj8c47dF4=
-Date: Wed, 09 Sep 2026 16:17:33 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,yangerkun@huawei.com,willy@infradead.org,wangkefeng.wang@huawei.com,vbabka@kernel.org,surenb@google.com,rppt@kernel.org,mhocko@suse.com,ljs@kernel.org,liam@infradead.org,joannelkoong@gmail.com,jack@suse.cz,hughd@google.com,djwong@kernel.org,david@kernel.org,chengzhihao1@huawei.com,bfoster@redhat.com,baolin.wang@linux.alibaba.com,yi.zhang@huawei.com,akpm@linux-foundation.org
+	b=XAk6oYouxRyJzSafEvXD2R0ZINICvptymZybKZGYMYrzMt+a8tITULQ8wZx5Cy9fY
+	 C6ObtHPVEBd47q3Q2f+FrAj+fRMr0ZjPqP96Wilvl1pVhTW1fsTDhj1h505rzHBeMu
+	 mHseP1J08ucX4dfb6bbwPI7HptA8m7SrcMne76h8=
+Date: Wed, 09 Sep 2026 16:37:46 -0700
+To: mm-commits@vger.kernel.org,ackerleytng@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-truncate-fix-data-loss-when-truncating-straddling-large-folios.patch added to mm-hotfixes-unstable branch
-Message-Id: <20260909231734.560F41F000FF@smtp.kernel.org>
+Subject: [to-be-updated] mm-hugetlb-return-enospc-on-memcg-charge-failure.patch removed from -mm tree
+Message-Id: <20260909233746.E21ED1F000FF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,365 +34,132 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The patch titled
-     Subject: mm/truncate: fix data loss when truncating straddling large folios
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mm-truncate-fix-data-loss-when-truncating-straddling-large-folios.patch
+The quilt patch titled
+     Subject: mm: hugetlb: return -ENOSPC on memcg charge failure
+has been removed from the -mm tree.  Its filename was
+     mm-hugetlb-return-enospc-on-memcg-charge-failure.patch
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-truncate-fix-data-loss-when-truncating-straddling-large-folios.patch
-
-This patch will later appear in the mm-hotfixes-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via various
-branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there most days
+This patch was dropped because an updated version will be issued
 
 ------------------------------------------------------
-From: Zhang Yi <yi.zhang@huawei.com>
-Subject: mm/truncate: fix data loss when truncating straddling large folios
-Date: Wed, 9 Sep 2026 14:23:39 +0800
+From: Ackerley Tng <ackerleytng@google.com>
+Subject: mm: hugetlb: return -ENOSPC on memcg charge failure
+Date: Wed, 02 Sep 2026 01:22:56 -0700
 
-truncate_inode_partial_folio() splits a large folio so that the caller's
-truncate loop can drop the in-range sub-folios while keeping the
-out-of-range tail.  The first split at the punch start edge is
-non-uniform, which leaves the sub-folio at the truncation end edge as
-large as possible, this means it may still straddle the range, holding
-both zeroed in-range and valid out-of-range data.  The function then
-attempts a second split at offset + length to isolate that tail.
+Patch series "Fix bugs in HugeTLB allocation when
+mem_cgroup_charge_hugetlb() fails".
 
-If the second split fails the straddling sub-folio stays merged.  The
-function returned true unconditionally on all exit paths of the success
-block, telling the caller it was fully handled.  The caller kept its
-default end and the truncate loop truncated every sub-folio below it,
-including the merged straddler, discarding the valid out-of-range tail.
+In hugetlb_alloc_folio(), when mem_cgroup_charge_hugetlb() fails, there are
+2 issues:
 
-For example, a 4-page order-2 folio punched from offset 0 to the middle of
-the last page:
+1. free_huge_folio() expects a non-refcounted folio and will
+   VM_BUG_ON_FOLIO().
 
-  truncate_inode_pages_range()
-    truncate_inode_partial_folio()      # same_folio == true
-      1st split at page0 -> [p0, p1, p2-3]   # non-uniform, success
-      folio2 = p2-3 # straddles: p2 zeroed, p3 tail valid
-      2nd split of folio2 fails / cannot lock
-      return true                       # BUG: caller keeps default end
-    end = 3
-    loop truncates p0, p1, p2-3        # p3's valid tail is lost
+2. -ENOMEM is returned, causing an infinite loop retrying the fault.
 
-This became reachable after commit 7460b470a131 ("mm/truncate: use
-folio_split() in truncate operation") replaced the atomic split_folio()
-with folio_split(), whose non-uniform split can partially split a folio
-and leave the end edge merged.
+This patch series is a subset of patches in [1].
 
-It has gone unnoticed because a dirty large folio normally carries the
-filesystem's private data, for example buffer_head, so
-filemap_release_folio() -> iomap_release_folio() returns false on a dirty
-folio and folio_split() aborts with -EBUSY before any split, leaving the
-straddler safely unsplit.  The bug is only reachable on paths that produce
-dirty large folios without filesystem private data, and it was caught on
-the upcoming ext4 iomap buffered I/O path when no ifs is attached.
+Note: [1] was applied on an earlier version of HugeTLB allocation.  In
+that earlier version, VMA reservations were not undone on
+mem_cgroup_charge_hugetlb() failure.
 
-In addition, even when both splits succeed, data can still be lost when
-the mapping's minimum folio order (min_order) is non-zero.  folio_split()
-stops at min_order instead of order 0, so the sub-folio containing a split
-point stays aligned to 1 << min_order rather than to a page.  The original
-success path left start at the page-aligned head of the range and set end
-to the exact page index of the end edge, neither of which is a folio
-boundary in general.  Either one could land inside the large folio at its
-edge, and the truncate loop would drop that straddling folio together with
-its valid out-of-range tail.
+5737df3826dee: ("mm: hugetlb: refactor out hugetlb_alloc_folio()") fixed
+that, since returning an error from hugetlb_alloc_folio() causes
+alloc_hugetlb_folio() to execute vma_end_reservation().
 
-For example, a 64K (order-4) folio with min_order = 2 punched from
-offset 0 to 36K:
+At the Link: there is a reproducer to trigger mem_cgroup_charge_hugetlb()
+failure.
 
-  truncate_inode_pages_range()
-    truncate_inode_partial_folio()        # same_folio == true
-      1st split at p0 -> [p0-p3, p4-p7, p8-p15]  # non-uniform, min_order
-      folio2 = p8-p15 # straddles: p8 in range, p9-p15 tail valid
-      2nd split of folio2 -> [p8-p11, p12-p15]   # success
-      end = p9                           # BUG: p9 inside [p8-p11]
-    loop truncates ... p8-p11           # p9-p11's valid tail is lost
 
-Rework the contract so the caller is told the page range to discard:
+This patch (of 2):
 
-  - Return true only when a split occurred, false otherwise. This
-    clarifies the existing confusing return value semantics.
+When mem_cgroup_charge_hugetlb() fails with -ENOMEM, alloc_hugetlb_folio()
+currently propagates this error.  This results in the page fault handler
+returning VM_FAULT_OOM.
 
-  - Add pgoff_t *pstart and *pend out-parameters that receive the page
-    range fully covered by [lstart, lend] after any split (or none),
-    i.e. the pages wholly within the range and safe to discard. They are
-    aligned up (pstart) and down (pend) to the mapping's minimum folio
-    order so they always fall on a folio boundary.
+Because HugeTLB allocations are high-order and use __GFP_RETRY_MAYFAIL,
+they bypass the OOM killer.  Returning VM_FAULT_OOM to the #PF handler
+without triggering the OOM killer (or having it make progress) leads to an
+infinite loop of retrying the fault.
 
-  - Rename the byte-range parameters start/end to lstart/lend to avoid
-    clashing with the new outputs and to separate byte offsets from
-    folio indices.
+Avoid this loop by returning -ENOSPC when charging fails, which maps to
+VM_FAULT_SIGBUS, terminating the process cleanly.
 
-Callers in truncate_inode_pages_range() and shmem_undo_range() pass
-&pstart for the folio at the start edge and &pend for the folio at the end
-edge, so the truncate loop drops exactly the fully covered pages and never
-touches a straddling folio that still holds valid out-of-range data.
+Make mem_cgroup_charge_hugetlb() fault handling use a common error
+handling path, the same handling used for
+hugetlb_cgroup_uncharge_cgroup{,_rsvd}(), which also don't trigger the OOM
+killer and hence opt to terminate the process with a SIGBUS.
 
-Link: https://lore.kernel.org/20260909062339.473816-1-yi.zhang@huaweicloud.com
-Fixes: 7460b470a131 ("mm/truncate: use folio_split() in truncate operation")
-Signed-off-by: Zhang Yi <yi.zhang@huawei.com>
-Suggested-by: Brian Foster <bfoster@redhat.com>
-Link: https://lore.kernel.org/linux-fsdevel/anH-WKA1coW6wtfG@bfoster/
-Reviewed-by: Jan Kara <jack@suse.cz>
-Reviewed-by: Joanne Koong <joannelkoong@gmail.com>
-Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: Brian foster <bfoster@redhat.com>
-Cc: "Darrick J. Wong" <djwong@kernel.org>
+Link: https://lore.kernel.org/20260902-hugetlb-alloc-folio-memcg-charge-error-handling-v1-0-e3e8942c141b@google.com
+Link: https://lore.kernel.org/20260902-hugetlb-alloc-folio-memcg-charge-error-handling-v1-1-e3e8942c141b@google.com
+Fixes: 991135774c0e ("memcg/hugetlb: introduce mem_cgroup_charge_hugetlb")
+Signed-off-by: Ackerley Tng <ackerleytng@google.com>
+Reviewed-by: Muchun Song <muchun.song@linux.dev>
+Reviewed-by: Joshua Hahn <joshua.hahnjy@gmail.com>
+Cc: Alex Shi <alexs@kernel.org>
 Cc: David Hildenbrand <david@kernel.org>
-Cc: ErKun Yang <yangerkun@huawei.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Dongliang Mu <dzm91@hust.edu.cn>
+Cc: Frank van der Linden <fvdl@google.com>
+Cc: Hongxiang Lou <louhongxiang@huawei.com>
+Cc: James Houghton <jthoughton@google.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Jonathan Corbet <corbet@lwn.net>
 Cc: Liam R. Howlett <liam@infradead.org>
 Cc: Lorenzo Stoakes <ljs@kernel.org>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Michal Hocko <mhocko@suse.com>
+Cc: Ma Wupeng <mawupeng1@huawei.com>
+Cc: Miaohe Lin <linmiaohe@huawei.com>
+Cc: Michal Hocko <mhocko@kernel.org>
 Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Nhat Pham <nphamcs@gmail.com>
+Cc: Oscar Salvador <osalvador@suse.de>
+Cc: Peter Xu <peterx@redhat.com>
+Cc: Roman Gushchin <roman.gushchin@linux.dev>
+Cc: Shakeel Butt <shakeel.butt@linux.dev>
 Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Vishal Annapurve <vannapurve@google.com>
 Cc: Vlastimil Babka <vbabka@kernel.org>
-Cc: Zhihao Cheng <chengzhihao1@huawei.com>
-Cc: Zi Yan <ziy@nvidia.com>
+Cc: Yanteng Si <si.yanteng@linux.dev>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/internal.h |    4 +-
- mm/shmem.c    |   13 ++-----
- mm/truncate.c |   88 ++++++++++++++++++++++++++++++++----------------
- 3 files changed, 67 insertions(+), 38 deletions(-)
+ mm/hugetlb.c |   14 ++++++++++++--
+ 1 file changed, 12 insertions(+), 2 deletions(-)
 
---- a/mm/internal.h~mm-truncate-fix-data-loss-when-truncating-straddling-large-folios
-+++ a/mm/internal.h
-@@ -624,8 +624,8 @@ unsigned find_lock_entries(struct addres
- unsigned find_get_entries(struct address_space *mapping, pgoff_t *start,
- 		pgoff_t end, struct folio_batch *fbatch, pgoff_t *indices);
- int truncate_inode_folio(struct address_space *mapping, struct folio *folio);
--bool truncate_inode_partial_folio(struct folio *folio, loff_t start,
--		loff_t end);
-+bool truncate_inode_partial_folio(struct folio *folio, loff_t lstart,
-+		loff_t lend, pgoff_t *pstart, pgoff_t *pend);
- long mapping_evict_folio(struct address_space *mapping, struct folio *folio);
- unsigned long mapping_try_invalidate(struct address_space *mapping,
- 		pgoff_t start, pgoff_t end, unsigned long *nr_failed);
---- a/mm/shmem.c~mm-truncate-fix-data-loss-when-truncating-straddling-large-folios
-+++ a/mm/shmem.c
-@@ -1176,11 +1176,8 @@ static void shmem_undo_range(struct inod
- 	if (folio) {
- 		same_folio = lend < folio_next_pos(folio);
- 		folio_mark_dirty(folio);
--		if (!truncate_inode_partial_folio(folio, lstart, lend)) {
--			start = folio_next_index(folio);
--			if (same_folio)
--				end = folio->index;
--		}
-+		truncate_inode_partial_folio(folio, lstart, lend, &start,
-+					     same_folio ? &end : NULL);
- 		folio_unlock(folio);
- 		folio_put(folio);
- 		folio = NULL;
-@@ -1190,8 +1187,7 @@ static void shmem_undo_range(struct inod
- 		folio = shmem_get_partial_folio(inode, lend >> PAGE_SHIFT);
- 	if (folio) {
- 		folio_mark_dirty(folio);
--		if (!truncate_inode_partial_folio(folio, lstart, lend))
--			end = folio->index;
-+		truncate_inode_partial_folio(folio, lstart, lend, NULL, &end);
- 		folio_unlock(folio);
- 		folio_put(folio);
- 	}
-@@ -1259,7 +1255,8 @@ whole_folios:
- 
- 				if (!folio_test_large(folio)) {
- 					truncate_inode_folio(mapping, folio);
--				} else if (truncate_inode_partial_folio(folio, lstart, lend)) {
-+				} else if (truncate_inode_partial_folio(folio,
-+							lstart, lend, NULL, NULL)) {
- 					/*
- 					 * If we split a page, reset the loop so
- 					 * that we pick up the new sub pages.
---- a/mm/truncate.c~mm-truncate-fix-data-loss-when-truncating-straddling-large-folios
-+++ a/mm/truncate.c
-@@ -206,35 +206,41 @@ static int folio_split_or_unmap(struct f
- /*
-  * Handle partial folios.  The folio may be entirely within the
-  * range if a split has raced with us.  If not, we zero the part of the
-- * folio that's within the [start, end] range, and then split the folio if
-+ * folio that's within the [lstart, lend] range, and then split the folio if
-  * it's large.  split_page_range() will discard pages which now lie beyond
-  * i_size, and we rely on the caller to discard pages which lie within a
-  * newly created hole.
+--- a/mm/hugetlb.c~mm-hugetlb-return-enospc-on-memcg-charge-failure
++++ a/mm/hugetlb.c
+@@ -2851,7 +2851,6 @@ void wait_for_freed_hugetlb_folios(void)
   *
-- * Returns false if splitting failed so the caller can avoid
-- * discarding the entire folio which is stubbornly unsplit.
-+ * When @pstart and/or @pend are non-NULL they receive the indexes of the
-+ * page range fully covered by [lstart, lend] after any split (or none),
-+ * i.e. the range of pages that are wholly within [lstart, lend] and so safe
-+ * to discard.
-+ *
-+ * Return %true if the folio was split, %false otherwise.
+  * Return: A pointer to the allocated folio, or an ERR_PTR on failure.
+  *         -ENOSPC if cgroup charging fails or no folio is available.
+- *         -ENOMEM if mem cgroup charging fails.
   */
--bool truncate_inode_partial_folio(struct folio *folio, loff_t start, loff_t end)
-+bool truncate_inode_partial_folio(struct folio *folio, loff_t lstart,
-+				  loff_t lend, pgoff_t *pstart, pgoff_t *pend)
- {
- 	loff_t pos = folio_pos(folio);
- 	size_t size = folio_size(folio);
- 	unsigned int offset, length;
- 	struct page *split_at, *split_at2;
-+	unsigned long min_nrbytes;
- 	unsigned int min_order;
- 
--	if (pos < start)
--		offset = start - pos;
-+	if (pos < lstart)
-+		offset = lstart - pos;
- 	else
- 		offset = 0;
--	if (pos + size <= (u64)end)
-+	if (pos + size <= (u64)lend)
- 		length = size - offset;
- 	else
--		length = end + 1 - pos - offset;
-+		length = lend + 1 - pos - offset;
- 
- 	folio_wait_writeback(folio);
- 	if (length == size) {
- 		truncate_inode_folio(folio->mapping, folio);
--		return true;
-+		goto no_split;
- 	}
- 
- 	/*
-@@ -248,9 +254,10 @@ bool truncate_inode_partial_folio(struct
- 	if (folio_needs_release(folio))
- 		folio_invalidate(folio, offset, length);
- 	if (!folio_test_large(folio))
--		return true;
-+		goto no_split;
- 
- 	min_order = mapping_min_folio_order(folio->mapping);
-+	min_nrbytes = mapping_min_folio_nrbytes(folio->mapping);
- 	split_at = folio_page(folio, PAGE_ALIGN_DOWN(offset) / PAGE_SIZE);
- 	if (!folio_split_or_unmap(folio, split_at, min_order)) {
- 		/*
-@@ -259,38 +266,67 @@ bool truncate_inode_partial_folio(struct
- 		 * for shmem truncate
+ struct folio *hugetlb_alloc_folio(struct hstate *h,
+ 		struct mempolicy_interpreted *mpoli, u8 alloc_flags)
+@@ -2924,7 +2923,18 @@ struct folio *hugetlb_alloc_folio(struct
+ 		 * were committed to the folio and freeing the folio
+ 		 * would have cleared those up.
  		 */
- 		struct folio *folio2;
-+		bool tail_isolated = true;
- 
--		if (offset + length == size)
--			goto no_split;
-+		if (pend)
-+			*pend = round_down(pos + offset + length,
-+					   min_nrbytes) >> PAGE_SHIFT;
- 
-+		if (offset + length == size)
-+			goto split;
-+retry:
- 		split_at2 = folio_page(folio,
- 				PAGE_ALIGN_DOWN(offset + length) / PAGE_SIZE);
- 		folio2 = page_folio(split_at2);
- 
- 		if (!folio_try_get(folio2))
--			goto no_split;
-+			goto split;
- 
- 		if (!folio_test_large(folio2))
- 			goto out;
- 
--		if (!folio_trylock(folio2))
-+		if (!folio_trylock(folio2)) {
-+			tail_isolated = false;
- 			goto out;
-+		}
-+
+-		return ERR_PTR(ret);
 +		/*
-+		 * split_at2 may no longer belong to folio2 due to concurrent
-+		 * split. Retry to find the correct folio in case it's still
-+		 * large.
++		 * Return -ENOSPC when this function fails to allocate
++		 * or charge a huge page. If a standard (PAGE_SIZE)
++		 * page allocation fails, the OOM killer is given a
++		 * chance to run, which may resolve the failure on
++		 * retry. However, for HugeTLB allocations, the OOM
++		 * killer is not triggered.  Returning -ENOMEM (or
++		 * anything resulting in VM_FAULT_OOM) would leak to
++		 * the #PF handler, causing it to loop indefinitely
++		 * retrying the fault.
 +		 */
-+		if (page_folio(split_at2) != folio2) {
-+			folio_unlock(folio2);
-+			folio_put(folio2);
-+			goto retry;
-+		}
- 
- 		/* make sure folio2 is large and does not change its mapping */
- 		if (folio_test_large(folio2) &&
--		    folio2->mapping == folio->mapping)
--			folio_split_or_unmap(folio2, split_at2, min_order);
-+		    folio2->mapping == folio->mapping &&
-+		    folio_split_or_unmap(folio2, split_at2, min_order))
-+			tail_isolated = false;
- 
- 		folio_unlock(folio2);
- out:
-+		if (!tail_isolated && pend)
-+			*pend = folio2->index;
- 		folio_put(folio2);
--no_split:
-+split:
-+		if (pstart)
-+			*pstart = round_up(pos + offset,
-+					   min_nrbytes) >> PAGE_SHIFT;
- 		return true;
++		return ERR_PTR(-ENOSPC);
  	}
--	if (folio_test_dirty(folio))
--		return false;
--	truncate_inode_folio(folio->mapping, folio);
--	return true;
-+	if (!folio_test_dirty(folio))
-+		truncate_inode_folio(folio->mapping, folio);
-+no_split:
-+	if (pstart)
-+		*pstart = offset ? folio_next_index(folio) : folio->index;
-+	if (pend)
-+		*pend = (pos + size > (u64)lend) ? folio->index :
-+						   folio_next_index(folio);
-+	return false;
- }
  
- /*
-@@ -413,11 +449,8 @@ void truncate_inode_pages_range(struct a
- 	folio = __filemap_get_folio(mapping, lstart >> PAGE_SHIFT, FGP_LOCK, 0);
- 	if (!IS_ERR(folio)) {
- 		same_folio = lend < folio_next_pos(folio);
--		if (!truncate_inode_partial_folio(folio, lstart, lend)) {
--			start = folio_next_index(folio);
--			if (same_folio)
--				end = folio->index;
--		}
-+		truncate_inode_partial_folio(folio, lstart, lend, &start,
-+					     same_folio ? &end : NULL);
- 		folio_unlock(folio);
- 		folio_put(folio);
- 		folio = NULL;
-@@ -427,8 +460,7 @@ void truncate_inode_pages_range(struct a
- 		folio = __filemap_get_folio(mapping, lend >> PAGE_SHIFT,
- 						FGP_LOCK, 0);
- 		if (!IS_ERR(folio)) {
--			if (!truncate_inode_partial_folio(folio, lstart, lend))
--				end = folio->index;
-+			truncate_inode_partial_folio(folio, lstart, lend, NULL, &end);
- 			folio_unlock(folio);
- 			folio_put(folio);
- 		}
+ 	return folio;
 _
 
-Patches currently in -mm which might be from yi.zhang@huawei.com are
+Patches currently in -mm which might be from ackerleytng@google.com are
 
-mm-truncate-fix-data-loss-when-truncating-straddling-large-folios.patch
+mm-hugetlb-drop-refcount-before-freeing-on-memcg-charge-failure.patch
 
