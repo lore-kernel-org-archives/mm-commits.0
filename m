@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9C6E048EC85
-	for <mm-commits@vger.kernel.org>; Wed,  9 Sep 2026 22:37:28 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9DAE64825A7
+	for <mm-commits@vger.kernel.org>; Wed,  9 Sep 2026 23:17:01 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788993473; cv=none; b=sZvH2MyMdjsIds7i1uw5nc9dcLa/FXL25ol+KfyaK/apiRlupMCy1Y5Xr2C2I5V7iCWkfFCXdGEYcLb11HbMkMF/+ugttmlWbFbO4xhwN2rEUoFfKpCNjQMAOHJUJFAooRipX+I+i1m8QzJcFodysGObJRw4VXYPns/i5hxfbRI=
+	t=1788995824; cv=none; b=tDq4LdZJHNGL82yeMHN8X67TxnpkxWIIH9p/MUrQmmC+MF4Uo5L/2W/hnTlKvdkUXJE3ytNwou2bz66U4+smHjv4hRBTVAWtrcPKrSKplyU6nYWjz9AwO32GyUklt2RPixZo0jcYXXuHU5mxjRAYutLZ+1TP4P/mxWkJ74c6Uio=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788993473; c=relaxed/simple;
-	bh=cbutHBizFy/RPbWRIMfqPeABeahi43AOiCkGZQzoSA8=;
-	h=Date:To:From:Subject:Message-Id; b=UcYpM6CwW6nq26MwuBaQtKUsP63ErzG/FjwqL40cemqWTescWQJuZGIMiA06lEbZeYY0ufBK8w/8jQL78sS/B2F82labamQ9dYdQHdoi+NDCWQUlznkvEqwICTdfIix9O3drxn11O0AlJeQS2stqkgm0revm8QT0NoK+tT5UxLQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=R1lV0tbq; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1788995824; c=relaxed/simple;
+	bh=/5Gr5XzHsB8AlPX7qZJZCD3+9Qfqi4qkNVxfH7LCzv8=;
+	h=Date:To:From:Subject:Message-Id; b=dhVHr5vMA+g8HlYb8tlacXM3q3wxZbPIIVJF1yZ0DjCTm28CIKhW3Z/GaUo3YE2e3q92Fj+inWDz5TyA3YZ43yOH8bSFk/sVEuslXHX0Ns3aqqyRcf49cd9DijAFKX9AwCvdyYo6r2O0laTmW0DidM2IepYL32OkdjM9FA4zHoI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ooQBTVAM; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="R1lV0tbq"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A213C1F00893;
-	Wed,  9 Sep 2026 22:37:27 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ooQBTVAM"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id DD9C11F000FF;
+	Wed,  9 Sep 2026 23:16:59 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1788993447;
-	bh=Wm+4X8UAyIdV5uzVljpQdSmNH3nvwXdCPGxyKDBsZyE=;
+	d=linux-foundation.org; s=korg; t=1788995820;
+	bh=zRXXm8cD0GhmjC1AjHuI+JoXYYwDErMsQ3PM55mp/2Q=;
 	h=Date:To:From:Subject;
-	b=R1lV0tbqyjxnVJjkKE2vdi77LJsN4rPyFasvP53vBV5VButePJYYZhJYfaR1jDxFK
-	 2K9W8XTHz1avz88CE8qFPNRfwL7qk719eV0ttLVxuAZeyGZ4tOiGHcKku2sgnMGqhG
-	 /3DI13SdD3Km9Y6aId/LfJUFE185bLZSkMJJzOQ8=
-Date: Wed, 09 Sep 2026 15:37:27 -0700
-To: mm-commits@vger.kernel.org,songmuchun@bytedance.com,david@kernel.org,akpm@linux-foundation.org,akpm@linux-foundation.org
+	b=ooQBTVAMWj2F4MT1z8jN93KwxFLGbYrfJLDCl1J1m4huds/F/uQCiVBDYdMN9RWVz
+	 NCUd76RvHFnIK7AIxPy5Ngkna6VzUib3rmdpzZhn/z7gsFHafU1p3Lvf+QZi5i69T7
+	 KHz0oS7Bx75j2jPFCxcTY1WspofDGN1uS9ythJQQ=
+Date: Wed, 09 Sep 2026 16:16:59 -0700
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,yangerkun@huawei.com,willy@infradead.org,wangkefeng.wang@huawei.com,vbabka@kernel.org,surenb@google.com,rppt@kernel.org,mhocko@suse.com,ljs@kernel.org,liam@infradead.org,joannelkoong@gmail.com,jack@suse.cz,hughd@google.com,djwong@kernel.org,david@kernel.org,chengzhihao1@huawei.com,bfoster@redhat.com,baolin.wang@linux.alibaba.com,yi.zhang@huawei.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-sparse-vmemmap-switch-device-dax-to-shared-tail-vmemmap-pages-fix.patch added to mm-new branch
-Message-Id: <20260909223727.A213C1F00893@smtp.kernel.org>
+Subject: + mm-truncate-fix-data-loss-when-truncating-straddling-large-folios.patch added to mm-hotfixes-unstable branch
+Message-Id: <20260909231659.DD9C11F000FF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,26 +35,15 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm-sparse-vmemmap-switch-device-dax-to-shared-tail-vmemmap-pages-fix
-has been added to the -mm mm-new branch.  Its filename is
-     mm-sparse-vmemmap-switch-device-dax-to-shared-tail-vmemmap-pages-fix.patch
+     Subject: mm/truncate: fix data loss when truncating straddling large folios
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     mm-truncate-fix-data-loss-when-truncating-straddling-large-folios.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-sparse-vmemmap-switch-device-dax-to-shared-tail-vmemmap-pages-fix.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-truncate-fix-data-loss-when-truncating-straddling-large-folios.patch
 
-This patch will later appear in the mm-new branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Note, mm-new is a provisional staging ground for work-in-progress
-patches, and acceptance into mm-new is a notification for others take
-notice and to finish up reviews.  Please do not hesitate to respond to
-review feedback and post updated versions to replace or incrementally
-fixup patches in mm-new.
-
-The mm-new branch of mm.git is not included in linux-next
-
-If a few days of testing in mm-new is successful, the patch will me moved
-into mm.git's mm-unstable branch, which is included in linux-next
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -69,49 +58,341 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-sparse-vmemmap-switch-device-dax-to-shared-tail-vmemmap-pages-fix
-Date: Wed Sep  9 03:33:07 PM PDT 2026
+From: Zhang Yi <yi.zhang@huawei.com>
+Subject: mm/truncate: fix data loss when truncating straddling large folios
+Date: Wed, 9 Sep 2026 14:23:39 +0800
 
-hack around build error
+truncate_inode_partial_folio() splits a large folio so that the caller's
+truncate loop can drop the in-range sub-folios while keeping the
+out-of-range tail.  The first split at the punch start edge is
+non-uniform, which leaves the sub-folio at the truncation end edge as
+large as possible, this means it may still straddle the range, holding
+both zeroed in-range and valid out-of-range data.  The function then
+attempts a second split at offset + length to isolate that tail.
 
-https://lore.kernel.org/202609100517.0DrzxrW4-lkp@intel.com
+If the second split fails the straddling sub-folio stays merged.  The
+function returned true unconditionally on all exit paths of the success
+block, telling the caller it was fully handled.  The caller kept its
+default end and the truncate loop truncated every sub-folio below it,
+including the merged straddler, discarding the valid out-of-range tail.
+
+For example, a 4-page order-2 folio punched from offset 0 to the middle of
+the last page:
+
+  truncate_inode_pages_range()
+    truncate_inode_partial_folio()      # same_folio == true
+      1st split at page0 -> [p0, p1, p2-3]   # non-uniform, success
+      folio2 = p2-3 # straddles: p2 zeroed, p3 tail valid
+      2nd split of folio2 fails / cannot lock
+      return true                       # BUG: caller keeps default end
+    end = 3
+    loop truncates p0, p1, p2-3        # p3's valid tail is lost
+
+This became reachable after commit 7460b470a131 ("mm/truncate: use
+folio_split() in truncate operation") replaced the atomic split_folio()
+with folio_split(), whose non-uniform split can partially split a folio
+and leave the end edge merged.
+
+It has gone unnoticed because a dirty large folio normally carries the
+filesystem's private data, for example buffer_head, so
+filemap_release_folio() -> iomap_release_folio() returns false on a dirty
+folio and folio_split() aborts with -EBUSY before any split, leaving the
+straddler safely unsplit.  The bug is only reachable on paths that produce
+dirty large folios without filesystem private data, and it was caught on
+the upcoming ext4 iomap buffered I/O path when no ifs is attached.
+
+In addition, even when both splits succeed, data can still be lost when
+the mapping's minimum folio order (min_order) is non-zero.  folio_split()
+stops at min_order instead of order 0, so the sub-folio containing a split
+point stays aligned to 1 << min_order rather than to a page.  The original
+success path left start at the page-aligned head of the range and set end
+to the exact page index of the end edge, neither of which is a folio
+boundary in general.  Either one could land inside the large folio at its
+edge, and the truncate loop would drop that straddling folio together with
+its valid out-of-range tail.
+
+For example, a 64K (order-4) folio with min_order = 2 punched from
+offset 0 to 36K:
+
+  truncate_inode_pages_range()
+    truncate_inode_partial_folio()        # same_folio == true
+      1st split at p0 -> [p0-p3, p4-p7, p8-p15]  # non-uniform, min_order
+      folio2 = p8-p15 # straddles: p8 in range, p9-p15 tail valid
+      2nd split of folio2 -> [p8-p11, p12-p15]   # success
+      end = p9                           # BUG: p9 inside [p8-p11]
+    loop truncates ... p8-p11           # p9-p11's valid tail is lost
+
+Rework the contract so the caller is told the page range to discard:
+
+  - Return true only when a split occurred, false otherwise. This
+    clarifies the existing confusing return value semantics.
+
+  - Add pgoff_t *pstart and *pend out-parameters that receive the page
+    range fully covered by [lstart, lend] after any split (or none),
+    i.e. the pages wholly within the range and safe to discard. They are
+    aligned up (pstart) and down (pend) to the mapping's minimum folio
+    order so they always fall on a folio boundary.
+
+  - Rename the byte-range parameters start/end to lstart/lend to avoid
+    clashing with the new outputs and to separate byte offsets from
+    folio indices.
+
+Callers in truncate_inode_pages_range() and shmem_undo_range() pass
+&pstart for the folio at the start edge and &pend for the folio at the end
+edge, so the truncate loop drops exactly the fully covered pages and never
+touches a straddling folio that still holds valid out-of-range data.
+
+Link: https://lore.kernel.org/20260909062339.473816-1-yi.zhang@huaweicloud.com
+Fixes: 7460b470a131 ("mm/truncate: use folio_split() in truncate operation")
+Signed-off-by: Zhang Yi <yi.zhang@huawei.com>
+Suggested-by: Brian Foster <bfoster@redhat.com>
+Link: https://lore.kernel.org/linux-fsdevel/anH-WKA1coW6wtfG@bfoster/
+Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
+Cc: Brian foster <bfoster@redhat.com>
+Cc: "Darrick J. Wong" <djwong@kernel.org>
 Cc: David Hildenbrand <david@kernel.org>
-Cc: Muchun Song <songmuchun@bytedance.com>
+Cc: ErKun Yang <yangerkun@huawei.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Jan Kara <jack@suse.cz>
+Cc: Joanne Koong <joannelkoong@gmail.com>
+Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
+Cc: Liam R. Howlett <liam@infradead.org>
+Cc: Lorenzo Stoakes <ljs@kernel.org>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Vlastimil Babka <vbabka@kernel.org>
+Cc: Zhihao Cheng <chengzhihao1@huawei.com>
+Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mmzone.h |    4 ++++
- 1 file changed, 4 insertions(+)
+ mm/internal.h |    4 +-
+ mm/shmem.c    |   13 ++-----
+ mm/truncate.c |   88 ++++++++++++++++++++++++++++++++----------------
+ 3 files changed, 67 insertions(+), 38 deletions(-)
 
---- a/include/linux/mmzone.h~mm-sparse-vmemmap-switch-device-dax-to-shared-tail-vmemmap-pages-fix
-+++ a/include/linux/mmzone.h
-@@ -1687,16 +1687,20 @@ static inline bool zone_is_zone_device(c
- 	return zone_idx(zone) == ZONE_DEVICE;
+--- a/mm/internal.h~mm-truncate-fix-data-loss-when-truncating-straddling-large-folios
++++ a/mm/internal.h
+@@ -624,8 +624,8 @@ unsigned find_lock_entries(struct addres
+ unsigned find_get_entries(struct address_space *mapping, pgoff_t *start,
+ 		pgoff_t end, struct folio_batch *fbatch, pgoff_t *indices);
+ int truncate_inode_folio(struct address_space *mapping, struct folio *folio);
+-bool truncate_inode_partial_folio(struct folio *folio, loff_t start,
+-		loff_t end);
++bool truncate_inode_partial_folio(struct folio *folio, loff_t lstart,
++		loff_t lend, pgoff_t *pstart, pgoff_t *pend);
+ long mapping_evict_folio(struct address_space *mapping, struct folio *folio);
+ unsigned long mapping_try_invalidate(struct address_space *mapping,
+ 		pgoff_t start, pgoff_t end, unsigned long *nr_failed);
+--- a/mm/shmem.c~mm-truncate-fix-data-loss-when-truncating-straddling-large-folios
++++ a/mm/shmem.c
+@@ -1176,11 +1176,8 @@ static void shmem_undo_range(struct inod
+ 	if (folio) {
+ 		same_folio = lend < folio_next_pos(folio);
+ 		folio_mark_dirty(folio);
+-		if (!truncate_inode_partial_folio(folio, lstart, lend)) {
+-			start = folio_next_index(folio);
+-			if (same_folio)
+-				end = folio->index;
+-		}
++		truncate_inode_partial_folio(folio, lstart, lend, &start,
++					     same_folio ? &end : NULL);
+ 		folio_unlock(folio);
+ 		folio_put(folio);
+ 		folio = NULL;
+@@ -1190,8 +1187,7 @@ static void shmem_undo_range(struct inod
+ 		folio = shmem_get_partial_folio(inode, lend >> PAGE_SHIFT);
+ 	if (folio) {
+ 		folio_mark_dirty(folio);
+-		if (!truncate_inode_partial_folio(folio, lstart, lend))
+-			end = folio->index;
++		truncate_inode_partial_folio(folio, lstart, lend, NULL, &end);
+ 		folio_unlock(folio);
+ 		folio_put(folio);
+ 	}
+@@ -1259,7 +1255,8 @@ whole_folios:
+ 
+ 				if (!folio_test_large(folio)) {
+ 					truncate_inode_folio(mapping, folio);
+-				} else if (truncate_inode_partial_folio(folio, lstart, lend)) {
++				} else if (truncate_inode_partial_folio(folio,
++							lstart, lend, NULL, NULL)) {
+ 					/*
+ 					 * If we split a page, reset the loop so
+ 					 * that we pick up the new sub pages.
+--- a/mm/truncate.c~mm-truncate-fix-data-loss-when-truncating-straddling-large-folios
++++ a/mm/truncate.c
+@@ -206,35 +206,41 @@ static int folio_split_or_unmap(struct f
+ /*
+  * Handle partial folios.  The folio may be entirely within the
+  * range if a split has raced with us.  If not, we zero the part of the
+- * folio that's within the [start, end] range, and then split the folio if
++ * folio that's within the [lstart, lend] range, and then split the folio if
+  * it's large.  split_page_range() will discard pages which now lie beyond
+  * i_size, and we rely on the caller to discard pages which lie within a
+  * newly created hole.
+  *
+- * Returns false if splitting failed so the caller can avoid
+- * discarding the entire folio which is stubbornly unsplit.
++ * When @pstart and/or @pend are non-NULL they receive the indexes of the
++ * page range fully covered by [lstart, lend] after any split (or none),
++ * i.e. the range of pages that are wholly within [lstart, lend] and so safe
++ * to discard.
++ *
++ * Return %true if the folio was split, %false otherwise.
+  */
+-bool truncate_inode_partial_folio(struct folio *folio, loff_t start, loff_t end)
++bool truncate_inode_partial_folio(struct folio *folio, loff_t lstart,
++				  loff_t lend, pgoff_t *pstart, pgoff_t *pend)
+ {
+ 	loff_t pos = folio_pos(folio);
+ 	size_t size = folio_size(folio);
+ 	unsigned int offset, length;
+ 	struct page *split_at, *split_at2;
++	unsigned long min_nrbytes;
+ 	unsigned int min_order;
+ 
+-	if (pos < start)
+-		offset = start - pos;
++	if (pos < lstart)
++		offset = lstart - pos;
+ 	else
+ 		offset = 0;
+-	if (pos + size <= (u64)end)
++	if (pos + size <= (u64)lend)
+ 		length = size - offset;
+ 	else
+-		length = end + 1 - pos - offset;
++		length = lend + 1 - pos - offset;
+ 
+ 	folio_wait_writeback(folio);
+ 	if (length == size) {
+ 		truncate_inode_folio(folio->mapping, folio);
+-		return true;
++		goto no_split;
+ 	}
+ 
+ 	/*
+@@ -248,9 +254,10 @@ bool truncate_inode_partial_folio(struct
+ 	if (folio_needs_release(folio))
+ 		folio_invalidate(folio, offset, length);
+ 	if (!folio_test_large(folio))
+-		return true;
++		goto no_split;
+ 
+ 	min_order = mapping_min_folio_order(folio->mapping);
++	min_nrbytes = mapping_min_folio_nrbytes(folio->mapping);
+ 	split_at = folio_page(folio, PAGE_ALIGN_DOWN(offset) / PAGE_SIZE);
+ 	if (!folio_split_or_unmap(folio, split_at, min_order)) {
+ 		/*
+@@ -259,38 +266,67 @@ bool truncate_inode_partial_folio(struct
+ 		 * for shmem truncate
+ 		 */
+ 		struct folio *folio2;
++		bool tail_isolated = true;
+ 
+-		if (offset + length == size)
+-			goto no_split;
++		if (pend)
++			*pend = round_down(pos + offset + length,
++					   min_nrbytes) >> PAGE_SHIFT;
+ 
++		if (offset + length == size)
++			goto split;
++retry:
+ 		split_at2 = folio_page(folio,
+ 				PAGE_ALIGN_DOWN(offset + length) / PAGE_SIZE);
+ 		folio2 = page_folio(split_at2);
+ 
+ 		if (!folio_try_get(folio2))
+-			goto no_split;
++			goto split;
+ 
+ 		if (!folio_test_large(folio2))
+ 			goto out;
+ 
+-		if (!folio_trylock(folio2))
++		if (!folio_trylock(folio2)) {
++			tail_isolated = false;
+ 			goto out;
++		}
++
++		/*
++		 * split_at2 may no longer belong to folio2 due to concurrent
++		 * split. Retry to find the correct folio in case it's still
++		 * large.
++		 */
++		if (page_folio(split_at2) != folio2) {
++			folio_unlock(folio2);
++			folio_put(folio2);
++			goto retry;
++		}
+ 
+ 		/* make sure folio2 is large and does not change its mapping */
+ 		if (folio_test_large(folio2) &&
+-		    folio2->mapping == folio->mapping)
+-			folio_split_or_unmap(folio2, split_at2, min_order);
++		    folio2->mapping == folio->mapping &&
++		    folio_split_or_unmap(folio2, split_at2, min_order))
++			tail_isolated = false;
+ 
+ 		folio_unlock(folio2);
+ out:
++		if (!tail_isolated && pend)
++			*pend = folio2->index;
+ 		folio_put(folio2);
+-no_split:
++split:
++		if (pstart)
++			*pstart = round_up(pos + offset,
++					   min_nrbytes) >> PAGE_SHIFT;
+ 		return true;
+ 	}
+-	if (folio_test_dirty(folio))
+-		return false;
+-	truncate_inode_folio(folio->mapping, folio);
+-	return true;
++	if (!folio_test_dirty(folio))
++		truncate_inode_folio(folio->mapping, folio);
++no_split:
++	if (pstart)
++		*pstart = offset ? folio_next_index(folio) : folio->index;
++	if (pend)
++		*pend = (pos + size > (u64)lend) ? folio->index :
++						   folio_next_index(folio);
++	return false;
  }
  
-+#ifdef CONFIG_NUMA
- static inline struct zone *device_zone(int nid)
- {
- 	return &NODE_DATA(nid)->node_zones[ZONE_DEVICE];
- }
-+#endif
- #else
- static inline bool zone_is_zone_device(const struct zone *zone)
- {
- 	return false;
- }
-+#endif
- 
-+#if !defined(CONFIG_ZONE_DEVICE) && !defined(CONFIG_NUMA)
- static inline struct zone *device_zone(int nid)
- {
- 	return NULL;
+ /*
+@@ -413,11 +449,8 @@ void truncate_inode_pages_range(struct a
+ 	folio = __filemap_get_folio(mapping, lstart >> PAGE_SHIFT, FGP_LOCK, 0);
+ 	if (!IS_ERR(folio)) {
+ 		same_folio = lend < folio_next_pos(folio);
+-		if (!truncate_inode_partial_folio(folio, lstart, lend)) {
+-			start = folio_next_index(folio);
+-			if (same_folio)
+-				end = folio->index;
+-		}
++		truncate_inode_partial_folio(folio, lstart, lend, &start,
++					     same_folio ? &end : NULL);
+ 		folio_unlock(folio);
+ 		folio_put(folio);
+ 		folio = NULL;
+@@ -427,8 +460,7 @@ void truncate_inode_pages_range(struct a
+ 		folio = __filemap_get_folio(mapping, lend >> PAGE_SHIFT,
+ 						FGP_LOCK, 0);
+ 		if (!IS_ERR(folio)) {
+-			if (!truncate_inode_partial_folio(folio, lstart, lend))
+-				end = folio->index;
++			truncate_inode_partial_folio(folio, lstart, lend, NULL, &end);
+ 			folio_unlock(folio);
+ 			folio_put(folio);
+ 		}
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from yi.zhang@huawei.com are
 
-mm-memory_hotplug-factor-out-node_is_memoryless-fix.patch
-mm-sparse-vmemmap-switch-device-dax-to-shared-tail-vmemmap-pages-fix.patch
-drivers-media-v4l2-core-v4l2-vp9c-reduce-inlining.patch
+mm-truncate-fix-data-loss-when-truncating-straddling-large-folios.patch
 
