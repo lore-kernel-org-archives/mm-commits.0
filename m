@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6E1EC3B4E9E
-	for <mm-commits@vger.kernel.org>; Wed,  9 Sep 2026 06:58:53 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B846A3B6344
+	for <mm-commits@vger.kernel.org>; Wed,  9 Sep 2026 06:58:56 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788937135; cv=none; b=gBAP6PdT/7WA8XCr29LNy/1jev9sa9shH946Ru0k4QxNqMifh2YOwGlfvDsyS0W1grNxRFbg5SdUmBR9S5WTNd/hM2om2wzo1rtw03brilgaYFunHlrCkVO7PiemR60o6J9fQpEgYHOi/hdl9YuQa56byj20aI5ZNLVGiFZvooQ=
+	t=1788937138; cv=none; b=fN5KN1yqFdi8z8DFU6ISiUqLSvtJRXlrYOxkneY8GX0ZuHcCr03XgWeeF/ESN/4yBLT2E1hH5a9ZIJi7OgYnBGCVqegGWIEjZl2u7xUPNRiv0Cw57ZGBGWX8EPHWU5heN5uDj4xSzruUucJAVtxTzGcT47x0qvCd2MAd0ylgBLs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788937135; c=relaxed/simple;
-	bh=we4V3RFMUny7o4+1XQM6aF2fjqxZfTx6mi/PDj+Z0+k=;
-	h=Date:To:From:Subject:Message-Id; b=fEVwZRrFwgr/c0RwUNLa83PrSXrfUF4P+hlbUjCoX0Vm0RD/TSYObZERrE7jMFkbexNLl8FZ4PHAPDRUcxNkRWD4uHtee3h+V9bR67KUENaCpNuBeQ1KnnZwxA2yravrAdrCR4ZF5Dcnp/NjtVf0CHY1oweAFSnszjFrFgMhTJs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=OmA8Drkr; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1788937138; c=relaxed/simple;
+	bh=swHUVh/J38SzEiRPiZwy/2ETSM5Yto+pvtbBthPeNeM=;
+	h=Date:To:From:Subject:Message-Id; b=ld52hA4UgW9E5I8xuAH7+VupEXYbGN8ym1UR7XiBKW/0mM8j++cFYU+KlDXt/Ics7RYAWUW4L/Ep+iEJTq5Sp8LM2X1pEAyu7Mo1D+pHIqwfJ92o+iAuTYpf4j7NOiF0falVKO1LMWIAzmL3b+tyM3EUNKJiThDMe17Wt0iISKM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=bPDTht93; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="OmA8Drkr"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B0CCE1F00A3A;
-	Wed,  9 Sep 2026 06:58:53 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="bPDTht93"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 32DB91F00A3A;
+	Wed,  9 Sep 2026 06:58:56 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1788937133;
-	bh=oGVfUfQoFu09HQavq/q3f3k3tObWXuC8sKcke/arwhA=;
+	d=linux-foundation.org; s=korg; t=1788937136;
+	bh=Xlx68iVDP+IEAht2lnWVXVcqyIFyQNWRktHdXpH9STY=;
 	h=Date:To:From:Subject;
-	b=OmA8Drkrj+Jw2EKIY+fBVkIw2hAaJOBWvL6O5FK0jYrix/8aelnzH3kivslXQNqqC
-	 GpZk8ku5l9AZ156jNGsmMhsCOt7fHzCquVWbJkG8csjFCQ14tk5HaODRh4uKMl4BoN
-	 XZA0+DKeH4SN4cYyzDuBUDaeQABOHIXUPoV9Vj/Y=
-Date: Tue, 08 Sep 2026 23:58:53 -0700
+	b=bPDTht93Hm+OGQSggDHUOPZLqwwMwpppLVtx7U68HLbuHxx8hcAXJEGLZY9YQajID
+	 wmqgNcM/V9Cb939iVF+uS8AyGcOrKCvyN+fc3wZORjwiRaEljOi7d5SrBEbhjcwSuU
+	 u+RpoMtCrCdpTjLxNLQvZo7AtqVMHB/vcIPgIRsw=
+Date: Tue, 08 Sep 2026 23:58:55 -0700
 To: mm-commits@vger.kernel.org,yanglincheng@kylinos.cn,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-khugepaged-fix-folio-is-used-after-pte_unmap_unlock.patch added to mm-unstable branch
-Message-Id: <20260909065853.B0CCE1F00A3A@smtp.kernel.org>
+Subject: + mm-khugepaged-fix-folio-is-used-after-folio_put-unlock.patch added to mm-unstable branch
+Message-Id: <20260909065856.32DB91F00A3A@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: khugepaged: fix folio is used after pte_unmap_unlock()
+     Subject: mm: khugepaged: fix folio is used after folio_put/unlock()
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-khugepaged-fix-folio-is-used-after-pte_unmap_unlock.patch
+     mm-khugepaged-fix-folio-is-used-after-folio_put-unlock.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-khugepaged-fix-folio-is-used-after-pte_unmap_unlock.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-khugepaged-fix-folio-is-used-after-folio_put-unlock.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,23 +59,19 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Vernon Yang <yanglincheng@kylinos.cn>
-Subject: mm: khugepaged: fix folio is used after pte_unmap_unlock()
-Date: Wed, 9 Sep 2026 10:58:02 +0800
+Subject: mm: khugepaged: fix folio is used after folio_put/unlock()
+Date: Wed, 9 Sep 2026 10:58:03 +0800
 
-After the page table lock has dropped, the folio can be freed
-concurrently.  The trace_mm_khugepaged_scan_pmd() is left with a dangling
-folio pointer.
+On the rollback path, folio_put() has already dropped the last reference
+of new_folio.  On the success path, new_folio is already unlocked and can
+be freed concurrently.  The trace_mm_khugepaged_collapse_file() is left
+with a dangling folio pointer.
 
-So using the folio_pfn() before dropping the page table lock, closing
+So using the folio_pfn() before dropping the reference, closing
 use-after-free window.
 
-And other pre-existing bug, When the `for (i = 0; i < HPAGE_PMD_NR; i++)`
-iteration to terminate and the folio operation preceding is normal, but
-pfn will be incorrect.  so we really only trace the PFN if it really was
-problematic.
-
-Link: https://lore.kernel.org/20260909025804.3233645-3-vernon2gm@gmail.com
-Fixes: 7d2eba0557c1 ("mm: add tracepoint for scanning pages")
+Link: https://lore.kernel.org/20260909025804.3233645-4-vernon2gm@gmail.com
+Fixes: 4c9473e87e75 ("mm/khugepaged: add tracepoint to collapse_file()")
 Signed-off-by: Vernon Yang <yanglincheng@kylinos.cn>
 Acked-by: David Hildenbrand (Arm) <david@kernel.org>
 Acked-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
@@ -89,101 +85,60 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
  include/trace/events/huge_memory.h |    6 +++---
- mm/khugepaged.c                    |   10 +++++++++-
- 2 files changed, 12 insertions(+), 4 deletions(-)
+ mm/khugepaged.c                    |    4 +++-
+ 2 files changed, 6 insertions(+), 4 deletions(-)
 
---- a/include/trace/events/huge_memory.h~mm-khugepaged-fix-folio-is-used-after-pte_unmap_unlock
+--- a/include/trace/events/huge_memory.h~mm-khugepaged-fix-folio-is-used-after-folio_put-unlock
 +++ a/include/trace/events/huge_memory.h
-@@ -55,10 +55,10 @@ SCAN_STATUS
+@@ -211,10 +211,10 @@ TRACE_EVENT(mm_khugepaged_scan_file,
+ );
  
- TRACE_EVENT(mm_khugepaged_scan_pmd,
- 
--	TP_PROTO(struct mm_struct *mm, struct folio *folio,
-+	TP_PROTO(struct mm_struct *mm, unsigned long pfn,
- 		 int referenced, int none_or_zero, int status, int unmapped),
- 
--	TP_ARGS(mm, folio, referenced, none_or_zero, status, unmapped),
-+	TP_ARGS(mm, pfn, referenced, none_or_zero, status, unmapped),
- 
+ TRACE_EVENT(mm_khugepaged_collapse_file,
+-	TP_PROTO(struct mm_struct *mm, struct folio *new_folio, pgoff_t index,
++	TP_PROTO(struct mm_struct *mm, unsigned long new_pfn, pgoff_t index,
+ 			unsigned long addr, bool is_shmem, struct file *file,
+ 			int nr, int result),
+-	TP_ARGS(mm, new_folio, index, addr, is_shmem, file, nr, result),
++	TP_ARGS(mm, new_pfn, index, addr, is_shmem, file, nr, result),
  	TP_STRUCT__entry(
  		__field(struct mm_struct *, mm)
-@@ -71,7 +71,7 @@ TRACE_EVENT(mm_khugepaged_scan_pmd,
+ 		__field(unsigned long, hpfn)
+@@ -228,7 +228,7 @@ TRACE_EVENT(mm_khugepaged_collapse_file,
  
  	TP_fast_assign(
  		__entry->mm = mm;
--		__entry->pfn = folio ? folio_pfn(folio) : -1;
-+		__entry->pfn = pfn;
- 		__entry->referenced = referenced;
- 		__entry->none_or_zero = none_or_zero;
- 		__entry->status = status;
---- a/mm/khugepaged.c~mm-khugepaged-fix-folio-is-used-after-pte_unmap_unlock
+-		__entry->hpfn = new_folio ? folio_pfn(new_folio) : -1;
++		__entry->hpfn = new_pfn;
+ 		__entry->index = index;
+ 		__entry->addr = addr;
+ 		__entry->is_shmem = is_shmem;
+--- a/mm/khugepaged.c~mm-khugepaged-fix-folio-is-used-after-folio_put-unlock
 +++ a/mm/khugepaged.c
-@@ -1612,6 +1612,7 @@ static enum scan_result collapse_scan_pm
- 	enum scan_result result = SCAN_FAIL;
- 	struct page *page = NULL;
- 	struct folio *folio = NULL;
-+	unsigned long failed_pfn = -1;
- 	unsigned long addr;
- 	unsigned long enabled_orders;
- 	spinlock_t *ptl;
-@@ -1706,11 +1707,13 @@ static enum scan_result collapse_scan_pm
- 		if (cc->is_khugepaged && !(vma->vm_flags & VM_DROPPABLE) &&
- 		    folio_test_lazyfree(folio) && !pte_dirty(pteval)) {
- 			result = SCAN_PAGE_LAZYFREE;
-+			failed_pfn = folio_pfn(folio);
- 			goto out_unmap;
- 		}
+@@ -2253,6 +2253,7 @@ static enum scan_result collapse_file(st
+ 	struct address_space *mapping = file->f_mapping;
+ 	struct page *dst;
+ 	struct folio *folio, *tmp, *new_folio;
++	unsigned long new_pfn = -1;
+ 	pgoff_t index = 0, end = start + HPAGE_PMD_NR;
+ 	LIST_HEAD(pagelist);
+ 	XA_STATE_ORDER(xas, &mapping->i_pages, start, HPAGE_PMD_ORDER);
+@@ -2272,6 +2273,7 @@ static enum scan_result collapse_file(st
+ 	result = alloc_charge_folio(&new_folio, mm, cc, HPAGE_PMD_ORDER);
+ 	if (result != SCAN_SUCCEED)
+ 		goto out;
++	new_pfn = folio_pfn(new_folio);
  
- 		if (!folio_test_anon(folio)) {
- 			result = SCAN_PAGE_ANON;
-+			failed_pfn = folio_pfn(folio);
- 			goto out_unmap;
- 		}
+ 	mapping_set_update(&xas, mapping);
  
-@@ -1721,6 +1724,7 @@ static enum scan_result collapse_scan_pm
- 		if (folio_maybe_mapped_shared(folio)) {
- 			if (++shared > max_ptes_shared) {
- 				result = SCAN_EXCEED_SHARED_PTE;
-+				failed_pfn = folio_pfn(folio);
- 				count_collapse_event(HPAGE_PMD_ORDER, THP_SCAN_EXCEED_SHARED_PTE,
- 						     MTHP_STAT_COLLAPSE_EXCEED_SHARED);
- 				goto out_unmap;
-@@ -1738,15 +1742,18 @@ static enum scan_result collapse_scan_pm
- 		node = folio_nid(folio);
- 		if (collapse_scan_abort(node, cc)) {
- 			result = SCAN_SCAN_ABORT;
-+			failed_pfn = folio_pfn(folio);
- 			goto out_unmap;
- 		}
- 		cc->node_load[node]++;
- 		if (!folio_test_lru(folio)) {
- 			result = SCAN_PAGE_LRU;
-+			failed_pfn = folio_pfn(folio);
- 			goto out_unmap;
- 		}
- 		if (folio_test_locked(folio)) {
- 			result = SCAN_PAGE_LOCK;
-+			failed_pfn = folio_pfn(folio);
- 			goto out_unmap;
- 		}
- 
-@@ -1759,6 +1766,7 @@ static enum scan_result collapse_scan_pm
- 		 */
- 		if (folio_expected_ref_count(folio) != folio_ref_count(folio)) {
- 			result = SCAN_PAGE_COUNT;
-+			failed_pfn = folio_pfn(folio);
- 			goto out_unmap;
- 		}
- 
-@@ -1784,7 +1792,7 @@ out_unmap:
- 		*lock_dropped = true;
- 	}
+@@ -2675,7 +2677,7 @@ rollback:
+ 	folio_put(new_folio);
  out:
--	trace_mm_khugepaged_scan_pmd(mm, folio, referenced,
-+	trace_mm_khugepaged_scan_pmd(mm, failed_pfn, referenced,
- 				     none_or_zero, result, unmapped);
+ 	VM_BUG_ON(!list_empty(&pagelist));
+-	trace_mm_khugepaged_collapse_file(mm, new_folio, index, addr, is_shmem, file, HPAGE_PMD_NR, result);
++	trace_mm_khugepaged_collapse_file(mm, new_pfn, index, addr, is_shmem, file, HPAGE_PMD_NR, result);
  	return result;
  }
+ 
 _
 
 Patches currently in -mm which might be from yanglincheng@kylinos.cn are
