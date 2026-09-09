@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9DAE64825A7
-	for <mm-commits@vger.kernel.org>; Wed,  9 Sep 2026 23:17:01 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8297C33689D
+	for <mm-commits@vger.kernel.org>; Wed,  9 Sep 2026 23:17:35 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788995824; cv=none; b=tDq4LdZJHNGL82yeMHN8X67TxnpkxWIIH9p/MUrQmmC+MF4Uo5L/2W/hnTlKvdkUXJE3ytNwou2bz66U4+smHjv4hRBTVAWtrcPKrSKplyU6nYWjz9AwO32GyUklt2RPixZo0jcYXXuHU5mxjRAYutLZ+1TP4P/mxWkJ74c6Uio=
+	t=1788995858; cv=none; b=rHqMRSSoeNCVMPRrbn8/Ej7EJW5fHYjWxOa/wzXfgO3Oc0VHOoZ9EUTFEC+4fSNGu7k7UADXL4R2CUvr+oT6WqxVW7OrXT5WlWtn9kxWPl8f2v7EFvbuQWT+rO0Yt3Z57PuKUDFQgELfhbS36XqY9WXejUwvlUWapxyZ2GfkFt0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788995824; c=relaxed/simple;
-	bh=/5Gr5XzHsB8AlPX7qZJZCD3+9Qfqi4qkNVxfH7LCzv8=;
-	h=Date:To:From:Subject:Message-Id; b=dhVHr5vMA+g8HlYb8tlacXM3q3wxZbPIIVJF1yZ0DjCTm28CIKhW3Z/GaUo3YE2e3q92Fj+inWDz5TyA3YZ43yOH8bSFk/sVEuslXHX0Ns3aqqyRcf49cd9DijAFKX9AwCvdyYo6r2O0laTmW0DidM2IepYL32OkdjM9FA4zHoI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ooQBTVAM; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1788995858; c=relaxed/simple;
+	bh=H3zv3LiNJsyljHeiF2HjmP9HWLjcplanYQbX417OR9M=;
+	h=Date:To:From:Subject:Message-Id; b=Sfx1oTEGq0/EjY5GiJyKbT8oun0xI4fpMHtOMHAbW9z9yn9joBF2CB224xCbpXoT2jhKajiVt8s0eiZw3ye8Qdpcmb2LMxM2flLm5ABu+dJaEccyoAoslyLuMHRhcx5vxartT9m+/DNNZ5L0EGvGMqIVyyHTWs9vvhBOB+obw1k=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Ybfn/dRR; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ooQBTVAM"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id DD9C11F000FF;
-	Wed,  9 Sep 2026 23:16:59 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Ybfn/dRR"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 560F41F000FF;
+	Wed,  9 Sep 2026 23:17:34 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1788995820;
-	bh=zRXXm8cD0GhmjC1AjHuI+JoXYYwDErMsQ3PM55mp/2Q=;
+	d=linux-foundation.org; s=korg; t=1788995854;
+	bh=JxopD5mNaLc1aHvbjdanrAYueyj7rCze6fBwnv50Ao8=;
 	h=Date:To:From:Subject;
-	b=ooQBTVAMWj2F4MT1z8jN93KwxFLGbYrfJLDCl1J1m4huds/F/uQCiVBDYdMN9RWVz
-	 NCUd76RvHFnIK7AIxPy5Ngkna6VzUib3rmdpzZhn/z7gsFHafU1p3Lvf+QZi5i69T7
-	 KHz0oS7Bx75j2jPFCxcTY1WspofDGN1uS9ythJQQ=
-Date: Wed, 09 Sep 2026 16:16:59 -0700
+	b=Ybfn/dRR+VPbUKUZI4+x7p6Ylq4dAwA6SjSnmVmQAwe4IZMUkWQO7Tjn8FAfdEJT0
+	 lS/mcOnPOKTzuZEa6lHIPirhJ9opbk2fl/fkZTrCYiTiEGJQhQ7qWuTrWpMIcoqpEv
+	 dc3htY7/Ssxypy2cdzMUKviQDuMxBqejj8c47dF4=
+Date: Wed, 09 Sep 2026 16:17:33 -0700
 To: mm-commits@vger.kernel.org,ziy@nvidia.com,yangerkun@huawei.com,willy@infradead.org,wangkefeng.wang@huawei.com,vbabka@kernel.org,surenb@google.com,rppt@kernel.org,mhocko@suse.com,ljs@kernel.org,liam@infradead.org,joannelkoong@gmail.com,jack@suse.cz,hughd@google.com,djwong@kernel.org,david@kernel.org,chengzhihao1@huawei.com,bfoster@redhat.com,baolin.wang@linux.alibaba.com,yi.zhang@huawei.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
 Subject: + mm-truncate-fix-data-loss-when-truncating-straddling-large-folios.patch added to mm-hotfixes-unstable branch
-Message-Id: <20260909231659.DD9C11F000FF@smtp.kernel.org>
+Message-Id: <20260909231734.560F41F000FF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -147,14 +147,14 @@ Fixes: 7460b470a131 ("mm/truncate: use folio_split() in truncate operation")
 Signed-off-by: Zhang Yi <yi.zhang@huawei.com>
 Suggested-by: Brian Foster <bfoster@redhat.com>
 Link: https://lore.kernel.org/linux-fsdevel/anH-WKA1coW6wtfG@bfoster/
+Reviewed-by: Jan Kara <jack@suse.cz>
+Reviewed-by: Joanne Koong <joannelkoong@gmail.com>
 Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
 Cc: Brian foster <bfoster@redhat.com>
 Cc: "Darrick J. Wong" <djwong@kernel.org>
 Cc: David Hildenbrand <david@kernel.org>
 Cc: ErKun Yang <yangerkun@huawei.com>
 Cc: Hugh Dickins <hughd@google.com>
-Cc: Jan Kara <jack@suse.cz>
-Cc: Joanne Koong <joannelkoong@gmail.com>
 Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
 Cc: Liam R. Howlett <liam@infradead.org>
 Cc: Lorenzo Stoakes <ljs@kernel.org>
