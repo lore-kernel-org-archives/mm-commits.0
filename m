@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E1FF3235358
-	for <mm-commits@vger.kernel.org>; Wed,  9 Sep 2026 01:28:09 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5E8AA2931F4
+	for <mm-commits@vger.kernel.org>; Wed,  9 Sep 2026 01:45:23 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788917291; cv=none; b=loSBrUGCJbA4wDELsNthY5lvc0U99mDQoMJsfM6lX06xutlidzpHkcOcRjn3j9x4pGz/6uLKa5YfT/C5By6RJma7OUvPBPC9UKhuY0wJePn2KF3JFdxMSj2nNpPhr4Rra820hYH8p8IXd681/JgyEs1Wyduhlsq7JphQ9jXJIXE=
+	t=1788918325; cv=none; b=ZXUGJxEoXFeboicE2vmQLJzaYI0nrfoD+NN6O4JaU/tfytIDpLRQlPkjTUZ9l//NqDJ6ZwwKKvWTavf76kh0Qkhtkume5SJ1ym1YMOCYTP2CRtBOxZL3+i+05TpuG3Ihvo0XV0aJO9mw7Yu9bnv8bigCHHWHpNsPj4taIm1XPGU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788917291; c=relaxed/simple;
-	bh=2h2KQE8kwt0RHTFoDKWTlG19C9KBucziKZVl/JZRz/o=;
-	h=Date:To:From:Subject:Message-Id; b=fS+yKiF4MkMeNg7yTnZzMumXzU3fvLokEH52gceAd+noVmRrau8ZZqL0WqNJTAXAeEp6tS2uET/l5KKwvY8enl6T5WUe4UNPlGJ8keH2UvavGKLExciFXLOSuO6RV4QqOFLX3AUPDlGM94JGN+9U6h2FXjYYvTMUHEJ2e2XB+l4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=azUy51Ay; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1788918325; c=relaxed/simple;
+	bh=3RAhOEMgUf5k0BgG/qKW0O7Iw86aYvqKrOoEitU1Dss=;
+	h=Date:To:From:Subject:Message-Id; b=p9UizoHVe6VzfUhSMwPZTTi5zh6/9oSQD+hQmFUndRDwuwUnGo5HpSvHqS/F+rYLtgLSINfnA19rxexnE9XxvsyxRG4e6npYPy4yutkASSU2sHJTScVTlNtV6ePV3PhyRjUXM0juOzA78dJ/Boo4CobChbXd7/w6ss6qoEEsSm4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=gDZmNUyo; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="azUy51Ay"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 336211F00A3A;
-	Wed,  9 Sep 2026 01:28:09 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="gDZmNUyo"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id EDC301F00A3D;
+	Wed,  9 Sep 2026 01:45:22 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1788917289;
-	bh=h41HCiv9yVeJenhxcY+JO+riiMlSdEqnTFrShd3R4v0=;
+	d=linux-foundation.org; s=korg; t=1788918323;
+	bh=aV655SbY9/jt5XL0BEubsKI3IoepizgSN5QU01gIiEE=;
 	h=Date:To:From:Subject;
-	b=azUy51Ay5z5aggod1L0BRbw5VuFVRy3m7giEFhRcxjn2b08k2nILTEbVrV3dZQomz
-	 wE27RDR8n3IlAyx/LDaQ7vsOW5M855Cvj40xIu905cnVAITWcP6TAzY+Ms9QoV/JAX
-	 vaR6hA1xp7I0huPHqnvfgFglxfO4LHBhzqSpKhww=
-Date: Tue, 08 Sep 2026 18:28:08 -0700
-To: mm-commits@vger.kernel.org,zhangbo56@xiaomi.com,shakeel.butt@linux.dev,mhocko@kernel.org,ljs@kernel.org,kasong@tencent.com,hannes@cmpxchg.org,david@kernel.org,baohua@kernel.org,zhangbo0325@gmail.com,akpm@linux-foundation.org
+	b=gDZmNUyosMcAdC3vBSry8kVgirg1yYUnirL0WIsHI/7SE7gyP9xg6q+HPyLieRhzS
+	 EzREDnaHjQJgoArdKnKCnSGKTzB/JG3nyQC5jRPPB44m1+M4qNv8GQbO4Kj5M45TWR
+	 t8gCJtc8NAVbgdz2fNmvb7GOYB1EjtMLPCCRFCFc=
+Date: Tue, 08 Sep 2026 18:45:22 -0700
+To: mm-commits@vger.kernel.org,rppt@kernel.org,rdunlap@infradead.org,qi.zheng@linux.dev,osalvador@suse.de,npiggin@gmail.com,mpe@ellerman.id.au,maddy@linux.ibm.com,ljs@kernel.org,david@kernel.org,corbet@lwn.net,songmuchun@bytedance.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-vmscan-avoid-anon-scanning-for-gfp_noio-with-low-swapcache.patch added to mm-new branch
-Message-Id: <20260909012809.336211F00A3A@smtp.kernel.org>
+Subject: + mm-sparse-vmemmap-introduce-config_sparsemem_vmemmap_optimization.patch added to mm-new branch
+Message-Id: <20260909014522.EDC301F00A3D@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: vmscan: avoid anon scanning for GFP_NOIO with low swapcache
+     Subject: mm/sparse-vmemmap: introduce CONFIG_SPARSEMEM_VMEMMAP_OPTIMIZATION
 has been added to the -mm mm-new branch.  Its filename is
-     mm-vmscan-avoid-anon-scanning-for-gfp_noio-with-low-swapcache.patch
+     mm-sparse-vmemmap-introduce-config_sparsemem_vmemmap_optimization.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vmscan-avoid-anon-scanning-for-gfp_noio-with-low-swapcache.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-sparse-vmemmap-introduce-config_sparsemem_vmemmap_optimization.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -69,154 +69,258 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Bo Zhang <zhangbo0325@gmail.com>
-Subject: mm: vmscan: avoid anon scanning for GFP_NOIO with low swapcache
-Date: Tue, 8 Sep 2026 14:26:49 +0800
+From: Muchun Song <songmuchun@bytedance.com>
+Subject: mm/sparse-vmemmap: introduce CONFIG_SPARSEMEM_VMEMMAP_OPTIMIZATION
+Date: Tue, 8 Sep 2026 11:03:25 +0800
 
-We have observed some cases where memory is allocated with GFP_NOIO, so we
-cannot reclaim any anon folios unless they are in swapcache.  We can end
-up spending more than 150 ms looping in `shrink_folio_list()` scanning
-non-swapcache folios without reclaiming a single folio.  This is pure
-overhead.
+Patch series "mm: Switch device DAX to section-based vmemmap
+optimization", v2.
 
-This is particularly true on systems using zRAM, where swapcache is
-relatively rare.  So let's check whether anon reclaim is allowed by GFP_IO
-and whether there is enough swapcache to make it worthwhile.  If the
-swapcache is extremely low, we're essentially searching for a needle in a
-haystack, so let's avoid scanning anon in the first place.
+This series is split out from the earlier, larger series "mm: Generalize
+HVO for HugeTLB and device DAX" [1].  While the parent series generalizes
+vmemmap optimization across HugeTLB and device DAX, this subset addresses
+a single, self-contained step: switching device DAX to the section-based
+sparse-vmemmap optimization infrastructure introduced for HugeTLB.
 
-On Android this is triggered by dm-verity hash-block reads through
-dm-bufio, which legitimately use GFP_NOIO because they run underneath the
-IO path:
+After the HugeTLB conversion, optimized vmemmap state is described by the
+memory section and the sparse-vmemmap population path can allocate or
+reuse shared tail vmemmap pages based on that metadata.  Device DAX still
+uses the older DAX-specific population model, including a separate tail
+vmemmap page reservation and architecture-specific logic to locate or
+populate reusable tail pages.
 
-  verity_verify_io -> verity_hash_for_block -> verity_verify_level
-    -> dm_bufio_read_with_ioprio -> new_read -> __bufio_new
-      -> alloc_buffer
-         gfp: GFP_NOIO | __GFP_NORETRY | __GFP_NOMEMALLOC | __GFP_NOWARN
+This series makes device DAX use the same section-based model.  Device DAX
+sets the section order from pgmap->vmemmap_shift before vmemmap
+population, uses the common per-zone shared tail vmemmap page, and drops
+the extra reserved tail page.  The powerpc radix path is updated to use
+the same shared tail-page helper, so the generic and powerpc DAX paths
+follow the same reservation model.
 
-Such a reclaimer can land on a memcg with a large, unswapped anon LRU and
-a tiny file LRU (e.g.  inactive_anon ~335 MB vs inactive_file ~4 MB, with
-negligible swapcache).  shrink_lruvec() then keeps feeding that huge anon
-list into shrink_folio_list() - ~2400 shrink_folio_list() calls, ~93,000
-anon folios scanned - where every folio is kept because it needs IO.  The
-150+ ms above is one such single shrink_lruvec() pass (not accumulated
-across a reclaim cycle), and it reclaims nothing; the actual progress
-comes entirely from the file side.
+The first patches prepare the shared infrastructure by introducing a
+generic CONFIG_SPARSEMEM_VMEMMAP_OPTIMIZATION symbol, factoring out shared
+tail-page allocation, and keeping the special shared-tail struct page
+initialization local to sparse-vmemmap.
 
-Aging anon alongside file does have some value for a later __GFP_IO
-reclaimer, so it is not strictly pure overhead.  But that aging is only
-deferred, not lost: kswapd and other __GFP_IO reclaimers still walk and
-age anon.  Spending ~168 ms aging memory that this context cannot reclaim
-is not a worthwhile trade-off in a latency-sensitive path.
+The middle patches move device DAX onto that infrastructure by recording
+the device DAX compound page order in the memory section, using that
+section metadata to back generic device DAX mappings with the common
+per-zone shared tail page, exposing the shared helpers so the powerpc
+radix path can use the same model, and dropping the extra DAX-only tail
+page reservation and the now-unused section accounting arguments.
 
-To stay conservative, this only skips anon when the swapcache is really
-tiny - below 1/64 of the anon LRU - i.e.  when essentially no anon on the
-list can be reclaimed without IO.  Whenever there is a meaningful amount
-of swapcached anon, the normal path is used and anon is scanned and aged
-as before.
+The final patch updates the documentation for the new DAX layout.
 
-Note this only addresses the traditional active/inactive LRU.  MGLRU
-selects anon vs file scanning in its own path and is not covered here;
-fixing the MGLRU case is left as a TODO.
+This is intended to be the third smaller step toward the broader HVO
+generalization. The wider HVO consolidation between HugeTLB and device
+DAX is left for follow-up series.
 
-Link: https://lore.kernel.org/20260908062649.1045883-1-zhangbo56@xiaomi.com
-Signed-off-by: Bo Zhang <zhangbo56@xiaomi.com>
-Reviewed-by: Barry Song <baohua@kernel.org>
+
+This patch (of 11):
+
+The section-based vmemmap optimization infrastructure is still guarded by
+CONFIG_HUGETLB_PAGE_OPTIMIZE_VMEMMAP, but it also can be used by device
+DAX.  Introduce CONFIG_SPARSEMEM_VMEMMAP_OPTIMIZATION as a common config
+for the shared infrastructure.
+
+Select the new option from HUGETLB_PAGE_OPTIMIZE_VMEMMAP and from DEV_DAX
+when the architecture opts in to DAX vmemmap optimization, and use it to
+guard the generic sparse-vmemmap state and helpers.
+
+Link: https://lore.kernel.org/20260908030335.96549-1-songmuchun@bytedance.com
+Link: https://lore.kernel.org/20260908030335.96549-2-songmuchun@bytedance.com
+Signed-off-by: Muchun Song <songmuchun@bytedance.com>
+Acked-by: Qi Zheng <qi.zheng@linux.dev>
 Cc: David Hildenbrand <david@kernel.org>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Kairui Song <kasong@tencent.com>
+Cc: Jonathan Corbet <corbet@lwn.net>
 Cc: Lorenzo Stoakes <ljs@kernel.org>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Shakeel Butt <shakeel.butt@linux.dev>
+Cc: Madhavan Srinivasan <maddy@linux.ibm.com>
+Cc: Michael Ellerman <mpe@ellerman.id.au>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Nicholas Piggin <npiggin@gmail.com>
+Cc: Oscar Salvador <osalvador@suse.de>
+Cc: Randy Dunlap <rdunlap@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |   62 +++++++++++++++++++++++++++++++++++++++++++++-----
- 1 file changed, 57 insertions(+), 5 deletions(-)
+ arch/x86/entry/vdso/vdso32/fake_32bit_build.h |    2 +-
+ drivers/dax/Kconfig                           |    2 ++
+ fs/Kconfig                                    |    1 +
+ include/linux/mm.h                            |    3 +++
+ include/linux/mmzone.h                        |   13 +++++++------
+ include/linux/page-flags.h                    |    5 ++---
+ mm/Kconfig                                    |    4 ++++
+ mm/sparse.h                                   |    4 ++--
+ 8 files changed, 22 insertions(+), 12 deletions(-)
 
---- a/mm/vmscan.c~mm-vmscan-avoid-anon-scanning-for-gfp_noio-with-low-swapcache
-+++ a/mm/vmscan.c
-@@ -362,20 +362,72 @@ static bool can_demote(int nid, struct s
- 	return !nodes_empty(allowed_mask);
- }
+--- a/arch/x86/entry/vdso/vdso32/fake_32bit_build.h~mm-sparse-vmemmap-introduce-config_sparsemem_vmemmap_optimization
++++ a/arch/x86/entry/vdso/vdso32/fake_32bit_build.h
+@@ -11,7 +11,7 @@
+ #undef CONFIG_PGTABLE_LEVELS
+ #undef CONFIG_ILLEGAL_POINTER_VALUE
+ #undef CONFIG_SPARSEMEM_VMEMMAP
+-#undef CONFIG_HUGETLB_PAGE_OPTIMIZE_VMEMMAP
++#undef CONFIG_SPARSEMEM_VMEMMAP_OPTIMIZATION
+ #undef CONFIG_NR_CPUS
+ #undef CONFIG_PARAVIRT_XXL
  
-+#ifdef CONFIG_SWAP
-+static inline bool reclaimable_anon_is_low(struct mem_cgroup *memcg,
-+		int nid, struct scan_control *sc)
-+{
-+	pg_data_t *pgdat = NODE_DATA(nid);
-+	unsigned long anon_pages, swapcache;
-+
-+	/*
-+	 * A GFP_NOIO reclaimer can only reclaim anon that is already in the
-+	 * swapcache (adding anon to the swapcache needs IO). When swapcache is
-+	 * far below the anon LRU, scanning anon reclaims nothing and only burns
-+	 * CPU. The 1/64 threshold keeps this to the case where anon is
-+	 * effectively unreclaimable.
-+	 */
-+	if (!sc || (sc->gfp_mask & __GFP_IO))
+--- a/drivers/dax/Kconfig~mm-sparse-vmemmap-introduce-config_sparsemem_vmemmap_optimization
++++ a/drivers/dax/Kconfig
+@@ -8,6 +8,8 @@ if DAX
+ config DEV_DAX
+ 	tristate "Device DAX: direct access mapping device"
+ 	depends on TRANSPARENT_HUGEPAGE
++	depends on ZONE_DEVICE
++	select SPARSEMEM_VMEMMAP_OPTIMIZATION if ARCH_WANT_OPTIMIZE_DAX_VMEMMAP
+ 	help
+ 	  Support raw access to differentiated (persistence, bandwidth,
+ 	  latency...) memory via an mmap(2) capable character
+--- a/fs/Kconfig~mm-sparse-vmemmap-introduce-config_sparsemem_vmemmap_optimization
++++ a/fs/Kconfig
+@@ -278,6 +278,7 @@ config HUGETLB_PAGE_OPTIMIZE_VMEMMAP
+ 	def_bool HUGETLB_PAGE
+ 	depends on ARCH_WANT_OPTIMIZE_HUGETLB_VMEMMAP
+ 	depends on SPARSEMEM_VMEMMAP
++	select SPARSEMEM_VMEMMAP_OPTIMIZATION
+ 
+ config HUGETLB_PMD_PAGE_TABLE_SHARING
+ 	def_bool HUGETLB_PAGE
+--- a/include/linux/mm.h~mm-sparse-vmemmap-introduce-config_sparsemem_vmemmap_optimization
++++ a/include/linux/mm.h
+@@ -5175,6 +5175,9 @@ static inline bool __vmemmap_can_optimiz
+ 	unsigned long nr_pages;
+ 	unsigned long nr_vmemmap_pages;
+ 
++	if (!IS_ENABLED(CONFIG_SPARSEMEM_VMEMMAP_OPTIMIZATION))
 +		return false;
 +
-+	/*
-+	 * FIXME: MGLRU doesn't fully respect can_reclaim_anon_pages() for the
-+	 * scanning type, so only apply this to the traditional LRU for now.
-+	 */
-+	if (lru_gen_enabled())
-+		return false;
-+
-+	if (memcg) {
-+		struct lruvec *lruvec = mem_cgroup_lruvec(memcg, pgdat);
-+
-+		anon_pages = lruvec_page_state(lruvec, NR_INACTIVE_ANON) +
-+			     lruvec_page_state(lruvec, NR_ACTIVE_ANON);
-+		swapcache = lruvec_page_state(lruvec, NR_SWAPCACHE);
-+	} else {
-+		anon_pages = node_page_state(pgdat, NR_INACTIVE_ANON) +
-+			     node_page_state(pgdat, NR_ACTIVE_ANON);
-+		swapcache = node_page_state(pgdat, NR_SWAPCACHE);
-+	}
-+
-+	return swapcache < (anon_pages >> 6);
-+}
-+#else
-+static inline bool reclaimable_anon_is_low(struct mem_cgroup *memcg,
-+		int nid, struct scan_control *sc)
-+{
-+	return true;
-+}
-+#endif /* CONFIG_SWAP */
-+
- static inline bool can_reclaim_anon_pages(struct mem_cgroup *memcg,
- 					  int nid,
- 					  struct scan_control *sc)
+ 	if (!pgmap || !is_power_of_2(sizeof(struct page)))
+ 		return false;
+ 
+--- a/include/linux/mmzone.h~mm-sparse-vmemmap-introduce-config_sparsemem_vmemmap_optimization
++++ a/include/linux/mmzone.h
+@@ -102,9 +102,9 @@
+  *
+  * HVO which is only active if the size of struct page is a power of 2.
+  */
+-#define MAX_FOLIO_VMEMMAP_ALIGN \
+-	(IS_ENABLED(CONFIG_HUGETLB_PAGE_OPTIMIZE_VMEMMAP) && \
+-	 is_power_of_2(sizeof(struct page)) ? \
++#define MAX_FOLIO_VMEMMAP_ALIGN					\
++	(IS_ENABLED(CONFIG_SPARSEMEM_VMEMMAP_OPTIMIZATION) &&	\
++	 is_power_of_2(sizeof(struct page)) ?			\
+ 	 MAX_FOLIO_NR_PAGES * sizeof(struct page) : 0)
+ 
+ /* The number of retained vmemmap pages with HVO enabled. */
+@@ -116,7 +116,8 @@
+ #define __VMEMMAP_OPTIMIZATION_NR_ORDERS	\
+ 	(MAX_FOLIO_ORDER - VMEMMAP_OPTIMIZATION_MIN_ORDER + 1)
+ #define VMEMMAP_OPTIMIZATION_NR_ORDERS		\
+-	(__VMEMMAP_OPTIMIZATION_NR_ORDERS > 0 ? __VMEMMAP_OPTIMIZATION_NR_ORDERS : 0)
++	((__VMEMMAP_OPTIMIZATION_NR_ORDERS > 0 &&	\
++	  IS_ENABLED(CONFIG_SPARSEMEM_VMEMMAP_OPTIMIZATION)) ? __VMEMMAP_OPTIMIZATION_NR_ORDERS : 0)
+ 
+ enum migratetype {
+ 	MIGRATE_UNMOVABLE,
+@@ -1155,7 +1156,7 @@ struct zone {
+ 	/* Zone statistics */
+ 	atomic_long_t		vm_stat[NR_VM_ZONE_STAT_ITEMS];
+ 	atomic_long_t		vm_numa_event[NR_VM_NUMA_EVENT_ITEMS];
+-#ifdef CONFIG_HUGETLB_PAGE_OPTIMIZE_VMEMMAP
++#ifdef CONFIG_SPARSEMEM_VMEMMAP_OPTIMIZATION
+ 	struct page *vmemmap_tails[VMEMMAP_OPTIMIZATION_NR_ORDERS];
+ #endif
+ } ____cacheline_internodealigned_in_smp;
+@@ -2019,7 +2020,7 @@ struct mem_section {
+ 	unsigned long section_mem_map;
+ 
+ 	struct mem_section_usage *usage;
+-#ifdef CONFIG_HUGETLB_PAGE_OPTIMIZE_VMEMMAP
++#ifdef CONFIG_SPARSEMEM_VMEMMAP_OPTIMIZATION
+ 	/*
+ 	 * Normally, sections hold regular (order-0) pages. However, for
+ 	 * sections with HVO enabled, this tracks the compound page order
+--- a/include/linux/page-flags.h~mm-sparse-vmemmap-introduce-config_sparsemem_vmemmap_optimization
++++ a/include/linux/page-flags.h
+@@ -208,14 +208,13 @@ enum pageflags {
+ static __always_inline bool compound_info_has_mask(void)
  {
- 	if (memcg == NULL) {
- 		/*
--		 * For non-memcg reclaim, is there
--		 * space in any swap device?
-+		 * For non-memcg reclaim, is there space in any swap device?
-+		 * And under GFP_NOIO, is there enough swapcached anon to make
-+		 * scanning anon worthwhile?
- 		 */
--		if (get_nr_swap_pages() > 0)
-+		if (get_nr_swap_pages() > 0 &&
-+		    !reclaimable_anon_is_low(memcg, nid, sc))
- 			return true;
- 	} else {
--		/* Is the memcg below its swap limit? */
--		if (mem_cgroup_get_nr_swap_pages(memcg) > 0)
-+		/*
-+		 * Is the memcg below its swap limit, and under GFP_NOIO does
-+		 * it have enough swapcached anon to make scanning worthwhile?
-+		 */
-+		if (mem_cgroup_get_nr_swap_pages(memcg) > 0 &&
-+		    !reclaimable_anon_is_low(memcg, nid, sc))
- 			return true;
- 	}
+ 	/*
+-	 * Limit mask usage to HugeTLB vmemmap optimization (HVO) where it
+-	 * makes a difference.
++	 * Limit mask usage to HVO where it makes a difference.
+ 	 *
+ 	 * The approach with mask would work in the wider set of conditions,
+ 	 * but it requires validating that struct pages are naturally aligned
+ 	 * for all orders up to the MAX_FOLIO_ORDER, which can be tricky.
+ 	 */
+-	if (!IS_ENABLED(CONFIG_HUGETLB_PAGE_OPTIMIZE_VMEMMAP))
++	if (!IS_ENABLED(CONFIG_SPARSEMEM_VMEMMAP_OPTIMIZATION))
+ 		return false;
  
+ 	return is_power_of_2(sizeof(struct page));
+--- a/mm/Kconfig~mm-sparse-vmemmap-introduce-config_sparsemem_vmemmap_optimization
++++ a/mm/Kconfig
+@@ -461,6 +461,10 @@ config SPARSEMEM_VMEMMAP
+ 	  pfn_to_page and page_to_pfn operations.  This is the most
+ 	  efficient option when sufficient kernel resources are available.
+ 
++config SPARSEMEM_VMEMMAP_OPTIMIZATION
++	bool
++	depends on SPARSEMEM_VMEMMAP
++
+ #
+ # Select this config option from the architecture Kconfig, if it is preferred
+ # to enable the feature of HugeTLB/dev_dax vmemmap optimization.
+--- a/mm/sparse.h~mm-sparse-vmemmap-introduce-config_sparsemem_vmemmap_optimization
++++ a/mm/sparse.h
+@@ -10,7 +10,7 @@
+ 
+ #include <linux/mmzone.h>
+ 
+-#ifdef CONFIG_HUGETLB_PAGE_OPTIMIZE_VMEMMAP
++#ifdef CONFIG_SPARSEMEM_VMEMMAP_OPTIMIZATION
+ static inline unsigned int section_order(const struct mem_section *section)
+ {
+ 	return section->order;
+@@ -72,7 +72,7 @@ static inline bool vmemmap_optimizable_p
+ 
+ static inline bool vmemmap_optimizable_order(unsigned int order)
+ {
+-	if (!IS_ENABLED(CONFIG_HUGETLB_PAGE_OPTIMIZE_VMEMMAP))
++	if (!IS_ENABLED(CONFIG_SPARSEMEM_VMEMMAP_OPTIMIZATION))
+ 		return false;
+ 
+ 	if (!is_power_of_2(sizeof(struct page)))
 _
 
-Patches currently in -mm which might be from zhangbo0325@gmail.com are
+Patches currently in -mm which might be from songmuchun@bytedance.com are
 
-mm-vmscan-avoid-anon-scanning-for-gfp_noio-with-low-swapcache.patch
+mm-sparse-relax-struct-mem_section-size-constraints.patch
+mm-sparse-vmemmap-rename-hvo-order-macros.patch
+mm-mm_init-skip-initializing-shared-vmemmap-tail-pages.patch
+mm-sparse-vmemmap-initialize-shared-tail-vmemmap-pages-on-allocation.patch
+mm-sparse-vmemmap-support-section-based-vmemmap-accounting.patch
+mm-mm_init-factor-out-pfn_to_zone.patch
+mm-sparse-vmemmap-move-helpers-ahead-of-future-callers.patch
+mm-sparse-vmemmap-support-section-based-vmemmap-optimization.patch
+mm-sparse-initialize-memory-sections-earlier.patch
+mm-hugetlb-switch-hugetlb-to-section-based-vmemmap-optimization.patch
+mm-sparse-vmemmap-remove-sparsemem_vmemmap_preinit-support.patch
+mm-sparse-inline-usemap-allocation-into-sparse_init_nid.patch
+mm-sparse-remove-section_map_size.patch
+mm-hugetlb-remove-huge_bootmem_hvo.patch
+mm-hugetlb-remove-huge_bootmem_cma.patch
+mm-hugetlb-localize-struct-huge_bootmem_page.patch
+mm-hugetlb-localize-huge_bootmem_zones_valid.patch
+mm-sparse-vmemmap-introduce-config_sparsemem_vmemmap_optimization.patch
+mm-sparse-vmemmap-factor-out-shared-vmemmap-tail-page-allocation.patch
+mm-sparse-vmemmap-open-code-init_compound_tail.patch
+mm-sparse-vmemmap-prepare-dax-vmemmap-population-for-section-orders.patch
+mm-sparse-vmemmap-set-section-order-for-device-dax.patch
+mm-sparse-vmemmap-switch-device-dax-to-shared-tail-vmemmap-pages.patch
+mm-sparse-vmemmap-move-hvo-helpers-to-a-public-header.patch
+powerpc-mm-switch-device-dax-to-shared-tail-vmemmap-pages.patch
+mm-sparse-vmemmap-drop-the-extra-tail-page-from-device-dax-reservation.patch
+mm-sparse-vmemmap-drop-unused-section_nr_vmemmap_pages-arguments.patch
+documentation-mm-update-dax-vmemmap-deduplication-docs.patch
 
