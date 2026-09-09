@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0DF814FC8F4
-	for <mm-commits@vger.kernel.org>; Tue,  8 Sep 2026 23:46:35 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E1FF3235358
+	for <mm-commits@vger.kernel.org>; Wed,  9 Sep 2026 01:28:09 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788911196; cv=none; b=ZocsbLUY8IzbXlPjuLpbbkzdA8SrmqrpNffsAeAAcb8h7WbZZThTtkRsJV9ieVtFgtDbudJjWIrzbT0UsBxQtpRiySMuT1OL0XoS7bm15aaleqswAbF4NxiwEZFLmAuYB6o72/Q1YQHZ+/BMVqkVV9hkUBPv+4NpsQSF/vwDD90=
+	t=1788917291; cv=none; b=loSBrUGCJbA4wDELsNthY5lvc0U99mDQoMJsfM6lX06xutlidzpHkcOcRjn3j9x4pGz/6uLKa5YfT/C5By6RJma7OUvPBPC9UKhuY0wJePn2KF3JFdxMSj2nNpPhr4Rra820hYH8p8IXd681/JgyEs1Wyduhlsq7JphQ9jXJIXE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788911196; c=relaxed/simple;
-	bh=2rukY/mcQBxJQ5CZblf9X3dS0yQTY4yIxDYmuF9t9SQ=;
-	h=Date:To:From:Subject:Message-Id; b=LR0CLfvVOoAAXSHyr+8F319TmkRK3/U6qU/+0of6EVERo4S8mfPBPKYbfus1WJm74UOI/nLCos+6Qm3Q9vMQyS/vntkyftqw2ivhdsGLif2f6TtOZ4kyb69latH0NPF3gYQzHyT3vdcdXFzh/XkhUVEWOPRYaazcrBQRpDnzWxM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=w/CsMsTZ; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1788917291; c=relaxed/simple;
+	bh=2h2KQE8kwt0RHTFoDKWTlG19C9KBucziKZVl/JZRz/o=;
+	h=Date:To:From:Subject:Message-Id; b=fS+yKiF4MkMeNg7yTnZzMumXzU3fvLokEH52gceAd+noVmRrau8ZZqL0WqNJTAXAeEp6tS2uET/l5KKwvY8enl6T5WUe4UNPlGJ8keH2UvavGKLExciFXLOSuO6RV4QqOFLX3AUPDlGM94JGN+9U6h2FXjYYvTMUHEJ2e2XB+l4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=azUy51Ay; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="w/CsMsTZ"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D64CC1F00A3A;
-	Tue,  8 Sep 2026 23:46:34 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="azUy51Ay"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 336211F00A3A;
+	Wed,  9 Sep 2026 01:28:09 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1788911195;
-	bh=Py7Y5FmLKkbZZeFOzct5dBQEN3mlO+g6ssHPbJSefyw=;
+	d=linux-foundation.org; s=korg; t=1788917289;
+	bh=h41HCiv9yVeJenhxcY+JO+riiMlSdEqnTFrShd3R4v0=;
 	h=Date:To:From:Subject;
-	b=w/CsMsTZ0kDLjXNoz9RCERbwLQI18X7zV81E2tKGcNV9zCO3VTeXtxk6kKFpSUACa
-	 nVNmztzaAutEjUvs1H57MBRBJL0+NXDIU+e0aaN3heJnl2HzzRoQ/4Gk08fAevpw7s
-	 rzeYIC41lFkVXTR6Yh9XJOiozKdeM1TIXjlu9NJo=
-Date: Tue, 08 Sep 2026 16:46:34 -0700
-To: mm-commits@vger.kernel.org,ljs@kernel.org,akpm@linux-foundation.org
+	b=azUy51Ay5z5aggod1L0BRbw5VuFVRy3m7giEFhRcxjn2b08k2nILTEbVrV3dZQomz
+	 wE27RDR8n3IlAyx/LDaQ7vsOW5M855Cvj40xIu905cnVAITWcP6TAzY+Ms9QoV/JAX
+	 vaR6hA1xp7I0huPHqnvfgFglxfO4LHBhzqSpKhww=
+Date: Tue, 08 Sep 2026 18:28:08 -0700
+To: mm-commits@vger.kernel.org,zhangbo56@xiaomi.com,shakeel.butt@linux.dev,mhocko@kernel.org,ljs@kernel.org,kasong@tencent.com,hannes@cmpxchg.org,david@kernel.org,baohua@kernel.org,zhangbo0325@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + tools-testing-selftests-mm-add-map_private-dev-zero-merge-tests.patch added to mm-unstable branch
-Message-Id: <20260908234634.D64CC1F00A3A@smtp.kernel.org>
+Subject: + mm-vmscan-avoid-anon-scanning-for-gfp_noio-with-low-swapcache.patch added to mm-new branch
+Message-Id: <20260909012809.336211F00A3A@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,15 +35,26 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: tools/testing/selftests/mm: add MAP_PRIVATE-/dev/zero merge tests
-has been added to the -mm mm-unstable branch.  Its filename is
-     tools-testing-selftests-mm-add-map_private-dev-zero-merge-tests.patch
+     Subject: mm: vmscan: avoid anon scanning for GFP_NOIO with low swapcache
+has been added to the -mm mm-new branch.  Its filename is
+     mm-vmscan-avoid-anon-scanning-for-gfp_noio-with-low-swapcache.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/tools-testing-selftests-mm-add-map_private-dev-zero-merge-tests.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vmscan-avoid-anon-scanning-for-gfp_noio-with-low-swapcache.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Note, mm-new is a provisional staging ground for work-in-progress
+patches, and acceptance into mm-new is a notification for others take
+notice and to finish up reviews.  Please do not hesitate to respond to
+review feedback and post updated versions to replace or incrementally
+fixup patches in mm-new.
+
+The mm-new branch of mm.git is not included in linux-next
+
+If a few days of testing in mm-new is successful, the patch will me moved
+into mm.git's mm-unstable branch, which is included in linux-next
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -58,170 +69,154 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: "Lorenzo Stoakes (ARM)" <ljs@kernel.org>
-Subject: tools/testing/selftests/mm: add MAP_PRIVATE-/dev/zero merge tests
-Date: Tue, 08 Sep 2026 12:23:43 +0100
+From: Bo Zhang <zhangbo0325@gmail.com>
+Subject: mm: vmscan: avoid anon scanning for GFP_NOIO with low swapcache
+Date: Tue, 8 Sep 2026 14:26:49 +0800
 
-Assert that MAP_PRIVATE-mapped /dev/zero mappings behave like they are
-anonymous.
+We have observed some cases where memory is allocated with GFP_NOIO, so we
+cannot reclaim any anon folios unless they are in swapcache.  We can end
+up spending more than 150 ms looping in `shrink_folio_list()` scanning
+non-swapcache folios without reclaiming a single folio.  This is pure
+overhead.
 
-Test both unfaulted and faulted/unfaulted merges with page offset 0 which
-would not merge if the mappings were treated as if they were file-backed.
+This is particularly true on systems using zRAM, where swapcache is
+relatively rare.  So let's check whether anon reclaim is allowed by GFP_IO
+and whether there is enough swapcache to make it worthwhile.  If the
+swapcache is extremely low, we're essentially searching for a needle in a
+haystack, so let's avoid scanning anon in the first place.
 
-With the recent change that makes them behave as pure anonymous mappings,
-the merges should succeed as their page offsets are equal to their
-anonymous page offsets.
+On Android this is triggered by dm-verity hash-block reads through
+dm-bufio, which legitimately use GFP_NOIO because they run underneath the
+IO path:
 
-Link: https://lore.kernel.org/20260908-map-private-dev-zero-v2-6-acc7b5625305@kernel.org
-Signed-off-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
-Acked-by: David Hildenbrand (Arm) <david@kernel.org>
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Jan Kara <jack@suse.cz>
-Cc: Jann Horn <jannh@google.com>
-Cc: Liam R. Howlett <liam@infradead.org>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Mike Rapoport (Microsoft) <rppt@kernel.org>
-Cc: Pedro Falcato <pfalcato@suse.de>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Vlastimil Babka <vbabka@kernel.org>
+  verity_verify_io -> verity_hash_for_block -> verity_verify_level
+    -> dm_bufio_read_with_ioprio -> new_read -> __bufio_new
+      -> alloc_buffer
+         gfp: GFP_NOIO | __GFP_NORETRY | __GFP_NOMEMALLOC | __GFP_NOWARN
+
+Such a reclaimer can land on a memcg with a large, unswapped anon LRU and
+a tiny file LRU (e.g.  inactive_anon ~335 MB vs inactive_file ~4 MB, with
+negligible swapcache).  shrink_lruvec() then keeps feeding that huge anon
+list into shrink_folio_list() - ~2400 shrink_folio_list() calls, ~93,000
+anon folios scanned - where every folio is kept because it needs IO.  The
+150+ ms above is one such single shrink_lruvec() pass (not accumulated
+across a reclaim cycle), and it reclaims nothing; the actual progress
+comes entirely from the file side.
+
+Aging anon alongside file does have some value for a later __GFP_IO
+reclaimer, so it is not strictly pure overhead.  But that aging is only
+deferred, not lost: kswapd and other __GFP_IO reclaimers still walk and
+age anon.  Spending ~168 ms aging memory that this context cannot reclaim
+is not a worthwhile trade-off in a latency-sensitive path.
+
+To stay conservative, this only skips anon when the swapcache is really
+tiny - below 1/64 of the anon LRU - i.e.  when essentially no anon on the
+list can be reclaimed without IO.  Whenever there is a meaningful amount
+of swapcached anon, the normal path is used and anon is scanned and aged
+as before.
+
+Note this only addresses the traditional active/inactive LRU.  MGLRU
+selects anon vs file scanning in its own path and is not covered here;
+fixing the MGLRU case is left as a TODO.
+
+Link: https://lore.kernel.org/20260908062649.1045883-1-zhangbo56@xiaomi.com
+Signed-off-by: Bo Zhang <zhangbo56@xiaomi.com>
+Reviewed-by: Barry Song <baohua@kernel.org>
+Cc: David Hildenbrand <david@kernel.org>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Kairui Song <kasong@tencent.com>
+Cc: Lorenzo Stoakes <ljs@kernel.org>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Shakeel Butt <shakeel.butt@linux.dev>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/merge.c |   95 +++++++++++++++++++++++++++
- 1 file changed, 95 insertions(+)
+ mm/vmscan.c |   62 +++++++++++++++++++++++++++++++++++++++++++++-----
+ 1 file changed, 57 insertions(+), 5 deletions(-)
 
---- a/tools/testing/selftests/mm/merge.c~tools-testing-selftests-mm-add-map_private-dev-zero-merge-tests
-+++ a/tools/testing/selftests/mm/merge.c
-@@ -1362,6 +1362,101 @@ TEST_F(merge, anon_and_page_offset_misma
- 	ASSERT_EQ(procmap->query.vma_end, (unsigned long)ptr + 5 * page_size);
+--- a/mm/vmscan.c~mm-vmscan-avoid-anon-scanning-for-gfp_noio-with-low-swapcache
++++ a/mm/vmscan.c
+@@ -362,20 +362,72 @@ static bool can_demote(int nid, struct s
+ 	return !nodes_empty(allowed_mask);
  }
  
-+TEST_F(merge, merge_map_private_dev_zero_unfaulted)
++#ifdef CONFIG_SWAP
++static inline bool reclaimable_anon_is_low(struct mem_cgroup *memcg,
++		int nid, struct scan_control *sc)
 +{
-+	struct procmap_fd *procmap = &self->procmap;
-+	unsigned int page_size = self->page_size;
-+	char *carveout = self->carveout;
-+	char *ptr, *ptr2;
-+	int fd_zero;
-+
-+	if (access("/dev/zero", F_OK))
-+		SKIP(return, "No /dev/zero.");
-+	fd_zero = open("/dev/zero", O_RDWR);
-+	ASSERT_NE(fd_zero, -1);
++	pg_data_t *pgdat = NODE_DATA(nid);
++	unsigned long anon_pages, swapcache;
 +
 +	/*
-+	 * Map two MAP_PRIVATE-/dev/zero VMAs next to one another with offset 0
-+	 * each.
-+	 *
-+	 * With these being made truly anonymous upon mapping, they will
-+	 * merge. If they were file-backed VMAs the page offsets would prevent
-+	 * the merge:
-+	 *
-+	 * |-----||------|    |-------------|
-+	 * | ptr || ptr2 | -> |     ptr     |
-+	 * |-----||------|    |-------------|
++	 * A GFP_NOIO reclaimer can only reclaim anon that is already in the
++	 * swapcache (adding anon to the swapcache needs IO). When swapcache is
++	 * far below the anon LRU, scanning anon reclaims nothing and only burns
++	 * CPU. The 1/64 threshold keeps this to the case where anon is
++	 * effectively unreclaimable.
 +	 */
-+	ptr = mmap(carveout, 5 * page_size, PROT_READ | PROT_WRITE,
-+		   MAP_FIXED | MAP_PRIVATE, fd_zero, 0);
-+	ptr2 = mmap(&carveout[5 * page_size], 5 * page_size,
-+		   PROT_READ | PROT_WRITE, MAP_FIXED | MAP_PRIVATE, fd_zero, 0);
-+	close(fd_zero);
-+	ASSERT_NE(ptr, MAP_FAILED);
-+	ASSERT_NE(ptr2, MAP_FAILED);
++	if (!sc || (sc->gfp_mask & __GFP_IO))
++		return false;
 +
-+	/* Assert that they merged. */
-+	ASSERT_TRUE(find_vma_procmap(procmap, ptr));
-+	ASSERT_EQ(procmap->query.vma_start, (unsigned long)ptr);
-+	ASSERT_EQ(procmap->query.vma_end, (unsigned long)ptr + 10 * page_size);
++	/*
++	 * FIXME: MGLRU doesn't fully respect can_reclaim_anon_pages() for the
++	 * scanning type, so only apply this to the traditional LRU for now.
++	 */
++	if (lru_gen_enabled())
++		return false;
++
++	if (memcg) {
++		struct lruvec *lruvec = mem_cgroup_lruvec(memcg, pgdat);
++
++		anon_pages = lruvec_page_state(lruvec, NR_INACTIVE_ANON) +
++			     lruvec_page_state(lruvec, NR_ACTIVE_ANON);
++		swapcache = lruvec_page_state(lruvec, NR_SWAPCACHE);
++	} else {
++		anon_pages = node_page_state(pgdat, NR_INACTIVE_ANON) +
++			     node_page_state(pgdat, NR_ACTIVE_ANON);
++		swapcache = node_page_state(pgdat, NR_SWAPCACHE);
++	}
++
++	return swapcache < (anon_pages >> 6);
 +}
-+
-+TEST_F(merge, merge_map_private_dev_zero_faulted_unfaulted)
++#else
++static inline bool reclaimable_anon_is_low(struct mem_cgroup *memcg,
++		int nid, struct scan_control *sc)
 +{
-+	struct procmap_fd *procmap = &self->procmap;
-+	unsigned int page_size = self->page_size;
-+	char *carveout = self->carveout;
-+	char *ptr, *ptr2;
-+	int fd_zero;
-+
-+	if (access("/dev/zero", F_OK))
-+		SKIP(return, "No /dev/zero.");
-+	fd_zero = open("/dev/zero", O_RDWR);
-+	ASSERT_NE(fd_zero, -1);
-+
-+	/*
-+	 * Map a MAP_PRIVATE mapping of /dev/zero with page offset 0, then fault
-+	 * it in:
-+	 *
-+	 * |-------------------------------|
-+	 * |           faulted             |
-+	 * |-------------------------------|
-+	 */
-+	ptr = mmap(carveout, 15 * page_size, PROT_READ | PROT_WRITE,
-+		   MAP_FIXED | MAP_PRIVATE, fd_zero, 0);
-+	ASSERT_NE(ptr, MAP_FAILED);
-+	memset(ptr, 'x', 15 * page_size);
-+
-+	/*
-+	 * Unmap the middle:
-+	 *
-+	 * |---------|           |---------|
-+	 * | faulted |           | faulted |
-+	 * |---------|           |---------|
-+	 */
-+	ASSERT_EQ(munmap(&ptr[5 * page_size], 5 * page_size), 0);
-+
-+	/*
-+	 * Map in a new unfaulted mapping in the middle with page offset 0 -
-+	 * this should merge and would not if it were treated as a file rather
-+	 * than pure anon:
-+	 *
-+	 * |---------|-----------|---------|
-+	 * | faulted | unfaulted | faulted |
-+	 * |---------|-----------|---------|
-+	 */
-+	ptr2 = mmap(&carveout[5 * page_size], 5 * page_size,
-+		    PROT_READ | PROT_WRITE, MAP_FIXED | MAP_PRIVATE,
-+		    fd_zero, 0);
-+	close(fd_zero);
-+	ASSERT_NE(ptr2, MAP_FAILED);
-+
-+	/* Assert that they merged. */
-+	ASSERT_TRUE(find_vma_procmap(procmap, ptr));
-+	ASSERT_EQ(procmap->query.vma_start, (unsigned long)ptr);
-+	ASSERT_EQ(procmap->query.vma_end, (unsigned long)ptr + 15 * page_size);
++	return true;
 +}
++#endif /* CONFIG_SWAP */
 +
- TEST_F(merge_with_fork, mremap_faulted_to_unfaulted_prev)
+ static inline bool can_reclaim_anon_pages(struct mem_cgroup *memcg,
+ 					  int nid,
+ 					  struct scan_control *sc)
  {
- 	struct procmap_fd *procmap = &self->procmap;
+ 	if (memcg == NULL) {
+ 		/*
+-		 * For non-memcg reclaim, is there
+-		 * space in any swap device?
++		 * For non-memcg reclaim, is there space in any swap device?
++		 * And under GFP_NOIO, is there enough swapcached anon to make
++		 * scanning anon worthwhile?
+ 		 */
+-		if (get_nr_swap_pages() > 0)
++		if (get_nr_swap_pages() > 0 &&
++		    !reclaimable_anon_is_low(memcg, nid, sc))
+ 			return true;
+ 	} else {
+-		/* Is the memcg below its swap limit? */
+-		if (mem_cgroup_get_nr_swap_pages(memcg) > 0)
++		/*
++		 * Is the memcg below its swap limit, and under GFP_NOIO does
++		 * it have enough swapcached anon to make scanning worthwhile?
++		 */
++		if (mem_cgroup_get_nr_swap_pages(memcg) > 0 &&
++		    !reclaimable_anon_is_low(memcg, nid, sc))
+ 			return true;
+ 	}
+ 
 _
 
-Patches currently in -mm which might be from ljs@kernel.org are
+Patches currently in -mm which might be from zhangbo0325@gmail.com are
 
-mm-vma-correctly-unaccount-on-mmap_prepare-failure.patch
-mm-vmpressure-remove-window-size-todo.patch
-tools-testing-selftests-mm-add-missing-gitignore-entries.patch
-mm-move-drivers-char-memc-to-mm-char-memc.patch
-mm-implement-file_is_dev_zero-to-uniquely-identify-dev-zero.patch
-mm-vma-only-permit-map_private-dev-zero-to-be-mapped-anonymous.patch
-mm-vma-make-map_private-mapped-dev-zero-mappings-truly-anonymous.patch
-tools-testing-vma-add-test-to-assert-map_private-dev-zero-is-anon.patch
-tools-testing-selftests-mm-add-map_private-dev-zero-merge-tests.patch
-mm-madvise-swap-in-cowd-map_private-file-mappings-on-madv_willneed.patch
-mm-huge_memory-zap-deposited-page-tables-after-an-rcu-grace-period.patch
-mm-enable-mmu_gather_rcu_table_free-for-most-2-level-architectures.patch
-mm-enable-mmu_gather_rcu_table_free-for-mmu-riscv.patch
-mm-enable-mmu_gather_rcu_table_free-for-mmu-arm.patch
-mm-enable-mmu_gather_rcu_table_free-for-arc-microblaze-xtensa.patch
-mm-enable-mmu_gather_rcu_table_free-for-sparc64.patch
-mm-enable-mmu_gather_rcu_table_free-for-m68k-coldfire.patch
-mm-enable-mmu_gather_rcu_table_free-for-sh-x2.patch
-mm-enable-mmu_gather_rcu_table_free-for-m68k-motorola.patch
-mm-enable-mmu_gather_rcu_table_free-for-sparc32.patch
-mm-make-userland-page-table-freeing-rcu-safe.patch
-mm-change-the-contract-for-free_pgtables-update-docs.patch
+mm-vmscan-avoid-anon-scanning-for-gfp_noio-with-low-swapcache.patch
 
