@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 47B173B42C4;
-	Wed,  9 Sep 2026 23:40:50 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 79F094825B6
+	for <mm-commits@vger.kernel.org>; Wed,  9 Sep 2026 23:46:01 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788997251; cv=none; b=DUx/X0/gvj/OYwlWBbnFSy7QdReI0SAqH8V9wdcq0qh9S/9asU/T0oVmpA+mfGW/UvN07tEzlyP8qI+ErlrWGewl5FCWSn5LC46Be5bicY9pjNSqG3PPmbzLzxDKkzfw57i4Wh8GmGN4WvAea3rExxJ8AGJw/+OsGmlNn3yNQks=
+	t=1788997562; cv=none; b=CtKcFpRueClBwuaNuNSeack+e8ZXxR4COon/rsWeS8LO9Dc6NdZccXhUX/HeuixtAk26qyZlszKZViVPAdYNj4K6O5BZ3DaLFqZVFCT/lXzgYfZFSm5KUvlxLZrGXjYzvMN6cagXPWCUL+8oBYmAIjptjJAwDZ4bi8B/sTMOyj8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788997251; c=relaxed/simple;
-	bh=Qf7jvpOKbSkQ/rigG4WUFq6Rlwz5ug3NUbrAK/3juwc=;
-	h=Date:To:From:Subject:Message-Id; b=EWpk6ToDNtxaLXS0LjU0V1L01HquS/+Kx4ktb+xFZMBdVkfBqrkWnAKHpX61NLD2mwzjXvl0eUaCRMn6DMCpdP1yaOVMqkcPse73mtD+7IKWRHmMJc6P8FfO4xtcuvX+xfyXWQLXn2RbnoaeoiEd+BDO84ZRMBDs9dDxbPXTwb0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=y2v3oADh; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1788997562; c=relaxed/simple;
+	bh=YXbhg1DHwn9VWNvDxw21Y24Ou+jWHOAiqH1v1C4a9xU=;
+	h=Date:To:From:Subject:Message-Id; b=P/3nsHdWe9ETb0HGRfW9qz2Ctjv3TWBZcFRTDFDO63CgAaEsd9abTH2APaE8X6+c5fOkjwGutyR1CCB7Xu1+06/pFB/sNZe0NAvpirwc0GQh5tbFXhWYFDHAS0yqbUEfb9p0uao9WJXp8DtwyoyrrefPIO9Bpj8y6rgTaTmVIFI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=A0Cz1tg7; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="y2v3oADh"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id DE7FA1F000FF;
-	Wed,  9 Sep 2026 23:40:49 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="A0Cz1tg7"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 30D101F000FF;
+	Wed,  9 Sep 2026 23:46:01 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1788997250;
-	bh=ctkwBZJ5mcQHj5xauChjKwaTCzWgPiP6EGWZMFhMpzk=;
+	d=linux-foundation.org; s=korg; t=1788997561;
+	bh=XEpm0oyWQiZZsEQgfrpdbnnySTorOeoCKoY/cYgdG9g=;
 	h=Date:To:From:Subject;
-	b=y2v3oADhoBZr/7mnWJW4Ml1cRVlWijcz+K1uoxJoQFfS3LmhLbQWNOkbRSn+wFEXc
-	 hfYeKz/9YmlTv0nrM32Q01ay0lG7mQJgurJv/XcepOgpSLBt+xPJa4nHgD752lbV/S
-	 jTO5ARkEii2Nw6NUwMhr4eRxAQyu9wh/CJk4EmMI=
-Date: Wed, 09 Sep 2026 16:40:49 -0700
-To: mm-commits@vger.kernel.org,vbabka@kernel.org,vannapurve@google.com,surenb@google.com,stable@vger.kernel.org,si.yanteng@linux.dev,shakeel.butt@linux.dev,rppt@kernel.org,roman.gushchin@linux.dev,rientjes@google.com,peterx@redhat.com,osalvador@suse.de,nphamcs@gmail.com,muchun.song@linux.dev,mhocko@kernel.org,mawupeng1@huawei.com,louhongxiang@huawei.com,ljs@kernel.org,linmiaohe@huawei.com,liam@infradead.org,jthoughton@google.com,joshua.hahnjy@gmail.com,hannes@cmpxchg.org,fvdl@google.com,dzm91@hust.edu.cn,david@kernel.org,corbet@lwn.net,alexs@kernel.org,ackerleytng@google.com,akpm@linux-foundation.org
+	b=A0Cz1tg7FIFNbmaHrD/IS4wpLwOQk9TT8xi83J5mdpTrvVsQoIgNK7tv0zknYCjNV
+	 DLW1YkieDvhboqrf4dXILLS70/ZXETSNTwxeZgaxNF/c744jwpiQC9wVGoGUUWla4x
+	 4Ba2R9ss+JehM+amdFjGS7+Y2DP+A57ncz/6x5lA=
+Date: Wed, 09 Sep 2026 16:46:00 -0700
+To: mm-commits@vger.kernel.org,ekffu200098@gmail.com,mhiramat@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-hugetlb-drop-refcount-before-freeing-on-memcg-charge-failure.patch added to mm-unstable branch
-Message-Id: <20260909234049.DE7FA1F000FF@smtp.kernel.org>
+Subject: + bootconfig-reject-unexpected-data-after-null-character.patch added to mm-nonmm-unstable branch
+Message-Id: <20260909234601.30D101F000FF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: hugetlb: drop refcount before freeing on memcg charge failure
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-hugetlb-drop-refcount-before-freeing-on-memcg-charge-failure.patch
+     Subject: bootconfig: reject unexpected data after null character
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     bootconfig-reject-unexpected-data-after-null-character.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-hugetlb-drop-refcount-before-freeing-on-memcg-charge-failure.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/bootconfig-reject-unexpected-data-after-null-character.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,74 +58,106 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Ackerley Tng <ackerleytng@google.com>
-Subject: mm: hugetlb: drop refcount before freeing on memcg charge failure
-Date: Wed, 09 Sep 2026 10:11:01 -0700
+From: Masami Hiramatsu (Google) <mhiramat@kernel.org>
+Subject: bootconfig: reject unexpected data after null character
+Date: Thu, 10 Sep 2026 00:53:45 +0900
 
-When mem_cgroup_charge_hugetlb(folio, gfp) returns -ENOMEM, the folio has
-its refcount set to 1 via folio_ref_unfreeze(folio, 1).
+Patch series "bootconfig: Reject unexpected data after null character and
+cleanups".
 
-The error path calls free_huge_folio(folio) directly, which expects a
-refcount of 0.  Hence, VM_BUG_ON_FOLIO(folio_ref_count(folio), folio) is
-triggered.
+Patches for bootconfig to reject unexpected config data after null
+character and other cleanups including tools/bootconfig to consolidate
+bootconfig initialization with errors, and skipping internal tree sanity
+checks in kernel.
 
-Even with CONFIG_DEBUG_VM disabled, returning a folio with refcount 1 to
-the freelist can corrupt allocator state later.
 
-Use folio_put(folio) instead of free_huge_folio(folio) to properly drop
-the reference before freeing it.
+This patch (of 3):
 
-Link: https://lore.kernel.org/20260909-hugetlb-alloc-folio-memcg-charge-error-handling-v2-2-4b4a8a19a7f7@google.com
-Fixes: 991135774c0e0 ("memcg/hugetlb: introduce mem_cgroup_charge_hugetlb")
-Signed-off-by: Ackerley Tng <ackerleytng@google.com>
-Reviewed-by: Muchun Song <muchun.song@linux.dev>
-Reviewed-by: Joshua Hahn <joshua.hahnjy@gmail.com>
-Cc: Alex Shi <alexs@kernel.org>
-Cc: David Hildenbrand <david@kernel.org>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Dongliang Mu <dzm91@hust.edu.cn>
-Cc: Frank van der Linden <fvdl@google.com>
-Cc: Hongxiang Lou <louhongxiang@huawei.com>
-Cc: James Houghton <jthoughton@google.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Liam R. Howlett <liam@infradead.org>
-Cc: Lorenzo Stoakes <ljs@kernel.org>
-Cc: Ma Wupeng <mawupeng1@huawei.com>
-Cc: Miaohe Lin <linmiaohe@huawei.com>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Nhat Pham <nphamcs@gmail.com>
-Cc: Oscar Salvador <osalvador@suse.de>
-Cc: Peter Xu <peterx@redhat.com>
-Cc: Roman Gushchin <roman.gushchin@linux.dev>
-Cc: Shakeel Butt <shakeel.butt@linux.dev>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Vishal Annapurve <vannapurve@google.com>
-Cc: Vlastimil Babka <vbabka@kernel.org>
-Cc: Yanteng Si <si.yanteng@linux.dev>
-Cc: <stable@vger.kernel.org>
+If a bootconfig buffer contains an intermediate null character in the
+middle of the configuration, xbc_parse_tree() stops at the null character
+because string delimiter searches (e.g.  strpbrk()) stop at '\0', and
+cleanly breaks out of the loop without error.  As a result, any
+configuration data following the intermediate null character is silently
+ignored, allowing unparsed or potentially malicious data to be hidden
+after an early termination.
+
+Fix this in xbc_parse_tree() by checking that no non-null data remains
+between the parser termination point and the end of the input buffer. 
+Trailing null characters (such as alignment padding in initrd) continue to
+be accepted as valid.
+
+Also update apply_xbc() in tools/bootconfig/main.c to calculate the buffer
+size based on the loaded file size rather than strlen(), so that files
+with intermediate null characters are not truncated before validation.
+
+Assisted-by: Antigravity:gemini-3.8-flash
+Link: https://lore.kernel.org/178896921555.177508.434402948295885560.stgit@devnote2
+Link: https://lore.kernel.org/178896922501.177508.6894964926791268965.stgit@devnote2
+Signed-off-by: Masami Hiramatsu (Google) <mhiramat@kernel.org>
+Cc: Sang-Heon Jeon <ekffu200098@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ lib/bootconfig.c                    |    7 +++++++
+ tools/bootconfig/main.c             |    4 +++-
+ tools/bootconfig/test-bootconfig.sh |   12 ++++++++++++
+ 3 files changed, 22 insertions(+), 1 deletion(-)
 
---- a/mm/hugetlb.c~mm-hugetlb-drop-refcount-before-freeing-on-memcg-charge-failure
-+++ a/mm/hugetlb.c
-@@ -2917,7 +2917,7 @@ struct folio *hugetlb_alloc_folio(struct
- 	lruvec_stat_mod_folio(folio, NR_HUGETLB, nr_pages);
+--- a/lib/bootconfig.c~bootconfig-reject-unexpected-data-after-null-character
++++ a/lib/bootconfig.c
+@@ -1119,6 +1119,13 @@ static int __init xbc_parse_tree(void)
+ 		}
+ 	} while (!ret);
  
- 	if (ret == -ENOMEM) {
--		free_huge_folio(folio);
-+		folio_put(folio);
- 		/*
- 		 * Skip uncharging hugetlb_cgroup since the charges
- 		 * were committed to the folio and freeing the folio
++	if (!ret) {
++		while (p < xbc_data + xbc_data_size - 1 && *p == '\0')
++			p++;
++		if (p < xbc_data + xbc_data_size - 1)
++			ret = xbc_parse_error("Unexpected data after null character", p);
++	}
++
+ 	return ret;
+ }
+ 
+--- a/tools/bootconfig/main.c~bootconfig-reject-unexpected-data-after-null-character
++++ a/tools/bootconfig/main.c
+@@ -422,7 +422,9 @@ static int apply_xbc(const char *path, c
+ 		pr_err("Failed to load %s : %d\n", xbc_path, ret);
+ 		return ret;
+ 	}
+-	size = strlen(buf) + 1;
++	size = ret;
++	if (size == 0 || buf[size - 1] != '\0')
++		size++;
+ 	csum = xbc_calc_checksum(buf, size);
+ 
+ 	/* Backup the bootconfig data */
+--- a/tools/bootconfig/test-bootconfig.sh~bootconfig-reject-unexpected-data-after-null-character
++++ a/tools/bootconfig/test-bootconfig.sh
+@@ -180,6 +180,18 @@ EOF
+ $BOOTCONF -a $TEMPCONF $INITRD 2> $OUTFILE
+ xpass grep -q "1:1" $OUTFILE
+ 
++echo "Intermediate null character test"
++printf "key = value\n\0extra = data\n" > $TEMPCONF
++xfail $BOOTCONF -a $TEMPCONF $INITRD
++$BOOTCONF -a $TEMPCONF $INITRD 2> $OUTFILE
++xpass grep -q "Unexpected" $OUTFILE
++
++echo "Trailing null character test"
++printf "key = value\n\0" > $TEMPCONF
++xpass $BOOTCONF -a $TEMPCONF $INITRD
++$BOOTCONF $INITRD > $OUTFILE
++xpass grep -q "value" $OUTFILE
++
+ echo "=== expected failure cases ==="
+ for i in samples/bad-* ; do
+   xfail $BOOTCONF -a $i $INITRD
 _
 
-Patches currently in -mm which might be from ackerleytng@google.com are
+Patches currently in -mm which might be from mhiramat@kernel.org are
 
-mm-hugetlb-return-enospc-on-memcg-charge-failure.patch
-mm-hugetlb-drop-refcount-before-freeing-on-memcg-charge-failure.patch
+bootconfig-reject-unexpected-data-after-null-character.patch
+tools-bootconfig-consolidate-xbc_init-to-error-message-wrapper.patch
+bootconfig-skip-internal-tree-sanity-checks-in-kernel.patch
 
