@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C138425776
-	for <mm-commits@vger.kernel.org>; Thu, 10 Sep 2026 00:07:44 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C9CDB13DBBD
+	for <mm-commits@vger.kernel.org>; Thu, 10 Sep 2026 00:07:46 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788998866; cv=none; b=lPz7VV25Gf4+J+QSoo+Z7BwbYf8pWy48/gNWdoTIaWhFb3QbcWGRzCLtXBeCZVHI8wKNtdQ1PrPkBv9qhvx49BhNOt5419Ja3Gvi5rYKNrsZEG4HXqc/YnjLVT/ekheo+XlXumT0gCiy4Eveqj/GykWmDRW//tLW5svjhgvcggI=
+	t=1788998868; cv=none; b=s3U+7mLs1IFKRyluco0eERE1Yc9LCWbfLdsZb/4DZ+/qDZYD16FvpaJObAuq5hgf8a2wYYCveE1CjxMM0T9hLFQ3ZhaFIDzY7hahavIiXafQq5YlgaJxkAcuwZgeYLC63gB0D8kSUE5gMOuHLNku0GYntW7fINjUX6Jr96jYxEc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788998866; c=relaxed/simple;
-	bh=xtpOFxL/JqvfMXYk6zCSgze2Za85XYAVZuZ+iqYPoSI=;
-	h=Date:To:From:Subject:Message-Id; b=KhBnhmNunvbCgSQ+DnpQm/HpHmWud51OMRk/RfNIPlZRzVyyv+FA3MUfWt/Lv2CktU0CEZyKOnofzjoDVXXFlxBbpOiCXxHGdKV/dlEcbfy1Oe6S6tYptPBktWSkPAMhqlf+jcu3NwM2HqbIuYcR0/uhdTeTBU5bFctkFuim8Xw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=zl3aUpqi; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1788998868; c=relaxed/simple;
+	bh=5KfSltdewexbhHMnHMe97NhU7Z77xggEA5/sS6u/RLk=;
+	h=Date:To:From:Subject:Message-Id; b=brsFMGv8iIr5ZqU19ZAamPknGU9XcmddH83Qsj5uTNiYfxmYkqWkkAg+Xd6QaOZ+f9TncEsfrJYdurGBOU+q0tVTlV7Vcelkllj574XkKjo6BUuuaOXS8Pm9bZaOk1fRYwBRT3ciO3u99kXqLuzCIQRi3Ex6tk8RZDkxRGveLQU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=CYcRYFIj; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="zl3aUpqi"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 590C71F00893;
-	Thu, 10 Sep 2026 00:07:44 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="CYcRYFIj"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 45BFE1F000FF;
+	Thu, 10 Sep 2026 00:07:46 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1788998864;
-	bh=rLDaH+UX9k4srq/aRHR85gdiAz50O5AWruebuKBzFFw=;
+	d=linux-foundation.org; s=korg; t=1788998866;
+	bh=vPvei0yDuUKKreRfjUIoWr+QAhCEEA9hj7Frmqiu4Ac=;
 	h=Date:To:From:Subject;
-	b=zl3aUpqiYO4/Ktf9s+Y/E+XiKr54J4VPGV9zsjfXQJAEhlo8yZP2eBWaQdAXkZrSy
-	 O8cBSrsbgOaKzD9NIrqOFAtvwBuHyIrjP3Qpkm2gaNcaXp2azc8DcS5PgNuKmVnAZz
-	 4zKYvyq9PZjF+kmxEykc5BUXMS0C9pjAgRsEAFzk=
-Date: Wed, 09 Sep 2026 17:07:43 -0700
+	b=CYcRYFIjpf+6qjbyEd028smVFVr66tx4xLX+sE8wIaFJCR+VQzFRf0ncGqVqMUsCE
+	 RyF9Ko7tyYTUwlA5ef1v+A77YkppHqkSUao3lHTJJosX3Lhe0ZqOWwC84vl5ebl4is
+	 MBPjHoEpPiDl557izVTNnm8prba0rQOo/vpI9m0k=
+Date: Wed, 09 Sep 2026 17:07:45 -0700
 To: mm-commits@vger.kernel.org,gutierrez.asier@huawei-partners.com,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-damon-vaddr-extend-apply_probes-for-hugetlb.patch added to mm-new branch
-Message-Id: <20260910000744.590C71F00893@smtp.kernel.org>
+Subject: + mm-damon-vaddr-support-pgidle_unset-probe-filter-type.patch added to mm-new branch
+Message-Id: <20260910000746.45BFE1F000FF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/damon/vaddr: extend apply_probes() for hugetlb
+     Subject: mm/damon/vaddr: support pgidle_unset probe filter type
 has been added to the -mm mm-new branch.  Its filename is
-     mm-damon-vaddr-extend-apply_probes-for-hugetlb.patch
+     mm-damon-vaddr-support-pgidle_unset-probe-filter-type.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-vaddr-extend-apply_probes-for-hugetlb.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-vaddr-support-pgidle_unset-probe-filter-type.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,67 +70,123 @@ and is updated there most days
 
 ------------------------------------------------------
 From: SJ Park <sj@kernel.org>
-Subject: mm/damon/vaddr: extend apply_probes() for hugetlb
-Date: Wed, 9 Sep 2026 07:04:06 -0700
+Subject: mm/damon/vaddr: support pgidle_unset probe filter type
+Date: Wed, 9 Sep 2026 07:04:07 -0700
 
-DAMON virtual address space operation set(vaddr) does not support hugetlb
-pages in apply_probes.  Extend it for hugetlb pages.
+DAMON virtual address space operation set (vaddr) does not support
+pgidle_unset probe filter type.  Add the support.
 
-Link: https://lore.kernel.org/20260909140408.104699-5-sj@kernel.org
+Link: https://lore.kernel.org/20260909140408.104699-6-sj@kernel.org
 Signed-off-by: SJ Park <sj@kernel.org>
 Cc: Gutierrez Asier <gutierrez.asier@huawei-partners.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/vaddr.c |   30 +++++++++++++++++++++++++++++-
- 1 file changed, 29 insertions(+), 1 deletion(-)
+ mm/damon/vaddr.c |   55 +++++++++++++++++++++++++++++++++++++++------
+ 1 file changed, 48 insertions(+), 7 deletions(-)
 
---- a/mm/damon/vaddr.c~mm-damon-vaddr-extend-apply_probes-for-hugetlb
+--- a/mm/damon/vaddr.c~mm-damon-vaddr-support-pgidle_unset-probe-filter-type
 +++ a/mm/damon/vaddr.c
-@@ -598,6 +598,34 @@ out:
- 	return 0;
+@@ -522,13 +522,49 @@ static void damon_va_prep_probes(struct
+ 	}
  }
  
-+#ifdef CONFIG_HUGETLB_PAGE
-+static int damon_va_probe_hugetlb_entry(pte_t *pte, unsigned long hmask,
-+		unsigned long addr, unsigned long end, struct mm_walk *walk)
+-static bool damon_va_filter_pass(struct folio *folio, struct damon_probe *p)
++static bool damon_va_young_addr(struct folio *folio, pte_t *pte, pmd_t *pmd,
++		struct mm_struct *mm, unsigned long addr)
 +{
-+	struct damon_va_probe_walk_private *priv = walk->private;
-+	struct hstate *h = hstate_vma(walk->vma);
-+	struct folio *folio;
-+	spinlock_t *ptl;
-+	pte_t entry;
++	bool young = false;
 +
-+	ptl = huge_pte_lock(h, walk->mm, pte);
-+	entry = huge_ptep_get(walk->mm, addr, pte);
-+	if (!pte_present(entry))
-+		goto out;
-+
-+	folio = pfn_folio(pte_pfn(entry));
-+	folio_get(folio);
-+	damon_va_probe_folio(priv->ctx, priv->r, folio);
-+	folio_put(folio);
-+
-+out:
-+	spin_unlock(ptl);
-+	return 0;
++	if (pte)
++		young = pte_young(*pte);
++	else if (pmd)
++		young = pmd_young(*pmd);
++	young = young || !folio_test_idle(folio) ||
++		mmu_notifier_test_young(mm, addr);
++	return young;
 +}
-+#else
-+#define damon_va_probe_hugetlb_entry NULL
-+#endif /* CONFIG_HUGETLB_PAGE */
 +
- static void __damon_va_apply_probes(struct damon_ctx *ctx,
- 		struct mm_struct *mm,  struct damon_region *r)
++static bool damon_va_filter_match(struct damon_filter *filter,
++		struct folio *folio, pte_t *pte, pmd_t *pmd,
++		struct mm_struct *mm, unsigned long addr)
++{
++	bool matched = false;
++
++	switch (filter->type) {
++	case DAMON_FILTER_TYPE_PGIDLE_UNSET:
++		if (!folio)
++			matched = false;
++		else
++			matched = damon_va_young_addr(folio, pte, pmd, mm,
++					addr);
++		break;
++	default:
++		return damon_ops_filter_match(filter, folio);
++	}
++	return matched == filter->matching;
++}
++
++static bool damon_va_filter_pass(struct folio *folio, struct damon_probe *p,
++		pte_t *pte, pmd_t *pmd, struct mm_struct *mm,
++		unsigned long addr)
  {
-@@ -607,7 +635,7 @@ static void __damon_va_apply_probes(stru
- 	};
- 	struct mm_walk_ops damon_probe_walk_ops = {
- 		.pmd_entry = damon_va_probe_pmd_entry,
--		.hugetlb_entry = NULL,
-+		.hugetlb_entry = damon_va_probe_hugetlb_entry,
- 	};
- 	unsigned long addr = r->sampling_addr;
+ 	struct damon_filter *f;
+ 	bool pass = true;
  
+ 	damon_for_each_filter(f, p) {
+-		if (damon_ops_filter_match(f, folio)) {
++		if (damon_va_filter_match(f, folio, pte, pmd, mm, addr)) {
+ 			pass = f->allow;
+ 			break;
+ 		}
+@@ -543,13 +579,15 @@ struct damon_va_probe_walk_private {
+ };
+ 
+ static void damon_va_probe_folio(struct damon_ctx *ctx,
+-		struct damon_region *r, struct folio *folio)
++		struct damon_region *r, struct folio *folio,
++		pte_t *pte, pmd_t *pmd, struct mm_struct *mm)
+ {
+ 	struct damon_probe *probe;
+ 	int i = 0;
+ 
+ 	damon_for_each_probe(probe, ctx) {
+-		if (damon_va_filter_pass(folio, probe))
++		if (damon_va_filter_pass(folio, probe, pte, pmd, mm,
++					r->sampling_addr))
+ 			r->probe_hits[i]++;
+ 		i++;
+ 	}
+@@ -574,7 +612,8 @@ static int damon_va_probe_pmd_entry(pmd_
+ 		folio = vm_normal_folio_pmd(walk->vma, addr, pmde);
+ 		if (!folio)
+ 			goto huge_out;
+-		damon_va_probe_folio(priv->ctx, priv->r, folio);
++		damon_va_probe_folio(priv->ctx, priv->r, folio, NULL, &pmde,
++				walk->vma->vm_mm);
+ 
+ huge_out:
+ 		spin_unlock(ptl);
+@@ -591,7 +630,8 @@ huge_out:
+ 	folio = vm_normal_folio(walk->vma, addr, ptent);
+ 	if (!folio)
+ 		goto out;
+-	damon_va_probe_folio(priv->ctx, priv->r, folio);
++	damon_va_probe_folio(priv->ctx, priv->r, folio, &ptent, NULL,
++			walk->vma->vm_mm);
+ 
+ out:
+ 	pte_unmap_unlock(pte, ptl);
+@@ -615,7 +655,8 @@ static int damon_va_probe_hugetlb_entry(
+ 
+ 	folio = pfn_folio(pte_pfn(entry));
+ 	folio_get(folio);
+-	damon_va_probe_folio(priv->ctx, priv->r, folio);
++	damon_va_probe_folio(priv->ctx, priv->r, folio, &entry, NULL,
++			walk->vma->vm_mm);
+ 	folio_put(folio);
+ 
+ out:
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
