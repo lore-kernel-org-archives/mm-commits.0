@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 262843BB134
-	for <mm-commits@vger.kernel.org>; Thu, 10 Sep 2026 21:30:51 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1082D4A9D71
+	for <mm-commits@vger.kernel.org>; Thu, 10 Sep 2026 21:30:53 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789075853; cv=none; b=P3SXGlHAGEupXMIgBCJigyzYtgGpWAGZBZylxvP8D6MEEa+06gvIXJXF0RR7UX4o0xl0v+/zcC2S8nIK1uQm2PK32v2zNnRix64yMuF6+l9/1HKcSztI4FNqqfJUoKFIPxWhUlNiN6GKgDxV4H0RnPXdYHhqcZ7h1ejupL0b4VA=
+	t=1789075855; cv=none; b=EfCiQzzMO5fxYRhrzIwUkFJACDFAUPtpQ2rVksbDpNWhDYxYY4urfeVYsYSPv6qB1o8BLqTOwS1XfK/EFlOGlvhdnKmXPhT6B43kQvGThMz9C3Mb0pLjq/v/bG38PAR1yxO8xr3ZXVSF183zz+P7nqK2Ml1OHHfULmt6sfOQSr8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1789075853; c=relaxed/simple;
-	bh=+R3Ajgo2AvvImRxNH0mOEzVjO6tn/QvvPoA9BqHCZeU=;
-	h=Date:To:From:Subject:Message-Id; b=dKfxOWPmMkOSovWS0xblUNTZsbkWQSm1zXiREeXaUjsPay1IdcSq8Gi8K4kd4saTe3BM2E9w3IitdgV8Fwmtyh501lLgazOe9QqcZyfHt8AeXT+SOftvNGJxurSVdsqZ+W+1Mp92DniMdwcUhlmQjTcsXzrflrklR9J/+uzvHDI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=K/x2KjNH; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1789075855; c=relaxed/simple;
+	bh=/nDOp9769PU1FqRqKKNLbMrbZeAttI9QKawDpfgl8e8=;
+	h=Date:To:From:Subject:Message-Id; b=DaDU29miIeGhAl8hZQ5LXEEE2Fj1Jy02Fk71g9DwBfqejMOpDQ+z7vxdeN3vY4t+EO2CCLiqRy+1kZdpsxqyvq/xaWztfmh+p5q8y9dpT43uBT53D03lyybX5YH6ZdFWbbt5AChH0pHhM/afjJusQuPIiimru+aC3rLfAw6/JjM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=QdfE9HDY; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="K/x2KjNH"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8F8551F000FF;
-	Thu, 10 Sep 2026 21:30:51 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="QdfE9HDY"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 954511F00893;
+	Thu, 10 Sep 2026 21:30:53 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1789075851;
-	bh=LX/ITQvswG27GSMVq7yY9M69X8EOtTehKAZdRdQeYF0=;
+	d=linux-foundation.org; s=korg; t=1789075853;
+	bh=SdSzHnoPStMTNq15YGBPgNawEXL6mjHxym1TvVoxV3I=;
 	h=Date:To:From:Subject;
-	b=K/x2KjNHH/tXbMMdvSKftlzR2VSsxZb0AykWGf1LwsDExyzduaHovipYwqSRqT74G
-	 vPSgxivsp/cNpKT43I0ln7ZOjQfm6Jo4V7VPcHbrLqPX6CYKzYgpVU1XyqgxBqTOh2
-	 jyCtFJYf2c61Xa4fJzmlY8d2jMS5/gvLAIhopgCo=
-Date: Thu, 10 Sep 2026 14:30:51 -0700
+	b=QdfE9HDYW40GIc2W27+dxZ+ZG2WcuOUL9dKyW0QKLGC16yKcsx2W9hiUj9OU+fj3x
+	 IXcbFXZHQax6+7vHrZAWjcyYHHMUTveEFL4DV7fyPCQErurZ5NUypge9iOkcrXRhej
+	 RKqNSCpP98sIZ3V7/qj1fBjK/3TYF8M4pAspHsEA=
+Date: Thu, 10 Sep 2026 14:30:53 -0700
 To: mm-commits@vger.kernel.org,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-damon-api-introduce-damon_filter_type_pgidle_set.patch added to mm-nonmm-unstable branch
-Message-Id: <20260910213051.8F8551F000FF@smtp.kernel.org>
+Subject: + mm-damon-paddr-support-damon_filter_type_pgidle_set.patch added to mm-nonmm-unstable branch
+Message-Id: <20260910213053.954511F00893@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/damon/api: introduce DAMON_FILTER_TYPE_PGIDLE_SET
+     Subject: mm/damon/paddr: support DAMON_FILTER_TYPE_PGIDLE_SET
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     mm-damon-api-introduce-damon_filter_type_pgidle_set.patch
+     mm-damon-paddr-support-damon_filter_type_pgidle_set.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-api-introduce-damon_filter_type_pgidle_set.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-paddr-support-damon_filter_type_pgidle_set.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,41 +59,13 @@ and is updated there most days
 
 ------------------------------------------------------
 From: SJ Park <sj@kernel.org>
-Subject: mm/damon/api: introduce DAMON_FILTER_TYPE_PGIDLE_SET
-Date: Thu, 10 Sep 2026 07:22:28 -0700
+Subject: mm/damon/paddr: support DAMON_FILTER_TYPE_PGIDLE_SET
+Date: Thu, 10 Sep 2026 07:22:29 -0700
 
-Patch series "mm/damon: introduce pgidle_set probe filter type".
+Implement DAMON_FILTER_TYPE_PGIDLE_SET support on the physical address
+space DAMON operation set (paddr).
 
-Users can do effective access monitoring with DAMON, using set_pgidle
-probe prep operation and pgidle_unset allowing probe filter.  In the
-setup, high probe_hits means the region was accessed frequently.  Zero
-probe_hits means the region was not accessed.  The filter, however,
-matches only the memory that can show the idleness.  Regions of zero
-probe_hits may contain memory that was just unable to show the idleness. 
-On virtual address space based monitoring, for example, non-present pages
-are reported as cold.  It is truly cold, but if the purpose is to make
-some operations like reclaiming or compressing the data, this is not
-really useful.  Introduce a new probe filter type, pgidle_set, that
-confirms the page is marked as idle.  Using it instead of pgidle_unset,
-users can find cold pages that can effectively be processed.
-
-Patch 1 introduces the pgidle_set probe filter type to DAMON kernel API. 
-Patches 2 and 3 add support for it on physical and virtual address space
-operation sets, respectively.  Patch 4 adds support for it on the DAMON
-sysfs interface.  Finally, patch 5 updates the documentation for the new
-filter type.
-
-
-This patch (of 5):
-
-DAMON_FILTER_TYPE_PGIDLE_UNSET matches only memory that was able to
-confirm if it is marked as idle.  If the memory cannot be marked as idle,
-it simply doesn't match.  Hence, finding memory that was marked as idle
-with only DAMON_FILTER_TYPE_PGIDLE_UNSET is impossible.  Introduce a new
-filter for the purpose, DAMON_FILTER_TYPE_PGIDLE_SET.
-
-Link: https://lore.kernel.org/20260910142234.171562-1-sj@kernel.org
-Link: https://lore.kernel.org/20260910142234.171562-2-sj@kernel.org
+Link: https://lore.kernel.org/20260910142234.171562-3-sj@kernel.org
 Signed-off-by: SJ Park <sj@kernel.org>
 Cc: David Hildenbrand <david@kernel.org>
 Cc: Jonathan Corbet <corbet@lwn.net>
@@ -107,25 +79,24 @@ Cc: Vlastimil Babka <vbabka@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/damon.h |    2 ++
- 1 file changed, 2 insertions(+)
+ mm/damon/paddr.c |    6 ++++++
+ 1 file changed, 6 insertions(+)
 
---- a/include/linux/damon.h~mm-damon-api-introduce-damon_filter_type_pgidle_set
-+++ a/include/linux/damon.h
-@@ -774,11 +774,13 @@ struct damon_prep {
-  * @DAMON_FILTER_TYPE_ANON:		Anonymous pages.
-  * @DAMON_FILTER_TYPE_MEMCG:		Specific memcg's pages.
-  * @DAMON_FILTER_TYPE_PGIDLE_UNSET:	Pgidle is unset.
-+ * @DAMON_FILTER_TYPE_PGIDLE_SET:	Pgidle is set.
-  */
- enum damon_filter_type {
- 	DAMON_FILTER_TYPE_ANON,
- 	DAMON_FILTER_TYPE_MEMCG,
- 	DAMON_FILTER_TYPE_PGIDLE_UNSET,
-+	DAMON_FILTER_TYPE_PGIDLE_SET,
- };
- 
- /**
+--- a/mm/damon/paddr.c~mm-damon-paddr-support-damon_filter_type_pgidle_set
++++ a/mm/damon/paddr.c
+@@ -151,6 +151,12 @@ static bool damon_pa_filter_match(struct
+ 		else
+ 			matched = damon_folio_young(folio);
+ 		break;
++	case DAMON_FILTER_TYPE_PGIDLE_SET:
++		if (!folio)
++			matched = false;
++		else
++			matched = damon_folio_young(folio) == false;
++		break;
+ 	default:
+ 		return damon_ops_filter_match(filter, folio);
+ 	}
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
