@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 03D081C5D59
-	for <mm-commits@vger.kernel.org>; Thu, 10 Sep 2026 05:59:11 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C880137C92D;
+	Thu, 10 Sep 2026 06:19:15 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789019953; cv=none; b=YVxLhiIS5z9pCOHlwoMcSRz+T25FKONRwWz5tRN8Ti1Strtf79TqBR3qTi4mERiPFgRVDZWs13w42Mccvd/bcp694dkEygNx+V9zpuE5UP6FTTO1aNP7uEDpin0ySslZI8B0zcP6MCT+47+BWfD8iZ00QzoCOZEmQI3nz6OSF3Q=
+	t=1789021162; cv=none; b=WRVz3aMLlzEPq5Qozadi3clfou7uDF4EKoM5UMcqjD39M1BTFfg+Zadgf12eDCzZhyKImJemM+e4hfT6i7PISft+YpvOGhi3V4Xxe1xtFaHY66Q7ikqGIF3wfG6voCc+HjyNLqKLIeT2q0ddbzwJMF6HNvo6o40uZ0zdSM47pMs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1789019953; c=relaxed/simple;
-	bh=dYMVjZhxn6TDtnJw4eDx83LdHH5qUzrxjp94HMhSHaE=;
-	h=Date:To:From:Subject:Message-Id; b=UmDPlSuGWtyfE4Cz/DPL7meMuXBbXWeIiZf+xNJkDMrYZ6IMjITpVD5hP2GdWoz/ZO1kgz6evcL7eEq8Hb7N0MVtOOaNno1aXUsL2SNixeaACPqynlTn/GINsl3bsK0Yo/VkHgJUmtpZBQNfVQ/XAa1mVx4GJlceVTIAagXOJzw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=a9PFash4; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1789021162; c=relaxed/simple;
+	bh=5X9kUA8rHCURoxVrUNZbLSyxWmqjyWNp/iruiVbwSJc=;
+	h=Date:To:From:Subject:Message-Id; b=RQjhCsBLIJiMZesS+a0msbX2r0Mr3oidsI6QgFL676LswEa09O28NXIN9AD4VISfPyXLHAN0+EFGA/3NO+KmPrAy5FFCvGp2hWi1zGRnyZHrzLfxBG9IPbGQUddEY/DorvxNayhXE1KH1s02Q24PqiRoaQeVDKDxNO6XMA6u94s=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=HS/Lmngz; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="a9PFash4"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B7C961F00893;
-	Thu, 10 Sep 2026 05:59:11 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="HS/Lmngz"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C10D81F00893;
+	Thu, 10 Sep 2026 06:19:09 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1789019951;
-	bh=ZOBN3LdMzhV5DIctp0y9LSW3U8hhT07+CN4BmyO/Ins=;
+	d=linux-foundation.org; s=korg; t=1789021149;
+	bh=j6Z2s4Qz4RBca+R3C4ySLnTugbsux3Wlv7v1g0/6vhc=;
 	h=Date:To:From:Subject;
-	b=a9PFash4QtIeSKuacN7xGlrhIu/yNa9yMBDFhsivi+fECPGDQY8MJVd61ituNCbSO
-	 si+bl5YEjtY7F26xVkM6df155OvaI0oRh2+MkflhF6jVSWZO7VNW/AoMG5yReWil1Y
-	 BtTwLs0S+uuRp98rF2rO8ISZTgPUETjkUTbbwzo0=
-Date: Wed, 09 Sep 2026 22:59:11 -0700
-To: mm-commits@vger.kernel.org,yuanchu@google.com,weixugc@google.com,shikemeng@huaweicloud.com,shakeel.butt@linux.dev,nphamcs@gmail.com,mhocko@kernel.org,ljs@kernel.org,kasong@tencent.com,hannes@cmpxchg.org,david@kernel.org,chrisl@kernel.org,baoquan.he@linux.dev,baohua@kernel.org,axelrasmussen@google.com,bingfangguo@tencent.com,akpm@linux-foundation.org
+	b=HS/LmngzL4nrbpZJJy45EIaHnq21evg9uHNzkLXf2aT/6eT3a2wbb0sYbv9yQQOR+
+	 sq+c75faRqJYkYTLEscpYqTQzNUn3kPL3Hc81lap2nErBoQnFmesttgn/yIW7YUMoP
+	 mqU634AWaxpFB39+AcVbLAcVXpNc51eKMn86+ZHg=
+Date: Wed, 09 Sep 2026 23:19:09 -0700
+To: mm-commits@vger.kernel.org,weir@nebusec.ai,vega@nebusec.ai,vbabka@kernel.org,surenb@google.com,stable@vger.kernel.org,rppt@kernel.org,notasas@gmail.com,mhocko@suse.com,ljs@kernel.org,liam@infradead.org,david@kernel.org,rakukuip@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-memcg-clear-folio-memcg-after-changing-per-memcg-stats.patch added to mm-new branch
-Message-Id: <20260910055911.B7C961F00893@smtp.kernel.org>
+Subject: [to-be-updated] mm-memory-constrain-generic_access_phys-to-page-boundary.patch removed from -mm tree
+Message-Id: <20260910061909.C10D81F00893@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,171 +34,104 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The patch titled
-     Subject: mm/memcg: clear folio memcg after changing per memcg stats
-has been added to the -mm mm-new branch.  Its filename is
-     mm-memcg-clear-folio-memcg-after-changing-per-memcg-stats.patch
+The quilt patch titled
+     Subject: mm/memory: constrain generic_access_phys() to page boundary
+has been removed from the -mm tree.  Its filename was
+     mm-memory-constrain-generic_access_phys-to-page-boundary.patch
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memcg-clear-folio-memcg-after-changing-per-memcg-stats.patch
-
-This patch will later appear in the mm-new branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Note, mm-new is a provisional staging ground for work-in-progress
-patches, and acceptance into mm-new is a notification for others take
-notice and to finish up reviews.  Please do not hesitate to respond to
-review feedback and post updated versions to replace or incrementally
-fixup patches in mm-new.
-
-The mm-new branch of mm.git is not included in linux-next
-
-If a few days of testing in mm-new is successful, the patch will me moved
-into mm.git's mm-unstable branch, which is included in linux-next
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via various
-branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there most days
+This patch was dropped because an updated version will be issued
 
 ------------------------------------------------------
-From: Bingfang Guo <bingfangguo@tencent.com>
-Subject: mm/memcg: clear folio memcg after changing per memcg stats
-Date: Thu, 10 Sep 2026 11:46:58 +0800
+From: Luxiao Xu <rakukuip@gmail.com>
+Subject: mm/memory: constrain generic_access_phys() to page boundary
+Date: Sat, 5 Sep 2026 22:12:17 +0800
 
-I notice extremely high swapcached count in the per memcg level
-memory.stat when running tests with cgroupv1 setup by swapping pages in
-and out.  It seems that the counter never gets decreased so the value is
-rather useless and confusing to users reading it.  So I think fixing it so
-that the value can reflect the actual swapcache usage correctly could be
-helpful.
+generic_access_phys() improperly validates the memory access range: it
+only validates the start address using follow_pfnmap_start() and passes
+PAGE_ALIGN(len + offset) to ioremap_prot().
 
-__memcg1_swapout() transfers the memsw charge of a folio to its swap entry
-and clears folio->memcg_data as part of that.  In the vmscan swapout path
-it runs before __swap_cache_del_folio(), which then decrements the
-swapcache stats through lruvec_stat_mod_folio().  Since folio->memcg_data
-has already been cleared, folio_memcg() returns NULL and the NR_SWAPCACHE
-decrement only updates the node-level counter instead of the memcg's
-lruvec, leaking the per-memcg swapcache count.
+This poses two problems:
+1. In PFNMAP VMAs, consecutive virtual pages are not guaranteed to be
+   physically contiguous, and individual PTEs may have different access
+   permissions or writability.
+2. The mapping may cross VMA boundaries if len extends beyond vma->vm_end.
 
-Move the __memcg1_swapout() call into __swap_cache_del_folio(), after the
-NR_FILE_PAGES and NR_SWAPCACHE updates but before
-__swap_cache_do_del_folio() removes the folio from the swap cache.  This
-keeps the stats attributed to the folio's memcg while still recording the
-swap cgroup with a valid folio->swap.  Add a swapout parameter so the
-plain swap_cache_del_folio() path is left unchanged.
+Since __access_remote_vm() already loops over the requested length and
+accesses normal (struct page) memory page-by-page, constrain the
+->access() callback in __access_remote_vm() to at most the current page
+boundary.  Because VMA boundaries are always page-aligned, this also
+ensures the access never exceeds the current VMA.
 
-Link: https://lore.kernel.org/20260910-memcg-swapcache-stats-fix-v5-1-033f510ba748@tencent.com
-Fixes: 2732acda82c9 ("mm, swap: use swap cache as the swap in synchronize layer")
-Signed-off-by: Bingfang Guo <bingfangguo@tencent.com>
-Acked-by: Kairui Song <kasong@tencent.com>
-Cc: Axel Rasmussen <axelrasmussen@google.com>
-Cc: Baoquan He <baoquan.he@linux.dev>
-Cc: Barry Song <baohua@kernel.org>
-Cc: Chris Li <chrisl@kernel.org>
-Cc: David Hildenbrand <david@kernel.org>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Kemeng Shi <shikemeng@huaweicloud.com>
+In generic_access_phys(), defensively clamp len to the page boundary as
+well, map only a single PAGE_SIZE via ioremap_prot(), and add a missing
+(resource_size_t) cast during PFN re-validation to avoid truncation on
+32-bit PAE systems.
+
+Link: https://lore.kernel.org/eaa4de66f9491888e0ffeb2d37ba7ae796ba535e.1788531737.git.rakukuip@gmail.com
+Fixes: 9cb12d7b4cca ("mm/memory.c: actually remap enough memory")
+Signed-off-by: Luxiao Xu <rakukuip@gmail.com>
+Signed-off-by: Ren Wei <weir@nebusec.ai>
+Reported-by: Vega <vega@nebusec.ai>
+Assisted-by: LLM
+Suggested-by: David Hildenbrand <david@kernel.org>
+Cc: Grazvydas Ignotas <notasas@gmail.com>
+Cc: Liam R. Howlett <liam@infradead.org>
 Cc: Lorenzo Stoakes <ljs@kernel.org>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Nhat Pham <nphamcs@gmail.com>
-Cc: Shakeel Butt <shakeel.butt@linux.dev>
-Cc: Wei Xu <weixugc@google.com>
-Cc: Yuanchu Xie <yuanchu@google.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Vlastimil Babka <vbabka@kernel.org>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/swap.h       |    6 ++++--
- mm/swap_state.c |   13 ++++++++++---
- mm/vmscan.c     |    3 +--
- 3 files changed, 15 insertions(+), 7 deletions(-)
+ mm/memory.c |   12 +++++++++---
+ 1 file changed, 9 insertions(+), 3 deletions(-)
 
---- a/mm/swap.h~mm-memcg-clear-folio-memcg-after-changing-per-memcg-stats
-+++ a/mm/swap.h
-@@ -319,7 +319,8 @@ struct folio *swap_cache_alloc_folio(swp
- void __swap_cache_add_folio(struct swap_cluster_info *ci,
- 			    struct folio *folio, swp_entry_t entry);
- void __swap_cache_del_folio(struct swap_cluster_info *ci,
--			    struct folio *folio, swp_entry_t entry, void *shadow);
-+			    struct folio *folio, swp_entry_t entry, void *shadow,
-+			    bool swapout);
- void __swap_cache_replace_folio(struct swap_cluster_info *ci,
- 				struct folio *old, struct folio *new);
+--- a/mm/memory.c~mm-memory-constrain-generic_access_phys-to-page-boundary
++++ a/mm/memory.c
+@@ -7131,6 +7131,11 @@ int generic_access_phys(struct vm_area_s
+ 	bool writable;
+ 	struct follow_pfnmap_args args = { .vma = vma, .address = addr };
  
-@@ -452,7 +453,8 @@ static inline void swap_cache_del_folio(
- }
- 
- static inline void __swap_cache_del_folio(struct swap_cluster_info *ci,
--		struct folio *folio, swp_entry_t entry, void *shadow)
-+		struct folio *folio, swp_entry_t entry, void *shadow,
-+		bool swapout)
- {
- }
- 
---- a/mm/swap_state.c~mm-memcg-clear-folio-memcg-after-changing-per-memcg-stats
-+++ a/mm/swap_state.c
-@@ -306,21 +306,28 @@ static void __swap_cache_do_del_folio(st
-  * @folio: The folio.
-  * @entry: The first swap entry that the folio corresponds to.
-  * @shadow: shadow value to be filled in the swap cache.
-+ * @swapout: whether this folio is being reclaimed after swapout.
-  *
-  * Removes a folio from the swap cache and fills a shadow in place.
-  * This won't put the folio's refcount. The caller has to do that.
-  *
-  * Context: Caller must ensure the folio is locked and in the swap cache
-  * using the index of @entry, and lock the cluster that holds the entries.
-+ * If @swapout is set, the folio should be in reclaim path and IRQs
-+ * should be disabled.
-  */
- void __swap_cache_del_folio(struct swap_cluster_info *ci, struct folio *folio,
--			    swp_entry_t entry, void *shadow)
-+			    swp_entry_t entry, void *shadow, bool swapout)
- {
- 	unsigned long nr_pages = folio_nr_pages(folio);
- 
--	__swap_cache_do_del_folio(ci, folio, entry, shadow);
- 	node_stat_mod_folio(folio, NR_FILE_PAGES, -nr_pages);
- 	lruvec_stat_mod_folio(folio, NR_SWAPCACHE, -nr_pages);
++	if (len <= 0)
++		return 0;
 +
-+	if (swapout)
-+		__memcg1_swapout(folio, ci);
++	len = min_t(int, len, PAGE_SIZE - offset);
 +
-+	__swap_cache_do_del_folio(ci, folio, entry, shadow);
- }
+ retry:
+ 	if (follow_pfnmap_start(&args))
+ 		return -EINVAL;
+@@ -7142,7 +7147,7 @@ retry:
+ 	if ((write & FOLL_WRITE) && !writable)
+ 		return -EINVAL;
  
- /**
-@@ -339,7 +346,7 @@ void swap_cache_del_folio(struct folio *
- 	swp_entry_t entry = folio->swap;
+-	maddr = ioremap_prot(phys_addr, PAGE_ALIGN(len + offset), prot);
++	maddr = ioremap_prot(phys_addr, PAGE_SIZE, prot);
+ 	if (!maddr)
+ 		return -ENOMEM;
  
- 	ci = swap_cluster_lock(__swap_entry_to_info(entry), swp_offset(entry));
--	__swap_cache_del_folio(ci, folio, entry, NULL);
-+	__swap_cache_del_folio(ci, folio, entry, NULL, false);
- 	swap_cluster_unlock(ci);
+@@ -7150,7 +7155,7 @@ retry:
+ 		goto out_unmap;
  
- 	folio_ref_sub(folio, folio_nr_pages(folio));
---- a/mm/vmscan.c~mm-memcg-clear-folio-memcg-after-changing-per-memcg-stats
-+++ a/mm/vmscan.c
-@@ -807,8 +807,7 @@ static int __remove_mapping(struct addre
- 
- 		if (reclaimed && !mapping_exiting(mapping))
- 			shadow = workingset_eviction(folio, target_memcg);
--		__memcg1_swapout(folio, ci);
--		__swap_cache_del_folio(ci, folio, swap, shadow);
-+		__swap_cache_del_folio(ci, folio, swap, shadow, true);
- 		swap_cluster_unlock_irq(ci);
- 	} else {
- 		void (*free_folio)(struct folio *);
+ 	if ((pgprot_val(prot) != pgprot_val(args.pgprot)) ||
+-	    (phys_addr != (args.pfn << PAGE_SHIFT)) ||
++	    (phys_addr != ((resource_size_t)args.pfn << PAGE_SHIFT)) ||
+ 	    (writable != args.writable)) {
+ 		follow_pfnmap_end(&args);
+ 		iounmap(maddr);
+@@ -7221,7 +7226,8 @@ static int __access_remote_vm(struct mm_
+ #ifdef CONFIG_HAVE_IOREMAP_PROT
+ 			if (vma->vm_ops && vma->vm_ops->access)
+ 				bytes = vma->vm_ops->access(vma, addr, buf,
+-							    len, write);
++							    min_t(int, len, PAGE_SIZE - offset_in_page(addr)),
++							    write);
+ #endif
+ 			if (bytes <= 0)
+ 				break;
 _
 
-Patches currently in -mm which might be from bingfangguo@tencent.com are
+Patches currently in -mm which might be from rakukuip@gmail.com are
 
-mm-memcg-clear-folio-memcg-after-changing-per-memcg-stats.patch
 
