@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D85E4383C67
-	for <mm-commits@vger.kernel.org>; Thu, 10 Sep 2026 23:05:20 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 097C7340DB0
+	for <mm-commits@vger.kernel.org>; Thu, 10 Sep 2026 23:05:23 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789081522; cv=none; b=kBOaF2iMhY5igMhbS3zjJ/fiyfk2onNWNfkNTkb8zLp/i3F2e9hzdF9I+QlT3ridKKP7ptr7g90EKRn5qxmIiwfSTTR0Z5GiupFvcWfgocMmqV61ELwSZzmQmCctn9AtdS0NEHZ4MbjEuLdRRwyYNh2dOaqVItAYR6scsiLmCFo=
+	t=1789081525; cv=none; b=CkrYY6UZmLFjgEw5W1kuwsVuAmvW+CQZsEvUGgSeNX9V/kIZ2yMW1olRmQ3Wv5E81m2H5QMlMf+xcd9immsh0ShhAGGE3bHKIiVbAaUEI8n+aDZF1LKaJMSKP0xdlG1B+3kd06faFlW0MOg4jzP8skd4SDMtnLF1vMS8TNXCVFQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1789081522; c=relaxed/simple;
-	bh=uknZPjgizZ1Crfu8xlzky/mSRobtT+5mYhEt5cs9E44=;
-	h=Date:To:From:Subject:Message-Id; b=D4jqwQmwJNOEW86rtIbPCTSShe8KdfcgDeVw3oeu554Y+iw92yXj8/xcT+yF8S8fjJIcdl85PBLRVKV2XhpC8z2g6eMok0l7Wb9ehDVHLyV6cC09rqekaerw9cLAg8jnuKzqyVOCsEUxXCvSPdOaJMLegNJAEkFdHU/22ea4XVY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=RB+120+Z; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1789081525; c=relaxed/simple;
+	bh=Dj+hdUwh15FQwejXLgGT1T2vDOqG+xKjWvV+W+JVpFE=;
+	h=Date:To:From:Subject:Message-Id; b=REfjM+npLSNQsKdWDk3q+v+ItAkWw/3By3hswH59Fxmc1caNysDzAXNdJJ9knlKJuxfCnMXijV1WvBu9WCCFg8LtVgwtWT8sBXAA2RK+bi5S+DKV9TT27Qe1hlSatA5v02hwczoJviLZigZOOCmhvecVdrgSmZdQcI52tABWK8M=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=zM1+Da/a; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="RB+120+Z"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8479B1F000FF;
-	Thu, 10 Sep 2026 23:05:20 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="zM1+Da/a"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 803B71F000FF;
+	Thu, 10 Sep 2026 23:05:23 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1789081520;
-	bh=fjBoE2eyWZzM44m2Rky8qeG+tbq/SLRZ/cNvWaHhdSs=;
+	d=linux-foundation.org; s=korg; t=1789081523;
+	bh=6pz2JrESXDMnaTqrlcaigt1vqBMlPNXB8O6TSwPCE8k=;
 	h=Date:To:From:Subject;
-	b=RB+120+ZroQk3wmNw1Zca2qwVlgRz0RAzjEFseP4fhwhw3cYwCZaeJJ7gcnHtftsE
-	 EE2eXpQtGm2MLCSkuDOvZADcccnvjF13HQTO7O1XW+CKLOfmo3QnyK+uE70v0cZTXb
-	 HOoCMEOBxHQWWKM0jo4WN1RHGYH5uWdropEZkFM0=
-Date: Thu, 10 Sep 2026 16:05:20 -0700
+	b=zM1+Da/a84ZFvagmmJ2S6841xRU1WFaRzbEnLdLTHWkYKbXsbMXHLkA4hoDXg6F6m
+	 UixO3D6n0ltxb0R56PZz2j6K7Vdka0MB3BUaXGYjo2JrMEHXA/jvkEs7kF1s889Yi+
+	 HzwZqoUJemq7YxJijktADWBC1luMxa6ucV6XtsSo=
+Date: Thu, 10 Sep 2026 16:05:23 -0700
 To: mm-commits@vger.kernel.org,songmuchun@bytedance.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-mm_init-factor-out-pfn_to_zone.patch added to mm-unstable branch
-Message-Id: <20260910230520.8479B1F000FF@smtp.kernel.org>
+Subject: + mm-sparse-vmemmap-move-helpers-ahead-of-future-callers.patch added to mm-unstable branch
+Message-Id: <20260910230523.803B71F000FF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/mm_init: factor out pfn_to_zone()
+     Subject: mm/sparse-vmemmap: move helpers ahead of future callers
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-mm_init-factor-out-pfn_to_zone.patch
+     mm-sparse-vmemmap-move-helpers-ahead-of-future-callers.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mm_init-factor-out-pfn_to_zone.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-sparse-vmemmap-move-helpers-ahead-of-future-callers.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,17 +59,22 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Muchun Song <songmuchun@bytedance.com>
-Subject: mm/mm_init: factor out pfn_to_zone()
-Date: Thu, 10 Sep 2026 14:32:45 +0800
+Subject: mm/sparse-vmemmap: move helpers ahead of future callers
+Date: Thu, 10 Sep 2026 14:32:46 +0800
 
-pfn_to_zone() in hugetlb_vmemmap.c duplicates the zone lookup logic in
-__init_deferred_page().
+Prepare for section-based vmemmap optimization by moving helpers that
+follow-up changes will use.  vmemmap_get_tail() will be called from the
+PTE population path.  section_nr_vmemmap_pages() will be made visible
+outside the memory hotplug code and called from sparse_init_nid().
 
-Move it to mm_init.c, declare it in mm/mm_init.h, and reuse it from
-__init_deferred_page() and HugeTLB early vmemmap initialization instead of
-open-coding the zone walk there.
+Move vmemmap_alloc_block_zero() together with vmemmap_get_tail(), since
+the tail helper depends on it.  Move section_nr_vmemmap_pages() earlier
+into its own CONFIG_MEMORY_HOTPLUG block.  That lets the later patch
+change its visibility and callers without also moving the function body.
 
-Link: https://lore.kernel.org/20260910063256.64386-7-songmuchun@bytedance.com
+No functional change is intended.
+
+Link: https://lore.kernel.org/20260910063256.64386-8-songmuchun@bytedance.com
 Signed-off-by: Muchun Song <songmuchun@bytedance.com>
 Acked-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
 Acked-by: Qi Zheng <qi.zheng@linux.dev>
@@ -84,109 +89,173 @@ Cc: Vlastimil Babka <vbabka@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb_vmemmap.c |   17 ++---------------
- mm/mm_init.c         |   28 ++++++++++++++++++----------
- mm/mm_init.h         |    1 +
- 3 files changed, 21 insertions(+), 25 deletions(-)
+ mm/sparse-vmemmap.c |  134 +++++++++++++++++++++---------------------
+ 1 file changed, 69 insertions(+), 65 deletions(-)
 
---- a/mm/hugetlb_vmemmap.c~mm-mm_init-factor-out-pfn_to_zone
-+++ a/mm/hugetlb_vmemmap.c
-@@ -19,6 +19,7 @@
- #include <asm/tlbflush.h>
- #include "hugetlb_vmemmap.h"
- #include "internal.h"
-+#include "mm_init.h"
- 
- /**
-  * struct vmemmap_remap_walk - walk vmemmap page table
-@@ -744,20 +745,6 @@ static bool vmemmap_should_optimize_boot
- 	return true;
+--- a/mm/sparse-vmemmap.c~mm-sparse-vmemmap-move-helpers-ahead-of-future-callers
++++ a/mm/sparse-vmemmap.c
+@@ -148,6 +148,75 @@ void __meminit vmemmap_verify(pte_t *pte
+ 			start, end - 1);
  }
  
--static struct zone *pfn_to_zone(unsigned nid, unsigned long pfn)
++#ifdef CONFIG_MEMORY_HOTPLUG
++static int __meminit section_nr_vmemmap_pages(unsigned long pfn, unsigned long nr_pages,
++		struct vmem_altmap *altmap, struct dev_pagemap *pgmap)
++{
++	const struct mem_section *ms = __pfn_to_section(pfn);
++	const int order = pgmap ? pgmap->vmemmap_shift : section_compound_order(ms);
++	const int vmemmap_pages = pgmap ? VMEMMAP_RESERVE_NR : VMEMMAP_OPTIMIZATION_PAGES;
++	const unsigned long pages_per_compound = 1UL << order;
++
++	VM_WARN_ON_ONCE(!IS_ALIGNED(pfn | nr_pages, PAGES_PER_SUBSECTION));
++	VM_WARN_ON_ONCE(nr_pages > PAGES_PER_SECTION);
++
++	if (!vmemmap_can_optimize(altmap, pgmap) && !section_vmemmap_optimizable(ms))
++		return DIV_ROUND_UP(nr_pages * sizeof(struct page), PAGE_SIZE);
++
++	if (order < PFN_SECTION_SHIFT) {
++		VM_WARN_ON_ONCE(!IS_ALIGNED(pfn | nr_pages, pages_per_compound));
++		return vmemmap_pages * nr_pages / pages_per_compound;
++	}
++
++	VM_WARN_ON_ONCE(!IS_ALIGNED(pfn | nr_pages, PAGES_PER_SECTION));
++
++	if (IS_ALIGNED(pfn, pages_per_compound))
++		return vmemmap_pages;
++
++	return 0;
++}
++#endif
++
++static void * __meminit vmemmap_alloc_block_zero(unsigned long size, int node)
++{
++	void *p = vmemmap_alloc_block(size, node);
++
++	if (!p)
++		return NULL;
++	memset(p, 0, size);
++
++	return p;
++}
++
++#ifdef CONFIG_HUGETLB_PAGE_OPTIMIZE_VMEMMAP
++static __meminit struct page *vmemmap_get_tail(unsigned int order, struct zone *zone)
++{
++	struct page *p, *tail;
++	unsigned int idx;
++	int node = zone_to_nid(zone);
++
++	if (WARN_ON_ONCE(order < VMEMMAP_OPTIMIZATION_MIN_ORDER))
++		return NULL;
++	if (WARN_ON_ONCE(order > MAX_FOLIO_ORDER))
++		return NULL;
++
++	idx = order - VMEMMAP_OPTIMIZATION_MIN_ORDER;
++	tail = zone->vmemmap_tails[idx];
++	if (tail)
++		return tail;
++	p = vmemmap_alloc_block_zero(PAGE_SIZE, node);
++	if (!p)
++		return NULL;
++	for (int i = 0; i < PAGE_SIZE / sizeof(struct page); i++)
++		init_compound_tail(p + i, NULL, order, zone);
++
++	tail = virt_to_page(p);
++	zone->vmemmap_tails[idx] = tail;
++
++	return tail;
++}
++#endif
++
+ static pte_t * __meminit vmemmap_pte_populate(pmd_t *pmd, unsigned long addr, int node,
+ 				       struct vmem_altmap *altmap,
+ 				       unsigned long ptpfn, unsigned long flags)
+@@ -181,17 +250,6 @@ static pte_t * __meminit vmemmap_pte_pop
+ 	return pte;
+ }
+ 
+-static void * __meminit vmemmap_alloc_block_zero(unsigned long size, int node)
 -{
--	struct zone *zone;
--	enum zone_type zone_type;
+-	void *p = vmemmap_alloc_block(size, node);
 -
--	for (zone_type = 0; zone_type < MAX_NR_ZONES; zone_type++) {
--		zone = &NODE_DATA(nid)->node_zones[zone_type];
--		if (zone_spans_pfn(zone, pfn))
--			return zone;
--	}
+-	if (!p)
+-		return NULL;
+-	memset(p, 0, size);
 -
--	return NULL;
+-	return p;
 -}
 -
- /*
-  * Initialize memmap section for a gigantic page, HVO-style.
-  */
-@@ -787,7 +774,7 @@ void __init hugetlb_vmemmap_init_early(i
- 		map = pfn_to_page(pfn);
- 		start = (unsigned long)map;
- 		end = start + hugetlb_vmemmap_size(m->hstate);
--		zone = pfn_to_zone(nid, pfn);
-+		zone = pfn_to_zone(pfn, nid);
+ static pmd_t * __meminit vmemmap_pmd_populate(pud_t *pud, unsigned long addr, int node)
+ {
+ 	pmd_t *pmd = pmd_offset(pud, addr);
+@@ -323,33 +381,6 @@ void vmemmap_wrprotect_hvo(unsigned long
+ }
  
- 		if (vmemmap_populate_hvo(start, end, huge_page_order(m->hstate),
- 					 zone, HUGETLB_VMEMMAP_RESERVE_SIZE))
---- a/mm/mm_init.c~mm-mm_init-factor-out-pfn_to_zone
-+++ a/mm/mm_init.c
-@@ -692,6 +692,20 @@ static __meminit void pageblock_migratet
+ #ifdef CONFIG_HUGETLB_PAGE_OPTIMIZE_VMEMMAP
+-static __meminit struct page *vmemmap_get_tail(unsigned int order, struct zone *zone)
+-{
+-	struct page *p, *tail;
+-	unsigned int idx;
+-	int node = zone_to_nid(zone);
+-
+-	if (WARN_ON_ONCE(order < VMEMMAP_OPTIMIZATION_MIN_ORDER))
+-		return NULL;
+-	if (WARN_ON_ONCE(order > MAX_FOLIO_ORDER))
+-		return NULL;
+-
+-	idx = order - VMEMMAP_OPTIMIZATION_MIN_ORDER;
+-	tail = zone->vmemmap_tails[idx];
+-	if (tail)
+-		return tail;
+-	p = vmemmap_alloc_block_zero(PAGE_SIZE, node);
+-	if (!p)
+-		return NULL;
+-	for (int i = 0; i < PAGE_SIZE / sizeof(struct page); i++)
+-		init_compound_tail(p + i, NULL, order, zone);
+-
+-	tail = virt_to_page(p);
+-	zone->vmemmap_tails[idx] = tail;
+-
+-	return tail;
+-}
+-
+ int __meminit vmemmap_populate_hvo(unsigned long addr, unsigned long end,
+ 				       unsigned int order, struct zone *zone,
+ 				       unsigned long headsize)
+@@ -646,33 +677,6 @@ void offline_mem_sections(unsigned long
  	}
  }
  
-+struct zone __meminit *pfn_to_zone(unsigned long pfn, int nid)
-+{
-+	pg_data_t *pgdat = NODE_DATA(nid);
-+
-+	for (enum zone_type zone_type = 0; zone_type < MAX_NR_ZONES; zone_type++) {
-+		struct zone *zone = &pgdat->node_zones[zone_type];
-+
-+		if (zone_spans_pfn(zone, pfn))
-+			return zone;
-+	}
-+
-+	return NULL;
-+}
-+
- #ifdef CONFIG_DEFERRED_STRUCT_PAGE_INIT
- static inline void pgdat_set_deferred_range(pg_data_t *pgdat)
- {
-@@ -750,20 +764,14 @@ defer_init(int nid, unsigned long pfn, u
- 
- static void __meminit __init_deferred_page(unsigned long pfn, int nid)
- {
--	pg_data_t *pgdat = NODE_DATA(nid);
--	int zid;
-+	struct zone *zone;
- 
- 	if (early_page_initialised(pfn, nid))
- 		return;
- 
--	for (zid = 0; zid < MAX_NR_ZONES; zid++) {
--		struct zone *zone = &pgdat->node_zones[zid];
+-static int __meminit section_nr_vmemmap_pages(unsigned long pfn, unsigned long nr_pages,
+-		struct vmem_altmap *altmap, struct dev_pagemap *pgmap)
+-{
+-	const struct mem_section *ms = __pfn_to_section(pfn);
+-	const int order = pgmap ? pgmap->vmemmap_shift : section_compound_order(ms);
+-	const int vmemmap_pages = pgmap ? VMEMMAP_RESERVE_NR : VMEMMAP_OPTIMIZATION_PAGES;
+-	const unsigned long pages_per_compound = 1UL << order;
 -
--		if (zone_spans_pfn(zone, pfn))
--			break;
+-	VM_WARN_ON_ONCE(!IS_ALIGNED(pfn | nr_pages, PAGES_PER_SUBSECTION));
+-	VM_WARN_ON_ONCE(nr_pages > PAGES_PER_SECTION);
+-
+-	if (!vmemmap_can_optimize(altmap, pgmap) && !section_vmemmap_optimizable(ms))
+-		return DIV_ROUND_UP(nr_pages * sizeof(struct page), PAGE_SIZE);
+-
+-	if (order < PFN_SECTION_SHIFT) {
+-		VM_WARN_ON_ONCE(!IS_ALIGNED(pfn | nr_pages, pages_per_compound));
+-		return vmemmap_pages * nr_pages / pages_per_compound;
 -	}
--	__init_single_page(pfn_to_page(pfn), pfn, zid, nid);
 -
-+	zone = pfn_to_zone(pfn, nid);
-+	__init_single_page(pfn_to_page(pfn), pfn,
-+			   zone ? zone_idx(zone) : MAX_NR_ZONES, nid);
- 	if (pageblock_aligned(pfn)) {
- 		enum migratetype mt =
- 			kho_scratch_migratetype(pfn, MIGRATE_MOVABLE);
---- a/mm/mm_init.h~mm-mm_init-factor-out-pfn_to_zone
-+++ a/mm/mm_init.h
-@@ -39,6 +39,7 @@ void memmap_init_range(unsigned long siz
- 		enum meminit_context context,
- 		struct vmem_altmap *altmap, int migratetype,
- 		bool isolate_pageblock);
-+struct zone *pfn_to_zone(unsigned long pfn, int nid);
- 
- #if defined CONFIG_COMPACTION || defined CONFIG_CMA
- /* Free whole pageblock and set its migration type to MIGRATE_CMA. */
+-	VM_WARN_ON_ONCE(!IS_ALIGNED(pfn | nr_pages, PAGES_PER_SECTION));
+-
+-	if (IS_ALIGNED(pfn, pages_per_compound))
+-		return vmemmap_pages;
+-
+-	return 0;
+-}
+-
+ static struct page * __meminit populate_section_memmap(unsigned long pfn,
+ 		unsigned long nr_pages, int nid, struct vmem_altmap *altmap,
+ 		struct dev_pagemap *pgmap)
 _
 
 Patches currently in -mm which might be from songmuchun@bytedance.com are
