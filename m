@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6BD102C87F
-	for <mm-commits@vger.kernel.org>; Thu, 10 Sep 2026 00:07:38 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 772FC27703
+	for <mm-commits@vger.kernel.org>; Thu, 10 Sep 2026 00:07:40 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1788998862; cv=none; b=WMQvTLbOLOvD0iEIDLUfcsmo2cUGWI+XV2+K+0bbQeYbj7VKw0mhjN2Qad7bJv+CU6Ah37xrMusg3rAx66iDkupNO8gLMV51exKOJfauYEA33wvAOonLElBgempJaCtbpMt493jH4En1LEb74x7/l/uxcr+j56Eph3NRDO7wh/8=
+	t=1788998863; cv=none; b=IFeADamI7J5C02w+MOJyvmKIcVm1J/gncRsSQ/TGh2eSxjC4gfFylYERGTOVk5RUVBAk4DFlzQPRGJhOmCtnPbG78+8XB7oGUlERYcKgHrwE2Z7DntHPsmVoM4h0I8zFCQLDwgYODgC1apU2i0H9u4yjmSfKkJpPuPQwWVtU+gg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1788998862; c=relaxed/simple;
-	bh=jVeiPagGWGL50NRqoQjWCUoQ7Zd5MZxxhsrRzQ2aXE4=;
-	h=Date:To:From:Subject:Message-Id; b=KkS39y0XJUJkwhl69uNiBNqJnxRRBWNS5iHG/HeGoo3cw4+k9cMynxqgaAYP4SXzu02jbtltlTph+IBWffeRgUAQiHc4whg9PPOEVJxa5dvp/xIxEaTX+YxwShS/V7WkaHoIDHNAtJw1q7wHHz77x5krCTwMfBO2V8kNSUk0NDo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Je6uj5Xh; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1788998863; c=relaxed/simple;
+	bh=HRWsxu6hHjrZAtvax9uksQZymSw3SKx9bAK3QZ/3F/M=;
+	h=Date:To:From:Subject:Message-Id; b=T9mAmLK9qtuEanvEWRNeyW0bXivqUtKVlgPomoAGlwdlKWXphGsJUkbmgxUKpf1By9gz5MN5OHwEDiaKtOsHR9whExbgjoHRkzmxeOATN7A5/PKUweIOwxoAAyo+jyU7W/quox/qNj8muB06JiPeUWVi/263cnUGcq8qfYWGEZA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=eODjQZC4; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Je6uj5Xh"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 89E171F00893;
-	Thu, 10 Sep 2026 00:07:37 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="eODjQZC4"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 867951F00898;
+	Thu, 10 Sep 2026 00:07:39 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1788998857;
-	bh=ztqISOd2vRuJJTbPsouZVIVLnNCHYjUQnARGkepy03M=;
+	d=linux-foundation.org; s=korg; t=1788998859;
+	bh=qFOKZNNzMT8Cmj0qEoJPgsP8vtWFYkPcwbKVxm9ZqXM=;
 	h=Date:To:From:Subject;
-	b=Je6uj5XhqGOcjRHlhRpbw5+JjtPCMa4qoPqN+6LeeJiTopsLE8KFXO/135IvxWMIz
-	 /QgU4xq4rMmFgjlbpBx5w8NpKwW7jSNpdFFHB2q/cBhP8nsY5lfZBb/EI+bf3A0DWy
-	 8Ufpuh6fZXtFK1mXcRCFwdW9PviFFueig7foCo2o=
-Date: Wed, 09 Sep 2026 17:07:37 -0700
+	b=eODjQZC4/zEDOXau++EHNo3dV3TpZykglg9qBX8Caso1kuXHS2vNMZrJNPyDLR+AG
+	 iqTfttH2YanXWvEQR97+D4gRAuaK6Ix7lKS8OtIMPxnY6H0OpYffc5XRFmGjo5xqDD
+	 dXTT9w6MCZJkrJVIwgMXkPBazm43nKXdKSyQjHwU=
+Date: Wed, 09 Sep 2026 17:07:39 -0700
 To: mm-commits@vger.kernel.org,gutierrez.asier@huawei-partners.com,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-damon-vaddr-support-prep_probes.patch added to mm-new branch
-Message-Id: <20260910000737.89E171F00893@smtp.kernel.org>
+Subject: + mm-damon-paddr-move-probe-filter-handling-to-ops-common.patch added to mm-new branch
+Message-Id: <20260910000739.867951F00898@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/damon/vaddr: support prep_probes
+     Subject: mm/damon/paddr: move probe filter handling to ops-common
 has been added to the -mm mm-new branch.  Its filename is
-     mm-damon-vaddr-support-prep_probes.patch
+     mm-damon-paddr-move-probe-filter-handling-to-ops-common.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-vaddr-support-prep_probes.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-paddr-move-probe-filter-handling-to-ops-common.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,174 +70,112 @@ and is updated there most days
 
 ------------------------------------------------------
 From: SJ Park <sj@kernel.org>
-Subject: mm/damon/vaddr: support prep_probes
-Date: Wed, 9 Sep 2026 07:04:03 -0700
+Subject: mm/damon/paddr: move probe filter handling to ops-common
+Date: Wed, 9 Sep 2026 07:04:04 -0700
 
-Patch series "mm/damon/vaddr: support {prep,apply}_probes".
+Probe filter matching logic for anon and memcg type filters in DAMON's
+physical address space operation set (paddr) can be reused by virtual
+address space operation set (vaddr) in future.  Prepare the future by
+moving the code to ops-common.c
 
-DAMON supports data attributes monitoring.  However, only the physical
-address space operation set (paddr) is supporting it.  Add the support to
-the virtual address space operation set (vaddr).
-
-Patch 1 adds prep_probes support to vaddr.  Patch 2 moves probe filter
-handling code in paddr.c that can be reused by vaddr to ops-common.c.
-Patch 3 adds minimum apply_probes support to vaddr.  Patch 4 extends the
-support for hugetlb.  Patch 5 extends the support for pgidle_unset
-filter.
-
-Test
-====
-
-I confirmed it can capture ~48 mb working set of masim in vaddr mode,
-like below.
-
-First, start masim [1] to access ~48 mb memory at a time, in the
-background.
-
-    $ ./masim/masim.py run \
-            --config_file ./masim/configs/stairs-50mb.cfg \
-            --repeat 10 --quiet &
-
-Note that the config says the working set is 50mb.  It is 50 million
-bytes, so ~48 MiB.
-
-Start traditional access monitoring of masim's virtual address space
-using damo [2].
-
-    $ sudo ./damo/damo start $(pidof masim)
-
-Confirm it can capture the ~48 MiB working set as the 4-th region on the
-snapshot.
-
-    $ sudo ./damo/damo report access
-    heatmap:
-    11111111334[...]3000000000000000000000000000000000000000489999997777777743333333555556[...]8
-    # min/max temperatures: -1,150,000,000, 80,009,499, column size: 6.963
-    MiB
-    intervals: sample 5 ms aggr 100 ms (max access hz 200)
-    0   addr 85.355 TiB   size 55.703 MiB  access 0 hz   age 9.500 s
-    1   addr 85.355 TiB   size 18.984 MiB  access 0 hz   age 6.700 s
-    2   addr 127.183 TiB  size 278.516 MiB access 0 hz   age 11.500 s
-    3   addr 127.183 TiB  size 7.570 MiB   access 0 hz   age 900 ms
-    4   addr 127.183 TiB  size 48.133 MiB  access 190 hz age 800 ms
-    5   addr 127.183 TiB  size 54.977 MiB  access 0 hz   age 1.700 s
-    6   addr 127.183 TiB  size 55.113 MiB  access 0 hz   age 6.700 s
-    7   addr 127.183 TiB  size 37.902 MiB  access 0 hz   age 3.900 s
-    8   addr 127.990 TiB  size 120.000 KiB access 0 hz   age 11.400 s
-    9   addr 127.990 TiB  size 8.000 KiB   access 70 hz  age 0 ns
-    10  addr 127.990 TiB  size 4.000 KiB   access 0 hz   age 11.200 s
-    memory bw estimate: 8.931 GiB per second
-    total size: 557.027 MiB
-    record DAMON intervals: sample 5 ms, aggr 100 ms
-
-Stop access monitoring and start probe-only mode access monitoring.
-
-    $ sudo ./damo/damo stop
-    $ sudo ./damo/damo start $(pidof masim) --probe_prep set_pgidle \
-            --probe_filter allow pgidle_unset --probe_weight 1
-
-Confirm it can also capture the ~48 MiB working set as the 11-th region
-on the snapshot.
-
-    $ sudo ./damo/damo report attrs
-    heatmap:
-    00000000113[...]40000000000000000000000000000000000000000000000001111114999999533333336[...]6
-    # min/max temperatures: -840,000,000, 330,002,000, column size: 6.961
-    MiB
-    probe prep: set_pgidle, filter: allow pgidle_unset (weight: 1)
-    intervals: sample 5 ms aggr 100 ms (max probe hits 20)
-    #   size         address       age           probe_hits
-    0   8.000 KiB    127.990 TiB   8.700 s       0
-    1   120.000 KiB  127.990 TiB   8.600 s       0
-    2   55.543 MiB   127.183 TiB   8.400 s       0
-    3   110.008 MiB  127.183 TiB   8.300 s       0
-    4   55.352 MiB   127.183 TiB   8.100 s       0
-    5   55.605 MiB   127.183 TiB   8 s           0
-    6   55.691 MiB   85.355 TiB    7.900 s       0
-    7   54.430 MiB   127.183 TiB   7.900 s       0
-    8   50.391 MiB   127.183 TiB   6.900 s       0
-    9   18.879 MiB   85.355 TiB    6 s           0
-    10  52.844 MiB   127.183 TiB   3.500 s       0
-    11  48.039 MiB   127.183 TiB   3.300 s       20
-    12  4.000 KiB    127.990 TiB   8.500 s       20
-    memory bw estimate: 0 B per second
-    total size: 556.910 MiB
-    record DAMON intervals: sample 5 ms, aggr 100 ms
-
-[1] https://github.com/sjp38/masim
-[2] https://github.com/damonitor/damo
-
-
-DAMON virtual address space operation set (vaddr) is not supporting
-prep_probes.  Add the support.
-
-Link: https://lore.kernel.org/20260909140408.104699-2-sj@kernel.org
-Link: https://github.com/sjp38/masim [1]
-Link: https://github.com/damonitor/damo [2]
+Link: https://lore.kernel.org/20260909140408.104699-3-sj@kernel.org
 Signed-off-by: SJ Park <sj@kernel.org>
 Cc: Gutierrez Asier <gutierrez.asier@huawei-partners.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/vaddr.c |   40 ++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 40 insertions(+)
+ mm/damon/ops-common.c |   32 ++++++++++++++++++++++++++++++++
+ mm/damon/ops-common.h |    2 ++
+ mm/damon/paddr.c      |   23 +----------------------
+ 3 files changed, 35 insertions(+), 22 deletions(-)
 
---- a/mm/damon/vaddr.c~mm-damon-vaddr-support-prep_probes
-+++ a/mm/damon/vaddr.c
-@@ -483,6 +483,45 @@ static unsigned int damon_va_check_acces
- 	return max_nr_accesses;
+--- a/mm/damon/ops-common.c~mm-damon-paddr-move-probe-filter-handling-to-ops-common
++++ a/mm/damon/ops-common.c
+@@ -531,3 +531,35 @@ bool damos_ops_has_filter(struct damos *
+ 		return true;
+ 	return false;
  }
++
++bool damon_ops_filter_match(struct damon_filter *filter, struct folio *folio)
++{
++	bool matched = false;
++	struct mem_cgroup *memcg;
++
++	switch (filter->type) {
++	case DAMON_FILTER_TYPE_ANON:
++		if (!folio) {
++			matched = false;
++			break;
++		}
++		matched = folio_test_anon(folio);
++		break;
++	case DAMON_FILTER_TYPE_MEMCG:
++		if (!folio) {
++			matched = false;
++			break;
++		}
++		rcu_read_lock();
++		memcg = folio_memcg_check(folio);
++		if (!memcg)
++			matched = false;
++		else
++			matched = filter->memcg_id == mem_cgroup_id(memcg);
++		rcu_read_unlock();
++		break;
++	default:
++		break;
++	}
++	return matched == filter->matching;
++}
+--- a/mm/damon/ops-common.h~mm-damon-paddr-move-probe-filter-handling-to-ops-common
++++ a/mm/damon/ops-common.h
+@@ -31,3 +31,5 @@ bool damos_folio_filter_match(struct dam
+ unsigned long damon_migrate_pages(struct list_head *folio_list, int target_nid);
  
-+static void damon_va_prep_probe_region(struct damon_ctx *ctx,
-+		struct mm_struct *mm, struct damon_region *r,
-+		struct damon_probe *probe)
-+{
-+	struct damon_prep *p;
+ bool damos_ops_has_filter(struct damos *s);
 +
-+	damon_for_each_prep(p, probe) {
-+		switch (p->action) {
-+		case DAMON_PREP_SET_PGIDLE:
-+			damon_va_mkold(mm, r->sampling_addr);
-+			break;
-+		default:
-+			break;
-+		}
-+	}
-+}
-+
-+static void damon_va_prep_probes(struct damon_ctx *ctx, bool set_samples)
-+{
-+	struct damon_target *t;
-+	struct mm_struct *mm;
-+	struct damon_region *r;
-+	struct damon_probe *p;
-+
-+	damon_for_each_target(t, ctx) {
-+		mm = damon_get_mm(t);
-+		if (!mm)
-+			continue;
-+		damon_for_each_region(r, t) {
-+			if (set_samples)
-+				r->sampling_addr = damon_rand(ctx, r->ar.start,
-+						r->ar.end);
-+			damon_for_each_probe(p, ctx)
-+				damon_va_prep_probe_region(ctx, mm, r, p);
-+		}
-+		mmput(mm);
-+	}
-+}
-+
- static bool damos_va_filter_young_match(struct damos_filter *filter,
- 		struct folio *folio, struct vm_area_struct *vma,
- 		unsigned long addr, pte_t *ptep, pmd_t *pmdp)
-@@ -911,6 +950,7 @@ static int __init damon_va_initcall(void
- 		.update = damon_va_update,
- 		.prepare_access_checks = damon_va_prepare_access_checks,
- 		.check_accesses = damon_va_check_accesses,
-+		.prep_probes = damon_va_prep_probes,
- 		.target_valid = damon_va_target_valid,
- 		.cleanup_target = damon_va_cleanup_target,
- 		.apply_scheme = damon_va_apply_scheme,
++bool damon_ops_filter_match(struct damon_filter *filter, struct folio *folio);
+--- a/mm/damon/paddr.c~mm-damon-paddr-move-probe-filter-handling-to-ops-common
++++ a/mm/damon/paddr.c
+@@ -143,29 +143,8 @@ static bool damon_pa_filter_match(struct
+ 		struct folio *folio)
+ {
+ 	bool matched = false;
+-	struct mem_cgroup *memcg;
+ 
+ 	switch (filter->type) {
+-	case DAMON_FILTER_TYPE_ANON:
+-		if (!folio) {
+-			matched = false;
+-			break;
+-		}
+-		matched = folio_test_anon(folio);
+-		break;
+-	case DAMON_FILTER_TYPE_MEMCG:
+-		if (!folio) {
+-			matched = false;
+-			break;
+-		}
+-		rcu_read_lock();
+-		memcg = folio_memcg_check(folio);
+-		if (!memcg)
+-			matched = false;
+-		else
+-			matched = filter->memcg_id == mem_cgroup_id(memcg);
+-		rcu_read_unlock();
+-		break;
+ 	case DAMON_FILTER_TYPE_PGIDLE_UNSET:
+ 		if (!folio)
+ 			matched = false;
+@@ -173,7 +152,7 @@ static bool damon_pa_filter_match(struct
+ 			matched = damon_folio_young(folio);
+ 		break;
+ 	default:
+-		break;
++		return damon_ops_filter_match(filter, folio);
+ 	}
+ 	return matched == filter->matching;
+ }
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
