@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DBC8E379980
-	for <mm-commits@vger.kernel.org>; Thu, 10 Sep 2026 23:00:53 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 38DCE36A340
+	for <mm-commits@vger.kernel.org>; Thu, 10 Sep 2026 23:00:55 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789081255; cv=none; b=NHFyYVUBL6g1wENKnw4taZQVnq+bB+AQ3tTd7SaRL2yp1KDHHkRoUF44U7+SkmhLeSZjbmSBw/Y3xk6a2kIH2vXZ1OdHYKbV7ZmBU8OuuiXOscZNHGQXITPCFCCpf2B8CLMHZfggeR4IL4jhWGKC5KmmhHq5IF2cxVWOoV2Mmbs=
+	t=1789081257; cv=none; b=hYHFgWcC6HqqMasASi+ZCRPYqTK3Zs1M5PdsC9jNm8REs2iLcLPtCevycfY8IozQT+L0Xe6Lqb1+5w+UblpRZcJnvFWpU7lowynI9UMDynCIgPgeMLAb0zDMVrbimjlqjJB/6e78aBqVGv3l8yKDM93rBh+9ycGEiIZ6j4Y0zBM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1789081255; c=relaxed/simple;
-	bh=KDZjJR9oMxakwGsYXK0Pvq5OH/z1QFKO3LIyuAwgnwc=;
-	h=Date:To:From:Subject:Message-Id; b=MGuCCNmTuBeFj6bVsDO52fCV7CCGfYO+hIdND6yH1aa2q3MiDC6BYxP5XgJqYIYgvG5o7AjTQ/8VnKow5+rjn4BOGL9/EM9tuYu939v/Q80vHjsjea49R/+Ce8zOQEBY0Y3G+d6cWnV+kQYYMgx01aO9SzrEAvIqa10CoUQl9mw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=16uSjw2b; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1789081257; c=relaxed/simple;
+	bh=zmzgG1GgO3p1WkRmSPrq/8dlVG5zVkk5yhPzTBMtAFQ=;
+	h=Date:To:From:Subject:Message-Id; b=A0qmEJFEdguYg5hVGtZscxEpzonU+NYcYFRbtGyBIK3vQ2ExzVrAYaI/tRx6jWjGBOS4P35HQkewMoA6e1AisRCiI0X++Qfgc5MRGKC8qNE0H+cynSVxaYa6HQttIpVk53hTj6JNgjzkkzJP48ts4PrPAa4khH0lCaTdNP70PYU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Qm6tB8IY; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="16uSjw2b"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 994DA1F000FF;
-	Thu, 10 Sep 2026 23:00:53 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Qm6tB8IY"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C97B91F00893;
+	Thu, 10 Sep 2026 23:00:54 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1789081253;
-	bh=N3JTSkc+S0dwbRa5RToN4gJaC8BRTJehxDDpPXsgLYc=;
+	d=linux-foundation.org; s=korg; t=1789081254;
+	bh=YZw2QENgiaKVUI3d9EhpWSOLFNQgurBGW7odGbiCGfA=;
 	h=Date:To:From:Subject;
-	b=16uSjw2b1L7Wnv7sNqGonXJdLSyV//hVoeO6c8F1rcUTib2FqPz7boU9C8FT1qdIX
-	 JL3sqBMC9B4pgZGgs7xQvQO91/d5E57+70R//N70heqdh5eFTCfE3rrek1aT885jIR
-	 pYOeAsZ02uLmWfbtS4HvPQYyUXSD6dMhLPNPAqU4=
-Date: Thu, 10 Sep 2026 16:00:53 -0700
+	b=Qm6tB8IYeWj8s/SPoHV1kAnHsgG9uIohswRZnkPSKP57ua67eG0sMlySDVhdbuhbI
+	 2/yLEI0zExhmPgMfRhbUNVPTH1PhK6ycs/Ublnexm0u4dVSh6g9F9G7KI7uBWnnD5/
+	 zGnF+7a1HgPKMnQ2iKyREyJU2wV6sgH1CLh3IWSI=
+Date: Thu, 10 Sep 2026 16:00:54 -0700
 To: mm-commits@vger.kernel.org,songmuchun@bytedance.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [to-be-updated] mm-sparse-inline-usemap-allocation-into-sparse_init_nid.patch removed from -mm tree
-Message-Id: <20260910230053.994DA1F000FF@smtp.kernel.org>
+Subject: [to-be-updated] mm-sparse-remove-section_map_size.patch removed from -mm tree
+Message-Id: <20260910230054.C97B91F00893@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,25 +35,27 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/sparse: inline usemap allocation into sparse_init_nid()
+     Subject: mm/sparse: remove section_map_size()
 has been removed from the -mm tree.  Its filename was
-     mm-sparse-inline-usemap-allocation-into-sparse_init_nid.patch
+     mm-sparse-remove-section_map_size.patch
 
 This patch was dropped because an updated version will be issued
 
 ------------------------------------------------------
 From: Muchun Song <songmuchun@bytedance.com>
-Subject: mm/sparse: inline usemap allocation into sparse_init_nid()
-Date: Tue, 25 Aug 2026 16:46:03 +0800
+Subject: mm/sparse: remove section_map_size()
+Date: Tue, 25 Aug 2026 16:46:04 +0800
 
-After removing SPARSEMEM_VMEMMAP_PREINIT, sparse_init_nid() no longer
-needs the transient sparse_usagebuf state and its helper wrappers.
+section_map_size() no longer provides any shared logic.
 
-Allocate the usemap buffer directly in sparse_init_nid(), pass it to
-sparse_init_one_section(), and drop sparse_usage_init(),
-sparse_usage_fini(), and sparse_init_early_section().
+After the sparse-vmemmap changes, its only remaining user is the
+!CONFIG_SPARSEMEM_VMEMMAP path in __populate_section_memmap(), which can
+compute the size inline with PAGE_ALIGN(sizeof(struct page) *
+PAGES_PER_SECTION).
 
-Link: https://lore.kernel.org/20260825084608.47437-13-songmuchun@bytedance.com
+Remove section_map_size() and inline the remaining calculation.
+
+Link: https://lore.kernel.org/20260825084608.47437-14-songmuchun@bytedance.com
 Signed-off-by: Muchun Song <songmuchun@bytedance.com>
 Acked-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
 Acked-by: David Hildenbrand (Arm) <david@kernel.org>
@@ -68,98 +70,52 @@ Cc: Vlastimil Babka <vbabka@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mmzone.h |    3 --
- mm/sparse.c            |   46 +++++----------------------------------
- 2 files changed, 7 insertions(+), 42 deletions(-)
+ include/linux/mm.h |    1 -
+ mm/sparse.c        |   15 ++-------------
+ 2 files changed, 2 insertions(+), 14 deletions(-)
 
---- a/include/linux/mmzone.h~mm-sparse-inline-usemap-allocation-into-sparse_init_nid
-+++ a/include/linux/mmzone.h
-@@ -2223,9 +2223,6 @@ static inline bool pfn_section_first_val
+--- a/include/linux/mm.h~mm-sparse-remove-section_map_size
++++ a/include/linux/mm.h
+@@ -5140,7 +5140,6 @@ static inline void print_vma_addr(char *
  }
  #endif
  
--void sparse_init_early_section(int nid, struct page *map, unsigned long pnum,
--			       unsigned long flags);
--
- #ifndef CONFIG_HAVE_ARCH_PFN_VALID
- /**
-  * pfn_valid - check if there is a valid memory map entry for a PFN
---- a/mm/sparse.c~mm-sparse-inline-usemap-allocation-into-sparse_init_nid
+-unsigned long section_map_size(void);
+ struct page * __populate_section_memmap(unsigned long pfn,
+ 		unsigned long nr_pages, int nid, struct vmem_altmap *altmap,
+ 		struct dev_pagemap *pgmap);
+--- a/mm/sparse.c~mm-sparse-remove-section_map_size
 +++ a/mm/sparse.c
-@@ -235,42 +235,6 @@ void __weak __meminit vmemmap_populate_p
- {
+@@ -209,23 +209,12 @@ void __init sparse_sections_init(void)
+ 		memory_present(nid, start, end);
  }
  
--static void *sparse_usagebuf __initdata;
--static void *sparse_usagebuf_end __initdata;
--
--/*
-- * Helper function that is used for generic section initialization, and
-- * can also be used by any hooks added above.
-- */
--void __init sparse_init_early_section(int nid, struct page *map,
--				      unsigned long pnum, unsigned long flags)
+-#ifdef CONFIG_SPARSEMEM_VMEMMAP
+-unsigned long __init section_map_size(void)
 -{
--	BUG_ON(!sparse_usagebuf || sparse_usagebuf >= sparse_usagebuf_end);
--	sparse_init_one_section(__nr_to_section(pnum), pnum, map,
--			sparse_usagebuf, SECTION_IS_EARLY | flags);
--	sparse_usagebuf = (void *)sparse_usagebuf + mem_section_usage_size();
+-	return ALIGN(sizeof(struct page) * PAGES_PER_SECTION, PMD_SIZE);
 -}
 -
--static int __init sparse_usage_init(int nid, unsigned long map_count)
+-#else
+-unsigned long __init section_map_size(void)
 -{
--	unsigned long size;
--
--	size = mem_section_usage_size() * map_count;
--	sparse_usagebuf = memblock_alloc_node(size, SMP_CACHE_BYTES, nid);
--	if (!sparse_usagebuf) {
--		sparse_usagebuf_end = NULL;
--		return -ENOMEM;
--	}
--
--	sparse_usagebuf_end = sparse_usagebuf + size;
--	return 0;
+-	return PAGE_ALIGN(sizeof(struct page) * PAGES_PER_SECTION);
 -}
 -
--static void __init sparse_usage_fini(void)
--{
--	sparse_usagebuf = sparse_usagebuf_end = NULL;
--}
--
- /*
-  * Initialize sparse on a specific node. The node spans [pnum_begin, pnum_end)
-  * And number of present sections in this node is map_count.
-@@ -280,8 +244,11 @@ static void __init sparse_init_nid(int n
- 				   unsigned long map_count)
++#ifndef CONFIG_SPARSEMEM_VMEMMAP
+ struct page __init *__populate_section_memmap(unsigned long pfn,
+ 		unsigned long nr_pages, int nid, struct vmem_altmap *altmap,
+ 		struct dev_pagemap *pgmap)
  {
- 	unsigned long pnum;
-+	struct mem_section_usage *usage;
+-	unsigned long size = section_map_size();
++	unsigned long size = PAGE_ALIGN(sizeof(struct page) * PAGES_PER_SECTION);
  
--	if (sparse_usage_init(nid, map_count))
-+	usage = memblock_alloc_node(map_count * mem_section_usage_size(),
-+				    SMP_CACHE_BYTES, nid);
-+	if (!usage)
- 		panic("Failed to allocate usemap for node %d\n", nid);
- 
- 	for_each_present_section_nr(pnum_begin, pnum) {
-@@ -297,9 +264,10 @@ static void __init sparse_init_nid(int n
- 			panic("Failed to allocate memmap for section %lu\n", pnum);
- 		memmap_boot_pages_add(section_nr_vmemmap_pages(pfn, PAGES_PER_SECTION,
- 							       NULL, NULL));
--		sparse_init_early_section(nid, map, pnum, 0);
-+		sparse_init_one_section(__nr_to_section(pnum), pnum, map, usage,
-+					SECTION_IS_EARLY);
-+		usage = (void *)usage + mem_section_usage_size();
- 	}
--	sparse_usage_fini();
+ 	return memmap_alloc(size, size, __pa(MAX_DMA_ADDRESS), nid, false);
  }
- 
- /*
 _
 
 Patches currently in -mm which might be from songmuchun@bytedance.com are
 
-mm-sparse-remove-section_map_size.patch
 mm-hugetlb-remove-huge_bootmem_hvo.patch
 mm-hugetlb-remove-huge_bootmem_cma.patch
 mm-hugetlb-localize-struct-huge_bootmem_page.patch
