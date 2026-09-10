@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 38DCE36A340
-	for <mm-commits@vger.kernel.org>; Thu, 10 Sep 2026 23:00:55 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3A70037F8C2
+	for <mm-commits@vger.kernel.org>; Thu, 10 Sep 2026 23:00:56 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789081257; cv=none; b=hYHFgWcC6HqqMasASi+ZCRPYqTK3Zs1M5PdsC9jNm8REs2iLcLPtCevycfY8IozQT+L0Xe6Lqb1+5w+UblpRZcJnvFWpU7lowynI9UMDynCIgPgeMLAb0zDMVrbimjlqjJB/6e78aBqVGv3l8yKDM93rBh+9ycGEiIZ6j4Y0zBM=
+	t=1789081257; cv=none; b=LWXfo4tTAUYCpVqdAdEQ8KysGgm22J8Kp2vvBVvUJktRbyexjOsu14fPr4vkLhh9PBjo+l8pQxjxE77hNtH2sb8sG+JwaowpMyWx9anRs21aevFC0bIOV5ctQ85PsuXi2YJahlHJldsa+EyxDXM/sNVfIlTkDMHO78JIUUAxn98=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1789081257; c=relaxed/simple;
-	bh=zmzgG1GgO3p1WkRmSPrq/8dlVG5zVkk5yhPzTBMtAFQ=;
-	h=Date:To:From:Subject:Message-Id; b=A0qmEJFEdguYg5hVGtZscxEpzonU+NYcYFRbtGyBIK3vQ2ExzVrAYaI/tRx6jWjGBOS4P35HQkewMoA6e1AisRCiI0X++Qfgc5MRGKC8qNE0H+cynSVxaYa6HQttIpVk53hTj6JNgjzkkzJP48ts4PrPAa4khH0lCaTdNP70PYU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Qm6tB8IY; arc=none smtp.client-ip=100.103.45.18
+	bh=yN10prKYoCSbhEKtUXDICrni/+rFxcQ7FPYlkQdb/0o=;
+	h=Date:To:From:Subject:Message-Id; b=OTgvC0CBqssYHwfIK0t2hA2CH5j1RblQ0hur4uCbfYeWMZIlQe8ZkCI2Y2uHJFuPrKQ38KJ01+nBGahIFrFwNhy3jhDTN2EBKdSDdPiF34ajpYdwgw/vuy0S3D3jv/zicZIEsqID7IH4p6FPQaTG8FowTJ/Uezd1HnRLI5tNHqQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=pDzIXCll; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Qm6tB8IY"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C97B91F00893;
-	Thu, 10 Sep 2026 23:00:54 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="pDzIXCll"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 055E21F000FF;
+	Thu, 10 Sep 2026 23:00:55 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1789081254;
-	bh=YZw2QENgiaKVUI3d9EhpWSOLFNQgurBGW7odGbiCGfA=;
+	d=linux-foundation.org; s=korg; t=1789081256;
+	bh=btpXVsgaYrjHs2pPge/ACxH/9so6PMtYGaPldoJZDKI=;
 	h=Date:To:From:Subject;
-	b=Qm6tB8IYeWj8s/SPoHV1kAnHsgG9uIohswRZnkPSKP57ua67eG0sMlySDVhdbuhbI
-	 2/yLEI0zExhmPgMfRhbUNVPTH1PhK6ycs/Ublnexm0u4dVSh6g9F9G7KI7uBWnnD5/
-	 zGnF+7a1HgPKMnQ2iKyREyJU2wV6sgH1CLh3IWSI=
-Date: Thu, 10 Sep 2026 16:00:54 -0700
+	b=pDzIXCllACf3Vtv3V4abQ+cSKpYnBepOoHC0gPo8YyebuvYVV7tFe83puLaxjx34r
+	 BjFEp56E47e9mriqMRCKOGWsBTXgWaTuYK+qogq2J+9yxwzKKIra+VvumsctyITT5+
+	 PmFuacuw97OnyhLydnTr+tmMf5SsPXgCK46ikNX8=
+Date: Thu, 10 Sep 2026 16:00:55 -0700
 To: mm-commits@vger.kernel.org,songmuchun@bytedance.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [to-be-updated] mm-sparse-remove-section_map_size.patch removed from -mm tree
-Message-Id: <20260910230054.C97B91F00893@smtp.kernel.org>
+Subject: [to-be-updated] mm-hugetlb-remove-huge_bootmem_hvo.patch removed from -mm tree
+Message-Id: <20260910230056.055E21F000FF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,88 +35,103 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/sparse: remove section_map_size()
+     Subject: mm/hugetlb: remove HUGE_BOOTMEM_HVO
 has been removed from the -mm tree.  Its filename was
-     mm-sparse-remove-section_map_size.patch
+     mm-hugetlb-remove-huge_bootmem_hvo.patch
 
 This patch was dropped because an updated version will be issued
 
 ------------------------------------------------------
 From: Muchun Song <songmuchun@bytedance.com>
-Subject: mm/sparse: remove section_map_size()
-Date: Tue, 25 Aug 2026 16:46:04 +0800
+Subject: mm/hugetlb: remove HUGE_BOOTMEM_HVO
+Date: Tue, 25 Aug 2026 16:46:05 +0800
 
-section_map_size() no longer provides any shared logic.
+The HUGE_BOOTMEM_HVO flag tracked whether a bootmem huge page had already
+gone through the old early vmemmap optimization path.
 
-After the sparse-vmemmap changes, its only remaining user is the
-!CONFIG_SPARSEMEM_VMEMMAP path in __populate_section_memmap(), which can
-compute the size inline with PAGE_ALIGN(sizeof(struct page) *
-PAGES_PER_SECTION).
+Now that HugeTLB uses section-based vmemmap optimization, that state is
+already reflected in the section order.
 
-Remove section_map_size() and inline the remaining calculation.
+Remove HUGE_BOOTMEM_HVO and its helper, and use the section state directly
+when deciding whether to mark a folio as vmemmap-optimized.
 
-Link: https://lore.kernel.org/20260825084608.47437-14-songmuchun@bytedance.com
+Link: https://lore.kernel.org/20260825084608.47437-15-songmuchun@bytedance.com
 Signed-off-by: Muchun Song <songmuchun@bytedance.com>
 Acked-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
-Acked-by: David Hildenbrand (Arm) <david@kernel.org>
+Acked-by: Qi Zheng <qi.zheng@linux.dev>
+Cc: David Hildenbrand <david@kernel.org>
 Cc: David Laight <david.laight.linux@gmail.com>
 Cc: Liam R. Howlett <liam@infradead.org>
 Cc: Lorenzo Stoakes <ljs@kernel.org>
 Cc: Michal Hocko <mhocko@suse.com>
 Cc: Oscar Salvador <osalvador@suse.de>
-Cc: Qi Zheng <qi.zheng@linux.dev>
 Cc: Suren Baghdasaryan <surenb@google.com>
 Cc: Vlastimil Babka <vbabka@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h |    1 -
- mm/sparse.c        |   15 ++-------------
- 2 files changed, 2 insertions(+), 14 deletions(-)
+ include/linux/hugetlb.h |    5 ++---
+ mm/hugetlb.c            |   12 +-----------
+ mm/hugetlb_vmemmap.c    |    2 --
+ 3 files changed, 3 insertions(+), 16 deletions(-)
 
---- a/include/linux/mm.h~mm-sparse-remove-section_map_size
-+++ a/include/linux/mm.h
-@@ -5140,7 +5140,6 @@ static inline void print_vma_addr(char *
- }
- #endif
+--- a/include/linux/hugetlb.h~mm-hugetlb-remove-huge_bootmem_hvo
++++ a/include/linux/hugetlb.h
+@@ -675,9 +675,8 @@ struct hstate {
+ 	char name[HSTATE_NAME_LEN];
+ };
  
--unsigned long section_map_size(void);
- struct page * __populate_section_memmap(unsigned long pfn,
- 		unsigned long nr_pages, int nid, struct vmem_altmap *altmap,
- 		struct dev_pagemap *pgmap);
---- a/mm/sparse.c~mm-sparse-remove-section_map_size
-+++ a/mm/sparse.c
-@@ -209,23 +209,12 @@ void __init sparse_sections_init(void)
- 		memory_present(nid, start, end);
+-#define HUGE_BOOTMEM_HVO		0x0001
+-#define HUGE_BOOTMEM_ZONES_VALID	0x0002
+-#define HUGE_BOOTMEM_CMA		0x0004
++#define HUGE_BOOTMEM_ZONES_VALID	BIT(0)
++#define HUGE_BOOTMEM_CMA		BIT(1)
+ 
+ int isolate_or_dissolve_huge_folio(struct folio *folio, struct list_head *list);
+ int replace_free_hugepage_folios(unsigned long start_pfn, unsigned long end_pfn);
+--- a/mm/hugetlb.c~mm-hugetlb-remove-huge_bootmem_hvo
++++ a/mm/hugetlb.c
+@@ -3220,11 +3220,6 @@ static void __init hugetlb_folio_init_vm
+ 	prep_compound_head(&folio->page, huge_page_order(h));
  }
  
--#ifdef CONFIG_SPARSEMEM_VMEMMAP
--unsigned long __init section_map_size(void)
+-static bool __init hugetlb_bootmem_page_prehvo(struct huge_bootmem_page *m)
 -{
--	return ALIGN(sizeof(struct page) * PAGES_PER_SECTION, PMD_SIZE);
+-	return m->flags & HUGE_BOOTMEM_HVO;
 -}
 -
--#else
--unsigned long __init section_map_size(void)
--{
--	return PAGE_ALIGN(sizeof(struct page) * PAGES_PER_SECTION);
--}
--
-+#ifndef CONFIG_SPARSEMEM_VMEMMAP
- struct page __init *__populate_section_memmap(unsigned long pfn,
- 		unsigned long nr_pages, int nid, struct vmem_altmap *altmap,
- 		struct dev_pagemap *pgmap)
+ static bool __init hugetlb_bootmem_page_earlycma(struct huge_bootmem_page *m)
  {
--	unsigned long size = section_map_size();
-+	unsigned long size = PAGE_ALIGN(sizeof(struct page) * PAGES_PER_SECTION);
+ 	return m->flags & HUGE_BOOTMEM_CMA;
+@@ -3316,12 +3311,7 @@ static void __init gather_bootmem_preall
+ 					   HUGETLB_VMEMMAP_RESERVE_PAGES);
+ 		init_new_hugetlb_folio(folio);
  
- 	return memmap_alloc(size, size, __pa(MAX_DMA_ADDRESS), nid, false);
+-		if (hugetlb_bootmem_page_prehvo(m))
+-			/*
+-			 * If pre-HVO was done, just set the
+-			 * flag, the HVO code will then skip
+-			 * this folio.
+-			 */
++		if (vmemmap_optimizable_order(pfn_to_section_order(folio_pfn(folio))))
+ 			folio_set_hugetlb_vmemmap_optimized(folio);
+ 		section_set_order_range(folio_pfn(folio), folio_nr_pages(folio), 0);
+ 
+--- a/mm/hugetlb_vmemmap.c~mm-hugetlb-remove-huge_bootmem_hvo
++++ a/mm/hugetlb_vmemmap.c
+@@ -714,8 +714,6 @@ void __init hugetlb_vmemmap_optimize_boo
+ 		return;
+ 
+ 	section_set_order_range(pfn, pages_per_huge_page(h), huge_page_order(h));
+-	if (vmemmap_optimizable_order(pfn_to_section_order(pfn)))
+-		m->flags |= HUGE_BOOTMEM_HVO;
  }
+ 
+ static const struct ctl_table hugetlb_vmemmap_sysctls[] = {
 _
 
 Patches currently in -mm which might be from songmuchun@bytedance.com are
 
-mm-hugetlb-remove-huge_bootmem_hvo.patch
 mm-hugetlb-remove-huge_bootmem_cma.patch
 mm-hugetlb-localize-struct-huge_bootmem_page.patch
 mm-hugetlb-localize-huge_bootmem_zones_valid.patch
