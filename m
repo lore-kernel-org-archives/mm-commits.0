@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4DF4B3812EF
-	for <mm-commits@vger.kernel.org>; Thu, 10 Sep 2026 23:05:06 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4FB7A3812EF
+	for <mm-commits@vger.kernel.org>; Thu, 10 Sep 2026 23:05:09 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789081507; cv=none; b=Twr/3tqj+5PSmTCwOdhKkjpTWZ8FkRjcOq6LIzI6F6hJ/iVBJq00m0MmqtgV3OcwODzBzsevacr8fp4G4E61ytj2dAf/AOf0ZanNXgp3fUzIO5CGrJxYQMKsMTdA8y3zCWV/kDPVHGQG8QjUxr4niZKiG2iGEeKd/9XMYStGtqs=
+	t=1789081510; cv=none; b=h8tSk1mSQUpxOlL7iBvDfCwbKjLwOLcjDqhqNbScPQWFfOmu8EEJ6BB3At/XroOtmtLIN/AJAyNZhW5Ku18dPPYIYQFgTdpMNvrrtQxtdcrJccHV3bJoJQRTKSiH8RJpFpvMkg3/zPoRX6UScH3UD7Vt8YmczH1/YUSewBfQBY4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1789081507; c=relaxed/simple;
-	bh=6Nm+e0X5Cgiqz4mVHiUbeBSjWYREIVjE6wdI/KOu8UM=;
-	h=Date:To:From:Subject:Message-Id; b=ANSmA1Wn6MmKRSFDG4gIOXoc66C/QV0O/G3aUyptUeH6+0iMOX2UJjlBA99U/bCM04U3CJS6maA9H2RourtDBzuAju1bpEOexUpduD2R3i3pWEhgiJW9VEmsxvQ5bqDh+p/VAuRw7h73An9TWK7RLsY0NlevliXpMU7CTwoMsQ4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=UQpVErJa; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1789081510; c=relaxed/simple;
+	bh=Ta6olQhO+lmvvGLE2BvBmyxiYIG4pBziBBhimSaGLSQ=;
+	h=Date:To:From:Subject:Message-Id; b=ZEdQ6jBusQ9/647uFkdJoBMtfP3eFWG1Yh+jhWE8ojhss1bZjHC9vCILV44OCdG4GgICM1jFkGtLrg2uPW02ADt0OWhV5rMO/Ogfoa02BxsEyUEEEMtPLGl6zdXHDjs3Tk0aBjB4DG+MRXGJHkl2fs7Z1zBXJ5D7uRnU+Z/CPqI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=vy6tmQEw; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="UQpVErJa"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D028B1F000FF;
-	Thu, 10 Sep 2026 23:05:05 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="vy6tmQEw"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D42B71F00893;
+	Thu, 10 Sep 2026 23:05:08 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1789081505;
-	bh=2mE13HRcYCfd3j6hHRQVKV2KYLFXc2RKu0PuWbmlrBc=;
+	d=linux-foundation.org; s=korg; t=1789081508;
+	bh=5YKP0XzFMJGJAgy16H+h6/tJgRq6u0Kuhf/jz2VUqG8=;
 	h=Date:To:From:Subject;
-	b=UQpVErJaIj/3bK16MLGZcgpnOhsOuC5Nl2UXnE3SIHK/NBw2eOcfQpt2+4kWB0xuQ
-	 R9CQFsPpn62k7C+UO2YfxsgCuYTWWve7fbpejdvpb3fROZEaxl5ho7B1XbZ+jf0qJp
-	 ZJoGebkfdat24IDjMrbWGXWwuVdUKtS8hsKUCAVs=
-Date: Thu, 10 Sep 2026 16:05:05 -0700
+	b=vy6tmQEwM5EvFGxEMYBSu/0HnQJ1A9nwBaXkBflYWY5+SbGvSQhAE/SxEB11nRKwP
+	 lWY1NHHBSz0DW6BuF+UYdlKT04dSvjIAJMsQ+XGkQdYp2VCOjdqSSZWha94UfPtTpQ
+	 lQlWwfeUYOTmQq2Wmp5wCyXSuzUnQypjLrJLMa7Y=
+Date: Thu, 10 Sep 2026 16:05:08 -0700
 To: mm-commits@vger.kernel.org,songmuchun@bytedance.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-sparse-relax-struct-mem_section-size-constraints.patch added to mm-unstable branch
-Message-Id: <20260910230505.D028B1F000FF@smtp.kernel.org>
+Subject: + mm-sparse-vmemmap-rename-hvo-order-macros.patch added to mm-unstable branch
+Message-Id: <20260910230508.D42B71F00893@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/sparse: relax struct mem_section size constraints
+     Subject: mm/sparse-vmemmap: rename HVO order macros
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-sparse-relax-struct-mem_section-size-constraints.patch
+     mm-sparse-vmemmap-rename-hvo-order-macros.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-sparse-relax-struct-mem_section-size-constraints.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-sparse-vmemmap-rename-hvo-order-macros.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,72 +59,24 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Muchun Song <songmuchun@bytedance.com>
-Subject: mm/sparse: relax struct mem_section size constraints
-Date: Thu, 10 Sep 2026 14:32:40 +0800
+Subject: mm/sparse-vmemmap: rename HVO order macros
+Date: Thu, 10 Sep 2026 14:32:41 +0800
 
-Patch series "mm: Introduce section-based vmemmap optimization for
-HugeTLB", v6.
+The macros VMEMMAP_TAIL_MIN_ORDER and NR_VMEMMAP_TAILS describe the order
+range where HVO can be applied, but their names tie that range to the
+tail-page cache implementation.
 
-This series is split out from the earlier, larger series "mm: Generalize
-HVO for HugeTLB and device DAX" [1].  While the parent series generalizes
-vmemmap optimization across HugeTLB and device DAX, this subset addresses
-a single, self-contained step: making the generic sparse-vmemmap code
-section-based optimization aware and switching HugeTLB bootmem pages to
-this path.
+Rename them with a VMEMMAP_OPTIMIZATION prefix and use the new names in
+the HVO paths.  This makes the code describe the optimization requirements
+rather than the tail-page cache implementation detail.
 
-HugeTLB vmemmap optimization currently has its own early boot setup path. 
-It pre-populates optimized vmemmap mappings before the normal
-sparse-vmemmap population code runs, and sparsemem carries
-SPARSEMEM_VMEMMAP_PREINIT only to support that special case.
+No functional change intended.
 
-That makes the HugeTLB vmemmap optimization path harder to share with
-other users of sparse-vmemmap optimization and leaves a fair amount of
-HugeTLB-specific boot-time state in the generic memory initialization
-flow.
-
-This series introduces section-based vmemmap optimization support in the
-sparse-vmemmap code and switches HugeTLB bootmem pages over to it. 
-Instead of having HugeTLB pre-populate optimized vmemmap mappings itself,
-HugeTLB now records the compound page order in the corresponding memory
-sections.  The generic sparse-vmemmap population path can then allocate or
-reuse shared tail vmemmap pages based on section metadata.
-
-The patches are organized as follows:
-
-  - patches 1-2 prepare sparsemem and vmemmap optimization metadata
-  - patches 3-8 teach the common sparse-vmemmap paths to use that state
-  - patches 9-10 switch HugeTLB bootmem optimization to the
-    section-based path
-  - patches 11-17 clean up sparsemem and HugeTLB bootmem code that is no
-    longer needed after the conversion
-
-This is intended to be the second smaller step toward the broader HVO
-generalization.  The device DAX conversion and the wider HVO consolidation
-are left for follow-up series.
-
-
-This patch (of 17):
-
-struct mem_section is currently forced to a power-of-2 size so the
-section-to-root lookup can use a mask instead of a modulo.
-
-That requirement makes future extensions harder than necessary: adding a
-small field can require configuration-dependent padding or layout checks
-just to preserve the lookup scheme.  Keep the lookup correct for any
-struct mem_section size by using a plain modulo instead.
-
-Do not leave the layout entirely unconstrained, though.  Keep struct
-mem_section double-word aligned so modest size changes, such as adding
-another word-sized field on 64-bit systems, still keep a compact and
-efficient layout.  If future fields grow the structure beyond that sweet
-spot, the lookup remains correct; only the exact layout efficiency
-changes.
-
-Link: https://lore.kernel.org/20260910063256.64386-2-songmuchun@bytedance.com
-Link: https://lore.kernel.org/all/20260513130542.35604-1-songmuchun@bytedance.com/ [1]
+Link: https://lore.kernel.org/20260910063256.64386-3-songmuchun@bytedance.com
 Signed-off-by: Muchun Song <songmuchun@bytedance.com>
 Acked-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
-Acked-by: David Hildenbrand (Arm) <david@kernel.org>
+Acked-by: Qi Zheng <qi.zheng@linux.dev>
+Cc: David Hildenbrand (Arm) <david@kernel.org>
 Cc: David Laight <david.laight.linux@gmail.com>
 Cc: Liam R. Howlett <liam@infradead.org>
 Cc: Lorenzo Stoakes <ljs@kernel.org>
@@ -132,97 +84,96 @@ Cc: Michal Hocko <mhocko@suse.com>
 Cc: Oscar Salvador <osalvador@suse.de>
 Cc: Suren Baghdasaryan <surenb@google.com>
 Cc: Vlastimil Babka <vbabka@kernel.org>
-Cc: Qi Zheng <qi.zheng@linux.dev>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mmzone.h  |   11 +++--------
- mm/sparse.c             |    2 --
- scripts/gdb/linux/mm.py |    6 ++----
- 3 files changed, 5 insertions(+), 14 deletions(-)
+ include/linux/mmzone.h |   17 +++++++++--------
+ mm/hugetlb.c           |    4 ++--
+ mm/hugetlb_vmemmap.c   |    2 +-
+ mm/sparse-vmemmap.c    |    4 ++--
+ 4 files changed, 14 insertions(+), 13 deletions(-)
 
---- a/include/linux/mmzone.h~mm-sparse-relax-struct-mem_section-size-constraints
+--- a/include/linux/mmzone.h~mm-sparse-vmemmap-rename-hvo-order-macros
 +++ a/include/linux/mmzone.h
-@@ -2027,13 +2027,9 @@ struct mem_section {
- 	 * section. (see page_ext.h about this.)
- 	 */
- 	struct page_ext *page_ext;
--	unsigned long pad;
+@@ -107,13 +107,14 @@
+ 	 is_power_of_2(sizeof(struct page)) ? \
+ 	 MAX_FOLIO_NR_PAGES * sizeof(struct page) : 0)
+ 
+-/*
+- * vmemmap optimization (like HVO) is only possible for page orders that fill
+- * two or more pages with struct pages.
+- */
+-#define VMEMMAP_TAIL_MIN_ORDER (ilog2(2 * PAGE_SIZE / sizeof(struct page)))
+-#define __NR_VMEMMAP_TAILS (MAX_FOLIO_ORDER - VMEMMAP_TAIL_MIN_ORDER + 1)
+-#define NR_VMEMMAP_TAILS (__NR_VMEMMAP_TAILS > 0 ? __NR_VMEMMAP_TAILS : 0)
++/* The number of struct pages covered by the retained vmemmap pages with HVO enabled. */
++#define VMEMMAP_OPTIMIZATION_NR_STRUCT_PAGES	(PAGE_SIZE / sizeof(struct page))
++#define VMEMMAP_OPTIMIZATION_MIN_ORDER		(ilog2(VMEMMAP_OPTIMIZATION_NR_STRUCT_PAGES) + 1)
++
++#define __VMEMMAP_OPTIMIZATION_NR_ORDERS	\
++	(MAX_FOLIO_ORDER - VMEMMAP_OPTIMIZATION_MIN_ORDER + 1)
++#define VMEMMAP_OPTIMIZATION_NR_ORDERS		\
++	(__VMEMMAP_OPTIMIZATION_NR_ORDERS > 0 ? __VMEMMAP_OPTIMIZATION_NR_ORDERS : 0)
+ 
+ enum migratetype {
+ 	MIGRATE_UNMOVABLE,
+@@ -1158,7 +1159,7 @@ struct zone {
+ 	atomic_long_t		vm_stat[NR_VM_ZONE_STAT_ITEMS];
+ 	atomic_long_t		vm_numa_event[NR_VM_NUMA_EVENT_ITEMS];
+ #ifdef CONFIG_HUGETLB_PAGE_OPTIMIZE_VMEMMAP
+-	struct page *vmemmap_tails[NR_VMEMMAP_TAILS];
++	struct page *vmemmap_tails[VMEMMAP_OPTIMIZATION_NR_ORDERS];
  #endif
--	/*
--	 * WARNING: mem_section must be a power-of-2 in size for the
--	 * calculation and use of SECTION_ROOT_MASK to make sense.
--	 */
--};
-+/* Sacrifice minor padding space for efficient lookup. */
-+} __aligned(2 * sizeof(unsigned long));
+ } ____cacheline_internodealigned_in_smp;
  
- #ifdef CONFIG_SPARSEMEM_EXTREME
- #define SECTIONS_PER_ROOT       (PAGE_SIZE / sizeof (struct mem_section))
-@@ -2043,7 +2039,6 @@ struct mem_section {
+--- a/mm/hugetlb.c~mm-sparse-vmemmap-rename-hvo-order-macros
++++ a/mm/hugetlb.c
+@@ -3368,7 +3368,7 @@ void __init hugetlb_bootmem_struct_page_
+ 	struct zone *zone;
  
- #define SECTION_NR_TO_ROOT(sec)	((sec) / SECTIONS_PER_ROOT)
- #define NR_SECTION_ROOTS	DIV_ROUND_UP(NR_MEM_SECTIONS, SECTIONS_PER_ROOT)
--#define SECTION_ROOT_MASK	(SECTIONS_PER_ROOT - 1)
+ 	for_each_zone(zone) {
+-		for (int i = 0; i < NR_VMEMMAP_TAILS; i++) {
++		for (int i = 0; i < VMEMMAP_OPTIMIZATION_NR_ORDERS; i++) {
+ 			struct page *tail, *p;
+ 			unsigned int order;
  
- #ifdef CONFIG_SPARSEMEM_EXTREME
- extern struct mem_section **mem_section;
-@@ -2067,7 +2062,7 @@ static inline struct mem_section *__nr_t
- 	if (!mem_section || !mem_section[root])
+@@ -3376,7 +3376,7 @@ void __init hugetlb_bootmem_struct_page_
+ 			if (!tail)
+ 				continue;
+ 
+-			order = i + VMEMMAP_TAIL_MIN_ORDER;
++			order = i + VMEMMAP_OPTIMIZATION_MIN_ORDER;
+ 			p = page_to_virt(tail);
+ 			/*
+ 			 * prep_and_add_bootmem_folios() can access pageblock
+--- a/mm/hugetlb_vmemmap.c~mm-sparse-vmemmap-rename-hvo-order-macros
++++ a/mm/hugetlb_vmemmap.c
+@@ -494,7 +494,7 @@ static bool vmemmap_should_optimize_foli
+ 
+ static struct page *vmemmap_get_tail(unsigned int order, struct zone *zone)
+ {
+-	const unsigned int idx = order - VMEMMAP_TAIL_MIN_ORDER;
++	const unsigned int idx = order - VMEMMAP_OPTIMIZATION_MIN_ORDER;
+ 	struct page *tail, *p;
+ 	int node = zone_to_nid(zone);
+ 
+--- a/mm/sparse-vmemmap.c~mm-sparse-vmemmap-rename-hvo-order-macros
++++ a/mm/sparse-vmemmap.c
+@@ -329,12 +329,12 @@ static __meminit struct page *vmemmap_ge
+ 	unsigned int idx;
+ 	int node = zone_to_nid(zone);
+ 
+-	if (WARN_ON_ONCE(order < VMEMMAP_TAIL_MIN_ORDER))
++	if (WARN_ON_ONCE(order < VMEMMAP_OPTIMIZATION_MIN_ORDER))
  		return NULL;
- #endif
--	return &mem_section[root][nr & SECTION_ROOT_MASK];
-+	return &mem_section[root][nr % SECTIONS_PER_ROOT];
- }
+ 	if (WARN_ON_ONCE(order > MAX_FOLIO_ORDER))
+ 		return NULL;
  
- /*
---- a/mm/sparse.c~mm-sparse-relax-struct-mem_section-size-constraints
-+++ a/mm/sparse.c
-@@ -322,8 +322,6 @@ void __init sparse_init(void)
- 	unsigned long pnum_end, pnum_begin, map_count = 1;
- 	int nid_begin;
- 
--	/* see include/linux/mmzone.h 'struct mem_section' definition */
--	BUILD_BUG_ON(!is_power_of_2(sizeof(struct mem_section)));
- 	memblocks_present();
- 
- 	if (compound_info_has_mask()) {
---- a/scripts/gdb/linux/mm.py~mm-sparse-relax-struct-mem_section-size-constraints
-+++ a/scripts/gdb/linux/mm.py
-@@ -70,7 +70,6 @@ class x86_page_ops():
-             self.SECTIONS_PER_ROOT = 1
- 
-         self.NR_SECTION_ROOTS = DIV_ROUND_UP(self.NR_MEM_SECTIONS, self.SECTIONS_PER_ROOT)
--        self.SECTION_ROOT_MASK = self.SECTIONS_PER_ROOT - 1
- 
-         try:
-             self.SECTION_HAS_MEM_MAP = 1 << int(gdb.parse_and_eval('SECTION_HAS_MEM_MAP_BIT'))
-@@ -100,7 +99,7 @@ class x86_page_ops():
-     def __nr_to_section(self, nr):
-         root = self.SECTION_NR_TO_ROOT(nr)
-         mem_section = gdb.parse_and_eval("mem_section")
--        return mem_section[root][nr & self.SECTION_ROOT_MASK]
-+        return mem_section[root][nr % self.SECTIONS_PER_ROOT]
- 
-     def pfn_to_section_nr(self, pfn):
-         return pfn >> self.PFN_SECTION_SHIFT
-@@ -249,7 +248,6 @@ class aarch64_page_ops():
-             self.SECTIONS_PER_ROOT = 1
- 
-         self.NR_SECTION_ROOTS = DIV_ROUND_UP(self.NR_MEM_SECTIONS, self.SECTIONS_PER_ROOT)
--        self.SECTION_ROOT_MASK = self.SECTIONS_PER_ROOT - 1
-         self.SUBSECTION_SHIFT = 21
-         self.SEBSECTION_SIZE = 1 << self.SUBSECTION_SHIFT
-         self.PFN_SUBSECTION_SHIFT = self.SUBSECTION_SHIFT - self.PAGE_SHIFT
-@@ -304,7 +302,7 @@ class aarch64_page_ops():
-     def __nr_to_section(self, nr):
-         root = self.SECTION_NR_TO_ROOT(nr)
-         mem_section = gdb.parse_and_eval("mem_section")
--        return mem_section[root][nr & self.SECTION_ROOT_MASK]
-+        return mem_section[root][nr % self.SECTIONS_PER_ROOT]
- 
-     def pfn_to_section_nr(self, pfn):
-         return pfn >> self.PFN_SECTION_SHIFT
+-	idx = order - VMEMMAP_TAIL_MIN_ORDER;
++	idx = order - VMEMMAP_OPTIMIZATION_MIN_ORDER;
+ 	tail = zone->vmemmap_tails[idx];
+ 	if (tail)
+ 		return tail;
 _
 
 Patches currently in -mm which might be from songmuchun@bytedance.com are
