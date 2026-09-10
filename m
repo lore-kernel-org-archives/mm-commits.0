@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 75F6C35F61A;
-	Thu, 10 Sep 2026 04:29:19 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5DDEF3FCC;
+	Thu, 10 Sep 2026 04:29:56 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789014560; cv=none; b=AkEQcW1JeybV546/3fyojh0DMX8OtgeQQNUmDWU+0IQc5WzMcWSPZYLQj774e4dS8Y4lis3dPBZ+P750KWyQiLRM3sycBhXnRDM2du8JLqdv5wfMxnarpFOVUWI1g7JqumANfMnjLuKGHTNhnHat6ebZlaxdbYWjxzrwr3pQOcY=
+	t=1789014597; cv=none; b=nl9is38Q2792DnNc5Cvj1x/I1R3nf+O8jnzG2InLODEMzZGVn+yjlQWNTdX53arpUgWvq0h75NBwlnmcJ0K9IbiRkXvGDPQGu1VQey6wrUR8UK55JmcdyQRh2qoSWaExMYAUwzjwOYAN0xtoNqzCklvwoqOFwxPtAbhDuYIr4gQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1789014560; c=relaxed/simple;
-	bh=2+vOIt0yytESDJL4Blra6TLioW4IIj065XSruAn10/U=;
-	h=Date:To:From:Subject:Message-Id; b=dN7Q0H2o3quqD1pnyK/Wf4Yh00hDi/skvmYc3owWloBUCZkDXAjlE2fe2qbs7F5uYD7/wFOG7I4kP110dc7vAkF9x1OuEax4IEUMiqfGYa7vuYTfqfI1bsxFx9j2+yozR0N88F/9pM9QTNEINVr+TWbKJtqcl0q0g4uyPudSAhw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=GrOJTzuU; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1789014597; c=relaxed/simple;
+	bh=yZT+94phn7uBo4mPCea8ymP+tZKFTolTIrPIp3UH1C0=;
+	h=Date:To:From:Subject:Message-Id; b=UP15Qvbh9u9w1bOkvQylUILIIFxL8FbjI+ZbtaYc9YdoWXwcw9kz8IADRkf9NnyJh7D7+oM7h0rTDH/iuJz4iWmFGsdbislAKrjHq0vBZe3zlBgO7fOEh1L+9E2vPMYGEjeonsy5Mt6o7Lw7aSZFOtRW2tlDEABoOAtM2SV3VkI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=DbRdZnXt; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="GrOJTzuU"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 074C11F000FF;
-	Thu, 10 Sep 2026 04:29:19 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="DbRdZnXt"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E9F851F000FF;
+	Thu, 10 Sep 2026 04:29:55 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1789014559;
-	bh=NdvPYhzgore/aAiFI1Lu7mW61IY2e3Qg3ai2tHIziT8=;
+	d=linux-foundation.org; s=korg; t=1789014596;
+	bh=M+gUV3felxceZ+qv9bbKRNMi9bH5+CCnQVJBAqlwk4s=;
 	h=Date:To:From:Subject;
-	b=GrOJTzuU2ZutYxWpgGjvJwJ1wMjSHny5n+HYoDXg2rxRFZc5kv0N8hW0Bha9V8Y88
-	 3pRkBq1mJ9s8bn2SR3MdcHCrMmk8v91QN1eVYaPiLQoGS2Ok9yErkmct8gMDxcHUKt
-	 6YwrvtBT6XYQX+kA37kCbtewENYQk35qpbxArUho=
-Date: Wed, 09 Sep 2026 21:29:18 -0700
+	b=DbRdZnXt1sbmRJtGHiAdB6fpMktTFEzyz4yjc2FVgCzeALSMZX4cDGOnctKJxX6hz
+	 TtfjUlFgbQKZvPLg3o9kuQIyYJWN+ljuT+vC2JgP7QtNoErkURGdjXMr0zjQqKdIP3
+	 kRZ2XBU82tNtrIhp0xOCFEJxwOXeScC+X47YDahw=
+Date: Wed, 09 Sep 2026 21:29:55 -0700
 To: mm-commits@vger.kernel.org,stable@vger.kernel.org,sashiko-bot@kernel.org,ekffu200098@gmail.com,mhiramat@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + tools-bootconfig-fix-integer-overflow-in-size-check.patch added to mm-hotfixes-unstable branch
-Message-Id: <20260910042919.074C11F000FF@smtp.kernel.org>
+Subject: [to-be-updated] tools-bootconfig-fix-integer-overflow-in-size-check.patch removed from -mm tree
+Message-Id: <20260910042955.E9F851F000FF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,28 +34,12 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The patch titled
+The quilt patch titled
      Subject: tools/bootconfig: Fix integer overflow in size check
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+has been removed from the -mm tree.  Its filename was
      tools-bootconfig-fix-integer-overflow-in-size-check.patch
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/tools-bootconfig-fix-integer-overflow-in-size-check.patch
-
-This patch will later appear in the mm-hotfixes-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via various
-branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there most days
+This patch was dropped because an updated version will be issued
 
 ------------------------------------------------------
 From: Masami Hiramatsu (Google) <mhiramat@kernel.org>
@@ -110,7 +94,6 @@ _
 
 Patches currently in -mm which might be from mhiramat@kernel.org are
 
-tools-bootconfig-fix-integer-overflow-in-size-check.patch
 bootconfig-reject-unexpected-data-after-null-character.patch
 tools-bootconfig-consolidate-xbc_init-to-error-message-wrapper.patch
 bootconfig-skip-internal-tree-sanity-checks-in-kernel.patch
