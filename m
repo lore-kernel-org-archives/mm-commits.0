@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2638941D223
-	for <mm-commits@vger.kernel.org>; Thu, 10 Sep 2026 21:09:27 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id ECA79457E6A;
+	Thu, 10 Sep 2026 21:24:19 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789074570; cv=none; b=ekWfEz9+pUCWiFpPzXzsIIpFJ5TEIil9Cg3+odatAclMepd7DS0Y7uMwI6LH66X2wBWBKHn3Y+xRuAx32bAac4NspXEIVXOtJlsDMwEoD1GGulTj54l0n6GbLmiaotE1PyJjGNBJv4nOirOd4nlD3uaabX/KlMM5Np2rEQvEr9Y=
+	t=1789075461; cv=none; b=eJjNpJk5lvoffKuGP6xL71ys0UmsUnv7iG1qruPY7llwkG2VPi61dkNZj15HXgnkIwkd4+BlpciiVh7LnoD6kjxMfBb5Pm/pX3BflOQyl4XjXq+9Ux837836HRBKGdw70gz8mcC+J4xi5Dctbo995qsnggGVkZvOAzI283nUf3Q=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1789074570; c=relaxed/simple;
-	bh=0aBhERhKUsOHDNyw0cUppTC2sfY3w9KQa+0+7KJwDwo=;
-	h=Date:To:From:Subject:Message-Id; b=aZ16e1NiFei4+CNp5qvonrMeGjrttFGRHrth3sSc+y8i5Z3gL2gOWLF0VwStn4GYA5o1eCqozOq2QyUEVXyRDd9q4gqpRNGHyWXrDmuM39L/WBWqW0lfnAvnHtVQnuLnpxHCJqYoDkWqMJ6kby4NQQiYbo5Hy2qNhwAFQIdesjQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=bF3fbPYi; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1789075461; c=relaxed/simple;
+	bh=JWwyaCO3impz3Lhe0zofb9RKkTcW+T/L08aqxYiU35Q=;
+	h=Date:To:From:Subject:Message-Id; b=NDU+RXuVs6vcLB42lEneVqnMoeLN4udv9oH2I8Vuf2d3m4zgujUFF4Be1FtxHHVzV3MrvsaY+qbkVWN5WwvMMM7JxlZjjlf7V7mJwj98nfVQ/hMr8NmyvV9k987NLfHUABQ0/SVJ4T78MlRRr1VNv2ONCjxMW1mIq22fMhsOxkw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Y0lYCw0F; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="bF3fbPYi"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 256441F000FF;
-	Thu, 10 Sep 2026 21:09:27 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Y0lYCw0F"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7A85C1F000FF;
+	Thu, 10 Sep 2026 21:24:19 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1789074567;
-	bh=fx2JEyJf6QKKKnSJB+3ktR007P66wJaD2R1AmMBtogY=;
+	d=linux-foundation.org; s=korg; t=1789075459;
+	bh=wyu4j9y0oPoQsMVbX23BIzou+1Cjbbpn/wEkmaIEtiU=;
 	h=Date:To:From:Subject;
-	b=bF3fbPYiRJadIC8WDcjiDNO8CdFVbbT9pEODZe8nTvExSC4GAcVbWBnNSsXNJ7+QI
-	 KV9XYAu5a+UBHdDb10Nw8Aab3PBMu3zVoO+7HELpi8jDCxm2Y8j1q7PtfRbHEx4H5X
-	 yxVDIf+0hUq3c3Acjn+taMBHh0MKchLwK+9bbzDE=
-Date: Thu, 10 Sep 2026 14:09:26 -0700
-To: mm-commits@vger.kernel.org,mhiramat@kernel.org,ekffu200098@gmail.com,akpm@linux-foundation.org
+	b=Y0lYCw0FQoziOcI8D3NYLhOL9/6MlHhRnp5D+k83ap8s0cRgJInSmOD9SafDKZuGU
+	 ZtFPm8l/lLnV+71gJxhBcICTC9pdDKl/6TY8+HjhMt0boqbGCQo0910tA2etWMp7zU
+	 3VgG9aL3BDnvez/98H5YqYQVeA2Fa/Q/pzLxGU0Q=
+Date: Thu, 10 Sep 2026 14:24:19 -0700
+To: mm-commits@vger.kernel.org,stable@vger.kernel.org,sashiko-bot@kernel.org,ekffu200098@gmail.com,mhiramat@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + bootconfig-remove-redundant-assignment-in-xbc_parse_array.patch added to mm-nonmm-unstable branch
-Message-Id: <20260910210927.256441F000FF@smtp.kernel.org>
+Subject: [to-be-updated] tools-bootconfig-fix-integer-overflow-in-size-check.patch removed from -mm tree
+Message-Id: <20260910212419.7A85C1F000FF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,72 +34,74 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The patch titled
-     Subject: bootconfig: remove redundant assignment in xbc_parse_array()
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     bootconfig-remove-redundant-assignment-in-xbc_parse_array.patch
+The quilt patch titled
+     Subject: tools/bootconfig: fix integer overflow in size check
+has been removed from the -mm tree.  Its filename was
+     tools-bootconfig-fix-integer-overflow-in-size-check.patch
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/bootconfig-remove-redundant-assignment-in-xbc_parse_array.patch
-
-This patch will later appear in the mm-nonmm-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via various
-branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there most days
+This patch was dropped because an updated version will be issued
 
 ------------------------------------------------------
-From: Sang-Heon Jeon <ekffu200098@gmail.com>
-Subject: bootconfig: remove redundant assignment in xbc_parse_array()
-Date: Fri, 11 Sep 2026 01:30:48 +0900
+From: Masami Hiramatsu (Google) <mhiramat@kernel.org>
+Subject: tools/bootconfig: fix integer overflow in size check
+Date: Thu, 10 Sep 2026 09:45:45 +0900
 
-After the loop, node is the last array value that xbc_add_child() added,
-and xbc_parse_array() sets node->child to 0.
+Sashiko reported that on 32-bit systems, if an attacker crafts size in the
+bootconfig footer such that adding BOOTCONFIG_FOOTER_SIZE wraps around
+(for instance, if size is 0xFFFFFFFF), the size check in
+load_xbc_from_initrd() can be bypassed:
 
-xbc_init_node() already set node->child to 0 when the value was
-added, and node->child is not modified after that, so the assignment
-is redundant.
+    if (stat.st_size < size + BOOTCONFIG_FOOTER_SIZE) {
+        pr_err("bootconfig size is too big\n");
+        return -E2BIG;
+    }
 
-So remove the assignment.
+This would lead to load_xbc_fd() being called with a negative size,
+resulting in an undersized allocation, heap overflow on read, and
+out-of-bounds write on the terminating null byte.
 
-No functional change.
+Avoid the integer overflow by checking whether size is greater than
+stat.st_size - BOOTCONFIG_FOOTER_SIZE.  Since stat.st_size is already
+verified to be at least BOOTCONFIG_FOOTER_SIZE earlier in the function,
+this subtraction will never underflow.
 
-Link: https://lore.kernel.org/20260910163051.1973775-1-ekffu200098@gmail.com
-Signed-off-by: Sang-Heon Jeon <ekffu200098@gmail.com>
-Cc: Masami Hiramatsu <mhiramat@kernel.org>
+Also reject size > XBC_DATA_MAX upfront in load_xbc_from_initrd() to avoid
+allocating and reading oversized configurations into memory before
+xbc_init() validation.
+
+Link: https://lore.kernel.org/178900114498.187028.9558747732041210116.stgit@devnote2
+Fixes: 950313ebf79c ("tools: bootconfig: Add bootconfig command")
+Signed-off-by: Masami Hiramatsu (Google) <mhiramat@kernel.org>
+Reported-by: Sashiko <sashiko-bot@kernel.org>
+Closes: https://lore.kernel.org/all/20260909161113.16C691F00A3A@smtp.kernel.org/
+Assisted-by: Antigravity:gemini-3.8-flash
+Cc: Sang-Heon Jeon <ekffu200098@gmail.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/bootconfig.c |    1 -
- 1 file changed, 1 deletion(-)
+ tools/bootconfig/main.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
---- a/lib/bootconfig.c~bootconfig-remove-redundant-assignment-in-xbc_parse_array
-+++ a/lib/bootconfig.c
-@@ -836,7 +836,6 @@ static int __init xbc_parse_array(char *
- 			return -ENOMEM;
- 		*__v = next;
- 	} while (c == ',');
--	node->child = 0;
+--- a/tools/bootconfig/main.c~tools-bootconfig-fix-integer-overflow-in-size-check
++++ a/tools/bootconfig/main.c
+@@ -218,7 +218,8 @@ static int load_xbc_from_initrd(int fd,
+ 	csum = le32toh(csum);
  
- 	return c;
- }
+ 	/* Wrong size error  */
+-	if (stat.st_size < size + BOOTCONFIG_FOOTER_SIZE) {
++	if (size > XBC_DATA_MAX ||
++	    size > stat.st_size - BOOTCONFIG_FOOTER_SIZE) {
+ 		pr_err("bootconfig size is too big\n");
+ 		return -E2BIG;
+ 	}
 _
 
-Patches currently in -mm which might be from ekffu200098@gmail.com are
+Patches currently in -mm which might be from mhiramat@kernel.org are
 
-percpu-fix-the-comment-about-which-sizes-share-a-slot.patch
-percpu-remove-redundant-assignments-to-bits.patch
-percpu-remove-unnecessary-initialization-in-pcpu_build_alloc_info.patch
-percpu-remove-unnecessary-cpumask_clear-in-pcpu_build_alloc_info.patch
-percpu-remove-unnecessary-return-in-pcpu_populate_pte.patch
-bootconfig-remove-redundant-assignment-in-xbc_parse_array.patch
+bootconfig-reject-unexpected-data-after-null-character.patch
+tools-bootconfig-consolidate-xbc_init-to-error-message-wrapper.patch
+bootconfig-skip-internal-tree-sanity-checks-in-kernel.patch
+tools-bootconfig-fix-integer-overflow-and-truncation-in-size-checks.patch
+bootconfig-fix-integer-overflow-in-initrd-size-check.patch
 
