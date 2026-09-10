@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BA4E637E5EA
-	for <mm-commits@vger.kernel.org>; Thu, 10 Sep 2026 02:48:14 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 290EB37E5E5;
+	Thu, 10 Sep 2026 03:51:27 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789008496; cv=none; b=WvuL0TXpfkvO0lebbqWrUn5HFvGP9iA9jCnT/bjO0rgbsJsoK72EthsnG+daZh/kTtUeBHEWIWbOnzJ4TCA0IGYMLU/KV3cmjHpke3OfXXijxMUPL9ZLqsTWA9mS3QcrpTTpe8hfITrE/V9i6vC98TD8R5lOmolFRrLNizdfn9g=
+	t=1789012293; cv=none; b=a474L6mJSOfu1ungtS8V+2pDgqqI32V9t/pgtJSfh2bnsQzJo/2HUk1mTLepidBWYPapGF4ZrONp0WaSW/4MDKYHR8aLyL8HDnkk/9NisiR4onF+vZmOPEgVK6J7bG8bxCG1rWW/l0MHm7lXZlDlf3A4z88Ja+ufahvdEGJtEz0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1789008496; c=relaxed/simple;
-	bh=FqF6CKFVupuZ/C08mvSVcKpkwZ70Ix31byJ6xVWwI54=;
-	h=Date:To:From:Subject:Message-Id; b=mRZkfRcA3pgCG0FJcDBFC5os05xdN0R0RryhEEHhsraccmGfZDRk6c/2zVexU5A6ZJCi4BpTWXupUB7vJzEtge5RhqKdrOm29B0G/1DlcpvPx6d5IyF1bsGiwUgiKcb7k32wsdZI+Hu58zyH0kCnRAyuVxiTMmJw6rrtuYQA99c=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=UekgMaRE; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1789012293; c=relaxed/simple;
+	bh=3Wc2nInaI4Xp/xFX/kaCEehrA7eAOqv1txhz+IgOR5I=;
+	h=Date:To:From:Subject:Message-Id; b=Y1DuRRS+CCKUbdqnsKsRRhntr1adci4Puy3eV8QdSETKVKQ7l6skaLI2BixbksLh+Vd8i4YrU4WAz09/BylAGl6d/R17XBUo3mJgfZCFgNVVDGiGcWjdPZ2v8XE6NLWDduFZ49IjjzipgeYsjty6G2SsPh0GL0zfcmK+0cPNuXA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=rCRv6fdL; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="UekgMaRE"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2F29C1F000FF;
-	Thu, 10 Sep 2026 02:48:14 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="rCRv6fdL"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6ECCB1F000FF;
+	Thu, 10 Sep 2026 03:51:25 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1789008494;
-	bh=ylYBkmILg57BfsLj7QoI4JJwo+eXaXxHCRtYIGbyYaI=;
+	d=linux-foundation.org; s=korg; t=1789012285;
+	bh=D4PhI0qKLxy9d3P9jPF2OPh8a94xJkf9+ADABoEAFVc=;
 	h=Date:To:From:Subject;
-	b=UekgMaREp5fpCVzoqNLpELd9aXSomghCWg8DjqjSyqFJx2hxkBUS6WR4P1KdZBy2/
-	 kDB7ereVcVqAGwPmCckpAJnd01kRgBMsWD2HK4HIft3l41zs7kRk7cmKoDPfhKyCIZ
-	 84TX6SB3ZJjERZzP1r/MqUvP1AyTrXHL3mR0mHrc=
-Date: Wed, 09 Sep 2026 19:48:13 -0700
-To: mm-commits@vger.kernel.org,yosry@kernel.org,nphamcs@gmail.com,hannes@cmpxchg.org,chengming.zhou@linux.dev,alex@ghiti.fr,usama.arif@linux.dev,akpm@linux-foundation.org
+	b=rCRv6fdLSIB68Uys4aqvN6vQn1A4OXneW+yhgS47+oIXpOQwhcCMHul0BU9TDqokR
+	 oDX3EZ4dewtJpKBpjs0bHF+kOV5ubLE06mEaexmypzu35H4bZV/ozsSymq0Z8rn5tx
+	 ZihHw2QKWnnioYNie3AijedBux1O/Au89V+ddSls=
+Date: Wed, 09 Sep 2026 20:51:25 -0700
+To: mm-commits@vger.kernel.org,zhoujinmeng@bytedance.com,stable@vger.kernel.org,osalvador@suse.de,muchun.song@linux.dev,mawupeng1@huawei.com,david@kernel.org,jinmengzhou22@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-zswap-dont-fail-a-large-folio-swapin-whose-range-is-not-in-zswap.patch added to mm-new branch
-Message-Id: <20260910024814.2F29C1F000FF@smtp.kernel.org>
+Subject: + mm-hugetlb-fix-subpool-minimum-reservation-rollback.patch added to mm-new branch
+Message-Id: <20260910035125.6ECCB1F000FF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: zswap: don't fail a large-folio swapin whose range is not in zswap
+     Subject: mm/hugetlb: fix subpool minimum reservation rollback
 has been added to the -mm mm-new branch.  Its filename is
-     mm-zswap-dont-fail-a-large-folio-swapin-whose-range-is-not-in-zswap.patch
+     mm-hugetlb-fix-subpool-minimum-reservation-rollback.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-zswap-dont-fail-a-large-folio-swapin-whose-range-is-not-in-zswap.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-hugetlb-fix-subpool-minimum-reservation-rollback.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -69,139 +69,83 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Usama Arif <usama.arif@linux.dev>
-Subject: mm: zswap: don't fail a large-folio swapin whose range is not in zswap
-Date: Mon, 7 Sep 2026 09:19:38 -0700
+From: Jinmeng Zhou <jinmengzhou22@gmail.com>
+Subject: mm/hugetlb: fix subpool minimum reservation rollback
+Date: Mon, 7 Sep 2026 21:20:55 +0800
 
-thp_swapin_suitable_orders() and shmem_swap_alloc_folio() sample
-zswap_never_enabled() to decide whether a swapin may use a large folio. 
-zswap_load() samples the same one-way static key again once the read
-reaches it.  Nothing serialises the two reads, and in between the task
-allocates and pins a high-order folio, which can sleep.
+When a reservation request is partially covered by a subpool minimum and
+the remaining global reservation fails, the error path first calls
+hugepage_subpool_put_pages() for the subpool-backed portion.  It removes
+the failed global portion from used_hpages only afterwards.
 
-If zswap is enabled for the first time in that window, a large folio that
-was correctly permitted reaches zswap_load(), which rejects every large
-folio with -EINVAL.  swap_read_folio() treats anything other than -ENOENT
-as "zswap handled it" and skips the backing-device read, so the folio
-comes back unlocked and not uptodate: SIGBUS for an anonymous fault, -EIO
-for shmem.  The data is intact on the swap device - it was written there
-before zswap was ever enabled - and the not-uptodate folio stays in the
-swap cache, so every retry of the fault fails the same way.  With
-panic_on_warn the WARN takes the machine down rather than the task.
+hugepage_subpool_put_pages() uses used_hpages to decide whether rsv_hpages
+should be restored.  Since used_hpages still includes the global portion,
+it can remain at or above min_hpages and prevent that restoration.  It
+then reports the subpool reservation as releasable, causing
+hugetlb_acct_memory() to incorrectly decrement h->resv_huge_pages.
 
-Scan the range instead of rejecting the folio.  The caller has pinned
-every slot before issuing the read, so zswap cannot start a store or a
-writeback into the range and the scan is stable.  If nothing in the range
-is in zswap it is all on the backing device: return -ENOENT and let
-swap_read_folio() read it.
+This was reproduced with four 2 MB huge pages and a hugetlbfs mount with
+size=10M,min_size=8M.  After a successful three-page reservation, a
+two-page reservation which needed one subpool page and one global page
+failed with -ENOMEM.  HugePages_Rsvd incorrectly dropped from four to
+three even though the subpool minimum was still four pages.
 
-A range that does have a slot in zswap is still refused, because zswap
-stores large folios as order-0 entries and cannot reconstruct one.  That
-stays reachable - a slot shared with another task can be stored inside the
-same window - and refusing is correct, since the alternative is returning
-the stale device copy.  Report it as -EIO rather than -EINVAL: the request
-is valid, zswap just cannot serve it.  The only caller distinguishes
--ENOENT from everything else, so that part is a documentation fix.
+Roll back the failed global portion from used_hpages first, so that
+hugepage_subpool_put_pages() evaluates the minimum reservation against the
+current usage and returns the correct global adjustment.
 
-Link: https://lore.kernel.org/20260907161938.1932355-1-usama.arif@linux.dev
-Fixes: 242d12c98174 ("mm: support large folios swap-in for sync io devices")
-Co-developed-by: Alexandre Ghiti <alex@ghiti.fr>
-Signed-off-by: Alexandre Ghiti <alex@ghiti.fr>
-Signed-off-by: Usama Arif <usama.arif@linux.dev>
-Acked-by: Yosry Ahmed <yosry@kernel.org>
-Acked-by: Nhat Pham <nphamcs@gmail.com>
-Cc: Chengming Zhou <chengming.zhou@linux.dev>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
+Link: https://lore.kernel.org/20260907132055.26696-1-zhoujinmeng@bytedance.com
+Fixes: a833a693a490 ("mm: hugetlb: fix incorrect fallback for subpool")
+Signed-off-by: Jinmeng Zhou <zhoujinmeng@bytedance.com>
+Cc: David Hildenbrand <david@kernel.org>
+Cc: Ma Wupeng <mawupeng1@huawei.com>
+Cc: Muchun Song <muchun.song@linux.dev>
+Cc: Oscar Salvador <osalvador@suse.de>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/zswap.c |   58 +++++++++++++++++++++++++++++++++++++--------------
- 1 file changed, 43 insertions(+), 15 deletions(-)
+ mm/hugetlb.c |   18 +++++++++---------
+ 1 file changed, 9 insertions(+), 9 deletions(-)
 
---- a/mm/zswap.c~mm-zswap-dont-fail-a-large-folio-swapin-whose-range-is-not-in-zswap
-+++ a/mm/zswap.c
-@@ -1559,21 +1559,44 @@ check_old:
- }
+--- a/mm/hugetlb.c~mm-hugetlb-fix-subpool-minimum-reservation-rollback
++++ a/mm/hugetlb.c
+@@ -6861,15 +6861,6 @@ long hugetlb_reserve_pages(struct inode
  
- /**
-+ * zswap_is_present() - is any slot in [entry, entry + nr) in zswap?
-+ * @entry: base swap entry of the range
-+ * @nr: number of contiguous slots to check
-+ *
-+ * Context: The caller must keep the range pinned, otherwise the answer can
-+ * change under it.
-+ * Return: true if at least one slot in the range is in zswap.
-+ */
-+static bool zswap_is_present(swp_entry_t entry, unsigned int nr)
-+{
-+	pgoff_t offset = swp_offset(entry);
-+	struct xarray *tree = swap_zswap_tree(entry);
-+	unsigned long index = offset;
-+
-+	/*
-+	 * A pinned range is at most SWAPFILE_CLUSTER slots and is aligned to
-+	 * its own size, so one tree covers all of it and a single lookup is
-+	 * enough. Scanning only part of the range would report a false
-+	 * "absent" and let the caller read a stale copy from the device.
-+	 */
-+	BUILD_BUG_ON(SWAPFILE_CLUSTER > ZSWAP_ADDRESS_SPACE_PAGES);
-+
-+	return xa_find(tree, &index, offset + nr - 1, XA_PRESENT);
-+}
-+
-+/**
-  * zswap_load() - load a folio from zswap
-  * @folio: folio to load
-  *
-  * Return: 0 on success, with the folio unlocked and marked up-to-date, or one
-  * of the following error codes:
-  *
-- *  -EIO: if the swapped out content was in zswap, but could not be loaded
-- *  into the page due to a decompression failure. The folio is unlocked, but
-- *  NOT marked up-to-date, so that an IO error is emitted (e.g. do_swap_page()
-- *  will SIGBUS).
-- *
-- *  -EINVAL: if the swapped out content was in zswap, but the page belongs
-- *  to a large folio, which is not supported by zswap. The folio is unlocked,
-- *  but NOT marked up-to-date, so that an IO error is emitted (e.g.
-- *  do_swap_page() will SIGBUS).
-+ *  -EIO: if the swapped out content was in zswap but could not be handed
-+ *  back, either because decompression failed or because a slot in a
-+ *  large-folio range is still in zswap and zswap cannot reconstruct a large
-+ *  folio from per-page entries. The folio is unlocked, but NOT marked
-+ *  up-to-date, so that an IO error is emitted (e.g. do_swap_page() will
-+ *  SIGBUS).
-  *
-  *  -ENOENT: if the swapped out content was not in zswap. The folio remains
-  *  locked on return.
-@@ -1592,13 +1615,18 @@ int zswap_load(struct folio *folio)
- 		return -ENOENT;
- 
- 	/*
--	 * Large folios should not be swapped in while zswap is being used, as
--	 * they are not properly handled. Zswap does not properly load large
--	 * folios, and a large folio may only be partially in zswap.
-+	 * A large folio can legitimately reach zswap_load() with its whole
-+	 * range on the backing device, so scan the range rather than rejecting
-+	 * it outright. The caller has pinned every slot, so zswap cannot start
-+	 * a store or a writeback into the range while we look.
- 	 */
--	if (WARN_ON_ONCE(folio_test_large(folio))) {
--		folio_unlock(folio);
--		return -EINVAL;
-+	if (folio_test_large(folio)) {
-+		if (WARN_ON_ONCE(zswap_is_present(swp,
-+						  folio_nr_pages(folio)))) {
-+			folio_unlock(folio);
-+			return -EIO;
-+		}
-+		return -ENOENT;
+ out_put_pages:
+ 	spool_resv = chg - gbl_reserve;
+-	if (spool_resv) {
+-		/* put sub pool's reservation back, chg - gbl_reserve */
+-		gbl_resv = hugepage_subpool_put_pages(spool, spool_resv);
+-		/*
+-		 * subpool's reserved pages can not be put back due to race,
+-		 * return to hstate.
+-		 */
+-		hugetlb_acct_memory(h, -gbl_resv);
+-	}
+ 	/* Restore used_hpages for pages that failed global reservation */
+ 	if (gbl_reserve && spool) {
+ 		unsigned long flags;
+@@ -6879,6 +6870,15 @@ out_put_pages:
+ 			spool->used_hpages -= gbl_reserve;
+ 		unlock_or_release_subpool(spool, flags);
  	}
- 
- 	entry = xa_load(tree, offset);
++	if (spool_resv) {
++		/* put sub pool's reservation back, chg - gbl_reserve */
++		gbl_resv = hugepage_subpool_put_pages(spool, spool_resv);
++		/*
++		 * subpool's reserved pages can not be put back due to race,
++		 * return to hstate.
++		 */
++		hugetlb_acct_memory(h, -gbl_resv);
++	}
+ out_uncharge_cgroup:
+ 	hugetlb_cgroup_uncharge_cgroup_rsvd(hstate_index(h),
+ 					    chg * pages_per_huge_page(h), h_cg);
 _
 
-Patches currently in -mm which might be from usama.arif@linux.dev are
+Patches currently in -mm which might be from jinmengzhou22@gmail.com are
 
-mm-zswap-dont-fail-a-large-folio-swapin-whose-range-is-not-in-zswap.patch
+mm-hugetlb-charge-folios-to-the-target-mms-memcg.patch
+mm-hugetlb-fix-subpool-minimum-reservation-rollback.patch
 
