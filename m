@@ -1,175 +1,105 @@
-Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.8])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 82C103AB29D
-	for <mm-commits@vger.kernel.org>; Thu, 10 Sep 2026 18:25:04 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.8
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2638941D223
+	for <mm-commits@vger.kernel.org>; Thu, 10 Sep 2026 21:09:27 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789064706; cv=none; b=Rxv6p1FnQvATtXs1/sJwSoIp9KuPfw+wyKZIiQI6HnOZBbtz16ydDRH8A5QW/Foqd4WrK55nrfeJtYTFxOW2TeLe8UTsxyWDfcnrpeuS7hDN1/cfoRXJtn9KJgPfviaO9rOTPP1RkB3smfHNoPDnpUHgn85o3TVggc/qImbX7iY=
+	t=1789074570; cv=none; b=ekWfEz9+pUCWiFpPzXzsIIpFJ5TEIil9Cg3+odatAclMepd7DS0Y7uMwI6LH66X2wBWBKHn3Y+xRuAx32bAac4NspXEIVXOtJlsDMwEoD1GGulTj54l0n6GbLmiaotE1PyJjGNBJv4nOirOd4nlD3uaabX/KlMM5Np2rEQvEr9Y=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1789064706; c=relaxed/simple;
-	bh=tzmxgyjlRh1Bcs8wyT/PurkgjJIxoAotpZY7mffUuHU=;
-	h=Date:From:To:Cc:Subject:Message-ID; b=ddcf2n1ghz5sUDrjraKkE1P3gkVqkBw12Mbbiws72kDWT0pdvvvgYasrQ0erMHQiJFGd7ld5oFlPGRlhNUmjfTjqdfxO9Tc0kA76zfVZhD3oHd8tXvSPpKObX86XGu+Pl1MmONFjst+kwizeCnASpIDB6F8oGy+kKGbEjDEBN6o=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=MBtb1ysh; arc=none smtp.client-ip=192.198.163.8
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
+	s=arc-20240116; t=1789074570; c=relaxed/simple;
+	bh=0aBhERhKUsOHDNyw0cUppTC2sfY3w9KQa+0+7KJwDwo=;
+	h=Date:To:From:Subject:Message-Id; b=aZ16e1NiFei4+CNp5qvonrMeGjrttFGRHrth3sSc+y8i5Z3gL2gOWLF0VwStn4GYA5o1eCqozOq2QyUEVXyRDd9q4gqpRNGHyWXrDmuM39L/WBWqW0lfnAvnHtVQnuLnpxHCJqYoDkWqMJ6kby4NQQiYbo5Hy2qNhwAFQIdesjQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=bF3fbPYi; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="MBtb1ysh"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1789064704; x=1820600704;
-  h=date:from:to:cc:subject:message-id;
-  bh=tzmxgyjlRh1Bcs8wyT/PurkgjJIxoAotpZY7mffUuHU=;
-  b=MBtb1yshI8q/YvLXXkt5x8n4kqF/a2RzEa84W6Njc0NkSjI6b6Q8BV1+
-   W9dQ6TXU9JWFHm9pbJlCmQnaBcMGeufQ2owCAsUdouzzSeXSBSfBRaYrY
-   yDTODJGjOUwr1CJHYVq2sSNZl06t6TL7+bo89H7PCCT6f4qVms60YBkVz
-   969iurA+9zvlJYHFFlnwDi+5Bt77N1JX4OEyBd5EvPiKZT6TvXAo7EI7i
-   rfyXCGkRsZ653SavBfvNHL7cqa75U9XmVGl1TjCJJWrRd83y18yKpoB09
-   b8Alm22HA+ODBTF5GUiLwS0Ome2XjhEHHHLa7sttnL9y1knRrJtQvotgP
-   w==;
-X-CSE-ConnectionGUID: j01vnZ32QwGpWEl7sbVl9A==
-X-CSE-MsgGUID: Jg2/6ebLQt2jpDX2M0TVVQ==
-X-IronPort-AV: E=McAfee;i="6800,10657,11901"; a="107039479"
-X-IronPort-AV: E=Sophos;i="6.27,95,1787036400"; 
-   d="scan'208";a="107039479"
-Received: from orviesa002.jf.intel.com ([10.64.159.142])
-  by fmvoesa102.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 10 Sep 2026 11:25:04 -0700
-X-CSE-ConnectionGUID: CF7tBJgRRduXNch6kR7lkw==
-X-CSE-MsgGUID: racymfY0TZKA2nXeuOcLnQ==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="6.27,95,1787036400"; 
-   d="scan'208";a="301601882"
-Received: from lkp-server02.sh.intel.com (HELO 0a3643a6ed9d) ([10.239.97.151])
-  by orviesa002.jf.intel.com with ESMTP; 10 Sep 2026 11:25:03 -0700
-Received: from kbuild by 0a3643a6ed9d with local (Exim 4.98.2)
-	(envelope-from <lkp@intel.com>)
-	id 1x4jSF-000000000Pb-44Ty;
-	Thu, 10 Sep 2026 18:24:59 +0000
-Date: Fri, 11 Sep 2026 02:24:29 +0800
-From: kernel test robot <lkp@intel.com>
-To: David Hildenbrand <david@kernel.org>
-Cc: Andrew Morton <akpm@linux-foundation.org>,
- Linux Memory Management List <linux-mm@kvack.org>,
- mm-commits@vger.kernel.org
-Subject: [akpm-mm:mm-new] BUILD REGRESSION
- cf558a250cf4475a8936902b8978fbb6c61016f8
-Message-ID: <202609110219.ZSBCJ3ud-lkp@intel.com>
-User-Agent: s-nail v14.9.25
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="bF3fbPYi"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 256441F000FF;
+	Thu, 10 Sep 2026 21:09:27 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+	d=linux-foundation.org; s=korg; t=1789074567;
+	bh=fx2JEyJf6QKKKnSJB+3ktR007P66wJaD2R1AmMBtogY=;
+	h=Date:To:From:Subject;
+	b=bF3fbPYiRJadIC8WDcjiDNO8CdFVbbT9pEODZe8nTvExSC4GAcVbWBnNSsXNJ7+QI
+	 KV9XYAu5a+UBHdDb10Nw8Aab3PBMu3zVoO+7HELpi8jDCxm2Y8j1q7PtfRbHEx4H5X
+	 yxVDIf+0hUq3c3Acjn+taMBHh0MKchLwK+9bbzDE=
+Date: Thu, 10 Sep 2026 14:09:26 -0700
+To: mm-commits@vger.kernel.org,mhiramat@kernel.org,ekffu200098@gmail.com,akpm@linux-foundation.org
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: + bootconfig-remove-redundant-assignment-in-xbc_parse_array.patch added to mm-nonmm-unstable branch
+Message-Id: <20260910210927.256441F000FF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
-tree/branch: https://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm.git mm-new
-branch HEAD: cf558a250cf4475a8936902b8978fbb6c61016f8  mm/swap, PM: hibernate: atomically replace hibernation pin
 
-Error/Warning (recently discovered and may have been fixed):
+The patch titled
+     Subject: bootconfig: remove redundant assignment in xbc_parse_array()
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     bootconfig-remove-redundant-assignment-in-xbc_parse_array.patch
 
-    https://lore.kernel.org/oe-kbuild-all/202609101047.wFyYfjz9-lkp@intel.com
-    https://lore.kernel.org/oe-kbuild-all/202609102250.lIycVv3n-lkp@intel.com
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/bootconfig-remove-redundant-assignment-in-xbc_parse_array.patch
 
-    mm/sparse-vmemmap.c:505:48: error: passing argument 2 of 'vmemmap_shared_tail_page' makes pointer from integer without a cast [-Wint-conversion]
-    mm/sparse-vmemmap.c:507:48: error: implicit declaration of function 'device_zone'; did you mean 'device_move'? [-Werror=implicit-function-declaration]
-    mm/sparse-vmemmap.c:507:48: warning: passing argument 2 of 'vmemmap_shared_tail_page' makes pointer from integer without a cast [-Wint-conversion]
+This patch will later appear in the mm-nonmm-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
-Error/Warning ids grouped by kconfigs:
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
 
-recent_errors
-|-- s390-randconfig-r121-20260910
-|   |-- mm-sparse-vmemmap.c:error:implicit-declaration-of-function-device_zone
-|   `-- mm-sparse-vmemmap.c:warning:passing-argument-of-vmemmap_shared_tail_page-makes-pointer-from-integer-without-a-cast
-`-- x86_64-randconfig-122-20260910
-    `-- mm-sparse-vmemmap.c:error:passing-argument-of-vmemmap_shared_tail_page-makes-pointer-from-integer-without-a-cast
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
 
-elapsed time: 888m
+The -mm tree is included into linux-next via various
+branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there most days
 
-configs tested: 81
-configs skipped: 5
+------------------------------------------------------
+From: Sang-Heon Jeon <ekffu200098@gmail.com>
+Subject: bootconfig: remove redundant assignment in xbc_parse_array()
+Date: Fri, 11 Sep 2026 01:30:48 +0900
 
-tested configs:
-alpha               allnoconfig    gcc-16.1.0
-alpha              allyesconfig    gcc-16.1.0
-arc                allmodconfig    gcc-16.1.0
-arc                 allnoconfig    gcc-16.1.0
-arc                allyesconfig    gcc-16.1.0
-arm                 allnoconfig    clang-17
-arm                 allnoconfig    gcc-16.1.0
-arm                allyesconfig    gcc-16.1.0
-arm64              allmodconfig    clang-24
-arm64               allnoconfig    gcc-16.1.0
-csky               allmodconfig    gcc-16.1.0
-csky                allnoconfig    gcc-16.1.0
-hexagon            allmodconfig    clang-24
-hexagon            allmodconfig    gcc-16.1.0
-hexagon             allnoconfig    clang-24
-hexagon             allnoconfig    gcc-16.1.0
-i386               allmodconfig    gcc-14
-i386                allnoconfig    gcc-14
-i386                allnoconfig    gcc-16.1.0
-loongarch          allmodconfig    clang-19
-loongarch           allnoconfig    clang-20
-loongarch           allnoconfig    gcc-16.1.0
-m68k               allmodconfig    gcc-16.1.0
-m68k                allnoconfig    gcc-16.1.0
-m68k               allyesconfig    gcc-16.1.0
-microblaze          allnoconfig    gcc-16.1.0
-microblaze         allyesconfig    gcc-16.1.0
-mips               allmodconfig    gcc-16.1.0
-mips                allnoconfig    gcc-16.1.0
-mips               allyesconfig    gcc-16.1.0
-nios2              allmodconfig    clang-20
-nios2              allmodconfig    gcc-11.5.0
-nios2               allnoconfig    clang-24
-nios2               allnoconfig    gcc-11.5.0
-openrisc           allmodconfig    clang-20
-openrisc           allmodconfig    gcc-16.1.0
-openrisc            allnoconfig    clang-24
-openrisc            allnoconfig    gcc-16.1.0
-openrisc              defconfig    gcc-16.1.0
-parisc             allmodconfig    gcc-16.1.0
-parisc              allnoconfig    clang-24
-parisc              allnoconfig    gcc-16.1.0
-parisc             allyesconfig    clang-17
-parisc             allyesconfig    gcc-16.1.0
-powerpc            allmodconfig    gcc-16.1.0
-powerpc             allnoconfig    clang-24
-powerpc             allnoconfig    gcc-16.1.0
-riscv              allmodconfig    clang-24
-riscv               allnoconfig    clang-24
-riscv               allnoconfig    gcc-16.1.0
-riscv              allyesconfig    clang-24
-riscv                 defconfig    clang-24
-s390               allmodconfig    clang-17
-s390               allmodconfig    clang-24
-s390                allnoconfig    clang-24
-s390               allyesconfig    gcc-16.1.0
-sh                 allmodconfig    gcc-16.1.0
-sh                  allnoconfig    clang-24
-sh                  allnoconfig    gcc-16.1.0
-sh                 allyesconfig    clang-17
-sh                 allyesconfig    gcc-16.1.0
-sparc               allnoconfig    clang-24
-sparc               allnoconfig    gcc-16.1.0
-sparc                 defconfig    gcc-16.1.0
-sparc64            allmodconfig    clang-20
-um                 allmodconfig    clang-17
-um                  allnoconfig    clang-17
-um                  allnoconfig    clang-24
-um                 allyesconfig    gcc-14
-um                 allyesconfig    gcc-16.1.0
-x86_64              allnoconfig    clang-22
-x86_64              allnoconfig    clang-24
-x86_64                    kexec    clang-22
-x86_64                 rhel-9.4    clang-22
-x86_64            rhel-9.4-func    clang-22
-x86_64      rhel-9.4-kselftests    clang-22
-x86_64            rhel-9.4-rust    clang-22
-xtensa              allnoconfig    clang-24
-xtensa              allnoconfig    gcc-16.1.0
-xtensa             allyesconfig    clang-20
-xtensa             allyesconfig    gcc-16.1.0
+After the loop, node is the last array value that xbc_add_child() added,
+and xbc_parse_array() sets node->child to 0.
 
---
-0-DAY CI Kernel Test Service
-https://github.com/intel/lkp-tests/wiki
+xbc_init_node() already set node->child to 0 when the value was
+added, and node->child is not modified after that, so the assignment
+is redundant.
+
+So remove the assignment.
+
+No functional change.
+
+Link: https://lore.kernel.org/20260910163051.1973775-1-ekffu200098@gmail.com
+Signed-off-by: Sang-Heon Jeon <ekffu200098@gmail.com>
+Cc: Masami Hiramatsu <mhiramat@kernel.org>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
+
+ lib/bootconfig.c |    1 -
+ 1 file changed, 1 deletion(-)
+
+--- a/lib/bootconfig.c~bootconfig-remove-redundant-assignment-in-xbc_parse_array
++++ a/lib/bootconfig.c
+@@ -836,7 +836,6 @@ static int __init xbc_parse_array(char *
+ 			return -ENOMEM;
+ 		*__v = next;
+ 	} while (c == ',');
+-	node->child = 0;
+ 
+ 	return c;
+ }
+_
+
+Patches currently in -mm which might be from ekffu200098@gmail.com are
+
+percpu-fix-the-comment-about-which-sizes-share-a-slot.patch
+percpu-remove-redundant-assignments-to-bits.patch
+percpu-remove-unnecessary-initialization-in-pcpu_build_alloc_info.patch
+percpu-remove-unnecessary-cpumask_clear-in-pcpu_build_alloc_info.patch
+percpu-remove-unnecessary-return-in-pcpu_populate_pte.patch
+bootconfig-remove-redundant-assignment-in-xbc_parse_array.patch
+
