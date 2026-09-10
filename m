@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3C78C35C1AE
-	for <mm-commits@vger.kernel.org>; Thu, 10 Sep 2026 23:00:45 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 750D049E134
+	for <mm-commits@vger.kernel.org>; Thu, 10 Sep 2026 23:00:46 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789081246; cv=none; b=rGj8NYQVgKXgC0nNPz/O9Rf8hzFQUhrKNvGmVVCGvSLvCOn4TCYX5ECSubiFrgj71YPIgsy7Khlr0xak0PHF1tED1zSygCpOCBjPZUeT28TaJdbOGFZ8LV5cOGcWD+tvfWvKrWNQ+0go1SPWsDP5w4at5KlGKohWdJZA6b94/E8=
+	t=1789081247; cv=none; b=b9sH26sHfDguSljOuA60/zD9eJzLexYuFV9TcqD5EuqLPVDcWdJCjAqfk+O2PzLuuXfnW5iEEsShayQNEtv4uR+vGSEpbOA9jrNZBVl3d6nwBw36qo87it/++VJ8TBYcdaZ6zq7tQz4EYpz81H9/ETjAE29R+KnX2Qia3e8mT2c=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1789081246; c=relaxed/simple;
-	bh=gAqqzjg9pRcCp9esfqlI2tQysMnHmJPo27DVyacETnA=;
-	h=Date:To:From:Subject:Message-Id; b=raguWXFLbySfs2FG2kRq2PsGZ1PdYP6d/vKGf+HYiAIJO62eV6vt7e3dUd+57vHdPRvJbOhfkhIZm2w7lpixL0M3AVNIwzqptRi95H9yQOl9wY204eR804s+ZdAXsaOcXdk69JjkMsk4olAa7jZrZ5SmOYwEG8voBJhjjpJ/VAs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=fsJurzGv; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1789081247; c=relaxed/simple;
+	bh=xHnUWTD3uhAJ42Drz3CX0GrFCAKILKzuLhav/cgmPH4=;
+	h=Date:To:From:Subject:Message-Id; b=Vg8huNQtc6BJpAubjU/QRItUJbdvKEKaU7beGVpgdTq5QxTYffuyNB65GumJFcf2EIayb2fT6tyn1C6rrp/2EHoF+i0lqlx2k1g12TxdUs8V7Moo9+mEd+u4mquiyRx6yu64D1ck3Ja486OxHK3kqMQWBWB7xta57lsRPMNPNys=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=OTkyEll4; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="fsJurzGv"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 115961F000FF;
-	Thu, 10 Sep 2026 23:00:45 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="OTkyEll4"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4A2BB1F00893;
+	Thu, 10 Sep 2026 23:00:46 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1789081245;
-	bh=8aA3iaXJ18bnq8wQVq0o5Z1eubMMJ+g37z8P8IwseLU=;
+	d=linux-foundation.org; s=korg; t=1789081246;
+	bh=W/RrGV6rv9N5x/HDMeEQlKGM5Br7TUQzs4UGeZVn57Q=;
 	h=Date:To:From:Subject;
-	b=fsJurzGv7n1SlC5ovxBfyk7zU0dh0whcsvXWiuu1Zjt1FzFUWlQf5zfz/ZhkQ000R
-	 hnt7uDgkz57NJoQpezURiUTmLiniS5sjIyEDeqAQUOYOyw36y6XJmh+49atKUffHgR
-	 Hi2de8vxe63dFBbp3GdQaTcOApQ2Bjt/5DaNAbc0=
-Date: Thu, 10 Sep 2026 16:00:44 -0700
+	b=OTkyEll4bLe79uymYas2kKTiNDZ5J8Qnz/vjAzmbKpmn7nLdF4gXbROr25ViK0o/S
+	 B6r1a1fbQGng07zblYpNbgWVqwzDwv652G+vwCpm4EqPuY153BQNTs0o58bwQLd55u
+	 NDbExKWmR3CurkXNpBYFDymY2xdZi6Ln5hDRrUl0=
+Date: Thu, 10 Sep 2026 16:00:45 -0700
 To: mm-commits@vger.kernel.org,songmuchun@bytedance.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [to-be-updated] mm-sparse-vmemmap-support-section-based-vmemmap-accounting.patch removed from -mm tree
-Message-Id: <20260910230045.115961F000FF@smtp.kernel.org>
+Subject: [to-be-updated] mm-mm_init-factor-out-pfn_to_zone.patch removed from -mm tree
+Message-Id: <20260910230046.4A2BB1F00893@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,26 +35,25 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/sparse-vmemmap: support section-based vmemmap accounting
+     Subject: mm/mm_init: factor out pfn_to_zone()
 has been removed from the -mm tree.  Its filename was
-     mm-sparse-vmemmap-support-section-based-vmemmap-accounting.patch
+     mm-mm_init-factor-out-pfn_to_zone.patch
 
 This patch was dropped because an updated version will be issued
 
 ------------------------------------------------------
 From: Muchun Song <songmuchun@bytedance.com>
-Subject: mm/sparse-vmemmap: support section-based vmemmap accounting
-Date: Tue, 25 Aug 2026 16:45:56 +0800
+Subject: mm/mm_init: factor out pfn_to_zone()
+Date: Tue, 25 Aug 2026 16:45:57 +0800
 
-section_nr_vmemmap_pages() can account ordinary sections and DAX sections,
-but section-based vmemmap optimization keeps its compound order in struct
-mem_section and retains a different number of vmemmap pages.
+pfn_to_zone() in hugetlb_vmemmap.c duplicates the zone lookup logic in
+__init_deferred_page().
 
-Teach section_nr_vmemmap_pages() to recognize section-based optimized
-sections and calculate their vmemmap page count from the section order and
-the HVO retained page count.
+Move it to mm_init.c, declare it in mm/mm_init.h, and reuse it from
+__init_deferred_page() and HugeTLB early vmemmap initialization instead of
+open-coding the zone walk there.
 
-Link: https://lore.kernel.org/20260825084608.47437-6-songmuchun@bytedance.com
+Link: https://lore.kernel.org/20260825084608.47437-7-songmuchun@bytedance.com
 Signed-off-by: Muchun Song <songmuchun@bytedance.com>
 Acked-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
 Acked-by: Qi Zheng <qi.zheng@linux.dev>
@@ -69,96 +68,113 @@ Cc: Vlastimil Babka <vbabka@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mmzone.h |    6 ++++--
- mm/sparse-vmemmap.c    |   10 ++++++----
- mm/sparse.h            |   16 ++++++++++++++++
- 3 files changed, 26 insertions(+), 6 deletions(-)
+ mm/hugetlb_vmemmap.c |   17 ++---------------
+ mm/mm_init.c         |   28 ++++++++++++++++++----------
+ mm/mm_init.h         |    1 +
+ 3 files changed, 21 insertions(+), 25 deletions(-)
 
---- a/include/linux/mmzone.h~mm-sparse-vmemmap-support-section-based-vmemmap-accounting
-+++ a/include/linux/mmzone.h
-@@ -107,8 +107,10 @@
- 	 is_power_of_2(sizeof(struct page)) ? \
- 	 MAX_FOLIO_NR_PAGES * sizeof(struct page) : 0)
+--- a/mm/hugetlb_vmemmap.c~mm-mm_init-factor-out-pfn_to_zone
++++ a/mm/hugetlb_vmemmap.c
+@@ -19,6 +19,7 @@
+ #include <asm/tlbflush.h>
+ #include "hugetlb_vmemmap.h"
+ #include "internal.h"
++#include "mm_init.h"
  
--/* The number of struct pages covered by the retained vmemmap pages with HVO enabled. */
--#define VMEMMAP_OPTIMIZATION_NR_STRUCT_PAGES	(PAGE_SIZE / sizeof(struct page))
-+/* The number of retained vmemmap pages with HVO enabled. */
-+#define VMEMMAP_OPTIMIZATION_PAGES		1
-+#define VMEMMAP_OPTIMIZATION_NR_STRUCT_PAGES	\
-+	(VMEMMAP_OPTIMIZATION_PAGES * PAGE_SIZE / sizeof(struct page))
- #define VMEMMAP_OPTIMIZATION_MIN_ORDER		(ilog2(VMEMMAP_OPTIMIZATION_NR_STRUCT_PAGES) + 1)
- 
- #define __VMEMMAP_OPTIMIZATION_NR_ORDERS	\
---- a/mm/sparse.h~mm-sparse-vmemmap-support-section-based-vmemmap-accounting
-+++ a/mm/sparse.h
-@@ -43,6 +43,17 @@ static inline bool vmemmap_optimizable_p
- 	return (pfn & (nr_pages - 1)) >= VMEMMAP_OPTIMIZATION_NR_STRUCT_PAGES;
+ /**
+  * struct vmemmap_remap_walk - walk vmemmap page table
+@@ -744,20 +745,6 @@ static bool vmemmap_should_optimize_boot
+ 	return true;
  }
  
-+static inline bool vmemmap_optimizable_order(unsigned int order)
-+{
-+	if (!IS_ENABLED(CONFIG_HUGETLB_PAGE_OPTIMIZE_VMEMMAP))
-+		return false;
-+
-+	if (!is_power_of_2(sizeof(struct page)))
-+		return false;
-+
-+	return order >= VMEMMAP_OPTIMIZATION_MIN_ORDER;
-+}
-+
+-static struct zone *pfn_to_zone(unsigned nid, unsigned long pfn)
+-{
+-	struct zone *zone;
+-	enum zone_type zone_type;
+-
+-	for (zone_type = 0; zone_type < MAX_NR_ZONES; zone_type++) {
+-		zone = &NODE_DATA(nid)->node_zones[zone_type];
+-		if (zone_spans_pfn(zone, pfn))
+-			return zone;
+-	}
+-
+-	return NULL;
+-}
+-
  /*
-  * mm/sparse.c
+  * Initialize memmap section for a gigantic page, HVO-style.
   */
-@@ -86,6 +97,11 @@ static inline size_t mem_section_usage_s
- 	return struct_size_t(struct mem_section_usage, pageblock_flags,
- 			     BITS_TO_LONGS(SECTION_BLOCKFLAGS_BITS));
- }
-+
-+static inline bool section_vmemmap_optimizable(const struct mem_section *ms)
-+{
-+	return vmemmap_optimizable_order(section_order(ms));
-+}
- #else
- static inline void sparse_init(void) {}
- #endif /* CONFIG_SPARSEMEM */
---- a/mm/sparse-vmemmap.c~mm-sparse-vmemmap-support-section-based-vmemmap-accounting
-+++ a/mm/sparse-vmemmap.c
-@@ -649,24 +649,26 @@ void offline_mem_sections(unsigned long
- static int __meminit section_nr_vmemmap_pages(unsigned long pfn, unsigned long nr_pages,
- 		struct vmem_altmap *altmap, struct dev_pagemap *pgmap)
- {
--	const unsigned int order = pgmap ? pgmap->vmemmap_shift : 0;
-+	const struct mem_section *ms = __pfn_to_section(pfn);
-+	const int order = pgmap ? pgmap->vmemmap_shift : section_order(ms);
-+	const int vmemmap_pages = pgmap ? VMEMMAP_RESERVE_NR : VMEMMAP_OPTIMIZATION_PAGES;
- 	const unsigned long pages_per_compound = 1UL << order;
+@@ -787,7 +774,7 @@ void __init hugetlb_vmemmap_init_early(i
+ 		map = pfn_to_page(pfn);
+ 		start = (unsigned long)map;
+ 		end = start + hugetlb_vmemmap_size(m->hstate);
+-		zone = pfn_to_zone(nid, pfn);
++		zone = pfn_to_zone(pfn, nid);
  
- 	VM_WARN_ON_ONCE(!IS_ALIGNED(pfn | nr_pages, PAGES_PER_SUBSECTION));
- 	VM_WARN_ON_ONCE(nr_pages > PAGES_PER_SECTION);
- 
--	if (!vmemmap_can_optimize(altmap, pgmap))
-+	if (!vmemmap_can_optimize(altmap, pgmap) && !section_vmemmap_optimizable(ms))
- 		return DIV_ROUND_UP(nr_pages * sizeof(struct page), PAGE_SIZE);
- 
- 	if (order < PFN_SECTION_SHIFT) {
- 		VM_WARN_ON_ONCE(!IS_ALIGNED(pfn | nr_pages, pages_per_compound));
--		return VMEMMAP_RESERVE_NR * nr_pages / pages_per_compound;
-+		return vmemmap_pages * nr_pages / pages_per_compound;
+ 		if (vmemmap_populate_hvo(start, end, huge_page_order(m->hstate),
+ 					 zone, HUGETLB_VMEMMAP_RESERVE_SIZE))
+--- a/mm/mm_init.c~mm-mm_init-factor-out-pfn_to_zone
++++ a/mm/mm_init.c
+@@ -692,6 +692,20 @@ static __meminit void pageblock_migratet
  	}
- 
- 	VM_WARN_ON_ONCE(!IS_ALIGNED(pfn | nr_pages, PAGES_PER_SECTION));
- 
- 	if (IS_ALIGNED(pfn, pages_per_compound))
--		return VMEMMAP_RESERVE_NR;
-+		return vmemmap_pages;
- 
- 	return 0;
  }
+ 
++struct zone __meminit *pfn_to_zone(unsigned long pfn, int nid)
++{
++	pg_data_t *pgdat = NODE_DATA(nid);
++
++	for (enum zone_type zone_type = 0; zone_type < MAX_NR_ZONES; zone_type++) {
++		struct zone *zone = &pgdat->node_zones[zone_type];
++
++		if (zone_spans_pfn(zone, pfn))
++			return zone;
++	}
++
++	return NULL;
++}
++
+ #ifdef CONFIG_DEFERRED_STRUCT_PAGE_INIT
+ static inline void pgdat_set_deferred_range(pg_data_t *pgdat)
+ {
+@@ -750,20 +764,14 @@ defer_init(int nid, unsigned long pfn, u
+ 
+ static void __meminit __init_deferred_page(unsigned long pfn, int nid)
+ {
+-	pg_data_t *pgdat = NODE_DATA(nid);
+-	int zid;
++	struct zone *zone;
+ 
+ 	if (early_page_initialised(pfn, nid))
+ 		return;
+ 
+-	for (zid = 0; zid < MAX_NR_ZONES; zid++) {
+-		struct zone *zone = &pgdat->node_zones[zid];
+-
+-		if (zone_spans_pfn(zone, pfn))
+-			break;
+-	}
+-	__init_single_page(pfn_to_page(pfn), pfn, zid, nid);
+-
++	zone = pfn_to_zone(pfn, nid);
++	__init_single_page(pfn_to_page(pfn), pfn,
++			   zone ? zone_idx(zone) : MAX_NR_ZONES, nid);
+ 	if (pageblock_aligned(pfn)) {
+ 		enum migratetype mt =
+ 			kho_scratch_migratetype(pfn, MIGRATE_MOVABLE);
+--- a/mm/mm_init.h~mm-mm_init-factor-out-pfn_to_zone
++++ a/mm/mm_init.h
+@@ -39,6 +39,7 @@ void memmap_init_range(unsigned long siz
+ 		enum meminit_context context,
+ 		struct vmem_altmap *altmap, int migratetype,
+ 		bool isolate_pageblock);
++struct zone *pfn_to_zone(unsigned long pfn, int nid);
+ 
+ #if defined CONFIG_COMPACTION || defined CONFIG_CMA
+ /* Free whole pageblock and set its migration type to MIGRATE_CMA. */
 _
 
 Patches currently in -mm which might be from songmuchun@bytedance.com are
 
-mm-mm_init-factor-out-pfn_to_zone.patch
 mm-sparse-vmemmap-move-helpers-ahead-of-future-callers.patch
 mm-sparse-vmemmap-support-section-based-vmemmap-optimization.patch
 mm-sparse-initialize-memory-sections-earlier.patch
