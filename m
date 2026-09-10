@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5BFFA55D86A
-	for <mm-commits@vger.kernel.org>; Thu, 10 Sep 2026 21:30:59 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E7F6E44F548;
+	Thu, 10 Sep 2026 21:32:08 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789075862; cv=none; b=M6+ijm4YAZ+YIdqgxCrgBpdWoDGlXzkCm6lOz8L8WCKqm8v+QXzKYaDbBz0H1LF3+JPf/Z0ciOOCEfICbbWM13+tu4qkUy87vhkflUm8cGow/dttMLEtRcHizBdR87NWEdudtc/L84rWYSG6kASJn8SWJWzTYlksAD930JI3YWQ=
+	t=1789075930; cv=none; b=KtZ4Xgl41tV9DQQ76fjdgLbQoWN8q9XpcP3AIxbcvdx/2A6TO+8EPC8UuOY0u7g3lZhO5CvUuHeRn2AX8fi1FLFyI3dscoDwNHg7V4czfwDqVwtRzjxCMyTBXmSSHnBd6PU5FNmsbZ5N0jCaMg8nW2klEl6m4hguu1bu87E0bIs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1789075862; c=relaxed/simple;
-	bh=ZuDxNcL/e7oWsE9GJD3GeBdOWTqr0fBKNjFcjZcOtx8=;
-	h=Date:To:From:Subject:Message-Id; b=pZFm0K8XmnkTMXEevrX/dYMvmQcHV+BuuBZjWK9ZGS3lg//fgIk9HSyoI0dZWaWRLWBKujTjuViXe4awpColec+NsPwOgK70Ph0pov506ujII+pvLoUPm8xqjLb7WiylLLuBY5ZKxOZhKzX/fIiRwR7l7DiElB3HYIGhAdZcGe0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=F/ajb9xa; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1789075930; c=relaxed/simple;
+	bh=dY/ayxkXSuNhB7Ui6cSoDZhtYVRwSU0hckyB0cFla5s=;
+	h=Date:To:From:Subject:Message-Id; b=hv8j5MNNM4Jk/kB4KvwyVp4OjEuscnvaA1UKYlXLN5XrVHNjVQKGmtcKBrBhe2IQOB0vItOUNq6/eJAyWTBuvHtGmBsV+0S0UQRvN5YlvHiF6Fx+tfhaHFOmuSyCWRksVckyH8V+9hKNgwFU491VFoZKT0VpflujnmWzg6AaZxk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=M5SMchfV; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="F/ajb9xa"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A3DB31F00893;
-	Thu, 10 Sep 2026 21:30:59 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="M5SMchfV"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7EE511F000FF;
+	Thu, 10 Sep 2026 21:32:08 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1789075859;
-	bh=RDk1kCx+aqWj3HTkLdGjTCvEtPu387AB0euwg13lTrA=;
+	d=linux-foundation.org; s=korg; t=1789075928;
+	bh=/WcAo4dUzNOOqwVr2ROhjAJ2Krmf+6K96u8CXurCIR8=;
 	h=Date:To:From:Subject;
-	b=F/ajb9xaTXhBvHPlJjhA+iHHXGs7l7DxlRzCSxCP2b1WPLCBoTj7aoWnkWqSFec3M
-	 eGXXbThguf00nut//VZeqfCGEc8krLQAJgXkt/8jSiauB4/ik15X/Ogy7c+Dfg8LVg
-	 32P5+gJBs/FRaK4sVmYv853ncezwkBcngi215yb4=
-Date: Thu, 10 Sep 2026 14:30:59 -0700
-To: mm-commits@vger.kernel.org,sj@kernel.org,akpm@linux-foundation.org
+	b=M5SMchfV6PecEA9rSra3nP9Yysmp8HCjo6G1sClBvLDe9zUmXNQPmipybm2bMtU6t
+	 3xEg8sJTCoNNMHzUbPFOzNZqb5OVsQgSMuv5X3hvC3+UaPeVhdWG6yhavJnbcB6Y6x
+	 Hpw/1o55U97gFbE3dFwQJpCo340/D3h6ECY10jG8=
+Date: Thu, 10 Sep 2026 14:32:08 -0700
+To: mm-commits@vger.kernel.org,stable@vger.kernel.org,lienze@kylinos.cn,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + docs-mm-damon-design-update-for-pgidle_set-probe-filter.patch added to mm-nonmm-unstable branch
-Message-Id: <20260910213059.A3DB31F00893@smtp.kernel.org>
+Subject: + mm-damon-core-reset-invalid-quota-charge_target_from.patch added to mm-hotfixes-unstable branch
+Message-Id: <20260910213208.7EE511F000FF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: Docs/mm/damon/design: update for pgidle_set probe filter
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     docs-mm-damon-design-update-for-pgidle_set-probe-filter.patch
+     Subject: mm/damon/core: reset invalid quota->charge_target_from
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     mm-damon-core-reset-invalid-quota-charge_target_from.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/docs-mm-damon-design-update-for-pgidle_set-probe-filter.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-core-reset-invalid-quota-charge_target_from.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -59,53 +59,79 @@ and is updated there most days
 
 ------------------------------------------------------
 From: SJ Park <sj@kernel.org>
-Subject: Docs/mm/damon/design: update for pgidle_set probe filter
-Date: Thu, 10 Sep 2026 07:22:32 -0700
+Subject: mm/damon/core: reset invalid quota->charge_target_from
+Date: Thu, 10 Sep 2026 07:28:45 -0700
 
-Update DAMON design document for the newly added pgidle_set probe filter
-type.
+DAMOS can suddenly stop working if a target process that the quota is just
+fully charged on is terminated.  Fix by catching and processing the corner
+case.
 
-Link: https://lore.kernel.org/20260910142234.171562-6-sj@kernel.org
+When DAMOS quota is fully charged, the target and the region to continue
+applying the action in the next round is saved in
+damos_quota->charge_{target,addr}_from.  In the next round, DAMOS iterates
+targets and regions from the beginning.  It skips applying the action to
+the regions until it visits and skips the saved target/region.
+
+Virtual address space targets become invalid if the process is terminated.
+Trying to apply the scheme to invalid target is just a waste of time. 
+Hence commit 6e4930e33329 ("mm/damon/core: fix wasteful CPU calls by
+skipping non-existent targets") made the logic to skip invalid targets. 
+However, it does skip before the charged target/region skipping/updating.
+
+Let's suppose the user runs DAMOS for multiple virtual address spaces with
+a quota.  The quota exceeded in the middle of a virtual address space. 
+And the process of the address space is terminated.  Then the
+charge_target_from points to the invalid target.  The pointer update logic
+is skipped for the invalid target, so the charge_target_from is never
+updated.  DAMOS action to every target/region is skipped.  From the user's
+perspective, it would look like suddenly DAMOS has stopped working.
+
+No critical leak or crash can happen.  The user could reinstall the
+scheme.  But this makes use of DAMOS under certain setups quite
+unreliable.
+
+When the invalid target is found, further check the corner case and reset
+the pointer.
+
+This issue was discovered [1] by Sashiko.
+
+Link: https://lore.kernel.org/20260910142846.172957-1-sj@kernel.org
+Link: https://lore.kernel.org/20260830064708.40CA61F000E9@smtp.kernel.org [1]
+Fixes: 6e4930e33329 ("mm/damon/core: fix wasteful CPU calls by skipping non-existent targets")
 Signed-off-by: SJ Park <sj@kernel.org>
-Cc: David Hildenbrand <david@kernel.org>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Liam R. Howlett <liam@infradead.org>
-Cc: Lorenzo Stoakes <ljs@kernel.org>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Randy Dunlap <rdunlap@infradead.org>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Vlastimil Babka <vbabka@kernel.org>
+Cc: Enze Li <lienze@kylinos.cn>
+Cc: <stable@vger.kernel.org> # 7.0.x
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/mm/damon/design.rst |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ mm/damon/core.c |    9 ++++++++-
+ 1 file changed, 8 insertions(+), 1 deletion(-)
 
---- a/Documentation/mm/damon/design.rst~docs-mm-damon-design-update-for-pgidle_set-probe-filter
-+++ a/Documentation/mm/damon/design.rst
-@@ -299,6 +299,7 @@ filter types.  Currently below filter ty
- - ``memcg``: Same to that for DAMOS filters.
- - ``pgidle_unset``: Matches if the page for the memory is marked as not
-   access-idle.
-+- ``pgidle_set``: Matches if the page for the memory is marked as access-idle.
+--- a/mm/damon/core.c~mm-damon-core-reset-invalid-quota-charge_target_from
++++ a/mm/damon/core.c
+@@ -3245,8 +3245,15 @@ static void kdamond_apply_schemes(struct
+ 	max_region_sz = damon_region_sz_limit(c);
+ 	mutex_lock(&c->walk_control_lock);
+ 	damon_for_each_target(t, c) {
+-		if (c->ops.target_valid && c->ops.target_valid(t) == false)
++		if (c->ops.target_valid && c->ops.target_valid(t) == false) {
++			damon_for_each_scheme(s, c) {
++				if (s->quota.charge_target_from != t)
++					continue;
++				s->quota.charge_target_from = NULL;
++				s->quota.charge_addr_from = 0;
++			}
+ 			continue;
++		}
+ 		damos_apply_target(c, t, max_region_sz);
+ 	}
  
- If such probes are registered, DAMON executes the probes for each region's
- sampling memory when it does the access :ref:`sampling
-@@ -314,7 +315,7 @@ actions are registered, DAMON applies th
- memory before starting the next sampling interval.  Currently only one action,
- ``set_pgidle`` is supported.  The action marks the page for the probing target
- memory as access-idle.  This can be useful to be used together with
--``pgidle_unset`` probe filter.
-+``pgidle_unset`` or ``pgidle_set`` probe filter.
- 
- This is a sampling based mechanism.  Hence, it is lightweight but the output
- may include some measurement errors.  The output should be used with good
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
 
 mm-damon-vaddr-avoid-hw-driven-pte-updates-during-damon_hugetlb_mkold.patch
+mm-damon-core-reset-invalid-quota-charge_target_from.patch
 mm-damon-core-skip-applying-scheme-if-region-split-for-quota-fails.patch
 mm-damon-paddr-respect-folio-end-for-damos_stat.patch
 mm-damon-paddr-respect-folio-end-for-damos-actions-except-stat.patch
