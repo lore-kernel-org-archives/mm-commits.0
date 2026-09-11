@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2400E5A513C
-	for <mm-commits@vger.kernel.org>; Fri, 11 Sep 2026 20:39:18 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F1DD63CB54E
+	for <mm-commits@vger.kernel.org>; Fri, 11 Sep 2026 22:29:21 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789159161; cv=none; b=EHxevxY5GbMIzdE3OitL1wju0tbbhT6jvRyaYWXO838PBmV82YHGVTCrpud5yIGt/cQzKnjw1RFe3POaBhpKAyiVPAPdLrrv5vsPEm6VVAatl8JxbOhCBvyUsOmgfkaiEqkaFaSxoDGk0y3lkMwz7ZjzPY58hzO1hRYKuaGtCsA=
+	t=1789165763; cv=none; b=ZCiupuvxKtre0INfzeWOdxm6RVZD3pSSd9ixugQGKingFuZFZ2JhpuHoHpi978YDgtQpgmgkAMDWNwZ20h0TBYfiQTTTGCMLT2sPFrN7NUo1aWujvTpWx014rLXyutApmWr/G6EvCJKzxhReOXZXu02gVbl7Eb1w/wHZjr/dLSc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1789159161; c=relaxed/simple;
-	bh=Dw+xWmgWe30kDiqe8ljICXM5nUZnmcQTAn5NauTr5as=;
-	h=Date:To:From:Subject:Message-Id; b=Gdx/gWszuL6YfqLppTP5NOTnt2CzhYE9ltXdemgpLb7Fvi3l6A25PeoYQOH1mK5jfIaPx0aIYkPFwRsuMWsl+668MSNgBvPSa7U5v7b/NREwnnwHybHv4QS0rJL8SKIwR4L5e2iLZqvPvJxHRnbrtU0IEQlZjU/mmjW3u2l56ig=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=NAUJMPoH; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1789165763; c=relaxed/simple;
+	bh=mqpYSyPbNLaoXnGYMJ7jbzPIk3k8jYE6uekT9X9AAhI=;
+	h=Date:To:From:Subject:Message-Id; b=F9fizBGjMkRyMFDXCKkG6Usti9siMeAqFlZ+VQTWavN1bes4jRN4xkg7lrtpYlDWgqB3A5aSeu+unbjbPgE+1T3yZJQBtaq20YOjWVoFuOI8hmsmNl48Y056SapJJkLhE22+7Cnc3ybhh8G0kzQoBK0R82KO/U7qn/IO6Hv5nw4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=zYwOn3Ox; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="NAUJMPoH"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id CC5581F000FF;
-	Fri, 11 Sep 2026 20:39:15 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="zYwOn3Ox"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A19C61F000FF;
+	Fri, 11 Sep 2026 22:29:21 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1789159155;
-	bh=fbePu2BWHwfG4pb5ntfbGrbAPZY0Ao2rNv0GD83Npwo=;
+	d=linux-foundation.org; s=korg; t=1789165761;
+	bh=CTkpMVuY0JEBBwB+JZ1TL6crDuP00e81MU4ybZft7ZI=;
 	h=Date:To:From:Subject;
-	b=NAUJMPoHETXx/hmBCYtACPMtSEHEp68k6REaIk+OAYXhhopmQ6mO/V6aTN7XIL7LX
-	 BjOMIIOaJOvpeLcCIb4qE5eZ0FOHoYqmj/Q/EXaK2l868kPoQA1iJ5sHxlTwAuG/Sl
-	 8YpmcmZ7w/2pNFNg8fAKLa5cPiIXve5tuHsLkQMw=
-Date: Fri, 11 Sep 2026 13:39:15 -0700
-To: mm-commits@vger.kernel.org,ynorov@nvidia.com,willy@infradead.org,linux@rasmusvillemoes.dk,liam@infradead.org,andrewjballance@gmail.com,aliceryhl@google.com,yury.norov@gmail.com,akpm@linux-foundation.org
+	b=zYwOn3Ox5VNyobNG+HuxBjJTzFntn29xUXtJpGnxnOIFTUE1xKvOoEBaL14hKUeAZ
+	 ZiOxu/KFTUKgvN968ryYpEwUzuTTVokzdOJudfg0wWZJr5w2lspVdjn5QnU/R00kuD
+	 3Yc6UWZiN7ja5Gkx2M8nqfkyHT3J4KfPGp6io38k=
+Date: Fri, 11 Sep 2026 15:29:21 -0700
+To: mm-commits@vger.kernel.org,vbabka@kernel.org,surenb@google.com,rppt@kernel.org,mhocko@suse.com,ljs@kernel.org,liam@infradead.org,david@kernel.org,yeoreum.yun@arm.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + lib-fix-lock-initialization-in-region-allocation-benchmark.patch added to mm-new branch
-Message-Id: <20260911203915.CC5581F000FF@smtp.kernel.org>
+Subject: + kselftest-mm-fix-potential-failure-for-merged-vma-in-guard-regions.patch added to mm-new branch
+Message-Id: <20260911222921.A19C61F000FF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: lib: fix lock initialization in region allocation benchmark
+     Subject: kselftest: mm: fix potential failure for merged VMA in guard-regions
 has been added to the -mm mm-new branch.  Its filename is
-     lib-fix-lock-initialization-in-region-allocation-benchmark.patch
+     kselftest-mm-fix-potential-failure-for-merged-vma-in-guard-regions.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/lib-fix-lock-initialization-in-region-allocation-benchmark.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kselftest-mm-fix-potential-failure-for-merged-vma-in-guard-regions.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -69,72 +69,59 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Yury Norov <yury.norov@gmail.com>
-Subject: lib: fix lock initialization in region allocation benchmark
-Date: Fri, 11 Sep 2026 11:52:43 -0400
+From: Yeoreum Yun <yeoreum.yun@arm.com>
+Subject: kselftest: mm: fix potential failure for merged VMA in guard-regions
+Date: Fri, 11 Sep 2026 15:29:03 +0100
 
-The Maple Tree benchmark uses MTREE_INIT() for a stack-allocated tree. 
-Its static spinlock initializer leaves lockdep to use the lock address as
-the class key.  Since the address is on the stack, the first allocation
-triggers "INFO: trying to register non-static key" and disables lockdep.
+check_vmflag_guard() uses /proc/self/smaps to retrieve the VMA flags, but
+this can fail if the mapping is merged with an adjacent VMA.
 
-The IDA benchmark has the same problem through IDA_INIT(), but runs after
-Maple Tree and therefore encounters an already disabled lockdep.
+To avoid this potential failure, first allocate a temporary region with
+extra pages at both ends, unmap it, and then map the test region within
+the temporary address range, leaving an unmapped page on each side to
+prevent VMA merging.
 
-Use mt_init_flags() and ida_init() to initialize the locks with persistent
-lock-class keys.  Keep initialization outside the timed allocation paths.
-
-Link: https://lore.kernel.org/20260911155244.1406122-1-ynorov@nvidia.com
-Fixes: f4806cc63cc6 ("lib: test bitmap vs IDA vs Maple Tree performance for region allocations")
-Signed-off-by: Yury Norov <ynorov@nvidia.com>
-Closes: https://lore.kernel.org/oe-lkp/202609101106.771b567e-lkp@intel.com
-Cc: Alice Ryhl <aliceryhl@google.com>
-Cc: Andrew Ballance <andrewjballance@gmail.com>
+Link: https://lore.kernel.org/20260911142904.1825452-1-yeoreum.yun@arm.com
+Signed-off-by: Yeoreum Yun <yeoreum.yun@arm.com>
+Reviewed-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
+Acked-by: David Hildenbrand (Arm) <david@kernel.org>
 Cc: Liam R. Howlett <liam@infradead.org>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Rasmus Villemoes <linux@rasmusvillemoes.dk>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Vlastimil Babka <vbabka@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/region_alloc_benchmark.c |    8 ++++++--
- 1 file changed, 6 insertions(+), 2 deletions(-)
+ tools/testing/selftests/mm/guard-regions.c |   14 ++++++++++++--
+ 1 file changed, 12 insertions(+), 2 deletions(-)
 
---- a/lib/region_alloc_benchmark.c~lib-fix-lock-initialization-in-region-allocation-benchmark
-+++ a/lib/region_alloc_benchmark.c
-@@ -78,11 +78,13 @@ static size_t __init ida_size(unsigned l
+--- a/tools/testing/selftests/mm/guard-regions.c~kselftest-mm-fix-potential-failure-for-merged-vma-in-guard-regions
++++ a/tools/testing/selftests/mm/guard-regions.c
+@@ -2257,8 +2257,18 @@ TEST_F(guard_regions, smaps)
+ 	char *ptr, *ptr2;
+ 	int i;
  
- static unsigned long __init benchmark_ida(unsigned long cap)
- {
--	struct ida ida = IDA_INIT(ida);
-+	struct ida ida;
- 	unsigned long cnt, idx, off, nr_ids = 0;
- 	ktime_t alloc_time, free_time;
- 	int id = -ENOSPC;
- 
-+	ida_init(&ida);
+-	/* Map a region. */
+-	ptr = mmap_(self, variant, NULL, 10 * page_size, PROT_READ | PROT_WRITE, 0, 0);
++	/* Map then unmap placeholder to avoid adjacent merges */
++	ptr = mmap_(self, variant, NULL, 12 * page_size, PROT_NONE, 0, 0);
++	ASSERT_NE(ptr, MAP_FAILED);
++	ASSERT_EQ(munmap(ptr, 12 * page_size), 0);
 +
- 	alloc_time = ktime_get();
- 	for (cnt = 0; cnt <= cap; cnt++) {
- 		for (off = 0; off < reg_sz[cnt]; off++) {
-@@ -125,12 +127,14 @@ static unsigned long __init benchmark_id
++	/*
++	 * Map a region for the test. Since the preceding temporary mapping
++	 * succeeded, this mapping should also succeed without merging with
++	 * adjacent VMAs.
++	 */
++	ptr = mmap_(self, variant, ptr + page_size, 10 * page_size,
++		    PROT_READ | PROT_WRITE, MAP_FIXED, 0);
+ 	ASSERT_NE(ptr, MAP_FAILED);
  
- static unsigned long __init benchmark_maple_tree(unsigned long cap)
- {
--	struct maple_tree mt = MTREE_INIT(mt, MT_FLAGS_ALLOC_RANGE);
-+	struct maple_tree mt;
- 	unsigned long cnt, idx;
- 	ktime_t alloc_time, free_time;
- 	size_t sz;
- 	int ret;
- 
-+	mt_init_flags(&mt, MT_FLAGS_ALLOC_RANGE);
-+
- 	alloc_time = ktime_get();
- 	for (cnt = 0; cnt <= cap; cnt++) {
- 		ret = mtree_alloc_range(&mt, &idx, xa_mk_value(cnt + 1),
+ 	/* We shouldn't yet see a guard flag. */
 _
 
-Patches currently in -mm which might be from yury.norov@gmail.com are
+Patches currently in -mm which might be from yeoreum.yun@arm.com are
 
-lib-fix-lock-initialization-in-region-allocation-benchmark.patch
+kselftest-mm-fix-potential-failure-for-merged-vma-in-guard-regions.patch
 
