@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E6BC0378D8D
-	for <mm-commits@vger.kernel.org>; Fri, 11 Sep 2026 01:41:02 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6C5D9353EEB
+	for <mm-commits@vger.kernel.org>; Fri, 11 Sep 2026 05:15:36 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789090864; cv=none; b=CTWUpRVSFKsa++kMTYh1sMTXztgwq7TI1m6KyOwgHQs3K4PE1T5+Ao6Jy3OxM+h6hpTekr8h0sOzP3fnG3UTE+npW9FkTJGDcxvfz823LoDZc7Yf557HLBsOLOsg3LcL6uKSgwM7LMj0wGTMsOjr5ncQ53DeNo2LoAtaokXtLXI=
+	t=1789103738; cv=none; b=Yw6P0lJiUPNjzmR7ejBcYH9bMWOLXK29WyuHkmS0HGMLOZzQ+sW7IQcej+KPWcWgmD4dbSBX9o1K99ILJsEmczW/3ZJWisXVpbgB4dd1oG61jXflJ/lrWB9J93umsLDKMVjgDC8oE3Fo63LLQakaLThhn1mBcZVgI/Ea7BCtVm8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1789090864; c=relaxed/simple;
-	bh=vI7mf/n61dU2h/knpqG2Zt+O69OVOTad21hmUfDM7YU=;
-	h=Date:To:From:Subject:Message-Id; b=QtgVp0vux+GcNP+PAMoRK2CW23sfOHpjxxUjSvuJd2HsxlcXqwKcwUxPfnM8mGhwBX8xmRiuIhVCXG8tvxOETdgyuQXuWUZLmfyUZ3nbvNguccN2p/xFnykysudNNC0Kx6NAJzlpcE5Ph6MvKllNXAe1gFU1bJltI8QQyLCy7XI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Ebip2Ukk; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1789103738; c=relaxed/simple;
+	bh=EB101r6YBNXyaonISD6MjCBEYQKArTbpVxUGBG6d10k=;
+	h=Date:To:From:Subject:Message-Id; b=eZZUwO//wwIPWVXD/OG0wHpSzpITP5jSunhVjiUzhFlSXFobPBTHsIhTMVt7G/AvOVXTE93DAlmeuQhgRCkWaws0qvL4Jv5VAXShvCHS1UaCV5etpy9qtirLWCUbbOGlJWY5sgH/W9td+DwtET3BFMqQ8Sp67f8g+3KjRbMQCiM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=MuAioUl6; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Ebip2Ukk"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 70D1E1F000FF;
-	Fri, 11 Sep 2026 01:41:02 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="MuAioUl6"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 19B131F00893;
+	Fri, 11 Sep 2026 05:15:36 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1789090862;
-	bh=g8GXfcWpXjA7fzPhQjDNYGspLivyWmDILTZt5CBIJXg=;
+	d=linux-foundation.org; s=korg; t=1789103736;
+	bh=aDX8rmRwUj6sBpKptveDtUrpfc1iwT6gmUii5+bl0M0=;
 	h=Date:To:From:Subject;
-	b=Ebip2Ukk3TiF3mvtHgS9Uz2ueoWEEUvMBYSxKgEik6Io78tXyy6fkgXxp5hp3D87x
-	 6O4ZEG3TIwptLE+7WPFzxCK9IdGjTLq4cbrJWvk2CZ2Upe4+HPdgM4C/CIXoG79Fj/
-	 jK4/tIjP/+gMH7GCh0Bqiny3bSmTUnsH0D5YGrk4=
-Date: Thu, 10 Sep 2026 18:41:02 -0700
-To: mm-commits@vger.kernel.org,yosry@kernel.org,nphamcs@gmail.com,hannes@cmpxchg.org,chrisl@kernel.org,chengming.zhou@linux.dev,wujianyue000@gmail.com,akpm@linux-foundation.org
+	b=MuAioUl6lVnd4r4R71N1bQNaQ9Rn7CyD7uxIPxmixGK97/PmssL8rYP12NqYyUwLr
+	 F/CaeZYwxAW/9I8lvKOfuJI19iUQuTcXNlS8kRkOJvv23nB/Of4e1ixQ5PTxHYYvE+
+	 sKOS4Y4ze+gVqmrp/m06308+kuogGGddp1xx4fvk=
+Date: Thu, 10 Sep 2026 22:15:35 -0700
+To: mm-commits@vger.kernel.org,songmuchun@bytedance.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-zswap-reference-the-pool-by-id-to-shrink-struct-zswap_entry.patch added to mm-new branch
-Message-Id: <20260911014102.70D1E1F000FF@smtp.kernel.org>
+Subject: + mm-sparse-vmemmap-introduce-config_sparsemem_vmemmap_optimization.patch added to mm-new branch
+Message-Id: <20260911051536.19B131F00893@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/zswap: reference the pool by id to shrink struct zswap_entry
+     Subject: mm/sparse-vmemmap: introduce CONFIG_SPARSEMEM_VMEMMAP_OPTIMIZATION
 has been added to the -mm mm-new branch.  Its filename is
-     mm-zswap-reference-the-pool-by-id-to-shrink-struct-zswap_entry.patch
+     mm-sparse-vmemmap-introduce-config_sparsemem_vmemmap_optimization.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-zswap-reference-the-pool-by-id-to-shrink-struct-zswap_entry.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-sparse-vmemmap-introduce-config_sparsemem_vmemmap_optimization.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -69,144 +69,259 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Jianyue Wu <wujianyue000@gmail.com>
-Subject: mm/zswap: reference the pool by id to shrink struct zswap_entry
-Date: Sun, 06 Sep 2026 15:47:19 +0800
+From: Muchun Song <songmuchun@bytedance.com>
+Subject: mm/sparse-vmemmap: introduce CONFIG_SPARSEMEM_VMEMMAP_OPTIMIZATION
+Date: Fri, 11 Sep 2026 13:02:18 +0800
 
-struct zswap_entry is one allocation per stored page, so its size is pure
-overhead.  It currently embeds an 8-byte pool pointer, even though the
-live pools now sit in an allocating xarray keyed by a small integer id
-that fits in a u8.
+Patch series "mm: Switch device DAX to section-based vmemmap
+optimization", v3.
 
-Replace the per-entry pool pointer with that u8 id and resolve it through
-the xarray with xa_load().  xa_load() does its own RCU-protected lookup,
-so the caller needs no rcu_read_lock() section of its own.  The resolved
-pool stays valid because a live entry pins it via percpu_ref (taken in
-zswap_store_page()), so its id cannot be reused.  A live entry never uses
-the reserved id 0, so a zeroed id resolves to NULL and trips a WARN rather
-than aliasing a live pool.
+This series is split out from the earlier, larger series "mm: Generalize
+HVO for HugeTLB and device DAX" [1].  While the parent series generalizes
+vmemmap optimization across HugeTLB and device DAX, this subset addresses
+a single, self-contained step: switching device DAX to the section-based
+sparse-vmemmap optimization infrastructure introduced for HugeTLB.
 
-The u8 fits in the padding after the bool referenced field, shrinking the
-entry from 56 to 48 bytes on 64-bit.  This raises objs_per_slab from 73 to
-85 and saves about 2MiB of metadata per 1GiB of data held in zswap.
+After the HugeTLB conversion, optimized vmemmap state is described by the
+memory section and the sparse-vmemmap population path can allocate or
+reuse shared tail vmemmap pages based on that metadata.  Device DAX still
+uses the older DAX-specific population model, including a separate tail
+vmemmap page reservation and architecture-specific logic to locate or
+populate reusable tail pages.
 
-Link: https://lore.kernel.org/20260906-shrink_zswap_entry_v6-v6-3-ac4cf61565fb@gmail.com
-Signed-off-by: Jianyue Wu <wujianyue000@gmail.com>
-Suggested-by: Chris Li <chrisl@kernel.org>
-Acked-by: Yosry Ahmed <yosry@kernel.org>
-Cc: Chengming Zhou <chengming.zhou@linux.dev>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Nhat Pham <nphamcs@gmail.com>
+This series makes device DAX use the same section-based model.  Device DAX
+records the compound page order from pgmap->vmemmap_shift in section
+metadata before vmemmap population, uses the common per-zone shared tail
+vmemmap page, and drops the extra reserved tail page.  The powerpc radix
+path is updated to use the same shared tail-page helper, so the generic
+and powerpc DAX paths follow the same reservation model.
+
+The first patches prepare the shared infrastructure by introducing a
+generic CONFIG_SPARSEMEM_VMEMMAP_OPTIMIZATION symbol, factoring out shared
+tail-page allocation, and keeping the special shared-tail struct page
+initialization local to sparse-vmemmap.
+
+The middle patches move device DAX onto that infrastructure by recording
+the device DAX compound page order in memory-section metadata, using that
+metadata to back generic device DAX mappings with the common per-zone
+shared tail page, exposing the shared helpers so the powerpc radix path
+can use the same model, and dropping the extra DAX-only tail page
+reservation and the now-unused section accounting arguments.
+
+The final patch updates the documentation for the new DAX layout.
+
+This is intended to be the third smaller step toward the broader HVO
+generalization.  The wider HVO consolidation between HugeTLB and device
+DAX is left for follow-up series.
+
+
+This patch (of 11):
+
+The section-based vmemmap optimization infrastructure is still guarded by
+CONFIG_HUGETLB_PAGE_OPTIMIZE_VMEMMAP, but it also can be used by device
+DAX.  Introduce CONFIG_SPARSEMEM_VMEMMAP_OPTIMIZATION as a common config
+for the shared infrastructure.
+
+Select the new option from HUGETLB_PAGE_OPTIMIZE_VMEMMAP and from DEV_DAX
+when the architecture opts in to DAX vmemmap optimization, and use it to
+guard the generic sparse-vmemmap state and helpers.
+
+Link: https://lore.kernel.org/20260911050228.58884-1-songmuchun@bytedance.com
+Link: https://lore.kernel.org/20260911050228.58884-2-songmuchun@bytedance.com
+Link: https://lore.kernel.org/all/20260513130542.35604-1-songmuchun@bytedance.com/ [1]
+Signed-off-by: Muchun Song <songmuchun@bytedance.com>
+Acked-by: Qi Zheng <qi.zheng@linux.dev>
+Cc: David Hildenbrand <david@kernel.org>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: Lorenzo Stoakes <ljs@kernel.org>
+Cc: Madhavan Srinivasan <maddy@linux.ibm.com>
+Cc: Michael Ellerman <mpe@ellerman.id.au>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Nicholas Piggin <npiggin@gmail.com>
+Cc: Oscar Salvador <osalvador@suse.de>
+Cc: Randy Dunlap <rdunlap@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/zswap.c |   37 ++++++++++++++++++++++++++++++-------
- 1 file changed, 30 insertions(+), 7 deletions(-)
+ arch/x86/entry/vdso/vdso32/fake_32bit_build.h |    2 +-
+ drivers/dax/Kconfig                           |    2 ++
+ fs/Kconfig                                    |    1 +
+ include/linux/mm.h                            |    3 +++
+ include/linux/mmzone.h                        |   13 +++++++------
+ include/linux/page-flags.h                    |    5 ++---
+ mm/Kconfig                                    |    4 ++++
+ mm/sparse.h                                   |    4 ++--
+ 8 files changed, 22 insertions(+), 12 deletions(-)
 
---- a/mm/zswap.c~mm-zswap-reference-the-pool-by-id-to-shrink-struct-zswap_entry
-+++ a/mm/zswap.c
-@@ -194,7 +194,7 @@ static struct shrinker *zswap_shrinker;
-  *              writeback logic. The entry is only reclaimed by the writeback
-  *              logic if referenced is unset. See comments in the shrinker
-  *              section for context.
-- * pool - the zswap_pool the entry's data is in
-+ * pool_idx - id of the zswap_pool that the entry's data is in.
-  * handle - zsmalloc allocation handle that stores the compressed page data
-  * objcg - the obj_cgroup that the compressed memory is charged to
-  * lru - handle to the pool's lru used to evict pages.
-@@ -203,12 +203,22 @@ struct zswap_entry {
- 	swp_entry_t swpentry;
- 	unsigned int length;
- 	bool referenced;
--	struct zswap_pool *pool;
-+	u8 pool_idx;
- 	unsigned long handle;
- 	struct obj_cgroup *objcg;
- 	struct list_head lru;
- };
+--- a/arch/x86/entry/vdso/vdso32/fake_32bit_build.h~mm-sparse-vmemmap-introduce-config_sparsemem_vmemmap_optimization
++++ a/arch/x86/entry/vdso/vdso32/fake_32bit_build.h
+@@ -11,7 +11,7 @@
+ #undef CONFIG_PGTABLE_LEVELS
+ #undef CONFIG_ILLEGAL_POINTER_VALUE
+ #undef CONFIG_SPARSEMEM_VMEMMAP
+-#undef CONFIG_HUGETLB_PAGE_OPTIMIZE_VMEMMAP
++#undef CONFIG_SPARSEMEM_VMEMMAP_OPTIMIZATION
+ #undef CONFIG_NR_CPUS
+ #undef CONFIG_PARAVIRT_XXL
  
-+/*
-+ * No RCU section is needed around the returned pointer: a stored entry pins
-+ * its pool via percpu_ref (taken in zswap_store_page()), so the id cannot be
-+ * reused under us.  Callers WARN and handle a NULL from a corrupt pool_idx.
-+ */
-+static struct zswap_pool *zswap_entry_pool(struct zswap_entry *entry)
-+{
-+	return xa_load(&zswap_pools, entry->pool_idx);
-+}
-+
- static struct xarray *zswap_trees[MAX_SWAPFILES];
- static unsigned int nr_zswap_trees[MAX_SWAPFILES];
+--- a/drivers/dax/Kconfig~mm-sparse-vmemmap-introduce-config_sparsemem_vmemmap_optimization
++++ a/drivers/dax/Kconfig
+@@ -8,6 +8,8 @@ if DAX
+ config DEV_DAX
+ 	tristate "Device DAX: direct access mapping device"
+ 	depends on TRANSPARENT_HUGEPAGE
++	depends on ZONE_DEVICE
++	select SPARSEMEM_VMEMMAP_OPTIMIZATION if ARCH_WANT_OPTIMIZE_DAX_VMEMMAP
+ 	help
+ 	  Support raw access to differentiated (persistence, bandwidth,
+ 	  latency...) memory via an mmap(2) capable character
+--- a/fs/Kconfig~mm-sparse-vmemmap-introduce-config_sparsemem_vmemmap_optimization
++++ a/fs/Kconfig
+@@ -278,6 +278,7 @@ config HUGETLB_PAGE_OPTIMIZE_VMEMMAP
+ 	def_bool HUGETLB_PAGE
+ 	depends on ARCH_WANT_OPTIMIZE_HUGETLB_VMEMMAP
+ 	depends on SPARSEMEM_VMEMMAP
++	select SPARSEMEM_VMEMMAP_OPTIMIZATION
  
-@@ -766,9 +776,13 @@ static void zswap_entry_cache_free(struc
-  */
- static void zswap_entry_free(struct zswap_entry *entry)
- {
-+	struct zswap_pool *pool = zswap_entry_pool(entry);
-+
- 	zswap_lru_del(entry);
--	zs_free(entry->pool->zs_pool, entry->handle);
--	zswap_pool_put(entry->pool);
-+	if (!WARN_ON_ONCE(!pool)) {
-+		zs_free(pool->zs_pool, entry->handle);
-+		zswap_pool_put(pool);
-+	}
- 	if (entry->objcg) {
- 		obj_cgroup_uncharge_zswap(entry->objcg, entry->length);
- 		obj_cgroup_put(entry->objcg);
-@@ -924,12 +938,15 @@ unlock:
+ config HUGETLB_PMD_PAGE_TABLE_SHARING
+ 	def_bool HUGETLB_PAGE
+--- a/include/linux/mm.h~mm-sparse-vmemmap-introduce-config_sparsemem_vmemmap_optimization
++++ a/include/linux/mm.h
+@@ -5175,6 +5175,9 @@ static inline bool __vmemmap_can_optimiz
+ 	unsigned long nr_pages;
+ 	unsigned long nr_vmemmap_pages;
  
- static bool zswap_decompress(struct zswap_entry *entry, struct folio *folio)
- {
--	struct zswap_pool *pool = entry->pool;
-+	struct zswap_pool *pool = zswap_entry_pool(entry);
- 	struct scatterlist input[2]; /* zsmalloc returns an SG list 1-2 entries */
- 	struct scatterlist output;
- 	struct crypto_acomp_ctx *acomp_ctx;
- 	int ret = 0, dlen;
- 
-+	if (WARN_ON_ONCE(!pool))
++	if (!IS_ENABLED(CONFIG_SPARSEMEM_VMEMMAP_OPTIMIZATION))
 +		return false;
 +
- 	acomp_ctx = raw_cpu_ptr(pool->acomp_ctx);
- 	mutex_lock(&acomp_ctx->mutex);
- 	zs_obj_read_sg_begin(pool->zs_pool, entry->handle, input, entry->length);
-@@ -965,7 +982,7 @@ static bool zswap_decompress(struct zswa
- 	pr_alert_ratelimited("Decompression error from zswap (%d:%lu %s %u->%d)\n",
- 						swp_type(entry->swpentry),
- 						swp_offset(entry->swpentry),
--						entry->pool->tfm_name,
-+						pool->tfm_name,
- 						entry->length, dlen);
- 	return false;
- }
-@@ -1423,6 +1440,13 @@ static bool zswap_store_page(struct foli
- 	if (!zswap_compress(folio, index, entry, pool))
- 		goto compress_failed;
+ 	if (!pgmap || !is_power_of_2(sizeof(struct page)))
+ 		return false;
  
-+	/*
-+	 * Set pool_idx before the xa_store() below publishes the entry, or a
-+	 * concurrent reader could resolve a stale pool_idx left by slab reuse
-+	 * to an unrelated live pool.
-+	 */
-+	entry->pool_idx = pool->idx;
-+
- 	old = xa_store(swap_zswap_tree(page_swpentry),
- 		       swp_offset(page_swpentry),
- 		       entry, GFP_KERNEL);
-@@ -1468,7 +1492,6 @@ static bool zswap_store_page(struct foli
- 	 *    The publishing order matters to prevent writeback from seeing
- 	 *    an incoherent entry.
+--- a/include/linux/mmzone.h~mm-sparse-vmemmap-introduce-config_sparsemem_vmemmap_optimization
++++ a/include/linux/mmzone.h
+@@ -102,9 +102,9 @@
+  *
+  * HVO which is only active if the size of struct page is a power of 2.
+  */
+-#define MAX_FOLIO_VMEMMAP_ALIGN \
+-	(IS_ENABLED(CONFIG_HUGETLB_PAGE_OPTIMIZE_VMEMMAP) && \
+-	 is_power_of_2(sizeof(struct page)) ? \
++#define MAX_FOLIO_VMEMMAP_ALIGN					\
++	(IS_ENABLED(CONFIG_SPARSEMEM_VMEMMAP_OPTIMIZATION) &&	\
++	 is_power_of_2(sizeof(struct page)) ?			\
+ 	 MAX_FOLIO_NR_PAGES * sizeof(struct page) : 0)
+ 
+ /* The number of retained vmemmap pages with HVO enabled. */
+@@ -116,7 +116,8 @@
+ #define __VMEMMAP_OPTIMIZATION_NR_ORDERS	\
+ 	(MAX_FOLIO_ORDER - VMEMMAP_OPTIMIZATION_MIN_ORDER + 1)
+ #define VMEMMAP_OPTIMIZATION_NR_ORDERS		\
+-	(__VMEMMAP_OPTIMIZATION_NR_ORDERS > 0 ? __VMEMMAP_OPTIMIZATION_NR_ORDERS : 0)
++	((__VMEMMAP_OPTIMIZATION_NR_ORDERS > 0 &&	\
++	  IS_ENABLED(CONFIG_SPARSEMEM_VMEMMAP_OPTIMIZATION)) ? __VMEMMAP_OPTIMIZATION_NR_ORDERS : 0)
+ 
+ enum migratetype {
+ 	MIGRATE_UNMOVABLE,
+@@ -1155,7 +1156,7 @@ struct zone {
+ 	/* Zone statistics */
+ 	atomic_long_t		vm_stat[NR_VM_ZONE_STAT_ITEMS];
+ 	atomic_long_t		vm_numa_event[NR_VM_NUMA_EVENT_ITEMS];
+-#ifdef CONFIG_HUGETLB_PAGE_OPTIMIZE_VMEMMAP
++#ifdef CONFIG_SPARSEMEM_VMEMMAP_OPTIMIZATION
+ 	struct page *vmemmap_tails[VMEMMAP_OPTIMIZATION_NR_ORDERS];
+ #endif
+ } ____cacheline_internodealigned_in_smp;
+@@ -2019,7 +2020,7 @@ struct mem_section {
+ 	unsigned long section_mem_map;
+ 
+ 	struct mem_section_usage *usage;
+-#ifdef CONFIG_HUGETLB_PAGE_OPTIMIZE_VMEMMAP
++#ifdef CONFIG_SPARSEMEM_VMEMMAP_OPTIMIZATION
+ 	/*
+ 	 * Normally, sections hold regular (order-0) pages. However, for
+ 	 * sections with HVO enabled, this tracks the compound page order
+--- a/include/linux/page-flags.h~mm-sparse-vmemmap-introduce-config_sparsemem_vmemmap_optimization
++++ a/include/linux/page-flags.h
+@@ -208,14 +208,13 @@ enum pageflags {
+ static __always_inline bool compound_info_has_mask(void)
+ {
+ 	/*
+-	 * Limit mask usage to HugeTLB vmemmap optimization (HVO) where it
+-	 * makes a difference.
++	 * Limit mask usage to HVO where it makes a difference.
+ 	 *
+ 	 * The approach with mask would work in the wider set of conditions,
+ 	 * but it requires validating that struct pages are naturally aligned
+ 	 * for all orders up to the MAX_FOLIO_ORDER, which can be tricky.
  	 */
--	entry->pool = pool;
- 	entry->swpentry = page_swpentry;
- 	entry->objcg = objcg;
- 	entry->referenced = true;
+-	if (!IS_ENABLED(CONFIG_HUGETLB_PAGE_OPTIMIZE_VMEMMAP))
++	if (!IS_ENABLED(CONFIG_SPARSEMEM_VMEMMAP_OPTIMIZATION))
+ 		return false;
+ 
+ 	return is_power_of_2(sizeof(struct page));
+--- a/mm/Kconfig~mm-sparse-vmemmap-introduce-config_sparsemem_vmemmap_optimization
++++ a/mm/Kconfig
+@@ -461,6 +461,10 @@ config SPARSEMEM_VMEMMAP
+ 	  pfn_to_page and page_to_pfn operations.  This is the most
+ 	  efficient option when sufficient kernel resources are available.
+ 
++config SPARSEMEM_VMEMMAP_OPTIMIZATION
++	bool
++	depends on SPARSEMEM_VMEMMAP
++
+ #
+ # Select this config option from the architecture Kconfig, if it is preferred
+ # to enable the feature of HugeTLB/dev_dax vmemmap optimization.
+--- a/mm/sparse.h~mm-sparse-vmemmap-introduce-config_sparsemem_vmemmap_optimization
++++ a/mm/sparse.h
+@@ -10,7 +10,7 @@
+ 
+ #include <linux/mmzone.h>
+ 
+-#ifdef CONFIG_HUGETLB_PAGE_OPTIMIZE_VMEMMAP
++#ifdef CONFIG_SPARSEMEM_VMEMMAP_OPTIMIZATION
+ static inline unsigned int section_compound_order(const struct mem_section *section)
+ {
+ 	return section->compound_page_order;
+@@ -75,7 +75,7 @@ static inline bool vmemmap_optimizable_p
+ 
+ static inline bool vmemmap_optimizable_order(unsigned int order)
+ {
+-	if (!IS_ENABLED(CONFIG_HUGETLB_PAGE_OPTIMIZE_VMEMMAP))
++	if (!IS_ENABLED(CONFIG_SPARSEMEM_VMEMMAP_OPTIMIZATION))
+ 		return false;
+ 
+ 	if (!is_power_of_2(sizeof(struct page)))
 _
 
-Patches currently in -mm which might be from wujianyue000@gmail.com are
+Patches currently in -mm which might be from songmuchun@bytedance.com are
 
-mm-zswap-release-retired-pools-via-queue_rcu_work-instead-of-synchronize_rcu.patch
-mm-zswap-replace-the-zswap_pools-list-with-an-allocating-xarray.patch
-mm-zswap-reference-the-pool-by-id-to-shrink-struct-zswap_entry.patch
+mm-sparse-relax-struct-mem_section-size-constraints.patch
+mm-sparse-vmemmap-rename-hvo-order-macros.patch
+mm-mm_init-skip-initializing-shared-vmemmap-tail-pages.patch
+mm-sparse-vmemmap-initialize-shared-tail-vmemmap-pages-on-allocation.patch
+mm-sparse-vmemmap-support-section-based-vmemmap-accounting.patch
+mm-mm_init-factor-out-pfn_to_zone.patch
+mm-sparse-vmemmap-move-helpers-ahead-of-future-callers.patch
+mm-sparse-vmemmap-support-section-based-vmemmap-optimization.patch
+mm-sparse-initialize-memory-sections-earlier.patch
+mm-hugetlb-switch-hugetlb-to-section-based-vmemmap-optimization.patch
+mm-sparse-vmemmap-remove-sparsemem_vmemmap_preinit-support.patch
+mm-sparse-inline-usemap-allocation-into-sparse_init_nid.patch
+mm-sparse-remove-section_map_size.patch
+mm-hugetlb-remove-huge_bootmem_hvo.patch
+mm-hugetlb-remove-huge_bootmem_cma.patch
+mm-hugetlb-localize-struct-huge_bootmem_page.patch
+mm-hugetlb-localize-huge_bootmem_zones_valid.patch
+mm-sparse-vmemmap-introduce-config_sparsemem_vmemmap_optimization.patch
+mm-sparse-vmemmap-factor-out-shared-vmemmap-tail-page-allocation.patch
+mm-sparse-vmemmap-open-code-init_compound_tail.patch
+mm-sparse-vmemmap-prepare-dax-vmemmap-population-for-compound-page-orders.patch
+mm-sparse-vmemmap-set-compound-page-order-for-device-dax.patch
+mm-sparse-vmemmap-switch-device-dax-to-shared-tail-vmemmap-pages.patch
+mm-sparse-vmemmap-move-vmemmap-optimization-helpers-to-a-public-header.patch
+powerpc-mm-switch-device-dax-to-shared-tail-vmemmap-pages.patch
+mm-sparse-vmemmap-drop-the-extra-tail-page-from-device-dax-reservation.patch
+mm-sparse-vmemmap-drop-unused-section_nr_vmemmap_pages-arguments.patch
+documentation-mm-update-dax-vmemmap-deduplication-docs.patch
 
