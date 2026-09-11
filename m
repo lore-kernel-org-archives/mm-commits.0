@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2178E234973
-	for <mm-commits@vger.kernel.org>; Fri, 11 Sep 2026 00:17:53 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 658BA17DFFA
+	for <mm-commits@vger.kernel.org>; Fri, 11 Sep 2026 00:17:55 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789085874; cv=none; b=A6hgVc5ZwUuodGb9MUqE9KOuiAwyd31nAw1/D8vU3cspUR82AH8aXDgb95oItsNHRDlwe3a5F5RP1OMU8Su24QiF+yQ1cQvjaFlno0KPbHED47D46AJ34TxxsjBp8XWaOyiPQ31/lGfphCwxcDepmLiRDyohtWELmVqs+ZXKccQ=
+	t=1789085876; cv=none; b=FTvpsTDKfYDn7K0pJ/gPGZeMpoPFKEQJ8h4BrfmqHyveGgpPzof3FqMWlPbi+AfHqwb1s/rf8SAhLzm9jDC0KLtHGq58mjo9F9LHbyWXWT+kBj8a+6/NYLbh0gZwDLyIpCOrJsRnfI3sRni17QUTmD5sYB8kLKJfGbiSNLPj3Oc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1789085874; c=relaxed/simple;
-	bh=lZ0UywrY4taC8H411hDwSk5sm7d3y9zx9U1vzPDhTuI=;
-	h=Date:To:From:Subject:Message-Id; b=YyGK/oPeGrVhpknztjd7GTK7j3P8B+dkDqiBNheba1aN8SWfKZd/Tll3cxZcmL2s+z4sqhIkgJjP0Y7hXuLfJnGOe9PWdJ6HMIktDPEGXklAsCg0dahnk66CZ9llSxUuLb8qlgUOF4RnPv3kwzAuh7l4v6R9q0ZOtHOKlKeLMjM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=KRT8W2ZC; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1789085876; c=relaxed/simple;
+	bh=4sIxhoqjobS38qvoMUzC3kmyNuhBXD49PjcCPzAef6s=;
+	h=Date:To:From:Subject:Message-Id; b=iBlb90oxxxs1I8C51g8ceAVyy517gUoBPKUZLCBDNdYW8fWc557pBYcnYXiZmRQPIUAq1OD5ASf76O8C1bNThZJzzfQ33FpqKjCbYfncq+L6uzdurkHjyVvFoe/Nk6ekFYuLtzpCR06+zSSFvzHAggWiRNLuob7kDLr+RVvBGfc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=MdlfmQTT; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="KRT8W2ZC"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id CE8491F00893;
-	Fri, 11 Sep 2026 00:17:52 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="MdlfmQTT"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D628C1F000FF;
+	Fri, 11 Sep 2026 00:17:54 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1789085872;
-	bh=gJhAzn0wLPw/1j9HYLUzEk5rInaa431c35p7pvnouq4=;
+	d=linux-foundation.org; s=korg; t=1789085874;
+	bh=kDYpHrL9YRzhxcLmENegPov1S9BidUanlqHCpoIPbus=;
 	h=Date:To:From:Subject;
-	b=KRT8W2ZCTBKzfJUH+j5paJARUX4Wj9MRYeM50hRRgfNsSb/NdYmKIswP0jWMmHYxi
-	 dOHetTgA84YXmWaFEb+V7xusJpfD4LCQU+2jw9DYCGIK1uNHWA9Rpt+8xDY7TOO3Wm
-	 C5h9lvC5SSDZpgeucDBscTm2RVJyMWgFxIPKLF5k=
-Date: Thu, 10 Sep 2026 17:17:52 -0700
+	b=MdlfmQTTll2BiU3cpZQWHcSZSLkS5yiNarsyzvoaRE8CuYPXk9+1Khg32RnM7TAgB
+	 QttDb703gw937ki6K2mNDxBcjlPb9Mdc8xSKpodet+ftSzCKCMfxbvT+H0LEJ+R3vi
+	 iIMNq8Bg4IOQQj9pLE31/s0zpxRKQMOmDfjFCJyg=
+Date: Thu, 10 Sep 2026 17:17:54 -0700
 To: mm-commits@vger.kernel.org,youngjun.park@lge.com,nphamcs@gmail.com,luizcap@redhat.com,kasong@tencent.com,chrisl@kernel.org,baoquan.he@linux.dev,baohua@kernel.org,shikemeng@huaweicloud.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-swap-move-setup_swap_clusters_info-after-swp_solidstate-initialization.patch added to mm-new branch
-Message-Id: <20260911001752.CE8491F00893@smtp.kernel.org>
+Subject: + mm-swap-return-early-from-swap_extend_table_try_free-on-first-non-zero-entry.patch added to mm-new branch
+Message-Id: <20260911001754.D628C1F000FF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm, swap: Move setup_swap_clusters_info() after SWP_SOLIDSTATE initialization
+     Subject: mm, swap: return early from swap_extend_table_try_free() on first non-zero entry
 has been added to the -mm mm-new branch.  Its filename is
-     mm-swap-move-setup_swap_clusters_info-after-swp_solidstate-initialization.patch
+     mm-swap-return-early-from-swap_extend_table_try_free-on-first-non-zero-entry.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-swap-move-setup_swap_clusters_info-after-swp_solidstate-initialization.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-swap-return-early-from-swap_extend_table_try_free-on-first-non-zero-entry.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,58 +70,54 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Kemeng Shi <shikemeng@huaweicloud.com>
-Subject: mm, swap: Move setup_swap_clusters_info() after SWP_SOLIDSTATE initialization
-Date: Mon, 7 Sep 2026 17:13:54 +0800
+Subject: mm, swap: return early from swap_extend_table_try_free() on first non-zero entry
+Date: Mon, 7 Sep 2026 17:13:55 +0800
 
-In setup_swap_clusters_info(), SWP_SOLIDSTATE is used to decide
-global_cluster allocation.  Move setup_swap_clusters_info() after
-SWP_SOLIDSTATE initialization to avoid unneeded global_cluster allocation.
+Return immediately when the first non-zero swap count is found as any
+non-zero swap count prevents freeing extend_table and further iteration is
+pointless.
 
-Link: https://lore.kernel.org/20260907091356.53026-3-shikemeng@huaweicloud.com
-Fixes: 451c6326105b2 ("mm, swap: clean up swapon process and locking")
+Link: https://lore.kernel.org/20260907091356.53026-4-shikemeng@huaweicloud.com
 Signed-off-by: Kemeng Shi <shikemeng@huaweicloud.com>
-Reviewed-by: Luiz Capitulino <luizcap@redhat.com>
+Reviewed-by: Youngjun Park <youngjun.park@lge.com>
 Acked-by: Kairui Song <kasong@tencent.com>
 Cc: Baoquan He <baoquan.he@linux.dev>
 Cc: Barry Song <baohua@kernel.org>
 Cc: Chris Li <chrisl@kernel.org>
+Cc: Luiz Capitulino <luizcap@redhat.com>
 Cc: Nhat Pham <nphamcs@gmail.com>
-Cc: Youngjun Park <youngjun.park@lge.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/swapfile.c |   13 ++++++++-----
- 1 file changed, 8 insertions(+), 5 deletions(-)
+ mm/swapfile.c |    9 +++------
+ 1 file changed, 3 insertions(+), 6 deletions(-)
 
---- a/mm/swapfile.c~mm-swap-move-setup_swap_clusters_info-after-swp_solidstate-initialization
+--- a/mm/swapfile.c~mm-swap-return-early-from-swap_extend_table_try_free-on-first-non-zero-entry
 +++ a/mm/swapfile.c
-@@ -3763,11 +3763,6 @@ SYSCALL_DEFINE2(swapon, const char __use
+@@ -1523,20 +1523,17 @@ int swap_retry_table_alloc(swp_entry_t e
+ static void swap_extend_table_try_free(struct swap_cluster_info *ci)
+ {
+ 	unsigned long i;
+-	bool can_free = true;
  
- 	maxpages = si->max;
+ 	if (!ci->extend_table)
+ 		return;
  
--	/* Set up the swap cluster info */
--	error = setup_swap_clusters_info(si, swap_header, maxpages);
--	if (error)
--		goto bad_swap_unlock_inode;
--
- 	if (si->bdev && bdev_stable_writes(si->bdev))
- 		si->flags |= SWP_STABLE_WRITES;
- 
-@@ -3781,6 +3776,14 @@ SYSCALL_DEFINE2(swapon, const char __use
- 		inced_nr_rotate_swap = true;
+ 	for (i = 0; i < SWAPFILE_CLUSTER; i++) {
+ 		if (ci->extend_table[i])
+-			can_free = false;
++			return;
  	}
  
-+	/*
-+	 * Set up the swap cluster info after SWP_ flags handling as
-+	 * setup_swap_clusters_info() checks SWP_SOLIDSTATE.
-+	 */
-+	error = setup_swap_clusters_info(si, swap_header, maxpages);
-+	if (error)
-+		goto bad_swap_unlock_inode;
-+
- 	if ((swap_flags & SWAP_FLAG_DISCARD) &&
- 	    si->bdev && bdev_max_discard_sectors(si->bdev)) {
- 		/*
+-	if (can_free) {
+-		kfree(ci->extend_table);
+-		ci->extend_table = NULL;
+-	}
++	kfree(ci->extend_table);
++	ci->extend_table = NULL;
+ }
+ 
+ /* Decrease the swap count of one slot, without freeing it */
 _
 
 Patches currently in -mm which might be from shikemeng@huaweicloud.com are
