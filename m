@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 960CA49E123
-	for <mm-commits@vger.kernel.org>; Fri, 11 Sep 2026 00:01:23 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AF8E2B640
+	for <mm-commits@vger.kernel.org>; Fri, 11 Sep 2026 00:08:17 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789084884; cv=none; b=h6gBAaRwpTllqPZohYaUMjW3opXFzOpgJzdTqyugiGmQp8eE7ZEuzD81KklTIPSpdbnuD9xRoJvnrUksdv0eFxouA6n9sk/S+lTDqT7fL/TJ/pD+kiFAXT7ptdZK4D9Twnj8BrOpPpjnexdEa0IKLRybCZP2KMxzCD/+92yTEDs=
+	t=1789085299; cv=none; b=VT1oGVaqdAfJ6O6vZf2/hoS9FnhQo2NEQgTrqtAd7kEYyxqadzv/G+Rk8QGIuhwd8qOY9mWOcTnOreLdCnvcOUiRAVp1G56i+XANlyym+JRaku58YJaXCpAh9BAyrBRvdeNHdXYzOrJXlO/uIFmqO+T8O01gaMFLMMaCvRWx39Y=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1789084884; c=relaxed/simple;
-	bh=+KNmu2vTrGO2pu0hYqfs/9ZjNfNFky76LWquyjMz3UQ=;
-	h=Date:To:From:Subject:Message-Id; b=hSyhl0oph4XGE5+q0sPD8XTXZ5yY/wf/M1dN96j/a54gZXdONI75sltWJNWSagjZ8WbWmcZhdQgDGtKbfN/z6q0/6cCQWZjIvZUwK9bOIMRpdHSNWIVMECYquj192IbeDEhqjGbHUKrGyPQ/JgWJeHVC6u5fAJXYGKP68hY/fwU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=cAnTCua9; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1789085299; c=relaxed/simple;
+	bh=sabVGRqkRMMouocYaHK1RAWXR+wwWVCc+0DEnVgyMfw=;
+	h=Date:To:From:Subject:Message-Id; b=Du0FKJhw3IhXmKMiADMSfwLJcy5hlG2jGIz2DbFPxKmjB9gcP6rHEGAAORll35+uMXZ6Ef/XS8xtSzCFEwDhmybnk13R5bzF+IR4WKCP5zn49VghXM0KxSlES/ZGe1O/pFrSsLIh/Et7x03vDf45zMDCdGbGOa1SNLeXQNuLr6o=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=QFIMbkSY; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="cAnTCua9"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1641F1F000FF;
-	Fri, 11 Sep 2026 00:01:23 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="QFIMbkSY"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 27AB51F000FF;
+	Fri, 11 Sep 2026 00:08:17 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1789084883;
-	bh=uUc0HONfQir9cf446TnHMgJmflPhTGeDunr3Zvb8MD8=;
+	d=linux-foundation.org; s=korg; t=1789085297;
+	bh=LSNh18uKkA/y1JjC3ZYmuGIdOpY5JWL7jtGjbt+ujBQ=;
 	h=Date:To:From:Subject;
-	b=cAnTCua9oEnFNQQO0GH9yUELAcGclAxcpoIJqwmoUayy50eXB22jRea4UoSqqkV86
-	 zl1WWamUM+ukJUSjxbBLnr0zJtBuzN2vDCXYR4NAWHFPFPe1azbV45mIAnam0ACNQV
-	 cNQA9E8j9FkOnkBOh75OdakFve1T0c/PyPQJia0g=
-Date: Thu, 10 Sep 2026 17:01:22 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,vbabka@kernel.org,surenb@google.com,mhocko@suse.com,hannes@cmpxchg.org,gourry@gourry.net,brendan.jackman@linux.dev,liuqiqi@kylinos.cn,akpm@linux-foundation.org
+	b=QFIMbkSYGzvsfnJFMbQKqg11D6lemwoj9HtVVMTEh7+VaSGpkdNOjIbV+RIaVVfX+
+	 nnoKHVv7jRTrrXa+DCxoz8jVoO33OsmgRPsAgNFwckJOIh3S3gcSZxxy4CqmywqjsW
+	 koPMf7Sp8X2cMoMnWkFj5odma+RD8wM7234zbVKQ=
+Date: Thu, 10 Sep 2026 17:08:16 -0700
+To: mm-commits@vger.kernel.org,nphamcs@gmail.com,minchan@kernel.org,senozhatsky@chromium.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-page_alloc-add-missing-hooks-to-bulk-allocation-path.patch added to mm-new branch
-Message-Id: <20260911000123.1641F1F000FF@smtp.kernel.org>
+Subject: + zram-convert-to-sg-list-zsmalloc-object-read-api.patch added to mm-new branch
+Message-Id: <20260911000817.27AB51F000FF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: page_alloc: add missing hooks to bulk allocation path
+     Subject: zram: convert to SG-list zsmalloc object read API
 has been added to the -mm mm-new branch.  Its filename is
-     mm-page_alloc-add-missing-hooks-to-bulk-allocation-path.patch
+     zram-convert-to-sg-list-zsmalloc-object-read-api.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-page_alloc-add-missing-hooks-to-bulk-allocation-path.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/zram-convert-to-sg-list-zsmalloc-object-read-api.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -69,53 +69,236 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Qiqi Liu <liuqiqi@kylinos.cn>
-Subject: mm: page_alloc: add missing hooks to bulk allocation path
-Date: Tue, 8 Sep 2026 18:23:56 +0800
+From: Sergey Senozhatsky <senozhatsky@chromium.org>
+Subject: zram: convert to SG-list zsmalloc object read API
+Date: Mon, 7 Sep 2026 19:57:28 +0900
 
-The bulk allocation path in alloc_pages_bulk_noprof() currently misses
-trace_mm_page_alloc() and kmsan_alloc_page() calls, leaving bulk-allocated
-pages invisible to ftrace/BPF/perf and leaving KMSAN shadow memory stale.
+Patch series "zsmallc: remove old object read API".
 
-Add both calls in the bulk loop to match the standard allocation path,
-placing them before set_page_refcounted() for consistency.  The gfp mask
-passed to kmsan_alloc_page() is stripped of __GFP_RECLAIM because the bulk
-loop runs under the PCP spinlock, and KMSAN's stack depot allocation must
-not sleep.
+zram remains the only user of old zsmalloc object read API.  This series
+removes the old API and converts zram to use the new SG-list based API.
 
-Both are no-ops when their respective features are disabled, so there
-is no overhead in production kernels.
 
-Link: https://lore.kernel.org/20260908102356.344075-1-liuqiqi@kylinos.cn
-Signed-off-by: Qiqi Liu <liuqiqi@kylinos.cn>
-Suggested-by: Gregory Price <gourry@gourry.net>
-Reviewed-by: Vlastimil Babka (SUSE) <vbabka@kernel.org>
-Reviewed-by: Gregory Price (Meta) <gourry@gourry.net>
-Reviewed-by: Zi Yan <ziy@nvidia.com>
-Cc: Brendan Jackman <brendan.jackman@linux.dev>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Suren Baghdasaryan <surenb@google.com>
+This patch (of 2):
+
+zram remains the last user of old zsmalloc object read API, that performed
+linearisation on the zsmalloc side.  There is a new SG-list API, that has
+a bunch of benefits.  Switch zram to SG-list zsmalloc object read API.
+
+Link: https://lore.kernel.org/20260907105739.1793316-1-senozhatsky@chromium.org
+Link: https://lore.kernel.org/20260907105739.1793316-2-senozhatsky@chromium.org
+Signed-off-by: Sergey Senozhatsky <senozhatsky@chromium.org>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Nhat Pham <nphamcs@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    2 ++
- 1 file changed, 2 insertions(+)
+ drivers/block/zram/zcomp.c    |   23 +++++++++++--
+ drivers/block/zram/zcomp.h    |    4 +-
+ drivers/block/zram/zram_drv.c |   56 ++++++++++++++++++--------------
+ 3 files changed, 55 insertions(+), 28 deletions(-)
 
---- a/mm/page_alloc.c~mm-page_alloc-add-missing-hooks-to-bulk-allocation-path
-+++ a/mm/page_alloc.c
-@@ -5273,6 +5273,8 @@ retry_this_zone:
- 		nr_account++;
+--- a/drivers/block/zram/zcomp.c~zram-convert-to-sg-list-zsmalloc-object-read-api
++++ a/drivers/block/zram/zcomp.c
+@@ -7,6 +7,8 @@
+ #include <linux/wait.h>
+ #include <linux/sched.h>
+ #include <linux/cpuhotplug.h>
++#include <linux/highmem.h>
++#include <linux/scatterlist.h>
+ #include <linux/vmalloc.h>
+ #include <linux/sysfs.h>
  
- 		prep_new_page(page, 0, gfp, ALLOC_DEFAULT);
-+		trace_mm_page_alloc(page, 0, gfp, ac.migratetype);
-+		kmsan_alloc_page(page, 0, gfp & ~__GFP_RECLAIM);
- 		set_page_refcounted(page);
- 		page_array[nr_populated++] = page;
- 	}
+@@ -158,17 +160,32 @@ int zcomp_compress(struct zcomp *comp, s
+ }
+ 
+ int zcomp_decompress(struct zcomp *comp, struct zcomp_strm *zstrm,
+-		     const void *src, unsigned int src_len, void *dst)
++		     struct scatterlist *sg, unsigned int src_len, void *dst)
+ {
+ 	struct zcomp_req req = {
+-		.src = src,
+ 		.dst = dst,
+ 		.src_len = src_len,
+ 		.dst_len = PAGE_SIZE,
+ 	};
++	void *src = NULL;
++	int ret;
+ 
+ 	might_sleep();
+-	return comp->ops->decompress(comp->params, &zstrm->ctx, &req);
++
++	if (sg_is_last(sg)) {
++		/* the object is contained within one page, read it in-place */
++		src = kmap_local_page(sg_page(sg));
++		req.src = src + sg->offset;
++	} else {
++		/* the object spans two pages, linearize it into local copy */
++		sg_copy_to_buffer(sg, 2, zstrm->local_copy, src_len);
++		req.src = zstrm->local_copy;
++	}
++
++	ret = comp->ops->decompress(comp->params, &zstrm->ctx, &req);
++	if (src)
++		kunmap_local(src);
++	return ret;
+ }
+ 
+ int zcomp_cpu_up_prepare(unsigned int cpu, struct hlist_node *node)
+--- a/drivers/block/zram/zcomp.h~zram-convert-to-sg-list-zsmalloc-object-read-api
++++ a/drivers/block/zram/zcomp.h
+@@ -5,6 +5,8 @@
+ 
+ #include <linux/mutex.h>
+ 
++struct scatterlist;
++
+ #define ZCOMP_PARAM_NOT_SET	INT_MIN
+ 
+ struct deflate_params {
+@@ -91,6 +93,6 @@ void zcomp_stream_put(struct zcomp_strm
+ int zcomp_compress(struct zcomp *comp, struct zcomp_strm *zstrm,
+ 		   const void *src, unsigned int *dst_len);
+ int zcomp_decompress(struct zcomp *comp, struct zcomp_strm *zstrm,
+-		     const void *src, unsigned int src_len, void *dst);
++		     struct scatterlist *sg, unsigned int src_len, void *dst);
+ 
+ #endif /* _ZCOMP_H_ */
+--- a/drivers/block/zram/zram_drv.c~zram-convert-to-sg-list-zsmalloc-object-read-api
++++ a/drivers/block/zram/zram_drv.c
+@@ -32,6 +32,7 @@
+ #include <linux/debugfs.h>
+ #include <linux/cpuhotplug.h>
+ #include <linux/part_stat.h>
++#include <linux/scatterlist.h>
+ #include <linux/kernel_read_file.h>
+ #include <linux/rcupdate.h>
+ 
+@@ -1347,9 +1348,9 @@ static int decompress_bdev_page(struct z
+ 				unsigned long index)
+ {
+ 	struct zcomp_strm *zstrm;
++	struct scatterlist sg[1];
+ 	unsigned int size;
+ 	int ret, prio;
+-	void *src;
+ 
+ 	slot_lock(zram, index);
+ 	/* Since slot was unlocked we need to make sure it's still ZRAM_WB */
+@@ -1368,13 +1369,18 @@ static int decompress_bdev_page(struct z
+ 	size = get_slot_size(zram, index);
+ 	prio = get_slot_comp_priority(zram, index);
+ 
++	sg_init_table(sg, 1);
++	sg_set_page(sg, page, size, 0);
++
+ 	zstrm = zcomp_stream_get(zram->comps[prio]);
+-	src = kmap_local_page(page);
+-	ret = zcomp_decompress(zram->comps[prio], zstrm, src, size,
++	ret = zcomp_decompress(zram->comps[prio], zstrm, sg, size,
+ 			       zstrm->local_copy);
+-	if (!ret)
+-		copy_page(src, zstrm->local_copy);
+-	kunmap_local(src);
++	if (!ret) {
++		void *dst = kmap_local_page(page);
++
++		copy_page(dst, zstrm->local_copy);
++		kunmap_local(dst);
++	}
+ 	zcomp_stream_put(zstrm);
+ 	slot_unlock(zram, index);
+ 
+@@ -2086,15 +2092,19 @@ static int read_same_filled_page(struct
+ static int read_incompressible_page(struct zram *zram, struct page *page,
+ 				    unsigned long index)
+ {
++	struct scatterlist sg[2];
+ 	unsigned long handle;
+ 	void *src, *dst;
+ 
+ 	handle = get_slot_handle(zram, index);
+-	src = zs_obj_read_begin(zram->mem_pool, handle, PAGE_SIZE, NULL);
++	zs_obj_read_sg_begin(zram->mem_pool, handle, sg, PAGE_SIZE);
++	/* an incompressible object never spans two pages */
++	src = kmap_local_page(sg_page(sg));
+ 	dst = kmap_local_page(page);
+ 	copy_page(dst, src);
+ 	kunmap_local(dst);
+-	zs_obj_read_end(zram->mem_pool, handle, PAGE_SIZE, src);
++	kunmap_local(src);
++	zs_obj_read_sg_end(zram->mem_pool, handle);
+ 
+ 	return 0;
+ }
+@@ -2103,9 +2113,10 @@ static int read_compressed_page(struct z
+ 				unsigned long index)
+ {
+ 	struct zcomp_strm *zstrm;
++	struct scatterlist sg[2];
+ 	unsigned long handle;
+ 	unsigned int size;
+-	void *src, *dst;
++	void *dst;
+ 	int ret, prio;
+ 
+ 	handle = get_slot_handle(zram, index);
+@@ -2113,12 +2124,11 @@ static int read_compressed_page(struct z
+ 	prio = get_slot_comp_priority(zram, index);
+ 
+ 	zstrm = zcomp_stream_get(zram->comps[prio]);
+-	src = zs_obj_read_begin(zram->mem_pool, handle, size,
+-				zstrm->local_copy);
++	zs_obj_read_sg_begin(zram->mem_pool, handle, sg, size);
+ 	dst = kmap_local_page(page);
+-	ret = zcomp_decompress(zram->comps[prio], zstrm, src, size, dst);
++	ret = zcomp_decompress(zram->comps[prio], zstrm, sg, size, dst);
+ 	kunmap_local(dst);
+-	zs_obj_read_end(zram->mem_pool, handle, size, src);
++	zs_obj_read_sg_end(zram->mem_pool, handle);
+ 	zcomp_stream_put(zstrm);
+ 
+ 	return ret;
+@@ -2128,25 +2138,23 @@ static int read_compressed_page(struct z
+ static int read_from_zspool_raw(struct zram *zram, struct page *page,
+ 				unsigned long index)
+ {
+-	struct zcomp_strm *zstrm;
++	struct scatterlist sg[2];
+ 	unsigned long handle;
+ 	unsigned int size;
+-	void *src;
++	void *dst;
+ 
+ 	handle = get_slot_handle(zram, index);
+ 	size = get_slot_size(zram, index);
+ 
+ 	/*
+-	 * We need to get stream just for ->local_copy buffer, in
+-	 * case if object spans two physical pages. No decompression
+-	 * takes place here, as we read raw compressed data.
++	 * No decompression takes place here, we copy out raw compressed
++	 * data directly into the destination page.
+ 	 */
+-	zstrm = zcomp_stream_get(zram->comps[ZRAM_PRIMARY_COMP]);
+-	src = zs_obj_read_begin(zram->mem_pool, handle, size,
+-				zstrm->local_copy);
+-	memcpy_to_page(page, 0, src, size);
+-	zs_obj_read_end(zram->mem_pool, handle, size, src);
+-	zcomp_stream_put(zstrm);
++	zs_obj_read_sg_begin(zram->mem_pool, handle, sg, size);
++	dst = kmap_local_page(page);
++	sg_copy_to_buffer(sg, sg_nents(sg), dst, size);
++	kunmap_local(dst);
++	zs_obj_read_sg_end(zram->mem_pool, handle);
+ 
+ 	memzero_page(page, size, PAGE_SIZE - size);
+ 
 _
 
-Patches currently in -mm which might be from liuqiqi@kylinos.cn are
+Patches currently in -mm which might be from senozhatsky@chromium.org are
 
-mm-page_alloc-add-missing-hooks-to-bulk-allocation-path.patch
+zram-remove-unreachable-kernel_read_file_from_path-return-check.patch
+zram-convert-to-sg-list-zsmalloc-object-read-api.patch
+zsmalloc-remove-old-object-read-api.patch
 
