@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6852B25771;
-	Fri, 11 Sep 2026 01:10:16 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 54A8531E822
+	for <mm-commits@vger.kernel.org>; Fri, 11 Sep 2026 01:17:49 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789089017; cv=none; b=Pst6wU7upyQG2iugyOYnYhSrLH7FFr0z9vBrlw21A+McF0lOdfx4w9imuLkROtGNU83XymhxrBfuZqyRicMZSZ5/7hYLimsQV5ncgQ0Zbmyr5aXQMf3+Dr2Wll8wwfaovcRn7y9vZ3XcsZSfDiSY8Jq9RGd9iZJ5SHOPdu1fdUc=
+	t=1789089471; cv=none; b=ZH3/p86iNT02XJ6kSp2NhC8Z9DlozR8/OC2vcYuG3hb9yyVJ/8bhoFW5/AlTNA7KfxxdYOpo3Gx4axKhowyApdHDzYOEExQaKLJq+g1a2jGGWtMXhMfZEi1dphigoVISn4o9hZe/KjmzwwAzGONXZv95oJiUYskeqrGZxsC6Mao=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1789089017; c=relaxed/simple;
-	bh=irKHY5apBI7M8nltS/Gk3BbWzF1zeKxXCk/10QxRv/I=;
-	h=Date:To:From:Subject:Message-Id; b=A9G+o98hd9xUuUA89Xveea5elkCdsjo0Jp0va+PH69stoUrR5Y9PMNFvgQNgAe714jUIAOullViA4W3wwcO3Zq4olzqGgf9S2q1YVb0gUOeswF+/6ibrudj8cvULeIy27XAkMkABjWn8ve+Xo/3vdf736UVlTN8J2FrC4gMqwGM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=VJaOT5IU; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1789089471; c=relaxed/simple;
+	bh=1kGhkEH5lJIFmF4hLtRiFg0GHwbz9o1DLzzsu+iBuwU=;
+	h=Date:To:From:Subject:Message-Id; b=cSlgMyNr1ksr7eC53q4XKo/9SQ2GX17MwS6PV8IA2NTQwWDzeWJsWr0iBKam/4UmS7pkPY0bkOVGgfVAScEIMv/ZGT31qDnuUshKPwiCnVZM96Lm+GdImkgajGCxNq2Dx2Z013a4L6/VFdgHgKpsljN2pJoR/bc4PDolL9Y6TXQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=1JCOktcc; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="VJaOT5IU"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id F2DF31F000FF;
-	Fri, 11 Sep 2026 01:10:15 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="1JCOktcc"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C92A41F00893;
+	Fri, 11 Sep 2026 01:17:48 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1789089016;
-	bh=myhK+TNX9TD+33mKGRfxH8LxaNqrwOaeohZgkHqUEYo=;
+	d=linux-foundation.org; s=korg; t=1789089468;
+	bh=P9FaRN+JSCORsQO6RaKrCZq0juDKOhXA20frED34t/4=;
 	h=Date:To:From:Subject;
-	b=VJaOT5IUIqLWu5Pcn8BrEsYDgbq+FrbzSTallZLDMUSgORiKkYhjxe8oXNDMY6BpJ
-	 AMhpiKRM1EqsWKsmIr52IeFN1DaXBkhkZGn4NrDE7I/hM32laSlMC/JEpHG8LyTPWu
-	 o/ZMyUhh/o7ng2urDdPmlCf5ep9VtG0kuOTIqERA=
-Date: Thu, 10 Sep 2026 18:10:15 -0700
-To: mm-commits@vger.kernel.org,yuzhao@google.com,yuanchu@google.com,weixugc@google.com,tj@kernel.org,stable@vger.kernel.org,shakeel.butt@linux.dev,roman.gushchin@linux.dev,muchun.song@linux.dev,mhocko@kernel.org,ljs@kernel.org,kasong@tencent.com,hannes@cmpxchg.org,david@kernel.org,chris@chrisdown.name,baohua@kernel.org,axelrasmussen@google.com,chenridong@xiaomi.com,akpm@linux-foundation.org
+	b=1JCOktccIZyXgZGEi+Akzlgta284tO2fH4PW0zvlCRMSGUiB69tRzpjSRqXfD/Vu9
+	 btE+qRL29+zNwthG0OdfVJ1uDTq9SBlzEEUpo+xu/+2kWFizZm/FpNJBlwepxsuQGV
+	 aciwB6+LSLuDxXxZUr8v//xNRvHpuPcoNFW0y/ZQ=
+Date: Thu, 10 Sep 2026 18:17:48 -0700
+To: mm-commits@vger.kernel.org,vbabka@kernel.org,pfalcato@suse.de,ljs@kernel.org,liam@infradead.org,jannh@google.com,hi@tychen.cc,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-mglru-fix-ineffective-memory-protection-for-non-kswapd-reclaim.patch added to mm-new branch
-Message-Id: <20260911011015.F2DF31F000FF@smtp.kernel.org>
+Subject: + tools-testing-vma-cover-hole-filling-through-__mmap_region.patch added to mm-new branch
+Message-Id: <20260911011748.C92A41F00893@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/mglru: fix ineffective memory protection for non-kswapd reclaim
+     Subject: tools/testing/vma: cover hole filling through __mmap_region()
 has been added to the -mm mm-new branch.  Its filename is
-     mm-mglru-fix-ineffective-memory-protection-for-non-kswapd-reclaim.patch
+     tools-testing-vma-cover-hole-filling-through-__mmap_region.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mglru-fix-ineffective-memory-protection-for-non-kswapd-reclaim.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/tools-testing-vma-cover-hole-filling-through-__mmap_region.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -69,182 +69,122 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Ridong Chen <chenridong@xiaomi.com>
-Subject: mm/mglru: fix ineffective memory protection for non-kswapd reclaim
-Date: Mon, 7 Sep 2026 10:54:45 +0800
+From: Tianyi Chen <hi@tychen.cc>
+Subject: tools/testing/vma: cover hole filling through __mmap_region()
+Date: Tue, 8 Sep 2026 17:55:15 +0800
 
-For MGLRU, memory.min/low is not honored during global proactive reclaim
-(writing to the root memory.reclaim) and global direct reclaim, because
-these paths shrink memcgs using stale protection (emin/elow).  It can be
-reproduced as follows:
+The mmap tests extend existing mappings one neighbor at a time, while
+merge tests construct merge state directly.  Neither exercises filling a
+hole between compatible mappings through the mmap setup and completion
+path.
 
-  # echo 7 > /sys/kernel/mm/lru_gen/enabled
-  # cd /sys/fs/cgroup
-  # mkdir -p a/b
-  # echo 100M > a/memory.min
-  # echo +memory > a/cgroup.subtree_control
-  # echo 100M > a/b/memory.min
-  # echo $$ > a/b/cgroup.procs
-  # dd if=/dev/zero of=/tmp/testfile bs=1M count=200
-  # cat a/b/memory.current
-  222650368
-  # echo 500M > memory.reclaim
-  -bash: echo: write error: Resource temporarily unavailable
-  # cat a/b/memory.current
-  6070272
+Fill a gap through __mmap_region() and require both neighbors to merge
+into one VMA.  Repeat with only the new mapping's execute permission set
+and require three separate VMAs.  Check boundaries, permissions, page
+offsets, map_count and cleanup.
 
-memory.min is 100M, yet reclaim drops a/b down to 6M, breaking the
-protection.  The traditional LRU path is not affected because
-shrink_node() calls mem_cgroup_calculate_protection() for each memcg it
-visits during a top-down tree walk.
-
-Commit 30d77b7eef01 ("mm/mglru: fix ineffective protection calculation")
-moved the protection computation into lru_gen_age_node(), which only runs
-for kswapd.  Non-kswapd global reclaim reaches shrink_one() through
-lru_gen_shrink_node() -> shrink_many() without any protection computation,
-so emin/elow are whatever a previous kswapd run left behind - or zero if
-kswapd never ran on this node.  Relying on a prior kswapd pass is not
-correct either: a memcg's emin/elow are derived from its ancestors'
-memory.min/low settings and from children_min_usage, both of which change
-over time, so emin/elow go stale even after kswapd has run and must be
-recomputed at the point of reclaim.
-
-Introduce mem_cgroup_calculate_protection_path() which computes emin/elow
-along the root-to-target path only, by iterating through the cgroup
-ancestors array top-down.  This avoids the full tree traversal that would
-be needed with mem_cgroup_calculate_protection(), limiting the cost to
-O(depth) per memcg - typically 3-5 levels.
-
-Call it from shrink_one() for the non-kswapd path so that each memcg about
-to be shrunk has correct protection values.
-
-Link: https://lore.kernel.org/20260907025445.1836238-3-ridong.chen@linux.dev
-Fixes: e4dde56cd208 ("mm: multi-gen LRU: per-node lru_gen_folio lists")
-Signed-off-by: Ridong Chen <chenridong@xiaomi.com>
-Assisted-by: Claude:claude-opus-4-8
-Reviewed-by: Barry Song <baohua@kernel.org>
-Reviewed-by: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Axel Rasmussen <axelrasmussen@google.com>
-Cc: Chris Down <chris@chrisdown.name>
-Cc: David Hildenbrand <david@kernel.org>
-Cc: Kairui Song <kasong@tencent.com>
-Cc: Lorenzo Stoakes <ljs@kernel.org>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Muchun Song <muchun.song@linux.dev>
-Cc: Roman Gushchin <roman.gushchin@linux.dev>
-Cc: Shakeel Butt <shakeel.butt@linux.dev>
-Cc: Tejun Heo <tj@kernel.org>
-Cc: Wei Xu <weixugc@google.com>
-Cc: Yuanchu Xie <yuanchu@google.com>
-Cc: Yu Zhao <yuzhao@google.com>
-Cc: <stable@vger.kernel.org>
+Link: https://lore.kernel.org/178886112560.138404.17741948638665342936.vma-v2@tychen.cc
+Signed-off-by: Tianyi Chen <hi@tychen.cc>
+Reviewed-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
+Cc: Jann Horn <jannh@google.com>
+Cc: Liam R. Howlett <liam@infradead.org>
+Cc: Pedro Falcato <pfalcato@suse.de>
+Cc: Vlastimil Babka <vbabka@kernel.org>
+Assisted-by: Codex:GPT-6
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memcontrol.h |   10 +++++++
- mm/memcontrol.c            |   45 +++++++++++++++++++++++++++++++++++
- mm/vmscan.c                |    8 +++++-
- 3 files changed, 62 insertions(+), 1 deletion(-)
+ tools/testing/vma/tests/mmap.c |   68 +++++++++++++++++++++++++++++++
+ 1 file changed, 68 insertions(+)
 
---- a/include/linux/memcontrol.h~mm-mglru-fix-ineffective-memory-protection-for-non-kswapd-reclaim
-+++ a/include/linux/memcontrol.h
-@@ -1921,6 +1921,16 @@ static inline bool memcg_is_dying(struct
- }
- #endif /* CONFIG_MEMCG */
- 
-+#if defined(CONFIG_MEMCG) && defined(CONFIG_LRU_GEN)
-+void mem_cgroup_calculate_protection_path(struct mem_cgroup *root,
-+					  struct mem_cgroup *memcg);
-+#else
-+static inline void mem_cgroup_calculate_protection_path(struct mem_cgroup *root,
-+							struct mem_cgroup *memcg)
-+{
-+}
-+#endif
-+
- #if defined(CONFIG_MEMCG) && defined(CONFIG_ZSWAP)
- bool obj_cgroup_may_zswap(struct obj_cgroup *objcg);
- void obj_cgroup_charge_zswap(struct obj_cgroup *objcg, size_t size);
---- a/mm/memcontrol.c~mm-mglru-fix-ineffective-memory-protection-for-non-kswapd-reclaim
-+++ a/mm/memcontrol.c
-@@ -5253,6 +5253,51 @@ void mem_cgroup_calculate_protection(str
- 	page_counter_calculate_protection(&root->memory, &memcg->memory, recursive_protection);
+--- a/tools/testing/vma/tests/mmap.c~tools-testing-vma-cover-hole-filling-through-__mmap_region
++++ a/tools/testing/vma/tests/mmap.c
+@@ -45,6 +45,72 @@ static bool test_mmap_region_basic(void)
+ 	return true;
  }
  
-+#ifdef CONFIG_LRU_GEN
-+/**
-+ * mem_cgroup_calculate_protection_path - compute protection along a path
-+ * @root: the top ancestor of the sub-tree being checked (NULL for root_mem_cgroup)
-+ * @memcg: the target memory cgroup
-+ *
-+ * Walk the ancestor path from @root down to @memcg and compute the effective
-+ * protection at each level.  This is safe for isolated queries because it
-+ * ensures parents are computed before children.
-+ */
-+void mem_cgroup_calculate_protection_path(struct mem_cgroup *root,
-+					  struct mem_cgroup *memcg)
++static bool mmap_region_fill_hole(bool merge)
 +{
-+	bool recursive_protection =
-+		cgrp_dfl_root.flags & CGRP_ROOT_MEMORY_RECURSIVE_PROT;
-+	struct cgroup *cg;
-+	int root_level, i;
++	const vma_flags_t vma_flags = mk_vma_flags(VMA_READ_BIT, VMA_WRITE_BIT,
++			VMA_MAYREAD_BIT, VMA_MAYWRITE_BIT, VMA_MAYEXEC_BIT);
++	vma_flags_t middle_flags = vma_flags;
++	struct mm_struct mm = {};
++	struct vm_area_struct *vma;
++	unsigned long addr;
++	int count = 0;
++	VMA_ITERATOR(vmi, &mm, 0);
 +
-+	if (mem_cgroup_disabled())
-+		return;
++	current->mm = &mm;
++	if (!merge)
++		vma_flags_set(&middle_flags, VMA_EXEC_BIT);
 +
-+	if (!root)
-+		root = root_mem_cgroup;
++	/* Map at 0x300000, length 0x3000. */
++	addr = __mmap_region(NULL, 0x300000, 0x3000, vma_flags, 0x300, NULL);
++	ASSERT_EQ(addr, 0x300000);
 +
-+	if (memcg == root)
-+		return;
++	/* Map at 0x306000, length 0x3000, leaving a hole. */
++	addr = __mmap_region(NULL, 0x306000, 0x3000, vma_flags, 0x306, NULL);
++	ASSERT_EQ(addr, 0x306000);
++	ASSERT_EQ(mm.map_count, 2);
 +
-+	root_level = root->css.cgroup->level;
-+	cg = memcg->css.cgroup;
++	/* Map at 0x303000, length 0x3000, filling the hole. */
++	addr = __mmap_region(NULL, 0x303000, 0x3000, middle_flags, 0x303, NULL);
++	ASSERT_EQ(addr, 0x303000);
++	ASSERT_EQ(mm.map_count, merge ? 1 : 3);
 +
-+	rcu_read_lock();
-+	for (i = root_level + 1; i <= cg->level; i++) {
-+		struct mem_cgroup *cur;
++	vma_iter_set(&vmi, 0);
++	for_each_vma(vmi, vma) {
++		const unsigned long start = 0x300000 + count * 0x3000;
++		const unsigned long end = merge ? 0x309000 : start + 0x3000;
++		/* Only the middle VMA in the non-merge case has VMA_EXEC. */
++		const bool is_middle_vma = count == 1;
++		const bool expect_exec_vma = is_middle_vma && !merge;
 +
-+		cur = mem_cgroup_from_css(cgroup_css(cg->ancestors[i],
-+						     &memory_cgrp_subsys));
-+		if (cur)
-+			page_counter_calculate_protection(&root->memory,
-+							  &cur->memory,
-+							  recursive_protection);
++		ASSERT_EQ(vma->vm_start, start);
++		ASSERT_EQ(vma->vm_end, end);
++		ASSERT_EQ(vma_start_pgoff(vma), start >> PAGE_SHIFT);
++		ASSERT_EQ(vma_start_anon_pgoff(vma), start >> PAGE_SHIFT);
++
++		ASSERT_TRUE(vma_test_all(vma, VMA_READ_BIT, VMA_WRITE_BIT,
++					 VMA_MAYREAD_BIT, VMA_MAYWRITE_BIT,
++					 VMA_MAYEXEC_BIT));
++		ASSERT_EQ(vma_test(vma, VMA_EXEC_BIT), expect_exec_vma);
++
++		count++;
 +	}
-+	rcu_read_unlock();
++
++	ASSERT_EQ(count, mm.map_count);
++
++	ASSERT_EQ(cleanup_mm(&mm, &vmi), count);
++	return true;
 +}
-+#endif /* CONFIG_LRU_GEN */
 +
- static int charge_memcg(struct folio *folio, struct mem_cgroup *memcg,
- 			gfp_t gfp)
++static bool test_mmap_region_fill_hole_merge(void)
++{
++	return mmap_region_fill_hole(true);
++}
++
++static bool test_mmap_region_fill_hole_flags_mismatch(void)
++{
++	return mmap_region_fill_hole(false);
++}
++
+ static bool test_pure_anon_dev_zero(void)
  {
---- a/mm/vmscan.c~mm-mglru-fix-ineffective-memory-protection-for-non-kswapd-reclaim
-+++ a/mm/vmscan.c
-@@ -5245,7 +5245,13 @@ static int shrink_one(struct lruvec *lru
- 	struct mem_cgroup *memcg = lruvec_memcg(lruvec);
- 	struct pglist_data *pgdat = lruvec_pgdat(lruvec);
- 
--	/* lru_gen_age_node() called mem_cgroup_calculate_protection() */
-+	/*
-+	 * For kswapd, mem_cgroup_calculate_protection() has already
-+	 * been called during the top-down cgroup traversal.
-+	 */
-+	if (!current_is_kswapd())
-+		mem_cgroup_calculate_protection_path(NULL, memcg);
-+
- 	if (mem_cgroup_below_min(NULL, memcg))
- 		return MEMCG_LRU_YOUNG;
- 
+ 	const vma_flags_t vma_flags = mk_vma_flags(VMA_READ_BIT, VMA_WRITE_BIT,
+@@ -84,5 +150,7 @@ static bool test_pure_anon_dev_zero(void
+ static void run_mmap_tests(int *num_tests, int *num_fail)
+ {
+ 	TEST(mmap_region_basic);
++	TEST(mmap_region_fill_hole_merge);
++	TEST(mmap_region_fill_hole_flags_mismatch);
+ 	TEST(pure_anon_dev_zero);
+ }
 _
 
-Patches currently in -mm which might be from chenridong@xiaomi.com are
+Patches currently in -mm which might be from hi@tychen.cc are
 
-mm-vmscan-drop-the-combined-limit-gate-in-__node_reclaim.patch
-mm-mglru-preserve-inactive-placement-when-enabling-mglru.patch
-mm-mglru-make-type-fallback-logic-explicit-in-isolate_folios.patch
-memcg-acquire-peaks_lock-when-reading-memorypeak.patch
-mm-memcg-fix-memorypeak-reset-clobbering-other-fds-watermark.patch
-mm-page_counter-avoid-integer-overflow-in-effective_protection.patch
-mm-mglru-fix-ineffective-memory-protection-for-non-kswapd-reclaim.patch
+selftests-mm-reject-invalid-test-selections-before-running-tests.patch
+selftests-mm-only-prepare-ptrace_scope-when-memfd_secret-is-selected.patch
+tools-testing-vma-cover-hole-filling-through-__mmap_region.patch
 
