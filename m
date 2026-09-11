@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E86303ED5CD
-	for <mm-commits@vger.kernel.org>; Fri, 11 Sep 2026 23:19:33 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 919CA377EC5
+	for <mm-commits@vger.kernel.org>; Fri, 11 Sep 2026 23:19:37 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789168775; cv=none; b=EH6yZOke74RX/igfCIQH+LVoY3N/Jpg8mcvTIc263vLuvhyKc7OYXwkYJFFxkBkW5CMYGV8zmmpyzh8zzr9Tr9jkN0wjZsYttfd337dG5fazUSik0caXVAYuJcoVBsZCIEOavtJFvOaXdSMbmzM9r3VBkO5kcrDNmC2I/OM5E+s=
+	t=1789168779; cv=none; b=rETPZ9iemzGLCs/ZQW+7junW1ieinF7XFhv6aYqIikyH8+4d+dJ6LuYxYaxtRQkmZh36ZmA1RdXUKwO8CzrNJbzrpEqC/FDpAGRToHZMSLCp5YQaPGkB/r1x8D/oR/oPl4CFTbyDTqXmhsr+07u6/gNq1l3g24sIOzMmFlAKn9o=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1789168775; c=relaxed/simple;
-	bh=4IFMZ9r3U33RMHIJRfGnTbmsYmIiQ6tq5FDhjYKb608=;
-	h=Date:To:From:Subject:Message-Id; b=MO/Ccsd87gY6kAViuGO6QwEUP34Fz2OsLSGLImuR2CtTdl/U1EbryA68t/SsWntR/BDPJ5zt3tJJar7rHzsrdZDkDF8S0aJnwrG3BD9Ve+kZZburcNB6VASDYkrecHSN2uSFpEerjOZSvN2m1H6Ghd5XNgyO9FE51vYiNKa6fEA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=KpAzQRtC; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1789168779; c=relaxed/simple;
+	bh=Mi36aJEHj78Y5A1Q080xKX/WR/qEhbSyJskH3e1bPu4=;
+	h=Date:To:From:Subject:Message-Id; b=HK3bcaNdvg1JjN1tyd4dZpGMe+uC80MkNUm/7Hek9knhedVce632H4yZUqzN0HPf+v+PqDDJzEPL8D85y2/kkItcumfNPl8iFCDBjVoNWORrM4OCKfklGn86yZDpqxr7ZEeE4zBJLCavZHMLBUGF/7zM3ZzOIsl0ozE+oSQ9Hgk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=kIKBIMmS; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="KpAzQRtC"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id AC6E51F000FF;
-	Fri, 11 Sep 2026 23:19:33 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="kIKBIMmS"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 113021F000FF;
+	Fri, 11 Sep 2026 23:19:37 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1789168773;
-	bh=m6hMLy8JBcsLci0tsKxyM006JsQbEEU+Ap/ZadJgsA8=;
+	d=linux-foundation.org; s=korg; t=1789168777;
+	bh=YYqD7Lsn4Mn7Rtv1CsCPI0Vw0mpXgce2QJpv/W0oceU=;
 	h=Date:To:From:Subject;
-	b=KpAzQRtCAR2dKJbxh5gvbgQhMgvGHIDsLXuwcaj1vGKhW9ZeovriKsbMu3HzqWmnp
-	 Q4ZhE2QIPAk0xJNVnirf10Md3wWqKQ/+/TYDD+FVeB3xC2KOlfKwfZpRJ6+NCsoi27
-	 VETYIxtTwYs1ZddLcaXLBqViQKAyPjRJ/QfWMOnE=
-Date: Fri, 11 Sep 2026 16:19:33 -0700
+	b=kIKBIMmSbcSa3zeYFoaS0ae8NYxo1InwhFPTnkTl5RE1PSuV9tPi5XJBbZ5iOVTcA
+	 VKtpBtKKpxr4DkVlrZHwZ9A5yUVzf7b6nCBP0Dz8L5Gy6E0vAaQNXF8X9V5f0iMBdG
+	 L4H1K808Fd0wGi1uuf8E2pzoJOyylO7qEpQxrQ5I=
+Date: Fri, 11 Sep 2026 16:19:36 -0700
 To: mm-commits@vger.kernel.org,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-damon-core-extend-probe_hits_wsum-for-moving-sum-based-calculation.patch added to mm-new branch
-Message-Id: <20260911231933.AC6E51F000FF@smtp.kernel.org>
+Subject: + mm-damon-core-support-probe_hits_wsum-damos-core-filter.patch added to mm-new branch
+Message-Id: <20260911231937.113021F000FF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/damon/core: extend probe_hits_wsum() for moving sum based calculation
+     Subject: mm/damon/core: support probe_hits_wsum damos core filter
 has been added to the -mm mm-new branch.  Its filename is
-     mm-damon-core-extend-probe_hits_wsum-for-moving-sum-based-calculation.patch
+     mm-damon-core-support-probe_hits_wsum-damos-core-filter.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-core-extend-probe_hits_wsum-for-moving-sum-based-calculation.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-core-support-probe_hits_wsum-damos-core-filter.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,17 +70,19 @@ and is updated there most days
 
 ------------------------------------------------------
 From: SJ Park <sj@kernel.org>
-Subject: mm/damon/core: extend probe_hits_wsum() for moving sum based calculation
-Date: Fri, 11 Sep 2026 06:55:04 -0700
+Subject: mm/damon/core: support probe_hits_wsum damos core filter
+Date: Fri, 11 Sep 2026 06:55:05 -0700
 
-damon_probe_hits_wsum() is being called only in aggregation time.  In
-future, it could also be used by DAMOS.  In this case, since DAMOS uses
-its own apply_interval, it could be called in sampling time.  Then using
-the not yet fully aggregated probe_hits could result in suboptimum
-outcomes.  Extend damon_probe_hits_wsum() to get the weighted sum based on
-moving sum to prepare the DAMOS usage.
+Implement probe_hits_wsum DAMOS core filter support in the core layer. 
+Make three small changes for the support.  First, update
+damos_filter_for_ops() to treat probe_hits_wsum filter as core filter. 
+Second, Update destination damos_filter->range_{min,max} for
+probe_hits_wsum type damos filter commits.  Third, extend
+damos_filter_match() to handle probe_hits_wsum type filter.  Calculate the
+weighted sum of the given region and compare it with the given filter's
+target weighted sum range.
 
-Link: https://lore.kernel.org/20260911135510.96914-3-sj@kernel.org
+Link: https://lore.kernel.org/20260911135510.96914-4-sj@kernel.org
 Signed-off-by: SJ Park <sj@kernel.org>
 Cc: David Hildenbrand <david@kernel.org>
 Cc: Jonathan Corbet <corbet@lwn.net>
@@ -94,80 +96,51 @@ Cc: Vlastimil Babka <vbabka@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/damon.h |    2 +-
- mm/damon/core.c       |    8 ++++++--
- mm/damon/paddr.c      |    2 +-
- mm/damon/vaddr.c      |    2 +-
- 4 files changed, 9 insertions(+), 5 deletions(-)
+ mm/damon/core.c |   12 +++++++++++-
+ 1 file changed, 11 insertions(+), 1 deletion(-)
 
---- a/include/linux/damon.h~mm-damon-core-extend-probe_hits_wsum-for-moving-sum-based-calculation
-+++ a/include/linux/damon.h
-@@ -1075,7 +1075,7 @@ unsigned int damon_nr_accesses_mvsum(str
- 		struct damon_ctx *ctx);
- unsigned char damon_probe_hits_mvsum(int probe_idx, struct damon_region *r,
- 		struct damon_ctx *ctx);
--unsigned int damon_probe_hits_wsum(struct damon_region *r, bool last,
-+unsigned int damon_probe_hits_wsum(struct damon_region *r, bool last, bool mv,
- 		struct damon_ctx *ctx);
- 
- int damon_set_regions(struct damon_target *t, struct damon_addr_range *ranges,
---- a/mm/damon/core.c~mm-damon-core-extend-probe_hits_wsum-for-moving-sum-based-calculation
+--- a/mm/damon/core.c~mm-damon-core-support-probe_hits_wsum-damos-core-filter
 +++ a/mm/damon/core.c
-@@ -469,11 +469,12 @@ static bool damon_is_last_region(struct
-  * damon_probe_hits_wsum() - Returns probe hits weighted sum of a region.
-  * @r:		region to get the weighted sum of.
-  * @last:	if the request is for last-window aggregated probe hits.
-+ * @mv:		use moving sum.
-  * @ctx:	context of &r.
-  *
-  * Return: the weighted sum of probe hits of the region.
-  */
--unsigned int damon_probe_hits_wsum(struct damon_region *r, bool last,
-+unsigned int damon_probe_hits_wsum(struct damon_region *r, bool last, bool mv,
- 		struct damon_ctx *ctx)
- {
- 	struct damon_probe *probe;
-@@ -483,6 +484,9 @@ unsigned int damon_probe_hits_wsum(struc
- 	damon_for_each_probe(probe, ctx) {
- 		if (last)
- 			sum += r->last_probe_hits[i++] * probe->weight;
-+		else if (mv)
-+			sum += damon_probe_hits_mvsum(i++, r, ctx) *
-+				probe->weight;
- 		else
- 			sum += r->probe_hits[i++] * probe->weight;
+@@ -658,6 +658,7 @@ bool damos_filter_for_ops(enum damos_fil
+ 	switch (type) {
+ 	case DAMOS_FILTER_TYPE_ADDR:
+ 	case DAMOS_FILTER_TYPE_TARGET:
++	case DAMOS_FILTER_TYPE_PROBE_HITS_WSUM:
+ 		return false;
+ 	default:
+ 		break;
+@@ -1332,6 +1333,10 @@ static void damos_commit_filter_arg(
+ 	case DAMOS_FILTER_TYPE_HUGEPAGE_SIZE:
+ 		dst->sz_range = src->sz_range;
+ 		break;
++	case DAMOS_FILTER_TYPE_PROBE_HITS_WSUM:
++		dst->range_min = src->range_min;
++		dst->range_max = src->range_max;
++		break;
+ 	default:
+ 		break;
  	}
-@@ -3456,7 +3460,7 @@ static unsigned int damon_merge_score(st
- 		struct damon_ctx *ctx, bool use_probe_hits)
- {
- 	if (use_probe_hits)
--		return damon_probe_hits_wsum(r, last, ctx);
-+		return damon_probe_hits_wsum(r, last, false, ctx);
- 	if (last)
- 		return r->last_nr_accesses;
- 	return r->nr_accesses;
---- a/mm/damon/paddr.c~mm-damon-core-extend-probe_hits_wsum-for-moving-sum-based-calculation
-+++ a/mm/damon/paddr.c
-@@ -208,7 +208,7 @@ static unsigned int damon_pa_apply_probe
- 				folio_put(folio);
- 			if (return_max_wsum)
- 				max_wsum = max(damon_probe_hits_wsum(r, false,
--							ctx), max_wsum);
-+							false, ctx), max_wsum);
- 		}
+@@ -2510,7 +2515,7 @@ static bool damos_filter_match(struct da
+ 	bool matched = false;
+ 	struct damon_target *ti;
+ 	int target_idx = 0;
+-	unsigned long start, end;
++	unsigned long start, end, wsum;
+ 
+ 	switch (filter->type) {
+ 	case DAMOS_FILTER_TYPE_TARGET:
+@@ -2545,6 +2550,11 @@ static bool damos_filter_match(struct da
+ 		damon_split_region_at(t, r, end - r->ar.start);
+ 		matched = true;
+ 		break;
++	case DAMOS_FILTER_TYPE_PROBE_HITS_WSUM:
++		wsum = damon_probe_hits_wsum(r, false, true, ctx);
++		matched = filter->range_min <= wsum &&
++			wsum <= filter->range_max;
++		break;
+ 	default:
+ 		return false;
  	}
- 	return max_wsum;
---- a/mm/damon/vaddr.c~mm-damon-core-extend-probe_hits_wsum-for-moving-sum-based-calculation
-+++ a/mm/damon/vaddr.c
-@@ -711,7 +711,7 @@ static unsigned int damon_va_apply_probe
- 			__damon_va_apply_probes(ctx, mm, r);
- 			if (return_max_wsum)
- 				max_wsum = max(damon_probe_hits_wsum(r, false,
--							ctx), max_wsum);
-+							false, ctx), max_wsum);
- 		}
- 		if (mm)
- 			mmput(mm);
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
