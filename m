@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5671D1891A9
-	for <mm-commits@vger.kernel.org>; Fri, 11 Sep 2026 00:17:57 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 79BD717A586
+	for <mm-commits@vger.kernel.org>; Fri, 11 Sep 2026 00:20:29 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789085878; cv=none; b=hC9pU9OYsEphXop2XDgrAxr8Eo8mQYn3/TOQRSoRFY+Oaq2azbtiJpgKZMdUzM4gXHPFDjXb9jlVT9KYwiTxVnbukYtvkr/q1DrYRYhSQKNAP4ecCwFkSX8g9U6cp0kCrsMi29YgnzK1wsVbkIW8xTyFdQ5InkYlNXRQDBSaEE8=
+	t=1789086030; cv=none; b=X+LPGO+T1WenMRcX9jii1rxrTf80WMOnQznmzL/gYkDnsmFSqOeAdx5jL3HlKdFVkYgm2B0AFxYthnc4noWl3iOXVhREZ8yMdrJYsZs0SXFJPtK99962pksO+bOleLwnYjAcxhkSO1fB9Ox9HdM1MBx5FmBjB5Hd5AOUJ5rQulE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1789085878; c=relaxed/simple;
-	bh=5pHfbIctNQecgR8Q0BHp72uANNHcYv+BRO4W6kAZQ9c=;
-	h=Date:To:From:Subject:Message-Id; b=L/5OCvUQGAVPjaAR3MkaJUfjWdPpA+ib53eiLW2/8gcokucYU9UViOTnutQiL6xmhiGG29oe0VtO8nKq22ST1sCArqfSYxkYKLmyMcsITvZhycylJdAjsCr+Qwz00tuBHdNOcesFclB/9h9QGwDT7rZMu+dp9dB3++0MlDlqXN4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Hz35eL2L; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1789086030; c=relaxed/simple;
+	bh=Vix4fk2MzACyOJXiFenR2i+dgj3zj/w3Up2L9Ugxrp8=;
+	h=Date:To:From:Subject:Message-Id; b=utg747UAWvaPRhKTi6fCryBaBuRk1qS2wRr4zaEOg7Z4+aihCo3eXBR+PFq2cSjrvFylZZ2kATlOAy4SHBmlaqEV5lcmO/5nwfZvS0OT24ArA040zniRYv2B3B5EaThq22Oj34xzrpFWa1M22PIZ+h0JEs2t9571EqhB9RT7uTE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=UBxC9gJr; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Hz35eL2L"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D549E1F00893;
-	Fri, 11 Sep 2026 00:17:56 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="UBxC9gJr"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1B8951F000FF;
+	Fri, 11 Sep 2026 00:20:29 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1789085876;
-	bh=xL2v6fOJFAPGzbhVjhwWGBLq3MkN2sKcBNnHaOTDQxM=;
+	d=linux-foundation.org; s=korg; t=1789086029;
+	bh=Ltdolm77MWmwDuucjv6u6L4/vrgwwQ+WCHTJaZhrh4k=;
 	h=Date:To:From:Subject;
-	b=Hz35eL2L0RSXzFY2juNaxHFJZeacG9nrwQXbi/5+yfS/EdfQlCE29nj0/p98aYkGV
-	 TVjvI79GJfRe1WX/a8loS8DPcvFe9/TpEvaUSm2c+nYo3mpEz5dFZKVvuhNfCGf9Mg
-	 IoCJ+QwjnZ5BUMx32ia3KRRm3WbYkulmqSmbwN2U=
-Date: Thu, 10 Sep 2026 17:17:56 -0700
-To: mm-commits@vger.kernel.org,youngjun.park@lge.com,nphamcs@gmail.com,luizcap@redhat.com,kasong@tencent.com,chrisl@kernel.org,baoquan.he@linux.dev,baohua@kernel.org,shikemeng@huaweicloud.com,akpm@linux-foundation.org
+	b=UBxC9gJrATpoFz9/nvEcnzKDuKGZnyyuv1okU4CQIWLz4olpaJns8RaXG4UDvEt88
+	 ZZAgN7bVa/UaRC9xKS/iLuwcdGuSi7knSyhSHgO2kWu1w156afS8912umXw92fhE4c
+	 WSg3CGRTddC4wWkYSWaavnDXpmjsbDWogUlamhxI=
+Date: Thu, 10 Sep 2026 17:20:28 -0700
+To: mm-commits@vger.kernel.org,rdunlap@infradead.org,joe@perches.com,corbet@lwn.net,colin.i.king@gmail.com,hemanth.selam@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-swap-remove-unneeded-swap_extend_table_try_free-in-swap_dup_entries_cluster.patch added to mm-new branch
-Message-Id: <20260911001756.D549E1F00893@smtp.kernel.org>
+Subject: + scripts-spellingtxt-keep-british-spelling-for-initalise.patch added to mm-nonmm-unstable branch
+Message-Id: <20260911002029.1B8951F000FF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,26 +35,15 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm, swap: remove unneeded swap_extend_table_try_free() in swap_dup_entries_cluster()
-has been added to the -mm mm-new branch.  Its filename is
-     mm-swap-remove-unneeded-swap_extend_table_try_free-in-swap_dup_entries_cluster.patch
+     Subject: scripts/spelling.txt: keep British spelling for "initalise"
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     scripts-spellingtxt-keep-british-spelling-for-initalise.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-swap-remove-unneeded-swap_extend_table_try_free-in-swap_dup_entries_cluster.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/scripts-spellingtxt-keep-british-spelling-for-initalise.patch
 
-This patch will later appear in the mm-new branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Note, mm-new is a provisional staging ground for work-in-progress
-patches, and acceptance into mm-new is a notification for others take
-notice and to finish up reviews.  Please do not hesitate to respond to
-review feedback and post updated versions to replace or incrementally
-fixup patches in mm-new.
-
-The mm-new branch of mm.git is not included in linux-next
-
-If a few days of testing in mm-new is successful, the patch will me moved
-into mm.git's mm-unstable branch, which is included in linux-next
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -69,49 +58,57 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Kemeng Shi <shikemeng@huaweicloud.com>
-Subject: mm, swap: remove unneeded swap_extend_table_try_free() in swap_dup_entries_cluster()
-Date: Mon, 7 Sep 2026 17:13:56 +0800
+From: Hemanth Selam <hemanth.selam@gmail.com>
+Subject: scripts/spelling.txt: keep British spelling for "initalise"
+Date: Mon, 7 Sep 2026 14:43:24 +0530
 
-Since commit 0475fde0f68de ("mm, swap: avoid leaving unused extend table
-after alloc race"), extend table is always allocated when any swap count
-reach MAX - 1 and is always freed when swap count decrease to MAX - 1 or
-MAX - 2 with cluster lock held.  So the extend table will always be freed
-properly when decrease swap count in __swap_cluster_put_entry().  So
-swap_extend_table_try_free() outside of __swap_cluster_put_entry() is
-unneeded and can be removed.
+These are the only two entries in the file that map a British spelling to
+an American one:
 
-Link: https://lore.kernel.org/20260907091356.53026-5-shikemeng@huaweicloud.com
-Signed-off-by: Kemeng Shi <shikemeng@huaweicloud.com>
-Reviewed-by: Youngjun Park <youngjun.park@lge.com>
-Cc: Baoquan He <baoquan.he@linux.dev>
-Cc: Barry Song <baohua@kernel.org>
-Cc: Chris Li <chrisl@kernel.org>
-Cc: Kairui Song <kasong@tencent.com>
-Cc: Luiz Capitulino <luizcap@redhat.com>
-Cc: Nhat Pham <nphamcs@gmail.com>
+  initalised||initialized
+  initalise||initialize
+
+doc-guide/checkpatch.rst asks that British and American spellings be left
+alone, so correcting the missing "i" should not also change the variety of
+English.  Following checkpatch here silently rewrites "initalised" to
+"initialized" in files that otherwise use British forms; arch/arm64 alone
+has 58 uses of "initialised" against 132 of "initialized", so both are
+clearly in use.
+
+Map them to the British forms instead, so the misspelling is still caught
+while the spelling variety is left to the author.
+
+Link: https://lore.kernel.org/20260907091324.32211-1-hemanth.selam@gmail.com
+Signed-off-by: Hemanth Selam <hemanth.selam@gmail.com>
+Suggested-by: Randy Dunlap <rdunlap@infradead.org>
+Acked-by: Randy Dunlap <rdunlap@infradead.org>
+Cc: Colin Ian King <colin.i.king@gmail.com>
+Cc: Joe Perches <joe@perches.com>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Assisted-by: Cursor:claude-opus-5
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/swapfile.c |    1 -
- 1 file changed, 1 deletion(-)
+ scripts/spelling.txt |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/mm/swapfile.c~mm-swap-remove-unneeded-swap_extend_table_try_free-in-swap_dup_entries_cluster
-+++ a/mm/swapfile.c
-@@ -1725,7 +1725,6 @@ restart:
- failed:
- 	while (ci_off-- > ci_start)
- 		__swap_cluster_put_entry(ci, ci_off);
--	swap_extend_table_try_free(ci);
- 	swap_cluster_unlock(ci);
- 	return err;
- }
+--- a/scripts/spelling.txt~scripts-spellingtxt-keep-british-spelling-for-initalise
++++ a/scripts/spelling.txt
+@@ -872,8 +872,8 @@ infromation||information
+ ingore||ignore
+ inheritence||inheritance
+ inital||initial
+-initalised||initialized
+-initalise||initialize
++initalised||initialised
++initalise||initialise
+ initalized||initialized
+ initalize||initialize
+ initation||initiation
 _
 
-Patches currently in -mm which might be from shikemeng@huaweicloud.com are
+Patches currently in -mm which might be from hemanth.selam@gmail.com are
 
-mm-swap-fix-potential-null-dereference-when-trying-a-sleep-table-allocation.patch
-mm-swap-move-setup_swap_clusters_info-after-swp_solidstate-initialization.patch
-mm-swap-return-early-from-swap_extend_table_try_free-on-first-non-zero-entry.patch
-mm-swap-remove-unneeded-swap_extend_table_try_free-in-swap_dup_entries_cluster.patch
+selftests-mm-remove-the-local-pkey_unrestricted-fallback.patch
+scripts-spellingtxt-keep-british-spelling-for-initalise.patch
 
