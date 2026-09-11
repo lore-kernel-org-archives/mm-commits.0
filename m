@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 658BA17DFFA
-	for <mm-commits@vger.kernel.org>; Fri, 11 Sep 2026 00:17:55 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5671D1891A9
+	for <mm-commits@vger.kernel.org>; Fri, 11 Sep 2026 00:17:57 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789085876; cv=none; b=FTvpsTDKfYDn7K0pJ/gPGZeMpoPFKEQJ8h4BrfmqHyveGgpPzof3FqMWlPbi+AfHqwb1s/rf8SAhLzm9jDC0KLtHGq58mjo9F9LHbyWXWT+kBj8a+6/NYLbh0gZwDLyIpCOrJsRnfI3sRni17QUTmD5sYB8kLKJfGbiSNLPj3Oc=
+	t=1789085878; cv=none; b=hC9pU9OYsEphXop2XDgrAxr8Eo8mQYn3/TOQRSoRFY+Oaq2azbtiJpgKZMdUzM4gXHPFDjXb9jlVT9KYwiTxVnbukYtvkr/q1DrYRYhSQKNAP4ecCwFkSX8g9U6cp0kCrsMi29YgnzK1wsVbkIW8xTyFdQ5InkYlNXRQDBSaEE8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1789085876; c=relaxed/simple;
-	bh=4sIxhoqjobS38qvoMUzC3kmyNuhBXD49PjcCPzAef6s=;
-	h=Date:To:From:Subject:Message-Id; b=iBlb90oxxxs1I8C51g8ceAVyy517gUoBPKUZLCBDNdYW8fWc557pBYcnYXiZmRQPIUAq1OD5ASf76O8C1bNThZJzzfQ33FpqKjCbYfncq+L6uzdurkHjyVvFoe/Nk6ekFYuLtzpCR06+zSSFvzHAggWiRNLuob7kDLr+RVvBGfc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=MdlfmQTT; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1789085878; c=relaxed/simple;
+	bh=5pHfbIctNQecgR8Q0BHp72uANNHcYv+BRO4W6kAZQ9c=;
+	h=Date:To:From:Subject:Message-Id; b=L/5OCvUQGAVPjaAR3MkaJUfjWdPpA+ib53eiLW2/8gcokucYU9UViOTnutQiL6xmhiGG29oe0VtO8nKq22ST1sCArqfSYxkYKLmyMcsITvZhycylJdAjsCr+Qwz00tuBHdNOcesFclB/9h9QGwDT7rZMu+dp9dB3++0MlDlqXN4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Hz35eL2L; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="MdlfmQTT"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D628C1F000FF;
-	Fri, 11 Sep 2026 00:17:54 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Hz35eL2L"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D549E1F00893;
+	Fri, 11 Sep 2026 00:17:56 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1789085874;
-	bh=kDYpHrL9YRzhxcLmENegPov1S9BidUanlqHCpoIPbus=;
+	d=linux-foundation.org; s=korg; t=1789085876;
+	bh=xL2v6fOJFAPGzbhVjhwWGBLq3MkN2sKcBNnHaOTDQxM=;
 	h=Date:To:From:Subject;
-	b=MdlfmQTTll2BiU3cpZQWHcSZSLkS5yiNarsyzvoaRE8CuYPXk9+1Khg32RnM7TAgB
-	 QttDb703gw937ki6K2mNDxBcjlPb9Mdc8xSKpodet+ftSzCKCMfxbvT+H0LEJ+R3vi
-	 iIMNq8Bg4IOQQj9pLE31/s0zpxRKQMOmDfjFCJyg=
-Date: Thu, 10 Sep 2026 17:17:54 -0700
+	b=Hz35eL2L0RSXzFY2juNaxHFJZeacG9nrwQXbi/5+yfS/EdfQlCE29nj0/p98aYkGV
+	 TVjvI79GJfRe1WX/a8loS8DPcvFe9/TpEvaUSm2c+nYo3mpEz5dFZKVvuhNfCGf9Mg
+	 IoCJ+QwjnZ5BUMx32ia3KRRm3WbYkulmqSmbwN2U=
+Date: Thu, 10 Sep 2026 17:17:56 -0700
 To: mm-commits@vger.kernel.org,youngjun.park@lge.com,nphamcs@gmail.com,luizcap@redhat.com,kasong@tencent.com,chrisl@kernel.org,baoquan.he@linux.dev,baohua@kernel.org,shikemeng@huaweicloud.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-swap-return-early-from-swap_extend_table_try_free-on-first-non-zero-entry.patch added to mm-new branch
-Message-Id: <20260911001754.D628C1F000FF@smtp.kernel.org>
+Subject: + mm-swap-remove-unneeded-swap_extend_table_try_free-in-swap_dup_entries_cluster.patch added to mm-new branch
+Message-Id: <20260911001756.D549E1F00893@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm, swap: return early from swap_extend_table_try_free() on first non-zero entry
+     Subject: mm, swap: remove unneeded swap_extend_table_try_free() in swap_dup_entries_cluster()
 has been added to the -mm mm-new branch.  Its filename is
-     mm-swap-return-early-from-swap_extend_table_try_free-on-first-non-zero-entry.patch
+     mm-swap-remove-unneeded-swap_extend_table_try_free-in-swap_dup_entries_cluster.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-swap-return-early-from-swap_extend_table_try_free-on-first-non-zero-entry.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-swap-remove-unneeded-swap_extend_table_try_free-in-swap_dup_entries_cluster.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,54 +70,42 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Kemeng Shi <shikemeng@huaweicloud.com>
-Subject: mm, swap: return early from swap_extend_table_try_free() on first non-zero entry
-Date: Mon, 7 Sep 2026 17:13:55 +0800
+Subject: mm, swap: remove unneeded swap_extend_table_try_free() in swap_dup_entries_cluster()
+Date: Mon, 7 Sep 2026 17:13:56 +0800
 
-Return immediately when the first non-zero swap count is found as any
-non-zero swap count prevents freeing extend_table and further iteration is
-pointless.
+Since commit 0475fde0f68de ("mm, swap: avoid leaving unused extend table
+after alloc race"), extend table is always allocated when any swap count
+reach MAX - 1 and is always freed when swap count decrease to MAX - 1 or
+MAX - 2 with cluster lock held.  So the extend table will always be freed
+properly when decrease swap count in __swap_cluster_put_entry().  So
+swap_extend_table_try_free() outside of __swap_cluster_put_entry() is
+unneeded and can be removed.
 
-Link: https://lore.kernel.org/20260907091356.53026-4-shikemeng@huaweicloud.com
+Link: https://lore.kernel.org/20260907091356.53026-5-shikemeng@huaweicloud.com
 Signed-off-by: Kemeng Shi <shikemeng@huaweicloud.com>
 Reviewed-by: Youngjun Park <youngjun.park@lge.com>
-Acked-by: Kairui Song <kasong@tencent.com>
 Cc: Baoquan He <baoquan.he@linux.dev>
 Cc: Barry Song <baohua@kernel.org>
 Cc: Chris Li <chrisl@kernel.org>
+Cc: Kairui Song <kasong@tencent.com>
 Cc: Luiz Capitulino <luizcap@redhat.com>
 Cc: Nhat Pham <nphamcs@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/swapfile.c |    9 +++------
- 1 file changed, 3 insertions(+), 6 deletions(-)
+ mm/swapfile.c |    1 -
+ 1 file changed, 1 deletion(-)
 
---- a/mm/swapfile.c~mm-swap-return-early-from-swap_extend_table_try_free-on-first-non-zero-entry
+--- a/mm/swapfile.c~mm-swap-remove-unneeded-swap_extend_table_try_free-in-swap_dup_entries_cluster
 +++ a/mm/swapfile.c
-@@ -1523,20 +1523,17 @@ int swap_retry_table_alloc(swp_entry_t e
- static void swap_extend_table_try_free(struct swap_cluster_info *ci)
- {
- 	unsigned long i;
--	bool can_free = true;
- 
- 	if (!ci->extend_table)
- 		return;
- 
- 	for (i = 0; i < SWAPFILE_CLUSTER; i++) {
- 		if (ci->extend_table[i])
--			can_free = false;
-+			return;
- 	}
- 
--	if (can_free) {
--		kfree(ci->extend_table);
--		ci->extend_table = NULL;
--	}
-+	kfree(ci->extend_table);
-+	ci->extend_table = NULL;
+@@ -1725,7 +1725,6 @@ restart:
+ failed:
+ 	while (ci_off-- > ci_start)
+ 		__swap_cluster_put_entry(ci, ci_off);
+-	swap_extend_table_try_free(ci);
+ 	swap_cluster_unlock(ci);
+ 	return err;
  }
- 
- /* Decrease the swap count of one slot, without freeing it */
 _
 
 Patches currently in -mm which might be from shikemeng@huaweicloud.com are
