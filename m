@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AF8E2B640
-	for <mm-commits@vger.kernel.org>; Fri, 11 Sep 2026 00:08:17 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9157328E0
+	for <mm-commits@vger.kernel.org>; Fri, 11 Sep 2026 00:08:20 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789085299; cv=none; b=VT1oGVaqdAfJ6O6vZf2/hoS9FnhQo2NEQgTrqtAd7kEYyxqadzv/G+Rk8QGIuhwd8qOY9mWOcTnOreLdCnvcOUiRAVp1G56i+XANlyym+JRaku58YJaXCpAh9BAyrBRvdeNHdXYzOrJXlO/uIFmqO+T8O01gaMFLMMaCvRWx39Y=
+	t=1789085302; cv=none; b=XSn6QlPof7J/YyfPrF5fMYibGJXDxdL4NSWauq9SQiAVUeU+x7xpNQVyRW42MOHeIPsolugx65qbFiLG/7ic8UXMZ4NbcF80cguO9uk9cHYRwETsfRpygpjthvzH4Y7FMhsU/L5/y8Vwc0aqEdrPZqkdJSgCqmbXnv/CQTrvX5k=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1789085299; c=relaxed/simple;
-	bh=sabVGRqkRMMouocYaHK1RAWXR+wwWVCc+0DEnVgyMfw=;
-	h=Date:To:From:Subject:Message-Id; b=Du0FKJhw3IhXmKMiADMSfwLJcy5hlG2jGIz2DbFPxKmjB9gcP6rHEGAAORll35+uMXZ6Ef/XS8xtSzCFEwDhmybnk13R5bzF+IR4WKCP5zn49VghXM0KxSlES/ZGe1O/pFrSsLIh/Et7x03vDf45zMDCdGbGOa1SNLeXQNuLr6o=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=QFIMbkSY; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1789085302; c=relaxed/simple;
+	bh=+yZ2iPkyVipHW4kRlySIlcPoxZxR73B2jQmLuxJTTwM=;
+	h=Date:To:From:Subject:Message-Id; b=ceoS8XvetPtAXibR+1RqwEPxIk+xgL6Pa/6/3v6HDqcGXRATOj6JBxFurdV3YGY3auTk7qgo8MFsBcm2HqRdV/Jzw53vMYt6j0GZ+0bym3a0utnTCimM33YYdsErqQndWb7+2oE0v0BklUTSRnNCM2ssKuEAvLed0HKIA6aKiN0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=GpSOrVgJ; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="QFIMbkSY"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 27AB51F000FF;
-	Fri, 11 Sep 2026 00:08:17 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="GpSOrVgJ"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 199CF1F000FF;
+	Fri, 11 Sep 2026 00:08:20 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1789085297;
-	bh=LSNh18uKkA/y1JjC3ZYmuGIdOpY5JWL7jtGjbt+ujBQ=;
+	d=linux-foundation.org; s=korg; t=1789085300;
+	bh=qz6TcSRZxCh+fRQxvb61AIiwBrPDKYdozqInNEW1luk=;
 	h=Date:To:From:Subject;
-	b=QFIMbkSYGzvsfnJFMbQKqg11D6lemwoj9HtVVMTEh7+VaSGpkdNOjIbV+RIaVVfX+
-	 nnoKHVv7jRTrrXa+DCxoz8jVoO33OsmgRPsAgNFwckJOIh3S3gcSZxxy4CqmywqjsW
-	 koPMf7Sp8X2cMoMnWkFj5odma+RD8wM7234zbVKQ=
-Date: Thu, 10 Sep 2026 17:08:16 -0700
+	b=GpSOrVgJYICFdHi/hSYa3ERsBhJ4XT0gpoPagEsOFkJtxmjlY9Fwurr96nUFr2Hdu
+	 B4t8NuYs6J5U0Ty8GRU3tROmW2mXfWFwYx6cBRrvoOJxezuArdpxZOvpZtN3JN/ecs
+	 z84PyffMRdoLfPh90Sqhei1pPxRryY6w0k341Qdk=
+Date: Thu, 10 Sep 2026 17:08:19 -0700
 To: mm-commits@vger.kernel.org,nphamcs@gmail.com,minchan@kernel.org,senozhatsky@chromium.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + zram-convert-to-sg-list-zsmalloc-object-read-api.patch added to mm-new branch
-Message-Id: <20260911000817.27AB51F000FF@smtp.kernel.org>
+Subject: + zsmalloc-remove-old-object-read-api.patch added to mm-new branch
+Message-Id: <20260911000820.199CF1F000FF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: zram: convert to SG-list zsmalloc object read API
+     Subject: zsmalloc: remove old object read API
 has been added to the -mm mm-new branch.  Its filename is
-     zram-convert-to-sg-list-zsmalloc-object-read-api.patch
+     zsmalloc-remove-old-object-read-api.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/zram-convert-to-sg-list-zsmalloc-object-read-api.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/zsmalloc-remove-old-object-read-api.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,230 +70,122 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Sergey Senozhatsky <senozhatsky@chromium.org>
-Subject: zram: convert to SG-list zsmalloc object read API
-Date: Mon, 7 Sep 2026 19:57:28 +0900
+Subject: zsmalloc: remove old object read API
+Date: Mon, 7 Sep 2026 19:57:29 +0900
 
-Patch series "zsmallc: remove old object read API".
+There are no users left of the old API, all have switched to SG-list
+object read API.  Remove it.
 
-zram remains the only user of old zsmalloc object read API.  This series
-removes the old API and converts zram to use the new SG-list based API.
-
-
-This patch (of 2):
-
-zram remains the last user of old zsmalloc object read API, that performed
-linearisation on the zsmalloc side.  There is a new SG-list API, that has
-a bunch of benefits.  Switch zram to SG-list zsmalloc object read API.
-
-Link: https://lore.kernel.org/20260907105739.1793316-1-senozhatsky@chromium.org
-Link: https://lore.kernel.org/20260907105739.1793316-2-senozhatsky@chromium.org
+Link: https://lore.kernel.org/20260907105739.1793316-3-senozhatsky@chromium.org
 Signed-off-by: Sergey Senozhatsky <senozhatsky@chromium.org>
 Cc: Minchan Kim <minchan@kernel.org>
 Cc: Nhat Pham <nphamcs@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/zram/zcomp.c    |   23 +++++++++++--
- drivers/block/zram/zcomp.h    |    4 +-
- drivers/block/zram/zram_drv.c |   56 ++++++++++++++++++--------------
- 3 files changed, 55 insertions(+), 28 deletions(-)
+ include/linux/zsmalloc.h |    4 -
+ mm/zsmalloc.c            |   77 -------------------------------------
+ 2 files changed, 81 deletions(-)
 
---- a/drivers/block/zram/zcomp.c~zram-convert-to-sg-list-zsmalloc-object-read-api
-+++ a/drivers/block/zram/zcomp.c
-@@ -7,6 +7,8 @@
- #include <linux/wait.h>
- #include <linux/sched.h>
- #include <linux/cpuhotplug.h>
-+#include <linux/highmem.h>
-+#include <linux/scatterlist.h>
- #include <linux/vmalloc.h>
- #include <linux/sysfs.h>
+--- a/include/linux/zsmalloc.h~zsmalloc-remove-old-object-read-api
++++ a/include/linux/zsmalloc.h
+@@ -40,10 +40,6 @@ unsigned int zs_lookup_class_index(struc
  
-@@ -158,17 +160,32 @@ int zcomp_compress(struct zcomp *comp, s
+ void zs_pool_stats(struct zs_pool *pool, struct zs_pool_stats *stats);
+ 
+-void *zs_obj_read_begin(struct zs_pool *pool, unsigned long handle,
+-			size_t mem_len, void *local_copy);
+-void zs_obj_read_end(struct zs_pool *pool, unsigned long handle,
+-		     size_t mem_len, void *handle_mem);
+ void zs_obj_read_sg_begin(struct zs_pool *pool, unsigned long handle,
+ 			  struct scatterlist *sg, size_t mem_len);
+ void zs_obj_read_sg_end(struct zs_pool *pool, unsigned long handle);
+--- a/mm/zsmalloc.c~zsmalloc-remove-old-object-read-api
++++ a/mm/zsmalloc.c
+@@ -1134,83 +1134,6 @@ unsigned long zs_get_total_pages(struct
  }
+ EXPORT_SYMBOL_GPL(zs_get_total_pages);
  
- int zcomp_decompress(struct zcomp *comp, struct zcomp_strm *zstrm,
--		     const void *src, unsigned int src_len, void *dst)
-+		     struct scatterlist *sg, unsigned int src_len, void *dst)
+-void *zs_obj_read_begin(struct zs_pool *pool, unsigned long handle,
+-			size_t mem_len, void *local_copy)
+-{
+-	struct zspage *zspage;
+-	struct zpdesc *zpdesc;
+-	unsigned long obj, off;
+-	unsigned int obj_idx;
+-	struct size_class *class;
+-	void *addr;
+-
+-	/* Guarantee we can get zspage from handle safely */
+-	read_lock(&pool->lock);
+-	obj = handle_to_obj(handle);
+-	obj_to_location(obj, &zpdesc, &obj_idx);
+-	zspage = get_zspage(zpdesc);
+-
+-	/* Make sure migration doesn't move any pages in this zspage */
+-	zspage_read_lock(zspage);
+-	read_unlock(&pool->lock);
+-
+-	class = zspage_class(pool, zspage);
+-	off = offset_in_page(class->size * obj_idx);
+-
+-	if (!ZsHugePage(zspage))
+-		off += ZS_HANDLE_SIZE;
+-
+-	if (off + mem_len <= PAGE_SIZE) {
+-		/* this object is contained entirely within a page */
+-		addr = kmap_local_zpdesc(zpdesc);
+-		addr += off;
+-	} else {
+-		size_t sizes[2];
+-
+-		/* this object spans two pages */
+-		sizes[0] = PAGE_SIZE - off;
+-		sizes[1] = mem_len - sizes[0];
+-		addr = local_copy;
+-
+-		memcpy_from_page(addr, zpdesc_page(zpdesc),
+-				 off, sizes[0]);
+-		zpdesc = get_next_zpdesc(zpdesc);
+-		memcpy_from_page(addr + sizes[0],
+-				 zpdesc_page(zpdesc),
+-				 0, sizes[1]);
+-	}
+-
+-	return addr;
+-}
+-EXPORT_SYMBOL_GPL(zs_obj_read_begin);
+-
+-void zs_obj_read_end(struct zs_pool *pool, unsigned long handle,
+-		     size_t mem_len, void *handle_mem)
+-{
+-	struct zspage *zspage;
+-	struct zpdesc *zpdesc;
+-	unsigned long obj, off;
+-	unsigned int obj_idx;
+-	struct size_class *class;
+-
+-	obj = handle_to_obj(handle);
+-	obj_to_location(obj, &zpdesc, &obj_idx);
+-	zspage = get_zspage(zpdesc);
+-	class = zspage_class(pool, zspage);
+-	off = offset_in_page(class->size * obj_idx);
+-
+-	if (!ZsHugePage(zspage))
+-		off += ZS_HANDLE_SIZE;
+-
+-	if (off + mem_len <= PAGE_SIZE) {
+-		handle_mem -= off;
+-		kunmap_local(handle_mem);
+-	}
+-
+-	zspage_read_unlock(zspage);
+-}
+-EXPORT_SYMBOL_GPL(zs_obj_read_end);
+-
+ void zs_obj_read_sg_begin(struct zs_pool *pool, unsigned long handle,
+ 			  struct scatterlist *sg, size_t mem_len)
  {
- 	struct zcomp_req req = {
--		.src = src,
- 		.dst = dst,
- 		.src_len = src_len,
- 		.dst_len = PAGE_SIZE,
- 	};
-+	void *src = NULL;
-+	int ret;
- 
- 	might_sleep();
--	return comp->ops->decompress(comp->params, &zstrm->ctx, &req);
-+
-+	if (sg_is_last(sg)) {
-+		/* the object is contained within one page, read it in-place */
-+		src = kmap_local_page(sg_page(sg));
-+		req.src = src + sg->offset;
-+	} else {
-+		/* the object spans two pages, linearize it into local copy */
-+		sg_copy_to_buffer(sg, 2, zstrm->local_copy, src_len);
-+		req.src = zstrm->local_copy;
-+	}
-+
-+	ret = comp->ops->decompress(comp->params, &zstrm->ctx, &req);
-+	if (src)
-+		kunmap_local(src);
-+	return ret;
- }
- 
- int zcomp_cpu_up_prepare(unsigned int cpu, struct hlist_node *node)
---- a/drivers/block/zram/zcomp.h~zram-convert-to-sg-list-zsmalloc-object-read-api
-+++ a/drivers/block/zram/zcomp.h
-@@ -5,6 +5,8 @@
- 
- #include <linux/mutex.h>
- 
-+struct scatterlist;
-+
- #define ZCOMP_PARAM_NOT_SET	INT_MIN
- 
- struct deflate_params {
-@@ -91,6 +93,6 @@ void zcomp_stream_put(struct zcomp_strm
- int zcomp_compress(struct zcomp *comp, struct zcomp_strm *zstrm,
- 		   const void *src, unsigned int *dst_len);
- int zcomp_decompress(struct zcomp *comp, struct zcomp_strm *zstrm,
--		     const void *src, unsigned int src_len, void *dst);
-+		     struct scatterlist *sg, unsigned int src_len, void *dst);
- 
- #endif /* _ZCOMP_H_ */
---- a/drivers/block/zram/zram_drv.c~zram-convert-to-sg-list-zsmalloc-object-read-api
-+++ a/drivers/block/zram/zram_drv.c
-@@ -32,6 +32,7 @@
- #include <linux/debugfs.h>
- #include <linux/cpuhotplug.h>
- #include <linux/part_stat.h>
-+#include <linux/scatterlist.h>
- #include <linux/kernel_read_file.h>
- #include <linux/rcupdate.h>
- 
-@@ -1347,9 +1348,9 @@ static int decompress_bdev_page(struct z
- 				unsigned long index)
- {
- 	struct zcomp_strm *zstrm;
-+	struct scatterlist sg[1];
- 	unsigned int size;
- 	int ret, prio;
--	void *src;
- 
- 	slot_lock(zram, index);
- 	/* Since slot was unlocked we need to make sure it's still ZRAM_WB */
-@@ -1368,13 +1369,18 @@ static int decompress_bdev_page(struct z
- 	size = get_slot_size(zram, index);
- 	prio = get_slot_comp_priority(zram, index);
- 
-+	sg_init_table(sg, 1);
-+	sg_set_page(sg, page, size, 0);
-+
- 	zstrm = zcomp_stream_get(zram->comps[prio]);
--	src = kmap_local_page(page);
--	ret = zcomp_decompress(zram->comps[prio], zstrm, src, size,
-+	ret = zcomp_decompress(zram->comps[prio], zstrm, sg, size,
- 			       zstrm->local_copy);
--	if (!ret)
--		copy_page(src, zstrm->local_copy);
--	kunmap_local(src);
-+	if (!ret) {
-+		void *dst = kmap_local_page(page);
-+
-+		copy_page(dst, zstrm->local_copy);
-+		kunmap_local(dst);
-+	}
- 	zcomp_stream_put(zstrm);
- 	slot_unlock(zram, index);
- 
-@@ -2086,15 +2092,19 @@ static int read_same_filled_page(struct
- static int read_incompressible_page(struct zram *zram, struct page *page,
- 				    unsigned long index)
- {
-+	struct scatterlist sg[2];
- 	unsigned long handle;
- 	void *src, *dst;
- 
- 	handle = get_slot_handle(zram, index);
--	src = zs_obj_read_begin(zram->mem_pool, handle, PAGE_SIZE, NULL);
-+	zs_obj_read_sg_begin(zram->mem_pool, handle, sg, PAGE_SIZE);
-+	/* an incompressible object never spans two pages */
-+	src = kmap_local_page(sg_page(sg));
- 	dst = kmap_local_page(page);
- 	copy_page(dst, src);
- 	kunmap_local(dst);
--	zs_obj_read_end(zram->mem_pool, handle, PAGE_SIZE, src);
-+	kunmap_local(src);
-+	zs_obj_read_sg_end(zram->mem_pool, handle);
- 
- 	return 0;
- }
-@@ -2103,9 +2113,10 @@ static int read_compressed_page(struct z
- 				unsigned long index)
- {
- 	struct zcomp_strm *zstrm;
-+	struct scatterlist sg[2];
- 	unsigned long handle;
- 	unsigned int size;
--	void *src, *dst;
-+	void *dst;
- 	int ret, prio;
- 
- 	handle = get_slot_handle(zram, index);
-@@ -2113,12 +2124,11 @@ static int read_compressed_page(struct z
- 	prio = get_slot_comp_priority(zram, index);
- 
- 	zstrm = zcomp_stream_get(zram->comps[prio]);
--	src = zs_obj_read_begin(zram->mem_pool, handle, size,
--				zstrm->local_copy);
-+	zs_obj_read_sg_begin(zram->mem_pool, handle, sg, size);
- 	dst = kmap_local_page(page);
--	ret = zcomp_decompress(zram->comps[prio], zstrm, src, size, dst);
-+	ret = zcomp_decompress(zram->comps[prio], zstrm, sg, size, dst);
- 	kunmap_local(dst);
--	zs_obj_read_end(zram->mem_pool, handle, size, src);
-+	zs_obj_read_sg_end(zram->mem_pool, handle);
- 	zcomp_stream_put(zstrm);
- 
- 	return ret;
-@@ -2128,25 +2138,23 @@ static int read_compressed_page(struct z
- static int read_from_zspool_raw(struct zram *zram, struct page *page,
- 				unsigned long index)
- {
--	struct zcomp_strm *zstrm;
-+	struct scatterlist sg[2];
- 	unsigned long handle;
- 	unsigned int size;
--	void *src;
-+	void *dst;
- 
- 	handle = get_slot_handle(zram, index);
- 	size = get_slot_size(zram, index);
- 
- 	/*
--	 * We need to get stream just for ->local_copy buffer, in
--	 * case if object spans two physical pages. No decompression
--	 * takes place here, as we read raw compressed data.
-+	 * No decompression takes place here, we copy out raw compressed
-+	 * data directly into the destination page.
- 	 */
--	zstrm = zcomp_stream_get(zram->comps[ZRAM_PRIMARY_COMP]);
--	src = zs_obj_read_begin(zram->mem_pool, handle, size,
--				zstrm->local_copy);
--	memcpy_to_page(page, 0, src, size);
--	zs_obj_read_end(zram->mem_pool, handle, size, src);
--	zcomp_stream_put(zstrm);
-+	zs_obj_read_sg_begin(zram->mem_pool, handle, sg, size);
-+	dst = kmap_local_page(page);
-+	sg_copy_to_buffer(sg, sg_nents(sg), dst, size);
-+	kunmap_local(dst);
-+	zs_obj_read_sg_end(zram->mem_pool, handle);
- 
- 	memzero_page(page, size, PAGE_SIZE - size);
- 
 _
 
 Patches currently in -mm which might be from senozhatsky@chromium.org are
