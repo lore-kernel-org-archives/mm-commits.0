@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9157328E0
-	for <mm-commits@vger.kernel.org>; Fri, 11 Sep 2026 00:08:20 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 51A9A1E7C23
+	for <mm-commits@vger.kernel.org>; Fri, 11 Sep 2026 00:17:50 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789085302; cv=none; b=XSn6QlPof7J/YyfPrF5fMYibGJXDxdL4NSWauq9SQiAVUeU+x7xpNQVyRW42MOHeIPsolugx65qbFiLG/7ic8UXMZ4NbcF80cguO9uk9cHYRwETsfRpygpjthvzH4Y7FMhsU/L5/y8Vwc0aqEdrPZqkdJSgCqmbXnv/CQTrvX5k=
+	t=1789085872; cv=none; b=YEgln8wU0P3h10Ugd3x31/2WbdXfbJocGTM6J2o9RNozxNU76Y3hnkFg3sAblhzXZmhDUbLjuMeQjHjTMMp2eB1bqBOQh6yvJ2PlyaWbV0kYi2lXp2CUeGDPfDM1YC+WQPY9mwDgDG9kkJK5z9HmroApoZH5CdiPcmi+OuFq0og=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1789085302; c=relaxed/simple;
-	bh=+yZ2iPkyVipHW4kRlySIlcPoxZxR73B2jQmLuxJTTwM=;
-	h=Date:To:From:Subject:Message-Id; b=ceoS8XvetPtAXibR+1RqwEPxIk+xgL6Pa/6/3v6HDqcGXRATOj6JBxFurdV3YGY3auTk7qgo8MFsBcm2HqRdV/Jzw53vMYt6j0GZ+0bym3a0utnTCimM33YYdsErqQndWb7+2oE0v0BklUTSRnNCM2ssKuEAvLed0HKIA6aKiN0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=GpSOrVgJ; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1789085872; c=relaxed/simple;
+	bh=fVmOmSvM8IrTRpL2AJp7Yo9q21wiAeCOJLlnCWVCgUQ=;
+	h=Date:To:From:Subject:Message-Id; b=FFRzEuzv7M2dHdylx9sJMxi3vi/vZOMdIbqplR4WAL7kPQDAujbhAIJEST/T4hzSeFFFyOJ1WqcxZGaXQ/FsRvWs6hyRZoA57Z++/J8a9dKurqfu82PkvuoIarla/O4lhrd7dMp++DoqEZAnwkfhi+/8nbiT4bmNgwvMSA3XnVw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=lc4Bf+Vk; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="GpSOrVgJ"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 199CF1F000FF;
-	Fri, 11 Sep 2026 00:08:20 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="lc4Bf+Vk"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id BF1B61F000FF;
+	Fri, 11 Sep 2026 00:17:50 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1789085300;
-	bh=qz6TcSRZxCh+fRQxvb61AIiwBrPDKYdozqInNEW1luk=;
+	d=linux-foundation.org; s=korg; t=1789085870;
+	bh=7VOXvIxaUwZmc8mWUNGHezDrG5dObUYncziNfadW3cE=;
 	h=Date:To:From:Subject;
-	b=GpSOrVgJYICFdHi/hSYa3ERsBhJ4XT0gpoPagEsOFkJtxmjlY9Fwurr96nUFr2Hdu
-	 B4t8NuYs6J5U0Ty8GRU3tROmW2mXfWFwYx6cBRrvoOJxezuArdpxZOvpZtN3JN/ecs
-	 z84PyffMRdoLfPh90Sqhei1pPxRryY6w0k341Qdk=
-Date: Thu, 10 Sep 2026 17:08:19 -0700
-To: mm-commits@vger.kernel.org,nphamcs@gmail.com,minchan@kernel.org,senozhatsky@chromium.org,akpm@linux-foundation.org
+	b=lc4Bf+VkiE41g28KxRu28+lZT2zctgb0wcti2HqRF6+i5XijESFq1r4gdQ1yhfzNA
+	 OIQskQ3X7/3+REFoTZCAIOwduxxrb077eN4pqSahChqzIbDhb3AE/5gZTQAIsaiCZi
+	 /1qVD21+0RgqVxBcHTxNjZHTftzvEA5UcBOpnlDQ=
+Date: Thu, 10 Sep 2026 17:17:50 -0700
+To: mm-commits@vger.kernel.org,youngjun.park@lge.com,nphamcs@gmail.com,luizcap@redhat.com,kasong@tencent.com,chrisl@kernel.org,baoquan.he@linux.dev,baohua@kernel.org,shikemeng@huaweicloud.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + zsmalloc-remove-old-object-read-api.patch added to mm-new branch
-Message-Id: <20260911000820.199CF1F000FF@smtp.kernel.org>
+Subject: + mm-swap-fix-potential-null-dereference-when-trying-a-sleep-table-allocation.patch added to mm-new branch
+Message-Id: <20260911001750.BF1B61F000FF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: zsmalloc: remove old object read API
+     Subject: mm, swap: fix potential NULL dereference when trying a sleep table allocation
 has been added to the -mm mm-new branch.  Its filename is
-     zsmalloc-remove-old-object-read-api.patch
+     mm-swap-fix-potential-null-dereference-when-trying-a-sleep-table-allocation.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/zsmalloc-remove-old-object-read-api.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-swap-fix-potential-null-dereference-when-trying-a-sleep-table-allocation.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -69,128 +69,169 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Sergey Senozhatsky <senozhatsky@chromium.org>
-Subject: zsmalloc: remove old object read API
-Date: Mon, 7 Sep 2026 19:57:29 +0900
+From: Kemeng Shi <shikemeng@huaweicloud.com>
+Subject: mm, swap: fix potential NULL dereference when trying a sleep table allocation
+Date: Mon, 7 Sep 2026 17:13:53 +0800
 
-There are no users left of the old API, all have switched to SG-list
-object read API.  Remove it.
+Patch series "mm, swap: some random fixes and cleanups", v3.
 
-Link: https://lore.kernel.org/20260907105739.1793316-3-senozhatsky@chromium.org
-Signed-off-by: Sergey Senozhatsky <senozhatsky@chromium.org>
-Cc: Minchan Kim <minchan@kernel.org>
+This series contains some random fixes and cleanups.  More details can be
+found in respective patches.
+
+
+This patch (of 4):
+
+The root cause of this issue is because multi-tables are updated in non
+atomic context.  To be more specific, the issue could be triggerred as
+following:
+
+swap_alloc_fast         swap_cluster_populate()
+                         /* Try a sleep allocation */
+                         spin_unlock(&ci->lock);
+                         swap_cluster_alloc_table()
+                          rcu_assign_pointer(ci->table, table);
+
+ ci = swap_cluster_lock(si, offset)
+ cluster_is_usable(ci, order）
+  if (!cluster_table_is_alloced(ci)) // ok
+ alloc_swap_scan_cluster()
+  cluster_scan_range()
+   __swap_table_get()
+
+                          /* free table when more table allocation fails */
+                          ci->memcg_table = kzalloc_obj(*ci->memcg_table,
+                                                        gfp);
+                          if (!ci->memcg_table)
+                           swap_cluster_free_table()
+                            rcu_assign_pointer(ci->table, NULL);
+
+    table = rcu_dereference_check(ci->table, lockdep_is_held(&ci->lock));
+     atomic_long_read(&table[off]); // NULL dereference
+
+Since memory order guarantee between ci->table, as well as between
+ci->table and ci->zero_bitmap, fix the issue by making tables visible at
+the end of swap_cluster_populate().
+
+Current memory order guarantee is as following: On write side:
+rcu_assign_pointer(ci->table, table) will offer release to ensure
+zero_bitmap and memcg_table visible before ci->table.
+
+On read side:
+folio_alloc_swap
+ swap_alloc_fast/swap_alloc_slow
+  /* ci->table: protected by cluster lock */
+  swap_cluster_lock
+  cluster_is_usable
+  ...
+  __swap_table_set
+  ...
+  swap_cluster_unlock
+
+ mem_cgroup_try_charge_swap
+  ...
+  /* memcg_table: protected by cluster lock */
+  swap_cluster_get_and_lock
+  __swap_cgroup_set
+  swap_cluster_unlock
+
+swap_writeout
+ swap_zeromap_folio_set
+  /* zero_bitmap: protected by cluster lock */
+  swap_cluster_get_and_lock
+  __swap_table_set_zero
+  swap_cluster_unlock
+
+Link: https://lore.kernel.org/20260907091356.53026-1-shikemeng@huaweicloud.com
+Link: https://lore.kernel.org/20260907091356.53026-2-shikemeng@huaweicloud.com
+Fixes: b197d41462c2 ("mm/memcg, swap: store cgroup id in cluster table directly")
+Signed-off-by: Kemeng Shi <shikemeng@huaweicloud.com>
+Cc: Baoquan He <baoquan.he@linux.dev>
+Cc: Barry Song <baohua@kernel.org>
+Cc: Chris Li <chrisl@kernel.org>
 Cc: Nhat Pham <nphamcs@gmail.com>
+Cc: Kairui Song <kasong@tencent.com>
+Cc: Luiz Capitulino <luizcap@redhat.com>
+Cc: Youngjun Park <youngjun.park@lge.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/zsmalloc.h |    4 -
- mm/zsmalloc.c            |   77 -------------------------------------
- 2 files changed, 81 deletions(-)
+ mm/swapfile.c |   30 ++++++++++++++++++++----------
+ 1 file changed, 20 insertions(+), 10 deletions(-)
 
---- a/include/linux/zsmalloc.h~zsmalloc-remove-old-object-read-api
-+++ a/include/linux/zsmalloc.h
-@@ -40,10 +40,6 @@ unsigned int zs_lookup_class_index(struc
- 
- void zs_pool_stats(struct zs_pool *pool, struct zs_pool_stats *stats);
- 
--void *zs_obj_read_begin(struct zs_pool *pool, unsigned long handle,
--			size_t mem_len, void *local_copy);
--void zs_obj_read_end(struct zs_pool *pool, unsigned long handle,
--		     size_t mem_len, void *handle_mem);
- void zs_obj_read_sg_begin(struct zs_pool *pool, unsigned long handle,
- 			  struct scatterlist *sg, size_t mem_len);
- void zs_obj_read_sg_end(struct zs_pool *pool, unsigned long handle);
---- a/mm/zsmalloc.c~zsmalloc-remove-old-object-read-api
-+++ a/mm/zsmalloc.c
-@@ -1134,83 +1134,6 @@ unsigned long zs_get_total_pages(struct
+--- a/mm/swapfile.c~mm-swap-fix-potential-null-dereference-when-trying-a-sleep-table-allocation
++++ a/mm/swapfile.c
+@@ -416,6 +416,17 @@ static void swap_cluster_free_table_foli
+ 	folio_put(folio);
  }
- EXPORT_SYMBOL_GPL(zs_get_total_pages);
  
--void *zs_obj_read_begin(struct zs_pool *pool, unsigned long handle,
--			size_t mem_len, void *local_copy)
--{
--	struct zspage *zspage;
--	struct zpdesc *zpdesc;
--	unsigned long obj, off;
--	unsigned int obj_idx;
--	struct size_class *class;
--	void *addr;
--
--	/* Guarantee we can get zspage from handle safely */
--	read_lock(&pool->lock);
--	obj = handle_to_obj(handle);
--	obj_to_location(obj, &zpdesc, &obj_idx);
--	zspage = get_zspage(zpdesc);
--
--	/* Make sure migration doesn't move any pages in this zspage */
--	zspage_read_lock(zspage);
--	read_unlock(&pool->lock);
--
--	class = zspage_class(pool, zspage);
--	off = offset_in_page(class->size * obj_idx);
--
--	if (!ZsHugePage(zspage))
--		off += ZS_HANDLE_SIZE;
--
--	if (off + mem_len <= PAGE_SIZE) {
--		/* this object is contained entirely within a page */
--		addr = kmap_local_zpdesc(zpdesc);
--		addr += off;
--	} else {
--		size_t sizes[2];
--
--		/* this object spans two pages */
--		sizes[0] = PAGE_SIZE - off;
--		sizes[1] = mem_len - sizes[0];
--		addr = local_copy;
--
--		memcpy_from_page(addr, zpdesc_page(zpdesc),
--				 off, sizes[0]);
--		zpdesc = get_next_zpdesc(zpdesc);
--		memcpy_from_page(addr + sizes[0],
--				 zpdesc_page(zpdesc),
--				 0, sizes[1]);
--	}
--
--	return addr;
--}
--EXPORT_SYMBOL_GPL(zs_obj_read_begin);
--
--void zs_obj_read_end(struct zs_pool *pool, unsigned long handle,
--		     size_t mem_len, void *handle_mem)
--{
--	struct zspage *zspage;
--	struct zpdesc *zpdesc;
--	unsigned long obj, off;
--	unsigned int obj_idx;
--	struct size_class *class;
--
--	obj = handle_to_obj(handle);
--	obj_to_location(obj, &zpdesc, &obj_idx);
--	zspage = get_zspage(zpdesc);
--	class = zspage_class(pool, zspage);
--	off = offset_in_page(class->size * obj_idx);
--
--	if (!ZsHugePage(zspage))
--		off += ZS_HANDLE_SIZE;
--
--	if (off + mem_len <= PAGE_SIZE) {
--		handle_mem -= off;
--		kunmap_local(handle_mem);
--	}
--
--	zspage_read_unlock(zspage);
--}
--EXPORT_SYMBOL_GPL(zs_obj_read_end);
--
- void zs_obj_read_sg_begin(struct zs_pool *pool, unsigned long handle,
- 			  struct scatterlist *sg, size_t mem_len)
++static void swap_cluster_free_count_table(struct swap_table *table)
++{
++	if (!SWP_TABLE_USE_PAGE) {
++		kmem_cache_free(swap_table_cachep, table);
++		return;
++	}
++
++	call_rcu(&(folio_page(virt_to_folio(table), 0)->rcu_head),
++		 swap_cluster_free_table_folio_rcu_cb);
++}
++
+ static void swap_cluster_free_table(struct swap_cluster_info *ci)
  {
+ 	struct swap_table *table;
+@@ -435,13 +446,7 @@ static void swap_cluster_free_table(stru
+ 		return;
+ 
+ 	rcu_assign_pointer(ci->table, NULL);
+-	if (!SWP_TABLE_USE_PAGE) {
+-		kmem_cache_free(swap_table_cachep, table);
+-		return;
+-	}
+-
+-	call_rcu(&(folio_page(virt_to_folio(table), 0)->rcu_head),
+-		 swap_cluster_free_table_folio_rcu_cb);
++	swap_cluster_free_count_table(table);
+ }
+ 
+ static int swap_cluster_alloc_table(struct swap_cluster_info *ci, gfp_t gfp)
+@@ -464,14 +469,12 @@ static int swap_cluster_alloc_table(stru
+ 	if (!table)
+ 		return -ENOMEM;
+ 
+-	rcu_assign_pointer(ci->table, table);
+-
+ #ifdef CONFIG_MEMCG
+ 	if (!mem_cgroup_disabled()) {
+ 		VM_WARN_ON_ONCE(ci->memcg_table);
+ 		ci->memcg_table = kzalloc_obj(*ci->memcg_table, gfp);
+ 		if (!ci->memcg_table) {
+-			swap_cluster_free_table(ci);
++			swap_cluster_free_count_table(table);
+ 			return -ENOMEM;
+ 		}
+ 	}
+@@ -482,9 +485,16 @@ static int swap_cluster_alloc_table(stru
+ 	ci->zero_bitmap = bitmap_zalloc(SWAPFILE_CLUSTER, gfp);
+ 	if (!ci->zero_bitmap) {
+ 		swap_cluster_free_table(ci);
++		swap_cluster_free_count_table(table);
+ 		return -ENOMEM;
+ 	}
+ #endif
++
++	/*
++	 * Make tables visible to cluster_is_usable() after everything is
++	 * ready.
++	 */
++	rcu_assign_pointer(ci->table, table);
+ 	return 0;
+ }
+ 
 _
 
-Patches currently in -mm which might be from senozhatsky@chromium.org are
+Patches currently in -mm which might be from shikemeng@huaweicloud.com are
 
-zram-remove-unreachable-kernel_read_file_from_path-return-check.patch
-zram-convert-to-sg-list-zsmalloc-object-read-api.patch
-zsmalloc-remove-old-object-read-api.patch
+mm-swap-fix-potential-null-dereference-when-trying-a-sleep-table-allocation.patch
+mm-swap-move-setup_swap_clusters_info-after-swp_solidstate-initialization.patch
+mm-swap-return-early-from-swap_extend_table_try_free-on-first-non-zero-entry.patch
+mm-swap-remove-unneeded-swap_extend_table_try_free-in-swap_dup_entries_cluster.patch
 
