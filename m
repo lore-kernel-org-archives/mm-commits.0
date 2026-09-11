@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A60AE3D9525
-	for <mm-commits@vger.kernel.org>; Fri, 11 Sep 2026 23:19:43 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BE5903D9525
+	for <mm-commits@vger.kernel.org>; Fri, 11 Sep 2026 23:19:45 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789168785; cv=none; b=CEkej9JJ/I9i+4SNj7JqTbkrud4SG560HHWM5f32rLBgyurat2szZU4+OKyiyZ5QLlHCmOUJThdKU6nVt3y/YBQpbolC0U9WUUbtEQINREIQnSwgwBk2UGbjlH2lrzNxzv+mMuVxnGLhsSnnu0GqERGzR4FqXjN6cpQYjQx0SGA=
+	t=1789168787; cv=none; b=UpCZRBDiyQ4DEmtkZREiwhOygAs6anboAVFIam+KlEa9BMrHlu8YNaROGsOcZ3bzmXcZ9XLEOKg9TAwC6wvWmOILUkDNEO0I0SIBNYHnjuUnOEfAy1SnXA29Kvat5BUfpllPzJjaHq0134sS09quLyReXdb2hEx7g/jcVvEzMo0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1789168785; c=relaxed/simple;
-	bh=wFlnP0eDn7IrB0La2ABhoBgiuh7TQ82cMwCsSJWZuyo=;
-	h=Date:To:From:Subject:Message-Id; b=Qp59nDj2gJt7jIKhFIM2CmmD0urW/6edaZIN1xtLXbQbt4+XmfjpekxWH/Rr40pHrdRRyPM1ZDUOjzTqgYJ+8JotKM/J4hypLvdM4By9ik1ag1XIfBtZKtKOHg+9M9UwFeehaUp/cSDdU5/vROJAticTtcYUw3MarTt9q1EJL6g=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=I0nFxWrX; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1789168787; c=relaxed/simple;
+	bh=LFOIousF9l/51LvDqDSf7yEYfcv3fbI5GBiEhUKH+Kg=;
+	h=Date:To:From:Subject:Message-Id; b=KXJaFT9pLTerARBjeE9NwbocrP2t/n4t/Teh0YqQxyfKbHbOgzkgj6zdNhzczAm/ncF40exqD76hpD8pp/pHOAdXIfUY/Bd0UgbN1rk5KW8L6a6WHaqbH5rE4dONc3un4hMgpK6o8qnAUPvo1i2enjDLhuXyB47z78WR4/bebEU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=IDjTf1Pe; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="I0nFxWrX"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 37B8A1F000FF;
-	Fri, 11 Sep 2026 23:19:43 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="IDjTf1Pe"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2CC561F000FF;
+	Fri, 11 Sep 2026 23:19:45 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1789168783;
-	bh=8CD4RrEfvom4FU0i/++qSoVpkvBSObAk1m/mDg5S6Kw=;
+	d=linux-foundation.org; s=korg; t=1789168785;
+	bh=aSmupTFXdX+JRsQ505s0t5NeKoZl3q3pp2YiX6aa1kA=;
 	h=Date:To:From:Subject;
-	b=I0nFxWrXTMTImaVpqVOoVSYmE0FtfAx1QtvnC5jfbaNbGc8FOoZFJ5gs7fSBq6mOy
-	 F+tFhmH6kYKlH+k2ZXjNFPAW6rcMSzX5zuukA14HPjb+RggyIfWYkw7Ar4o9UlqFCn
-	 F8+anHUGox1xPLswYb2l3dylQzcceMxfOem/40f4=
-Date: Fri, 11 Sep 2026 16:19:42 -0700
+	b=IDjTf1Pek3SMEWIeDpvglmsqjN5dpM6ZIofZQvo/4b+ybm3ohjATxKhNqeTq5xvDz
+	 oanX0pMA6IkXvazxaL0Pxo/QJxMltuCwxqDMErwXduqR956xSaLLDgdMlUnJOTteWb
+	 asGnTkvBPhi1U6a5fjWrtCzKoFbKUprhPoDEiSg0=
+Date: Fri, 11 Sep 2026 16:19:44 -0700
 To: mm-commits@vger.kernel.org,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + docs-mm-damon-design-update-for-probe_hits_wsum-damos-core-filter.patch added to mm-new branch
-Message-Id: <20260911231943.37B8A1F000FF@smtp.kernel.org>
+Subject: + docs-admin-guide-mm-damon-usage-update-for-probe_hits_wsum-damos-filter.patch added to mm-new branch
+Message-Id: <20260911231945.2CC561F000FF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: Docs/mm/damon/design: update for probe_hits_wsum DAMOS core filter
+     Subject: Docs/admin-guide/mm/damon/usage: update for probe_hits_wsum DAMOS filter
 has been added to the -mm mm-new branch.  Its filename is
-     docs-mm-damon-design-update-for-probe_hits_wsum-damos-core-filter.patch
+     docs-admin-guide-mm-damon-usage-update-for-probe_hits_wsum-damos-filter.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/docs-mm-damon-design-update-for-probe_hits_wsum-damos-core-filter.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/docs-admin-guide-mm-damon-usage-update-for-probe_hits_wsum-damos-filter.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,13 +70,13 @@ and is updated there most days
 
 ------------------------------------------------------
 From: SJ Park <sj@kernel.org>
-Subject: Docs/mm/damon/design: update for probe_hits_wsum DAMOS core filter
-Date: Fri, 11 Sep 2026 06:55:08 -0700
+Subject: Docs/admin-guide/mm/damon/usage: update for probe_hits_wsum DAMOS filter
+Date: Fri, 11 Sep 2026 06:55:09 -0700
 
-Update DAMON design document for the newly added probe hits weighted sum
+Update DAMON usage document for the newly added probe hits weighted sum
 based DAMOS core filter type.
 
-Link: https://lore.kernel.org/20260911135510.96914-7-sj@kernel.org
+Link: https://lore.kernel.org/20260911135510.96914-8-sj@kernel.org
 Signed-off-by: SJ Park <sj@kernel.org>
 Cc: David Hildenbrand <david@kernel.org>
 Cc: Jonathan Corbet <corbet@lwn.net>
@@ -90,21 +90,22 @@ Cc: Vlastimil Babka <vbabka@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/mm/damon/design.rst |    3 +++
- 1 file changed, 3 insertions(+)
+ Documentation/admin-guide/mm/damon/usage.rst |    4 ++++
+ 1 file changed, 4 insertions(+)
 
---- a/Documentation/mm/damon/design.rst~docs-mm-damon-design-update-for-probe_hits_wsum-damos-core-filter
-+++ a/Documentation/mm/damon/design.rst
-@@ -823,6 +823,9 @@ Below ``type`` of filters are currently
-         - Applied to pages that belonging to a given address range.
-     - target
-         - Applied to pages that belonging to a given DAMON monitoring target.
-+    - probe_hits_wsum
-+        - Matches to monitoring regions having a given range of :ref:`probe
-+          hits weighted sum <damon_design_attrs_only_monitoring>` value.
- - Operations layer handled, supported by only ``paddr`` operations set.
-     - anon
-         - Applied to pages that containing data that not stored in files.
+--- a/Documentation/admin-guide/mm/damon/usage.rst~docs-admin-guide-mm-damon-usage-update-for-probe_hits_wsum-damos-filter
++++ a/Documentation/admin-guide/mm/damon/usage.rst
+@@ -551,6 +551,10 @@ and ``damon_target_idx``.  To ``type`` f
+ filter.  Refer to :ref:`the design doc <damon_design_damos_filters>` for
+ available type names, their meaning and on what layer those are handled.
+ 
++For ``probe_hits_wsum`` type, you can specify the minimum and maximum probe
++hits weighted sum value for the filter to ``min`` and ``max`` files,
++respectively.
++
+ For ``memcg`` type, you can specify the memory cgroup of the interest by
+ writing the path of the memory cgroup from the cgroups mount point to
+ ``memcg_path`` file.  For ``addr`` type, you can specify the start and end
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
