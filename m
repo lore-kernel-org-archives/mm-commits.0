@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 589E425771;
-	Fri, 11 Sep 2026 01:10:13 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6852B25771;
+	Fri, 11 Sep 2026 01:10:16 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789089015; cv=none; b=Ov9PFN9WxiRLllwRUCZzCfGfc4yCOdwP/EEJFiBID+/sqAwwTxeOp86WeIraxAYcK+/W7ChGBytk7K9NdGosM8q9CHw4cmF39EV6R5GPJz0C3MGh9e2VHbw8NbxJ6/XiIgD2pra60tmTrvnOCTw1eJDaBH27BNo/fYkLGL4Z90w=
+	t=1789089017; cv=none; b=Pst6wU7upyQG2iugyOYnYhSrLH7FFr0z9vBrlw21A+McF0lOdfx4w9imuLkROtGNU83XymhxrBfuZqyRicMZSZ5/7hYLimsQV5ncgQ0Zbmyr5aXQMf3+Dr2Wll8wwfaovcRn7y9vZ3XcsZSfDiSY8Jq9RGd9iZJ5SHOPdu1fdUc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1789089015; c=relaxed/simple;
-	bh=ipvybFxxBPkQMPky0lJuVHQ6IPtek1zLaIeSMkM93iE=;
-	h=Date:To:From:Subject:Message-Id; b=oXrn18c8xMk5cMoeOBS0gA1epfHfdPT1YDcyIboUNKjnjcNb2m5BMjRckrWtTU33MzI5frJ+gye4sYNRoWdYeLgta6uIqnGX/sTxR5omed37FF8DTemiCa++wsOFa/lD6aWk9ZXT9ahbTRMZKOGo6qyHL83AaJN8XMup2/j6gqY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=my0hY+cU; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1789089017; c=relaxed/simple;
+	bh=irKHY5apBI7M8nltS/Gk3BbWzF1zeKxXCk/10QxRv/I=;
+	h=Date:To:From:Subject:Message-Id; b=A9G+o98hd9xUuUA89Xveea5elkCdsjo0Jp0va+PH69stoUrR5Y9PMNFvgQNgAe714jUIAOullViA4W3wwcO3Zq4olzqGgf9S2q1YVb0gUOeswF+/6ibrudj8cvULeIy27XAkMkABjWn8ve+Xo/3vdf736UVlTN8J2FrC4gMqwGM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=VJaOT5IU; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="my0hY+cU"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A91701F000FF;
-	Fri, 11 Sep 2026 01:10:13 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="VJaOT5IU"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id F2DF31F000FF;
+	Fri, 11 Sep 2026 01:10:15 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1789089013;
-	bh=uCyPMO7S2FSPZo30XxNmWONs6YGIG09TJaO6TDXvhng=;
+	d=linux-foundation.org; s=korg; t=1789089016;
+	bh=myhK+TNX9TD+33mKGRfxH8LxaNqrwOaeohZgkHqUEYo=;
 	h=Date:To:From:Subject;
-	b=my0hY+cUtBk7FdXkn0O5aKWlsXEY/s8btTPhRb8jwOfzNybWTere8YGz2g672/sxO
-	 8bt4y3IDuk9tkStqUFcqqD9ltGonc5wkOI4KYglG8VFocxt8e+HOR7bxLQq1w6td7C
-	 VNfaRcajqMKVq+3LKFFhGmF5EDzPNUd/LXvgc3GY=
-Date: Thu, 10 Sep 2026 18:10:13 -0700
+	b=VJaOT5IUIqLWu5Pcn8BrEsYDgbq+FrbzSTallZLDMUSgORiKkYhjxe8oXNDMY6BpJ
+	 AMhpiKRM1EqsWKsmIr52IeFN1DaXBkhkZGn4NrDE7I/hM32laSlMC/JEpHG8LyTPWu
+	 o/ZMyUhh/o7ng2urDdPmlCf5ep9VtG0kuOTIqERA=
+Date: Thu, 10 Sep 2026 18:10:15 -0700
 To: mm-commits@vger.kernel.org,yuzhao@google.com,yuanchu@google.com,weixugc@google.com,tj@kernel.org,stable@vger.kernel.org,shakeel.butt@linux.dev,roman.gushchin@linux.dev,muchun.song@linux.dev,mhocko@kernel.org,ljs@kernel.org,kasong@tencent.com,hannes@cmpxchg.org,david@kernel.org,chris@chrisdown.name,baohua@kernel.org,axelrasmussen@google.com,chenridong@xiaomi.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-page_counter-avoid-integer-overflow-in-effective_protection.patch added to mm-new branch
-Message-Id: <20260911011013.A91701F000FF@smtp.kernel.org>
+Subject: + mm-mglru-fix-ineffective-memory-protection-for-non-kswapd-reclaim.patch added to mm-new branch
+Message-Id: <20260911011015.F2DF31F000FF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/page_counter: avoid integer overflow in effective_protection()
+     Subject: mm/mglru: fix ineffective memory protection for non-kswapd reclaim
 has been added to the -mm mm-new branch.  Its filename is
-     mm-page_counter-avoid-integer-overflow-in-effective_protection.patch
+     mm-mglru-fix-ineffective-memory-protection-for-non-kswapd-reclaim.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-page_counter-avoid-integer-overflow-in-effective_protection.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mglru-fix-ineffective-memory-protection-for-non-kswapd-reclaim.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,50 +70,60 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Ridong Chen <chenridong@xiaomi.com>
-Subject: mm/page_counter: avoid integer overflow in effective_protection()
-Date: Mon, 7 Sep 2026 10:54:44 +0800
+Subject: mm/mglru: fix ineffective memory protection for non-kswapd reclaim
+Date: Mon, 7 Sep 2026 10:54:45 +0800
 
-Patch series "mm/mglru: fix ineffective memory protection for non-kswapd
-reclaim", v4.
+For MGLRU, memory.min/low is not honored during global proactive reclaim
+(writing to the root memory.reclaim) and global direct reclaim, because
+these paths shrink memcgs using stale protection (emin/elow).  It can be
+reproduced as follows:
 
-For MGLRU, memory.min/low is not honored during non-kswapd global reclaim
-(global direct reclaim and root-level memory.reclaim), because these paths
-shrink memcgs using stale protection (emin/elow).
+  # echo 7 > /sys/kernel/mm/lru_gen/enabled
+  # cd /sys/fs/cgroup
+  # mkdir -p a/b
+  # echo 100M > a/memory.min
+  # echo +memory > a/cgroup.subtree_control
+  # echo 100M > a/b/memory.min
+  # echo $$ > a/b/cgroup.procs
+  # dd if=/dev/zero of=/tmp/testfile bs=1M count=200
+  # cat a/b/memory.current
+  222650368
+  # echo 500M > memory.reclaim
+  -bash: echo: write error: Resource temporarily unavailable
+  # cat a/b/memory.current
+  6070272
 
-Patch 2 is the actual fix.  Patch 1 is a prerequisite: an integer overflow
-in effective_protection(), spotted by the sashiko review tool, which patch
-2's new caller would also be exposed to.
+memory.min is 100M, yet reclaim drops a/b down to 6M, breaking the
+protection.  The traditional LRU path is not affected because
+shrink_node() calls mem_cgroup_calculate_protection() for each memcg it
+visits during a top-down tree walk.
 
+Commit 30d77b7eef01 ("mm/mglru: fix ineffective protection calculation")
+moved the protection computation into lru_gen_age_node(), which only runs
+for kswapd.  Non-kswapd global reclaim reaches shrink_one() through
+lru_gen_shrink_node() -> shrink_many() without any protection computation,
+so emin/elow are whatever a previous kswapd run left behind - or zero if
+kswapd never ran on this node.  Relying on a prior kswapd pass is not
+correct either: a memcg's emin/elow are derived from its ancestors'
+memory.min/low settings and from children_min_usage, both of which change
+over time, so emin/elow go stale even after kswapd has run and must be
+recomputed at the point of reclaim.
 
-This patch (of 2):
+Introduce mem_cgroup_calculate_protection_path() which computes emin/elow
+along the root-to-target path only, by iterating through the cgroup
+ancestors array top-down.  This avoids the full tree traversal that would
+be needed with mem_cgroup_calculate_protection(), limiting the cost to
+O(depth) per memcg - typically 3-5 levels.
 
-effective_protection() scales a parent's protection by a ratio of page
-counts, e.g.  for recursive protection:
+Call it from shrink_one() for the non-kswapd path so that each memcg about
+to be shrunk has correct protection values.
 
-	(parent_effective - siblings_protected) * (usage - protected)
-		/ (parent_usage - siblings_protected)
-
-The multiply is done at unsigned long width before dividing.  On systems
-with >= 16TB RAM the product can exceed 2^64 and wrap, giving a bogus
-protection value and silently breaking memory.min/low enforcement.
-
-Use mul_u64_u64_div_u64() to multiply in a 128-bit intermediate.  Because
-usage and parent_usage are not read atomically (a child is charged before
-its parent), usage - protected can briefly exceed the divisor, making the
-quotient overflow 64 bits and trap (#DE on x86).  Cap it so the ratio
-stays <= 1.
-
-Reported by the sashiko review tool [1].
-
-Link: https://lore.kernel.org/20260907025445.1836238-1-ridong.chen@linux.dev
-Link: https://lore.kernel.org/20260907025445.1836238-2-ridong.chen@linux.dev
-Link: https://sashiko.dev/#/patchset/20260826133054.88529-1-ridong.chen@linux.dev?part=1 [1]
-Fixes: bc50bcc6e00b ("mm: memcontrol: clean up and document effective low/min calculations")
-Fixes: 8a931f801340 ("mm: memcontrol: recursive memory.low protection")
+Link: https://lore.kernel.org/20260907025445.1836238-3-ridong.chen@linux.dev
+Fixes: e4dde56cd208 ("mm: multi-gen LRU: per-node lru_gen_folio lists")
+Signed-off-by: Ridong Chen <chenridong@xiaomi.com>
 Assisted-by: Claude:claude-opus-4-8
 Reviewed-by: Barry Song <baohua@kernel.org>
 Reviewed-by: Johannes Weiner <hannes@cmpxchg.org>
-Signed-off-by: Ridong Chen <chenridong@xiaomi.com>
 Cc: Axel Rasmussen <axelrasmussen@google.com>
 Cc: Chris Down <chris@chrisdown.name>
 Cc: David Hildenbrand <david@kernel.org>
@@ -131,55 +141,101 @@ Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_counter.c |   21 +++++++++++++++------
- 1 file changed, 15 insertions(+), 6 deletions(-)
+ include/linux/memcontrol.h |   10 +++++++
+ mm/memcontrol.c            |   45 +++++++++++++++++++++++++++++++++++
+ mm/vmscan.c                |    8 +++++-
+ 3 files changed, 62 insertions(+), 1 deletion(-)
 
---- a/mm/page_counter.c~mm-page_counter-avoid-integer-overflow-in-effective_protection
-+++ a/mm/page_counter.c
-@@ -8,6 +8,7 @@
- #include <linux/page_counter.h>
- #include <linux/atomic.h>
- #include <linux/kernel.h>
-+#include <linux/math64.h>
- #include <linux/string.h>
- #include <linux/sched.h>
- #include <linux/bug.h>
-@@ -376,7 +377,8 @@ static unsigned long effective_protectio
- 	 * otherwise get a smaller chunk than what they claimed.
- 	 */
- 	if (siblings_protected > parent_effective)
--		return protected * parent_effective / siblings_protected;
-+		return mul_u64_u64_div_u64(protected, parent_effective,
-+					   siblings_protected);
+--- a/include/linux/memcontrol.h~mm-mglru-fix-ineffective-memory-protection-for-non-kswapd-reclaim
++++ a/include/linux/memcontrol.h
+@@ -1921,6 +1921,16 @@ static inline bool memcg_is_dying(struct
+ }
+ #endif /* CONFIG_MEMCG */
  
- 	/*
- 	 * Ok, utilized protection of all children is within what the
-@@ -417,13 +419,20 @@ static unsigned long effective_protectio
- 	if (parent_effective > siblings_protected &&
- 	    parent_usage > siblings_protected &&
- 	    usage > protected) {
--		unsigned long unclaimed;
-+		unsigned long parent_unclaimed, parent_unprotected, unprotected;
- 
--		unclaimed = parent_effective - siblings_protected;
--		unclaimed *= usage - protected;
--		unclaimed /= parent_usage - siblings_protected;
-+		parent_unclaimed = parent_effective - siblings_protected;
-+		parent_unprotected = parent_usage - siblings_protected;
- 
--		ep += unclaimed;
-+		/*
-+		 * The usages aren't read atomically, so a child can transiently
-+		 * appear to use more than its parent, making the ratio exceed 1
-+		 * and the quotient overflow 64 bits (#DE on x86).  Cap it.
-+		 */
-+		unprotected = min(usage - protected, parent_unprotected);
++#if defined(CONFIG_MEMCG) && defined(CONFIG_LRU_GEN)
++void mem_cgroup_calculate_protection_path(struct mem_cgroup *root,
++					  struct mem_cgroup *memcg);
++#else
++static inline void mem_cgroup_calculate_protection_path(struct mem_cgroup *root,
++							struct mem_cgroup *memcg)
++{
++}
++#endif
 +
-+		ep += mul_u64_u64_div_u64(parent_unclaimed, unprotected,
-+					  parent_unprotected);
- 	}
+ #if defined(CONFIG_MEMCG) && defined(CONFIG_ZSWAP)
+ bool obj_cgroup_may_zswap(struct obj_cgroup *objcg);
+ void obj_cgroup_charge_zswap(struct obj_cgroup *objcg, size_t size);
+--- a/mm/memcontrol.c~mm-mglru-fix-ineffective-memory-protection-for-non-kswapd-reclaim
++++ a/mm/memcontrol.c
+@@ -5253,6 +5253,51 @@ void mem_cgroup_calculate_protection(str
+ 	page_counter_calculate_protection(&root->memory, &memcg->memory, recursive_protection);
+ }
  
- 	return ep;
++#ifdef CONFIG_LRU_GEN
++/**
++ * mem_cgroup_calculate_protection_path - compute protection along a path
++ * @root: the top ancestor of the sub-tree being checked (NULL for root_mem_cgroup)
++ * @memcg: the target memory cgroup
++ *
++ * Walk the ancestor path from @root down to @memcg and compute the effective
++ * protection at each level.  This is safe for isolated queries because it
++ * ensures parents are computed before children.
++ */
++void mem_cgroup_calculate_protection_path(struct mem_cgroup *root,
++					  struct mem_cgroup *memcg)
++{
++	bool recursive_protection =
++		cgrp_dfl_root.flags & CGRP_ROOT_MEMORY_RECURSIVE_PROT;
++	struct cgroup *cg;
++	int root_level, i;
++
++	if (mem_cgroup_disabled())
++		return;
++
++	if (!root)
++		root = root_mem_cgroup;
++
++	if (memcg == root)
++		return;
++
++	root_level = root->css.cgroup->level;
++	cg = memcg->css.cgroup;
++
++	rcu_read_lock();
++	for (i = root_level + 1; i <= cg->level; i++) {
++		struct mem_cgroup *cur;
++
++		cur = mem_cgroup_from_css(cgroup_css(cg->ancestors[i],
++						     &memory_cgrp_subsys));
++		if (cur)
++			page_counter_calculate_protection(&root->memory,
++							  &cur->memory,
++							  recursive_protection);
++	}
++	rcu_read_unlock();
++}
++#endif /* CONFIG_LRU_GEN */
++
+ static int charge_memcg(struct folio *folio, struct mem_cgroup *memcg,
+ 			gfp_t gfp)
+ {
+--- a/mm/vmscan.c~mm-mglru-fix-ineffective-memory-protection-for-non-kswapd-reclaim
++++ a/mm/vmscan.c
+@@ -5245,7 +5245,13 @@ static int shrink_one(struct lruvec *lru
+ 	struct mem_cgroup *memcg = lruvec_memcg(lruvec);
+ 	struct pglist_data *pgdat = lruvec_pgdat(lruvec);
+ 
+-	/* lru_gen_age_node() called mem_cgroup_calculate_protection() */
++	/*
++	 * For kswapd, mem_cgroup_calculate_protection() has already
++	 * been called during the top-down cgroup traversal.
++	 */
++	if (!current_is_kswapd())
++		mem_cgroup_calculate_protection_path(NULL, memcg);
++
+ 	if (mem_cgroup_below_min(NULL, memcg))
+ 		return MEMCG_LRU_YOUNG;
+ 
 _
 
 Patches currently in -mm which might be from chenridong@xiaomi.com are
