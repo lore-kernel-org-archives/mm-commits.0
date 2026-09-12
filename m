@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 566713803CF
-	for <mm-commits@vger.kernel.org>; Sat, 12 Sep 2026 07:25:09 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A4CEB19E7F7;
+	Sat, 12 Sep 2026 08:21:21 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789197911; cv=none; b=LTWD+cGo0Ln/GJ3cHMOr0zse+ZqjMkCBAQkQIu8D2MrS/vmjmi/ttxUodOzwQh8CMrPHHTjiQVWNLdgSmn6OfWuv598ECQADhbJSdNKqPyiI9wXEznSeCtZoDIeBo/ADVAHMulkuNBDUrkUtZ6ZLHqyq08ODyIhsxzG0ImGNTLA=
+	t=1789201283; cv=none; b=DZzSVNlUBE99p3FebONIR88b8F/4psPVpKxbj8O4r5aLBehsz8f2KtmP/pOrN+m9izczjXH1+C1NCrAqLvIv9zZ7XWDI13jSBkrKbJi7f5s+kPvKFNL1bVSUxJaDYn4pDdta1Brv8oDtFBOzUCQcbOQppjhA1caTl4StepCfZN4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1789197911; c=relaxed/simple;
-	bh=EvCQyL5oNGTeIMQYvXiu83lxWlF4dm47F5dSCOK3MqQ=;
-	h=Date:To:From:Subject:Message-Id; b=klMCfUfAV7t7WdRZPLmHBR7rXsgS+nWmQloW2GwsEGwXhvUI/Uhr5nAoC3+ftDltK5rdm5eM/KdZ5virL28Km51EK5ReM//LyS8uCuFKeqzUdBNPRsya6TYeJSE4OWCxEArQaBCZ/1Zbr1tRriuuk+BQkNZQoXmqTGlUyKyUc1o=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=gArV3dkQ; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1789201283; c=relaxed/simple;
+	bh=Tg3ahdZ1QM94aQGM5wICGlvsx45JlDxHZ9vrWGsOLPw=;
+	h=Date:To:From:Subject:Message-Id; b=cjx3x8W6/Ssv8d6y+rhgPyBfTilnIfFJwSPkC3ziXB+oQOzsparjW/Db/4fXYFgZl6zoJmyo1KC74SRsN6ZN7rDUNc5J/3oBtwkHO9fuJq10p9f4hSw3/Ixvqs45P5m1G38jbVDohlNsOhtZKjhU5hbDjGH0o6H4SOlEuCDQylI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=olQYO7Wo; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="gArV3dkQ"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 053A81F00898;
-	Sat, 12 Sep 2026 07:25:08 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="olQYO7Wo"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4A0221F000FF;
+	Sat, 12 Sep 2026 08:21:21 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1789197909;
-	bh=jdKAH6y5ESCIZczpzvuhit7as8jsmHU18WgfQMT8UyI=;
+	d=linux-foundation.org; s=korg; t=1789201281;
+	bh=15xDciyUOqlWkOGpxmIXGED92hrdHvDAKr+bTicclgE=;
 	h=Date:To:From:Subject;
-	b=gArV3dkQkLBWpiGmX+GQwIZXBI6SSdwHZj1/02bCKBIELs9Rp5TSOwFrtdY+tDTMw
-	 QYKbS+w6JTEPj/KlIwsqyr+tf5ohRZnkmXEyOw3vzwq9r0ejDWKxPh4vDSCCih8gwg
-	 sI1sLjBSqwC7h75u3gy7tpROS+lgqKbiRZejncP0=
-Date: Sat, 12 Sep 2026 00:25:08 -0700
-To: mm-commits@vger.kernel.org,willy@infradead.org,vbabka@kernel.org,usama.arif@linux.dev,pfalcato@suse.de,paulmck@kernel.org,ljs@kernel.org,liam@infradead.org,jannh@google.com,david@kernel.org,surenb@google.com,akpm@linux-foundation.org
+	b=olQYO7WozXHiZGggbaqg26g1J5SlENFFP8EKDra2y9ll5/0Kcpj0akf4CjiMrmTTd
+	 Eh4kpoSUDg3EDKENtrCFAXxeQXimsBmsc+zzg+L/RbojUlTJZHDaGYTCVhmD2Uhw/E
+	 TT0xaJWkHqBTy5zZq3XCGKZkdmwrMhCiNdWGHFKw=
+Date: Sat, 12 Sep 2026 01:21:20 -0700
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,ying.huang@linux.alibaba.com,vbabka@kernel.org,stable@vger.kernel.org,sashiko-bot@kernel.org,rakie.kim@sk.com,peterx@redhat.com,matthew.brost@intel.com,ljs@kernel.org,liam@infradead.org,joshua.hahnjy@gmail.com,jgg@ziepe.ca,jannh@google.com,david@kernel.org,byungchul@sk.com,apopple@nvidia.com,gourry@gourry.net,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-proc-add-proc-pid-smaps_rollup-tearing-tests.patch added to mm-new branch
-Message-Id: <20260912072509.053A81F00898@smtp.kernel.org>
+Subject: + mm-mempolicy-use-vm_normal_folio_pmd-in-queue_folios_pmd.patch added to mm-new branch
+Message-Id: <20260912082121.4A0221F000FF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: selftests/proc: add /proc/pid/smaps_rollup tearing tests
+     Subject: mm/mempolicy: use vm_normal_folio_pmd() in queue_folios_pmd()
 has been added to the -mm mm-new branch.  Its filename is
-     selftests-proc-add-proc-pid-smaps_rollup-tearing-tests.patch
+     mm-mempolicy-use-vm_normal_folio_pmd-in-queue_folios_pmd.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-proc-add-proc-pid-smaps_rollup-tearing-tests.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mempolicy-use-vm_normal_folio_pmd-in-queue_folios_pmd.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -69,367 +69,201 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Suren Baghdasaryan <surenb@google.com>
-Subject: selftests/proc: add /proc/pid/smaps_rollup tearing tests
-Date: Fri, 11 Sep 2026 12:41:45 -0700
+From: Gregory Price <gourry@gourry.net>
+Subject: mm/mempolicy: use vm_normal_folio_pmd() in queue_folios_pmd()
+Date: Fri, 11 Sep 2026 23:48:32 -0400
 
-During tearing tests, smaps_rollup Pss* metrics should stay constant. 
-Extend /proc/pid/smaps tearing tests to also check for smaps_rollup
-consistency.
+Patch series "mm: stop calling pmd_folio() on special PMDs", v2.
 
-Link: https://lore.kernel.org/20260911194145.1781926-8-surenb@google.com
-Signed-off-by: Suren Baghdasaryan <surenb@google.com>
+Two page table walkers resolve the folio behind a PMD with pmd_folio(),
+which is only valid for a PMD mapping a refcounted struct page:
+
+  madvise_cold_or_pageout_pte_range()   mm/madvise.c
+  queue_folios_pmd()                    mm/mempolicy.c
+
+vmf_insert_pfn_pmd() installs special PMDs holding a raw pfn that need not
+have a memmap entry at all.  Both walkers can reach one and fault on the
+first folio field read.  The PTE halves of both already use
+vm_normal_folio(); these two patches make the PMD halves match.
+
+The four callers of vmf_insert_pfn_pmd(), and which walker each reaches:
+
+  drivers/vfio/pci/vfio_pci_core.c        VM_PFNMAP     mempolicy
+  drivers/gpu/drm/drm_gem_shmem_helper.c  VM_PFNMAP     mempolicy
+  drivers/gpu/drm/panthor/panthor_gem.c   VM_PFNMAP     mempolicy
+  drivers/hv/mshv_vtl_main.c              VM_MIXEDMAP   both
+
+can_madv_lru_vma() rejects VM_PFNMAP, so only mshv_vtl_low reaches the
+madvise walker, and that needs CAP_SYS_ADMIN.  queue_pages_walk_ops
+supplies its own ->test_walk, so walk_page_test()'s generic VM_PFNMAP skip
+never runs and vfio-pci is reachable by any process holding the device fd.
+Hence the different stable tags.
+
+One behaviour change: mbind(MPOL_MF_STRICT) over a PMD mapped VM_PFNMAP
+region now returns 0 rather than -EIO.  The PTE loop already returned 0
+there.  drm_gem_shmem and panthor are where this is observable, since they
+PMD map pages that do have a memmap entry and so never faulted.
+
+Reproducer
+==========
+
+No hardware needed.  An out of tree module stands in for the drivers
+above: three misc devices, each with a ->huge_fault calling
+vmf_insert_pfn_pmd(), plus VM_HUGEPAGE so the fault path takes the PMD
+branch.
+
+  /dev/pmdspec_mixed    VM_MIXEDMAP, pfn at the 1 TiB mark, no memmap
+  /dev/pmdspec_pfnmap   VM_PFNMAP,   pfn at the 1 TiB mark, no memmap
+  /dev/pmdspec_real     VM_PFNMAP,   real alloc_pages(PMD_ORDER) on node 0
+
+Userspace maps the device into a PMD aligned window, reads one byte to
+fault the PMD in, checks a module parameter to confirm it went in, then
+issues the operation.
+
+  vng --run <bzImage> --user root --memory 4G --verbose \
+      --append "numa=fake=2" \
+      --exec "insmod pmdspec.ko && ./pmdspec_test <subtest>"
+
+numa=fake=2 gives a node 1 to bind to; the module allocates its real page
+on node 0, which is what makes queue_folio_required() true.
+
+  subtest        operation                              parent   series
+  --------------------------------------------------------------------
+  madv_cold      madvise(MADV_COLD)                     oops     ret=0
+  madv_pageout   madvise(MADV_PAGEOUT)                  oops     ret=0
+  mbind_mixed    mbind(MPOL_BIND, n1, MPOL_MF_MOVE)     oops     ret=0
+  mbind_pfnmap   mbind(MPOL_BIND, n1, MPOL_MF_STRICT)   oops     ret=0
+  mbind_real     mbind(MPOL_BIND, n1, MPOL_MF_STRICT)   -EIO     ret=0
+
+Two things the table shows that are easy to miss in the code:
+
+  - mbind_mixed passes only MPOL_MF_MOVE.  MPOL_MF_STRICT is not needed for
+    a VM_MIXEDMAP vma: walk_page_test() only skips VM_PFNMAP, and
+    vma_migratable() is true for VM_MIXEDMAP.
+
+  - mbind_real demonstrates the user visible change (-EIO -> 0)
+
+
+This patch (of 2):
+
+mmap a VM_PFNMAP region whose ->huge_fault installs a PMD through
+vmf_insert_pfn_pmd() - a vfio-pci MMIO BAR does this - then
+
+	mbind(p, len, MPOL_BIND, &mask, maxnode, MPOL_MF_STRICT);
+
+With a stand-in module for the driver:
+
+  BUG: unable to handle page fault for address: fffff96dc0000008
+  RIP: 0010:queue_folios_pte_range+0xaf/0x440
+   walk_pgd_range+0x52b/0xaf0
+   __walk_page_range+0x6a/0x1d0
+   walk_page_range_mm_unsafe+0x193/0x230
+   queue_pages_range+0x64/0xa0
+   do_mbind+0x25e/0x640
+
+queue_folios_pmd(), inlined above, calls pmd_folio() on that PMD.  The pfn
+is raw MMIO with no memmap entry, so the folio lands in unpopulated
+vmemmap.  Neither guard stops the walk:
+
+  walk_page_test()         skips VM_PFNMAP, but queue_pages_walk_ops
+                           supplies ->test_walk, so it never runs
+  queue_pages_test_walk()  honours vma_migratable(), but only while
+                           MPOL_MF_STRICT is clear
+
+A VM_MIXEDMAP vma needs neither flag, being vma_migratable(), so plain
+mbind(MPOL_MF_MOVE) reaches this too - and there the bad folio carries on
+into migrate_folio_add() and folio_isolate_lru().  mshv_vtl_low is such a
+mapping.
+
+Use vm_normal_folio_pmd() and skip on NULL, as the PTE loop in
+queue_folios_pte_range() already does with vm_normal_folio().  On the NULL
+path, retain ACTION_CONTINUE handling for the huge zero PMD.
+
+mbind(MPOL_MF_STRICT) over a PMD mapped VM_PFNMAP region now returns 0
+rather than -EIO.  The PTE loop already returned 0 there.
+
+Link: https://lore.kernel.org/20260912034833.2952750-1-gourry@gourry.net
+Link: https://lore.kernel.org/20260912034833.2952750-2-gourry@gourry.net
+Signed-off-by: Gregory Price (Meta) <gourry@gourry.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Acked-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
-Cc: David Hildenbrand <david@kernel.org>
+Fixes: 3c8e44c9b369 ("mm: mark special bits for huge pfn mappings when inject")
+Reported-by: sashiko-bot <sashiko-bot@kernel.org>
+Closes: https://sashiko.dev/#/patchset/20260817220810.1175596-1-gourry%40gourry.net
+Assisted-by: LLM
+Acked-by: David Hildenbrand (Arm) <david@kernel.org>
+Cc: Alistair Popple <apopple@nvidia.com>
+Cc: Byungchul Park <byungchul@sk.com>
+Cc: "Huang, Ying" <ying.huang@linux.alibaba.com>
 Cc: Jann Horn <jannh@google.com>
+Cc: Jason Gunthorpe <jgg@ziepe.ca>
+Cc: Joshua Hahn <joshua.hahnjy@gmail.com>
 Cc: Liam R. Howlett <liam@infradead.org>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: "Paul E . McKenney" <paulmck@kernel.org>
-Cc: Pedro Falcato <pfalcato@suse.de>
+Cc: Lorenzo Stoakes <ljs@kernel.org>
+Cc: Matthew Brost <matthew.brost@intel.com>
+Cc: Peter Xu <peterx@redhat.com>
+Cc: Rakie Kim <rakie.kim@sk.com>
 Cc: Vlastimil Babka <vbabka@kernel.org>
-Cc: Usama Arif <usama.arif@linux.dev>
+Cc: Zi Yan <ziy@nvidia.com>
+Cc: <stable@vger.kernel.org>
 ---
 
- tools/testing/selftests/proc/proc-maps-race.c |  186 +++++++++++++++-
- 1 file changed, 181 insertions(+), 5 deletions(-)
+ mm/mempolicy.c |   16 +++++++++-------
+ 1 file changed, 9 insertions(+), 7 deletions(-)
 
---- a/tools/testing/selftests/proc/proc-maps-race.c~selftests-proc-add-proc-pid-smaps_rollup-tearing-tests
-+++ a/tools/testing/selftests/proc/proc-maps-race.c
-@@ -80,6 +80,61 @@ enum maps_file {
- 
- struct vma_modifier_info;
- 
-+enum smaps_rollup_stat {
-+	Rss,
-+	Pss,
-+	Pss_Dirty,
-+	Pss_Anon,
-+	Pss_File,
-+	Pss_Shmem,
-+	Shared_Clean,
-+	Shared_Dirty,
-+	Private_Clean,
-+	Private_Dirty,
-+	Referenced,
-+	Anonymous,
-+	KSM,
-+	LazyFree,
-+	AnonHugePages,
-+	ShmemPmdMapped,
-+	FilePmdMapped,
-+	Shared_Hugetlb,
-+	Private_Hugetlb,
-+	Swap,
-+	SwapPss,
-+	Locked,
-+	RollupFieldCount
-+};
-+
-+static const char *smaps_rollup_stat_names[RollupFieldCount] = {
-+	"Rss",
-+	"Pss",
-+	"Pss_Dirty",
-+	"Pss_Anon",
-+	"Pss_File",
-+	"Pss_Shmem",
-+	"Shared_Clean",
-+	"Shared_Dirty",
-+	"Private_Clean",
-+	"Private_Dirty",
-+	"Referenced",
-+	"Anonymous",
-+	"KSM",
-+	"LazyFree",
-+	"AnonHugePages",
-+	"ShmemPmdMapped",
-+	"FilePmdMapped",
-+	"Shared_Hugetlb",
-+	"Private_Hugetlb",
-+	"Swap",
-+	"SwapPss",
-+	"Locked",
-+};
-+
-+struct smaps_rollup_stats {
-+	unsigned long values[RollupFieldCount];
-+};
-+
- FIXTURE(proc_maps_race)
- {
- 	struct vma_modifier_info *mod_info;
-@@ -91,6 +146,7 @@ FIXTURE(proc_maps_race)
- 	enum maps_file maps_file;
- 	int shared_mem_size;
- 	int skip_pages;
-+	int rollup_fd;
- 	int page_size;
- 	int vma_count;
- 	bool verbose;
-@@ -132,12 +188,12 @@ struct vma_modifier_info {
- 	void *child_mapped_addr[];
- };
- 
--static bool read_page(FIXTURE_DATA(proc_maps_race) *self,
-+static bool read_page(FIXTURE_DATA(proc_maps_race) *self, int fd,
- 		      struct page_content *page)
- {
- 	ssize_t  bytes_read;
- 
--	bytes_read = read(self->maps_fd, page->data, self->page_size);
-+	bytes_read = read(fd, page->data, self->page_size);
- 	if (bytes_read <= 0)
- 		return false;
- 
-@@ -175,7 +231,7 @@ static int locate_containing_page(FIXTUR
- 		char *curr_pos;
- 		char *end_pos;
- 
--		if (!read_page(self, &self->page1))
-+		if (!read_page(self, self->maps_fd, &self->page1))
- 			return -1;
- 
- 		curr_pos = self->page1.data;
-@@ -205,10 +261,11 @@ static bool read_two_pages(FIXTURE_DATA(
- 		return false;
- 
- 	for (int i = 0; i < self->skip_pages; i++)
--		if (!read_page(self, &self->page1))
-+		if (!read_page(self, self->maps_fd, &self->page1))
- 			return false;
- 
--	return read_page(self, &self->page1) && read_page(self, &self->page2);
-+	return read_page(self, self->maps_fd, &self->page1) &&
-+	       read_page(self, self->maps_fd, &self->page2);
+--- a/mm/mempolicy.c~mm-mempolicy-use-vm_normal_folio_pmd-in-queue_folios_pmd
++++ a/mm/mempolicy.c
+@@ -667,7 +667,8 @@ static inline bool queue_folio_required(
+ 	return node_isset(nid, *qp->nmask) == !(flags & MPOL_MF_INVERT);
  }
  
- static void copy_line(const char *line_start, const char *line_end,
-@@ -317,6 +374,61 @@ static bool read_boundary_lines(FIXTURE_
- 		      &first_line->end_addr) == 2;
- }
- 
-+static bool parse_smaps_rollup(FIXTURE_DATA(proc_maps_race) *self,
-+		struct smaps_rollup_stats *stats)
-+{
-+	unsigned int dev_maj, dev_min, inode;
-+	unsigned long start, end, offs;
-+	unsigned long value;
-+	char name[32], perm[5];
-+	char *curr_pos;
-+	char *end_pos;
-+	char *line_end;
-+
-+	if (lseek(self->rollup_fd, 0, SEEK_SET) < 0)
-+		return false;
-+
-+	if (!read_page(self, self->rollup_fd, &self->page1))
-+		return false;
-+
-+	curr_pos = self->page1.data;
-+	end_pos = self->page1.data + self->page1.size;
-+
-+	line_end = strchr(curr_pos, '\n');
-+	if (!line_end)
-+		return false;
-+
-+	if (sscanf(curr_pos, "%lx-%lx %4s %lx %u:%u %u %31s",
-+		&start, &end, perm, &offs, &dev_maj, &dev_min, &inode, name) != 8)
-+		return false;
-+
-+	if (strcmp(name, "[rollup]"))
-+		return false;
-+
-+	for (int stat = 0; stat < ARRAY_SIZE(smaps_rollup_stat_names); stat++) {
-+		int len;
-+
-+		curr_pos = line_end + 1;
-+		if (curr_pos >= end_pos)
-+			return false;
-+
-+		line_end = strchr(curr_pos, '\n');
-+		if (!line_end)
-+			return false;
-+
-+		if (sscanf(curr_pos, "%31s %lu kB", name, &value) != 2)
-+			return false;
-+
-+		len = strlen(name);
-+		if (name[len - 1] != ':' || strncmp(name, smaps_rollup_stat_names[stat], len - 1))
-+			return false;
-+
-+		stats->values[stat] = value;
-+	}
-+
-+	return true;
-+}
-+
- /* Thread synchronization routines */
- static void wait_for_state(struct vma_modifier_info *mod_info, enum test_state state)
+-static void queue_folios_pmd(pmd_t *pmd, struct mm_walk *walk)
++static void queue_folios_pmd(pmd_t *pmd, unsigned long addr,
++			     struct mm_walk *walk)
  {
-@@ -397,6 +509,40 @@ static bool print_boundaries_on(bool con
- 	return condition;
- }
+ 	struct folio *folio;
+ 	struct queue_pages *qp = walk->private;
+@@ -678,13 +679,14 @@ static void queue_folios_pmd(pmd_t *pmd,
+ 			qp->nr_failed++;
+ 		return;
+ 	}
+-	folio = pmd_folio(pmdval);
+-	if (folio_is_zone_device(folio))
+-		return;
+-	if (is_huge_zero_folio(folio)) {
+-		walk->action = ACTION_CONTINUE;
++	folio = vm_normal_folio_pmd(walk->vma, addr, pmdval);
++	if (!folio) {
++		if (is_huge_zero_pmd(pmdval))
++			walk->action = ACTION_CONTINUE;
+ 		return;
+ 	}
++	if (folio_is_zone_device(folio))
++		return;
+ 	if (!queue_folio_required(folio, qp))
+ 		return;
+ 	if (!(qp->flags & (MPOL_MF_MOVE | MPOL_MF_MOVE_ALL)) ||
+@@ -717,7 +719,7 @@ static int queue_folios_pte_range(pmd_t
  
-+static void print_smaps_rollup_stats(const char *title, FIXTURE_DATA(proc_maps_race) *self,
-+		struct smaps_rollup_stats *stats)
-+{
-+	printf("%s", title);
-+	for (int stat = 0; stat < ARRAY_SIZE(smaps_rollup_stat_names); stat++)
-+		printf("%64s %lu kB\n", smaps_rollup_stat_names[stat], stats->values[stat]);
-+}
-+
-+static bool cmp_smaps_rollup_stat(struct smaps_rollup_stats *s1,
-+		struct smaps_rollup_stats *s2, enum smaps_rollup_stat stat)
-+{
-+	return s1->values[stat] == s2->values[stat];
-+}
-+
-+static bool compare_smaps_rollup(FIXTURE_DATA(proc_maps_race) *self,
-+		struct smaps_rollup_stats *expected,
-+		struct smaps_rollup_stats *actual)
-+{
-+	/*
-+	 * Clean/dirty metrics might change but Pss-related ones
-+	 * should stay constant.
-+	 */
-+	if (cmp_smaps_rollup_stat(expected, actual, Pss) &&
-+	    cmp_smaps_rollup_stat(expected, actual, Pss_Anon) &&
-+	    cmp_smaps_rollup_stat(expected, actual, Pss_File) &&
-+	    cmp_smaps_rollup_stat(expected, actual, Pss_Shmem))
-+		return true;
-+
-+	print_smaps_rollup_stats("Expected stats:", self, expected);
-+	print_smaps_rollup_stats("Actual stats:", self, actual);
-+
-+	return false;
-+}
-+
- static void report_test_start(const char *name, bool verbose)
- {
- 	if (verbose)
-@@ -572,6 +718,7 @@ FIXTURE_SETUP(proc_maps_race)
- 	unsigned long first_map_addr;
- 	unsigned long last_map_addr;
- 	unsigned long duration_sec;
-+	char rollup_fname[32];
- 	char fname[32];
- 
- 	self->page_size = (unsigned long)sysconf(_SC_PAGESIZE);
-@@ -649,6 +796,9 @@ FIXTURE_SETUP(proc_maps_race)
- 		break;
- 	case SMAPS:
- 		sprintf(fname, "/proc/%d/smaps", self->pid);
-+		sprintf(rollup_fname, "/proc/%d/smaps_rollup", self->pid);
-+		self->rollup_fd = open(rollup_fname, O_RDONLY);
-+		ASSERT_NE(self->rollup_fd, -1);
- 		break;
- 	default:
- 		ksft_exit_fail();
-@@ -711,6 +861,8 @@ FIXTURE_TEARDOWN(proc_maps_race)
- 	for (int i = 0; i < self->vma_count; i++)
- 		munmap(self->mod_info->child_mapped_addr[i], self->page_size);
- 	close(self->maps_fd);
-+	if (self->maps_file == SMAPS)
-+		close(self->rollup_fd);
- 	waitpid(self->pid, &status, 0);
- 	munmap(self->mod_info, self->shared_mem_size);
- }
-@@ -723,6 +875,7 @@ TEST_F(proc_maps_race, test_maps_tearing
- 	struct line_content split_first_line;
- 	struct line_content restored_last_line;
- 	struct line_content restored_first_line;
-+	struct smaps_rollup_stats orig_stats;
- 
- 	wait_for_state(mod_info, SETUP_READY);
- 
-@@ -736,6 +889,8 @@ TEST_F(proc_maps_race, test_maps_tearing
- 	report_test_start("Tearing from split", self->verbose);
- 	ASSERT_TRUE(capture_mod_pattern(self, &split_last_line, &split_first_line,
- 					&restored_last_line, &restored_first_line));
-+	if (self->maps_file == SMAPS)
-+		ASSERT_TRUE(parse_smaps_rollup(self, &orig_stats));
- 
- 	/* Now start concurrent modifications for self->duration_sec */
- 	signal_state(mod_info, TEST_READY);
-@@ -799,6 +954,11 @@ TEST_F(proc_maps_race, test_maps_tearing
- 				     vma_end == self->last_line.end_addr) ||
- 				    (vma_start == split_first_line.start_addr &&
- 				     vma_end == split_first_line.end_addr));
-+		} else {
-+			struct smaps_rollup_stats stats;
-+
-+			ASSERT_TRUE(parse_smaps_rollup(self, &stats));
-+			ASSERT_TRUE(compare_smaps_rollup(self, &orig_stats, &stats));
- 		}
- 		clock_gettime(CLOCK_MONOTONIC_COARSE, &end_ts);
- 		end_test_iteration(&end_ts, self->verbose);
-@@ -817,6 +977,7 @@ TEST_F(proc_maps_race, test_maps_tearing
- 	struct line_content shrunk_first_line;
- 	struct line_content restored_last_line;
- 	struct line_content restored_first_line;
-+	struct smaps_rollup_stats orig_stats;
- 
- 	wait_for_state(mod_info, SETUP_READY);
- 
-@@ -830,6 +991,8 @@ TEST_F(proc_maps_race, test_maps_tearing
- 	report_test_start("Tearing from resize", self->verbose);
- 	ASSERT_TRUE(capture_mod_pattern(self, &shrunk_last_line, &shrunk_first_line,
- 					&restored_last_line, &restored_first_line));
-+	if (self->maps_file == SMAPS)
-+		ASSERT_TRUE(parse_smaps_rollup(self, &orig_stats));
- 
- 	/* Now start concurrent modifications for self->duration_sec */
- 	signal_state(mod_info, TEST_READY);
-@@ -880,6 +1043,11 @@ TEST_F(proc_maps_race, test_maps_tearing
- 			ASSERT_TRUE(vma_start == self->last_line.start_addr &&
- 				    (vma_end - vma_start == self->page_size * 3 ||
- 				     vma_end - vma_start == self->page_size));
-+		} else {
-+			struct smaps_rollup_stats stats;
-+
-+			ASSERT_TRUE(parse_smaps_rollup(self, &stats));
-+			ASSERT_TRUE(compare_smaps_rollup(self, &orig_stats, &stats));
- 		}
- 		clock_gettime(CLOCK_MONOTONIC_COARSE, &end_ts);
- 		end_test_iteration(&end_ts, self->verbose);
-@@ -898,6 +1066,7 @@ TEST_F(proc_maps_race, test_maps_tearing
- 	struct line_content remapped_first_line;
- 	struct line_content restored_last_line;
- 	struct line_content restored_first_line;
-+	struct smaps_rollup_stats orig_stats;
- 
- 	wait_for_state(mod_info, SETUP_READY);
- 
-@@ -911,6 +1080,8 @@ TEST_F(proc_maps_race, test_maps_tearing
- 	report_test_start("Tearing from remap", self->verbose);
- 	ASSERT_TRUE(capture_mod_pattern(self, &remapped_last_line, &remapped_first_line,
- 					&restored_last_line, &restored_first_line));
-+	if (self->maps_file == SMAPS)
-+		ASSERT_TRUE(parse_smaps_rollup(self, &orig_stats));
- 
- 	/* Now start concurrent modifications for self->duration_sec */
- 	signal_state(mod_info, TEST_READY);
-@@ -963,6 +1134,11 @@ TEST_F(proc_maps_race, test_maps_tearing
- 				     vma_end - vma_start == self->page_size * 3) ||
- 				    (vma_start == self->last_line.start_addr + self->page_size &&
- 				     vma_end - vma_start == self->page_size));
-+		} else {
-+			struct smaps_rollup_stats stats;
-+
-+			ASSERT_TRUE(parse_smaps_rollup(self, &stats));
-+			ASSERT_TRUE(compare_smaps_rollup(self, &orig_stats, &stats));
- 		}
- 		clock_gettime(CLOCK_MONOTONIC_COARSE, &end_ts);
- 		end_test_iteration(&end_ts, self->verbose);
+ 	ptl = pmd_trans_huge_lock(pmd, vma);
+ 	if (ptl) {
+-		queue_folios_pmd(pmd, walk);
++		queue_folios_pmd(pmd, addr, walk);
+ 		spin_unlock(ptl);
+ 		goto out;
+ 	}
 _
 
-Patches currently in -mm which might be from surenb@google.com are
+Patches currently in -mm which might be from gourry@gourry.net are
 
-proc-task_mmu-remove-unnecessary-helpers.patch
-proc-task_mmu-remove-unnecessary-inlines-in-function-definitions.patch
-proc-task_mmu-clarify-shmem-mapping-walk-conditions-in-smap_gather_stats.patch
-proc-task_mmu-remove-special-casing-of-smap_gather_stats-start-parameter.patch
-proc-task_mmu-change-proc_get_vma-to-stop-returning-gate-vma-at-the-end.patch
-proc-task_mmu-read-proc-pid-smaps_rollup-under-per-vma-lock.patch
-selftests-proc-add-proc-pid-smaps_rollup-tearing-tests.patch
+mm-mempolicy-take-a-cpuset-cookie-for-the-interleave-node-count.patch
+mm-mempolicy-use-srcu-for-the-weighted-interleave-state.patch
+mm-mempolicy-stop-copying-the-nodemask-in-the-interleave-paths.patch
+mm-huge_memory-skip-zone-device-folios-in-madvise_free_huge_pmd.patch
+mm-madvise-skip-zone-device-folios-in-cold-pageout-pmd-range.patch
+mm-mempolicy-skip-zone-device-folios-when-queueing-folios.patch
+mm-memory_hotplug-factor-out-node_is_memoryless.patch
+mm-mempolicy-use-vm_normal_folio_pmd-in-queue_folios_pmd.patch
+mm-madvise-use-vm_normal_folio_pmd-in-cold-pageout-pmd-range.patch
+mm-refactor-find_next_best_node-to-find_next_best_node_in.patch
+mm-page_alloc-refactor-build_node_zonelist-out-of-build_zonelists.patch
 
