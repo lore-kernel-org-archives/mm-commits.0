@@ -1,174 +1,116 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
+Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.8])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 12715364049;
-	Sat, 12 Sep 2026 08:21:40 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 46617478E3E
+	for <mm-commits@vger.kernel.org>; Sat, 12 Sep 2026 12:40:59 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.8
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789201301; cv=none; b=H1wdtxJ2P99LgP6vFA4Z8uOAKiL/HSAivQU8n8hvnhte41a3MY0yiww7GaB6UcK7GisW+hvWGuWHMcNdGvK9NCmmnNGHohfVL+mjD8iLZg8m65DGtyuv8dwXsGd4tMRhuZsKfvbSUanKP2ejtLlJmialQxu9s0iVhLKDdjEzwDc=
+	t=1789216861; cv=none; b=NIxI1Hsh5AHd/QaaqadKjI8dnzpPz8nJFaR46miZCkBu++CKkV4qcHUMXpr29yrfWMwPXZhrNM62pPvzGW8Wdh6hf1i1Yf4cQGvXHq/oQOKul9M0/coZsFa2Y65VQW6UkxYKPjtMJOBY9+CxrztO0/enNpZq4/e6EB/XhDW4cG8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1789201301; c=relaxed/simple;
-	bh=tNbDh33iPzBEdEFzpDKkRD3XDpZWRyTbtcOuu3Ki9XM=;
-	h=Date:To:From:Subject:Message-Id; b=NkZD+UpR3QUclG16epYUPpG6oq6p4R59i8bIwjOIt2tnWbLL6sDZ1s+ptDok1F1fM2/QYdMegHHK+4+u95FjvWhfRaKj7ej4rtOTmlSWJXW4rpMiGMVeaaG/BA47DVPr7R+MHkGonoyI/Zgg+Q6Akoeo72L2kf8e9lm0HsffFb4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=oCgNs4lR; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1789216861; c=relaxed/simple;
+	bh=7lectQIPGXCgCOBPrkZyTB4t+CqQCOILs57H2YCieVM=;
+	h=Date:From:To:Cc:Subject:Message-ID; b=Utlk6bF+jlEU0GD7WKIQOSWXMDIfcHL0VGTkPtmW2W7564EJNEs+J8/kiZ/UyrKzr/NFTdQMhlA13V/dXTtONDu6x/YsV0P4VRme1EzBugl18GW4Y4xAQSS6hXbwr45HXcu4/oFNq/DDbi5t7hAWakoeWnpH1GxTzJO9oCXt8WQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=DpkIGfIU; arc=none smtp.client-ip=192.198.163.8
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="oCgNs4lR"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D6C3E1F00893;
-	Sat, 12 Sep 2026 08:21:39 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1789201299;
-	bh=xBWjB9Q8XezWEMznjwBTvQNS/xDETSDnhPKY9mNZzZk=;
-	h=Date:To:From:Subject;
-	b=oCgNs4lR6XHyl1DGdbCVYNJjpm8/M33pxXZunci9Nv53vOghAGcj3xicRiBsFDQa3
-	 erWHZVlMoxHKE+mOqVZHTsnyo9jFD27u6E3VDdQ5+4s4ZXSsz/YGdVDHUPYrB4mjw2
-	 ucqQQDP2ue800fcyDJ2PBwWiWswBGiBI8O43f/RM=
-Date: Sat, 12 Sep 2026 01:21:39 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,ying.huang@linux.alibaba.com,vbabka@kernel.org,stable@vger.kernel.org,sashiko-bot@kernel.org,rakie.kim@sk.com,peterx@redhat.com,matthew.brost@intel.com,ljs@kernel.org,liam@infradead.org,joshua.hahnjy@gmail.com,jgg@ziepe.ca,jannh@google.com,david@kernel.org,byungchul@sk.com,apopple@nvidia.com,gourry@gourry.net,akpm@linux-foundation.org
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-madvise-use-vm_normal_folio_pmd-in-cold-pageout-pmd-range.patch added to mm-new branch
-Message-Id: <20260912082139.D6C3E1F00893@smtp.kernel.org>
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="DpkIGfIU"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1789216859; x=1820752859;
+  h=date:from:to:cc:subject:message-id;
+  bh=7lectQIPGXCgCOBPrkZyTB4t+CqQCOILs57H2YCieVM=;
+  b=DpkIGfIUxtrNAEzsR09tU6QJzq65JgJjsFaeoNgDtTdlW8Xw/nyWSDOk
+   18iz74IzPYF5YS9TQIREyr6zXQbEyBNE4ArT4OiDsgx20PT254/CsOjHk
+   jr/sWoQKHXCBkAplIEhbms0GTqFlXriw9A8d/CexP4go0Bz6x1vRtHkwV
+   BsW0cB2nhFcLF+RsmdgrXTxSY6OPfkSDJTqsRL+dXamS21dfhLOxhyW3N
+   7pZGtRplWRuH4slolxygqxSsP0c4vJZ3cAXvCbse0UaLlKKRq1ILuX4qd
+   CqtxTZ4VHWghGB0abYdLg3/YdvGq2EHS4BAmQnls42GCFmy6JEWpyV7TY
+   A==;
+X-CSE-ConnectionGUID: amVC0TcJSz+8yspKiRqH5A==
+X-CSE-MsgGUID: 9CwMAt3YSdGPxeZw5gRYbA==
+X-IronPort-AV: E=McAfee;i="6800,10657,11902"; a="107167700"
+X-IronPort-AV: E=Sophos;i="6.27,99,1787036400"; 
+   d="scan'208";a="107167700"
+Received: from fmviesa010.fm.intel.com ([10.60.135.150])
+  by fmvoesa102.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 12 Sep 2026 05:40:58 -0700
+X-CSE-ConnectionGUID: R+f6GkJhSQyCkNeJ8fuaOQ==
+X-CSE-MsgGUID: fTuW5ZLiQf2bOazhZPgjdQ==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="6.27,99,1787036400"; 
+   d="scan'208";a="268485128"
+Received: from igk-lkp-server01.igk.intel.com (HELO 2232cf45ba3c) ([10.211.93.152])
+  by fmviesa010.fm.intel.com with ESMTP; 12 Sep 2026 05:40:56 -0700
+Received: from kbuild by 2232cf45ba3c with local (Exim 4.98.2)
+	(envelope-from <lkp@intel.com>)
+	id 1x5N2M-0000000016B-0vdA;
+	Sat, 12 Sep 2026 12:40:54 +0000
+Date: Sat, 12 Sep 2026 14:39:55 +0200
+From: kernel test robot <lkp@intel.com>
+To: Suren Baghdasaryan <surenb@google.com>
+Cc: oe-kbuild-all@lists.linux.dev, David Hildenbrand <david@kernel.org>,
+ Andrew Morton <akpm@linux-foundation.org>,
+ Linux Memory Management List <linux-mm@kvack.org>,
+ mm-commits@vger.kernel.org,
+ "Liam R. Howlett (Oracle)" <liam@infradead.org>,
+ "Lorenzo Stoakes (ARM)" <ljs@kernel.org>
+Subject: [akpm-mm:mm-new 439/459] fs/proc/task_mmu.c:205:13: warning:
+ 'reacquire_rcu' defined but not used
+Message-ID: <202609121422.hkKWuy7K-lkp@intel.com>
+User-Agent: s-nail v14.9.25
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
+tree:   https://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm.git mm-new
+head:   383fc05d4650b021f3c17e36a145106dcc61a294
+commit: 2a61a4b80dc01581dc9f6935eedefbd596e77409 [439/459] proc/task_mmu: remove unnecessary inlines in function definitions
+config: openrisc-randconfig-r053-20260912 (https://download.01.org/0day-ci/archive/20260912/202609121422.hkKWuy7K-lkp@intel.com/config)
+compiler: or1k-linux-gcc (GCC) 16.1.0
+reproduce (this is a W=1 build): (https://download.01.org/0day-ci/archive/20260912/202609121422.hkKWuy7K-lkp@intel.com/reproduce)
 
-The patch titled
-     Subject: mm/madvise: use vm_normal_folio_pmd() in cold/pageout PMD range
-has been added to the -mm mm-new branch.  Its filename is
-     mm-madvise-use-vm_normal_folio_pmd-in-cold-pageout-pmd-range.patch
+If you fix the issue in a separate patch/commit (i.e. not just a new version of
+the same patch/commit), kindly add following tags
+| Reported-by: kernel test robot <lkp@intel.com>
+| Closes: https://lore.kernel.org/oe-kbuild-all/202609121422.hkKWuy7K-lkp@intel.com/
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-madvise-use-vm_normal_folio_pmd-in-cold-pageout-pmd-range.patch
+All warnings (new ones prefixed by >>):
 
-This patch will later appear in the mm-new branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+>> fs/proc/task_mmu.c:205:13: warning: 'reacquire_rcu' defined but not used [-Wunused-function]
+     205 | static void reacquire_rcu(struct proc_maps_private *priv)
+         |             ^~~~~~~~~~~~~
+>> fs/proc/task_mmu.c:197:13: warning: 'drop_rcu' defined but not used [-Wunused-function]
+     197 | static void drop_rcu(struct proc_maps_private *priv)
+         |             ^~~~~~~~
+   fs/proc/task_mmu.c:133:12: warning: 'lock_ctx_mm' defined but not used [-Wunused-function]
+     133 | static int lock_ctx_mm(struct proc_maps_locking_ctx *lock_ctx)
+         |            ^~~~~~~~~~~
 
-Note, mm-new is a provisional staging ground for work-in-progress
-patches, and acceptance into mm-new is a notification for others take
-notice and to finish up reviews.  Please do not hesitate to respond to
-review feedback and post updated versions to replace or incrementally
-fixup patches in mm-new.
 
-The mm-new branch of mm.git is not included in linux-next
+vim +/reacquire_rcu +205 fs/proc/task_mmu.c
 
-If a few days of testing in mm-new is successful, the patch will me moved
-into mm.git's mm-unstable branch, which is included in linux-next
+   196	
+ > 197	static void drop_rcu(struct proc_maps_private *priv)
+   198	{
+   199		if (priv->lock_ctx.mmap_locked)
+   200			return;
+   201	
+   202		rcu_read_unlock();
+   203	}
+   204	
+ > 205	static void reacquire_rcu(struct proc_maps_private *priv)
+   206	{
+   207		if (priv->lock_ctx.mmap_locked)
+   208			return;
+   209	
+   210		rcu_read_lock();
+   211		/* Reinitialize the iterator. */
+   212		vma_iter_set(&priv->iter, priv->lock_ctx.locked_vma->vm_end);
+   213	}
+   214	
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via various
-branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there most days
-
-------------------------------------------------------
-From: Gregory Price <gourry@gourry.net>
-Subject: mm/madvise: use vm_normal_folio_pmd() in cold/pageout PMD range
-Date: Fri, 11 Sep 2026 23:48:33 -0400
-
-mmap a VM_MIXEDMAP region whose ->huge_fault installs a PMD through
-vmf_insert_pfn_pmd() - mshv_vtl_low does this, and needs CAP_SYS_ADMIN to
-open - then:
-
-  madvise(p, PMD_SIZE, MADV_PAGEOUT);
-
-With a stand-in module for the driver:
-
-  BUG: unable to handle page fault for address: fffff587c0000008
-  RIP: 0010:madvise_cold_or_pageout_pte_range+0x410/0x9b0
-   walk_pgd_range+0x52b/0xaf0
-   __walk_page_range+0x6a/0x1d0
-   walk_page_range_vma_unsafe+0x8e/0x120
-   madvise_pageout+0xb2/0x180
-   madvise_vma_behavior+0x46b/0xa90
-   do_madvise+0x108/0x190
-   __x64_sys_madvise+0x26/0x30
-
-Nothing validates the pfn on the way in:
-
-  can_madv_lru_vma()     rejects VM_PFNMAP, but not VM_MIXEDMAP
-  can_fault()            *pfn = vmf->pgoff & ~(mask >> PAGE_SHIFT);
-  vmf_insert_pfn_pmd()   no pfn_valid() check
-  pmd_folio()            pfn_to_page() -> unpopulated vmemmap
-
-Even with a valid pfn the path is wrong.  The mapping carries no rmap, so
-folio_maybe_mapped_shared() sees mapcount 0, and the walker goes on to
-folio_deactivate(), or folio_isolate_lru() plus reclaim_pages(), against a
-folio this mapping does not own.
-
-Use vm_normal_folio_pmd() and skip on NULL, as the PTE half of this same
-walker already does with vm_normal_folio().  This also filters the huge
-zero PMD, so its separate check is no longer needed.
-
-Link: https://lore.kernel.org/20260912034833.2952750-3-gourry@gourry.net
-Fixes: 3c8e44c9b369 ("mm: mark special bits for huge pfn mappings when inject")
-Signed-off-by: Gregory Price (Meta) <gourry@gourry.net>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Reported-by: sashiko-bot <sashiko-bot@kernel.org>
-Closes: https://sashiko.dev/#/patchset/20260817220810.1175596-1-gourry%40gourry.net
-Assisted-by: LLM
-Cc: Alistair Popple <apopple@nvidia.com>
-Cc: Byungchul Park <byungchul@sk.com>
-Cc: David Hildenbrand <david@kernel.org>
-Cc: "Huang, Ying" <ying.huang@linux.alibaba.com>
-Cc: Jann Horn <jannh@google.com>
-Cc: Jason Gunthorpe <jgg@ziepe.ca>
-Cc: Joshua Hahn <joshua.hahnjy@gmail.com>
-Cc: Liam R. Howlett <liam@infradead.org>
-Cc: Lorenzo Stoakes <ljs@kernel.org>
-Cc: Matthew Brost <matthew.brost@intel.com>
-Cc: Peter Xu <peterx@redhat.com>
-Cc: Rakie Kim <rakie.kim@sk.com>
-Cc: Vlastimil Babka <vbabka@kernel.org>
-Cc: Zi Yan <ziy@nvidia.com>
-Cc: <stable@vger.kernel.org> # v6.19+
----
-
- mm/madvise.c |    7 +++----
- 1 file changed, 3 insertions(+), 4 deletions(-)
-
---- a/mm/madvise.c~mm-madvise-use-vm_normal_folio_pmd-in-cold-pageout-pmd-range
-+++ a/mm/madvise.c
-@@ -395,16 +395,15 @@ static int madvise_cold_or_pageout_pte_r
- 			return 0;
- 
- 		orig_pmd = *pmd;
--		if (is_huge_zero_pmd(orig_pmd))
--			goto huge_unlock;
--
- 		if (unlikely(!pmd_present(orig_pmd))) {
- 			VM_WARN_ON_ONCE(!pmd_is_migration_entry(orig_pmd) &&
- 					!pmd_is_device_private_entry(orig_pmd));
- 			goto huge_unlock;
- 		}
- 
--		folio = pmd_folio(orig_pmd);
-+		folio = vm_normal_folio_pmd(vma, addr, orig_pmd);
-+		if (!folio)
-+			goto huge_unlock;
- 
- 		if (folio_is_zone_device(folio))
- 			goto huge_unlock;
-_
-
-Patches currently in -mm which might be from gourry@gourry.net are
-
-mm-mempolicy-take-a-cpuset-cookie-for-the-interleave-node-count.patch
-mm-mempolicy-use-srcu-for-the-weighted-interleave-state.patch
-mm-mempolicy-stop-copying-the-nodemask-in-the-interleave-paths.patch
-mm-huge_memory-skip-zone-device-folios-in-madvise_free_huge_pmd.patch
-mm-madvise-skip-zone-device-folios-in-cold-pageout-pmd-range.patch
-mm-mempolicy-skip-zone-device-folios-when-queueing-folios.patch
-mm-memory_hotplug-factor-out-node_is_memoryless.patch
-mm-mempolicy-use-vm_normal_folio_pmd-in-queue_folios_pmd.patch
-mm-madvise-use-vm_normal_folio_pmd-in-cold-pageout-pmd-range.patch
-mm-refactor-find_next_best_node-to-find_next_best_node_in.patch
-mm-page_alloc-refactor-build_node_zonelist-out-of-build_zonelists.patch
-
+--
+0-DAY CI Kernel Test Service
+https://github.com/intel/lkp-tests/wiki
