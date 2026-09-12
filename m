@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EB3D82DC792
-	for <mm-commits@vger.kernel.org>; Sat, 12 Sep 2026 05:29:13 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 995954BEE5F
+	for <mm-commits@vger.kernel.org>; Sat, 12 Sep 2026 05:57:58 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789190955; cv=none; b=AsZw5TjtPm7GxeAfzYCimH/L9ln9JW7PBt3pXQlJdzTLMZ7n57c/NbiVJkA+KFxi8WwToBCN8euRRqvru5BvoBh7bv08/I6q7jLZ9xfTuvXVzF/hxAD0A2AwRH6B628Vxv04kJTa6PI1ItzMQhF9PwjAAC5xm1Gj6M3aor8DIe8=
+	t=1789192680; cv=none; b=i1Eyr+UbAtMfF9j+lzXcKwJRbljTyzgmXSRU4FUX9D3Tq03f8axffTUknPt/N3cAD6Q9QWyWentFrV4ELOMzrmXv394u0Ma1hNVlGZ3AB++HdlZah+d80+jy6fcQw8HUXakOeaVZE+Z/gPNCKPN7SSqhvpTIhc/36W8xdAwKor8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1789190955; c=relaxed/simple;
-	bh=w6m2kCqy1XFHivzIx2sEC/6eS4LCRUeqa9/tGFqoEjI=;
-	h=Date:To:From:Subject:Message-Id; b=rNX52dlFFBvUDbUk94yzkTJ6cAevyYdzwi7zmzDu6+4JYgUaOxrKhHtwQdhkvqTSGyIA22IX1v2KuyH6KUrt5bcCd3+ot0bBXZUny9DO0CqCKdMoBhqyHWFezmCAUEwtm79Q7I8VJkRW016TkSz/kFAE1FVCrseq8S5coj7sWoM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=FaR2Qp3N; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1789192680; c=relaxed/simple;
+	bh=hmFc439ppUK6cIKDkZ33nTcewCEJnvhfRCFwQJAaeF4=;
+	h=Date:To:From:Subject:Message-Id; b=C0B+gMLBoYRGWXRKEalwWJEjkkJUjj9u8dJp6ptJSzK27ejJGSIOBbuLsBA7CWe28P5adLnaVpyzncWFezJ+Anfz1yvdwgnUKoIQ9ZLVu/gugrIGhIdYLuM2BtqqzzSHN4/YiJWvphqMWHHQZDM+W1Ner/xAq+V+4QfoMty1AWo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=HhrkjxZ8; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="FaR2Qp3N"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 323A21F000FF;
-	Sat, 12 Sep 2026 05:29:13 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="HhrkjxZ8"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 184501F000FF;
+	Sat, 12 Sep 2026 05:57:58 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1789190953;
-	bh=NP5Mp7n7+Wx3BT4YwCbOSj2tHd+n6AbvGBDvGr22TeM=;
+	d=linux-foundation.org; s=korg; t=1789192678;
+	bh=DpfXsDQgSEYuWef+SwdOy0MfxO6GODnzP9BWJ0uFMQI=;
 	h=Date:To:From:Subject;
-	b=FaR2Qp3NqJrORo/V+yTkgO6lf/15hTAB6kIPdRAE/DOCq4d5yBrqYjy6Ge4boj92A
-	 auy4l3/Mu9IrmD0k2OtRs1+qKlkiPf5xrBD+Bb2EZ69TtIUQpH58qwr3UdWszulF6Z
-	 07U37pq+PzxLCc7wJ68Ewy58SGEK63jbeWn8qd8A=
-Date: Fri, 11 Sep 2026 22:29:12 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,vbabka@kernel.org,surenb@google.com,rppt@kernel.org,mhocko@suse.com,ljs@kernel.org,liam@infradead.org,hannes@cmpxchg.org,david@kernel.org,brendan.jackman@linux.dev,balbirs@nvidia.com,gourry@gourry.net,akpm@linux-foundation.org
+	b=HhrkjxZ8vPt7AH/yLGkuyiSHj/qGKuHGyYshVtEy/z6v9riusJB7VLCSl8uAQ1G+9
+	 fuSSYa1Z6xRT/Ao2Nr/b6BQ/xMZ8bAAwIA+KRw3AA/d9iJ6AkbGihmDs0TGqMHtGK3
+	 M0UJ7wFVjO3KHFUpIf3HiFDarPMlnbH0Kuh3Q6jc=
+Date: Fri, 11 Sep 2026 22:57:57 -0700
+To: mm-commits@vger.kernel.org,willy@infradead.org,sparse@chrisli.org,liam@infradead.org,andrewjballance@gmail.com,aliceryhl@google.com,ynorov@nvidia.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-page_alloc-refactor-build_node_zonelist-out-of-build_zonelists.patch added to mm-new branch
-Message-Id: <20260912052913.323A21F000FF@smtp.kernel.org>
+Subject: + compilerh-add-assert_static_storage.patch added to mm-new branch
+Message-Id: <20260912055758.184501F000FF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/page_alloc: refactor build_node_zonelist() out of build_zonelists()
+     Subject: compiler.h: add ASSERT_STATIC_STORAGE()
 has been added to the -mm mm-new branch.  Its filename is
-     mm-page_alloc-refactor-build_node_zonelist-out-of-build_zonelists.patch
+     compilerh-add-assert_static_storage.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-page_alloc-refactor-build_node_zonelist-out-of-build_zonelists.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/compilerh-add-assert_static_storage.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -69,150 +69,149 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Gregory Price <gourry@gourry.net>
-Subject: mm/page_alloc: refactor build_node_zonelist() out of build_zonelists()
-Date: Fri, 11 Sep 2026 23:04:24 -0400
+From: Yury Norov <ynorov@nvidia.com>
+Subject: compiler.h: add ASSERT_STATIC_STORAGE()
+Date: Fri, 11 Sep 2026 18:14:41 -0400
 
-Extract per-node fallback-list construction into build_node_zonelist(). 
-Build each selected node directly into the destination zonelist so no
-intermediate node_order array or node count is needed.  Print the fallback
-order as each node is added.
+Patch series "Catch automatic storage in IDA and Maple Tree definitions".
 
-This lets us build new zonelists from candidate nodemasks instead of just
-the default N_MEMORY node state list.
+A 0day report [1] from the region allocation benchmark exposed a lockdep
+initialization bug: a stack-local Maple Tree used MTREE_INIT(), whose
+embedded lock has a static initializer.  On the first allocation, lockdep
+rejected the lock address as a non-static class key and disabled locking
+validation.  The IDA benchmark had the same issue, masked because it ran
+after Maple Tree had already disabled lockdep.
 
-No functional change: build_zonelists() builds and prints the same
-FALLBACK list over N_MEMORY with node_load updates as before.
+The fix [2] switches the test to using mt_init_flags() and ida_init(). 
+This series adds a compile-time check to the related DEFINE_IDA() and
+DEFINE_MTREE() declaration macros to catch the same class of mistake
+earlier.
 
-Link: https://lore.kernel.org/20260912030424.2889731-3-gourry@gourry.net
-Signed-off-by: Gregory Price <gourry@gourry.net>
+Patch 1 introduces ASSERT_STATIC_STORAGE().  It declares an unused static
+pointer initialized with the object's address, requiring that address to
+be a valid static initializer.  Patches 2 and 3 apply the helper to IDA
+and Maple Tree definitions, respectively.
+
+The helper is mirrored in the tools compiler header.  The existing
+automatic local IDAs and Maple Trees in the userspace radix-tree tests are
+converted to runtime initialization.  The interval-tree span test keeps
+its existing mt_init_flags() call and uses a plain Maple Tree declaration.
+
+For example, an automatic local definition:
+
+  void example(void)
+  {
+          DEFINE_IDA(ida);
+          ida_destroy(&ida);
+  }
+
+now produces:
+
+  error: initializer element is not constant
+  note: in expansion of macro 'ASSERT_STATIC_STORAGE'
+  note: in expansion of macro 'DEFINE_IDA'
+
+File-scope definitions and static local definitions remain valid. 
+Automatic local objects should use ida_init(), mt_init(), or
+mt_init_flags().
+
+The check is limited to declaration macros.  Direct uses of IDA_INIT(),
+MTREE_INIT(), and MTREE_INIT_EXT() remain unchanged.  The helper cannot be
+inserted directly into those initializer expressions because it expands to
+a declaration.
+
+Validated by GCC and Clang checks accepting static storage and rejecting
+automatic storage The userspace IDR/IDA and Maple Tree test are passed as
+well.
+
+
+This patch (of 3):
+
+Static lock initializers rely on a persistent object address when lockdep
+assigns a lock-class key.  Using such an initializer for an automatic
+local object can compile successfully but disable lockdep on the first
+lock acquisition.
+
+Add ASSERT_STATIC_STORAGE() for declaration macros that require static
+storage duration.  It declares an unused static pointer initialized with
+the object's address.  An automatic local object's address is not a valid
+static initializer, so the compiler rejects it.
+
+Mirror the helper in tools/include/linux/compiler.h because the userspace
+radix-tree tests include the kernel IDA and Maple Tree headers with the
+tools compiler definitions.
+
+For example:
+
+  void example(void)
+  {
+          int object;
+          ASSERT_STATIC_STORAGE(object);
+  }
+
+GCC reports:
+
+  error: initializer element is not constant
+    name##_storage_check = &(name)
+                           ^
+  note: in expansion of macro 'ASSERT_STATIC_STORAGE'
+    ASSERT_STATIC_STORAGE(object);
+
+File-scope objects and static local objects remain valid.  The helper
+takes an object identifier and must be used as a declaration after that
+object has been declared.
+
+Link: https://lore.kernel.org/all/20260911155244.1406122-1-ynorov@nvidia.com/
+Link: https://lore.kernel.org/20260911221444.1523311-2-ynorov@nvidia.com
+Link: https://download.01.org/0day-ci/archive/20260910/202609101106.771b567e-lkp@intel.com/ [1]
+Link: https://lore.kernel.org/all/20260911155244.1406122-1-ynorov@nvidia.com/ [2]
+Signed-off-by: Yury Norov <ynorov@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Cc: Balbir Singh <balbirs@nvidia.com>
-Cc: Brendan Jackman <brendan.jackman@linux.dev>
-Cc: David Hildenbrand <david@kernel.org>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Alice Ryhl <aliceryhl@google.com>
+Cc: Andrew Ballance <andrewjballance@gmail.com>
+Cc: Christopher Li <sparse@chrisli.org>
 Cc: Liam R. Howlett <liam@infradead.org>
-Cc: Lorenzo Stoakes <ljs@kernel.org>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Vlastimil Babka (SUSE) <vbabka@kernel.org>
-Cc: Zi Yan <ziy@nvidia.com>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
 ---
 
- mm/page_alloc.c |   63 ++++++++++++++++------------------------------
- 1 file changed, 23 insertions(+), 40 deletions(-)
+ include/linux/compiler.h       |    5 +++++
+ tools/include/linux/compiler.h |    5 +++++
+ 2 files changed, 10 insertions(+)
 
---- a/mm/page_alloc.c~mm-page_alloc-refactor-build_node_zonelist-out-of-build_zonelists
-+++ a/mm/page_alloc.c
-@@ -5858,31 +5858,6 @@ int find_next_best_node_in(int node, nod
+--- a/include/linux/compiler.h~compilerh-add-assert_static_storage
++++ a/include/linux/compiler.h
+@@ -275,6 +275,11 @@ static inline void *offset_to_ptr(const
+ #define __ADDRESSABLE(sym) \
+ 	___ADDRESSABLE(sym, __section(".discard.addressable"))
  
- 
- /*
-- * Build zonelists ordered by node and zones within node.
-- * This results in maximum locality--normal zone overflows into local
-- * DMA zone, if any--but risks exhausting DMA zone.
-- */
--static void build_zonelists_in_node_order(pg_data_t *pgdat, int *node_order,
--		unsigned nr_nodes)
--{
--	struct zoneref *zonerefs;
--	int i;
--
--	zonerefs = pgdat->node_zonelists[ZONELIST_FALLBACK]._zonerefs;
--
--	for (i = 0; i < nr_nodes; i++) {
--		int nr_zones;
--
--		pg_data_t *node = NODE_DATA(node_order[i]);
--
--		nr_zones = build_zonerefs_node(node, zonerefs);
--		zonerefs += nr_zones;
--	}
--	zonerefs->zone = NULL;
--	zonerefs->zone_idx = 0;
--}
--
--/*
-  * Build __GFP_THISNODE zonelists
-  */
- static void build_thisnode_zonelists(pg_data_t *pgdat)
-@@ -5897,20 +5872,24 @@ static void build_thisnode_zonelists(pg_
- 	zonerefs->zone_idx = 0;
- }
- 
--static void build_zonelists(pg_data_t *pgdat)
-+/*
-+ * Build one zonelist ordered by node and zones within node. This results in
-+ * maximum locality--normal zone overflows into local DMA zone, if any--but
-+ * risks exhausting DMA zone.
-+ */
-+static void build_node_zonelist(pg_data_t *pgdat, const nodemask_t *candidates,
-+				int zlidx)
- {
--	static int node_order[MAX_NUMNODES];
--	int node, nr_nodes = 0;
-+	struct zoneref *zonerefs = pgdat->node_zonelists[zlidx]._zonerefs;
- 	nodemask_t used_mask = NODE_MASK_NONE;
--	int local_node, prev_node;
-+	int local_node = pgdat->node_id;
-+	int prev_node = local_node;
-+	int node;
- 
--	/* NUMA-aware ordering of nodes */
--	local_node = pgdat->node_id;
--	prev_node = local_node;
-+	pr_info("Fallback order for Node %d: ", local_node);
- 
--	memset(node_order, 0, sizeof(node_order));
- 	while ((node = find_next_best_node_in(local_node, &used_mask,
--					      &node_states[N_MEMORY])) >= 0) {
-+					      candidates)) >= 0) {
- 		/*
- 		 * We don't want to pressure a particular node.
- 		 * So adding penalty to the first node in same
-@@ -5920,18 +5899,22 @@ static void build_zonelists(pg_data_t *p
- 		    node_distance(local_node, prev_node))
- 			node_load[node] += 1;
- 
--		node_order[nr_nodes++] = node;
-+		zonerefs += build_zonerefs_node(NODE_DATA(node), zonerefs);
-+		pr_cont("%d ", node);
- 		prev_node = node;
- 	}
- 
--	build_zonelists_in_node_order(pgdat, node_order, nr_nodes);
--	build_thisnode_zonelists(pgdat);
--	pr_info("Fallback order for Node %d: ", local_node);
--	for (node = 0; node < nr_nodes; node++)
--		pr_cont("%d ", node_order[node]);
-+	zonerefs->zone = NULL;
-+	zonerefs->zone_idx = 0;
- 	pr_cont("\n");
- }
- 
-+static void build_zonelists(pg_data_t *pgdat)
-+{
-+	build_node_zonelist(pgdat, &node_states[N_MEMORY], ZONELIST_FALLBACK);
-+	build_thisnode_zonelists(pgdat);
-+}
++/* Enforce static storage duration. */
++#define ASSERT_STATIC_STORAGE(name) \
++	static typeof(name) * const __always_unused \
++		name##_storage_check = &(name)
 +
- #ifdef CONFIG_HAVE_MEMORYLESS_NODES
  /*
-  * Return node id of node used for "local" allocations.
+  * This returns a constant expression while determining if an argument is
+  * a constant expression, most importantly without evaluating the argument.
+--- a/tools/include/linux/compiler.h~compilerh-add-assert_static_storage
++++ a/tools/include/linux/compiler.h
+@@ -73,6 +73,11 @@
+ # define __same_type(a, b) __builtin_types_compatible_p(typeof(a), typeof(b))
+ #endif
+ 
++/* Enforce static storage duration. */
++#define ASSERT_STATIC_STORAGE(name) \
++	static typeof(name) * const __always_unused \
++		name##_storage_check = &(name)
++
+ /*
+  * This returns a constant expression while determining if an argument is
+  * a constant expression, most importantly without evaluating the argument.
 _
 
-Patches currently in -mm which might be from gourry@gourry.net are
+Patches currently in -mm which might be from ynorov@nvidia.com are
 
-mm-mempolicy-take-a-cpuset-cookie-for-the-interleave-node-count.patch
-mm-mempolicy-use-srcu-for-the-weighted-interleave-state.patch
-mm-mempolicy-stop-copying-the-nodemask-in-the-interleave-paths.patch
-mm-huge_memory-skip-zone-device-folios-in-madvise_free_huge_pmd.patch
-mm-madvise-skip-zone-device-folios-in-cold-pageout-pmd-range.patch
-mm-mempolicy-skip-zone-device-folios-when-queueing-folios.patch
-mm-memory_hotplug-factor-out-node_is_memoryless.patch
-mm-mempolicy-use-vm_normal_folio_pmd-in-queue_folios_pmd.patch
-mm-madvise-use-vm_normal_folio_pmd-in-cold-pageout-pmd-range.patch
-mm-refactor-find_next_best_node-to-find_next_best_node_in.patch
-mm-page_alloc-refactor-build_node_zonelist-out-of-build_zonelists.patch
+lib-fix-lock-initialization-in-region-allocation-benchmark.patch
+compilerh-add-assert_static_storage.patch
+idr-assert-static-storage-for-define_ida.patch
+maple_tree-assert-static-storage-for-define_mtree.patch
 
