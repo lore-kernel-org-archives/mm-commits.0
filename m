@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 32FD43F12EC
-	for <mm-commits@vger.kernel.org>; Sat, 12 Sep 2026 07:25:07 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 566713803CF
+	for <mm-commits@vger.kernel.org>; Sat, 12 Sep 2026 07:25:09 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789197910; cv=none; b=dn85g7u4ukMFYBc+lBuu7xdFHAJQJsWlY6GQH0qKhD9VGgQdfJGHahDE2CyjSL5698tYCOKdtXjR+UWvlvDJgp7HLKaZzVaeMqg31VH8RO8yvfCmV+wFR3XQSFZu1k2T72PDL6X7NanGBbz6iK4D4WcBl4SR4G0cXxpMaE+EZQ4=
+	t=1789197911; cv=none; b=LTWD+cGo0Ln/GJ3cHMOr0zse+ZqjMkCBAQkQIu8D2MrS/vmjmi/ttxUodOzwQh8CMrPHHTjiQVWNLdgSmn6OfWuv598ECQADhbJSdNKqPyiI9wXEznSeCtZoDIeBo/ADVAHMulkuNBDUrkUtZ6ZLHqyq08ODyIhsxzG0ImGNTLA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1789197910; c=relaxed/simple;
-	bh=bN1j2oywpjEdG72aMGlnj7bEsWLkoyn+jLgkkbAtpPw=;
-	h=Date:To:From:Subject:Message-Id; b=tumbN8K84RDUViyuU8+irGkWPwXuZC7Pzv2Nt7x+4cHT8S8RNtGo1sy9b7IxEreWPYHRyozGVUNhKjZ21YxefQkbd6V4HIgkM8gfnsl8hA6idJd8PY8lYa5MfJ7Dx3CArUltChB0vNMB3ds6gPsae7JhdV1ik6iRQYW5V4ZbAaU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=fB34P+se; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1789197911; c=relaxed/simple;
+	bh=EvCQyL5oNGTeIMQYvXiu83lxWlF4dm47F5dSCOK3MqQ=;
+	h=Date:To:From:Subject:Message-Id; b=klMCfUfAV7t7WdRZPLmHBR7rXsgS+nWmQloW2GwsEGwXhvUI/Uhr5nAoC3+ftDltK5rdm5eM/KdZ5virL28Km51EK5ReM//LyS8uCuFKeqzUdBNPRsya6TYeJSE4OWCxEArQaBCZ/1Zbr1tRriuuk+BQkNZQoXmqTGlUyKyUc1o=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=gArV3dkQ; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="fB34P+se"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D9F4D1F000FF;
-	Sat, 12 Sep 2026 07:25:06 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="gArV3dkQ"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 053A81F00898;
+	Sat, 12 Sep 2026 07:25:08 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1789197907;
-	bh=Z+KhlK9tGyXH7oUD5RVa/1+7aPYvZB28GrSTOIj4A94=;
+	d=linux-foundation.org; s=korg; t=1789197909;
+	bh=jdKAH6y5ESCIZczpzvuhit7as8jsmHU18WgfQMT8UyI=;
 	h=Date:To:From:Subject;
-	b=fB34P+sed94ehFJ08wHSgLm5hDBAgCmePO1JxicLtRMqCLqt9FpJCKcEmj8Z+kK2P
-	 Fn1iJ5x4HJd3GHwll+WhypeoVmjXRL9QueTyeFuKlEgyG04MepAUy+dMBb+h5c6k97
-	 ZOjv1ulZqy+JYhst/0DaqtqR8UfSBN7+rVdeweok=
-Date: Sat, 12 Sep 2026 00:25:06 -0700
+	b=gArV3dkQkLBWpiGmX+GQwIZXBI6SSdwHZj1/02bCKBIELs9Rp5TSOwFrtdY+tDTMw
+	 QYKbS+w6JTEPj/KlIwsqyr+tf5ohRZnkmXEyOw3vzwq9r0ejDWKxPh4vDSCCih8gwg
+	 sI1sLjBSqwC7h75u3gy7tpROS+lgqKbiRZejncP0=
+Date: Sat, 12 Sep 2026 00:25:08 -0700
 To: mm-commits@vger.kernel.org,willy@infradead.org,vbabka@kernel.org,usama.arif@linux.dev,pfalcato@suse.de,paulmck@kernel.org,ljs@kernel.org,liam@infradead.org,jannh@google.com,david@kernel.org,surenb@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + proc-task_mmu-read-proc-pid-smaps_rollup-under-per-vma-lock.patch added to mm-new branch
-Message-Id: <20260912072506.D9F4D1F000FF@smtp.kernel.org>
+Subject: + selftests-proc-add-proc-pid-smaps_rollup-tearing-tests.patch added to mm-new branch
+Message-Id: <20260912072509.053A81F00898@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: proc/task_mmu: read proc/pid/smaps_rollup under per-vma lock
+     Subject: selftests/proc: add /proc/pid/smaps_rollup tearing tests
 has been added to the -mm mm-new branch.  Its filename is
-     proc-task_mmu-read-proc-pid-smaps_rollup-under-per-vma-lock.patch
+     selftests-proc-add-proc-pid-smaps_rollup-tearing-tests.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/proc-task_mmu-read-proc-pid-smaps_rollup-under-per-vma-lock.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-proc-add-proc-pid-smaps_rollup-tearing-tests.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,347 +70,357 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Suren Baghdasaryan <surenb@google.com>
-Subject: proc/task_mmu: read proc/pid/smaps_rollup under per-vma lock
-Date: Fri, 11 Sep 2026 12:41:44 -0700
+Subject: selftests/proc: add /proc/pid/smaps_rollup tearing tests
+Date: Fri, 11 Sep 2026 12:41:45 -0700
 
-proc/pid/smaps_rollup can be read using the combination of RCU and VMA
-read locks, similar to proc/pid/{maps|smaps|numa_maps}.  RCU is required
-to safely traverse the VMA tree and VMA lock stabilizes the VMA being
-processed and the pagetable walk.  Note that we have to keep the logic to
-drop mmap_lock on contention because even when using per-VMA locks we
-might have to fall back to holding the mmap_lock.
+During tearing tests, smaps_rollup Pss* metrics should stay constant. 
+Extend /proc/pid/smaps tearing tests to also check for smaps_rollup
+consistency.
 
-Running Paul's contention benchmark [1] shows considerable improvement
-both in median and in the worst case latencies:
-
-Execution command: run-proc-vs-map.sh --nsamples 20 --rawdata -- \
---busyduration 2 --procfile smaps_rollup
-
-Baseline:
-   Median   Minimum   Maximum
-    0.174     0.161     2.553
-    0.174     0.164     2.663
-    0.174     0.165     2.664
-    0.174     0.166     2.679
-    0.174     0.167     2.691
-    0.174     0.168     2.704
-    0.174     0.169     2.729
-    0.174     0.172     2.741
-    0.174     0.174     2.745
-    0.174     0.174     2.755
-    0.174     0.175     2.790
-    0.174     0.177     2.809
-    0.174     0.179     3.096
-    0.174     0.183     3.144
-    0.174     0.184     3.158
-    0.174     0.185     3.175
-    0.174     0.185     4.568
-    0.174     0.198     4.821
-    0.174     0.214     5.143
-    0.174     0.251     5.220
-
-Patched:
-   Median   Minimum   Maximum
-    0.007     0.007     1.952
-    0.007     0.007     1.955
-    0.007     0.007     1.955
-    0.007     0.007     1.955
-    0.007     0.007     1.957
-    0.007     0.007     1.969
-    0.007     0.007     2.065
-    0.007     0.007     2.075
-    0.007     0.007     2.146
-    0.007     0.007     2.195
-    0.007     0.007     2.223
-    0.007     0.007     2.259
-    0.007     0.007     2.488
-    0.007     0.007     2.562
-    0.007     0.007     2.599
-    0.007     0.007     2.697
-    0.007     0.007     3.030
-    0.007     0.007     3.075
-    0.007     0.007     3.145
-    0.007     0.007     3.225
-
-Remove now unused lock_ctx_mm() and move unlock_ctx_vma() next to
-unlock_ctx_mm() as they are logically related.
-
-Remove a long comment about 4 cases that we handle when dropping the mmap
-lock in the middle of VMA walk due to contention.  The first 3 cases
-explained there are handled naturally and only case 4 needs to be handled
-in a special way, which is done in smap_gather_stats() by gathering stats
-from the portion of the VMA that has not yet been processed.  For
-posterity, moving this comment here:
-
-After dropping the lock, there are four cases to consider.  See the
-following example for explanation.
-
-  +------+------+-----------+
-  | VMA1 | VMA2 | VMA3      |
-  +------+------+-----------+
-  |      |      |           |
- 4k     8k     16k         400k
-
-Suppose we drop the lock after reading VMA2 due to contention, then we
-get:
-
-	last_vma_end = 16k
-
-1) VMA2 is freed, but VMA3 exists:
-
-   vma_next(vmi) will return VMA3.
-   In this case, just continue from VMA3.
-
-2) VMA2 still exists:
-
-   vma_next(vmi) will return VMA3.
-   In this case, just continue from VMA3.
-
-3) No more VMAs can be found:
-
-   vma_next(vmi) will return NULL.
-   No more things to do, just break.
-
-4) (last_vma_end - 1) is the middle of a vma (VMA'):
-
-   vma_next(vmi) will return VMA' whose range
-   contains last_vma_end.
-   Iterate VMA' from last_vma_end.
-
-Link: https://lore.kernel.org/20260911194145.1781926-7-surenb@google.com
-Link: https://github.com/paulmckrcu/proc-mmap_sem-test [1]
+Link: https://lore.kernel.org/20260911194145.1781926-8-surenb@google.com
 Signed-off-by: Suren Baghdasaryan <surenb@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Reviewed-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
-Cc: David Hildenbrand (Arm) <david@kernel.org>
+Acked-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
+Cc: David Hildenbrand <david@kernel.org>
 Cc: Jann Horn <jannh@google.com>
 Cc: Liam R. Howlett <liam@infradead.org>
 Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
 Cc: "Paul E . McKenney" <paulmck@kernel.org>
 Cc: Pedro Falcato <pfalcato@suse.de>
-Cc: Usama Arif <usama.arif@linux.dev>
 Cc: Vlastimil Babka <vbabka@kernel.org>
+Cc: Usama Arif <usama.arif@linux.dev>
 ---
 
- fs/proc/task_mmu.c |  157 +++++++++++++++++--------------------------
- 1 file changed, 63 insertions(+), 94 deletions(-)
+ tools/testing/selftests/proc/proc-maps-race.c |  186 +++++++++++++++-
+ 1 file changed, 181 insertions(+), 5 deletions(-)
 
---- a/fs/proc/task_mmu.c~proc-task_mmu-read-proc-pid-smaps_rollup-under-per-vma-lock
-+++ a/fs/proc/task_mmu.c
-@@ -130,28 +130,12 @@ static void release_task_mempolicy(struc
- }
- #endif
+--- a/tools/testing/selftests/proc/proc-maps-race.c~selftests-proc-add-proc-pid-smaps_rollup-tearing-tests
++++ a/tools/testing/selftests/proc/proc-maps-race.c
+@@ -80,6 +80,61 @@ enum maps_file {
  
--static int lock_ctx_mm(struct proc_maps_locking_ctx *lock_ctx)
--{
--	int ret = mmap_read_lock_killable(lock_ctx->mm);
--
--	if (!ret)
--		lock_ctx->mmap_locked = true;
--
--	return ret;
--}
--
- static void unlock_ctx_mm(struct proc_maps_locking_ctx *lock_ctx)
+ struct vma_modifier_info;
+ 
++enum smaps_rollup_stat {
++	Rss,
++	Pss,
++	Pss_Dirty,
++	Pss_Anon,
++	Pss_File,
++	Pss_Shmem,
++	Shared_Clean,
++	Shared_Dirty,
++	Private_Clean,
++	Private_Dirty,
++	Referenced,
++	Anonymous,
++	KSM,
++	LazyFree,
++	AnonHugePages,
++	ShmemPmdMapped,
++	FilePmdMapped,
++	Shared_Hugetlb,
++	Private_Hugetlb,
++	Swap,
++	SwapPss,
++	Locked,
++	RollupFieldCount
++};
++
++static const char *smaps_rollup_stat_names[RollupFieldCount] = {
++	"Rss",
++	"Pss",
++	"Pss_Dirty",
++	"Pss_Anon",
++	"Pss_File",
++	"Pss_Shmem",
++	"Shared_Clean",
++	"Shared_Dirty",
++	"Private_Clean",
++	"Private_Dirty",
++	"Referenced",
++	"Anonymous",
++	"KSM",
++	"LazyFree",
++	"AnonHugePages",
++	"ShmemPmdMapped",
++	"FilePmdMapped",
++	"Shared_Hugetlb",
++	"Private_Hugetlb",
++	"Swap",
++	"SwapPss",
++	"Locked",
++};
++
++struct smaps_rollup_stats {
++	unsigned long values[RollupFieldCount];
++};
++
+ FIXTURE(proc_maps_race)
  {
- 	mmap_read_unlock(lock_ctx->mm);
- 	lock_ctx->mmap_locked = false;
- }
+ 	struct vma_modifier_info *mod_info;
+@@ -91,6 +146,7 @@ FIXTURE(proc_maps_race)
+ 	enum maps_file maps_file;
+ 	int shared_mem_size;
+ 	int skip_pages;
++	int rollup_fd;
+ 	int page_size;
+ 	int vma_count;
+ 	bool verbose;
+@@ -132,12 +188,12 @@ struct vma_modifier_info {
+ 	void *child_mapped_addr[];
+ };
  
--static void reset_lock_ctx(struct proc_maps_locking_ctx *lock_ctx)
--{
--	lock_ctx->locked_vma = NULL;
--	lock_ctx->mmap_locked = false;
--}
--
- static void unlock_ctx_vma(struct proc_maps_locking_ctx *lock_ctx)
+-static bool read_page(FIXTURE_DATA(proc_maps_race) *self,
++static bool read_page(FIXTURE_DATA(proc_maps_race) *self, int fd,
+ 		      struct page_content *page)
  {
- 	if (lock_ctx->locked_vma) {
-@@ -160,6 +144,12 @@ static void unlock_ctx_vma(struct proc_m
- 	}
+ 	ssize_t  bytes_read;
+ 
+-	bytes_read = read(self->maps_fd, page->data, self->page_size);
++	bytes_read = read(fd, page->data, self->page_size);
+ 	if (bytes_read <= 0)
+ 		return false;
+ 
+@@ -175,7 +231,7 @@ static int locate_containing_page(FIXTUR
+ 		char *curr_pos;
+ 		char *end_pos;
+ 
+-		if (!read_page(self, &self->page1))
++		if (!read_page(self, self->maps_fd, &self->page1))
+ 			return -1;
+ 
+ 		curr_pos = self->page1.data;
+@@ -205,10 +261,11 @@ static bool read_two_pages(FIXTURE_DATA(
+ 		return false;
+ 
+ 	for (int i = 0; i < self->skip_pages; i++)
+-		if (!read_page(self, &self->page1))
++		if (!read_page(self, self->maps_fd, &self->page1))
+ 			return false;
+ 
+-	return read_page(self, &self->page1) && read_page(self, &self->page2);
++	return read_page(self, self->maps_fd, &self->page1) &&
++	       read_page(self, self->maps_fd, &self->page2);
  }
  
-+static void reset_lock_ctx(struct proc_maps_locking_ctx *lock_ctx)
+ static void copy_line(const char *line_start, const char *line_end,
+@@ -317,6 +374,61 @@ static bool read_boundary_lines(FIXTURE_
+ 		      &first_line->end_addr) == 2;
+ }
+ 
++static bool parse_smaps_rollup(FIXTURE_DATA(proc_maps_race) *self,
++		struct smaps_rollup_stats *stats)
 +{
-+	lock_ctx->locked_vma = NULL;
-+	lock_ctx->mmap_locked = false;
++	unsigned int dev_maj, dev_min, inode;
++	unsigned long start, end, offs;
++	unsigned long value;
++	char name[32], perm[5];
++	char *curr_pos;
++	char *end_pos;
++	char *line_end;
++
++	if (lseek(self->rollup_fd, 0, SEEK_SET) < 0)
++		return false;
++
++	if (!read_page(self, self->rollup_fd, &self->page1))
++		return false;
++
++	curr_pos = self->page1.data;
++	end_pos = self->page1.data + self->page1.size;
++
++	line_end = strchr(curr_pos, '\n');
++	if (!line_end)
++		return false;
++
++	if (sscanf(curr_pos, "%lx-%lx %4s %lx %u:%u %u %31s",
++		&start, &end, perm, &offs, &dev_maj, &dev_min, &inode, name) != 8)
++		return false;
++
++	if (strcmp(name, "[rollup]"))
++		return false;
++
++	for (int stat = 0; stat < ARRAY_SIZE(smaps_rollup_stat_names); stat++) {
++		int len;
++
++		curr_pos = line_end + 1;
++		if (curr_pos >= end_pos)
++			return false;
++
++		line_end = strchr(curr_pos, '\n');
++		if (!line_end)
++			return false;
++
++		if (sscanf(curr_pos, "%31s %lu kB", name, &value) != 2)
++			return false;
++
++		len = strlen(name);
++		if (name[len - 1] != ':' || strncmp(name, smaps_rollup_stat_names[stat], len - 1))
++			return false;
++
++		stats->values[stat] = value;
++	}
++
++	return true;
 +}
 +
- static struct vm_area_struct *get_next_vma(struct proc_maps_private *priv,
- 					   loff_t last_pos)
+ /* Thread synchronization routines */
+ static void wait_for_state(struct vma_modifier_info *mod_info, enum test_state state)
  {
-@@ -1402,12 +1392,14 @@ static int show_smap(struct seq_file *m,
- static int show_smaps_rollup(struct seq_file *m, void *v)
+@@ -397,6 +509,40 @@ static bool print_boundaries_on(bool con
+ 	return condition;
+ }
+ 
++static void print_smaps_rollup_stats(const char *title, FIXTURE_DATA(proc_maps_race) *self,
++		struct smaps_rollup_stats *stats)
++{
++	printf("%s", title);
++	for (int stat = 0; stat < ARRAY_SIZE(smaps_rollup_stat_names); stat++)
++		printf("%64s %lu kB\n", smaps_rollup_stat_names[stat], stats->values[stat]);
++}
++
++static bool cmp_smaps_rollup_stat(struct smaps_rollup_stats *s1,
++		struct smaps_rollup_stats *s2, enum smaps_rollup_stat stat)
++{
++	return s1->values[stat] == s2->values[stat];
++}
++
++static bool compare_smaps_rollup(FIXTURE_DATA(proc_maps_race) *self,
++		struct smaps_rollup_stats *expected,
++		struct smaps_rollup_stats *actual)
++{
++	/*
++	 * Clean/dirty metrics might change but Pss-related ones
++	 * should stay constant.
++	 */
++	if (cmp_smaps_rollup_stat(expected, actual, Pss) &&
++	    cmp_smaps_rollup_stat(expected, actual, Pss_Anon) &&
++	    cmp_smaps_rollup_stat(expected, actual, Pss_File) &&
++	    cmp_smaps_rollup_stat(expected, actual, Pss_Shmem))
++		return true;
++
++	print_smaps_rollup_stats("Expected stats:", self, expected);
++	print_smaps_rollup_stats("Actual stats:", self, actual);
++
++	return false;
++}
++
+ static void report_test_start(const char *name, bool verbose)
  {
- 	struct proc_maps_private *priv = m->private;
-+	struct proc_maps_locking_ctx *lock_ctx = &priv->lock_ctx;
-+	struct mm_struct *mm = lock_ctx->mm;
- 	struct mem_size_stats mss = {};
--	struct mm_struct *mm = priv->lock_ctx.mm;
-+	unsigned long last_vma_end = 0;
-+	unsigned long vma_start = 0;
- 	struct vm_area_struct *vma;
--	unsigned long vma_start = 0, last_vma_end = 0;
-+	loff_t pos = 0;
- 	int ret = 0;
--	VMA_ITERATOR(vmi, mm, 0);
+ 	if (verbose)
+@@ -572,6 +718,7 @@ FIXTURE_SETUP(proc_maps_race)
+ 	unsigned long first_map_addr;
+ 	unsigned long last_map_addr;
+ 	unsigned long duration_sec;
++	char rollup_fname[32];
+ 	char fname[32];
  
- 	priv->task = get_proc_task(priv->inode);
- 	if (!priv->task)
-@@ -1418,90 +1410,63 @@ static int show_smaps_rollup(struct seq_
- 		goto out_put_task;
- 	}
+ 	self->page_size = (unsigned long)sysconf(_SC_PAGESIZE);
+@@ -649,6 +796,9 @@ FIXTURE_SETUP(proc_maps_race)
+ 		break;
+ 	case SMAPS:
+ 		sprintf(fname, "/proc/%d/smaps", self->pid);
++		sprintf(rollup_fname, "/proc/%d/smaps_rollup", self->pid);
++		self->rollup_fd = open(rollup_fname, O_RDONLY);
++		ASSERT_NE(self->rollup_fd, -1);
+ 		break;
+ 	default:
+ 		ksft_exit_fail();
+@@ -711,6 +861,8 @@ FIXTURE_TEARDOWN(proc_maps_race)
+ 	for (int i = 0; i < self->vma_count; i++)
+ 		munmap(self->mod_info->child_mapped_addr[i], self->page_size);
+ 	close(self->maps_fd);
++	if (self->maps_file == SMAPS)
++		close(self->rollup_fd);
+ 	waitpid(self->pid, &status, 0);
+ 	munmap(self->mod_info, self->shared_mem_size);
+ }
+@@ -723,6 +875,7 @@ TEST_F(proc_maps_race, test_maps_tearing
+ 	struct line_content split_first_line;
+ 	struct line_content restored_last_line;
+ 	struct line_content restored_first_line;
++	struct smaps_rollup_stats orig_stats;
  
--	ret = lock_ctx_mm(&priv->lock_ctx);
--	if (ret)
--		goto out_put_mm;
--
- 	hold_task_mempolicy(priv);
--	vma = vma_next(&vmi);
-+	rcu_read_lock();
-+	reset_lock_ctx(lock_ctx);
+ 	wait_for_state(mod_info, SETUP_READY);
  
-+	vma_iter_init(&priv->iter, mm, 0);
-+	vma = proc_get_vma(m, &pos);
- 	if (unlikely(!vma))
- 		goto empty_set;
+@@ -736,6 +889,8 @@ TEST_F(proc_maps_race, test_maps_tearing
+ 	report_test_start("Tearing from split", self->verbose);
+ 	ASSERT_TRUE(capture_mod_pattern(self, &split_last_line, &split_first_line,
+ 					&restored_last_line, &restored_first_line));
++	if (self->maps_file == SMAPS)
++		ASSERT_TRUE(parse_smaps_rollup(self, &orig_stats));
  
--	vma_start = vma->vm_start;
--	do {
--		smap_gather_stats(priv, vma, &mss);
-+	if (!IS_ERR(vma))
-+		vma_start = vma->vm_start;
-+
-+	while (vma) {
-+		if (IS_ERR(vma)) {
-+			ret = PTR_ERR(vma);
-+			goto out_unlock;
-+		}
-+
-+		if (vma->vm_start < last_vma_end) {
-+			/*
-+			 * After retaking the lock, already reported VMA grew
-+			 * or got merged with the next one and we found it
-+			 * again. Gather stats for the remaining portion by
-+			 * starting at last_vma_end.
-+			 */
-+			smap_gather_stats_range(priv, vma, &mss, last_vma_end);
+ 	/* Now start concurrent modifications for self->duration_sec */
+ 	signal_state(mod_info, TEST_READY);
+@@ -799,6 +954,11 @@ TEST_F(proc_maps_race, test_maps_tearing
+ 				     vma_end == self->last_line.end_addr) ||
+ 				    (vma_start == split_first_line.start_addr &&
+ 				     vma_end == split_first_line.end_addr));
 +		} else {
-+			/* Found next unreported VMA, start from its beginning */
-+			smap_gather_stats(priv, vma, &mss);
-+		}
- 		last_vma_end = vma->vm_end;
- 
- 		/*
--		 * Release mmap_lock temporarily if someone wants to
--		 * access it for write request.
-+		 * If the VMA lock is not taken, we hold the often contended
-+		 * mmap lock. This can happen if we had to fall back to the
-+		 * mmap lock.
-+		 *
-+		 * To relieve pressure, check if it is indeed contended, then
-+		 * temporarily release it.
- 		 */
--		if (mmap_lock_is_contended(mm)) {
--			vma_iter_invalidate(&vmi);
--			unlock_ctx_mm(&priv->lock_ctx);
--			ret = lock_ctx_mm(&priv->lock_ctx);
--			if (ret) {
--				release_task_mempolicy(priv);
--				goto out_put_mm;
--			}
--
-+		if (lock_ctx->mmap_locked &&
-+		    mmap_lock_is_contended(lock_ctx->mm)) {
-+			unlock_ctx_mm(lock_ctx);
- 			/*
--			 * After dropping the lock, there are four cases to
--			 * consider. See the following example for explanation.
--			 *
--			 *   +------+------+-----------+
--			 *   | VMA1 | VMA2 | VMA3      |
--			 *   +------+------+-----------+
--			 *   |      |      |           |
--			 *  4k     8k     16k         400k
--			 *
--			 * Suppose we drop the lock after reading VMA2 due to
--			 * contention, then we get:
--			 *
--			 *	last_vma_end = 16k
--			 *
--			 * 1) VMA2 is freed, but VMA3 exists:
--			 *
--			 *    vma_next(vmi) will return VMA3.
--			 *    In this case, just continue from VMA3.
--			 *
--			 * 2) VMA2 still exists:
--			 *
--			 *    vma_next(vmi) will return VMA3.
--			 *    In this case, just continue from VMA3.
--			 *
--			 * 3) No more VMAs can be found:
--			 *
--			 *    vma_next(vmi) will return NULL.
--			 *    No more things to do, just break.
--			 *
--			 * 4) (last_vma_end - 1) is the middle of a vma (VMA'):
--			 *
--			 *    vma_next(vmi) will return VMA' whose range
--			 *    contains last_vma_end.
--			 *    Iterate VMA' from last_vma_end.
-+			 * Even though we previously fell back to mmap lock,
-+			 * we try taking VMA lock for the next VMA, since it
-+			 * might not be under modification. In the worst case
-+			 * we will fall back to mmap lock again.
- 			 */
--			vma = vma_next(&vmi);
--			/* Case 3 above */
--			if (!vma)
--				break;
--
--			/* Case 1 and 2 above */
--			if (vma->vm_start >= last_vma_end) {
--				smap_gather_stats(priv, vma, &mss);
--				last_vma_end = vma->vm_end;
--				continue;
--			}
--
--			/* Case 4 above */
--			if (vma->vm_end > last_vma_end) {
--				smap_gather_stats_range(priv, vma, &mss,
--							last_vma_end);
--				last_vma_end = vma->vm_end;
--			}
-+			rcu_read_lock();
-+			reset_lock_ctx(lock_ctx);
-+			/* Resume from the last position. */
-+			pos = last_vma_end;
-+			vma_iter_init(&priv->iter, mm, pos);
++			struct smaps_rollup_stats stats;
++
++			ASSERT_TRUE(parse_smaps_rollup(self, &stats));
++			ASSERT_TRUE(compare_smaps_rollup(self, &orig_stats, &stats));
  		}
--	} for_each_vma(vmi, vma);
-+		vma = proc_get_vma(m, &pos);
-+	}
+ 		clock_gettime(CLOCK_MONOTONIC_COARSE, &end_ts);
+ 		end_test_iteration(&end_ts, self->verbose);
+@@ -817,6 +977,7 @@ TEST_F(proc_maps_race, test_maps_tearing
+ 	struct line_content shrunk_first_line;
+ 	struct line_content restored_last_line;
+ 	struct line_content restored_first_line;
++	struct smaps_rollup_stats orig_stats;
  
- empty_set:
- 	show_vma_header_prefix(m, vma_start, last_vma_end, 0, 0, 0, 0);
-@@ -1510,10 +1475,14 @@ empty_set:
+ 	wait_for_state(mod_info, SETUP_READY);
  
- 	__show_smap(m, &mss, true);
+@@ -830,6 +991,8 @@ TEST_F(proc_maps_race, test_maps_tearing
+ 	report_test_start("Tearing from resize", self->verbose);
+ 	ASSERT_TRUE(capture_mod_pattern(self, &shrunk_last_line, &shrunk_first_line,
+ 					&restored_last_line, &restored_first_line));
++	if (self->maps_file == SMAPS)
++		ASSERT_TRUE(parse_smaps_rollup(self, &orig_stats));
  
-+out_unlock:
-+	if (lock_ctx->mmap_locked) {
-+		unlock_ctx_mm(lock_ctx);
-+	} else {
-+		unlock_ctx_vma(lock_ctx);
-+		rcu_read_unlock();
-+	}
- 	release_task_mempolicy(priv);
--	unlock_ctx_mm(&priv->lock_ctx);
--
--out_put_mm:
- 	mmput(mm);
- out_put_task:
- 	put_task_struct(priv->task);
+ 	/* Now start concurrent modifications for self->duration_sec */
+ 	signal_state(mod_info, TEST_READY);
+@@ -880,6 +1043,11 @@ TEST_F(proc_maps_race, test_maps_tearing
+ 			ASSERT_TRUE(vma_start == self->last_line.start_addr &&
+ 				    (vma_end - vma_start == self->page_size * 3 ||
+ 				     vma_end - vma_start == self->page_size));
++		} else {
++			struct smaps_rollup_stats stats;
++
++			ASSERT_TRUE(parse_smaps_rollup(self, &stats));
++			ASSERT_TRUE(compare_smaps_rollup(self, &orig_stats, &stats));
+ 		}
+ 		clock_gettime(CLOCK_MONOTONIC_COARSE, &end_ts);
+ 		end_test_iteration(&end_ts, self->verbose);
+@@ -898,6 +1066,7 @@ TEST_F(proc_maps_race, test_maps_tearing
+ 	struct line_content remapped_first_line;
+ 	struct line_content restored_last_line;
+ 	struct line_content restored_first_line;
++	struct smaps_rollup_stats orig_stats;
+ 
+ 	wait_for_state(mod_info, SETUP_READY);
+ 
+@@ -911,6 +1080,8 @@ TEST_F(proc_maps_race, test_maps_tearing
+ 	report_test_start("Tearing from remap", self->verbose);
+ 	ASSERT_TRUE(capture_mod_pattern(self, &remapped_last_line, &remapped_first_line,
+ 					&restored_last_line, &restored_first_line));
++	if (self->maps_file == SMAPS)
++		ASSERT_TRUE(parse_smaps_rollup(self, &orig_stats));
+ 
+ 	/* Now start concurrent modifications for self->duration_sec */
+ 	signal_state(mod_info, TEST_READY);
+@@ -963,6 +1134,11 @@ TEST_F(proc_maps_race, test_maps_tearing
+ 				     vma_end - vma_start == self->page_size * 3) ||
+ 				    (vma_start == self->last_line.start_addr + self->page_size &&
+ 				     vma_end - vma_start == self->page_size));
++		} else {
++			struct smaps_rollup_stats stats;
++
++			ASSERT_TRUE(parse_smaps_rollup(self, &stats));
++			ASSERT_TRUE(compare_smaps_rollup(self, &orig_stats, &stats));
+ 		}
+ 		clock_gettime(CLOCK_MONOTONIC_COARSE, &end_ts);
+ 		end_test_iteration(&end_ts, self->verbose);
 _
 
 Patches currently in -mm which might be from surenb@google.com are
