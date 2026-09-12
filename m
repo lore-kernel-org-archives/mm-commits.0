@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 995954BEE5F
-	for <mm-commits@vger.kernel.org>; Sat, 12 Sep 2026 05:57:58 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 43BF93438A0
+	for <mm-commits@vger.kernel.org>; Sat, 12 Sep 2026 05:58:00 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789192680; cv=none; b=i1Eyr+UbAtMfF9j+lzXcKwJRbljTyzgmXSRU4FUX9D3Tq03f8axffTUknPt/N3cAD6Q9QWyWentFrV4ELOMzrmXv394u0Ma1hNVlGZ3AB++HdlZah+d80+jy6fcQw8HUXakOeaVZE+Z/gPNCKPN7SSqhvpTIhc/36W8xdAwKor8=
+	t=1789192682; cv=none; b=XEaa5ATt6YypNrCNyW1AIo4m70U0BzUWF2B8tNbDy2E7OJj198eI5rgxNEyCaQdTy5OzXB6zRYmtuNhz9HE9vBmX/LF4sdAzWhvspVR+HqrvuKJXdqMH2tV8pFW795b5dQX3LtZAJiJ8AyG3pp4vZ7tS9Z1bVh1XTMKgKvAKqoo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1789192680; c=relaxed/simple;
-	bh=hmFc439ppUK6cIKDkZ33nTcewCEJnvhfRCFwQJAaeF4=;
-	h=Date:To:From:Subject:Message-Id; b=C0B+gMLBoYRGWXRKEalwWJEjkkJUjj9u8dJp6ptJSzK27ejJGSIOBbuLsBA7CWe28P5adLnaVpyzncWFezJ+Anfz1yvdwgnUKoIQ9ZLVu/gugrIGhIdYLuM2BtqqzzSHN4/YiJWvphqMWHHQZDM+W1Ner/xAq+V+4QfoMty1AWo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=HhrkjxZ8; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1789192682; c=relaxed/simple;
+	bh=dJp0AMOAR9b2Mm78CHmn2NhPbbjALplrjajQYr+0ciM=;
+	h=Date:To:From:Subject:Message-Id; b=sZkKbCym0K6wFW1lpyEo2qHjhE3PH/PeqSyh4d1C2sBranAzlMotJpmSMlpZyu0B7FH7TwrYQEjNKhqkSOzKoXM9WWchx2ShX9GcxToptacabfcGT0LWXIXwGGa2QSAMvsW01qD04hsZ+/4QySoqioU0VDv768BARnGzWdLKfVY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=RfPNEqfG; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="HhrkjxZ8"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 184501F000FF;
-	Sat, 12 Sep 2026 05:57:58 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="RfPNEqfG"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A10511F000FF;
+	Sat, 12 Sep 2026 05:58:00 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1789192678;
-	bh=DpfXsDQgSEYuWef+SwdOy0MfxO6GODnzP9BWJ0uFMQI=;
+	d=linux-foundation.org; s=korg; t=1789192680;
+	bh=l5IwbfXoes1g5ncYFnjhQiAIDQDiqlJtNAVTjtUzefk=;
 	h=Date:To:From:Subject;
-	b=HhrkjxZ8vPt7AH/yLGkuyiSHj/qGKuHGyYshVtEy/z6v9riusJB7VLCSl8uAQ1G+9
-	 fuSSYa1Z6xRT/Ao2Nr/b6BQ/xMZ8bAAwIA+KRw3AA/d9iJ6AkbGihmDs0TGqMHtGK3
-	 M0UJ7wFVjO3KHFUpIf3HiFDarPMlnbH0Kuh3Q6jc=
-Date: Fri, 11 Sep 2026 22:57:57 -0700
+	b=RfPNEqfGmp84JiTuRCLrRybZ/F3ijUb6YztO12uPhRZm8AeCBqPo9l/XdgzwpMiBr
+	 r5xLl1+tYwfTfq4pMsFxkPJaCQWee3dsaDFLeH90vyZea+Jjo+QkzVuZSA7lBY9aSc
+	 UZVGeCMB+iCRtkAuih1J23jYttDkgUTCKxv0lzvo=
+Date: Fri, 11 Sep 2026 22:58:00 -0700
 To: mm-commits@vger.kernel.org,willy@infradead.org,sparse@chrisli.org,liam@infradead.org,andrewjballance@gmail.com,aliceryhl@google.com,ynorov@nvidia.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + compilerh-add-assert_static_storage.patch added to mm-new branch
-Message-Id: <20260912055758.184501F000FF@smtp.kernel.org>
+Subject: + idr-assert-static-storage-for-define_ida.patch added to mm-new branch
+Message-Id: <20260912055800.A10511F000FF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: compiler.h: add ASSERT_STATIC_STORAGE()
+     Subject: idr: assert static storage for DEFINE_IDA()
 has been added to the -mm mm-new branch.  Its filename is
-     compilerh-add-assert_static_storage.patch
+     idr-assert-static-storage-for-define_ida.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/compilerh-add-assert_static_storage.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/idr-assert-static-storage-for-define_ida.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,83 +70,21 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Yury Norov <ynorov@nvidia.com>
-Subject: compiler.h: add ASSERT_STATIC_STORAGE()
-Date: Fri, 11 Sep 2026 18:14:41 -0400
+Subject: idr: assert static storage for DEFINE_IDA()
+Date: Fri, 11 Sep 2026 18:14:42 -0400
 
-Patch series "Catch automatic storage in IDA and Maple Tree definitions".
+DEFINE_IDA() uses IDA_INIT(), which initializes the embedded XArray lock
+with a static spinlock initializer.  For an automatic local IDA, lockdep
+cannot use the lock address as a persistent class key and reports "INFO:
+trying to register non-static key" before disabling itself.
 
-A 0day report [1] from the region allocation benchmark exposed a lockdep
-initialization bug: a stack-local Maple Tree used MTREE_INIT(), whose
-embedded lock has a static initializer.  On the first allocation, lockdep
-rejected the lock address as a non-static class key and disabled locking
-validation.  The IDA benchmark had the same issue, masked because it ran
-after Maple Tree had already disabled lockdep.
-
-The fix [2] switches the test to using mt_init_flags() and ida_init(). 
-This series adds a compile-time check to the related DEFINE_IDA() and
-DEFINE_MTREE() declaration macros to catch the same class of mistake
-earlier.
-
-Patch 1 introduces ASSERT_STATIC_STORAGE().  It declares an unused static
-pointer initialized with the object's address, requiring that address to
-be a valid static initializer.  Patches 2 and 3 apply the helper to IDA
-and Maple Tree definitions, respectively.
-
-The helper is mirrored in the tools compiler header.  The existing
-automatic local IDAs and Maple Trees in the userspace radix-tree tests are
-converted to runtime initialization.  The interval-tree span test keeps
-its existing mt_init_flags() call and uses a plain Maple Tree declaration.
-
-For example, an automatic local definition:
+Apply ASSERT_STATIC_STORAGE() to DEFINE_IDA() so that this misuse is
+rejected at compile time.  For example:
 
   void example(void)
   {
           DEFINE_IDA(ida);
           ida_destroy(&ida);
-  }
-
-now produces:
-
-  error: initializer element is not constant
-  note: in expansion of macro 'ASSERT_STATIC_STORAGE'
-  note: in expansion of macro 'DEFINE_IDA'
-
-File-scope definitions and static local definitions remain valid. 
-Automatic local objects should use ida_init(), mt_init(), or
-mt_init_flags().
-
-The check is limited to declaration macros.  Direct uses of IDA_INIT(),
-MTREE_INIT(), and MTREE_INIT_EXT() remain unchanged.  The helper cannot be
-inserted directly into those initializer expressions because it expands to
-a declaration.
-
-Validated by GCC and Clang checks accepting static storage and rejecting
-automatic storage The userspace IDR/IDA and Maple Tree test are passed as
-well.
-
-
-This patch (of 3):
-
-Static lock initializers rely on a persistent object address when lockdep
-assigns a lock-class key.  Using such an initializer for an automatic
-local object can compile successfully but disable lockdep on the first
-lock acquisition.
-
-Add ASSERT_STATIC_STORAGE() for declaration macros that require static
-storage duration.  It declares an unused static pointer initialized with
-the object's address.  An automatic local object's address is not a valid
-static initializer, so the compiler rejects it.
-
-Mirror the helper in tools/include/linux/compiler.h because the userspace
-radix-tree tests include the kernel IDA and Maple Tree headers with the
-tools compiler definitions.
-
-For example:
-
-  void example(void)
-  {
-          int object;
-          ASSERT_STATIC_STORAGE(object);
   }
 
 GCC reports:
@@ -155,16 +93,21 @@ GCC reports:
     name##_storage_check = &(name)
                            ^
   note: in expansion of macro 'ASSERT_STATIC_STORAGE'
-    ASSERT_STATIC_STORAGE(object);
+    ASSERT_STATIC_STORAGE(name)
+  note: in expansion of macro 'DEFINE_IDA'
+    DEFINE_IDA(ida);
 
-File-scope objects and static local objects remain valid.  The helper
-takes an object identifier and must be used as a declaration after that
-object has been declared.
+File-scope definitions and static DEFINE_IDA() within a function remain
+valid.  Automatic local IDAs must instead be initialized with ida_init(). 
+Direct uses of IDA_INIT() are not covered by this declaration check.
 
-Link: https://lore.kernel.org/all/20260911155244.1406122-1-ynorov@nvidia.com/
-Link: https://lore.kernel.org/20260911221444.1523311-2-ynorov@nvidia.com
-Link: https://download.01.org/0day-ci/archive/20260910/202609101106.771b567e-lkp@intel.com/ [1]
-Link: https://lore.kernel.org/all/20260911155244.1406122-1-ynorov@nvidia.com/ [2]
+Convert the five automatic local IDAs in the userspace radix-tree tests to
+ida_init() so they satisfy the new requirement.
+
+Validated file-scope and static local definitions with a kernel object
+build, and confirmed that an automatic local definition fails to compile.
+
+Link: https://lore.kernel.org/20260911221444.1523311-3-ynorov@nvidia.com
 Signed-off-by: Yury Norov <ynorov@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 Cc: Alice Ryhl <aliceryhl@google.com>
@@ -174,38 +117,101 @@ Cc: Liam R. Howlett <liam@infradead.org>
 Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
 ---
 
- include/linux/compiler.h       |    5 +++++
- tools/include/linux/compiler.h |    5 +++++
- 2 files changed, 10 insertions(+)
+ include/linux/idr.h                 |    5 ++++-
+ tools/testing/radix-tree/idr-test.c |   20 +++++++++++++++-----
+ 2 files changed, 19 insertions(+), 6 deletions(-)
 
---- a/include/linux/compiler.h~compilerh-add-assert_static_storage
-+++ a/include/linux/compiler.h
-@@ -275,6 +275,11 @@ static inline void *offset_to_ptr(const
- #define __ADDRESSABLE(sym) \
- 	___ADDRESSABLE(sym, __section(".discard.addressable"))
+--- a/include/linux/idr.h~idr-assert-static-storage-for-define_ida
++++ a/include/linux/idr.h
+@@ -16,6 +16,7 @@
+ #include <linux/gfp.h>
+ #include <linux/percpu.h>
+ #include <linux/cleanup.h>
++#include <linux/compiler.h>
  
-+/* Enforce static storage duration. */
-+#define ASSERT_STATIC_STORAGE(name) \
-+	static typeof(name) * const __always_unused \
-+		name##_storage_check = &(name)
-+
- /*
-  * This returns a constant expression while determining if an argument is
-  * a constant expression, most importantly without evaluating the argument.
---- a/tools/include/linux/compiler.h~compilerh-add-assert_static_storage
-+++ a/tools/include/linux/compiler.h
-@@ -73,6 +73,11 @@
- # define __same_type(a, b) __builtin_types_compatible_p(typeof(a), typeof(b))
- #endif
+ struct idr {
+ 	struct radix_tree_root	idr_rt;
+@@ -269,7 +270,9 @@ struct ida {
+ #define IDA_INIT(name)	{						\
+ 	.xa = XARRAY_INIT(name, IDA_INIT_FLAGS)				\
+ }
+-#define DEFINE_IDA(name)	struct ida name = IDA_INIT(name)
++#define DEFINE_IDA(name)							\
++	struct ida name = IDA_INIT(name);					\
++	ASSERT_STATIC_STORAGE(name)
  
-+/* Enforce static storage duration. */
-+#define ASSERT_STATIC_STORAGE(name) \
-+	static typeof(name) * const __always_unused \
-+		name##_storage_check = &(name)
+ int ida_alloc_range(struct ida *, unsigned int min, unsigned int max, gfp_t);
+ void ida_free(struct ida *, unsigned int id);
+--- a/tools/testing/radix-tree/idr-test.c~idr-assert-static-storage-for-define_ida
++++ a/tools/testing/radix-tree/idr-test.c
+@@ -460,9 +460,11 @@ void ida_dump(struct ida *);
+  */
+ void ida_check_nomem(void)
+ {
+-	DEFINE_IDA(ida);
++	struct ida ida;
+ 	int id;
+ 
++	ida_init(&ida);
 +
- /*
-  * This returns a constant expression while determining if an argument is
-  * a constant expression, most importantly without evaluating the argument.
+ 	id = ida_alloc_min(&ida, 256, GFP_NOWAIT);
+ 	IDA_BUG_ON(&ida, id != -ENOMEM);
+ 	id = ida_alloc_min(&ida, 1UL << 30, GFP_NOWAIT);
+@@ -475,9 +477,11 @@ void ida_check_nomem(void)
+  */
+ void ida_check_conv_user(void)
+ {
+-	DEFINE_IDA(ida);
++	struct ida ida;
+ 	unsigned long i;
+ 
++	ida_init(&ida);
++
+ 	for (i = 0; i < 1000000; i++) {
+ 		int id = ida_alloc(&ida, GFP_NOWAIT);
+ 		if (id == -ENOMEM) {
+@@ -496,11 +500,13 @@ void ida_check_conv_user(void)
+ 
+ void ida_check_random(void)
+ {
+-	DEFINE_IDA(ida);
++	struct ida ida;
+ 	DECLARE_BITMAP(bitmap, 2048);
+ 	unsigned int i;
+ 	time_t s = time(NULL);
+ 
++	ida_init(&ida);
++
+  repeat:
+ 	memset(bitmap, 0, sizeof(bitmap));
+ 	for (i = 0; i < 100000; i++) {
+@@ -522,9 +528,11 @@ void ida_check_random(void)
+ 
+ void ida_alloc_free_test(void)
+ {
+-	DEFINE_IDA(ida);
++	struct ida ida;
+ 	unsigned long i;
+ 
++	ida_init(&ida);
++
+ 	for (i = 0; i < 10000; i++)
+ 		assert(ida_alloc_max(&ida, 20000, GFP_KERNEL) == i);
+ 	assert(ida_alloc_range(&ida, 5, 30, GFP_KERNEL) < 0);
+@@ -576,10 +584,12 @@ static void *ida_leak_fn(void *arg)
+ 
+ void ida_thread_tests(void)
+ {
+-	DEFINE_IDA(ida);
++	struct ida ida;
+ 	pthread_t threads[20];
+ 	int i;
+ 
++	ida_init(&ida);
++
+ 	for (i = 0; i < ARRAY_SIZE(threads); i++)
+ 		if (pthread_create(&threads[i], NULL, ida_random_fn, NULL)) {
+ 			perror("creating ida thread");
 _
 
 Patches currently in -mm which might be from ynorov@nvidia.com are
