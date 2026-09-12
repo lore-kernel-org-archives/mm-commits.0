@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 43BF93438A0
-	for <mm-commits@vger.kernel.org>; Sat, 12 Sep 2026 05:58:00 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B454A3515F2
+	for <mm-commits@vger.kernel.org>; Sat, 12 Sep 2026 05:58:03 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789192682; cv=none; b=XEaa5ATt6YypNrCNyW1AIo4m70U0BzUWF2B8tNbDy2E7OJj198eI5rgxNEyCaQdTy5OzXB6zRYmtuNhz9HE9vBmX/LF4sdAzWhvspVR+HqrvuKJXdqMH2tV8pFW795b5dQX3LtZAJiJ8AyG3pp4vZ7tS9Z1bVh1XTMKgKvAKqoo=
+	t=1789192685; cv=none; b=E0goECHD1k+gd99lFaXmDlChwbTPs+Xu2nnXo0CtrAqcGY1MRcJ6S3ecGA0V3uPrX1/8exsv9vZzwhbuSNgoWqgjk/dHy2cIakzf85EqDpXNQEIIYLt6GHT6+tnRBo6txfcAuURNKUW+B+iZDm+sT2So+3o3tBLlpvAiLGkl82g=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1789192682; c=relaxed/simple;
-	bh=dJp0AMOAR9b2Mm78CHmn2NhPbbjALplrjajQYr+0ciM=;
-	h=Date:To:From:Subject:Message-Id; b=sZkKbCym0K6wFW1lpyEo2qHjhE3PH/PeqSyh4d1C2sBranAzlMotJpmSMlpZyu0B7FH7TwrYQEjNKhqkSOzKoXM9WWchx2ShX9GcxToptacabfcGT0LWXIXwGGa2QSAMvsW01qD04hsZ+/4QySoqioU0VDv768BARnGzWdLKfVY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=RfPNEqfG; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1789192685; c=relaxed/simple;
+	bh=0YukawJNumqCfEadbiZUoGVBYLojcUuLfvd4EVKOpjI=;
+	h=Date:To:From:Subject:Message-Id; b=AmiUg8APB7V86lGemyiO/2+HfESxFaFH7XAi6kXFTSXd/kZHtQicfrhCHWUsmK6moskUJ/WNc50cTkbHq8HG0S7+EegMoKWnn22ytuG/Anqw0cc0chomxI2Q9s7ThcnNrnqts+nT3n/xR8VynxBebr59fJjKUnFT0M3QEgKFElI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=2LKCsEpg; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="RfPNEqfG"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A10511F000FF;
-	Sat, 12 Sep 2026 05:58:00 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="2LKCsEpg"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4A1221F000FF;
+	Sat, 12 Sep 2026 05:58:03 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1789192680;
-	bh=l5IwbfXoes1g5ncYFnjhQiAIDQDiqlJtNAVTjtUzefk=;
+	d=linux-foundation.org; s=korg; t=1789192683;
+	bh=cnOxY5OAgT/sjOUrW+iNBkX0fN0VPRYz/tyQotqu48k=;
 	h=Date:To:From:Subject;
-	b=RfPNEqfGmp84JiTuRCLrRybZ/F3ijUb6YztO12uPhRZm8AeCBqPo9l/XdgzwpMiBr
-	 r5xLl1+tYwfTfq4pMsFxkPJaCQWee3dsaDFLeH90vyZea+Jjo+QkzVuZSA7lBY9aSc
-	 UZVGeCMB+iCRtkAuih1J23jYttDkgUTCKxv0lzvo=
-Date: Fri, 11 Sep 2026 22:58:00 -0700
+	b=2LKCsEpgWuq1Zy7mzOII4MsFL6JYI2T7v53DB3bSDu66QY+HFSfWSx3scUJRbIh+C
+	 Ce0uKP2SWC+EXwndg3Y5jGV0XCJgTL5jWgoz+aee1yaJrwf0AR5hMjW8FAETbeTiHp
+	 UlqOA2JuS3Gphj7WNBHQ2MyzWI92z4FmOUiC2nyE=
+Date: Fri, 11 Sep 2026 22:58:02 -0700
 To: mm-commits@vger.kernel.org,willy@infradead.org,sparse@chrisli.org,liam@infradead.org,andrewjballance@gmail.com,aliceryhl@google.com,ynorov@nvidia.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + idr-assert-static-storage-for-define_ida.patch added to mm-new branch
-Message-Id: <20260912055800.A10511F000FF@smtp.kernel.org>
+Subject: + maple_tree-assert-static-storage-for-define_mtree.patch added to mm-new branch
+Message-Id: <20260912055803.4A1221F000FF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: idr: assert static storage for DEFINE_IDA()
+     Subject: maple_tree: assert static storage for DEFINE_MTREE()
 has been added to the -mm mm-new branch.  Its filename is
-     idr-assert-static-storage-for-define_ida.patch
+     maple_tree-assert-static-storage-for-define_mtree.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/idr-assert-static-storage-for-define_ida.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/maple_tree-assert-static-storage-for-define_mtree.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,21 +70,21 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Yury Norov <ynorov@nvidia.com>
-Subject: idr: assert static storage for DEFINE_IDA()
-Date: Fri, 11 Sep 2026 18:14:42 -0400
+Subject: maple_tree: assert static storage for DEFINE_MTREE()
+Date: Fri, 11 Sep 2026 18:14:43 -0400
 
-DEFINE_IDA() uses IDA_INIT(), which initializes the embedded XArray lock
-with a static spinlock initializer.  For an automatic local IDA, lockdep
-cannot use the lock address as a persistent class key and reports "INFO:
-trying to register non-static key" before disabling itself.
+DEFINE_MTREE() uses MTREE_INIT(), which initializes the tree's embedded
+lock with a static spinlock initializer.  If the tree is an automatic
+local object, lockdep rejects its address as a non-static class key and
+disables locking validation on the first lock acquisition.
 
-Apply ASSERT_STATIC_STORAGE() to DEFINE_IDA() so that this misuse is
-rejected at compile time.  For example:
+Apply ASSERT_STATIC_STORAGE() to DEFINE_MTREE() to catch automatic local
+definitions at compile time.  For example:
 
   void example(void)
   {
-          DEFINE_IDA(ida);
-          ida_destroy(&ida);
+          DEFINE_MTREE(mt);
+          mtree_destroy(&mt);
   }
 
 GCC reports:
@@ -94,20 +94,24 @@ GCC reports:
                            ^
   note: in expansion of macro 'ASSERT_STATIC_STORAGE'
     ASSERT_STATIC_STORAGE(name)
-  note: in expansion of macro 'DEFINE_IDA'
-    DEFINE_IDA(ida);
+  note: in expansion of macro 'DEFINE_MTREE'
+    DEFINE_MTREE(mt);
 
-File-scope definitions and static DEFINE_IDA() within a function remain
-valid.  Automatic local IDAs must instead be initialized with ida_init(). 
-Direct uses of IDA_INIT() are not covered by this declaration check.
+File-scope definitions and static local trees remain valid.  Automatic
+local trees must instead use mt_init() or mt_init_flags().  Direct uses of
+MTREE_INIT() and MTREE_INIT_EXT() are unchanged.
 
-Convert the five automatic local IDAs in the userspace radix-tree tests to
-ida_init() so they satisfy the new requirement.
+Replace the local DEFINE_MTREE() in the interval-tree span test with a
+plain declaration; the test already initializes the tree with
+mt_init_flags() before use.  Convert the three local Maple Trees in the
+userspace radix-tree tests to mt_init().
 
 Validated file-scope and static local definitions with a kernel object
-build, and confirmed that an automatic local definition fails to compile.
+build, and confirmed that an automatic local definition fails to compile. 
+The Maple Tree test and region allocation benchmark objects also build
+with lockdep enabled.
 
-Link: https://lore.kernel.org/20260911221444.1523311-3-ynorov@nvidia.com
+Link: https://lore.kernel.org/20260911221444.1523311-4-ynorov@nvidia.com
 Signed-off-by: Yury Norov <ynorov@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 Cc: Alice Ryhl <aliceryhl@google.com>
@@ -117,101 +121,82 @@ Cc: Liam R. Howlett <liam@infradead.org>
 Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
 ---
 
- include/linux/idr.h                 |    5 ++++-
- tools/testing/radix-tree/idr-test.c |   20 +++++++++++++++-----
- 2 files changed, 19 insertions(+), 6 deletions(-)
+ include/linux/maple_tree.h       |    4 +++-
+ lib/interval_tree_test.c         |    2 +-
+ tools/testing/radix-tree/maple.c |   12 +++++++++---
+ 3 files changed, 13 insertions(+), 5 deletions(-)
 
---- a/include/linux/idr.h~idr-assert-static-storage-for-define_ida
-+++ a/include/linux/idr.h
-@@ -16,6 +16,7 @@
- #include <linux/gfp.h>
- #include <linux/percpu.h>
- #include <linux/cleanup.h>
-+#include <linux/compiler.h>
+--- a/include/linux/maple_tree.h~maple_tree-assert-static-storage-for-define_mtree
++++ a/include/linux/maple_tree.h
+@@ -9,6 +9,7 @@
+  */
  
- struct idr {
- 	struct radix_tree_root	idr_rt;
-@@ -269,7 +270,9 @@ struct ida {
- #define IDA_INIT(name)	{						\
- 	.xa = XARRAY_INIT(name, IDA_INIT_FLAGS)				\
- }
--#define DEFINE_IDA(name)	struct ida name = IDA_INIT(name)
-+#define DEFINE_IDA(name)							\
-+	struct ida name = IDA_INIT(name);					\
+ #include <linux/kernel.h>
++#include <linux/compiler.h>
+ #include <linux/rcupdate.h>
+ #include <linux/spinlock.h>
+ 
+@@ -297,7 +298,8 @@ struct maple_tree {
+ #endif
+ 
+ #define DEFINE_MTREE(name)						\
+-	struct maple_tree name = MTREE_INIT(name, 0)
++	struct maple_tree name = MTREE_INIT(name, 0);		\
 +	ASSERT_STATIC_STORAGE(name)
  
- int ida_alloc_range(struct ida *, unsigned int min, unsigned int max, gfp_t);
- void ida_free(struct ida *, unsigned int id);
---- a/tools/testing/radix-tree/idr-test.c~idr-assert-static-storage-for-define_ida
-+++ a/tools/testing/radix-tree/idr-test.c
-@@ -460,9 +460,11 @@ void ida_dump(struct ida *);
-  */
- void ida_check_nomem(void)
+ #define mtree_lock(mt)		spin_lock((&(mt)->ma_lock))
+ #define mtree_lock_nested(mas, subclass) \
+--- a/lib/interval_tree_test.c~maple_tree-assert-static-storage-for-define_mtree
++++ a/lib/interval_tree_test.c
+@@ -244,7 +244,7 @@ static int span_iteration_check(void)
+ 	unsigned long start, last;
+ 	struct interval_tree_span_iter span, mas_span;
+ 
+-	DEFINE_MTREE(tree);
++	struct maple_tree tree;
+ 
+ 	MA_STATE(mas, &tree, 0, 0);
+ 
+--- a/tools/testing/radix-tree/maple.c~maple_tree-assert-static-storage-for-define_mtree
++++ a/tools/testing/radix-tree/maple.c
+@@ -36022,10 +36022,12 @@ static noinline void __init check_erase_
+ 
+ static noinline void __init check_mtree_dup(struct maple_tree *mt)
  {
--	DEFINE_IDA(ida);
-+	struct ida ida;
- 	int id;
+-	DEFINE_MTREE(new);
++	struct maple_tree new;
+ 	int i, j, ret, count = 0;
+ 	unsigned int rand_seed = 17, rand;
  
-+	ida_init(&ida);
++	mt_init(&new);
 +
- 	id = ida_alloc_min(&ida, 256, GFP_NOWAIT);
- 	IDA_BUG_ON(&ida, id != -ENOMEM);
- 	id = ida_alloc_min(&ida, 1UL << 30, GFP_NOWAIT);
-@@ -475,9 +477,11 @@ void ida_check_nomem(void)
-  */
- void ida_check_conv_user(void)
+ 	/* store a value at [0, 0] */
+ 	mt_init_flags(mt, 0);
+ 	mtree_store_range(mt, 0, 0, xa_mk_value(0), GFP_KERNEL);
+@@ -36319,7 +36321,9 @@ static inline int check_vma_modification
+ void farmer_tests(void)
  {
--	DEFINE_IDA(ida);
-+	struct ida ida;
- 	unsigned long i;
- 
-+	ida_init(&ida);
+ 	struct maple_node *node;
+-	DEFINE_MTREE(tree);
++	struct maple_tree tree;
 +
- 	for (i = 0; i < 1000000; i++) {
- 		int id = ida_alloc(&ida, GFP_NOWAIT);
- 		if (id == -ENOMEM) {
-@@ -496,11 +500,13 @@ void ida_check_conv_user(void)
++	mt_init(&tree);
  
- void ida_check_random(void)
+ 	mt_dump(&tree, mt_dump_dec);
+ 
+@@ -36432,9 +36436,11 @@ static unsigned long get_last_index(stru
+ static void test_spanning_store_regression(void)
  {
--	DEFINE_IDA(ida);
-+	struct ida ida;
- 	DECLARE_BITMAP(bitmap, 2048);
- 	unsigned int i;
- 	time_t s = time(NULL);
+ 	unsigned long from = 0, to = 0;
+-	DEFINE_MTREE(tree);
++	struct maple_tree tree;
+ 	MA_STATE(mas, &tree, 0, 0);
  
-+	ida_init(&ida);
++	mt_init(&tree);
 +
-  repeat:
- 	memset(bitmap, 0, sizeof(bitmap));
- 	for (i = 0; i < 100000; i++) {
-@@ -522,9 +528,11 @@ void ida_check_random(void)
- 
- void ida_alloc_free_test(void)
- {
--	DEFINE_IDA(ida);
-+	struct ida ida;
- 	unsigned long i;
- 
-+	ida_init(&ida);
-+
- 	for (i = 0; i < 10000; i++)
- 		assert(ida_alloc_max(&ida, 20000, GFP_KERNEL) == i);
- 	assert(ida_alloc_range(&ida, 5, 30, GFP_KERNEL) < 0);
-@@ -576,10 +584,12 @@ static void *ida_leak_fn(void *arg)
- 
- void ida_thread_tests(void)
- {
--	DEFINE_IDA(ida);
-+	struct ida ida;
- 	pthread_t threads[20];
- 	int i;
- 
-+	ida_init(&ida);
-+
- 	for (i = 0; i < ARRAY_SIZE(threads); i++)
- 		if (pthread_create(&threads[i], NULL, ida_random_fn, NULL)) {
- 			perror("creating ida thread");
+ 	/*
+ 	 * Build a 3-level tree. We require a parent node below the root node
+ 	 * and 2 leaf nodes under it, so we can span the entirety of the right
 _
 
 Patches currently in -mm which might be from ynorov@nvidia.com are
