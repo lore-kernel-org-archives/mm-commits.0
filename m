@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 626617E0FF
-	for <mm-commits@vger.kernel.org>; Sat, 12 Sep 2026 06:15:43 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A32241EB5FD
+	for <mm-commits@vger.kernel.org>; Sat, 12 Sep 2026 07:24:56 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789193744; cv=none; b=Ne3KOKtQlMjIkVtzys/Szrqy5KMup4HH8ZE2+Fv17IcKcEHPvPtwgcLbQ1o8+uq1fsXNqotPiszdMwXxdWc+SHu1SrEJJA/z+TTZJs9L0f6YAa8MG4EX0X0rPzxYmnz3BlqqzjKU6mAIJrEf9NpWBQF4oj7VigwgAz4r1HL8RWw=
+	t=1789197898; cv=none; b=Hi+5KkEd731NuiDgcKSOH9UuCKecLER0TW54ZH1u0m/TuMPpRwmmYPY1axXLGmiAtdf/UsfmPmsAFQuwhi6ckX+Ur++XDFoh7V831nUMhwqQewTRgLmAm6ZTC8lKVa0uenl2EuigJakgAm1734C+3rnLCMd9qUH1ZyhovlBc2N8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1789193744; c=relaxed/simple;
-	bh=eulFgWSGZ6p/gSUq43AeVgn+hBZXHjb79owpSX4ChrI=;
-	h=Date:To:From:Subject:Message-Id; b=qZ1PCqSkv6EVFoQh+0wVCw+3yzgyIUffQmjVTJWYuNkipyGvyEZEwJ7mNdktKCvjybJbUa/e69vJcBOkwAws06lRvwr3ohzWyGljhyrQmkGc5plGXHco310SrO39FmFjz8n4AYVPNMT7jos1zpU5EONgDQrgJn2y/x5w3uZnpcg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=NPZ71E0N; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1789197898; c=relaxed/simple;
+	bh=5PLU1h7halH7WNtALuKBx8ELoirWXnlQ2tyhT8OLLj8=;
+	h=Date:To:From:Subject:Message-Id; b=Dd/ZLi0uWynDY/RbkNtveqr2blSTCl+sFZ2zQY4Jgj8760YmB2dMoCccANEuQhOZsUnDsBM2bbnU8ujV3HeZ1fY5CSLXaH1Pdti09OOwmF3+5NMKnVEaDFVpfHqYdngWil+yN3hqSVwiVzXfC83LoXs0aZ61wXozJbbXMotEqAY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Q2fsM8+v; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="NPZ71E0N"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C72201F000FF;
-	Sat, 12 Sep 2026 06:15:42 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Q2fsM8+v"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4472A1F000FF;
+	Sat, 12 Sep 2026 07:24:56 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1789193742;
-	bh=H2SXQlR7Sepuw/4cDmMTG2WawT2FDHjeuadV8JWewfY=;
+	d=linux-foundation.org; s=korg; t=1789197896;
+	bh=ImWO0lBftyTBsuCHN9BTcjQcoH7g+P+n09+NkaTzf4g=;
 	h=Date:To:From:Subject;
-	b=NPZ71E0Ni+6MX5I6h+F5BNuaG3bdazSNJd41diHPQbfGP9P7y1pBwJLtxjKTPQZ32
-	 nzmAmEsQiHRJrvNTbdDjhaw6rXxNLin7uQmSum1Mod10QlfxsxsRFphrb4eMRkxYr+
-	 2brIrgRV0AgyLSB5dBb8QzWxS/vSxhWeuslB0PHY=
-Date: Fri, 11 Sep 2026 23:15:42 -0700
-To: mm-commits@vger.kernel.org,yury.norov@gmail.com,willy@infradead.org,sparse@chrisli.org,ljs@kernel.org,liam@infradead.org,david@kernel.org,andrewjballance@gmail.com,aliceryhl@google.com,yeoreum.yun@arm.com,akpm@linux-foundation.org
+	b=Q2fsM8+vuFdAL6pIE2KHGBu/do7HsaKt1MUzAmL0XD3TLfNQbMrb+9+uRZk/9ZDDJ
+	 tMXzVbBRXsdFVcRBE3uaVmtSoiKthEvgrwJqtYGwy5fu0QWIWfRiSXTJbfOAdHnLly
+	 DoW4NgU0O3FsRyY8w28ViMca4yWbNs9pJV3ZdrME=
+Date: Sat, 12 Sep 2026 00:24:55 -0700
+To: mm-commits@vger.kernel.org,willy@infradead.org,vbabka@kernel.org,usama.arif@linux.dev,pfalcato@suse.de,paulmck@kernel.org,ljs@kernel.org,liam@infradead.org,jannh@google.com,david@kernel.org,surenb@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + kselftest-mm-remove-exclusion-of-building-soft-dirty-test-in-arm64.patch added to mm-new branch
-Message-Id: <20260912061542.C72201F000FF@smtp.kernel.org>
+Subject: + proc-task_mmu-remove-unnecessary-helpers.patch added to mm-new branch
+Message-Id: <20260912072456.4472A1F000FF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: kselftest: mm: remove exclusion of building soft-dirty test in arm64
+     Subject: proc/task_mmu: remove unnecessary helpers
 has been added to the -mm mm-new branch.  Its filename is
-     kselftest-mm-remove-exclusion-of-building-soft-dirty-test-in-arm64.patch
+     proc-task_mmu-remove-unnecessary-helpers.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kselftest-mm-remove-exclusion-of-building-soft-dirty-test-in-arm64.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/proc-task_mmu-remove-unnecessary-helpers.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -69,66 +69,179 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Yeoreum Yun <yeoreum.yun@arm.com>
-Subject: kselftest: mm: remove exclusion of building soft-dirty test in arm64
-Date: Fri, 11 Sep 2026 22:06:11 +0100
+From: Suren Baghdasaryan <surenb@google.com>
+Subject: proc/task_mmu: remove unnecessary helpers
+Date: Fri, 11 Sep 2026 12:41:39 -0700
 
-Since commit 0389c305ef56 (“selftests/mm: skip soft-dirty tests when
-CONFIG_MEM_SOFT_DIRTY is disabled”), the soft-dirty test is skipped when
-soft-dirty is not supported.
+Patch series "read proc/pid/smaps_rollup under per-vma lock", v4.
 
-There is therefore no reason to exclude the test from being built on
-arm64.  Remove the arm64-specific exclusion.
+proc/pid/smaps_rollup can be read using the combination of RCU and VMA
+read locks, similar to proc/pid/{maps|smaps|numa_maps}.  RCU is required
+to safely traverse the VMA tree and VMA lock stabilizes the VMA being
+processed and the pagetable walk.  Note that we have to keep the logic to
+drop mmap_lock on contention because even when using per-VMA locks we
+might have to fall back to holding the mmap_lock.
 
-Link: https://lore.kernel.org/20260911210611.4001419-1-yeoreum.yun@arm.com
-Signed-off-by: Yeoreum Yun <yeoreum.yun@arm.com>
+The first 5 patches are cleanups making later change simpler.  The main
+change is in patch 6.  Patch 7 extends existing proc-maps-race tearing
+test to verify smaps_rollup content.
+
+
+This patch (of 7):
+
+When per-vma locks were behind a config option, a number of helper
+functions were needed to simplify the locking code.  Now that these locks
+are universally available, we can do a little cleanup.  Remove
+lock_vma_range(), unlock_vma_range(), query_vma_setup(),
+query_vma_teardown() helpers.
+
+No functional change intended.
+
+Link: https://lore.kernel.org/20260911194145.1781926-1-surenb@google.com
+Link: https://lore.kernel.org/20260911194145.1781926-2-surenb@google.com
+Signed-off-by: Suren Baghdasaryan <surenb@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Suggested-by: David Hildenbrand (Arm) <david@kernel.org>
+Reviewed-by: Liam R. Howlett (Oracle) <liam@infradead.org>
+Reviewed-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
+Acked-by: Usama Arif <usama.arif@linux.dev>
 Acked-by: David Hildenbrand (Arm) <david@kernel.org>
-Acked-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
-Cc: Alice Ryhl <aliceryhl@google.com>
-Cc: Andrew Ballance <andrewjballance@gmail.com>
-Cc: Christopher Li <sparse@chrisli.org>
-Cc: Liam R. Howlett <liam@infradead.org>
+Cc: Jann Horn <jannh@google.com>
 Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Yury Norov (NVIDIA) <yury.norov@gmail.com>
+Cc: "Paul E . McKenney" <paulmck@kernel.org>
+Cc: Pedro Falcato <pfalcato@suse.de>
+Cc: Vlastimil Babka <vbabka@kernel.org>
 ---
 
- tools/testing/selftests/mm/Makefile       |    3 ---
- tools/testing/selftests/mm/run_vmtests.sh |    5 +----
- 2 files changed, 1 insertion(+), 7 deletions(-)
+ fs/proc/task_mmu.c |   67 ++++++++++---------------------------------
+ 1 file changed, 17 insertions(+), 50 deletions(-)
 
---- a/tools/testing/selftests/mm/Makefile~kselftest-mm-remove-exclusion-of-building-soft-dirty-test-in-arm64
-+++ a/tools/testing/selftests/mm/Makefile
-@@ -104,10 +104,7 @@ TEST_GEN_FILES += guard-regions
- TEST_GEN_FILES += merge
- TEST_GEN_FILES += rmap
- TEST_GEN_FILES += folio_split_race_test
+--- a/fs/proc/task_mmu.c~proc-task_mmu-remove-unnecessary-helpers
++++ a/fs/proc/task_mmu.c
+@@ -160,25 +160,6 @@ static void unlock_ctx_vma(struct proc_m
+ 	}
+ }
+ 
+-static inline bool lock_vma_range(struct seq_file *m,
+-				  struct proc_maps_locking_ctx *lock_ctx)
+-{
+-	rcu_read_lock();
+-	reset_lock_ctx(lock_ctx);
 -
--ifneq ($(ARCH),arm64)
- TEST_GEN_FILES += soft-dirty
--endif
+-	return true;
+-}
+-
+-static inline void unlock_vma_range(struct proc_maps_locking_ctx *lock_ctx)
+-{
+-	if (lock_ctx->mmap_locked) {
+-		unlock_ctx_mm(lock_ctx);
+-	} else {
+-		unlock_ctx_vma(lock_ctx);
+-		rcu_read_unlock();
+-	}
+-}
+-
+ static struct vm_area_struct *get_next_vma(struct proc_maps_private *priv,
+ 					   loff_t last_pos)
+ {
+@@ -286,13 +267,8 @@ static void *m_start(struct seq_file *m,
+ 		return NULL;
+ 	}
  
- ifeq ($(ARCH),x86_64)
- CAN_BUILD_I386 := $(shell ./../x86/check_cc.sh "$(CC)" ../x86/trivial_32bit_program.c -m32)
---- a/tools/testing/selftests/mm/run_vmtests.sh~kselftest-mm-remove-exclusion-of-building-soft-dirty-test-in-arm64
-+++ a/tools/testing/selftests/mm/run_vmtests.sh
-@@ -408,10 +408,7 @@ then
- 	CATEGORY="pkey" run_test ./protection_keys_64
- fi
+-	if (!lock_vma_range(m, lock_ctx)) {
+-		mmput(mm);
+-		put_task_struct(priv->task);
+-		priv->task = NULL;
+-		return ERR_PTR(-EINTR);
+-	}
+-
++	rcu_read_lock();
++	reset_lock_ctx(lock_ctx);
+ 	/*
+ 	 * Reset current position if last_addr was set before
+ 	 * and it's not a sentinel.
+@@ -325,7 +301,12 @@ static void m_stop(struct seq_file *m, v
+ 		return;
  
--if [ -x ./soft-dirty ]
--then
--	CATEGORY="soft_dirty" run_test ./soft-dirty
--fi
-+CATEGORY="soft_dirty" run_test ./soft-dirty
+ 	release_task_mempolicy(priv);
+-	unlock_vma_range(&priv->lock_ctx);
++	if (priv->lock_ctx.mmap_locked) {
++		unlock_ctx_mm(&priv->lock_ctx);
++	} else {
++		unlock_ctx_vma(&priv->lock_ctx);
++		rcu_read_unlock();
++	}
+ 	mmput(mm);
+ 	put_task_struct(priv->task);
+ 	priv->task = NULL;
+@@ -518,21 +499,6 @@ static int pid_maps_open(struct inode *i
+ 		PROCMAP_QUERY_VMA_FLAGS				\
+ )
  
- CATEGORY="pagemap" run_test ./pagemap_ioctl
+-static int query_vma_setup(struct proc_maps_locking_ctx *lock_ctx)
+-{
+-	reset_lock_ctx(lock_ctx);
+-
+-	return 0;
+-}
+-
+-static void query_vma_teardown(struct proc_maps_locking_ctx *lock_ctx)
+-{
+-	if (lock_ctx->mmap_locked)
+-		unlock_ctx_mm(lock_ctx);
+-	else
+-		unlock_ctx_vma(lock_ctx);
+-}
+-
+ static struct vm_area_struct *query_vma_find_by_addr(struct proc_maps_locking_ctx *lock_ctx,
+ 						     unsigned long addr)
+ {
+@@ -653,12 +619,7 @@ static int do_procmap_query(struct mm_st
+ 	if (!mm || !mmget_not_zero(mm))
+ 		return -ESRCH;
  
+-	err = query_vma_setup(&lock_ctx);
+-	if (err) {
+-		mmput(mm);
+-		return err;
+-	}
+-
++	reset_lock_ctx(&lock_ctx);
+ 	vma = query_matching_vma(&lock_ctx, karg.query_addr, karg.query_flags);
+ 	if (IS_ERR(vma)) {
+ 		err = PTR_ERR(vma);
+@@ -732,7 +693,10 @@ static int do_procmap_query(struct mm_st
+ 		vm_file = get_file(vma->vm_file);
+ 
+ 	/* unlock vma or mmap_lock, and put mm_struct before copying data to user */
+-	query_vma_teardown(&lock_ctx);
++	if (lock_ctx.mmap_locked)
++		unlock_ctx_mm(&lock_ctx);
++	else
++		unlock_ctx_vma(&lock_ctx);
+ 	mmput(mm);
+ 
+ 	if (karg.build_id_size) {
+@@ -773,7 +737,10 @@ static int do_procmap_query(struct mm_st
+ 	return 0;
+ 
+ out:
+-	query_vma_teardown(&lock_ctx);
++	if (lock_ctx.mmap_locked)
++		unlock_ctx_mm(&lock_ctx);
++	else
++		unlock_ctx_vma(&lock_ctx);
+ 	mmput(mm);
+ out_file:
+ 	if (vm_file)
 _
 
-Patches currently in -mm which might be from yeoreum.yun@arm.com are
+Patches currently in -mm which might be from surenb@google.com are
 
-kselftest-mm-fix-potential-failure-for-merged-vma-in-guard-regions.patch
-kselftest-mm-remove-exclusion-of-building-soft-dirty-test-in-arm64.patch
+proc-task_mmu-remove-unnecessary-helpers.patch
+proc-task_mmu-remove-unnecessary-inlines-in-function-definitions.patch
+proc-task_mmu-clarify-shmem-mapping-walk-conditions-in-smap_gather_stats.patch
+proc-task_mmu-remove-special-casing-of-smap_gather_stats-start-parameter.patch
+proc-task_mmu-change-proc_get_vma-to-stop-returning-gate-vma-at-the-end.patch
+proc-task_mmu-read-proc-pid-smaps_rollup-under-per-vma-lock.patch
+selftests-proc-add-proc-pid-smaps_rollup-tearing-tests.patch
 
