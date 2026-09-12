@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D710E376A18
-	for <mm-commits@vger.kernel.org>; Sat, 12 Sep 2026 05:29:10 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EB3D82DC792
+	for <mm-commits@vger.kernel.org>; Sat, 12 Sep 2026 05:29:13 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789190952; cv=none; b=g9JNwTuz2whvMgunaJPfHMc5IGnAl6kDgpCWdnb0c9KL+JJajyyNbnV+0GAIkZxHcYaT0AVye6fd7DjKbB53Y6/7UKCKrRay2uckJqwTBPpBkLzc0cqvsu5l5+p1hsaR6DcPrQjdbBeH+S3sxQcJgPg3W72nJTt/Nr7FmSNjl9A=
+	t=1789190955; cv=none; b=AsZw5TjtPm7GxeAfzYCimH/L9ln9JW7PBt3pXQlJdzTLMZ7n57c/NbiVJkA+KFxi8WwToBCN8euRRqvru5BvoBh7bv08/I6q7jLZ9xfTuvXVzF/hxAD0A2AwRH6B628Vxv04kJTa6PI1ItzMQhF9PwjAAC5xm1Gj6M3aor8DIe8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1789190952; c=relaxed/simple;
-	bh=ZA8yrS1lJQwrxXQmTvUuKyYG8Akf53HiyfUK4ms+PaI=;
-	h=Date:To:From:Subject:Message-Id; b=dIPEGdyPGWnuPgVnA0H6asawd6cY9MeieUSKDgRcDWxQ2Z0DZOv3kFBSX1nSbTxCAaKpGS1badt5rIV6R160glJUSeGpPBSGD6Itkt3s3gY77v4FJuZKuDWCmym3r8J/B7m8otJTn96MDnevn09ufe+on4Tc4MLGJY95nT+ZJEo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=zk4HkXvx; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1789190955; c=relaxed/simple;
+	bh=w6m2kCqy1XFHivzIx2sEC/6eS4LCRUeqa9/tGFqoEjI=;
+	h=Date:To:From:Subject:Message-Id; b=rNX52dlFFBvUDbUk94yzkTJ6cAevyYdzwi7zmzDu6+4JYgUaOxrKhHtwQdhkvqTSGyIA22IX1v2KuyH6KUrt5bcCd3+ot0bBXZUny9DO0CqCKdMoBhqyHWFezmCAUEwtm79Q7I8VJkRW016TkSz/kFAE1FVCrseq8S5coj7sWoM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=FaR2Qp3N; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="zk4HkXvx"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2CC071F000FF;
-	Sat, 12 Sep 2026 05:29:10 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="FaR2Qp3N"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 323A21F000FF;
+	Sat, 12 Sep 2026 05:29:13 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1789190950;
-	bh=TjJQfBoYcTIEaFgMd61dKau3r3L8a83EFs16wJ84z5E=;
+	d=linux-foundation.org; s=korg; t=1789190953;
+	bh=NP5Mp7n7+Wx3BT4YwCbOSj2tHd+n6AbvGBDvGr22TeM=;
 	h=Date:To:From:Subject;
-	b=zk4HkXvxbZqW/Ww3Y8/vmTApio5Tro7p730dZP0J0ybelbZI6Aq98lGcU3S+M8zoq
-	 Ep8/OMv9FNfKxhFTH+3rHFeexp3zeEsXYTgzNpadSkwOppYP2Wd2zmoB63tsH0va49
-	 1qMOqgc59yOC873GhtkhnMaOz5Z1dy4FiPLpPWlk=
-Date: Fri, 11 Sep 2026 22:29:09 -0700
+	b=FaR2Qp3NqJrORo/V+yTkgO6lf/15hTAB6kIPdRAE/DOCq4d5yBrqYjy6Ge4boj92A
+	 auy4l3/Mu9IrmD0k2OtRs1+qKlkiPf5xrBD+Bb2EZ69TtIUQpH58qwr3UdWszulF6Z
+	 07U37pq+PzxLCc7wJ68Ewy58SGEK63jbeWn8qd8A=
+Date: Fri, 11 Sep 2026 22:29:12 -0700
 To: mm-commits@vger.kernel.org,ziy@nvidia.com,vbabka@kernel.org,surenb@google.com,rppt@kernel.org,mhocko@suse.com,ljs@kernel.org,liam@infradead.org,hannes@cmpxchg.org,david@kernel.org,brendan.jackman@linux.dev,balbirs@nvidia.com,gourry@gourry.net,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-refactor-find_next_best_node-to-find_next_best_node_in.patch added to mm-new branch
-Message-Id: <20260912052910.2CC071F000FF@smtp.kernel.org>
+Subject: + mm-page_alloc-refactor-build_node_zonelist-out-of-build_zonelists.patch added to mm-new branch
+Message-Id: <20260912052913.323A21F000FF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: refactor find_next_best_node to find_next_best_node_in
+     Subject: mm/page_alloc: refactor build_node_zonelist() out of build_zonelists()
 has been added to the -mm mm-new branch.  Its filename is
-     mm-refactor-find_next_best_node-to-find_next_best_node_in.patch
+     mm-page_alloc-refactor-build_node_zonelist-out-of-build_zonelists.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-refactor-find_next_best_node-to-find_next_best_node_in.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-page_alloc-refactor-build_node_zonelist-out-of-build_zonelists.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,51 +70,24 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Gregory Price <gourry@gourry.net>
-Subject: mm: refactor find_next_best_node to find_next_best_node_in
-Date: Fri, 11 Sep 2026 23:04:23 -0400
+Subject: mm/page_alloc: refactor build_node_zonelist() out of build_zonelists()
+Date: Fri, 11 Sep 2026 23:04:24 -0400
 
-Patch series "mm: refactor zonelist constructors and iterators", v2.
+Extract per-node fallback-list construction into build_node_zonelist(). 
+Build each selected node directly into the destination zonelist so no
+intermediate node_order array or node count is needed.  Print the fallback
+order as each node is added.
 
-find_next_best_node() picks the next-closest node when building a fallback
-list, and hardcodes N_MEMORY as the set it picks from.
+This lets us build new zonelists from candidate nodemasks instead of just
+the default N_MEMORY node state list.
 
-Refactor it into find_next_best_node_in(), which takes the candidate set
-explicitly.
+No functional change: build_zonelists() builds and prints the same
+FALLBACK list over N_MEMORY with node_load updates as before.
 
-This makes the existing behaviour explicit at both mm/memory-tiers.c call
-sites - they select demotion targets in fallback order from N_MEMORY - and
-lets callers narrow that set.
-
-Then extract the per-node construction loop out of build_zonelists() into
-build_node_zonelist(),i parameterised on the candidate nodemask and
-destination zonelist index.
-
-Together these allow a zonelist to be built over a candidate set other
-than N_MEMORY, into a zonelist other than FALLBACK, and iterated in
-fallback order over a caller-defined subset.
-
-These are prerequisites for generating a private node zonelist (nodes
-unreachable by default), but are otherwise general improvements to the
-existing interfaces so I'm proposing them separately.
-
-No functional change intended - purely refactor commits.
-
-
-This patch (of 2):
-
-find_next_best_node() picks the next-closest node for a fallback list from
-the full N_MEMORY set.  Refactor it into find_next_best_node_in(), which
-takes an explicit candidates nodemask.
-
-This enables building fallback lists with non-N_MEMORY candidates.
-
-No functional change: every caller still selects from N_MEMORY.
-
-Link: https://lore.kernel.org/20260912030424.2889731-2-gourry@gourry.net
+Link: https://lore.kernel.org/20260912030424.2889731-3-gourry@gourry.net
 Signed-off-by: Gregory Price <gourry@gourry.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Reviewed-by: Vlastimil Babka (SUSE) <vbabka@kernel.org>
-Acked-by: Balbir Singh <balbirs@nvidia.com>
+Cc: Balbir Singh <balbirs@nvidia.com>
 Cc: Brendan Jackman <brendan.jackman@linux.dev>
 Cc: David Hildenbrand <david@kernel.org>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
@@ -123,115 +96,110 @@ Cc: Lorenzo Stoakes <ljs@kernel.org>
 Cc: Michal Hocko <mhocko@suse.com>
 Cc: Mike Rapoport <rppt@kernel.org>
 Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Vlastimil Babka (SUSE) <vbabka@kernel.org>
 Cc: Zi Yan <ziy@nvidia.com>
 ---
 
- mm/internal.h     |    6 ++++--
- mm/memory-tiers.c |    7 ++++---
- mm/page_alloc.c   |   13 ++++++++-----
- 3 files changed, 16 insertions(+), 10 deletions(-)
+ mm/page_alloc.c |   63 ++++++++++++++++------------------------------
+ 1 file changed, 23 insertions(+), 40 deletions(-)
 
---- a/mm/internal.h~mm-refactor-find_next_best_node-to-find_next_best_node_in
-+++ a/mm/internal.h
-@@ -1124,7 +1124,8 @@ extern int node_reclaim_mode;
- 
- extern unsigned long node_reclaim(struct pglist_data *pgdat,
- 				  gfp_t gfp_mask, unsigned int order);
--extern int find_next_best_node(int node, nodemask_t *used_node_mask);
-+int find_next_best_node_in(int node, nodemask_t *used_node_mask,
-+		const nodemask_t *candidates);
- #else
- #define node_reclaim_mode 0
- 
-@@ -1133,7 +1134,8 @@ static inline unsigned long node_reclaim
- {
- 	return 0;
- }
--static inline int find_next_best_node(int node, nodemask_t *used_node_mask)
-+static inline int find_next_best_node_in(int node, nodemask_t *used_node_mask,
-+		const nodemask_t *candidates)
- {
- 	return NUMA_NO_NODE;
- }
---- a/mm/memory-tiers.c~mm-refactor-find_next_best_node-to-find_next_best_node_in
-+++ a/mm/memory-tiers.c
-@@ -370,7 +370,7 @@ int next_demotion_node(int node, const n
- 	 * closest demotion target.
- 	 */
- 	nodes_complement(mask, *allowed_mask);
--	return find_next_best_node(node, &mask);
-+	return find_next_best_node_in(node, &mask, &node_states[N_MEMORY]);
- }
- 
- static void disable_all_demotion_targets(void)
-@@ -450,7 +450,7 @@ static void establish_demotion_targets(v
- 		memtier = list_next_entry(memtier, list);
- 		tier_nodes = get_memtier_nodemask(memtier);
- 		/*
--		 * find_next_best_node, use 'used' nodemask as a skip list.
-+		 * find_next_best_node_in, use 'used' nodemask as a skip list.
- 		 * Add all memory nodes except the selected memory tier
- 		 * nodelist to skip list so that we find the best node from the
- 		 * memtier nodelist.
-@@ -463,7 +463,8 @@ static void establish_demotion_targets(v
- 		 * in the preferred mask when allocating pages during demotion.
- 		 */
- 		do {
--			target = find_next_best_node(node, &tier_nodes);
-+			target = find_next_best_node_in(node, &tier_nodes,
-+							&node_states[N_MEMORY]);
- 			if (target == NUMA_NO_NODE)
- 				break;
- 
---- a/mm/page_alloc.c~mm-refactor-find_next_best_node-to-find_next_best_node_in
+--- a/mm/page_alloc.c~mm-page_alloc-refactor-build_node_zonelist-out-of-build_zonelists
 +++ a/mm/page_alloc.c
-@@ -5793,9 +5793,10 @@ static int numa_zonelist_order_handler(c
- static int node_load[MAX_NUMNODES];
+@@ -5858,31 +5858,6 @@ int find_next_best_node_in(int node, nod
  
- /**
-- * find_next_best_node - find the next node that should appear in a given node's fallback list
-+ * find_next_best_node_in - find the next node that should appear in a given node's fallback list
-  * @node: node whose fallback list we're appending
-  * @used_node_mask: nodemask_t of already used nodes
-+ * @candidates: nodemask_t of nodes eligible for selection
-  *
-  * We use a number of factors to determine which is the next node that should
-  * appear on a given node's fallback list.  The node should not have appeared
-@@ -5807,7 +5808,8 @@ static int node_load[MAX_NUMNODES];
-  *
-  * Return: node id of the found node or %NUMA_NO_NODE if no node is found.
+ 
+ /*
+- * Build zonelists ordered by node and zones within node.
+- * This results in maximum locality--normal zone overflows into local
+- * DMA zone, if any--but risks exhausting DMA zone.
+- */
+-static void build_zonelists_in_node_order(pg_data_t *pgdat, int *node_order,
+-		unsigned nr_nodes)
+-{
+-	struct zoneref *zonerefs;
+-	int i;
+-
+-	zonerefs = pgdat->node_zonelists[ZONELIST_FALLBACK]._zonerefs;
+-
+-	for (i = 0; i < nr_nodes; i++) {
+-		int nr_zones;
+-
+-		pg_data_t *node = NODE_DATA(node_order[i]);
+-
+-		nr_zones = build_zonerefs_node(node, zonerefs);
+-		zonerefs += nr_zones;
+-	}
+-	zonerefs->zone = NULL;
+-	zonerefs->zone_idx = 0;
+-}
+-
+-/*
+  * Build __GFP_THISNODE zonelists
   */
--int find_next_best_node(int node, nodemask_t *used_node_mask)
-+int find_next_best_node_in(int node, nodemask_t *used_node_mask,
-+			   const nodemask_t *candidates)
+ static void build_thisnode_zonelists(pg_data_t *pgdat)
+@@ -5897,20 +5872,24 @@ static void build_thisnode_zonelists(pg_
+ 	zonerefs->zone_idx = 0;
+ }
+ 
+-static void build_zonelists(pg_data_t *pgdat)
++/*
++ * Build one zonelist ordered by node and zones within node. This results in
++ * maximum locality--normal zone overflows into local DMA zone, if any--but
++ * risks exhausting DMA zone.
++ */
++static void build_node_zonelist(pg_data_t *pgdat, const nodemask_t *candidates,
++				int zlidx)
  {
- 	int n, val;
- 	int min_val = INT_MAX;
-@@ -5817,12 +5819,12 @@ int find_next_best_node(int node, nodema
- 	 * Use the local node if we haven't already, but for memoryless local
- 	 * node, we should skip it and fall back to other nodes.
- 	 */
--	if (!node_isset(node, *used_node_mask) && node_state(node, N_MEMORY)) {
-+	if (!node_isset(node, *used_node_mask) && node_isset(node, *candidates)) {
- 		node_set(node, *used_node_mask);
- 		return node;
- 	}
+-	static int node_order[MAX_NUMNODES];
+-	int node, nr_nodes = 0;
++	struct zoneref *zonerefs = pgdat->node_zonelists[zlidx]._zonerefs;
+ 	nodemask_t used_mask = NODE_MASK_NONE;
+-	int local_node, prev_node;
++	int local_node = pgdat->node_id;
++	int prev_node = local_node;
++	int node;
  
--	for_each_node_state(n, N_MEMORY) {
-+	for_each_node_mask(n, *candidates) {
+-	/* NUMA-aware ordering of nodes */
+-	local_node = pgdat->node_id;
+-	prev_node = local_node;
++	pr_info("Fallback order for Node %d: ", local_node);
  
- 		/* Don't want a node to appear more than once */
- 		if (node_isset(n, *used_node_mask))
-@@ -5907,7 +5909,8 @@ static void build_zonelists(pg_data_t *p
- 	prev_node = local_node;
- 
- 	memset(node_order, 0, sizeof(node_order));
--	while ((node = find_next_best_node(local_node, &used_mask)) >= 0) {
-+	while ((node = find_next_best_node_in(local_node, &used_mask,
-+					      &node_states[N_MEMORY])) >= 0) {
+-	memset(node_order, 0, sizeof(node_order));
+ 	while ((node = find_next_best_node_in(local_node, &used_mask,
+-					      &node_states[N_MEMORY])) >= 0) {
++					      candidates)) >= 0) {
  		/*
  		 * We don't want to pressure a particular node.
  		 * So adding penalty to the first node in same
+@@ -5920,18 +5899,22 @@ static void build_zonelists(pg_data_t *p
+ 		    node_distance(local_node, prev_node))
+ 			node_load[node] += 1;
+ 
+-		node_order[nr_nodes++] = node;
++		zonerefs += build_zonerefs_node(NODE_DATA(node), zonerefs);
++		pr_cont("%d ", node);
+ 		prev_node = node;
+ 	}
+ 
+-	build_zonelists_in_node_order(pgdat, node_order, nr_nodes);
+-	build_thisnode_zonelists(pgdat);
+-	pr_info("Fallback order for Node %d: ", local_node);
+-	for (node = 0; node < nr_nodes; node++)
+-		pr_cont("%d ", node_order[node]);
++	zonerefs->zone = NULL;
++	zonerefs->zone_idx = 0;
+ 	pr_cont("\n");
+ }
+ 
++static void build_zonelists(pg_data_t *pgdat)
++{
++	build_node_zonelist(pgdat, &node_states[N_MEMORY], ZONELIST_FALLBACK);
++	build_thisnode_zonelists(pgdat);
++}
++
+ #ifdef CONFIG_HAVE_MEMORYLESS_NODES
+ /*
+  * Return node id of node used for "local" allocations.
 _
 
 Patches currently in -mm which might be from gourry@gourry.net are
