@@ -1,116 +1,132 @@
-Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.8])
+Received: from casper.infradead.org (casper.infradead.org [90.155.50.34])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 46617478E3E
-	for <mm-commits@vger.kernel.org>; Sat, 12 Sep 2026 12:40:59 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.8
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CF13A3624AE;
+	Sun, 13 Sep 2026 02:30:19 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=90.155.50.34
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789216861; cv=none; b=NIxI1Hsh5AHd/QaaqadKjI8dnzpPz8nJFaR46miZCkBu++CKkV4qcHUMXpr29yrfWMwPXZhrNM62pPvzGW8Wdh6hf1i1Yf4cQGvXHq/oQOKul9M0/coZsFa2Y65VQW6UkxYKPjtMJOBY9+CxrztO0/enNpZq4/e6EB/XhDW4cG8=
+	t=1789266624; cv=none; b=CHrOGTYjAI4yQi886RJiKIFXpNSBr/thApBbJTackNPp4ln3quAejtKmW01YcySHoCNbYgwbF56rWCCgWmaHrk8xViVFYEUqZu75WelODs27/RWH89HvDMPYGnOVzegMXWTX2lLucIr08nd2rSdvnI23m44HsFyVCpc1loYhEG8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1789216861; c=relaxed/simple;
-	bh=7lectQIPGXCgCOBPrkZyTB4t+CqQCOILs57H2YCieVM=;
-	h=Date:From:To:Cc:Subject:Message-ID; b=Utlk6bF+jlEU0GD7WKIQOSWXMDIfcHL0VGTkPtmW2W7564EJNEs+J8/kiZ/UyrKzr/NFTdQMhlA13V/dXTtONDu6x/YsV0P4VRme1EzBugl18GW4Y4xAQSS6hXbwr45HXcu4/oFNq/DDbi5t7hAWakoeWnpH1GxTzJO9oCXt8WQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=DpkIGfIU; arc=none smtp.client-ip=192.198.163.8
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
+	s=arc-20240116; t=1789266624; c=relaxed/simple;
+	bh=ffrHo7KBlcbUcbaxpYn2M3wwjPBUNVivSsESVeyPPQo=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=LvmBpbk5obp9f9y9LKsLuR+Y5EqqHU+Krse3knL164tqKm4ZSTuC16sFdBqk864EO005iUw8m5vVs275+9Qt5ZVewhC2+jqMXhYoXOS6xompxGb+whVOrvA03a57N9ZM/Y9NixAlW326UKbLuvJEVL847w2M9QbfThCiTakjNAY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=infradead.org; spf=pass smtp.mailfrom=infradead.org; dkim=pass (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b=L5C+khZ0; arc=none smtp.client-ip=90.155.50.34
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=infradead.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=infradead.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="DpkIGfIU"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1789216859; x=1820752859;
-  h=date:from:to:cc:subject:message-id;
-  bh=7lectQIPGXCgCOBPrkZyTB4t+CqQCOILs57H2YCieVM=;
-  b=DpkIGfIUxtrNAEzsR09tU6QJzq65JgJjsFaeoNgDtTdlW8Xw/nyWSDOk
-   18iz74IzPYF5YS9TQIREyr6zXQbEyBNE4ArT4OiDsgx20PT254/CsOjHk
-   jr/sWoQKHXCBkAplIEhbms0GTqFlXriw9A8d/CexP4go0Bz6x1vRtHkwV
-   BsW0cB2nhFcLF+RsmdgrXTxSY6OPfkSDJTqsRL+dXamS21dfhLOxhyW3N
-   7pZGtRplWRuH4slolxygqxSsP0c4vJZ3cAXvCbse0UaLlKKRq1ILuX4qd
-   CqtxTZ4VHWghGB0abYdLg3/YdvGq2EHS4BAmQnls42GCFmy6JEWpyV7TY
-   A==;
-X-CSE-ConnectionGUID: amVC0TcJSz+8yspKiRqH5A==
-X-CSE-MsgGUID: 9CwMAt3YSdGPxeZw5gRYbA==
-X-IronPort-AV: E=McAfee;i="6800,10657,11902"; a="107167700"
-X-IronPort-AV: E=Sophos;i="6.27,99,1787036400"; 
-   d="scan'208";a="107167700"
-Received: from fmviesa010.fm.intel.com ([10.60.135.150])
-  by fmvoesa102.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 12 Sep 2026 05:40:58 -0700
-X-CSE-ConnectionGUID: R+f6GkJhSQyCkNeJ8fuaOQ==
-X-CSE-MsgGUID: fTuW5ZLiQf2bOazhZPgjdQ==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="6.27,99,1787036400"; 
-   d="scan'208";a="268485128"
-Received: from igk-lkp-server01.igk.intel.com (HELO 2232cf45ba3c) ([10.211.93.152])
-  by fmviesa010.fm.intel.com with ESMTP; 12 Sep 2026 05:40:56 -0700
-Received: from kbuild by 2232cf45ba3c with local (Exim 4.98.2)
-	(envelope-from <lkp@intel.com>)
-	id 1x5N2M-0000000016B-0vdA;
-	Sat, 12 Sep 2026 12:40:54 +0000
-Date: Sat, 12 Sep 2026 14:39:55 +0200
-From: kernel test robot <lkp@intel.com>
-To: Suren Baghdasaryan <surenb@google.com>
-Cc: oe-kbuild-all@lists.linux.dev, David Hildenbrand <david@kernel.org>,
- Andrew Morton <akpm@linux-foundation.org>,
- Linux Memory Management List <linux-mm@kvack.org>,
- mm-commits@vger.kernel.org,
- "Liam R. Howlett (Oracle)" <liam@infradead.org>,
- "Lorenzo Stoakes (ARM)" <ljs@kernel.org>
-Subject: [akpm-mm:mm-new 439/459] fs/proc/task_mmu.c:205:13: warning:
- 'reacquire_rcu' defined but not used
-Message-ID: <202609121422.hkKWuy7K-lkp@intel.com>
-User-Agent: s-nail v14.9.25
+	dkim=pass (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b="L5C+khZ0"
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+	d=infradead.org; s=casper.20170209; h=In-Reply-To:Content-Type:MIME-Version:
+	References:Message-ID:Subject:Cc:To:From:Date:Sender:Reply-To:
+	Content-Transfer-Encoding:Content-ID:Content-Description;
+	bh=9dTBsiwJfktNL2QsBuec8A3PSDJVNgal1A3WSKl12Yo=; b=L5C+khZ08uNISAzw9Q0NecT8GL
+	wHfFOe16HB2b54Dta8Jp06P46HzMyjLNZRbAk3auDIaSA2WSGPHR/8lWh+9UkC0VI8nh5JEiokNFh
+	ZL+NPkf34hL09xtWoyLQyBAxrcKLD+W38ag25levzioLEVrteT0VW9bab26nVeCU8dZg2sd2y6DW+
+	mYiSiEgrFVQmQaljYqi4WRRbj1egnnbBIycHJI+pkxQhUbztV/3HlEP4AFgMCo157HSPklEVPYLZd
+	QiYbJVY8Mvvh+pyCsUJogtKV8UtDBU1CU/rbqTC0rzk4gd/zj+2FJBflQgrUFAjE7DKD6P02WVziK
+	E7rr3PkA==;
+Received: from willy by casper.infradead.org with local (Exim 4.99.1 #2 (Red Hat Linux))
+	id 1x5Zyr-00000003Fml-1gT2;
+	Sun, 13 Sep 2026 02:30:09 +0000
+Date: Sun, 13 Sep 2026 03:30:09 +0100
+From: Matthew Wilcox <willy@infradead.org>
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: mm-commits@vger.kernel.org, ziy@nvidia.com, vbabka@suse.cz,
+	stable@vger.kernel.org, ritesh.list@gmail.com, mhocko@suse.com,
+	hch@lst.de, hannes@cmpxchg.org, dgc@kernel.org, david@redhat.com,
+	dipiets@amazon.it
+Subject: Re: +
+ mm-page_alloc-avoid-direct-compaction-for-costly-__gfp_noretry-allocations.patch
+ added to mm-hotfixes-unstable branch
+Message-ID: <aqYKsTHkyJXCyh_-@casper.infradead.org>
+References: <20260911163243.808DF1F000FF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20260911163243.808DF1F000FF@smtp.kernel.org>
 
-tree:   https://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm.git mm-new
-head:   383fc05d4650b021f3c17e36a145106dcc61a294
-commit: 2a61a4b80dc01581dc9f6935eedefbd596e77409 [439/459] proc/task_mmu: remove unnecessary inlines in function definitions
-config: openrisc-randconfig-r053-20260912 (https://download.01.org/0day-ci/archive/20260912/202609121422.hkKWuy7K-lkp@intel.com/config)
-compiler: or1k-linux-gcc (GCC) 16.1.0
-reproduce (this is a W=1 build): (https://download.01.org/0day-ci/archive/20260912/202609121422.hkKWuy7K-lkp@intel.com/reproduce)
+On Fri, Sep 11, 2026 at 09:32:43AM -0700, Andrew Morton wrote:
+> From: Salvatore Dipietro <dipiets@amazon.it>
+> Subject: mm/page_alloc: avoid direct compaction for costly __GFP_NORETRY allocations
+> Date: Fri, 11 Sep 2026 14:21:02 +0000
+> 
+> Commit 5d8edfb900d5 ("iomap: Copy larger chunks from userspace")
+> introduced high-order folio allocations in the iomap buffered write path. 
+> When memory is fragmented, each failed costly-order allocation enters
+> __alloc_pages_slowpath() which runs direct compaction and
+> drain_all_pages(), causing a 0.38x throughput drop on PostgreSQL pgbench
+> (simple-update) with 1024 clients on a 96-vCPU arm64 system.
+> 
+> The root issue is that direct compaction is too expensive for hot
+> allocation paths that have fallbacks to smaller allocations. 
+> __filemap_get_folio_mpol() already marks higher-order allocations with
+> __GFP_NORETRY | __GFP_NOWARN, signalling that the caller can handle
+> failure.  However, the page allocator still attempts full direct
+> compaction for costly orders with __GFP_NORETRY, which is unnecessarily
+> aggressive when the caller will simply retry at a lower order.
+> 
+> For costly-order allocations with __GFP_NORETRY, suppress direct reclaim
+> for the whole slowpath by computing can_direct_reclaim (and hence
+> can_compact) as false.  The !can_direct_reclaim check near the top of the
+> slowpath then short-circuits to nopage: no direct reclaim, no direct
+> compaction and no drain_all_pages() IPI across every CPU.  kswapd (and in
+> turn kcompactd) is still woken further down for background
+> defragmentation, so compaction keeps working for long-term system health
+> while being removed from the latency-critical direct allocation path.
+> 
+> Allocations that also request __GFP_THISNODE are exempted.  That flag
+> pairing identifies the local-node-first THP attempt issued by
+> alloc_pages_mpol() (mempolicy.c), which relies on direct compaction to
+> form transparent huge pages.  __GFP_NOFAIL is exempted as well, so a
+> must-not-fail allocation is never made to fail.
+> 
+> Test environment:
+>   Hardware:  AWS EC2 m8g.24xlarge (96 vCPU, arm64)
+>              12x 1TB IO2 32000 IOPS RAID0 XFS
+>   OS:        AL2023
+>   Kernel:    v7.3-rc1
+>   Database:  PostgreSQL 18.4
+>   Workload:  pgbench simple-update, 1024 clients, 96 threads, 1200s
+> 
+> Results (average of 3 runs, TPS):
+>   Config                                       Avg TPS   % vs baseline
+>   AL2023 stock 6.1 kernel (pre-5d8edfb900d5)   136,942           n/a
+>   v7.3-rc1 baseline (no patch)                  59,408             -
+>   v7.3-rc1 + this patch                        161,994       +172.7%
+> 
+> The patch fully recovers the pre-5d8edfb900d5 performance, bringing
+> throughput back above the pre-regression level and well clear of the ~59k
+> baseline.  The AL2023 6.1 row runs a kernel that predates commit
+> 5d8edfb900d5 ("iomap: Copy larger chunks from userspace"), so it is not
+> directly comparable, but it shows the pre-regression level and confirms
+> that the ~59k baseline is the anomaly and not the norm.
+> 
+> Link: https://lore.kernel.org/all/20260403193535.9970-1-dipiets@amazon.it/T/#t [v1]
+> Link: https://lore.kernel.org/linux-mm/20260420161404.642-1-dipiets@amazon.it/T/#u [v2]
+> Link: https://lore.kernel.org/all/20260710143437.12379-1-dipiets@amazon.it/T/#u [v3]
+> Link: https://lore.kernel.org/all/20260904115629.3993331-1-dipiets@amazon.it/T/#u [v4]
+> Link: https://lore.kernel.org/20260911142102.2294202-1-dipiets@amazon.it
+> Fixes: 5d8edfb900d5 ("iomap: Copy larger chunks from userspace")
+> Signed-off-by: Salvatore Dipietro <dipiets@amazon.it>
+> Acked-by: Zi Yan <ziy@nvidia.com>
+> Cc: Vlastimil Babka <vbabka@suse.cz>
+> Cc: David Hildenbrand <david@redhat.com>
+> Cc: Michal Hocko <mhocko@suse.com>
+> Cc: Johannes Weiner <hannes@cmpxchg.org>
+> Cc: Matthew Wilcox <willy@infradead.org>
+> Cc: Christoph Hellwig <hch@lst.de>
+> Cc: Dave Chinner <dgc@kernel.org>
+> Cc: Ritesh Harjani <ritesh.list@gmail.com>
+> Cc: <stable@vger.kernel.org>
+> Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 
-If you fix the issue in a separate patch/commit (i.e. not just a new version of
-the same patch/commit), kindly add following tags
-| Reported-by: kernel test robot <lkp@intel.com>
-| Closes: https://lore.kernel.org/oe-kbuild-all/202609121422.hkKWuy7K-lkp@intel.com/
-
-All warnings (new ones prefixed by >>):
-
->> fs/proc/task_mmu.c:205:13: warning: 'reacquire_rcu' defined but not used [-Wunused-function]
-     205 | static void reacquire_rcu(struct proc_maps_private *priv)
-         |             ^~~~~~~~~~~~~
->> fs/proc/task_mmu.c:197:13: warning: 'drop_rcu' defined but not used [-Wunused-function]
-     197 | static void drop_rcu(struct proc_maps_private *priv)
-         |             ^~~~~~~~
-   fs/proc/task_mmu.c:133:12: warning: 'lock_ctx_mm' defined but not used [-Wunused-function]
-     133 | static int lock_ctx_mm(struct proc_maps_locking_ctx *lock_ctx)
-         |            ^~~~~~~~~~~
-
-
-vim +/reacquire_rcu +205 fs/proc/task_mmu.c
-
-   196	
- > 197	static void drop_rcu(struct proc_maps_private *priv)
-   198	{
-   199		if (priv->lock_ctx.mmap_locked)
-   200			return;
-   201	
-   202		rcu_read_unlock();
-   203	}
-   204	
- > 205	static void reacquire_rcu(struct proc_maps_private *priv)
-   206	{
-   207		if (priv->lock_ctx.mmap_locked)
-   208			return;
-   209	
-   210		rcu_read_lock();
-   211		/* Reinitialize the iterator. */
-   212		vma_iter_set(&priv->iter, priv->lock_ctx.locked_vma->vm_end);
-   213	}
-   214	
-
---
-0-DAY CI Kernel Test Service
-https://github.com/intel/lkp-tests/wiki
+i'm just back from vacation, but i think the patch i posted was the
+better way to fic this.  at this point i'm confused why this one is
+being considered, but i'll review all the email from the last two weeks
+and see what's happened to cause this one to be included.
