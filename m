@@ -1,172 +1,179 @@
-Received: from mail-qv2-f9.google.com (mail-qv2-f9.google.com [74.125.230.137])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D17002E7379
-	for <mm-commits@vger.kernel.org>; Sun, 13 Sep 2026 16:51:54 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=74.125.230.137
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 15F553F1045;
+	Sun, 13 Sep 2026 18:17:16 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789318317; cv=none; b=PfldiPGbuqQjPGxd76qKulal8VuJn5AeMGlXJ6uyi4W36jXefd6Ap0uFSqaGnYGXwXVw5sT+/k5HJrNwnsdw5wmGVsBhUFvoXqZJHNx41hWYaitZ6hWkWqaD+/pwyPIlFe9wPwQHL/usHuZwyt/jBs/lvwEuqNlROofGSzOKexc=
+	t=1789323443; cv=none; b=HfHu4zS3zgAjydQ/4/KeG51gCmlAV08NMn+LBboIqQi2YUrn31zV1Rd2FLKunZSPrLe6/w8EtcTvflMsWkwm54Cd1gwunxVFyem6Dftf/TfGLilpTa+wFLArXEBMATiyl0nn7t+OH8WVAc6YFBLkp/6Wl5xmmDpBX2+Cd0p2f/c=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1789318317; c=relaxed/simple;
-	bh=E0AasrEnz6UNpYVgyLH7I4qkPIndff9cZpvpirWnO4E=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=A8mNUp/HrW4IVn1CKI5P11I2zYxWTEJLZOVMEb4oJvqDCq/gk7zg6f4iEvu79dY9CP2vBGnXMhLmN9eeLNDsxV3KbrO76LbRQX30v8F3Pts8/IfSKAKjUQIrNeS+m3BJtTxPPl7D8DUQuT0lIwcUdKCmYc+P6PnpOktUdg0Qzc0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=cmpxchg.org; spf=pass smtp.mailfrom=cmpxchg.org; dkim=pass (2048-bit key) header.d=cmpxchg.org header.i=@cmpxchg.org header.b=dzSOKvSF; arc=none smtp.client-ip=74.125.230.137
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=cmpxchg.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=cmpxchg.org
+	s=arc-20240116; t=1789323443; c=relaxed/simple;
+	bh=T/KqfaXx7rmP7rYgJK3AGXVBnsaNPJyNebaGCiknBP8=;
+	h=Date:To:From:Subject:Message-Id; b=H54/M6pdMcooRL52Tai6qcYPx8hnL119DYb5ZpWKv8TAvlbwPC4pTuFLVU2qmJtj8HQ/AccOOTbaXJJ7ae7SJtIzAGXKK1b9btVz/dky2W5ELrwzg9yItNaAZaaabZfBSIjN1hSiAT4+etdgOhVhnh/UB13usLpvKVzWTIeK8rk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=yUoU4sBL; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=cmpxchg.org header.i=@cmpxchg.org header.b="dzSOKvSF"
-Received: by mail-qv2-f9.google.com with SMTP id 6a1803df08f44-91033ce28ceso13047056d6.1
-        for <mm-commits@vger.kernel.org>; Sun, 13 Sep 2026 09:51:54 -0700 (PDT)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="yUoU4sBL"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B61CE1F000FF;
+	Sun, 13 Sep 2026 18:17:13 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=cmpxchg.org; s=google; t=1789318313; x=1789923113; darn=vger.kernel.org;
-        h=in-reply-to:content-disposition:content-type:mime-version
-         :references:message-id:subject:cc:to:from:date:from:to:cc:subject
-         :date:message-id:reply-to:content-type;
-        bh=R9M1uj4pUaKwiC9/+FnQyofG3DqOQ9lTmtW19DRrpaY=;
-        b=dzSOKvSFn/WN4mcbNnsPS5CTbLrxZSt3IKFi/WYc7Tqbdod2yBSCWwpd+8RctKv8IN
-         LJaNm6MDAOlQAw3HwNBP1f6bgm2AlKlaxSr5ZAKd6ZUOBV3SgA3Oj6fYlUDKqRg7AxOa
-         8Ccy111QrrsTYGSF5hHQQgxwjpkvLyRBPM59NxwApzP68AHzfAlornPZLGM33Afj3pRE
-         ZYNfeeppFFUB7euVVHNMRZ8p9ybdCvwHPmIhdVK65GxX4awkxzFYEe/rOzeSoV8HsMco
-         wVfLmZOsIC3WUEvyU0BxM4DQMcCo6C9L6sBU9u0yuW6pCRbCCbM1TWXdBBZ/x5suFdCU
-         sVeQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1789318313; x=1789923113;
-        h=in-reply-to:content-disposition:content-type:mime-version
-         :references:message-id:subject:cc:to:from:date:x-gm-gg
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
-         :content-type;
-        bh=R9M1uj4pUaKwiC9/+FnQyofG3DqOQ9lTmtW19DRrpaY=;
-        b=AWLiXxd2N2PI/m3hbMj3jnwoJx+4lLRA/0LwYIKvLzbTn5vpo7ygV/nUccI8Hn0gbK
-         C6D4U4flq2B9sZOuxYEgkpfr4/oaBbUBFZilCs8lElKLLasQXH6LC9FUrMAO/tUJQ2ym
-         05sa3hqyg4vhf4bhOJn4aCnvwKqCsZgL+KIrAbvpBwPMl+TrdYs5IPsbi9OAWvaLNoRD
-         62jH1SLlc8w33eofPeqpQMkU8B8mvYcvAqjmsjgV6Qcn9TUv/Z/n7f7pX7NsTyS0c687
-         Jgw19uzCqEG/eS90NHlA2ulc6tfwpyliq6gwF1ILMGnCwDvx/xmpvutKFZNPfe07sVYq
-         sgyA==
-X-Forwarded-Encrypted: i=1; AKwUvBx61FX4WS3feYfiD0WATmDA9emclN+0fP94wnMt21Lr5gfx7FmS4+82veUXoSpgBJug4nIV1+uRQC34@vger.kernel.org
-X-Gm-Message-State: AFuF++na2/0DwF0P9VrWAdfldiQ7HxO94pVUmKWBN3giKq34+iJglTWI
-	oM3B1NAGj5jhXCXUg+f96VrgmdmoViscdjQVWTUgA8BEs5egP9DZOwOELvO4DVFNp9I=
-X-Gm-Gg: AYBFou0yqCTC0wqG+fgt6K6lIL5/2Ze5ncqYZAbB9lcC9jsS28rk/s3P9dFcrfKtCXA
-	lxTkrukqQcItjZ2BFoeWY/CyQv1xmt40wn//F8hAePs3vEFav/WZavKByk1i3WPq6IwMfSS38hM
-	xlU1jYBiOfVOSf5edXawB77SMbKwwY7HTpaGvzuMoN7Uzhe+HgTxcIV4YY6AUH/PrH7kouoGJOQ
-	jX5Xdjqm0x5JPJxA+wk9Qh7yGArzcLXtPK5chpiJI71rNZCZzcSHxjiLC3JiG2dLOaqhFxKW/0S
-	YifSSPeWerZwA/RiKwLpbOHtq9ypL6BiheR5TbvPKhrO1WWvXFhNDQ5kQLJbOZC0gRS3h8Ixub6
-	noS0fci7lDWOCmSTI9bJtufeB0TvQDE4t6MuH8JiwZmvmDLkXqw0TOuC+MFBTGCDku/W+gL/diR
-	THoUMCIQTjs4M/y7u7hbuwlPSwRmzBh1qivkAOny14AXbDve8WnUXfdh6yYhw/t/ezL2vD8Xo=
-X-Received: by 2002:ad4:5ca3:0:b0:90e:94e5:79f8 with SMTP id 6a1803df08f44-912120f012dmr209740706d6.23.1789318313572;
-        Sun, 13 Sep 2026 09:51:53 -0700 (PDT)
-Received: from localhost ([2603:7001:f100:500:365a:60ff:fe62:ff29])
-        by smtp.gmail.com with ESMTPSA id 6a1803df08f44-9120f4d35a9sm74175506d6.41.2026.09.13.09.51.52
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Sun, 13 Sep 2026 09:51:52 -0700 (PDT)
-Date: Sun, 13 Sep 2026 12:51:50 -0400
-From: Johannes Weiner <hannes@cmpxchg.org>
-To: Matthew Wilcox <willy@infradead.org>
-Cc: Andrew Morton <akpm@linux-foundation.org>, mm-commits@vger.kernel.org,
-	ziy@nvidia.com, vbabka@suse.cz, stable@vger.kernel.org,
-	ritesh.list@gmail.com, mhocko@suse.com, hch@lst.de, dgc@kernel.org,
-	david@redhat.com, dipiets@amazon.it
-Subject: Re: +
- mm-page_alloc-avoid-direct-compaction-for-costly-__gfp_noretry-allocations.patch
- added to mm-hotfixes-unstable branch
-Message-ID: <aqbUpoPSdoAlveeZ@cmpxchg.org>
-References: <20260911163243.808DF1F000FF@smtp.kernel.org>
- <aqYKsTHkyJXCyh_-@casper.infradead.org>
+	d=linux-foundation.org; s=korg; t=1789323433;
+	bh=zVu4k+G4hQbG2uw4qPcpEGaa+CSjj6Kc8ioB1ZRSEyc=;
+	h=Date:To:From:Subject;
+	b=yUoU4sBLRMqfu0eP/4JYoA5c1Vk2f+4mjxTBgNJDIQEqjxBjHfXPpZ9Vg0+6nWWUr
+	 W0Is8gdjc4f+uvfPw5VubSVvjAS3q1lVQ7AZ+zX+rtgT06Nh3hZiwzjycm3cveUt4y
+	 ZK78RzPkpUIcefjBtXXRVYCd4oeGSNN25T2880aA=
+Date: Sun, 13 Sep 2026 11:17:13 -0700
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,willy@infradead.org,stable@vger.kernel.org,ryan.roberts@arm.com,ljs@kernel.org,liam@infradead.org,lance.yang@linux.dev,dev.jain@arm.com,david@kernel.org,baolin.wang@linux.alibaba.com,baohua@kernel.org,ngocthang2710.1999@gmail.com,akpm@linux-foundation.org
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: + khugepaged-hold-invalidate_lock-across-collapse_file-readahead.patch added to mm-hotfixes-unstable branch
+Message-Id: <20260913181713.B61CE1F000FF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <aqYKsTHkyJXCyh_-@casper.infradead.org>
 
-On Sun, Sep 13, 2026 at 03:30:09AM +0100, Matthew Wilcox wrote:
-> On Fri, Sep 11, 2026 at 09:32:43AM -0700, Andrew Morton wrote:
-> > From: Salvatore Dipietro <dipiets@amazon.it>
-> > Subject: mm/page_alloc: avoid direct compaction for costly __GFP_NORETRY allocations
-> > Date: Fri, 11 Sep 2026 14:21:02 +0000
-> > 
-> > Commit 5d8edfb900d5 ("iomap: Copy larger chunks from userspace")
-> > introduced high-order folio allocations in the iomap buffered write path. 
-> > When memory is fragmented, each failed costly-order allocation enters
-> > __alloc_pages_slowpath() which runs direct compaction and
-> > drain_all_pages(), causing a 0.38x throughput drop on PostgreSQL pgbench
-> > (simple-update) with 1024 clients on a 96-vCPU arm64 system.
-> > 
-> > The root issue is that direct compaction is too expensive for hot
-> > allocation paths that have fallbacks to smaller allocations. 
-> > __filemap_get_folio_mpol() already marks higher-order allocations with
-> > __GFP_NORETRY | __GFP_NOWARN, signalling that the caller can handle
-> > failure.  However, the page allocator still attempts full direct
-> > compaction for costly orders with __GFP_NORETRY, which is unnecessarily
-> > aggressive when the caller will simply retry at a lower order.
-> > 
-> > For costly-order allocations with __GFP_NORETRY, suppress direct reclaim
-> > for the whole slowpath by computing can_direct_reclaim (and hence
-> > can_compact) as false.  The !can_direct_reclaim check near the top of the
-> > slowpath then short-circuits to nopage: no direct reclaim, no direct
-> > compaction and no drain_all_pages() IPI across every CPU.  kswapd (and in
-> > turn kcompactd) is still woken further down for background
-> > defragmentation, so compaction keeps working for long-term system health
-> > while being removed from the latency-critical direct allocation path.
-> > 
-> > Allocations that also request __GFP_THISNODE are exempted.  That flag
-> > pairing identifies the local-node-first THP attempt issued by
-> > alloc_pages_mpol() (mempolicy.c), which relies on direct compaction to
-> > form transparent huge pages.  __GFP_NOFAIL is exempted as well, so a
-> > must-not-fail allocation is never made to fail.
-> > 
-> > Test environment:
-> >   Hardware:  AWS EC2 m8g.24xlarge (96 vCPU, arm64)
-> >              12x 1TB IO2 32000 IOPS RAID0 XFS
-> >   OS:        AL2023
-> >   Kernel:    v7.3-rc1
-> >   Database:  PostgreSQL 18.4
-> >   Workload:  pgbench simple-update, 1024 clients, 96 threads, 1200s
-> > 
-> > Results (average of 3 runs, TPS):
-> >   Config                                       Avg TPS   % vs baseline
-> >   AL2023 stock 6.1 kernel (pre-5d8edfb900d5)   136,942           n/a
-> >   v7.3-rc1 baseline (no patch)                  59,408             -
-> >   v7.3-rc1 + this patch                        161,994       +172.7%
-> > 
-> > The patch fully recovers the pre-5d8edfb900d5 performance, bringing
-> > throughput back above the pre-regression level and well clear of the ~59k
-> > baseline.  The AL2023 6.1 row runs a kernel that predates commit
-> > 5d8edfb900d5 ("iomap: Copy larger chunks from userspace"), so it is not
-> > directly comparable, but it shows the pre-regression level and confirms
-> > that the ~59k baseline is the anomaly and not the norm.
-> > 
-> > Link: https://lore.kernel.org/all/20260403193535.9970-1-dipiets@amazon.it/T/#t [v1]
-> > Link: https://lore.kernel.org/linux-mm/20260420161404.642-1-dipiets@amazon.it/T/#u [v2]
-> > Link: https://lore.kernel.org/all/20260710143437.12379-1-dipiets@amazon.it/T/#u [v3]
-> > Link: https://lore.kernel.org/all/20260904115629.3993331-1-dipiets@amazon.it/T/#u [v4]
-> > Link: https://lore.kernel.org/20260911142102.2294202-1-dipiets@amazon.it
-> > Fixes: 5d8edfb900d5 ("iomap: Copy larger chunks from userspace")
-> > Signed-off-by: Salvatore Dipietro <dipiets@amazon.it>
-> > Acked-by: Zi Yan <ziy@nvidia.com>
-> > Cc: Vlastimil Babka <vbabka@suse.cz>
-> > Cc: David Hildenbrand <david@redhat.com>
-> > Cc: Michal Hocko <mhocko@suse.com>
-> > Cc: Johannes Weiner <hannes@cmpxchg.org>
-> > Cc: Matthew Wilcox <willy@infradead.org>
-> > Cc: Christoph Hellwig <hch@lst.de>
-> > Cc: Dave Chinner <dgc@kernel.org>
-> > Cc: Ritesh Harjani <ritesh.list@gmail.com>
-> > Cc: <stable@vger.kernel.org>
-> > Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-> 
-> i'm just back from vacation, but i think the patch i posted was the
-> better way to fic this.  at this point i'm confused why this one is
-> being considered, but i'll review all the email from the last two weeks
-> and see what's happened to cause this one to be included.
 
-Welcome back, Willy.
+The patch titled
+     Subject: khugepaged: hold invalidate_lock across collapse_file() readahead
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     khugepaged-hold-invalidate_lock-across-collapse_file-readahead.patch
 
-The alternate proposal didn't seem to solve Salvatore's problem:
-https://lore.kernel.org/all/20260714120204.542300-1-dipiets@amazon.it/
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/khugepaged-hold-invalidate_lock-across-collapse_file-readahead.patch
 
-Apologize if you were referring to something more recent, this one was
-from mid-July.
+This patch will later appear in the mm-hotfixes-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via various
+branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there most days
+
+------------------------------------------------------
+From: Nguyen Ngoc Thang <ngocthang2710.1999@gmail.com>
+Subject: khugepaged: hold invalidate_lock across collapse_file() readahead
+Date: Sun, 13 Sep 2026 23:36:44 +0700
+
+collapse_file() calls page_cache_sync_readahead() to fault in missing
+pages before collapsing them into a THP.  That helper takes
+mapping->invalidate_lock itself for the duration of the call, then drops
+it -- but truncate (e.g.  ext4_setattr() -> truncate_pagecache()) takes
+invalidate_lock and then waits on each page's folio lock while holding it.
+If collapse_file() has already locked one of those folios by the time
+truncate reaches it, and then tries to acquire invalidate_lock again (e.g.
+on the first readahead call, since invalidate_lock is not yet held at
+that point), the two paths can deadlock/hang on each other's lock:
+truncate blocked on the folio lock collapse holds, and collapse blocked
+waiting for invalidate_lock that truncate holds.
+
+Reproducing this over ~150,000 collapse iterations with truncate racing
+concurrently reliably hits hung_task: blocked tasks within about 20
+seconds on an unpatched kernel.
+
+Fix it by taking invalidate_lock_shared once for the whole scan, after
+alloc_charge_folio() succeeds and before locking any folio, and using
+page_cache_ra_unbounded() directly in the readahead call site instead of
+page_cache_sync_readahead(), since the latter would try to retake the lock
+we already hold.  page_cache_ra_unbounded() does not clamp to EOF like the
+helper it replaces, so clamp the requested range explicitly.
+
+730633f0b7f9 added invalidate_lock acquisition around readahead but missed
+collapse_file(), which already locks pages while calling readahead; later
+filesystem conversions made the deadlock reachable by taking
+invalidate_lock before waiting on page locks during truncate.
+
+Link: https://lore.kernel.org/20260913163644.122133-1-ngocthang2710.1999@gmail.com
+Fixes: 730633f0b7f9 ("mm: Protect operations adding pages to page cache with invalidate_lock")
+Signed-off-by: Nguyen Ngoc Thang <ngocthang2710.1999@gmail.com>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+Reported-by: syzbot+16bf7cd0ebeb1de93aa5@syzkaller.appspotmail.com
+Closes: https://syzkaller.appspot.com/bug?extid=16bf7cd0ebeb1de93aa5
+Tested-by: Lance Yang <lance.yang@linux.dev>
+Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
+Cc: Barry Song <baohua@kernel.org>
+Cc: David Hildenbrand <david@kernel.org>
+Cc: Dev Jain <dev.jain@arm.com>
+Cc: Liam R. Howlett <liam@infradead.org>
+Cc: Lorenzo Stoakes <ljs@kernel.org>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Ryan Roberts <ryan.roberts@arm.com>
+Cc: Zi Yan <ziy@nvidia.com>
+Cc: <stable@vger.kernel.org>
+---
+
+ mm/khugepaged.c |   28 +++++++++++++++++++++++++---
+ 1 file changed, 25 insertions(+), 3 deletions(-)
+
+--- a/mm/khugepaged.c~khugepaged-hold-invalidate_lock-across-collapse_file-readahead
++++ a/mm/khugepaged.c
+@@ -2251,6 +2251,7 @@ static enum scan_result collapse_file(st
+ 	enum scan_result result = SCAN_SUCCEED;
+ 	int nr_none = 0;
+ 	bool is_shmem = shmem_file(file);
++	bool need_unlock = false;
+ 
+ 	/*
+ 	 * MADV_COLLAPSE ignores shmem huge config, so do not check shmem
+@@ -2265,6 +2266,15 @@ static enum scan_result collapse_file(st
+ 	if (result != SCAN_SUCCEED)
+ 		goto out;
+ 
++	/*
++	 * Take invalidate_lock before any folio lock: the readahead below
++	 * needs it, and truncate holds it while waiting on folio locks.
++	 */
++	if (!is_shmem) {
++		filemap_invalidate_lock_shared(mapping);
++		need_unlock = true;
++	}
++
+ 	mapping_set_update(&xas, mapping);
+ 
+ 	__folio_set_locked(new_folio);
+@@ -2331,10 +2341,20 @@ static enum scan_result collapse_file(st
+ 			}
+ 		} else {	/* !is_shmem */
+ 			if (!folio || xa_is_value(folio)) {
++				DEFINE_READAHEAD(ractl, file, &file->f_ra,
++						  mapping, index);
++				pgoff_t eof = DIV_ROUND_UP(i_size_read(mapping->host),
++							    PAGE_SIZE);
++
+ 				xas_unlock_irq(&xas);
+-				page_cache_sync_readahead(mapping, &file->f_ra,
+-							  file, index,
+-							  end - index);
++				/*
++				 * invalidate_lock held above; don't retake it.
++				 * page_cache_ra_unbounded(), unlike the readahead
++				 * helper this replaces, does not clamp to EOF.
++				 */
++				if (index < eof)
++					page_cache_ra_unbounded(&ractl,
++						min(end, eof) - index, 0);
+ 				/* drain lru cache to help folio_isolate_lru() */
+ 				lru_add_drain();
+ 				folio = filemap_lock_folio(mapping, index);
+@@ -2666,6 +2686,8 @@ rollback:
+ 	folio_unlock(new_folio);
+ 	folio_put(new_folio);
+ out:
++	if (need_unlock)
++		filemap_invalidate_unlock_shared(mapping);
+ 	VM_BUG_ON(!list_empty(&pagelist));
+ 	trace_mm_khugepaged_collapse_file(mm, new_folio, index, addr, is_shmem, file, HPAGE_PMD_NR, result);
+ 	return result;
+_
+
+Patches currently in -mm which might be from ngocthang2710.1999@gmail.com are
+
+khugepaged-hold-invalidate_lock-across-collapse_file-readahead.patch
+
