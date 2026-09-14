@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0D8F9364042
-	for <mm-commits@vger.kernel.org>; Mon, 14 Sep 2026 03:52:19 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8C667364042
+	for <mm-commits@vger.kernel.org>; Mon, 14 Sep 2026 03:52:22 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789357941; cv=none; b=jGE1tKj8gILHgMqF/7Mtw0NVzsXYeJAKTgXAwTPXdk/BPpoUWL7mU4cug4nrqjIExpcocaCOBF3QWglUq2XNaQaQUZjv1eg0+7+KacNu2CyiYfOlNr1OmW6nasLIieEFgdBOSoQRXF7Az7c/lFOEu64A0iuHKpMcflRg5NDX1oA=
+	t=1789357943; cv=none; b=jY/4xHL5YKUhhPphnRmohoxiTpmm5+MTdyo1coWFrYkUpTHx63yomG9f2dlAZykbv6/9vyoP9V7IlxzOdWvyh/PbQXFE/CJHIFaQ12osnv9dfG108f1owd8IW5sKAuBgc9KcVcgDxfheUz+5Vc9OkEH+HqtpLDiJRMP/5Sd6ilI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1789357941; c=relaxed/simple;
-	bh=3VBn4ezyBf+W2JnfTYPMWw2v6eZfAT0CSxLZEbweWjY=;
-	h=Date:To:From:Subject:Message-Id; b=IerMBsCykntJu4D3qUElJPuqu2exfVak9H+fWhE9HFGvQ+nJ8ryI2A7ik3IGMQP6HfA3FtjZIBKYtn1q1UuFUZllIvi7yJ8a9MFJTGPZRgs4xUYm1xi9b+eRp28OWjzpnlPqAXfSbh2nzn0t+mXLxWB4JB4QT7XC++ORzsHlz50=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=cxTey86B; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1789357943; c=relaxed/simple;
+	bh=xsdrOdc6uxcrhhAAdVRnhO96Tpjq+UyjPP18fBz34qQ=;
+	h=Date:To:From:Subject:Message-Id; b=hvKLYvRMEUMEiJdCaLhKLbh81i7GiAg039SGMmDUav4pRhLK5KizIYSpgbq4zAGQNoBZghgFc71tR0uxoScB2jcnDMokqPA5ta4ov+J4/CG2VF7E1bFyzBpWvDfBQkstAjx9vTcQ6+7z40mZwdjnYvzg1R3zym2oLdYGL5QlQp0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=GKEta/1B; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="cxTey86B"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8CA401F000FF;
-	Mon, 14 Sep 2026 03:52:19 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="GKEta/1B"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 616C11F000FF;
+	Mon, 14 Sep 2026 03:52:22 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1789357939;
-	bh=ecZEUmAHCsM8YKY8ElvwM341+U5EjyUd+raOrijDg8E=;
+	d=linux-foundation.org; s=korg; t=1789357942;
+	bh=nKqKYr60WfwVb9xseVGr6YyN2ZnXUUjRQfTjt+9SFGg=;
 	h=Date:To:From:Subject;
-	b=cxTey86BarZI2B/Dv8Tr/Nt/r9oJaaP+MiscW/nnbCiVnsR2+xwcowbKDipTBYMIr
-	 +b/tQi2a28cGNDd+I9bf8VxEE+57/p9WkbOpeI9fvSr0TEOxadiHA246UXAGhO82KB
-	 G2xig096Ds8+HxI335zJyCx6Dljl8dUEcIluJ5hI=
-Date: Sun, 13 Sep 2026 20:52:19 -0700
-To: mm-commits@vger.kernel.org,ying.huang@linux.alibaba.com,willy@infradead.org,trondmy@kernel.org,rakie.kim@sk.com,matthew.brost@intel.com,joshua.hahnjy@gmail.com,jack@suse.cz,gourry@gourry.net,david@kernel.org,byungchul@sk.com,apopple@nvidia.com,anna@kernel.org,ziy@nvidia.com,akpm@linux-foundation.org
+	b=GKEta/1Br1ZVK8vv0017pCF7O/XzPNL7UMU0oNxonmGAeFrUNXQnpjTRgjbL21IK/
+	 qWG/4qHleaFmbnmIBPFZqWaewbZKaFwT3iiEDF4GG9wWlfS2bRTZuu1RJWkQmBIvYM
+	 hVHbN6AdbdMqnttq8i4JgcQ5lhaOgDyJY65bp4O4=
+Date: Sun, 13 Sep 2026 20:52:22 -0700
+To: mm-commits@vger.kernel.org,slava@dubeyko.com,idryomov@gmail.com,amarkuze@redhat.com,ziy@nvidia.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + treewide-remove-folio_set-clear_private-usage.patch added to mm-new branch
-Message-Id: <20260914035219.8CA401F000FF@smtp.kernel.org>
+Subject: + ceph-replace-pageprivate-with-page_private.patch added to mm-new branch
+Message-Id: <20260914035222.616C11F000FF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: treewide: remove folio_set/clear_private() usage
+     Subject: ceph: replace PagePrivate() with page_private()
 has been added to the -mm mm-new branch.  Its filename is
-     treewide-remove-folio_set-clear_private-usage.patch
+     ceph-replace-pageprivate-with-page_private.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/treewide-remove-folio_set-clear_private-usage.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/ceph-replace-pageprivate-with-page_private.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,82 +70,48 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Zi Yan <ziy@nvidia.com>
-Subject: treewide: remove folio_set/clear_private() usage
-Date: Sun, 13 Sep 2026 22:24:09 -0400
+Subject: ceph: replace PagePrivate() with page_private()
+Date: Sun, 13 Sep 2026 22:24:10 -0400
 
-They are no-ops now. Remove them.
+PagePrivate() is going to be removed along with PG_private and its
+implementation is the same as page_private().
 
-Link: https://lore.kernel.org/20260913-remove-pg_private-v4-11-848550f7574e@nvidia.com
+Assisted-by: LLM
+Link: https://lore.kernel.org/20260913-remove-pg_private-v4-12-848550f7574e@nvidia.com
 Signed-off-by: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Acked-by: David Hildenbrand (Arm) <david@kernel.org>
-Cc: Matthew Brost <matthew.brost@intel.com>
-Cc: Joshua Hahn <joshua.hahnjy@gmail.com>
-Cc: Rakie Kim <rakie.kim@sk.com>
-Cc: Byungchul Park <byungchul@sk.com>
-Cc: Gregory Price <gourry@gourry.net>
-Cc: Ying Huang <ying.huang@linux.alibaba.com>
-Cc: Alistair Popple <apopple@nvidia.com>
-Cc: Trond Myklebust <trondmy@kernel.org>
-Cc: Anna Schumaker <anna@kernel.org>
-Cc: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Cc: Jan Kara <jack@suse.cz>
+Cc: Ilya Dryomov <idryomov@gmail.com>
+Cc: Alex Markuze <amarkuze@redhat.com>
+Cc: Viacheslav Dubeyko <slava@dubeyko.com>
 ---
 
- fs/nfs/write.c          |    2 --
- include/linux/pagemap.h |    4 +---
- mm/migrate.c            |    1 -
- 3 files changed, 1 insertion(+), 6 deletions(-)
+ fs/ceph/addr.c |    8 +++-----
+ 1 file changed, 3 insertions(+), 5 deletions(-)
 
---- a/fs/nfs/write.c~treewide-remove-folio_set-clear_private-usage
-+++ a/fs/nfs/write.c
-@@ -717,7 +717,6 @@ static void nfs_inode_add_request(struct
- 	nfs_lock_request(req);
- 	spin_lock(&mapping->i_private_lock);
- 	set_bit(PG_MAPPED, &req->wb_flags);
--	folio_set_private(folio);
- 	folio->private = req;
- 	spin_unlock(&mapping->i_private_lock);
- 	atomic_long_inc(&nfsi->nrequests);
-@@ -745,7 +744,6 @@ static void nfs_inode_remove_request(str
+--- a/fs/ceph/addr.c~ceph-replace-pageprivate-with-page_private
++++ a/fs/ceph/addr.c
+@@ -70,9 +70,7 @@ static int ceph_netfs_check_write_begin(
  
- 			spin_lock(&mapping->i_private_lock);
- 			folio->private = NULL;
--			folio_clear_private(folio);
- 			clear_bit(PG_MAPPED, &req->wb_head->wb_flags);
- 			spin_unlock(&mapping->i_private_lock);
- 
---- a/include/linux/pagemap.h~treewide-remove-folio_set-clear_private-usage
-+++ a/include/linux/pagemap.h
-@@ -594,7 +594,6 @@ static inline void folio_attach_private(
+ static inline struct ceph_snap_context *page_snap_context(struct page *page)
  {
- 	folio_get(folio);
- 	folio->private = data;
--	folio_set_private(folio);
+-	if (PagePrivate(page))
+-		return (void *)page->private;
+-	return NULL;
++	return (void *)page_private(page);
  }
  
- /**
-@@ -629,9 +628,8 @@ static inline void *folio_detach_private
- {
- 	void *data = folio_get_private(folio);
+ /*
+@@ -124,8 +122,8 @@ static bool ceph_dirty_folio(struct addr
+ 	spin_unlock(&ci->i_ceph_lock);
  
--	if (!folio_test_private(folio))
-+	if (!data)
- 		return NULL;
--	folio_clear_private(folio);
- 	folio->private = NULL;
- 	folio_put(folio);
- 
---- a/mm/migrate.c~treewide-remove-folio_set-clear_private-usage
-+++ a/mm/migrate.c
-@@ -835,7 +835,6 @@ void folio_migrate_flags(struct folio *n
+ 	/*
+-	 * Reference snap context in folio->private.  Also set
+-	 * PagePrivate so that we get invalidate_folio callback.
++	 * Reference snap context in folio->private. Setting folio->private is
++	 * what gets us the invalidate_folio callback.
  	 */
- 	if (folio_test_swapcache(folio))
- 		folio_clear_swapcache(folio);
--	folio_clear_private(folio);
- 
- 	/* page->private contains hugetlb specific flags */
- 	if (!folio_test_hugetlb(folio))
+ 	VM_WARN_ON_FOLIO(folio->private, folio);
+ 	folio_attach_private(folio, snapc);
 _
 
 Patches currently in -mm which might be from ziy@nvidia.com are
