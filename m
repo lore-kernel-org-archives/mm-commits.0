@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 15F553F1045;
-	Sun, 13 Sep 2026 18:17:16 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5AE9425E469
+	for <mm-commits@vger.kernel.org>; Mon, 14 Sep 2026 00:51:03 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789323443; cv=none; b=HfHu4zS3zgAjydQ/4/KeG51gCmlAV08NMn+LBboIqQi2YUrn31zV1Rd2FLKunZSPrLe6/w8EtcTvflMsWkwm54Cd1gwunxVFyem6Dftf/TfGLilpTa+wFLArXEBMATiyl0nn7t+OH8WVAc6YFBLkp/6Wl5xmmDpBX2+Cd0p2f/c=
+	t=1789347065; cv=none; b=r0r1NYmlPpySkOM+3HLNyoKOMsi7Z5R3yF4q3av70At2+C7bRyF+GYGE/SiCt12J9dhEHDnjBcWgL/0tQ9vX1N5s7BLIvLeP/FJ48mhti6aJy/ki+nqBy0gsWUuN6FUJv8GthuTDYGM/XjLc8dT9bXmXhWe/1bxTViH+NmwtGOo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1789323443; c=relaxed/simple;
-	bh=T/KqfaXx7rmP7rYgJK3AGXVBnsaNPJyNebaGCiknBP8=;
-	h=Date:To:From:Subject:Message-Id; b=H54/M6pdMcooRL52Tai6qcYPx8hnL119DYb5ZpWKv8TAvlbwPC4pTuFLVU2qmJtj8HQ/AccOOTbaXJJ7ae7SJtIzAGXKK1b9btVz/dky2W5ELrwzg9yItNaAZaaabZfBSIjN1hSiAT4+etdgOhVhnh/UB13usLpvKVzWTIeK8rk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=yUoU4sBL; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1789347065; c=relaxed/simple;
+	bh=vTZD0JMbqoMvpaOTdGjNwu2f34atw7VwB2cjjZeQBH8=;
+	h=Date:To:From:Subject:Message-Id; b=Tonzrp2u5TO0iF61aDiSNN6WOrTw2ES0UJTT4+9xxwn5huYMIg8B/ljXQnCAFtZbfDlvZ576Jklq1EtZb4ZRtYMfeqxUjlQ5N1DX0hSBVlnKBckfaM6wkNOpOqdVRyVtAPGpFlP5cd5uqFV/Y3Juu4XMWFuf86+BFFtEf+8pDQ8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=xpDM2Eyl; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="yUoU4sBL"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B61CE1F000FF;
-	Sun, 13 Sep 2026 18:17:13 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="xpDM2Eyl"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C27081F000FF;
+	Mon, 14 Sep 2026 00:51:03 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1789323433;
-	bh=zVu4k+G4hQbG2uw4qPcpEGaa+CSjj6Kc8ioB1ZRSEyc=;
+	d=linux-foundation.org; s=korg; t=1789347063;
+	bh=CgZYaMiYg/1p85FU2HPO0jz8vsja2U0/txy76UcFcTU=;
 	h=Date:To:From:Subject;
-	b=yUoU4sBLRMqfu0eP/4JYoA5c1Vk2f+4mjxTBgNJDIQEqjxBjHfXPpZ9Vg0+6nWWUr
-	 W0Is8gdjc4f+uvfPw5VubSVvjAS3q1lVQ7AZ+zX+rtgT06Nh3hZiwzjycm3cveUt4y
-	 ZK78RzPkpUIcefjBtXXRVYCd4oeGSNN25T2880aA=
-Date: Sun, 13 Sep 2026 11:17:13 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,willy@infradead.org,stable@vger.kernel.org,ryan.roberts@arm.com,ljs@kernel.org,liam@infradead.org,lance.yang@linux.dev,dev.jain@arm.com,david@kernel.org,baolin.wang@linux.alibaba.com,baohua@kernel.org,ngocthang2710.1999@gmail.com,akpm@linux-foundation.org
+	b=xpDM2EylOa8xNg6dzUxAN3ayoYZ/oFWcyfTLgtK22hhEN9KjrYaHLECliJCm8ETl+
+	 343S2q0jff1KnGFUJvGAakKb08lwQ0Xg6zuMHFmNmSOuUWxH57zOqGgADGVVT3wxmU
+	 2bIhNZMuyl4A4qMEH2DT1f7Cow1nFT7RolD2ADBI=
+Date: Sun, 13 Sep 2026 17:51:03 -0700
+To: mm-commits@vger.kernel.org,david@kernel.org,tz2294@columbia.edu,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + khugepaged-hold-invalidate_lock-across-collapse_file-readahead.patch added to mm-hotfixes-unstable branch
-Message-Id: <20260913181713.B61CE1F000FF@smtp.kernel.org>
+Subject: + mm-swap-add-folio_swap_entry-and-folio_page_swap_entry-fix.patch added to mm-unstable branch
+Message-Id: <20260914005103.C27081F000FF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: khugepaged: hold invalidate_lock across collapse_file() readahead
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     khugepaged-hold-invalidate_lock-across-collapse_file-readahead.patch
+     Subject: mm-swap-add-folio_swap_entry-and-folio_page_swap_entry-fix
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-swap-add-folio_swap_entry-and-folio_page_swap_entry-fix.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/khugepaged-hold-invalidate_lock-across-collapse_file-readahead.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-swap-add-folio_swap_entry-and-folio_page_swap_entry-fix.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,122 +58,52 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Nguyen Ngoc Thang <ngocthang2710.1999@gmail.com>
-Subject: khugepaged: hold invalidate_lock across collapse_file() readahead
-Date: Sun, 13 Sep 2026 23:36:44 +0700
+From: Tal Zussman <tz2294@columbia.edu>
+Subject: mm-swap-add-folio_swap_entry-and-folio_page_swap_entry-fix
+Date: Sun, 13 Sep 2026 17:52:28 -0400
 
-collapse_file() calls page_cache_sync_readahead() to fault in missing
-pages before collapsing them into a THP.  That helper takes
-mapping->invalidate_lock itself for the duration of the call, then drops
-it -- but truncate (e.g.  ext4_setattr() -> truncate_pagecache()) takes
-invalidate_lock and then waits on each page's folio lock while holding it.
-If collapse_file() has already locked one of those folios by the time
-truncate reaches it, and then tries to acquire invalidate_lock again (e.g.
-on the first readahead call, since invalidate_lock is not yet held at
-that point), the two paths can deadlock/hang on each other's lock:
-truncate blocked on the folio lock collapse holds, and collapse blocked
-waiting for invalidate_lock that truncate holds.
+adjust the folio_swap_entry() kerneldoc summary, per David
 
-Reproducing this over ~150,000 collapse iterations with truncate racing
-concurrently reliably hits hung_task: blocked tasks within about 20
-seconds on an unpatched kernel.
-
-Fix it by taking invalidate_lock_shared once for the whole scan, after
-alloc_charge_folio() succeeds and before locking any folio, and using
-page_cache_ra_unbounded() directly in the readahead call site instead of
-page_cache_sync_readahead(), since the latter would try to retake the lock
-we already hold.  page_cache_ra_unbounded() does not clamp to EOF like the
-helper it replaces, so clamp the requested range explicitly.
-
-730633f0b7f9 added invalidate_lock acquisition around readahead but missed
-collapse_file(), which already locks pages while calling readahead; later
-filesystem conversions made the deadlock reachable by taking
-invalidate_lock before waiting on page locks during truncate.
-
-Link: https://lore.kernel.org/20260913163644.122133-1-ngocthang2710.1999@gmail.com
-Fixes: 730633f0b7f9 ("mm: Protect operations adding pages to page cache with invalidate_lock")
-Signed-off-by: Nguyen Ngoc Thang <ngocthang2710.1999@gmail.com>
+Link: https://lore.kernel.org/20260913-folio_swap_entry-doc-fix-1@columbia.edu
+Signed-off-by: Tal Zussman <tz2294@columbia.edu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Reported-by: syzbot+16bf7cd0ebeb1de93aa5@syzkaller.appspotmail.com
-Closes: https://syzkaller.appspot.com/bug?extid=16bf7cd0ebeb1de93aa5
-Tested-by: Lance Yang <lance.yang@linux.dev>
-Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: Barry Song <baohua@kernel.org>
 Cc: David Hildenbrand <david@kernel.org>
-Cc: Dev Jain <dev.jain@arm.com>
-Cc: Liam R. Howlett <liam@infradead.org>
-Cc: Lorenzo Stoakes <ljs@kernel.org>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Ryan Roberts <ryan.roberts@arm.com>
-Cc: Zi Yan <ziy@nvidia.com>
-Cc: <stable@vger.kernel.org>
 ---
 
- mm/khugepaged.c |   28 +++++++++++++++++++++++++---
- 1 file changed, 25 insertions(+), 3 deletions(-)
+ include/linux/swap.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/khugepaged.c~khugepaged-hold-invalidate_lock-across-collapse_file-readahead
-+++ a/mm/khugepaged.c
-@@ -2251,6 +2251,7 @@ static enum scan_result collapse_file(st
- 	enum scan_result result = SCAN_SUCCEED;
- 	int nr_none = 0;
- 	bool is_shmem = shmem_file(file);
-+	bool need_unlock = false;
+--- a/include/linux/swap.h~mm-swap-add-folio_swap_entry-and-folio_page_swap_entry-fix
++++ a/include/linux/swap.h
+@@ -273,7 +273,7 @@ struct swap_info_struct {
+ };
  
- 	/*
- 	 * MADV_COLLAPSE ignores shmem huge config, so do not check shmem
-@@ -2265,6 +2266,15 @@ static enum scan_result collapse_file(st
- 	if (result != SCAN_SUCCEED)
- 		goto out;
- 
-+	/*
-+	 * Take invalidate_lock before any folio lock: the readahead below
-+	 * needs it, and truncate holds it while waiting on folio locks.
-+	 */
-+	if (!is_shmem) {
-+		filemap_invalidate_lock_shared(mapping);
-+		need_unlock = true;
-+	}
-+
- 	mapping_set_update(&xas, mapping);
- 
- 	__folio_set_locked(new_folio);
-@@ -2331,10 +2341,20 @@ static enum scan_result collapse_file(st
- 			}
- 		} else {	/* !is_shmem */
- 			if (!folio || xa_is_value(folio)) {
-+				DEFINE_READAHEAD(ractl, file, &file->f_ra,
-+						  mapping, index);
-+				pgoff_t eof = DIV_ROUND_UP(i_size_read(mapping->host),
-+							    PAGE_SIZE);
-+
- 				xas_unlock_irq(&xas);
--				page_cache_sync_readahead(mapping, &file->f_ra,
--							  file, index,
--							  end - index);
-+				/*
-+				 * invalidate_lock held above; don't retake it.
-+				 * page_cache_ra_unbounded(), unlike the readahead
-+				 * helper this replaces, does not clamp to EOF.
-+				 */
-+				if (index < eof)
-+					page_cache_ra_unbounded(&ractl,
-+						min(end, eof) - index, 0);
- 				/* drain lru cache to help folio_isolate_lru() */
- 				lru_add_drain();
- 				folio = filemap_lock_folio(mapping, index);
-@@ -2666,6 +2686,8 @@ rollback:
- 	folio_unlock(new_folio);
- 	folio_put(new_folio);
- out:
-+	if (need_unlock)
-+		filemap_invalidate_unlock_shared(mapping);
- 	VM_BUG_ON(!list_empty(&pagelist));
- 	trace_mm_khugepaged_collapse_file(mm, new_folio, index, addr, is_shmem, file, HPAGE_PMD_NR, result);
- 	return result;
+ /**
+- * folio_swap_entry - Return the swap entry for a page within a folio.
++ * folio_swap_entry - Return the swap entry at a page index within a folio.
+  * @folio: The folio.
+  * @idx: The index of the page within the folio.
+  *
 _
 
-Patches currently in -mm which might be from ngocthang2710.1999@gmail.com are
+Patches currently in -mm which might be from tz2294@columbia.edu are
 
-khugepaged-hold-invalidate_lock-across-collapse_file-readahead.patch
+mm-page_io-convert-write-completion-handlers-to-folios.patch
+mm-remove-pagereclaim.patch
+mm-page_io-use-swap-entries-directly-in-zeromap-helpers.patch
+mm-page_io-rename-bio_associate_blkg_from_page.patch
+mm-page_io-refer-to-folios-in-swap_writeout-comments.patch
+mm-swap-rename-__swap_writepage-to-__swap_writeout.patch
+mm-remove-unused-mark_page_reserved.patch
+mm-remove-unused-totalram_pages_inc-and-totalram_pages_dec.patch
+mm-remove-pagewriteback.patch
+mm-swap-add-folio_swap_entry-and-folio_page_swap_entry.patch
+mm-swap-add-folio_swap_entry-and-folio_page_swap_entry-fix.patch
+mm-huge_memory-add-a-comment-to-the-open-coded-swap-entry.patch
+mm-rmap-use-folio_page_swap_entry-in-ttu_anon_swapbacked_folio.patch
+mm-zswap-use-folio_swap_entry-in-zswap_store_page.patch
+mm-swapfile-use-folio_page_swap_entry.patch
+arm64-mte-make-mte_save_tags-and-mte_restore_tags-static.patch
+arm64-mte-pass-the-swap-entry-to-mte_save_tags.patch
+mm-swap-remove-page_swap_entry.patch
 
