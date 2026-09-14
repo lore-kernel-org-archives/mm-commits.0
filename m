@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A247B33D4EC
-	for <mm-commits@vger.kernel.org>; Mon, 14 Sep 2026 03:52:08 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5566D36D4F1
+	for <mm-commits@vger.kernel.org>; Mon, 14 Sep 2026 03:52:10 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789357930; cv=none; b=VhNSB6OOGm8EiNxmNxnyJ7NZ1cXbRoCrD2sKxMXDNmmkPAPc7cTqIhQf3sZHv/+EDHFf/TQZxcBzfrR9aJEthbIhXAeIWKoB2ifxEQE/geEJlKDP0PWiiXGFadD20f58b1/Pd0EBzdEhOO5ssMBUNxJSbHpLvSzq86Xl85Mb9oA=
+	t=1789357932; cv=none; b=lJkgfYuR8svZk9w8kWY/2uKwvO49CVNb/UiEdBEM4otL1Cb1jx4Wl08LIOZ59hXYGgK3AYbuwUKxDZhQImjiBeS1+gXHhtVTMX44xqNJ2cb0+Ds9Qp//RmNXZbuBM60hCofmKvdo1I0r0urpYi084QSYkzitnEsU5+yuK9X1FU0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1789357930; c=relaxed/simple;
-	bh=0+ce3+Is85s676N+otssyzk9OIUqhTinrVaxPx2ATwQ=;
-	h=Date:To:From:Subject:Message-Id; b=HAtcDhAhNc2sEal7UPcMFOa6Y6jaBc0nW6w+hQA4aGr8DAm4+89dvnF/TgxtPTDojixJ1bgHG2hGB7hXNoJ0DsY4oMxx6eN4QdfZiOT3H89VN9aybme2X3pMcOroz+PgsKYOv5zZVXtJutzJWSOU8ApaEOiYz5Op4vlGydWtYlo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=L9DwV+06; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1789357932; c=relaxed/simple;
+	bh=vJ5LYfSPFx7gDaOpqU4PrpxgJ3ljN64TlFn/jtHaCe8=;
+	h=Date:To:From:Subject:Message-Id; b=NiJvEB14rRwreSV3nJFjzdeyYKkjbwB6jFF56Mr4NV/vcpPohwLsP4z8Ros3uvwkmmkJolp9Hgb3ocgOvePsZxcIBZH479pwOkbgHVuHzqEQn4hpdWQvB3NbmP1+1gOJRxBmtwVbpSa0NpNTkT9Zwy1YYVRzneuMuSeWdum3vEo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=c9MYEZcO; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="L9DwV+06"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 39ED61F000FF;
-	Mon, 14 Sep 2026 03:52:08 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="c9MYEZcO"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C300A1F000FF;
+	Mon, 14 Sep 2026 03:52:10 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1789357928;
-	bh=AyNXNebNEHVK5dmXLfIv0YwV6iqgJTLV0vTQE+P7Xpo=;
+	d=linux-foundation.org; s=korg; t=1789357930;
+	bh=aYVWjYLUGsR5zksmWYdsjMO2WwV0+zfD/4UJR68UGAQ=;
 	h=Date:To:From:Subject;
-	b=L9DwV+06Gil8FFtuycdoAMpe04asQ+n8BJ58OqNYhrqsoNtyKcu6LArRz209XHkjg
-	 /ucGccXuLrKJZx/e/0MjOoSmokw612zJ/YwlGtMmzd5PU8qiveJQu+l6QLUiXC9/8W
-	 8cIiaNC/yvlV9g+AIYFZj2JIvJlH9vjxLBdyDQJM=
-Date: Sun, 13 Sep 2026 20:52:07 -0700
-To: mm-commits@vger.kernel.org,zbestahu@gmail.com,xiang@kernel.org,willy@infradead.org,jefflexu@linux.alibaba.com,jack@suse.cz,hongbohbli@tencent.com,guochunhai@vivo.com,dhavale@google.com,david@kernel.org,chao@kernel.org,ziy@nvidia.com,akpm@linux-foundation.org
+	b=c9MYEZcO2i910smtj4ayX9H2rs86FXDUc4jJGe4AswmArR+hAVQRkn89S71xrTGkD
+	 S7HiS7cwltsA5XCKysoTd62bDhDerQ8wxu0sfHk3fK1FIG4jw2J51lpNUlMeHtd3pW
+	 k98qxITAnDCfbwyFx/TlCyxd1B9npl3p+H/rh+9I=
+Date: Sun, 13 Sep 2026 20:52:10 -0700
+To: mm-commits@vger.kernel.org,zbestahu@gmail.com,xiang@kernel.org,jefflexu@linux.alibaba.com,hongbohbli@tencent.com,guochunhai@vivo.com,dhavale@google.com,chao@kernel.org,ziy@nvidia.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + erofs-mm-pagemap-add-readahead_folio_last-to-avoid-folio-private.patch added to mm-new branch
-Message-Id: <20260914035208.39ED61F000FF@smtp.kernel.org>
+Subject: + erofs-use-folio_attach-detach_private-instead-of-direct-assignment.patch added to mm-new branch
+Message-Id: <20260914035210.C300A1F000FF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: erofs: mm/pagemap: add readahead_folio_last() to avoid folio->private
+     Subject: erofs: use folio_attach/detach_private() instead of direct assignment
 has been added to the -mm mm-new branch.  Its filename is
-     erofs-mm-pagemap-add-readahead_folio_last-to-avoid-folio-private.patch
+     erofs-use-folio_attach-detach_private-instead-of-direct-assignment.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/erofs-mm-pagemap-add-readahead_folio_last-to-avoid-folio-private.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/erofs-use-folio_attach-detach_private-instead-of-direct-assignment.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,34 +70,34 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Zi Yan <ziy@nvidia.com>
-Subject: erofs: mm/pagemap: add readahead_folio_last() to avoid folio->private
-Date: Sun, 13 Sep 2026 22:24:06 -0400
+Subject: erofs: use folio_attach/detach_private() instead of direct assignment
+Date: Sun, 13 Sep 2026 22:24:07 -0400
 
-erofs needs to traverse readahead folios in reverse order to achieve
-maximum performance by
-1. reading all folios from readahead_folio();
-2. storing the prior folio pointer in folio->private;
-3. traverse from the last folio to the first one.
+erofs_onlinefolio_init/split/end() use folio->private without setting
+PG_private or increasing folio refcount and it works.  But after
+PG_private is replaced by checking folio->private in a future commit, it
+can break folio_expected_ref_count(), since the folio has private data
+without elevated refcount.  Change them to use
+folio_attach/detach_private().  Folios during this process are locked as
+they are in the process of readahead, so no parallel migration/folio split
+can happen.
 
-Add readahead_folio_last() to achieve the same function without using
-folio->private.  __readahead_advance() helper shares readahead_control
-adjustment code among __readahead_folio(), readahead_folio_last(), and
-__readahead_batch() by checking new private member, _forward, of
-readahead_control.
+Furthermore, because folio->private is used to store in-flight I/O counter
+and the counter reaches 0 when all I/O completes successfully without
+error or being dirty, ->private=0 causes folio_detach_private() to not
+drop the elevated folio refcount.  Solve this issue by using bias=1 for
+the counter, so that ->private stays non NULL throughout every
+attach-to-detach process.  Add a macro EROFS_ONLINEFOLIO_BIAS=1.  While at
+it, fix the comment about ->private bit layout and add
+EROFS_ONLINEFOLIO_COUNT_MASK.
 
-It prepares for a future commit that replaces PG_private checks with
-!folio->private checks.  After switching the checks, erofs's use of
-folio->private without bumping folio refcount can cause unexpected
-outcomes, e.g., in filemap_release_folio(), try_to_free_buffers() becomes
-reachable.
-
-No functional change intended.
+It prepares for a future commit that removes PG_private.
 
 Assisted-by: LLM
-Link: https://lore.kernel.org/20260913-remove-pg_private-v4-8-848550f7574e@nvidia.com
+Link: https://lore.kernel.org/20260913-remove-pg_private-v4-9-848550f7574e@nvidia.com
 Signed-off-by: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Acked-by: David Hildenbrand (Arm) <david@kernel.org>
+Reviewed-by: Gao Xiang <xiang@kernel.org>
 Cc: Yue Hu <zbestahu@gmail.com>
 Cc: Jeffle Xu <jefflexu@linux.alibaba.com>
 Cc: Sandeep Dhavale <dhavale@google.com>
@@ -105,138 +105,58 @@ Cc: Hongbo Li <hongbohbli@tencent.com>
 Cc: Chunhai Guo <guochunhai@vivo.com>
 Cc: Gao Xiang <xiang@kernel.org>
 Cc: Chao Yu <chao@kernel.org>
-Cc: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Cc: Jan Kara <jack@suse.cz>
 ---
 
- fs/erofs/zdata.c        |   13 +-------
- include/linux/pagemap.h |   60 ++++++++++++++++++++++++++++++++------
- 2 files changed, 55 insertions(+), 18 deletions(-)
+ fs/erofs/data.c |   16 ++++++++++------
+ 1 file changed, 10 insertions(+), 6 deletions(-)
 
---- a/fs/erofs/zdata.c~erofs-mm-pagemap-add-readahead_folio_last-to-avoid-folio-private
-+++ a/fs/erofs/zdata.c
-@@ -1898,21 +1898,14 @@ static void z_erofs_readahead(struct rea
- 	struct inode *realinode = erofs_real_inode(sharedinode, &need_iput);
- 	Z_EROFS_DEFINE_FRONTEND(f, realinode, sharedinode, readahead_pos(rac));
- 	unsigned int nrpages = readahead_count(rac);
--	struct folio *head = NULL, *folio;
-+	struct folio *folio;
- 	int err;
+--- a/fs/erofs/data.c~erofs-use-folio_attach-detach_private-instead-of-direct-assignment
++++ a/fs/erofs/data.c
+@@ -239,19 +239,23 @@ int erofs_map_dev(struct super_block *sb
+ /*
+  * bit 30: I/O error occurred on this folio
+  * bit 29: CPU has dirty data in D-cache (needs aliasing handling);
+- * bit 0 - 29: remaining parts to complete this folio
++ * bit 0 - 28: remaining parts to complete this folio, biased by 1 so that
++ *	       ->private stays non-NULL while the folio is attached
+  */
+ #define EROFS_ONLINEFOLIO_EIO		30
+ #define EROFS_ONLINEFOLIO_DIRTY		29
++#define EROFS_ONLINEFOLIO_COUNT_MASK	(BIT(EROFS_ONLINEFOLIO_DIRTY) - 1)
++#define EROFS_ONLINEFOLIO_BIAS		1
  
- 	trace_erofs_readahead(realinode, readahead_index(rac), nrpages, false);
- 	z_erofs_pcluster_readmore(&f, rac, true);
--	while ((folio = readahead_folio(rac))) {
--		folio->private = head;
--		head = folio;
--	}
--
--	/* traverse in reverse order for best metadata I/O performance */
--	while (head) {
--		folio = head;
--		head = folio_get_private(folio);
+ void erofs_onlinefolio_init(struct folio *folio)
+ {
+ 	union {
+ 		atomic_t o;
+ 		void *v;
+-	} u = { .o = ATOMIC_INIT(1) };
++	} u = { .o = ATOMIC_INIT(1 + EROFS_ONLINEFOLIO_BIAS) };
  
-+	/* traverse from last to first for best metadata I/O performance */
-+	while ((folio = readahead_folio_last(rac))) {
- 		err = z_erofs_scan_folio(&f, folio, true);
- 		if (err && err != -EINTR)
- 			erofs_err(realinode->i_sb, "readahead error at folio %lu @ nid %llu",
---- a/include/linux/pagemap.h~erofs-mm-pagemap-add-readahead_folio_last-to-avoid-folio-private
-+++ a/include/linux/pagemap.h
-@@ -1415,6 +1415,7 @@ struct readahead_control {
- 	bool dropbehind;
- 	bool _workingset;
- 	unsigned long _pflags;
-+	bool _forward;
- };
- 
- #define DEFINE_READAHEAD(ractl, f, r, m, i)				\
-@@ -1479,18 +1480,29 @@ void page_cache_async_readahead(struct a
- 	page_cache_async_ra(&ractl, folio, req_count);
+-	folio->private = u.v;	/* valid only if file-backed folio is locked */
++	/* valid only if file-backed folio is locked */
++	folio_attach_private(folio, u.v);
  }
  
-+/*
-+ * Adjust readahead_control to ensure next folio comes from
-+ * [_index, _index + _nr_pages) afterwards and reset _batch_count.
-+ */
-+static inline void __readahead_advance(struct readahead_control *rac)
-+{
-+	if (rac->_forward)
-+		rac->_index += rac->_batch_count;
-+
-+	rac->_nr_pages -= rac->_batch_count;
-+	rac->_batch_count = 0;
-+}
-+
- static inline struct folio *__readahead_folio(struct readahead_control *ractl)
- {
- 	struct folio *folio;
+ void erofs_onlinefolio_split(struct folio *folio)
+@@ -265,14 +269,14 @@ void erofs_onlinefolio_end(struct folio
  
- 	BUG_ON(ractl->_batch_count > ractl->_nr_pages);
--	ractl->_nr_pages -= ractl->_batch_count;
--	ractl->_index += ractl->_batch_count;
-+	__readahead_advance(ractl);
-+	ractl->_forward = true;
+ 	do {
+ 		orig = atomic_read((atomic_t *)&folio->private);
+-		DBG_BUGON(orig <= 0);
++		DBG_BUGON((orig & EROFS_ONLINEFOLIO_COUNT_MASK) <= EROFS_ONLINEFOLIO_BIAS);
+ 		v = dirty << EROFS_ONLINEFOLIO_DIRTY;
+ 		v |= (orig - 1) | (!!err << EROFS_ONLINEFOLIO_EIO);
+ 	} while (atomic_cmpxchg((atomic_t *)&folio->private, orig, v) != orig);
  
--	if (!ractl->_nr_pages) {
--		ractl->_batch_count = 0;
-+	if (!ractl->_nr_pages)
- 		return NULL;
--	}
- 
- 	folio = xa_load(&ractl->mapping->i_pages, ractl->_index);
- 	VM_BUG_ON_FOLIO(!folio_test_locked(folio), folio);
-@@ -1516,6 +1528,39 @@ static inline struct folio *readahead_fo
- 	return folio;
- }
- 
-+/**
-+ * readahead_folio_last - Get the next folio to read, from the tail.
-+ * @ractl: The current readahead request.
-+ *
-+ * Like readahead_folio(), but walks the range back-to-front. The folio is
-+ * returned locked with its refcount dropped; the caller unlocks it once I/O
-+ * completes. Compound folios are returned once, at their head index.
-+ *
-+ * Context: The folio is locked.
-+ * Return: A pointer to the next folio, or %NULL when done.
-+ */
-+static inline struct folio *readahead_folio_last(struct readahead_control *ractl)
-+{
-+	struct folio *folio;
-+
-+	/* Drop the previously returned batch from the remaining range. */
-+	__readahead_advance(ractl);
-+	ractl->_forward = false;
-+
-+	if (!ractl->_nr_pages)
-+		return NULL;
-+
-+	/* xa_load() follows sibling entries, so a tail index returns the head */
-+	folio = xa_load(&ractl->mapping->i_pages,
-+			ractl->_index + ractl->_nr_pages - 1);
-+	VM_WARN_ON_ONCE_FOLIO(!folio_test_locked(folio), folio);
-+
-+	ractl->_batch_count = folio_nr_pages(folio);
-+
-+	folio_put(folio);
-+	return folio;
-+}
-+
- static inline unsigned int __readahead_batch(struct readahead_control *rac,
- 		struct page **array, unsigned int array_sz)
- {
-@@ -1524,9 +1569,8 @@ static inline unsigned int __readahead_b
- 	struct folio *folio;
- 
- 	BUG_ON(rac->_batch_count > rac->_nr_pages);
--	rac->_nr_pages -= rac->_batch_count;
--	rac->_index += rac->_batch_count;
--	rac->_batch_count = 0;
-+	__readahead_advance(rac);
-+	rac->_forward = true;
- 
- 	xas_set(&xas, rac->_index);
- 	rcu_read_lock();
+-	if (v & (BIT(EROFS_ONLINEFOLIO_DIRTY) - 1))
++	if ((v & EROFS_ONLINEFOLIO_COUNT_MASK) != EROFS_ONLINEFOLIO_BIAS)
+ 		return;
+-	folio->private = 0;
++	folio_detach_private(folio);
+ 	if (v & BIT(EROFS_ONLINEFOLIO_DIRTY))
+ 		flush_dcache_folio(folio);
+ 	folio_end_read(folio, !(v & BIT(EROFS_ONLINEFOLIO_EIO)));
 _
 
 Patches currently in -mm which might be from ziy@nvidia.com are
