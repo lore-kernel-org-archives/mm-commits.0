@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2F06A3254A9
-	for <mm-commits@vger.kernel.org>; Mon, 14 Sep 2026 03:52:04 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A247B33D4EC
+	for <mm-commits@vger.kernel.org>; Mon, 14 Sep 2026 03:52:08 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789357927; cv=none; b=n84NikmVsWyQ5a4zsnLLsi9WE9qxFPa2FUE6jHjFgoR9glFXSt+hqU7/huXmidUo05GGiXk+nhPG/fHtqgyT47qS6L8E6iW8nUn4AjLmtkwD4hLrTHiFwuTjJHfUE0I80KTioOweNCx0siBCvmURFdcs+UjsRFA7+6xI9y/ny9Y=
+	t=1789357930; cv=none; b=VhNSB6OOGm8EiNxmNxnyJ7NZ1cXbRoCrD2sKxMXDNmmkPAPc7cTqIhQf3sZHv/+EDHFf/TQZxcBzfrR9aJEthbIhXAeIWKoB2ifxEQE/geEJlKDP0PWiiXGFadD20f58b1/Pd0EBzdEhOO5ssMBUNxJSbHpLvSzq86Xl85Mb9oA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1789357927; c=relaxed/simple;
-	bh=ITl2fnf8GthyaDDFnLemOiYRaUqglGXPZgIZt1UkNH4=;
-	h=Date:To:From:Subject:Message-Id; b=m1gfxkG7zzaMd3OFIMF+U8YiLgqO7+gAq6zOYHMx6GmOUkaLBRaz4Iy+ThPRUlBmboU0KxeS5RDQoCXpR9dsw9WFENyKlGnzbVXK90t+qjIKCCMzk+vOxlGyCd+sgu8HS5U8PyvJGAyrZqqmg5s24lcLYutR6nk0+GEwqvxKIUk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=yFNkKxCu; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1789357930; c=relaxed/simple;
+	bh=0+ce3+Is85s676N+otssyzk9OIUqhTinrVaxPx2ATwQ=;
+	h=Date:To:From:Subject:Message-Id; b=HAtcDhAhNc2sEal7UPcMFOa6Y6jaBc0nW6w+hQA4aGr8DAm4+89dvnF/TgxtPTDojixJ1bgHG2hGB7hXNoJ0DsY4oMxx6eN4QdfZiOT3H89VN9aybme2X3pMcOroz+PgsKYOv5zZVXtJutzJWSOU8ApaEOiYz5Op4vlGydWtYlo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=L9DwV+06; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="yFNkKxCu"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A40F11F000FF;
-	Mon, 14 Sep 2026 03:52:04 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="L9DwV+06"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 39ED61F000FF;
+	Mon, 14 Sep 2026 03:52:08 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1789357924;
-	bh=WG/Wlu69F8LloKjL4Lt4qlGjDlr6uMTys+aNnxXQCXU=;
+	d=linux-foundation.org; s=korg; t=1789357928;
+	bh=AyNXNebNEHVK5dmXLfIv0YwV6iqgJTLV0vTQE+P7Xpo=;
 	h=Date:To:From:Subject;
-	b=yFNkKxCuRilBPWrM43cQYNw9QQ9H//EP7cpKu6stfHu1+QyGcu0hDFoTdu9gwm2kI
-	 bYFOXXGAhA0ORbRDk+IiIUShoJQMY9mRIMV0oumXxlC2dPzANLiVChlB+VjgrW6+VS
-	 Gzqa+pU8+irLpv4W/WJWLX9qcUwRSaHFaPUFtC/E=
-Date: Sun, 13 Sep 2026 20:52:04 -0700
-To: mm-commits@vger.kernel.org,tz2294@columbia.edu,jaegeuk@kernel.org,david@kernel.org,chao@kernel.org,ziy@nvidia.com,akpm@linux-foundation.org
+	b=L9DwV+06Gil8FFtuycdoAMpe04asQ+n8BJ58OqNYhrqsoNtyKcu6LArRz209XHkjg
+	 /ucGccXuLrKJZx/e/0MjOoSmokw612zJ/YwlGtMmzd5PU8qiveJQu+l6QLUiXC9/8W
+	 8cIiaNC/yvlV9g+AIYFZj2JIvJlH9vjxLBdyDQJM=
+Date: Sun, 13 Sep 2026 20:52:07 -0700
+To: mm-commits@vger.kernel.org,zbestahu@gmail.com,xiang@kernel.org,willy@infradead.org,jefflexu@linux.alibaba.com,jack@suse.cz,hongbohbli@tencent.com,guochunhai@vivo.com,dhavale@google.com,david@kernel.org,chao@kernel.org,ziy@nvidia.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + f2fs-convert-the-private-flag-helpers-to-folio-only.patch added to mm-new branch
-Message-Id: <20260914035204.A40F11F000FF@smtp.kernel.org>
+Subject: + erofs-mm-pagemap-add-readahead_folio_last-to-avoid-folio-private.patch added to mm-new branch
+Message-Id: <20260914035208.39ED61F000FF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: f2fs: convert the ->private flag helpers to folio-only
+     Subject: erofs: mm/pagemap: add readahead_folio_last() to avoid folio->private
 has been added to the -mm mm-new branch.  Its filename is
-     f2fs-convert-the-private-flag-helpers-to-folio-only.patch
+     erofs-mm-pagemap-add-readahead_folio_last-to-avoid-folio-private.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/f2fs-convert-the-private-flag-helpers-to-folio-only.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/erofs-mm-pagemap-add-readahead_folio_last-to-avoid-folio-private.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,311 +70,173 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Zi Yan <ziy@nvidia.com>
-Subject: f2fs: convert the ->private flag helpers to folio-only
-Date: Sun, 13 Sep 2026 22:24:05 -0400
+Subject: erofs: mm/pagemap: add readahead_folio_last() to avoid folio->private
+Date: Sun, 13 Sep 2026 22:24:06 -0400
 
-page-based ->private flag helpers are used in the compression path, where
-large folios are not enabled.  They can use folio versions with
-page_folio().  The two remaining users in data.c and segment.c can use
-fio->folio instead of fio->page (two are in a union).
+erofs needs to traverse readahead folios in reverse order to achieve
+maximum performance by
+1. reading all folios from readahead_folio();
+2. storing the prior folio pointer in folio->private;
+3. traverse from the last folio to the first one.
 
-Drop page-based helpers after the conversion and rename
-PAGE_PRIVATE_{GET,SET,CLEAR}_FUNC() and the PAGE_PRIVATE_* flags to
-F2FS_FOLIO_PRIVATE_* to match.  Convert the folio/page union from
-f2fs_io_info union to folio only, since no page user is left.
+Add readahead_folio_last() to achieve the same function without using
+folio->private.  __readahead_advance() helper shares readahead_control
+adjustment code among __readahead_folio(), readahead_folio_last(), and
+__readahead_batch() by checking new private member, _forward, of
+readahead_control.
 
-The folio helpers do a plain read-modify-write where the page ones used
-set_bit()/clear_bit().  It is fine because the converted code either holds
-folio lock or, in f2fs_compress_write_end_io(), matches what the
-non-compressed code does in f2fs_write_end_bio().
+It prepares for a future commit that replaces PG_private checks with
+!folio->private checks.  After switching the checks, erofs's use of
+folio->private without bumping folio refcount can cause unexpected
+outcomes, e.g., in filemap_release_folio(), try_to_free_buffers() becomes
+reachable.
+
+No functional change intended.
 
 Assisted-by: LLM
-Link: https://lore.kernel.org/20260913-remove-pg_private-v4-7-848550f7574e@nvidia.com
+Link: https://lore.kernel.org/20260913-remove-pg_private-v4-8-848550f7574e@nvidia.com
 Signed-off-by: Zi Yan <ziy@nvidia.com>
-Co-developed-by: David Hildenbrand (Arm) <david@kernel.org>
-Signed-off-by: David Hildenbrand (Arm) <david@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Suggested-by: Tal Zussman <tz2294@columbia.edu>
-Reviewed-by: Tal Zussman <tz2294@columbia.edu>
-Cc: Jaegeuk Kim <jaegeuk@kernel.org>
+Acked-by: David Hildenbrand (Arm) <david@kernel.org>
+Cc: Yue Hu <zbestahu@gmail.com>
+Cc: Jeffle Xu <jefflexu@linux.alibaba.com>
+Cc: Sandeep Dhavale <dhavale@google.com>
+Cc: Hongbo Li <hongbohbli@tencent.com>
+Cc: Chunhai Guo <guochunhai@vivo.com>
+Cc: Gao Xiang <xiang@kernel.org>
 Cc: Chao Yu <chao@kernel.org>
+Cc: "Matthew Wilcox (Oracle)" <willy@infradead.org>
+Cc: Jan Kara <jack@suse.cz>
 ---
 
- fs/f2fs/compress.c |   35 ++++++++------
- fs/f2fs/data.c     |    2 
- fs/f2fs/f2fs.h     |  107 +++++++++++++++++--------------------------
- fs/f2fs/segment.c  |    2 
- 4 files changed, 67 insertions(+), 79 deletions(-)
+ fs/erofs/zdata.c        |   13 +-------
+ include/linux/pagemap.h |   60 ++++++++++++++++++++++++++++++++------
+ 2 files changed, 55 insertions(+), 18 deletions(-)
 
---- a/fs/f2fs/compress.c~f2fs-convert-the-private-flag-helpers-to-folio-only
-+++ a/fs/f2fs/compress.c
-@@ -1064,13 +1064,15 @@ static void cancel_cluster_writeback(str
+--- a/fs/erofs/zdata.c~erofs-mm-pagemap-add-readahead_folio_last-to-avoid-folio-private
++++ a/fs/erofs/zdata.c
+@@ -1898,21 +1898,14 @@ static void z_erofs_readahead(struct rea
+ 	struct inode *realinode = erofs_real_inode(sharedinode, &need_iput);
+ 	Z_EROFS_DEFINE_FRONTEND(f, realinode, sharedinode, readahead_pos(rac));
+ 	unsigned int nrpages = readahead_count(rac);
+-	struct folio *head = NULL, *folio;
++	struct folio *folio;
+ 	int err;
  
- 	/* Cancel writeback and stay locked. */
- 	for (i = 0; i < cc->cluster_size; i++) {
-+		struct folio *folio = page_folio(cc->rpages[i]);
-+
- 		if (i < submitted) {
- 			inode_inc_dirty_pages(cc->inode);
--			lock_page(cc->rpages[i]);
-+			folio_lock(folio);
- 		}
--		clear_page_private_gcing(cc->rpages[i]);
--		if (folio_test_writeback(page_folio(cc->rpages[i])))
--			end_page_writeback(cc->rpages[i]);
-+		folio_clear_f2fs_gcing(folio);
-+		if (folio_test_writeback(folio))
-+			folio_end_writeback(folio);
- 	}
- }
+ 	trace_erofs_readahead(realinode, readahead_index(rac), nrpages, false);
+ 	z_erofs_pcluster_readmore(&f, rac, true);
+-	while ((folio = readahead_folio(rac))) {
+-		folio->private = head;
+-		head = folio;
+-	}
+-
+-	/* traverse in reverse order for best metadata I/O performance */
+-	while (head) {
+-		folio = head;
+-		head = folio_get_private(folio);
  
-@@ -1078,11 +1080,15 @@ static void set_cluster_dirty(struct com
- {
- 	int i;
- 
--	for (i = 0; i < cc->cluster_size; i++)
--		if (cc->rpages[i]) {
--			set_page_dirty(cc->rpages[i]);
--			set_page_private_gcing(cc->rpages[i]);
--		}
-+	for (i = 0; i < cc->cluster_size; i++) {
-+		struct folio *folio;
-+
-+		if (!cc->rpages[i])
-+			continue;
-+		folio = page_folio(cc->rpages[i]);
-+		folio_mark_dirty(folio);
-+		folio_set_f2fs_gcing(folio);
-+	}
- }
- 
- static int prepare_compress_overwrite(struct compress_ctx *cc,
-@@ -1281,7 +1287,7 @@ static int f2fs_write_compressed_pages(s
- 		.op = REQ_OP_WRITE,
- 		.op_flags = wbc_to_write_flags(wbc),
- 		.old_blkaddr = NEW_ADDR,
--		.page = NULL,
-+		.folio = NULL,
- 		.encrypted_page = NULL,
- 		.compressed_page = NULL,
- 		.io_type = io_type,
-@@ -1370,7 +1376,7 @@ static int f2fs_write_compressed_pages(s
- 		block_t blkaddr;
- 
- 		blkaddr = f2fs_data_blkaddr(&dn);
--		fio.page = cc->rpages[i];
-+		fio.folio = page_folio(cc->rpages[i]);
- 		fio.old_blkaddr = blkaddr;
- 
- 		/* cluster header */
-@@ -1476,9 +1482,12 @@ void f2fs_compress_write_end_io(struct b
- 	}
- 
- 	for (i = 0; i < cic->nr_rpages; i++) {
-+		struct folio *rfolio;
-+
- 		WARN_ON(!cic->rpages[i]);
--		clear_page_private_gcing(cic->rpages[i]);
--		end_page_writeback(cic->rpages[i]);
-+		rfolio = page_folio(cic->rpages[i]);
-+		folio_clear_f2fs_gcing(rfolio);
-+		folio_end_writeback(rfolio);
- 	}
- 
- 	page_array_free(sbi, cic->rpages, cic->nr_rpages);
---- a/fs/f2fs/data.c~f2fs-convert-the-private-flag-helpers-to-folio-only
-+++ a/fs/f2fs/data.c
-@@ -2923,7 +2923,7 @@ bool f2fs_should_update_outplace(struct
- 		return true;
- 
- 	if (fio) {
--		if (page_private_gcing(fio->page))
-+		if (folio_test_f2fs_gcing(fio->folio))
- 			return true;
- 		if (unlikely(is_sbi_flag_set(sbi, SBI_CP_DISABLED) &&
- 			f2fs_is_checkpointed_data(sbi, fio->old_blkaddr)))
---- a/fs/f2fs/f2fs.h~f2fs-convert-the-private-flag-helpers-to-folio-only
-+++ a/fs/f2fs/f2fs.h
-@@ -1357,10 +1357,7 @@ struct f2fs_io_info {
- 	blk_opf_t op_flags;	/* req_flag_bits */
- 	block_t new_blkaddr;	/* new block address to be written */
- 	block_t old_blkaddr;	/* old block address before Cow */
--	union {
--		struct page *page;	/* page to be written */
--		struct folio *folio;
--	};
-+	struct folio *folio;	/* folio to be written */
- 	struct page *encrypted_page;	/* encrypted page */
- 	struct page *compressed_page;	/* compressed page */
- 	struct list_head list;		/* serialize IOs */
-@@ -1613,27 +1610,27 @@ static inline void f2fs_set_bit(unsigned
- static inline void f2fs_clear_bit(unsigned int nr, char *addr);
- 
- /*
-- * Layout of f2fs page.private:
-+ * Layout of f2fs folio->private:
-  *
-  * Layout A: lowest bit should be 1
-  * | bit0 = 1 | bit1 | bit2 | ... | bit MAX | private data .... |
-- * bit 0	PAGE_PRIVATE_NOT_POINTER
-- * bit 1	PAGE_PRIVATE_ONGOING_MIGRATION
-- * bit 2	PAGE_PRIVATE_INLINE_INODE
-- * bit 3	PAGE_PRIVATE_REF_RESOURCE
-- * bit 4	PAGE_PRIVATE_ATOMIC_WRITE
-+ * bit 0	F2FS_FOLIO_PRIVATE_NOT_POINTER
-+ * bit 1	F2FS_FOLIO_PRIVATE_ONGOING_MIGRATION
-+ * bit 2	F2FS_FOLIO_PRIVATE_INLINE_INODE
-+ * bit 3	F2FS_FOLIO_PRIVATE_REF_RESOURCE
-+ * bit 4	F2FS_FOLIO_PRIVATE_ATOMIC_WRITE
-  * bit 5-	f2fs private data
-  *
-  * Layout B: lowest bit should be 0
-- * page.private is a wrapped pointer.
-+ * folio->private is a wrapped pointer.
-  */
- enum {
--	PAGE_PRIVATE_NOT_POINTER,		/* private contains non-pointer data */
--	PAGE_PRIVATE_ONGOING_MIGRATION,		/* data page which is on-going migrating */
--	PAGE_PRIVATE_INLINE_INODE,		/* inode page contains inline data */
--	PAGE_PRIVATE_REF_RESOURCE,		/* dirty page has referenced resources */
--	PAGE_PRIVATE_ATOMIC_WRITE,		/* data page from atomic write path */
--	PAGE_PRIVATE_MAX
-+	F2FS_FOLIO_PRIVATE_NOT_POINTER,		/* private contains non-pointer data */
-+	F2FS_FOLIO_PRIVATE_ONGOING_MIGRATION,		/* data page which is on-going migrating */
-+	F2FS_FOLIO_PRIVATE_INLINE_INODE,		/* inode page contains inline data */
-+	F2FS_FOLIO_PRIVATE_REF_RESOURCE,		/* dirty page has referenced resources */
-+	F2FS_FOLIO_PRIVATE_ATOMIC_WRITE,		/* data page from atomic write path */
-+	F2FS_FOLIO_PRIVATE_MAX
++	/* traverse from last to first for best metadata I/O performance */
++	while ((folio = readahead_folio_last(rac))) {
+ 		err = z_erofs_scan_folio(&f, folio, true);
+ 		if (err && err != -EINTR)
+ 			erofs_err(realinode->i_sb, "readahead error at folio %lu @ nid %llu",
+--- a/include/linux/pagemap.h~erofs-mm-pagemap-add-readahead_folio_last-to-avoid-folio-private
++++ a/include/linux/pagemap.h
+@@ -1415,6 +1415,7 @@ struct readahead_control {
+ 	bool dropbehind;
+ 	bool _workingset;
+ 	unsigned long _pflags;
++	bool _forward;
  };
  
- /* For compression */
-@@ -2681,86 +2678,68 @@ release_quota:
- 	return -ENOSPC;
+ #define DEFINE_READAHEAD(ractl, f, r, m, i)				\
+@@ -1479,18 +1480,29 @@ void page_cache_async_readahead(struct a
+ 	page_cache_async_ra(&ractl, folio, req_count);
  }
  
--#define PAGE_PRIVATE_GET_FUNC(name, flagname) \
-+#define F2FS_FOLIO_PRIVATE_GET_FUNC(name, flagname) \
- static inline bool folio_test_f2fs_##name(const struct folio *folio)	\
- {									\
- 	unsigned long priv = (unsigned long)folio->private;		\
--	unsigned long v = (1UL << PAGE_PRIVATE_NOT_POINTER) |		\
--			     (1UL << PAGE_PRIVATE_##flagname);		\
-+	unsigned long v = (1UL << F2FS_FOLIO_PRIVATE_NOT_POINTER) |	\
-+			     (1UL << F2FS_FOLIO_PRIVATE_##flagname);	\
- 	return (priv & v) == v;						\
--}									\
--static inline bool page_private_##name(struct page *page) \
--{ \
--	return page_private(page) && \
--		test_bit(PAGE_PRIVATE_NOT_POINTER, &page_private(page)) && \
--		test_bit(PAGE_PRIVATE_##flagname, &page_private(page)); \
- }
- 
--#define PAGE_PRIVATE_SET_FUNC(name, flagname) \
-+#define F2FS_FOLIO_PRIVATE_SET_FUNC(name, flagname) \
- static inline void folio_set_f2fs_##name(struct folio *folio)		\
- {									\
--	unsigned long v = (1UL << PAGE_PRIVATE_NOT_POINTER) |		\
--			     (1UL << PAGE_PRIVATE_##flagname);		\
-+	unsigned long v = (1UL << F2FS_FOLIO_PRIVATE_NOT_POINTER) |	\
-+			     (1UL << F2FS_FOLIO_PRIVATE_##flagname);	\
- 	if (!folio->private)						\
- 		folio_attach_private(folio, (void *)v);			\
- 	else {								\
- 		v |= (unsigned long)folio->private;			\
- 		folio->private = (void *)v;				\
- 	}								\
--}									\
--static inline void set_page_private_##name(struct page *page) \
--{ \
--	if (!page_private(page)) \
--		attach_page_private(page, \
--				(void *)BIT(PAGE_PRIVATE_NOT_POINTER)); \
--	set_bit(PAGE_PRIVATE_##flagname, &page_private(page)); \
- }
- 
--#define PAGE_PRIVATE_CLEAR_FUNC(name, flagname) \
-+#define F2FS_FOLIO_PRIVATE_CLEAR_FUNC(name, flagname) \
- static inline void folio_clear_f2fs_##name(struct folio *folio)		\
- {									\
- 	unsigned long v = (unsigned long)folio->private;		\
- 									\
--	v &= ~(1UL << PAGE_PRIVATE_##flagname);				\
--	if (v == (1UL << PAGE_PRIVATE_NOT_POINTER))			\
-+	v &= ~(1UL << F2FS_FOLIO_PRIVATE_##flagname);			\
-+	if (v == (1UL << F2FS_FOLIO_PRIVATE_NOT_POINTER))		\
- 		folio_detach_private(folio);				\
- 	else								\
- 		folio->private = (void *)v;				\
--}									\
--static inline void clear_page_private_##name(struct page *page) \
--{ \
--	clear_bit(PAGE_PRIVATE_##flagname, &page_private(page)); \
--	if (page_private(page) == BIT(PAGE_PRIVATE_NOT_POINTER)) \
--		detach_page_private(page); \
--}
--
--PAGE_PRIVATE_GET_FUNC(nonpointer, NOT_POINTER);
--PAGE_PRIVATE_GET_FUNC(inline, INLINE_INODE);
--PAGE_PRIVATE_GET_FUNC(gcing, ONGOING_MIGRATION);
--PAGE_PRIVATE_GET_FUNC(atomic, ATOMIC_WRITE);
--
--PAGE_PRIVATE_SET_FUNC(reference, REF_RESOURCE);
--PAGE_PRIVATE_SET_FUNC(inline, INLINE_INODE);
--PAGE_PRIVATE_SET_FUNC(gcing, ONGOING_MIGRATION);
--PAGE_PRIVATE_SET_FUNC(atomic, ATOMIC_WRITE);
--
--PAGE_PRIVATE_CLEAR_FUNC(reference, REF_RESOURCE);
--PAGE_PRIVATE_CLEAR_FUNC(inline, INLINE_INODE);
--PAGE_PRIVATE_CLEAR_FUNC(gcing, ONGOING_MIGRATION);
--PAGE_PRIVATE_CLEAR_FUNC(atomic, ATOMIC_WRITE);
++/*
++ * Adjust readahead_control to ensure next folio comes from
++ * [_index, _index + _nr_pages) afterwards and reset _batch_count.
++ */
++static inline void __readahead_advance(struct readahead_control *rac)
++{
++	if (rac->_forward)
++		rac->_index += rac->_batch_count;
++
++	rac->_nr_pages -= rac->_batch_count;
++	rac->_batch_count = 0;
 +}
 +
-+F2FS_FOLIO_PRIVATE_GET_FUNC(nonpointer, NOT_POINTER);
-+F2FS_FOLIO_PRIVATE_GET_FUNC(inline, INLINE_INODE);
-+F2FS_FOLIO_PRIVATE_GET_FUNC(gcing, ONGOING_MIGRATION);
-+F2FS_FOLIO_PRIVATE_GET_FUNC(atomic, ATOMIC_WRITE);
-+
-+F2FS_FOLIO_PRIVATE_SET_FUNC(reference, REF_RESOURCE);
-+F2FS_FOLIO_PRIVATE_SET_FUNC(inline, INLINE_INODE);
-+F2FS_FOLIO_PRIVATE_SET_FUNC(gcing, ONGOING_MIGRATION);
-+F2FS_FOLIO_PRIVATE_SET_FUNC(atomic, ATOMIC_WRITE);
-+
-+F2FS_FOLIO_PRIVATE_CLEAR_FUNC(reference, REF_RESOURCE);
-+F2FS_FOLIO_PRIVATE_CLEAR_FUNC(inline, INLINE_INODE);
-+F2FS_FOLIO_PRIVATE_CLEAR_FUNC(gcing, ONGOING_MIGRATION);
-+F2FS_FOLIO_PRIVATE_CLEAR_FUNC(atomic, ATOMIC_WRITE);
- 
- static inline unsigned long folio_get_f2fs_data(struct folio *folio)
+ static inline struct folio *__readahead_folio(struct readahead_control *ractl)
  {
- 	unsigned long data = (unsigned long)folio->private;
+ 	struct folio *folio;
  
--	if (!test_bit(PAGE_PRIVATE_NOT_POINTER, &data))
-+	if (!test_bit(F2FS_FOLIO_PRIVATE_NOT_POINTER, &data))
- 		return 0;
--	return data >> PAGE_PRIVATE_MAX;
-+	return data >> F2FS_FOLIO_PRIVATE_MAX;
+ 	BUG_ON(ractl->_batch_count > ractl->_nr_pages);
+-	ractl->_nr_pages -= ractl->_batch_count;
+-	ractl->_index += ractl->_batch_count;
++	__readahead_advance(ractl);
++	ractl->_forward = true;
+ 
+-	if (!ractl->_nr_pages) {
+-		ractl->_batch_count = 0;
++	if (!ractl->_nr_pages)
+ 		return NULL;
+-	}
+ 
+ 	folio = xa_load(&ractl->mapping->i_pages, ractl->_index);
+ 	VM_BUG_ON_FOLIO(!folio_test_locked(folio), folio);
+@@ -1516,6 +1528,39 @@ static inline struct folio *readahead_fo
+ 	return folio;
  }
  
- static inline void folio_set_f2fs_data(struct folio *folio, unsigned long data)
++/**
++ * readahead_folio_last - Get the next folio to read, from the tail.
++ * @ractl: The current readahead request.
++ *
++ * Like readahead_folio(), but walks the range back-to-front. The folio is
++ * returned locked with its refcount dropped; the caller unlocks it once I/O
++ * completes. Compound folios are returned once, at their head index.
++ *
++ * Context: The folio is locked.
++ * Return: A pointer to the next folio, or %NULL when done.
++ */
++static inline struct folio *readahead_folio_last(struct readahead_control *ractl)
++{
++	struct folio *folio;
++
++	/* Drop the previously returned batch from the remaining range. */
++	__readahead_advance(ractl);
++	ractl->_forward = false;
++
++	if (!ractl->_nr_pages)
++		return NULL;
++
++	/* xa_load() follows sibling entries, so a tail index returns the head */
++	folio = xa_load(&ractl->mapping->i_pages,
++			ractl->_index + ractl->_nr_pages - 1);
++	VM_WARN_ON_ONCE_FOLIO(!folio_test_locked(folio), folio);
++
++	ractl->_batch_count = folio_nr_pages(folio);
++
++	folio_put(folio);
++	return folio;
++}
++
+ static inline unsigned int __readahead_batch(struct readahead_control *rac,
+ 		struct page **array, unsigned int array_sz)
  {
--	data = (1UL << PAGE_PRIVATE_NOT_POINTER) | (data << PAGE_PRIVATE_MAX);
-+	data = (1UL << F2FS_FOLIO_PRIVATE_NOT_POINTER) |
-+	       (data << F2FS_FOLIO_PRIVATE_MAX);
+@@ -1524,9 +1569,8 @@ static inline unsigned int __readahead_b
+ 	struct folio *folio;
  
- 	if (!folio_test_private(folio))
- 		folio_attach_private(folio, (void *)data);
---- a/fs/f2fs/segment.c~f2fs-convert-the-private-flag-helpers-to-folio-only
-+++ a/fs/f2fs/segment.c
-@@ -3803,7 +3803,7 @@ static int __get_segment_type_6(struct f
- 		if (is_inode_flag_set(inode, FI_ALIGNED_WRITE))
- 			return CURSEG_COLD_DATA_PINNED;
+ 	BUG_ON(rac->_batch_count > rac->_nr_pages);
+-	rac->_nr_pages -= rac->_batch_count;
+-	rac->_index += rac->_batch_count;
+-	rac->_batch_count = 0;
++	__readahead_advance(rac);
++	rac->_forward = true;
  
--		if (page_private_gcing(fio->page)) {
-+		if (folio_test_f2fs_gcing(fio->folio)) {
- 			if (fio->sbi->am.atgc_enabled &&
- 				(fio->io_type == FS_DATA_IO) &&
- 				(fio->sbi->gc_mode != GC_URGENT_HIGH) &&
+ 	xas_set(&xas, rac->_index);
+ 	rcu_read_lock();
 _
 
 Patches currently in -mm which might be from ziy@nvidia.com are
