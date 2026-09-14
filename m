@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5AE9425E469
-	for <mm-commits@vger.kernel.org>; Mon, 14 Sep 2026 00:51:03 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A6BC63115AC;
+	Mon, 14 Sep 2026 02:09:36 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789347065; cv=none; b=r0r1NYmlPpySkOM+3HLNyoKOMsi7Z5R3yF4q3av70At2+C7bRyF+GYGE/SiCt12J9dhEHDnjBcWgL/0tQ9vX1N5s7BLIvLeP/FJ48mhti6aJy/ki+nqBy0gsWUuN6FUJv8GthuTDYGM/XjLc8dT9bXmXhWe/1bxTViH+NmwtGOo=
+	t=1789351778; cv=none; b=DU9aSqj7vMfc/cTO187X2cX66mwxtPR+YlxWIDpsFqGsOmJqH9KwKG2KDMBVT9+fBNUMTrxdjxNfzGZqcDdl5wzGbJEsqSwSNTk0F5nRZY8KxJjS+25YO0ADt5MM4AalAK5xSsWtjUg+PCRTBYfLSI/wCMtJgk6P/PgdsVejuPk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1789347065; c=relaxed/simple;
-	bh=vTZD0JMbqoMvpaOTdGjNwu2f34atw7VwB2cjjZeQBH8=;
-	h=Date:To:From:Subject:Message-Id; b=Tonzrp2u5TO0iF61aDiSNN6WOrTw2ES0UJTT4+9xxwn5huYMIg8B/ljXQnCAFtZbfDlvZ576Jklq1EtZb4ZRtYMfeqxUjlQ5N1DX0hSBVlnKBckfaM6wkNOpOqdVRyVtAPGpFlP5cd5uqFV/Y3Juu4XMWFuf86+BFFtEf+8pDQ8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=xpDM2Eyl; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1789351778; c=relaxed/simple;
+	bh=crp+VG43PYejLaU85bWJ1h04JjIDaqElEaHNw2coUiA=;
+	h=Date:To:From:Subject:Message-Id; b=Ww5BMGN979TjhwFP/4vVMQGmfue9yEQg2hDt2J7uphLNvcVALUE+VD2g39H8XZuqEAGDSzL9FqzfpwbA9EJIbzGrTfnH9hXbHLHslfitC188pVUo+J/Nq98dkvW340wtxZj+PgYg8pfvcVgbucTs3emx1R/K8lsLcIjgf9rVb1E=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=AeoBQ9Fm; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="xpDM2Eyl"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C27081F000FF;
-	Mon, 14 Sep 2026 00:51:03 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="AeoBQ9Fm"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2C1541F000FF;
+	Mon, 14 Sep 2026 02:09:36 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1789347063;
-	bh=CgZYaMiYg/1p85FU2HPO0jz8vsja2U0/txy76UcFcTU=;
+	d=linux-foundation.org; s=korg; t=1789351776;
+	bh=Cp54qsSei8JO4Qmt7HDw+bhMbk9LtDOHb0LZMxDgIWU=;
 	h=Date:To:From:Subject;
-	b=xpDM2EylOa8xNg6dzUxAN3ayoYZ/oFWcyfTLgtK22hhEN9KjrYaHLECliJCm8ETl+
-	 343S2q0jff1KnGFUJvGAakKb08lwQ0Xg6zuMHFmNmSOuUWxH57zOqGgADGVVT3wxmU
-	 2bIhNZMuyl4A4qMEH2DT1f7Cow1nFT7RolD2ADBI=
-Date: Sun, 13 Sep 2026 17:51:03 -0700
-To: mm-commits@vger.kernel.org,david@kernel.org,tz2294@columbia.edu,akpm@linux-foundation.org
+	b=AeoBQ9FmLpz91KUaksZ2/yosvIFKJf7UMzm1GWP6G4MkNlmyyaWbmfw4ozzCsHBsB
+	 oNFFP8hOQ0KOmXoNAVS0FLUIbG0ARcXH3IctiI6umUKzwIqvO/iHow7XMTviMLMNmp
+	 nppvLCGXiKSWdtIaVCyYV49akuH0HE14iTIZnCPU=
+Date: Sun, 13 Sep 2026 19:09:35 -0700
+To: mm-commits@vger.kernel.org,stable@vger.kernel.org,hpa@zytor.com,alain@knaff.lu,mattst88@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-swap-add-folio_swap_entry-and-folio_page_swap_entry-fix.patch added to mm-unstable branch
-Message-Id: <20260914005103.C27081F000FF@smtp.kernel.org>
+Subject: + lib-decompress_bunzip2-fix-off-by-one-in-run-length-bounds-check.patch added to mm-nonmm-unstable branch
+Message-Id: <20260914020936.2C1541F000FF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm-swap-add-folio_swap_entry-and-folio_page_swap_entry-fix
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-swap-add-folio_swap_entry-and-folio_page_swap_entry-fix.patch
+     Subject: lib/decompress_bunzip2: fix off-by-one in run-length bounds check
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     lib-decompress_bunzip2-fix-off-by-one-in-run-length-bounds-check.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-swap-add-folio_swap_entry-and-folio_page_swap_entry-fix.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/lib-decompress_bunzip2-fix-off-by-one-in-run-length-bounds-check.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,52 +58,51 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Tal Zussman <tz2294@columbia.edu>
-Subject: mm-swap-add-folio_swap_entry-and-folio_page_swap_entry-fix
-Date: Sun, 13 Sep 2026 17:52:28 -0400
+From: Matt Turner <mattst88@gmail.com>
+Subject: lib/decompress_bunzip2: fix off-by-one in run-length bounds check
+Date: Sat, 12 Sep 2026 14:17:35 -0400
 
-adjust the folio_swap_entry() kerneldoc summary, per David
+The run-length path rejects a block when dbufCount+t equals dbufSize, but
+the loop that follows writes exactly t bytes starting at dbufCount, so a
+block that fills the buffer exactly is legal.  bzip2 allows it too: its
+decompressor bounds a block at 100000 * blockSize100k and checks that
+limit per byte appended.  Use > instead of >=.
 
-Link: https://lore.kernel.org/20260913-folio_swap_entry-doc-fix-1@columbia.edu
-Signed-off-by: Tal Zussman <tz2294@columbia.edu>
+bzip2's encoder stops filling a block 19 bytes early, so nothing it
+produces ever reaches the limit and the bug stays hidden.  Compressors
+that use the full block size do reach it: an lbzip2 -9 image whose block
+ends on a run fails to decode, and a self-extracting kernel built that way
+does not boot.
+
+This code came from busybox, which fixed the same line in 2013 in commit
+932e233a491b ("bunzip2: fix off-by-one check").
+
+Link: https://lore.kernel.org/20260912-b4-bunzip2-blocksize-fix-v1-1-c7384bbfc954@gmail.com
+Fixes: bc22c17e12c1 ("bzip2/lzma: library support for gzip, bzip2 and lzma decompression")
+Signed-off-by: Matt Turner <mattst88@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Cc: David Hildenbrand <david@kernel.org>
+Cc: Alain Knaff <alain@knaff.lu>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: <stable@vger.kernel.org>
 ---
 
- include/linux/swap.h |    2 +-
+ lib/decompress_bunzip2.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/include/linux/swap.h~mm-swap-add-folio_swap_entry-and-folio_page_swap_entry-fix
-+++ a/include/linux/swap.h
-@@ -273,7 +273,7 @@ struct swap_info_struct {
- };
+--- a/lib/decompress_bunzip2.c~lib-decompress_bunzip2-fix-off-by-one-in-run-length-bounds-check
++++ a/lib/decompress_bunzip2.c
+@@ -439,7 +439,7 @@ got_huff_bits:
+ 		   array.) */
+ 		if (runPos) {
+ 			runPos = 0;
+-			if (dbufCount+t >= dbufSize)
++			if (dbufCount+t > dbufSize)
+ 				return RETVAL_DATA_ERROR;
  
- /**
-- * folio_swap_entry - Return the swap entry for a page within a folio.
-+ * folio_swap_entry - Return the swap entry at a page index within a folio.
-  * @folio: The folio.
-  * @idx: The index of the page within the folio.
-  *
+ 			uc = symToByte[mtfSymbol[0]];
 _
 
-Patches currently in -mm which might be from tz2294@columbia.edu are
+Patches currently in -mm which might be from mattst88@gmail.com are
 
-mm-page_io-convert-write-completion-handlers-to-folios.patch
-mm-remove-pagereclaim.patch
-mm-page_io-use-swap-entries-directly-in-zeromap-helpers.patch
-mm-page_io-rename-bio_associate_blkg_from_page.patch
-mm-page_io-refer-to-folios-in-swap_writeout-comments.patch
-mm-swap-rename-__swap_writepage-to-__swap_writeout.patch
-mm-remove-unused-mark_page_reserved.patch
-mm-remove-unused-totalram_pages_inc-and-totalram_pages_dec.patch
-mm-remove-pagewriteback.patch
-mm-swap-add-folio_swap_entry-and-folio_page_swap_entry.patch
-mm-swap-add-folio_swap_entry-and-folio_page_swap_entry-fix.patch
-mm-huge_memory-add-a-comment-to-the-open-coded-swap-entry.patch
-mm-rmap-use-folio_page_swap_entry-in-ttu_anon_swapbacked_folio.patch
-mm-zswap-use-folio_swap_entry-in-zswap_store_page.patch
-mm-swapfile-use-folio_page_swap_entry.patch
-arm64-mte-make-mte_save_tags-and-mte_restore_tags-static.patch
-arm64-mte-pass-the-swap-entry-to-mte_save_tags.patch
-mm-swap-remove-page_swap_entry.patch
+lib-decompress_bunzip2-fix-off-by-one-in-run-length-bounds-check.patch
 
