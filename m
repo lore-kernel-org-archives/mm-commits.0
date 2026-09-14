@@ -1,68 +1,62 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 79C4A3B530A
-	for <mm-commits@vger.kernel.org>; Mon, 14 Sep 2026 19:35:18 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 79C303E5A1F
+	for <mm-commits@vger.kernel.org>; Mon, 14 Sep 2026 20:41:35 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789414519; cv=none; b=HDQkBX4dAJXfMTl3QnpNBwASKS/dQIin/BIePChMLtfLXoQpUgrXJUrf7+4NHCu3fLOFOegdxo7BUODJV99z/KgxEoyDj/joK0jqV884c8l/aJGHHjsPCfcPs0YM9pqdSF6lq0ey84n0/NDxkh0/j9O1pps/xYANZaSrKw0iJzM=
+	t=1789418496; cv=none; b=s2yt1Ew5hUz9/z/e+5xpQJDH9gFfN24Btw1gi5/aOvomQmsaDUOBeMoQK8yIX5HY/8O2CdzrtD6d1nsvYp6HDSNSPDEWEmJ/B6OxmT2qwVJ+kDgp1axbVxiIkfW6pw+rIRWWM9uG+EA1DxWh7hbrbCbAWCZiqQcX6TfdVLwwLag=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1789414519; c=relaxed/simple;
-	bh=hq6dxowGHUwPIfngdGX/t6v7Rg+VUxbCuQUsmRN9LBk=;
-	h=Date:From:To:Cc:Subject:Message-Id:In-Reply-To:References:
-	 Mime-Version:Content-Type; b=mGA4YKRFWBCR23smF1cky+VEWQ3AJ2dAK3gGZmyc6D7va5ZSZvnNS+RhSnzZny9KjOoF4+A9yk0FP22TbIWx/+cR2ocS3zE7qlNAxVKJKFluqZUdWYkqFNu/r1hoqXCyhici7IdWND0C8DrgbZ9wFz1LvN0kifP/wmjeWZNPJ8s=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=t26XuQ42; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1789418496; c=relaxed/simple;
+	bh=y7Ljtfc7GDVtSOvlLE/J6ndIj9LHkjePAk0ajZon1Us=;
+	h=Date:To:From:Subject:Message-Id; b=Hl57SVv096ckv6dRkBzIM+lV6y4qmyW+xUlbjItZ5NEJe8uoZhVVXqeqlPC1CBvbS4z9JqIZ5k9jxAI7UBfPZseucpO+qsPRoK6NHsAQ2C57EOvm4k9m1hMW7nMHE6TQT/haSRFLsWgBV7zBcbkZ9NhRyMPd/VnY6oHPr39fvhk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=B0DXIlFV; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="t26XuQ42"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id CD7171F000FF;
-	Mon, 14 Sep 2026 19:35:17 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="B0DXIlFV"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id F00CF1F000FF;
+	Mon, 14 Sep 2026 20:41:34 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1789414518;
-	bh=M1W684/6C3WrUebA7SAvM2Es+ZqgospVFCTS6bj5eGE=;
-	h=Date:From:To:Cc:Subject:In-Reply-To:References;
-	b=t26XuQ42ox5+6PbK0t3SH6X3vdqTZP+pc6Lv4EOLb37XMwA/InExICWlVbQK6kzU9
-	 fF3FlWwErQKRorl9jagiVq1n4PI02YOOF8i22B/8BENOlnlNr3zAAjlY+M5WjAhRNw
-	 jF5kkiELNbp5zjTWZWE1ugRzUgftZ4idu1Ac1eXQ=
-Date: Mon, 14 Sep 2026 12:35:17 -0700
+	d=linux-foundation.org; s=korg; t=1789418495;
+	bh=25mTjzM9CMb9cbGhuVLt7NmTZdUbcV1lEGVYoirCtik=;
+	h=Date:To:From:Subject;
+	b=B0DXIlFVPKR3xuiqfKXDBX3dwIU2+j/gaYmaJIAxCDMNrez5Q+R0CbsUbiONwZgGr
+	 s5O2iaQE5Yh3k9fWkLSZ6TO5eunaWSlnOe02VLDMBWZwoUp1ul2myjn7GqlnYG+dQH
+	 lK4w8kw2Mh8rnmnP3psLip8MlilLN9ulJ9C7z6YY=
+Date: Mon, 14 Sep 2026 13:41:34 -0700
+To: mm-commits@vger.kernel.org,surenb@google.com,akpm@linux-foundation.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-To: kernel test robot <lkp@intel.com>
-Cc: David Hildenbrand <david@kernel.org>, Linux Memory Management List
- <linux-mm@kvack.org>, mm-commits@vger.kernel.org, Suren Baghdasaryan
- <surenb@google.com>
-Subject: Re: [akpm-mm:mm-new] BUILD SUCCESS WITH WARNING
- 383fc05d4650b021f3c17e36a145106dcc61a294
-Message-Id: <20260914123517.3be0d96a9535c237bf9125cf@linux-foundation.org>
-In-Reply-To: <202609150259.5zswfxI5-lkp@intel.com>
-References: <202609150259.5zswfxI5-lkp@intel.com>
-X-Mailer: Sylpheed 3.8.0beta1 (GTK+ 2.24.33; x86_64-pc-linux-gnu)
+Subject: [alternative-merged] proc-task_mmu-remove-unnecessary-inlines-in-function-definitions-fix.patch removed from -mm tree
+Message-Id: <20260914204134.F00CF1F000FF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
 
-On Tue, 15 Sep 2026 02:10:03 +0800 kernel test robot <lkp@intel.com> wrote:
 
-> tree/branch: https://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm.git mm-new
-> branch HEAD: 383fc05d4650b021f3c17e36a145106dcc61a294  mm/swap, PM: hibernate: atomically replace hibernation pin
-> 
-> Warning (recently discovered and may have been fixed):
-> 
->     https://lore.kernel.org/oe-kbuild-all/202609121422.hkKWuy7K-lkp@intel.com
-> 
->     fs/proc/task_mmu.c:187:13: warning: 'drop_rcu' defined but not used [-Wunused-function]
->     fs/proc/task_mmu.c:195:13: warning: 'reacquire_rcu' defined but not used [-Wunused-function]
+The quilt patch titled
+     Subject: proc-task_mmu-remove-unnecessary-inlines-in-function-definitions-fix
+has been removed from the -mm tree.  Its filename was
+     proc-task_mmu-remove-unnecessary-inlines-in-function-definitions-fix.patch
 
-Thanks.  Suren's "proc/task_mmu: remove unnecessary inlines in function
-definitions" didn't like
+This patch was dropped because an alternative patch was or shall be merged
+
+------------------------------------------------------
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: proc-task_mmu-remove-unnecessary-inlines-in-function-definitions-fix
+Date: Mon Sep 14 12:31:01 PM PDT 2026
+
+fix build with
 
 # CONFIG_PROC_PAGE_MONITOR is not set
 # CONFIG_NUMA is not set
 
-I'll dial that back a bit:
+Cc: Suren Baghdasaryan <surenb@google.com>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
+
+ fs/proc/task_mmu.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
 --- a/fs/proc/task_mmu.c~proc-task_mmu-remove-unnecessary-inlines-in-function-definitions-fix
 +++ a/fs/proc/task_mmu.c
@@ -94,4 +88,9 @@ I'll dial that back a bit:
  	if (priv->lock_ctx.mmap_locked)
  		return;
 _
+
+Patches currently in -mm which might be from akpm@linux-foundation.org are
+
+mm-memory_hotplug-factor-out-node_is_memoryless-fix.patch
+drivers-media-v4l2-core-v4l2-vp9c-reduce-inlining.patch
 
