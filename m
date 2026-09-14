@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BE63B1A9FA0
-	for <mm-commits@vger.kernel.org>; Mon, 14 Sep 2026 02:44:39 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1323321ABC9;
+	Mon, 14 Sep 2026 03:24:02 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789353880; cv=none; b=jOh8Lvoa46iwl9Kr+8gp17AGsSFedhTI4K2fg2Bzhmtky2pnWppYOd9OGb7KAV4dLOurZsQRooU2qeSoT38DIOzhnJy8qVDhImGEVQRiF7IStAJvKr3iypDA6rr7JRm0N3OzxfX0As+6scSE2OpXlxsyh/3Rtt7QXdieb3nlHoc=
+	t=1789356248; cv=none; b=KKUKm3AmaSwoRQ1H5/0c4D1akVoKh05TkqIGJ0D8ysr5SgVDVfEXz2elxj1Txr6tHTT7OpQ3JEkDrflNIz4PUoWGeLYB2QqxarczG6J4bet1dqZrG9oVCnN0rZOxLGBMBn9+H/J8linQ5aHfGIea8uU2T8jvV2bajq+iMDbgz1E=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1789353880; c=relaxed/simple;
-	bh=SUGERVMuuZQ2FcO4v22iq62FYyIL6BotA4kj6IuE040=;
-	h=Date:To:From:Subject:Message-Id; b=hJ+gyS0WA6gP/bkxE5HEpSJTaj11JT76PV0sOkJzXSK2OQf9ZSes1HPG35gZ2RIGyeuQCpt4K+QK+PD9uhDWgFWaBne8fvY1nBJnWjPhiB8bet3/tiQXWJLbCIckr24ozL4EzZKuZJ3vTsU+y9Cr7rRL5Hn7Efx3LVNlglH01JE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=fZNtg70r; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1789356248; c=relaxed/simple;
+	bh=ERzn/YE27YAyKP+ok6f47Y/864rHxlkU5w1h8kYM+Xo=;
+	h=Date:To:From:Subject:Message-Id; b=mkPGzTu1dSpVppHuUqjfprurip5CzKAguW7FoBWSG+CwTi5WBe3OJoqFPHa8v9pgwE9CVQJdCyQgZwyYLv6LQc1t5rwJ3DxZR9QFSkb/53K67ev1/T9JHicJpagpsnkoGCytQz3/K4owrvqy5G9vU80yGU2AmMzn4ISZGJmf750=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=GOuWkA51; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="fZNtg70r"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 47B4F1F000FF;
-	Mon, 14 Sep 2026 02:44:39 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="GOuWkA51"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A430D1F000FF;
+	Mon, 14 Sep 2026 03:23:57 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1789353879;
-	bh=1mUD0VCV9vBgAsh1MlTuYOBDD7vRgKlApfW6RAgkCjI=;
+	d=linux-foundation.org; s=korg; t=1789356237;
+	bh=G+15soKdBTYqfhpIo+yyVkKGc5OoMViuHNAz6Eu0Css=;
 	h=Date:To:From:Subject;
-	b=fZNtg70reCsHPt3zcwd1sNlZAuROPOLHRwSDFZu8ujEM8Vaw76fH3atlo1ZwAb5d6
-	 GrFvjgjZD7XIC4ofGwMOseF1Oro0jfqnBP0KLTLQJ4sdEVpLaLjKzYYkMYnudfitbV
-	 PhSqOG4UkC70pdsFdsyZGZOFOTezKSmSQlIIBH+g=
-Date: Sun, 13 Sep 2026 19:44:38 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,ryan.roberts@arm.com,ljs@kernel.org,liam@infradead.org,lance.yang@linux.dev,kas@kernel.org,hughd@google.com,dev.jain@arm.com,david@kernel.org,baohua@kernel.org,baolin.wang@linux.alibaba.com,akpm@linux-foundation.org
+	b=GOuWkA51pcNA9kMHGslUTbHwmsxhDZKuQgvKiF0rOvAu+iCvgCifc8D4iMGAslK75
+	 cOVCqggR/+3NIXabNMWOvJ5WsB2TFMgdw15KAG4tCeaHHYlvNw1+hvWIP14s7DcMH+
+	 g1alYoDGQAVJrz3VRsz/IuRSFk51xRif2EMH60dE=
+Date: Sun, 13 Sep 2026 20:23:57 -0700
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,vbabka@kernel.org,surenb@google.com,stable@vger.kernel.org,mhocko@suse.com,hannes@cmpxchg.org,brendan.jackman@linux.dev,liuqiqi@kylinos.cn,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-shmem-ignore-sysfs-configs-for-shmem-forced-collapse.patch added to mm-hotfixes-unstable branch
-Message-Id: <20260914024439.47B4F1F000FF@smtp.kernel.org>
+Subject: + mm-page_alloc-apply-per-task-gfp-context-in-bulk-allocator.patch added to mm-new branch
+Message-Id: <20260914032357.A430D1F000FF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,15 +35,26 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: shmem: ignore sysfs configs for shmem forced collapse
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mm-shmem-ignore-sysfs-configs-for-shmem-forced-collapse.patch
+     Subject: mm/page_alloc: apply per-task GFP context in bulk allocator
+has been added to the -mm mm-new branch.  Its filename is
+     mm-page_alloc-apply-per-task-gfp-context-in-bulk-allocator.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-shmem-ignore-sysfs-configs-for-shmem-forced-collapse.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-page_alloc-apply-per-task-gfp-context-in-bulk-allocator.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Note, mm-new is a provisional staging ground for work-in-progress
+patches, and acceptance into mm-new is a notification for others take
+notice and to finish up reviews.  Please do not hesitate to respond to
+review feedback and post updated versions to replace or incrementally
+fixup patches in mm-new.
+
+The mm-new branch of mm.git is not included in linux-next
+
+If a few days of testing in mm-new is successful, the patch will me moved
+into mm.git's mm-unstable branch, which is included in linux-next
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -58,65 +69,49 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Baolin Wang <baolin.wang@linux.alibaba.com>
-Subject: mm: shmem: ignore sysfs configs for shmem forced collapse
-Date: Mon, 14 Sep 2026 10:12:41 +0800
+From: Qiqi Liu <liuqiqi@kylinos.cn>
+Subject: mm/page_alloc: apply per-task GFP context in bulk allocator
+Date: Mon, 14 Sep 2026 10:45:55 +0800
 
-According to Documentation/mm/transhuge.rst, MADV_COLLAPSE is expected to
-ignore any THP or mTHP interface settings.
+alloc_pages_bulk_noprof() does not call current_gfp_context(), so per-task
+scoped allocation constraints (PF_MEMALLOC_NOIO, PF_MEMALLOC_NOFS,
+PF_MEMALLOC_PIN) are not applied on the bulk fast path.
 
-However, after commit 26c7d8413aaf ("mm: thp: support "THPeligible"
-semantics for mTHP with anonymous shmem"), performing MADV_COLLAPSE on
-shmem will depend on /sys/.../hugepages-2048kB/shmem_enabled being set to
-"inherit" (although that is the default), which can cause MADV_COLLAPSE to
-fail unexpectedly.
+The most direct consequence is PF_MEMALLOC_PIN: without clearing
+__GFP_MOVABLE, prepare_alloc_pages() selects MIGRATE_MOVABLE for the PCP
+list, and a task under memalloc_pin_save() receives movable pages from the
+bulk allocator.
 
-Fix this by returning the result of shmem_huge_global_enabled() directly
-when MADV_COLLAPSE is requested, allowing PMD-order collapse while
-ignoring shmem THP/mTHP settings.
-
-Link: https://lore.kernel.org/063f655b4d6c4234f3aa27ed6ecab10283ecb880.1789351825.git.baolin.wang@linux.alibaba.com
-Fixes: 26c7d8413aaf ("mm: thp: support "THPeligible" semantics for mTHP with anonymous shmem")
-Signed-off-by: Baolin Wang <baolin.wang@linux.alibaba.com>
+Link: https://lore.kernel.org/20260914024555.138125-1-liuqiqi@kylinos.cn
+Fixes: 387ba26fb1cb ("mm/page_alloc: add a bulk page allocator")
+Signed-off-by: Qiqi Liu <liuqiqi@kylinos.cn>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Reported-by: Kiryl Shutsemau (Meta) <kas@kernel.org>
-Closes: https://lore.kernel.org/all/20260908125105.1510704-7-kirill@shutemov.name/
-Reviewed-by: Kiryl Shutsemau (Meta) <kas@kernel.org>
-Acked-by: Zi Yan <ziy@nvidia.com>
-Reviewed-by: Lance Yang <lance.yang@linux.dev>
-Reviewed-by: Barry Song <baohua@kernel.org>
-Cc: David Hildenbrand <david@kernel.org>
-Cc: Dev Jain <dev.jain@arm.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Liam R. Howlett <liam@infradead.org>
-Cc: Lorenzo Stoakes <ljs@kernel.org>
-Cc: Ryan Roberts <ryan.roberts@arm.com>
+Cc: Brendan Jackman <brendan.jackman@linux.dev>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Vlastimil Babka <vbabka@kernel.org>
+Cc: Zi Yan <ziy@nvidia.com>
+Cc: <stable@vger.kernel.org>
 ---
 
- mm/shmem.c |    7 +++++--
- 1 file changed, 5 insertions(+), 2 deletions(-)
+ mm/page_alloc.c |    1 +
+ 1 file changed, 1 insertion(+)
 
---- a/mm/shmem.c~mm-shmem-ignore-sysfs-configs-for-shmem-forced-collapse
-+++ a/mm/shmem.c
-@@ -1847,8 +1847,11 @@ unsigned long shmem_allowable_huge_order
+--- a/mm/page_alloc.c~mm-page_alloc-apply-per-task-gfp-context-in-bulk-allocator
++++ a/mm/page_alloc.c
+@@ -5201,6 +5201,7 @@ unsigned long alloc_pages_bulk_noprof(gf
  
- 	global_orders = shmem_huge_global_enabled(inode, index, write_end,
- 						  shmem_huge_force, vma, vm_flags);
--	/* Tmpfs huge pages allocation */
--	if (!vma || !vma_is_anon_shmem(vma))
-+	/*
-+	 * Tmpfs huge pages allocation or forced collapse ignores
-+	 * sysfs configs.
-+	 */
-+	if (!vma || !vma_is_anon_shmem(vma) || shmem_huge_force)
- 		return global_orders;
+ 	/* May set ALLOC_NOFRAGMENT, fragmentation will return 1 page. */
+ 	gfp &= gfp_allowed_mask;
++	gfp = current_gfp_context(gfp);
+ 	if (!prepare_alloc_pages(gfp, 0, preferred_nid, nodemask, &ac, &gfp, &alloc_flags))
+ 		goto out;
  
- 	/*
 _
 
-Patches currently in -mm which might be from baolin.wang@linux.alibaba.com are
+Patches currently in -mm which might be from liuqiqi@kylinos.cn are
 
-maintainers-add-baoquan-and-me-as-mglru-reviewers.patch
-mm-shmem-ignore-sysfs-configs-for-shmem-forced-collapse.patch
-mm-mglru-clear-the-reference-counter-for-rejected-folios.patch
+mm-page_alloc-add-missing-hooks-to-bulk-allocation-path.patch
+mm-page_alloc-apply-per-task-gfp-context-in-bulk-allocator.patch
 
