@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A6BC63115AC;
-	Mon, 14 Sep 2026 02:09:36 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A0C292EEE75
+	for <mm-commits@vger.kernel.org>; Mon, 14 Sep 2026 02:37:16 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789351778; cv=none; b=DU9aSqj7vMfc/cTO187X2cX66mwxtPR+YlxWIDpsFqGsOmJqH9KwKG2KDMBVT9+fBNUMTrxdjxNfzGZqcDdl5wzGbJEsqSwSNTk0F5nRZY8KxJjS+25YO0ADt5MM4AalAK5xSsWtjUg+PCRTBYfLSI/wCMtJgk6P/PgdsVejuPk=
+	t=1789353437; cv=none; b=m7Y+xb4JyhxAeLuQnlEmotpqyZ+LHfJvImzaE1bnJiZYVaW/KMjxmjSNZY8Ws1rApjwESJr7hUZaPB0dEZlDcBWVz36UPNpQPPQBA3FnvstJRwjglcyoKTlDIc27XPd4729DP/OTa1JSVoWjVh0oT4ofI/rlZwfQmixvUQXCnIM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1789351778; c=relaxed/simple;
-	bh=crp+VG43PYejLaU85bWJ1h04JjIDaqElEaHNw2coUiA=;
-	h=Date:To:From:Subject:Message-Id; b=Ww5BMGN979TjhwFP/4vVMQGmfue9yEQg2hDt2J7uphLNvcVALUE+VD2g39H8XZuqEAGDSzL9FqzfpwbA9EJIbzGrTfnH9hXbHLHslfitC188pVUo+J/Nq98dkvW340wtxZj+PgYg8pfvcVgbucTs3emx1R/K8lsLcIjgf9rVb1E=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=AeoBQ9Fm; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1789353437; c=relaxed/simple;
+	bh=s813lbnjG08aJ1oVVa6l960PQLYGmtUMmkb1xFBP7xc=;
+	h=Date:To:From:Subject:Message-Id; b=hV5MeEP2Kx3Qv+f3EoDSVtGNGFQIVryBW72rwUbFpSYhkGN7TMXaLo2MCqqMyfsSHxejf7n71t3rPqQd8+VeRoBVMGSmd72KgubH9BC4X9+zBg4m48IsSAPLEnAwXGAECQwOH85nIrBRyqekqrqk15zHwC8KmEVhESNJYxc/gs0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=kD0Iib5d; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="AeoBQ9Fm"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2C1541F000FF;
-	Mon, 14 Sep 2026 02:09:36 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="kD0Iib5d"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4AEFA1F000FF;
+	Mon, 14 Sep 2026 02:37:16 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1789351776;
-	bh=Cp54qsSei8JO4Qmt7HDw+bhMbk9LtDOHb0LZMxDgIWU=;
+	d=linux-foundation.org; s=korg; t=1789353436;
+	bh=5k0znzKuBZsVBsWueD8N5Wbl3U5P2/DM1MxIjtc/oEQ=;
 	h=Date:To:From:Subject;
-	b=AeoBQ9FmLpz91KUaksZ2/yosvIFKJf7UMzm1GWP6G4MkNlmyyaWbmfw4ozzCsHBsB
-	 oNFFP8hOQ0KOmXoNAVS0FLUIbG0ARcXH3IctiI6umUKzwIqvO/iHow7XMTviMLMNmp
-	 nppvLCGXiKSWdtIaVCyYV49akuH0HE14iTIZnCPU=
-Date: Sun, 13 Sep 2026 19:09:35 -0700
-To: mm-commits@vger.kernel.org,stable@vger.kernel.org,hpa@zytor.com,alain@knaff.lu,mattst88@gmail.com,akpm@linux-foundation.org
+	b=kD0Iib5dRJ0wO6OCM0nozDhZyOdVGS/Yp+FCzDpbQ8PzbvUH7KM4X2wH6aaZUQ9S+
+	 jCnqpLWkC9wIQvdrmLsTkG+/dD+eKCdEUS+qDDmjecD8QbDjEXNd88lxuuA+LUrykL
+	 TQms8mHDIl36JQg5dWKGQsaiGb05J4If+Tp0K4Bw=
+Date: Sun, 13 Sep 2026 19:37:15 -0700
+To: mm-commits@vger.kernel.org,andrey.golovko@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + lib-decompress_bunzip2-fix-off-by-one-in-run-length-bounds-check.patch added to mm-nonmm-unstable branch
-Message-Id: <20260914020936.2C1541F000FF@smtp.kernel.org>
+Subject: + mailmap-update-email-address-for-andrey-golovko.patch added to mm-nonmm-unstable branch
+Message-Id: <20260914023716.4AEFA1F000FF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: lib/decompress_bunzip2: fix off-by-one in run-length bounds check
+     Subject: mailmap: update email address for Andrey Golovko
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     lib-decompress_bunzip2-fix-off-by-one-in-run-length-bounds-check.patch
+     mailmap-update-email-address-for-andrey-golovko.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/lib-decompress_bunzip2-fix-off-by-one-in-run-length-bounds-check.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mailmap-update-email-address-for-andrey-golovko.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,51 +58,36 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Matt Turner <mattst88@gmail.com>
-Subject: lib/decompress_bunzip2: fix off-by-one in run-length bounds check
-Date: Sat, 12 Sep 2026 14:17:35 -0400
+From: Andrey Golovko <andrey.golovko@gmail.com>
+Subject: mailmap: update email address for Andrey Golovko
+Date: Sat, 12 Sep 2026 19:26:30 +0300
 
-The run-length path rejects a block when dbufCount+t equals dbufSize, but
-the loop that follows writes exactly t bytes starting at dbufCount, so a
-block that fills the buffer exactly is legal.  bzip2 allows it too: its
-decompressor bounds a block at 100000 * blockSize100k and checks that
-limit per byte appended.  Use > instead of >=.
+Patches sent from andrey.golovko@gmail.com carry the authorship of my
+commits, but some of the tags I gave on other people's patches use
+andrey@golovko.me.  Map the second address onto the first so the two do
+not look like two different contributors.
 
-bzip2's encoder stops filling a block 19 bytes early, so nothing it
-produces ever reaches the limit and the bug stays hidden.  Compressors
-that use the full block size do reach it: an lbzip2 -9 image whose block
-ends on a run fails to decode, and a self-extracting kernel built that way
-does not boot.
-
-This code came from busybox, which fixed the same line in 2013 in commit
-932e233a491b ("bunzip2: fix off-by-one check").
-
-Link: https://lore.kernel.org/20260912-b4-bunzip2-blocksize-fix-v1-1-c7384bbfc954@gmail.com
-Fixes: bc22c17e12c1 ("bzip2/lzma: library support for gzip, bzip2 and lzma decompression")
-Signed-off-by: Matt Turner <mattst88@gmail.com>
+Link: https://lore.kernel.org/20260912162630.7731-1-andrey.golovko@gmail.com
+Signed-off-by: Andrey Golovko <andrey.golovko@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Cc: Alain Knaff <alain@knaff.lu>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: <stable@vger.kernel.org>
 ---
 
- lib/decompress_bunzip2.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ .mailmap |    1 +
+ 1 file changed, 1 insertion(+)
 
---- a/lib/decompress_bunzip2.c~lib-decompress_bunzip2-fix-off-by-one-in-run-length-bounds-check
-+++ a/lib/decompress_bunzip2.c
-@@ -439,7 +439,7 @@ got_huff_bits:
- 		   array.) */
- 		if (runPos) {
- 			runPos = 0;
--			if (dbufCount+t >= dbufSize)
-+			if (dbufCount+t > dbufSize)
- 				return RETVAL_DATA_ERROR;
- 
- 			uc = symToByte[mtfSymbol[0]];
+--- a/.mailmap~mailmap-update-email-address-for-andrey-golovko
++++ a/.mailmap
+@@ -92,6 +92,7 @@ Andrew Morton <akpm@linux-foundation.org
+ Andrew Murray <amurray@thegoodpenguin.co.uk> <amurray@embedded-bits.co.uk>
+ Andrew Murray <amurray@thegoodpenguin.co.uk> <andrew.murray@arm.com>
+ Andrew Vasquez <andrew.vasquez@qlogic.com>
++Andrey Golovko <andrey.golovko@gmail.com> <andrey@golovko.me>
+ Andrey Konovalov <andreyknvl@gmail.com> <andreyknvl@google.com>
+ Andrey Ryabinin <ryabinin.a.a@gmail.com> <a.ryabinin@samsung.com>
+ Andrey Ryabinin <ryabinin.a.a@gmail.com> <aryabinin@virtuozzo.com>
 _
 
-Patches currently in -mm which might be from mattst88@gmail.com are
+Patches currently in -mm which might be from andrey.golovko@gmail.com are
 
-lib-decompress_bunzip2-fix-off-by-one-in-run-length-bounds-check.patch
+mailmap-update-email-address-for-andrey-golovko.patch
 
