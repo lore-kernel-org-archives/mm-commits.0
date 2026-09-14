@@ -1,201 +1,115 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9E8673659FD
-	for <mm-commits@vger.kernel.org>; Mon, 14 Sep 2026 03:52:33 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 50570349CC3;
+	Mon, 14 Sep 2026 04:52:42 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789357955; cv=none; b=jbDpGqJ/4vfiW1x/jPpcpCK4enm/g8BkIP3ts2S/odq1L4xPHg2vLP3h114iFAwcrxc+e43LdnFbNFWaNrCqmixBF3f9YjaHuyfRLZK3UPaLYoXteHXDunEUMCxH4JxAStCZYUF0MfRurYhdXlm7EJY0XZivrRVR9wU9qNzr/nc=
+	t=1789361564; cv=none; b=gK9+YZ4cm/EyXmy4tRNqTbbjtZzqWp4Wx4WN/zkBKPyv/bz991+FHQA7c7IwzQHGVGtz9jCW/tqz0lEcBqLTy/X4kUyGE2idIfU0qaLVMlH5GTy5iVosecQp6z7v/ezDbvLLdiAfSox/zMetkCKRjkunUC5iSWAvUjNETcXi0k0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1789357955; c=relaxed/simple;
-	bh=LZxlxquy8y3p/jjnBuEEKEfbHK+T4MNrCWqhzBNGZ5s=;
-	h=Date:To:From:Subject:Message-Id; b=GQ2xNz0dTpSeZn/4Z+IHlv9vPQAfP1NRWkw1XHFwXzFKQvgbrBksgIS8dpC7H83GAqPo5l7SRkYsMLcTJOXY4lHUl14i738CgCjJ5Znpn5jbnr6aV8lCh0ksamJEEWtVmi5aCf0JNv82P9vQdSCtx3E8ovv47XXv4GeTIA40J2E=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=rmgVpB5/; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1789361564; c=relaxed/simple;
+	bh=IOmJ9vKGN9+BB1u/jqy+ZCwwC/C6S6NozX6XkKyyaWU=;
+	h=Date:From:To:Cc:Subject:Message-Id:Mime-Version:Content-Type; b=lmKxmFCZvG6JgEOAy+rNCvcPwxHSC6J95/xaw2urSt8T4x5uy1ZF1tIOM1k7ebNiS6G4c1ia56ZGkYswrVmcsAMm9suKGmRL7VwtMeiyVjCd6AygER/aLZi30XHsWR8YrF+EwPDkzl+erczOUhszAaJod2VV1RKYbVjc799JD+A=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=jmEysL+g; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="rmgVpB5/"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 776721F000FF;
-	Mon, 14 Sep 2026 03:52:33 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="jmEysL+g"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 94DA71F000FF;
+	Mon, 14 Sep 2026 04:52:42 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1789357953;
-	bh=ZOBhipBqXYC5nutvQZSbLhJRy+D5ia4Muyl6ycBjUUs=;
-	h=Date:To:From:Subject;
-	b=rmgVpB5/7h0lk+RRSigr56YWJaNqUG0hxzgqkrAeDUurmeujDU/ZQyHJBldTfjvIZ
-	 Dn/G02T0zO6JecKR4Jqp8tpjvT596+VG+urbosyRDgaOcGWvJV0hvX+i+ZN1GO/B2A
-	 Qz9+BvK4bGqR676dkC7uOWWBJzlRlIZ5k5od4rUs=
-Date: Sun, 13 Sep 2026 20:52:33 -0700
-To: mm-commits@vger.kernel.org,willy@infradead.org,vbabka@kernel.org,surenb@google.com,skhan@linuxfoundation.org,ruirui.yang@linux.dev,rppt@kernel.org,rostedt@goodmis.org,pratyush@kernel.org,pasha.tatashin@soleen.com,mhocko@suse.com,mhiramat@kernel.org,mathieu.desnoyers@efficios.com,ljs@kernel.org,liam@infradead.org,jack@suse.cz,david@kernel.org,corbet@lwn.net,baoquan.he@linux.dev,ziy@nvidia.com,akpm@linux-foundation.org
+	d=linux-foundation.org; s=korg; t=1789361562;
+	bh=3Wt5ocwzEWGnNlYZNryMwTicaVcgg2/IRrlxzOXxn+c=;
+	h=Date:From:To:Cc:Subject;
+	b=jmEysL+gdBRXJvJ5wGy4PM7XFeiQowuZ8f4CnHxs55WYuJ7Swv6ro4Vjz8CbHJbaz
+	 k2DgKnvO/hrEIkvnexjb//nMkqxlb6b7yAWiw1ut/wiDInTaY7isxSWl0oE3BdoNVP
+	 UJSDGSFi70HHNsS9QVJMfIUXRaD/fRdc9fH/ud9Q=
+Date: Sun, 13 Sep 2026 21:52:42 -0700
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-page-flags-remove-pg_private.patch added to mm-new branch
-Message-Id: <20260914035233.776721F000FF@smtp.kernel.org>
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: linux-mm@kvack.org, mm-commits@vger.kernel.org,
+ linux-kernel@vger.kernel.org
+Subject: [GIT PULL] hotfixes for 7.3-rc4
+Message-Id: <20260913215242.66cdff48a7849112984deefc@linux-foundation.org>
+X-Mailer: Sylpheed 3.8.0beta1 (GTK+ 2.24.33; x86_64-pc-linux-gnu)
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 
 
-The patch titled
-     Subject: mm/page-flags: remove PG_private
-has been added to the -mm mm-new branch.  Its filename is
-     mm-page-flags-remove-pg_private.patch
+Linus, please merge this batch of hotfixes, thanks.
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-page-flags-remove-pg_private.patch
 
-This patch will later appear in the mm-new branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+The following changes since commit 0d9ff90a5422cc7509258aaaba1e7481df4d332a:
 
-Note, mm-new is a provisional staging ground for work-in-progress
-patches, and acceptance into mm-new is a notification for others take
-notice and to finish up reviews.  Please do not hesitate to respond to
-review feedback and post updated versions to replace or incrementally
-fixup patches in mm-new.
+  Merge tag 'scsi-fixes' of git://git.kernel.org/pub/scm/linux/kernel/git/jejb/scsi (2026-09-05 09:25:50 -0700)
 
-The mm-new branch of mm.git is not included in linux-next
+are available in the Git repository at:
 
-If a few days of testing in mm-new is successful, the patch will me moved
-into mm.git's mm-unstable branch, which is included in linux-next
+  git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm tags/mm-hotfixes-stable-2026-09-13-21-50
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
+for you to fetch changes up to 7891fbb9512f127826e1d5dbf380ee212bd15eb0:
 
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+  mm/folio: EXPORT_SYMBOL_FOR_KVM(lru_cache_drain_for_folio) (2026-09-08 23:28:06 -0700)
 
-The -mm tree is included into linux-next via various
-branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there most days
+----------------------------------------------------------------
+14 hotfixes.  10 are cc:stable.  11 are for MM.
 
-------------------------------------------------------
-From: Zi Yan <ziy@nvidia.com>
-Subject: mm/page-flags: remove PG_private
-Date: Sun, 13 Sep 2026 22:24:14 -0400
+All are singletons - please see the changelogs for details.
 
-folio->private != NULL indicates a folio carries private data, replacing
-PG_private.  All PG_private users are converted.  Remove PG_private and
-reserve the space as PG_folio for future use.  Unused PG_private functions
-are removed too.
+----------------------------------------------------------------
+Ackerley Tng (1):
+      mm/folio: EXPORT_SYMBOL_FOR_KVM(lru_cache_drain_for_folio)
 
-Assisted-by: LLM
-Link: https://lore.kernel.org/20260913-remove-pg_private-v4-16-848550f7574e@nvidia.com
-Signed-off-by: Zi Yan <ziy@nvidia.com>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Cc: Baoquan He <baoquan.he@linux.dev>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Pasha Tatashin <pasha.tatashin@soleen.com>
-Cc: Pratyush Yadav <pratyush@kernel.org>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Cc: Jan Kara <jack@suse.cz>
-Cc: David Hildenbrand <david@kernel.org>
-Cc: Steven Rostedt <rostedt@goodmis.org>
-Cc: Masami Hiramatsu <mhiramat@kernel.org>
-Cc: Dave Young <ruirui.yang@linux.dev>
-Cc: Shuah Khan <skhan@linuxfoundation.org>
-Cc: Lorenzo Stoakes <ljs@kernel.org>
-Cc: "Liam R. Howlett" <liam@infradead.org>
-Cc: Vlastimil Babka <vbabka@kernel.org>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
----
+Andrew Morton (1):
+      remove old lib/alloc_tag.c
 
- include/linux/page-flags.h     |   19 ++-----------------
- include/trace/events/mmflags.h |    2 +-
- kernel/vmcore_info.c           |    1 -
- 3 files changed, 3 insertions(+), 19 deletions(-)
+Christopher Obbard (1):
+      mailmap: update entry for Christopher Obbard
 
---- a/include/linux/page-flags.h~mm-page-flags-remove-pg_private
-+++ a/include/linux/page-flags.h
-@@ -44,10 +44,6 @@
-  * Consequently, PG_reserved for a page mapped into user space can indicate
-  * the zero page, the vDSO, MMIO pages or device memory.
-  *
-- * The PG_private bitflag is set on pagecache pages if they contain filesystem
-- * specific data (which is normally at page->private). It can be used by
-- * private allocations for its own usage.
-- *
-  * During initiation of disk I/O, PG_locked is set. This bit is set before I/O
-  * and cleared when writeback _starts_ or when read _completes_. PG_writeback
-  * is set before writeback starts and cleared when it finishes.
-@@ -105,7 +101,7 @@ enum pageflags {
- 	PG_owner_2,		/* Owner use. If pagecache, fs may use */
- 	PG_arch_1,
- 	PG_reserved,
--	PG_private,		/* If pagecache, has fs-private data */
-+	PG_folio,		/* Do not use: reserved for folio identification */
- 	PG_private_2,		/* If pagecache, has fs aux data */
- 	PG_reclaim,		/* To be reclaimed asap */
- 	PG_swapbacked,		/* Page is backed by RAM/swap */
-@@ -575,7 +571,7 @@ FOLIO_FLAG(swapbacked, FOLIO_HEAD_PAGE)
- /*
-  * Private page markings that may be used by the filesystem that owns the page
-  * for its own purposes.
-- * - PG_private and PG_private_2 cause release_folio() and co to be invoked
-+ * - folio->private and PG_private_2 cause release_folio() and co to be invoked
-  */
- 
- static __always_inline bool folio_test_private(const struct folio *folio)
-@@ -583,17 +579,6 @@ static __always_inline bool folio_test_p
- 	return folio->private;
- }
- 
--static __always_inline int PagePrivate(const struct page *page)
--{
--	return !!page->private;
--}
--
--/* no-ops during transition */
--static __always_inline void folio_set_private(struct folio *folio) { }
--static __always_inline void folio_clear_private(struct folio *folio) { }
--static __always_inline void SetPagePrivate(struct page *page) { }
--static __always_inline void ClearPagePrivate(struct page *page) { }
--
- FOLIO_FLAG(private_2, FOLIO_HEAD_PAGE)
- 
- /* owner_2 can be set on tail pages for anon memory */
---- a/include/trace/events/mmflags.h~mm-page-flags-remove-pg_private
-+++ a/include/trace/events/mmflags.h
-@@ -144,7 +144,7 @@ TRACE_DEFINE_ENUM(___GFP_LAST_BIT);
- 	DEF_PAGEFLAG_NAME(owner_2),					\
- 	DEF_PAGEFLAG_NAME(arch_1),					\
- 	DEF_PAGEFLAG_NAME(reserved),					\
--	DEF_PAGEFLAG_NAME(private),					\
-+	DEF_PAGEFLAG_NAME(folio),					\
- 	DEF_PAGEFLAG_NAME(private_2),					\
- 	DEF_PAGEFLAG_NAME(writeback),					\
- 	DEF_PAGEFLAG_NAME(head),					\
---- a/kernel/vmcore_info.c~mm-page-flags-remove-pg_private
-+++ a/kernel/vmcore_info.c
-@@ -216,7 +216,6 @@ static int __init crash_save_vmcoreinfo_
- 	VMCOREINFO_LENGTH(free_area.free_list, MIGRATE_TYPES);
- 	VMCOREINFO_NUMBER(NR_FREE_PAGES);
- 	VMCOREINFO_NUMBER(PG_lru);
--	VMCOREINFO_NUMBER(PG_private);
- 	VMCOREINFO_NUMBER(PG_swapcache);
- 	VMCOREINFO_NUMBER(PG_swapbacked);
- #define PAGE_SLAB_MAPCOUNT_VALUE	(PGTY_slab << 24)
-_
+Coiby Xu (1):
+      mailmap: map Coiby Xu's address
 
-Patches currently in -mm which might be from ziy@nvidia.com are
+Jiayuan Chen (1):
+      mm/shrinker: fix bogus set_shrinker_bit() with cgroup.memory=nokmem
 
-mm-zsmalloc-replace-pg_private-with-pointer-comparison.patch
-perf-ring_buffer-stop-using-pg_private-as-aux-page-high-order-marker.patch
-xen-grant-table-stop-setting-pg_private-on-pages-for-grant-mapping.patch
-fscrypt-stop-setting-pg_private-on-bounce-page.patch
-mm-hugetlb-use-direct-assignment-instead-of-folio_change_private.patch
-f2fs-stop-using-pg_private.patch
-f2fs-convert-the-private-flag-helpers-to-folio-only.patch
-erofs-mm-pagemap-add-readahead_folio_last-to-avoid-folio-private.patch
-erofs-use-folio_attach-detach_private-instead-of-direct-assignment.patch
-mm-page-flags-check-page-folio-private-instead-of-pg_private.patch
-treewide-remove-folio_set-clear_private-usage.patch
-ceph-replace-pageprivate-with-page_private.patch
-md-md-bitmap-replace-pageprivate-with-page_private.patch
-buffer-replace-page_buffer-with-page_private-and-delete-it.patch
-treewide-remove-pageprivate-and-pg_private-from-comments-and-docs.patch
-mm-page-flags-remove-pg_private.patch
-usb-gadgetfs-do-not-warn-about-excessively-large-memory-allocations.patch
+Lorenzo Stoakes (ARM) (3):
+      mm/huge_memory: bypass THP tuneables for huge pfnmap mappings
+      mm/mremap: account mm->locked_vm correctly for MREMAP_DONTUNMAP
+      mm/vma: correctly unaccount on mmap_prepare() failure
+
+Nhat Pham (1):
+      mm, swap: fix SWAP_USAGE_OFFLIST_BIT collision with real usage count
+
+Qi Zheng (1):
+      fs: fix missed removal of super_fs_objects_eligible()
+
+Seunguk Shin (1):
+      fs/dax: check zero or empty entry before converting xarray entry
+
+Shakeel Butt (2):
+      memcg: avoid charging the root memcg from obj_cgroup_charge_pages()
+      mm/mlock: use the IRQ-safe accessor for NR_MLOCK in __munlock_folio()
+
+Wenjie Qi (1):
+      mm: filemap: retain mapped dropbehind folios
+
+ .mailmap         |    4 +-
+ fs/dax.c         |    9 +-
+ fs/super.c       |   18 +-
+ lib/alloc_tag.c  | 1029 ------------------------------------------------------
+ mm/filemap.c     |    2 +-
+ mm/folio.c       |    2 +
+ mm/huge_memory.c |   86 +++--
+ mm/memcontrol.c  |    2 +-
+ mm/mlock.c       |    2 +-
+ mm/mremap.c      |    9 +-
+ mm/shrinker.c    |    2 +
+ mm/swapfile.c    |    2 +-
+ mm/vma.c         |    6 +-
+ 13 files changed, 91 insertions(+), 1082 deletions(-)
+ delete mode 100644 lib/alloc_tag.c
 
