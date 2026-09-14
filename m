@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D212631ED93;
-	Mon, 14 Sep 2026 18:15:25 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3A092388E55
+	for <mm-commits@vger.kernel.org>; Mon, 14 Sep 2026 19:08:56 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789409727; cv=none; b=jvfJUF85uavMRGyGXRJTM3Ymlw+KjcPB1jUUkxlCdtdCYkewirMPx0SrWEU/s1+rJj5DwKJV7gZkBSU6YL11OHjvp/h/M6KUJuU93jsrsGxHqDWzUwW6mZ+0Msx6AMl0zSd8YUt5IGYJP4ATy8rWLpmf7wGReHvxAHrPvq3dvio=
+	t=1789412939; cv=none; b=KZPbcVaO13RAFdQfkN0yk4Fsr2h0PP3/h6cnVDQY4EB/JKQMxN5es1gVY2H1q10hcY6JHs6ScV8PhWYd2dtFVfwb2UQkDUM9eYDN6JJEWOA12uixRuzRB+YlK00G7UWLQAyWpn+edpDhgMGZXhc9SXzVaxCqQuHq34Q9nzxU6PI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1789409727; c=relaxed/simple;
-	bh=yeBvKC2LOwf89yHVeSSHjI1k0DaAXsPVPQuDbsxMyZg=;
-	h=Date:To:From:Subject:Message-Id; b=ovfxvCbH6GFc88Jo7777wAEQ7eIzbX3LaAp5b+1z04G5pM05McBThPppHRpvfgp6k7ZMNRFty25+BZ0Szkej0iNQnvuKSJsX7jzyBvAJKNpdNhzxuaG9etCyQcwBNP5YlQAAT9ku7LiNyJGCfo3u7GWd6UhIe2wOugRAPj5sMyk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=WQ2YVaoP; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1789412939; c=relaxed/simple;
+	bh=XXVH0Q3Se0wKTy3SRl1lfKYxIOPB6sBiIepMwUFutkI=;
+	h=Date:To:From:Subject:Message-Id; b=aD8P8sobCT0+fPYhlMu4QqI9QNDD9QAqtUTyaakcmEW/y32tYBf5ll6bhF8cJQbPcPdXe1cD58W5YeZ+bpNUv/46urOrN1msM2VkWyueAGAk+l+iXTia9bvVPc5er0Ve2feR27UL8rTWS3E+BjFdtwQhy+OBkqt7tWSiZOznw1Y=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=DFpNa2RI; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="WQ2YVaoP"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3A6EA1F000FF;
-	Mon, 14 Sep 2026 18:15:25 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="DFpNa2RI"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 54AA81F000FF;
+	Mon, 14 Sep 2026 19:08:56 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1789409725;
-	bh=r2gNGhfigd2h71kFa7KAWNdSkIvZ7GBGekrCie3osg4=;
+	d=linux-foundation.org; s=korg; t=1789412936;
+	bh=9vXG1wAtfHHQYtsUQvfBzwx3YTMdP7SMgPVdW1w0+r0=;
 	h=Date:To:From:Subject;
-	b=WQ2YVaoPWq+nr5ZmkX9bBiNSQWpLtLWSCTjkoBGmcpAOv8Xsj0aSMRPw7PGPa2Pyk
-	 ZHKkBfWwy1O6O0evbOlvznJMVxVQNB3gvpFo2gBQ1MTbIMC2JwEF3CwpUP2q8KyFL+
-	 2ygKqm2izD1Vp/UPOt2kqD6q1I0nzBouOgwNQG4o=
-Date: Mon, 14 Sep 2026 11:15:24 -0700
-To: mm-commits@vger.kernel.org,thomas.weissschuh@linutronix.de,stable@vger.kernel.org,sashiko-bot@kernel.org,ryan.roberts@arm.com,mark.rutland@arm.com,leitao@debian.org,ekffu200098@gmail.com,dianders@chromium.org,chenhuacai@kernel.org,brauner@kernel.org,mhiramat@kernel.org,akpm@linux-foundation.org
+	b=DFpNa2RIqDX/VxxZJSrWz/Nt5rgt8uDA731n2tn87u0/mmDg6D+AjY0wcBtxFgsJ1
+	 JGxWaBeCS20QJ2hThtEqeEB4Vx3WNj8GibcKZitl7fN5Cqe2bV8nMznXARrmKJyU+B
+	 +WH5LntHhpI8HEMEd1nKl4NZNp2d86oVi1/ZZlM8=
+Date: Mon, 14 Sep 2026 12:08:55 -0700
+To: mm-commits@vger.kernel.org,ekffu200098@gmail.com,mhiramat@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged] bootconfig-fix-integer-overflow-in-initrd-size-check.patch removed from -mm tree
-Message-Id: <20260914181525.3A6EA1F000FF@smtp.kernel.org>
+Subject: [wrecked] bootconfig-move-bootconfig_footer_size-to-include-linux-bootconfigh.patch removed from -mm tree
+Message-Id: <20260914190856.54AA81F000FF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,117 +35,72 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: bootconfig: fix integer overflow in initrd size check
+     Subject: bootconfig: move BOOTCONFIG_FOOTER_SIZE to include/linux/bootconfig.h
 has been removed from the -mm tree.  Its filename was
-     bootconfig-fix-integer-overflow-in-initrd-size-check.patch
+     bootconfig-move-bootconfig_footer_size-to-include-linux-bootconfigh.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch was dropped because other changes were merged, which wrecked this patch
 
 ------------------------------------------------------
 From: Masami Hiramatsu (Google) <mhiramat@kernel.org>
-Subject: bootconfig: fix integer overflow in initrd size check
-Date: Fri, 11 Sep 2026 00:15:34 +0900
+Subject: bootconfig: move BOOTCONFIG_FOOTER_SIZE to include/linux/bootconfig.h
+Date: Fri, 11 Sep 2026 23:13:33 +0900
 
-Sashiko reported that in get_boot_config_from_initrd(), a crafted initrd
-with a huge bootconfig size (such as 0xFFFFFFFF) can cause the pointer
-arithmetic:
+BOOTCONFIG_FOOTER_SIZE was defined locally in tools/bootconfig/main.c. 
+Move it to include/linux/bootconfig.h so that it can be shared with the
+kernel and user-space tools.  Also, use it in init/main.c instead of the
+hardcoded (BOOTCONFIG_MAGIC_LEN + 8) expression when checking the initrd
+size.
 
-    data = ((void *)hdr) - size;
-
-to wrap around on 32-bit systems (or when pointer subtraction overflows). 
-Because data wraps around, the subsequent bounds check:
-
-    if ((unsigned long)data < initrd_start)
-
-evaluates to false, bypassing the check.  The kernel then calls
-xbc_calc_checksum(data, size), which attempts to read 4GB of memory,
-hitting unmapped pages and triggering a fatal kernel page fault during
-early boot.  Furthermore, on 64-bit systems with an initrd > 4.29 GB, an
-unbounded 32-bit size can similarly bypass the initrd_start check.
-
-Fix this by:
-1. Ensuring the initrd is at least large enough to contain the bootconfig
-   footer and verifying hdr is within the initrd bounds.
-2. Checking that size does not exceed XBC_DATA_MAX and does not exceed
-   the available space between initrd_start and hdr before performing
-   pointer subtraction.
-
-Link: https://lore.kernel.org/178905333479.213925.1358412668943562406.stgit@devnote2
-Fixes: de462e5f1071 ("bootconfig: Fix to remove bootconfig data from initrd while boot")
+Link: https://lore.kernel.org/178913601321.248794.4786502771058559887.stgit@devnote2
 Signed-off-by: Masami Hiramatsu (Google) <mhiramat@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Reported-by: Sashiko <sashiko-bot@kernel.org>
-Closes: https://lore.kernel.org/all/20260910010137.EE0431F000FF@smtp.kernel.org/
-Assisted-by: Antigravity:gemini-3.8-flash
-Cc: Breno Leitao <leitao@debian.org>
-Cc: Christian Brauner <brauner@kernel.org>
-Cc: Doug Anderson <dianders@chromium.org>
-Cc: Huacai Chen <chenhuacai@kernel.org>
-Cc: Marc Rutland <mark.rutland@arm.com>
-Cc: Ryan Roberts <ryan.roberts@arm.com>
-Cc: Sang-Heon Jeon <ekffu200098@gmail.com>
-Cc: Thomas Weißschuh <thomas.weissschuh@linutronix.de>
-Cc: <stable@vger.kernel.org>
+Suggested-by: Sang-Heon Jeon <ekffu200098@gmail.com>
+Reviewed-by: Sang-Heon Jeon <ekffu200098@gmail.com>
 ---
 
- init/main.c |   25 +++++++++++++++----------
- 1 file changed, 15 insertions(+), 10 deletions(-)
+ include/linux/bootconfig.h |    4 ++++
+ init/main.c                |    2 +-
+ tools/bootconfig/main.c    |    4 ----
+ 3 files changed, 5 insertions(+), 5 deletions(-)
 
---- a/init/main.c~bootconfig-fix-integer-overflow-in-initrd-size-check
+--- a/include/linux/bootconfig.h~bootconfig-move-bootconfig_footer_size-to-include-linux-bootconfigh
++++ a/include/linux/bootconfig.h
+@@ -27,6 +27,10 @@ bool __init cmdline_has_extra_options(vo
+ #define BOOTCONFIG_ALIGN	(1 << BOOTCONFIG_ALIGN_SHIFT)
+ #define BOOTCONFIG_ALIGN_MASK	(BOOTCONFIG_ALIGN - 1)
+ 
++/* Bootconfig footer is [size][csum][BOOTCONFIG_MAGIC]. */
++#define BOOTCONFIG_FOOTER_SIZE	\
++	(sizeof(uint32_t) * 2 + BOOTCONFIG_MAGIC_LEN)
++
+ /**
+  * xbc_calc_checksum() - Calculate checksum of bootconfig
+  * @data: Bootconfig data.
+--- a/init/main.c~bootconfig-move-bootconfig_footer_size-to-include-linux-bootconfigh
 +++ a/init/main.c
-@@ -277,7 +277,8 @@ static void * __init get_boot_config_fro
- 	u8 *hdr;
+@@ -278,7 +278,7 @@ static void * __init get_boot_config_fro
  	int i;
  
--	if (!initrd_end)
-+	if (!initrd_end || initrd_end < initrd_start ||
-+	    initrd_end - initrd_start < BOOTCONFIG_MAGIC_LEN + 8)
+ 	if (!initrd_end || initrd_end < initrd_start ||
+-	    initrd_end - initrd_start < BOOTCONFIG_MAGIC_LEN + 8)
++	    initrd_end - initrd_start < BOOTCONFIG_FOOTER_SIZE)
  		return NULL;
  
  	data = (char *)initrd_end - BOOTCONFIG_MAGIC_LEN;
-@@ -294,16 +295,26 @@ static void * __init get_boot_config_fro
+--- a/tools/bootconfig/main.c~bootconfig-move-bootconfig_footer_size-to-include-linux-bootconfigh
++++ a/tools/bootconfig/main.c
+@@ -17,10 +17,6 @@
  
- found:
- 	hdr = (u8 *)(data - 8);
-+	if ((unsigned long)hdr < initrd_start)
-+		return NULL;
-+
- 	size = get_unaligned_le32(hdr);
- 	csum = get_unaligned_le32(hdr + 4);
+ #define pr_err(fmt, ...) fprintf(stderr, fmt, ##__VA_ARGS__)
  
--	data = ((void *)hdr) - size;
--	if ((unsigned long)data < initrd_start) {
--		pr_err("bootconfig size %d is greater than initrd size %ld\n",
-+	if (size > XBC_DATA_MAX) {
-+		pr_err("bootconfig size %u is greater than max size %d\n",
-+			size, XBC_DATA_MAX);
-+		return NULL;
-+	}
-+
-+	if (size > ((unsigned long)hdr - initrd_start)) {
-+		pr_err("bootconfig size %u is greater than initrd size %lu\n",
- 			size, initrd_end - initrd_start);
- 		return NULL;
- 	}
- 
-+	data = ((void *)hdr) - size;
-+
- 	if (xbc_calc_checksum(data, size) != csum) {
- 		pr_err("bootconfig checksum failed\n");
- 		return NULL;
-@@ -394,12 +405,6 @@ static void __init setup_boot_config(voi
- 		return;
- 	}
- 
--	if (size >= XBC_DATA_MAX) {
--		pr_err("bootconfig size %ld greater than max size %d\n",
--			(long)size, XBC_DATA_MAX);
--		return;
--	}
+-/* Bootconfig footer is [size][csum][BOOTCONFIG_MAGIC]. */
+-#define BOOTCONFIG_FOOTER_SIZE	\
+-	(sizeof(uint32_t) * 2 + BOOTCONFIG_MAGIC_LEN)
 -
- 	ret = xbc_init(data, size, &msg, &pos);
- 	if (ret < 0) {
- 		if (pos < 0)
+ static void show_xbc_error(const char *data, const char *msg, int pos)
+ {
+ 	int lin = 1, col, i;
 _
 
 Patches currently in -mm which might be from mhiramat@kernel.org are
@@ -154,5 +109,4 @@ tools-bootconfig-fix-integer-overflow-and-truncation-in-size-checks.patch
 bootconfig-reject-unexpected-data-after-null-character.patch
 tools-bootconfig-consolidate-xbc_init-to-error-message-wrapper.patch
 bootconfig-skip-internal-tree-sanity-checks-in-kernel.patch
-bootconfig-move-bootconfig_footer_size-to-include-linux-bootconfigh.patch
 
