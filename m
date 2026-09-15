@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 40FBA32D0EE;
-	Tue, 15 Sep 2026 01:23:42 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B56C5331EB0;
+	Tue, 15 Sep 2026 01:23:44 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789435425; cv=none; b=C/KDudlnTwtVRsGfQSQu2/kUcvwyD/qQTg/7QGLW4YHoclE5A2dEy40LcRJorxUm0AJUdL8hhbqjz8jV2r/bPwvzEvW+lDBAdPTc/qAJJeRBUjfySZsZh2Whw/VRPYD4bwfUx8pDXcNAe8DwLhrAcapKkmDrpU68j1kvd/4f+1Y=
+	t=1789435426; cv=none; b=O0756QpHoqnw8Qw6XDSXQW7vJUh1nK7jp3S8Ss4kXXYYsMcGAytjuzwTq9kGdmW8C74nc/8g0NWCa1J7/TUQ5r+dtUdUZIze99ZEMEOzbaE3zS1bXyJZTBdcq7ujy0HJH2NMcAnXFtZUmGGVHKnQ0m4/e95BESFwtG1HfnkMdmc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1789435425; c=relaxed/simple;
-	bh=nfeEQmhIdxINOu4MRoaif/HeiGxH0v7aznYtLC9vpwo=;
-	h=Date:To:From:Subject:Message-Id; b=g+BKZaZLhIAihR98AbcomlDD1wgnGIao/60pCyFIn3Fj35imqEBxFqTbjvvwgGcj1sxEdqc2T5NTRuoPrsiFULDR3MaMtByHvgyGYtTRxD7GjV82YJ28F4fxyILJPf3Pn/wR3SMe//nZy7lMWXPlOm7jJyGiGqNL9cqaOeG2eiw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=EJR5ZeVR; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1789435426; c=relaxed/simple;
+	bh=FlsmIcFnJTT6r5vT4b6STOohrX5cN6oekM+D5mfgL6E=;
+	h=Date:To:From:Subject:Message-Id; b=cak8V4jFmyLnE8GZ/IXA3415h4WpkhO9ceB7QHRHErWVLXz6xzU+HddOzeG+iun/ZWvgGvEj048lCnXNpF9vOCEM1Og9mkVCeGG4e9T9LvzaCe+y7Z2KSWZJzDr2AKOEVs4A2pFUzHfsN38g5bsgzEH2ADisjntatOi2kl8+Oyo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=NR8HQd7q; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="EJR5ZeVR"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6B9EE1F000FF;
-	Tue, 15 Sep 2026 01:23:42 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="NR8HQd7q"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 52A131F00893;
+	Tue, 15 Sep 2026 01:23:44 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1789435422;
-	bh=PaqtvcVgXrYS1+3+fK49od3DzD3wVeUR5aMpnHVEu0U=;
+	d=linux-foundation.org; s=korg; t=1789435424;
+	bh=kdcv7hMRy+g7pGxMi1krc0yERKZkqEnKuiDzmJ97F+k=;
 	h=Date:To:From:Subject;
-	b=EJR5ZeVROhXr7IplLje1CJHRNZ7Dhu2XMIuoAylSg041Mo3+uAdEB3BMWGiaonoIA
-	 CX4VkM/LpkddubeoAzkzNNOP/HDYJVCw543FC8iNfyd2JsHF/5f7YE03Irz2KYpn/Z
-	 aJtPm/uD+yyA24SLx81fjzTeI8UJLD2iIaLS8Kjs=
-Date: Mon, 14 Sep 2026 18:23:42 -0700
+	b=NR8HQd7qe1tIPLVnvo27oDNh1MA7HK/c0Kbe+4egEe6olP/qtufkTCOtHQoUNZIl+
+	 nUixniTp0c9zdBrVD8RDoFI9mH/6Vb8GcZa4EJHekIH1G6g00Nc8kw88xPi+8GooLm
+	 E193Nmgin3LWrY1WYrVd8D+lxai39YqIpA+1HGA0=
+Date: Mon, 14 Sep 2026 18:23:43 -0700
 To: mm-commits@vger.kernel.org,usamaarif642@gmail.com,stable@vger.kernel.org,davidgow@davidgow.net,brendan.higgins@linux.dev,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-damon-sysfs-schemes-drop-centralized-filter-range-arg-validations.patch added to mm-new branch
-Message-Id: <20260915012342.6B9EE1F000FF@smtp.kernel.org>
+Subject: + mm-damon-sysfs-schemes-use-switch-case-in-add_scheme_filters.patch added to mm-new branch
+Message-Id: <20260915012344.52A131F00893@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/damon/sysfs-schemes: drop centralized filter range arg validations
+     Subject: mm/damon/sysfs-schemes: use switch-case in add_scheme_filters()
 has been added to the -mm mm-new branch.  Its filename is
-     mm-damon-sysfs-schemes-drop-centralized-filter-range-arg-validations.patch
+     mm-damon-sysfs-schemes-use-switch-case-in-add_scheme_filters.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-sysfs-schemes-drop-centralized-filter-range-arg-validations.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-sysfs-schemes-use-switch-case-in-add_scheme_filters.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,14 +70,14 @@ and is updated there most days
 
 ------------------------------------------------------
 From: SJ Park <sj@kernel.org>
-Subject: mm/damon/sysfs-schemes: drop centralized filter range arg validations
-Date: Mon, 14 Sep 2026 07:23:22 -0700
+Subject: mm/damon/sysfs-schemes: use switch-case in add_scheme_filters()
+Date: Mon, 14 Sep 2026 07:23:23 -0700
 
-DAMON sysfs interface is validating wrong range arguments for DAMOS
-filters.  Now the core layer is doing the same validation.  Drop the
-duplicated validation in DAMON sysfs interface.
+damon_sysfs_add_scheeme_filters() has long if-else chains for DAMOS filter
+types.  Convert the code to use switch-case, which would be cleaner and
+more efficient.
 
-Link: https://lore.kernel.org/20260914142327.92510-6-sj@kernel.org
+Link: https://lore.kernel.org/20260914142327.92510-7-sj@kernel.org
 Signed-off-by: SJ Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 Cc: Brendan Higgins <brendan.higgins@linux.dev>
@@ -86,36 +86,46 @@ Cc: Usama Arif <usamaarif642@gmail.com>
 Cc: <stable@vger.kernel.org>
 ---
 
- mm/damon/sysfs-schemes.c |   13 -------------
- 1 file changed, 13 deletions(-)
+ mm/damon/sysfs-schemes.c |   18 +++++++++++++-----
+ 1 file changed, 13 insertions(+), 5 deletions(-)
 
---- a/mm/damon/sysfs-schemes.c~mm-damon-sysfs-schemes-drop-centralized-filter-range-arg-validations
+--- a/mm/damon/sysfs-schemes.c~mm-damon-sysfs-schemes-use-switch-case-in-add_scheme_filters
 +++ a/mm/damon/sysfs-schemes.c
-@@ -2832,27 +2832,14 @@ static int damon_sysfs_add_scheme_filter
+@@ -2822,7 +2822,8 @@ static int damon_sysfs_add_scheme_filter
+ 
+ 		if (!filter)
+ 			return -ENOMEM;
+-		if (filter->type == DAMOS_FILTER_TYPE_MEMCG) {
++		switch (filter->type) {
++		case DAMOS_FILTER_TYPE_MEMCG:
+ 			err = damon_sysfs_memcg_path_to_id(
+ 					sysfs_filter->memcg_path,
+ 					&filter->memcg_id);
+@@ -2830,16 +2831,23 @@ static int damon_sysfs_add_scheme_filter
+ 				damos_destroy_filter(filter);
+ 				return err;
  			}
- 		} else if (filter->type == DAMOS_FILTER_TYPE_ADDR) {
+-		} else if (filter->type == DAMOS_FILTER_TYPE_ADDR) {
++			break;
++		case DAMOS_FILTER_TYPE_ADDR:
  			filter->addr_range = sysfs_filter->addr_range;
--			if (filter->addr_range.end <
--					filter->addr_range.start) {
--				damos_destroy_filter(filter);
--				return -EINVAL;
--			}
- 		} else if (filter->type == DAMOS_FILTER_TYPE_TARGET) {
+-		} else if (filter->type == DAMOS_FILTER_TYPE_TARGET) {
++			break;
++		case DAMOS_FILTER_TYPE_TARGET:
  			filter->target_idx = sysfs_filter->target_idx;
- 		} else if (filter->type == DAMOS_FILTER_TYPE_HUGEPAGE_SIZE) {
+-		} else if (filter->type == DAMOS_FILTER_TYPE_HUGEPAGE_SIZE) {
++			break;
++		case DAMOS_FILTER_TYPE_HUGEPAGE_SIZE:
  			filter->sz_range.min = sysfs_filter->range_min;
  			filter->sz_range.max = sysfs_filter->range_max;
--			if (filter->range_min > filter->range_max) {
--				damos_destroy_filter(filter);
--				return -EINVAL;
--			}
- 		} else if (filter->type == DAMOS_FILTER_TYPE_PROBE_HITS_WSUM) {
+-		} else if (filter->type == DAMOS_FILTER_TYPE_PROBE_HITS_WSUM) {
++			break;
++		case DAMOS_FILTER_TYPE_PROBE_HITS_WSUM:
  			filter->range_min = sysfs_filter->range_min;
  			filter->range_max = sysfs_filter->range_max;
--			if (filter->range_min > filter->range_max) {
--				damos_destroy_filter(filter);
--				return -EINVAL;
--			}
++			break;
++		default:
++			break;
  		}
  
  		damos_add_filter(scheme, filter);
