@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D6A41331A43;
-	Tue, 15 Sep 2026 01:23:40 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 40FBA32D0EE;
+	Tue, 15 Sep 2026 01:23:42 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789435422; cv=none; b=ZP3YY216jMGiNO814we9Clfz1xSC1hIu8jzThdLckJCwX8BUzd1Zaj35/EO9l24LqVpf14o5mh5oS2HiU08+apYWQI0Hp7DwddtZZtzBnVXqPqLOZvTE376tx1UJsugWsi+SLRYFbjM7BLanvi7uGdzTaBQbZBv+FXUe9lLwlo4=
+	t=1789435425; cv=none; b=C/KDudlnTwtVRsGfQSQu2/kUcvwyD/qQTg/7QGLW4YHoclE5A2dEy40LcRJorxUm0AJUdL8hhbqjz8jV2r/bPwvzEvW+lDBAdPTc/qAJJeRBUjfySZsZh2Whw/VRPYD4bwfUx8pDXcNAe8DwLhrAcapKkmDrpU68j1kvd/4f+1Y=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1789435422; c=relaxed/simple;
-	bh=gyj7Vh1GzSJjxp8iFfUj7qBRx6PuHLXCcWPD34tdiHg=;
-	h=Date:To:From:Subject:Message-Id; b=CXr+FZHayJGsi0Yp9meHWHXEYR08cKmoaFpJPCaPPyEo/n/5zJx0ikQwPcJf+SX/yb9+ZL5x0639HbCuZ1z9ALWqOkti/3WQyXVQuGXTJIPf8/GwfKj0HWu4kDiKr/kis9pV0u7WSw8XiYy+wpF+38m4LDqPid13Ax5NK5kMNtA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=RAcRiubd; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1789435425; c=relaxed/simple;
+	bh=nfeEQmhIdxINOu4MRoaif/HeiGxH0v7aznYtLC9vpwo=;
+	h=Date:To:From:Subject:Message-Id; b=g+BKZaZLhIAihR98AbcomlDD1wgnGIao/60pCyFIn3Fj35imqEBxFqTbjvvwgGcj1sxEdqc2T5NTRuoPrsiFULDR3MaMtByHvgyGYtTRxD7GjV82YJ28F4fxyILJPf3Pn/wR3SMe//nZy7lMWXPlOm7jJyGiGqNL9cqaOeG2eiw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=EJR5ZeVR; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="RAcRiubd"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6FA451F000FF;
-	Tue, 15 Sep 2026 01:23:40 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="EJR5ZeVR"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6B9EE1F000FF;
+	Tue, 15 Sep 2026 01:23:42 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1789435420;
-	bh=hfIH8FWTWIQ/zYQU1e228txjkyKGJXw4khtY6prp8V0=;
+	d=linux-foundation.org; s=korg; t=1789435422;
+	bh=PaqtvcVgXrYS1+3+fK49od3DzD3wVeUR5aMpnHVEu0U=;
 	h=Date:To:From:Subject;
-	b=RAcRiubd99xvSpG0GhjfKc/zO2uKY7HDnu7M5PIvIpVH2fj89fGAubToX0dyIVlcm
-	 qZMJDD/rtm29w4xlDlE9+ju/0ngh2MYoxHz5DDIPsYHhVaoAmHkeZYFQKmpgxG73JJ
-	 bU2tugP75EItZik3kA++1quXazbrFMjcQ+4HMMBY=
-Date: Mon, 14 Sep 2026 18:23:40 -0700
+	b=EJR5ZeVROhXr7IplLje1CJHRNZ7Dhu2XMIuoAylSg041Mo3+uAdEB3BMWGiaonoIA
+	 CX4VkM/LpkddubeoAzkzNNOP/HDYJVCw543FC8iNfyd2JsHF/5f7YE03Irz2KYpn/Z
+	 aJtPm/uD+yyA24SLx81fjzTeI8UJLD2iIaLS8Kjs=
+Date: Mon, 14 Sep 2026 18:23:42 -0700
 To: mm-commits@vger.kernel.org,usamaarif642@gmail.com,stable@vger.kernel.org,davidgow@davidgow.net,brendan.higgins@linux.dev,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-damon-core-disallow-max-min-damos-filter-range-arguments-commit.patch added to mm-new branch
-Message-Id: <20260915012340.6FA451F000FF@smtp.kernel.org>
+Subject: + mm-damon-sysfs-schemes-drop-centralized-filter-range-arg-validations.patch added to mm-new branch
+Message-Id: <20260915012342.6B9EE1F000FF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/damon/core: disallow max < min damos filter range arguments commit
+     Subject: mm/damon/sysfs-schemes: drop centralized filter range arg validations
 has been added to the -mm mm-new branch.  Its filename is
-     mm-damon-core-disallow-max-min-damos-filter-range-arguments-commit.patch
+     mm-damon-sysfs-schemes-drop-centralized-filter-range-arg-validations.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-core-disallow-max-min-damos-filter-range-arguments-commit.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-sysfs-schemes-drop-centralized-filter-range-arg-validations.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,17 +70,14 @@ and is updated there most days
 
 ------------------------------------------------------
 From: SJ Park <sj@kernel.org>
-Subject: mm/damon/core: disallow max < min damos filter range arguments commit
-Date: Mon, 14 Sep 2026 07:23:21 -0700
+Subject: mm/damon/sysfs-schemes: drop centralized filter range arg validations
+Date: Mon, 14 Sep 2026 07:23:22 -0700
 
-damos_commit_filter_arg() receives range arguments for a few types of
-DAMOS filters.  It allows any range including max < min range.  It is fine
-for the logic, but makes no sense to support it.  Actually DAMON sysfs
-interface is doing the validation on its own.  To avoid duplicated
-validations in multiple DAMON API callers, it would be better to do the
-validation in the core layer.  Add a validation of the given range.
+DAMON sysfs interface is validating wrong range arguments for DAMOS
+filters.  Now the core layer is doing the same validation.  Drop the
+duplicated validation in DAMON sysfs interface.
 
-Link: https://lore.kernel.org/20260914142327.92510-5-sj@kernel.org
+Link: https://lore.kernel.org/20260914142327.92510-6-sj@kernel.org
 Signed-off-by: SJ Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 Cc: Brendan Higgins <brendan.higgins@linux.dev>
@@ -89,33 +86,39 @@ Cc: Usama Arif <usamaarif642@gmail.com>
 Cc: <stable@vger.kernel.org>
 ---
 
- mm/damon/core.c |    6 ++++++
- 1 file changed, 6 insertions(+)
+ mm/damon/sysfs-schemes.c |   13 -------------
+ 1 file changed, 13 deletions(-)
 
---- a/mm/damon/core.c~mm-damon-core-disallow-max-min-damos-filter-range-arguments-commit
-+++ a/mm/damon/core.c
-@@ -1325,15 +1325,21 @@ static int damos_commit_filter_arg(
- 		dst->memcg_id = src->memcg_id;
- 		break;
- 	case DAMOS_FILTER_TYPE_ADDR:
-+		if (src->addr_range.end < src->addr_range.start)
-+			return -EINVAL;
- 		dst->addr_range = src->addr_range;
- 		break;
- 	case DAMOS_FILTER_TYPE_TARGET:
- 		dst->target_idx = src->target_idx;
- 		break;
- 	case DAMOS_FILTER_TYPE_HUGEPAGE_SIZE:
-+		if (src->sz_range.max < src->sz_range.min)
-+			return -EINVAL;
- 		dst->sz_range = src->sz_range;
- 		break;
- 	case DAMOS_FILTER_TYPE_PROBE_HITS_WSUM:
-+		if (src->range_max < src->range_min)
-+			return -EINVAL;
- 		dst->range_min = src->range_min;
- 		dst->range_max = src->range_max;
- 		break;
+--- a/mm/damon/sysfs-schemes.c~mm-damon-sysfs-schemes-drop-centralized-filter-range-arg-validations
++++ a/mm/damon/sysfs-schemes.c
+@@ -2832,27 +2832,14 @@ static int damon_sysfs_add_scheme_filter
+ 			}
+ 		} else if (filter->type == DAMOS_FILTER_TYPE_ADDR) {
+ 			filter->addr_range = sysfs_filter->addr_range;
+-			if (filter->addr_range.end <
+-					filter->addr_range.start) {
+-				damos_destroy_filter(filter);
+-				return -EINVAL;
+-			}
+ 		} else if (filter->type == DAMOS_FILTER_TYPE_TARGET) {
+ 			filter->target_idx = sysfs_filter->target_idx;
+ 		} else if (filter->type == DAMOS_FILTER_TYPE_HUGEPAGE_SIZE) {
+ 			filter->sz_range.min = sysfs_filter->range_min;
+ 			filter->sz_range.max = sysfs_filter->range_max;
+-			if (filter->range_min > filter->range_max) {
+-				damos_destroy_filter(filter);
+-				return -EINVAL;
+-			}
+ 		} else if (filter->type == DAMOS_FILTER_TYPE_PROBE_HITS_WSUM) {
+ 			filter->range_min = sysfs_filter->range_min;
+ 			filter->range_max = sysfs_filter->range_max;
+-			if (filter->range_min > filter->range_max) {
+-				damos_destroy_filter(filter);
+-				return -EINVAL;
+-			}
+ 		}
+ 
+ 		damos_add_filter(scheme, filter);
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
