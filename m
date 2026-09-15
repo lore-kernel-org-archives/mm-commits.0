@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F30CC318EC7;
-	Tue, 15 Sep 2026 01:23:34 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D1CD5331A43;
+	Tue, 15 Sep 2026 01:23:36 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789435416; cv=none; b=INJofOw9k3R0ySWbhSQ0IQTAVcfmQLJkGVnulV041jB78uq9vyOeln45+B5lNUPN7eRQ/MZpnbqdFeBLVKZ+K8rHQv0Rn577DF3BrskXRT+9ZWmlNASP8w8NoJIshnhKvxOhS5vJlCXe2N68Yn85VNOFVO1OCXRfFKe+dIT+iaU=
+	t=1789435418; cv=none; b=Rdgb5IieMlRH2l0zMapbFvy79yTk1yy1W8G5NbtNxAxauSng8pO9HnLqn69lIFZ7fG22mSXDmb8dWf5aT93/xTZD1IYrjm3/FQ9BwitS8Xu7u8HyF9YXebYME+sUeayvhI++16b6CMgyx7TTxbU6+VBE1ss7A3rOByUj12HuXwE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1789435416; c=relaxed/simple;
-	bh=jZT5WuSf28c8LZZbMYgXCSP9axQidh94QMVkXFeuzF4=;
-	h=Date:To:From:Subject:Message-Id; b=gDENxnPVsM/1fmMadl4qfdbeeXgcj4I28UR7RiwB3tV2l75WcmBmf27T0cL5V8om6bgG+zbGWBpnsWLvMWKvE43WkCoMLkisaUnKL3mihoNev9/XPUBoSz4mbncNIklcwyuVgYPqlAu6KeCmtL0zG5YOI8AJZsMKnjiPqwuUhvg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Qf+deFCp; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1789435418; c=relaxed/simple;
+	bh=BJoVTIAp50zRNopuAAuqME/NhRBNCjEokDCi5t+ef10=;
+	h=Date:To:From:Subject:Message-Id; b=f2S3bEv1zHlYzU7WvuNgHbUmfAUM4yxrZDRDq1sNEYY/iUSFNw0lWtXVlVwfLcIRBqtFXqsFAP+th2j9Io1Y7dkNQd8htOP04srdzxigptHgWkWnYuFe4P/vxNS4fA/rq93O3nZmPqCaFPdK4hO9HqHOd/JxJFxl8pY97knX33o=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=my2aQqJv; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Qf+deFCp"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 566C61F000FF;
-	Tue, 15 Sep 2026 01:23:34 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="my2aQqJv"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 67D181F00893;
+	Tue, 15 Sep 2026 01:23:36 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1789435414;
-	bh=RpvwhhiagrAIKbpTvY3wdLo3xIc5Nbweo8K0DrDRkVM=;
+	d=linux-foundation.org; s=korg; t=1789435416;
+	bh=OAAYP6q0PmoCfPiThQNCiHdbDTvruTcxZse9M+kOJ6Q=;
 	h=Date:To:From:Subject;
-	b=Qf+deFCpqwCIsZaUPhlY7T9TQL8yUbljqzLEvPXxW7hBKvW4aPUWNiTsgAF7i1o9s
-	 m/IoqQ0GwzujOF/dPcaLlTjGcdIuRAz/HA9jznRZ/5Oc5MBZ1kIbzbcX6GPOodVJXY
-	 4Fr5Snc4gJDETN02twc+6S55gYW70nwv5a21uIq8=
-Date: Mon, 14 Sep 2026 18:23:33 -0700
+	b=my2aQqJv0vTDcd63OMKlfpYALGQOhpUxlhGzY94DMMfGe1OFltP8s6XKYicsdlGhA
+	 EGJnJVaCXFr0Dy82hhgwpYtji312JkO4IDWZPA131pJBIUYyhqUkF6dZ7vDg1bB1FR
+	 o8mUTnTypgrvjHVIx2ubHfoPpbf20ssRLO8LdJRg=
+Date: Mon, 14 Sep 2026 18:23:35 -0700
 To: mm-commits@vger.kernel.org,usamaarif642@gmail.com,stable@vger.kernel.org,davidgow@davidgow.net,brendan.higgins@linux.dev,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-damon-sysfs-schemes-read-sysfs_filter-addr_range-only-once.patch added to mm-new branch
-Message-Id: <20260915012334.566C61F000FF@smtp.kernel.org>
+Subject: + mm-damon-sysfs-schemes-read-sysfs_filter-sz_range-only-once.patch added to mm-new branch
+Message-Id: <20260915012336.67D181F00893@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/damon/sysfs-schemes: read sysfs_filter->addr_range only once
+     Subject: mm/damon/sysfs-schemes: read sysfs_filter->sz_range only once
 has been added to the -mm mm-new branch.  Its filename is
-     mm-damon-sysfs-schemes-read-sysfs_filter-addr_range-only-once.patch
+     mm-damon-sysfs-schemes-read-sysfs_filter-sz_range-only-once.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-sysfs-schemes-read-sysfs_filter-addr_range-only-once.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-sysfs-schemes-read-sysfs_filter-sz_range-only-once.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,46 +70,26 @@ and is updated there most days
 
 ------------------------------------------------------
 From: SJ Park <sj@kernel.org>
-Subject: mm/damon/sysfs-schemes: read sysfs_filter->addr_range only once
-Date: Mon, 14 Sep 2026 07:23:18 -0700
+Subject: mm/damon/sysfs-schemes: read sysfs_filter->sz_range only once
+Date: Mon, 14 Sep 2026 07:23:19 -0700
 
-Patch series "mm/damon: move damos filter range arguments validation to
-core".
-
-DAMOS filter range arguments are being validated in the DAMON sysfs
-interface.  Some of those have minor time-of-check to time-of-use (TOCTOU)
-bugs.  In future, other callers might have duplicated validations with
-similar bugs.
-
-Fix the bugs and further refactor the code to move the validation to the
-core layer.  Also add kunit test cases for the validations.
-
-Patches 1 and 2 fix the existing TOCTOU bugs.  Patches 3 and 4 adds the
-validation in the core layer.  Patch 5 drops the replicated validation in
-DAMON sysfs interface.  Patch 6 further cleanup the code.  Patches 7 and 8
-extends kunit tests to test the validation.
-
-
-This patch (of 8):
-
-DAMON sysfs interface reads the user-provided address range arguments for
-addr type DAMOS filter twice.  Once for validation, and once again for
-assignments to the variable that will be passed to the core layer.  If the
-user updates the argument in parallel, an invalid address range could be
-passed to the core layer.  Avoid it by doing the assignments first, and
-then validating the assigned variables before passing those to the core
-layer.
+DAMON sysfs interface reads the user-provided size range arguments for
+hugepage_size type DAMOS filter twice.  Once for validation, and once
+again for assignments to the variable that will be passed to the core
+layer.  If the user updates the arguments in parallel, an invalid size
+range could be passed to the core layer.  Avoid it by doing the
+assignments first, and then validating the assigned variables before
+passing those to the core layer.
 
 User impact of the bug should be trivial.  From the core layer's
-perspective, the invalid address range is not really invalid.  It just
-works as having a weird address range.  No critical issues such as a crash
-or a leak could happen.  And sane users ain't do such parallel arguments
-update anyway.  If they do, such racy behavior is arguably somewhat
-expected and deserved.  That said, there is no reason to keep such races.
+perspective, the invalid size range is not really invalid.  It just works
+as having a weird size range.  No critical issues such as a crash or a
+leak could happen.  And sane users ain't do such parallel arguments update
+anyway.  If they do, such racy behavior is arguably somewhat expected and
+deserved.  That said, there is no reason to keep such races.
 
-Link: https://lore.kernel.org/20260914142327.92510-1-sj@kernel.org
-Link: https://lore.kernel.org/20260914142327.92510-2-sj@kernel.org
-Fixes: 2f1abcfccd86 ("mm/damon/sysfs-schemes: support address range type DAMOS filter")
+Link: https://lore.kernel.org/20260914142327.92510-3-sj@kernel.org
+Fixes: ea1f204ba29a ("mm/damon/sysfs-schemes: add files for setting damos_filter->sz_range")
 Signed-off-by: SJ Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 Cc: Brendan Higgins <brendan.higgins@linux.dev>
@@ -118,27 +98,28 @@ Cc: Usama Arif <usamaarif642@gmail.com>
 Cc: <stable@vger.kernel.org>
 ---
 
- mm/damon/sysfs-schemes.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ mm/damon/sysfs-schemes.c |    7 +++----
+ 1 file changed, 3 insertions(+), 4 deletions(-)
 
---- a/mm/damon/sysfs-schemes.c~mm-damon-sysfs-schemes-read-sysfs_filter-addr_range-only-once
+--- a/mm/damon/sysfs-schemes.c~mm-damon-sysfs-schemes-read-sysfs_filter-sz_range-only-once
 +++ a/mm/damon/sysfs-schemes.c
-@@ -2831,12 +2831,12 @@ static int damon_sysfs_add_scheme_filter
- 				return err;
- 			}
- 		} else if (filter->type == DAMOS_FILTER_TYPE_ADDR) {
--			if (sysfs_filter->addr_range.end <
--					sysfs_filter->addr_range.start) {
-+			filter->addr_range = sysfs_filter->addr_range;
-+			if (filter->addr_range.end <
-+					filter->addr_range.start) {
- 				damos_destroy_filter(filter);
- 				return -EINVAL;
- 			}
--			filter->addr_range = sysfs_filter->addr_range;
+@@ -2840,13 +2840,12 @@ static int damon_sysfs_add_scheme_filter
  		} else if (filter->type == DAMOS_FILTER_TYPE_TARGET) {
  			filter->target_idx = sysfs_filter->target_idx;
  		} else if (filter->type == DAMOS_FILTER_TYPE_HUGEPAGE_SIZE) {
+-			if (sysfs_filter->range_min >
+-					sysfs_filter->range_max) {
++			filter->sz_range.min = sysfs_filter->range_min;
++			filter->sz_range.max = sysfs_filter->range_max;
++			if (filter->range_min > filter->range_max) {
+ 				damos_destroy_filter(filter);
+ 				return -EINVAL;
+ 			}
+-			filter->sz_range.min = sysfs_filter->range_min;
+-			filter->sz_range.max = sysfs_filter->range_max;
+ 		} else if (filter->type == DAMOS_FILTER_TYPE_PROBE_HITS_WSUM) {
+ 			filter->range_min = sysfs_filter->range_min;
+ 			filter->range_max = sysfs_filter->range_max;
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
