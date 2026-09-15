@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 234594ACC9B
-	for <mm-commits@vger.kernel.org>; Tue, 15 Sep 2026 22:00:33 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 20CED4ACC74;
+	Tue, 15 Sep 2026 23:23:21 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789509638; cv=none; b=k0bVYnNNih97ie1jj4pO/LTfZYSvxEIPFNnuHv6egzmhJz/NyeqDsJ33opzkcUXCJr33eif4D/e0diFG4dvsdjvyh6hVExD/c7rIRZig1pl3LL207mICA7u4Y4B2F9lSSdz3SiBV+20MAiHIdPilbEuFgPXUMje9uulyru0JZsc=
+	t=1789514603; cv=none; b=HuUd/RJUv27I1Kn4bHuvyjKa3bbMOexsqJc1GwIuk/M+7CbODq5wBK9gLeH4lntqzRwsjNzmB5YM8HIHfSHab5oBVn44t2tgcwftqM6OTwNdbb7sjYuY2k0fdK8QQg9QvaNEVevEOiMImIL4zRKHTVWQof76q7Q8bLuBDcVuts8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1789509638; c=relaxed/simple;
-	bh=HQ9FYubT+djYTjUjYDihA54PSxL2nSvSgwQzVlr9HzI=;
-	h=Date:To:From:Subject:Message-Id; b=aYyUHMr4LYVVJSXi/wTQcT0TXliXqPjgqach309qyej6VbbhfiP1RfUo+E1aVOrfJZhYiAwrkzbxMKntH0883qcauh3VvhoeHukDQYez7oDhVjtlYUhzpcUQWzQS+esjKrCwzue4rMN3SewwnPYRKlG5K/5YCm80BDvTMEEgGKo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=YXQ95gjF; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1789514603; c=relaxed/simple;
+	bh=lJn14TKtFaPel9ILnOOEgYYszwZ2dyMnSntaunP61Pc=;
+	h=Date:To:From:Subject:Message-Id; b=Vye6tOjliZgUBgZB4nt6xCOrp+qxxLOkWASyMwMDku/QZtM/EA96GJw95TTTLG3x4K/7DviDumTSFd8hNNeLzE5H0ZqHAqNR0kcoiryeIEAdBz6bHmDiVcUOXeFPY3H0Q+SpplNnlBHHaAL7vRR5gGJlyZyfXqgZ38UskhiAmf4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=h+aRH24p; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="YXQ95gjF"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id ADF491F000FF;
-	Tue, 15 Sep 2026 22:00:33 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="h+aRH24p"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 876B71F000FF;
+	Tue, 15 Sep 2026 23:23:21 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1789509633;
-	bh=7JNZ11O1Z/TO4+Mjl25jAAaWaipmsg0tOM/lDIfLi3o=;
+	d=linux-foundation.org; s=korg; t=1789514601;
+	bh=lvoRibTBbn6rTgKwf3Y0/fL2PNuRey6x1ijoZVeQAKc=;
 	h=Date:To:From:Subject;
-	b=YXQ95gjFCYX75IYguVFj6ZV52ab85527PoWvawgDGE1kuiHp9ZGJcLLV5N4PYoiWO
-	 +BT9Z6KlJn4besaiYfOPEVsKMwNP2LJCPYei0ZKAbWOOzsklObo9+e23cubK8H1E2Y
-	 zpGumZSjDfeDoW4eb69JcwTdjsqI2KbJmjDKjCUI=
-Date: Tue, 15 Sep 2026 15:00:33 -0700
-To: mm-commits@vger.kernel.org,weiyongjun1@huawei.com,rcampbell@nvidia.com,leon@kernel.org,jglisse@redhat.com,jgg@ziepe.ca,error27@gmail.com,akpm@linux-foundation.org
+	b=h+aRH24pWu/sdP6kdX3cI+Xy9FoeENMzYEyy5SzNxHnVwAHmbHA9xoSiaM3mLVviR
+	 du+yDmB/qBzG5HXn2dYrUdAoJ0FA3C9xzWJe1bxdN3DphiC9wutPMfLE7ama/12tAH
+	 ZRNF4kKFFM8jzE/16Z5btuDic3+GqRYTp2jOnXJ4=
+Date: Tue, 15 Sep 2026 16:23:21 -0700
+To: mm-commits@vger.kernel.org,vschneid@redhat.com,vincenzo.frascino@arm.com,vincent.guittot@linaro.org,vbabka@kernel.org,urezki@gmail.com,surenb@google.com,stable@vger.kernel.org,ryabinin.a.a@gmail.com,rppt@kernel.org,rostedt@goodmis.org,peterz@infradead.org,mingo@redhat.com,mhocko@suse.com,mgorman@suse.de,ljs@kernel.org,liam@infradead.org,kprateek.nayak@amd.com,kees@kernel.org,juri.lelli@redhat.com,glider@google.com,dvyukov@google.com,dietmar.eggemann@arm.com,david@kernel.org,bsegall@google.com,andreyknvl@gmail.com,huangshaobo3@xiaomi.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-hmm-test-reject-overflowing-page-counts.patch added to mm-new branch
-Message-Id: <20260915220033.ADF491F000FF@smtp.kernel.org>
+Subject: + fork-reset-pointer-tag-of-vmapped-thread-stack-before-vfree.patch added to mm-nonmm-unstable branch
+Message-Id: <20260915232321.876B71F000FF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,26 +35,15 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/hmm/test: reject overflowing page counts
-has been added to the -mm mm-new branch.  Its filename is
-     mm-hmm-test-reject-overflowing-page-counts.patch
+     Subject: fork: reset pointer tag of vmapped thread stack before vfree
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     fork-reset-pointer-tag-of-vmapped-thread-stack-before-vfree.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-hmm-test-reject-overflowing-page-counts.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/fork-reset-pointer-tag-of-vmapped-thread-stack-before-vfree.patch
 
-This patch will later appear in the mm-new branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Note, mm-new is a provisional staging ground for work-in-progress
-patches, and acceptance into mm-new is a notification for others take
-notice and to finish up reviews.  Please do not hesitate to respond to
-review feedback and post updated versions to replace or incrementally
-fixup patches in mm-new.
-
-The mm-new branch of mm.git is not included in linux-next
-
-If a few days of testing in mm-new is successful, the patch will me moved
-into mm.git's mm-unstable branch, which is included in linux-next
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -69,50 +58,76 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Dan Carpenter <error27@gmail.com>
-Subject: mm/hmm/test: reject overflowing page counts
-Date: Tue, 15 Sep 2026 19:37:27 +0300
+From: Shaobo Huang <huangshaobo3@xiaomi.com>
+Subject: fork: reset pointer tag of vmapped thread stack before vfree
+Date: Mon, 14 Sep 2026 17:33:00 +0800
 
-The number of pages comes directly from userspace.  Shifting a value
-larger than ULONG_MAX >> PAGE_SHIFT discards its high bits before the
-existing end-address check.  A request for a huge number of pages can
-therefore be accepted and processed as a much smaller request.
+thread_stack_free_rcu() frees the vmalloc'd thread stack via
+vfree(vm_area->addr).  In RCU callback context, vfree() routes to
+vfree_atomic(), which calls llist_add((struct llist_node *)addr, ...) and
+writes 8 bytes to the base of the region being freed.
 
-Reject page counts that cannot be represented as a byte size before
-performing the shift.
+With KASAN_SW_TAGS, vm_area->addr carries a random tag.  If
+kasan_unpoison_task_stack_below() has rewritten the shadow covering [base,
+sp] to KASAN_TAG_KERNEL (0xff) -- which it does on every CPU resume for
+the current task's stack -- the llist_add store checks shadow[base] (0xff)
+against the pointer tag (random) and reports an invalid-access, although
+writing to the base of a stack queued for deferred free is legitimate.
 
-So far as ChatGPT and I can tell this doesn't cause an issue in practice
-but preventing this integer overflow is the correct thing to do.
+Reset the pointer tag to KASAN_TAG_KERNEL before vfree() so that
+kasan_check_range() short-circuits the check, the same way the task
+accesses its own stack at runtime via sp.  The vmalloc lookup is safe:
+__find_vmap_area() resets the tag before comparing against va_start.
 
-Link: https://lore.kernel.org/6f0d39089e938d4f53dc72632eb84aca34de7015.1789457465.git.error27@gmail.com
-Fixes: b2ef9f5a5cb3 ("mm/hmm/test: add selftest driver for HMM")
-Signed-off-by: Dan Carpenter <error27@gmail.com>
+Link: https://lore.kernel.org/20260914093300.100495-1-huangshaobo3@xiaomi.com
+Fixes: 9f7d416c3612 ("kprobes: Unpoison stack in jprobe_return() for KASAN")
+Assisted-by: zhipuai:glm-5.2
+Signed-off-by: Shaobo Huang <huangshaobo3@xiaomi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Cc: Jason Gunthorpe <jgg@ziepe.ca>
-Cc: Jerome Glisse <jglisse@redhat.com>
-Cc: Leon Romanovsky <leon@kernel.org>
-Cc: Ralph Campbell <rcampbell@nvidia.com>
-Cc: Wei Yongjun <weiyongjun1@huawei.com>
-Assisted-by: ChatGPT:gpt-5
+Acked-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
+Reviewed-by: Uladzislau Rezki (Sony) <urezki@gmail.com>
+Cc: Alexander Potapenko <glider@google.com>
+Cc: Andrey Konovalov <andreyknvl@gmail.com>
+Cc: Andrey Ryabinin <ryabinin.a.a@gmail.com>
+Cc: Ben Segall <bsegall@google.com>
+Cc: David Hildenbrand <david@kernel.org>
+Cc: Dietmar Eggemann <dietmar.eggemann@arm.com>
+Cc: Dmitry Vyukov <dvyukov@google.com>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Juri Lelli <juri.lelli@redhat.com>
+Cc: Kees Cook <kees@kernel.org>
+Cc: K Prateek Nayak <kprateek.nayak@amd.com>
+Cc: Liam R. Howlett <liam@infradead.org>
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Steven Rostedt <rostedt@goodmis.org>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Valentin Schneider <vschneid@redhat.com>
+Cc: Vincent Guittot <vincent.guittot@linaro.org>
+Cc: Vincenzo Frascino <vincenzo.frascino@arm.com>
+Cc: Vlastimil Babka <vbabka@kernel.org>
+Cc: <stable@vger.kernel.org>
 ---
 
- lib/test_hmm.c |    2 ++
- 1 file changed, 2 insertions(+)
+ kernel/fork.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/lib/test_hmm.c~mm-hmm-test-reject-overflowing-page-counts
-+++ a/lib/test_hmm.c
-@@ -1624,6 +1624,8 @@ static long dmirror_fops_unlocked_ioctl(
+--- a/kernel/fork.c~fork-reset-pointer-tag-of-vmapped-thread-stack-before-vfree
++++ a/kernel/fork.c
+@@ -280,7 +280,7 @@ static void thread_stack_free_rcu(struct
+ 	if (try_release_thread_stack_to_cache(vm_stack->stack_vm_area))
+ 		return;
  
- 	if (cmd.addr & ~PAGE_MASK)
- 		return -EINVAL;
-+	if (cmd.npages > ULONG_MAX >> PAGE_SHIFT)
-+		return -EINVAL;
- 	if (cmd.addr >= (cmd.addr + (cmd.npages << PAGE_SHIFT)))
- 		return -EINVAL;
+-	vfree(vm_area->addr);
++	vfree(kasan_reset_tag(vm_area->addr));
+ }
  
+ static void thread_stack_delayed_free(struct task_struct *tsk)
 _
 
-Patches currently in -mm which might be from error27@gmail.com are
+Patches currently in -mm which might be from huangshaobo3@xiaomi.com are
 
-mm-hmm-test-reject-overflowing-page-counts.patch
+fork-reset-pointer-tag-of-vmapped-thread-stack-before-vfree.patch
 
