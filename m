@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9CD363BD63B
-	for <mm-commits@vger.kernel.org>; Tue, 15 Sep 2026 02:00:37 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EAAD83CDBB1
+	for <mm-commits@vger.kernel.org>; Tue, 15 Sep 2026 02:00:39 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789437639; cv=none; b=EMmZDNqDrWlL86LLXnottrbqRBuost+TUnrwu1mL+70aPP5uDvRF8V75ez28oDxbEIDDcXN3wCRyIkddWvYiRf+23YaaN1et8kryxg9ZONbHpXCpJtcKJQJ+IV3o6iiYHVTmqvnARxAtrVgkNkjH5lMHuImLkbzLJ3WdEx3QJfc=
+	t=1789437641; cv=none; b=u8jFwXaBD0MjS9adhJH/TKQug1ivk86dQo7pJkwJqbPLUDKPiT0sLgxCS0qGrzlA+IyLlnu8/3dn8zTeg2qpPSxDbKKyLqebY9byrj8YxFkn1XfEaBrwF97AduZz/g2LN8kO08n73lk8V/v8qv20ofeW1ZYXRDk6Z7PhnJNYKbM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1789437639; c=relaxed/simple;
-	bh=bPXrrt+/SU3OFbSuvcIf94Y6VgJ10oOQwuUhhIR8ANI=;
-	h=Date:To:From:Subject:Message-Id; b=jhPkAPWsTFx7TNy33LZvlXpNr0cMGOd80944Dd0zXuRmGYay0U5HWVSBhnS74vHhkIwoe5AWlKHfchKjee1EX5tNSOV+HL3uOBqxSV44EHavSAc5X8pLaVUWMKHJqEQtKMNTkSyP15aKJEkDZBgf2h5bVCW4UV5W4Zr/YItMtc0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=cbDwDIHT; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1789437641; c=relaxed/simple;
+	bh=6BrcpZK0KtYK7FJYNMCST8lAPsk06ADFauWhoWaQFT4=;
+	h=Date:To:From:Subject:Message-Id; b=MaR+nUTgE2rwOK4cI1AKr23ZkIAIxDDvNAEHjXQbOh1kgVVzxA1oSSb7Oml7W6kXdeDZI+UrDWqWvqe0yH167QxCCa2B5O+5fjtvyqQ2+lSURo/tx3bDLpA4YbsfP1RgcbhxI3e6gSqxrFlOlFMVz8qXJmKJ8V5a1+1z6ivFq4M=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=df71X4Aw; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="cbDwDIHT"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2942F1F000FF;
-	Tue, 15 Sep 2026 02:00:37 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="df71X4Aw"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 52A231F000FF;
+	Tue, 15 Sep 2026 02:00:39 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1789437637;
-	bh=2B3RZ30Y2W5f13OPZ+QzG7XwTYcCNWRK+t/1kKy1Igs=;
+	d=linux-foundation.org; s=korg; t=1789437639;
+	bh=CE3wocUNNL2dw6jHlXXKzOe9qzoFtW5Y0+5ApOtOxEk=;
 	h=Date:To:From:Subject;
-	b=cbDwDIHTDUoa1nVz0nahP40KSP6JaOhqtRA2S+HwVBApDWRi1Di1cd2bEh+rhWKzj
-	 J2sPDngZ5TUobUH1CF28urImApyNVrWFjhJEWkE9LjLDUZWETWwsVzfLcY7EEspWdn
-	 f9U3/f3ksaGLjU/9NTHxGWuHSGglXR3rLmRVcxMk=
-Date: Mon, 14 Sep 2026 19:00:36 -0700
-To: mm-commits@vger.kernel.org,zenghui.yu@linux.dev,akpm@linux-foundation.org
+	b=df71X4AwMyCGjLWbST1d+UayWnXPFGEKPhzjj6AfCQUM/sZX15vBhS8eiTqc2P4rU
+	 WyNn/+fyMm/Pb+8DYMQyYiA08wrpSwxCJtPXMduYXJ6d7wVrnwIAq2nkLb+rgpb3f+
+	 8uVSuBlXI+cah9YTBUOklQ9DpnnCAMMJM5+aBY5w=
+Date: Mon, 14 Sep 2026 19:00:38 -0700
+To: mm-commits@vger.kernel.org,eva.kurchatova@virtuozzo.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-damon-ignore-test-generated-damon_dump_output.patch added to mm-new branch
-Message-Id: <20260915020037.2942F1F000FF@smtp.kernel.org>
+Subject: + selftests-damon-add-script-dir-to-syspath-for-pythonsafepath-compatibility.patch added to mm-new branch
+Message-Id: <20260915020039.52A231F000FF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: selftests/damon: ignore test-generated damon_dump_output
+     Subject: selftests/damon: add script dir to sys.path for PYTHONSAFEPATH compatibility
 has been added to the -mm mm-new branch.  Its filename is
-     selftests-damon-ignore-test-generated-damon_dump_output.patch
+     selftests-damon-add-script-dir-to-syspath-for-pythonsafepath-compatibility.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-damon-ignore-test-generated-damon_dump_output.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-damon-add-script-dir-to-syspath-for-pythonsafepath-compatibility.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -69,24 +69,33 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: "Zenghui Yu (Huawei)" <zenghui.yu@linux.dev>
-Subject: selftests/damon: ignore test-generated damon_dump_output
-Date: Mon, 14 Sep 2026 07:19:47 -0700
+From: Eva Kurchatova <eva.kurchatova@virtuozzo.com>
+Subject: selftests/damon: add script dir to sys.path for PYTHONSAFEPATH compatibility
+Date: Mon, 14 Sep 2026 07:19:48 -0700
 
-sysfs.py and sysfs_no_op_commit_break.py dump the DAMON status collected
-via drgn_dump_damon_status.py into a damon_dump_output file in the working
-directory.  Ignore it so that running the tests in-tree does not pollute
-git status.
+Running these tests under Python's safe path mode, either with -P on the
+interpreter command line or with PYTHONSAFEPATH set in the environment,
+stops the script's own directory being prepended to sys.path.  Some
+distributions (RHEL, for example) build the tests with -P in the shebang.
 
-Link: https://lore.kernel.org/20260914141952.91465-3-sj@kernel.org
-Signed-off-by: Zenghui Yu (Huawei) <zenghui.yu@linux.dev>
+This breaks all 7 DAMON Python selftests that import the _damon_sysfs
+helper module located in the same directory:
+
+  ModuleNotFoundError: No module named '_damon_sysfs'
+
+Fix this by explicitly adding the script's directory to sys.path before
+importing _damon_sysfs, following the same pattern used in commit
+c3b3eb565bd7 ("tools: ynl: add script dir to sys.path") which fixed the
+identical issue for the YNL tools.
+
+Link: https://lore.kernel.org/20260914141952.91465-4-sj@kernel.org
+Signed-off-by: Eva Kurchatova <eva.kurchatova@virtuozzo.com>
 Reviewed-by: SJ Park <sj@kernel.org>
 Signed-off-by: SJ Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 Cc: Brendan Higgins <brendan.higgins@linux.dev>
 Cc: David Gow <davidgow@davidgow.net>
 Cc: David Hildenbrand <david@kernel.org>
-Cc: Eva Kurchatova <eva.kurchatova@virtuozzo.com>
 Cc: Jonathan Corbet <corbet@lwn.net>
 Cc: Kunwu Chan <kunwu.chan@gmail.com>
 Cc: Liam R. Howlett <liam@infradead.org>
@@ -99,29 +108,126 @@ Cc: Randy Dunlap <rdunlap@infradead.org>
 Cc: Shuah Khan <shuah@kernel.org>
 Cc: Suren Baghdasaryan <surenb@google.com>
 Cc: Vlastimil Babka <vbabka@kernel.org>
+Cc: "Zenghui Yu (Huawei)" <zenghui.yu@linux.dev>
 ---
 
- tools/testing/selftests/damon/.gitignore |    1 +
- 1 file changed, 1 insertion(+)
+ tools/testing/selftests/damon/damon_nr_regions.py                                  |    3 +++
+ tools/testing/selftests/damon/damos_apply_interval.py                              |    3 +++
+ tools/testing/selftests/damon/damos_quota.py                                       |    3 +++
+ tools/testing/selftests/damon/damos_quota_goal.py                                  |    3 +++
+ tools/testing/selftests/damon/damos_tried_regions.py                               |    3 +++
+ tools/testing/selftests/damon/sysfs_update_schemes_tried_regions_hang.py           |    3 +++
+ tools/testing/selftests/damon/sysfs_update_schemes_tried_regions_wss_estimation.py |    3 +++
+ 7 files changed, 21 insertions(+)
 
---- a/tools/testing/selftests/damon/.gitignore~selftests-damon-ignore-test-generated-damon_dump_output
-+++ a/tools/testing/selftests/damon/.gitignore
-@@ -1,3 +1,4 @@
- # SPDX-License-Identifier: GPL-2.0-only
- access_memory
- access_memory_even
-+damon_dump_output
+--- a/tools/testing/selftests/damon/damon_nr_regions.py~selftests-damon-add-script-dir-to-syspath-for-pythonsafepath-compatibility
++++ a/tools/testing/selftests/damon/damon_nr_regions.py
+@@ -1,9 +1,12 @@
+ #!/usr/bin/env python3
+ # SPDX-License-Identifier: GPL-2.0
+ 
++import os
+ import subprocess
++import sys
+ import time
+ 
++sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+ import _damon_sysfs
+ 
+ def test_nr_regions(real_nr_regions, min_nr_regions, max_nr_regions):
+--- a/tools/testing/selftests/damon/damos_apply_interval.py~selftests-damon-add-script-dir-to-syspath-for-pythonsafepath-compatibility
++++ a/tools/testing/selftests/damon/damos_apply_interval.py
+@@ -1,9 +1,12 @@
+ #!/usr/bin/env python3
+ # SPDX-License-Identifier: GPL-2.0
+ 
++import os
+ import subprocess
++import sys
+ import time
+ 
++sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+ import _damon_sysfs
+ 
+ def main():
+--- a/tools/testing/selftests/damon/damos_quota_goal.py~selftests-damon-add-script-dir-to-syspath-for-pythonsafepath-compatibility
++++ a/tools/testing/selftests/damon/damos_quota_goal.py
+@@ -1,9 +1,12 @@
+ #!/usr/bin/env python3
+ # SPDX-License-Identifier: GPL-2.0
+ 
++import os
+ import subprocess
++import sys
+ import time
+ 
++sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+ import _damon_sysfs
+ 
+ def main():
+--- a/tools/testing/selftests/damon/damos_quota.py~selftests-damon-add-script-dir-to-syspath-for-pythonsafepath-compatibility
++++ a/tools/testing/selftests/damon/damos_quota.py
+@@ -1,9 +1,12 @@
+ #!/usr/bin/env python3
+ # SPDX-License-Identifier: GPL-2.0
+ 
++import os
+ import subprocess
++import sys
+ import time
+ 
++sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+ import _damon_sysfs
+ 
+ def main():
+--- a/tools/testing/selftests/damon/damos_tried_regions.py~selftests-damon-add-script-dir-to-syspath-for-pythonsafepath-compatibility
++++ a/tools/testing/selftests/damon/damos_tried_regions.py
+@@ -1,9 +1,12 @@
+ #!/usr/bin/env python3
+ # SPDX-License-Identifier: GPL-2.0
+ 
++import os
+ import subprocess
++import sys
+ import time
+ 
++sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+ import _damon_sysfs
+ 
+ def main():
+--- a/tools/testing/selftests/damon/sysfs_update_schemes_tried_regions_hang.py~selftests-damon-add-script-dir-to-syspath-for-pythonsafepath-compatibility
++++ a/tools/testing/selftests/damon/sysfs_update_schemes_tried_regions_hang.py
+@@ -1,9 +1,12 @@
+ #!/usr/bin/env python3
+ # SPDX-License-Identifier: GPL-2.0
+ 
++import os
+ import subprocess
++import sys
+ import time
+ 
++sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+ import _damon_sysfs
+ 
+ def main():
+--- a/tools/testing/selftests/damon/sysfs_update_schemes_tried_regions_wss_estimation.py~selftests-damon-add-script-dir-to-syspath-for-pythonsafepath-compatibility
++++ a/tools/testing/selftests/damon/sysfs_update_schemes_tried_regions_wss_estimation.py
+@@ -1,9 +1,12 @@
+ #!/usr/bin/env python3
+ # SPDX-License-Identifier: GPL-2.0
+ 
++import os
+ import subprocess
++import sys
+ import time
+ 
++sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+ import _damon_sysfs
+ 
+ def pass_wss_estimation(sz_region):
 _
 
-Patches currently in -mm which might be from zenghui.yu@linux.dev are
+Patches currently in -mm which might be from eva.kurchatova@virtuozzo.com are
 
-selftests-mm-fix-incorrect-skip-output-in-pkey_sighandler_tests.patch
-mm-damon-core-remove-declaration-of-__damon_commit_ctx.patch
-selftests-mm-remove-unreachable-returns-after-ksft-exit-helpers.patch
-docs-mm-damon-design-fix-broken-ref-usage-and-a-typo.patch
-selftests-mm-fix-size-truncation-in-pagemap_ioctl-test.patch
-selftests-mm-mark-file-local-symbols-of-pagemap_ioctlc-static.patch
-selftests-mm-init-page-sizes-early-in-pagemap_ioctl-test.patch
-selftests-damon-stop-kdamond-on-error-exits-of-no-op-commit-test.patch
-selftests-damon-ignore-test-generated-damon_dump_output.patch
+selftests-damon-add-script-dir-to-syspath-for-pythonsafepath-compatibility.patch
 
