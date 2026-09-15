@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 79F3C3CBE86
-	for <mm-commits@vger.kernel.org>; Tue, 15 Sep 2026 02:00:35 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9CD363BD63B
+	for <mm-commits@vger.kernel.org>; Tue, 15 Sep 2026 02:00:37 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789437636; cv=none; b=oOYLd+aIbibAbnzEaho0klOtvKMOnS04fBhr2tMej3ymMBex9yJ0makcfXDcGOROQe7Lebl6hlMCy8TqlF5fcpqbtLHS3qyofml6WTLy+hSqGBiMnAiZt0UZFHXzlCNo6Ua49tlSsg9VAI8i6puC1tTOie8RoZ/XEGl7tYMSUzQ=
+	t=1789437639; cv=none; b=EMmZDNqDrWlL86LLXnottrbqRBuost+TUnrwu1mL+70aPP5uDvRF8V75ez28oDxbEIDDcXN3wCRyIkddWvYiRf+23YaaN1et8kryxg9ZONbHpXCpJtcKJQJ+IV3o6iiYHVTmqvnARxAtrVgkNkjH5lMHuImLkbzLJ3WdEx3QJfc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1789437636; c=relaxed/simple;
-	bh=xkYwr8SW1CDgQ1un+v6CUdXUzYvg73rWo2MZyLI9nPE=;
-	h=Date:To:From:Subject:Message-Id; b=obR7S+csfvhn3NITuYXXbthqW4qcLiSC+gwDy8ViIuI0LUDNClZl9EvyhM9d0FyjMNaH5KvhCLYX8IIh1cWyWxLECgHbcd9pvsxX88qX6WcNWZKDBHYYCSUFz1fnFVCTFf3x1QltmlsQMfrdCGgoC1LWZSucG0Q6oP2azbooSg4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=f+ncxyFG; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1789437639; c=relaxed/simple;
+	bh=bPXrrt+/SU3OFbSuvcIf94Y6VgJ10oOQwuUhhIR8ANI=;
+	h=Date:To:From:Subject:Message-Id; b=jhPkAPWsTFx7TNy33LZvlXpNr0cMGOd80944Dd0zXuRmGYay0U5HWVSBhnS74vHhkIwoe5AWlKHfchKjee1EX5tNSOV+HL3uOBqxSV44EHavSAc5X8pLaVUWMKHJqEQtKMNTkSyP15aKJEkDZBgf2h5bVCW4UV5W4Zr/YItMtc0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=cbDwDIHT; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="f+ncxyFG"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0FDF21F00893;
-	Tue, 15 Sep 2026 02:00:35 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="cbDwDIHT"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2942F1F000FF;
+	Tue, 15 Sep 2026 02:00:37 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1789437635;
-	bh=EHekIpsn97ZxS/SI6Yvym4bV1M4RWsdeq4v9fHbDQQU=;
+	d=linux-foundation.org; s=korg; t=1789437637;
+	bh=2B3RZ30Y2W5f13OPZ+QzG7XwTYcCNWRK+t/1kKy1Igs=;
 	h=Date:To:From:Subject;
-	b=f+ncxyFGfieyxsP5Dx9Wm5uzIKcj+pqx2LYKDmg9LY+NMXeE84XrG8t5dFnrsiRca
-	 iU60/hJ5hroLp4MQO+VAXhuEQsmNVzdwLjuudu39AuhZCOetnw2RMl2TZ7kkusDlGk
-	 8mPeJIqb3cVslVMTlLpvuZ0r6mUdxSTgnmfmlgac=
-Date: Mon, 14 Sep 2026 19:00:34 -0700
+	b=cbDwDIHTDUoa1nVz0nahP40KSP6JaOhqtRA2S+HwVBApDWRi1Di1cd2bEh+rhWKzj
+	 J2sPDngZ5TUobUH1CF28urImApyNVrWFjhJEWkE9LjLDUZWETWwsVzfLcY7EEspWdn
+	 f9U3/f3ksaGLjU/9NTHxGWuHSGglXR3rLmRVcxMk=
+Date: Mon, 14 Sep 2026 19:00:36 -0700
 To: mm-commits@vger.kernel.org,zenghui.yu@linux.dev,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-damon-stop-kdamond-on-error-exits-of-no-op-commit-test.patch added to mm-new branch
-Message-Id: <20260915020035.0FDF21F00893@smtp.kernel.org>
+Subject: + selftests-damon-ignore-test-generated-damon_dump_output.patch added to mm-new branch
+Message-Id: <20260915020037.2942F1F000FF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: selftests/damon: stop kdamond on error exits of no-op commit test
+     Subject: selftests/damon: ignore test-generated damon_dump_output
 has been added to the -mm mm-new branch.  Its filename is
-     selftests-damon-stop-kdamond-on-error-exits-of-no-op-commit-test.patch
+     selftests-damon-ignore-test-generated-damon_dump_output.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-damon-stop-kdamond-on-error-exits-of-no-op-commit-test.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-damon-ignore-test-generated-damon_dump_output.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,39 +70,15 @@ and is updated there most days
 
 ------------------------------------------------------
 From: "Zenghui Yu (Huawei)" <zenghui.yu@linux.dev>
-Subject: selftests/damon: stop kdamond on error exits of no-op commit test
-Date: Mon, 14 Sep 2026 07:19:46 -0700
+Subject: selftests/damon: ignore test-generated damon_dump_output
+Date: Mon, 14 Sep 2026 07:19:47 -0700
 
-Patch series "mm/damon: misc improvements in tests and documents".
+sysfs.py and sysfs_no_op_commit_break.py dump the DAMON status collected
+via drgn_dump_damon_status.py into a damon_dump_output file in the working
+directory.  Ignore it so that running the tests in-tree does not pollute
+git status.
 
-Add various improvements to DAMON tests and documents.
-
-Patch 1 and 2 from Zenghui Yu (Huawei) let DAMON selftest to clean up its
-state and output after running the tests.  Patch 3 from Eva Kurchatova
-makes a few selftest be able to run with Python's safe path mode.  Patch 4
-from Kunwu Chan improves coverage of DAMON kunit tests.  Finally, patches
-5 and 6 from Liew Rui Yan clarify and fix typos on documents for DAMOS
-quota behaviors.
-
-Below are notes that can be removed in the final commit message.
-
-This is a batched repost of DAMON patches that were individually posted. 
-Please refer to each patch for changelog.
-
-
-This patch (of 6):
-
-The sysfs_no_op_commit_break test starts a kdamond via sysfs, but its
-error paths (e.g., drgn not installed) exit without stopping it.  The
-leaked kdamond then makes subsequent tests, e.g.  lru_sort.sh and
-reclaim.sh, skip with "Another kdamond is running".
-
-Wrap the post-start logic in try-finally so that kdamonds.stop() is
-executed on every exit path.
-
-Link: https://lore.kernel.org/20260914141952.91465-1-sj@kernel.org
-Link: https://lore.kernel.org/20260914141952.91465-2-sj@kernel.org
-Fixes: 10725cd2b09a ("selftests/damon: test no-op commit broke DAMON status")
+Link: https://lore.kernel.org/20260914141952.91465-3-sj@kernel.org
 Signed-off-by: Zenghui Yu (Huawei) <zenghui.yu@linux.dev>
 Reviewed-by: SJ Park <sj@kernel.org>
 Signed-off-by: SJ Park <sj@kernel.org>
@@ -110,8 +86,12 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 Cc: Brendan Higgins <brendan.higgins@linux.dev>
 Cc: David Gow <davidgow@davidgow.net>
 Cc: David Hildenbrand <david@kernel.org>
+Cc: Eva Kurchatova <eva.kurchatova@virtuozzo.com>
 Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: Kunwu Chan <kunwu.chan@gmail.com>
 Cc: Liam R. Howlett <liam@infradead.org>
+Cc: Lian Wang <lianux.mm@gmail.com>
+Cc: Liew Rui Yan <aethernet65535@gmail.com>
 Cc: Lorenzo Stoakes <ljs@kernel.org>
 Cc: Michal Hocko <mhocko@suse.com>
 Cc: Mike Rapoport <rppt@kernel.org>
@@ -119,66 +99,18 @@ Cc: Randy Dunlap <rdunlap@infradead.org>
 Cc: Shuah Khan <shuah@kernel.org>
 Cc: Suren Baghdasaryan <surenb@google.com>
 Cc: Vlastimil Babka <vbabka@kernel.org>
-Cc: Eva Kurchatova <eva.kurchatova@virtuozzo.com>
-Cc: Kunwu Chan <kunwu.chan@gmail.com>
-Cc: Lian Wang <lianux.mm@gmail.com>
-Cc: Liew Rui Yan <aethernet65535@gmail.com>
-Assisted-by: GLM-5.3 OpenCode
 ---
 
- tools/testing/selftests/damon/sysfs_no_op_commit_break.py |   41 +++++-----
- 1 file changed, 21 insertions(+), 20 deletions(-)
+ tools/testing/selftests/damon/.gitignore |    1 +
+ 1 file changed, 1 insertion(+)
 
---- a/tools/testing/selftests/damon/sysfs_no_op_commit_break.py~selftests-damon-stop-kdamond-on-error-exits-of-no-op-commit-test
-+++ a/tools/testing/selftests/damon/sysfs_no_op_commit_break.py
-@@ -47,26 +47,27 @@ def main():
-         print('kdamond start failed: %s' % err)
-         exit(1)
- 
--    before_commit_status, err = \
--        dump_damon_status_dict(kdamonds.kdamonds[0].pid)
--    if err is not None:
--        print('before-commit status dump failed: %s' % err)
--        exit(1)
--
--    kdamonds.kdamonds[0].commit()
--
--    after_commit_status, err = \
--        dump_damon_status_dict(kdamonds.kdamonds[0].pid)
--    if err is not None:
--        print('after-commit status dump failed: %s' % err)
--        exit(1)
--
--    if before_commit_status != after_commit_status:
--        print(f'before: {json.dumps(before_commit_status, indent=2)}')
--        print(f'after: {json.dumps(after_commit_status, indent=2)}')
--        exit(1)
--
--    kdamonds.stop()
-+    try:
-+        before_commit_status, err = \
-+            dump_damon_status_dict(kdamonds.kdamonds[0].pid)
-+        if err is not None:
-+            print('before-commit status dump failed: %s' % err)
-+            exit(1)
-+
-+        kdamonds.kdamonds[0].commit()
-+
-+        after_commit_status, err = \
-+            dump_damon_status_dict(kdamonds.kdamonds[0].pid)
-+        if err is not None:
-+            print('after-commit status dump failed: %s' % err)
-+            exit(1)
-+
-+        if before_commit_status != after_commit_status:
-+            print(f'before: {json.dumps(before_commit_status, indent=2)}')
-+            print(f'after: {json.dumps(after_commit_status, indent=2)}')
-+            exit(1)
-+    finally:
-+        kdamonds.stop()
- 
- if __name__ == '__main__':
-     main()
+--- a/tools/testing/selftests/damon/.gitignore~selftests-damon-ignore-test-generated-damon_dump_output
++++ a/tools/testing/selftests/damon/.gitignore
+@@ -1,3 +1,4 @@
+ # SPDX-License-Identifier: GPL-2.0-only
+ access_memory
+ access_memory_even
++damon_dump_output
 _
 
 Patches currently in -mm which might be from zenghui.yu@linux.dev are
