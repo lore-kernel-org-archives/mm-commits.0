@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9F8A91E47CC
-	for <mm-commits@vger.kernel.org>; Tue, 15 Sep 2026 01:10:17 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 137E2327C09
+	for <mm-commits@vger.kernel.org>; Tue, 15 Sep 2026 01:10:19 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789434620; cv=none; b=rXApJyPfnmHfh41ie8ODUQJMoUrRnAkkJ4QKj/RkaZ/LBawPLNp5GBAcoNZcSzxYhef3ktVp7kucWyF0HSnjAHp/66OKS7VdbaijIrstcy8D8R8wV/mpLGLVp3J1g3AYDyMJjYkh0GSSaGYmlt3s2Ib67h2f5JRa0DUJsjNZL3g=
+	t=1789434622; cv=none; b=HNIOw6iQk4suFvdmTq3Qu4/lhRrR0yLRX7cewg4WW38ONSGkbaYD3N3GqR+k7gbf25gqID0Eqhcnr7Q28d6Q6c9bXBv8cwc1CPhsiKc4Je+/hbX4Tz/Py/TNaD+TxEH08SCMlkZiC87MDff4GObrXKONe4zQWyedSDxif1NPJGE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1789434620; c=relaxed/simple;
-	bh=Xtlv8JlvOxetpb7su7C5DOSL7Bex3rt6kfBpzSZnOGQ=;
-	h=Date:To:From:Subject:Message-Id; b=N+1v/13CY/HwDglXs0DP68DmtfjZ+8thBVl6BKbLAifgKKGhGprhUo3P+43hivgMC/UKx8NF5tT7pPuMtZiMQ9WDt1vpagYOEMKJvgKl2GSIoetWuNPdkYwOOzfxZpuee3M2ZllnZVtDlLjgHJtcr0PXd6Xp+2I/9cligC7SA1E=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=U5pITjc1; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1789434622; c=relaxed/simple;
+	bh=W+Ia3Zp1XtWWXp0xnYlX4imxSkXej95L52rI/N8gddg=;
+	h=Date:To:From:Subject:Message-Id; b=msiwog96lZX/T8s9UMbbtfRzrWC37vFa0K9e/bSDDjp/FnZqn4QxfIS5xfvfHGQdnMeMkUHgI7YfIGwTrW0zRGw4wP/DdhBx5EBvGcgqbtON+wvVCo9AQxJVC2iSmLr1Rvy77U88kE1LvbnTiNj/ywNjsr0/OrSkFy8I+h30dRs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=17vDhluS; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="U5pITjc1"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8CC991F00893;
-	Tue, 15 Sep 2026 01:10:16 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="17vDhluS"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D63BA1F00898;
+	Tue, 15 Sep 2026 01:10:18 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1789434616;
-	bh=o6MncIQFP2VeK6Yktblp5znSCDf7WJQGiJVwkkt/ofw=;
+	d=linux-foundation.org; s=korg; t=1789434618;
+	bh=DEOffBQRzkcOlp3wV2z6fx9HqfbuGTgSJGiKqMUMq6s=;
 	h=Date:To:From:Subject;
-	b=U5pITjc1P12vX9L/HeUlycARrPcGqux87avkbhvfiVeeuO1KL2FijxsEskXwK6pAj
-	 pKvjE7UnrOTdgk+bhCoAVZtjq0FST0kU6HggBgfV0X5K1JkFqPcOswBaMRQzSRDyeu
-	 z/XxpJ7d9pETn0KBalIamrnqoAxXl02w27onR268=
-Date: Mon, 14 Sep 2026 18:10:16 -0700
+	b=17vDhluSrmKFvUFrbiRTnmUX0/dFULyDD7DpOEzD8za/VEQszRh+Pdaf6bX7k1CYv
+	 nEz9mHYgaKkfwpXMiPHY/Z/+bPiZtYnk6MgPtDQEkOqxckXxQ0HEwhuU09EvQEGt2v
+	 vf/tZGWWWN1/2Ros8vUT7yKwC9UoGhUrtKuAE104=
+Date: Mon, 14 Sep 2026 18:10:18 -0700
 To: mm-commits@vger.kernel.org,ljs@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-eliminate-vm_special-vma_special_flags.patch added to mm-new branch
-Message-Id: <20260915011016.8CC991F00893@smtp.kernel.org>
+Subject: + fuse-dax-do-not-set-vm_mixedmap.patch added to mm-new branch
+Message-Id: <20260915011018.D63BA1F00898@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: eliminate VM_SPECIAL, VMA_SPECIAL_FLAGS
+     Subject: fuse: dax: do not set VM_MIXEDMAP
 has been added to the -mm mm-new branch.  Its filename is
-     mm-eliminate-vm_special-vma_special_flags.patch
+     fuse-dax-do-not-set-vm_mixedmap.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-eliminate-vm_special-vma_special_flags.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/fuse-dax-do-not-set-vm_mixedmap.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,63 +70,48 @@ and is updated there most days
 
 ------------------------------------------------------
 From: "Lorenzo Stoakes (ARM)" <ljs@kernel.org>
-Subject: mm: eliminate VM_SPECIAL, VMA_SPECIAL_FLAGS
-Date: Mon, 14 Sep 2026 15:57:57 +0100
+Subject: fuse: dax: do not set VM_MIXEDMAP
+Date: Mon, 14 Sep 2026 15:57:58 +0100
 
-Every user of the VM_SPECIAL or VMA_SPECIAL_FLAGS has now been converted
-to predicates which explicitly express what is actually being checked for
-rather than the nebulous concept of possessing 'special' VMA flags.
+Commit e1fb4a086495 ("dax: remove VM_MIXEDMAP for fsdax and device dax")
+prevented fsdax and device-dax from setting VM_MIXEDMAP, as DAX no longer
+relies on it to direct core mm paths.
 
-In any case 'special' is not so special a term of art in mm - it includes
-VDSO/VVAR mappings, special in the sense of vm_normal_folio() and probably
-other cases too.
+The fuse DAX implementation, added later, copied the old pattern and still
+sets it.
 
-Therefore make things less special by eliminating these now unused flags.
+Fuse DAX maps pages the same way fsdax does, via dax_iomap_fault() and
+ultimately vmf_insert_page_mkwrite() and vmf_insert_folio_pmd(), which
+insert ordinary refcounted pages and so do not require VM_MIXEDMAP.
 
-No functional change intended.
+Setting it only serves to mark the mapping as kernel-owned, making fuse
+DAX the sole DAX implementation whose mappings are unmergeable, cannot be
+mlock()'d, eagerly copy page tables on fork and reject MADV_DOFORK and
+MADV_DODUMP.
 
-Link: https://lore.kernel.org/20260914-b4-mmap-prepare-vma-flag-sanify-v2-37-7d9781ed5361@kernel.org
+It also requires vma_is_special_huge() in mm/huge_memory.c to carve DAX
+out of its kernel-owned check explicitly.
+
+There is no reason for fuse DAX to keep on using this flag so drop it.
+
+Link: https://lore.kernel.org/20260914-b4-mmap-prepare-vma-flag-sanify-v2-38-7d9781ed5361@kernel.org
 Signed-off-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h              |    8 --------
- tools/testing/vma/include/dup.h |    8 --------
- 2 files changed, 16 deletions(-)
+ fs/fuse/dax.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/include/linux/mm.h~mm-eliminate-vm_special-vma_special_flags
-+++ a/include/linux/mm.h
-@@ -577,14 +577,6 @@ enum {
- #define VMA_ACCESS_FLAGS mk_vma_flags(VMA_READ_BIT, VMA_WRITE_BIT, VMA_EXEC_BIT)
- 
- /*
-- * Special vmas that are non-mergable, non-mlock()able.
-- */
--
--#define VMA_SPECIAL_FLAGS mk_vma_flags(VMA_IO_BIT, VMA_DONTEXPAND_BIT, \
--				       VMA_PFNMAP_BIT, VMA_MIXEDMAP_BIT)
--#define VM_SPECIAL vma_flags_to_legacy(VMA_SPECIAL_FLAGS)
--
--/*
-  * Physically remapped pages are special. Tell the
-  * rest of the world about it:
-  *   IO tells people not to look at these pages
---- a/tools/testing/vma/include/dup.h~mm-eliminate-vm_special-vma_special_flags
-+++ a/tools/testing/vma/include/dup.h
-@@ -352,14 +352,6 @@ enum {
- #define VM_ACCESS_FLAGS (VM_READ | VM_WRITE | VM_EXEC)
- #define VMA_ACCESS_FLAGS mk_vma_flags(VMA_READ_BIT, VMA_WRITE_BIT, VMA_EXEC_BIT)
- 
--/*
-- * Special vmas that are non-mergable, non-mlock()able.
-- */
--#define VM_SPECIAL (VM_IO | VM_DONTEXPAND | VM_PFNMAP | VM_MIXEDMAP)
--
--#define VMA_SPECIAL_FLAGS mk_vma_flags(VMA_IO_BIT, VMA_DONTEXPAND_BIT, \
--				       VMA_PFNMAP_BIT, VMA_MIXEDMAP_BIT)
--
- #define VMA_REMAP_FLAGS mk_vma_flags(VMA_IO_BIT, VMA_PFNMAP_BIT,	\
- 				     VMA_DONTEXPAND_BIT, VMA_DONTDUMP_BIT)
+--- a/fs/fuse/dax.c~fuse-dax-do-not-set-vm_mixedmap
++++ a/fs/fuse/dax.c
+@@ -826,7 +826,7 @@ int fuse_dax_mmap(struct file *file, str
+ {
+ 	file_accessed(file);
+ 	vma->vm_ops = &fuse_dax_vm_ops;
+-	vm_flags_set(vma, VM_MIXEDMAP | VM_HUGEPAGE);
++	vma_set_flags(vma, VMA_HUGEPAGE_BIT);
+ 	return 0;
+ }
  
 _
 
