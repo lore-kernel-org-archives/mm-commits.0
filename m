@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9A22D135A53
-	for <mm-commits@vger.kernel.org>; Tue, 15 Sep 2026 01:10:08 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 10C0231715A
+	for <mm-commits@vger.kernel.org>; Tue, 15 Sep 2026 01:10:10 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789434613; cv=none; b=d4J3hOS/O5HLySCkA1JLAJtjYPqbgBSFCgTjER5B69iVewg7KHu/OeXp7hS4x/6GudwNcLSNHMyC1uDlOU5V89qH8jWwkiKvelS6Ye9KXTyWXIlMgKFyYV02aIQNeQpiiC6aPQnH+HRplEjsj+0jMa9a+QzD9QisnK11QcljveY=
+	t=1789434613; cv=none; b=F5WJJ6BBTjIsZmy1N1etlwdkUH6jsRg6oKidx0YSoLmIyfMcV+oNz8sRf+qT4Fl4BtS5V+MkkZk547BycH4tBBRoOwU5Z0fd3frE3TxeKuxDi6ev5TJd+p6IdpfqaAZZQr7Ulz2/rky9RFEUaD5/HLgURVLpJjSl6ieKN9kgfFk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1789434613; c=relaxed/simple;
-	bh=/rZdeAxmqg0wavHZ2y6fzTZzTOnV7ErlCLD2C57rAJU=;
-	h=Date:To:From:Subject:Message-Id; b=eZ8O3eeYYjMkMfd1Kz4BTHN1K9mURVe/sKwPl0PalAGcuDcGWYLmCI31wgsveeyjZiqYl/tV0zzhv0DN62xM/V6blRO7wlbJ4ZFpIG3PkZ70HiLltY+amvLsV8Tuj4IO7GeqaM+pm+0pdEXE281ss1LEWZUEl6GBZiXff0Iyld8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=SMdBmNxt; arc=none smtp.client-ip=100.103.45.18
+	bh=N8OuYrEGxjlxi8UVlekpelpo5tjSjIw1TcKfKcpb13o=;
+	h=Date:To:From:Subject:Message-Id; b=kO4IagypnIEHckAOLysmytdaJjwYTov7NpdHtFbq4Xcx2xqISUaZQ9rov7nEuTyaeQpKcvLL1h7QpEKofzgSxd5uJWIUFgxaq2uZ5QzB3HHUrNM0BYNgBOZ8oPqrG3pOVpanHCUJMyz8Qc+5mWI+hjnpXQoA/Pus+AauGyNksy0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=uwncS40l; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="SMdBmNxt"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id DCF521F00893;
-	Tue, 15 Sep 2026 01:10:07 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="uwncS40l"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D90421F000FF;
+	Tue, 15 Sep 2026 01:10:09 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1789434608;
-	bh=+/7mStU9ecsS8+O8FuzP4kjn9Sn6nNTYYQyhf2ubg2g=;
+	d=linux-foundation.org; s=korg; t=1789434610;
+	bh=k84sd3cBkWBPEOa6D2Gv9I56B0ygKjJJVTvzsvEHCXU=;
 	h=Date:To:From:Subject;
-	b=SMdBmNxtPq+6i8E12XaXNK1kbbgwDNET2f5mIlFJjtk96wiWybKD9GThfDIn05583
-	 urelcwF+EsQoOYZb+mWzCMegQQ/RSODoS6eHlbZ7B1rWJQbtn374pzcDSYGx23hc+K
-	 fI9ZDVybEbddBuxF7Cjm/IQt8qOl88tp0lMIefQw=
-Date: Mon, 14 Sep 2026 18:10:07 -0700
+	b=uwncS40lOqXCSJ1bLCRQ8HyexqxGUdAV2hZWlRESbs7Kz7gJNB1W2FiS3ni98lkgB
+	 w6jtnd+LRh8uMrdpMPdPFY9cQQb6OHgA3uPVz3iafwdHzxIpGwAp/w+Sq/9FvYwz39
+	 oYAqxrVN+cn4jdbZuYGa6dMFX65u07OsBw25jC8s=
+Date: Mon, 14 Sep 2026 18:10:09 -0700
 To: mm-commits@vger.kernel.org,ljs@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-madvise-use-predicates-for-madvise-madv_dofork.patch added to mm-new branch
-Message-Id: <20260915011007.DCF521F00893@smtp.kernel.org>
+Subject: + mm-eliminate-vma_special_flags-usage-when-hugetlb-explicitly-tested.patch added to mm-new branch
+Message-Id: <20260915011009.D90421F000FF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/madvise: use predicates for madvise(..., MADV_DOFORK)
+     Subject: mm: eliminate VMA_SPECIAL_FLAGS usage when hugetlb explicitly tested
 has been added to the -mm mm-new branch.  Its filename is
-     mm-madvise-use-predicates-for-madvise-madv_dofork.patch
+     mm-eliminate-vma_special_flags-usage-when-hugetlb-explicitly-tested.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-madvise-use-predicates-for-madvise-madv_dofork.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-eliminate-vma_special_flags-usage-when-hugetlb-explicitly-tested.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,47 +70,75 @@ and is updated there most days
 
 ------------------------------------------------------
 From: "Lorenzo Stoakes (ARM)" <ljs@kernel.org>
-Subject: mm/madvise: use predicates for madvise(..., MADV_DOFORK)
-Date: Mon, 14 Sep 2026 15:57:53 +0100
+Subject: mm: eliminate VMA_SPECIAL_FLAGS usage when hugetlb explicitly tested
+Date: Mon, 14 Sep 2026 15:57:54 +0100
 
-Make it clear what we're blocking in MADV_DOFORK.  Previously we simply
-disallowed VM_SPECIAL i.e.  kernel-owned mappings, fixed mappings and
-VMA_IO_BIT.
+It is now an invariant that VMA_IO_BIT is not set except by kernel-owned
+mappings, so each existing VMA_SPECIAL_FLAGS test need only test for
+VMA_DONTEXPAND_BIT, VMA_PFNMAP_BIT and VMA_MIXEDMAP_BIT.
 
-Now the invariant is established that only kernel-owned mappings can set
-VMA_IO_BIT, the VMA_IO_BIT check is redundant.
+This is precisely a test for a kernel-owned or fixed mapping.
 
-The rest is equivalent to testing for a kernel-owned or fixed mapping,
-i.e.  exactly the same check as whether the VMA is permitted to be merged.
+Update a number of callsites which already explicitly handle hugetlb
+mappings.
 
-This was established by commit 0b2758f48f22 ("Require (reasonably) normal
-mappings for MADV_DOFORK") containing my hands-down favourite call out of
-all time.
+vma_supports_mlock() and ksm_compatible() also explicitly bail on
+droppable mappings - detecting kernel-owned, fixed or droppable mappings
+is handled by vma_is_persistent(), so in these cases use this predicate.
 
-Express the same thing differently - if we wouldn't be allowed to merge
-it, then we aren't allowed to manipulate CoW behaviour on fork.
+should_skip_vma() tests for locked, kernel-owned or fixed memory (having
+already excluded hugetlb mappings) so simply test for those there.
 
 No functional change intended.
 
-Link: https://lore.kernel.org/20260914-b4-mmap-prepare-vma-flag-sanify-v2-33-7d9781ed5361@kernel.org
+Link: https://lore.kernel.org/20260914-b4-mmap-prepare-vma-flag-sanify-v2-34-7d9781ed5361@kernel.org
 Signed-off-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/madvise.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/internal.h |    4 +---
+ mm/ksm.c      |    4 +---
+ mm/vmscan.c   |    3 ++-
+ 3 files changed, 4 insertions(+), 7 deletions(-)
 
---- a/mm/madvise.c~mm-madvise-use-predicates-for-madvise-madv_dofork
-+++ a/mm/madvise.c
-@@ -1565,7 +1565,7 @@ static int madvise_vma_behavior(struct m
- 		new_flags |= VM_DONTCOPY;
- 		break;
- 	case MADV_DOFORK:
--		if (new_flags & VM_SPECIAL)
-+		if (!vma_can_merge(vma))
- 			return -EINVAL;
- 		new_flags &= ~VM_DONTCOPY;
- 		break;
+--- a/mm/internal.h~mm-eliminate-vma_special_flags-usage-when-hugetlb-explicitly-tested
++++ a/mm/internal.h
+@@ -1111,9 +1111,7 @@ static inline struct file *maybe_unlock_
+ 
+ static inline bool vma_supports_mlock(const struct vm_area_struct *vma)
+ {
+-	if (vma_test_any_mask(vma, VMA_SPECIAL_FLAGS))
+-		return false;
+-	if (vma_test_single_mask(vma, VMA_DROPPABLE))
++	if (!vma_is_persistent(vma))
+ 		return false;
+ 	if (vma_is_dax(vma) || vma_is_hugetlb(vma))
+ 		return false;
+--- a/mm/ksm.c~mm-eliminate-vma_special_flags-usage-when-hugetlb-explicitly-tested
++++ a/mm/ksm.c
+@@ -747,9 +747,7 @@ static bool ksm_compatible(const struct
+ 	if (vma_flags_test_any(&vma_flags, VMA_SHARED_BIT, VMA_MAYSHARE_BIT,
+ 			       VMA_HUGETLB_BIT))
+ 		return false;
+-	if (vma_flags_test_single_mask(&vma_flags, VMA_DROPPABLE))
+-		return false;
+-	if (vma_flags_test_any_mask(&vma_flags, VMA_SPECIAL_FLAGS))
++	if (!vma_flags_is_persistent(&vma_flags))
+ 		return false;
+ 	if (file_is_dax(file))
+ 		return false;
+--- a/mm/vmscan.c~mm-eliminate-vma_special_flags-usage-when-hugetlb-explicitly-tested
++++ a/mm/vmscan.c
+@@ -3477,7 +3477,8 @@ static int should_skip_vma(unsigned long
+ 	if (!vma_has_recency(vma))
+ 		return true;
+ 
+-	if (vma->vm_flags & (VM_LOCKED | VM_SPECIAL))
++	if (vma_test(vma, VMA_LOCKED_BIT) || vma_is_kernel_owned(vma) ||
++	    vma_is_fixed_mapping(vma))
+ 		return true;
+ 
+ 	if (vma == get_gate_vma(vma->vm_mm))
 _
 
 Patches currently in -mm which might be from ljs@kernel.org are
