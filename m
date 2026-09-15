@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 20CED4ACC74;
-	Tue, 15 Sep 2026 23:23:21 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 09B324DA528
+	for <mm-commits@vger.kernel.org>; Tue, 15 Sep 2026 23:39:47 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789514603; cv=none; b=HuUd/RJUv27I1Kn4bHuvyjKa3bbMOexsqJc1GwIuk/M+7CbODq5wBK9gLeH4lntqzRwsjNzmB5YM8HIHfSHab5oBVn44t2tgcwftqM6OTwNdbb7sjYuY2k0fdK8QQg9QvaNEVevEOiMImIL4zRKHTVWQof76q7Q8bLuBDcVuts8=
+	t=1789515589; cv=none; b=gHQ86Q/dTCeKesj/GWcVL1FceStF480HoQ1GfLJkFAg7aOS2tjVYguhbRVkDOqxa2WQDUfn5HaD29tE97punVsiLixBd+9vhlqp6jQuZalCQV1jAQHtK9dLMvhoaAFtM+81XiBQ0jFkcBFP/E6/6/kn+JDx25GXH7peUTt0y+No=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1789514603; c=relaxed/simple;
-	bh=lJn14TKtFaPel9ILnOOEgYYszwZ2dyMnSntaunP61Pc=;
-	h=Date:To:From:Subject:Message-Id; b=Vye6tOjliZgUBgZB4nt6xCOrp+qxxLOkWASyMwMDku/QZtM/EA96GJw95TTTLG3x4K/7DviDumTSFd8hNNeLzE5H0ZqHAqNR0kcoiryeIEAdBz6bHmDiVcUOXeFPY3H0Q+SpplNnlBHHaAL7vRR5gGJlyZyfXqgZ38UskhiAmf4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=h+aRH24p; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1789515589; c=relaxed/simple;
+	bh=VKTepGkVxe/nPAb7JSaG0I8AlGiuKA6LQIyGx4L+nhE=;
+	h=Date:To:From:Subject:Message-Id; b=R3QMOQ7c27fKgod0wjAUVn3daLjjWTmujHViGvrbid6cVXl9RPVoNHNql1uN5I7qTyQ4RYzA5XAhC9vPGvnsrrTb3eP0dxCb/0H/fsJHzXOQOZ5E1Zv+TyEVRSmtoCK1QboHsyZd8+tre2/F7kVF1+vOZ4CNKadYaJBdYX3Vwng=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=h+AoCeyX; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="h+aRH24p"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 876B71F000FF;
-	Tue, 15 Sep 2026 23:23:21 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="h+AoCeyX"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C02DF1F000FF;
+	Tue, 15 Sep 2026 23:39:47 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1789514601;
-	bh=lvoRibTBbn6rTgKwf3Y0/fL2PNuRey6x1ijoZVeQAKc=;
+	d=linux-foundation.org; s=korg; t=1789515587;
+	bh=MKRnoo4w/si8xnsomXVn/dXz7OZ0xudjMdCiPsnJtXo=;
 	h=Date:To:From:Subject;
-	b=h+aRH24pWu/sdP6kdX3cI+Xy9FoeENMzYEyy5SzNxHnVwAHmbHA9xoSiaM3mLVviR
-	 du+yDmB/qBzG5HXn2dYrUdAoJ0FA3C9xzWJe1bxdN3DphiC9wutPMfLE7ama/12tAH
-	 ZRNF4kKFFM8jzE/16Z5btuDic3+GqRYTp2jOnXJ4=
-Date: Tue, 15 Sep 2026 16:23:21 -0700
-To: mm-commits@vger.kernel.org,vschneid@redhat.com,vincenzo.frascino@arm.com,vincent.guittot@linaro.org,vbabka@kernel.org,urezki@gmail.com,surenb@google.com,stable@vger.kernel.org,ryabinin.a.a@gmail.com,rppt@kernel.org,rostedt@goodmis.org,peterz@infradead.org,mingo@redhat.com,mhocko@suse.com,mgorman@suse.de,ljs@kernel.org,liam@infradead.org,kprateek.nayak@amd.com,kees@kernel.org,juri.lelli@redhat.com,glider@google.com,dvyukov@google.com,dietmar.eggemann@arm.com,david@kernel.org,bsegall@google.com,andreyknvl@gmail.com,huangshaobo3@xiaomi.com,akpm@linux-foundation.org
+	b=h+AoCeyX+AW6tcL/KT+pHathZC0PzPUSsOoEs0pD8nyB47BmrknpuBqjYl2x1nXYN
+	 uIks7pzJQryK8MOEBfccY3FBG5eIKFfm4vJfWng0C+pPI+mf+jpwibSNeWowpOJrTR
+	 NMitdZkO0H+OoDHtCoKKytxP3AUhZ/k26NPJ0Krs=
+Date: Tue, 15 Sep 2026 16:39:47 -0700
+To: mm-commits@vger.kernel.org,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + fork-reset-pointer-tag-of-vmapped-thread-stack-before-vfree.patch added to mm-nonmm-unstable branch
-Message-Id: <20260915232321.876B71F000FF@smtp.kernel.org>
+Subject: + mm-damon-api-introduce-damon_filter_type_hugepage_size.patch added to mm-new branch
+Message-Id: <20260915233947.C02DF1F000FF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,15 +35,26 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: fork: reset pointer tag of vmapped thread stack before vfree
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     fork-reset-pointer-tag-of-vmapped-thread-stack-before-vfree.patch
+     Subject: mm/damon/api: introduce DAMON_FILTER_TYPE_HUGEPAGE_SIZE
+has been added to the -mm mm-new branch.  Its filename is
+     mm-damon-api-introduce-damon_filter_type_hugepage_size.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/fork-reset-pointer-tag-of-vmapped-thread-stack-before-vfree.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-api-introduce-damon_filter_type_hugepage_size.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Note, mm-new is a provisional staging ground for work-in-progress
+patches, and acceptance into mm-new is a notification for others take
+notice and to finish up reviews.  Please do not hesitate to respond to
+review feedback and post updated versions to replace or incrementally
+fixup patches in mm-new.
+
+The mm-new branch of mm.git is not included in linux-next
+
+If a few days of testing in mm-new is successful, the patch will me moved
+into mm.git's mm-unstable branch, which is included in linux-next
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -58,76 +69,181 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Shaobo Huang <huangshaobo3@xiaomi.com>
-Subject: fork: reset pointer tag of vmapped thread stack before vfree
-Date: Mon, 14 Sep 2026 17:33:00 +0800
+From: SJ Park <sj@kernel.org>
+Subject: mm/damon/api: introduce DAMON_FILTER_TYPE_HUGEPAGE_SIZE
+Date: Tue, 15 Sep 2026 07:33:50 -0700
 
-thread_stack_free_rcu() frees the vmalloc'd thread stack via
-vfree(vm_area->addr).  In RCU callback context, vfree() routes to
-vfree_atomic(), which calls llist_add((struct llist_node *)addr, ...) and
-writes 8 bytes to the base of the region being freed.
+Patch series "mm/damon: introduce hugepage_size probe filter".
 
-With KASAN_SW_TAGS, vm_area->addr carries a random tag.  If
-kasan_unpoison_task_stack_below() has rewritten the shadow covering [base,
-sp] to KASAN_TAG_KERNEL (0xff) -- which it does on every CPU resume for
-the current task's stack -- the llist_add store checks shadow[base] (0xff)
-against the pointer tag (random) and reports an invalid-access, although
-writing to the base of a stack queued for deferred free is legitimate.
+Knowing whether a given memory is backed by a hugepage of specific size
+is useful for efficient utilization of hugepages.  For easy monitoring
+of the information, introduce a new data attribute probe filter type,
+hugepage_size.  It works similar to the DAMOS filter of the same name.
+It works for memory that is backed by a hugepage of a given size range.
 
-Reset the pointer tag to KASAN_TAG_KERNEL before vfree() so that
-kasan_check_range() short-circuits the check, the same way the task
-accesses its own stack at runtime via sp.  The vmalloc lookup is safe:
-__find_vmap_area() resets the tag before comparing against va_start.
+Patch 1 introduces the new probe filter type to DAMON API and extends
+related data structures.  Patch 2 updates probe filter commit logic to
+handle the size range.  Patch 3 Updates the filtering logic to support
+the new type.  Patch 4 adds new DAMON sysfs files for the size range.
+Patch 5 updates DAMON sysfs interface to fully support the new filter
+type.  Patches 6-8 updates design, usage and ABI documents for the new
+feature.
 
-Link: https://lore.kernel.org/20260914093300.100495-1-huangshaobo3@xiaomi.com
-Fixes: 9f7d416c3612 ("kprobes: Unpoison stack in jprobe_return() for KASAN")
-Assisted-by: zhipuai:glm-5.2
-Signed-off-by: Shaobo Huang <huangshaobo3@xiaomi.com>
+
+This patch (of 8):
+
+Introduce a new data attribute probe filter type, hugepage_size.  It will
+work for memory that is backed by a hugepage of a given size range.  Add a
+new damon_filter_type enum DAMON_FILTER_TYPE_HUGEPAGE_SIZE to identify the
+type.  Add two new fields in the damon_filter struct for saving the size
+range.
+
+Link: https://lore.kernel.org/20260915143359.91472-1-sj@kernel.org
+Link: https://lore.kernel.org/20260915143359.91472-2-sj@kernel.org
+Signed-off-by: SJ Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Acked-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
-Reviewed-by: Uladzislau Rezki (Sony) <urezki@gmail.com>
-Cc: Alexander Potapenko <glider@google.com>
-Cc: Andrey Konovalov <andreyknvl@gmail.com>
-Cc: Andrey Ryabinin <ryabinin.a.a@gmail.com>
-Cc: Ben Segall <bsegall@google.com>
 Cc: David Hildenbrand <david@kernel.org>
-Cc: Dietmar Eggemann <dietmar.eggemann@arm.com>
-Cc: Dmitry Vyukov <dvyukov@google.com>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Juri Lelli <juri.lelli@redhat.com>
-Cc: Kees Cook <kees@kernel.org>
-Cc: K Prateek Nayak <kprateek.nayak@amd.com>
 Cc: Liam R. Howlett <liam@infradead.org>
-Cc: Mel Gorman <mgorman@suse.de>
+Cc: Lorenzo Stoakes <ljs@kernel.org>
 Cc: Michal Hocko <mhocko@suse.com>
 Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Steven Rostedt <rostedt@goodmis.org>
 Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Valentin Schneider <vschneid@redhat.com>
-Cc: Vincent Guittot <vincent.guittot@linaro.org>
-Cc: Vincenzo Frascino <vincenzo.frascino@arm.com>
 Cc: Vlastimil Babka <vbabka@kernel.org>
-Cc: <stable@vger.kernel.org>
 ---
 
- kernel/fork.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/damon.h |    8 ++++++++
+ 1 file changed, 8 insertions(+)
 
---- a/kernel/fork.c~fork-reset-pointer-tag-of-vmapped-thread-stack-before-vfree
-+++ a/kernel/fork.c
-@@ -280,7 +280,7 @@ static void thread_stack_free_rcu(struct
- 	if (try_release_thread_stack_to_cache(vm_stack->stack_vm_area))
- 		return;
+--- a/include/linux/damon.h~mm-damon-api-introduce-damon_filter_type_hugepage_size
++++ a/include/linux/damon.h
+@@ -783,12 +783,14 @@ struct damon_prep {
+  * @DAMON_FILTER_TYPE_MEMCG:		Specific memcg's pages.
+  * @DAMON_FILTER_TYPE_PGIDLE_UNSET:	Pgidle is unset.
+  * @DAMON_FILTER_TYPE_PGIDLE_SET:	Pgidle is set.
++ * @DAMON_FILTER_TYPE_HUGEPAGE_SIZE:	Page is part of a hugepage.
+  */
+ enum damon_filter_type {
+ 	DAMON_FILTER_TYPE_ANON,
+ 	DAMON_FILTER_TYPE_MEMCG,
+ 	DAMON_FILTER_TYPE_PGIDLE_UNSET,
+ 	DAMON_FILTER_TYPE_PGIDLE_SET,
++	DAMON_FILTER_TYPE_HUGEPAGE_SIZE,
+ };
  
--	vfree(vm_area->addr);
-+	vfree(kasan_reset_tag(vm_area->addr));
- }
- 
- static void thread_stack_delayed_free(struct task_struct *tsk)
+ /**
+@@ -798,6 +800,8 @@ enum damon_filter_type {
+  * @matching:	Whether this filter is for the type-matching ones.
+  * @allow:	Whether the @type-@matching ones should pass this filter.
+  * @memcg_id:	Memcg id of the question if @type is DAMON_FILTER_MEMCG.
++ * @range_min:	Minimum value of range arguments.
++ * @range_max:	Maximum value of range arguments.
+  */
+ struct damon_filter {
+ 	enum damon_filter_type type;
+@@ -805,6 +809,10 @@ struct damon_filter {
+ 	bool allow;
+ 	union {
+ 		u64 memcg_id;
++		struct {
++			unsigned long range_min;
++			unsigned long range_max;
++		};
+ 	};
+ /* private: */
+ 	/* Siblings list. */
 _
 
-Patches currently in -mm which might be from huangshaobo3@xiaomi.com are
+Patches currently in -mm which might be from sj@kernel.org are
 
-fork-reset-pointer-tag-of-vmapped-thread-stack-before-vfree.patch
+mm-damon-vaddr-avoid-hw-driven-pte-updates-during-damon_hugetlb_mkold.patch
+mm-damon-core-reset-invalid-quota-charge_target_from.patch
+mm-damon-core-skip-applying-scheme-if-region-split-for-quota-fails.patch
+mm-damon-paddr-respect-folio-end-for-damos_stat.patch
+mm-damon-paddr-respect-folio-end-for-damos-actions-except-stat.patch
+mm-damon-vaddr-respect-folio-end-for-damos_stat.patch
+mm-damon-vaddr-respect-folio-end-for-damos_migrate_hotcold.patch
+mm-damon-core-handle-extreme-memory-state-in-damon_get_node_mem_bp.patch
+mm-damon-core-handle-extreme-memory-state-in-get_node_memcg_used_bp.patch
+mm-damon-core-handle-extreme-memory-state-in-get_in_active_mem_bp.patch
+mm-damon-core-introduce-damon_filter_type_pgidle_unset.patch
+mm-damon-paddr-support-pgidle_unset-probe-filter-type.patch
+mm-damon-sysfs-support-pgidle_unset-probe-filter-type.patch
+docs-mm-damon-design-document-pgidle_unset-probe-filter-type.patch
+mm-damon-core-introduce-damon_prep-struct.patch
+mm-damon-core-commit-preps.patch
+mm-damon-core-introduce-damon_operations-prep_probes.patch
+mm-damon-paddr-support-damon_prep.patch
+mm-damon-sysfs-implement-preps-directory.patch
+mm-damon-sysfs-implement-preps-nr_preps-file.patch
+mm-damon-sysfs-create-directories-for-nr_preps-writes.patch
+mm-damon-sysfs-implement-prep_action-file.patch
+mm-damon-sysfs-pass-preps-to-damon-core.patch
+selftests-damon-sysfssh-test-probe-prep-sysfs-files.patch
+docs-mm-damon-design-document-probe-preps.patch
+docs-admin-guide-mm-damon-usage-document-probe-preps-sysfs-files.patch
+docs-abi-damon-document-probe-prep-sysfs-files.patch
+mm-damon-tests-core-kunit-test-committing-psi-goal-to-psi-goal.patch
+mm-damon-core-handle-uninitialized-damos_quota_goal-last_psi_total.patch
+mm-damon-core-copy-nid-for-eligible_mem_bp-damos-quota-goal-commit.patch
+mm-damon-sysfs-set-next-refresh-jiffies-per-sysfs-context.patch
+mm-damon-tests-core-kunit-test-damon_commit_filter.patch
+mm-damon-tests-core-kunit-add-damon_commit_probes-test.patch
+selftests-damon-_damon_sysfs-implement-damonprobes.patch
+selftests-damon-drgn_dump_damon_status-dump-probes.patch
+selftests-damon-sysfspy-extend-commit-assertion-function-for-probes.patch
+selftests-damon-sysfspy-test-damon-probes.patch
+mm-damon-core-use-damon_nr_samples_per_aggr-for-max-merge-threshold.patch
+mm-damon-core-remove-debug-messages.patch
+mm-damon-core-remove-debug-messages-fix.patch
+mm-damon-vaddr-remove-a-debug-message.patch
+mm-damon-core-validate-number-of-probes-in-valid_probe_params.patch
+mm-damon-sysfs-remove-probes-number-validation.patch
+mm-damon-tests-core-kunit-extend-set_regions-test-for-error-case.patch
+mm-damon-tests-core-kunit-test-=0-size-damon_set_regions-inputs.patch
+mm-damon-tests-core-kunit-test-overlapping-ranges-for-set_regions.patch
+mm-damon-tests-core-kunit-test-damon_nr_samples_per_aggr.patch
+selftests-damon-sysfssh-test-hugepage_mem_bp-quota-goal.patch
+docs-mm-damon-maintainer-profile-update-ai-review-for-sashiko-replies.patch
+docs-abi-damon-recommend-subsystem-doc-instead-of-admin-guide.patch
+mm-damon-core-error-damos_commit_quota_goal-for-zero-target_value.patch
+revert-mm-damon-lru_sort-error-out-for-10000-active_mem_bp.patch
+revert-samples-damon-mtier-error-out-for-zero-quota-goal-target-values.patch
+mm-damon-core-handle-null-ctx-parameter-in-damon_call.patch
+mm-damon-core-set-ctx-call_controls_obsolete-in-damon_new_ctx.patch
+mm-damon-reclaim-remove-unnecessary-damon_call-param-validation.patch
+mm-damon-lru_sort-remove-unnecessary-damon_call-param-validation.patch
+mm-damon-vaddr-support-prep_probes.patch
+mm-damon-paddr-move-probe-filter-handling-to-ops-common.patch
+mm-damon-vaddr-support-apply_probe.patch
+mm-damon-vaddr-extend-apply_probes-for-hugetlb.patch
+mm-damon-vaddr-support-pgidle_unset-probe-filter-type.patch
+mm-damon-api-introduce-damon_filter_type_pgidle_set.patch
+mm-damon-paddr-support-damon_filter_type_pgidle_set.patch
+mm-damon-vaddr-support-damon_filter_type_pgidle_set.patch
+mm-damon-sysfs-support-damon_filter_type_pgidle_set.patch
+docs-mm-damon-design-update-for-pgidle_set-probe-filter.patch
+mm-damon-api-introduce-damos_filter_type_probe_hits_wsum.patch
+mm-damon-api-introduce-damos_filter_type_probe_hits_wsum-fix.patch
+mm-damon-core-extend-probe_hits_wsum-for-moving-sum-based-calculation.patch
+mm-damon-core-support-probe_hits_wsum-damos-core-filter.patch
+mm-damon-sysfs-schemes-rename-sysfs_filter-sz_range-to-range_minmax.patch
+mm-damon-sysfs-schemes-support-probe_hits_wsum-damos-core-filter.patch
+docs-mm-damon-design-update-for-probe_hits_wsum-damos-core-filter.patch
+docs-admin-guide-mm-damon-usage-update-for-probe_hits_wsum-damos-filter.patch
+mm-damon-sysfs-schemes-read-sysfs_filter-addr_range-only-once.patch
+mm-damon-sysfs-schemes-read-sysfs_filter-sz_range-only-once.patch
+mm-damon-core-return-an-error-from-damos_commit_filter_arg.patch
+mm-damon-core-disallow-max-min-damos-filter-range-arguments-commit.patch
+mm-damon-sysfs-schemes-drop-centralized-filter-range-arg-validations.patch
+mm-damon-sysfs-schemes-use-switch-case-in-add_scheme_filters.patch
+mm-damon-core-kunit-extend-damos_commit_filter_for-for-wrong-input.patch
+mm-damon-core-kunit-test-invalid-damos-filter-commits.patch
+mm-damon-api-introduce-damon_filter_type_hugepage_size.patch
+mm-damon-core-commit-hugepage_size-type-damon-filter.patch
+mm-damon-ops-common-support-hugepage_size-damon-filter-matching.patch
+mm-damon-sysfs-add-minmax-files-under-probe-filter-directory.patch
+mm-damon-sysfs-support-hugepage_size-probe-filter.patch
+docs-mm-damon-design-update-for-hugepage_size-probe-filter.patch
+docs-admin-guide-mm-damon-usage-update-for-hugepage_size.patch
+docs-abi-damon-update-for-hugepage_size-probe-filter.patch
 
