@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 09B324DA528
-	for <mm-commits@vger.kernel.org>; Tue, 15 Sep 2026 23:39:47 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0C8C64DA528
+	for <mm-commits@vger.kernel.org>; Tue, 15 Sep 2026 23:39:49 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789515589; cv=none; b=gHQ86Q/dTCeKesj/GWcVL1FceStF480HoQ1GfLJkFAg7aOS2tjVYguhbRVkDOqxa2WQDUfn5HaD29tE97punVsiLixBd+9vhlqp6jQuZalCQV1jAQHtK9dLMvhoaAFtM+81XiBQ0jFkcBFP/E6/6/kn+JDx25GXH7peUTt0y+No=
+	t=1789515591; cv=none; b=WjV2+6gLFELvRScsr0eImCPVKSHiHB31/QdSibAexa5YtdCwpVciIjyuBVnNa/d/aXylZPb/LDKwhfBAT5YtiuXLJK3NJc+8hox1Y6BePCyeD79jPdrYUcGjI4/CXD2OdbpDAZj5I+h3FbZD2eOwB3dEUFpvDKM/6PkMOoFKzsc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1789515589; c=relaxed/simple;
-	bh=VKTepGkVxe/nPAb7JSaG0I8AlGiuKA6LQIyGx4L+nhE=;
-	h=Date:To:From:Subject:Message-Id; b=R3QMOQ7c27fKgod0wjAUVn3daLjjWTmujHViGvrbid6cVXl9RPVoNHNql1uN5I7qTyQ4RYzA5XAhC9vPGvnsrrTb3eP0dxCb/0H/fsJHzXOQOZ5E1Zv+TyEVRSmtoCK1QboHsyZd8+tre2/F7kVF1+vOZ4CNKadYaJBdYX3Vwng=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=h+AoCeyX; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1789515591; c=relaxed/simple;
+	bh=uAs2Dn1SM+tllupX9Jw+uFEo7ZNK+CEZ1Hk2xoWVKpE=;
+	h=Date:To:From:Subject:Message-Id; b=g5XQd1GT5hZc0UAcIy8UcY3XkdxNPDYg/XsvUdcFtF9oLj2zt1lKCi38vKTw+v9OHgHbF5vax3jUCLnMr33lKPKzuAOtXgrbY05CBR/XiiqH3kO/7ZUj7HsHcfDTfWdl2jN8wQOljQmXClDLHsxLMSjQK0jnTJN6vdVjqAunXgU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=w14HGnq2; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="h+AoCeyX"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C02DF1F000FF;
-	Tue, 15 Sep 2026 23:39:47 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="w14HGnq2"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C2F3C1F000FF;
+	Tue, 15 Sep 2026 23:39:49 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1789515587;
-	bh=MKRnoo4w/si8xnsomXVn/dXz7OZ0xudjMdCiPsnJtXo=;
+	d=linux-foundation.org; s=korg; t=1789515589;
+	bh=qMVSw0MNyUKwwu9fpZP4HacCnwtB4CqRLg4GwKs1+Xk=;
 	h=Date:To:From:Subject;
-	b=h+AoCeyX+AW6tcL/KT+pHathZC0PzPUSsOoEs0pD8nyB47BmrknpuBqjYl2x1nXYN
-	 uIks7pzJQryK8MOEBfccY3FBG5eIKFfm4vJfWng0C+pPI+mf+jpwibSNeWowpOJrTR
-	 NMitdZkO0H+OoDHtCoKKytxP3AUhZ/k26NPJ0Krs=
-Date: Tue, 15 Sep 2026 16:39:47 -0700
+	b=w14HGnq2AnlHVsohpm0C5TlA5rVWd8iWSWYvExJai82cFajYTgPTZzQwnJqt3PpUx
+	 GcKbt4UWnQAqF2DiGuj3W8AnzsSiS1GrwRIAG1p15WpsSx1b0Vx1KrT/fZ6WdkKeeO
+	 P1gBXejd66wlgu32RtkjcEqx8W/jSTWA16IQoF5I=
+Date: Tue, 15 Sep 2026 16:39:49 -0700
 To: mm-commits@vger.kernel.org,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-damon-api-introduce-damon_filter_type_hugepage_size.patch added to mm-new branch
-Message-Id: <20260915233947.C02DF1F000FF@smtp.kernel.org>
+Subject: + mm-damon-core-commit-hugepage_size-type-damon-filter.patch added to mm-new branch
+Message-Id: <20260915233949.C2F3C1F000FF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/damon/api: introduce DAMON_FILTER_TYPE_HUGEPAGE_SIZE
+     Subject: mm/damon/core: commit hugepage_size type damon filter
 has been added to the -mm mm-new branch.  Its filename is
-     mm-damon-api-introduce-damon_filter_type_hugepage_size.patch
+     mm-damon-core-commit-hugepage_size-type-damon-filter.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-api-introduce-damon_filter_type_hugepage_size.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-core-commit-hugepage_size-type-damon-filter.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,36 +70,16 @@ and is updated there most days
 
 ------------------------------------------------------
 From: SJ Park <sj@kernel.org>
-Subject: mm/damon/api: introduce DAMON_FILTER_TYPE_HUGEPAGE_SIZE
-Date: Tue, 15 Sep 2026 07:33:50 -0700
+Subject: mm/damon/core: commit hugepage_size type damon filter
+Date: Tue, 15 Sep 2026 07:33:51 -0700
 
-Patch series "mm/damon: introduce hugepage_size probe filter".
+Extend data attribute probe filters commit logic for the new hugepage_size
+filter type.  Since it needs to carry the size range of the hugepage,
+update the logic to update the size range fields of the commit destination
+filter struct.  While doing that, validate the given range and propagate
+an error if it is invalid.  Add the error handling in the callers, too.
 
-Knowing whether a given memory is backed by a hugepage of specific size
-is useful for efficient utilization of hugepages.  For easy monitoring
-of the information, introduce a new data attribute probe filter type,
-hugepage_size.  It works similar to the DAMOS filter of the same name.
-It works for memory that is backed by a hugepage of a given size range.
-
-Patch 1 introduces the new probe filter type to DAMON API and extends
-related data structures.  Patch 2 updates probe filter commit logic to
-handle the size range.  Patch 3 Updates the filtering logic to support
-the new type.  Patch 4 adds new DAMON sysfs files for the size range.
-Patch 5 updates DAMON sysfs interface to fully support the new filter
-type.  Patches 6-8 updates design, usage and ABI documents for the new
-feature.
-
-
-This patch (of 8):
-
-Introduce a new data attribute probe filter type, hugepage_size.  It will
-work for memory that is backed by a hugepage of a given size range.  Add a
-new damon_filter_type enum DAMON_FILTER_TYPE_HUGEPAGE_SIZE to identify the
-type.  Add two new fields in the damon_filter struct for saving the size
-range.
-
-Link: https://lore.kernel.org/20260915143359.91472-1-sj@kernel.org
-Link: https://lore.kernel.org/20260915143359.91472-2-sj@kernel.org
+Link: https://lore.kernel.org/20260915143359.91472-3-sj@kernel.org
 Signed-off-by: SJ Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 Cc: David Hildenbrand <david@kernel.org>
@@ -111,46 +91,73 @@ Cc: Suren Baghdasaryan <surenb@google.com>
 Cc: Vlastimil Babka <vbabka@kernel.org>
 ---
 
- include/linux/damon.h |    8 ++++++++
- 1 file changed, 8 insertions(+)
+ mm/damon/core.c |   28 +++++++++++++++++++++++-----
+ 1 file changed, 23 insertions(+), 5 deletions(-)
 
---- a/include/linux/damon.h~mm-damon-api-introduce-damon_filter_type_hugepage_size
-+++ a/include/linux/damon.h
-@@ -783,12 +783,14 @@ struct damon_prep {
-  * @DAMON_FILTER_TYPE_MEMCG:		Specific memcg's pages.
-  * @DAMON_FILTER_TYPE_PGIDLE_UNSET:	Pgidle is unset.
-  * @DAMON_FILTER_TYPE_PGIDLE_SET:	Pgidle is set.
-+ * @DAMON_FILTER_TYPE_HUGEPAGE_SIZE:	Page is part of a hugepage.
-  */
- enum damon_filter_type {
- 	DAMON_FILTER_TYPE_ANON,
- 	DAMON_FILTER_TYPE_MEMCG,
- 	DAMON_FILTER_TYPE_PGIDLE_UNSET,
- 	DAMON_FILTER_TYPE_PGIDLE_SET,
-+	DAMON_FILTER_TYPE_HUGEPAGE_SIZE,
- };
+--- a/mm/damon/core.c~mm-damon-core-commit-hugepage_size-type-damon-filter
++++ a/mm/damon/core.c
+@@ -1818,7 +1818,7 @@ static int damon_commit_preps(struct dam
+ 	return 0;
+ }
  
- /**
-@@ -798,6 +800,8 @@ enum damon_filter_type {
-  * @matching:	Whether this filter is for the type-matching ones.
-  * @allow:	Whether the @type-@matching ones should pass this filter.
-  * @memcg_id:	Memcg id of the question if @type is DAMON_FILTER_MEMCG.
-+ * @range_min:	Minimum value of range arguments.
-+ * @range_max:	Maximum value of range arguments.
-  */
- struct damon_filter {
- 	enum damon_filter_type type;
-@@ -805,6 +809,10 @@ struct damon_filter {
- 	bool allow;
- 	union {
- 		u64 memcg_id;
-+		struct {
-+			unsigned long range_min;
-+			unsigned long range_max;
-+		};
- 	};
- /* private: */
- 	/* Siblings list. */
+-static void damon_commit_filter(struct damon_filter *dst,
++static int damon_commit_filter(struct damon_filter *dst,
+ 		struct damon_filter *src)
+ {
+ 	dst->type = src->type;
+@@ -1828,23 +1828,33 @@ static void damon_commit_filter(struct d
+ 	case DAMON_FILTER_TYPE_MEMCG:
+ 		dst->memcg_id = src->memcg_id;
+ 		break;
++	case DAMON_FILTER_TYPE_HUGEPAGE_SIZE:
++		if (src->range_max < src->range_min)
++			return -EINVAL;
++		dst->range_min = src->range_min;
++		dst->range_max = src->range_max;
++		break;
+ 	default:
+ 		break;
+ 	}
++	return 0;
+ }
+ 
+ static int damon_commit_filters(struct damon_probe *dst,
+ 		struct damon_probe *src)
+ {
+ 	struct damon_filter *dst_filter, *next, *src_filter, *new_filter;
+-	int i = 0, j = 0;
++	int i = 0, j = 0, err;
+ 
+ 	damon_for_each_filter_safe(dst_filter, next, dst) {
+ 		src_filter = damon_nth_filter(i++, src);
+-		if (src_filter)
+-			damon_commit_filter(dst_filter, src_filter);
+-		else
++		if (src_filter) {
++			err = damon_commit_filter(dst_filter, src_filter);
++			if (err)
++				return err;
++		} else {
+ 			damon_destroy_filter(dst_filter);
++		}
+ 	}
+ 
+ 	damon_for_each_filter_safe(src_filter, next, src) {
+@@ -1859,6 +1869,14 @@ static int damon_commit_filters(struct d
+ 		case DAMON_FILTER_TYPE_MEMCG:
+ 			new_filter->memcg_id = src_filter->memcg_id;
+ 			break;
++		case DAMON_FILTER_TYPE_HUGEPAGE_SIZE:
++			if (src_filter->range_max < src_filter->range_min) {
++				damon_destroy_filter(new_filter);
++				return -EINVAL;
++			}
++			new_filter->range_min = src_filter->range_min;
++			new_filter->range_max = src_filter->range_max;
++			break;
+ 		default:
+ 			break;
+ 		}
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
