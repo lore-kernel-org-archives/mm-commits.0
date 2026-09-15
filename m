@@ -1,157 +1,193 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
+Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.17])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C93D233F58B;
-	Tue, 15 Sep 2026 06:32:57 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A95E1440629
+	for <mm-commits@vger.kernel.org>; Tue, 15 Sep 2026 19:39:05 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.17
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789453979; cv=none; b=m9OlrjpteEL16OfBxCFGJ02laXXPWpILtN9eF/knwlXulTGLu3EJZ/O02a5iHxczpsDNTiRwgkoObaXXZoN+ubcIAk5jz3n7GbPfjurP7kHV8nykChOw3m9Kv/lwFFRLIQbiTs1yH54T+dLspltTNJP44gcz7WlyUbuvqF5+kaA=
+	t=1789501147; cv=none; b=CRbCSeeYZgh5Qk7+qFyZ1EKiCyra8BYF/ccJ48jgg+u9f5tSj+WZgv4g7Hq4/wcRw9I2Nku9GPWKIStRbVM72SDG1rCqA0VXNHK3Hy6sT4JGCCGnBfWNUoLSdJSZpfSMwR316WqwBPiQCYUZ4zAYaKGBQIUBTtgpGNFYIyNGSGk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1789453979; c=relaxed/simple;
-	bh=XDIBKee2ih47Hhh2OCaF3AJfh9RssxjIG0IQIj/aXLo=;
-	h=Date:To:From:Subject:Message-Id; b=p4lB19/TNdFLibC1JZcC+yOs4hCrm5OEZQg/PCVueei81Jn07ei3y7eUQJVTfG4SujcGQvvkfLS623lgvzQT6qBLtiX0Im+3NHLptmCRKMEnvhsdx407Plw12aFeh3LSnQimGRkz7SkPUgoCsjoT5ZOPduvl5oO2gVOAQqOR0KM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=eztsVct8; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1789501147; c=relaxed/simple;
+	bh=mpETyrPnt2gx6qCCDWHtDXB7qf63CTS6QqeY1voYvjw=;
+	h=Date:From:To:Cc:Subject:Message-ID; b=Tu7f93Ck+oGfnRsyQGY/wBVry/oCW00a9jzU1hByC1ffJFO4MPCGqcwCXJZeKWLeTKrXUj+Nms1F0e3z34Q5uFCCqQyPsV+bxykatq+PD4oa85Wlr2HHLhhiBmX0qZiswunKfvxnP0nzqQeUwimbRgvG8jPxiM7u/sIVI+TPtu4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=NIaQ59CV; arc=none smtp.client-ip=192.198.163.17
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="eztsVct8"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4497B1F000FF;
-	Tue, 15 Sep 2026 06:32:57 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1789453977;
-	bh=mXLIxQYlw9AGMjpu/G7Y9Z00Vlod80mQCMF6/5pW8cc=;
-	h=Date:To:From:Subject;
-	b=eztsVct8/1G/7jsZHxbmUD87WMqaJJGTympHdpzQfuv9mJJ7Hb29USTvRR7n7FQ+z
-	 UTfKipsrNe40fPaWIrNlN36WLra/kA/r4ftXqO3ney6goNx+9T2z9A16cv361O2iUK
-	 jGf8KiijjqbH/QZJbshJWbFWYG5ermJJw/sM1Ruk=
-Date: Mon, 14 Sep 2026 23:32:56 -0700
-To: mm-commits@vger.kernel.org,wangjiexun@tinylab.org,vbabka@kernel.org,stable@vger.kernel.org,sashiko-bot@kernel.org,ljs@kernel.org,liam@infradead.org,jannh@google.com,david@kernel.org,gourry@gourry.net,akpm@linux-foundation.org
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-madvise-reclaim-isolated-folios-if-pte-restart-fails.patch added to mm-new branch
-Message-Id: <20260915063257.4497B1F000FF@smtp.kernel.org>
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="NIaQ59CV"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1789501146; x=1821037146;
+  h=date:from:to:cc:subject:message-id;
+  bh=mpETyrPnt2gx6qCCDWHtDXB7qf63CTS6QqeY1voYvjw=;
+  b=NIaQ59CVE/KX+jDAi/Ly+Ht1j41HaR/vhbGIWU0uiFViQnwx6bl/jdy1
+   +sIxOl9wW4idAjdAcxUQs00AqgF43G1bhiduxsCpa03T9OpjOiaRk1hxk
+   S0RmOR7v4kYjJRQwKotNWfhfPRWtxzNrauZVN7PvZxds7BdzEmizSgG3c
+   UeUGWkjgE/6igxtGXnj5pt870HAC9HAaHdsLO5vW25i4KHsHVFQcmX0+y
+   7aP6GGOjpqpmfy767qg2H0ti2HHHlzYynrdagZ54DO5AW/28/ltNecGfI
+   2ZjHwBd6igf9Lpmnghiqu7LEBCd5IJ7dvhPWAo1gJR/BsnzzhGERWq1Z9
+   Q==;
+X-CSE-ConnectionGUID: b2+Qo0+KQ8m/Xg0eATP+/g==
+X-CSE-MsgGUID: +7B75EpdTrqT/PgasWBVJA==
+X-IronPort-AV: E=McAfee;i="6800,10657,11905"; a="89747451"
+X-IronPort-AV: E=Sophos;i="6.27,103,1787036400"; 
+   d="scan'208";a="89747451"
+Received: from fmviesa001.fm.intel.com ([10.60.135.141])
+  by fmvoesa111.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 15 Sep 2026 12:39:05 -0700
+X-CSE-ConnectionGUID: 55YOG7vVTZOT4E7dkgfKvg==
+X-CSE-MsgGUID: ewrPQrfwQLCfajMLxDFxDA==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="6.27,103,1787036400"; 
+   d="scan'208";a="298166415"
+Received: from lkp-server01.sh.intel.com (HELO 462990a40a85) ([10.239.97.150])
+  by fmviesa001.fm.intel.com with ESMTP; 15 Sep 2026 12:39:02 -0700
+Received: from kbuild by 462990a40a85 with local (Exim 4.98.2)
+	(envelope-from <lkp@intel.com>)
+	id 1x6Yzb-00000000501-3oSK;
+	Tue, 15 Sep 2026 19:38:59 +0000
+Date: Wed, 16 Sep 2026 03:38:32 +0800
+From: kernel test robot <lkp@intel.com>
+To: Suren Baghdasaryan <surenb@google.com>
+Cc: oe-kbuild-all@lists.linux.dev, David Hildenbrand <david@kernel.org>,
+ Andrew Morton <akpm@linux-foundation.org>,
+ Linux Memory Management List <linux-mm@kvack.org>,
+ mm-commits@vger.kernel.org
+Subject: [akpm-mm:mm-new 478/560] fs/proc/task_mmu.c:3448:3: error:
+ implicit declaration of function 'drop_rcu'; did you mean 'drop_slab'?
+Message-ID: <202609160337.WJiD9BqX-lkp@intel.com>
+User-Agent: s-nail v14.9.25
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
+tree:   https://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm.git mm-new
+head:   b08a65b93426d86e3f354d655d6225397b591877
+commit: 35ba620bfe7feb76c85e06b9ea72c188e1e6e318 [478/560] proc-task_mmu-remove-unnecessary-inlines-in-function-definitions-fix
+config: riscv-randconfig-002-20260915 (https://download.01.org/0day-ci/archive/20260916/202609160337.WJiD9BqX-lkp@intel.com/config)
+compiler: riscv64-linux-gcc (GCC) 8.5.0
+reproduce (this is a W=1 build): (https://download.01.org/0day-ci/archive/20260916/202609160337.WJiD9BqX-lkp@intel.com/reproduce)
 
-The patch titled
-     Subject: mm/madvise: reclaim isolated folios if PTE restart fails
-has been added to the -mm mm-new branch.  Its filename is
-     mm-madvise-reclaim-isolated-folios-if-pte-restart-fails.patch
+If you fix the issue in a separate patch/commit (i.e. not just a new version of
+the same patch/commit), kindly add following tags
+| Reported-by: kernel test robot <lkp@intel.com>
+| Closes: https://lore.kernel.org/oe-kbuild-all/202609160337.WJiD9BqX-lkp@intel.com/
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-madvise-reclaim-isolated-folios-if-pte-restart-fails.patch
+All errors (new ones prefixed by >>):
 
-This patch will later appear in the mm-new branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+   fs/proc/task_mmu.c: In function 'show_numa_map':
+>> fs/proc/task_mmu.c:3448:3: error: implicit declaration of function 'drop_rcu'; did you mean 'drop_slab'? [-Werror=implicit-function-declaration]
+      drop_rcu(proc_priv);
+      ^~~~~~~~
+      drop_slab
+>> fs/proc/task_mmu.c:3450:3: error: implicit declaration of function 'reacquire_rcu'; did you mean 'get_file_rcu'? [-Werror=implicit-function-declaration]
+      reacquire_rcu(proc_priv);
+      ^~~~~~~~~~~~~
+      get_file_rcu
+   At top level:
+   fs/proc/task_mmu.c:133:12: warning: 'lock_ctx_mm' defined but not used [-Wunused-function]
+    static int lock_ctx_mm(struct proc_maps_locking_ctx *lock_ctx)
+               ^~~~~~~~~~~
+   cc1: some warnings being treated as errors
 
-Note, mm-new is a provisional staging ground for work-in-progress
-patches, and acceptance into mm-new is a notification for others take
-notice and to finish up reviews.  Please do not hesitate to respond to
-review feedback and post updated versions to replace or incrementally
-fixup patches in mm-new.
 
-The mm-new branch of mm.git is not included in linux-next
+vim +3448 fs/proc/task_mmu.c
 
-If a few days of testing in mm-new is successful, the patch will me moved
-into mm.git's mm-unstable branch, which is included in linux-next
+ea3085dd7a4ec2 Suren Baghdasaryan 2026-04-25  3400  
+f69ff943df6972 Stephen Wilson     2011-05-24  3401  /*
+f69ff943df6972 Stephen Wilson     2011-05-24  3402   * Display pages allocated per node and memory policy via /proc.
+f69ff943df6972 Stephen Wilson     2011-05-24  3403   */
+871305bb202808 Vlastimil Babka    2018-08-21  3404  static int show_numa_map(struct seq_file *m, void *v)
+f69ff943df6972 Stephen Wilson     2011-05-24  3405  {
+5b52fc890bece7 Stephen Wilson     2011-05-24  3406  	struct numa_maps_private *numa_priv = m->private;
+5b52fc890bece7 Stephen Wilson     2011-05-24  3407  	struct proc_maps_private *proc_priv = &numa_priv->proc_maps;
+f69ff943df6972 Stephen Wilson     2011-05-24  3408  	struct vm_area_struct *vma = v;
+5b52fc890bece7 Stephen Wilson     2011-05-24  3409  	struct numa_maps *md = &numa_priv->md;
+f69ff943df6972 Stephen Wilson     2011-05-24  3410  	struct file *file = vma->vm_file;
+f69ff943df6972 Stephen Wilson     2011-05-24  3411  	struct mm_struct *mm = vma->vm_mm;
+948927ee9e4f35 David Rientjes     2013-11-12  3412  	char buffer[64];
+ddc1a5cbc05dc6 Hugh Dickins       2023-10-19  3413  	struct mempolicy *pol;
+ddc1a5cbc05dc6 Hugh Dickins       2023-10-19  3414  	pgoff_t ilx;
+948927ee9e4f35 David Rientjes     2013-11-12  3415  	int nid;
+f69ff943df6972 Stephen Wilson     2011-05-24  3416  
+f69ff943df6972 Stephen Wilson     2011-05-24  3417  	if (!mm)
+f69ff943df6972 Stephen Wilson     2011-05-24  3418  		return 0;
+f69ff943df6972 Stephen Wilson     2011-05-24  3419  
+5b52fc890bece7 Stephen Wilson     2011-05-24  3420  	/* Ensure we start with an empty set of numa_maps statistics. */
+5b52fc890bece7 Stephen Wilson     2011-05-24  3421  	memset(md, 0, sizeof(*md));
+f69ff943df6972 Stephen Wilson     2011-05-24  3422  
+ddc1a5cbc05dc6 Hugh Dickins       2023-10-19  3423  	pol = __get_vma_policy(vma, vma->vm_start, &ilx);
+498f237178a3d3 Oleg Nesterov      2014-10-09  3424  	if (pol) {
+948927ee9e4f35 David Rientjes     2013-11-12  3425  		mpol_to_str(buffer, sizeof(buffer), pol);
+f69ff943df6972 Stephen Wilson     2011-05-24  3426  		mpol_cond_put(pol);
+498f237178a3d3 Oleg Nesterov      2014-10-09  3427  	} else {
+498f237178a3d3 Oleg Nesterov      2014-10-09  3428  		mpol_to_str(buffer, sizeof(buffer), proc_priv->task_mempolicy);
+498f237178a3d3 Oleg Nesterov      2014-10-09  3429  	}
+f69ff943df6972 Stephen Wilson     2011-05-24  3430  
+f69ff943df6972 Stephen Wilson     2011-05-24  3431  	seq_printf(m, "%08lx %s", vma->vm_start, buffer);
+f69ff943df6972 Stephen Wilson     2011-05-24  3432  
+f69ff943df6972 Stephen Wilson     2011-05-24  3433  	if (file) {
+17c2b4ee40beae Fabian Frederick   2014-06-06  3434  		seq_puts(m, " file=");
+08582d678fcf11 Amir Goldstein     2023-10-09  3435  		seq_path(m, file_user_path(file), "\n\t= ");
+11250fd12eb8a5 Kefeng Wang        2023-07-28  3436  	} else if (vma_is_initial_heap(vma)) {
+17c2b4ee40beae Fabian Frederick   2014-06-06  3437  		seq_puts(m, " heap");
+11250fd12eb8a5 Kefeng Wang        2023-07-28  3438  	} else if (vma_is_initial_stack(vma)) {
+17c2b4ee40beae Fabian Frederick   2014-06-06  3439  		seq_puts(m, " stack");
+f69ff943df6972 Stephen Wilson     2011-05-24  3440  	}
+f69ff943df6972 Stephen Wilson     2011-05-24  3441  
+fc360bd9cdcf87 Andrew Morton      2011-10-31  3442  	if (is_vm_hugetlb_page(vma))
+17c2b4ee40beae Fabian Frederick   2014-06-06  3443  		seq_puts(m, " huge");
+fc360bd9cdcf87 Andrew Morton      2011-10-31  3444  
+ea3085dd7a4ec2 Suren Baghdasaryan 2026-04-25  3445  	/* Skip walking pages if gate VMA */
+ea3085dd7a4ec2 Suren Baghdasaryan 2026-04-25  3446  	if (vma != get_gate_vma(proc_priv->lock_ctx.mm)) {
+ea3085dd7a4ec2 Suren Baghdasaryan 2026-04-25  3447  		/* Might sleep. Drop RCU read lock but keep the VMA locked. */
+ea3085dd7a4ec2 Suren Baghdasaryan 2026-04-25 @3448  		drop_rcu(proc_priv);
+ea3085dd7a4ec2 Suren Baghdasaryan 2026-04-25  3449  		walk_page_vma(vma, get_show_numa_ops(proc_priv), md);
+ea3085dd7a4ec2 Suren Baghdasaryan 2026-04-25 @3450  		reacquire_rcu(proc_priv);
+ea3085dd7a4ec2 Suren Baghdasaryan 2026-04-25  3451  	}
+f69ff943df6972 Stephen Wilson     2011-05-24  3452  
+f69ff943df6972 Stephen Wilson     2011-05-24  3453  	if (!md->pages)
+f69ff943df6972 Stephen Wilson     2011-05-24  3454  		goto out;
+f69ff943df6972 Stephen Wilson     2011-05-24  3455  
+f69ff943df6972 Stephen Wilson     2011-05-24  3456  	if (md->anon)
+f69ff943df6972 Stephen Wilson     2011-05-24  3457  		seq_printf(m, " anon=%lu", md->anon);
+f69ff943df6972 Stephen Wilson     2011-05-24  3458  
+f69ff943df6972 Stephen Wilson     2011-05-24  3459  	if (md->dirty)
+f69ff943df6972 Stephen Wilson     2011-05-24  3460  		seq_printf(m, " dirty=%lu", md->dirty);
+f69ff943df6972 Stephen Wilson     2011-05-24  3461  
+f69ff943df6972 Stephen Wilson     2011-05-24  3462  	if (md->pages != md->anon && md->pages != md->dirty)
+f69ff943df6972 Stephen Wilson     2011-05-24  3463  		seq_printf(m, " mapped=%lu", md->pages);
+f69ff943df6972 Stephen Wilson     2011-05-24  3464  
+f69ff943df6972 Stephen Wilson     2011-05-24  3465  	if (md->mapcount_max > 1)
+f69ff943df6972 Stephen Wilson     2011-05-24  3466  		seq_printf(m, " mapmax=%lu", md->mapcount_max);
+f69ff943df6972 Stephen Wilson     2011-05-24  3467  
+f69ff943df6972 Stephen Wilson     2011-05-24  3468  	if (md->swapcache)
+f69ff943df6972 Stephen Wilson     2011-05-24  3469  		seq_printf(m, " swapcache=%lu", md->swapcache);
+f69ff943df6972 Stephen Wilson     2011-05-24  3470  
+f69ff943df6972 Stephen Wilson     2011-05-24  3471  	if (md->active < md->pages && !is_vm_hugetlb_page(vma))
+f69ff943df6972 Stephen Wilson     2011-05-24  3472  		seq_printf(m, " active=%lu", md->active);
+f69ff943df6972 Stephen Wilson     2011-05-24  3473  
+f69ff943df6972 Stephen Wilson     2011-05-24  3474  	if (md->writeback)
+f69ff943df6972 Stephen Wilson     2011-05-24  3475  		seq_printf(m, " writeback=%lu", md->writeback);
+f69ff943df6972 Stephen Wilson     2011-05-24  3476  
+948927ee9e4f35 David Rientjes     2013-11-12  3477  	for_each_node_state(nid, N_MEMORY)
+948927ee9e4f35 David Rientjes     2013-11-12  3478  		if (md->node[nid])
+948927ee9e4f35 David Rientjes     2013-11-12  3479  			seq_printf(m, " N%d=%lu", nid, md->node[nid]);
+198d1597cc5a12 Rafael Aquini      2015-02-12  3480  
+198d1597cc5a12 Rafael Aquini      2015-02-12  3481  	seq_printf(m, " kernelpagesize_kB=%lu", vma_kernel_pagesize(vma) >> 10);
+f69ff943df6972 Stephen Wilson     2011-05-24  3482  out:
+f69ff943df6972 Stephen Wilson     2011-05-24  3483  	seq_putc(m, '\n');
+f69ff943df6972 Stephen Wilson     2011-05-24  3484  	return 0;
+f69ff943df6972 Stephen Wilson     2011-05-24  3485  }
+5b52fc890bece7 Stephen Wilson     2011-05-24  3486  
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
+:::::: The code at line 3448 was first introduced by commit
+:::::: ea3085dd7a4ec212d6c4b50efca584e0928caa72 fs/proc/task_mmu: read proc/pid/{smaps|numa_maps} under per-vma lock
 
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+:::::: TO: Suren Baghdasaryan <surenb@google.com>
+:::::: CC: Andrew Morton <akpm@linux-foundation.org>
 
-The -mm tree is included into linux-next via various
-branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there most days
-
-------------------------------------------------------
-From: Gregory Price <gourry@gourry.net>
-Subject: mm/madvise: reclaim isolated folios if PTE restart fails
-Date: Sat, 12 Sep 2026 07:08:32 -0400
-
-MADV_PAGEOUT collects isolated folios on a local list before reclaiming
-them after the PTE walk.  The reschedule path drops the PTE lock and then
-restarts the mapping with pte_offset_map_lock().
-
-A concurrent operation can remove or replace the PTE table while the lock
-is dropped, causing pte_offset_map_lock() to return NULL.  Returning
-directly in that case bypasses reclaim_pages(), leaving the collected
-folios off the LRU with elevated references.
-
-Route the failure through the existing cleanup path so any isolated folios
-are reclaimed or put back.
-
-Simplest userland pseudo-code reproducer:
-
-p = mmap(PMD_SIZE, ANONYMOUS);
-touch_every_page(p, PMD_SIZE);
-parallel {
-   while (1) madvise(p, PMD_SIZE, MADV_PAGEOUT);
-   while (1) {
-       madvise(p, PMD_SIZE, MADV_DONTNEED);
-       touch_every_page(p, PMD_SIZE);
-   }
-}
-
-Reproduced in qemu trivially with some explicit widening of the race window.
-
-Link: https://lore.kernel.org/20260912110832.3203902-1-gourry@gourry.net
-Fixes: b2f557a21bc8 ("mm/madvise: add cond_resched() in madvise_cold_or_pageout_pte_range()")
-Signed-off-by: Gregory Price (Meta) <gourry@gourry.net>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Reported-by: sashiko-bot <sashiko-bot@kernel.org>
-Closes: https://sashiko.dev/#/patchset/20260821150912.183976-1-gourry@gourry.net
-Assisted-by: LLM
-Cc: David Hildenbrand <david@kernel.org>
-Cc: Jann Horn <jannh@google.com>
-Cc: Jiexun Wang <wangjiexun@tinylab.org>
-Cc: Liam R. Howlett <liam@infradead.org>
-Cc: Lorenzo Stoakes <ljs@kernel.org>
-Cc: Vlastimil Babka <vbabka@kernel.org>
-Cc: <stable@vger.kernel.org>
----
-
- mm/madvise.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
-
---- a/mm/madvise.c~mm-madvise-reclaim-isolated-folios-if-pte-restart-fails
-+++ a/mm/madvise.c
-@@ -463,7 +463,7 @@ regular_folio:
- restart:
- 	start_pte = pte = pte_offset_map_lock(vma->vm_mm, pmd, addr, &ptl);
- 	if (!start_pte)
--		return 0;
-+		goto out;
- 	flush_tlb_batched_pending(mm);
- 	lazy_mmu_mode_enable();
- 	for (; addr < end; pte += nr, addr += nr * PAGE_SIZE) {
-@@ -567,6 +567,7 @@ restart:
- 			folio_deactivate(folio);
- 	}
- 
-+out:
- 	if (start_pte) {
- 		lazy_mmu_mode_disable();
- 		pte_unmap_unlock(start_pte, ptl);
-_
-
-Patches currently in -mm which might be from gourry@gourry.net are
-
-mm-mempolicy-take-a-cpuset-cookie-for-the-interleave-node-count.patch
-mm-mempolicy-use-srcu-for-the-weighted-interleave-state.patch
-mm-mempolicy-stop-copying-the-nodemask-in-the-interleave-paths.patch
-mm-huge_memory-skip-zone-device-folios-in-madvise_free_huge_pmd.patch
-mm-madvise-skip-zone-device-folios-in-cold-pageout-pmd-range.patch
-mm-mempolicy-skip-zone-device-folios-when-queueing-folios.patch
-mm-memory_hotplug-factor-out-node_is_memoryless.patch
-mm-mempolicy-use-vm_normal_folio_pmd-in-queue_folios_pmd.patch
-mm-madvise-use-vm_normal_folio_pmd-in-cold-pageout-pmd-range.patch
-mm-refactor-find_next_best_node-to-find_next_best_node_in.patch
-mm-page_alloc-refactor-build_node_zonelist-out-of-build_zonelists.patch
-proc-task_mmu-handle-special-pmds-in-clear_refs-and-pagemap.patch
-mm-madvise-reclaim-isolated-folios-if-pte-restart-fails.patch
-
+--
+0-DAY CI Kernel Test Service
+https://github.com/intel/lkp-tests/wiki
