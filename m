@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 373594DD6F5
-	for <mm-commits@vger.kernel.org>; Tue, 15 Sep 2026 23:39:58 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3C64C4DD6DB
+	for <mm-commits@vger.kernel.org>; Tue, 15 Sep 2026 23:40:00 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789515599; cv=none; b=ThelnkTjobg6eyOd0LRglsaGHVQMqAaaIRcbQpxgRBzMd/h/mDoozI86L2QSaXgoWNF1V8i3R0Q5Mz9Km2A2iZZjPytz6FN6WBSv/m4iSrChAWQVHGmqCEzJt/BuoBHXq5QHNCvTYR3KquENRb4Ilp+eq9uwXlJkMgS2DQFLAqc=
+	t=1789515601; cv=none; b=mekqwmnlF6Ope1Y2ku4QSFcandB98nYpjJdQMZP+4nNNL3bRkoGKPMxyg20AsC2jeajTvM5dNBN8ZcP3tc93zivr2gnxPDoP4M5eYKA6Eo85WFYhxYMQERo9BrWG2STK8Q5YdIXNirf07HQmdaIvxp9odpLTjLioFsL4cA351fo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1789515599; c=relaxed/simple;
-	bh=KOhvDDjtHiAr+cQuTDWdUA+v2494c+5rJqKAXK93IvE=;
-	h=Date:To:From:Subject:Message-Id; b=PZblurr+n1IcZkxBUHN4ALXCU+7AQISmr8zGOXp/RTZEZy3fmByqtz/LiwqEdyYMpIvEzPXuEIiAsnRFIYJ1cfywxWHDTSDaWYXGiDN0/ToYVo1WGLCVaY+m3vVyjNc3k69FR9XekqG6ywgUBZcB0dV6vSq2e0ZEzXhKRIbDSEg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Sl+jYNDZ; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1789515601; c=relaxed/simple;
+	bh=yxOLDvDjgqvdb+pcU8WfDWeGp/D6Gi4OFuvHZ7jSxTU=;
+	h=Date:To:From:Subject:Message-Id; b=q/YzcJUA5yvID2eAK23KALlAwkQkqPWA0W3vO3iFINRQKuwo6IxuDoq1gWlcvO6CJUKdJaAzjTyULEHK8DxnVk3bKV2LmK2InlWacCBPh4AIDFTWGBLCb3Nwahsr4X4SozNYkjKee9yS3kzMlHs6/IoNy/0uyuqhc3mVEbBbmKQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=kwAjWnnZ; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Sl+jYNDZ"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id EC00F1F000FF;
-	Tue, 15 Sep 2026 23:39:57 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="kwAjWnnZ"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id DBCC61F000FF;
+	Tue, 15 Sep 2026 23:39:59 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1789515598;
-	bh=TmjJ5dSDMYn3Sp7TyavdmGgcXqYQ9LqwIt1AMf+jNvE=;
+	d=linux-foundation.org; s=korg; t=1789515600;
+	bh=cgU6vCiD5MJNJ2xmdzHIYchhltPIjvOU6p/zMF6yfmQ=;
 	h=Date:To:From:Subject;
-	b=Sl+jYNDZIiBeCEVJsnqNJQH+gZG0WiZLRDjerAcFOBqiXUv0MOCfAAcOUbxndXka4
-	 5Mk57k/TqoBHFhVqiSu2V4FejyZiAr+YpKfJFLAuLSAQxYYh4K4+RBeZ7QZv83LHTr
-	 rsUHONelWPNag4f/g3ZORZhxI9kbnjpiB/Z2UTmA=
-Date: Tue, 15 Sep 2026 16:39:57 -0700
+	b=kwAjWnnZChw5rFGmlWEHTHcLuqQPDVVvvetEASq3yF+QdCKVwumu7jAcX6aI/e1bw
+	 LZtMurIdl2dZSWmUCyxaJy4a9zN4zgj4kukMKPqWiCKt0RWmhrPteM2Mg9ODDlJ2xX
+	 b7vvxxJtdvf7yMQCBOFmvxUukPNUa0/X2R3WF4K0=
+Date: Tue, 15 Sep 2026 16:39:59 -0700
 To: mm-commits@vger.kernel.org,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + docs-mm-damon-design-update-for-hugepage_size-probe-filter.patch added to mm-new branch
-Message-Id: <20260915233957.EC00F1F000FF@smtp.kernel.org>
+Subject: + docs-admin-guide-mm-damon-usage-update-for-hugepage_size.patch added to mm-new branch
+Message-Id: <20260915233959.DBCC61F000FF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: Docs/mm/damon/design: update for hugepage_size probe filter
+     Subject: Docs/admin-guide/mm/damon/usage: update for hugepage_size
 has been added to the -mm mm-new branch.  Its filename is
-     docs-mm-damon-design-update-for-hugepage_size-probe-filter.patch
+     docs-admin-guide-mm-damon-usage-update-for-hugepage_size.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/docs-mm-damon-design-update-for-hugepage_size-probe-filter.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/docs-admin-guide-mm-damon-usage-update-for-hugepage_size.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,13 +70,13 @@ and is updated there most days
 
 ------------------------------------------------------
 From: SJ Park <sj@kernel.org>
-Subject: Docs/mm/damon/design: update for hugepage_size probe filter
-Date: Tue, 15 Sep 2026 07:33:55 -0700
+Subject: Docs/admin-guide/mm/damon/usage: update for hugepage_size
+Date: Tue, 15 Sep 2026 07:33:56 -0700
 
-Update DAMON design document for the newly added hugepage_size data
-attribute probe filter type.
+Update DAMON usage document for the newly added hugepage_size data
+attribute filter type.
 
-Link: https://lore.kernel.org/20260915143359.91472-7-sj@kernel.org
+Link: https://lore.kernel.org/20260915143359.91472-8-sj@kernel.org
 Signed-off-by: SJ Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 Cc: David Hildenbrand <david@kernel.org>
@@ -88,20 +88,29 @@ Cc: Suren Baghdasaryan <surenb@google.com>
 Cc: Vlastimil Babka <vbabka@kernel.org>
 ---
 
- Documentation/mm/damon/design.rst |    2 ++
- 1 file changed, 2 insertions(+)
+ Documentation/admin-guide/mm/damon/usage.rst |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
---- a/Documentation/mm/damon/design.rst~docs-mm-damon-design-update-for-hugepage_size-probe-filter
-+++ a/Documentation/mm/damon/design.rst
-@@ -300,6 +300,8 @@ filter types.  Currently below filter ty
- - ``pgidle_unset``: Matches if the page for the memory is marked as not
-   access-idle.
- - ``pgidle_set``: Matches if the page for the memory is marked as access-idle.
-+- ``hugepage_size``: Matches if the page for the memory is a part of a hugepage
-+  of a given size range.
+--- a/Documentation/admin-guide/mm/damon/usage.rst~docs-admin-guide-mm-damon-usage-update-for-hugepage_size
++++ a/Documentation/admin-guide/mm/damon/usage.rst
+@@ -78,7 +78,7 @@ comma (",").
+     │ │ │ │ │ │ │ │ │ 0/prep_action
+     │ │ │ │ │ │ │ │ │ ...
+     │ │ │ │ │ │ │ │ filters/nr_filters
+-    │ │ │ │ │ │ │ │ │ 0/type,matching,allow,path
++    │ │ │ │ │ │ │ │ │ 0/type,matching,allow,path,min,max
+     │ │ │ │ │ │ │ │ │ ...
+     │ │ │ │ │ │ │ ...
+     │ │ │ │ │ :ref:`targets <sysfs_targets>`/nr_targets
+@@ -308,6 +308,8 @@ Writing a number (``N``) to the file cre
+ named ``0`` to ``N-1``.  Each directory represents each filter and works in a
+ way similar to that for :ref:`DAMOS filter <sysfs_filters>`.  When the filter
+ ``type`` is ``memcg``, ``path`` file acts as ``memcg_path`` for :ref:`DAMOS
++filter <sysfs_filters>`.  When the filter ``type`` is ``hugepage_size``,
++``min`` and ``max`` files acts as files of the same names for :ref:`DAMOS
+ filter <sysfs_filters>`.
  
- If such probes are registered, DAMON executes the probes for each region's
- sampling memory when it does the access :ref:`sampling
+ .. _sysfs_targets:
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
