@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D1CD5331A43;
-	Tue, 15 Sep 2026 01:23:36 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BCE3D3321A1;
+	Tue, 15 Sep 2026 01:23:38 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789435418; cv=none; b=Rdgb5IieMlRH2l0zMapbFvy79yTk1yy1W8G5NbtNxAxauSng8pO9HnLqn69lIFZ7fG22mSXDmb8dWf5aT93/xTZD1IYrjm3/FQ9BwitS8Xu7u8HyF9YXebYME+sUeayvhI++16b6CMgyx7TTxbU6+VBE1ss7A3rOByUj12HuXwE=
+	t=1789435420; cv=none; b=LnqlsrHdPIobfo2mZ1u7xBB0UlV9yOuqLwNo14N5gtDVWJRO0qlZamf5tnUrg5Www949Nz40NYyARC7n68mWg2i5yQeayJYQrdb60K1BVe022WRYsKJoikkX2DCqIRGPSJ6NYJt6xDaX4rrUSEJpFBFVRa08kFv/lYGAnRT61Rg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1789435418; c=relaxed/simple;
-	bh=BJoVTIAp50zRNopuAAuqME/NhRBNCjEokDCi5t+ef10=;
-	h=Date:To:From:Subject:Message-Id; b=f2S3bEv1zHlYzU7WvuNgHbUmfAUM4yxrZDRDq1sNEYY/iUSFNw0lWtXVlVwfLcIRBqtFXqsFAP+th2j9Io1Y7dkNQd8htOP04srdzxigptHgWkWnYuFe4P/vxNS4fA/rq93O3nZmPqCaFPdK4hO9HqHOd/JxJFxl8pY97knX33o=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=my2aQqJv; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1789435420; c=relaxed/simple;
+	bh=ExCm5C3P1Yn4My5+38uVQ50XmtwZBWpOlZdWDbvr/VY=;
+	h=Date:To:From:Subject:Message-Id; b=Goz0gZOIt9fQNUFrEAFDdFL0QlqW63cOKTI3jASeXLRx3RpYcVUmDsozbsO3QB4uMJqrcbTBVJUHsupAn2NCzYA6GYfZuAAGlEkRtZbBIn5jTyVApx/89S94wuvxpoqZMPoxG7FzAE6YdGTuaUUhBVc37KkAtDPaGqEsbuXKByU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Vfw5Ccyw; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="my2aQqJv"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 67D181F00893;
-	Tue, 15 Sep 2026 01:23:36 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Vfw5Ccyw"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 658951F000FF;
+	Tue, 15 Sep 2026 01:23:38 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1789435416;
-	bh=OAAYP6q0PmoCfPiThQNCiHdbDTvruTcxZse9M+kOJ6Q=;
+	d=linux-foundation.org; s=korg; t=1789435418;
+	bh=LpmElds9axU6l1ej4UyC5xikp40E/J6GxvaXwfYj2vQ=;
 	h=Date:To:From:Subject;
-	b=my2aQqJv0vTDcd63OMKlfpYALGQOhpUxlhGzY94DMMfGe1OFltP8s6XKYicsdlGhA
-	 EGJnJVaCXFr0Dy82hhgwpYtji312JkO4IDWZPA131pJBIUYyhqUkF6dZ7vDg1bB1FR
-	 o8mUTnTypgrvjHVIx2ubHfoPpbf20ssRLO8LdJRg=
-Date: Mon, 14 Sep 2026 18:23:35 -0700
+	b=Vfw5CcywibjsRtOvUiDau/wf+WqqiWpDyfPe11p8biB8eQovnaxgdTQ++bwHm5aJH
+	 bm4sTCqQ7R9g4QNmF9mmjd1hsT/fAWlefPGiTyyB5zrjug8vdic5k+p24ZUYdQact/
+	 u15tPiKzJ6/Ybp46+wGbeszEIjIwAyjpMpj2LR9Y=
+Date: Mon, 14 Sep 2026 18:23:38 -0700
 To: mm-commits@vger.kernel.org,usamaarif642@gmail.com,stable@vger.kernel.org,davidgow@davidgow.net,brendan.higgins@linux.dev,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-damon-sysfs-schemes-read-sysfs_filter-sz_range-only-once.patch added to mm-new branch
-Message-Id: <20260915012336.67D181F00893@smtp.kernel.org>
+Subject: + mm-damon-core-return-an-error-from-damos_commit_filter_arg.patch added to mm-new branch
+Message-Id: <20260915012338.658951F000FF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/damon/sysfs-schemes: read sysfs_filter->sz_range only once
+     Subject: mm/damon/core: return an error from damos_commit_filter_arg()
 has been added to the -mm mm-new branch.  Its filename is
-     mm-damon-sysfs-schemes-read-sysfs_filter-sz_range-only-once.patch
+     mm-damon-core-return-an-error-from-damos_commit_filter_arg.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-sysfs-schemes-read-sysfs_filter-sz_range-only-once.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-core-return-an-error-from-damos_commit_filter_arg.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,26 +70,15 @@ and is updated there most days
 
 ------------------------------------------------------
 From: SJ Park <sj@kernel.org>
-Subject: mm/damon/sysfs-schemes: read sysfs_filter->sz_range only once
-Date: Mon, 14 Sep 2026 07:23:19 -0700
+Subject: mm/damon/core: return an error from damos_commit_filter_arg()
+Date: Mon, 14 Sep 2026 07:23:20 -0700
 
-DAMON sysfs interface reads the user-provided size range arguments for
-hugepage_size type DAMOS filter twice.  Once for validation, and once
-again for assignments to the variable that will be passed to the core
-layer.  If the user updates the arguments in parallel, an invalid size
-range could be passed to the core layer.  Avoid it by doing the
-assignments first, and then validating the assigned variables before
-passing those to the core layer.
+damos_commit_filter_arg() is supposed to always succeed.  It may not in
+future, for example, if the given filter is invalid.  Prepare the case by
+modifying its signature to return an error when it failed.  Also pipe the
+return value to its callers and let them handle the error.
 
-User impact of the bug should be trivial.  From the core layer's
-perspective, the invalid size range is not really invalid.  It just works
-as having a weird size range.  No critical issues such as a crash or a
-leak could happen.  And sane users ain't do such parallel arguments update
-anyway.  If they do, such racy behavior is arguably somewhat expected and
-deserved.  That said, there is no reason to keep such races.
-
-Link: https://lore.kernel.org/20260914142327.92510-3-sj@kernel.org
-Fixes: ea1f204ba29a ("mm/damon/sysfs-schemes: add files for setting damos_filter->sz_range")
+Link: https://lore.kernel.org/20260914142327.92510-4-sj@kernel.org
 Signed-off-by: SJ Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 Cc: Brendan Higgins <brendan.higgins@linux.dev>
@@ -98,28 +87,107 @@ Cc: Usama Arif <usamaarif642@gmail.com>
 Cc: <stable@vger.kernel.org>
 ---
 
- mm/damon/sysfs-schemes.c |    7 +++----
- 1 file changed, 3 insertions(+), 4 deletions(-)
+ mm/damon/core.c |   41 ++++++++++++++++++++++++++++-------------
+ 1 file changed, 28 insertions(+), 13 deletions(-)
 
---- a/mm/damon/sysfs-schemes.c~mm-damon-sysfs-schemes-read-sysfs_filter-sz_range-only-once
-+++ a/mm/damon/sysfs-schemes.c
-@@ -2840,13 +2840,12 @@ static int damon_sysfs_add_scheme_filter
- 		} else if (filter->type == DAMOS_FILTER_TYPE_TARGET) {
- 			filter->target_idx = sysfs_filter->target_idx;
- 		} else if (filter->type == DAMOS_FILTER_TYPE_HUGEPAGE_SIZE) {
--			if (sysfs_filter->range_min >
--					sysfs_filter->range_max) {
-+			filter->sz_range.min = sysfs_filter->range_min;
-+			filter->sz_range.max = sysfs_filter->range_max;
-+			if (filter->range_min > filter->range_max) {
- 				damos_destroy_filter(filter);
- 				return -EINVAL;
- 			}
--			filter->sz_range.min = sysfs_filter->range_min;
--			filter->sz_range.max = sysfs_filter->range_max;
- 		} else if (filter->type == DAMOS_FILTER_TYPE_PROBE_HITS_WSUM) {
- 			filter->range_min = sysfs_filter->range_min;
- 			filter->range_max = sysfs_filter->range_max;
+--- a/mm/damon/core.c~mm-damon-core-return-an-error-from-damos_commit_filter_arg
++++ a/mm/damon/core.c
+@@ -1317,7 +1317,7 @@ static struct damos_filter *damos_nth_op
+ 	return NULL;
+ }
+ 
+-static void damos_commit_filter_arg(
++static int damos_commit_filter_arg(
+ 		struct damos_filter *dst, struct damos_filter *src)
+ {
+ 	switch (dst->type) {
+@@ -1340,28 +1340,32 @@ static void damos_commit_filter_arg(
+ 	default:
+ 		break;
+ 	}
++	return 0;
+ }
+ 
+-static void damos_commit_filter(
++static int damos_commit_filter(
+ 		struct damos_filter *dst, struct damos_filter *src)
+ {
+ 	dst->type = src->type;
+ 	dst->matching = src->matching;
+ 	dst->allow = src->allow;
+-	damos_commit_filter_arg(dst, src);
++	return damos_commit_filter_arg(dst, src);
+ }
+ 
+ static int damos_commit_core_filters(struct damos *dst, struct damos *src)
+ {
+ 	struct damos_filter *dst_filter, *next, *src_filter, *new_filter;
+-	int i = 0, j = 0;
++	int i = 0, j = 0, err;
+ 
+ 	damos_for_each_core_filter_safe(dst_filter, next, dst) {
+ 		src_filter = damos_nth_core_filter(i++, src);
+-		if (src_filter)
+-			damos_commit_filter(dst_filter, src_filter);
+-		else
++		if (src_filter) {
++			err = damos_commit_filter(dst_filter, src_filter);
++			if (err)
++				return err;
++		} else {
+ 			damos_destroy_filter(dst_filter);
++		}
+ 	}
+ 
+ 	damos_for_each_core_filter_safe(src_filter, next, src) {
+@@ -1373,7 +1377,11 @@ static int damos_commit_core_filters(str
+ 				src_filter->allow);
+ 		if (!new_filter)
+ 			return -ENOMEM;
+-		damos_commit_filter_arg(new_filter, src_filter);
++		err = damos_commit_filter_arg(new_filter, src_filter);
++		if (err) {
++			damos_destroy_filter(new_filter);
++			return err;
++		}
+ 		damos_add_filter(dst, new_filter);
+ 	}
+ 	return 0;
+@@ -1382,14 +1390,17 @@ static int damos_commit_core_filters(str
+ static int damos_commit_ops_filters(struct damos *dst, struct damos *src)
+ {
+ 	struct damos_filter *dst_filter, *next, *src_filter, *new_filter;
+-	int i = 0, j = 0;
++	int i = 0, j = 0, err;
+ 
+ 	damos_for_each_ops_filter_safe(dst_filter, next, dst) {
+ 		src_filter = damos_nth_ops_filter(i++, src);
+-		if (src_filter)
+-			damos_commit_filter(dst_filter, src_filter);
+-		else
++		if (src_filter) {
++			err = damos_commit_filter(dst_filter, src_filter);
++			if (err)
++				return err;
++		} else {
+ 			damos_destroy_filter(dst_filter);
++		}
+ 	}
+ 
+ 	damos_for_each_ops_filter_safe(src_filter, next, src) {
+@@ -1401,7 +1412,11 @@ static int damos_commit_ops_filters(stru
+ 				src_filter->allow);
+ 		if (!new_filter)
+ 			return -ENOMEM;
+-		damos_commit_filter_arg(new_filter, src_filter);
++		err = damos_commit_filter_arg(new_filter, src_filter);
++		if (err) {
++			damos_destroy_filter(new_filter);
++			return err;
++		}
+ 		damos_add_filter(dst, new_filter);
+ 	}
+ 	return 0;
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
