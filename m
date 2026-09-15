@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 059C838AC75;
-	Tue, 15 Sep 2026 04:50:03 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7360764A8D
+	for <mm-commits@vger.kernel.org>; Tue, 15 Sep 2026 06:19:23 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789447805; cv=none; b=gvmC/p34v0pHWENKMNJz5Mh68pPKO3MOQRXYsVUTkW9Kn56ASR7GXqmw3tlrwPuADC45VUqcTDMP687b5FLsoK8yxxgGiVpdJm8FbQBAcb+xcOFCvDNlqb56GUDFRx/5ByoilTje4zU0f+xSHx+n901UvTzPfBHRI1KxKsxGFDQ=
+	t=1789453164; cv=none; b=CxGt8XKXKZOysdpXz6Hh//Gw3EQBqjHweYcbmVTXv6s8AP6rXv4/vmgP8Cxo3V/xsO9LLLzDSB/0Ex/UjSqxLRukMBNDJ7jpBEiJ5iSI0psYtGiUkIeyBBWFJTq2qapJvcVW0DqxStdF4OPcHbp4lGZf82XJb2uwmdZhJ97iz5w=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1789447805; c=relaxed/simple;
-	bh=TzyRZL+V0z/kpT3qq0mKVdZ0Uum0CuldLTmmlm7sEo8=;
-	h=Date:To:From:Subject:Message-Id; b=DgF24GwgVKKEBrkOZnAzP1vfvq2js/kJ0LgzFB4eEu3Ojvg4O6o17snhXyDski6xtx7IskZoFO+K1DmO7kAVflmfUICMCAsQGzp85ZAjXq30mBfnd5L5xzlFLZnw/ounkzALizLS+DqPPi48WQl5+G/WKY8i9poWLl4ZcA+zaq8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=r0pTFch2; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1789453164; c=relaxed/simple;
+	bh=q8W6BkHkphkpEEvNLv5lpP9hVZSYL+UEVuykkFBSJrM=;
+	h=Date:To:From:Subject:Message-Id; b=fZsYSAgZBBtw8YytaPh421NcSvVgqN2VT0aYkIFoy6gGSeZ/ZsyhPOiBRfuUKZI0tpM0cPvQX/HTfxelNWD7K7caAUzfmVh3eHGbslYwO3/XauCn9QazZzVhyscAjp2rXzZGPubNfrpBX4+KQEzVidwCaK2RnFTyldC+DhyzFKM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=o5pcxTbG; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="r0pTFch2"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8CAF41F000FF;
-	Tue, 15 Sep 2026 04:50:03 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="o5pcxTbG"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E22601F000FF;
+	Tue, 15 Sep 2026 06:19:22 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1789447803;
-	bh=t3XS3u+iEoIxfloVXwl4UdV97GNtiwhXVGFz4U9t6Zg=;
+	d=linux-foundation.org; s=korg; t=1789453163;
+	bh=ANFmYyg1wfk/nZ39HTwGiADcmtBcDRYXp/ewT4p591E=;
 	h=Date:To:From:Subject;
-	b=r0pTFch2h+LnqENFtQkp4k5O2nCYbwOk2168irK+yuuOv7B03cjqr/GZDImDh+NIo
-	 UgAD1hunLaGNGM0tw+end2a3tmg3+j7b7fDFr2GDD5LT9qxVX6zSOB/l3/wM7aAHql
-	 6lNNMk7mWS6m/OjIP1nNuu+Ejzg5y21LqEzPUwrg=
-Date: Mon, 14 Sep 2026 21:50:03 -0700
-To: mm-commits@vger.kernel.org,vbabka@kernel.org,stable@vger.kernel.org,sashiko-bot@kernel.org,pfalcato@suse.de,peterx@redhat.com,ljs@kernel.org,liam@infradead.org,jgg@ziepe.ca,jannh@google.com,david@kernel.org,gourry@gourry.net,akpm@linux-foundation.org
+	b=o5pcxTbG+fKtfSWxeZs2GSce58YNAwRqlXBSZCisrdYF7kYAs73pZAG7hMVqvqF8f
+	 e/cuEBLtstEfYz9hlIa9GniPhZr9qOwi2UabrqwIy6mLpytBMgU+rxXt609W4OOVb+
+	 HlG+SD3YOHEMs3wKftaIdA8hAfXBQUr48ZFr4x1s=
+Date: Mon, 14 Sep 2026 23:19:22 -0700
+To: mm-commits@vger.kernel.org,urezki@gmail.com,dev.jain@arm.com,liuye@kylinos.cn,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + proc-task_mmu-handle-special-pmds-in-clear_refs-and-pagemap.patch added to mm-new branch
-Message-Id: <20260915045003.8CAF41F000FF@smtp.kernel.org>
+Subject: [to-be-updated] mm-vmalloc-extract-show_busy_info-from-vmalloc_info_show.patch removed from -mm tree
+Message-Id: <20260915061922.E22601F000FF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,153 +34,98 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The patch titled
-     Subject: proc/task_mmu: handle special PMDs in clear_refs and pagemap
-has been added to the -mm mm-new branch.  Its filename is
-     proc-task_mmu-handle-special-pmds-in-clear_refs-and-pagemap.patch
+The quilt patch titled
+     Subject: mm/vmalloc: extract show_busy_info from vmalloc_info_show
+has been removed from the -mm tree.  Its filename was
+     mm-vmalloc-extract-show_busy_info-from-vmalloc_info_show.patch
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/proc-task_mmu-handle-special-pmds-in-clear_refs-and-pagemap.patch
-
-This patch will later appear in the mm-new branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Note, mm-new is a provisional staging ground for work-in-progress
-patches, and acceptance into mm-new is a notification for others take
-notice and to finish up reviews.  Please do not hesitate to respond to
-review feedback and post updated versions to replace or incrementally
-fixup patches in mm-new.
-
-The mm-new branch of mm.git is not included in linux-next
-
-If a few days of testing in mm-new is successful, the patch will me moved
-into mm.git's mm-unstable branch, which is included in linux-next
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via various
-branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there most days
+This patch was dropped because an updated version will be issued
 
 ------------------------------------------------------
-From: Gregory Price <gourry@gourry.net>
-Subject: proc/task_mmu: handle special PMDs in clear_refs and pagemap
-Date: Sat, 12 Sep 2026 08:28:22 -0400
+From: Ye Liu <liuye@kylinos.cn>
+Subject: mm/vmalloc: extract show_busy_info from vmalloc_info_show
+Date: Mon, 14 Sep 2026 11:34:02 +0800
 
-mshv_vtl_low can install a special PMD from a PFN supplied in the mmap file
-offset.  That PFN need not have a memmap entry.  Reading /proc/PID/pagemap
-or writing /proc/PID/clear_refs for such a mapping oopses the kernel.
+Patch series "mm/vmalloc: minor cleanups".
 
-With a test driver mapping the PFN at the 1 TiB mark:
+Small cleanup series for mm/vmalloc.c, no functional changes:
 
-  echo 1 > /proc/self/clear_refs
+- Group xa_init() with the other vmap_block_queue field initializations
+  in vmalloc_init(), instead of after the unrelated vfree_deferred setup.
 
-  BUG: unable to handle page fault for address: fffffb5b80000008
-  #PF: supervisor read access in kernel mode
-  #PF: error_code(0x0000) - not-present page
-  RIP: 0010:clear_refs_pte_range+0xb1/0x1e0
-  Call Trace:
-   walk_pgd_range+0x50a/0xad0
-   __walk_page_range+0x6a/0x1d0
-   walk_page_range_mm_unsafe+0x193/0x230
-   clear_refs_write+0x18e/0x3f0
+- Extract vmap_insert_free_area() helper to deduplicate the allocate-
+  and-insert pattern that appeared both inside the loop body and after
+  the loop in vmap_init_free_space().
 
-  pread(pagemap_fd, buf, 512 * 8, addr / PAGE_SIZE * 8)
+- Extract show_busy_info() from vmalloc_info_show(), mirroring the
+  existing show_purge_info() pattern, so the top-level show function
+  only orchestrates the two data sources.
 
-  BUG: unable to handle page fault for address: fffff57840000008
-  RIP: 0010:pagemap_pmd_range+0x3cf/0x6b0
-  Call Trace:
-   walk_pgd_range+0x50a/0xad0
-   __walk_page_range+0x6a/0x1d0
-   walk_page_range_mm_unsafe+0x193/0x230
-   pagemap_read+0x1dc/0x350
 
-clear_refs_pte_range() passes the PMD to pmd_folio(), while
-pagemap_pmd_range_thp() uses pmd_page() followed by page_folio().
+This patch (of 3):
 
-Both paths assume the PFN has a struct page and dereference bad address.
+Extract the busy vmap area iteration into show_busy_info, mirroring the
+existing show_purge_info pattern.
 
-Use vm_normal_folio_pmd() and vm_normal_page_pmd() so clear_refs skips
-folio operations and pagemap skips folio-derived flags for special PMDs.
-This matches the PTE paths, which already use vm_normal_folio() and
-vm_normal_page().
-
-User-facing notes:
- - Pagemap still reports PM_PRESENT and the PFN to a CAP_SYS_ADMIN reader.
-
- - For a special PMD backed by a valid memmap entry and for the huge
-   zero PMD, PM_FILE changes from set to clear.
-
- - PM_MMAP_EXCLUSIVE is already clear in both cases.
-
- - The output for an anonymous THP is unchanged.
-
-Tested in QEMU with the test driver on broken and fixed kernels.  Both proc
-operations oops before the fix and return 0 after it.
-
-Link: https://lore.kernel.org/20260912122822.3348978-1-gourry@gourry.net
-Fixes: 3c8e44c9b369 ("mm: mark special bits for huge pfn mappings when inject")
-Signed-off-by: Gregory Price <gourry@gourry.net>
+Link: https://lore.kernel.org/20260914-vmalloc_study-v1-0-526f68559706@linux.dev
+Link: https://lore.kernel.org/20260914-vmalloc_study-v1-3-526f68559706@linux.dev
+Signed-off-by: Ye Liu <liuye@kylinos.cn>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Reported-by: sashiko-bot <sashiko-bot@kernel.org>
-Closes: https://sashiko.dev/#/patchset/20260912034833.2952750-1-gourry%40gourry.net
-Assisted-by: LLM
-Cc: David Hildenbrand <david@kernel.org>
-Cc: Jann Horn <jannh@google.com>
-Cc: Jason Gunthorpe <jgg@ziepe.ca>
-Cc: Liam R. Howlett <liam@infradead.org>
-Cc: Lorenzo Stoakes <ljs@kernel.org>
-Cc: Pedro Falcato <pfalcato@suse.de>
-Cc: Peter Xu <peterx@redhat.com>
-Cc: Vlastimil Babka <vbabka@kernel.org>
-Cc: <stable@vger.kernel.org> # v6.19+
+Reviewed-by: Uladzislau Rezki (Sony) <urezki@gmail.com>
 ---
 
- fs/proc/task_mmu.c |    6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ mm/vmalloc.c |   14 ++++++++++----
+ 1 file changed, 10 insertions(+), 4 deletions(-)
 
---- a/fs/proc/task_mmu.c~proc-task_mmu-handle-special-pmds-in-clear_refs-and-pagemap
-+++ a/fs/proc/task_mmu.c
-@@ -1673,7 +1673,9 @@ static int clear_refs_pte_range(pmd_t *p
- 		if (!pmd_present(*pmd))
- 			goto out;
+--- a/mm/vmalloc.c~mm-vmalloc-extract-show_busy_info-from-vmalloc_info_show
++++ a/mm/vmalloc.c
+@@ -5345,12 +5345,12 @@ static void show_purge_info(struct seq_f
+ 	}
+ }
  
--		folio = pmd_folio(*pmd);
-+		folio = vm_normal_folio_pmd(vma, addr, *pmd);
-+		if (!folio)
-+			goto out;
+-static int vmalloc_info_show(struct seq_file *m, void *p)
++static void show_busy_info(struct seq_file *m)
+ {
+ 	struct vmap_node *vn;
+ 	struct vmap_area *va;
+ 	struct vm_struct *v;
+-	unsigned int *counters;
++	unsigned int *counters = NULL;
  
- 		/* Clear accessed and referenced bits. */
- 		pmdp_test_and_clear_young(vma, addr, pmd);
-@@ -1993,7 +1995,7 @@ static int pagemap_pmd_range_thp(pmd_t *
- 		goto populate_pagemap;
+ 	if (IS_ENABLED(CONFIG_NUMA))
+ 		counters = kmalloc_array(nr_node_ids, sizeof(unsigned int), GFP_KERNEL);
+@@ -5415,12 +5415,18 @@ static int vmalloc_info_show(struct seq_
+ 		spin_unlock(&vn->busy.lock);
+ 	}
  
- 	if (pmd_present(pmd)) {
--		page = pmd_page(pmd);
-+		page = vm_normal_page_pmd(vma, addr, pmd);
++	if (IS_ENABLED(CONFIG_NUMA))
++		kfree(counters);
++}
++
++static int vmalloc_info_show(struct seq_file *m, void *p)
++{
++	show_busy_info(m);
++
+ 	/*
+ 	 * As a final step, dump "unpurged" areas.
+ 	 */
+ 	show_purge_info(m);
+-	if (IS_ENABLED(CONFIG_NUMA))
+-		kfree(counters);
+ 	return 0;
+ }
  
- 		flags |= PM_PRESENT;
- 		if (pmd_soft_dirty(pmd))
 _
 
-Patches currently in -mm which might be from gourry@gourry.net are
+Patches currently in -mm which might be from liuye@kylinos.cn are
 
-mm-mempolicy-take-a-cpuset-cookie-for-the-interleave-node-count.patch
-mm-mempolicy-use-srcu-for-the-weighted-interleave-state.patch
-mm-mempolicy-stop-copying-the-nodemask-in-the-interleave-paths.patch
-mm-huge_memory-skip-zone-device-folios-in-madvise_free_huge_pmd.patch
-mm-madvise-skip-zone-device-folios-in-cold-pageout-pmd-range.patch
-mm-mempolicy-skip-zone-device-folios-when-queueing-folios.patch
-mm-memory_hotplug-factor-out-node_is_memoryless.patch
-mm-mempolicy-use-vm_normal_folio_pmd-in-queue_folios_pmd.patch
-mm-madvise-use-vm_normal_folio_pmd-in-cold-pageout-pmd-range.patch
-mm-refactor-find_next_best_node-to-find_next_best_node_in.patch
-mm-page_alloc-refactor-build_node_zonelist-out-of-build_zonelists.patch
-proc-task_mmu-handle-special-pmds-in-clear_refs-and-pagemap.patch
+mm-vmalloc-fix-vmap_purge_lock-livelock-under-memory-pressure.patch
+tools-mm-page_owner_sort-fix-sort-option-being-silently-ignored.patch
+tools-mm-page_owner_sort-add-module-name-sort-cull-filter-support.patch
+tools-mm-page_owner_sort-show-available-sort-keys-in-usage-text.patch
+mm-oom_kill-remove-unreachable-__gfp_thisnode-check-in-constrained_alloc.patch
+mm-oom_kill-proc-replace-magic-number-1000-with-oom_score_adj_max.patch
+mm-page_table_check-add-explicit-pmd_none-check-in-pte_clear_range.patch
+mm-vmalloc-group-xa_init-with-vbq-field-initializations.patch
+mm-vmalloc-extract-vmap_insert_free_area-helper.patch
 
