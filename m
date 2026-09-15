@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 52D1E248881
-	for <mm-commits@vger.kernel.org>; Tue, 15 Sep 2026 06:19:24 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6377143B6CD
+	for <mm-commits@vger.kernel.org>; Tue, 15 Sep 2026 06:19:25 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789453165; cv=none; b=bC0B07pbG3LRYLVdbgvsB5Kl4m0YMuXBpYxbpebnYObqWP57XS72LaAePmyN9PSvOCosMFlFIYtmbKIgrrl8K4/o+z4b/Mb7JjCj66oGF+rgV7kMochMr+zq2b2X/1443ovuwNdn7QZNkLPfgMfu5yLQ8VV7YC/4vrR47hDSbsw=
+	t=1789453166; cv=none; b=lFWUHzgNj2fwyAx61jwM4HBFaUkd6mG2a3JUUG6qs0ETrCHEV12gqcSoNbNdWjC/8GC2O57KUmVQ23lxKlj2SoDyH9l8O1Wn/x5fFXcr3y08UEIRyd4wfrxlFjqxGpo96yoz9cm6UrYRUyajsJNuBCqdTCBePF9Qfh3pkVNJ07s=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1789453165; c=relaxed/simple;
-	bh=dxRJE497u03gKK2cnaP+W9YL8qTqsXzaI+S9cCxSO48=;
-	h=Date:To:From:Subject:Message-Id; b=qYk/J/l7zOGWVOZoPIHqc5UNKyzSCE0epmwLkvADMCPZ3IujC16l11+REcsigrpkZvWNpZKDm3hZOMs5sku7mUZfICp9dQKmThSniKvKfB22x0o3ByyZu7ULt/aAV0C/oDgu9XZfA8F3JduDRl3JK/P5oQhzaTYnSjIm0Uq9aHg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=u0OMgLpi; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1789453166; c=relaxed/simple;
+	bh=32tbI3Ij5tfdk6rjcaD4Nc9M6T86WCEMaVkFJok6t4w=;
+	h=Date:To:From:Subject:Message-Id; b=rJD2rqb/TmqiXaHOuVTfFREVcMFn6a5jB7ruWf+coIxsQnNpxjxQ4xJ0LAHWF0iK/lwgPOFvAFJJ83TBgwFCapcjGtEi2bk5D2G738PMbjaCFoYdPsmwa/8OIIBTRzW2lb9vYoukBGzt/XxNOIKkpJtwJ+3dnyG/UFnD3IScUoc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=1eD3WyAN; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="u0OMgLpi"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E68791F00893;
-	Tue, 15 Sep 2026 06:19:23 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="1eD3WyAN"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0CF6C1F000FF;
+	Tue, 15 Sep 2026 06:19:25 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1789453164;
-	bh=p+2iko0pEiDpy8Os090ZEJ41UBvJkqqLjYe1PDDnhZE=;
+	d=linux-foundation.org; s=korg; t=1789453165;
+	bh=+E7LE8TiifM0Nm43WBf8r3URYmzBSVj1mOGX/fztUUo=;
 	h=Date:To:From:Subject;
-	b=u0OMgLpiOp399IGJ7RYKvGTBEddCx6IihXdQSmE9jlksx0OZBImXlQ1SSOL+yBqR4
-	 W9GVsUxsZym6ACwsRgTl82oKerY3v5+Uytcm01a0J8Q36ohAQCzK3Uw22ZmkqR64v2
-	 gRqn5LFSVqVKiS5AZBjnlbPu2IlkxI9j7RbfonOI=
-Date: Mon, 14 Sep 2026 23:19:23 -0700
-To: mm-commits@vger.kernel.org,urezki@gmail.com,dev.jain@arm.com,liuye@kylinos.cn,akpm@linux-foundation.org
+	b=1eD3WyAN9a4Zwp2RqHzAI26ZTIye+4x94LsYRgxyGd/pSt6bYHvRFRYa2OR7duQZF
+	 NGzlUcNfyTwMfLQtgCm9nQV396aAgLX+RZo99jMcPluBpFjUANnn8csHTYpb6Pdhfh
+	 snhvia67QwT+GzfvEftg993JouQohu/6RHP4hJTw=
+Date: Mon, 14 Sep 2026 23:19:24 -0700
+To: mm-commits@vger.kernel.org,urezki@gmail.com,liuye@kylinos.cn,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [to-be-updated] mm-vmalloc-group-xa_init-with-vbq-field-initializations.patch removed from -mm tree
-Message-Id: <20260915061923.E68791F00893@smtp.kernel.org>
+Subject: [to-be-updated] mm-vmalloc-extract-vmap_insert_free_area-helper.patch removed from -mm tree
+Message-Id: <20260915061925.0CF6C1F000FF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,44 +35,96 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/vmalloc: group xa_init with vbq field initializations
+     Subject: mm/vmalloc: extract vmap_insert_free_area helper
 has been removed from the -mm tree.  Its filename was
-     mm-vmalloc-group-xa_init-with-vbq-field-initializations.patch
+     mm-vmalloc-extract-vmap_insert_free_area-helper.patch
 
 This patch was dropped because an updated version will be issued
 
 ------------------------------------------------------
 From: Ye Liu <liuye@kylinos.cn>
-Subject: mm/vmalloc: group xa_init with vbq field initializations
-Date: Mon, 14 Sep 2026 11:34:00 +0800
+Subject: mm/vmalloc: extract vmap_insert_free_area helper
+Date: Mon, 14 Sep 2026 11:34:01 +0800
 
-Move xa_init() next to the other vbq field initializations instead of
-after the unrelated vfree_deferred setup.
+The allocation and insertion of a free vmap_area is duplicated between the
+loop body and the tail of vmap_init_free_space.  Factor it into a small
+helper so the main function only deals with computing the free gaps
+between busy regions.
 
-Link: https://lore.kernel.org/20260914-vmalloc_study-v1-1-526f68559706@linux.dev
+Link: https://lore.kernel.org/20260914-vmalloc_study-v1-2-526f68559706@linux.dev
 Signed-off-by: Ye Liu <liuye@kylinos.cn>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 Reviewed-by: Uladzislau Rezki (Sony) <urezki@gmail.com>
 ---
 
- mm/vmalloc.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ mm/vmalloc.c |   41 ++++++++++++++++++-----------------------
+ 1 file changed, 18 insertions(+), 23 deletions(-)
 
---- a/mm/vmalloc.c~mm-vmalloc-group-xa_init-with-vbq-field-initializations
+--- a/mm/vmalloc.c~mm-vmalloc-extract-vmap_insert_free_area-helper
 +++ a/mm/vmalloc.c
-@@ -5591,10 +5591,11 @@ void __init vmalloc_init(void)
- 		vbq = &per_cpu(vmap_block_queue, i);
- 		spin_lock_init(&vbq->lock);
- 		INIT_LIST_HEAD(&vbq->free);
-+		xa_init(&vbq->vmap_blocks);
+@@ -5439,11 +5439,23 @@ module_init(proc_vmalloc_init);
+ 
+ #endif
+ 
++static void __init vmap_insert_free_area(unsigned long start, unsigned long end)
++{
++	struct vmap_area *free = kmem_cache_zalloc(vmap_area_cachep, GFP_NOWAIT);
 +
- 		p = &per_cpu(vfree_deferred, i);
- 		init_llist_head(&p->list);
- 		INIT_WORK(&p->wq, delayed_vfree_work);
--		xa_init(&vbq->vmap_blocks);
- 	}
++	if (!WARN_ON_ONCE(!free)) {
++		free->va_start = start;
++		free->va_end = end;
++		insert_vmap_area_augment(free, NULL,
++					 &free_vmap_area_root,
++					 &free_vmap_area_list);
++	}
++}
++
+ static void __init vmap_init_free_space(void)
+ {
+ 	unsigned long vmap_start = 1;
+ 	const unsigned long vmap_end = ULONG_MAX;
+-	struct vmap_area *free;
+ 	struct vm_struct *busy;
  
  	/*
+@@ -5453,32 +5465,15 @@ static void __init vmap_init_free_space(
+ 	 *  |<--------------------------------->|
+ 	 */
+ 	for (busy = vmlist; busy; busy = busy->next) {
+-		if ((unsigned long) busy->addr - vmap_start > 0) {
+-			free = kmem_cache_zalloc(vmap_area_cachep, GFP_NOWAIT);
+-			if (!WARN_ON_ONCE(!free)) {
+-				free->va_start = vmap_start;
+-				free->va_end = (unsigned long) busy->addr;
+-
+-				insert_vmap_area_augment(free, NULL,
+-					&free_vmap_area_root,
+-						&free_vmap_area_list);
+-			}
+-		}
++		if ((unsigned long)busy->addr - vmap_start > 0)
++			vmap_insert_free_area(vmap_start,
++					      (unsigned long)busy->addr);
+ 
+ 		vmap_start = (unsigned long) busy->addr + busy->size;
+ 	}
+ 
+-	if (vmap_end - vmap_start > 0) {
+-		free = kmem_cache_zalloc(vmap_area_cachep, GFP_NOWAIT);
+-		if (!WARN_ON_ONCE(!free)) {
+-			free->va_start = vmap_start;
+-			free->va_end = vmap_end;
+-
+-			insert_vmap_area_augment(free, NULL,
+-				&free_vmap_area_root,
+-					&free_vmap_area_list);
+-		}
+-	}
++	if (vmap_end - vmap_start > 0)
++		vmap_insert_free_area(vmap_start, vmap_end);
+ }
+ 
+ static void vmap_init_nodes(void)
 _
 
 Patches currently in -mm which might be from liuye@kylinos.cn are
@@ -84,5 +136,4 @@ tools-mm-page_owner_sort-show-available-sort-keys-in-usage-text.patch
 mm-oom_kill-remove-unreachable-__gfp_thisnode-check-in-constrained_alloc.patch
 mm-oom_kill-proc-replace-magic-number-1000-with-oom_score_adj_max.patch
 mm-page_table_check-add-explicit-pmd_none-check-in-pte_clear_range.patch
-mm-vmalloc-extract-vmap_insert_free_area-helper.patch
 
