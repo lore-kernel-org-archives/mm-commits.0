@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 55C223876BB
-	for <mm-commits@vger.kernel.org>; Tue, 15 Sep 2026 21:41:00 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 234594ACC9B
+	for <mm-commits@vger.kernel.org>; Tue, 15 Sep 2026 22:00:33 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789508461; cv=none; b=HeNNTs/ZMJ9KJWlBgKqVLpS6uEtlGSLLrNMTZDb78u+Zaali28zrtyebmnxHhMVRZ3yChbH5UEkUnvNeUFdPqC9+7iThnsqAyExtLWjZMGKAECtVNaImc3IXqjuInVSfJP2uuS8h1UCVL082RMBW0wwwP2P3+DuwrstRdXnv89w=
+	t=1789509638; cv=none; b=k0bVYnNNih97ie1jj4pO/LTfZYSvxEIPFNnuHv6egzmhJz/NyeqDsJ33opzkcUXCJr33eif4D/e0diFG4dvsdjvyh6hVExD/c7rIRZig1pl3LL207mICA7u4Y4B2F9lSSdz3SiBV+20MAiHIdPilbEuFgPXUMje9uulyru0JZsc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1789508461; c=relaxed/simple;
-	bh=Q01PnRgrcUN+sLaFhU9zIguzmob8nHamMBMbpFhoBms=;
-	h=Date:To:From:Subject:Message-Id; b=TNQfan+WlO3qjsopQx8SibUvuykwuRivnSCuA5Bl+VXHJ5hDQbEfZ/q6q1ha6NfIzVpiVMvemPjVZFRyxkd+p6c2b830b58l4ctuQ9qRX6U/XcYDEuN3cPdp0gUM/CNQ4M1BiiU8tlyrDftVG8p72FgcqKr5wxGddJthEpaoDEw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ufP8/3Ne; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1789509638; c=relaxed/simple;
+	bh=HQ9FYubT+djYTjUjYDihA54PSxL2nSvSgwQzVlr9HzI=;
+	h=Date:To:From:Subject:Message-Id; b=aYyUHMr4LYVVJSXi/wTQcT0TXliXqPjgqach309qyej6VbbhfiP1RfUo+E1aVOrfJZhYiAwrkzbxMKntH0883qcauh3VvhoeHukDQYez7oDhVjtlYUhzpcUQWzQS+esjKrCwzue4rMN3SewwnPYRKlG5K/5YCm80BDvTMEEgGKo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=YXQ95gjF; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ufP8/3Ne"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E04A11F000FF;
-	Tue, 15 Sep 2026 21:40:59 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="YXQ95gjF"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id ADF491F000FF;
+	Tue, 15 Sep 2026 22:00:33 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1789508460;
-	bh=isjCb6sbp+vlOmO5ey85x8kVZGFQSSDmPaJn+S5SnI0=;
+	d=linux-foundation.org; s=korg; t=1789509633;
+	bh=7JNZ11O1Z/TO4+Mjl25jAAaWaipmsg0tOM/lDIfLi3o=;
 	h=Date:To:From:Subject;
-	b=ufP8/3NeaXF0furE1pOLyCt7pKaf3Bp0bQlCpax/3FCYlExvpe/Asde7T7/CR4Qhp
-	 7yZdxFqHP0WC14cJ2DSfYuNWBonW6MQ2SGo4jHIxUlw2zDJfllL/TIv/3L7KeVLMaA
-	 eDKn82nZrrI8oUwrGD4MmRukun4ZlFoybRrR4xfA=
-Date: Tue, 15 Sep 2026 14:40:59 -0700
-To: mm-commits@vger.kernel.org,usamaarif642@gmail.com,tj@kernel.org,sj@kernel.org,shuah@kernel.org,nphamcs@gmail.com,mkoutny@suse.com,kas@kernel.org,joshua.hahnjy@gmail.com,hannes@cmpxchg.org,chengming.zhou@linux.dev,harry@kernel.org,akpm@linux-foundation.org
+	b=YXQ95gjFCYX75IYguVFj6ZV52ab85527PoWvawgDGE1kuiHp9ZGJcLLV5N4PYoiWO
+	 +BT9Z6KlJn4besaiYfOPEVsKMwNP2LJCPYei0ZKAbWOOzsklObo9+e23cubK8H1E2Y
+	 zpGumZSjDfeDoW4eb69JcwTdjsqI2KbJmjDKjCUI=
+Date: Tue, 15 Sep 2026 15:00:33 -0700
+To: mm-commits@vger.kernel.org,weiyongjun1@huawei.com,rcampbell@nvidia.com,leon@kernel.org,jglisse@redhat.com,jgg@ziepe.ca,error27@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-cgroup-ignore-memoryreclaim-eagain-for-zswap-writeback-test.patch added to mm-new branch
-Message-Id: <20260915214059.E04A11F000FF@smtp.kernel.org>
+Subject: + mm-hmm-test-reject-overflowing-page-counts.patch added to mm-new branch
+Message-Id: <20260915220033.ADF491F000FF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: selftests/cgroup: ignore memory.reclaim -EAGAIN for zswap writeback test
+     Subject: mm/hmm/test: reject overflowing page counts
 has been added to the -mm mm-new branch.  Its filename is
-     selftests-cgroup-ignore-memoryreclaim-eagain-for-zswap-writeback-test.patch
+     mm-hmm-test-reject-overflowing-page-counts.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-cgroup-ignore-memoryreclaim-eagain-for-zswap-writeback-test.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-hmm-test-reject-overflowing-page-counts.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -69,78 +69,50 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: "Harry Yoo (Meta)" <harry@kernel.org>
-Subject: selftests/cgroup: ignore memory.reclaim -EAGAIN for zswap writeback test
-Date: Mon, 14 Sep 2026 21:36:39 +0100
+From: Dan Carpenter <error27@gmail.com>
+Subject: mm/hmm/test: reject overflowing page counts
+Date: Tue, 15 Sep 2026 19:37:27 +0300
 
-The zswap_writeback_enabled test fails when a write to memory.reclaim
-returns -EAGAIN, which means less than the requested amount was reclaimed.
-attempt_writeback() propagates the -EAGAIN to the caller, and the test
-case is marked as failed even when zswap writeback did happen.
+The number of pages comes directly from userspace.  Shifting a value
+larger than ULONG_MAX >> PAGE_SHIFT discards its high bits before the
+existing end-address check.  A request for a huge number of pages can
+therefore be accepted and processed as a much smaller request.
 
-This heavily depends on the performance of the backing swap device. 
-Reclaim does not wait for writeback (on cgroup v2), does not count pages
-that are under writeback as reclaimed, and memory.reclaim gives up after
-MAX_RECLAIM_RETRIES passes without making progress.  On a slow device
-where reclaim does not make any progress before writeback completes, a
-write to memory.reclaim fails.
+Reject page counts that cannot be represented as a byte size before
+performing the shift.
 
-On a VM with zswap enabled, where IO delay was injected via dm-delay, the
-success rate of the zswap writeback test drops dramatically once the delay
-reaches 11 ms: 7% failures at 10 ms and 79% failures at 11 ms, n = 100.
+So far as ChatGPT and I can tell this doesn't cause an issue in practice
+but preventing this integer overflow is the correct thing to do.
 
-When zswap writeback is enabled, ignore -EAGAIN from memory.reclaim and
-determine pass/fail based on the zswpwb counter because that is what
-zswap_writeback_enabled actually wants to test.
-
-With this change, the test reliably passes even on a slow swap device
-(tested up to 1000 ms delay).  This makes the test resilient against the
-performance of the swap device.
-
-Assisted-by: LLM
-Link: https://lore.kernel.org/20260914-test-zswap-wb-ignore-eagain-v1-1-6fb715c22cd8@kernel.org
-Fixes: 158863e5d7cc ("selftests: cgroup: add tests to verify the zswap writeback path")
-Signed-off-by: Harry Yoo (Meta) <harry@kernel.org>
+Link: https://lore.kernel.org/6f0d39089e938d4f53dc72632eb84aca34de7015.1789457465.git.error27@gmail.com
+Fixes: b2ef9f5a5cb3 ("mm/hmm/test: add selftest driver for HMM")
+Signed-off-by: Dan Carpenter <error27@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Reviewed-by: SJ Park <sj@kernel.org>
-Acked-by: Nhat Pham <nphamcs@gmail.com>
-Cc: Chengming Zhou <chengming.zhou@linux.dev>
-Cc: Harry Yoo <harry@kernel.org>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Joshua Hahn <joshua.hahnjy@gmail.com>
-Cc: Kiryl Shutsemau <kas@kernel.org>
-Cc: Michal Koutný <mkoutny@suse.com>
-Cc: Shuah Khan <shuah@kernel.org>
-Cc: Tejun Heo <tj@kernel.org>
-Cc: Usama Arif <usamaarif642@gmail.com>
+Cc: Jason Gunthorpe <jgg@ziepe.ca>
+Cc: Jerome Glisse <jglisse@redhat.com>
+Cc: Leon Romanovsky <leon@kernel.org>
+Cc: Ralph Campbell <rcampbell@nvidia.com>
+Cc: Wei Yongjun <weiyongjun1@huawei.com>
+Assisted-by: ChatGPT:gpt-5
 ---
 
- tools/testing/selftests/cgroup/test_zswap.c |   11 ++++++++++-
- 1 file changed, 10 insertions(+), 1 deletion(-)
+ lib/test_hmm.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
---- a/tools/testing/selftests/cgroup/test_zswap.c~selftests-cgroup-ignore-memoryreclaim-eagain-for-zswap-writeback-test
-+++ a/tools/testing/selftests/cgroup/test_zswap.c
-@@ -346,7 +346,16 @@ static int attempt_writeback(const char
- 	 * it can't writeback to swap.
- 	 */
- 	ret = cg_write_numeric(cgroup, "memory.reclaim", memsize);
--	if (!wb_enabled)
-+
-+	/*
-+	 * When writeback is enabled, memory.reclaim may still fail to reclaim
-+	 * the requested amount of memory due to a slow swap device.
-+	 * Ignore -EAGAIN here. The caller determines pass/fail based on the
-+	 * zswap writeback counter.
-+	 */
-+	if (wb_enabled && ret == -EAGAIN)
-+		ret = 0;
-+	else if (!wb_enabled)
- 		ret = (ret == -EAGAIN) ? 0 : -1;
+--- a/lib/test_hmm.c~mm-hmm-test-reject-overflowing-page-counts
++++ a/lib/test_hmm.c
+@@ -1624,6 +1624,8 @@ static long dmirror_fops_unlocked_ioctl(
  
- out:
+ 	if (cmd.addr & ~PAGE_MASK)
+ 		return -EINVAL;
++	if (cmd.npages > ULONG_MAX >> PAGE_SHIFT)
++		return -EINVAL;
+ 	if (cmd.addr >= (cmd.addr + (cmd.npages << PAGE_SHIFT)))
+ 		return -EINVAL;
+ 
 _
 
-Patches currently in -mm which might be from harry@kernel.org are
+Patches currently in -mm which might be from error27@gmail.com are
 
-selftests-cgroup-ignore-memoryreclaim-eagain-for-zswap-writeback-test.patch
+mm-hmm-test-reject-overflowing-page-counts.patch
 
