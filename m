@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B3BCB331EB0;
-	Tue, 15 Sep 2026 01:23:46 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8D37233939D;
+	Tue, 15 Sep 2026 01:23:48 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789435428; cv=none; b=fQ221nb5uPEo6N9i3tsA1nCtG5cYZDdYjkfI8mBsCCtPuOzl1dk1goaUxPDz4EovwqW58rNXUMF7Vwm9ijVqnGamEzlYAVtfJS/+bufTXTSp0crt1dJU6iE+/wz3GKJZG1KHZ36WTBgeJJFp0dC4/+8jhhHijE9CnHlc+Bq67wQ=
+	t=1789435430; cv=none; b=FSQTghQ5Zmfe5Moeh9nyBRy5Lbe9F87LPqzFzhD/zAg251zglHT4ZQcwHy1QNJOB+gDFSE1/akirE/x4rNpODYJ1SrYT2ZXh2cKAGwd3STgsC1dF1jp090n/RtHRLI3d60MtR77vTU8LRhIZd4kdw3UN+Mg1JE1tcERNaab2vUM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1789435428; c=relaxed/simple;
-	bh=A9Z68WWMdB/9Z4EihPHUObH0NYXicfoDuNFC0CMLSDo=;
-	h=Date:To:From:Subject:Message-Id; b=ug8pVA8c6fXpgkxWSrCrUtaMf1uP6Vbp+UrwrZbTPCKHEcoF573Vl9LlxwFl4qa+K9+BqvhG1qIYBAzB70xkIdBKzm56YyqVapWtY5grGsZH/74jxxYj9olfYp0PybXf2FWjBctIBTFjuEcs+XjM1wbiG2fRRovYptYPrgcBzPg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=TYypOVY1; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1789435430; c=relaxed/simple;
+	bh=d+yXnOdp9lzBACQFYM1yA3cXybUA9iMgSujImK3F1PY=;
+	h=Date:To:From:Subject:Message-Id; b=dFhQDOeX7zDTDIYV7bLyWNmTnAZhCmVXAKClPFmUBidtwCEQSGUlz8mw5ssieIPazhEBcPGA5sNNHHjcmYuv1AqdeuuV+pL+ioJOeqyjvL9ZLEcEkEDUFXC5xwNQk4kpjCncsFLF+z6WDNRdz0OKHYAOUcBd8ZX3O/c2tQeppAE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=kPYheJqk; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="TYypOVY1"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 48EAC1F000FF;
-	Tue, 15 Sep 2026 01:23:46 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="kPYheJqk"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 45A381F000FF;
+	Tue, 15 Sep 2026 01:23:48 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1789435426;
-	bh=GxMTpFYUlta7aVxICZMZLl+Gg0+YSmeLtnczU3E57OU=;
+	d=linux-foundation.org; s=korg; t=1789435428;
+	bh=v7oY6WcwnuFu91ql6tG3sVezH+fl2GjJ6ieCdcuzNbg=;
 	h=Date:To:From:Subject;
-	b=TYypOVY1URe8E82oyn1Jot7w5CJ1vlmwwZ+ahVyefKVkj7Anim152JfjIAsOMvwJN
-	 FxFfwzeWnPziGDB+9hXh68XhSJlANHZ+pb0IM2zLW+jiLfaztFOxEmm+/U2lnI9O9J
-	 pYT23i4s8wCryZi7B20pisXjjxjfzrozqy3nqOzc=
-Date: Mon, 14 Sep 2026 18:23:45 -0700
+	b=kPYheJqke1mt7eQjHmUh4eEyvnUCnoJfRrM7weurPLVfmMgVPcrFYCMNUGlYqRSUP
+	 rxLR9smpeTXD+kVdYOufCg6doTxG3GTIBSDrDxfk2kz0nuXuazwbrRHjl05RgqzTs0
+	 t1MnJvneyh36NN2vA1Mn3yEhO5jN14R4n4YUzwBg=
+Date: Mon, 14 Sep 2026 18:23:47 -0700
 To: mm-commits@vger.kernel.org,usamaarif642@gmail.com,stable@vger.kernel.org,davidgow@davidgow.net,brendan.higgins@linux.dev,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-damon-core-kunit-extend-damos_commit_filter_for-for-wrong-input.patch added to mm-new branch
-Message-Id: <20260915012346.48EAC1F000FF@smtp.kernel.org>
+Subject: + mm-damon-core-kunit-test-invalid-damos-filter-commits.patch added to mm-new branch
+Message-Id: <20260915012348.45A381F000FF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/damon/core-kunit: extend damos_commit_filter_for() for wrong input
+     Subject: mm/damon/core-kunit: test invalid damos filter commits
 has been added to the -mm mm-new branch.  Its filename is
-     mm-damon-core-kunit-extend-damos_commit_filter_for-for-wrong-input.patch
+     mm-damon-core-kunit-test-invalid-damos-filter-commits.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-core-kunit-extend-damos_commit_filter_for-for-wrong-input.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-core-kunit-test-invalid-damos-filter-commits.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,16 +70,13 @@ and is updated there most days
 
 ------------------------------------------------------
 From: SJ Park <sj@kernel.org>
-Subject: mm/damon/core-kunit: extend damos_commit_filter_for() for wrong input
-Date: Mon, 14 Sep 2026 07:23:24 -0700
+Subject: mm/damon/core-kunit: test invalid damos filter commits
+Date: Mon, 14 Sep 2026 07:23:25 -0700
 
-damos_commit_filter_for() supposes damos_commit_filter() to always succeed
-with given inputs.  damos_commit_filter() could return an error for
-invalid inputs.  Existing callers always pass only valid inputs, but they
-may pass invalid inputs in future, for test purposes.  Extend the function
-to be able to be used for wrong inputs-caused error testing.
+Add test cases for testing the validation of damos filter arguments in
+commit time.
 
-Link: https://lore.kernel.org/20260914142327.92510-8-sj@kernel.org
+Link: https://lore.kernel.org/20260914142327.92510-9-sj@kernel.org
 Signed-off-by: SJ Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 Cc: Brendan Higgins <brendan.higgins@linux.dev>
@@ -88,84 +85,39 @@ Cc: Usama Arif <usamaarif642@gmail.com>
 Cc: <stable@vger.kernel.org>
 ---
 
- mm/damon/tests/core-kunit.h |   24 +++++++++++++++---------
- 1 file changed, 15 insertions(+), 9 deletions(-)
+ mm/damon/tests/core-kunit.h |   14 ++++++++++++++
+ 1 file changed, 14 insertions(+)
 
---- a/mm/damon/tests/core-kunit.h~mm-damon-core-kunit-extend-damos_commit_filter_for-for-wrong-input
+--- a/mm/damon/tests/core-kunit.h~mm-damon-core-kunit-test-invalid-damos-filter-commits
 +++ a/mm/damon/tests/core-kunit.h
-@@ -1116,9 +1116,15 @@ static void damos_test_commit_dests(stru
- }
- 
- static void damos_test_commit_filter_for(struct kunit *test,
--		struct damos_filter *dst, struct damos_filter *src)
-+		struct damos_filter *dst, struct damos_filter *src,
-+		bool expect_fail)
- {
--	damos_commit_filter(dst, src);
-+	int err;
-+
-+	err = damos_commit_filter(dst, src);
-+	KUNIT_EXPECT_EQ(test, err != 0, expect_fail);
-+	if (expect_fail)
-+		return;
- 	KUNIT_EXPECT_EQ(test, dst->type, src->type);
- 	KUNIT_EXPECT_EQ(test, dst->matching, src->matching);
- 	KUNIT_EXPECT_EQ(test, dst->allow, src->allow);
-@@ -1157,47 +1163,47 @@ static void damos_test_commit_filter(str
- 			.type = DAMOS_FILTER_TYPE_ANON,
- 			.matching = true,
- 			.allow = true,
--			});
-+			}, false);
+@@ -1186,6 +1186,13 @@ static void damos_test_commit_filter(str
+ 			}, false);
  	damos_test_commit_filter_for(test, &dst,
  			&(struct damos_filter){
- 			.type = DAMOS_FILTER_TYPE_MEMCG,
- 			.matching = false,
- 			.allow = false,
- 			.memcg_id = 123,
--			});
-+			}, false);
- 	damos_test_commit_filter_for(test, &dst,
- 			&(struct damos_filter){
- 			.type = DAMOS_FILTER_TYPE_YOUNG,
- 			.matching = true,
- 			.allow = true,
--			});
-+			}, false);
- 	damos_test_commit_filter_for(test, &dst,
- 			&(struct damos_filter){
- 			.type = DAMOS_FILTER_TYPE_HUGEPAGE_SIZE,
- 			.matching = false,
- 			.allow = false,
- 			.sz_range = {.min = 234, .max = 345},
--			});
-+			}, false);
- 	damos_test_commit_filter_for(test, &dst,
- 			&(struct damos_filter){
++			.type = DAMOS_FILTER_TYPE_HUGEPAGE_SIZE,
++			.matching = false,
++			.allow = false,
++			.sz_range = {.min = 456, .max = 123},
++			}, true);
++	damos_test_commit_filter_for(test, &dst,
++			&(struct damos_filter){
  			.type = DAMOS_FILTER_TYPE_UNMAPPED,
  			.matching = true,
  			.allow = true,
--			});
-+			}, false);
+@@ -1199,6 +1206,13 @@ static void damos_test_commit_filter(str
+ 			}, false);
  	damos_test_commit_filter_for(test, &dst,
  			&(struct damos_filter){
- 			.type = DAMOS_FILTER_TYPE_ADDR,
- 			.matching = false,
- 			.allow = false,
- 			.addr_range = {.start = 456, .end = 567},
--			});
-+			}, false);
- 	damos_test_commit_filter_for(test, &dst,
- 			&(struct damos_filter){
++			.type = DAMOS_FILTER_TYPE_ADDR,
++			.matching = false,
++			.allow = false,
++			.addr_range = {.start = 567, .end = 456},
++			}, true);
++	damos_test_commit_filter_for(test, &dst,
++			&(struct damos_filter){
  			.type = DAMOS_FILTER_TYPE_TARGET,
  			.matching = true,
  			.allow = true,
- 			.target_idx = 6,
--			});
-+			}, false);
- }
- 
- static void damos_test_help_initailize_scheme(struct damos *scheme)
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
