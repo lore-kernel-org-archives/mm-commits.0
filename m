@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BCE3D3321A1;
-	Tue, 15 Sep 2026 01:23:38 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D6A41331A43;
+	Tue, 15 Sep 2026 01:23:40 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789435420; cv=none; b=LnqlsrHdPIobfo2mZ1u7xBB0UlV9yOuqLwNo14N5gtDVWJRO0qlZamf5tnUrg5Www949Nz40NYyARC7n68mWg2i5yQeayJYQrdb60K1BVe022WRYsKJoikkX2DCqIRGPSJ6NYJt6xDaX4rrUSEJpFBFVRa08kFv/lYGAnRT61Rg=
+	t=1789435422; cv=none; b=ZP3YY216jMGiNO814we9Clfz1xSC1hIu8jzThdLckJCwX8BUzd1Zaj35/EO9l24LqVpf14o5mh5oS2HiU08+apYWQI0Hp7DwddtZZtzBnVXqPqLOZvTE376tx1UJsugWsi+SLRYFbjM7BLanvi7uGdzTaBQbZBv+FXUe9lLwlo4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1789435420; c=relaxed/simple;
-	bh=ExCm5C3P1Yn4My5+38uVQ50XmtwZBWpOlZdWDbvr/VY=;
-	h=Date:To:From:Subject:Message-Id; b=Goz0gZOIt9fQNUFrEAFDdFL0QlqW63cOKTI3jASeXLRx3RpYcVUmDsozbsO3QB4uMJqrcbTBVJUHsupAn2NCzYA6GYfZuAAGlEkRtZbBIn5jTyVApx/89S94wuvxpoqZMPoxG7FzAE6YdGTuaUUhBVc37KkAtDPaGqEsbuXKByU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Vfw5Ccyw; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1789435422; c=relaxed/simple;
+	bh=gyj7Vh1GzSJjxp8iFfUj7qBRx6PuHLXCcWPD34tdiHg=;
+	h=Date:To:From:Subject:Message-Id; b=CXr+FZHayJGsi0Yp9meHWHXEYR08cKmoaFpJPCaPPyEo/n/5zJx0ikQwPcJf+SX/yb9+ZL5x0639HbCuZ1z9ALWqOkti/3WQyXVQuGXTJIPf8/GwfKj0HWu4kDiKr/kis9pV0u7WSw8XiYy+wpF+38m4LDqPid13Ax5NK5kMNtA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=RAcRiubd; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Vfw5Ccyw"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 658951F000FF;
-	Tue, 15 Sep 2026 01:23:38 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="RAcRiubd"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6FA451F000FF;
+	Tue, 15 Sep 2026 01:23:40 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1789435418;
-	bh=LpmElds9axU6l1ej4UyC5xikp40E/J6GxvaXwfYj2vQ=;
+	d=linux-foundation.org; s=korg; t=1789435420;
+	bh=hfIH8FWTWIQ/zYQU1e228txjkyKGJXw4khtY6prp8V0=;
 	h=Date:To:From:Subject;
-	b=Vfw5CcywibjsRtOvUiDau/wf+WqqiWpDyfPe11p8biB8eQovnaxgdTQ++bwHm5aJH
-	 bm4sTCqQ7R9g4QNmF9mmjd1hsT/fAWlefPGiTyyB5zrjug8vdic5k+p24ZUYdQact/
-	 u15tPiKzJ6/Ybp46+wGbeszEIjIwAyjpMpj2LR9Y=
-Date: Mon, 14 Sep 2026 18:23:38 -0700
+	b=RAcRiubd99xvSpG0GhjfKc/zO2uKY7HDnu7M5PIvIpVH2fj89fGAubToX0dyIVlcm
+	 qZMJDD/rtm29w4xlDlE9+ju/0ngh2MYoxHz5DDIPsYHhVaoAmHkeZYFQKmpgxG73JJ
+	 bU2tugP75EItZik3kA++1quXazbrFMjcQ+4HMMBY=
+Date: Mon, 14 Sep 2026 18:23:40 -0700
 To: mm-commits@vger.kernel.org,usamaarif642@gmail.com,stable@vger.kernel.org,davidgow@davidgow.net,brendan.higgins@linux.dev,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-damon-core-return-an-error-from-damos_commit_filter_arg.patch added to mm-new branch
-Message-Id: <20260915012338.658951F000FF@smtp.kernel.org>
+Subject: + mm-damon-core-disallow-max-min-damos-filter-range-arguments-commit.patch added to mm-new branch
+Message-Id: <20260915012340.6FA451F000FF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/damon/core: return an error from damos_commit_filter_arg()
+     Subject: mm/damon/core: disallow max < min damos filter range arguments commit
 has been added to the -mm mm-new branch.  Its filename is
-     mm-damon-core-return-an-error-from-damos_commit_filter_arg.patch
+     mm-damon-core-disallow-max-min-damos-filter-range-arguments-commit.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-core-return-an-error-from-damos_commit_filter_arg.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-core-disallow-max-min-damos-filter-range-arguments-commit.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,15 +70,17 @@ and is updated there most days
 
 ------------------------------------------------------
 From: SJ Park <sj@kernel.org>
-Subject: mm/damon/core: return an error from damos_commit_filter_arg()
-Date: Mon, 14 Sep 2026 07:23:20 -0700
+Subject: mm/damon/core: disallow max < min damos filter range arguments commit
+Date: Mon, 14 Sep 2026 07:23:21 -0700
 
-damos_commit_filter_arg() is supposed to always succeed.  It may not in
-future, for example, if the given filter is invalid.  Prepare the case by
-modifying its signature to return an error when it failed.  Also pipe the
-return value to its callers and let them handle the error.
+damos_commit_filter_arg() receives range arguments for a few types of
+DAMOS filters.  It allows any range including max < min range.  It is fine
+for the logic, but makes no sense to support it.  Actually DAMON sysfs
+interface is doing the validation on its own.  To avoid duplicated
+validations in multiple DAMON API callers, it would be better to do the
+validation in the core layer.  Add a validation of the given range.
 
-Link: https://lore.kernel.org/20260914142327.92510-4-sj@kernel.org
+Link: https://lore.kernel.org/20260914142327.92510-5-sj@kernel.org
 Signed-off-by: SJ Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 Cc: Brendan Higgins <brendan.higgins@linux.dev>
@@ -87,107 +89,33 @@ Cc: Usama Arif <usamaarif642@gmail.com>
 Cc: <stable@vger.kernel.org>
 ---
 
- mm/damon/core.c |   41 ++++++++++++++++++++++++++++-------------
- 1 file changed, 28 insertions(+), 13 deletions(-)
+ mm/damon/core.c |    6 ++++++
+ 1 file changed, 6 insertions(+)
 
---- a/mm/damon/core.c~mm-damon-core-return-an-error-from-damos_commit_filter_arg
+--- a/mm/damon/core.c~mm-damon-core-disallow-max-min-damos-filter-range-arguments-commit
 +++ a/mm/damon/core.c
-@@ -1317,7 +1317,7 @@ static struct damos_filter *damos_nth_op
- 	return NULL;
- }
- 
--static void damos_commit_filter_arg(
-+static int damos_commit_filter_arg(
- 		struct damos_filter *dst, struct damos_filter *src)
- {
- 	switch (dst->type) {
-@@ -1340,28 +1340,32 @@ static void damos_commit_filter_arg(
- 	default:
+@@ -1325,15 +1325,21 @@ static int damos_commit_filter_arg(
+ 		dst->memcg_id = src->memcg_id;
  		break;
- 	}
-+	return 0;
- }
- 
--static void damos_commit_filter(
-+static int damos_commit_filter(
- 		struct damos_filter *dst, struct damos_filter *src)
- {
- 	dst->type = src->type;
- 	dst->matching = src->matching;
- 	dst->allow = src->allow;
--	damos_commit_filter_arg(dst, src);
-+	return damos_commit_filter_arg(dst, src);
- }
- 
- static int damos_commit_core_filters(struct damos *dst, struct damos *src)
- {
- 	struct damos_filter *dst_filter, *next, *src_filter, *new_filter;
--	int i = 0, j = 0;
-+	int i = 0, j = 0, err;
- 
- 	damos_for_each_core_filter_safe(dst_filter, next, dst) {
- 		src_filter = damos_nth_core_filter(i++, src);
--		if (src_filter)
--			damos_commit_filter(dst_filter, src_filter);
--		else
-+		if (src_filter) {
-+			err = damos_commit_filter(dst_filter, src_filter);
-+			if (err)
-+				return err;
-+		} else {
- 			damos_destroy_filter(dst_filter);
-+		}
- 	}
- 
- 	damos_for_each_core_filter_safe(src_filter, next, src) {
-@@ -1373,7 +1377,11 @@ static int damos_commit_core_filters(str
- 				src_filter->allow);
- 		if (!new_filter)
- 			return -ENOMEM;
--		damos_commit_filter_arg(new_filter, src_filter);
-+		err = damos_commit_filter_arg(new_filter, src_filter);
-+		if (err) {
-+			damos_destroy_filter(new_filter);
-+			return err;
-+		}
- 		damos_add_filter(dst, new_filter);
- 	}
- 	return 0;
-@@ -1382,14 +1390,17 @@ static int damos_commit_core_filters(str
- static int damos_commit_ops_filters(struct damos *dst, struct damos *src)
- {
- 	struct damos_filter *dst_filter, *next, *src_filter, *new_filter;
--	int i = 0, j = 0;
-+	int i = 0, j = 0, err;
- 
- 	damos_for_each_ops_filter_safe(dst_filter, next, dst) {
- 		src_filter = damos_nth_ops_filter(i++, src);
--		if (src_filter)
--			damos_commit_filter(dst_filter, src_filter);
--		else
-+		if (src_filter) {
-+			err = damos_commit_filter(dst_filter, src_filter);
-+			if (err)
-+				return err;
-+		} else {
- 			damos_destroy_filter(dst_filter);
-+		}
- 	}
- 
- 	damos_for_each_ops_filter_safe(src_filter, next, src) {
-@@ -1401,7 +1412,11 @@ static int damos_commit_ops_filters(stru
- 				src_filter->allow);
- 		if (!new_filter)
- 			return -ENOMEM;
--		damos_commit_filter_arg(new_filter, src_filter);
-+		err = damos_commit_filter_arg(new_filter, src_filter);
-+		if (err) {
-+			damos_destroy_filter(new_filter);
-+			return err;
-+		}
- 		damos_add_filter(dst, new_filter);
- 	}
- 	return 0;
+ 	case DAMOS_FILTER_TYPE_ADDR:
++		if (src->addr_range.end < src->addr_range.start)
++			return -EINVAL;
+ 		dst->addr_range = src->addr_range;
+ 		break;
+ 	case DAMOS_FILTER_TYPE_TARGET:
+ 		dst->target_idx = src->target_idx;
+ 		break;
+ 	case DAMOS_FILTER_TYPE_HUGEPAGE_SIZE:
++		if (src->sz_range.max < src->sz_range.min)
++			return -EINVAL;
+ 		dst->sz_range = src->sz_range;
+ 		break;
+ 	case DAMOS_FILTER_TYPE_PROBE_HITS_WSUM:
++		if (src->range_max < src->range_min)
++			return -EINVAL;
+ 		dst->range_min = src->range_min;
+ 		dst->range_max = src->range_max;
+ 		break;
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
