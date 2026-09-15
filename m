@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EAAD83CDBB1
-	for <mm-commits@vger.kernel.org>; Tue, 15 Sep 2026 02:00:39 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7E21D274658
+	for <mm-commits@vger.kernel.org>; Tue, 15 Sep 2026 02:00:44 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789437641; cv=none; b=u8jFwXaBD0MjS9adhJH/TKQug1ivk86dQo7pJkwJqbPLUDKPiT0sLgxCS0qGrzlA+IyLlnu8/3dn8zTeg2qpPSxDbKKyLqebY9byrj8YxFkn1XfEaBrwF97AduZz/g2LN8kO08n73lk8V/v8qv20ofeW1ZYXRDk6Z7PhnJNYKbM=
+	t=1789437645; cv=none; b=Z73NyH8DtK2HTfmT9loK4RtUti+OD9vkD7I6a6jaTmkpmQGDWxIYOTK08ljyfsR4MhjpgaDzHlCAzDxaPciciNXoIcux01XNh1O9gz5eMHMaBLgoSep0BSt7NhNUGmwf15d1j2u3XS5eoX1g64SLYxnAVBE2ps0ucfCkZdBz+Dc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1789437641; c=relaxed/simple;
-	bh=6BrcpZK0KtYK7FJYNMCST8lAPsk06ADFauWhoWaQFT4=;
-	h=Date:To:From:Subject:Message-Id; b=MaR+nUTgE2rwOK4cI1AKr23ZkIAIxDDvNAEHjXQbOh1kgVVzxA1oSSb7Oml7W6kXdeDZI+UrDWqWvqe0yH167QxCCa2B5O+5fjtvyqQ2+lSURo/tx3bDLpA4YbsfP1RgcbhxI3e6gSqxrFlOlFMVz8qXJmKJ8V5a1+1z6ivFq4M=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=df71X4Aw; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1789437645; c=relaxed/simple;
+	bh=OSEUpxwEbnfsezZysXXaAv1epVDFX5M6lC/xFcy0yGQ=;
+	h=Date:To:From:Subject:Message-Id; b=rsOrsflFmEYRJpAaj1T5hqvo5d46wOJ48ImZGQed1sCoxEETeoOpX0z4lmlNDxUp2VIshuR+Mx719pJeTsl0bOOxkSzwNgEiS7zpCh+UB/vhVFw6LD4IONFatF6J99kHe63QrFmZHY9lsAU/rvlFoJo0VI+7PTAbhuzzdEO4msQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=j9772mQK; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="df71X4Aw"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 52A231F000FF;
-	Tue, 15 Sep 2026 02:00:39 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="j9772mQK"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 242C61F000FF;
+	Tue, 15 Sep 2026 02:00:44 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1789437639;
-	bh=CE3wocUNNL2dw6jHlXXKzOe9qzoFtW5Y0+5ApOtOxEk=;
+	d=linux-foundation.org; s=korg; t=1789437644;
+	bh=ttI2l+PS5BfdGe3pTsZ8oScrFhNitkCLxcAHAMOMJM4=;
 	h=Date:To:From:Subject;
-	b=df71X4AwMyCGjLWbST1d+UayWnXPFGEKPhzjj6AfCQUM/sZX15vBhS8eiTqc2P4rU
-	 WyNn/+fyMm/Pb+8DYMQyYiA08wrpSwxCJtPXMduYXJ6d7wVrnwIAq2nkLb+rgpb3f+
-	 8uVSuBlXI+cah9YTBUOklQ9DpnnCAMMJM5+aBY5w=
-Date: Mon, 14 Sep 2026 19:00:38 -0700
-To: mm-commits@vger.kernel.org,eva.kurchatova@virtuozzo.com,akpm@linux-foundation.org
+	b=j9772mQKXJRfM2wTLdIE0Xqh0zh5t0HH6i3IsVDoCDwHHttVSFg10GZ4Iqt875Q7Z
+	 BI87XAvvdBcvXbj0qDFGahGMYcp7gEHY6aPRTE4LYGYhBaeMJCJ1yeNOetT7GxsuD2
+	 mAnx4kI1HWT3D4wKj4IbQg2ItjlxWfL3s9vs8fLM=
+Date: Mon, 14 Sep 2026 19:00:43 -0700
+To: mm-commits@vger.kernel.org,kunwu.chan@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-damon-add-script-dir-to-syspath-for-pythonsafepath-compatibility.patch added to mm-new branch
-Message-Id: <20260915020039.52A231F000FF@smtp.kernel.org>
+Subject: + mm-damon-tests-core-kunit-improve-nr_samples_per_aggr-test-isolation.patch added to mm-new branch
+Message-Id: <20260915020044.242C61F000FF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: selftests/damon: add script dir to sys.path for PYTHONSAFEPATH compatibility
+     Subject: mm/damon/tests/core-kunit: improve nr_samples_per_aggr test isolation
 has been added to the -mm mm-new branch.  Its filename is
-     selftests-damon-add-script-dir-to-syspath-for-pythonsafepath-compatibility.patch
+     mm-damon-tests-core-kunit-improve-nr_samples_per_aggr-test-isolation.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-damon-add-script-dir-to-syspath-for-pythonsafepath-compatibility.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-tests-core-kunit-improve-nr_samples_per_aggr-test-isolation.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -69,37 +69,28 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Eva Kurchatova <eva.kurchatova@virtuozzo.com>
-Subject: selftests/damon: add script dir to sys.path for PYTHONSAFEPATH compatibility
-Date: Mon, 14 Sep 2026 07:19:48 -0700
+From: Kunwu Chan <kunwu.chan@gmail.com>
+Subject: mm/damon/tests/core-kunit: improve nr_samples_per_aggr test isolation
+Date: Mon, 14 Sep 2026 07:19:49 -0700
 
-Running these tests under Python's safe path mode, either with -P on the
-interpreter command line or with PYTHONSAFEPATH set in the environment,
-stops the script's own directory being prepended to sys.path.  Some
-distributions (RHEL, for example) build the tests with -P in the shebang.
+Test the zero sample interval case with a non-zero aggregation interval,
+and keep the zero/zero case to cover the zero-result fallback.
 
-This breaks all 7 DAMON Python selftests that import the _damon_sysfs
-helper module located in the same directory:
+Also make the overflow case use an explicit sample interval so that it
+does not depend on the zero sample interval fallback.
 
-  ModuleNotFoundError: No module named '_damon_sysfs'
-
-Fix this by explicitly adding the script's directory to sys.path before
-importing _damon_sysfs, following the same pattern used in commit
-c3b3eb565bd7 ("tools: ynl: add script dir to sys.path") which fixed the
-identical issue for the YNL tools.
-
-Link: https://lore.kernel.org/20260914141952.91465-4-sj@kernel.org
-Signed-off-by: Eva Kurchatova <eva.kurchatova@virtuozzo.com>
-Reviewed-by: SJ Park <sj@kernel.org>
+Link: https://lore.kernel.org/20260914141952.91465-5-sj@kernel.org
+Signed-off-by: Kunwu Chan <kunwu.chan@gmail.com>
 Signed-off-by: SJ Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+Reviewed-by: Lian Wang <lianux.mm@gmail.com>
+Reviewed-by: SJ Park <sj@kernel.org>
 Cc: Brendan Higgins <brendan.higgins@linux.dev>
 Cc: David Gow <davidgow@davidgow.net>
 Cc: David Hildenbrand <david@kernel.org>
+Cc: Eva Kurchatova <eva.kurchatova@virtuozzo.com>
 Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Kunwu Chan <kunwu.chan@gmail.com>
 Cc: Liam R. Howlett <liam@infradead.org>
-Cc: Lian Wang <lianux.mm@gmail.com>
 Cc: Liew Rui Yan <aethernet65535@gmail.com>
 Cc: Lorenzo Stoakes <ljs@kernel.org>
 Cc: Michal Hocko <mhocko@suse.com>
@@ -111,123 +102,50 @@ Cc: Vlastimil Babka <vbabka@kernel.org>
 Cc: "Zenghui Yu (Huawei)" <zenghui.yu@linux.dev>
 ---
 
- tools/testing/selftests/damon/damon_nr_regions.py                                  |    3 +++
- tools/testing/selftests/damon/damos_apply_interval.py                              |    3 +++
- tools/testing/selftests/damon/damos_quota.py                                       |    3 +++
- tools/testing/selftests/damon/damos_quota_goal.py                                  |    3 +++
- tools/testing/selftests/damon/damos_tried_regions.py                               |    3 +++
- tools/testing/selftests/damon/sysfs_update_schemes_tried_regions_hang.py           |    3 +++
- tools/testing/selftests/damon/sysfs_update_schemes_tried_regions_wss_estimation.py |    3 +++
- 7 files changed, 21 insertions(+)
+ mm/damon/tests/core-kunit.h |   19 +++++++++++++++----
+ 1 file changed, 15 insertions(+), 4 deletions(-)
 
---- a/tools/testing/selftests/damon/damon_nr_regions.py~selftests-damon-add-script-dir-to-syspath-for-pythonsafepath-compatibility
-+++ a/tools/testing/selftests/damon/damon_nr_regions.py
-@@ -1,9 +1,12 @@
- #!/usr/bin/env python3
- # SPDX-License-Identifier: GPL-2.0
+--- a/mm/damon/tests/core-kunit.h~mm-damon-tests-core-kunit-improve-nr_samples_per_aggr-test-isolation
++++ a/mm/damon/tests/core-kunit.h
+@@ -627,12 +627,20 @@ static void damon_test_set_regions(struc
  
-+import os
- import subprocess
-+import sys
- import time
+ static void damon_test_nr_samples_per_aggr(struct kunit *test)
+ {
+-	struct damon_attrs attrs = {
++	struct damon_attrs attrs;
++
++	/* Zero sample interval is treated as one. */
++	attrs = (struct damon_attrs){
+ 		.sample_interval = 0,
+-		.aggr_interval = 0,
++		.aggr_interval = 5000,
+ 	};
++	KUNIT_EXPECT_EQ(test, damon_nr_samples_per_aggr(&attrs), 5000);
  
-+sys.path.append(os.path.dirname(os.path.abspath(__file__)))
- import _damon_sysfs
+-	/* Zero aggregation interval doesn't cause division by zero */
++	/* Zero sample and aggregation intervals cover the zero-result fallback. */
++	attrs = (struct damon_attrs){
++		.sample_interval = 0,
++		.aggr_interval = 0,
++	};
+ 	KUNIT_EXPECT_EQ(test, damon_nr_samples_per_aggr(&attrs), 1);
  
- def test_nr_regions(real_nr_regions, min_nr_regions, max_nr_regions):
---- a/tools/testing/selftests/damon/damos_apply_interval.py~selftests-damon-add-script-dir-to-syspath-for-pythonsafepath-compatibility
-+++ a/tools/testing/selftests/damon/damos_apply_interval.py
-@@ -1,9 +1,12 @@
- #!/usr/bin/env python3
- # SPDX-License-Identifier: GPL-2.0
- 
-+import os
- import subprocess
-+import sys
- import time
- 
-+sys.path.append(os.path.dirname(os.path.abspath(__file__)))
- import _damon_sysfs
- 
- def main():
---- a/tools/testing/selftests/damon/damos_quota_goal.py~selftests-damon-add-script-dir-to-syspath-for-pythonsafepath-compatibility
-+++ a/tools/testing/selftests/damon/damos_quota_goal.py
-@@ -1,9 +1,12 @@
- #!/usr/bin/env python3
- # SPDX-License-Identifier: GPL-2.0
- 
-+import os
- import subprocess
-+import sys
- import time
- 
-+sys.path.append(os.path.dirname(os.path.abspath(__file__)))
- import _damon_sysfs
- 
- def main():
---- a/tools/testing/selftests/damon/damos_quota.py~selftests-damon-add-script-dir-to-syspath-for-pythonsafepath-compatibility
-+++ a/tools/testing/selftests/damon/damos_quota.py
-@@ -1,9 +1,12 @@
- #!/usr/bin/env python3
- # SPDX-License-Identifier: GPL-2.0
- 
-+import os
- import subprocess
-+import sys
- import time
- 
-+sys.path.append(os.path.dirname(os.path.abspath(__file__)))
- import _damon_sysfs
- 
- def main():
---- a/tools/testing/selftests/damon/damos_tried_regions.py~selftests-damon-add-script-dir-to-syspath-for-pythonsafepath-compatibility
-+++ a/tools/testing/selftests/damon/damos_tried_regions.py
-@@ -1,9 +1,12 @@
- #!/usr/bin/env python3
- # SPDX-License-Identifier: GPL-2.0
- 
-+import os
- import subprocess
-+import sys
- import time
- 
-+sys.path.append(os.path.dirname(os.path.abspath(__file__)))
- import _damon_sysfs
- 
- def main():
---- a/tools/testing/selftests/damon/sysfs_update_schemes_tried_regions_hang.py~selftests-damon-add-script-dir-to-syspath-for-pythonsafepath-compatibility
-+++ a/tools/testing/selftests/damon/sysfs_update_schemes_tried_regions_hang.py
-@@ -1,9 +1,12 @@
- #!/usr/bin/env python3
- # SPDX-License-Identifier: GPL-2.0
- 
-+import os
- import subprocess
-+import sys
- import time
- 
-+sys.path.append(os.path.dirname(os.path.abspath(__file__)))
- import _damon_sysfs
- 
- def main():
---- a/tools/testing/selftests/damon/sysfs_update_schemes_tried_regions_wss_estimation.py~selftests-damon-add-script-dir-to-syspath-for-pythonsafepath-compatibility
-+++ a/tools/testing/selftests/damon/sysfs_update_schemes_tried_regions_wss_estimation.py
-@@ -1,9 +1,12 @@
- #!/usr/bin/env python3
- # SPDX-License-Identifier: GPL-2.0
- 
-+import os
- import subprocess
-+import sys
- import time
- 
-+sys.path.append(os.path.dirname(os.path.abspath(__file__)))
- import _damon_sysfs
- 
- def pass_wss_estimation(sz_region):
+ 	/*
+@@ -640,7 +648,10 @@ static void damon_test_nr_samples_per_ag
+ 	 * overflow
+ 	 */
+ 	if (ULONG_MAX > UINT_MAX) {
+-		attrs.aggr_interval = (unsigned long)UINT_MAX + 1;
++		attrs = (struct damon_attrs){
++			.sample_interval = 1,
++			.aggr_interval = (unsigned long)UINT_MAX + 1,
++		};
+ 		KUNIT_EXPECT_EQ(test, damon_nr_samples_per_aggr(&attrs),
+ 				UINT_MAX);
+ 	}
 _
 
-Patches currently in -mm which might be from eva.kurchatova@virtuozzo.com are
+Patches currently in -mm which might be from kunwu.chan@gmail.com are
 
-selftests-damon-add-script-dir-to-syspath-for-pythonsafepath-compatibility.patch
+mm-damon-tests-core-kunit-improve-nr_samples_per_aggr-test-isolation.patch
 
