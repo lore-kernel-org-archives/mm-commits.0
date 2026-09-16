@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2AB804AC149
-	for <mm-commits@vger.kernel.org>; Wed, 16 Sep 2026 22:31:36 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id ADAE84BE450;
+	Wed, 16 Sep 2026 22:34:21 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789597904; cv=none; b=ZkC9gjeZIYXDsSWuJ5Rqcz/khwfjpLMKjc4QZ4qXimpalAX3v23bw+oBKplycM+HMx9ey2Wvqddh86atz2k5nS5lk3921oMIi2VPAlQWLhrBqyMYfggF5hyCCflPMbK8+aMgbD6d3+lmFKjr//pTnDZxQfaYXD6/jYOsoeHCqUA=
+	t=1789598068; cv=none; b=e5hqlKbQ4nsRp6DunamjRj97ttJKOLiZuVqJDjSAs0GwxH4AnzEUPa0kVqhvevFQvEm9s8wLIc26Fy+Dwi7lFMb/U8UoER+JiXIhT5VtA3eIcmzSoMb/k13sP7zFjbrWxFEgYNf5lefOK0OPuowOgaGx/D4NZ0SmF0HOmcdKQVI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1789597904; c=relaxed/simple;
-	bh=Wqcm6hW5PVGFJx9FH/Kr9GggmrRep/YnPiXj4q2yhBs=;
-	h=Date:To:From:Subject:Message-Id; b=is5kNZBeiD6d8jfIPkH64ZBmS8FZHz6NeFlb62OVlnVluxi4s4XdNcXqNMMh4s0rNRbOctAUiEkY2pzxWEcT1IkClvt7VLn79ppcplv33V7IBiSh79oE6LdIK9/26HRtp3oci3y49Q4M/7hrWwYoZ8dIVP84JgCWMOd9CLFlBII=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=xrZkxMEu; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1789598068; c=relaxed/simple;
+	bh=K3kymkFgsbhoN3JxH0065cn+VEi6TqBVh4l4sn5879g=;
+	h=Date:To:From:Subject:Message-Id; b=aP3D6wCfLDn7w4p+MZsTx1gZeSKozLb3hqliMxMsb4UKYicmFkfkmVhnpFmsNSD1UTCXzJlh+CDAmQrOSjL3PdElF1aULCHcs79hAhr+VfgMYZp0/GN3j1miQv+3/7K9ViljSzh3+ZIu2x0xc9s1ZIcIodrxuXg/Pzy4zUtcUVw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=aQd1XDWe; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="xrZkxMEu"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 028621F000FF;
-	Wed, 16 Sep 2026 22:31:33 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="aQd1XDWe"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 810961F00893;
+	Wed, 16 Sep 2026 22:34:18 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1789597894;
-	bh=YHVPRLNFDkJ/ggkmyLEPK/5ONRmgH7mpqI+pL7YvSEU=;
+	d=linux-foundation.org; s=korg; t=1789598058;
+	bh=rqG1hlFDKDAFCEyGhpU+yq15VWWiLqgrt2MlhiWqepQ=;
 	h=Date:To:From:Subject;
-	b=xrZkxMEudRp499NsIq7zsrWF5gtv5iFq0asrTqOrP4oBTIGCAyVhw81b/avJmE6n3
-	 Kgj5L8wro14dmhLoXtF1aYcHMizg7GtwT9vYVd3GdG3+rRtVjdkgBKb5hEh8vWM5Lb
-	 lnkC35H75Zi5At+F53hJPB9CE49zKJuWsL9pWYuE=
-Date: Wed, 16 Sep 2026 15:31:33 -0700
-To: mm-commits@vger.kernel.org,willy@infradead.org,shakeel.butt@linux.dev,roman.gushchin@linux.dev,riel@surriel.com,muchun.song@linux.dev,mhocko@kernel.org,jack@suse.cz,hannes@cmpxchg.org,david@kernel.org,usama.arif@linux.dev,akpm@linux-foundation.org
+	b=aQd1XDWez9Xi4W3TikZf9dErzaCJcvENlWS1ED4vswmIvio9rjmxomoJucRC3Ddr4
+	 3VcJcQmRhvzhOrda+k1qrFwDpaWa5n1kRipkoGZUT9PliKh16/QrXz2Hfg8n1u+fSl
+	 TX4/C5+21HvhIAQqkfCta32Ar0lNKj0U8K6xqg4w=
+Date: Wed, 16 Sep 2026 15:34:18 -0700
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,willy@infradead.org,vbabka@kernel.org,stable@vger.kernel.org,ritesh.list@gmail.com,mhocko@suse.com,hch@lst.de,hannes@cmpxchg.org,dgc@kernel.org,david@redhat.com,dipiets@amazon.it,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-filemap-move-lruvec-accounting-outside-the-xarray-lock.patch added to mm-new branch
-Message-Id: <20260916223134.028621F000FF@smtp.kernel.org>
+Subject: + mm-page_alloc-avoid-direct-compaction-for-costly-__gfp_noretry-allocations.patch added to mm-hotfixes-unstable branch
+Message-Id: <20260916223418.810961F00893@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,26 +35,15 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: filemap: move lruvec accounting outside the xarray lock
-has been added to the -mm mm-new branch.  Its filename is
-     mm-filemap-move-lruvec-accounting-outside-the-xarray-lock.patch
+     Subject: mm/page_alloc: avoid direct compaction for costly __GFP_NORETRY allocations
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     mm-page_alloc-avoid-direct-compaction-for-costly-__gfp_noretry-allocations.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-filemap-move-lruvec-accounting-outside-the-xarray-lock.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-page_alloc-avoid-direct-compaction-for-costly-__gfp_noretry-allocations.patch
 
-This patch will later appear in the mm-new branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Note, mm-new is a provisional staging ground for work-in-progress
-patches, and acceptance into mm-new is a notification for others take
-notice and to finish up reviews.  Please do not hesitate to respond to
-review feedback and post updated versions to replace or incrementally
-fixup patches in mm-new.
-
-The mm-new branch of mm.git is not included in linux-next
-
-If a few days of testing in mm-new is successful, the patch will me moved
-into mm.git's mm-unstable branch, which is included in linux-next
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -69,82 +58,114 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Usama Arif <usama.arif@linux.dev>
-Subject: mm: filemap: move lruvec accounting outside the xarray lock
-Date: Wed, 16 Sep 2026 05:51:22 -0700
+From: Salvatore Dipietro <dipiets@amazon.it>
+Subject: mm/page_alloc: avoid direct compaction for costly __GFP_NORETRY allocations
+Date: Fri, 4 Sep 2026 11:56:28 +0000
 
-__filemap_add_folio() inserts a folio and updates mapping->nrpages while
-holding mapping->i_pages.xa_lock with interrupts disabled.  The XArray
-insertion and nrpages update require the lock, but the lruvec statistic
-updates do not.  With CONFIG_MEMCG, those calls also update per-CPU memcg
-and lruvec counters and notify cgroup rstat, extending the critical
-section.
+Commit 5d8edfb900d5 ("iomap: Copy larger chunks from userspace")
+introduced high-order folio allocations in the iomap buffered write path. 
+When memory is fragmented, each failed costly-order allocation enters
+__alloc_pages_slowpath() which runs direct compaction and
+drain_all_pages(), causing a 0.38x throughput drop on PostgreSQL pgbench
+(simple-update) with 1024 clients on a 96-vCPU arm64 system.
 
-Move the lruvec accounting after a successful XArray insertion and after
-xas_unlock_irq().  The page-cache references pin the folio, while the
-folio lock keeps folio->mapping stable and prevents removal until
-accounting is complete.  This moves one lruvec update for ordinary folios
-and a second for PMD-mappable folios out of the serialized section.
+The root issue is that direct compaction is too expensive for hot
+allocation paths that have fallbacks to smaller allocations. 
+__filemap_get_folio_mpol() already marks higher-order allocations with
+__GFP_NORETRY | __GFP_NOWARN, signalling that the caller can handle
+failure.  However, the page allocator still attempts full direct
+compaction for costly orders with __GFP_NORETRY, which is unnecessarily
+aggressive when the caller will simply retry at a lower order.
 
-In a 30-second system-wide perf lock contention -ab capture on a
-production host, the hottest caller-stack record attributed to
-__filemap_add_folio() had 20,867 contentions and 557.930 ms total wait. 
-That was 14% of the 3.998 seconds of aggregate lock wait in the capture. 
-Moving lruvec accuting outside of critical section should help optimize
-it.
+For costly-order allocations with __GFP_NORETRY, clear
+__GFP_DIRECT_RECLAIM at the very start of the slowpath, before
+can_direct_reclaim, can_compact and the nofail checks are evaluated.  This
+makes the entire slowpath treat the request as non-blocking: no direct
+reclaim, no direct compaction and no drain_all_pages() IPI across every
+CPU.  kswapd (and in turn kcompactd) is still woken further down for
+background defragmentation, so compaction keeps working for long-term
+system health while being removed from the latency-critical direct
+allocation path.
 
-Link: https://lore.kernel.org/20260916125122.2696271-1-usama.arif@linux.dev
-Signed-off-by: Usama Arif <usama.arif@linux.dev>
+Allocations that also request __GFP_THISNODE are exempted.  That flag
+pairing identifies the local-node-first THP attempt issued by
+alloc_pages_mpol() (mempolicy.c), which relies on direct compaction to
+form transparent huge pages.
+
+Test environment:
+  Hardware:  AWS EC2 m8g.24xlarge (96 vCPU, arm64)
+             12x 1TB IO2 32000 IOPS RAID0 XFS
+  OS:        AL2023
+  Kernel:    v7.3-rc1
+  Database:  PostgreSQL 18.4
+  Workload:  pgbench simple-update, 1024 clients, 96 threads, 1200s
+
+Results (average of 3 runs, TPS):
+
+  Config                   Avg TPS      % vs Baseline
+  baseline (no patch)       59,408       -
+  With this patch          155,409      +161.6%
+
+Link: https://lore.kernel.org/all/20260403193535.9970-1-dipiets@amazon.it/T/#t [v1]
+Link: https://lore.kernel.org/linux-mm/20260420161404.642-1-dipiets@amazon.it/T/#u [v2]
+Link: https://lore.kernel.org/all/20260710143437.12379-1-dipiets@amazon.it/T/#u [v3]
+Link: https://lore.kernel.org/20260904115629.3993331-1-dipiets@amazon.it
+Fixes: 5d8edfb900d5 ("iomap: Copy larger chunks from userspace")
+Signed-off-by: Salvatore Dipietro <dipiets@amazon.it>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Cc: David Hildenbrand <david@kernel.org>
-Cc: Jan Kara <jack@suse.cz>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Muchun Song <muchun.song@linux.dev>
-Cc: Rik van Riel <riel@surriel.com>
-Cc: Roman Gushchin <roman.gushchin@linux.dev>
-Cc: Shakeel Butt <shakeel.butt@linux.dev>
+Acked-by: Vlastimil Babka (SUSE) <vbabka@kernel.org>
+Acked-by: Zi Yan <ziy@nvidia.com>
+Reviewed-by: Johannes Weiner <hannes@cmpxchg.org>
+Reviewed-by: Christoph Hellwig <hch@lst.de>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Dave Chinner <dgc@kernel.org>
+Cc: Ritesh Harjani <ritesh.list@gmail.com>
+Cc: <stable@vger.kernel.org>
 ---
 
- mm/filemap.c |   15 +++++++--------
- 1 file changed, 7 insertions(+), 8 deletions(-)
+ mm/page_alloc.c |   18 +++++++++++++++---
+ 1 file changed, 15 insertions(+), 3 deletions(-)
 
---- a/mm/filemap.c~mm-filemap-move-lruvec-accounting-outside-the-xarray-lock
-+++ a/mm/filemap.c
-@@ -918,14 +918,6 @@ noinline int __filemap_add_folio(struct
+--- a/mm/page_alloc.c~mm-page_alloc-avoid-direct-compaction-for-costly-__gfp_noretry-allocations
++++ a/mm/page_alloc.c
+@@ -4784,10 +4784,10 @@ static inline struct page *
+ __alloc_pages_slowpath(gfp_t gfp_mask, unsigned int order,
+ 						struct alloc_context *ac)
+ {
+-	bool can_direct_reclaim = gfp_mask & __GFP_DIRECT_RECLAIM;
+-	bool can_compact = can_direct_reclaim && gfp_compaction_allowed(gfp_mask);
+-	bool nofail = gfp_mask & __GFP_NOFAIL;
+ 	const bool costly_order = order > PAGE_ALLOC_COSTLY_ORDER;
++	bool can_direct_reclaim;
++	bool can_compact;
++	bool nofail;
+ 	struct page *page = NULL;
+ 	unsigned int alloc_flags;
+ 	unsigned long did_some_progress;
+@@ -4802,6 +4802,18 @@ __alloc_pages_slowpath(gfp_t gfp_mask, u
+ 	bool can_retry_reserves = true;
+ 	unsigned long alloc_start_time = jiffies;
  
- 		mapping->nrpages += nr;
- 
--		/* hugetlb pages do not participate in page cache accounting */
--		if (!huge) {
--			lruvec_stat_mod_folio(folio, NR_FILE_PAGES, nr);
--			if (folio_test_pmd_mappable(folio))
--				lruvec_stat_mod_folio(folio,
--						NR_FILE_THPS, nr);
--		}
--
- unlock:
- 		xas_unlock_irq(&xas);
- 
-@@ -942,6 +934,13 @@ unlock:
- 	if (xas_error(&xas))
- 		goto error;
- 
-+	/* hugetlb pages do not participate in page cache accounting */
-+	if (!huge) {
-+		lruvec_stat_mod_folio(folio, NR_FILE_PAGES, nr);
-+		if (folio_test_pmd_mappable(folio))
-+			lruvec_stat_mod_folio(folio, NR_FILE_THPS, nr);
-+	}
++	/*
++	 * Costly __GFP_NORETRY callers have a cheap fallback, so don't stall
++	 * them in reclaim or compaction. __GFP_THISNODE callers are exempt.
++	 */
++	if (costly_order && (gfp_mask & __GFP_NORETRY) &&
++	    !(gfp_mask & __GFP_THISNODE))
++		gfp_mask &= ~__GFP_DIRECT_RECLAIM;
 +
- 	trace_mm_filemap_add_to_page_cache(folio);
- 	return 0;
- error:
++	can_direct_reclaim = gfp_mask & __GFP_DIRECT_RECLAIM;
++	can_compact = can_direct_reclaim && gfp_compaction_allowed(gfp_mask);
++	nofail = gfp_mask & __GFP_NOFAIL;
++
+ 	if (unlikely(nofail)) {
+ 		/*
+ 		 * Also we don't support __GFP_NOFAIL without __GFP_DIRECT_RECLAIM,
 _
 
-Patches currently in -mm which might be from usama.arif@linux.dev are
+Patches currently in -mm which might be from dipiets@amazon.it are
 
-mm-zswap-dont-fail-a-large-folio-swapin-whose-range-is-not-in-zswap.patch
-mm-filemap-move-lruvec-accounting-outside-the-xarray-lock.patch
+mm-page_alloc-avoid-direct-compaction-for-costly-__gfp_noretry-allocations.patch
 
