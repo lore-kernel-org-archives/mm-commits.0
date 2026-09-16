@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3A1634C33D4
-	for <mm-commits@vger.kernel.org>; Wed, 16 Sep 2026 21:54:46 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CE7794E4310
+	for <mm-commits@vger.kernel.org>; Wed, 16 Sep 2026 21:54:53 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789595696; cv=none; b=aAYvX8KIrjO/5hHsUcOynWJq5dwssAvNeeNp6oNnHhCSrU3YXY13jRWR8/LQx52BnZyfxWmrHTRy+L+/uCCIyf9h6kYgOvdGu02BGDT7fK48jPdxi+T7nIUVePyS3MIQfc10C02ott4IYPsTeNLF834uoQWUvtQDTkWaIlc/5G8=
+	t=1789595697; cv=none; b=pMG4dmMzPqD4udui8e757Sn+gqcRRFIjwqAZcoiWwNgJNqCdvCQy0GO5w2GoLc5Z8jtrlnMqZ5qVQuu2EqpGqDp2Z9ReIJr2g+G62Hb6/suOW3Zz7knIrdqZiOkXsxlk5tCXs0DTBQqMdRid5eplIzP53Lmr0zGoFGsUbl1V3gc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1789595696; c=relaxed/simple;
-	bh=vM0Ek6OsH/yxMxksGMtTx4tVMY1gbm6wQgyhDeWGDjk=;
-	h=Date:To:From:Subject:Message-Id; b=JeH7DfpBjAJSunKi+oGiBemE02KZ7rx/mS6YJ9lEpx2aCU3EY8gJosLTM2wK5xP4rZu8TKr4seDgNSaypX8J92zj+zpZcBnSxV/ffLAQgD6WOd1bDYAYKYfY0hL7TwfsdgQpCTdpyIr2J2yzRQIGuKJCUzbR81hv+q7KZkVJ0YE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Ss1ZI33+; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1789595697; c=relaxed/simple;
+	bh=ThitoHBOlIXL1YV+ryewE0a03wAlW4tDBkOAYIcH0rA=;
+	h=Date:To:From:Subject:Message-Id; b=LttlW+v8tPdDy9MZrDxJk7n9WvpqoPhS/TvTTQal4VzcYjj3QHHrDJl+BwE6bSDy37btsKBi9FhVvbYrcUB/JWzxQf/veMQasdfpLTy402UQBORwIRIX/h/Rr8xBe5zozmZYE4v9r1/gbUvPObzQ3hXkzLLdrFGKhtEDNCABv58=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=j+Nzi4+n; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Ss1ZI33+"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D0CE81F00893;
-	Wed, 16 Sep 2026 21:54:43 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="j+Nzi4+n"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6D7381F00898;
+	Wed, 16 Sep 2026 21:54:51 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1789595683;
-	bh=QZq3/kJkrneRPDZJ/67K8PTttcZSRjYPidl3tbj7fsA=;
+	d=linux-foundation.org; s=korg; t=1789595691;
+	bh=eGWPzgnA4zidt/kplmPsc+NBkSibGAn9YnXUM/w81bg=;
 	h=Date:To:From:Subject;
-	b=Ss1ZI33+pwxfhh9yZr30zrlENQKUUhRz1Rv5Ju4MZN0hcy2nAXgW9LN5dDIerkEKu
-	 4EL009dN0KVEX47XoJAZQeiq019rNntipOVvAdUl0nQasXpdTWmJyPbU/s0rv9CdpF
-	 CWvDOTa2y333Nv3u1L20cnk9Swe/2o9Ex/TeCjxw=
-Date: Wed, 16 Sep 2026 14:54:43 -0700
+	b=j+Nzi4+nKv9ZiDHX5LjgmcbWUSBRNOuQyxAD2sAs3Lo+NrJE7+g3bSfw/0YYMJoQG
+	 jksFbAF0lIC/ENcRevoczFoaAu2SI94004yBIwHOYiCwhnwunZfASxUVJ07ULJb7ls
+	 A1pi3xrTQvKI7k/9P0Gf/HMcz6M/97LP8fpXRVtM=
+Date: Wed, 16 Sep 2026 14:54:51 -0700
 To: mm-commits@vger.kernel.org,tz2294@columbia.edu,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-memcontrol-constify-the-mem_cgroup-accessors.patch added to mm-new branch
-Message-Id: <20260916215443.D0CE81F00893@smtp.kernel.org>
+Subject: + mm-memcontrol-constify-the-memcg-and-lruvec-stat-readers.patch added to mm-new branch
+Message-Id: <20260916215451.6D7381F00898@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: memcontrol: constify the mem_cgroup accessors
+     Subject: mm: memcontrol: constify the memcg and lruvec stat readers
 has been added to the -mm mm-new branch.  Its filename is
-     mm-memcontrol-constify-the-mem_cgroup-accessors.patch
+     mm-memcontrol-constify-the-memcg-and-lruvec-stat-readers.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memcontrol-constify-the-mem_cgroup-accessors.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memcontrol-constify-the-memcg-and-lruvec-stat-readers.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,18 +70,16 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Tal Zussman <tz2294@columbia.edu>
-Subject: mm: memcontrol: constify the mem_cgroup accessors
-Date: Tue, 15 Sep 2026 19:20:09 -0400
+Subject: mm: memcontrol: constify the memcg and lruvec stat readers
+Date: Tue, 15 Sep 2026 19:20:12 -0400
 
-mem_cgroup_id(), parent_mem_cgroup(), mem_cgroup_is_root(),
-mem_cgroup_is_descendant(), memcg_kmem_id(), and the other memcg accessors
-only read from the memcg.  Constify them, along with
-mem_cgroup_shrink_is_root()'s shrink_control.
+The memcg_page_state(), memcg_events(), and lruvec_page_state() families
+only read counters.  Constify them.
 
-mem_cgroup_print_oom_context()'s task stays non-const, as task_cgroup()
-takes a non-const task.
+Use container_of_const() in the lruvec_page_state() family while at it, so
+the const isn't silently cast away.
 
-Link: https://lore.kernel.org/20260915-folio_memcg-const-v3-5-c239a6010b58@columbia.edu
+Link: https://lore.kernel.org/20260915-folio_memcg-const-v3-8-c239a6010b58@columbia.edu
 Signed-off-by: Tal Zussman <tz2294@columbia.edu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 Acked-by: Muchun Song <muchun.song@linux.dev>
@@ -108,189 +106,204 @@ Cc: Wei Xu <weixugc@google.com>
 Cc: Yuanchu Xie <yuanchu@google.com>
 ---
 
- include/linux/memcontrol.h |   41 +++++++++++++++++------------------
- mm/memcontrol.c            |    3 +-
- 2 files changed, 23 insertions(+), 21 deletions(-)
+ include/linux/memcontrol.h |   23 ++++++++++++-----------
+ mm/memcontrol-v1.h         |    6 +++---
+ mm/memcontrol.c            |   30 +++++++++++++++---------------
+ 3 files changed, 30 insertions(+), 29 deletions(-)
 
---- a/include/linux/memcontrol.h~mm-memcontrol-constify-the-mem_cgroup-accessors
+--- a/include/linux/memcontrol.h~mm-memcontrol-constify-the-memcg-and-lruvec-stat-readers
 +++ a/include/linux/memcontrol.h
-@@ -539,7 +539,7 @@ static inline bool PageMemcgKmem(const s
- 	return folio_memcg_kmem(page_folio(page));
+@@ -971,15 +971,16 @@ static inline void mod_memcg_page_state(
+ 	rcu_read_unlock();
  }
  
--static inline bool mem_cgroup_is_root(struct mem_cgroup *memcg)
-+static inline bool mem_cgroup_is_root(const struct mem_cgroup *memcg)
- {
- 	return (memcg == root_mem_cgroup);
- }
-@@ -555,7 +555,7 @@ static inline bool mem_cgroup_is_root(st
-  * and do not honour sc->memcg can use this to early-return 0 in per-memcg
-  * contexts.
-  */
--static inline bool mem_cgroup_shrink_is_root(struct shrink_control *sc)
-+static inline bool mem_cgroup_shrink_is_root(const struct shrink_control *sc)
- {
- 	return !sc->memcg || mem_cgroup_is_root(sc->memcg);
- }
-@@ -840,7 +840,7 @@ void mem_cgroup_iter_break(struct mem_cg
- void mem_cgroup_scan_tasks(struct mem_cgroup *memcg,
- 			   int (*)(struct task_struct *, void *), void *arg);
+-unsigned long memcg_events(struct mem_cgroup *memcg, int event);
+-unsigned long memcg_page_state(struct mem_cgroup *memcg, int idx);
+-unsigned long memcg_page_state_output(struct mem_cgroup *memcg, int item);
++unsigned long memcg_events(const struct mem_cgroup *memcg, int event);
++unsigned long memcg_page_state(const struct mem_cgroup *memcg, int idx);
++unsigned long memcg_page_state_output(const struct mem_cgroup *memcg, int item);
+ bool memcg_stat_item_valid(int idx);
+ bool memcg_vm_event_item_valid(enum vm_event_item idx);
+-unsigned long lruvec_page_state(struct lruvec *lruvec, enum node_stat_item idx);
+-unsigned long lruvec_page_state_monotonic(struct lruvec *lruvec,
++unsigned long lruvec_page_state(const struct lruvec *lruvec,
++				enum node_stat_item idx);
++unsigned long lruvec_page_state_monotonic(const struct lruvec *lruvec,
+ 					  enum node_stat_item idx);
+-unsigned long lruvec_page_state_local(struct lruvec *lruvec,
++unsigned long lruvec_page_state_local(const struct lruvec *lruvec,
+ 				      enum node_stat_item idx);
  
--static inline unsigned short mem_cgroup_private_id(struct mem_cgroup *memcg)
-+static inline unsigned short mem_cgroup_private_id(const struct mem_cgroup *memcg)
- {
- 	if (mem_cgroup_disabled())
- 		return 0;
-@@ -849,7 +849,7 @@ static inline unsigned short mem_cgroup_
- }
- struct mem_cgroup *mem_cgroup_from_private_id(unsigned short id);
- 
--static inline u64 mem_cgroup_id(struct mem_cgroup *memcg)
-+static inline u64 mem_cgroup_id(const struct mem_cgroup *memcg)
- {
- 	return memcg ? cgroup_id(memcg->css.cgroup) : 0;
- }
-@@ -878,13 +878,13 @@ static inline struct mem_cgroup *lruvec_
-  *
-  * Returns the parent memcg, or NULL if this is the root.
-  */
--static inline struct mem_cgroup *parent_mem_cgroup(struct mem_cgroup *memcg)
-+static inline struct mem_cgroup *parent_mem_cgroup(const struct mem_cgroup *memcg)
- {
- 	return mem_cgroup_from_css(memcg->css.parent);
- }
- 
--static inline bool mem_cgroup_is_descendant(struct mem_cgroup *memcg,
--			      struct mem_cgroup *root)
-+static inline bool mem_cgroup_is_descendant(const struct mem_cgroup *memcg,
-+			      const struct mem_cgroup *root)
- {
- 	if (root == memcg)
- 		return true;
-@@ -892,7 +892,7 @@ static inline bool mem_cgroup_is_descend
- }
- 
- static inline bool mm_match_cgroup(struct mm_struct *mm,
--				   struct mem_cgroup *memcg)
-+				   const struct mem_cgroup *memcg)
- {
- 	struct mem_cgroup *task_memcg;
- 	bool match = false;
-@@ -943,7 +943,7 @@ static inline void mem_cgroup_handle_ove
- 
- unsigned long mem_cgroup_get_max(struct mem_cgroup *memcg);
- 
--void mem_cgroup_print_oom_context(struct mem_cgroup *memcg,
-+void mem_cgroup_print_oom_context(const struct mem_cgroup *memcg,
- 				struct task_struct *p);
- 
- void mem_cgroup_print_oom_meminfo(struct mem_cgroup *memcg);
-@@ -1119,12 +1119,12 @@ static inline bool PageMemcgKmem(const s
- 	return false;
- }
- 
--static inline bool mem_cgroup_is_root(struct mem_cgroup *memcg)
-+static inline bool mem_cgroup_is_root(const struct mem_cgroup *memcg)
- {
- 	return true;
- }
- 
--static inline bool mem_cgroup_shrink_is_root(struct shrink_control *sc)
-+static inline bool mem_cgroup_shrink_is_root(const struct shrink_control *sc)
- {
- 	return true;
- }
-@@ -1227,13 +1227,13 @@ static inline struct lruvec *folio_lruve
- 	return &pgdat->__lruvec;
- }
- 
--static inline struct mem_cgroup *parent_mem_cgroup(struct mem_cgroup *memcg)
-+static inline struct mem_cgroup *parent_mem_cgroup(const struct mem_cgroup *memcg)
- {
- 	return NULL;
- }
- 
- static inline bool mm_match_cgroup(struct mm_struct *mm,
--		struct mem_cgroup *memcg)
-+		const struct mem_cgroup *memcg)
- {
- 	return true;
- }
-@@ -1327,7 +1327,7 @@ static inline void mem_cgroup_scan_tasks
+ void mem_cgroup_flush_stats(struct mem_cgroup *memcg);
+@@ -1412,12 +1413,12 @@ static inline void mod_memcg_page_state(
  {
  }
  
--static inline unsigned short mem_cgroup_private_id(struct mem_cgroup *memcg)
-+static inline unsigned short mem_cgroup_private_id(const struct mem_cgroup *memcg)
+-static inline unsigned long memcg_page_state(struct mem_cgroup *memcg, int idx)
++static inline unsigned long memcg_page_state(const struct mem_cgroup *memcg, int idx)
  {
  	return 0;
  }
-@@ -1339,7 +1339,7 @@ static inline struct mem_cgroup *mem_cgr
- 	return NULL;
- }
  
--static inline u64 mem_cgroup_id(struct mem_cgroup *memcg)
-+static inline u64 mem_cgroup_id(const struct mem_cgroup *memcg)
+-static inline unsigned long memcg_page_state_output(struct mem_cgroup *memcg, int item)
++static inline unsigned long memcg_page_state_output(const struct mem_cgroup *memcg, int item)
  {
  	return 0;
  }
-@@ -1377,7 +1377,8 @@ static inline unsigned long mem_cgroup_g
- }
- 
- static inline void
--mem_cgroup_print_oom_context(struct mem_cgroup *memcg, struct task_struct *p)
-+mem_cgroup_print_oom_context(const struct mem_cgroup *memcg,
-+			     struct task_struct *p)
- {
- }
- 
-@@ -1813,7 +1814,7 @@ static inline void memcg_kmem_uncharge_p
-  * A helper for accessing memcg's kmem_id, used for getting
-  * corresponding LRU lists.
-  */
--static inline int memcg_kmem_id(struct mem_cgroup *memcg)
-+static inline int memcg_kmem_id(const struct mem_cgroup *memcg)
- {
- 	return memcg ? memcg->kmemcg_id : -1;
- }
-@@ -1885,7 +1886,7 @@ static inline bool memcg_kmem_online(voi
+@@ -1432,19 +1433,19 @@ static inline bool memcg_vm_event_item_v
  	return false;
  }
  
--static inline int memcg_kmem_id(struct mem_cgroup *memcg)
-+static inline int memcg_kmem_id(const struct mem_cgroup *memcg)
+-static inline unsigned long lruvec_page_state(struct lruvec *lruvec,
++static inline unsigned long lruvec_page_state(const struct lruvec *lruvec,
+ 					      enum node_stat_item idx)
  {
- 	return -1;
- }
-@@ -1962,7 +1963,7 @@ static inline bool mem_cgroup_zswap_writ
- #ifdef CONFIG_MEMCG_V1
- bool mem_cgroup_oom_synchronize(bool wait);
- 
--static inline bool task_in_memcg_oom(struct task_struct *p)
-+static inline bool task_in_memcg_oom(const struct task_struct *p)
- {
- 	return p->memcg_in_oom;
- }
-@@ -1980,7 +1981,7 @@ static inline void mem_cgroup_exit_user_
+ 	return node_page_state(lruvec_pgdat(lruvec), idx);
  }
  
- #else /* CONFIG_MEMCG_V1 */
--static inline bool task_in_memcg_oom(struct task_struct *p)
-+static inline bool task_in_memcg_oom(const struct task_struct *p)
+-static inline unsigned long lruvec_page_state_monotonic(struct lruvec *lruvec,
++static inline unsigned long lruvec_page_state_monotonic(const struct lruvec *lruvec,
+ 							enum node_stat_item idx)
  {
- 	return false;
+ 	return node_page_state_monotonic(lruvec_pgdat(lruvec), idx);
  }
---- a/mm/memcontrol.c~mm-memcontrol-constify-the-mem_cgroup-accessors
+ 
+-static inline unsigned long lruvec_page_state_local(struct lruvec *lruvec,
++static inline unsigned long lruvec_page_state_local(const struct lruvec *lruvec,
+ 						    enum node_stat_item idx)
+ {
+ 	return node_page_state(lruvec_pgdat(lruvec), idx);
+--- a/mm/memcontrol.c~mm-memcontrol-constify-the-memcg-and-lruvec-stat-readers
 +++ a/mm/memcontrol.c
-@@ -1818,7 +1818,8 @@ static void memory_stat_format(struct me
-  * NOTE: @memcg and @p's mem_cgroup can be different when hierarchy is
-  * enabled
-  */
--void mem_cgroup_print_oom_context(struct mem_cgroup *memcg, struct task_struct *p)
-+void mem_cgroup_print_oom_context(const struct mem_cgroup *memcg,
-+				  struct task_struct *p)
+@@ -490,9 +490,9 @@ struct lruvec_stats {
+ 	long state_pending[NR_MEMCG_NODE_STAT_ITEMS];
+ };
+ 
+-unsigned long lruvec_page_state(struct lruvec *lruvec, enum node_stat_item idx)
++unsigned long lruvec_page_state(const struct lruvec *lruvec, enum node_stat_item idx)
  {
- 	rcu_read_lock();
+-	struct mem_cgroup_per_node *pn;
++	const struct mem_cgroup_per_node *pn;
+ 	long x;
+ 	int i;
+ 
+@@ -503,7 +503,7 @@ unsigned long lruvec_page_state(struct l
+ 	if (WARN_ONCE(BAD_STAT_IDX(i), "%s: missing stat item %d\n", __func__, idx))
+ 		return 0;
+ 
+-	pn = container_of(lruvec, struct mem_cgroup_per_node, lruvec);
++	pn = container_of_const(lruvec, struct mem_cgroup_per_node, lruvec);
+ 	x = READ_ONCE(pn->lruvec_stats->state[i]);
+ #ifdef CONFIG_SMP
+ 	if (x < 0)
+@@ -531,10 +531,10 @@ unsigned long lruvec_page_state(struct l
+  * monotonically-incremented event counters are stored in
+  * enum node_stat_item.
+  */
+-unsigned long lruvec_page_state_monotonic(struct lruvec *lruvec,
++unsigned long lruvec_page_state_monotonic(const struct lruvec *lruvec,
+ 					  enum node_stat_item idx)
+ {
+-	struct mem_cgroup_per_node *pn;
++	const struct mem_cgroup_per_node *pn;
+ 	int i;
+ 
+ 	if (mem_cgroup_disabled())
+@@ -544,14 +544,14 @@ unsigned long lruvec_page_state_monotoni
+ 	if (WARN_ONCE(BAD_STAT_IDX(i), "%s: missing stat item %d\n", __func__, idx))
+ 		return 0;
+ 
+-	pn = container_of(lruvec, struct mem_cgroup_per_node, lruvec);
++	pn = container_of_const(lruvec, struct mem_cgroup_per_node, lruvec);
+ 	return (unsigned long)READ_ONCE(pn->lruvec_stats->state[i]);
+ }
+ 
+-unsigned long lruvec_page_state_local(struct lruvec *lruvec,
++unsigned long lruvec_page_state_local(const struct lruvec *lruvec,
+ 				      enum node_stat_item idx)
+ {
+-	struct mem_cgroup_per_node *pn;
++	const struct mem_cgroup_per_node *pn;
+ 	long x;
+ 	int i;
+ 
+@@ -562,7 +562,7 @@ unsigned long lruvec_page_state_local(st
+ 	if (WARN_ONCE(BAD_STAT_IDX(i), "%s: missing stat item %d\n", __func__, idx))
+ 		return 0;
+ 
+-	pn = container_of(lruvec, struct mem_cgroup_per_node, lruvec);
++	pn = container_of_const(lruvec, struct mem_cgroup_per_node, lruvec);
+ 	x = READ_ONCE(pn->lruvec_stats->state_local[i]);
+ #ifdef CONFIG_SMP
+ 	if (x < 0)
+@@ -827,7 +827,7 @@ static void flush_memcg_stats_dwork(stru
+ 	queue_delayed_work(system_dfl_wq, &stats_flush_dwork, FLUSH_TIME);
+ }
+ 
+-unsigned long memcg_page_state(struct mem_cgroup *memcg, int idx)
++unsigned long memcg_page_state(const struct mem_cgroup *memcg, int idx)
+ {
+ 	long x;
+ 	int i = memcg_stats_index(idx);
+@@ -950,7 +950,7 @@ void mod_memcg_state(struct mem_cgroup *
+ 
+ #ifdef CONFIG_MEMCG_V1
+ /* idx can be of type enum memcg_stat_item or node_stat_item. */
+-unsigned long memcg_page_state_local(struct mem_cgroup *memcg, int idx)
++unsigned long memcg_page_state_local(const struct mem_cgroup *memcg, int idx)
+ {
+ 	long x;
+ 	int i = memcg_stats_index(idx);
+@@ -1113,7 +1113,7 @@ void count_memcg_events(struct mem_cgrou
+ 	put_cpu();
+ }
+ 
+-unsigned long memcg_events(struct mem_cgroup *memcg, int event)
++unsigned long memcg_events(const struct mem_cgroup *memcg, int event)
+ {
+ 	int i = memcg_events_index(event);
+ 
+@@ -1132,7 +1132,7 @@ bool memcg_vm_event_item_valid(enum vm_e
+ }
+ 
+ #ifdef CONFIG_MEMCG_V1
+-unsigned long memcg_events_local(struct mem_cgroup *memcg, int event)
++unsigned long memcg_events_local(const struct mem_cgroup *memcg, int event)
+ {
+ 	int i = memcg_events_index(event);
+ 
+@@ -1715,14 +1715,14 @@ static int memcg_page_state_output_unit(
+ 	}
+ }
+ 
+-unsigned long memcg_page_state_output(struct mem_cgroup *memcg, int item)
++unsigned long memcg_page_state_output(const struct mem_cgroup *memcg, int item)
+ {
+ 	return memcg_page_state(memcg, item) *
+ 		memcg_page_state_output_unit(item);
+ }
+ 
+ #ifdef CONFIG_MEMCG_V1
+-unsigned long memcg_page_state_local_output(struct mem_cgroup *memcg, int item)
++unsigned long memcg_page_state_local_output(const struct mem_cgroup *memcg, int item)
+ {
+ 	return memcg_page_state_local(memcg, item) *
+ 		memcg_page_state_output_unit(item);
+--- a/mm/memcontrol-v1.h~mm-memcontrol-constify-the-memcg-and-lruvec-stat-readers
++++ a/mm/memcontrol-v1.h
+@@ -34,9 +34,9 @@ static inline bool do_memsw_account(void
+ 	return !cgroup_subsys_on_dfl(memory_cgrp_subsys);
+ }
+ 
+-unsigned long memcg_events_local(struct mem_cgroup *memcg, int event);
+-unsigned long memcg_page_state_local(struct mem_cgroup *memcg, int idx);
+-unsigned long memcg_page_state_local_output(struct mem_cgroup *memcg, int item);
++unsigned long memcg_events_local(const struct mem_cgroup *memcg, int event);
++unsigned long memcg_page_state_local(const struct mem_cgroup *memcg, int idx);
++unsigned long memcg_page_state_local_output(const struct mem_cgroup *memcg, int item);
+ bool memcg1_alloc_events(struct mem_cgroup *memcg);
+ void memcg1_free_events(struct mem_cgroup *memcg);
  
 _
 
