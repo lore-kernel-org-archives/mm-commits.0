@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 75B13339396;
-	Wed, 16 Sep 2026 01:07:33 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0C15A392C2C
+	for <mm-commits@vger.kernel.org>; Wed, 16 Sep 2026 01:18:12 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789520854; cv=none; b=sZMVfuwRym1y17VPIrrK7qCHhy3WWE63odpcfAAuEaxEMvGIR3sqBMEryHFXULKbXDT3hQPGMu0Klxv71BoA7pn65InorvshUP4C78gPgH8b0Opb7oDUeZ2IKFpdMoHo9lURn6i8xjMd+UZvWzpSQ10/pvmhBzGO3sm/HY+G4mw=
+	t=1789521494; cv=none; b=meY1D4pPHlECNXSdw8g3F4VGhRV3BqvDvyXn04j8Kb8O7aiH8xHC1JpB8B0CaeCqs6eccGwVz0+46cuaRxDJw61EcmBmS5BQPlcFElFajKVPI4bd9SQB0Lb2EX/OdJVbS2Dgkgpdva1zYyzLz5eg/xQ+UTMNmJKC4szBvF9AULk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1789520854; c=relaxed/simple;
-	bh=0EG4dv9s4/msJJGi/z0Wcrvw0PoCtIYtGdNQNHzZKXM=;
-	h=Date:To:From:Subject:Message-Id; b=gQ+ArXUOmV4uE96G8oz9oTyxFIsvbjcrnbI+57BQSlQxPRWHBkJe3SsYA8TK8PWOgm7TWcJ1enIOsELSU9nAu0OiF/LEgBSbMAuYllbbP7NYsf7ckAXVYs4u9HC7II71aje17Z77Q6LoiOf1jfP2rCKoqGjNCxsXg/5JfBOf9d0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=p0D2ISi8; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1789521494; c=relaxed/simple;
+	bh=BQS8cHkkiPuqyOf5qxC8YP1azxJ+YixvtL6P5KO5Qz8=;
+	h=Date:To:From:Subject:Message-Id; b=HEzSIYHQ6ONCiGKWPypp/NW1nCGBUho/SBd+MekIWhk17Qp9hI9WfHXOBIEMc6xNfWb5blcHvP97c4lu4colSZUAI3wSlBWEjIffkCXsRjLFVjP4QkTnpPRqn8eeGmNhr8tic7jEqyBYmbMxqDaVPdxyJUQjyFyLDmw+IZfE574=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=qf89IOcI; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="p0D2ISi8"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2E90E1F000FF;
-	Wed, 16 Sep 2026 01:07:33 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="qf89IOcI"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6E6EF1F00893;
+	Wed, 16 Sep 2026 01:18:12 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1789520853;
-	bh=qqVqUgvLuNscU/1WctCgZYn8nx8CSvGQsjLw97YKxOg=;
+	d=linux-foundation.org; s=korg; t=1789521492;
+	bh=7hH78/sIru6fjz53YYK3+BP35jSViT/5/4mWuZQL+mA=;
 	h=Date:To:From:Subject;
-	b=p0D2ISi8Dmz0qGBBaKiiMR2Hkz787BwHcQRqL9nOKUsaiY0OpdiBTLAseQKe6mRay
-	 Soc2S3+jCLrV2gdZ9QqjCShdVuAWIf1kAPc+2OBBK7xKCLoFQh4y7hMhoVc+6dSDCw
-	 X3metRbOmaXSjLOQVkZZY8sAX5CBvZnGzX9sujWs=
-Date: Tue, 15 Sep 2026 18:07:32 -0700
-To: mm-commits@vger.kernel.org,stable@vger.kernel.org,piaojun@huawei.com,mark@fasheh.com,junxiao.bi@oracle.com,joseph.qi@linux.alibaba.com,jlbec@evilplan.org,heming.zhao@suse.com,gechangwei@live.cn,r772577952@gmail.com,akpm@linux-foundation.org
+	b=qf89IOcIONCQA5IHPYsTi4iALXww6f5vsAzsl0aLfnd//NSCDhchEGWMSDZ5SDRo3
+	 8xdG33PuhYTkRjcExSH7n1j7NVHJ7xXRqiw6G6VbAcOXYb3CkAJd+T/UhMvhmftZE1
+	 +o/oY0i/fPXEjiFa8plFhB5taaAwytcB9ouPwpVI=
+Date: Tue, 15 Sep 2026 18:18:12 -0700
+To: mm-commits@vger.kernel.org,helgaas@kernel.org,brads@mainlining.org,andriy.shevchenko@linux.intel.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + ocfs2-fix-chunk-number-of-the-first-chunk-in-a-local-quota-file.patch added to mm-nonmm-unstable branch
-Message-Id: <20260916010733.2E90E1F000FF@smtp.kernel.org>
+Subject: + resource-replace-open-coded-resource_overlaps.patch added to mm-nonmm-unstable branch
+Message-Id: <20260916011812.6E6EF1F00893@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: ocfs2: fix chunk number of the first chunk in a local quota file
+     Subject: resource: replace open coded resource_overlaps()
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     ocfs2-fix-chunk-number-of-the-first-chunk-in-a-local-quota-file.patch
+     resource-replace-open-coded-resource_overlaps.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/ocfs2-fix-chunk-number-of-the-first-chunk-in-a-local-quota-file.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/resource-replace-open-coded-resource_overlaps.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,86 +58,65 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Jiaming Zhang <r772577952@gmail.com>
-Subject: ocfs2: fix chunk number of the first chunk in a local quota file
-Date: Mon, 14 Sep 2026 11:49:40 +0800
+From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Subject: resource: replace open coded resource_overlaps()
+Date: Tue, 15 Sep 2026 10:53:53 +0200
 
-The local quota file in OCFS2 is divided into chunks, and each chunk
-begins with a header block holding a bitmap of the quota entries that
-chunk has handed out.  Chunks are numbered from zero, and that number is
-used to convert the file offset of an entry back into a bit position in
-the bitmap.  ocfs2_local_quota_add_chunk() appends a new chunk to the
-in-memory list and numbers it one past the chunk that was last:
+In iomem_map_sanity_check() a piece of code resembles the content of the
+resource_overlaps().  Replace open coded piece with the call to the
+existing helper.
 
-	list_add_tail(&chunk->qc_chunk, &oinfo->dqi_chunk);
-	chunk->qc_num = list_entry(chunk->qc_chunk.prev,
-				   struct ocfs2_quota_chunk,
-				   qc_chunk)->qc_num + 1;
-
-The predecessor is looked up after the new chunk is added to the list, so
-if the list was empty, the prev pointer is the list head itself.  The head
-is the dqi_chunk member of struct ocfs2_mem_dqinfo and is not a chunk, so
-reading qc_num through it lands 16 bytes past the start of the head, on
-the dqi_gqinode pointer that follows it.  The first chunk of the file is
-then numbered with the lower half of a kernel pointer instead of 0.
-
-The list is empty when the local quota file header claims the file has no
-chunks.  ocfs2_local_read_info() takes dqi_chunks from that header without
-validating it, so an image with dqi_chunks == 0 takes this path when the
-first quota entry is allocated.
-
-ocfs2_create_local_dquot() turns the bad number into a file offset with
-ol_dqblk_off(), which shifts a 32-bit block number left by the block size
-bits, so the top bits of such a large block number are lost. 
-ocfs2_local_release_dquot() turns the offset back into a bit index with
-ol_dqblk_chunk_off(), using the full chunk number, so the lost bits push
-that index far outside the bitmap, and clearing it corrupts unrelated
-memory.
-
-Compute the chunk number before putting the chunk on the list, and use 0
-when the list is empty.
-
-Link: https://lore.kernel.org/20260914034940.4070970-1-r772577952@gmail.com
-Fixes: 9e33d69f553a ("ocfs2: Implementation of local and global quota file handling")
-Signed-off-by: Jiaming Zhang <r772577952@gmail.com>
+Link: https://lore.kernel.org/20260915085353.3518153-1-andriy.shevchenko@linux.intel.com
+Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Closes: https://lore.kernel.org/lkml/CANypQFZ05tpth0Xc33gmP6jgPnkY4VuezyHcsajV-SqCsmN_gg@mail.gmail.com/
-Assisted-by: Claude Code:claude-opus-5
-Reviewed-by: Joseph Qi <joseph.qi@linux.alibaba.com>
-Cc: Mark Fasheh <mark@fasheh.com>
-Cc: Joel Becker <jlbec@evilplan.org>
-Cc: Junxiao Bi <junxiao.bi@oracle.com>
-Cc: Changwei Ge <gechangwei@live.cn>
-Cc: Jun Piao <piaojun@huawei.com>
-Cc: Heming Zhao <heming.zhao@suse.com>
-Cc: <stable@vger.kernel.org>
+Reviewed-by: Bradley Morgan <brads@mainlining.org>
+Cc: Bjorn Helgaas <helgaas@kernel.org>
 ---
 
- fs/ocfs2/quota_local.c |    9 ++++++---
- 1 file changed, 6 insertions(+), 3 deletions(-)
+ kernel/resource.c |   14 ++++++--------
+ 1 file changed, 6 insertions(+), 8 deletions(-)
 
---- a/fs/ocfs2/quota_local.c~ocfs2-fix-chunk-number-of-the-first-chunk-in-a-local-quota-file
-+++ a/fs/ocfs2/quota_local.c
-@@ -1071,10 +1071,13 @@ static struct ocfs2_quota_chunk *ocfs2_l
- 		goto out;
- 	}
+--- a/kernel/resource.c~resource-replace-open-coded-resource_overlaps
++++ a/kernel/resource.c
+@@ -1833,7 +1833,7 @@ __setup("reserve=", reserve_setup);
+  */
+ int iomem_map_sanity_check(resource_size_t addr, unsigned long size)
+ {
+-	resource_size_t end = addr + size - 1;
++	struct resource mem = DEFINE_RES_MEM(addr, size);
+ 	struct resource *p;
+ 	int err = 0;
  
-+	if (list_empty(&oinfo->dqi_chunk))
-+		chunk->qc_num = 0;
-+	else
-+		chunk->qc_num = list_entry(oinfo->dqi_chunk.prev,
-+					   struct ocfs2_quota_chunk,
-+					   qc_chunk)->qc_num + 1;
- 	list_add_tail(&chunk->qc_chunk, &oinfo->dqi_chunk);
--	chunk->qc_num = list_entry(chunk->qc_chunk.prev,
--				   struct ocfs2_quota_chunk,
--				   qc_chunk)->qc_num + 1;
- 	chunk->qc_headerbh = bh;
- 	*offset = 0;
- 	return chunk;
+@@ -1843,12 +1843,10 @@ int iomem_map_sanity_check(resource_size
+ 		 * We can probably skip the resources without
+ 		 * IORESOURCE_IO attribute?
+ 		 */
+-		if (p->start > end)
++		if (!resource_overlaps(p, &mem))
+ 			continue;
+-		if (p->end < addr)
+-			continue;
+-		if (PFN_DOWN(p->start) <= PFN_DOWN(addr) &&
+-		    PFN_DOWN(p->end) >= PFN_DOWN(end))
++		if (PFN_DOWN(p->start) <= PFN_DOWN(mem.start) &&
++		    PFN_DOWN(p->end) >= PFN_DOWN(mem.end))
+ 			continue;
+ 		/*
+ 		 * if a resource is "BUSY", it's not a hardware resource
+@@ -1859,8 +1857,8 @@ int iomem_map_sanity_check(resource_size
+ 		if (p->flags & IORESOURCE_BUSY)
+ 			continue;
+ 
+-		pr_debug("resource sanity check: requesting [mem %pa-%pa], which spans more than %s %pR\n",
+-			&addr, &end, p->name, p);
++		pr_debug("resource sanity check: requesting %pR, which spans more than %s %pR\n",
++			 &mem, p->name, p);
+ 		err = -1;
+ 		break;
+ 	}
 _
 
-Patches currently in -mm which might be from r772577952@gmail.com are
+Patches currently in -mm which might be from andriy.shevchenko@linux.intel.com are
 
-ocfs2-fix-chunk-number-of-the-first-chunk-in-a-local-quota-file.patch
+resource-replace-open-coded-resource_overlaps.patch
 
