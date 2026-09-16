@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A61CD3C10BB
-	for <mm-commits@vger.kernel.org>; Wed, 16 Sep 2026 01:55:16 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 76464396B6F
+	for <mm-commits@vger.kernel.org>; Wed, 16 Sep 2026 01:55:11 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789523726; cv=none; b=IXW3XhgpFqwZ5lkfLjcdiy3xeHGoS5gyk3MuV17JPgwUebFlUBV9HzF3Mk5xoV2+CTtYMbSiqcRro/cSoKlUMZZHYGms2Vm9kplT+p5xTvARjh9tkoTtQorbyGDVlJDX2281oeU2WSkNQpJmubvx8tnqhHgM9Q0SSSVjig7fjyM=
+	t=1789523726; cv=none; b=pF9dVkczSfT8zrWhlj7/byZXh4+k7EoIZ7FvhQD004kUBk77TO4oVvqto/VxPUvF3T8VEr2fH5FbcdHBLMZy8MyJ1xikn4YdGYsWn5F9gfWLu4YR/NqHPe9JXAgI529qeYzkUrN3coF1Cb27Laq3pjiOqIQuO28cxkpsgptIv9g=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1789523726; c=relaxed/simple;
-	bh=TMcYoQ0YOOf2vK5MWxtZCPT03mDlEwfk2FcJLOTSxOI=;
-	h=Date:To:From:Subject:Message-Id; b=Mnv7MZFGI+TnAYBGT0ZpF/JG3qOOk0c3Gdfmb4iBXaQ46THc7SWTASQAeNDfKm02CBbhOxe6rC18I4WdDzHhJdbvkol8QPIkuuYrNZRg2f7lShhc9gepVTUWTlQ4glNjcQitE7p1lZcxrAW+CdU/5nrwIIFydZOgbqXk1JS87c8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=2vF30iCB; arc=none smtp.client-ip=100.103.45.18
+	bh=syyQJrI0XGI0G9DM7taYH1D6D38OslTJZYr2JvC3kLs=;
+	h=Date:To:From:Subject:Message-Id; b=GYJrBW0yy+h6pbD3lGyDAwtrQakRW00sH0uZo4GxcUIgb6mdLBVzXPvk2e7pdkC4oitvmSZiE1G5WtGVtideV8fm3g8tBH49JD/tpCy4NmdWWOO/+DP6ZCh8uWhGy2rOok/nNqpiSRxNoFMkZTsfnkyOIZ5z3l8jKPSgw0fuEfs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=0YE0qn7L; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="2vF30iCB"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A93951F00898;
-	Wed, 16 Sep 2026 01:55:13 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="0YE0qn7L"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A6E7B1F0089A;
+	Wed, 16 Sep 2026 01:55:07 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1789523713;
-	bh=ysMQUQgEgGKrqG/kRy9HiYqSi3doUbtA80kC52KMpNE=;
+	d=linux-foundation.org; s=korg; t=1789523707;
+	bh=sn5T3BWdcgjYpA6nrQTVE6BgR3tipI81MOfbwi8yNPc=;
 	h=Date:To:From:Subject;
-	b=2vF30iCBjC6zfLibAjBwS2KOFIbOMYfZuK7tKbfTFSmwpBjHFvf61tTXd2ztXjpOb
-	 zc35e8rrZz3xXvkQZb97UnJlROxm7Te/yM5gYzi/LUjGF3dVZy8lfU2lHvkRpvMZLH
-	 PE+Y/SZfc0kI3E9oX8M6WTSCe3gafyk5IpBHPW9Y=
-Date: Tue, 15 Sep 2026 18:55:13 -0700
+	b=0YE0qn7Lqg5rbAxM3bM8JJ/tBgys7ozt+rHlMbT86fruLZ3hMKn4b69v98ctNK/ee
+	 zrQ80SnAYItC8H2SHekEU8Rkvi+PDTnj3wOIOGBTQ0zxALAfa+N9sG+YGhy4ZFdxsY
+	 Cd4o/+DnLKX9Vx3HxyqJay9hluEdA6JOvwb1MGkQ=
+Date: Tue, 15 Sep 2026 18:55:07 -0700
 To: mm-commits@vger.kernel.org,ljs@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [to-be-updated] mm-enable-mmu_gather_rcu_table_free-for-arc-microblaze-xtensa.patch removed from -mm tree
-Message-Id: <20260916015513.A93951F00898@smtp.kernel.org>
+Subject: [to-be-updated] mm-enable-mmu_gather_rcu_table_free-for-most-2-level-architectures.patch removed from -mm tree
+Message-Id: <20260916015507.A6E7B1F0089A@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,43 +35,37 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: enable MMU_GATHER_RCU_TABLE_FREE for arc, microblaze, xtensa
+     Subject: mm: enable MMU_GATHER_RCU_TABLE_FREE for most 2-level architectures
 has been removed from the -mm tree.  Its filename was
-     mm-enable-mmu_gather_rcu_table_free-for-arc-microblaze-xtensa.patch
+     mm-enable-mmu_gather_rcu_table_free-for-most-2-level-architectures.patch
 
 This patch was dropped because an updated version will be issued
 
 ------------------------------------------------------
 From: "Lorenzo Stoakes (ARM)" <ljs@kernel.org>
-Subject: mm: enable MMU_GATHER_RCU_TABLE_FREE for arc, microblaze, xtensa
-Date: Tue, 08 Sep 2026 13:32:14 +0100
+Subject: mm: enable MMU_GATHER_RCU_TABLE_FREE for most 2-level architectures
+Date: Tue, 08 Sep 2026 13:32:11 +0100
 
-Each of these architectures directly free page tables without routing
-these changes through tlb_remove_ptdesc().
+Commit e3ecf7c7d082 ("mm: pgtable: convert some architectures to use
+tlb_remove_ptdesc()") updated a number of architectures from using
+pagetable_dtor() + tlb_remove_page_ptdesc() to using tlb_remove_ptdesc()
+in __pte_free_tlb().
 
-The use of tlb_remove_ptdesc() is required for
-CONFIG_MMU_GATHER_RCU_TABLE_FREE to correctly free page tables under RCU,
-so simply update these architectures to use these functions.
+This is meaningful as tlb_remove_ptdesc() allows for RCU page table
+freeing if CONFIG_MMU_GATHER_RCU_TABLE_FREE is specified.
 
-Since none of the architectures share page tables or do anything unusual,
-nothing complicated is required here.
+The csky, hexagon, nios2, openrisc, sh (except X2) and m68k-sun3
+architectures all have 2 levels of page tables, so the only page tables
+ever freed by mmu_gather are PTEs, so this update suffices to ensure that
+every page table freed by the mmu_gather mechanism is freed under RCU.
 
-Therefore this is simply a mechanical change - convert __pud_free_tlb(),
-__pmd_free_tlb() and __pte_free_tlb() to use tlb_remove_ptdesc() as
-required.
-
-At the point this is in place, all mmu_gather page table freeing is
-performed under RCU, and thus MMU_GATHER_RCU_TABLE_FREE is selected for
-each architecture.
-
-Note that CONFIG_MMU_GATHER_RCU_TABLE_FREE is dependent on CONFIG_MMU for
-xtensa to reflect the fact that nommu does not implement page table
-gathering.
+Therefore, update all of these architectures to select
+CONFIG_MMU_GATHER_RCU_TABLE_FREE.
 
 This forms part of an overall effort to switch every architecture to this
 mode.
 
-Link: https://lore.kernel.org/20260908-rcu-pagetable-freeing-v2-5-1f60b64e878e@kernel.org
+Link: https://lore.kernel.org/20260908-rcu-pagetable-freeing-v2-2-1f60b64e878e@kernel.org
 Signed-off-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 Acked-by: Kiryl Shutsemau (Meta) <kas@kernel.org>
@@ -141,90 +135,74 @@ Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
 Cc: Zi Yan <ziy@nvidia.com>
 ---
 
- arch/arc/Kconfig                      |    1 +
- arch/arc/include/asm/pgalloc.h        |    6 +++---
- arch/microblaze/Kconfig               |    1 +
- arch/microblaze/include/asm/pgalloc.h |    2 +-
- arch/xtensa/Kconfig                   |    1 +
- arch/xtensa/include/asm/tlb.h         |    2 +-
- 6 files changed, 8 insertions(+), 5 deletions(-)
+ arch/csky/Kconfig     |    1 +
+ arch/hexagon/Kconfig  |    1 +
+ arch/m68k/Kconfig     |    1 +
+ arch/nios2/Kconfig    |    1 +
+ arch/openrisc/Kconfig |    1 +
+ arch/sh/Kconfig       |    1 +
+ 6 files changed, 6 insertions(+)
 
---- a/arch/arc/include/asm/pgalloc.h~mm-enable-mmu_gather_rcu_table_free-for-arc-microblaze-xtensa
-+++ a/arch/arc/include/asm/pgalloc.h
-@@ -72,7 +72,7 @@ static inline void p4d_populate(struct m
- 	set_p4d(p4dp, __p4d((unsigned long)pudp));
- }
- 
--#define __pud_free_tlb(tlb, pmd, addr)  pud_free((tlb)->mm, pmd)
-+#define __pud_free_tlb(tlb, pmd, addr)  tlb_remove_ptdesc((tlb), virt_to_ptdesc(pmd))
- 
- #endif
- 
-@@ -83,10 +83,10 @@ static inline void pud_populate(struct m
- 	set_pud(pudp, __pud((unsigned long)pmdp));
- }
- 
--#define __pmd_free_tlb(tlb, pmd, addr)  pmd_free((tlb)->mm, pmd)
-+#define __pmd_free_tlb(tlb, pmd, addr)  tlb_remove_ptdesc((tlb), virt_to_ptdesc(pmd))
- 
- #endif
- 
--#define __pte_free_tlb(tlb, pte, addr)  pte_free((tlb)->mm, pte)
-+#define __pte_free_tlb(tlb, pte, addr)  tlb_remove_ptdesc((tlb), page_ptdesc(pte))
- 
- #endif /* _ASM_ARC_PGALLOC_H */
---- a/arch/arc/Kconfig~mm-enable-mmu_gather_rcu_table_free-for-arc-microblaze-xtensa
-+++ a/arch/arc/Kconfig
-@@ -47,6 +47,7 @@ config ARC
+--- a/arch/csky/Kconfig~mm-enable-mmu_gather_rcu_table_free-for-most-2-level-architectures
++++ a/arch/csky/Kconfig
+@@ -96,6 +96,7 @@ config CSKY
  	select HAVE_SYSCALL_TRACEPOINTS
+ 	select HOTPLUG_CORE_SYNC_DEAD if HOTPLUG_CPU
+ 	select LOCK_MM_AND_FIND_VMA
++	select MMU_GATHER_RCU_TABLE_FREE
+ 	select MAY_HAVE_SPARSE_IRQ
+ 	select MODULES_USE_ELF_RELA if MODULES
+ 	select OF
+--- a/arch/hexagon/Kconfig~mm-enable-mmu_gather_rcu_table_free-for-most-2-level-architectures
++++ a/arch/hexagon/Kconfig
+@@ -23,6 +23,7 @@ config HEXAGON
+ 	# select HAVE_CLK
+ 	select GENERIC_ATOMIC64
+ 	select HAVE_PERF_EVENTS
++	select MMU_GATHER_RCU_TABLE_FREE
+ 	# GENERIC_ALLOCATOR is used by dma_alloc_coherent()
+ 	select GENERIC_ALLOCATOR
+ 	select GENERIC_IRQ_PROBE
+--- a/arch/m68k/Kconfig~mm-enable-mmu_gather_rcu_table_free-for-most-2-level-architectures
++++ a/arch/m68k/Kconfig
+@@ -36,6 +36,7 @@ config M68K
+ 	select HAVE_MOD_ARCH_SPECIFIC
+ 	select HAVE_UID16
+ 	select MMU_GATHER_NO_RANGE if MMU
++	select MMU_GATHER_RCU_TABLE_FREE if MMU && SUN3
+ 	select MODULES_USE_ELF_REL
+ 	select MODULES_USE_ELF_RELA
+ 	select NO_DMA if !MMU && !COLDFIRE
+--- a/arch/nios2/Kconfig~mm-enable-mmu_gather_rcu_table_free-for-most-2-level-architectures
++++ a/arch/nios2/Kconfig
+@@ -19,6 +19,7 @@ config NIOS2
+ 	select HAVE_PAGE_SIZE_4KB
  	select IRQ_DOMAIN
  	select LOCK_MM_AND_FIND_VMA
 +	select MMU_GATHER_RCU_TABLE_FREE
  	select MODULES_USE_ELF_RELA
  	select OF
  	select OF_EARLY_FLATTREE
---- a/arch/microblaze/include/asm/pgalloc.h~mm-enable-mmu_gather_rcu_table_free-for-arc-microblaze-xtensa
-+++ a/arch/microblaze/include/asm/pgalloc.h
-@@ -25,7 +25,7 @@ extern void __bad_pte(pmd_t *pmd);
- 
- extern pte_t *pte_alloc_one_kernel(struct mm_struct *mm);
- 
--#define __pte_free_tlb(tlb, pte, addr)	pte_free((tlb)->mm, (pte))
-+#define __pte_free_tlb(tlb, pte, addr)	tlb_remove_ptdesc((tlb), page_ptdesc(pte))
- 
- #define pmd_populate(mm, pmd, pte) \
- 			(pmd_val(*(pmd)) = (unsigned long)page_address(pte))
---- a/arch/microblaze/Kconfig~mm-enable-mmu_gather_rcu_table_free-for-arc-microblaze-xtensa
-+++ a/arch/microblaze/Kconfig
-@@ -41,6 +41,7 @@ config MICROBLAZE
- 	select PCI_SYSCALL if PCI
- 	select CPU_NO_EFFICIENT_FFS
- 	select MMU_GATHER_NO_RANGE
+--- a/arch/openrisc/Kconfig~mm-enable-mmu_gather_rcu_table_free-for-most-2-level-architectures
++++ a/arch/openrisc/Kconfig
+@@ -35,6 +35,7 @@ config OPENRISC
+ 	select GENERIC_ATOMIC64
+ 	select GENERIC_CLOCKEVENTS_BROADCAST
+ 	select GENERIC_SMP_IDLE_THREAD
 +	select MMU_GATHER_RCU_TABLE_FREE
- 	select SPARSE_IRQ
- 	select ZONE_DMA
- 	select TRACE_IRQFLAGS_SUPPORT
---- a/arch/xtensa/include/asm/tlb.h~mm-enable-mmu_gather_rcu_table_free-for-arc-microblaze-xtensa
-+++ a/arch/xtensa/include/asm/tlb.h
-@@ -16,7 +16,7 @@
- 
- #include <asm-generic/tlb.h>
- 
--#define __pte_free_tlb(tlb, pte, address)	pte_free((tlb)->mm, pte)
-+#define __pte_free_tlb(tlb, pte, address)	tlb_remove_ptdesc((tlb), page_ptdesc(pte))
- 
- void check_tlb_sanity(void);
- 
---- a/arch/xtensa/Kconfig~mm-enable-mmu_gather_rcu_table_free-for-arc-microblaze-xtensa
-+++ a/arch/xtensa/Kconfig
-@@ -55,6 +55,7 @@ config XTENSA
- 	select HAVE_VIRT_CPU_ACCOUNTING_GEN
- 	select IRQ_DOMAIN
- 	select LOCK_MM_AND_FIND_VMA
-+	select MMU_GATHER_RCU_TABLE_FREE if MMU
  	select MODULES_USE_ELF_RELA
- 	select PERF_USE_VMALLOC
- 	select TRACE_IRQFLAGS_SUPPORT
+ 	select HAVE_DEBUG_STACKOVERFLOW
+ 	select OR1K_PIC
+--- a/arch/sh/Kconfig~mm-enable-mmu_gather_rcu_table_free-for-most-2-level-architectures
++++ a/arch/sh/Kconfig
+@@ -61,6 +61,7 @@ config SUPERH
+ 	select HAVE_SYSCALL_TRACEPOINTS
+ 	select IRQ_FORCED_THREADING
+ 	select LOCK_MM_AND_FIND_VMA
++	select MMU_GATHER_RCU_TABLE_FREE if MMU && !X2TLB
+ 	select MODULES_USE_ELF_RELA
+ 	select NEED_SG_DMA_LENGTH
+ 	select NO_DMA if !MMU && !DMA_COHERENT
 _
 
 Patches currently in -mm which might be from ljs@kernel.org are
@@ -238,6 +216,9 @@ mm-vma-make-map_private-mapped-dev-zero-mappings-truly-anonymous.patch
 tools-testing-vma-add-test-to-assert-map_private-dev-zero-is-anon.patch
 tools-testing-selftests-mm-add-map_private-dev-zero-merge-tests.patch
 mm-madvise-swap-in-cowd-map_private-file-mappings-on-madv_willneed.patch
+mm-enable-mmu_gather_rcu_table_free-for-mmu-riscv.patch
+mm-enable-mmu_gather_rcu_table_free-for-mmu-arm.patch
+mm-enable-mmu_gather_rcu_table_free-for-arc-microblaze-xtensa.patch
 mm-enable-mmu_gather_rcu_table_free-for-sparc64.patch
 mm-enable-mmu_gather_rcu_table_free-for-m68k-coldfire.patch
 mm-enable-mmu_gather_rcu_table_free-for-sh-x2.patch
