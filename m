@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DF1EB4A5C3F
-	for <mm-commits@vger.kernel.org>; Wed, 16 Sep 2026 22:29:14 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2AB804AC149
+	for <mm-commits@vger.kernel.org>; Wed, 16 Sep 2026 22:31:36 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789597759; cv=none; b=R4eLIBQih8+LizC+IRbdPBaZ04w1gIGoSGRRdOqvuHUDF/ZkI8LZ/LMxjfQpYC4j2wBA/9gDWrbTko1fYcPf1PBlQNdeU9V2bseFzK9hUx3nS81+7zx1rJCgTsllY5fJcZ4G2bYtznZ961iW/HUJ9vJGcCN34RCRIlYK5A67TOg=
+	t=1789597904; cv=none; b=ZkC9gjeZIYXDsSWuJ5Rqcz/khwfjpLMKjc4QZ4qXimpalAX3v23bw+oBKplycM+HMx9ey2Wvqddh86atz2k5nS5lk3921oMIi2VPAlQWLhrBqyMYfggF5hyCCflPMbK8+aMgbD6d3+lmFKjr//pTnDZxQfaYXD6/jYOsoeHCqUA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1789597759; c=relaxed/simple;
-	bh=D2s9WVviLlP4wVGRKezV1g65qtkNIbOaf+Um0uKXYW0=;
-	h=Date:To:From:Subject:Message-Id; b=ezoWTjPcPjb0iRGjkYeKkSZJw1ZJrULWDGz3Tr13BeDhqaNBzwVCfFTPmvP6IFfR7eIm4dbajm1U06bTIQZ3JyipqAUz6sM/y1qDzLjOf4pLvY+Z1668Vs+0tsFSxxoWQgu9cOOg8pJdLQrLSA6LhoBRc/GVzrMpd39U7/8Y3rE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ANbYaJl5; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1789597904; c=relaxed/simple;
+	bh=Wqcm6hW5PVGFJx9FH/Kr9GggmrRep/YnPiXj4q2yhBs=;
+	h=Date:To:From:Subject:Message-Id; b=is5kNZBeiD6d8jfIPkH64ZBmS8FZHz6NeFlb62OVlnVluxi4s4XdNcXqNMMh4s0rNRbOctAUiEkY2pzxWEcT1IkClvt7VLn79ppcplv33V7IBiSh79oE6LdIK9/26HRtp3oci3y49Q4M/7hrWwYoZ8dIVP84JgCWMOd9CLFlBII=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=xrZkxMEu; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ANbYaJl5"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3E2411F000FF;
-	Wed, 16 Sep 2026 22:29:12 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="xrZkxMEu"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 028621F000FF;
+	Wed, 16 Sep 2026 22:31:33 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1789597752;
-	bh=Ut3TcV5Ek3zRBBtrnBHrGMIRXPEzFCY4+/TZRpHtIII=;
+	d=linux-foundation.org; s=korg; t=1789597894;
+	bh=YHVPRLNFDkJ/ggkmyLEPK/5ONRmgH7mpqI+pL7YvSEU=;
 	h=Date:To:From:Subject;
-	b=ANbYaJl5bSJdQ5//HmmUmsWpN+3bTNeWYq8TJhiErHM1bEuYZ8WS45vOuQWolROLg
-	 3awcneGeCZM8WID8rQKkfUsl1O9/8sSRfsuJBsjzuiKqmp6efrCgtv/wV9FYXQx//H
-	 H+tc48CnaWgPPKdOsoykMvG27UlSsxLBjR2olJrs=
-Date: Wed, 16 Sep 2026 15:29:11 -0700
+	b=xrZkxMEudRp499NsIq7zsrWF5gtv5iFq0asrTqOrP4oBTIGCAyVhw81b/avJmE6n3
+	 Kgj5L8wro14dmhLoXtF1aYcHMizg7GtwT9vYVd3GdG3+rRtVjdkgBKb5hEh8vWM5Lb
+	 lnkC35H75Zi5At+F53hJPB9CE49zKJuWsL9pWYuE=
+Date: Wed, 16 Sep 2026 15:31:33 -0700
 To: mm-commits@vger.kernel.org,willy@infradead.org,shakeel.butt@linux.dev,roman.gushchin@linux.dev,riel@surriel.com,muchun.song@linux.dev,mhocko@kernel.org,jack@suse.cz,hannes@cmpxchg.org,david@kernel.org,usama.arif@linux.dev,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [alternative-merged] mm-filemap-move-lruvec-accounting-outside-the-xarray-lock-v5.patch removed from -mm tree
-Message-Id: <20260916222912.3E2411F000FF@smtp.kernel.org>
+Subject: + mm-filemap-move-lruvec-accounting-outside-the-xarray-lock.patch added to mm-new branch
+Message-Id: <20260916223134.028621F000FF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,12 +34,39 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The quilt patch titled
+The patch titled
      Subject: mm: filemap: move lruvec accounting outside the xarray lock
-has been removed from the -mm tree.  Its filename was
-     mm-filemap-move-lruvec-accounting-outside-the-xarray-lock-v5.patch
+has been added to the -mm mm-new branch.  Its filename is
+     mm-filemap-move-lruvec-accounting-outside-the-xarray-lock.patch
 
-This patch was dropped because an alternative patch was or shall be merged
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-filemap-move-lruvec-accounting-outside-the-xarray-lock.patch
+
+This patch will later appear in the mm-new branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Note, mm-new is a provisional staging ground for work-in-progress
+patches, and acceptance into mm-new is a notification for others take
+notice and to finish up reviews.  Please do not hesitate to respond to
+review feedback and post updated versions to replace or incrementally
+fixup patches in mm-new.
+
+The mm-new branch of mm.git is not included in linux-next
+
+If a few days of testing in mm-new is successful, the patch will me moved
+into mm.git's mm-unstable branch, which is included in linux-next
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via various
+branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there most days
 
 ------------------------------------------------------
 From: Usama Arif <usama.arif@linux.dev>
@@ -83,7 +110,7 @@ Cc: Shakeel Butt <shakeel.butt@linux.dev>
  mm/filemap.c |   15 +++++++--------
  1 file changed, 7 insertions(+), 8 deletions(-)
 
---- a/mm/filemap.c~mm-filemap-move-lruvec-accounting-outside-the-xarray-lock-v5
+--- a/mm/filemap.c~mm-filemap-move-lruvec-accounting-outside-the-xarray-lock
 +++ a/mm/filemap.c
 @@ -918,14 +918,6 @@ noinline int __filemap_add_folio(struct
  
@@ -119,4 +146,5 @@ _
 Patches currently in -mm which might be from usama.arif@linux.dev are
 
 mm-zswap-dont-fail-a-large-folio-swapin-whose-range-is-not-in-zswap.patch
+mm-filemap-move-lruvec-accounting-outside-the-xarray-lock.patch
 
