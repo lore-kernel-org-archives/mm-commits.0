@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0CDFA38DC49
-	for <mm-commits@vger.kernel.org>; Wed, 16 Sep 2026 02:06:31 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9FFE8366055
+	for <mm-commits@vger.kernel.org>; Wed, 16 Sep 2026 02:06:41 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789524408; cv=none; b=VPG78VOLn8faMM9+PRn7pHc+eKufhSXFz58HtjmKpu7ZXllNRHV6oVY6gDGGbiUkyR7TajKjVSBO49Rmjasb6xm2fPYBfjKx3bd0K4Rr6KjnZtK6wlrR6789JSCQ3pr8qrwLQzRCYBCDlTkL0EVgdKtL7D0raoT6cpm3gkw+0g4=
+	t=1789524410; cv=none; b=fk9hvzqi8aUBAaszwW8FB0vPaloOkYiZOrbHgPJe96giCgFlYznvp+fiNEKhM0F4bUzQ7cW9flgYknpqP6iJ7EwAF3Ps4NlDIAlG1FQ5NmCrN3fvUlIk2tWq/cDV8pVKst0crsiw+a2twCbVbLAZUZw9HDEcy4kdyPzyuDKqw24=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1789524408; c=relaxed/simple;
-	bh=FjFvZFo4auLnXUkloibL/uh7SplvK90CkkXqKek0cyQ=;
-	h=Date:To:From:Subject:Message-Id; b=RAjZc3ppiYgpPnOBwNJ0+HRGiMILAVz73HhHFr8UPdyhjxfwoSFSsEbYeYFP+yLt+XUUf8iM8EY+1yOfkGqFvQEzD8PbLk38L9Zpi4IcZgdyDWH+mHT0Xfs97g1cz19juUXzj2AR7polKfQlNNyNBgIlCyp2EuUW5tZgUZerfNQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=EZuuE5YR; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1789524410; c=relaxed/simple;
+	bh=mhq49/KZlFDZNyQHAfvRgaibDQ9APo/E3prxjGrFvQ4=;
+	h=Date:To:From:Subject:Message-Id; b=D/Rou3mvkuvSM0IvleVN+IXpHYwUMK4hTkEX5tbvNmuHga/iovmDjxgxLs6azwvJZ9ClxhN0MK7+Lkmu4NcJNKmmby9YGfCgFMduZGIgkMRAuDlBt4zSYegRxGTfGXbilbe55+p21LrUJbhL8DzNTJBsgxI32eLaLoTtRMgbSk8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Bwivnlgs; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="EZuuE5YR"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D83F11F00898;
-	Wed, 16 Sep 2026 02:06:24 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Bwivnlgs"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3745C1F000FF;
+	Wed, 16 Sep 2026 02:06:39 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1789524385;
-	bh=MYnh/ChiJBy+C0oN64RvKaQ46PzS03FZDHyMznL8UII=;
+	d=linux-foundation.org; s=korg; t=1789524399;
+	bh=VbMdJM0n+VJDzo+4Yx91Qwsax0tts7QE5gA8nqHAJv4=;
 	h=Date:To:From:Subject;
-	b=EZuuE5YRLZOhVdNbKIawCeHKfQHlKa/3LMZ3fPjFD9oKtzovigdoohBpu+/Qai5U5
-	 cDEEwQM6+eiP6+6pd8hVlGTwE0QdkNVUQh7+ndErnxpdVpDYDngbecBmU4XzHNRCqm
-	 Nxm11fGBwIsr2GnBuyFx7z+0MxHHeImzKs84oAX4=
-Date: Tue, 15 Sep 2026 19:06:24 -0700
+	b=BwivnlgsRpxv/jdBE9qR8oWwLLKm6R9Gq8KkhsP+hi3204rp9rJFkQYaC/zpKRKhj
+	 awWa622C1xVdUst3U+wtDvp2Cxh4Y2YlLQA/+rpkHJIvgnTsbAPEzF1/TTaH+8DefI
+	 RU2mWdDKaOpIevxuTtL2zoRQtMSvQfG6mV8tcCvQ=
+Date: Tue, 15 Sep 2026 19:06:38 -0700
 To: mm-commits@vger.kernel.org,ljs@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-enable-mmu_gather_rcu_table_free-for-mmu-arm.patch added to mm-unstable branch
-Message-Id: <20260916020624.D83F11F00898@smtp.kernel.org>
+Subject: + mm-enable-mmu_gather_rcu_table_free-for-sh-x2.patch added to mm-unstable branch
+Message-Id: <20260916020639.3745C1F000FF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: enable MMU_GATHER_RCU_TABLE_FREE for MMU arm
+     Subject: mm: enable MMU_GATHER_RCU_TABLE_FREE for sh-X2
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-enable-mmu_gather_rcu_table_free-for-mmu-arm.patch
+     mm-enable-mmu_gather_rcu_table_free-for-sh-x2.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-enable-mmu_gather_rcu_table_free-for-mmu-arm.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-enable-mmu_gather_rcu_table_free-for-sh-x2.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,40 +59,44 @@ and is updated there most days
 
 ------------------------------------------------------
 From: "Lorenzo Stoakes (ARM)" <ljs@kernel.org>
-Subject: mm: enable MMU_GATHER_RCU_TABLE_FREE for MMU arm
-Date: Fri, 11 Sep 2026 20:36:51 +0100
+Subject: mm: enable MMU_GATHER_RCU_TABLE_FREE for sh-X2
+Date: Fri, 11 Sep 2026 20:36:55 +0100
 
-Commit a0ad5496b2b3 ("arm: mm: enable HAVE_RCU_TABLE_FREE logic") enabled
-CONFIG_MMU_GATHER_RCU_TABLE_FREE (then named HAVE_RCU_TABLE_FREE) for SMP
-arm architectures with LPAE enabled.
+Currently, non-x2 sh specifies CONFIG_MMU_GATHER_RCU_TABLE_FREE allowing
+RCU page table freeing.
 
-Regardless of whether CONFIG_ARM_LPAE is enabled or not, the same page
-table freeing functions __pte_free_tlb() and __pmd_free_tlb() are used.
+sh-X2 is problematic because it utilises slab-allocated PMD page tables,
+and thus tlb_remove_ptdesc() cannot be used in these cases.
 
-Non-LPAE PMD page tables are folded into the PGD and freed by pgd_free()
-(PGD freeing is not part of mmu_gather page table freeing in any case), so
-this is a noop in this case.
+All other sh variants are fine as commit e3ecf7c7d082 ("mm: pgtable:
+convert some architectures to use tlb_remove_ptdesc()") already converted
+page table freeing to use tlb_remove_ptdesc(), which does so after an RCU
+grace period when CONFIG_MMU_GATHER_RCU_TABLE_FREE is specified.
 
-Since commit 358d1c39c82a ("arm: convert various functions to use
-ptdescs") both LPAE and non-LPAE PTE page table freeing uses
-tlb_remove_ptdesc().
+Resolve this issue by firstly specifying CONFIG_HAVE_ARCH_TLB_REMOVE_TABLE
+for sh-X2, so the arch can provide its own __tlb_remove_table()
+implementation (called after the RCU grace period).
 
-Thus all page table freeing is performed under RCU with
-CONFIG_MMU_GATHER_RCU_TABLE_FREE enabled for LPAE and non-LPAE and thus it
-need not be gated on LPAE.
+Then, convert __pmd_free_tlb() to tag the pointer to the PMD, and have
+__tlb_remove_table() check this tag to determine whether to free via the
+slab or to use pagetable_dtor_free().
 
-A UP arm system can set CONFIG_PREEMPT_RCU, so a future pure RCU page
-table walker requires MMU_GATHER_RCU_TABLE_FREE to be enabled on UP as
-well, even if concurrent GUP fast is not possible there.
+This follows the pattern used by sparc64 as implemented in commit
+4a0100f7546f ("sparc64: use RCU page table freeing").
 
-Therefore, it is both safe and desirable to set
-CONFIG_MMU_GATHER_RCU_TABLE_FREE for all MMU arm architectures (nommu does
-not perform mmu_gather operations).
+Previously __pmd_free_tlb() freed PMD page tables immediately, before any
+TLB flush IPI.  This seems to be a pre-existing bug, which this change
+also resolves.
+
+CONFIG_HAVE_ARCH_TLB_REMOVE_TABLE is only specified for sh-X2, as setting
+it disables CONFIG_PT_RECLAIM and causes __tlb_remove_table_one() to call
+tlb_remove_table_sync_rcu() and synchronize_rcu() in turn, and this is not
+necessary for other sh variants.
 
 This forms part of an overall effort to switch every architecture to this
 mode.
 
-Link: https://lore.kernel.org/20260911-rcu-pagetable-freeing-v3-4-7b8c86103821@kernel.org
+Link: https://lore.kernel.org/20260911-rcu-pagetable-freeing-v3-8-7b8c86103821@kernel.org
 Signed-off-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 Acked-by: Kiryl Shutsemau (Meta) <kas@kernel.org>
@@ -162,20 +166,72 @@ Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
 Cc: Zi Yan <ziy@nvidia.com>
 ---
 
- arch/arm/Kconfig |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/sh/Kconfig               |    3 ++-
+ arch/sh/include/asm/pgalloc.h |    6 +++++-
+ arch/sh/mm/pgtable.c          |   20 ++++++++++++++++++++
+ 3 files changed, 27 insertions(+), 2 deletions(-)
 
---- a/arch/arm/Kconfig~mm-enable-mmu_gather_rcu_table_free-for-mmu-arm
-+++ a/arch/arm/Kconfig
-@@ -134,7 +134,7 @@ config ARM
- 	select HAVE_PERF_REGS
- 	select HAVE_PERF_USER_STACK_DUMP
- 	select HAVE_POSIX_CPU_TIMERS_TASK_WORK
--	select MMU_GATHER_RCU_TABLE_FREE if SMP && ARM_LPAE
+--- a/arch/sh/include/asm/pgalloc.h~mm-enable-mmu_gather_rcu_table_free-for-sh-x2
++++ a/arch/sh/include/asm/pgalloc.h
+@@ -17,7 +17,11 @@ extern void pgd_free(struct mm_struct *m
+ extern void pud_populate(struct mm_struct *mm, pud_t *pudp, pmd_t *pmd);
+ extern pmd_t *pmd_alloc_one(struct mm_struct *mm, unsigned long address);
+ extern void pmd_free(struct mm_struct *mm, pmd_t *pmd);
+-#define __pmd_free_tlb(tlb, pmdp, addr)		pmd_free((tlb)->mm, (pmdp))
++extern void __tlb_remove_table(void *table);
++
++/* PMDs are slab-allocated, tag so they are freed correctly. */
++#define __pmd_free_tlb(tlb, pmdp, addr)					\
++	tlb_remove_table((tlb), (void *)((unsigned long)(pmdp) | 1))
+ #endif
+ 
+ static inline void pmd_populate_kernel(struct mm_struct *mm, pmd_t *pmd,
+--- a/arch/sh/Kconfig~mm-enable-mmu_gather_rcu_table_free-for-sh-x2
++++ a/arch/sh/Kconfig
+@@ -33,6 +33,7 @@ config SUPERH
+ 	select HAVE_ARCH_AUDITSYSCALL
+ 	select HAVE_ARCH_KGDB
+ 	select HAVE_ARCH_SECCOMP_FILTER
++	select HAVE_ARCH_TLB_REMOVE_TABLE if X2TLB
+ 	select HAVE_ARCH_TRACEHOOK
+ 	select HAVE_DEBUG_BUGVERBOSE
+ 	select HAVE_DEBUG_KMEMLEAK
+@@ -61,7 +62,7 @@ config SUPERH
+ 	select HAVE_SYSCALL_TRACEPOINTS
+ 	select IRQ_FORCED_THREADING
+ 	select LOCK_MM_AND_FIND_VMA
+-	select MMU_GATHER_RCU_TABLE_FREE if MMU && !X2TLB
 +	select MMU_GATHER_RCU_TABLE_FREE if MMU
- 	select HAVE_REGS_AND_STACK_ACCESS_API
- 	select HAVE_RSEQ
- 	select HAVE_RUST if CPU_LITTLE_ENDIAN && CPU_32v7 && !KASAN
+ 	select MODULES_USE_ELF_RELA
+ 	select NEED_SG_DMA_LENGTH
+ 	select NO_DMA if !MMU && !DMA_COHERENT
+--- a/arch/sh/mm/pgtable.c~mm-enable-mmu_gather_rcu_table_free-for-sh-x2
++++ a/arch/sh/mm/pgtable.c
+@@ -56,4 +56,24 @@ void pmd_free(struct mm_struct *mm, pmd_
+ {
+ 	kmem_cache_free(pmd_cachep, pmd);
+ }
++
++static void __tlb_remove_table_slab(void *table)
++{
++	kmem_cache_free(pmd_cachep, table);
++}
++
++static void __tlb_remove_table_pgtable(void *table)
++{
++	pagetable_dtor_free(table);
++}
++
++void __tlb_remove_table(void *table)
++{
++	const unsigned long addr = (unsigned long)table;
++
++	if (addr & 1)
++		__tlb_remove_table_slab((void *)(addr & ~1UL));
++	else
++		__tlb_remove_table_pgtable(table);
++}
+ #endif /* PAGETABLE_LEVELS > 2 */
 _
 
 Patches currently in -mm which might be from ljs@kernel.org are
