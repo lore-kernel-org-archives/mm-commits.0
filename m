@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 25E203B4E88
-	for <mm-commits@vger.kernel.org>; Wed, 16 Sep 2026 01:35:25 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1EA3938B148;
+	Wed, 16 Sep 2026 01:46:52 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789522534; cv=none; b=Cr5Xe4piWNKOfswWHs4MOpEbMTI+8tPUBDapPPs079Wvn7I0s8JZY6ae3qcsJ7xlDIsIXyG09aI05XxXgIq/NMenMEGOkNJ9NFXk+jAuDV90LFujDnsRGJ55QyVms9e16Lk422aaStDv9Zs7FHrd/UgnDCHqssXi/RNhybzlvGs=
+	t=1789523224; cv=none; b=dCsZTpJ5+4Hah0rpW8NOVZcU0JVMoEj7s7+wtbEhPHCgJI3PrbNjyViImm3qhouNn4mqyYrbQLjPWi2G0vpT5hF6/+52ShKBshl0UvZyG2kXY9Du4TwLB6GnbGIU04OL/zMbBhdwPVbKNyz5FH+FwDzEVqRgioEP7C828WGdYxM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1789522534; c=relaxed/simple;
-	bh=GkJvz2WNjxGQSHEza9ey9ho3ZnzM833hpCZoRbU6+IM=;
-	h=Date:To:From:Subject:Message-Id; b=q8Swhk2oug+kXIUmypSMj4tI+4kfA3AEILpUfYaBgG9CNnb2+4poFpBUl7pHg0QXTH1NXNBu/zh00phC+Oq7K3bjnGj4EJn1ale1MqYeOcdiupuPC9dq4E2fGSvqhnlZ5uoApT2+sVZmxxecK+pIZAeAhF4eF3Vx0tTnkD/mHvw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=EFufIFMj; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1789523224; c=relaxed/simple;
+	bh=BiXbxRUPREdKbU9GcoHfxnGsX8SwxeGRcFZOz4d5tMw=;
+	h=Date:To:From:Subject:Message-Id; b=L23OiekU3Ha9JKI1KKvAS59wIavppCdZ2GgdmuWgRJwN1NMBdIQPwdBKdldrKcExpTAKUAIZl36Ef9NH6OI08KiQL96+a3dMFhnXGXQl0ZVYX71EGwl1oBE1Pcw7ROWWnLjdn0PTP+4riMApy1zexVDB/2wwBajMByQFxfY6dpw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=2qOQXvYc; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="EFufIFMj"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C7B8F1F000FF;
-	Wed, 16 Sep 2026 01:35:24 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="2qOQXvYc"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0D0ED1F000FF;
+	Wed, 16 Sep 2026 01:46:51 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1789522524;
-	bh=qOgSScAhR4lq9nfJwbSQ9mrVq4kYHLW9pcjCDqxlyXI=;
+	d=linux-foundation.org; s=korg; t=1789523211;
+	bh=dfWF3yRHXzRYsxOIoMGYdMiNRuIaKO3z05pZwfILbIc=;
 	h=Date:To:From:Subject;
-	b=EFufIFMjUU7RAixSw4GpJ2h5GLF5hGhUFnfoh04Pbd1jCs8w7WMm1R+mPZjuH5MW+
-	 3PVrK63sNpc3pv3LKU4F5YRYHOG++lKRj5/P9fHYzdCkFgH8tyXADWSPA/qw1o3zaB
-	 6qvLSTJb1H9diRZKsn0RwLzyplrxCfNDGk6PECDk=
-Date: Tue, 15 Sep 2026 18:35:24 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,vbabka@kernel.org,surenb@google.com,mhocko@suse.com,hannes@cmpxchg.org,brendan.jackman@linux.dev,liuqiqi@kylinos.cn,akpm@linux-foundation.org
+	b=2qOQXvYcVQClkU/QpXQycqdvj+dTmrOOTwDP6PcSkFP43q506NQ+gFdNWdtt+8lP2
+	 KPHfGwNZQjcyCjHAozg1Kzy/rXqR9YdaU5wYIkF9VhKQOjb3irOKIZ5iaomoCGMzJh
+	 3MqluMQZHz9DsRJP9Iv2Bb4p6wqZIo5xFNOs+Hos=
+Date: Tue, 15 Sep 2026 18:46:50 -0700
+To: mm-commits@vger.kernel.org,vbabka@kernel.org,stable@vger.kernel.org,sashiko-bot@kernel.org,ljs@kernel.org,liam@infradead.org,jannh@google.com,david@kernel.org,gourry@gourry.net,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-page_alloc-apply-per-task-gfp-context-in-bulk-allocator.patch added to mm-new branch
-Message-Id: <20260916013524.C7B8F1F000FF@smtp.kernel.org>
+Subject: + mm-madvise-use-folio_trylock-in-the-cold-pageout-pmd-split.patch added to mm-new branch
+Message-Id: <20260916014651.0D0ED1F000FF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/page_alloc: apply per-task GFP context in bulk allocator
+     Subject: mm/madvise: use folio_trylock() in the cold/pageout PMD split
 has been added to the -mm mm-new branch.  Its filename is
-     mm-page_alloc-apply-per-task-gfp-context-in-bulk-allocator.patch
+     mm-madvise-use-folio_trylock-in-the-cold-pageout-pmd-split.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-page_alloc-apply-per-task-gfp-context-in-bulk-allocator.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-madvise-use-folio_trylock-in-the-cold-pageout-pmd-split.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -69,59 +69,93 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Qiqi Liu <liuqiqi@kylinos.cn>
-Subject: mm/page_alloc: apply per-task GFP context in bulk allocator
-Date: Tue, 15 Sep 2026 15:49:28 +0800
+From: Gregory Price <gourry@gourry.net>
+Subject: mm/madvise: use folio_trylock() in the cold/pageout PMD split
+Date: Sat, 12 Sep 2026 07:05:40 -0400
 
-alloc_pages_bulk_noprof() does not call current_gfp_context(), so per-task
-scoped allocation constraints (PF_MEMALLOC_NOIO, PF_MEMALLOC_NOFS,
-PF_MEMALLOC_PIN) are not applied on the bulk fast path.
+MADV_COLD or MADV_PAGEOUT over part of a PMD splits the THP in
+madvise_cold_or_pageout_pte_range().  Two threads doing that to the same
+THP create spurious failures.
 
-By ignoring PF_MEMALLOC_NOIO and PF_MEMALLOC_NOFS, the allocation can
-theoretically result in a deadlock.
+  CPU0                          CPU1
+  ----                          ----
+  folio_get()
+  spin_unlock(ptl)
+  folio_lock()
+                                folio_get()
+                                spin_unlock(ptl)
+                                folio_lock()  <- blocks, keeps its ref
+  split_folio()
+    folio_expected_ref_count(folio) != folio_ref_count(folio) - 1
+    -EAGAIN
 
-Ignoring PF_MEMALLOC_PIN also has consequences: without clearing
-__GFP_MOVABLE, prepare_alloc_pages() selects MIGRATE_MOVABLE for the PCP
-list, and a task with PF_MEMALLOC_PIN set receives movable pages from the
-bulk allocator.  Once pinned, these pages can no longer be migrated but
-remain in MOVABLE pageblocks, violating the mobility contract.  This can
-increase fragmentation and interfere with compaction or contiguous-memory
-allocations, eventually surfacing as higher allocation latency or
-allocation failures under memory pressure.
+CPU1 cannot drop its reference until it gets the lock CPU0 holds, so
+CPU0's split always fails.  folio_trylock() makes CPU1 leave without ever
+taking a reference.  The PTE branch of this same function already does
+this, as do madvise_free_pte_range() and madvise_free_huge_pmd().
 
-Found via review of the bulk allocation tracepoint hooks [1].
+Reproducer: 400 rounds of eight threads calling MADV_COLD on half of each
+of eight THPs, re-formed with MADV_COLLAPSE between rounds.  From
+/proc/vmstat:
 
-Link: https://sashiko.dev/#/patchset/20260907120949.418450-1-liuqiqi%40kylinos.cn
-Link: https://lore.kernel.org/all/20260907120949.418450-1-liuqiqi@kylinos.cn/ [1]
-Link: https://lore.kernel.org/20260915074928.327471-1-liuqiqi@kylinos.cn
-Fixes: 387ba26fb1cb ("mm/page_alloc: add a bulk page allocator")
-Signed-off-by: Qiqi Liu <liuqiqi@kylinos.cn>
+                     thp_split_page   thp_split_page_failed
+    before                     3186                     860
+    after                      3200                       0
+
+The short before count is rounds where every thread failed and the advice
+was dropped for that THP entirely.
+
+On failure the walker returns 0 and nothing retries.  The PMD path becomes
+best effort when the folio lock is held elsewhere - same as the PTE path.
+
+Link: https://lore.kernel.org/20260912110540.3203010-1-gourry@gourry.net
+Signed-off-by: Gregory Price (Meta) <gourry@gourry.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Reviewed-by: Vlastimil Babka (SUSE) <vbabka@kernel.org>
-Cc: Brendan Jackman <brendan.jackman@linux.dev>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Zi Yan <ziy@nvidia.com>
+Reported-by: sashiko-bot <sashiko-bot@kernel.org>
+Closes: https://sashiko.dev/#/patchset/20260817220810.1175596-1-gourry%40gourry.net
+Acked-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
+Cc: David Hildenbrand <david@kernel.org>
+Cc: Gregory Price <gourry@gourry.net>
+Cc: Jann Horn <jannh@google.com>
+Cc: Liam R. Howlett <liam@infradead.org>
+Cc: Vlastimil Babka <vbabka@kernel.org>
+Assisted-by: LLM
+Cc: <stable@vger.kernel.org>
 ---
 
- mm/page_alloc.c |    1 +
- 1 file changed, 1 insertion(+)
+ mm/madvise.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
---- a/mm/page_alloc.c~mm-page_alloc-apply-per-task-gfp-context-in-bulk-allocator
-+++ a/mm/page_alloc.c
-@@ -5201,6 +5201,7 @@ unsigned long alloc_pages_bulk_noprof(gf
+--- a/mm/madvise.c~mm-madvise-use-folio_trylock-in-the-cold-pageout-pmd-split
++++ a/mm/madvise.c
+@@ -418,9 +418,10 @@ static int madvise_cold_or_pageout_pte_r
+ 		if (next - addr != HPAGE_PMD_SIZE) {
+ 			int err;
  
- 	/* May set ALLOC_NOFRAGMENT, fragmentation will return 1 page. */
- 	gfp &= gfp_allowed_mask;
-+	gfp = current_gfp_context(gfp);
- 	if (!prepare_alloc_pages(gfp, 0, preferred_nid, nodemask, &ac, &gfp, &alloc_flags))
- 		goto out;
- 
++			if (!folio_trylock(folio))
++				goto huge_unlock;
+ 			folio_get(folio);
+ 			spin_unlock(ptl);
+-			folio_lock(folio);
+ 			err = split_folio(folio);
+ 			folio_unlock(folio);
+ 			folio_put(folio);
 _
 
-Patches currently in -mm which might be from liuqiqi@kylinos.cn are
+Patches currently in -mm which might be from gourry@gourry.net are
 
-mm-page_alloc-add-missing-hooks-to-bulk-allocation-path.patch
-mm-page_alloc-apply-per-task-gfp-context-in-bulk-allocator.patch
+mm-mempolicy-take-a-cpuset-cookie-for-the-interleave-node-count.patch
+mm-mempolicy-use-srcu-for-the-weighted-interleave-state.patch
+mm-mempolicy-stop-copying-the-nodemask-in-the-interleave-paths.patch
+mm-huge_memory-skip-zone-device-folios-in-madvise_free_huge_pmd.patch
+mm-madvise-skip-zone-device-folios-in-cold-pageout-pmd-range.patch
+mm-mempolicy-skip-zone-device-folios-when-queueing-folios.patch
+mm-memory_hotplug-factor-out-node_is_memoryless.patch
+mm-mempolicy-use-vm_normal_folio_pmd-in-queue_folios_pmd.patch
+mm-madvise-use-vm_normal_folio_pmd-in-cold-pageout-pmd-range.patch
+mm-refactor-find_next_best_node-to-find_next_best_node_in.patch
+mm-page_alloc-refactor-build_node_zonelist-out-of-build_zonelists.patch
+proc-task_mmu-handle-special-pmds-in-clear_refs-and-pagemap.patch
+mm-madvise-reclaim-isolated-folios-if-pte-restart-fails.patch
+mm-madvise-use-folio_trylock-in-the-cold-pageout-pmd-split.patch
 
