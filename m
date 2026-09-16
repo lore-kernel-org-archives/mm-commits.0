@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6E02E37BE75;
-	Wed, 16 Sep 2026 23:02:37 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D72524E2F34;
+	Wed, 16 Sep 2026 23:30:53 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789599762; cv=none; b=f4ELhwtbYDEp3krWh14XDct/RSRT2qgUBxdiZdVMkf0RIo1n2ySnlRmQ4qGqJ6K7KtpoDqNKrY5//XL/awDawEpwUj9TJVXkio5WkOxKb82eUTFmdO7IAYWnME3Yvot6uqRYGV2A4rKoQZ17lyxpcM/f2xSL1FbbEC49dP/Gf78=
+	t=1789601455; cv=none; b=Gfc/tQopgAoxA8YcfsLCTZBL5cHdMdRV/uBEh5+fwFmMY4Guj7EN3BGWMmV7ftqTUzxTj/HtUOte9cBDqSwk11j0+b/SzYZZMQHNaVz0LkdI0KZzIMu7E6gjtrIe7h0ul8ibqwsMjwg96MhnOqX9hhlylyau+kE69F6522y4NPk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1789599762; c=relaxed/simple;
-	bh=eYsnbZwo1OXRm29370IkjNSHbmVLsYc4WoB5P21fS50=;
-	h=Date:To:From:Subject:Message-Id; b=WxU5Ds50mqLWw+9zpHOHuaGe/PHAsDnbsiAVqMD6QFiQ+4NYFDSeHqe95EFYlNth/P7MQN8EavqiBD9RRjqwbVl+VWwrbNcwy2YGxyy0aAV5P2u8UAAVmqoxPMhwtoNyDMMB7JrFuv4n7oiAbu+y35SWZzUuuOscw4Q7+eP/Giw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=i+ea0m+g; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1789601455; c=relaxed/simple;
+	bh=9AxbLDevJrGiwfcOvJZLUy54lMxteaDV8emCm/SPYz8=;
+	h=Date:To:From:Subject:Message-Id; b=r/wEdDYkeZa+/IkWczKXVI2hXnPaLjwSDF9msBgQDgS7RZN7iJSCl8Nv3as6LaevE6C+sn1QRIK4hQ3FxQeoCCDzFoZoQy8g70WohBrW4xNGtsYaa8kyayAzi7yOVrCDuAxbYHiDeQtQEW0q7LvUS3ovomQwRh35TzLWhAgCjY0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=aiaOcKZX; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="i+ea0m+g"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7BEEF1F000FF;
-	Wed, 16 Sep 2026 23:02:34 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="aiaOcKZX"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5092F1F000FF;
+	Wed, 16 Sep 2026 23:30:53 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1789599754;
-	bh=Ttf1Lp06eGMZTq8kmEWQK8VQAwqDKcMLoLNRDecdFa4=;
+	d=linux-foundation.org; s=korg; t=1789601453;
+	bh=medF6QiKoAjc56gVi4ShMciMQcY7liVwqRF8W3Q5Jc0=;
 	h=Date:To:From:Subject;
-	b=i+ea0m+g/alYzYD9sQUCbANUPYdZnUPIHoi4pPLH2bXJRoRMNJskCHcFhNj+TP5Wo
-	 Cvq4/xhpu84y4ifzFGJcK6YTWxx9xqJWe/D1ZXBtUVm/z7YZVaSF50jbrS9yyIPiZ4
-	 Yo11ZrpkbZNDsdokb/kMbEcPY97xDjLgxf5ELA4c=
-Date: Wed, 16 Sep 2026 16:02:34 -0700
-To: mm-commits@vger.kernel.org,stable@vger.kernel.org,hpa@zytor.com,alain@knaff.lu,elb12345@hotmail.co.uk,akpm@linux-foundation.org
+	b=aiaOcKZXfFI46r8SpmIEak332RST0T89DKJ8N4lFtNBixLSPWqCuxKQHc0+Wbfh88
+	 L7ckuDPIdfa8b8N6mZdcV1ezyzlgzHC5hSS8EdXy1uolbD2x2NAEmjKtxsDoufgcF8
+	 5hMJ/hQID6NFEaOoJbENShmRZeIMWynduzgLivLQ=
+Date: Wed, 16 Sep 2026 16:30:52 -0700
+To: mm-commits@vger.kernel.org,yuanchu@google.com,weixugc@google.com,stable@vger.kernel.org,shakeel.butt@linux.dev,mhocko@kernel.org,ljs@kernel.org,kasong@tencent.com,hannes@cmpxchg.org,david@kernel.org,baoquan.he@linux.dev,baolin.wang@linux.alibaba.com,baohua@kernel.org,axelrasmussen@google.com,arnd@arndb.de,akpm@linux-foundation.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + lib-decompress_bunzip2-fix-integer-overflow-in-run-length-decoding.patch added to mm-nonmm-unstable branch
-Message-Id: <20260916230234.7BEEF1F000FF@smtp.kernel.org>
+Subject: + mm-vmscanc-fix-min-signedness-mismatch.patch added to mm-hotfixes-unstable branch
+Message-Id: <20260916233053.5092F1F000FF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: lib: decompress_bunzip2: fix integer overflow in run-length decoding
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     lib-decompress_bunzip2-fix-integer-overflow-in-run-length-decoding.patch
+     Subject: mm/vmscan.c: fix min() signedness mismatch
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     mm-vmscanc-fix-min-signedness-mismatch.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/lib-decompress_bunzip2-fix-integer-overflow-in-run-length-decoding.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vmscanc-fix-min-signedness-mismatch.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,55 +58,50 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Aamir Ahmed <elb12345@hotmail.co.uk>
-Subject: lib: decompress_bunzip2: fix integer overflow in run-length decoding
-Date: Wed, 16 Sep 2026 09:53:51 +0100
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm/vmscan.c: fix min() signedness mismatch
+Date: Wed Sep 16 04:21:22 PM PDT 2026
 
-The RUNA/RUNB decoder in get_next_block() accumulates a run length into
-the signed int t with no bound.  runPos doubles per symbol, so t grows as
-at least 2^n-1 and reaches INT_MAX after 31 RUNA symbols.  The guard that
-follows, dbufCount+t >= dbufSize, is itself a signed addition, and as the
-kernel builds with -fno-strict-overflow it wraps negative once dbufCount
-is nonzero, so the guard is skipped.  while (t--) dbuf[dbufCount++] = uc
-then writes INT_MAX entries into a buffer holding at most 900000.  One
-literal symbol ahead of the run is enough to make dbufCount nonzero.
+A __noipa conversion from Arnd [1] somehow revealed a longstanding min()
+error in read_ctrl_pos().  Plug it with min_t().
 
-Bound t to the block size as it is accumulated.  t only grows within a
-run, so the value tested never exceeds the final run length; any stream
-that decodes today satisfies dbufCount+t < dbufSize at the flush, hence t
-< dbufSize throughout, and no such stream is rejected.  Because t grows as
-at least 2^n-1 the bound trips by the 20th symbol, leaving runPos at most
-2^19, so the following runPos <<= 1 cannot overflow either.
-
-Link: https://lore.kernel.org/AS8P251MB00010FE5E38D253CF98A652AC8B92@AS8P251MB0001.EURP251.PROD.OUTLOOK.COM
-Fixes: bc22c17e12c1 ("bzip2/lzma: library support for gzip, bzip2 and lzma decompression")
-Signed-off-by: Aamir Ahmed <elb12345@hotmail.co.uk>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Assisted-by: LLM
-Cc: Alain Knaff <alain@knaff.lu>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: Axel Rasmussen <axelrasmussen@google.com>
+Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
+Cc: Baoquan He <baoquan.he@linux.dev>
+Cc: Barry Song <baohua@kernel.org>
+Cc: David Hildenbrand <david@kernel.org>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Kairui Song <kasong@tencent.com>
+Cc: Lorenzo Stoakes <ljs@kernel.org>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Shakeel Butt <shakeel.butt@linux.dev>
+Cc: Wei Xu <weixugc@google.com>
+Cc: Yuanchu Xie <yuanchu@google.com>
 Cc: <stable@vger.kernel.org>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/decompress_bunzip2.c |    4 ++++
- 1 file changed, 4 insertions(+)
+ mm/vmscan.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/lib/decompress_bunzip2.c~lib-decompress_bunzip2-fix-integer-overflow-in-run-length-decoding
-+++ a/lib/decompress_bunzip2.c
-@@ -428,6 +428,10 @@ got_huff_bits:
- 			t += (runPos << nextSym);
- 			/* +runPos if RUNA; +2*runPos if RUNB */
+--- a/mm/vmscan.c~mm-vmscanc-fix-min-signedness-mismatch
++++ a/mm/vmscan.c
+@@ -3205,7 +3205,7 @@ static void read_ctrl_pos(struct lruvec
+ 	pos->gain = gain;
+ 	pos->refaulted = pos->total = 0;
  
-+			/* Bound the run so t and runPos cannot overflow. */
-+			if (t >= dbufSize)
-+				return RETVAL_DATA_ERROR;
-+
- 			runPos <<= 1;
- 			continue;
- 		}
+-	for (i = tier % MAX_NR_TIERS; i <= min(tier, MAX_NR_TIERS - 1); i++) {
++	for (i = tier % MAX_NR_TIERS; i <= min_t(unsigned int, tier, MAX_NR_TIERS - 1); i++) {
+ 		pos->refaulted += lrugen->avg_refaulted[type][i] +
+ 				  atomic_long_read(&lrugen->refaulted[hist][type][i]);
+ 		pos->total += lrugen->avg_total[type][i] +
 _
 
-Patches currently in -mm which might be from elb12345@hotmail.co.uk are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-lib-decompress_bunzip2-fix-integer-overflow-in-run-length-decoding.patch
+mm-vmscanc-fix-min-signedness-mismatch.patch
+mm-memory_hotplug-factor-out-node_is_memoryless-fix.patch
+docs-admin-guide-mm-damon-usage-update-for-hugepage_size-fix.patch
+drivers-media-v4l2-core-v4l2-vp9c-reduce-inlining.patch
 
