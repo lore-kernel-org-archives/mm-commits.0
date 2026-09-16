@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DF1884DE70D;
-	Wed, 16 Sep 2026 20:45:55 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A30284E06E1;
+	Wed, 16 Sep 2026 20:59:58 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789591567; cv=none; b=fma+yLOo6+JC8s2OSylb9b2RHN/+1Z2IBSpw8eIKwEh4CfK7EJHmxMJRmslCICz4ZyAEDmMpGOypKi3btCyPibRp6y6Ndz6B2BzfcW5AZ56aLEK7DKc9zz0D/8QCOVFucKhBaDc6/OO8MJShBl/HzmHsA/64KLvHLAMrYhUuTkc=
+	t=1789592413; cv=none; b=I4aOZlV/TYQEJ/c0sCPdZt1+0IcbcxU7/W8eunjIkVTiDO/2CyvBM6iMLCcCIqgy+DdRQ0SUBVgH5YWGFsrq4lT6xEWW8H2BJIeQE9s5TheQb+H3D9YA4qFxcaClyiH3cUFKhMeh2fXLVdb1zW2CXdYCDe+iZaphg3n40cpwlcg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1789591567; c=relaxed/simple;
-	bh=1mVPjeEZdgPw16T/Q4sMFG2G5KaktUy4WZmCSkXMkFk=;
-	h=Date:To:From:Subject:Message-Id; b=JDkGZGxp1b0B67CVs7h8hYemF/skftggpmkilH8Jcs5yk+uFgJIVDpqGKDAOAamFJeCbjIvORuVC3vbxew+NzKFJU3RF2UIoHTXvZKpiWkxR6ss12IbGgmNuv8tm2siA8/XUikpeF32XkZnweNpJbReqmAX5kjCFR82V/skpjfc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=nroI+Ca1; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1789592413; c=relaxed/simple;
+	bh=QzA+KBr/uIcAC8kLbo5Ay7GDGttYSV8buA8FcdHeVQ0=;
+	h=Date:To:From:Subject:Message-Id; b=OiHR88j1dsB81lBuVyyuKjVBGfHqPMT9d5TWS+RaT8z4pmLS15rRV51bouvmlMnYH/ZpMF2JQSSIT+vS88d2GcI8WMqxQEdEHr4ZhqF7M1jjVecw5w//DO0BWidvtJczqY/1AYzHCcFzY0gAK4NWbRkjrCjovTe7bcMZtH9q0rk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=zaBK33CL; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="nroI+Ca1"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id BB7E31F00899;
-	Wed, 16 Sep 2026 20:45:46 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="zaBK33CL"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1EE111F000FF;
+	Wed, 16 Sep 2026 20:59:57 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1789591546;
-	bh=3OMJddD1qtU8Jt2odThJoyawociOfw8xY3SwSSKNmeA=;
+	d=linux-foundation.org; s=korg; t=1789592397;
+	bh=dbpskzbIoTd5IgRyVcqGXoJDpMKNH4vuWYhLV20/QOU=;
 	h=Date:To:From:Subject;
-	b=nroI+Ca14OS2RTeyagJ3eOA6OOMiQ46tpaqVRBd8AezN8ZNENDNaUZNRqwIERLZi9
-	 75IMCFXWl1REe0wm5YXEoslbO3/IUJSHxuQvOJgv2cByaW7R4aWzHCrCtMTgN9a/zg
-	 cR2mbC3EmSUGIn1/SMNGP5DquV4DcgK6hA3yAtPU=
-Date: Wed, 16 Sep 2026 13:45:46 -0700
-To: mm-commits@vger.kernel.org,wim@linux-watchdog.org,wangjinchao600@gmail.com,stable@vger.kernel.org,sashiko-bot@kernel.org,pmladek@suse.com,linux@roeck-us.net,brads@mainlining.org,akpm@linux-foundation.org
+	b=zaBK33CLHVz1dbnKb/QMYF993VmqH0ZZDED6LzBTv6VntRppIsbvZzahTmqZI2AL8
+	 k6Ukq25+ZIFvMPSGpX52m25512KJnCL3PJBq1n1aNd451GhWVAec/7Ar0X5fuWV+Ce
+	 1SfCm00WECTqFwcKBBvrKqYhDwkSJtXSKI+0YJME=
+Date: Wed, 16 Sep 2026 13:59:56 -0700
+To: mm-commits@vger.kernel.org,vincenzo.frascino@arm.com,stable@vger.kernel.org,ljs@kernel.org,huangshaobo3@xiaomi.com,glider@google.com,dvyukov@google.com,david@kernel.org,andreyknvl@gmail.com,ryabinin.a.a@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + panic-allow-force_cpu-redirect-from-an-nmi.patch added to mm-nonmm-unstable branch
-Message-Id: <20260916204546.BB7E31F00899@smtp.kernel.org>
+Subject: + kasan-unpoison-task-stack-below-watermark-only-in-generic-mode.patch added to mm-hotfixes-unstable branch
+Message-Id: <20260916205957.1EE111F000FF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: panic: allow force_cpu redirect from an NMI
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     panic-allow-force_cpu-redirect-from-an-nmi.patch
+     Subject: kasan: unpoison task stack below watermark only in generic mode
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     kasan-unpoison-task-stack-below-watermark-only-in-generic-mode.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/panic-allow-force_cpu-redirect-from-an-nmi.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kasan-unpoison-task-stack-below-watermark-only-in-generic-mode.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,110 +58,100 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Bradley Morgan <brads@mainlining.org>
-Subject: panic: allow force_cpu redirect from an NMI
-Date: Wed, 16 Sep 2026 18:29:56 +0000
+From: Andrey Ryabinin <ryabinin.a.a@gmail.com>
+Subject: kasan: unpoison task stack below watermark only in generic mode
+Date: Wed, 16 Sep 2026 19:51:13 +0200
 
-nmi_panic() claims panic_cpu via panic_try_start() before calling panic().
-When the panic later reaches panic_try_force_cpu(), the
-panic_in_progress() check sees panic_cpu set and refuses to redirect.  The
-crash kernel runs on the CPU that took the NMI instead of the CPU
-requested with panic_force_cpu=:
+CPU resume and BPF exception handling can discard stack frames without
+running their compiler-generated epilogues.  Generic KASAN needs
+kasan_unpoison_task_stack_below() to clear the redzones left behind by
+those frames before the stack is reused.
 
-  nmi_panic()
-    panic_try_start()              wins, panic_cpu = X
-    panic("%s", msg)
-      vpanic()
-        panic_try_force_cpu()
-          panic_in_progress()      true, panic_cpu is X
-          return false             redirect bypassed
-        panic_try_start()          already won
-        __crash_kexec()            on X, not the requested CPU
+CONFIG_KASAN_STACK also enables this helper for SW_TAGS.  The helper
+derives the stack base from an untagged stack pointer, so kasan_unpoison()
+writes KASAN_TAG_KERNEL (0xff) into the shadow for [base, watermark).  For
+a vmapped task stack, vm_area->addr still carries the original random
+allocation tag.  This creates a tag mismatch at the stack base even if
+that memory has never held an instrumented stack object.
 
-Try the redirect before claiming panic_cpu instead, as suggested by Petr
-Mladek.  nmi_panic() now calls panic_try_force_cpu() first and claims
-panic_cpu only when no redirect happened.  The requested CPU claims
-panic_cpu itself when it runs panic(), so panic_cpu does not need to be
-handed off.  panic_try_force_cpu() copies the arguments before formatting
-(patch 3), so nmi_panic() can pass them to vpanic() again when no redirect
-happens.
+When the task exits and its stack is not cached, thread_stack_free_rcu()
+passes vm_area->addr to vfree().  In RCU callback context this reaches
+vfree_atomic(), whose llist_add() writes to the allocation base through
+the tagged pointer and triggers a false KASAN invalid-access report:
 
-The redirect IPI is sent with smp_call_function_single_async(), which is
-not guaranteed to work from NMI context.  Treat it as best effort.  It is
-worth the risk because the redirection is only used when the crash kernel
-would not work on the panicking CPU anyway.
+  BUG: KASAN: invalid-access in vfree_atomic+0x90/0x150
+  Write of size 8 at addr c2ffffc0a8f70000 by task rcuop/7/75
+  Pointer tag: [c2], memory tag: [ff]
+  Call trace:
+   __hwasan_store8_noabort+0xe8/0xf8
+   vfree_atomic+0x90/0x150
+   vfree+0x220/0x298
+   thread_stack_free_rcu+0x3c/0x4c
+   rcu_do_batch+0x308/0xaf0
+   rcu_nocb_cb_kthread+0x33c/0x708
 
-Keep returning when the panic is already running on this CPU.  A nested
-NMI, for example with unknown_nmi_panic while this CPU is inside panic(),
-must return and let the interrupted panic() continue instead of parking
-the CPU in nmi_panic_self_stop().
+The deferred-free path started using the tagged vm_area->addr in commit
+449e0b4ed5a1 ("fork: clean-up naming of vm_stack/vm_struct variables in
+vmap stacks code").  Previously it freed the untagged pointer derived from
+tsk->stack, so the write was never tag-checked.
 
-Mark the redirecting CPU offline before stopping it, like vpanic() does,
-so that panic_other_cpus_shutdown() on the target CPU does not wait for
-it.
+SW_TAGS does not need the blanket shadow reset to make subsequent stack
+accesses valid: untagged kernel pointers have the match-all 0xff tag, and
+the compiler initializes the shadow tags of instrumented stack objects
+before use.
 
-Link: https://lore.kernel.org/20260916182957.7788-6-brads@mainlining.org
-Fixes: 2e171ab29f91 ("panic: add panic_force_cpu= parameter to redirect panic to a specific CPU")
-Signed-off-by: Bradley Morgan <brads@mainlining.org>
+Return early unless CONFIG_KASAN_GENERIC is enabled.  Keep the mode check
+in the common helper so it covers both resume and bpf_throw().
+
+Link: https://lore.kernel.org/20260916175113.1327454-1-ryabinin.a.a@gmail.com
+Fixes: 449e0b4ed5a1 ("fork: clean-up naming of vm_stack/vm_struct variables in vmap stacks code")
+Signed-off-by: Andrey Ryabinin <ryabinin.a.a@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Reported-by: Sashiko <sashiko-bot@kernel.org>
-Closes: https://sashiko.dev/#/patchset/20260708164312.19044-1-include@grrlz.net
-Reviewed-by: Petr Mladek <pmladek@suse.com>
-Cc: Guenetr Roeck <linux@roeck-us.net>
-Cc: Wang Jinchao <wangjinchao600@gmail.com>
-Cc: Wim Van Sebroeck <wim@linux-watchdog.org>
+Reported-by: Shaobo Huang <huangshaobo3@xiaomi.com>
+Closes: https://lore.kernel.org/all/20260806123020.90869-1-huangshaobo3@xiaomi.com/
+Assisted-by: LLM
+Cc: Alexander Potapenko <glider@google.com>
+Cc: Andrey Konovalov <andreyknvl@gmail.com>
+Cc: David Hildenbrand <david@kernel.org>
+Cc: Dmitry Vyukov <dvyukov@google.com>
+Cc: Lorenzo Stoakes <ljs@kernel.org>
+Cc: Vincenzo Frascino <vincenzo.frascino@arm.com>
 Cc: <stable@vger.kernel.org>
 ---
 
- kernel/panic.c |   19 +++++++++++++++----
- 1 file changed, 15 insertions(+), 4 deletions(-)
+ mm/kasan/common.c |   13 ++++++++++++-
+ 1 file changed, 12 insertions(+), 1 deletion(-)
 
---- a/kernel/panic.c~panic-allow-force_cpu-redirect-from-an-nmi
-+++ a/kernel/panic.c
-@@ -513,10 +513,11 @@ bool panic_on_other_cpu(void)
- EXPORT_SYMBOL(panic_on_other_cpu);
- 
- /*
-- * A variant of panic() called from NMI context. We return if we've already
-- * panicked on this CPU. If another CPU already panicked, loop in
-- * nmi_panic_self_stop() which can provide architecture dependent code such
-- * as saving register state for crash dump.
-+ * A variant of panic() called from NMI context. The panic is first
-+ * redirected to the CPU requested via panic_force_cpu=, when configured.
-+ * We return if we've already panicked on this CPU. If another CPU already
-+ * panicked, loop in nmi_panic_self_stop() which can provide architecture
-+ * dependent code for saving register state for crash dump.
-  */
- void nmi_panic(struct pt_regs *regs, const char *fmt, ...)
+--- a/mm/kasan/common.c~kasan-unpoison-task-stack-below-watermark-only-in-generic-mode
++++ a/mm/kasan/common.c
+@@ -114,12 +114,23 @@ void kasan_unpoison_task_stack(struct ta
+ /* Unpoison the stack for the current task beyond a watermark sp value. */
+ asmlinkage void kasan_unpoison_task_stack_below(const void *watermark)
  {
-@@ -524,6 +525,16 @@ void nmi_panic(struct pt_regs *regs, con
- 
- 	va_start(args, fmt);
- 
-+	/* Try to redirect to the requested CPU before claiming panic_cpu. */
-+	if (panic_try_force_cpu(fmt, args)) {
-+		/*
-+		 * Mark ourselves offline so panic_other_cpus_shutdown() won't
-+		 * wait for us on architectures that check num_online_cpus().
-+		 */
-+		set_cpu_online(raw_smp_processor_id(), false);
-+		nmi_panic_self_stop(regs);
-+	}
++	void *base;
 +
- 	if (panic_try_start())
- 		vpanic(fmt, args);
++	/*
++	 * Only the generic mode needs this. In the tag-based mode the
++	 * compiler fully initializes the shadow of stack variables on
++	 * function entry, so stale tags left below the watermark are
++	 * harmless.
++	 */
++	if (!IS_ENABLED(CONFIG_KASAN_GENERIC))
++		return;
++
+ 	/*
+ 	 * Calculate the task stack base address.  Avoid using 'current'
+ 	 * because this function is called by early resume code which hasn't
+ 	 * yet set up the percpu register (%gs).
+ 	 */
+-	void *base = (void *)((unsigned long)watermark & ~(THREAD_SIZE - 1));
++	base = (void *)((unsigned long)watermark & ~(THREAD_SIZE - 1));
  
+ 	kasan_unpoison(base, watermark - base, false);
+ }
 _
 
-Patches currently in -mm which might be from brads@mainlining.org are
+Patches currently in -mm which might be from ryabinin.a.a@gmail.com are
 
-taskstats-copy-signal-stats-under-siglock-in-taskstats_exit.patch
-mailmap-update-email-address-for-bradley-morgan.patch
-taskstats-drop-the-unused-cpu_dont_care-enum-member.patch
-panic-fix-redirect-cpu-race-in-panic_try_force_cpu.patch
-panic-flatten-nmi_panic-control-flow.patch
-panic-fix-va_list-reuse-in-panic_try_force_cpu.patch
-panic-restore-variable-arguments-to-nmi_panic.patch
-panic-allow-force_cpu-redirect-from-an-nmi.patch
-panic-kill-the-buffer-unavailable-redirect-fallback.patch
+kasan-unpoison-task-stack-below-watermark-only-in-generic-mode.patch
 
