@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5DB4F191F94
-	for <mm-commits@vger.kernel.org>; Wed, 16 Sep 2026 01:20:24 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3622138C42A
+	for <mm-commits@vger.kernel.org>; Wed, 16 Sep 2026 01:22:07 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789521625; cv=none; b=Wc0gVDDOgyKM+xYbeAsVC+kjbqfyMOsL6syR81p821nO0ayV4Pw12ANg0Hayico0dgv1coQbnVPe4QbeuVUmhfNhTiO2kMk/igsm1OXvbbWJ/+jCU5LbCpRuZKrzIMWrTN0pGDreHL0lePiWA9C83vrpZvsH3rmXoKNiPk0SYHM=
+	t=1789521730; cv=none; b=hrUVXNP0aYFeGYDnVHBF4S3P8rMKA6OcxZDrSlCJf2DAUfBXOCRqIs2sTxPulumhQgF1xDTJGfl+U6ksBesQZxUj98GFbt5bYGLDp3LT5gpCQvjvQvTIgFH1OH65bwiv44UO1i25ZNeC2oGvFJ//AABaVAoquVTRqItD7JbJ6Xw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1789521625; c=relaxed/simple;
-	bh=DJ/IODiU3EvnZP6G9aipF91j3wC8XttiaUxnQ+TCYv8=;
-	h=Date:To:From:Subject:Message-Id; b=NpW1ds4Co+aItDAGKV2dID+rhTf0LH323ZaWUd8htGIiJNWjB40J2kjmJbjNZuqFD95C9yeEkEUaoN3w+G9scVLvvofUqGIcbFiK8QN8Z+G7St/v9if2MnU9a20F8sGQqHuH0uqOQzIg0vDHFet9XnPiWpLBgmJFqwV4jDzIvjU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=x2kbV1/t; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1789521730; c=relaxed/simple;
+	bh=vskdgnj/bqc891NCxJxBgCuUtZcg9ygKw64DX0F0TdE=;
+	h=Date:To:From:Subject:Message-Id; b=gvguZ52Bm8owiYQkq2nd+Mo06Wd6XIZkwjoDzm96+lk10Hu024SZnYaiDP6KJC8h68hh4VHftbRTqxaFZNuGWjeRjotsiiRlBTZSEgJK6q8MEpZwsowYDGp7LXr56IiSXrpsA2GcsVC2XgAWhnKxfZyUcjYUyzyD+SGfbviYHyg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=SkStbtHX; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="x2kbV1/t"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 031481F000FF;
-	Wed, 16 Sep 2026 01:20:23 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="SkStbtHX"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 93EC11F000FF;
+	Wed, 16 Sep 2026 01:22:07 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1789521624;
-	bh=aD1UiUOTUkQIxxacOYPd9t7ZrScqRjbxDWGxKYDU0qo=;
+	d=linux-foundation.org; s=korg; t=1789521727;
+	bh=OTuoDo3xt25tYsa2AAHPnzq8UYoF38VVPFvntrDIYHs=;
 	h=Date:To:From:Subject;
-	b=x2kbV1/tuL5ZblU+Kaeu/lljtaLYeshDN5j5Mh3F4xVLAyeUBJwcpJFQDgcoM5FAk
-	 XbeUlAFUF50Jf+W6QKw9rmST1P85pazpJBPylbJjTzFqNKeE7BPo/YZqtxpRq7qDLk
-	 cJegxbF6kGUm1TSzwdHk614gbwbJ8d4zaGc5g3R8=
-Date: Tue, 15 Sep 2026 18:20:23 -0700
-To: mm-commits@vger.kernel.org,vbabka@kernel.org,surenb@google.com,rppt@kernel.org,muchun.song@linux.dev,mhocko@suse.com,ljs@kernel.org,liam@infradead.org,david@kernel.org,chengkaitao@kylinos.cn,akpm@linux-foundation.org
+	b=SkStbtHXKRDnJAPylWuElWillHq/hWwKKGx+pkCti8C3DDuKxXPR32txT2AQzbvAb
+	 6+ZNQSw0/aQLlR3BNiZrXSYdJwXAZ2mU8f+9Zina5c6hfYKlVBpnMT1xP2VqS5jqox
+	 hbabQGTlazM9jMxrDH9usbAMJH9gaVDQ0j1MQbYA=
+Date: Tue, 15 Sep 2026 18:22:07 -0700
+To: mm-commits@vger.kernel.org,matthias.bgg@gmail.com,angelogioacchino.delregno@collabora.com,andriy.shevchenko@linux.intel.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [to-be-updated] mm-remove-unused-exact_nid-parameter-from-memmap_alloc.patch removed from -mm tree
-Message-Id: <20260916012024.031481F000FF@smtp.kernel.org>
+Subject: + credits-fix-the-ordering-and-other-issues.patch added to mm-nonmm-unstable branch
+Message-Id: <20260916012207.93EC11F000FF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,124 +34,443 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The quilt patch titled
-     Subject: mm: remove unused exact_nid parameter from memmap_alloc()
-has been removed from the -mm tree.  Its filename was
-     mm-remove-unused-exact_nid-parameter-from-memmap_alloc.patch
+The patch titled
+     Subject: CREDITS: fix the ordering and other issues
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     credits-fix-the-ordering-and-other-issues.patch
 
-This patch was dropped because an updated version will be issued
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/credits-fix-the-ordering-and-other-issues.patch
+
+This patch will later appear in the mm-nonmm-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via various
+branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there most days
 
 ------------------------------------------------------
-From: Kaitao Cheng <chengkaitao@kylinos.cn>
-Subject: mm: remove unused exact_nid parameter from memmap_alloc()
-Date: Mon, 14 Sep 2026 13:51:30 +0800
+From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Subject: CREDITS: fix the ordering and other issues
+Date: Tue, 15 Sep 2026 10:42:45 +0200
 
-Commit ffe55393137c ("mm/sparse: remove sparse buffer pre-allocation
-mechanism") removed sparse_buffer_init(), which was the only caller of
-memmap_alloc() that passed true for exact_nid.
+I assume that the ordering should be done in default (C) locale as other
+gives more lines shuffled.  Fix the ordering accordingly.  With that being
+said, clearly make at the top header how it should be sorted.
 
-All remaining callers pass false, leaving the exact-node allocation branch
-unreachable.  Remove the exact_nid parameter and unconditionally use
-memblock_alloc_try_nid_raw().
+Note, I took some empirical assumptions that people usually put their
+names in accordance with the First name(s) Last Name(s) split based on the
+records around (before and after the move).  I hope I made no or little
+amount of mistakes.  In any case it's just a dozen of names to update.
 
-This has no functional impact.
-
-Link: https://lore.kernel.org/20260914055130.44543-1-kaitao.cheng@linux.dev
-Signed-off-by: Kaitao Cheng <chengkaitao@kylinos.cn>
+Link: https://lore.kernel.org/20260915084248.3460260-1-andriy.shevchenko@linux.intel.com
+Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Acked-by: Muchun Song <muchun.song@linux.dev>
-Cc: David Hildenbrand <david@kernel.org>
-Cc: Liam R. Howlett <liam@infradead.org>
-Cc: Lorenzo Stoakes <ljs@kernel.org>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Vlastimil Babka <vbabka@kernel.org>
+Cc: AngeloGiaocchino Del Regno <angelogioacchino.delregno@collabora.com>
+Cc: Mathias Brugger <matthias.bgg@gmail.com>
 ---
 
- mm/mm_init.c        |   14 ++++----------
- mm/mm_init.h        |    4 ++--
- mm/sparse-vmemmap.c |    2 +-
- mm/sparse.c         |    2 +-
- 4 files changed, 8 insertions(+), 14 deletions(-)
+ CREDITS |  181 +++++++++++++++++++++++++++---------------------------
+ 1 file changed, 91 insertions(+), 90 deletions(-)
 
---- a/mm/mm_init.c~mm-remove-unused-exact_nid-parameter-from-memmap_alloc
-+++ a/mm/mm_init.c
-@@ -1606,7 +1606,7 @@ static void __init free_area_init_core(s
- }
+--- a/CREDITS~credits-fix-the-ordering-and-other-issues
++++ a/CREDITS
+@@ -1,6 +1,7 @@
+ 	This is at least a partial credits-file of people that have
+-	contributed to the Linux project.  It is sorted by name and
+-	formatted to allow easy grepping and beautification by
++	contributed to the Linux project.  It is sorted by family name,
++	assuming the used locale is default, e.g. by setting LC_ALL=C,
++	and formatted to allow easy grepping and beautification by
+ 	scripts.  The fields are: name (N), email (E), web-address
+ 	(W), PGP key ID and fingerprint (P), description (D), and
+ 	snail-mail address (S).
+@@ -344,6 +345,14 @@ D: Hardware spinlock (hwspinlock) subsys
+ D: OMAP hwspinlock driver
+ D: OMAP remoteproc driver
  
- void __init *memmap_alloc(phys_addr_t size, phys_addr_t align,
--			  phys_addr_t min_addr, int nid, bool exact_nid)
-+			  phys_addr_t min_addr, int nid)
- {
- 	void *ptr;
++N: Muli Ben-Yehuda
++E: mulix@mulix.org
++E: muli@il.ibm.com
++W: http://www.mulix.org
++D: trident OSS sound driver, x86-64 dma-ops and Calgary IOMMU,
++D: KVM and Xen bits and other misc. hackery.
++S: Haifa, Israel
++
+ N: Krzysztof Benedyczak
+ E: golbi@mat.uni.torun.pl
+ W: http://www.mat.uni.torun.pl/~golbi
+@@ -362,14 +371,6 @@ S: 2322 37th Ave SW
+ S: Seattle, Washington 98126-2010
+ S: USA
  
-@@ -1614,14 +1614,8 @@ void __init *memmap_alloc(phys_addr_t si
- 	 * Kmemleak will explicitly scan mem_map by traversing all valid
- 	 * `struct *page`,so memblock does not need to be added to the scan list.
- 	 */
--	if (exact_nid)
--		ptr = memblock_alloc_exact_nid_raw(size, align, min_addr,
--						   MEMBLOCK_ALLOC_NOLEAKTRACE,
--						   nid);
--	else
--		ptr = memblock_alloc_try_nid_raw(size, align, min_addr,
--						 MEMBLOCK_ALLOC_NOLEAKTRACE,
--						 nid);
-+	ptr = memblock_alloc_try_nid_raw(size, align, min_addr,
-+					 MEMBLOCK_ALLOC_NOLEAKTRACE, nid);
+-N: Muli Ben-Yehuda
+-E: mulix@mulix.org
+-E: muli@il.ibm.com
+-W: http://www.mulix.org
+-D: trident OSS sound driver, x86-64 dma-ops and Calgary IOMMU,
+-D: KVM and Xen bits and other misc. hackery.
+-S: Haifa, Israel
+-
+ N: Johannes Berg
+ E: johannes@sipsolutions.net
+ W: https://johannes.sipsolutions.net/
+@@ -393,14 +394,14 @@ S: 1549 Hiironen Rd.
+ S: Brimson, MN  55602
+ S: USA
  
- 	if (ptr && size > 0)
- 		page_init_poison(ptr, size);
-@@ -1649,7 +1643,7 @@ static void __init alloc_node_mem_map(st
- 	end = ALIGN(pgdat_end_pfn(pgdat), MAX_ORDER_NR_PAGES);
- 	size =  (end - start) * sizeof(struct page);
- 	map = memmap_alloc(size, SMP_CACHE_BYTES, MEMBLOCK_LOW_LIMIT,
--			   pgdat->node_id, false);
-+			   pgdat->node_id);
- 	if (!map)
- 		panic("Failed to allocate %ld bytes for node %d memory map\n",
- 		      size, pgdat->node_id);
---- a/mm/mm_init.h~mm-remove-unused-exact_nid-parameter-from-memmap_alloc
-+++ a/mm/mm_init.h
-@@ -31,8 +31,8 @@ static inline void clear_zone_contiguous
+-N: Arnd Bergmann
+-D: Maintainer of Cell Broadband Engine Architecture
+-
+ N: Hennus Bergman
+ P: 1024/77D50909 76 99 FD 31 91 E1 96 1C  90 BB 22 80 62 F6 BD 63
+ D: Author and maintainer of the QIC-02 tape driver
+ S: The Netherlands
  
- void memblock_free_pages(unsigned long pfn, unsigned int order);
++N: Arnd Bergmann
++D: Maintainer of Cell Broadband Engine Architecture
++
+ N: Tomas Berndtsson
+ E: tomas@nocrew.org
+ W: http://tomas.nocrew.org/
+@@ -492,10 +493,6 @@ D: Various fixes (mostly networking)
+ S: Montreal, Quebec
+ S: Canada
  
--void *memmap_alloc(phys_addr_t size, phys_addr_t align, phys_addr_t min_addr,
--		int nid, bool exact_nid);
-+void *memmap_alloc(phys_addr_t size, phys_addr_t align,
-+		   phys_addr_t min_addr, int nid);
+-N: Zoltán Böszörményi
+-E: zboszor@mail.externet.hu
+-D: MTRR emulation with Cyrix style ARR registers, Athlon MTRR support
+-
+ N: John Boyd
+ E: boyd@cis.ohio-state.edu
+ D: Co-author of wd7000 SCSI driver
+@@ -589,9 +586,6 @@ N: Zach Brown
+ E: zab@zabbo.net
+ D: maestro pci sound
  
- void memmap_init_range(unsigned long size, int nid, unsigned long zone,
- 		unsigned long start_pfn, unsigned long zone_end_pfn,
---- a/mm/sparse.c~mm-remove-unused-exact_nid-parameter-from-memmap_alloc
-+++ a/mm/sparse.c
-@@ -215,7 +215,7 @@ struct page __init *__populate_section_m
- {
- 	const unsigned long size = PAGE_ALIGN(sizeof(struct page) * PAGES_PER_SECTION);
+-N: Zefan Li
+-D: Contribution to control group stuff
+-
+ N: David Brownell
+ D: Kernel engineer, mentor, and friend.  Maintained USB EHCI and
+ D: gadget layers, SPI subsystem, GPIO subsystem, and more than a few
+@@ -632,6 +626,10 @@ S: Ravenhorst 58
+ S: 2317 AK Leiden
+ S: The Netherlands
  
--	return memmap_alloc(size, size, __pa(MAX_DMA_ADDRESS), nid, false);
-+	return memmap_alloc(size, size, __pa(MAX_DMA_ADDRESS), nid);
- }
- #endif /* !CONFIG_SPARSEMEM_VMEMMAP */
++N: Zoltán Böszörményi
++E: zboszor@mail.externet.hu
++D: MTRR emulation with Cyrix style ARR registers, Athlon MTRR support
++
+ N: Michael Callahan
+ E: callahan@maths.ox.ac.uk
+ D: PPP for Linux
+@@ -703,6 +701,10 @@ S: Tamsui town, Taipei county,
+ S: Taiwan 251
+ S: Republic of China
  
---- a/mm/sparse-vmemmap.c~mm-remove-unused-exact_nid-parameter-from-memmap_alloc
-+++ a/mm/sparse-vmemmap.c
-@@ -62,7 +62,7 @@ void __ref *vmemmap_alloc_block(unsigned
- 		}
- 		return NULL;
- 	} else
--		return memmap_alloc(size, size, __pa(MAX_DMA_ADDRESS), node, false);
-+		return memmap_alloc(size, size, __pa(MAX_DMA_ADDRESS), node);
- }
++N: Landen Chao
++E: Landen.Chao@mediatek.com
++D: MT7531 Ethernet switch support
++
+ N: Michael Elizabeth Chastain
+ E: mec@shout.net
+ D: Configure, Menuconfig, xconfig
+@@ -715,10 +717,6 @@ D: Media subsystem (V4L/DVB) drivers and
+ D: EDAC drivers and EDAC 3.0 core rework
+ S: Brazil
  
- static void * __meminit altmap_alloc_block_buf(unsigned long size,
+-N: Landen Chao
+-E: Landen.Chao@mediatek.com
+-D: MT7531 Ethernet switch support
+-
+ N: Raymond Chen
+ E: raymondc@microsoft.com
+ D: Author of Configure script
+@@ -1447,6 +1445,10 @@ D: Made support for modules, ramdisk, ge
+ D: Transformed old user space bdflush into 1st kernel thread - kflushd.
+ D: Many other patches, documentation files, mini kernels, utilities, ...
+ 
++N: Andy Gospodarek
++E: andy@greyhouse.net
++D: Maintenance and contributions to the network interface bonding driver.
++
+ N: Masanori GOTO
+ E: gotom@debian.or.jp
+ D: Workbit NinjaSCSI-32Bi/UDE driver
+@@ -1459,10 +1461,6 @@ S: 8124 Constitution Apt. 7
+ S: Sterling Heights, Michigan 48313
+ S: USA
+ 
+-N: Andy Gospodarek
+-E: andy@greyhouse.net
+-D: Maintenance and contributions to the network interface bonding driver.
+-
+ N: Vivek Goyal
+ E: vgoyal@redhat.com
+ D: KDUMP, KEXEC, and VIRTIO FILE SYSTEM
+@@ -1535,6 +1533,14 @@ S: 44 St. Joseph Street, Suite 506
+ S: Toronto, Ontario, M4Y 2W4
+ S: Canada
+ 
++N: Nitin Gupta
++E: ngupta@vflare.org
++D: zsmalloc memory allocator and zram block device driver
++
++N: Justin Guyett
++E: jguyett@andrew.cmu.edu
++D: via-rhine net driver hacking
++
+ N: Richard Günther
+ E: rguenth@tat.physik.uni-tuebingen.de
+ W: http://www.tat.physik.uni-tuebingen.de/~rguenth
+@@ -1543,14 +1549,6 @@ D: binfmt_misc
+ S: 72074 Tübingen
+ S: Germany
+ 
+-N: Justin Guyett
+-E: jguyett@andrew.cmu.edu
+-D: via-rhine net driver hacking
+-
+-N: Nitin Gupta
+-E: ngupta@vflare.org
+-D: zsmalloc memory allocator and zram block device driver
+-
+ N: Danny ter Haar
+ E: dth@cistron.nl
+ D: /proc/cpuinfo, reboot on panic , kernel pre-patch tester ;)
+@@ -1945,16 +1943,6 @@ E: sjenning@redhat.com
+ D: Creation and maintenance of zswap
+ D: Creation and maintenace of the zbud allocator
+ 
+-N: Jeremy Kerr
+-D: Maintainer of SPU File System
+-
+-N: Michael Kerrisk
+-E: mtk.manpages@gmail.com
+-W: https://man7.org/
+-P: 4096R/3A35CE5E E522 595B 52ED A4E6 BFCC  CB5E 8561 9911 3A35 CE5E
+-D: Maintainer of the Linux man-pages project
+-D: Linux man pages online, at <https://man7.org/linux/man-pages/>
+-
+ N: Niels Kristian Bech Jensen
+ E: nkbj1970@hotmail.com
+ D: Miscellaneous kernel updates and fixes.
+@@ -2099,6 +2087,16 @@ S: Keplerstr. 6
+ S: 4050 Traun
+ S: Austria
+ 
++N: Jeremy Kerr
++D: Maintainer of SPU File System
++
++N: Michael Kerrisk
++E: mtk.manpages@gmail.com
++W: https://man7.org/
++P: 4096R/3A35CE5E E522 595B 52ED A4E6 BFCC  CB5E 8561 9911 3A35 CE5E
++D: Maintainer of the Linux man-pages project
++D: Linux man pages online, at <https://man7.org/linux/man-pages/>
++
+ N: Karl Keyte
+ E: karl@koft.com
+ D: Disk usage statistics and modifications to line printer driver
+@@ -2483,6 +2481,9 @@ D: and much more. He was the maintainer
+ D: passed away late 2018, he will be greatly missed.
+ W: https://www.spinics.net/lists/raid/msg61993.html
+ 
++N: Zefan Li
++D: Contribution to control group stuff
++
+ N: Stephan Linz
+ E: linz@mazet.de
+ E: Stephan.Linz@gmx.de
+@@ -2542,11 +2543,6 @@ D: misc. kernel hacking and debugging
+ S: Cambridge, MA 02139
+ S: USA
+ 
+-N: Martin von Löwis
+-E: loewis@informatik.hu-berlin.de
+-D: script binary format
+-D: NTFS driver
+-
+ N: H.J. Lu
+ E: hjl@gnu.ai.mit.edu
+ D: GCC + libraries hacker
+@@ -2575,6 +2571,11 @@ S: Puistokaari 1 E 18
+ S: 00200 Helsinki
+ S: Finland
+ 
++N: Martin von Löwis
++E: loewis@informatik.hu-berlin.de
++D: script binary format
++D: NTFS driver
++
+ N: Daniel J. Maas
+ E: dmaas@dcine.com
+ W: https://www.maasdigital.com
+@@ -2625,10 +2626,6 @@ S: PO BOX 220, HFX. CENTRAL
+ S: Halifax, Nova Scotia
+ S: Canada B3J 3C8
+ 
+-N: Kai Mäkisara
+-E: Kai.Makisara@kolumbus.fi
+-D: SCSI Tape Driver
+-
+ N: Asit Mallick
+ E: asit.k.mallick@intel.com
+ D: Linux/IA-64
+@@ -2912,13 +2909,6 @@ S: 12725 SW Millikan Way, Suite 400
+ S: Beaverton, Oregon 97005
+ S: USA
+ 
+-N: Eberhard Mönkeberg
+-E: emoenke@gwdg.de
+-D: CDROM driver "sbpcd" (Matsushita/Panasonic/Soundblaster)
+-S: Ruhstrathöhe 2 b.
+-S: D-37085 Göttingen
+-S: Germany
+-
+ N: Thomas Molina
+ E: tmolina@cablespeed.com
+ D: bug fixes, documentation, minor hackery
+@@ -3005,6 +2995,17 @@ S: Dragonvagen 1 A 13
+ S: FIN-00330 Helsingfors
+ S: Finland
+ 
++N: Kai Mäkisara
++E: Kai.Makisara@kolumbus.fi
++D: SCSI Tape Driver
++
++N: Eberhard Mönkeberg
++E: emoenke@gwdg.de
++D: CDROM driver "sbpcd" (Matsushita/Panasonic/Soundblaster)
++S: Ruhstrathöhe 2 b.
++S: D-37085 Göttingen
++S: Germany
++
+ N: Matija Nalis
+ E: mnalis@jagor.srce.hr
+ E: mnalis@voyager.hr
+@@ -3200,13 +3201,6 @@ S: RR #5, 497 Pole Line Road
+ S: Thunder Bay, Ontario
+ S: CANADA P7C 5M9
+ 
+-N: Inaky Perez-Gonzalez
+-E: inaky.perez-gonzalez@intel.com
+-E: linux-wimax@intel.com
+-E: inakypg@yahoo.com
+-D: WiMAX stack
+-D: Intel Wireless WiMAX Connection 2400 driver
+-
+ N: Yuri Per
+ E: yuri@pts.mipt.ru
+ D: Some smbfs fixes
+@@ -3214,6 +3208,13 @@ S: Demonstratsii 8-382
+ S: Tula 300000
+ S: Russia
+ 
++N: Inaky Perez-Gonzalez
++E: inaky.perez-gonzalez@intel.com
++E: linux-wimax@intel.com
++E: inakypg@yahoo.com
++D: WiMAX stack
++D: Intel Wireless WiMAX Connection 2400 driver
++
+ N: Thomas Petazzoni
+ E: thomas.petazzoni@bootlin.com
+ D: Driver for the Marvell Armada 370/XP network unit.
+@@ -3328,14 +3329,14 @@ N: Frederic Potter
+ E: fpotter@cirpack.com
+ D: Some PCI kernel support
+ 
+-N: Rui Prior
+-E: rprior@inescn.pt
+-D: ATM device driver for NICStAR based cards
+-
+ N: Roopa Prabhu
+ E: roopa@nvidia.com
+ D: Bridge co-maintainer, vxlan and networking contributor
+ 
++N: Rui Prior
++E: rprior@inescn.pt
++D: ATM device driver for NICStAR based cards
++
+ N: Stefan Probst
+ E: sp@caldera.de
+ D: The Linux Support Team Erlangen, 1993-97
+@@ -4023,12 +4024,6 @@ S: C/ Federico Garcia Lorca 1 10-A
+ S: Sevilla 41005
+ S: Spain
+ 
+-N: Björn Töpel
+-E: bjorn@kernel.org
+-D: AF_XDP
+-S: Gothenburg
+-S: Sweden
+-
+ N: Linus Torvalds
+ E: torvalds@linux-foundation.org
+ D: Original kernel hacker
+@@ -4082,17 +4077,6 @@ D: Linux-Workshop Köln (aka LUG Cologne
+ S: Tacitusstr. 6
+ S: D-50968 Köln
+ 
+-N: Tsu-Sheng Tsao
+-E: tsusheng@scf.usc.edu
+-D: IGMP (Internet Group Management Protocol) version 2
+-S: 2F 14 ALY 31 LN 166 SEC 1 SHIH-PEI RD
+-S: Taipei
+-S: Taiwan 112
+-S: Republic of China
+-S: 24335 Delta Drive
+-S: Diamond Bar, California 91765
+-S: USA
+-
+ N: Theodore Ts'o
+ E: tytso@mit.edu
+ D: Random Linux hacker
+@@ -4109,6 +4093,17 @@ S: 1 Amherst Street
+ S: Cambridge, Massachusetts 02139
+ S: USA
+ 
++N: Tsu-Sheng Tsao
++E: tsusheng@scf.usc.edu
++D: IGMP (Internet Group Management Protocol) version 2
++S: 2F 14 ALY 31 LN 166 SEC 1 SHIH-PEI RD
++S: Taipei
++S: Taiwan 112
++S: Republic of China
++S: 24335 Delta Drive
++S: Diamond Bar, California 91765
++S: USA
++
+ N: Luben Tuikov
+ E: Luben Tuikov <ltuikov89@gmail.com>
+ D: Maintainer of the DRM GPU Scheduler
+@@ -4135,6 +4130,12 @@ S: 44 Campbell Park Crescent
+ S: Edinburgh EH13 0HT
+ S: United Kingdom
+ 
++N: Björn Töpel
++E: bjorn@kernel.org
++D: AF_XDP
++S: Gothenburg
++S: Sweden
++
+ N: Thomas Uhl
+ E: uhl@sun1.rz.fh-heilbronn.de
+ D: Application programmer
 _
 
-Patches currently in -mm which might be from chengkaitao@kylinos.cn are
+Patches currently in -mm which might be from andriy.shevchenko@linux.intel.com are
 
-mm-hugetlb-use-hugetlb_vmemmap_optimizable-in-boolean-contexts.patch
-mm-page-flags-define-hwpoison-test-and-change-helpers-unconditionally.patch
-nvdimm-pmem-remove-test_and_clear_pmem_poison.patch
+resource-replace-open-coded-resource_overlaps.patch
+credits-fix-the-ordering-and-other-issues.patch
 
