@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7B41941F345
-	for <mm-commits@vger.kernel.org>; Wed, 16 Sep 2026 22:48:47 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E3B194BFE9E
+	for <mm-commits@vger.kernel.org>; Wed, 16 Sep 2026 22:48:50 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789598935; cv=none; b=l/OHldiPVJU8sXxPj6czJN1wm3r/Hv7y6G5Yt/dNGdBqu0KIuvzExmj4SlGR5ERBctFyX8bbMK5xYyQhE+3N9lgpTyA7OvT4FjhS6PCIjDJAH1IXaq6l+fJ+V35fBXp02VgbAAcMLe6zu9Lmae57GOXJPwJ9yKpc/GSE+oN+hxw=
+	t=1789598936; cv=none; b=HFfo5kxsfK62x6u3iCbYD22EhdonCnLN8415KMupe4gAbeT+ah3byaaxDoGihyh3Qt0REEZUt5UEnf9oxnPKb3bZYhuyavGIQ7YLLLtIcLWFx+6Luuu+qxwBDXJuC8iie74YZzonggCvjEGnR+0tYMV4PMG1oIDbP5PInWl5ckA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1789598935; c=relaxed/simple;
-	bh=dpJlFde6z1uRKD5u4XTiPCFpN3HDTcCJMlKs/IQnjaI=;
-	h=Date:To:From:Subject:Message-Id; b=WOZSCmLhUzvviSXSSocknuNtaatjhYuczTq56cwYMY5sTzKQRm1z0rD5GMvLmJetnaDmTcW+iSM9Kb7VBfshfMcaqtvd+KHV8q5GWmIXi9Fhb71f+8jnWwdyoCW2gPI4rLGWewkHqsnCGUyta1zwVUJf2dysL64c1ffz2Cv/ors=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=TY96NiVX; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1789598936; c=relaxed/simple;
+	bh=xJHJ8AdX9FcsSgOuAJd9cl8YNMeCagelNxjymIUrr14=;
+	h=Date:To:From:Subject:Message-Id; b=tNlmr+Mum1XvdzYcpg5ySQ2M4Otnj5E5Jq5qlPVzzGpFeVLunzgmx4nPprnMfJB5g4HGXIjWdJENsSk4ezVnbpMiILK6zADeIOwDAWrptozHBrySxuSm+1yxMWpRFMtalqFZqGnpLxyJ9LHrcYZKCTOdy0w1GT+FzEbnZKNqqmQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=cXPtwn2a; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="TY96NiVX"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C08A61F000FF;
-	Wed, 16 Sep 2026 22:48:44 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="cXPtwn2a"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id CC2E11F00893;
+	Wed, 16 Sep 2026 22:48:46 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1789598924;
-	bh=Yme23Cu8Q1YOMkru5KTE9HPWxc9kL2bDI1S4/IjeODk=;
+	d=linux-foundation.org; s=korg; t=1789598926;
+	bh=qB6lamprfvMm05K0AtWYPTwwRMfxNoSpvTOeFHcjnmI=;
 	h=Date:To:From:Subject;
-	b=TY96NiVXZBmwAHTMaOVOWuLwOSI/0L3a2OVrI/H8COePa4xccA0N5gP8cysODRPgt
-	 vJCtU+RT7t0tcffn/o70Kowo7i4H+ZrQCel/cKTUX4JYgVBwtBRZGqymSiuc68zwfW
-	 ZMHDlw4NlB9M2NDOepzjIcfo0DEoGwToaIFwnjjs=
-Date: Wed, 16 Sep 2026 15:48:44 -0700
+	b=cXPtwn2aBPPg3Lks1QW7FuwKQYkMXFiIg8xUEKzq+xK4n0Lr1l6wINGPI5jypFMKF
+	 r/FcC+WIAhZgk54F8B27wDQil3yDMfVmc7oEat92qrCUKZaWuU+aefTNqLMwEDClfg
+	 cqmqyOUNwZ4q+VpOMFCpVtGIb0ZDtL4b1Vq0MJZg=
+Date: Wed, 16 Sep 2026 15:48:46 -0700
 To: mm-commits@vger.kernel.org,kas@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-khugepaged-drop-redundant-mm_struct-pin-in-madvise_collapse.patch added to mm-unstable branch
-Message-Id: <20260916224844.C08A61F000FF@smtp.kernel.org>
+Subject: + mm-khugepaged-count-collapses-where-khugepaged-makes-them.patch added to mm-unstable branch
+Message-Id: <20260916224846.CC2E11F00893@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/khugepaged: drop redundant mm_struct pin in madvise_collapse()
+     Subject: mm/khugepaged: count collapses where khugepaged makes them
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-khugepaged-drop-redundant-mm_struct-pin-in-madvise_collapse.patch
+     mm-khugepaged-count-collapses-where-khugepaged-makes-them.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-khugepaged-drop-redundant-mm_struct-pin-in-madvise_collapse.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-khugepaged-count-collapses-where-khugepaged-makes-them.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,60 +59,18 @@ and is updated there most days
 
 ------------------------------------------------------
 From: "Kiryl Shutsemau (Meta)" <kas@kernel.org>
-Subject: mm/khugepaged: drop redundant mm_struct pin in madvise_collapse()
-Date: Wed, 16 Sep 2026 10:31:28 +0100
+Subject: mm/khugepaged: count collapses where khugepaged makes them
+Date: Wed, 16 Sep 2026 10:31:29 +0100
 
-Patch series "mm/collapse: separate a collapse from its callers", v3.
+collapse_single_pmd() bumps khugepaged_pages_collapsed for its caller, and
+tests cc->is_khugepaged to know whether it should: the counter belongs to
+the daemon, and MADV_COLLAPSE must not touch it.
 
-There is no line between the collapse engine and the callers that ask for
-a collapse.  khugepaged.c holds both, and they reach into each other.
-
- - Sixteen tests through the collapse path read cc->is_khugepaged to work
-   out what they are allowed to do, when every one of those decisions was
-   made by the caller before it asked.
-
- - collapse_single_pmd() does both halves of a collapse behind one call and
-   drops mmap_lock somewhere in the middle.  Which of its paths dropped it
-   is not something a caller can see, so it hands back a bool and the
-   caller keeps track.
-
- - MADV_COLLAPSE's implementation -- the walk over the user's range, the
-   per-PMD loop, the errno translation -- sits in khugepaged.c, which is
-   the daemon's file.
-
-So: draw the line.  State what a caller allows in a policy, split the call
-in two with the lock as the boundary, and move the syscall to madvise.c. 
-What the engine offers is then four calls, with the lock state written
-down against each, and a policy the caller fills for itself:
-
-    collapse_control_init(cc)         once, before the first table
-    collapse_policy_*(&cc->policy)    what this caller allows
-    collapse_scan_pmd(vma, addr, ...) per table, under mmap_lock
-    collapse_run_pmd(mm, addr, cc)    when a scan found work, no mmap_lock
-    collapse_control_release(cc)      once, when done
-
-The engine stays in khugepaged.c for now; what changes is that it has an
-interface, and that neither half has to ask about the other.  madvise.c
-gains the operation it should have had all along.
-
-
-This patch (of 12):
-
-madvise_collapse() holds an mmgrab() reference across its work.  It is
-redundant.  Every caller already holds mm_users:
-
- - madvise(2) works on current->mm, which lives as long as the task is in
-   the syscall;
- - process_madvise(2) reaches a remote mm through mm_access(), which takes
-   an mm_users reference and holds it until the syscall returns;
- - io_uring passes current->mm;
- - DAMON takes one with get_task_mm() and drops it after the call.
-
-Drop the mmgrab()/mmdrop() pair.
+The daemon sees every result of every collapse it asks for, so it can keep
+its own counter without the shared path testing who called.
 
 Assisted-by: LLM
-Link: https://lore.kernel.org/20260916093145.4022188-1-kirill@shutemov.name
-Link: https://lore.kernel.org/20260916093145.4022188-2-kirill@shutemov.name
+Link: https://lore.kernel.org/20260916093145.4022188-3-kirill@shutemov.name
 Signed-off-by: Kiryl Shutsemau (Meta) <kas@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 Reviewed-by: Zi Yan <ziy@nvidia.com>
@@ -128,27 +86,43 @@ Cc: Ryan Roberts <ryan.roberts@arm.com>
 Cc: Vlastimil Babka <vbabka@kernel.org>
 ---
 
- mm/khugepaged.c |    2 --
- 1 file changed, 2 deletions(-)
+ mm/khugepaged.c |   11 ++++-------
+ 1 file changed, 4 insertions(+), 7 deletions(-)
 
---- a/mm/khugepaged.c~mm-khugepaged-drop-redundant-mm_struct-pin-in-madvise_collapse
+--- a/mm/khugepaged.c~mm-khugepaged-count-collapses-where-khugepaged-makes-them
 +++ a/mm/khugepaged.c
-@@ -3222,7 +3222,6 @@ int madvise_collapse(struct vm_area_stru
- 	cc->is_khugepaged = false;
- 	cc->progress = 0;
+@@ -2808,10 +2808,8 @@ static enum scan_result collapse_single_
  
--	mmgrab(mm);
- 	lru_add_drain_all();
- 
- 	for (addr = hstart; addr < hend; addr += HPAGE_PMD_SIZE) {
-@@ -3278,7 +3277,6 @@ out_maybelock:
- 	}
- out_nolock:
  	mmap_assert_locked(mm);
--	mmdrop(mm);
- 	kfree(cc);
  
- 	return thps == ((hend - hstart) >> HPAGE_PMD_SHIFT) ? 0
+-	if (vma_is_anonymous(vma)) {
+-		result = collapse_scan_pmd(mm, vma, addr, lock_dropped, cc);
+-		goto end;
+-	}
++	if (vma_is_anonymous(vma))
++		return collapse_scan_pmd(mm, vma, addr, lock_dropped, cc);
+ 
+ 	file = get_file(vma->vm_file);
+ 	pgoff = linear_page_index(vma, addr);
+@@ -2847,9 +2845,6 @@ retry:
+ 			result = SCAN_SUCCEED;
+ 		mmap_read_unlock(mm);
+ 	}
+-end:
+-	if (cc->is_khugepaged && result == SCAN_SUCCEED)
+-		++khugepaged_pages_collapsed;
+ 	return result;
+ }
+ 
+@@ -2926,6 +2921,8 @@ static void collapse_scan_mm_slot(unsign
+ 
+ 			*result = collapse_single_pmd(khugepaged_scan.address,
+ 						      vma, &lock_dropped, cc);
++			if (*result == SCAN_SUCCEED)
++				khugepaged_pages_collapsed++;
+ 			/* move to next address */
+ 			khugepaged_scan.address += HPAGE_PMD_SIZE;
+ 			if (lock_dropped)
 _
 
 Patches currently in -mm which might be from kas@kernel.org are
