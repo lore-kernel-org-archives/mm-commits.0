@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 711924A482D
-	for <mm-commits@vger.kernel.org>; Wed, 16 Sep 2026 21:54:58 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 55A274E433C
+	for <mm-commits@vger.kernel.org>; Wed, 16 Sep 2026 21:55:03 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789595706; cv=none; b=EF8vKIxFDbZqW9uvaUH8iwCEM9RuHPoi2uSsGfCIcbFawbM9WQJDq8MWAa89Qv0B5f+1PjGjcr5EuyvLD90WnWQZPvcfZ76JedX618tZL4Zf/6c4u/0BKDnYRfiwG4OSWyWRt8w9oIU6Wovepx1ajRQ1N/Cq85DkcLni9+yq4CA=
+	t=1789595715; cv=none; b=jzaesWWMLI0KDgf2dF74kpbI+5+dC5q9PDJ0sLYdv5u87KNfQtQQVVPW5Gj2kwWa9Azaj2FdcsrYtGMHyGdHvozbF93UY1zjGzLq0NZw7LUAhPD9VexI7Hz4anCOExAHYOraCRvb5Zl0HOgVPsBq+eLjXZVVD2MqBtFP/ph4MzM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1789595706; c=relaxed/simple;
-	bh=PNd/Y4oueLr9C4kTTkG4Kw1jBWCz/K7u0/nABkSXWCA=;
-	h=Date:To:From:Subject:Message-Id; b=XFLrWlyfpSvCf162JPOb1hdFCMzFa6kTJcHfMeLuXu4mE126frPxC/gO+A6paHP74SFf4rjqbJjoueBkKobVzz1MMw4KsSFHfmxS3xRPPDAqJ603xVPEAaHwpLivHAmWVYbc8vqnxyIymdpWMeUc5EefDJ0zuvKXBqT/z/gLDLU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=WYRc22AJ; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1789595715; c=relaxed/simple;
+	bh=+G4EMWVWieIJAsMzRH3bNGiliqEbI705gfFS+DrJY3I=;
+	h=Date:To:From:Subject:Message-Id; b=VKzUq3997I33pyJrnbdmjSP/Lpsen2d6qqETFlet0stJRla+Tc7b/qHqoY2IWlv/t4a58gLJFyVhnydzkJv9Khrk/gxc0jT241hxQ25DVr2N1c2RFLD4OyKCwvyiP+Q0G4T1W77VN2/Hx0o2ddHL2E9G0nPYkLtcRo7CVoHB7YI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=haxft8Ao; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="WYRc22AJ"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A5C5E1F000FF;
-	Wed, 16 Sep 2026 21:54:54 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="haxft8Ao"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7BD601F00898;
+	Wed, 16 Sep 2026 21:55:00 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1789595694;
-	bh=Fq0LLqRxLdWqDkUntQCMdgnl1igk437YSeqbI70oBW8=;
+	d=linux-foundation.org; s=korg; t=1789595700;
+	bh=BlzRDve6XHVc23ygpSNZwg8AkCOVwxEzyTVg+cnw8yA=;
 	h=Date:To:From:Subject;
-	b=WYRc22AJ94m0L7p6/ZOrz9SFZoH6UVY8agaiWXqz2LOFsSJ2PFowoifkj4bF6lVGO
-	 bhn+b2BK5jg8odJ0e4TTYF/twBK2DyLtEpbbwk0FO1kLdedUTkmSStBbfJnGRbTQeY
-	 +3EIFETY4GCR86r5GD2f+LlQv5SJC5mkLPzLSQKU=
-Date: Wed, 16 Sep 2026 14:54:54 -0700
+	b=haxft8Ao+WdHG7k292EgRZdao7YFdE8Ex/2fnPeuLkZqo9IyKiwv0isLmIdj+UecS
+	 4CJpKm/kFWX14XPVt0W1aEqg13B2cSmaKh14QsMhYMInXXkR1v+TOOlR++kE7tYTDZ
+	 O8Gz8AJd/s3kQ2Pbu5nMhwkC/WH4j+hjB5I4V0QU=
+Date: Wed, 16 Sep 2026 14:55:00 -0700
 To: mm-commits@vger.kernel.org,tz2294@columbia.edu,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-memcontrol-constify-the-swap-accounting-helpers.patch added to mm-new branch
-Message-Id: <20260916215454.A5C5E1F000FF@smtp.kernel.org>
+Subject: + mm-memcontrol-constify-the-zswap-and-socket-pressure-helpers.patch added to mm-new branch
+Message-Id: <20260916215500.7BD601F00898@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: memcontrol: constify the swap accounting helpers
+     Subject: mm: memcontrol: constify the zswap and socket pressure helpers
 has been added to the -mm mm-new branch.  Its filename is
-     mm-memcontrol-constify-the-swap-accounting-helpers.patch
+     mm-memcontrol-constify-the-zswap-and-socket-pressure-helpers.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memcontrol-constify-the-swap-accounting-helpers.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memcontrol-constify-the-zswap-and-socket-pressure-helpers.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,15 +70,14 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Tal Zussman <tz2294@columbia.edu>
-Subject: mm: memcontrol: constify the swap accounting helpers
-Date: Tue, 15 Sep 2026 19:20:13 -0400
+Subject: mm: memcontrol: constify the zswap and socket pressure helpers
+Date: Tue, 15 Sep 2026 19:20:15 -0400
 
-mem_cgroup_get_nr_swap_pages(), mem_cgroup_get_folio_swap_margin(), and
-mem_cgroup_swap_full() only read swap counters and limits.  Constify them.
+mem_cgroup_zswap_writeback_enabled() only reads the zswap_writeback flags,
+and mem_cgroup_get_socket_pressure() only reads the socket pressure
+timestamp.  Constify them.
 
-Remove externs from function declarations while at it.
-
-Link: https://lore.kernel.org/20260915-folio_memcg-const-v3-9-c239a6010b58@columbia.edu
+Link: https://lore.kernel.org/20260915-folio_memcg-const-v3-11-c239a6010b58@columbia.edu
 Signed-off-by: Tal Zussman <tz2294@columbia.edu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 Acked-by: Muchun Song <muchun.song@linux.dev>
@@ -105,75 +104,59 @@ Cc: Wei Xu <weixugc@google.com>
 Cc: Yuanchu Xie <yuanchu@google.com>
 ---
 
- include/linux/swap.h |   12 ++++++------
- mm/memcontrol.c      |    6 +++---
- 2 files changed, 9 insertions(+), 9 deletions(-)
+ include/linux/memcontrol.h |    8 ++++----
+ mm/memcontrol.c            |    2 +-
+ 2 files changed, 5 insertions(+), 5 deletions(-)
 
---- a/include/linux/swap.h~mm-memcontrol-constify-the-swap-accounting-helpers
-+++ a/include/linux/swap.h
-@@ -527,9 +527,9 @@ static inline void mem_cgroup_uncharge_s
- 	__mem_cgroup_uncharge_swap(id, nr_pages);
+--- a/include/linux/memcontrol.h~mm-memcontrol-constify-the-zswap-and-socket-pressure-helpers
++++ a/include/linux/memcontrol.h
+@@ -1684,7 +1684,7 @@ static inline void mem_cgroup_set_socket
+ 	write_sequnlock_irqrestore(&memcg->socket_pressure_seqlock, flags);
  }
  
--long mem_cgroup_get_folio_swap_margin(struct folio *folio);
--extern long mem_cgroup_get_nr_swap_pages(struct mem_cgroup *memcg);
--extern bool mem_cgroup_swap_full(struct folio *folio);
-+long mem_cgroup_get_folio_swap_margin(const struct folio *folio);
-+long mem_cgroup_get_nr_swap_pages(const struct mem_cgroup *memcg);
-+bool mem_cgroup_swap_full(const struct folio *folio);
+-static inline u64 mem_cgroup_get_socket_pressure(struct mem_cgroup *memcg)
++static inline u64 mem_cgroup_get_socket_pressure(const struct mem_cgroup *memcg)
+ {
+ 	unsigned int seq;
+ 	u64 val;
+@@ -1702,7 +1702,7 @@ static inline void mem_cgroup_set_socket
+ 	WRITE_ONCE(memcg->socket_pressure, jiffies + HZ);
+ }
+ 
+-static inline u64 mem_cgroup_get_socket_pressure(struct mem_cgroup *memcg)
++static inline u64 mem_cgroup_get_socket_pressure(const struct mem_cgroup *memcg)
+ {
+ 	return READ_ONCE(memcg->socket_pressure);
+ }
+@@ -1937,7 +1937,7 @@ static inline void mem_cgroup_calculate_
+ bool obj_cgroup_may_zswap(struct obj_cgroup *objcg);
+ void obj_cgroup_charge_zswap(struct obj_cgroup *objcg, size_t size);
+ void obj_cgroup_uncharge_zswap(struct obj_cgroup *objcg, size_t size);
+-bool mem_cgroup_zswap_writeback_enabled(struct mem_cgroup *memcg);
++bool mem_cgroup_zswap_writeback_enabled(const struct mem_cgroup *memcg);
  #else
- static inline int mem_cgroup_try_charge_swap(struct folio *folio)
+ static inline bool obj_cgroup_may_zswap(struct obj_cgroup *objcg)
  {
-@@ -541,17 +541,17 @@ static inline void mem_cgroup_uncharge_s
+@@ -1951,7 +1951,7 @@ static inline void obj_cgroup_uncharge_z
+ 					     size_t size)
  {
  }
- 
--static inline long mem_cgroup_get_folio_swap_margin(struct folio *folio)
-+static inline long mem_cgroup_get_folio_swap_margin(const struct folio *folio)
+-static inline bool mem_cgroup_zswap_writeback_enabled(struct mem_cgroup *memcg)
++static inline bool mem_cgroup_zswap_writeback_enabled(const struct mem_cgroup *memcg)
  {
- 	return PAGE_COUNTER_MAX;
- }
- 
--static inline long mem_cgroup_get_nr_swap_pages(struct mem_cgroup *memcg)
-+static inline long mem_cgroup_get_nr_swap_pages(const struct mem_cgroup *memcg)
- {
- 	return get_nr_swap_pages();
- }
- 
--static inline bool mem_cgroup_swap_full(struct folio *folio)
-+static inline bool mem_cgroup_swap_full(const struct folio *folio)
- {
- 	return vm_swap_full();
- }
---- a/mm/memcontrol.c~mm-memcontrol-constify-the-swap-accounting-helpers
+ 	/* if zswap is disabled, do not block pages going to the swapping device */
+ 	return true;
+--- a/mm/memcontrol.c~mm-memcontrol-constify-the-zswap-and-socket-pressure-helpers
 +++ a/mm/memcontrol.c
-@@ -6003,7 +6003,7 @@ void __mem_cgroup_uncharge_swap(unsigned
+@@ -6304,7 +6304,7 @@ void obj_cgroup_uncharge_zswap(struct ob
  	rcu_read_unlock();
  }
  
--long mem_cgroup_get_nr_swap_pages(struct mem_cgroup *memcg)
-+long mem_cgroup_get_nr_swap_pages(const struct mem_cgroup *memcg)
+-bool mem_cgroup_zswap_writeback_enabled(struct mem_cgroup *memcg)
++bool mem_cgroup_zswap_writeback_enabled(const struct mem_cgroup *memcg)
  {
- 	long nr_swap_pages = get_nr_swap_pages();
- 
-@@ -6019,7 +6019,7 @@ long mem_cgroup_get_nr_swap_pages(struct
-  *
-  * Return: Remaining chargeable pages in the folio's memcg hierarchy.
-  */
--long mem_cgroup_get_folio_swap_margin(struct folio *folio)
-+long mem_cgroup_get_folio_swap_margin(const struct folio *folio)
- {
- 	struct mem_cgroup *memcg;
- 	long margin;
-@@ -6036,7 +6036,7 @@ long mem_cgroup_get_folio_swap_margin(st
- 	return margin;
- }
- 
--bool mem_cgroup_swap_full(struct folio *folio)
-+bool mem_cgroup_swap_full(const struct folio *folio)
- {
- 	struct mem_cgroup *memcg;
- 	bool ret = false;
+ 	/* if zswap is disabled, do not block pages going to the swapping device */
+ 	if (!zswap_is_enabled())
 _
 
 Patches currently in -mm which might be from tz2294@columbia.edu are
