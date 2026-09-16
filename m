@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 325043C3F4E;
-	Wed, 16 Sep 2026 22:34:18 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0AEB0443C0F
+	for <mm-commits@vger.kernel.org>; Wed, 16 Sep 2026 22:42:00 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789598081; cv=none; b=ZDJyW9vhnOMUREIoNHaFd+YpvXu2J/nLDxWfhsqoP/G4SWzlO+QGH/N3VTaEcWE236eyktIF0ki1cSlV3NxnCQKBMOJ8MOsjHwClUpu0HKJ+eFMfn2mX5Is9ERjZT1HqRVjlDNDcNiijcCw6gLUdvWfzTSLWV71c3u/LryngwRE=
+	t=1789598528; cv=none; b=p+mOAfNgLkJahJZTowlaNxKY00TF2iYk+FXYL8lOjLhC12SpQQ+mnrfNNUQANHqg66T5sncuaqa/IeI4Jd21Tu+VpMNbvKYXk8iZdHsWrOww6SQ9/HbEtiU+FHUlsFC2qADHHtiLyGJ0aMnWRZ6BWSnoRRGYGKWUxUVryCo5W48=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1789598081; c=relaxed/simple;
-	bh=kjav+DCqeVHETk/yTPEOtjQd421No6bIkSUHAp2Uf/8=;
-	h=Date:To:From:Subject:Message-Id; b=t9a3nzFnVSRbKct+BRDXzooYxJvIWmW8LXVAjJJzOZigZEZ/pu3dg23FWw2XmIZ1XyyByJh0ZSDbT9dD1biLbsqJTAl8GxHxKmlNAAVrUzVZ0WreA4wvuvMNNyj3DTm5kcaTTHPIoFO0rsvk3q/hGuzKsmE5I/j7AhOIWgi3Jd4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=m/rR0ri4; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1789598528; c=relaxed/simple;
+	bh=J3KDDsHhNnZXu85X5IxOQbSaMGHZhHbD3UFRHwPlu4c=;
+	h=Date:To:From:Subject:Message-Id; b=Z1isNR/A1oFDCtr3lmsm/BbwOati0GMmgBSY2DTUmA1EriC18oA1UInqh+rll+1sJylGkWU+ThKyRJGfPEWFb658PPjhqPJ9BL/NWMDRhbcCLxyNb75dHIBPX9Oh4h3spfHGwKEAEDDChTwXrMWj7+wt+D8kn5HEl1YY81kJ1aY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=RwmxNkyC; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="m/rR0ri4"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 73A331F000FF;
-	Wed, 16 Sep 2026 22:34:14 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="RwmxNkyC"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 319D71F00893;
+	Wed, 16 Sep 2026 22:41:56 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1789598054;
-	bh=ZaNOQQN7Ir5G/SAWmRkWOwnxm+4576UUn38t7oQZkhM=;
+	d=linux-foundation.org; s=korg; t=1789598516;
+	bh=y1xB42akqmS6dwdojRdNIH3qiA83CtKhZ7f3jGrruqs=;
 	h=Date:To:From:Subject;
-	b=m/rR0ri4O6YdCUbGkXOqsEvfx1J9qFiH2lqzXbLVkZ/NyT1C4PEQQGSusQDmEBU+8
-	 3SsYR0t7Q8qI8dD15o96fxWYvUOOuLGe99kQPq+0EWOs9QakAJWlPZIj/Wha83E1Dd
-	 kHAdwxbHEho0/MVlhPROdkHhH8yXkweW6XDp1O1w=
-Date: Wed, 16 Sep 2026 15:34:14 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,willy@infradead.org,vbabka@suse.cz,stable@vger.kernel.org,ritesh.list@gmail.com,mhocko@suse.com,hch@lst.de,hannes@cmpxchg.org,dgc@kernel.org,david@redhat.com,dipiets@amazon.it,akpm@linux-foundation.org
+	b=RwmxNkyCA14mCuNk5wyO4Tn5egmvHKKCPdlJxZgTJPCokNz/SHCl2zCGi3E+s0JWP
+	 vdjJ4wasqpqAjUfgBVEpYMlJ8Y8/wGDzF+unymLAtyzKdVMnEIHsc3tmWpBFrjiGad
+	 ZmbECDduW1mBgEBYiDB2Peh/mg1w4Q++TeU1AaYo=
+Date: Wed, 16 Sep 2026 15:41:55 -0700
+To: mm-commits@vger.kernel.org,kas@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [alternative-merged] mm-page_alloc-avoid-direct-compaction-for-costly-__gfp_noretry-allocations-v5.patch removed from -mm tree
-Message-Id: <20260916223414.73A331F000FF@smtp.kernel.org>
+Subject: [to-be-updated] mm-khugepaged-count-collapses-where-khugepaged-makes-them.patch removed from -mm tree
+Message-Id: <20260916224156.319D71F00893@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,121 +35,94 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/page_alloc: avoid direct compaction for costly __GFP_NORETRY allocations
+     Subject: mm/khugepaged: count collapses where khugepaged makes them
 has been removed from the -mm tree.  Its filename was
-     mm-page_alloc-avoid-direct-compaction-for-costly-__gfp_noretry-allocations-v5.patch
+     mm-khugepaged-count-collapses-where-khugepaged-makes-them.patch
 
-This patch was dropped because an alternative patch was or shall be merged
+This patch was dropped because an updated version will be issued
 
 ------------------------------------------------------
-From: Salvatore Dipietro <dipiets@amazon.it>
-Subject: mm/page_alloc: avoid direct compaction for costly __GFP_NORETRY allocations
-Date: Fri, 11 Sep 2026 14:21:02 +0000
+From: "Kiryl Shutsemau (Meta)" <kas@kernel.org>
+Subject: mm/khugepaged: count collapses where khugepaged makes them
+Date: Thu, 10 Sep 2026 13:02:22 +0100
 
-Commit 5d8edfb900d5 ("iomap: Copy larger chunks from userspace")
-introduced high-order folio allocations in the iomap buffered write path. 
-When memory is fragmented, each failed costly-order allocation enters
-__alloc_pages_slowpath() which runs direct compaction and
-drain_all_pages(), causing a 0.38x throughput drop on PostgreSQL pgbench
-(simple-update) with 1024 clients on a 96-vCPU arm64 system.
+collapse_single_pmd() bumps khugepaged_pages_collapsed for its caller, and
+tests cc->is_khugepaged to know whether it should: the counter belongs to
+the daemon, and MADV_COLLAPSE must not touch it.
 
-The root issue is that direct compaction is too expensive for hot
-allocation paths that have fallbacks to smaller allocations. 
-__filemap_get_folio_mpol() already marks higher-order allocations with
-__GFP_NORETRY | __GFP_NOWARN, signalling that the caller can handle
-failure.  However, the page allocator still attempts full direct
-compaction for costly orders with __GFP_NORETRY, which is unnecessarily
-aggressive when the caller will simply retry at a lower order.
+The daemon sees every result of every collapse it asks for, so it can keep
+its own counter without the shared path testing who called.
 
-For costly-order allocations with __GFP_NORETRY, suppress direct reclaim
-for the whole slowpath by computing can_direct_reclaim (and hence
-can_compact) as false.  The !can_direct_reclaim check near the top of the
-slowpath then short-circuits to nopage: no direct reclaim, no direct
-compaction and no drain_all_pages() IPI across every CPU.  kswapd (and in
-turn kcompactd) is still woken further down for background
-defragmentation, so compaction keeps working for long-term system health
-while being removed from the latency-critical direct allocation path.
-
-Allocations that also request __GFP_THISNODE are exempted.  That flag
-pairing identifies the local-node-first THP attempt issued by
-alloc_pages_mpol() (mempolicy.c), which relies on direct compaction to
-form transparent huge pages.  __GFP_NOFAIL is exempted as well, so a
-must-not-fail allocation is never made to fail.
-
-Test environment:
-  Hardware:  AWS EC2 m8g.24xlarge (96 vCPU, arm64)
-             12x 1TB IO2 32000 IOPS RAID0 XFS
-  OS:        AL2023
-  Kernel:    v7.3-rc1
-  Database:  PostgreSQL 18.4
-  Workload:  pgbench simple-update, 1024 clients, 96 threads, 1200s
-
-Results (average of 3 runs, TPS):
-  Config                                       Avg TPS   % vs baseline
-  AL2023 stock 6.1 kernel (pre-5d8edfb900d5)   136,942           n/a
-  v7.3-rc1 baseline (no patch)                  59,408             -
-  v7.3-rc1 + this patch                        161,994       +172.7%
-
-The patch fully recovers the pre-5d8edfb900d5 performance, bringing
-throughput back above the pre-regression level and well clear of the ~59k
-baseline.  The AL2023 6.1 row runs a kernel that predates commit
-5d8edfb900d5 ("iomap: Copy larger chunks from userspace"), so it is not
-directly comparable, but it shows the pre-regression level and confirms
-that the ~59k baseline is the anomaly and not the norm.
-
-Link: https://lore.kernel.org/20260911142102.2294202-1-dipiets@amazon.it
-Link: https://lore.kernel.org/all/20260403193535.9970-1-dipiets@amazon.it/T/#t [v1]
-Link: https://lore.kernel.org/linux-mm/20260420161404.642-1-dipiets@amazon.it/T/#u [v2]
-Link: https://lore.kernel.org/all/20260710143437.12379-1-dipiets@amazon.it/T/#u [v3]
-Link: https://lore.kernel.org/all/20260904115629.3993331-1-dipiets@amazon.it/T/#u [v4]
-Fixes: 5d8edfb900d5 ("iomap: Copy larger chunks from userspace")
-Signed-off-by: Salvatore Dipietro <dipiets@amazon.it>
+Assisted-by: LLM
+Link: https://lore.kernel.org/20260910120238.2529819-3-kirill@shutemov.name
+Signed-off-by: Kiryl Shutsemau (Meta) <kas@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Acked-by: Zi Yan <ziy@nvidia.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Christoph Hellwig <hch@lst.de>
-Cc: Dave Chinner <dgc@kernel.org>
-Cc: Ritesh Harjani <ritesh.list@gmail.com>
-Cc: <stable@vger.kernel.org>
+Reviewed-by: Zi Yan <ziy@nvidia.com>
+Reviewed-by: Baolin Wang <baolin.wang@linux.alibaba.com>
+Cc: Barry Song <baohua@kernel.org>
+Cc: David Hildenbrand <david@kernel.org>
+Cc: Dev Jain <dev.jain@arm.com>
+Cc: Jann Horn <jannh@google.com>
+Cc: Lance Yang <lance.yang@linux.dev>
+Cc: Liam R. Howlett <liam@infradead.org>
+Cc: Lorenzo Stoakes <ljs@kernel.org>
+Cc: Ryan Roberts <ryan.roberts@arm.com>
+Cc: Vlastimil Babka <vbabka@kernel.org>
 ---
 
- mm/page_alloc.c |   16 ++++++++++++++--
- 1 file changed, 14 insertions(+), 2 deletions(-)
+ mm/khugepaged.c |   11 ++++-------
+ 1 file changed, 4 insertions(+), 7 deletions(-)
 
---- a/mm/page_alloc.c~mm-page_alloc-avoid-direct-compaction-for-costly-__gfp_noretry-allocations-v5
-+++ a/mm/page_alloc.c
-@@ -4784,10 +4784,22 @@ static inline struct page *
- __alloc_pages_slowpath(gfp_t gfp_mask, unsigned int order,
- 						struct alloc_context *ac)
- {
--	bool can_direct_reclaim = gfp_mask & __GFP_DIRECT_RECLAIM;
-+	const bool costly_order = order > PAGE_ALLOC_COSTLY_ORDER;
-+	/*
-+	 * Costly __GFP_NORETRY callers have a cheap fallback to a lower order,
-+	 * so don't stall them in direct reclaim or direct compaction.  Exempt
-+	 * __GFP_THISNODE (the THP attempt from alloc_pages_mpol() needs direct
-+	 * compaction) and __GFP_NOFAIL (must not be made to fail).  Don't
-+	 * clear __GFP_DIRECT_RECLAIM from gfp_mask instead: that would also
-+	 * change the alloc_flags derived by alloc_flags_slowpath().
-+	 */
-+	const bool costly_noretry = costly_order &&
-+		(gfp_mask & __GFP_NORETRY) &&
-+		!(gfp_mask & (__GFP_THISNODE | __GFP_NOFAIL));
-+	bool can_direct_reclaim = !costly_noretry &&
-+		(gfp_mask & __GFP_DIRECT_RECLAIM);
- 	bool can_compact = can_direct_reclaim && gfp_compaction_allowed(gfp_mask);
- 	bool nofail = gfp_mask & __GFP_NOFAIL;
--	const bool costly_order = order > PAGE_ALLOC_COSTLY_ORDER;
- 	struct page *page = NULL;
- 	unsigned int alloc_flags;
- 	unsigned long did_some_progress;
+--- a/mm/khugepaged.c~mm-khugepaged-count-collapses-where-khugepaged-makes-them
++++ a/mm/khugepaged.c
+@@ -2808,10 +2808,8 @@ static enum scan_result collapse_single_
+ 
+ 	mmap_assert_locked(mm);
+ 
+-	if (vma_is_anonymous(vma)) {
+-		result = collapse_scan_pmd(mm, vma, addr, lock_dropped, cc);
+-		goto end;
+-	}
++	if (vma_is_anonymous(vma))
++		return collapse_scan_pmd(mm, vma, addr, lock_dropped, cc);
+ 
+ 	file = get_file(vma->vm_file);
+ 	pgoff = linear_page_index(vma, addr);
+@@ -2847,9 +2845,6 @@ retry:
+ 			result = SCAN_SUCCEED;
+ 		mmap_read_unlock(mm);
+ 	}
+-end:
+-	if (cc->is_khugepaged && result == SCAN_SUCCEED)
+-		++khugepaged_pages_collapsed;
+ 	return result;
+ }
+ 
+@@ -2926,6 +2921,8 @@ static void collapse_scan_mm_slot(unsign
+ 
+ 			*result = collapse_single_pmd(khugepaged_scan.address,
+ 						      vma, &lock_dropped, cc);
++			if (*result == SCAN_SUCCEED)
++				khugepaged_pages_collapsed++;
+ 			/* move to next address */
+ 			khugepaged_scan.address += HPAGE_PMD_SIZE;
+ 			if (lock_dropped)
 _
 
-Patches currently in -mm which might be from dipiets@amazon.it are
+Patches currently in -mm which might be from kas@kernel.org are
 
-mm-page_alloc-avoid-direct-compaction-for-costly-__gfp_noretry-allocations.patch
+mm-huge_memory-do-not-touch-frozen-folios-in-deferred_split_isolate.patch
+mm-huge_memory-dequeue-the-deferred-split-after-the-split-freeze.patch
+mm-huge_memory-add-folio_reset_partially_mapped.patch
+mm-khugepaged-rename-mthp_present_ptes-bitmap-to-eligible_ptes.patch
+mm-collapse-add-collapseh-for-the-collapse-interface.patch
+mm-collapse-state-what-a-collapse-may-do-in-the-policy.patch
+mm-collapse-drop-the-collapse_possible-wrapper.patch
+mm-collapse-name-the-per-table-scan-reset-for-what-it-resets.patch
+mm-collapse-separate-scanning-a-pte-table-from-collapsing-it.patch
+mm-collapse-open-code-collapse_single_pmd-in-its-two-callers.patch
+mm-collapse-work-out-the-orders-a-vma-allows-once-per-vma.patch
+mm-collapse-declare-the-collapse-interface-in-collapseh.patch
+mm-collapse-implement-madv_collapse-in-madvisec.patch
+a.patch
 
