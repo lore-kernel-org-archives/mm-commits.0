@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 41CFF4DAFA7
-	for <mm-commits@vger.kernel.org>; Wed, 16 Sep 2026 22:42:23 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7B41941F345
+	for <mm-commits@vger.kernel.org>; Wed, 16 Sep 2026 22:48:47 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789598550; cv=none; b=pHncjdIAcBm30sX7HT8yU8sFYiJOX+TE1awC5dMhuzo9CX5rEHIYbzL/Lh2tVJtyHqcMu4QgEURuVvPNYkyvz664i4MRPc4s+JDWabSG8nPgwF3s5sv7X1R3e1IcSGiN/eN5OT4Vj/PGRyH8j1YlHeXjgRbshxS6ZjenHo04iW0=
+	t=1789598935; cv=none; b=l/OHldiPVJU8sXxPj6czJN1wm3r/Hv7y6G5Yt/dNGdBqu0KIuvzExmj4SlGR5ERBctFyX8bbMK5xYyQhE+3N9lgpTyA7OvT4FjhS6PCIjDJAH1IXaq6l+fJ+V35fBXp02VgbAAcMLe6zu9Lmae57GOXJPwJ9yKpc/GSE+oN+hxw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1789598550; c=relaxed/simple;
-	bh=+ggEa6SnewMQALH3zUyUlKNVut+SbiK0gzGjaIFaShY=;
-	h=Date:To:From:Subject:Message-Id; b=JjmqPRu5R29WWHffVJARYc+wu8iVu3CaCGAi83Cfg4FiBI2aIiwfCqoCTcyuB409Re0yrEofaNQwmq00ONL2gInFL88LmYPx5zK5XSPfjXihXiQtlmoK854hDQYm1Rdl8IDx/iAWVbyYvUlqu5lMF0v/sZTTm6yPhtcWbysDFhY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ewm4rVhT; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1789598935; c=relaxed/simple;
+	bh=dpJlFde6z1uRKD5u4XTiPCFpN3HDTcCJMlKs/IQnjaI=;
+	h=Date:To:From:Subject:Message-Id; b=WOZSCmLhUzvviSXSSocknuNtaatjhYuczTq56cwYMY5sTzKQRm1z0rD5GMvLmJetnaDmTcW+iSM9Kb7VBfshfMcaqtvd+KHV8q5GWmIXi9Fhb71f+8jnWwdyoCW2gPI4rLGWewkHqsnCGUyta1zwVUJf2dysL64c1ffz2Cv/ors=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=TY96NiVX; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ewm4rVhT"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A22A31F00893;
-	Wed, 16 Sep 2026 22:42:09 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="TY96NiVX"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C08A61F000FF;
+	Wed, 16 Sep 2026 22:48:44 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1789598529;
-	bh=vwPle5ONE9Bt1VX2CknRjVp/WGdASoy0hcBzjq+RUBs=;
+	d=linux-foundation.org; s=korg; t=1789598924;
+	bh=Yme23Cu8Q1YOMkru5KTE9HPWxc9kL2bDI1S4/IjeODk=;
 	h=Date:To:From:Subject;
-	b=ewm4rVhTSbqmYRyCxArkvROyJArVQigF1emFPZW/vuMzSI1TvNi6oDrlj/2SkWFrJ
-	 RhvG56f84bsMnNE9/WbubxuRQpC1t/5ogadhASuEr1oMYvdXGW4Sgtj2esyeqGqgZF
-	 R0rlXewhZDvFFE7LFjT6rlpPzFyuHG7+9mxxi+nk=
-Date: Wed, 16 Sep 2026 15:42:09 -0700
+	b=TY96NiVXZBmwAHTMaOVOWuLwOSI/0L3a2OVrI/H8COePa4xccA0N5gP8cysODRPgt
+	 vJCtU+RT7t0tcffn/o70Kowo7i4H+ZrQCel/cKTUX4JYgVBwtBRZGqymSiuc68zwfW
+	 ZMHDlw4NlB9M2NDOepzjIcfo0DEoGwToaIFwnjjs=
+Date: Wed, 16 Sep 2026 15:48:44 -0700
 To: mm-commits@vger.kernel.org,kas@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [to-be-updated] mm-collapse-implement-madv_collapse-in-madvisec.patch removed from -mm tree
-Message-Id: <20260916224209.A22A31F00893@smtp.kernel.org>
+Subject: + mm-khugepaged-drop-redundant-mm_struct-pin-in-madvise_collapse.patch added to mm-unstable branch
+Message-Id: <20260916224844.C08A61F000FF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,39 +34,89 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The quilt patch titled
-     Subject: mm/collapse: implement MADV_COLLAPSE in madvise.c
-has been removed from the -mm tree.  Its filename was
-     mm-collapse-implement-madv_collapse-in-madvisec.patch
+The patch titled
+     Subject: mm/khugepaged: drop redundant mm_struct pin in madvise_collapse()
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-khugepaged-drop-redundant-mm_struct-pin-in-madvise_collapse.patch
 
-This patch was dropped because an updated version will be issued
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-khugepaged-drop-redundant-mm_struct-pin-in-madvise_collapse.patch
+
+This patch will later appear in the mm-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via various
+branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there most days
 
 ------------------------------------------------------
 From: "Kiryl Shutsemau (Meta)" <kas@kernel.org>
-Subject: mm/collapse: implement MADV_COLLAPSE in madvise.c
-Date: Thu, 10 Sep 2026 13:02:32 +0100
+Subject: mm/khugepaged: drop redundant mm_struct pin in madvise_collapse()
+Date: Wed, 16 Sep 2026 10:31:28 +0100
 
-MADV_COLLAPSE is a madvise operation, but its implementation sat in
-khugepaged.c.  The daemon's file therefore also held a syscall's worth of
-code that has nothing to do with the daemon: the walk over the user's
-range, the per-PMD loop, and the errno translation.
+Patch series "mm/collapse: separate a collapse from its callers", v3.
 
-Move it to madvise.c, among the operations it belongs with, along with the
-errno map and the policy it states for itself.  It takes a struct
-madvise_behavior like every one of those operations, which is where the
-range, the VMA and the lock-dropped flag it used to be handed separately
-already live.
+There is no line between the collapse engine and the callers that ask for
+a collapse.  khugepaged.c holds both, and they reach into each other.
 
-It stays a caller of the interface khugepaged uses, so nothing about the
-collapse changes.
+ - Sixteen tests through the collapse path read cc->is_khugepaged to work
+   out what they are allowed to do, when every one of those decisions was
+   made by the caller before it asked.
 
-The !CONFIG_TRANSPARENT_HUGEPAGE stub moves in with it.
+ - collapse_single_pmd() does both halves of a collapse behind one call and
+   drops mmap_lock somewhere in the middle.  Which of its paths dropped it
+   is not something a caller can see, so it hands back a bool and the
+   caller keeps track.
+
+ - MADV_COLLAPSE's implementation -- the walk over the user's range, the
+   per-PMD loop, the errno translation -- sits in khugepaged.c, which is
+   the daemon's file.
+
+So: draw the line.  State what a caller allows in a policy, split the call
+in two with the lock as the boundary, and move the syscall to madvise.c. 
+What the engine offers is then four calls, with the lock state written
+down against each, and a policy the caller fills for itself:
+
+    collapse_control_init(cc)         once, before the first table
+    collapse_policy_*(&cc->policy)    what this caller allows
+    collapse_scan_pmd(vma, addr, ...) per table, under mmap_lock
+    collapse_run_pmd(mm, addr, cc)    when a scan found work, no mmap_lock
+    collapse_control_release(cc)      once, when done
+
+The engine stays in khugepaged.c for now; what changes is that it has an
+interface, and that neither half has to ask about the other.  madvise.c
+gains the operation it should have had all along.
+
+
+This patch (of 12):
+
+madvise_collapse() holds an mmgrab() reference across its work.  It is
+redundant.  Every caller already holds mm_users:
+
+ - madvise(2) works on current->mm, which lives as long as the task is in
+   the syscall;
+ - process_madvise(2) reaches a remote mm through mm_access(), which takes
+   an mm_users reference and holds it until the syscall returns;
+ - io_uring passes current->mm;
+ - DAMON takes one with get_task_mm() and drops it after the call.
+
+Drop the mmgrab()/mmdrop() pair.
 
 Assisted-by: LLM
-Link: https://lore.kernel.org/20260910120238.2529819-13-kirill@shutemov.name
+Link: https://lore.kernel.org/20260916093145.4022188-1-kirill@shutemov.name
+Link: https://lore.kernel.org/20260916093145.4022188-2-kirill@shutemov.name
 Signed-off-by: Kiryl Shutsemau (Meta) <kas@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
+Reviewed-by: Zi Yan <ziy@nvidia.com>
+Reviewed-by: Baolin Wang <baolin.wang@linux.alibaba.com>
 Cc: Barry Song <baohua@kernel.org>
 Cc: David Hildenbrand <david@kernel.org>
 Cc: Dev Jain <dev.jain@arm.com>
@@ -76,408 +126,29 @@ Cc: Liam R. Howlett <liam@infradead.org>
 Cc: Lorenzo Stoakes <ljs@kernel.org>
 Cc: Ryan Roberts <ryan.roberts@arm.com>
 Cc: Vlastimil Babka <vbabka@kernel.org>
-Cc: Zi Yan <ziy@nvidia.com>
 ---
 
- include/linux/huge_mm.h |    9 --
- mm/khugepaged.c         |  157 -----------------------------------
- mm/madvise.c            |  169 +++++++++++++++++++++++++++++++++++++-
- 3 files changed, 169 insertions(+), 166 deletions(-)
+ mm/khugepaged.c |    2 --
+ 1 file changed, 2 deletions(-)
 
---- a/include/linux/huge_mm.h~mm-collapse-implement-madv_collapse-in-madvisec
-+++ a/include/linux/huge_mm.h
-@@ -510,8 +510,6 @@ change_huge_pud(struct mmu_gather *tlb,
- 
- int hugepage_madvise(struct vm_area_struct *vma, vm_flags_t *vm_flags,
- 		     int advice);
--int madvise_collapse(struct vm_area_struct *vma, unsigned long start,
--		     unsigned long end, bool *lock_dropped);
- void vma_adjust_trans_huge(struct vm_area_struct *vma, unsigned long start,
- 			   unsigned long end, struct vm_area_struct *next);
- spinlock_t *__pmd_trans_huge_lock(pmd_t *pmd, struct vm_area_struct *vma);
-@@ -714,13 +712,6 @@ static inline int hugepage_madvise(struc
- {
- 	return -EINVAL;
- }
--
--static inline int madvise_collapse(struct vm_area_struct *vma,
--				   unsigned long start,
--				   unsigned long end, bool *lock_dropped)
--{
--	return -EINVAL;
--}
- 
- static inline void vma_adjust_trans_huge(struct vm_area_struct *vma,
- 					 unsigned long start,
---- a/mm/khugepaged.c~mm-collapse-implement-madv_collapse-in-madvisec
+--- a/mm/khugepaged.c~mm-khugepaged-drop-redundant-mm_struct-pin-in-madvise_collapse
 +++ a/mm/khugepaged.c
-@@ -969,21 +969,6 @@ static void collapse_policy_khugepaged(s
- 	p->tva_type = TVA_KHUGEPAGED;
- }
+@@ -3222,7 +3222,6 @@ int madvise_collapse(struct vm_area_stru
+ 	cc->is_khugepaged = false;
+ 	cc->progress = 0;
  
--/* MADV_COLLAPSE was asked for explicitly, so it is not held to those */
--static void collapse_policy_forced(struct collapse_policy *p)
--{
--	p->max_ptes_none = HPAGE_PMD_NR;
--	p->max_ptes_swap = HPAGE_PMD_NR;
--	p->max_ptes_shared = HPAGE_PMD_NR;
--	p->strict_sub_pmd = false;
--	p->skip_lazyfree = false;
--	p->require_referenced = false;
--	p->install_pmd = true;
--	p->writeback_dirty = true;
--	p->gfp = GFP_TRANSHUGE;
--	p->tva_type = TVA_FORCED_COLLAPSE;
--}
--
- #ifdef CONFIG_NUMA
- static int collapse_find_target_node(struct collapse_control *cc)
- {
-@@ -2795,8 +2780,8 @@ enum scan_result collapse_scan_pmd(struc
- 	return result;
- }
+-	mmgrab(mm);
+ 	lru_add_drain_all();
  
--enum scan_result collapse_run_pmd(struct mm_struct *mm,
--		unsigned long addr, struct collapse_control *cc)
-+enum scan_result collapse_run_pmd(struct mm_struct *mm, unsigned long addr,
-+		struct collapse_control *cc)
- {
- 	struct file *file = cc->scan_file;
- 	bool triggered_wb = false;
-@@ -3172,141 +3157,3 @@ bool current_is_khugepaged(void)
- {
- 	return kthread_func(current) == khugepaged;
- }
--
--static int madvise_collapse_errno(enum scan_result r)
--{
--	/*
--	 * MADV_COLLAPSE breaks from existing madvise(2) conventions to provide
--	 * actionable feedback to caller, so they may take an appropriate
--	 * fallback measure depending on the nature of the failure.
--	 */
--	switch (r) {
--	case SCAN_ALLOC_HUGE_PAGE_FAIL:
--		return -ENOMEM;
--	case SCAN_CGROUP_CHARGE_FAIL:
--	case SCAN_EXCEED_NONE_PTE:
--		return -EBUSY;
--	/* Resource temporary unavailable - trying again might succeed */
--	case SCAN_PAGE_COUNT:
--	case SCAN_PAGE_LOCK:
--	case SCAN_PAGE_LRU:
--	case SCAN_DEL_PAGE_LRU:
--	case SCAN_PAGE_FILLED:
--	case SCAN_PAGE_HAS_PRIVATE:
--	case SCAN_PAGE_DIRTY_OR_WRITEBACK:
--		return -EAGAIN;
--	/*
--	 * Other: Trying again likely not to succeed / error intrinsic to
--	 * specified memory range. khugepaged likely won't be able to collapse
--	 * either.
--	 */
--	default:
--		return -EINVAL;
--	}
--}
--
--int madvise_collapse(struct vm_area_struct *vma, unsigned long start,
--		     unsigned long end, bool *lock_dropped)
--{
--	struct collapse_control *cc;
--	struct mm_struct *mm = vma->vm_mm;
--	unsigned long hstart, hend, addr, orders;
--	enum scan_result last_fail = SCAN_FAIL;
--	int thps = 0;
--
--	BUG_ON(vma->vm_start > start);
--	BUG_ON(vma->vm_end < end);
--
--	orders = collapse_possible_orders(vma, vma->vm_flags,
--					  TVA_FORCED_COLLAPSE);
--	if (!orders)
--		return -EINVAL;
--
--	hstart = ALIGN(start, HPAGE_PMD_SIZE);
--	hend = ALIGN_DOWN(end, HPAGE_PMD_SIZE);
--
--	if (hstart >= hend)
--		return 0;
--
--	cc = kmalloc_obj(*cc);
--	if (!cc)
--		return -ENOMEM;
--	collapse_control_init(cc);
--	collapse_policy_forced(&cc->policy);
--
--	lru_add_drain_all();
--
--	for (addr = hstart; addr < hend; addr += HPAGE_PMD_SIZE) {
--		struct vm_area_struct *found;
--		enum scan_result result;
--
--		/*
--		 * A collapse gives the lock up, so the VMA has to be found
--		 * again after one: it can shrink while nothing is held.  A scan
--		 * that finds nothing to collapse leaves the lock alone, so a
--		 * range that is already collapsed walks on without relocking.
--		 */
--		if (!vma) {
--			cond_resched();
--			mmap_read_lock(mm);
--			result = collapse_vma_revalidate(mm, addr, false, &found,
--							 cc, HPAGE_PMD_ORDER);
--			if (result != SCAN_SUCCEED) {
--				last_fail = result;
--				goto out_locked;
--			}
--			vma = found;
--			hend = min(hend, vma->vm_end & HPAGE_PMD_MASK);
--			orders = collapse_possible_orders(vma, vma->vm_flags,
--							  cc->policy.tva_type);
--		}
--
--		result = collapse_scan_pmd(vma, addr, cc, orders);
--		/* Nothing to collapse here, and the lock is still ours */
--		if (result != SCAN_SUCCEED)
--			goto tally;
--
--		/* The collapse takes its own locks, so give this up */
--		mmap_read_unlock(mm);
--		*lock_dropped = true;
--		vma = NULL;
--
--		result = collapse_run_pmd(mm, addr, cc);
--tally:
--		switch (result) {
--		case SCAN_SUCCEED:
--		case SCAN_PMD_MAPPED:
--			++thps;
--			break;
--		/* Whitelisted set of results where continuing OK */
--		case SCAN_NO_PTE_TABLE:
--		case SCAN_PTE_NON_PRESENT:
--		case SCAN_PTE_UFFD:
--		case SCAN_LACK_REFERENCED_PAGE:
--		case SCAN_PAGE_NULL:
--		case SCAN_PAGE_COUNT:
--		case SCAN_PAGE_LOCK:
--		case SCAN_PAGE_COMPOUND:
--		case SCAN_PAGE_LRU:
--		case SCAN_DEL_PAGE_LRU:
--			last_fail = result;
--			break;
--		default:
--			last_fail = result;
--			/* Other error, exit */
--			goto out;
--		}
--	}
--
--out:
--	/* Caller expects us to hold mmap_lock on return */
--	if (!vma)
--		mmap_read_lock(mm);
--out_locked:
--	mmap_assert_locked(mm);
--	collapse_control_release(cc);
--	kfree(cc);
--
--	return thps == ((hend - hstart) >> HPAGE_PMD_SHIFT) ? 0
--			: madvise_collapse_errno(last_fail);
--}
---- a/mm/madvise.c~mm-collapse-implement-madv_collapse-in-madvisec
-+++ a/mm/madvise.c
-@@ -38,6 +38,7 @@
+ 	for (addr = hstart; addr < hend; addr += HPAGE_PMD_SIZE) {
+@@ -3278,7 +3277,6 @@ out_maybelock:
+ 	}
+ out_nolock:
+ 	mmap_assert_locked(mm);
+-	mmdrop(mm);
+ 	kfree(cc);
  
- #include "internal.h"
- #include "swap.h"
-+#include "collapse.h"
- 
- #define __MADV_SET_ANON_VMA_NAME (-1)
- 
-@@ -906,6 +907,171 @@ bool madvise_dontneed_free_valid_vma(str
- 	return true;
- }
- 
-+#ifdef CONFIG_TRANSPARENT_HUGEPAGE
-+
-+/* MADV_COLLAPSE was asked for explicitly, so it is not held to those */
-+static void collapse_policy_forced(struct collapse_policy *p)
-+{
-+	p->max_ptes_none = HPAGE_PMD_NR;
-+	p->max_ptes_swap = HPAGE_PMD_NR;
-+	p->max_ptes_shared = HPAGE_PMD_NR;
-+	p->strict_sub_pmd = false;
-+	p->skip_lazyfree = false;
-+	p->require_referenced = false;
-+	p->install_pmd = true;
-+	p->writeback_dirty = true;
-+	p->gfp = GFP_TRANSHUGE;
-+	p->tva_type = TVA_FORCED_COLLAPSE;
-+}
-+
-+static int madvise_collapse_errno(enum scan_result r)
-+{
-+	/*
-+	 * MADV_COLLAPSE breaks from existing madvise(2) conventions to provide
-+	 * actionable feedback to caller, so they may take an appropriate
-+	 * fallback measure depending on the nature of the failure.
-+	 */
-+	switch (r) {
-+	case SCAN_ALLOC_HUGE_PAGE_FAIL:
-+		return -ENOMEM;
-+	case SCAN_CGROUP_CHARGE_FAIL:
-+	case SCAN_EXCEED_NONE_PTE:
-+		return -EBUSY;
-+	/* Resource temporary unavailable - trying again might succeed */
-+	case SCAN_PAGE_COUNT:
-+	case SCAN_PAGE_LOCK:
-+	case SCAN_PAGE_LRU:
-+	case SCAN_DEL_PAGE_LRU:
-+	case SCAN_PAGE_FILLED:
-+	case SCAN_PAGE_HAS_PRIVATE:
-+	case SCAN_PAGE_DIRTY_OR_WRITEBACK:
-+		return -EAGAIN;
-+	/*
-+	 * Other: Trying again likely not to succeed / error intrinsic to
-+	 * specified memory range. khugepaged likely won't be able to collapse
-+	 * either.
-+	 */
-+	default:
-+		return -EINVAL;
-+	}
-+}
-+
-+static int madvise_collapse(struct madvise_behavior *madv_behavior)
-+{
-+	struct madvise_behavior_range *range = &madv_behavior->range;
-+	struct vm_area_struct *vma = madv_behavior->vma;
-+	struct mm_struct *mm = madv_behavior->mm;
-+	struct collapse_control *cc;
-+	unsigned long hstart, hend, addr, orders;
-+	enum scan_result last_fail = SCAN_FAIL;
-+	int thps = 0;
-+
-+	BUG_ON(vma->vm_start > range->start);
-+	BUG_ON(vma->vm_end < range->end);
-+
-+	orders = collapse_possible_orders(vma, vma->vm_flags,
-+					  TVA_FORCED_COLLAPSE);
-+	if (!orders)
-+		return -EINVAL;
-+
-+	hstart = ALIGN(range->start, HPAGE_PMD_SIZE);
-+	hend = ALIGN_DOWN(range->end, HPAGE_PMD_SIZE);
-+
-+	if (hstart >= hend)
-+		return 0;
-+
-+	cc = kmalloc_obj(*cc);
-+	if (!cc)
-+		return -ENOMEM;
-+	collapse_control_init(cc);
-+	collapse_policy_forced(&cc->policy);
-+
-+	lru_add_drain_all();
-+
-+	for (addr = hstart; addr < hend; addr += HPAGE_PMD_SIZE) {
-+		struct vm_area_struct *found;
-+		enum scan_result result;
-+
-+		/*
-+		 * A collapse gives the lock up, so the VMA has to be found
-+		 * again after one: it can shrink while nothing is held.  A scan
-+		 * that finds nothing to collapse leaves the lock alone, so a
-+		 * range that is already collapsed walks on without relocking.
-+		 */
-+		if (!vma) {
-+			cond_resched();
-+			mmap_read_lock(mm);
-+			result = collapse_vma_revalidate(mm, addr, false, &found,
-+							 cc, HPAGE_PMD_ORDER);
-+			if (result != SCAN_SUCCEED) {
-+				last_fail = result;
-+				goto out_locked;
-+			}
-+			vma = found;
-+			hend = min(hend, vma->vm_end & HPAGE_PMD_MASK);
-+			orders = collapse_possible_orders(vma, vma->vm_flags,
-+							  cc->policy.tva_type);
-+		}
-+
-+		result = collapse_scan_pmd(vma, addr, cc, orders);
-+		/* Nothing to collapse here, and the lock is still ours */
-+		if (result != SCAN_SUCCEED)
-+			goto tally;
-+
-+		/* The collapse takes its own locks, so give this up */
-+		mmap_read_unlock(mm);
-+		mark_mmap_lock_dropped(madv_behavior);
-+		vma = NULL;
-+
-+		result = collapse_run_pmd(mm, addr, cc);
-+tally:
-+		switch (result) {
-+		case SCAN_SUCCEED:
-+		case SCAN_PMD_MAPPED:
-+			++thps;
-+			break;
-+		/* Whitelisted set of results where continuing OK */
-+		case SCAN_NO_PTE_TABLE:
-+		case SCAN_PTE_NON_PRESENT:
-+		case SCAN_PTE_UFFD:
-+		case SCAN_LACK_REFERENCED_PAGE:
-+		case SCAN_PAGE_NULL:
-+		case SCAN_PAGE_COUNT:
-+		case SCAN_PAGE_LOCK:
-+		case SCAN_PAGE_COMPOUND:
-+		case SCAN_PAGE_LRU:
-+		case SCAN_DEL_PAGE_LRU:
-+			last_fail = result;
-+			break;
-+		default:
-+			last_fail = result;
-+			/* Other error, exit */
-+			goto out;
-+		}
-+	}
-+
-+out:
-+	/* Caller expects us to hold mmap_lock on return */
-+	if (!vma)
-+		mmap_read_lock(mm);
-+out_locked:
-+	mmap_assert_locked(mm);
-+	collapse_control_release(cc);
-+	kfree(cc);
-+
-+	return thps == ((hend - hstart) >> HPAGE_PMD_SHIFT) ? 0
-+			: madvise_collapse_errno(last_fail);
-+}
-+
-+#else	/* CONFIG_TRANSPARENT_HUGEPAGE */
-+
-+static int madvise_collapse(struct madvise_behavior *madv_behavior)
-+{
-+	return -EINVAL;
-+}
-+
-+#endif	/* CONFIG_TRANSPARENT_HUGEPAGE */
-+
- static long madvise_dontneed_free(struct madvise_behavior *madv_behavior)
- {
- 	struct mm_struct *mm = madv_behavior->mm;
-@@ -1373,8 +1539,7 @@ static int madvise_vma_behavior(struct m
- 	case MADV_DONTNEED_LOCKED:
- 		return madvise_dontneed_free(madv_behavior);
- 	case MADV_COLLAPSE:
--		return madvise_collapse(vma, range->start, range->end,
--			&madv_behavior->lock_dropped);
-+		return madvise_collapse(madv_behavior);
- 	case MADV_GUARD_INSTALL:
- 		return madvise_guard_install(madv_behavior);
- 	case MADV_GUARD_REMOVE:
+ 	return thps == ((hend - hstart) >> HPAGE_PMD_SHIFT) ? 0
 _
 
 Patches currently in -mm which might be from kas@kernel.org are
@@ -485,5 +156,16 @@ Patches currently in -mm which might be from kas@kernel.org are
 mm-huge_memory-do-not-touch-frozen-folios-in-deferred_split_isolate.patch
 mm-huge_memory-dequeue-the-deferred-split-after-the-split-freeze.patch
 mm-huge_memory-add-folio_reset_partially_mapped.patch
-a.patch
+mm-khugepaged-drop-redundant-mm_struct-pin-in-madvise_collapse.patch
+mm-khugepaged-count-collapses-where-khugepaged-makes-them.patch
+mm-khugepaged-rename-mthp_present_ptes-bitmap-to-eligible_ptes.patch
+mm-collapse-add-collapseh-for-the-collapse-interface.patch
+mm-collapse-state-what-a-collapse-may-do-in-the-policy.patch
+mm-collapse-drop-the-collapse_possible-wrapper.patch
+mm-collapse-name-the-per-table-scan-reset-for-what-it-resets.patch
+mm-collapse-separate-scanning-a-pte-table-from-collapsing-it.patch
+mm-collapse-open-code-collapse_single_pmd-in-its-two-callers.patch
+mm-collapse-work-out-the-orders-a-vma-allows-once-per-vma.patch
+mm-collapse-declare-the-collapse-interface-in-collapseh.patch
+mm-collapse-implement-madv_collapse-in-madvisec.patch
 
