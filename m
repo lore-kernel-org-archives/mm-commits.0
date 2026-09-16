@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B2E4B3C0619
-	for <mm-commits@vger.kernel.org>; Wed, 16 Sep 2026 01:55:24 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2930A3C0A12
+	for <mm-commits@vger.kernel.org>; Wed, 16 Sep 2026 01:55:27 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789523733; cv=none; b=iQTAoN+k0xEG4yrsI+UXAcK6pk/IO4GQ9xxAYLjo2nxkydsZjbUTyFfL2wDFPB1owMker/EZy/ngMKndpuSWcX64rrrCks7a5zFN1DVu02aPW01J6qrMul6EZi6R4AtkMD1gZWxP6Y3ciK4/9DlDz8kaMsAXzxFVgFpjIP0BHow=
+	t=1789523740; cv=none; b=dxPcoZQlgqz3xmFKohoR664du2YXZPvS+e4n0/xJWT59pCXQ6vJgnj1ICnSE3FgIl7qbIW3l0+qWoEG+DVLqhaUkOn4CbwAt9oWYB3Lkvcf+XTMySew9jtfO2HoXOdEiYGD2e0d+FFdMOXj7gT/Y30GqTo0QYpCLHct2Kr9R0Gk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1789523733; c=relaxed/simple;
-	bh=i7AKOY42M3/y5EN7x1Zf4/PQNRmg9gOCUDvh+dUUweQ=;
-	h=Date:To:From:Subject:Message-Id; b=Sw/GByIC0MSgpNEvHaYxiIgjxFJoVqJmHKE1gW3OErymjFMZslkf5l9v2oKT9RsCNpJIKg82GGBKEahImm5rtGuU4XGHf2t9KZuhNfaivoTQ79JWxBHBB52BHjTcauJI7CTmtHEXSwGs2qIUuVXKE8iqlCDKV8b04deFEnQiFpI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=EtQxl1Bp; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1789523740; c=relaxed/simple;
+	bh=yk2dMtsfSFk2m9+hiGPpo99DCyT4n+vOTKDgP9FtA6M=;
+	h=Date:To:From:Subject:Message-Id; b=e5Nr8V4kPzDR9ktMo+BzcorH9r1jzT5S1A74zye7NZfRC6uC2E81IFKGehMYNlQ9zTRVnLwkaazEUTJa08PZxvT+ECtcXNTTbFrbxcKKgDa3J/KLKETXAqTEDnAfG+PDphTiTsjEKj7n6KLYuigMUOIVp7QEDTPrfxNrWl2wsKc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=AZ0kTqN9; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="EtQxl1Bp"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A87F61F0089C;
-	Wed, 16 Sep 2026 01:55:21 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="AZ0kTqN9"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A89621F00898;
+	Wed, 16 Sep 2026 01:55:27 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1789523721;
-	bh=uAMKCeIqDmewTREdZcRDvEax6lf5PoLb6S0BBZcWhNM=;
+	d=linux-foundation.org; s=korg; t=1789523727;
+	bh=UQJOl6Rvc3najC2JRpOdRV2vWxPrcRTmWBPWXp/vJqM=;
 	h=Date:To:From:Subject;
-	b=EtQxl1BpRtSzLrUrI/rZ3/JsZmsuTUVlZ5rNyWXC3CUH5QP78PQD1xwWaEfk3PeKs
-	 zvqcOCLIVX6rasi7S73P+wDgKu1RAt9bK+PDUQq1VHieaCJWAYxkiYU4djCuBtMMqf
-	 +5MODJP71/z0ysjZ9uRz//BuCoTWcp4JvP90tfLU=
-Date: Tue, 15 Sep 2026 18:55:21 -0700
+	b=AZ0kTqN9wvBSWwu7voLoyi+D66CrAVA7AHetAjB3dG7cG8o3z46clzy1THwWYKdr7
+	 sBf5Dy4ynnMIUVSZzQCuhzpS4UUCr9NfLNWJYnPuQCqJxHB7SaUDOHD0ZNEkxleV2O
+	 C1XlZvMXb+bdsXvdShcuJE59oBx855uA+n4qvQac=
+Date: Tue, 15 Sep 2026 18:55:27 -0700
 To: mm-commits@vger.kernel.org,ljs@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [to-be-updated] mm-enable-mmu_gather_rcu_table_free-for-m68k-motorola.patch removed from -mm tree
-Message-Id: <20260916015521.A87F61F0089C@smtp.kernel.org>
+Subject: [to-be-updated] mm-change-the-contract-for-free_pgtables-update-docs.patch removed from -mm tree
+Message-Id: <20260916015527.A89621F00898@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,62 +35,29 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: enable MMU_GATHER_RCU_TABLE_FREE for m68k-motorola
+     Subject: mm: change the contract for free_pgtables(), update docs
 has been removed from the -mm tree.  Its filename was
-     mm-enable-mmu_gather_rcu_table_free-for-m68k-motorola.patch
+     mm-change-the-contract-for-free_pgtables-update-docs.patch
 
 This patch was dropped because an updated version will be issued
 
 ------------------------------------------------------
 From: "Lorenzo Stoakes (ARM)" <ljs@kernel.org>
-Subject: mm: enable MMU_GATHER_RCU_TABLE_FREE for m68k-motorola
-Date: Tue, 08 Sep 2026 13:32:18 +0100
+Subject: mm: change the contract for free_pgtables(), update docs
+Date: Tue, 08 Sep 2026 13:32:21 +0100
 
-sun3 and coldfire are already supported, however motorola requires a
-little more care.
+Now that page tables are freed after an RCU grace period, it is safe for
+read-only page table walkers to walk page table ranges that are being
+concurrently torn down, provided the mm is kept alive via mmgrab().
 
-Here, custom table removal logic is required, so
-CONFIG_HAVE_ARCH_TLB_REMOVE_TABLE is enabled for m68k-motorola.
+It is however unsafe for writers to do so, as they must obtain an
+appropriate lock to do so safely.
 
-Firstly as part of this change, the page table level must be communicated
-to the underlying __tlb_remove_table() implementation.
+Update the pte_offset_map_lock()'s comment block to reflect this.
 
-Take advantage of the fact that page tables are aligned by more than
-enough to permit setting TABLE_PTE or TABLE_PMD in the low bits of the
-pointer, and store this there.
+Similarly update the process addresses documentation.
 
-Then update __pte_free_tlb() and __pmd_free_tlb() to pass this through,
-then have __tlb_remove_table() decode this and pass it to
-free_pointer_table().
-
-The page table freeing is performed via call_rcu(), so
-free_pointer_table() now will be invoked from softirq context, and as such
-may be re-entrant.
-
-Introduce an irq save/restore spinlock to handle this, and hold it over
-the time a given ptable entry is being referenced in both
-get_pointer_table() and free_pointer_table().
-
-In order to make things a little easier in this respect, separate out the
-logic for adding a new ptable entry into add_pointer_table() and only hold
-the lock during ptable entry insertion in this case.
-
-Note that original list_add_tail(new, dp) added new prior to dp, which is
-ptable_list[type].next, i.e.  after ptable_list[type].
-
-The equivalent therefore is list_add(new, &ptable_list[type]), which adds
-new after ptable_list[type], only without needing to make reference to dp.
-
-Note that, as m68k-motorola specifies CONFIG_HAVE_ARCH_TLB_REMOVE_TABLE,
-it does not enable CONFIG_PT_RECLAIM.  This isn't meaningfully impactful.
-
-With this applied, all of m68k implements
-CONFIG_MMU_GATHER_RCU_TABLE_FREE.
-
-This forms part of an overall effort to switch every architecture to this
-mode.
-
-Link: https://lore.kernel.org/20260908-rcu-pagetable-freeing-v2-9-1f60b64e878e@kernel.org
+Link: https://lore.kernel.org/20260908-rcu-pagetable-freeing-v2-12-1f60b64e878e@kernel.org
 Signed-off-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 Acked-by: Kiryl Shutsemau (Meta) <kas@kernel.org>
@@ -160,243 +127,49 @@ Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
 Cc: Zi Yan <ziy@nvidia.com>
 ---
 
- arch/m68k/Kconfig                        |    3 
- arch/m68k/include/asm/motorola_pgalloc.h |    9 -
- arch/m68k/mm/motorola.c                  |  121 +++++++++++++--------
- 3 files changed, 86 insertions(+), 47 deletions(-)
+ Documentation/mm/process_addrs.rst |    6 ++++++
+ mm/pgtable-generic.c               |   15 +++++++++++----
+ 2 files changed, 17 insertions(+), 4 deletions(-)
 
---- a/arch/m68k/include/asm/motorola_pgalloc.h~mm-enable-mmu_gather_rcu_table_free-for-m68k-motorola
-+++ a/arch/m68k/include/asm/motorola_pgalloc.h
-@@ -17,6 +17,7 @@ enum m68k_table_types {
- extern void init_pointer_table(void *table, int type);
- extern void *get_pointer_table(struct mm_struct *mm, int type);
- extern int free_pointer_table(void *table, int type);
-+extern void __tlb_remove_table(void *table);
- 
- /*
-  * Allocate and free page tables. The xxx_kernel() versions are
-@@ -47,7 +48,7 @@ static inline void pte_free(struct mm_st
- static inline void __pte_free_tlb(struct mmu_gather *tlb, pgtable_t pgtable,
- 				  unsigned long address)
- {
--	free_pointer_table(pgtable, TABLE_PTE);
-+	tlb_remove_table(tlb, (void *)((unsigned long)pgtable | TABLE_PTE));
- }
- 
- 
-@@ -61,10 +62,10 @@ static inline int pmd_free(struct mm_str
- 	return free_pointer_table(pmd, TABLE_PMD);
- }
- 
--static inline int __pmd_free_tlb(struct mmu_gather *tlb, pmd_t *pmd,
--				 unsigned long address)
-+static inline void __pmd_free_tlb(struct mmu_gather *tlb, pmd_t *pmd,
-+				  unsigned long address)
- {
--	return free_pointer_table(pmd, TABLE_PMD);
-+	tlb_remove_table(tlb, (void *)((unsigned long)pmd | TABLE_PMD));
- }
- 
- 
---- a/arch/m68k/Kconfig~mm-enable-mmu_gather_rcu_table_free-for-m68k-motorola
-+++ a/arch/m68k/Kconfig
-@@ -29,6 +29,7 @@ config M68K
- 	select HAVE_ARCH_LIBGCC_H
- 	select HAVE_ARCH_SECCOMP
- 	select HAVE_ARCH_SECCOMP_FILTER
-+	select HAVE_ARCH_TLB_REMOVE_TABLE if MMU_MOTOROLA
- 	select HAVE_ASM_MODVERSIONS
- 	select HAVE_DEBUG_BUGVERBOSE
- 	select HAVE_EFFICIENT_UNALIGNED_ACCESS if !CPU_HAS_NO_UNALIGNED
-@@ -36,7 +37,7 @@ config M68K
- 	select HAVE_MOD_ARCH_SPECIFIC
- 	select HAVE_UID16
- 	select MMU_GATHER_NO_RANGE if MMU
--	select MMU_GATHER_RCU_TABLE_FREE if MMU && (SUN3 || COLDFIRE)
-+	select MMU_GATHER_RCU_TABLE_FREE if MMU
- 	select MODULES_USE_ELF_REL
- 	select MODULES_USE_ELF_RELA
- 	select NO_DMA if !MMU && !COLDFIRE
---- a/arch/m68k/mm/motorola.c~mm-enable-mmu_gather_rcu_table_free-for-m68k-motorola
-+++ a/arch/m68k/mm/motorola.c
-@@ -20,6 +20,7 @@
- #include <linux/init.h>
- #include <linux/memblock.h>
- #include <linux/gfp.h>
-+#include <linux/cleanup.h>
- 
- #include <asm/setup.h>
- #include <linux/uaccess.h>
-@@ -103,6 +104,8 @@ static struct list_head ptable_list[3] =
- 	LIST_HEAD_INIT(ptable_list[2]),
- };
- 
-+static DEFINE_SPINLOCK(ptable_lock);
-+
- #define PD_PTABLE(ptdesc) ((ptable_desc *)&(virt_to_ptdesc((void *)(ptdesc))->pt_list))
- #define PD_PTDESC(ptable) (list_entry(ptable, struct ptdesc, pt_list))
- #define PD_MARKBITS(dp) (*(unsigned int *)&PD_PTDESC(dp)->pt_index)
-@@ -139,52 +142,66 @@ void __init init_pointer_table(void *tab
- 	return;
- }
- 
-+/*
-+ * For a pointer table for a user process address space, a
-+ * table is taken from a ptdesc allocated for the purpose.  Each
-+ * ptdesc can hold 8 pointer tables.  The ptdesc is remapped in
-+ * virtual address space to be noncacheable.
-+ */
-+static void *add_pointer_table(struct mm_struct *mm, int type)
-+{
-+	struct ptdesc *ptdesc;
-+	ptable_desc *new;
-+	void *pt_addr;
-+
-+	ptdesc = pagetable_alloc(GFP_KERNEL | __GFP_ZERO, 0);
-+	if (!ptdesc)
-+		return NULL;
-+
-+	pt_addr = ptdesc_address(ptdesc);
-+
-+	switch (type) {
-+	case TABLE_PTE:
-+		/*
-+		 * m68k doesn't have SPLIT_PTE_PTLOCKS for not having
-+		 * SMP.
-+		 */
-+		pagetable_pte_ctor(mm, ptdesc);
-+		break;
-+	case TABLE_PMD:
-+		pagetable_pmd_ctor(mm, ptdesc);
-+		break;
-+	case TABLE_PGD:
-+		pagetable_pgd_ctor(ptdesc);
-+		break;
-+	}
-+
-+	mmu_page_ctor(pt_addr);
-+
-+	new = PD_PTABLE(pt_addr);
-+
-+	PD_MARKBITS(new) = ptable_mask(type) - 1;
-+	scoped_guard(spinlock_irqsave, &ptable_lock)
-+		list_add(new, &ptable_list[type]);
-+
-+	return (pmd_t *)pt_addr;
-+}
-+
- void *get_pointer_table(struct mm_struct *mm, int type)
- {
--	ptable_desc *dp = ptable_list[type].next;
--	unsigned int mask = list_empty(&ptable_list[type]) ? 0 : PD_MARKBITS(dp);
- 	unsigned int tmp, off;
-+	unsigned long mask;
-+	unsigned long flags;
-+	ptable_desc *dp;
-+	void *ret;
- 
--	/*
--	 * For a pointer table for a user process address space, a
--	 * table is taken from a ptdesc allocated for the purpose.  Each
--	 * ptdesc can hold 8 pointer tables.  The ptdesc is remapped in
--	 * virtual address space to be noncacheable.
--	 */
--	if (mask == 0) {
--		struct ptdesc *ptdesc;
--		ptable_desc *new;
--		void *pt_addr;
--
--		ptdesc = pagetable_alloc(GFP_KERNEL | __GFP_ZERO, 0);
--		if (!ptdesc)
--			return NULL;
--
--		pt_addr = ptdesc_address(ptdesc);
--
--		switch (type) {
--		case TABLE_PTE:
--			/*
--			 * m68k doesn't have SPLIT_PTE_PTLOCKS for not having
--			 * SMP.
--			 */
--			pagetable_pte_ctor(mm, ptdesc);
--			break;
--		case TABLE_PMD:
--			pagetable_pmd_ctor(mm, ptdesc);
--			break;
--		case TABLE_PGD:
--			pagetable_pgd_ctor(ptdesc);
--			break;
--		}
--
--		mmu_page_ctor(pt_addr);
--
--		new = PD_PTABLE(pt_addr);
--		PD_MARKBITS(new) = ptable_mask(type) - 1;
--		list_add_tail(new, dp);
-+	spin_lock_irqsave(&ptable_lock, flags);
-+	dp = ptable_list[type].next;
-+	mask = list_empty(&ptable_list[type]) ? 0 : PD_MARKBITS(dp);
- 
--		return (pmd_t *)pt_addr;
-+	if (mask == 0) {
-+		spin_unlock_irqrestore(&ptable_lock, flags);
-+		return add_pointer_table(mm, type);
- 	}
- 
- 	for (tmp = 1, off = 0; (mask & tmp) == 0; tmp <<= 1, off += ptable_size(type))
-@@ -194,7 +211,10 @@ void *get_pointer_table(struct mm_struct
- 		/* move to end of list */
- 		list_move_tail(dp, &ptable_list[type]);
- 	}
--	return ptdesc_address(PD_PTDESC(dp)) + off;
-+
-+	ret = ptdesc_address(PD_PTDESC(dp)) + off;
-+	spin_unlock_irqrestore(&ptable_lock, flags);
-+	return ret;
- }
- 
- int free_pointer_table(void *table, int type)
-@@ -203,6 +223,9 @@ int free_pointer_table(void *table, int
- 	unsigned long ptable = (unsigned long)table;
- 	unsigned long pt_addr = ptable & PAGE_MASK;
- 	unsigned int mask = 1U << ((ptable - pt_addr)/ptable_size(type));
-+	unsigned long flags;
-+
-+	spin_lock_irqsave(&ptable_lock, flags);
- 
- 	dp = PD_PTABLE(pt_addr);
- 	if (PD_MARKBITS (dp) & mask)
-@@ -213,6 +236,8 @@ int free_pointer_table(void *table, int
- 	if (PD_MARKBITS(dp) == ptable_mask(type)) {
- 		/* all tables in ptdesc are free, free ptdesc */
- 		list_del(dp);
-+		spin_unlock_irqrestore(&ptable_lock, flags);
-+
- 		mmu_page_dtor((void *)pt_addr);
- 		pagetable_dtor_free(virt_to_ptdesc((void *)pt_addr));
- 		return 1;
-@@ -223,9 +248,21 @@ int free_pointer_table(void *table, int
- 		 */
- 		list_move(dp, &ptable_list[type]);
- 	}
-+
-+	spin_unlock_irqrestore(&ptable_lock, flags);
- 	return 0;
- }
- 
-+void __tlb_remove_table(void *table)
-+{
-+	/* The bottom 2 bits are used to encode page table type. */
-+	const unsigned long encoded = (unsigned long)table;
-+	void *addr = (void *)(encoded & ~3UL);
-+	const int type = encoded & 3;
-+
-+	free_pointer_table(addr, type);
-+}
-+
- /* size of memory already mapped in head.S */
- extern __initdata unsigned long m68k_init_mapped_size;
- 
+--- a/Documentation/mm/process_addrs.rst~mm-change-the-contract-for-free_pgtables-update-docs
++++ a/Documentation/mm/process_addrs.rst
+@@ -537,6 +537,12 @@ We establish basic locking rules when in
+ * When changing a page table entry the page table lock for that page table
+   **must** be held, except if you can safely assume nobody can access the page
+   tables concurrently (such as on invocation of :c:func:`!free_pgtables`).
++* Page tables may be *walked* under RCU alone, as page tables are freed only
++  after an RCU grace period has elapsed. However, any entry found must be
++  revalidated after the page table lock is taken (such as the
++  :c:func:`!pmd_same` recheck performed by :c:func:`!pte_offset_map_lock`)
++  before it is acted upon. Changing an entry always requires the page table
++  lock.
+ * Reads from and writes to page table entries must be *appropriately*
+   atomic. See the section on atomicity below for details.
+ * Populating previously empty entries requires that the mmap or VMA locks are
+--- a/mm/pgtable-generic.c~mm-change-the-contract-for-free_pgtables-update-docs
++++ a/mm/pgtable-generic.c
+@@ -397,10 +397,17 @@ pte_t *pte_offset_map_rw_nolock(struct m
+  * Note: "RO" / "RW" expresses the intended semantics, not that the *kmap* will
+  * be read-only/read-write protected.
+  *
+- * Note that free_pgtables(), used after unmapping detached vmas, or when
+- * exiting the whole mm, does not take page table lock before freeing a page
+- * table, and may not use RCU at all: "outsiders" like khugepaged should avoid
+- * pte_offset_map() and co once the vma is detached from mm or mm_users is zero.
++ * Note that free_pgtables(), used after unmapping detached vmas or when exiting
++ * the whole mm, does not take a page table lock before freeing a page table.
++ *
++ * As page table freeing itself is RCU-safe, page table readers can safely run
++ * concurrently with page table teardown.
++ *
++ * However, writers CANNOT as, without a lock being held, nothing prevents
++ * concurrent teardown.
++ *
++ * Also note that the PGD itself is freed at mmdrop() time, not under RCU - so
++ * the walker must keep the mm alive either by pinning the mm or the VMA.
+  */
+ pte_t *pte_offset_map_lock(struct mm_struct *mm, pmd_t *pmd,
+ 			   unsigned long addr, spinlock_t **ptlp)
 _
 
 Patches currently in -mm which might be from ljs@kernel.org are
@@ -410,9 +183,6 @@ mm-vma-make-map_private-mapped-dev-zero-mappings-truly-anonymous.patch
 tools-testing-vma-add-test-to-assert-map_private-dev-zero-is-anon.patch
 tools-testing-selftests-mm-add-map_private-dev-zero-merge-tests.patch
 mm-madvise-swap-in-cowd-map_private-file-mappings-on-madv_willneed.patch
-mm-enable-mmu_gather_rcu_table_free-for-sparc32.patch
-mm-make-userland-page-table-freeing-rcu-safe.patch
-mm-change-the-contract-for-free_pgtables-update-docs.patch
 mm-vma-fix-mmap_prepare-file-handling-remove-file_doesnt_need_get.patch
 mm-vma-predicate-setting-mmap_prepare-vma-fields-on-new-vma-alloc.patch
 mm-vma-introduce-and-use-vma_can_merge.patch
