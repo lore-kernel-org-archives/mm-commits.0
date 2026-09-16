@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2F5DE4FDE48
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 711924A482D
 	for <mm-commits@vger.kernel.org>; Wed, 16 Sep 2026 21:54:58 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789595706; cv=none; b=p6R56/61dI79Cy/frQ9Y5mLm2sJSEE7ziVZ3SinSdF/OdSOudqTLKpq8bjrU4WHEeDJFNzlXq1Znwcy90CmwnSkUTepeLWkpXc1WY48VjAhtvGF9WJf1ZNFRuw3qz7ei0PHqgDjmwJQHxmOMP0NOcixHAA4ptk5XzdzaASCNdE4=
+	t=1789595706; cv=none; b=EF8vKIxFDbZqW9uvaUH8iwCEM9RuHPoi2uSsGfCIcbFawbM9WQJDq8MWAa89Qv0B5f+1PjGjcr5EuyvLD90WnWQZPvcfZ76JedX618tZL4Zf/6c4u/0BKDnYRfiwG4OSWyWRt8w9oIU6Wovepx1ajRQ1N/Cq85DkcLni9+yq4CA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1789595706; c=relaxed/simple;
-	bh=g7zofmBOQEzZo3xj8smEIfhED+exzyzBkDaj71tcjZ8=;
-	h=Date:To:From:Subject:Message-Id; b=J1N/hC8taDVy5bNtDm2WSOeJvHQD0lWNwl9B5xH1RJVKXnRdV46SIIRcuYrIPH87n56ChFgkaxeXB9zVLwNI81ornBVEhijQL2Cw9QQeYux9+s4OHocxQnUce9c0JOanueMxi86heLVUw3EPO44B0S3cKH2Xz9K8AdEQut/sydg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=vGd2afJJ; arc=none smtp.client-ip=100.103.45.18
+	bh=PNd/Y4oueLr9C4kTTkG4Kw1jBWCz/K7u0/nABkSXWCA=;
+	h=Date:To:From:Subject:Message-Id; b=XFLrWlyfpSvCf162JPOb1hdFCMzFa6kTJcHfMeLuXu4mE126frPxC/gO+A6paHP74SFf4rjqbJjoueBkKobVzz1MMw4KsSFHfmxS3xRPPDAqJ603xVPEAaHwpLivHAmWVYbc8vqnxyIymdpWMeUc5EefDJ0zuvKXBqT/z/gLDLU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=WYRc22AJ; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="vGd2afJJ"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 59FB11F00893;
-	Wed, 16 Sep 2026 21:54:57 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="WYRc22AJ"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A5C5E1F000FF;
+	Wed, 16 Sep 2026 21:54:54 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1789595697;
-	bh=EllpMn54bP1HywGYNm6vcPuoDAKww5Ow7ZtkQNEafXU=;
+	d=linux-foundation.org; s=korg; t=1789595694;
+	bh=Fq0LLqRxLdWqDkUntQCMdgnl1igk437YSeqbI70oBW8=;
 	h=Date:To:From:Subject;
-	b=vGd2afJJr2fb5m7veDHqHiEIq66j0QFlmjEg/7fpqY89q7uDpRJO3ZyQhvR9homL9
-	 vHLrb3ZNuAGlyMS1AgBOfZgaY6UvFs/nWj1rK/Zke6nY/4wPXyXXhWlrxo0XXfBW/+
-	 YI2KKCJtI9a/oHZ+YHBdq5LESi+LV/W7Qilw1NdE=
-Date: Wed, 16 Sep 2026 14:54:56 -0700
+	b=WYRc22AJ94m0L7p6/ZOrz9SFZoH6UVY8agaiWXqz2LOFsSJ2PFowoifkj4bF6lVGO
+	 bhn+b2BK5jg8odJ0e4TTYF/twBK2DyLtEpbbwk0FO1kLdedUTkmSStBbfJnGRbTQeY
+	 +3EIFETY4GCR86r5GD2f+LlQv5SJC5mkLPzLSQKU=
+Date: Wed, 16 Sep 2026 14:54:54 -0700
 To: mm-commits@vger.kernel.org,tz2294@columbia.edu,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-memcontrol-constify-mem_cgroup_swappiness-and-mem_cgroup_get_max.patch added to mm-new branch
-Message-Id: <20260916215457.59FB11F00893@smtp.kernel.org>
+Subject: + mm-memcontrol-constify-the-swap-accounting-helpers.patch added to mm-new branch
+Message-Id: <20260916215454.A5C5E1F000FF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: memcontrol: constify mem_cgroup_swappiness() and mem_cgroup_get_max()
+     Subject: mm: memcontrol: constify the swap accounting helpers
 has been added to the -mm mm-new branch.  Its filename is
-     mm-memcontrol-constify-mem_cgroup_swappiness-and-mem_cgroup_get_max.patch
+     mm-memcontrol-constify-the-swap-accounting-helpers.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memcontrol-constify-mem_cgroup_swappiness-and-mem_cgroup_get_max.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memcontrol-constify-the-swap-accounting-helpers.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,12 +70,15 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Tal Zussman <tz2294@columbia.edu>
-Subject: mm: memcontrol: constify mem_cgroup_swappiness() and mem_cgroup_get_max()
-Date: Tue, 15 Sep 2026 19:20:14 -0400
+Subject: mm: memcontrol: constify the swap accounting helpers
+Date: Tue, 15 Sep 2026 19:20:13 -0400
 
-Both only read swappiness and the memory limits. Constify them.
+mem_cgroup_get_nr_swap_pages(), mem_cgroup_get_folio_swap_margin(), and
+mem_cgroup_swap_full() only read swap counters and limits.  Constify them.
 
-Link: https://lore.kernel.org/20260915-folio_memcg-const-v3-10-c239a6010b58@columbia.edu
+Remove externs from function declarations while at it.
+
+Link: https://lore.kernel.org/20260915-folio_memcg-const-v3-9-c239a6010b58@columbia.edu
 Signed-off-by: Tal Zussman <tz2294@columbia.edu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 Acked-by: Muchun Song <muchun.song@linux.dev>
@@ -102,53 +105,75 @@ Cc: Wei Xu <weixugc@google.com>
 Cc: Yuanchu Xie <yuanchu@google.com>
 ---
 
- include/linux/memcontrol.h |    4 ++--
- mm/memcontrol.c            |    2 +-
- mm/swap.h                  |    2 +-
- 3 files changed, 4 insertions(+), 4 deletions(-)
+ include/linux/swap.h |   12 ++++++------
+ mm/memcontrol.c      |    6 +++---
+ 2 files changed, 9 insertions(+), 9 deletions(-)
 
---- a/include/linux/memcontrol.h~mm-memcontrol-constify-mem_cgroup_swappiness-and-mem_cgroup_get_max
-+++ a/include/linux/memcontrol.h
-@@ -941,7 +941,7 @@ static inline void mem_cgroup_handle_ove
- 		__mem_cgroup_handle_over_high(gfp_mask);
+--- a/include/linux/swap.h~mm-memcontrol-constify-the-swap-accounting-helpers
++++ a/include/linux/swap.h
+@@ -527,9 +527,9 @@ static inline void mem_cgroup_uncharge_s
+ 	__mem_cgroup_uncharge_swap(id, nr_pages);
  }
  
--unsigned long mem_cgroup_get_max(struct mem_cgroup *memcg);
-+unsigned long mem_cgroup_get_max(const struct mem_cgroup *memcg);
- 
- void mem_cgroup_print_oom_context(const struct mem_cgroup *memcg,
- 				struct task_struct *p);
-@@ -1372,7 +1372,7 @@ unsigned long mem_cgroup_get_zone_lru_si
- 	return 0;
- }
- 
--static inline unsigned long mem_cgroup_get_max(struct mem_cgroup *memcg)
-+static inline unsigned long mem_cgroup_get_max(const struct mem_cgroup *memcg)
+-long mem_cgroup_get_folio_swap_margin(struct folio *folio);
+-extern long mem_cgroup_get_nr_swap_pages(struct mem_cgroup *memcg);
+-extern bool mem_cgroup_swap_full(struct folio *folio);
++long mem_cgroup_get_folio_swap_margin(const struct folio *folio);
++long mem_cgroup_get_nr_swap_pages(const struct mem_cgroup *memcg);
++bool mem_cgroup_swap_full(const struct folio *folio);
+ #else
+ static inline int mem_cgroup_try_charge_swap(struct folio *folio)
  {
- 	return 0;
+@@ -541,17 +541,17 @@ static inline void mem_cgroup_uncharge_s
+ {
  }
---- a/mm/memcontrol.c~mm-memcontrol-constify-mem_cgroup_swappiness-and-mem_cgroup_get_max
+ 
+-static inline long mem_cgroup_get_folio_swap_margin(struct folio *folio)
++static inline long mem_cgroup_get_folio_swap_margin(const struct folio *folio)
+ {
+ 	return PAGE_COUNTER_MAX;
+ }
+ 
+-static inline long mem_cgroup_get_nr_swap_pages(struct mem_cgroup *memcg)
++static inline long mem_cgroup_get_nr_swap_pages(const struct mem_cgroup *memcg)
+ {
+ 	return get_nr_swap_pages();
+ }
+ 
+-static inline bool mem_cgroup_swap_full(struct folio *folio)
++static inline bool mem_cgroup_swap_full(const struct folio *folio)
+ {
+ 	return vm_swap_full();
+ }
+--- a/mm/memcontrol.c~mm-memcontrol-constify-the-swap-accounting-helpers
 +++ a/mm/memcontrol.c
-@@ -1884,7 +1884,7 @@ void mem_cgroup_print_oom_meminfo(struct
- /*
-  * Return the memory (and swap, if configured) limit for a memcg.
+@@ -6003,7 +6003,7 @@ void __mem_cgroup_uncharge_swap(unsigned
+ 	rcu_read_unlock();
+ }
+ 
+-long mem_cgroup_get_nr_swap_pages(struct mem_cgroup *memcg)
++long mem_cgroup_get_nr_swap_pages(const struct mem_cgroup *memcg)
+ {
+ 	long nr_swap_pages = get_nr_swap_pages();
+ 
+@@ -6019,7 +6019,7 @@ long mem_cgroup_get_nr_swap_pages(struct
+  *
+  * Return: Remaining chargeable pages in the folio's memcg hierarchy.
   */
--unsigned long mem_cgroup_get_max(struct mem_cgroup *memcg)
-+unsigned long mem_cgroup_get_max(const struct mem_cgroup *memcg)
+-long mem_cgroup_get_folio_swap_margin(struct folio *folio)
++long mem_cgroup_get_folio_swap_margin(const struct folio *folio)
  {
- 	unsigned long max = READ_ONCE(memcg->memory.max);
+ 	struct mem_cgroup *memcg;
+ 	long margin;
+@@ -6036,7 +6036,7 @@ long mem_cgroup_get_folio_swap_margin(st
+ 	return margin;
+ }
  
---- a/mm/swap.h~mm-memcontrol-constify-mem_cgroup_swappiness-and-mem_cgroup_get_max
-+++ a/mm/swap.h
-@@ -82,7 +82,7 @@ enum swap_cluster_flags {
- 
- extern int vm_swappiness;
- 
--static inline int mem_cgroup_swappiness(struct mem_cgroup *memcg)
-+static inline int mem_cgroup_swappiness(const struct mem_cgroup *memcg)
+-bool mem_cgroup_swap_full(struct folio *folio)
++bool mem_cgroup_swap_full(const struct folio *folio)
  {
- #ifdef CONFIG_MEMCG_V1
- 	if (!cgroup_subsys_on_dfl(memory_cgrp_subsys) &&
+ 	struct mem_cgroup *memcg;
+ 	bool ret = false;
 _
 
 Patches currently in -mm which might be from tz2294@columbia.edu are
