@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A5F2D137923
-	for <mm-commits@vger.kernel.org>; Wed, 16 Sep 2026 02:06:38 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B7432382374
+	for <mm-commits@vger.kernel.org>; Wed, 16 Sep 2026 02:06:50 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789524418; cv=none; b=XL6BIuZaOzmCPAvGByVyvGDysbKMcFZSnw9Jxw7em/6H/jybxgtN3GdBPQBM7dIZq1ENB93MgT3M15yRK7l2J4sMquqhZfR/NHRAM/jffpt2ytWzLJPoD+2+F++JPFkEjbwSkEXwp9YrWP9sKld5FLehtdznzaByRpC/KJhBkBk=
+	t=1789524420; cv=none; b=MvQ0FDBrGO83R1c/fetP8xrEsmVkmUVyBH8D0FdGDZk5BHhYWbGVECFYOXueedmtosSg5a9/SU8G3PccpSfsXpv9dJYgEiMdEVHfha28Vq1mIyv+d5kpJm0DQaLIkFXQ02j34arARdkm0x2/c0yExH72xE7kxULUXZUk8j6UOyw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1789524418; c=relaxed/simple;
-	bh=igWFWvg0slf0hJvEAOq0FGOGst+rD4b34EIfk/2UHXg=;
-	h=Date:To:From:Subject:Message-Id; b=QcQ/5jfr4u2Xi6b/HV0zOZ1bAiuPgfaVOqRbr9hQFgI5Pd3n4CbjtSftLbiGNyOenyhU6Ev3NxF1LXs++99wUn5mGe2BcnSckdU+KXbX7b3pn000TzQkwsKX1nBQRjp71YXPW5Nwgi8zlVzL4/g93PVnFeVIzS15/iW6T4HwPX8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=tDIGJu4v; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1789524420; c=relaxed/simple;
+	bh=YqwxUQCo0ESc7KBEEcEN7gQOGyglP+vAM3cNJqRPNIM=;
+	h=Date:To:From:Subject:Message-Id; b=jhM2LeWFHWrmPzeUxUzHabo5SssD+T5yKAjcw5oPDngv3UgKIUc9QvFKBGVmTKYaL6Y4u3wQw7PM6XhUKLgu6waI86I25+1tp8fdCgUhO1boWVNKg8hh4FXTYcKuQobJMTefpoSVgORQKeQnvcFWgcCx4hFEDE8KG3pntPMPXwI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=2q2+GBGv; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="tDIGJu4v"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id EA7081F00893;
-	Wed, 16 Sep 2026 02:06:35 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="2q2+GBGv"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id F37301F0089A;
+	Wed, 16 Sep 2026 02:06:46 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1789524396;
-	bh=amd/4PP8qjIxaEVOYtMWZHg5QZpiH2nQ555GDskmkC8=;
+	d=linux-foundation.org; s=korg; t=1789524407;
+	bh=daQVwB9FQ9Teduqs633WOhY5wZM2lVELxNVn6y4p2Qc=;
 	h=Date:To:From:Subject;
-	b=tDIGJu4vArskmzLAZwYUwsnqtkZtbQ6sp0DvxmJKespNCZxS9+eaZ//7oCCpI27xb
-	 Rb9vYUv6mAl8ODRllwqOrO8f9dUicVDkGFETsZUa2/nX2tnraYpBUSx349lMAOdnaW
-	 ZITzLZ1tJXJq+CDOAqxA0zxAvysVvDz/mD26Abco=
-Date: Tue, 15 Sep 2026 19:06:35 -0700
+	b=2q2+GBGvyqULHmMY9TYRTpTCVPNNBvr4SyD4kIa4GBd0FdhKUcwadz68E2aoBfxFX
+	 4O1oNFIUDHXLk0qjCfPnns9bFQowK6kDp72enaQt4KHqVe3oIMTA9T8eEfIIrPIG63
+	 Fnqd7KhzCEwvSc4JlwO6f8G/QOBWc1p4I9zH2vZo=
+Date: Tue, 15 Sep 2026 19:06:46 -0700
 To: mm-commits@vger.kernel.org,ljs@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-enable-mmu_gather_rcu_table_free-for-m68k-coldfire.patch added to mm-unstable branch
-Message-Id: <20260916020635.EA7081F00893@smtp.kernel.org>
+Subject: + mm-enable-mmu_gather_rcu_table_free-for-sparc32.patch added to mm-unstable branch
+Message-Id: <20260916020646.F37301F0089A@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: enable MMU_GATHER_RCU_TABLE_FREE for m68k-coldfire
+     Subject: mm: enable MMU_GATHER_RCU_TABLE_FREE for sparc32
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-enable-mmu_gather_rcu_table_free-for-m68k-coldfire.patch
+     mm-enable-mmu_gather_rcu_table_free-for-sparc32.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-enable-mmu_gather_rcu_table_free-for-m68k-coldfire.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-enable-mmu_gather_rcu_table_free-for-sparc32.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,23 +59,42 @@ and is updated there most days
 
 ------------------------------------------------------
 From: "Lorenzo Stoakes (ARM)" <ljs@kernel.org>
-Subject: mm: enable MMU_GATHER_RCU_TABLE_FREE for m68k-coldfire
-Date: Fri, 11 Sep 2026 20:36:54 +0100
+Subject: mm: enable MMU_GATHER_RCU_TABLE_FREE for sparc32
+Date: Fri, 11 Sep 2026 20:36:57 +0100
 
-Similar to sun3, the coldfire variant of m68k uses 2-level page tables.
+Careful handling is required for sparc32 which implements page tables as
+part of a shared backing page.
 
-Update its __pte_free_tlb() function to use tlb_remove_ptdesc() in order
-that, with CONFIG_MMU_GATHER_RCU_TABLE_FREE, page tables are freed under
-RCU.
+To support this, a custom __tlb_remove_table() function is required, as
+specified by CONFIG_HAVE_ARCH_TLB_REMOVE_TABLE.
 
-The page tables occupy a page each and have no odd semantics, so this
-change suffices to allow enabling of CONFIG_MMU_GATHER_RCU_TABLE_FREE for
-m68k-coldfire, so do so.
+This allows __pte_free_tlb() and __pmd_free_tlb() to specify which page
+table level is being freed, which is transmitted to __tlb_remove_table()
+through setting the lowest bit of the page table to 1 for a PMD and 0 for
+a PTE (the page tables are 256-byte aligned so this is safe to do).
+
+Next, since the page table freeing is done via RCU callback, and thus
+might be executed in softirq context, update the spin locks to IRQ
+save/restore.
+
+Then, in __tlb_remove_table(), figure out whether to free a PMD page table
+via free_pmd_fast() or a PTE via the newly introduced __pte_free()
+function, using the lower bit encoded in __pte_free_tlb() or
+__pmd_free_tlb() to determine which to call.
+
+As part of this change use this spin lock rather than mm->page_table_lock
+for all shared page table exclusion, as RCU freeing means that page tables
+can be freed from soft IRQ context so both don't have an mm and also
+mm->page_table_lock is not IRQ-safe.
+
+Note that the specification of CONFIG_HAVE_ARCH_TLB_REMOVE_TABLE disables
+CONFIG_PT_RECLAIM for sparc32, which mirrors sparc64.
 
 This forms part of an overall effort to switch every architecture to this
-mode.
+mode, and with it complete, means every architecture now supports
+CONFIG_MMU_GATHER_RCU_TABLE_FREE.
 
-Link: https://lore.kernel.org/20260911-rcu-pagetable-freeing-v3-7-7b8c86103821@kernel.org
+Link: https://lore.kernel.org/20260911-rcu-pagetable-freeing-v3-10-7b8c86103821@kernel.org
 Signed-off-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 Acked-by: Kiryl Shutsemau (Meta) <kas@kernel.org>
@@ -145,35 +164,181 @@ Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
 Cc: Zi Yan <ziy@nvidia.com>
 ---
 
- arch/m68k/Kconfig                   |    2 +-
- arch/m68k/include/asm/mcf_pgalloc.h |    5 +----
- 2 files changed, 2 insertions(+), 5 deletions(-)
+ arch/sparc/Kconfig                  |    2 +
+ arch/sparc/include/asm/pgalloc_32.h |    7 ++++-
+ arch/sparc/lib/bitext.c             |   14 +++++------
+ arch/sparc/mm/srmmu.c               |   32 +++++++++++++++++++++-----
+ 4 files changed, 41 insertions(+), 14 deletions(-)
 
---- a/arch/m68k/include/asm/mcf_pgalloc.h~mm-enable-mmu_gather_rcu_table_free-for-m68k-coldfire
-+++ a/arch/m68k/include/asm/mcf_pgalloc.h
-@@ -39,10 +39,7 @@ extern inline pmd_t *pmd_alloc_kernel(pg
- static inline void __pte_free_tlb(struct mmu_gather *tlb, pgtable_t pgtable,
- 				  unsigned long address)
- {
--	struct ptdesc *ptdesc = virt_to_ptdesc(pgtable);
--
--	pagetable_dtor(ptdesc);
--	pagetable_free(ptdesc);
-+	tlb_remove_ptdesc(tlb, virt_to_ptdesc(pgtable));
+--- a/arch/sparc/include/asm/pgalloc_32.h~mm-enable-mmu_gather_rcu_table_free-for-sparc32
++++ a/arch/sparc/include/asm/pgalloc_32.h
+@@ -48,7 +48,9 @@ static inline void free_pmd_fast(pmd_t *
  }
  
- static inline pgtable_t pte_alloc_one(struct mm_struct *mm)
---- a/arch/m68k/Kconfig~mm-enable-mmu_gather_rcu_table_free-for-m68k-coldfire
-+++ a/arch/m68k/Kconfig
-@@ -36,7 +36,7 @@ config M68K
- 	select HAVE_MOD_ARCH_SPECIFIC
+ #define pmd_free(mm, pmd)		free_pmd_fast(pmd)
+-#define __pmd_free_tlb(tlb, pmd, addr)	pmd_free((tlb)->mm, pmd)
++
++#define __pmd_free_tlb(tlb, pmd, addr)					\
++	tlb_remove_table((tlb), (void *)((unsigned long)(pmd) | 1UL))
+ 
+ #define pmd_populate(mm, pmd, pte)	pmd_set(pmd, pte)
+ 
+@@ -72,6 +74,7 @@ static inline void free_pte_fast(pte_t *
+ #define pte_free_kernel(mm, pte)	free_pte_fast(pte)
+ 
+ void pte_free(struct mm_struct * mm, pgtable_t pte);
+-#define __pte_free_tlb(tlb, pte, addr)	pte_free((tlb)->mm, pte)
++void __tlb_remove_table(void *table);
++#define __pte_free_tlb(tlb, pte, addr)	tlb_remove_table((tlb), (void *)(pte))
+ 
+ #endif /* _SPARC_PGALLOC_H */
+--- a/arch/sparc/Kconfig~mm-enable-mmu_gather_rcu_table_free-for-sparc32
++++ a/arch/sparc/Kconfig
+@@ -64,6 +64,8 @@ config SPARC32
  	select HAVE_UID16
- 	select MMU_GATHER_NO_RANGE if MMU
--	select MMU_GATHER_RCU_TABLE_FREE if MMU && SUN3
-+	select MMU_GATHER_RCU_TABLE_FREE if MMU && (SUN3 || COLDFIRE)
- 	select MODULES_USE_ELF_REL
- 	select MODULES_USE_ELF_RELA
- 	select NO_DMA if !MMU && !COLDFIRE
+ 	select HAVE_PAGE_SIZE_4KB
+ 	select LOCK_MM_AND_FIND_VMA
++	select MMU_GATHER_RCU_TABLE_FREE
++	select HAVE_ARCH_TLB_REMOVE_TABLE
+ 	select OLD_SIGACTION
+ 	select ZONE_DMA
+ 
+--- a/arch/sparc/lib/bitext.c~mm-enable-mmu_gather_rcu_table_free-for-sparc32
++++ a/arch/sparc/lib/bitext.c
+@@ -22,8 +22,6 @@
+  * @align: requested alignment
+  *
+  * Returns offset in the map or -1 if out of space.
+- *
+- * Not safe to call from an interrupt (uses spin_lock).
+  */
+ int bit_map_string_get(struct bit_map *t, int len, int align)
+ {
+@@ -31,6 +29,7 @@ int bit_map_string_get(struct bit_map *t
+ 	int off_new;
+ 	int align1;
+ 	int i, color;
++	unsigned long flags;
+ 
+ 	if (t->num_colors) {
+ 		/* align is overloaded to be the page color */
+@@ -50,7 +49,7 @@ int bit_map_string_get(struct bit_map *t
+ 		BUG();
+ 	color &= align1;
+ 
+-	spin_lock(&t->lock);
++	spin_lock_irqsave(&t->lock, flags);
+ 	if (len < t->last_size)
+ 		offset = t->first_free;
+ 	else
+@@ -64,7 +63,7 @@ int bit_map_string_get(struct bit_map *t
+ 		if (offset >= t->size)
+ 			offset = 0;
+ 		if (count + len > t->size) {
+-			spin_unlock(&t->lock);
++			spin_unlock_irqrestore(&t->lock, flags);
+ /* P3 */ printk(KERN_ERR
+   "bitmap out: size %d used %d off %d len %d align %d count %d\n",
+   t->size, t->used, offset, len, align, count);
+@@ -90,7 +89,7 @@ int bit_map_string_get(struct bit_map *t
+ 					t->last_off = 0;
+ 				t->used += len;
+ 				t->last_size = len;
+-				spin_unlock(&t->lock);
++				spin_unlock_irqrestore(&t->lock, flags);
+ 				return offset;
+ 			}
+ 		}
+@@ -103,10 +102,11 @@ int bit_map_string_get(struct bit_map *t
+ void bit_map_clear(struct bit_map *t, int offset, int len)
+ {
+ 	int i;
++	unsigned long flags;
+ 
+ 	if (t->used < len)
+ 		BUG();		/* Much too late to do any good, but alas... */
+-	spin_lock(&t->lock);
++	spin_lock_irqsave(&t->lock, flags);
+ 	for (i = 0; i < len; i++) {
+ 		if (test_bit(offset + i, t->map) == 0)
+ 			BUG();
+@@ -115,7 +115,7 @@ void bit_map_clear(struct bit_map *t, in
+ 	if (offset < t->first_free)
+ 		t->first_free = offset;
+ 	t->used -= len;
+-	spin_unlock(&t->lock);
++	spin_unlock_irqrestore(&t->lock, flags);
+ }
+ 
+ void bit_map_init(struct bit_map *t, unsigned long *map, int size)
+--- a/arch/sparc/mm/srmmu.c~mm-enable-mmu_gather_rcu_table_free-for-sparc32
++++ a/arch/sparc/mm/srmmu.c
+@@ -340,38 +340,60 @@ pgd_t *get_pgd_fast(void)
+  * Alignments up to the page size are the same for physical and virtual
+  * addresses of the nocache area.
+  */
++
++static DEFINE_SPINLOCK(pte_page_lock);
++
+ pgtable_t pte_alloc_one(struct mm_struct *mm)
+ {
++	unsigned long flags;
+ 	pte_t *ptep;
+ 	struct page *page;
+ 
+ 	if (!(ptep = pte_alloc_one_kernel(mm)))
+ 		return NULL;
+ 	page = pfn_to_page(__nocache_pa((unsigned long)ptep) >> PAGE_SHIFT);
+-	spin_lock(&mm->page_table_lock);
++	spin_lock_irqsave(&pte_page_lock, flags);
+ 	if (page_ref_inc_return(page) == 2 &&
+ 			!pagetable_pte_ctor(mm, page_ptdesc(page))) {
+ 		page_ref_dec(page);
+ 		ptep = NULL;
+ 	}
+-	spin_unlock(&mm->page_table_lock);
++	spin_unlock_irqrestore(&pte_page_lock, flags);
+ 
+ 	return ptep;
+ }
+ 
+-void pte_free(struct mm_struct *mm, pgtable_t ptep)
++static void __pte_free(pgtable_t ptep)
+ {
+ 	struct page *page;
++	unsigned long flags;
+ 
+ 	page = pfn_to_page(__nocache_pa((unsigned long)ptep) >> PAGE_SHIFT);
+-	spin_lock(&mm->page_table_lock);
++	spin_lock_irqsave(&pte_page_lock, flags);
+ 	if (page_ref_dec_return(page) == 1)
+ 		pagetable_dtor(page_ptdesc(page));
+-	spin_unlock(&mm->page_table_lock);
++	spin_unlock_irqrestore(&pte_page_lock, flags);
+ 
+ 	srmmu_free_nocache(ptep, SRMMU_PTE_TABLE_SIZE);
+ }
+ 
++void pte_free(struct mm_struct *mm, pgtable_t ptep)
++{
++	__pte_free(ptep);
++}
++
++void __tlb_remove_table(void *table)
++{
++	const unsigned long encoded = (unsigned long)table;
++	const unsigned long addr = encoded & ~1UL;
++	const bool is_pmd = encoded & 1;
++
++	if (is_pmd)
++		free_pmd_fast((pmd_t *)addr);
++	else
++		__pte_free((pgtable_t)addr);
++}
++
+ /* context handling - a dynamically sized pool is used */
+ #define NO_CONTEXT	-1
+ 
 _
 
 Patches currently in -mm which might be from ljs@kernel.org are
