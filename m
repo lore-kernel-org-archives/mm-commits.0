@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 406BA4E431F
-	for <mm-commits@vger.kernel.org>; Wed, 16 Sep 2026 21:54:34 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8D782472096
+	for <mm-commits@vger.kernel.org>; Wed, 16 Sep 2026 21:54:39 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789595683; cv=none; b=VEwVr6ZK727XW82L7hDZ9galXQIh/rkA88Qqgvi158Qi33HQrtxV6YWp+QHRwa1mV+aXt1TOthZF1sK/W9Y6UyqwMGP96fBO8b2iR2kcxK5jvQyCmbP9vjajjzTFVv2WaJEnbn9qmAHg3QQusQZKm8303YYg7f6/wsagnl3z0YU=
+	t=1789595689; cv=none; b=OJqr1NEPQtWvjNtWdbWtKUgEZcwybXYBGh8vTNSJfOhv0byUMA1QegwLNOvYdak4ZQ/3b46DJM5jg2YmjOpHiYPhEkCvjks4+JN5HVXu0B9H9ruXktwIsFBxwgRLTzcZPxOqeddgRiMKTGFzxJP7hkbPZxn7pbgrbOuyWbwS/j8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1789595683; c=relaxed/simple;
-	bh=/kQelorV38y/Hic802YawcrkUeZZinnGX+m0sZUlfTI=;
-	h=Date:To:From:Subject:Message-Id; b=Aw8QFYFnnJUx5mrtp/cWTYgilpsTdaw51YeW9rDoWghAEI5Z3YpWIia9CPOS2JURmYEX9MFIx/Rp6V/77zj2kxc/DHwXElvWySeFILeFImsoJgOnHVdcjeAMQkY8FOZLYf0aIEwBKNgM8pxvWlmPLtn3tFL6NdttcdXwey3xVzw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=f9pVP7Zc; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1789595689; c=relaxed/simple;
+	bh=syVdqjNyqHaSt0bFKgHsUA2nqyuX62SUPWHBYAItqeA=;
+	h=Date:To:From:Subject:Message-Id; b=WQuKy3l7Xr5v3YAMtSg9HDg7bIILnPgKKGGl9eRY1Y8/Htw/0ZIfJ3LpzXVV5Aivg8gzyWFALOkP9Eh9j8Rq21Ge8B6+SFM5Iqk+WXkZjs+8KqjZKS1dDcPMBkPJCykw3m9oYse3fdSBAUEj4w/YrcZZ8nnrlogdPiIzh543K7M=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=PtXh8iuf; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="f9pVP7Zc"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5880A1F00893;
-	Wed, 16 Sep 2026 21:54:33 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="PtXh8iuf"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5DE901F00898;
+	Wed, 16 Sep 2026 21:54:38 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1789595673;
-	bh=rZI6XgDqID6sbv58CXMilUNPj6bJ2PZbpfqC5Iuve1k=;
+	d=linux-foundation.org; s=korg; t=1789595678;
+	bh=om5qFFfBxFkLHc1KAeMM0/l8a7aIwitdBkpsljRHlvo=;
 	h=Date:To:From:Subject;
-	b=f9pVP7ZcuyCgD/ZfomNVX+sd1R8h40Du5HUNmS0uPj3uq3GwNmQDdd0d9B7dggvWq
-	 z92F0bGnxWDYT0QcHnA8jkzwY32D3Zis0qsEPJ2cjgxbFMyXDTcfQw/LBhDIgE0zr0
-	 u3Sgp7HhaGu049g0cbb7yINmQK6EPyAtqjD8XSTY=
-Date: Wed, 16 Sep 2026 14:54:32 -0700
+	b=PtXh8iufbEOj27/5HridEOSZAjwUUdINQSg+xW/kw+fku1MEJQSKEkifjBt4c1xDG
+	 Otb6E94fZg0y1zq/kwM+IVBcXMEC7dCMqdE5qlYsjUQ1IIkhbeg/lF9ZMtmg6tIo6q
+	 /n7Q1Toz573auBYXeLf5kNXTKrHYRY1+602noQnA=
+Date: Wed, 16 Sep 2026 14:54:37 -0700
 To: mm-commits@vger.kernel.org,tz2294@columbia.edu,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-memcontrol-take-a-const-folio-in-folio_memcg-and-friends.patch added to mm-new branch
-Message-Id: <20260916215433.5880A1F00893@smtp.kernel.org>
+Subject: + mm-memcontrol-constify-the-lruvec-helpers.patch added to mm-new branch
+Message-Id: <20260916215438.5DE901F00898@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: memcontrol: take a const folio in folio_memcg() and friends
+     Subject: mm: memcontrol: constify the lruvec helpers
 has been added to the -mm mm-new branch.  Its filename is
-     mm-memcontrol-take-a-const-folio-in-folio_memcg-and-friends.patch
+     mm-memcontrol-constify-the-lruvec-helpers.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memcontrol-take-a-const-folio-in-folio_memcg-and-friends.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memcontrol-constify-the-lruvec-helpers.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,27 +70,20 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Tal Zussman <tz2294@columbia.edu>
-Subject: mm: memcontrol: take a const folio in folio_memcg() and friends
-Date: Tue, 15 Sep 2026 19:20:05 -0400
+Subject: mm: memcontrol: constify the lruvec helpers
+Date: Tue, 15 Sep 2026 19:20:07 -0400
 
-Patch series "mm: memcontrol: constify the read side of the read side of
-the memcg API", v3.
+The lruvec lookup helpers only read from the memcg, folio, or lruvec they
+are given.  Constify them, along with lruvec_pgdat() and the folio
+argument of the folio_lruvec_relock_irq() helpers.  mem_cgroup_lruvec()
+may update lruvec->pgdat for a newly onlined node, but that lives in the
+per-node structure, not the memcg.  Similarly, lruvec_pgdat() still
+returns a non-const pgdat and does not use container_of_const().
 
-The memcg accessors, lruvec helpers, and stat readers only read from the
-memcg, folio, or lruvec they are given, but take non-const pointers. 
-Constify them, along with the page_counter readers and the swap I/O blkg
-helpers along the way.
+Use container_of_const() in lruvec_memcg() and
+mem_cgroup_get_zone_lru_size(), so the const isn't silently cast away.
 
-
-This patch (of 11):
-
-The folio_memcg() family only reads from the folio, and everything it
-calls already takes a const folio.  Constify it, along with the page
-wrappers built on top of it and get_obj_cgroup_from_folio(), which only
-reads the folio's objcg.
-
-Link: https://lore.kernel.org/20260915-folio_memcg-const-v3-0-c239a6010b58@columbia.edu
-Link: https://lore.kernel.org/20260915-folio_memcg-const-v3-1-c239a6010b58@columbia.edu
+Link: https://lore.kernel.org/20260915-folio_memcg-const-v3-3-c239a6010b58@columbia.edu
 Signed-off-by: Tal Zussman <tz2294@columbia.edu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 Reviewed-by: Muchun Song <muchun.song@linux.dev>
@@ -117,251 +110,217 @@ Cc: Wei Xu <weixugc@google.com>
 Cc: Yuanchu Xie <yuanchu@google.com>
 ---
 
- include/linux/memcontrol.h |   50 +++++++++++++++++------------------
- mm/memcontrol.c            |    8 ++---
- 2 files changed, 29 insertions(+), 29 deletions(-)
+ include/linux/memcontrol.h |   46 +++++++++++++++++------------------
+ include/linux/mmzone.h     |    2 -
+ mm/memcontrol.c            |    6 ++--
+ 3 files changed, 27 insertions(+), 27 deletions(-)
 
---- a/include/linux/memcontrol.h~mm-memcontrol-take-a-const-folio-in-folio_memcg-and-friends
+--- a/include/linux/memcontrol.h~mm-memcontrol-constify-the-lruvec-helpers
 +++ a/include/linux/memcontrol.h
-@@ -410,7 +410,7 @@ static inline struct mem_cgroup *obj_cgr
-  * or NULL. This function assumes that the folio is known to have a
-  * proper object cgroup pointer.
+@@ -722,7 +722,7 @@ void mem_cgroup_migrate(struct folio *ol
+  * @pgdat combination. This can be the node lruvec, if the memory
+  * controller is disabled.
   */
--static inline struct obj_cgroup *folio_objcg(struct folio *folio)
-+static inline struct obj_cgroup *folio_objcg(const struct folio *folio)
+-static inline struct lruvec *mem_cgroup_lruvec(struct mem_cgroup *memcg,
++static inline struct lruvec *mem_cgroup_lruvec(const struct mem_cgroup *memcg,
+ 					       struct pglist_data *pgdat)
  {
- 	unsigned long memcg_data = folio->memcg_data;
+ 	struct mem_cgroup_per_node *mz;
+@@ -763,7 +763,7 @@ out:
+  * their binding is stable if the returned lruvec matches the one the caller has
+  * locked. Useful for lock batching.
+  */
+-static inline struct lruvec *folio_lruvec(struct folio *folio)
++static inline struct lruvec *folio_lruvec(const struct folio *folio)
+ {
+ 	struct mem_cgroup *memcg = folio_memcg(folio);
  
-@@ -448,7 +448,7 @@ static inline struct obj_cgroup *folio_o
-  * Note: The caller should hold an rcu read lock or cgroup_mutex to protect
-  * memcg associated with a folio from being released.
-  */
--static inline struct mem_cgroup *folio_memcg(struct folio *folio)
-+static inline struct mem_cgroup *folio_memcg(const struct folio *folio)
- {
- 	struct obj_cgroup *objcg = folio_objcg(folio);
+@@ -779,9 +779,9 @@ struct mem_cgroup *get_mem_cgroup_from_c
  
-@@ -461,7 +461,7 @@ static inline struct mem_cgroup *folio_m
-  *
-  * Returns true if folio is charged to a memory cgroup, otherwise returns false.
-  */
--static inline bool folio_memcg_charged(struct folio *folio)
-+static inline bool folio_memcg_charged(const struct folio *folio)
- {
- 	return folio->memcg_data != 0;
- }
-@@ -481,7 +481,7 @@ static inline bool folio_memcg_charged(s
-  * A caller should hold an rcu read lock to protect memcg associated with a
-  * page from being released.
-  */
--static inline struct mem_cgroup *folio_memcg_check(struct folio *folio)
-+static inline struct mem_cgroup *folio_memcg_check(const struct folio *folio)
- {
- 	/*
- 	 * Because folio->memcg_data might be changed asynchronously
-@@ -498,11 +498,11 @@ static inline struct mem_cgroup *folio_m
- 	return obj_cgroup_memcg(objcg);
+ struct mem_cgroup *get_mem_cgroup_from_folio(const struct folio *folio);
+ 
+-struct lruvec *folio_lruvec_lock(struct folio *folio);
+-struct lruvec *folio_lruvec_lock_irq(struct folio *folio);
+-struct lruvec *folio_lruvec_lock_irqsave(struct folio *folio,
++struct lruvec *folio_lruvec_lock(const struct folio *folio);
++struct lruvec *folio_lruvec_lock_irq(const struct folio *folio);
++struct lruvec *folio_lruvec_lock_irqsave(const struct folio *folio,
+ 						unsigned long *flags);
+ 
+ static inline
+@@ -861,14 +861,14 @@ static inline struct mem_cgroup *mem_cgr
+ 	return mem_cgroup_from_css(seq_css(m));
  }
  
--static inline struct mem_cgroup *page_memcg_check(struct page *page)
-+static inline struct mem_cgroup *page_memcg_check(const struct page *page)
+-static inline struct mem_cgroup *lruvec_memcg(struct lruvec *lruvec)
++static inline struct mem_cgroup *lruvec_memcg(const struct lruvec *lruvec)
  {
- 	if (PageTail(page))
+-	struct mem_cgroup_per_node *mz;
++	const struct mem_cgroup_per_node *mz;
+ 
+ 	if (mem_cgroup_disabled())
  		return NULL;
--	return folio_memcg_check((struct folio *)page);
-+	return folio_memcg_check((const struct folio *)page);
+ 
+-	mz = container_of(lruvec, struct mem_cgroup_per_node, lruvec);
++	mz = container_of_const(lruvec, struct mem_cgroup_per_node, lruvec);
+ 	return mz->memcg;
  }
  
- static inline struct mem_cgroup *get_mem_cgroup_from_objcg(struct obj_cgroup *objcg)
-@@ -527,14 +527,14 @@ retry:
-  * that the folio has an associated memory cgroup. It's not safe to call
-  * this function against some types of folios, e.g. slab folios.
-  */
--static inline bool folio_memcg_kmem(struct folio *folio)
-+static inline bool folio_memcg_kmem(const struct folio *folio)
+@@ -919,13 +919,13 @@ void mem_cgroup_update_lru_size(struct l
+ 		int zid, long nr_pages);
+ 
+ static inline
+-unsigned long mem_cgroup_get_zone_lru_size(struct lruvec *lruvec,
++unsigned long mem_cgroup_get_zone_lru_size(const struct lruvec *lruvec,
+ 		enum lru_list lru, int zone_idx)
  {
- 	VM_BUG_ON_PGFLAGS(PageTail(&folio->page), &folio->page);
- 	VM_BUG_ON_FOLIO(folio->memcg_data & MEMCG_DATA_OBJEXTS, folio);
- 	return folio->memcg_data & MEMCG_DATA_KMEM;
+ 	long val;
+-	struct mem_cgroup_per_node *mz;
++	const struct mem_cgroup_per_node *mz;
+ 
+-	mz = container_of(lruvec, struct mem_cgroup_per_node, lruvec);
++	mz = container_of_const(lruvec, struct mem_cgroup_per_node, lruvec);
+ 	val = READ_ONCE(mz->lru_zone_size[zone_idx][lru]);
+ 	if (WARN_ON_ONCE(val < 0))
+ 		return 0;
+@@ -1215,13 +1215,13 @@ static inline void mem_cgroup_migrate(st
+ {
  }
  
--static inline bool PageMemcgKmem(struct page *page)
-+static inline bool PageMemcgKmem(const struct page *page)
+-static inline struct lruvec *mem_cgroup_lruvec(struct mem_cgroup *memcg,
++static inline struct lruvec *mem_cgroup_lruvec(const struct mem_cgroup *memcg,
+ 					       struct pglist_data *pgdat)
  {
- 	return folio_memcg_kmem(page_folio(page));
- }
-@@ -777,7 +777,7 @@ struct mem_cgroup *get_mem_cgroup_from_m
- 
- struct mem_cgroup *get_mem_cgroup_from_current(void);
- 
--struct mem_cgroup *get_mem_cgroup_from_folio(struct folio *folio);
-+struct mem_cgroup *get_mem_cgroup_from_folio(const struct folio *folio);
- 
- struct lruvec *folio_lruvec_lock(struct folio *folio);
- struct lruvec *folio_lruvec_lock_irq(struct folio *folio);
-@@ -905,8 +905,8 @@ static inline bool mm_match_cgroup(struc
- 	return match;
+ 	return &pgdat->__lruvec;
  }
  
--struct cgroup_subsys_state *get_mem_cgroup_css_from_folio(struct folio *folio);
--ino_t page_cgroup_ino(struct page *page);
-+struct cgroup_subsys_state *get_mem_cgroup_css_from_folio(const struct folio *folio);
-+ino_t page_cgroup_ino(const struct page *page);
- 
- static inline bool mem_cgroup_online(struct mem_cgroup *memcg)
+-static inline struct lruvec *folio_lruvec(struct folio *folio)
++static inline struct lruvec *folio_lruvec(const struct folio *folio)
  {
-@@ -956,7 +956,7 @@ void mem_cgroup_print_oom_group(struct m
- void mod_memcg_state(struct mem_cgroup *memcg,
- 		     enum memcg_stat_item idx, int val);
- 
--static inline void mod_memcg_page_state(struct page *page,
-+static inline void mod_memcg_page_state(const struct page *page,
- 					enum memcg_stat_item idx, int val)
+ 	struct pglist_data *pgdat = folio_pgdat(folio);
+ 	return &pgdat->__lruvec;
+@@ -1281,7 +1281,7 @@ static inline void mem_cgroup_put(struct
  {
- 	struct mem_cgroup *memcg;
-@@ -990,7 +990,7 @@ void mod_lruvec_kmem_state(void *p, enum
- void count_memcg_events(struct mem_cgroup *memcg, enum vm_event_item idx,
- 			unsigned long count);
+ }
  
--static inline void count_memcg_folio_events(struct folio *folio,
-+static inline void count_memcg_folio_events(const struct folio *folio,
- 		enum vm_event_item idx, unsigned long nr)
+-static inline struct lruvec *folio_lruvec_lock(struct folio *folio)
++static inline struct lruvec *folio_lruvec_lock(const struct folio *folio)
  {
- 	struct mem_cgroup *memcg;
-@@ -1084,22 +1084,22 @@ static inline struct mem_cgroup *obj_cgr
+ 	struct pglist_data *pgdat = folio_pgdat(folio);
  
- #define root_mem_cgroup		(NULL)
+@@ -1290,7 +1290,7 @@ static inline struct lruvec *folio_lruve
+ 	return &pgdat->__lruvec;
+ }
  
--static inline struct mem_cgroup *folio_memcg(struct folio *folio)
-+static inline struct mem_cgroup *folio_memcg(const struct folio *folio)
+-static inline struct lruvec *folio_lruvec_lock_irq(struct folio *folio)
++static inline struct lruvec *folio_lruvec_lock_irq(const struct folio *folio)
  {
+ 	struct pglist_data *pgdat = folio_pgdat(folio);
+ 
+@@ -1299,7 +1299,7 @@ static inline struct lruvec *folio_lruve
+ 	return &pgdat->__lruvec;
+ }
+ 
+-static inline struct lruvec *folio_lruvec_lock_irqsave(struct folio *folio,
++static inline struct lruvec *folio_lruvec_lock_irqsave(const struct folio *folio,
+ 		unsigned long *flagsp)
+ {
+ 	struct pglist_data *pgdat = folio_pgdat(folio);
+@@ -1354,7 +1354,7 @@ static inline struct mem_cgroup *mem_cgr
  	return NULL;
  }
  
--static inline bool folio_memcg_charged(struct folio *folio)
-+static inline bool folio_memcg_charged(const struct folio *folio)
- {
- 	return false;
- }
- 
--static inline struct mem_cgroup *folio_memcg_check(struct folio *folio)
-+static inline struct mem_cgroup *folio_memcg_check(const struct folio *folio)
+-static inline struct mem_cgroup *lruvec_memcg(struct lruvec *lruvec)
++static inline struct mem_cgroup *lruvec_memcg(const struct lruvec *lruvec)
  {
  	return NULL;
  }
- 
--static inline struct mem_cgroup *page_memcg_check(struct page *page)
-+static inline struct mem_cgroup *page_memcg_check(const struct page *page)
- {
- 	return NULL;
- }
-@@ -1109,12 +1109,12 @@ static inline struct mem_cgroup *get_mem
- 	return NULL;
+@@ -1365,7 +1365,7 @@ static inline bool mem_cgroup_online(str
  }
  
--static inline bool folio_memcg_kmem(struct folio *folio)
-+static inline bool folio_memcg_kmem(const struct folio *folio)
- {
- 	return false;
- }
- 
--static inline bool PageMemcgKmem(struct page *page)
-+static inline bool PageMemcgKmem(const struct page *page)
- {
- 	return false;
- }
-@@ -1248,7 +1248,7 @@ static inline struct mem_cgroup *get_mem
- 	return NULL;
- }
- 
--static inline struct mem_cgroup *get_mem_cgroup_from_folio(struct folio *folio)
-+static inline struct mem_cgroup *get_mem_cgroup_from_folio(const struct folio *folio)
- {
- 	return NULL;
- }
-@@ -1406,7 +1406,7 @@ static inline void mod_memcg_state(struc
- {
- }
- 
--static inline void mod_memcg_page_state(struct page *page,
-+static inline void mod_memcg_page_state(const struct page *page,
- 					enum memcg_stat_item idx, int val)
- {
- }
-@@ -1471,7 +1471,7 @@ static inline void count_memcg_events(st
- {
- }
- 
--static inline void count_memcg_folio_events(struct folio *folio,
-+static inline void count_memcg_folio_events(const struct folio *folio,
- 		enum vm_event_item idx, unsigned long nr)
- {
- }
-@@ -1767,7 +1767,7 @@ void __memcg_kmem_uncharge_page(struct p
-  * needs to be used outside of the local scope.
-  */
- struct obj_cgroup *current_obj_cgroup(void);
--struct obj_cgroup *get_obj_cgroup_from_folio(struct folio *folio);
-+struct obj_cgroup *get_obj_cgroup_from_folio(const struct folio *folio);
- 
- static inline struct obj_cgroup *get_obj_cgroup_from_current(void)
- {
-@@ -1870,7 +1870,7 @@ static inline void __memcg_kmem_uncharge
- {
- }
- 
--static inline struct obj_cgroup *get_obj_cgroup_from_folio(struct folio *folio)
-+static inline struct obj_cgroup *get_obj_cgroup_from_folio(const struct folio *folio)
- {
- 	return NULL;
- }
-@@ -1901,7 +1901,7 @@ static inline void count_objcg_events(st
- {
- }
- 
--static inline ino_t page_cgroup_ino(struct page *page)
-+static inline ino_t page_cgroup_ino(const struct page *page)
+ static inline
+-unsigned long mem_cgroup_get_zone_lru_size(struct lruvec *lruvec,
++unsigned long mem_cgroup_get_zone_lru_size(const struct lruvec *lruvec,
+ 		enum lru_list lru, int zone_idx)
  {
  	return 0;
+@@ -1505,7 +1505,7 @@ static inline void mem_cgroup_flush_work
+ static inline int mem_cgroup_init(void) { return 0; }
+ #endif /* CONFIG_MEMCG */
+ 
+-static inline struct lruvec *parent_lruvec(struct lruvec *lruvec)
++static inline struct lruvec *parent_lruvec(const struct lruvec *lruvec)
+ {
+ 	struct mem_cgroup *memcg;
+ 
+@@ -1568,15 +1568,15 @@ static inline void lruvec_unlock_irqrest
  }
---- a/mm/memcontrol.c~mm-memcontrol-take-a-const-folio-in-folio_memcg-and-friends
+ 
+ /* Test requires a stable folio->memcg binding, see folio_memcg() */
+-static inline bool folio_matches_lruvec(struct folio *folio,
+-		struct lruvec *lruvec)
++static inline bool folio_matches_lruvec(const struct folio *folio,
++		const struct lruvec *lruvec)
+ {
+ 	return lruvec_pgdat(lruvec) == folio_pgdat(folio) &&
+ 	       lruvec_memcg(lruvec) == folio_memcg(folio);
+ }
+ 
+ /* Don't lock again iff page's lruvec locked */
+-static inline struct lruvec *folio_lruvec_relock_irq(struct folio *folio,
++static inline struct lruvec *folio_lruvec_relock_irq(const struct folio *folio,
+ 		struct lruvec *locked_lruvec)
+ {
+ 	if (locked_lruvec) {
+@@ -1590,7 +1590,7 @@ static inline struct lruvec *folio_lruve
+ }
+ 
+ /* Don't lock again iff folio's lruvec locked */
+-static inline void folio_lruvec_relock_irqsave(struct folio *folio,
++static inline void folio_lruvec_relock_irqsave(const struct folio *folio,
+ 		struct lruvec **lruvecp, unsigned long *flags)
+ {
+ 	if (*lruvecp) {
+--- a/include/linux/mmzone.h~mm-memcontrol-constify-the-lruvec-helpers
++++ a/include/linux/mmzone.h
+@@ -1661,7 +1661,7 @@ extern void init_currently_empty_zone(st
+ 
+ extern void lruvec_init(struct lruvec *lruvec);
+ 
+-static inline struct pglist_data *lruvec_pgdat(struct lruvec *lruvec)
++static inline struct pglist_data *lruvec_pgdat(const struct lruvec *lruvec)
+ {
+ #ifdef CONFIG_MEMCG
+ 	return lruvec->pgdat;
+--- a/mm/memcontrol.c~mm-memcontrol-constify-the-lruvec-helpers
 +++ a/mm/memcontrol.c
-@@ -332,7 +332,7 @@ EXPORT_SYMBOL(memcg_bpf_enabled_key);
-  * If memcg is bound to a traditional hierarchy, the css of root_mem_cgroup
-  * is returned.
-  */
--struct cgroup_subsys_state *get_mem_cgroup_css_from_folio(struct folio *folio)
-+struct cgroup_subsys_state *get_mem_cgroup_css_from_folio(const struct folio *folio)
- {
- 	struct mem_cgroup *memcg;
- 
-@@ -357,7 +357,7 @@ struct cgroup_subsys_state *get_mem_cgro
-  * after page_cgroup_ino() returns, so it only should be used by callers that
-  * do not care (such as procfs interfaces).
-  */
--ino_t page_cgroup_ino(struct page *page)
-+ino_t page_cgroup_ino(const struct page *page)
- {
- 	struct mem_cgroup *memcg;
- 	unsigned long ino = 0;
-@@ -1242,7 +1242,7 @@ again:
+@@ -1463,7 +1463,7 @@ void mem_cgroup_scan_tasks(struct mem_cg
   *
-  * See folio_memcg() for folio->objcg/memcg binding rules.
+  * Return: The lruvec this folio is on with its lock held and rcu read lock held.
   */
--struct mem_cgroup *get_mem_cgroup_from_folio(struct folio *folio)
-+struct mem_cgroup *get_mem_cgroup_from_folio(const struct folio *folio)
+-struct lruvec *folio_lruvec_lock(struct folio *folio)
++struct lruvec *folio_lruvec_lock(const struct folio *folio)
  {
- 	struct mem_cgroup *memcg;
+ 	struct lruvec *lruvec;
  
-@@ -3140,7 +3140,7 @@ from_memcg:
- 	return rcu_dereference_check(root_mem_cgroup->nodeinfo[nid]->objcg, 1);
- }
- 
--struct obj_cgroup *get_obj_cgroup_from_folio(struct folio *folio)
-+struct obj_cgroup *get_obj_cgroup_from_folio(const struct folio *folio)
+@@ -1491,7 +1491,7 @@ retry:
+  * Return: The lruvec this folio is on with its lock held and interrupts
+  * disabled and rcu read lock held.
+  */
+-struct lruvec *folio_lruvec_lock_irq(struct folio *folio)
++struct lruvec *folio_lruvec_lock_irq(const struct folio *folio)
  {
- 	struct obj_cgroup *objcg;
+ 	struct lruvec *lruvec;
  
+@@ -1520,7 +1520,7 @@ retry:
+  * Return: The lruvec this folio is on with its lock held and interrupts
+  * disabled and rcu read lock held.
+  */
+-struct lruvec *folio_lruvec_lock_irqsave(struct folio *folio,
++struct lruvec *folio_lruvec_lock_irqsave(const struct folio *folio,
+ 		unsigned long *flags)
+ {
+ 	struct lruvec *lruvec;
 _
 
 Patches currently in -mm which might be from tz2294@columbia.edu are
