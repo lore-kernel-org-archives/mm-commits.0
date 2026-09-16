@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9A4173A48F6;
-	Wed, 16 Sep 2026 16:43:51 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2C9A94DA9D3;
+	Wed, 16 Sep 2026 20:45:39 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789577047; cv=none; b=OiyyId9NOxoi3dwK52U0G7xyo/o/ObUnNFQ5eDKPD+z3h5NP2C5IVU6rwA+RVMzDmJEtAsrosDg3KoWRwun2MlJ/c3An0+CwKM1+jHm1Lcph7rIRTuT06rhJQ28tJJ9V300cLuKKE5sVmSVxakwlKDTD8P2cSSM3yjpUc3h2Zeg=
+	t=1789591551; cv=none; b=ILQFU4uwesGQZ6/Xa5YTvaMFyy+kvCuL0AKUaeSZTEqTS/Xj0n7CdwDJlUcT2Qmv+tAHBgl4PYRlEMQvhlnn8W/HHA8JrWvy20QSduyo81rw2FrVfeVxHL8K25sqdgYQyE7O37ZmzEMUYxM4/3MTyrFVX2ZYGpe7IgsWouGAVGA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1789577047; c=relaxed/simple;
-	bh=ftIyrYbNc8RlOibjvdF/LzsbIisUKfPJtFR9iowLAdg=;
-	h=Date:To:From:Subject:Message-Id; b=hpSArv42tL66oSpD/LlF1+tcGLn76Oec+YqqQ0+yt1JxlSoRF2RH1zS41RKNLl9YELr7jgLEOD7izXwLyhcxCzh4MWoxglP8kAoNAiVoWWpD3eA+RwnIDw61F00yAuLr4MJ8Tf+mF/eD0GyCQTjZha29fJLI0tTaIdKGo9zLj0g=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=0EccEWEM; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1789591551; c=relaxed/simple;
+	bh=WGrPZAXt0NSIL1j0P0toEtUnAZYxZC2mHWPH1s854V8=;
+	h=Date:To:From:Subject:Message-Id; b=WuQq57nS3owIyUo7SBRIfvbR2KY5JSGT6LwH1Ua6f7/Pcuf/Q/gbMfB0Ttg7X2odqdg5A/wU+4/GmMcWYo5lImwSGpriPwD5HMo4Z9R44PdBe8YkexxS3fFQaXEnaUEpgNBkAiVsdW973IR7y6KZ91PY9swEUJnvfYm3ZcnhD1U=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=2Cixrhsq; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="0EccEWEM"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 538391F00899;
-	Wed, 16 Sep 2026 16:43:50 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="2Cixrhsq"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9D0E21F0089B;
+	Wed, 16 Sep 2026 20:45:37 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1789577030;
-	bh=6BB3bqxUaTksvmnJGfKnvl9CyCWGYtPVNXacH0zaZss=;
+	d=linux-foundation.org; s=korg; t=1789591537;
+	bh=kXg6pw4Yqsf7MZWgDC4mlXdVWuGwLcguQERjMhFndxo=;
 	h=Date:To:From:Subject;
-	b=0EccEWEMTz2uYTWFWRvpynQqtCpyfk4ibYXS4+XHLwXwbZ+gTdWtGWV5ANiPv7GhV
-	 DQ5cyZKgZwmkMEsaIijomhWo7WArXWrVl+jfNgA8JuKAaNJrkGZP0YfzM4mP9fpP83
-	 Zc6zrvhr5/+c8G7U30NRNb/PNt5N3s8Y3/npVg8A=
-Date: Wed, 16 Sep 2026 09:43:49 -0700
-To: mm-commits@vger.kernel.org,stable@vger.kernel.org,kunwu.chan@gmail.com,sj@kernel.org,akpm@linux-foundation.org
+	b=2CixrhsqNmiZ2IPEsf+YFbQMkbFIFxpWHZYhPQmPAdZFOhFzpS7I7a4xou4FpBKgn
+	 HeRAI8tZCR46upK3bUyXZvyEneFFyncG9D78JFUliLlDDPe1Kw7G9akyxk1zu5y5dV
+	 E6EmRE4xBixz9FxU+Tbf3MP74NXiBlzsShHE8RPw=
+Date: Wed, 16 Sep 2026 13:45:37 -0700
+To: mm-commits@vger.kernel.org,wim@linux-watchdog.org,wangjinchao600@gmail.com,stable@vger.kernel.org,sashiko-bot@kernel.org,pmladek@suse.com,linux@roeck-us.net,brads@mainlining.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-damon-core-dont-skip-damos_adjust_quota-while-esz-is-not-zero.patch added to mm-hotfixes-unstable branch
-Message-Id: <20260916164350.538391F00899@smtp.kernel.org>
+Subject: + panic-fix-redirect-cpu-race-in-panic_try_force_cpu.patch added to mm-nonmm-unstable branch
+Message-Id: <20260916204537.9D0E21F0089B@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/damon/core: don't skip damos_adjust_quota() while esz is not zero
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mm-damon-core-dont-skip-damos_adjust_quota-while-esz-is-not-zero.patch
+     Subject: panic: fix redirect CPU race in panic_try_force_cpu()
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     panic-fix-redirect-cpu-race-in-panic_try_force_cpu.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-core-dont-skip-damos_adjust_quota-while-esz-is-not-zero.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/panic-fix-redirect-cpu-race-in-panic_try_force_cpu.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,167 +58,147 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: SJ Park <sj@kernel.org>
-Subject: mm/damon/core: don't skip damos_adjust_quota() while esz is not zero
-Date: Wed, 16 Sep 2026 06:50:19 -0700
+From: Bradley Morgan <brads@mainlining.org>
+Subject: panic: fix redirect CPU race in panic_try_force_cpu()
+Date: Wed, 16 Sep 2026 18:29:52 +0000
 
-DAMOS could unexpectedly stop working when a user disables quota using the
-online parameters commit feature.  Fix it by correcting a wrong quota
-unset check in damos_adjust_quota().
+Patch series "panic: fix panic_force_cpu= redirect races and NMI bypass",
+v7.
 
-DAMON users could disable all quotas by unsetting time and size quotas,
-and removing all quota goals.  The intention of disabling quotas would be
-making DAMOS run at full speed.  When such quota disabled setup is
-detected, damos_adjust_quota() skips all its work.  The skipped works
-include effective size quota (damos_quota->esz) updates and charged quota
-amount (damos_quota->charged_sz) resets.  The intention is to avoid doing
-unnecessary work when quotas are disabled.
+The panic_force_cpu= parameter redirects a panic to a specific CPU so the
+crash kernel runs there.  The redirect code in panic_try_force_cpu() had
+two races and an NMI bypass, all found by Sashiko.  This series closes
+them and kills one more hack that the rework turned up.
 
-However, users could do the setup while effective size quota is non-zero,
-by doing the disabling with the online DAMON parameters commit feature. 
-In this case, because the effective size quota exists, DAMOS will keep
-working with the quota until it is fully charged.  After the effective
-quota is fully charged, the charged quota amount (damos_quota->charged_sz)
-cannot be reset because damos_adjust_quota() skips it.  Then, DAMOS stops
-working until the quota is newly set or DAMON is entirely restarted.
+Panic from NMI still goes through the redirect path first, so the crash
+kernel ends up on the CPU the admin asked for.  The redirect buffer is a
+static 1KB now, no initcall, no fallback message.
 
-The problem happens because damos_adjust_quota() assumes the user setup
-for disabling quota immediately disabled it.  In reality, the quota is
-still working until the effective size quota is also updated to zero. 
-Other logic for catching that uses damos_quota_is_set(), which understands
-the fact and therefore checks the effective size quota in addition to the
-user setup.  Fix the issue by using damos_quota_is_set() in
-damos_adjust_quota() to determine if its works should be skipped.
 
-The user impact is a non-deterministic and unexpected DAMOS stop behavior.
-That is, users would disable quotas using the online parameters commit
-feature, expecting DAMOS will run at full speed.  However, depending on
-the timing, the setup can be updated while the effective size quota is
-non-zero.  Due to the above mentioned internal mechanism, DAMOS stops
-working instead of running at full speed.  It is unexpected behavior.  It
-is also non-deterministic because sometimes the setup is done when the
-effective size quota is zero, depending on the timing.  It doesn't cause
-critical issues like crashes or leaks.  Users can simply set a reasonable
-quota again, or restart DAMON.  But definitely it is an unexpected and
-non-deterministic behavior that makes it difficult to reliably use.  Also
-investigating the root cause of the behavior would be quite difficult.
+This patch (of 6):
 
-Link: https://lore.kernel.org/20260916135020.86483-1-sj@kernel.org
-Fixes: da87878010e5 ("mm/damon/sysfs: support online inputs update")
-Signed-off-by: SJ Park <sj@kernel.org>
+The cmpxchg() in panic_try_force_cpu() makes sure that only one CPU tries
+to redirect panic() to the requested CPU.  It is similar to the cmpxchg()
+in panic_try_start() which makes sure that only one CPU does the panic(). 
+In both situations, only the winner of cmpxchg() should proceed further. 
+Other CPUs should go offline.
+
+There is a bug because the cmpxchg loser returns false and falls through
+into vpanic().  Two non-target CPUs A and B panic, the requested CPU is C:
+
+             cpu A                          cpu B
+          ----------                     ----------
+    panic()                              panic()
+    vpanic()                             vpanic()
+    panic_try_force_cpu()                panic_try_force_cpu()
+        cmpxchg wins                        cmpxchg fails
+        redirect = A                        old_cpu = A
+        IPI -> C                            return false      <- BUG
+        return true                     panic_try_start() wins
+    panic_smp_self_stop()                __crash_kexec() on B
+    (A stops)                            (target C bypassed)
+
+The loser must stop, not fall through.  It cannot just return true,
+though.  A CPU that already won the redirect cmpxchg can reenter
+panic_try_force_cpu() on the same CPU, for example a nested NMI during the
+message formatting, before the IPI is sent:
+
+             cpu A (1st)                  cpu A (nested)
+          ----------                     ----------
+    panic()
+    vpanic()
+    panic_try_force_cpu()
+        cmpxchg wins (redirect = A)
+        vsnprintf(msg) ...
+            <-- NMI, nested panic -->
+                                     panic()
+                                     vpanic()
+                                     panic_try_force_cpu()
+                                         cmpxchg fails
+                                         old_cpu == A (this CPU)
+                                         return true   <- would halt
+                                     panic_smp_self_stop()
+                                     (IPI never sent, panic abandoned)
+
+Check old_cpu against this_cpu so a second call from the same CPU returns
+false and falls through to panic_try_start() instead.
+
+Also fix the panic_in_progress() check.  We must not redirect when
+panic_cpu is already assigned.  Return true to stop when the panic is on
+another CPU, false to proceed when it is this one.
+
+Update the panic_try_force_cpu() doc comment for the new return value
+semantics.
+
+Link: https://lore.kernel.org/20260916182957.7788-1-brads@mainlining.org
+Link: https://lore.kernel.org/20260916182957.7788-2-brads@mainlining.org
+Fixes: 2e171ab29f91 ("panic: add panic_force_cpu= parameter to redirect panic to a specific CPU")
+Signed-off-by: Bradley Morgan <brads@mainlining.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Reviewed-by: Kunwu Chan <kunwu.chan@gmail.com>
-Cc: <stable@vger.kernel.org> # 5.19.x
+Reported-by: Sashiko <sashiko-bot@kernel.org>
+Closes: https://sashiko.dev/#/patchset/20260705164123.18746-1-include@grrlz.net
+Closes: https://sashiko.dev/#/patchset/20260707172252.4842-1-include@grrlz.net
+Reviewed-by: Petr Mladek <pmladek@suse.com>
+Cc: Guenetr Roeck <linux@roeck-us.net>
+Cc: Wang Jinchao <wangjinchao600@gmail.com>
+Cc: Wim Van Sebroeck <wim@linux-watchdog.org>
+Cc: <stable@vger.kernel.org>
 ---
 
- mm/damon/core.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ kernel/panic.c |   19 ++++++++++++-------
+ 1 file changed, 12 insertions(+), 7 deletions(-)
 
---- a/mm/damon/core.c~mm-damon-core-dont-skip-damos_adjust_quota-while-esz-is-not-zero
-+++ a/mm/damon/core.c
-@@ -3147,7 +3147,7 @@ static void damos_adjust_quota(struct da
- 	unsigned long cumulated_sz, cached_esz;
- 	unsigned int score, max_score = 0;
+--- a/kernel/panic.c~panic-fix-redirect-cpu-race-in-panic_try_force_cpu
++++ a/kernel/panic.c
+@@ -371,8 +371,9 @@ int __weak panic_smp_redirect_cpu(int ta
+  * for the crash kernel to function correctly. This function redirects
+  * panic handling to the CPU specified via the panic_force_cpu= boot parameter.
+  *
+- * Returns false if panic should proceed on current CPU.
+- * Returns true if panic was redirected.
++ * Returns true when this CPU must stop: the panic was redirected or is
++ * already running on another CPU.
++ * Returns false when panic() should proceed on this CPU.
+  */
+ __printf(1, 0)
+ static bool panic_try_force_cpu(const char *fmt, va_list args)
+@@ -396,16 +397,20 @@ static bool panic_try_force_cpu(const ch
+ 		return false;
+ 	}
  
--	if (!quota->ms && !quota->sz && list_empty(&quota->goals))
-+	if (!damos_quota_is_set(quota))
- 		return;
+-	/* Another panic already in progress */
++	/*
++	 * Don't redirect when a panic is already in progress. Stop this
++	 * CPU when it's another one, proceed when it's this one.
++	 */
+ 	if (panic_in_progress())
+-		return false;
++		return panic_on_other_cpu();
  
- 	/* First charge window */
+ 	/*
+-	 * Only one CPU can do the redirect. Use atomic cmpxchg to ensure
+-	 * we don't race with another CPU also trying to redirect.
++	 * Only one CPU can do the redirection. Others should go offline.
++	 * Continue with panic() when we already tried the redirection
++	 * from this CPU before, for example via nmi_panic().
+ 	 */
+ 	if (!atomic_try_cmpxchg(&panic_redirect_cpu, &old_cpu, this_cpu))
+-		return false;
++		return old_cpu != this_cpu;
+ 
+ 	/*
+ 	 * Use dynamically allocated buffer if available, otherwise
 _
 
-Patches currently in -mm which might be from sj@kernel.org are
+Patches currently in -mm which might be from brads@mainlining.org are
 
-mm-damon-vaddr-avoid-hw-driven-pte-updates-during-damon_hugetlb_mkold.patch
-mm-damon-core-reset-invalid-quota-charge_target_from.patch
-mm-damon-core-dont-skip-damos_adjust_quota-while-esz-is-not-zero.patch
-mm-damon-core-skip-applying-scheme-if-region-split-for-quota-fails.patch
-mm-damon-paddr-respect-folio-end-for-damos_stat.patch
-mm-damon-paddr-respect-folio-end-for-damos-actions-except-stat.patch
-mm-damon-vaddr-respect-folio-end-for-damos_stat.patch
-mm-damon-vaddr-respect-folio-end-for-damos_migrate_hotcold.patch
-mm-damon-core-handle-extreme-memory-state-in-damon_get_node_mem_bp.patch
-mm-damon-core-handle-extreme-memory-state-in-get_node_memcg_used_bp.patch
-mm-damon-core-handle-extreme-memory-state-in-get_in_active_mem_bp.patch
-mm-damon-core-introduce-damon_filter_type_pgidle_unset.patch
-mm-damon-paddr-support-pgidle_unset-probe-filter-type.patch
-mm-damon-sysfs-support-pgidle_unset-probe-filter-type.patch
-docs-mm-damon-design-document-pgidle_unset-probe-filter-type.patch
-mm-damon-core-introduce-damon_prep-struct.patch
-mm-damon-core-commit-preps.patch
-mm-damon-core-introduce-damon_operations-prep_probes.patch
-mm-damon-paddr-support-damon_prep.patch
-mm-damon-sysfs-implement-preps-directory.patch
-mm-damon-sysfs-implement-preps-nr_preps-file.patch
-mm-damon-sysfs-create-directories-for-nr_preps-writes.patch
-mm-damon-sysfs-implement-prep_action-file.patch
-mm-damon-sysfs-pass-preps-to-damon-core.patch
-selftests-damon-sysfssh-test-probe-prep-sysfs-files.patch
-docs-mm-damon-design-document-probe-preps.patch
-docs-admin-guide-mm-damon-usage-document-probe-preps-sysfs-files.patch
-docs-abi-damon-document-probe-prep-sysfs-files.patch
-mm-damon-tests-core-kunit-test-committing-psi-goal-to-psi-goal.patch
-mm-damon-core-handle-uninitialized-damos_quota_goal-last_psi_total.patch
-mm-damon-core-copy-nid-for-eligible_mem_bp-damos-quota-goal-commit.patch
-mm-damon-sysfs-set-next-refresh-jiffies-per-sysfs-context.patch
-mm-damon-tests-core-kunit-test-damon_commit_filter.patch
-mm-damon-tests-core-kunit-add-damon_commit_probes-test.patch
-selftests-damon-_damon_sysfs-implement-damonprobes.patch
-selftests-damon-drgn_dump_damon_status-dump-probes.patch
-selftests-damon-sysfspy-extend-commit-assertion-function-for-probes.patch
-selftests-damon-sysfspy-test-damon-probes.patch
-mm-damon-core-use-damon_nr_samples_per_aggr-for-max-merge-threshold.patch
-mm-damon-core-remove-debug-messages.patch
-mm-damon-core-remove-debug-messages-fix.patch
-mm-damon-vaddr-remove-a-debug-message.patch
-mm-damon-core-validate-number-of-probes-in-valid_probe_params.patch
-mm-damon-sysfs-remove-probes-number-validation.patch
-mm-damon-tests-core-kunit-extend-set_regions-test-for-error-case.patch
-mm-damon-tests-core-kunit-test-=0-size-damon_set_regions-inputs.patch
-mm-damon-tests-core-kunit-test-overlapping-ranges-for-set_regions.patch
-mm-damon-tests-core-kunit-test-damon_nr_samples_per_aggr.patch
-selftests-damon-sysfssh-test-hugepage_mem_bp-quota-goal.patch
-docs-mm-damon-maintainer-profile-update-ai-review-for-sashiko-replies.patch
-docs-abi-damon-recommend-subsystem-doc-instead-of-admin-guide.patch
-mm-damon-core-error-damos_commit_quota_goal-for-zero-target_value.patch
-revert-mm-damon-lru_sort-error-out-for-10000-active_mem_bp.patch
-revert-samples-damon-mtier-error-out-for-zero-quota-goal-target-values.patch
-mm-damon-core-handle-null-ctx-parameter-in-damon_call.patch
-mm-damon-core-set-ctx-call_controls_obsolete-in-damon_new_ctx.patch
-mm-damon-reclaim-remove-unnecessary-damon_call-param-validation.patch
-mm-damon-lru_sort-remove-unnecessary-damon_call-param-validation.patch
-mm-damon-vaddr-support-prep_probes.patch
-mm-damon-paddr-move-probe-filter-handling-to-ops-common.patch
-mm-damon-vaddr-support-apply_probe.patch
-mm-damon-vaddr-extend-apply_probes-for-hugetlb.patch
-mm-damon-vaddr-support-pgidle_unset-probe-filter-type.patch
-mm-damon-api-introduce-damon_filter_type_pgidle_set.patch
-mm-damon-paddr-support-damon_filter_type_pgidle_set.patch
-mm-damon-vaddr-support-damon_filter_type_pgidle_set.patch
-mm-damon-sysfs-support-damon_filter_type_pgidle_set.patch
-docs-mm-damon-design-update-for-pgidle_set-probe-filter.patch
-mm-damon-api-introduce-damos_filter_type_probe_hits_wsum.patch
-mm-damon-api-introduce-damos_filter_type_probe_hits_wsum-fix.patch
-mm-damon-core-extend-probe_hits_wsum-for-moving-sum-based-calculation.patch
-mm-damon-core-support-probe_hits_wsum-damos-core-filter.patch
-mm-damon-sysfs-schemes-rename-sysfs_filter-sz_range-to-range_minmax.patch
-mm-damon-sysfs-schemes-support-probe_hits_wsum-damos-core-filter.patch
-docs-mm-damon-design-update-for-probe_hits_wsum-damos-core-filter.patch
-docs-admin-guide-mm-damon-usage-update-for-probe_hits_wsum-damos-filter.patch
-mm-damon-sysfs-schemes-read-sysfs_filter-addr_range-only-once.patch
-mm-damon-sysfs-schemes-read-sysfs_filter-sz_range-only-once.patch
-mm-damon-core-return-an-error-from-damos_commit_filter_arg.patch
-mm-damon-core-disallow-max-min-damos-filter-range-arguments-commit.patch
-mm-damon-sysfs-schemes-drop-centralized-filter-range-arg-validations.patch
-mm-damon-sysfs-schemes-use-switch-case-in-add_scheme_filters.patch
-mm-damon-core-kunit-extend-damos_commit_filter_for-for-wrong-input.patch
-mm-damon-core-kunit-test-invalid-damos-filter-commits.patch
-mm-damon-api-introduce-damon_filter_type_hugepage_size.patch
-mm-damon-core-commit-hugepage_size-type-damon-filter.patch
-mm-damon-ops-common-support-hugepage_size-damon-filter-matching.patch
-mm-damon-sysfs-add-minmax-files-under-probe-filter-directory.patch
-mm-damon-sysfs-support-hugepage_size-probe-filter.patch
-docs-mm-damon-design-update-for-hugepage_size-probe-filter.patch
-docs-admin-guide-mm-damon-usage-update-for-hugepage_size.patch
-docs-abi-damon-update-for-hugepage_size-probe-filter.patch
+taskstats-copy-signal-stats-under-siglock-in-taskstats_exit.patch
+mailmap-update-email-address-for-bradley-morgan.patch
+taskstats-drop-the-unused-cpu_dont_care-enum-member.patch
+panic-fix-redirect-cpu-race-in-panic_try_force_cpu.patch
+panic-flatten-nmi_panic-control-flow.patch
+panic-fix-va_list-reuse-in-panic_try_force_cpu.patch
+panic-restore-variable-arguments-to-nmi_panic.patch
+panic-allow-force_cpu-redirect-from-an-nmi.patch
+panic-kill-the-buffer-unavailable-redirect-fallback.patch
 
