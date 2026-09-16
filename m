@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D062F472096
-	for <mm-commits@vger.kernel.org>; Wed, 16 Sep 2026 21:54:51 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2F5DE4FDE48
+	for <mm-commits@vger.kernel.org>; Wed, 16 Sep 2026 21:54:58 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789595705; cv=none; b=QyqcX/J5n2NjvZ1KdGdNX1DIhc0899iXPyB0DT8SvDNSdfICp/ej7e07SeeXjtAerfMNJNys8gvrC6+/QM7CcHpo3NbJsrfY3BOJShCTOdo5GthiVzKbKJ9EDT/u5bAIL3qGOTId+B/b5PjyH7KvByZgH/4eYVMIqRmbdxdzUh4=
+	t=1789595706; cv=none; b=p6R56/61dI79Cy/frQ9Y5mLm2sJSEE7ziVZ3SinSdF/OdSOudqTLKpq8bjrU4WHEeDJFNzlXq1Znwcy90CmwnSkUTepeLWkpXc1WY48VjAhtvGF9WJf1ZNFRuw3qz7ei0PHqgDjmwJQHxmOMP0NOcixHAA4ptk5XzdzaASCNdE4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1789595705; c=relaxed/simple;
-	bh=dg4yuFUXz/UdFVlGj7QP5OkjEsWKUCviUWKtkcrBNkQ=;
-	h=Date:To:From:Subject:Message-Id; b=bjxMcBJJlQHy5tnc5JWEYuFYjHCJzOO9z+FRG4Bf2IO7e/b0S7iwh3Fg/I/pg1kZeERPnEequHy34sYbhPhZeTidZzgnwregHKndkB15/mL1GVvM7lPBQfSiRsKi/VB69MsYJU8gHjS3KlNtoqyLNC2HCzts8oULmLOcyZUsz/4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=uQ6/tIps; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1789595706; c=relaxed/simple;
+	bh=g7zofmBOQEzZo3xj8smEIfhED+exzyzBkDaj71tcjZ8=;
+	h=Date:To:From:Subject:Message-Id; b=J1N/hC8taDVy5bNtDm2WSOeJvHQD0lWNwl9B5xH1RJVKXnRdV46SIIRcuYrIPH87n56ChFgkaxeXB9zVLwNI81ornBVEhijQL2Cw9QQeYux9+s4OHocxQnUce9c0JOanueMxi86heLVUw3EPO44B0S3cKH2Xz9K8AdEQut/sydg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=vGd2afJJ; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="uQ6/tIps"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2EEAE1F00899;
-	Wed, 16 Sep 2026 21:54:49 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="vGd2afJJ"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 59FB11F00893;
+	Wed, 16 Sep 2026 21:54:57 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1789595689;
-	bh=REh7+aH/riQD2Z2QErXvVj/227tBW34FsJFeXSN/02c=;
+	d=linux-foundation.org; s=korg; t=1789595697;
+	bh=EllpMn54bP1HywGYNm6vcPuoDAKww5Ow7ZtkQNEafXU=;
 	h=Date:To:From:Subject;
-	b=uQ6/tIpsIHo5ogrPozTjOuTviLCQJbi3fusrT2uIerhTTj7WFXgs27hcEPeFDONyl
-	 gDWnU1NCuvhptN2fxAvRgGplsxmcYrBm9VnEtPVaFSDXDXyuJ6RCrN9Ow8FrgUMwnm
-	 eI+01IscVlRt9K5gchzZMsghA22Rj3xltWgn2weA=
-Date: Wed, 16 Sep 2026 14:54:48 -0700
+	b=vGd2afJJr2fb5m7veDHqHiEIq66j0QFlmjEg/7fpqY89q7uDpRJO3ZyQhvR9homL9
+	 vHLrb3ZNuAGlyMS1AgBOfZgaY6UvFs/nWj1rK/Zke6nY/4wPXyXXhWlrxo0XXfBW/+
+	 YI2KKCJtI9a/oHZ+YHBdq5LESi+LV/W7Qilw1NdE=
+Date: Wed, 16 Sep 2026 14:54:56 -0700
 To: mm-commits@vger.kernel.org,tz2294@columbia.edu,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-memcontrol-constify-the-reclaim-protection-helpers.patch added to mm-new branch
-Message-Id: <20260916215449.2EEAE1F00899@smtp.kernel.org>
+Subject: + mm-memcontrol-constify-mem_cgroup_swappiness-and-mem_cgroup_get_max.patch added to mm-new branch
+Message-Id: <20260916215457.59FB11F00893@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: memcontrol: constify the reclaim protection helpers
+     Subject: mm: memcontrol: constify mem_cgroup_swappiness() and mem_cgroup_get_max()
 has been added to the -mm mm-new branch.  Its filename is
-     mm-memcontrol-constify-the-reclaim-protection-helpers.patch
+     mm-memcontrol-constify-mem_cgroup_swappiness-and-mem_cgroup_get_max.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memcontrol-constify-the-reclaim-protection-helpers.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memcontrol-constify-mem_cgroup_swappiness-and-mem_cgroup_get_max.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,13 +70,12 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Tal Zussman <tz2294@columbia.edu>
-Subject: mm: memcontrol: constify the reclaim protection helpers
-Date: Tue, 15 Sep 2026 19:20:11 -0400
+Subject: mm: memcontrol: constify mem_cgroup_swappiness() and mem_cgroup_get_max()
+Date: Tue, 15 Sep 2026 19:20:14 -0400
 
-mem_cgroup_protection(), mem_cgroup_unprotected(), mem_cgroup_below_low(),
-and mem_cgroup_below_min() only read the protection state.  Constify them.
+Both only read swappiness and the memory limits. Constify them.
 
-Link: https://lore.kernel.org/20260915-folio_memcg-const-v3-7-c239a6010b58@columbia.edu
+Link: https://lore.kernel.org/20260915-folio_memcg-const-v3-10-c239a6010b58@columbia.edu
 Signed-off-by: Tal Zussman <tz2294@columbia.edu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 Acked-by: Muchun Song <muchun.song@linux.dev>
@@ -103,92 +102,53 @@ Cc: Wei Xu <weixugc@google.com>
 Cc: Yuanchu Xie <yuanchu@google.com>
 ---
 
- include/linux/memcontrol.h |   32 ++++++++++++++++----------------
- 1 file changed, 16 insertions(+), 16 deletions(-)
+ include/linux/memcontrol.h |    4 ++--
+ mm/memcontrol.c            |    2 +-
+ mm/swap.h                  |    2 +-
+ 3 files changed, 4 insertions(+), 4 deletions(-)
 
---- a/include/linux/memcontrol.h~mm-memcontrol-constify-the-reclaim-protection-helpers
+--- a/include/linux/memcontrol.h~mm-memcontrol-constify-mem_cgroup_swappiness-and-mem_cgroup_get_max
 +++ a/include/linux/memcontrol.h
-@@ -570,8 +570,8 @@ static inline bool mem_cgroup_disabled(v
- 	return !cgroup_subsys_enabled(memory_cgrp_subsys);
+@@ -941,7 +941,7 @@ static inline void mem_cgroup_handle_ove
+ 		__mem_cgroup_handle_over_high(gfp_mask);
  }
  
--static inline void mem_cgroup_protection(struct mem_cgroup *root,
--					 struct mem_cgroup *memcg,
-+static inline void mem_cgroup_protection(const struct mem_cgroup *root,
-+					 const struct mem_cgroup *memcg,
- 					 unsigned long *min,
- 					 unsigned long *low,
- 					 unsigned long *usage)
-@@ -625,8 +625,8 @@ static inline void mem_cgroup_protection
- void mem_cgroup_calculate_protection(struct mem_cgroup *root,
- 				     struct mem_cgroup *memcg);
+-unsigned long mem_cgroup_get_max(struct mem_cgroup *memcg);
++unsigned long mem_cgroup_get_max(const struct mem_cgroup *memcg);
  
--static inline bool mem_cgroup_unprotected(struct mem_cgroup *target,
--					  struct mem_cgroup *memcg)
-+static inline bool mem_cgroup_unprotected(const struct mem_cgroup *target,
-+					  const struct mem_cgroup *memcg)
- {
- 	/*
- 	 * The root memcg doesn't account charges, and doesn't support
-@@ -637,8 +637,8 @@ static inline bool mem_cgroup_unprotecte
- 		memcg == target;
+ void mem_cgroup_print_oom_context(const struct mem_cgroup *memcg,
+ 				struct task_struct *p);
+@@ -1372,7 +1372,7 @@ unsigned long mem_cgroup_get_zone_lru_si
+ 	return 0;
  }
  
--static inline bool mem_cgroup_below_low(struct mem_cgroup *target,
--					struct mem_cgroup *memcg)
-+static inline bool mem_cgroup_below_low(const struct mem_cgroup *target,
-+					const struct mem_cgroup *memcg)
+-static inline unsigned long mem_cgroup_get_max(struct mem_cgroup *memcg)
++static inline unsigned long mem_cgroup_get_max(const struct mem_cgroup *memcg)
  {
- 	if (mem_cgroup_unprotected(target, memcg))
- 		return false;
-@@ -647,8 +647,8 @@ static inline bool mem_cgroup_below_low(
- 		page_counter_read(&memcg->memory);
+ 	return 0;
  }
+--- a/mm/memcontrol.c~mm-memcontrol-constify-mem_cgroup_swappiness-and-mem_cgroup_get_max
++++ a/mm/memcontrol.c
+@@ -1884,7 +1884,7 @@ void mem_cgroup_print_oom_meminfo(struct
+ /*
+  * Return the memory (and swap, if configured) limit for a memcg.
+  */
+-unsigned long mem_cgroup_get_max(struct mem_cgroup *memcg)
++unsigned long mem_cgroup_get_max(const struct mem_cgroup *memcg)
+ {
+ 	unsigned long max = READ_ONCE(memcg->memory.max);
  
--static inline bool mem_cgroup_below_min(struct mem_cgroup *target,
--					struct mem_cgroup *memcg)
-+static inline bool mem_cgroup_below_min(const struct mem_cgroup *target,
-+					const struct mem_cgroup *memcg)
- {
- 	if (mem_cgroup_unprotected(target, memcg))
- 		return false;
-@@ -1149,8 +1149,8 @@ static inline void memcg_memory_event_mm
- {
- }
+--- a/mm/swap.h~mm-memcontrol-constify-mem_cgroup_swappiness-and-mem_cgroup_get_max
++++ a/mm/swap.h
+@@ -82,7 +82,7 @@ enum swap_cluster_flags {
  
--static inline void mem_cgroup_protection(struct mem_cgroup *root,
--					 struct mem_cgroup *memcg,
-+static inline void mem_cgroup_protection(const struct mem_cgroup *root,
-+					 const struct mem_cgroup *memcg,
- 					 unsigned long *min,
- 					 unsigned long *low,
- 					 unsigned long *usage)
-@@ -1163,19 +1163,19 @@ static inline void mem_cgroup_calculate_
- {
- }
+ extern int vm_swappiness;
  
--static inline bool mem_cgroup_unprotected(struct mem_cgroup *target,
--					  struct mem_cgroup *memcg)
-+static inline bool mem_cgroup_unprotected(const struct mem_cgroup *target,
-+					  const struct mem_cgroup *memcg)
+-static inline int mem_cgroup_swappiness(struct mem_cgroup *memcg)
++static inline int mem_cgroup_swappiness(const struct mem_cgroup *memcg)
  {
- 	return true;
- }
--static inline bool mem_cgroup_below_low(struct mem_cgroup *target,
--					struct mem_cgroup *memcg)
-+static inline bool mem_cgroup_below_low(const struct mem_cgroup *target,
-+					const struct mem_cgroup *memcg)
- {
- 	return false;
- }
- 
--static inline bool mem_cgroup_below_min(struct mem_cgroup *target,
--					struct mem_cgroup *memcg)
-+static inline bool mem_cgroup_below_min(const struct mem_cgroup *target,
-+					const struct mem_cgroup *memcg)
- {
- 	return false;
- }
+ #ifdef CONFIG_MEMCG_V1
+ 	if (!cgroup_subsys_on_dfl(memory_cgrp_subsys) &&
 _
 
 Patches currently in -mm which might be from tz2294@columbia.edu are
