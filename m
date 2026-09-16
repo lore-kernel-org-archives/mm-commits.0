@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0C15A392C2C
-	for <mm-commits@vger.kernel.org>; Wed, 16 Sep 2026 01:18:12 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5DB4F191F94
+	for <mm-commits@vger.kernel.org>; Wed, 16 Sep 2026 01:20:24 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789521494; cv=none; b=meY1D4pPHlECNXSdw8g3F4VGhRV3BqvDvyXn04j8Kb8O7aiH8xHC1JpB8B0CaeCqs6eccGwVz0+46cuaRxDJw61EcmBmS5BQPlcFElFajKVPI4bd9SQB0Lb2EX/OdJVbS2Dgkgpdva1zYyzLz5eg/xQ+UTMNmJKC4szBvF9AULk=
+	t=1789521625; cv=none; b=Wc0gVDDOgyKM+xYbeAsVC+kjbqfyMOsL6syR81p821nO0ayV4Pw12ANg0Hayico0dgv1coQbnVPe4QbeuVUmhfNhTiO2kMk/igsm1OXvbbWJ/+jCU5LbCpRuZKrzIMWrTN0pGDreHL0lePiWA9C83vrpZvsH3rmXoKNiPk0SYHM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1789521494; c=relaxed/simple;
-	bh=BQS8cHkkiPuqyOf5qxC8YP1azxJ+YixvtL6P5KO5Qz8=;
-	h=Date:To:From:Subject:Message-Id; b=HEzSIYHQ6ONCiGKWPypp/NW1nCGBUho/SBd+MekIWhk17Qp9hI9WfHXOBIEMc6xNfWb5blcHvP97c4lu4colSZUAI3wSlBWEjIffkCXsRjLFVjP4QkTnpPRqn8eeGmNhr8tic7jEqyBYmbMxqDaVPdxyJUQjyFyLDmw+IZfE574=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=qf89IOcI; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1789521625; c=relaxed/simple;
+	bh=DJ/IODiU3EvnZP6G9aipF91j3wC8XttiaUxnQ+TCYv8=;
+	h=Date:To:From:Subject:Message-Id; b=NpW1ds4Co+aItDAGKV2dID+rhTf0LH323ZaWUd8htGIiJNWjB40J2kjmJbjNZuqFD95C9yeEkEUaoN3w+G9scVLvvofUqGIcbFiK8QN8Z+G7St/v9if2MnU9a20F8sGQqHuH0uqOQzIg0vDHFet9XnPiWpLBgmJFqwV4jDzIvjU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=x2kbV1/t; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="qf89IOcI"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6E6EF1F00893;
-	Wed, 16 Sep 2026 01:18:12 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="x2kbV1/t"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 031481F000FF;
+	Wed, 16 Sep 2026 01:20:23 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1789521492;
-	bh=7hH78/sIru6fjz53YYK3+BP35jSViT/5/4mWuZQL+mA=;
+	d=linux-foundation.org; s=korg; t=1789521624;
+	bh=aD1UiUOTUkQIxxacOYPd9t7ZrScqRjbxDWGxKYDU0qo=;
 	h=Date:To:From:Subject;
-	b=qf89IOcIONCQA5IHPYsTi4iALXww6f5vsAzsl0aLfnd//NSCDhchEGWMSDZ5SDRo3
-	 8xdG33PuhYTkRjcExSH7n1j7NVHJ7xXRqiw6G6VbAcOXYb3CkAJd+T/UhMvhmftZE1
-	 +o/oY0i/fPXEjiFa8plFhB5taaAwytcB9ouPwpVI=
-Date: Tue, 15 Sep 2026 18:18:12 -0700
-To: mm-commits@vger.kernel.org,helgaas@kernel.org,brads@mainlining.org,andriy.shevchenko@linux.intel.com,akpm@linux-foundation.org
+	b=x2kbV1/tuL5ZblU+Kaeu/lljtaLYeshDN5j5Mh3F4xVLAyeUBJwcpJFQDgcoM5FAk
+	 XbeUlAFUF50Jf+W6QKw9rmST1P85pazpJBPylbJjTzFqNKeE7BPo/YZqtxpRq7qDLk
+	 cJegxbF6kGUm1TSzwdHk614gbwbJ8d4zaGc5g3R8=
+Date: Tue, 15 Sep 2026 18:20:23 -0700
+To: mm-commits@vger.kernel.org,vbabka@kernel.org,surenb@google.com,rppt@kernel.org,muchun.song@linux.dev,mhocko@suse.com,ljs@kernel.org,liam@infradead.org,david@kernel.org,chengkaitao@kylinos.cn,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + resource-replace-open-coded-resource_overlaps.patch added to mm-nonmm-unstable branch
-Message-Id: <20260916011812.6E6EF1F00893@smtp.kernel.org>
+Subject: [to-be-updated] mm-remove-unused-exact_nid-parameter-from-memmap_alloc.patch removed from -mm tree
+Message-Id: <20260916012024.031481F000FF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,89 +34,124 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The patch titled
-     Subject: resource: replace open coded resource_overlaps()
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     resource-replace-open-coded-resource_overlaps.patch
+The quilt patch titled
+     Subject: mm: remove unused exact_nid parameter from memmap_alloc()
+has been removed from the -mm tree.  Its filename was
+     mm-remove-unused-exact_nid-parameter-from-memmap_alloc.patch
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/resource-replace-open-coded-resource_overlaps.patch
-
-This patch will later appear in the mm-nonmm-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via various
-branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there most days
+This patch was dropped because an updated version will be issued
 
 ------------------------------------------------------
-From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Subject: resource: replace open coded resource_overlaps()
-Date: Tue, 15 Sep 2026 10:53:53 +0200
+From: Kaitao Cheng <chengkaitao@kylinos.cn>
+Subject: mm: remove unused exact_nid parameter from memmap_alloc()
+Date: Mon, 14 Sep 2026 13:51:30 +0800
 
-In iomem_map_sanity_check() a piece of code resembles the content of the
-resource_overlaps().  Replace open coded piece with the call to the
-existing helper.
+Commit ffe55393137c ("mm/sparse: remove sparse buffer pre-allocation
+mechanism") removed sparse_buffer_init(), which was the only caller of
+memmap_alloc() that passed true for exact_nid.
 
-Link: https://lore.kernel.org/20260915085353.3518153-1-andriy.shevchenko@linux.intel.com
-Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+All remaining callers pass false, leaving the exact-node allocation branch
+unreachable.  Remove the exact_nid parameter and unconditionally use
+memblock_alloc_try_nid_raw().
+
+This has no functional impact.
+
+Link: https://lore.kernel.org/20260914055130.44543-1-kaitao.cheng@linux.dev
+Signed-off-by: Kaitao Cheng <chengkaitao@kylinos.cn>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Reviewed-by: Bradley Morgan <brads@mainlining.org>
-Cc: Bjorn Helgaas <helgaas@kernel.org>
+Acked-by: Muchun Song <muchun.song@linux.dev>
+Cc: David Hildenbrand <david@kernel.org>
+Cc: Liam R. Howlett <liam@infradead.org>
+Cc: Lorenzo Stoakes <ljs@kernel.org>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Vlastimil Babka <vbabka@kernel.org>
 ---
 
- kernel/resource.c |   14 ++++++--------
- 1 file changed, 6 insertions(+), 8 deletions(-)
+ mm/mm_init.c        |   14 ++++----------
+ mm/mm_init.h        |    4 ++--
+ mm/sparse-vmemmap.c |    2 +-
+ mm/sparse.c         |    2 +-
+ 4 files changed, 8 insertions(+), 14 deletions(-)
 
---- a/kernel/resource.c~resource-replace-open-coded-resource_overlaps
-+++ a/kernel/resource.c
-@@ -1833,7 +1833,7 @@ __setup("reserve=", reserve_setup);
-  */
- int iomem_map_sanity_check(resource_size_t addr, unsigned long size)
+--- a/mm/mm_init.c~mm-remove-unused-exact_nid-parameter-from-memmap_alloc
++++ a/mm/mm_init.c
+@@ -1606,7 +1606,7 @@ static void __init free_area_init_core(s
+ }
+ 
+ void __init *memmap_alloc(phys_addr_t size, phys_addr_t align,
+-			  phys_addr_t min_addr, int nid, bool exact_nid)
++			  phys_addr_t min_addr, int nid)
  {
--	resource_size_t end = addr + size - 1;
-+	struct resource mem = DEFINE_RES_MEM(addr, size);
- 	struct resource *p;
- 	int err = 0;
+ 	void *ptr;
  
-@@ -1843,12 +1843,10 @@ int iomem_map_sanity_check(resource_size
- 		 * We can probably skip the resources without
- 		 * IORESOURCE_IO attribute?
- 		 */
--		if (p->start > end)
-+		if (!resource_overlaps(p, &mem))
- 			continue;
--		if (p->end < addr)
--			continue;
--		if (PFN_DOWN(p->start) <= PFN_DOWN(addr) &&
--		    PFN_DOWN(p->end) >= PFN_DOWN(end))
-+		if (PFN_DOWN(p->start) <= PFN_DOWN(mem.start) &&
-+		    PFN_DOWN(p->end) >= PFN_DOWN(mem.end))
- 			continue;
- 		/*
- 		 * if a resource is "BUSY", it's not a hardware resource
-@@ -1859,8 +1857,8 @@ int iomem_map_sanity_check(resource_size
- 		if (p->flags & IORESOURCE_BUSY)
- 			continue;
+@@ -1614,14 +1614,8 @@ void __init *memmap_alloc(phys_addr_t si
+ 	 * Kmemleak will explicitly scan mem_map by traversing all valid
+ 	 * `struct *page`,so memblock does not need to be added to the scan list.
+ 	 */
+-	if (exact_nid)
+-		ptr = memblock_alloc_exact_nid_raw(size, align, min_addr,
+-						   MEMBLOCK_ALLOC_NOLEAKTRACE,
+-						   nid);
+-	else
+-		ptr = memblock_alloc_try_nid_raw(size, align, min_addr,
+-						 MEMBLOCK_ALLOC_NOLEAKTRACE,
+-						 nid);
++	ptr = memblock_alloc_try_nid_raw(size, align, min_addr,
++					 MEMBLOCK_ALLOC_NOLEAKTRACE, nid);
  
--		pr_debug("resource sanity check: requesting [mem %pa-%pa], which spans more than %s %pR\n",
--			&addr, &end, p->name, p);
-+		pr_debug("resource sanity check: requesting %pR, which spans more than %s %pR\n",
-+			 &mem, p->name, p);
- 		err = -1;
- 		break;
- 	}
+ 	if (ptr && size > 0)
+ 		page_init_poison(ptr, size);
+@@ -1649,7 +1643,7 @@ static void __init alloc_node_mem_map(st
+ 	end = ALIGN(pgdat_end_pfn(pgdat), MAX_ORDER_NR_PAGES);
+ 	size =  (end - start) * sizeof(struct page);
+ 	map = memmap_alloc(size, SMP_CACHE_BYTES, MEMBLOCK_LOW_LIMIT,
+-			   pgdat->node_id, false);
++			   pgdat->node_id);
+ 	if (!map)
+ 		panic("Failed to allocate %ld bytes for node %d memory map\n",
+ 		      size, pgdat->node_id);
+--- a/mm/mm_init.h~mm-remove-unused-exact_nid-parameter-from-memmap_alloc
++++ a/mm/mm_init.h
+@@ -31,8 +31,8 @@ static inline void clear_zone_contiguous
+ 
+ void memblock_free_pages(unsigned long pfn, unsigned int order);
+ 
+-void *memmap_alloc(phys_addr_t size, phys_addr_t align, phys_addr_t min_addr,
+-		int nid, bool exact_nid);
++void *memmap_alloc(phys_addr_t size, phys_addr_t align,
++		   phys_addr_t min_addr, int nid);
+ 
+ void memmap_init_range(unsigned long size, int nid, unsigned long zone,
+ 		unsigned long start_pfn, unsigned long zone_end_pfn,
+--- a/mm/sparse.c~mm-remove-unused-exact_nid-parameter-from-memmap_alloc
++++ a/mm/sparse.c
+@@ -215,7 +215,7 @@ struct page __init *__populate_section_m
+ {
+ 	const unsigned long size = PAGE_ALIGN(sizeof(struct page) * PAGES_PER_SECTION);
+ 
+-	return memmap_alloc(size, size, __pa(MAX_DMA_ADDRESS), nid, false);
++	return memmap_alloc(size, size, __pa(MAX_DMA_ADDRESS), nid);
+ }
+ #endif /* !CONFIG_SPARSEMEM_VMEMMAP */
+ 
+--- a/mm/sparse-vmemmap.c~mm-remove-unused-exact_nid-parameter-from-memmap_alloc
++++ a/mm/sparse-vmemmap.c
+@@ -62,7 +62,7 @@ void __ref *vmemmap_alloc_block(unsigned
+ 		}
+ 		return NULL;
+ 	} else
+-		return memmap_alloc(size, size, __pa(MAX_DMA_ADDRESS), node, false);
++		return memmap_alloc(size, size, __pa(MAX_DMA_ADDRESS), node);
+ }
+ 
+ static void * __meminit altmap_alloc_block_buf(unsigned long size,
 _
 
-Patches currently in -mm which might be from andriy.shevchenko@linux.intel.com are
+Patches currently in -mm which might be from chengkaitao@kylinos.cn are
 
-resource-replace-open-coded-resource_overlaps.patch
+mm-hugetlb-use-hugetlb_vmemmap_optimizable-in-boolean-contexts.patch
+mm-page-flags-define-hwpoison-test-and-change-helpers-unconditionally.patch
+nvdimm-pmem-remove-test_and_clear_pmem_poison.patch
 
