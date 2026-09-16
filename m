@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 640074EBAC5
-	for <mm-commits@vger.kernel.org>; Wed, 16 Sep 2026 21:54:43 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 69E3643D515
+	for <mm-commits@vger.kernel.org>; Wed, 16 Sep 2026 21:54:39 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789595688; cv=none; b=ggIJHpgeit8qj0mdRjeq2p5vCymLoAoOpIdj4xVDuXZpVBfFvZeZqV9jp85JXMuaNAnxM97KbWG7onOZFq6EHUlPT3Ta1jISDkmIEzOjv9UVKy5V+2uALweeX2fRWsO826icqdLIW+FFr9Uis7UunxvUui1pTPh8Z42gfED4GOg=
+	t=1789595691; cv=none; b=YkqMMamJZpcsBl1sRuOGT2R92o9aaZJ6a7273A2C0JIVDBwzhIJq3BFhP/C2tchbiaj+orYxp7FmfdMkv5UWorpEil8Anpoxq+78NfJtVsH/e4LQKakDYb1NPU9S1b2aVvaLAKe4rlU8l4ZuYMLHZwIpT7NWyKFxueQInAyrGYI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1789595688; c=relaxed/simple;
-	bh=ytTVIwVFp35HvShf4apJ9T9S0luTM0ntnJ4GE3FsrL0=;
-	h=Date:To:From:Subject:Message-Id; b=D9Qe720kxzGoi1LtNjU2CaiD6k7D8+a1RWICbjW1Ek56334BnHNpAEA7IaKw1D09N9rfIqrgOzATnVRP+d2DVJsp+gzxYP/RDkX0/ILzzu5fslZ6K+2t2blm/q6mHbHy26n+5vHimDub71ZyTIIeOjvAjP/xBCukvxKhQLL3b6I=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Ya15fU9l; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1789595691; c=relaxed/simple;
+	bh=+mGoSvAXcqLiGGew9M4kk8Zzjs2UiKK6H5FhasytaEM=;
+	h=Date:To:From:Subject:Message-Id; b=IntHxU8zyEL5x2x54ziaF0q3U5nTUejkezmUdyJIvyjoWpxE1hq/DnUsTg8dp6GNx9bfajB4VB67QzZLnYOVPJW1RChM9xJxqq8+W2cgbI/z9U5ABv7QEI4+L4Ke8tQXz+p17sfIzh4VqIBnVJaH+JtOxG0l1umnJXrtoqjURqs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=aDkYgM7L; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Ya15fU9l"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 98D021F00899;
-	Wed, 16 Sep 2026 21:54:41 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="aDkYgM7L"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 214241F000FF;
+	Wed, 16 Sep 2026 21:54:36 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1789595681;
-	bh=+CKQfw82plyG9EXAR7gyGbK32vyyb1FxHEmX9BR3WJ0=;
+	d=linux-foundation.org; s=korg; t=1789595676;
+	bh=XuJOHHxksERcQvcOFr3jf5nPGMDDxvCQT5CQ4g01cBU=;
 	h=Date:To:From:Subject;
-	b=Ya15fU9l6CWQUAoZGcUa1nFdWrikzDPR1hiupooEHbxf9KXiozxVOT02YcYkCC+Dj
-	 kCSUMpUgCFw87bG1dsydkgZSg+AnbqGe5KLAfYgtS1f+r3eJz8XNfCBSHkbiH03v+Q
-	 jQARxGmiLj0dl3pkcaBCNPZoMwSpAaV/75fEJFd8=
-Date: Wed, 16 Sep 2026 14:54:41 -0700
+	b=aDkYgM7LOsIYnWY202TUVR9cxS6CbF8piXS/dmCTBsPhLhCYs4MO1/gwDSbFRWH2W
+	 PJb6/s7bVHs8pylD7fKkDAZ8yGMwURGcoxNxHXsFcZHlOCrjkHIUnwOvzN+k3TpQMs
+	 wHeiZ9OjfD+AMMvFF5hIdweUZiK2JuAw1+Utb/v4=
+Date: Wed, 16 Sep 2026 14:54:35 -0700
 To: mm-commits@vger.kernel.org,tz2294@columbia.edu,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-page_io-take-a-const-folio-in-bio_associate_blkg_from_folio.patch added to mm-new branch
-Message-Id: <20260916215441.98D021F00899@smtp.kernel.org>
+Subject: + mm-memcontrol-constify-obj_cgroup_memcg-and-friends.patch added to mm-new branch
+Message-Id: <20260916215436.214241F000FF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/page_io: take a const folio in bio_associate_blkg_from_folio()
+     Subject: mm: memcontrol: constify obj_cgroup_memcg() and friends
 has been added to the -mm mm-new branch.  Its filename is
-     mm-page_io-take-a-const-folio-in-bio_associate_blkg_from_folio.patch
+     mm-memcontrol-constify-obj_cgroup_memcg-and-friends.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-page_io-take-a-const-folio-in-bio_associate_blkg_from_folio.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memcontrol-constify-obj_cgroup_memcg-and-friends.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,13 +70,13 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Tal Zussman <tz2294@columbia.edu>
-Subject: mm/page_io: take a const folio in bio_associate_blkg_from_folio()
-Date: Tue, 15 Sep 2026 19:20:08 -0400
+Subject: mm: memcontrol: constify obj_cgroup_memcg() and friends
+Date: Tue, 15 Sep 2026 19:20:06 -0400
 
-bio_associate_blkg_from_folio() and its helpers only read from the folio. 
-Constify their folio arguments.
+obj_cgroup_memcg() and get_mem_cgroup_from_objcg() only read from the
+objcg.  Constify them.
 
-Link: https://lore.kernel.org/20260915-folio_memcg-const-v3-4-c239a6010b58@columbia.edu
+Link: https://lore.kernel.org/20260915-folio_memcg-const-v3-2-c239a6010b58@columbia.edu
 Signed-off-by: Tal Zussman <tz2294@columbia.edu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 Reviewed-by: Muchun Song <muchun.song@linux.dev>
@@ -103,53 +103,47 @@ Cc: Wei Xu <weixugc@google.com>
 Cc: Yuanchu Xie <yuanchu@google.com>
 ---
 
- mm/page_io.c |   14 +++++++++-----
- 1 file changed, 9 insertions(+), 5 deletions(-)
+ include/linux/memcontrol.h |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
---- a/mm/page_io.c~mm-page_io-take-a-const-folio-in-bio_associate_blkg_from_folio
-+++ a/mm/page_io.c
-@@ -256,12 +256,13 @@ out_unlock:
+--- a/include/linux/memcontrol.h~mm-memcontrol-constify-obj_cgroup_memcg-and-friends
++++ a/include/linux/memcontrol.h
+@@ -396,7 +396,7 @@ enum objext_flags {
+  *
+  * The caller must ensure that the returned memcg won't be released.
+  */
+-static inline struct mem_cgroup *obj_cgroup_memcg(struct obj_cgroup *objcg)
++static inline struct mem_cgroup *obj_cgroup_memcg(const struct obj_cgroup *objcg)
+ {
+ 	lockdep_assert_once(rcu_read_lock_held() || lockdep_is_held(&cgroup_mutex));
+ 	return objcg ? READ_ONCE(objcg->memcg) : NULL;
+@@ -505,7 +505,7 @@ static inline struct mem_cgroup *page_me
+ 	return folio_memcg_check((const struct folio *)page);
  }
  
- #if defined(CONFIG_MEMCG) && defined(CONFIG_BLK_CGROUP)
--static struct cgroup_subsys_state *folio_memcg_blkg_css(struct folio *folio)
-+static struct cgroup_subsys_state *folio_memcg_blkg_css(const struct folio *folio)
+-static inline struct mem_cgroup *get_mem_cgroup_from_objcg(struct obj_cgroup *objcg)
++static inline struct mem_cgroup *get_mem_cgroup_from_objcg(const struct obj_cgroup *objcg)
  {
- 	return cgroup_e_css(folio_memcg(folio)->css.cgroup, &io_cgrp_subsys);
+ 	struct mem_cgroup *memcg;
+ 
+@@ -1075,7 +1075,7 @@ void mem_cgroup_flush_workqueue(void);
+ extern int mem_cgroup_init(void);
+ #else /* CONFIG_MEMCG */
+ 
+-static inline struct mem_cgroup *obj_cgroup_memcg(struct obj_cgroup *objcg)
++static inline struct mem_cgroup *obj_cgroup_memcg(const struct obj_cgroup *objcg)
+ {
+ 	return NULL;
+ }
+@@ -1104,7 +1104,7 @@ static inline struct mem_cgroup *page_me
+ 	return NULL;
  }
  
--static bool folio_blkg_can_merge(struct folio *folio, struct folio *prev_folio)
-+static bool folio_blkg_can_merge(const struct folio *folio,
-+				 const struct folio *prev_folio)
+-static inline struct mem_cgroup *get_mem_cgroup_from_objcg(struct obj_cgroup *objcg)
++static inline struct mem_cgroup *get_mem_cgroup_from_objcg(const struct obj_cgroup *objcg)
  {
- 	bool can_merge = true;
- 
-@@ -277,7 +278,8 @@ static bool folio_blkg_can_merge(struct
- 	return can_merge;
+ 	return NULL;
  }
- 
--static void bio_associate_blkg_from_folio(struct bio *bio, struct folio *folio)
-+static void bio_associate_blkg_from_folio(struct bio *bio,
-+					  const struct folio *folio)
- {
- 	struct cgroup_subsys_state *css;
- 
-@@ -294,11 +296,13 @@ static void bio_associate_blkg_from_foli
- 		css_put(css);
- }
- #else
--static bool folio_blkg_can_merge(struct folio *folio, struct folio *prev_folio)
-+static bool folio_blkg_can_merge(const struct folio *folio,
-+				 const struct folio *prev_folio)
- {
- 	return true;
- }
--static void bio_associate_blkg_from_folio(struct bio *bio, struct folio *folio)
-+static void bio_associate_blkg_from_folio(struct bio *bio,
-+					  const struct folio *folio)
- {
- }
- #endif /* CONFIG_MEMCG && CONFIG_BLK_CGROUP */
 _
 
 Patches currently in -mm which might be from tz2294@columbia.edu are
