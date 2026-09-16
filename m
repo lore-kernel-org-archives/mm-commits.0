@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3A44D4D6C5E
-	for <mm-commits@vger.kernel.org>; Wed, 16 Sep 2026 21:54:48 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D062F472096
+	for <mm-commits@vger.kernel.org>; Wed, 16 Sep 2026 21:54:51 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789595698; cv=none; b=rO5uWO5tpfOfmwkH5XOwD6w8TCCODENw9InUZVsEbyIJU7+bBSyc7vKsIxEA0AcYqvcHdiqoy6U+XXlI5sSjKrOhYyczexTqQkZBLEfBbGG9acxmCvWRnSoPNz8Bzjco1WOgNsAfV/U/yyPbe8RETi/Cn6mWLTtoGMVKElVHzv0=
+	t=1789595705; cv=none; b=QyqcX/J5n2NjvZ1KdGdNX1DIhc0899iXPyB0DT8SvDNSdfICp/ej7e07SeeXjtAerfMNJNys8gvrC6+/QM7CcHpo3NbJsrfY3BOJShCTOdo5GthiVzKbKJ9EDT/u5bAIL3qGOTId+B/b5PjyH7KvByZgH/4eYVMIqRmbdxdzUh4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1789595698; c=relaxed/simple;
-	bh=ZOcZFotI5UW7Wr3mF0nrItck5abrg8OwROz5E3MXwM0=;
-	h=Date:To:From:Subject:Message-Id; b=oAktte7XWi467mtr5ydOdFxdFhP4l7Pqr98wStpXgjpbYLFWarBekS+bm5BYZdXl0B7keL9zhS+FPFjpjvAWUoAI5ZAxZLy3c7k7gST/oxLZ6e4xaAyBiIJBWyX+J9wnmJG/8LrHppGQV2v3/EbpD+nESgnGofEHRLqTVzPlvXM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=RgeETZYe; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1789595705; c=relaxed/simple;
+	bh=dg4yuFUXz/UdFVlGj7QP5OkjEsWKUCviUWKtkcrBNkQ=;
+	h=Date:To:From:Subject:Message-Id; b=bjxMcBJJlQHy5tnc5JWEYuFYjHCJzOO9z+FRG4Bf2IO7e/b0S7iwh3Fg/I/pg1kZeERPnEequHy34sYbhPhZeTidZzgnwregHKndkB15/mL1GVvM7lPBQfSiRsKi/VB69MsYJU8gHjS3KlNtoqyLNC2HCzts8oULmLOcyZUsz/4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=uQ6/tIps; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="RgeETZYe"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 822361F0089A;
-	Wed, 16 Sep 2026 21:54:46 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="uQ6/tIps"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2EEAE1F00899;
+	Wed, 16 Sep 2026 21:54:49 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1789595686;
-	bh=OF2sbOpaJg0p5sk/FmfTbhyRi5ggcQj/nVVZwJfqPz8=;
+	d=linux-foundation.org; s=korg; t=1789595689;
+	bh=REh7+aH/riQD2Z2QErXvVj/227tBW34FsJFeXSN/02c=;
 	h=Date:To:From:Subject;
-	b=RgeETZYeKgjIbnBO3HxaWOD1VRrDGmD+xTNCFOK4G0CNn8d3s3VIS7oRfjIJTCDR3
-	 s2EVyuiB9a4oDxP+5GeP+eGFh/E+dEl1RvimIhpnOt768ABSyj7+3MCs/HZD160Ehe
-	 5iYF436z0B/j9DZTtJaMelRVj5JcOwmO9a5qpr2E=
-Date: Wed, 16 Sep 2026 14:54:46 -0700
+	b=uQ6/tIpsIHo5ogrPozTjOuTviLCQJbi3fusrT2uIerhTTj7WFXgs27hcEPeFDONyl
+	 gDWnU1NCuvhptN2fxAvRgGplsxmcYrBm9VnEtPVaFSDXDXyuJ6RCrN9Ow8FrgUMwnm
+	 eI+01IscVlRt9K5gchzZMsghA22Rj3xltWgn2weA=
+Date: Wed, 16 Sep 2026 14:54:48 -0700
 To: mm-commits@vger.kernel.org,tz2294@columbia.edu,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-page_counter-constify-page_counter_read-and-page_counter_margin.patch added to mm-new branch
-Message-Id: <20260916215446.822361F0089A@smtp.kernel.org>
+Subject: + mm-memcontrol-constify-the-reclaim-protection-helpers.patch added to mm-new branch
+Message-Id: <20260916215449.2EEAE1F00899@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: page_counter: constify page_counter_read() and page_counter_margin()
+     Subject: mm: memcontrol: constify the reclaim protection helpers
 has been added to the -mm mm-new branch.  Its filename is
-     mm-page_counter-constify-page_counter_read-and-page_counter_margin.patch
+     mm-memcontrol-constify-the-reclaim-protection-helpers.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-page_counter-constify-page_counter_read-and-page_counter_margin.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memcontrol-constify-the-reclaim-protection-helpers.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,16 +70,16 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Tal Zussman <tz2294@columbia.edu>
-Subject: mm: page_counter: constify page_counter_read() and page_counter_margin()
-Date: Tue, 15 Sep 2026 19:20:10 -0400
+Subject: mm: memcontrol: constify the reclaim protection helpers
+Date: Tue, 15 Sep 2026 19:20:11 -0400
 
-Both only read the counter.  Constify them so that users can read counters
-from const memcgs.
+mem_cgroup_protection(), mem_cgroup_unprotected(), mem_cgroup_below_low(),
+and mem_cgroup_below_min() only read the protection state.  Constify them.
 
-Link: https://lore.kernel.org/20260915-folio_memcg-const-v3-6-c239a6010b58@columbia.edu
+Link: https://lore.kernel.org/20260915-folio_memcg-const-v3-7-c239a6010b58@columbia.edu
 Signed-off-by: Tal Zussman <tz2294@columbia.edu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Reviewed-by: Muchun Song <muchun.song@linux.dev>
+Acked-by: Muchun Song <muchun.song@linux.dev>
 Acked-by: Shakeel Butt <shakeel.butt@linux.dev>
 Acked-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
 Cc: Axel Rasmussen <axelrasmussen@google.com>
@@ -103,38 +103,92 @@ Cc: Wei Xu <weixugc@google.com>
 Cc: Yuanchu Xie <yuanchu@google.com>
 ---
 
- include/linux/page_counter.h |    4 ++--
- mm/page_counter.c            |    2 +-
- 2 files changed, 3 insertions(+), 3 deletions(-)
+ include/linux/memcontrol.h |   32 ++++++++++++++++----------------
+ 1 file changed, 16 insertions(+), 16 deletions(-)
 
---- a/include/linux/page_counter.h~mm-page_counter-constify-page_counter_read-and-page_counter_margin
-+++ a/include/linux/page_counter.h
-@@ -63,12 +63,12 @@ static inline void page_counter_init(str
- 	counter->track_failcnt = false;
+--- a/include/linux/memcontrol.h~mm-memcontrol-constify-the-reclaim-protection-helpers
++++ a/include/linux/memcontrol.h
+@@ -570,8 +570,8 @@ static inline bool mem_cgroup_disabled(v
+ 	return !cgroup_subsys_enabled(memory_cgrp_subsys);
  }
  
--static inline unsigned long page_counter_read(struct page_counter *counter)
-+static inline unsigned long page_counter_read(const struct page_counter *counter)
+-static inline void mem_cgroup_protection(struct mem_cgroup *root,
+-					 struct mem_cgroup *memcg,
++static inline void mem_cgroup_protection(const struct mem_cgroup *root,
++					 const struct mem_cgroup *memcg,
+ 					 unsigned long *min,
+ 					 unsigned long *low,
+ 					 unsigned long *usage)
+@@ -625,8 +625,8 @@ static inline void mem_cgroup_protection
+ void mem_cgroup_calculate_protection(struct mem_cgroup *root,
+ 				     struct mem_cgroup *memcg);
+ 
+-static inline bool mem_cgroup_unprotected(struct mem_cgroup *target,
+-					  struct mem_cgroup *memcg)
++static inline bool mem_cgroup_unprotected(const struct mem_cgroup *target,
++					  const struct mem_cgroup *memcg)
  {
- 	return atomic_long_read(&counter->usage);
+ 	/*
+ 	 * The root memcg doesn't account charges, and doesn't support
+@@ -637,8 +637,8 @@ static inline bool mem_cgroup_unprotecte
+ 		memcg == target;
  }
  
--long page_counter_margin(struct page_counter *counter);
-+long page_counter_margin(const struct page_counter *counter);
- void page_counter_cancel(struct page_counter *counter, unsigned long nr_pages);
- void page_counter_charge(struct page_counter *counter, unsigned long nr_pages);
- bool page_counter_try_charge(struct page_counter *counter,
---- a/mm/page_counter.c~mm-page_counter-constify-page_counter_read-and-page_counter_margin
-+++ a/mm/page_counter.c
-@@ -54,7 +54,7 @@ static void propagate_protected_usage(st
-  * Return: The minimum value of max minus usage across @counter and all of
-  * its ancestors. The value may be negative during a concurrent charge.
-  */
--long page_counter_margin(struct page_counter *counter)
-+long page_counter_margin(const struct page_counter *counter)
+-static inline bool mem_cgroup_below_low(struct mem_cgroup *target,
+-					struct mem_cgroup *memcg)
++static inline bool mem_cgroup_below_low(const struct mem_cgroup *target,
++					const struct mem_cgroup *memcg)
  {
- 	long margin = PAGE_COUNTER_MAX;
+ 	if (mem_cgroup_unprotected(target, memcg))
+ 		return false;
+@@ -647,8 +647,8 @@ static inline bool mem_cgroup_below_low(
+ 		page_counter_read(&memcg->memory);
+ }
  
+-static inline bool mem_cgroup_below_min(struct mem_cgroup *target,
+-					struct mem_cgroup *memcg)
++static inline bool mem_cgroup_below_min(const struct mem_cgroup *target,
++					const struct mem_cgroup *memcg)
+ {
+ 	if (mem_cgroup_unprotected(target, memcg))
+ 		return false;
+@@ -1149,8 +1149,8 @@ static inline void memcg_memory_event_mm
+ {
+ }
+ 
+-static inline void mem_cgroup_protection(struct mem_cgroup *root,
+-					 struct mem_cgroup *memcg,
++static inline void mem_cgroup_protection(const struct mem_cgroup *root,
++					 const struct mem_cgroup *memcg,
+ 					 unsigned long *min,
+ 					 unsigned long *low,
+ 					 unsigned long *usage)
+@@ -1163,19 +1163,19 @@ static inline void mem_cgroup_calculate_
+ {
+ }
+ 
+-static inline bool mem_cgroup_unprotected(struct mem_cgroup *target,
+-					  struct mem_cgroup *memcg)
++static inline bool mem_cgroup_unprotected(const struct mem_cgroup *target,
++					  const struct mem_cgroup *memcg)
+ {
+ 	return true;
+ }
+-static inline bool mem_cgroup_below_low(struct mem_cgroup *target,
+-					struct mem_cgroup *memcg)
++static inline bool mem_cgroup_below_low(const struct mem_cgroup *target,
++					const struct mem_cgroup *memcg)
+ {
+ 	return false;
+ }
+ 
+-static inline bool mem_cgroup_below_min(struct mem_cgroup *target,
+-					struct mem_cgroup *memcg)
++static inline bool mem_cgroup_below_min(const struct mem_cgroup *target,
++					const struct mem_cgroup *memcg)
+ {
+ 	return false;
+ }
 _
 
 Patches currently in -mm which might be from tz2294@columbia.edu are
