@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2889E484892
-	for <mm-commits@vger.kernel.org>; Thu, 17 Sep 2026 21:26:07 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 39E97372EE4
+	for <mm-commits@vger.kernel.org>; Thu, 17 Sep 2026 21:26:11 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789680370; cv=none; b=HCUgpYZGoRohqpkv5aFINAEYc1iPX9GLXD7jBgGCTwJ1arN/tqjWUpblnpMi/qN22VkQn+yhX1SWOjLFpJxDY8ObrVsnv8wlXmx4bCSxYy/KaaQfk6ifZJ8YGFu8pecBAZN1EsS2tZilI7bBfneadAUsGMxOZbLwAxTlRh0O0x8=
+	t=1789680374; cv=none; b=FgDtzjmKwAA1fvVDO6nSt1R2pdU6kfCisgEyF79ieM6EI7heK41V6PlJNy8ygxpLcGfTMtU3u1ahFuntUo6OB5aynXGzpczGIHAVcfAnn8tM3jfLbWmmTBSAPfHPdnSHH+xdvXToijAuYQXomjg5PObFWPQ8VSdpPVhsIxyBne8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1789680370; c=relaxed/simple;
-	bh=O7H3uaFlcrQhGtHqfV8XMPMQ/24rNuy4SLHuvW/dXEI=;
-	h=Date:To:From:Subject:Message-Id; b=E6bMrboik9kyKTS3cZleRMnFnRd6TsI2okpNhIdS5edgNaZzO4qKHC0kHV54mBmn1fTufSGVkLeG152SBrmx7mjEMVt0IhtUBnIy18E2EqiQ8vlWlfqRrHPowfLnKWpoakAnXo83kOfbcQdL9JflEBf2UoI59vJeKD0fwHVn560=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ZvyQi4Wx; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1789680374; c=relaxed/simple;
+	bh=yZ60VkI+nt9Ikk7JLxI89KAa5sC7kU0bKCJJJ+Fe3bA=;
+	h=Date:To:From:Subject:Message-Id; b=gNOGQ8RBr/SXZ9xVBFTB13XUeg1EGLrUGoZH/uBU34slCW2BkL38hpk8/0wfIcpkWA9gzGWjXBbxgcdt4b8yspqKxkK0sa4hg7sn1q9DFVX6HomhtDTqvrMEurG1/KBR9jQq92Bu4gF4vt9DsuapgaZ8qFfAfKS2R+i+/UynSPs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=TJv9KgxN; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ZvyQi4Wx"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 986F31F000FF;
-	Thu, 17 Sep 2026 21:26:07 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="TJv9KgxN"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B420A1F000FF;
+	Thu, 17 Sep 2026 21:26:11 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1789680367;
-	bh=PJ8NunglVdZBEdIUQxyHuxHYJbOzM5YWryCUro8S+I4=;
+	d=linux-foundation.org; s=korg; t=1789680371;
+	bh=PEgR9g7OTK1KQl+fzjLXRpgoRQNBX9g83ONVOl/V7bU=;
 	h=Date:To:From:Subject;
-	b=ZvyQi4Wxzel3ZMpuFEMS81/um50DhFkONRDRZIwcV5lgvGCYizS9+PhALrw8RoA3i
-	 mwJwEcelzP0qI1A9UsUNCCZUGtPOfnxag/Z8w3hA7dq4lrvRG6X3huDdvMUt3AqyFE
-	 qlh3Q4kfl3lB0/NzcmEcC3Z4zfm9Q1AD4i1bdefI=
-Date: Thu, 17 Sep 2026 14:26:07 -0700
+	b=TJv9KgxNsz2iGXFi14q8Ru9lGHKsvxWxRgwVyxJNTALHLJMAP2lEvP4/nbf3iNGz1
+	 7hpd4n57uNI7xi4yEMg9xV3oRfgq8L+ylhZWP0JorrZclTG6lWOe+vOx38R7nvaL/P
+	 +j8TyxwLJtTgtRhBYXtYFz4XCFxWZBN9PJD/ic24=
+Date: Thu, 17 Sep 2026 14:26:11 -0700
 To: mm-commits@vger.kernel.org,ljs@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-drop-some-redundant-checks-around-hugetlb-vmas.patch added to mm-unstable branch
-Message-Id: <20260917212607.986F31F000FF@smtp.kernel.org>
+Subject: + mm-madvise-update-is_valid_guard_vma-to-use-vma_can_merge.patch added to mm-unstable branch
+Message-Id: <20260917212611.B420A1F000FF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: drop some redundant checks around hugetlb VMAs
+     Subject: mm/madvise: update is_valid_guard_vma() to use vma_can_merge()
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-drop-some-redundant-checks-around-hugetlb-vmas.patch
+     mm-madvise-update-is_valid_guard_vma-to-use-vma_can_merge.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-drop-some-redundant-checks-around-hugetlb-vmas.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-madvise-update-is_valid_guard_vma-to-use-vma_can_merge.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,30 +59,26 @@ and is updated there most days
 
 ------------------------------------------------------
 From: "Lorenzo Stoakes (ARM)" <ljs@kernel.org>
-Subject: mm: drop some redundant checks around hugetlb VMAs
-Date: Thu, 17 Sep 2026 17:22:38 +0100
+Subject: mm/madvise: update is_valid_guard_vma() to use vma_can_merge()
+Date: Thu, 17 Sep 2026 17:22:39 +0100
 
-Adjust code which inadvertently perform redundant checks on hugetlb VMAs
-and clean them up:
+We currently disallow the installation of lightweight guard regions in
+VMAs whose flags intersect VMA_SPECIAL_FLAGS or VMA_HUGETLB_BIT, or
+VMA_LOCKED_BIT unless allow_locked is set.
 
-* hugetlb VMAs have VMA_DONTEXPAND_BIT set so a VMA_SPECIAL_FLAGS check
-  suffices. (migrate_vma_setup() regains an explicit hugetlb test later in
-  the series, once VMA_SPECIAL_FLAGS is removed.)
+hugetlb VMAs set VMA_DONTEXPAND_BIT so this was already redundant,
+VMA_SPECIAL_FLAGS already sufficed.
 
-* hugetlb VMAs unconditionally set vma->vm_ops, so they are never
-  anonymous.
+However, now that VMA_IO_BIT is only set if VMA_PFNMAP or VMA_MIXEDMAP_BIT
+is set, this check collapses to being the equivalent of !vma_can_merge().
 
-* hugetlb VMAs do not set VMA_PFNMAP_BIT so checking for this is redundant.
-
-While we're here also drop a VM_BUG_ON() which the simplified check above
-makes unreachable, and use the new VMA flag API.
+Update is_valid_guard_vma() to reflect this.
 
 No functional change intended.
 
-Link: https://lore.kernel.org/20260917-b4-mmap-prepare-vma-flag-sanify-v3-29-4583d8a23bca@kernel.org
+Link: https://lore.kernel.org/20260917-b4-mmap-prepare-vma-flag-sanify-v3-30-4583d8a23bca@kernel.org
 Signed-off-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Acked-by: Marc Zyngier <maz@kernel.org>
 Cc: Albert Ou <aou@eecs.berkeley.edu>
 Cc: Alexander Gordeev <agordeev@linux.ibm.com>
 Cc: Alexei Starovoitov <ast@kernel.org>
@@ -145,6 +141,7 @@ Cc: Liam R. Howlett <liam@infradead.org>
 Cc: Maarten Lankhorst <maarten.lankhorst@linux.intel.com>
 Cc: Madhavan Srinivasan <maddy@linux.ibm.com>
 Cc: Marc Rutland <mark.rutland@arm.com>
+Cc: Marc Zyngier <maz@kernel.org>
 Cc: "Masami Hiramatsu (Google)" <mhiramat@kernel.org>
 Cc: Matthew Brost <matthew.brost@intel.com>
 Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
@@ -183,54 +180,44 @@ Cc: Yuanchu Xie <yuanchu@google.com>
 Cc: Zi Yan <ziy@nvidia.com>
 ---
 
- arch/arm64/kvm/mmu.c         |    4 +---
- drivers/gpu/drm/drm_gpusvm.c |    3 +--
- mm/migrate_device.c          |    4 ++--
- 3 files changed, 4 insertions(+), 7 deletions(-)
+ mm/madvise.c |   20 +++++++++++++-------
+ 1 file changed, 13 insertions(+), 7 deletions(-)
 
---- a/arch/arm64/kvm/mmu.c~mm-drop-some-redundant-checks-around-hugetlb-vmas
-+++ a/arch/arm64/kvm/mmu.c
-@@ -1463,14 +1463,12 @@ static int get_vma_page_shift(struct vm_
+--- a/mm/madvise.c~mm-madvise-update-is_valid_guard_vma-to-use-vma_can_merge
++++ a/mm/madvise.c
+@@ -1221,19 +1221,25 @@ static long madvise_remove(struct madvis
+ 	return error;
+ }
+ 
+-static bool is_valid_guard_vma(struct vm_area_struct *vma, bool allow_locked)
++static bool is_valid_guard_vma(const struct vm_area_struct *vma,
++			       bool allow_locked)
  {
- 	unsigned long pa;
- 
--	if (vma_is_hugetlb(vma) && !(vma->vm_flags & VM_PFNMAP))
-+	if (vma_is_hugetlb(vma))
- 		return huge_page_shift(hstate_vma(vma));
- 
- 	if (!(vma->vm_flags & VM_PFNMAP))
- 		return PAGE_SHIFT;
- 
--	VM_BUG_ON(vma_is_hugetlb(vma));
+-	vm_flags_t disallowed = VM_SPECIAL | VM_HUGETLB;
 -
- 	pa = (vma->vm_pgoff << PAGE_SHIFT) + (hva - vma->vm_start);
- 
- #ifndef __PAGETABLE_PMD_FOLDED
---- a/drivers/gpu/drm/drm_gpusvm.c~mm-drop-some-redundant-checks-around-hugetlb-vmas
-+++ a/drivers/gpu/drm/drm_gpusvm.c
-@@ -1141,8 +1141,7 @@ drm_gpusvm_range_find_or_insert(struct d
- 	 * limitations. If/when migrate_vma_* add more support, this logic will
- 	 * have to change.
+ 	/*
+-	 * A user could lock after setting a guard range but that's fine, as
++	 * A user could lock after setting a guard range but that's fine as
+ 	 * they'd not be able to fault in. The issue arises when we try to zap
+ 	 * existing locked VMAs. We don't want to do that.
  	 */
--	migrate_devmem = ctx->devmem_possible &&
--		vma_is_anonymous(vas) && !vma_is_hugetlb(vas);
-+	migrate_devmem = ctx->devmem_possible && vma_is_anonymous(vas);
+-	if (!allow_locked)
+-		disallowed |= VM_LOCKED;
++	if (!allow_locked && vma_test(vma, VMA_LOCKED_BIT))
++		return false;
++	/*
++	 * Guard regions require a VMA whose page tables are managed solely by
++	 * the core, which is also what merging requires, so disallow any flags
++	 * that would prevent a merge.
++	 */
++	if (!vma_can_merge(vma))
++		return false;
  
- 	chunk_size = drm_gpusvm_range_chunk_size(gpusvm, notifier, vas,
- 						 fault_addr, gpuva_start,
---- a/mm/migrate_device.c~mm-drop-some-redundant-checks-around-hugetlb-vmas
-+++ a/mm/migrate_device.c
-@@ -743,8 +743,8 @@ int migrate_vma_setup(struct migrate_vma
+-	return !(vma->vm_flags & disallowed);
++	return true;
+ }
  
- 	args->start &= PAGE_MASK;
- 	args->end &= PAGE_MASK;
--	if (!args->vma || vma_is_hugetlb(args->vma) ||
--	    (args->vma->vm_flags & VM_SPECIAL) || vma_is_dax(args->vma))
-+	if (!args->vma || vma_test_any_mask(args->vma, VMA_SPECIAL_FLAGS) ||
-+	    vma_is_dax(args->vma))
- 		return -EINVAL;
- 	if (nr_pages <= 0)
- 		return -EINVAL;
+ static bool is_guard_pte_marker(pte_t ptent)
 _
 
 Patches currently in -mm which might be from ljs@kernel.org are
