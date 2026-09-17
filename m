@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D0578275870
-	for <mm-commits@vger.kernel.org>; Thu, 17 Sep 2026 05:37:58 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9B2223AAF44
+	for <mm-commits@vger.kernel.org>; Thu, 17 Sep 2026 05:41:49 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789623480; cv=none; b=iNh/UNRHLNXt78Go+nKfT+9zVpXfSVyFI+V1Uf8Ou+9jWB88Ex7rVIehuhPMs5IH//NMJMEwsLz54ZUnew5pwrP+IE+IRDOTicRQ0XmVlxNrzSDpx7VFUMRLahEnZtAKsUfgh/lfxmAUrey/dPfOOP+wxEkeiCBCxoNFdOHhvB0=
+	t=1789623711; cv=none; b=NxbkVgcb+HojDtNQ0/EQdg9M8i8DuNo4oYtMrjhtP7Nc05FQMouc3wAzzp1mgXh1O9OGN0/4QsJaod6x4ojXJSMfXUPmwrjxEPKYX3q4L9T5qd8jbHrzQEOIbx2AlpXHjApUTG5af9MIESIqOjvJT1XTfnd5p2ht9M4AeVlr1uU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1789623480; c=relaxed/simple;
-	bh=PWH9dmYd58JIAqpcVg+cnbL2DO2qVuJO1sJbEcYlP5w=;
-	h=Date:To:From:Subject:Message-Id; b=HezkerVJcuJuo3Exhj3GizTg8pbq6PwiYUaBBy3G70Ba55ZnvmcBa926kzx4+ooTrL5Al9xGPoLA45DP7XgbdFGLQtJ5I+sA+f4ne7SrY7kV3jqg9RYyRZDlSsfrOFGUWG8HUTEMRU4jVEOGzPVnUqWQ/2DpJdwEOSo6VYSuJlg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Nyaywn1T; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1789623711; c=relaxed/simple;
+	bh=7ZGiXBP5nhiMY+fQI2tMwRmKgEhf0YaSLHHQn0kltXA=;
+	h=Date:To:From:Subject:Message-Id; b=iEEynDyi5XGa/h7EYTP2InyTPcvomVgWY5PkLnpMjARTcJ+qaZ4X+RF86K9Ip55CgRBlEW9cl8kRt4PYE7bqcuumqa9bjJ3RiS4I06aYjMGp5/Q5Brg7hPNIjLTWcnA0vQjWsXZhD1XV8x45CjQqFyd7p5tVkTZ/Dr/uwBiqo64=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=yjC7Rv+6; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Nyaywn1T"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 827CF1F00893;
-	Thu, 17 Sep 2026 05:37:58 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="yjC7Rv+6"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 291751F000FF;
+	Thu, 17 Sep 2026 05:41:49 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1789623478;
-	bh=mPCpEv0qmZw2SS+2Md5MBmgpTlUOSephiA3dcn3PjyA=;
+	d=linux-foundation.org; s=korg; t=1789623709;
+	bh=GQ2IrjcXu+Vb7HcS3qOW1HhyGkJpZsvFtDNnvLNAnT0=;
 	h=Date:To:From:Subject;
-	b=Nyaywn1Th7SiZ74qsR/ovbrD53tpMSovJiFp1aPJXuCA3I7TmExz0bDRbuVymSrUf
-	 vDhEaVvYbukeIAqNLOa0O7w8uPtYE6+mNZRrzynL+R/Ejv9/VMPC8yCfsxbszEVwJq
-	 wn6QWMF9I8M2QflbQYLNyvZBpVfrZ22UjotnG3x4=
-Date: Wed, 16 Sep 2026 22:37:58 -0700
-To: mm-commits@vger.kernel.org,zokeefe@google.com,ziy@nvidia.com,shy828301@gmail.com,ryan.roberts@arm.com,ljs@kernel.org,liam@infradead.org,lance.yang@linux.dev,kas@kernel.org,hughd@google.com,dev.jain@arm.com,david@kernel.org,baolin.wang@linux.alibaba.com,baohua@kernel.org,jthoughton@google.com,akpm@linux-foundation.org
+	b=yjC7Rv+6VlNr7lglsuSTiN2yPsjNFeZu8xgo/ksOCj4iWwvW9gvAMBnb0QcBvEBDf
+	 0xgFYzGX7rDuX92n2PfwIyVqjp0GjEpJi7+Bc1h7hFhWlBZQkGeH4BLt5Tjx9B/mZT
+	 faq7ja6m3MNlRlSIWrfaACLyca3JxDzSbJ5eiZbE=
+Date: Wed, 16 Sep 2026 22:41:48 -0700
+To: mm-commits@vger.kernel.org,piaojun@huawei.com,mark@fasheh.com,junxiao.bi@oracle.com,jlbec@evilplan.org,jiangqi903@gmail.com,heming.zhao@suse.com,gechangwei@live.cn,joseph.qi@linux.alibaba.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [to-be-updated] mm-selftests-adjust-the-madv_collapse-uffd-minor-selftests.patch removed from -mm tree
-Message-Id: <20260917053758.827CF1F00893@smtp.kernel.org>
+Subject: [to-be-updated] ocfs2-retain-all-security-xattrs-during-inode-creation.patch removed from -mm tree
+Message-Id: <20260917054149.291751F000FF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,180 +35,341 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: selftests: adjust the MADV_COLLAPSE uffd-minor selftests
+     Subject: ocfs2: retain all security xattrs during inode creation
 has been removed from the -mm tree.  Its filename was
-     mm-selftests-adjust-the-madv_collapse-uffd-minor-selftests.patch
+     ocfs2-retain-all-security-xattrs-during-inode-creation.patch
 
 This patch was dropped because an updated version will be issued
 
 ------------------------------------------------------
-From: James Houghton <jthoughton@google.com>
-Subject: mm: selftests: adjust the MADV_COLLAPSE uffd-minor selftests
-Date: Thu, 10 Sep 2026 02:34:11 +0000
+From: Joseph Qi <joseph.qi@linux.alibaba.com>
+Subject: ocfs2: retain all security xattrs during inode creation
+Date: Wed, 16 Sep 2026 20:02:58 +0800
 
-The behavior of MADV_COLLAPSE with uffd-minor VMAs has changed:
-MADV_COLLAPSE will no longer install PTEs where none existed before. 
-Update the selftest to demonstrate this new behavior.
+When creating a new inode, ocfs2_init_security_get() stores the security
+xattr returned by the LSM framework in ocfs2_security_xattr_info so that
+it can be written later within the same transaction.  But
+ocfs2_initxattrs() only ever looks at the first element of the xattr
+array, and it keeps the name as a bare pointer into memory owned by the
+security layer instead of copying it.  The value, by contrast, is already
+duplicated with kmemdup().
 
-On an unpatched kernel, the test will hit "unexpected memory contents
-after collapse".
+With stacked LSMs, security_inode_init_security() provides one xattr per
+LSM, so all labels but the first are silently dropped and never written to
+disk, leaving newly created files without the security xattrs the other
+LSMs rely on.
 
-If the selftest is left unpatched but the kernel is patched, the selftest
-will SKIP when it gets EINVAL back from MADV_COLLAPSE.
+The borrowed name is not an outright bug with the LSMs in tree today:
+security_inode_init_security() frees only ->value once the callback
+returns, and documents ->name as the attribute name suffix, so the pointer
+stays valid for as long as ocfs2 uses it.  It is fragile though, as an LSM
+that allocates the name together with the value would turn it into a
+use-after-free, so the rework below copies the names as well.
 
-Link: https://lore.kernel.org/20260910023411.514987-2-jthoughton@google.com
-Signed-off-by: James Houghton <jthoughton@google.com>
+Fix this by storing copies of all the security xattrs: allocate an array
+in ocfs2_initxattrs(), copy the names and values, account for all of them
+in the credit calculations, and write each one in
+ocfs2_init_security_set().
+
+While at it, switch the allocations from GFP_KERNEL to GFP_NOFS.  The
+callback runs in the inode creation path with the parent directory locked,
+and the security layer allocates the very same xattr array with GFP_NOFS,
+so direct reclaim must not be allowed to recurse into the filesystem from
+here.
+
+Link: https://lore.kernel.org/20260916120258.3583355-1-joseph.qi@linux.alibaba.com
+Fixes: de3004c874e7 ("ocfs2: Switch to security_inode_init_security()")
+Signed-off-by: Joseph Qi <joseph.qi@linux.alibaba.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: Barry Song <baohua@kernel.org>
-Cc: David Hildenbrand <david@kernel.org>
-Cc: Dev Jain <dev.jain@arm.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Kiryl Shutsemau <kas@kernel.org>
-Cc: Lance Yang <lance.yang@linux.dev>
-Cc: Liam R. Howlett <liam@infradead.org>
-Cc: Lorenzo Stoakes <ljs@kernel.org>
-Cc: Ryan Roberts <ryan.roberts@arm.com>
-Cc: Yang Shi <shy828301@gmail.com>
-Cc: Zach O'Keefe <zokeefe@google.com>
-Cc: Zi Yan <ziy@nvidia.com>
+Reviewed-by: Heming Zhao <heming.zhao@suse.com>
+Cc: Mark Fasheh <mark@fasheh.com>
+Cc: Joel Becker <jlbec@evilplan.org>
+Cc: Junxiao Bi <junxiao.bi@oracle.com>
+Cc: Joseph Qi <jiangqi903@gmail.com>
+Cc: Changwei Ge <gechangwei@live.cn>
+Cc: Jun Piao <piaojun@huawei.com>
 ---
 
- tools/testing/selftests/mm/uffd-unit-tests.c |   75 +++++++++++++++--
- 1 file changed, 68 insertions(+), 7 deletions(-)
+ fs/ocfs2/namei.c |    6 --
+ fs/ocfs2/xattr.c |  122 ++++++++++++++++++++++++++++++++++-----------
+ fs/ocfs2/xattr.h |   12 +++-
+ 3 files changed, 105 insertions(+), 35 deletions(-)
 
---- a/tools/testing/selftests/mm/uffd-unit-tests.c~mm-selftests-adjust-the-madv_collapse-uffd-minor-selftests
-+++ a/tools/testing/selftests/mm/uffd-unit-tests.c
-@@ -518,19 +518,34 @@ static void uffd_wp_fork_pin_with_event_
- 	uffd_wp_fork_pin_test_common(gopts, args, true);
- }
+--- a/fs/ocfs2/namei.c~ocfs2-retain-all-security-xattrs-during-inode-creation
++++ a/fs/ocfs2/namei.c
+@@ -248,7 +248,6 @@ static int ocfs2_mknod(struct mnt_idmap
+ 	int want_meta = 0;
+ 	int xattr_credits = 0;
+ 	struct ocfs2_security_xattr_info si = {
+-		.name = NULL,
+ 		.enable = 1,
+ 	};
+ 	int did_quota_inode = 0;
+@@ -475,7 +474,7 @@ leave:
  
--static void check_memory_contents(uffd_global_test_opts_t *gopts, char *p)
-+static int __check_memory_contents(unsigned long offset,
-+				   unsigned long nr_pages,
-+				   uffd_global_test_opts_t *gopts,
-+				   char *p)
+ 	brelse(new_fe_bh);
+ 	brelse(parent_fe_bh);
+-	kfree(si.value);
++	ocfs2_free_security_xattrs(&si);
+ 
+ 	ocfs2_acl_init_release(&acl_state);
+ 
+@@ -1831,7 +1830,6 @@ static int ocfs2_symlink(struct mnt_idma
+ 	int want_clusters = 0;
+ 	int xattr_credits = 0;
+ 	struct ocfs2_security_xattr_info si = {
+-		.name = NULL,
+ 		.enable = 1,
+ 	};
+ 	int did_quota = 0, did_quota_inode = 0;
+@@ -2063,7 +2061,7 @@ bail:
+ 
+ 	brelse(new_fe_bh);
+ 	brelse(parent_fe_bh);
+-	kfree(si.value);
++	ocfs2_free_security_xattrs(&si);
+ 	ocfs2_free_dir_lookup_result(&lookup);
+ 	if (inode_ac)
+ 		ocfs2_free_alloc_context(inode_ac);
+--- a/fs/ocfs2/xattr.c~ocfs2-retain-all-security-xattrs-during-inode-creation
++++ a/fs/ocfs2/xattr.c
+@@ -643,10 +643,15 @@ int ocfs2_calc_security_init(struct inod
+ 			     int *xattr_credits,
+ 			     struct ocfs2_alloc_context **xattr_ac)
  {
- 	unsigned long i, j;
- 	uint8_t expected_byte;
- 
--	for (i = 0; i < gopts->nr_pages; ++i) {
-+	if (nr_pages + offset < nr_pages)
-+		err("overflow in memory check");
-+	if (nr_pages + offset > gopts->nr_pages)
-+		err("out of bounds memory check");
++	int i;
+ 	int ret = 0;
+ 	struct ocfs2_super *osb = OCFS2_SB(dir->i_sb);
+-	int s_size = ocfs2_xattr_entry_real_size(strlen(si->name),
+-						 si->value_len);
++	int s_size = 0;
 +
-+	for (i = offset; i < offset + nr_pages; ++i) {
- 		expected_byte = ~((uint8_t)(i % ((uint8_t)-1)));
- 		for (j = 0; j < gopts->page_size; j++) {
- 			uint8_t v = *(uint8_t *)(p + (i * gopts->page_size) + j);
- 			if (v != expected_byte)
--				err("unexpected page contents");
-+				return 1;
- 		}
++	for (i = 0; i < si->count; i++)
++		s_size += ocfs2_xattr_entry_real_size(
++				strlen(si->xattrs[i].name),
++				si->xattrs[i].value_len);
+ 
+ 	/*
+ 	 * The max space of security xattr taken inline is
+@@ -664,13 +669,15 @@ int ocfs2_calc_security_init(struct inod
  	}
-+
-+	return 0;
-+}
-+
-+static int check_memory_contents(uffd_global_test_opts_t *gopts, char *p)
-+{
-+	return __check_memory_contents(0, gopts->nr_pages, gopts, p);
- }
  
- static void uffd_minor_test_common(uffd_global_test_opts_t *gopts, bool test_collapse, bool test_wp)
-@@ -539,6 +554,8 @@ static void uffd_minor_test_common(uffd_
- 	pthread_t uffd_mon;
- 	char c = '\0';
- 	struct uffd_args args = { 0 };
-+	unsigned long checked = 0;
-+	bool bad_contents;
- 	args.gopts = gopts;
- 
- 	/*
-@@ -564,24 +581,65 @@ static void uffd_minor_test_common(uffd_
- 	if (pthread_create(&uffd_mon, NULL, uffd_poll_thread, &args))
- 		err("uffd_poll_thread create");
- 
-+	if (test_collapse) {
-+		/*
-+		 * Read just a single page and try collapsing. The collapse
-+		 * should either be rejected or be a no-op.
-+		 */
-+		if (__check_memory_contents(0, 1, gopts, gopts->area_dst_alias))
-+			err("unexpected memory contents before collapse");
+ 	/* reserve clusters for xattr value which will be set in B tree*/
+-	if (si->value_len > OCFS2_XATTR_INLINE_SIZE) {
+-		int new_clusters = ocfs2_clusters_for_bytes(dir->i_sb,
+-							    si->value_len);
+-
+-		*xattr_credits += ocfs2_clusters_to_blocks(dir->i_sb,
+-							   new_clusters);
+-		*want_clusters += new_clusters;
++	for (i = 0; i < si->count; i++) {
++		if (si->xattrs[i].value_len > OCFS2_XATTR_INLINE_SIZE) {
++			int new_clusters = ocfs2_clusters_for_bytes(dir->i_sb,
++						si->xattrs[i].value_len);
 +
-+		/* MADV_COLLAPSE might return EINVAL for uffd-minor VMAs. */
-+		madvise(gopts->area_dst_alias, gopts->nr_pages * gopts->page_size,
-+			MADV_COLLAPSE);
-+		/*
-+		 * If the above collapse mapped pages that were not explicitly
-+		 * CONTINUE'd, the below __check_memory_contents() will not
-+		 * fault on some pages, resulting in incorrect contents. The
-+		 * PTE for the first page may get retracted, so avoid checking
-+		 * that page, as we might take a second fault, flipping the
-+		 * contents a second time.
-+		 */
-+		checked = 1;
-+	}
-+
- 	/*
- 	 * Read each of the pages back using the UFFD-registered mapping. We
- 	 * expect that the first time we touch a page, it will result in a minor
- 	 * fault. uffd_poll_thread will resolve the fault by bit-flipping the
- 	 * page's contents, and then issuing a CONTINUE ioctl.
- 	 */
--	check_memory_contents(gopts, gopts->area_dst_alias);
-+	bad_contents = !!__check_memory_contents(checked, gopts->nr_pages - checked,
-+						    gopts, gopts->area_dst_alias);
- 
- 	if (write(gopts->pipefd[1], &c, sizeof(c)) != sizeof(c))
- 		err("pipe write");
- 	if (pthread_join(uffd_mon, NULL))
- 		err("join() failed");
- 
-+	if (bad_contents && test_collapse) {
-+		uffd_test_fail("unexpected memory contents after collapse");
-+		return;
-+	}
-+
-+	if (bad_contents) {
-+		uffd_test_fail("unexpected memory contents");
-+		return;
-+	}
-+
- 	if (test_collapse) {
-+		/*
-+		 * MADV_COLLAPSE will fail unless userfaultfd-minor is
-+		 * unregistered.
-+		 */
-+		if (uffd_unregister(gopts->uffd, gopts->area_dst_alias,
-+				    gopts->nr_pages * gopts->page_size))
-+			err("uffd_unregister before MADV_COLLAPSE failed");
-+
-+		/* MADV_COLLAPSE should succeed with userfaultfd unregistered. */
- 		if (madvise(gopts->area_dst_alias, gopts->nr_pages * gopts->page_size,
- 			    MADV_COLLAPSE)) {
--			/* It's fine to fail for this one... */
--			uffd_test_skip("MADV_COLLAPSE failed");
-+			uffd_test_fail("MADV_COLLAPSE failed");
- 			return;
- 		}
- 
-@@ -593,7 +651,10 @@ static void uffd_minor_test_common(uffd_
- 		 * This won't cause uffd-fault - it purely just makes sure there
- 		 * was no corruption.
- 		 */
--		check_memory_contents(gopts, gopts->area_dst_alias);
-+		if (check_memory_contents(gopts, gopts->area_dst_alias)) {
-+			uffd_test_fail("unexpected memory contents");
-+			return;
++			*xattr_credits += ocfs2_clusters_to_blocks(dir->i_sb,
++								   new_clusters);
++			*want_clusters += new_clusters;
 +		}
  	}
+ 	return ret;
+ }
+@@ -680,12 +687,16 @@ void ocfs2_calc_xattr_init(struct inode
+ 			   int *want_clusters, int *xattr_credits,
+ 			   int *want_meta, struct ocfs2_acl_state *acl_state)
+ {
++	int i;
+ 	struct ocfs2_super *osb = OCFS2_SB(dir->i_sb);
+ 	int s_size = 0, a_size = 0, acl_len = 0, new_clusters;
  
- 	if (args.missing_faults != 0 || args.minor_faults != gopts->nr_pages)
+-	if (si->enable)
+-		s_size = ocfs2_xattr_entry_real_size(strlen(si->name),
+-						     si->value_len);
++	if (si->enable) {
++		for (i = 0; i < si->count; i++)
++			s_size += ocfs2_xattr_entry_real_size(
++					strlen(si->xattrs[i].name),
++					si->xattrs[i].value_len);
++	}
+ 
+ 	if (osb->s_mount_opt & OCFS2_MOUNT_POSIX_ACL) {
+ 		if (acl_state->default_acl && S_ISDIR(mode)) {
+@@ -732,12 +743,14 @@ void ocfs2_calc_xattr_init(struct inode
+ 	 * reserve credits and clusters for xattrs which has large value
+ 	 * and have to be set outside
+ 	 */
+-	if (si->enable && si->value_len > OCFS2_XATTR_INLINE_SIZE) {
+-		new_clusters = ocfs2_clusters_for_bytes(dir->i_sb,
+-							si->value_len);
+-		*xattr_credits += ocfs2_clusters_to_blocks(dir->i_sb,
+-							   new_clusters);
+-		*want_clusters += new_clusters;
++	for (i = 0; si->enable && i < si->count; i++) {
++		if (si->xattrs[i].value_len > OCFS2_XATTR_INLINE_SIZE) {
++			new_clusters = ocfs2_clusters_for_bytes(dir->i_sb,
++						si->xattrs[i].value_len);
++			*xattr_credits += ocfs2_clusters_to_blocks(dir->i_sb,
++								   new_clusters);
++			*want_clusters += new_clusters;
++		}
+ 	}
+ 	if (osb->s_mount_opt & OCFS2_MOUNT_POSIX_ACL) {
+ 		if (acl_state->default_acl && S_ISDIR(mode)) {
+@@ -7630,17 +7643,46 @@ static int ocfs2_initxattrs(struct inode
+ {
+ 	struct ocfs2_security_xattr_info *si = fs_info;
+ 	const struct xattr *xattr;
++	struct ocfs2_security_xattr *xattrs;
++	int count = 0, i;
+ 	int err = 0;
+ 
+ 	if (si) {
+-		si->value = kmemdup(xattr_array->value, xattr_array->value_len,
+-				    GFP_KERNEL);
+-		if (!si->value)
++		for (xattr = xattr_array; xattr->name != NULL; xattr++)
++			count++;
++
++		xattrs = kcalloc(count, sizeof(*xattrs), GFP_NOFS);
++		if (!xattrs)
+ 			return -ENOMEM;
+ 
+-		si->name = xattr_array->name;
+-		si->value_len = xattr_array->value_len;
++		for (i = 0; i < count; i++) {
++			xattrs[i].name = kstrdup(xattr_array[i].name, GFP_NOFS);
++			if (!xattrs[i].name) {
++				err = -ENOMEM;
++				goto out_err;
++			}
++
++			xattrs[i].value = kmemdup(xattr_array[i].value,
++						  xattr_array[i].value_len,
++						  GFP_NOFS);
++			if (!xattrs[i].value) {
++				err = -ENOMEM;
++				goto out_err;
++			}
++			xattrs[i].value_len = xattr_array[i].value_len;
++		}
++
++		si->xattrs = xattrs;
++		si->count = count;
+ 		return 0;
++
++out_err:
++		for (; i >= 0; i--) {
++			kfree(xattrs[i].name);
++			kfree(xattrs[i].value);
++		}
++		kfree(xattrs);
++		return err;
+ 	}
+ 
+ 	for (xattr = xattr_array; xattr->name != NULL; xattr++) {
+@@ -7653,6 +7695,19 @@ static int ocfs2_initxattrs(struct inode
+ 	return err;
+ }
+ 
++void ocfs2_free_security_xattrs(struct ocfs2_security_xattr_info *si)
++{
++	int i;
++
++	for (i = 0; i < si->count; i++) {
++		kfree(si->xattrs[i].name);
++		kfree(si->xattrs[i].value);
++	}
++	kfree(si->xattrs);
++	si->xattrs = NULL;
++	si->count = 0;
++}
++
+ int ocfs2_init_security_get(struct inode *inode,
+ 			    struct inode *dir,
+ 			    const struct qstr *qstr,
+@@ -7670,7 +7725,7 @@ int ocfs2_init_security_get(struct inode
+ 		 * security_inode_init_security() does not return -EOPNOTSUPP,
+ 		 * we have to check the xattr ourselves.
+ 		 */
+-		if (!ret && !si->name)
++		if (!ret && !si->count)
+ 			si->enable = 0;
+ 
+ 		return ret;
+@@ -7687,10 +7742,21 @@ int ocfs2_init_security_set(handle_t *ha
+ 			    struct ocfs2_alloc_context *xattr_ac,
+ 			    struct ocfs2_alloc_context *data_ac)
+ {
+-	return ocfs2_xattr_set_handle(handle, inode, di_bh,
+-				     OCFS2_XATTR_INDEX_SECURITY,
+-				     si->name, si->value, si->value_len, 0,
+-				     xattr_ac, data_ac);
++	int i;
++	int ret = 0;
++
++	for (i = 0; i < si->count; i++) {
++		ret = ocfs2_xattr_set_handle(handle, inode, di_bh,
++					     OCFS2_XATTR_INDEX_SECURITY,
++					     si->xattrs[i].name,
++					     si->xattrs[i].value,
++					     si->xattrs[i].value_len, 0,
++					     xattr_ac, data_ac);
++		if (ret)
++			break;
++	}
++
++	return ret;
+ }
+ 
+ const struct xattr_handler ocfs2_xattr_security_handler = {
+--- a/fs/ocfs2/xattr.h~ocfs2-retain-all-security-xattrs-during-inode-creation
++++ a/fs/ocfs2/xattr.h
+@@ -20,13 +20,18 @@ enum ocfs2_xattr_type {
+ 	OCFS2_XATTR_MAX
+ };
+ 
+-struct ocfs2_security_xattr_info {
+-	int enable;
+-	const char *name;
++struct ocfs2_security_xattr {
++	char *name;
+ 	void *value;
+ 	size_t value_len;
+ };
+ 
++struct ocfs2_security_xattr_info {
++	int enable;
++	struct ocfs2_security_xattr *xattrs;
++	int count;
++};
++
+ extern const struct xattr_handler ocfs2_xattr_user_handler;
+ extern const struct xattr_handler ocfs2_xattr_trusted_handler;
+ extern const struct xattr_handler ocfs2_xattr_security_handler;
+@@ -49,6 +54,7 @@ int ocfs2_xattr_remove(struct inode *, s
+ int ocfs2_init_security_get(struct inode *, struct inode *,
+ 			    const struct qstr *,
+ 			    struct ocfs2_security_xattr_info *);
++void ocfs2_free_security_xattrs(struct ocfs2_security_xattr_info *);
+ int ocfs2_init_security_set(handle_t *, struct inode *,
+ 			    struct buffer_head *,
+ 			    struct ocfs2_security_xattr_info *,
 _
 
-Patches currently in -mm which might be from jthoughton@google.com are
+Patches currently in -mm which might be from joseph.qi@linux.alibaba.com are
 
+ocfs2-make-ocfs2_calc_xattr_init-return-void.patch
+ocfs2-fix-deadlock-in-inline-data-truncate-transactions.patch
+ocfs2-exit-recovery-thread-on-mount-error-path.patch
+ocfs2-free-replay-slots-in-ocfs2_recovery_exit.patch
+ocfs2-defer-suballocator-block-group-reclaim-to-workqueue.patch
+ocfs2-restrict-ocfs2_invalid_slot-suballoc-slot-to-system-inodes.patch
+ocfs2-validate-suballoc-bit-during-inode-read.patch
+ocfs2-validate-suballoc-slot-and-bit-of-xattr-and-dir-index-blocks.patch
+ocfs2-validate-suballoc-slot-and-bit-of-extent-and-refcount-blocks.patch
+ocfs2-allow-xattr-bucket-entries-to-span-multiple-blocks.patch
+ocfs2-reject-inconsistent-xattr-bucket-during-defrag.patch
+ocfs2-skip-uninitialized-lockres-in-ocfs2_mark_lockres_freeing.patch
+ocfs2-validate-dr_fs_generation-of-dir-index-root-blocks.patch
+ocfs2-validate-dl_blkno-and-dl_fs_generation-of-dir-index-leaf-blocks.patch
 
