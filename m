@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C48483AD524
-	for <mm-commits@vger.kernel.org>; Thu, 17 Sep 2026 21:26:42 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 163D44F7CD3
+	for <mm-commits@vger.kernel.org>; Thu, 17 Sep 2026 21:26:46 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789680404; cv=none; b=nDlVB2e1c5yl1QNpWPFSqM9W/mP2v3fCwWbmCPJwFmo1K1ijSv4GgcEG/VnXUsl5Noro0xXX66EXekM65ELBOtgicaUiOkTNhegQgsCCrKZtZEX6EYMhjFJ1U/9p6HVcsSaIkZIQTUrppgzCu8Ks5uucvKW8nSC+LNn3Gwzwbxg=
+	t=1789680408; cv=none; b=ttUAM+D4bJAF+Zfvf1ZvgG19G8MYWGzv0hOrkmO/QtkRRlv/3kJagV598OFg0Njkdrw1eurlavQBP1eom8sLCvzgp6TZxP4rJLY62MK9EAPjPdBbBD+r2+n0VuFbBeJJ/lPBKExM4Bbqykfg5GAdVGzrE+D6FS+D4UVLpNBV2jc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1789680404; c=relaxed/simple;
-	bh=WOzIZPTr8rON7YPARipZxsXkocwIwBnvpqcTJI5xbgo=;
-	h=Date:To:From:Subject:Message-Id; b=WlgnxTDYpRLjjGGYG0c7UIyiQm0nHi5vKKDpA0UFWTxymbsyUeuqXbPJ28uk2UV2X2z2dVfWbK4D10IvMw/UU0q+WvKMRV0kMd/pPPsG/XgirrU6HOr2B0WhBl/agv8r6m5xsYxgB86rBMrTThJbTaQ1CWacwTagRYu2GWLQkYU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ByR/nEIj; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1789680408; c=relaxed/simple;
+	bh=E8ERfEzvwAorsDUtcrp5NXkjws+TJUdj74z0QmvlyBE=;
+	h=Date:To:From:Subject:Message-Id; b=D+zIWIuzhuq8lt+AovD5Q/7Lh1Zuqrojwn1FrvhdDfe8BcmaC0TAaNKeINVJEx5NsBrZ+6VCmi4Vq6hj5J3qXHP2GV3eKW6aw6PFtgTsirL6Y+HOa+7E8ZzWF4Ij9o6VqSOICB3cFn+vaZzkcXC34nfjnlr8KB/a8tLJ0ggF+XA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=tYLAzu8b; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ByR/nEIj"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8FEDB1F000FF;
-	Thu, 17 Sep 2026 21:26:42 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="tYLAzu8b"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id DF1FA1F000FF;
+	Thu, 17 Sep 2026 21:26:45 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1789680402;
-	bh=ulIDYVQw529eDWVos6yk/FJjrmryhubBSwZzHMAb8a8=;
+	d=linux-foundation.org; s=korg; t=1789680406;
+	bh=Jo+2AAtlMQN0h8Jxq4wA1nVsJ0YNeH87zrcVETiVvEs=;
 	h=Date:To:From:Subject;
-	b=ByR/nEIja2GNiMpzVeuBOIz6zKVj2PrjNu4gE7DnHs6tYjGMml0Bmx8DoHSoljs55
-	 XaQFAgzLFbGEFj6Hehr+iZLdJlJmksF/OuooEhBnMj9o2A38hr6SUyOA8cpXosQnBr
-	 Ptv/V8pDMuW0QL8L1HLDP5fcPaZWax9+08I/ZCik=
-Date: Thu, 17 Sep 2026 14:26:42 -0700
+	b=tYLAzu8bXfqNdhm5go+PZ5KuP+J65/ARgEKNW1TJ9F3eeeGy49VNLM5YnD/dcLkVa
+	 UsXQh0ok9QtD+9U6ol/4SjWRZ4HhQDBpL6tXQJKVyjFl85gCLjLwAPxvfQE3o3oF1u
+	 /8s6q+cQIPNu27UjY1+05bzpppOG2d39MeYZOx1U=
+Date: Thu, 17 Sep 2026 14:26:45 -0700
 To: mm-commits@vger.kernel.org,ljs@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-huge_memory-remove-vma_is_special_huge.patch added to mm-unstable branch
-Message-Id: <20260917212642.8FEDB1F000FF@smtp.kernel.org>
+Subject: + mm-vma-introduce-and-use-vma_can_gup.patch added to mm-unstable branch
+Message-Id: <20260917212645.DF1FA1F000FF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/huge_memory: remove vma_is_special_huge()
+     Subject: mm/vma: introduce and use vma[_flags]_can_gup()
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-huge_memory-remove-vma_is_special_huge.patch
+     mm-vma-introduce-and-use-vma_can_gup.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-huge_memory-remove-vma_is_special_huge.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vma-introduce-and-use-vma_can_gup.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,25 +59,25 @@ and is updated there most days
 
 ------------------------------------------------------
 From: "Lorenzo Stoakes (ARM)" <ljs@kernel.org>
-Subject: mm/huge_memory: remove vma_is_special_huge()
-Date: Thu, 17 Sep 2026 17:22:48 +0100
+Subject: mm/vma: introduce and use vma[_flags]_can_gup()
+Date: Thu, 17 Sep 2026 17:22:49 +0100
 
-vma_is_special_huge() tests whether either the VMA_PFNMAP_BIT or
-VMA_MIXEDMAP_BIT is set (i.e.  whether the VMA is a kernel-owned mapping),
-but with a DAX carve-out.
+GUP cannot be used for VMAs which set VMA_IO_BIT - because memory-mapped
+I/O must not be accessed on the user's behalf - or VMA_PFNMAP_BIT -
+because PFN maps have no folios which the kernel is permitted to access.
 
-DAX however no longer sets VMA_MIXEDMAP_BIT, so this carve-out is no
-longer required.
+Rather than keeping these checks open-coded, abstract them to
+vma_flags_can_gup() and its VMA wrapper vma_can_gup().
 
-Therefore test for vma_is_kernel_owned() instead and also drop the
-VMA_IO_BIT check, as it is now redundant since it is enforced that only
-kernel-owned mappings can set this flag.
+A number of other places make the same check to decide whether a mapping
+can be populated or accessed as GUP would, so update those too.
 
-This also eliminates another overloaded use of 'special' within mm.
+While here, drop a reference to 'special' and replace a use of the
+deprecated VMA flags API in vma_dump_size().
 
 No functional change intended.
 
-Link: https://lore.kernel.org/20260917-b4-mmap-prepare-vma-flag-sanify-v3-39-4583d8a23bca@kernel.org
+Link: https://lore.kernel.org/20260917-b4-mmap-prepare-vma-flag-sanify-v3-40-4583d8a23bca@kernel.org
 Signed-off-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 Cc: Albert Ou <aou@eecs.berkeley.edu>
@@ -181,64 +181,158 @@ Cc: Yuanchu Xie <yuanchu@google.com>
 Cc: Zi Yan <ziy@nvidia.com>
 ---
 
- mm/huge_memory.c |   18 ++++--------------
- 1 file changed, 4 insertions(+), 14 deletions(-)
+ fs/coredump.c      |    4 ++--
+ include/linux/mm.h |   29 +++++++++++++++++++++++++++++
+ mm/gup.c           |    7 +++----
+ mm/hmm.c           |    3 +--
+ mm/memory.c        |   14 ++++++++------
+ mm/mempolicy.c     |    3 ++-
+ 6 files changed, 45 insertions(+), 15 deletions(-)
 
---- a/mm/huge_memory.c~mm-huge_memory-remove-vma_is_special_huge
-+++ a/mm/huge_memory.c
-@@ -110,14 +110,6 @@ static inline bool file_thp_enabled(cons
- 	return S_ISREG(inode->i_mode);
+--- a/fs/coredump.c~mm-vma-introduce-and-use-vma_can_gup
++++ a/fs/coredump.c
+@@ -1616,8 +1616,8 @@ static unsigned long vma_dump_size(struc
+ 		return 0;
+ 	}
+ 
+-	/* Do not dump I/O mapped devices or special mappings */
+-	if (vma->vm_flags & VM_IO)
++	/* Do not dump memory-mapped I/O, which may have side effects on read. */
++	if (vma_test(vma, VMA_IO_BIT))
+ 		return 0;
+ 
+ 	/* By default, dump shared memory if mapped from an anonymous file. */
+--- a/include/linux/mm.h~mm-vma-introduce-and-use-vma_can_gup
++++ a/include/linux/mm.h
+@@ -1778,6 +1778,35 @@ static inline bool vma_is_persistent(con
  }
  
--/* If returns true, we are unable to access the VMA's folios. */
--static bool vma_is_special_huge(const struct vm_area_struct *vma)
--{
--	if (vma_is_dax(vma))
--		return false;
--	return vma_test_any(vma, VMA_PFNMAP_BIT, VMA_MIXEDMAP_BIT);
--}
--
- static bool vma_file_bypass_thp_tuneables(const struct vm_area_struct *vma,
- 		enum tva_type type)
- {
-@@ -192,7 +184,7 @@ unsigned long __thp_vma_allowable_orders
- 	/* Check the intersection of requested and supported orders. */
- 	if (vma_is_anonymous(vma))
- 		supported_orders = THP_ORDERS_ALL_ANON;
--	else if (vma_is_dax(vma) || vma_is_special_huge(vma))
-+	else if (vma_is_dax(vma) || vma_is_kernel_owned(vma))
- 		supported_orders = THP_ORDERS_ALL_SPECIAL_DAX;
- 	else
- 		supported_orders = THP_ORDERS_ALL_FILE_DEFAULT;
-@@ -3066,7 +3058,7 @@ int zap_huge_pud(struct mmu_gather *tlb,
- 	orig_pud = pudp_huge_get_and_clear_full(vma, addr, pud, tlb->fullmm);
- 	arch_check_zapped_pud(vma, orig_pud);
- 	tlb_remove_pud_tlb_entry(tlb, pud, addr);
--	if (vma_is_special_huge(vma)) {
-+	if (vma_is_kernel_owned(vma)) {
- 		spin_unlock(ptl);
- 		/* No zero page support yet */
- 	} else {
-@@ -3222,7 +3214,7 @@ static void __split_huge_pmd_locked(stru
+ /**
++ * vma_flags_can_gup() - Do the specified VMA flags permit GUP to access the
++ * mapping's pages?
++ * @flags: The VMA flags to test.
++ *
++ * GUP cannot obtain pages from a PFN map (VMA_PFNMAP_BIT), which may have no
++ * struct pages behind it, and must not provide access to memory-mapped I/O
++ * (VMA_IO_BIT).
++ *
++ * Returns: true if GUP may access pages from the mapping, otherwise false.
++ */
++static inline bool vma_flags_can_gup(const vma_flags_t *flags)
++{
++	return !vma_flags_test_any(flags, VMA_IO_BIT, VMA_PFNMAP_BIT);
++}
++
++/**
++ * vma_can_gup() - May GUP obtain pages from @vma?
++ * @vma: The VMA to test.
++ *
++ * See vma_flags_can_gup() for details.
++ *
++ * Returns: true if GUP may access pages from the mapping, otherwise false.
++ */
++static inline bool vma_can_gup(const struct vm_area_struct *vma)
++{
++	return vma_flags_can_gup(&vma->flags);
++}
++
++/**
+  * vma_kernel_pagesize - Default page size granularity for this VMA.
+  * @vma: The user mapping.
+  *
+--- a/mm/gup.c~mm-vma-introduce-and-use-vma_can_gup
++++ a/mm/gup.c
+@@ -1204,7 +1204,7 @@ static int check_vma_flags(struct vm_are
+ 	int foreign = (gup_flags & FOLL_REMOTE);
+ 	bool vma_anon = vma_is_anonymous(vma);
+ 
+-	if (vm_flags & (VM_IO | VM_PFNMAP))
++	if (!vma_can_gup(vma))
+ 		return -EFAULT;
+ 
+ 	if ((gup_flags & FOLL_ANON) && !vma_anon)
+@@ -1955,7 +1955,7 @@ int __mm_populate(unsigned long start, u
+ 		 * range with the first VMA. Also, skip undesirable VMA types.
  		 */
- 		if (arch_needs_pgtable_deposit())
- 			zap_deposited_table(mm, pmd);
--		if (vma_is_special_huge(vma))
-+		if (vma_is_kernel_owned(vma))
- 			return;
- 		if (unlikely(pmd_is_migration_entry(old_pmd))) {
- 			const softleaf_t old_entry = softleaf_from_pmd(old_pmd);
-@@ -4790,9 +4782,7 @@ static inline bool vma_not_suitable_for_
+ 		nend = min(end, vma->vm_end);
+-		if (vma->vm_flags & (VM_IO | VM_PFNMAP))
++		if (!vma_can_gup(vma))
+ 			continue;
+ 		if (nstart < vma->vm_start)
+ 			nstart = vma->vm_start;
+@@ -2017,8 +2017,7 @@ static long __get_user_pages_locked(stru
+ 			break;
+ 
+ 		/* protect what we can, including chardevs */
+-		if ((vma->vm_flags & (VM_IO | VM_PFNMAP)) ||
+-		    !(vm_flags & vma->vm_flags))
++		if (!vma_can_gup(vma) || !(vm_flags & vma->vm_flags))
+ 			break;
+ 
+ 		if (pages) {
+--- a/mm/hmm.c~mm-vma-introduce-and-use-vma_can_gup
++++ a/mm/hmm.c
+@@ -595,8 +595,7 @@ static int hmm_vma_walk_test(unsigned lo
+ 	struct hmm_range *range = hmm_vma_walk->range;
+ 	struct vm_area_struct *vma = walk->vma;
+ 
+-	if (!(vma->vm_flags & (VM_IO | VM_PFNMAP)) &&
+-	    vma->vm_flags & VM_READ)
++	if (vma_can_gup(vma) && vma_test(vma, VMA_READ_BIT))
+ 		return 0;
+ 
+ 	/*
+--- a/mm/memory.c~mm-vma-introduce-and-use-vma_can_gup
++++ a/mm/memory.c
+@@ -2417,11 +2417,11 @@ static bool vm_mixed_zeropage_allowed(st
+ 	 * be problematic as soon as the zeropage gets replaced by a different
+ 	 * page due to vma->vm_ops->pfn_mkwrite, because what's mapped would
+ 	 * now differ to what GUP looked up. FSDAX is incompatible to
+-	 * FOLL_LONGTERM and VM_IO is incompatible to GUP completely (see
+-	 * check_vma_flags).
++	 * FOLL_LONGTERM and memory-mapped I/O is incompatible to GUP completely
++	 * (see vma_can_gup()).
+ 	 */
+ 	return vma->vm_ops && vma->vm_ops->pfn_mkwrite &&
+-	       (vma_is_fsdax(vma) || vma->vm_flags & VM_IO);
++	       (vma_is_fsdax(vma) || vma_test(vma, VMA_IO_BIT));
+ }
+ 
+ static int validate_page_before_insert(struct vm_area_struct *vma,
+@@ -7116,7 +7116,8 @@ int follow_pfnmap_start(struct follow_pf
+ 	if (unlikely(address < vma->vm_start || address >= vma->vm_end))
+ 		goto out;
+ 
+-	if (!(vma->vm_flags & (VM_IO | VM_PFNMAP)))
++	/* Only mappings GUP cannot handle are followed here. */
++	if (vma_can_gup(vma))
+ 		goto out;
+ retry:
+ 	pgdp = pgd_offset(mm, address);
+@@ -7316,8 +7317,9 @@ static int __access_remote_vm(struct mm_
+ 			}
+ 
+ 			/*
+-			 * Check if this is a VM_IO | VM_PFNMAP VMA, which
+-			 * we can access using slightly different code.
++			 * GUP failed, perhaps because this is a mapping it
++			 * cannot handle (see vma_can_gup()) - such mappings may
++			 * provide access via vm_ops->access() instead.
+ 			 */
+ 			bytes = 0;
+ #ifdef CONFIG_HAVE_IOREMAP_PROT
+--- a/mm/mempolicy.c~mm-vma-introduce-and-use-vma_can_gup
++++ a/mm/mempolicy.c
+@@ -2013,7 +2013,8 @@ SYSCALL_DEFINE5(get_mempolicy, int __use
+ 
+ bool vma_migratable(struct vm_area_struct *vma)
  {
- 	if (vma_is_dax(vma))
- 		return true;
--	if (vma_is_special_huge(vma))
--		return true;
--	if (vma_test(vma, VMA_IO_BIT))
-+	if (vma_is_kernel_owned(vma))
- 		return true;
- 	if (vma_is_hugetlb(vma))
- 		return true;
+-	if (vma->vm_flags & (VM_IO | VM_PFNMAP))
++	/* Pages which GUP cannot obtain cannot be migrated either. */
++	if (!vma_can_gup(vma))
+ 		return false;
+ 
+ 	/*
 _
 
 Patches currently in -mm which might be from ljs@kernel.org are
