@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5D4E923394A
-	for <mm-commits@vger.kernel.org>; Thu, 17 Sep 2026 21:58:02 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4ADC8417BE5
+	for <mm-commits@vger.kernel.org>; Thu, 17 Sep 2026 21:58:05 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789682285; cv=none; b=imgRiO1kvhCCgPwg1AHeOz/OVTXRlskpfGGEjIuIqzN3SJgDIVgbtFM4gndRL9xFKWu98TaTSboorck0ICeA5oD7ctcY2mRtq0vbjACvMaRgwE8SDRGvCkoSlIUz/8tWD6tDCy3RiXzQqd4b3yG6PeFXwzLwDtNyjh6D9Vii7+g=
+	t=1789682287; cv=none; b=d8rWzy6H77lByZ+3llIuQ70hfFJcu8Vajd3TPV1/ewdl/a0U2BEl41EySvxHm7nY/CPidLCRpfr+zHl08xyzDRDTNvyCcgPgA3O4b40ZJ/EZsxQX+ECzaYcztZ/+0pE7YySux7L6sWdDcC+MnHmJFz4s3Gpffu1YZKjrR6u0JeQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1789682285; c=relaxed/simple;
-	bh=UGBsg7PCvtj495shZxuhko4zWRX1i5vsx9IfwGZkViY=;
-	h=Date:To:From:Subject:Message-Id; b=R3P9tPUIJE9RhAl5Ida+3zeA2uhPHYImHYvlMF8SSnU8xgmfSs6DPUmcS6/3BqClvjP6/dF9ClW7Pgli02zybWBQr3gV0y7IE68ZoyQptebuzhGxeG+iKbtGlvmCMazfj+7U/pZ9XuoYyzO+xSxSK1HIFbNeV0e7YRIVrrTeHN0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=oZEAuFsp; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1789682287; c=relaxed/simple;
+	bh=eMhXO2MN8Ed/4wbdpohDLwcOAYoPKduTWznFAf4HLPE=;
+	h=Date:To:From:Subject:Message-Id; b=N9Vvqy2D1oFI4LphqWbyByjLeqatSX0EwrwLKlZ6Vl9sR/CnM4xAUSN1zhD092Ev3qFxVY9FAU6+sxVu3ZOmPufmLio5221IvKWHq3ThdqSREtLa/9wBo89OcTnaMzebWPpXso2vCtjWYheB3QzI+ljPN060qOMzUEJNttymZ1M=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=a80h5nJC; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="oZEAuFsp"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C2D291F00893;
-	Thu, 17 Sep 2026 21:58:02 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="a80h5nJC"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D14BD1F00898;
+	Thu, 17 Sep 2026 21:58:04 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1789682282;
-	bh=eHOpHTliZq8dQq9nrfm3AQuDo8awotsas2y5t+UDLeA=;
+	d=linux-foundation.org; s=korg; t=1789682284;
+	bh=CtGZJ78Zj7rc2tQdawpKZVEjB/E/OPd34FngQrzBq/M=;
 	h=Date:To:From:Subject;
-	b=oZEAuFsptiBRzjMXhu71L58/lL+e8mWN/nzmAw0GFlvDKpGGeynUT5XiYaaid5DPH
-	 rmfCKgl2zCAYrqImIaV9Bb6PvUDNejgUyXD+7c5mwt7Z738h2e/Y0B/sp93/uJSCEE
-	 2afXZAf4bly6Yr7RZS+W9cXYW+pRM98QXEBKgEkQ=
-Date: Thu, 17 Sep 2026 14:58:02 -0700
+	b=a80h5nJCW5VavT+uS7Myd1a3e4tQZAszGUVlQ725ll4gLhJIMnZ47e0wpWozhNfoe
+	 OyetsjA3/fw1TUhJ1VYampppxdMPbG3bhvHqovVEFSZjlqLKMfdhimVYhlUNHK1Hj7
+	 wKAtrfWBQt9AKA0kb+FR5RbBMIrQw4zISmHIBYN8=
+Date: Thu, 17 Sep 2026 14:58:04 -0700
 To: mm-commits@vger.kernel.org,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-damon-core-set-damon_ctx-walk_control_obsolete-in-damon_new_ctx.patch added to mm-new branch
-Message-Id: <20260917215802.C2D291F00893@smtp.kernel.org>
+Subject: + mm-damon-core-document-damon_call-damon_start-race-hang-issue.patch added to mm-new branch
+Message-Id: <20260917215804.D14BD1F00898@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/damon/core: set damon_ctx->walk_control_obsolete in damon_new_ctx()
+     Subject: mm/damon/core: document damon_call()/damon_start() race hang issue
 has been added to the -mm mm-new branch.  Its filename is
-     mm-damon-core-set-damon_ctx-walk_control_obsolete-in-damon_new_ctx.patch
+     mm-damon-core-document-damon_call-damon_start-race-hang-issue.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-core-set-damon_ctx-walk_control_obsolete-in-damon_new_ctx.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-core-document-damon_call-damon_start-race-hang-issue.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,28 +70,19 @@ and is updated there most days
 
 ------------------------------------------------------
 From: SJ Park <sj@kernel.org>
-Subject: mm/damon/core: set damon_ctx->walk_control_obsolete in damon_new_ctx()
-Date: Thu, 17 Sep 2026 07:22:02 -0700
+Subject: mm/damon/core: document damon_call()/damon_start() race hang issue
+Date: Thu, 17 Sep 2026 07:22:03 -0700
 
-damos_walk() should be called for a damon_ctx context that has
-successfully started at least once.  That's because
-damon_ctx->walk_control_obsolete is initialized when kdamond starts.  If
-the rule is violated, an indefinite wait can happen.  There is no
-existing violation of the rule.
+Let's suppose damon_start() and damon_call() are executed in parallel
+for the same DAMON context.  Then, damon_call() could show
+ctx->damon_calls_obsolete set while ctx->kdamond is unset.  If
+damon_start() sets ctx->kdamond before damon_call() starts the
+cancelling, damon_call() can indefinitely hang.  No DAMON API caller
+does such parallel execution of damon_start() and damon_call(), so the
+issue doesn't exist.  But who knows what will happen in future.  Add a
+clarification comment for caution.
 
-damon_call() had a similar rule, and it turned out keeping the rule is
-not easy for damon_call()'s case.  Hence, commit 8023b5f47e09
-("mm/damon/core: set ctx->call_controls_obsolete in damon_new_ctx()")
-added the initialization in damon_new_ctx() and removed the rule.
-
-Keeping the rule for damos_walk() is relatively easier.  But having
-slightly different rules for similar functions could be confusing.
-Sashiko, for example, repeatedly asked questions about this.  Do the
-initialization of walk_control_obsolete in damon_new_ctx() for
-consistency.
-
-Link: https://lore.kernel.org/20260917142210.90829-5-sj@kernel.org
-Link: https://lore.kernel.org/20260915011614.102342-1-sj@kernel.org [1]
+Link: https://lore.kernel.org/20260917142210.90829-6-sj@kernel.org
 Signed-off-by: SJ Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 Cc: Asier Gutierrez <gutierrez.asier@huawei-partners.com>
@@ -109,30 +100,21 @@ Cc: Suren Baghdasaryan <surenb@google.com>
 Cc: Vlastimil Babka <vbabka@kernel.org>
 ---
 
- mm/damon/core.c |    5 +----
- 1 file changed, 1 insertion(+), 4 deletions(-)
+ mm/damon/core.c |    3 +++
+ 1 file changed, 3 insertions(+)
 
---- a/mm/damon/core.c~mm-damon-core-set-damon_ctx-walk_control_obsolete-in-damon_new_ctx
+--- a/mm/damon/core.c~mm-damon-core-document-damon_call-damon_start-race-hang-issue
 +++ a/mm/damon/core.c
-@@ -939,6 +939,7 @@ struct damon_ctx *damon_new_ctx(void)
- 	INIT_LIST_HEAD(&ctx->schemes);
- 
- 	ctx->call_controls_obsolete = true;
-+	ctx->walk_control_obsolete = true;
- 	prandom_seed_state(&ctx->rnd_state, get_random_u64());
- 
- 	return ctx;
-@@ -2308,10 +2309,6 @@ canceled:
-  * passed at least one &damos->apply_interval_us, kdamond marks the request as
-  * completed so that damos_walk() can wakeup and return.
+@@ -2258,6 +2258,9 @@ int damon_kdamond_pid(struct damon_ctx *
   *
-- * Note that this function should be called only after damon_start() with the
-- * @ctx has succeeded.  Otherwise, this function could fall into an indefinite
-- * wait.
-- *
+  * When this function is failed, the @ctx is guaranteed to be stopped.
+  *
++ * This function should not be called in parallel to damon_start() for the
++ * @ctx.  In the case, this function could indefinitely hang.
++ *
   * Return: 0 on success, negative error code otherwise.
   */
- int damos_walk(struct damon_ctx *ctx, struct damos_walk_control *control)
+ int damon_call(struct damon_ctx *ctx, struct damon_call_control *control)
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
