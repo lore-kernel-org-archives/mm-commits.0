@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8230848F83A
-	for <mm-commits@vger.kernel.org>; Thu, 17 Sep 2026 21:24:03 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D57574E533D
+	for <mm-commits@vger.kernel.org>; Thu, 17 Sep 2026 21:24:06 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789680245; cv=none; b=UW5o18FSc5tavFyzB7IKBo3k7bVbzWNX1jPCiCVwTaTX4ngYlUqNX46Gdlo2IYgA+X7UD/Do2aYzhMaEIRhO+bFiZ23TdxGBG1x5bSoeladCTK8tZJWoHdrY8UGap5XjNOjMGRKzSqJjR+OJX8u0d6GOvZX26DaAe+B+xLy9a5w=
+	t=1789680248; cv=none; b=dDdbrWXn19g5VgLxEN/K4QryjWEcKx0AFQ5h6jG4+baUvY/AWCIFQF4cBoPBwkgeu44e55GjFNIBOyIqDs1yHT9X9bMF11zUo5lBJvbxocF2dArwnrRhXWL3YrsqgkdCJ4DXu24nrVmvrDbbfIIlHM1WBXWJiN8tpGIDMDUEp0M=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1789680245; c=relaxed/simple;
-	bh=YO6jgy1pWxDfRvDmtVLBl+8TA6Y5xuX/NDGIoECBYXo=;
-	h=Date:To:From:Subject:Message-Id; b=Y6wrSOpgM7bllsRAmFRlx4tSHbtHLy9WHakZN/94sigN0NC9q/HzV/gjKx6uMKUmdR5vIhc3PCLm+u/IPUijJ0z8vexb+fADxEZeti8fuRgxTYk1UO98ScwFvjYK2+RD+3oz8EgkCmf0vKEjgsIRJ6nzWbOIWoLAqH5ODNmt+10=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=o4JjbHl5; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1789680248; c=relaxed/simple;
+	bh=Jqc5qgEFdWOFoKNHPJ6tK/HFVkzTQFt7w7oXBjbJcaE=;
+	h=Date:To:From:Subject:Message-Id; b=NOSHeOytcNXpjKDIfIxqJOTl1T/+4GHFWnkry1VaMdI7iKVTpoWsYLZs9nGqNoe846xSwhZ04SjfpTN00F+gHa5dMeJx7ON0P8StYdnA9a84NzLXZdkMEKpYPjAj8La3tFTzvTKHAmThTAym+8Qe0wN5mYVaQ9i/icFSAbh+008=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=tD8ALGOI; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="o4JjbHl5"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 267D51F000FF;
-	Thu, 17 Sep 2026 21:24:03 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="tD8ALGOI"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5E0391F000FF;
+	Thu, 17 Sep 2026 21:24:06 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1789680243;
-	bh=fYezD0bsLOJWqXbUdXNgRo1Y4R7FGwjP19gOX3cMzmM=;
+	d=linux-foundation.org; s=korg; t=1789680246;
+	bh=q2sSpH4jOrcUUe/aY/K7Vcnqc9Z1remIWbSvbyYos2w=;
 	h=Date:To:From:Subject;
-	b=o4JjbHl5tXkhz1qhWpmIREXyMQBQK6oNuppQsN3LTEcSvXBo+aEoiXeblniC9rnH9
-	 oBOgu7NLEA9M0ZoqUHvAi65ikPXk5oCPlgbJ32q3WN2WTra/gh1WmLu8JsVVdHbya+
-	 6jaYizEtxrN8gcj6G92rNW5y+7Hrx13zCTFv7I7c=
-Date: Thu, 17 Sep 2026 14:24:02 -0700
+	b=tD8ALGOIWZCblVMVn/R93FRdwgWBKGqE8IyFFyjJWNlRfgTVCK845gcIYWJ0CeX8L
+	 rKLYiaY10/FgdSYENFkkojnhtLJYblfY8qExS0/8ho0byEgX0rdeGtTwyyIFTV8WAM
+	 NevX9m37wk863+ASnIs3AoEtuX+xloqGobgj0JFA=
+Date: Thu, 17 Sep 2026 14:24:05 -0700
 To: mm-commits@vger.kernel.org,ljs@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-vma-predicate-setting-mmap_prepare-vma-fields-on-new-vma-alloc.patch added to mm-unstable branch
-Message-Id: <20260917212403.267D51F000FF@smtp.kernel.org>
+Subject: + mm-vma-introduce-and-use-vma_can_merge.patch added to mm-unstable branch
+Message-Id: <20260917212406.5E0391F000FF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/vma: predicate setting mmap_prepare VMA fields on new vma alloc
+     Subject: mm/vma: introduce and use vma_[flags_]can_merge()
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-vma-predicate-setting-mmap_prepare-vma-fields-on-new-vma-alloc.patch
+     mm-vma-introduce-and-use-vma_can_merge.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vma-predicate-setting-mmap_prepare-vma-fields-on-new-vma-alloc.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vma-introduce-and-use-vma_can_merge.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,24 +59,24 @@ and is updated there most days
 
 ------------------------------------------------------
 From: "Lorenzo Stoakes (ARM)" <ljs@kernel.org>
-Subject: mm/vma: predicate setting mmap_prepare VMA fields on new vma alloc
-Date: Thu, 17 Sep 2026 17:22:11 +0100
+Subject: mm/vma: introduce and use vma_[flags_]can_merge()
+Date: Thu, 17 Sep 2026 17:22:12 +0100
 
-It only makes sense to manipulate VMA fields if we allocated a new VMA,
-rather than merged it.
+Replace the open-coded VMA_SPECIAL_FLAGS check in the VMA merge logic with
+two new functions vma_flags_can_merge() and vma_can_merge() and update the
+merge logic to use the former.
 
-VMA merging does not compare vm_ops or vm_private_data, so a merged VMA
-keeps its own, which is also what the legacy f_op->mmap path does since it
-never touches an existing VMA.  Previously set_vma_user_defined_fields()
-overwrote the merged VMA's fields with those set for the new mapping.  In
-practice these are the same values, with rare exceptions such as shmem
-selecting vm_ops based on whether the file has been unlinked, so no
-user-visible change is expected.
+This abstracts the check and expresses it in terms of the desired
+behaviour rather than an arbitrary and confusing VMA flag.
 
-Make this dependency explicit, and additionally constify have_mmap_prepare
-while we're here.
+This also lays the groundwork for making further improvements in VMA flag
+usage.
 
-Link: https://lore.kernel.org/20260917-b4-mmap-prepare-vma-flag-sanify-v3-2-4583d8a23bca@kernel.org
+Also update the userland VMA tests to reflect the change.
+
+No functional change intended.
+
+Link: https://lore.kernel.org/20260917-b4-mmap-prepare-vma-flag-sanify-v3-3-4583d8a23bca@kernel.org
 Signed-off-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 Cc: Albert Ou <aou@eecs.berkeley.edu>
@@ -180,29 +180,89 @@ Cc: Yuanchu Xie <yuanchu@google.com>
 Cc: Zi Yan <ziy@nvidia.com>
 ---
 
- mm/vma.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ include/linux/mm.h              |   21 +++++++++++++++++++++
+ mm/vma.c                        |   19 +++++++++++--------
+ tools/testing/vma/include/dup.h |    5 +++++
+ 3 files changed, 37 insertions(+), 8 deletions(-)
 
---- a/mm/vma.c~mm-vma-predicate-setting-mmap_prepare-vma-fields-on-new-vma-alloc
+--- a/include/linux/mm.h~mm-vma-introduce-and-use-vma_can_merge
++++ a/include/linux/mm.h
+@@ -1613,6 +1613,27 @@ static inline bool vma_is_shared_maywrit
+ }
+ 
+ /**
++ * vma_flags_can_merge() - Do the specified VMA flags permit the VMA to be
++ * merged with another?
++ * @flags: The VMA flags to test.
++ * Returns: true if the flags permit merging, false otherwise.
++ */
++static inline bool vma_flags_can_merge(const vma_flags_t *flags)
++{
++	return !vma_flags_test_any_mask(flags, VMA_SPECIAL_FLAGS);
++}
++
++/**
++ * vma_can_merge() - Do @vma's flags permit it to be merged with another VMA?
++ * @vma: The VMA to test.
++ * Returns: true if the flags permit merging, otherwise false.
++ */
++static inline bool vma_can_merge(const struct vm_area_struct *vma)
++{
++	return vma_flags_can_merge(&vma->flags);
++}
++
++/**
+  * vma_kernel_pagesize - Default page size granularity for this VMA.
+  * @vma: The user mapping.
+  *
+--- a/mm/vma.c~mm-vma-introduce-and-use-vma_can_merge
 +++ a/mm/vma.c
-@@ -2894,7 +2894,7 @@ static unsigned long __mmap_region(struc
+@@ -924,13 +924,14 @@ static __must_check struct vm_area_struc
+ 
+ 	vmg->state = VMA_MERGE_NOMERGE;
+ 
++	if (!vma_flags_can_merge(&vmg->vma_flags))
++		return NULL;
+ 	/*
+-	 * If a special mapping or if the range being modified is neither at the
+-	 * furthermost left or right side of the VMA, then we have no chance of
+-	 * merging and should abort.
++	 * If the range being modified is neither at the furthermost left or
++	 * right side of the VMA, then we have no chance of merging and should
++	 * abort.
+ 	 */
+-	if (vma_flags_test_any_mask(&vmg->vma_flags, VMA_SPECIAL_FLAGS) ||
+-	    (!left_side && !right_side))
++	if (!left_side && !right_side)
+ 		return NULL;
+ 
+ 	if (left_side)
+@@ -1152,9 +1153,11 @@ struct vm_area_struct *vma_merge_new_ran
+ 
+ 	vmg->state = VMA_MERGE_NOMERGE;
+ 
+-	/* Special VMAs are unmergeable, also if no prev/next. */
+-	if (vma_flags_test_any_mask(&vmg->vma_flags, VMA_SPECIAL_FLAGS) ||
+-	    (!prev && !next))
++	if (!vma_flags_can_merge(&vmg->vma_flags))
++		return NULL;
++
++	/* VMAs with no prev/next are unmergeable. */
++	if (!prev && !next)
+ 		return NULL;
+ 
+ 	can_merge_left = can_vma_merge_left(vmg);
+--- a/tools/testing/vma/include/dup.h~mm-vma-introduce-and-use-vma_can_merge
++++ a/tools/testing/vma/include/dup.h
+@@ -1647,3 +1647,8 @@ static inline bool file_is_dev_zero(cons
  {
- 	struct mm_struct *mm = current->mm;
- 	struct vm_area_struct *vma = NULL;
--	bool have_mmap_prepare = file && file->f_op->mmap_prepare;
-+	const bool have_mmap_prepare = file && file->f_op->mmap_prepare;
- 	VMA_ITERATOR(vmi, mm, addr);
- 	const pgoff_t anon_pgoff = addr >> PAGE_SHIFT;
- 	MMAP_STATE(map, mm, &vmi, addr, len, pgoff, anon_pgoff, vma_flags, file);
-@@ -2937,7 +2937,7 @@ static unsigned long __mmap_region(struc
- 		allocated_new = true;
- 	}
- 
--	if (have_mmap_prepare && !map_is_anon(&map))
-+	if (have_mmap_prepare && allocated_new && !map_is_anon(&map))
- 		set_vma_user_defined_fields(vma, &map);
- 
- 	__mmap_complete(&map, vma);
+ 	return file && file->f_op == &zero_fops;
+ }
++
++static inline bool vma_flags_can_merge(const vma_flags_t *flags)
++{
++	return !vma_flags_test_any_mask(flags, VMA_SPECIAL_FLAGS);
++}
 _
 
 Patches currently in -mm which might be from ljs@kernel.org are
