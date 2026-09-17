@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2E6264A7C89
-	for <mm-commits@vger.kernel.org>; Thu, 17 Sep 2026 21:58:00 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5D4E923394A
+	for <mm-commits@vger.kernel.org>; Thu, 17 Sep 2026 21:58:02 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789682282; cv=none; b=CoPT5JqKhIWTxn8i2IXgTIW8F7m500C2w0+jftczI/oMdjGvbpVAW1ub/yaG/xBX6fArO8WDw1AGL6vhD4DoQkFoEYvWlr3lBqfKIAFaSgnJ+uHd7RE+kx1I98TL0yszZM6jtv3KGvzhNFB7qcm6OgUbOge607+sU3jdczeQP3w=
+	t=1789682285; cv=none; b=imgRiO1kvhCCgPwg1AHeOz/OVTXRlskpfGGEjIuIqzN3SJgDIVgbtFM4gndRL9xFKWu98TaTSboorck0ICeA5oD7ctcY2mRtq0vbjACvMaRgwE8SDRGvCkoSlIUz/8tWD6tDCy3RiXzQqd4b3yG6PeFXwzLwDtNyjh6D9Vii7+g=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1789682282; c=relaxed/simple;
-	bh=qcJnQQcz/XePCow1IdiNmFfI9HdVzEQDjs2Q9i2ZE0w=;
-	h=Date:To:From:Subject:Message-Id; b=Ts9azKwl4IkTLz9G9a7+uEf+7tEku2FVqqpKtJq3nJZg2xE8U/IgolUDuCailF8uJnepEdxRxCoM0PMIlO7byJ2H0NskYNBPBaHoPagdVMAMT09tjFkbUGu+odvWJX+zqmXnqZxhpZ8HVTb9nUAklb9fq2pNNvbGHl9kfv1yeY8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=sU5zTeds; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1789682285; c=relaxed/simple;
+	bh=UGBsg7PCvtj495shZxuhko4zWRX1i5vsx9IfwGZkViY=;
+	h=Date:To:From:Subject:Message-Id; b=R3P9tPUIJE9RhAl5Ida+3zeA2uhPHYImHYvlMF8SSnU8xgmfSs6DPUmcS6/3BqClvjP6/dF9ClW7Pgli02zybWBQr3gV0y7IE68ZoyQptebuzhGxeG+iKbtGlvmCMazfj+7U/pZ9XuoYyzO+xSxSK1HIFbNeV0e7YRIVrrTeHN0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=oZEAuFsp; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="sU5zTeds"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B05FF1F000FF;
-	Thu, 17 Sep 2026 21:58:00 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="oZEAuFsp"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C2D291F00893;
+	Thu, 17 Sep 2026 21:58:02 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1789682280;
-	bh=GuwLBbcv6O1QBXo6VDffhI1FlfcmIoTqooi4W5mJ520=;
+	d=linux-foundation.org; s=korg; t=1789682282;
+	bh=eHOpHTliZq8dQq9nrfm3AQuDo8awotsas2y5t+UDLeA=;
 	h=Date:To:From:Subject;
-	b=sU5zTedsCN8B5dpaEgTkm07+plexFD1CMeHqCG7BTE5KZeG8h2H0zoaB3DSICqiVq
-	 Lq0vMYVNVywL1+dnrf2fY0wv2XEM+0Px0AHNmpNCY5cvmXXi+CcKkLg2snMnP5+esa
-	 Zu9hh30FHsD5Vs2HNbky/YaTsSePncIkJtPHa6p8=
-Date: Thu, 17 Sep 2026 14:58:00 -0700
+	b=oZEAuFsptiBRzjMXhu71L58/lL+e8mWN/nzmAw0GFlvDKpGGeynUT5XiYaaid5DPH
+	 rmfCKgl2zCAYrqImIaV9Bb6PvUDNejgUyXD+7c5mwt7Z738h2e/Y0B/sp93/uJSCEE
+	 2afXZAf4bly6Yr7RZS+W9cXYW+pRM98QXEBKgEkQ=
+Date: Thu, 17 Sep 2026 14:58:02 -0700
 To: mm-commits@vger.kernel.org,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-damon-core-use-mult_frac-in-damon_feed_loop_next_input.patch added to mm-new branch
-Message-Id: <20260917215800.B05FF1F000FF@smtp.kernel.org>
+Subject: + mm-damon-core-set-damon_ctx-walk_control_obsolete-in-damon_new_ctx.patch added to mm-new branch
+Message-Id: <20260917215802.C2D291F00893@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/damon/core: use mult_frac() in damon_feed_loop_next_input()
+     Subject: mm/damon/core: set damon_ctx->walk_control_obsolete in damon_new_ctx()
 has been added to the -mm mm-new branch.  Its filename is
-     mm-damon-core-use-mult_frac-in-damon_feed_loop_next_input.patch
+     mm-damon-core-set-damon_ctx-walk_control_obsolete-in-damon_new_ctx.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-core-use-mult_frac-in-damon_feed_loop_next_input.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-core-set-damon_ctx-walk_control_obsolete-in-damon_new_ctx.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,18 +70,31 @@ and is updated there most days
 
 ------------------------------------------------------
 From: SJ Park <sj@kernel.org>
-Subject: mm/damon/core: use mult_frac() in damon_feed_loop_next_input()
-Date: Thu, 17 Sep 2026 07:22:01 -0700
+Subject: mm/damon/core: set damon_ctx->walk_control_obsolete in damon_new_ctx()
+Date: Thu, 17 Sep 2026 07:22:02 -0700
 
-damon_feed_loop_next_input() does its best effort overflow protection.
-score_goal_diff is always smaller than goal (10,000).  Hence the
-calculation can be replaced to use mult_frac() without concerning the
-overflow.  Use mult_frac().
+damos_walk() should be called for a damon_ctx context that has
+successfully started at least once.  That's because
+damon_ctx->walk_control_obsolete is initialized when kdamond starts.  If
+the rule is violated, an indefinite wait can happen.  There is no
+existing violation of the rule.
 
-Link: https://lore.kernel.org/20260917142210.90829-4-sj@kernel.org
+damon_call() had a similar rule, and it turned out keeping the rule is
+not easy for damon_call()'s case.  Hence, commit 8023b5f47e09
+("mm/damon/core: set ctx->call_controls_obsolete in damon_new_ctx()")
+added the initialization in damon_new_ctx() and removed the rule.
+
+Keeping the rule for damos_walk() is relatively easier.  But having
+slightly different rules for similar functions could be confusing.
+Sashiko, for example, repeatedly asked questions about this.  Do the
+initialization of walk_control_obsolete in damon_new_ctx() for
+consistency.
+
+Link: https://lore.kernel.org/20260917142210.90829-5-sj@kernel.org
+Link: https://lore.kernel.org/20260915011614.102342-1-sj@kernel.org [1]
 Signed-off-by: SJ Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Reviewed-by: Asier Gutierrez <gutierrez.asier@huawei-partners.com>
+Cc: Asier Gutierrez <gutierrez.asier@huawei-partners.com>
 Cc: Brendan Higgins <brendan.higgins@linux.dev>
 Cc: David Gow <davidgow@davidgow.net>
 Cc: David Hildenbrand <david@kernel.org>
@@ -96,24 +109,30 @@ Cc: Suren Baghdasaryan <surenb@google.com>
 Cc: Vlastimil Babka <vbabka@kernel.org>
 ---
 
- mm/damon/core.c |    6 +-----
- 1 file changed, 1 insertion(+), 5 deletions(-)
+ mm/damon/core.c |    5 +----
+ 1 file changed, 1 insertion(+), 4 deletions(-)
 
---- a/mm/damon/core.c~mm-damon-core-use-mult_frac-in-damon_feed_loop_next_input
+--- a/mm/damon/core.c~mm-damon-core-set-damon_ctx-walk_control_obsolete-in-damon_new_ctx
 +++ a/mm/damon/core.c
-@@ -2927,11 +2927,7 @@ static unsigned long damon_feed_loop_nex
- 		return min_input;
+@@ -939,6 +939,7 @@ struct damon_ctx *damon_new_ctx(void)
+ 	INIT_LIST_HEAD(&ctx->schemes);
  
- 	score_goal_diff = abs_diff(score, goal);
--
--	if (last_input < ULONG_MAX / score_goal_diff)
--		compensation = last_input * score_goal_diff / goal;
--	else
--		compensation = last_input / goal * score_goal_diff;
-+	compensation = mult_frac(last_input, score_goal_diff, goal);
+ 	ctx->call_controls_obsolete = true;
++	ctx->walk_control_obsolete = true;
+ 	prandom_seed_state(&ctx->rnd_state, get_random_u64());
  
- 	if (over_achieving)
- 		return max(last_input - compensation, min_input);
+ 	return ctx;
+@@ -2308,10 +2309,6 @@ canceled:
+  * passed at least one &damos->apply_interval_us, kdamond marks the request as
+  * completed so that damos_walk() can wakeup and return.
+  *
+- * Note that this function should be called only after damon_start() with the
+- * @ctx has succeeded.  Otherwise, this function could fall into an indefinite
+- * wait.
+- *
+  * Return: 0 on success, negative error code otherwise.
+  */
+ int damos_walk(struct damon_ctx *ctx, struct damos_walk_control *control)
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
