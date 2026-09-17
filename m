@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1C3DD23394A
-	for <mm-commits@vger.kernel.org>; Thu, 17 Sep 2026 21:57:58 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2E6264A7C89
+	for <mm-commits@vger.kernel.org>; Thu, 17 Sep 2026 21:58:00 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789682280; cv=none; b=PKEFbCHQYwj72ZY63FCqVx2hAutg5gFG6QbkT6KrO76C9tCogYBMA4uS7DA2Hj28w/MB+25cz4JibOlwb6nGa+7Kx+o4AUmZqSXbA602yHUMppKKompR2YhBX9RdQQNYhW4ed77MrKNEf48+w+vtb4nScFSNQpYcTdeFiYqZDk8=
+	t=1789682282; cv=none; b=CoPT5JqKhIWTxn8i2IXgTIW8F7m500C2w0+jftczI/oMdjGvbpVAW1ub/yaG/xBX6fArO8WDw1AGL6vhD4DoQkFoEYvWlr3lBqfKIAFaSgnJ+uHd7RE+kx1I98TL0yszZM6jtv3KGvzhNFB7qcm6OgUbOge607+sU3jdczeQP3w=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1789682280; c=relaxed/simple;
-	bh=ZLQCoSxojsWMpGPqGeDfHPTgFcVnRFOEFeQyop7JVl0=;
-	h=Date:To:From:Subject:Message-Id; b=MTyKvGbRpTr2SEkOu90F+s48sPrWrWA9KyoTSKkO+fryJ5QZTmlujxn8jf0+LfsxO1YCtpcqd4LY2GgW1qyds4pYhzw9aiyJuWO9yc1ajYKlfhMQHFKskSwPJCH4GlTN7pNJsNGZnTP/Logl1cCtedc9zrHM+gI34EMDs6/nsyo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=UTY7QDjg; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1789682282; c=relaxed/simple;
+	bh=qcJnQQcz/XePCow1IdiNmFfI9HdVzEQDjs2Q9i2ZE0w=;
+	h=Date:To:From:Subject:Message-Id; b=Ts9azKwl4IkTLz9G9a7+uEf+7tEku2FVqqpKtJq3nJZg2xE8U/IgolUDuCailF8uJnepEdxRxCoM0PMIlO7byJ2H0NskYNBPBaHoPagdVMAMT09tjFkbUGu+odvWJX+zqmXnqZxhpZ8HVTb9nUAklb9fq2pNNvbGHl9kfv1yeY8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=sU5zTeds; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="UTY7QDjg"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id AA82E1F00893;
-	Thu, 17 Sep 2026 21:57:58 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="sU5zTeds"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B05FF1F000FF;
+	Thu, 17 Sep 2026 21:58:00 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1789682278;
-	bh=+RVI3nRgUkz/8CGkY2N1mwaxL4jPsPZf9oL5KSPORZk=;
+	d=linux-foundation.org; s=korg; t=1789682280;
+	bh=GuwLBbcv6O1QBXo6VDffhI1FlfcmIoTqooi4W5mJ520=;
 	h=Date:To:From:Subject;
-	b=UTY7QDjghos+DW7LEbhqjCy2mxaueugSuP1z8Gy2grQDVm8XemsL37FTIk7xHZ4XL
-	 ecf36+oeEP5ctKXOp5duaJWk1OK4s6wk7lvBUXrhqBay8+slnDm/dm8frY5FdTXVRD
-	 rVfrOaW1AWgxqGrONKOBHqSw4sFQy7YrbWlkLN2I=
-Date: Thu, 17 Sep 2026 14:57:58 -0700
+	b=sU5zTedsCN8B5dpaEgTkm07+plexFD1CMeHqCG7BTE5KZeG8h2H0zoaB3DSICqiVq
+	 Lq0vMYVNVywL1+dnrf2fY0wv2XEM+0Px0AHNmpNCY5cvmXXi+CcKkLg2snMnP5+esa
+	 Zu9hh30FHsD5Vs2HNbky/YaTsSePncIkJtPHa6p8=
+Date: Thu, 17 Sep 2026 14:58:00 -0700
 To: mm-commits@vger.kernel.org,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-damon-core-use-abs_diff-in-damon_feed_loop_next_input.patch added to mm-new branch
-Message-Id: <20260917215758.AA82E1F00893@smtp.kernel.org>
+Subject: + mm-damon-core-use-mult_frac-in-damon_feed_loop_next_input.patch added to mm-new branch
+Message-Id: <20260917215800.B05FF1F000FF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/damon/core: use abs_diff() in damon_feed_loop_next_input()
+     Subject: mm/damon/core: use mult_frac() in damon_feed_loop_next_input()
 has been added to the -mm mm-new branch.  Its filename is
-     mm-damon-core-use-abs_diff-in-damon_feed_loop_next_input.patch
+     mm-damon-core-use-mult_frac-in-damon_feed_loop_next_input.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-core-use-abs_diff-in-damon_feed_loop_next_input.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-core-use-mult_frac-in-damon_feed_loop_next_input.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,14 +70,15 @@ and is updated there most days
 
 ------------------------------------------------------
 From: SJ Park <sj@kernel.org>
-Subject: mm/damon/core: use abs_diff() in damon_feed_loop_next_input()
-Date: Thu, 17 Sep 2026 07:22:00 -0700
+Subject: mm/damon/core: use mult_frac() in damon_feed_loop_next_input()
+Date: Thu, 17 Sep 2026 07:22:01 -0700
 
-damon_feed_loop_next_input() is open-coding absolute diff calculation
-instead of the dedicated helper, abs_diff(), for no good reason.  Use
-the dedicated helper.
+damon_feed_loop_next_input() does its best effort overflow protection.
+score_goal_diff is always smaller than goal (10,000).  Hence the
+calculation can be replaced to use mult_frac() without concerning the
+overflow.  Use mult_frac().
 
-Link: https://lore.kernel.org/20260917142210.90829-3-sj@kernel.org
+Link: https://lore.kernel.org/20260917142210.90829-4-sj@kernel.org
 Signed-off-by: SJ Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 Reviewed-by: Asier Gutierrez <gutierrez.asier@huawei-partners.com>
@@ -95,23 +96,24 @@ Cc: Suren Baghdasaryan <surenb@google.com>
 Cc: Vlastimil Babka <vbabka@kernel.org>
 ---
 
- mm/damon/core.c |    5 +----
- 1 file changed, 1 insertion(+), 4 deletions(-)
+ mm/damon/core.c |    6 +-----
+ 1 file changed, 1 insertion(+), 5 deletions(-)
 
---- a/mm/damon/core.c~mm-damon-core-use-abs_diff-in-damon_feed_loop_next_input
+--- a/mm/damon/core.c~mm-damon-core-use-mult_frac-in-damon_feed_loop_next_input
 +++ a/mm/damon/core.c
-@@ -2926,10 +2926,7 @@ static unsigned long damon_feed_loop_nex
- 	if (score >= goal * 2)
+@@ -2927,11 +2927,7 @@ static unsigned long damon_feed_loop_nex
  		return min_input;
  
--	if (over_achieving)
--		score_goal_diff = score - goal;
+ 	score_goal_diff = abs_diff(score, goal);
+-
+-	if (last_input < ULONG_MAX / score_goal_diff)
+-		compensation = last_input * score_goal_diff / goal;
 -	else
--		score_goal_diff = goal - score;
-+	score_goal_diff = abs_diff(score, goal);
+-		compensation = last_input / goal * score_goal_diff;
++	compensation = mult_frac(last_input, score_goal_diff, goal);
  
- 	if (last_input < ULONG_MAX / score_goal_diff)
- 		compensation = last_input * score_goal_diff / goal;
+ 	if (over_achieving)
+ 		return max(last_input - compensation, min_input);
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
