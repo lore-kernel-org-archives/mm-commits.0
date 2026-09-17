@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C8AB53FE359
-	for <mm-commits@vger.kernel.org>; Thu, 17 Sep 2026 21:58:13 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7362C453A22
+	for <mm-commits@vger.kernel.org>; Thu, 17 Sep 2026 21:58:15 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789682295; cv=none; b=lIdF7hqIdI4GvK5/tUUc4ZHm2M97Ps5BAIFdInmlmrJuJ6t2GPhUJEqMOndS1GHo5KhXlQS7M6i1p+jZXxE8fc+TpuzYgdvwqfhKGYRH5Jf8AbtqmMiMSAc4XUc+MGNY5uPYPaiKozpUuRFqfZwpY8SMHivxtqpTHqZ4rbPPDiw=
+	t=1789682297; cv=none; b=JMRIfa4KWrUp4lWKf0NvzbDQ5KWZRRWdizaRE0LhpDYfuyE7DzLOHGxGPEYwq09Z6S18cXR52jkvtTBBeSbe64/eWRkLuOWFALyM+R5qYF6/irD0ElnGfBU6kNdi30MJFCJVc0wHLVspt0pftqZiRIM2VVtCho6VxzinJXHK0rY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1789682295; c=relaxed/simple;
-	bh=xyc0aaw3SzSpMlqlJVRJQWGu1b3WhtCP0xlKuStVsqQ=;
-	h=Date:To:From:Subject:Message-Id; b=It8TXhHVzhrMKvleazcd12RPC8gMRkZNfXRAgfgxWj4DMK4zjBR3/AG0Ju6/T7GKX1zkQWTqWHeEujaYR+kGiD7jOCn0nWipDoIMyWOzre5jxw7u25VF/1syY9Ii8yAa9dKD9kQifq8Z5Re2Cvg32eWw2m1Lv9Jaj7dlkA66AzE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=hlbRhq8w; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1789682297; c=relaxed/simple;
+	bh=6W7jGJrTsk/eFu+CrJBstEE+Y+YBGnyjI5UWzZSly2w=;
+	h=Date:To:From:Subject:Message-Id; b=Whc5CAB8bgUTM5Cp9ECvm+sCkbU9lfPu9uRfsvNCg+8fjQYUc17MyqSpAKPdlZ7c4KcWkgEBRVbDuGuEkqROhpO123LX6D3QVi4v0CYSqxQJKLVA2pujJcYiIPxEXRCtLBnLEFVNksBGkfJGQUWFrRxpHLz4MEmeM7dOz0fABqA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=yU/7j9D2; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="hlbRhq8w"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3D9DE1F00898;
-	Thu, 17 Sep 2026 21:58:13 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="yU/7j9D2"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 47E961F000FF;
+	Thu, 17 Sep 2026 21:58:15 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1789682293;
-	bh=luwAYy6SjCrsMZHA37zR7bYRmE7bq9CucAYmhFeV9zw=;
+	d=linux-foundation.org; s=korg; t=1789682295;
+	bh=JBCPHNn0Q9MXUg6/VYH0vkS+BzYtu65u2U3NKAD9FTc=;
 	h=Date:To:From:Subject;
-	b=hlbRhq8wugC8WVHGwFvUefOg8iOPe5dkIsanWaAaMn8P7NACFL3oKcqw+WOH1Gv0g
-	 0ZNz1xiIK2/xgoMyfhbreHRHr9cfil9eok/zGwdyxiO3PyLK2f0MiRZsQHmv3fhRi8
-	 J0RnTMq5qPKhp7qtDiUHhHUArvsvLGL9yYmUcy+8=
-Date: Thu, 17 Sep 2026 14:58:12 -0700
+	b=yU/7j9D2yKjm6pjEycamHQQQShZES5kMHCXGr4g7FdEawxYjALFh0Vp4iP2mhAcrh
+	 Z0igyNoWzQAPylLHClEoCy4ig/S3m09fJp4kaNgHVNmoDL6hTrDHLleGWJ//iXEhde
+	 3g9lntRHzaTL+QsxQdchodAG0btkQwW1JziI07qk=
+Date: Thu, 17 Sep 2026 14:58:14 -0700
 To: mm-commits@vger.kernel.org,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-damon-sysfs_memcg_path_leak-fail-only-for-real-damon-leak.patch added to mm-new branch
-Message-Id: <20260917215813.3D9DE1F00898@smtp.kernel.org>
+Subject: + docs-mm-damon-design-clarify-bp-is-basis-point.patch added to mm-new branch
+Message-Id: <20260917215815.47E961F000FF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: selftests/damon/sysfs_memcg_path_leak: fail only for real DAMON leak
+     Subject: Docs/mm/damon/design: clarify bp is basis point
 has been added to the -mm mm-new branch.  Its filename is
-     selftests-damon-sysfs_memcg_path_leak-fail-only-for-real-damon-leak.patch
+     docs-mm-damon-design-clarify-bp-is-basis-point.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-damon-sysfs_memcg_path_leak-fail-only-for-real-damon-leak.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/docs-mm-damon-design-clarify-bp-is-basis-point.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,16 +70,19 @@ and is updated there most days
 
 ------------------------------------------------------
 From: SJ Park <sj@kernel.org>
-Subject: selftests/damon/sysfs_memcg_path_leak: fail only for real DAMON leak
-Date: Thu, 17 Sep 2026 07:22:07 -0700
+Subject: Docs/mm/damon/design: clarify bp is basis point
+Date: Thu, 17 Sep 2026 07:22:08 -0700
 
-The selftest can fail for any leak if it happens while the test is
-running.  Remove the false positive test failures by further checking if
-the expected leaking function is called out on the report.
+DAMON design document uses "bp" for "basis point" in multiple places.
+Because it is not clearly mentioned, it is difficult to understand what
+"bp" stands for.  Add the clarification.
 
-Link: https://lore.kernel.org/20260917142210.90829-10-sj@kernel.org
+Link: https://lore.kernel.org/20260917142210.90829-11-sj@kernel.org
 Signed-off-by: SJ Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+Reported-by: Randy Dunlap <rdunlap@infradead.org>
+Closes: https://lore.kernel.org/107dc6ba-697e-4b25-ba3e-8ce2499cac9a@infradead.org
+Acked-by: Randy Dunlap <rdunlap@infradead.org>
 Cc: Asier Gutierrez <gutierrez.asier@huawei-partners.com>
 Cc: Brendan Higgins <brendan.higgins@linux.dev>
 Cc: David Gow <davidgow@davidgow.net>
@@ -89,30 +92,35 @@ Cc: Liam R. Howlett <liam@infradead.org>
 Cc: Lorenzo Stoakes <ljs@kernel.org>
 Cc: Michal Hocko <mhocko@suse.com>
 Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Randy Dunlap <rdunlap@infradead.org>
 Cc: Shuah Khan <shuah@kernel.org>
 Cc: Suren Baghdasaryan <surenb@google.com>
 Cc: Vlastimil Babka <vbabka@kernel.org>
 ---
 
- tools/testing/selftests/damon/sysfs_memcg_path_leak.sh |    7 +++++++
- 1 file changed, 7 insertions(+)
+ Documentation/mm/damon/design.rst |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
---- a/tools/testing/selftests/damon/sysfs_memcg_path_leak.sh~selftests-damon-sysfs_memcg_path_leak-fail-only-for-real-damon-leak
-+++ a/tools/testing/selftests/damon/sysfs_memcg_path_leak.sh
-@@ -41,5 +41,12 @@ if [ "$kmemleak_report" = "" ]
- then
- 	exit 0
- fi
-+if ! echo "$kmemleak_report" | grep "memcg_path_store" --quiet
-+then
-+	echo "[WARN] memleak found; apparently not from DAMON, though"
-+	echo "$kmemleak_report"
-+	exit 0
-+fi
-+
- echo "$kmemleak_report"
- exit 1
+--- a/Documentation/mm/damon/design.rst~docs-mm-damon-design-clarify-bp-is-basis-point
++++ a/Documentation/mm/damon/design.rst
+@@ -445,7 +445,7 @@ users to set the aimed amount of access
+ given time interval.  The target can be specified by the user as a ratio of
+ DAMON-observed access events to the theoretical maximum amount of the events
+ (``access_bp``) that measured within a given number of aggregations
+-(``aggrs``).
++(``aggrs``).  The ratio is in basis point (bp or 1/10,000).
+ 
+ The DAMON-observed access events are calculated in byte granularity based on
+ DAMON :ref:`region assumption <damon_design_region_based_sampling>`.  For
+@@ -717,7 +717,8 @@ mechanism tries to make ``current_value`
+   in microseconds that measured from last quota reset to next quota reset.
+   DAMOS does the measurement on its own, so only ``target_value`` need to be
+   set by users at the initial time.  In other words, DAMOS does self-feedback.
+-- ``node_mem_used_bp``: Specific NUMA node's used memory ratio in bp (1/10,000).
++- ``node_mem_used_bp``: Specific NUMA node's used memory ratio in basis point
++  (bp or 1/10,000).
+ - ``node_mem_free_bp``: Specific NUMA node's free memory ratio in bp (1/10,000).
+ - ``node_memcg_used_bp``: Specific cgroup's node used memory ratio for a
+   specific NUMA node, in bp (1/10,000).
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
