@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 872F34F7CCE
-	for <mm-commits@vger.kernel.org>; Thu, 17 Sep 2026 21:26:29 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BDEBE4F7CCA
+	for <mm-commits@vger.kernel.org>; Thu, 17 Sep 2026 21:26:32 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789680391; cv=none; b=iEY3iOhGW99QbmRUGy5SZVimjXLJaVqrye7+uV9FiQbpGGGD7dzszfybnh2SvlBYwCfH/tw+XTTbcr4EESkHkVcPydKnlPnV4OuuueZFlV1CPSGF64hpJXNlYCRvlffHWcSHjxjTB7G5hYQ5cA4iEvMCl7MWWiGyvzmDLTMqDQA=
+	t=1789680394; cv=none; b=o3tJoaXGhqzl5tBXkS2jwF7+pjm0XGyvEcUoC8dSwMD0FhOmlC+bbl+JwlReDv4sFe24OZoYtOcYtOd9pUrY3vJ3zFAdMIf/854EDfCWZecdy0Wftv+b8etjMiRnepwbXh7dJ/fHkp1qG0XHYA++Yd5RXNKRMjA8ZfJow7r6UBw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1789680391; c=relaxed/simple;
-	bh=60kQIM2sLsXFdlSVZ0lC/QltM2wT+V0gauFIMlyNKXU=;
-	h=Date:To:From:Subject:Message-Id; b=KKDhNM42wUiTKYCjOSXNiHRKQis+gxcnBwvaxgcj+ruv1smPEJNL9FHnp6abFABs7aP63B7A8sipYdXtoGwFDvdCV1ht3EziN3Hk7gXO/HzpZHfYvrsYZ1MJph5IPjrKfSMG09A7zXs3aFUJ7BzEBJ8ZGsVNVjuP9oWS9+2eiAc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=uHPMIIbO; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1789680394; c=relaxed/simple;
+	bh=db3R/NQfyeSftpiIW3KDalRpRygjeWVjJ6BuRMQRQ8w=;
+	h=Date:To:From:Subject:Message-Id; b=T9kohVkXnjwyxcohwKB8n+42fUOrDnHNn6m5jqRezm+8NVOg0AddJ+FSxmrsm4pi1iXNm6AFeT2k14wJf4mrmelTcNQwJu1Y8x+q0zhec2QX2qsk9WNxzX8HBBAOu7Uv1DLfeAN1QN7scpha6NWV28bjSafa7++pGg+EqIkm+V4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ZQZYLus6; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="uHPMIIbO"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5C4B41F000FF;
-	Thu, 17 Sep 2026 21:26:29 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ZQZYLus6"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8B3521F000FF;
+	Thu, 17 Sep 2026 21:26:32 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1789680389;
-	bh=0GPgD2p8y0htLVLceV9GvzIiVpSoaCcD1kVFHsi8oSo=;
+	d=linux-foundation.org; s=korg; t=1789680392;
+	bh=2A1D1x1YnMzxrMdA/TUu10dn1q0OWTyCdwLSfxm/9t4=;
 	h=Date:To:From:Subject;
-	b=uHPMIIbOI4HSUv5o2opPIMJZUhafSmA+/EonYM8geW6kLjLS/Ka+BfXFREReHkTpQ
-	 fgtMIVoAJMSV3he0Md6b4kA+MychLNmVB7DKRIsr1JoscIp6jzfUG2WgoFxEpMPSpJ
-	 syXa7FTl9RDCsdVNGRu5DiwjGsWPwzBzh5Gb4kIg=
-Date: Thu, 17 Sep 2026 14:26:28 -0700
+	b=ZQZYLus6wI3IzQeIf5NWzWL4+xk1wNMuyx/GbZO0L7mdmBWaOjDgNZQqFWeVwtIFb
+	 Qww9EpUGj4iUwaHjQnOcDtRHDKnGX9f2ulpCmIJHaL20g7OdjUCTWB/JO39yn6Hboa
+	 f81ZS685cIrQvLsQB1gD2+8rr5H9ybNY4dJeHZEY=
+Date: Thu, 17 Sep 2026 14:26:32 -0700
 To: mm-commits@vger.kernel.org,ljs@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-eliminate-vma_special_flags-check-in-lru_gen_look_around.patch added to mm-unstable branch
-Message-Id: <20260917212629.5C4B41F000FF@smtp.kernel.org>
+Subject: + mm-avoid-use-of-vma_special_flags-in-migrate_vma_setup.patch added to mm-unstable branch
+Message-Id: <20260917212632.8B3521F000FF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: eliminate VMA_SPECIAL_FLAGS check in lru_gen_look_around()
+     Subject: mm: avoid use of VMA_SPECIAL_FLAGS in migrate_vma_setup()
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-eliminate-vma_special_flags-check-in-lru_gen_look_around.patch
+     mm-avoid-use-of-vma_special_flags-in-migrate_vma_setup.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-eliminate-vma_special_flags-check-in-lru_gen_look_around.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-avoid-use-of-vma_special_flags-in-migrate_vma_setup.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,20 +59,19 @@ and is updated there most days
 
 ------------------------------------------------------
 From: "Lorenzo Stoakes (ARM)" <ljs@kernel.org>
-Subject: mm: eliminate VMA_SPECIAL_FLAGS check in lru_gen_look_around()
-Date: Thu, 17 Sep 2026 17:22:44 +0100
+Subject: mm: avoid use of VMA_SPECIAL_FLAGS in migrate_vma_setup()
+Date: Thu, 17 Sep 2026 17:22:45 +0100
 
-A kernel-owned or fixed mapping is one which sets VMA_PFNMAP_BIT,
-VMA_MIXEDMAP_BIT or VMA_DONTEXPAND_BIT, which is precisely what
-VMA_SPECIAL_FLAGS tests for other than VMA_IO_BIT, which is safe to drop
-as only kernel-owned mappings may set it.
+Now we have the expressive vma_is_kernel_owned() and
+vma_is_fixed_mapping() predicates, use them to determine whether to
+proceed with migration.  This drops the VMA_IO_BIT test, which is safe as
+only kernel-owned mappings may set it.
 
-Using these predicates rather than VMA_SPECIAL_FLAGS makes the check
-self-documenting and helps eliminate the confusion around 'special' flags.
+hugetlb mappings remain excluded, as they are fixed mappings.
 
 No functional change intended.
 
-Link: https://lore.kernel.org/20260917-b4-mmap-prepare-vma-flag-sanify-v3-35-4583d8a23bca@kernel.org
+Link: https://lore.kernel.org/20260917-b4-mmap-prepare-vma-flag-sanify-v3-36-4583d8a23bca@kernel.org
 Signed-off-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 Cc: Albert Ou <aou@eecs.berkeley.edu>
@@ -176,22 +175,38 @@ Cc: Yuanchu Xie <yuanchu@google.com>
 Cc: Zi Yan <ziy@nvidia.com>
 ---
 
- mm/vmscan.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ mm/migrate_device.c |   12 +++++++-----
+ 1 file changed, 7 insertions(+), 5 deletions(-)
 
---- a/mm/vmscan.c~mm-eliminate-vma_special_flags-check-in-lru_gen_look_around
-+++ a/mm/vmscan.c
-@@ -4421,8 +4421,8 @@ bool lru_gen_look_around(struct page_vma
- 	if (spin_is_contended(pvmw->ptl))
- 		return true;
+--- a/mm/migrate_device.c~mm-avoid-use-of-vma_special_flags-in-migrate_vma_setup
++++ a/mm/migrate_device.c
+@@ -739,19 +739,21 @@ static void migrate_vma_unmap(struct mig
+  */
+ int migrate_vma_setup(struct migrate_vma *args)
+ {
++	const struct vm_area_struct *vma = args->vma;
+ 	long nr_pages = (args->end - args->start) >> PAGE_SHIFT;
  
--	/* exclude special VMAs containing anon pages from COW */
--	if (vma->vm_flags & VM_SPECIAL)
-+	/* exclude kernel-owned and fixed VMAs containing anon pages from COW */
-+	if (vma_is_kernel_owned(vma) || vma_is_fixed_mapping(vma))
- 		return true;
- 
- 	/* avoid taking the LRU lock under the PTL when possible */
+ 	args->start &= PAGE_MASK;
+ 	args->end &= PAGE_MASK;
+-	if (!args->vma || vma_test_any_mask(args->vma, VMA_SPECIAL_FLAGS) ||
+-	    vma_is_dax(args->vma))
++	if (!vma)
++		return -EINVAL;
++	if (vma_is_kernel_owned(vma) || vma_is_fixed_mapping(vma) ||
++	    vma_is_dax(vma))
+ 		return -EINVAL;
+ 	if (nr_pages <= 0)
+ 		return -EINVAL;
+-	if (args->start < args->vma->vm_start ||
+-	    args->start >= args->vma->vm_end)
++	if (args->start < vma->vm_start || args->start >= vma->vm_end)
+ 		return -EINVAL;
+-	if (args->end <= args->vma->vm_start || args->end > args->vma->vm_end)
++	if (args->end <= vma->vm_start || args->end > vma->vm_end)
+ 		return -EINVAL;
+ 	if (!args->src || !args->dst)
+ 		return -EINVAL;
 _
 
 Patches currently in -mm which might be from ljs@kernel.org are
