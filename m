@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7C08D49EC6E
-	for <mm-commits@vger.kernel.org>; Thu, 17 Sep 2026 21:10:15 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 39B794CA79E
+	for <mm-commits@vger.kernel.org>; Thu, 17 Sep 2026 21:10:16 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789679417; cv=none; b=ZE9LL7XEQ40pZwbqqM7T8Kk1HlfZ9WLKgFFv227SPgLYX9LY3AWuPIBkmKz6ZrAGOvU8OyZUX+O8N5OSsUdUGXm2vECkUeo9jcnsEbS4qTdbBoH0VaNEsteEhZDP7/LobR0g8RbWBptIgqTGa9HuvM6U8nqYSz61GaPT4guYOIM=
+	t=1789679419; cv=none; b=WRz1+IGoUk4vp3Rlvs5aA6yzsi0ttzpDCeS9XWJj8j46oY80tCSPEP8FpT5Z2gdIR6lX5yIbhugxOX0rsd1gvu/W8w9xkxUOAu/wcjPIoSiCsrxpSuhxTQdX35SqMdsZnU5E7yUX1D/v5hzTDFfO5FMd/3xiU2RjZEs2NBZhKVI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1789679417; c=relaxed/simple;
-	bh=CSSQFlhvvhj9X0tId2odBeJWVUtXuN7qBGdwrQtUqX4=;
-	h=Date:To:From:Subject:Message-Id; b=ZAGuM3R/ajr1V64su+93SG6b1gDgZ1EL75VbBKZDTyg+FvLlarV4kP99Kbjq4h05FbshY7L7RN4qZ43kYPKHr1G52eWa3RXeWic/J8qH5pypUigcCZZQtFQAuOxm5OuJi1Exchd8hpnp1rWMWHhKo1/UzjJh0oanI9Dz4+/UncE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=0slX2hjj; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1789679419; c=relaxed/simple;
+	bh=1Vy8ytwzi07+6I3UMF3BvF8Cje2Ce5ettUXykRC5Tts=;
+	h=Date:To:From:Subject:Message-Id; b=fwIzoYkXKiu/wtXRy0JiPs6zMLgKZ7MhxSBbfP2280plhQYcFKb/f4z45PIyOWCCuUJxQSzniiOm5SHMlrDWbvgeG/LR82A9Cja0McUqk704XqaCuCulsBKIy7kuoLMuqNNBh1hLxBVcUSF8cJwi0ZPKH+iB84X8QViTJPtPIRc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=0Jphr7um; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="0slX2hjj"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 52F2C1F000FF;
-	Thu, 17 Sep 2026 21:10:15 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="0Jphr7um"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7DC951F00893;
+	Thu, 17 Sep 2026 21:10:16 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1789679415;
-	bh=7F27JO7Hv5omhOqkUoda7wqFsi5ZFTQETlLMuyUYQBA=;
+	d=linux-foundation.org; s=korg; t=1789679416;
+	bh=QqWO6cxwMDsHPGMjS6lmT2L2GxbGtrnWxGwMq8Lt6yU=;
 	h=Date:To:From:Subject;
-	b=0slX2hjj/ykdBgaT2Si2VPFQrZgRh3hq84T5WfD2T0MJYQCSTMFeq4OHPx2g2zWzi
-	 mZkpg+JfKDpxY07Dra4Dm4qgVsp76cFCNEOWClcjb27LOIDVBFDFTCMX1CMlfT7zQP
-	 Pcvn/+ovoI3eV+vpJ2Samj0PVBWqjfzik+OzDDxg=
-Date: Thu, 17 Sep 2026 14:10:14 -0700
+	b=0Jphr7um/RQf1FN+6fxQ+hWg7gF//4MrTC7rp0t1Wo9PUgY3uVKqQcEX2s/Yh3m/C
+	 7rE4LmDtrIU5taM6Svrga/s9owOvmB5hEpRxhfO9ypmknrHov2fIy69/7XNzNiCfNn
+	 d9jJBJpTk2oCfCUqNDQuun01WPaUtjgjJ6P69TU4=
+Date: Thu, 17 Sep 2026 14:10:16 -0700
 To: mm-commits@vger.kernel.org,ljs@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [to-be-updated] mm-gup-error-out-early-on-vma_mayread_bit-vmas.patch removed from -mm tree
-Message-Id: <20260917211015.52F2C1F000FF@smtp.kernel.org>
+Subject: [to-be-updated] uprobes-remove-vm_io-set-vm_mixedmap-for-mapped-kernel-pages.patch removed from -mm tree
+Message-Id: <20260917211016.7DC951F00893@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,57 +35,72 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/gup: error out early on !VMA_MAYREAD_BIT VMAs
+     Subject: uprobes: remove VM_IO, set VM_MIXEDMAP for mapped kernel pages
 has been removed from the -mm tree.  Its filename was
-     mm-gup-error-out-early-on-vma_mayread_bit-vmas.patch
+     uprobes-remove-vm_io-set-vm_mixedmap-for-mapped-kernel-pages.patch
 
 This patch was dropped because an updated version will be issued
 
 ------------------------------------------------------
 From: "Lorenzo Stoakes (ARM)" <ljs@kernel.org>
-Subject: mm/gup: error out early on !VMA_MAYREAD_BIT VMAs
-Date: Mon, 14 Sep 2026 15:57:41 +0100
+Subject: uprobes: remove VM_IO, set VM_MIXEDMAP for mapped kernel pages
+Date: Mon, 14 Sep 2026 15:57:42 +0100
 
-When populating a VMA range via the aptly named populate_vma_page_range()
-an unreadable VMA will always eventually fail with -EFAULT.
+These are not MMIO pages so VMA_IO_BIT is an inappropriate flag to set.
 
-That a VMA is accessible is always checked, however VMA_MAYREAD_BIT is
-not.
+Instead, set them VMA_MIXEDMAP_BIT as they are kernel mappings and this is
+the appropriate flag to set for those.
 
-All user mappings always have VMA_MAYREAD_BIT set, so this check only
-impacts kernel mappings.
+This provides the semantics required - no VMA merging is permitted, but
+does not prevent GUP.
 
-It is implemented specifically to disallow population of uprobes XOL
-mappings which are exec-only.
+However this has no meaningful impact as these are refcounted and thus can
+be GUPed.
 
-A nasty interaction with these mappings may occur if they are mlocked, so
-actively disallow this early.
+A previous commit already prevented __mm_populate() from being invoked on
+XOL areas, which VMA_IO_BIT was previously relied upon to do, so that is
+no longer required.
 
-This allows a subsequent commit to remove the VM_IO check in
-__mm_populate() which otherwise requires non-MMIO mappings to be wrongly
-flagged simply as a workaround.
+Both VMAs set a VMA name, so always_dump_vma() returns true before
+vma_dump_size() reaches its VMA_IO_BIT check, and thus there is no change
+in core dump behaviour.
 
-Link: https://lore.kernel.org/20260914-b4-mmap-prepare-vma-flag-sanify-v2-21-7d9781ed5361@kernel.org
+Change this for both the core xol_add_vma() function and the x86-specific
+get_uprobe_trampoline() function.
+
+Link: https://lore.kernel.org/20260914-b4-mmap-prepare-vma-flag-sanify-v2-22-7d9781ed5361@kernel.org
 Signed-off-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/gup.c |    4 ++++
- 1 file changed, 4 insertions(+)
+ arch/x86/kernel/uprobes.c |    2 +-
+ kernel/events/uprobes.c   |    4 ++--
+ 2 files changed, 3 insertions(+), 3 deletions(-)
 
---- a/mm/gup.c~mm-gup-error-out-early-on-vma_mayread_bit-vmas
-+++ a/mm/gup.c
-@@ -1836,6 +1836,10 @@ long populate_vma_page_range(struct vm_a
- 	if (!vma_is_accessible(vma))
- 		return -EFAULT;
+--- a/arch/x86/kernel/uprobes.c~uprobes-remove-vm_io-set-vm_mixedmap-for-mapped-kernel-pages
++++ a/arch/x86/kernel/uprobes.c
+@@ -715,7 +715,7 @@ static struct vm_area_struct *get_uprobe
  
-+	/* Unreadable VMAs also cannot be faulted in. */
-+	if (!vma_test(vma, VMA_MAYREAD_BIT))
-+		return -EFAULT;
-+
- 	gup_flags = FOLL_TOUCH;
- 	/*
- 	 * We want to touch writable mappings with a write fault in order
+ 	*new_mapping = true;
+ 	return _install_special_mapping(mm, vaddr, PAGE_SIZE,
+-				VM_READ|VM_EXEC|VM_MAYEXEC|VM_MAYREAD|VM_IO,
++				VM_READ|VM_EXEC|VM_MAYEXEC|VM_MAYREAD|VM_MIXEDMAP,
+ 				&tramp_mapping);
+ }
+ 
+--- a/kernel/events/uprobes.c~uprobes-remove-vm_io-set-vm_mixedmap-for-mapped-kernel-pages
++++ a/kernel/events/uprobes.c
+@@ -1726,8 +1726,8 @@ static int xol_add_vma(struct mm_struct
+ 	}
+ 
+ 	vma = _install_special_mapping(mm, area->vaddr, PAGE_SIZE,
+-				VM_EXEC|VM_MAYEXEC|VM_DONTCOPY|VM_IO|
+-				VM_SEALED_SYSMAP,
++				VM_EXEC|VM_MAYEXEC|VM_DONTCOPY|
++				VM_MIXEDMAP|VM_SEALED_SYSMAP,
+ 				&xol_mapping);
+ 	if (IS_ERR(vma)) {
+ 		ret = PTR_ERR(vma);
 _
 
 Patches currently in -mm which might be from ljs@kernel.org are
@@ -111,7 +126,6 @@ mm-enable-mmu_gather_rcu_table_free-for-m68k-motorola.patch
 mm-enable-mmu_gather_rcu_table_free-for-sparc32.patch
 mm-make-userland-page-table-freeing-rcu-safe.patch
 mm-change-the-contract-for-free_pgtables-update-docs.patch
-uprobes-remove-vm_io-set-vm_mixedmap-for-mapped-kernel-pages.patch
 mm-mlock-clear-vma_locked_mask-over-mmap-callback.patch
 mm-mlock-eliminate-weird-vma_io_bit-abuse-and-simplify.patch
 mm-vma-enforce-that-only-kernel-owned-mappings-may-set-vma_io_bit.patch
