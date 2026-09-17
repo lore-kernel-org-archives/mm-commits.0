@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0CF0E37BE75
-	for <mm-commits@vger.kernel.org>; Thu, 17 Sep 2026 01:36:39 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E92E837A843
+	for <mm-commits@vger.kernel.org>; Thu, 17 Sep 2026 01:36:41 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789609002; cv=none; b=fUiZoxU96zjs0gPjj5o/+zpwJIDEjaGLQr3vdqLLBHg4BHqp2RQ2t2kCJnEEH4wvqsL1WPE4jkHmrY0HMGC4PV/AzborgesN+CkBDkx8WEXoa9HdQD+GSEH67pgh3pSXw/E/5EFiZMrxRj30I9MFt7FY294b470bPStKV6shy3w=
+	t=1789609003; cv=none; b=gLq3JtB8r/qucHqKeT3i/+T6MjlMiCgWFW72zEY9IoiioZ6Dv6UFR1epHVOCbYHoBzkAdnpYry4RTDiN7L0W1gXzyiFRelNKBXavOqrvzzLfJg+t/JG80RJF/2kh9oXANC5haeqKwJ7JUrlcj4wMobVL3ik+MpG6YACY/f/LQlI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1789609002; c=relaxed/simple;
-	bh=K2EW5ezEsRI3KY1vcBYY/f2KWK5sEnicQk6uKG6mtCU=;
-	h=Date:To:From:Subject:Message-Id; b=bH7L4R/Dqn3NJ6a7XlIOGFBGgsADsnZ2pj5STg8Mj6fgANmIZPU2zx3CwUHSEPU60eXJUk846ae5Z/3AfGcQnNkmVM+sPQX8d5tIjoEdck4w+NuaOSQTlCUt7PR5HLDOuZs/Al6pQ9d7TWPVpLBf7bOkzhCalrmER6tiE5q2hKU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=WEc1eepx; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1789609003; c=relaxed/simple;
+	bh=VtQxH7RzBoNQHrc3smFanDfHoWWi5cssxMsFL5rb9Tw=;
+	h=Date:To:From:Subject:Message-Id; b=ZtB8E/oViHOaAjUHDZmtG0oQ7hvFqe44hUvqJx4DsJAmbq6yp46Ihx/2OKoNUtcw2/JEckd2Zf5pBh27TrrCOkfm6IUJarO6+AzoROF1EatxM/UfGt1dASXgTPTQ/YpzagHTcFSIGOceHg6+FhtcVjBpozgwHwh08B9Ts0PqYUU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=SigJlZuo; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="WEc1eepx"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8E5EE1F000FF;
-	Thu, 17 Sep 2026 01:36:39 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="SigJlZuo"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B34EF1F00893;
+	Thu, 17 Sep 2026 01:36:41 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1789608999;
-	bh=f04jvRl1vd+ZMM+dL0ryHDz6BX73iOqI6YzNR9vmUKY=;
+	d=linux-foundation.org; s=korg; t=1789609001;
+	bh=7TJ94Wy2U7efkIcQYl9Z9NXYCBAm42MISD7NdDnQHmk=;
 	h=Date:To:From:Subject;
-	b=WEc1eepx1AFPFXVH817hPqGHB+asKEr+PYi54nq2aLm2JNwB8OgwUHjHBwnEfb5zH
-	 dkya7ucvqtG7MwB8j1Gaf20StHO+BFL+YYk7xIQN99dqiYyBTxBQRv3NskQc8c6ucq
-	 +72c0vUlrf3pIYp6oVmyRPhjoV8gCqbfHINXgFvc=
-Date: Wed, 16 Sep 2026 18:36:39 -0700
+	b=SigJlZuotCpNnUGD+rlN7ALb3LW9U9b8NuucaQeauetckBvKNUHy8DaLvBEc7vYpD
+	 WAjWCYEqHivvwWeN8Tmp4MK80z85VPHU/rX/+XngRkxcXahwVQzBMfny0kL18/tBSE
+	 BbAF5st2AFXPDh2tTgM/+KYu2Foh/scYGPrK6hgs=
+Date: Wed, 16 Sep 2026 18:36:41 -0700
 To: mm-commits@vger.kernel.org,songmuchun@bytedance.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + powerpc-mm-switch-device-dax-to-shared-tail-vmemmap-pages.patch added to mm-unstable branch
-Message-Id: <20260917013639.8E5EE1F000FF@smtp.kernel.org>
+Subject: + mm-sparse-vmemmap-drop-the-extra-tail-page-from-device-dax-reservation.patch added to mm-unstable branch
+Message-Id: <20260917013641.B34EF1F00893@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: powerpc/mm: switch device DAX to shared tail vmemmap pages
+     Subject: mm/sparse-vmemmap: drop the extra tail page from device DAX reservation
 has been added to the -mm mm-unstable branch.  Its filename is
-     powerpc-mm-switch-device-dax-to-shared-tail-vmemmap-pages.patch
+     mm-sparse-vmemmap-drop-the-extra-tail-page-from-device-dax-reservation.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/powerpc-mm-switch-device-dax-to-shared-tail-vmemmap-pages.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-sparse-vmemmap-drop-the-extra-tail-page-from-device-dax-reservation.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,21 +59,24 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Muchun Song <songmuchun@bytedance.com>
-Subject: powerpc/mm: switch device DAX to shared tail vmemmap pages
-Date: Wed, 16 Sep 2026 14:43:38 +0800
+Subject: mm/sparse-vmemmap: drop the extra tail page from device DAX reservation
+Date: Wed, 16 Sep 2026 14:43:39 +0800
 
-The powerpc radix compound vmemmap population path still finds a reusable
-tail page by walking the vmemmap page tables.
+The device DAX vmemmap population still reserves one extra tail vmemmap
+page after the head page.
 
-Switch it to the common vmemmap_shared_tail_page() helper instead, so it
-can use the shared vmemmap page directly to simplify the code.
+Drop that extra reservation and let the shared tail page cover all tail
+vmemmap pages after the head page, so DAX follows the same reservation
+model as HugeTLB.
 
-This removes the powerpc-specific tail-page lookup and its fallback path
-and aligns the device DAX vmemmap optimization path with HugeTLB.
+This reduces the reserved vmemmap pages for optimized DAX mappings to one
+and removes the now-unneeded first-tail population from the generic and
+powerpc paths to simplify the code as well.
 
-Link: https://lore.kernel.org/20260916064341.1825793-9-songmuchun@bytedance.com
+Link: https://lore.kernel.org/20260916064341.1825793-10-songmuchun@bytedance.com
 Signed-off-by: Muchun Song <songmuchun@bytedance.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+Acked-by: Qi Zheng <qi.zheng@linux.dev>
 Cc: David Hildenbrand (Arm) <david@kernel.org>
 Cc: Jonathan Corbet <corbet@lwn.net>
 Cc: Lorenzo Stoakes <ljs@kernel.org>
@@ -82,45 +85,37 @@ Cc: Michael Ellerman <mpe@ellerman.id.au>
 Cc: Mike Rapoport (Microsoft) <rppt@kernel.org>
 Cc: Nicholas Piggin <npiggin@gmail.com>
 Cc: Oscar Salvador <osalvador@suse.de>
-Cc: Qi Zheng <qi.zheng@linux.dev>
 Cc: Randy Dunlap <rdunlap@infradead.org>
 ---
 
- arch/powerpc/mm/book3s64/radix_pgtable.c |   80 ++-------------------
- 1 file changed, 9 insertions(+), 71 deletions(-)
+ arch/powerpc/mm/book3s64/radix_pgtable.c |   46 ---------------------
+ include/linux/mm.h                       |    3 -
+ mm/mm_init.c                             |    2 
+ mm/sparse-vmemmap.c                      |   13 +----
+ 4 files changed, 7 insertions(+), 57 deletions(-)
 
---- a/arch/powerpc/mm/book3s64/radix_pgtable.c~powerpc-mm-switch-device-dax-to-shared-tail-vmemmap-pages
+--- a/arch/powerpc/mm/book3s64/radix_pgtable.c~mm-sparse-vmemmap-drop-the-extra-tail-page-from-device-dax-reservation
 +++ a/arch/powerpc/mm/book3s64/radix_pgtable.c
-@@ -19,6 +19,7 @@
- #include <linux/string_helpers.h>
- #include <linux/memory.h>
- #include <linux/kfence.h>
-+#include <linux/vmemmap-optimization.h>
- 
- #include <asm/pgalloc.h>
- #include <asm/mmu_context.h>
-@@ -1250,59 +1251,6 @@ static pte_t * __meminit radix__vmemmap_
- 	return pte;
+@@ -1218,39 +1218,6 @@ base_mapping:
+ 	return 0;
  }
  
--static pte_t * __meminit vmemmap_compound_tail_page(unsigned long addr,
--						    unsigned long pfn_offset, int node)
+-static pte_t * __meminit radix__vmemmap_populate_address(unsigned long addr, int node,
+-							 struct vmem_altmap *altmap,
+-							 struct page *reuse)
 -{
 -	pgd_t *pgd;
 -	p4d_t *p4d;
 -	pud_t *pud;
 -	pmd_t *pmd;
 -	pte_t *pte;
--	unsigned long map_addr;
 -
--	/* the second vmemmap page which we use for duplication */
--	map_addr = addr - pfn_offset * sizeof(struct page) + PAGE_SIZE;
--	pgd = pgd_offset_k(map_addr);
--	p4d = p4d_offset(pgd, map_addr);
--	pud = vmemmap_pud_alloc(p4d, node, map_addr);
+-	pgd = pgd_offset_k(addr);
+-	p4d = p4d_offset(pgd, addr);
+-	pud = vmemmap_pud_alloc(p4d, node, addr);
 -	if (!pud)
 -		return NULL;
--	pmd = vmemmap_pmd_alloc(pud, node, map_addr);
+-	pmd = vmemmap_pmd_alloc(pud, node, addr);
 -	if (!pmd)
 -		return NULL;
 -	if (pmd_leaf(*pmd))
@@ -129,86 +124,120 @@ Cc: Randy Dunlap <rdunlap@infradead.org>
 -		 * Force our mapping to page size without deduplication
 -		 */
 -		return NULL;
--	pte = vmemmap_pte_alloc(pmd, node, map_addr);
+-	pte = vmemmap_pte_alloc(pmd, node, addr);
 -	if (!pte)
 -		return NULL;
--	/*
--	 * Check if there exist a mapping to the left
--	 */
--	if (pte_none(*pte)) {
--		/*
--		 * Populate the head page vmemmap page.
--		 * It can fall in different pmd, hence
--		 * vmemmap_populate_address()
--		 */
--		pte = radix__vmemmap_populate_address(map_addr - PAGE_SIZE, node, NULL, NULL);
--		if (!pte)
--			return NULL;
--		/*
--		 * Populate the tail pages vmemmap page
--		 */
--		pte = radix__vmemmap_pte_populate(pmd, map_addr, node, NULL, NULL);
--		if (!pte)
--			return NULL;
--		vmemmap_verify(pte, node, map_addr, map_addr + PAGE_SIZE);
--		return pte;
--	}
+-	radix__vmemmap_pte_populate(pmd, addr, node, NULL, NULL);
+-	vmemmap_verify(pte, node, addr, addr + PAGE_SIZE);
+-
 -	return pte;
 -}
 -
  int __meminit vmemmap_populate_compound_pages(unsigned long start_pfn,
  					      unsigned long start,
  					      unsigned long end, int node,
-@@ -1320,6 +1268,12 @@ int __meminit vmemmap_populate_compound_
- 	pud_t *pud;
- 	pmd_t *pmd;
- 	pte_t *pte;
-+	struct page *tail_page;
-+	unsigned int order = pfn_to_section_compound_order(start_pfn);
-+
-+	tail_page = vmemmap_shared_tail_page(order, device_zone(node));
-+	if (!tail_page)
-+		return -ENOMEM;
- 
- 	for (addr = start; addr < end; addr = next) {
- 
-@@ -1349,10 +1303,9 @@ int __meminit vmemmap_populate_compound_
- 			next = addr + PAGE_SIZE;
- 			continue;
- 		} else {
--			unsigned long nr_pages = pgmap_vmemmap_nr(pgmap);
-+			unsigned long nr_pages = 1UL << order;
- 			unsigned long addr_pfn = page_to_pfn((struct page *)addr);
- 			unsigned long pfn_offset = addr_pfn - ALIGN_DOWN(addr_pfn, nr_pages);
--			pte_t *tail_page_pte;
- 
+@@ -1297,7 +1264,7 @@ int __meminit vmemmap_populate_compound_
+ 		if (!pte_none(*pte)) {
  			/*
- 			 * if the address is aligned to huge page size it is the
-@@ -1377,23 +1330,8 @@ int __meminit vmemmap_populate_compound_
- 				next = addr + 2 * PAGE_SIZE;
- 				continue;
- 			}
--			/*
--			 * get the 2nd mapping details
--			 * Also create it if that doesn't exist
--			 */
--			tail_page_pte = vmemmap_compound_tail_page(addr, pfn_offset, node);
--			if (!tail_page_pte) {
--
--				pte = radix__vmemmap_pte_populate(pmd, addr, node, NULL, NULL);
+ 			 * This could be because we already have a compound
+-			 * page whose VMEMMAP_RESERVE_NR pages were mapped and
++			 * page whose retained vmemmap page was mapped and
+ 			 * this request fall in those pages.
+ 			 */
+ 			next = addr + PAGE_SIZE;
+@@ -1318,16 +1285,7 @@ int __meminit vmemmap_populate_compound_
+ 					return -ENOMEM;
+ 				vmemmap_verify(pte, node, addr, addr + PAGE_SIZE);
+ 
+-				/*
+-				 * Populate the tail pages vmemmap page
+-				 * It can fall in different pmd, hence
+-				 * vmemmap_populate_address()
+-				 */
+-				pte = radix__vmemmap_populate_address(addr + PAGE_SIZE, node, NULL, NULL);
 -				if (!pte)
 -					return -ENOMEM;
--				vmemmap_verify(pte, node, addr, addr + PAGE_SIZE);
 -
--				next = addr + PAGE_SIZE;
--				continue;
--			}
+-				next = addr + 2 * PAGE_SIZE;
++				next = addr + PAGE_SIZE;
+ 				continue;
+ 			}
  
--			pte = radix__vmemmap_pte_populate(pmd, addr, node, NULL, pte_page(*tail_page_pte));
-+			pte = radix__vmemmap_pte_populate(pmd, addr, node, NULL, tail_page);
- 			if (!pte)
- 				return -ENOMEM;
- 			vmemmap_verify(pte, node, addr, addr + PAGE_SIZE);
+--- a/include/linux/mm.h~mm-sparse-vmemmap-drop-the-extra-tail-page-from-device-dax-reservation
++++ a/include/linux/mm.h
+@@ -5167,7 +5167,6 @@ static inline void vmem_altmap_free(stru
+ }
+ #endif
+ 
+-#define VMEMMAP_RESERVE_NR	2
+ #ifdef CONFIG_ARCH_WANT_OPTIMIZE_DAX_VMEMMAP
+ static inline bool __vmemmap_can_optimize(struct vmem_altmap *altmap,
+ 					  struct dev_pagemap *pgmap)
+@@ -5187,7 +5186,7 @@ static inline bool __vmemmap_can_optimiz
+ 	 * For vmemmap optimization with DAX we need minimum 2 vmemmap
+ 	 * pages. See layout diagram in Documentation/mm/vmemmap_dedup.rst
+ 	 */
+-	return !altmap && (nr_vmemmap_pages > VMEMMAP_RESERVE_NR);
++	return !altmap && (nr_vmemmap_pages > VMEMMAP_OPTIMIZATION_PAGES);
+ }
+ /*
+  * If we don't have an architecture override, use the generic rule
+--- a/mm/mm_init.c~mm-sparse-vmemmap-drop-the-extra-tail-page-from-device-dax-reservation
++++ a/mm/mm_init.c
+@@ -1056,7 +1056,7 @@ static inline unsigned long compound_nr_
+ 	if (!section_vmemmap_optimizable(ms))
+ 		return pgmap_vmemmap_nr(pgmap);
+ 
+-	return VMEMMAP_RESERVE_NR * (PAGE_SIZE / sizeof(struct page));
++	return VMEMMAP_OPTIMIZATION_PAGES * (PAGE_SIZE / sizeof(struct page));
+ }
+ 
+ static void __ref memmap_init_compound(struct page *head,
+--- a/mm/sparse-vmemmap.c~mm-sparse-vmemmap-drop-the-extra-tail-page-from-device-dax-reservation
++++ a/mm/sparse-vmemmap.c
+@@ -136,7 +136,6 @@ int __meminit section_nr_vmemmap_pages(u
+ {
+ 	const struct mem_section *ms = __pfn_to_section(pfn);
+ 	const int order = section_compound_order(ms);
+-	const int vmemmap_pages = pgmap ? VMEMMAP_RESERVE_NR : VMEMMAP_OPTIMIZATION_PAGES;
+ 	const unsigned long pages_per_compound = 1UL << order;
+ 
+ 	VM_WARN_ON_ONCE(!IS_ALIGNED(pfn | nr_pages, PAGES_PER_SUBSECTION));
+@@ -147,13 +146,13 @@ int __meminit section_nr_vmemmap_pages(u
+ 
+ 	if (order < PFN_SECTION_SHIFT) {
+ 		VM_WARN_ON_ONCE(!IS_ALIGNED(pfn | nr_pages, pages_per_compound));
+-		return vmemmap_pages * nr_pages / pages_per_compound;
++		return VMEMMAP_OPTIMIZATION_PAGES * nr_pages / pages_per_compound;
+ 	}
+ 
+ 	VM_WARN_ON_ONCE(!IS_ALIGNED(pfn | nr_pages, PAGES_PER_SECTION));
+ 
+ 	if (IS_ALIGNED(pfn, pages_per_compound))
+-		return vmemmap_pages;
++		return VMEMMAP_OPTIMIZATION_PAGES;
+ 
+ 	return 0;
+ }
+@@ -521,17 +520,11 @@ static int __meminit vmemmap_populate_co
+ 		if (!pte)
+ 			return -ENOMEM;
+ 
+-		/* Populate the tail pages vmemmap page */
+-		next = addr + PAGE_SIZE;
+-		pte = vmemmap_populate_address(next, node, NULL, -1, flags);
+-		if (!pte)
+-			return -ENOMEM;
+-
+ 		/*
+ 		 * Reuse the shared page for the rest of tail pages
+ 		 * See layout diagram in Documentation/mm/vmemmap_dedup.rst
+ 		 */
+-		next += PAGE_SIZE;
++		next = addr + PAGE_SIZE;
+ 		rc = vmemmap_populate_range(next, last, node, NULL,
+ 					    page_to_pfn(page), flags);
+ 		if (rc)
 _
 
 Patches currently in -mm which might be from songmuchun@bytedance.com are
