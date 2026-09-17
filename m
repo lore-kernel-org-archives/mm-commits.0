@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9B2223AAF44
-	for <mm-commits@vger.kernel.org>; Thu, 17 Sep 2026 05:41:49 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 497793BBFA5
+	for <mm-commits@vger.kernel.org>; Thu, 17 Sep 2026 05:42:45 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789623711; cv=none; b=NxbkVgcb+HojDtNQ0/EQdg9M8i8DuNo4oYtMrjhtP7Nc05FQMouc3wAzzp1mgXh1O9OGN0/4QsJaod6x4ojXJSMfXUPmwrjxEPKYX3q4L9T5qd8jbHrzQEOIbx2AlpXHjApUTG5af9MIESIqOjvJT1XTfnd5p2ht9M4AeVlr1uU=
+	t=1789623767; cv=none; b=YjL9GODEmcfnBt2LuKSLACaQKpfNbcg0vaU+CZahz+Vl6TScZgLsLlefoczViiph9vMk1pO9MrMsCeXFaWfGoBHf+YjX77KxpECrSTygynK0138kkudyX3FjCjBp1nLqIiYZvshoaBvY9IW+Se8s8YYPPgXSy9oEI5P5UWs6A3Y=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1789623711; c=relaxed/simple;
-	bh=7ZGiXBP5nhiMY+fQI2tMwRmKgEhf0YaSLHHQn0kltXA=;
-	h=Date:To:From:Subject:Message-Id; b=iEEynDyi5XGa/h7EYTP2InyTPcvomVgWY5PkLnpMjARTcJ+qaZ4X+RF86K9Ip55CgRBlEW9cl8kRt4PYE7bqcuumqa9bjJ3RiS4I06aYjMGp5/Q5Brg7hPNIjLTWcnA0vQjWsXZhD1XV8x45CjQqFyd7p5tVkTZ/Dr/uwBiqo64=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=yjC7Rv+6; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1789623767; c=relaxed/simple;
+	bh=38fi7Nfn0gJRsgmamtx4sXvnIVYMEdVgW8mka82X6TA=;
+	h=Date:To:From:Subject:Message-Id; b=TfLkrboEV7m/oeiYfoW+eodDgdLt1fDw8TTsiS6oYcco3AevEaYKdwGFIxVajBWPONimxCZIiIfCF22P8FatmyTm8l2Qz5/GFTMHp4kRBpEjkr3WcoBAbs/xtoydY0B8cjGsEtvgz64Lq7Y91NnBsdFdc6F3htBFSEYoQhkNwsE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=fMh1A+2T; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="yjC7Rv+6"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 291751F000FF;
-	Thu, 17 Sep 2026 05:41:49 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="fMh1A+2T"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 13DF51F000FF;
+	Thu, 17 Sep 2026 05:42:45 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1789623709;
-	bh=GQ2IrjcXu+Vb7HcS3qOW1HhyGkJpZsvFtDNnvLNAnT0=;
+	d=linux-foundation.org; s=korg; t=1789623765;
+	bh=cVmKT8yaRfOXEcgyjhXjHwiJSejgtmNsIZT2oPDJXt4=;
 	h=Date:To:From:Subject;
-	b=yjC7Rv+6VlNr7lglsuSTiN2yPsjNFeZu8xgo/ksOCj4iWwvW9gvAMBnb0QcBvEBDf
-	 0xgFYzGX7rDuX92n2PfwIyVqjp0GjEpJi7+Bc1h7hFhWlBZQkGeH4BLt5Tjx9B/mZT
-	 faq7ja6m3MNlRlSIWrfaACLyca3JxDzSbJ5eiZbE=
-Date: Wed, 16 Sep 2026 22:41:48 -0700
-To: mm-commits@vger.kernel.org,piaojun@huawei.com,mark@fasheh.com,junxiao.bi@oracle.com,jlbec@evilplan.org,jiangqi903@gmail.com,heming.zhao@suse.com,gechangwei@live.cn,joseph.qi@linux.alibaba.com,akpm@linux-foundation.org
+	b=fMh1A+2THFmJ/mnyibpSwXLZvOGS0iRmbK5v/RfQ6kB+2n3E6/5njofQVgYQKL1QG
+	 fOUCCKCOfHEayESk63r2q5MmD20trPaAZYaMkouFd55VYfYpnJkEX7jeGacap+St3s
+	 lRmtiROSn7Uy33HzSfuS9iYkSKIw+qNhYew9smQo=
+Date: Wed, 16 Sep 2026 22:42:44 -0700
+To: mm-commits@vger.kernel.org,piaojun@huawei.com,mark@fasheh.com,junxiao.bi@oracle.com,jlbec@evilplan.org,heming.zhao@suse.com,gechangwei@live.cn,daniel@iogearbox.net,joseph.qi@linux.alibaba.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [to-be-updated] ocfs2-retain-all-security-xattrs-during-inode-creation.patch removed from -mm tree
-Message-Id: <20260917054149.291751F000FF@smtp.kernel.org>
+Subject: + ocfs2-retain-all-security-xattrs-during-inode-creation.patch added to mm-nonmm-unstable branch
+Message-Id: <20260917054245.13DF51F000FF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,17 +34,33 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The quilt patch titled
+The patch titled
      Subject: ocfs2: retain all security xattrs during inode creation
-has been removed from the -mm tree.  Its filename was
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
      ocfs2-retain-all-security-xattrs-during-inode-creation.patch
 
-This patch was dropped because an updated version will be issued
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/ocfs2-retain-all-security-xattrs-during-inode-creation.patch
+
+This patch will later appear in the mm-nonmm-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via various
+branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there most days
 
 ------------------------------------------------------
 From: Joseph Qi <joseph.qi@linux.alibaba.com>
 Subject: ocfs2: retain all security xattrs during inode creation
-Date: Wed, 16 Sep 2026 20:02:58 +0800
+Date: Thu, 17 Sep 2026 09:48:25 +0800
 
 When creating a new inode, ocfs2_init_security_get() stores the security
 xattr returned by the LSM framework in ocfs2_security_xattr_info so that
@@ -77,23 +93,23 @@ and the security layer allocates the very same xattr array with GFP_NOFS,
 so direct reclaim must not be allowed to recurse into the filesystem from
 here.
 
-Link: https://lore.kernel.org/20260916120258.3583355-1-joseph.qi@linux.alibaba.com
+Link: https://lore.kernel.org/20260917014825.678947-1-joseph.qi@linux.alibaba.com
 Fixes: de3004c874e7 ("ocfs2: Switch to security_inode_init_security()")
 Signed-off-by: Joseph Qi <joseph.qi@linux.alibaba.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Reviewed-by: Heming Zhao <heming.zhao@suse.com>
+Cc: Daniel Borkmann <daniel@iogearbox.net>
 Cc: Mark Fasheh <mark@fasheh.com>
 Cc: Joel Becker <jlbec@evilplan.org>
 Cc: Junxiao Bi <junxiao.bi@oracle.com>
-Cc: Joseph Qi <jiangqi903@gmail.com>
 Cc: Changwei Ge <gechangwei@live.cn>
 Cc: Jun Piao <piaojun@huawei.com>
+Cc: Heming Zhao <heming.zhao@suse.com>
 ---
 
  fs/ocfs2/namei.c |    6 --
- fs/ocfs2/xattr.c |  122 ++++++++++++++++++++++++++++++++++-----------
+ fs/ocfs2/xattr.c |  133 +++++++++++++++++++++++++++++++++++----------
  fs/ocfs2/xattr.h |   12 +++-
- 3 files changed, 105 insertions(+), 35 deletions(-)
+ 3 files changed, 116 insertions(+), 35 deletions(-)
 
 --- a/fs/ocfs2/namei.c~ocfs2-retain-all-security-xattrs-during-inode-creation
 +++ a/fs/ocfs2/namei.c
@@ -151,9 +167,21 @@ Cc: Jun Piao <piaojun@huawei.com>
  
  	/*
  	 * The max space of security xattr taken inline is
-@@ -664,13 +669,15 @@ int ocfs2_calc_security_init(struct inod
+@@ -663,14 +668,27 @@ int ocfs2_calc_security_init(struct inod
+ 		*xattr_credits += OCFS2_XATTR_BLOCK_CREATE_CREDITS;
  	}
  
++	/*
++	 * when blocksize = 512, the security xattrs may not fit in the
++	 * single block reserved above and a bucket has to be allocated
++	 * for them, so reserve the cluster it needs as well.
++	 */
++	if (dir->i_sb->s_blocksize == OCFS2_MIN_BLOCKSIZE &&
++	    s_size > OCFS2_XATTR_FREE_IN_BLOCK(dir)) {
++		*want_clusters += 1;
++		*xattr_credits += ocfs2_blocks_per_xattr_bucket(dir->i_sb);
++	}
++
  	/* reserve clusters for xattr value which will be set in B tree*/
 -	if (si->value_len > OCFS2_XATTR_INLINE_SIZE) {
 -		int new_clusters = ocfs2_clusters_for_bytes(dir->i_sb,
@@ -174,7 +202,7 @@ Cc: Jun Piao <piaojun@huawei.com>
  	}
  	return ret;
  }
-@@ -680,12 +687,16 @@ void ocfs2_calc_xattr_init(struct inode
+@@ -680,12 +698,16 @@ void ocfs2_calc_xattr_init(struct inode
  			   int *want_clusters, int *xattr_credits,
  			   int *want_meta, struct ocfs2_acl_state *acl_state)
  {
@@ -194,7 +222,7 @@ Cc: Jun Piao <piaojun@huawei.com>
  
  	if (osb->s_mount_opt & OCFS2_MOUNT_POSIX_ACL) {
  		if (acl_state->default_acl && S_ISDIR(mode)) {
-@@ -732,12 +743,14 @@ void ocfs2_calc_xattr_init(struct inode
+@@ -732,12 +754,14 @@ void ocfs2_calc_xattr_init(struct inode
  	 * reserve credits and clusters for xattrs which has large value
  	 * and have to be set outside
  	 */
@@ -215,7 +243,7 @@ Cc: Jun Piao <piaojun@huawei.com>
  	}
  	if (osb->s_mount_opt & OCFS2_MOUNT_POSIX_ACL) {
  		if (acl_state->default_acl && S_ISDIR(mode)) {
-@@ -7630,17 +7643,46 @@ static int ocfs2_initxattrs(struct inode
+@@ -7635,17 +7659,46 @@ static int ocfs2_initxattrs(struct inode
  {
  	struct ocfs2_security_xattr_info *si = fs_info;
  	const struct xattr *xattr;
@@ -267,7 +295,7 @@ Cc: Jun Piao <piaojun@huawei.com>
  	}
  
  	for (xattr = xattr_array; xattr->name != NULL; xattr++) {
-@@ -7653,6 +7695,19 @@ static int ocfs2_initxattrs(struct inode
+@@ -7658,6 +7711,19 @@ static int ocfs2_initxattrs(struct inode
  	return err;
  }
  
@@ -287,7 +315,7 @@ Cc: Jun Piao <piaojun@huawei.com>
  int ocfs2_init_security_get(struct inode *inode,
  			    struct inode *dir,
  			    const struct qstr *qstr,
-@@ -7670,7 +7725,7 @@ int ocfs2_init_security_get(struct inode
+@@ -7675,7 +7741,7 @@ int ocfs2_init_security_get(struct inode
  		 * security_inode_init_security() does not return -EOPNOTSUPP,
  		 * we have to check the xattr ourselves.
  		 */
@@ -296,7 +324,7 @@ Cc: Jun Piao <piaojun@huawei.com>
  			si->enable = 0;
  
  		return ret;
-@@ -7687,10 +7742,21 @@ int ocfs2_init_security_set(handle_t *ha
+@@ -7692,10 +7758,21 @@ int ocfs2_init_security_set(handle_t *ha
  			    struct ocfs2_alloc_context *xattr_ac,
  			    struct ocfs2_alloc_context *data_ac)
  {
@@ -372,4 +400,5 @@ ocfs2-reject-inconsistent-xattr-bucket-during-defrag.patch
 ocfs2-skip-uninitialized-lockres-in-ocfs2_mark_lockres_freeing.patch
 ocfs2-validate-dr_fs_generation-of-dir-index-root-blocks.patch
 ocfs2-validate-dl_blkno-and-dl_fs_generation-of-dir-index-leaf-blocks.patch
+ocfs2-retain-all-security-xattrs-during-inode-creation.patch
 
