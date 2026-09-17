@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BF0804E431C;
-	Wed, 16 Sep 2026 23:30:56 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2FEA121A434
+	for <mm-commits@vger.kernel.org>; Thu, 17 Sep 2026 01:29:07 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789601458; cv=none; b=MKritWz6yLq898BH3vILHzBPt/sPc0e5iKwTlnhQk/xeHHzmpJvKWPj2amWqG20FX4XkTB2Ez4KD0fwQs9Ck6L4GZuPRxoE47AJaTcyIlKUp4WIUHkPfF+yx2Y0MeiA83AlMyPzjG0zppmhkZjj/NCNJ04Nq8oiT3kDgL8XBIDU=
+	t=1789608549; cv=none; b=o6yi1GUg7CkLmPcPVZ4EygrTTCINluDHgupGuToqPw+Nygzg/7KvpomLsVZ/hfhPoPafqFqX8pyIC+kXFTgBaHFU1+ij/RrvSMa7ph30H+URxwuHeZgHF6QA4GEQfoSMohQ7IugqMCeOC5chg8yHJzXo4ghUydx4/hXSh89/m9U=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1789601458; c=relaxed/simple;
-	bh=/bzOFe/Kmzkm59iMBjGGsDiJVZmDfSJpNeZ94G1o/o8=;
-	h=Date:To:From:Subject:Message-Id; b=sUurFUyCsgr92tNyiz9UflFkZjLS1LHWbqhnrjcFhK3DZ088lXgxmyzLrOExJTJBDUQAcbDgZiqEsJ1D2fsI4h7n0eLmsgRYHHHcX3pA0AQLeOoDq8yf7fPF13tnCZmwfS58ZR2K54D+AJI8nvDhxSLlt5oTNvAfWhDkIIle5MI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=j/Qu02tI; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1789608549; c=relaxed/simple;
+	bh=jVvl4FBHGn5sb6Q6OY6KjKTl/UyJs/XqJXo3vHEul2g=;
+	h=Date:To:From:Subject:Message-Id; b=BIAXHvsztqh7nSdqqnUhrj0P+DC6wjjl1w5x1wrxf+Fmy8yaSfy6+jjbRr6xTH5Yny7r+umVU0uj/b9E9CWfTMRWB5KCkS2HRgwgOBQDoSGawFtcF3/z5TP7KFqL5sJecZZV2+aIcsKBmJV/oUQbZiwDUD1dZkpSArU1X9EXva0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=gem+bLUb; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="j/Qu02tI"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 711131F000FF;
-	Wed, 16 Sep 2026 23:30:55 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="gem+bLUb"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9331C1F000FF;
+	Thu, 17 Sep 2026 01:29:07 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1789601455;
-	bh=zfQXXBkSExk3RxxeKgyFQpLPFGREpmjuUl3vFHV7DLY=;
+	d=linux-foundation.org; s=korg; t=1789608547;
+	bh=zvR+miQj1nDqzboIo0iufSOjVskTg3dNWARBfd8Lx5E=;
 	h=Date:To:From:Subject;
-	b=j/Qu02tI1r2azRHTSLjFc0G9G+988Sv5rAN/vyvF4fqg5J4h/PkA28a4Ahdf0TjeF
-	 k5EuY397W+84znRDqYBTy/y8HAW+cPISVrlT3ZNRSAynnF1gyLA7aIkVo0vpk19kCX
-	 TfGLd7Xbak0sY2GDTijPcvWGBUQLN31XjhZg90dA=
-Date: Wed, 16 Sep 2026 16:30:55 -0700
-To: mm-commits@vger.kernel.org,yuanchu@google.com,weixugc@google.com,stable@vger.kernel.org,shakeel.butt@linux.dev,mhocko@kernel.org,ljs@kernel.org,kasong@tencent.com,hannes@cmpxchg.org,david@kernel.org,baoquan.he@linux.dev,baolin.wang@linux.alibaba.com,baohua@kernel.org,axelrasmussen@google.com,arnd@arndb.de,akpm@linux-foundation.org
+	b=gem+bLUbR6E2jwoaNTJtmRptU8pQkjA/wDuvIV+JGXU+/Kz5WncxFBri4Mn8S7Fkj
+	 VBZSNDC5uxXizskM2vJzAaR2RfWlebAcafTtIRyk/a6A3hL/5SuhGR3vIpdTlAL49T
+	 LIrkLW9vifWSqysn+MvhkcNWGSNCGxh7GzzxgIho=
+Date: Wed, 16 Sep 2026 18:29:07 -0700
+To: mm-commits@vger.kernel.org,songmuchun@bytedance.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-vmscan-avoid-false-positive-wuninitialized-warning-again.patch added to mm-hotfixes-unstable branch
-Message-Id: <20260916233055.711131F000FF@smtp.kernel.org>
+Subject: [to-be-updated] mm-sparse-vmemmap-introduce-config_sparsemem_vmemmap_optimization.patch removed from -mm tree
+Message-Id: <20260917012907.9331C1F000FF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,115 +34,266 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The patch titled
-     Subject: mm/vmscan: avoid false-positive -Wuninitialized warning, again
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mm-vmscan-avoid-false-positive-wuninitialized-warning-again.patch
+The quilt patch titled
+     Subject: mm/sparse-vmemmap: introduce CONFIG_SPARSEMEM_VMEMMAP_OPTIMIZATION
+has been removed from the -mm tree.  Its filename was
+     mm-sparse-vmemmap-introduce-config_sparsemem_vmemmap_optimization.patch
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vmscan-avoid-false-positive-wuninitialized-warning-again.patch
-
-This patch will later appear in the mm-hotfixes-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via various
-branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there most days
+This patch was dropped because an updated version will be issued
 
 ------------------------------------------------------
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: mm/vmscan: avoid false-positive -Wuninitialized warning, again
-Date: Wed, 16 Sep 2026 10:34:46 +0200
+From: Muchun Song <songmuchun@bytedance.com>
+Subject: mm/sparse-vmemmap: introduce CONFIG_SPARSEMEM_VMEMMAP_OPTIMIZATION
+Date: Fri, 11 Sep 2026 13:02:18 +0800
 
-I previously worked around a false-postive gcc-16 warning in the
-get_tier_idx() function, by adding a fake initializer. This happens with
-the -fsanitize=bounds sanitizer when the compiler creates a specialized
-variant of isolate_folios():
+Patch series "mm: Switch device DAX to section-based vmemmap
+optimization", v3.
 
-In function 'get_tier_idx',
-    inlined from 'isolate_folios.constprop' at mm/vmscan.c:4982:9:
-mm/vmscan.c:4934:9: error: 'sp.refaulted' is used uninitialized [-Werror=uninitialized]
- 4934 |         read_ctrl_pos(lruvec, type, LRU_TIER_MIN, LRU_TIER_MIN, 2, &sp);
-      |         ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-mm/vmscan.c: In function 'isolate_folios.constprop':
-mm/vmscan.c:4946:25: note: 'sp.refaulted' was declared here
- 4946 |         struct ctrl_pos sp, pv = {};
-      |                         ^~
+This series is split out from the earlier, larger series "mm: Generalize
+HVO for HugeTLB and device DAX" [1].  While the parent series generalizes
+vmemmap optimization across HugeTLB and device DAX, this subset addresses
+a single, self-contained step: switching device DAX to the section-based
+sparse-vmemmap optimization infrastructure introduced for HugeTLB.
 
-Adding another "= {}" would solve the problem as well, but to prevent
-this from happening again after the next code refactoring, try instead to
-prevent this by forbidding interprocedural optimizations on this function.
+After the HugeTLB conversion, optimized vmemmap state is described by the
+memory section and the sparse-vmemmap population path can allocate or
+reuse shared tail vmemmap pages based on that metadata.  Device DAX still
+uses the older DAX-specific population model, including a separate tail
+vmemmap page reservation and architecture-specific logic to locate or
+populate reusable tail pages.
 
-Link: https://lore.kernel.org/all/20260213123902.3466040-1-arnd@kernel.org/
-Link: https://lore.kernel.org/20260916083456.4136132-1-arnd@kernel.org
-Fixes: 3de705a43a46 ("mm/vmscan: avoid false-positive -Wuninitialized warning")
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+This series makes device DAX use the same section-based model.  Device DAX
+records the compound page order from pgmap->vmemmap_shift in section
+metadata before vmemmap population, uses the common per-zone shared tail
+vmemmap page, and drops the extra reserved tail page.  The powerpc radix
+path is updated to use the same shared tail-page helper, so the generic
+and powerpc DAX paths follow the same reservation model.
+
+The first patches prepare the shared infrastructure by introducing a
+generic CONFIG_SPARSEMEM_VMEMMAP_OPTIMIZATION symbol, factoring out shared
+tail-page allocation, and keeping the special shared-tail struct page
+initialization local to sparse-vmemmap.
+
+The middle patches move device DAX onto that infrastructure by recording
+the device DAX compound page order in memory-section metadata, using that
+metadata to back generic device DAX mappings with the common per-zone
+shared tail page, exposing the shared helpers so the powerpc radix path
+can use the same model, and dropping the extra DAX-only tail page
+reservation and the now-unused section accounting arguments.
+
+The final patch updates the documentation for the new DAX layout.
+
+This is intended to be the third smaller step toward the broader HVO
+generalization.  The wider HVO consolidation between HugeTLB and device
+DAX is left for follow-up series.
+
+
+This patch (of 11):
+
+The section-based vmemmap optimization infrastructure is still guarded by
+CONFIG_HUGETLB_PAGE_OPTIMIZE_VMEMMAP, but it also can be used by device
+DAX.  Introduce CONFIG_SPARSEMEM_VMEMMAP_OPTIMIZATION as a common config
+for the shared infrastructure.
+
+Select the new option from HUGETLB_PAGE_OPTIMIZE_VMEMMAP and from DEV_DAX
+when the architecture opts in to DAX vmemmap optimization, and use it to
+guard the generic sparse-vmemmap state and helpers.
+
+Link: https://lore.kernel.org/20260911050228.58884-1-songmuchun@bytedance.com
+Link: https://lore.kernel.org/20260911050228.58884-2-songmuchun@bytedance.com
+Link: https://lore.kernel.org/all/20260513130542.35604-1-songmuchun@bytedance.com/ [1]
+Signed-off-by: Muchun Song <songmuchun@bytedance.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Cc: Axel Rasmussen <axelrasmussen@google.com>
-Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: Baoquan He <baoquan.he@linux.dev>
-Cc: Barry Song <baohua@kernel.org>
+Acked-by: Qi Zheng <qi.zheng@linux.dev>
 Cc: David Hildenbrand <david@kernel.org>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Kairui Song <kasong@tencent.com>
+Cc: Jonathan Corbet <corbet@lwn.net>
 Cc: Lorenzo Stoakes <ljs@kernel.org>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Shakeel Butt <shakeel.butt@linux.dev>
-Cc: Wei Xu <weixugc@google.com>
-Cc: Yuanchu Xie <yuanchu@google.com>
-Cc: <stable@vger.kernel.org>
+Cc: Madhavan Srinivasan <maddy@linux.ibm.com>
+Cc: Michael Ellerman <mpe@ellerman.id.au>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Nicholas Piggin <npiggin@gmail.com>
+Cc: Oscar Salvador <osalvador@suse.de>
+Cc: Randy Dunlap <rdunlap@infradead.org>
 ---
 
- mm/vmscan.c |   12 ++++++++----
- 1 file changed, 8 insertions(+), 4 deletions(-)
+ arch/x86/entry/vdso/vdso32/fake_32bit_build.h |    2 +-
+ drivers/dax/Kconfig                           |    2 ++
+ fs/Kconfig                                    |    1 +
+ include/linux/mm.h                            |    3 +++
+ include/linux/mmzone.h                        |   13 +++++++------
+ include/linux/page-flags.h                    |    5 ++---
+ mm/Kconfig                                    |    4 ++++
+ mm/sparse.h                                   |    4 ++--
+ 8 files changed, 22 insertions(+), 12 deletions(-)
 
---- a/mm/vmscan.c~mm-vmscan-avoid-false-positive-wuninitialized-warning-again
-+++ a/mm/vmscan.c
-@@ -3195,8 +3195,12 @@ struct ctrl_pos {
- 	int gain;
- };
+--- a/arch/x86/entry/vdso/vdso32/fake_32bit_build.h~mm-sparse-vmemmap-introduce-config_sparsemem_vmemmap_optimization
++++ a/arch/x86/entry/vdso/vdso32/fake_32bit_build.h
+@@ -11,7 +11,7 @@
+ #undef CONFIG_PGTABLE_LEVELS
+ #undef CONFIG_ILLEGAL_POINTER_VALUE
+ #undef CONFIG_SPARSEMEM_VMEMMAP
+-#undef CONFIG_HUGETLB_PAGE_OPTIMIZE_VMEMMAP
++#undef CONFIG_SPARSEMEM_VMEMMAP_OPTIMIZATION
+ #undef CONFIG_NR_CPUS
+ #undef CONFIG_PARAVIRT_XXL
  
--static void read_ctrl_pos(struct lruvec *lruvec, int type, int tier, int gain,
--			  struct ctrl_pos *pos)
-+/*
-+ * __noipa works around  gcc-16 warning for uninitialized use of
-+ * pos->refaulted
-+ */
-+static __noipa void read_ctrl_pos(struct lruvec *lruvec, int type, int tier,
-+			  int gain, struct ctrl_pos *pos)
- {
- 	int i;
- 	struct lru_gen_folio *lrugen = &lruvec->lrugen;
-@@ -4802,7 +4806,7 @@ static int scan_folios(unsigned long nr_
- static int get_tier_idx(struct lruvec *lruvec, int type)
- {
- 	int tier;
--	struct ctrl_pos sp, pv = {};
-+	struct ctrl_pos sp, pv;
+--- a/drivers/dax/Kconfig~mm-sparse-vmemmap-introduce-config_sparsemem_vmemmap_optimization
++++ a/drivers/dax/Kconfig
+@@ -8,6 +8,8 @@ if DAX
+ config DEV_DAX
+ 	tristate "Device DAX: direct access mapping device"
+ 	depends on TRANSPARENT_HUGEPAGE
++	depends on ZONE_DEVICE
++	select SPARSEMEM_VMEMMAP_OPTIMIZATION if ARCH_WANT_OPTIMIZE_DAX_VMEMMAP
+ 	help
+ 	  Support raw access to differentiated (persistence, bandwidth,
+ 	  latency...) memory via an mmap(2) capable character
+--- a/fs/Kconfig~mm-sparse-vmemmap-introduce-config_sparsemem_vmemmap_optimization
++++ a/fs/Kconfig
+@@ -278,6 +278,7 @@ config HUGETLB_PAGE_OPTIMIZE_VMEMMAP
+ 	def_bool HUGETLB_PAGE
+ 	depends on ARCH_WANT_OPTIMIZE_HUGETLB_VMEMMAP
+ 	depends on SPARSEMEM_VMEMMAP
++	select SPARSEMEM_VMEMMAP_OPTIMIZATION
  
+ config HUGETLB_PMD_PAGE_TABLE_SHARING
+ 	def_bool HUGETLB_PAGE
+--- a/include/linux/mm.h~mm-sparse-vmemmap-introduce-config_sparsemem_vmemmap_optimization
++++ a/include/linux/mm.h
+@@ -5175,6 +5175,9 @@ static inline bool __vmemmap_can_optimiz
+ 	unsigned long nr_pages;
+ 	unsigned long nr_vmemmap_pages;
+ 
++	if (!IS_ENABLED(CONFIG_SPARSEMEM_VMEMMAP_OPTIMIZATION))
++		return false;
++
+ 	if (!pgmap || !is_power_of_2(sizeof(struct page)))
+ 		return false;
+ 
+--- a/include/linux/mmzone.h~mm-sparse-vmemmap-introduce-config_sparsemem_vmemmap_optimization
++++ a/include/linux/mmzone.h
+@@ -102,9 +102,9 @@
+  *
+  * HVO which is only active if the size of struct page is a power of 2.
+  */
+-#define MAX_FOLIO_VMEMMAP_ALIGN \
+-	(IS_ENABLED(CONFIG_HUGETLB_PAGE_OPTIMIZE_VMEMMAP) && \
+-	 is_power_of_2(sizeof(struct page)) ? \
++#define MAX_FOLIO_VMEMMAP_ALIGN					\
++	(IS_ENABLED(CONFIG_SPARSEMEM_VMEMMAP_OPTIMIZATION) &&	\
++	 is_power_of_2(sizeof(struct page)) ?			\
+ 	 MAX_FOLIO_NR_PAGES * sizeof(struct page) : 0)
+ 
+ /* The number of retained vmemmap pages with HVO enabled. */
+@@ -116,7 +116,8 @@
+ #define __VMEMMAP_OPTIMIZATION_NR_ORDERS	\
+ 	(MAX_FOLIO_ORDER - VMEMMAP_OPTIMIZATION_MIN_ORDER + 1)
+ #define VMEMMAP_OPTIMIZATION_NR_ORDERS		\
+-	(__VMEMMAP_OPTIMIZATION_NR_ORDERS > 0 ? __VMEMMAP_OPTIMIZATION_NR_ORDERS : 0)
++	((__VMEMMAP_OPTIMIZATION_NR_ORDERS > 0 &&	\
++	  IS_ENABLED(CONFIG_SPARSEMEM_VMEMMAP_OPTIMIZATION)) ? __VMEMMAP_OPTIMIZATION_NR_ORDERS : 0)
+ 
+ enum migratetype {
+ 	MIGRATE_UNMOVABLE,
+@@ -1155,7 +1156,7 @@ struct zone {
+ 	/* Zone statistics */
+ 	atomic_long_t		vm_stat[NR_VM_ZONE_STAT_ITEMS];
+ 	atomic_long_t		vm_numa_event[NR_VM_NUMA_EVENT_ITEMS];
+-#ifdef CONFIG_HUGETLB_PAGE_OPTIMIZE_VMEMMAP
++#ifdef CONFIG_SPARSEMEM_VMEMMAP_OPTIMIZATION
+ 	struct page *vmemmap_tails[VMEMMAP_OPTIMIZATION_NR_ORDERS];
+ #endif
+ } ____cacheline_internodealigned_in_smp;
+@@ -2019,7 +2020,7 @@ struct mem_section {
+ 	unsigned long section_mem_map;
+ 
+ 	struct mem_section_usage *usage;
+-#ifdef CONFIG_HUGETLB_PAGE_OPTIMIZE_VMEMMAP
++#ifdef CONFIG_SPARSEMEM_VMEMMAP_OPTIMIZATION
  	/*
- 	 * To leave a margin for fluctuations, use a larger gain factor (2:3).
-@@ -4821,7 +4825,7 @@ static int get_tier_idx(struct lruvec *l
- 
- static int get_type_to_scan(struct lruvec *lruvec, int swappiness)
+ 	 * Normally, sections hold regular (order-0) pages. However, for
+ 	 * sections with HVO enabled, this tracks the compound page order
+--- a/include/linux/page-flags.h~mm-sparse-vmemmap-introduce-config_sparsemem_vmemmap_optimization
++++ a/include/linux/page-flags.h
+@@ -208,14 +208,13 @@ enum pageflags {
+ static __always_inline bool compound_info_has_mask(void)
  {
--	struct ctrl_pos sp, pv = {};
-+	struct ctrl_pos sp, pv;
+ 	/*
+-	 * Limit mask usage to HugeTLB vmemmap optimization (HVO) where it
+-	 * makes a difference.
++	 * Limit mask usage to HVO where it makes a difference.
+ 	 *
+ 	 * The approach with mask would work in the wider set of conditions,
+ 	 * but it requires validating that struct pages are naturally aligned
+ 	 * for all orders up to the MAX_FOLIO_ORDER, which can be tricky.
+ 	 */
+-	if (!IS_ENABLED(CONFIG_HUGETLB_PAGE_OPTIMIZE_VMEMMAP))
++	if (!IS_ENABLED(CONFIG_SPARSEMEM_VMEMMAP_OPTIMIZATION))
+ 		return false;
  
- 	if (swappiness <= MIN_SWAPPINESS + 1)
- 		return LRU_GEN_FILE;
+ 	return is_power_of_2(sizeof(struct page));
+--- a/mm/Kconfig~mm-sparse-vmemmap-introduce-config_sparsemem_vmemmap_optimization
++++ a/mm/Kconfig
+@@ -461,6 +461,10 @@ config SPARSEMEM_VMEMMAP
+ 	  pfn_to_page and page_to_pfn operations.  This is the most
+ 	  efficient option when sufficient kernel resources are available.
+ 
++config SPARSEMEM_VMEMMAP_OPTIMIZATION
++	bool
++	depends on SPARSEMEM_VMEMMAP
++
+ #
+ # Select this config option from the architecture Kconfig, if it is preferred
+ # to enable the feature of HugeTLB/dev_dax vmemmap optimization.
+--- a/mm/sparse.h~mm-sparse-vmemmap-introduce-config_sparsemem_vmemmap_optimization
++++ a/mm/sparse.h
+@@ -10,7 +10,7 @@
+ 
+ #include <linux/mmzone.h>
+ 
+-#ifdef CONFIG_HUGETLB_PAGE_OPTIMIZE_VMEMMAP
++#ifdef CONFIG_SPARSEMEM_VMEMMAP_OPTIMIZATION
+ static inline unsigned int section_compound_order(const struct mem_section *section)
+ {
+ 	return section->compound_page_order;
+@@ -75,7 +75,7 @@ static inline bool vmemmap_optimizable_p
+ 
+ static inline bool vmemmap_optimizable_order(unsigned int order)
+ {
+-	if (!IS_ENABLED(CONFIG_HUGETLB_PAGE_OPTIMIZE_VMEMMAP))
++	if (!IS_ENABLED(CONFIG_SPARSEMEM_VMEMMAP_OPTIMIZATION))
+ 		return false;
+ 
+ 	if (!is_power_of_2(sizeof(struct page)))
 _
 
-Patches currently in -mm which might be from arnd@arndb.de are
+Patches currently in -mm which might be from songmuchun@bytedance.com are
 
-alloc_tag-avoid-implicit-padding-in-uapi.patch
-mm-vmscan-avoid-false-positive-wuninitialized-warning-again.patch
+mm-sparse-relax-struct-mem_section-size-constraints.patch
+mm-sparse-vmemmap-rename-hvo-order-macros.patch
+mm-mm_init-skip-initializing-shared-vmemmap-tail-pages.patch
+mm-sparse-vmemmap-initialize-shared-tail-vmemmap-pages-on-allocation.patch
+mm-sparse-vmemmap-support-section-based-vmemmap-accounting.patch
+mm-mm_init-factor-out-pfn_to_zone.patch
+mm-sparse-vmemmap-move-helpers-ahead-of-future-callers.patch
+mm-sparse-vmemmap-support-section-based-vmemmap-optimization.patch
+mm-sparse-initialize-memory-sections-earlier.patch
+mm-hugetlb-switch-hugetlb-to-section-based-vmemmap-optimization.patch
+mm-sparse-vmemmap-remove-sparsemem_vmemmap_preinit-support.patch
+mm-sparse-inline-usemap-allocation-into-sparse_init_nid.patch
+mm-sparse-remove-section_map_size.patch
+mm-hugetlb-remove-huge_bootmem_hvo.patch
+mm-hugetlb-remove-huge_bootmem_cma.patch
+mm-hugetlb-localize-struct-huge_bootmem_page.patch
+mm-hugetlb-localize-huge_bootmem_zones_valid.patch
+mm-sparse-vmemmap-factor-out-shared-vmemmap-tail-page-allocation.patch
+mm-sparse-vmemmap-open-code-init_compound_tail.patch
+mm-sparse-vmemmap-prepare-dax-vmemmap-population-for-compound-page-orders.patch
+mm-sparse-vmemmap-set-compound-page-order-for-device-dax.patch
+mm-sparse-vmemmap-switch-device-dax-to-shared-tail-vmemmap-pages.patch
+mm-sparse-vmemmap-move-vmemmap-optimization-helpers-to-a-public-header.patch
+powerpc-mm-switch-device-dax-to-shared-tail-vmemmap-pages.patch
+mm-sparse-vmemmap-drop-the-extra-tail-page-from-device-dax-reservation.patch
+mm-sparse-vmemmap-drop-unused-section_nr_vmemmap_pages-arguments.patch
+documentation-mm-update-dax-vmemmap-deduplication-docs.patch
 
