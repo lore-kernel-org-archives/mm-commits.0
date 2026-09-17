@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BB2364AE130
-	for <mm-commits@vger.kernel.org>; Thu, 17 Sep 2026 21:09:55 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 25EE12750F2
+	for <mm-commits@vger.kernel.org>; Thu, 17 Sep 2026 21:09:56 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789679399; cv=none; b=VUoqAVsw5jOYrN7Hb0aBli6Fsi8TTNrR+C44EJw/oFMK1nstgkKDpYguwgTKTMOswgM6MalLNqwvRCll7b9gdAdGmEWRcwP2u+VM4SzJ6fyq1f+NimWo/S2VMqSWTFlH7wdPPEl1kQOIsitdW5IBOZFgwiLy1H8X7hlpbdlfnKI=
+	t=1789679399; cv=none; b=tF54PLgbQPnOaJ9UXSJUWDAFyvyQj4GQQCGz4oA71b1XoaUf+GvzIyXNo3rhSey9Nabtzbe80I8ec9hTTbZ6X/rppAVmti3s2G4808wQyMPNpm5cEnTs4ksG3CvOyu9Qe4fWRgixLGiXejkIsGuk4Lx/4dWaOU030sd9W5z6MOM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1789679399; c=relaxed/simple;
-	bh=6op2Pi9cGpGB2ncgBGHa7Fxj+NsO4pMgv66xclgo7vA=;
-	h=Date:To:From:Subject:Message-Id; b=oRmB6GnFNd/zgeyXMiOkf91bBnGR5q+mfTVbF3bBiZfIrEnqZ+SWltf45vZ/bD0sxg5XGnJQGMt9JXNJOAjiV/xOz0W9LYR8zL1mD4xpiuXUXpTdCe9v0VTe8TvBwCiZFsh4xP47C9wx1MtHVNRKgD9pqTUQ6mmzV8eUV86nnR8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=QWYbHUnY; arc=none smtp.client-ip=100.103.45.18
+	bh=CvOU4wfj7PyA47QMi/4ZF+Vm0byEFtdg1DigcrppPXo=;
+	h=Date:To:From:Subject:Message-Id; b=Ov5c0QehQtLKxmf5RCaGPaTiQV2D7Fg11cnws1H9v8jr7U2IYAnbEau0ISrZkuoajO5NqJtghzSiooDMhyBVnutBg9ESU8y1i02wejruYi51lz3V5z1fDMh/s5r+U9r2h+H87SsTLtL+DBaDG1bkEt2uMIigPQeG3unVhkMln6k=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=smIhq0tX; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="QWYbHUnY"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0D0D61F000FF;
-	Thu, 17 Sep 2026 21:09:54 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="smIhq0tX"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 69B101F0089B;
+	Thu, 17 Sep 2026 21:09:56 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1789679394;
-	bh=2Q95YTNK0XKONVnVl9fkda8/9KafGSZ/0J2ILZrrtiw=;
+	d=linux-foundation.org; s=korg; t=1789679396;
+	bh=pWBCSB2qyt0ANmbvFrOTctEmqs+TmoddGEOnCvl4c6c=;
 	h=Date:To:From:Subject;
-	b=QWYbHUnY8pYayaQGydeUzDtV9+G9q3qXvZLKAvlkzzVhaaY+AzbYL2OFdH9loMJMj
-	 qQKp3pkRjJNzvwryjzBIO8pjVZt8bNGRcRuIyvUWLOockZWBVQL2h/NuGwyWSCAjY0
-	 mCVaGXYmpg8uebv/C3GtLEcRzn1TX58MZiCj2tUA=
-Date: Thu, 17 Sep 2026 14:09:53 -0700
+	b=smIhq0tXWIQY5XPvL88SpBW6sCkZCDC7oP4jjZBFOT21ymUfyb0md+7VWh/vSVXsg
+	 29c38TB95GO/LtYLAyN2AO9XL/nRFLvNNmndrcO4ve0EIFDEcY//FItjn+DOVOfNtG
+	 CXplAJRyseywrsAn0PcTcl+k9uYjOkqp3Fd6/bSI=
+Date: Thu, 17 Sep 2026 14:09:56 -0700
 To: mm-commits@vger.kernel.org,ljs@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [to-be-updated] mm-vma-introduce-and-use-vma_can_merge.patch removed from -mm tree
-Message-Id: <20260917210954.0D0D61F000FF@smtp.kernel.org>
+Subject: [to-be-updated] mm-vma-ensure-mmap_prepare-doesnt-set-actions-on-a-mergeable-vma.patch removed from -mm tree
+Message-Id: <20260917210956.69B101F0089B@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,119 +35,55 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/vma: introduce and use vma_[flags_]can_merge()
+     Subject: mm/vma: ensure mmap_prepare doesn't set actions on a mergeable vma
 has been removed from the -mm tree.  Its filename was
-     mm-vma-introduce-and-use-vma_can_merge.patch
+     mm-vma-ensure-mmap_prepare-doesnt-set-actions-on-a-mergeable-vma.patch
 
 This patch was dropped because an updated version will be issued
 
 ------------------------------------------------------
 From: "Lorenzo Stoakes (ARM)" <ljs@kernel.org>
-Subject: mm/vma: introduce and use vma_[flags_]can_merge()
-Date: Mon, 14 Sep 2026 15:57:23 +0100
+Subject: mm/vma: ensure mmap_prepare doesn't set actions on a mergeable vma
+Date: Mon, 14 Sep 2026 15:57:25 +0100
 
-Replace the open-coded VMA_SPECIAL_FLAGS check in the VMA merge logic with
-two new functions vma_flags_can_merge() and vma_can_merge() and update the
-merge logic to use the former.
+When a user requests an mmap_action be performed in mmap_prepare, this
+involves populating the VMA range with data.
 
-This abstracts the check and expresses it in terms of the desired
-behaviour rather than an arbitrary and confusing VMA flag.
+However, if the VMA is mergeable, it might then mistakenly be merged with
+another VMA without having populated the range.
 
-This also lays the groundwork for making further improvements in VMA flag
-usage.
+Every mmap action currently available sets VMA flags such that the VMA
+cannot be merged.
 
-Also update the userland VMA tests to reflect the change.
+However, to ensure that no future mmap action falls foul of this, assert
+that this is the case upon mmap_prepare validation.
 
-No functional change intended.
-
-Link: https://lore.kernel.org/20260914-b4-mmap-prepare-vma-flag-sanify-v2-3-7d9781ed5361@kernel.org
+Link: https://lore.kernel.org/20260914-b4-mmap-prepare-vma-flag-sanify-v2-5-7d9781ed5361@kernel.org
 Signed-off-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h              |   21 +++++++++++++++++++++
- mm/vma.c                        |   19 +++++++++++--------
- tools/testing/vma/include/dup.h |    5 +++++
- 3 files changed, 37 insertions(+), 8 deletions(-)
+ mm/vma.c |    9 +++++++++
+ 1 file changed, 9 insertions(+)
 
---- a/include/linux/mm.h~mm-vma-introduce-and-use-vma_can_merge
-+++ a/include/linux/mm.h
-@@ -1613,6 +1613,27 @@ static inline bool vma_is_shared_maywrit
- }
- 
- /**
-+ * vma_flags_can_merge() - Do the specified VMA flags permit the VMA to be
-+ * merged with another?
-+ * @flags: The VMA flags to test.
-+ * Returns: true if the flags permit merging, false otherwise.
-+ */
-+static inline bool vma_flags_can_merge(const vma_flags_t *flags)
-+{
-+	return !vma_flags_test_any_mask(flags, VMA_SPECIAL_FLAGS);
-+}
-+
-+/**
-+ * vma_can_merge() - Do @vma's flags permit it to be merged with another VMA?
-+ * @vma: The VMA to test.
-+ * Returns: true if the flags permit merging, otherwise false.
-+ */
-+static inline bool vma_can_merge(const struct vm_area_struct *vma)
-+{
-+	return vma_flags_can_merge(&vma->flags);
-+}
-+
-+/**
-  * vma_kernel_pagesize - Default page size granularity for this VMA.
-  * @vma: The user mapping.
-  *
---- a/mm/vma.c~mm-vma-introduce-and-use-vma_can_merge
+--- a/mm/vma.c~mm-vma-ensure-mmap_prepare-doesnt-set-actions-on-a-mergeable-vma
 +++ a/mm/vma.c
-@@ -924,13 +924,14 @@ static __must_check struct vm_area_struc
- 
- 	vmg->state = VMA_MERGE_NOMERGE;
- 
-+	if (!vma_flags_can_merge(&vmg->vma_flags))
-+		return NULL;
- 	/*
--	 * If a special mapping or if the range being modified is neither at the
--	 * furthermost left or right side of the VMA, then we have no chance of
--	 * merging and should abort.
-+	 * If the range being modified is neither at the furthermost left or
-+	 * right side of the VMA, then we have no chance of merging and should
-+	 * abort.
- 	 */
--	if (vma_flags_test_any_mask(&vmg->vma_flags, VMA_SPECIAL_FLAGS) ||
--	    (!left_side && !right_side))
-+	if (!left_side && !right_side)
- 		return NULL;
- 
- 	if (left_side)
-@@ -1152,9 +1153,11 @@ struct vm_area_struct *vma_merge_new_ran
- 
- 	vmg->state = VMA_MERGE_NOMERGE;
- 
--	/* Special VMAs are unmergeable, also if no prev/next. */
--	if (vma_flags_test_any_mask(&vmg->vma_flags, VMA_SPECIAL_FLAGS) ||
--	    (!prev && !next))
-+	if (!vma_flags_can_merge(&vmg->vma_flags))
-+		return NULL;
-+
-+	/* VMAs with no prev/next are unmergeable. */
-+	if (!prev && !next)
- 		return NULL;
- 
- 	can_merge_left = can_vma_merge_left(vmg);
---- a/tools/testing/vma/include/dup.h~mm-vma-introduce-and-use-vma_can_merge
-+++ a/tools/testing/vma/include/dup.h
-@@ -1647,3 +1647,8 @@ static inline bool file_is_dev_zero(cons
+@@ -2809,6 +2809,15 @@ static int mmap_validate(unsigned long p
+ int mmap_prepare_validate(const struct vm_area_desc *prev_desc,
+ 			  const struct vm_area_desc *desc)
  {
- 	return file && file->f_op == &zero_fops;
- }
++	/*
++	 * It is not valid to execute mmap actions for VMAs which can be merged,
++	 * as any such merge would leave portions of the mapping incorrectly
++	 * unmapped.
++	 */
++	if (vma_flags_can_merge(&desc->vma_flags) &&
++	    WARN_ON_ONCE(desc->action.type != MMAP_NOTHING))
++		return -EINVAL;
 +
-+static inline bool vma_flags_can_merge(const vma_flags_t *flags)
-+{
-+	return !vma_flags_test_any_mask(flags, VMA_SPECIAL_FLAGS);
-+}
+ 	return mmap_validate(prev_desc->start, desc->start,
+ 			     &prev_desc->vma_flags, &desc->vma_flags);
+ }
 _
 
 Patches currently in -mm which might be from ljs@kernel.org are
@@ -173,8 +109,6 @@ mm-enable-mmu_gather_rcu_table_free-for-m68k-motorola.patch
 mm-enable-mmu_gather_rcu_table_free-for-sparc32.patch
 mm-make-userland-page-table-freeing-rcu-safe.patch
 mm-change-the-contract-for-free_pgtables-update-docs.patch
-mm-consistently-validate-vma-state-after-mmap-hooks.patch
-mm-vma-ensure-mmap_prepare-doesnt-set-actions-on-a-mergeable-vma.patch
 mm-make-map_kernel_pages_-internal-and-unexported.patch
 mm-vma-tidy-up-map-kernel-pages-enum-values.patch
 mm-add-mmap-action-for-discontiguous-kernel-page-mapping.patch
