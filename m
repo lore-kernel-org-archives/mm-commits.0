@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 860B74AA595
-	for <mm-commits@vger.kernel.org>; Thu, 17 Sep 2026 21:58:09 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9BFE24A8A39
+	for <mm-commits@vger.kernel.org>; Thu, 17 Sep 2026 21:58:11 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789682291; cv=none; b=gP4BfmyiKf0dPmE+DxyxKqCLvZNgBELmHkZ5GWGZcpBxZrZhwQ3KAk/D7xCpr/hkaUahdetPc7Bb3CEN5LQOitKoRNxSkVkQAqv+iF9VMKPDoVJYC4+7d8goJj7AQkxqfFV4SOQTC2M3lyVx51DCwvHY4Ohzj8tDK3vLtb2hj6U=
+	t=1789682293; cv=none; b=lDBC/IDpzoaoyNyfu2bX7LFxCNTdT9NZwL38hTYszkb3lUHwUoueQ1UtQ+PWh3wdtLFLd/NCui9wCWYkj2JyzzaLZV9KO35XjqsBX4JphqU54wnLHs4syMd+F8llfUVVrdXwttTwth61Mw0UZRgrBSIMA83FJKkmR/XI9nQVZmM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1789682291; c=relaxed/simple;
-	bh=EKxFvYhD8MPw32jo4YZSRtzTuDhzCVPAldqo0zfN93Y=;
-	h=Date:To:From:Subject:Message-Id; b=X+7u5IzqDGrruFdGAN4Z/LsXxBv+OVa2ljO4GuNTdk3ams6JgPtdtfuNshVzPYd22wsZMJhRn2cv52G1Dhba26ZyqnRZ0B+g7N8Qla5e50oFeppIDsIUnm+OUBZcJACJWTfaEJqblYGZVmeFQZnvbcUPzEQ+6JiC9HSB8NZxWcQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=NKFry2oI; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1789682293; c=relaxed/simple;
+	bh=6BJFAKw+tGp+E4g1xSpqeDZQHe2fGTLWBQYJRP83l2A=;
+	h=Date:To:From:Subject:Message-Id; b=N2rsVzYalncVJfwPfZzfFEZJ8lkvz4LKa5YOGz0y2ToqMPio3EgBTEZOXLQHgMEZrU7jSLUfW0gessCxJ0AX6tryV3sU5hvNeETtdrE0LJUlPiJd1hv9PRXRwx52k+EmFDa45UWgT0h7AUAj25/HFqoBTPZ5hfYbu7xEzyJbtDk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=D5E/o5NM; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="NKFry2oI"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 033B11F000FF;
-	Thu, 17 Sep 2026 21:58:08 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="D5E/o5NM"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1EEA71F00893;
+	Thu, 17 Sep 2026 21:58:11 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1789682289;
-	bh=5ZNl9hUll1mrcYdeSKedkERaK/WoOqLS6HSTZ4sC4Dk=;
+	d=linux-foundation.org; s=korg; t=1789682291;
+	bh=8+iQJ21XZtdCfDAc1vLlCR6vm3U/coL20COSszu8aJ0=;
 	h=Date:To:From:Subject;
-	b=NKFry2oIx2nS9vLaWa+o2GZDZ4WSZWFORvos8NfIvM3WOVDiGuzfVYpNZqzp0+LaB
-	 84zdtPGFW+/89hnuUol0alR+wvrQ/cG2jBIjLO7szr0yXSPh4ZS2R2yjMFh0sb8Dfw
-	 RyMWcPYK6Wng9YgapCyem8MMd0gouspITdH468lE=
-Date: Thu, 17 Sep 2026 14:58:08 -0700
+	b=D5E/o5NMmjqRtjyC2imW7J68B7bLf/kNdMI0JCSV0JB4cxgcqpqKJjqLRmX7Rr7g2
+	 TaBttQ4xyFEtuR5f0Z5Kf4n3upOCN94Jdhi5/Fv5Er5kbkoM/rIq9P56ZccwygqnAr
+	 PK+icB3L0Nu7RRNJFOdOwWxx1GoPTA68jxDT9ZM8=
+Date: Thu, 17 Sep 2026 14:58:10 -0700
 To: mm-commits@vger.kernel.org,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-damon-tests-core-kunit-test-eligible_mem_bp-commitment.patch added to mm-new branch
-Message-Id: <20260917215809.033B11F000FF@smtp.kernel.org>
+Subject: + mm-damon-tests-core-kunit-add-probe_hits_wsum-damos-filter-commit-test.patch added to mm-new branch
+Message-Id: <20260917215811.1EEA71F00893@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/damon/tests/core-kunit: test eligible_mem_bp commitment
+     Subject: mm/damon/tests/core-kunit: add probe_hits_wsum damos filter commit test
 has been added to the -mm mm-new branch.  Its filename is
-     mm-damon-tests-core-kunit-test-eligible_mem_bp-commitment.patch
+     mm-damon-tests-core-kunit-add-probe_hits_wsum-damos-filter-commit-test.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-tests-core-kunit-test-eligible_mem_bp-commitment.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-tests-core-kunit-add-probe_hits_wsum-damos-filter-commit-test.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,15 +70,14 @@ and is updated there most days
 
 ------------------------------------------------------
 From: SJ Park <sj@kernel.org>
-Subject: mm/damon/tests/core-kunit: test eligible_mem_bp commitment
-Date: Thu, 17 Sep 2026 07:22:05 -0700
+Subject: mm/damon/tests/core-kunit: add probe_hits_wsum damos filter commit test
+Date: Thu, 17 Sep 2026 07:22:06 -0700
 
-There was a DAMOS quota goal commit bug [1] that doesn't update the nid
-field for DAMOS_QUOTA_NODE_ELIGIBLE_MEM_BP metric goal.  Add a kunit
-test case for confirming nid commitment.
+DAMOS filter commit kunit test lacks test cases for probe_hits_wsum
+filter type.  Add test cases for probe_hits_wsum type DAMOS filter
+commit.
 
-Link: https://lore.kernel.org/20260917142210.90829-8-sj@kernel.org
-Link: https://lore.kkernel.org/20260827045035.94611-1-sj@kernel.org [1]
+Link: https://lore.kernel.org/20260917142210.90829-9-sj@kernel.org
 Signed-off-by: SJ Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 Cc: Asier Gutierrez <gutierrez.asier@huawei-partners.com>
@@ -96,35 +95,45 @@ Cc: Suren Baghdasaryan <surenb@google.com>
 Cc: Vlastimil Babka <vbabka@kernel.org>
 ---
 
- mm/damon/tests/core-kunit.h |   10 ++++++++++
- 1 file changed, 10 insertions(+)
+ mm/damon/tests/core-kunit.h |   20 ++++++++++++++++++++
+ 1 file changed, 20 insertions(+)
 
---- a/mm/damon/tests/core-kunit.h~mm-damon-tests-core-kunit-test-eligible_mem_bp-commitment
+--- a/mm/damon/tests/core-kunit.h~mm-damon-tests-core-kunit-add-probe_hits_wsum-damos-filter-commit-test
 +++ a/mm/damon/tests/core-kunit.h
-@@ -835,6 +835,9 @@ static void damos_test_commit_quota_goal
- 		KUNIT_EXPECT_EQ(test, dst->nid, src->nid);
- 		KUNIT_EXPECT_EQ(test, dst->memcg_id, src->memcg_id);
+@@ -1166,6 +1166,10 @@ static void damos_test_commit_filter_for
+ 		KUNIT_EXPECT_EQ(test, dst->sz_range.min, src->sz_range.min);
+ 		KUNIT_EXPECT_EQ(test, dst->sz_range.max, src->sz_range.max);
  		break;
-+	case DAMOS_QUOTA_NODE_ELIGIBLE_MEM_BP:
-+		KUNIT_EXPECT_EQ(test, dst->nid, src->nid);
++	case DAMOS_FILTER_TYPE_PROBE_HITS_WSUM:
++		KUNIT_EXPECT_EQ(test, dst->range_min, src->range_min);
++		KUNIT_EXPECT_EQ(test, dst->range_max, src->range_max);
 +		break;
  	default:
  		break;
  	}
-@@ -898,6 +901,13 @@ static void damos_test_commit_quota_goal
- 			.current_value = 345,
- 			.last_psi_total = 567,
- 			});
-+	damos_test_commit_quota_goal_for(test, &dst,
-+			&(struct damos_quota_goal){
-+			.metric = DAMOS_QUOTA_NODE_ELIGIBLE_MEM_BP,
-+			.target_value = 12,
-+			.current_value = 345,
-+			.nid = 6,
-+			});
+@@ -1239,6 +1243,22 @@ static void damos_test_commit_filter(str
+ 			.allow = true,
+ 			.target_idx = 6,
+ 			}, false);
++	damos_test_commit_filter_for(test, &dst,
++			&(struct damos_filter){
++			.type = DAMOS_FILTER_TYPE_PROBE_HITS_WSUM,
++			.matching = false,
++			.allow = true,
++			.range_min = 12,
++			.range_max = 34,
++			}, false);
++	damos_test_commit_filter_for(test, &dst,
++			&(struct damos_filter){
++			.type = DAMOS_FILTER_TYPE_PROBE_HITS_WSUM,
++			.matching = false,
++			.allow = true,
++			.range_min = 34,
++			.range_max = 12,
++			}, true);
  }
  
- static void damos_test_commit_quota_goals_for(struct kunit *test,
+ static void damos_test_help_initailize_scheme(struct damos *scheme)
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
