@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3D55345563C
-	for <mm-commits@vger.kernel.org>; Thu, 17 Sep 2026 22:05:32 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 81C054A7CBF;
+	Thu, 17 Sep 2026 22:22:51 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789682734; cv=none; b=ILLPYrUHZFfe7HAyf/nTwoVbRAjuK3bYqDHkzimMExrcxhiCIFrK2IW9FbgAbmtS6bBWj6YaPC/1FH41AUJQbBLUKTgXT4Sn09D08L9a3poH8SucmsLuiCCBsylgjYfuEo+Jx1n1a5inmrwu8gYDnHKy95WB8OgqqnWj2h5Qbek=
+	t=1789683772; cv=none; b=SYAdkQmKSvoKM/M/yvuZnSp9DuoZA4Jkw64zbzrUvW/9luZFrX//6AkAPHkpQx8T6lny98ayVa8gQdlAEvm1gOPRuaU0OqViF/panYWs26wF/XWpeZCBp/zAuxFhz7ln+HNGqyuTcNJe5PKz5faTIlYPefxMhUBQ3+daZwIFirg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1789682734; c=relaxed/simple;
-	bh=EbwBGhRN0lPv5Nb8SfeyuxPe8B7TrsvG4p3qlDYkzQc=;
-	h=Date:To:From:Subject:Message-Id; b=uCFO2YHKonlwi49/bqbNzEuu6u0C8xk7d9xu8cAXOjumd/YqIHgsGM9jrMSuqzsWEkgq2oEl6PitRz14LTENYPpHE9FcZ9RaMosHa/b3ugQAH+F//tOEU3OrasAbbOu9PG+nCqO2kHO//9ofsJRQF0w1FA0EPwAOBe4iPM4Acho=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=xz/qYEPh; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1789683772; c=relaxed/simple;
+	bh=yl3bEdZWBwGjPVi4lZ537ug+Tkpi0akx5iqNL1iryGY=;
+	h=Date:To:From:Subject:Message-Id; b=LqLd/4V9KUQTMMw4QQDbvS0g4k6NjOw0P0g+RonQ8GRieGKYF8do+G95I6Bfl4sLfdo10TS8j+qANbV0MiMKgjppWPHb9H//9oquJl/1mK+UyNY1PiqAy3LhLmt7o50i44/kaHmVgVvH+RPPR9fHzpw2efST5x0TvNMb9nn74P8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Psah268b; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="xz/qYEPh"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 542351F00893;
-	Thu, 17 Sep 2026 22:05:32 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Psah268b"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D5A981F000FF;
+	Thu, 17 Sep 2026 22:22:50 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1789682732;
-	bh=4KbxcZH5D3qUZSqb5zSK1LQUEDx+ovdUeYmjHru6GSc=;
+	d=linux-foundation.org; s=korg; t=1789683770;
+	bh=O08KkwWLSId7tdgI2XXwZypsTpY8W7M6m8WT5KIfN1o=;
 	h=Date:To:From:Subject;
-	b=xz/qYEPhO6F788jEjGZeaVeUaY5r8J9Urjp8oONUoa3wky0fghiu+n4fTmD3chaxa
-	 +37+YjHEaevOTxXXydf8JLQJK2SnweviNaqUf3j8NwfQDeszKqTST88R1BZg6EUDOX
-	 2yuASwfyMnuW2LvMyAXrvWJb3ooDXUepF+OF2Guc=
-Date: Thu, 17 Sep 2026 15:05:31 -0700
-To: mm-commits@vger.kernel.org,rdunlap@infradead.org,corbet@lwn.net,catalin.marinas@arm.com,leitao@debian.org,akpm@linux-foundation.org
+	b=Psah268bbu1W0ejEpDCamdq3efgzee8nlilS/QmEJ0FXNlUeLDCQkw8VgcEhhsuDf
+	 BrqgMriFXSN0EJxzhL2FOubrJi4v0eRpp4qxSVdvjgy3y6IKHre6PwXVqCDSDQbaNF
+	 3S/aPiuMfBXI5pzfSe9Nc4j7by4OiWyfrx1Zl61k=
+Date: Thu, 17 Sep 2026 15:22:50 -0700
+To: mm-commits@vger.kernel.org,tchibo@google.com,stable@vger.kernel.org,glider@google.com,elver@google.com,dvyukov@google.com,andreyknvl@gmail.com,fangxy@xiaopeng.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-kmemleak-raise-min_unref_scans-to-3-for-verbose-auto-scan.patch added to mm-new branch
-Message-Id: <20260917220532.542351F00893@smtp.kernel.org>
+Subject: + kcov-ignore-an-out-of-range-comparison-count-in-write_comp_data.patch added to mm-nonmm-unstable branch
+Message-Id: <20260917222250.D5A981F000FF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,26 +35,15 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: kmemleak: raise min_unref_scans to 3 for verbose auto-scan
-has been added to the -mm mm-new branch.  Its filename is
-     mm-kmemleak-raise-min_unref_scans-to-3-for-verbose-auto-scan.patch
+     Subject: kcov: ignore an out-of-range comparison count in write_comp_data()
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     kcov-ignore-an-out-of-range-comparison-count-in-write_comp_data.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-kmemleak-raise-min_unref_scans-to-3-for-verbose-auto-scan.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kcov-ignore-an-out-of-range-comparison-count-in-write_comp_data.patch
 
-This patch will later appear in the mm-new branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Note, mm-new is a provisional staging ground for work-in-progress
-patches, and acceptance into mm-new is a notification for others take
-notice and to finish up reviews.  Please do not hesitate to respond to
-review feedback and post updated versions to replace or incrementally
-fixup patches in mm-new.
-
-The mm-new branch of mm.git is not included in linux-next
-
-If a few days of testing in mm-new is successful, the patch will me moved
-into mm.git's mm-unstable branch, which is included in linux-next
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -69,69 +58,86 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Breno Leitao <leitao@debian.org>
-Subject: mm: kmemleak: raise min_unref_scans to 3 for verbose auto-scan
-Date: Thu, 17 Sep 2026 06:47:37 -0700
+From: Fang Xieyan <fangxy@xiaopeng.com>
+Subject: kcov: ignore an out-of-range comparison count in write_comp_data()
+Date: Thu, 17 Sep 2026 18:43:06 +0800
 
-CONFIG_DEBUG_KMEMLEAK_VERBOSE sends every report to the console, so a
-transient false positive there is broadcast to whatever collects the
-kernel log rather than sitting in the debugfs file until someone looks. 
-That asymmetry justifies being more conservative than the general case.
+write_comp_data() reads the comparison record count from area[0] and uses
+it to index the coverage buffer:
 
-Require one more consecutive unreferenced scan before reporting.  The only
-cost is that a genuine leak is reported one scan interval later (600s by
-default); the value stays writable at run time through the module
-parameter.
+	area = (u64 *)t->kcov_area;
+	max_pos = t->kcov_size * sizeof(unsigned long);
 
-Kernels without CONFIG_DEBUG_KMEMLEAK_VERBOSE keep reporting on the first
-unreferenced scan.
+	count = READ_ONCE(area[0]);
 
-I've been running constant upstream kernel with
-CONFIG_DEBUG_KMEMLEAK_VERBOSE set, and I am still seeing some rare false
-positive, that goes away with min_unref_scans=3, so, making it the default
-based on my heuristic.
+	/* Every record is KCOV_WORDS_PER_CMP 64-bit words. */
+	start_index = 1 + count * KCOV_WORDS_PER_CMP;
+	end_pos = (start_index + KCOV_WORDS_PER_CMP) * sizeof(u64);
+	if (likely(end_pos <= max_pos)) {
 
-Link: https://lore.kernel.org/20260917-b4-kmemleak-doc-v1-3-84fde6d1f749@debian.org
-Signed-off-by: Breno Leitao <leitao@debian.org>
+The buffer is mmap'd writable into the collecting process, so count is
+under its control and end_pos <= max_pos is its only bound.  A count that
+wraps the u64 multiply leaves end_pos below max_pos, so the check passes
+while the record store lands 24 bytes before the buffer, in the unmapped
+vmalloc guard page, and faults:
+
+  BUG: unable to handle page fault for address: ffa0000000b60fe8
+  #PF: supervisor write access in kernel mode
+  #PF: error_code(0x0002) - not-present page
+  Oops: 0002 [#1] SMP KASAN NOPTI
+  RIP: 0010:write_comp_data+0x7e/0xa0
+  ...
+  Kernel panic - not syncing: Fatal exception
+
+Bound count first: only max_pos / (sizeof(u64) * KCOV_WORDS_PER_CMP)
+records fit, so a larger count is not a valid index and is dropped. 
+kcov_move_area() bounds the same untrusted count this way, and no count
+the end_pos <= max_pos check accepts reaches that limit, so no valid
+record is lost.
+
+kcov is a root-only debugfs file (debugfs_create_file_unsafe("kcov", 0600,
+...)) and write_comp_data() exists only under
+CONFIG_KCOV_ENABLE_COMPARISONS, so this is a local, debug-kernel
+robustness fix: the process corrupts its own buffer and the kernel oopses.
+It crosses no privilege boundary.  Additonal details at [1]
+
+Link: https://lore.kernel.org/20260917104306.22145-1-fangxy@xiaopeng.com [1]
+Fixes: ded97d2c2b2c ("kcov: support comparison operands collection")
+Signed-off-by: Fang Xieyan <fangxy@xiaopeng.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Randy Dunlap <rdunlap@infradead.org>
+Assisted-by: Hawkeye:GLM-5.3-flash
+Assisted-by: Qoder:Qwen3.8-Max
+Cc: Alexander Potapenko <glider@google.com>
+Cc: Andrey Konovalov <andreyknvl@gmail.com>
+Cc: Dmitry Vyukov <dvyukov@google.com>
+Cc: Marco Elver <elver@google.com>
+Cc: Victor Chibotaru <tchibo@google.com>
+Cc: <stable@vger.kernel.org>
 ---
 
- Documentation/dev-tools/kmemleak.rst |    2 +-
- mm/kmemleak.c                        |    2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+ kernel/kcov.c |    8 ++++++++
+ 1 file changed, 8 insertions(+)
 
---- a/Documentation/dev-tools/kmemleak.rst~mm-kmemleak-raise-min_unref_scans-to-3-for-verbose-auto-scan
-+++ a/Documentation/dev-tools/kmemleak.rst
-@@ -206,7 +206,7 @@ the minimum age of an object to be repor
+--- a/kernel/kcov.c~kcov-ignore-an-out-of-range-comparison-count-in-write_comp_data
++++ a/kernel/kcov.c
+@@ -253,6 +253,14 @@ static void notrace write_comp_data(u64
  
- The ``min_unref_scans`` module parameter requires an object to be seen
- unreferenced in that many consecutive scans before it is reported. It
--defaults to 2 when CONFIG_DEBUG_KMEMLEAK_VERBOSE is enabled, where the
-+defaults to 3 when CONFIG_DEBUG_KMEMLEAK_VERBOSE is enabled, where the
- periodic scan thread confirms a leak on its own, and to 1 otherwise. A
- value of 1 preserves the historical behaviour; higher values filter the
- transient false positives described above, at the cost of delaying genuine
---- a/mm/kmemleak.c~mm-kmemleak-raise-min_unref_scans-to-3-for-verbose-auto-scan
-+++ a/mm/kmemleak.c
-@@ -238,7 +238,7 @@ static struct task_struct *scan_thread;
- static unsigned long jiffies_min_age;
- /* consecutive scans an object must stay unreferenced before reporting */
- static unsigned int min_unref_scans =
--	IS_ENABLED(CONFIG_DEBUG_KMEMLEAK_VERBOSE) ? 2 : 1;
-+	IS_ENABLED(CONFIG_DEBUG_KMEMLEAK_VERBOSE) ? 3 : 1;
- module_param(min_unref_scans, uint, 0644);
- static unsigned long jiffies_last_scan;
- /* delay between automatic memory scannings */
+ 	count = READ_ONCE(area[0]);
+ 
++	/*
++	 * area[0] is writable by the collecting process, so count cannot be
++	 * trusted. Bound it to the records that fit, as kcov_move_area()
++	 * does, so the end_pos multiply below cannot wrap past its check.
++	 */
++	if (count >= max_pos / (sizeof(u64) * KCOV_WORDS_PER_CMP))
++		return;
++
+ 	/* Every record is KCOV_WORDS_PER_CMP 64-bit words. */
+ 	start_index = 1 + count * KCOV_WORDS_PER_CMP;
+ 	end_pos = (start_index + KCOV_WORDS_PER_CMP) * sizeof(u64);
 _
 
-Patches currently in -mm which might be from leitao@debian.org are
+Patches currently in -mm which might be from fangxy@xiaopeng.com are
 
-mm-swap-distinguish-a-malformed-swap-entry-from-a-dying-device.patch
-mm-fail-the-fault-on-a-malformed-swap-entry-instead-of-retrying-it.patch
-documentation-kmemleak-describe-the-metadata-pool-not-the-early-log.patch
-documentation-kmemleak-fix-stale-statements-about-scanning.patch
-mm-kmemleak-raise-min_unref_scans-to-3-for-verbose-auto-scan.patch
+kcov-ignore-an-out-of-range-comparison-count-in-write_comp_data.patch
 
