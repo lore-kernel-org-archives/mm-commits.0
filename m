@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 693EE2F39C7
-	for <mm-commits@vger.kernel.org>; Thu, 17 Sep 2026 04:20:16 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 598CE3BFAFA
+	for <mm-commits@vger.kernel.org>; Thu, 17 Sep 2026 04:27:34 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789618817; cv=none; b=IHInWnhLPK44+W1bm0ZQtaDz0KhJcI9KrLAyeerswdOafQTfgsPOwu7xOKB98h0b08qu57DPknCRRwXsjqVctgDNObRG23uNPolB18ocEiK1snkhhXEIWYp8PO2uW6xsEhplm+1ZLuAx5oS/qszWY0ISMCZKzzoHC8gfEd5K0NI=
+	t=1789619258; cv=none; b=AyzWHP/OL7T/4IiNFwZ/J+0XYbgJ1nSZqVZ5C/cUuC6rGrBfO92XGsY/M8uz/OPFsSXHkAcg7d0o/+55bVFBHbgNA3NyWCE5kkKLxJa1wK6FhB8ZvoY4VaamlPZ7Xl7S5EYwTr6+qp+BoUEHv4IGLZRsogsqaN6l8n0ORycEHws=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1789618817; c=relaxed/simple;
-	bh=/YbbwZV7ReZcGOPpuYxxmIJn3hNNHlBxAEr79Aaw7Kw=;
-	h=Date:To:From:Subject:Message-Id; b=jaAWwA2vv2RFmbUfdgxz6GoV9gIrnni9uvVq6AFask00tIQMt8rmKzcwEX5vifzJB/An79HRvrCwJQMHBSxlIZqFBWEX6FHv3qaRps0vVEbolqAp3aUb3aX53hdfM7babbrUk9o8WjgHdysVW+haCFHr4Td3SU5O5D2iLdpLvpE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=uWV4X/pg; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1789619258; c=relaxed/simple;
+	bh=26rJQCZ0LOQ0kqbkASexgYxcgXK2vXpz/swttprom38=;
+	h=Date:To:From:Subject:Message-Id; b=hOu0LkH4ghLiofz71ZbPO/o57V3cdFUkLzG+2Lsf8qlekTOer9mZYk4dpKP2H1zx3WGvVyIcWzG06TBH4lrcZtAwd3EY05d3SIaNFV59GCXoqD4Qfy5mmRiTJdmnsBJairxMnFeeq9+nC/5uxAIMk0ULU1xs6RRtmwE3ahkxlhg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=yLsSwMSi; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="uWV4X/pg"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C5CEF1F000FF;
-	Thu, 17 Sep 2026 04:20:15 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="yLsSwMSi"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 15B551F000FF;
+	Thu, 17 Sep 2026 04:27:34 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1789618815;
-	bh=M68vzH7qdMByt6ovk49AVt73qlpf69fVsTG6SUz0Jqw=;
+	d=linux-foundation.org; s=korg; t=1789619254;
+	bh=3kpO9SwXnLUjld8rrroVSjyRoy3NF7mawpGPKj4npsk=;
 	h=Date:To:From:Subject;
-	b=uWV4X/pgsncXGTZOFJ3sTfwng8bwSMN8Jdnn3HJYiq3RmQRyPX98G03wisOd2PnM+
-	 d8kmM555qhNgP6fuwIrc9+iaW6MR+UJB9l6bklbBePeAWMwQS/2nRi42Tv+2hWtnR1
-	 +DfCix/b7p0+9EQxh+NnUgl/lYNbDvjzmw9FvpA4=
-Date: Wed, 16 Sep 2026 21:20:15 -0700
-To: mm-commits@vger.kernel.org,sj@kernel.org,akpm@linux-foundation.org,akpm@linux-foundation.org
+	b=yLsSwMSiBlj+kvRewP/KzByu6WFznxwuDGV7DEuSx0uJxpsbLdzWie6S04pewOvyd
+	 tkDe+Ub2XisaXI0SWd6L20dLEK4ckyZiNCz/64jgbM0riklCFzFSn7WGqW2vG6tOGb
+	 MRwnSHk9v5vbENLpkiwrFhTbmR98hoXShWb2VFDw=
+Date: Wed, 16 Sep 2026 21:27:33 -0700
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,vbabka@kernel.org,pfalcato@suse.de,ljs@kernel.org,liam@infradead.org,jannh@google.com,david@kernel.org,wangkefeng.wang@huawei.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + docs-admin-guide-mm-damon-usage-update-for-hugepage_size-fix-fix.patch added to mm-new branch
-Message-Id: <20260917042015.C5CEF1F000FF@smtp.kernel.org>
+Subject: + mm-mincore-use-per-vma-lock-during-page-table-walk.patch added to mm-new branch
+Message-Id: <20260917042734.15B551F000FF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: docs-admin-guide-mm-damon-usage-update-for-hugepage_size-fix-fix
+     Subject: mm: mincore: use per-vma lock during page table walk
 has been added to the -mm mm-new branch.  Its filename is
-     docs-admin-guide-mm-damon-usage-update-for-hugepage_size-fix-fix.patch
+     mm-mincore-use-per-vma-lock-during-page-table-walk.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/docs-admin-guide-mm-damon-usage-update-for-hugepage_size-fix-fix.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mincore-use-per-vma-lock-during-page-table-walk.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -69,37 +69,98 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: docs-admin-guide-mm-damon-usage-update-for-hugepage_size-fix-fix
-Date: Wed Sep 16 09:18:41 PM PDT 2026
+From: Kefeng Wang <wangkefeng.wang@huawei.com>
+Subject: mm: mincore: use per-vma lock during page table walk
+Date: Wed, 16 Sep 2026 12:31:52 +0800
 
-fix the fix
+do_mincore() performs a read-only, per-VMA residency query, making it a
+good candidate for per-VMA locking.  Convert it to acquire the per-VMA
+lock, thereby reducing contention on the per-MM mmap_lock.
 
-Cc: SJ Park <sj@kernel.org>
+Link: https://lore.kernel.org/20260916043153.2631696-1-wangkefeng.wang@huawei.com
+Signed-off-by: Kefeng Wang <wangkefeng.wang@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+Reviewed-by: Pedro Falcato <pfalcato@suse.de>
+Acked-by: David Hildenbrand (Arm) <david@kernel.org>
+Reviewed-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
+Cc: Jann Horn <jannh@google.com>
+Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
+Cc: Liam R. Howlett <liam@infradead.org>
+Cc: Vlastimil Babka <vbabka@kernel.org>
+Cc: Zi Yan <ziy@nvidia.com>
 ---
 
- Documentation/admin-guide/mm/damon/usage.rst |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/mincore.c |   29 +++++++++++++++++------------
+ 1 file changed, 17 insertions(+), 12 deletions(-)
 
---- a/Documentation/admin-guide/mm/damon/usage.rst~docs-admin-guide-mm-damon-usage-update-for-hugepage_size-fix-fix
-+++ a/Documentation/admin-guide/mm/damon/usage.rst
-@@ -309,7 +309,7 @@ named ``0`` to ``N-1``.  Each directory
- way similar to that for :ref:`DAMOS filter <sysfs_filters>`.  When the filter
- ``type`` is ``memcg``, ``path`` file acts as ``memcg_path`` for :ref:`DAMOS
- filter <sysfs_filters>`.  When the filter ``type`` is ``hugepage_size``,
--``min`` and ``max`` file acts as files of the same names for :ref:`DAMOS
-+``min`` and ``max`` files act as files of the same names for :ref:`DAMOS
- filter <sysfs_filters>`.
+--- a/mm/mincore.c~mm-mincore-use-per-vma-lock-during-page-table-walk
++++ a/mm/mincore.c
+@@ -235,24 +235,22 @@ static const struct mm_walk_ops mincore_
+ 	.pmd_entry		= mincore_pte_range,
+ 	.pte_hole		= mincore_unmapped_range,
+ 	.hugetlb_entry		= mincore_hugetlb,
+-	.walk_lock		= PGWALK_RDLOCK,
++	.walk_lock		= PGWALK_VMA_RDLOCK_VERIFY,
+ };
  
- .. _sysfs_targets:
+ /*
+  * Do a chunk of "sys_mincore()". We've already checked
+- * all the arguments, we hold the mmap semaphore: we should
++ * all the arguments, we hold the VMA read lock: we should
+  * just return the amount of info we're asked for.
+  */
+-static long do_mincore(unsigned long addr, unsigned long pages, unsigned char *vec)
++static long do_mincore(struct vm_area_struct *vma, unsigned long addr,
++		unsigned long pages, unsigned char *vec)
+ {
+-	struct vm_area_struct *vma;
+-	unsigned long end;
++	unsigned long end = min(vma->vm_end, addr + (pages << PAGE_SHIFT));
+ 	int err;
+ 
+-	vma = vma_lookup(current->mm, addr);
+-	if (!vma)
+-		return -ENOMEM;
+-	end = min(vma->vm_end, addr + (pages << PAGE_SHIFT));
++	vma_assert_locked(vma);
++
+ 	if (!can_do_mincore(vma)) {
+ 		unsigned long pages = DIV_ROUND_UP(end - addr, PAGE_SIZE);
+ 		memset(vec, 1, pages);
+@@ -319,13 +317,20 @@ SYSCALL_DEFINE3(mincore, unsigned long,
+ 
+ 	retval = 0;
+ 	while (pages) {
++		struct vm_area_struct *vma;
++
++		vma = vma_start_read_unlocked(current->mm, start);
++		if (!vma) {
++			retval = -ENOMEM;
++			break;
++		}
++
+ 		/*
+ 		 * Do at most PAGE_SIZE entries per iteration, due to
+ 		 * the temporary buffer size.
+ 		 */
+-		mmap_read_lock(current->mm);
+-		retval = do_mincore(start, min(pages, PAGE_SIZE), tmp);
+-		mmap_read_unlock(current->mm);
++		retval = do_mincore(vma, start, min(pages, PAGE_SIZE), tmp);
++		vma_end_read(vma);
+ 
+ 		if (retval <= 0)
+ 			break;
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from wangkefeng.wang@huawei.com are
 
-mm-vmscanc-fix-min-signedness-mismatch.patch
-mm-memory_hotplug-factor-out-node_is_memoryless-fix.patch
-docs-admin-guide-mm-damon-usage-update-for-hugepage_size-fix.patch
-docs-admin-guide-mm-damon-usage-update-for-hugepage_size-fix-fix.patch
-drivers-media-v4l2-core-v4l2-vp9c-reduce-inlining.patch
+xfs-remove-dead-kswapd-flag-inheritance-from-btree-split-worker.patch
+iomap-simplify-writepages-reclaim-guard.patch
+mm-replace-pf_kswapd-flag-with-kthread_func-check.patch
+mm-replace-pf_kcompactd-flag-with-kthread_func-check.patch
+mm-zswap-convert-zswap_invalidate-to-take-a-range.patch
+mm-zswap-skip-xarray-walk-in-zswap_invalidate-when-zswap-is-unused.patch
+mm-zswap-reuse-zswap_invalidate-in-zswap_store.patch
+mm-mincore-use-per-vma-lock-during-page-table-walk.patch
 
