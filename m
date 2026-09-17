@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 40D514B8288
-	for <mm-commits@vger.kernel.org>; Thu, 17 Sep 2026 23:57:28 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D13694B7A2E
+	for <mm-commits@vger.kernel.org>; Thu, 17 Sep 2026 23:57:30 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789689449; cv=none; b=smR4dbzvv/tFhAYLer9JfyuhChx2MYJYkm6VS+8GAqZSp79AGg20C5t4ynxKTtZ8rp3Lel8yaOrUJEx6sQiQS6fyvzCLKZ11IaVRA7sLl5pM3hKLRcyHYNUyVo8rWcIHv/UwwporMCk9aBDc7wpVzkfCOXNZ5Psj0ct5lrYckts=
+	t=1789689452; cv=none; b=fJKYHmvnXJuaPzglny8k8QNhSM/YTV+RGMH/1iA6ApcxY3kQqeudzPnM802a+a3GwftnY05SXOhbou0Zl2uer3ZV80K3D5MCMG0FHdfdADJhnf1t523CVlsdNLsshtGbNkAZToGvdm73m8uiQwS2azbU0LOpOaxxBRj3/kwOY/8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1789689449; c=relaxed/simple;
-	bh=pPbgb6zC5ydjXiHhR+MEPix5wd4mDmEIGkQFUoYUxgI=;
-	h=Date:To:From:Subject:Message-Id; b=kLz7q7S0j/SupenVrm+u4OY3zO7fK5OCnSBEwW6dJ7B2HJj+VxcVKD+WOIi0ZwcIJziGlTaJ5/h6FuE8n0lfW7oqsfH0F2RwOGTnvwHpV+Poj86QOhHj6CF2My8T5rfbiOTSoeTKHR/kJWA0LAHgiKEm4+qbhfEbb0Otm3osfXk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=iA1fhxqw; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1789689452; c=relaxed/simple;
+	bh=4/XAGS1q/jg5qIgS1SShP/NMMFl32kcmIlaOHzOoExo=;
+	h=Date:To:From:Subject:Message-Id; b=QDRR+2AVlbBGkH092ly83vLiFrzIeM2arn6xXV3UyqLpS1FN3NEiEJ/lpaBfNPXigKsNZ5hSSaMP27vtqEUP80glKQXSNauaURYNjZNPSDNK9vx8fPUT6vUQYBb3f6f7+58i8P6nxhZ7WIcn24ONPR18XB7/oZtOJ7S+5EFo8I8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=uWlxdyRz; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="iA1fhxqw"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 041911F000FF;
-	Thu, 17 Sep 2026 23:57:27 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="uWlxdyRz"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 454841F000FF;
+	Thu, 17 Sep 2026 23:57:30 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1789689448;
-	bh=lWM17GhXkfkedET8RI6bgSm+u/uj8pwnnI0EXeJdbUY=;
+	d=linux-foundation.org; s=korg; t=1789689450;
+	bh=IQ1FloTO2PyK6gSL/8eDy2qa7votLx4WF8e2Gfcwix4=;
 	h=Date:To:From:Subject;
-	b=iA1fhxqw6KEvYjNKzRtsqTFmktLWSOic2b8JjJsg4WhaEZShRcJtDokpciWKQP55M
-	 ubSLPC4r34TwL5VSuAFGZ0iavmEXPrHI3EP29r88cuWb6b6F9dIWR3r5VAgIwDbr3i
-	 wGSTvANPSq8ayOqJBcyqibpVj3DFLjyjHv8vpwf8=
-Date: Thu, 17 Sep 2026 16:57:27 -0700
+	b=uWlxdyRzN6khYBrjfL1579Rb9TJXGZNO0IIhKjX8Shna/tiDdce94hqhEfyJdLTiD
+	 UBRxPx6ILPAet6YTA83oby7LlpwYEUuymnkSJ4lgxMNqXhxd1mT7anj7Bl2WGw/DHP
+	 gALrD+40b+UnNLCF6Dwuf3Jmupxh9JlccVnPvZ7A=
+Date: Thu, 17 Sep 2026 16:57:29 -0700
 To: mm-commits@vger.kernel.org,wyihan@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-shmem-update-shmem-handler-to-the-mf_delayed-definition.patch added to mm-new branch
-Message-Id: <20260917235728.041911F000FF@smtp.kernel.org>
+Subject: + mm-memory_failure-generalize-extra_pins-handling-to-all-mf_delayed-cases.patch added to mm-new branch
+Message-Id: <20260917235730.454841F000FF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: shmem: Update shmem handler to the MF_DELAYED definition
+     Subject: mm: memory_failure: Generalize extra_pins handling to all MF_DELAYED cases
 has been added to the -mm mm-new branch.  Its filename is
-     mm-shmem-update-shmem-handler-to-the-mf_delayed-definition.patch
+     mm-memory_failure-generalize-extra_pins-handling-to-all-mf_delayed-cases.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-shmem-update-shmem-handler-to-the-mf_delayed-definition.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memory_failure-generalize-extra_pins-handling-to-all-mf_delayed-cases.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,35 +70,22 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Lisa Wang <wyihan@google.com>
-Subject: mm: shmem: Update shmem handler to the MF_DELAYED definition
-Date: Thu, 17 Sep 2026 20:43:49 +0000
+Subject: mm: memory_failure: Generalize extra_pins handling to all MF_DELAYED cases
+Date: Thu, 17 Sep 2026 20:43:50 +0000
 
-To align with the definition of MF_DELAYED, update
-shmem_error_remove_folio() to return MF_DELAYED.
+Generalize extra_pins handling to all MF_DELAYED cases not only
+shmem_mapping.
 
-shmem handles memory failures but defers the actual file truncation.  The
-function's return value should therefore be MF_DELAYED to accurately
-reflect the state.
+If MF_DELAYED is returned, the filemap continues to hold refcounts on the
+folio.  Hence, take that into account when checking for extra refcounts.
 
-Currently, this logical error does not cause a bug, because:
+As clarified in an earlier patch, a return value of MF_DELAYED implies
+that the page still has elevated refcounts.  Hence, set extra_pins to true
+if the return value is MF_DELAYED.  This is aligned with the
+implementation in me_swapcache_dirty(), where, if a folio is still in the
+swap cache, ret is set to MF_DELAYED and extra_pins is set to true.
 
-- For shmem folios, folio->private is not set.
-- As a result, filemap_release_folio() is a no-op and returns true.
-- This, in turn, causes truncate_error_folio() to incorrectly return
-  MF_RECOVERED.
-- The caller then treats MF_RECOVERED as a success condition, masking the
-  issue.
-
-The previous patch relays MF_DELAYED to the caller of
-truncate_error_folio() before any logging, so returning MF_DELAYED from
-shmem_error_remove_folio() will retain the original behavior of not adding
-any logs.
-
-The return value of truncate_error_folio() is consumed in action_result(),
-which treats MF_DELAYED the same way as MF_RECOVERED, hence
-action_result() also returns the same thing after this change.
-
-Link: https://lore.kernel.org/20260917-memory-failure-mf-delayed-fix-v6-3-4b00856b5364@google.com
+Link: https://lore.kernel.org/20260917-memory-failure-mf-delayed-fix-v6-4-4b00856b5364@google.com
 Signed-off-by: Lisa Wang <wyihan@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 Acked-by: David Hildenbrand (Arm) <david@kernel.org>
@@ -130,20 +117,31 @@ Cc: Xiaoyao Li <xiaoyao.li@intel.com>
 Cc: Yu Zhang <yu.c.zhang@linux.intel.com>
 ---
 
- mm/shmem.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/memory-failure.c |    8 ++------
+ 1 file changed, 2 insertions(+), 6 deletions(-)
 
---- a/mm/shmem.c~mm-shmem-update-shmem-handler-to-the-mf_delayed-definition
-+++ a/mm/shmem.c
-@@ -5368,7 +5368,7 @@ static void __init shmem_destroy_inodeca
- static int shmem_error_remove_folio(struct address_space *mapping,
- 				   struct folio *folio)
- {
--	return 0;
-+	return MF_DELAYED;
- }
+--- a/mm/memory-failure.c~mm-memory_failure-generalize-extra_pins-handling-to-all-mf_delayed-cases
++++ a/mm/memory-failure.c
+@@ -1040,17 +1040,13 @@ static int me_pagecache_clean(struct pag
+ 	}
  
- static const struct address_space_operations shmem_aops = {
+ 	/*
+-	 * The shmem page is kept in page cache instead of truncating
+-	 * so is expected to have an extra refcount after error-handling.
+-	 */
+-	extra_pins = shmem_mapping(mapping);
+-
+-	/*
+ 	 * Truncation is a bit tricky. Enable it per file system for now.
+ 	 *
+ 	 * Open: to take i_rwsem or not for this? Right now we don't.
+ 	 */
+ 	ret = truncate_error_folio(folio, page_to_pfn(p), mapping);
++
++	extra_pins = ret == MF_DELAYED;
+ 	if (has_extra_refcount(ps, p, extra_pins))
+ 		ret = MF_FAILED;
+ 
 _
 
 Patches currently in -mm which might be from wyihan@google.com are
