@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 74FD54E9C2F
-	for <mm-commits@vger.kernel.org>; Thu, 17 Sep 2026 21:26:15 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E733B4E533D
+	for <mm-commits@vger.kernel.org>; Thu, 17 Sep 2026 21:26:18 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789680377; cv=none; b=npvc5g45TEme3VDqWCQ+NT/MRYpZzsjf11ugtuLtw1sZClhrbexZ+Qhxb/ZiJYthjsXcyZ8PlPnPlk02dv/DZ/ei3syo0lstIHz1AcB/Oij+G6s2Zd31HcbUvnO3Ezklsg4vqa1dr1pMydWksIyzlXOmbn7Qa7X9X3lYVn8t0FU=
+	t=1789680380; cv=none; b=oBcmaTXSaBl7919Nlmgfg2cT7w+Nj6/7xuSCzVbg1y+EOGHO0QajoVAVsx+j4vO5LGsXhrIzbKwun2uAdnwov+SqYV1cPATsRzSmdzpli3vmDsKqy4ltJur8ErvN/2Sfm0Z61SahFgUwcxoednUNPh0BQFqFfoJ7FtcKfhYOXHE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1789680377; c=relaxed/simple;
-	bh=0VWHR7y5zwgQWnzmioiDKJPv4DFgMN1jpiZKRL/9zQI=;
-	h=Date:To:From:Subject:Message-Id; b=MHIWAMyfELiqEIUUWNaSHw1ghWKz+33oKbM8EpD1aS9FbwxSTbBBk+FuZqtGqoOM7rSbzmn1Ij2D47o+710JlsMZN0wp2x/NauclZKkAzuwOmRW3zZ0vZDGGas8NvSLAkQ68K+6Hszv1JbhnHGTukqBj5qI0Gto6fekAMXkFhzg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=rQx/V68O; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1789680380; c=relaxed/simple;
+	bh=CTVyQbtehoezuqmUFYJtBWo+66Zxixcz3VQR2etkFTI=;
+	h=Date:To:From:Subject:Message-Id; b=ifvhTcB4XOSoKEJ7rfMVyZjGSFd0PFk3EK4xedABEkyP5m+h7X/R3dkhORZimX2ACs5DoEQL+II11mJdkRl0w+0EuF403PWBEb5I4p/iLe/gEjmQUQTZvrvIPluBtANFY7pDje8hW5OuSwdKSf5JNfma3+iD+DsPlD0NLeqdO3o=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=jlqcELmn; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="rQx/V68O"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 04C501F000FF;
-	Thu, 17 Sep 2026 21:26:14 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="jlqcELmn"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id BB8D71F000FF;
+	Thu, 17 Sep 2026 21:26:18 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1789680375;
-	bh=zPnSrZ3JgnK6OZ2blGVfMGupaftMme4nK4YPKF8CTh0=;
+	d=linux-foundation.org; s=korg; t=1789680378;
+	bh=Ou0/4E+uAhHQsJ8MfJE+0/Bh+yxwbaQbTMYC8Q83c9A=;
 	h=Date:To:From:Subject;
-	b=rQx/V68O20Wzt9j9YSAVHfCz4ln6tN9PqcLzCM0azFFQxetKr1Sgt+eNQ8OxIqCo2
-	 zFRmYRDDHal+3quJ4JUHY2WTBpKQwsqmL0Y/d3ou5TDs9G8Mt/Uzwq2EQ0uD1Kf6lG
-	 R0MEQFu5xmRteaHXfh8aoU/nyInMsipQsxUcsoKs=
-Date: Thu, 17 Sep 2026 14:26:14 -0700
+	b=jlqcELmnEQXCVB/lecvH0IMKStWz0eS0qk2Rfk/BYKyC1hWn7yNAjDdebjv2CpVbu
+	 8DgG2owBQeFSOyQ3fvtm3ljzYOC2WekgaKJ1r3lTMp1j/1sIrfdF6/aybth3jt5Ydq
+	 6t6qm9BGjZiSjc90NOSJYIC76Th0SKsv21wuCktw=
+Date: Thu, 17 Sep 2026 14:26:18 -0700
 To: mm-commits@vger.kernel.org,ljs@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-vma-introduce-vma_is_persistent.patch added to mm-unstable branch
-Message-Id: <20260917212615.04C501F000FF@smtp.kernel.org>
+Subject: + mm-uffd-use-predicates-for-userfaultfd-checks.patch added to mm-unstable branch
+Message-Id: <20260917212618.BB8D71F000FF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/vma: introduce vma[_flags]_is_persistent()
+     Subject: mm/uffd: use predicates for userfaultfd checks
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-vma-introduce-vma_is_persistent.patch
+     mm-uffd-use-predicates-for-userfaultfd-checks.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vma-introduce-vma_is_persistent.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-uffd-use-predicates-for-userfaultfd-checks.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,38 +59,24 @@ and is updated there most days
 
 ------------------------------------------------------
 From: "Lorenzo Stoakes (ARM)" <ljs@kernel.org>
-Subject: mm/vma: introduce vma[_flags]_is_persistent()
-Date: Thu, 17 Sep 2026 17:22:40 +0100
+Subject: mm/uffd: use predicates for userfaultfd checks
+Date: Thu, 17 Sep 2026 17:22:41 +0100
 
-Introduce vma[_flags]_is_persistent() for the purposes of identifying
-mappings that are persistent in the sense that bytes to the mapping stay
-there, and bytes read from the mapping are the same unless changed by
-actions taken by userland.
+Rather than directly checking VMA flags, use the newly introduced
+vma_is_kernel_owned() and vma_is_persistent() helpers in userfaultfd when
+assessing VMA suitability for userfaultfd and UFFDIO_MOVE.
 
-Kernel-owned mappings do not fall into this category, as their owner may
-change the contents without the user having initiated it, and nor of
-course does memory-mapped I/O.
+Update vma_move_compatible() so it's expressed in terms of VMA
+characteristics rather than arbitrary flags.
 
-We exclude fixed mappings as these are singled out as being unmergeable
-and so cannot be guaranteed to persist user data.
+Additionally, update the use of the deprecated VMA flag API when checking
+VMA_SHADOW_STACK_BIT.
 
-hugetlb mappings are fixed mappings, but their contents are entirely the
-user's, so they are explicitly carved out as persistent, as the
-MADV_DODUMP check already does.
+A VMA_IO_BIT check is no longer required but that is fine as a hard
+invariant has been established that only kernel-owned mappings may set
+VMA_IO_BIT so the check is now redundant.
 
-It excludes droppable mappings, which by their nature are ephemeral.
-
-Use this functionality to update the madvise MADV_DODUMP check to test for
-persistence rather than open-coding this.
-
-This replaces the VM_SPECIAL check which means it no longer checks for
-VMA_IO_BIT, however this is safe as we have established the invariant that
-only kernel-owned mappings may set VMA_IO_BIT, so we implicitly include
-these.
-
-No functional change intended.
-
-Link: https://lore.kernel.org/20260917-b4-mmap-prepare-vma-flag-sanify-v3-31-4583d8a23bca@kernel.org
+Link: https://lore.kernel.org/20260917-b4-mmap-prepare-vma-flag-sanify-v3-32-4583d8a23bca@kernel.org
 Signed-off-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 Cc: Albert Ou <aou@eecs.berkeley.edu>
@@ -194,76 +180,48 @@ Cc: Yuanchu Xie <yuanchu@google.com>
 Cc: Zi Yan <ziy@nvidia.com>
 ---
 
- include/linux/mm.h |   44 +++++++++++++++++++++++++++++++++++++++++++
- mm/madvise.c       |    4 +--
- 2 files changed, 46 insertions(+), 2 deletions(-)
+ mm/userfaultfd.c |   21 +++++++++++++++------
+ 1 file changed, 15 insertions(+), 6 deletions(-)
 
---- a/include/linux/mm.h~mm-vma-introduce-vma_is_persistent
-+++ a/include/linux/mm.h
-@@ -1742,6 +1742,50 @@ static inline bool vma_can_merge(const s
+--- a/mm/userfaultfd.c~mm-uffd-use-predicates-for-userfaultfd-checks
++++ a/mm/userfaultfd.c
+@@ -1754,10 +1754,18 @@ static inline bool move_splits_huge_pmd(
+ }
+ #endif
+ 
+-static inline bool vma_move_compatible(struct vm_area_struct *vma)
++static inline bool vma_move_compatible(const struct vm_area_struct *vma)
+ {
+-	return !(vma->vm_flags & (VM_PFNMAP | VM_IO |  VM_HUGETLB |
+-				  VM_MIXEDMAP | VM_SHADOW_STACK));
++	/* uffd is generally incompatible with kernel-owned mappings. */
++	if (vma_is_kernel_owned(vma))
++		return false;
++	/* The shadow stack should not be written to by userspace. */
++	if (vma_test_single_mask(vma, VMA_SHADOW_STACK))
++		return false;
++	/* hugetlb mappings cannot be safely moved. */
++	if (vma_is_hugetlb(vma))
++		return false;
++	return true;
  }
  
- /**
-+ * vma_flags_is_persistent() - Do the specified VMA flags imply that the VMA
-+ * contains persistent data?
-+ * @flags: The VMA flags to test.
-+ *
-+ * Persistent in the sense that - if you write bytes to the mapping - do they
-+ * stay written?
-+ *
-+ * If the kernel or a device could write to the memory independently of
-+ * userland, or the kernel could arbitrarily discard it, then it is not
-+ * persistent.
-+ *
-+ * Returns: true if the flags imply this VMA is persistent, otherwise false.
-+ */
-+static inline bool vma_flags_is_persistent(const vma_flags_t *flags)
-+{
-+	/* hugetlb is a fixed mapping, but its contents are the user's own. */
-+	if (vma_flags_is_hugetlb(flags))
-+		return true;
-+	/*
-+	 * MMIO mappings may not store what is written and may be changed by the
-+	 * device. Kernel-owned and fixed mappings may be changed by their owner
-+	 * without the user having initiated it.
-+	 */
-+	if (vma_flags_is_kernel_owned(flags) ||
-+	    vma_flags_is_fixed_mapping(flags))
-+		return false;
-+	/* Droppable memory is discardable by definition. */
-+	return !vma_flags_test_single_mask(flags, VMA_DROPPABLE);
-+}
-+
-+/**
-+ * vma_is_persistent() - Does the VMA contain persistent data?
-+ * @vma: The VMA to test.
-+ *
-+ * See vma_flags_is_persistent() for details.
-+ *
-+ * Returns: true if the VMA is persistent, otherwise false.
-+ */
-+static inline bool vma_is_persistent(const struct vm_area_struct *vma)
-+{
-+	return vma_flags_is_persistent(&vma->flags);
-+}
-+
-+/**
-  * vma_kernel_pagesize - Default page size granularity for this VMA.
-  * @vma: The user mapping.
-  *
---- a/mm/madvise.c~mm-vma-introduce-vma_is_persistent
-+++ a/mm/madvise.c
-@@ -1584,8 +1584,8 @@ static int madvise_vma_behavior(struct m
- 		new_flags |= VM_DONTDUMP;
- 		break;
- 	case MADV_DODUMP:
--		if ((!vma_is_hugetlb(vma) && (new_flags & VM_SPECIAL)) ||
--		    (new_flags & VM_DROPPABLE))
-+		/* Non-persistent memory cannot be dumped. */
-+		if (!vma_is_persistent(vma))
- 			return -EINVAL;
- 		new_flags &= ~VM_DONTDUMP;
- 		break;
+ static int validate_move_areas(struct userfaultfd_ctx *ctx,
+@@ -2146,10 +2154,11 @@ static bool vma_can_userfault(struct vm_
+ {
+ 	const struct vm_uffd_ops *ops = vma_uffd_ops(vma);
+ 
+-	if (vma->vm_flags & (VM_DROPPABLE | VM_SHADOW_STACK))
++	/* Non-persistent memory is inherently not controllable by userspace. */
++	if (!vma_is_persistent(vma))
+ 		return false;
+-
+-	if (!vma_is_hugetlb(vma) && (vma->vm_flags & VM_SPECIAL))
++	/* The shadow stack should not be written to by userspace. */
++	if (vma_test_single_mask(vma, VMA_SHADOW_STACK))
+ 		return false;
+ 
+ 	vm_flags &= __VM_UFFD_FLAGS;
 _
 
 Patches currently in -mm which might be from ljs@kernel.org are
