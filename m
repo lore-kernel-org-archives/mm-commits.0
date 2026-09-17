@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 381A23D7A18
-	for <mm-commits@vger.kernel.org>; Thu, 17 Sep 2026 04:42:32 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BDB6D175A7F
+	for <mm-commits@vger.kernel.org>; Thu, 17 Sep 2026 04:49:13 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789620154; cv=none; b=eInkjE8HFRl6fWrWBv4KGtwXpziW82Vq3CD4AK6gLFfZWxOH0rEvPu3/4FAIZB3y3r2wBZrEa1lG2fO4xk2fYZeCOso5AiLg8eeGhN7ymexDalTGSYg+pJFZdczTIuQ7z1+CW2o7M6M/Tj66XaHgOs2HnoJ07TsxpzjhL0Z+6IE=
+	t=1789620555; cv=none; b=FBaL9ykOM1V1qX6J8tnbmUeNPIboDLgibbImz7GoTnWpjw4kHFwv6HuOUVmO8ZlUsnLw7onPwBcpzROj9NcFH/9qVcmlafUEj+1JmptKQ6v//GFN7oS86AfYkPzTxMzmy6DHYJhKOAVe53CVVeosuuCnalePrQRI+k2PFiNm7oA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1789620154; c=relaxed/simple;
-	bh=ly0c3pJmP9pxY2DunW1qi2CcXyhnnNLNsWInPxNGWxo=;
-	h=Date:To:From:Subject:Message-Id; b=K6udPPxmN4UvXm/JU5EWeTm46ZZhVwH6I/Oi3lY0wrsoViZrTnenfTcjV7pH3qhkFOqaFfx2zV18yQmGOiqLSeNBzpUu7AmnTm1+ldhAz9oXddB4ZzwQuuQZgUMozOIewh3I1qJkhKaXS6DYBAHH75ARyLuVoHcVfVNkXT+zxPQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=k/1ib9uE; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1789620555; c=relaxed/simple;
+	bh=lGG1sBU81JIDmxp0FUAf+z9GGMTSBU5Equ4ZAxW7Pgc=;
+	h=Date:To:From:Subject:Message-Id; b=muV1KGkJb2r9Lnk0NR/pAaMvD1tjN3Vr79Uv1Z6NN71uooUPkdquz0vKhbs+9C0ywCXN1XWYqsNGxzuRzV6klIQLgNO/fPGuFvZrhKLrPLkHdCxFIXGELRaS0Rta8s1rNo/N+sSh6P80em+yJkCv8FypaCJMT3NajAwCCvZET+o=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=IQy1i4KW; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="k/1ib9uE"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C5AF01F000FF;
-	Thu, 17 Sep 2026 04:42:32 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="IQy1i4KW"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 204D21F000FF;
+	Thu, 17 Sep 2026 04:49:13 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1789620152;
-	bh=OlJ6supEwJZwLKU2CFoEAfqLnveKR94TcsDWpmmeFws=;
+	d=linux-foundation.org; s=korg; t=1789620553;
+	bh=OTtY4JsfEaa/XboZt6AZbpaSW2C/j9mHTJ07AB/Xg98=;
 	h=Date:To:From:Subject;
-	b=k/1ib9uE6aR4Ls/hCMq0KvSXs6NeeDfwnPA3QtDj+M3jPaOMA05ncOK+1lJWkw/v3
-	 Rh/patoxtbV2Pzdy3MYrYizAOQN7jTvvW08iU0JIJQyNkiGp+Hg3Uf1nz0nihuKKFZ
-	 oUPEfS3MjjrNBlTsV77BQeq+fUbBscjed225yvMU=
-Date: Wed, 16 Sep 2026 21:42:32 -0700
-To: mm-commits@vger.kernel.org,ruirui.yang@linux.dev,rppt@kernel.org,pratyush@kernel.org,pasha.tatashin@soleen.com,baoquan.he@linux.dev,tz2294@columbia.edu,akpm@linux-foundation.org
+	b=IQy1i4KWxnURbShd60A3vBAVeCITFWxft+59uX3Xz1DW5QKVzDws5n1jv+Xe4LgmT
+	 AaC/Lr6o5+ao3tnUnO2g7UlHF6qoL2JmBbenwej0HDCdACBGf1u2imXLfbfCwzxs1f
+	 XojgO6oZDdMVZQqw6yT+FpqTvd0714BLfKiNzFkc=
+Date: Wed, 16 Sep 2026 21:49:12 -0700
+To: mm-commits@vger.kernel.org,yuanchu@google.com,yosry@kernel.org,willy@infradead.org,weixugc@google.com,viro@zeniv.linux.org.uk,usama.arif@linux.dev,tz2294@columbia.edu,shikemeng@huaweicloud.com,shakeel.butt@linux.dev,nphamcs@gmail.com,mhocko@kernel.org,ljs@kernel.org,kunwu.chan@gmail.com,kasong@tencent.com,jack@suse.cz,hannes@cmpxchg.org,david@kernel.org,chrisl@kernel.org,chengming.zhou@linux.dev,brauner@kernel.org,baoquan.he@linux.dev,baohua@kernel.org,axelrasmussen@google.com,alex@ghiti.fr,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + vmcore-convert-mmap_vmcore_fault-to-use-folios.patch added to mm-new branch
-Message-Id: <20260917044232.C5AF01F000FF@smtp.kernel.org>
+Subject: + mm-swap-move-lru-insertion-out-of-the-swap-cache-allocator.patch added to mm-new branch
+Message-Id: <20260917044913.204D21F000FF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: vmcore: convert mmap_vmcore_fault() to use folios
+     Subject: mm: swap: move LRU insertion out of the swap cache allocator
 has been added to the -mm mm-new branch.  Its filename is
-     vmcore-convert-mmap_vmcore_fault-to-use-folios.patch
+     mm-swap-move-lru-insertion-out-of-the-swap-cache-allocator.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/vmcore-convert-mmap_vmcore_fault-to-use-folios.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-swap-move-lru-insertion-out-of-the-swap-cache-allocator.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -69,109 +69,200 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Tal Zussman <tz2294@columbia.edu>
-Subject: vmcore: convert mmap_vmcore_fault() to use folios
-Date: Tue, 15 Sep 2026 19:42:15 -0400
+From: Alexandre Ghiti <alex@ghiti.fr>
+Subject: mm: swap: move LRU insertion out of the swap cache allocator
+Date: Fri, 11 Sep 2026 14:13:28 +0200
 
-Use a folio for the page cache page the s390 fault handler reads the old
-kernel's memory into.  This removes four compound_head() calls and one of
-the last callers of find_or_create_page().
+Patch series "mm: zswap: free cold writeback folios promptly", v5.
 
-The vmcore mapping only has order-0 folios, so the logic is unchanged.
+When zswap writes an entry back, it allocates an order-0 swap cache folio,
+decompresses into it, and issues the write.  The folio is cold by
+construction, yet today it is left on the LRU for page reclaim to find and
+free later.  That wastes a reclaim scan and keeps cold memory resident
+longer than necessary.
 
-Compile tested for s390.
+Rather than implement this in zswap, extend the existing dropbehind
+mechanism to swap cache folios and have zswap opt into it (Yosry).  A
+PG_dropbehind folio is already dropped from its cache once writeback
+completes instead of being left for reclaim; for a swap cache folio that
+"drop" is removing it from the swap cache.
 
-Link: https://lore.kernel.org/20260915-vmcore-fault-folio-v1-1-a0cb6278670f@columbia.edu
-Signed-off-by: Tal Zussman <tz2294@columbia.edu>
+
+This is a preparatory patch.
+
+__swap_cache_alloc_folio() adds the new folio to the LRU itself, which
+leaves its callers no way to act on the folio before it becomes visible to
+reclaim.  Two users need exactly that:
+
+ - moving the refault evaluation out of the swap cache folio allocation
+   requires it to happen before folio_add_lru(): that consumes PG_active
+   to file the folio on the inactive or the active list, and under MGLRU
+   it also reads PG_workingset to pick the generation.  Setting either
+   flag afterwards does not move the folio;
+
+ - zswap writeback dropbehind needs the buffer folio to stay off the LRU
+   entirely, as the per-CPU LRU batch would hold a reference on it and
+   keep remove_mapping() from freeing it once writeback completes.
+
+Defer the LRU insertion to the callers of __swap_cache_alloc_folio(): each
+of them adds the folio right after the allocation, so there is no
+functional change intended.
+
+Link: https://lore.kernel.org/20260911121341.178028-1-alex@ghiti.fr
+Link: https://lore.kernel.org/20260911121341.178028-2-alex@ghiti.fr
+Signed-off-by: Alexandre Ghiti <alex@ghiti.fr>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+Suggested-by: Kairui Song <kasong@tencent.com>
+Reviewed-by: Nhat Pham <nphamcs@gmail.com>
+Reviewed-by: Kunwu Chan <kunwu.chan@gmail.com>
+Acked-by: Usama Arif <usama.arif@linux.dev>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Axel Rasmussen <axelrasmussen@google.com>
 Cc: Baoquan He <baoquan.he@linux.dev>
-Cc: Dave Young <ruirui.yang@linux.dev>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Pasha Tatashin <pasha.tatashin@soleen.com>
-Cc: Pratyush Yadav <pratyush@kernel.org>
+Cc: Barry Song <baohua@kernel.org>
+Cc: Chengming Zhou <chengming.zhou@linux.dev>
+Cc: Chris Li <chrisl@kernel.org>
+Cc: Christian Brauner <brauner@kernel.org>
+Cc: David Hildenbrand <david@kernel.org>
+Cc: Jan Kara <jack@suse.cz>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Kemeng Shi <shikemeng@huaweicloud.com>
+Cc: Lorenzo Stoakes <ljs@kernel.org>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Shakeel Butt <shakeel.butt@linux.dev>
+Cc: Tal Zussman <tz2294@columbia.edu>
+Cc: Wei Xu <weixugc@google.com>
+Cc: Yuanchu Xie <yuanchu@google.com>
+Cc: Yosry Ahmed <yosry@kernel.org>
 ---
 
- fs/proc/vmcore.c |   27 ++++++++++++++-------------
- 1 file changed, 14 insertions(+), 13 deletions(-)
+ mm/swap.h       |    6 +++---
+ mm/swap_state.c |   20 ++++++++++++--------
+ mm/swapfile.c   |    2 +-
+ mm/zswap.c      |    5 +++--
+ 4 files changed, 19 insertions(+), 14 deletions(-)
 
---- a/fs/proc/vmcore.c~vmcore-convert-mmap_vmcore_fault-to-use-folios
-+++ a/fs/proc/vmcore.c
-@@ -474,29 +474,30 @@ static vm_fault_t mmap_vmcore_fault(stru
- 	pgoff_t index = vmf->pgoff;
- 	struct iov_iter iter;
- 	struct kvec kvec;
--	struct page *page;
-+	struct folio *folio;
- 	loff_t offset;
- 	int rc;
+--- a/mm/swapfile.c~mm-swap-move-lru-insertion-out-of-the-swap-cache-allocator
++++ a/mm/swapfile.c
+@@ -1887,7 +1887,7 @@ void folio_put_swap(struct folio *folio,
+  *   CPU1				CPU2
+  *   do_swap_page()
+  *     ...				swapoff+swapon
+- *     swap_cache_alloc_folio()
++ *     __swap_cache_alloc_folio()
+  *       // check swap_map
+  *     // verify PTE not changed
+  *
+--- a/mm/swap.h~mm-swap-move-lru-insertion-out-of-the-swap-cache-allocator
++++ a/mm/swap.h
+@@ -312,9 +312,9 @@ bool swap_cache_has_folio(swp_entry_t en
+ struct folio *swap_cache_get_folio(swp_entry_t entry);
+ void *swap_cache_get_shadow(swp_entry_t entry);
+ void swap_cache_del_folio(struct folio *folio);
+-struct folio *swap_cache_alloc_folio(swp_entry_t target_entry, gfp_t gfp_mask,
+-				     unsigned long orders, struct vm_fault *vmf,
+-				     struct mempolicy *mpol, pgoff_t ilx);
++struct folio *__swap_cache_alloc_folio(swp_entry_t target_entry, gfp_t gfp_mask,
++				       unsigned long orders, struct vm_fault *vmf,
++				       struct mempolicy *mpol, pgoff_t ilx);
+ /* Below helpers require the caller to lock and pass in the swap cluster. */
+ void __swap_cache_add_folio(struct swap_cluster_info *ci,
+ 			    struct folio *folio, swp_entry_t entry);
+--- a/mm/swap_state.c~mm-swap-move-lru-insertion-out-of-the-swap-cache-allocator
++++ a/mm/swap_state.c
+@@ -497,13 +497,11 @@ static struct folio *__swap_cache_alloc(
+ 	node_stat_mod_folio(folio, NR_FILE_PAGES, nr_pages);
+ 	lruvec_stat_mod_folio(folio, NR_SWAPCACHE, nr_pages);
  
--	page = find_or_create_page(mapping, index, GFP_KERNEL);
--	if (!page)
-+	folio = __filemap_get_folio(mapping, index,
-+			FGP_LOCK | FGP_ACCESSED | FGP_CREAT, GFP_KERNEL);
-+	if (IS_ERR(folio))
- 		return VM_FAULT_OOM;
--	if (!PageUptodate(page)) {
--		offset = (loff_t) index << PAGE_SHIFT;
--		kvec.iov_base = page_address(page);
--		kvec.iov_len = PAGE_SIZE;
--		iov_iter_kvec(&iter, ITER_DEST, &kvec, 1, PAGE_SIZE);
-+	if (!folio_test_uptodate(folio)) {
-+		offset = folio_pos(folio);
-+		kvec.iov_base = folio_address(folio);
-+		kvec.iov_len = folio_size(folio);
-+		iov_iter_kvec(&iter, ITER_DEST, &kvec, 1, folio_size(folio));
+-	/* Caller will initiate read into locked new_folio */
+-	folio_add_lru(folio);
+ 	return folio;
+ }
  
- 		rc = __read_vmcore(&iter, &offset);
- 		if (rc < 0) {
--			unlock_page(page);
--			put_page(page);
-+			folio_unlock(folio);
-+			folio_put(folio);
- 			return vmf_error(rc);
- 		}
--		SetPageUptodate(page);
-+		folio_mark_uptodate(folio);
- 	}
--	unlock_page(page);
--	vmf->page = page;
-+	folio_unlock(folio);
-+	vmf->page = folio_file_page(folio, index);
- 	return 0;
- #else
- 	return VM_FAULT_SIGBUS;
+ /**
+- * swap_cache_alloc_folio - Allocate folio for swapped out slot in swap cache.
++ * __swap_cache_alloc_folio - Allocate folio for swapped out slot in swap cache.
+  * @targ_entry: swap entry indicating the target slot
+  * @gfp: memory allocation flags
+  * @orders: allocation orders, must be non zero
+@@ -515,13 +513,17 @@ static struct folio *__swap_cache_alloc(
+  * doing IO (e.g. swap in or zswap writeback). The swap slot indicated by
+  * @targ_entry must have a non-zero swap count (swapped out).
+  *
++ * The returned folio is locked and is NOT on the LRU. The caller must either
++ * add it to the LRU with folio_add_lru() so page reclaim can find it, or free
++ * it directly once done; a folio left off the LRU is unreclaimable and leaks.
++ *
+  * Context: Caller must protect the swap device with reference count or locks.
+  * Return: Returns the folio if allocation succeeded and folio is in the swap
+  * cache. Returns error code if failed due to race, OOM or invalid arguments.
+  */
+-struct folio *swap_cache_alloc_folio(swp_entry_t targ_entry, gfp_t gfp,
+-				     unsigned long orders, struct vm_fault *vmf,
+-				     struct mempolicy *mpol, pgoff_t ilx)
++struct folio *__swap_cache_alloc_folio(swp_entry_t targ_entry, gfp_t gfp,
++				       unsigned long orders, struct vm_fault *vmf,
++				       struct mempolicy *mpol, pgoff_t ilx)
+ {
+ 	int order, err;
+ 	struct folio *ret;
+@@ -657,12 +659,13 @@ static struct folio *swap_cache_read_fol
+ 		folio = swap_cache_get_folio(entry);
+ 		if (folio)
+ 			return folio;
+-		folio = swap_cache_alloc_folio(entry, gfp, BIT(0), NULL, mpol, ilx);
++		folio = __swap_cache_alloc_folio(entry, gfp, BIT(0), NULL, mpol, ilx);
+ 	} while (PTR_ERR(folio) == -EEXIST);
+ 
+ 	if (IS_ERR_OR_NULL(folio))
+ 		return NULL;
+ 
++	folio_add_lru(folio);
+ 	swap_read_folio(ctx, folio);
+ 	if (readahead) {
+ 		folio_set_readahead(folio);
+@@ -698,12 +701,13 @@ struct folio *swapin_sync(swp_entry_t en
+ 		folio = swap_cache_get_folio(entry);
+ 		if (folio)
+ 			return folio;
+-		folio = swap_cache_alloc_folio(entry, gfp, orders, vmf, mpol, ilx);
++		folio = __swap_cache_alloc_folio(entry, gfp, orders, vmf, mpol, ilx);
+ 	} while (PTR_ERR(folio) == -EEXIST);
+ 
+ 	if (IS_ERR(folio))
+ 		return folio;
+ 
++	folio_add_lru(folio);
+ 	swap_read_folio(&ctx, folio);
+ 	swap_read_submit(&ctx);
+ 	return folio;
+--- a/mm/zswap.c~mm-swap-move-lru-insertion-out-of-the-swap-cache-allocator
++++ a/mm/zswap.c
+@@ -1019,8 +1019,8 @@ static int zswap_writeback_entry(struct
+ 		return -ENOENT;
+ 
+ 	mpol = get_task_policy(current);
+-	folio = swap_cache_alloc_folio(swpentry, GFP_KERNEL, BIT(0), NULL, mpol,
+-				       NO_INTERLEAVE_INDEX);
++	folio = __swap_cache_alloc_folio(swpentry, GFP_KERNEL, BIT(0), NULL, mpol,
++					 NO_INTERLEAVE_INDEX);
+ 	put_swap_device(si);
+ 
+ 	/*
+@@ -1032,6 +1032,7 @@ static int zswap_writeback_entry(struct
+ 	 */
+ 	if (IS_ERR(folio))
+ 		return PTR_ERR(folio);
++	folio_add_lru(folio);
+ 
+ 	/*
+ 	 * folio is locked, and the swapcache is now secured against
 _
 
-Patches currently in -mm which might be from tz2294@columbia.edu are
+Patches currently in -mm which might be from alex@ghiti.fr are
 
-mm-page_io-convert-write-completion-handlers-to-folios.patch
-mm-remove-pagereclaim.patch
-mm-page_io-use-swap-entries-directly-in-zeromap-helpers.patch
-mm-page_io-rename-bio_associate_blkg_from_page.patch
-mm-page_io-refer-to-folios-in-swap_writeout-comments.patch
-mm-swap-rename-__swap_writepage-to-__swap_writeout.patch
-mm-remove-unused-mark_page_reserved.patch
-mm-remove-unused-totalram_pages_inc-and-totalram_pages_dec.patch
-mm-remove-pagewriteback.patch
-mm-swap-add-folio_swap_entry-and-folio_page_swap_entry.patch
-mm-swap-add-folio_swap_entry-and-folio_page_swap_entry-fix.patch
-mm-huge_memory-add-a-comment-to-the-open-coded-swap-entry.patch
-mm-rmap-use-folio_page_swap_entry-in-ttu_anon_swapbacked_folio.patch
-mm-zswap-use-folio_swap_entry-in-zswap_store_page.patch
-mm-swapfile-use-folio_page_swap_entry.patch
-arm64-mte-make-mte_save_tags-and-mte_restore_tags-static.patch
-arm64-mte-pass-the-swap-entry-to-mte_save_tags.patch
-mm-swap-remove-page_swap_entry.patch
-mm-memcontrol-take-a-const-folio-in-folio_memcg-and-friends.patch
-mm-memcontrol-constify-obj_cgroup_memcg-and-friends.patch
-mm-memcontrol-constify-the-lruvec-helpers.patch
-mm-page_io-take-a-const-folio-in-bio_associate_blkg_from_folio.patch
-mm-memcontrol-constify-the-mem_cgroup-accessors.patch
-mm-page_counter-constify-page_counter_read-and-page_counter_margin.patch
-mm-memcontrol-constify-the-reclaim-protection-helpers.patch
-mm-memcontrol-constify-the-memcg-and-lruvec-stat-readers.patch
-mm-memcontrol-constify-the-swap-accounting-helpers.patch
-mm-memcontrol-constify-mem_cgroup_swappiness-and-mem_cgroup_get_max.patch
-mm-memcontrol-constify-the-zswap-and-socket-pressure-helpers.patch
-vmcore-convert-mmap_vmcore_fault-to-use-folios.patch
+mm-swap-move-lru-insertion-out-of-the-swap-cache-allocator.patch
+mm-swap-drop-dropbehind-swap-cache-folios-on-writeback-completion.patch
+mm-zswap-drop-cold-writeback-folios-via-swap-dropbehind.patch
 
