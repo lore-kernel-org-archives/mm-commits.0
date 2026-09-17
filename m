@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 63F9E3A7F5F
-	for <mm-commits@vger.kernel.org>; Thu, 17 Sep 2026 05:11:07 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 701D03ED3BA
+	for <mm-commits@vger.kernel.org>; Thu, 17 Sep 2026 05:11:09 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789621869; cv=none; b=Iske+QJZCL4B7RiYZm34s5tT/OuB5gS4E7pBPTaqrYYU8hoWDcXwjNDrkiWuDWuduKZcDiPE3FDnEXC4MDxrxabX4YlY0K0VfNGrf4+XWVV/1QkZQVnZYo4aeTWR3/RlA6QC5yjfg7LInokDTkubKZ9j/S5a883TMoMiveRqmp4=
+	t=1789621870; cv=none; b=FJ8bJIYVDn3YUEt1+LyDR37WLIqVR7AAkBvnjQVwS4yR8AzIq79g90dMD1W/TuoRXONx7Kjk1x6LRzyH7QVevK5xsPptEoUbYxDGD15d/Hd9XkyS/2esRhIDTomuksp0uWavjd7qiBT3UBwG/z2jGKk8sU0Kkvd/JtheW8GGH1s=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1789621869; c=relaxed/simple;
-	bh=TQ7WtEvSY9pwoG9JQWYNztzWYbFVqWD2oBf8CSQmeLk=;
-	h=Date:To:From:Subject:Message-Id; b=jSDWLNhyuLec/ilyAAJLw2Wj5vxzEb1pN5jvXn+9zCp9ihSkzdZ8Q9NqV2/qKkcTLflevned6T+ji1QMsxQz2byyQCUmVCJgpu+2NQbrwxm+PCLXtADeIg5nh8U+w36RAT+QxisAly/mt2IsQgH6zvHxhtuIm5qAiSp6fPfQVLk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Pa9LKPYe; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1789621870; c=relaxed/simple;
+	bh=+bpfaFHiF9rga5nHwo6s+ifz9pNPHu5pSfHrf7ZsEsk=;
+	h=Date:To:From:Subject:Message-Id; b=VCGHgy8LyOCW1fxzXDSifRZVue0TnVZhn+RCuPWzat5m4VhE/sMoE9CHvor2ZYGEgImnVUswvcpG9tG/CytPf1ukQd/HIE03T5bt2+aKUIAYddClPzSdA20arHLojJxYnWqxDleJ2T1JhB7XUHkM8QJHq6oYkg2Gds/68o/y2Ng=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=b0xNX7SD; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Pa9LKPYe"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C924A1F000FF;
-	Thu, 17 Sep 2026 05:11:06 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="b0xNX7SD"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 00F961F00893;
+	Thu, 17 Sep 2026 05:11:08 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1789621866;
-	bh=13U3DG+Vcxq1TGcu2nscmQYpwL0TWbn0AkNjrwXOMyA=;
+	d=linux-foundation.org; s=korg; t=1789621869;
+	bh=rRMydavbim72cwVkZD3xLyH+bllBAhUqwi2P2/XxfS4=;
 	h=Date:To:From:Subject;
-	b=Pa9LKPYey2Du8HnHXN4zAzODbM+OqK6QVXF/KNzwU0HLgiAnIYTlNiPK5X2bOAf9B
-	 Trtp/FpINg/SwAtZgXjRloEvjheq7O8bxLevTFg394Ybxg8P2AyNGw9iUBMf+N0hX4
-	 TOTuMtnEJ2q4pmA/L+144hCrgHkn7A3qg0BIpTFg=
-Date: Wed, 16 Sep 2026 22:11:06 -0700
+	b=b0xNX7SDvgHMBgT1Ht2YLjSwpT2S16x0LAFWqa+EfFsmtDS2nJqBA2KAg7h7P3Qe1
+	 TWwEHs98ohFEv27tQhtSSL3llfsV9KzpsITiYe1c38rXbOKlx8vkHHuGQumbZe1A+A
+	 gD1O7fzVMsBPDn8x47ofQqjURl4wFOA8KEOjWIfA=
+Date: Wed, 16 Sep 2026 22:11:08 -0700
 To: mm-commits@vger.kernel.org,zhuhui@kylinos.cn,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-memcg-redirect-stats-updates-of-dying-memcgs-for-all-hierarchies.patch added to mm-unstable branch
-Message-Id: <20260917051106.C924A1F000FF@smtp.kernel.org>
+Subject: + mm-workingset-use-lruvec_page_state_local-to-count-lru-pages.patch added to mm-unstable branch
+Message-Id: <20260917051109.00F961F00893@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: memcg: redirect stats updates of dying memcgs for all hierarchies
+     Subject: mm: workingset: use lruvec_page_state_local() to count lru pages
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-memcg-redirect-stats-updates-of-dying-memcgs-for-all-hierarchies.patch
+     mm-workingset-use-lruvec_page_state_local-to-count-lru-pages.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memcg-redirect-stats-updates-of-dying-memcgs-for-all-hierarchies.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-workingset-use-lruvec_page_state_local-to-count-lru-pages.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,102 +59,25 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Hui Zhu <zhuhui@kylinos.cn>
-Subject: mm: memcg: redirect stats updates of dying memcgs for all hierarchies
-Date: Fri, 11 Sep 2026 16:00:48 +0800
-
-Patch series "mm: workingset: fix the shadow node budget under MGLRU", v5.
+Subject: mm: workingset: use lruvec_page_state_local() to count lru pages
+Date: Fri, 11 Sep 2026 16:00:49 +0800
 
 Commit 7404bd37cfbe ("mm: workingset: use lruvec_lru_size() to get the
-number of lru pages") broke the workingset shadow node budget under MGLRU:
-lruvec_lru_size() reads mz->lru_zone_size, which MGLRU never maintains, so
-count_shadow_nodes() sees the evictable LRU lists as empty and the shadow
-shrinker reclaims eviction tokens almost as fast as they are created,
-losing thrashing protection.
+number of lru pages") switched count_shadow_nodes() to lruvec_lru_size(). 
+With CONFIG_MEMCG enabled, lruvec_lru_size() reads mz->lru_zone_size,
+which only the classic LRU paths maintain.  MGLRU accounts its pages
+through __update_lru_size(), which skips that array, so with MGLRU on the
+four evictable LRU lists are always seen as empty.  The shadow node budget
+(pages >> 3) then collapses to slab plus unevictable pages, and the
+workingset shadow shrinker reclaims eviction tokens almost as fast as they
+are created, losing thrashing protection.
 
-Patch 1 extends the dying-mcg stat redirection (previously cgroup v1 only)
-to all hierarchies, addressing the reparenting race that motivated
-7404bd37cfbe.
+lruvec_page_state_local() reads lruvec_stats->state_local instead, which
+both classic LRU and MGLRU maintain.  Switch back to it.  The reparenting
+race this re-exposes on cgroup v2 is closed by the preceding patch that
+redirects dying-memcg stat updates for all hierarchies.
 
-Patch 2 then switches count_shadow_nodes() back to
-lruvec_page_state_local(), which both classic LRU and MGLRU maintain.
-
-Patch 3 recovers the performance.  Patch 1 added an unconditional
-rcu_read_lock() to the stat update fast path; patch 3 checks
-memcg_is_dying() first and takes the RCU lock only on the rare dying path.
-
-Patch 4 closes an accounting gap that patch 2 makes visible: on cgroup v2,
-reparent_state_local() never moves the dying memcg's non-hierarchical
-lruvec stats to the parent, so the parent receives the uncharges without
-the matching charges and its state_local underflows.  Patch 4 reparents
-those stats, mirroring cgroup v1.
-
-Performance testing
-===================
-
-The test script and the raw results are available at [1].
-
-Environment: 10-vCPU QEMU guest, 8 GiB RAM, cgroup v2; 7 runs per
-configuration, medians reported.  Workloads:
-
-  w1-anon-churn: single-threaded anon fault/charge loop in a memcg
-                 (MADV_DONTNEED + re-fault, no reclaim).  Every touch
-                 is a real fault with charge and memcg stat updates,
-                 so it stresses exactly the fast path patch 1 changes.
-                 This is the meaningful signal: it is not reclaim-bound,
-                 so the small fast-path overhead is not drowned out.
-  w2-file-churn: file read loop under memory.high pressure
-                 (reclaim-bound; the differences below are within
-                 run-to-run noise and are shown for completeness only).
-  w3-reparent:   reparent accounting sanity check.
-
-w1-anon-churn (pages/s):
-
-                 classic LRU          MGLRU
-base             4393028              4377122
-patches 1-2      4385996   (-0.2%)    4352887   (-0.6%)
-patches 1-3      4381832   (-0.3%)    4377053   (+0.0%)
-
-w2-file-churn (MB/s):
-
-                 classic LRU          MGLRU
-base             8277                 8226
-patches 1-2      8226      (-0.6%)    8123      (-1.3%)
-patches 1-3      8157      (-1.4%)    8294      (+0.8%)
-
-w3-reparent passed on all kernels.
-
-The small overhead visible with patches 1-2 comes from the redirection
-added by patch 1; patch 3 brings w1 back to the base level in both LRU
-configurations.  The w2-file-churn differences are within run-to-run
-noise: that workload is reclaim-bound and too noisy to expose the small
-fast-path overhead, so w1-anon-churn is the meaningful signal.  Patch 4
-only touches the memcg offline path and is not exercised by these
-workloads.
-
-
-This patch (of 4):
-
-get_non_dying_memcg_start() redirects the stat updates of a dying memcg to
-its closest non-dying ancestor, but only on cgroup v1; on cgroup v2 the
-stats keep being accounted to the dying memcg itself.
-
-A later patch in this series restores lruvec_page_state_local() in
-count_shadow_nodes() to fix the broken workingset shadow node budget under
-MGLRU.  count_shadow_nodes() is the only reader of those non-hierarchical
-state_locals on cgroup v2: when a memcg is offlined, its pages are
-reparented to the ancestor but their stat updates keep being accounted to
-the dying memcg, so count_shadow_nodes() computes a wrong shadow node
-budget and workingset thrashing protection is lost.  This is user visible
-as premature reclaim of hot page cache and degraded performance under
-memory pressure.  Apply the redirection to all hierarchies to fix this.
-
-Offlining is rare, so the added cost on the stat update fast path is
-limited to an rcu_read_lock() and a css_is_dying() check; the upward walk
-happens only while a memcg is dying.
-
-Link: https://lore.kernel.org/cover.1789096175.git.zhuhui@kylinos.cn
-Link: https://lore.kernel.org/c1ef4ef6a84cac479e573f4423b734dc8176f7d5.1789096175.git.zhuhui@kylinos.cn
-Link: https://gist.github.com/teawater/32f373ec41d185d840455eb167321a5a [1]
+Link: https://lore.kernel.org/2ed42f96aca124856ea30f774afb55cbe6d8ba58.1789096175.git.zhuhui@kylinos.cn
 Fixes: 7404bd37cfbe ("mm: workingset: use lruvec_lru_size() to get the number of lru pages")
 Signed-off-by: Hui Zhu <zhuhui@kylinos.cn>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
@@ -173,60 +96,24 @@ Cc: Yuanchu Xie <yuanchu@google.com>
 Cc: <stable@vger.kernel.org>
 ---
 
- mm/memcontrol.c |   30 +++++-------------------------
- 1 file changed, 5 insertions(+), 25 deletions(-)
+ mm/workingset.c |    5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
 
---- a/mm/memcontrol.c~mm-memcg-redirect-stats-updates-of-dying-memcgs-for-all-hierarchies
-+++ a/mm/memcontrol.c
-@@ -873,20 +873,14 @@ static long memcg_state_val_in_pages(int
- 	return val < 0 ? -res : res;
- }
+--- a/mm/workingset.c~mm-workingset-use-lruvec_page_state_local-to-count-lru-pages
++++ a/mm/workingset.c
+@@ -688,10 +688,9 @@ static unsigned long count_shadow_nodes(
  
--#ifdef CONFIG_MEMCG_V1
- /*
-- * Used in mod_memcg_state() and mod_memcg_lruvec_state() to avoid race with
-- * reparenting of non-hierarchical state_locals.
-+ * Used in mod_memcg_state() and mod_memcg_lruvec_state() to avoid race
-+ * with reparenting of non-hierarchical state_locals.  Offlining a
-+ * memcg is rare, so do the redirection for all cgroup hierarchies.
-  */
--static inline struct mem_cgroup *get_non_dying_memcg_start(struct mem_cgroup *memcg,
--							   bool *rcu_locked)
-+static inline struct mem_cgroup *
-+get_non_dying_memcg_start(struct mem_cgroup *memcg, bool *rcu_locked)
- {
--	/* Rebinding can cause this value to be changed at runtime */
--	if (cgroup_subsys_on_dfl(memory_cgrp_subsys)) {
--		*rcu_locked = false;
--		return memcg;
--	}
+ 		mem_cgroup_flush_stats_ratelimited(sc->memcg);
+ 		lruvec = mem_cgroup_lruvec(sc->memcg, NODE_DATA(sc->nid));
 -
- 	rcu_read_lock();
- 	*rcu_locked = true;
- 
-@@ -898,22 +892,8 @@ static inline struct mem_cgroup *get_non
- 
- static inline void get_non_dying_memcg_end(bool rcu_locked)
- {
--	if (!rcu_locked)
--		return;
+ 		for (pages = 0, i = 0; i < NR_LRU_LISTS; i++)
+-			pages += lruvec_lru_size(lruvec, i, MAX_NR_ZONES - 1);
 -
- 	rcu_read_unlock();
- }
--#else
--static inline struct mem_cgroup *get_non_dying_memcg_start(struct mem_cgroup *memcg,
--							   bool *rcu_locked)
--{
--	return memcg;
--}
--
--static inline void get_non_dying_memcg_end(bool rcu_locked)
--{
--}
--#endif
- 
- static void __mod_memcg_state(struct mem_cgroup *memcg,
- 			      enum memcg_stat_item idx, long val)
++			pages += lruvec_page_state_local(lruvec,
++							 NR_LRU_BASE + i);
+ 		pages += lruvec_page_state_local(
+ 			lruvec, NR_SLAB_RECLAIMABLE_B) >> PAGE_SHIFT;
+ 		pages += lruvec_page_state_local(
 _
 
 Patches currently in -mm which might be from zhuhui@kylinos.cn are
