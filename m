@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id ED7B346C825;
-	Fri, 18 Sep 2026 05:44:03 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D7CAB45D18C
+	for <mm-commits@vger.kernel.org>; Fri, 18 Sep 2026 05:44:04 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789710245; cv=none; b=WF5ojgQScSHfe7z8AXZBIShqIu7J62+e0IBLKrKzentYivDH6VsGlZzfw3n131cZnFQiKyK5l0LqBEyHuI+m1f8pB7rYtKk69x5h8CZwjJhgaalMS+ptkT98OxFHL3fTCvN234v6aSxSionnu/Y5KDImjs4+xoj+38PTP0AEDAM=
+	t=1789710246; cv=none; b=ob9YBMq4F8QEu56RcP1E3h0D1cCLbbDuHs0gXjk4vJJubv8rOylwa2blhf8VYCunhT6npYAsyqy5loha5mw+VXFMy/nrny37KjKh2aMjd7723yjb9heqNn9wrcZzjGDESId+s6M5tXm7NMgqu1r5IPCONRqbbhaM6Y25/H7fOqs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1789710245; c=relaxed/simple;
-	bh=XOSIgTb8S0MpObQN88Rs+ugbTUl8Xef1fWWbtzJ3pK4=;
-	h=Date:To:From:Subject:Message-Id; b=pBdkWnoWJolECTuJ0Swy2jXRXYT9lsd6m5JqeXoG+EPlShp+AhrQ3/knQYCRYnigO+M0npl7/HKmEB3LOT7KbyjOgGBFo9jQSCBPqGIeuzZF7g0Y5aJwuqZEmpe0WqhNkYzSNYCuiPGI4XDXhleQTqORaYw+khXzjrwInduKMhg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=nDG2W0Lx; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1789710246; c=relaxed/simple;
+	bh=+KaWl6pvO2nHgUfUhTNDUZYzuWEZ3uOUBRW3Ncv4W6g=;
+	h=Date:To:From:Subject:Message-Id; b=YXEMeSlcTGtCFI8WNAAWApURV7z7R98vJcMzjSKpRHx1Ql7VhiyWIXo21icEELomG9Sw7XdxjjwOjlaE/YCVu+D/sbFIpUJ5ouF+muBq/5S6V6DXmO1YSzVPD0+litjmOQ66XmLmu3ahsIPRrMcD24p3II5Eip4E490rhAActLw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=zjWtpJfC; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="nDG2W0Lx"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9A3C81F00893;
-	Fri, 18 Sep 2026 05:44:03 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="zjWtpJfC"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id AEF371F000FF;
+	Fri, 18 Sep 2026 05:44:04 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1789710243;
-	bh=cgc+n7eLZTLgU2u7Jjk3Yco41I3Y+MKnxGdHOx9J4jY=;
+	d=linux-foundation.org; s=korg; t=1789710244;
+	bh=ufSq8uPKKfD4Doa8MaSSbnco0nnL4biWA4ahgTEaeqA=;
 	h=Date:To:From:Subject;
-	b=nDG2W0LxX3kQ/SLZVaE5YlSfNXMIo4m8cgX6yTMAGp1Pr44liZ6g7XQoOKDlE+4K2
-	 46LbSai0yrzBfnanB5Jcw/B2f6PtwUaXC3VjhhbdW+vFKrZ87J8PNAwxxfKwkTFiy1
-	 aXd+oI9nvyU33BMdT+oBhK0v6obcKH980DEs4+7c=
-Date: Thu, 17 Sep 2026 22:44:03 -0700
-To: mm-commits@vger.kernel.org,willy@infradead.org,vbabka@kernel.org,tj@kernel.org,surenb@google.com,stable@vger.kernel.org,rppt@kernel.org,roman.gushchin@linux.dev,paulmck@kernel.org,mhocko@suse.com,ljs@kernel.org,liam@infradead.org,jack@suse.cz,dennis@kernel.org,david@kernel.org,josef@toxicpanda.com,akpm@linux-foundation.org
+	b=zjWtpJfC7E5fV523WQUGZBIWyKd2+SOJBmvgcH2L64Uum4qCI2MQS70ejW21RZvSp
+	 Ltf3QEcPa9hk/1cvhBXNRGnyqgOJrYX+8+uC/jjMBL2fZn5L9tQIQuGUn+QnSjBDZo
+	 W9idCcuXiGm6qr/ajst/tr8Ps6PalpqNyXiumxzo=
+Date: Thu, 17 Sep 2026 22:44:04 -0700
+To: mm-commits@vger.kernel.org,xu.xin16@zte.com.cn,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] writeback-report-a-tasks-rcu-quiescent-state-per-cgwb-drain-pass.patch removed from -mm tree
-Message-Id: <20260918054403.9A3C81F00893@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] maintainers-update-xu-xins-email.patch removed from -mm tree
+Message-Id: <20260918054404.AEF371F000FF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,84 +35,54 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: writeback: report a Tasks-RCU quiescent state per cgwb drain pass
+     Subject: MAINTAINERS: update Xu Xin's email
 has been removed from the -mm tree.  Its filename was
-     writeback-report-a-tasks-rcu-quiescent-state-per-cgwb-drain-pass.patch
+     maintainers-update-xu-xins-email.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Josef Bacik <josef@toxicpanda.com>
-Subject: writeback: report a Tasks-RCU quiescent state per cgwb drain pass
-Date: Wed, 09 Sep 2026 18:01:07 +0000
+From: Xu Xin <xu.xin16@zte.com.cn>
+Subject: MAINTAINERS: update Xu Xin's email
+Date: Mon, 7 Sep 2026 14:53:42 +0800 (CST)
 
-cleanup_offline_cgwbs_workfn() drains a dying cgwb by calling
-cleanup_offline_cgwb() until it returns false, with a cond_resched()
-between passes.  On a CONFIG_PREEMPTION kernel that cond_resched() does
-nothing: _cond_resched() is a plain "return 0", and under PREEMPT_DYNAMIC
-the full and lazy modes disable it.  Since commit 7dadeaa6e851 ("sched:
-Further restrict the preemption modes") those are the only two models on
-the architectures with PREEMPT_LAZY support, arm64 and x86 among them, so
-the drain loop never reports a Tasks-RCU quiescent state.
+Now I'm moving to the @linux.dev account, so map my old email addresses
+and update them to my new address.
 
-A worker draining a cgwb with millions of attached inodes runs for
-minutes.  On a 6.18 arm64 host in lazy mode the cgwb worker drained one
-dying cgroup's writeback domain for over 11 minutes.  A BPF program unlink
-(bpf_trampoline_unlink_prog -> bpf_trampoline_update ->
-unregister_ftrace_direct -> ftrace_shutdown -> synchronize_rcu_tasks())
-waited on that grace period while holding the trampoline mutex, 42 tasks
-queued behind it in D state, and the hung task detector fired at 614 s and
-panicked the host.  Any BPF or ftrace detach during a long drain inherits
-the drain's length.
-
-Fix this by calling cond_resched_tasks_rcu_qs() so we do not stall out
-anybody who calls sycnrhonize_rcu_tasks().  We put this in a do { } while
-loop because if we have many small cgroups cleanup_offline_cgwb() will
-return false and we will never call cond_resched_tasks_rcu_qs(), creating
-the same problem.
-
-Link: https://lore.kernel.org/20260909-cgwb-tasks-rcu-qs-v1-1-967a7754771f@toxicpanda.com
-Fixes: c22d70a162d3 ("writeback, cgroup: release dying cgwbs by switching attached inodes")
-Signed-off-by: Josef Bacik <josef@toxicpanda.com>
+Link: https://lore.kernel.org/20260907145342529uOGtNYWTAzrSCFnghfgCb@zte.com.cn
+Signed-off-by: Xu Xin <xu.xin16@zte.com.cn>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Link: https://lore.kernel.org/bpf/9d444098-7c03-4163-af12-bd0a79a51443@paulmck-laptop/
-Assisted-by: LLM
-Acked-by: Tejun Heo <tj@kernel.org>
-Reviewed-by: Roman Gushchin <roman.gushchin@linux.dev>
-Reviewed-by: Jan Kara <jack@suse.cz>
-Acked-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
-Cc: David Hildenbrand <david@kernel.org>
-Cc: Dennis Zhou <dennis@kernel.org>
-Cc: Liam R. Howlett <liam@infradead.org>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: "Paul E . McKenney" <paulmck@kernel.org>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Vlastimil Babka <vbabka@kernel.org>
-Cc: <stable@vger.kernel.org>
 ---
 
- mm/backing-dev.c |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ .mailmap    |    2 ++
+ MAINTAINERS |    2 +-
+ 2 files changed, 3 insertions(+), 1 deletion(-)
 
---- a/mm/backing-dev.c~writeback-report-a-tasks-rcu-quiescent-state-per-cgwb-drain-pass
-+++ a/mm/backing-dev.c
-@@ -910,8 +910,9 @@ static void cleanup_offline_cgwbs_workfn
- 			continue;
- 
- 		spin_unlock_irq(&cgwb_lock);
--		while (cleanup_offline_cgwb(wb))
--			cond_resched();
-+		do {
-+			cond_resched_tasks_rcu_qs();
-+		} while (cleanup_offline_cgwb(wb));
- 		spin_lock_irq(&cgwb_lock);
- 
- 		wb_put(wb);
+--- a/.mailmap~maintainers-update-xu-xins-email
++++ a/.mailmap
+@@ -980,6 +980,8 @@ Wesley Cheng <quic_wcheng@quicinc.com> <
+ Will Deacon <will@kernel.org> <will.deacon@arm.com>
+ Wolfram Sang <wsa@kernel.org> <w.sang@pengutronix.de>
+ Wolfram Sang <wsa@kernel.org> <wsa@the-dreams.de>
++Xu Xin <xu.xin@linux.dev> <xu.xin16@zte.com.cn>
++Xu Xin <xu.xin@linux.dev> xu xin <cgel.zte@gmail.com>
+ Yakir Yang <kuankuan.y@gmail.com> <ykk@rock-chips.com>
+ Yanteng Si <si.yanteng@linux.dev> <siyanteng@loongson.cn>
+ Ying Huang <huang.ying.caritas@gmail.com> <ying.huang@intel.com>
+--- a/MAINTAINERS~maintainers-update-xu-xins-email
++++ a/MAINTAINERS
+@@ -17192,7 +17192,7 @@ F:	tools/testing/selftests/mm/gup_test.c
+ MEMORY MANAGEMENT - KSM (Kernel Samepage Merging)
+ M:	Andrew Morton <akpm@linux-foundation.org>
+ M:	David Hildenbrand <david@kernel.org>
+-R:	Xu Xin <xu.xin16@zte.com.cn>
++R:	Xu Xin <xu.xin@linux.dev>
+ R:	Chengming Zhou <chengming.zhou@linux.dev>
+ L:	linux-mm@kvack.org
+ S:	Maintained
 _
 
-Patches currently in -mm which might be from josef@toxicpanda.com are
+Patches currently in -mm which might be from xu.xin16@zte.com.cn are
 
 
