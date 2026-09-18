@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 534D751A742
-	for <mm-commits@vger.kernel.org>; Fri, 18 Sep 2026 17:43:44 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A34EC37BE71
+	for <mm-commits@vger.kernel.org>; Fri, 18 Sep 2026 17:47:25 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789753431; cv=none; b=nlOoy2yqBLhgWPGqwARrAqslytQyYx3dkwgUUkwHu1mBaR9PxOIdLM1jSyfOrZqLLmyRuNmnmW5/ZPoBZtU7j1jatRmse29Z0q2Jl9AVV0trcVLv2Y+XQDw40MyU5i16AfBTVsjGWR0QuMfQVMa/nboZhu1Dkp9v5TFfzp0RNMQ=
+	t=1789753654; cv=none; b=OcCaoi7dY+UVIxXUajvgquSBoOwSacAlMBQcmo4cUlYSz8gXqKISRuMn0Zd3FsVCFf9Mwn0/Cjwpp8Eebb42r+eHoCb+j2IIvbIWtCQrOsjEdjisYKZ8Q4GrLYC/Jt7QxSUpaQmHHbYHFG3SEmRITRWuIVyLfqokNTQ22YPx+9M=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1789753431; c=relaxed/simple;
-	bh=1TlhNX42Q0NBRLTfYyjam1aa9rBnMrm/pEQ4J2tPc6M=;
-	h=Date:To:From:Subject:Message-Id; b=b2MJFX8c18IwEH/+dlM8iQTDwUIz3n3uOCOK3HUDLP3lJY1OTYEYRNV+aPle/aHWZtW4B0fKW6fcfC3av2U1YBeKBA1o5l0D0ldVKQG13hXIfTZI9ZsZC4yN2phEC8H/TMWzI2UCPpi0w0Vr5+UIRxDyMaeEtF41rfTwCYyZI8I=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=oWgV7eZI; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1789753654; c=relaxed/simple;
+	bh=JqWoZkUHD58ymXEHZC93/EN8N6yiV3TrnNp+Q9Il82Y=;
+	h=Date:To:From:Subject:Message-Id; b=FcN1UR1ukd2Smm70D/uhfFCtWzX7XlScRyaWnd0wommp9APMeHys2CUOgAvux0wjMCnPam+rsrXRKGRVRQ5LJYlLhm/RAPd3EhBr3KpGi+d0+4o5/vvF/FIJeMDrK7V/9EVBH59dHcwDJmMWzrruu9/92tG8E+TU666J5TgOLLI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=VGT1QMlO; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="oWgV7eZI"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A3E371F000FF;
-	Fri, 18 Sep 2026 17:43:43 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="VGT1QMlO"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 86B591F000FF;
+	Fri, 18 Sep 2026 17:47:21 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1789753423;
-	bh=EAa6kAgV4A2F/yeuRbUf533GAuAo7g5m60jGhNSBjS4=;
+	d=linux-foundation.org; s=korg; t=1789753641;
+	bh=MenqbVTAy2zmO+4R/m5TzR/BpkYFq12L8LcbGYiaMSc=;
 	h=Date:To:From:Subject;
-	b=oWgV7eZIaYFkEvvst5899H80WAYxt7KKw2YkYTnQOY1Im7FTAjrujeo67h064kv9K
-	 kDj5yy8LB+LuKz5Z1aJKV2o2y/3qeELgaf8fFG9NE63KY1c9E2h3k2AsKJt8vhTpGE
-	 KxRx2e7TIEaSeq99PDo4blQV864IuQ3EHVdBhDr4=
-Date: Fri, 18 Sep 2026 10:43:43 -0700
-To: mm-commits@vger.kernel.org,youngjun.park@lge.com,shikemeng@huaweicloud.com,nphamcs@gmail.com,kasong@tencent.com,chrisl@kernel.org,baoquan.he@linux.dev,baohua@kernel.org,ekffu200098@gmail.com,akpm@linux-foundation.org
+	b=VGT1QMlOifhIwGcV7uZl3IqkVWUKZIUFBqOllIdpBcAofViInkHogct1YOAsLa6nO
+	 3c6Uf72NHjwIorrJ1iCCWtr1+THlYkBvFWIp38/dItXcJ/VwWC0K/e9yhkEQub8YKN
+	 omJV/KpL6MjxUPH2gwaZ6b7R624VPZuTA5BOj19Q=
+Date: Fri, 18 Sep 2026 10:47:21 -0700
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,ying.huang@linux.alibaba.com,vbabka@kernel.org,surenb@google.com,rppt@kernel.org,rakie.kim@sk.com,mhocko@suse.com,matthew.brost@intel.com,ljs@kernel.org,liam@infradead.org,joshua.hahnjy@gmail.com,gourry@gourry.net,byungchul@sk.com,apopple@nvidia.com,david@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-swapops-remove-unused-is_hwpoison_entry.patch added to mm-new branch
-Message-Id: <20260918174343.A3E371F000FF@smtp.kernel.org>
+Subject: + maintainers-split-up-memory-management-memory-policy-and-migration.patch added to mm-hotfixes-unstable branch
+Message-Id: <20260918174721.86B591F000FF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,26 +35,15 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/swapops: remove unused is_hwpoison_entry()
-has been added to the -mm mm-new branch.  Its filename is
-     mm-swapops-remove-unused-is_hwpoison_entry.patch
+     Subject: MAINTAINERS: split up MEMORY MANAGEMENT - MEMORY POLICY AND MIGRATION
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     maintainers-split-up-memory-management-memory-policy-and-migration.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-swapops-remove-unused-is_hwpoison_entry.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/maintainers-split-up-memory-management-memory-policy-and-migration.patch
 
-This patch will later appear in the mm-new branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Note, mm-new is a provisional staging ground for work-in-progress
-patches, and acceptance into mm-new is a notification for others take
-notice and to finish up reviews.  Please do not hesitate to respond to
-review feedback and post updated versions to replace or incrementally
-fixup patches in mm-new.
-
-The mm-new branch of mm.git is not included in linux-next
-
-If a few days of testing in mm-new is successful, the patch will me moved
-into mm.git's mm-unstable branch, which is included in linux-next
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -69,66 +58,140 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Sang-Heon Jeon <ekffu200098@gmail.com>
-Subject: mm/swapops: remove unused is_hwpoison_entry()
-Date: Sat, 19 Sep 2026 01:56:40 +0900
+From: "David Hildenbrand (Arm)" <david@kernel.org>
+Subject: MAINTAINERS: split up MEMORY MANAGEMENT - MEMORY POLICY AND MIGRATION
+Date: Fri, 18 Sep 2026 18:34:24 +0200
 
-Since commit 93976a20345b ("mm: eliminate further swapops predicates"),
-is_hwpoison_entry() has no callers.
+Patch series "MAINTAINERS: rework MEMORY MANAGEMENT - MEMORY POLICY".
 
-So remove it.
+Let's rework MEMORY MANAGEMENT - MEMORY POLICY AND MIGRATION.
 
-No functional change.
+As I can use some maintenance help in that area, add Gregory as a new
+co-maintainer for the split out MEMORY MANAGEMENT - NUMA PLACEMENT
+section.
 
-Link: https://lore.kernel.org/20260918165642.1014988-1-ekffu200098@gmail.com
-Signed-off-by: Sang-Heon Jeon <ekffu200098@gmail.com>
+
+This patch (of 3):
+
+Let's split it up into MIGRATION and NUMA PLACEMENT.  The latter is a
+better fitting description for mempolicy.c.
+
+Make a best guess about which pieces existing reviewers are interested in.
+Move the split sections to keep alphabetical order.
+
+Link: https://lore.kernel.org/20260918-maintainers-mempolicy-v1-1-9a94cac6d135@kernel.org
+Signed-off-by: David Hildenbrand (Arm) <david@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Cc: Baoquan He <baoquan.he@linux.dev>
-Cc: Barry Song <baohua@kernel.org>
-Cc: Chris Li <chrisl@kernel.org>
-Cc: Kairui Song <kasong@tencent.com>
-Cc: Kemeng Shi <shikemeng@huaweicloud.com>
-Cc: Nhat Pham <nphamcs@gmail.com>
-Cc: Youngjun Park <youngjun.park@lge.com>
+Acked-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
+Acked-by: Zi Yan <ziy@nvidia.com>
+Cc: Alistair Popple <apopple@nvidia.com>
+Cc: Byungchul Park <byungchul@sk.com>
+Cc: Gregory Price <gourry@gourry.net>
+Cc: "Huang, Ying" <ying.huang@linux.alibaba.com>
+Cc: Joshua Hahn <joshua.hahnjy@gmail.com>
+Cc: Liam R. Howlett <liam@infradead.org>
+Cc: Matthew Brost <matthew.brost@intel.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Rakie Kim <rakie.kim@sk.com>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Vlastimil Babka <vbabka@kernel.org>
 ---
 
- include/linux/swapops.h |    9 ---------
- 1 file changed, 9 deletions(-)
+ MAINTAINERS |   62 +++++++++++++++++++++++++++++---------------------
+ 1 file changed, 37 insertions(+), 25 deletions(-)
 
---- a/include/linux/swapops.h~mm-swapops-remove-unused-is_hwpoison_entry
-+++ a/include/linux/swapops.h
-@@ -261,11 +261,6 @@ static inline swp_entry_t make_hwpoison_
- 	return swp_entry(SWP_HWPOISON, page_to_pfn(page));
- }
+--- a/MAINTAINERS~maintainers-split-up-memory-management-memory-policy-and-migration
++++ a/MAINTAINERS
+@@ -17206,31 +17206,6 @@ F:	include/trace/events/ksm.h
+ F:	mm/ksm.c
+ F:	mm/mm_slot.h
  
--static inline int is_hwpoison_entry(swp_entry_t entry)
--{
--	return swp_type(entry) == SWP_HWPOISON;
--}
+-MEMORY MANAGEMENT - MEMORY POLICY AND MIGRATION
+-M:	Andrew Morton <akpm@linux-foundation.org>
+-M:	David Hildenbrand <david@kernel.org>
+-R:	Zi Yan <ziy@nvidia.com>
+-R:	Matthew Brost <matthew.brost@intel.com>
+-R:	Joshua Hahn <joshua.hahnjy@gmail.com>
+-R:	Rakie Kim <rakie.kim@sk.com>
+-R:	Byungchul Park <byungchul@sk.com>
+-R:	Gregory Price <gourry@gourry.net>
+-R:	Ying Huang <ying.huang@linux.alibaba.com>
+-R:	Alistair Popple <apopple@nvidia.com>
+-L:	linux-mm@kvack.org
+-S:	Maintained
+-W:	http://www.linux-mm.org
+-T:	git git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+-F:	Documentation/ABI/testing/sysfs-kernel-mm-mempolicy
+-F:	Documentation/ABI/testing/sysfs-kernel-mm-mempolicy-weighted-interleave
+-F:	include/linux/mempolicy.h
+-F:	include/uapi/linux/mempolicy.h
+-F:	include/linux/migrate.h
+-F:	include/linux/migrate_mode.h
+-F:	mm/mempolicy.c
+-F:	mm/migrate.c
+-F:	mm/migrate_device.c
 -
- #else
+ MEMORY MANAGEMENT - MGLRU (MULTI-GEN LRU)
+ M:	Andrew Morton <akpm@linux-foundation.org>
+ R:	Kairui Song <kasong@tencent.com>
+@@ -17253,6 +17228,25 @@ F:	include/linux/mmzone.h
+ F:	mm/vmscan.c
+ F:	mm/workingset.c
  
- static inline swp_entry_t make_hwpoison_entry(struct page *page)
-@@ -273,10 +268,6 @@ static inline swp_entry_t make_hwpoison_
- 	return swp_entry(0, 0);
- }
++MEMORY MANAGEMENT - MIGRATION
++M:	Andrew Morton <akpm@linux-foundation.org>
++M:	David Hildenbrand <david@kernel.org>
++R:	Zi Yan <ziy@nvidia.com>
++R:	Matthew Brost <matthew.brost@intel.com>
++R:	Joshua Hahn <joshua.hahnjy@gmail.com>
++R:	Byungchul Park <byungchul@sk.com>
++R:	Gregory Price <gourry@gourry.net>
++R:	Ying Huang <ying.huang@linux.alibaba.com>
++R:	Alistair Popple <apopple@nvidia.com>
++L:	linux-mm@kvack.org
++S:	Maintained
++W:	http://www.linux-mm.org
++T:	git git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
++F:	include/linux/migrate.h
++F:	include/linux/migrate_mode.h
++F:	mm/migrate.c
++F:	mm/migrate_device.c
++
+ MEMORY MANAGEMENT - MISC
+ M:	Andrew Morton <akpm@linux-foundation.org>
+ M:	David Hildenbrand <david@kernel.org>
+@@ -17305,6 +17299,24 @@ F:	mm/numa.c
+ F:	mm/numa_emulation.c
+ F:	mm/numa_memblks.c
  
--static inline int is_hwpoison_entry(swp_entry_t swp)
--{
--	return 0;
--}
- #endif
- 
- typedef unsigned long pte_marker;
++MEMORY MANAGEMENT - NUMA PLACEMENT
++M:	Andrew Morton <akpm@linux-foundation.org>
++M:	David Hildenbrand <david@kernel.org>
++R:	Zi Yan <ziy@nvidia.com>
++R:	Joshua Hahn <joshua.hahnjy@gmail.com>
++R:	Rakie Kim <rakie.kim@sk.com>
++R:	Gregory Price <gourry@gourry.net>
++R:	Ying Huang <ying.huang@linux.alibaba.com>
++L:	linux-mm@kvack.org
++S:	Maintained
++W:	http://www.linux-mm.org
++T:	git git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
++F:	Documentation/ABI/testing/sysfs-kernel-mm-mempolicy
++F:	Documentation/ABI/testing/sysfs-kernel-mm-mempolicy-weighted-interleave
++F:	include/linux/mempolicy.h
++F:	include/uapi/linux/mempolicy.h
++F:	mm/mempolicy.c
++
+ MEMORY MANAGEMENT - OOM KILLER
+ M:	Michal Hocko <mhocko@suse.com>
+ R:	David Rientjes <rientjes@google.com>
 _
 
-Patches currently in -mm which might be from ekffu200098@gmail.com are
+Patches currently in -mm which might be from david@kernel.org are
 
-percpu-fix-the-comment-about-which-sizes-share-a-slot.patch
-percpu-remove-redundant-assignments-to-bits.patch
-percpu-remove-unnecessary-initialization-in-pcpu_build_alloc_info.patch
-percpu-remove-unnecessary-cpumask_clear-in-pcpu_build_alloc_info.patch
-percpu-remove-unnecessary-return-in-pcpu_populate_pte.patch
-mm-swapops-remove-unused-is_hwpoison_entry.patch
-bootconfig-remove-redundant-assignment-in-xbc_parse_array.patch
+maintainers-split-up-memory-management-memory-policy-and-migration.patch
+maintainers-move-memory-tiering-under-memory-management-numa-placement.patch
+maintainers-make-gregory-a-co-maintainer-of-memory-management-numa-placement.patch
+selftests-mm-khugepaged-remove-str_dup-usage.patch
 
