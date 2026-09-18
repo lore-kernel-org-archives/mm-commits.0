@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 43C5C3E3DAB
-	for <mm-commits@vger.kernel.org>; Fri, 18 Sep 2026 19:51:18 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7A7EC2E5B2A
+	for <mm-commits@vger.kernel.org>; Fri, 18 Sep 2026 19:51:20 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789761079; cv=none; b=OIaE5kKxU2E+TP7Z5/jqTyatN/3UNn3HhGpeOgEpEN0dN99OJom4zHkc3msvvLGiTjt9ch6jly0W2kccjw4oIJtPFcNs7/HZf49hXPf943UUhNBDts+TJyo1Lc8qgZaqn+q99971vK8leH/Sm3fRERnqt6DeRF9UDr+BmRDrX9s=
+	t=1789761082; cv=none; b=U9hZ4bkzYVXA6oUqON0Q+gHiHLcwlN45H3YxwByDVHu7PNjTe/xbRnvOoxhN6sH3IYmVdaTe+kbG2P9sY4tgllPon+28XcBU6WxnJrXNqcY612fr9I8vphfmJ0xnNjq2pdBhuz+sHm3i3IAIw9zwUXd6w2OJqN0BJwVFuoD2lM4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1789761079; c=relaxed/simple;
-	bh=FC91EHpg2r9mmVtpwb7Y0oKy3ZoskGuOyD2wTMslKCY=;
-	h=Date:To:From:Subject:Message-Id; b=Zz1Mvf9U20GXOiQXBO2cSwlzqk+4Qof/XmTyFL8aKq/HTmYKJJawmvgLao8h0XvZ3AhizGZMhNw5RFxwrSJ071SL6dHqScvhJyOmdmq+9gqj/uc7dY6nubWw48P70ZkR7/9sbKrNxJ3mlV1E/y43wMx+QqlDTvP72D1j1vF5HFk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ekZ03uEx; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1789761082; c=relaxed/simple;
+	bh=rp2Reyn2koYbkg/POS5DkU6kAWHua+pmRjUHFcV7LxQ=;
+	h=Date:To:From:Subject:Message-Id; b=VUkboan9xV2himXMe+guWBoCLzPQ+dbyVRTBq0ViZMcBeTPB5mMElRx/hVNRpBAKKTrCRcxAmW+WtGLh5/eRFQFuGl2E6oDBU6j/PI5urFXTZUv7MTAkr7e/rprbm9nd3XSi6JGKdDKiw2fvjNzvrr5JjKNqz1v37K1MwRlqEOg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=JQ+C86X5; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ekZ03uEx"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id CAEAF1F00898;
-	Fri, 18 Sep 2026 19:51:17 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="JQ+C86X5"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0E6A41F000FF;
+	Fri, 18 Sep 2026 19:51:20 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1789761077;
-	bh=Z5+xf54AfPB3WRfneW+X3udSvnFdRTQg0+esDcGnZ4g=;
+	d=linux-foundation.org; s=korg; t=1789761080;
+	bh=kWodjawkTBPveuEOmOpDbPnUcx/08AVW3I3X2y8/DEk=;
 	h=Date:To:From:Subject;
-	b=ekZ03uExdtc2uDxvxPAbZfXOodvmxnmN8Y73I5OEnsWT0jzxYnARPJjqWp0fvhbKz
-	 b2aLszouUun573xGmrDY+x9YvKJkJrd8I30up+ZtT5LJyTr0pDLmIftlfNV4s+2/EU
-	 POA3K4/xMS0lbF8nIIu4TAN0flc3ujahalCtukfU=
-Date: Fri, 18 Sep 2026 12:51:17 -0700
+	b=JQ+C86X5MgAAY3FrstOX0iuZ0iprqMQ1C+GtidHeVlInFrrXeyq4N5NdlPOVoDpCr
+	 t/aC24KKz19Trhizu6irqoieSRJdcUYOKhVBdp3oPd6MEmPfNF0gYba19E3Kf6UzJL
+	 djo9I6XG7Rbo2wBC19kUhE3qe7bKonodjB4MnE+k=
+Date: Fri, 18 Sep 2026 12:51:19 -0700
 To: mm-commits@vger.kernel.org,sarthak.sharma@arm.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-mm-make-file-helpers-return-errors-fix.patch added to mm-new branch
-Message-Id: <20260918195117.CAEAF1F00898@smtp.kernel.org>
+Subject: + tools-lib-mm-add-shared-file-helpers.patch added to mm-new branch
+Message-Id: <20260918195120.0E6A41F000FF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: selftests-mm-make-file-helpers-return-errors-fix
+     Subject: tools/lib/mm: add shared file helpers
 has been added to the -mm mm-new branch.  Its filename is
-     selftests-mm-make-file-helpers-return-errors-fix.patch
+     tools-lib-mm-add-shared-file-helpers.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-make-file-helpers-return-errors-fix.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/tools-lib-mm-add-shared-file-helpers.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,20 +70,36 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Sarthak Sharma <sarthak.sharma@arm.com>
-Subject: selftests-mm-make-file-helpers-return-errors-fix
-Date: Fri, 18 Sep 2026 17:40:50 +0530
+Subject: tools/lib/mm: add shared file helpers
+Date: Fri, 18 Sep 2026 16:52:30 +0530
 
-Convert hugetlb_nr_resv_pages(), which was missed when read_num()
-changed to return an error and store the parsed value through an output
-pointer.
+Move read_file(), write_file(), read_num(), write_num() and
+write_num_ignore_einval() out of tools/testing/selftests/mm/vm_util.c into
+a new shared helper under tools/lib/mm/.
 
-Link: https://lore.kernel.org/937939c3-ae9a-4148-a601-0f8876216423@arm.com
+These helpers are used by mm selftests today and will also be needed by
+shared hugepage helpers in subsequent patches.  Move them to a generic
+location so they can be reused outside selftests as well.
+
+Keep the helpers exposed to mm selftests through vm_util.h by including
+the new shared header there, and link the new helper into the selftests/mm
+build.
+
+Update the explicit x86 protection_keys 32-bit and 64-bit build rules to
+preserve prerequisite paths, now that file_utils.c is built from
+tools/lib/mm.
+
+Add tools/lib/mm/ to the MEMORY MANAGEMENT - MISC entry in MAINTAINERS.
+
+Link: https://lore.kernel.org/20260918112234.195857-3-sarthak.sharma@arm.com
 Signed-off-by: Sarthak Sharma <sarthak.sharma@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+Acked-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
+Acked-by: David Hildenbrand (Arm) <david@kernel.org>
+Tested-by: Muhammad Usama Anjum <usama.anjum@arm.com>
 Cc: Anshuman Khandual <anshuman.khandual@arm.com>
 Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
 Cc: Barry Song <baohua@kernel.org>
-Cc: David Hildenbrand (Arm) <david@kernel.org>
 Cc: Dev Jain <dev.jain@arm.com>
 Cc: Jason Gunthorpe <jgg@ziepe.ca>
 Cc: John Hubbard <jhubbard@nvidia.com>
@@ -94,8 +110,6 @@ Cc: Liam R. Howlett <liam@infradead.org>
 Cc: Lorenzo Stoakes <ljs@kernel.org>
 Cc: Mark Brown <broonie@kernel.org>
 Cc: Michal Hocko <mhocko@suse.com>
-Cc: Mike Rapoport (Microsoft) <rppt@kernel.org>
-Cc: Muhammad Usama Anjum <usama.anjum@arm.com>
 Cc: Nico Pache <npache@redhat.com>
 Cc: Peter Xu <peterx@redhat.com>
 Cc: Ryan Roberts <ryan.roberts@arm.com>
@@ -104,31 +118,323 @@ Cc: Suren Baghdasaryan <surenb@google.com>
 Cc: Zi Yan <ziy@nvidia.com>
 ---
 
- tools/testing/selftests/mm/hugepage_settings.c |   10 +++++++++-
- 1 file changed, 9 insertions(+), 1 deletion(-)
+ MAINTAINERS                          |    1 
+ tools/lib/mm/file_utils.c            |  106 +++++++++++++++++++++++++
+ tools/lib/mm/file_utils.h            |   13 +++
+ tools/testing/selftests/mm/Makefile  |   11 +-
+ tools/testing/selftests/mm/vm_util.c |   97 ----------------------
+ tools/testing/selftests/mm/vm_util.h |    7 -
+ 6 files changed, 127 insertions(+), 108 deletions(-)
 
---- a/tools/testing/selftests/mm/hugepage_settings.c~selftests-mm-make-file-helpers-return-errors-fix
-+++ a/tools/testing/selftests/mm/hugepage_settings.c
-@@ -515,10 +515,18 @@ unsigned long hugetlb_free_pages(unsigne
- unsigned long hugetlb_nr_resv_pages(unsigned long size)
- {
- 	char path[PATH_MAX];
-+	unsigned long nr;
-+	int ret;
+--- a/MAINTAINERS~tools-lib-mm-add-shared-file-helpers
++++ a/MAINTAINERS
+@@ -17286,6 +17286,7 @@ F:	mm/mapping_dirty_helpers.c
+ F:	mm/page_idle.c
+ F:	mm/pgalloc-track.h
+ F:	mm/process_vm_access.c
++F:	tools/lib/mm/
+ F:	tools/testing/selftests/mm/
  
- 	hugetlb_sysfs_path(path, sizeof(path), size, "resv_hugepages");
- 
--	return read_num(path);
-+	ret = read_num(path, &nr);
-+	if (ret) {
-+		print_file_access_error(path, ret);
-+		exit(EXIT_FAILURE);
+ MEMORY MANAGEMENT - NUMA MEMBLOCKS AND NUMA EMULATION
+diff --git a/tools/lib/mm/file_utils.c a/tools/lib/mm/file_utils.c
+new file mode 100644
+--- /dev/null
++++ a/tools/lib/mm/file_utils.c
+@@ -0,0 +1,106 @@
++// SPDX-License-Identifier: GPL-2.0
++#include <errno.h>
++#include <fcntl.h>
++#include <stdio.h>
++#include <stdlib.h>
++#include <string.h>
++#include <unistd.h>
++
++#include "file_utils.h"
++
++int read_file(const char *path, char *buf, size_t buflen)
++{
++	int fd, err;
++	ssize_t numread;
++
++	fd = open(path, O_RDONLY);
++	if (fd == -1)
++		return -errno;
++
++	numread = read(fd, buf, buflen - 1);
++	if (numread < 1) {
++		err = numread ? errno : ENODATA;
++		close(fd);
++		return -err;
 +	}
 +
-+	return nr;
++	buf[numread] = '\0';
++	close(fd);
++
++	return 0;
++}
++
++int write_file(const char *path, const char *buf, size_t buflen)
++{
++	int fd, saved_errno;
++	ssize_t numwritten;
++
++	if (buflen < 2)
++		return -EINVAL;
++
++	fd = open(path, O_WRONLY);
++	if (fd == -1)
++		return -errno;
++
++	numwritten = write(fd, buf, buflen - 1);
++	saved_errno = errno;
++	close(fd);
++
++	if (numwritten < 0)
++		return -saved_errno;
++
++	if (numwritten != (ssize_t)(buflen - 1))
++		return -EIO;
++
++	return 0;
++}
++
++int read_num(const char *path, unsigned long *num)
++{
++	unsigned long val;
++	int ret;
++	char buf[21];
++	char *end;
++
++	if (!num)
++		return -EINVAL;
++
++	ret = read_file(path, buf, sizeof(buf));
++	if (ret)
++		return ret;
++
++	/* Reject signs and leading whitespace that are accepted by strtoul() */
++	if (buf[0] < '0' || buf[0] > '9')
++		return -EINVAL;
++
++	errno = 0;
++	val = strtoul(buf, &end, 10);
++	if (errno)
++		return -errno;
++
++	/* Only allow a newline after the number */
++	if (*end == '\n')
++		end++;
++
++	if (*end != '\0')
++		return -EINVAL;
++
++	*num = val;
++	return 0;
++}
++
++int write_num(const char *path, unsigned long num)
++{
++	char buf[21];
++
++	sprintf(buf, "%lu", num);
++	return write_file(path, buf, strlen(buf) + 1);
++}
++
++int write_num_ignore_einval(const char *path, unsigned long num)
++{
++	int ret;
++
++	ret = write_num(path, num);
++	return ret == -EINVAL ? 0 : ret;
++}
+diff --git a/tools/lib/mm/file_utils.h a/tools/lib/mm/file_utils.h
+new file mode 100644
+--- /dev/null
++++ a/tools/lib/mm/file_utils.h
+@@ -0,0 +1,13 @@
++/* SPDX-License-Identifier: GPL-2.0 */
++#ifndef __MM_FILE_UTILS_H__
++#define __MM_FILE_UTILS_H__
++
++#include <stddef.h>
++
++int read_file(const char *path, char *buf, size_t buflen);
++int write_file(const char *path, const char *buf, size_t buflen);
++int read_num(const char *path, unsigned long *num);
++int write_num(const char *path, unsigned long num);
++int write_num_ignore_einval(const char *path, unsigned long num);
++
++#endif
+--- a/tools/testing/selftests/mm/Makefile~tools-lib-mm-add-shared-file-helpers
++++ a/tools/testing/selftests/mm/Makefile
+@@ -37,7 +37,8 @@ endif
+ # LDLIBS.
+ MAKEFLAGS += --no-builtin-rules
+ 
+-CFLAGS = -Wall -O2 -I $(top_srcdir) $(EXTRA_CFLAGS) $(KHDR_INCLUDES) $(TOOLS_INCLUDES)
++CFLAGS = -Wall -O2 -I $(top_srcdir) -I $(top_srcdir)/tools/lib
++CFLAGS += $(EXTRA_CFLAGS) $(KHDR_INCLUDES) $(TOOLS_INCLUDES)
+ CFLAGS += -Wunreachable-code
+ LDLIBS = -lrt -lpthread -lm
+ 
+@@ -184,8 +185,8 @@ TEST_FILES += write_hugetlb_memory.sh
+ 
+ include ../lib.mk
+ 
+-$(TEST_GEN_PROGS): vm_util.c hugepage_settings.c
+-$(TEST_GEN_FILES): vm_util.c hugepage_settings.c
++$(TEST_GEN_PROGS): vm_util.c hugepage_settings.c $(top_srcdir)/tools/lib/mm/file_utils.c
++$(TEST_GEN_FILES): vm_util.c hugepage_settings.c $(top_srcdir)/tools/lib/mm/file_utils.c
+ 
+ $(OUTPUT)/uffd-stress: uffd-common.c
+ $(OUTPUT)/uffd-unit-tests: uffd-common.c
+@@ -214,7 +215,7 @@ $(BINARIES_32): CFLAGS += -m32 -mxsave
+ $(BINARIES_32): LDLIBS += -lrt -ldl -lm
+ $(BINARIES_32): $(OUTPUT)/%_32: %.c
+ 	$(call msg,CC,,$@)
+-	$(Q)$(CC) $(CFLAGS) $(EXTRA_CFLAGS) $(notdir $^) $(LDLIBS) -o $@
++	$(Q)$(CC) $(CFLAGS) $(EXTRA_CFLAGS) $^ $(LDLIBS) -o $@
+ $(foreach t,$(VMTARGETS),$(eval $(call gen-target-rule-32,$(t))))
+ endif
+ 
+@@ -223,7 +224,7 @@ $(BINARIES_64): CFLAGS += -m64 -mxsave
+ $(BINARIES_64): LDLIBS += -lrt -ldl
+ $(BINARIES_64): $(OUTPUT)/%_64: %.c
+ 	$(call msg,CC,,$@)
+-	$(Q)$(CC) $(CFLAGS) $(EXTRA_CFLAGS) $(notdir $^) $(LDLIBS) -o $@
++	$(Q)$(CC) $(CFLAGS) $(EXTRA_CFLAGS) $^ $(LDLIBS) -o $@
+ $(foreach t,$(VMTARGETS),$(eval $(call gen-target-rule-64,$(t))))
+ endif
+ 
+--- a/tools/testing/selftests/mm/vm_util.c~tools-lib-mm-add-shared-file-helpers
++++ a/tools/testing/selftests/mm/vm_util.c
+@@ -885,103 +885,6 @@ int unpoison_memory(unsigned long pfn)
+ 	return ret > 0 ? 0 : -errno;
  }
  
- static bool __hugetlb_setup(unsigned long size, unsigned long nr)
+-int read_file(const char *path, char *buf, size_t buflen)
+-{
+-	int fd, err;
+-	ssize_t numread;
+-
+-	fd = open(path, O_RDONLY);
+-	if (fd == -1)
+-		return -errno;
+-
+-	numread = read(fd, buf, buflen - 1);
+-	if (numread < 1) {
+-		err = numread ? errno : ENODATA;
+-		close(fd);
+-		return -err;
+-	}
+-
+-	buf[numread] = '\0';
+-	close(fd);
+-
+-	return 0;
+-}
+-
+-int write_file(const char *path, const char *buf, size_t buflen)
+-{
+-	int fd, saved_errno;
+-	ssize_t numwritten;
+-
+-	if (buflen < 2)
+-		return -EINVAL;
+-
+-	fd = open(path, O_WRONLY);
+-	if (fd == -1)
+-		return -errno;
+-
+-	numwritten = write(fd, buf, buflen - 1);
+-	saved_errno = errno;
+-	close(fd);
+-
+-	if (numwritten < 0)
+-		return -saved_errno;
+-
+-	if (numwritten != (ssize_t)(buflen - 1))
+-		return -EIO;
+-
+-	return 0;
+-}
+-
+-int read_num(const char *path, unsigned long *num)
+-{
+-	unsigned long val;
+-	int ret;
+-	char buf[21];
+-	char *end;
+-
+-	if (!num)
+-		return -EINVAL;
+-
+-	ret = read_file(path, buf, sizeof(buf));
+-	if (ret)
+-		return ret;
+-
+-	/* Reject signs and leading whitespace that are accepted by strtoul() */
+-	if (buf[0] < '0' || buf[0] > '9')
+-		return -EINVAL;
+-
+-	errno = 0;
+-	val = strtoul(buf, &end, 10);
+-	if (errno)
+-		return -errno;
+-
+-	/* Only allow a newline after the number */
+-	if (*end == '\n')
+-		end++;
+-
+-	if (*end != '\0')
+-		return -EINVAL;
+-
+-	*num = val;
+-	return 0;
+-}
+-
+-int write_num(const char *path, unsigned long num)
+-{
+-	char buf[21];
+-
+-	sprintf(buf, "%lu", num);
+-	return write_file(path, buf, strlen(buf) + 1);
+-}
+-
+-int write_num_ignore_einval(const char *path, unsigned long num)
+-{
+-	int ret;
+-
+-	ret = write_num(path, num);
+-	return ret == -EINVAL ? 0 : ret;
+-}
+-
+ static unsigned long shmall, shmmax;
+ 
+ void __shm_limits_restore(void)
+--- a/tools/testing/selftests/mm/vm_util.h~tools-lib-mm-add-shared-file-helpers
++++ a/tools/testing/selftests/mm/vm_util.h
+@@ -8,6 +8,7 @@
+ #include <unistd.h> /* _SC_PAGESIZE */
+ #include "kselftest.h"
+ #include <linux/fs.h>
++#include <mm/file_utils.h>
+ 
+ #define BIT_ULL(nr)                   (1ULL << (nr))
+ #define PM_SOFT_DIRTY                 BIT_ULL(55)
+@@ -166,12 +167,6 @@ int unpoison_memory(unsigned long pfn);
+ #define PAGEMAP_PRESENT(ent)	(((ent) & (1ull << 63)) != 0)
+ #define PAGEMAP_PFN(ent)	((ent) & ((1ull << 55) - 1))
+ 
+-int write_file(const char *path, const char *buf, size_t buflen);
+-int read_file(const char *path, char *buf, size_t buflen);
+-int read_num(const char *path, unsigned long *num);
+-int write_num(const char *path, unsigned long num);
+-int write_num_ignore_einval(const char *path, unsigned long num);
+-
+ void shm_limits_prepare(unsigned long length);
+ void __shm_limits_restore(void);
+ 
 _
 
 Patches currently in -mm which might be from sarthak.sharma@arm.com are
