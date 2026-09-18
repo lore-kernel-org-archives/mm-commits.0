@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5B9E94C6D
-	for <mm-commits@vger.kernel.org>; Fri, 18 Sep 2026 00:08:56 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7B2B2140E5F
+	for <mm-commits@vger.kernel.org>; Fri, 18 Sep 2026 00:08:59 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789690138; cv=none; b=AYo6Y0J3wDXolRu8ZDacvnK4Jg9vZmBM8qpWCaMq+zOreSH2Dky+uHUtcxEXzY3Qj2vBcYL9Uuv/37Z0xz8+p5w7+iXNStCJ3EDB9qKGjZEfP+0U1M55zztXMuoJyst8mfuQZQyeYbDO5VVy2EjuGQRALqG1u/GYG0OBhsB+W2E=
+	t=1789690142; cv=none; b=uuYa8NppxOuSrsKn4jDa3HDlO91J/zdJ1LH4R9voY1SQfUMk9E2hEaM/qBTLK+ScP9eitw7hyJBHJV7E33uma+ctQVu9Yb9zI4+f30KlEZVKn7F+FfQKksNOSuzrYMPeeM/Wkbc83eIJNXRy+AVxTE7ngcOyV1VX+dAzhvAIwHI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1789690138; c=relaxed/simple;
-	bh=7z8CLyyaFbDhSwESO4pVzaPSDn+c6E9OYh9g2P1BiX0=;
-	h=Date:To:From:Subject:Message-Id; b=m6FJKuf/W7YNXNBNJciBYy7MlO9Iac/LQSRXaNN1U82YE9cBYbt8slXO4+MN4ta5MfJ9on75PDOdNzB+z+zi6L7QeSTD1UZ65SGATOghUn0QgazlOubmOPuXOzR8qMIBscQxGtBir5SMd2ctUdpSf8qp1x2XHr3x4queDUfgSRc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=PRNGcvU4; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1789690142; c=relaxed/simple;
+	bh=eHkmarnB9apDn3RViwujyJyIJbxnNNt8/X2HXkDE1pA=;
+	h=Date:To:From:Subject:Message-Id; b=Uzdh452l7FL5LbbhZKjBNSzOy/4BMcxn/me1N0Wsp5oFZahO35ySJ02fyXXIgpwSUqXqkPg8fY76TOQPsZIhoYdxBjSfBnWRBu33tSbXvfk3CC9XeFJHvVmTdGCojlD7HfaPjXYD8MDi7/CIX39dQCe02STNjfZrtahB4sCel0Q=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=NRQ16oo7; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="PRNGcvU4"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D08D51F00893;
-	Fri, 18 Sep 2026 00:08:55 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="NRQ16oo7"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E97331F00893;
+	Fri, 18 Sep 2026 00:08:58 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1789690135;
-	bh=boyisrT2chZf8lJbgF0n6Js8u7O5ET4rzjH5lfR/r+8=;
+	d=linux-foundation.org; s=korg; t=1789690139;
+	bh=GQM7ocmDHLE5de+D+1VZik4C9wGWWalfPunPDr52HOA=;
 	h=Date:To:From:Subject;
-	b=PRNGcvU4yWKnWfnzLZ6eg0bPsi24l1OUTzjgFXVCsUe+i4XTNHuBQlw2CQ1APM3UL
-	 eMKSpH3c46LjYfUt03+LAnXL+obgucJgoMLQxgbaboXBlNuS1OfNEmbIMuj6XL43e0
-	 ewY8VFORrqbFpAi0uBb1c5UGfk85qC5bzzJ4OFcc=
-Date: Thu, 17 Sep 2026 17:08:55 -0700
+	b=NRQ16oo7DHiYjaISkXLVjdmIb8Uc/XWLztUtuEIOCyLGBR7iheCYuwaqK3V2i4Idw
+	 PlAeLWPWimvdJbaMirOTFEr2YZyY8yEjH7v4+mkwjjkYM8Asbx4RMJ/xlSuxIo/Tpk
+	 Z2yPTEWvPhx1/40v7RDqI1RPzL74DW3ZH0/8pKUE=
+Date: Thu, 17 Sep 2026 17:08:58 -0700
 To: mm-commits@vger.kernel.org,ziy@nvidia.com,ying.huang@linux.alibaba.com,xu.xin16@zte.com.cn,vbabka@kernel.org,trintaeoitogc@gmail.com,surenb@google.com,shikemeng@huaweicloud.com,shakeel.butt@linux.dev,ryan.roberts@arm.com,rppt@kernel.org,riel@surriel.com,rakie.kim@sk.com,pfalcato@suse.de,peterx@redhat.com,osalvador@suse.de,nphamcs@gmail.com,muchun.song@linux.dev,mhocko@suse.com,matthew.brost@intel.com,liam@infradead.org,lance.yang@linux.dev,kasong@tencent.com,kas@kernel.org,joshua.hahnjy@gmail.com,jannh@google.com,harry@kernel.org,gourry@gourry.net,dev.jain@arm.com,david@kernel.org,chrisl@kernel.org,chengming.zhou@linux.dev,byungchul@sk.com,baoquan.he@linux.dev,baolin.wang@linux.alibaba.com,baohua@kernel.org,apopple@nvidia.com,ljs@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-vma-const-ify-vma_assert_stabilised-and-associated-functions.patch added to mm-new branch
-Message-Id: <20260918000855.D08D51F00893@smtp.kernel.org>
+Subject: + mm-implement-and-use-vma_has_anon_rmap-silence-kcsan.patch added to mm-new branch
+Message-Id: <20260918000858.E97331F00893@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/vma: const-ify vma_assert_stabilised() and associated functions
+     Subject: mm: implement and use vma_has_anon_rmap(), silence KCSAN
 has been added to the -mm mm-new branch.  Its filename is
-     mm-vma-const-ify-vma_assert_stabilised-and-associated-functions.patch
+     mm-implement-and-use-vma_has_anon_rmap-silence-kcsan.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vma-const-ify-vma_assert_stabilised-and-associated-functions.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-implement-and-use-vma_has_anon_rmap-silence-kcsan.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,41 +70,58 @@ and is updated there most days
 
 ------------------------------------------------------
 From: "Lorenzo Stoakes (ARM)" <ljs@kernel.org>
-Subject: mm/vma: const-ify vma_assert_stabilised() and associated functions
-Date: Thu, 17 Sep 2026 20:47:41 +0100
+Subject: mm: implement and use vma_has_anon_rmap(), silence KCSAN
+Date: Thu, 17 Sep 2026 20:47:42 +0100
 
-Patch series "mm: implement and use vma_has_anon_rmap(), silence KCSAN".
+Provide a function to abstract the common task of checking whether
+a VMA has an anonymous reverse mapping associated with it.
 
-Provide a function to abstract the common task of checking whether a VMA
-has an anonymous reverse mapping associated with it.
+If the VMA is attached, a VMA or mmap lock must be held when calling this
+function.
 
-In the first patch, const-ify vma_assert_stabilised() and related
-functions so that vma_has_anon_rmap() can reference a const vma pointer.
+For an attached, anonymous, VMA:
 
-In the second patch, introduce vma_has_anon_rmap().
+          Transition          |              VMA/mmap Lock state
+ -----------------------------|-------------------------------------------
+   No anon rmap to anon rmap  | Write lock/read lock + mm->page_table_lock
+   Anon rmap to no anon rmap  | Write lock
 
-Finally in the third patch, update comments referencing anon_vma to
-instead reference the anon rmap to abstract this conceptually to avoid
-confusion.
+vma_has_anon_rmap() never provides a false positive (the lock precludes
+it), but if only a read lock is held, a negative result must be re-checked
+with mm->page_table_lock held.
 
-There are still other functions which reference anon_vma directly, those
-can be addressed in a follow up.
+A VMA obtains an anonymous reverse mapping when first faulted or forked
+and it is removed when it is freed.
 
+Detached VMAs cannot be concurrently manipulated as they are removed from
+the maple tree so require no guarantees.
 
-This patch (of 3):
+Use data_race() to silence KCSAN about non-existent data races between
+concurrent vma->anon_vma read/write on optimistic fault tests.
 
-The vma pointers are not modified in any of these functions so make it
-official by const-ify them.
+Update the core VMA merge/split, rmap, mremap, KSM, fork,
+khugepaged and fault preparation callers which test vma->anon_vma directly
+to use vma_has_anon_rmap() instead.
 
-Propagate this throughout the call stack.
+Finally, update comments that reference anon_vma to reference the anon rmap
+instead.
 
-No functional change intended.
+Since the lockless read in reusable_anon_vma() is doing more than checking
+whether the VMA has anon rmap - it is returning the anon_vma to be used on
+fault - do not alter it.
 
-Link: https://lore.kernel.org/20260917-vma-is-faulted-v3-0-5c22314a72e7@kernel.org
-Link: https://lore.kernel.org/20260917-vma-is-faulted-v3-1-5c22314a72e7@kernel.org
+There is one odd one out - file_backed_vma_is_retractable() - which holds
+neither a VMA nor mmap lock and is stabilised by the file rmap lock only,
+so simply add a comment to explain why it's necessary.
+
+Link: https://lore.kernel.org/20260917-vma-is-faulted-v3-2-5c22314a72e7@kernel.org
 Signed-off-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Reviewed-by: Zi Yan <ziy@nvidia.com>
+Reported-by: Guilherme Giacomo Simoes <trintaeoitogc@gmail.com>
+Closes: https://lore.kernel.org/all/20260829100034.423064-1-trintaeoitogc@gmail.com/
+Closes: https://lore.kernel.org/all/20260909115723.528501-1-trintaeoitogc@gmail.com/
+Reviewed-by: Pedro Falcato <pfalcato@suse.de>
+Reviewed-by: Kiryl Shutsemau (Meta) <kas@kernel.org>
 Cc: Alistair Popple <apopple@nvidia.com>
 Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
 Cc: Baoquan He <baoquan.he@linux.dev>
@@ -115,14 +132,12 @@ Cc: Chris Li <chrisl@kernel.org>
 Cc: David Hildenbrand <david@kernel.org>
 Cc: Dev Jain <dev.jain@arm.com>
 Cc: Gregory Price <gourry@gourry.net>
-Cc: Guilherme Giacomo Simoes <trintaeoitogc@gmail.com>
 Cc: Harry Yoo <harry@kernel.org>
 Cc: "Huang, Ying" <ying.huang@linux.alibaba.com>
 Cc: Jann Horn <jannh@google.com>
 Cc: Joshua Hahn <joshua.hahnjy@gmail.com>
 Cc: Kairui Song <kasong@tencent.com>
 Cc: Kemeng Shi <shikemeng@huaweicloud.com>
-Cc: Kiryl Shutsemau <kas@kernel.org>
 Cc: Lance Yang <lance.yang@linux.dev>
 Cc: Liam R. Howlett <liam@infradead.org>
 Cc: Matthew Brost <matthew.brost@intel.com>
@@ -131,7 +146,6 @@ Cc: Mike Rapoport <rppt@kernel.org>
 Cc: Muchun Song <muchun.song@linux.dev>
 Cc: Nhat Pham <nphamcs@gmail.com>
 Cc: Oscar Salvador <osalvador@suse.de>
-Cc: Pedro Falcato <pfalcato@suse.de>
 Cc: Peter Xu <peterx@redhat.com>
 Cc: Rakie Kim <rakie.kim@sk.com>
 Cc: Rik van Riel <riel@surriel.com>
@@ -140,78 +154,479 @@ Cc: Shakeel Butt <shakeel.butt@linux.dev>
 Cc: Suren Baghdasaryan <surenb@google.com>
 Cc: Vlastimil Babka <vbabka@kernel.org>
 Cc: xu xin <xu.xin16@zte.com.cn>
+Cc: Zi Yan <ziy@nvidia.com>
 ---
 
- include/linux/mmap_lock.h       |   12 ++++++------
- tools/testing/vma/include/dup.h |    2 +-
- 2 files changed, 7 insertions(+), 7 deletions(-)
+ mm/huge_memory.c                  |    4 +--
+ mm/internal.h                     |    2 -
+ mm/khugepaged.c                   |    5 +++-
+ mm/ksm.c                          |   10 ++++-----
+ mm/madvise.c                      |    4 +--
+ mm/memory.c                       |    4 +--
+ mm/mprotect.c                     |    2 -
+ mm/mremap.c                       |    4 +--
+ mm/rmap.c                         |   22 ++++++++++-----------
+ mm/swapfile.c                     |    2 -
+ mm/userfaultfd.c                  |    2 -
+ mm/vma.c                          |   29 ++++++++++++++--------------
+ mm/vma.h                          |   29 +++++++++++++++++++++++++++-
+ tools/testing/vma/include/stubs.h |    4 +++
+ 14 files changed, 79 insertions(+), 44 deletions(-)
 
---- a/include/linux/mmap_lock.h~mm-vma-const-ify-vma_assert_stabilised-and-associated-functions
-+++ a/include/linux/mmap_lock.h
-@@ -273,7 +273,7 @@ static inline void vma_end_read(struct v
- 	vma_refcount_put(vma);
+--- a/mm/huge_memory.c~mm-implement-and-use-vma_has_anon_rmap-silence-kcsan
++++ a/mm/huge_memory.c
+@@ -259,7 +259,7 @@ unsigned long __thp_vma_allowable_orders
+ 	 * Allow page fault since anon_vma may be not initialized until
+ 	 * the first page fault.
+ 	 */
+-	if (!vma->anon_vma)
++	if (!vma_has_anon_rmap(vma))
+ 		return (smaps || in_pf) ? orders : 0;
+ 
+ 	return orders;
+@@ -2172,7 +2172,7 @@ vm_fault_t do_huge_pmd_wp_page(struct vm
+ 	pmd_t orig_pmd = vmf->orig_pmd;
+ 
+ 	vmf->ptl = pmd_lockptr(vma->vm_mm, vmf->pmd);
+-	VM_BUG_ON_VMA(!vma->anon_vma, vma);
++	VM_BUG_ON_VMA(!vma_has_anon_rmap(vma), vma);
+ 
+ 	if (is_huge_zero_pmd(orig_pmd)) {
+ 		vm_fault_t ret = do_huge_zero_wp_pmd(vmf);
+--- a/mm/internal.h~mm-implement-and-use-vma_has_anon_rmap-silence-kcsan
++++ a/mm/internal.h
+@@ -339,7 +339,7 @@ void unlink_anon_vmas(struct vm_area_str
+ 
+ static inline int anon_vma_prepare(struct vm_area_struct *vma)
+ {
+-	if (likely(vma->anon_vma))
++	if (likely(vma_has_anon_rmap(vma)))
+ 		return 0;
+ 
+ 	return __anon_vma_prepare(vma);
+--- a/mm/khugepaged.c~mm-implement-and-use-vma_has_anon_rmap-silence-kcsan
++++ a/mm/khugepaged.c
+@@ -1033,7 +1033,7 @@ enum scan_result collapse_vma_revalidate
+ 	 * thp_vma_allowable_orders() may return true for qualified file
+ 	 * vmas.
+ 	 */
+-	if (expect_anon && (!(*vmap)->anon_vma || !vma_is_anonymous(*vmap)))
++	if (expect_anon && (!vma_has_anon_rmap(vma) || !vma_is_anonymous(vma)))
+ 		return SCAN_PAGE_ANON;
+ 	return SCAN_SUCCEED;
+ }
+@@ -2037,6 +2037,9 @@ static bool file_backed_vma_is_retractab
+ 	 * Check vma->anon_vma to exclude MAP_PRIVATE mappings that
+ 	 * got written to. These VMAs are likely not worth removing
+ 	 * page tables from, as PMD-mapping is likely to be split later.
++	 *
++	 * Can't use vma_has_anon_rmap() here as the VMA may be stabilised
++	 * by the file rmap lock.
+ 	 */
+ 	if (READ_ONCE(vma->anon_vma))
+ 		return false;
+--- a/mm/ksm.c~mm-implement-and-use-vma_has_anon_rmap-silence-kcsan
++++ a/mm/ksm.c
+@@ -775,7 +775,7 @@ static struct vm_area_struct *find_merge
+ 	if (ksm_test_exit(mm))
+ 		return NULL;
+ 	vma = vma_lookup(mm, addr);
+-	if (!vma || !(vma->vm_flags & VM_MERGEABLE) || !vma->anon_vma)
++	if (!vma || !(vma->vm_flags & VM_MERGEABLE) || !vma_has_anon_rmap(vma))
+ 		return NULL;
+ 	return vma;
+ }
+@@ -1239,7 +1239,7 @@ static int unmerge_and_remove_all_rmap_i
+ 			goto mm_exiting;
+ 
+ 		for_each_vma(vmi, vma) {
+-			if (!(vma->vm_flags & VM_MERGEABLE) || !vma->anon_vma)
++			if (!(vma->vm_flags & VM_MERGEABLE) || !vma_has_anon_rmap(vma))
+ 				continue;
+ 			err = break_ksm(vma, vma->vm_start, vma->vm_end, false);
+ 			if (err)
+@@ -2689,7 +2689,7 @@ next_mm:
+ 			continue;
+ 		if (ksm_scan.address < vma->vm_start)
+ 			ksm_scan.address = vma->vm_start;
+-		if (!vma->anon_vma)
++		if (!vma_has_anon_rmap(vma))
+ 			ksm_scan.address = vma->vm_end;
+ 
+ 		while (ksm_scan.address < vma->vm_end) {
+@@ -2880,7 +2880,7 @@ static int __ksm_del_vma(struct vm_area_
+ 	if (!(vma->vm_flags & VM_MERGEABLE))
+ 		return 0;
+ 
+-	if (vma->anon_vma) {
++	if (vma_has_anon_rmap(vma)) {
+ 		err = break_ksm(vma, vma->vm_start, vma->vm_end, true);
+ 		if (err)
+ 			return err;
+@@ -3032,7 +3032,7 @@ int ksm_madvise(struct vm_area_struct *v
+ 		if (!(*vm_flags & VM_MERGEABLE))
+ 			return 0;		/* just ignore the advice */
+ 
+-		if (vma->anon_vma) {
++		if (vma_has_anon_rmap(vma)) {
+ 			err = break_ksm(vma, start, end, true);
+ 			if (err)
+ 				return err;
+--- a/mm/madvise.c~mm-implement-and-use-vma_has_anon_rmap-silence-kcsan
++++ a/mm/madvise.c
+@@ -1330,7 +1330,7 @@ static long madvise_guard_install(struct
+ 	 * as part of the VMA lock logic.
+ 	 */
+ 	if (vma_is_anonymous(vma)) {
+-		VM_WARN_ON_ONCE(!vma->anon_vma &&
++		VM_WARN_ON_ONCE(!vma_has_anon_rmap(vma) &&
+ 				madv_behavior->lock_mode != MADVISE_MMAP_READ_LOCK);
+ 
+ 		err = anon_vma_prepare(vma);
+@@ -1792,7 +1792,7 @@ static bool is_vma_lock_sufficient(struc
+ 	 * check overly paranoid which is safe.
+ 	 */
+ 	if (vma_is_anonymous(vma) &&
+-	    prepares_anon_vma(madv_behavior->behavior) && !vma->anon_vma)
++	    prepares_anon_vma(madv_behavior->behavior) && !vma_has_anon_rmap(vma))
+ 		return false;
+ 
+ 	return true;
+--- a/mm/memory.c~mm-implement-and-use-vma_has_anon_rmap-silence-kcsan
++++ a/mm/memory.c
+@@ -1536,7 +1536,7 @@ vma_needs_copy(struct vm_area_struct *ds
+ 	 * The presence of an anon_vma indicates an anonymous VMA has page
+ 	 * tables which naturally cannot be reconstituted on page fault.
+ 	 */
+-	if (src_vma->anon_vma)
++	if (vma_has_anon_rmap(src_vma))
+ 		return true;
+ 
+ 	/*
+@@ -4011,7 +4011,7 @@ vm_fault_t __vmf_anon_prepare(struct vm_
+ 	struct vm_area_struct *vma = vmf->vma;
+ 	vm_fault_t ret = 0;
+ 
+-	if (likely(vma->anon_vma))
++	if (likely(vma_has_anon_rmap(vma)))
+ 		return 0;
+ 	if (vmf->flags & FAULT_FLAG_VMA_LOCK) {
+ 		if (!mmap_read_trylock(vma->vm_mm))
+--- a/mm/mprotect.c~mm-implement-and-use-vma_has_anon_rmap-silence-kcsan
++++ a/mm/mprotect.c
+@@ -816,7 +816,7 @@ mprotect_fixup(struct vma_iterator *vmi,
+ 			vma_flags_set(&new_vma_flags, VMA_ACCOUNT_BIT);
+ 		}
+ 	} else if (vma_flags_test(&old_vma_flags, VMA_ACCOUNT_BIT) &&
+-		   vma_is_anonymous(vma) && !vma->anon_vma) {
++		   vma_is_anonymous(vma) && !vma_has_anon_rmap(vma)) {
+ 		vma_flags_clear(&new_vma_flags, VMA_ACCOUNT_BIT);
+ 	}
+ 
+--- a/mm/mremap.c~mm-implement-and-use-vma_has_anon_rmap-silence-kcsan
++++ a/mm/mremap.c
+@@ -144,13 +144,13 @@ static void take_rmap_locks(struct vm_ar
+ {
+ 	if (vma->vm_file)
+ 		i_mmap_lock_write(vma->vm_file->f_mapping);
+-	if (vma->anon_vma)
++	if (vma_has_anon_rmap(vma))
+ 		anon_vma_lock_write(vma->anon_vma);
  }
  
--static inline unsigned int __vma_raw_mm_seqnum(struct vm_area_struct *vma)
-+static inline unsigned int __vma_raw_mm_seqnum(const struct vm_area_struct *vma)
+ static void drop_rmap_locks(struct vm_area_struct *vma)
  {
- 	const struct mm_struct *mm = vma->vm_mm;
+-	if (vma->anon_vma)
++	if (vma_has_anon_rmap(vma))
+ 		anon_vma_unlock_write(vma->anon_vma);
+ 	if (vma->vm_file)
+ 		i_mmap_unlock_write(vma->vm_file->f_mapping);
+--- a/mm/rmap.c~mm-implement-and-use-vma_has_anon_rmap-silence-kcsan
++++ a/mm/rmap.c
+@@ -208,7 +208,7 @@ int __anon_vma_prepare(struct vm_area_st
+ 	anon_vma_lock_write(anon_vma);
+ 	/* page_table_lock to protect against threads */
+ 	spin_lock(&mm->page_table_lock);
+-	if (likely(!vma->anon_vma)) {
++	if (likely(!vma_has_anon_rmap(vma))) {
+ 		/*
+ 		 * Make anon_vma fields visible before anon_vma is published.
+ 		 * Paired with an address dependency in reusable_anon_vma().
+@@ -246,21 +246,21 @@ static void check_anon_vma_clone(struct
+ 	VM_WARN_ON_ONCE(operation != VMA_OP_FORK && dst->vm_mm != src->vm_mm);
  
-@@ -288,7 +288,7 @@ static inline unsigned int __vma_raw_mm_
-  *
-  * Returns true if write-locked, otherwise false.
-  */
--static inline bool __is_vma_write_locked(struct vm_area_struct *vma)
-+static inline bool __is_vma_write_locked(const struct vm_area_struct *vma)
- {
+ 	/* If we have anything to do src->anon_vma must be provided. */
+-	VM_WARN_ON_ONCE(!src->anon_vma && !list_empty(&src->anon_vma_chain));
+-	VM_WARN_ON_ONCE(!src->anon_vma && dst->anon_vma);
++	VM_WARN_ON_ONCE(!vma_has_anon_rmap(src) && !list_empty(&src->anon_vma_chain));
++	VM_WARN_ON_ONCE(!vma_has_anon_rmap(src) && vma_has_anon_rmap(dst));
+ 	/* We are establishing a new anon_vma_chain. */
+ 	VM_WARN_ON_ONCE(!list_empty(&dst->anon_vma_chain));
  	/*
- 	 * current task is holding mmap_write_lock, both vma->vm_lock_seq and
-@@ -344,7 +344,7 @@ int vma_start_write_killable(struct vm_a
-  * vma_assert_write_locked() - assert that @vma holds a VMA write lock.
-  * @vma: The VMA to assert.
-  */
--static inline void vma_assert_write_locked(struct vm_area_struct *vma)
-+static inline void vma_assert_write_locked(const struct vm_area_struct *vma)
+ 	 * On fork, dst->anon_vma is set NULL (temporarily). Otherwise, anon_vma
+ 	 * must be the same across dst and src.
+ 	 */
+-	VM_WARN_ON_ONCE(dst->anon_vma && dst->anon_vma != src->anon_vma);
++	VM_WARN_ON_ONCE(vma_has_anon_rmap(dst) && dst->anon_vma != src->anon_vma);
+ 	/*
+ 	 * Essentially equivalent to above - if not a no-op, we should expect
+ 	 * dst->anon_vma to be set for everything except a fork.
+ 	 */
+-	VM_WARN_ON_ONCE(operation != VMA_OP_FORK && src->anon_vma &&
+-			!dst->anon_vma);
++	VM_WARN_ON_ONCE(operation != VMA_OP_FORK && vma_has_anon_rmap(src) &&
++			!vma_has_anon_rmap(dst));
+ 	/* For the anon_vma to be compatible, it can only be singular. */
+ 	VM_WARN_ON_ONCE(operation == VMA_OP_MERGE_UNFAULTED &&
+ 			!list_is_singular(&src->anon_vma_chain));
+@@ -273,7 +273,7 @@ static void maybe_reuse_anon_vma(struct
+ 		struct anon_vma *anon_vma)
  {
- 	if (!IS_ENABLED(CONFIG_MMU)) {
- 		mmap_assert_write_locked(vma->vm_mm);
-@@ -359,7 +359,7 @@ static inline void vma_assert_write_lock
-  * lock and is not detached.
-  * @vma: The VMA to assert.
-  */
--static inline void vma_assert_locked(struct vm_area_struct *vma)
-+static inline void vma_assert_locked(const struct vm_area_struct *vma)
- {
- 	unsigned int refcnt;
+ 	/* If already populated, nothing to do.*/
+-	if (dst->anon_vma)
++	if (vma_has_anon_rmap(dst))
+ 		return;
  
-@@ -410,7 +410,7 @@ static inline void vma_assert_locked(str
-  * With lockdep disabled we may sometimes race with other threads acquiring the
-  * mmap read lock simultaneous with our VMA read lock.
-  */
--static inline void vma_assert_stabilised(struct vm_area_struct *vma)
+ 	/*
+@@ -327,7 +327,7 @@ int anon_vma_clone(struct vm_area_struct
+ 
+ 	check_anon_vma_clone(dst, src, operation);
+ 
+-	if (!active_anon_vma)
++	if (!vma_has_anon_rmap(src))
+ 		return 0;
+ 
+ 	/*
+@@ -384,7 +384,7 @@ int anon_vma_fork(struct vm_area_struct
+ 	int rc;
+ 
+ 	/* Don't bother if the parent process has no anon_vma here. */
+-	if (!pvma->anon_vma)
++	if (!vma_has_anon_rmap(pvma))
+ 		return 0;
+ 
+ 	/* Drop inherited anon_vma, we'll reuse existing or allocate new. */
+@@ -405,7 +405,7 @@ int anon_vma_fork(struct vm_area_struct
+ 	 */
+ 	rc = anon_vma_clone(vma, pvma, VMA_OP_FORK);
+ 	/* An error arose or an existing anon_vma was reused, all done then. */
+-	if (rc || vma->anon_vma) {
++	if (rc || vma_has_anon_rmap(vma)) {
+ 		put_anon_vma(anon_vma);
+ 		anon_vma_chain_free(avc);
+ 		return rc;
+@@ -864,7 +864,7 @@ unsigned long page_address_in_vma(const
+ 		 * Note: swapoff's unuse_vma() is more efficient with this
+ 		 * check, and needs it to match anon_vma when KSM is active.
+ 		 */
+-		if (!vma->anon_vma || !anon_vma ||
++		if (!vma_has_anon_rmap(vma) || !anon_vma ||
+ 		    vma->anon_vma->root != anon_vma->root)
+ 			return -EFAULT;
+ 		/* KSM folios don't reach here because of the !anon_vma check */
+--- a/mm/swapfile.c~mm-implement-and-use-vma_has_anon_rmap-silence-kcsan
++++ a/mm/swapfile.c
+@@ -2707,7 +2707,7 @@ static int unuse_mm(struct mm_struct *mm
+ 	if (check_stable_address_space(mm))
+ 		goto unlock;
+ 	for_each_vma(vmi, vma) {
+-		if (vma->anon_vma && !vma_is_hugetlb(vma)) {
++		if (vma_has_anon_rmap(vma) && !vma_is_hugetlb(vma)) {
+ 			ret = unuse_vma(vma, type);
+ 			if (ret)
+ 				break;
+--- a/mm/userfaultfd.c~mm-implement-and-use-vma_has_anon_rmap-silence-kcsan
++++ a/mm/userfaultfd.c
+@@ -145,7 +145,7 @@ static struct vm_area_struct *uffd_lock_
+ 		 * We know we're going to need to use anon_vma, so check
+ 		 * that early.
+ 		 */
+-		if (!(vma->vm_flags & VM_SHARED) && unlikely(!vma->anon_vma))
++		if (!(vma->vm_flags & VM_SHARED) && unlikely(!vma_has_anon_rmap(vma)))
+ 			vma_end_read(vma);
+ 		else
+ 			return vma;
+--- a/mm/vma.c~mm-implement-and-use-vma_has_anon_rmap-silence-kcsan
++++ a/mm/vma.c
+@@ -100,7 +100,8 @@ static bool vma_is_fork_child(struct vm_
+ 	 * parents. This can improve scalability caused by the anon_vma root
+ 	 * lock.
+ 	 */
+-	return vma && vma->anon_vma && !list_is_singular(&vma->anon_vma_chain);
++	return vma && vma_has_anon_rmap(vma) &&
++		!list_is_singular(&vma->anon_vma_chain);
+ }
+ 
+ static inline bool is_mergeable_vma(struct vma_merge_struct *vmg, bool merge_next)
+@@ -140,7 +141,7 @@ static bool is_mergeable_anon_vma(struct
+ 	VM_WARN_ON(src && src_anon != src->anon_vma);
+ 
+ 	/* Case 1 - we will dup_anon_vma() from src into tgt. */
+-	if (!tgt_anon && src_anon) {
++	if (!vma_has_anon_rmap(tgt) && src_anon) {
+ 		struct vm_area_struct *copied_from = vmg->copied_from;
+ 
+ 		if (vma_is_fork_child(src))
+@@ -151,7 +152,7 @@ static bool is_mergeable_anon_vma(struct
+ 		return true;
+ 	}
+ 	/* Case 2 - we will simply use tgt's anon_vma. */
+-	if (tgt_anon && !src_anon)
++	if (vma_has_anon_rmap(tgt) && !src_anon)
+ 		return !vma_is_fork_child(tgt);
+ 	/* Case 3 - the anon_vma's are already shared. */
+ 	return src_anon == tgt_anon;
+@@ -190,10 +191,10 @@ static void init_multi_vma_prep(struct v
+ 		adjust = NULL;
+ 
+ 	vp->adj_next = adjust;
+-	if (!vp->anon_vma && adjust)
++	if (!vma_has_anon_rmap(vma) && adjust)
+ 		vp->anon_vma = adjust->anon_vma;
+ 
+-	VM_WARN_ON(vp->anon_vma && adjust && adjust->anon_vma &&
++	VM_WARN_ON(vma_has_anon_rmap(vma) && adjust && vma_has_anon_rmap(adjust) &&
+ 		   vp->anon_vma != adjust->anon_vma);
+ 
+ 	vp->file = vma->vm_file;
+@@ -430,7 +431,7 @@ again:
+ 				      vp->remove->vm_end);
+ 			fput(vp->file);
+ 		}
+-		if (vp->remove->anon_vma)
++		if (vma_has_anon_rmap(vp->remove))
+ 			unlink_anon_vmas(vp->remove);
+ 		mm->map_count--;
+ 		mpol_put(vma_policy(vp->remove));
+@@ -500,7 +501,7 @@ static bool can_vma_merge_right(struct v
+ 	 * We therefore check this in addition to mergeability to either side.
+ 	 */
+ 	prev = vmg->prev;
+-	return !prev->anon_vma || !next->anon_vma ||
++	return !vma_has_anon_rmap(prev) || !vma_has_anon_rmap(next) ||
+ 		prev->anon_vma == next->anon_vma;
+ }
+ 
+@@ -670,7 +671,7 @@ static int dup_anon_vma(struct vm_area_s
+ 	 * that is it is unfaulted, we need to ensure that the newly merged
+ 	 * range is referenced by the anon_vma's of the source.
+ 	 */
+-	if (src->anon_vma && !dst->anon_vma) {
++	if (vma_has_anon_rmap(src) && !vma_has_anon_rmap(dst)) {
+ 		int ret;
+ 
+ 		vma_assert_write_locked(dst);
+@@ -720,7 +721,7 @@ void validate_mm(struct mm_struct *mm)
+ 		}
+ 
+ #ifdef CONFIG_DEBUG_VM_RB
+-		if (anon_vma) {
++		if (vma_has_anon_rmap(vma)) {
+ 			anon_vma_lock_read(anon_vma);
+ 			list_for_each_entry(avc, &vma->anon_vma_chain, same_vma)
+ 				anon_rmap_tree_verify(avc);
+@@ -1020,7 +1021,7 @@ static __must_check struct vm_area_struc
+ 		 * simply a case of, if prev has no anon_vma object, which of
+ 		 * next or middle contains the anon_vma we must duplicate.
+ 		 */
+-		err = dup_anon_vma(prev, next->anon_vma ? next : middle,
++		err = dup_anon_vma(prev, vma_has_anon_rmap(next) ? next : middle,
+ 				   &anon_dup);
+ 	} else if (merge_left) {
+ 		/*
+@@ -1960,7 +1961,7 @@ struct vm_area_struct *copy_vma(struct v
+ 	 * If a vma has not yet been faulted, update its anonymous pgoff to
+ 	 * match the new location to increase its chance of merging.
+ 	 */
+-	if (!vma->anon_vma) {
++	if (!vma_has_anon_rmap(vma)) {
+ 		anon_pgoff = addr >> PAGE_SHIFT;
+ 
+ 		if (vma_is_anonymous(vma)) {
+@@ -2372,7 +2373,7 @@ int mm_take_all_locks(struct mm_struct *
+ 	for_each_vma(vmi, vma) {
+ 		if (signal_pending(current))
+ 			goto out_unlock;
+-		if (vma->anon_vma)
++		if (vma_has_anon_rmap(vma))
+ 			list_for_each_entry(avc, &vma->anon_vma_chain, same_vma)
+ 				vm_lock_anon_vma(mm, avc->anon_vma);
+ 	}
+@@ -2434,7 +2435,7 @@ void mm_drop_all_locks(struct mm_struct
+ 	BUG_ON(!mutex_is_locked(&mm_all_locks_mutex));
+ 
+ 	for_each_vma(vmi, vma) {
+-		if (vma->anon_vma)
++		if (vma_has_anon_rmap(vma))
+ 			list_for_each_entry(avc, &vma->anon_vma_chain, same_vma)
+ 				vm_unlock_anon_vma(avc->anon_vma);
+ 		if (vma->vm_file && vma->vm_file->f_mapping)
+@@ -3582,7 +3583,7 @@ int insert_vm_struct(struct mm_struct *m
+ 	 * Similarly in do_mmap and in do_brk_flags.
+ 	 */
+ 	if (vma_is_anonymous(vma)) {
+-		WARN_ON_ONCE(vma->anon_vma);
++		WARN_ON_ONCE(vma_has_anon_rmap(vma));
+ 		vma_set_pgoff(vma, vma->vm_start >> PAGE_SHIFT);
+ 	}
+ 	vma_set_anon_pgoff(vma, vma->vm_start >> PAGE_SHIFT);
+--- a/mm/vma.h~mm-implement-and-use-vma_has_anon_rmap-silence-kcsan
++++ a/mm/vma.h
+@@ -255,6 +255,33 @@ static inline pgoff_t vmg_end_pgoff(cons
+ 	return vmg_start_pgoff(vmg) + vmg_pages(vmg);
+ }
+ 
++/**
++ * vma_has_anon_rmap() - does @vma possess an anonymous reverse mapping?
++ * @vma: The VMA to be checked.
++ *
++ * If the VMA is attached, a VMA or mmap lock must be held.
++ *
++ * This state is only possible for CoW mappings, see the comment for
++ * vma_flags_is_cow_mapping() for details.
++ *
++ * Importantly, a VMA which possesses an anonymous rmap may map anonymous
++ * folios.
++ *
++ * This function will not result in a false positive.
++ *
++ * However, if only a read lock is held, it may give a false negative, in which
++ * case it should be re-checked with mm->page_table_lock held.
++ *
++ * Returns: true if @vma has an anonymous reverse mapping, otherwise false.
++ */
++static inline bool vma_has_anon_rmap(const struct vm_area_struct *vma)
++{
++	if (vma_is_attached(vma))
++		vma_assert_stabilised(vma);
++	/* KCSAN gets confused about the optimistic check. Silence it. */
++	return data_race(vma->anon_vma);
++}
++
+ static inline void assert_sane_pgoff(struct vm_area_struct *vma, pgoff_t pgoff)
+ {
+ 	/* nommu doesn't set a virtual pgoff for anon VMAs. */
+@@ -268,7 +295,7 @@ static inline void assert_sane_pgoff(str
+ 	if (!vma_is_anonymous(vma))
+ 		return;
+ 	/* If faulted in, could have been remapped. */
+-	if (vma->anon_vma)
++	if (vma_has_anon_rmap(vma))
+ 		return;
+ 	/* OK this is really an anon VMA - expect virtual page offset. */
+ 	VM_WARN_ON_ONCE(pgoff != vma->vm_start >> PAGE_SHIFT);
+--- a/tools/testing/vma/include/stubs.h~mm-implement-and-use-vma_has_anon_rmap-silence-kcsan
++++ a/tools/testing/vma/include/stubs.h
+@@ -302,6 +302,10 @@ static inline void vma_assert_write_lock
+ {
+ }
+ 
 +static inline void vma_assert_stabilised(const struct vm_area_struct *vma)
++{
++}
++
+ static inline void ksm_add_vma(struct vm_area_struct *vma)
  {
- 	/*
- 	 * If another thread owns an mmap lock, it may go away at any time, and
-@@ -445,7 +445,7 @@ static inline void vma_assert_stabilised
- 	vma_assert_locked(vma);
- }
- 
--static inline bool vma_is_attached(struct vm_area_struct *vma)
-+static inline bool vma_is_attached(const struct vm_area_struct *vma)
- {
- 	return refcount_read(&vma->vm_refcnt);
- }
---- a/tools/testing/vma/include/dup.h~mm-vma-const-ify-vma_assert_stabilised-and-associated-functions
-+++ a/tools/testing/vma/include/dup.h
-@@ -1178,7 +1178,7 @@ static inline struct vm_area_struct *vma
- 	return mas_find(&vmi->mas, ULONG_MAX);
- }
- 
--static inline bool vma_is_attached(struct vm_area_struct *vma)
-+static inline bool vma_is_attached(const struct vm_area_struct *vma)
- {
- 	return refcount_read(&vma->vm_refcnt);
  }
 _
 
