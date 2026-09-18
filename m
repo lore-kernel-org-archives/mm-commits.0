@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 561413AE1A6
-	for <mm-commits@vger.kernel.org>; Fri, 18 Sep 2026 20:05:46 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D31CC498915;
+	Fri, 18 Sep 2026 20:45:33 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789761947; cv=none; b=BhxA49UDXNi7r4pZSWw6DJSZq2/lPslYVFW9J4eQadFacDaBSQUIeLDDBZqlQdM8F+tQTmqBPG0zHN2q5OyqDbR8qSqfBBAoGpKdu0o3FG1ci8bDofABZUyX+2i08B6tK3cRPseUgzC4QYpxasuy/NxJWGUUndQLil6rMruxgiY=
+	t=1789764335; cv=none; b=qJwDZ1/6HqHpUz5oWalbtaW46qzXV7GGYV5Zj0usQjl5ZdrheGiUhXy0TS0/5k61yYPRxKCoHhvEIbF1h+oz83ANj3AhArxZC4wkaetBstfAJjM7NvfuN27BztS1Q6PDiWztOXzzsCVLDihTyaFRuCoTWgJpUIhXj9PQloBOI14=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1789761947; c=relaxed/simple;
-	bh=t5W70pZ3tXf3jcMTXyfPNM83aV2/+wCS2ed4Nhjz4d4=;
-	h=Date:To:From:Subject:Message-Id; b=o9PxS0AwhSNGnpqJFlD47i5/lMPSpo8+klaGoHukvttuZRSEVMmhp0QJ0S1BZOM38TXP64xIlBXKYArMYQo5LiBLG/ziCD2cbejOgZg/4ITs3PPrCmAXTAqIXixT4N8dBz7UTp2r7ZYgMCQApdByfYYzeBB/Qv21NwUfko1Jg9o=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ogXPdK3B; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1789764335; c=relaxed/simple;
+	bh=qQ6hTjmO3qr+aAoczoG+LFOLL7D2rzssTtc7NcmPevU=;
+	h=Date:To:From:Subject:Message-Id; b=O9hytI4NCZvLOPnO3fVygRgpXfK+jcTrRBrv2U8jIgjyqGk9MwNr0t7TXfV28NX9yzoQGDyPeoQS/JQf8jvawPFBIpdD1n0DQD8ffGS/MrZBJdfPiNRuIKSUhnLaGqIymqqYJJRqwtLFmJ5NBHRAbveHI3FKVoNrtn7plRDnN74=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Q0Dvu0MF; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ogXPdK3B"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id CC0B21F000FF;
-	Fri, 18 Sep 2026 20:05:45 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Q0Dvu0MF"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 41B961F000FF;
+	Fri, 18 Sep 2026 20:45:33 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1789761945;
-	bh=CCHkcmb1b4w2rD8M930SvSQH30oyu1sZJwpmSUMfOzI=;
+	d=linux-foundation.org; s=korg; t=1789764333;
+	bh=CmLOODNIhj53oxfLflzcaSfPQc2kewIj0bGMUzWB9ho=;
 	h=Date:To:From:Subject;
-	b=ogXPdK3B6D+NhilKvL92bO/SwlS6YiDzcGQsFPz/OUTWNwadqNloATWjh1uFMJHmN
-	 I38KH0RlVd3OmZNrxAE1dUM8trVrjf9xrbqkMrVZ+N7ECw5S+OxXfsDw+ymndRFzj+
-	 IrdPqEWUbdmS1DNBS9ACAFjeprBR8RJQrW/yEmpo=
-Date: Fri, 18 Sep 2026 13:05:45 -0700
-To: mm-commits@vger.kernel.org,urezki@gmail.com,bigeasy@linutronix.de,akpm@linux-foundation.org
+	b=Q0Dvu0MFq+ZotC3meomhTCTJdDz8w5ljy0H6l4UCb93IocIzuw5olGFzQhNfDVIGy
+	 pW6/OW3bDiEQ/QkqvtYoeWw8BrdyHREOK2gbViGz2EjdeRmQOaxzGG3ysKQP22k+GF
+	 HLT7hVTxQaUa8CXARswNgpzWO8j6ZC9tyVMx7M8A=
+Date: Fri, 18 Sep 2026 13:45:32 -0700
+To: mm-commits@vger.kernel.org,stable@vger.kernel.org,paulmck@kernel.org,hughd@google.com,baolin.wang@linux.alibaba.com,leitao@debian.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-vmalloc-use-%p-for-pointer-formatting.patch added to mm-unstable branch
-Message-Id: <20260918200545.CC0B21F000FF@smtp.kernel.org>
+Subject: + mm-shmem-report-rcu-tasks-quiescent-states-while-undoing-a-range.patch added to mm-new branch
+Message-Id: <20260918204533.41B961F000FF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,15 +35,26 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/vmalloc: Use %p for pointer formatting
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-vmalloc-use-%p-for-pointer-formatting.patch
+     Subject: mm/shmem: report RCU-tasks quiescent states while undoing a range
+has been added to the -mm mm-new branch.  Its filename is
+     mm-shmem-report-rcu-tasks-quiescent-states-while-undoing-a-range.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vmalloc-use-%p-for-pointer-formatting.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-shmem-report-rcu-tasks-quiescent-states-while-undoing-a-range.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Note, mm-new is a provisional staging ground for work-in-progress
+patches, and acceptance into mm-new is a notification for others take
+notice and to finish up reviews.  Please do not hesitate to respond to
+review feedback and post updated versions to replace or incrementally
+fixup patches in mm-new.
+
+The mm-new branch of mm.git is not included in linux-next
+
+If a few days of testing in mm-new is successful, the patch will me moved
+into mm.git's mm-unstable branch, which is included in linux-next
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -58,66 +69,75 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Subject: mm/vmalloc: Use %p for pointer formatting
-Date: Fri, 18 Sep 2026 12:50:13 +0200
+From: Breno Leitao <leitao@debian.org>
+Subject: mm/shmem: report RCU-tasks quiescent states while undoing a range
+Date: Fri, 18 Sep 2026 04:24:37 -0700
 
-Commit 45ec16908e84e ("mm: use %pK for /proc/vmallocinfo") introduced the
-%pK in order not to leak kernel pointers.  Since commit ad67b74d2469d
-("printk: hash addresses printed with %p") pointers are hashed by default
-and the behaviour can be controller by `hash_pointers' boot argument.  The
-policy on %p is to not introduce new ones.  Removing %pK makes it possible
-to remove its handling from the library.
+This shows up in the Meta fleet on ftruncate() of large tmpfs files:
 
-Looking at the output, having the pointer in the output makes it
-possible to distinguish the individual entries.
+  INFO: rcu_tasks detected stalls on tasks:
+  00000000752fd185: .. nvcsw: 59455/59455 holdout: 1 idle_cpu: -1/0
+  task:rocksdb:bottom  state:R  running task
+    __folio_split
+    find_get_entry
+    find_get_entries
+    truncate_inode_partial_folio
+    shmem_undo_range
+    shmem_setattr
+    notify_change
+    do_ftruncate
+    __x64_sys_ftruncate
+    do_syscall_64
 
-Use %p instead %pK.
+shmem_undo_range() walks the whole of the requested range in folio_batch
+sized steps, twice, and its two cond_resched() calls are the only
+reschedule points in that walk.
 
-/proc/vmallocinfo has mode 0400, so this change doesn't make kernel
-pointer information available to unprivileged userspace.
+cond_resched() is not an RCU-tasks quiescent state.  Use
+cond_resched_tasks_rcu_qs() at both points so the walk reports an
+RCU-tasks quiescent state as it proceeds.
 
-Link: https://lore.kernel.org/20260918105013.UpdykT6j@linutronix.de
-Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Link: https://lore.kernel.org/20260918-shmem-tasks-rcu-v1-1-79acf91a2569@debian.org
+Fixes: 8315f42295d2 ("rcu: Add call_rcu_tasks()")
+Signed-off-by: Breno Leitao <leitao@debian.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Cc: Uladzislau Rezki <urezki@gmail.com>
+Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: "Paul E . McKenney" <paulmck@kernel.org>
+Cc: <stable@vger.kernel.org>
 ---
 
- mm/vmalloc.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ mm/shmem.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/mm/vmalloc.c~mm-vmalloc-use-%p-for-pointer-formatting
-+++ a/mm/vmalloc.c
-@@ -5316,7 +5316,7 @@ static void show_purge_info(struct seq_f
- 	for_each_vmap_node(vn) {
- 		spin_lock(&vn->lazy.lock);
- 		list_for_each_entry(va, &vn->lazy.head, list) {
--			seq_printf(m, "0x%pK-0x%pK %7ld unpurged vm_area\n",
-+			seq_printf(m, "0x%p-0x%p %7ld unpurged vm_area\n",
- 				(void *)va->va_start, (void *)va->va_end,
- 				va_size(va));
+--- a/mm/shmem.c~mm-shmem-report-rcu-tasks-quiescent-states-while-undoing-a-range
++++ a/mm/shmem.c
+@@ -1367,7 +1367,7 @@ static void shmem_undo_range(struct inod
  		}
-@@ -5339,7 +5339,7 @@ static int vmalloc_info_show(struct seq_
- 		list_for_each_entry(va, &vn->busy.head, list) {
- 			if (!va->vm) {
- 				if (va->flags & VMAP_RAM)
--					seq_printf(m, "0x%pK-0x%pK %7ld vm_map_ram\n",
-+					seq_printf(m, "0x%p-0x%p %7ld vm_map_ram\n",
- 						(void *)va->va_start, (void *)va->va_end,
- 						va_size(va));
+ 		folio_batch_remove_exceptionals(&fbatch);
+ 		folio_batch_release(&fbatch);
+-		cond_resched();
++		cond_resched_tasks_rcu_qs();
+ 	}
  
-@@ -5353,7 +5353,7 @@ static int vmalloc_info_show(struct seq_
- 			/* Pair with smp_wmb() in clear_vm_uninitialized_flag() */
- 			smp_rmb();
+ 	/*
+@@ -1408,7 +1408,7 @@ whole_folios:
  
--			seq_printf(m, "0x%pK-0x%pK %7ld",
-+			seq_printf(m, "0x%p-0x%p %7ld",
- 				v->addr, v->addr + v->size, v->size);
+ 	index = start;
+ 	while (index < end) {
+-		cond_resched();
++		cond_resched_tasks_rcu_qs();
  
- 			if (v->caller)
+ 		if (!find_get_entries(mapping, &index, end - 1, &fbatch,
+ 				indices)) {
 _
 
-Patches currently in -mm which might be from bigeasy@linutronix.de are
+Patches currently in -mm which might be from leitao@debian.org are
 
-mm-vmalloc-use-%p-for-pointer-formatting.patch
+mm-swap-distinguish-a-malformed-swap-entry-from-a-dying-device.patch
+mm-fail-the-fault-on-a-malformed-swap-entry-instead-of-retrying-it.patch
+documentation-kmemleak-describe-the-metadata-pool-not-the-early-log.patch
+documentation-kmemleak-fix-stale-statements-about-scanning.patch
+mm-kmemleak-raise-min_unref_scans-to-3-for-verbose-auto-scan.patch
+mm-shmem-report-rcu-tasks-quiescent-states-while-undoing-a-range.patch
 
