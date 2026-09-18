@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B756C509EED
-	for <mm-commits@vger.kernel.org>; Fri, 18 Sep 2026 15:45:09 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 534D751A742
+	for <mm-commits@vger.kernel.org>; Fri, 18 Sep 2026 17:43:44 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789746312; cv=none; b=Mqua9MdvdvVtH1M8Zyv0dm8gbTNxeP0wsKbrwSmI8kdO40+fSXQK0vxM0CbsDJ02++N3tm5p0jfIrNyKg6radA6OAO194w0u3uS2azA8FVxwT0ADgzp25e9TEvT+0HXoIK8tYPo3VXYAqtNqvFP0yhMqzQYVQEI0AjfzD4G6nO0=
+	t=1789753431; cv=none; b=nlOoy2yqBLhgWPGqwARrAqslytQyYx3dkwgUUkwHu1mBaR9PxOIdLM1jSyfOrZqLLmyRuNmnmW5/ZPoBZtU7j1jatRmse29Z0q2Jl9AVV0trcVLv2Y+XQDw40MyU5i16AfBTVsjGWR0QuMfQVMa/nboZhu1Dkp9v5TFfzp0RNMQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1789746312; c=relaxed/simple;
-	bh=JlUWhbgrv2XZ9qM06auejxl8bTkhPUo7n4zY0M68fs0=;
-	h=Date:To:From:Subject:Message-Id; b=EFRP23wv2c8NNT8+PVWaERVhZuUteHE5kC3w+8P1gDTWw8aTI9L+XgDL+mgWY4koZA2ddYDxyt4/OzUHObbeHkvpDClQUHYoddQZH1OZ8NGxNRkzkEzgknATJ6tzulkQF953O2r0zD0njqyhy8WKJaGdFzQvrthu+/Qi8/iZrw4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=MtRJvdbr; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1789753431; c=relaxed/simple;
+	bh=1TlhNX42Q0NBRLTfYyjam1aa9rBnMrm/pEQ4J2tPc6M=;
+	h=Date:To:From:Subject:Message-Id; b=b2MJFX8c18IwEH/+dlM8iQTDwUIz3n3uOCOK3HUDLP3lJY1OTYEYRNV+aPle/aHWZtW4B0fKW6fcfC3av2U1YBeKBA1o5l0D0ldVKQG13hXIfTZI9ZsZC4yN2phEC8H/TMWzI2UCPpi0w0Vr5+UIRxDyMaeEtF41rfTwCYyZI8I=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=oWgV7eZI; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="MtRJvdbr"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 01FEF1F00899;
-	Fri, 18 Sep 2026 15:45:08 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="oWgV7eZI"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A3E371F000FF;
+	Fri, 18 Sep 2026 17:43:43 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1789746309;
-	bh=MRCbqJFPlvUzIJNQrIPJYWhVYIEzVcYdX3toFm7Vp64=;
+	d=linux-foundation.org; s=korg; t=1789753423;
+	bh=EAa6kAgV4A2F/yeuRbUf533GAuAo7g5m60jGhNSBjS4=;
 	h=Date:To:From:Subject;
-	b=MtRJvdbrnV9zyhJrYaNJCarbC5CTffk67mDApYj1mMHlUOfEb71B8170phOeVTtDo
-	 0xW3FOE+TBtXZnVDgOpRGGf6gIEJC0mrkOShrypqgxs3qMqJasgAump6iwFy+B4z7t
-	 X3hehK0TOGhB2ZsVUCY1n+RTFFjszcPyzYv3Jmmg=
-Date: Fri, 18 Sep 2026 08:45:08 -0700
-To: mm-commits@vger.kernel.org,surenb@google.com,akpm@linux-foundation.org
+	b=oWgV7eZIaYFkEvvst5899H80WAYxt7KKw2YkYTnQOY1Im7FTAjrujeo67h064kv9K
+	 kDj5yy8LB+LuKz5Z1aJKV2o2y/3qeELgaf8fFG9NE63KY1c9E2h3k2AsKJt8vhTpGE
+	 KxRx2e7TIEaSeq99PDo4blQV864IuQ3EHVdBhDr4=
+Date: Fri, 18 Sep 2026 10:43:43 -0700
+To: mm-commits@vger.kernel.org,youngjun.park@lge.com,shikemeng@huaweicloud.com,nphamcs@gmail.com,kasong@tencent.com,chrisl@kernel.org,baoquan.he@linux.dev,baohua@kernel.org,ekffu200098@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-proc-add-proc-pid-smaps_rollup-tearing-tests.patch added to mm-new branch
-Message-Id: <20260918154509.01FEF1F00899@smtp.kernel.org>
+Subject: + mm-swapops-remove-unused-is_hwpoison_entry.patch added to mm-new branch
+Message-Id: <20260918174343.A3E371F000FF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: selftests/proc: add /proc/pid/smaps_rollup tearing tests
+     Subject: mm/swapops: remove unused is_hwpoison_entry()
 has been added to the -mm mm-new branch.  Its filename is
-     selftests-proc-add-proc-pid-smaps_rollup-tearing-tests.patch
+     mm-swapops-remove-unused-is_hwpoison_entry.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-proc-add-proc-pid-smaps_rollup-tearing-tests.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-swapops-remove-unused-is_hwpoison_entry.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -69,367 +69,66 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Suren Baghdasaryan <surenb@google.com>
-Subject: selftests/proc: add /proc/pid/smaps_rollup tearing tests
-Date: Fri, 18 Sep 2026 08:33:18 -0700
+From: Sang-Heon Jeon <ekffu200098@gmail.com>
+Subject: mm/swapops: remove unused is_hwpoison_entry()
+Date: Sat, 19 Sep 2026 01:56:40 +0900
 
-During tearing tests, smaps_rollup Pss* metrics should stay constant. 
-Extend /proc/pid/smaps tearing tests to also check for smaps_rollup
-consistency.
+Since commit 93976a20345b ("mm: eliminate further swapops predicates"),
+is_hwpoison_entry() has no callers.
 
-Link: https://lore.kernel.org/20260918153318.758387-8-surenb@google.com
-Signed-off-by: Suren Baghdasaryan <surenb@google.com>
+So remove it.
+
+No functional change.
+
+Link: https://lore.kernel.org/20260918165642.1014988-1-ekffu200098@gmail.com
+Signed-off-by: Sang-Heon Jeon <ekffu200098@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Acked-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
-Cc: David Hildenbrand (Arm) <david@kernel.org>
-Cc: Jann Horn <jannh@google.com>
-Cc: Liam R. Howlett (Oracle) <liam@infradead.org>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: "Paul E . McKenney" <paulmck@kernel.org>
-Cc: Pedro Falcato <pfalcato@suse.de>
-Cc: Usama Arif <usama.arif@linux.dev>
-Cc: Vlastimil Babka <vbabka@kernel.org>
+Cc: Baoquan He <baoquan.he@linux.dev>
+Cc: Barry Song <baohua@kernel.org>
+Cc: Chris Li <chrisl@kernel.org>
+Cc: Kairui Song <kasong@tencent.com>
+Cc: Kemeng Shi <shikemeng@huaweicloud.com>
+Cc: Nhat Pham <nphamcs@gmail.com>
+Cc: Youngjun Park <youngjun.park@lge.com>
 ---
 
- tools/testing/selftests/proc/proc-maps-race.c |  186 +++++++++++++++-
- 1 file changed, 181 insertions(+), 5 deletions(-)
+ include/linux/swapops.h |    9 ---------
+ 1 file changed, 9 deletions(-)
 
---- a/tools/testing/selftests/proc/proc-maps-race.c~selftests-proc-add-proc-pid-smaps_rollup-tearing-tests
-+++ a/tools/testing/selftests/proc/proc-maps-race.c
-@@ -80,6 +80,61 @@ enum maps_file {
- 
- struct vma_modifier_info;
- 
-+enum smaps_rollup_stat {
-+	Rss,
-+	Pss,
-+	Pss_Dirty,
-+	Pss_Anon,
-+	Pss_File,
-+	Pss_Shmem,
-+	Shared_Clean,
-+	Shared_Dirty,
-+	Private_Clean,
-+	Private_Dirty,
-+	Referenced,
-+	Anonymous,
-+	KSM,
-+	LazyFree,
-+	AnonHugePages,
-+	ShmemPmdMapped,
-+	FilePmdMapped,
-+	Shared_Hugetlb,
-+	Private_Hugetlb,
-+	Swap,
-+	SwapPss,
-+	Locked,
-+	RollupFieldCount
-+};
-+
-+static const char *smaps_rollup_stat_names[RollupFieldCount] = {
-+	"Rss",
-+	"Pss",
-+	"Pss_Dirty",
-+	"Pss_Anon",
-+	"Pss_File",
-+	"Pss_Shmem",
-+	"Shared_Clean",
-+	"Shared_Dirty",
-+	"Private_Clean",
-+	"Private_Dirty",
-+	"Referenced",
-+	"Anonymous",
-+	"KSM",
-+	"LazyFree",
-+	"AnonHugePages",
-+	"ShmemPmdMapped",
-+	"FilePmdMapped",
-+	"Shared_Hugetlb",
-+	"Private_Hugetlb",
-+	"Swap",
-+	"SwapPss",
-+	"Locked",
-+};
-+
-+struct smaps_rollup_stats {
-+	unsigned long values[RollupFieldCount];
-+};
-+
- FIXTURE(proc_maps_race)
- {
- 	struct vma_modifier_info *mod_info;
-@@ -91,6 +146,7 @@ FIXTURE(proc_maps_race)
- 	enum maps_file maps_file;
- 	int shared_mem_size;
- 	int skip_pages;
-+	int rollup_fd;
- 	int page_size;
- 	int vma_count;
- 	bool verbose;
-@@ -132,12 +188,12 @@ struct vma_modifier_info {
- 	void *child_mapped_addr[];
- };
- 
--static bool read_page(FIXTURE_DATA(proc_maps_race) *self,
-+static bool read_page(FIXTURE_DATA(proc_maps_race) *self, int fd,
- 		      struct page_content *page)
- {
- 	ssize_t  bytes_read;
- 
--	bytes_read = read(self->maps_fd, page->data, self->page_size);
-+	bytes_read = read(fd, page->data, self->page_size);
- 	if (bytes_read <= 0)
- 		return false;
- 
-@@ -175,7 +231,7 @@ static int locate_containing_page(FIXTUR
- 		char *curr_pos;
- 		char *end_pos;
- 
--		if (!read_page(self, &self->page1))
-+		if (!read_page(self, self->maps_fd, &self->page1))
- 			return -1;
- 
- 		curr_pos = self->page1.data;
-@@ -205,10 +261,11 @@ static bool read_two_pages(FIXTURE_DATA(
- 		return false;
- 
- 	for (int i = 0; i < self->skip_pages; i++)
--		if (!read_page(self, &self->page1))
-+		if (!read_page(self, self->maps_fd, &self->page1))
- 			return false;
- 
--	return read_page(self, &self->page1) && read_page(self, &self->page2);
-+	return read_page(self, self->maps_fd, &self->page1) &&
-+	       read_page(self, self->maps_fd, &self->page2);
+--- a/include/linux/swapops.h~mm-swapops-remove-unused-is_hwpoison_entry
++++ a/include/linux/swapops.h
+@@ -261,11 +261,6 @@ static inline swp_entry_t make_hwpoison_
+ 	return swp_entry(SWP_HWPOISON, page_to_pfn(page));
  }
  
- static void copy_line(const char *line_start, const char *line_end,
-@@ -317,6 +374,61 @@ static bool read_boundary_lines(FIXTURE_
- 		      &first_line->end_addr) == 2;
+-static inline int is_hwpoison_entry(swp_entry_t entry)
+-{
+-	return swp_type(entry) == SWP_HWPOISON;
+-}
+-
+ #else
+ 
+ static inline swp_entry_t make_hwpoison_entry(struct page *page)
+@@ -273,10 +268,6 @@ static inline swp_entry_t make_hwpoison_
+ 	return swp_entry(0, 0);
  }
  
-+static bool parse_smaps_rollup(FIXTURE_DATA(proc_maps_race) *self,
-+		struct smaps_rollup_stats *stats)
-+{
-+	unsigned int dev_maj, dev_min, inode;
-+	unsigned long start, end, offs;
-+	unsigned long value;
-+	char name[32], perm[5];
-+	char *curr_pos;
-+	char *end_pos;
-+	char *line_end;
-+
-+	if (lseek(self->rollup_fd, 0, SEEK_SET) < 0)
-+		return false;
-+
-+	if (!read_page(self, self->rollup_fd, &self->page1))
-+		return false;
-+
-+	curr_pos = self->page1.data;
-+	end_pos = self->page1.data + self->page1.size;
-+
-+	line_end = strchr(curr_pos, '\n');
-+	if (!line_end)
-+		return false;
-+
-+	if (sscanf(curr_pos, "%lx-%lx %4s %lx %u:%u %u %31s",
-+		&start, &end, perm, &offs, &dev_maj, &dev_min, &inode, name) != 8)
-+		return false;
-+
-+	if (strcmp(name, "[rollup]"))
-+		return false;
-+
-+	for (int stat = 0; stat < ARRAY_SIZE(smaps_rollup_stat_names); stat++) {
-+		int len;
-+
-+		curr_pos = line_end + 1;
-+		if (curr_pos >= end_pos)
-+			return false;
-+
-+		line_end = strchr(curr_pos, '\n');
-+		if (!line_end)
-+			return false;
-+
-+		if (sscanf(curr_pos, "%31s %lu kB", name, &value) != 2)
-+			return false;
-+
-+		len = strlen(name);
-+		if (name[len - 1] != ':' || strncmp(name, smaps_rollup_stat_names[stat], len - 1))
-+			return false;
-+
-+		stats->values[stat] = value;
-+	}
-+
-+	return true;
-+}
-+
- /* Thread synchronization routines */
- static void wait_for_state(struct vma_modifier_info *mod_info, enum test_state state)
- {
-@@ -397,6 +509,40 @@ static bool print_boundaries_on(bool con
- 	return condition;
- }
+-static inline int is_hwpoison_entry(swp_entry_t swp)
+-{
+-	return 0;
+-}
+ #endif
  
-+static void print_smaps_rollup_stats(const char *title, FIXTURE_DATA(proc_maps_race) *self,
-+		struct smaps_rollup_stats *stats)
-+{
-+	printf("%s", title);
-+	for (int stat = 0; stat < ARRAY_SIZE(smaps_rollup_stat_names); stat++)
-+		printf("%64s %lu kB\n", smaps_rollup_stat_names[stat], stats->values[stat]);
-+}
-+
-+static bool cmp_smaps_rollup_stat(struct smaps_rollup_stats *s1,
-+		struct smaps_rollup_stats *s2, enum smaps_rollup_stat stat)
-+{
-+	return s1->values[stat] == s2->values[stat];
-+}
-+
-+static bool compare_smaps_rollup(FIXTURE_DATA(proc_maps_race) *self,
-+		struct smaps_rollup_stats *expected,
-+		struct smaps_rollup_stats *actual)
-+{
-+	/*
-+	 * Clean/dirty metrics might change but Pss-related ones
-+	 * should stay constant.
-+	 */
-+	if (cmp_smaps_rollup_stat(expected, actual, Pss) &&
-+	    cmp_smaps_rollup_stat(expected, actual, Pss_Anon) &&
-+	    cmp_smaps_rollup_stat(expected, actual, Pss_File) &&
-+	    cmp_smaps_rollup_stat(expected, actual, Pss_Shmem))
-+		return true;
-+
-+	print_smaps_rollup_stats("Expected stats:", self, expected);
-+	print_smaps_rollup_stats("Actual stats:", self, actual);
-+
-+	return false;
-+}
-+
- static void report_test_start(const char *name, bool verbose)
- {
- 	if (verbose)
-@@ -572,6 +718,7 @@ FIXTURE_SETUP(proc_maps_race)
- 	unsigned long first_map_addr;
- 	unsigned long last_map_addr;
- 	unsigned long duration_sec;
-+	char rollup_fname[32];
- 	char fname[32];
- 
- 	self->page_size = (unsigned long)sysconf(_SC_PAGESIZE);
-@@ -649,6 +796,9 @@ FIXTURE_SETUP(proc_maps_race)
- 		break;
- 	case SMAPS:
- 		sprintf(fname, "/proc/%d/smaps", self->pid);
-+		sprintf(rollup_fname, "/proc/%d/smaps_rollup", self->pid);
-+		self->rollup_fd = open(rollup_fname, O_RDONLY);
-+		ASSERT_NE(self->rollup_fd, -1);
- 		break;
- 	default:
- 		ksft_exit_fail();
-@@ -711,6 +861,8 @@ FIXTURE_TEARDOWN(proc_maps_race)
- 	for (int i = 0; i < self->vma_count; i++)
- 		munmap(self->mod_info->child_mapped_addr[i], self->page_size);
- 	close(self->maps_fd);
-+	if (self->maps_file == SMAPS)
-+		close(self->rollup_fd);
- 	waitpid(self->pid, &status, 0);
- 	munmap(self->mod_info, self->shared_mem_size);
- }
-@@ -723,6 +875,7 @@ TEST_F(proc_maps_race, test_maps_tearing
- 	struct line_content split_first_line;
- 	struct line_content restored_last_line;
- 	struct line_content restored_first_line;
-+	struct smaps_rollup_stats orig_stats;
- 
- 	wait_for_state(mod_info, SETUP_READY);
- 
-@@ -736,6 +889,8 @@ TEST_F(proc_maps_race, test_maps_tearing
- 	report_test_start("Tearing from split", self->verbose);
- 	ASSERT_TRUE(capture_mod_pattern(self, &split_last_line, &split_first_line,
- 					&restored_last_line, &restored_first_line));
-+	if (self->maps_file == SMAPS)
-+		ASSERT_TRUE(parse_smaps_rollup(self, &orig_stats));
- 
- 	/* Now start concurrent modifications for self->duration_sec */
- 	signal_state(mod_info, TEST_READY);
-@@ -799,6 +954,11 @@ TEST_F(proc_maps_race, test_maps_tearing
- 				     vma_end == self->last_line.end_addr) ||
- 				    (vma_start == split_first_line.start_addr &&
- 				     vma_end == split_first_line.end_addr));
-+		} else {
-+			struct smaps_rollup_stats stats;
-+
-+			ASSERT_TRUE(parse_smaps_rollup(self, &stats));
-+			ASSERT_TRUE(compare_smaps_rollup(self, &orig_stats, &stats));
- 		}
- 		clock_gettime(CLOCK_MONOTONIC_COARSE, &end_ts);
- 		end_test_iteration(&end_ts, self->verbose);
-@@ -817,6 +977,7 @@ TEST_F(proc_maps_race, test_maps_tearing
- 	struct line_content shrunk_first_line;
- 	struct line_content restored_last_line;
- 	struct line_content restored_first_line;
-+	struct smaps_rollup_stats orig_stats;
- 
- 	wait_for_state(mod_info, SETUP_READY);
- 
-@@ -830,6 +991,8 @@ TEST_F(proc_maps_race, test_maps_tearing
- 	report_test_start("Tearing from resize", self->verbose);
- 	ASSERT_TRUE(capture_mod_pattern(self, &shrunk_last_line, &shrunk_first_line,
- 					&restored_last_line, &restored_first_line));
-+	if (self->maps_file == SMAPS)
-+		ASSERT_TRUE(parse_smaps_rollup(self, &orig_stats));
- 
- 	/* Now start concurrent modifications for self->duration_sec */
- 	signal_state(mod_info, TEST_READY);
-@@ -880,6 +1043,11 @@ TEST_F(proc_maps_race, test_maps_tearing
- 			ASSERT_TRUE(vma_start == self->last_line.start_addr &&
- 				    (vma_end - vma_start == self->page_size * 3 ||
- 				     vma_end - vma_start == self->page_size));
-+		} else {
-+			struct smaps_rollup_stats stats;
-+
-+			ASSERT_TRUE(parse_smaps_rollup(self, &stats));
-+			ASSERT_TRUE(compare_smaps_rollup(self, &orig_stats, &stats));
- 		}
- 		clock_gettime(CLOCK_MONOTONIC_COARSE, &end_ts);
- 		end_test_iteration(&end_ts, self->verbose);
-@@ -898,6 +1066,7 @@ TEST_F(proc_maps_race, test_maps_tearing
- 	struct line_content remapped_first_line;
- 	struct line_content restored_last_line;
- 	struct line_content restored_first_line;
-+	struct smaps_rollup_stats orig_stats;
- 
- 	wait_for_state(mod_info, SETUP_READY);
- 
-@@ -911,6 +1080,8 @@ TEST_F(proc_maps_race, test_maps_tearing
- 	report_test_start("Tearing from remap", self->verbose);
- 	ASSERT_TRUE(capture_mod_pattern(self, &remapped_last_line, &remapped_first_line,
- 					&restored_last_line, &restored_first_line));
-+	if (self->maps_file == SMAPS)
-+		ASSERT_TRUE(parse_smaps_rollup(self, &orig_stats));
- 
- 	/* Now start concurrent modifications for self->duration_sec */
- 	signal_state(mod_info, TEST_READY);
-@@ -963,6 +1134,11 @@ TEST_F(proc_maps_race, test_maps_tearing
- 				     vma_end - vma_start == self->page_size * 3) ||
- 				    (vma_start == self->last_line.start_addr + self->page_size &&
- 				     vma_end - vma_start == self->page_size));
-+		} else {
-+			struct smaps_rollup_stats stats;
-+
-+			ASSERT_TRUE(parse_smaps_rollup(self, &stats));
-+			ASSERT_TRUE(compare_smaps_rollup(self, &orig_stats, &stats));
- 		}
- 		clock_gettime(CLOCK_MONOTONIC_COARSE, &end_ts);
- 		end_test_iteration(&end_ts, self->verbose);
+ typedef unsigned long pte_marker;
 _
 
-Patches currently in -mm which might be from surenb@google.com are
+Patches currently in -mm which might be from ekffu200098@gmail.com are
 
-proc-task_mmu-remove-unnecessary-helpers.patch
-proc-task_mmu-remove-unnecessary-inlines-in-function-definitions.patch
-proc-task_mmu-clarify-shmem-mapping-walk-conditions-in-smap_gather_stats.patch
-proc-task_mmu-remove-special-casing-of-smap_gather_stats-start-parameter.patch
-proc-task_mmu-change-proc_get_vma-to-stop-returning-gate-vma-at-the-end.patch
-proc-task_mmu-read-proc-pid-smaps_rollup-under-per-vma-lock.patch
-selftests-proc-add-proc-pid-smaps_rollup-tearing-tests.patch
+percpu-fix-the-comment-about-which-sizes-share-a-slot.patch
+percpu-remove-redundant-assignments-to-bits.patch
+percpu-remove-unnecessary-initialization-in-pcpu_build_alloc_info.patch
+percpu-remove-unnecessary-cpumask_clear-in-pcpu_build_alloc_info.patch
+percpu-remove-unnecessary-return-in-pcpu_populate_pte.patch
+mm-swapops-remove-unused-is_hwpoison_entry.patch
+bootconfig-remove-redundant-assignment-in-xbc_parse_array.patch
 
