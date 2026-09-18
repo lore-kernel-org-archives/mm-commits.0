@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7DA7B45D923;
-	Fri, 18 Sep 2026 05:43:46 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BFF3245D90F;
+	Fri, 18 Sep 2026 05:43:47 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789710227; cv=none; b=VcjQ2lSg/ZTOHewXRg6xQKPi1mou6t3e9MxypwEWoBto+KIOzdSEKuJLWS08vt0jxt8ApX+lKC/B9G2z6VJXLOe1aqgdmXnbP/+fhAQAvVP2WCktueyOYcPe9DiwMw6UEQGU3A5dYkZJBKJo6mIPbZjla4HRHqCbeLcE0i5NXk4=
+	t=1789710229; cv=none; b=rD3FcXqKLk0kYFQiym0KNHa220nON0n1aCB3fcYnUBAoIB0ms3OmIbgp+E2Abgqd9CgUViKfKQOZi8xZ+qoFIj+If0OWseTqbebjZlIgzL/kCrgEAHtqLPrFsjexyc82/dW82G3mkjs0/caH7KWRKFDthEvoGc1VV8saWVPXtAk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1789710227; c=relaxed/simple;
-	bh=/QcVhIadBwI77xTkXtnJXqkjh5aYadKn2QKEc6D8b/0=;
-	h=Date:To:From:Subject:Message-Id; b=eAciDGXFfF6pSf24WY20BKn+jUUCU1OLMyHSs+38mlqmdLb6t+4+/l2Bwl6Ktr7b106JDB8kgOhm137HtmFvePnpCjTxvRTCFmEHQjWT1z4xZMpUoYxx52aRuWxKx5CWiyolZsdwi5MA3tfUDyKVLy/EwXGntmmpKoyQAOI7bCM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=DC2qGoMa; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1789710229; c=relaxed/simple;
+	bh=H5jqX+RN6rLp6Eumoi0WrSF0aeyqX9xppaqMs5eOSak=;
+	h=Date:To:From:Subject:Message-Id; b=B1M98IvI9+Xv/wmzQfc4liFgLqfCdFG/koBp+Ld80M5zOIy61cu3hdr2e5BJXIVQGFhvR5eu1tpQTzh2XsK5RxYLpto1YLMPzOz3ldqyIvzrRCNYMl8mzgk2Fisbi9mnWQ3ty8QtjTXnLCMdK4Hlgm2qGUFF3kGwJCa0q7lTHKY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=YQudlWoU; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="DC2qGoMa"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 05DFE1F00893;
-	Fri, 18 Sep 2026 05:43:45 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="YQudlWoU"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 490351F000FF;
+	Fri, 18 Sep 2026 05:43:47 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1789710226;
-	bh=8ene5QHweez0FEJzCWpD+Vj5AXEgEwP8cakTjXRfgy8=;
+	d=linux-foundation.org; s=korg; t=1789710227;
+	bh=JIKLXyGRzyzUuLCALhca9biA7J6xbTbFJmdjvlcAKA4=;
 	h=Date:To:From:Subject;
-	b=DC2qGoMa6VXP1F2hSZE7CjIrpdiB1d5VcR7wks2bNc03q6a/5u8Nvg+sFVq1fFbzy
-	 OFpoTQ+sVcN0CLH6ncBMJqAOKr4JGbkV9a18lqwI8zJ2a7fV9ii256B2bgJBVmIpW+
-	 tvpgIU28FGGiJ/1Hu3v2o4aAu2uJr9XIIvpjoCMU=
-Date: Thu, 17 Sep 2026 22:43:45 -0700
-To: mm-commits@vger.kernel.org,yu-cheng.yu@intel.com,vbabka@kernel.org,tglx@linutronix.de,stable@vger.kernel.org,rppt@kernel.org,rick.p.edgecombe@intel.com,pfalcato@suse.de,orsonpeters@gmail.com,ljs@kernel.org,liam@infradead.org,jannh@google.com,david@kernel.org,dave.hansen@linux.intel.com,yanglincheng@kylinos.cn,akpm@linux-foundation.org
+	b=YQudlWoUWBu6dDl9SGuGvWGTA4tKseI8uPM7lhZ6Q03G3qWBNXZjyUH2xZ8wEioCn
+	 r7cFK0bigPU9cf8et0BS92SvnJCDG9b1XOAMkfBJq7g1jU4GPySXqxfoSLUyPM87aR
+	 6rtNc/NjyUSiKiYdoFM/8WCXk8BsyB7dJDd7g3Mo=
+Date: Thu, 17 Sep 2026 22:43:46 -0700
+To: mm-commits@vger.kernel.org,stable@vger.kernel.org,nphamcs@gmail.com,krushchavan@outlook.com,joshua.hahnjy@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] x86-mm-fix-pmd_modify-dropping-the-dirty-bit.patch removed from -mm tree
-Message-Id: <20260918054346.05DFE1F00893@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] selftests-cgroup-account-for-zswap-shrinker-writeback.patch removed from -mm tree
+Message-Id: <20260918054347.490351F000FF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,98 +35,115 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: x86/mm: fix pmd_modify() dropping the dirty bit
+     Subject: selftests/cgroup: account for zswap shrinker writeback
 has been removed from the -mm tree.  Its filename was
-     x86-mm-fix-pmd_modify-dropping-the-dirty-bit.patch
+     selftests-cgroup-account-for-zswap-shrinker-writeback.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Vernon Yang <yanglincheng@kylinos.cn>
-Subject: x86/mm: fix pmd_modify() dropping the dirty bit
-Date: Thu, 3 Sep 2026 11:16:08 +0800
+From: Joshua Hahn <joshua.hahnjy@gmail.com>
+Subject: selftests/cgroup: account for zswap shrinker writeback
+Date: Wed, 2 Sep 2026 12:45:20 -0700
 
-pmd_modify() masks the old value with (_HPAGE_CHG_MASK & ~_PAGE_DIRTY),
-silently discarding the hardware dirty bit.  The subsequent
-pmd_mksaveddirty() call is supposed to transfer _PAGE_DIRTY into
-_PAGE_SAVED_DIRTY when write-protecting, but the dirty bit was already
-stripped from the value, so there is nothing left to transfer.
+The test_no_invasive_cgroup_shrink selftest checks that when a cgroup has
+zswapped out more memory than memory.zswap.max, it does not trigger
+writeback for other cgroups.  To do this, it compares the writeback count
+in a control cgroup and makes sure that it is 0, and then checks the
+writeback count in an aggressor cgroup who does expect to see writeback.
 
-Contrast with pte_modify(), which keeps _PAGE_DIRTY_BITS in its mask, and
-pud_modify(), which keeps _HPAGE_CHG_MASK untouched: pmd_modify() is the
-odd one out.  Any pmd_modify() on a writable, dirty PMD loses the dirty
-state.
+However, when the zswap shrinker is enabled, the victim cgroup can see
+legitimate writebacks not triggered by the aggressor.  In some Meta CI
+tests, we have seen this failure mode happen.
 
-One visible consequence is data loss with MADV_FREE on PMD-mapped THP:
+Instead of checking that the victim cgroup has 0 writeback, compare the
+writeback values before and after the aggressor runs and check that the
+victim cgroup did not perform any additional writeback.  Note that this
+can still lead to probabilistic failures if writebacks take longer than
+5 seconds, but this should fix the systematic failure case and make
+"not ok test_no_invasive_cgroup_shrink" less likely.
 
-    memset(buf, 0x5A, size);          // PMD-mapped THP, PMD dirty
-    madvise(buf, size, MADV_FREE);    // PMD cleaned but left writable,
-                                      // folio marked lazyfree
-    memset(buf, 0x5A, size);          // hardware sets _PAGE_DIRTY again
-    mprotect(buf, size, PROT_READ);   // pmd_modify() drops the dirty bit
-    mprotect(buf, size, PROT_READ|PROT_WRITE);
-    // ... memory pressure ...
-
-Reclaim (e.g.  under memcg pressure) then finds the lazyfree folio with no
-dirty bit set anywhere and frees it in __discard_anon_folio_pmd_locked(),
-even though the data was rewritten after MADV_FREE; subsequent reads fault
-in fresh zero pages.  NUMA hinting alone can trigger the same loss, as
-do_huge_pmd_numa_page() restores the PMD through pmd_modify() as well.
-
-PMD-mapped file THPs are affected too: mprotect()/NUMA hinting dropping
-the dirty bit means rewritten data is never written back.
-
-Fix it by keeping _PAGE_DIRTY in the preserved mask, exactly like
-pte_modify() and pud_modify() do.  The existing
-pmd_mksaveddirty()/pmd_clear_saveddirty() pair then performs the
-hardware-dirty <-> saved-dirty transition based on the write bit,
-preserving the shadow-stack encoding rules.
-
-(Pedro [1]: "FYI we just had a customer case for our downstream kernel
-for this exact same issue.  This fixed it beautifully".)
-
-Link: https://lore.kernel.org/20260903031608.1194238-1-vernon2gm@gmail.com
-Link: https://lore.kernel.org/ap6IYeTM8PMinxo-@pedro-suse.tail5790ac.ts.net [1]
-Fixes: bb3aadf7d446 ("x86/mm: Start actually marking _PAGE_SAVED_DIRTY")
-Signed-off-by: Vernon Yang <yanglincheng@kylinos.cn>
+Link: https://lore.kernel.org/20260902194521.3652178-1-joshua.hahnjy@gmail.com
+Fixes: b5ba474f3f51 ("zswap: shrink zswap pool based on memory pressure")
+Signed-off-by: Joshua Hahn <joshua.hahnjy@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Reported-by: Orson Peters <orsonpeters@gmail.com>
-Closes: https://lore.kernel.org/r/CAJxLxMUGu1-L+O_nAONOwOXnS=cNbNApCWqdthRjd76LThtSPg@mail.gmail.com/
-Reviewed-by: Rick Edgecombe <rick.p.edgecombe@intel.com>
-Reviewed-by: Pedro Falcato <pfalcato@suse.de>
-Tested-by: Pedro Falcato <pfalcato@suse.de>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Dave Hansen <dave.hansen@linux.intel.com>
-Cc: David Hildenbrand <david@kernel.org>
-Cc: Jann Horn <jannh@google.com>
-Cc: Liam R. Howlett <liam@infradead.org>
-Cc: Lorenzo Stoakes <ljs@kernel.org>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Vlastimil Babka <vbabka@kernel.org>
-Cc: Yu-cheng Yu <yu-cheng.yu@intel.com>
+Reported-by: Krush Chavan <krushchavan@outlook.com>
+Suggested-by: Nhat Pham <nphamcs@gmail.com>
 Cc: <stable@vger.kernel.org>
 ---
 
- arch/x86/include/asm/pgtable.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ tools/testing/selftests/cgroup/test_zswap.c |   28 ++++++++++++++++--
+ 1 file changed, 26 insertions(+), 2 deletions(-)
 
---- a/arch/x86/include/asm/pgtable.h~x86-mm-fix-pmd_modify-dropping-the-dirty-bit
-+++ a/arch/x86/include/asm/pgtable.h
-@@ -806,7 +806,7 @@ static inline pmd_t pmd_modify(pmd_t pmd
- 	pmdval_t val = pmd_val(pmd), oldval = val;
- 	pmd_t pmd_result;
+--- a/tools/testing/selftests/cgroup/test_zswap.c~selftests-cgroup-account-for-zswap-shrinker-writeback
++++ a/tools/testing/selftests/cgroup/test_zswap.c
+@@ -20,6 +20,7 @@ static int page_size;
  
--	val &= (_HPAGE_CHG_MASK & ~_PAGE_DIRTY);
-+	val &= _HPAGE_CHG_MASK;
- 	val |= check_pgprot(newprot) & ~_HPAGE_CHG_MASK;
- 	val = flip_protnone_guard(oldval, val, PHYSICAL_PMD_PAGE_MASK);
+ #define PATH_ZSWAP "/sys/module/zswap"
+ #define PATH_ZSWAP_ENABLED "/sys/module/zswap/parameters/enabled"
++#define PATH_ZSWAP_SHRINKER_ENABLED "/sys/module/zswap/parameters/shrinker_enabled"
+ #define PATH_ZSWAP_STORED_PAGES "/sys/kernel/debug/zswap/stored_pages"
  
+ static int read_int(const char *path, size_t *value)
+@@ -444,6 +445,16 @@ static int test_zswap_writeback_disabled
+ 	return test_zswap_writeback(root, false);
+ }
+ 
++static bool zswap_shrinker_enabled(void)
++{
++	char value[2];
++
++	if (read_text(PATH_ZSWAP_SHRINKER_ENABLED, value, sizeof(value)) <= 0)
++		return 0;
++
++	return value[0] == 'Y';
++}
++
+ /*
+  * When trying to store a memcg page in zswap, if the memcg hits its memory
+  * limit in zswap, writeback should affect only the zswapped pages of that
+@@ -453,6 +464,7 @@ static int test_no_invasive_cgroup_shrin
+ {
+ 	int ret = KSFT_FAIL;
+ 	unsigned int off;
++	long zswpwb_before, zswpwb_after, zswpwb_target;
+ 	size_t allocation_size = page_size * 1024;
+ 	unsigned int nr_pages = allocation_size / page_size;
+ 	char zswap_max_buf[32], mem_max_buf[32];
+@@ -488,6 +500,14 @@ static int test_no_invasive_cgroup_shrin
+ 	if (cg_read_key_long(zw_group, "memory.stat", "zswapped") < 1)
+ 		goto out;
+ 
++	/* If the shrinker is enabled, try to let the writebacks finish first */
++	if (zswap_shrinker_enabled())
++		sleep(5);
++
++	zswpwb_before = get_cg_wb_count(zw_group);
++	if (zswpwb_before < 0)
++		goto out;
++
+ 	/* Push wb_group memory into zswap with hard-to-compress data to trigger wb */
+ 	if (cg_enter_current(wb_group))
+ 		goto out;
+@@ -500,9 +520,13 @@ static int test_no_invasive_cgroup_shrin
+ 		getrandom(&wb_allocation[off], page_size/4, 0);
+ 	}
+ 
+-	/* Verify that only zswapped memory from gwb_group has been written back */
+-	if (wait_for_writeback(wb_group, 5000) > 0 && get_cg_wb_count(zw_group) == 0)
++	/* Verify that only zswapped memory from wb_group has been written back */
++	zswpwb_target = wait_for_writeback(wb_group, 5000);
++	zswpwb_after = get_cg_wb_count(zw_group);
++
++	if (zswpwb_target > 0 && zswpwb_before == zswpwb_after)
+ 		ret = KSFT_PASS;
++
+ out:
+ 	cg_enter_current(root);
+ 	if (zw_group) {
 _
 
-Patches currently in -mm which might be from yanglincheng@kylinos.cn are
+Patches currently in -mm which might be from joshua.hahnjy@gmail.com are
 
-mm-khugepaged-fix-swap-entry-value-to-folio_pfn.patch
-mm-khugepaged-fix-folio-is-used-after-pte_unmap_unlock.patch
-mm-khugepaged-fix-folio-is-used-after-folio_put-unlock.patch
 
