@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D78F851DAEF
-	for <mm-commits@vger.kernel.org>; Fri, 18 Sep 2026 19:51:25 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F20FD48F851
+	for <mm-commits@vger.kernel.org>; Fri, 18 Sep 2026 19:51:44 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789761089; cv=none; b=DF4S5GINwPSHmnVkIQxnbQsBdakzQDkQOWyAOHjrpvA/2wCDtB5gqd5MDRPpayFEe02VvuJhIBTahD5yyfiKai9mtlJSnbmSjHONfG9V6HLn5jpLjbno1bcvwsbuZRxlO0sor9O1UhQxDKJHzzzqEto2EWm76gRRBRRu+9Pv8QU=
+	t=1789761107; cv=none; b=GWs+HG+YuCihfSBdFVwDc39O+cGb3SKWlfgIjMekP3LWSvvl61qW0z+mGth8ih82XQ8dfGu+pCR1HWg9nS/M30/TGgQxTT69vBIBNCvqQp1LngdCPqgDvGo6JtYTwnbmxSmG9//Bx/AanuzlADhJYXbbGAKzBWiBkBTBlFQXcOw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1789761089; c=relaxed/simple;
-	bh=wjeEuxItzpwNUWuVfYzqk0rtPOEHY7inNjMHYbmMHy0=;
-	h=Date:To:From:Subject:Message-Id; b=n2Icfg1erIDV/gRVfo9SogG8RUNG9sNB3Two+TLRvo8snAC8Fu0kMl3sW1RqbaZuTyl1vW+DVBztzIeflGrWsNe27x+TxY4mhrAcSR5V5LZwW/4sQtbeQBmmzQD01lMtibIYEQDz19iOMKZarNMsXx9arzR2i1HtUC4tvOlNf3o=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=E5nycGBB; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1789761107; c=relaxed/simple;
+	bh=spApIemZvbQ+UYhjf8nf0afTwvOxTcx04OXQItES6jQ=;
+	h=Date:To:From:Subject:Message-Id; b=MvWvsu/dFKd1rqI1IJedcLDmiukCmXnLHezErUTjKeC45pjQr/83Ng5QSpZs9Zitoqdz7kUJISkky14ZAuR7CgAz5QnPcFHY3KPs206xXeH4aonma7h4nS/dWfGxOqfwAymYR7tFcV4xuS6DkwZWhnAVBMm2m6j0yXrFLwgxdiI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=dkt4Nn2G; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="E5nycGBB"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 64C011F000FF;
-	Fri, 18 Sep 2026 19:51:25 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="dkt4Nn2G"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 898D11F000FF;
+	Fri, 18 Sep 2026 19:51:44 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1789761085;
-	bh=nYt3U+I2C/8tRsYls71rjnxxnYE/hQPPIQwix6/GxoE=;
+	d=linux-foundation.org; s=korg; t=1789761104;
+	bh=ULgnMy2wCYQf7Hsr3AvjjfKSOvkUjCX0AglDMV/K1QI=;
 	h=Date:To:From:Subject;
-	b=E5nycGBB0kSVQ51nz56/CVTN/xSEK0xI8Fr8I5Q5aTlpj9WtRSHW92c9hOljDEAdA
-	 PNaIfimLYyCjlHfrdou5Q1RdpaHlLj6Ogg23cRmWtsF9woCjaVTlk6S8/beP2lSGT8
-	 q5DJAeiNOhpTnUTDy2x+M6TEqOZ+6qiQmXOPZgHA=
-Date: Fri, 18 Sep 2026 12:51:25 -0700
+	b=dkt4Nn2GBDaOUnXDUO25wuTYusq0js3rOmHl8IOV72/zO8+BIiGg3Z/aEMnvTUYNt
+	 FbgAkFWD7kQv5Ok6wvwe1OmXPlaKTkeEzovYL+MI1WRZkeHLIoJipRLc4uDCq5/Mzq
+	 aNU/q8//uVJHSkV++q1fNWqUqTzaQoZGJLZE61kI=
+Date: Fri, 18 Sep 2026 12:51:44 -0700
 To: mm-commits@vger.kernel.org,sarthak.sharma@arm.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + tools-lib-mm-move-hugepage_settings-out-of-selftests.patch added to mm-new branch
-Message-Id: <20260918195125.64C011F000FF@smtp.kernel.org>
+Subject: + tools-mm-move-gup_test-from-selftests-mm-to-tools-mm.patch added to mm-new branch
+Message-Id: <20260918195144.898D11F000FF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: tools/lib/mm: move hugepage_settings out of selftests
+     Subject: tools/mm: move gup_test from selftests/mm to tools/mm
 has been added to the -mm mm-new branch.  Its filename is
-     tools-lib-mm-move-hugepage_settings-out-of-selftests.patch
+     tools-mm-move-gup_test-from-selftests-mm-to-tools-mm.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/tools-lib-mm-move-hugepage_settings-out-of-selftests.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/tools-mm-move-gup_test-from-selftests-mm-to-tools-mm.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,24 +70,29 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Sarthak Sharma <sarthak.sharma@arm.com>
-Subject: tools/lib/mm: move hugepage_settings out of selftests
-Date: Fri, 18 Sep 2026 16:52:31 +0530
+Subject: tools/mm: move gup_test from selftests/mm to tools/mm
+Date: Fri, 18 Sep 2026 16:52:32 +0530
 
-Move hugepage_settings.[ch] from tools/testing/selftests/mm/ to
-tools/lib/mm/ so the THP and HugeTLB helpers can be shared more easily
-between selftests and other tools.
+Move tools/testing/selftests/mm/gup_test.c to tools/mm/gup_bench.c.  This
+is the first step in separating its benchmarking and functional testing
+components.  Later patches will make this a purely benchmarking tool and
+introduce a new functional selftest under selftests/mm.
 
-Keep the helpers exposed to mm selftests through vm_util.h where possible,
-and use direct <mm/hugepage_settings.h> includes for files that do not
-include vm_util.h.  Adjust the selftests/mm build to compile the moved
-implementation from its new location.
+Include hugepage_settings.h directly instead of vm_util.h and use
+getpagesize() instead of psize().
 
-Remove the remaining kselftest dependency by including file_utils.h
-directly and using EXIT_FAILURE in the signal handler.
+Adjust the Makefiles in both locations and add gup_bench to
+tools/mm/.gitignore.  Remove the gup_test invocations from run_vmtests.sh
+and update MAINTAINERS.
 
-Link: https://lore.kernel.org/20260918112234.195857-4-sarthak.sharma@arm.com
+Also remove the gup_test reference from
+Documentation/core-api/pin_user_pages.rst.  The selftest added later in
+the series is standalone and does not need per command documentation here.
+
+Link: https://lore.kernel.org/20260918112234.195857-5-sarthak.sharma@arm.com
 Signed-off-by: Sarthak Sharma <sarthak.sharma@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+Suggested-by: David Hildenbrand (Arm) <david@kernel.org>
 Acked-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
 Acked-by: David Hildenbrand (Arm) <david@kernel.org>
 Tested-by: Muhammad Usama Anjum <usama.anjum@arm.com>
@@ -112,2079 +117,706 @@ Cc: Suren Baghdasaryan <surenb@google.com>
 Cc: Zi Yan <ziy@nvidia.com>
 ---
 
- tools/lib/mm/hugepage_settings.c                      |  688 ++++++++++
- tools/lib/mm/hugepage_settings.h                      |  156 ++
- tools/testing/selftests/mm/Makefile                   |    6 
- tools/testing/selftests/mm/compaction_test.c          |    2 
- tools/testing/selftests/mm/cow.c                      |    1 
- tools/testing/selftests/mm/folio_split_race_test.c    |    1 
- tools/testing/selftests/mm/guard-regions.c            |    1 
- tools/testing/selftests/mm/gup_longterm.c             |    1 
- tools/testing/selftests/mm/gup_test.c                 |    1 
- tools/testing/selftests/mm/hmm-tests.c                |    6 
- tools/testing/selftests/mm/hugepage_settings.c        |  681 ---------
- tools/testing/selftests/mm/hugepage_settings.h        |  156 --
- tools/testing/selftests/mm/hugetlb-madvise.c          |    1 
- tools/testing/selftests/mm/hugetlb-mmap.c             |    1 
- tools/testing/selftests/mm/hugetlb-mremap.c           |    1 
- tools/testing/selftests/mm/hugetlb-shm.c              |    1 
- tools/testing/selftests/mm/hugetlb-soft-offline.c     |    2 
- tools/testing/selftests/mm/hugetlb_dio.c              |    1 
- tools/testing/selftests/mm/hugetlb_fault_after_madv.c |    1 
- tools/testing/selftests/mm/hugetlb_madv_vs_map.c      |    1 
- tools/testing/selftests/mm/khugepaged.c               |    1 
- tools/testing/selftests/mm/ksm_tests.c                |    1 
- tools/testing/selftests/mm/migration.c                |    2 
- tools/testing/selftests/mm/pagemap_ioctl.c            |    1 
- tools/testing/selftests/mm/prctl_thp_disable.c        |    1 
- tools/testing/selftests/mm/protection_keys.c          |    2 
- tools/testing/selftests/mm/soft-dirty.c               |    1 
- tools/testing/selftests/mm/split_huge_page_test.c     |    1 
- tools/testing/selftests/mm/thuge-gen.c                |    1 
- tools/testing/selftests/mm/transhuge-stress.c         |    1 
- tools/testing/selftests/mm/uffd-common.h              |    1 
- tools/testing/selftests/mm/uffd-wp-mremap.c           |    2 
- tools/testing/selftests/mm/va_high_addr_switch.c      |    1 
- tools/testing/selftests/mm/vm_util.h                  |    1 
- 34 files changed, 857 insertions(+), 869 deletions(-)
+ Documentation/core-api/pin_user_pages.rst |    9 
+ MAINTAINERS                               |    2 
+ tools/mm/.gitignore                       |    1 
+ tools/mm/Makefile                         |   11 
+ tools/mm/gup_bench.c                      |  274 ++++++++++++++++++++
+ tools/testing/selftests/mm/Makefile       |    1 
+ tools/testing/selftests/mm/gup_test.c     |  274 --------------------
+ tools/testing/selftests/mm/run_vmtests.sh |   36 --
+ 8 files changed, 284 insertions(+), 324 deletions(-)
 
-diff --git a/tools/lib/mm/hugepage_settings.c a/tools/lib/mm/hugepage_settings.c
+--- a/Documentation/core-api/pin_user_pages.rst~tools-mm-move-gup_test-from-selftests-mm-to-tools-mm
++++ a/Documentation/core-api/pin_user_pages.rst
+@@ -226,15 +226,6 @@ will be pinned longterm, and whose data
+ 
+ Unit testing
+ ============
+-This file::
+-
+- tools/testing/selftests/mm/gup_test.c
+-
+-has the following new calls to exercise the new pin*() wrapper functions:
+-
+-* PIN_FAST_BENCHMARK (./gup_test -a)
+-* PIN_BASIC_TEST (./gup_test -b)
+-
+ You can monitor how many total dma-pinned pages have been acquired and released
+ since the system was booted, via two new /proc/vmstat entries: ::
+ 
+--- a/MAINTAINERS~tools-mm-move-gup_test-from-selftests-mm-to-tools-mm
++++ a/MAINTAINERS
+@@ -17187,8 +17187,8 @@ T:	git git://git.kernel.org/pub/scm/linu
+ F:	mm/gup.c
+ F:	mm/gup_test.c
+ F:	mm/gup_test.h
++F:	tools/mm/gup_bench.c
+ F:	tools/testing/selftests/mm/gup_longterm.c
+-F:	tools/testing/selftests/mm/gup_test.c
+ 
+ MEMORY MANAGEMENT - KSM (Kernel Samepage Merging)
+ M:	Andrew Morton <akpm@linux-foundation.org>
+--- a/tools/mm/.gitignore~tools-mm-move-gup_test-from-selftests-mm-to-tools-mm
++++ a/tools/mm/.gitignore
+@@ -3,3 +3,4 @@ slabinfo
+ page-types
+ page_owner_sort
+ thp_swap_allocator_test
++gup_bench
+diff --git a/tools/mm/gup_bench.c a/tools/mm/gup_bench.c
 new file mode 100644
 --- /dev/null
-+++ a/tools/lib/mm/hugepage_settings.c
-@@ -0,0 +1,688 @@
-+// SPDX-License-Identifier: GPL-2.0
-+#include <dirent.h>
++++ a/tools/mm/gup_bench.c
+@@ -0,0 +1,274 @@
++#define __SANE_USERSPACE_TYPES__ // Use ll64
 +#include <fcntl.h>
-+#include <limits.h>
-+#include <signal.h>
-+#include <stddef.h>
++#include <errno.h>
 +#include <stdio.h>
 +#include <stdlib.h>
-+#include <string.h>
 +#include <unistd.h>
-+#include <errno.h>
++#include <dirent.h>
++#include <sys/ioctl.h>
++#include <sys/mman.h>
++#include <sys/stat.h>
++#include <sys/types.h>
++#include <pthread.h>
++#include <assert.h>
++#include <mm/gup_test.h>
++#include <mm/hugepage_settings.h>
++#include "../testing/selftests/kselftest.h"
 +
-+#include "file_utils.h"
-+#include "hugepage_settings.h"
++#define MB (1UL << 20)
 +
-+#define THP_SYSFS "/sys/kernel/mm/transparent_hugepage/"
-+#define MAX_SETTINGS_DEPTH 4
++/* Just the flags we need, copied from the kernel internals. */
++#define FOLL_WRITE	0x01	/* check pte is writable */
 +
-+#ifndef ARRAY_SIZE
-+#define ARRAY_SIZE(arr) (sizeof(arr) / sizeof((arr)[0]))
-+#endif
++#define GUP_TEST_FILE "/sys/kernel/debug/gup_test"
 +
-+static struct thp_settings settings_stack[MAX_SETTINGS_DEPTH];
-+static int settings_index;
-+static struct thp_settings saved_settings;
-+static char dev_queue_read_ahead_path[PATH_MAX];
-+static bool thp_settings_saved;
++static unsigned long cmd = GUP_FAST_BENCHMARK;
++static int gup_fd, repeats = 1;
++static unsigned long size = 128 * MB;
++/* Serialize prints */
++static pthread_mutex_t print_mutex = PTHREAD_MUTEX_INITIALIZER;
 +
-+static const char * const thp_enabled_strings[] = {
-+	"never",
-+	"always",
-+	"inherit",
-+	"madvise",
-+	NULL
-+};
-+
-+static const char * const thp_defrag_strings[] = {
-+	"always",
-+	"defer",
-+	"defer+madvise",
-+	"madvise",
-+	"never",
-+	NULL
-+};
-+
-+static const char * const shmem_enabled_strings[] = {
-+	"never",
-+	"always",
-+	"within_size",
-+	"advise",
-+	"inherit",
-+	"deny",
-+	"force",
-+	NULL
-+};
-+
-+static void print_file_access_error(const char *path, int ret)
++static char *cmd_to_str(unsigned long cmd)
 +{
-+	printf("# %s: %s (%d)\n", path, strerror(-ret), -ret);
++	switch (cmd) {
++	case GUP_FAST_BENCHMARK:
++		return "GUP_FAST_BENCHMARK";
++	case PIN_FAST_BENCHMARK:
++		return "PIN_FAST_BENCHMARK";
++	case PIN_LONGTERM_BENCHMARK:
++		return "PIN_LONGTERM_BENCHMARK";
++	case GUP_BASIC_TEST:
++		return "GUP_BASIC_TEST";
++	case PIN_BASIC_TEST:
++		return "PIN_BASIC_TEST";
++	case DUMP_USER_PAGES_TEST:
++		return "DUMP_USER_PAGES_TEST";
++	}
++	return "Unknown command";
 +}
 +
-+int thp_read_string(const char *name, const char * const strings[])
++void *gup_thread(void *data)
 +{
-+	char path[PATH_MAX];
-+	char buf[256];
-+	char *c;
-+	int ret;
++	struct gup_test gup = *(struct gup_test *)data;
++	int i, status;
 +
-+	ret = snprintf(path, PATH_MAX, THP_SYSFS "%s", name);
-+	if (ret >= PATH_MAX) {
-+		printf("%s: Pathname is too long\n", __func__);
-+		exit(EXIT_FAILURE);
-+	}
++	/* Only report timing information on the *_BENCHMARK commands: */
++	if ((cmd == PIN_FAST_BENCHMARK) || (cmd == GUP_FAST_BENCHMARK) ||
++	     (cmd == PIN_LONGTERM_BENCHMARK)) {
++		for (i = 0; i < repeats; i++) {
++			gup.size = size;
++			status = ioctl(gup_fd, cmd, &gup);
++			if (status)
++				break;
 +
-+	ret = read_file(path, buf, sizeof(buf));
-+	if (ret) {
-+		print_file_access_error(path, ret);
-+		exit(EXIT_FAILURE);
-+	}
-+
-+	c = strchr(buf, '[');
-+	if (!c) {
-+		printf("%s: Parse failure\n", __func__);
-+		exit(EXIT_FAILURE);
-+	}
-+
-+	c++;
-+	memmove(buf, c, sizeof(buf) - (c - buf));
-+
-+	c = strchr(buf, ']');
-+	if (!c) {
-+		printf("%s: Parse failure\n", __func__);
-+		exit(EXIT_FAILURE);
-+	}
-+	*c = '\0';
-+
-+	ret = 0;
-+	while (strings[ret]) {
-+		if (!strcmp(strings[ret], buf))
-+			return ret;
-+		ret++;
-+	}
-+
-+	printf("Failed to parse %s\n", name);
-+	exit(EXIT_FAILURE);
-+}
-+
-+void thp_write_string(const char *name, const char *val)
-+{
-+	char path[PATH_MAX];
-+	int ret;
-+
-+	ret = snprintf(path, PATH_MAX, THP_SYSFS "%s", name);
-+	if (ret >= PATH_MAX) {
-+		printf("%s: Pathname is too long\n", __func__);
-+		exit(EXIT_FAILURE);
-+	}
-+	ret = write_file(path, val, strlen(val) + 1);
-+	if (ret) {
-+		print_file_access_error(path, ret);
-+		exit(EXIT_FAILURE);
-+	}
-+}
-+
-+unsigned long thp_read_num(const char *name)
-+{
-+	char path[PATH_MAX];
-+	unsigned long num;
-+	int ret;
-+
-+	ret = snprintf(path, PATH_MAX, THP_SYSFS "%s", name);
-+	if (ret >= PATH_MAX) {
-+		printf("%s: Pathname is too long\n", __func__);
-+		exit(EXIT_FAILURE);
-+	}
-+	ret = read_num(path, &num);
-+	if (ret) {
-+		print_file_access_error(path, ret);
-+		exit(EXIT_FAILURE);
-+	}
-+
-+	return num;
-+}
-+
-+void thp_write_num(const char *name, unsigned long num)
-+{
-+	char path[PATH_MAX];
-+	int ret;
-+
-+	ret = snprintf(path, PATH_MAX, THP_SYSFS "%s", name);
-+	if (ret >= PATH_MAX) {
-+		printf("%s: Pathname is too long\n", __func__);
-+		exit(EXIT_FAILURE);
-+	}
-+	ret = write_num(path, num);
-+	if (ret) {
-+		print_file_access_error(path, ret);
-+		exit(EXIT_FAILURE);
-+	}
-+}
-+
-+void thp_read_settings(struct thp_settings *settings)
-+{
-+	unsigned long orders = thp_supported_orders();
-+	unsigned long shmem_orders = thp_shmem_supported_orders();
-+	char path[PATH_MAX];
-+	int i;
-+
-+	*settings = (struct thp_settings) {
-+		.thp_enabled = thp_read_string("enabled", thp_enabled_strings),
-+		.thp_defrag = thp_read_string("defrag", thp_defrag_strings),
-+		.shmem_enabled =
-+			thp_read_string("shmem_enabled", shmem_enabled_strings),
-+		.use_zero_page = thp_read_num("use_zero_page"),
-+	};
-+	settings->khugepaged = (struct khugepaged_settings) {
-+		.defrag = thp_read_num("khugepaged/defrag"),
-+		.alloc_sleep_millisecs =
-+			thp_read_num("khugepaged/alloc_sleep_millisecs"),
-+		.scan_sleep_millisecs =
-+			thp_read_num("khugepaged/scan_sleep_millisecs"),
-+		.max_ptes_none = thp_read_num("khugepaged/max_ptes_none"),
-+		.max_ptes_swap = thp_read_num("khugepaged/max_ptes_swap"),
-+		.max_ptes_shared = thp_read_num("khugepaged/max_ptes_shared"),
-+		.pages_to_scan = thp_read_num("khugepaged/pages_to_scan"),
-+	};
-+	if (dev_queue_read_ahead_path[0]) {
-+		int ret = read_num(dev_queue_read_ahead_path,
-+				   &settings->read_ahead_kb);
-+
-+		if (ret) {
-+			print_file_access_error(dev_queue_read_ahead_path, ret);
-+			exit(EXIT_FAILURE);
++			pthread_mutex_lock(&print_mutex);
++			ksft_print_msg("%s: Time: get:%lld put:%lld us",
++				       cmd_to_str(cmd), gup.get_delta_usec,
++				       gup.put_delta_usec);
++			if (gup.size != size)
++				ksft_print_msg(", truncated (size: %lld)", gup.size);
++			ksft_print_msg("\n");
++			pthread_mutex_unlock(&print_mutex);
 +		}
++	} else {
++		gup.size = size;
++		status = ioctl(gup_fd, cmd, &gup);
++		if (status)
++			goto return_;
++
++		pthread_mutex_lock(&print_mutex);
++		ksft_print_msg("%s: done\n", cmd_to_str(cmd));
++		if (gup.size != size)
++			ksft_print_msg("Truncated (size: %lld)\n", gup.size);
++		pthread_mutex_unlock(&print_mutex);
 +	}
 +
-+	for (i = 0; i < NR_ORDERS; i++) {
-+		if (!((1 << i) & orders)) {
-+			settings->hugepages[i].enabled = THP_NEVER;
-+			continue;
-+		}
-+		snprintf(path, PATH_MAX, "hugepages-%ukB/enabled",
-+			(getpagesize() >> 10) << i);
-+		settings->hugepages[i].enabled =
-+			thp_read_string(path, thp_enabled_strings);
-+	}
-+
-+	for (i = 0; i < NR_ORDERS; i++) {
-+		if (!((1 << i) & shmem_orders)) {
-+			settings->shmem_hugepages[i].enabled = SHMEM_NEVER;
-+			continue;
-+		}
-+		snprintf(path, PATH_MAX, "hugepages-%ukB/shmem_enabled",
-+			(getpagesize() >> 10) << i);
-+		settings->shmem_hugepages[i].enabled =
-+			thp_read_string(path, shmem_enabled_strings);
-+	}
++return_:
++	ksft_test_result(!status, "ioctl status %d\n", status);
++	return NULL;
 +}
 +
-+void thp_write_settings(struct thp_settings *settings)
++int main(int argc, char **argv)
 +{
-+	struct khugepaged_settings *khugepaged = &settings->khugepaged;
-+	unsigned long orders = thp_supported_orders();
-+	unsigned long shmem_orders = thp_shmem_supported_orders();
-+	char path[PATH_MAX];
-+	int enabled;
-+	int i;
++	struct gup_test gup = { 0 };
++	int filed, i, opt, nr_pages = 1, thp = -1, write = 1, nthreads = 1, ret;
++	int flags = MAP_PRIVATE;
++	char *file = "/dev/zero";
++	bool hugetlb = false;
++	pthread_t *tid;
++	char *p;
 +
-+	thp_write_string("enabled", thp_enabled_strings[settings->thp_enabled]);
-+	thp_write_string("defrag", thp_defrag_strings[settings->thp_defrag]);
-+	thp_write_string("shmem_enabled",
-+			shmem_enabled_strings[settings->shmem_enabled]);
-+	thp_write_num("use_zero_page", settings->use_zero_page);
-+
-+	thp_write_num("khugepaged/defrag", khugepaged->defrag);
-+	thp_write_num("khugepaged/alloc_sleep_millisecs",
-+			khugepaged->alloc_sleep_millisecs);
-+	thp_write_num("khugepaged/scan_sleep_millisecs",
-+			khugepaged->scan_sleep_millisecs);
-+	thp_write_num("khugepaged/max_ptes_none", khugepaged->max_ptes_none);
-+	thp_write_num("khugepaged/max_ptes_swap", khugepaged->max_ptes_swap);
-+	thp_write_num("khugepaged/max_ptes_shared", khugepaged->max_ptes_shared);
-+	thp_write_num("khugepaged/pages_to_scan", khugepaged->pages_to_scan);
-+
-+	if (dev_queue_read_ahead_path[0]) {
-+		int ret = write_num(dev_queue_read_ahead_path,
-+				    settings->read_ahead_kb);
-+
-+		if (ret) {
-+			print_file_access_error(dev_queue_read_ahead_path, ret);
-+			exit(EXIT_FAILURE);
-+		}
-+	}
-+
-+	for (i = 0; i < NR_ORDERS; i++) {
-+		if (!((1 << i) & orders))
-+			continue;
-+		snprintf(path, PATH_MAX, "hugepages-%ukB/enabled",
-+			(getpagesize() >> 10) << i);
-+		enabled = settings->hugepages[i].enabled;
-+		thp_write_string(path, thp_enabled_strings[enabled]);
-+	}
-+
-+	for (i = 0; i < NR_ORDERS; i++) {
-+		if (!((1 << i) & shmem_orders))
-+			continue;
-+		snprintf(path, PATH_MAX, "hugepages-%ukB/shmem_enabled",
-+			(getpagesize() >> 10) << i);
-+		enabled = settings->shmem_hugepages[i].enabled;
-+		thp_write_string(path, shmem_enabled_strings[enabled]);
-+	}
-+}
-+
-+struct thp_settings *thp_current_settings(void)
-+{
-+	if (!settings_index) {
-+		printf("Fail: No settings set");
-+		exit(EXIT_FAILURE);
-+	}
-+	return settings_stack + settings_index - 1;
-+}
-+
-+void thp_push_settings(struct thp_settings *settings)
-+{
-+	if (settings_index >= MAX_SETTINGS_DEPTH) {
-+		printf("Fail: Settings stack exceeded");
-+		exit(EXIT_FAILURE);
-+	}
-+	settings_stack[settings_index++] = *settings;
-+	thp_write_settings(thp_current_settings());
-+}
-+
-+void thp_pop_settings(void)
-+{
-+	if (settings_index <= 0) {
-+		printf("Fail: Settings stack empty");
-+		exit(EXIT_FAILURE);
-+	}
-+	--settings_index;
-+	thp_write_settings(thp_current_settings());
-+}
-+
-+void thp_restore_settings(void)
-+{
-+	if (thp_settings_saved)
-+		thp_write_settings(&saved_settings);
-+}
-+
-+static void __thp_save_settings(void)
-+{
-+	if (!thp_available())
-+		return;
-+
-+	if (thp_settings_saved)
-+		return;
-+
-+	thp_read_settings(&saved_settings);
-+	thp_settings_saved = true;
-+}
-+
-+void thp_set_read_ahead_path(char *path)
-+{
-+	if (!path) {
-+		dev_queue_read_ahead_path[0] = '\0';
-+		return;
-+	}
-+
-+	strncpy(dev_queue_read_ahead_path, path,
-+		sizeof(dev_queue_read_ahead_path));
-+	dev_queue_read_ahead_path[sizeof(dev_queue_read_ahead_path) - 1] = '\0';
-+}
-+
-+static unsigned long __thp_supported_orders(bool is_shmem)
-+{
-+	unsigned long orders = 0;
-+	char path[PATH_MAX];
-+	char buf[256];
-+	int ret, i;
-+	char anon_dir[] = "enabled";
-+	char shmem_dir[] = "shmem_enabled";
-+
-+	for (i = 0; i < NR_ORDERS; i++) {
-+		ret = snprintf(path, PATH_MAX, THP_SYSFS "hugepages-%ukB/%s",
-+			       (getpagesize() >> 10) << i, is_shmem ? shmem_dir : anon_dir);
-+		if (ret >= PATH_MAX) {
-+			printf("%s: Pathname is too long\n", __func__);
-+			exit(EXIT_FAILURE);
-+		}
-+
-+		ret = read_file(path, buf, sizeof(buf));
-+		if (ret) {
-+			if (ret != -ENOENT) {
-+				print_file_access_error(path, ret);
-+				exit(EXIT_FAILURE);
-+			}
-+			continue;
-+		}
-+
-+		orders |= 1UL << i;
-+	}
-+
-+	return orders;
-+}
-+
-+unsigned long thp_supported_orders(void)
-+{
-+	return __thp_supported_orders(false);
-+}
-+
-+unsigned long thp_shmem_supported_orders(void)
-+{
-+	return __thp_supported_orders(true);
-+}
-+
-+bool thp_available(void)
-+{
-+	if (access(THP_SYSFS, F_OK) != 0)
-+		return false;
-+	return true;
-+}
-+
-+bool thp_is_enabled(void)
-+{
-+	if (!thp_available())
-+		return false;
-+
-+	int mode = thp_read_string("enabled", thp_enabled_strings);
-+
-+	/* THP is considered enabled if it's either "always" or "madvise" */
-+	return mode == 1 || mode == 3;
-+}
-+
-+#define HUGETLB_MAX_NR_PAGESIZES 10
-+struct hugetlb_settings {
-+	unsigned long nr_hugepages[HUGETLB_MAX_NR_PAGESIZES];
-+	unsigned long sizes[HUGETLB_MAX_NR_PAGESIZES];
-+	unsigned long default_size;
-+	int nr_sizes;
-+};
-+
-+static struct hugetlb_settings hugetlb_saved_settings;
-+static bool hugetlb_settings_saved;
-+
-+int detect_hugetlb_page_sizes(unsigned long sizes[], int max)
-+{
-+	static struct hugetlb_settings *settings = &hugetlb_saved_settings;
-+	DIR *dir;
-+	int count = 0;
-+
-+	if (settings->nr_sizes) {
-+		if (settings->nr_sizes < max)
-+			max = settings->nr_sizes;
-+		for (count = 0; count < max; count++)
-+			sizes[count] = settings->sizes[count];
-+		return count;
-+	}
-+
-+	dir = opendir("/sys/kernel/mm/hugepages/");
-+	if (!dir)
-+		return 0;
-+
-+	while (count < max) {
-+		struct dirent *entry = readdir(dir);
-+		size_t kb;
-+
-+		if (!entry)
++	while ((opt = getopt(argc, argv, "m:r:n:F:f:abcj:tTLUuwWSHpz")) != -1) {
++		switch (opt) {
++		case 'a':
++			cmd = PIN_FAST_BENCHMARK;
 +			break;
-+		if (entry->d_type != DT_DIR)
-+			continue;
-+		if (sscanf(entry->d_name, "hugepages-%zukB", &kb) != 1)
-+			continue;
-+		sizes[count++] = kb * 1024;
-+		printf("# [INFO] detected hugetlb page size: %zu KiB\n", kb);
++		case 'b':
++			cmd = PIN_BASIC_TEST;
++			break;
++		case 'L':
++			cmd = PIN_LONGTERM_BENCHMARK;
++			break;
++		case 'c':
++			cmd = DUMP_USER_PAGES_TEST;
++			/*
++			 * Dump page 0 (index 1). May be overridden later, by
++			 * user's non-option arguments.
++			 *
++			 * .which_pages is zero-based, so that zero can mean "do
++			 * nothing".
++			 */
++			gup.which_pages[0] = 1;
++			break;
++		case 'p':
++			/* works only with DUMP_USER_PAGES_TEST */
++			gup.test_flags |= GUP_TEST_FLAG_DUMP_PAGES_USE_PIN;
++			break;
++		case 'F':
++			/* strtol, so you can pass flags in hex form */
++			gup.gup_flags = strtol(optarg, 0, 0);
++			break;
++		case 'j':
++			nthreads = atoi(optarg);
++			break;
++		case 'm':
++			size = atoi(optarg) * MB;
++			break;
++		case 'r':
++			repeats = atoi(optarg);
++			break;
++		case 'n':
++			nr_pages = atoi(optarg);
++			if (nr_pages < 0)
++				nr_pages = size / getpagesize();
++			break;
++		case 't':
++			thp = 1;
++			break;
++		case 'T':
++			thp = 0;
++			break;
++		case 'U':
++			cmd = GUP_BASIC_TEST;
++			break;
++		case 'u':
++			cmd = GUP_FAST_BENCHMARK;
++			break;
++		case 'w':
++			write = 1;
++			break;
++		case 'W':
++			write = 0;
++			break;
++		case 'f':
++			file = optarg;
++			break;
++		case 'S':
++			flags &= ~MAP_PRIVATE;
++			flags |= MAP_SHARED;
++			break;
++		case 'H':
++			flags |= (MAP_HUGETLB | MAP_ANONYMOUS);
++			hugetlb = true;
++			break;
++		default:
++			ksft_exit_fail_msg("Wrong argument\n");
++		}
 +	}
-+	closedir(dir);
-+	return count;
-+}
 +
-+unsigned long default_huge_page_size(void)
-+{
-+	static struct hugetlb_settings *settings = &hugetlb_saved_settings;
-+	unsigned long hps = 0;
-+	char *line = NULL;
-+	size_t linelen = 0;
-+	FILE *f;
++	if (optind < argc) {
++		int extra_arg_count = 0;
++		/*
++		 * For example:
++		 *
++		 *   ./gup_test -c 0 1 0x1001
++		 *
++		 * ...to dump pages 0, 1, and 4097
++		 */
 +
-+	if (settings->default_size)
-+		return settings->default_size;
++		while ((optind < argc) &&
++		       (extra_arg_count < GUP_TEST_MAX_PAGES_TO_DUMP)) {
++			/*
++			 * Do the 1-based indexing here, so that the user can
++			 * use normal 0-based indexing on the command line.
++			 */
++			long page_index = strtol(argv[optind], 0, 0) + 1;
 +
-+	f = fopen("/proc/meminfo", "r");
-+	if (!f)
-+		return 0;
-+	while (getline(&line, &linelen, f) > 0) {
-+		if (sscanf(line, "Hugepagesize:       %lu kB", &hps) == 1) {
-+			hps <<= 10;
++			gup.which_pages[extra_arg_count] = page_index;
++			extra_arg_count++;
++			optind++;
++		}
++	}
++
++	ksft_print_header();
++
++	if (hugetlb) {
++		unsigned long hp_size = default_huge_page_size();
++
++		if (!hp_size)
++			ksft_exit_skip("HugeTLB is unavailable\n");
++
++		size = (size + hp_size - 1) & ~(hp_size - 1);
++		if (!hugetlb_setup_default(size / hp_size))
++			ksft_exit_skip("Not enough huge pages\n");
++	}
++
++	ksft_set_plan(nthreads);
++
++	filed = open(file, O_RDWR|O_CREAT, 0664);
++	if (filed < 0)
++		ksft_exit_fail_msg("Unable to open %s: %s\n", file, strerror(errno));
++
++	gup.nr_pages_per_call = nr_pages;
++	if (write)
++		gup.gup_flags |= FOLL_WRITE;
++
++	gup_fd = open(GUP_TEST_FILE, O_RDWR);
++	if (gup_fd == -1) {
++		switch (errno) {
++		case EACCES:
++			if (getuid())
++				ksft_print_msg("Please run this test as root\n");
++			break;
++		case ENOENT:
++			if (opendir("/sys/kernel/debug") == NULL)
++				ksft_print_msg("mount debugfs at /sys/kernel/debug\n");
++			ksft_print_msg("check if CONFIG_GUP_TEST is enabled in kernel config\n");
++			break;
++		default:
++			ksft_print_msg("failed to open %s: %s\n", GUP_TEST_FILE, strerror(errno));
 +			break;
 +		}
++		ksft_test_result_skip("Please run this test as root\n");
++		ksft_exit_pass();
 +	}
 +
-+	free(line);
-+	fclose(f);
-+	return hps;
-+}
++	p = mmap(NULL, size, PROT_READ | PROT_WRITE, flags, filed, 0);
++	if (p == MAP_FAILED)
++		ksft_exit_fail_msg("mmap: %s\n", strerror(errno));
++	gup.addr = (unsigned long)p;
 +
-+static void hugetlb_sysfs_path(char *buf, size_t buflen,
-+			       unsigned long size, const char *attr)
-+{
-+	snprintf(buf, buflen, "/sys/kernel/mm/hugepages/hugepages-%lukB/%s",
-+		 size / 1024, attr);
-+}
++	if (thp == 1)
++		madvise(p, size, MADV_HUGEPAGE);
++	else if (thp == 0)
++		madvise(p, size, MADV_NOHUGEPAGE);
 +
-+unsigned long hugetlb_nr_pages(unsigned long size)
-+{
-+	char path[PATH_MAX];
-+	unsigned long nr;
-+	int ret;
++	/* Fault them in here, from user space. */
++	for (; (unsigned long)p < gup.addr + size; p += getpagesize())
++		p[0] = 0;
 +
-+	hugetlb_sysfs_path(path, sizeof(path), size, "nr_hugepages");
-+
-+	ret = read_num(path, &nr);
-+	if (ret) {
-+		print_file_access_error(path, ret);
-+		exit(EXIT_FAILURE);
++	tid = malloc(sizeof(pthread_t) * nthreads);
++	assert(tid);
++	for (i = 0; i < nthreads; i++) {
++		ret = pthread_create(&tid[i], NULL, gup_thread, &gup);
++		assert(ret == 0);
++	}
++	for (i = 0; i < nthreads; i++) {
++		ret = pthread_join(tid[i], NULL);
++		assert(ret == 0);
 +	}
 +
-+	return nr;
++	free(tid);
++
++	ksft_exit_pass();
 +}
-+
-+void hugetlb_set_nr_pages(unsigned long size, unsigned long nr)
-+{
-+	char path[PATH_MAX];
-+	int ret;
-+
-+	hugetlb_sysfs_path(path, sizeof(path), size, "nr_hugepages");
-+
-+	ret = write_num_ignore_einval(path, nr);
-+	if (ret) {
-+		print_file_access_error(path, ret);
-+		exit(EXIT_FAILURE);
-+	}
-+}
-+
-+unsigned long hugetlb_free_pages(unsigned long size)
-+{
-+	char path[PATH_MAX];
-+	unsigned long nr;
-+	int ret;
-+
-+	hugetlb_sysfs_path(path, sizeof(path), size, "free_hugepages");
-+
-+	ret = read_num(path, &nr);
-+	if (ret) {
-+		print_file_access_error(path, ret);
-+		exit(EXIT_FAILURE);
-+	}
-+
-+	return nr;
-+}
-+
-+unsigned long hugetlb_nr_resv_pages(unsigned long size)
-+{
-+	char path[PATH_MAX];
-+	unsigned long nr;
-+	int ret;
-+
-+	hugetlb_sysfs_path(path, sizeof(path), size, "resv_hugepages");
-+
-+	ret = read_num(path, &nr);
-+	if (ret) {
-+		print_file_access_error(path, ret);
-+		exit(EXIT_FAILURE);
-+	}
-+
-+	return nr;
-+}
-+
-+static bool __hugetlb_setup(unsigned long size, unsigned long nr)
-+{
-+	unsigned long free = hugetlb_free_pages(size);
-+	unsigned long total = hugetlb_nr_pages(size);
-+
-+	if (free >= nr)
-+		return true;
-+
-+	hugetlb_set_nr_pages(size, total + (nr - free));
-+
-+	return hugetlb_free_pages(size) >= nr;
-+}
-+
-+bool hugetlb_setup_default(unsigned long nr)
-+{
-+	unsigned long size;
-+
-+	hugetlb_save_settings();
-+	size = default_huge_page_size();
-+	if (!size)
-+		return false;
-+
-+	return __hugetlb_setup(size, nr);
-+}
-+
-+bool hugetlb_setup_default_exact(unsigned long nr)
-+{
-+	unsigned long size;
-+
-+	hugetlb_save_settings();
-+	size = default_huge_page_size();
-+	if (!size)
-+		return false;
-+
-+	hugetlb_set_nr_pages(size, nr);
-+
-+	return hugetlb_free_pages(size) == nr;
-+}
-+
-+unsigned long hugetlb_setup(unsigned long nr, unsigned long sizes[],
-+			    int max)
-+{
-+	unsigned long enabled[10];
-+	int nr_sizes = 0;
-+	int nr_enabled;
-+
-+	hugetlb_save_settings();
-+
-+	nr_enabled = detect_hugetlb_page_sizes(enabled, ARRAY_SIZE(enabled));
-+	if (!nr_enabled)
-+		return 0;
-+
-+	if (nr_enabled > max) {
-+		printf("# detected %d huge page sizes, will only test %d\n",
-+		       nr_enabled, max);
-+		nr_enabled = max;
-+	}
-+
-+	/* request nr HugeTLB pages of every size. */
-+	for (int i = 0; i < nr_enabled; i++) {
-+		if (!__hugetlb_setup(enabled[i], nr))
-+			continue;
-+		sizes[nr_sizes++] = enabled[i];
-+	}
-+
-+	return nr_sizes;
-+}
-+
-+static void __hugetlb_save_settings(void)
-+{
-+	struct hugetlb_settings *settings = &hugetlb_saved_settings;
-+	int nr_sizes;
-+
-+	if (hugetlb_settings_saved)
-+		return;
-+
-+	settings->default_size = default_huge_page_size();
-+	if (!settings->default_size)
-+		return;
-+
-+	nr_sizes = detect_hugetlb_page_sizes(settings->sizes,
-+					     HUGETLB_MAX_NR_PAGESIZES);
-+	if (!nr_sizes) {
-+		settings->default_size = 0;
-+		return;
-+	}
-+
-+	for (int i = 0; i < nr_sizes; i++) {
-+		unsigned long sz = settings->sizes[i];
-+
-+		if (!sz)
-+			continue;
-+		settings->nr_hugepages[i] = hugetlb_nr_pages(sz);
-+	}
-+
-+	settings->nr_sizes = nr_sizes;
-+	hugetlb_settings_saved = true;
-+}
-+
-+void hugetlb_restore_settings(void)
-+{
-+	struct hugetlb_settings *settings = &hugetlb_saved_settings;
-+
-+	if (!hugetlb_settings_saved || !settings->default_size)
-+		return;
-+
-+	for (int i = 0; i < HUGETLB_MAX_NR_PAGESIZES; i++) {
-+		unsigned long sz = settings->sizes[i];
-+
-+		if (!sz)
-+			continue;
-+
-+		hugetlb_set_nr_pages(sz, settings->nr_hugepages[i]);
-+	}
-+}
-+
-+static void hugepage_restore_settings_atexit(void)
-+{
-+	if (thp_settings_saved)
-+		thp_restore_settings();
-+	if (hugetlb_settings_saved)
-+		hugetlb_restore_settings();
-+}
-+
-+static void hugepage_restore_settings_sighandler(int sig)
-+{
-+	(void)sig;
-+
-+	/* exit() will invoke the hugepage_restore_settings_atexit handler. */
-+	exit(EXIT_FAILURE);
-+}
-+
-+void hugepage_save_settings(bool thp, bool hugetlb)
-+{
-+	if (!thp && !hugetlb)
-+		return;
-+
-+	if (thp)
-+		__thp_save_settings();
-+	if (hugetlb)
-+		__hugetlb_save_settings();
-+
-+	/*
-+	 * setup exit hooks to make sure THP and HugeTLB settings are
-+	 * restored on graceful and error exits and signals
-+	 */
-+	atexit(hugepage_restore_settings_atexit);
-+	signal(SIGTERM, hugepage_restore_settings_sighandler);
-+	signal(SIGINT, hugepage_restore_settings_sighandler);
-+	signal(SIGHUP, hugepage_restore_settings_sighandler);
-+	signal(SIGQUIT, hugepage_restore_settings_sighandler);
-+}
-diff --git a/tools/lib/mm/hugepage_settings.h a/tools/lib/mm/hugepage_settings.h
-new file mode 100644
---- /dev/null
-+++ a/tools/lib/mm/hugepage_settings.h
-@@ -0,0 +1,156 @@
-+/* SPDX-License-Identifier: GPL-2.0 */
-+#ifndef __HUGEPAGE_SETTINGS_H__
-+#define __HUGEPAGE_SETTINGS_H__
-+
-+#include <stdbool.h>
-+#include <stddef.h>
-+#include <stdint.h>
-+
-+void hugepage_save_settings(bool thp, bool hugetlb);
-+
-+/* Transparent Huge Pages (THP) */
-+
-+enum thp_enabled {
-+	THP_NEVER,
-+	THP_ALWAYS,
-+	THP_INHERIT,
-+	THP_MADVISE,
-+};
-+
-+enum thp_defrag {
-+	THP_DEFRAG_ALWAYS,
-+	THP_DEFRAG_DEFER,
-+	THP_DEFRAG_DEFER_MADVISE,
-+	THP_DEFRAG_MADVISE,
-+	THP_DEFRAG_NEVER,
-+};
-+
-+enum shmem_enabled {
-+	SHMEM_NEVER,
-+	SHMEM_ALWAYS,
-+	SHMEM_WITHIN_SIZE,
-+	SHMEM_ADVISE,
-+	SHMEM_INHERIT,
-+	SHMEM_DENY,
-+	SHMEM_FORCE,
-+};
-+
-+#define NR_ORDERS 20
-+
-+struct hugepages_settings {
-+	enum thp_enabled enabled;
-+};
-+
-+struct khugepaged_settings {
-+	bool defrag;
-+	unsigned int alloc_sleep_millisecs;
-+	unsigned int scan_sleep_millisecs;
-+	unsigned int max_ptes_none;
-+	unsigned int max_ptes_swap;
-+	unsigned int max_ptes_shared;
-+	unsigned long pages_to_scan;
-+};
-+
-+struct shmem_hugepages_settings {
-+	enum shmem_enabled enabled;
-+};
-+
-+struct thp_settings {
-+	enum thp_enabled thp_enabled;
-+	enum thp_defrag thp_defrag;
-+	enum shmem_enabled shmem_enabled;
-+	bool use_zero_page;
-+	struct khugepaged_settings khugepaged;
-+	unsigned long read_ahead_kb;
-+	struct hugepages_settings hugepages[NR_ORDERS];
-+	struct shmem_hugepages_settings shmem_hugepages[NR_ORDERS];
-+};
-+
-+int thp_read_string(const char *name, const char * const strings[]);
-+void thp_write_string(const char *name, const char *val);
-+unsigned long thp_read_num(const char *name);
-+void thp_write_num(const char *name, unsigned long num);
-+
-+void thp_write_settings(struct thp_settings *settings);
-+void thp_read_settings(struct thp_settings *settings);
-+struct thp_settings *thp_current_settings(void);
-+void thp_push_settings(struct thp_settings *settings);
-+void thp_pop_settings(void);
-+void thp_restore_settings(void);
-+
-+static inline void thp_save_settings(void)
-+{
-+	hugepage_save_settings(/* thp = */ true, /* hugetlb = */ false);
-+}
-+
-+void thp_set_read_ahead_path(char *path);
-+unsigned long thp_supported_orders(void);
-+unsigned long thp_shmem_supported_orders(void);
-+
-+bool thp_available(void);
-+bool thp_is_enabled(void);
-+
-+/* HugeTLB */
-+
-+int detect_hugetlb_page_sizes(unsigned long sizes[], int max);
-+unsigned long default_huge_page_size(void);
-+
-+unsigned long hugetlb_nr_pages(unsigned long size);
-+void hugetlb_set_nr_pages(unsigned long size, unsigned long nr);
-+unsigned long hugetlb_free_pages(unsigned long size);
-+unsigned long hugetlb_nr_resv_pages(unsigned long size);
-+
-+static inline void hugetlb_save_settings(void)
-+{
-+	hugepage_save_settings(/* thp = */ false, /* hugetlb = */ true);
-+}
-+
-+void hugetlb_restore_settings(void);
-+
-+static inline unsigned long hugetlb_nr_default_pages(void)
-+{
-+	unsigned long size = default_huge_page_size();
-+
-+	if (!size)
-+		return 0;
-+
-+	return hugetlb_nr_pages(size);
-+}
-+
-+static inline void hugetlb_set_nr_default_pages(unsigned long nr)
-+{
-+	unsigned long size = default_huge_page_size();
-+
-+	if (!size)
-+		return;
-+
-+	hugetlb_set_nr_pages(size, nr);
-+}
-+
-+static inline unsigned long hugetlb_free_default_pages(void)
-+{
-+	unsigned long size = default_huge_page_size();
-+
-+	if (!size)
-+		return 0;
-+
-+	return hugetlb_free_pages(size);
-+}
-+
-+static inline bool hugetlb_available(void)
-+{
-+	return default_huge_page_size() != 0;
-+}
-+
-+bool hugetlb_setup_default(unsigned long nr);
-+bool hugetlb_setup_default_exact(unsigned long nr);
-+unsigned long hugetlb_setup(unsigned long nr, unsigned long sizes[],
-+			    int max);
-+
-+#define HUGETLB_SETUP_DEFAULT_PAGES(nr_pages) \
-+static void __attribute__((constructor)) __hugetlb_setup_default(void)	\
-+{									\
-+	hugetlb_setup_default((nr_pages));				\
-+}
-+
-+#endif /* __HUGEPAGE_SETTINGS_H__ */
---- a/tools/testing/selftests/mm/compaction_test.c~tools-lib-mm-move-hugepage_settings-out-of-selftests
-+++ a/tools/testing/selftests/mm/compaction_test.c
-@@ -15,9 +15,9 @@
- #include <errno.h>
- #include <unistd.h>
- #include <string.h>
-+#include <mm/hugepage_settings.h>
+--- a/tools/mm/Makefile~tools-mm-move-gup_test-from-selftests-mm-to-tools-mm
++++ a/tools/mm/Makefile
+@@ -3,13 +3,15 @@
+ #
+ include ../scripts/Makefile.include
  
- #include "kselftest.h"
--#include "hugepage_settings.h"
+-BUILD_TARGETS=page-types slabinfo page_owner_sort page_owner_filter thp_swap_allocator_test
++BUILD_TARGETS=page-types slabinfo page_owner_sort page_owner_filter
++BUILD_TARGETS += thp_swap_allocator_test gup_bench
+ INSTALL_TARGETS = $(BUILD_TARGETS) thpmaps
  
- #define MAP_SIZE_MB	100
- #define MAP_SIZE	(MAP_SIZE_MB * 1024 * 1024)
---- a/tools/testing/selftests/mm/cow.c~tools-lib-mm-move-hugepage_settings-out-of-selftests
-+++ a/tools/testing/selftests/mm/cow.c
-@@ -29,7 +29,6 @@
- #include "../../../../mm/gup_test.h"
- #include "kselftest.h"
- #include "vm_util.h"
--#include "hugepage_settings.h"
+ LIB_DIR = ../lib/api
+ LIBS = $(LIB_DIR)/libapi.a
++GUP_BENCH_OBJS = gup_bench.c ../lib/mm/hugepage_settings.c ../lib/mm/file_utils.c
  
- static size_t pagesize;
- static int pagemap_fd;
---- a/tools/testing/selftests/mm/folio_split_race_test.c~tools-lib-mm-move-hugepage_settings-out-of-selftests
-+++ a/tools/testing/selftests/mm/folio_split_race_test.c
-@@ -25,7 +25,6 @@
- #include <unistd.h>
- #include "vm_util.h"
- #include "kselftest.h"
--#include "hugepage_settings.h"
+-CFLAGS += -Wall -Wextra -I../lib/ -pthread
++CFLAGS += -Wall -Wextra -I../lib/ -I../.. -pthread
+ LDFLAGS += $(LIBS) -pthread
  
- uint64_t page_size;
- uint64_t pmd_pagesize;
---- a/tools/testing/selftests/mm/guard-regions.c~tools-lib-mm-move-hugepage_settings-out-of-selftests
-+++ a/tools/testing/selftests/mm/guard-regions.c
-@@ -21,7 +21,6 @@
- #include <sys/uio.h>
- #include <unistd.h>
- #include "vm_util.h"
--#include "hugepage_settings.h"
+ all: $(BUILD_TARGETS)
+@@ -22,8 +24,11 @@ $(LIBS):
+ %: %.c
+ 	$(CC) $(CFLAGS) -o $@ $< $(LDFLAGS)
  
- #include "../pidfd/pidfd.h"
- 
---- a/tools/testing/selftests/mm/gup_longterm.c~tools-lib-mm-move-hugepage_settings-out-of-selftests
-+++ a/tools/testing/selftests/mm/gup_longterm.c
-@@ -29,7 +29,6 @@
- #include "../../../../mm/gup_test.h"
- #include "kselftest.h"
- #include "vm_util.h"
--#include "hugepage_settings.h"
- 
- static size_t pagesize;
- static int nr_hugetlbsizes;
---- a/tools/testing/selftests/mm/gup_test.c~tools-lib-mm-move-hugepage_settings-out-of-selftests
-+++ a/tools/testing/selftests/mm/gup_test.c
-@@ -14,7 +14,6 @@
- #include <mm/gup_test.h>
- #include "kselftest.h"
- #include "vm_util.h"
--#include "hugepage_settings.h"
- 
- #define MB (1UL << 20)
- 
---- a/tools/testing/selftests/mm/hmm-tests.c~tools-lib-mm-move-hugepage_settings-out-of-selftests
-+++ a/tools/testing/selftests/mm/hmm-tests.c
-@@ -10,9 +10,6 @@
-  * bugs.
-  */
- 
--#include "kselftest_harness.h"
--#include "hugepage_settings.h"
--
- #include <errno.h>
- #include <fcntl.h>
- #include <stdio.h>
-@@ -33,6 +30,9 @@
- #include <sys/eventfd.h>
- #include <linux/userfaultfd.h>
- #include <poll.h>
-+#include <mm/hugepage_settings.h>
++gup_bench: $(GUP_BENCH_OBJS) $(LIBS)
++	$(CC) $(CFLAGS) -o $@ $(GUP_BENCH_OBJS) $(LDFLAGS)
 +
-+#include "kselftest_harness.h"
+ clean:
+-	$(RM) page-types slabinfo page_owner_sort page_owner_filter thp_swap_allocator_test
++	$(RM) page-types slabinfo page_owner_sort page_owner_filter thp_swap_allocator_test gup_bench
+ 	make -C $(LIB_DIR) clean
  
- /*
-  * This is a private UAPI to the kernel test module so it isn't exported
-diff --git a/tools/testing/selftests/mm/hugepage_settings.c a/tools/testing/selftests/mm/hugepage_settings.c
+ sbindir ?= /usr/sbin
+diff --git a/tools/testing/selftests/mm/gup_test.c a/tools/testing/selftests/mm/gup_test.c
 deleted file mode 100644
---- a/tools/testing/selftests/mm/hugepage_settings.c
+--- a/tools/testing/selftests/mm/gup_test.c
 +++ /dev/null
-@@ -1,681 +0,0 @@
--// SPDX-License-Identifier: GPL-2.0
--#include <dirent.h>
+@@ -1,274 +0,0 @@
+-#define __SANE_USERSPACE_TYPES__ // Use ll64
 -#include <fcntl.h>
--#include <limits.h>
--#include <signal.h>
--#include <stddef.h>
+-#include <errno.h>
 -#include <stdio.h>
 -#include <stdlib.h>
--#include <string.h>
 -#include <unistd.h>
--#include <errno.h>
--
+-#include <dirent.h>
+-#include <sys/ioctl.h>
+-#include <sys/mman.h>
+-#include <sys/stat.h>
+-#include <sys/types.h>
+-#include <pthread.h>
+-#include <assert.h>
+-#include <mm/gup_test.h>
+-#include "kselftest.h"
 -#include "vm_util.h"
--#include "hugepage_settings.h"
 -
--#define THP_SYSFS "/sys/kernel/mm/transparent_hugepage/"
--#define MAX_SETTINGS_DEPTH 4
--static struct thp_settings settings_stack[MAX_SETTINGS_DEPTH];
--static int settings_index;
--static struct thp_settings saved_settings;
--static char dev_queue_read_ahead_path[PATH_MAX];
--static bool thp_settings_saved;
+-#define MB (1UL << 20)
 -
--static const char * const thp_enabled_strings[] = {
--	"never",
--	"always",
--	"inherit",
--	"madvise",
--	NULL
--};
+-/* Just the flags we need, copied from the kernel internals. */
+-#define FOLL_WRITE	0x01	/* check pte is writable */
 -
--static const char * const thp_defrag_strings[] = {
--	"always",
--	"defer",
--	"defer+madvise",
--	"madvise",
--	"never",
--	NULL
--};
+-#define GUP_TEST_FILE "/sys/kernel/debug/gup_test"
 -
--static const char * const shmem_enabled_strings[] = {
--	"never",
--	"always",
--	"within_size",
--	"advise",
--	"inherit",
--	"deny",
--	"force",
--	NULL
--};
+-static unsigned long cmd = GUP_FAST_BENCHMARK;
+-static int gup_fd, repeats = 1;
+-static unsigned long size = 128 * MB;
+-/* Serialize prints */
+-static pthread_mutex_t print_mutex = PTHREAD_MUTEX_INITIALIZER;
 -
--static void print_file_access_error(const char *path, int ret)
+-static char *cmd_to_str(unsigned long cmd)
 -{
--	printf("# %s: %s (%d)\n", path, strerror(-ret), -ret);
+-	switch (cmd) {
+-	case GUP_FAST_BENCHMARK:
+-		return "GUP_FAST_BENCHMARK";
+-	case PIN_FAST_BENCHMARK:
+-		return "PIN_FAST_BENCHMARK";
+-	case PIN_LONGTERM_BENCHMARK:
+-		return "PIN_LONGTERM_BENCHMARK";
+-	case GUP_BASIC_TEST:
+-		return "GUP_BASIC_TEST";
+-	case PIN_BASIC_TEST:
+-		return "PIN_BASIC_TEST";
+-	case DUMP_USER_PAGES_TEST:
+-		return "DUMP_USER_PAGES_TEST";
+-	}
+-	return "Unknown command";
 -}
 -
--int thp_read_string(const char *name, const char * const strings[])
+-void *gup_thread(void *data)
 -{
--	char path[PATH_MAX];
--	char buf[256];
--	char *c;
--	int ret;
+-	struct gup_test gup = *(struct gup_test *)data;
+-	int i, status;
 -
--	ret = snprintf(path, PATH_MAX, THP_SYSFS "%s", name);
--	if (ret >= PATH_MAX) {
--		printf("%s: Pathname is too long\n", __func__);
--		exit(EXIT_FAILURE);
--	}
+-	/* Only report timing information on the *_BENCHMARK commands: */
+-	if ((cmd == PIN_FAST_BENCHMARK) || (cmd == GUP_FAST_BENCHMARK) ||
+-	     (cmd == PIN_LONGTERM_BENCHMARK)) {
+-		for (i = 0; i < repeats; i++) {
+-			gup.size = size;
+-			status = ioctl(gup_fd, cmd, &gup);
+-			if (status)
+-				break;
 -
--	ret = read_file(path, buf, sizeof(buf));
--	if (ret) {
--		print_file_access_error(path, ret);
--		exit(EXIT_FAILURE);
--	}
--
--	c = strchr(buf, '[');
--	if (!c) {
--		printf("%s: Parse failure\n", __func__);
--		exit(EXIT_FAILURE);
--	}
--
--	c++;
--	memmove(buf, c, sizeof(buf) - (c - buf));
--
--	c = strchr(buf, ']');
--	if (!c) {
--		printf("%s: Parse failure\n", __func__);
--		exit(EXIT_FAILURE);
--	}
--	*c = '\0';
--
--	ret = 0;
--	while (strings[ret]) {
--		if (!strcmp(strings[ret], buf))
--			return ret;
--		ret++;
--	}
--
--	printf("Failed to parse %s\n", name);
--	exit(EXIT_FAILURE);
--}
--
--void thp_write_string(const char *name, const char *val)
--{
--	char path[PATH_MAX];
--	int ret;
--
--	ret = snprintf(path, PATH_MAX, THP_SYSFS "%s", name);
--	if (ret >= PATH_MAX) {
--		printf("%s: Pathname is too long\n", __func__);
--		exit(EXIT_FAILURE);
--	}
--	ret = write_file(path, val, strlen(val) + 1);
--	if (ret) {
--		print_file_access_error(path, ret);
--		exit(EXIT_FAILURE);
--	}
--}
--
--unsigned long thp_read_num(const char *name)
--{
--	char path[PATH_MAX];
--	unsigned long num;
--	int ret;
--
--	ret = snprintf(path, PATH_MAX, THP_SYSFS "%s", name);
--	if (ret >= PATH_MAX) {
--		printf("%s: Pathname is too long\n", __func__);
--		exit(EXIT_FAILURE);
--	}
--	ret = read_num(path, &num);
--	if (ret) {
--		print_file_access_error(path, ret);
--		exit(EXIT_FAILURE);
--	}
--
--	return num;
--}
--
--void thp_write_num(const char *name, unsigned long num)
--{
--	char path[PATH_MAX];
--	int ret;
--
--	ret = snprintf(path, PATH_MAX, THP_SYSFS "%s", name);
--	if (ret >= PATH_MAX) {
--		printf("%s: Pathname is too long\n", __func__);
--		exit(EXIT_FAILURE);
--	}
--	ret = write_num(path, num);
--	if (ret) {
--		print_file_access_error(path, ret);
--		exit(EXIT_FAILURE);
--	}
--}
--
--void thp_read_settings(struct thp_settings *settings)
--{
--	unsigned long orders = thp_supported_orders();
--	unsigned long shmem_orders = thp_shmem_supported_orders();
--	char path[PATH_MAX];
--	int i;
--
--	*settings = (struct thp_settings) {
--		.thp_enabled = thp_read_string("enabled", thp_enabled_strings),
--		.thp_defrag = thp_read_string("defrag", thp_defrag_strings),
--		.shmem_enabled =
--			thp_read_string("shmem_enabled", shmem_enabled_strings),
--		.use_zero_page = thp_read_num("use_zero_page"),
--	};
--	settings->khugepaged = (struct khugepaged_settings) {
--		.defrag = thp_read_num("khugepaged/defrag"),
--		.alloc_sleep_millisecs =
--			thp_read_num("khugepaged/alloc_sleep_millisecs"),
--		.scan_sleep_millisecs =
--			thp_read_num("khugepaged/scan_sleep_millisecs"),
--		.max_ptes_none = thp_read_num("khugepaged/max_ptes_none"),
--		.max_ptes_swap = thp_read_num("khugepaged/max_ptes_swap"),
--		.max_ptes_shared = thp_read_num("khugepaged/max_ptes_shared"),
--		.pages_to_scan = thp_read_num("khugepaged/pages_to_scan"),
--	};
--	if (dev_queue_read_ahead_path[0]) {
--		int ret = read_num(dev_queue_read_ahead_path,
--				   &settings->read_ahead_kb);
--
--		if (ret) {
--			print_file_access_error(dev_queue_read_ahead_path, ret);
--			exit(EXIT_FAILURE);
+-			pthread_mutex_lock(&print_mutex);
+-			ksft_print_msg("%s: Time: get:%lld put:%lld us",
+-				       cmd_to_str(cmd), gup.get_delta_usec,
+-				       gup.put_delta_usec);
+-			if (gup.size != size)
+-				ksft_print_msg(", truncated (size: %lld)", gup.size);
+-			ksft_print_msg("\n");
+-			pthread_mutex_unlock(&print_mutex);
 -		}
+-	} else {
+-		gup.size = size;
+-		status = ioctl(gup_fd, cmd, &gup);
+-		if (status)
+-			goto return_;
+-
+-		pthread_mutex_lock(&print_mutex);
+-		ksft_print_msg("%s: done\n", cmd_to_str(cmd));
+-		if (gup.size != size)
+-			ksft_print_msg("Truncated (size: %lld)\n", gup.size);
+-		pthread_mutex_unlock(&print_mutex);
 -	}
 -
--	for (i = 0; i < NR_ORDERS; i++) {
--		if (!((1 << i) & orders)) {
--			settings->hugepages[i].enabled = THP_NEVER;
--			continue;
--		}
--		snprintf(path, PATH_MAX, "hugepages-%ukB/enabled",
--			(getpagesize() >> 10) << i);
--		settings->hugepages[i].enabled =
--			thp_read_string(path, thp_enabled_strings);
--	}
--
--	for (i = 0; i < NR_ORDERS; i++) {
--		if (!((1 << i) & shmem_orders)) {
--			settings->shmem_hugepages[i].enabled = SHMEM_NEVER;
--			continue;
--		}
--		snprintf(path, PATH_MAX, "hugepages-%ukB/shmem_enabled",
--			(getpagesize() >> 10) << i);
--		settings->shmem_hugepages[i].enabled =
--			thp_read_string(path, shmem_enabled_strings);
--	}
+-return_:
+-	ksft_test_result(!status, "ioctl status %d\n", status);
+-	return NULL;
 -}
 -
--void thp_write_settings(struct thp_settings *settings)
+-int main(int argc, char **argv)
 -{
--	struct khugepaged_settings *khugepaged = &settings->khugepaged;
--	unsigned long orders = thp_supported_orders();
--	unsigned long shmem_orders = thp_shmem_supported_orders();
--	char path[PATH_MAX];
--	int enabled;
--	int i;
+-	struct gup_test gup = { 0 };
+-	int filed, i, opt, nr_pages = 1, thp = -1, write = 1, nthreads = 1, ret;
+-	int flags = MAP_PRIVATE;
+-	char *file = "/dev/zero";
+-	bool hugetlb = false;
+-	pthread_t *tid;
+-	char *p;
 -
--	thp_write_string("enabled", thp_enabled_strings[settings->thp_enabled]);
--	thp_write_string("defrag", thp_defrag_strings[settings->thp_defrag]);
--	thp_write_string("shmem_enabled",
--			shmem_enabled_strings[settings->shmem_enabled]);
--	thp_write_num("use_zero_page", settings->use_zero_page);
--
--	thp_write_num("khugepaged/defrag", khugepaged->defrag);
--	thp_write_num("khugepaged/alloc_sleep_millisecs",
--			khugepaged->alloc_sleep_millisecs);
--	thp_write_num("khugepaged/scan_sleep_millisecs",
--			khugepaged->scan_sleep_millisecs);
--	thp_write_num("khugepaged/max_ptes_none", khugepaged->max_ptes_none);
--	thp_write_num("khugepaged/max_ptes_swap", khugepaged->max_ptes_swap);
--	thp_write_num("khugepaged/max_ptes_shared", khugepaged->max_ptes_shared);
--	thp_write_num("khugepaged/pages_to_scan", khugepaged->pages_to_scan);
--
--	if (dev_queue_read_ahead_path[0]) {
--		int ret = write_num(dev_queue_read_ahead_path,
--				    settings->read_ahead_kb);
--
--		if (ret) {
--			print_file_access_error(dev_queue_read_ahead_path, ret);
--			exit(EXIT_FAILURE);
--		}
--	}
--
--	for (i = 0; i < NR_ORDERS; i++) {
--		if (!((1 << i) & orders))
--			continue;
--		snprintf(path, PATH_MAX, "hugepages-%ukB/enabled",
--			(getpagesize() >> 10) << i);
--		enabled = settings->hugepages[i].enabled;
--		thp_write_string(path, thp_enabled_strings[enabled]);
--	}
--
--	for (i = 0; i < NR_ORDERS; i++) {
--		if (!((1 << i) & shmem_orders))
--			continue;
--		snprintf(path, PATH_MAX, "hugepages-%ukB/shmem_enabled",
--			(getpagesize() >> 10) << i);
--		enabled = settings->shmem_hugepages[i].enabled;
--		thp_write_string(path, shmem_enabled_strings[enabled]);
--	}
--}
--
--struct thp_settings *thp_current_settings(void)
--{
--	if (!settings_index) {
--		printf("Fail: No settings set");
--		exit(EXIT_FAILURE);
--	}
--	return settings_stack + settings_index - 1;
--}
--
--void thp_push_settings(struct thp_settings *settings)
--{
--	if (settings_index >= MAX_SETTINGS_DEPTH) {
--		printf("Fail: Settings stack exceeded");
--		exit(EXIT_FAILURE);
--	}
--	settings_stack[settings_index++] = *settings;
--	thp_write_settings(thp_current_settings());
--}
--
--void thp_pop_settings(void)
--{
--	if (settings_index <= 0) {
--		printf("Fail: Settings stack empty");
--		exit(EXIT_FAILURE);
--	}
--	--settings_index;
--	thp_write_settings(thp_current_settings());
--}
--
--void thp_restore_settings(void)
--{
--	if (thp_settings_saved)
--		thp_write_settings(&saved_settings);
--}
--
--static void __thp_save_settings(void)
--{
--	if (!thp_available())
--		return;
--
--	if (thp_settings_saved)
--		return;
--
--	thp_read_settings(&saved_settings);
--	thp_settings_saved = true;
--}
--
--void thp_set_read_ahead_path(char *path)
--{
--	if (!path) {
--		dev_queue_read_ahead_path[0] = '\0';
--		return;
--	}
--
--	strncpy(dev_queue_read_ahead_path, path,
--		sizeof(dev_queue_read_ahead_path));
--	dev_queue_read_ahead_path[sizeof(dev_queue_read_ahead_path) - 1] = '\0';
--}
--
--static unsigned long __thp_supported_orders(bool is_shmem)
--{
--	unsigned long orders = 0;
--	char path[PATH_MAX];
--	char buf[256];
--	int ret, i;
--	char anon_dir[] = "enabled";
--	char shmem_dir[] = "shmem_enabled";
--
--	for (i = 0; i < NR_ORDERS; i++) {
--		ret = snprintf(path, PATH_MAX, THP_SYSFS "hugepages-%ukB/%s",
--			       (getpagesize() >> 10) << i, is_shmem ? shmem_dir : anon_dir);
--		if (ret >= PATH_MAX) {
--			printf("%s: Pathname is too long\n", __func__);
--			exit(EXIT_FAILURE);
--		}
--
--		ret = read_file(path, buf, sizeof(buf));
--		if (ret) {
--			if (ret != -ENOENT) {
--				print_file_access_error(path, ret);
--				exit(EXIT_FAILURE);
--			}
--			continue;
--		}
--
--		orders |= 1UL << i;
--	}
--
--	return orders;
--}
--
--unsigned long thp_supported_orders(void)
--{
--	return __thp_supported_orders(false);
--}
--
--unsigned long thp_shmem_supported_orders(void)
--{
--	return __thp_supported_orders(true);
--}
--
--bool thp_available(void)
--{
--	if (access(THP_SYSFS, F_OK) != 0)
--		return false;
--	return true;
--}
--
--bool thp_is_enabled(void)
--{
--	if (!thp_available())
--		return false;
--
--	int mode = thp_read_string("enabled", thp_enabled_strings);
--
--	/* THP is considered enabled if it's either "always" or "madvise" */
--	return mode == 1 || mode == 3;
--}
--
--#define HUGETLB_MAX_NR_PAGESIZES 10
--struct hugetlb_settings {
--	unsigned long nr_hugepages[HUGETLB_MAX_NR_PAGESIZES];
--	unsigned long sizes[HUGETLB_MAX_NR_PAGESIZES];
--	unsigned long default_size;
--	int nr_sizes;
--};
--
--static struct hugetlb_settings hugetlb_saved_settings;
--static bool hugetlb_settings_saved;
--
--int detect_hugetlb_page_sizes(unsigned long sizes[], int max)
--{
--	static struct hugetlb_settings *settings = &hugetlb_saved_settings;
--	DIR *dir;
--	int count = 0;
--
--	if (settings->nr_sizes) {
--		if (settings->nr_sizes < max)
--			max = settings->nr_sizes;
--		for (count = 0; count < max; count++)
--			sizes[count] = settings->sizes[count];
--		return count;
--	}
--
--	dir = opendir("/sys/kernel/mm/hugepages/");
--	if (!dir)
--		return 0;
--
--	while (count < max) {
--		struct dirent *entry = readdir(dir);
--		size_t kb;
--
--		if (!entry)
+-	while ((opt = getopt(argc, argv, "m:r:n:F:f:abcj:tTLUuwWSHpz")) != -1) {
+-		switch (opt) {
+-		case 'a':
+-			cmd = PIN_FAST_BENCHMARK;
 -			break;
--		if (entry->d_type != DT_DIR)
--			continue;
--		if (sscanf(entry->d_name, "hugepages-%zukB", &kb) != 1)
--			continue;
--		sizes[count++] = kb * 1024;
--		printf("# [INFO] detected hugetlb page size: %zu KiB\n", kb);
+-		case 'b':
+-			cmd = PIN_BASIC_TEST;
+-			break;
+-		case 'L':
+-			cmd = PIN_LONGTERM_BENCHMARK;
+-			break;
+-		case 'c':
+-			cmd = DUMP_USER_PAGES_TEST;
+-			/*
+-			 * Dump page 0 (index 1). May be overridden later, by
+-			 * user's non-option arguments.
+-			 *
+-			 * .which_pages is zero-based, so that zero can mean "do
+-			 * nothing".
+-			 */
+-			gup.which_pages[0] = 1;
+-			break;
+-		case 'p':
+-			/* works only with DUMP_USER_PAGES_TEST */
+-			gup.test_flags |= GUP_TEST_FLAG_DUMP_PAGES_USE_PIN;
+-			break;
+-		case 'F':
+-			/* strtol, so you can pass flags in hex form */
+-			gup.gup_flags = strtol(optarg, 0, 0);
+-			break;
+-		case 'j':
+-			nthreads = atoi(optarg);
+-			break;
+-		case 'm':
+-			size = atoi(optarg) * MB;
+-			break;
+-		case 'r':
+-			repeats = atoi(optarg);
+-			break;
+-		case 'n':
+-			nr_pages = atoi(optarg);
+-			if (nr_pages < 0)
+-				nr_pages = size / psize();
+-			break;
+-		case 't':
+-			thp = 1;
+-			break;
+-		case 'T':
+-			thp = 0;
+-			break;
+-		case 'U':
+-			cmd = GUP_BASIC_TEST;
+-			break;
+-		case 'u':
+-			cmd = GUP_FAST_BENCHMARK;
+-			break;
+-		case 'w':
+-			write = 1;
+-			break;
+-		case 'W':
+-			write = 0;
+-			break;
+-		case 'f':
+-			file = optarg;
+-			break;
+-		case 'S':
+-			flags &= ~MAP_PRIVATE;
+-			flags |= MAP_SHARED;
+-			break;
+-		case 'H':
+-			flags |= (MAP_HUGETLB | MAP_ANONYMOUS);
+-			hugetlb = true;
+-			break;
+-		default:
+-			ksft_exit_fail_msg("Wrong argument\n");
+-		}
 -	}
--	closedir(dir);
--	return count;
--}
 -
--unsigned long default_huge_page_size(void)
--{
--	static struct hugetlb_settings *settings = &hugetlb_saved_settings;
--	unsigned long hps = 0;
--	char *line = NULL;
--	size_t linelen = 0;
--	FILE *f;
+-	if (optind < argc) {
+-		int extra_arg_count = 0;
+-		/*
+-		 * For example:
+-		 *
+-		 *   ./gup_test -c 0 1 0x1001
+-		 *
+-		 * ...to dump pages 0, 1, and 4097
+-		 */
 -
--	if (settings->default_size)
--		return settings->default_size;
+-		while ((optind < argc) &&
+-		       (extra_arg_count < GUP_TEST_MAX_PAGES_TO_DUMP)) {
+-			/*
+-			 * Do the 1-based indexing here, so that the user can
+-			 * use normal 0-based indexing on the command line.
+-			 */
+-			long page_index = strtol(argv[optind], 0, 0) + 1;
 -
--	f = fopen("/proc/meminfo", "r");
--	if (!f)
--		return 0;
--	while (getline(&line, &linelen, f) > 0) {
--		if (sscanf(line, "Hugepagesize:       %lu kB", &hps) == 1) {
--			hps <<= 10;
+-			gup.which_pages[extra_arg_count] = page_index;
+-			extra_arg_count++;
+-			optind++;
+-		}
+-	}
+-
+-	ksft_print_header();
+-
+-	if (hugetlb) {
+-		unsigned long hp_size = default_huge_page_size();
+-
+-		if (!hp_size)
+-			ksft_exit_skip("HugeTLB is unavailable\n");
+-
+-		size = (size + hp_size - 1) & ~(hp_size - 1);
+-		if (!hugetlb_setup_default(size / hp_size))
+-			ksft_exit_skip("Not enough huge pages\n");
+-	}
+-
+-	ksft_set_plan(nthreads);
+-
+-	filed = open(file, O_RDWR|O_CREAT, 0664);
+-	if (filed < 0)
+-		ksft_exit_fail_msg("Unable to open %s: %s\n", file, strerror(errno));
+-
+-	gup.nr_pages_per_call = nr_pages;
+-	if (write)
+-		gup.gup_flags |= FOLL_WRITE;
+-
+-	gup_fd = open(GUP_TEST_FILE, O_RDWR);
+-	if (gup_fd == -1) {
+-		switch (errno) {
+-		case EACCES:
+-			if (getuid())
+-				ksft_print_msg("Please run this test as root\n");
+-			break;
+-		case ENOENT:
+-			if (opendir("/sys/kernel/debug") == NULL)
+-				ksft_print_msg("mount debugfs at /sys/kernel/debug\n");
+-			ksft_print_msg("check if CONFIG_GUP_TEST is enabled in kernel config\n");
+-			break;
+-		default:
+-			ksft_print_msg("failed to open %s: %s\n", GUP_TEST_FILE, strerror(errno));
 -			break;
 -		}
+-		ksft_test_result_skip("Please run this test as root\n");
+-		ksft_exit_pass();
 -	}
 -
--	free(line);
--	fclose(f);
--	return hps;
--}
+-	p = mmap(NULL, size, PROT_READ | PROT_WRITE, flags, filed, 0);
+-	if (p == MAP_FAILED)
+-		ksft_exit_fail_msg("mmap: %s\n", strerror(errno));
+-	gup.addr = (unsigned long)p;
 -
--static void hugetlb_sysfs_path(char *buf, size_t buflen,
--			       unsigned long size, const char *attr)
--{
--	snprintf(buf, buflen, "/sys/kernel/mm/hugepages/hugepages-%lukB/%s",
--		 size / 1024, attr);
--}
+-	if (thp == 1)
+-		madvise(p, size, MADV_HUGEPAGE);
+-	else if (thp == 0)
+-		madvise(p, size, MADV_NOHUGEPAGE);
 -
--unsigned long hugetlb_nr_pages(unsigned long size)
--{
--	char path[PATH_MAX];
--	unsigned long nr;
--	int ret;
+-	/* Fault them in here, from user space. */
+-	for (; (unsigned long)p < gup.addr + size; p += psize())
+-		p[0] = 0;
 -
--	hugetlb_sysfs_path(path, sizeof(path), size, "nr_hugepages");
--
--	ret = read_num(path, &nr);
--	if (ret) {
--		print_file_access_error(path, ret);
--		exit(EXIT_FAILURE);
+-	tid = malloc(sizeof(pthread_t) * nthreads);
+-	assert(tid);
+-	for (i = 0; i < nthreads; i++) {
+-		ret = pthread_create(&tid[i], NULL, gup_thread, &gup);
+-		assert(ret == 0);
+-	}
+-	for (i = 0; i < nthreads; i++) {
+-		ret = pthread_join(tid[i], NULL);
+-		assert(ret == 0);
 -	}
 -
--	return nr;
+-	free(tid);
+-
+-	ksft_exit_pass();
 -}
--
--void hugetlb_set_nr_pages(unsigned long size, unsigned long nr)
--{
--	char path[PATH_MAX];
--	int ret;
--
--	hugetlb_sysfs_path(path, sizeof(path), size, "nr_hugepages");
--
--	ret = write_num_ignore_einval(path, nr);
--	if (ret) {
--		print_file_access_error(path, ret);
--		exit(EXIT_FAILURE);
--	}
--}
--
--unsigned long hugetlb_free_pages(unsigned long size)
--{
--	char path[PATH_MAX];
--	unsigned long nr;
--	int ret;
--
--	hugetlb_sysfs_path(path, sizeof(path), size, "free_hugepages");
--
--	ret = read_num(path, &nr);
--	if (ret) {
--		print_file_access_error(path, ret);
--		exit(EXIT_FAILURE);
--	}
--
--	return nr;
--}
--
--unsigned long hugetlb_nr_resv_pages(unsigned long size)
--{
--	char path[PATH_MAX];
--	unsigned long nr;
--	int ret;
--
--	hugetlb_sysfs_path(path, sizeof(path), size, "resv_hugepages");
--
--	ret = read_num(path, &nr);
--	if (ret) {
--		print_file_access_error(path, ret);
--		exit(EXIT_FAILURE);
--	}
--
--	return nr;
--}
--
--static bool __hugetlb_setup(unsigned long size, unsigned long nr)
--{
--	unsigned long free = hugetlb_free_pages(size);
--	unsigned long total = hugetlb_nr_pages(size);
--
--	if (free >= nr)
--		return true;
--
--	hugetlb_set_nr_pages(size, total + (nr - free));
--
--	return hugetlb_free_pages(size) >= nr;
--}
--
--bool hugetlb_setup_default(unsigned long nr)
--{
--	unsigned long size;
--
--	hugetlb_save_settings();
--	size = default_huge_page_size();
--	if (!size)
--		return false;
--
--	return __hugetlb_setup(size, nr);
--}
--
--bool hugetlb_setup_default_exact(unsigned long nr)
--{
--	unsigned long size;
--
--	hugetlb_save_settings();
--	size = default_huge_page_size();
--	if (!size)
--		return false;
--
--	hugetlb_set_nr_pages(size, nr);
--
--	return hugetlb_free_pages(size) == nr;
--}
--
--unsigned long hugetlb_setup(unsigned long nr, unsigned long sizes[],
--			    int max)
--{
--	unsigned long enabled[10];
--	int nr_sizes = 0;
--	int nr_enabled;
--
--	hugetlb_save_settings();
--
--	nr_enabled = detect_hugetlb_page_sizes(enabled, ARRAY_SIZE(enabled));
--	if (!nr_enabled)
--		return 0;
--
--	if (nr_enabled > max) {
--		printf("# detected %d huge page sizes, will only test %d\n",
--		       nr_enabled, max);
--		nr_enabled = max;
--	}
--
--	/* request nr HugeTLB pages of every size. */
--	for (int i = 0; i < nr_enabled; i++) {
--		if (!__hugetlb_setup(enabled[i], nr))
--			continue;
--		sizes[nr_sizes++] = enabled[i];
--	}
--
--	return nr_sizes;
--}
--
--static void __hugetlb_save_settings(void)
--{
--	struct hugetlb_settings *settings = &hugetlb_saved_settings;
--	int nr_sizes;
--
--	if (hugetlb_settings_saved)
--		return;
--
--	settings->default_size = default_huge_page_size();
--	if (!settings->default_size)
--		return;
--
--	nr_sizes = detect_hugetlb_page_sizes(settings->sizes,
--					     HUGETLB_MAX_NR_PAGESIZES);
--	if (!nr_sizes) {
--		settings->default_size = 0;
--		return;
--	}
--
--	for (int i = 0; i < nr_sizes; i++) {
--		unsigned long sz = settings->sizes[i];
--
--		if (!sz)
--			continue;
--		settings->nr_hugepages[i] = hugetlb_nr_pages(sz);
--	}
--
--	settings->nr_sizes = nr_sizes;
--	hugetlb_settings_saved = true;
--}
--
--void hugetlb_restore_settings(void)
--{
--	struct hugetlb_settings *settings = &hugetlb_saved_settings;
--
--	if (!hugetlb_settings_saved || !settings->default_size)
--		return;
--
--	for (int i = 0; i < HUGETLB_MAX_NR_PAGESIZES; i++) {
--		unsigned long sz = settings->sizes[i];
--
--		if (!sz)
--			continue;
--
--		hugetlb_set_nr_pages(sz, settings->nr_hugepages[i]);
--	}
--}
--
--static void hugepage_restore_settings_atexit(void)
--{
--	if (thp_settings_saved)
--		thp_restore_settings();
--	if (hugetlb_settings_saved)
--		hugetlb_restore_settings();
--}
--
--static void hugepage_restore_settings_sighandler(int sig)
--{
--	/* exit() will invoke the hugepage_restore_settings_atexit handler. */
--	exit(KSFT_FAIL);
--}
--
--void hugepage_save_settings(bool thp, bool hugetlb)
--{
--	if (!thp && !hugetlb)
--		return;
--
--	if (thp)
--		__thp_save_settings();
--	if (hugetlb)
--		__hugetlb_save_settings();
--
--	/*
--	 * setup exit hooks to make sure THP and HugeTLB settings are
--	 * restored on graceful and error exits and signals
--	 */
--	atexit(hugepage_restore_settings_atexit);
--	signal(SIGTERM, hugepage_restore_settings_sighandler);
--	signal(SIGINT, hugepage_restore_settings_sighandler);
--	signal(SIGHUP, hugepage_restore_settings_sighandler);
--	signal(SIGQUIT, hugepage_restore_settings_sighandler);
--}
-diff --git a/tools/testing/selftests/mm/hugepage_settings.h a/tools/testing/selftests/mm/hugepage_settings.h
-deleted file mode 100644
---- a/tools/testing/selftests/mm/hugepage_settings.h
-+++ /dev/null
-@@ -1,156 +0,0 @@
--/* SPDX-License-Identifier: GPL-2.0 */
--#ifndef __HUGEPAGE_SETTINGS_H__
--#define __HUGEPAGE_SETTINGS_H__
--
--#include <stdbool.h>
--#include <stddef.h>
--#include <stdint.h>
--
--void hugepage_save_settings(bool thp, bool hugetlb);
--
--/* Transparent Huge Pages (THP) */
--
--enum thp_enabled {
--	THP_NEVER,
--	THP_ALWAYS,
--	THP_INHERIT,
--	THP_MADVISE,
--};
--
--enum thp_defrag {
--	THP_DEFRAG_ALWAYS,
--	THP_DEFRAG_DEFER,
--	THP_DEFRAG_DEFER_MADVISE,
--	THP_DEFRAG_MADVISE,
--	THP_DEFRAG_NEVER,
--};
--
--enum shmem_enabled {
--	SHMEM_NEVER,
--	SHMEM_ALWAYS,
--	SHMEM_WITHIN_SIZE,
--	SHMEM_ADVISE,
--	SHMEM_INHERIT,
--	SHMEM_DENY,
--	SHMEM_FORCE,
--};
--
--#define NR_ORDERS 20
--
--struct hugepages_settings {
--	enum thp_enabled enabled;
--};
--
--struct khugepaged_settings {
--	bool defrag;
--	unsigned int alloc_sleep_millisecs;
--	unsigned int scan_sleep_millisecs;
--	unsigned int max_ptes_none;
--	unsigned int max_ptes_swap;
--	unsigned int max_ptes_shared;
--	unsigned long pages_to_scan;
--};
--
--struct shmem_hugepages_settings {
--	enum shmem_enabled enabled;
--};
--
--struct thp_settings {
--	enum thp_enabled thp_enabled;
--	enum thp_defrag thp_defrag;
--	enum shmem_enabled shmem_enabled;
--	bool use_zero_page;
--	struct khugepaged_settings khugepaged;
--	unsigned long read_ahead_kb;
--	struct hugepages_settings hugepages[NR_ORDERS];
--	struct shmem_hugepages_settings shmem_hugepages[NR_ORDERS];
--};
--
--int thp_read_string(const char *name, const char * const strings[]);
--void thp_write_string(const char *name, const char *val);
--unsigned long thp_read_num(const char *name);
--void thp_write_num(const char *name, unsigned long num);
--
--void thp_write_settings(struct thp_settings *settings);
--void thp_read_settings(struct thp_settings *settings);
--struct thp_settings *thp_current_settings(void);
--void thp_push_settings(struct thp_settings *settings);
--void thp_pop_settings(void);
--void thp_restore_settings(void);
--
--static inline void thp_save_settings(void)
--{
--	hugepage_save_settings(/* thp = */ true, /* hugetlb = */ false);
--}
--
--void thp_set_read_ahead_path(char *path);
--unsigned long thp_supported_orders(void);
--unsigned long thp_shmem_supported_orders(void);
--
--bool thp_available(void);
--bool thp_is_enabled(void);
--
--/* HugeTLB */
--
--int detect_hugetlb_page_sizes(unsigned long sizes[], int max);
--unsigned long default_huge_page_size(void);
--
--unsigned long hugetlb_nr_pages(unsigned long size);
--void hugetlb_set_nr_pages(unsigned long size, unsigned long nr);
--unsigned long hugetlb_free_pages(unsigned long size);
--unsigned long hugetlb_nr_resv_pages(unsigned long size);
--
--static inline void hugetlb_save_settings(void)
--{
--	hugepage_save_settings(/* thp = */ false, /* hugetlb = */ true);
--}
--
--void hugetlb_restore_settings(void);
--
--static inline unsigned long hugetlb_nr_default_pages(void)
--{
--	unsigned long size = default_huge_page_size();
--
--	if (!size)
--		return 0;
--
--	return hugetlb_nr_pages(size);
--}
--
--static inline void hugetlb_set_nr_default_pages(unsigned long nr)
--{
--	unsigned long size = default_huge_page_size();
--
--	if (!size)
--		return;
--
--	hugetlb_set_nr_pages(size, nr);
--}
--
--static inline unsigned long hugetlb_free_default_pages(void)
--{
--	unsigned long size = default_huge_page_size();
--
--	if (!size)
--		return 0;
--
--	return hugetlb_free_pages(size);
--}
--
--static inline bool hugetlb_available(void)
--{
--	return default_huge_page_size() != 0;
--}
--
--bool hugetlb_setup_default(unsigned long nr);
--bool hugetlb_setup_default_exact(unsigned long nr);
--unsigned long hugetlb_setup(unsigned long nr, unsigned long sizes[],
--			    int max);
--
--#define HUGETLB_SETUP_DEFAULT_PAGES(nr_pages) \
--static void __attribute__((constructor)) __hugetlb_setup_default(void)	\
--{									\
--	hugetlb_setup_default((nr_pages));				\
--}
--
--#endif /* __HUGEPAGE_SETTINGS_H__ */
---- a/tools/testing/selftests/mm/hugetlb_dio.c~tools-lib-mm-move-hugepage_settings-out-of-selftests
-+++ a/tools/testing/selftests/mm/hugetlb_dio.c
-@@ -20,7 +20,6 @@
- #include <sys/syscall.h>
- #include "vm_util.h"
- #include "kselftest.h"
--#include "hugepage_settings.h"
- 
- #ifndef STATX_DIOALIGN
- #define STATX_DIOALIGN		0x00002000U
---- a/tools/testing/selftests/mm/hugetlb_fault_after_madv.c~tools-lib-mm-move-hugepage_settings-out-of-selftests
-+++ a/tools/testing/selftests/mm/hugetlb_fault_after_madv.c
-@@ -10,7 +10,6 @@
- 
- #include "vm_util.h"
- #include "kselftest.h"
--#include "hugepage_settings.h"
- 
- #define INLOOP_ITER 100
- 
---- a/tools/testing/selftests/mm/hugetlb-madvise.c~tools-lib-mm-move-hugepage_settings-out-of-selftests
-+++ a/tools/testing/selftests/mm/hugetlb-madvise.c
-@@ -14,7 +14,6 @@
- #include <fcntl.h>
- #include "vm_util.h"
- #include "kselftest.h"
--#include "hugepage_settings.h"
- 
- #define MIN_FREE_PAGES	20
- #define NR_HUGE_PAGES	10	/* common number of pages to map/allocate */
---- a/tools/testing/selftests/mm/hugetlb_madv_vs_map.c~tools-lib-mm-move-hugepage_settings-out-of-selftests
-+++ a/tools/testing/selftests/mm/hugetlb_madv_vs_map.c
-@@ -14,7 +14,6 @@
- #include <unistd.h>
- 
- #include "vm_util.h"
--#include "hugepage_settings.h"
- 
- #define INLOOP_ITER 100
- 
---- a/tools/testing/selftests/mm/hugetlb-mmap.c~tools-lib-mm-move-hugepage_settings-out-of-selftests
-+++ a/tools/testing/selftests/mm/hugetlb-mmap.c
-@@ -18,7 +18,6 @@
- #include <linux/memfd.h>
- #include "vm_util.h"
- #include "kselftest.h"
--#include "hugepage_settings.h"
- 
- #define LENGTH (256UL*1024*1024)
- #define PROTECTION (PROT_READ | PROT_WRITE)
---- a/tools/testing/selftests/mm/hugetlb-mremap.c~tools-lib-mm-move-hugepage_settings-out-of-selftests
-+++ a/tools/testing/selftests/mm/hugetlb-mremap.c
-@@ -26,7 +26,6 @@
- #include <stdbool.h>
- #include "kselftest.h"
- #include "vm_util.h"
--#include "hugepage_settings.h"
- 
- #define DEFAULT_LENGTH_MB 10UL
- #define MB_TO_BYTES(x) (x * 1024 * 1024)
---- a/tools/testing/selftests/mm/hugetlb-shm.c~tools-lib-mm-move-hugepage_settings-out-of-selftests
-+++ a/tools/testing/selftests/mm/hugetlb-shm.c
-@@ -29,7 +29,6 @@
- #include <sys/mman.h>
- 
- #include "vm_util.h"
--#include "hugepage_settings.h"
- 
- #define LENGTH (256UL*1024*1024)
- 
---- a/tools/testing/selftests/mm/hugetlb-soft-offline.c~tools-lib-mm-move-hugepage_settings-out-of-selftests
-+++ a/tools/testing/selftests/mm/hugetlb-soft-offline.c
-@@ -22,10 +22,10 @@
- #include <sys/mman.h>
- #include <sys/statfs.h>
- #include <sys/types.h>
-+#include <mm/hugepage_settings.h>
- 
- #include "kselftest.h"
- #include "vm_util.h"
--#include "hugepage_settings.h"
- 
- #ifndef MADV_SOFT_OFFLINE
- #define MADV_SOFT_OFFLINE 101
---- a/tools/testing/selftests/mm/khugepaged.c~tools-lib-mm-move-hugepage_settings-out-of-selftests
-+++ a/tools/testing/selftests/mm/khugepaged.c
-@@ -22,7 +22,6 @@
- #include "linux/magic.h"
- 
- #include "vm_util.h"
--#include "hugepage_settings.h"
- 
- #define BASE_ADDR ((void *)(1UL << 30))
- static unsigned long hpage_pmd_size;
---- a/tools/testing/selftests/mm/ksm_tests.c~tools-lib-mm-move-hugepage_settings-out-of-selftests
-+++ a/tools/testing/selftests/mm/ksm_tests.c
-@@ -15,7 +15,6 @@
- #include "kselftest.h"
- #include <include/vdso/time64.h>
- #include "vm_util.h"
--#include "hugepage_settings.h"
- 
- #define KSM_SYSFS_PATH "/sys/kernel/mm/ksm/"
- #define KSM_FP(s) (KSM_SYSFS_PATH s)
---- a/tools/testing/selftests/mm/Makefile~tools-lib-mm-move-hugepage_settings-out-of-selftests
+--- a/tools/testing/selftests/mm/Makefile~tools-mm-move-gup_test-from-selftests-mm-to-tools-mm
 +++ a/tools/testing/selftests/mm/Makefile
-@@ -185,8 +185,10 @@ TEST_FILES += write_hugetlb_memory.sh
+@@ -59,7 +59,6 @@ endif
+ TEST_GEN_FILES = cow
+ TEST_GEN_FILES += compaction_test
+ TEST_GEN_FILES += gup_longterm
+-TEST_GEN_FILES += gup_test
+ TEST_GEN_FILES += hmm-tests
+ TEST_GEN_FILES += hugetlb-madvise
+ TEST_GEN_FILES += hugetlb-mmap
+--- a/tools/testing/selftests/mm/run_vmtests.sh~tools-mm-move-gup_test-from-selftests-mm-to-tools-mm
++++ a/tools/testing/selftests/mm/run_vmtests.sh
+@@ -148,30 +148,6 @@ test_selected() {
+ 	fi
+ }
  
- include ../lib.mk
+-run_gup_matrix() {
+-    # -t: thp=on, -T: thp=off, -H: hugetlb=on
+-    local hugetlb_mb=256
+-
+-    for huge in -t -T "-H -m $hugetlb_mb"; do
+-        # -u: gup-fast, -U: gup-basic, -a: pin-fast, -b: pin-basic, -L: pin-longterm
+-        for test_cmd in -u -U -a -b -L; do
+-            # -w: write=1, -W: write=0
+-            for write in -w -W; do
+-                # -S: shared
+-                for share in -S " "; do
+-                    # -n: How many pages to fetch together?  512 is special
+-                    # because it's default thp size (or 2M on x86), 123 to
+-                    # just test partial gup when hit a huge in whatever form
+-                    for num in "-n 1" "-n 512" "-n 123" "-n -1"; do
+-                        CATEGORY="gup_test" run_test ./gup_test \
+-                                $huge $test_cmd $write $share $num
+-                    done
+-                done
+-            done
+-        done
+-    done
+-}
+-
+ # filter 64bit architectures
+ ARCH64STR="arm64 mips64 parisc64 ppc64 ppc64le riscv64 s390x sparc64 x86_64"
+ if [ -z "$ARCH" ]; then
+@@ -293,18 +269,6 @@ fi
  
--$(TEST_GEN_PROGS): vm_util.c hugepage_settings.c $(top_srcdir)/tools/lib/mm/file_utils.c
--$(TEST_GEN_FILES): vm_util.c hugepage_settings.c $(top_srcdir)/tools/lib/mm/file_utils.c
-+$(TEST_GEN_PROGS): vm_util.c $(top_srcdir)/tools/lib/mm/hugepage_settings.c \
-+		   $(top_srcdir)/tools/lib/mm/file_utils.c
-+$(TEST_GEN_FILES): vm_util.c $(top_srcdir)/tools/lib/mm/hugepage_settings.c \
-+		   $(top_srcdir)/tools/lib/mm/file_utils.c
+ CATEGORY="mmap" run_test ./map_fixed_noreplace
  
- $(OUTPUT)/uffd-stress: uffd-common.c
- $(OUTPUT)/uffd-unit-tests: uffd-common.c
---- a/tools/testing/selftests/mm/migration.c~tools-lib-mm-move-hugepage_settings-out-of-selftests
-+++ a/tools/testing/selftests/mm/migration.c
-@@ -5,7 +5,6 @@
-  */
+-if $RUN_ALL; then
+-    run_gup_matrix
+-else
+-    # get_user_pages_fast() benchmark
+-    CATEGORY="gup_test" run_test ./gup_test -u -n 1
+-    CATEGORY="gup_test" run_test ./gup_test -u -n -1
+-    # pin_user_pages_fast() benchmark
+-    CATEGORY="gup_test" run_test ./gup_test -a -n 1
+-    CATEGORY="gup_test" run_test ./gup_test -a -n -1
+-fi
+-# Dump pages 0, 19, and 4096, using pin_user_pages:
+-CATEGORY="gup_test" run_test ./gup_test -ct -F 0x1 0 19 0x1000
+ CATEGORY="gup_test" run_test ./gup_longterm
  
- #include "kselftest_harness.h"
--#include "hugepage_settings.h"
- 
- #include <string.h>
- #include <pthread.h>
-@@ -16,6 +15,7 @@
- #include <sys/types.h>
- #include <signal.h>
- #include <time.h>
-+
- #include "vm_util.h"
- 
- #define TWOMEG		(2<<20)
---- a/tools/testing/selftests/mm/pagemap_ioctl.c~tools-lib-mm-move-hugepage_settings-out-of-selftests
-+++ a/tools/testing/selftests/mm/pagemap_ioctl.c
-@@ -24,7 +24,6 @@
- 
- #include "vm_util.h"
- #include "kselftest.h"
--#include "hugepage_settings.h"
- 
- #define PAGEMAP_BITS_ALL		(PAGE_IS_WPALLOWED | PAGE_IS_WRITTEN |	\
- 					 PAGE_IS_FILE | PAGE_IS_PRESENT |	\
---- a/tools/testing/selftests/mm/prctl_thp_disable.c~tools-lib-mm-move-hugepage_settings-out-of-selftests
-+++ a/tools/testing/selftests/mm/prctl_thp_disable.c
-@@ -14,7 +14,6 @@
- #include <sys/wait.h>
- 
- #include "kselftest_harness.h"
--#include "hugepage_settings.h"
- #include "vm_util.h"
- 
- #ifndef PR_THP_DISABLE_EXCEPT_ADVISED
---- a/tools/testing/selftests/mm/protection_keys.c~tools-lib-mm-move-hugepage_settings-out-of-selftests
-+++ a/tools/testing/selftests/mm/protection_keys.c
-@@ -45,8 +45,8 @@
- #include <unistd.h>
- #include <sys/ptrace.h>
- #include <setjmp.h>
-+#include <mm/hugepage_settings.h>
- 
--#include "hugepage_settings.h"
- #include "pkey-helpers.h"
- 
- u64 shadow_pkey_reg;
---- a/tools/testing/selftests/mm/soft-dirty.c~tools-lib-mm-move-hugepage_settings-out-of-selftests
-+++ a/tools/testing/selftests/mm/soft-dirty.c
-@@ -9,7 +9,6 @@
- 
- #include "kselftest.h"
- #include "vm_util.h"
--#include "hugepage_settings.h"
- 
- #define PAGEMAP_FILE_PATH "/proc/self/pagemap"
- #define TEST_ITERATIONS 10000
---- a/tools/testing/selftests/mm/split_huge_page_test.c~tools-lib-mm-move-hugepage_settings-out-of-selftests
-+++ a/tools/testing/selftests/mm/split_huge_page_test.c
-@@ -21,7 +21,6 @@
- #include <time.h>
- #include "vm_util.h"
- #include "kselftest.h"
--#include "hugepage_settings.h"
- 
- uint64_t pagesize;
- unsigned int pageshift;
---- a/tools/testing/selftests/mm/thuge-gen.c~tools-lib-mm-move-hugepage_settings-out-of-selftests
-+++ a/tools/testing/selftests/mm/thuge-gen.c
-@@ -14,7 +14,6 @@
- #include <string.h>
- #include "vm_util.h"
- #include "kselftest.h"
--#include "hugepage_settings.h"
- 
- #if !defined(MAP_HUGETLB)
- #define MAP_HUGETLB	0x40000
---- a/tools/testing/selftests/mm/transhuge-stress.c~tools-lib-mm-move-hugepage_settings-out-of-selftests
-+++ a/tools/testing/selftests/mm/transhuge-stress.c
-@@ -17,7 +17,6 @@
- #include <sys/mman.h>
- #include "vm_util.h"
- #include "kselftest.h"
--#include "hugepage_settings.h"
- 
- int backing_fd = -1;
- int mmap_flags = MAP_ANONYMOUS | MAP_NORESERVE | MAP_PRIVATE;
---- a/tools/testing/selftests/mm/uffd-common.h~tools-lib-mm-move-hugepage_settings-out-of-selftests
-+++ a/tools/testing/selftests/mm/uffd-common.h
-@@ -37,7 +37,6 @@
- 
- #include "kselftest.h"
- #include "vm_util.h"
--#include "hugepage_settings.h"
- 
- #define UFFD_FLAGS	(O_CLOEXEC | O_NONBLOCK | UFFD_USER_MODE_ONLY)
- 
---- a/tools/testing/selftests/mm/uffd-wp-mremap.c~tools-lib-mm-move-hugepage_settings-out-of-selftests
-+++ a/tools/testing/selftests/mm/uffd-wp-mremap.c
-@@ -7,8 +7,8 @@
- #include <assert.h>
- #include <linux/mman.h>
- #include <sys/mman.h>
-+#include <mm/hugepage_settings.h>
- #include "kselftest.h"
--#include "hugepage_settings.h"
- #include "uffd-common.h"
- 
- static int pagemap_fd;
---- a/tools/testing/selftests/mm/va_high_addr_switch.c~tools-lib-mm-move-hugepage_settings-out-of-selftests
-+++ a/tools/testing/selftests/mm/va_high_addr_switch.c
-@@ -11,7 +11,6 @@
- 
- #include "vm_util.h"
- #include "kselftest.h"
--#include "hugepage_settings.h"
- 
- /*
-  * The hint addr value is used to allocate addresses
---- a/tools/testing/selftests/mm/vm_util.h~tools-lib-mm-move-hugepage_settings-out-of-selftests
-+++ a/tools/testing/selftests/mm/vm_util.h
-@@ -9,6 +9,7 @@
- #include "kselftest.h"
- #include <linux/fs.h>
- #include <mm/file_utils.h>
-+#include <mm/hugepage_settings.h>
- 
- #define BIT_ULL(nr)                   (1ULL << (nr))
- #define PM_SOFT_DIRTY                 BIT_ULL(55)
+ CATEGORY="userfaultfd" run_test ./uffd-unit-tests
 _
 
 Patches currently in -mm which might be from sarthak.sharma@arm.com are
