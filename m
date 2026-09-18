@@ -1,155 +1,144 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from smtp-out1.suse.de (smtp-out1.suse.de [195.135.223.130])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3A14E46984D;
-	Fri, 18 Sep 2026 05:44:06 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7A6F24DE72D;
+	Fri, 18 Sep 2026 11:40:46 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=195.135.223.130
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789710247; cv=none; b=Q6lVh4DCfMzcg/pmD6pRTXFPRLDpSLPaLzAmDbLIkyJyFBLH29KWGwzz8AQUzZRhiZKoop5KuleCEA43j8IG1BDbUo7+zey+eOQPyHsr5frz7oOlvjnkfHX1c2sPoEfK8rnUi3Ywul0OjyNIPrHMjEGtxV9Kjh530NwUaKRhllg=
+	t=1789731650; cv=none; b=GrT0n1Soo8MlDdjfq+c/dYRHMJdMFWmIcv7URAslcz7vNdygT+heq2ODZ5GiNnfgkX07KXYlN0u57CaCSLR11K0tdg+FH8SS9miTHHwEakvPOnB83koHbedxPQsl1yU4tBJ5R1d3EvluM7vubAN1xmsios7NS6jf1Yl20nNn6TY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1789710247; c=relaxed/simple;
-	bh=U0hgwO+FYWoeHeamgOGcjNBOn36JB3IvsmZssBKeufY=;
-	h=Date:To:From:Subject:Message-Id; b=T+jLRBYVdY13tP19CDWQlmZwjdQN9eji8c66dGoBPsU/QJF5vS+59ga94mDq28Q+4Jo6wRipPnf9/JkBHi6qRFWL/YYMZkGollZZWv2VCnlWDQJ9eXW1ldoomRcr5d9YpvYoL56X/jWzgV7aLEhAdJaMGjbMLdROKv3QYpDBU3U=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=GuUwkTNH; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1789731650; c=relaxed/simple;
+	bh=XpSuwGZnYFjTU+paGpF2MRT0yG1kBXF9q/zGQRU036k=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=D/1VSOjW5kE89sV5nHlSq1rfdiKplSAq28pKdIgrJA06E5JjDnFj+Gp2T8IpzqHInlPbT2oQtcX9MastNYz++HtmZw/kENkDaB7mZ4IRWXA81kKCjInCFQ0N9Hfo7ht5rF/cjD1T9PPHZqpFV+glHZHtfqJWrXC0E9hRPxphE0o=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=suse.de; spf=pass smtp.mailfrom=suse.de; dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b=V+JDyT0T; dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b=cbDcJDVI; dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b=j+ufSfDG; dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b=40lN+QXO; arc=none smtp.client-ip=195.135.223.130
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=suse.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=suse.de
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="GuUwkTNH"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 117881F00893;
-	Fri, 18 Sep 2026 05:44:06 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1789710246;
-	bh=cqXHws+8N6ps8i2EAHuoI+pdXeRlnsLYtEE0GW9wRyo=;
-	h=Date:To:From:Subject;
-	b=GuUwkTNHqhwnP4wXpiowOWtslCRzwmeK00tl5olQeJSJe0hSAHsINCzr0nwtBX/7M
-	 e3GwL7Sd+4/Be6hfsFr1d/fX7Q4DMBdIrQLMG4IsnIIcyOvRYZ+9Bnuh1XRfv7+UQN
-	 jum7ELUzQKlFnU8hVxNUwpPwYjAFZNH72zoUJtS8=
-Date: Thu, 17 Sep 2026 22:44:05 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,willy@infradead.org,vbabka@kernel.org,stable@vger.kernel.org,ritesh.list@gmail.com,mhocko@suse.com,hch@lst.de,hannes@cmpxchg.org,dgc@kernel.org,david@redhat.com,dipiets@amazon.it,akpm@linux-foundation.org
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] mm-page_alloc-avoid-direct-compaction-for-costly-__gfp_noretry-allocations.patch removed from -mm tree
-Message-Id: <20260918054406.117881F00893@smtp.kernel.org>
+	dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b="V+JDyT0T";
+	dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b="cbDcJDVI";
+	dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b="j+ufSfDG";
+	dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b="40lN+QXO"
+Received: from imap1.dmz-prg2.suse.org (imap1.dmz-prg2.suse.org [IPv6:2a07:de40:b281:104:10:150:64:97])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
+	(No client certificate requested)
+	by smtp-out1.suse.de (Postfix) with ESMTPS id 9CBD521DC0;
+	Fri, 18 Sep 2026 11:40:35 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
+	t=1789731639; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+	 mime-version:mime-version:content-type:content-type:
+	 in-reply-to:in-reply-to:references:references;
+	bh=De9LRtLm/CCPKm/EiJSS9zOl8AGubYjbc7atm8TLtyM=;
+	b=V+JDyT0TnkkW1I6envwMpjB2yFlOkEslqB2cbxsiT/vRw3IcQ7p7dGwk+1H/eZReQREM6Q
+	cppZYQenI1rfLdpUgdJaETPt0JzOV4nPvOWl4J8jSyMluiabow48jPwcBb/wY54LChZ/AV
+	8Tn6vSplDALPMKeshXGqhMaE1vj3xPY=
+DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
+	s=susede2_ed25519; t=1789731639;
+	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+	 mime-version:mime-version:content-type:content-type:
+	 in-reply-to:in-reply-to:references:references;
+	bh=De9LRtLm/CCPKm/EiJSS9zOl8AGubYjbc7atm8TLtyM=;
+	b=cbDcJDVIRD+I1n/FZN98A99MY9e8NSwbd/Eh8fwCGkCdYjUEzYIeuKE/inpL6WU3hwXBt5
+	D5LaOTC5W3K2tsCw==
+Authentication-Results: smtp-out1.suse.de;
+	dkim=pass header.d=suse.de header.s=susede2_rsa header.b=j+ufSfDG;
+	dkim=pass header.d=suse.de header.s=susede2_ed25519 header.b=40lN+QXO
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
+	t=1789731635; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+	 mime-version:mime-version:content-type:content-type:
+	 in-reply-to:in-reply-to:references:references;
+	bh=De9LRtLm/CCPKm/EiJSS9zOl8AGubYjbc7atm8TLtyM=;
+	b=j+ufSfDG1BackLP7wOrP6xdAdLXz786oIxVtELTGVeqqAxf5ue0r+nv2GRKj97oeCxYX9R
+	lo2Sa5xPxG5jl0tsxWpsZmykjllfNDgM4PnpIKUcUGDn4KgQR4OO4Yi2JAi2qzpgWxEFHl
+	TeS/Ey6Y4fC+tJLRmUJsMH2V6NC9AuE=
+DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
+	s=susede2_ed25519; t=1789731635;
+	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+	 mime-version:mime-version:content-type:content-type:
+	 in-reply-to:in-reply-to:references:references;
+	bh=De9LRtLm/CCPKm/EiJSS9zOl8AGubYjbc7atm8TLtyM=;
+	b=40lN+QXOz3f15Na1Era//Eywn8wmd8Wywa+n6vBzSDK27+rR+oQ5u19OTejNS6jjRP1ZTk
+	Yt17eTZF5bDiidBA==
+Received: from imap1.dmz-prg2.suse.org (localhost [127.0.0.1])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
+	(No client certificate requested)
+	by imap1.dmz-prg2.suse.org (Postfix) with ESMTPS id 7C3D81348F;
+	Fri, 18 Sep 2026 11:40:34 +0000 (UTC)
+Received: from dovecot-director2.suse.de ([2a07:de40:b281:106:10:150:64:167])
+	by imap1.dmz-prg2.suse.org with ESMTPSA
+	id xkE3EjIjrWpRSQAAD6G6ig
+	(envelope-from <pfalcato@suse.de>); Fri, 18 Sep 2026 11:40:34 +0000
+Date: Fri, 18 Sep 2026 12:40:32 +0100
+From: Pedro Falcato <pfalcato@suse.de>
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: mm-commits@vger.kernel.org, yu-cheng.yu@intel.com, vbabka@kernel.org, 
+	tglx@linutronix.de, stable@vger.kernel.org, rppt@kernel.org, 
+	rick.p.edgecombe@intel.com, orsonpeters@gmail.com, ljs@kernel.org, liam@infradead.org, 
+	jannh@google.com, david@kernel.org, dave.hansen@linux.intel.com, 
+	yanglincheng@kylinos.cn
+Subject: Re: [merged mm-hotfixes-stable]
+ x86-mm-fix-pmd_modify-dropping-the-dirty-bit.patch removed from -mm tree
+Message-ID: <aq0hScEaD5kZ1y8C@pedro-suse.lan>
+References: <20260918054346.05DFE1F00893@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20260918054346.05DFE1F00893@smtp.kernel.org>
+X-Spam-Score: -4.51
+X-Rspamd-Queue-Id: 9CBD521DC0
+X-Rspamd-Server: rspamd1.dmz-prg2.suse.org
+X-Spam-Level: 
+X-Rspamd-Action: no action
+X-Spamd-Result: default: False [-4.51 / 50.00];
+	BAYES_HAM(-3.00)[100.00%];
+	NEURAL_HAM_LONG(-1.00)[-1.000];
+	R_DKIM_ALLOW(-0.20)[suse.de:s=susede2_rsa,suse.de:s=susede2_ed25519];
+	NEURAL_HAM_SHORT(-0.20)[-1.000];
+	MIME_GOOD(-0.10)[text/plain];
+	MX_GOOD(-0.01)[];
+	RCVD_VIA_SMTP_AUTH(0.00)[];
+	RCPT_COUNT_TWELVE(0.00)[15];
+	MISSING_XM_UA(0.00)[];
+	MIME_TRACE(0.00)[0:+];
+	RCVD_TLS_ALL(0.00)[];
+	ARC_NA(0.00)[];
+	FREEMAIL_ENVRCPT(0.00)[gmail.com];
+	DKIM_SIGNED(0.00)[suse.de:s=susede2_rsa,suse.de:s=susede2_ed25519];
+	FROM_EQ_ENVFROM(0.00)[];
+	FROM_HAS_DN(0.00)[];
+	FREEMAIL_CC(0.00)[vger.kernel.org,intel.com,kernel.org,linutronix.de,gmail.com,infradead.org,google.com,linux.intel.com,kylinos.cn];
+	TO_DN_SOME(0.00)[];
+	RCVD_COUNT_TWO(0.00)[2];
+	TO_MATCH_ENVRCPT_ALL(0.00)[];
+	DBL_BLOCKED_OPENRESOLVER(0.00)[imap1.dmz-prg2.suse.org:helo,imap1.dmz-prg2.suse.org:rdns,suse.de:dkim];
+	SPAMHAUS_XBL(0.00)[2a07:de40:b281:104:10:150:64:97:from];
+	DNSWL_BLOCKED(0.00)[2a07:de40:b281:104:10:150:64:97:from,2a07:de40:b281:106:10:150:64:167:received];
+	DKIM_TRACE(0.00)[suse.de:+]
+X-Spam-Flag: NO
 
+Hi Andrew,
 
-The quilt patch titled
-     Subject: mm/page_alloc: avoid direct compaction for costly __GFP_NORETRY allocations
-has been removed from the -mm tree.  Its filename was
-     mm-page_alloc-avoid-direct-compaction-for-costly-__gfp_noretry-allocations.patch
+On Thu, Sep 17, 2026 at 10:43:45PM -0700, Andrew Morton wrote:
+> 
+> The quilt patch titled
+>      Subject: x86/mm: fix pmd_modify() dropping the dirty bit
+> has been removed from the -mm tree.  Its filename was
+>      x86-mm-fix-pmd_modify-dropping-the-dirty-bit.patch
+> 
+> This patch was dropped because it was merged into the mm-hotfixes-stable branch
+> of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
-This patch was dropped because it was merged into the mm-hotfixes-stable branch
-of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+You might want to drop this commit. It was already merged in
+704340f1cd0dcef829eb62f5b48ae95a2ce17bdf from the tip tree.
 
-------------------------------------------------------
-From: Salvatore Dipietro <dipiets@amazon.it>
-Subject: mm/page_alloc: avoid direct compaction for costly __GFP_NORETRY allocations
-Date: Fri, 4 Sep 2026 11:56:28 +0000
+(Linus tree f7491d7c81db0e7c304a7bd757a76d2fbeaff80e)
 
-Commit 5d8edfb900d5 ("iomap: Copy larger chunks from userspace")
-introduced high-order folio allocations in the iomap buffered write path. 
-When memory is fragmented, each failed costly-order allocation enters
-__alloc_pages_slowpath() which runs direct compaction and
-drain_all_pages(), causing a 0.38x throughput drop on PostgreSQL pgbench
-(simple-update) with 1024 clients on a 96-vCPU arm64 system.
-
-The root issue is that direct compaction is too expensive for hot
-allocation paths that have fallbacks to smaller allocations. 
-__filemap_get_folio_mpol() already marks higher-order allocations with
-__GFP_NORETRY | __GFP_NOWARN, signalling that the caller can handle
-failure.  However, the page allocator still attempts full direct
-compaction for costly orders with __GFP_NORETRY, which is unnecessarily
-aggressive when the caller will simply retry at a lower order.
-
-For costly-order allocations with __GFP_NORETRY, clear
-__GFP_DIRECT_RECLAIM at the very start of the slowpath, before
-can_direct_reclaim, can_compact and the nofail checks are evaluated.  This
-makes the entire slowpath treat the request as non-blocking: no direct
-reclaim, no direct compaction and no drain_all_pages() IPI across every
-CPU.  kswapd (and in turn kcompactd) is still woken further down for
-background defragmentation, so compaction keeps working for long-term
-system health while being removed from the latency-critical direct
-allocation path.
-
-Allocations that also request __GFP_THISNODE are exempted.  That flag
-pairing identifies the local-node-first THP attempt issued by
-alloc_pages_mpol() (mempolicy.c), which relies on direct compaction to
-form transparent huge pages.
-
-Test environment:
-  Hardware:  AWS EC2 m8g.24xlarge (96 vCPU, arm64)
-             12x 1TB IO2 32000 IOPS RAID0 XFS
-  OS:        AL2023
-  Kernel:    v7.3-rc1
-  Database:  PostgreSQL 18.4
-  Workload:  pgbench simple-update, 1024 clients, 96 threads, 1200s
-
-Results (average of 3 runs, TPS):
-
-  Config                   Avg TPS      % vs Baseline
-  baseline (no patch)       59,408       -
-  With this patch          155,409      +161.6%
-
-Link: https://lore.kernel.org/20260904115629.3993331-1-dipiets@amazon.it
-Link: https://lore.kernel.org/all/20260403193535.9970-1-dipiets@amazon.it/T/#t [v1]
-Link: https://lore.kernel.org/linux-mm/20260420161404.642-1-dipiets@amazon.it/T/#u [v2]
-Link: https://lore.kernel.org/all/20260710143437.12379-1-dipiets@amazon.it/T/#u [v3]
-Fixes: 5d8edfb900d5 ("iomap: Copy larger chunks from userspace")
-Signed-off-by: Salvatore Dipietro <dipiets@amazon.it>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Acked-by: Vlastimil Babka (SUSE) <vbabka@kernel.org>
-Acked-by: Zi Yan <ziy@nvidia.com>
-Reviewed-by: Johannes Weiner <hannes@cmpxchg.org>
-Reviewed-by: Christoph Hellwig <hch@lst.de>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Dave Chinner <dgc@kernel.org>
-Cc: Ritesh Harjani <ritesh.list@gmail.com>
-Cc: <stable@vger.kernel.org>
----
-
- mm/page_alloc.c |   18 +++++++++++++++---
- 1 file changed, 15 insertions(+), 3 deletions(-)
-
---- a/mm/page_alloc.c~mm-page_alloc-avoid-direct-compaction-for-costly-__gfp_noretry-allocations
-+++ a/mm/page_alloc.c
-@@ -4784,10 +4784,10 @@ static inline struct page *
- __alloc_pages_slowpath(gfp_t gfp_mask, unsigned int order,
- 						struct alloc_context *ac)
- {
--	bool can_direct_reclaim = gfp_mask & __GFP_DIRECT_RECLAIM;
--	bool can_compact = can_direct_reclaim && gfp_compaction_allowed(gfp_mask);
--	bool nofail = gfp_mask & __GFP_NOFAIL;
- 	const bool costly_order = order > PAGE_ALLOC_COSTLY_ORDER;
-+	bool can_direct_reclaim;
-+	bool can_compact;
-+	bool nofail;
- 	struct page *page = NULL;
- 	unsigned int alloc_flags;
- 	unsigned long did_some_progress;
-@@ -4802,6 +4802,18 @@ __alloc_pages_slowpath(gfp_t gfp_mask, u
- 	bool can_retry_reserves = true;
- 	unsigned long alloc_start_time = jiffies;
- 
-+	/*
-+	 * Costly __GFP_NORETRY callers have a cheap fallback, so don't stall
-+	 * them in reclaim or compaction. __GFP_THISNODE callers are exempt.
-+	 */
-+	if (costly_order && (gfp_mask & __GFP_NORETRY) &&
-+	    !(gfp_mask & __GFP_THISNODE))
-+		gfp_mask &= ~__GFP_DIRECT_RECLAIM;
-+
-+	can_direct_reclaim = gfp_mask & __GFP_DIRECT_RECLAIM;
-+	can_compact = can_direct_reclaim && gfp_compaction_allowed(gfp_mask);
-+	nofail = gfp_mask & __GFP_NOFAIL;
-+
- 	if (unlikely(nofail)) {
- 		/*
- 		 * Also we don't support __GFP_NOFAIL without __GFP_DIRECT_RECLAIM,
-_
-
-Patches currently in -mm which might be from dipiets@amazon.it are
-
-
+-- 
+Pedro
