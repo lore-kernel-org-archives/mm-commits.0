@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7CBDE1F5842
-	for <mm-commits@vger.kernel.org>; Fri, 18 Sep 2026 00:07:00 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8DD221AC44D
+	for <mm-commits@vger.kernel.org>; Fri, 18 Sep 2026 00:08:17 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789690021; cv=none; b=QJan5QFZ8A4tgnUcp41+NlaUWJWERKMWUO+U4EfE4qbd/ssqtjAJ/fknWLzkQfrEskYyYhd07eZTkfSf5efdIwgO7fR5lqjf6GbjeDGdA84uJVhkHOqWxa/el+Ki4IBv73y7k8xp+Nthii9y5GAY/WwchN6JQSP4srPkaZ+uIvA=
+	t=1789690100; cv=none; b=GLMOckrTvGedw1xnaVGRavDm+4+qjSsC2Bqv766/E08IfKG+dSfA0RVoMMwnY8DIVjkgqx7saxnjhSjvX7LsDHCLmPV7YNzS8hoo1WkA2qvaTsRCWSDO9WO0HkTRwJfqPw0DpFwGE97CJteYV0RzYuMlte7SE6uHHhM28qiTM/s=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1789690021; c=relaxed/simple;
-	bh=OdZdKGrY905/+qnXILIV6A8DXxSZMLXjUC3TMJwv/xY=;
-	h=Date:To:From:Subject:Message-Id; b=MFAzFY7n4ApTTLjQcMKj5kgmwjAD7K/30mjk9w8EKrDqbMeS77PJd4wOavrQwXn25xgLjkeSXq5/tYL0bQynOp9nly7BFOj03gOs+wFfwGjIJVQRJZ6FZc4UkJOPQ8fOb1uXU27/srrW+GnhzkDjar0SaIVh4w0/GM1MDBJwauE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=kwxze4Wf; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1789690100; c=relaxed/simple;
+	bh=MMnM/AO9e7GLflqa0NaQOcU8jfsmkQrXFFRzFVOuLT4=;
+	h=Date:To:From:Subject:Message-Id; b=BT87ZFwybeR/DzpoWcb5mT0MlO58ycytsg57p/SdwwY+Wg4Od2nLPm0gkZ1y+6UzMdrYmBRDFUSAqCCDQ4QePhW80eNALFRHe5uCWy3sOLzcMJAw+chXAaH7bOzvDxp5c/894ien28vgvHVMKzg+JhLn1eNOzW8uu3wMRuJitAo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=BKQKXS+1; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="kwxze4Wf"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0231E1F00893;
-	Fri, 18 Sep 2026 00:06:59 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="BKQKXS+1"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 01FDB1F00893;
+	Fri, 18 Sep 2026 00:08:17 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1789690020;
-	bh=EuXOnYWgPAxc0QnqJSiD80Wnc8kLI1yR2piG6CU2U/Y=;
+	d=linux-foundation.org; s=korg; t=1789690097;
+	bh=RfeKlc2+4OgmsENnhaoV87S3+rk3Bh9phgxz5/uzi7A=;
 	h=Date:To:From:Subject;
-	b=kwxze4Wfgp8evLjJoxRjzsmgcGMjYHpJfxNdmAg6zkzOimoi3NiV8G3UOVV5i8dzI
-	 JAxaOpl24V026d5Ln3QDpL4adQW0hFpZ/YTH5HcFWjsZzZlwxn6tX/2XyMWtROJhKh
-	 UVdK6M65ATpNwXp9de79QLiBuM24Ihms1LuQLIvo=
-Date: Thu, 17 Sep 2026 17:06:59 -0700
-To: mm-commits@vger.kernel.org,wyihan@google.com,ackerleytng@google.com,akpm@linux-foundation.org,akpm@linux-foundation.org
+	b=BKQKXS+1wBcqFv+xL7d0X0sVBkrK65E0KnmVmMhmw83LjQAlwi2tdXJgHHwMMjjvg
+	 mZd5xwvKje3iNKcUUvyFSLNVWMbTruNT9trF0sUoaWabfIAqC1NyKpNHTYA87Gb/wo
+	 PSVKtNzddQRxTXAOnFmGwSWGn9oR/eG7233EqsyQ=
+Date: Thu, 17 Sep 2026 17:08:16 -0700
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,ying.huang@linux.alibaba.com,xu.xin16@zte.com.cn,vbabka@kernel.org,trintaeoitogc@gmail.com,surenb@google.com,shikemeng@huaweicloud.com,shakeel.butt@linux.dev,ryan.roberts@arm.com,rppt@kernel.org,riel@surriel.com,rakie.kim@sk.com,pfalcato@suse.de,peterx@redhat.com,osalvador@suse.de,nphamcs@gmail.com,muchun.song@linux.dev,mhocko@suse.com,matthew.brost@intel.com,liam@infradead.org,lance.yang@linux.dev,kasong@tencent.com,kas@kernel.org,joshua.hahnjy@gmail.com,jannh@google.com,harry@kernel.org,gourry@gourry.net,dev.jain@arm.com,david@kernel.org,chrisl@kernel.org,chengming.zhou@linux.dev,byungchul@sk.com,baoquan.he@linux.dev,baolin.wang@linux.alibaba.com,baohua@kernel.org,apopple@nvidia.com,ljs@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-selftests-add-shmem-into-memory-failure-test-fix.patch added to mm-new branch
-Message-Id: <20260918000700.0231E1F00893@smtp.kernel.org>
+Subject: + mm-update-comments-to-refer-to-anon-rmap-rather-than-anon_vma.patch added to mm-new branch
+Message-Id: <20260918000817.01FDB1F00893@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm-selftests-add-shmem-into-memory-failure-test-fix
+     Subject: mm: update comments to refer to anon rmap rather than anon_vma
 has been added to the -mm mm-new branch.  Its filename is
-     mm-selftests-add-shmem-into-memory-failure-test-fix.patch
+     mm-update-comments-to-refer-to-anon-rmap-rather-than-anon_vma.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-selftests-add-shmem-into-memory-failure-test-fix.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-update-comments-to-refer-to-anon-rmap-rather-than-anon_vma.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -69,39 +69,762 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-selftests-add-shmem-into-memory-failure-test-fix
-Date: Thu Sep 17 05:06:00 PM PDT 2026
+From: "Lorenzo Stoakes (ARM)" <ljs@kernel.org>
+Subject: mm: update comments to refer to anon rmap rather than anon_vma
+Date: Thu, 17 Sep 2026 20:47:43 +0100
 
-fix commant typo, per Lisa
+Now that vma_has_anon_rmap() abstracts whether a VMA has an anonymous
+reverse mapping, remove references to anon_vma and instead reference the
+anon rmap.
 
-Cc: Lisa Wang <wyihan@google.com>
-Cc: Ackerley Tng <ackerleytng@google.com>
+The anon_vma is an implementation detail and should be treated as such.
+
+Do not update mm/rmap.c which implements the anon_vma mechanism as it is
+reasonable to directly reference it there.
+
+No functional change intended.
+
+Link: https://lore.kernel.org/20260917-vma-is-faulted-v3-3-5c22314a72e7@kernel.org
+Signed-off-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+Cc: Alistair Popple <apopple@nvidia.com>
+Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
+Cc: Baoquan He <baoquan.he@linux.dev>
+Cc: Barry Song <baohua@kernel.org>
+Cc: Byungchul Park <byungchul@sk.com>
+Cc: Chengming Zhou <chengming.zhou@linux.dev>
+Cc: Chris Li <chrisl@kernel.org>
+Cc: David Hildenbrand <david@kernel.org>
+Cc: Dev Jain <dev.jain@arm.com>
+Cc: Gregory Price <gourry@gourry.net>
+Cc: Guilherme Giacomo Simoes <trintaeoitogc@gmail.com>
+Cc: Harry Yoo <harry@kernel.org>
+Cc: "Huang, Ying" <ying.huang@linux.alibaba.com>
+Cc: Jann Horn <jannh@google.com>
+Cc: Joshua Hahn <joshua.hahnjy@gmail.com>
+Cc: Kairui Song <kasong@tencent.com>
+Cc: Kemeng Shi <shikemeng@huaweicloud.com>
+Cc: Kiryl Shutsemau <kas@kernel.org>
+Cc: Lance Yang <lance.yang@linux.dev>
+Cc: Liam R. Howlett <liam@infradead.org>
+Cc: Matthew Brost <matthew.brost@intel.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Muchun Song <muchun.song@linux.dev>
+Cc: Nhat Pham <nphamcs@gmail.com>
+Cc: Oscar Salvador <osalvador@suse.de>
+Cc: Pedro Falcato <pfalcato@suse.de>
+Cc: Peter Xu <peterx@redhat.com>
+Cc: Rakie Kim <rakie.kim@sk.com>
+Cc: Rik van Riel <riel@surriel.com>
+Cc: Ryan Roberts <ryan.roberts@arm.com>
+Cc: Shakeel Butt <shakeel.butt@linux.dev>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Vlastimil Babka <vbabka@kernel.org>
+Cc: xu xin <xu.xin16@zte.com.cn>
+Cc: Zi Yan <ziy@nvidia.com>
 ---
 
- tools/testing/selftests/mm/memory-failure.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/huge_memory.c     |    8 +--
+ mm/hugetlb.c         |    2 
+ mm/khugepaged.c      |   12 ++---
+ mm/ksm.c             |    6 +-
+ mm/madvise.c         |    6 +-
+ mm/memory.c          |   12 ++---
+ mm/migrate.c         |   12 ++---
+ mm/mmap.c            |    6 +-
+ mm/mprotect.c        |    4 -
+ mm/mremap.c          |    6 +-
+ mm/pgtable-generic.c |    2 
+ mm/userfaultfd.c     |   10 ++--
+ mm/vma.c             |   98 ++++++++++++++++++++---------------------
+ 13 files changed, 92 insertions(+), 92 deletions(-)
 
---- a/tools/testing/selftests/mm/memory-failure.c~mm-selftests-add-shmem-into-memory-failure-test-fix
-+++ a/tools/testing/selftests/mm/memory-failure.c
-@@ -165,7 +165,7 @@ static void check(struct __test_metadata
- 	case MADV_SOFT_DIRTY_SHMEM:
- 		/* The page content should remain unchanged. */
- 		ASSERT_TRUE(check_memory(vaddr, self->page_size));
--		/* FALLTHORUGH */
-+		/* FALLTHROUGH */
- 	case MADV_HARD_CLEAN_SHMEM:
- 	case MADV_SOFT_CLEAN_SHMEM:
- 		/* It is not expected to receive a SIGBUS signal. */
+--- a/mm/huge_memory.c~mm-update-comments-to-refer-to-anon-rmap-rather-than-anon_vma
++++ a/mm/huge_memory.c
+@@ -254,10 +254,10 @@ unsigned long __thp_vma_allowable_orders
+ 
+ 	/*
+ 	 * THPeligible bit of smaps should show 1 for proper VMAs even
+-	 * though anon_vma is not initialized yet.
++	 * though they don't have an anon rmap yet.
+ 	 *
+-	 * Allow page fault since anon_vma may be not initialized until
+-	 * the first page fault.
++	 * Allow page fault since the VMA may not have an anon rmap until the
++	 * first page fault.
+ 	 */
+ 	if (!vma_has_anon_rmap(vma))
+ 		return (smaps || in_pf) ? orders : 0;
+@@ -4372,7 +4372,7 @@ out:
+  * THP pages in the middle of migration, due to allocation issues on either
+  * side.
+  *
+- * anon_vma_lock is not required to be held, mmap_read_lock() or
++ * The anon rmap lock is not required to be held, mmap_read_lock() or
+  * mmap_write_lock() should be held. @folio is expected to be locked by the
+  * caller. device-private and non device-private folios are supported along
+  * with folios that are in the swapcache. @folio should also be unmapped and
+--- a/mm/hugetlb.c~mm-update-comments-to-refer-to-anon-rmap-rather-than-anon_vma
++++ a/mm/hugetlb.c
+@@ -5677,7 +5677,7 @@ retry_avoidcopy:
+ 
+ 	/*
+ 	 * When the original hugepage is shared one, it does not have
+-	 * anon_vma prepared.
++	 * an anon rmap prepared.
+ 	 */
+ 	ret = __vmf_anon_prepare(vmf);
+ 	if (unlikely(ret))
+--- a/mm/khugepaged.c~mm-update-comments-to-refer-to-anon-rmap-rather-than-anon_vma
++++ a/mm/khugepaged.c
+@@ -1278,7 +1278,7 @@ static enum scan_result collapse_huge_pa
+ 	/*
+ 	 * Prevent all access to pagetables with the exception of
+ 	 * gup_fast later handled by the pmdp_collapse_flush() and the VM
+-	 * handled by the anon_vma lock + folio lock.
++	 * handled by the anon rmap lock + folio lock.
+ 	 *
+ 	 * UFFDIO_MOVE is prevented to race as well thanks to the
+ 	 * mmap_lock.
+@@ -1345,8 +1345,8 @@ static enum scan_result collapse_huge_pa
+ 	}
+ 
+ 	/*
+-	 * For PMD collapse all pages are isolated and locked so anon_vma
+-	 * rmap can't run anymore. For mTHP collapse the PMD entry has been
++	 * For PMD collapse all pages are isolated and locked so the anon
++	 * rmap walk can't run anymore. For mTHP collapse the PMD entry has been
+ 	 * removed and not all pages are isolated and locked, so we must hold
+ 	 * the lock to prevent neighboring folios from attempting to access
+ 	 * this PMD until its reinstalled.
+@@ -2126,9 +2126,9 @@ static void retract_page_tables(struct a
+ 
+ 		/*
+ 		 * Huge page lock is still held, so normally the page table must
+-		 * remain empty; and we have already skipped anon_vma and
+-		 * userfaultfd_wp() vmas.  But since the mmap_lock is not held,
+-		 * it is still possible for a racing userfaultfd_ioctl() or
++		 * remain empty; and we have already skipped vmas with an anon
++		 * rmap and userfaultfd_wp() vmas.  But since the mmap_lock is not
++		 * held, it is still possible for a racing userfaultfd_ioctl() or
+ 		 * madvise() to have inserted ptes or markers.  Now that we hold
+ 		 * ptlock, repeating the retractable checks protects us from
+ 		 * races against the prior checks.
+--- a/mm/ksm.c~mm-update-comments-to-refer-to-anon-rmap-rather-than-anon_vma
++++ a/mm/ksm.c
+@@ -793,7 +793,7 @@ static void break_cow(struct ksm_rmap_it
+ 
+ 	/*
+ 	 * It is not an accident that whenever we want to break COW
+-	 * to undo, we also need to drop a reference to the anon_vma.
++	 * to undo, we also need to drop a reference to the anon rmap.
+ 	 */
+ 	put_anon_vma(rmap_item->anon_vma);
+ 	/*
+@@ -1413,7 +1413,7 @@ static int replace_page(struct vm_area_s
+ 		goto out;
+ 	/*
+ 	 * Some THP functions use the sequence pmdp_huge_clear_flush(), set_pmd_at()
+-	 * without holding anon_vma lock for write.  So when looking for a
++	 * without holding the anon rmap lock for write.  So when looking for a
+ 	 * genuine pmde (in which to find pte), test present and !THP together.
+ 	 */
+ 	pmde = pmdp_get_lockless(pmd);
+@@ -1617,7 +1617,7 @@ static int try_to_merge_with_ksm_page(st
+ 
+ 	/*
+ 	 * We can consider the VMA only while still holding the mmap lock,
+-	 * so lock, so reference the anon_vma and calculate the linear
++	 * so lock, so reference the anon rmap and calculate the linear
+ 	 * page index early, before stable_tree_append(). If anything goes
+ 	 * wrong that prevents the rmap_item from being added to the
+ 	 * stable_tree, break_cow() will clean it up.
+--- a/mm/madvise.c~mm-update-comments-to-refer-to-anon-rmap-rather-than-anon_vma
++++ a/mm/madvise.c
+@@ -1324,7 +1324,7 @@ static long madvise_guard_install(struct
+ 
+ 	/*
+ 	 * If anonymous and we are establishing page tables the VMA ought to
+-	 * have an anon_vma associated with it.
++	 * have an anon rmap associated with it.
+ 	 *
+ 	 * We will hold an mmap read lock if this is necessary, this is checked
+ 	 * as part of the VMA lock logic.
+@@ -1788,8 +1788,8 @@ static bool is_vma_lock_sufficient(struc
+ 	 * anon_vma_prepare() explicitly requires an mmap lock for
+ 	 * serialisation, so we cannot use a VMA lock in this case.
+ 	 *
+-	 * Note we might race with anon_vma being set, however this makes this
+-	 * check overly paranoid which is safe.
++	 * Note we might race with the anon rmap being assigned, however this
++	 * makes this check overly paranoid which is safe.
+ 	 */
+ 	if (vma_is_anonymous(vma) &&
+ 	    prepares_anon_vma(madv_behavior->behavior) && !vma_has_anon_rmap(vma))
+--- a/mm/memory.c~mm-update-comments-to-refer-to-anon-rmap-rather-than-anon_vma
++++ a/mm/memory.c
+@@ -1291,8 +1291,8 @@ again:
+ 	 * copy_pmd_range()'s prior pmd_none_or_clear_bad(src_pmd), and the
+ 	 * error handling here, assume that exclusive mmap_lock on dst and src
+ 	 * protects anon from unexpected THP transitions; with shmem and file
+-	 * protected by mmap_lock-less collapse skipping areas with anon_vma
+-	 * (whereas vma_needs_copy() skips areas without anon_vma).  A rework
++	 * protected by mmap_lock-less collapse skipping areas with an anon rmap
++	 * (whereas vma_needs_copy() skips areas without one).  A rework
+ 	 * can remove such assumptions later, but this is good enough for now.
+ 	 */
+ 	dst_pte = pte_alloc_map_lock(dst_mm, dst_pmd, addr, &dst_ptl);
+@@ -1533,8 +1533,8 @@ vma_needs_copy(struct vm_area_struct *ds
+ 	if (dst_vma->vm_flags & VM_COPY_ON_FORK)
+ 		return true;
+ 	/*
+-	 * The presence of an anon_vma indicates an anonymous VMA has page
+-	 * tables which naturally cannot be reconstituted on page fault.
++	 * The presence of an anon rmap indicates the VMA may map anonymous
++	 * folios which naturally cannot be reconstituted on page fault.
+ 	 */
+ 	if (vma_has_anon_rmap(src_vma))
+ 		return true;
+@@ -3997,10 +3997,10 @@ static inline vm_fault_t vmf_can_call_fa
+  *
+  * When preparing to insert an anonymous page into a VMA from a
+  * fault handler, call this function rather than anon_vma_prepare().
+- * If this vma does not already have an associated anon_vma and we are
++ * If this vma does not already have an anon rmap and we are
+  * only protected by the per-VMA lock, the caller must retry with the
+  * mmap_lock held.  __anon_vma_prepare() will look at adjacent VMAs to
+- * determine if this VMA can share its anon_vma, and that's not safe to
++ * determine if this VMA can share its anon rmap, and that's not safe to
+  * do with only the per-VMA lock held for this VMA.
+  *
+  * Return: 0 if fault handling can proceed.  Any other value should be
+--- a/mm/migrate.c~mm-update-comments-to-refer-to-anon-rmap-rather-than-anon_vma
++++ a/mm/migrate.c
+@@ -1174,7 +1174,7 @@ static void migrate_folio_undo_src(struc
+ {
+ 	if (was_mapped)
+ 		remove_migration_ptes(src, src, 0);
+-	/* Drop an anon_vma reference if we took one */
++	/* Drop an anon rmap reference if we took one */
+ 	if (anon_vma)
+ 		put_anon_vma(anon_vma);
+ 	if (locked)
+@@ -1281,15 +1281,15 @@ static int migrate_folio_unmap(new_folio
+ 
+ 	/*
+ 	 * By try_to_migrate(), src->mapcount goes down to 0 here. In this case,
+-	 * we cannot notice that anon_vma is freed while we migrate a page.
+-	 * This get_anon_vma() delays freeing anon_vma pointer until the end
++	 * we cannot notice that the anon rmap is freed while we migrate a page.
++	 * This get_anon_vma() delays freeing the anon rmap until the end
+ 	 * of migration. File cache pages are no problem because of page_lock()
+ 	 * File Caches may use write_page() or lock_page() in migration, then,
+ 	 * just care Anon page here.
+ 	 *
+ 	 * Only folio_get_anon_vma() understands the subtleties of
+-	 * getting a hold on an anon_vma from outside one of its mms.
+-	 * But if we cannot get anon_vma, then we won't need it anyway,
++	 * getting a hold on an anon rmap from outside one of its mms.
++	 * But if we cannot get the anon rmap, then we won't need it anyway,
+ 	 * because that implies that the anon page is no longer mapped
+ 	 * (and cannot be remapped so long as we hold the page lock).
+ 	 */
+@@ -1432,7 +1432,7 @@ out_unlock_both:
+ 	 * and will be freed.
+ 	 */
+ 	list_del(&src->lru);
+-	/* Drop an anon_vma reference if we took one */
++	/* Drop an anon rmap reference if we took one */
+ 	if (anon_vma)
+ 		put_anon_vma(anon_vma);
+ 	folio_unlock(src);
+--- a/mm/mmap.c~mm-update-comments-to-refer-to-anon-rmap-rather-than-anon_vma
++++ a/mm/mmap.c
+@@ -547,7 +547,7 @@ unsigned long do_mmap(struct file *file,
+ 		}
+ 		case MAP_PRIVATE:
+ 			/*
+-			 * Set pgoff according to addr for anon_vma.
++			 * Set pgoff according to addr for the anon rmap.
+ 			 */
+ 			pgoff = addr >> PAGE_SHIFT;
+ 			break;
+@@ -1774,8 +1774,8 @@ __latent_entropy int dup_mmap(struct mm_
+ 		if (vma_test(tmp, VMA_WIPEONFORK_BIT)) {
+ 			/*
+ 			 * VMA_WIPEONFORK_BIT gets a clean slate in the child.
+-			 * Don't prepare anon_vma until fault since we don't
+-			 * copy page for current vma.
++			 * Don't prepare the anon rmap until fault since we
++			 * don't copy pages for the current vma.
+ 			 */
+ 			tmp->anon_vma = NULL;
+ 		} else if (anon_vma_fork(tmp, mpnt))
+--- a/mm/mprotect.c~mm-update-comments-to-refer-to-anon-rmap-rather-than-anon_vma
++++ a/mm/mprotect.c
+@@ -796,8 +796,8 @@ mprotect_fixup(struct vma_iterator *vmi,
+ 	/*
+ 	 * If we make a private mapping writable we increase our commit;
+ 	 * but (without finer accounting) cannot reduce our commit if we
+-	 * make it unwritable again except in the anonymous case where no
+-	 * anon_vma has yet to be assigned.
++	 * make it unwritable again except in the anonymous case where the
++	 * VMA's anon rmap has yet to be assigned.
+ 	 *
+ 	 * hugetlb mapping were accounted for even if read-only so there is
+ 	 * no need to account for them here.
+--- a/mm/mremap.c~mm-update-comments-to-refer-to-anon-rmap-rather-than-anon_vma
++++ a/mm/mremap.c
+@@ -214,7 +214,7 @@ static int move_ptes(struct pagetable_mo
+ 	int err = 0;
+ 
+ 	/*
+-	 * When need_rmap_locks is true, we take the i_mmap_rwsem and anon_vma
++	 * When need_rmap_locks is true, we take the i_mmap_rwsem and anon rmap
+ 	 * locks to ensure that rmap will always observe either the old or the
+ 	 * new ptes. This is the easiest way to avoid races with
+ 	 * truncate_pagecache(), page migration, etc...
+@@ -1339,8 +1339,8 @@ static void dontunmap_complete(struct vm
+ 	vma_clear_flags_mask(vma, VMA_LOCKED_MASK);
+ 
+ 	/*
+-	 * anon_vma links of the old vma is no longer needed after its page
+-	 * table has been moved.
++	 * The anon rmap links of the old vma are no longer needed after its
++	 * page table has been moved.
+ 	 */
+ 	if (new_vma != vma && start == old_start && end == old_end) {
+ 		const pgoff_t pgoff_unfaulted = vma->vm_start >> PAGE_SHIFT;
+--- a/mm/pgtable-generic.c~mm-update-comments-to-refer-to-anon-rmap-rather-than-anon_vma
++++ a/mm/pgtable-generic.c
+@@ -349,7 +349,7 @@ pte_t *pte_offset_map_rw_nolock(struct m
+  * pte_offset_map_lock(mm, pmd, addr, ptlp) is usually called with the pmd
+  * pointer for addr, reached by walking down the mm's pgd, p4d, pud for addr:
+  * either while holding mmap_lock or vma lock for read or for write; or in
+- * truncate or rmap context, while holding file's i_mmap_lock or anon_vma lock
++ * truncate or rmap context, while holding file's i_mmap_lock or anon rmap lock
+  * for read (or for write). In a few cases, it may be used with pmd pointing to
+  * a pmd_t already copied to or constructed on the stack.
+  *
+--- a/mm/userfaultfd.c~mm-update-comments-to-refer-to-anon-rmap-rather-than-anon_vma
++++ a/mm/userfaultfd.c
+@@ -130,7 +130,7 @@ struct vm_area_struct *find_vma_and_prep
+  * Should be called without holding mmap_lock.
+  *
+  * Return: A locked vma containing @address, -ENOENT if no vma is found,
+- * -ENOMEM if anon_vma couldn't be allocated, or -EAGAIN if vma refcount
++ * -ENOMEM if the anon rmap couldn't be allocated, or -EAGAIN if vma refcount
+  * overflow happened due to high number of readers and the caller should
+  * retry later.
+  */
+@@ -142,8 +142,8 @@ static struct vm_area_struct *uffd_lock_
+ 	vma = lock_vma_under_rcu(mm, address);
+ 	if (vma) {
+ 		/*
+-		 * We know we're going to need to use anon_vma, so check
+-		 * that early.
++		 * We know we're going to need an anon rmap, so check that
++		 * early.
+ 		 */
+ 		if (!(vma->vm_flags & VM_SHARED) && unlikely(!vma_has_anon_rmap(vma)))
+ 			vma_end_read(vma);
+@@ -1680,7 +1680,7 @@ retry:
+ 		/*
+ 		 * Verify the existence of the swapcache. If present, the folio's
+ 		 * index and mapping must be updated even when the PTE is a swap
+-		 * entry. The anon_vma lock is not taken during this process since
++		 * entry. The anon rmap lock is not taken during this process since
+ 		 * the folio has already been unmapped, and the swap entry is
+ 		 * exclusive, preventing rmap walks.
+ 		 *
+@@ -1917,7 +1917,7 @@ static void uffd_move_unlock(struct vm_a
+  *
+  * move_pages() remaps arbitrary anonymous pages atomically in zero
+  * copy. It only works on non shared anonymous pages because those can
+- * be relocated without generating non linear anon_vmas in the rmap
++ * be relocated without generating non linear anon rmaps in the rmap
+  * code.
+  *
+  * It provides a zero copy mechanism to handle userspace page faults.
+--- a/mm/vma.c~mm-update-comments-to-refer-to-anon-rmap-rather-than-anon_vma
++++ a/mm/vma.c
+@@ -97,7 +97,7 @@ static bool vma_is_fork_child(struct vm_
+ {
+ 	/*
+ 	 * The list_is_singular() test is to avoid merging VMA cloned from
+-	 * parents. This can improve scalability caused by the anon_vma root
++	 * parents. This can improve scalability caused by the anon rmap root
+ 	 * lock.
+ 	 */
+ 	return vma && vma_has_anon_rmap(vma) &&
+@@ -135,7 +135,7 @@ static bool is_mergeable_anon_vma(struct
+ 
+ 	/*
+ 	 * We _can_ have !src, vmg->anon_vma via copy_vma(). In this instance we
+-	 * will remove the existing VMA's anon_vma's so there's no scalability
++	 * will remove the existing VMA's anon rmap so there's no scalability
+ 	 * concerns.
+ 	 */
+ 	VM_WARN_ON(src && src_anon != src->anon_vma);
+@@ -151,10 +151,10 @@ static bool is_mergeable_anon_vma(struct
+ 
+ 		return true;
+ 	}
+-	/* Case 2 - we will simply use tgt's anon_vma. */
++	/* Case 2 - we will simply use tgt's anon rmap. */
+ 	if (vma_has_anon_rmap(tgt) && !src_anon)
+ 		return !vma_is_fork_child(tgt);
+-	/* Case 3 - the anon_vma's are already shared. */
++	/* Case 3 - src and tgt already share an anon rmap. */
+ 	return src_anon == tgt_anon;
+ }
+ 
+@@ -228,8 +228,8 @@ static bool needs_adjacent_anon_pgoff(co
+  * Return true if we can merge this (vma_flags,anon_vma,file,vm_pgoff)
+  * in front of (at a lower virtual address and file offset than) the vma.
+  *
+- * We cannot merge two vmas if they have differently assigned (non-NULL)
+- * anon_vmas, nor if same anon_vma is assigned but offsets incompatible.
++ * We cannot merge two vmas if they have differently assigned anon rmaps,
++ * nor if the same anon rmap is assigned but offsets incompatible.
+  *
+  * We don't check here for the merged mmap wrapping around the end of pagecache
+  * indices (16TB on ia32) because do_mmap() does not permit mmap's which
+@@ -255,8 +255,8 @@ static bool can_vma_merge_before(struct
+  * Return true if we can merge this (vma_flags,anon_vma,file,vm_pgoff)
+  * beyond (at a higher virtual address and file offset than) the vma.
+  *
+- * We cannot merge two vmas if they have differently assigned (non-NULL)
+- * anon_vmas, nor if same anon_vma is assigned but offsets incompatible.
++ * We cannot merge two vmas if they have differently assigned anon rmaps,
++ * nor if the same anon rmap is assigned but offsets incompatible.
+  *
+  * We assume that vma is not removed as part of the merge.
+  */
+@@ -300,18 +300,18 @@ static void __remove_shared_vm_struct(st
+ }
+ 
+ /*
+- * vma has some anon_vma assigned, and is already inserted on that
+- * anon_vma's interval trees.
++ * vma has an anon rmap assigned, and is already inserted on its interval
++ * trees.
+  *
+  * Before updating the vma's vm_start / vm_end / vm_pgoff fields, the
+- * vma must be removed from the anon_vma's interval trees using
++ * vma must be removed from the anon rmap's interval trees using
+  * anon_rmap_tree_pre_update_vma().
+  *
+  * After the update, the vma will be reinserted using
+  * anon_rmap_tree_post_update_vma().
+  *
+  * The entire update must be protected by exclusive mmap_lock and by
+- * the root anon_vma's mutex.
++ * the anon rmap root lock.
+  */
+ static void
+ anon_rmap_tree_pre_update_vma(struct vm_area_struct *vma)
+@@ -479,7 +479,7 @@ static bool can_vma_merge_left(struct vm
+  * account the end position of the proposed range.
+  *
+  * In addition, if we can merge with the left VMA, ensure that left and right
+- * anon_vma's are also compatible.
++ * anon rmaps are also compatible.
+  */
+ static bool can_vma_merge_right(struct vma_merge_struct *vmg,
+ 				bool can_merge_left)
+@@ -495,7 +495,7 @@ static bool can_vma_merge_right(struct v
+ 
+ 	/*
+ 	 * If we can merge with prev (left) and next (right), indicating that
+-	 * each VMA's anon_vma is compatible with the proposed anon_vma, this
++	 * each VMA's anon rmap is compatible with the proposed anon rmap, this
+ 	 * does not mean prev and next are compatible with EACH OTHER.
+ 	 *
+ 	 * We therefore check this in addition to mergeability to either side.
+@@ -645,8 +645,8 @@ static int split_vma(struct vma_iterator
+ }
+ 
+ /*
+- * dup_anon_vma() - Helper function to duplicate anon_vma on VMA merge in the
+- * instance that the destination VMA has no anon_vma but the source does.
++ * dup_anon_vma() - Helper function to duplicate the anon rmap on VMA merge in
++ * the instance that the destination VMA has no anon rmap but the source does.
+  *
+  * @dst: The destination VMA
+  * @src: The source VMA
+@@ -659,17 +659,17 @@ static int dup_anon_vma(struct vm_area_s
+ {
+ 	/*
+ 	 * There are three cases to consider for correctly propagating
+-	 * anon_vma's on merge.
++	 * anon rmaps on merge.
+ 	 *
+-	 * The first is trivial - neither VMA has anon_vma, we need not do
++	 * The first is trivial - neither VMA has an anon rmap, we need not do
+ 	 * anything.
+ 	 *
+-	 * The second where both have anon_vma is also a no-op, as they must
++	 * The second where both have an anon rmap is also a no-op, as they must
+ 	 * then be the same, so there is simply nothing to copy.
+ 	 *
+-	 * Here we cover the third - if the destination VMA has no anon_vma,
++	 * Here we cover the third - if the destination VMA has no anon rmap,
+ 	 * that is it is unfaulted, we need to ensure that the newly merged
+-	 * range is referenced by the anon_vma's of the source.
++	 * range is referenced by the anon rmap of the source.
+ 	 */
+ 	if (vma_has_anon_rmap(src) && !vma_has_anon_rmap(dst)) {
+ 		int ret;
+@@ -1017,9 +1017,9 @@ static __must_check struct vm_area_struc
+ 		vmg->anon_pgoff = vma_start_anon_pgoff(prev);
+ 
+ 		/*
+-		 * We already ensured anon_vma compatibility above, so now it's
+-		 * simply a case of, if prev has no anon_vma object, which of
+-		 * next or middle contains the anon_vma we must duplicate.
++		 * We already ensured anon rmap compatibility above, so now it's
++		 * simply a case of, if prev has no anon rmap, which of next or
++		 * middle contains the anon rmap we must duplicate.
+ 		 */
+ 		err = dup_anon_vma(prev, vma_has_anon_rmap(next) ? next : middle,
+ 				   &anon_dup);
+@@ -1085,7 +1085,7 @@ abort:
+ 		unlink_anon_vmas(anon_dup);
+ 
+ 	/*
+-	 * This means we have failed to clone anon_vma's correctly, but no
++	 * This means we have failed to clone the anon rmap correctly, but no
+ 	 * actual changes to VMAs have occurred, so no harm no foul - if the
+ 	 * user doesn't want this reported and instead just wants to give up on
+ 	 * the merge, allow it.
+@@ -1282,7 +1282,7 @@ int vma_expand(struct vma_merge_struct *
+ 
+ 	/*
+ 	 * If we are removing the next VMA or copying from a VMA
+-	 * (e.g. mremap()'ing), we must propagate anon_vma state.
++	 * (e.g. mremap()'ing), we must propagate anon rmap state.
+ 	 *
+ 	 * Note that, by convention, callers ignore OOM for this case, so
+ 	 * we don't need to account for vmg->give_up_on_mm here.
+@@ -2044,16 +2044,16 @@ out:
+ 
+ /*
+  * Rough compatibility check to quickly see if it's even worth looking
+- * at sharing an anon_vma.
++ * at sharing an anon rmap.
+  *
+  * They need to have the same vm_file, and the flags can only differ
+  * in things that mprotect may change.
+  *
+- * NOTE! The fact that we share an anon_vma doesn't _have_ to mean that
++ * NOTE! The fact that we share an anon rmap doesn't _have_ to mean that
+  * we can merge the two vma's. For example, we refuse to merge a vma if
+  * there is a vm_ops->close() function, because that indicates that the
+  * driver is doing some kind of reference counting. But that doesn't
+- * really matter for the anon_vma sharing case.
++ * really matter for the anon rmap sharing case.
+  */
+ static int anon_vma_compatible(struct vm_area_struct *a, struct vm_area_struct *b)
+ {
+@@ -2086,13 +2086,13 @@ static int anon_vma_compatible(struct vm
+ }
+ 
+ /*
+- * Do some basic sanity checking to see if we can re-use the anon_vma
++ * Do some basic sanity checking to see if we can re-use the anon rmap
+  * from 'old'. The 'a'/'b' vma's are in VM order - one of them will be
+  * the same as 'old', the other will be the new one that is trying
+- * to share the anon_vma.
++ * to share the anon rmap.
+  *
+  * NOTE! This runs with mmap_lock held for reading, so it is possible that
+- * the anon_vma of 'old' is concurrently in the process of being set up
++ * the anon rmap of 'old' is concurrently in the process of being set up
+  * by another page fault trying to merge _that_. But that's ok: if it
+  * is being set up, that automatically means that it will be a singleton
+  * acceptable for merging, so we can do all of this optimistically. But
+@@ -2106,8 +2106,8 @@ static int anon_vma_compatible(struct vm
+  * accessing an uninitialised anon_vma's fields may result in a UAF.
+  *
+  * IOW: that the "list_is_singular()" test on the anon_vma_chain only
+- * matters for the 'stable anon_vma' case (ie the thing we want to avoid
+- * is to return an anon_vma that is "complex" due to having gone through
++ * matters for the 'stable anon rmap' case (ie the thing we want to avoid
++ * is to return an anon rmap that is "complex" due to having gone through
+  * a fork).
+  *
+  * We also make sure that the two vma's are compatible (adjacent,
+@@ -2130,10 +2130,10 @@ static struct anon_vma *reusable_anon_vm
+ 
+ /*
+  * find_mergeable_anon_vma is used by anon_vma_prepare, to check
+- * neighbouring vmas for a suitable anon_vma, before it goes off
+- * to allocate a new anon_vma.  It checks because a repetitive
++ * neighbouring vmas for a suitable anon rmap, before it goes off
++ * to allocate a new anon rmap.  It checks because a repetitive
+  * sequence of mprotects and faults may otherwise lead to distinct
+- * anon_vmas being allocated, preventing vma merge in subsequent
++ * anon rmaps being allocated, preventing vma merge in subsequent
+  * mprotect.
+  */
+ struct anon_vma *find_mergeable_anon_vma(struct vm_area_struct *vma)
+@@ -2159,13 +2159,13 @@ struct anon_vma *find_mergeable_anon_vma
+ 
+ 	/*
+ 	 * We might reach here with anon_vma == NULL if we can't find
+-	 * any reusable anon_vma.
++	 * any reusable anon rmap.
+ 	 * There's no absolute need to look only at touching neighbours:
+-	 * we could search further afield for "compatible" anon_vmas.
++	 * we could search further afield for "compatible" anon rmaps.
+ 	 * But it would probably just be a waste of time searching,
+-	 * or lead to too many vmas hanging off the same anon_vma.
++	 * or lead to too many vmas hanging off the same anon rmap.
+ 	 * We're trying to allow mprotect remerging later on,
+-	 * not trying to minimize memory used for anon_vmas.
++	 * not trying to minimize memory used for anon rmaps.
+ 	 */
+ 	return anon_vma;
+ }
+@@ -2261,7 +2261,7 @@ static void vm_lock_anon_vma(struct mm_s
+ 		/*
+ 		 * We can safely modify head.next after taking the
+ 		 * anon_vma->root->rwsem. If some other vma in this mm shares
+-		 * the same anon_vma we won't take it again.
++		 * the same anon rmap we won't take it again.
+ 		 *
+ 		 * No need of atomic instructions here, head.next
+ 		 * can't change from under us thanks to the
+@@ -2303,14 +2303,14 @@ static void vm_lock_mapping(struct mm_st
+  * mmap_lock in write mode is required in order to block all operations
+  * that could modify pagetables and free pages without need of
+  * altering the vma layout. It's also needed in write mode to avoid new
+- * anon_vmas to be associated with existing vmas.
++ * anon rmaps being associated with existing vmas.
+  *
+  * A single task can't take more than one mm_take_all_locks() in a row
+  * or it would deadlock.
+  *
+  * The LSB in anon_vma->rb_root.rb_node and the AS_MM_ALL_LOCKS bitflag in
+  * mapping->flags avoid to take the same lock twice, if more than one
+- * vma in this mm is backed by the same anon_vma or address_space.
++ * vma in this mm is backed by the same anon rmap or address_space.
+  *
+  * We take locks in following order, accordingly to comment at beginning
+  * of mm/rmap.c:
+@@ -3404,7 +3404,7 @@ int expand_upwards(struct vm_area_struct
+ 	if (next && vma_is_accessible(next)) {
+ 		if (!vma_test(next, VMA_GROWSUP_BIT))
+ 			return -ENOMEM;
+-		/* Check that both stack segments have the same anon_vma? */
++		/* Check that both stack segments have the same anon rmap? */
+ 	}
+ 
+ 	if (next)
+@@ -3414,7 +3414,7 @@ int expand_upwards(struct vm_area_struct
+ 	if (vma_iter_prealloc(&vmi, vma))
+ 		return -ENOMEM;
+ 
+-	/* We must make sure the anon_vma is allocated. */
++	/* We must make sure the anon rmap is allocated. */
+ 	if (unlikely(anon_vma_prepare(vma))) {
+ 		vma_iter_free(&vmi);
+ 		return -ENOMEM;
+@@ -3477,7 +3477,7 @@ int expand_downwards(struct vm_area_stru
+ 
+ 	/* Enforce stack_guard_gap */
+ 	prev = vma_prev(&vmi);
+-	/* Check that both stack segments have the same anon_vma? */
++	/* Check that both stack segments have the same anon rmap? */
+ 	if (prev) {
+ 		if (!vma_test(prev, VMA_GROWSDOWN_BIT) &&
+ 		    vma_is_accessible(prev) &&
+@@ -3492,7 +3492,7 @@ int expand_downwards(struct vm_area_stru
+ 	if (vma_iter_prealloc(&vmi, vma))
+ 		return -ENOMEM;
+ 
+-	/* We must make sure the anon_vma is allocated. */
++	/* We must make sure the anon rmap is allocated. */
+ 	if (unlikely(anon_vma_prepare(vma))) {
+ 		vma_iter_free(&vmi);
+ 		return -ENOMEM;
+@@ -3572,7 +3572,7 @@ int insert_vm_struct(struct mm_struct *m
+ 
+ 	/*
+ 	 * The vm_pgoff of a purely anonymous vma should be irrelevant
+-	 * until its first write fault, when page's anon_vma and index
++	 * until its first write fault, when page's anon rmap and index
+ 	 * are set.  But now set the vm_pgoff it will almost certainly
+ 	 * end up with (unless mremap moves it elsewhere before that
+ 	 * first wfault), so /proc/pid/maps tells a consistent story.
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from ljs@kernel.org are
 
-mm-memory_hotplug-factor-out-node_is_memoryless-fix.patch
-docs-admin-guide-mm-damon-usage-update-for-hugepage_size-fix.patch
-docs-admin-guide-mm-damon-usage-update-for-hugepage_size-fix-fix.patch
-mm-update-comments-to-refer-to-anon-rmap-rather-than-anon_vma-fix.patch
-mm-selftests-add-shmem-into-memory-failure-test-fix.patch
-drivers-media-v4l2-core-v4l2-vp9c-reduce-inlining.patch
+mm-vmpressure-remove-window-size-todo.patch
+tools-testing-selftests-mm-add-missing-gitignore-entries.patch
+mm-move-drivers-char-memc-to-mm-char-memc.patch
+mm-implement-file_is_dev_zero-to-uniquely-identify-dev-zero.patch
+mm-vma-only-permit-map_private-dev-zero-to-be-mapped-anonymous.patch
+mm-vma-make-map_private-mapped-dev-zero-mappings-truly-anonymous.patch
+tools-testing-vma-add-test-to-assert-map_private-dev-zero-is-anon.patch
+tools-testing-selftests-mm-add-map_private-dev-zero-merge-tests.patch
+mm-madvise-swap-in-cowd-map_private-file-mappings-on-madv_willneed.patch
+mm-huge_memory-zap-deposited-page-tables-after-an-rcu-grace-period.patch
+mm-enable-mmu_gather_rcu_table_free-for-most-2-level-architectures.patch
+mm-enable-mmu_gather_rcu_table_free-for-mmu-riscv.patch
+mm-enable-mmu_gather_rcu_table_free-for-mmu-arm.patch
+mm-enable-mmu_gather_rcu_table_free-for-arc-microblaze-xtensa.patch
+mm-enable-mmu_gather_rcu_table_free-for-sparc64.patch
+mm-enable-mmu_gather_rcu_table_free-for-m68k-coldfire.patch
+mm-enable-mmu_gather_rcu_table_free-for-sh-x2.patch
+mm-enable-mmu_gather_rcu_table_free-for-m68k-motorola.patch
+mm-enable-mmu_gather_rcu_table_free-for-sparc32.patch
+mm-make-userland-page-table-freeing-rcu-safe.patch
+mm-change-the-contract-for-free_pgtables-update-docs.patch
+mm-vma-fix-mmap_prepare-file-handling-remove-file_doesnt_need_get.patch
+mm-vma-predicate-setting-mmap_prepare-vma-fields-on-new-vma-alloc.patch
+mm-vma-introduce-and-use-vma_can_merge.patch
+mm-consistently-validate-vma-state-after-mmap-hooks.patch
+mm-vma-ensure-mmap_prepare-doesnt-set-actions-on-a-mergeable-vma.patch
+mm-make-map_kernel_pages_-internal-and-unexported.patch
+mm-vma-tidy-up-map-kernel-pages-enum-values.patch
+mm-add-mmap-action-for-discontiguous-kernel-page-mapping.patch
+docs-filesystems-update-mmap_prepare-docs-for-discontig-kernel-pgs.patch
+drivers-usb-mon-update-to-use-mmap_prepare-map-kernel-pages.patch
+infiniband-update-hfi1-to-use-remap_vmalloc_range.patch
+selinux-reject-writable-opens-of-policy-file-drop-mmap-shared-write-check.patch
+alsa-pcm-use-vm_insert_page-to-map-pcm-status-page.patch
+bpf-arena-mark-arena_map_mmap-mappings-vm_mixedmap.patch
+mm-vma-add-vma_is_kernel_owned-predicates.patch
+mm-vma-only-allow-mmap-to-clear-vma_maywrite_bit-if-kernel-owned.patch
+mm-vma-add-and-use-vma__is_fixed_mapping.patch
+scsi-sg-convert-mmap-hook-to-mmap_prepare-and-rework.patch
+fbdev-defio-assert-fbinfo_virtfb-drop-vm_io-add-vm_mixedmap.patch
+hsi-cmt_speech-convert-mmap-hook-to-mmap_prepare-refactor.patch
+mm-gup-error-out-early-on-vma_mayread_bit-vmas.patch
+uprobes-remove-vm_io-set-vm_mixedmap-for-mapped-kernel-pages.patch
+mm-mlock-clear-vma_locked_mask-over-mmap-callback.patch
+mm-mlock-eliminate-weird-vma_io_bit-abuse-and-simplify.patch
+mm-vma-enforce-that-only-kernel-owned-mappings-may-set-vma_io_bit.patch
+mm-remove-vma_io_bit-check-in-vma_is_kernel_owned.patch
+mm-remove-hugetlb_inlineh.patch
+mm-rename-is_vm_hugetlb_page-to-vma_is_hugetlb.patch
+mm-drop-some-redundant-checks-around-hugetlb-vmas.patch
+mm-madvise-update-is_valid_guard_vma-to-use-vma_can_merge.patch
+mm-vma-introduce-vma_is_persistent.patch
+mm-uffd-use-predicates-for-userfaultfd-checks.patch
+mm-madvise-use-predicates-for-madvise-madv_dofork.patch
+mm-eliminate-vma_special_flags-usage-when-hugetlb-explicitly-tested.patch
+mm-eliminate-vma_special_flags-check-in-lru_gen_look_around.patch
+mm-avoid-use-of-vma_special_flags-in-migrate_vma_setup.patch
+mm-eliminate-vm_special-vma_special_flags.patch
+fuse-dax-do-not-set-vm_mixedmap.patch
+mm-huge_memory-remove-vma_is_special_huge.patch
+mm-vma-introduce-and-use-vma_can_gup.patch
+mm-vma-const-ify-vma_assert_stabilised-and-associated-functions.patch
+mm-implement-and-use-vma_has_anon_rmap-silence-kcsan.patch
+mm-update-comments-to-refer-to-anon-rmap-rather-than-anon_vma.patch
 
