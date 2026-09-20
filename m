@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2C25E3D75A0
-	for <mm-commits@vger.kernel.org>; Sun, 20 Sep 2026 23:55:10 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3FFFE3D1702
+	for <mm-commits@vger.kernel.org>; Sun, 20 Sep 2026 23:55:14 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789948511; cv=none; b=innIk4RwPpiWL3UTnrnToAxZbFUDRVq1lZYAYaLuFTxLYfdcOLblyw6ioqiEaUFUid7huPwwpZqxDWz9iISYcf6T0kgZsx60yNxnBBkZA6osuwIegJtzuhEHaEzcTNcnvdsScAlY04XSk3sD31KC9vLvOQt9X8o9ObiIEmcq3pA=
+	t=1789948515; cv=none; b=AZ0U3L19mHTZ8EQMc7Rjtp2O285wIs8/Y3cbB2IAmytz9eEr/mb1MzkInPteUXIABR5LmMtMxU0FwLnYvtLUWXukep9lEEq0CSuBip8jFu2Igybjbbp7nvObSqh4QbQvatVRuGL5WxwPLfTvdnGkJTH5FpuD2fLAqpmp7bQ3x2Q=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1789948511; c=relaxed/simple;
-	bh=U0P27c6oHVthf757MkLsiHdNbhYMfgVWQVv42jnguag=;
-	h=Date:To:From:Subject:Message-Id; b=M2PFbHfzNx//ipcXHrAGKPjxGy90WPWurb5AP/iYcP1V2FH+4BEWpgrckmTRe7Up0Tr2auQhjuJC8THyrJ0gvHu4F96BcjLyT2uHqzewmCOIRmT6A5aLklURCtNVVuOfI68JnedUBBQA/k/rbIiG5R0GPU7Ohp3OLoiGb7DHUrE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=w7O/JxCt; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1789948515; c=relaxed/simple;
+	bh=J5MHCvvYZkDxr7J9wsPhC4geX23z+JkrN4calUkunfA=;
+	h=Date:To:From:Subject:Message-Id; b=De1y8HY/3Y60rZ+zFoqDGoH38jbxQGD6tDJRs04HJMtf5orB4soYffBl4h94IWzXE4/Z4rjn9W3rc/ITfX71LPH2MXy5c+ybF2HL1wiYJn7QOvHEV2fNoPFV69/mA0JppFsq4mwCQMb0WrmNb6jT7KqmQH4Qe/RHfJSqgE9WbnA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=KZXN7Gyb; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="w7O/JxCt"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E87AF1F000FF;
-	Sun, 20 Sep 2026 23:55:09 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="KZXN7Gyb"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D0F4D1F000FF;
+	Sun, 20 Sep 2026 23:55:13 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1789948510;
-	bh=4JHhwMYymns1ccV0+rMxMut77BQMaxAY8ziG0RwUaS8=;
+	d=linux-foundation.org; s=korg; t=1789948513;
+	bh=4yt9NGAXWDjooGOVI4NLwyL8Bm5Ga62dh/+QkMH4h2E=;
 	h=Date:To:From:Subject;
-	b=w7O/JxCtnJgShY7O6Zhfwwl61sMf2w/ojMpIc6TdslCr/HIPxSIYglB2AK/jqW+7Y
-	 KnNF50Q6Bh400b5CMi7A/KbyGGfkZHq1b3y5p9Y21MwDoU3Wc91FQ9JdVcl55WX//r
-	 +AsNiZygeO6c+j1C6ROSmowYSoC5JRjUbAHmE9L8=
-Date: Sun, 20 Sep 2026 16:55:09 -0700
+	b=KZXN7Gyb9BDl4jMPIzM9VIUcL31+M89LSuVRv3a1vJiPgNb1VifeSqfhcK46O3Do1
+	 4MlIdIMGp/veqBBHxZRckNgp2PSChUpoHHOlfn7moC9XNWd+Qv9AwtAoXLoUiKnkgA
+	 tyKu8p758SVym3ZRNiCPmW7uj7si0uAd8YUXwDDk=
+Date: Sun, 20 Sep 2026 16:55:13 -0700
 To: mm-commits@vger.kernel.org,kas@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-mm-add-folio-order-check-for-address-ranges.patch added to mm-new branch
-Message-Id: <20260920235509.E87AF1F000FF@smtp.kernel.org>
+Subject: + selftests-mm-add-folio-order-detection-self-check.patch added to mm-new branch
+Message-Id: <20260920235513.D0F4D1F000FF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: selftests/mm: add folio-order check for address ranges
+     Subject: selftests/mm: add folio-order detection self-check
 has been added to the -mm mm-new branch.  Its filename is
-     selftests-mm-add-folio-order-check-for-address-ranges.patch
+     selftests-mm-add-folio-order-detection-self-check.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-add-folio-order-check-for-address-ranges.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-add-folio-order-detection-self-check.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,28 +70,30 @@ and is updated there most days
 
 ------------------------------------------------------
 From: "Kiryl Shutsemau (Meta)" <kas@kernel.org>
-Subject: selftests/mm: add folio-order check for address ranges
-Date: Sat, 19 Sep 2026 01:24:38 +0100
+Subject: selftests/mm: add folio-order detection self-check
+Date: Sat, 19 Sep 2026 01:24:39 +0100
 
-An mTHP collapse test needs to know that a range is backed by folios of
-the target order, and that they sit where a collapse would put them. 
-Nothing answers both: is_backed_by_folio() classifies the folio behind a
-single page, and check_huge_anon() counts the folios of an order in a
-range without saying where they start.
+The khugepaged mTHP tests detect collapse results with the vm_util
+folio-order helpers rather than smaps AnonHugePages, which only sees PMD
+mappings.  If those helpers are wrong, every case built on them is wrong
+the same way, and nothing says so.
 
-Add is_range_backed_by_order().  It requires every folio-sized, folio-
-aligned part of the range to map one folio of that order, head to tail,
-with the head at the start of the part.
+Check them directly.  For every anon THP order the kernel supports, fault
+memory in with only that order enabled.  Require the helpers to classify
+the backing as exactly that order: not the order below it, and base-page
+memory as order 0.
 
-A part backed by two smaller folios fails, and so does a folio mapped off
-its natural alignment.  The mTHP cases need both to tell a collapsed range
-from the one beside it.
+Run it in the thp category, ahead of ./khugepaged, so a broken helper is
+reported as itself rather than as a collapse failure.  Verified on x86-64
+4K (orders 0, 2-9) and arm64 64K (orders 0, 2-13).
+
+The test needs ALIGN(), which hmm-tests.c and migration.c each defined
+privately.  Move it to vm_util.h and drop both copies.
 
 Assisted-by: LLM
-Link: https://lore.kernel.org/20260919002451.496763-9-kirill@shutemov.name
+Link: https://lore.kernel.org/20260919002451.496763-10-kirill@shutemov.name
 Signed-off-by: Kiryl Shutsemau (Meta) <kas@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Reviewed-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
 Tested-by: Muhammad Usama Anjum <usama.anjum@arm.com>
 Cc: Alexander Gordeev <agordeev@linux.ibm.com>
 Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
@@ -106,6 +108,7 @@ Cc: Leon Romanovsky <leon@kernel.org>
 Cc: Liam Howlett <liam@infradead.org>
 Cc: Lorenzo Stoakes (ARM) <ljs@kernel.org>
 Cc: Michal Hocko <mhocko@suse.com>
+Cc: Mike Rapoport (Microsoft) <rppt@kernel.org>
 Cc: Nico Pache (Red Hat) <nico.pache@linux.dev>
 Cc: Ryan Roberts <ryan.roberts@arm.com>
 Cc: Shuah Khan (Samsung OSG) <shuah@kernel.org>
@@ -115,77 +118,193 @@ Cc: "Vlastimil Babka (SUSE)" <vbabka@kernel.org>
 Cc: Zi Yan <ziy@nvidia.com>
 ---
 
- tools/testing/selftests/mm/vm_util.c |   47 +++++++++++++++++++++++++
- tools/testing/selftests/mm/vm_util.h |    2 +
- 2 files changed, 49 insertions(+)
+ tools/testing/selftests/mm/Makefile            |    1 
+ tools/testing/selftests/mm/folio_order_check.c |  122 +++++++++++++++
+ tools/testing/selftests/mm/hmm-tests.c         |    1 
+ tools/testing/selftests/mm/migration.c         |    1 
+ tools/testing/selftests/mm/run_vmtests.sh      |    2 
+ tools/testing/selftests/mm/vm_util.h           |    2 
+ 6 files changed, 127 insertions(+), 2 deletions(-)
 
---- a/tools/testing/selftests/mm/vm_util.c~selftests-mm-add-folio-order-check-for-address-ranges
-+++ a/tools/testing/selftests/mm/vm_util.c
-@@ -551,6 +551,53 @@ fail:
- 	ksft_exit_fail_msg("Failed to get folio info\n");
- }
- 
-+/**
-+ * is_range_backed_by_order() - check that a range is backed by @order folios
-+ * @start: start of the range, a multiple of the folio size
-+ * @len: length of the range in bytes, a multiple of the folio size
-+ * @order: the folio order to check for
-+ * @pagemap_fd: open /proc/<pid>/pagemap of the range's owner
-+ * @kpageflags_fd: open /proc/kpageflags
-+ *
-+ * Every folio-sized, folio-aligned part of the range must map one folio of
-+ * @order, head to tail, with the head at the start of the part.  A part
-+ * backed by several smaller folios fails, and so does a folio mapped off
-+ * its natural alignment.
-+ *
-+ * Returns: true if the whole range is backed that way, false otherwise.
+diff --git a/tools/testing/selftests/mm/folio_order_check.c a/tools/testing/selftests/mm/folio_order_check.c
+new file mode 100644
+--- /dev/null
++++ a/tools/testing/selftests/mm/folio_order_check.c
+@@ -0,0 +1,122 @@
++// SPDX-License-Identifier: GPL-2.0
++/*
++ * Self-check for the vm_util folio-order helpers, is_backed_by_folio() and
++ * is_range_backed_by_order(), which the khugepaged mTHP cases use to detect
++ * collapse results.  For every anon THP order the kernel supports, fault
++ * memory in with only that order enabled and require the helpers to report
++ * exactly that order.
 + */
-+bool is_range_backed_by_order(char *start, size_t len, int order,
-+			      int pagemap_fd, int kpageflags_fd)
++#define _GNU_SOURCE
++#include <fcntl.h>
++#include <stdio.h>
++#include <stdlib.h>
++#include <sys/mman.h>
++#include <unistd.h>
++
++#include "kselftest.h"
++#include "vm_util.h"
++#include <mm/hugepage_settings.h>
++
++static int pagemap_fd;
++static int kpageflags_fd;
++
++static char *alloc_aligned(size_t size)
 +{
-+	const unsigned long nr_pages = 1UL << order;
-+	const size_t folio_size = nr_pages * psize();
-+	char *vaddr;
++	size_t len = size * 2;
++	char *p, *aligned;
 +
-+	if ((uintptr_t)start % folio_size || len % folio_size)
-+		return false;
++	p = mmap(NULL, len, PROT_READ | PROT_WRITE,
++		 MAP_ANONYMOUS | MAP_PRIVATE, -1, 0);
++	if (p == MAP_FAILED)
++		ksft_exit_fail_perror("mmap()");
 +
-+	for (vaddr = start; vaddr < start + len; vaddr += folio_size) {
-+		const unsigned long pfn = pagemap_get_pfn(pagemap_fd, vaddr);
-+		unsigned long i;
++	aligned = (char *)ALIGN((uintptr_t)p, size);
++	if (aligned != p)
++		munmap(p, aligned - p);
++	if (aligned + size != p + len)
++		munmap(aligned + size, p + len - aligned - size);
 +
-+		/* Not present, or a tail page */
-+		if (pfn == -1UL || pfn % nr_pages)
-+			return false;
-+
-+		for (i = 1; i < nr_pages; i++) {
-+			char *page = vaddr + i * psize();
-+
-+			if (pagemap_get_pfn(pagemap_fd, page) != pfn + i)
-+				return false;
-+		}
-+
-+		if (!is_backed_by_folio(vaddr, order, pagemap_fd, kpageflags_fd))
-+			return false;
-+	}
-+
-+	return true;
++	return aligned;
 +}
 +
- /* If `ioctls' non-NULL, the allowed ioctls will be returned into the var */
- int uffd_register_with_ioctls(int uffd, void *addr, uint64_t len,
- 			      bool miss, bool wp, bool minor, uint64_t *ioctls)
---- a/tools/testing/selftests/mm/vm_util.h~selftests-mm-add-folio-order-check-for-address-ranges
-+++ a/tools/testing/selftests/mm/vm_util.h
-@@ -101,6 +101,8 @@ int gather_folio_orders(char *vaddr_star
- 		int pagemap_fd, int kpageflags_fd, int orders[], int nr_orders);
- bool is_backed_by_folio(char *vaddr, int order, int pagemap_fd,
- 			int kpageflags_fd);
-+bool is_range_backed_by_order(char *start, size_t len, int order,
-+			      int pagemap_fd, int kpageflags_fd);
++static void check_order(int order)
++{
++	struct thp_settings settings = *thp_current_settings();
++	size_t size = psize() << order;
++	bool ok = true;
++	char *p;
++	int i;
++
++	for (i = 0; i < NR_ORDERS; i++)
++		settings.hugepages[i].enabled = THP_NEVER;
++	if (order)
++		settings.hugepages[order].enabled = THP_ALWAYS;
++	thp_push_settings(&settings);
++
++	p = alloc_aligned(size);
++	*p = 1;
++
++	if (!is_range_backed_by_order(p, size, order, pagemap_fd, kpageflags_fd)) {
++		ksft_print_msg("order %d not detected after fault\n", order);
++		ok = false;
++	}
++
++	/* A lower order must be rejected: the folio is larger */
++	if (order && is_range_backed_by_order(p, size, order - 1,
++					      pagemap_fd, kpageflags_fd)) {
++		ksft_print_msg("order %d also reported as order %d\n",
++			       order, order - 1);
++		ok = false;
++	}
++
++	/* A large folio must not pass as order 0 */
++	if (order && is_range_backed_by_order(p, size, 0,
++					      pagemap_fd, kpageflags_fd)) {
++		ksft_print_msg("order %d also reported as order 0\n", order);
++		ok = false;
++	}
++
++	munmap(p, size);
++	thp_pop_settings();
++
++	ksft_test_result(ok, "order %d classified\n", order);
++}
++
++int main(void)
++{
++	struct thp_settings settings;
++	unsigned long orders;
++	int order;
++
++	ksft_print_header();
++
++	if (!thp_available())
++		ksft_exit_skip("Transparent Hugepages not available\n");
++
++	pagemap_fd = open("/proc/self/pagemap", O_RDONLY);
++	if (pagemap_fd < 0)
++		ksft_exit_fail_perror("open(/proc/self/pagemap)");
++	kpageflags_fd = open("/proc/kpageflags", O_RDONLY);
++	if (kpageflags_fd < 0)
++		ksft_exit_skip("open(/proc/kpageflags) requires root\n");
++
++	orders = thp_supported_orders();
++	if (!orders)
++		ksft_exit_skip("No supported THP orders\n");
++
++	ksft_set_plan(__builtin_popcountl(orders) + 1);
++
++	thp_save_settings();
++	thp_read_settings(&settings);
++	/* Base of the settings stack; the bottom entry is never popped */
++	thp_push_settings(&settings);
++
++	check_order(0);
++	for (order = 1; order < NR_ORDERS; order++) {
++		if (!(orders & (1UL << order)))
++			continue;
++		check_order(order);
++	}
++
++	ksft_finished();
++}
+--- a/tools/testing/selftests/mm/hmm-tests.c~selftests-mm-add-folio-order-detection-self-check
++++ a/tools/testing/selftests/mm/hmm-tests.c
+@@ -65,7 +65,6 @@ enum {
+ #define HMM_PATH_MAX    64
+ #define NTIMES		10
  
- int uffd_register(int uffd, void *addr, uint64_t len,
- 		  bool miss, bool wp, bool minor);
+-#define ALIGN(x, a) (((x) + (a - 1)) & (~((a) - 1)))
+ /* Just the flags we need, copied from mm.h: */
+ 
+ #ifndef FOLL_WRITE
+--- a/tools/testing/selftests/mm/Makefile~selftests-mm-add-folio-order-detection-self-check
++++ a/tools/testing/selftests/mm/Makefile
+@@ -105,6 +105,7 @@ TEST_GEN_FILES += guard-regions
+ TEST_GEN_FILES += merge
+ TEST_GEN_FILES += rmap
+ TEST_GEN_FILES += folio_split_race_test
++TEST_GEN_FILES += folio_order_check
+ TEST_GEN_FILES += soft-dirty
+ 
+ ifeq ($(ARCH),x86_64)
+--- a/tools/testing/selftests/mm/migration.c~selftests-mm-add-folio-order-detection-self-check
++++ a/tools/testing/selftests/mm/migration.c
+@@ -20,7 +20,6 @@
+ 
+ #define TWOMEG		(2<<20)
+ #define RUNTIME		(20)
+-#define ALIGN(x, a)	(((x) + (a - 1)) & (~((a) - 1)))
+ 
+ HUGETLB_SETUP_DEFAULT_PAGES(1)
+ 
+--- a/tools/testing/selftests/mm/run_vmtests.sh~selftests-mm-add-folio-order-detection-self-check
++++ a/tools/testing/selftests/mm/run_vmtests.sh
+@@ -382,6 +382,8 @@ CATEGORY="pfnmap" run_test ./pfnmap
+ # COW tests
+ CATEGORY="cow" run_test ./cow
+ 
++CATEGORY="thp" run_test ./folio_order_check
++
+ CATEGORY="thp" run_test ./khugepaged
+ 
+ CATEGORY="thp" run_test ./khugepaged -s 2
+--- a/tools/testing/selftests/mm/vm_util.h~selftests-mm-add-folio-order-detection-self-check
++++ a/tools/testing/selftests/mm/vm_util.h
+@@ -12,6 +12,8 @@
+ #include <mm/hugepage_settings.h>
+ 
+ #define BIT_ULL(nr)                   (1ULL << (nr))
++#define ALIGN(x, a)                   (((x) + (a) - 1) & ~((a) - 1))
++
+ #define PM_SOFT_DIRTY                 BIT_ULL(55)
+ #define PM_MMAP_EXCLUSIVE             BIT_ULL(56)
+ #define PM_UFFD_WP                    BIT_ULL(57)
 _
 
 Patches currently in -mm which might be from kas@kernel.org are
