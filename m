@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B1A4E3F44FC
-	for <mm-commits@vger.kernel.org>; Sun, 20 Sep 2026 23:54:55 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2581133B6D9
+	for <mm-commits@vger.kernel.org>; Sun, 20 Sep 2026 23:54:58 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789948497; cv=none; b=BCkLh1r0m+CX24M3CDAIU8xZxy110D9t5VmSsFMreGheBA2Hvrnr0qjw9J87kqSIjmYsrObfNZRtaoVj1lH4/Ybr3EbaySdQGnUXtzl0Sbg5APai2T0MeJQ7yehMdaeYJQfhQoT3sYSwqO60nuj9i2v77wshJstAi8pjOK8FO7o=
+	t=1789948500; cv=none; b=XHG3E8HTQ1df3i0Gq637Yx5cYpeXzSOQgmeRikQD7Tjj+jPU5F9nxV6KnW2UOJ1pMiruVVIXiD3ad3fD4kA+Cjt6I6bn+5ck/RL1VgY/XgWzInoh9PgO/vzvTITiXLekymJKoMeHCbrALOwHnr8kA9i6DM6FNMHrgTjaEo155Tg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1789948497; c=relaxed/simple;
-	bh=xpHcDR7HGO3139WJlkRaCqsjBYWvF1bSebT0QNxs9IY=;
-	h=Date:To:From:Subject:Message-Id; b=GqfIDoHMYefgwXV7KkTsgS+Vs2vhHCMi+kPU5/ygVHiCRnwrblMKYWGK0gsL7mCMvy2n9hVZplG2WG1a7KNQ+hgwua7RZjIxE5uINwAsvysBPPPcnBSL4zgVbnyOMkL7ejZ23cMKJfFVJmyUSHlPLArMtPrldLSMQRy/rTubI5Y=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=b4y5PDfS; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1789948500; c=relaxed/simple;
+	bh=ZgrWlmvzgmu6S4o8LnPIdGzJnrIzHsW0Rrap4RtNBDw=;
+	h=Date:To:From:Subject:Message-Id; b=ctay8X176vm2almDJT2la6Q13l/9ELCyV38z2b2Gr0ZWHlB/u2F32o1ow5ilbe8rsRteTxox/0TPfT9H/RRRBsFLxRcSDPNYbFwInZPBYlk0OQcHMQUsOkudPTg/mgiIoujIc/WjRQEiJ/wQDBxkLKicSewZ/a+fKDWANv9sbIg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=xgTZCLX0; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="b4y5PDfS"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1934D1F000FF;
-	Sun, 20 Sep 2026 23:54:55 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="xgTZCLX0"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id ADACE1F000FF;
+	Sun, 20 Sep 2026 23:54:58 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1789948495;
-	bh=JtI++pIn8dIkKq7sJL7QJV82OzXlwt18VtzYzix3skY=;
+	d=linux-foundation.org; s=korg; t=1789948498;
+	bh=J8hSh2S5cs3TIYeCYERE5dsB9JZR27SPchC8Y9xxop0=;
 	h=Date:To:From:Subject;
-	b=b4y5PDfS71z6YxXGGRF6eZ2+M6Ak6Q2OfEKSY3hex6e4ZEUTFmp74f1ZktXT9fHR7
-	 s7ntoC1lMsg2hG2LazQwfkaiqLJJ7vgrpZAj+u1vNssB4qhkOD7rXpVTJc9H5WznjM
-	 GAd4nB9aooRFB3lxd4Ed7DAi/zF+IPJ0OVCrXOWY=
-Date: Sun, 20 Sep 2026 16:54:54 -0700
+	b=xgTZCLX04PoSEKHC1cG5w7ZMgdAr08FlzStVbBfyOynW6J86voqkeGh7+kLIVPUtM
+	 fOv1IkECOq8Gsj0O2IHAmTuUc7jscyX5lX4oqZcqlvh1sABhywL+C0lcpssKmX1ATu
+	 3HV+NSlrSQWasDtBltpRqNXsOGY5fr/z/G6qS9Vw=
+Date: Sun, 20 Sep 2026 16:54:58 -0700
 To: mm-commits@vger.kernel.org,kas@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-mm-skip-khugepaged-page-cache-cases-without-a-pmd-folio.patch added to mm-new branch
-Message-Id: <20260920235455.1934D1F000FF@smtp.kernel.org>
+Subject: + selftests-mm-make-the-swap-cases-swapout-reliable.patch added to mm-new branch
+Message-Id: <20260920235458.ADACE1F000FF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: selftests/mm: skip khugepaged page cache cases without a PMD folio
+     Subject: selftests/mm: make the swap cases' swapout reliable
 has been added to the -mm mm-new branch.  Its filename is
-     selftests-mm-skip-khugepaged-page-cache-cases-without-a-pmd-folio.patch
+     selftests-mm-make-the-swap-cases-swapout-reliable.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-skip-khugepaged-page-cache-cases-without-a-pmd-folio.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-make-the-swap-cases-swapout-reliable.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,28 +70,36 @@ and is updated there most days
 
 ------------------------------------------------------
 From: "Kiryl Shutsemau (Meta)" <kas@kernel.org>
-Subject: selftests/mm: skip khugepaged page cache cases without a PMD folio
-Date: Sat, 19 Sep 2026 01:24:34 +0100
+Subject: selftests/mm: make the swap cases' swapout reliable
+Date: Sat, 19 Sep 2026 01:24:35 +0100
 
-The page cache caps folio order at MAX_PAGECACHE_ORDER, which is below the
-PMD order on arm64 with 64K pages, where a PMD is 512M.  A PMD-sized page
-cache folio is impossible there, so the kernel refuses these collapses:
-MADV_COLLAPSE answers -EINVAL and khugepaged passes over the range.  Four
-shmem cases ask for a PMD-sized folio anyway, fail, and the run bails out
-in the middle.
+collapse_swapin_single_pte() and collapse_max_ptes_swap() swap a range out
+and then require smaps to report exactly the count they asked for.  Two
+things keep that count from arriving.
 
-Skip the shmem and file mem types where the cap is below the PMD order.
+MADV_PAGEOUT is best effort, so the count often turns up a moment late.
 
-The cap is not shmem-specific: it applies to every file folio.  Add
-thp_file_supported_orders() to read the orders the page cache allows.
+And wait_for_scan() leaves the range eligible for collapsing, so
+khugepaged is still working on it.  Collapsing reads the swapped-out pages
+back in, so the daemon empties the swap as fast as the case fills it.  On
+arm64 with 64K pages max_ptes_swap is 1024 pages, which is 64M a step, and
+the case loses the race:
 
-Anonymous collapse is unaffected: its orders are not capped this way.
+    # Swapout 1024 of 8192 pages... Fail
+    not ok 10 collapse_max_ptes_swap
+
+Retry for up to two seconds, holding the range out of khugepaged's reach
+meanwhile.  The collapse each case runs next restores MADV_HUGEPAGE, so
+only the setup is affected.
+
+If the pages still won't swap out, skip: no swap, swap too small or full,
+a memcg cap or busy writeback.  None of that is a kernel bug.
 
 Assisted-by: LLM
-Link: https://lore.kernel.org/20260919002451.496763-5-kirill@shutemov.name
+Link: https://lore.kernel.org/20260919002451.496763-6-kirill@shutemov.name
 Signed-off-by: Kiryl Shutsemau (Meta) <kas@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Reviewed-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
+Reviewed-by: Muhammad Usama Anjum <usama.anjum@arm.com>
 Reviewed-by: Baolin Wang <baolin.wang@linux.alibaba.com>
 Tested-by: Muhammad Usama Anjum <usama.anjum@arm.com>
 Cc: Alexander Gordeev <agordeev@linux.ibm.com>
@@ -106,6 +114,7 @@ Cc: Leon Romanovsky <leon@kernel.org>
 Cc: Liam Howlett <liam@infradead.org>
 Cc: Lorenzo Stoakes (ARM) <ljs@kernel.org>
 Cc: Michal Hocko <mhocko@suse.com>
+Cc: Mike Rapoport (Microsoft) <rppt@kernel.org>
 Cc: Nico Pache (Red Hat) <nico.pache@linux.dev>
 Cc: Ryan Roberts <ryan.roberts@arm.com>
 Cc: Shuah Khan (Samsung OSG) <shuah@kernel.org>
@@ -115,56 +124,86 @@ Cc: "Vlastimil Babka (SUSE)" <vbabka@kernel.org>
 Cc: Zi Yan <ziy@nvidia.com>
 ---
 
- tools/lib/mm/hugepage_settings.h        |    9 +++++++++
- tools/testing/selftests/mm/khugepaged.c |   19 +++++++++++++++++++
- 2 files changed, 28 insertions(+)
+ tools/testing/selftests/mm/khugepaged.c |   41 +++++++++++++++-------
+ 1 file changed, 29 insertions(+), 12 deletions(-)
 
---- a/tools/lib/mm/hugepage_settings.h~selftests-mm-skip-khugepaged-page-cache-cases-without-a-pmd-folio
-+++ a/tools/lib/mm/hugepage_settings.h
-@@ -87,6 +87,15 @@ void thp_set_read_ahead_path(char *path)
- unsigned long thp_supported_orders(void);
- unsigned long thp_shmem_supported_orders(void);
+--- a/tools/testing/selftests/mm/khugepaged.c~selftests-mm-make-the-swap-cases-swapout-reliable
++++ a/tools/testing/selftests/mm/khugepaged.c
+@@ -221,6 +221,29 @@ err_out:
+ 	return swap;
+ }
  
-+/*
-+ * The per-order shmem_enabled attribute is created for the orders the page
-+ * cache can hold, not just for shmem, so it answers for regular files too.
-+ */
-+static inline unsigned long thp_file_supported_orders(void)
++static bool swapout_range(void *p, unsigned long size)
 +{
-+	return thp_shmem_supported_orders();
++	int i;
++
++	/* keep khugepaged from collapsing the range and swapping it back in */
++	if (madvise(p, size, MADV_NOHUGEPAGE))
++		ksft_exit_fail_perror("madvise(MADV_NOHUGEPAGE)");
++
++	/*
++	 * Retry several times because MADV_PAGEOUT is best effort.  Sleep
++	 * between the retries to give outstanding writeback a chance to
++	 * finish.
++	 */
++	for (i = 0; i < 40; i++) {
++		if (madvise(p, size, MADV_PAGEOUT))
++			ksft_exit_fail_perror("madvise(MADV_PAGEOUT)");
++		if (check_swap(p, size))
++			return true;
++		usleep(50 * 1000);
++	}
++	return false;
 +}
 +
- bool thp_available(void);
- bool thp_is_enabled(void);
+ static void *alloc_mapping(int nr)
+ {
+ 	void *p;
+@@ -828,12 +851,10 @@ static void collapse_swapin_single_pte(s
+ 	ops->fault(p, 0, hpage_pmd_size);
  
---- a/tools/testing/selftests/mm/khugepaged.c~selftests-mm-skip-khugepaged-page-cache-cases-without-a-pmd-folio
-+++ a/tools/testing/selftests/mm/khugepaged.c
-@@ -1358,6 +1358,25 @@ int main(int argc, char **argv)
+ 	ksft_print_msg("Swapout one page...");
+-	if (madvise(p, page_size, MADV_PAGEOUT))
+-		ksft_exit_fail_perror("madvise(MADV_PAGEOUT)");
+-	if (check_swap(p, page_size)) {
++	if (swapout_range(p, page_size)) {
+ 		success("OK");
+ 	} else {
+-		fail("Fail");
++		skip("Could not swap out");
+ 		goto out;
+ 	}
  
- 	setbuf(stdout, NULL);
+@@ -854,12 +875,10 @@ static void collapse_max_ptes_swap(struc
+ 	ops->fault(p, 0, hpage_pmd_size);
  
-+	/*
-+	 * Without a PMD-order page cache folio the kernel refuses these
-+	 * collapses, so there is nothing to test.
-+	 */
-+	if (!(thp_file_supported_orders() & (1UL << hpage_pmd_order))) {
-+		if (shmem_ops) {
-+			ksft_print_msg("no PMD-order page cache folio: skipping shmem\n");
-+			shmem_ops = NULL;
-+		}
-+		if (read_only_file_ops) {
-+			ksft_print_msg("no PMD-order page cache folio: skipping file\n");
-+			read_only_file_ops = NULL;
-+			read_write_file_read_ops = NULL;
-+			read_write_file_write_ops = NULL;
-+		}
-+		if (!anon_ops && !shmem_ops && !read_only_file_ops)
-+			ksft_exit_skip("No mem_type left to run\n");
-+	}
-+
- 	default_settings.khugepaged.max_ptes_none = hpage_pmd_nr - 1;
- 	default_settings.khugepaged.max_ptes_swap = hpage_pmd_nr / 8;
- 	default_settings.khugepaged.max_ptes_shared = hpage_pmd_nr / 2;
+ 	ksft_print_msg("Swapout %d of %d pages...", max_ptes_swap + 1, hpage_pmd_nr);
+-	if (madvise(p, (max_ptes_swap + 1) * page_size, MADV_PAGEOUT))
+-		ksft_exit_fail_perror("madvise(MADV_PAGEOUT)");
+-	if (check_swap(p, (max_ptes_swap + 1) * page_size)) {
++	if (swapout_range(p, (max_ptes_swap + 1) * page_size)) {
+ 		success("OK");
+ 	} else {
+-		fail("Fail");
++		skip("Could not swap out");
+ 		goto out;
+ 	}
+ 
+@@ -871,12 +890,10 @@ static void collapse_max_ptes_swap(struc
+ 		ops->fault(p, 0, hpage_pmd_size);
+ 		ksft_print_msg("Swapout %d of %d pages...", max_ptes_swap,
+ 		       hpage_pmd_nr);
+-		if (madvise(p, max_ptes_swap * page_size, MADV_PAGEOUT))
+-			ksft_exit_fail_perror("madvise(MADV_PAGEOUT)");
+-		if (check_swap(p, max_ptes_swap * page_size)) {
++		if (swapout_range(p, max_ptes_swap * page_size)) {
+ 			success("OK");
+ 		} else {
+-			fail("Fail");
++			skip("Could not swap out");
+ 			goto out;
+ 		}
+ 
 _
 
 Patches currently in -mm which might be from kas@kernel.org are
