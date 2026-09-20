@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A36BB3FE36A
-	for <mm-commits@vger.kernel.org>; Sun, 20 Sep 2026 23:55:43 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AD1D040243B
+	for <mm-commits@vger.kernel.org>; Sun, 20 Sep 2026 23:55:48 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789948545; cv=none; b=GephnvHfDRjRsazn0lO8QoNi/sQ496o9CpwsjpG/X70hj7MHELHhzn0OeylXpJVHMKlYlkLRHB5K/EnU6jalIQnFhE3Cdw/cC6da0/16wympXTQcJbT9etq8SdtYswy6gkIs989Emcq/XTMAANk+3b0pG0LVcdjP0ZNiomooxZI=
+	t=1789948550; cv=none; b=iM6mn2EX3ROdIndnGxI5N578DXo8zxbST/OQrFMADKiS0LYhT0ScCx89Sm0mTl///oIgczcUoIlNRDxAgh2svYl2E7mf4WBP37ewZQAEtQALeuWO32oA7hfrEpRp5/sA34Tw36DWHb5U3OxDQ1sD0B/b5YgHhQHH03bpEyKTL5Y=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1789948545; c=relaxed/simple;
-	bh=DeR9+EAj8tkqA8sUeCTppG1XvlO7aDqJJw1ZsBSIweA=;
-	h=Date:To:From:Subject:Message-Id; b=Ay7kt7E1wv8MhDFRxyS+junnJOIsRS3QWhaMvi3WTHNoLrkwagXEZH+Xq0gZcwJWEIJBlFRhniEC9l4VXeYpzZwGUSK1eWUhZGpwEeqL0j32zYPzy5qRUN4Zz2XwFV+HKUjcLuKYJTBLFoLyY0DrLCxiM0RupUUkIV0ThI6N3kk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ATfA4R3c; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1789948550; c=relaxed/simple;
+	bh=RA8E3rQPQunhTokp0TztUPF6gQwz4o6UZFRKtkuak2c=;
+	h=Date:To:From:Subject:Message-Id; b=VpxJIH5D7udQ/8JWhJ4v6VG28M9x0bgKyMp6D1R7EXvQSCy2k3ZmY4GcokGZZ72CghC98MAFklC6JoZnVdxUYOjiauxBcJT8rL1P5ucGJT9H3qrAihMgoeAmGdOxoFfq3I9HyTvqjRNdzoJmdokTL+AoB/4MmCGjdbGXWgGlyEQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=1TeYUPs+; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ATfA4R3c"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 72AA01F000FF;
-	Sun, 20 Sep 2026 23:55:43 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="1TeYUPs+"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 42FDF1F000FF;
+	Sun, 20 Sep 2026 23:55:48 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1789948543;
-	bh=BfjBGl90zzizlUNKo5Cr/4Vk8tG/S9kjfDjZTQi2tAA=;
+	d=linux-foundation.org; s=korg; t=1789948548;
+	bh=HMJpPQhB9zbXbQkKdwVCaNhTuni/eOMcRRhf0GxcucY=;
 	h=Date:To:From:Subject;
-	b=ATfA4R3cIh1tHyvivcUmI/B68ttL3Q0BpjFv5NfObH8B8tXm20+NgAt4/TABGPj4w
-	 QF4oyzdl4H6lqnQsrMuM+6AJohSXJ6Giz7mdXvpJ3VmwyFor3+xiaTaqWnTUKYZh1y
-	 p4kuAJS7hheGRQoFJU7yZ+vaIhQQ2V3DXGt75XUs=
-Date: Sun, 20 Sep 2026 16:55:43 -0700
+	b=1TeYUPs+eXxUmCKslgSvHRVGUE9INjEhmin+vq8I/l6Q1rK5XCgkXJfRF0RH4lu3Q
+	 Q/9Hzz2lBigdt7nkmAtn0XFahosMvAbQ/eH6sQTovc2NKA6zc4P8SYwi3osmKkv9fU
+	 a2TeSmrO85tuLqnCyW8rszWSN+iWdnOm4oTwBQGk=
+Date: Sun, 20 Sep 2026 16:55:47 -0700
 To: mm-commits@vger.kernel.org,kas@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-mm-add-khugepaged-race-harness.patch added to mm-new branch
-Message-Id: <20260920235543.72AA01F000FF@smtp.kernel.org>
+Subject: + selftests-mm-race-the-collapse-of-windows-with-holes.patch added to mm-new branch
+Message-Id: <20260920235548.42FDF1F000FF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: selftests/mm: add khugepaged race harness
+     Subject: selftests/mm: race the collapse of windows with holes
 has been added to the -mm mm-new branch.  Its filename is
-     selftests-mm-add-khugepaged-race-harness.patch
+     selftests-mm-race-the-collapse-of-windows-with-holes.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-add-khugepaged-race-harness.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-race-the-collapse-of-windows-with-holes.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,45 +70,24 @@ and is updated there most days
 
 ------------------------------------------------------
 From: "Kiryl Shutsemau (Meta)" <kas@kernel.org>
-Subject: selftests/mm: add khugepaged race harness
-Date: Sat, 19 Sep 2026 01:24:46 +0100
+Subject: selftests/mm: race the collapse of windows with holes
+Date: Sat, 19 Sep 2026 01:24:47 +0100
 
-Collapse serialises against faults, GUP, fork, mremap and zapping through
-a protocol of locks, TLB flushes and refcount checks.  No khugepaged
-selftest exercises any of it under contention.
+The harness pins max_ptes_none to 0, so khugepaged only collapses a window
+once every PTE in it is present.  A window with holes takes a different
+route, and never gets raced.  A hole is zero-filled in the new folio
+rather than copied.  Which slots count as holes keeps moving under the
+racing MADV_DONTNEED, right up to the moment the PMD is detached.
 
-Add khugepaged_race.  Six racing threads work the same address space:
+Run both ends of the occupancy scale for every driver mode, one after the
+other.  mTHP collapse supports only those two, 0 and HPAGE_PMD_NR - 1, and
+coerces anything between them to 0.  Each result says which end it ran:
 
-  - two faulters
-  - an MADV_DONTNEED thread
-  - a transient FOLL_PIN thread (gup_test)
-  - a forker
-  - an mremap thread
-
-One of three drivers collapses under them:
-
-  stepped   khugepaged, one full pass at a time via
-            khugepaged_full_pass(), so each step covers a known extent;
-  free      khugepaged left to run (scan_sleep_millisecs=0), for soak;
-  madvise   an MADV_COLLAPSE and MADV_DONTNEED loop.
-
-Every mode runs in turn unless -m names one, five seconds each.  Every
-supported anon THP order is set to inherit and max_ptes_none is 0, so a
-window collapses only once fully populated and the racing MADV_DONTNEED
-steers selection across orders.
-
-The rule is that a racing page reads as its pattern or as zero, never
-anything else.  The faulters and fork children check it throughout, and a
-final sweep checks it again.  The other half of the check is the kernel's
-own assertions, so read dmesg too.
-
-The pin thread goes through gup_test, so the harness skips without
-CONFIG_GUP_TEST or root.  The default playground is three shared PMD-sized
-areas plus the mremap thread's, over two gigabytes at a 512M PMD; -a
-shrinks it.
+  ok 1 stepped/strict: 5s, 231 steps, no corruption
+  ok 2 stepped/holes: 5s, 194 steps, no corruption
 
 Assisted-by: LLM
-Link: https://lore.kernel.org/20260919002451.496763-17-kirill@shutemov.name
+Link: https://lore.kernel.org/20260919002451.496763-18-kirill@shutemov.name
 Signed-off-by: Kiryl Shutsemau (Meta) <kas@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 Tested-by: Muhammad Usama Anjum <usama.anjum@arm.com>
@@ -135,452 +114,87 @@ Cc: "Vlastimil Babka (SUSE)" <vbabka@kernel.org>
 Cc: Zi Yan <ziy@nvidia.com>
 ---
 
- tools/testing/selftests/mm/Makefile          |    1 
- tools/testing/selftests/mm/khugepaged_race.c |  415 +++++++++++++++++
- tools/testing/selftests/mm/run_vmtests.sh    |    2 
- 3 files changed, 418 insertions(+)
+ tools/testing/selftests/mm/khugepaged_race.c |   32 ++++++++++-------
+ 1 file changed, 20 insertions(+), 12 deletions(-)
 
-diff --git a/tools/testing/selftests/mm/khugepaged_race.c a/tools/testing/selftests/mm/khugepaged_race.c
-new file mode 100644
---- /dev/null
+--- a/tools/testing/selftests/mm/khugepaged_race.c~selftests-mm-race-the-collapse-of-windows-with-holes
 +++ a/tools/testing/selftests/mm/khugepaged_race.c
-@@ -0,0 +1,415 @@
-+// SPDX-License-Identifier: GPL-2.0
-+/*
-+ * Race collapse against faults, GUP pins, fork, mremap and MADV_DONTNEED
-+ * over the same ranges.  A racing page must read as its pattern or as
-+ * zero, never anything else; the kernel's own assertions in dmesg are the
-+ * other half of the check.
-+ */
-+#define _GNU_SOURCE
-+#include <errno.h>
-+#include <fcntl.h>
-+#include <pthread.h>
-+#include <stdio.h>
-+#include <stdlib.h>
-+#include <string.h>
-+#include <sys/ioctl.h>
-+#include <sys/mman.h>
-+#include <sys/time.h>
-+#include <sys/wait.h>
-+#include <unistd.h>
-+
-+#include "kselftest.h"
-+#include "vm_util.h"
-+#include <mm/hugepage_settings.h>
-+#include "../../../../mm/gup_test.h"
-+
-+#ifndef FOLL_WRITE
-+#define FOLL_WRITE 0x01
-+#endif
-+
-+#define BASE_ADDR	((void *)(1UL << 30))
-+#define PASS_TIMEOUT_S	30
-+
-+/*
-+ * PMD-sized areas the racing threads share, plus one for the mremap
-+ * thread.  -a shrinks it where a PMD is 512M.
-+ */
-+#define DEFAULT_SHARED_AREAS	3
-+static int nr_shared_areas;
-+static int nr_areas;
-+
-+static unsigned long hpage_pmd_size;
-+static unsigned long page_size;
-+/* nr_areas PMD-sized areas; the last one belongs to the mremap thread */
-+static char *region;
-+static char *mremap_area;
-+static char *mremap_scratch;
-+static int gup_fd = -1;
-+static volatile int stop;
-+static volatile int corrupted;
-+
-+static unsigned int pattern(unsigned long page_idx)
-+{
-+	unsigned int val = (unsigned int)page_idx * 2654435761U;
-+
-+	return val ? val : 1;	/* never collides with the zero-fill */
-+}
-+
-+/* Zero means never written; anything else must be this page's pattern */
-+static bool page_is_corrupt(unsigned long page_idx, unsigned int *val)
-+{
-+	*val = *(unsigned int *)(region + page_idx * page_size);
-+
-+	return *val && *val != pattern(page_idx);
-+}
-+
-+static void check_page(unsigned long page_idx)
-+{
-+	unsigned int val;
-+
-+	if (page_is_corrupt(page_idx, &val)) {
-+		corrupted = 1;
-+		ksft_print_msg("Corruption at page %lu: %#x != %#x\n",
-+			       page_idx, val, pattern(page_idx));
-+	}
-+}
-+
-+static unsigned long shared_pages(void)
-+{
-+	return nr_shared_areas * hpage_pmd_size / page_size;
-+}
-+
-+static unsigned long rand_page(unsigned int *seed)
-+{
-+	return (unsigned long)rand_r(seed) % shared_pages();
-+}
-+
-+/* Clamp so a range never reaches the mremap thread's area */
-+static unsigned long room_from(unsigned long page_idx, unsigned long want)
-+{
-+	unsigned long left = shared_pages() - page_idx;
-+
-+	return want < left ? want : left;
-+}
-+
-+static void *faulter_fn(void *arg)
-+{
-+	unsigned int seed = (unsigned long)arg;
-+
-+	while (!stop) {
-+		unsigned long page_idx = rand_page(&seed);
-+
-+		if (rand_r(&seed) & 1)
-+			*(unsigned int *)(region + page_idx * page_size) =
-+				pattern(page_idx);
-+		else
-+			check_page(page_idx);
-+	}
-+	return NULL;
-+}
-+
-+static void *dontneed_fn(void *arg)
-+{
-+	unsigned int seed = (unsigned long)arg;
-+
-+	while (!stop) {
-+		unsigned long page_idx = rand_page(&seed);
-+		unsigned long nr = 1UL << (rand_r(&seed) % 6);	/* 1..32 pages */
-+
-+		madvise(region + page_idx * page_size,
-+			room_from(page_idx, nr) * page_size, MADV_DONTNEED);
-+		usleep(rand_r(&seed) % 500);
-+	}
-+	return NULL;
-+}
-+
-+static void *pinner_fn(void *arg)
-+{
-+	unsigned int seed = (unsigned long)arg;
-+
-+	while (!stop) {
-+		struct gup_test gup = {};
-+		unsigned long page_idx = rand_page(&seed);
-+		unsigned long nr = room_from(page_idx, 16);
-+
-+		gup.addr = (unsigned long)(region + page_idx * page_size);
-+		gup.size = nr * page_size;
-+		gup.nr_pages_per_call = nr;
-+		gup.gup_flags = FOLL_WRITE;
-+		/* Racing MADV_DONTNEED makes transient failures expected */
-+		ioctl(gup_fd, PIN_FAST_BENCHMARK, &gup);
-+		usleep(rand_r(&seed) % 200);
-+	}
-+	return NULL;
-+}
-+
-+static void *forker_fn(void *arg)
-+{
-+	unsigned int seed = (unsigned long)arg;
-+
-+	while (!stop) {
-+		pid_t pid = fork();
-+
-+		if (pid == 0) {
-+			unsigned int val;
-+			int bad = 0;
-+
-+			/*
-+			 * No stdio in the child: a thread may hold stdout's
-+			 * lock across the fork, and printing under it hangs.
-+			 */
-+			for (int i = 0; i < 16; i++)
-+				bad |= page_is_corrupt(rand_page(&seed), &val);
-+			_exit(bad);
-+		}
-+		if (pid > 0) {
-+			int wstatus;
-+
-+			if (waitpid(pid, &wstatus, 0) < 0)
-+				ksft_exit_fail_perror("waitpid()");
-+			/* A child killed on the read counts too */
-+			if (!WIFEXITED(wstatus) || WEXITSTATUS(wstatus))
-+				corrupted = 1;
-+		}
-+		usleep(rand_r(&seed) % 2000);
-+	}
-+	return NULL;
-+}
-+
-+static void *mremapper_fn(void *arg)
-+{
-+	unsigned int seed = (unsigned long)arg;
-+
-+	while (!stop) {
-+		void *p;
-+
-+		p = mremap(mremap_area, hpage_pmd_size, hpage_pmd_size,
-+			   MREMAP_MAYMOVE | MREMAP_FIXED, mremap_scratch);
-+		if (p == MAP_FAILED)
-+			ksft_exit_fail_perror("mremap() away");
-+		for (int i = 0; i < 8; i++)
-+			mremap_scratch[(rand_r(&seed) %
-+				(hpage_pmd_size / page_size)) * page_size] = 1;
-+		p = mremap(mremap_scratch, hpage_pmd_size, hpage_pmd_size,
-+			   MREMAP_MAYMOVE | MREMAP_FIXED, mremap_area);
-+		if (p == MAP_FAILED)
-+			ksft_exit_fail_perror("mremap() back");
-+		/* The move back unmapped the scratch address: claim it again */
-+		if (mmap(mremap_scratch, hpage_pmd_size, PROT_NONE,
-+			 MAP_ANONYMOUS | MAP_PRIVATE | MAP_FIXED_NOREPLACE,
-+			 -1, 0) != (void *)mremap_scratch)
-+			ksft_exit_fail_perror("mmap() mremap scratch");
-+		usleep(rand_r(&seed) % 2000);
-+	}
-+	return NULL;
-+}
-+
-+static unsigned long now_ms(void)
-+{
-+	struct timeval tv;
-+
-+	gettimeofday(&tv, NULL);
-+	return tv.tv_sec * 1000UL + tv.tv_usec / 1000;
-+}
-+
-+static void usage(void)
-+{
-+	fprintf(stderr,
-+		"Usage: khugepaged_race [-d seconds] [-m stepped|free|madvise] [-a areas] [-t mask]\n"
-+		"\tWithout -m, every mode runs in turn.\n"
-+		"\t-d: seconds per mode (default 5)\n"
-+		"\t-a: number of shared PMD-sized playground areas (default 3)\n"
-+		"\t-t: bitmask of racing threads to start, for bisecting a failure\n");
-+	exit(1);
-+}
-+
-+int main(int argc, char **argv)
-+{
-+	static const char * const thread_names[] = {
-+		"faulter", "faulter2", "dontneed", "pinner", "forker",
-+		"mremapper",
-+	};
-+	void *(*const thread_fns[])(void *) = {
-+		faulter_fn, faulter_fn, dontneed_fn, pinner_fn, forker_fn,
-+		mremapper_fn,
-+	};
-+	const int nr_threads = ARRAY_SIZE(thread_names);
-+	pthread_t threads[ARRAY_SIZE(thread_names)];
-+	static const char * const all_modes[] = { "stepped", "free", "madvise" };
-+	const char *one_mode[1];
-+	const char * const *modes = all_modes;
-+	int nr_modes = ARRAY_SIZE(all_modes);
-+	const char *mode_arg = NULL;
-+	struct thp_settings settings;
-+	unsigned long end_ms;
-+	int duration_s = 5;
-+	unsigned long thread_mask = ~0UL;
-+	int nr_areas_arg = 0;
-+	unsigned long i;
-+	int steps = 0;
-+	int opt;
-+
-+	while ((opt = getopt(argc, argv, "a:d:m:t:h")) != -1) {
-+		switch (opt) {
-+		case 'a':
-+			nr_areas_arg = atoi(optarg);
-+			break;
-+		case 'd':
-+			duration_s = atoi(optarg);
-+			break;
-+		case 'm':
-+			mode_arg = optarg;
-+			break;
-+		case 't':
-+			thread_mask = strtoul(optarg, NULL, 0);
-+			break;
-+		default:
-+			usage();
-+		}
-+	}
-+
-+	if (mode_arg) {
-+		if (strcmp(mode_arg, "stepped") && strcmp(mode_arg, "free") &&
-+		    strcmp(mode_arg, "madvise"))
-+			usage();
-+		one_mode[0] = mode_arg;
-+		modes = one_mode;
-+		nr_modes = 1;
-+	}
-+
-+	ksft_print_header();
-+	if (!thp_available())
-+		ksft_exit_skip("Transparent Hugepages not available\n");
-+
-+	page_size = getpagesize();
-+	hpage_pmd_size = read_pmd_pagesize();
-+	if (!hpage_pmd_size)
-+		ksft_exit_fail_msg("Reading PMD pagesize failed\n");
-+
-+	gup_fd = open("/sys/kernel/debug/gup_test", O_RDWR);
-+	if (gup_fd < 0)
-+		ksft_exit_skip("/sys/kernel/debug/gup_test requires CONFIG_GUP_TEST and root\n");
-+
-+	nr_shared_areas = nr_areas_arg > 0 ? nr_areas_arg : DEFAULT_SHARED_AREAS;
-+	nr_areas = nr_shared_areas + 1;
-+
-+	/*
-+	 * MREMAP_FIXED unmaps whatever is in the way without saying so, so
-+	 * claim the mremap thread's scratch address up front.
-+	 */
-+	mremap_scratch = (char *)BASE_ADDR + 2 * nr_areas * hpage_pmd_size;
-+	if (mmap(mremap_scratch, hpage_pmd_size, PROT_NONE,
-+		 MAP_ANONYMOUS | MAP_PRIVATE | MAP_FIXED_NOREPLACE,
-+		 -1, 0) != (void *)mremap_scratch)
-+		ksft_exit_fail_perror("mmap() mremap scratch");
-+
-+	ksft_set_plan(nr_modes);
-+
-+	thp_save_settings();
-+	thp_read_settings(&settings);
-+
-+	/* Base of the settings stack; the bottom entry is never popped */
-+	thp_push_settings(&settings);
-+
-+	for (int m = 0; m < nr_modes; m++) {
-+		const char *mode = modes[m];
-+
-+		thp_read_settings(&settings);
-+		settings.thp_enabled = THP_MADVISE;
-+		settings.thp_defrag = THP_DEFRAG_ALWAYS;
-+		settings.shmem_enabled = SHMEM_NEVER;
-+		settings.khugepaged.defrag = 1;
-+		settings.khugepaged.scan_sleep_millisecs =
-+			strcmp(mode, "free") ? 1000 : 0;
-+		settings.khugepaged.alloc_sleep_millisecs = 10;
-+		/*
-+		 * mTHP collapse honours only 0 or HPAGE_PMD_NR - 1 here, and 0
-+		 * keeps a step from being spent on PMD allocations that racing
-+		 * MADV_DONTNEED will not let succeed.
-+		 */
-+		settings.khugepaged.max_ptes_none = 0;
-+		/* One wake, one pass: the playground plus the forked children's copies */
-+		settings.khugepaged.pages_to_scan =
-+			nr_areas * (hpage_pmd_size / page_size) * 8;
-+		for (i = 0; i < NR_ORDERS; i++) {
-+			if (thp_supported_orders() & (1UL << i))
-+				settings.hugepages[i].enabled = THP_INHERIT;
-+		}
-+		thp_push_settings(&settings);
-+
-+		region = mmap(BASE_ADDR, nr_areas * hpage_pmd_size,
-+			      PROT_READ | PROT_WRITE, MAP_ANONYMOUS |
-+			      MAP_PRIVATE | MAP_FIXED_NOREPLACE, -1, 0);
-+		if (region != BASE_ADDR)
-+			ksft_exit_fail_perror("mmap() playground");
-+		mremap_area = region + nr_shared_areas * hpage_pmd_size;
-+
-+		/* Populate so the first pass has something to collapse */
-+		for (i = 0; i < nr_shared_areas * hpage_pmd_size / page_size; i++)
-+			*(unsigned int *)(region + i * page_size) = pattern(i);
-+		memset(mremap_area, 1, hpage_pmd_size);
-+		if (madvise(region, nr_areas * hpage_pmd_size, MADV_HUGEPAGE))
-+			ksft_exit_fail_perror("madvise(MADV_HUGEPAGE)");
-+
-+		for (i = 0; i < nr_threads; i++) {
-+			if (!(thread_mask & (1UL << i))) {
-+				threads[i] = 0;
-+				continue;
-+			}
-+			if (pthread_create(&threads[i], NULL, thread_fns[i],
-+					   (void *)(i + 1)))
-+				ksft_exit_fail_perror(thread_names[i]);
-+		}
-+
-+		end_ms = now_ms() + duration_s * 1000UL;
-+		if (!strcmp(mode, "stepped")) {
-+			while (now_ms() < end_ms && !corrupted) {
-+				if (!khugepaged_full_pass(PASS_TIMEOUT_S))
-+					ksft_exit_fail_msg("khugepaged pass timed out\n");
-+				steps++;
-+			}
-+		} else if (!strcmp(mode, "free")) {
-+			while (now_ms() < end_ms && !corrupted)
-+				usleep(100 * 1000);
-+		} else {	/* madvise */
-+			while (now_ms() < end_ms && !corrupted) {
-+				for (i = 0; i < nr_shared_areas; i++) {
-+					madvise(region + i * hpage_pmd_size,
-+						hpage_pmd_size, MADV_COLLAPSE);
-+				}
-+				madvise(region, nr_shared_areas * hpage_pmd_size,
-+					MADV_DONTNEED);
-+				steps++;
-+			}
-+		}
-+
-+		stop = 1;
-+		for (i = 0; i < nr_threads; i++) {
-+			if (threads[i])
-+				pthread_join(threads[i], NULL);
-+		}
-+
-+		for (i = 0; i < nr_shared_areas * hpage_pmd_size / page_size; i++)
-+			check_page(i);
-+
-+		ksft_test_result(!corrupted,
-+				 "%s: %ds, %d steps, no corruption\n",
-+				 mode, duration_s, steps);
-+
-+		/* The next mode maps the same fixed address with its own settings */
-+		munmap(region, nr_areas * hpage_pmd_size);
-+		thp_pop_settings();
-+		stop = 0;
-+		steps = 0;
-+
-+		if (corrupted) {
-+			/* Memory is suspect; the rest would prove nothing */
-+			while (++m < nr_modes)
-+				ksft_test_result_skip("%s: skipped after corruption\n",
-+						      modes[m]);
-+			break;
-+		}
-+	}
-+
-+	ksft_finished();
-+}
---- a/tools/testing/selftests/mm/Makefile~selftests-mm-add-khugepaged-race-harness
-+++ a/tools/testing/selftests/mm/Makefile
-@@ -107,6 +107,7 @@ TEST_GEN_FILES += rmap
- TEST_GEN_FILES += folio_split_race_test
- TEST_GEN_FILES += folio_order_check
- TEST_GEN_FILES += khugepaged_sync_check
-+TEST_GEN_FILES += khugepaged_race
- TEST_GEN_FILES += soft-dirty
+@@ -236,6 +236,8 @@ int main(int argc, char **argv)
+ 	const int nr_threads = ARRAY_SIZE(thread_names);
+ 	pthread_t threads[ARRAY_SIZE(thread_names)];
+ 	static const char * const all_modes[] = { "stepped", "free", "madvise" };
++	static const bool occupancies[] = { false, true };	/* strict, holes */
++	const int nr_occupancies = ARRAY_SIZE(occupancies);
+ 	const char *one_mode[1];
+ 	const char * const *modes = all_modes;
+ 	int nr_modes = ARRAY_SIZE(all_modes);
+@@ -303,7 +305,7 @@ int main(int argc, char **argv)
+ 		 -1, 0) != (void *)mremap_scratch)
+ 		ksft_exit_fail_perror("mmap() mremap scratch");
  
- ifeq ($(ARCH),x86_64)
---- a/tools/testing/selftests/mm/run_vmtests.sh~selftests-mm-add-khugepaged-race-harness
-+++ a/tools/testing/selftests/mm/run_vmtests.sh
-@@ -386,6 +386,8 @@ CATEGORY="thp" run_test ./folio_order_ch
+-	ksft_set_plan(nr_modes);
++	ksft_set_plan(nr_modes * nr_occupancies);
  
- CATEGORY="thp" run_test ./khugepaged_sync_check
+ 	thp_save_settings();
+ 	thp_read_settings(&settings);
+@@ -311,8 +313,9 @@ int main(int argc, char **argv)
+ 	/* Base of the settings stack; the bottom entry is never popped */
+ 	thp_push_settings(&settings);
  
-+CATEGORY="thp" run_test ./khugepaged_race
+-	for (int m = 0; m < nr_modes; m++) {
+-		const char *mode = modes[m];
++	for (int run = 0; run < nr_modes * nr_occupancies; run++) {
++		const char *mode = modes[run / nr_occupancies];
++		bool holes = occupancies[run % nr_occupancies];
+ 
+ 		thp_read_settings(&settings);
+ 		settings.thp_enabled = THP_MADVISE;
+@@ -322,12 +325,14 @@ int main(int argc, char **argv)
+ 		settings.khugepaged.scan_sleep_millisecs =
+ 			strcmp(mode, "free") ? 1000 : 0;
+ 		settings.khugepaged.alloc_sleep_millisecs = 10;
 +
- CATEGORY="thp" run_test ./khugepaged
+ 		/*
+-		 * mTHP collapse honours only 0 or HPAGE_PMD_NR - 1 here, and 0
+-		 * keeps a step from being spent on PMD allocations that racing
+-		 * MADV_DONTNEED will not let succeed.
++		 * mTHP collapse honours only 0 or HPAGE_PMD_NR - 1 here.  The two
++		 * ends race different paths: a strict window has every PTE
++		 * present, a hole-heavy one is mostly zero-filled.
+ 		 */
+-		settings.khugepaged.max_ptes_none = 0;
++		settings.khugepaged.max_ptes_none = holes ?
++			(hpage_pmd_size / page_size) - 1 : 0;
+ 		/* One wake, one pass: the playground plus the forked children's copies */
+ 		settings.khugepaged.pages_to_scan =
+ 			nr_areas * (hpage_pmd_size / page_size) * 8;
+@@ -393,8 +398,9 @@ int main(int argc, char **argv)
+ 			check_page(i);
  
- CATEGORY="thp" run_test ./khugepaged -s 2
+ 		ksft_test_result(!corrupted,
+-				 "%s: %ds, %d steps, no corruption\n",
+-				 mode, duration_s, steps);
++				 "%s/%s: %ds, %d steps, no corruption\n",
++				 mode, holes ? "holes" : "strict",
++				 duration_s, steps);
+ 
+ 		/* The next mode maps the same fixed address with its own settings */
+ 		munmap(region, nr_areas * hpage_pmd_size);
+@@ -404,9 +410,11 @@ int main(int argc, char **argv)
+ 
+ 		if (corrupted) {
+ 			/* Memory is suspect; the rest would prove nothing */
+-			while (++m < nr_modes)
+-				ksft_test_result_skip("%s: skipped after corruption\n",
+-						      modes[m]);
++			while (++run < nr_modes * nr_occupancies)
++				ksft_test_result_skip("%s/%s: skipped after corruption\n",
++						      modes[run / nr_occupancies],
++						      occupancies[run % nr_occupancies] ?
++						      "holes" : "strict");
+ 			break;
+ 		}
+ 	}
 _
 
 Patches currently in -mm which might be from kas@kernel.org are
