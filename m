@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 49C603FA5EF
-	for <mm-commits@vger.kernel.org>; Sun, 20 Sep 2026 23:55:27 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7A9873F44FC
+	for <mm-commits@vger.kernel.org>; Sun, 20 Sep 2026 23:55:30 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789948528; cv=none; b=K/pbhOnz72kMBlYzDFGq/TQeFid6PXAGdL9sbNygnsZlmUVRfH1b++sYVZGVUqs+I/maHBfbIDvNwHTzhTQFaEIBFhOBRUY5YuBeoc89ew3jojXxHDOHZyULTmvT4Jn2nxEXxAChc2ZHCEatF0XIg5WjQXHKif4pNM2OM1zDXLE=
+	t=1789948532; cv=none; b=ETaeSWuUi5sf5BQB21Xc+A9PiCQgigVtPUTwa/BSp8Excm/Vr5JaGP2c35uLXfeR+CfHaq0xM6bMhqyWgLDbUwVjPN2VPQnejItr8+N9JPXU9MHgE4gSbp6X05cJnKszPgaluDkLuqvNBHtZqk7L7yawuDoGC+pHQnZmGDe8MTw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1789948528; c=relaxed/simple;
-	bh=XFSX4Y3VKmuM3/xqWzXfEqSjwnCdS/AhRvFGiiXcX2I=;
-	h=Date:To:From:Subject:Message-Id; b=qPrt09ghcwa99QaRVDu+pmmlCQm0kTBNjmIRTyp1uZj6ywD1wygvfrci9QNAZXsqnc2OqstMfuuYvBvJ3puvI5c83CxFDsfvwpDDA+HniK4l58oWteZP9Ib4HCv03OTqVqKswi1YUJlesf2TTqa51zSqFi7hVpq9JHmr9FUzSqY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=GtfYJNUf; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1789948532; c=relaxed/simple;
+	bh=yJmlzJU6qNXdh1TeReWCrOuYZSZFKsmy38JzTIXHi8c=;
+	h=Date:To:From:Subject:Message-Id; b=pCpc3lT2KCDB2AzQirymjVSwh25PVmOtHhG6t/zs/SiXlZDIpcu7zAmZs/dODf5sjLpnmoOh4cis6nGvxO4z3RVvgGubwg/ZNlO9H1Luw1v3YA2+poZdpedjSrUZjdSWKX2Bw3xldKY8MpG7AUe4ra1LfTCIUSPRCXByxrRBfA0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=v4xp1k0/; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="GtfYJNUf"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D895A1F000FF;
-	Sun, 20 Sep 2026 23:55:26 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="v4xp1k0/"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4B8D71F000FF;
+	Sun, 20 Sep 2026 23:55:30 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1789948527;
-	bh=Yl3TH0hI5v0GW72RYoZq4V4MBGcm8iR23OLxMwJrfqo=;
+	d=linux-foundation.org; s=korg; t=1789948530;
+	bh=MJ1jdle6nLPWHrPUCuiZtupVps4qSqnjWZiMPixbBTg=;
 	h=Date:To:From:Subject;
-	b=GtfYJNUfNabXYXy4EA2BgQ1Glxp9Mv/v/K4+zuiVgngs1e+FefY92970am4qGo5Dy
-	 sXVW280XMZoQFB3+UumGBbwALTrHFMU8QtjkdIhLOmzJ5L4CZplxZr3pK2toWVsFlb
-	 bT5+ZAS01AlfnjVVJTglZmzXpnaMGl9/G7FEHkh0=
-Date: Sun, 20 Sep 2026 16:55:26 -0700
+	b=v4xp1k0/rdw7XOcum4/YHiJNZhMjv+O2WVzob5IWL08RaeVdhkletrNP0qbRF0TY1
+	 sxIPJwf0KlkUn7jbyVU7dQhVMaKkE2aWuWpjtiE6Ah3KSZ2w+vQ4hgTxcmzlIUzbce
+	 VI+0/6CsdngQhGHpNiHbWTNXc5ISmgpa6FAz0gBA=
+Date: Sun, 20 Sep 2026 16:55:29 -0700
 To: mm-commits@vger.kernel.org,kas@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-mm-parameterize-the-mixed-source-collapse-case-by-source-order.patch added to mm-new branch
-Message-Id: <20260920235526.D895A1F000FF@smtp.kernel.org>
+Subject: + selftests-mm-cover-a-shared-source-collapse-write-race.patch added to mm-new branch
+Message-Id: <20260920235530.4B8D71F000FF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: selftests/mm: parameterize the mixed-source collapse case by source order
+     Subject: selftests/mm: cover a shared-source collapse write race
 has been added to the -mm mm-new branch.  Its filename is
-     selftests-mm-parameterize-the-mixed-source-collapse-case-by-source-order.patch
+     selftests-mm-cover-a-shared-source-collapse-write-race.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-parameterize-the-mixed-source-collapse-case-by-source-order.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-cover-a-shared-source-collapse-write-race.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,31 +70,29 @@ and is updated there most days
 
 ------------------------------------------------------
 From: "Kiryl Shutsemau (Meta)" <kas@kernel.org>
-Subject: selftests/mm: parameterize the mixed-source collapse case by source order
-Date: Sat, 19 Sep 2026 01:24:42 +0100
+Subject: selftests/mm: cover a shared-source collapse write race
+Date: Sat, 19 Sep 2026 01:24:43 +0100
 
-collapse_order_mixed_sources() faults its region as order-2 folios and
-collapses them to the -c target.  Order 2 is below the contpte size on
-every arm64 page size, so nothing in this suite collapses a contpte-mapped
-source on purpose.
+collapse_fork() checks that a fork-shared range collapses in the child
+while the parent keeps its own pages, but the parent sits still while that
+happens.  Nothing checks that CoW isolation survives a collapse racing
+with writes to the shared source.
 
-Let -s name the source order alongside -c.  The case then faults at that
-order, keeping order 2 when -s is absent, and the source order has to be a
-supported mTHP order below the target.  The other mTHP cases are
-unaffected: mthp_push_target_order() enables only the target order.
+Add a case where the parent writes to the shared range throughout the
+child's collapse.  CoW has to keep the two apart: the child must see the
+content from before the fork, and the parent only its own writes.
 
-A -c at or below -s is refused before any case runs: the sources would
-already be the size being asked for.  Without the check the generic cases
-fail on that one by one instead of saying why.
+The parent unshares one page every 10ms, starting only once the child says
+it is about to collapse.  Writing the range in a burst would break CoW on
+all of it before the collapse begins, leaving the child to collapse pages
+that are already exclusive to it.
 
-"-s 5 -c 7" on arm64/64K then collapses contpte-mapped sources into a
-larger mTHP.
+Preparation for changing how collapse handles fork-shared sources.
 
 Assisted-by: LLM
-Link: https://lore.kernel.org/20260919002451.496763-13-kirill@shutemov.name
+Link: https://lore.kernel.org/20260919002451.496763-14-kirill@shutemov.name
 Signed-off-by: Kiryl Shutsemau (Meta) <kas@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Acked-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
 Tested-by: Muhammad Usama Anjum <usama.anjum@arm.com>
 Cc: Alexander Gordeev <agordeev@linux.ibm.com>
 Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
@@ -107,6 +105,7 @@ Cc: kernel-team@meta.com
 Cc: Lance Yang <lance.yang@linux.dev>
 Cc: Leon Romanovsky <leon@kernel.org>
 Cc: Liam Howlett <liam@infradead.org>
+Cc: Lorenzo Stoakes (ARM) <ljs@kernel.org>
 Cc: Michal Hocko <mhocko@suse.com>
 Cc: Mike Rapoport (Microsoft) <rppt@kernel.org>
 Cc: Nico Pache (Red Hat) <nico.pache@linux.dev>
@@ -118,77 +117,131 @@ Cc: "Vlastimil Babka (SUSE)" <vbabka@kernel.org>
 Cc: Zi Yan <ziy@nvidia.com>
 ---
 
- tools/testing/selftests/mm/khugepaged.c |   20 +++++++++++++-------
- 1 file changed, 13 insertions(+), 7 deletions(-)
+ tools/testing/selftests/mm/khugepaged.c |  106 ++++++++++++++++++++++
+ 1 file changed, 106 insertions(+)
 
---- a/tools/testing/selftests/mm/khugepaged.c~selftests-mm-parameterize-the-mixed-source-collapse-case-by-source-order
+--- a/tools/testing/selftests/mm/khugepaged.c~selftests-mm-cover-a-shared-source-collapse-write-race
 +++ a/tools/testing/selftests/mm/khugepaged.c
-@@ -1354,11 +1354,13 @@ static void collapse_order_max_ptes_none
- static void collapse_order_mixed_sources(struct collapse_context *c,
- 					 struct mem_ops *ops)
- {
-+	int source_order = anon_order ? anon_order : MIN_MTHP_ORDER;
- 	struct thp_settings settings;
- 	void *p;
- 
--	if (collapse_order <= MIN_MTHP_ORDER) {
--		ksft_test_result_skip("%s: no source order below target\n",
-+	if (source_order >= collapse_order ||
-+	    !(thp_supported_orders() & (1UL << source_order))) {
-+		ksft_test_result_skip("%s: no supported source order below target\n",
- 				      __func__);
- 		return;
- 	}
-@@ -1366,7 +1368,7 @@ static void collapse_order_mixed_sources
- 	mthp_push_target_order();
- 
- 	settings = *thp_current_settings();
--	settings.hugepages[MIN_MTHP_ORDER].enabled = THP_ALWAYS;
-+	settings.hugepages[source_order].enabled = THP_ALWAYS;
- 	thp_push_settings(&settings);
- 	p = ops->setup_area(1);
- 	ops->fault(p, 0, hpage_pmd_size);
-@@ -1376,10 +1378,9 @@ static void collapse_order_mixed_sources
- 	 * The allocator can fall back to smaller folios under fragmentation;
- 	 * having nothing to collapse from is not a failure.
- 	 */
--	if (!is_range_backed_by_order(p, hpage_pmd_size, MIN_MTHP_ORDER,
-+	if (!is_range_backed_by_order(p, hpage_pmd_size, source_order,
- 				      pagemap_fd, kpageflags_fd)) {
--		ksft_print_msg("No order-%d sources to collapse...",
--			       MIN_MTHP_ORDER);
-+		ksft_print_msg("No order-%d sources to collapse...", source_order);
- 		skip("Skip");
- 		ops->cleanup_area(p, hpage_pmd_size);
- 		thp_pop_settings();
-@@ -1389,7 +1390,8 @@ static void collapse_order_mixed_sources
- 
- 	if (madvise(p, hpage_pmd_size, MADV_HUGEPAGE))
- 		ksft_exit_fail_perror("madvise(MADV_HUGEPAGE)");
--	ksft_print_msg("Collapse region backed by smaller large folios...");
-+	ksft_print_msg("Collapse region backed by order-%d sources...",
-+		       source_order);
- 	if (!khugepaged_full_pass(MTHP_PASS_TIMEOUT_S))
- 		fail("Timeout");
- 	else if (all_windows_at_order(p, hpage_pmd_size))
-@@ -1420,6 +1422,7 @@ static void usage(void)
- 	fprintf(stderr,	"\t\t-s: mTHP size, expressed as page order.\n");
- 	fprintf(stderr,	"\t\t    Defaults to 0. Use this size for anon or shmem allocations.\n");
- 	fprintf(stderr,	"\t\t-c: collapse order for mTHP collapse, expressed as page order.\n");
-+	fprintf(stderr,	"\t\t    -s, if set, is the source order for the mixed-source case.\n");
- 	exit(1);
+@@ -1166,6 +1166,109 @@ static void collapse_max_ptes_shared(str
+ 	ksft_test_result_report(exit_status, "%s\n", __func__);
  }
  
-@@ -1575,6 +1578,9 @@ int main(int argc, char **argv)
- 	    !(thp_supported_orders() & (1UL << collapse_order)))
- 		ksft_exit_skip("Order %d is not a supported anon THP order\n",
- 			       collapse_order);
-+	if (mthp_khugepaged_context && collapse_order <= anon_order)
-+		ksft_exit_skip("-c %d needs a source order below it, -s says %d\n",
-+			       collapse_order, anon_order);
++/*
++ * The parent writes to the fork-shared range throughout the child's
++ * collapse.  CoW must keep the two apart: the child sees the pre-fork
++ * content, the parent only its own writes.
++ */
++static void collapse_fork_cow_race(struct collapse_context *c, struct mem_ops *ops)
++{
++	const int stride = page_size / sizeof(int);
++	int wstatus, child_status, i, n;
++	unsigned long shared;
++	volatile int *ip;
++	pid_t child;
++	int sync[2];
++	char go = 1;
++	void *p;
++
++	/* At a page per 10 ms, 64 pages spread the writes across the collapse */
++	n = 64;
++	shared = n * page_size;
++
++	p = ops->setup_area(1);
++	/* Shared prefix, with the pre-fork pattern */
++	ops->fault(p, 0, shared);
++	if (pipe(sync))
++		ksft_exit_fail_perror("pipe()");
++
++	/* A volatile pointer so the stores are not merged or dropped */
++	ip = p;
++
++	ksft_print_msg("Fork, collapse in the child while the parent rewrites...");
++	child = fork();
++	if (!child) {
++		int collapse_status;
++
++		close(sync[0]);
++		/* Private remainder */
++		ops->fault(p, shared, hpage_pmd_size);
++		/* Start the parent unsharing, and give it a head start */
++		if (write(sync[1], &go, 1) != 1)
++			_exit(KSFT_FAIL);
++		usleep(5000);
++		c->collapse("Collapse a range the parent is writing to",
++			    p, 1, ops, true);
++		collapse_status = exit_status;
++		for (i = 0; i < n; i++)
++			if (ip[i * stride] != i + 0xdead0000)
++				break;
++		if (i == n)
++			success("OK");
++		else
++			fail("Fail: child content");
++		/* The content check must not bury a failed collapse */
++		if (exit_status != KSFT_FAIL)
++			exit_status = collapse_status;
++		ops->cleanup_area(p, hpage_pmd_size);
++		_exit(exit_status);
++	}
++
++	close(sync[1]);
++	if (read(sync[0], &go, 1) != 1)
++		ksft_exit_fail_msg("child never reached the collapse\n");
++	close(sync[0]);
++
++	/*
++	 * Unshare one page at a time: a burst would break CoW on the whole
++	 * range before the collapse starts, leaving nothing shared to collapse.
++	 */
++	i = 0;
++	for (;;) {
++		pid_t ret;
++
++		if (i < n)
++			ip[i * stride] = i + 0xbeef0000;
++		i++;
++		usleep(10 * 1000);
++		ret = waitpid(child, &wstatus, WNOHANG);
++		if (ret == child)
++			break;
++		if (ret < 0)
++			ksft_exit_fail_perror("waitpid()");
++	}
++
++	/* Finish whatever the paced sweep did not reach */
++	for (; i < n; i++)
++		ip[i * stride] = i + 0xbeef0000;
++	/* A child that died reading the racing pages is a failure, not a zero */
++	child_status = WIFEXITED(wstatus) ? WEXITSTATUS(wstatus) : KSFT_FAIL;
++
++	ksft_print_msg("Check the parent sees only its own writes...");
++	for (i = 0; i < n; i++)
++		if (ip[i * stride] != i + 0xbeef0000)
++			break;
++	if (i == n)
++		success("OK");
++	else
++		fail("Fail: parent content");
++	ops->cleanup_area(p, hpage_pmd_size);
++	/* The parent's check must not bury the child's verdict */
++	if (exit_status != KSFT_FAIL)
++		exit_status = child_status;
++	ksft_test_result_report(exit_status, "%s\n", __func__);
++}
++
+ static void madvise_collapse_existing_thps(struct collapse_context *c,
+ 					   struct mem_ops *ops)
+ {
+@@ -1700,6 +1803,9 @@ int main(int argc, char **argv)
+ 	TEST(collapse_max_ptes_shared, khugepaged_context, anon_ops);
+ 	TEST(collapse_max_ptes_shared, madvise_context, anon_ops);
  
- 	if (mthp_khugepaged_context) {
- 		pagemap_fd = open("/proc/self/pagemap", O_RDONLY);
++	TEST(collapse_fork_cow_race, khugepaged_context, anon_ops);
++	TEST(collapse_fork_cow_race, madvise_context, anon_ops);
++
+ 	TEST(madvise_collapse_existing_thps, madvise_context, anon_ops);
+ 	TEST(madvise_collapse_existing_thps, madvise_context, read_only_file_ops);
+ 	TEST(madvise_collapse_existing_thps, madvise_context, read_write_file_read_ops);
 _
 
 Patches currently in -mm which might be from kas@kernel.org are
