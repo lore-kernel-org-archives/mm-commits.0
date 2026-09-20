@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EE7CF3F44FC
-	for <mm-commits@vger.kernel.org>; Sun, 20 Sep 2026 23:54:48 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 24CD13D88F2
+	for <mm-commits@vger.kernel.org>; Sun, 20 Sep 2026 23:54:51 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789948490; cv=none; b=fnvuOaly5XNib7khaydQt1g0+ipRDgfcrFBLnFfoG5H5od9WZ75QSeZ02Shh+o1aWiHuu8lbZWe9xhyA2MBg4J+ZzBh75ZRsuf9FW8xdGE9n04ProY1NGKKujzKpJ2eSZOPTEqN1dazW5vjJe9iWcmGMlDHaiIHx8WG7NZVrmtM=
+	t=1789948493; cv=none; b=iair2B3CnQycCc2lFZv7bXAk3rzJFW7YzZH1qgf2u5y3cYjkI62BJgEhTFdccS9twnrthZ/kUg+B6VNcLYl0uLjvgE57oepBj7OP575rhmkbOrn/j1nTzcit4UXvR/kfAFqyZuhJJrWig9VeaO3iUsjcwrYBD6GVqW/GokEjaYM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1789948490; c=relaxed/simple;
-	bh=lmSWNNK0UTUlLRL5ufcqBnVyBkYURG/utB/0MKwHKH0=;
-	h=Date:To:From:Subject:Message-Id; b=DyRsN+9Niy+8XFd4iylczPtxxAWVPimdgJL6uizdlOiysxZwqSj4zP8Rf1KbKEifYNmaoIEeaDq5CkeNBLD4nQZD6nfagXT0R715mDaKItRTyCrg6xXTPKASG0KH7OfyPvfLHUXFmuCCMzFMNq+bskGzAc/1J9V6yv24onuDM8A=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=QETrmEAc; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1789948493; c=relaxed/simple;
+	bh=f4VNvF8CVjZRjP3sdg/wSNv1/0PO4FNZr94tGB1cq/Q=;
+	h=Date:To:From:Subject:Message-Id; b=bIO5rrIYjATClfkwOWSggyoChnbJVGomDB+rWleaykxHQpzwZBtyy2BuDQd53js5Ot2qTdcD4/6BF66eZO8ecENKb2lI1AIKaK4KAmFFYTuHcvTYztkMDxQkqwnUJ4/vuOxSctRmog5Y36wYLYC2D3L4OpShnbBwIfjUqHjpWJI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=bPYODMie; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="QETrmEAc"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 501E51F000FF;
-	Sun, 20 Sep 2026 23:54:48 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="bPYODMie"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id AC5211F000FF;
+	Sun, 20 Sep 2026 23:54:51 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1789948488;
-	bh=GPtujIiYv56Vkx1olu9nqMSrQdSJuU1Gc0dVA9Y5wrM=;
+	d=linux-foundation.org; s=korg; t=1789948491;
+	bh=1q0AzHzP4bubjrfLNdoasoceljaKHmgc+Z34r2iSl2A=;
 	h=Date:To:From:Subject;
-	b=QETrmEAcYpkF+jzlUPj35SKmMaiih9fPbYBYUTYBGV7bPCJrfytuhmpup0tQziHu0
-	 OTWXPy6MyRUBs5eX0CRtBOT+taW4Q1a40Q7dVe0b0XDogH5iHnMXBBqyYWM1pazNOE
-	 tXCB4M0B4d64CrEkNmnBISUVl+lY13NYN6GvhAP0=
-Date: Sun, 20 Sep 2026 16:54:47 -0700
+	b=bPYODMieULPw5ewsOYtfoQXo5dOe7X16c7jFmCRtw9+4wdQW5drK/Chlx6bOKv7gi
+	 PTZQbgCmfSdUfBDZdNqbZpF2h8g4qufK14DpuiI24317OXRpDm7aDyFLzsJj1NYTQl
+	 1THqpF19kJSS1DdL2mJn2wM4gLr8lUk4b2UFvPnE=
+Date: Sun, 20 Sep 2026 16:54:51 -0700
 To: mm-commits@vger.kernel.org,kas@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-mm-skip-collapse_compound_extreme-where-the-pmd-is-too-large.patch added to mm-new branch
-Message-Id: <20260920235448.501E51F000FF@smtp.kernel.org>
+Subject: + selftests-mm-scale-khugepageds-collapse-wait-with-the-pmd-size.patch added to mm-new branch
+Message-Id: <20260920235451.AC5211F000FF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: selftests/mm: skip collapse_compound_extreme() where the PMD is too large
+     Subject: selftests/mm: scale khugepaged's collapse wait with the PMD size
 has been added to the -mm mm-new branch.  Its filename is
-     selftests-mm-skip-collapse_compound_extreme-where-the-pmd-is-too-large.patch
+     selftests-mm-scale-khugepageds-collapse-wait-with-the-pmd-size.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-skip-collapse_compound_extreme-where-the-pmd-is-too-large.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-scale-khugepageds-collapse-wait-with-the-pmd-size.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,25 +70,29 @@ and is updated there most days
 
 ------------------------------------------------------
 From: "Kiryl Shutsemau (Meta)" <kas@kernel.org>
-Subject: selftests/mm: skip collapse_compound_extreme() where the PMD is too large
-Date: Sat, 19 Sep 2026 01:24:32 +0100
+Subject: selftests/mm: scale khugepaged's collapse wait with the PMD size
+Date: Sat, 19 Sep 2026 01:24:33 +0100
 
-collapse_compound_extreme() builds a PTE table full of distinct PTE-mapped
-compound pages by cycling hpage_pmd_nr fault-time THPs through mremap.  It
-therefore needs hpage_pmd_nr PMD-order allocations in a row.  That is fine
-at a 2M PMD (4K base pages) or a 32M one (16K).  A 512M PMD -- arm64 with
-64K base pages -- makes each of those an order-13 allocation, which the
-allocator cannot reliably hand out even once, let alone 8192 times.
+wait_for_scan() gives every case the same three seconds, whatever the huge
+page costs to build.  collapse_full() asks for four of them: 8M at a 2M
+PMD, but 2G at a 512M PMD -- arm64 with 64K base pages.  Three seconds is
+thin at that size, and the case has reported a failure for a collapse that
+was still going.
 
-The failure is not a quiet one: the case calls ksft_exit_fail_msg(), so
-the whole binary stops and every case after it is lost.
+The timeout is a ceiling on a poll loop, not a sleep: the loop stops as
+soon as ops->check_huge() sees the collapse, or as soon as full_scans has
+advanced by two.  Raising it costs a passing case nothing.  Across 80 runs
+of collapse_full() on arm64 with 64K pages the wait was half a second in
+73 of them, with a tail to two seconds.
 
-Skip the case where the PMD is larger than 32M.  The MADV_COLLAPSE cases
-still cover PMD-order collapse on those configurations, and 4K and 16K
-PMDs are unaffected.
+Keep three seconds as the floor and add a second per 128M collapsed.  A 2M
+PMD is unchanged, so x86-64 is too; a 512M PMD gets 19 seconds.
+
+On arm64 with 64K pages a passing ./khugepaged all:anon takes 49 seconds
+under TCG before and after this change.
 
 Assisted-by: LLM
-Link: https://lore.kernel.org/20260919002451.496763-3-kirill@shutemov.name
+Link: https://lore.kernel.org/20260919002451.496763-4-kirill@shutemov.name
 Signed-off-by: Kiryl Shutsemau (Meta) <kas@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 Acked-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
@@ -115,28 +119,25 @@ Cc: "Vlastimil Babka (SUSE)" <vbabka@kernel.org>
 Cc: Zi Yan <ziy@nvidia.com>
 ---
 
- tools/testing/selftests/mm/khugepaged.c |   10 ++++++++++
- 1 file changed, 10 insertions(+)
+ tools/testing/selftests/mm/khugepaged.c |    7 +++++--
+ 1 file changed, 5 insertions(+), 2 deletions(-)
 
---- a/tools/testing/selftests/mm/khugepaged.c~selftests-mm-skip-collapse_compound_extreme-where-the-pmd-is-too-large
+--- a/tools/testing/selftests/mm/khugepaged.c~selftests-mm-scale-khugepageds-collapse-wait-with-the-pmd-size
 +++ a/tools/testing/selftests/mm/khugepaged.c
-@@ -940,6 +940,16 @@ static void collapse_compound_extreme(st
- 	void *p;
- 	int i;
- 
-+	/*
-+	 * This needs hpage_pmd_nr PMD-order allocations in a row, which the
-+	 * allocator will not supply if the PMD is very large.
-+	 */
-+	if (hpage_pmd_size > (32UL << 20)) {
-+		ksft_test_result_skip("%s: PMD too large for fault-time THP construction\n",
-+				      __func__);
-+		return;
-+	}
+@@ -561,8 +561,11 @@ static bool wait_for_scan(const char *ms
+ 		int nr_hpages, int collap_order, struct mem_ops *ops)
+ {
+ 	unsigned long hpage_size = page_size << collap_order;
+-	int full_scans;
+-	int timeout = 6; /* 3 seconds */
++	unsigned long bytes = (unsigned long)nr_hpages * hpage_size;
++	int timeout, full_scans;
 +
- 	p = ops->setup_area(1);
- 	ksft_print_msg("Construct PTE page table full of different PTE-mapped compound pages\n");
- 	for (i = 0; i < hpage_pmd_nr; i++) {
++	/* Half-second ticks: three seconds floor, plus a second per 128M */
++	timeout = 6 + 2 * (bytes / (128UL << 20));
+ 
+ 	/* Sanity check */
+ 	if (!ops->check_huge(p, len, 0, hpage_size))
 _
 
 Patches currently in -mm which might be from kas@kernel.org are
