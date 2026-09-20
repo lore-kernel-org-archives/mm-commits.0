@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BAF633F44FC
-	for <mm-commits@vger.kernel.org>; Sun, 20 Sep 2026 23:55:02 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CDCF13D75A0
+	for <mm-commits@vger.kernel.org>; Sun, 20 Sep 2026 23:55:05 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789948505; cv=none; b=RVuC1272Y3i91k0hv+tiNp0VgfBm5LHKagfks6x7WjKNFsvFNOIk4RKd1r6Ehzi61R2fC/8wvxGvKY8cL6ucgaDuJlzciZBNb0XHPwaBpzZmT3ryi+Kycoj0TeK1WoOmm8mnbIHUfvXovlkEAl71izRmVjCVJ5Ezuq0Yd/+VYc0=
+	t=1789948507; cv=none; b=c3qtSfej/QIuKW6+tfjEQ216oaOek+NSmovPa7noSdnyGwuh9nyMvjiF3v7foyO+lszySTxEdgWl52kOqFxk8mpMSsle4QWY7MoqHbtDF9N8uTtRpIdsBlmWARuTySYPIvxIvyxKT9s/BH3SzeZ4sB3vEoyp1iW6IxUDpkpWcoc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1789948505; c=relaxed/simple;
-	bh=rFqePLHihLHz+CuuL8ygY51JxKxFy4ZAE4rmXp4LjVQ=;
-	h=Date:To:From:Subject:Message-Id; b=WscRS6eCGzP3L/4KE1OJIqq4nL2PjrmxijMUychsq1G5cOAGtpj0IyIbjyTcV58uoWstAkWKSP913wAimI8dC82tMm9eRHZwAMSYQr7KA7b0oAF7wsaPY283+TimsicxjYCEZzvyNGryMyzyFW0EOfNQseCkbMXCZr72F9GBnfc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=CYT6ABe/; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1789948507; c=relaxed/simple;
+	bh=sl0epoZVRigpDO4JWYtHfK3v5we5TP8mVuR8YRyDK1I=;
+	h=Date:To:From:Subject:Message-Id; b=U19GqAtFV01cyTqpEUa/ntK0GvHQ4Hg7KZyzSKN8OTPUKRqliRws2uWPaayIEzqRolKqfKRmeK9nszc7sqFenyZmOGmbZpLAQN8vtJ9kTQ9v0vLhJENFMFROQInpeDggCw+iDsEYL2582q0XpEqwljbWSVIE9obfuwSeG07M16s=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=KnNZwhiN; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="CYT6ABe/"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 26ED61F000FF;
-	Sun, 20 Sep 2026 23:55:02 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="KnNZwhiN"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 830B51F00893;
+	Sun, 20 Sep 2026 23:55:05 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1789948502;
-	bh=+L/Ak7sagqrahhfHnyefnZaLrXzblyVHbUbheenh8eI=;
+	d=linux-foundation.org; s=korg; t=1789948505;
+	bh=/fgKFNLyusDTPuFW9hRE7T0Ew1XY85Pj0SuPGx0Cxm0=;
 	h=Date:To:From:Subject;
-	b=CYT6ABe/SdpkdGJr637MoKp3bsyOOZydzf0pwkV0PmiEzOmDgoEt45N4l6zl3rH0z
-	 GMGxNVxAvHxiB8QKWF7kOhJTP5ri3ErlJ5+05wlZbui8WU/J59VpdWvWJK96csEPOY
-	 INQE9fp5rwcwbzPbJkKBNQl/L/5wer3VsD6GvBSI=
-Date: Sun, 20 Sep 2026 16:55:01 -0700
+	b=KnNZwhiNAWocjQJjaKG+yi5zQhq97MsDSNfeTOrvXIZZoBJ5hysiN7dXh2+cjrIOW
+	 rDKfsJg6fMfc2tNRRaFKYnbxYHh8AYMQD6M+NYmmt659eOOs7eSnDPaSv7DFu5Sn2K
+	 O4REjWMi8zkIKPVZXcelFJQbRBAPM7Le9wGQ8mYI=
+Date: Sun, 20 Sep 2026 16:55:05 -0700
 To: mm-commits@vger.kernel.org,kas@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-mm-stop-khugepaged-during-the-madv_collapse-cases.patch added to mm-new branch
-Message-Id: <20260920235502.26ED61F000FF@smtp.kernel.org>
+Subject: + selftests-mm-move-is_backed_by_folio-into-vm_util.patch added to mm-new branch
+Message-Id: <20260920235505.830B51F00893@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: selftests/mm: stop khugepaged during the MADV_COLLAPSE cases
+     Subject: selftests/mm: move is_backed_by_folio() into vm_util
 has been added to the -mm mm-new branch.  Its filename is
-     selftests-mm-stop-khugepaged-during-the-madv_collapse-cases.patch
+     selftests-mm-move-is_backed_by_folio-into-vm_util.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-stop-khugepaged-during-the-madv_collapse-cases.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-move-is_backed_by_folio-into-vm_util.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,28 +70,28 @@ and is updated there most days
 
 ------------------------------------------------------
 From: "Kiryl Shutsemau (Meta)" <kas@kernel.org>
-Subject: selftests/mm: stop khugepaged during the MADV_COLLAPSE cases
-Date: Sat, 19 Sep 2026 01:24:36 +0100
+Subject: selftests/mm: move is_backed_by_folio() into vm_util
+Date: Sat, 19 Sep 2026 01:24:37 +0100
 
-__madvise_collapse() turns THP off before each MADV_COLLAPSE, both to keep
-khugepaged out of the range and to prove MADV_COLLAPSE ignores the
-setting.  It clears the global controls only, which is no longer enough. 
-A per-order control overrides them, and -s, which makes the cases fault in
-folios of one order, leaves that order's control at "always".  khugepaged
-then collapses the very range the case is working on, and the case fails
-on a collapse that was interfered with rather than refused.
+Checking that an address range is backed by a folio of a given order is
+useful to any test that builds or collapses large folios.  mTHP collapse
+coverage in the khugepaged selftest needs exactly that.
 
-Clear the per-order controls too.  MADV_COLLAPSE does not consult them:
-anon never did, and shmem stopped with "mm: shmem: ignore sysfs configs
-for shmem forced collapse".
+split_huge_page_test.c already has the building block:
+is_backed_by_folio() reads the compound head and tail flags from
+/proc/kpageflags to classify the folio behind a page.
 
-Link: https://lore.kernel.org/20260919002451.496763-7-kirill@shutemov.name
-Fixes: b7f16963efe7 ("mm/khugepaged: run khugepaged for all orders")
+Move it into vm_util so other tests can use it.  No functional change.
+
+Assisted-by: LLM
+Link: https://lore.kernel.org/20260919002451.496763-8-kirill@shutemov.name
 Signed-off-by: Kiryl Shutsemau (Meta) <kas@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Assisted-by: LLM
+Acked-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
+Acked-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
+Reviewed-by: Baolin Wang <baolin.wang@linux.alibaba.com>
+Tested-by: Muhammad Usama Anjum <usama.anjum@arm.com>
 Cc: Alexander Gordeev <agordeev@linux.ibm.com>
-Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
 Cc: Barry Song <baohua@kernel.org>
 Cc: "David Hildenbrand (arm)" <david@kernel.org>
 Cc: Dev Jain <dev.jain@arm.com>
@@ -101,10 +101,7 @@ Cc: kernel-team@meta.com
 Cc: Lance Yang <lance.yang@linux.dev>
 Cc: Leon Romanovsky <leon@kernel.org>
 Cc: Liam Howlett <liam@infradead.org>
-Cc: Lorenzo Stoakes (ARM) <ljs@kernel.org>
 Cc: Michal Hocko <mhocko@suse.com>
-Cc: Mike Rapoport (Microsoft) <rppt@kernel.org>
-Cc: Muhammad Usama Anjum <usama.anjum@arm.com>
 Cc: Nico Pache (Red Hat) <nico.pache@linux.dev>
 Cc: Ryan Roberts <ryan.roberts@arm.com>
 Cc: Shuah Khan (Samsung OSG) <shuah@kernel.org>
@@ -114,32 +111,162 @@ Cc: "Vlastimil Babka (SUSE)" <vbabka@kernel.org>
 Cc: Zi Yan <ziy@nvidia.com>
 ---
 
- tools/testing/selftests/mm/khugepaged.c |    6 +++++-
- 1 file changed, 5 insertions(+), 1 deletion(-)
+ tools/testing/selftests/mm/split_huge_page_test.c |   61 ------------
+ tools/testing/selftests/mm/vm_util.c              |   61 ++++++++++++
+ tools/testing/selftests/mm/vm_util.h              |    2 
+ 3 files changed, 63 insertions(+), 61 deletions(-)
 
---- a/tools/testing/selftests/mm/khugepaged.c~selftests-mm-stop-khugepaged-during-the-madv_collapse-cases
-+++ a/tools/testing/selftests/mm/khugepaged.c
-@@ -538,8 +538,8 @@ static bool is_anon(struct mem_ops *ops)
- static void __madvise_collapse(const char *msg, char *p, int nr_hpages,
- 			       struct mem_ops *ops, bool expect)
+--- a/tools/testing/selftests/mm/split_huge_page_test.c~selftests-mm-move-is_backed_by_folio-into-vm_util
++++ a/tools/testing/selftests/mm/split_huge_page_test.c
+@@ -41,67 +41,6 @@ const char *kpageflags_proc = "/proc/kpa
+ int pagemap_fd;
+ int kpageflags_fd;
+ 
+-static bool is_backed_by_folio(char *vaddr, int order, int pagemap_fd,
+-		int kpageflags_fd)
+-{
+-	const uint64_t folio_head_flags = KPF_THP | KPF_COMPOUND_HEAD;
+-	const uint64_t folio_tail_flags = KPF_THP | KPF_COMPOUND_TAIL;
+-	const unsigned long nr_pages = 1UL << order;
+-	unsigned long pfn_head;
+-	uint64_t pfn_flags;
+-	unsigned long pfn;
+-	unsigned long i;
+-
+-	pfn = pagemap_get_pfn(pagemap_fd, vaddr);
+-
+-	/* non present page */
+-	if (pfn == -1UL)
+-		return false;
+-
+-	if (pageflags_get(pfn, kpageflags_fd, &pfn_flags))
+-		goto fail;
+-
+-	/* check for order-0 pages */
+-	if (!order) {
+-		if (pfn_flags & (folio_head_flags | folio_tail_flags))
+-			return false;
+-		return true;
+-	}
+-
+-	/* non THP folio */
+-	if (!(pfn_flags & KPF_THP))
+-		return false;
+-
+-	pfn_head = pfn & ~(nr_pages - 1);
+-
+-	if (pageflags_get(pfn_head, kpageflags_fd, &pfn_flags))
+-		goto fail;
+-
+-	/* head PFN has no compound_head flag set */
+-	if ((pfn_flags & folio_head_flags) != folio_head_flags)
+-		return false;
+-
+-	/* check all tail PFN flags */
+-	for (i = 1; i < nr_pages; i++) {
+-		if (pageflags_get(pfn_head + i, kpageflags_fd, &pfn_flags))
+-			goto fail;
+-		if ((pfn_flags & folio_tail_flags) != folio_tail_flags)
+-			return false;
+-	}
+-
+-	/*
+-	 * check the PFN after this folio, but if its flags cannot be obtained,
+-	 * assume this folio has the expected order
+-	 */
+-	if (pageflags_get(pfn_head + nr_pages, kpageflags_fd, &pfn_flags))
+-		return true;
+-
+-	/* If we find another tail page, then the folio is larger. */
+-	return (pfn_flags & folio_tail_flags) != folio_tail_flags;
+-fail:
+-	ksft_exit_fail_msg("Failed to get folio info\n");
+-}
+-
+ static int check_after_split_folio_orders(char *vaddr_start, size_t len,
+ 		int pagemap_fd, int kpageflags_fd, int orders[], int nr_orders)
  {
--	int ret;
- 	struct thp_settings settings = *thp_current_settings();
-+	int ret, i;
+--- a/tools/testing/selftests/mm/vm_util.c~selftests-mm-move-is_backed_by_folio-into-vm_util
++++ a/tools/testing/selftests/mm/vm_util.c
+@@ -490,6 +490,67 @@ int pageflags_get(unsigned long pfn, int
+ 	return 0;
+ }
  
- 	ksft_print_msg("%s...", msg);
- 
-@@ -555,6 +555,10 @@ static void __madvise_collapse(const cha
- 	 */
- 	settings.thp_enabled = THP_NEVER;
- 	settings.shmem_enabled = SHMEM_NEVER;
-+	for (i = 0; i < NR_ORDERS; i++) {
-+		settings.hugepages[i].enabled = THP_NEVER;
-+		settings.shmem_hugepages[i].enabled = SHMEM_NEVER;
++bool is_backed_by_folio(char *vaddr, int order, int pagemap_fd,
++			int kpageflags_fd)
++{
++	const uint64_t folio_head_flags = KPF_THP | KPF_COMPOUND_HEAD;
++	const uint64_t folio_tail_flags = KPF_THP | KPF_COMPOUND_TAIL;
++	const unsigned long nr_pages = 1UL << order;
++	unsigned long pfn_head;
++	uint64_t pfn_flags;
++	unsigned long pfn;
++	unsigned long i;
++
++	pfn = pagemap_get_pfn(pagemap_fd, vaddr);
++
++	/* non present page */
++	if (pfn == -1UL)
++		return false;
++
++	if (pageflags_get(pfn, kpageflags_fd, &pfn_flags))
++		goto fail;
++
++	/* check for order-0 pages */
++	if (!order) {
++		if (pfn_flags & (folio_head_flags | folio_tail_flags))
++			return false;
++		return true;
 +	}
- 	thp_push_settings(&settings);
++
++	/* non THP folio */
++	if (!(pfn_flags & KPF_THP))
++		return false;
++
++	pfn_head = pfn & ~(nr_pages - 1);
++
++	if (pageflags_get(pfn_head, kpageflags_fd, &pfn_flags))
++		goto fail;
++
++	/* head PFN has no compound_head flag set */
++	if ((pfn_flags & folio_head_flags) != folio_head_flags)
++		return false;
++
++	/* check all tail PFN flags */
++	for (i = 1; i < nr_pages; i++) {
++		if (pageflags_get(pfn_head + i, kpageflags_fd, &pfn_flags))
++			goto fail;
++		if ((pfn_flags & folio_tail_flags) != folio_tail_flags)
++			return false;
++	}
++
++	/*
++	 * check the PFN after this folio, but if its flags cannot be obtained,
++	 * assume this folio has the expected order
++	 */
++	if (pageflags_get(pfn_head + nr_pages, kpageflags_fd, &pfn_flags))
++		return true;
++
++	/* If we find another tail page, then the folio is larger. */
++	return (pfn_flags & folio_tail_flags) != folio_tail_flags;
++fail:
++	ksft_exit_fail_msg("Failed to get folio info\n");
++}
++
+ /* If `ioctls' non-NULL, the allowed ioctls will be returned into the var */
+ int uffd_register_with_ioctls(int uffd, void *addr, uint64_t len,
+ 			      bool miss, bool wp, bool minor, uint64_t *ioctls)
+--- a/tools/testing/selftests/mm/vm_util.h~selftests-mm-move-is_backed_by_folio-into-vm_util
++++ a/tools/testing/selftests/mm/vm_util.h
+@@ -99,6 +99,8 @@ int64_t allocate_transhuge(void *ptr, in
+ int pageflags_get(unsigned long pfn, int kpageflags_fd, uint64_t *flags);
+ int gather_folio_orders(char *vaddr_start, size_t len,
+ 		int pagemap_fd, int kpageflags_fd, int orders[], int nr_orders);
++bool is_backed_by_folio(char *vaddr, int order, int pagemap_fd,
++			int kpageflags_fd);
  
- 	/* Clear VM_NOHUGEPAGE */
+ int uffd_register(int uffd, void *addr, uint64_t len,
+ 		  bool miss, bool wp, bool minor);
 _
 
 Patches currently in -mm which might be from kas@kernel.org are
