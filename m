@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A765B47728F
-	for <mm-commits@vger.kernel.org>; Mon, 21 Sep 2026 21:18:58 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3608E43637C
+	for <mm-commits@vger.kernel.org>; Mon, 21 Sep 2026 21:19:47 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790025540; cv=none; b=fUGxC6En7pOoYnbg3nABGd7Sk6/eauU4/AmaawW4fzysT5uANVCSbP7U+PSMDmAuBlzvzPJLtdLxmieKQi8Ahf3/uq0vReYP4N1Z8D4lt4V7mzxVB13TT4vwj3Xf68JfvBf2rQwWaE7VCRPDtsc3OoE0+83WP4jadEYClkHO1JA=
+	t=1790025589; cv=none; b=lXt5DlSme+4GUPr2i+Q9kN4KXyBv1qCOKfFe8bluRYrF2HZ17SLEQHqid19mTbpQSt93FKx2OPhsmnWeFBEs0kDPmqoFL1wlns8m04g7QI/dfhXM61SpugGuVqxVJocWNLPCgK+ZLx7/E//8vmKa94uAmS049Fhb+XOTrjuP3N8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1790025540; c=relaxed/simple;
-	bh=AdvVPrWPzVqkx3sq+6nSLyIxFpdfYdJ/2aWUzwSe8m8=;
-	h=Date:To:From:Subject:Message-Id; b=ezZHqSMMt5zBAZx6sMxaHIZPt9JG5V1ZkpWsoukCt2zpYchsP2o9lKPj4X7TiOC/SPStLoYrRXCC0lWDfYULQXsKi0qwnQMxliRrGoIj7jsiPLswIxX8X2A2ASJDKLVJISwTQUXRRKhAhr/X6uzlpLaqvkyrEeDX3fqVURbrueM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=WjdSeqeo; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1790025589; c=relaxed/simple;
+	bh=doAOUBHk3Pt9fefm4FQ1ruovXZNMo721CVDTkBFRTI8=;
+	h=Date:To:From:Subject:Message-Id; b=oRz+rkCWn88hwLVAT98d+S2iPXh4kn6Po8ee48ngoUIxmxelVBpZlhXFlyO0+W+hKmTl/TAmuFj6R3BInfC6huSr5mHMPIFWvZOQIPYC6rMh0ddCKFPgAiJqQeOkOg6K5VX0qkCBM7aycE+RA7iJRJz8XYdGHYywz39vEjronUY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=n781oVwX; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="WjdSeqeo"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 29BE31F00893;
-	Mon, 21 Sep 2026 21:18:58 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="n781oVwX"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C49821F000FF;
+	Mon, 21 Sep 2026 21:19:47 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1790025538;
-	bh=kZhmNuaPEiLW0AArvRHUDUogxvsM4UQDNj5lgerJNaM=;
+	d=linux-foundation.org; s=korg; t=1790025587;
+	bh=oZcxq0zsjIGXlB7+vW4CybME/suvC9BkVsntJN6zgWk=;
 	h=Date:To:From:Subject;
-	b=WjdSeqeosnsFF33kL2vEaeUAu8ZBkr0AyIiV2kyiFJeDCfjeGAY3G0/GHsDe8OEhQ
-	 olObOhkjBOYLGeaUPZUEhbLalXCPfGMcbRc5vRJ0WufalKNOhcIZIGidatsSi7wy/l
-	 4FkPeoCRS/iBfFtDiAISzfUm1MVkbMZGXwjmrLFg=
-Date: Mon, 21 Sep 2026 14:18:57 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,vbabka@kernel.org,usama.arif@linux.dev,surenb@google.com,shuah@kernel.org,ryan.roberts@arm.com,rppt@kernel.org,nico.pache@linux.dev,mhocko@suse.com,ljs@kernel.org,liam@infradead.org,lance.yang@linux.dev,kas@kernel.org,dev.jain@arm.com,david@kernel.org,baolin.wang@linux.alibaba.com,baohua@kernel.org,yeoreum.yun@arm.com,akpm@linux-foundation.org
+	b=n781oVwXFwGf//9+66OF3QyeZyDxzxfibzoc7GTvQ5whb+1TglyQttWlroAybKUTL
+	 hXF2D+irEyeFx3fFU7QfgHXmjDIPPTcNkuGnH3jMDZQK111f6kpMfKAx+q77Vnj0Xr
+	 A9W3B2rFYzCIrvKE2x/Rg47FXwzNYSrfv3S1GgVs=
+Date: Mon, 21 Sep 2026 14:19:47 -0700
+To: mm-commits@vger.kernel.org,muchun.song@linux.dev,chengkaitao@kylinos.cn,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + kselftest-mm-fix-intermittent-failure-khugepaged-test.patch added to mm-new branch
-Message-Id: <20260921211858.29BE31F00893@smtp.kernel.org>
+Subject: [nacked] mm-add-config_sparsemem_classic.patch removed from -mm tree
+Message-Id: <20260921211947.C49821F000FF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,124 +34,159 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The patch titled
-     Subject: kselftest: mm: fix intermittent failure khugepaged test
-has been added to the -mm mm-new branch.  Its filename is
-     kselftest-mm-fix-intermittent-failure-khugepaged-test.patch
+The quilt patch titled
+     Subject: mm: add CONFIG_SPARSEMEM_CLASSIC
+has been removed from the -mm tree.  Its filename was
+     mm-add-config_sparsemem_classic.patch
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kselftest-mm-fix-intermittent-failure-khugepaged-test.patch
-
-This patch will later appear in the mm-new branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Note, mm-new is a provisional staging ground for work-in-progress
-patches, and acceptance into mm-new is a notification for others take
-notice and to finish up reviews.  Please do not hesitate to respond to
-review feedback and post updated versions to replace or incrementally
-fixup patches in mm-new.
-
-The mm-new branch of mm.git is not included in linux-next
-
-If a few days of testing in mm-new is successful, the patch will me moved
-into mm.git's mm-unstable branch, which is included in linux-next
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via various
-branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there most days
+This patch was dropped because it was nacked
 
 ------------------------------------------------------
-From: Yeoreum Yun <yeoreum.yun@arm.com>
-Subject: kselftest: mm: fix intermittent failure khugepaged test
-Date: Mon, 21 Sep 2026 11:35:02 +0100
+From: Kaitao Cheng <chengkaitao@kylinos.cn>
+Subject: mm: add CONFIG_SPARSEMEM_CLASSIC
+Date: Sun, 20 Sep 2026 15:04:06 +0800
 
-There are intermittent failures in collapse_max_ptes_swap() and
-collapse_max_ptes_shared() when using the khugepaged_context:
+Several MM paths identify classic sparse memory by testing
+CONFIG_SPARSEMEM while also testing that CONFIG_SPARSEMEM_VMEMMAP is
+disabled.  Repeating the compound condition obscures the memory model
+being selected and requires the local SECTION_IN_PAGE_FLAGS alias for the
+same state.
 
-  // while running ./khugepaged -s 2
+Add CONFIG_SPARSEMEM_CLASSIC as a hidden derived option and use it at the
+conditional sites.  Remove SECTION_IN_PAGE_FLAGS and test the new option
+directly.
 
-  # Run test: collapse_max_ptes_shared (khugepaged:anon)
-  # Allocate huge page... OK
-  # Share huge page over fork()... OK
-  # Trigger CoW on page 1023 of 2048... OK
-  # Maybe collapse with max_ptes_shared exceeded.... OK
-  # Trigger CoW on page 1024 of 2048... Fail
-  Bail out! Unexpected huge page
-  # Planned tests != run tests (26 != 23)
-  # Totals: pass:23 fail:0 xfail:0 xpass:0 skip:0 error:0
+The x86 32-bit vDSO build starts with the x86_64 configuration and then
+undefines CONFIG_SPARSEMEM_VMEMMAP to emulate a 32-bit configuration. 
+Kconfig-derived symbols are not recomputed by the C preprocessor, so
+define CONFIG_SPARSEMEM_CLASSIC there when CONFIG_SPARSEMEM is enabled. 
+This preserves the existing behavior.
 
-  # Run test: collapse_max_ptes_swap (khugepaged:anon)
-  # Swapout 257 of 2048 pages... OK
-  # Maybe collapse with max_ptes_swap exceeded.... OK
-  # Swapout 256 of 2048 pages... OK
-  Bail out! Unexpected huge page
-  # Planned tests != run tests (26 != 17)
-  # Totals: pass:17 fail:0 xfail:0 xpass:0 skip:0 error:0
-
-This happens because khugepaged may collapse the pages before wait_for_scan()
-is called, causing a sanity check that expects uncollapsed pages to fail.
-
-For example, in collapse_max_ptes_swap(), after faulting the pages back in
-and paging out up to max_ptes_swap pages, khugepaged may collapse them again
-before c->collapse() is called.
-
-To prevent this, mark the VMA with MADV_NOHUGEPAGE after it has been
-collapsed by wait_for_scan() for anon. This prevents khugepaged from
-collapsing it again before c->collapse() is called.
-
-This failure was observed on NVIDIA Spark with 16KB page.
-
-Link: https://lore.kernel.org/20260921-fix_khugepagd_fail-v2-2-3c2877beef61@arm.com
-Signed-off-by: Yeoreum Yun <yeoreum.yun@arm.com>
+Link: https://lore.kernel.org/20260920070406.95354-1-kaitao.cheng@linux.dev
+Signed-off-by: Kaitao Cheng <chengkaitao@kylinos.cn>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Cc: Zi Yan <ziy@nvidia.com>
-Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: Liam Howlett <liam@infradead.org>
-Cc: Nico Pache (Red Hat) <nico.pache@linux.dev>
-Cc: Ryan Roberts <ryan.roberts@arm.com>
-Cc: Dev Jain <dev.jain@arm.com>
-Cc: Barry Song <baohua@kernel.org>
-Cc: Lance Yang <lance.yang@linux.dev>
-Cc: Usama Arif <usama.arif@linux.dev>
-Cc: Kirill A. Shutemov <kas@kernel.org>
-Cc: Lorenzo Stoakes (ARM) <ljs@kernel.org>
-Cc: "Vlastimil Babka (SUSE)" <vbabka@kernel.org>
-Cc: "Mike Rapoport (IBM)" <rppt@kernel.org>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: David Hildenbrand (ARM) <david@kernel.org>
-Cc: Shuah Khan (Samsung OSG) <shuah@kernel.org>
+Acked-by: Muchun Song <muchun.song@linux.dev>
 ---
 
- tools/testing/selftests/mm/khugepaged.c |    3 +++
- 1 file changed, 3 insertions(+)
+ arch/x86/entry/vdso/vdso32/fake_32bit_build.h |    3 +++
+ include/linux/mm.h                            |   12 ++++--------
+ include/linux/mmzone.h                        |    2 +-
+ include/linux/page-flags-layout.h             |    2 +-
+ mm/Kconfig                                    |    3 +++
+ mm/util.c                                     |    2 +-
+ 6 files changed, 13 insertions(+), 11 deletions(-)
 
---- a/tools/testing/selftests/mm/khugepaged.c~kselftest-mm-fix-intermittent-failure-khugepaged-test
-+++ a/tools/testing/selftests/mm/khugepaged.c
-@@ -618,6 +618,9 @@ static bool wait_for_scan(const char *ms
- 		usleep(TICK);
- 	}
+--- a/arch/x86/entry/vdso/vdso32/fake_32bit_build.h~mm-add-config_sparsemem_classic
++++ a/arch/x86/entry/vdso/vdso32/fake_32bit_build.h
+@@ -20,6 +20,9 @@
+ #define CONFIG_PAGE_OFFSET 0
+ #define CONFIG_ILLEGAL_POINTER_VALUE 0
+ #define CONFIG_NR_CPUS 1
++#ifdef CONFIG_SPARSEMEM
++#define CONFIG_SPARSEMEM_CLASSIC 1
++#endif
  
-+	if (!strncmp(ops->name, "anon", 4))
-+		madvise(p, len, MADV_NOHUGEPAGE);
-+
- 	return timeout == -1;
+ #define BUILD_VDSO32_64
+ 
+--- a/include/linux/mm.h~mm-add-config_sparsemem_classic
++++ a/include/linux/mm.h
+@@ -201,7 +201,7 @@ static inline void __mm_zero_struct_page
+ extern unsigned long sysctl_user_reserve_kbytes;
+ extern unsigned long sysctl_admin_reserve_kbytes;
+ 
+-#if defined(CONFIG_SPARSEMEM) && !defined(CONFIG_SPARSEMEM_VMEMMAP)
++#ifdef CONFIG_SPARSEMEM_CLASSIC
+ bool page_range_contiguous(const struct page *page, unsigned long nr_pages);
+ #else
+ static inline bool page_range_contiguous(const struct page *page,
+@@ -2531,10 +2531,6 @@ static inline bool is_nommu_shared_vma_f
+ }
+ #endif
+ 
+-#if defined(CONFIG_SPARSEMEM) && !defined(CONFIG_SPARSEMEM_VMEMMAP)
+-#define SECTION_IN_PAGE_FLAGS
+-#endif
+-
+ /*
+  * The identification function is mainly used by the buddy allocator for
+  * determining if two pages could be buddies. We are not really identifying
+@@ -2805,7 +2801,7 @@ static inline struct zone *folio_zone(co
+ 	return &folio_pgdat(folio)->node_zones[folio_zonenum(folio)];
  }
  
+-#ifdef SECTION_IN_PAGE_FLAGS
++#ifdef CONFIG_SPARSEMEM_CLASSIC
+ static inline void set_page_section(struct page *page, unsigned long section)
+ {
+ 	page->flags.f &= ~(SECTIONS_MASK << SECTIONS_PGSHIFT);
+@@ -2823,7 +2819,7 @@ static inline unsigned long memdesc_sect
+ 	ASSERT_EXCLUSIVE_BITS(mdf->f, SECTIONS_MASK << SECTIONS_PGSHIFT);
+ 	return (mdf->f >> SECTIONS_PGSHIFT) & SECTIONS_MASK;
+ }
+-#else /* !SECTION_IN_PAGE_FLAGS */
++#else /* !CONFIG_SPARSEMEM_CLASSIC */
+ static inline void set_page_section_from_pfn(struct page *page,
+ 		unsigned long pfn)
+ {
+@@ -2833,7 +2829,7 @@ static inline unsigned long memdesc_sect
+ {
+ 	return 0;
+ }
+-#endif /* SECTION_IN_PAGE_FLAGS */
++#endif /* CONFIG_SPARSEMEM_CLASSIC */
+ 
+ /**
+  * folio_pfn - Return the Page Frame Number of a folio.
+--- a/include/linux/mmzone.h~mm-add-config_sparsemem_classic
++++ a/include/linux/mmzone.h
+@@ -68,7 +68,7 @@
+  * memory sections).
+  */
+ #define MAX_FOLIO_ORDER		MAX_PAGE_ORDER
+-#elif defined(CONFIG_SPARSEMEM) && !defined(CONFIG_SPARSEMEM_VMEMMAP)
++#elif defined(CONFIG_SPARSEMEM_CLASSIC)
+ /*
+  * Only pages within a single memory section are guaranteed to be
+  * contiguous. By limiting folios to a single memory section, all folio
+--- a/include/linux/page-flags-layout.h~mm-add-config_sparsemem_classic
++++ a/include/linux/page-flags-layout.h
+@@ -49,7 +49,7 @@
+  *      " plus space for last_cpupid: | SECTION | NODE | ZONE | LAST_CPUPID ... | FLAGS |
+  * classic sparse no space for node:  | SECTION |     ZONE    | ... | FLAGS |
+  */
+-#if defined(CONFIG_SPARSEMEM) && !defined(CONFIG_SPARSEMEM_VMEMMAP)
++#ifdef CONFIG_SPARSEMEM_CLASSIC
+ #define SECTIONS_WIDTH		SECTIONS_SHIFT
+ #else
+ #define SECTIONS_WIDTH		0
+--- a/mm/Kconfig~mm-add-config_sparsemem_classic
++++ a/mm/Kconfig
+@@ -461,6 +461,9 @@ config SPARSEMEM_VMEMMAP
+ 	  pfn_to_page and page_to_pfn operations.  This is the most
+ 	  efficient option when sufficient kernel resources are available.
+ 
++config SPARSEMEM_CLASSIC
++	def_bool SPARSEMEM && !SPARSEMEM_VMEMMAP
++
+ config VMEMMAP_OPTIMIZATION
+ 	bool
+ 	depends on SPARSEMEM_VMEMMAP
+--- a/mm/util.c~mm-add-config_sparsemem_classic
++++ a/mm/util.c
+@@ -1590,7 +1590,7 @@ unsigned int folio_pte_batch(struct foli
+ }
+ #endif /* CONFIG_MMU */
+ 
+-#if defined(CONFIG_SPARSEMEM) && !defined(CONFIG_SPARSEMEM_VMEMMAP)
++#ifdef CONFIG_SPARSEMEM_CLASSIC
+ /**
+  * page_range_contiguous - test whether the page range is contiguous
+  * @page: the start of the page range.
 _
 
-Patches currently in -mm which might be from yeoreum.yun@arm.com are
+Patches currently in -mm which might be from chengkaitao@kylinos.cn are
 
-kselftest-mm-fix-potential-failure-for-merged-vma-in-guard-regions.patch
-kselftest-mm-remove-exclusion-of-building-soft-dirty-test-in-arm64.patch
-kselftest-mm-return-fail-when-child-test-result-is-fail-in-khugepaged.patch
-kselftest-mm-fix-intermittent-failure-khugepaged-test.patch
+mm-hugetlb-use-hugetlb_vmemmap_optimizable-in-boolean-contexts.patch
+mm-page-flags-define-hwpoison-test-and-change-helpers-unconditionally.patch
+nvdimm-pmem-remove-test_and_clear_pmem_poison.patch
 
