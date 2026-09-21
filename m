@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B0FC7234994
-	for <mm-commits@vger.kernel.org>; Mon, 21 Sep 2026 06:15:45 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BA4F639B94A;
+	Mon, 21 Sep 2026 19:29:02 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789971347; cv=none; b=iQ/d9Wz6noqdeICZU/CrQ/BevR7VBh+mOzjWBcR9tuYpcjIF917btN56y50D5u5+WKLXnsNrGtVrgWTYqM+ZtI3pb4205Lv4R5qMPicHGKnUeiI4M5s7CKaPfZcOTgmjh0JkD02PvnR+ng/Fn0BrnJib6W+v1mxx3Wd5kZkdFKQ=
+	t=1790018944; cv=none; b=q/Ubf9uRY2HKk50CxibvOZLMVAJjx4yYbODP1uIks/OFDxa4L/NT8Tiiv4VYGAFDj74pO8GmhXPDWUCIaYojbb59bJ5V2pCBncNCN02weu/88GMMn52t5+fxhReeSvx6JmqUT2pFn3m7zdwtYS1ib8MejKY2cLnPYJpPkjKIL4A=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1789971347; c=relaxed/simple;
-	bh=U+BZmlJlH6/QGjrxwSWeU2Y5vyPujkdpXIzRyUEOJ+A=;
-	h=Date:To:From:Subject:Message-Id; b=EsL8uLXC+OvEI51eAWjQ1VxXdr1q/yJiQkhGiXjPIdT9jY3d+OzMj7CX6OdNpnBD9pSnZvLMveJws/VwzfdBcHxQ0ha38eH+Nl6bkrqychL4abmTmF+wOGvywuoemSHmIgMZXN2xGhtY707RmOOBn0s/FVGujgKxT+UYVnjWnI0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=vVJkIG21; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1790018944; c=relaxed/simple;
+	bh=/zqAhZ6ZmATbRjUgB3nSfL79dTJ2lIPaH9WDZwj7u4k=;
+	h=Date:To:From:Subject:Message-Id; b=QcztXsp4zCH+NYPjlsef2hAYCkGOyadr9f/IhZvfnyGycSoxFqgsU7vH0wm1RZ5SSf281Vt6M75aiRGWoai0A0MXOi+VoEh+foyo7sHwWFPUox/JEIzTCCA5WOeBjahDuAtOFkp/vMcYuOy2Z39RLEadTLpNbM2wdQQOkqeURg4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=zIXSaqw+; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="vVJkIG21"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 32E5D1F000FF;
-	Mon, 21 Sep 2026 06:15:45 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="zIXSaqw+"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 72C611F00898;
+	Mon, 21 Sep 2026 19:29:02 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1789971345;
-	bh=bR8yO+YIF8tuYtS7lXTO2zAltGICyiLCQv4bX9ID3Cg=;
+	d=linux-foundation.org; s=korg; t=1790018942;
+	bh=2yQSBB9+QfEe/7UUwe9jeZMdSJEApqsxiD8a6QZJ57E=;
 	h=Date:To:From:Subject;
-	b=vVJkIG21pWWkGNqIAW1XEZLhh2j+U0ThWnZP8GWqOX/35VNXvqYdAzzeUdgnCm/3m
-	 HrLN8u8nx1SCdF7zgU3i9kSEJ2STZBPfprZX1XTSVYFipinOFSDZGARbq2sF7jLBWY
-	 mmv3gFfCmmJnHskJgMtDsmRwW47txzhAl0TQQgzs=
-Date: Sun, 20 Sep 2026 23:15:44 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,vbabka@kernel.org,usama.arif@linux.dev,surenb@google.com,ryan.roberts@arm.com,rppt@kernel.org,nico.pache@linux.dev,mhocko@suse.com,ljs@kernel.org,liam@infradead.org,kas@kernel.org,dev.jain@arm.com,david@kernel.org,baolin.wang@linux.alibaba.com,baohua@kernel.org,lance.yang@linux.dev,akpm@linux-foundation.org
+	b=zIXSaqw+6yEVpXrlGUtyNvXXA4ZQfYj7shgJzEZsALus2OKP3HNNXBogSsddi5ZRq
+	 GzJUQWlKrNN8of7O+wdiNpo1EEGQkzbsiHVKXU4OLz7wH3Boypx6gJG6hB7wEmKVUh
+	 BcbpCXMqr/PNut9XSbxygiJJB8CWBohpFb9+chRY=
+Date: Mon, 21 Sep 2026 12:29:01 -0700
+To: mm-commits@vger.kernel.org,stable@vger.kernel.org,sj@kernel.org,david@davidgow.net,brendan.higgins@linux.dev,donggeunyoo.kernel@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-disallow-raw-pfn-mappings-of-huge-shared-zeropage.patch added to mm-new branch
-Message-Id: <20260921061545.32E5D1F000FF@smtp.kernel.org>
+Subject: + mm-damon-core-charge-only-the-part-of-a-region-the-filter-left.patch added to mm-new branch
+Message-Id: <20260921192902.72C611F00898@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: disallow raw PFN mappings of huge/shared zeropage
+     Subject: mm/damon/core: charge only the part of a region the filter left
 has been added to the -mm mm-new branch.  Its filename is
-     mm-disallow-raw-pfn-mappings-of-huge-shared-zeropage.patch
+     mm-damon-core-charge-only-the-part-of-a-region-the-filter-left.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-disallow-raw-pfn-mappings-of-huge-shared-zeropage.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-core-charge-only-the-part-of-a-region-the-filter-left.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -69,72 +69,73 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Lance Yang <lance.yang@linux.dev>
-Subject: mm: disallow raw PFN mappings of huge/shared zeropage
-Date: Mon, 21 Sep 2026 13:42:25 +0800
+From: Donggeun Yoo <donggeunyoo.kernel@gmail.com>
+Subject: mm/damon/core: charge only the part of a region the filter left
+Date: Mon, 21 Sep 2026 08:24:41 -0700
 
-Handling the huge/shared zeropage correctly in vmf_insert_pfn_pmd() and
-vmf_insert_pfn_prot() is more involved.  We would need to check whether
-the VMA allows it and keep the mapping read-only, similar to the checks in
-vm_mixed_ok().
+Patch series "mm/damon/core: fix the size charged for a filter-trimmed
+region", v2.
 
-No in-tree user needs that support, so reject these mappings with
-VM_FAULT_SIGBUS rather than complicate the code for now.
+An address range DAMOS filter that partially overlaps a monitoring region
+splits it, so the scheme action reaches only one side of the boundary. 
+damos_apply_scheme() reads the region size before that split and never
+re-reads it, so the quota charge and schemes/<S>/stats/sz_tried account
+for the whole original region.
 
-Link: https://lore.kernel.org/20260921054225.28537-1-lance.yang@linux.dev
-Link: https://lore.kernel.org/all/20260917121010.60966-1-lance.yang@linux.dev/
-Signed-off-by: Lance Yang <lance.yang@linux.dev>
+Patch 1 re-reads the size after the core filters have run.  Patch 2 adds
+KUnit coverage for what the function charges and reports, for the trimmed
+cases and for the cases that must not change.
+
+
+This patch (of 2):
+
+An address range DAMOS filter that partially overlaps a monitoring region
+splits the region at the filter boundary, so the scheme action is applied
+to only one side of it.  damos_apply_scheme() reads the region size once
+on entry, before damos_core_filter_out() performs that split.
+
+The quota charge and the statistics update therefore account for the
+region as it was before the trim.  schemes/<S>/stats/sz_tried counts
+memory the filter excluded, which Documentation/mm/damon/design.rst says
+is not counted as tried, and with quotas/bytes set the excluded part is
+charged against the budget, throttling the scheme to a fraction of what
+was configured.
+
+User impact is that DAMOS could unexpectedly slowly run, due to
+over-charged quota.  DAMOS stat could also be confusing.  No critical
+events such as crashes or leask happen.
+
+Re-read the region size after the core filters have run.
+
+Link: https://lore.kernel.org/20260921152443.80132-1-sj@kernel.org
+Link: https://lore.kernel.org/20260921152443.80132-2-sj@kernel.org
+Fixes: ab9bda001b68 ("mm/damon/core: introduce address range type damos filter")
+Signed-off-by: Donggeun Yoo <donggeunyoo.kernel@gmail.com>
+Signed-off-by: SJ Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Suggested-by: Kiryl Shutsemau (Meta) <kas@kernel.org>
-Suggested-by: David Hildenbrand (Arm) <david@kernel.org>
-Reviewed-by: Kiryl Shutsemau (Meta) <kas@kernel.org>
-Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: Barry Song <baohua@kernel.org>
-Cc: Dev Jain <dev.jain@arm.com>
-Cc: Liam Howlett <liam@infradead.org>
-Cc: Lorenzo Stoakes (ARM) <ljs@kernel.org>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: "Mike Rapoport (IBM)" <rppt@kernel.org>
-Cc: Nico Pache (Red Hat) <nico.pache@linux.dev>
-Cc: Ryan Roberts <ryan.roberts@arm.com>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Usama Arif <usama.arif@linux.dev>
-Cc: "Vlastimil Babka (SUSE)" <vbabka@kernel.org>
-Cc: Zi Yan <ziy@nvidia.com>
+Reviewed-by: SJ Park <sj@kernel.org>
+Cc: Brendan Higgins <brendan.higgins@linux.dev>
+Cc: David Gow <david@davidgow.net>
+Cc: <stable@vger.kernel.org>
 ---
 
- mm/huge_memory.c |    3 +++
- mm/memory.c      |    3 +++
- 2 files changed, 6 insertions(+)
+ mm/damon/core.c |    1 +
+ 1 file changed, 1 insertion(+)
 
---- a/mm/huge_memory.c~mm-disallow-raw-pfn-mappings-of-huge-shared-zeropage
-+++ a/mm/huge_memory.c
-@@ -1723,6 +1723,9 @@ vm_fault_t vmf_insert_pfn_pmd(struct vm_
- 						(VM_PFNMAP|VM_MIXEDMAP));
- 	BUG_ON((vma->vm_flags & VM_PFNMAP) && vma_is_cow_mapping(vma));
- 
-+	if (unlikely(is_huge_zero_pfn(pfn)))
-+		return VM_FAULT_SIGBUS;
-+
- 	pfnmap_setup_cachemode_pfn(pfn, &pgprot);
- 
- 	return insert_pmd(vma, addr, vmf->pmd, fop, pgprot, write);
---- a/mm/memory.c~mm-disallow-raw-pfn-mappings-of-huge-shared-zeropage
-+++ a/mm/memory.c
-@@ -2956,6 +2956,9 @@ vm_fault_t vmf_insert_pfn_prot(struct vm
- 	BUG_ON((vma->vm_flags & VM_PFNMAP) && vma_is_cow_mapping(vma));
- 	BUG_ON((vma->vm_flags & VM_MIXEDMAP) && pfn_valid(pfn));
- 
-+	if (unlikely(is_zero_pfn(pfn)))
-+		return VM_FAULT_SIGBUS;
-+
- 	if (addr < vma->vm_start || addr >= vma->vm_end)
- 		return VM_FAULT_SIGBUS;
- 
+--- a/mm/damon/core.c~mm-damon-core-charge-only-the-part-of-a-region-the-filter-left
++++ a/mm/damon/core.c
+@@ -2784,6 +2784,7 @@ static void damos_apply_scheme(struct da
+ 		}
+ 		if (damos_core_filter_out(c, t, r, s))
+ 			return;
++		sz = damon_sz_region(r);
+ 		ktime_get_coarse_ts64(&begin);
+ 		trace_damos_before_apply(cidx, sidx, tidx, r, nr_accesses,
+ 				damon_nr_regions(t), do_trace);
 _
 
-Patches currently in -mm which might be from lance.yang@linux.dev are
+Patches currently in -mm which might be from donggeunyoo.kernel@gmail.com are
 
-mm-huge_memory-simplify-pgtable-deposit-detection.patch
-mm-disallow-raw-pfn-mappings-of-huge-shared-zeropage.patch
+mm-damon-core-charge-only-the-part-of-a-region-the-filter-left.patch
+mm-damon-tests-core-kunit-test-the-size-charged-for-a-filter-trimmed-region.patch
 
