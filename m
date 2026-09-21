@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C5B78146D5A
-	for <mm-commits@vger.kernel.org>; Mon, 21 Sep 2026 04:09:45 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 06208146D5A
+	for <mm-commits@vger.kernel.org>; Mon, 21 Sep 2026 04:09:47 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789963787; cv=none; b=uYBiJGUIP0vsOoduR0EwDnFwy1Z6qnslY/cqMCHKvHze1vi6Xo7Q8hSn56GB28FuKQKjBvk6V8ESuVQHY+djW9ClX1/c/6cE8rO8Do3NF2XJgGsoNTVE/z+SBlMpi0R+Cl+6IUQtidrMZEHXjHR1anHuQmjpleixAFd0n7Nb+co=
+	t=1789963789; cv=none; b=khGUYuTdMAqL1YGIU1tHTJlW7rbDUzYlcZAEN8q0rJ9H+7dkyF2MgpPqwKjXDu6GnyrDFvxaLeScGlDPbFdiJMt71BduO0u72xdcoHZMRqWwyXHu+R5DuSPGAd6hdpKo4rNUYctnAAOt91trN0wm80yot/BozshB5u4u9401p+Y=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1789963787; c=relaxed/simple;
-	bh=Tu/4nrT1xuwNNYrhgEL2mGi4L43OhFjkMvcVVO3yb84=;
-	h=Date:To:From:Subject:Message-Id; b=PHV4LDZAMqEqrG1CiSXCel5jJy6J/Bjo/SSDXi/lplSdCVTkCxbx9HGxe6jWGJtsoidQSHC8poA5XnGghC9WQ6Km4ckQrKrR3fzdW2loEmPvQYvdg7YlQ1AHRtq+vm15PU9+q05cEO88CIO8MsDr2fxb5xhtpifwUCj+/twyCA0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=K9l1x1Zh; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1789963789; c=relaxed/simple;
+	bh=MWJj8RFkvU01lDCyNykATXSQpI8oKLOKeO2o/2QIIAI=;
+	h=Date:To:From:Subject:Message-Id; b=X8fjd8o7l2mNiFbtFTSa23T7Xw2rxi0vFW9Aympf2BvIEAAlmEcAoXWyCw4iWgm8RSpDXNoHLDqqHLptOrOKWF2cwMb1j12IBkd06PYsJXj2LZnNz3MRumXScXaqABIgwQfXeHkrJ90TvgszY6qq0hpKcjPp6dosFtqEX0OkLW8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Wo4Jyowl; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="K9l1x1Zh"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 91C851F000FF;
-	Mon, 21 Sep 2026 04:09:45 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Wo4Jyowl"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 755381F000FF;
+	Mon, 21 Sep 2026 04:09:47 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1789963785;
-	bh=ENf0z6PRzWIVaFWOmJ09DE2fhjpRiq6jSGUvKhTP7Ss=;
+	d=linux-foundation.org; s=korg; t=1789963787;
+	bh=rdIZjXwFAsISQm0ahREYoArNx3jAS4F+yd584Rwq9r0=;
 	h=Date:To:From:Subject;
-	b=K9l1x1ZhRCTNZs0Vp5iYr2mYmKOH3TtZpfLvAgwLKFVuuFXzrw9w+A03a6M96dpFB
-	 dGReGpgKSzz5wv5owsDIQTsuKJ+8HPu0ygttRSXlMTayldUGeqKVaktGtQDnnWSHaK
-	 gzVTIxKeYM4bsXXPCDoLJtqd8kQ6KfarBB+nzCnY=
-Date: Sun, 20 Sep 2026 21:09:45 -0700
+	b=Wo4JyowlezDBgTbebe1ur21gBJ3pA3T4uwizI8BmMEDXGesyLaaOPIx7KII+rhhrr
+	 MCqE/sqpWqjtoJKvSQE1ZmliNzgmBTKl9E0wFvpAFOQk7w/dSO5nVy3dojzvTVWI2U
+	 b2WmsUPTasfOQHmHcT3jgIi4b9CH7HoAQcXpWBCU=
+Date: Sun, 20 Sep 2026 21:09:47 -0700
 To: mm-commits@vger.kernel.org,ziy@nvidia.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-hugetlb-use-direct-assignment-instead-of-folio_change_private.patch added to mm-unstable branch
-Message-Id: <20260921040945.91C851F000FF@smtp.kernel.org>
+Subject: + f2fs-stop-using-pg_private.patch added to mm-unstable branch
+Message-Id: <20260921040947.755381F000FF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/hugetlb: use direct assignment instead of folio_change_private()
+     Subject: f2fs: stop using PG_private
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-hugetlb-use-direct-assignment-instead-of-folio_change_private.patch
+     f2fs-stop-using-pg_private.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-hugetlb-use-direct-assignment-instead-of-folio_change_private.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/f2fs-stop-using-pg_private.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,49 +59,59 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Zi Yan <ziy@nvidia.com>
-Subject: mm/hugetlb: use direct assignment instead of folio_change_private()
-Date: Sun, 20 Sep 2026 22:28:01 -0400
+Subject: f2fs: stop using PG_private
+Date: Sun, 20 Sep 2026 22:28:02 -0400
 
-folio_change_private() should be used along with folio_attach_private() and
-folio_detach_private(), where adding and remove ->private content requires
-folio refcount change. add_hugetlb_folio() simply sets folio->private to
-NULL without refcount manipulation. Change it to direct assignment to avoid
-semantic confusion.
+f2fs sets its PAGE_PRIVATE_* flags in page->private and checking
+page->private != NULL is equivalent to checking PG_private. Change
+PagePrivate() to page_private(). Meanwhile, in set_page_private_##name(),
+page->private is first set to 0/NULL before an PAGE_PRIVATE_* flag is set,
+but it can cause confusion when PG_private is removed and
+page->private != NULL is used instead. Change it to initialize
+page->private to PAGE_PRIVATE_NOT_POINTER instead and retain the original
+semantics.
 
-It prepares for a future commit that remove PG_private.
+It prepares for a future commit that removes PG_private.
 
 No functional change intended.
 
 Assisted-by: LLM
-Link: https://lore.kernel.org/20260920-remove-pg_private-v5-5-bb68b6a21869@nvidia.com
+Link: https://lore.kernel.org/20260920-remove-pg_private-v5-6-bb68b6a21869@nvidia.com
 Signed-off-by: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 Acked-by: Usama Arif <usama.arif@linux.dev>
-Reviewed-by: Gregory Price (Meta) <gourry@gourry.net>
-Reviewed-by: Muchun Song <muchun.song@linux.dev>
-Acked-by: David Hildenbrand (Arm) <david@kernel.org>
-Cc: Oscar Salvador <osalvador@suse.de>
+Acked-by: Chao Yu <chao@kernel.org>
+Reviewed-by: David Hildenbrand (Arm) <david@kernel.org>
+Cc: Jaegeuk Kim <jaegeuk@kernel.org>
 ---
 
- mm/hugetlb.c |    7 ++-----
- 1 file changed, 2 insertions(+), 5 deletions(-)
+ fs/f2fs/f2fs.h |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
---- a/mm/hugetlb.c~mm-hugetlb-use-direct-assignment-instead-of-folio_change_private
-+++ a/mm/hugetlb.c
-@@ -1446,11 +1446,8 @@ void add_hugetlb_folio(struct hstate *h,
- 	}
+--- a/fs/f2fs/f2fs.h~f2fs-stop-using-pg_private
++++ a/fs/f2fs/f2fs.h
+@@ -2691,7 +2691,7 @@ static inline bool folio_test_f2fs_##nam
+ }									\
+ static inline bool page_private_##name(struct page *page) \
+ { \
+-	return PagePrivate(page) && \
++	return page_private(page) && \
+ 		test_bit(PAGE_PRIVATE_NOT_POINTER, &page_private(page)) && \
+ 		test_bit(PAGE_PRIVATE_##flagname, &page_private(page)); \
+ }
+@@ -2710,9 +2710,9 @@ static inline void folio_set_f2fs_##name
+ }									\
+ static inline void set_page_private_##name(struct page *page) \
+ { \
+-	if (!PagePrivate(page)) \
+-		attach_page_private(page, (void *)0); \
+-	set_bit(PAGE_PRIVATE_NOT_POINTER, &page_private(page)); \
++	if (!page_private(page)) \
++		attach_page_private(page, \
++				(void *)BIT(PAGE_PRIVATE_NOT_POINTER)); \
+ 	set_bit(PAGE_PRIVATE_##flagname, &page_private(page)); \
+ }
  
- 	__folio_set_hugetlb(folio);
--	folio_change_private(folio, NULL);
--	/*
--	 * We have to set hugetlb_vmemmap_optimized again as above
--	 * folio_change_private(folio, NULL) cleared it.
--	 */
-+	/* Clear all folio->private flags except hugetlb_vmemmap_optimized. */
-+	folio->private = NULL;
- 	folio_set_hugetlb_vmemmap_optimized(folio);
- 
- 	arch_clear_hugetlb_flags(folio);
 _
 
 Patches currently in -mm which might be from ziy@nvidia.com are
