@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BA4F639B94A;
-	Mon, 21 Sep 2026 19:29:02 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D5BF239B979;
+	Mon, 21 Sep 2026 19:29:04 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790018944; cv=none; b=q/Ubf9uRY2HKk50CxibvOZLMVAJjx4yYbODP1uIks/OFDxa4L/NT8Tiiv4VYGAFDj74pO8GmhXPDWUCIaYojbb59bJ5V2pCBncNCN02weu/88GMMn52t5+fxhReeSvx6JmqUT2pFn3m7zdwtYS1ib8MejKY2cLnPYJpPkjKIL4A=
+	t=1790018946; cv=none; b=b67wVHgy9CMPgVG+HpYtK1E2wRO/HhzHvtyxHb9LMwhROeFJDWbrIyvpHmEtgcrk6bizXnodIOBve9FB5ckwgmiQnJHEOY7XA05xnVfATHOcVRhM2NCKyKjM+Mg5j7DfcW8Jj3/ERUy3qpMbyDdQDAPBIuizN0TFipxFTNv431U=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1790018944; c=relaxed/simple;
-	bh=/zqAhZ6ZmATbRjUgB3nSfL79dTJ2lIPaH9WDZwj7u4k=;
-	h=Date:To:From:Subject:Message-Id; b=QcztXsp4zCH+NYPjlsef2hAYCkGOyadr9f/IhZvfnyGycSoxFqgsU7vH0wm1RZ5SSf281Vt6M75aiRGWoai0A0MXOi+VoEh+foyo7sHwWFPUox/JEIzTCCA5WOeBjahDuAtOFkp/vMcYuOy2Z39RLEadTLpNbM2wdQQOkqeURg4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=zIXSaqw+; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1790018946; c=relaxed/simple;
+	bh=rfxa1NpZlTMER3KDd4gcbr/q2z/YgXuUROjaBRgSMWY=;
+	h=Date:To:From:Subject:Message-Id; b=f0ypzCy1d/Bp+hlP6oqSQ8GGqWzBLmJtd4+7QPgryz5VJxIsZ9Tb9kmVG5OwFQ/TnRWOflicrQt9svPnS+iAYBjLKSTgjHY53l/jVlO2qZPwmRwKTgHxskHRGXVb7c4DCxrwuOrr8e9XQES4HC9tavS1po5eSNsUUc9gfQTpDL0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ytJy3eSg; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="zIXSaqw+"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 72C611F00898;
-	Mon, 21 Sep 2026 19:29:02 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ytJy3eSg"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 65E441F00893;
+	Mon, 21 Sep 2026 19:29:04 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1790018942;
-	bh=2yQSBB9+QfEe/7UUwe9jeZMdSJEApqsxiD8a6QZJ57E=;
+	d=linux-foundation.org; s=korg; t=1790018944;
+	bh=tykJGqfgjNh63epcvj5Q9gIQuTDAFJJ4UDOkuWG6XBQ=;
 	h=Date:To:From:Subject;
-	b=zIXSaqw+6yEVpXrlGUtyNvXXA4ZQfYj7shgJzEZsALus2OKP3HNNXBogSsddi5ZRq
-	 GzJUQWlKrNN8of7O+wdiNpo1EEGQkzbsiHVKXU4OLz7wH3Boypx6gJG6hB7wEmKVUh
-	 BcbpCXMqr/PNut9XSbxygiJJB8CWBohpFb9+chRY=
-Date: Mon, 21 Sep 2026 12:29:01 -0700
+	b=ytJy3eSgHt+/SVCCa9r1hduI6h3HUOAKNS38iPAE7zl+vr+5T9pZEWR7CdLgpvBrK
+	 NN8WqGVHyjpgaD8Y9TEj+EK9YSeMJPjguLPZKOw71pE+43KPrBDjdidvFUyfuHSzRy
+	 eqxICf/mOzp84wEsT/C5uwOaW149AuGkCv46w3/Y=
+Date: Mon, 21 Sep 2026 12:29:04 -0700
 To: mm-commits@vger.kernel.org,stable@vger.kernel.org,sj@kernel.org,david@davidgow.net,brendan.higgins@linux.dev,donggeunyoo.kernel@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-damon-core-charge-only-the-part-of-a-region-the-filter-left.patch added to mm-new branch
-Message-Id: <20260921192902.72C611F00898@smtp.kernel.org>
+Subject: + mm-damon-tests-core-kunit-test-the-size-charged-for-a-filter-trimmed-region.patch added to mm-new branch
+Message-Id: <20260921192904.65E441F00893@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/damon/core: charge only the part of a region the filter left
+     Subject: mm/damon/tests/core-kunit: test the size charged for a filter-trimmed region
 has been added to the -mm mm-new branch.  Its filename is
-     mm-damon-core-charge-only-the-part-of-a-region-the-filter-left.patch
+     mm-damon-tests-core-kunit-test-the-size-charged-for-a-filter-trimmed-region.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-core-charge-only-the-part-of-a-region-the-filter-left.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-tests-core-kunit-test-the-size-charged-for-a-filter-trimmed-region.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,46 +70,25 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Donggeun Yoo <donggeunyoo.kernel@gmail.com>
-Subject: mm/damon/core: charge only the part of a region the filter left
-Date: Mon, 21 Sep 2026 08:24:41 -0700
+Subject: mm/damon/tests/core-kunit: test the size charged for a filter-trimmed region
+Date: Mon, 21 Sep 2026 08:24:42 -0700
 
-Patch series "mm/damon/core: fix the size charged for a filter-trimmed
-region", v2.
+damos_test_filter_out() checks that an address range filter splits a
+region at the filter boundary, and stops there.  Nothing checks what
+damos_apply_scheme() then charges to the quota and reports as tried.
 
-An address range DAMOS filter that partially overlaps a monitoring region
-splits it, so the scheme action reaches only one side of the boundary. 
-damos_apply_scheme() reads the region size before that split and never
-re-reads it, so the quota charge and schemes/<S>/stats/sz_tried account
-for the whole original region.
+damos_test_apply_scheme_filtered_sz() covers the two ways such a filter
+trims a region: one that starts before the filter's range, and one that
+starts inside it.
 
-Patch 1 re-reads the size after the core filters have run.  Patch 2 adds
-KUnit coverage for what the function charges and reports, for the trimmed
-cases and for the cases that must not change.
+damos_test_apply_scheme_filter_sz_unchanged() and
+damos_test_apply_scheme_quota_sz() cover the cases whose accounting must
+not change: a region wholly inside a reject range, one wholly inside an
+allow range, two filters trimming in a single call, a filter type that
+never splits, no filter at all, a region the quota trims, and a quota
+remainder too small for one region.
 
-
-This patch (of 2):
-
-An address range DAMOS filter that partially overlaps a monitoring region
-splits the region at the filter boundary, so the scheme action is applied
-to only one side of it.  damos_apply_scheme() reads the region size once
-on entry, before damos_core_filter_out() performs that split.
-
-The quota charge and the statistics update therefore account for the
-region as it was before the trim.  schemes/<S>/stats/sz_tried counts
-memory the filter excluded, which Documentation/mm/damon/design.rst says
-is not counted as tried, and with quotas/bytes set the excluded part is
-charged against the budget, throttling the scheme to a fraction of what
-was configured.
-
-User impact is that DAMOS could unexpectedly slowly run, due to
-over-charged quota.  DAMOS stat could also be confusing.  No critical
-events such as crashes or leask happen.
-
-Re-read the region size after the core filters have run.
-
-Link: https://lore.kernel.org/20260921152443.80132-1-sj@kernel.org
-Link: https://lore.kernel.org/20260921152443.80132-2-sj@kernel.org
-Fixes: ab9bda001b68 ("mm/damon/core: introduce address range type damos filter")
+Link: https://lore.kernel.org/20260921152443.80132-3-sj@kernel.org
 Signed-off-by: Donggeun Yoo <donggeunyoo.kernel@gmail.com>
 Signed-off-by: SJ Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
@@ -119,19 +98,341 @@ Cc: David Gow <david@davidgow.net>
 Cc: <stable@vger.kernel.org>
 ---
 
- mm/damon/core.c |    1 +
- 1 file changed, 1 insertion(+)
+ mm/damon/tests/core-kunit.h |  316 ++++++++++++++++++++++++++++++++++
+ 1 file changed, 316 insertions(+)
 
---- a/mm/damon/core.c~mm-damon-core-charge-only-the-part-of-a-region-the-filter-left
-+++ a/mm/damon/core.c
-@@ -2784,6 +2784,7 @@ static void damos_apply_scheme(struct da
- 		}
- 		if (damos_core_filter_out(c, t, r, s))
- 			return;
-+		sz = damon_sz_region(r);
- 		ktime_get_coarse_ts64(&begin);
- 		trace_damos_before_apply(cidx, sidx, tidx, r, nr_accesses,
- 				damon_nr_regions(t), do_trace);
+--- a/mm/damon/tests/core-kunit.h~mm-damon-tests-core-kunit-test-the-size-charged-for-a-filter-trimmed-region
++++ a/mm/damon/tests/core-kunit.h
+@@ -1706,6 +1706,319 @@ out:
+ 	damos_free_filter(f);
+ }
+ 
++static unsigned long damos_test_apply_scheme_stub(struct damon_ctx *c,
++		struct damon_target *t, struct damon_region *r,
++		struct damos *s, unsigned long *sz_filter_passed)
++{
++	return 0;
++}
++
++static void damos_test_apply_scheme_filtered_sz(struct kunit *test)
++{
++	struct damos_access_pattern pattern = {
++		.min_sz_region = 0,
++		.max_sz_region = ULONG_MAX,
++		.min_nr_accesses = 0,
++		.max_nr_accesses = UINT_MAX,
++		.min_age_region = 0,
++		.max_age_region = UINT_MAX,
++	};
++	unsigned long min_sz = DAMON_MIN_REGION_SZ;
++	struct damos_watermarks wmarks = {};
++	struct damos_quota quota = {};
++	struct damon_ctx *c;
++	struct damon_target *t;
++	struct damon_region *r;
++	struct damos_filter *f;
++	struct damos *s;
++
++	c = damon_new_ctx();
++	if (!c)
++		kunit_skip(test, "ctx alloc fail");
++	c->ops.apply_scheme = damos_test_apply_scheme_stub;
++
++	s = damon_new_scheme(&pattern, DAMOS_STAT, 0, &quota, &wmarks,
++			NUMA_NO_NODE);
++	if (!s) {
++		damon_destroy_ctx(c);
++		kunit_skip(test, "scheme alloc fail");
++	}
++	damon_add_scheme(c, s);
++
++	t = damon_new_target();
++	if (!t) {
++		damon_destroy_ctx(c);
++		kunit_skip(test, "target alloc fail");
++	}
++	damon_add_target(c, t);
++
++	f = damos_new_filter(DAMOS_FILTER_TYPE_ADDR, true, false);
++	if (!f) {
++		damon_destroy_ctx(c);
++		kunit_skip(test, "filter alloc fail");
++	}
++	f->addr_range = (struct damon_addr_range){
++		.start = 2 * min_sz,
++		.end = 8 * min_sz
++	};
++	damos_add_filter(s, f);
++	damos_set_filters_default_reject(s);
++
++	/* reject filter, region starting before the range */
++	r = damon_new_region(0, 4 * min_sz);
++	if (!r) {
++		damon_destroy_ctx(c);
++		kunit_skip(test, "region alloc fail");
++	}
++	damon_add_region(r, t);
++
++	damos_apply_scheme(c, t, r, s);
++	KUNIT_EXPECT_EQ(test, damon_nr_regions(t), 2);
++	KUNIT_EXPECT_EQ(test, r->ar.end, 2 * min_sz);
++	KUNIT_EXPECT_EQ(test, s->stat.sz_tried, 2 * min_sz);
++
++	if (damon_nr_regions(t) != 2)
++		goto out;
++	damon_destroy_region(damon_next_region(r), t);
++	damon_destroy_region(r, t);
++	s->stat = (struct damos_stat){};
++
++	/* allow filter, region starting inside the range */
++	f->allow = true;
++	damos_set_filters_default_reject(s);
++	r = damon_new_region(2 * min_sz, 10 * min_sz);
++	if (!r) {
++		damon_destroy_ctx(c);
++		kunit_skip(test, "region alloc fail");
++	}
++	damon_add_region(r, t);
++
++	damos_apply_scheme(c, t, r, s);
++	KUNIT_EXPECT_EQ(test, damon_nr_regions(t), 2);
++	KUNIT_EXPECT_EQ(test, r->ar.end, 8 * min_sz);
++	KUNIT_EXPECT_EQ(test, s->stat.sz_tried, 6 * min_sz);
++
++out:
++	damon_destroy_ctx(c);
++}
++
++static void damos_test_apply_scheme_filter_sz_unchanged(struct kunit *test)
++{
++	struct damos_access_pattern pattern = {
++		.min_sz_region = 0,
++		.max_sz_region = ULONG_MAX,
++		.min_nr_accesses = 0,
++		.max_nr_accesses = UINT_MAX,
++		.min_age_region = 0,
++		.max_age_region = UINT_MAX,
++	};
++	unsigned long min_sz = DAMON_MIN_REGION_SZ;
++	struct damos_watermarks wmarks = {};
++	struct damos_quota quota = {};
++	struct damos_filter *f, *f2;
++	struct damon_ctx *c;
++	struct damon_target *t;
++	struct damon_region *r;
++	struct damos *s;
++
++	c = damon_new_ctx();
++	if (!c)
++		kunit_skip(test, "ctx alloc fail");
++	c->ops.apply_scheme = damos_test_apply_scheme_stub;
++
++	s = damon_new_scheme(&pattern, DAMOS_STAT, 0, &quota, &wmarks,
++			NUMA_NO_NODE);
++	if (!s) {
++		damon_destroy_ctx(c);
++		kunit_skip(test, "scheme alloc fail");
++	}
++	damon_add_scheme(c, s);
++
++	t = damon_new_target();
++	if (!t) {
++		damon_destroy_ctx(c);
++		kunit_skip(test, "target alloc fail");
++	}
++	damon_add_target(c, t);
++
++	f = damos_new_filter(DAMOS_FILTER_TYPE_ADDR, true, false);
++	if (!f) {
++		damon_destroy_ctx(c);
++		kunit_skip(test, "filter alloc fail");
++	}
++	f->addr_range = (struct damon_addr_range){
++		.start = 2 * min_sz, .end = 8 * min_sz};
++	damos_add_filter(s, f);
++	damos_set_filters_default_reject(s);
++
++	/* wholly inside a reject range: not counted at all */
++	r = damon_new_region(4 * min_sz, 6 * min_sz);
++	if (!r) {
++		damon_destroy_ctx(c);
++		kunit_skip(test, "region alloc fail");
++	}
++	damon_add_region(r, t);
++
++	damos_apply_scheme(c, t, r, s);
++	KUNIT_EXPECT_EQ(test, s->stat.nr_tried, 0);
++	KUNIT_EXPECT_EQ(test, s->stat.sz_tried, 0);
++	KUNIT_EXPECT_EQ(test, damon_nr_regions(t), 1);
++
++	/* wholly inside an allow range: counted whole, not split */
++	f->allow = true;
++	damos_set_filters_default_reject(s);
++
++	damos_apply_scheme(c, t, r, s);
++	KUNIT_EXPECT_EQ(test, s->stat.sz_tried, 2 * min_sz);
++	KUNIT_EXPECT_EQ(test, damon_nr_regions(t), 1);
++
++	/* two filters, each trimming: the size left after both is counted */
++	damon_destroy_region(r, t);
++	s->stat = (struct damos_stat){};
++	f->allow = false;
++	f->addr_range = (struct damon_addr_range){
++		.start = 4 * min_sz, .end = 12 * min_sz};
++	f2 = damos_new_filter(DAMOS_FILTER_TYPE_ADDR, true, false);
++	if (!f2) {
++		damon_destroy_ctx(c);
++		kunit_skip(test, "filter alloc fail");
++	}
++	f2->addr_range = (struct damon_addr_range){
++		.start = 2 * min_sz, .end = 3 * min_sz};
++	damos_add_filter(s, f2);
++	damos_set_filters_default_reject(s);
++
++	r = damon_new_region(0, 8 * min_sz);
++	if (!r) {
++		damon_destroy_ctx(c);
++		kunit_skip(test, "region alloc fail");
++	}
++	damon_add_region(r, t);
++
++	damos_apply_scheme(c, t, r, s);
++	KUNIT_EXPECT_EQ(test, damon_nr_regions(t), 3);
++	KUNIT_EXPECT_EQ(test, r->ar.end, 2 * min_sz);
++	KUNIT_EXPECT_EQ(test, s->stat.sz_tried, 2 * min_sz);
++
++	/* a core filter that never splits: counted whole */
++	damos_destroy_filter(f2);
++	damos_destroy_filter(f);
++	f = damos_new_filter(DAMOS_FILTER_TYPE_TARGET, true, true);
++	if (!f) {
++		damon_destroy_ctx(c);
++		kunit_skip(test, "filter alloc fail");
++	}
++	f->target_idx = 0;
++	damos_add_filter(s, f);
++	damos_set_filters_default_reject(s);
++	s->stat = (struct damos_stat){};
++
++	damos_apply_scheme(c, t, r, s);
++	KUNIT_EXPECT_EQ(test, damon_nr_regions(t), 3);
++	KUNIT_EXPECT_EQ(test, r->ar.end, 2 * min_sz);
++	KUNIT_EXPECT_EQ(test, s->stat.sz_tried, 2 * min_sz);
++
++	damon_destroy_ctx(c);
++}
++
++static void damos_test_apply_scheme_quota_sz(struct kunit *test)
++{
++	struct damos_access_pattern pattern = {
++		.min_sz_region = 0,
++		.max_sz_region = ULONG_MAX,
++		.min_nr_accesses = 0,
++		.max_nr_accesses = UINT_MAX,
++		.min_age_region = 0,
++		.max_age_region = UINT_MAX,
++	};
++	unsigned long min_sz = DAMON_MIN_REGION_SZ;
++	struct damos_watermarks wmarks = {};
++	struct damos_quota quota = {};
++	struct damon_region *r, *next;
++	struct damon_ctx *c;
++	struct damon_target *t;
++	struct damos *s;
++
++	c = damon_new_ctx();
++	if (!c)
++		kunit_skip(test, "ctx alloc fail");
++
++	s = damon_new_scheme(&pattern, DAMOS_STAT, 0, &quota, &wmarks,
++			NUMA_NO_NODE);
++	if (!s) {
++		damon_destroy_ctx(c);
++		kunit_skip(test, "scheme alloc fail");
++	}
++	damon_add_scheme(c, s);
++	damos_set_filters_default_reject(s);
++
++	t = damon_new_target();
++	if (!t) {
++		damon_destroy_ctx(c);
++		kunit_skip(test, "target alloc fail");
++	}
++	damon_add_target(c, t);
++
++	/* no apply_scheme operation: the whole region is counted */
++	r = damon_new_region(0, 4 * min_sz);
++	if (!r) {
++		damon_destroy_ctx(c);
++		kunit_skip(test, "region alloc fail");
++	}
++	damon_add_region(r, t);
++
++	damos_apply_scheme(c, t, r, s);
++	KUNIT_EXPECT_EQ(test, s->stat.sz_tried, 4 * min_sz);
++	KUNIT_EXPECT_EQ(test, damon_nr_regions(t), 1);
++
++	/* no filter and no quota: the whole region is counted */
++	c->ops.apply_scheme = damos_test_apply_scheme_stub;
++	s->stat = (struct damos_stat){};
++
++	damos_apply_scheme(c, t, r, s);
++	KUNIT_EXPECT_EQ(test, s->stat.sz_tried, 4 * min_sz);
++	KUNIT_EXPECT_EQ(test, damon_nr_regions(t), 1);
++
++	/* the quota trims the region: the trimmed size is counted */
++	damon_for_each_region_safe(r, next, t)
++		damon_destroy_region(r, t);
++	s->stat = (struct damos_stat){};
++	s->quota.esz = 2 * min_sz;
++	s->quota.charged_sz = 0;
++
++	r = damon_new_region(0, 8 * min_sz);
++	if (!r) {
++		damon_destroy_ctx(c);
++		kunit_skip(test, "region alloc fail");
++	}
++	damon_add_region(r, t);
++
++	damos_apply_scheme(c, t, r, s);
++	KUNIT_EXPECT_EQ(test, r->ar.end, 2 * min_sz);
++	KUNIT_EXPECT_EQ(test, s->stat.sz_tried, 2 * min_sz);
++
++	/* quota remainder below one region: tried, but nothing counted */
++	damon_for_each_region_safe(r, next, t)
++		damon_destroy_region(r, t);
++	s->stat = (struct damos_stat){};
++	s->quota.esz = 1;
++	s->quota.charged_sz = 0;
++
++	r = damon_new_region(0, 4 * min_sz);
++	if (!r) {
++		damon_destroy_ctx(c);
++		kunit_skip(test, "region alloc fail");
++	}
++	damon_add_region(r, t);
++
++	damos_apply_scheme(c, t, r, s);
++	KUNIT_EXPECT_EQ(test, s->stat.nr_tried, 1);
++	KUNIT_EXPECT_EQ(test, s->stat.sz_tried, 0);
++	KUNIT_EXPECT_EQ(test, r->ar.end, 4 * min_sz);
++
++	damon_destroy_ctx(c);
++}
++
+ static void damon_test_feed_loop_next_input(struct kunit *test)
+ {
+ 	unsigned long last_input = 900000, current_score = 200;
+@@ -1959,6 +2272,9 @@ static struct kunit_case damon_test_case
+ 	KUNIT_CASE(damon_test_commit_ctx),
+ 	KUNIT_CASE(damon_test_valid_probe_params),
+ 	KUNIT_CASE(damos_test_filter_out),
++	KUNIT_CASE(damos_test_apply_scheme_filtered_sz),
++	KUNIT_CASE(damos_test_apply_scheme_filter_sz_unchanged),
++	KUNIT_CASE(damos_test_apply_scheme_quota_sz),
+ 	KUNIT_CASE(damon_test_feed_loop_next_input),
+ 	KUNIT_CASE(damon_test_set_filters_default_reject),
+ 	KUNIT_CASE(damon_test_apply_min_nr_regions),
 _
 
 Patches currently in -mm which might be from donggeunyoo.kernel@gmail.com are
