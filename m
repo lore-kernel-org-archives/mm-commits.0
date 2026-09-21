@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5E14A51A154
-	for <mm-commits@vger.kernel.org>; Mon, 21 Sep 2026 22:22:17 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6D3BD51FCAD
+	for <mm-commits@vger.kernel.org>; Mon, 21 Sep 2026 22:34:35 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790029340; cv=none; b=pRcJTznYPaXZrU0om6/OjmYgej4gfDI+jyskYeeGH3a2JxMYXGSvFQ3F7YDNtSuLsXYuvEPRHpRn2fdjTXui3m+gxPpmdBf2GJEN5NGkbQ4/3c84D435XlC2LTYf/aCybze4r3D07oM0SaQUB/1A9ni/kcbmfu0oJVbd5OL8HbM=
+	t=1790030077; cv=none; b=CSeQ4IxAR9ZsP2dZ535i57CbGvcEPEu+6BDED8kTFZRrVQu81Y2zBrFO5JhJ2vpdAmpZx3XuBVToPGCIYoYbh1IUflCUojpMynI4VGB6U9humlHaqMugGt0W8WDRHYoNzIhqzSQvuOPBFbrOCVZ6JJNsdnOsLVMUJA0lLhvVRyU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1790029340; c=relaxed/simple;
-	bh=WjHjLz+ZO1UMOwYDYEnbjMupRhnJ4iu9UIKI/GMf7CE=;
-	h=Date:To:From:Subject:Message-Id; b=BUA9jOpaO5V7XmmXMlsQUUTnt2z4UoQYGc/PaZky9UCimfjjl/B16sLO+PZNu60uHqgxswFhO96SjGJFtlOgZ8mI5etqpezQY7RkVe8fo6qzyGB5QFsk+fXWgHW3B/aNqxgn+PZqRmMHLEpPSgLf9FR3J3pp8YNHRsMk4RUGmWk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=fzzX+Q0A; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1790030077; c=relaxed/simple;
+	bh=BGgIzCmWKutZJNBzRG82Gsox5HpLkgmRefSFXgbQ2eE=;
+	h=Date:To:From:Subject:Message-Id; b=QmUSt3EdLwhgAGGn+wQv54ywsMVBQkZ2jUy/PNN3ZZtEsPzw1fO+/yXtwUYIvis1wSupEdVuJcsDeeuTOS2Kw22xjvOm5VNx9AztEMfzAdsjbSjEKG5xNIktPNqlWE1GPYcfKvqzjOngLVe10B3PHNdcLU08+ZnwwCAj7RThu7w=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=L6uvz1So; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="fzzX+Q0A"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C699A1F000FF;
-	Mon, 21 Sep 2026 22:22:17 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="L6uvz1So"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0313C1F000FF;
+	Mon, 21 Sep 2026 22:34:34 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1790029337;
-	bh=d8ZSAemJBup+9HVODDbcmKpi9pwMyg4kv+zRloeZFWI=;
+	d=linux-foundation.org; s=korg; t=1790030075;
+	bh=qTjsTo5Wd5KZ2kBfvFiKVAI/j5kI46Kxgkp+ASD2S2E=;
 	h=Date:To:From:Subject;
-	b=fzzX+Q0AcR5rpyU+8L1cUCFA98TSl767YC6XxktW/48FhxAvq4yu/AoCY9Cykzgjl
-	 ue7JtuRfBdDh4w99kxIxs/FXR14MDXIcRa6FtaHzwbOXothXHKqpWjXJUOVwJDccIx
-	 SmNecNIHuecitbM/yvu3qjGuTbbCg90BhWbkU9ts=
-Date: Mon, 21 Sep 2026 15:22:17 -0700
-To: mm-commits@vger.kernel.org,yuanchu@google.com,weixugc@google.com,shakeel.butt@linux.dev,qi.zheng@linux.dev,mhocko@kernel.org,ljs@kernel.org,kasong@tencent.com,hannes@cmpxchg.org,david@kernel.org,baoquan.he@linux.dev,baolin.wang@linux.alibaba.com,baohua@kernel.org,axelrasmussen@google.com,chenridong@xiaomi.com,akpm@linux-foundation.org
+	b=L6uvz1SoZ7IxgKFv6L275cdm4GB4kXKNFs+pfPCX4NN0R6jfUMqg/hx9KQlI00VYI
+	 v0QnuzuEQolQFVHiLGwq61lK5S+zMPiZ458i+hECPmXpX2c7OHD7AjYuesj9SqOcXo
+	 E7427fA2MmpUpdDBPAJ8b8wYNhPTaH3zqBQCpty0=
+Date: Mon, 21 Sep 2026 15:34:34 -0700
+To: mm-commits@vger.kernel.org,yuanchu@google.com,weixugc@google.com,shakeel.butt@linux.dev,roman.gushchin@linux.dev,qi.zheng@linux.dev,muchun.song@linux.dev,mhocko@kernel.org,ljs@kernel.org,kasong@tencent.com,hannes@cmpxchg.org,david@kernel.org,david@fromorbit.com,bfguo@icloud.com,baohua@kernel.org,axelrasmussen@google.com,bingfangguo@tencent.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-vmscan-put-rotation-missed-folios-at-the-lru-tail.patch added to mm-new branch
-Message-Id: <20260921222217.C699A1F000FF@smtp.kernel.org>
+Subject: + memcg-manipulate-memcg-private-id-references-by-id.patch added to mm-new branch
+Message-Id: <20260921223435.0313C1F000FF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: vmscan: put rotation-missed folios at the LRU tail
+     Subject: memcg: manipulate memcg private ID references by ID
 has been added to the -mm mm-new branch.  Its filename is
-     mm-vmscan-put-rotation-missed-folios-at-the-lru-tail.patch
+     memcg-manipulate-memcg-private-id-references-by-id.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vmscan-put-rotation-missed-folios-at-the-lru-tail.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/memcg-manipulate-memcg-private-id-references-by-id.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -69,173 +69,180 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Ridong Chen <chenridong@xiaomi.com>
-Subject: mm: vmscan: put rotation-missed folios at the LRU tail
-Date: Sun, 20 Sep 2026 21:25:19 +0800
+From: Bingfang Guo <bingfangguo@tencent.com>
+Subject: memcg: manipulate memcg private ID references by ID
+Date: Mon, 21 Sep 2026 14:16:26 +0800
 
-The page reclaim isolates a batch of folios from the tail of an LRU list
-and works on them one by one.  For a suitable swap-backed folio on an
-async swap device, it queues the folio for writeback and, after finishing
-the batch, puts the folio back to the head of the original LRU list.
+This is a preparatory work for moving memcgid from memcg to objcg.
 
-Meanwhile the page writeback flushes the queued folios in its own,
-independent batches.  For each folio it writes back it calls
-folio_rotate_reclaimable(), which tries to rotate the folio to the LRU
-tail.  But folio_rotate_reclaimable() only takes effect once the folio has
-been put back by reclaim.  If the async swap device is fast enough, the
-writeback can complete a folio while reclaim is still working on the rest
-of the batch that contains it.  In that case the folio stays near the head
-and reclaim will not revisit it before wrapping around, causing a cold/hot
-inversion: a clean, written-back folio that should be a prime reclaim
-candidate is kept ahead of hotter folios.
+Swap entries retain a private ID rather than a memcg pointer.  Once
+private ID references are moved to objcgs, the ID can also outlive the
+memcg to which it was originally assigned.  So it's better to make the get
+and put functions accept the ID itself instead of the memcg.
 
-commit 359a5e1416ca ("mm: multi-gen LRU: retry folios written back while
-isolated") addressed this for MGLRU only.  The traditional active/inactive
-LRU has the same problem, reported at [1].  A reproducer is available at
-[2].
+Rename mem_cgroup_private_id_get_online() to mem_cgroup_private_id_get(),
+and make it return the ID only.  If the memcg is already dying, the dying
+memcg will still be used for charging and stats accounting in v2 swap
+charging path.  But they are hierarchical and will be reparented after
+offlining so it doesn't matter.
 
-Rather than re-reclaiming those folios (which would drop the swap cache
-that may still be useful for a future hit [4]), restore the rotation that
-was missed: when move_folios_to_lru() puts a folio back, add it to the LRU
-tail if it looks like it missed folio_rotate_reclaimable() (inactive, not
-mapped, not dirty and not under writeback).  A referenced folio is left at
-the head so it still gets a second chance, and a folio with an unexpected
-reference (e.g.  a GUP or speculative pin) is left at the head because it
-cannot be reclaimed yet anyway.  A new do_rotate parameter gates this so
-it only applies on the reclaim put-back path (shrink_inactive_list()), not
-on shrink_active_list() where the list order is already deliberate.  This
-approach was suggested by Barry Song [3].
+Make mem_cgroup_private_id_put() take the ID and resolve the reference
+holder internally.  Convert swap uncharge and charge rollback to release
+the reference using that ID.  This introduces an extra xarray lookup for
+now, which will be removed in the final patch.
 
-Only the traditional LRU is handled here.  MGLRU already retries such
-folios via its own clean-list retry pass in evict_folios(), so it is left
-unchanged.  The same do_rotate scheme could later replace that retry pass
-to unify both LRUs, which is left for a follow-up.
+Separate the online-state reference release into
+mem_cgroup_private_id_kill().  The offline path already has the memcg
+pointer and can call the underlying put helper directly.
 
-Test result with [2]:
-
-  Without patch:
-    cat memory.usage_in_bytes
-    1073700864
-    cat memory.memsw.usage_in_bytes
-    1413124096
-
-    free -h
-                  total        used        free
-    Mem:           1.6Gi       1.2Gi       299Mi
-    Swap:          1.0Gi       678Mi       346Mi
-
-  With patch:
-    cat memory.usage_in_bytes
-    1071140864
-    cat memory.memsw.usage_in_bytes
-    1413423104
-
-    free -h
-                  total        used        free
-    Mem:           1.6Gi       1.2Gi       322Mi
-    Swap:          1.0Gi       328Mi       695Mi
-
-After applying the patch, the difference between
-memory.memsw.usage_in_bytes and memory.usage_in_bytes is close to the swap
-"used" value reported by 'free -h'.
-
-Link: https://lore.kernel.org/20260920132519.3369946-1-ridong.chen@linux.dev
-Link: https://lore.kernel.org/linux-kernel/20241010081802.290893-1-chenridong@huaweicloud.com/ [1]
-Link: https://lore.kernel.org/lkml/46037a37-4cf6-448e-a94b-30a4d16e8814@linux.dev/ [2]
-Link: https://lore.kernel.org/linux-mm/20260911121341.178028-1-alex@ghiti.fr/ [4]
-Signed-off-by: Ridong Chen <chenridong@xiaomi.com>
+Link: https://lore.kernel.org/20260921-bingfangguo-memcgid-rework-v2-3-6c0637dc0edb@tencent.com
+Signed-off-by: Bingfang Guo <bingfangguo@tencent.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Suggested-by: Barry Song <baohua@kernel.org>
-Link: https://lore.kernel.org/lkml/CAGsJ_4zwP3_+EYY5Ug9EJ+yD1UdxsBSGr25u8s1K3u_i7LH3Zg@mail.gmail.com/ [3]
-Reviewed-by: Barry Song <baohua@kernel.org>
+Acked-by: Muchun Song <muchun.song@linux.dev>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: David Hildenbrand <david@kernel.org>
 Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Qi Zheng <qi.zheng@linux.dev>
+Cc: Roman Gushchin <roman.gushchin@linux.dev>
 Cc: Shakeel Butt <shakeel.butt@linux.dev>
-Cc: Lorenzo Stoakes <ljs@kernel.org>
+Cc: Dave Chinner <david@fromorbit.com>
+Cc: Qi Zheng <qi.zheng@linux.dev>
 Cc: Kairui Song <kasong@tencent.com>
+Cc: Barry Song <baohua@kernel.org>
 Cc: Axel Rasmussen <axelrasmussen@google.com>
 Cc: Yuanchu Xie <yuanchu@google.com>
 Cc: Wei Xu <weixugc@google.com>
-Cc: Baoquan He <baoquan.he@linux.dev>
-Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
+Cc: David Hildenbrand <david@kernel.org>
+Cc: Lorenzo Stoakes <ljs@kernel.org>
+Cc: Bingfang Guo <bfguo@icloud.com>
 ---
 
- mm/vmscan.c |   24 ++++++++++++++++++------
- 1 file changed, 18 insertions(+), 6 deletions(-)
+ mm/memcontrol-v1.c |    7 +++----
+ mm/memcontrol-v1.h |    3 +--
+ mm/memcontrol.c    |   32 +++++++++++++++++++++++---------
+ 3 files changed, 27 insertions(+), 15 deletions(-)
 
---- a/mm/vmscan.c~mm-vmscan-put-rotation-missed-folios-at-the-lru-tail
-+++ a/mm/vmscan.c
-@@ -1971,7 +1971,7 @@ static bool too_many_isolated(struct pgl
-  *
-  * Note: The caller must not hold any lruvec lock.
-  */
--static unsigned int move_folios_to_lru(struct list_head *list)
-+static unsigned int move_folios_to_lru(struct list_head *list, bool do_rotate)
+--- a/mm/memcontrol.c~memcg-manipulate-memcg-private-id-references-by-id
++++ a/mm/memcontrol.c
+@@ -4083,7 +4083,7 @@ static void mem_cgroup_private_id_remove
+ 	}
+ }
+ 
+-static inline void mem_cgroup_private_id_put(struct mem_cgroup *memcg, unsigned int n)
++static void __mem_cgroup_private_id_put(struct mem_cgroup *memcg, unsigned int n)
  {
- 	int nr_pages, nr_moved = 0;
- 	struct lruvec *lruvec = NULL;
-@@ -2018,7 +2018,19 @@ static unsigned int move_folios_to_lru(s
- 			continue;
+ 	if (refcount_sub_and_test(n, &memcg->private_id_ref)) {
+ 		mem_cgroup_private_id_remove(memcg);
+@@ -4093,7 +4093,22 @@ static inline void mem_cgroup_private_id
+ 	}
+ }
+ 
+-struct mem_cgroup *mem_cgroup_private_id_get_online(struct mem_cgroup *memcg, unsigned int n)
++static inline void mem_cgroup_private_id_put(unsigned short id, unsigned int n)
++{
++	struct mem_cgroup *memcg;
++
++	lockdep_assert_in_rcu_read_lock();
++
++	memcg = mem_cgroup_from_private_id(id);
++	__mem_cgroup_private_id_put(memcg, n);
++}
++
++static void mem_cgroup_private_id_kill(struct mem_cgroup *memcg)
++{
++	__mem_cgroup_private_id_put(memcg, 1);
++}
++
++unsigned short mem_cgroup_private_id_get(struct mem_cgroup *memcg, unsigned int n)
+ {
+ 	while (!refcount_add_not_zero(n, &memcg->private_id_ref)) {
+ 		/*
+@@ -4106,7 +4121,8 @@ struct mem_cgroup *mem_cgroup_private_id
+ 		}
+ 		memcg = parent_mem_cgroup(memcg);
+ 	}
+-	return memcg;
++
++	return mem_cgroup_private_id(memcg);
+ }
+ 
+ /**
+@@ -4431,7 +4447,7 @@ static void mem_cgroup_css_offline(struc
+ 
+ 	drain_all_stock(memcg);
+ 
+-	mem_cgroup_private_id_put(memcg, 1);
++	mem_cgroup_private_id_kill(memcg);
+ }
+ 
+ static void mem_cgroup_css_released(struct cgroup_subsys_state *css)
+@@ -5972,15 +5988,13 @@ int __mem_cgroup_try_charge_swap(struct
+ 			return 0;
  		}
  
--		lruvec_add_folio(lruvec, folio);
-+		/*
-+		 * Put clean, unreferenced and unpinned folios that may have
-+		 * missed folio_rotate_reclaimable() at the tail to avoid
-+		 * cold/hot inversion.
-+		 */
-+		if (do_rotate && !folio_test_active(folio) && !folio_mapped(folio) &&
-+		    !folio_test_dirty(folio) && !folio_test_writeback(folio) &&
-+		    !folio_test_referenced(folio) &&
-+		    folio_ref_count(folio) == folio_expected_ref_count(folio))
-+			lruvec_add_folio_tail(lruvec, folio);
-+		else
-+			lruvec_add_folio(lruvec, folio);
-+
- 		nr_pages = folio_nr_pages(folio);
- 		nr_moved += nr_pages;
- 		if (folio_test_active(folio))
-@@ -2135,7 +2147,7 @@ static unsigned long shrink_inactive_lis
- 	nr_reclaimed = shrink_folio_list(&folio_list, pgdat, sc, &stat, false,
- 					 lruvec_memcg(lruvec));
+-		memcg = mem_cgroup_private_id_get_online(memcg, nr_pages);
+-		/* memcg is pined by memcg ID. */
+-		private_id = mem_cgroup_private_id(memcg);
++		private_id = mem_cgroup_private_id_get(memcg, nr_pages);
  
--	move_folios_to_lru(&folio_list);
-+	move_folios_to_lru(&folio_list, true);
- 
- 	mod_lruvec_state(lruvec, PGDEMOTE_KSWAPD + reclaimer_offset(sc),
- 					stat.nr_demoted);
-@@ -2246,8 +2258,8 @@ static void shrink_active_list(unsigned
- 	/*
- 	 * Move folios back to the lru list.
- 	 */
--	nr_activate = move_folios_to_lru(&l_active);
--	nr_deactivate = move_folios_to_lru(&l_inactive);
-+	nr_activate = move_folios_to_lru(&l_active, false);
-+	nr_deactivate = move_folios_to_lru(&l_inactive, false);
- 
- 	count_vm_events(PGDEACTIVATE, nr_deactivate);
- 	count_memcg_events(lruvec_memcg(lruvec), PGDEACTIVATE, nr_deactivate);
-@@ -5115,7 +5127,7 @@ retry:
- 			folio_set_active(folio);
+ 		if (!mem_cgroup_private_id_is_root(private_id) &&
+ 		    !page_counter_try_charge(&memcg->swap, nr_pages, &counter)) {
+ 			memcg_memory_event(memcg, MEMCG_SWAP_MAX);
+ 			memcg_memory_event(memcg, MEMCG_SWAP_FAIL);
+-			mem_cgroup_private_id_put(memcg, nr_pages);
++			mem_cgroup_private_id_put(private_id, nr_pages);
+ 			return -ENOMEM;
+ 		}
+ 		mod_memcg_state(memcg, MEMCG_SWAP, nr_pages);
+@@ -6012,7 +6026,7 @@ void __mem_cgroup_uncharge_swap(unsigned
+ 				page_counter_uncharge(&memcg->swap, nr_pages);
+ 		}
+ 		mod_memcg_state(memcg, MEMCG_SWAP, -nr_pages);
+-		mem_cgroup_private_id_put(memcg, nr_pages);
++		mem_cgroup_private_id_put(id, nr_pages);
  	}
+ 	rcu_read_unlock();
+ }
+--- a/mm/memcontrol-v1.c~memcg-manipulate-memcg-private-id-references-by-id
++++ a/mm/memcontrol-v1.c
+@@ -268,7 +268,7 @@ void memcg1_commit_charge(struct folio *
+  */
+ void __memcg1_swapout(struct folio *folio, struct swap_cluster_info *ci)
+ {
+-	struct mem_cgroup *memcg, *swap_memcg;
++	struct mem_cgroup *memcg;
+ 	struct obj_cgroup *objcg;
+ 	unsigned int nr_entries;
+ 	unsigned short private_id;
+@@ -298,9 +298,8 @@ void __memcg1_swapout(struct folio *foli
+ 	 * if the ID refers to the root memcg.
+ 	 */
+ 	nr_entries = folio_nr_pages(folio);
+-	swap_memcg = mem_cgroup_private_id_get_online(memcg, nr_entries);
+-	private_id = mem_cgroup_private_id(swap_memcg);
+-	mod_memcg_state(swap_memcg, MEMCG_SWAP, nr_entries);
++	private_id = mem_cgroup_private_id_get(memcg, nr_entries);
++	mod_memcg_state(memcg, MEMCG_SWAP, nr_entries);
  
--	move_folios_to_lru(&list);
-+	move_folios_to_lru(&list, false);
+ 	__swap_cgroup_set(ci, swp_cluster_offset(folio->swap), nr_entries, private_id);
  
- 	walk = current->reclaim_state->mm_walk;
- 	if (walk && walk->batched) {
+--- a/mm/memcontrol-v1.h~memcg-manipulate-memcg-private-id-references-by-id
++++ a/mm/memcontrol-v1.h
+@@ -27,8 +27,7 @@ static inline bool mem_cgroup_private_id
+ 	return id == mem_cgroup_private_id(root_mem_cgroup);
+ }
+ 
+-struct mem_cgroup *mem_cgroup_private_id_get_online(struct mem_cgroup *memcg,
+-						    unsigned int n);
++unsigned short mem_cgroup_private_id_get(struct mem_cgroup *memcg, unsigned int n);
+ 
+ void reparent_memcg_lruvec_state_local(struct mem_cgroup *memcg,
+ 				       struct mem_cgroup *parent, int idx);
 _
 
-Patches currently in -mm which might be from chenridong@xiaomi.com are
+Patches currently in -mm which might be from bingfangguo@tencent.com are
 
-mm-vmscan-drop-the-combined-limit-gate-in-__node_reclaim.patch
-mm-mglru-preserve-inactive-placement-when-enabling-mglru.patch
-mm-mglru-make-type-fallback-logic-explicit-in-isolate_folios.patch
-memcg-acquire-peaks_lock-when-reading-memorypeak.patch
-mm-memcg-fix-memorypeak-reset-clobbering-other-fds-watermark.patch
-mm-page_counter-avoid-integer-overflow-in-effective_protection.patch
-mm-mglru-fix-ineffective-memory-protection-for-non-kswapd-reclaim.patch
-mm-vmscan-put-rotation-missed-folios-at-the-lru-tail.patch
+mm-memcg-clear-folio-memcg-after-changing-per-memcg-stats.patch
+memcg-keep-swap-charging-under-rcu-protection.patch
+memcg-base-swap-charge-accounting-on-memcgid-root-status.patch
+memcg-manipulate-memcg-private-id-references-by-id.patch
+memcg-move-memcg-private-id-refcount-to-objcg.patch
 
