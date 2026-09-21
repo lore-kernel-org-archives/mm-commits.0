@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 52ECC146D5A
-	for <mm-commits@vger.kernel.org>; Mon, 21 Sep 2026 04:09:39 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A4BDD146D5A
+	for <mm-commits@vger.kernel.org>; Mon, 21 Sep 2026 04:09:43 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789963780; cv=none; b=oxPQTl0wcL7y6rVo+DqWI/Xi/Ub/KlFrhafoJQBptFqiXWEXZONlX0d777mN6j1mAjGn8kFEd+81lfSYrsQAlAIBXV3k4XqNlbCKYnj1UfiQGkGTVKKNa2tOswVpSP5Of6FB6ijL/m+XT/TcTd5Z7Nk2nTLG4vdP2+kMDpfrK2E=
+	t=1789963784; cv=none; b=SotdQG80ZV/ByfA7lvTA9foIGkmRc7LZKBRXrYNgLjOw2cXVWQnv2eVtK9VsI+QCcNRYEHYCdb25X401K2F35zFXfR8d9HNExtrps8mS9IFluzOkThDuoOW1V7M4XP1QM4Nl4sHT0xm4zHyN34OcMwPUvhdlGL6P9J9AbFR2BNo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1789963780; c=relaxed/simple;
-	bh=uhCVX8T2W0/Pe7dIxiBuGi9xyW5goiPEDuDC5E83Ljw=;
-	h=Date:To:From:Subject:Message-Id; b=n+Qb+PKv8PCrutVi7nHj/+XTFUdPgeSsw2cpkrWM65WlkoTiD9Rl7xchGD3lfZVsayAUhxYiYu2NS2J9yc9pxR9/VoxpGwZ+lwGbDG39sc7LcipzeLncKqdHLCJphD2RNmWZxV2riG/rXES89JEzsjKri1uQjQMcDBBpYyxoYdc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=wW8pZB0t; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1789963784; c=relaxed/simple;
+	bh=jSDfJBRCkeom1wopwvtIdKpLMg8ilzODOHr74r/cOss=;
+	h=Date:To:From:Subject:Message-Id; b=OGCUAmVXIc2hKIygiXFC+y5oY2HtTlJtVEVBw7bMNY26QgIDdA5ytSISuvTZSU5lrC+p0OWB98D5znKesXY2PJGiDy4CZDCy5zpr61zXLJLYP1r5//HSxFtKQuJgZzH4Dbky5Md0q7lXBZh97WpNj9Kd51vGCHW8UFDTMn/1f3g=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=arqgCjgr; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="wW8pZB0t"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D87341F000FF;
-	Mon, 21 Sep 2026 04:09:38 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="arqgCjgr"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id F2BEF1F000FF;
+	Mon, 21 Sep 2026 04:09:42 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1789963779;
-	bh=0WWt3n3s6wHEfPHHonHiWv3CoFRGMV2bEXHEGuIniPo=;
+	d=linux-foundation.org; s=korg; t=1789963783;
+	bh=HX9XOyh8WoxZQXPN50XhwEFTM7rYIhBl8rSDOg7iQrY=;
 	h=Date:To:From:Subject;
-	b=wW8pZB0tXAU1e88XvSsIxzdlgR0SpkIIwS/jOEZbSp41TK24i6bX/3MPVm962zKRd
-	 j9pqjRSD+Sae0yKGw5L3ph3AiGwIOEti9/BhA8VMdTpz3nq+8NLj67zpxJXuJqqGO3
-	 QGRmySx3iwCXgqgbtka5bdeMsbHRh0t0XL/UlLzo=
-Date: Sun, 20 Sep 2026 21:09:38 -0700
+	b=arqgCjgrTbsA4wIHTAD6+D81/oHAvip6G8WQe2Naf8ojE+syUuCV3AIHEhpQiFfoe
+	 ESxGBRyKtlHebelhmd1YvlKOkUVnNpYI4k59z8cUP5+EpiimdCTpZ7wa8Qs28o82H9
+	 atxPvTTxzTKf0fClce6AU1lrUDo7ClsxhKncynG4=
+Date: Sun, 20 Sep 2026 21:09:40 -0700
 To: mm-commits@vger.kernel.org,ziy@nvidia.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + xen-grant-table-stop-setting-pg_private-on-pages-for-grant-mapping.patch added to mm-unstable branch
-Message-Id: <20260921040938.D87341F000FF@smtp.kernel.org>
+Subject: + fscrypt-stop-setting-pg_private-on-bounce-page.patch added to mm-unstable branch
+Message-Id: <20260921040942.F2BEF1F000FF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: xen/grant-table: stop setting PG_private on pages for grant mapping
+     Subject: fscrypt: stop setting PG_private on bounce page
 has been added to the -mm mm-unstable branch.  Its filename is
-     xen-grant-table-stop-setting-pg_private-on-pages-for-grant-mapping.patch
+     fscrypt-stop-setting-pg_private-on-bounce-page.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/xen-grant-table-stop-setting-pg_private-on-pages-for-grant-mapping.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/fscrypt-stop-setting-pg_private-on-bounce-page.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,73 +59,48 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Zi Yan <ziy@nvidia.com>
-Subject: xen/grant-table: stop setting PG_private on pages for grant mapping
-Date: Sun, 20 Sep 2026 22:27:59 -0400
+Subject: fscrypt: stop setting PG_private on bounce page
+Date: Sun, 20 Sep 2026 22:28:00 -0400
 
-gnttab_alloc_pages() stores xen_page_foreign in page->private. On 32-bit, a
-pointer to an allocated xen_page_foreign is stored; on 64-bit,
-xen_page_forCcgn is stored inline. Checking page->private != NULL is enough
-to tell whether a xen_page_foreign needs to be freed on 32-bit and
-page->private is zeroed unconditionally on 64-bit.
+The pointer to a plain text folio is stored in bound_page->private and
+cannot be NULL until the bounce_page is freed, making PG_private redundant.
 
 It prepares for a future commit that remove PG_private.
 
 No functional change intended.
 
 Assisted-by: LLM
-Link: https://lore.kernel.org/20260920-remove-pg_private-v5-3-bb68b6a21869@nvidia.com
+Link: https://lore.kernel.org/20260920-remove-pg_private-v5-4-bb68b6a21869@nvidia.com
 Signed-off-by: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Reviewed-by: David Hildenbrand (Arm) <david@kernel.org>
-Cc: Juergen Gross <jgross@suse.com>
-Cc: Stefano Stabellini <sstabellini@kernel.org>
-Cc: Oleksandr Tyshchenko <oleksandr_tyshchenko@epam.com>
+Acked-by: Eric Biggers <ebiggers@kernel.org>
+Acked-by: Usama Arif <usama.arif@linux.dev>
+Acked-by: David Hildenbrand (Arm) <david@kernel.org>
+Cc: "Theodore Y. Ts'o" <tytso@mit.edu>
+Cc: Jaegeuk Kim <jaegeuk@kernel.org>
 ---
 
- drivers/xen/grant-table.c |   11 +++++------
- 1 file changed, 5 insertions(+), 6 deletions(-)
+ fs/crypto/crypto.c |    2 --
+ 1 file changed, 2 deletions(-)
 
---- a/drivers/xen/grant-table.c~xen-grant-table-stop-setting-pg_private-on-pages-for-grant-mapping
-+++ a/drivers/xen/grant-table.c
-@@ -863,10 +863,10 @@ EXPORT_SYMBOL_GPL(gnttab_free_auto_xlat_
- 
- int gnttab_pages_set_private(int nr_pages, struct page **pages)
- {
-+#if BITS_PER_LONG < 64
- 	int i;
- 
- 	for (i = 0; i < nr_pages; i++) {
--#if BITS_PER_LONG < 64
- 		struct xen_page_foreign *foreign;
- 
- 		foreign = kzalloc_obj(*foreign);
-@@ -874,9 +874,9 @@ int gnttab_pages_set_private(int nr_page
- 			return -ENOMEM;
- 
- 		set_page_private(pages[i], (unsigned long)foreign);
--#endif
--		SetPagePrivate(pages[i]);
- 	}
-+#endif
-+	/* Data is stored in page->private on 64-bit */
- 
- 	return 0;
+--- a/fs/crypto/crypto.c~fscrypt-stop-setting-pg_private-on-bounce-page
++++ a/fs/crypto/crypto.c
+@@ -65,7 +65,6 @@ void fscrypt_free_bounce_page(struct pag
+ 	if (!bounce_page)
+ 		return;
+ 	set_page_private(bounce_page, (unsigned long)NULL);
+-	ClearPagePrivate(bounce_page);
+ 	mempool_free(bounce_page, fscrypt_bounce_page_pool);
  }
-@@ -1031,12 +1031,11 @@ void gnttab_pages_clear_private(int nr_p
- 	int i;
- 
- 	for (i = 0; i < nr_pages; i++) {
--		if (PagePrivate(pages[i])) {
- #if BITS_PER_LONG < 64
-+		if (page_private(pages[i]))
- 			kfree((void *)page_private(pages[i]));
- #endif
--			ClearPagePrivate(pages[i]);
--		}
-+		set_page_private(pages[i], 0);
+ EXPORT_SYMBOL(fscrypt_free_bounce_page);
+@@ -210,7 +209,6 @@ struct page *fscrypt_encrypt_pagecache_b
+ 			return ERR_PTR(err);
+ 		}
  	}
+-	SetPagePrivate(ciphertext_page);
+ 	set_page_private(ciphertext_page, (unsigned long)folio);
+ 	return ciphertext_page;
  }
- EXPORT_SYMBOL_GPL(gnttab_pages_clear_private);
 _
 
 Patches currently in -mm which might be from ziy@nvidia.com are
