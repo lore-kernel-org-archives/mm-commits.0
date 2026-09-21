@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3669D475341
-	for <mm-commits@vger.kernel.org>; Mon, 21 Sep 2026 22:49:51 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7819846D551
+	for <mm-commits@vger.kernel.org>; Mon, 21 Sep 2026 22:49:55 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790030995; cv=none; b=QKR05+IdStxg/98Y/AoscOuJvCmEuHCztTZbYpwbDUQc5qAL7i69nP5DdOYY9WJnMwZVmm9528ZqKkzLL84RPdWUMP+fg7kF27YDeOV+6qBR4fSJEtfuKnb0hfxixtlthjicrbrNtC3TQWe4YwirMIwyOi6rqw0tqvyaFPo/WRg=
+	t=1790031001; cv=none; b=M/Eigre8YU0ps5vk+FS0mPDwemcDQLiNvN5wjAOlyPum/eVIaUOQuPO1ik9pC1cHoWOMV178jG2r+95Dw68wnIiwnC+E4pnbYYptQcTuzWDEqkkAPTuGNBe4HWeO6QnImXXJFxfP6idZMsvlEHd4sWaGkeyXSMpmzyluBj0sLCw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1790030995; c=relaxed/simple;
-	bh=sUX1gYeTE35KJSpnZ5/KY950/vkp/vQzarsZHpqyiyU=;
-	h=Date:To:From:Subject:Message-Id; b=TnkQSI9m1QpksiDv5adlhRyHcq8Mr330J5zt3j/Zw6Gf0RtqvsgLJplnNRHH8RpRWhkdIoymo+zjvuC5tYYwnT3lZ3poxclUoHrINOy5ThOv/tpRweJ8YBiX95uvPcfC0qllwpslvStAuHTysYqee5pKkXD/Ny/Hn7liDeaF2GY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=0cCbNURD; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1790031001; c=relaxed/simple;
+	bh=XHejnW4CYFjYVKKcLPWMOfgjSODw40QWt9ICC1PbMz8=;
+	h=Date:To:From:Subject:Message-Id; b=BRLQVazhAan9RvLL4cELmrvrJgTnmbu9NlF6ppGNL2yOkUajsMpbKGAtAvpCh4ILR+Bh4A9s5WsZjOIsVo/leENzgRbDzR4cYT0pkm9XFW5j9L7TI2wY4E42IlV42n4xcyDK9KHgWU13DWD8WpIr7tRpeUS0lvXyuesnPaxjGFY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=CxMKY9bu; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="0cCbNURD"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1C0B01F00893;
-	Mon, 21 Sep 2026 22:49:50 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="CxMKY9bu"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 72C781F000FF;
+	Mon, 21 Sep 2026 22:49:54 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1790030990;
-	bh=2ezpfvjHLTllzifMkO+yNvdNHTgNuBudH1QOQ0PrSho=;
+	d=linux-foundation.org; s=korg; t=1790030994;
+	bh=SjjUi4cssDg7Dv4gpYr4k0tHu9OAEC1afKYXMumzT34=;
 	h=Date:To:From:Subject;
-	b=0cCbNURDE03sKNCBdm8RNUVAPOtwFdrQp1Hh6BkY23Dwig7eoEjoxsLuw2Jlxahht
-	 PtG2tQzp7GezwvjuQUoYO+3gBUt0FmQerd4L1GgQKgwa58dqb94T7VMNJ4gIehCaKY
-	 zKp1FGEOESSN9AoX17kj+ItAURtswIckM3MBses8=
-Date: Mon, 21 Sep 2026 15:49:49 -0700
+	b=CxMKY9bu4DT7RvyTI1+LdE1b2g1TU+sOB10VHFYRhEsG/U2j9D86P9bDB19SP0IP2
+	 pRHle/CzYImqM2n9N6OGL9uPw3u41JdIFrwf9uqkONKT+Dcv+e3He3GLYzr72HZ5Mn
+	 6GsZQoKdazqddtA6h52GtCui/hlQliRxASlMzECs=
+Date: Mon, 21 Sep 2026 15:49:54 -0700
 To: mm-commits@vger.kernel.org,david@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-sparse-remove-section_marked_present.patch added to mm-new branch
-Message-Id: <20260921224950.1C0B01F00893@smtp.kernel.org>
+Subject: + mm-sparse-remove-flags-parameter-from-sparse_init_one_section.patch added to mm-new branch
+Message-Id: <20260921224954.72C781F000FF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/sparse: remove SECTION_MARKED_PRESENT
+     Subject: mm/sparse: remove flags parameter from sparse_init_one_section()
 has been added to the -mm mm-new branch.  Its filename is
-     mm-sparse-remove-section_marked_present.patch
+     mm-sparse-remove-flags-parameter-from-sparse_init_one_section.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-sparse-remove-section_marked_present.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-sparse-remove-flags-parameter-from-sparse_init_one_section.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,25 +70,17 @@ and is updated there most days
 
 ------------------------------------------------------
 From: "David Hildenbrand (Arm)" <david@kernel.org>
-Subject: mm/sparse: remove SECTION_MARKED_PRESENT
-Date: Mon, 21 Sep 2026 21:59:02 +0200
+Subject: mm/sparse: remove flags parameter from sparse_init_one_section()
+Date: Mon, 21 Sep 2026 21:59:03 +0200
 
-All present section iterators run before memory hotplug added any further
-memory sections, Therefore, we can simply use the SECTION_IS_EARLY flag by
-setting that flag earlier in sparse_sections_init().
+The last user of the flags parameter that used to pass SECTION_IS_EARLY
+was removed, so let's remove the parameter.
 
-Get rid of SECTION_MARKED_PRESENT entirely and rename
-for_each_present_section_nr() to for_each_early_section_nr().
-
-Take care of the .clang-format for_each_present_section_nr() handling.
-
-No functional change intended.
-
-Link: https://lore.kernel.org/20260921-b4-sparsemem_cleanups-v2-10-54d81d65e125@kernel.org
+Link: https://lore.kernel.org/20260921-b4-sparsemem_cleanups-v2-11-54d81d65e125@kernel.org
 Signed-off-by: David Hildenbrand (Arm) <david@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 Acked-by: Oscar Salvador <osalvador@suse.de>
-Acked-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
+Reviewed-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
 Reviewed-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
 Cc: Liam R. Howlett <liam@infradead.org>
 Cc: Vlastimil Babka <vbabka@kernel.org>
@@ -113,202 +105,54 @@ Cc: Rafael J. Wysocki <rafael@kernel.org>
 Cc: Danilo Krummrich <dakr@kernel.org>
 ---
 
- .clang-format          |    2 +-
- drivers/base/memory.c  |    2 +-
- include/linux/mmzone.h |   27 ++++++++++-----------------
- mm/sparse-vmemmap.c    |    1 -
- mm/sparse.c            |   17 ++++++++---------
- mm/sparse.h            |    6 ------
- 6 files changed, 20 insertions(+), 35 deletions(-)
+ mm/sparse-vmemmap.c |    2 +-
+ mm/sparse.c         |    2 +-
+ mm/sparse.h         |    5 ++---
+ 3 files changed, 4 insertions(+), 5 deletions(-)
 
---- a/.clang-format~mm-sparse-remove-section_marked_present
-+++ a/.clang-format
-@@ -282,6 +282,7 @@ ForEachMacros:
-   - 'for_each_dpcm_fe'
-   - 'for_each_drhd_unit'
-   - 'for_each_dss_dev'
-+  - 'for_each_early_section_nr'
-   - 'for_each_efi_memory_desc'
-   - 'for_each_efi_memory_desc_in_map'
-   - 'for_each_element'
-@@ -403,7 +404,6 @@ ForEachMacros:
-   - 'for_each_possible_cpu_wrap'
-   - 'for_each_present_blessed_reg'
-   - 'for_each_present_cpu'
--  - 'for_each_present_section_nr'
-   - 'for_each_prime_number'
-   - 'for_each_prime_number_from'
-   - 'for_each_probe_cache_entry'
---- a/drivers/base/memory.c~mm-sparse-remove-section_marked_present
-+++ a/drivers/base/memory.c
-@@ -972,7 +972,7 @@ void __init memory_dev_init(void)
- 	 * block so that it can be covered.
- 	 */
- 	block_id = ULONG_MAX;
--	for_each_present_section_nr(0, nr) {
-+	for_each_early_section_nr(0, nr) {
- 		if (block_id != ULONG_MAX && memory_block_id(nr) == block_id)
- 			continue;
- 
---- a/include/linux/mmzone.h~mm-sparse-remove-section_marked_present
-+++ a/include/linux/mmzone.h
-@@ -2085,7 +2085,6 @@ static inline struct mem_section *__nr_t
-  * accommodate SECTION_MAP_LAST_BIT. We use BUILD_BUG_ON() to ensure this.
-  */
- enum {
--	SECTION_MARKED_PRESENT_BIT,
- 	SECTION_HAS_MEM_MAP_BIT,
- 	SECTION_IS_ONLINE_BIT,
- 	SECTION_IS_EARLY_BIT,
-@@ -2095,7 +2094,6 @@ enum {
- 	SECTION_MAP_LAST_BIT,
- };
- 
--#define SECTION_MARKED_PRESENT		BIT(SECTION_MARKED_PRESENT_BIT)
- #define SECTION_HAS_MEM_MAP		BIT(SECTION_HAS_MEM_MAP_BIT)
- #define SECTION_IS_ONLINE		BIT(SECTION_IS_ONLINE_BIT)
- #define SECTION_IS_EARLY		BIT(SECTION_IS_EARLY_BIT)
-@@ -2112,16 +2110,6 @@ static inline struct page *__section_mem
- 	return (struct page *)map;
- }
- 
--static inline int present_section(const struct mem_section *section)
--{
--	return (section && (section->section_mem_map & SECTION_MARKED_PRESENT));
--}
--
--static inline int present_section_nr(unsigned long nr)
--{
--	return present_section(__nr_to_section(nr));
--}
--
- static inline int valid_section(const struct mem_section *section)
- {
- 	return (section && (section->section_mem_map & SECTION_HAS_MEM_MAP));
-@@ -2137,6 +2125,11 @@ static inline int valid_section_nr(unsig
- 	return valid_section(__nr_to_section(nr));
- }
- 
-+static inline int early_section_nr(unsigned long nr)
-+{
-+	return early_section(__nr_to_section(nr));
-+}
-+
- static inline int online_section(const struct mem_section *section)
- {
- 	return (section && (section->section_mem_map & SECTION_IS_ONLINE));
-@@ -2326,20 +2319,20 @@ static inline unsigned long next_valid_p
- 
- #endif
- 
--static inline unsigned long next_present_section_nr(unsigned long section_nr)
-+static inline unsigned long next_early_section_nr(unsigned long section_nr)
- {
- 	while (++section_nr <= __highest_used_section_nr) {
--		if (present_section_nr(section_nr))
-+		if (early_section_nr(section_nr))
- 			return section_nr;
- 	}
- 
- 	return -1;
- }
- 
--#define for_each_present_section_nr(start, section_nr)		\
--	for (section_nr = next_present_section_nr(start - 1);	\
-+#define for_each_early_section_nr(start, section_nr)		\
-+	for (section_nr = next_early_section_nr(start - 1);	\
- 	     section_nr != -1;					\
--	     section_nr = next_present_section_nr(section_nr))
-+	     section_nr = next_early_section_nr(section_nr))
- 
- /*
-  * These are _only_ used during initialisation, therefore they
---- a/mm/sparse.c~mm-sparse-remove-section_marked_present
+--- a/mm/sparse.c~mm-sparse-remove-flags-parameter-from-sparse_init_one_section
 +++ a/mm/sparse.c
-@@ -170,13 +170,14 @@ static void __init mminit_validate_memmo
-  */
- unsigned long __highest_used_section_nr;
- 
--static inline unsigned long first_present_section_nr(void)
-+static inline unsigned long first_early_section_nr(void)
- {
--	return next_present_section_nr(-1);
-+	return next_early_section_nr(-1);
- }
- 
- void __init sparse_sections_init(void)
- {
-+	const unsigned long flags = SECTION_IS_EARLY | SECTION_IS_ONLINE;
- 	unsigned long pfn, start_pfn, end_pfn, section_nr;
- 	int i, nid;
- 
-@@ -196,9 +197,7 @@ void __init sparse_sections_init(void)
- 				continue;
- 
- 			set_section_nid(section_nr, nid);
--			ms->section_mem_map = sparse_encode_early_nid(nid) |
--							SECTION_IS_ONLINE;
--			__section_mark_present(ms, section_nr);
-+			ms->section_mem_map = sparse_encode_early_nid(nid) | flags;
- 		}
- 	}
- 	__highest_used_section_nr = section_nr;
-@@ -230,7 +229,7 @@ static void __init sparse_metadata_init_
- 	if (!usage)
- 		panic("Failed to allocate usemap for node %d\n", nid);
- 
--	for_each_present_section_nr(start_section_nr, section_nr) {
-+	for_each_early_section_nr(start_section_nr, section_nr) {
- 		const unsigned long pfn = section_nr_to_pfn(section_nr);
- 		struct page *mem_map;
- 
-@@ -244,18 +243,18 @@ static void __init sparse_metadata_init_
+@@ -243,7 +243,7 @@ static void __init sparse_metadata_init_
  			      section_nr);
  		memmap_boot_pages_add(section_nr_vmemmap_pages(pfn, PAGES_PER_SECTION));
  		sparse_init_one_section(__nr_to_section(section_nr), section_nr,
--					mem_map, usage, SECTION_IS_EARLY);
-+					mem_map, usage, 0);
+-					mem_map, usage, 0);
++					mem_map, usage);
  		usage = (void *)usage + mem_section_usage_size();
  	}
  }
- 
- static void __init sparse_metadata_init(void)
- {
--	unsigned long start_section_nr = first_present_section_nr();
-+	unsigned long start_section_nr = first_early_section_nr();
- 	int nid_begin = sparse_early_nid(__nr_to_section(start_section_nr));
- 	unsigned long section_nr, nr_sections = 1;
- 
--	for_each_present_section_nr(start_section_nr + 1, section_nr) {
-+	for_each_early_section_nr(start_section_nr + 1, section_nr) {
- 		const int nid = sparse_early_nid(__nr_to_section(section_nr));
- 
- 		if (nid == nid_begin) {
---- a/mm/sparse.h~mm-sparse-remove-section_marked_present
+--- a/mm/sparse.h~mm-sparse-remove-flags-parameter-from-sparse_init_one_section
 +++ a/mm/sparse.h
-@@ -42,12 +42,6 @@ static inline void sparse_init_one_secti
+@@ -21,7 +21,7 @@ int sparse_index_init(unsigned long sect
+ 
+ static inline void sparse_init_one_section(struct mem_section *ms,
+ 		unsigned long section_nr, struct page *mem_map,
+-		struct mem_section_usage *usage, unsigned long flags)
++		struct mem_section_usage *usage)
+ {
+ 	unsigned long coded_mem_map;
+ 
+@@ -37,8 +37,7 @@ static inline void sparse_init_one_secti
+ 	VM_WARN_ON_ONCE(coded_mem_map & ~SECTION_MAP_MASK);
+ 
+ 	ms->section_mem_map &= ~SECTION_MAP_MASK;
+-	ms->section_mem_map |= coded_mem_map;
+-	ms->section_mem_map |= flags | SECTION_HAS_MEM_MAP;
++	ms->section_mem_map |= coded_mem_map | SECTION_HAS_MEM_MAP;
  	ms->usage = usage;
  }
  
--static inline void __section_mark_present(struct mem_section *ms,
--		unsigned long section_nr)
--{
--	ms->section_mem_map |= SECTION_MARKED_PRESENT;
--}
--
- static inline size_t mem_section_usage_size(void)
- {
- 	return struct_size_t(struct mem_section_usage, pageblock_flags,
---- a/mm/sparse-vmemmap.c~mm-sparse-remove-section_marked_present
+--- a/mm/sparse-vmemmap.c~mm-sparse-remove-flags-parameter-from-sparse_init_one_section
 +++ a/mm/sparse-vmemmap.c
-@@ -864,7 +864,6 @@ int __meminit sparse_add_section(int nid
- 	if (!section_vmemmap_optimizable(ms))
- 		page_init_poison(memmap, sizeof(struct page) * nr_pages);
- 
--	__section_mark_present(ms, section_nr);
- 	__highest_used_section_nr = max(section_nr, __highest_used_section_nr);
- 
+@@ -869,7 +869,7 @@ int __meminit sparse_add_section(int nid
  	/* Align memmap to section boundary in the subsection case */
+ 	if (section_nr_to_pfn(section_nr) != start_pfn)
+ 		memmap = pfn_to_page(section_nr_to_pfn(section_nr));
+-	sparse_init_one_section(ms, section_nr, memmap, ms->usage, 0);
++	sparse_init_one_section(ms, section_nr, memmap, ms->usage);
+ 
+ 	return 0;
+ }
 _
 
 Patches currently in -mm which might be from david@kernel.org are
