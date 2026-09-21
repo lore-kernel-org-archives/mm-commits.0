@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D0C782609FD
-	for <mm-commits@vger.kernel.org>; Mon, 21 Sep 2026 22:50:00 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 68B834A64D3
+	for <mm-commits@vger.kernel.org>; Mon, 21 Sep 2026 22:56:46 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790031003; cv=none; b=Bm+YJXEVzONo2RuTKzp4ygkwX9K5ykGadHuxkQq7W6kJPTCFFOghH6uNstHfMc5OX7zoXxTarJ+evycaRrYLRiejv6c0RvBm3IGpRpw4nFJ4/F34wgieOOVVDudEi6lmyxjUmZyXboajx0pK8DoN++t62GLtnVwavODiQaCTJ3w=
+	t=1790031407; cv=none; b=tIFnaeNjg5xAy/NNwr+fOP3rDEBadFkdFnLWygUSuxKH49HtVmvNGa+J1tlQ2QZJUCxcoZ+G2ikJLjY8eUa3Xi0VVunub3WFiOS2d+I2Eg9IFTQ4upC84tASIWGCmKCHOfBa/4wRukn6YyPid+G4GGEELVLyb+e91FmHkPxjEnM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1790031003; c=relaxed/simple;
-	bh=fksEN0xPuGKA9Y1YFt+cIhRQ8gzrCf1Stn53fQX3qSA=;
-	h=Date:To:From:Subject:Message-Id; b=LOQd2+GcoaL6/efTyTdFZpiO5vnD2aept4kGQlHx1rx+f5ZjNzTKyQMzMAG5lE+SlvZjciYotv46M0tfG/sU738N0rwoywy/phMr4pkvhUg0eiP2uoEp5bMmK3aLEFNrYAKzkvK5t1F7NQ2d6wITSaipdDuKxqZp0pJTOHYKBKc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=XVnXQsub; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1790031407; c=relaxed/simple;
+	bh=DMxXMXiiN2t2ZUWu+Twskna+vl2op/HkhsLVj00Pr8o=;
+	h=Date:To:From:Subject:Message-Id; b=qF62ZBCJEuCyZmzezRKdgDyvGQ76GJ3GT9ENmGRO6BhFi7ffYg0er0FnKRyryvmGoNHOjfSrcdqIOOuQo7lK8/e9n8kk6W2PRSQifACvekVsDzC1NdD1PxThrY6RgKOY17v/vBqcPo85fyq4ajXJv62GJQldbAI8CtWILCpgjC4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=mfN2BuQU; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="XVnXQsub"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 38EEE1F00898;
-	Mon, 21 Sep 2026 22:49:59 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="mfN2BuQU"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id CE9EE1F000FF;
+	Mon, 21 Sep 2026 22:56:45 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1790030999;
-	bh=ZoPeTF5s5tdofry4dkUBBRpzEgSOX2jD/YuD3DtYpYk=;
+	d=linux-foundation.org; s=korg; t=1790031405;
+	bh=Tn7DcPIzGr9MiOD97DX5ZJl3OpQCxieRzr3Imc1Xdvo=;
 	h=Date:To:From:Subject;
-	b=XVnXQsubwz/ECINJsshK6I7HdHER34jYB6xw/Pd/FRernJ3ssUDRicyG52vkFpQRc
-	 hCA2XI/lTtLg+UoTB7ooOepVRk7IsucJqqA9Dj1M0qZayp7a82DLeYbujEQRLZ/y5z
-	 rGc66BB0bdKkAZ8xgw+PdeD2pOUnq8N771uewFRQ=
-Date: Mon, 21 Sep 2026 15:49:58 -0700
-To: mm-commits@vger.kernel.org,david@kernel.org,akpm@linux-foundation.org
+	b=mfN2BuQUOs3QdTJV7PwLtiopEnp64qMeGJatZe99rowFGfyHnCEVMCUZJDEL1DsfF
+	 6ormDBxGzGRKPybxtbIKLuppZFOQzY1qtHQ8SGVf2yUTROCTUC0DYuvcA0KPOS4K7q
+	 X41mbi8y1wH6a4SJULqiwfDcReEgeG7+obCzIQH8=
+Date: Mon, 21 Sep 2026 15:56:45 -0700
+To: mm-commits@vger.kernel.org,tj@kernel.org,syzbot+a3c71b9db9c11c270f59@syzkaller.appspotmail.com,hughd@google.com,dennis@kernel.org,cl@gentwo.org,baolin.wang@linux.alibaba.com,akpm@linux-foundation.org,azpijr@gmail.com
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-memory_hotplug-drop-config_have_arch_pfn_valid-handling-from-pfn_to_online_page.patch added to mm-new branch
-Message-Id: <20260921224959.38EEE1F00898@smtp.kernel.org>
+Subject: + percpu_counter-annotate-lockless-read-in-_limited_add.patch added to mm-nonmm-unstable branch
+Message-Id: <20260921225645.CE9EE1F000FF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,26 +35,15 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/memory_hotplug: drop CONFIG_HAVE_ARCH_PFN_VALID handling from pfn_to_online_page()
-has been added to the -mm mm-new branch.  Its filename is
-     mm-memory_hotplug-drop-config_have_arch_pfn_valid-handling-from-pfn_to_online_page.patch
+     Subject: percpu_counter: annotate lockless read in _limited_add()
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     percpu_counter-annotate-lockless-read-in-_limited_add.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memory_hotplug-drop-config_have_arch_pfn_valid-handling-from-pfn_to_online_page.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/percpu_counter-annotate-lockless-read-in-_limited_add.patch
 
-This patch will later appear in the mm-new branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Note, mm-new is a provisional staging ground for work-in-progress
-patches, and acceptance into mm-new is a notification for others take
-notice and to finish up reviews.  Please do not hesitate to respond to
-review feedback and post updated versions to replace or incrementally
-fixup patches in mm-new.
-
-The mm-new branch of mm.git is not included in linux-next
-
-If a few days of testing in mm-new is successful, the patch will me moved
-into mm.git's mm-unstable branch, which is included in linux-next
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -69,90 +58,80 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: "David Hildenbrand (Arm)" <david@kernel.org>
-Subject: mm/memory_hotplug: drop CONFIG_HAVE_ARCH_PFN_VALID handling from pfn_to_online_page()
-Date: Mon, 21 Sep 2026 21:59:05 +0200
+From: "Jose A. Perez de Azpillaga" <azpijr@gmail.com>
+Subject: percpu_counter: annotate lockless read in _limited_add()
+Date: Mon, 21 Sep 2026 23:55:04 +0200
 
-Drop CONFIG_HAVE_ARCH_PFN_VALID handling, as CONFIG_HAVE_ARCH_PFN_VALID is
-never used with CONFIG_MEMORY_HOTPLUG, as the latter depends on
-CONFIG_SPARSEMEM_VMEMMAP.  Make sure it stays that way.
+syzbot reports a data race on fbc->count between the lockless read in the
+fast path of __percpu_counter_limited_add() and the locked update in
+percpu_counter_add_batch(), reached via shmem's used_blocks counter: the
+alloc path reads it through percpu_counter_limited_add() while the free
+path updates it through percpu_counter_sub().
 
-Link: https://lore.kernel.org/20260921-b4-sparsemem_cleanups-v2-13-54d81d65e125@kernel.org
-Signed-off-by: David Hildenbrand (Arm) <david@kernel.org>
+Annotate the read rather than change the logic: the lockless read is
+deliberate, only the annotation is missing.  It is an approximation, not a
+conservative bound.  A concurrent flush moves value between fbc->count and
+a per-cpu counter, and other CPUs' locked slow paths add to fbc->count
+too, so a stale low value can let the fast path proceed where the slow
+path would refuse.  The error is bounded by the per-cpu slack (unknown =
+batch * num_online_cpus()).  This is existing behavior, no functional
+change intended.
+
+Read it with data_race(READ_ONCE(fbc->count)): data_race() tells KCSAN the
+race is intended (READ_ONCE() alone still triggers the report, because
+KCSAN reports against watchpoints set up by plain accesses), while
+READ_ONCE() stops the compiler from refetching the value, as in
+percpu_counter_read_positive().  The lock-protected accesses stay plain,
+so future buggy lockless writes are still caught.
+
+Link: https://lore.kernel.org/20260921215508.141641-1-azpijr@gmail.com
+Signed-off-by: Jose A. Perez de Azpillaga <azpijr@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Reviewed-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
-Reviewed-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
-Cc: Liam R. Howlett <liam@infradead.org>
-Cc: Vlastimil Babka <vbabka@kernel.org>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Kairui Song <kasong@tencent.com>
-Cc: Qi Zheng <qi.zheng@linux.dev>
-Cc: Shakeel Butt <shakeel.butt@linux.dev>
-Cc: Barry Song <baohua@kernel.org>
-Cc: Axel Rasmussen <axelrasmussen@google.com>
-Cc: Yuanchu Xie <yuanchu@google.com>
-Cc: Wei Xu <weixugc@google.com>
-Cc: Baoquan He <baoquan.he@linux.dev>
+Reported-by: syzbot+a3c71b9db9c11c270f59@syzkaller.appspotmail.com
+Closes: https://syzkaller.appspot.com/bug?extid=a3c71b9db9c11c270f59
+Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
+Cc: Dennis Zhou <dennis@kernel.org>
+Cc: Tejun Heo <tj@kernel.org>
+Cc: Christoph Lameter <cl@gentwo.org>
+Cc: Hugh Dickins <hughd@google.com>
 Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: Brendan Jackman <brendan.jackman@linux.dev>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Zi Yan <ziy@nvidia.com>
-Cc: Jan Kiszka <jan.kiszka@siemens.com>
-Cc: Kieran Bingham <kbingham@kernel.org>
-Cc: Oscar Salvador <osalvador@suse.de>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Rafael J. Wysocki <rafael@kernel.org>
-Cc: Danilo Krummrich <dakr@kernel.org>
 ---
 
- mm/memory_hotplug.c |    9 ++-------
- 1 file changed, 2 insertions(+), 7 deletions(-)
+ lib/percpu_counter.c |   10 ++++++++--
+ 1 file changed, 8 insertions(+), 2 deletions(-)
 
---- a/mm/memory_hotplug.c~mm-memory_hotplug-drop-config_have_arch_pfn_valid-handling-from-pfn_to_online_page
-+++ a/mm/memory_hotplug.c
-@@ -345,6 +345,8 @@ struct page *pfn_to_online_page(unsigned
- 	struct dev_pagemap *pgmap;
- 	struct mem_section *ms;
+--- a/lib/percpu_counter.c~percpu_counter-annotate-lockless-read-in-_limited_add
++++ a/lib/percpu_counter.c
+@@ -328,6 +328,7 @@ bool __percpu_counter_limited_add(struct
+ 				  s64 limit, s64 amount, s32 batch)
+ {
+ 	s64 count;
++	s64 gcount;
+ 	s64 unknown;
+ 	unsigned long flags;
+ 	bool good = false;
+@@ -338,11 +339,16 @@ bool __percpu_counter_limited_add(struct
+ 	local_irq_save(flags);
+ 	unknown = batch * num_online_cpus();
+ 	count = __this_cpu_read(*fbc->counters);
++	/*
++	 * Lockless on purpose: gcount may be stale, so this is only an
++	 * approximation, bounded by the per-cpu slack ("unknown").
++	 */
++	gcount = data_race(READ_ONCE(fbc->count));
  
-+	BUILD_BUG_ON(IS_ENABLED(CONFIG_HAVE_ARCH_PFN_VALID));
-+
- 	if (nr >= NR_MEM_SECTIONS)
- 		return NULL;
- 
-@@ -352,13 +354,6 @@ struct page *pfn_to_online_page(unsigned
- 	if (!online_section(ms))
- 		return NULL;
- 
--	/*
--	 * Save some code text when online_section() +
--	 * pfn_section_valid() are sufficient.
--	 */
--	if (IS_ENABLED(CONFIG_HAVE_ARCH_PFN_VALID) && !pfn_valid(pfn))
--		return NULL;
--
- 	if (!pfn_section_valid(ms, pfn))
- 		return NULL;
- 
+ 	/* Skip taking the lock when safe */
+ 	if (abs(count + amount) <= batch &&
+-	    ((amount > 0 && fbc->count + unknown <= limit) ||
+-	     (amount < 0 && fbc->count - unknown >= limit))) {
++	    ((amount > 0 && gcount + unknown <= limit) ||
++	     (amount < 0 && gcount - unknown >= limit))) {
+ 		this_cpu_add(*fbc->counters, amount);
+ 		local_irq_restore(flags);
+ 		return true;
 _
 
-Patches currently in -mm which might be from david@kernel.org are
+Patches currently in -mm which might be from azpijr@gmail.com are
 
-maintainers-split-up-memory-management-memory-policy-and-migration.patch
-maintainers-move-memory-tiering-under-memory-management-numa-placement.patch
-maintainers-make-gregory-a-co-maintainer-of-memory-management-numa-placement.patch
-selftests-mm-khugepaged-remove-str_dup-usage.patch
-mm-sparse-move-mem_section-init-to-sparse_extreme_init.patch
-mm-sparse-refactor-sparse_sections_init.patch
-mm-sparse-move-initialization-of-section-metadata-to-sparse_metadata_init.patch
-mm-sparse-rename-and-cleanup-sparse_init_nid.patch
-mm-sparse-cleanup-sparse_init_one_section.patch
-mm-sparse-rename-__highest_present_section_nr-to-__highest_used_section_nr.patch
-mm-sparse-remove-pfn_in_present_section.patch
-mm-sparse-move-__highest_used_section_nr-handling.patch
-scripts-gdb-mmpy-remove-fallbacks-for-section_has_mem_map-and-section_is_early.patch
-mm-sparse-remove-section_marked_present.patch
-mm-sparse-remove-flags-parameter-from-sparse_init_one_section.patch
-fs-proc-page-clarify-comment-in-get_max_dump_pfn.patch
-mm-memory_hotplug-drop-config_have_arch_pfn_valid-handling-from-pfn_to_online_page.patch
+percpu_counter-annotate-lockless-read-in-_limited_add.patch
 
