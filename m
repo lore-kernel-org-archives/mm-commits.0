@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D43783ED5A1
-	for <mm-commits@vger.kernel.org>; Mon, 21 Sep 2026 22:49:40 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0947946D551
+	for <mm-commits@vger.kernel.org>; Mon, 21 Sep 2026 22:49:43 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790030982; cv=none; b=idAyZ8to/V8jVaYV4C+HtNurjIdzg9u+ijzSDItzR/hVMtSpUm9/ZW9klsuAU/UEOs9JaQEWR2DhWCtB8XAJ5Z4iA1oAjk9Tg6dp6/Gf6ib6898JBEcSLVULpfkxvcvhHlRlf+TgSOoMmQeSNINrw5iPKEjOpQeJPmkNlUikik8=
+	t=1790030985; cv=none; b=nONNE0ejEWHr6sGZk5xTNxorAbUxlAVM9kFA3N+AmtJAHagxfp7ne4v0RIEmbmzYGH4QxEmhZBb3yC0q53i4e/HoyvYYNf6C7pDO6SdmXgJ4Xc6beKRzjAaAXmDOrLleJeCuIiJO5TJV50KAb0mkzK1Ut2CSce36qdTloEhL4lw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1790030982; c=relaxed/simple;
-	bh=GM0RrFL0/YmQoqdbmQhbyHwMU6nPYuacSAJ6qDnHy2E=;
-	h=Date:To:From:Subject:Message-Id; b=aAcZvZzfIqSVw2ozQqd9jlIIkU5IbMOGULbUFKZhdWdFvp6tTiVWfJPlSX5OTC+5tOIfWlTK3IlyApd/R54Q/B+kancp+twnArh1LFgDHNFF93LNYUxueSv2eywQQA/7RnCgriC1K5NVuvjn7T8K4NHrJUJLLHYzcYpK6hvvu4Y=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=AmCNpSNr; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1790030985; c=relaxed/simple;
+	bh=Tx0Og21cR5e4I56E7c3TFOWUJ5wQM+icYc8GWaXsYgE=;
+	h=Date:To:From:Subject:Message-Id; b=Mbh+ztx8fv2gCMXcPPm47IPgB74gI6rLMtn8R1uycxBOKyAXe+KD38tygPicInu6d8mMBY1hg3VdUzBhqWD3eQuhHJTUEiXNVoJlq9MswAxxijZ7Gvav+OfQzzVjUuTZ2mypIE266hPyR0DDyZolI6gyqKWV4hGYc2wnjKJG1gw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=g7GKHrBz; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="AmCNpSNr"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 468A81F00893;
-	Mon, 21 Sep 2026 22:49:40 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="g7GKHrBz"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8CF1E1F000FF;
+	Mon, 21 Sep 2026 22:49:43 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1790030980;
-	bh=DMo6sLmgle045h7hR+uSrs7o0YLFrfSQ3Z3wdfB6hyI=;
+	d=linux-foundation.org; s=korg; t=1790030983;
+	bh=PatdxLkaYy1P33eQoNMbxzBpwQs5OEO07CV6oPYRAm4=;
 	h=Date:To:From:Subject;
-	b=AmCNpSNrJmELL0w3LSI/+ig9a9ds4P6pZLmK2OdlODAMC0GkJNxIi83rVPo8YoT1L
-	 pq5XFbgRg3S0cioz5DU6aJ+X6kBPsRfuJaDtw+RX8c1DrUkW+LZEoGK9GU9sGh/qqW
-	 srJo/cPuIQRgp2nTPWv3uB7x6puvq+coQ10wa1vk=
-Date: Mon, 21 Sep 2026 15:49:39 -0700
+	b=g7GKHrBzn1stX94SjGZABvOlyU6JJpHBdQjTKqFRohTQby4rRuCAAXHbbEJHWaYY9
+	 wN44d98tK9klSGllnrwCHHLo6m4nGUIti8do2/vDm3pTcBoE/qZLu8m0+yF02sbOGS
+	 3PxPR4xYQ4UK55HIla6czBwxD1KifQFKhrX/zeOA=
+Date: Mon, 21 Sep 2026 15:49:43 -0700
 To: mm-commits@vger.kernel.org,david@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-sparse-rename-__highest_present_section_nr-to-__highest_used_section_nr.patch added to mm-new branch
-Message-Id: <20260921224940.468A81F00893@smtp.kernel.org>
+Subject: + mm-sparse-remove-pfn_in_present_section.patch added to mm-new branch
+Message-Id: <20260921224943.8CF1E1F000FF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/sparse: rename __highest_present_section_nr to __highest_used_section_nr
+     Subject: mm/sparse: remove pfn_in_present_section()
 has been added to the -mm mm-new branch.  Its filename is
-     mm-sparse-rename-__highest_present_section_nr-to-__highest_used_section_nr.patch
+     mm-sparse-remove-pfn_in_present_section.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-sparse-rename-__highest_present_section_nr-to-__highest_used_section_nr.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-sparse-remove-pfn_in_present_section.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,13 +70,12 @@ and is updated there most days
 
 ------------------------------------------------------
 From: "David Hildenbrand (Arm)" <david@kernel.org>
-Subject: mm/sparse: rename __highest_present_section_nr to __highest_used_section_nr
-Date: Mon, 21 Sep 2026 21:58:58 +0200
+Subject: mm/sparse: remove pfn_in_present_section()
+Date: Mon, 21 Sep 2026 21:58:59 +0200
 
-In preparation for getting rid of SECTION_MARKED_PRESENT, rename
-__highest_present_section_nr and clarify the comment.
+Unused, let's remove it.
 
-Link: https://lore.kernel.org/20260921-b4-sparsemem_cleanups-v2-6-54d81d65e125@kernel.org
+Link: https://lore.kernel.org/20260921-b4-sparsemem_cleanups-v2-7-54d81d65e125@kernel.org
 Signed-off-by: David Hildenbrand (Arm) <david@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 Acked-by: Oscar Salvador <osalvador@suse.de>
@@ -105,87 +104,35 @@ Cc: Rafael J. Wysocki <rafael@kernel.org>
 Cc: Danilo Krummrich <dakr@kernel.org>
 ---
 
- include/linux/mmzone.h |    6 +++---
- mm/compaction.c        |    2 +-
- mm/sparse.c            |   12 ++++--------
- mm/sparse.h            |    4 ++--
- 4 files changed, 10 insertions(+), 14 deletions(-)
+ include/linux/mmzone.h |   10 ----------
+ 1 file changed, 10 deletions(-)
 
---- a/include/linux/mmzone.h~mm-sparse-rename-__highest_present_section_nr-to-__highest_used_section_nr
+--- a/include/linux/mmzone.h~mm-sparse-remove-pfn_in_present_section
 +++ a/include/linux/mmzone.h
-@@ -2181,7 +2181,7 @@ static inline struct mem_section *__pfn_
- 	return __nr_to_section(pfn_to_section_nr(pfn));
- }
+@@ -2326,13 +2326,6 @@ static inline unsigned long next_valid_p
  
--extern unsigned long __highest_present_section_nr;
-+extern unsigned long __highest_used_section_nr;
+ #endif
  
- static inline int subsection_map_index(unsigned long pfn)
- {
-@@ -2280,7 +2280,7 @@ static inline unsigned long first_valid_
- 
- 	rcu_read_lock_sched();
- 
--	while (nr <= __highest_present_section_nr && pfn < end_pfn) {
-+	while (nr <= __highest_used_section_nr && pfn < end_pfn) {
- 		struct mem_section *ms = __pfn_to_section(pfn);
- 
- 		if (valid_section(ms) &&
-@@ -2335,7 +2335,7 @@ static inline int pfn_in_present_section
- 
+-static inline int pfn_in_present_section(unsigned long pfn)
+-{
+-	if (pfn_to_section_nr(pfn) >= NR_MEM_SECTIONS)
+-		return 0;
+-	return present_section(__pfn_to_section(pfn));
+-}
+-
  static inline unsigned long next_present_section_nr(unsigned long section_nr)
  {
--	while (++section_nr <= __highest_present_section_nr) {
-+	while (++section_nr <= __highest_used_section_nr) {
- 		if (present_section_nr(section_nr))
- 			return section_nr;
- 	}
---- a/mm/compaction.c~mm-sparse-rename-__highest_present_section_nr-to-__highest_used_section_nr
-+++ a/mm/compaction.c
-@@ -216,7 +216,7 @@ static unsigned long skip_offline_sectio
- 	if (online_section_nr(start_nr))
- 		return 0;
- 
--	while (++start_nr <= __highest_present_section_nr) {
-+	while (++start_nr <= __highest_used_section_nr) {
- 		if (online_section_nr(start_nr))
- 			return section_nr_to_pfn(start_nr);
- 	}
---- a/mm/sparse.c~mm-sparse-rename-__highest_present_section_nr-to-__highest_used_section_nr
-+++ a/mm/sparse.c
-@@ -164,15 +164,11 @@ static void __init mminit_validate_memmo
- }
+ 	while (++section_nr <= __highest_used_section_nr) {
+@@ -2362,9 +2355,6 @@ static inline unsigned long next_present
+ #else
+ #define pfn_to_nid(pfn)		(0)
+ #endif
+-
+-#else
+-#define pfn_in_present_section pfn_valid
+ #endif /* CONFIG_SPARSEMEM */
  
  /*
-- * There are a number of times that we loop over NR_MEM_SECTIONS,
-- * looking for section_present() on each.  But, when we have very
-- * large physical address spaces, NR_MEM_SECTIONS can also be
-- * very large which makes the loops quite long.
-- *
-- * Keeping track of this gives us an easy way to break out of
-- * those loops early.
-+ * Looping over all possible memory sections is expensive, especially if
-+ * NR_MEM_SECTIONS is large but only a fraction is actually used. Keep track of
-+ * the highest section number we ever used.
-  */
--unsigned long __highest_present_section_nr;
-+unsigned long __highest_used_section_nr;
- 
- static inline unsigned long first_present_section_nr(void)
- {
---- a/mm/sparse.h~mm-sparse-rename-__highest_present_section_nr-to-__highest_used_section_nr
-+++ a/mm/sparse.h
-@@ -44,8 +44,8 @@ static inline void sparse_init_one_secti
- static inline void __section_mark_present(struct mem_section *ms,
- 		unsigned long section_nr)
- {
--	if (section_nr > __highest_present_section_nr)
--		__highest_present_section_nr = section_nr;
-+	if (section_nr > __highest_used_section_nr)
-+		__highest_used_section_nr = section_nr;
- 
- 	ms->section_mem_map |= SECTION_MARKED_PRESENT;
- }
 _
 
 Patches currently in -mm which might be from david@kernel.org are
