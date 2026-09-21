@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C36FA3ED3B4
-	for <mm-commits@vger.kernel.org>; Mon, 21 Sep 2026 22:49:32 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 044293ED3B4
+	for <mm-commits@vger.kernel.org>; Mon, 21 Sep 2026 22:49:34 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790030974; cv=none; b=K/4bRbuxD74gF9uG6uvCcx/MJrhByR4d1NrxSozjI+U2QbXkKaMHm5jMb6gp0j6ZmM7q3Qeufx2JprJT/brMiUFTydA/VwGh+nSJ/EmpDquLFaL0slzxWQzaIIdOg47Ha2SfzwpJ+orRchdHvYxUeUpXikAr9tHW3MGuFhB5lTw=
+	t=1790030976; cv=none; b=QbWmi5k3MMS8wMPffZzn5LIee/OBiMtA4YvoNy1Wxb+2f7SqGs4Tcsf8BM9IhZU9SwmjYKdQJR2zFbIbOC14s1iFE2ZDSQerdT7Og24+r1M6urlQbHC6gunTmusD1ug/QXJGwjZU86HGHKZ9WOXVEH2MUXl5qv/yCrlQiNfnEAw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1790030974; c=relaxed/simple;
-	bh=ie59aupRYZl2w3gPN7uoXn2Ulv+DyEWwzjrC/bZK+HI=;
-	h=Date:To:From:Subject:Message-Id; b=excb5GN1rm6Hdtgvipyea6koz2u/V/1dmxeDjfGd0+VBE4ep4WCy3gi/XFcVhkCaFrUAfRvwiyvWp1l067RMGW/QI5GEPBgB7K7nbFNZtHflYdLa71Vp1H/BLjakq+s3UgBoGpGcv0ARCaK8fK8ewB1pj2ZkRcBTvUtooH5UXK4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=pscOJZTh; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1790030976; c=relaxed/simple;
+	bh=zb0qinRzIOjwvSZWmPvkOSmWQ9cDx2q5+BQYn8FydUc=;
+	h=Date:To:From:Subject:Message-Id; b=Oj2fkOv8/Ib1HZC2nWsfGdCBIOmUL6bKSWlj4kiufO+266jWxqlkriOwmIo2DYfzUz/wlVcNoxIRS5AKxMzGgMC4CbTztHqMcixgAnT6yhZPuI/mLPPhcQiEXyGcfFV0yLIS9rFTXQdorpUJYRqz/Tm3I8f3fYX5s/VbL0GWRVU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=eSSN1sG+; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="pscOJZTh"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 85A6F1F000FF;
-	Mon, 21 Sep 2026 22:49:32 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="eSSN1sG+"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6C0CC1F000FF;
+	Mon, 21 Sep 2026 22:49:34 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1790030972;
-	bh=vPv7jbYlj5mD3Y6213XO/xUG2uiuGHW5wD8GyvzmUDY=;
+	d=linux-foundation.org; s=korg; t=1790030974;
+	bh=MvgFFcoDcgk9/HsEoR/K454ln9bJHqsunwWd9Q4FUU4=;
 	h=Date:To:From:Subject;
-	b=pscOJZTh/kDM9G79bifKvDN2y0eeId+LIKjDem5MUhL5wxdFqKM9fMg38iXxthdC/
-	 xXmdYVuHwWWn/NOXtGhTnfHx8BtpyIvHrf6IxNwsBAmuRx208X3QPyFTiqOrYZz9jx
-	 5Jt0cdnUt9yluROw7sBhC+lWcsAlE+My6+9Nha4Q=
-Date: Mon, 21 Sep 2026 15:49:32 -0700
+	b=eSSN1sG+PxaKjx2LNvsxHLqc1r3WfGJ5xA0OFOebaNp6fQcSw6zUcOAuQ8ZoZvMMp
+	 fnWprNw4fW9moDqjTiluNmSwnhvsjAFrMT18Wfj//wuTrZaDFmwOwDTpGR2Ul/1V2Z
+	 uRLo/NNcD6S7FA49//UJLDCHG0zQ2Ylf9O26gPN4=
+Date: Mon, 21 Sep 2026 15:49:34 -0700
 To: mm-commits@vger.kernel.org,david@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-sparse-refactor-sparse_sections_init.patch added to mm-new branch
-Message-Id: <20260921224932.85A6F1F000FF@smtp.kernel.org>
+Subject: + mm-sparse-move-initialization-of-section-metadata-to-sparse_metadata_init.patch added to mm-new branch
+Message-Id: <20260921224934.6C0CC1F000FF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/sparse: refactor sparse_sections_init()
+     Subject: mm/sparse: move initialization of section metadata to sparse_metadata_init()
 has been added to the -mm mm-new branch.  Its filename is
-     mm-sparse-refactor-sparse_sections_init.patch
+     mm-sparse-move-initialization-of-section-metadata-to-sparse_metadata_init.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-sparse-refactor-sparse_sections_init.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-sparse-move-initialization-of-section-metadata-to-sparse_metadata_init.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,27 +70,22 @@ and is updated there most days
 
 ------------------------------------------------------
 From: "David Hildenbrand (Arm)" <david@kernel.org>
-Subject: mm/sparse: refactor sparse_sections_init()
-Date: Mon, 21 Sep 2026 21:58:54 +0200
+Subject: mm/sparse: move initialization of section metadata to sparse_metadata_init()
+Date: Mon, 21 Sep 2026 21:58:55 +0200
 
-memory_present() really identifies+prepares all early sections so the
-initialization in sparse_init() can properly iterating them to initialize
-metadata.
+Let's move the code responsible for initializing sparse metadata (usemap,
+memmap) into a helper.  Cleanup the variable while at it (e.g.,
+"map_count").
 
-Let's just inline memory_present() into sparse_sections_init() and
-cleaning up the code a bit while at it: make it clear that we are
-operating on pfns.
+Drop the rather obvious code comments.
 
-Note that we call set_section_nid() now only if the section was not
-already created earlier.  Now, there is no more inconsistency between what
-we (temporarily) store in ms->section_mem_map and what we store in our
-section->nid array.
+No functional change intended.
 
-Link: https://lore.kernel.org/20260921-b4-sparsemem_cleanups-v2-2-54d81d65e125@kernel.org
+Link: https://lore.kernel.org/20260921-b4-sparsemem_cleanups-v2-3-54d81d65e125@kernel.org
 Signed-off-by: David Hildenbrand (Arm) <david@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 Acked-by: Oscar Salvador <osalvador@suse.de>
-Acked-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
+Reviewed-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
 Reviewed-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
 Cc: Liam R. Howlett <liam@infradead.org>
 Cc: Vlastimil Babka <vbabka@kernel.org>
@@ -115,69 +110,72 @@ Cc: Rafael J. Wysocki <rafael@kernel.org>
 Cc: Danilo Krummrich <dakr@kernel.org>
 ---
 
- mm/sparse.c |   41 +++++++++++++++++------------------------
- 1 file changed, 17 insertions(+), 24 deletions(-)
+ mm/sparse.c |   43 ++++++++++++++++++++++---------------------
+ 1 file changed, 22 insertions(+), 21 deletions(-)
 
---- a/mm/sparse.c~mm-sparse-refactor-sparse_sections_init
+--- a/mm/sparse.c~mm-sparse-move-initialization-of-section-metadata-to-sparse_metadata_init
 +++ a/mm/sparse.c
-@@ -179,40 +179,33 @@ static inline unsigned long first_presen
- 	return next_present_section_nr(-1);
- }
- 
--/* Record a memory area against a node. */
--static void __init memory_present(int nid, unsigned long start, unsigned long end)
-+void __init sparse_sections_init(void)
- {
--	unsigned long pfn;
-+	unsigned long pfn, start_pfn, end_pfn;
-+	int i, nid;
- 
--	start &= PAGE_SECTION_MASK;
--	mminit_validate_memmodel_limits(&start, &end);
--	for (pfn = start; pfn < end; pfn += PAGES_PER_SECTION) {
--		unsigned long section_nr = pfn_to_section_nr(pfn);
--		struct mem_section *ms;
-+	sparse_extreme_init();
- 
--		sparse_index_init(section_nr, nid);
--		set_section_nid(section_nr, nid);
-+	for_each_mem_pfn_range(i, MAX_NUMNODES, &start_pfn, &end_pfn, &nid) {
-+		start_pfn &= PAGE_SECTION_MASK;
-+		mminit_validate_memmodel_limits(&start_pfn, &end_pfn);
-+
-+		for (pfn = start_pfn; pfn < end_pfn; pfn += PAGES_PER_SECTION) {
-+			unsigned long section_nr = pfn_to_section_nr(pfn);
-+			struct mem_section *ms;
-+
-+			sparse_index_init(section_nr, nid);
-+			ms = __nr_to_section(section_nr);
-+			if (ms->section_mem_map)
-+				continue;
- 
--		ms = __nr_to_section(section_nr);
--		if (!ms->section_mem_map) {
-+			set_section_nid(section_nr, nid);
- 			ms->section_mem_map = sparse_encode_early_nid(nid) |
- 							SECTION_IS_ONLINE;
- 			__section_mark_present(ms, section_nr);
- 		}
+@@ -255,38 +255,39 @@ static void __init sparse_init_nid(int n
  	}
  }
+ 
++static void __init sparse_metadata_init(void)
++{
++	unsigned long start_section_nr = first_present_section_nr();
++	int nid_begin = sparse_early_nid(__nr_to_section(start_section_nr));
++	unsigned long section_nr, nr_sections = 1;
++
++	for_each_present_section_nr(start_section_nr + 1, section_nr) {
++		const int nid = sparse_early_nid(__nr_to_section(section_nr));
++
++		if (nid == nid_begin) {
++			nr_sections++;
++			continue;
++		}
++		sparse_init_nid(nid_begin, start_section_nr, section_nr, nr_sections);
++		nid_begin = nid;
++		start_section_nr = section_nr;
++		nr_sections = 1;
++	}
++	sparse_init_nid(nid_begin, start_section_nr, section_nr, nr_sections);
++}
++
+ /*
+  * Allocate the accumulated non-linear sections, allocate a mem_map
+  * for each and record the physical to section mapping.
+  */
+ void __init sparse_init(void)
+ {
+-	unsigned long pnum_end, pnum_begin, map_count = 1;
+-	int nid_begin;
 -
--void __init sparse_sections_init(void)
--{
--	unsigned long start, end;
--	int i, nid;
+ 	if (compound_info_has_mask()) {
+ 		VM_WARN_ON_ONCE(!IS_ALIGNED((unsigned long) pfn_to_page(0),
+ 				    MAX_FOLIO_VMEMMAP_ALIGN));
+ 	}
+ 
+-	pnum_begin = first_present_section_nr();
+-	nid_begin = sparse_early_nid(__nr_to_section(pnum_begin));
 -
--	sparse_extreme_init();
+-	for_each_present_section_nr(pnum_begin + 1, pnum_end) {
+-		int nid = sparse_early_nid(__nr_to_section(pnum_end));
 -
--	for_each_mem_pfn_range(i, MAX_NUMNODES, &start, &end, &nid)
--		memory_present(nid, start, end);
--}
--
- #ifndef CONFIG_SPARSEMEM_VMEMMAP
- struct page __init *__populate_section_memmap(unsigned long pfn,
- 		unsigned long nr_pages, int nid, struct vmem_altmap *altmap,
+-		if (nid == nid_begin) {
+-			map_count++;
+-			continue;
+-		}
+-		/* Init node with sections in range [pnum_begin, pnum_end) */
+-		sparse_init_nid(nid_begin, pnum_begin, pnum_end, map_count);
+-		nid_begin = nid;
+-		pnum_begin = pnum_end;
+-		map_count = 1;
+-	}
+-	/* cover the last node */
+-	sparse_init_nid(nid_begin, pnum_begin, pnum_end, map_count);
++	sparse_metadata_init();
+ 	sparse_init_subsection_map();
+ 	vmemmap_populate_print_last();
+ }
 _
 
 Patches currently in -mm which might be from david@kernel.org are
