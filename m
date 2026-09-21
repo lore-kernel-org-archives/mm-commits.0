@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 87AB93ED3B4
-	for <mm-commits@vger.kernel.org>; Mon, 21 Sep 2026 22:49:30 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C36FA3ED3B4
+	for <mm-commits@vger.kernel.org>; Mon, 21 Sep 2026 22:49:32 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790030971; cv=none; b=tRZLDOfzO8x0F+fmjjnn1ILMvISsrF/1KNLL0g2heGYXotwrOHq88zZnzLcapmWSrBsncU50hKWrCMt9sLbtPtuCAQSwKBjBcwe+mbNmaheLI64q7CX3jtoK8a1EZIFRc0SAGODKOBCxD3X6eqZfe/anYQVwplcVECzsIu3TWkY=
+	t=1790030974; cv=none; b=K/4bRbuxD74gF9uG6uvCcx/MJrhByR4d1NrxSozjI+U2QbXkKaMHm5jMb6gp0j6ZmM7q3Qeufx2JprJT/brMiUFTydA/VwGh+nSJ/EmpDquLFaL0slzxWQzaIIdOg47Ha2SfzwpJ+orRchdHvYxUeUpXikAr9tHW3MGuFhB5lTw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1790030971; c=relaxed/simple;
-	bh=Po+6DJby44qJjWeRL4X4fGwKOR4zbMpImnKT/Ictiao=;
-	h=Date:To:From:Subject:Message-Id; b=XRijySnztafj0KnRF33hL14nIpeBTTvZkD2vrkdWIF3oiJobBFOlOdF8Neg9jGUUG71FJftYDPXqswZVDiVdV0l4fvgYvnQ+gNUAGZ7lU5HMlnRJbpoU1EQQZzoGPMKA/pPso9etPLSBmEFT09d3Rjat8P1Uo+V9xC+SSepdCd8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=0sNFb1ps; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1790030974; c=relaxed/simple;
+	bh=ie59aupRYZl2w3gPN7uoXn2Ulv+DyEWwzjrC/bZK+HI=;
+	h=Date:To:From:Subject:Message-Id; b=excb5GN1rm6Hdtgvipyea6koz2u/V/1dmxeDjfGd0+VBE4ep4WCy3gi/XFcVhkCaFrUAfRvwiyvWp1l067RMGW/QI5GEPBgB7K7nbFNZtHflYdLa71Vp1H/BLjakq+s3UgBoGpGcv0ARCaK8fK8ewB1pj2ZkRcBTvUtooH5UXK4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=pscOJZTh; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="0sNFb1ps"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 23BB41F000FF;
-	Mon, 21 Sep 2026 22:49:30 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="pscOJZTh"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 85A6F1F000FF;
+	Mon, 21 Sep 2026 22:49:32 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1790030970;
-	bh=3oYlR70J+wCu+u7JdV+1d/j8HMUtCK/lqLjcJcBdzLA=;
+	d=linux-foundation.org; s=korg; t=1790030972;
+	bh=vPv7jbYlj5mD3Y6213XO/xUG2uiuGHW5wD8GyvzmUDY=;
 	h=Date:To:From:Subject;
-	b=0sNFb1ps75tcFbxhY0uqLisg+NRAJnUqLWpMS+4sRSpx+49KC0TuKpHeBMWE+dt5F
-	 eAOKJEjI90U7/yF9JhUo2B0TNjjh0VOfEt8yZFCu8tcX9hrMPgL4jDLZd/KW5RqLex
-	 k3ISGEaVJCc6UaoVxFs2VGWCkqG9kmRfIpOHlj/M=
-Date: Mon, 21 Sep 2026 15:49:29 -0700
+	b=pscOJZTh/kDM9G79bifKvDN2y0eeId+LIKjDem5MUhL5wxdFqKM9fMg38iXxthdC/
+	 xXmdYVuHwWWn/NOXtGhTnfHx8BtpyIvHrf6IxNwsBAmuRx208X3QPyFTiqOrYZz9jx
+	 5Jt0cdnUt9yluROw7sBhC+lWcsAlE+My6+9Nha4Q=
+Date: Mon, 21 Sep 2026 15:49:32 -0700
 To: mm-commits@vger.kernel.org,david@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-sparse-move-mem_section-init-to-sparse_extreme_init.patch added to mm-new branch
-Message-Id: <20260921224930.23BB41F000FF@smtp.kernel.org>
+Subject: + mm-sparse-refactor-sparse_sections_init.patch added to mm-new branch
+Message-Id: <20260921224932.85A6F1F000FF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/sparse: move mem_section init to sparse_extreme_init()
+     Subject: mm/sparse: refactor sparse_sections_init()
 has been added to the -mm mm-new branch.  Its filename is
-     mm-sparse-move-mem_section-init-to-sparse_extreme_init.patch
+     mm-sparse-refactor-sparse_sections_init.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-sparse-move-mem_section-init-to-sparse_extreme_init.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-sparse-refactor-sparse_sections_init.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,31 +70,27 @@ and is updated there most days
 
 ------------------------------------------------------
 From: "David Hildenbrand (Arm)" <david@kernel.org>
-Subject: mm/sparse: move mem_section init to sparse_extreme_init()
-Date: Mon, 21 Sep 2026 21:58:53 +0200
+Subject: mm/sparse: refactor sparse_sections_init()
+Date: Mon, 21 Sep 2026 21:58:54 +0200
 
-Patch series "mm/sparse: remove SECTION_MARKED_PRESENT and further
-cleanups", v2.
+memory_present() really identifies+prepares all early sections so the
+initialization in sparse_init() can properly iterating them to initialize
+metadata.
 
-SECTION_MARKED_PRESENT is really only needed during boot, where we can
-instead just rely on SECTION_IS_EARLY_BIT by setting that flag earlier.
+Let's just inline memory_present() into sparse_sections_init() and
+cleaning up the code a bit while at it: make it clear that we are
+operating on pfns.
 
-Some preparations for doing that conversion and some cleanups in the same
-(sparse) area.
+Note that we call set_section_nid() now only if the section was not
+already created earlier.  Now, there is no more inconsistency between what
+we (temporarily) store in ms->section_mem_map and what we store in our
+section->nid array.
 
-
-This patch (of 13):
-
-Let's just avoid another pair of ifdef inside a function.  While at it,
-switch to INTERNODE_CACHE_BYTES by just defining a fallback in cache.h as
-well, given that the x86 variant already provides one.
-
-Link: https://lore.kernel.org/20260921-b4-sparsemem_cleanups-v2-0-54d81d65e125@kernel.org
-Link: https://lore.kernel.org/20260921-b4-sparsemem_cleanups-v2-1-54d81d65e125@kernel.org
+Link: https://lore.kernel.org/20260921-b4-sparsemem_cleanups-v2-2-54d81d65e125@kernel.org
 Signed-off-by: David Hildenbrand (Arm) <david@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 Acked-by: Oscar Salvador <osalvador@suse.de>
-Reviewed-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
+Acked-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
 Reviewed-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
 Cc: Liam R. Howlett <liam@infradead.org>
 Cc: Vlastimil Babka <vbabka@kernel.org>
@@ -119,60 +115,69 @@ Cc: Rafael J. Wysocki <rafael@kernel.org>
 Cc: Danilo Krummrich <dakr@kernel.org>
 ---
 
- include/linux/cache.h |    1 +
- mm/sparse.c           |   19 ++++++++++++-------
- 2 files changed, 13 insertions(+), 7 deletions(-)
+ mm/sparse.c |   41 +++++++++++++++++------------------------
+ 1 file changed, 17 insertions(+), 24 deletions(-)
 
---- a/include/linux/cache.h~mm-sparse-move-mem_section-init-to-sparse_extreme_init
-+++ a/include/linux/cache.h
-@@ -89,6 +89,7 @@
-  */
- #ifndef INTERNODE_CACHE_SHIFT
- #define INTERNODE_CACHE_SHIFT L1_CACHE_SHIFT
-+#define INTERNODE_CACHE_BYTES (1 << INTERNODE_CACHE_SHIFT)
- #endif
- 
- #if !defined(____cacheline_internodealigned_in_smp)
---- a/mm/sparse.c~mm-sparse-move-mem_section-init-to-sparse_extreme_init
+--- a/mm/sparse.c~mm-sparse-refactor-sparse_sections_init
 +++ a/mm/sparse.c
-@@ -103,11 +103,22 @@ int __meminit sparse_index_init(unsigned
- 
- 	return 0;
+@@ -179,40 +179,33 @@ static inline unsigned long first_presen
+ 	return next_present_section_nr(-1);
  }
-+
-+static void __init sparse_extreme_init(void)
-+{
-+	const unsigned long size = sizeof(struct mem_section *) * NR_SECTION_ROOTS;
-+
-+	mem_section = memblock_alloc_or_panic(size, INTERNODE_CACHE_BYTES);
-+}
- #else /* !SPARSEMEM_EXTREME */
- int __meminit sparse_index_init(unsigned long section_nr, int nid)
+ 
+-/* Record a memory area against a node. */
+-static void __init memory_present(int nid, unsigned long start, unsigned long end)
++void __init sparse_sections_init(void)
  {
- 	return 0;
- }
-+
-+static void __init sparse_extreme_init(void)
-+{
-+}
- #endif
+-	unsigned long pfn;
++	unsigned long pfn, start_pfn, end_pfn;
++	int i, nid;
  
- /*
-@@ -196,13 +207,7 @@ void __init sparse_sections_init(void)
- 	unsigned long start, end;
- 	int i, nid;
- 
--#ifdef CONFIG_SPARSEMEM_EXTREME
--	unsigned long size, align;
--
--	size = sizeof(struct mem_section *) * NR_SECTION_ROOTS;
--	align = 1 << (INTERNODE_CACHE_SHIFT);
--	mem_section = memblock_alloc_or_panic(size, align);
--#endif
+-	start &= PAGE_SECTION_MASK;
+-	mminit_validate_memmodel_limits(&start, &end);
+-	for (pfn = start; pfn < end; pfn += PAGES_PER_SECTION) {
+-		unsigned long section_nr = pfn_to_section_nr(pfn);
+-		struct mem_section *ms;
 +	sparse_extreme_init();
  
- 	for_each_mem_pfn_range(i, MAX_NUMNODES, &start, &end, &nid)
- 		memory_present(nid, start, end);
+-		sparse_index_init(section_nr, nid);
+-		set_section_nid(section_nr, nid);
++	for_each_mem_pfn_range(i, MAX_NUMNODES, &start_pfn, &end_pfn, &nid) {
++		start_pfn &= PAGE_SECTION_MASK;
++		mminit_validate_memmodel_limits(&start_pfn, &end_pfn);
++
++		for (pfn = start_pfn; pfn < end_pfn; pfn += PAGES_PER_SECTION) {
++			unsigned long section_nr = pfn_to_section_nr(pfn);
++			struct mem_section *ms;
++
++			sparse_index_init(section_nr, nid);
++			ms = __nr_to_section(section_nr);
++			if (ms->section_mem_map)
++				continue;
+ 
+-		ms = __nr_to_section(section_nr);
+-		if (!ms->section_mem_map) {
++			set_section_nid(section_nr, nid);
+ 			ms->section_mem_map = sparse_encode_early_nid(nid) |
+ 							SECTION_IS_ONLINE;
+ 			__section_mark_present(ms, section_nr);
+ 		}
+ 	}
+ }
+-
+-void __init sparse_sections_init(void)
+-{
+-	unsigned long start, end;
+-	int i, nid;
+-
+-	sparse_extreme_init();
+-
+-	for_each_mem_pfn_range(i, MAX_NUMNODES, &start, &end, &nid)
+-		memory_present(nid, start, end);
+-}
+-
+ #ifndef CONFIG_SPARSEMEM_VMEMMAP
+ struct page __init *__populate_section_memmap(unsigned long pfn,
+ 		unsigned long nr_pages, int nid, struct vmem_altmap *altmap,
 _
 
 Patches currently in -mm which might be from david@kernel.org are
