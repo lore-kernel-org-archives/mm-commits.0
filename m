@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 31AAE35AC11
-	for <mm-commits@vger.kernel.org>; Mon, 21 Sep 2026 19:45:48 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2DFC735AC11
+	for <mm-commits@vger.kernel.org>; Mon, 21 Sep 2026 19:45:51 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790019951; cv=none; b=o4T2bYy9reOT1EyF02YbFbknM+TXc6dz6pu/dwyJNKLuLUbfy6KwUtPQ3ufvOX3pZQ4gtEmDGN5QrTVbo1STQS2xvsaM2xqNB5oknzu1LFHZ3Btg8KRAexCioo4akVru9tIaJZgPCu4zM2G6A8vj7m1zUdaLcUFjH3JW6yMQPjQ=
+	t=1790019953; cv=none; b=MzjAZ5Y01Y5oaA7kgYP2GOmlFgpww6yP+kRPYx3t9CIQGyc0okajOguTpxN5kcyviTmqHCNMRKQptLhK60fChicqFRxSYnUcg2DqImARkQZCYBIOHqqnDk0fNjMkEyZrQQlhPM36ZEiKD4Rf4IrHZ1+PRODgEYo5n9EWh850kCQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1790019951; c=relaxed/simple;
-	bh=bI2wYNXXTcQ19IVbh14u52izc0VMDs6+b+F06FYY71k=;
-	h=Date:To:From:Subject:Message-Id; b=hzgzLRbm7CKzXbNb6HEc1pg2AOwZuPXOIadxA/pOVXpk/UG6YIOr+lI/jqovfV+3oIJFj94JPtOZApRWek3talFARfMfVAe0qbSnogFUX3UftTvTNUF3rzLylhW2q5aJ/D9oTOHDCauFe8SZz7iCadvpmcCiMRbgvFswP2Ys5CE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=OLlagfvi; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1790019953; c=relaxed/simple;
+	bh=xf1Gcq1j4RM6+zD1SIpoLIR0M18hpKTgsDlfo9kWMIM=;
+	h=Date:To:From:Subject:Message-Id; b=GBvuXHdE4XCEp2YTBlFXRvMo7XFr/C6w44/u+9bvFcFJ0muuRasUcPuaaGs3qNdcUmSw2UqeoDoKMQHwVF6XtdT/Vsj1XuuywYPe3whVHqv+LyNWItYUevlGXIWDyQ8PmL2EKsnOHh9eQ2llWl0c1s3lheJcw42wZzszCpU6MGc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=AqyiN3Bg; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="OLlagfvi"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2D9281F000FF;
-	Mon, 21 Sep 2026 19:45:48 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="AqyiN3Bg"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9AA7B1F00893;
+	Mon, 21 Sep 2026 19:45:51 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1790019948;
-	bh=CmhwetdMo2mkl5kvTG9xjpB4aG3hglzUCwxEiuWifCI=;
+	d=linux-foundation.org; s=korg; t=1790019951;
+	bh=KdjCSzcuBeTDGXA57mPFRciHrF9+qPU3BXqKYRTA/+c=;
 	h=Date:To:From:Subject;
-	b=OLlagfviTbR6sjKVUNc8NozJu5Hnt9O+NTsYqVqXQttepR2M8Jpcl1+rbR/AFY6Rg
-	 wXgQsAnpmxQeV5buiEG8Tbd75TMwQklU549ygnsrRBdwS7pJH4UgAUvtjiZIn9nzou
-	 OQsNcvzw8L5BtMXyMKfceZTqej3EikFYVfrOJlZ0=
-Date: Mon, 21 Sep 2026 12:45:47 -0700
+	b=AqyiN3Bg8pEUg4p4loQpmZr4yIvdTRxmQtK4MGfKsyHca7pNqpGzjWQhrh343jPwR
+	 D4/ssb13+g1nyjq2utS4J9cq/BYFUGvqcdfInMIkMZGHlP/DfbaT/nviwefkCEytdY
+	 UhXXQ7SM5+5CDiW+CAj45HI21dJSeZ230UUe1UNk=
+Date: Mon, 21 Sep 2026 12:45:51 -0700
 To: mm-commits@vger.kernel.org,alex@ghiti.fr,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-swap-move-lru-insertion-out-of-the-swap-cache-allocator.patch added to mm-new branch
-Message-Id: <20260921194548.2D9281F000FF@smtp.kernel.org>
+Subject: + mm-swap-drop-dropbehind-swap-cache-folios-on-writeback-completion.patch added to mm-new branch
+Message-Id: <20260921194551.9AA7B1F00893@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: swap: move LRU insertion out of the swap cache allocator
+     Subject: mm: swap: drop dropbehind swap cache folios on writeback completion
 has been added to the -mm mm-new branch.  Its filename is
-     mm-swap-move-lru-insertion-out-of-the-swap-cache-allocator.patch
+     mm-swap-drop-dropbehind-swap-cache-folios-on-writeback-completion.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-swap-move-lru-insertion-out-of-the-swap-cache-allocator.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-swap-drop-dropbehind-swap-cache-folios-on-writeback-completion.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,73 +70,40 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Alexandre Ghiti <alex@ghiti.fr>
-Subject: mm: swap: move LRU insertion out of the swap cache allocator
-Date: Mon, 21 Sep 2026 17:13:02 +0200
+Subject: mm: swap: drop dropbehind swap cache folios on writeback completion
+Date: Mon, 21 Sep 2026 17:13:03 +0200
 
-Patch series "mm: zswap: free cold writeback folios promptly", v6.
+A PG_dropbehind folio is dropped from its cache once writeback completes
+rather than left for reclaim to find later; this is implemented for file
+folios in folio_end_dropbehind(). Extend it to swap cache folios.
 
-When zswap writes an entry back, it allocates an order-0 swap cache folio,
-decompresses into it, and issues the write. The folio is cold by
-construction, yet today it is left on the LRU for page reclaim to find and
-free later. That wastes a reclaim scan and keeps cold memory resident
-longer than necessary.
+The drop blocks on the folio lock, so it cannot run in interrupt
+context. Set BIO_COMPLETE_IN_TASK on the write, as the file dropbehind
+paths do, and drop the folio directly from folio_end_writeback().
 
-Rather than implement this in zswap, extend the existing dropbehind
-mechanism to swap cache folios and have zswap opt into it (Yosry). A
-PG_dropbehind folio is already dropped from its cache once writeback
-completes instead of being left for reclaim; for a swap cache folio that
-"drop" is removing it from the swap cache.
+It has to block rather than trylock: the folio is off the LRU, so
+skipping it would leave it in the swap cache with nothing able to
+reclaim it, and it cannot be put back while another thread holds its
+lock.
 
-  Patch 1 - move LRU insertion out of the swap cache allocator into its
-            callers, so zswap writeback can allocate off the LRU.
-
-  Patch 2 - drop dropbehind swap cache folios on writeback completion.
-
-  Patch 3 - zswap allocates its writeback folio off the LRU and marks it
-            dropbehind, opting into the mechanism above.
-
-
-This patch (of 3):
-
-This is a preparatory patch.
-
-swap_cache_alloc_folio() adds the new folio to the LRU itself, which
-leaves its callers no way to act on the folio before it becomes visible
-to reclaim.  Two users need exactly that:
-
- - moving the refault evaluation out of the swap cache folio allocation
-   requires it to happen before folio_add_lru(): that consumes PG_active
-   to file the folio on the inactive or the active list, and under MGLRU
-   it also reads PG_workingset to pick the generation.  Setting either
-   flag afterwards does not move the folio;
-
- - zswap writeback dropbehind needs the buffer folio to stay off the LRU
-   entirely, as the per-CPU LRU batch would hold a reference on it and
-   keep remove_mapping() from freeing it once writeback completes.
-
-Defer the LRU insertion to the callers and rename the helper to
-__swap_cache_alloc_folio(): each caller adds the folio right after the
-allocation, so there is no functional change intended.
-
-Link: https://lore.kernel.org/20260921151306.625134-1-alex@ghiti.fr
-Link: https://lore.kernel.org/20260921151306.625134-2-alex@ghiti.fr
+Link: https://lore.kernel.org/20260921151306.625134-3-alex@ghiti.fr
 Signed-off-by: Alexandre Ghiti <alex@ghiti.fr>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Suggested-by: Kairui Song <kasong@tencent.com>
-Reviewed-by: Kairui Song <kasong@tencent.com>
+Suggested-by: Yosry Ahmed <yosry@kernel.org>
+Suggested-by: Johannes Weiner <hannes@cmpxchg.org>
+Suggested-by: Nhat Pham <nphamcs@gmail.com>
 Reviewed-by: Nhat Pham <nphamcs@gmail.com>
 Reviewed-by: Kunwu Chan <kunwu.chan@gmail.com>
-Acked-by: Usama Arif <usama.arif@linux.dev>
 Reviewed-by: Barry Song <baohua@kernel.org>
 Cc: Al Viro <viro@zeniv.linux.org.uk>
 Cc: Axel Rasmussen <axelrasmussen@google.com>
 Cc: Baoquan He <baoquan.he@linux.dev>
 Cc: Chengming Zhou <chengming.zhou@linux.dev>
-Cc: Chis Li <chrisl@kernel.org> (Google)
+Cc: Chis Li <chrisl@kernel.org>
 Cc: Christian Brauner (Amutable) <brauner@kernel.org>
 Cc: "David Hildenbrand (arm)" <david@kernel.org>
 Cc: Jan Kara <jack@suse.cz>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Kairui Song <kasong@tencent.com>
 Cc: Kemeng Shi <shikemeng@huaweicloud.com>
 Cc: Lorenzo Stoakes (ARM) <ljs@kernel.org>
 Cc: Matthew Wilcox <willy@infradead.org>
@@ -144,133 +111,218 @@ Cc: Michal Hocko <mhocko@kernel.org>
 Cc: Qi Zheng <qi.zheng@linux.dev>
 Cc: Shakeel Butt <shakeel.butt@linux.dev>
 Cc: Tal Zussman <tz2294@columbia.edu>
+Cc: Usama Arif <usama.arif@linux.dev>
 Cc: Wei Xu <weixugc@google.com>
-Cc: Yosry Ahmed <yosry@kernel.org>
 Cc: Youngjun Park <youngjun.park@lge.com>
 Cc: Yuanchu Xie <yuanchu@google.com>
 ---
 
- mm/swap.h       |    6 +++---
- mm/swap_state.c |   20 ++++++++++++--------
- mm/swapfile.c   |    2 +-
- mm/zswap.c      |    5 +++--
- 4 files changed, 19 insertions(+), 14 deletions(-)
+ include/linux/swap.h |    6 +++++
+ mm/filemap.c         |   19 +++++++++++++++
+ mm/page_io.c         |    9 +++++++
+ mm/swap_state.c      |   42 +++++++++++++++++++++++++++++++++++
+ mm/vmscan.c          |   49 ++++++++++++++++++++++++++++++++---------
+ 5 files changed, 115 insertions(+), 10 deletions(-)
 
---- a/mm/swapfile.c~mm-swap-move-lru-insertion-out-of-the-swap-cache-allocator
-+++ a/mm/swapfile.c
-@@ -1887,7 +1887,7 @@ void folio_put_swap(struct folio *folio,
-  *   CPU1				CPU2
-  *   do_swap_page()
-  *     ...				swapoff+swapon
-- *     swap_cache_alloc_folio()
-+ *     __swap_cache_alloc_folio()
-  *       // check swap_map
-  *     // verify PTE not changed
-  *
---- a/mm/swap.h~mm-swap-move-lru-insertion-out-of-the-swap-cache-allocator
-+++ a/mm/swap.h
-@@ -312,9 +312,9 @@ bool swap_cache_has_folio(swp_entry_t en
- struct folio *swap_cache_get_folio(swp_entry_t entry);
- void *swap_cache_get_shadow(swp_entry_t entry);
- void swap_cache_del_folio(struct folio *folio);
--struct folio *swap_cache_alloc_folio(swp_entry_t target_entry, gfp_t gfp_mask,
--				     unsigned long orders, struct vm_fault *vmf,
--				     struct mempolicy *mpol, pgoff_t ilx);
-+struct folio *__swap_cache_alloc_folio(swp_entry_t target_entry, gfp_t gfp_mask,
-+				       unsigned long orders, struct vm_fault *vmf,
-+				       struct mempolicy *mpol, pgoff_t ilx);
- /* Below helpers require the caller to lock and pass in the swap cluster. */
- void __swap_cache_add_folio(struct swap_cluster_info *ci,
- 			    struct folio *folio, swp_entry_t entry);
---- a/mm/swap_state.c~mm-swap-move-lru-insertion-out-of-the-swap-cache-allocator
-+++ a/mm/swap_state.c
-@@ -497,13 +497,11 @@ static struct folio *__swap_cache_alloc(
- 	node_stat_mod_folio(folio, NR_FILE_PAGES, nr_pages);
- 	lruvec_stat_mod_folio(folio, NR_SWAPCACHE, nr_pages);
+--- a/include/linux/swap.h~mm-swap-drop-dropbehind-swap-cache-folios-on-writeback-completion
++++ a/include/linux/swap.h
+@@ -336,6 +336,9 @@ static inline bool lru_cache_disabled(vo
  
--	/* Caller will initiate read into locked new_folio */
--	folio_add_lru(folio);
- 	return folio;
+ extern unsigned long shrink_all_memory(unsigned long nr_pages);
+ long remove_mapping(struct address_space *mapping, struct folio *folio);
++long remove_mapping_set_shadow(struct address_space *mapping,
++			       struct folio *folio,
++			       struct mem_cgroup *target_memcg);
+ 
+ #if defined(CONFIG_SYSFS) && defined(CONFIG_NUMA)
+ extern int reclaim_register_node(struct node *node);
+@@ -421,6 +424,8 @@ void swap_put_entries_direct(swp_entry_t
+  */
+ bool folio_free_swap(struct folio *folio);
+ 
++void swap_writeback_dropbehind_folio(struct folio *folio);
++
+ /* Allocate / free (hibernation) exclusive entries */
+ swp_entry_t swap_alloc_hibernation_slot(int type);
+ void swap_free_hibernation_slot(swp_entry_t entry);
+@@ -431,6 +436,7 @@ static inline void put_swap_device(struc
+ }
+ 
+ #else /* CONFIG_SWAP */
++static inline void swap_writeback_dropbehind_folio(struct folio *folio) {}
+ static inline struct swap_info_struct *get_swap_device(swp_entry_t entry)
+ {
+ 	return NULL;
+--- a/mm/filemap.c~mm-swap-drop-dropbehind-swap-cache-folios-on-writeback-completion
++++ a/mm/filemap.c
+@@ -1685,6 +1685,8 @@ EXPORT_SYMBOL_GPL(folio_end_writeback_no
+  */
+ void folio_end_writeback(struct folio *folio)
+ {
++	bool swap_dropbehind;
++
+ 	VM_BUG_ON_FOLIO(!folio_test_writeback(folio), folio);
+ 
+ 	/*
+@@ -1694,7 +1696,24 @@ void folio_end_writeback(struct folio *f
+ 	 * reused before the folio_wake_bit().
+ 	 */
+ 	folio_get(folio);
++
++	/*
++	 * Sample this before folio_end_writeback_no_dropbehind() clears
++	 * PG_writeback: until then a racing swapin cannot remove the folio from
++	 * the swap cache. Afterwards it can, and the drop below then finds a
++	 * non-swapcache folio and puts it back on the LRU instead. The
++	 * reference taken above keeps the folio alive across that window.
++	 */
++	swap_dropbehind = folio_test_swapcache(folio) &&
++			  folio_test_dropbehind(folio);
++
+ 	folio_end_writeback_no_dropbehind(folio);
++
++	if (swap_dropbehind) {
++		swap_writeback_dropbehind_folio(folio);
++		return;
++	}
++
+ 	folio_end_dropbehind(folio);
+ 	folio_put(folio);
+ }
+--- a/mm/page_io.c~mm-swap-drop-dropbehind-swap-cache-folios-on-writeback-completion
++++ a/mm/page_io.c
+@@ -608,6 +608,15 @@ static void swap_bdev_submit_write(struc
+ 		submit_bio_wait(bio);
+ 		end_swap_bio_write(bio);
+ 	} else {
++		int p;
++
++		for (p = 0; p < sio->nr_bvecs; p++) {
++			if (folio_test_dropbehind(bvec_folio(&sio->bvecs[p]))) {
++				bio_set_flag(bio, BIO_COMPLETE_IN_TASK);
++				break;
++			}
++		}
++
+ 		bio->bi_end_io = end_swap_bio_write;
+ 		submit_bio(bio);
+ 	}
+--- a/mm/swap_state.c~mm-swap-drop-dropbehind-swap-cache-folios-on-writeback-completion
++++ a/mm/swap_state.c
+@@ -551,6 +551,48 @@ struct folio *__swap_cache_alloc_folio(s
+ 	return ret;
+ }
+ 
++/**
++ * swap_writeback_dropbehind_folio - drop a dropbehind swap cache folio
++ * @folio: the off-LRU folio whose writeback has completed
++ *
++ * Context: task context, with the reference taken by folio_end_writeback()
++ * donated to us.
++ */
++void swap_writeback_dropbehind_folio(struct folio *folio)
++{
++	struct mem_cgroup *memcg;
++
++	folio_lock(folio);
++
++	/* The folio was allocated off the LRU and nothing re-adds it here. */
++	VM_WARN_ON_ONCE_FOLIO(folio_test_lru(folio), folio);
++
++	rcu_read_lock();
++	memcg = folio_memcg(folio);
++	if (!mem_cgroup_tryget(memcg))
++		memcg = NULL;
++	rcu_read_unlock();
++
++	/*
++	 * Gate remove_mapping_set_shadow() on folio_test_swapcache(): a racing
++	 * swapin may have freed the swap slot (folio_free_swap()) and dropped the
++	 * folio from the cache, and it must not run on a non-swapcache folio (it
++	 * would trip __remove_mapping()'s mapping == folio_mapping() check).
++	 */
++	if (!folio_test_swapcache(folio) || folio_test_writeback(folio) ||
++	    !remove_mapping_set_shadow(swap_address_space(folio->swap), folio,
++				       memcg)) {
++		/* Raced: the folio is now owned by the swapin; put it back. */
++		folio_clear_dropbehind(folio);
++		folio_add_lru(folio);
++	}
++
++	mem_cgroup_put(memcg);
++
++	folio_unlock(folio);
++	folio_put(folio);
++}
++
+ /*
+  * If we are the only user, then try to free up the swap cache.
+  *
+--- a/mm/vmscan.c~mm-swap-drop-dropbehind-swap-cache-folios-on-writeback-completion
++++ a/mm/vmscan.c
+@@ -854,6 +854,22 @@ cannot_free:
+ 	return 0;
+ }
+ 
++static long __remove_mapping_unfreeze(struct address_space *mapping,
++				      struct folio *folio, bool reclaimed,
++				      struct mem_cgroup *target_memcg)
++{
++	if (__remove_mapping(mapping, folio, reclaimed, target_memcg)) {
++		/*
++		 * Unfreezing the refcount with 1 effectively
++		 * drops the pagecache ref for us without requiring another
++		 * atomic operation.
++		 */
++		folio_ref_unfreeze(folio, 1);
++		return folio_nr_pages(folio);
++	}
++	return 0;
++}
++
+ /**
+  * remove_mapping() - Attempt to remove a folio from its mapping.
+  * @mapping: The address space.
+@@ -868,16 +884,29 @@ cannot_free:
+  */
+ long remove_mapping(struct address_space *mapping, struct folio *folio)
+ {
+-	if (__remove_mapping(mapping, folio, false, NULL)) {
+-		/*
+-		 * Unfreezing the refcount with 1 effectively
+-		 * drops the pagecache ref for us without requiring another
+-		 * atomic operation.
+-		 */
+-		folio_ref_unfreeze(folio, 1);
+-		return folio_nr_pages(folio);
+-	}
+-	return 0;
++	return __remove_mapping_unfreeze(mapping, folio, false, NULL);
++}
++
++/**
++ * remove_mapping_set_shadow() - Remove a folio and record an eviction shadow.
++ * @mapping: The address space.
++ * @folio: The folio to remove.
++ * @target_memcg: The memcg to charge the eviction shadow to; the caller must
++ *                keep it alive across the call.
++ *
++ * Like remove_mapping(), but stores a workingset eviction shadow the way page
++ * reclaim does, so that a later refault can be detected and the folio
++ * re-activated.
++ * Return: The number of pages removed from the mapping.  0 if the folio
++ * could not be removed.
++ * Context: The caller should have a single refcount on the folio and
++ * hold its lock.
++ */
++long remove_mapping_set_shadow(struct address_space *mapping,
++			       struct folio *folio,
++			       struct mem_cgroup *target_memcg)
++{
++	return __remove_mapping_unfreeze(mapping, folio, true, target_memcg);
  }
  
  /**
-- * swap_cache_alloc_folio - Allocate folio for swapped out slot in swap cache.
-+ * __swap_cache_alloc_folio - Allocate folio for swapped out slot in swap cache.
-  * @targ_entry: swap entry indicating the target slot
-  * @gfp: memory allocation flags
-  * @orders: allocation orders, must be non zero
-@@ -515,13 +513,17 @@ static struct folio *__swap_cache_alloc(
-  * doing IO (e.g. swap in or zswap writeback). The swap slot indicated by
-  * @targ_entry must have a non-zero swap count (swapped out).
-  *
-+ * The returned folio is locked and is NOT on the LRU. The caller must either
-+ * add it to the LRU with folio_add_lru() so page reclaim can find it, or free
-+ * it directly once done; a folio left off the LRU is unreclaimable and leaks.
-+ *
-  * Context: Caller must protect the swap device with reference count or locks.
-  * Return: Returns the folio if allocation succeeded and folio is in the swap
-  * cache. Returns error code if failed due to race, OOM or invalid arguments.
-  */
--struct folio *swap_cache_alloc_folio(swp_entry_t targ_entry, gfp_t gfp,
--				     unsigned long orders, struct vm_fault *vmf,
--				     struct mempolicy *mpol, pgoff_t ilx)
-+struct folio *__swap_cache_alloc_folio(swp_entry_t targ_entry, gfp_t gfp,
-+				       unsigned long orders, struct vm_fault *vmf,
-+				       struct mempolicy *mpol, pgoff_t ilx)
- {
- 	int order, err;
- 	struct folio *ret;
-@@ -657,12 +659,13 @@ static struct folio *swap_cache_read_fol
- 		folio = swap_cache_get_folio(entry);
- 		if (folio)
- 			return folio;
--		folio = swap_cache_alloc_folio(entry, gfp, BIT(0), NULL, mpol, ilx);
-+		folio = __swap_cache_alloc_folio(entry, gfp, BIT(0), NULL, mpol, ilx);
- 	} while (PTR_ERR(folio) == -EEXIST);
- 
- 	if (IS_ERR_OR_NULL(folio))
- 		return NULL;
- 
-+	folio_add_lru(folio);
- 	swap_read_folio(ctx, folio);
- 	if (readahead) {
- 		folio_set_readahead(folio);
-@@ -698,12 +701,13 @@ struct folio *swapin_sync(swp_entry_t en
- 		folio = swap_cache_get_folio(entry);
- 		if (folio)
- 			return folio;
--		folio = swap_cache_alloc_folio(entry, gfp, orders, vmf, mpol, ilx);
-+		folio = __swap_cache_alloc_folio(entry, gfp, orders, vmf, mpol, ilx);
- 	} while (PTR_ERR(folio) == -EEXIST);
- 
- 	if (IS_ERR(folio))
- 		return folio;
- 
-+	folio_add_lru(folio);
- 	swap_read_folio(&ctx, folio);
- 	swap_read_submit(&ctx);
- 	return folio;
---- a/mm/zswap.c~mm-swap-move-lru-insertion-out-of-the-swap-cache-allocator
-+++ a/mm/zswap.c
-@@ -1019,8 +1019,8 @@ static int zswap_writeback_entry(struct
- 		return -ENOENT;
- 
- 	mpol = get_task_policy(current);
--	folio = swap_cache_alloc_folio(swpentry, GFP_KERNEL, BIT(0), NULL, mpol,
--				       NO_INTERLEAVE_INDEX);
-+	folio = __swap_cache_alloc_folio(swpentry, GFP_KERNEL, BIT(0), NULL, mpol,
-+					 NO_INTERLEAVE_INDEX);
- 	put_swap_device(si);
- 
- 	/*
-@@ -1032,6 +1032,7 @@ static int zswap_writeback_entry(struct
- 	 */
- 	if (IS_ERR(folio))
- 		return PTR_ERR(folio);
-+	folio_add_lru(folio);
- 
- 	/*
- 	 * folio is locked, and the swapcache is now secured against
 _
 
 Patches currently in -mm which might be from alex@ghiti.fr are
