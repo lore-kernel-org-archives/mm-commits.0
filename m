@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BE180449EA8
-	for <mm-commits@vger.kernel.org>; Mon, 21 Sep 2026 22:48:51 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 87AB93ED3B4
+	for <mm-commits@vger.kernel.org>; Mon, 21 Sep 2026 22:49:30 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790030933; cv=none; b=l1XYNzJQHvrNFRBlkXWBVNp3eXuEEX2WSq9x23X0h2IyHdemDhAMEYdOnVuIW3Tfr98nmhZWocD7GjKzQgp4JAtiFyd+vKxLVmAypqgLbeFEQPwQm+qb8QBrMklS9PQ7QU9tYeD9ewBa4i9qQ3IRddXw/vtqGlnvnKWnSXoClRE=
+	t=1790030971; cv=none; b=tRZLDOfzO8x0F+fmjjnn1ILMvISsrF/1KNLL0g2heGYXotwrOHq88zZnzLcapmWSrBsncU50hKWrCMt9sLbtPtuCAQSwKBjBcwe+mbNmaheLI64q7CX3jtoK8a1EZIFRc0SAGODKOBCxD3X6eqZfe/anYQVwplcVECzsIu3TWkY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1790030933; c=relaxed/simple;
-	bh=HmfbWtEjEhDt1AdXarMpJ+oknaUb03zqQi7sEkYbVmg=;
-	h=Date:To:From:Subject:Message-Id; b=YSnH/mQnMJT5xeNJedru1iNgy3cQDd0Mh2pmXKPiFtKxiN7oveA+UI0QkhPDdn3lCDHohsxbaHBbyfN+VYWA6nWojtahT9IYUS68q78LfXXiUSi6doQNBxOZTSqZs3pafCMtn+0d5AfKf3Z7lJEjiBNgW/eOKKm1XOz8f2shmPE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=qbDJgSn8; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1790030971; c=relaxed/simple;
+	bh=Po+6DJby44qJjWeRL4X4fGwKOR4zbMpImnKT/Ictiao=;
+	h=Date:To:From:Subject:Message-Id; b=XRijySnztafj0KnRF33hL14nIpeBTTvZkD2vrkdWIF3oiJobBFOlOdF8Neg9jGUUG71FJftYDPXqswZVDiVdV0l4fvgYvnQ+gNUAGZ7lU5HMlnRJbpoU1EQQZzoGPMKA/pPso9etPLSBmEFT09d3Rjat8P1Uo+V9xC+SSepdCd8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=0sNFb1ps; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="qbDJgSn8"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 67C251F00893;
-	Mon, 21 Sep 2026 22:48:51 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="0sNFb1ps"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 23BB41F000FF;
+	Mon, 21 Sep 2026 22:49:30 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1790030931;
-	bh=C0ADxdqZmUt9Cfinif4fdob002mUzv0WPMZ6YrWD0HY=;
+	d=linux-foundation.org; s=korg; t=1790030970;
+	bh=3oYlR70J+wCu+u7JdV+1d/j8HMUtCK/lqLjcJcBdzLA=;
 	h=Date:To:From:Subject;
-	b=qbDJgSn8efdPuJEpDSwIV11wrImSPte5CNCLPZj9YF+lC+AksG7lTVT4apFKpgekD
-	 JanYLzZ7zMWFpb+gDUJjtia078ORld5kF5KWw7tONi9pk0v64qZ834Cm+8qgIx5uuQ
-	 SRhsNlMYrIzLV3f+S31Tm5E+vb01bA7v5cLLWCj8=
-Date: Mon, 21 Sep 2026 15:48:51 -0700
-To: mm-commits@vger.kernel.org,bingfangguo@tencent.com,akpm@linux-foundation.org
+	b=0sNFb1ps75tcFbxhY0uqLisg+NRAJnUqLWpMS+4sRSpx+49KC0TuKpHeBMWE+dt5F
+	 eAOKJEjI90U7/yF9JhUo2B0TNjjh0VOfEt8yZFCu8tcX9hrMPgL4jDLZd/KW5RqLex
+	 k3ISGEaVJCc6UaoVxFs2VGWCkqG9kmRfIpOHlj/M=
+Date: Mon, 21 Sep 2026 15:49:29 -0700
+To: mm-commits@vger.kernel.org,david@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + memcg-base-swap-charge-accounting-on-memcgid-root-status.patch added to mm-new branch
-Message-Id: <20260921224851.67C251F00893@smtp.kernel.org>
+Subject: + mm-sparse-move-mem_section-init-to-sparse_extreme_init.patch added to mm-new branch
+Message-Id: <20260921224930.23BB41F000FF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: memcg: base swap charge accounting on memcgid root status
+     Subject: mm/sparse: move mem_section init to sparse_extreme_init()
 has been added to the -mm mm-new branch.  Its filename is
-     memcg-base-swap-charge-accounting-on-memcgid-root-status.patch
+     mm-sparse-move-mem_section-init-to-sparse_extreme_init.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/memcg-base-swap-charge-accounting-on-memcgid-root-status.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-sparse-move-mem_section-init-to-sparse_extreme_init.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -69,142 +69,129 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Bingfang Guo <bingfangguo@tencent.com>
-Subject: memcg: base swap charge accounting on memcgid root status
-Date: Mon, 21 Sep 2026 14:16:25 +0800
+From: "David Hildenbrand (Arm)" <david@kernel.org>
+Subject: mm/sparse: move mem_section init to sparse_extreme_init()
+Date: Mon, 21 Sep 2026 21:58:53 +0200
 
-A private ID currently pins its original memcg, so testing whether the ID
-belongs to root is equivalent to testing whether the resolved memcg is
-root.
+Patch series "mm/sparse: remove SECTION_MARKED_PRESENT and further
+cleanups", v2.
 
-That equivalence will no longer hold when IDs refer to objcgs.  A non-root
-ID may resolve to root after reparenting, but its swap entries still carry
-counter charges inherited by root.  Skipping their uncharge based on the
-resolved memcg would leave those charges behind.
+SECTION_MARKED_PRESENT is really only needed during boot, where we can
+instead just rely on SECTION_IS_EARLY_BIT by setting that flag earlier.
 
-Use the private ID's root status to decide whether a swap entry carries a
-counter charge.  A root-ID entry carries none, while a non-root-ID entry
-must release its charge even if its current accounting memcg has become
-root.
+Some preparations for doing that conversion and some cleanups in the same
+(sparse) area.
 
-This patch adds a new helper to check if the memcgid equals to that of the
-root memcg.  For swap uncharging and v2 swap charging, simply decide
-whether to charge/uncharge memsw or swap counter based on the swap memcgid
-is root or not.  For v1 swapout, don't recharge the memsw counter, just
-cancel the charge if the swap memcg ID refers to the root memcg.
 
-This makes memory and swap charging have similar semantics: one relys on
-the objcg's root status, and the other relys on the memcgid's root status.
+This patch (of 13):
 
-Link: https://lore.kernel.org/20260921-bingfangguo-memcgid-rework-v2-2-6c0637dc0edb@tencent.com
-Signed-off-by: Bingfang Guo <bingfangguo@tencent.com>
+Let's just avoid another pair of ifdef inside a function.  While at it,
+switch to INTERNODE_CACHE_BYTES by just defining a fallback in cache.h as
+well, given that the x86 variant already provides one.
+
+Link: https://lore.kernel.org/20260921-b4-sparsemem_cleanups-v2-0-54d81d65e125@kernel.org
+Link: https://lore.kernel.org/20260921-b4-sparsemem_cleanups-v2-1-54d81d65e125@kernel.org
+Signed-off-by: David Hildenbrand (Arm) <david@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Acked-by: Muchun Song <muchun.song@linux.dev>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Roman Gushchin <roman.gushchin@linux.dev>
-Cc: Shakeel Butt <shakeel.butt@linux.dev>
-Cc: Dave Chinner <david@fromorbit.com>
-Cc: Qi Zheng <qi.zheng@linux.dev>
+Acked-by: Oscar Salvador <osalvador@suse.de>
+Reviewed-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
+Reviewed-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
+Cc: Liam R. Howlett <liam@infradead.org>
+Cc: Vlastimil Babka <vbabka@kernel.org>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Michal Hocko <mhocko@suse.com>
 Cc: Kairui Song <kasong@tencent.com>
+Cc: Qi Zheng <qi.zheng@linux.dev>
+Cc: Shakeel Butt <shakeel.butt@linux.dev>
 Cc: Barry Song <baohua@kernel.org>
 Cc: Axel Rasmussen <axelrasmussen@google.com>
 Cc: Yuanchu Xie <yuanchu@google.com>
 Cc: Wei Xu <weixugc@google.com>
-Cc: David Hildenbrand <david@kernel.org>
-Cc: Lorenzo Stoakes <ljs@kernel.org>
-Cc: Bingfang Guo <bfguo@icloud.com>
+Cc: Baoquan He <baoquan.he@linux.dev>
+Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
+Cc: Brendan Jackman <brendan.jackman@linux.dev>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Zi Yan <ziy@nvidia.com>
+Cc: Jan Kiszka <jan.kiszka@siemens.com>
+Cc: Kieran Bingham <kbingham@kernel.org>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Rafael J. Wysocki <rafael@kernel.org>
+Cc: Danilo Krummrich <dakr@kernel.org>
 ---
 
- mm/memcontrol-v1.c |   16 ++++++++--------
- mm/memcontrol-v1.h |    5 +++++
- mm/memcontrol.c    |    4 ++--
- 3 files changed, 15 insertions(+), 10 deletions(-)
+ include/linux/cache.h |    1 +
+ mm/sparse.c           |   19 ++++++++++++-------
+ 2 files changed, 13 insertions(+), 7 deletions(-)
 
---- a/mm/memcontrol.c~memcg-base-swap-charge-accounting-on-memcgid-root-status
-+++ a/mm/memcontrol.c
-@@ -5976,7 +5976,7 @@ int __mem_cgroup_try_charge_swap(struct
- 		/* memcg is pined by memcg ID. */
- 		private_id = mem_cgroup_private_id(memcg);
+--- a/include/linux/cache.h~mm-sparse-move-mem_section-init-to-sparse_extreme_init
++++ a/include/linux/cache.h
+@@ -89,6 +89,7 @@
+  */
+ #ifndef INTERNODE_CACHE_SHIFT
+ #define INTERNODE_CACHE_SHIFT L1_CACHE_SHIFT
++#define INTERNODE_CACHE_BYTES (1 << INTERNODE_CACHE_SHIFT)
+ #endif
  
--		if (!mem_cgroup_is_root(memcg) &&
-+		if (!mem_cgroup_private_id_is_root(private_id) &&
- 		    !page_counter_try_charge(&memcg->swap, nr_pages, &counter)) {
- 			memcg_memory_event(memcg, MEMCG_SWAP_MAX);
- 			memcg_memory_event(memcg, MEMCG_SWAP_FAIL);
-@@ -6005,7 +6005,7 @@ void __mem_cgroup_uncharge_swap(unsigned
- 	rcu_read_lock();
- 	memcg = mem_cgroup_from_private_id(id);
- 	if (memcg) {
--		if (!mem_cgroup_is_root(memcg)) {
-+		if (!mem_cgroup_private_id_is_root(id)) {
- 			if (do_memsw_account())
- 				page_counter_uncharge(&memcg->memsw, nr_pages);
- 			else
---- a/mm/memcontrol-v1.c~memcg-base-swap-charge-accounting-on-memcgid-root-status
-+++ a/mm/memcontrol-v1.c
-@@ -271,6 +271,7 @@ void __memcg1_swapout(struct folio *foli
- 	struct mem_cgroup *memcg, *swap_memcg;
- 	struct obj_cgroup *objcg;
- 	unsigned int nr_entries;
-+	unsigned short private_id;
+ #if !defined(____cacheline_internodealigned_in_smp)
+--- a/mm/sparse.c~mm-sparse-move-mem_section-init-to-sparse_extreme_init
++++ a/mm/sparse.c
+@@ -103,11 +103,22 @@ int __meminit sparse_index_init(unsigned
  
- 	VM_WARN_ON_ONCE_FOLIO(!folio_test_swapcache(folio), folio);
- 	VM_WARN_ON_ONCE_FOLIO(!folio_test_locked(folio), folio);
-@@ -293,25 +294,24 @@ void __memcg1_swapout(struct folio *foli
- 	/*
- 	 * In case the memcg owning these pages has been offlined and doesn't
- 	 * have an ID allocated to it anymore, charge the closest online
--	 * ancestor for the swap instead and transfer the memory+swap charge.
-+	 * ancestor for the swap instead and cancel the memory+swap charge
-+	 * if the ID refers to the root memcg.
- 	 */
- 	nr_entries = folio_nr_pages(folio);
- 	swap_memcg = mem_cgroup_private_id_get_online(memcg, nr_entries);
-+	private_id = mem_cgroup_private_id(swap_memcg);
- 	mod_memcg_state(swap_memcg, MEMCG_SWAP, nr_entries);
- 
--	__swap_cgroup_set(ci, swp_cluster_offset(folio->swap), nr_entries,
--			  mem_cgroup_private_id(swap_memcg));
-+	__swap_cgroup_set(ci, swp_cluster_offset(folio->swap), nr_entries, private_id);
- 
- 	folio_unqueue_deferred_split(folio);
- 	folio->memcg_data = 0;
- 
--	if (!obj_cgroup_is_root(objcg))
-+	if (!obj_cgroup_is_root(objcg)) {
- 		page_counter_uncharge(&memcg->memory, nr_entries);
- 
--	if (memcg != swap_memcg) {
--		if (!mem_cgroup_is_root(swap_memcg))
--			page_counter_charge(&swap_memcg->memsw, nr_entries);
--		page_counter_uncharge(&memcg->memsw, nr_entries);
-+		if (mem_cgroup_private_id_is_root(private_id))
-+			page_counter_uncharge(&memcg->memsw, nr_entries);
- 	}
- 
- 	/*
---- a/mm/memcontrol-v1.h~memcg-base-swap-charge-accounting-on-memcgid-root-status
-+++ a/mm/memcontrol-v1.h
-@@ -22,6 +22,11 @@ void drain_all_stock(struct mem_cgroup *
- 
- int memory_stat_show(struct seq_file *m, void *v);
- 
-+static inline bool mem_cgroup_private_id_is_root(unsigned short id)
-+{
-+	return id == mem_cgroup_private_id(root_mem_cgroup);
-+}
+ 	return 0;
+ }
 +
- struct mem_cgroup *mem_cgroup_private_id_get_online(struct mem_cgroup *memcg,
- 						    unsigned int n);
++static void __init sparse_extreme_init(void)
++{
++	const unsigned long size = sizeof(struct mem_section *) * NR_SECTION_ROOTS;
++
++	mem_section = memblock_alloc_or_panic(size, INTERNODE_CACHE_BYTES);
++}
+ #else /* !SPARSEMEM_EXTREME */
+ int __meminit sparse_index_init(unsigned long section_nr, int nid)
+ {
+ 	return 0;
+ }
++
++static void __init sparse_extreme_init(void)
++{
++}
+ #endif
  
+ /*
+@@ -196,13 +207,7 @@ void __init sparse_sections_init(void)
+ 	unsigned long start, end;
+ 	int i, nid;
+ 
+-#ifdef CONFIG_SPARSEMEM_EXTREME
+-	unsigned long size, align;
+-
+-	size = sizeof(struct mem_section *) * NR_SECTION_ROOTS;
+-	align = 1 << (INTERNODE_CACHE_SHIFT);
+-	mem_section = memblock_alloc_or_panic(size, align);
+-#endif
++	sparse_extreme_init();
+ 
+ 	for_each_mem_pfn_range(i, MAX_NUMNODES, &start, &end, &nid)
+ 		memory_present(nid, start, end);
 _
 
-Patches currently in -mm which might be from bingfangguo@tencent.com are
+Patches currently in -mm which might be from david@kernel.org are
 
-mm-memcg-clear-folio-memcg-after-changing-per-memcg-stats.patch
-memcg-keep-swap-charging-under-rcu-protection.patch
-memcg-base-swap-charge-accounting-on-memcgid-root-status.patch
-memcg-manipulate-memcg-private-id-references-by-id.patch
-memcg-move-memcg-private-id-refcount-to-objcg.patch
+maintainers-split-up-memory-management-memory-policy-and-migration.patch
+maintainers-move-memory-tiering-under-memory-management-numa-placement.patch
+maintainers-make-gregory-a-co-maintainer-of-memory-management-numa-placement.patch
+selftests-mm-khugepaged-remove-str_dup-usage.patch
+mm-sparse-move-mem_section-init-to-sparse_extreme_init.patch
+mm-sparse-refactor-sparse_sections_init.patch
+mm-sparse-move-initialization-of-section-metadata-to-sparse_metadata_init.patch
+mm-sparse-rename-and-cleanup-sparse_init_nid.patch
+mm-sparse-cleanup-sparse_init_one_section.patch
+mm-sparse-rename-__highest_present_section_nr-to-__highest_used_section_nr.patch
+mm-sparse-remove-pfn_in_present_section.patch
+mm-sparse-move-__highest_used_section_nr-handling.patch
+scripts-gdb-mmpy-remove-fallbacks-for-section_has_mem_map-and-section_is_early.patch
+mm-sparse-remove-section_marked_present.patch
+mm-sparse-remove-flags-parameter-from-sparse_init_one_section.patch
+fs-proc-page-clarify-comment-in-get_max_dump_pfn.patch
+mm-memory_hotplug-drop-config_have_arch_pfn_valid-handling-from-pfn_to_online_page.patch
 
