@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B4534347BD9
-	for <mm-commits@vger.kernel.org>; Mon, 21 Sep 2026 04:10:06 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5FF74348896
+	for <mm-commits@vger.kernel.org>; Mon, 21 Sep 2026 04:10:08 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789963808; cv=none; b=SlFp2CHMtTqW7IGNRnT7faSTLKHJ57tRkZLhQaAwVrl17dARJ1c7C2sC5gob4AYaMbiAdfIyayC5tuV2w1Sf0zmaNHFKZlyogEwuwFIxdxPZRdSkvkNzdp5C32RfaZdc4kl22Eh0FEdQDL+RT8+jcmq2zydOVAQah0Z0IMfz7zk=
+	t=1789963809; cv=none; b=V73LOLMp9HEMoZCqGqCVUpzUIOiPBHMpXN3sJk7yUSXgD+A8VMvfvWL+nzpk5v4wrUWhEVbr6HwLQ0Jg9Y4I1ehIYv7f3PffGPYrcYSwkCPBfVZTjYLACMpQYUQafHQCA00UsHv5PsFrbZ7WS8UvKlTlQX0YrfQiSbWoCKAihWc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1789963808; c=relaxed/simple;
-	bh=oeps/M8R6qS0KHVEy1PCmYnfjJn3mT+D9otXAD4QbvU=;
-	h=Date:To:From:Subject:Message-Id; b=BMPNHNSZc1PhR+/tAoFrXl/FA96sijPyEjoW2vg/YDH8NA52ygLKLjDgzfWjxN+n/e7Mt9cdQh11xTZmh7c3aQ5uMpQMq3TRpF9NhDNaf3L+3S1VDODPuATXVQwzjLV7gHUgd2Svpb2BlFodOpmIwMDaYWzWXxTfuddQ2NUNF9o=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=BEfxhJYy; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1789963809; c=relaxed/simple;
+	bh=IbNsHLD0oZwfunE4krM4d7YU/H0Z64Y3Riqx9g3za34=;
+	h=Date:To:From:Subject:Message-Id; b=pD5HfkQuA8kJgqg05veA0fYom/x9NfWiz9BpzbZKNSihhcpJcf0BieTPZMOmfbo/BW8DEghI6ciUKmoJeD6454ZT+eVu9DlwT3G+DxdSgtfTSbEbZUod5+oORycOZmzxhdrOinLON/74Xqgh5vC5rfoXKQ3bszDHChIEyBboRfM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=GWnfioi3; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="BEfxhJYy"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 44C321F00893;
-	Mon, 21 Sep 2026 04:10:06 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="GWnfioi3"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2BA281F000FF;
+	Mon, 21 Sep 2026 04:10:08 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1789963806;
-	bh=kjUTAWHql7AIHk0/4aukuWAKCMGATU8xkNAPAFqDZfA=;
+	d=linux-foundation.org; s=korg; t=1789963808;
+	bh=b/tzvY6dt1MpagAxtYirWdR/7eVDA0aZfPXYwIwFGXw=;
 	h=Date:To:From:Subject;
-	b=BEfxhJYyLGoKSaUWRJMoGqegGaah4NIKshHLXHowc2uT4Z/LTCgPjY5ybm/g5hWBU
-	 X7nIS291Ry2kVap2Vr0bclpyAqJvJORxiH+ZGZgxp2VIblyHCbuhtdVFCLcyeORqy6
-	 9YI/ezac9e8DVZJ50DBFzhD9f47zujQVOzQroFVg=
-Date: Sun, 20 Sep 2026 21:10:05 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,akpm@linux-foundation.org
+	b=GWnfioi3+KL4lqYSOJmpI1A/KZvd1nMvIadngv/Em2c5Fva2yG530wB0Z8ALrp26H
+	 InE1Dk5bPbwgFrw6aaNEfP33TUmDabFsLsj3MCOsYlilFEFQ9SAWKdmuD3Cx4oetJM
+	 FVTrWXmlZ/sduyWyF6X4UIwKerARILESp5dM9w64=
+Date: Sun, 20 Sep 2026 21:10:07 -0700
+To: mm-commits@vger.kernel.org,willy@infradead.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + ceph-replace-pageprivate-with-page_private.patch added to mm-unstable branch
-Message-Id: <20260921041006.44C321F00893@smtp.kernel.org>
+Subject: + md-use-folio_alloc_buffers.patch added to mm-unstable branch
+Message-Id: <20260921041008.2BA281F000FF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: ceph: replace PagePrivate() with page_private()
+     Subject: md: use folio_alloc_buffers()
 has been added to the -mm mm-unstable branch.  Its filename is
-     ceph-replace-pageprivate-with-page_private.patch
+     md-use-folio_alloc_buffers.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/ceph-replace-pageprivate-with-page_private.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/md-use-folio_alloc_buffers.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,67 +58,85 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Zi Yan <ziy@nvidia.com>
-Subject: ceph: replace PagePrivate() with page_private()
-Date: Sun, 20 Sep 2026 22:28:08 -0400
+From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
+Subject: md: use folio_alloc_buffers()
+Date: Sun, 20 Sep 2026 22:28:09 -0400
 
-PagePrivate() is going to be removed along with PG_private and its
-implementation is the same as page_private().
+Remove the last user of alloc_page_buffers().  Use folio_alloc_buffers()
+instead, since alloc_page_buffers() is a wrap over it.  Although the pages
+used in md-bitmap are not folios, as they are not mapped into userspace
+nor enter the page cache, but they still have buffer heads attached. 
+Cleaning up the code to not use buffer heads is future work.
 
-Assisted-by: LLM
-Link: https://lore.kernel.org/20260920-remove-pg_private-v5-12-bb68b6a21869@nvidia.com
+[ziy@nvidia.com: reword commit message]
+Link: https://lore.kernel.org/20260920-remove-pg_private-v5-13-bb68b6a21869@nvidia.com
+Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Signed-off-by: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Reviewed-by: David Hildenbrand (Arm) <david@kernel.org>
-Cc: Ilya Dryomov <idryomov@gmail.com>
-Cc: Alex Markuze <amarkuze@redhat.com>
-Cc: Viacheslav Dubeyko <slava@dubeyko.com>
 ---
 
- fs/ceph/addr.c |    8 +++-----
- 1 file changed, 3 insertions(+), 5 deletions(-)
+ drivers/md/md-bitmap.c      |    5 +++--
+ fs/buffer.c                 |    8 --------
+ include/linux/buffer_head.h |    1 -
+ 3 files changed, 3 insertions(+), 11 deletions(-)
 
---- a/fs/ceph/addr.c~ceph-replace-pageprivate-with-page_private
-+++ a/fs/ceph/addr.c
-@@ -70,9 +70,7 @@ static int ceph_netfs_check_write_begin(
- 
- static inline struct ceph_snap_context *page_snap_context(struct page *page)
+--- a/drivers/md/md-bitmap.c~md-use-folio_alloc_buffers
++++ a/drivers/md/md-bitmap.c
+@@ -560,6 +560,7 @@ static int read_file_page(struct file *f
  {
--	if (PagePrivate(page))
--		return (void *)page->private;
--	return NULL;
-+	return (void *)page_private(page);
+ 	int ret = 0;
+ 	struct inode *inode = file_inode(file);
++	struct folio *folio = page_folio(page);
+ 	struct buffer_head *bh;
+ 	sector_t block, blk_cur;
+ 	unsigned long blocksize = i_blocksize(inode);
+@@ -567,12 +568,12 @@ static int read_file_page(struct file *f
+ 	pr_debug("read bitmap file (%dB @ %llu)\n", (int)PAGE_SIZE,
+ 		 (unsigned long long)index << PAGE_SHIFT);
+ 
+-	bh = alloc_page_buffers(page, blocksize);
++	bh = folio_alloc_buffers(folio, blocksize, GFP_NOFS | __GFP_ACCOUNT);
+ 	if (!bh) {
+ 		ret = -ENOMEM;
+ 		goto out;
+ 	}
+-	attach_page_private(page, bh);
++	folio_attach_private(folio, bh);
+ 	blk_cur = index << (PAGE_SHIFT - inode->i_blkbits);
+ 	while (bh) {
+ 		block = blk_cur;
+--- a/fs/buffer.c~md-use-folio_alloc_buffers
++++ a/fs/buffer.c
+@@ -773,14 +773,6 @@ no_grow:
  }
+ EXPORT_SYMBOL_GPL(folio_alloc_buffers);
  
- /*
-@@ -124,8 +122,8 @@ static bool ceph_dirty_folio(struct addr
- 	spin_unlock(&ci->i_ceph_lock);
- 
- 	/*
--	 * Reference snap context in folio->private.  Also set
--	 * PagePrivate so that we get invalidate_folio callback.
-+	 * Reference snap context in folio->private. Setting folio->private is
-+	 * what gets us the invalidate_folio callback.
- 	 */
- 	VM_WARN_ON_FOLIO(folio->private, folio);
- 	folio_attach_private(folio, snapc);
+-struct buffer_head *alloc_page_buffers(struct page *page, unsigned long size)
+-{
+-	gfp_t gfp = GFP_NOFS | __GFP_ACCOUNT;
+-
+-	return folio_alloc_buffers(page_folio(page), size, gfp);
+-}
+-EXPORT_SYMBOL_GPL(alloc_page_buffers);
+-
+ static inline void link_dev_buffers(struct folio *folio,
+ 		struct buffer_head *head)
+ {
+--- a/include/linux/buffer_head.h~md-use-folio_alloc_buffers
++++ a/include/linux/buffer_head.h
+@@ -197,7 +197,6 @@ void folio_set_bh(struct buffer_head *bh
+ 		  unsigned long offset);
+ struct buffer_head *folio_alloc_buffers(struct folio *folio, unsigned long size,
+ 					gfp_t gfp);
+-struct buffer_head *alloc_page_buffers(struct page *page, unsigned long size);
+ struct buffer_head *create_empty_buffers(struct folio *folio,
+ 		unsigned long blocksize, unsigned long b_state);
+ void end_buffer_read_sync(struct buffer_head *bh, int uptodate);
 _
 
-Patches currently in -mm which might be from ziy@nvidia.com are
+Patches currently in -mm which might be from willy@infradead.org are
 
-mm-zsmalloc-replace-pg_private-with-pointer-comparison.patch
-perf-ring_buffer-stop-using-pg_private-as-aux-page-high-order-marker.patch
-xen-grant-table-stop-setting-pg_private-on-pages-for-grant-mapping.patch
-fscrypt-stop-setting-pg_private-on-bounce-page.patch
-mm-hugetlb-use-direct-assignment-instead-of-folio_change_private.patch
-f2fs-stop-using-pg_private.patch
-f2fs-convert-the-private-flag-helpers-to-folio-only.patch
-erofs-mm-pagemap-add-readahead_folio_last-to-avoid-folio-private.patch
-erofs-use-folio_attach-detach_private-instead-of-direct-assignment.patch
-mm-page-flags-check-page-folio-private-instead-of-pg_private.patch
-treewide-remove-folio_set-clear_private-usage.patch
-ceph-replace-pageprivate-with-page_private.patch
-treewide-remove-pageprivate-and-pg_private-from-comments-and-docs.patch
-mm-page-flags-remove-pg_private.patch
-usb-gadgetfs-do-not-warn-about-excessively-large-memory-allocations.patch
+md-use-folio_alloc_buffers.patch
+md-use-folio-apis-in-free_page.patch
+md-remove-the-last-use-of-page_buffers.patch
 
