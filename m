@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E84504E0B6F
-	for <mm-commits@vger.kernel.org>; Mon, 21 Sep 2026 21:18:56 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A765B47728F
+	for <mm-commits@vger.kernel.org>; Mon, 21 Sep 2026 21:18:58 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790025538; cv=none; b=aTrPMN+ZCtZ7chsifV4avN6y6dEzY4yR/XizlyXOUch169Ef35JhH6OWvpwO2CwW58lBaOtcr+Z/xJk1Mo4trd2Bwyfv6OVpHJ3YkeAKAF1wnEMnM4WWzQ5sybpLA9iFQ0f3S8VeeffRqPx8B5hfKiG7mgFecKDZcS7yFwI3vbU=
+	t=1790025540; cv=none; b=fUGxC6En7pOoYnbg3nABGd7Sk6/eauU4/AmaawW4fzysT5uANVCSbP7U+PSMDmAuBlzvzPJLtdLxmieKQi8Ahf3/uq0vReYP4N1Z8D4lt4V7mzxVB13TT4vwj3Xf68JfvBf2rQwWaE7VCRPDtsc3OoE0+83WP4jadEYClkHO1JA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1790025538; c=relaxed/simple;
-	bh=efmT0AxaNf0vvWd5WIla7uMoE0viPzubZ2yvQ7Un9Fo=;
-	h=Date:To:From:Subject:Message-Id; b=iTteEF9VmSHxnGp6ZBzsTLw0053eOSvLdYh+fN32pngORisZP8TJVfGZYQydbZ0uX07/gWJ+r3SKUXmSrZiXobofbNLPNBLINcpCiilw7EtezW/CvGNoyQCkr+ktlsn0SeIftISVZxeWnc3dFiTSH/VOm2RIssF+WAxxworFJrE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ylBId5EA; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1790025540; c=relaxed/simple;
+	bh=AdvVPrWPzVqkx3sq+6nSLyIxFpdfYdJ/2aWUzwSe8m8=;
+	h=Date:To:From:Subject:Message-Id; b=ezZHqSMMt5zBAZx6sMxaHIZPt9JG5V1ZkpWsoukCt2zpYchsP2o9lKPj4X7TiOC/SPStLoYrRXCC0lWDfYULQXsKi0qwnQMxliRrGoIj7jsiPLswIxX8X2A2ASJDKLVJISwTQUXRRKhAhr/X6uzlpLaqvkyrEeDX3fqVURbrueM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=WjdSeqeo; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ylBId5EA"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3A16B1F000FF;
-	Mon, 21 Sep 2026 21:18:56 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="WjdSeqeo"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 29BE31F00893;
+	Mon, 21 Sep 2026 21:18:58 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1790025536;
-	bh=PH8+XKKY6uG6M5dkNd3ksixOBLF0BcdJ7D1ZcRQGQ6c=;
+	d=linux-foundation.org; s=korg; t=1790025538;
+	bh=kZhmNuaPEiLW0AArvRHUDUogxvsM4UQDNj5lgerJNaM=;
 	h=Date:To:From:Subject;
-	b=ylBId5EAog/C1NXKeCqPxU2hwORnwUjneR+Br2hIf5j3BRwdtibPG6u3wxCdboVTJ
-	 KSFe1wZCtlMOQAWE6902c+BQ3ioroV3hqJX1ZpS5aTNLc9sJNGBMbchTIMftIpKsxm
-	 7clGRbVt6iZAet+A7zXRYMTFJJaBSoAqNVhpC5FA=
-Date: Mon, 21 Sep 2026 14:18:55 -0700
+	b=WjdSeqeosnsFF33kL2vEaeUAu8ZBkr0AyIiV2kyiFJeDCfjeGAY3G0/GHsDe8OEhQ
+	 olObOhkjBOYLGeaUPZUEhbLalXCPfGMcbRc5vRJ0WufalKNOhcIZIGidatsSi7wy/l
+	 4FkPeoCRS/iBfFtDiAISzfUm1MVkbMZGXwjmrLFg=
+Date: Mon, 21 Sep 2026 14:18:57 -0700
 To: mm-commits@vger.kernel.org,ziy@nvidia.com,vbabka@kernel.org,usama.arif@linux.dev,surenb@google.com,shuah@kernel.org,ryan.roberts@arm.com,rppt@kernel.org,nico.pache@linux.dev,mhocko@suse.com,ljs@kernel.org,liam@infradead.org,lance.yang@linux.dev,kas@kernel.org,dev.jain@arm.com,david@kernel.org,baolin.wang@linux.alibaba.com,baohua@kernel.org,yeoreum.yun@arm.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + kselftest-mm-return-fail-when-child-test-result-is-fail-in-khugepaged.patch added to mm-new branch
-Message-Id: <20260921211856.3A16B1F000FF@smtp.kernel.org>
+Subject: + kselftest-mm-fix-intermittent-failure-khugepaged-test.patch added to mm-new branch
+Message-Id: <20260921211858.29BE31F00893@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: kselftest: mm: return fail when child test result is fail in khugepaged
+     Subject: kselftest: mm: fix intermittent failure khugepaged test
 has been added to the -mm mm-new branch.  Its filename is
-     kselftest-mm-return-fail-when-child-test-result-is-fail-in-khugepaged.patch
+     kselftest-mm-fix-intermittent-failure-khugepaged-test.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kselftest-mm-return-fail-when-child-test-result-is-fail-in-khugepaged.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kselftest-mm-fix-intermittent-failure-khugepaged-test.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,13 +70,13 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Yeoreum Yun <yeoreum.yun@arm.com>
-Subject: kselftest: mm: return fail when child test result is fail in khugepaged
-Date: Mon, 21 Sep 2026 11:35:01 +0100
-
-Patch series "kselftest: mm: fix intermittent failure khugepaged test", v2.
+Subject: kselftest: mm: fix intermittent failure khugepaged test
+Date: Mon, 21 Sep 2026 11:35:02 +0100
 
 There are intermittent failures in collapse_max_ptes_swap() and
 collapse_max_ptes_shared() when using the khugepaged_context:
+
+  // while running ./khugepaged -s 2
 
   # Run test: collapse_max_ptes_shared (khugepaged:anon)
   # Allocate huge page... OK
@@ -96,72 +96,20 @@ collapse_max_ptes_shared() when using the khugepaged_context:
   # Planned tests != run tests (26 != 17)
   # Totals: pass:17 fail:0 xfail:0 xpass:0 skip:0 error:0
 
-This happens because khugepaged may collapse the pages before
-wait_for_scan() is called, causing a sanity check that expects uncollapsed
-pages to fail.
+This happens because khugepaged may collapse the pages before wait_for_scan()
+is called, causing a sanity check that expects uncollapsed pages to fail.
 
 For example, in collapse_max_ptes_swap(), after faulting the pages back in
-and paging out up to max_ptes_swap pages, khugepaged may collapse them
-again before c->collapse() is called.
+and paging out up to max_ptes_swap pages, khugepaged may collapse them again
+before c->collapse() is called.
 
 To prevent this, mark the VMA with MADV_NOHUGEPAGE after it has been
-collapsed by wait_for_scan() for anon.  This prevents khugepaged from
+collapsed by wait_for_scan() for anon. This prevents khugepaged from
 collapsing it again before c->collapse() is called.
-
-Also, fix false-positive results when a child process fails in tests such
-as collapse_fork*() or collapse_max_ptes_shared():
-
-  # -------------------------
-  # running ./khugepaged -s 2
-  # -------------------------
-  #
-  # Run test: collapse_max_ptes_shared (khugepaged:anon)
-  # Allocate huge page... OK
-  # Share huge page over fork()... OK
-  # Trigger CoW on page 1023 of 2048... OK
-  # Maybe collapse with max_ptes_shared exceeded.... OK
-  # Trigger CoW on page 1024 of 2048... Fail
-  Bail out! Unexpected huge page
-  # Planned tests != run tests (26 != 23)
-  # Totals: pass:23 fail:0 xfail:0 xpass:0 skip:0 error:0  // child failed.
-  # Check if parent still has huge page... OK              // parent hpage success
-  ok 24 collapse_max_ptes_shared                           // considered as success
-  ...
-  # Totals: pass:26 fail:0 xfail:0 xpass:0 skip:0 error:0
 
 This failure was observed on NVIDIA Spark with 16KB page.
 
-
-This patch (of 2):
-
-Although the child process in collapse_fork*() or
-collapse_max_ptes_shared() reports `KSFT_FAIL`, the result is ignored
-because the test only checks whether the parent's page was collapsed into
-a huge page.
-
-As a result, the test is considered successful whenever the parent's page
-is a huge page, even if the child test fails, as shown below:
-
-  #
-  # Run test: collapse_max_ptes_shared (khugepaged:anon)
-  # Allocate huge page... OK
-  # Share huge page over fork()... OK
-  # Trigger CoW on page 1023 of 2048... OK
-  # Maybe collapse with max_ptes_shared exceeded.... OK
-  # Trigger CoW on page 1024 of 2048... Fail
-  Bail out! Unexpected huge page
-  # Planned tests != run tests (26 != 23)
-  # Totals: pass:23 fail:0 xfail:0 xpass:0 skip:0 error:0  // child failed.
-  # Check if parent still has huge page... OK              // parent hpage success
-  ok 24 collapse_max_ptes_shared                           // considered as success
-  ...
-  # Totals: pass:26 fail:0 xfail:0 xpass:0 skip:0 error:0
-
-To address this, propagate the child's failure and skip the subsequent
-check in the parent.
-
-Link: https://lore.kernel.org/20260921-fix_khugepagd_fail-v2-0-3c2877beef61@arm.com
-Link: https://lore.kernel.org/20260921-fix_khugepagd_fail-v2-1-3c2877beef61@arm.com
+Link: https://lore.kernel.org/20260921-fix_khugepagd_fail-v2-2-3c2877beef61@arm.com
 Signed-off-by: Yeoreum Yun <yeoreum.yun@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 Cc: Zi Yan <ziy@nvidia.com>
@@ -183,62 +131,21 @@ Cc: David Hildenbrand (ARM) <david@kernel.org>
 Cc: Shuah Khan (Samsung OSG) <shuah@kernel.org>
 ---
 
- tools/testing/selftests/mm/khugepaged.c |    9 +++++++++
- 1 file changed, 9 insertions(+)
+ tools/testing/selftests/mm/khugepaged.c |    3 +++
+ 1 file changed, 3 insertions(+)
 
---- a/tools/testing/selftests/mm/khugepaged.c~kselftest-mm-return-fail-when-child-test-result-is-fail-in-khugepaged
+--- a/tools/testing/selftests/mm/khugepaged.c~kselftest-mm-fix-intermittent-failure-khugepaged-test
 +++ a/tools/testing/selftests/mm/khugepaged.c
-@@ -1053,6 +1053,8 @@ static void collapse_fork(struct collaps
+@@ -618,6 +618,9 @@ static bool wait_for_scan(const char *ms
+ 		usleep(TICK);
+ 	}
  
- 	wait(&wstatus);
- 	exit_status = WEXITSTATUS(wstatus);
-+	if (exit_status == KSFT_FAIL)
-+		goto out;
- 
- 	ksft_print_msg("Check if parent still has small page...");
- 	if (ops->check_huge(p, hpage_pmd_size, 0, hpage_pmd_size))
-@@ -1060,6 +1062,7 @@ static void collapse_fork(struct collaps
- 	else
- 		fail("Fail");
- 	validate_memory(p, 0, page_size);
-+out:
- 	ops->cleanup_area(p, hpage_pmd_size);
- 	ksft_test_result_report(exit_status, "%s\n", __func__);
++	if (!strncmp(ops->name, "anon", 4))
++		madvise(p, len, MADV_NOHUGEPAGE);
++
+ 	return timeout == -1;
  }
-@@ -1100,6 +1103,8 @@ static void collapse_fork_compound(struc
  
- 	wait(&wstatus);
- 	exit_status = WEXITSTATUS(wstatus);
-+	if (exit_status == KSFT_FAIL)
-+		goto out;
- 
- 	ksft_print_msg("Check if parent still has huge page...");
- 	if (ops->check_huge(p, hpage_pmd_size, 1, hpage_pmd_size))
-@@ -1107,6 +1112,7 @@ static void collapse_fork_compound(struc
- 	else
- 		fail("Fail");
- 	validate_memory(p, 0, hpage_pmd_size);
-+out:
- 	ops->cleanup_area(p, hpage_pmd_size);
- 	ksft_test_result_report(exit_status, "%s\n", __func__);
- }
-@@ -1158,6 +1164,8 @@ static void collapse_max_ptes_shared(str
- 
- 	wait(&wstatus);
- 	exit_status = WEXITSTATUS(wstatus);
-+	if (exit_status == KSFT_FAIL)
-+		goto out;
- 
- 	ksft_print_msg("Check if parent still has huge page...");
- 	if (ops->check_huge(p, hpage_pmd_size, 1, hpage_pmd_size))
-@@ -1165,6 +1173,7 @@ static void collapse_max_ptes_shared(str
- 	else
- 		fail("Fail");
- 	validate_memory(p, 0, hpage_pmd_size);
-+out:
- 	ops->cleanup_area(p, hpage_pmd_size);
- 	ksft_test_result_report(exit_status, "%s\n", __func__);
- }
 _
 
 Patches currently in -mm which might be from yeoreum.yun@arm.com are
