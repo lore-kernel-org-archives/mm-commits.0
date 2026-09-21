@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D25374AB1B8
-	for <mm-commits@vger.kernel.org>; Mon, 21 Sep 2026 22:49:58 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D0C782609FD
+	for <mm-commits@vger.kernel.org>; Mon, 21 Sep 2026 22:50:00 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790031002; cv=none; b=PqD8Nlvax8o+bNv4xWo5vhArYQeAwQ6N27OjrDDrVvvhfhjudo7MA9xWbvgGdtfQ5HdJ5RJpwDD3OtZl+/JZD1Hd1vSIIaz243ako33//OXwoMDnB18RhVxKWMj8nGrj92NwmOhMRQeJ+XNNdyf0rJcOEBczL8ztZ6zkOIflerk=
+	t=1790031003; cv=none; b=Bm+YJXEVzONo2RuTKzp4ygkwX9K5ykGadHuxkQq7W6kJPTCFFOghH6uNstHfMc5OX7zoXxTarJ+evycaRrYLRiejv6c0RvBm3IGpRpw4nFJ4/F34wgieOOVVDudEi6lmyxjUmZyXboajx0pK8DoN++t62GLtnVwavODiQaCTJ3w=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1790031002; c=relaxed/simple;
-	bh=K9VCdHt9n3jkHC8rZoYmilhZtY0fHitf0oNz7IPlz+s=;
-	h=Date:To:From:Subject:Message-Id; b=fmxlYs8Tkiy2Q3xSYNs2mntY7v1SHUhkEfRaN37/YZD+zr/KNlMuJnx2ZiS4fKqC4RSkT+JCmhjSn9JB1RmFXaHDMzID+Ck2yGFq/4/1h0uAsZ4S1T8X4HBCJEBwy6A2I33bhili6EiMD8fzWNruzT0waYJZMWBQzoCOYPFWw8w=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=p0EtRMQ1; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1790031003; c=relaxed/simple;
+	bh=fksEN0xPuGKA9Y1YFt+cIhRQ8gzrCf1Stn53fQX3qSA=;
+	h=Date:To:From:Subject:Message-Id; b=LOQd2+GcoaL6/efTyTdFZpiO5vnD2aept4kGQlHx1rx+f5ZjNzTKyQMzMAG5lE+SlvZjciYotv46M0tfG/sU738N0rwoywy/phMr4pkvhUg0eiP2uoEp5bMmK3aLEFNrYAKzkvK5t1F7NQ2d6wITSaipdDuKxqZp0pJTOHYKBKc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=XVnXQsub; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="p0EtRMQ1"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 50DEF1F00893;
-	Mon, 21 Sep 2026 22:49:57 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="XVnXQsub"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 38EEE1F00898;
+	Mon, 21 Sep 2026 22:49:59 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1790030997;
-	bh=xPu8ksH9mp/TEJDJOBQcbPuDWuxA+lqVieb2Q6pThLc=;
+	d=linux-foundation.org; s=korg; t=1790030999;
+	bh=ZoPeTF5s5tdofry4dkUBBRpzEgSOX2jD/YuD3DtYpYk=;
 	h=Date:To:From:Subject;
-	b=p0EtRMQ13rzXW9c2GKoM9ay/YrCa6RVkmlY7I9tXmg/B1Mdm8IJZzCvPIjYJ1kXqF
-	 /329Ks0TN1llYLA7d6gmk4QadbbFIkHjiGcbhKry/5xOqsl8/uX+B7fX/ZahJ4hTnt
-	 LW+V3bALPGJfM8ikniJMjkDvuJqu4eBQYopdfCH0=
-Date: Mon, 21 Sep 2026 15:49:56 -0700
+	b=XVnXQsubwz/ECINJsshK6I7HdHER34jYB6xw/Pd/FRernJ3ssUDRicyG52vkFpQRc
+	 hCA2XI/lTtLg+UoTB7ooOepVRk7IsucJqqA9Dj1M0qZayp7a82DLeYbujEQRLZ/y5z
+	 rGc66BB0bdKkAZ8xgw+PdeD2pOUnq8N771uewFRQ=
+Date: Mon, 21 Sep 2026 15:49:58 -0700
 To: mm-commits@vger.kernel.org,david@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + fs-proc-page-clarify-comment-in-get_max_dump_pfn.patch added to mm-new branch
-Message-Id: <20260921224957.50DEF1F00893@smtp.kernel.org>
+Subject: + mm-memory_hotplug-drop-config_have_arch_pfn_valid-handling-from-pfn_to_online_page.patch added to mm-new branch
+Message-Id: <20260921224959.38EEE1F00898@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: fs/proc/page: clarify comment in get_max_dump_pfn()
+     Subject: mm/memory_hotplug: drop CONFIG_HAVE_ARCH_PFN_VALID handling from pfn_to_online_page()
 has been added to the -mm mm-new branch.  Its filename is
-     fs-proc-page-clarify-comment-in-get_max_dump_pfn.patch
+     mm-memory_hotplug-drop-config_have_arch_pfn_valid-handling-from-pfn_to_online_page.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/fs-proc-page-clarify-comment-in-get_max_dump_pfn.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memory_hotplug-drop-config_have_arch_pfn_valid-handling-from-pfn_to_online_page.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,19 +70,17 @@ and is updated there most days
 
 ------------------------------------------------------
 From: "David Hildenbrand (Arm)" <david@kernel.org>
-Subject: fs/proc/page: clarify comment in get_max_dump_pfn()
-Date: Mon, 21 Sep 2026 21:59:04 +0200
+Subject: mm/memory_hotplug: drop CONFIG_HAVE_ARCH_PFN_VALID handling from pfn_to_online_page()
+Date: Mon, 21 Sep 2026 21:59:05 +0200
 
-pfn_to_online_page() will only succeed on some PFNs within the same
-section, not necessarily all.  Let's make that clearer.
+Drop CONFIG_HAVE_ARCH_PFN_VALID handling, as CONFIG_HAVE_ARCH_PFN_VALID is
+never used with CONFIG_MEMORY_HOTPLUG, as the latter depends on
+CONFIG_SPARSEMEM_VMEMMAP.  Make sure it stays that way.
 
-While at it, rephrase it to "Allow inspection of".
-
-Link: https://lore.kernel.org/20260921-b4-sparsemem_cleanups-v2-12-54d81d65e125@kernel.org
+Link: https://lore.kernel.org/20260921-b4-sparsemem_cleanups-v2-13-54d81d65e125@kernel.org
 Signed-off-by: David Hildenbrand (Arm) <david@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Acked-by: Oscar Salvador <osalvador@suse.de>
-Acked-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
+Reviewed-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
 Reviewed-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
 Cc: Liam R. Howlett <liam@infradead.org>
 Cc: Vlastimil Babka <vbabka@kernel.org>
@@ -102,30 +100,40 @@ Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Zi Yan <ziy@nvidia.com>
 Cc: Jan Kiszka <jan.kiszka@siemens.com>
 Cc: Kieran Bingham <kbingham@kernel.org>
+Cc: Oscar Salvador <osalvador@suse.de>
 Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 Cc: Rafael J. Wysocki <rafael@kernel.org>
 Cc: Danilo Krummrich <dakr@kernel.org>
 ---
 
- fs/proc/page.c |    7 +++----
- 1 file changed, 3 insertions(+), 4 deletions(-)
+ mm/memory_hotplug.c |    9 ++-------
+ 1 file changed, 2 insertions(+), 7 deletions(-)
 
---- a/fs/proc/page.c~fs-proc-page-clarify-comment-in-get_max_dump_pfn
-+++ a/fs/proc/page.c
-@@ -31,10 +31,9 @@ static inline unsigned long get_max_dump
- {
- #ifdef CONFIG_SPARSEMEM
- 	/*
--	 * The memmap of early sections is completely populated and marked
--	 * online even if max_pfn does not fall on a section boundary -
--	 * pfn_to_online_page() will succeed on all pages. Allow inspecting
--	 * these memmaps.
-+	 * If max_pfn does not fall on a section boundary, pfn_to_online_page()
-+	 * can succeed on PFNs beyond max_pfn within the same section. Allow
-+	 * inspection of these memmaps.
- 	 */
- 	return round_up(max_pfn, PAGES_PER_SECTION);
- #else
+--- a/mm/memory_hotplug.c~mm-memory_hotplug-drop-config_have_arch_pfn_valid-handling-from-pfn_to_online_page
++++ a/mm/memory_hotplug.c
+@@ -345,6 +345,8 @@ struct page *pfn_to_online_page(unsigned
+ 	struct dev_pagemap *pgmap;
+ 	struct mem_section *ms;
+ 
++	BUILD_BUG_ON(IS_ENABLED(CONFIG_HAVE_ARCH_PFN_VALID));
++
+ 	if (nr >= NR_MEM_SECTIONS)
+ 		return NULL;
+ 
+@@ -352,13 +354,6 @@ struct page *pfn_to_online_page(unsigned
+ 	if (!online_section(ms))
+ 		return NULL;
+ 
+-	/*
+-	 * Save some code text when online_section() +
+-	 * pfn_section_valid() are sufficient.
+-	 */
+-	if (IS_ENABLED(CONFIG_HAVE_ARCH_PFN_VALID) && !pfn_valid(pfn))
+-		return NULL;
+-
+ 	if (!pfn_section_valid(ms, pfn))
+ 		return NULL;
+ 
 _
 
 Patches currently in -mm which might be from david@kernel.org are
