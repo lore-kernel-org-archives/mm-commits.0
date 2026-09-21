@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A4BDD146D5A
-	for <mm-commits@vger.kernel.org>; Mon, 21 Sep 2026 04:09:43 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C5B78146D5A
+	for <mm-commits@vger.kernel.org>; Mon, 21 Sep 2026 04:09:45 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1789963784; cv=none; b=SotdQG80ZV/ByfA7lvTA9foIGkmRc7LZKBRXrYNgLjOw2cXVWQnv2eVtK9VsI+QCcNRYEHYCdb25X401K2F35zFXfR8d9HNExtrps8mS9IFluzOkThDuoOW1V7M4XP1QM4Nl4sHT0xm4zHyN34OcMwPUvhdlGL6P9J9AbFR2BNo=
+	t=1789963787; cv=none; b=uYBiJGUIP0vsOoduR0EwDnFwy1Z6qnslY/cqMCHKvHze1vi6Xo7Q8hSn56GB28FuKQKjBvk6V8ESuVQHY+djW9ClX1/c/6cE8rO8Do3NF2XJgGsoNTVE/z+SBlMpi0R+Cl+6IUQtidrMZEHXjHR1anHuQmjpleixAFd0n7Nb+co=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1789963784; c=relaxed/simple;
-	bh=jSDfJBRCkeom1wopwvtIdKpLMg8ilzODOHr74r/cOss=;
-	h=Date:To:From:Subject:Message-Id; b=OGCUAmVXIc2hKIygiXFC+y5oY2HtTlJtVEVBw7bMNY26QgIDdA5ytSISuvTZSU5lrC+p0OWB98D5znKesXY2PJGiDy4CZDCy5zpr61zXLJLYP1r5//HSxFtKQuJgZzH4Dbky5Md0q7lXBZh97WpNj9Kd51vGCHW8UFDTMn/1f3g=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=arqgCjgr; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1789963787; c=relaxed/simple;
+	bh=Tu/4nrT1xuwNNYrhgEL2mGi4L43OhFjkMvcVVO3yb84=;
+	h=Date:To:From:Subject:Message-Id; b=PHV4LDZAMqEqrG1CiSXCel5jJy6J/Bjo/SSDXi/lplSdCVTkCxbx9HGxe6jWGJtsoidQSHC8poA5XnGghC9WQ6Km4ckQrKrR3fzdW2loEmPvQYvdg7YlQ1AHRtq+vm15PU9+q05cEO88CIO8MsDr2fxb5xhtpifwUCj+/twyCA0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=K9l1x1Zh; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="arqgCjgr"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id F2BEF1F000FF;
-	Mon, 21 Sep 2026 04:09:42 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="K9l1x1Zh"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 91C851F000FF;
+	Mon, 21 Sep 2026 04:09:45 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1789963783;
-	bh=HX9XOyh8WoxZQXPN50XhwEFTM7rYIhBl8rSDOg7iQrY=;
+	d=linux-foundation.org; s=korg; t=1789963785;
+	bh=ENf0z6PRzWIVaFWOmJ09DE2fhjpRiq6jSGUvKhTP7Ss=;
 	h=Date:To:From:Subject;
-	b=arqgCjgrTbsA4wIHTAD6+D81/oHAvip6G8WQe2Naf8ojE+syUuCV3AIHEhpQiFfoe
-	 ESxGBRyKtlHebelhmd1YvlKOkUVnNpYI4k59z8cUP5+EpiimdCTpZ7wa8Qs28o82H9
-	 atxPvTTxzTKf0fClce6AU1lrUDo7ClsxhKncynG4=
-Date: Sun, 20 Sep 2026 21:09:40 -0700
+	b=K9l1x1ZhRCTNZs0Vp5iYr2mYmKOH3TtZpfLvAgwLKFVuuFXzrw9w+A03a6M96dpFB
+	 dGReGpgKSzz5wv5owsDIQTsuKJ+8HPu0ygttRSXlMTayldUGeqKVaktGtQDnnWSHaK
+	 gzVTIxKeYM4bsXXPCDoLJtqd8kQ6KfarBB+nzCnY=
+Date: Sun, 20 Sep 2026 21:09:45 -0700
 To: mm-commits@vger.kernel.org,ziy@nvidia.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + fscrypt-stop-setting-pg_private-on-bounce-page.patch added to mm-unstable branch
-Message-Id: <20260921040942.F2BEF1F000FF@smtp.kernel.org>
+Subject: + mm-hugetlb-use-direct-assignment-instead-of-folio_change_private.patch added to mm-unstable branch
+Message-Id: <20260921040945.91C851F000FF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: fscrypt: stop setting PG_private on bounce page
+     Subject: mm/hugetlb: use direct assignment instead of folio_change_private()
 has been added to the -mm mm-unstable branch.  Its filename is
-     fscrypt-stop-setting-pg_private-on-bounce-page.patch
+     mm-hugetlb-use-direct-assignment-instead-of-folio_change_private.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/fscrypt-stop-setting-pg_private-on-bounce-page.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-hugetlb-use-direct-assignment-instead-of-folio_change_private.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,48 +59,49 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Zi Yan <ziy@nvidia.com>
-Subject: fscrypt: stop setting PG_private on bounce page
-Date: Sun, 20 Sep 2026 22:28:00 -0400
+Subject: mm/hugetlb: use direct assignment instead of folio_change_private()
+Date: Sun, 20 Sep 2026 22:28:01 -0400
 
-The pointer to a plain text folio is stored in bound_page->private and
-cannot be NULL until the bounce_page is freed, making PG_private redundant.
+folio_change_private() should be used along with folio_attach_private() and
+folio_detach_private(), where adding and remove ->private content requires
+folio refcount change. add_hugetlb_folio() simply sets folio->private to
+NULL without refcount manipulation. Change it to direct assignment to avoid
+semantic confusion.
 
 It prepares for a future commit that remove PG_private.
 
 No functional change intended.
 
 Assisted-by: LLM
-Link: https://lore.kernel.org/20260920-remove-pg_private-v5-4-bb68b6a21869@nvidia.com
+Link: https://lore.kernel.org/20260920-remove-pg_private-v5-5-bb68b6a21869@nvidia.com
 Signed-off-by: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Acked-by: Eric Biggers <ebiggers@kernel.org>
 Acked-by: Usama Arif <usama.arif@linux.dev>
+Reviewed-by: Gregory Price (Meta) <gourry@gourry.net>
+Reviewed-by: Muchun Song <muchun.song@linux.dev>
 Acked-by: David Hildenbrand (Arm) <david@kernel.org>
-Cc: "Theodore Y. Ts'o" <tytso@mit.edu>
-Cc: Jaegeuk Kim <jaegeuk@kernel.org>
+Cc: Oscar Salvador <osalvador@suse.de>
 ---
 
- fs/crypto/crypto.c |    2 --
- 1 file changed, 2 deletions(-)
+ mm/hugetlb.c |    7 ++-----
+ 1 file changed, 2 insertions(+), 5 deletions(-)
 
---- a/fs/crypto/crypto.c~fscrypt-stop-setting-pg_private-on-bounce-page
-+++ a/fs/crypto/crypto.c
-@@ -65,7 +65,6 @@ void fscrypt_free_bounce_page(struct pag
- 	if (!bounce_page)
- 		return;
- 	set_page_private(bounce_page, (unsigned long)NULL);
--	ClearPagePrivate(bounce_page);
- 	mempool_free(bounce_page, fscrypt_bounce_page_pool);
- }
- EXPORT_SYMBOL(fscrypt_free_bounce_page);
-@@ -210,7 +209,6 @@ struct page *fscrypt_encrypt_pagecache_b
- 			return ERR_PTR(err);
- 		}
+--- a/mm/hugetlb.c~mm-hugetlb-use-direct-assignment-instead-of-folio_change_private
++++ a/mm/hugetlb.c
+@@ -1446,11 +1446,8 @@ void add_hugetlb_folio(struct hstate *h,
  	}
--	SetPagePrivate(ciphertext_page);
- 	set_page_private(ciphertext_page, (unsigned long)folio);
- 	return ciphertext_page;
- }
+ 
+ 	__folio_set_hugetlb(folio);
+-	folio_change_private(folio, NULL);
+-	/*
+-	 * We have to set hugetlb_vmemmap_optimized again as above
+-	 * folio_change_private(folio, NULL) cleared it.
+-	 */
++	/* Clear all folio->private flags except hugetlb_vmemmap_optimized. */
++	folio->private = NULL;
+ 	folio_set_hugetlb_vmemmap_optimized(folio);
+ 
+ 	arch_clear_hugetlb_flags(folio);
 _
 
 Patches currently in -mm which might be from ziy@nvidia.com are
