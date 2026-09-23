@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 22D163890E5
-	for <mm-commits@vger.kernel.org>; Wed, 23 Sep 2026 02:43:38 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 38421318BB3
+	for <mm-commits@vger.kernel.org>; Wed, 23 Sep 2026 02:46:49 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790131427; cv=none; b=bx9/y4eOP5VbrX+xQZKPAe9GHD3QzgwGkJX0vrrbeobDEXMHEjLrsBGpSs+zKbo1O9cqGBPv9mJLm6QFXF667VG5Kgb/Jv/LC6PrBZUwRGOR2Ly4mNv9nB5DbybEpp14iQDHRNt3WOhgwIYc119Sm2ZMkXy+LsbpKLdrSYPC7ug=
+	t=1790131618; cv=none; b=iAsz7bOo5uFYwwPQfNkRak8ZPjEGL9CwCrgztWE20K4VLUjtxwgVZsnfLduo9uMpc2VuYAKEe237u7IF8O7WqNcPJcN/HJf7br/tj7XPBcaoeyoAi4JmjIXRM2ZFxLeSJepXawIpGpJxWq/V/ZXrshy7SYioDr/Aq0hz9tSsceA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1790131427; c=relaxed/simple;
-	bh=IyFZgPN2nEcNdvRq/CC5+aHU7se4tEMJ1hZXbp1Fuwk=;
-	h=Date:To:From:Subject:Message-Id; b=InSxwqU03RHGNop1bOXCZ02DissriyW1NIJoX3DiJKHVbiDeR76wuRUmLz3xvk7F1R/yKaTq9cCqErEnbbd4VMj3J3koOWsGWqzvNGYcOXR8WGuCl9X+yXKDRZqIlKnWqVogAnA6FTOJ1pWHDudDjpULZo4l5gG05kfb6EgjXbA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=TiuawtZj; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1790131618; c=relaxed/simple;
+	bh=8IcN5fQU4piYiKH9BVCoIL1IJvGxxgipbHKqvaJBZos=;
+	h=Date:To:From:Subject:Message-Id; b=DJq9Q4PO+Ku+fHuytfbSq0Bc1oYopM//I4vn/fuioZrnjvm4WkaUfv1kvNoSNuqqxEcLYWqLgO9l3Tx+YfmVCGqalqFlQkA7F2/Ir3j/+lr77/HtzSzw+DO1N/W0sRGY1sr+4l26uUGPFn4mRqs6g0vh9PPsiRAFGQnjL52GEOM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=W79k7nIv; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="TiuawtZj"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id ED50C1F00893;
-	Wed, 23 Sep 2026 02:43:36 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="W79k7nIv"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 92FC31F000FF;
+	Wed, 23 Sep 2026 02:46:47 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1790131417;
-	bh=khCipwroK63+eTSthgDKA3ForzRCRkNzmb4hVpM/Ieg=;
+	d=linux-foundation.org; s=korg; t=1790131607;
+	bh=cawD4KIeRVhWTsh5fDEYJ84Ig8+x3+cWJDy4u+E1HK0=;
 	h=Date:To:From:Subject;
-	b=TiuawtZjizUpNob5hkKDR1irmXGDkcvZ2FVtIO+EtqYSGIdGfzWUscAp2lU2FGnev
-	 eyXtiYzDC2IBZJR73fCCaUPW9Eunj6rWrqqZk/WSysVlarA+h1ephCEFYVckXia3fd
-	 5RptB8ooqMVF98bbL75B8UpT7/izwoMyXopaWulI=
-Date: Tue, 22 Sep 2026 19:43:36 -0700
-To: mm-commits@vger.kernel.org,gourry@gourry.net,akpm@linux-foundation.org
+	b=W79k7nIvCnH7uikOxwR7o5fgLZ8cPYxVWZjyfaqZRRTmyoGsxEZzuh+3hOKOcLaXy
+	 pmm0d9gL9MalwKlYK0OrMxVVrCucUbj2JZSX45vFwA7oB824G4s0GVYdQEqc0NKzgG
+	 bHkYVy4L5XX/bPGvN8ohSfZWQEixwTfdWt4aPY60=
+Date: Tue, 22 Sep 2026 19:46:47 -0700
+To: mm-commits@vger.kernel.org,osalvador@suse.de,muchun.song@linux.dev,david@kernel.org,zhenghui.hao@qq.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-page_alloc-refactor-build_node_zonelist-out-of-build_zonelists.patch added to mm-unstable branch
-Message-Id: <20260923024336.ED50C1F00893@smtp.kernel.org>
+Subject: + hugetlbfs-fix-stale-comment-in-hugetlbfs_file_mmap.patch added to mm-unstable branch
+Message-Id: <20260923024647.92FC31F000FF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/page_alloc: refactor build_node_zonelist() out of build_zonelists()
+     Subject: hugetlbfs: fix stale comment in hugetlbfs_file_mmap()
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-page_alloc-refactor-build_node_zonelist-out-of-build_zonelists.patch
+     hugetlbfs-fix-stale-comment-in-hugetlbfs_file_mmap.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-page_alloc-refactor-build_node_zonelist-out-of-build_zonelists.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/hugetlbfs-fix-stale-comment-in-hugetlbfs_file_mmap.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,159 +58,59 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Gregory Price <gourry@gourry.net>
-Subject: mm/page_alloc: refactor build_node_zonelist() out of build_zonelists()
-Date: Tue, 22 Sep 2026 22:29:02 -0400
+From: Zhenghui Hao <zhenghui.hao@qq.com>
+Subject: hugetlbfs: fix stale comment in hugetlbfs_file_mmap()
+Date: Wed, 23 Sep 2026 10:28:58 +0800
 
-Extract per-node fallback-list construction into build_node_zonelist().
-Build each selected node directly into the destination zonelist so no
-intermediate node_order array or node count is needed. Print the
-fallback order as each node is added.
+The comment above the VMA flag setup in hugetlbfs_file_mmap() says the VMA
+address alignment has already been checked by prepare_hugepage_range(). 
+That function no longer exists: it was removed by commit eff41389d824
+("mm/hugetlb: remove prepare_hugepage_range()"), and the check now lives
+in hugetlb_get_unmapped_area().
 
-This lets us build new zonelists from candidate nodemasks instead of
-just the default N_MEMORY node state list.
+The comment also mentions ia64, which was removed from the tree by commit
+cf8e8658100d ("arch: Remove Itanium (IA-64) architecture").
 
-Add a zlidx argument so callers explicitly select the destination
-zonelist. The existing caller continues to use ZONELIST_FALLBACK.
+Point the comment at the current function and drop the ia64 reference. 
+The rest of the comment, which tells future edits to add any error return
+only after VM_HUGETLB has been set, is still accurate and is left
+untouched.
 
-No functional change: build_zonelists() builds and prints the same
-FALLBACK list over N_MEMORY with node_load updates as before.
+No functional change.
 
-Link: https://lore.kernel.org/20260923022902.2433614-3-gourry@gourry.net
-Signed-off-by: Gregory Price <gourry@gourry.net>
+Link: https://lore.kernel.org/tencent_AA61551D1F50E61F46C8542F5C8874512C05@qq.com
+Signed-off-by: Zhenghui Hao <zhenghui.hao@qq.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Reviewed-by: Zi Yan <ziy@nvidia.com>
-Reviewed-by: Vlastimil Babka (SUSE) <vbabka@kernel.org>
-Reviewed-by: Zenghui Yu (Huawei) <zenghui.yu@linux.dev>
+Acked-by: Muchun Song <muchun.song@linux.dev>
+Cc: Oscar Salvador <osalvador@suse.de>
 Cc: David Hildenbrand <david@kernel.org>
-Cc: Lorenzo Stoakes <ljs@kernel.org>
-Cc: Liam R. Howlett <liam@infradead.org>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Joshua Hahn <joshua.hahnjy@gmail.com>
-Cc: Rakie Kim <rakie.kim@sk.com>
-Cc: Ying Huang <ying.huang@linux.alibaba.com>
-Cc: Brendan Jackman <brendan.jackman@linux.dev>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
 ---
 
- mm/page_alloc.c |   63 ++++++++++++++++------------------------------
- 1 file changed, 23 insertions(+), 40 deletions(-)
+ fs/hugetlbfs/inode.c |    9 ++++-----
+ 1 file changed, 4 insertions(+), 5 deletions(-)
 
---- a/mm/page_alloc.c~mm-page_alloc-refactor-build_node_zonelist-out-of-build_zonelists
-+++ a/mm/page_alloc.c
-@@ -5858,31 +5858,6 @@ int find_next_best_node_in(int node, nod
+--- a/fs/hugetlbfs/inode.c~hugetlbfs-fix-stale-comment-in-hugetlbfs_file_mmap
++++ a/fs/hugetlbfs/inode.c
+@@ -106,11 +106,10 @@ static int hugetlbfs_file_mmap(struct fi
  
- 
- /*
-- * Build zonelists ordered by node and zones within node.
-- * This results in maximum locality--normal zone overflows into local
-- * DMA zone, if any--but risks exhausting DMA zone.
-- */
--static void build_zonelists_in_node_order(pg_data_t *pgdat, int *node_order,
--		unsigned nr_nodes)
--{
--	struct zoneref *zonerefs;
--	int i;
--
--	zonerefs = pgdat->node_zonelists[ZONELIST_FALLBACK]._zonerefs;
--
--	for (i = 0; i < nr_nodes; i++) {
--		int nr_zones;
--
--		pg_data_t *node = NODE_DATA(node_order[i]);
--
--		nr_zones = build_zonerefs_node(node, zonerefs);
--		zonerefs += nr_zones;
--	}
--	zonerefs->zone = NULL;
--	zonerefs->zone_idx = 0;
--}
--
--/*
-  * Build __GFP_THISNODE zonelists
-  */
- static void build_thisnode_zonelists(pg_data_t *pgdat)
-@@ -5897,20 +5872,24 @@ static void build_thisnode_zonelists(pg_
- 	zonerefs->zone_idx = 0;
- }
- 
--static void build_zonelists(pg_data_t *pgdat)
-+/*
-+ * Build one zonelist ordered by node and zones within node. This results in
-+ * maximum locality--normal zone overflows into local DMA zone, if any--but
-+ * risks exhausting DMA zone.
-+ */
-+static void build_node_zonelist(pg_data_t *pgdat, const nodemask_t *candidates,
-+				int zlidx)
- {
--	static int node_order[MAX_NUMNODES];
--	int node, nr_nodes = 0;
-+	struct zoneref *zonerefs = pgdat->node_zonelists[zlidx]._zonerefs;
- 	nodemask_t used_mask = NODE_MASK_NONE;
--	int local_node, prev_node;
-+	int local_node = pgdat->node_id;
-+	int prev_node = local_node;
-+	int node;
- 
--	/* NUMA-aware ordering of nodes */
--	local_node = pgdat->node_id;
--	prev_node = local_node;
-+	pr_info("Fallback order for Node %d: ", local_node);
- 
--	memset(node_order, 0, sizeof(node_order));
- 	while ((node = find_next_best_node_in(local_node, &used_mask,
--					      &node_states[N_MEMORY])) >= 0) {
-+					      candidates)) >= 0) {
- 		/*
- 		 * We don't want to pressure a particular node.
- 		 * So adding penalty to the first node in same
-@@ -5920,18 +5899,22 @@ static void build_zonelists(pg_data_t *p
- 		    node_distance(local_node, prev_node))
- 			node_load[node] += 1;
- 
--		node_order[nr_nodes++] = node;
-+		zonerefs += build_zonerefs_node(NODE_DATA(node), zonerefs);
-+		pr_cont("%d ", node);
- 		prev_node = node;
- 	}
- 
--	build_zonelists_in_node_order(pgdat, node_order, nr_nodes);
--	build_thisnode_zonelists(pgdat);
--	pr_info("Fallback order for Node %d: ", local_node);
--	for (node = 0; node < nr_nodes; node++)
--		pr_cont("%d ", node_order[node]);
-+	zonerefs->zone = NULL;
-+	zonerefs->zone_idx = 0;
- 	pr_cont("\n");
- }
- 
-+static void build_zonelists(pg_data_t *pgdat)
-+{
-+	build_node_zonelist(pgdat, &node_states[N_MEMORY], ZONELIST_FALLBACK);
-+	build_thisnode_zonelists(pgdat);
-+}
-+
- #ifdef CONFIG_HAVE_MEMORYLESS_NODES
- /*
-  * Return node id of node used for "local" allocations.
+ 	/*
+ 	 * vma address alignment (but not the pgoff alignment) has
+-	 * already been checked by prepare_hugepage_range.  If you add
+-	 * any error returns here, do so after setting VM_HUGETLB, so
+-	 * vma_is_hugetlb tests below unmap_region go the right
+-	 * way when do_mmap unwinds (may be important on powerpc
+-	 * and ia64).
++	 * already been checked by hugetlb_get_unmapped_area().  If you
++	 * add any error returns here, do so after setting VM_HUGETLB,
++	 * so vma_is_hugetlb tests below unmap_region go the right
++	 * way when do_mmap unwinds (may be important on powerpc).
+ 	 */
+ 	vma_set_flags(vma, VMA_HUGETLB_BIT, VMA_DONTEXPAND_BIT);
+ 	vma->vm_ops = &hugetlb_vm_ops;
 _
 
-Patches currently in -mm which might be from gourry@gourry.net are
+Patches currently in -mm which might be from zhenghui.hao@qq.com are
 
-mm-mempolicy-take-a-cpuset-cookie-for-the-interleave-node-count.patch
-mm-mempolicy-use-srcu-for-the-weighted-interleave-state.patch
-mm-mempolicy-stop-copying-the-nodemask-in-the-interleave-paths.patch
-mm-huge_memory-skip-zone-device-folios-in-madvise_free_huge_pmd.patch
-mm-madvise-skip-zone-device-folios-in-cold-pageout-pmd-range.patch
-mm-mempolicy-skip-zone-device-folios-when-queueing-folios.patch
-mm-memory_hotplug-factor-out-node_is_memoryless.patch
-mm-mempolicy-use-vm_normal_folio_pmd-in-queue_folios_pmd.patch
-mm-madvise-use-vm_normal_folio_pmd-in-cold-pageout-pmd-range.patch
-mm-refactor-find_next_best_node-to-find_next_best_node_in.patch
-mm-page_alloc-refactor-build_node_zonelist-out-of-build_zonelists.patch
-proc-task_mmu-handle-special-pmds-in-clear_refs-and-pagemap.patch
-mm-madvise-reclaim-isolated-folios-if-pte-restart-fails.patch
-mm-madvise-use-folio_trylock-in-the-cold-pageout-pmd-split.patch
+mm-hugetlb-fix-misspelled-parameter-names-in-comment.patch
+hugetlbfs-fix-stale-comment-in-hugetlbfs_file_mmap.patch
 
