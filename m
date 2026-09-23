@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AA1D8417BD2
-	for <mm-commits@vger.kernel.org>; Wed, 23 Sep 2026 21:22:48 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 73DF328373
+	for <mm-commits@vger.kernel.org>; Wed, 23 Sep 2026 22:23:10 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790198572; cv=none; b=VeJ6gTMlA1YdNRLwC3TozoO5PcJrA71cBVlpVmDg9BHPTPHqroiai4/WfVdpXQiI9Ojooya1q2SSP5jwk/ciBXzAjGetcnlPnJeUVXkQZ+WocpSsfUUio11xCnBbOs4iIuYNjmggcqBygdeQnb7qxMajItSS8xeCIRchagoW8xk=
+	t=1790202193; cv=none; b=MbrzIitK+Tqx88iiU62k4d/sSIdWsRLRD14DRaZCUz+pZNQm0KJcVG95dCL2TUETP1CqrsFXeeCNxrntPbqrgKDCW/RfKh2QmswRLUDLYUzU3gyksjmVIRlZUKLZX27y9ZNrOenNU/DwYZtdDlEqli/185DU0omgnVdelzLElsU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1790198572; c=relaxed/simple;
-	bh=wFpfbq0VRI/qgU+pJQ+yPUaIr1JfaYnn+QEtgri3Mfs=;
-	h=Date:To:From:Subject:Message-Id; b=Ffv3YSJdtgyGtC5B6SRWBTDxzq6xi995qE4owT4j/trJ96kGgWoPJ5DwTzctRrXGGfB/f4J0i/XoLiNnvAHwnEB3WHjw3maMuQE02lBBM4+J/6D688pKt/Ipi9PjRKFvFBwbMJRHoR/pRIHXsKwqI1N/QmoG5HMBPEaCHuPV+YA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=doRugzxH; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1790202193; c=relaxed/simple;
+	bh=mL3SHUEcPjcXSq5zHosCtwmMobMJPvY4QIusEEY3N7Q=;
+	h=Date:To:From:Subject:Message-Id; b=N2Ala/3nNUy2JBEMH3qsFnzD9wGEe8ncQIoFlQXc44JPk/A51NwU9uFbp5slj/NzvrfXXvj/A6dzMHgCxOyBf0ctgVwDIu/qMc0zi0DttGXK5UJou6bmMsdL8OWShWAxJGtFl+UHqv5Oz8wJVzQQ1pk2RA2O12P8zX5VRwOwNIw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=wp1Hy4e4; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="doRugzxH"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4930B1F000FF;
-	Wed, 23 Sep 2026 21:22:47 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="wp1Hy4e4"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 680291F000FF;
+	Wed, 23 Sep 2026 22:23:10 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1790198567;
-	bh=f09lHb3OiGIhhws2pV8yPG1CB5NBRnG7jikrHEdQTvE=;
+	d=linux-foundation.org; s=korg; t=1790202190;
+	bh=lGu7iaUTwIu4ApgmlokzFOIaC/kn965Lq2LJEChVEfg=;
 	h=Date:To:From:Subject;
-	b=doRugzxH+gGmke2vtyZu3hR2SI8AOM77rqG30e2AYL+NfSltiai/ZSJwdkkE9x3e7
-	 +9dekz+LCERClD19CLhTa9d6JDIZSCYGdYYhKaGoc80SNY1Nl4+Ui09u5Vm+Ua1rvH
-	 zMgKXuhS5kQHp9Jkc4zWQ42PdohD9xc5TPKZBzPM=
-Date: Wed, 23 Sep 2026 14:22:46 -0700
-To: mm-commits@vger.kernel.org,zzzccc427@gmail.com,sashiko-bot@kernel.org,mark@fasheh.com,junxiao.bi@oracle.com,joseph.qi@linux.alibaba.com,jlbec@evilplan.org,heming.zhao@suse.com,kmehltretter@gmail.com,akpm@linux-foundation.org
+	b=wp1Hy4e4phiH9dT6t9S1NiC2AeDphvX7dKQS40Rr8CqMfTs255K1uPGgV6mAVr7Ag
+	 UQsOh802lCLmnZzRqbMJ2k0UTaM4rMRcOpuq5ql/elyT2gXFckZ18oJBZrODrW1mPE
+	 xatYNstkZI0rUsJBBvJOkmBdmc4YMbwgxBjR2rPM=
+Date: Wed, 23 Sep 2026 15:23:09 -0700
+To: mm-commits@vger.kernel.org,kasong@tencent.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + ocfs2-cluster-hold-a-reference-on-the-heartbeat-thread.patch added to mm-nonmm-unstable branch
-Message-Id: <20260923212247.4930B1F000FF@smtp.kernel.org>
+Subject: [to-be-updated] mm-swap-fix-off-by-one-in-swap-cache-replace-sanity-check.patch removed from -mm tree
+Message-Id: <20260923222310.680291F000FF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,129 +34,135 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The patch titled
-     Subject: ocfs2/cluster: hold a reference on the heartbeat thread
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     ocfs2-cluster-hold-a-reference-on-the-heartbeat-thread.patch
+The quilt patch titled
+     Subject: mm/swap: fix off-by-one in swap cache replace sanity check
+has been removed from the -mm tree.  Its filename was
+     mm-swap-fix-off-by-one-in-swap-cache-replace-sanity-check.patch
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/ocfs2-cluster-hold-a-reference-on-the-heartbeat-thread.patch
-
-This patch will later appear in the mm-nonmm-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via various
-branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there most days
+This patch was dropped because an updated version will be issued
 
 ------------------------------------------------------
-From: Karl Mehltretter <kmehltretter@gmail.com>
-Subject: ocfs2/cluster: hold a reference on the heartbeat thread
-Date: Wed, 23 Sep 2026 03:01:49 +0200
+From: Kairui Song <kasong@tencent.com>
+Subject: mm/swap: fix off-by-one in swap cache replace sanity check
+Date: Tue, 15 Sep 2026 01:14:42 +0800
 
-Since commit 688bc88e2046 ("ocfs2/cluster: keep heartbeat local node
-stable"), o2hb_thread() leaves its loop and returns when the local node
-changes, for example after "echo 0 > node/<name>/local".  The thread was
-started with kthread_run() and nothing holds a reference to its
-task_struct, so the task is freed once it exits, while reg->hr_task still
-points to it.
+Patch series "mm/huge_memory: clean up and decouple the anon and file
+split helpers", v5.
 
-Reading the region's pid attribute then reads the freed task, and removing
-the region calls kthread_stop() on it:
+The folio split path handles anon, page cache and swap cache folios in one
+routine.  That mixing is what makes the swap cache split restrictions hard
+to lift and to review.  We now support uniform split to order-0 only, and
+no mappingless swap cache folios.  And it has left a fair number of dead
+or redundant checks behind.
 
-  BUG: KASAN: slab-use-after-free in o2hb_region_pid_show+0xb3/0xc0
-  refcount_t: addition on 0; use-after-free.
-  Oops: Oops: 0000 [#1] SMP KASAN NOPTI
-  RIP: 0010:kthread_stop+0xb1/0x390
+This series prepares for lifting those restrictions by cleaning up the
+code first: split the routine into an anon and a file helper, and keep all
+swap cache handling in the anon helper.  The file helper never sees a swap
+cache folio, folio_check_splittable() rejects them up front.
 
-The thread could already return by itself before, when heartbeat start was
-aborted or on an unclean stop, but the local node change makes it
-reachable from userspace at any time.
+Apart from two bug fixes (patch 1 and 2) and a slight adjustment of anon
+splitting (patch 12), this is a pure cleanup.
 
-Create the thread, take a reference on it and only then wake it, so the
-reference cannot race with the thread exiting.  Drop it with
-kthread_stop_put().
+Testing:
 
-Link: https://lore.kernel.org/20260923010149.14391-1-kmehltretter@gmail.com
-Fixes: 688bc88e2046 ("ocfs2/cluster: keep heartbeat local node stable")
-Signed-off-by: Karl Mehltretter <kmehltretter@gmail.com>
+The in-tree split_huge_page_test selftest (uniform, non-uniform and
+in-folio-offset splits of anon and pagecache folios) passes 62/62 over 600
+runs on the patched kernel.
+
+ftrace function_graph tracing filtered on __folio_split() was used to
+compare per-call durations between the base and the patched kernel on the
+same x86-64 box (interleaved runs across alternating reboots.  135 split
+calls per run, 600 test runs):
+
+Before: 68.52 us, stddev: 1.58
+After:  67.38 us, stddev: 1.33
+
+The patched kernel is slightly faster.  The stack usage and object size
+change as the config and compiler change, but in general the stack usage
+is reduced and object size is basically unchanged.
+
+
+This patch (of 17):
+
+The DEBUG_VM sanity check in __swap_cache_replace_folio() iterates the old
+folio's range with "while (ci_off++ < ci_end)", so the loop body runs on
+the already-incremented offset: the first entry is skipped and one entry
+past the range is read.  For a folio split that entry belongs to the first
+after-split folio and was just repointed by the replacement loop above, so
+the check would warn spuriously whenever sub-folio orders differ from the
+head folio's.
+
+Currently we don't support non-uniform swapcache split, but this still
+needs a fix to clean it up and prepare for non-uniform swap cache split.
+
+Use the same do-while pattern as the replacement loop.
+
+Link: https://lore.kernel.org/20260915-swap-thp-cleanup-v5-0-39878b37dfb0@tencent.com
+Link: https://lore.kernel.org/20260915-swap-thp-cleanup-v5-1-39878b37dfb0@tencent.com
+Fixes: 8578e0c00dcf ("mm, swap: use the swap table for the swap cache and switch API")
+Signed-off-by: Kairui Song <kasong@tencent.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Reported-by: Sashiko <sashiko-bot@kernel.org>
-Closes: https://sashiko.dev/#/patchset/20260616074931.3774929-1-zzzccc427%40gmail.com
-Reviewed-by: Joseph Qi <joseph.qi@linux.alibaba.com>
-Cc: Mark Fasheh <mark@fasheh.com>
-Cc: Joel Becker <jlbec@evilplan.org>
-Cc: Cen Zhang <zzzccc427@gmail.com>
-Cc: Junxiao Bi <junxiao.bi@oracle.com>
-Cc: Heming Zhao <heming.zhao@suse.com>
-Assisted-by: LLM
+Acked-by: Zi Yan <ziy@nvidia.com>
+Reviewed-by: Barry Song <baohua@kernel.org>
+Acked-by: David Hildenbrand (Arm) <david@kernel.org>
+Reviewed-by: Yeoreum Yun <yeoreum.yun@arm.com>
+Acked-by: Kiryl Shutsemau (Meta) <kas@kernel.org>
+Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
+Cc: Baoquan He <baoquan.he@linux.dev>
+Cc: Chris Li <chrisl@kernel.org>
+Cc: Dev Jain <dev.jain@arm.com>
+Cc: Kemeng Shi <shikemeng@huaweicloud.com>
+Cc: Lance Yang <lance.yang@linux.dev>
+Cc: Liam R. Howlett <liam@infradead.org>
+Cc: Lorenzo Stoakes <ljs@kernel.org>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Nhat Pham <nphamcs@gmail.com>
+Cc: Ryan Roberts <ryan.roberts@arm.com>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Vlastimil Babka <vbabka@kernel.org>
 ---
 
- fs/ocfs2/cluster/heartbeat.c |   12 ++++++++----
- 1 file changed, 8 insertions(+), 4 deletions(-)
+ mm/swap_state.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
---- a/fs/ocfs2/cluster/heartbeat.c~ocfs2-cluster-hold-a-reference-on-the-heartbeat-thread
-+++ a/fs/ocfs2/cluster/heartbeat.c
-@@ -1966,18 +1966,22 @@ static ssize_t o2hb_region_dev_store(str
- 	atomic_set(&reg->hr_unsteady_iterations, (live_threshold * 3));
- 	o2hb_set_region_stopping(reg, false);
- 
--	hb_task = kthread_run(o2hb_thread, reg, "o2hb-%s",
--			      reg->hr_item.ci_name);
-+	hb_task = kthread_create(o2hb_thread, reg, "o2hb-%s",
-+				 reg->hr_item.ci_name);
- 	if (IS_ERR(hb_task)) {
- 		ret = PTR_ERR(hb_task);
- 		mlog_errno(ret);
- 		goto out;
+--- a/mm/swap_state.c~mm-swap-fix-off-by-one-in-swap-cache-replace-sanity-check
++++ a/mm/swap_state.c
+@@ -396,8 +396,9 @@ void __swap_cache_replace_folio(struct s
+ 	    folio_order(old) != folio_order(new)) {
+ 		ci_off = swp_cluster_offset(old->swap);
+ 		ci_end = ci_off + folio_nr_pages(old);
+-		while (ci_off++ < ci_end)
++		do {
+ 			WARN_ON_ONCE(swp_tb_to_folio(__swap_table_get(ci, ci_off)) != old);
++		} while (++ci_off < ci_end);
  	}
-+	/* The thread may exit on its own, so pin it before it can run. */
-+	get_task_struct(hb_task);
+ }
  
- 	spin_lock(&o2hb_live_lock);
- 	reg->hr_task = hb_task;
- 	spin_unlock(&o2hb_live_lock);
- 
-+	wake_up_process(hb_task);
-+
- 	ret = wait_event_interruptible(o2hb_steady_queue,
- 				atomic_read(&reg->hr_steady_iterations) == 0 ||
- 				reg->hr_node_deleted);
-@@ -2022,7 +2026,7 @@ out:
- 		spin_unlock(&o2hb_live_lock);
- 
- 		if (hb_task)
--			kthread_stop(hb_task);
-+			kthread_stop_put(hb_task);
- 
- 		o2hb_unmap_slot_data(reg);
- 
-@@ -2208,7 +2212,7 @@ static void o2hb_heartbeat_group_drop_it
- 	spin_unlock(&o2hb_live_lock);
- 
- 	if (hb_task)
--		kthread_stop(hb_task);
-+		kthread_stop_put(hb_task);
- 
- 	if (o2hb_global_heartbeat_active()) {
- 		spin_lock(&o2hb_live_lock);
 _
 
-Patches currently in -mm which might be from kmehltretter@gmail.com are
+Patches currently in -mm which might be from kasong@tencent.com are
 
-docs-mm-ksm-use-the-renamed-ksm-structure-names.patch
-mm-secretmem-fix-the-enable-parameter-description.patch
-klist-avoid-accesses-after-waking-klist_remove.patch
-squashfs-fix-fragment-index-table-sizing-overflow-on-32-bit.patch
-squashfs-make-the-fragment-index-table-bounds-check-overflow-safe.patch
-fork-honor-task_structs-declared-alignment.patch
-ocfs2-cluster-hold-a-reference-on-the-heartbeat-thread.patch
+mm-memcontrol-move-the-lru_zone_size-sanity-check-to-the-reader-side.patch
+mm-mglru-introduce-helpers-for-manipulating-gen-and-refs-flags.patch
+mm-migrate-copy-all-referenced-state-via-folio_migrate_lru_refs.patch
+mm-mglru-move-max_seq-read-into-walk_update_folio.patch
+mm-mglru-use-explicit-tier-range-in-read_ctrl_pos.patch
+mm-mglru-fix-potential-generation-folio-number-leak.patch
+mm-huge_memory-fix-rejection-of-swap-cache-folios-with-a-mapping.patch
+mm-huge_memory-invert-folio_ref_freeze-check-to-reduce-indentation.patch
+mm-huge_memory-split-the-routine-for-splitting-anon-and-file-folio.patch
+mm-huge_memory-rename-__split_unmapped_folio-to-__split_frozen_folio.patch
+mm-huge_memory-consolidate-irq-and-locking-for-folio-split.patch
+mm-huge_memory-move-eof-trimming-into-the-file-split-helper.patch
+mm-huge_memory-move-unmap-and-remap-into-the-split-helpers.patch
+mm-huge_memory-rename-remap_page-to-remap_anon_folio.patch
+mm-huge_memory-move-the-racy-refcount-check-into-unmap_folio.patch
+mm-huge_memory-move-filemap-management-into-the-file-split-helper.patch
+mm-huge_memory-move-anon_vma-handling-into-the-anon-split-helper.patch
+mm-huge_memory-move-memcg-switch-into-the-file-split-helper.patch
+mm-huge_memory-drop-the-unused-do_lru-argument-of-the-file-split-helper.patch
+mm-huge_memory-clean-up-after-split-folio-freeing-in-__folio_split.patch
+mm-huge_memory-count-only-swap-cache-refs-in-anon-folio-split.patch
+mm-huge_memory-drop-the-redundant-mapping-argument-of-__split_frozen_folio.patch
 
