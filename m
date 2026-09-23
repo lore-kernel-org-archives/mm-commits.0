@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4ED4EC8D9
-	for <mm-commits@vger.kernel.org>; Wed, 23 Sep 2026 02:02:25 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B93C0370D79
+	for <mm-commits@vger.kernel.org>; Wed, 23 Sep 2026 02:21:35 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790128947; cv=none; b=grKIxA74KuvLv+LoKoPwdN4sVL1ElVi1BWWSa3NXKD7h+AZeGvD0bk2nMlMmvX+tr7Qw5HCkIj4ZPR+MsXm/DiipRJw/DSle/2ReBWknDvBEr7DfDsyZJu87IKHd8SdG/5bDwJL2jlHFzhoii5/f8RbGWeBtoRRYiuP4PHvips4=
+	t=1790130098; cv=none; b=Rf0M8I225LIvlF6MP5YT8cTnuqIrgc0OXuC2r8DTFMdsaYjsfa/d0ZcGMwjaJfH2Ep6XpPDJfCzuHXYBFYDxkFx/YDJnT3qq/4REOzAAZiwzF7eQmBvndbluIcJIzWZgXDOLBHMs+prc5hYRYEubdP52b9fp05h7E+v9RGt2WN8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1790128947; c=relaxed/simple;
-	bh=H0rMIvdCPz7ullx+Y3PCSQ7QlaZQpkRJ43IccMfvqlQ=;
-	h=Date:To:From:Subject:Message-Id; b=kMmItSpWhQiZ3LOXR9awLzco/X+uyvrIvaLjqzmlVKetLPpD3YpZsaYPG31PJ88uQvj5rdW2gS/AWhKpTmChNdOjAGGh/QOERWTUZ7PcfXqyAeYglsBp9TXEgFJ2Bqv3IogqfMqNXHc22GyQ3TmeNOiu4FzkN0TF+ElWLj6jfBk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=BBgJkT2q; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1790130098; c=relaxed/simple;
+	bh=eobkJIvSpP3Nu+K+al6QM2/vefh9YCTEZLz9xsgqAuc=;
+	h=Date:To:From:Subject:Message-Id; b=UHfeMdO26slQTuPuuybY06rnSN2dKjXBwtQQAzg97j/qxts0SLwT4giPep2vJiiByj/RhbG6s7x9fV4u13v/Oei1aUC5i289aXOrYES7ojXOUQpT3P7D5Z/DgIMAwiVk2GQhCuCBoh/tWqYCbX+jt7e7E2IizbJXBV8H9nS4r7k=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=AD2HfYfm; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="BBgJkT2q"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C3FA21F000FF;
-	Wed, 23 Sep 2026 02:02:25 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="AD2HfYfm"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 38E9E1F000FF;
+	Wed, 23 Sep 2026 02:21:35 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1790128945;
-	bh=bk6v3Pb2bEgDx8ttxTDq+c1U0I73Jiwzxpcy0snkf4o=;
+	d=linux-foundation.org; s=korg; t=1790130095;
+	bh=8Id3WYjT/G5r3h8nwoEGGMvG7Pg5ptpB3HwJUk2NyeM=;
 	h=Date:To:From:Subject;
-	b=BBgJkT2qe+42Zlky3lgGqb/LS4T1J973PVvY4+UObAj4TWDtaXl1XQonCE0S5P9ek
-	 3riYngCBM1pRNHBWcZJ1Vv0hdqFEWIvEovIlgTm3hQ7tBFI1sOC7VrQI/olppwReoS
-	 v3QMPzgo9WeS5c/33bFzuU88GN22b18j/sJIKY+c=
-Date: Tue, 22 Sep 2026 19:02:25 -0700
-To: mm-commits@vger.kernel.org,osalvador@suse.de,muchun.song@linux.dev,david@kernel.org,aiqi.i7@bytedance.com,lizhe.67@bytedance.com,akpm@linux-foundation.org
+	b=AD2HfYfmBjOO+3UGnT6fUz67UmjtWZGPjVkhBKNIn6rzVk+9iglNfDgAyueqF4mv9
+	 kQgeCH97FFGtGVtUygQsxU+8Nnui1T5uV38U4/ZNLC+YMgDlTnuqOXxSI6M5cBzQBH
+	 HTx7/4XNp65UZKOb1lHJpYjmsu8RR/f5+UwEBxY0=
+Date: Tue, 22 Sep 2026 19:21:34 -0700
+To: mm-commits@vger.kernel.org,syzbot+03aaa576f1daa1c1f2f0@syzkaller.appspotmail.com,mark@fasheh.com,junxiao.bi@oracle.com,joseph.qi@linux.alibaba.com,jlbec@evilplan.org,heming.zhao@suse.com,ngocthang2710.1999@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-hugetlb-fix-overbroad-mmu-notifiers-for-unshared-pmds.patch added to mm-new branch
-Message-Id: <20260923020225.C3FA21F000FF@smtp.kernel.org>
+Subject: + ocfs2-validate-chunk-and-block-counts-of-the-local-quota-file.patch added to mm-nonmm-unstable branch
+Message-Id: <20260923022135.38E9E1F000FF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,26 +35,15 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/hugetlb: fix overbroad MMU notifiers for unshared PMDs
-has been added to the -mm mm-new branch.  Its filename is
-     mm-hugetlb-fix-overbroad-mmu-notifiers-for-unshared-pmds.patch
+     Subject: ocfs2: validate chunk and block counts of the local quota file
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     ocfs2-validate-chunk-and-block-counts-of-the-local-quota-file.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-hugetlb-fix-overbroad-mmu-notifiers-for-unshared-pmds.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/ocfs2-validate-chunk-and-block-counts-of-the-local-quota-file.patch
 
-This patch will later appear in the mm-new branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Note, mm-new is a provisional staging ground for work-in-progress
-patches, and acceptance into mm-new is a notification for others take
-notice and to finish up reviews.  Please do not hesitate to respond to
-review feedback and post updated versions to replace or incrementally
-fixup patches in mm-new.
-
-The mm-new branch of mm.git is not included in linux-next
-
-If a few days of testing in mm-new is successful, the patch will me moved
-into mm.git's mm-unstable branch, which is included in linux-next
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -69,150 +58,91 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: "Li Zhe" <lizhe.67@bytedance.com>
-Subject: mm/hugetlb: fix overbroad MMU notifiers for unshared PMDs
-Date: Tue, 22 Sep 2026 17:07:49 +0800
+From: Nguyen Ngoc Thang <ngocthang2710.1999@gmail.com>
+Subject: ocfs2: validate chunk and block counts of the local quota file
+Date: Sun, 20 Sep 2026 21:07:10 +0700
 
-Hugetlb currently expands MMU notifier ranges to PUD boundaries whenever
-PMD sharing is possible.  That is only needed when huge_pmd_unshare()
-actually detaches a shared PMD page table, because clearing the PUD
-invalidates the whole PUD-sized virtual address range.
+ocfs2_local_read_info() trusts dqi_chunks and dqi_blocks from the local
+quota file header.  If dqi_blocks is too small,
+ocfs2_extend_local_quota_file() computes a bogus chunk length, extends the
+file, and maps logical block dqi_blocks, which is already in the inode's
+metadata cache (the header or a chunk header read at mount).  sb_getblk()
+returns that cached buffer and ocfs2_set_new_buffer_uptodate() hits
+BUG_ON(ocfs2_buffer_cached()):
 
-For hugetlbfs hole punch, and similarly for other hugetlb unmap paths, a
-shared mapping can pass the "PMD sharing is possible" range test in
-adjust_range_if_pmd_sharing_possible() even when the hugetlbfs file has
-never actually had any shared PMD page tables.  KVM then receives a 1G
-invalidation for a 2M operation and zaps unrelated secondary mappings, so
-the guest has to fault them back in.
+  kernel BUG at fs/ocfs2/uptodate.c:509!
+  ocfs2_extend_local_quota_file+0x45c/0x1100
+  ocfs2_create_local_dquot+0x8ac/0xb50
+  ocfs2_acquire_dquot+0x614/0xae0
+  ocfs2_get_init_inode+0xe9/0x1b0
+  ocfs2_mkdir+0x174/0x430
 
-Avoid this by remembering, per hugetlbfs inode, whether PMD sharing was
-ever established for the file.  Set the flag when huge_pmd_share()
-successfully populates a shared PMD table.  For the hugetlb unmap paths,
-skip the conservative PUD-sized notifier expansion while the file has
-never seen PMD sharing.
+ocfs2_local_quota_add_chunk() has the same exposure.
 
-The state is intentionally sticky and file-wide.  Once PMD sharing has
-ever happened for the file, the unmap paths keep the existing conservative
-expansion.  This avoids the no-sharing case without adding a page-table
-walk to every unmap.
+Reject a header whose counts don't fit the chunk layout or exceed i_size.
 
-On a Redis-in-VM workload that punches cold 2M hugetlb pages, this patch
-improves P99 QPS stability while punching pages, reducing the QPS
-degradation ratio from 7.09% to 1.45%.
+Reproduced with a crafted image (dqi_blocks = 1, chunk 0 dqc_free = 0);
+syzbot has no reproducer for this report.
 
-Link: https://lore.kernel.org/20260922090749.24905-1-lizhe.67@bytedance.com
-Signed-off-by: Li Zhe <lizhe.67@bytedance.com>
+Link: https://lore.kernel.org/20260920140710.43938-1-ngocthang2710.1999@gmail.com
+Fixes: 9e33d69f553a ("ocfs2: Implementation of local and global quota file handling")
+Signed-off-by: Nguyen Ngoc Thang <ngocthang2710.1999@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Reported-by: aiqi.i7 <aiqi.i7@bytedance.com>
-Cc: David Hildenbrand <david@kernel.org>
-Cc: Muchun Song <muchun.song@linux.dev>
-Cc: Oscar Salvador <osalvador@suse.de>
+Reported-by: syzbot+03aaa576f1daa1c1f2f0@syzkaller.appspotmail.com
+Closes: https://syzkaller.appspot.com/bug?extid=03aaa576f1daa1c1f2f0
+Reviewed-by: Joseph Qi <joseph.qi@linux.alibaba.com>
+Cc: Mark Fasheh <mark@fasheh.com>
+Cc: Joel Becker <jlbec@evilplan.org>
+Cc: Junxiao Bi <junxiao.bi@oracle.com>
+Cc: Heming Zhao <heming.zhao@suse.com>
 ---
 
- fs/hugetlbfs/inode.c    |    3 +++
- include/linux/hugetlb.h |   24 ++++++++++++++++++++++++
- mm/hugetlb.c            |   11 ++++++++---
- 3 files changed, 35 insertions(+), 3 deletions(-)
+ fs/ocfs2/quota_local.c |   24 ++++++++++++++++++++++++
+ 1 file changed, 24 insertions(+)
 
---- a/fs/hugetlbfs/inode.c~mm-hugetlb-fix-overbroad-mmu-notifiers-for-unshared-pmds
-+++ a/fs/hugetlbfs/inode.c
-@@ -921,6 +921,9 @@ static struct inode *hugetlbfs_get_inode
- 		simple_inode_init_ts(inode);
- 		info->resv_map = resv_map;
- 		info->seals = F_SEAL_SEAL;
-+#ifdef CONFIG_HUGETLB_PMD_PAGE_TABLE_SHARING
-+		info->pmd_sharing_seen = false;
-+#endif
- 		switch (mode & S_IFMT) {
- 		default:
- 			init_special_inode(inode, mode, dev);
---- a/include/linux/hugetlb.h~mm-hugetlb-fix-overbroad-mmu-notifiers-for-unshared-pmds
-+++ a/include/linux/hugetlb.h
-@@ -507,6 +507,9 @@ struct hugetlbfs_inode_info {
- 	struct inode vfs_inode;
- 	struct resv_map *resv_map;
- 	unsigned int seals;
-+#ifdef CONFIG_HUGETLB_PMD_PAGE_TABLE_SHARING
-+	bool pmd_sharing_seen;
-+#endif
- };
- 
- static inline struct hugetlbfs_inode_info *HUGETLBFS_I(struct inode *inode)
-@@ -514,6 +517,27 @@ static inline struct hugetlbfs_inode_inf
- 	return container_of(inode, struct hugetlbfs_inode_info, vfs_inode);
+--- a/fs/ocfs2/quota_local.c~ocfs2-validate-chunk-and-block-counts-of-the-local-quota-file
++++ a/fs/ocfs2/quota_local.c
+@@ -245,6 +245,25 @@ static void ocfs2_release_local_quota_bi
+ 	}
  }
  
-+#ifdef CONFIG_HUGETLB_PMD_PAGE_TABLE_SHARING
-+static inline void hugetlbfs_set_pmd_sharing_seen(struct inode *inode)
++/* Check that the on-disk chunk and block counts match the file layout */
++static int ocfs2_check_local_quota_info(struct inode *inode,
++					unsigned int chunks,
++					unsigned int blocks)
 +{
-+	HUGETLBFS_I(inode)->pmd_sharing_seen = true;
++	u64 chunk_len = ol_chunk_blocks(inode->i_sb) + 1;
++	u64 min_blocks = chunks ? 1 + chunk_len * (chunks - 1) + 1 : 1;
++	u64 max_blocks = 1 + chunk_len * chunks;
++
++	if (blocks >= min_blocks && blocks <= max_blocks &&
++	    blocks <= i_size_read(inode) >> inode->i_sb->s_blocksize_bits)
++		return 0;
++
++	return ocfs2_error(inode->i_sb,
++			   "Quota file %llu has bad info: %u chunks, %u blocks\n",
++			   (unsigned long long)OCFS2_I(inode)->ip_blkno,
++			   chunks, blocks);
 +}
 +
-+static inline bool hugetlbfs_pmd_sharing_seen(struct inode *inode)
-+{
-+	return HUGETLBFS_I(inode)->pmd_sharing_seen;
-+}
-+#else
-+static inline void hugetlbfs_set_pmd_sharing_seen(struct inode *inode)
-+{
-+}
+ /* Load quota bitmaps into memory */
+ static int ocfs2_load_local_quota_bitmaps(struct inode *inode,
+ 			struct ocfs2_local_disk_dqinfo *ldinfo,
+@@ -733,6 +752,11 @@ static int ocfs2_local_read_info(struct
+ 	oinfo->dqi_blocks = le32_to_cpu(ldinfo->dqi_blocks);
+ 	oinfo->dqi_libh = bh;
+ 
++	status = ocfs2_check_local_quota_info(lqinode, oinfo->dqi_chunks,
++					      oinfo->dqi_blocks);
++	if (status < 0)
++		goto out_err;
 +
-+static inline bool hugetlbfs_pmd_sharing_seen(struct inode *inode)
-+{
-+	return false;
-+}
-+#endif
-+
- extern const struct vm_operations_struct hugetlb_vm_ops;
- struct file *hugetlb_file_setup(const char *name, size_t size, vma_flags_t acct,
- 				int creat_flags, int page_size_log);
---- a/mm/hugetlb.c~mm-hugetlb-fix-overbroad-mmu-notifiers-for-unshared-pmds
-+++ a/mm/hugetlb.c
-@@ -5426,10 +5426,12 @@ void __hugetlb_zap_begin(struct vm_area_
- 	if (!vma->vm_file)	/* hugetlbfs_file_mmap error */
- 		return;
- 
--	adjust_range_if_pmd_sharing_possible(vma, start, end);
- 	hugetlb_vma_lock_write(vma);
--	if (vma->vm_file)
-+	if (vma->vm_file) {
- 		i_mmap_lock_write(vma->vm_file->f_mapping);
-+		if (hugetlbfs_pmd_sharing_seen(file_inode(vma->vm_file)))
-+			adjust_range_if_pmd_sharing_possible(vma, start, end);
-+	}
- }
- 
- void __hugetlb_zap_end(struct vm_area_struct *vma,
-@@ -5468,7 +5470,9 @@ void unmap_hugepage_range(struct vm_area
- 
- 	mmu_notifier_range_init(&range, MMU_NOTIFY_CLEAR, 0, vma->vm_mm,
- 				start, end);
--	adjust_range_if_pmd_sharing_possible(vma, &range.start, &range.end);
-+	if (hugetlbfs_pmd_sharing_seen(file_inode(vma->vm_file)))
-+		adjust_range_if_pmd_sharing_possible(vma, &range.start,
-+						     &range.end);
- 	mmu_notifier_invalidate_range_start(&range);
- 	tlb_gather_mmu(&tlb, vma->vm_mm);
- 
-@@ -7071,6 +7075,7 @@ pte_t *huge_pmd_share(struct mm_struct *
- 	if (pud_none(*pud)) {
- 		pud_populate(mm, pud,
- 				(pmd_t *)((unsigned long)spte & PAGE_MASK));
-+		hugetlbfs_set_pmd_sharing_seen(mapping->host);
- 		mm_inc_nr_pmds(mm);
- 	} else {
- 		ptdesc_pmd_pts_dec(virt_to_ptdesc(spte));
+ 	/* We crashed when using local quota file? */
+ 	if (!(oinfo->dqi_flags & OLQF_CLEAN)) {
+ 		rec = OCFS2_SB(sb)->quota_rec;
 _
 
-Patches currently in -mm which might be from lizhe.67@bytedance.com are
+Patches currently in -mm which might be from ngocthang2710.1999@gmail.com are
 
-mm-fix-stale-zone_device-refcount-comment.patch
-mm-add-a-set_page_section_from_pfn-helper.patch
-mm-add-a-template-based-fast-path-for-zone-device-page-init.patch
-mm-add-a-template-based-fast-path-for-zone-device-page-init-fix.patch
-mm-extend-the-template-fast-path-to-zone-device-compound-tails.patch
-string-introduce-memcpy_nontemporal.patch
-mm-use-memcpy_nontemporal-in-zone-device-template-copies.patch
-x86-string-extend-memcpy_flushcache-fixed-size-fastpaths.patch
-mm-hugetlb-fix-overbroad-mmu-notifiers-for-unshared-pmds.patch
+ocfs2-validate-chunk-and-block-counts-of-the-local-quota-file.patch
 
