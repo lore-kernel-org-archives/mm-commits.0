@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 68D68469845
-	for <mm-commits@vger.kernel.org>; Wed, 23 Sep 2026 22:32:54 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0AFB0471CEC
+	for <mm-commits@vger.kernel.org>; Wed, 23 Sep 2026 22:32:56 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790202775; cv=none; b=Y2IKv0WQkv2/vD2uP68IX2eyQ0TTN3aqKGL8UcIYyr1yz3TAKxA8ZTAyNwMcgQZd13SRSFxkPD8D4R1OJ4q0Fj75VSibjympdUDvhgDjjJJ2PBHoePU/WShIVTn7RJnMuYUjA5ojQfK1ZOeJ4DuKCrlO7/7TxI5cKRsRW/jBwUQ=
+	t=1790202777; cv=none; b=Hkdlg37LDqaCqHW8GS2CQ2lh8ehBpslCj0arryFokIA2yZRY/Z4S0BRkTUSBimyZ8Df/rVpBZ0NXCMr81RDtwcSnjg5IUpyElgutbZYLmIXhW5T9QubHnKUcyIuOzdlV1xSZ+sihf0roiVMNUKPBX2PbC//HdEHOGG34z6mEEbo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1790202775; c=relaxed/simple;
-	bh=fF9p8pcfSvWK+wsNiT3sXcxdpiVXd5sfZ7Ou8HvXAQ8=;
-	h=Date:To:From:Subject:Message-Id; b=P4I2hlvtS6kQrPM0BjCgicHGDUg4w8QX+DqTUuKhQE0y8H0aueTu92LfvgbXKBIGYLiedW8FVoQ3vxgFCUOvXUqJVfUYNGiEwKT7b82w71J4ecs3nsh2gMqy9D5p8FfmbmZgMKGiPI4p91aSLYclGrz6hqLA7VtkdYwdb9lOlQ8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=t2JyoTfk; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1790202777; c=relaxed/simple;
+	bh=s9iL/C7oqumM/rakWrOUF1jF3BW+XugKmly8g8lexpI=;
+	h=Date:To:From:Subject:Message-Id; b=Wl4gp95LZ1vS7yOTZ3RgDSigTKjulkjrYibOzQEUFk6eKuR9+oKcFMHQhRb2E+Gt99BG6sQG44ctdhsKV2/RhqXTsqfdVXiuOgOJk77voab2C0M51taj68goTbTtKAIm77Av00lRVqOQo3mMb/QjE6TnjAy3T4x3TSgkb/3FPvM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=xYFq1Sfk; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="t2JyoTfk"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E8DAC1F000FF;
-	Wed, 23 Sep 2026 22:32:53 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="xYFq1Sfk"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D467A1F00893;
+	Wed, 23 Sep 2026 22:32:55 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1790202774;
-	bh=aUkir04YoNgBeKr5kV6i2BIRlZbGf5LabVrhQ6dYpbE=;
+	d=linux-foundation.org; s=korg; t=1790202775;
+	bh=e3DjkAL7QYdErv0sBRKV/rYA+KG/vr1WEd9epxzlqEk=;
 	h=Date:To:From:Subject;
-	b=t2JyoTfkAjykdJNln9HuENSg4fZQLmgP4wyqPB9mfwuh4fkbC4Wz5IgDza26ew4wr
-	 wHzVPOHklPaAit4P0z8uMftQBhiKzvYBn6PM2UVsasxW5tBPtxGg9T1VfUp7V1ZleP
-	 gtM0LR6x03Q6hEpSvUgW7rv/Ypc7ZAZruj7CkZPk=
-Date: Wed, 23 Sep 2026 15:32:53 -0700
+	b=xYFq1SfkyRWMMm/49C66E+mwFIOvpoMbOC4jGMxphYFMpqh45yn6AhRs2zZ0r8yLa
+	 Un5MnQkmbjIRzHGX0j0zBVjq6Szr0+HuBEkZKY0A/7ua3xDPc4lgZTAMDf4myNNHQq
+	 zneSGGMabDvJ5oGl6JWt/h4KjLXAX5EjuFsZc7F8=
+Date: Wed, 23 Sep 2026 15:32:55 -0700
 To: mm-commits@vger.kernel.org,kasong@tencent.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-huge_memory-count-only-swap-cache-refs-in-anon-folio-split.patch added to mm-unstable branch
-Message-Id: <20260923223253.E8DAC1F000FF@smtp.kernel.org>
+Subject: + mm-huge_memory-drop-the-redundant-mapping-argument-of-__split_frozen_folio.patch added to mm-unstable branch
+Message-Id: <20260923223255.D467A1F00893@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/huge_memory: count only swap cache refs in anon folio split
+     Subject: mm/huge_memory: drop the redundant mapping argument of __split_frozen_folio
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-huge_memory-count-only-swap-cache-refs-in-anon-folio-split.patch
+     mm-huge_memory-drop-the-redundant-mapping-argument-of-__split_frozen_folio.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-huge_memory-count-only-swap-cache-refs-in-anon-folio-split.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-huge_memory-drop-the-redundant-mapping-argument-of-__split_frozen_folio.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,20 +59,18 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Kairui Song <kasong@tencent.com>
-Subject: mm/huge_memory: count only swap cache refs in anon folio split
-Date: Wed, 23 Sep 2026 23:32:47 +0200
+Subject: mm/huge_memory: drop the redundant mapping argument of __split_frozen_folio
+Date: Wed, 23 Sep 2026 23:32:48 +0200
 
-Only __folio_freeze_split_anon() sees anon folios and swap cache folios
-now.  The file split helper only handles page cache folios, which hold
-exactly folio_nr_pages() references.
+The mapping parameter only served as a non-NULL check to detect whether
+page cache entries need updating.  The xa_state pointer conveys exactly
+the same information: the anon split helper passes NULL and the file split
+helper passes &xas, which is non-NULL iff the folio is in the page cache.
 
-Rename folio_cache_ref_count() to folio_swapcache_ref_count() and drop the
-anon check so the helper counts what its name says.  The file split helper
-now uses folio_nr_pages() directly.
+Use the xas pointer instead and drop the parameter, along with its
+kerneldoc entry.
 
-No feature change.
-
-Link: https://lore.kernel.org/20260923-swap-thp-cleanup-v6-16-ba1b4ba72c6f@tencent.com
+Link: https://lore.kernel.org/20260923-swap-thp-cleanup-v6-17-ba1b4ba72c6f@tencent.com
 Signed-off-by: Kairui Song <kasong@tencent.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 Reviewed-by: Zi Yan <ziy@nvidia.com>
@@ -101,107 +99,57 @@ Cc: Shivam Kalra <shivamkalra98@zohomail.in>
 Cc: Kairui Song <ryncsn@gmail.com>
 ---
 
- mm/huge_memory.c |   35 +++++++++++++++--------------------
- 1 file changed, 15 insertions(+), 20 deletions(-)
+ mm/huge_memory.c |   11 ++++-------
+ 1 file changed, 4 insertions(+), 7 deletions(-)
 
---- a/mm/huge_memory.c~mm-huge_memory-count-only-swap-cache-refs-in-anon-folio-split
+--- a/mm/huge_memory.c~mm-huge_memory-drop-the-redundant-mapping-argument-of-__split_frozen_folio
 +++ a/mm/huge_memory.c
-@@ -3997,10 +3997,10 @@ int folio_check_splittable(struct folio
- 	return 0;
- }
- 
--/* Number of folio references from the pagecache or the swapcache. */
--static unsigned int folio_cache_ref_count(const struct folio *folio)
-+/* Number of folio references from the swapcache. */
-+static unsigned int folio_swapcache_ref_count(const struct folio *folio)
+@@ -3833,7 +3833,6 @@ static void __split_folio_to_order(struc
+  * @split_at: in buddy allocator like split, the folio containing @split_at
+  *            will be split until its order becomes @new_order.
+  * @xas: xa_state pointing to folio->mapping->i_pages and locked by caller
+- * @mapping: @folio->mapping
+  * @split_type: if the split is uniform or not (buddy allocator like split)
+  *
+  *
+@@ -3866,7 +3865,7 @@ static void __split_folio_to_order(struc
+  */
+ static int __split_frozen_folio(struct folio *folio, int new_order,
+ 		struct page *split_at, struct xa_state *xas,
+-		struct address_space *mapping, enum split_type split_type)
++		enum split_type split_type)
  {
--	if (folio_test_anon(folio) && !folio_test_swapcache(folio))
-+	if (!folio_test_swapcache(folio))
- 		return 0;
- 	return folio_nr_pages(folio);
- }
-@@ -4067,7 +4067,7 @@ static int __folio_freeze_split_anon(str
+ 	const bool is_anon = folio_test_anon(folio);
+ 	int old_order = folio_order(folio);
+@@ -3890,7 +3889,7 @@ static int __split_frozen_folio(struct f
+ 		if (is_anon && split_order == 1)
+ 			continue;
  
- 	local_irq_disable();
- 
--	if (!folio_ref_freeze(folio, folio_cache_ref_count(folio) + 1)) {
-+	if (!folio_ref_freeze(folio, folio_swapcache_ref_count(folio) + 1)) {
- 		ret = -EAGAIN;
- 		goto out_no_split;
- 	}
-@@ -4104,7 +4104,7 @@ static int __folio_freeze_split_anon(str
- 		next = folio_next(new_folio);
- 		zone_device_private_split_cb(folio, new_folio);
- 		folio_ref_unfreeze(new_folio,
--				   folio_cache_ref_count(new_folio) + 1);
-+				   folio_swapcache_ref_count(new_folio) + 1);
- 		if (do_lru)
- 			lru_add_split_folio(folio, new_folio, lruvec, list);
- 		if (ci)
-@@ -4112,7 +4112,7 @@ static int __folio_freeze_split_anon(str
- 	}
- 
- 	zone_device_private_split_cb(folio, NULL);
--	folio_ref_unfreeze(folio, folio_cache_ref_count(folio) + 1);
-+	folio_ref_unfreeze(folio, folio_swapcache_ref_count(folio) + 1);
- 
+-		if (mapping) {
++		if (xas) {
+ 			/*
+ 			 * uniform split has xas_split_alloc() called before
+ 			 * irq is disabled to allocate enough memory, whereas
+@@ -4089,8 +4088,7 @@ static int __folio_freeze_split_anon(str
  	if (do_lru)
- 		lruvec_unlock(lruvec);
-@@ -4138,6 +4138,7 @@ static int __folio_freeze_split_file(str
- 		unsigned int new_order, struct page *split_at,
- 		struct list_head *list, enum split_type split_type)
- {
-+	const long old_nr_pages = folio_nr_pages(folio);
- 	struct address_space *mapping = folio->mapping;
- 	XA_STATE(xas, &mapping->i_pages, folio->index);
- 	struct folio *end_folio = folio_next(folio);
-@@ -4211,22 +4212,16 @@ static int __folio_freeze_split_file(str
- 		goto fail;
- 	}
+ 		lruvec = folio_lruvec_lock(folio);
  
--	if (!folio_ref_freeze(folio, folio_cache_ref_count(folio) + 1)) {
-+	if (!folio_ref_freeze(folio, old_nr_pages + 1)) {
- 		ret = -EAGAIN;
- 		goto fail;
- 	}
+-	ret = __split_frozen_folio(folio, new_order, split_at, NULL,
+-				   NULL, split_type);
++	ret = __split_frozen_folio(folio, new_order, split_at, NULL, split_type);
  
--	if (folio_test_pmd_mappable(folio) &&
--	    new_order < HPAGE_PMD_ORDER) {
--		int nr = folio_nr_pages(folio);
--
--		if (folio_test_swapbacked(folio)) {
--			lruvec_stat_mod_folio(folio,
--					NR_SHMEM_THPS, -nr);
--		} else {
--			lruvec_stat_mod_folio(folio,
--					NR_FILE_THPS, -nr);
--		}
-+	if (folio_test_pmd_mappable(folio) && new_order < HPAGE_PMD_ORDER) {
-+		if (folio_test_swapbacked(folio))
-+			lruvec_stat_mod_folio(folio, NR_SHMEM_THPS, -old_nr_pages);
-+		else
-+			lruvec_stat_mod_folio(folio, NR_FILE_THPS, -old_nr_pages);
- 	}
+ 	/*
+ 	 * Unfreeze the after-split folios and put them back to the right
+@@ -4226,8 +4224,7 @@ static int __folio_freeze_split_file(str
  
  	/* lock lru list/PageCompound, ref frozen by page_ref_freeze */
-@@ -4250,7 +4245,7 @@ static int __folio_freeze_split_file(str
- 		next = folio_next(new_folio);
+ 	lruvec = folio_lruvec_lock(folio);
+-	ret = __split_frozen_folio(folio, new_order, split_at, &xas,
+-				   mapping, split_type);
++	ret = __split_frozen_folio(folio, new_order, split_at, &xas, split_type);
  
- 		folio_ref_unfreeze(new_folio,
--				   folio_cache_ref_count(new_folio) + 1);
-+				   folio_nr_pages(new_folio) + 1);
- 
- 		lru_add_split_folio(folio, new_folio, lruvec, list);
- 
-@@ -4277,7 +4272,7 @@ static int __folio_freeze_split_file(str
- 	 * Otherwise, a parallel folio_try_get() can grab @folio
- 	 * and its caller can see stale page cache entries.
- 	 */
--	folio_ref_unfreeze(folio, folio_cache_ref_count(folio) + 1);
-+	folio_ref_unfreeze(folio, folio_nr_pages(folio) + 1);
- 	lruvec_unlock(lruvec);
- fail:
- 	xas_unlock_irq(&xas);
+ 	/*
+ 	 * Unfreeze after-split folios and put them back to the right
 _
 
 Patches currently in -mm which might be from kasong@tencent.com are
