@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8AF75361DBC;
-	Wed, 23 Sep 2026 01:49:35 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4A8C8361977;
+	Wed, 23 Sep 2026 01:49:36 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790128177; cv=none; b=sV+ipQk/zs7ixhQxf7hvNhNrEE1mgosob5lRoifB/N0fQfAjf9UKljMppUKorcLIzD/QByiNgJioQiDmXyezbGnAKKCm/8MirtxSUpOWKVM+pX/fxoUCFAzeNQfa2Nn4PpQrWik0IzFKUh4Rjh3W84cAFC8Q8JBma9p9SaOfkR0=
+	t=1790128177; cv=none; b=pQyc42MO1tTGxPcthcujAotpfmlp26hU66cUBe5OStC/Nm7i9cz8O2HZAgeujgLTuFPh/nD7ep/wlAsie81tz70Aka7lp9+6I6/QRXfNaDlwVo3XNk7Ub5UrYJRODPfBLD2gyggd1TVnSTa7gocJjNpXlo53tdETf26y1/0O6QI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1790128177; c=relaxed/simple;
-	bh=6WacAMhJhN33lkmIwdjT9IIIZcvTMGPTv52TgFOvHoc=;
-	h=Date:To:From:Subject:Message-Id; b=dK0IxEWcZNekem00gajFuNVxZAD6grfVeFsl/QecZZ2o6PYuZECE/+Vd6OaLg9MEJQlxG5qK7FoV1LAvVemJMg8j6dsVX1UWDORYhcjNt8ikeURm5DbKNuVabDIvDs34SuVox50cSMZhefE9goubbGK4fnIL0Zaze+tPos05hyM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=xpHHw/tC; arc=none smtp.client-ip=100.103.45.18
+	bh=e6hBqRr7szoTZeT7sWo4ffRhyJnKOWXS1C1lv8F+qd8=;
+	h=Date:To:From:Subject:Message-Id; b=pmgOaWulrRgKlGQAcEGkv1X1B46X8+jcYEXR4F7h9GalpxKaoN1wg1T4ELz+sg6kYjK4Kfw+6hk0QnO8hPGmmlz0n1yCS144aVHgm/Pxk7JPA3c5g1z8iBc35kbp+zCXykG/qycgymoi9yCSNYCzjnYdHzKbeS8lftGFJSfcm+Y=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=BAM0geyR; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="xpHHw/tC"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 03CEC1F000FF;
-	Wed, 23 Sep 2026 01:49:34 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="BAM0geyR"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0E2B91F00893;
+	Wed, 23 Sep 2026 01:49:36 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1790128175;
-	bh=A7dlEp33m0/q3TPHSQSRus3ieAEuDKbx5WKHIEUJBg0=;
+	d=linux-foundation.org; s=korg; t=1790128176;
+	bh=Bs12zx4/6h5scsewjKKcecmQkKa10mP0qpHwayTPuL4=;
 	h=Date:To:From:Subject;
-	b=xpHHw/tCMWcMa7Y8FjfThoRZLGDQHbIVdt9uc1nLorM+VY/OMLsxq5m9SYrmbFVac
-	 N70CXBrfmsiR88U9M+NxWodv7/JNO6G+PYUZhTIuoRAlKpQgahgXcMqtT0oNQ4+1sw
-	 U2wuUjGnnpvg5LfhEOy06pWzZrLgRVMiEH0jJnSU=
-Date: Tue, 22 Sep 2026 18:49:34 -0700
+	b=BAM0geyRGLMIFkoEDjqybxnOGow3vvx5pxcbEWJo6IZAwVZ+zFM67fdoPjKiX7pFY
+	 LlN3JZH3BJ+y/aj4mJ/ODzeY9ymMr+V4tU0Osl9nD+9S13wuoRcIV5A9TBSil8VVOj
+	 KnGHGh3hBQo3yxoZaFhchJlc6T3PkJrbWdeRfx7k=
+Date: Tue, 22 Sep 2026 18:49:35 -0700
 To: mm-commits@vger.kernel.org,stable@vger.kernel.org,shakeel.butt@linux.dev,roman.gushchin@linux.dev,osalvador@suse.de,nphamcs@gmail.com,muchun.song@linux.dev,mhocko@suse.com,mhocko@kernel.org,joshua.hahnjy@gmail.com,hannes@cmpxchg.org,david@kernel.org,chris@chrisdown.name,lihongfu@kylinos.cn,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [to-be-updated] mm-hugetlb-account-migration-target-folio-in-per-node-nr_hugetlb-vmstat.patch removed from -mm tree
-Message-Id: <20260923014935.03CEC1F000FF@smtp.kernel.org>
+Subject: [to-be-updated] mm-memcg-migrate-per-node-hugetlb-lruvec-stat-together-with-hugetlb-folio.patch removed from -mm tree
+Message-Id: <20260923014936.0E2B91F00893@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,78 +35,41 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/hugetlb: account migration target folio in per-node NR_HUGETLB vmstat
+     Subject: mm/memcg: migrate per-node hugetlb lruvec stat together with hugetlb folio
 has been removed from the -mm tree.  Its filename was
-     mm-hugetlb-account-migration-target-folio-in-per-node-nr_hugetlb-vmstat.patch
+     mm-memcg-migrate-per-node-hugetlb-lruvec-stat-together-with-hugetlb-folio.patch
 
 This patch was dropped because an updated version will be issued
 
 ------------------------------------------------------
 From: Hongfu Li <lihongfu@kylinos.cn>
-Subject: mm/hugetlb: account migration target folio in per-node NR_HUGETLB vmstat
-Date: Mon, 21 Sep 2026 17:12:34 +0800
+Subject: mm/memcg: migrate per-node hugetlb lruvec stat together with hugetlb folio
+Date: Mon, 21 Sep 2026 17:12:35 +0800
 
-Patch series "mm: fix hugetlb NR_HUGETLB accounting on folio migration".
+memory.numa_stat exposes per-node hugetlb counters from per-node lruvec
+stats.  These stats are accounted against folio_nid(): incremented on the
+folio's node when handed to a user, decremented when the folio is returned
+to the pool.
 
-The hugeTLB counters added by 05d4532b60e3 ("memcg/hugetlb: add hugeTLB
-counters to memcg") are maintained in two per-node places:
-  - the per-node vmstat counter NR_HUGETLB, exposed as nr_hugetlb in
-    /proc/vmstat;
-  - the per-node memcg lruvec stat, exposed via memory.numa_stat.
+During hugetlb folio migration, mem_cgroup_migrate() moves the charge to
+the new folio and drops the memcg data of the old one, so the free of the
+old folio right after the migration skips the memcg per-node lruvec
+decrement.  The hugetlb count stays attributed to the old node for the
+rest of the life of the charge, while the target folio gets no increment
+on the new node; its later free decrements a counter that was never
+incremented.
 
-Both are accounted against the folio's node, and both drift when a hugetlb
-folio is migrated, though in different ways.
+Migrate the per-node lruvec accounting alongside migration.  Global memcg
+totals remain balanced because they track resource consumption, not node
+placement.
 
-A migration target folio is allocated by alloc_hugetlb_folio_nodemask()
-and inherits the old folio's state without ever being accounted, while the
-old folio is freed right after and its free is accounted.  That alone
-loses vmstat accounting: the target node has no matching increment for the
-decrement on the old node, so /proc/vmstat's nr_hugetlb shrinks by
-nr_pages per migration.  Patch 1 accounts the folio where it is obtained,
-so the increment pairs with the free in free_huge_folio() on the
-successful as well as the failed migration path.  The memfd page cache
-preallocation helper has the same asymmetry and is fixed in the same
-patch.
-
-The per-node lruvec stat breaks differently.  mem_cgroup_migrate() moves
-the charge to the new folio and drops the old folio's memcg data, so the
-old folio's free right after migration skips the memcg per-node decrement;
-the count stays attributed to the old node for the rest of the charge's
-life, and the target folio never gets an increment on its new node.  Patch
-2 moves that per-node accounting alongside the charge in
-mem_cgroup_migrate().
-
-
-This patch (of 2):
-
-The NR_HUGETLB vmstat counter is maintained per folio's node: incremented
-when a huge page is handed to a user via hugetlb_alloc_folio() and
-decremented when it is returned to the pool via free_huge_folio().
-
-A folio obtained by alloc_hugetlb_folio_nodemask() never goes through
-hugetlb_alloc_folio(), so it is never accounted, while its free always is.
-For a migration target this means the target node gets no matching
-increment for the decrement on the old node, so the global nr_hugetlb in
-/proc/vmstat drops by nr_pages for each migration.  The same asymmetry
-affects the failed migration path, which frees the target again right
-away, and the temporary folio hugetlb_mfill_atomic_pte() takes from the
-same helper.
-
-alloc_hugetlb_folio_reserve(), used to preallocate the memfd page cache
-folios, has the same asymmetry: the folio is handed to a user without
-being accounted, while its free is accounted through free_huge_folio().
-
-Account the folio where it is obtained, in alloc_hugetlb_folio_nodemask()
-and alloc_hugetlb_folio_reserve(), so that the increment pairs with the
-decrement in free_huge_folio(): a successful migration hands the folio to
-a user, a failed one frees it again.
-
-Link: https://lore.kernel.org/20260921-for-hugetlb_state-v1-0-8a6eec92661f@kylinos.cn
-Link: https://lore.kernel.org/20260921-for-hugetlb_state-v1-1-8a6eec92661f@kylinos.cn
+Link: https://lore.kernel.org/20260921-for-hugetlb_state-v1-2-8a6eec92661f@kylinos.cn
 Fixes: 05d4532b60e3 ("memcg/hugetlb: add hugeTLB counters to memcg")
 Signed-off-by: Hongfu Li <lihongfu@kylinos.cn>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Acked-by: Muchun Song <muchun.song@linux.dev>
+Reviewed-by: Joshua Hahn <joshua.hahnjy@gmail.com>
+Tested-by: Joshua Hahn <joshua.hahnjy@gmail.com>
+Cc: Muchun Song <muchun.song@linux.dev>
 Cc: Oscar Salvador <osalvador@suse.de>
 Cc: David Hildenbrand <david@kernel.org>
 Cc: Shakeel Butt <shakeel.butt@linux.dev>
@@ -116,70 +79,59 @@ Cc: Nhat Pham <nphamcs@gmail.com>
 Cc: Chris Down <chris@chrisdown.name>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Joshua Hahn <joshua.hahnjy@gmail.com>
 Cc: <stable@vger.kernel.org>
 ---
 
- mm/hugetlb.c |   35 +++++++++++++++++++++++------------
- 1 file changed, 23 insertions(+), 12 deletions(-)
+ mm/memcontrol.c |   31 +++++++++++++++++++++++++++++++
+ 1 file changed, 31 insertions(+)
 
---- a/mm/hugetlb.c~mm-hugetlb-account-migration-target-folio-in-per-node-nr_hugetlb-vmstat
-+++ a/mm/hugetlb.c
-@@ -2206,6 +2206,11 @@ struct folio *alloc_hugetlb_folio_reserv
- 	}
- 
- 	spin_unlock_irq(&hugetlb_lock);
-+
-+	if (folio)
-+		lruvec_stat_mod_folio(folio, NR_HUGETLB,
-+				      folio_nr_pages(folio));
-+
- 	return folio;
+--- a/mm/memcontrol.c~mm-memcg-migrate-per-node-hugetlb-lruvec-stat-together-with-hugetlb-folio
++++ a/mm/memcontrol.c
+@@ -5662,6 +5662,34 @@ void mem_cgroup_replace_folio(struct fol
+ 	rcu_read_unlock();
  }
  
-@@ -2213,24 +2218,30 @@ struct folio *alloc_hugetlb_folio_reserv
- struct folio *alloc_hugetlb_folio_nodemask(struct hstate *h, int preferred_nid,
- 		nodemask_t *nmask, gfp_t gfp_mask, bool allow_alloc_fallback)
- {
--	spin_lock_irq(&hugetlb_lock);
--	if (available_huge_pages(h)) {
--		struct folio *folio;
-+	struct folio *folio = NULL;
- 
-+	spin_lock_irq(&hugetlb_lock);
-+	if (available_huge_pages(h))
- 		folio = dequeue_hugetlb_folio_nodemask(h, gfp_mask,
- 						preferred_nid, nmask);
--		if (folio) {
--			spin_unlock_irq(&hugetlb_lock);
--			return folio;
--		}
--	}
- 	spin_unlock_irq(&hugetlb_lock);
- 
--	/* We cannot fallback to other nodes, as we could break the per-node pool. */
--	if (!allow_alloc_fallback)
--		gfp_mask |= __GFP_THISNODE;
-+	if (!folio) {
-+		/*
-+		 * We cannot fallback to other nodes, as we could break the
-+		 * per-node pool.
-+		 */
-+		if (!allow_alloc_fallback)
-+			gfp_mask |= __GFP_THISNODE;
- 
--	return alloc_migrate_hugetlb_folio(h, gfp_mask, preferred_nid, nmask);
-+		folio = alloc_migrate_hugetlb_folio(h, gfp_mask, preferred_nid,
-+						    nmask);
-+	}
++#ifdef CONFIG_HUGETLB_PAGE
++static void move_hugetlb_lruvec_stat(struct obj_cgroup *objcg,
++				     struct folio *old, struct folio *new)
++{
++	long nr_pages = folio_nr_pages(old);
++	struct mem_cgroup *memcg;
++	int old_nid = folio_nid(old);
++	int new_nid = folio_nid(new);
 +
-+	if (folio)
-+		lruvec_stat_mod_folio(folio, NR_HUGETLB, folio_nr_pages(folio));
++	if (old_nid == new_nid)
++		return;
 +
-+	return folio;
- }
++	rcu_read_lock();
++	memcg = obj_cgroup_memcg(objcg);
++	mod_memcg_lruvec_state(mem_cgroup_lruvec(memcg, NODE_DATA(old_nid)),
++			       NR_HUGETLB, -nr_pages);
++	mod_memcg_lruvec_state(mem_cgroup_lruvec(memcg, NODE_DATA(new_nid)),
++			       NR_HUGETLB, nr_pages);
++	rcu_read_unlock();
++}
++#else /* CONFIG_HUGETLB_PAGE */
++static inline void move_hugetlb_lruvec_stat(struct obj_cgroup *objcg,
++					    struct folio *old,
++					    struct folio *new)
++{
++}
++#endif /* CONFIG_HUGETLB_PAGE */
++
+ /**
+  * mem_cgroup_migrate - Transfer the memcg data from the old to the new folio.
+  * @old: Currently circulating folio.
+@@ -5699,6 +5727,9 @@ void mem_cgroup_migrate(struct folio *ol
  
- static nodemask_t *policy_mbind_nodemask(gfp_t gfp)
+ 	new_objcg = get_migration_objcg(old, new);
+ 
++	if (folio_test_hugetlb(old))
++		move_hugetlb_lruvec_stat(new_objcg, old, new);
++
+ 	/*
+ 	 * @old was charged through a non-root objcg, so its charge is in the
+ 	 * page counters. If the re-derivation walked up to the root objcg -
 _
 
 Patches currently in -mm which might be from lihongfu@kylinos.cn are
@@ -193,5 +145,4 @@ mm-memfd-fix-hugetlb-reservation-accounting-in-error-paths.patch
 selftests-mm-fix-ptrace-peekdata-check-in-memfd_secret-test.patch
 mm-hugetlb_cgroup-move-per-node-usage-on-cross-node-migration.patch
 mm-hugetlb_cgroup-move-per-node-usage-on-cgroup-reparenting.patch
-mm-memcg-migrate-per-node-hugetlb-lruvec-stat-together-with-hugetlb-folio.patch
 
