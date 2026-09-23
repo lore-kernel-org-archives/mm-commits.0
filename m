@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7F48128373
-	for <mm-commits@vger.kernel.org>; Wed, 23 Sep 2026 22:23:19 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A030A57F726
+	for <mm-commits@vger.kernel.org>; Wed, 23 Sep 2026 22:23:20 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790202200; cv=none; b=QqcAe6cUaEghTy2xKuVxifWxkOLn2QjDhOt9qRYcXml1j8NVPmQTznAMEd61If9hxlCk+SA0e4CYJ4asRkgKffvgdZg06/CD5BeHsaTWUkzcx3/SVdV/R6m6Lco34ERxAqCGOUkTy4FuoLos20syOOKVb9BaEOnVA0AM2RPr24I=
+	t=1790202201; cv=none; b=mSOGy7nEFTVYtTCAQzQBAaXqNSXNBrBQoyVuDSlOZ3ncrkOmOUUK68iAhOI8/vEHuhrN3buSQR6dZDiGmxSlngrDPp/Z2DavD1T29RgOMlqkzXl7gNW56qB2E3tmL3dpzLls3xk7mtzveADhdTVw6X6ziRNwD52azZ95xkkvz6E=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1790202200; c=relaxed/simple;
-	bh=W1cZuRYOcpbBfPmp/vKp6TvFe6LV8UywFmWntLns+Xw=;
-	h=Date:To:From:Subject:Message-Id; b=nNOg3p60Bfbkhisnu09/6jhBxC2a28GonJGP9DobVflSSo2ivVb3CaOsLYLAylg/yKvKz/zY1tJ/k1Ttnjvo28D29eZ7Brp4USEfGfZvbYLG8iXF9U06Eg8fnLbaYHb7TlJHSizlsQ0hs+PeEV9ndmkZe9kBFuxYYmFIRp+p8wQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=QRd7nZDy; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1790202201; c=relaxed/simple;
+	bh=Gd6aer2FbDUom4Wp+92AogIzgr/+HnmrJhEOHmlL/0U=;
+	h=Date:To:From:Subject:Message-Id; b=NUflzWkSCygHM8wN7IVi8Y0Zz3wbBg1O8w9nfeo3nVJ8goQL5WWdbn/dMyNqj6G06wl+YNkydl7VTrYM6eGTvhQob57sAymvXXeoa0zPpza9zumHPwC4l2DAP6t+mheMRRaIJsID97oCsNUT9eWnmgPREwcVPrSh1qy1vPIkhLE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=mTB7U4FQ; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="QRd7nZDy"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 566FF1F00893;
-	Wed, 23 Sep 2026 22:23:19 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="mTB7U4FQ"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 777091F000FF;
+	Wed, 23 Sep 2026 22:23:20 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1790202199;
-	bh=KNw/NAEUB58QIlreAJIztGGAf/NTIjprnTK9t3g3Tt0=;
+	d=linux-foundation.org; s=korg; t=1790202200;
+	bh=rWlz9FllOE2H47YcqNIIpVJFSdWbg7WqEs5em2L2v2w=;
 	h=Date:To:From:Subject;
-	b=QRd7nZDyjOmY7b0eE0TeOG2E0b0aI0CLEwK/oc+P/TQfhg1XlP/FzMIE7OkO28Vwl
-	 AYvcz2HcKwU0lNBuqyT72LnRAuZReV0+8h664phzCVJ9ArUoF7j8ysUtsmp2Yqs8jd
-	 LEER7JQ0bnKQE+di1XJzGslKtdRVgYW6uRpV9pVY=
-Date: Wed, 23 Sep 2026 15:23:18 -0700
+	b=mTB7U4FQ2cBZIQNjC/oBdc/7hvuG7iFst3rSdbmRPZzDcQl+bEOI8xQTFuXMk4eH2
+	 GKq/m+p5BN3JPKnI4FWWWquBm3JjTmcilfmpFhAHipoyUHwjkQCeSYJKVMNspVqCJ6
+	 3EvdguJlcb87AsSpxGVJDjIJpASggkB0uDaK1s3U=
+Date: Wed, 23 Sep 2026 15:23:20 -0700
 To: mm-commits@vger.kernel.org,kasong@tencent.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [to-be-updated] mm-huge_memory-rename-remap_page-to-remap_anon_folio.patch removed from -mm tree
-Message-Id: <20260923222319.566FF1F00893@smtp.kernel.org>
+Subject: [to-be-updated] mm-huge_memory-move-the-racy-refcount-check-into-unmap_folio.patch removed from -mm tree
+Message-Id: <20260923222320.777091F000FF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,25 +35,29 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/huge_memory: rename remap_page() to remap_anon_folio()
+     Subject: mm/huge_memory: move the racy refcount check into unmap_folio()
 has been removed from the -mm tree.  Its filename was
-     mm-huge_memory-rename-remap_page-to-remap_anon_folio.patch
+     mm-huge_memory-move-the-racy-refcount-check-into-unmap_folio.patch
 
 This patch was dropped because an updated version will be issued
 
 ------------------------------------------------------
 From: Kairui Song <kasong@tencent.com>
-Subject: mm/huge_memory: rename remap_page() to remap_anon_folio()
-Date: Tue, 15 Sep 2026 01:14:50 +0800
+Subject: mm/huge_memory: move the racy refcount check into unmap_folio()
+Date: Tue, 15 Sep 2026 01:14:51 +0800
 
-remap_page() now only has one caller, __folio_freeze_split_anon(), and is
-only ever called for anon folios: unmap_folio() currently leaves file
-folios unmapped after the split, so they need no remapping.
+The check only exists to avoid the expensive PMD-splitting unmap of a
+folio that cannot be split anyway.  Move it from __folio_split() into
+unmap_folio(), right before the PMD split, so both the anon and file split
+helpers get the early check without repeating it.
 
-Rename it to remap_anon_folio() to make that explicit, and add a
-VM_WARN_ON_FOLIO() documenting it.
+unmap_folio() now returns -EAGAIN if the check fails and the split helpers
+propagate the error.  folio_split_unmapped() drops its own copy of the
+check: it works on already unmapped folios and the definitive
+folio_ref_freeze() in __folio_freeze_split_anon() still catches unexpected
+references.
 
-Link: https://lore.kernel.org/20260915-swap-thp-cleanup-v5-9-39878b37dfb0@tencent.com
+Link: https://lore.kernel.org/20260915-swap-thp-cleanup-v5-10-39878b37dfb0@tencent.com
 Signed-off-by: Kairui Song <kasong@tencent.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 Reviewed-by: Zi Yan <ziy@nvidia.com>
@@ -77,66 +81,95 @@ Cc: Suren Baghdasaryan <surenb@google.com>
 Cc: Vlastimil Babka <vbabka@kernel.org>
 ---
 
- mm/huge_memory.c |   17 ++++++++++++-----
- 1 file changed, 12 insertions(+), 5 deletions(-)
+ mm/huge_memory.c |   29 +++++++++++++----------------
+ 1 file changed, 13 insertions(+), 16 deletions(-)
 
---- a/mm/huge_memory.c~mm-huge_memory-rename-remap_page-to-remap_anon_folio
+--- a/mm/huge_memory.c~mm-huge_memory-move-the-racy-refcount-check-into-unmap_folio
 +++ a/mm/huge_memory.c
-@@ -3551,7 +3551,7 @@ static void unmap_folio(struct folio *fo
- 	/*
- 	 * Anon pages need migration entries to preserve them, but file
- 	 * pages can simply be left unmapped, then faulted back on demand.
--	 * If that is ever changed (perhaps for mlock), update remap_page().
-+	 * If that is ever changed (perhaps for mlock), update remap_anon_folio().
- 	 */
- 	if (folio_test_anon(folio))
- 		try_to_migrate(folio, ttu_flags);
-@@ -3636,10 +3636,17 @@ bool unmap_huge_pmd_locked(struct vm_are
- 	return __discard_anon_folio_pmd_locked(vma, addr, pmdp, folio);
+@@ -3538,13 +3538,17 @@ void vma_adjust_trans_huge(struct vm_are
+ 		split_huge_pmd_if_needed(next, end);
  }
  
--static void remap_page(struct folio *folio, unsigned long nr, int flags)
-+static void remap_anon_folio(struct folio *folio, unsigned long nr, int flags)
+-static void unmap_folio(struct folio *folio)
++static int unmap_folio(struct folio *folio)
  {
- 	int i = 0;
+ 	enum ttu_flags ttu_flags = TTU_RMAP_LOCKED | TTU_SYNC |
+ 		TTU_BATCH_FLUSH;
  
-+	/*
-+	 * unmap_folio() installs migration entries only for anon folios,
-+	 * so currently only anon folios need to be remapped. File folios
-+	 * stay unmapped after the split and are faulted back on demand.
-+	 */
-+	VM_WARN_ON_FOLIO(!folio_test_anon(folio), folio);
+ 	VM_BUG_ON_FOLIO(!folio_test_large(folio), folio);
+ 
++	/* Racy check if we can split the page, before we split PMDs */
++	if (folio_expected_ref_count(folio) != folio_ref_count(folio) - 1)
++		return -EAGAIN;
 +
- 	for (;;) {
- 		remove_migration_ptes(folio, folio, TTU_RMAP_LOCKED | flags);
- 		i += folio_nr_pages(folio);
-@@ -3723,7 +3730,7 @@ static void __split_folio_to_order(struc
- 		 *
- 		 * Note that for mapped sub-pages of an anonymous THP,
- 		 * PG_anon_exclusive has been cleared in unmap_folio() and is stored in
--		 * the migration entry instead from where remap_page() will restore it.
-+		 * the migration entry instead from where remap_anon_folio() will restore it.
- 		 * We can still have PG_anon_exclusive set on effectively unmapped and
- 		 * unreferenced sub-pages of an anonymous THP: we can simply drop
- 		 * PG_anon_exclusive (-> PG_mappedtodisk) for these here.
-@@ -4083,7 +4090,7 @@ out_no_split:
- 	if (need_remap) {
- 		if (!ret && !folio_is_device_private(folio))
- 			ttu_flags = TTU_USE_SHARED_ZEROPAGE;
--		remap_page(folio, 1 << old_order, ttu_flags);
-+		remap_anon_folio(folio, 1 << old_order, ttu_flags);
+ 	if (folio_test_pmd_mappable(folio))
+ 		ttu_flags |= TTU_SPLIT_HUGE_PMD;
+ 
+@@ -3559,6 +3563,8 @@ static void unmap_folio(struct folio *fo
+ 		try_to_unmap(folio, ttu_flags | TTU_IGNORE_MLOCK);
+ 
+ 	try_to_unmap_flush();
++
++	return 0;
+ }
+ 
+ static bool __discard_anon_folio_pmd_locked(struct vm_area_struct *vma,
+@@ -4029,7 +4035,9 @@ static int __folio_freeze_split_anon(str
+ 
+ 	if (folio_mapped(folio)) {
+ 		need_remap = true;
+-		unmap_folio(folio);
++		ret = unmap_folio(folio);
++		if (ret)
++			return ret;
  	}
  
- 	return ret;
-@@ -4205,7 +4212,7 @@ static int __folio_freeze_split_file(str
- fail:
- 	/*
- 	 * If we want to use try_to_migrate() on file in unmap_folio,
--	 * remember to add remap_page() and adapt it.
-+	 * remember to add remap_anon_folio() and adapt it.
- 	 */
- 	xas_unlock_irq(xas);
- 	if (nr_shmem_dropped)
+ 	local_irq_disable();
+@@ -4123,7 +4131,9 @@ static int __folio_freeze_split_file(str
+ 	if (shmem_mapping(mapping))
+ 		end = shmem_fallocend(mapping->host, end);
+ 
+-	unmap_folio(folio);
++	ret = unmap_folio(folio);
++	if (ret)
++		return ret;
+ 
+ 	xas_lock_irq(xas);
+ 
+@@ -4331,15 +4341,6 @@ static int __folio_split(struct folio *f
+ 		i_mmap_lock_read(mapping);
+ 	}
+ 
+-	/*
+-	 * Racy check if we can split the page, before unmap_folio() will
+-	 * split PMDs
+-	 */
+-	if (folio_expected_ref_count(folio) != folio_ref_count(folio) - 1) {
+-		ret = -EAGAIN;
+-		goto out_unlock;
+-	}
+-
+ 	if (is_anon)
+ 		ret = __folio_freeze_split_anon(folio, new_order, split_at,
+ 						true, list, split_type);
+@@ -4378,7 +4379,6 @@ static int __folio_split(struct folio *f
+ 		free_folio_and_swap_cache(new_folio);
+ 	}
+ 
+-out_unlock:
+ 	if (anon_vma) {
+ 		anon_vma_unlock_write(anon_vma);
+ 		put_anon_vma(anon_vma);
+@@ -4426,9 +4426,6 @@ int folio_split_unmapped(struct folio *f
+ 	VM_WARN_ON_ONCE_FOLIO(!folio_test_large(folio), folio);
+ 	VM_WARN_ON_ONCE_FOLIO(!folio_test_anon(folio), folio);
+ 
+-	if (folio_expected_ref_count(folio) != folio_ref_count(folio) - 1)
+-		return -EAGAIN;
+-
+ 	return __folio_freeze_split_anon(folio, new_order, &folio->page,
+ 					 false, NULL, SPLIT_TYPE_UNIFORM);
+ }
 _
 
 Patches currently in -mm which might be from kasong@tencent.com are
@@ -147,7 +180,6 @@ mm-migrate-copy-all-referenced-state-via-folio_migrate_lru_refs.patch
 mm-mglru-move-max_seq-read-into-walk_update_folio.patch
 mm-mglru-use-explicit-tier-range-in-read_ctrl_pos.patch
 mm-mglru-fix-potential-generation-folio-number-leak.patch
-mm-huge_memory-move-the-racy-refcount-check-into-unmap_folio.patch
 mm-huge_memory-move-filemap-management-into-the-file-split-helper.patch
 mm-huge_memory-move-anon_vma-handling-into-the-anon-split-helper.patch
 mm-huge_memory-move-memcg-switch-into-the-file-split-helper.patch
