@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 93BDF33F8BE
-	for <mm-commits@vger.kernel.org>; Wed, 23 Sep 2026 01:22:25 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C44F533F8BE
+	for <mm-commits@vger.kernel.org>; Wed, 23 Sep 2026 01:35:58 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790126546; cv=none; b=bKYrwx3IoQaP2m6E2Rv0+eYr5OS7xqz/AW6g7c54A4v6Q1QTfQ8vAKvU0tDEcGdDGfy6kh+hTM2hwsyUUAAonXPMBXV6xcdjtEGrXKWeQX2EJyKnDJeiC3dYX1q3I5YOa9j+nIc5wF0rqjuiKwOfO7JYiyJRSxWKIepJZFUPU4s=
+	t=1790127360; cv=none; b=Ee6bJjJFXt6U4yQDyjnLTy45Ga9cwmVZCVgGJhINpcXvhaB2XduEpHZ2eWB/sv1r3l+bDT7t0+qU0wtY3bUuAHnO0Ol4vZdXYtQ5TKTV1nfmWCclHz3grXLo8douoMBMBufhYkedWENYklyeMFOu5qc+eEbavNxKcntn8jlljA4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1790126546; c=relaxed/simple;
-	bh=GyKqrql8DhQVg8lZH2JGq598+a41tkr1MMGHh411EGw=;
-	h=Date:To:From:Subject:Message-Id; b=KQ/HOf8vQ8yBiyeDPya8uKxI8EMsl8hb6PlLSxpjF2xIuRYzF1ptdOkgBaXKCGiQ6FchTO9YmpOFCRmNpCyBzWHAZaiFewFZMR2D4z8hun3AE7lDf2UCQb53Ce0yhFq+ea2/ukl8WpEP7e/ABp1xUWyALP1vYKP2hSVoY5skBQc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=KGP2pLEU; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1790127360; c=relaxed/simple;
+	bh=KFTIa8nEULU6oQKu6HXdTrS/z1t9k5FO/rPaEXVh3IY=;
+	h=Date:To:From:Subject:Message-Id; b=MiIcD5p8NHquOs4fvQuwJv1QyAoG1D2v1bZKMykdSrmR2gdJwdaxpxi8Jcu9g00ta0c7p2S4bxO8CW/gCz0fkI4xqAmZkRUnxkS3A00687ZMZzF1Dcv7iTljX0a1Qf9Cre2VJTmY9zb/mIQ5VsBJIo/OGy2TAhhvBS+XElEHStc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=A3pck7h1; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="KGP2pLEU"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 364F01F00893;
-	Wed, 23 Sep 2026 01:22:25 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="A3pck7h1"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6AC9B1F000FF;
+	Wed, 23 Sep 2026 01:35:58 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1790126545;
-	bh=rRfoSAEfFHIVa40c0fYNf5uFuZQnlEokyWgsK7yNDoE=;
+	d=linux-foundation.org; s=korg; t=1790127358;
+	bh=xDlqSrH+PzTxwaoagVstKT7oHXnnxZSX8GvRZ7c253k=;
 	h=Date:To:From:Subject;
-	b=KGP2pLEUeuQa+aQDCWBp9+kVLiMfpUqXN4KvcUgZRb/bFP3YAvvrU3LJ2a+tivyqN
-	 lD/RneN4UChN9etK/1UQ/GTsXAfsveeiMseWGDTISxH+Mb/EVODU7kcbOSWWEAsc1d
-	 YEVrd0YH0CD8t5Rcz0bh0Dk1uhDoQkCQYVH4sZ7w=
-Date: Tue, 22 Sep 2026 18:22:24 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,xlpang@linux.alibaba.com,usama.arif@linux.dev,shakeel.butt@linux.dev,ryan.roberts@arm.com,nphamcs@gmail.com,mkoutny@suse.com,ljs@kernel.org,liam@infradead.org,lance.yang@linux.dev,kasong@tencent.com,hannes@cmpxchg.org,dev.jain@arm.com,david@kernel.org,chengming.zhou@linux.dev,baolin.wang@linux.alibaba.com,baohua@kernel.org,qinyuntan@linux.alibaba.com,akpm@linux-foundation.org
+	b=A3pck7h13mvGLhRJye31gIz7VRFAPbokdZUOzEh9NIanzLwjSqwPYIWJCHaHP7jhL
+	 vDZ9bXEb0KxFEXrg2csfCzOiPVWTIqkYrk3kFwb05q8hzwpVQa6G09AGcUGISQou1/
+	 9AjighPbspkfyAar7LdvLV5ZQBeL9k4fKmdKP17s=
+Date: Tue, 22 Sep 2026 18:35:58 -0700
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,yosry@kernel.org,xlpang@linux.alibaba.com,usama.arif@linux.dev,shakeel.butt@linux.dev,roman.gushchin@linux.dev,qi.zheng@linux.dev,nphamcs@gmail.com,muchun.song@linux.dev,mkoutny@suse.com,mhocko@kernel.org,hannes@cmpxchg.org,david@kernel.org,david@fromorbit.com,chengming.zhou@linux.dev,baolin.wang@linux.alibaba.com,qinyuntan@linux.alibaba.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [to-be-updated] mm-zswap-mark-the-zswap-shrinker-shrinker_nonslab.patch removed from -mm tree
-Message-Id: <20260923012225.364F01F00893@smtp.kernel.org>
+Subject: + mm-memcontrol-drop-kmemcg_id-and-use-mem_cgroup_id-for-list_lru-indexing.patch added to mm-new branch
+Message-Id: <20260923013558.6AC9B1F000FF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,78 +34,368 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The quilt patch titled
-     Subject: mm: zswap: mark the zswap shrinker SHRINKER_NONSLAB
-has been removed from the -mm tree.  Its filename was
-     mm-zswap-mark-the-zswap-shrinker-shrinker_nonslab.patch
+The patch titled
+     Subject: mm: memcontrol: drop kmemcg_id and use mem_cgroup_id() for list_lru indexing
+has been added to the -mm mm-new branch.  Its filename is
+     mm-memcontrol-drop-kmemcg_id-and-use-mem_cgroup_id-for-list_lru-indexing.patch
 
-This patch was dropped because an updated version will be issued
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memcontrol-drop-kmemcg_id-and-use-mem_cgroup_id-for-list_lru-indexing.patch
+
+This patch will later appear in the mm-new branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Note, mm-new is a provisional staging ground for work-in-progress
+patches, and acceptance into mm-new is a notification for others take
+notice and to finish up reviews.  Please do not hesitate to respond to
+review feedback and post updated versions to replace or incrementally
+fixup patches in mm-new.
+
+The mm-new branch of mm.git is not included in linux-next
+
+If a few days of testing in mm-new is successful, the patch will me moved
+into mm.git's mm-unstable branch, which is included in linux-next
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via various
+branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there most days
 
 ------------------------------------------------------
 From: Qinyun Tan <qinyuntan@linux.alibaba.com>
-Subject: mm: zswap: mark the zswap shrinker SHRINKER_NONSLAB
-Date: Fri, 4 Sep 2026 11:35:03 +0800
+Subject: mm: memcontrol: drop kmemcg_id and use mem_cgroup_id() for list_lru indexing
+Date: Thu, 10 Sep 2026 16:07:19 +0800
 
-With kmem accounting disabled (cgroup.memory=nokmem), memcg reclaim never
-invokes the zswap shrinker: a cgroup under memory pressure does not write
-back its own zswapped pages to make room; they are only written back by
-global reclaim or once the global pool limit kicks in.
+Patch series "mm: restore per-memcg reclaim for NONSLAB shrinkers under
+nokmem", v3.
 
-The zswap shrinker is registered memcg-aware but without SHRINKER_NONSLAB,
-so under nokmem it is treated as a slab shrinker: before commit
-03375203e1da ("mm: do not allocate shrinker info with
-cgroup.memory=nokmem") it was skipped by the !memcg_kmem_online() check in
-shrink_slab_memcg(); since that commit it is demoted to non-memcg-aware at
-registration.  But the zswap shrinker is not a slab shrinker: it tracks
-zswap entries and resolves the owning memcg from the folio's objcg,
-independent of kmem accounting.
+With cgroup.memory=nokmem, the THP deferred split shrinker and the zswap
+shrinker are degraded in two ways.
 
-This was noticed by Michal during review of the patch "mm/list_lru: don't
-copy stale shrinker id from non-memcg-aware shrinkers" [1].
+First, both shrinkers are missing the SHRINKER_NONSLAB flag, so
+shrinker_memcg_alloc() demotes them to non-memcg-aware shrinkers:
+limit-induced reclaim of a cgroup neither splits its partially unmapped
+THPs nor writes back its zswapped pages.  v1 of this series [1] restored
+the flag to fix that.
 
-Mark it SHRINKER_NONSLAB so it keeps its memcg awareness and runs under
-memcg reclaim with nokmem.
+However, as Sashiko's review of v1 pointed out [2], the flag alone is not
+enough.  __list_lru_init() also collapses every list_lru into per-node
+lists under nokmem, so even with the flag restored, the objects of all
+cgroups share one list per node: the per-memcg shrinker bit is only set
+for whichever memcg happens to repopulate the empty list, so pressure in
+other cgroups may not even trigger the scan, and when it does, the scan
+walks everyone's objects.
 
-Link: https://lore.kernel.org/20260904033503.4067283-3-qinyuntan@linux.alibaba.com
-Link: https://lore.kernel.org/lkml/697713c4-0857-485b-aba7-c74f37a3c8b4@linux.alibaba.com/ [1]
-Fixes: b5ba474f3f51 ("zswap: shrink zswap pool based on memory pressure")
+Before commit fafaeceb89a5 ("mm: switch deferred split shrinker to
+list_lru"), THP had fully per-memcg deferred split queues embedded in
+struct mem_cgroup, working independently of kmem accounting.  nokmem only
+opts out of kernel slab accounting; THPs and zswapped pages are user
+memory and remain charged to their cgroups, so per-memcg reclaim is still
+what these shrinkers want.
+
+This series keeps list_lrus backed by SHRINKER_NONSLAB shrinkers memcg
+aware under nokmem:
+
+Patch 1 drops the kmemcg_id copy, which is only assigned when kmem
+accounting is enabled, and indexes the list_lru xarray with
+mem_cgroup_id() instead, so the index works independently of kmem
+accounting.  The list_lru plumbing passes memcg pointers now, and
+memcg_online_kmem()/memcg_offline_kmem() are inlined into the css
+online/offline hooks.  It also drops the nokmem early return from the
+offline path so these lrus are reparented on offline.
+
+Patch 2 keeps a list_lru memcg aware under nokmem when its backing
+shrinker is registered SHRINKER_NONSLAB.
+
+Patches 3 and 4 restore/add SHRINKER_NONSLAB on the THP deferred split
+shrinker and the zswap shrinker.
+
+The savings of nokmem are preserved: slab-backed lrus (e.g.  the
+superblock dentry/inode lrus) still fall back to per-node lists, and the
+per-memcg lists are only allocated when a memcg actually holds such
+objects.
+
+
+This patch (of 4):
+
+kmemcg_id is a copy of the private memcg ID and serves no purpose other
+than indexing the per-memcg list_lru xarray.  It is assigned when kmem
+accounting goes online, which never happens with cgroup.memory=nokmem, and
+the memcgs then all resolve to the per-node lists.  The next patch needs
+the index to work under nokmem as well.
+
+Index the lists with mem_cgroup_id().  The cgroup ID is unique per memcg
+and is only recycled once the cgroup is destroyed, long after offlining
+has erased the xarray entries, so a recycled ID cannot resurrect a stale
+entry.  The lookup now takes memcg pointers and routes root and NULL to
+the per-node lists itself.
+
+Also drop the nokmem early return from the offline path, so that the
+reparenting covers lrus that stay memcg aware without kmem accounting. 
+memcg_online_kmem() and memcg_offline_kmem() are each down to a single
+statement now; inline them into the css online and offline hooks, dropping
+the root check, as css_offline() is never called for the root and a memcg
+that failed css_online() cannot have list_lru entries.
+
+Link: https://lore.kernel.org/20260910080722.3961351-1-qinyuntan@linux.alibaba.com
+Link: https://lore.kernel.org/20260910080722.3961351-2-qinyuntan@linux.alibaba.com
 Signed-off-by: Qinyun Tan <qinyuntan@linux.alibaba.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Suggested-by: Michal Koutný <mkoutny@suse.com>
-Acked-by: Nhat Pham <nphamcs@gmail.com>
-Acked-by: Usama Arif <usama.arif@linux.dev>
-Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: Barry Song <baohua@kernel.org>
-Cc: Chengming Zhou <chengming.zhou@linux.dev>
-Cc: David Hildenbrand <david@kernel.org>
-Cc: Dev Jain <dev.jain@arm.com>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Kairui Song <kasong@tencent.com>
-Cc: Lance Yang <lance.yang@linux.dev>
-Cc: Liam R. Howlett <liam@infradead.org>
-Cc: Lorenzo Stoakes <ljs@kernel.org>
-Cc: Ryan Roberts <ryan.roberts@arm.com>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Roman Gushchin <roman.gushchin@linux.dev>
 Cc: Shakeel Butt <shakeel.butt@linux.dev>
-Cc: Xunlei Pang <xlpang@linux.alibaba.com>
+Cc: Muchun Song <muchun.song@linux.dev>
+Cc: Michal Koutný <mkoutny@suse.com>
+Cc: David Hildenbrand <david@kernel.org>
 Cc: Zi Yan <ziy@nvidia.com>
+Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
+Cc: Usama Arif <usama.arif@linux.dev>
+Cc: Dave Chinner <david@fromorbit.com>
+Cc: Qi Zheng <qi.zheng@linux.dev>
+Cc: Yosry Ahmed <yosry@kernel.org>
+Cc: Nhat Pham <nphamcs@gmail.com>
+Cc: Chengming Zhou <chengming.zhou@linux.dev>
+Cc: Xunlei Pang <xlpang@linux.alibaba.com>
 ---
 
- mm/zswap.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ include/linux/memcontrol.h |   16 -------------
+ mm/list_lru.c              |   27 +++++++++++----------
+ mm/memcontrol.c            |   43 ++++++-----------------------------
+ 3 files changed, 22 insertions(+), 64 deletions(-)
 
---- a/mm/zswap.c~mm-zswap-mark-the-zswap-shrinker-shrinker_nonslab
-+++ a/mm/zswap.c
-@@ -1251,8 +1251,8 @@ static struct shrinker *zswap_alloc_shri
+--- a/include/linux/memcontrol.h~mm-memcontrol-drop-kmemcg_id-and-use-mem_cgroup_id-for-list_lru-indexing
++++ a/include/linux/memcontrol.h
+@@ -328,8 +328,6 @@ struct mem_cgroup {
+ 	/* Private memcg ID. Used to ID objects that outlive the cgroup */
+ 	int private_id;
+ 
+-	int kmemcg_id;
+-
+ 	/*
+ 	 * Should the OOM killer kill all belonging tasks, had it kill one?
+ 	 */
+@@ -1812,15 +1810,6 @@ static inline void memcg_kmem_uncharge_p
+ 		__memcg_kmem_uncharge_page(page, order);
+ }
+ 
+-/*
+- * A helper for accessing memcg's kmem_id, used for getting
+- * corresponding LRU lists.
+- */
+-static inline int memcg_kmem_id(const struct mem_cgroup *memcg)
+-{
+-	return memcg ? memcg->kmemcg_id : -1;
+-}
+-
+ struct mem_cgroup *mem_cgroup_from_virt(void *p);
+ 
+ static inline void count_objcg_events(struct obj_cgroup *objcg,
+@@ -1888,11 +1877,6 @@ static inline bool memcg_kmem_online(voi
+ 	return false;
+ }
+ 
+-static inline int memcg_kmem_id(const struct mem_cgroup *memcg)
+-{
+-	return -1;
+-}
+-
+ static inline struct mem_cgroup *mem_cgroup_from_virt(void *p)
  {
- 	struct shrinker *shrinker;
+ 	return NULL;
+--- a/mm/list_lru.c~mm-memcontrol-drop-kmemcg_id-and-use-mem_cgroup_id-for-list_lru-indexing
++++ a/mm/list_lru.c
+@@ -72,10 +72,11 @@ static int lru_shrinker_id(struct list_l
+ }
  
--	shrinker =
--		shrinker_alloc(SHRINKER_NUMA_AWARE | SHRINKER_MEMCG_AWARE, "mm-zswap");
-+	shrinker = shrinker_alloc(SHRINKER_NUMA_AWARE | SHRINKER_MEMCG_AWARE |
-+				  SHRINKER_NONSLAB, "mm-zswap");
- 	if (!shrinker)
- 		return NULL;
+ static inline struct list_lru_one *
+-list_lru_from_memcg_idx(struct list_lru *lru, int nid, int idx)
++list_lru_from_memcg(struct list_lru *lru, int nid, struct mem_cgroup *memcg)
+ {
+-	if (list_lru_memcg_aware(lru) && idx >= 0) {
+-		struct list_lru_memcg *mlru = xa_load(&lru->xa, idx);
++	if (list_lru_memcg_aware(lru) && memcg && !mem_cgroup_is_root(memcg)) {
++		struct list_lru_memcg *mlru =
++			xa_load(&lru->xa, mem_cgroup_id(memcg));
  
+ 		return mlru ? &mlru->node[nid] : NULL;
+ 	}
+@@ -91,7 +92,7 @@ lock_list_lru_of_memcg(struct list_lru *
+ 
+ 	rcu_read_lock();
+ again:
+-	l = list_lru_from_memcg_idx(lru, nid, memcg_kmem_id(*memcg));
++	l = list_lru_from_memcg(lru, nid, *memcg);
+ 	if (likely(l)) {
+ 		lock_list_lru(l, irq, irq_flags);
+ 		if (likely(READ_ONCE(l->nr_items) != LONG_MIN)) {
+@@ -132,7 +133,7 @@ static inline bool list_lru_memcg_aware(
+ }
+ 
+ static inline struct list_lru_one *
+-list_lru_from_memcg_idx(struct list_lru *lru, int nid, int idx)
++list_lru_from_memcg(struct list_lru *lru, int nid, struct mem_cgroup *memcg)
+ {
+ 	return &lru->node[nid].lru;
+ }
+@@ -313,7 +314,7 @@ unsigned long list_lru_count_one(struct
+ 	long count;
+ 
+ 	rcu_read_lock();
+-	l = list_lru_from_memcg_idx(lru, nid, memcg_kmem_id(memcg));
++	l = list_lru_from_memcg(lru, nid, memcg);
+ 	count = l ? READ_ONCE(l->nr_items) : 0;
+ 	rcu_read_unlock();
+ 
+@@ -502,11 +503,10 @@ static void memcg_reparent_list_lru_one(
+ 					struct list_lru_one *src,
+ 					struct mem_cgroup *dst_memcg)
+ {
+-	int dst_idx = dst_memcg->kmemcg_id;
+ 	struct list_lru_one *dst;
+ 
+ 	spin_lock_irq(&src->lock);
+-	dst = list_lru_from_memcg_idx(lru, nid, dst_idx);
++	dst = list_lru_from_memcg(lru, nid, dst_memcg);
+ 	spin_lock_nested(&dst->lock, SINGLE_DEPTH_NESTING);
+ 
+ 	list_splice_init(&src->list, &dst->list);
+@@ -536,7 +536,7 @@ void memcg_reparent_list_lrus(struct mem
+ 		 * allocating a new mlru since CSS_DYING is already set for this
+ 		 * memcg a rcu grace period ago.
+ 		 */
+-		mlru = xa_load(&lru->xa, memcg->kmemcg_id);
++		mlru = xa_load(&lru->xa, mem_cgroup_id(memcg));
+ 		if (!mlru)
+ 			continue;
+ 
+@@ -551,7 +551,7 @@ void memcg_reparent_list_lrus(struct mem
+ 		for_each_node(i)
+ 			memcg_reparent_list_lru_one(lru, i, &mlru->node[i], parent);
+ 
+-		xa_erase_irq(&lru->xa, memcg->kmemcg_id);
++		xa_erase_irq(&lru->xa, mem_cgroup_id(memcg));
+ 
+ 		/*
+ 		 * Here all list_lrus corresponding to the cgroup are guaranteed
+@@ -566,9 +566,10 @@ void memcg_reparent_list_lrus(struct mem
+ static inline bool memcg_list_lru_allocated(struct mem_cgroup *memcg,
+ 					    struct list_lru *lru)
+ {
+-	int idx = memcg->kmemcg_id;
++	if (!memcg || mem_cgroup_is_root(memcg))
++		return true;
+ 
+-	return idx < 0 || xa_load(&lru->xa, idx);
++	return xa_load(&lru->xa, mem_cgroup_id(memcg));
+ }
+ 
+ static int __memcg_list_lru_alloc(struct mem_cgroup *memcg,
+@@ -602,7 +603,7 @@ static int __memcg_list_lru_alloc(struct
+ 			if (!mlru)
+ 				return -ENOMEM;
+ 		}
+-		xas_set(&xas, pos->kmemcg_id);
++		xas_set(&xas, mem_cgroup_id(pos));
+ 		do {
+ 			xas_lock_irqsave(&xas, flags);
+ 			if (!xas_load(&xas) && !css_is_dying(&pos->css)) {
+--- a/mm/memcontrol.c~mm-memcontrol-drop-kmemcg_id-and-use-mem_cgroup_id-for-list_lru-indexing
++++ a/mm/memcontrol.c
+@@ -3808,33 +3808,6 @@ void folio_split_memcg_refs(struct folio
+ 	obj_cgroup_get_many(folio_objcg(folio), new_refs);
+ }
+ 
+-static void memcg_online_kmem(struct mem_cgroup *memcg)
+-{
+-	if (mem_cgroup_kmem_disabled())
+-		return;
+-
+-	if (unlikely(mem_cgroup_is_root(memcg)))
+-		return;
+-
+-	static_branch_enable(&memcg_kmem_online_key);
+-
+-	memcg->kmemcg_id = memcg->private_id;
+-}
+-
+-static void memcg_offline_kmem(struct mem_cgroup *memcg)
+-{
+-	struct mem_cgroup *parent;
+-
+-	if (mem_cgroup_kmem_disabled())
+-		return;
+-
+-	if (unlikely(mem_cgroup_is_root(memcg)))
+-		return;
+-
+-	parent = parent_mem_cgroup(memcg);
+-	memcg_reparent_list_lrus(memcg, parent);
+-}
+-
+ #ifdef CONFIG_CGROUP_WRITEBACK
+ 
+ #include <trace/events/writeback.h>
+@@ -4310,7 +4283,6 @@ static struct mem_cgroup *mem_cgroup_all
+ 	seqlock_init(&memcg->socket_pressure_seqlock);
+ #endif
+ 	memcg1_memcg_init(memcg);
+-	memcg->kmemcg_id = -1;
+ #ifdef CONFIG_CGROUP_WRITEBACK
+ 	INIT_LIST_HEAD(&memcg->cgwb_list);
+ 	for (i = 0; i < MEMCG_CGWB_FRN_CNT; i++)
+@@ -4384,7 +4356,8 @@ static int mem_cgroup_css_online(struct
+ 	struct obj_cgroup *objcg;
+ 	int nid;
+ 
+-	memcg_online_kmem(memcg);
++	if (!mem_cgroup_kmem_disabled() && likely(!mem_cgroup_is_root(memcg)))
++		static_branch_enable(&memcg_kmem_online_key);
+ 
+ 	/*
+ 	 * A memcg must be visible for expand_shrinker_info()
+@@ -4392,7 +4365,7 @@ static int mem_cgroup_css_online(struct
+ 	 * here, when mem_cgroup_iter() can't skip it.
+ 	 */
+ 	if (alloc_shrinker_info(memcg))
+-		goto offline_kmem;
++		goto reparent_lrus;
+ 
+ 	for_each_node(nid) {
+ 		objcg = obj_cgroup_alloc();
+@@ -4450,8 +4423,8 @@ free_objcg:
+ 		}
+ 	}
+ 	free_shrinker_info(memcg);
+-offline_kmem:
+-	memcg_offline_kmem(memcg);
++reparent_lrus:
++	memcg_reparent_list_lrus(memcg, parent_mem_cgroup(memcg));
+ 	mem_cgroup_private_id_remove(memcg);
+ 	return -ENOMEM;
+ }
+@@ -4467,11 +4440,11 @@ static void mem_cgroup_css_offline(struc
+ 
+ 	zswap_memcg_offline_cleanup(memcg);
+ 
+-	memcg_offline_kmem(memcg);
++	memcg_reparent_list_lrus(memcg, parent_mem_cgroup(memcg));
+ 	/*
+ 	 * The reparenting of objcg must be after the reparenting of
+-	 * the list_lru in memcg_offline_kmem(), which ensures that
+-	 * they will not mistakenly get the parent list_lru.
++	 * the list_lru above, which ensures that they will not
++	 * mistakenly get the parent list_lru.
+ 	 */
+ 	memcg_reparent_objcgs(memcg);
+ 	reparent_shrinker_deferred(memcg);
 _
 
 Patches currently in -mm which might be from qinyuntan@linux.alibaba.com are
@@ -114,4 +404,6 @@ mm-list_lru-disable-memcg-awareness-under-cgroup_disable=memory.patch
 mm-list_lru-dont-copy-stale-shrinker-id-from-non-memcg-aware-shrinkers.patch
 mm-memcontrol-drop-kmemcg_id-and-use-mem_cgroup_id-for-list_lru-indexing.patch
 mm-list_lru-keep-per-memcg-lists-with-nokmem-for-nonslab-backed-lrus.patch
+mm-thp-restore-shrinker_nonslab-on-the-deferred-split-shrinker.patch
+mm-zswap-mark-the-zswap-shrinker-shrinker_nonslab.patch
 
