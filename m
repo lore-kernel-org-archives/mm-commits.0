@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9EA9B52FE39
-	for <mm-commits@vger.kernel.org>; Tue, 22 Sep 2026 23:07:12 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A74323382F9
+	for <mm-commits@vger.kernel.org>; Wed, 23 Sep 2026 01:22:24 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790118433; cv=none; b=u2yh6JB22IRsuGOz1QpfD+5NBcn7yoLF7/ZZM3034wvWAQddAE84SPsKinkNTuSE9WtLL0lj0MHbiPPY3NveGiansOw6Wsr6JAxYvW5iFmxN/5ZWwKsydxwyh24WVZYdsKY4jSV3hWL0St0B777+zbUdmLDU1ShC6dYiOlaJL/k=
+	t=1790126546; cv=none; b=t/BTZaJwbikqqDZw30JcwUz2CjPwQeZBYj7i8Y0GJIfoCrHCvqrs12r4evPLRfwO/z1R/H8NmJcdTwy59P4QUZLy4WfyldgZwtsd2tWujbFSDwoCIPLzvRora7hkgDGNQMzFFbJB02tYLhTwyGf8m+VsVQunmV2NsuTJdajhwO4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1790118433; c=relaxed/simple;
-	bh=NMYkIFh3OcrlHWrRNS3phoXRH/vZG+NDRPhr8OnKfD8=;
-	h=Date:To:From:Subject:Message-Id; b=HfrguMtujVttk1WeF07hhAr632HwMouGZv4RRWwzVtaFWelsCKTLduc6wqklgmIbsunXYgbkIvZZnObG+fGkiboX1GzO5Yku3uTFIq6vcckyCNvnKBmQds8MoGsTSS1tEu1aesKy88gM1g7WAlwVaPCt7lBmgchqWSq1Si5hQuk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=gmG4k4r1; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1790126546; c=relaxed/simple;
+	bh=YosFXku/DW1dV+tlbN76QjUCR35kgCRs71k4bcjOr2M=;
+	h=Date:To:From:Subject:Message-Id; b=fM7OH/TpU8kEK/uoMj0V/qbvFGLlESIVNC/K2hOZX2jKJVtxpo7a4K7YnIJMHfki+HUJcUV57cBXf0sgboSF2H7MtuwEwgDPjGutP3w5v/9vovzHopza3TX+Aut4yAWkVbZMec3sVspcrmtnDblNnugQOFGkE+ISuR1JWFGjvB0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=YxseIRw2; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="gmG4k4r1"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 34E471F000FF;
-	Tue, 22 Sep 2026 23:07:12 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="YxseIRw2"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 22E311F000FF;
+	Wed, 23 Sep 2026 01:22:24 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1790118432;
-	bh=KRkc4JWaWQZ4pj9EEZnP4CQTV3ypCsqIveyhHYIXIrY=;
+	d=linux-foundation.org; s=korg; t=1790126544;
+	bh=K06UQqyPsbas5gdh7BXhVVIkb+lFhTv3ydEOHYPpvOE=;
 	h=Date:To:From:Subject;
-	b=gmG4k4r1qRlb67A+msy7KcCJOHLjE5SO5JOM16i724zc6U/jOzJ8wZa5GDBk7VLN3
-	 S/mEpOtmc9nQNMjTZJv09m6F1fWB5mTzstwG45+PSOTdvKCBjA9yAE9gazPLWcq1bS
-	 Ejze1YIouc2/XwjF3NAi++0ztaIIGfeXN5J4NFVE=
-Date: Tue, 22 Sep 2026 16:07:11 -0700
-To: mm-commits@vger.kernel.org,ekffu200098@gmail.com,akpm@linux-foundation.org
+	b=YxseIRw2OSFMc1VBiUSnanM/XA74bB7qi9iCJSbZF14r06fuHpC8QLq3ErrwMF1Xc
+	 x0THDirErvhBNl0PHaFBeViVWwj0S40uNXoKa5s05QSaLrwbk05pOma/BKvemRObGP
+	 nUWF4D3F9uW6FS3vvdUVKxRWDKDrZ4oQv/JEjDMs=
+Date: Tue, 22 Sep 2026 18:22:23 -0700
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,xlpang@linux.alibaba.com,usama.arif@linux.dev,shakeel.butt@linux.dev,ryan.roberts@arm.com,nphamcs@gmail.com,mkoutny@suse.com,ljs@kernel.org,liam@infradead.org,lance.yang@linux.dev,kasong@tencent.com,hannes@cmpxchg.org,dev.jain@arm.com,david@kernel.org,chengming.zhou@linux.dev,baolin.wang@linux.alibaba.com,baohua@kernel.org,qinyuntan@linux.alibaba.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + init-mainc-remove-unreachable-check-in-obsolete_checksetup.patch added to mm-nonmm-unstable branch
-Message-Id: <20260922230712.34E471F000FF@smtp.kernel.org>
+Subject: [to-be-updated] mm-thp-restore-shrinker_nonslab-on-the-deferred-split-shrinker.patch removed from -mm tree
+Message-Id: <20260923012224.22E311F000FF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,73 +34,107 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The patch titled
-     Subject: init/main.c: remove unreachable check in obsolete_checksetup()
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     init-mainc-remove-unreachable-check-in-obsolete_checksetup.patch
+The quilt patch titled
+     Subject: mm: thp: restore SHRINKER_NONSLAB on the deferred split shrinker
+has been removed from the -mm tree.  Its filename was
+     mm-thp-restore-shrinker_nonslab-on-the-deferred-split-shrinker.patch
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/init-mainc-remove-unreachable-check-in-obsolete_checksetup.patch
-
-This patch will later appear in the mm-nonmm-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via various
-branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there most days
+This patch was dropped because an updated version will be issued
 
 ------------------------------------------------------
-From: Sang-Heon Jeon <ekffu200098@gmail.com>
-Subject: init/main.c: remove unreachable check in obsolete_checksetup()
-Date: Tue, 22 Sep 2026 22:26:27 +0900
+From: Qinyun Tan <qinyuntan@linux.alibaba.com>
+Subject: mm: thp: restore SHRINKER_NONSLAB on the deferred split shrinker
+Date: Fri, 4 Sep 2026 11:35:02 +0800
 
-Since commit 1ecfea06386c ("init.h: remove long-dead
-__setup_null_param() macro"), .init.setup entries cannot have a NULL
-setup_func.
+Patch series "mm: restore SHRINKER_NONSLAB on THP and zswap shrinkers".
 
-So remove the NULL check.
+While reviewing the patch "mm/list_lru: don't copy stale shrinker id from
+non-memcg-aware shrinkers" (now in mm-unstable), Michal noticed that the
+two non-slab memcg-aware shrinkers, the THP deferred split shrinker and
+the zswap shrinker, are registered without SHRINKER_NONSLAB [1].
 
-No functional change.
+Without that flag, booting with cgroup.memory=nokmem silently demotes both
+shrinkers to non-memcg-aware ones: memcg (limit-induced) reclaim neither
+splits partially unmapped THPs nor writes back zswapped pages of the
+cgroup under pressure.
 
-Link: https://lore.kernel.org/20260922132630.177941-1-ekffu200098@gmail.com
-Signed-off-by: Sang-Heon Jeon <ekffu200098@gmail.com>
+Patch 1 restores the flag on the deferred split shrinker; it was lost when
+commit fafaeceb89a5 ("mm: switch deferred split shrinker to list_lru")
+re-registered the shrinker.
+
+Patch 2 adds the flag to the zswap shrinker, which has never carried it
+since its introduction in commit b5ba474f3f51 ("zswap: shrink zswap pool
+based on memory pressure").
+
+
+This patch (of 2):
+
+On a system booted with cgroup.memory=nokmem, the deferred split shrinker
+is quietly demoted to a non-memcg-aware one.  As a result, partially
+unmapped THPs are only split under global reclaim; memcg (limit-induced)
+reclaim never splits them, so a cgroup under memory pressure keeps its
+underused THPs intact.
+
+This is a regression from commit fafaeceb89a5 ("mm: switch deferred split
+shrinker to list_lru"), which re-registered the shrinker without
+SHRINKER_NONSLAB.  The shrinker had carried this flag since commit
+0a432dcbeb32 ("mm: shrinker: make shrinker not depend on memcg kmem")
+precisely so it would keep working with kmem accounting disabled.  Without
+the flag, shrinker_memcg_alloc() fails with -ENOSYS under nokmem and the
+shrinker loses its memcg awareness.
+
+This was noticed by Michal during review of the patch "mm/list_lru: don't
+copy stale shrinker id from non-memcg-aware shrinkers" [1].
+
+Restore the flag.
+
+Link: https://lore.kernel.org/20260904033503.4067283-1-qinyuntan@linux.alibaba.com
+Link: https://lore.kernel.org/20260904033503.4067283-2-qinyuntan@linux.alibaba.com
+Link: https://lore.kernel.org/lkml/697713c4-0857-485b-aba7-c74f37a3c8b4@linux.alibaba.com/ [1]
+Fixes: fafaeceb89a5 ("mm: switch deferred split shrinker to list_lru")
+Signed-off-by: Qinyun Tan <qinyuntan@linux.alibaba.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+Suggested-by: Michal Koutný <mkoutny@suse.com>
+Acked-by: Zi Yan <ziy@nvidia.com>
+Acked-by: Usama Arif <usama.arif@linux.dev>
+Acked-by: David Hildenbrand (Arm) <david@kernel.org>
+Reviewed-by: Baolin Wang <baolin.wang@linux.alibaba.com>
+Cc: Barry Song <baohua@kernel.org>
+Cc: Chengming Zhou <chengming.zhou@linux.dev>
+Cc: Dev Jain <dev.jain@arm.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Kairui Song <kasong@tencent.com>
+Cc: Lance Yang <lance.yang@linux.dev>
+Cc: Liam R. Howlett <liam@infradead.org>
+Cc: Lorenzo Stoakes <ljs@kernel.org>
+Cc: Nhat Pham <nphamcs@gmail.com>
+Cc: Ryan Roberts <ryan.roberts@arm.com>
+Cc: Shakeel Butt <shakeel.butt@linux.dev>
+Cc: Xunlei Pang <xlpang@linux.alibaba.com>
 ---
 
- init/main.c |    4 ----
- 1 file changed, 4 deletions(-)
+ mm/huge_memory.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
---- a/init/main.c~init-mainc-remove-unreachable-check-in-obsolete_checksetup
-+++ a/init/main.c
-@@ -215,10 +215,6 @@ static bool __init obsolete_checksetup(c
- 				 * params and __setups of same names 8( */
- 				if (line[n] == '\0' || line[n] == '=')
- 					had_early_param = true;
--			} else if (!p->setup_func) {
--				pr_warn("Parameter %s is obsolete, ignored\n",
--					p->str);
--				return true;
- 			} else if (p->setup_func(line + n))
- 				return true;
- 		}
+--- a/mm/huge_memory.c~mm-thp-restore-shrinker_nonslab-on-the-deferred-split-shrinker
++++ a/mm/huge_memory.c
+@@ -1064,7 +1064,8 @@ int folio_memcg_alloc_deferred(struct fo
+ static int __init thp_shrinker_init(void)
+ {
+ 	deferred_split_shrinker = shrinker_alloc(SHRINKER_NUMA_AWARE |
+-						 SHRINKER_MEMCG_AWARE,
++						 SHRINKER_MEMCG_AWARE |
++						 SHRINKER_NONSLAB,
+ 						 "thp-deferred_split");
+ 	if (!deferred_split_shrinker)
+ 		return -ENOMEM;
 _
 
-Patches currently in -mm which might be from ekffu200098@gmail.com are
+Patches currently in -mm which might be from qinyuntan@linux.alibaba.com are
 
-percpu-fix-the-comment-about-which-sizes-share-a-slot.patch
-percpu-remove-redundant-assignments-to-bits.patch
-percpu-remove-unnecessary-initialization-in-pcpu_build_alloc_info.patch
-percpu-remove-unnecessary-cpumask_clear-in-pcpu_build_alloc_info.patch
-percpu-remove-unnecessary-return-in-pcpu_populate_pte.patch
-mm-swapops-remove-unused-is_hwpoison_entry.patch
-bootconfig-remove-redundant-assignment-in-xbc_parse_array.patch
-init-mainc-remove-unreachable-check-in-obsolete_checksetup.patch
+mm-list_lru-disable-memcg-awareness-under-cgroup_disable=memory.patch
+mm-list_lru-dont-copy-stale-shrinker-id-from-non-memcg-aware-shrinkers.patch
+mm-zswap-mark-the-zswap-shrinker-shrinker_nonslab.patch
+mm-memcontrol-drop-kmemcg_id-and-use-mem_cgroup_id-for-list_lru-indexing.patch
+mm-list_lru-keep-per-memcg-lists-with-nokmem-for-nonslab-backed-lrus.patch
 
