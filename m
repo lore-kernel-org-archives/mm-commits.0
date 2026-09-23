@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0CD8D37F726;
-	Wed, 23 Sep 2026 02:38:52 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E716532C94A
+	for <mm-commits@vger.kernel.org>; Wed, 23 Sep 2026 02:40:31 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790131134; cv=none; b=rtOV80TvEArROWEsJBi5J2Qc8ArC+sF16doXzjU9LSoLyekcgrk6K0r+EQS2cDD3Dqp55aGEBpQBK2/FOgVbmgJG6YJPAX9v2mBrwDWpKn+9HIDo/LPUEy4LGrNQzHOHEDp9YSoqGQMkIW01lYdN0HwYddHdQWNdKLyNUQUC4zY=
+	t=1790131236; cv=none; b=T1dAvChb8zF9WDfinZezWc3hztSUiuWB+9Gs1ijBLTTAAoj0pxPyuvf9a8jIKC40OnlXW3ebONycXzEanPmyxRO20O26RG0OBRDOnAXwllY06mfHJZ78PWV2dT9INRznwVZRoA3Pk6PXjnVJWkrTqcKkp6vb9VR/2xpMqG9wuvg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1790131134; c=relaxed/simple;
-	bh=el9FRbMq3x4yHdM6AtPU2i7kqYJnozjJtQW7Xm92m5Y=;
-	h=Date:To:From:Subject:Message-Id; b=CfTsfmY+14XYvh0cDkGFjvZaSKClrDVvFHZUfT5UkKUjv363mN0VAmPjsCRX1SAzegooJsbTo8MBFAoLFu5lMZ0cOplPjaHW0XNxnwm9g8HVpAuU9XO+zipIZYm4ub13wMc+IJQw0TFm4zIcGnhnjnCA3a0em1vvmPHADkES35s=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=n15F7YE0; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1790131236; c=relaxed/simple;
+	bh=CF3bHHBOpCIeIoYWd/qCcmNIDksUws3wk+yBQ6KoZn4=;
+	h=Date:To:From:Subject:Message-Id; b=JmPK892BxCUn3kgAg8CSOC3o4WrhMxyAWhW9v0fPX6qFm93uh4D/hOvR+jKEtT/QEUuX17UZHXqoEz2OjBXBrM5BA3O+WFFar9VnlNTo+tmK9++FIQ2kjmvJl99kDDjcbm2VAFg/APJpoCW0n+DX0J+6ICo36VOh01v8bQGFCaI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=IJWv2zr9; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="n15F7YE0"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 773A41F000FF;
-	Wed, 23 Sep 2026 02:38:52 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="IJWv2zr9"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 967AC1F000FF;
+	Wed, 23 Sep 2026 02:40:31 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1790131132;
-	bh=mAY3owcn+eQUuB5BLx9FuCBY6T4TNR+bJuHzX+VsblM=;
+	d=linux-foundation.org; s=korg; t=1790131231;
+	bh=0pGNubpUF5uSgQB2KfdHY1/pyQeXuObA5VA26yiVzaY=;
 	h=Date:To:From:Subject;
-	b=n15F7YE07O5EOlyjV410BJNUR/GhuKcsAsFe+EbxtF6wIJ/geZUJlNCKPep5ygLLj
-	 osSi36yIQLym+UIHFI9g1jEscihNS1RW8OKpNt1oeDtL7rHSPPyLpCUjx/vQ2a4ecn
-	 c1YBtXhkopftzqOXTMkCG27eyUViBG9ht6HzgYY4=
-Date: Tue, 22 Sep 2026 19:38:52 -0700
-To: mm-commits@vger.kernel.org,stable@vger.kernel.org,shakeel.butt@linux.dev,roman.gushchin@linux.dev,osalvador@suse.de,nphamcs@gmail.com,muchun.song@linux.dev,mhocko@suse.com,mhocko@kernel.org,joshua.hahnjy@gmail.com,hannes@cmpxchg.org,david@kernel.org,chris@chrisdown.name,lihongfu@kylinos.cn,akpm@linux-foundation.org
+	b=IJWv2zr9JYgLAv6Nfs4JUhebQrfF888Qk3x7ODDbgFRtmg0r4CP+O77DquGCzZKpN
+	 4W5vGOrc+jRwYkYS7ppEHfgluHAn1uUvMkKI91OXjr07Rjx+oORyRXy37DfhZSzrl1
+	 89ZunbHF9az97XEu52NSc35iu8XCV79p/SRRu01Q=
+Date: Tue, 22 Sep 2026 19:40:31 -0700
+To: mm-commits@vger.kernel.org,gourry@gourry.net,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-memcg-migrate-per-node-hugetlb-lruvec-stat-together-with-hugetlb-folio.patch added to mm-unstable branch
-Message-Id: <20260923023852.773A41F000FF@smtp.kernel.org>
+Subject: [to-be-updated] mm-refactor-find_next_best_node-to-find_next_best_node_in.patch removed from -mm tree
+Message-Id: <20260923024031.967AC1F000FF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,173 +34,193 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The patch titled
-     Subject: mm/memcg: migrate per-node hugetlb lruvec stat together with hugetlb folio
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-memcg-migrate-per-node-hugetlb-lruvec-stat-together-with-hugetlb-folio.patch
+The quilt patch titled
+     Subject: mm: refactor find_next_best_node to find_next_best_node_in
+has been removed from the -mm tree.  Its filename was
+     mm-refactor-find_next_best_node-to-find_next_best_node_in.patch
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memcg-migrate-per-node-hugetlb-lruvec-stat-together-with-hugetlb-folio.patch
-
-This patch will later appear in the mm-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via various
-branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there most days
+This patch was dropped because an updated version will be issued
 
 ------------------------------------------------------
-From: Hongfu Li <lihongfu@kylinos.cn>
-Subject: mm/memcg: migrate per-node hugetlb lruvec stat together with hugetlb folio
-Date: Wed, 23 Sep 2026 10:05:16 +0800
+From: Gregory Price <gourry@gourry.net>
+Subject: mm: refactor find_next_best_node to find_next_best_node_in
+Date: Fri, 11 Sep 2026 23:04:23 -0400
 
-memory.numa_stat exposes per-node hugetlb counters from per-node lruvec
-stats.  These stats are accounted against folio_nid(): incremented on the
-folio's node when handed to a user, decremented when the folio is returned
-to the pool.
+Patch series "mm: refactor zonelist constructors and iterators", v2.
 
-During hugetlb folio migration, mem_cgroup_migrate() moves the charge to
-the new folio and drops the memcg data of the old one, so the free of the
-old folio right after the migration skips the memcg per-node lruvec
-decrement.  The hugetlb count stays attributed to the old node for the
-rest of the life of the charge, while the target folio gets no increment
-on the new node; its later free decrements a counter that was never
-incremented.
+find_next_best_node() picks the next-closest node when building a fallback
+list, and hardcodes N_MEMORY as the set it picks from.
 
-Migrate the per-node lruvec accounting alongside migration.  Global memcg
-totals remain balanced because they track resource consumption, not node
-placement.
+Refactor it into find_next_best_node_in(), which takes the candidate set
+explicitly.
 
-Link: https://lore.kernel.org/20260923-for-hugetlb_state3-v2-2-e8a36245bfab@kylinos.cn
-Fixes: 05d4532b60e3 ("memcg/hugetlb: add hugeTLB counters to memcg")
-Signed-off-by: Hongfu Li <lihongfu@kylinos.cn>
+This makes the existing behaviour explicit at both mm/memory-tiers.c call
+sites - they select demotion targets in fallback order from N_MEMORY - and
+lets callers narrow that set.
+
+Then extract the per-node construction loop out of build_zonelists() into
+build_node_zonelist(),i parameterised on the candidate nodemask and
+destination zonelist index.
+
+Together these allow a zonelist to be built over a candidate set other
+than N_MEMORY, into a zonelist other than FALLBACK, and iterated in
+fallback order over a caller-defined subset.
+
+These are prerequisites for generating a private node zonelist (nodes
+unreachable by default), but are otherwise general improvements to the
+existing interfaces so I'm proposing them separately.
+
+No functional change intended - purely refactor commits.
+
+
+This patch (of 2):
+
+find_next_best_node() picks the next-closest node for a fallback list from
+the full N_MEMORY set.  Refactor it into find_next_best_node_in(), which
+takes an explicit candidates nodemask.
+
+This enables building fallback lists with non-N_MEMORY candidates.
+
+No functional change: every caller still selects from N_MEMORY.
+
+Link: https://lore.kernel.org/20260912030424.2889731-2-gourry@gourry.net
+Signed-off-by: Gregory Price <gourry@gourry.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Tested-by: Joshua Hahn <joshua.hahnjy@gmail.com>
-Reviewed-by: Joshua Hahn <joshua.hahnjy@gmail.com>
-Reviewed-by: Oscar Salvador <osalvador@suse.de>
-Cc: Muchun Song <muchun.song@linux.dev>
+Reviewed-by: Vlastimil Babka (SUSE) <vbabka@kernel.org>
+Acked-by: Balbir Singh <balbirs@nvidia.com>
+Reviewed-by: Zi Yan <ziy@nvidia.com>
+Reviewed-by: Zenghui Yu (Huawei) <zenghui.yu@linux.dev>
+Cc: Brendan Jackman <brendan.jackman@linux.dev>
 Cc: David Hildenbrand <david@kernel.org>
-Cc: Shakeel Butt <shakeel.butt@linux.dev>
-Cc: Michal Hocko <mhocko@suse.com>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Nhat Pham <nphamcs@gmail.com>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Roman Gushchin <roman.gushchin@linux.dev>
-Cc: Chris Down <chris@chrisdown.name>
-Cc: <stable@vger.kernel.org>
+Cc: Liam R. Howlett <liam@infradead.org>
+Cc: Lorenzo Stoakes <ljs@kernel.org>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Suren Baghdasaryan <surenb@google.com>
 ---
 
- include/linux/memcontrol.h |    8 ++++++++
- mm/hugetlb.c               |   25 +++++++++++++++++++++++++
- mm/memcontrol.c            |    5 ++---
- 3 files changed, 35 insertions(+), 3 deletions(-)
+ mm/internal.h     |    6 ++++--
+ mm/memory-tiers.c |    7 ++++---
+ mm/page_alloc.c   |   13 ++++++++-----
+ 3 files changed, 16 insertions(+), 10 deletions(-)
 
---- a/include/linux/memcontrol.h~mm-memcg-migrate-per-node-hugetlb-lruvec-stat-together-with-hugetlb-folio
-+++ a/include/linux/memcontrol.h
-@@ -983,6 +983,9 @@ unsigned long lruvec_page_state_monotoni
- unsigned long lruvec_page_state_local(const struct lruvec *lruvec,
- 				      enum node_stat_item idx);
+--- a/mm/internal.h~mm-refactor-find_next_best_node-to-find_next_best_node_in
++++ a/mm/internal.h
+@@ -1124,7 +1124,8 @@ extern int node_reclaim_mode;
  
-+void mod_memcg_lruvec_state(struct lruvec *lruvec,
-+			    enum node_stat_item idx, int val);
-+
- void mem_cgroup_flush_stats(struct mem_cgroup *memcg);
- void mem_cgroup_flush_stats_ratelimited(struct mem_cgroup *memcg);
+ extern unsigned long node_reclaim(struct pglist_data *pgdat,
+ 				  gfp_t gfp_mask, unsigned int order);
+-extern int find_next_best_node(int node, nodemask_t *used_node_mask);
++int find_next_best_node_in(int node, nodemask_t *used_node_mask,
++		const nodemask_t *candidates);
+ #else
+ #define node_reclaim_mode 0
  
-@@ -1451,6 +1454,11 @@ static inline unsigned long lruvec_page_
- 	return node_page_state(lruvec_pgdat(lruvec), idx);
- }
- 
-+static inline void mod_memcg_lruvec_state(struct lruvec *lruvec,
-+					  enum node_stat_item idx, int val)
-+{
-+}
-+
- static inline void mem_cgroup_flush_stats(struct mem_cgroup *memcg)
+@@ -1133,7 +1134,8 @@ static inline unsigned long node_reclaim
  {
+ 	return 0;
  }
---- a/mm/hugetlb.c~mm-memcg-migrate-per-node-hugetlb-lruvec-stat-together-with-hugetlb-folio
-+++ a/mm/hugetlb.c
-@@ -23,6 +23,7 @@
- #include <linux/mmdebug.h>
- #include <linux/sched/signal.h>
- #include <linux/rmap.h>
-+#include <linux/rcupdate.h>
- #include <linux/string_choices.h>
- #include <linux/string_helpers.h>
- #include <linux/swap.h>
-@@ -7378,12 +7379,36 @@ void folio_putback_hugetlb(struct folio
- 	folio_put(folio);
- }
- 
-+static void move_hugetlb_lruvec_stat(struct folio *old_folio,
-+				     struct folio *new_folio)
-+{
-+	struct mem_cgroup *memcg;
-+	long nr_pages = folio_nr_pages(old_folio);
-+	int old_nid = folio_nid(old_folio);
-+	int new_nid = folio_nid(new_folio);
-+
-+	if (old_nid == new_nid)
-+		return;
-+
-+	guard(rcu)();
-+
-+	memcg = folio_memcg(new_folio);
-+	if (!memcg)
-+		return;
-+
-+	mod_memcg_lruvec_state(mem_cgroup_lruvec(memcg, NODE_DATA(old_nid)),
-+			       NR_HUGETLB, -nr_pages);
-+	mod_memcg_lruvec_state(mem_cgroup_lruvec(memcg, NODE_DATA(new_nid)),
-+			       NR_HUGETLB, nr_pages);
-+}
-+
- void move_hugetlb_state(struct folio *old_folio, struct folio *new_folio,
- 			enum migrate_reason reason)
+-static inline int find_next_best_node(int node, nodemask_t *used_node_mask)
++static inline int find_next_best_node_in(int node, nodemask_t *used_node_mask,
++		const nodemask_t *candidates)
  {
- 	struct hstate *h = folio_hstate(old_folio);
- 
- 	hugetlb_cgroup_migrate(old_folio, new_folio);
-+	move_hugetlb_lruvec_stat(old_folio, new_folio);
- 	folio_set_owner_migrate_reason(new_folio, reason);
- 
- 	/*
---- a/mm/memcontrol.c~mm-memcg-migrate-per-node-hugetlb-lruvec-stat-together-with-hugetlb-folio
-+++ a/mm/memcontrol.c
-@@ -1015,9 +1015,8 @@ static void __mod_memcg_lruvec_state(str
- 	put_cpu();
+ 	return NUMA_NO_NODE;
+ }
+--- a/mm/memory-tiers.c~mm-refactor-find_next_best_node-to-find_next_best_node_in
++++ a/mm/memory-tiers.c
+@@ -370,7 +370,7 @@ int next_demotion_node(int node, const n
+ 	 * closest demotion target.
+ 	 */
+ 	nodes_complement(mask, *allowed_mask);
+-	return find_next_best_node(node, &mask);
++	return find_next_best_node_in(node, &mask, &node_states[N_MEMORY]);
  }
  
--static void mod_memcg_lruvec_state(struct lruvec *lruvec,
--				     enum node_stat_item idx,
--				     int val)
-+void mod_memcg_lruvec_state(struct lruvec *lruvec,
-+			    enum node_stat_item idx, int val)
+ static void disable_all_demotion_targets(void)
+@@ -450,7 +450,7 @@ static void establish_demotion_targets(v
+ 		memtier = list_next_entry(memtier, list);
+ 		tier_nodes = get_memtier_nodemask(memtier);
+ 		/*
+-		 * find_next_best_node, use 'used' nodemask as a skip list.
++		 * find_next_best_node_in, use 'used' nodemask as a skip list.
+ 		 * Add all memory nodes except the selected memory tier
+ 		 * nodelist to skip list so that we find the best node from the
+ 		 * memtier nodelist.
+@@ -463,7 +463,8 @@ static void establish_demotion_targets(v
+ 		 * in the preferred mask when allocating pages during demotion.
+ 		 */
+ 		do {
+-			target = find_next_best_node(node, &tier_nodes);
++			target = find_next_best_node_in(node, &tier_nodes,
++							&node_states[N_MEMORY]);
+ 			if (target == NUMA_NO_NODE)
+ 				break;
+ 
+--- a/mm/page_alloc.c~mm-refactor-find_next_best_node-to-find_next_best_node_in
++++ a/mm/page_alloc.c
+@@ -5793,9 +5793,10 @@ static int numa_zonelist_order_handler(c
+ static int node_load[MAX_NUMNODES];
+ 
+ /**
+- * find_next_best_node - find the next node that should appear in a given node's fallback list
++ * find_next_best_node_in - find the next node that should appear in a given node's fallback list
+  * @node: node whose fallback list we're appending
+  * @used_node_mask: nodemask_t of already used nodes
++ * @candidates: nodemask_t of nodes eligible for selection
+  *
+  * We use a number of factors to determine which is the next node that should
+  * appear on a given node's fallback list.  The node should not have appeared
+@@ -5807,7 +5808,8 @@ static int node_load[MAX_NUMNODES];
+  *
+  * Return: node id of the found node or %NUMA_NO_NODE if no node is found.
+  */
+-int find_next_best_node(int node, nodemask_t *used_node_mask)
++int find_next_best_node_in(int node, nodemask_t *used_node_mask,
++			   const nodemask_t *candidates)
  {
- 	struct pglist_data *pgdat = lruvec_pgdat(lruvec);
- 	struct mem_cgroup_per_node *pn;
+ 	int n, val;
+ 	int min_val = INT_MAX;
+@@ -5817,12 +5819,12 @@ int find_next_best_node(int node, nodema
+ 	 * Use the local node if we haven't already, but for memoryless local
+ 	 * node, we should skip it and fall back to other nodes.
+ 	 */
+-	if (!node_isset(node, *used_node_mask) && node_state(node, N_MEMORY)) {
++	if (!node_isset(node, *used_node_mask) && node_isset(node, *candidates)) {
+ 		node_set(node, *used_node_mask);
+ 		return node;
+ 	}
+ 
+-	for_each_node_state(n, N_MEMORY) {
++	for_each_node_mask(n, *candidates) {
+ 
+ 		/* Don't want a node to appear more than once */
+ 		if (node_isset(n, *used_node_mask))
+@@ -5907,7 +5909,8 @@ static void build_zonelists(pg_data_t *p
+ 	prev_node = local_node;
+ 
+ 	memset(node_order, 0, sizeof(node_order));
+-	while ((node = find_next_best_node(local_node, &used_mask)) >= 0) {
++	while ((node = find_next_best_node_in(local_node, &used_mask,
++					      &node_states[N_MEMORY])) >= 0) {
+ 		/*
+ 		 * We don't want to pressure a particular node.
+ 		 * So adding penalty to the first node in same
 _
 
-Patches currently in -mm which might be from lihongfu@kylinos.cn are
+Patches currently in -mm which might be from gourry@gourry.net are
 
-mm-use-a-folio-in-the-softleaf_is_device_private-path.patch
-mm-hugetlb-fix-resv_huge_pages-double-decrement-in-memfd-error-path.patch
-mm-memcontrol-remove-unused-memcg-parameter-in-calculate_high_delay.patch
-selftests-mm-khugepaged-consolidate-error-exits-via-kselftest-helpers.patch
-mm-page_owner-preserve-original-free_pid-free_tgid-during-folio-migration.patch
-mm-memfd-fix-hugetlb-reservation-accounting-in-error-paths.patch
-selftests-mm-fix-ptrace-peekdata-check-in-memfd_secret-test.patch
-mm-hugetlb_cgroup-move-per-node-usage-on-cross-node-migration.patch
-mm-hugetlb_cgroup-move-per-node-usage-on-cgroup-reparenting.patch
-mm-hugetlb-account-migration-target-folio-in-per-node-nr_hugetlb-vmstat.patch
-mm-memcg-migrate-per-node-hugetlb-lruvec-stat-together-with-hugetlb-folio.patch
+mm-mempolicy-take-a-cpuset-cookie-for-the-interleave-node-count.patch
+mm-mempolicy-use-srcu-for-the-weighted-interleave-state.patch
+mm-mempolicy-stop-copying-the-nodemask-in-the-interleave-paths.patch
+mm-huge_memory-skip-zone-device-folios-in-madvise_free_huge_pmd.patch
+mm-madvise-skip-zone-device-folios-in-cold-pageout-pmd-range.patch
+mm-mempolicy-skip-zone-device-folios-when-queueing-folios.patch
+mm-memory_hotplug-factor-out-node_is_memoryless.patch
+mm-mempolicy-use-vm_normal_folio_pmd-in-queue_folios_pmd.patch
+mm-madvise-use-vm_normal_folio_pmd-in-cold-pageout-pmd-range.patch
+mm-page_alloc-refactor-build_node_zonelist-out-of-build_zonelists.patch
+proc-task_mmu-handle-special-pmds-in-clear_refs-and-pagemap.patch
+mm-madvise-reclaim-isolated-folios-if-pte-restart-fails.patch
+mm-madvise-use-folio_trylock-in-the-cold-pageout-pmd-split.patch
 
