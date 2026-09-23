@@ -1,34 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B73A7429CFC
-	for <mm-commits@vger.kernel.org>; Wed, 23 Sep 2026 18:07:59 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 18CFD542EC1;
+	Wed, 23 Sep 2026 18:39:01 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790186882; cv=none; b=U2jby4tbxFZmkh6T+ZAk7HqIpe9xnKRbmEW99aBmtmCZ8pMlfMsnAm3e8Yxqi6tjsuFMhIK69KhPCp+uWTOUP/hgshfOIkOVPXiE6O1tLuVf2vcQOQs+odb6Q0WSjBwfHn0c1IHEzxeIfnWWNwIY+3uPfcS8CZq7TJ/J7SpazVo=
+	t=1790188743; cv=none; b=qLXcuwvTLl+nBaGqo6xaykTe/Q0DC6TXbMYaY1Z5GibyWkd/E3GIL7Ko6+eUMCcZQPj7I9m7VGDcjM6IptBX7B8w0I9ZO2buRmns0y/OI9ouoYNrRQm1OWEXXkkqHOaTFNhBZona+A1pevFlYEe6nYqe8552HtQnu87h9K9dZtY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1790186882; c=relaxed/simple;
-	bh=6ZeMtbj2JF7N2aXdUMSUYsPqRRSChIQCqb7kIjKA4T4=;
-	h=Date:To:From:Subject:Message-Id; b=qqb5Fark8hiELZSkg5MMieRdToSzWtdDeChR2eeYCa62gXFMClJhL/Fk8FupI+A7TF5Vf423ycUZSf4GKb9CcC/ACOpwDUaSYzwJMANjrnYsHSLShkwH1RC/FxG+UUd6iiODyZHymhD0gSrn3zdmkHYIEEqsYS47t4kYZxnSfI0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=fail (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=tCuWioog reason="signature verification failed"; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1790188743; c=relaxed/simple;
+	bh=idBaeybp/TePctNzR6Wbppbwhf1NipMUkf+AIR6NCbU=;
+	h=Date:To:From:Subject:Message-Id; b=R1E3trrPy21OnPK7G/RlKDh/sxxgqdyHhsg5MeHn0PRJ6BLutlKJOD6VVAeDTArO7aa6+2r6zfA48rqCkY+FbhBRBkI2wrtUN4JoOh2iPKssDWGO9r33nUnxdKNtK0gWKAaRKmKDtBWtdq/iZO+mpRVvdJ5cu5j/jk/itv6bTkw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=xDGxSrF7; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=fail reason="signature verification failed" (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="tCuWioog"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id ECDE81F000FF;
-	Wed, 23 Sep 2026 18:07:58 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="xDGxSrF7"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9D9DA1F000FF;
+	Wed, 23 Sep 2026 18:39:01 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1790186879;
-	bh=Kr9bKFE2YpS3FEHcZXkpZ2FChg7UDGTRFVKskdPU72M=;
+	d=linux-foundation.org; s=korg; t=1790188741;
+	bh=SsGDKIsTauEOn5aru5teDgdsGjtGiXOlKHWKuZwtDE8=;
 	h=Date:To:From:Subject;
-	b=tCuWioogX095FqEA0Q5wWGks5N/O1qPVdrKOP/D0EUfXe3DmIkWjFGlORWA01Rf4y
-	 of0DWgnlzg7ITIPA+JmUlOXviYuzH9EovzByB5S5i4iXzrFxjT3XWb0M4BIuT3iO4J
-	 7zjE4AjA1cOBky7Dy7UkLtFQE38jjxdi9tWEf/3M=
-Date: Wed, 23 Sep 2026 11:07:58 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,yuanchu@google.com,ying.huang@linux.alibaba.com,willy@infradead.org,will@kernel.org,weixugc@google.com,viro@zeniv.linux.org.uk,vincent.guittot@linaro.org,vbabka@kernel.org,tzimmermann@suse.de,tiwai@suse.de,tiwai@suse.com,surenb@google.com,stephen.smalley.work@gmail.com,sre@kernel.org,shikemeng@huaweicloud.com,shakeel.butt@linux.dev,ryan.roberts@arm.com,rppt@kernel.org,riel@surriel.com,rakie.kim@sk.com,pfalcato@suse.de,peterz@infradead.org,peterx@redhat.com,perex@perex.cz,paul@paul-moore.com,palmer@dabbelt.com,osalvador@suse.de,oleg@redhat.com,npiggin@gmail.com,nphamcs@gmail.com,namhyung@kernel.org,muchun.song@linux.dev,mripard@kernel.org,mingo@redhat.com,miklos@szeredi.hu,mhocko@suse.com,mhocko@kernel.org,mhiramat@kernel.org,memxor@gmail.com,maz@kernel.org,matthew.brost@intel.com,mark.rutland@arm.com,maddy@linux.ibm.com,maarten.lankhorst@linux.intel.com,liam@infradead.org,leon@kernel.org,lance.yang@linux.dev,kasong@tencent.com,kas@kernel.
- org,juri.lelli@redhat.com,joshua.hahnjy@gmail.com,jhubbard@nvidia.com,jgg@ziepe.ca,jayalk@intworks.biz,jannh@google.com,james.bottomley@HansenPartnership.com,jack@suse.cz,imbrenda@linux.ibm.com,hca@linux.ibm.com,harry@kernel.org,hannes@cmpxchg.org,gregkh@linuxfoundation.org,gourry@gourry.net,gor@linux.ibm.com,gerald.schaefer@linux.ibm.com,frankja@linux.ibm.com,emil@etsalapatis.com,eddyz87@gmail.com,dgilbert@interlog.com,dev.jain@arm.com,dennis.dalessandro@cornelisnetworks.com,deller@gmx.de,david@kernel.org,davem@davemloft.net,dave.hansen@linux.intel.com,corbet@lwn.net,chrisl@kernel.org,chengming.zhou@linux.dev,catalin.marinas@arm.com,byungchul@sk.com,brauner@kernel.org,bp@alien8.de,borntraeger@linux.ibm.com,baoquan.he@linux.dev,baolin.wang@linux.alibaba.com,baohua@kernel.org,axelrasmussen@google.com,ast@kernel.org,arnd@arndb.de,apopple@nvidia.com,aou@eecs.berkeley.edu,anup@brainfault.org,aneesh.kumar@kernel.org,andrii@kernel.org,andreas@gaisler.com,airlied@gmail.com,agordeev@linux.i
- bm.com,acme@kernel.org,ljs@kernel.org,akpm@linux-foundation.org
+	b=xDGxSrF7F1BuMAUjZ5yvdJuABP9iVLWm1Hq49eiTSjJuckRPlE+PDbGzlpaFH6lcr
+	 ip5ioTpJ68NCON945NiX+eA6+cMPkSm7FFrMeX8QDaZt45UZpnHZrlXnwI2Du1ccDh
+	 gJO9rftFDTz4W1dWFzOz80k4HrmpfaK2qjEfC4Os=
+Date: Wed, 23 Sep 2026 11:39:01 -0700
+To: mm-commits@vger.kernel.org,vbabka@kernel.org,surenb@google.com,stable@vger.kernel.org,pfalcato@suse.de,liam@infradead.org,jannh@google.com,ljs@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [to-be-updated] mm-vma-predicate-setting-mmap_prepare-vma-fields-on-new-vma-alloc.patch removed from -mm tree
-Message-Id: <20260923180758.ECDE81F000FF@smtp.kernel.org>
+Subject: + mm-vma-predicate-setting-mmap_prepare-vma-fields-on-new-vma-alloc.patch added to mm-hotfixes-unstable branch
+Message-Id: <20260923183901.9D9DA1F000FF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -36,134 +34,67 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The quilt patch titled
+The patch titled
      Subject: mm/vma: predicate setting mmap_prepare VMA fields on new vma alloc
-has been removed from the -mm tree.  Its filename was
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
      mm-vma-predicate-setting-mmap_prepare-vma-fields-on-new-vma-alloc.patch
 
-This patch was dropped because an updated version will be issued
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vma-predicate-setting-mmap_prepare-vma-fields-on-new-vma-alloc.patch
+
+This patch will later appear in the mm-hotfixes-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via various
+branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there most days
 
 ------------------------------------------------------
 From: "Lorenzo Stoakes (ARM)" <ljs@kernel.org>
 Subject: mm/vma: predicate setting mmap_prepare VMA fields on new vma alloc
-Date: Thu, 17 Sep 2026 17:22:11 +0100
+Date: Wed, 23 Sep 2026 18:45:41 +0100
 
-It only makes sense to manipulate VMA fields if we allocated a new VMA,
-rather than merged it.
+It only makes sense to manipulate VMA fields if a new VMA was allocated,
+rather than merged.
 
 VMA merging does not compare vm_ops or vm_private_data, so a merged VMA
 keeps its own, which is also what the legacy f_op->mmap path does since it
-never touches an existing VMA.  Previously set_vma_user_defined_fields()
-overwrote the merged VMA's fields with those set for the new mapping.  In
-practice these are the same values, with rare exceptions such as shmem
-selecting vm_ops based on whether the file has been unlinked, so no
-user-visible change is expected.
+never touches an existing VMA.
 
-Make this dependency explicit, and additionally constify have_mmap_prepare
-while we're here.
+Currently, these fields will get overwritten by whatever state is
+established in the mmap_prepare hook, and if the VMA was merged,
+vm_ops->mapped will not have been called, so this could destructively
+clear existing state without replacing it with anything valid.
 
-Link: https://lore.kernel.org/20260917-b4-mmap-prepare-vma-flag-sanify-v3-2-4583d8a23bca@kernel.org
+There is an implicit requirement that vm_private_data and vm_ops are
+fungible across VMAs which means that losing the 'new' state is fine.
+
+However in this case the 'old' state is being overwritten by potentially
+invalid 'new' state, so this must be rectified.
+
+Additionally constify have_mmap_prepare while here.
+
+All existing in-tree users either derive state from the file or are
+unmergeable due to VMA flags, so this has no direct impact.
+
+Link: https://lore.kernel.org/20260923-fix-mmap-prepare-overwrite-v1-1-3b3f1bfcdf5e@kernel.org
+Fixes: c84bf6dd2b83 ("mm: introduce new .mmap_prepare() file callback")
 Signed-off-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Cc: Albert Ou <aou@eecs.berkeley.edu>
-Cc: Alexander Gordeev <agordeev@linux.ibm.com>
-Cc: Alexei Starovoitov <ast@kernel.org>
-Cc: Alistair Popple <apopple@nvidia.com>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Andreas Larsson <andreas@gaisler.com>
-Cc: Andrii Nakryiko <andrii@kernel.org>
-Cc: "Aneesh Kumar K.V" <aneesh.kumar@kernel.org>
-Cc: Anup Patel <anup@brainfault.org>
-Cc: Arnaldo Carvalho de Melo <acme@kernel.org>
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: Axel Rasmussen <axelrasmussen@google.com>
-Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: Baoquan He <baoquan.he@linux.dev>
-Cc: Barry Song <baohua@kernel.org>
-Cc: "Borislav Petkov (AMD)" <bp@alien8.de>
-Cc: Byungchul Park <byungchul@sk.com>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Chengming Zhou <chengming.zhou@linux.dev>
-Cc: Chris Li <chrisl@kernel.org>
-Cc: Christian Borntraeger <borntraeger@linux.ibm.com>
-Cc: Christian Brauner <brauner@kernel.org>
-Cc: Claudio Imbrenda <imbrenda@linux.ibm.com>
-Cc: Dave Airlie <airlied@gmail.com>
-Cc: Dave Hansen <dave.hansen@linux.intel.com>
-Cc: David Hildenbrand <david@kernel.org>
-Cc: David S. Miller <davem@davemloft.net>
-Cc: Dennis Dalessandro <dennis.dalessandro@cornelisnetworks.com>
-Cc: Dev Jain <dev.jain@arm.com>
-Cc: Doug Gilbert <dgilbert@interlog.com>
-Cc: Eduard Zingerman <eddyz87@gmail.com>
-Cc: Emil Tsalapatis <emil@etsalapatis.com>
-Cc: Gerald Schaefer <gerald.schaefer@linux.ibm.com>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Gregory Price <gourry@gourry.net>
-Cc: Harry Yoo <harry@kernel.org>
-Cc: Heiko Carstens <hca@linux.ibm.com>
-Cc: Helge Deller <deller@gmx.de>
-Cc: "Huang, Ying" <ying.huang@linux.alibaba.com>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: James Bottomley <james.bottomley@HansenPartnership.com>
-Cc: Jan Kara <jack@suse.cz>
-Cc: Jann Horn <jannh@google.com>
-Cc: Janosch Frank <frankja@linux.ibm.com>
-Cc: Jaroslav Kysela <perex@perex.cz>
-Cc: Jason Gunthorpe <jgg@ziepe.ca>
-Cc: Jaya Kumar <jayalk@intworks.biz>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: John Hubbard <jhubbard@nvidia.com>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Joshua Hahn <joshua.hahnjy@gmail.com>
-Cc: Juri Lelli <juri.lelli@redhat.com>
-Cc: Kairui Song <kasong@tencent.com>
-Cc: Kemeng Shi <shikemeng@huaweicloud.com>
-Cc: Kiryl Shutsemau <kas@kernel.org>
-Cc: Kumar Kartikeya Dwivedi <memxor@gmail.com>
-Cc: Lance Yang <lance.yang@linux.dev>
-Cc: Leon Romanovsky <leon@kernel.org>
 Cc: Liam R. Howlett <liam@infradead.org>
-Cc: Maarten Lankhorst <maarten.lankhorst@linux.intel.com>
-Cc: Madhavan Srinivasan <maddy@linux.ibm.com>
-Cc: Marc Rutland <mark.rutland@arm.com>
-Cc: Marc Zyngier <maz@kernel.org>
-Cc: "Masami Hiramatsu (Google)" <mhiramat@kernel.org>
-Cc: Matthew Brost <matthew.brost@intel.com>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Maxime Ripard <mripard@kernel.org>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Miklos Szeredi <miklos@szeredi.hu>
-Cc: Muchun Song <muchun.song@linux.dev>
-Cc: Namhyung kim <namhyung@kernel.org>
-Cc: Nhat Pham <nphamcs@gmail.com>
-Cc: Nicholas Piggin <npiggin@gmail.com>
-Cc: Oleg Nesterov <oleg@redhat.com>
-Cc: Oscar Salvador <osalvador@suse.de>
-Cc: Palmer Dabbelt <palmer@dabbelt.com>
-Cc: Paul Moore <paul@paul-moore.com>
-Cc: Pedro Falcato <pfalcato@suse.de>
-Cc: Peter Xu <peterx@redhat.com>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Rakie Kim <rakie.kim@sk.com>
-Cc: Rik van Riel <riel@surriel.com>
-Cc: Ryan Roberts <ryan.roberts@arm.com>
-Cc: Sebastian Reichel <sre@kernel.org>
-Cc: Shakeel Butt <shakeel.butt@linux.dev>
-Cc: Stephen Smalley <stephen.smalley.work@gmail.com>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Takashi Iwai (SUSE) <tiwai@suse.de>
-Cc: Takashi Iwai <tiwai@suse.com>
-Cc: Thomas Zimemrmann <tzimmermann@suse.de>
-Cc: Vasily Gorbik <gor@linux.ibm.com>
-Cc: Vincent Guittot <vincent.guittot@linaro.org>
 Cc: Vlastimil Babka <vbabka@kernel.org>
-Cc: Wei Xu <weixugc@google.com>
-Cc: Will Deacon <will@kernel.org>
-Cc: Yuanchu Xie <yuanchu@google.com>
-Cc: Zi Yan <ziy@nvidia.com>
+Cc: Jann Horn <jannh@google.com>
+Cc: Pedro Falcato <pfalcato@suse.de>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: <stable@vger.kernel.org>
 ---
 
  mm/vma.c |    4 ++--
@@ -171,7 +102,7 @@ Cc: Zi Yan <ziy@nvidia.com>
 
 --- a/mm/vma.c~mm-vma-predicate-setting-mmap_prepare-vma-fields-on-new-vma-alloc
 +++ a/mm/vma.c
-@@ -2909,7 +2909,7 @@ static unsigned long __mmap_region(struc
+@@ -2849,7 +2849,7 @@ static unsigned long __mmap_region(struc
  {
  	struct mm_struct *mm = current->mm;
  	struct vm_area_struct *vma = NULL;
@@ -180,12 +111,12 @@ Cc: Zi Yan <ziy@nvidia.com>
  	VMA_ITERATOR(vmi, mm, addr);
  	const pgoff_t anon_pgoff = addr >> PAGE_SHIFT;
  	MMAP_STATE(map, mm, &vmi, addr, len, pgoff, anon_pgoff, vma_flags, file);
-@@ -2952,7 +2952,7 @@ static unsigned long __mmap_region(struc
+@@ -2892,7 +2892,7 @@ static unsigned long __mmap_region(struc
  		allocated_new = true;
  	}
  
--	if (have_mmap_prepare && !map_is_anon(&map))
-+	if (have_mmap_prepare && allocated_new && !map_is_anon(&map))
+-	if (have_mmap_prepare)
++	if (have_mmap_prepare && allocated_new)
  		set_vma_user_defined_fields(vma, &map);
  
  	__mmap_complete(&map, vma);
@@ -193,6 +124,7 @@ _
 
 Patches currently in -mm which might be from ljs@kernel.org are
 
+mm-vma-predicate-setting-mmap_prepare-vma-fields-on-new-vma-alloc.patch
 mm-mremap-fix-locked_vm-leak-from-mremap_dontunmap-self-merge.patch
 mm-mremap-fix-locked_vm-leak-by-splitting-vma-for-mremap_dontunmap.patch
 mm-vmpressure-remove-window-size-todo.patch
