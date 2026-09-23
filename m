@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 73DF328373
-	for <mm-commits@vger.kernel.org>; Wed, 23 Sep 2026 22:23:10 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CF8AD3B7742
+	for <mm-commits@vger.kernel.org>; Wed, 23 Sep 2026 22:23:11 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790202193; cv=none; b=MbrzIitK+Tqx88iiU62k4d/sSIdWsRLRD14DRaZCUz+pZNQm0KJcVG95dCL2TUETP1CqrsFXeeCNxrntPbqrgKDCW/RfKh2QmswRLUDLYUzU3gyksjmVIRlZUKLZX27y9ZNrOenNU/DwYZtdDlEqli/185DU0omgnVdelzLElsU=
+	t=1790202193; cv=none; b=RV8bQ/RcJosGYfcxmzLruPVOUfy5ePW/8/R8gCQXGvlI+sbab4VAMyikMJk+Ny+N3LVlSD0arVNAG7GnyF/CGVjPzf8f1d1qTEIzPRsJnAwRo9BrQxIg5lLNJ0rWsXgiOOSEssX7Daoj2eXaj9t2cIum1jXb/cC19paKvgGopJU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1790202193; c=relaxed/simple;
-	bh=mL3SHUEcPjcXSq5zHosCtwmMobMJPvY4QIusEEY3N7Q=;
-	h=Date:To:From:Subject:Message-Id; b=N2Ala/3nNUy2JBEMH3qsFnzD9wGEe8ncQIoFlQXc44JPk/A51NwU9uFbp5slj/NzvrfXXvj/A6dzMHgCxOyBf0ctgVwDIu/qMc0zi0DttGXK5UJou6bmMsdL8OWShWAxJGtFl+UHqv5Oz8wJVzQQ1pk2RA2O12P8zX5VRwOwNIw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=wp1Hy4e4; arc=none smtp.client-ip=100.103.45.18
+	bh=WGuakq4rLtM79q3TgVnetgfz7tia48xpl/8ZaYy9Slc=;
+	h=Date:To:From:Subject:Message-Id; b=uSZqcEwlO6bgE4e6ittPMMaDxtKW3+OzoHpFxYW/vS+9yiktvSzYF+0usVuK0JYHgsoaztRaN2nBjNL9bX64AUZB6hBcMYMHRybvKco2JwkmpxqkjtJGb6Y1UHe25bcG5LyB2uSgTGhQzBU/AssxtZzhgICrenUCh961FKRrYaw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=gt8D/knL; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="wp1Hy4e4"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 680291F000FF;
-	Wed, 23 Sep 2026 22:23:10 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="gt8D/knL"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 746901F00893;
+	Wed, 23 Sep 2026 22:23:11 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1790202190;
-	bh=lGu7iaUTwIu4ApgmlokzFOIaC/kn965Lq2LJEChVEfg=;
+	d=linux-foundation.org; s=korg; t=1790202191;
+	bh=TzFvT5sb9h58Nb0yCZbVsyd7J5n9U+9Poxfsgfu05JM=;
 	h=Date:To:From:Subject;
-	b=wp1Hy4e4phiH9dT6t9S1NiC2AeDphvX7dKQS40Rr8CqMfTs255K1uPGgV6mAVr7Ag
-	 UQsOh802lCLmnZzRqbMJ2k0UTaM4rMRcOpuq5ql/elyT2gXFckZ18oJBZrODrW1mPE
-	 xatYNstkZI0rUsJBBvJOkmBdmc4YMbwgxBjR2rPM=
-Date: Wed, 23 Sep 2026 15:23:09 -0700
+	b=gt8D/knLIZqEZdsvT4xxmuw25xz0Typlj+0ItIvqHe8cXN45wXYB03SHUQ+pPItCq
+	 gS5wp6ZuLT9X5uRS9U6eMnphhngl7tGYqX0eEUxxBLFAYAbFC/hiEYBlU52pEVNi0C
+	 IDolVgJDaaG/03kzXNeedmWKoEJcK7U6ip+oo0eY=
+Date: Wed, 23 Sep 2026 15:23:11 -0700
 To: mm-commits@vger.kernel.org,kasong@tencent.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [to-be-updated] mm-swap-fix-off-by-one-in-swap-cache-replace-sanity-check.patch removed from -mm tree
-Message-Id: <20260923222310.680291F000FF@smtp.kernel.org>
+Subject: [to-be-updated] mm-huge_memory-fix-rejection-of-swap-cache-folios-with-a-mapping.patch removed from -mm tree
+Message-Id: <20260923222311.746901F00893@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,78 +35,44 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/swap: fix off-by-one in swap cache replace sanity check
+     Subject: mm/huge_memory: fix rejection of swap cache folios with a mapping
 has been removed from the -mm tree.  Its filename was
-     mm-swap-fix-off-by-one-in-swap-cache-replace-sanity-check.patch
+     mm-huge_memory-fix-rejection-of-swap-cache-folios-with-a-mapping.patch
 
 This patch was dropped because an updated version will be issued
 
 ------------------------------------------------------
 From: Kairui Song <kasong@tencent.com>
-Subject: mm/swap: fix off-by-one in swap cache replace sanity check
-Date: Tue, 15 Sep 2026 01:14:42 +0800
+Subject: mm/huge_memory: fix rejection of swap cache folios with a mapping
+Date: Tue, 15 Sep 2026 01:14:43 +0800
 
-Patch series "mm/huge_memory: clean up and decouple the anon and file
-split helpers", v5.
+A folio in the swap cache cannot be split if it has a mapping (shmem). 
+The split code does a defensive check for this in
+__folio_freeze_and_split_unmapped, after the folio ref has been frozen and
+the NR_SHMEM_THPS/NR_FILE_THPS counters have been decremented.  It rejects
+the split and returns -EINVAL without unfreezing the folio or restoring
+the counters.
 
-The folio split path handles anon, page cache and swap cache folios in one
-routine.  That mixing is what makes the swap cache split restrictions hard
-to lift and to review.  We now support uniform split to order-0 only, and
-no mappingless swap cache folios.  And it has left a fair number of dead
-or redundant checks behind.
+That error path is buggy, if it is ever taken.  It leaves the folio frozen
+and stuck, skews the counters, and fires the VM_WARN_ON_ONCE_FOLIO for a
+state that is actually legitimate.
 
-This series prepares for lifting those restrictions by cleaning up the
-code first: split the routine into an anon and a file helper, and keep all
-swap cache handling in the anon helper.  The file helper never sees a swap
-cache folio, folio_check_splittable() rejects them up front.
+Check for this case up front in folio_check_splittable and return -EBUSY
+before any state is modified, so the split routine always backs out
+cleanly.
 
-Apart from two bug fixes (patch 1 and 2) and a slight adjustment of anon
-splitting (patch 12), this is a pure cleanup.
+Also fix a bracket style issue that checkpatch.pl keeps complaining about.
 
-Testing:
-
-The in-tree split_huge_page_test selftest (uniform, non-uniform and
-in-folio-offset splits of anon and pagecache folios) passes 62/62 over 600
-runs on the patched kernel.
-
-ftrace function_graph tracing filtered on __folio_split() was used to
-compare per-call durations between the base and the patched kernel on the
-same x86-64 box (interleaved runs across alternating reboots.  135 split
-calls per run, 600 test runs):
-
-Before: 68.52 us, stddev: 1.58
-After:  67.38 us, stddev: 1.33
-
-The patched kernel is slightly faster.  The stack usage and object size
-change as the config and compiler change, but in general the stack usage
-is reduced and object size is basically unchanged.
-
-
-This patch (of 17):
-
-The DEBUG_VM sanity check in __swap_cache_replace_folio() iterates the old
-folio's range with "while (ci_off++ < ci_end)", so the loop body runs on
-the already-incremented offset: the first entry is skipped and one entry
-past the range is read.  For a folio split that entry belongs to the first
-after-split folio and was just repointed by the replacement loop above, so
-the check would warn spuriously whenever sub-folio orders differ from the
-head folio's.
-
-Currently we don't support non-uniform swapcache split, but this still
-needs a fix to clean it up and prepare for non-uniform swap cache split.
-
-Use the same do-while pattern as the replacement loop.
-
-Link: https://lore.kernel.org/20260915-swap-thp-cleanup-v5-0-39878b37dfb0@tencent.com
-Link: https://lore.kernel.org/20260915-swap-thp-cleanup-v5-1-39878b37dfb0@tencent.com
-Fixes: 8578e0c00dcf ("mm, swap: use the swap table for the swap cache and switch API")
+Link: https://lore.kernel.org/20260915-swap-thp-cleanup-v5-2-39878b37dfb0@tencent.com
+Fixes: 00527733d0dc ("mm/huge_memory: add two new (not yet used) functions for folio_split()")
+Fixes: 714b056c8321 ("mm/huge_memory: convert VM_BUG* to VM_WARN* in __folio_split")
 Signed-off-by: Kairui Song <kasong@tencent.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Acked-by: Zi Yan <ziy@nvidia.com>
+Reviewed-by: Zi Yan <ziy@nvidia.com>
 Reviewed-by: Barry Song <baohua@kernel.org>
 Acked-by: David Hildenbrand (Arm) <david@kernel.org>
 Reviewed-by: Yeoreum Yun <yeoreum.yun@arm.com>
-Acked-by: Kiryl Shutsemau (Meta) <kas@kernel.org>
+Reviewed-by: Kiryl Shutsemau (Meta) <kas@kernel.org>
 Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
 Cc: Baoquan He <baoquan.he@linux.dev>
 Cc: Chris Li <chrisl@kernel.org>
@@ -123,22 +89,76 @@ Cc: Suren Baghdasaryan <surenb@google.com>
 Cc: Vlastimil Babka <vbabka@kernel.org>
 ---
 
- mm/swap_state.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ mm/huge_memory.c |   26 ++++++++++++++++----------
+ 1 file changed, 16 insertions(+), 10 deletions(-)
 
---- a/mm/swap_state.c~mm-swap-fix-off-by-one-in-swap-cache-replace-sanity-check
-+++ a/mm/swap_state.c
-@@ -396,8 +396,9 @@ void __swap_cache_replace_folio(struct s
- 	    folio_order(old) != folio_order(new)) {
- 		ci_off = swp_cluster_offset(old->swap);
- 		ci_end = ci_off + folio_nr_pages(old);
--		while (ci_off++ < ci_end)
-+		do {
- 			WARN_ON_ONCE(swp_tb_to_folio(__swap_table_get(ci, ci_off)) != old);
-+		} while (++ci_off < ci_end);
- 	}
+--- a/mm/huge_memory.c~mm-huge_memory-fix-rejection-of-swap-cache-folios-with-a-mapping
++++ a/mm/huge_memory.c
+@@ -3933,6 +3933,9 @@ static int __split_unmapped_folio(struct
+ int folio_check_splittable(struct folio *folio, unsigned int new_order,
+ 			   enum split_type split_type)
+ {
++	const bool is_anon = folio_test_anon(folio);
++	const bool is_swapcache = folio_test_swapcache(folio);
++
+ 	VM_WARN_ON_FOLIO(!folio_test_locked(folio), folio);
+ 	/*
+ 	 * Folios that just got truncated cannot get split. Signal to the
+@@ -3941,11 +3944,11 @@ int folio_check_splittable(struct folio
+ 	 * TODO: this will also currently refuse folios without a mapping in the
+ 	 * swapcache (shmem or to-be-anon folios).
+ 	 */
+-	if (!folio->mapping && !folio_test_anon(folio))
++	if (!folio->mapping && !is_anon)
+ 		return -EBUSY;
+ 
+ 	/* order-1 is not supported for anonymous THP. */
+-	if (folio_test_anon(folio) && new_order == 1)
++	if (is_anon && new_order == 1)
+ 		return -EINVAL;
+ 
+ 	/*
+@@ -3956,7 +3959,7 @@ int folio_check_splittable(struct folio
+ 	 * swapcache folio split. Only uniform split to order-0 can be used
+ 	 * here.
+ 	 */
+-	if ((split_type == SPLIT_TYPE_NON_UNIFORM || new_order) && folio_test_swapcache(folio))
++	if ((split_type == SPLIT_TYPE_NON_UNIFORM || new_order) && is_swapcache)
+ 		return -EINVAL;
+ 
+ 	if (is_huge_zero_folio(folio))
+@@ -3965,6 +3968,15 @@ int folio_check_splittable(struct folio
+ 	if (folio_test_writeback(folio))
+ 		return -EBUSY;
+ 
++	/*
++	 * A non-anon swapcache folio that still has a mapping can only be a
++	 * shmem folio under SWAP IO, it's removed from either swap cache or
++	 * shmem mapping afterward. There is little benefit in splitting them
++	 * hence reject it here up front before touching anything.
++	 */
++	if (!is_anon && is_swapcache && folio->mapping)
++		return -EBUSY;
++
+ 	return 0;
  }
  
+@@ -4037,14 +4049,8 @@ static int __folio_freeze_and_split_unma
+ 			}
+ 		}
+ 
+-		if (folio_test_swapcache(folio)) {
+-			if (mapping) {
+-				VM_WARN_ON_ONCE_FOLIO(mapping, folio);
+-				return -EINVAL;
+-			}
+-
++		if (folio_test_swapcache(folio))
+ 			ci = swap_cluster_get_and_lock(folio);
+-		}
+ 
+ 		/* lock lru list/PageCompound, ref frozen by page_ref_freeze */
+ 		if (do_lru)
 _
 
 Patches currently in -mm which might be from kasong@tencent.com are
@@ -149,7 +169,6 @@ mm-migrate-copy-all-referenced-state-via-folio_migrate_lru_refs.patch
 mm-mglru-move-max_seq-read-into-walk_update_folio.patch
 mm-mglru-use-explicit-tier-range-in-read_ctrl_pos.patch
 mm-mglru-fix-potential-generation-folio-number-leak.patch
-mm-huge_memory-fix-rejection-of-swap-cache-folios-with-a-mapping.patch
 mm-huge_memory-invert-folio_ref_freeze-check-to-reduce-indentation.patch
 mm-huge_memory-split-the-routine-for-splitting-anon-and-file-folio.patch
 mm-huge_memory-rename-__split_unmapped_folio-to-__split_frozen_folio.patch
