@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4A8C8361977;
-	Wed, 23 Sep 2026 01:49:36 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 478BD317164
+	for <mm-commits@vger.kernel.org>; Wed, 23 Sep 2026 01:51:35 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790128177; cv=none; b=pQyc42MO1tTGxPcthcujAotpfmlp26hU66cUBe5OStC/Nm7i9cz8O2HZAgeujgLTuFPh/nD7ep/wlAsie81tz70Aka7lp9+6I6/QRXfNaDlwVo3XNk7Ub5UrYJRODPfBLD2gyggd1TVnSTa7gocJjNpXlo53tdETf26y1/0O6QI=
+	t=1790128297; cv=none; b=A5kkJDzTNt58Xm9ZFHHa8uacqd7CI+5tg2F6WyzMFQKfn0emsecPtD80v8ZpA+Ne7xotwei7xmrrKmbJcwoIhSY7nMrJSL3OIrXblLxmCjCirEv1ZdYicYmzvS2oqPly8Pns8p4uQUt5OUz8Pps4RgUttWWCOgc3cvfjVd/50TU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1790128177; c=relaxed/simple;
-	bh=e6hBqRr7szoTZeT7sWo4ffRhyJnKOWXS1C1lv8F+qd8=;
-	h=Date:To:From:Subject:Message-Id; b=pmgOaWulrRgKlGQAcEGkv1X1B46X8+jcYEXR4F7h9GalpxKaoN1wg1T4ELz+sg6kYjK4Kfw+6hk0QnO8hPGmmlz0n1yCS144aVHgm/Pxk7JPA3c5g1z8iBc35kbp+zCXykG/qycgymoi9yCSNYCzjnYdHzKbeS8lftGFJSfcm+Y=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=BAM0geyR; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1790128297; c=relaxed/simple;
+	bh=ZH4J5DSaSlF2WMTTf2BHeexbwNK5SCiFvw2LdkwJlcU=;
+	h=Date:To:From:Subject:Message-Id; b=efSxvzKTfNTaqZRDoVXMoMswTZQAqm2yHz7NLW2NLQE2kizy+2dJF8Al01xgp/FfdRroRqKBwwCLV8ukbmLdlov0N9yRLhTu28qNGb30Kys2msmkH5vrouOgxNPl4Le3Kbcy14D27WOErCslCsWAUCVFmnKJKWt3YYhd50rJecs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=AL63YkIG; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="BAM0geyR"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0E2B91F00893;
-	Wed, 23 Sep 2026 01:49:36 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="AL63YkIG"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 99B161F000FF;
+	Wed, 23 Sep 2026 01:51:35 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1790128176;
-	bh=Bs12zx4/6h5scsewjKKcecmQkKa10mP0qpHwayTPuL4=;
+	d=linux-foundation.org; s=korg; t=1790128295;
+	bh=A7qxGqBfQ/4Z18ZZkINc1BniYRB65dakyP5k/C1n6ZI=;
 	h=Date:To:From:Subject;
-	b=BAM0geyRGLMIFkoEDjqybxnOGow3vvx5pxcbEWJo6IZAwVZ+zFM67fdoPjKiX7pFY
-	 LlN3JZH3BJ+y/aj4mJ/ODzeY9ymMr+V4tU0Osl9nD+9S13wuoRcIV5A9TBSil8VVOj
-	 KnGHGh3hBQo3yxoZaFhchJlc6T3PkJrbWdeRfx7k=
-Date: Tue, 22 Sep 2026 18:49:35 -0700
-To: mm-commits@vger.kernel.org,stable@vger.kernel.org,shakeel.butt@linux.dev,roman.gushchin@linux.dev,osalvador@suse.de,nphamcs@gmail.com,muchun.song@linux.dev,mhocko@suse.com,mhocko@kernel.org,joshua.hahnjy@gmail.com,hannes@cmpxchg.org,david@kernel.org,chris@chrisdown.name,lihongfu@kylinos.cn,akpm@linux-foundation.org
+	b=AL63YkIGPMFEMPaG9Ev/YpIosNde7bDE3zqk9wAtVf8j/HaRON4b4RICmf4/Klv04
+	 AsCPkT8bq9ZsorM0AwDgllckFftspcT4zNcQx4v5N43+lyytg2gOLiexy1u/oHPoBb
+	 bH06pDiwYXq7+r7FL8HaIdCFPa9n3kevs55Prtgw=
+Date: Tue, 22 Sep 2026 18:51:35 -0700
+To: mm-commits@vger.kernel.org,syzbot+a68ce48df87b8e36e915@syzkaller.appspotmail.com,mark@fasheh.com,junxiao.bi@oracle.com,jlbec@evilplan.org,heming.zhao@suse.com,joseph.qi@linux.alibaba.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [to-be-updated] mm-memcg-migrate-per-node-hugetlb-lruvec-stat-together-with-hugetlb-folio.patch removed from -mm tree
-Message-Id: <20260923014936.0E2B91F00893@smtp.kernel.org>
+Subject: + ocfs2-fix-possible-deadlock-between-nfs_sync_rwlock-and-fs_reclaim.patch added to mm-nonmm-unstable branch
+Message-Id: <20260923015135.99B161F000FF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,115 +34,312 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The quilt patch titled
-     Subject: mm/memcg: migrate per-node hugetlb lruvec stat together with hugetlb folio
-has been removed from the -mm tree.  Its filename was
-     mm-memcg-migrate-per-node-hugetlb-lruvec-stat-together-with-hugetlb-folio.patch
+The patch titled
+     Subject: ocfs2: fix possible deadlock between nfs_sync_rwlock and fs_reclaim
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     ocfs2-fix-possible-deadlock-between-nfs_sync_rwlock-and-fs_reclaim.patch
 
-This patch was dropped because an updated version will be issued
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/ocfs2-fix-possible-deadlock-between-nfs_sync_rwlock-and-fs_reclaim.patch
+
+This patch will later appear in the mm-nonmm-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via various
+branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there most days
 
 ------------------------------------------------------
-From: Hongfu Li <lihongfu@kylinos.cn>
-Subject: mm/memcg: migrate per-node hugetlb lruvec stat together with hugetlb folio
-Date: Mon, 21 Sep 2026 17:12:35 +0800
+From: Joseph Qi <joseph.qi@linux.alibaba.com>
+Subject: ocfs2: fix possible deadlock between nfs_sync_rwlock and fs_reclaim
+Date: Tue, 22 Sep 2026 17:34:37 +0800
 
-memory.numa_stat exposes per-node hugetlb counters from per-node lruvec
-stats.  These stats are accounted against folio_nid(): incremented on the
-folio's node when handed to a user, decremented when the folio is returned
-to the pool.
+syzbot detected a circular locking dependency on &osb->nfs_sync_rwlock:
 
-During hugetlb folio migration, mem_cgroup_migrate() moves the charge to
-the new folio and drops the memcg data of the old one, so the free of the
-old folio right after the migration skips the memcg per-node lruvec
-decrement.  The hugetlb count stays attributed to the old node for the
-rest of the life of the charge, while the target folio gets no increment
-on the new node; its later free decrements a counter that was never
-incremented.
+       CPU0                    CPU1
+       ----                    ----
+  lock(fs_reclaim);
+                               lock(&ocfs2_sysfile_lock_key[INODE_ALLOC_SYSTEM_INODE]);
+                               lock(fs_reclaim);
+  rlock(&osb->nfs_sync_rwlock);
 
-Migrate the per-node lruvec accounting alongside migration.  Global memcg
-totals remain balanced because they track resource consumption, not node
-placement.
+ *** DEADLOCK ***
 
-Link: https://lore.kernel.org/20260921-for-hugetlb_state-v1-2-8a6eec92661f@kylinos.cn
-Fixes: 05d4532b60e3 ("memcg/hugetlb: add hugeTLB counters to memcg")
-Signed-off-by: Hongfu Li <lihongfu@kylinos.cn>
+Chain exists of:
+  &osb->nfs_sync_rwlock --> &ocfs2_sysfile_lock_key[INODE_ALLOC_SYSTEM_INODE] --> fs_reclaim
+
+CPU0 is kswapd.  The dentry shrinker runs under fs_reclaim and reaches
+ocfs2_delete_inode() through ->evict_inode():
+
+kswapd
+ balance_pgdat
+  shrink_node
+   shrink_slab
+    super_cache_scan
+     prune_dcache_sb
+      shrink_dentry_list
+       dentry_kill
+        ocfs2_dentry_iput
+         evict
+          ocfs2_evict_inode
+           ocfs2_delete_inode
+            ocfs2_nfs_sync_lock
+             down_read(&osb->nfs_sync_rwlock)      //C0: grabbing
+
+CPU1 is a task deleting an inode.  It takes nfs_sync_rwlock first, then
+the orphan dir and inode alloc system inode i_rwsems, and allocates the
+metadata reservation with GFP_KERNEL while holding them:
+
+evict
+ ocfs2_evict_inode
+  ocfs2_delete_inode
+  + ocfs2_nfs_sync_lock
+  |  down_read(&osb->nfs_sync_rwlock)              //C1: hold
+  + ocfs2_wipe_inode
+     + inode_lock(orphan_dir_inode)                //C1: hold
+     + ocfs2_truncate_for_delete
+     |  ocfs2_commit_truncate
+     |   ocfs2_remove_btree_range
+     |    ocfs2_reserve_blocks_for_rec_trunc
+     |     ocfs2_reserve_new_metadata_blocks
+     |      kzalloc_obj()                          //C1: grabbing
+     |      // GFP_KERNEL -> might_alloc -> fs_reclaim_acquire
+     + ocfs2_remove_inode
+        inode_lock(inode_alloc_inode)
+
+jbd2 pins allocations to GFP_NOFS for the lifetime of a transaction
+handle, but these reservations are made before ocfs2_start_trans(), so
+fs_reclaim is acquired with ocfs2 locks still held and the cycle closes.
+
+The same cycle is reachable from ocfs2_get_dentry() and
+ocfs2_get_parent(), which hold nfs_sync_rwlock for write across
+ocfs2_test_inode_bit() and ocfs2_iget().
+
+This is more than a lockdep artifact.  A GFP_KERNEL allocation under the
+orphan dir i_rwsem enters direct reclaim, which runs the shrinkers, which
+can evict another ocfs2 inode and re-enter ocfs2_wipe_inode() on the same
+task; the second inode_lock() on the singleton orphan dir inode then
+self-deadlocks, since i_rwsem is not recursive.
+
+Establish a GFP_NOFS allocation context for the whole nfs_sync_rwlock
+critical section so that nothing holding it can recurse into filesystem
+reclaim.  Do it in ocfs2_nfs_sync_lock()/ocfs2_nfs_sync_unlock() rather
+than at the call sites, so that future callers cannot forget it.
+
+Link: https://lore.kernel.org/20260922093437.954127-1-joseph.qi@linux.alibaba.com
+Fixes: 6ca497a83e59 ("ocfs2: fix rare stale inode errors when exporting via nfs")
+Signed-off-by: Joseph Qi <joseph.qi@linux.alibaba.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Reviewed-by: Joshua Hahn <joshua.hahnjy@gmail.com>
-Tested-by: Joshua Hahn <joshua.hahnjy@gmail.com>
-Cc: Muchun Song <muchun.song@linux.dev>
-Cc: Oscar Salvador <osalvador@suse.de>
-Cc: David Hildenbrand <david@kernel.org>
-Cc: Shakeel Butt <shakeel.butt@linux.dev>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Roman Gushchin <roman.gushchin@linux.dev>
-Cc: Nhat Pham <nphamcs@gmail.com>
-Cc: Chris Down <chris@chrisdown.name>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: <stable@vger.kernel.org>
+Reported-by: syzbot+a68ce48df87b8e36e915@syzkaller.appspotmail.com
+Closes: https://syzkaller.appspot.com/bug?extid=a68ce48df87b8e36e915
+Cc: Heming Zhao <heming.zhao@suse.com>
+Cc: Mark Fasheh <mark@fasheh.com>
+Cc: Joel Becker <jlbec@evilplan.org>
+Cc: Junxiao Bi <junxiao.bi@oracle.com>
+Cc: Heming Zhao <heming.zhao@suse.com>
 ---
 
- mm/memcontrol.c |   31 +++++++++++++++++++++++++++++++
- 1 file changed, 31 insertions(+)
+ fs/ocfs2/dlmglue.c |   29 +++++++++++++++++++++++++----
+ fs/ocfs2/dlmglue.h |    5 +++--
+ fs/ocfs2/export.c  |   10 ++++++----
+ fs/ocfs2/inode.c   |    5 +++--
+ 4 files changed, 37 insertions(+), 12 deletions(-)
 
---- a/mm/memcontrol.c~mm-memcg-migrate-per-node-hugetlb-lruvec-stat-together-with-hugetlb-folio
-+++ a/mm/memcontrol.c
-@@ -5662,6 +5662,34 @@ void mem_cgroup_replace_folio(struct fol
- 	rcu_read_unlock();
+--- a/fs/ocfs2/dlmglue.c~ocfs2-fix-possible-deadlock-between-nfs_sync_rwlock-and-fs_reclaim
++++ a/fs/ocfs2/dlmglue.c
+@@ -18,6 +18,7 @@
+ #include <linux/time.h>
+ #include <linux/delay.h>
+ #include <linux/quotaops.h>
++#include <linux/sched/mm.h>
+ #include <linux/sched/signal.h>
+ #include <linux/string_choices.h>
+ 
+@@ -2861,21 +2862,34 @@ void ocfs2_rename_unlock(struct ocfs2_su
+ 		ocfs2_cluster_unlock(osb, lockres, DLM_LOCK_EX);
  }
  
-+#ifdef CONFIG_HUGETLB_PAGE
-+static void move_hugetlb_lruvec_stat(struct obj_cgroup *objcg,
-+				     struct folio *old, struct folio *new)
-+{
-+	long nr_pages = folio_nr_pages(old);
-+	struct mem_cgroup *memcg;
-+	int old_nid = folio_nid(old);
-+	int new_nid = folio_nid(new);
-+
-+	if (old_nid == new_nid)
-+		return;
-+
-+	rcu_read_lock();
-+	memcg = obj_cgroup_memcg(objcg);
-+	mod_memcg_lruvec_state(mem_cgroup_lruvec(memcg, NODE_DATA(old_nid)),
-+			       NR_HUGETLB, -nr_pages);
-+	mod_memcg_lruvec_state(mem_cgroup_lruvec(memcg, NODE_DATA(new_nid)),
-+			       NR_HUGETLB, nr_pages);
-+	rcu_read_unlock();
-+}
-+#else /* CONFIG_HUGETLB_PAGE */
-+static inline void move_hugetlb_lruvec_stat(struct obj_cgroup *objcg,
-+					    struct folio *old,
-+					    struct folio *new)
-+{
-+}
-+#endif /* CONFIG_HUGETLB_PAGE */
-+
- /**
-  * mem_cgroup_migrate - Transfer the memcg data from the old to the new folio.
-  * @old: Currently circulating folio.
-@@ -5699,6 +5727,9 @@ void mem_cgroup_migrate(struct folio *ol
+-int ocfs2_nfs_sync_lock(struct ocfs2_super *osb, int ex)
++int ocfs2_nfs_sync_lock(struct ocfs2_super *osb, int ex, unsigned int *nofs_flag)
+ {
+ 	int status;
++	unsigned int flags;
+ 	struct ocfs2_lock_res *lockres = &osb->osb_nfs_sync_lockres;
  
- 	new_objcg = get_migration_objcg(old, new);
+ 	if (ocfs2_is_hard_readonly(osb))
+ 		return -EROFS;
  
-+	if (folio_test_hugetlb(old))
-+		move_hugetlb_lruvec_stat(new_objcg, old, new);
++	/*
++	 * ocfs2_delete_inode() takes this lock from ->evict_inode(), which the
++	 * dentry shrinker reaches while holding fs_reclaim.  Anything allocated
++	 * under the lock must therefore stay out of filesystem reclaim, or
++	 * reclaim recurses back into the shrinker and tries to take this lock
++	 * again.  Cover the whole critical section, including the cluster lock
++	 * and the sysfile inode locks the callers take below it.
++	 */
++	flags = memalloc_nofs_save();
 +
- 	/*
- 	 * @old was charged through a non-root objcg, so its charge is in the
- 	 * page counters. If the re-derivation walked up to the root objcg -
+ 	if (ex)
+ 		down_write(&osb->nfs_sync_rwlock);
+ 	else
+ 		down_read(&osb->nfs_sync_rwlock);
+ 
+-	if (ocfs2_mount_local(osb))
++	if (ocfs2_mount_local(osb)) {
++		*nofs_flag = flags;
+ 		return 0;
++	}
+ 
+ 	status = ocfs2_cluster_lock(osb, lockres, ex ? LKM_EXMODE : LKM_PRMODE,
+ 				    0, 0);
+@@ -2886,12 +2900,17 @@ int ocfs2_nfs_sync_lock(struct ocfs2_sup
+ 			up_write(&osb->nfs_sync_rwlock);
+ 		else
+ 			up_read(&osb->nfs_sync_rwlock);
++		memalloc_nofs_restore(flags);
++		return status;
+ 	}
+ 
+-	return status;
++	*nofs_flag = flags;
++
++	return 0;
+ }
+ 
+-void ocfs2_nfs_sync_unlock(struct ocfs2_super *osb, int ex)
++void ocfs2_nfs_sync_unlock(struct ocfs2_super *osb, int ex,
++			   unsigned int nofs_flag)
+ {
+ 	struct ocfs2_lock_res *lockres = &osb->osb_nfs_sync_lockres;
+ 
+@@ -2902,6 +2921,8 @@ void ocfs2_nfs_sync_unlock(struct ocfs2_
+ 		up_write(&osb->nfs_sync_rwlock);
+ 	else
+ 		up_read(&osb->nfs_sync_rwlock);
++
++	memalloc_nofs_restore(nofs_flag);
+ }
+ 
+ int ocfs2_trim_fs_lock(struct ocfs2_super *osb,
+--- a/fs/ocfs2/dlmglue.h~ocfs2-fix-possible-deadlock-between-nfs_sync_rwlock-and-fs_reclaim
++++ a/fs/ocfs2/dlmglue.h
+@@ -161,8 +161,9 @@ void ocfs2_orphan_scan_unlock(struct ocf
+ 
+ int ocfs2_rename_lock(struct ocfs2_super *osb);
+ void ocfs2_rename_unlock(struct ocfs2_super *osb);
+-int ocfs2_nfs_sync_lock(struct ocfs2_super *osb, int ex);
+-void ocfs2_nfs_sync_unlock(struct ocfs2_super *osb, int ex);
++int ocfs2_nfs_sync_lock(struct ocfs2_super *osb, int ex, unsigned int *nofs_flag);
++void ocfs2_nfs_sync_unlock(struct ocfs2_super *osb, int ex,
++			   unsigned int nofs_flag);
+ void ocfs2_trim_fs_lock_res_init(struct ocfs2_super *osb);
+ void ocfs2_trim_fs_lock_res_uninit(struct ocfs2_super *osb);
+ int ocfs2_trim_fs_lock(struct ocfs2_super *osb,
+--- a/fs/ocfs2/export.c~ocfs2-fix-possible-deadlock-between-nfs_sync_rwlock-and-fs_reclaim
++++ a/fs/ocfs2/export.c
+@@ -37,6 +37,7 @@ static struct dentry *ocfs2_get_dentry(s
+ 	struct inode *inode;
+ 	struct ocfs2_super *osb = OCFS2_SB(sb);
+ 	u64 blkno = handle->ih_blkno;
++	unsigned int nofs_flag = 0;
+ 	int status, set;
+ 	struct dentry *result;
+ 
+@@ -59,7 +60,7 @@ static struct dentry *ocfs2_get_dentry(s
+ 	 * This will synchronize us against ocfs2_delete_inode() on
+ 	 * all nodes
+ 	 */
+-	status = ocfs2_nfs_sync_lock(osb, 1);
++	status = ocfs2_nfs_sync_lock(osb, 1, &nofs_flag);
+ 	if (status < 0) {
+ 		mlog(ML_ERROR, "getting nfs sync lock(EX) failed %d\n", status);
+ 		goto check_err;
+@@ -90,7 +91,7 @@ static struct dentry *ocfs2_get_dentry(s
+ 	inode = ocfs2_iget(osb, blkno, 0, 0);
+ 
+ unlock_nfs_sync:
+-	ocfs2_nfs_sync_unlock(osb, 1);
++	ocfs2_nfs_sync_unlock(osb, 1, nofs_flag);
+ 
+ check_err:
+ 	if (status < 0) {
+@@ -133,12 +134,13 @@ static struct dentry *ocfs2_get_parent(s
+ 	u64 blkno;
+ 	struct dentry *parent;
+ 	struct inode *dir = d_inode(child);
++	unsigned int nofs_flag = 0;
+ 	int set;
+ 
+ 	trace_ocfs2_get_parent(child, child->d_name.len, child->d_name.name,
+ 			       (unsigned long long)OCFS2_I(dir)->ip_blkno);
+ 
+-	status = ocfs2_nfs_sync_lock(OCFS2_SB(dir->i_sb), 1);
++	status = ocfs2_nfs_sync_lock(OCFS2_SB(dir->i_sb), 1, &nofs_flag);
+ 	if (status < 0) {
+ 		mlog(ML_ERROR, "getting nfs sync lock(EX) failed %d\n", status);
+ 		parent = ERR_PTR(status);
+@@ -183,7 +185,7 @@ bail_unlock:
+ 	ocfs2_inode_unlock(dir, 0);
+ 
+ unlock_nfs_sync:
+-	ocfs2_nfs_sync_unlock(OCFS2_SB(dir->i_sb), 1);
++	ocfs2_nfs_sync_unlock(OCFS2_SB(dir->i_sb), 1, nofs_flag);
+ 
+ bail:
+ 	trace_ocfs2_get_parent_end(parent);
+--- a/fs/ocfs2/inode.c~ocfs2-fix-possible-deadlock-between-nfs_sync_rwlock-and-fs_reclaim
++++ a/fs/ocfs2/inode.c
+@@ -1109,6 +1109,7 @@ static void ocfs2_delete_inode(struct in
+ {
+ 	int wipe, status;
+ 	sigset_t oldset;
++	unsigned int nofs_flag = 0;
+ 	struct buffer_head *di_bh = NULL;
+ 	struct ocfs2_dinode *di = NULL;
+ 
+@@ -1143,7 +1144,7 @@ static void ocfs2_delete_inode(struct in
+ 	 * shared mode so that all nodes can still concurrently
+ 	 * process deletes.
+ 	 */
+-	status = ocfs2_nfs_sync_lock(OCFS2_SB(inode->i_sb), 0);
++	status = ocfs2_nfs_sync_lock(OCFS2_SB(inode->i_sb), 0, &nofs_flag);
+ 	if (status < 0) {
+ 		mlog(ML_ERROR, "getting nfs sync lock(PR) failed %d\n", status);
+ 		ocfs2_cleanup_delete_inode(inode, 0);
+@@ -1215,7 +1216,7 @@ bail_unlock_inode:
+ 	brelse(di_bh);
+ 
+ bail_unlock_nfs_sync:
+-	ocfs2_nfs_sync_unlock(OCFS2_SB(inode->i_sb), 0);
++	ocfs2_nfs_sync_unlock(OCFS2_SB(inode->i_sb), 0, nofs_flag);
+ 
+ bail_unblock:
+ 	ocfs2_unblock_signals(&oldset);
 _
 
-Patches currently in -mm which might be from lihongfu@kylinos.cn are
+Patches currently in -mm which might be from joseph.qi@linux.alibaba.com are
 
-mm-use-a-folio-in-the-softleaf_is_device_private-path.patch
-mm-hugetlb-fix-resv_huge_pages-double-decrement-in-memfd-error-path.patch
-mm-memcontrol-remove-unused-memcg-parameter-in-calculate_high_delay.patch
-selftests-mm-khugepaged-consolidate-error-exits-via-kselftest-helpers.patch
-mm-page_owner-preserve-original-free_pid-free_tgid-during-folio-migration.patch
-mm-memfd-fix-hugetlb-reservation-accounting-in-error-paths.patch
-selftests-mm-fix-ptrace-peekdata-check-in-memfd_secret-test.patch
-mm-hugetlb_cgroup-move-per-node-usage-on-cross-node-migration.patch
-mm-hugetlb_cgroup-move-per-node-usage-on-cgroup-reparenting.patch
+ocfs2-fix-deadlock-in-inline-data-truncate-transactions.patch
+ocfs2-exit-recovery-thread-on-mount-error-path.patch
+ocfs2-free-replay-slots-in-ocfs2_recovery_exit.patch
+ocfs2-defer-suballocator-block-group-reclaim-to-workqueue.patch
+ocfs2-restrict-ocfs2_invalid_slot-suballoc-slot-to-system-inodes.patch
+ocfs2-validate-suballoc-bit-during-inode-read.patch
+ocfs2-validate-suballoc-slot-and-bit-of-xattr-and-dir-index-blocks.patch
+ocfs2-validate-suballoc-slot-and-bit-of-extent-and-refcount-blocks.patch
+ocfs2-allow-xattr-bucket-entries-to-span-multiple-blocks.patch
+ocfs2-reject-inconsistent-xattr-bucket-during-defrag.patch
+ocfs2-skip-uninitialized-lockres-in-ocfs2_mark_lockres_freeing.patch
+ocfs2-validate-dr_fs_generation-of-dir-index-root-blocks.patch
+ocfs2-validate-dl_blkno-and-dl_fs_generation-of-dir-index-leaf-blocks.patch
+ocfs2-restore-erange-check-in-ocfs2_xattr_tree_list_index_block.patch
+ocfs2-fix-possible-deadlock-between-nfs_sync_rwlock-and-fs_reclaim.patch
 
