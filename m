@@ -1,249 +1,261 @@
-Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.8])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D0E9F496D58
-	for <mm-commits@vger.kernel.org>; Wed, 23 Sep 2026 11:02:16 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.8
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B73A7429CFC
+	for <mm-commits@vger.kernel.org>; Wed, 23 Sep 2026 18:07:59 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790161340; cv=none; b=VJaK1OXnUZGOsZnpZ9weSCM7i3RjjSljthU6rmS+rJelbpxPW7aT7tCmcFqnVM+JXPMEAXk6eRBCrGwFbkvb6tuQrcbJtC5eQNdad1i53JPaRcI6gbOaZL0/uFSztfSlJpaVOKEJQhxxIgh4PGgEldxpAb7xKp6b1u2GWyzdVac=
+	t=1790186882; cv=none; b=U2jby4tbxFZmkh6T+ZAk7HqIpe9xnKRbmEW99aBmtmCZ8pMlfMsnAm3e8Yxqi6tjsuFMhIK69KhPCp+uWTOUP/hgshfOIkOVPXiE6O1tLuVf2vcQOQs+odb6Q0WSjBwfHn0c1IHEzxeIfnWWNwIY+3uPfcS8CZq7TJ/J7SpazVo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1790161340; c=relaxed/simple;
-	bh=nqTde3JsSd69V0UQEeIidhFd/55FQ+H6onaGQNDpxhM=;
-	h=Date:From:To:Cc:Subject:Message-ID; b=LPk/ROKXAfJdDpK7xCOo0YIyvnS9hdn7OvwKr3Cl4bd/P1iOgiboe1Pz5rusAl2jYKRLvk0sSxZxC2ll61RyddPAdf5Wzb6gB7Jvxf+VH9Zm1rxTne3Qx7gOhy6avRuIDhNEdCdBJP0R0sqmylvlI6rGKY23RJ+Jcpb0cyuqPp0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=UfYY16FV; arc=none smtp.client-ip=192.198.163.8
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
+	s=arc-20240116; t=1790186882; c=relaxed/simple;
+	bh=6ZeMtbj2JF7N2aXdUMSUYsPqRRSChIQCqb7kIjKA4T4=;
+	h=Date:To:From:Subject:Message-Id; b=qqb5Fark8hiELZSkg5MMieRdToSzWtdDeChR2eeYCa62gXFMClJhL/Fk8FupI+A7TF5Vf423ycUZSf4GKb9CcC/ACOpwDUaSYzwJMANjrnYsHSLShkwH1RC/FxG+UUd6iiODyZHymhD0gSrn3zdmkHYIEEqsYS47t4kYZxnSfI0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=fail (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=tCuWioog reason="signature verification failed"; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="UfYY16FV"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1790161339; x=1821697339;
-  h=date:from:to:cc:subject:message-id;
-  bh=nqTde3JsSd69V0UQEeIidhFd/55FQ+H6onaGQNDpxhM=;
-  b=UfYY16FVJF3MUIoKpU3ZqFkYBrsw2P9oY3/Os0VuJ2UvhV9XiLu4kSz4
-   /uu5LAKDjsjrN7bxzawaEXmtUhg6BiBe1I34MdanYQKg1KwjJtbMzep8y
-   sKEsmKJ/mktzG4KEKkVqXQ6KA7ifT1TjkjQCoitP4s/ytOvlvF/2/unt/
-   Xk2jY53e7nhEfaZ7G05AQxr7wGThKQzojxkjD6isemssNpmQ5+1feFE3D
-   vwqwges7/NUw1pWX0m1r7PQzHpvfNCTv9yhRiKGfQLe5AtmTC0WnSqsXf
-   6RXOCmJUsSGtR/tc9AXsbx3geyWWRWrdIlpj/TnxOPde99y8Jrsw36Ano
-   g==;
-X-CSE-ConnectionGUID: V+sA+XVnSV2+K079qP4YSw==
-X-CSE-MsgGUID: w4z6iUzGRI+iiTww6FOObQ==
-X-IronPort-AV: E=McAfee;i="6800,10657,11913"; a="108340641"
-X-IronPort-AV: E=Sophos;i="6.27,118,1787036400"; 
-   d="scan'208";a="108340641"
-Received: from fmviesa004.fm.intel.com ([10.60.135.144])
-  by fmvoesa102.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 23 Sep 2026 04:02:01 -0700
-X-CSE-ConnectionGUID: mxq/bKpNSK2CrWu0YvPCHQ==
-X-CSE-MsgGUID: jPqDpC1oRKGjUszPWX8nTw==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="6.27,118,1787036400"; 
-   d="scan'208";a="278289468"
-Received: from lkp-server01.sh.intel.com (HELO 462990a40a85) ([10.239.97.150])
-  by fmviesa004.fm.intel.com with ESMTP; 23 Sep 2026 04:01:58 -0700
-Received: from kbuild by 462990a40a85 with local (Exim 4.98.2)
-	(envelope-from <lkp@intel.com>)
-	id 1x9Kjb-00000000Gy6-2aPg;
-	Wed, 23 Sep 2026 11:01:55 +0000
-Date: Wed, 23 Sep 2026 19:01:06 +0800
-From: kernel test robot <lkp@intel.com>
-To: David Hildenbrand <david@kernel.org>
-Cc: Andrew Morton <akpm@linux-foundation.org>,
- Linux Memory Management List <linux-mm@kvack.org>,
- mm-commits@vger.kernel.org
-Subject: [akpm-mm:mm-new] BUILD SUCCESS
- 8d29b5365d528da545c1fe0768a55babadee95d0
-Message-ID: <202609231903.l9QgUo5v-lkp@intel.com>
-User-Agent: s-nail v14.9.25
+	dkim=fail reason="signature verification failed" (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="tCuWioog"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id ECDE81F000FF;
+	Wed, 23 Sep 2026 18:07:58 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+	d=linux-foundation.org; s=korg; t=1790186879;
+	bh=Kr9bKFE2YpS3FEHcZXkpZ2FChg7UDGTRFVKskdPU72M=;
+	h=Date:To:From:Subject;
+	b=tCuWioogX095FqEA0Q5wWGks5N/O1qPVdrKOP/D0EUfXe3DmIkWjFGlORWA01Rf4y
+	 of0DWgnlzg7ITIPA+JmUlOXviYuzH9EovzByB5S5i4iXzrFxjT3XWb0M4BIuT3iO4J
+	 7zjE4AjA1cOBky7Dy7UkLtFQE38jjxdi9tWEf/3M=
+Date: Wed, 23 Sep 2026 11:07:58 -0700
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,yuanchu@google.com,ying.huang@linux.alibaba.com,willy@infradead.org,will@kernel.org,weixugc@google.com,viro@zeniv.linux.org.uk,vincent.guittot@linaro.org,vbabka@kernel.org,tzimmermann@suse.de,tiwai@suse.de,tiwai@suse.com,surenb@google.com,stephen.smalley.work@gmail.com,sre@kernel.org,shikemeng@huaweicloud.com,shakeel.butt@linux.dev,ryan.roberts@arm.com,rppt@kernel.org,riel@surriel.com,rakie.kim@sk.com,pfalcato@suse.de,peterz@infradead.org,peterx@redhat.com,perex@perex.cz,paul@paul-moore.com,palmer@dabbelt.com,osalvador@suse.de,oleg@redhat.com,npiggin@gmail.com,nphamcs@gmail.com,namhyung@kernel.org,muchun.song@linux.dev,mripard@kernel.org,mingo@redhat.com,miklos@szeredi.hu,mhocko@suse.com,mhocko@kernel.org,mhiramat@kernel.org,memxor@gmail.com,maz@kernel.org,matthew.brost@intel.com,mark.rutland@arm.com,maddy@linux.ibm.com,maarten.lankhorst@linux.intel.com,liam@infradead.org,leon@kernel.org,lance.yang@linux.dev,kasong@tencent.com,kas@kernel.
+ org,juri.lelli@redhat.com,joshua.hahnjy@gmail.com,jhubbard@nvidia.com,jgg@ziepe.ca,jayalk@intworks.biz,jannh@google.com,james.bottomley@HansenPartnership.com,jack@suse.cz,imbrenda@linux.ibm.com,hca@linux.ibm.com,harry@kernel.org,hannes@cmpxchg.org,gregkh@linuxfoundation.org,gourry@gourry.net,gor@linux.ibm.com,gerald.schaefer@linux.ibm.com,frankja@linux.ibm.com,emil@etsalapatis.com,eddyz87@gmail.com,dgilbert@interlog.com,dev.jain@arm.com,dennis.dalessandro@cornelisnetworks.com,deller@gmx.de,david@kernel.org,davem@davemloft.net,dave.hansen@linux.intel.com,corbet@lwn.net,chrisl@kernel.org,chengming.zhou@linux.dev,catalin.marinas@arm.com,byungchul@sk.com,brauner@kernel.org,bp@alien8.de,borntraeger@linux.ibm.com,baoquan.he@linux.dev,baolin.wang@linux.alibaba.com,baohua@kernel.org,axelrasmussen@google.com,ast@kernel.org,arnd@arndb.de,apopple@nvidia.com,aou@eecs.berkeley.edu,anup@brainfault.org,aneesh.kumar@kernel.org,andrii@kernel.org,andreas@gaisler.com,airlied@gmail.com,agordeev@linux.i
+ bm.com,acme@kernel.org,ljs@kernel.org,akpm@linux-foundation.org
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: [to-be-updated] mm-vma-predicate-setting-mmap_prepare-vma-fields-on-new-vma-alloc.patch removed from -mm tree
+Message-Id: <20260923180758.ECDE81F000FF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
-tree/branch: https://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm.git mm-new
-branch HEAD: 8d29b5365d528da545c1fe0768a55babadee95d0  mm/swap, PM: hibernate: atomically replace hibernation pin
 
-elapsed time: 1767m
+The quilt patch titled
+     Subject: mm/vma: predicate setting mmap_prepare VMA fields on new vma alloc
+has been removed from the -mm tree.  Its filename was
+     mm-vma-predicate-setting-mmap_prepare-vma-fields-on-new-vma-alloc.patch
 
-configs tested: 170
-configs skipped: 10
+This patch was dropped because an updated version will be issued
 
-The following configs have been built successfully.
-More configs may be tested in the coming days.
+------------------------------------------------------
+From: "Lorenzo Stoakes (ARM)" <ljs@kernel.org>
+Subject: mm/vma: predicate setting mmap_prepare VMA fields on new vma alloc
+Date: Thu, 17 Sep 2026 17:22:11 +0100
 
-tested configs:
-alpha                              allnoconfig    gcc-16.1.0
-alpha                             allyesconfig    gcc-16.1.0
-alpha                                defconfig    gcc-16.1.0
-arc                               allmodconfig    gcc-16.1.0
-arc                                allnoconfig    gcc-16.1.0
-arc                               allyesconfig    gcc-16.1.0
-arc                                  defconfig    gcc-16.1.0
-arc                   randconfig-1000-20260923    gcc-8.5.0
-arc                   randconfig-1001-20260923    gcc-8.5.0
-arm                                allnoconfig    clang-17
-arm                               allyesconfig    gcc-16.1.0
-arm                        aspeed_g5_defconfig    gcc-16.1.0
-arm                                  defconfig    clang-24
-arm                   randconfig-1000-20260923    gcc-8.5.0
-arm                   randconfig-1001-20260923    clang-24
-arm                   randconfig-1002-20260923    gcc-13.4.0
-arm                   randconfig-1003-20260923    gcc-15.2.0
-arm64                             allmodconfig    clang-24
-arm64                              allnoconfig    gcc-16.1.0
-arm64                                defconfig    gcc-16.1.0
-arm64                 randconfig-1000-20260923    clang-24
-arm64                 randconfig-1001-20260923    clang-17
-arm64                 randconfig-1002-20260923    clang-24
-arm64                 randconfig-1003-20260923    clang-18
-csky                              allmodconfig    gcc-16.1.0
-csky                               allnoconfig    gcc-16.1.0
-csky                                 defconfig    gcc-16.1.0
-csky                  randconfig-1000-20260923    gcc-11.5.0
-csky                  randconfig-1001-20260923    gcc-9.5.0
-hexagon                           allmodconfig    clang-24
-hexagon                            allnoconfig    clang-24
-hexagon                              defconfig    clang-24
-hexagon               randconfig-1000-20260923    clang-24
-hexagon               randconfig-1001-20260923    clang-20
-hexagon              randconfig-r1305-20260923    clang-17   sparse
-i386                              allmodconfig    gcc-14
-i386                               allnoconfig    gcc-14
-i386        buildonly-randconfig-1000-20260923    clang-22
-i386        buildonly-randconfig-1001-20260923    gcc-14
-i386        buildonly-randconfig-1002-20260923    gcc-13
-i386        buildonly-randconfig-1003-20260923    gcc-14
-i386        buildonly-randconfig-1004-20260923    clang-22
-i386        buildonly-randconfig-1005-20260923    clang-22
-i386                                 defconfig    clang-22
-i386                  randconfig-1000-20260923    clang-22
-i386                  randconfig-1001-20260923    clang-22
-i386                  randconfig-1002-20260923    clang-22
-i386                  randconfig-1003-20260923    clang-22
-i386                  randconfig-1004-20260923    gcc-14
-i386                  randconfig-1005-20260923    clang-22
-i386                  randconfig-1006-20260923    clang-22
-i386                  randconfig-1007-20260923    clang-22
-i386                  randconfig-1008-20260923    clang-22
-i386                  randconfig-1009-20260923    gcc-14
-i386                  randconfig-1010-20260923    clang-22
-i386                  randconfig-1011-20260923    gcc-14
-i386                  randconfig-1012-20260923    gcc-14
-i386                  randconfig-1013-20260923    gcc-14
-loongarch                         allmodconfig    clang-19
-loongarch                          allnoconfig    clang-20
-loongarch                            defconfig    clang-24
-loongarch             randconfig-1000-20260923    clang-24
-loongarch             randconfig-1001-20260923    clang-24
-loongarch            randconfig-r1308-20260923    gcc-16.1.0 sparse
-m68k                              allmodconfig    gcc-16.1.0
-m68k                               allnoconfig    gcc-16.1.0
-m68k                              allyesconfig    gcc-16.1.0
-m68k                                 defconfig    gcc-16.1.0
-m68k                 randconfig-r1307-20260923    gcc-15.2.0 sparse
-microblaze                         allnoconfig    gcc-16.1.0
-microblaze                        allyesconfig    gcc-16.1.0
-microblaze                           defconfig    gcc-16.1.0
-mips                              allmodconfig    gcc-16.1.0
-mips                               allnoconfig    gcc-16.1.0
-mips                              allyesconfig    gcc-16.1.0
-mips                            ip28_defconfig    gcc-16.1.0
-mips                        lemote2f_defconfig    gcc-16.1.0
-mips                       maltaaprp_defconfig    clang-17
-nios2                              allnoconfig    gcc-11.5.0
-nios2                                defconfig    gcc-11.5.0
-nios2                 randconfig-1000-20260923    gcc-8.5.0
-nios2                 randconfig-1001-20260923    gcc-9.5.0
-openrisc                           allnoconfig    gcc-16.1.0
-openrisc                             defconfig    gcc-16.1.0
-openrisc             randconfig-r1309-20260923    gcc-16.1.0 sparse
-parisc                            allmodconfig    gcc-16.1.0
-parisc                             allnoconfig    gcc-16.1.0
-parisc                            allyesconfig    gcc-16.1.0
-parisc                               defconfig    gcc-16.1.0
-parisc                randconfig-1000-20260923    gcc-9.5.0
-parisc                randconfig-1001-20260923    gcc-15.2.0
-parisc64                             defconfig    gcc-16.1.0
-powerpc                           allmodconfig    gcc-16.1.0
-powerpc                            allnoconfig    gcc-16.1.0
-powerpc               randconfig-1000-20260923    clang-17
-powerpc               randconfig-1001-20260923    clang-24
-powerpc                      tqm8555_defconfig    gcc-16.1.0
-powerpc64             randconfig-1000-20260923    clang-22
-powerpc64             randconfig-1001-20260923    clang-24
-powerpc64            randconfig-r1303-20260923    clang-17   sparse
-riscv                             allmodconfig    clang-24
-riscv                              allnoconfig    gcc-16.1.0
-riscv                             allyesconfig    clang-24
-riscv                                defconfig    clang-24
-riscv                     nommu_virt_defconfig    clang-24
-riscv                 randconfig-1000-20260923    clang-24
-riscv                 randconfig-1001-20260923    gcc-16.1.0
-s390                               allnoconfig    clang-24
-s390                              allyesconfig    gcc-16.1.0
-s390                                 defconfig    clang-18
-s390                  randconfig-1000-20260923    clang-24
-s390                  randconfig-1001-20260923    gcc-16.1.0
-s390                 randconfig-r1300-20260923    clang-20   sparse
-sh                                allmodconfig    gcc-16.1.0
-sh                                 allnoconfig    gcc-16.1.0
-sh                                allyesconfig    gcc-16.1.0
-sh                                   defconfig    gcc-16.1.0
-sh                    randconfig-1000-20260923    gcc-11.5.0
-sh                    randconfig-1001-20260923    gcc-9.5.0
-sh                            se7619_defconfig    gcc-16.1.0
-sh                         sh7757lcr_defconfig    gcc-16.1.0
-sparc                              allnoconfig    gcc-16.1.0
-sparc                                defconfig    gcc-16.1.0
-sparc                 randconfig-1000-20260923    gcc-15.2.0
-sparc                 randconfig-1001-20260923    gcc-13.4.0
-sparc64                              defconfig    clang-24
-sparc64               randconfig-1000-20260923    gcc-14.3.0
-sparc64               randconfig-1001-20260923    clang-24
-sparc64              randconfig-r1306-20260923    gcc-16.1.0 sparse
-um                                allmodconfig    clang-17
-um                                 allnoconfig    clang-17
-um                                allyesconfig    gcc-14
-um                                   defconfig    clang-24
-um                              i386_defconfig    gcc-14
-um                    randconfig-1000-20260923    clang-24
-um                    randconfig-1001-20260923    gcc-12
-um                   randconfig-r1304-20260923    clang-24   sparse
-um                            x86_64_defconfig    clang-24
-x86_64                             allnoconfig    clang-22
-x86_64      buildonly-randconfig-1000-20260923    gcc-14
-x86_64      buildonly-randconfig-1001-20260923    clang-22
-x86_64      buildonly-randconfig-1002-20260923    gcc-14
-x86_64      buildonly-randconfig-1003-20260923    gcc-14
-x86_64      buildonly-randconfig-1004-20260923    gcc-14
-x86_64      buildonly-randconfig-1005-20260923    clang-22
-x86_64                               defconfig    gcc-14
-x86_64                randconfig-1000-20260923    clang-22
-x86_64                randconfig-1001-20260923    gcc-14
-x86_64                randconfig-1002-20260923    gcc-13
-x86_64                randconfig-1003-20260923    clang-22
-x86_64                randconfig-1004-20260923    gcc-14
-x86_64                randconfig-1005-20260923    clang-22
-x86_64                randconfig-1006-20260923    clang-22
-x86_64                randconfig-1007-20260923    gcc-13
-x86_64                randconfig-1008-20260923    gcc-14
-x86_64                randconfig-1009-20260923    gcc-13
-x86_64                randconfig-1010-20260923    clang-22
-x86_64                randconfig-1011-20260923    gcc-14
-x86_64                randconfig-1012-20260923    gcc-14
-x86_64                randconfig-1013-20260923    gcc-14
-x86_64                randconfig-1014-20260923    gcc-14
-x86_64                randconfig-1015-20260923    gcc-14
-x86_64                randconfig-1016-20260923    gcc-14
-x86_64                randconfig-1017-20260923    clang-22
-x86_64               randconfig-r1301-20260923    gcc-14     sparse
-x86_64                           rhel-9.4-rust    clang-22
-xtensa                             allnoconfig    gcc-16.1.0
-xtensa                randconfig-1000-20260923    gcc-9.5.0
-xtensa                randconfig-1001-20260923    gcc-11.5.0
-xtensa               randconfig-r1302-20260923    gcc-14.3.0 sparse
+It only makes sense to manipulate VMA fields if we allocated a new VMA,
+rather than merged it.
 
---
-0-DAY CI Kernel Test Service
-https://github.com/intel/lkp-tests/wiki
+VMA merging does not compare vm_ops or vm_private_data, so a merged VMA
+keeps its own, which is also what the legacy f_op->mmap path does since it
+never touches an existing VMA.  Previously set_vma_user_defined_fields()
+overwrote the merged VMA's fields with those set for the new mapping.  In
+practice these are the same values, with rare exceptions such as shmem
+selecting vm_ops based on whether the file has been unlinked, so no
+user-visible change is expected.
+
+Make this dependency explicit, and additionally constify have_mmap_prepare
+while we're here.
+
+Link: https://lore.kernel.org/20260917-b4-mmap-prepare-vma-flag-sanify-v3-2-4583d8a23bca@kernel.org
+Signed-off-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+Cc: Albert Ou <aou@eecs.berkeley.edu>
+Cc: Alexander Gordeev <agordeev@linux.ibm.com>
+Cc: Alexei Starovoitov <ast@kernel.org>
+Cc: Alistair Popple <apopple@nvidia.com>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Andreas Larsson <andreas@gaisler.com>
+Cc: Andrii Nakryiko <andrii@kernel.org>
+Cc: "Aneesh Kumar K.V" <aneesh.kumar@kernel.org>
+Cc: Anup Patel <anup@brainfault.org>
+Cc: Arnaldo Carvalho de Melo <acme@kernel.org>
+Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: Axel Rasmussen <axelrasmussen@google.com>
+Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
+Cc: Baoquan He <baoquan.he@linux.dev>
+Cc: Barry Song <baohua@kernel.org>
+Cc: "Borislav Petkov (AMD)" <bp@alien8.de>
+Cc: Byungchul Park <byungchul@sk.com>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Chengming Zhou <chengming.zhou@linux.dev>
+Cc: Chris Li <chrisl@kernel.org>
+Cc: Christian Borntraeger <borntraeger@linux.ibm.com>
+Cc: Christian Brauner <brauner@kernel.org>
+Cc: Claudio Imbrenda <imbrenda@linux.ibm.com>
+Cc: Dave Airlie <airlied@gmail.com>
+Cc: Dave Hansen <dave.hansen@linux.intel.com>
+Cc: David Hildenbrand <david@kernel.org>
+Cc: David S. Miller <davem@davemloft.net>
+Cc: Dennis Dalessandro <dennis.dalessandro@cornelisnetworks.com>
+Cc: Dev Jain <dev.jain@arm.com>
+Cc: Doug Gilbert <dgilbert@interlog.com>
+Cc: Eduard Zingerman <eddyz87@gmail.com>
+Cc: Emil Tsalapatis <emil@etsalapatis.com>
+Cc: Gerald Schaefer <gerald.schaefer@linux.ibm.com>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Gregory Price <gourry@gourry.net>
+Cc: Harry Yoo <harry@kernel.org>
+Cc: Heiko Carstens <hca@linux.ibm.com>
+Cc: Helge Deller <deller@gmx.de>
+Cc: "Huang, Ying" <ying.huang@linux.alibaba.com>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: James Bottomley <james.bottomley@HansenPartnership.com>
+Cc: Jan Kara <jack@suse.cz>
+Cc: Jann Horn <jannh@google.com>
+Cc: Janosch Frank <frankja@linux.ibm.com>
+Cc: Jaroslav Kysela <perex@perex.cz>
+Cc: Jason Gunthorpe <jgg@ziepe.ca>
+Cc: Jaya Kumar <jayalk@intworks.biz>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: John Hubbard <jhubbard@nvidia.com>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: Joshua Hahn <joshua.hahnjy@gmail.com>
+Cc: Juri Lelli <juri.lelli@redhat.com>
+Cc: Kairui Song <kasong@tencent.com>
+Cc: Kemeng Shi <shikemeng@huaweicloud.com>
+Cc: Kiryl Shutsemau <kas@kernel.org>
+Cc: Kumar Kartikeya Dwivedi <memxor@gmail.com>
+Cc: Lance Yang <lance.yang@linux.dev>
+Cc: Leon Romanovsky <leon@kernel.org>
+Cc: Liam R. Howlett <liam@infradead.org>
+Cc: Maarten Lankhorst <maarten.lankhorst@linux.intel.com>
+Cc: Madhavan Srinivasan <maddy@linux.ibm.com>
+Cc: Marc Rutland <mark.rutland@arm.com>
+Cc: Marc Zyngier <maz@kernel.org>
+Cc: "Masami Hiramatsu (Google)" <mhiramat@kernel.org>
+Cc: Matthew Brost <matthew.brost@intel.com>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Maxime Ripard <mripard@kernel.org>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Miklos Szeredi <miklos@szeredi.hu>
+Cc: Muchun Song <muchun.song@linux.dev>
+Cc: Namhyung kim <namhyung@kernel.org>
+Cc: Nhat Pham <nphamcs@gmail.com>
+Cc: Nicholas Piggin <npiggin@gmail.com>
+Cc: Oleg Nesterov <oleg@redhat.com>
+Cc: Oscar Salvador <osalvador@suse.de>
+Cc: Palmer Dabbelt <palmer@dabbelt.com>
+Cc: Paul Moore <paul@paul-moore.com>
+Cc: Pedro Falcato <pfalcato@suse.de>
+Cc: Peter Xu <peterx@redhat.com>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Rakie Kim <rakie.kim@sk.com>
+Cc: Rik van Riel <riel@surriel.com>
+Cc: Ryan Roberts <ryan.roberts@arm.com>
+Cc: Sebastian Reichel <sre@kernel.org>
+Cc: Shakeel Butt <shakeel.butt@linux.dev>
+Cc: Stephen Smalley <stephen.smalley.work@gmail.com>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Takashi Iwai (SUSE) <tiwai@suse.de>
+Cc: Takashi Iwai <tiwai@suse.com>
+Cc: Thomas Zimemrmann <tzimmermann@suse.de>
+Cc: Vasily Gorbik <gor@linux.ibm.com>
+Cc: Vincent Guittot <vincent.guittot@linaro.org>
+Cc: Vlastimil Babka <vbabka@kernel.org>
+Cc: Wei Xu <weixugc@google.com>
+Cc: Will Deacon <will@kernel.org>
+Cc: Yuanchu Xie <yuanchu@google.com>
+Cc: Zi Yan <ziy@nvidia.com>
+---
+
+ mm/vma.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+--- a/mm/vma.c~mm-vma-predicate-setting-mmap_prepare-vma-fields-on-new-vma-alloc
++++ a/mm/vma.c
+@@ -2909,7 +2909,7 @@ static unsigned long __mmap_region(struc
+ {
+ 	struct mm_struct *mm = current->mm;
+ 	struct vm_area_struct *vma = NULL;
+-	bool have_mmap_prepare = file && file->f_op->mmap_prepare;
++	const bool have_mmap_prepare = file && file->f_op->mmap_prepare;
+ 	VMA_ITERATOR(vmi, mm, addr);
+ 	const pgoff_t anon_pgoff = addr >> PAGE_SHIFT;
+ 	MMAP_STATE(map, mm, &vmi, addr, len, pgoff, anon_pgoff, vma_flags, file);
+@@ -2952,7 +2952,7 @@ static unsigned long __mmap_region(struc
+ 		allocated_new = true;
+ 	}
+ 
+-	if (have_mmap_prepare && !map_is_anon(&map))
++	if (have_mmap_prepare && allocated_new && !map_is_anon(&map))
+ 		set_vma_user_defined_fields(vma, &map);
+ 
+ 	__mmap_complete(&map, vma);
+_
+
+Patches currently in -mm which might be from ljs@kernel.org are
+
+mm-mremap-fix-locked_vm-leak-from-mremap_dontunmap-self-merge.patch
+mm-mremap-fix-locked_vm-leak-by-splitting-vma-for-mremap_dontunmap.patch
+mm-vmpressure-remove-window-size-todo.patch
+tools-testing-selftests-mm-add-missing-gitignore-entries.patch
+mm-move-drivers-char-memc-to-mm-char-memc.patch
+mm-implement-file_is_dev_zero-to-uniquely-identify-dev-zero.patch
+mm-vma-only-permit-map_private-dev-zero-to-be-mapped-anonymous.patch
+mm-vma-make-map_private-mapped-dev-zero-mappings-truly-anonymous.patch
+tools-testing-vma-add-test-to-assert-map_private-dev-zero-is-anon.patch
+tools-testing-selftests-mm-add-map_private-dev-zero-merge-tests.patch
+mm-madvise-swap-in-cowd-map_private-file-mappings-on-madv_willneed.patch
+mm-huge_memory-zap-deposited-page-tables-after-an-rcu-grace-period.patch
+mm-enable-mmu_gather_rcu_table_free-for-most-2-level-architectures.patch
+mm-enable-mmu_gather_rcu_table_free-for-mmu-riscv.patch
+mm-enable-mmu_gather_rcu_table_free-for-mmu-arm.patch
+mm-enable-mmu_gather_rcu_table_free-for-arc-microblaze-xtensa.patch
+mm-enable-mmu_gather_rcu_table_free-for-sparc64.patch
+mm-enable-mmu_gather_rcu_table_free-for-m68k-coldfire.patch
+mm-enable-mmu_gather_rcu_table_free-for-sh-x2.patch
+mm-enable-mmu_gather_rcu_table_free-for-m68k-motorola.patch
+mm-enable-mmu_gather_rcu_table_free-for-sparc32.patch
+mm-make-userland-page-table-freeing-rcu-safe.patch
+mm-change-the-contract-for-free_pgtables-update-docs.patch
+mm-vma-fix-mmap_prepare-file-handling-remove-file_doesnt_need_get.patch
+mm-vma-introduce-and-use-vma_can_merge.patch
+mm-consistently-validate-vma-state-after-mmap-hooks.patch
+mm-vma-ensure-mmap_prepare-doesnt-set-actions-on-a-mergeable-vma.patch
+mm-make-map_kernel_pages_-internal-and-unexported.patch
+mm-vma-tidy-up-map-kernel-pages-enum-values.patch
+mm-add-mmap-action-for-discontiguous-kernel-page-mapping.patch
+docs-filesystems-update-mmap_prepare-docs-for-discontig-kernel-pgs.patch
+drivers-usb-mon-update-to-use-mmap_prepare-map-kernel-pages.patch
+infiniband-update-hfi1-to-use-remap_vmalloc_range.patch
+selinux-reject-writable-opens-of-policy-file-drop-mmap-shared-write-check.patch
+alsa-pcm-use-vm_insert_page-to-map-pcm-status-page.patch
+bpf-arena-mark-arena_map_mmap-mappings-vm_mixedmap.patch
+mm-vma-add-vma_is_kernel_owned-predicates.patch
+mm-vma-only-allow-mmap-to-clear-vma_maywrite_bit-if-kernel-owned.patch
+mm-vma-add-and-use-vma__is_fixed_mapping.patch
+scsi-sg-convert-mmap-hook-to-mmap_prepare-and-rework.patch
+fbdev-defio-assert-fbinfo_virtfb-drop-vm_io-add-vm_mixedmap.patch
+hsi-cmt_speech-convert-mmap-hook-to-mmap_prepare-refactor.patch
+mm-gup-error-out-early-on-vma_mayread_bit-vmas.patch
+uprobes-remove-vm_io-set-vm_mixedmap-for-mapped-kernel-pages.patch
+mm-mlock-clear-vma_locked_mask-over-mmap-callback.patch
+mm-mlock-eliminate-weird-vma_io_bit-abuse-and-simplify.patch
+mm-vma-enforce-that-only-kernel-owned-mappings-may-set-vma_io_bit.patch
+mm-remove-vma_io_bit-check-in-vma_is_kernel_owned.patch
+mm-remove-hugetlb_inlineh.patch
+mm-rename-is_vm_hugetlb_page-to-vma_is_hugetlb.patch
+mm-drop-some-redundant-checks-around-hugetlb-vmas.patch
+mm-madvise-update-is_valid_guard_vma-to-use-vma_can_merge.patch
+mm-vma-introduce-vma_is_persistent.patch
+mm-uffd-use-predicates-for-userfaultfd-checks.patch
+mm-madvise-use-predicates-for-madvise-madv_dofork.patch
+mm-eliminate-vma_special_flags-usage-when-hugetlb-explicitly-tested.patch
+mm-eliminate-vma_special_flags-check-in-lru_gen_look_around.patch
+mm-avoid-use-of-vma_special_flags-in-migrate_vma_setup.patch
+mm-eliminate-vm_special-vma_special_flags.patch
+fuse-dax-do-not-set-vm_mixedmap.patch
+mm-huge_memory-remove-vma_is_special_huge.patch
+mm-vma-introduce-and-use-vma_can_gup.patch
+mm-vma-const-ify-vma_assert_stabilised-and-associated-functions.patch
+mm-implement-and-use-vma_has_anon_rmap-silence-kcsan.patch
+mm-update-comments-to-refer-to-anon-rmap-rather-than-anon_vma.patch
+
