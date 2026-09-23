@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7F2213C65FD
-	for <mm-commits@vger.kernel.org>; Wed, 23 Sep 2026 19:39:20 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D15144279E0
+	for <mm-commits@vger.kernel.org>; Wed, 23 Sep 2026 19:39:21 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790192362; cv=none; b=e5TQbEK6T3F2IefDvHy0qWPyTucvHY2fIJ/rIyQliwnYTw6CNN1uSScr8dq5uNj2qktU1ofnnq8qcGvds6UVxfE+thAyDwLuh2FWnIvX7PqdqyywfdQ+rcgZaAnK1QL+mWIJWhArvvMZATyDQET6nD60yEtdk3tv/js6FQGpk+I=
+	t=1790192363; cv=none; b=QAFD65tBfLpWMPO69RiZaijLYxJEYGzKJ1S88bc/sQD/jPLKHk7A646m/EH8A27ulJOGVB9DJ08KVh7AAttFGlNwTZ+EA6Yjpeg4a8+kKntIdeYvCCjyuiq01rWpkcnvI++LcONAdn1JOObYp0+uf1HFfThBJry7MLJzaqw+gDQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1790192362; c=relaxed/simple;
-	bh=ZCRExppPWe2UVnskRUwhxf+9L1E+ucU4nDbF8g9UNGo=;
-	h=Date:To:From:Subject:Message-Id; b=X91sSgbjN49BRDv1rdextkjC9RDln1Y2UTDzf2yGYpaTIpIEUXBx/PZKz8sdQR01LGtTDcdkWKbwKuC2+bjOwadaqqcitbz8KE70P2EFuHsHlaE75sBAi1A0Tu5A75kEQHTktRCe8S6iDtQl88Zy1dBPJRzyrIRPuRDA7an/Z04=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=WV0im23N; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1790192363; c=relaxed/simple;
+	bh=IyFfLctKM648KqNbVEvtKdKWEc/DsqDF7kudeVek2iI=;
+	h=Date:To:From:Subject:Message-Id; b=BN/suw598ii8yxVCz/sfI9NIYOuByw1QkP5cHFb/gZsTKcOVwHzESGGsHmTZys2cTU+EtB3V53W4o/6JS3N13Hj+/gyWHxOMe/Xo9PZ6Wg/98I+mk4Ak99xIcDEil8VYGN3wkvbYHW8JLJ1bvXtXZMLbpUJKhtqRZiuWpJVJn2I=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=DvNKg/j2; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="WV0im23N"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E91161F00893;
-	Wed, 23 Sep 2026 19:39:19 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="DvNKg/j2"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7B1321F00898;
+	Wed, 23 Sep 2026 19:39:21 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1790192360;
-	bh=tXTAgh7culEvSbTMhdHkJ/e5hwA4peTnApBR1JWUVWA=;
+	d=linux-foundation.org; s=korg; t=1790192361;
+	bh=8cPY+X4PdHn2RM3SNnuLN8S0xNmH06KiuVUHRGGjek0=;
 	h=Date:To:From:Subject;
-	b=WV0im23NODxGWlRwxPIknKf5+GmyY4KhrE4R7bVkHo9eFeYDQ9W/IpsyT8S/yNMCs
-	 xmN81UXAEsKrGVJbhgxRMAZKifgqw/BYBRu1xy/r8cLgxKizAMx2Qvu/ZMR4LQZmEn
-	 smVwl6bQqEzEHD93r4KJpEY3FPImMTupd4LFzgc4=
-Date: Wed, 23 Sep 2026 12:39:19 -0700
+	b=DvNKg/j2U4sCTqw5GVeK5YJRg2OpBgwTvLpH7isH2shmXmJOV3T6ZSCaHCagZKQTI
+	 3cb0ALLDQ/BeAipwv7QjgK1dp81plkxHqcVfE8lK3Fff2qkaaVFe5suoubkBgjzlp+
+	 JN1FNMSseGtTZrdAAm5gcDWACfweU8frL8odivQc=
+Date: Wed, 23 Sep 2026 12:39:21 -0700
 To: mm-commits@vger.kernel.org,ljs@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [to-be-updated] mm-huge_memory-zap-deposited-page-tables-after-an-rcu-grace-period.patch removed from -mm tree
-Message-Id: <20260923193919.E91161F00893@smtp.kernel.org>
+Subject: [to-be-updated] mm-enable-mmu_gather_rcu_table_free-for-most-2-level-architectures.patch removed from -mm tree
+Message-Id: <20260923193921.7B1321F00898@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,165 +35,37 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/huge_memory: zap deposited page tables after an RCU grace period
+     Subject: mm: enable MMU_GATHER_RCU_TABLE_FREE for most 2-level architectures
 has been removed from the -mm tree.  Its filename was
-     mm-huge_memory-zap-deposited-page-tables-after-an-rcu-grace-period.patch
+     mm-enable-mmu_gather_rcu_table_free-for-most-2-level-architectures.patch
 
 This patch was dropped because an updated version will be issued
 
 ------------------------------------------------------
 From: "Lorenzo Stoakes (ARM)" <ljs@kernel.org>
-Subject: mm/huge_memory: zap deposited page tables after an RCU grace period
-Date: Fri, 11 Sep 2026 20:36:48 +0100
+Subject: mm: enable MMU_GATHER_RCU_TABLE_FREE for most 2-level architectures
+Date: Fri, 11 Sep 2026 20:36:49 +0100
 
-Patch series "mm: make userland page table freeing RCU-safe", v3.
+Commit e3ecf7c7d082 ("mm: pgtable: convert some architectures to use
+tlb_remove_ptdesc()") updated a number of architectures from using
+pagetable_dtor() + tlb_remove_page_ptdesc() to using tlb_remove_ptdesc()
+in __pte_free_tlb().
 
-The majority of architectures in the kernel defer page table freeing until
-an RCU grace period has elapsed, this series converts all remaining
-architectures to do so too and eliminates CONFIG_MMU_GATHER_RCU_TABLE_FREE
-altogether.
+This is meaningful as tlb_remove_ptdesc() allows for RCU page table
+freeing if CONFIG_MMU_GATHER_RCU_TABLE_FREE is specified.
 
-This is important because it enables safe lockless page table walking
-under RCU alone.
+The csky, hexagon, nios2, openrisc, sh (except X2) and m68k-sun3
+architectures all have 2 levels of page tables, so the only page tables
+ever freed by mmu_gather are PTEs, so this update suffices to ensure that
+every page table freed by the mmu_gather mechanism is freed under RCU.
 
-Doing so allows for reduced lock contention, avoids lock ordering concerns
-and enables fast, efficient and correct page table walking as a result.
+Therefore, update all of these architectures to select
+CONFIG_MMU_GATHER_RCU_TABLE_FREE.
 
-Additionally it removes a bunch of code and architecture-specific
-behaviour which is always a beneficial thing to do.
+This forms part of an overall effort to switch every architecture to this
+mode.
 
-There has been much recent work on this:
-
-* In 2023 Hugh Dickins RCU-deferred khugepaged page table retraction in
-  commit 13cf577e6b66 ("mm/pgtable: add pte_free_defer() for pgtable as
-  page").
-
-* Qi Zheng has done most of the work that made this possible starting with
-  the critical commit 718b13861d22 ("x86: mm: free page table pages by RCU
-  instead of semi RCU").
-
-* Qi then went on to convert a large number of architectures in commit
-  e3ecf7c7d082 ("mm: pgtable: convert some architectures to use
-  tlb_remove_ptdesc()"), commit 44b079583f7d ("alpha: mm: enable
-  MMU_GATHER_RCU_TABLE_FREE") and the series to which it belongs.
-
-* Qi then introduced the important CONFIG_HAVE_ARCH_TLB_REMOVE_TABLE
-  option in commit 086498aed3f6 ("mm: convert __HAVE_ARCH_TLB_REMOVE_TABLE
-  to CONFIG_HAVE_ARCH_TLB_REMOVE_TABLE config").
-
-* Finally, and critically, Lance Yang then converted the batch allocation
-  fallback case to be RCU-safe in commit 1fb3d8c20bfa ("mm/mmu_gather:
-  replace IPI with synchronize_rcu() when batch allocation fails").
-
-The work I do here is only possible due to the work Hugh, Qi, Lance and
-others have done previously.
-
-An initial task this series addresses is to zap deposited page tables
-after an RCU grace period.  Not doing so is currently safe, but for page
-table walkers relying on RCU alone, it would not be.
-
-The changes are largely mechanical - the majority of arches already have
-the machinery required to support CONFIG_MMU_GATHER_RCU_TABLE_FREE and
-simply needed configuration changes or small implementation changes to
-switch over.
-
-However some arches required extra attention - sh-X2, m68k-motorola and
-sparc32.
-
-sh-X2 allocates PMDs from the slab allocator and PTEs as normal. 
-Therefore CONFIG_HAVE_ARCH_TLB_REMOVE_TABLE is set to customise page table
-freeing and the LSB is used to encode which page table level is used, with
-__tlb_remove_table() doing the right thing depending on this.
-
-This pattern is repeated for m68k-motorola and sparc32 to account for
-different page table levels.  In each case, the page tables are aligned
-such that sufficient bits are available in each case for encoding this
-information.
-
-m68k-motorola required the biggest change - since RCU page table freeing
-uses call_rcu(), this means page table freeing can arise from softirq
-context.
-
-This was fixed with an IRQ-safe spin lock used in both get_pointer_table()
-and free_pointer_table().
-
-As part of this change, the logic for allocation of a new pointer table
-was separated out into add_pointer_table() to make the locking more
-obviously correct.
-
-Finally, sparc32 was similar to m68k-motorola in that locking was
-required, however this was already implemented via a spinlock, and only
-had to be updated to be IRQ-safe.
-
-Additionally, the nocache pool's bit_map lock was updated to be IRQ-safe
-for softirq frees.
-
-Separately, the PTE path can't take mm->page_table_lock from softirq (no
-mm there), which is fine because the page reference count transitions are
-atomic and fully ordered.
-
-The series finally removes CONFIG_MMU_GATHER_RCU_TABLE_FREE and all
-related configurations and code that supported
-!CONFIG_MMU_GATHER_RCU_TABLE_FREE.
-
-As a result, page table walks can now be performed safely under RCU
-without any risk of page tables being freed underneath a walker.
-
-However, this is the only guarantee that this work provides - page table
-walkers must still ensure that page table entries are as expected
-throughout.
-
-All changes have been build tested.  As most of the conversions are simply
-utilising existing mechanics that are known to work, this suffices for
-most cases.
-
-However those arches where significant changes have been made -
-m68k-motorola, sparc32 and sh-X2 - have been tested further.
-
-For each of these a boot test and stress test has been performed - fork
-400 children, each mmap()'ing 2 MiB and touching every page then partially
-munmap()'ing then exiting to trigger as much page table freeing as
-possible.
-
-All were found to be working correctly.
-
-
-This patch (of 12):
-
-When an anonymous mapping is collapsed for THP, a PTE page table is
-'deposited' with the installed PMD entry.
-
-This is done in order that a split can be performed without needing to
-allocate additional memory.
-
-The freeing occurs in zap_deposited_table() and is done directly without
-any delay via pte_free().
-
-This is currently not a problem as existing page table walks are protected
-by the mmap or anon rmap lock.
-
-However this becomes problematic in a future where RCU-only page table
-walkers exist, as there is nothing to prevent a page table walker that
-started the walk prior to collapse having its PTE table freed underneath
-it.
-
-Commit 13cf577e6b66 ("mm/pgtable: add pte_free_defer() for pgtable as
-page") already provides us the mechanism by which to solve this -
-pte_free_defer().
-
-Therefore, as a prerequisite to a future commit which will permit fully
-RCU page table walks, update zap_deposited_table() to use pte_free_defer()
-rather than pte_free().
-
-Note that the IPI sync in collapse_huge_page() is still required to ensure
-refcount correctness against a GUP-fast operation.
-
-This is because GUP-fast might increment refcount, but
-__collapse_huge_page_isolate() determines whether it is safe to proceed by
-checking folio_ref_count() against folio_expected_ref_count(), so the two
-must be mutually excluded.
-
-Link: https://lore.kernel.org/20260911-rcu-pagetable-freeing-v3-1-7b8c86103821@kernel.org
+Link: https://lore.kernel.org/20260911-rcu-pagetable-freeing-v3-2-7b8c86103821@kernel.org
 Signed-off-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 Acked-by: Kiryl Shutsemau (Meta) <kas@kernel.org>
@@ -263,20 +135,74 @@ Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
 Cc: Zi Yan <ziy@nvidia.com>
 ---
 
- mm/huge_memory.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/csky/Kconfig     |    1 +
+ arch/hexagon/Kconfig  |    1 +
+ arch/m68k/Kconfig     |    1 +
+ arch/nios2/Kconfig    |    1 +
+ arch/openrisc/Kconfig |    1 +
+ arch/sh/Kconfig       |    1 +
+ 6 files changed, 6 insertions(+)
 
---- a/mm/huge_memory.c~mm-huge_memory-zap-deposited-page-tables-after-an-rcu-grace-period
-+++ a/mm/huge_memory.c
-@@ -2478,7 +2478,7 @@ static inline void zap_deposited_table(s
- 	pgtable_t pgtable;
- 
- 	pgtable = pgtable_trans_huge_withdraw(mm, pmd);
--	pte_free(mm, pgtable);
-+	pte_free_defer(mm, pgtable);
- 	mm_dec_nr_ptes(mm);
- }
- 
+--- a/arch/csky/Kconfig~mm-enable-mmu_gather_rcu_table_free-for-most-2-level-architectures
++++ a/arch/csky/Kconfig
+@@ -96,6 +96,7 @@ config CSKY
+ 	select HAVE_SYSCALL_TRACEPOINTS
+ 	select HOTPLUG_CORE_SYNC_DEAD if HOTPLUG_CPU
+ 	select LOCK_MM_AND_FIND_VMA
++	select MMU_GATHER_RCU_TABLE_FREE
+ 	select MAY_HAVE_SPARSE_IRQ
+ 	select MODULES_USE_ELF_RELA if MODULES
+ 	select OF
+--- a/arch/hexagon/Kconfig~mm-enable-mmu_gather_rcu_table_free-for-most-2-level-architectures
++++ a/arch/hexagon/Kconfig
+@@ -23,6 +23,7 @@ config HEXAGON
+ 	# select HAVE_CLK
+ 	select GENERIC_ATOMIC64
+ 	select HAVE_PERF_EVENTS
++	select MMU_GATHER_RCU_TABLE_FREE
+ 	# GENERIC_ALLOCATOR is used by dma_alloc_coherent()
+ 	select GENERIC_ALLOCATOR
+ 	select GENERIC_IRQ_PROBE
+--- a/arch/m68k/Kconfig~mm-enable-mmu_gather_rcu_table_free-for-most-2-level-architectures
++++ a/arch/m68k/Kconfig
+@@ -36,6 +36,7 @@ config M68K
+ 	select HAVE_MOD_ARCH_SPECIFIC
+ 	select HAVE_UID16
+ 	select MMU_GATHER_NO_RANGE if MMU
++	select MMU_GATHER_RCU_TABLE_FREE if MMU && SUN3
+ 	select MODULES_USE_ELF_REL
+ 	select MODULES_USE_ELF_RELA
+ 	select NO_DMA if !MMU && !COLDFIRE
+--- a/arch/nios2/Kconfig~mm-enable-mmu_gather_rcu_table_free-for-most-2-level-architectures
++++ a/arch/nios2/Kconfig
+@@ -19,6 +19,7 @@ config NIOS2
+ 	select HAVE_PAGE_SIZE_4KB
+ 	select IRQ_DOMAIN
+ 	select LOCK_MM_AND_FIND_VMA
++	select MMU_GATHER_RCU_TABLE_FREE
+ 	select MODULES_USE_ELF_RELA
+ 	select OF
+ 	select OF_EARLY_FLATTREE
+--- a/arch/openrisc/Kconfig~mm-enable-mmu_gather_rcu_table_free-for-most-2-level-architectures
++++ a/arch/openrisc/Kconfig
+@@ -35,6 +35,7 @@ config OPENRISC
+ 	select GENERIC_ATOMIC64
+ 	select GENERIC_CLOCKEVENTS_BROADCAST
+ 	select GENERIC_SMP_IDLE_THREAD
++	select MMU_GATHER_RCU_TABLE_FREE
+ 	select MODULES_USE_ELF_RELA
+ 	select HAVE_DEBUG_STACKOVERFLOW
+ 	select OR1K_PIC
+--- a/arch/sh/Kconfig~mm-enable-mmu_gather_rcu_table_free-for-most-2-level-architectures
++++ a/arch/sh/Kconfig
+@@ -61,6 +61,7 @@ config SUPERH
+ 	select HAVE_SYSCALL_TRACEPOINTS
+ 	select IRQ_FORCED_THREADING
+ 	select LOCK_MM_AND_FIND_VMA
++	select MMU_GATHER_RCU_TABLE_FREE if MMU && !X2TLB
+ 	select MODULES_USE_ELF_RELA
+ 	select NEED_SG_DMA_LENGTH
+ 	select NO_DMA if !MMU && !DMA_COHERENT
 _
 
 Patches currently in -mm which might be from ljs@kernel.org are
@@ -293,7 +219,6 @@ mm-vma-make-map_private-mapped-dev-zero-mappings-truly-anonymous.patch
 tools-testing-vma-add-test-to-assert-map_private-dev-zero-is-anon.patch
 tools-testing-selftests-mm-add-map_private-dev-zero-merge-tests.patch
 mm-madvise-swap-in-cowd-map_private-file-mappings-on-madv_willneed.patch
-mm-enable-mmu_gather_rcu_table_free-for-most-2-level-architectures.patch
 mm-enable-mmu_gather_rcu_table_free-for-mmu-riscv.patch
 mm-enable-mmu_gather_rcu_table_free-for-mmu-arm.patch
 mm-enable-mmu_gather_rcu_table_free-for-arc-microblaze-xtensa.patch
