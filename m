@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A64B14C754A
-	for <mm-commits@vger.kernel.org>; Thu, 24 Sep 2026 19:34:10 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 66F244C043C
+	for <mm-commits@vger.kernel.org>; Thu, 24 Sep 2026 19:34:11 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790278453; cv=none; b=kKpJ+isay2n+W9G/2CKjDI1TEiUjpmyuPCj/ZPmGiDTlsrKjQks7jC6EgTNLnklC9ndVwIgCzWQZArlqTy55Ljohvd+/JeHmrgTJabSa00scdII9+eJK4rCpQgtSE8b8RDDHu45V+7rSOjSEd5aCRUwylvYlcnWNin+XrN0Mhq8=
+	t=1790278455; cv=none; b=lQdqY+zL57X6E57ixAVPZiHsRJaHUz0QcpAF26KJRmQhwVZ2bAgCgaEOpXFqOjQ6qQDKPAYS5FxA0VSpG2PaVpke8ZYCGSwzuFAv+7/lfIaW+7DHFcNFobLXyeLDP1SYXGCi33P5y7mb2aVsLJxVKfvOps/QOSqUzEjXWNVvDbc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1790278453; c=relaxed/simple;
-	bh=ncX8DqFxopl/QUm/qkHiCxdKMUro8KLjomPL6o12SRE=;
-	h=Date:To:From:Subject:Message-Id; b=ELPfsW5pm/sqVcBqMkLtn2opjHZcPL0k/N32sSAjkacjos93mRMb+en02xj1ifs0T6S1FWkrQ5N6xJGXbvKKJCmXnNhXyZVgm28yT8kRTGwy6pb163PCuBKfZtrIrmAh0INBT4CKnEF1Q5uTRjBZ73DS0XQyHfEYQtcEO9d3+lY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=b94l5MjK; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1790278455; c=relaxed/simple;
+	bh=W5kcPctoH6o+nIMENHUAh5MFScHIjXSPIf6wNongEzo=;
+	h=Date:To:From:Subject:Message-Id; b=lOhMpmQnOO4HBDdwYejx7WtJK+Sq3QbBROoenTcnfVaDxpMFYwgQZsuqux+ww2m2PgnlzUNHxPgXrdQm3hssx+fnN7ha/hbxVUJ4+e6G++uNWVJg3DhwK6l6VtWTLq4ZsdJ/KDI4Jj6yzSqcEUKRTxFoKe5M+Zjlr2uPle3Fvww=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=pnxbG95M; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="b94l5MjK"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id DE1311F00893;
-	Thu, 24 Sep 2026 19:34:09 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="pnxbG95M"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id DFEB71F000FF;
+	Thu, 24 Sep 2026 19:34:10 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1790278450;
-	bh=YWnDdXFXDLI3kaJDjMjqssLq/wZm6CMfwNZLkmoZ4kc=;
+	d=linux-foundation.org; s=korg; t=1790278451;
+	bh=rcuE8tPomir6MLBQfzw8p8EwNOKE8ZO5Qs7G/KN2ciU=;
 	h=Date:To:From:Subject;
-	b=b94l5MjKjXnVwgpxc6ntWsqVxy2Q0FHborsMN0y5fc+j0KqjB5lJKaUs3Cj3ca61z
-	 4Cd5yqnosGbdS2G0+G/Yc3pk5T6XFTm4tHIXKn4rRIKPmpdL+HwknY6W4QjY/wrBBr
-	 krk8XU+DHG43VcFCA8FGPg0fvCyxpVAhNuI187eQ=
-Date: Thu, 24 Sep 2026 12:34:09 -0700
+	b=pnxbG95MkW28V84GQzkG7U5PzKVGQuRsFzPxNn7aGa2wkHBW1T8R4cxjveQUwJ8i7
+	 gdxDhh14I4pq/5J4KAZ0R9tNaCF04Cea/WsmyhGlsgI9Jo5CgMA0Y7xIagctdA83+1
+	 czwyPbkfb1iMizyLJp/kBJBdIjY+JgHgdyYLM2wI=
+Date: Thu, 24 Sep 2026 12:34:10 -0700
 To: mm-commits@vger.kernel.org,atomlin@atomlin.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [to-be-updated] module-treat-dashes-and-underscores-interchangeably-in-module_blacklist.patch removed from -mm tree
-Message-Id: <20260924193409.DE1311F00893@smtp.kernel.org>
+Subject: [to-be-updated] module-extend-module_blacklist-parameter-to-built-in-modules.patch removed from -mm tree
+Message-Id: <20260924193410.DFEB71F000FF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,195 +35,45 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: module: treat dashes and underscores interchangeably in module_blacklist
+     Subject: module: extend module_blacklist parameter to built-in modules
 has been removed from the -mm tree.  Its filename was
-     module-treat-dashes-and-underscores-interchangeably-in-module_blacklist.patch
+     module-extend-module_blacklist-parameter-to-built-in-modules.patch
 
 This patch was dropped because an updated version will be issued
 
 ------------------------------------------------------
 From: Aaron Tomlin <atomlin@atomlin.com>
-Subject: module: treat dashes and underscores interchangeably in module_blacklist
-Date: Tue, 8 Sep 2026 16:32:28 -0400
+Subject: module: extend module_blacklist parameter to built-in modules
+Date: Tue, 8 Sep 2026 16:32:29 -0400
 
-Patch series "module: Extend module_blacklist parameter to built-in
-modules", v11.
+Currently, the "module_blacklist=" command-line parameter only applies to
+loadable modules.  If a module is built-in, the parameter is silently
+ignored.  This patch extends the blacklisting functionality to built-in
+modules by intercepting their initialisation routines during early boot.
 
-This patch series extends the module_blacklist= command-line parameter
-(and its modern alias module_denylist=) to intercept built-in modules
-during early boot.  Currently, when a driver is compiled statically into
-the kernel (=y), the parameter is silently ignored, precluding
-administrators from suppressing problematic drivers during boot-time
-disaster recovery.  This series resolves that discrepancy by mapping
-built-in modules to their initialisation routines via transient metadata
-that is freed post-boot, providing a predictable and consistent
-administrative interface regardless of whether a driver is built as a
-loadable module or compiled into the kernel image.  Below is a detailed
-breakdown of the motivation, operational rationale, and concrete use cases
-addressed by this work.
+To achieve this, we introduce a new ".initcall.modnames" memory section. 
+For each built-in module, we use a standard C structure (i.e., struct
+initcall_modname) to map its initcall function pointer to its associated
+KBUILD_MODNAME string.  This mapping is restricted only to files
+implementing built-in modules via module_init() to avoid mapping core
+kernel subsystems and save memory.
 
-1.  The Core Problem and User Experience Gap
-============================================
+During boot, built-in initcalls are executed sequentially via
+do_initcall_level() and do_pre_smp_initcalls().  We introduce a new
+wrapper function, do_one_initcall_builtin(), to cross-reference the
+initcall function pointer against the ".initcall.modnames" table.  If a
+match is found and the module is present in the blacklist, the initcall is
+skipped.
 
-Today, module_blacklist= works strictly on loadable modules.  When a user
-or system administrator encounters a driver bug, hang during device probe,
-or hardware fault during boot, the natural and widely documented remedy is
-to pass module_blacklist=[driver] via the bootloader (GRUB, systemd-boot,
-etc.).  However, if that driver is built into the kernel, the parameter is
-silently ignored.  The kernel proceeds to run the driver's initialisation
-routine anyway, leading to the same panic, hang, or hardware misbehaviour.
-From the user's standpoint, whether a driver was packaged by their
-distribution or built by their provider as =m or =y is an internal
-implementation detail.  Having module_blacklist= silently fail solely
-based on compilation configuration violates the principle of least
-surprise and complicates system recovery.
+To make the blacklist functional on monolithic kernels, the command-line
+parameter parsing and the module_is_blacklisted() lookup function are
+decoupled from the loadable module subsystem and moved to init/main.c. 
+This enables "module_blacklist=" to intercept built-in modules even on
+kernels built with CONFIG_MODULES=n.
 
-2.  Why initcall_blacklist= is not an adequate substitute
-=========================================================
-
-The kernel does provide initcall_blacklist=, but it is impractical for
-general users, sysadmins, and automated fleet management tools for several
-reasons:
-
-    Obscure symbol names
-
-        - initcall_blacklist= requires the exact function name of the
-          initcall (e.g., snb_pci_uarch_init and e1000_init_module). Users
-          typically know the module name, not the internal function name.
-
-    Internal instability
-
-        - Initcall function names are internal kernel implementation
-          details. They change across kernel releases, refactors, or macro
-          rewrites, making it impossible to write stable bootloader
-          configurations or recovery documentation across multiple kernel
-          versions.
-
-    Mangled names (Rust)
-
-        - For modern drivers written in Rust, the initcall symbol names are
-          compiler-mangled symbols (e.g. "_RNvX"), making
-          initcall_blacklist= practically impossible for a human user to
-          specify manually at a boot prompt.
-
-module_blacklist= (or module_denylist=) resolves this by allowing users to
-specify the canonical, user-facing module name (KBUILD_MODNAME) that they
-already know.
-
-3.  Concrete use cases
-======================
-
-    A.  Disaster recovery and triage on production systems
-
-        When a kernel update introduces a regression in a built-in driver
-        (e.g., a storage controller), administrators need a way to bypass
-        that driver at boot time to get the system into a usable emergency
-        shell or collect diagnostic logs, without having to rebuild the
-        kernel on another machine.
-
-    B.  Monolithic/Hardened environments (CONFIG_MODULES=n)
-
-        In security-sensitive environments, kernels are frequently compiled
-        without loadable module support (CONFIG_MODULES=n) to eliminate
-        module loading attack vectors. On these systems, all drivers are
-        built-in. If a hardware erratum or firmware bug triggers a hang in
-        a built-in driver, administrators previously had no
-        module-name-based mechanism to disable the offending driver.
-
-    C. Hardware Errata and Conflicting Devices
-
-       On systems with buggy firmware or conflicting device IDs where two
-       drivers attempt to bind to the same hardware, users can prevent the
-       conflicting built-in driver from initializing without patching and
-       recompiling the entire kernel image.
-
-4. Implementation and Overhead Considerations
-=============================================
-
-We took great care to ensure this change introduces virtually zero runtime
-overhead:
-
-    Scoped to module_init()
-
-        - Only built-in drivers that explicitly use module_init() are
-          tracked. Core kernel subsystems using core_initcall(),
-          subsys_initcall(), etc. are unaffected.
-
-    Zero Resident Memory
-
-        - The metadata table (.initcall.modnames) and the module name
-          strings (.init.rodata) are placed entirely in init sections and
-          are completely freed from memory after boot via free_initmem().
-
-    Fast Path
-
-        - During boot, if neither module_blacklist= nor module_denylist=
-          was supplied on the kernel command line, the lookup is bypassed
-          entirely.
-
-In summary, this patch brings parity between modular and built-in drivers,
-removes a pain point in boot-time disaster recovery, and provides users
-with a predictable, consistent interface.
-
-Following review feedback, the implementation is structured as three
-separate changes to isolate a pre-existing bugfix, decouple the
-introduction of the new feature, and handle the terminology renaming:
-
-    1.  The first patch is a standalone prerequisite bugfix addressing a
-        pre-existing flaw in the module blacklisting logic where hyphens
-        and underscores are not treated interchangeably. Because the kernel
-        build system normalises module names to use underscores (e.g.
-        "my_module"), specifying a module with hyphens on the command line
-        (such as "module_blacklist=my-module") failed to match due to a
-        strict byte-for-byte memcmp(). It replaces memcmp() with
-        parameqn(), carries a Fixes: tag, and is CC'd to stable.
-
-    2.  The second patch extends the "module_blacklist=" parameter to
-        built-in modules using the original blacklist terminology. It
-        introduces the ".initcall.modnames" section to map initcall
-        function pointers to their associated KBUILD_MODNAME strings
-        (restricted only to module_init() invocations to save memory and
-        avoid matching core kernel subsystems). It also restricts the check
-        to a boot-time __init wrapper to eliminate Use-After-Free (UAF) and
-        Spectre v1 vulnerability risks when loading dynamic modules at
-        runtime, and adds a fast-path check to eliminate lookup overhead
-        when the parameter is not in use.
-
-    3   The third patch renames the variables and helper functions to adopt
-        the preferred "module_denylist=" and module_is_denylisted()
-        terminology in the codebase. To preserve the existing user-space
-        ABI, "module_blacklist=" is kept as a legacy alias pointing to the
-        same module_denylist variable.
-
-
-This patch (of 3):
-
-The "module_blacklist=" command-line parameter allows administrators to
-prevent specific modules from loading by specifying a comma-separated list
-of module names.  The blacklisted() helper checks candidate modules
-against this list using a strict byte-for-byte comparison via memcmp().
-
-However, the kernel build system normalises module names to use
-underscores (e.g., "my_module"), whereas administrators and user-space
-utilities may use hyphens (e.g., "my-module") interchangeably.
-
-Because of the strict memcmp(), specifying a module name with a hyphen on
-the kernel command line (e.g., "module_blacklist=my-module") fails to
-match the internal module name ("my_module").  Consequently, the module is
-loaded despite having been explicitly blacklisted, defeating the intended
-administrative mitigation.
-
-Replace memcmp() with parameqn(), which treats dashes and underscores as
-equivalent.  This ensures that module names match correctly regardless of
-whether hyphens or underscores are supplied, matching standard kernel
-parameter and modprobe behaviour.
-
-Link: https://lore.kernel.org/20260908203230.401020-1-atomlin@atomlin.com
-Link: https://lore.kernel.org/20260908203230.401020-2-atomlin@atomlin.com
-Fixes: be7de5f91fdc ("modules: Add kernel parameter to blacklist modules")
+Link: https://lore.kernel.org/20260908203230.401020-3-atomlin@atomlin.com
 Signed-off-by: Aaron Tomlin <atomlin@atomlin.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Reported-by: sashiko-bot <sashiko-bot@kernel.org>
 Cc: Arnd Bergmann <arnd@arndb.de>
 Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 Cc: Luis Chamberalin <mcgrof@kernel.org>
@@ -232,29 +82,270 @@ Cc: Miguel Ojeda <ojeda@kernel.org>
 Cc: Peter Zijlstra <peterz@infradead.org>
 Cc: Petr Pavlu <petr.pavlu@suse.com>
 Cc: Sami Tolvanen <samitolvanen@google.com>
-Cc: <stable@vger.kernel.org>
 ---
 
- kernel/module/main.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/asm-generic/vmlinux.lds.h |    4 +-
+ include/linux/init.h              |   25 ++++++++++++
+ include/linux/module.h            |    4 +-
+ init/main.c                       |   54 ++++++++++++++++++++++++++--
+ kernel/module/main.c              |   22 -----------
+ rust/bindings/bindings_helper.h   |    1 
+ rust/macros/module.rs             |   19 +++++++++
+ 7 files changed, 103 insertions(+), 26 deletions(-)
 
---- a/kernel/module/main.c~module-treat-dashes-and-underscores-interchangeably-in-module_blacklist
-+++ a/kernel/module/main.c
-@@ -2942,7 +2942,7 @@ static bool blacklisted(const char *modu
+--- a/include/asm-generic/vmlinux.lds.h~module-extend-module_blacklist-parameter-to-built-in-modules
++++ a/include/asm-generic/vmlinux.lds.h
+@@ -734,7 +734,9 @@
+ 	EARLYCON_TABLE()						\
+ 	LSM_TABLE()							\
+ 	EARLY_LSM_TABLE()						\
+-	KUNIT_INIT_TABLE()
++	KUNIT_INIT_TABLE()						\
++	. = ALIGN(8);							\
++	BOUNDED_SECTION_BY(.initcall.modnames, _initcall_modnames)
  
- 	for (p = module_blacklist; *p; p += len) {
- 		len = strcspn(p, ",");
--		if (strlen(module_name) == len && !memcmp(module_name, p, len))
+ #define INIT_TEXT							\
+ 	*(.init.text .init.text.*)					\
+--- a/include/linux/init.h~module-extend-module_blacklist-parameter-to-built-in-modules
++++ a/include/linux/init.h
+@@ -252,6 +252,7 @@ extern struct module __this_module;
+ #endif
+ 
+ #ifdef CONFIG_HAVE_ARCH_PREL32_RELOCATIONS
++#define __initcall_fn_ptr(fn, __iid, id)	__initcall_stub(fn, __iid, id)
+ #define ____define_initcall(fn, __stub, __name, __sec)		\
+ 	__define_initcall_stub(__stub, fn)			\
+ 	asm(".section	\"" __sec "\", \"a\"		\n"	\
+@@ -260,6 +261,7 @@ extern struct module __this_module;
+ 	    ".previous					\n");	\
+ 	static_assert(__same_type(initcall_t, &fn));
+ #else
++#define __initcall_fn_ptr(fn, __iid, id)	fn
+ #define ____define_initcall(fn, __unused, __name, __sec)	\
+ 	static initcall_t __name __used 			\
+ 		__attribute__((__section__(__sec))) = fn;
+@@ -271,7 +273,28 @@ extern struct module __this_module;
+ 		__initcall_name(initcall, __iid, id),		\
+ 		__initcall_section(__sec, __iid))
+ 
+-#define ___define_initcall(fn, id, __sec)			\
++struct initcall_modname {
++	initcall_t initcall_fn;
++	const char *modname;
++};
++
++#define ____define_initcall_modname(fn, id, __sec, __iid)		\
++	__unique_initcall(fn, id, __sec, __iid)				\
++	static const char __initstr_##fn[] __used __aligned(1)		\
++		__section(".init.rodata") = KBUILD_MODNAME;		\
++	static const struct initcall_modname __modname_##fn __used	\
++		__section(".initcall.modnames")				\
++		__aligned(__alignof__(struct initcall_modname)) = {	\
++			.initcall_fn = __initcall_fn_ptr(fn, __iid, id),\
++			.modname = __initstr_##fn			\
++		};
++
++#define __define_initcall_modname(fn, id)				\
++	____define_initcall_modname(fn, id, .initcall##id, __initcall_id(fn))
++
++#define __builtin_module_initcall(fn)	__define_initcall_modname(fn, 6)
++
++#define ___define_initcall(fn, id, __sec)				\
+ 	__unique_initcall(fn, id, __sec, __initcall_id(fn))
+ 
+ #define __define_initcall(fn, id) ___define_initcall(fn, id, .initcall##id)
+--- a/include/linux/module.h~module-extend-module_blacklist-parameter-to-built-in-modules
++++ a/include/linux/module.h
+@@ -86,7 +86,7 @@ extern void cleanup_module(void);
+  * builtin) or at module insertion time (if a module).  There can only
+  * be one per module.
+  */
+-#define module_init(x)	__initcall(x);
++#define module_init(x)	__builtin_module_initcall(x);
+ 
+ /**
+  * module_exit() - driver exit entry point
+@@ -879,6 +879,8 @@ static inline void module_for_each_mod(i
+ }
+ #endif /* CONFIG_MODULES */
+ 
++bool module_is_blacklisted(const char *module_name);
++
+ #ifdef CONFIG_SYSFS
+ extern struct kset *module_kset;
+ extern const struct kobj_type module_ktype;
+--- a/init/main.c~module-extend-module_blacklist-parameter-to-built-in-modules
++++ a/init/main.c
+@@ -1349,6 +1349,56 @@ static inline void do_trace_initcall_lev
+ }
+ #endif /* !TRACEPOINTS_ENABLED */
+ 
++extern struct initcall_modname __start_initcall_modnames[];
++extern struct initcall_modname __stop_initcall_modnames[];
++
++/* module_blacklist is a comma-separated list of module names */
++static char *module_blacklist;
++bool __init_or_module module_is_blacklisted(const char *module_name)
++{
++	const char *p;
++	size_t len;
++
++	if (!module_blacklist)
++		return false;
++
++	for (p = module_blacklist; *p; p += len) {
++		len = strcspn(p, ",");
 +		if (strlen(module_name) == len && parameqn(module_name, p, len))
- 			return true;
- 		if (p[len] == ',')
- 			len++;
++			return true;
++		if (p[len] == ',')
++			len++;
++	}
++	return false;
++}
++core_param(module_blacklist, module_blacklist, charp, 0400);
++
++static const char *__init get_builtin_modname(initcall_t fn)
++{
++	struct initcall_modname *p;
++
++	for (p = __start_initcall_modnames; p < __stop_initcall_modnames; p++) {
++		if (p->initcall_fn == fn)
++			return p->modname;
++	}
++	return NULL;
++}
++
++static void __init do_one_initcall_builtin(initcall_t fn)
++{
++	const char *modname;
++
++	if (module_blacklist) {
++		modname = get_builtin_modname(fn);
++		if (modname && module_is_blacklisted(modname)) {
++			pr_info("Skipping initcall for blacklisted built-in module %s\n",
++				modname);
++			return;
++		}
++	}
++	do_one_initcall(fn);
++}
++
+ int __init_or_module do_one_initcall(initcall_t fn)
+ {
+ 	int count = preempt_count();
+@@ -1421,7 +1471,7 @@ static void __init do_initcall_level(int
+ 
+ 	do_trace_initcall_level(initcall_level_names[level]);
+ 	for (fn = initcall_levels[level]; fn < initcall_levels[level+1]; fn++)
+-		do_one_initcall(initcall_from_entry(fn));
++		do_one_initcall_builtin(initcall_from_entry(fn));
+ }
+ 
+ static void __init do_initcalls(void)
+@@ -1466,7 +1516,7 @@ static void __init do_pre_smp_initcalls(
+ 
+ 	do_trace_initcall_level("early");
+ 	for (fn = __initcall_start; fn < __initcall0_start; fn++)
+-		do_one_initcall(initcall_from_entry(fn));
++		do_one_initcall_builtin(initcall_from_entry(fn));
+ }
+ 
+ static int run_init_process(const char *init_filename)
+--- a/kernel/module/main.c~module-extend-module_blacklist-parameter-to-built-in-modules
++++ a/kernel/module/main.c
+@@ -2930,26 +2930,6 @@ int __weak module_frob_arch_sections(Elf
+ 	return 0;
+ }
+ 
+-/* module_blacklist is a comma-separated list of module names */
+-static char *module_blacklist;
+-static bool blacklisted(const char *module_name)
+-{
+-	const char *p;
+-	size_t len;
+-
+-	if (!module_blacklist)
+-		return false;
+-
+-	for (p = module_blacklist; *p; p += len) {
+-		len = strcspn(p, ",");
+-		if (strlen(module_name) == len && parameqn(module_name, p, len))
+-			return true;
+-		if (p[len] == ',')
+-			len++;
+-	}
+-	return false;
+-}
+-core_param(module_blacklist, module_blacklist, charp, 0400);
+ 
+ static struct module *layout_and_allocate(struct load_info *info, int flags)
+ {
+@@ -3402,7 +3382,7 @@ static int early_mod_check(struct load_i
+ 	 * Now that we know we have the correct module name, check
+ 	 * if it's blacklisted.
+ 	 */
+-	if (blacklisted(info->name)) {
++	if (module_is_blacklisted(info->name)) {
+ 		pr_err("Module %s is blacklisted\n", info->name);
+ 		return -EPERM;
+ 	}
+--- a/rust/bindings/bindings_helper.h~module-extend-module_blacklist-parameter-to-built-in-modules
++++ a/rust/bindings/bindings_helper.h
+@@ -63,6 +63,7 @@
+ #include <linux/fwctl.h>
+ #include <linux/fs.h>
+ #include <linux/i2c.h>
++#include <linux/init.h>
+ #include <linux/interrupt.h>
+ #include <linux/io-pgtable.h>
+ #include <linux/ioport.h>
+--- a/rust/macros/module.rs~module-extend-module_blacklist-parameter-to-built-in-modules
++++ a/rust/macros/module.rs
+@@ -480,6 +480,8 @@ pub(crate) fn module(info: ModuleInfo) -
+     let ident_init = format_ident!("__{ident}_init");
+     let ident_exit = format_ident!("__{ident}_exit");
+     let ident_initcall = format_ident!("__{ident}_initcall");
++    let ident_modname = format_ident!("__{ident}_modname");
++    let ident_modname_str = format_ident!("__{ident}_modname_str");
+     let initcall_section = ".initcall6.init";
+ 
+     let global_asm = format!(
+@@ -491,6 +493,9 @@ pub(crate) fn module(info: ModuleInfo) -
+     );
+ 
+     let name_cstr = CString::new(name.value()).expect("name contains NUL-terminator");
++    let name_bytes = name_cstr.to_bytes_with_nul();
++    let name_len = name_bytes.len();
++    let name_byte_literal = Literal::byte_string(name_bytes);
+ 
+     Ok(quote! {
+         /// The module name.
+@@ -592,6 +597,20 @@ pub(crate) fn module(info: ModuleInfo) -
+                 ::core::arch::global_asm!(#global_asm);
+ 
+                 #[cfg(not(MODULE))]
++                #[used(compiler)]
++                #[link_section = ".init.rodata"]
++                static #ident_modname_str: [u8; #name_len] = *#name_byte_literal;
++
++                #[cfg(not(MODULE))]
++                #[used(compiler)]
++                #[link_section = ".initcall.modnames"]
++                static #ident_modname: ::kernel::bindings::initcall_modname =
++                    ::kernel::bindings::initcall_modname {
++                        initcall_fn: Some(#ident_init),
++                        modname: #ident_modname_str.as_ptr().cast(),
++                    };
++
++                #[cfg(not(MODULE))]
+                 #[no_mangle]
+                 pub extern "C" fn #ident_init() -> ::kernel::ffi::c_int {
+                     // SAFETY: This function is inaccessible to the outside due to the double
 _
 
 Patches currently in -mm which might be from atomlin@atomlin.com are
 
 hung_task-reset-warning-budget-when-problem-gets-resolved.patch
 hung_task-log-summary-line-when-warning-budget-is-exhausted.patch
-module-extend-module_blacklist-parameter-to-built-in-modules.patch
 module-rename-module_blacklist-to-module_denylist.patch
 
