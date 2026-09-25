@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4F1E63655E0
-	for <mm-commits@vger.kernel.org>; Fri, 25 Sep 2026 22:17:58 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6064123EA8B
+	for <mm-commits@vger.kernel.org>; Fri, 25 Sep 2026 22:22:15 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790374680; cv=none; b=VHE173ZqLEADvb44Rnqb1U+2OebknM3HUL4A2tSDt0oUIsW+ZlLvzCdxYANnNYiIz0c6Bs9awm75fgyv4gqExxDQp9Pl45dKUYpc3l76TSRdC1rEKAF6hIXULujueD61uk5OgnhohGA+Al8+z2SzOAK26I0KobTcDDKuUBQhP2U=
+	t=1790374937; cv=none; b=qgK3KKZTHGvc8EKLrsOPCjWFA730VLueBnKlDV7jk7XDX2eIqU5qWimUah+NPqMuWrPflf/rmrfxI/E40xo6jYI4ciP5Bv/m4IwWOY0L8Cy5qZfzwaRXIH3+I2UDWkaMYeUPh/Q9L95p9qDbGGfLWmTNC0XN8TYw42S8FA4QTYM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1790374680; c=relaxed/simple;
-	bh=Oa0I4plkVAhCg0C0Y1y8K4sqg3VlJHrftNB2b+kJ7VA=;
-	h=Date:To:From:Subject:Message-Id; b=NmB5m3ExR9FE6Dr3CdActFM5I/cg+ulvPeXuAfSv9Ko4p9zY4jyZst3vsgMFRZ8yo5aGbKwtsc3EHZf3ckDGcOuPU9KQIFP4p+f53ByNkLdvJ7UFm4uK31E/aJFWKvZoU9TTWGjQHd1GIHh5Prz499xom5kP6H3EbWrvAT875DA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=rj1MgsfA; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1790374937; c=relaxed/simple;
+	bh=xdadSL5sLsZp2mTYNb3hNytakSHqa3SBNaXE4JUdXPU=;
+	h=Date:To:From:Subject:Message-Id; b=kqPFxOz3OmueEOTNbbQVmNBq4gKrjsalCuZBU55BxvSBCFER6V4ekrlBI+m3668The80ccX8hgENmtlFTvvyyBgJJD6+lf301MwypBU3FdA3hxlthBJ99b5NgCXjgYGPuA2zbGrpJGasl9PkNLCGYDnfrWaJTNjdNQl3FtrLapg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=u8iTNYMF; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="rj1MgsfA"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 83B631F000FF;
-	Fri, 25 Sep 2026 22:17:58 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="u8iTNYMF"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D89B51F000FF;
+	Fri, 25 Sep 2026 22:22:14 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1790374678;
-	bh=JXEoCTVfhGX5nxUf/1fp+NApMuY5CHT1i2t3YZUa+Qw=;
+	d=linux-foundation.org; s=korg; t=1790374935;
+	bh=NE6MOjTKt6/5XX1WGR2cvJ2Zqe3VlPdWuteyZC6YPQY=;
 	h=Date:To:From:Subject;
-	b=rj1MgsfAzm/8IMCLj+d+KI+Kr6SQ09146AwsZzIMIonK6Jbl4uXqH5VYvBp7IxfS+
-	 CrI3CeRNFkqtKdqRcDHoKozhLfl3pTi+rLTbqGV7rbxowmLswytPJV27NZW1YZre9g
-	 ZFcfYSF5InbwgtTYk3XX0NSFMPPCyRgHg+E8MFcI=
-Date: Fri, 25 Sep 2026 15:17:58 -0700
-To: mm-commits@vger.kernel.org,urezki@gmail.com,syzbot+442828bb356b10813a47@syzkaller.appspotmail.com,shuah@kernel.org,me@brighamcampbell.com,baoquan.he@linux.dev,akpm@linux-foundation.org,raghunathpalla.0209@gmail.com
+	b=u8iTNYMFIRu0cAZAx6SUn9mQ/carPpuSCW1TZkIsbKHPIR/j+nHQj+Kxx37jaWvW7
+	 Sato73ZSTI7EvAIp9mhNEiu6jgEV/M6SBeWjqYwV786yX2R8IiZeMrhAG4wuqWat+P
+	 2DQq0uckp1sMJXeC2kr/gmbKa6e8UEb69XUy7a5E=
+Date: Fri, 25 Sep 2026 15:22:14 -0700
+To: mm-commits@vger.kernel.org,ljs@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-vmalloc-do-not-warn-on-enomem-from-va_clip-in-pcpu_get_vm_areas.patch added to mm-new branch
-Message-Id: <20260925221758.83B631F000FF@smtp.kernel.org>
+Subject: [to-be-updated] mm-khugepaged-deposit-a-newly-allocated-page-table-on-collapse.patch removed from -mm tree
+Message-Id: <20260925222214.D89B51F000FF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,104 +34,418 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The patch titled
-     Subject: mm/vmalloc: do not warn on -ENOMEM from va_clip() in pcpu_get_vm_areas()
-has been added to the -mm mm-new branch.  Its filename is
-     mm-vmalloc-do-not-warn-on-enomem-from-va_clip-in-pcpu_get_vm_areas.patch
+The quilt patch titled
+     Subject: mm/khugepaged: deposit a newly allocated page table on collapse
+has been removed from the -mm tree.  Its filename was
+     mm-khugepaged-deposit-a-newly-allocated-page-table-on-collapse.patch
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vmalloc-do-not-warn-on-enomem-from-va_clip-in-pcpu_get_vm_areas.patch
-
-This patch will later appear in the mm-new branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Note, mm-new is a provisional staging ground for work-in-progress
-patches, and acceptance into mm-new is a notification for others take
-notice and to finish up reviews.  Please do not hesitate to respond to
-review feedback and post updated versions to replace or incrementally
-fixup patches in mm-new.
-
-The mm-new branch of mm.git is not included in linux-next
-
-If a few days of testing in mm-new is successful, the patch will me moved
-into mm.git's mm-unstable branch, which is included in linux-next
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via various
-branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there most days
+This patch was dropped because an updated version will be issued
 
 ------------------------------------------------------
-From: Palla Raghunath <raghunathpalla.0209@gmail.com>
-Subject: mm/vmalloc: do not warn on -ENOMEM from va_clip() in pcpu_get_vm_areas()
-Date: Fri, 25 Sep 2026 21:54:49 +0100
+From: "Lorenzo Stoakes (ARM)" <ljs@kernel.org>
+Subject: mm/khugepaged: deposit a newly allocated page table on collapse
+Date: Tue, 22 Sep 2026 16:35:32 +0100
 
-When pcpu_get_vm_areas() has to split a free vmap_area in the middle
-(NE_FIT_TYPE), va_clip() needs an extra vmap_area object. It takes the
-per-cpu ne_fit_preload_node if one is there, and otherwise falls back
-to kmem_cache_alloc(GFP_NOWAIT), which may fail and return -ENOMEM.
-pcpu_get_vm_areas() never preloads, and a single call can do more than
-one such split: on a NUMA system it places one area per node group, so
-the first split consumes the preloaded object and the next one depends
-on the GFP_NOWAIT allocation.
+Patch series "mm: make userland page table freeing RCU-safe", v4.
 
-That failure is expected and already handled: the recovery path returns
-the areas clipped so far to the free tree, purges lazily freed areas and
-retries. But the error is checked with WARN_ON_ONCE(), so a transient
-allocation failure under memory pressure or fault injection triggers a
-kernel warning, and a panic with panic_on_warn. syzbot hit this on a
-two-node VM while creating a per-cpu BPF array map.
+The majority of architectures in the kernel defer page table freeing until
+an RCU grace period has elapsed, this series converts all remaining
+architectures to do so too and eliminates CONFIG_MMU_GATHER_RCU_TABLE_FREE
+altogether.
 
-Keep the WARN_ON_ONCE() for errors other than -ENOMEM, which do indicate
-a bug, and take the recovery path either way. This matches what commit
-b9183788a2de ("mm/vmalloc: do not warn on -ENOMEM from va_alloc()") did
-for the other va_clip() caller.
+This is important because it enables safe lockless page table walking
+under RCU alone.
 
-Link: https://lore.kernel.org/20260925205450.21262-1-raghunathpalla.0209@gmail.com
-Fixes: 1b23ff80b399 ("mm/vmalloc: invoke classify_va_fit_type() in adjust_va_to_fit_type()")
-Signed-off-by: Palla Raghunath <raghunathpalla.0209@gmail.com>
+Doing so allows for reduced lock contention, avoids lock ordering concerns
+and enables fast, efficient and correct page table walking as a result.
+
+Additionally it removes a bunch of code and architecture-specific
+behaviour which is always a beneficial thing to do.
+
+There has been much recent work on this:
+
+* In 2023 Hugh Dickins RCU-deferred khugepaged page table retraction in
+  commit 13cf577e6b66 ("mm/pgtable: add pte_free_defer() for pgtable as
+  page").
+
+* Qi Zheng has done most of the work that made this possible starting with
+  the critical commit 718b13861d22 ("x86: mm: free page table pages by RCU
+  instead of semi RCU").
+
+* Qi then went on to convert a large number of architectures in commit
+  e3ecf7c7d082 ("mm: pgtable: convert some architectures to use
+  tlb_remove_ptdesc()"), commit 44b079583f7d ("alpha: mm: enable
+  MMU_GATHER_RCU_TABLE_FREE") and the series to which it belongs.
+
+* Qi then introduced the important CONFIG_HAVE_ARCH_TLB_REMOVE_TABLE
+  option in commit 086498aed3f6 ("mm: convert __HAVE_ARCH_TLB_REMOVE_TABLE
+  to CONFIG_HAVE_ARCH_TLB_REMOVE_TABLE config").
+
+* Finally, and critically, Lance Yang then converted the batch allocation
+  fallback case to be RCU-safe in commit 1fb3d8c20bfa ("mm/mmu_gather:
+  replace IPI with synchronize_rcu() when batch allocation fails").
+
+The work I do here is only possible due to the work Hugh, Qi, Lance and
+others have done previously.
+
+An initial task this series addresses is to deposit a freshly allocated
+PTE page table and RCU-free the existing PTE page table.  Not doing so is
+currently safe, but for page table walkers relying on RCU alone, it would
+not be.
+
+Additionally, it makes it possible to implement lockless RCU-only page
+table walkers which otherwise would have required the PTE PTL.
+
+The changes are largely mechanical - the majority of arches already have
+the machinery required to support CONFIG_MMU_GATHER_RCU_TABLE_FREE and
+simply needed configuration changes or small implementation changes to
+switch over.
+
+However some arches required extra attention - sh-X2, m68k-motorola and
+sparc32.
+
+sh-X2 allocates PMDs from the slab allocator and PTEs as normal. 
+Therefore CONFIG_HAVE_ARCH_TLB_REMOVE_TABLE is set to customise page table
+freeing and the LSB is used to encode which page table level is used, with
+__tlb_remove_table() doing the right thing depending on this.
+
+This pattern is repeated for m68k-motorola and sparc32 to account for
+different page table levels.  In each case, the page tables are aligned
+such that sufficient bits are available in each case for encoding this
+information.
+
+m68k-motorola required the biggest change - since RCU page table freeing
+uses call_rcu(), this means page table freeing can arise from softirq
+context.
+
+This was fixed with an IRQ-safe spin lock used in both get_pointer_table()
+and free_pointer_table().
+
+As part of this change, the logic for allocation of a new pointer table
+was separated out into add_pointer_table() to make the locking more
+obviously correct.
+
+Finally, sparc32 was similar to m68k-motorola in that locking was
+required, however this was already implemented via a spinlock, and only
+had to be updated to be IRQ-safe.
+
+Additionally, the nocache pool's bit_map lock was updated to be IRQ-safe
+for softirq frees.
+
+Separately, the PTE path can't take mm->page_table_lock from softirq (no
+mm there), which is fine because the page reference count transitions are
+atomic and fully ordered.
+
+The series finally removes CONFIG_MMU_GATHER_RCU_TABLE_FREE and all
+related configurations and code that supported
+!CONFIG_MMU_GATHER_RCU_TABLE_FREE.
+
+As a result, page table walks can now be performed safely under RCU
+without any risk of page tables being freed underneath a walker.
+
+However, this is the only guarantee that this work provides - page table
+walkers must still ensure that page table entries are as expected
+throughout.
+
+All changes have been build tested.  As most of the conversions are simply
+utilising existing mechanics that are known to work, this suffices for
+most cases.
+
+However those arches where significant changes have been made -
+m68k-motorola, sparc32 and sh-X2 - have been tested further.
+
+For each of these a boot test and stress test has been performed - fork
+400 children, each mmap()'ing 2 MiB and touching every page then partially
+munmap()'ing then exiting to trigger as much page table freeing as
+possible.
+
+All were found to be working correctly.
+
+(Note that sparc32 LEON SMP is not possible to emulate.)
+
+
+This patch (of 12):
+
+collapse_huge_page() deposits a PTE page table on PMD collapse in order
+that it can be utilised for subsequent split operations, meaning that
+those operations do not need to perform an allocation (as they are in a
+context where it might be unwise).
+
+However the PTE page table which is deposited is the one which is
+currently mapped by the PMD entry that is in the process of being
+collapsed.
+
+Once deposited, the PTE page table may be used in a split of any other
+unrelated PMD entry.
+
+This is currently not an issue as this operation is performed with
+VMA/mmap write lock + anon rmap locks held, so ordinary page table walkers
+will never accidentally end up walking the wrong thing, and GUP-fast is
+protected by an IPI via tlb_remove_table_sync_one().
+
+However, the series to which this commit belongs implements RCU-safe page
+table traversal, at which point this becomes problematic.
+
+This can be resolved by using pte_offset_map_lock() which gates on a PTE
+PTL and a pmd_same() check, but lockless walks are unsafe as things stand.
+
+Resolve this by simply allocating a new, zeroed, PTE page table to deposit
+at the point of collapse.
+
+This path is already costly and an allocation has already been performed
+for the huge folio, so this allocation is statistical noise in terms of
+performance and memory usage at this point.
+
+With this PTE page table deposited, RCU-free the existing PTE page table
+so it is safe for page table walkers to traverse within a grace period.
+
+This also brings this deposit case in line with all other page table
+deposit logic which deposit a fresh page table.
+
+Additionally, this was the only place in the kernel that displaced a page
+table like this, so eliminating it also helps consistency.
+
+An edge case for deposit exists for powerpc and its hash-based MMU - it
+stores hash slot data in deposited page tables and zeroes them on
+withdraw, so a zeroed deposited page table works correctly for it.
+
+Since khugepaged runs as a kernel thread, do a little dance in
+alloc_deposit_pte() to correctly charge the allocation.
+
+This is already done for the folio allocation via alloc_charge_folio() but
+no such wrapper exists for a page table allocation.
+
+Link: https://lore.kernel.org/20260922-rcu-pagetable-freeing-v4-0-fe1ad1f1e303@kernel.org
+Link: https://lore.kernel.org/20260922-rcu-pagetable-freeing-v4-1-fe1ad1f1e303@kernel.org
+Signed-off-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Reported-by: <syzbot+442828bb356b10813a47@syzkaller.appspotmail.com>
-Closes: https://syzkaller.appspot.com/bug?extid=442828bb356b10813a47
-Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
-Cc: Shuah Khan <shuah@kernel.org>
-Cc: Brigham Campbell <me@brighamcampbell.com>
-Cc: Uladzislau Rezki (Sony) <urezki@gmail.com>
-Cc: Baoquan He <baoquan.he@linux.dev>
+Reviewed-by: Lance Yang <lance.yang@linux.dev>
+Acked-by: David Hildenbrand (Arm) <david@kernel.org>
+Reviewed-by: Baolin Wang <baolin.wang@linux.alibaba.com>
+Cc: Zi Yan <ziy@nvidia.com>
+Cc: Liam R. Howlett <liam@infradead.org>
+Cc: Nico Pache <nico.pache@linux.dev>
+Cc: Ryan Roberts <ryan.roberts@arm.com>
+Cc: Dev Jain <dev.jain@arm.com>
+Cc: Barry Song <baohua@kernel.org>
+Cc: Usama Arif <usama.arif@linux.dev>
+Cc: Kiryl Shutsemau <kas@kernel.org>
+Cc: Guo Ren <guoren@kernel.org>
+Cc: Brian Cain <bcain@kernel.org>
+Cc: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: Dinh Nguyen <dinguyen@kernel.org>
+Cc: Simon Schuster <schuster.simon@siemens-energy.com>
+Cc: Jonas Bonn <jonas@southpole.se>
+Cc: Stefan Kristiansson <stefan.kristiansson@saunalahti.fi>
+Cc: Stafford Horne <shorne@gmail.com>
+Cc: Rich Felker <dalias@libc.org>
+Cc: John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>
+Cc: Paul Walmsley <pjw@kernel.org>
+Cc: Palmer Dabbelt <palmer@dabbelt.com>
+Cc: Albert Ou <aou@eecs.berkeley.edu>
+Cc: Alexandre Ghiti <alex@ghiti.fr>
+Cc: Russell King <linux@armlinux.org.uk>
+Cc: Vineet Gupta <vgupta@kernel.org>
+Cc: Michal Simek <monstr@monstr.eu>
+Cc: Chris Zankel <chris@zankel.net>
+Cc: Max Filippov <jcmvbkbc@gmail.com>
+Cc: Will Deacon <will@kernel.org>
+Cc: Aneesh Kumar K.V <aneesh.kumar@kernel.org>
+Cc: Nicholas Piggin <npiggin@gmail.com>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: David S. Miller <davem@davemloft.net>
+Cc: Andreas Larsson <andreas@gaisler.com>
+Cc: Richard Henderson <richard.henderson@linaro.org>
+Cc: Matt Turner <mattst88@gmail.com>
+Cc: Magnus Lindholm <linmag7@gmail.com>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Mark Rutland <mark.rutland@arm.com>
+Cc: Huacai Chen <chenhuacai@kernel.org>
+Cc: WANG Xuerui <kernel@xen0n.name>
+Cc: Thomas Bogendoerfer <tsbogend@alpha.franken.de>
+Cc: James Bottomley <james.bottomley@hansenpartnership.com>
+Cc: Helge Deller <deller@gmx.de>
+Cc: Madhavan Srinivasan <maddy@linux.ibm.com>
+Cc: Michael Ellerman <mpe@ellerman.id.au>
+Cc: Christophe Leroy <chleroy@kernel.org>
+Cc: Heiko Carstens <hca@linux.ibm.com>
+Cc: Vasily Gorbik <gor@linux.ibm.com>
+Cc: Alexander Gordeev <agordeev@linux.ibm.com>
+Cc: Christian Borntraeger <borntraeger@linux.ibm.com>
+Cc: Sven Schnelle <svens@linux.ibm.com>
+Cc: Richard Weinberger <richard@nod.at>
+Cc: Anton Ivanov <anton.ivanov@cambridgegreys.com>
+Cc: Johannes Berg <johannes@sipsolutions.net>
+Cc: Thomas Gleixner <tglx@kernel.org>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Borislav Petkov <bp@alien8.de>
+Cc: Dave Hansen <dave.hansen@linux.intel.com>
+Cc: H. Peter Anvin <hpa@zytor.com>
+Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: Vlastimil Babka <vbabka@kernel.org>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Jason Gunthorpe <jgg@ziepe.ca>
+Cc: John Hubbard <jhubbard@nvidia.com>
+Cc: Peter Xu <peterx@redhat.com>
+Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
+Cc: Shakeel Butt <shakeel.butt@linux.dev>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: Randy Dunlap <rdunlap@infradead.org>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Qi Zheng <qi.zheng@linux.dev>
 ---
 
- mm/vmalloc.c |    9 +++++++--
- 1 file changed, 7 insertions(+), 2 deletions(-)
+ mm/khugepaged.c |   32 ++++++++++++++++++++++++++++++--
+ 1 file changed, 30 insertions(+), 2 deletions(-)
 
---- a/mm/vmalloc.c~mm-vmalloc-do-not-warn-on-enomem-from-va_clip-in-pcpu_get_vm_areas
-+++ a/mm/vmalloc.c
-@@ -5136,9 +5136,14 @@ retry:
+--- a/mm/khugepaged.c~mm-khugepaged-deposit-a-newly-allocated-page-table-on-collapse
++++ a/mm/khugepaged.c
+@@ -1278,6 +1278,23 @@ static enum scan_result alloc_charge_fol
+ 	return SCAN_SUCCEED;
+ }
  
- 		ret = va_clip(&free_vmap_area_root,
- 			&free_vmap_area_list, va, start, size);
--		if (WARN_ON_ONCE(unlikely(ret)))
--			/* It is a BUG(), but trigger recovery instead. */
-+		if (unlikely(ret)) {
-+			/*
-+			 * -ENOMEM from the GFP_NOWAIT fallback is expected.
-+			 * Anything else is a BUG(), but trigger recovery instead.
-+			 */
-+			WARN_ON_ONCE(ret != -ENOMEM);
- 			goto recovery;
-+		}
++static pgtable_t alloc_deposit_pte(struct mm_struct *mm)
++{
++	/*
++	 * khugepaged is run from a kernel thread, so need to manually set the
++	 * correct memcg so the allocation gets charged correctly.
++	 */
++	struct mem_cgroup *memcg = get_mem_cgroup_from_mm(mm);
++	struct mem_cgroup *old_memcg = set_active_memcg(memcg);
++	pgtable_t pgtable;
++
++	pgtable = pte_alloc_one(mm);
++
++	set_active_memcg(old_memcg);
++	mem_cgroup_put(memcg);
++	return pgtable;
++}
++
+ /*
+  * collapse_huge_page() expects the mmap_lock to be unlocked before entering and
+  * will always return with the lock unlocked, to avoid holding the mmap_lock
+@@ -1293,7 +1310,7 @@ static enum scan_result collapse_huge_pa
+ 	LIST_HEAD(compound_pagelist);
+ 	pmd_t *pmd, _pmd;
+ 	pte_t *pte = NULL;
+-	pgtable_t pgtable;
++	pgtable_t pgtable = NULL;
+ 	struct folio *folio;
+ 	spinlock_t *pmd_ptl, *pte_ptl;
+ 	enum scan_result result = SCAN_FAIL;
+@@ -1310,6 +1327,12 @@ static enum scan_result collapse_huge_pa
+ 		goto out_nolock;
+ 	}
  
- 		/* Allocated area. */
- 		va = vas[area];
++	if (is_pmd_order(order)) {
++		pgtable = alloc_deposit_pte(mm);
++		if (!pgtable)
++			goto out_nolock;
++	}
++
+ 	mmap_read_lock(mm);
+ 	result = hugepage_vma_revalidate(mm, pmd_addr, /*expect_anon=*/ true,
+ 					 &vma, cc, order);
+@@ -1433,8 +1456,8 @@ static enum scan_result collapse_huge_pa
+ 	spin_lock(pmd_ptl);
+ 	VM_WARN_ON_ONCE(!pmd_none(*pmd));
+ 	if (is_pmd_order(order)) {
+-		pgtable = pmd_pgtable(_pmd);
+ 		pgtable_trans_huge_deposit(mm, pmd, pgtable);
++		pgtable = NULL;
+ 		map_anon_folio_pmd_nopf(folio, pmd, vma, pmd_addr);
+ 	} else {
+ 		/*
+@@ -1453,6 +1476,9 @@ static enum scan_result collapse_huge_pa
+ 	}
+ 	spin_unlock(pmd_ptl);
+ 
++	if (is_pmd_order(order))
++		pte_free_defer(mm, pmd_pgtable(_pmd));
++
+ 	folio = NULL;
+ 
+ 	result = SCAN_SUCCEED;
+@@ -1463,6 +1489,8 @@ out_up_write:
+ 		anon_vma_unlock_write(vma->anon_vma);
+ 	mmap_write_unlock(mm);
+ out_nolock:
++	if (pgtable)
++		pte_free(mm, pgtable);
+ 	if (folio)
+ 		folio_put(folio);
+ 	trace_mm_collapse_huge_page(mm, result == SCAN_SUCCEED, result, order);
 _
 
-Patches currently in -mm which might be from raghunathpalla.0209@gmail.com are
+Patches currently in -mm which might be from ljs@kernel.org are
 
-mm-vmalloc-do-not-warn-on-enomem-from-va_clip-in-pcpu_get_vm_areas.patch
+mm-vma-predicate-setting-mmap_prepare-vma-fields-on-new-vma-alloc.patch
+mm-mremap-fix-locked_vm-leak-from-mremap_dontunmap-self-merge.patch
+mm-mremap-fix-locked_vm-leak-by-splitting-vma-for-mremap_dontunmap.patch
+mm-vmpressure-remove-window-size-todo.patch
+tools-testing-selftests-mm-add-missing-gitignore-entries.patch
+mm-move-drivers-char-memc-to-mm-char-memc.patch
+mm-implement-file_is_dev_zero-to-uniquely-identify-dev-zero.patch
+mm-vma-only-permit-map_private-dev-zero-to-be-mapped-anonymous.patch
+mm-vma-make-map_private-mapped-dev-zero-mappings-truly-anonymous.patch
+tools-testing-vma-add-test-to-assert-map_private-dev-zero-is-anon.patch
+tools-testing-selftests-mm-add-map_private-dev-zero-merge-tests.patch
+mm-madvise-swap-in-cowd-map_private-file-mappings-on-madv_willneed.patch
+a.patch
+mm-khugepaged-deposit-a-newly-allocated-page-table-on-collapse-fix.patch
+mm-enable-mmu_gather_rcu_table_free-for-most-2-level-architectures.patch
+mm-enable-mmu_gather_rcu_table_free-for-mmu-riscv.patch
+mm-enable-mmu_gather_rcu_table_free-for-mmu-arm.patch
+mm-enable-mmu_gather_rcu_table_free-for-arc-microblaze-xtensa.patch
+mm-enable-mmu_gather_rcu_table_free-for-sparc64.patch
+mm-enable-mmu_gather_rcu_table_free-for-m68k-coldfire.patch
+mm-enable-mmu_gather_rcu_table_free-for-sh-x2.patch
+mm-enable-mmu_gather_rcu_table_free-for-m68k-motorola.patch
+mm-enable-mmu_gather_rcu_table_free-for-sparc32.patch
+mm-make-userland-page-table-freeing-rcu-safe.patch
+mm-change-the-contract-for-free_pgtables-update-docs.patch
+mm-vma-fix-mmap_prepare-file-handling-remove-file_doesnt_need_get.patch
+mm-vma-introduce-and-use-vma_can_merge.patch
+mm-consistently-validate-vma-state-after-mmap-hooks.patch
+mm-vma-ensure-mmap_prepare-doesnt-set-actions-on-a-mergeable-vma.patch
+mm-make-map_kernel_pages_-internal-and-unexported.patch
+mm-vma-tidy-up-map-kernel-pages-enum-values.patch
+mm-add-mmap-action-for-discontiguous-kernel-page-mapping.patch
+docs-filesystems-update-mmap_prepare-docs-for-discontig-kernel-pgs.patch
+drivers-usb-mon-update-to-use-mmap_prepare-map-kernel-pages.patch
+infiniband-update-hfi1-to-use-remap_vmalloc_range.patch
+selinux-reject-writable-opens-of-policy-file-drop-mmap-shared-write-check.patch
+alsa-pcm-use-vm_insert_page-to-map-pcm-status-page.patch
+bpf-arena-mark-arena_map_mmap-mappings-vm_mixedmap.patch
+mm-vma-add-vma_is_kernel_owned-predicates.patch
+mm-vma-only-allow-mmap-to-clear-vma_maywrite_bit-if-kernel-owned.patch
+mm-vma-add-and-use-vma__is_fixed_mapping.patch
+scsi-sg-convert-mmap-hook-to-mmap_prepare-and-rework.patch
+fbdev-defio-assert-fbinfo_virtfb-drop-vm_io-add-vm_mixedmap.patch
+hsi-cmt_speech-convert-mmap-hook-to-mmap_prepare-refactor.patch
+mm-gup-error-out-early-on-vma_mayread_bit-vmas.patch
+uprobes-remove-vm_io-set-vm_mixedmap-for-mapped-kernel-pages.patch
+mm-mlock-clear-vma_locked_mask-over-mmap-callback.patch
+mm-mlock-eliminate-weird-vma_io_bit-abuse-and-simplify.patch
+mm-vma-enforce-that-only-kernel-owned-mappings-may-set-vma_io_bit.patch
+mm-remove-vma_io_bit-check-in-vma_is_kernel_owned.patch
+mm-remove-hugetlb_inlineh.patch
+mm-rename-is_vm_hugetlb_page-to-vma_is_hugetlb.patch
+mm-drop-some-redundant-checks-around-hugetlb-vmas.patch
+mm-madvise-update-is_valid_guard_vma-to-use-vma_can_merge.patch
+mm-vma-introduce-vma_is_persistent.patch
+mm-uffd-use-predicates-for-userfaultfd-checks.patch
+mm-madvise-use-predicates-for-madvise-madv_dofork.patch
+mm-eliminate-vma_special_flags-usage-when-hugetlb-explicitly-tested.patch
+mm-eliminate-vma_special_flags-check-in-lru_gen_look_around.patch
+mm-avoid-use-of-vma_special_flags-in-migrate_vma_setup.patch
+mm-eliminate-vm_special-vma_special_flags.patch
+fuse-dax-do-not-set-vm_mixedmap.patch
+mm-huge_memory-remove-vma_is_special_huge.patch
+mm-vma-introduce-and-use-vma_can_gup.patch
+mm-vma-const-ify-vma_assert_stabilised-and-associated-functions.patch
+mm-implement-and-use-vma_has_anon_rmap-silence-kcsan.patch
+mm-update-comments-to-refer-to-anon-rmap-rather-than-anon_vma.patch
 
