@@ -1,200 +1,353 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
+Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.7])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B363C36654F
-	for <mm-commits@vger.kernel.org>; Thu, 24 Sep 2026 21:44:52 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 714363FC5D3
+	for <mm-commits@vger.kernel.org>; Fri, 25 Sep 2026 05:17:25 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.7
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790286294; cv=none; b=LFjxBuWlnxPRv/2OSnxNT2eT6kAaWKplSkfNmr5NGI3Ahe+nQYVknOqKOf0U90GgDGxNCLPdTwB8u06vkSB+rKZZyDtFEt/zpsFqE+GmAR+q4y2mIqJ3r5n56H+aH8n55IBvv3ydQFGqoijzfbeHqa1mF0K/sAOMGpszFO9je0o=
+	t=1790313450; cv=none; b=rN/MitFZktJc4JS/DLI/5r3DDhdqoKuttrKd7qAGnVBmHmUuKJ89M1SVSfCFxw5BhucN+CYM6pAnr/j5cWkmmoLutg9h8K5o9TmqEbGD8ch7EU7BZ61syL4dNnN3SZv/hezDY2xNn3Xh1/IG3bY1hqmbpvDOc7UCwO3plQaNpYY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1790286294; c=relaxed/simple;
-	bh=kopoKfCQpz0Kf5o3gN/S3eap/tKwxXMxOlGFjbUp5mU=;
-	h=Date:To:From:Subject:Message-Id; b=Teh6BUCo+gWJqZuLT9aAVNoe0NtQzbO3F5M0NT9qw+gWWSCvE10ChNoCe+dHrli411I0lo7dY75LVT47Za4Y+WaCFjjIV3PofqIKK8EJ5RhfAgPaJEOWCB+ClO7/giE8QxyZDyJxNjY0Hj6XmjW0JEA02emMTb/0ChWaCV3YvzA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=1I9ybjcu; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1790313450; c=relaxed/simple;
+	bh=ocA+jeQduq65zYrZGNwYD6fpXCUtDLMtxZzXY/BT0Tw=;
+	h=Date:From:To:Cc:Subject:Message-ID; b=bchHNDBF6Mbd6XK39UN/TaPIUJUaqnLckV4JjmS4Cbj1O1zF0FN1jDVNZgvwxW4xhox18ZKI/L3zHvriKAF0dVSFtKO0R3g5AanZuGmYGrvk4zeP6k8kQx1bHKRUau2oL03xINpt0UAZ3f+WzMvsqM1QUPSdq5/uai845ylD3bs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=eQRqOxu7; arc=none smtp.client-ip=192.198.163.7
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="1I9ybjcu"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 47B991F000FF;
-	Thu, 24 Sep 2026 21:44:52 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1790286292;
-	bh=oXVBZ9LEjT5MSX1NiAPXoRNoRI+8JVpEYiOFveJdr/4=;
-	h=Date:To:From:Subject;
-	b=1I9ybjcugSxPTvOGEzyUsqrf8E3QaFv6thHB2M+UBZqjUU7G4GZ8dDh2QiudcPWbo
-	 8RlkfcLTyE6FZKE0yagPabrE79A0lVQ7WVrJMW7dN116M5W3jYT5Yijh6h90IZCSDW
-	 11BoPthmUR6X6N77QIujer1hkGpAXYVxAt1gytEQ=
-Date: Thu, 24 Sep 2026 14:44:51 -0700
-To: mm-commits@vger.kernel.org,will@kernel.org,rppt@kernel.org,ljs@kernel.org,david@kernel.org,catalin.marinas@arm.com,anshuman.khandual@arm.com,akpm@linux-foundation.org
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + arm64-mm-standardize-printing-for-pgtable-entries.patch added to mm-new branch
-Message-Id: <20260924214452.47B991F000FF@smtp.kernel.org>
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="eQRqOxu7"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1790313445; x=1821849445;
+  h=date:from:to:cc:subject:message-id;
+  bh=ocA+jeQduq65zYrZGNwYD6fpXCUtDLMtxZzXY/BT0Tw=;
+  b=eQRqOxu7d24jIDDnY+6EjDLpdsvhrfGiqT6f/uXN+0evpemBahoN/gll
+   NpLbMNOfyy0X9Cz3ztUswmVZZZcYsQKoqcJ4BSFL5saxwsJ+zdk4vrmd9
+   CK6SzaLBJSVwydEtl6NeVgQmcaKesojfWB6OxQSJ0lQSp9faBOylHGBgi
+   xueoP7j2Fy5uJ4WB0xnJXSP7p2I7FkaNSnQOEYP89b0+1KPnWa/fpyuEa
+   u/o+D5njupShFYpYnzm7YHOLqs/FtRz2zQHqtI+uTGCHB5kwwQxp2uWJb
+   +vAJnOMiGgQ2wQjU20tawCfEqRxJ36mkbSNO+QnLdDj0xa8hv6V6Nd45J
+   A==;
+X-CSE-ConnectionGUID: 6NsCZETNSNyAJmwVNM3UCQ==
+X-CSE-MsgGUID: aFXkZgyjRTuM+J9VO6NJzg==
+X-IronPort-AV: E=McAfee;i="6800,10657,11915"; a="116622766"
+X-IronPort-AV: E=Sophos;i="6.27,121,1787036400"; 
+   d="scan'208";a="116622766"
+Received: from orviesa007.jf.intel.com ([10.64.159.147])
+  by fmvoesa101.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 24 Sep 2026 22:17:23 -0700
+X-CSE-ConnectionGUID: sNUbAHFBQIOkXZ1j60qxtQ==
+X-CSE-MsgGUID: I7ZaDrJaTWSYqH2WCxwPKA==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="6.27,121,1787036400"; 
+   d="scan'208";a="273788923"
+Received: from lkp-server01.sh.intel.com (HELO 462990a40a85) ([10.239.97.150])
+  by orviesa007.jf.intel.com with ESMTP; 24 Sep 2026 22:17:22 -0700
+Received: from kbuild by 462990a40a85 with local (Exim 4.98.2)
+	(envelope-from <lkp@intel.com>)
+	id 1x9yJC-00000000K3K-2zmE;
+	Fri, 25 Sep 2026 05:17:18 +0000
+Date: Fri, 25 Sep 2026 13:16:48 +0800
+From: kernel test robot <lkp@intel.com>
+To: David Hildenbrand <david@kernel.org>
+Cc: Andrew Morton <akpm@linux-foundation.org>,
+ Linux Memory Management List <linux-mm@kvack.org>,
+ mm-commits@vger.kernel.org
+Subject: [akpm-mm:mm-new] BUILD REGRESSION
+ f19407ca08644f728cfe9762bf1d1f6985826c47
+Message-ID: <202609251344.89ogZm4T-lkp@intel.com>
+User-Agent: s-nail v14.9.25
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
+tree/branch: https://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm.git mm-new
+branch HEAD: f19407ca08644f728cfe9762bf1d1f6985826c47  mm/swap, PM: hibernate: atomically replace hibernation pin
 
-The patch titled
-     Subject: arm64/mm: standardize printing for pgtable entries
-has been added to the -mm mm-new branch.  Its filename is
-     arm64-mm-standardize-printing-for-pgtable-entries.patch
+Error/Warning (recently discovered and may have been fixed):
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/arm64-mm-standardize-printing-for-pgtable-entries.patch
+    https://lore.kernel.org/oe-kbuild-all/202609160337.WJiD9BqX-lkp@intel.com
 
-This patch will later appear in the mm-new branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+    fs/proc/task_mmu.c:3450:17: error: implicit declaration of function 'drop_rcu' [-Wimplicit-function-declaration]
+    fs/proc/task_mmu.c:3452:17: error: implicit declaration of function 'reacquire_rcu' [-Wimplicit-function-declaration]
 
-Note, mm-new is a provisional staging ground for work-in-progress
-patches, and acceptance into mm-new is a notification for others take
-notice and to finish up reviews.  Please do not hesitate to respond to
-review feedback and post updated versions to replace or incrementally
-fixup patches in mm-new.
+Error/Warning ids grouped by kconfigs:
 
-The mm-new branch of mm.git is not included in linux-next
+recent_errors
+`-- x86_64-randconfig-1002-20260925
+    |-- fs-proc-task_mmu.c:error:implicit-declaration-of-function-drop_rcu
+    `-- fs-proc-task_mmu.c:error:implicit-declaration-of-function-reacquire_rcu
 
-If a few days of testing in mm-new is successful, the patch will me moved
-into mm.git's mm-unstable branch, which is included in linux-next
+elapsed time: 772m
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
+configs tested: 263
+configs skipped: 8
 
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+tested configs:
+alpha                              allnoconfig    gcc-16.1.0
+alpha                             allyesconfig    gcc-16.1.0
+alpha                                defconfig    gcc-16.1.0
+arc                               allmodconfig    gcc-16.1.0
+arc                                allnoconfig    gcc-16.1.0
+arc                               allyesconfig    gcc-16.1.0
+arc                                  defconfig    gcc-16.1.0
+arc                   randconfig-1000-20260925    clang-24
+arc                   randconfig-1000-20260925    gcc-13.4.0
+arc                   randconfig-1001-20260925    clang-24
+arc                   randconfig-1001-20260925    gcc-11.5.0
+arc                  randconfig-r1301-20260925    gcc-11.5.0 sparse
+arc                            tb10x_defconfig    gcc-16.1.0
+arm                                allnoconfig    clang-17
+arm                                allnoconfig    gcc-16.1.0
+arm                               allyesconfig    gcc-16.1.0
+arm                                  defconfig    clang-24
+arm                                  defconfig    gcc-16.1.0
+arm                           ixp4xx_defconfig    gcc-16.1.0
+arm                        omap2plus_defconfig    gcc-16.1.0
+arm                           pxa910_defconfig    gcc-16.1.0
+arm                   randconfig-1000-20260925    clang-24
+arm                   randconfig-1000-20260925    gcc-15.2.0
+arm                   randconfig-1001-20260925    clang-24
+arm                   randconfig-1002-20260925    clang-24
+arm                   randconfig-1002-20260925    gcc-11.5.0
+arm                   randconfig-1003-20260925    clang-17
+arm                   randconfig-1003-20260925    clang-24
+arm64                             allmodconfig    clang-24
+arm64                              allnoconfig    gcc-16.1.0
+arm64                                defconfig    gcc-16.1.0
+arm64                 randconfig-1000-20260925    clang-21
+arm64                 randconfig-1000-20260925    clang-24
+arm64                 randconfig-1001-20260925    clang-24
+arm64                 randconfig-1001-20260925    gcc-16.1.0
+arm64                 randconfig-1002-20260925    clang-24
+arm64                 randconfig-1003-20260925    clang-24
+arm64                 randconfig-1003-20260925    gcc-16.1.0
+csky                              allmodconfig    gcc-16.1.0
+csky                               allnoconfig    gcc-16.1.0
+csky                                 defconfig    gcc-16.1.0
+csky                  randconfig-1000-20260925    clang-24
+csky                  randconfig-1000-20260925    gcc-9.5.0
+csky                  randconfig-1001-20260925    clang-24
+csky                  randconfig-1001-20260925    gcc-15.2.0
+hexagon                           allmodconfig    clang-24
+hexagon                            allnoconfig    clang-24
+hexagon                            allnoconfig    gcc-16.1.0
+hexagon                              defconfig    clang-24
+hexagon                              defconfig    gcc-16.1.0
+hexagon               randconfig-1000-20260925    clang-24
+hexagon               randconfig-1000-20260925    gcc-9.5.0
+hexagon               randconfig-1001-20260925    clang-17
+hexagon               randconfig-1001-20260925    gcc-9.5.0
+i386                              allmodconfig    gcc-14
+i386                               allnoconfig    gcc-14
+i386                               allnoconfig    gcc-16.1.0
+i386        buildonly-randconfig-1000-20260925    clang-22
+i386        buildonly-randconfig-1001-20260925    clang-22
+i386        buildonly-randconfig-1002-20260925    clang-22
+i386        buildonly-randconfig-1002-20260925    gcc-13
+i386        buildonly-randconfig-1003-20260925    clang-22
+i386        buildonly-randconfig-1004-20260925    clang-22
+i386        buildonly-randconfig-1004-20260925    gcc-14
+i386        buildonly-randconfig-1005-20260925    clang-22
+i386                                 defconfig    clang-22
+i386                                 defconfig    gcc-16.1.0
+i386                  randconfig-1000-20260925    clang-22
+i386                  randconfig-1001-20260925    clang-22
+i386                  randconfig-1002-20260925    clang-22
+i386                  randconfig-1003-20260925    clang-22
+i386                  randconfig-1003-20260925    gcc-14
+i386                  randconfig-1004-20260925    clang-22
+i386                  randconfig-1004-20260925    gcc-14
+i386                  randconfig-1005-20260925    clang-22
+i386                  randconfig-1006-20260925    clang-22
+i386                  randconfig-1006-20260925    gcc-14
+i386                  randconfig-1007-20260925    clang-22
+i386                  randconfig-1008-20260925    gcc-14
+i386                  randconfig-1009-20260925    clang-22
+i386                  randconfig-1010-20260925    clang-22
+i386                  randconfig-1011-20260925    gcc-12
+i386                  randconfig-1012-20260925    clang-22
+i386                  randconfig-1013-20260925    clang-22
+i386                  randconfig-1300-20260925    clang-22   sparse
+i386                  randconfig-1301-20260925    clang-22   sparse
+i386                  randconfig-1301-20260925    gcc-14     sparse
+i386                  randconfig-1302-20260925    clang-22   sparse
+i386                 randconfig-r1309-20260925    gcc-14     sparse
+loongarch                         allmodconfig    clang-19
+loongarch                          allnoconfig    clang-20
+loongarch                          allnoconfig    gcc-16.1.0
+loongarch                            defconfig    clang-24
+loongarch             randconfig-1000-20260925    clang-24
+loongarch             randconfig-1000-20260925    gcc-9.5.0
+loongarch             randconfig-1001-20260925    clang-24
+loongarch             randconfig-1001-20260925    gcc-9.5.0
+loongarch            randconfig-r1303-20260925    clang-24   sparse
+m68k                              allmodconfig    gcc-16.1.0
+m68k                               allnoconfig    gcc-16.1.0
+m68k                              allyesconfig    gcc-16.1.0
+m68k                                 defconfig    clang-24
+m68k                                 defconfig    gcc-16.1.0
+microblaze                         allnoconfig    gcc-16.1.0
+microblaze                        allyesconfig    gcc-16.1.0
+microblaze                           defconfig    clang-24
+microblaze                           defconfig    gcc-16.1.0
+microblaze           randconfig-r1304-20260925    gcc-11.5.0 sparse
+mips                              allmodconfig    gcc-16.1.0
+mips                               allnoconfig    gcc-16.1.0
+mips                              allyesconfig    gcc-16.1.0
+mips                        bmips_be_defconfig    gcc-16.1.0
+mips                 randconfig-r1304-20260925    gcc-12.5.0 sparse
+nios2                             allmodconfig    gcc-11.5.0
+nios2                              allnoconfig    clang-24
+nios2                              allnoconfig    gcc-11.5.0
+nios2                                defconfig    clang-24
+nios2                                defconfig    gcc-11.5.0
+nios2                 randconfig-1000-20260925    gcc-9.5.0
+nios2                 randconfig-1001-20260925    gcc-11.5.0
+nios2                 randconfig-1001-20260925    gcc-9.5.0
+nios2                randconfig-r1302-20260925    gcc-11.5.0 sparse
+nios2                randconfig-r1306-20260925    gcc-11.5.0 sparse
+openrisc                          allmodconfig    gcc-16.1.0
+openrisc                           allnoconfig    clang-24
+openrisc                           allnoconfig    gcc-16.1.0
+openrisc                             defconfig    gcc-16.1.0
+openrisc             randconfig-r1302-20260925    gcc-12.5.0 sparse
+parisc                            allmodconfig    gcc-16.1.0
+parisc                             allnoconfig    clang-24
+parisc                             allnoconfig    gcc-16.1.0
+parisc                            allyesconfig    gcc-16.1.0
+parisc                               defconfig    gcc-16.1.0
+parisc                randconfig-1000-20260925    clang-24
+parisc                randconfig-1000-20260925    gcc-11.5.0
+parisc                randconfig-1001-20260925    clang-24
+parisc                randconfig-1001-20260925    gcc-8.5.0
+parisc64                             defconfig    clang-24
+parisc64                             defconfig    gcc-16.1.0
+powerpc                           allmodconfig    gcc-16.1.0
+powerpc                            allnoconfig    clang-24
+powerpc                            allnoconfig    gcc-16.1.0
+powerpc                         fsp2_defconfig    gcc-16.1.0
+powerpc               randconfig-1000-20260925    clang-24
+powerpc               randconfig-1001-20260925    clang-24
+powerpc               randconfig-1001-20260925    gcc-10.5.0
+powerpc              randconfig-r1308-20260925    clang-24   sparse
+powerpc                     socrates_defconfig    gcc-16.1.0
+powerpc64             randconfig-1000-20260925    clang-24
+powerpc64             randconfig-1001-20260925    clang-24
+powerpc64             randconfig-1001-20260925    gcc-12.5.0
+powerpc64            randconfig-r1303-20260925    gcc-11.5.0 sparse
+riscv                             allmodconfig    clang-24
+riscv                              allnoconfig    clang-24
+riscv                              allnoconfig    gcc-16.1.0
+riscv                             allyesconfig    clang-24
+riscv                                defconfig    clang-24
+riscv                                defconfig    gcc-16.1.0
+riscv                 randconfig-1000-20260925    clang-24
+riscv                 randconfig-1001-20260925    clang-24
+riscv                randconfig-r1307-20260925    clang-22   sparse
+s390                              allmodconfig    clang-24
+s390                               allnoconfig    clang-24
+s390                              allyesconfig    gcc-16.1.0
+s390                                 defconfig    clang-18
+s390                                 defconfig    gcc-16.1.0
+s390                  randconfig-1000-20260925    clang-24
+s390                  randconfig-1001-20260925    clang-24
+s390                  randconfig-1001-20260925    gcc-10.5.0
+s390                 randconfig-r1305-20260925    clang-24   sparse
+sh                                allmodconfig    gcc-16.1.0
+sh                                 allnoconfig    clang-24
+sh                                 allnoconfig    gcc-16.1.0
+sh                                allyesconfig    gcc-16.1.0
+sh                                   defconfig    gcc-14
+sh                                   defconfig    gcc-16.1.0
+sh                    randconfig-1000-20260925    clang-24
+sh                    randconfig-1000-20260925    gcc-16.1.0
+sh                    randconfig-1001-20260925    clang-24
+sh                    randconfig-1001-20260925    gcc-15.2.0
+sh                   randconfig-r1300-20260925    gcc-16.1.0 sparse
+sh                           rsk7269_defconfig    gcc-16.1.0
+sh                    rts7751r2dplus_defconfig    gcc-16.1.0
+sh                            sh2007_defconfig    gcc-16.1.0
+sh                         sh7763rdp_defconfig    gcc-16.1.0
+sh                           urquell_defconfig    gcc-16.1.0
+sparc                              allnoconfig    clang-24
+sparc                              allnoconfig    gcc-16.1.0
+sparc                                defconfig    gcc-16.1.0
+sparc                 randconfig-1000-20260925    gcc-12
+sparc                 randconfig-1000-20260925    gcc-16.1.0
+sparc                 randconfig-1001-20260925    gcc-11.5.0
+sparc                 randconfig-1001-20260925    gcc-12
+sparc                randconfig-r1300-20260925    gcc-11.5.0 sparse
+sparc                randconfig-r1305-20260925    gcc-11.5.0 sparse
+sparc64                           allmodconfig    clang-20
+sparc64                              defconfig    clang-24
+sparc64                              defconfig    gcc-14
+sparc64               randconfig-1000-20260925    gcc-12
+sparc64               randconfig-1000-20260925    gcc-16.1.0
+sparc64               randconfig-1001-20260925    gcc-12
+sparc64               randconfig-1001-20260925    gcc-8.5.0
+um                                allmodconfig    clang-17
+um                                 allnoconfig    clang-17
+um                                 allnoconfig    clang-24
+um                                allyesconfig    gcc-14
+um                                   defconfig    clang-24
+um                                   defconfig    gcc-14
+um                              i386_defconfig    gcc-14
+um                    randconfig-1000-20260925    gcc-12
+um                    randconfig-1001-20260925    gcc-12
+um                    randconfig-1001-20260925    gcc-14
+um                            x86_64_defconfig    clang-24
+um                            x86_64_defconfig    gcc-14
+x86_64                             allnoconfig    clang-22
+x86_64                             allnoconfig    clang-24
+x86_64      buildonly-randconfig-1000-20260925    clang-22
+x86_64      buildonly-randconfig-1001-20260925    clang-22
+x86_64      buildonly-randconfig-1002-20260925    clang-22
+x86_64      buildonly-randconfig-1003-20260925    clang-22
+x86_64      buildonly-randconfig-1003-20260925    gcc-14
+x86_64      buildonly-randconfig-1004-20260925    clang-22
+x86_64      buildonly-randconfig-1005-20260925    clang-22
+x86_64                               defconfig    gcc-14
+x86_64                randconfig-1000-20260925    clang-22
+x86_64                randconfig-1000-20260925    gcc-14
+x86_64                randconfig-1001-20260925    gcc-14
+x86_64                randconfig-1002-20260925    gcc-14
+x86_64                randconfig-1003-20260925    gcc-14
+x86_64                randconfig-1004-20260925    clang-22
+x86_64                randconfig-1004-20260925    gcc-14
+x86_64                randconfig-1005-20260925    gcc-14
+x86_64                randconfig-1006-20260925    gcc-14
+x86_64                randconfig-1007-20260925    clang-22
+x86_64                randconfig-1008-20260925    clang-22
+x86_64                randconfig-1009-20260925    clang-22
+x86_64                randconfig-1010-20260925    gcc-14
+x86_64                randconfig-1011-20260925    clang-22
+x86_64                randconfig-1012-20260925    clang-22
+x86_64                randconfig-1013-20260925    gcc-14
+x86_64                randconfig-1014-20260925    clang-22
+x86_64                randconfig-1015-20260925    clang-22
+x86_64                randconfig-1016-20260925    gcc-14
+x86_64                randconfig-1017-20260925    clang-22
+x86_64                randconfig-1300-20260925    clang-22   sparse
+x86_64                randconfig-1300-20260925    gcc-14     sparse
+x86_64                randconfig-1301-20260925    clang-22   sparse
+x86_64                randconfig-1301-20260925    gcc-14     sparse
+x86_64                randconfig-1302-20260925    clang-22   sparse
+x86_64                            rhel-9.4-bpf    gcc-14
+x86_64                          rhel-9.4-kunit    gcc-14
+x86_64                            rhel-9.4-ltp    gcc-14
+x86_64                           rhel-9.4-rust    clang-22
+xtensa                             allnoconfig    clang-24
+xtensa                             allnoconfig    gcc-16.1.0
+xtensa                            allyesconfig    gcc-16.1.0
+xtensa                   audio_kc705_defconfig    gcc-16.1.0
+xtensa                randconfig-1000-20260925    gcc-12
+xtensa                randconfig-1000-20260925    gcc-15.2.0
+xtensa                randconfig-1001-20260925    gcc-12
+xtensa                randconfig-1001-20260925    gcc-13.4.0
+xtensa               randconfig-r1301-20260925    gcc-14.3.0 sparse
+xtensa                     xip_kc705_defconfig    gcc-16.1.0
 
-The -mm tree is included into linux-next via various
-branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there most days
-
-------------------------------------------------------
-From: Anshuman Khandual <anshuman.khandual@arm.com>
-Subject: arm64/mm: standardize printing for pgtable entries
-Date: Wed, 16 Sep 2026 10:19:33 +0530
-
-Standardize printing for pgtable entries using recently introduced generic
-helper ptval_bytes_to_hex_str() in core MM which automatically enables 128
-bits entries when added later.
-
-Link: https://lore.kernel.org/20260916044933.2689426-3-anshuman.khandual@arm.com
-Signed-off-by: Anshuman Khandual <anshuman.khandual@arm.com>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Reviewed-by: David Hildenbrand (Arm) <david@kernel.org>
-Reviewed-by: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Will Deacon <will@kernel.org>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Lorenzo Stoakes <ljs@kernel.org>
----
-
- arch/arm64/mm/fault.c |   16 +++++++++++-----
- arch/arm64/mm/mmu.c   |   16 ++++++++++------
- 2 files changed, 21 insertions(+), 11 deletions(-)
-
---- a/arch/arm64/mm/fault.c~arm64-mm-standardize-printing-for-pgtable-entries
-+++ a/arch/arm64/mm/fault.c
-@@ -131,6 +131,7 @@ static inline unsigned long mm_to_pgd_ph
-  */
- static void show_pte(unsigned long addr)
- {
-+	char pxd_str[PTVAL_STR_MAX];
- 	struct mm_struct *mm;
- 	pgd_t *pgdp;
- 	pgd_t pgd;
-@@ -160,7 +161,8 @@ static void show_pte(unsigned long addr)
- 
- 	pgdp = pgd_offset(mm, addr);
- 	pgd = READ_ONCE(*pgdp);
--	pr_alert("[%016lx] pgd=%016llx", addr, pgd_val(pgd));
-+	ptval_to_str(pxd_str, pgd_val(pgd));
-+	pr_alert("[%016lx] pgd=%s", addr, pxd_str);
- 
- 	do {
- 		p4d_t *p4dp, p4d;
-@@ -173,19 +175,22 @@ static void show_pte(unsigned long addr)
- 
- 		p4dp = p4d_offset_lockless(pgdp, pgd, addr);
- 		p4d = READ_ONCE(*p4dp);
--		pr_cont(", p4d=%016llx", p4d_val(p4d));
-+		ptval_to_str(pxd_str, p4d_val(p4d));
-+		pr_cont(", p4d=%s", pxd_str);
- 		if (p4d_none(p4d) || p4d_bad(p4d))
- 			break;
- 
- 		pudp = pud_offset_lockless(p4dp, p4d, addr);
- 		pud = READ_ONCE(*pudp);
--		pr_cont(", pud=%016llx", pud_val(pud));
-+		ptval_to_str(pxd_str, pud_val(pud));
-+		pr_cont(", pud=%s", pxd_str);
- 		if (pud_none(pud) || pud_bad(pud))
- 			break;
- 
- 		pmdp = pmd_offset_lockless(pudp, pud, addr);
- 		pmd = READ_ONCE(*pmdp);
--		pr_cont(", pmd=%016llx", pmd_val(pmd));
-+		ptval_to_str(pxd_str, pmd_val(pmd));
-+		pr_cont(", pmd=%s", pxd_str);
- 		if (pmd_none(pmd) || pmd_bad(pmd))
- 			break;
- 
-@@ -194,7 +199,8 @@ static void show_pte(unsigned long addr)
- 			break;
- 
- 		pte = __ptep_get(ptep);
--		pr_cont(", pte=%016llx", pte_val(pte));
-+		ptval_to_str(pxd_str, pte_val(pte));
-+		pr_cont(", pte=%s", pxd_str);
- 		pte_unmap(ptep);
- 	} while(0);
- 
---- a/arch/arm64/mm/mmu.c~arm64-mm-standardize-printing-for-pgtable-entries
-+++ a/arch/arm64/mm/mmu.c
-@@ -2411,6 +2411,8 @@ int arch_set_user_pkey_access(int pkey,
- #ifdef CONFIG_DEBUG_VM
- void __check_safe_pte_update(struct mm_struct *mm, pte_t *ptep, pte_t pte)
- {
-+	char pte_str_old[PTVAL_STR_MAX];
-+	char pte_str[PTVAL_STR_MAX];
- 	pte_t old_pte;
- 
- 	old_pte = __ptep_get(ptep);
-@@ -2425,15 +2427,17 @@ void __check_safe_pte_update(struct mm_s
- 	 * (__ptep_set_access_flags safely changes valid ptes without going
- 	 * through an invalid entry).
- 	 */
-+	ptval_to_str(pte_str, pte_val(pte));
-+	ptval_to_str(pte_str_old, pte_val(old_pte));
- 	VM_WARN_ONCE(!pte_young(pte),
--		     "%s: racy access flag clearing: 0x%016llx -> 0x%016llx",
--		     __func__, pte_val(old_pte), pte_val(pte));
-+		     "%s: racy access flag clearing: %s -> %s",
-+		     __func__, pte_str_old, pte_str);
- 	VM_WARN_ONCE(pte_write(old_pte) && !pte_dirty(pte),
--		     "%s: racy dirty state clearing: 0x%016llx -> 0x%016llx",
--		     __func__, pte_val(old_pte), pte_val(pte));
-+		     "%s: racy dirty state clearing: %s -> %s",
-+		     __func__, pte_str_old, pte_str);
- 	VM_WARN_ONCE(!pgattr_change_is_safe(pte_val(old_pte), pte_val(pte)),
--		     "%s: unsafe attribute change: 0x%016llx -> 0x%016llx",
--		     __func__, pte_val(old_pte), pte_val(pte));
-+		     "%s: unsafe attribute change: %s -> %s",
-+		     __func__, pte_str_old, pte_str);
- }
- #endif /* CONFIG_DEBUG_VM */
- #endif
-_
-
-Patches currently in -mm which might be from anshuman.khandual@arm.com are
-
-mm-make-ptval_to_str-generally-available.patch
-mm-stop-using-pxd_error.patch
-loongarch-mm-stop-using-pte_error.patch
-parisc-mm-directly-use-generic-_clear_bad.patch
-sh-mm-stop-using-pte_error.patch
-sh-mm-stop-using-_error.patch
-sh-mm-stop-using-pgd_error.patch
-mm-drop-pxd_error.patch
-mm-constify-arguments-in-default-pxdp_get.patch
-arm64-mm-move-__check_safe_pte_update.patch
-arm64-mm-standardize-printing-for-pgtable-entries.patch
-
+--
+0-DAY CI Kernel Test Service
+https://github.com/intel/lkp-tests/wiki
