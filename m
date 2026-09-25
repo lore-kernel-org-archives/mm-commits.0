@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9EA5C4E56EB
-	for <mm-commits@vger.kernel.org>; Fri, 25 Sep 2026 22:22:17 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 402E643BDC8
+	for <mm-commits@vger.kernel.org>; Fri, 25 Sep 2026 22:22:18 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790374939; cv=none; b=bxz9pp1OAcd/eMt0FDaxGqkY27+uiQRZDNZVKeEiT+oANYl6iHxcBSKEGs0NUWH3mgBPw0f2sUtGFOTnRuujThvv2YDbagFHJqGPlsass6Ln4M+4aUE5nPsfzviAfuZ6IktjX42AIDia4jQFdfMeWxajPzc6kiASOovel2OLK94=
+	t=1790374941; cv=none; b=McHJJVUYpJ/uejG/ImRflyRJPIrJoUp1UP3h5g1VyZp9uJH8mITrnr6k2aSZzwu58iipD1bG57biaQVqZiZ6rSRbRyXn3xI+y+HHT/AWbGbWlIC8FU1nnSZmVxjxfxXaM5bc6XVqDj9Ok6JbNNDIkwlvCZ4wo5fC+CPo3Ld2UZY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1790374939; c=relaxed/simple;
-	bh=rk46iw/WIF+T90AjUPlbV8o7yLd4lOUUwKuY2iOIQAk=;
-	h=Date:To:From:Subject:Message-Id; b=b1qxJlJwu8ZhlVBBYUHZAHrAzthBvEY+Me5kEXrkr96+aw3FZ8pxxRUEg7sEqe0WRGOwztGYIkLyVJRHFh8Alknb8sECcHdoWECQfGTPpCijgnq22LCSadOvg/48HR4NVrGmSjD1FIxxHv2FY5qk4RKxhuZe6AviXCyGfNWN4eg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=aj5lthoQ; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1790374941; c=relaxed/simple;
+	bh=e/C1FriKGlRqsuLBVPZ0mNZj/ncQ/0c+ylCHFtbKzDc=;
+	h=Date:To:From:Subject:Message-Id; b=KGRX+pg86D1WZElmxJSMKwh8m/B/3kJXFWeyD6cru4m2b3rIlUOem4vO54grUuW3H6UoRzt1vqQgGWXZqBxGJx/y9YFSS4FwTL7k5rAiIB852PrTkwSNhaxy7wn+ZTMDInsZRpktCvIBHFoMk7TSEhASxAXaOtZMmz3Ctxcbs7I=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ZP6F7B+8; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="aj5lthoQ"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3587C1F00893;
-	Fri, 25 Sep 2026 22:22:17 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ZP6F7B+8"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id BDF9B1F000FF;
+	Fri, 25 Sep 2026 22:22:18 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1790374937;
-	bh=QM8Y2MVvDl7ss5IGGZddfZ/5S16AiEX8+2kYhXeojks=;
+	d=linux-foundation.org; s=korg; t=1790374938;
+	bh=Jf3LoDP5+igqoxFYpZbEnVVt/5rI5fS4GnqIeBr8p7c=;
 	h=Date:To:From:Subject;
-	b=aj5lthoQ3hPCfKUdTbRCQ+0YqkHyqqUKrZQxxPzC6o9ahM+VlwrTG/nql664h450I
-	 nt/hKs2pUEuu68IMdceujpsq6T8K7Xv+zsQf89p45q64r15B8JFPIRYg+ZcSSz+Ouh
-	 LH9fFwm35j8WHJQJ/qqI1LCSfS722Z7P9T97Jemo=
-Date: Fri, 25 Sep 2026 15:22:16 -0700
+	b=ZP6F7B+85b3jkYNuXcjV74yDRkvES4MCD3VDCY2zZvLbQXVteiqAgPPaNW72KgxLr
+	 ZXbQWGYy7JbbleXiOQ/N8OjYcTzXwLscCJ2/MFX0F2bDPiWIHVAK/RtnSPmm6EAUzH
+	 CscZP2Tv6PW32WpS88gq/T7U+GpU2hfa+4ghTwdw=
+Date: Fri, 25 Sep 2026 15:22:18 -0700
 To: mm-commits@vger.kernel.org,ljs@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [to-be-updated] mm-enable-mmu_gather_rcu_table_free-for-most-2-level-architectures.patch removed from -mm tree
-Message-Id: <20260925222217.3587C1F00893@smtp.kernel.org>
+Subject: [to-be-updated] mm-enable-mmu_gather_rcu_table_free-for-mmu-riscv.patch removed from -mm tree
+Message-Id: <20260925222218.BDF9B1F000FF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,41 +35,47 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: enable MMU_GATHER_RCU_TABLE_FREE for most 2-level architectures
+     Subject: mm: enable MMU_GATHER_RCU_TABLE_FREE for MMU riscv
 has been removed from the -mm tree.  Its filename was
-     mm-enable-mmu_gather_rcu_table_free-for-most-2-level-architectures.patch
+     mm-enable-mmu_gather_rcu_table_free-for-mmu-riscv.patch
 
 This patch was dropped because an updated version will be issued
 
 ------------------------------------------------------
 From: "Lorenzo Stoakes (ARM)" <ljs@kernel.org>
-Subject: mm: enable MMU_GATHER_RCU_TABLE_FREE for most 2-level architectures
-Date: Tue, 22 Sep 2026 16:35:33 +0100
+Subject: mm: enable MMU_GATHER_RCU_TABLE_FREE for MMU riscv
+Date: Tue, 22 Sep 2026 16:35:34 +0100
 
-Commit e3ecf7c7d082 ("mm: pgtable: convert some architectures to use
-tlb_remove_ptdesc()") updated a number of architectures from using
-pagetable_dtor() + tlb_remove_page_ptdesc() to using tlb_remove_ptdesc()
-in __pte_free_tlb().
+Currently riscv gates MMU_GATHER_RCU_TABLE_FREE on CONFIG_SMP and
+CONFIG_MMU.
 
-This is meaningful as tlb_remove_ptdesc() allows for RCU page table
-freeing if CONFIG_MMU_GATHER_RCU_TABLE_FREE is specified.
+Commit 69be3fb111e7 ("riscv: enable MMU_GATHER_RCU_TABLE_FREE for SMP &&
+MMU") enabled CONFIG_MMU_GATHER_RCU_TABLE_FREE for CONFIG_SMP, CONFIG_MMU
+riscv builds.
 
-The csky, hexagon, nios2, openrisc, sh (except X2) and m68k-sun3
-architectures all have 2 levels of page tables, so the only page tables
-ever freed by mmu_gather are PTEs, so this update suffices to ensure that
-every page table freed by the mmu_gather mechanism is freed under RCU.
+This is expressly for the safety of GUP-fast walkers (CONFIG_HAVE_GUP_FAST
+is enabled if CONFIG_MMU is enabled).
 
-Therefore, update all of these architectures to select
-CONFIG_MMU_GATHER_RCU_TABLE_FREE.
+Naturally a single core system does not encounter issues with software
+page table walkers being correctly synchronised across cores, as there is
+only a single core.
+
+However, CONFIG_PREEMPT_RCU is still available on a riscv UP system, so
+for a future RCU-only page table walker, this guarantee is required to
+prevent concurrent page table teardown.
+
+All page table freeing is already done via tlb_remove_ptdesc() so the
+conditions of CONFIG_MMU_GATHER_RCU_TABLE_FREE are already met.
 
 This forms part of an overall effort to switch every architecture to this
 mode.
 
-Link: https://lore.kernel.org/20260922-rcu-pagetable-freeing-v4-2-fe1ad1f1e303@kernel.org
+Link: https://lore.kernel.org/20260922-rcu-pagetable-freeing-v4-3-fe1ad1f1e303@kernel.org
 Signed-off-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 Acked-by: Kiryl Shutsemau (Meta) <kas@kernel.org>
-Reviewed-by: Lance Yang <lance.yang@linux.dev>
+Tested-by: Lance Yang <lance.yang@linux.dev>
+Acked-by: Lance Yang <lance.yang@linux.dev>
 Cc: David Hildenbrand <david@kernel.org>
 Cc: Zi Yan <ziy@nvidia.com>
 Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
@@ -146,74 +152,20 @@ Cc: Hugh Dickins <hughd@google.com>
 Cc: Qi Zheng <qi.zheng@linux.dev>
 ---
 
- arch/csky/Kconfig     |    1 +
- arch/hexagon/Kconfig  |    1 +
- arch/m68k/Kconfig     |    1 +
- arch/nios2/Kconfig    |    1 +
- arch/openrisc/Kconfig |    1 +
- arch/sh/Kconfig       |    1 +
- 6 files changed, 6 insertions(+)
+ arch/riscv/Kconfig |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/arch/csky/Kconfig~mm-enable-mmu_gather_rcu_table_free-for-most-2-level-architectures
-+++ a/arch/csky/Kconfig
-@@ -96,6 +96,7 @@ config CSKY
- 	select HAVE_SYSCALL_TRACEPOINTS
- 	select HOTPLUG_CORE_SYNC_DEAD if HOTPLUG_CPU
+--- a/arch/riscv/Kconfig~mm-enable-mmu_gather_rcu_table_free-for-mmu-riscv
++++ a/arch/riscv/Kconfig
+@@ -208,7 +208,7 @@ config RISCV
+ 	select IRQ_FORCED_THREADING
+ 	select KASAN_VMALLOC if KASAN
  	select LOCK_MM_AND_FIND_VMA
-+	select MMU_GATHER_RCU_TABLE_FREE
- 	select MAY_HAVE_SPARSE_IRQ
+-	select MMU_GATHER_RCU_TABLE_FREE if SMP && MMU
++	select MMU_GATHER_RCU_TABLE_FREE if MMU
  	select MODULES_USE_ELF_RELA if MODULES
  	select OF
---- a/arch/hexagon/Kconfig~mm-enable-mmu_gather_rcu_table_free-for-most-2-level-architectures
-+++ a/arch/hexagon/Kconfig
-@@ -23,6 +23,7 @@ config HEXAGON
- 	# select HAVE_CLK
- 	select GENERIC_ATOMIC64
- 	select HAVE_PERF_EVENTS
-+	select MMU_GATHER_RCU_TABLE_FREE
- 	# GENERIC_ALLOCATOR is used by dma_alloc_coherent()
- 	select GENERIC_ALLOCATOR
- 	select GENERIC_IRQ_PROBE
---- a/arch/m68k/Kconfig~mm-enable-mmu_gather_rcu_table_free-for-most-2-level-architectures
-+++ a/arch/m68k/Kconfig
-@@ -36,6 +36,7 @@ config M68K
- 	select HAVE_MOD_ARCH_SPECIFIC
- 	select HAVE_UID16
- 	select MMU_GATHER_NO_RANGE if MMU
-+	select MMU_GATHER_RCU_TABLE_FREE if MMU && SUN3
- 	select MODULES_USE_ELF_REL
- 	select MODULES_USE_ELF_RELA
- 	select NO_DMA if !MMU && !COLDFIRE
---- a/arch/nios2/Kconfig~mm-enable-mmu_gather_rcu_table_free-for-most-2-level-architectures
-+++ a/arch/nios2/Kconfig
-@@ -19,6 +19,7 @@ config NIOS2
- 	select HAVE_PAGE_SIZE_4KB
- 	select IRQ_DOMAIN
- 	select LOCK_MM_AND_FIND_VMA
-+	select MMU_GATHER_RCU_TABLE_FREE
- 	select MODULES_USE_ELF_RELA
- 	select OF
  	select OF_EARLY_FLATTREE
---- a/arch/openrisc/Kconfig~mm-enable-mmu_gather_rcu_table_free-for-most-2-level-architectures
-+++ a/arch/openrisc/Kconfig
-@@ -35,6 +35,7 @@ config OPENRISC
- 	select GENERIC_ATOMIC64
- 	select GENERIC_CLOCKEVENTS_BROADCAST
- 	select GENERIC_SMP_IDLE_THREAD
-+	select MMU_GATHER_RCU_TABLE_FREE
- 	select MODULES_USE_ELF_RELA
- 	select HAVE_DEBUG_STACKOVERFLOW
- 	select OR1K_PIC
---- a/arch/sh/Kconfig~mm-enable-mmu_gather_rcu_table_free-for-most-2-level-architectures
-+++ a/arch/sh/Kconfig
-@@ -61,6 +61,7 @@ config SUPERH
- 	select HAVE_SYSCALL_TRACEPOINTS
- 	select IRQ_FORCED_THREADING
- 	select LOCK_MM_AND_FIND_VMA
-+	select MMU_GATHER_RCU_TABLE_FREE if MMU && !X2TLB
- 	select MODULES_USE_ELF_RELA
- 	select NEED_SG_DMA_LENGTH
- 	select NO_DMA if !MMU && !DMA_COHERENT
 _
 
 Patches currently in -mm which might be from ljs@kernel.org are
@@ -231,7 +183,6 @@ tools-testing-vma-add-test-to-assert-map_private-dev-zero-is-anon.patch
 tools-testing-selftests-mm-add-map_private-dev-zero-merge-tests.patch
 mm-madvise-swap-in-cowd-map_private-file-mappings-on-madv_willneed.patch
 a.patch
-mm-enable-mmu_gather_rcu_table_free-for-mmu-riscv.patch
 mm-enable-mmu_gather_rcu_table_free-for-mmu-arm.patch
 mm-enable-mmu_gather_rcu_table_free-for-arc-microblaze-xtensa.patch
 mm-enable-mmu_gather_rcu_table_free-for-sparc64.patch
