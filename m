@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D071F4FECC5
-	for <mm-commits@vger.kernel.org>; Fri, 25 Sep 2026 22:22:26 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 04F064FB9D0
+	for <mm-commits@vger.kernel.org>; Fri, 25 Sep 2026 22:22:30 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790374951; cv=none; b=N6zEzPLTDoCuyTBYrv5DnCnozG20yQPgfmW2psNKfDA5SKvTu3kNt+iuouy30LyJ+WKEbp8A2/dVqpwUtY4Bm7+Fe17UuUdkUZeRYaCsO22M7TsgtctI9riHEVSeDvf9s2jWmGg1W5go9K8LI6rIOfNJa3Qvze1RURQKq0NJW8I=
+	t=1790374952; cv=none; b=fChbqAi+ziATRO+QcIUgtnsZmpHphIZepHLTPL8stmYaXOs5mFJvZwG1gA+ny9lZFahif8ULqhDYZs7FUIuVlr3L8ucia53atVkWZbbBN0enUz6m7lQgcv2rOsWPDhE89Jds1VALBCK5wjf03vixSFwXM0uGLuTf2pd4QjoKiW8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1790374951; c=relaxed/simple;
-	bh=HLWzUYZ3mw3vlwo0QFefHIR+NFd8fVEc51MZLnoyYOY=;
-	h=Date:To:From:Subject:Message-Id; b=iKS9TR+0ZFcUN+aKBJAI/+CVAJd1UqmxOr7ZtoXuMZ4OVf2qMd2FOI1nuJRU+EeFeL1bQb8yGP+ihdVYzIWxPlyZvUdijGy64Hef+GCpmNqEzCcE9TMWEhFoiuOiXesXnDZ90fmK73VMyu33GipiVZ9YsgKROx5ysmLuavwrcBI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=JY7FRBxx; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1790374952; c=relaxed/simple;
+	bh=tm55721X1e8wQtxIfXqYf6HvBEM8zs49A62IcfxQ0Ks=;
+	h=Date:To:From:Subject:Message-Id; b=sOg3eznjuM7MNiLWe9PD2t2qkP4gGZlxgnabkNwmk7Re/2ZCeY4vYmfQaHUgb+eqIlvfj/Pzl2MpMfFxCawOeB/8jy0bXn715CKcegaKoRau32bBs6moGZkvi080HsVEUB8BQYXMLNfDimQtO0DDDJBA78K2HTXAm35EoemOm88=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=VV3qeGCV; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="JY7FRBxx"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A5F491F00893;
-	Fri, 25 Sep 2026 22:22:26 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="VV3qeGCV"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id CE43B1F000FF;
+	Fri, 25 Sep 2026 22:22:29 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1790374946;
-	bh=tItD716w9eXjkLBhR09mZyQU3fAfkiPjPVAJgbc072A=;
+	d=linux-foundation.org; s=korg; t=1790374949;
+	bh=zQwP1GmhRAezgMAjhIFGdE6AwdqZ+bzn6BVBIsHgqVs=;
 	h=Date:To:From:Subject;
-	b=JY7FRBxxI33Ly+k5kUcVJpLVmblpPY9Ehcd/oCq3+W8BqF57osg3hszx0vSDJ8S9Y
-	 v4L4Q7SEWMvRXtvNK2P88ZpasX+my/u5LJE3+jMmLgzHNAyM34slu6oCBdy/ZDTKIj
-	 zYWI/XU28ULeAme6qCGPYIxOob0mPrYl6Z88YEj0=
-Date: Fri, 25 Sep 2026 15:22:26 -0700
+	b=VV3qeGCV9gQOMzWQt8U7x+vCFkWvhRslGykYkKI6I/uRArxpnys1noi6pRE9sbtsf
+	 DRt7tm49Q2p2GNHgGpCQxn3/JnBpw1Ftn0TH06a7C1eHw4qBLUzbXs1ELIz12N3vrG
+	 HILS6E4Fe/xFRU4vks7bUcaWWRttQedSya4dE8dA=
+Date: Fri, 25 Sep 2026 15:22:29 -0700
 To: mm-commits@vger.kernel.org,ljs@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [to-be-updated] mm-enable-mmu_gather_rcu_table_free-for-sh-x2.patch removed from -mm tree
-Message-Id: <20260925222226.A5F491F00893@smtp.kernel.org>
+Subject: [to-be-updated] mm-enable-mmu_gather_rcu_table_free-for-sparc32.patch removed from -mm tree
+Message-Id: <20260925222229.CE43B1F000FF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,55 +35,54 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: enable MMU_GATHER_RCU_TABLE_FREE for sh-X2
+     Subject: mm: enable MMU_GATHER_RCU_TABLE_FREE for sparc32
 has been removed from the -mm tree.  Its filename was
-     mm-enable-mmu_gather_rcu_table_free-for-sh-x2.patch
+     mm-enable-mmu_gather_rcu_table_free-for-sparc32.patch
 
 This patch was dropped because an updated version will be issued
 
 ------------------------------------------------------
 From: "Lorenzo Stoakes (ARM)" <ljs@kernel.org>
-Subject: mm: enable MMU_GATHER_RCU_TABLE_FREE for sh-X2
-Date: Tue, 22 Sep 2026 16:35:39 +0100
+Subject: mm: enable MMU_GATHER_RCU_TABLE_FREE for sparc32
+Date: Tue, 22 Sep 2026 16:35:41 +0100
 
-Currently, non-x2 sh specifies CONFIG_MMU_GATHER_RCU_TABLE_FREE allowing
-RCU page table freeing.
+Careful handling is required for sparc32 which implements page tables as
+part of a shared backing page.
 
-sh-X2 is problematic because it utilises slab-allocated PMD page tables,
-and thus tlb_remove_ptdesc() cannot be used in these cases.
+To support this, a custom __tlb_remove_table() function is required, as
+specified by CONFIG_HAVE_ARCH_TLB_REMOVE_TABLE.
 
-All other sh variants are fine as commit e3ecf7c7d082 ("mm: pgtable:
-convert some architectures to use tlb_remove_ptdesc()") already converted
-page table freeing to use tlb_remove_ptdesc(), which does so after an RCU
-grace period when CONFIG_MMU_GATHER_RCU_TABLE_FREE is specified.
+This allows __pte_free_tlb() and __pmd_free_tlb() to specify which page
+table level is being freed, which is transmitted to __tlb_remove_table()
+through setting the lowest bit of the page table to 1 for a PMD and 0 for
+a PTE (the page tables are 256-byte aligned so this is safe to do).
 
-Resolve this issue by firstly specifying CONFIG_HAVE_ARCH_TLB_REMOVE_TABLE
-for sh-X2, so the arch can provide its own __tlb_remove_table()
-implementation (called after the RCU grace period).
+Next, since the page table freeing is done via RCU callback, and thus
+might be executed in softirq context, update the spin locks to IRQ
+save/restore.
 
-Then, convert __pmd_free_tlb() to tag the pointer to the PMD, and have
-__tlb_remove_table() check this tag to determine whether to free via the
-slab or to use pagetable_dtor_free().
+Then, in __tlb_remove_table(), figure out whether to free a PMD page table
+via free_pmd_fast() or a PTE via the newly introduced __pte_free()
+function, using the lower bit encoded in __pte_free_tlb() or
+__pmd_free_tlb() to determine which to call.
 
-This follows the pattern used by sparc64 as implemented in commit
-4a0100f7546f ("sparc64: use RCU page table freeing").
+As part of this change use this spin lock rather than mm->page_table_lock
+for all shared page table exclusion, as RCU freeing means that page tables
+can be freed from soft IRQ context so both don't have an mm and also
+mm->page_table_lock is not IRQ-safe.
 
-Previously __pmd_free_tlb() freed PMD page tables immediately, before any
-TLB flush IPI.  This seems to be a pre-existing bug, which this change
-also resolves.
-
-CONFIG_HAVE_ARCH_TLB_REMOVE_TABLE is only specified for sh-X2, as setting
-it disables CONFIG_PT_RECLAIM and causes __tlb_remove_table_one() to call
-tlb_remove_table_sync_rcu() and synchronize_rcu() in turn, and this is not
-necessary for other sh variants.
+Note that the specification of CONFIG_HAVE_ARCH_TLB_REMOVE_TABLE disables
+CONFIG_PT_RECLAIM for sparc32, which mirrors sparc64.
 
 This forms part of an overall effort to switch every architecture to this
-mode.
+mode, and with it complete, means every architecture now supports
+CONFIG_MMU_GATHER_RCU_TABLE_FREE.
 
-Link: https://lore.kernel.org/20260922-rcu-pagetable-freeing-v4-8-fe1ad1f1e303@kernel.org
+Link: https://lore.kernel.org/20260922-rcu-pagetable-freeing-v4-10-fe1ad1f1e303@kernel.org
 Signed-off-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 Acked-by: Kiryl Shutsemau (Meta) <kas@kernel.org>
+Tested-by: Lance Yang <lance.yang@linux.dev>
 Acked-by: Lance Yang <lance.yang@linux.dev>
 Cc: David Hildenbrand <david@kernel.org>
 Cc: Zi Yan <ziy@nvidia.com>
@@ -161,72 +160,181 @@ Cc: Hugh Dickins <hughd@google.com>
 Cc: Qi Zheng <qi.zheng@linux.dev>
 ---
 
- arch/sh/Kconfig               |    3 ++-
- arch/sh/include/asm/pgalloc.h |    6 +++++-
- arch/sh/mm/pgtable.c          |   20 ++++++++++++++++++++
- 3 files changed, 27 insertions(+), 2 deletions(-)
+ arch/sparc/Kconfig                  |    2 +
+ arch/sparc/include/asm/pgalloc_32.h |    7 ++++-
+ arch/sparc/lib/bitext.c             |   14 +++++------
+ arch/sparc/mm/srmmu.c               |   32 +++++++++++++++++++++-----
+ 4 files changed, 41 insertions(+), 14 deletions(-)
 
---- a/arch/sh/include/asm/pgalloc.h~mm-enable-mmu_gather_rcu_table_free-for-sh-x2
-+++ a/arch/sh/include/asm/pgalloc.h
-@@ -17,7 +17,11 @@ extern void pgd_free(struct mm_struct *m
- extern void pud_populate(struct mm_struct *mm, pud_t *pudp, pmd_t *pmd);
- extern pmd_t *pmd_alloc_one(struct mm_struct *mm, unsigned long address);
- extern void pmd_free(struct mm_struct *mm, pmd_t *pmd);
--#define __pmd_free_tlb(tlb, pmdp, addr)		pmd_free((tlb)->mm, (pmdp))
-+extern void __tlb_remove_table(void *table);
-+
-+/* PMDs are slab-allocated, tag so they are freed correctly. */
-+#define __pmd_free_tlb(tlb, pmdp, addr)					\
-+	tlb_remove_table((tlb), (void *)((unsigned long)(pmdp) | 1))
- #endif
- 
- static inline void pmd_populate_kernel(struct mm_struct *mm, pmd_t *pmd,
---- a/arch/sh/Kconfig~mm-enable-mmu_gather_rcu_table_free-for-sh-x2
-+++ a/arch/sh/Kconfig
-@@ -33,6 +33,7 @@ config SUPERH
- 	select HAVE_ARCH_AUDITSYSCALL
- 	select HAVE_ARCH_KGDB
- 	select HAVE_ARCH_SECCOMP_FILTER
-+	select HAVE_ARCH_TLB_REMOVE_TABLE if X2TLB
- 	select HAVE_ARCH_TRACEHOOK
- 	select HAVE_DEBUG_BUGVERBOSE
- 	select HAVE_DEBUG_KMEMLEAK
-@@ -61,7 +62,7 @@ config SUPERH
- 	select HAVE_SYSCALL_TRACEPOINTS
- 	select IRQ_FORCED_THREADING
- 	select LOCK_MM_AND_FIND_VMA
--	select MMU_GATHER_RCU_TABLE_FREE if MMU && !X2TLB
-+	select MMU_GATHER_RCU_TABLE_FREE if MMU
- 	select MODULES_USE_ELF_RELA
- 	select NEED_SG_DMA_LENGTH
- 	select NO_DMA if !MMU && !DMA_COHERENT
---- a/arch/sh/mm/pgtable.c~mm-enable-mmu_gather_rcu_table_free-for-sh-x2
-+++ a/arch/sh/mm/pgtable.c
-@@ -56,4 +56,24 @@ void pmd_free(struct mm_struct *mm, pmd_
- {
- 	kmem_cache_free(pmd_cachep, pmd);
+--- a/arch/sparc/include/asm/pgalloc_32.h~mm-enable-mmu_gather_rcu_table_free-for-sparc32
++++ a/arch/sparc/include/asm/pgalloc_32.h
+@@ -48,7 +48,9 @@ static inline void free_pmd_fast(pmd_t *
  }
+ 
+ #define pmd_free(mm, pmd)		free_pmd_fast(pmd)
+-#define __pmd_free_tlb(tlb, pmd, addr)	pmd_free((tlb)->mm, pmd)
 +
-+static void __tlb_remove_table_slab(void *table)
-+{
-+	kmem_cache_free(pmd_cachep, table);
-+}
++#define __pmd_free_tlb(tlb, pmd, addr)					\
++	tlb_remove_table((tlb), (void *)((unsigned long)(pmd) | 1UL))
+ 
+ #define pmd_populate(mm, pmd, pte)	pmd_set(pmd, pte)
+ 
+@@ -72,6 +74,7 @@ static inline void free_pte_fast(pte_t *
+ #define pte_free_kernel(mm, pte)	free_pte_fast(pte)
+ 
+ void pte_free(struct mm_struct * mm, pgtable_t pte);
+-#define __pte_free_tlb(tlb, pte, addr)	pte_free((tlb)->mm, pte)
++void __tlb_remove_table(void *table);
++#define __pte_free_tlb(tlb, pte, addr)	tlb_remove_table((tlb), (void *)(pte))
+ 
+ #endif /* _SPARC_PGALLOC_H */
+--- a/arch/sparc/Kconfig~mm-enable-mmu_gather_rcu_table_free-for-sparc32
++++ a/arch/sparc/Kconfig
+@@ -64,6 +64,8 @@ config SPARC32
+ 	select HAVE_UID16
+ 	select HAVE_PAGE_SIZE_4KB
+ 	select LOCK_MM_AND_FIND_VMA
++	select MMU_GATHER_RCU_TABLE_FREE
++	select HAVE_ARCH_TLB_REMOVE_TABLE
+ 	select OLD_SIGACTION
+ 	select ZONE_DMA
+ 
+--- a/arch/sparc/lib/bitext.c~mm-enable-mmu_gather_rcu_table_free-for-sparc32
++++ a/arch/sparc/lib/bitext.c
+@@ -22,8 +22,6 @@
+  * @align: requested alignment
+  *
+  * Returns offset in the map or -1 if out of space.
+- *
+- * Not safe to call from an interrupt (uses spin_lock).
+  */
+ int bit_map_string_get(struct bit_map *t, int len, int align)
+ {
+@@ -31,6 +29,7 @@ int bit_map_string_get(struct bit_map *t
+ 	int off_new;
+ 	int align1;
+ 	int i, color;
++	unsigned long flags;
+ 
+ 	if (t->num_colors) {
+ 		/* align is overloaded to be the page color */
+@@ -50,7 +49,7 @@ int bit_map_string_get(struct bit_map *t
+ 		BUG();
+ 	color &= align1;
+ 
+-	spin_lock(&t->lock);
++	spin_lock_irqsave(&t->lock, flags);
+ 	if (len < t->last_size)
+ 		offset = t->first_free;
+ 	else
+@@ -64,7 +63,7 @@ int bit_map_string_get(struct bit_map *t
+ 		if (offset >= t->size)
+ 			offset = 0;
+ 		if (count + len > t->size) {
+-			spin_unlock(&t->lock);
++			spin_unlock_irqrestore(&t->lock, flags);
+ /* P3 */ printk(KERN_ERR
+   "bitmap out: size %d used %d off %d len %d align %d count %d\n",
+   t->size, t->used, offset, len, align, count);
+@@ -90,7 +89,7 @@ int bit_map_string_get(struct bit_map *t
+ 					t->last_off = 0;
+ 				t->used += len;
+ 				t->last_size = len;
+-				spin_unlock(&t->lock);
++				spin_unlock_irqrestore(&t->lock, flags);
+ 				return offset;
+ 			}
+ 		}
+@@ -103,10 +102,11 @@ int bit_map_string_get(struct bit_map *t
+ void bit_map_clear(struct bit_map *t, int offset, int len)
+ {
+ 	int i;
++	unsigned long flags;
+ 
+ 	if (t->used < len)
+ 		BUG();		/* Much too late to do any good, but alas... */
+-	spin_lock(&t->lock);
++	spin_lock_irqsave(&t->lock, flags);
+ 	for (i = 0; i < len; i++) {
+ 		if (test_bit(offset + i, t->map) == 0)
+ 			BUG();
+@@ -115,7 +115,7 @@ void bit_map_clear(struct bit_map *t, in
+ 	if (offset < t->first_free)
+ 		t->first_free = offset;
+ 	t->used -= len;
+-	spin_unlock(&t->lock);
++	spin_unlock_irqrestore(&t->lock, flags);
+ }
+ 
+ void bit_map_init(struct bit_map *t, unsigned long *map, int size)
+--- a/arch/sparc/mm/srmmu.c~mm-enable-mmu_gather_rcu_table_free-for-sparc32
++++ a/arch/sparc/mm/srmmu.c
+@@ -340,38 +340,60 @@ pgd_t *get_pgd_fast(void)
+  * Alignments up to the page size are the same for physical and virtual
+  * addresses of the nocache area.
+  */
 +
-+static void __tlb_remove_table_pgtable(void *table)
++static DEFINE_SPINLOCK(pte_page_lock);
++
+ pgtable_t pte_alloc_one(struct mm_struct *mm)
+ {
++	unsigned long flags;
+ 	pte_t *ptep;
+ 	struct page *page;
+ 
+ 	if (!(ptep = pte_alloc_one_kernel(mm)))
+ 		return NULL;
+ 	page = pfn_to_page(__nocache_pa((unsigned long)ptep) >> PAGE_SHIFT);
+-	spin_lock(&mm->page_table_lock);
++	spin_lock_irqsave(&pte_page_lock, flags);
+ 	if (page_ref_inc_return(page) == 2 &&
+ 			!pagetable_pte_ctor(mm, page_ptdesc(page))) {
+ 		page_ref_dec(page);
+ 		ptep = NULL;
+ 	}
+-	spin_unlock(&mm->page_table_lock);
++	spin_unlock_irqrestore(&pte_page_lock, flags);
+ 
+ 	return ptep;
+ }
+ 
+-void pte_free(struct mm_struct *mm, pgtable_t ptep)
++static void __pte_free(pgtable_t ptep)
+ {
+ 	struct page *page;
++	unsigned long flags;
+ 
+ 	page = pfn_to_page(__nocache_pa((unsigned long)ptep) >> PAGE_SHIFT);
+-	spin_lock(&mm->page_table_lock);
++	spin_lock_irqsave(&pte_page_lock, flags);
+ 	if (page_ref_dec_return(page) == 1)
+ 		pagetable_dtor(page_ptdesc(page));
+-	spin_unlock(&mm->page_table_lock);
++	spin_unlock_irqrestore(&pte_page_lock, flags);
+ 
+ 	srmmu_free_nocache(ptep, SRMMU_PTE_TABLE_SIZE);
+ }
+ 
++void pte_free(struct mm_struct *mm, pgtable_t ptep)
 +{
-+	pagetable_dtor_free(table);
++	__pte_free(ptep);
 +}
 +
 +void __tlb_remove_table(void *table)
 +{
-+	const unsigned long addr = (unsigned long)table;
++	const unsigned long encoded = (unsigned long)table;
++	const unsigned long addr = encoded & ~1UL;
++	const bool is_pmd = encoded & 1;
 +
-+	if (addr & 1)
-+		__tlb_remove_table_slab((void *)(addr & ~1UL));
++	if (is_pmd)
++		free_pmd_fast((pmd_t *)addr);
 +	else
-+		__tlb_remove_table_pgtable(table);
++		__pte_free((pgtable_t)addr);
 +}
- #endif /* PAGETABLE_LEVELS > 2 */
++
+ /* context handling - a dynamically sized pool is used */
+ #define NO_CONTEXT	-1
+ 
 _
 
 Patches currently in -mm which might be from ljs@kernel.org are
@@ -244,8 +352,6 @@ tools-testing-vma-add-test-to-assert-map_private-dev-zero-is-anon.patch
 tools-testing-selftests-mm-add-map_private-dev-zero-merge-tests.patch
 mm-madvise-swap-in-cowd-map_private-file-mappings-on-madv_willneed.patch
 a.patch
-mm-enable-mmu_gather_rcu_table_free-for-m68k-motorola.patch
-mm-enable-mmu_gather_rcu_table_free-for-sparc32.patch
 mm-make-userland-page-table-freeing-rcu-safe.patch
 mm-change-the-contract-for-free_pgtables-update-docs.patch
 mm-vma-fix-mmap_prepare-file-handling-remove-file_doesnt_need_get.patch
