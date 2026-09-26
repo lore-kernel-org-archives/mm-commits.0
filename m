@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 550E133ADAE
-	for <mm-commits@vger.kernel.org>; Sat, 26 Sep 2026 06:15:52 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CA72A38DC72
+	for <mm-commits@vger.kernel.org>; Sat, 26 Sep 2026 06:31:57 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790403353; cv=none; b=k/uiFlvjkjLh1clHMRW74YqzoH7APGpFoyAH+SBaXMQ99DEuno/0TeTxrxx+fLEHfXlzQ57zoW1H7PS4Tjx/Z8SecoqYKOq0dQF5+RffpfX3en10x26NI9y8Pf0pE75rrJMjezHjTV8XE3nQ5CRhp8V3LMLqle9WJEkjSzwewhM=
+	t=1790404320; cv=none; b=cUTuIZm7jQpd0tPklH6O3H1xfPn1ufxRN5/vc+ETFOf2ZTS/h3OdJuOqA8qmplNvLQmLpPms3zTP+m1B6dw0zKGlV414/ni0vVomBJC6ksT5UhMr5hO15IT+/pZAwRIv7ivR92JjqYhKRdcN+whaAeCTiQYQgGS6vvEBh8B34uQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1790403353; c=relaxed/simple;
-	bh=qIUre8copXSHgNCjifrOfAYDsdv05Yg24Ckk5gOQUDc=;
-	h=Date:To:From:Subject:Message-Id; b=QZjQoOl7w6TSwLj1zCDOH+d9tDo4QyrbjzPJQytauTLxlVKJI7vqvtLERA8ZId8ZGmNEBiBikSzwxDuqYs5O9k4LCficX5qWkupD3uO5FAdbKNEwb/IRJwZn01MKnP+4wd2IgmUEMtt2afXqn/qLTfgsQHVq81by7DN2FVYEkLM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=kmkjVnqo; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1790404320; c=relaxed/simple;
+	bh=hNhW88o+F8PRtFFchopFm8ENx79v515HWBvKZtXlBm4=;
+	h=Date:To:From:Subject:Message-Id; b=DvUBWNvnTDXSE+C+7UJOgjGFF4tuRKeb8vVk+PXoCqs4qpR4PsubzecW5aLx+E6OCxX/hot85ZN9+pXwnp1OvHCkOtNbcfLJbOwSTFTSpZ7CDdeNHFuQYhzl5yGu/PPscS3LTb3no69E00hsN5yvndMTCDXta6C0b2VhJRDfzHQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=k9HVTlHu; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="kmkjVnqo"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id DBADC1F000FF;
-	Sat, 26 Sep 2026 06:15:51 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="k9HVTlHu"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 41FF61F000FF;
+	Sat, 26 Sep 2026 06:31:57 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1790403352;
-	bh=QeRAb51pUd2Wq/X4zT23kQx7DZ1NFtF62pAP3Y0c37o=;
+	d=linux-foundation.org; s=korg; t=1790404317;
+	bh=TMm4DR9X00DVTZcNLlavpME9NT50rihusZlUmh2xnls=;
 	h=Date:To:From:Subject;
-	b=kmkjVnqonGFA9AvIBPJ1hUEL/T9avQ2xers7h93jOx1p1eU508atHPKSfZuncabl+
-	 Hb3COCJO9Vnx1KFedpEDkbOkKepg1gXPdaCVMptTnyCbbM3fFM3qRpWQgxv0JmcW+D
-	 JISo1eaB2a+Wymtyyrn5M7AQdqSBFKxwd5EKvbgg=
-Date: Fri, 25 Sep 2026 23:15:51 -0700
-To: mm-commits@vger.kernel.org,vishal.l.verma@intel.com,vbabka@kernel.org,surenb@google.com,rppt@kernel.org,muchun.song@linux.dev,mhocko@suse.com,ljs@kernel.org,liam@infradead.org,iweiny@kernel.org,david@kernel.org,dave.jiang@intel.com,alison.schofield@intel.com,chengkaitao@kylinos.cn,akpm@linux-foundation.org
+	b=k9HVTlHusq+gI+sBsZ/9FI+r+971O4o0dGVvh6QyTMAhDlK+79MMMj8eYqC8oCCUy
+	 TiB/H+MWTF1aukMm6MqS7/qEeADxlGXgoSsQioBbw+NKh8RExHU1yVW7MfDRoRtEn+
+	 pFgijWp3CW1RKXHSFfeSsseaC9s3DddoYtC4GO+0=
+Date: Fri, 25 Sep 2026 23:31:56 -0700
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,vbabka@kernel.org,surenb@google.com,shuah@kernel.org,rppt@kernel.org,mhocko@suse.com,ljs@kernel.org,liam@infradead.org,david@kernel.org,jaeyeon.lee.dev@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [folded-merged] nvdimm-pmem-remove-test_and_clear_pmem_poison.patch removed from -mm tree
-Message-Id: <20260926061551.DBADC1F000FF@smtp.kernel.org>
+Subject: [to-be-updated] selftests-mm-skip-khugepaged-file-tests-if-mkfsxfs-is-unavailable.patch removed from -mm tree
+Message-Id: <20260926063157.41FF61F000FF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,91 +35,60 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: nvdimm/pmem: remove test_and_clear_pmem_poison()
+     Subject: selftests/mm: skip khugepaged file tests if mkfs.xfs is unavailable
 has been removed from the -mm tree.  Its filename was
-     nvdimm-pmem-remove-test_and_clear_pmem_poison.patch
+     selftests-mm-skip-khugepaged-file-tests-if-mkfsxfs-is-unavailable.patch
 
-This patch was dropped because it was folded into mm-page-flags-define-hwpoison-test-and-change-helpers-unconditionally.patch
+This patch was dropped because an updated version will be issued
 
 ------------------------------------------------------
-From: Kaitao Cheng <chengkaitao@kylinos.cn>
-Subject: nvdimm/pmem: remove test_and_clear_pmem_poison()
-Date: Thu, 3 Sep 2026 13:35:35 +0800
+From: Jaeyeon Lee <jaeyeon.lee.dev@gmail.com>
+Subject: selftests/mm: skip khugepaged file tests if mkfs.xfs is unavailable
+Date: Fri, 11 Sep 2026 14:45:17 +0200
 
-TestClearPageHWPoison() is now defined regardless of whether
-CONFIG_MEMORY_FAILURE is enabled, returning false when memory failure
-handling is unavailable.
+The XFS setup for ./khugepaged all:file checks that the kernel supports
+XFS but not that mkfs.xfs is installed.  When CONFIG_XFS_FS=y and xfsprogs
+is missing, mkfs.xfs and mount both fail, but
+SPLIT_HUGE_PAGE_TEST_XFS_PATH is assigned from mktemp -d and stays set. 
+The test then runs against plain tmpfs and six subtests fail.
 
-The test_and_clear_pmem_poison() wrapper duplicates this configuration
-handling and has no other pmem-specific behavior.
+The script already has a skip path for this test, but it never runs
+because the path variable is always set.  Check that mkfs.xfs exists
+before attempting the XFS setup.
 
-Call TestClearPageHWPoison() directly and remove the redundant wrapper. 
-This also removes the need to include page-flags.h from pmem.h.
-
-No functional change is intended.
-
-Link: https://lore.kernel.org/20260903053535.17611-3-kaitao.cheng@linux.dev
-Signed-off-by: Kaitao Cheng <chengkaitao@kylinos.cn>
+Link: https://lore.kernel.org/20260911124517.63714-1-jaeyeon.lee.dev@gmail.com
+Signed-off-by: Jaeyeon Lee <jaeyeon.lee.dev@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Cc: Alison Schofield <alison.schofield@intel.com>
-Cc: Dave Jiang <dave.jiang@intel.com>
-Cc: David Hildenbrand <david@kernel.org>
+Reviewed-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
+Reviewed-by: Zi Yan <ziy@nvidia.com>
+Acked-by: David Hildenbrand (Arm) <david@kernel.org>
+Assisted-by: LLM
 Cc: Liam R. Howlett <liam@infradead.org>
-Cc: Lorenzo Stoakes <ljs@kernel.org>
 Cc: Michal Hocko <mhocko@suse.com>
 Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Muchun Song <muchun.song@linux.dev>
+Cc: Shuah Khan <shuah@kernel.org>
 Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Vishal Verma <vishal.l.verma@intel.com>
 Cc: Vlastimil Babka <vbabka@kernel.org>
-Cc: Ira Weiny <iweiny@kernel.org>
 ---
 
- drivers/nvdimm/pmem.c |    2 +-
- drivers/nvdimm/pmem.h |   12 ------------
- 2 files changed, 1 insertion(+), 13 deletions(-)
+ tools/testing/selftests/mm/run_vmtests.sh |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
---- a/drivers/nvdimm/pmem.c~nvdimm-pmem-remove-test_and_clear_pmem_poison
-+++ a/drivers/nvdimm/pmem.c
-@@ -80,7 +80,7 @@ static void pmem_mkpage_present(struct p
- 		 * here since we're in the driver I/O path and
- 		 * outstanding I/O requests pin the dev_pagemap.
- 		 */
--		if (test_and_clear_pmem_poison(page))
-+		if (TestClearPageHWPoison(page))
- 			clear_mce_nospec(pfn);
- 	}
- }
---- a/drivers/nvdimm/pmem.h~nvdimm-pmem-remove-test_and_clear_pmem_poison
-+++ a/drivers/nvdimm/pmem.h
-@@ -1,7 +1,6 @@
- /* SPDX-License-Identifier: GPL-2.0 */
- #ifndef __NVDIMM_PMEM_H__
- #define __NVDIMM_PMEM_H__
--#include <linux/page-flags.h>
- #include <linux/badblocks.h>
- #include <linux/memremap.h>
- #include <linux/types.h>
-@@ -31,15 +30,4 @@ long __pmem_direct_access(struct pmem_de
- 		long nr_pages, enum dax_access_mode mode, void **kaddr,
- 		unsigned long *pfn);
- 
--#ifdef CONFIG_MEMORY_FAILURE
--static inline bool test_and_clear_pmem_poison(struct page *page)
--{
--	return TestClearPageHWPoison(page);
--}
--#else
--static inline bool test_and_clear_pmem_poison(struct page *page)
--{
--	return false;
--}
--#endif
- #endif /* __NVDIMM_PMEM_H__ */
+--- a/tools/testing/selftests/mm/run_vmtests.sh~selftests-mm-skip-khugepaged-file-tests-if-mkfsxfs-is-unavailable
++++ a/tools/testing/selftests/mm/run_vmtests.sh
+@@ -433,7 +433,8 @@ CATEGORY="thp" run_test ./khugepaged -c
+ # Try to create XFS if not provided
+ if [ -z "${SPLIT_HUGE_PAGE_TEST_XFS_PATH}" ]; then
+     if test_selected "thp"; then
+-	if grep xfs /proc/filesystems &>/dev/null; then
++	if grep xfs /proc/filesystems &>/dev/null &&
++	   command -v mkfs.xfs &>/dev/null; then
+ 	    XFS_IMG=$(mktemp /tmp/xfs_img_XXXXXX)
+ 	    SPLIT_HUGE_PAGE_TEST_XFS_PATH=$(mktemp -d /tmp/xfs_dir_XXXXXX)
+ 	    truncate -s 314572800 ${XFS_IMG}
 _
 
-Patches currently in -mm which might be from chengkaitao@kylinos.cn are
+Patches currently in -mm which might be from jaeyeon.lee.dev@gmail.com are
 
-mm-hugetlb-use-hugetlb_vmemmap_optimizable-in-boolean-contexts.patch
-mm-page-flags-define-hwpoison-test-and-change-helpers-unconditionally.patch
+mm-damon-tests-use-scoped_guard-for-damon_test_ops_registration.patch
 
