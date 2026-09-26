@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4D7563A901C;
-	Sat, 26 Sep 2026 20:55:40 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4C85239C637;
+	Sat, 26 Sep 2026 20:55:42 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790456142; cv=none; b=rJ/KvXi/5mgUDRdBMaUTmu+1bAgJFFnFSKP90ZeQUfta5vdzvfnYAk3cB//e5g/bb/bhtkQyVbGvHENXSmi8TpXcBpcM6EQTSlRdfQE82fw8WW9P0hCrj+D4YMeLDgxj/+1jC4d+MYgJe9ZF5+dYy0ntiP5jydK4eEJuP3ApQO8=
+	t=1790456143; cv=none; b=O6Ivng9FEgurFz4hiH+my5oGoDXydfZFHbHKljyTwRo/f5/2G6X2zn2EKJKWnIpz/Z0+/Ag/OpyGePg7M2P2JN0FMZI+JbKQpA/pfX4xkGc/77nBI5AB8S17sj3MW/w11I3raE4zg98h7rq1hMdLkWkRMXH+szCxeFlSlfTIy+A=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1790456142; c=relaxed/simple;
-	bh=Fr6DsRC3CpRbHhnK9SYJXgQ0Qr3kBZ/eEwwtgxBnQv8=;
-	h=Date:To:From:Subject:Message-Id; b=fcpj9wF3MKlo9zaTVYKAqA4QOqYjFLwtwwqJF8m2iwytaqRa05QTEV8qY3Mg8/pvjQsm6mqm/66ksPlPmTdA06dwAa+cazuicLwlUI5uuIR68cfTgSrIWlCDAS6PPN7s6gFmUQhO8ueAwu7dcDzwZeLzJQIw2n8wZ+K2FFnlayQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=jPNE4s8B; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1790456143; c=relaxed/simple;
+	bh=+ZEdnlQMAxgacleUqWOqohRIdAulJ7pCpBmeq4DlDlw=;
+	h=Date:To:From:Subject:Message-Id; b=YnJ/SLQY2tjXlfyLtT2dHiixOWlhBJrdgW+Yrt19S4nTuhbPX4efPQxOE6+OoSkDYCkSU5REV+YD7RggmMmIZE76NTODuM3ZvwFY5WmYM2RPyNjQwvFNBSYf++T/iJHlWjKML99E/i18ai2YakMPF7qXeYU7OYV9IsKY85Y6n2g=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=XCNaA/p/; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="jPNE4s8B"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id BFC971F00893;
-	Sat, 26 Sep 2026 20:55:40 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="XCNaA/p/"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id EBAC41F000FF;
+	Sat, 26 Sep 2026 20:55:41 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1790456140;
-	bh=NNsEu/C6QR5E3HcKLC2FXhC0e5oiGNOrvrrw6R0nm9I=;
+	d=linux-foundation.org; s=korg; t=1790456142;
+	bh=8RpRseC1jc6n99D3muS7f2IpAe9tMmxNhDOLWDXLtq0=;
 	h=Date:To:From:Subject;
-	b=jPNE4s8B6l268UZ6NhU/CBsi0KNaaKHJR5ybdIVPIbWe55u74vj2SCD31t8m2pcQW
-	 zuZWc3JmqxV4iLEu9P3Q5LsI+Rhcmct07j4APt+FyToTERUcovQUEt1lal7ZF2X0kX
-	 f1wFyPWChociOa+NIcHbnOov/5KYOxf9ATuA9aRI=
-Date: Sat, 26 Sep 2026 13:55:40 -0700
-To: mm-commits@vger.kernel.org,stable@vger.kernel.org,kunwu.chan@gmail.com,sj@kernel.org,akpm@linux-foundation.org
+	b=XCNaA/p/qDjnyp+I4nLhQYiKr/DUF2rLHKeMJhpRLmAyGlLu6zwLB0vK1oO5lDqwJ
+	 j1JEBLUmiO4t+I/n+2ag/Oj0LhGeZy4sFgiPudYs9i0pffmU+nbGxP38j9AzKy9Lzd
+	 Uu2i0IaTq/9YLbE3z/fh/Rp2AV9cuwY2Vjl7LvT8=
+Date: Sat, 26 Sep 2026 13:55:41 -0700
+To: mm-commits@vger.kernel.org,vincenzo.frascino@arm.com,stable@vger.kernel.org,ljs@kernel.org,huangshaobo3@xiaomi.com,glider@google.com,dvyukov@google.com,david@kernel.org,andreyknvl@gmail.com,ryabinin.a.a@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] mm-damon-core-dont-skip-damos_adjust_quota-while-esz-is-not-zero.patch removed from -mm tree
-Message-Id: <20260926205540.BFC971F00893@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] kasan-unpoison-task-stack-below-watermark-only-in-generic-mode.patch removed from -mm tree
+Message-Id: <20260926205541.EBAC41F000FF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,182 +35,107 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/damon/core: don't skip damos_adjust_quota() while esz is not zero
+     Subject: kasan: unpoison task stack below watermark only in generic mode
 has been removed from the -mm tree.  Its filename was
-     mm-damon-core-dont-skip-damos_adjust_quota-while-esz-is-not-zero.patch
+     kasan-unpoison-task-stack-below-watermark-only-in-generic-mode.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: SJ Park <sj@kernel.org>
-Subject: mm/damon/core: don't skip damos_adjust_quota() while esz is not zero
-Date: Wed, 16 Sep 2026 06:50:19 -0700
+From: Andrey Ryabinin <ryabinin.a.a@gmail.com>
+Subject: kasan: unpoison task stack below watermark only in generic mode
+Date: Wed, 16 Sep 2026 19:51:13 +0200
 
-DAMOS could unexpectedly stop working when a user disables quota using the
-online parameters commit feature.  Fix it by correcting a wrong quota
-unset check in damos_adjust_quota().
+CPU resume and BPF exception handling can discard stack frames without
+running their compiler-generated epilogues.  Generic KASAN needs
+kasan_unpoison_task_stack_below() to clear the redzones left behind by
+those frames before the stack is reused.
 
-DAMON users could disable all quotas by unsetting time and size quotas,
-and removing all quota goals.  The intention of disabling quotas would be
-making DAMOS run at full speed.  When such quota disabled setup is
-detected, damos_adjust_quota() skips all its work.  The skipped works
-include effective size quota (damos_quota->esz) updates and charged quota
-amount (damos_quota->charged_sz) resets.  The intention is to avoid doing
-unnecessary work when quotas are disabled.
+CONFIG_KASAN_STACK also enables this helper for SW_TAGS.  The helper
+derives the stack base from an untagged stack pointer, so kasan_unpoison()
+writes KASAN_TAG_KERNEL (0xff) into the shadow for [base, watermark).  For
+a vmapped task stack, vm_area->addr still carries the original random
+allocation tag.  This creates a tag mismatch at the stack base even if
+that memory has never held an instrumented stack object.
 
-However, users could do the setup while effective size quota is non-zero,
-by doing the disabling with the online DAMON parameters commit feature. 
-In this case, because the effective size quota exists, DAMOS will keep
-working with the quota until it is fully charged.  After the effective
-quota is fully charged, the charged quota amount (damos_quota->charged_sz)
-cannot be reset because damos_adjust_quota() skips it.  Then, DAMOS stops
-working until the quota is newly set or DAMON is entirely restarted.
+When the task exits and its stack is not cached, thread_stack_free_rcu()
+passes vm_area->addr to vfree().  In RCU callback context this reaches
+vfree_atomic(), whose llist_add() writes to the allocation base through
+the tagged pointer and triggers a false KASAN invalid-access report:
 
-The problem happens because damos_adjust_quota() assumes the user setup
-for disabling quota immediately disabled it.  In reality, the quota is
-still working until the effective size quota is also updated to zero. 
-Other logic for catching that uses damos_quota_is_set(), which understands
-the fact and therefore checks the effective size quota in addition to the
-user setup.  Fix the issue by using damos_quota_is_set() in
-damos_adjust_quota() to determine if its works should be skipped.
+  BUG: KASAN: invalid-access in vfree_atomic+0x90/0x150
+  Write of size 8 at addr c2ffffc0a8f70000 by task rcuop/7/75
+  Pointer tag: [c2], memory tag: [ff]
+  Call trace:
+   __hwasan_store8_noabort+0xe8/0xf8
+   vfree_atomic+0x90/0x150
+   vfree+0x220/0x298
+   thread_stack_free_rcu+0x3c/0x4c
+   rcu_do_batch+0x308/0xaf0
+   rcu_nocb_cb_kthread+0x33c/0x708
 
-The user impact is a non-deterministic and unexpected DAMOS stop behavior.
-That is, users would disable quotas using the online parameters commit
-feature, expecting DAMOS will run at full speed.  However, depending on
-the timing, the setup can be updated while the effective size quota is
-non-zero.  Due to the above mentioned internal mechanism, DAMOS stops
-working instead of running at full speed.  It is unexpected behavior.  It
-is also non-deterministic because sometimes the setup is done when the
-effective size quota is zero, depending on the timing.  It doesn't cause
-critical issues like crashes or leaks.  Users can simply set a reasonable
-quota again, or restart DAMON.  But definitely it is an unexpected and
-non-deterministic behavior that makes it difficult to reliably use.  Also
-investigating the root cause of the behavior would be quite difficult.
+The deferred-free path started using the tagged vm_area->addr in commit
+449e0b4ed5a1 ("fork: clean-up naming of vm_stack/vm_struct variables in
+vmap stacks code").  Previously it freed the untagged pointer derived from
+tsk->stack, so the write was never tag-checked.
 
-Link: https://lore.kernel.org/20260916135020.86483-1-sj@kernel.org
-Fixes: da87878010e5 ("mm/damon/sysfs: support online inputs update")
-Signed-off-by: SJ Park <sj@kernel.org>
+SW_TAGS does not need the blanket shadow reset to make subsequent stack
+accesses valid: untagged kernel pointers have the match-all 0xff tag, and
+the compiler initializes the shadow tags of instrumented stack objects
+before use.
+
+Return early unless CONFIG_KASAN_GENERIC is enabled.  Keep the mode check
+in the common helper so it covers both resume and bpf_throw().
+
+Link: https://lore.kernel.org/20260916175113.1327454-1-ryabinin.a.a@gmail.com
+Fixes: 449e0b4ed5a1 ("fork: clean-up naming of vm_stack/vm_struct variables in vmap stacks code")
+Signed-off-by: Andrey Ryabinin <ryabinin.a.a@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Reviewed-by: Kunwu Chan <kunwu.chan@gmail.com>
-Cc: <stable@vger.kernel.org> # 5.19.x
+Reported-by: Shaobo Huang <huangshaobo3@xiaomi.com>
+Closes: https://lore.kernel.org/all/20260806123020.90869-1-huangshaobo3@xiaomi.com/
+Assisted-by: LLM
+Cc: Alexander Potapenko <glider@google.com>
+Cc: Andrey Konovalov <andreyknvl@gmail.com>
+Cc: David Hildenbrand <david@kernel.org>
+Cc: Dmitry Vyukov <dvyukov@google.com>
+Cc: Lorenzo Stoakes <ljs@kernel.org>
+Cc: Vincenzo Frascino <vincenzo.frascino@arm.com>
+Cc: <stable@vger.kernel.org>
 ---
 
- mm/damon/core.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/kasan/common.c |   13 ++++++++++++-
+ 1 file changed, 12 insertions(+), 1 deletion(-)
 
---- a/mm/damon/core.c~mm-damon-core-dont-skip-damos_adjust_quota-while-esz-is-not-zero
-+++ a/mm/damon/core.c
-@@ -3147,7 +3147,7 @@ static void damos_adjust_quota(struct da
- 	unsigned long cumulated_sz, cached_esz;
- 	unsigned int score, max_score = 0;
+--- a/mm/kasan/common.c~kasan-unpoison-task-stack-below-watermark-only-in-generic-mode
++++ a/mm/kasan/common.c
+@@ -114,12 +114,23 @@ void kasan_unpoison_task_stack(struct ta
+ /* Unpoison the stack for the current task beyond a watermark sp value. */
+ asmlinkage void kasan_unpoison_task_stack_below(const void *watermark)
+ {
++	void *base;
++
++	/*
++	 * Only the generic mode needs this. In the tag-based mode the
++	 * compiler fully initializes the shadow of stack variables on
++	 * function entry, so stale tags left below the watermark are
++	 * harmless.
++	 */
++	if (!IS_ENABLED(CONFIG_KASAN_GENERIC))
++		return;
++
+ 	/*
+ 	 * Calculate the task stack base address.  Avoid using 'current'
+ 	 * because this function is called by early resume code which hasn't
+ 	 * yet set up the percpu register (%gs).
+ 	 */
+-	void *base = (void *)((unsigned long)watermark & ~(THREAD_SIZE - 1));
++	base = (void *)((unsigned long)watermark & ~(THREAD_SIZE - 1));
  
--	if (!quota->ms && !quota->sz && list_empty(&quota->goals))
-+	if (!damos_quota_is_set(quota))
- 		return;
- 
- 	/* First charge window */
+ 	kasan_unpoison(base, watermark - base, false);
+ }
 _
 
-Patches currently in -mm which might be from sj@kernel.org are
+Patches currently in -mm which might be from ryabinin.a.a@gmail.com are
 
-mm-damon-core-skip-applying-scheme-if-region-split-for-quota-fails.patch
-mm-damon-paddr-respect-folio-end-for-damos_stat.patch
-mm-damon-paddr-respect-folio-end-for-damos-actions-except-stat.patch
-mm-damon-vaddr-respect-folio-end-for-damos_stat.patch
-mm-damon-vaddr-respect-folio-end-for-damos_migrate_hotcold.patch
-mm-damon-core-handle-extreme-memory-state-in-damon_get_node_mem_bp.patch
-mm-damon-core-handle-extreme-memory-state-in-get_node_memcg_used_bp.patch
-mm-damon-core-handle-extreme-memory-state-in-get_in_active_mem_bp.patch
-mm-damon-core-introduce-damon_filter_type_pgidle_unset.patch
-mm-damon-paddr-support-pgidle_unset-probe-filter-type.patch
-mm-damon-sysfs-support-pgidle_unset-probe-filter-type.patch
-docs-mm-damon-design-document-pgidle_unset-probe-filter-type.patch
-mm-damon-core-introduce-damon_prep-struct.patch
-mm-damon-core-commit-preps.patch
-mm-damon-core-introduce-damon_operations-prep_probes.patch
-mm-damon-paddr-support-damon_prep.patch
-mm-damon-sysfs-implement-preps-directory.patch
-mm-damon-sysfs-implement-preps-nr_preps-file.patch
-mm-damon-sysfs-create-directories-for-nr_preps-writes.patch
-mm-damon-sysfs-implement-prep_action-file.patch
-mm-damon-sysfs-pass-preps-to-damon-core.patch
-selftests-damon-sysfssh-test-probe-prep-sysfs-files.patch
-docs-mm-damon-design-document-probe-preps.patch
-docs-admin-guide-mm-damon-usage-document-probe-preps-sysfs-files.patch
-docs-abi-damon-document-probe-prep-sysfs-files.patch
-mm-damon-tests-core-kunit-test-committing-psi-goal-to-psi-goal.patch
-mm-damon-core-handle-uninitialized-damos_quota_goal-last_psi_total.patch
-mm-damon-core-copy-nid-for-eligible_mem_bp-damos-quota-goal-commit.patch
-mm-damon-sysfs-set-next-refresh-jiffies-per-sysfs-context.patch
-mm-damon-tests-core-kunit-test-damon_commit_filter.patch
-mm-damon-tests-core-kunit-add-damon_commit_probes-test.patch
-selftests-damon-_damon_sysfs-implement-damonprobes.patch
-selftests-damon-drgn_dump_damon_status-dump-probes.patch
-selftests-damon-sysfspy-extend-commit-assertion-function-for-probes.patch
-selftests-damon-sysfspy-test-damon-probes.patch
-mm-damon-core-use-damon_nr_samples_per_aggr-for-max-merge-threshold.patch
-mm-damon-core-remove-debug-messages.patch
-mm-damon-core-remove-debug-messages-fix.patch
-mm-damon-vaddr-remove-a-debug-message.patch
-mm-damon-core-validate-number-of-probes-in-valid_probe_params.patch
-mm-damon-sysfs-remove-probes-number-validation.patch
-mm-damon-tests-core-kunit-extend-set_regions-test-for-error-case.patch
-mm-damon-tests-core-kunit-test-=0-size-damon_set_regions-inputs.patch
-mm-damon-tests-core-kunit-test-overlapping-ranges-for-set_regions.patch
-mm-damon-tests-core-kunit-test-damon_nr_samples_per_aggr.patch
-selftests-damon-sysfssh-test-hugepage_mem_bp-quota-goal.patch
-docs-mm-damon-maintainer-profile-update-ai-review-for-sashiko-replies.patch
-docs-abi-damon-recommend-subsystem-doc-instead-of-admin-guide.patch
-mm-damon-core-error-damos_commit_quota_goal-for-zero-target_value.patch
-revert-mm-damon-lru_sort-error-out-for-10000-active_mem_bp.patch
-revert-samples-damon-mtier-error-out-for-zero-quota-goal-target-values.patch
-mm-damon-core-handle-null-ctx-parameter-in-damon_call.patch
-mm-damon-core-set-ctx-call_controls_obsolete-in-damon_new_ctx.patch
-mm-damon-reclaim-remove-unnecessary-damon_call-param-validation.patch
-mm-damon-lru_sort-remove-unnecessary-damon_call-param-validation.patch
-mm-damon-vaddr-support-prep_probes.patch
-mm-damon-paddr-move-probe-filter-handling-to-ops-common.patch
-mm-damon-vaddr-support-apply_probe.patch
-mm-damon-vaddr-extend-apply_probes-for-hugetlb.patch
-mm-damon-vaddr-support-pgidle_unset-probe-filter-type.patch
-mm-damon-api-introduce-damon_filter_type_pgidle_set.patch
-mm-damon-paddr-support-damon_filter_type_pgidle_set.patch
-mm-damon-vaddr-support-damon_filter_type_pgidle_set.patch
-mm-damon-sysfs-support-damon_filter_type_pgidle_set.patch
-docs-mm-damon-design-update-for-pgidle_set-probe-filter.patch
-mm-damon-api-introduce-damos_filter_type_probe_hits_wsum.patch
-mm-damon-api-introduce-damos_filter_type_probe_hits_wsum-fix.patch
-mm-damon-core-extend-probe_hits_wsum-for-moving-sum-based-calculation.patch
-mm-damon-core-support-probe_hits_wsum-damos-core-filter.patch
-mm-damon-sysfs-schemes-rename-sysfs_filter-sz_range-to-range_minmax.patch
-mm-damon-sysfs-schemes-support-probe_hits_wsum-damos-core-filter.patch
-docs-mm-damon-design-update-for-probe_hits_wsum-damos-core-filter.patch
-docs-admin-guide-mm-damon-usage-update-for-probe_hits_wsum-damos-filter.patch
-mm-damon-sysfs-schemes-read-sysfs_filter-addr_range-only-once.patch
-mm-damon-sysfs-schemes-read-sysfs_filter-sz_range-only-once.patch
-mm-damon-core-return-an-error-from-damos_commit_filter_arg.patch
-mm-damon-core-disallow-max-min-damos-filter-range-arguments-commit.patch
-mm-damon-sysfs-schemes-drop-centralized-filter-range-arg-validations.patch
-mm-damon-sysfs-schemes-use-switch-case-in-add_scheme_filters.patch
-mm-damon-core-kunit-extend-damos_commit_filter_for-for-wrong-input.patch
-mm-damon-core-kunit-test-invalid-damos-filter-commits.patch
-mm-damon-api-introduce-damon_filter_type_hugepage_size.patch
-mm-damon-core-commit-hugepage_size-type-damon-filter.patch
-mm-damon-ops-common-support-hugepage_size-damon-filter-matching.patch
-mm-damon-sysfs-add-minmax-files-under-probe-filter-directory.patch
-mm-damon-sysfs-support-hugepage_size-probe-filter.patch
-docs-mm-damon-design-update-for-hugepage_size-probe-filter.patch
-docs-admin-guide-mm-damon-usage-update-for-hugepage_size.patch
-docs-abi-damon-update-for-hugepage_size-probe-filter.patch
-mm-damon-api-remove-nr_damos_filter_types.patch
-mm-damon-core-use-abs_diff-in-damon_feed_loop_next_input.patch
-mm-damon-core-use-mult_frac-in-damon_feed_loop_next_input.patch
-mm-damon-core-set-damon_ctx-walk_control_obsolete-in-damon_new_ctx.patch
-mm-damon-core-document-damon_call-damon_start-race-hang-issue.patch
-mm-damon-paddr-remove-pa-parameter-from-damon_pa_filter_pass.patch
-mm-damon-tests-core-kunit-test-eligible_mem_bp-commitment.patch
-mm-damon-tests-core-kunit-add-probe_hits_wsum-damos-filter-commit-test.patch
-selftests-damon-sysfs_memcg_path_leak-fail-only-for-real-damon-leak.patch
-docs-mm-damon-design-clarify-bp-is-basis-point.patch
 
