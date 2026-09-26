@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 569CA33970F;
-	Sat, 26 Sep 2026 20:55:37 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EFAEC33970F;
+	Sat, 26 Sep 2026 20:55:38 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790456138; cv=none; b=WScfF5i5ILkCo2D3URtchBoD51a7uW8ThHLGlzOPazPQS80P0L5VmL5jmsf92+IFMZ+1nlXkOehIfQNGSIF4kIkX5HBaMCjDtXeYW2SPH09UxLaGR8ZTn36At24eiJp0S4osQU3dDbrfBaVaKA0zVMkpoBEikHdqxoKwUq3SNGM=
+	t=1790456140; cv=none; b=ASRmVlTc8lMHiYCoeDRksd9XpyZWXZl2H7ns7A8vCiABScelKMP6zqK3ue5aapBttRhjl3fuJoBrQ6hGb8xshP7M6VJDjkwzmOTAYt8NRLO/NwWYAVjuI1PNysjjQAqPNfM8jZiYXXZ3zIJPX9QpD4xo6I9QqqkIysMNV/HMdQc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1790456138; c=relaxed/simple;
-	bh=tB8kSMdgyGkDfl8v7WHsvPJyniwfXEwrWP66Q6+TwZ0=;
-	h=Date:To:From:Subject:Message-Id; b=c3LPU7UZVIFv5XlvGrdLBXCST9yB2hxbQNBT8YlMwtD0S6af1oDGlIs4oDcK9LZRL/fg//Kasj2m4j7AzN3+0dQ1PqKNOvh/G3mXbSphh/p+HWNBDxMhkTqQPw/Y3SkhxkcHa9N1Ikfbzs0Q2K5ncUsWvUGCwZlFxBWweESnlks=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Ap3A5Nvo; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1790456140; c=relaxed/simple;
+	bh=Tz1nPuroqrKbAh3mzfvADVvwOIk0EblK+f1yaLrlV1A=;
+	h=Date:To:From:Subject:Message-Id; b=djkrW++IxFkIrg0B0yF8f99R8+uWZOun4M3uaK8VRcx6PmxWthVDJYTWgKo/D8NxkphWZAKbh7MKsjXi6Eb6hBZtNH4lD8GlE2V4HBlwyTbnEHx3SxQ2tupPeOgYkKBfp6pxmqGJ0tx7vLKhGn/u6AoC0CVR2VkaohD+z/vv9nQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=cVZvVfZ7; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Ap3A5Nvo"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id DBF3A1F000FF;
-	Sat, 26 Sep 2026 20:55:36 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="cVZvVfZ7"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 730531F00893;
+	Sat, 26 Sep 2026 20:55:38 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1790456137;
-	bh=6nuf1nVEhXAd9UmKZiFNwrosi/Xlnx1o5dYQ2Z9zchQ=;
+	d=linux-foundation.org; s=korg; t=1790456138;
+	bh=M7spHMnRUU7fBvhMkCBcTSKPcu9ishhGisS82sD0/OM=;
 	h=Date:To:From:Subject;
-	b=Ap3A5NvoFH72G1Fhr+EV9JZFlnyrmRMTm8x8kyXQKTgx3SbzYcaa9ezaSe+OPFP1s
-	 FXwkQZgJOWhccZW4olRRrE/JEmKdU8aomOSczZABhIGl5dUs0UnxUYpGPxVRr0Notz
-	 vVf9n21opFUEBpH3kauan2ij9QtyO1GXmlS51u3o=
-Date: Sat, 26 Sep 2026 13:55:36 -0700
-To: mm-commits@vger.kernel.org,surenb@google.com,stable@vger.kernel.org,sashiko-bot@kernel.org,samitolvanen@google.com,petr.pavlu@suse.com,mcgrof@kernel.org,brads@mainlining.org,atomlin@atomlin.com,hao.ge@linux.dev,akpm@linux-foundation.org
+	b=cVZvVfZ7qDt9PBC/5ozKaL0lPXfUVyl/L01wfNNZoADK9EAyLzXd9+y8gUCEqoFD7
+	 yl28sP46KhrUJQfJV3DDtS6DCqL49MzdfqIHU96tI9SPGx7Gp4bNDao+DnOhRtaGtf
+	 D3UP/ZPEX/2Aru7M+qS7GLcpPxcC/RrX63VCHYRk=
+Date: Sat, 26 Sep 2026 13:55:38 -0700
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,stable@vger.kernel.org,ryan.roberts@arm.com,qi.zheng@linux.dev,ljs@kernel.org,liam@infradead.org,lance.yang@linux.dev,kas@kernel.org,hughd@google.com,dev.jain@arm.com,david@kernel.org,baohua@kernel.org,baolin.wang@linux.alibaba.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] module-fix-lost-error-code-from-codetag_load_module.patch removed from -mm tree
-Message-Id: <20260926205536.DBF3A1F000FF@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] mm-shmem-ignore-sysfs-configs-for-shmem-forced-collapse.patch removed from -mm tree
+Message-Id: <20260926205538.730531F00893@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,69 +35,75 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: module: fix lost error code from codetag_load_module()
+     Subject: mm: shmem: ignore sysfs configs for shmem forced collapse
 has been removed from the -mm tree.  Its filename was
-     module-fix-lost-error-code-from-codetag_load_module.patch
+     mm-shmem-ignore-sysfs-configs-for-shmem-forced-collapse.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Hao Ge <hao.ge@linux.dev>
-Subject: module: fix lost error code from codetag_load_module()
-Date: Thu, 27 Aug 2026 11:05:03 +0800
+From: Baolin Wang <baolin.wang@linux.alibaba.com>
+Subject: mm: shmem: ignore sysfs configs for shmem forced collapse
+Date: Mon, 14 Sep 2026 10:12:41 +0800
 
-If codetag_load_module() fails, err is not set to reflect the failure
-and load_module() returns 0 after the module has been torn down.
+According to Documentation/mm/transhuge.rst, MADV_COLLAPSE is expected to
+ignore any THP or mTHP interface settings.
 
-Also, if the module is a livepatch, mod->klp_info allocated by
-copy_module_elf() leaks on this error path.  Free it via a new
-livepatch_cleanup label.
+However, after commit 26c7d8413aaf ("mm: thp: support "THPeligible"
+semantics for mTHP with anonymous shmem"), performing MADV_COLLAPSE on
+shmem will depend on /sys/.../hugepages-2048kB/shmem_enabled being set to
+"inherit" (although that is the default), which can cause MADV_COLLAPSE to
+fail unexpectedly.
 
-Link: https://lore.kernel.org/20260827030503.49171-1-hao.ge@linux.dev
-Fixes: 044d2aee6c57 ("alloc_tag: handle module codetag load errors as module load failures")
-Signed-off-by: Hao Ge <hao.ge@linux.dev>
+This could cause a userspace-visible performance regression.
+
+Fix this by returning the result of shmem_huge_global_enabled() directly
+when MADV_COLLAPSE is requested, allowing PMD-order collapse while
+ignoring shmem THP/mTHP settings.
+
+Link: https://lore.kernel.org/063f655b4d6c4234f3aa27ed6ecab10283ecb880.1789351825.git.baolin.wang@linux.alibaba.com
+Fixes: 26c7d8413aaf ("mm: thp: support "THPeligible" semantics for mTHP with anonymous shmem")
+Signed-off-by: Baolin Wang <baolin.wang@linux.alibaba.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Reported-by: Sashiko <sashiko-bot@kernel.org>
-Suggested-by: Petr Pavlu <petr.pavlu@suse.com>
-Reviewed-by: Bradley Morgan <brads@mainlining.org>
-Cc: Aaron Tomlin <atomlin@atomlin.com>
-Cc: Luis Chamberalin <mcgrof@kernel.org>
-Cc: Sami Tolvanen <samitolvanen@google.com>
-Cc: Suren Baghdasaryan <surenb@google.com>
+Reported-by: Kiryl Shutsemau (Meta) <kas@kernel.org>
+Closes: https://lore.kernel.org/all/20260908125105.1510704-7-kirill@shutemov.name/
+Reviewed-by: Kiryl Shutsemau (Meta) <kas@kernel.org>
+Acked-by: Zi Yan <ziy@nvidia.com>
+Reviewed-by: Lance Yang <lance.yang@linux.dev>
+Reviewed-by: Barry Song <baohua@kernel.org>
+Acked-by: Qi Zheng <qi.zheng@linux.dev>
+Acked-by: David Hildenbrand (Arm) <david@kernel.org>
+Reviewed-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
+Cc: Dev Jain <dev.jain@arm.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Liam R. Howlett <liam@infradead.org>
+Cc: Ryan Roberts <ryan.roberts@arm.com>
 Cc: <stable@vger.kernel.org>
 ---
 
- kernel/module/main.c |    8 ++++++--
- 1 file changed, 6 insertions(+), 2 deletions(-)
+ mm/shmem.c |    7 +++++--
+ 1 file changed, 5 insertions(+), 2 deletions(-)
 
---- a/kernel/module/main.c~module-fix-lost-error-code-from-codetag_load_module
-+++ a/kernel/module/main.c
-@@ -3581,8 +3581,9 @@ static int load_module(struct load_info
- 			goto sysfs_cleanup;
- 	}
+--- a/mm/shmem.c~mm-shmem-ignore-sysfs-configs-for-shmem-forced-collapse
++++ a/mm/shmem.c
+@@ -1847,8 +1847,11 @@ unsigned long shmem_allowable_huge_order
  
--	if (codetag_load_module(mod))
--		goto sysfs_cleanup;
-+	err = codetag_load_module(mod);
-+	if (err)
-+		goto livepatch_cleanup;
+ 	global_orders = shmem_huge_global_enabled(inode, index, write_end,
+ 						  shmem_huge_force, vma, vm_flags);
+-	/* Tmpfs huge pages allocation */
+-	if (!vma || !vma_is_anon_shmem(vma))
++	/*
++	 * Tmpfs huge pages allocation or forced collapse ignores
++	 * sysfs configs.
++	 */
++	if (!vma || !vma_is_anon_shmem(vma) || shmem_huge_force)
+ 		return global_orders;
  
- 	/* Get rid of temporary copy. */
- 	free_copy(info, flags);
-@@ -3592,6 +3593,9 @@ static int load_module(struct load_info
- 
- 	return do_init_module(mod);
- 
-+ livepatch_cleanup:
-+	if (is_livepatch_module(mod))
-+		free_module_elf(mod);
-  sysfs_cleanup:
- 	mod_sysfs_teardown(mod);
-  coming_cleanup:
+ 	/*
 _
 
-Patches currently in -mm which might be from hao.ge@linux.dev are
+Patches currently in -mm which might be from baolin.wang@linux.alibaba.com are
 
-mm-alloc_tag-account-for-reserved-tag-ids-in-the-kernel-tag-check.patch
+mm-mglru-clear-the-reference-counter-for-rejected-folios.patch
 
