@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EFAEC33970F;
-	Sat, 26 Sep 2026 20:55:38 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 13D7749D5AD
+	for <mm-commits@vger.kernel.org>; Sat, 26 Sep 2026 20:55:39 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790456140; cv=none; b=ASRmVlTc8lMHiYCoeDRksd9XpyZWXZl2H7ns7A8vCiABScelKMP6zqK3ue5aapBttRhjl3fuJoBrQ6hGb8xshP7M6VJDjkwzmOTAYt8NRLO/NwWYAVjuI1PNysjjQAqPNfM8jZiYXXZ3zIJPX9QpD4xo6I9QqqkIysMNV/HMdQc=
+	t=1790456141; cv=none; b=ECqp5M3bZcWxV3xp2Td+lP8Wecp2jvGsyJE9RBOY7Ob2lX3c2ZaHLja6+BhuOz2AaAuxCNz2ZxUIDpKWIcCeQAbhbbWQzAxEibznmH8olntItRHSTkJ7OJx8HTnPHO+C4XpkgkDklmcxmkKnFBRjQ8N7UaK890wkqTItwEpExHU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1790456140; c=relaxed/simple;
-	bh=Tz1nPuroqrKbAh3mzfvADVvwOIk0EblK+f1yaLrlV1A=;
-	h=Date:To:From:Subject:Message-Id; b=djkrW++IxFkIrg0B0yF8f99R8+uWZOun4M3uaK8VRcx6PmxWthVDJYTWgKo/D8NxkphWZAKbh7MKsjXi6Eb6hBZtNH4lD8GlE2V4HBlwyTbnEHx3SxQ2tupPeOgYkKBfp6pxmqGJ0tx7vLKhGn/u6AoC0CVR2VkaohD+z/vv9nQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=cVZvVfZ7; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1790456141; c=relaxed/simple;
+	bh=tG2tw0JGx1gPCnL/bSPPKRrkSNpZPvHwZUNKwG/lr18=;
+	h=Date:To:From:Subject:Message-Id; b=Rt2DZR4UFYyAYQh/8rnX6Oi2DE8MyWL8W3XusPDSs0YA6oqLwvaqBBu0or0NYh42HtQUynokxxloxe2aI9c8AYXWz0que7GMeMeM1+TPjxpznE/jowtKTIxhZjlijDhPDcyGZEtud0pB50hh+lRyTaIIZ0xFQwr9fVtYLk9J2+E=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=COWEPBqk; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="cVZvVfZ7"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 730531F00893;
-	Sat, 26 Sep 2026 20:55:38 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="COWEPBqk"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 990731F000FF;
+	Sat, 26 Sep 2026 20:55:39 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1790456138;
-	bh=M7spHMnRUU7fBvhMkCBcTSKPcu9ishhGisS82sD0/OM=;
+	d=linux-foundation.org; s=korg; t=1790456139;
+	bh=Rvecxr10YSE158IszMESa3HgXfFvEYyouT44PefIw8s=;
 	h=Date:To:From:Subject;
-	b=cVZvVfZ7qDt9PBC/5ozKaL0lPXfUVyl/L01wfNNZoADK9EAyLzXd9+y8gUCEqoFD7
-	 yl28sP46KhrUJQfJV3DDtS6DCqL49MzdfqIHU96tI9SPGx7Gp4bNDao+DnOhRtaGtf
-	 D3UP/ZPEX/2Aru7M+qS7GLcpPxcC/RrX63VCHYRk=
-Date: Sat, 26 Sep 2026 13:55:38 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,stable@vger.kernel.org,ryan.roberts@arm.com,qi.zheng@linux.dev,ljs@kernel.org,liam@infradead.org,lance.yang@linux.dev,kas@kernel.org,hughd@google.com,dev.jain@arm.com,david@kernel.org,baohua@kernel.org,baolin.wang@linux.alibaba.com,akpm@linux-foundation.org
+	b=COWEPBqk8PYHNGmbtE38uOWW1IAgMdioghlQ6Ga6QKPeuns13CukP36lb7tzRkEZ5
+	 BOXa69gj1/MlC2YPiKmDsH76cI+4GPsk8ayn1Dr5oOFf6ZD1ypMBVqJv5nfq1tpeZZ
+	 H6DiSyuTriiGU1F08PwId0+d+hZpbcelTsg+jSd8=
+Date: Sat, 26 Sep 2026 13:55:39 -0700
+To: mm-commits@vger.kernel.org,surenb@google.com,sj@kernel.org,hao.ge@linux.dev,arnd@arndb.de,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] mm-shmem-ignore-sysfs-configs-for-shmem-forced-collapse.patch removed from -mm tree
-Message-Id: <20260926205538.730531F00893@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] alloc_tag-avoid-implicit-padding-in-uapi.patch removed from -mm tree
+Message-Id: <20260926205539.990731F000FF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,75 +35,53 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: shmem: ignore sysfs configs for shmem forced collapse
+     Subject: alloc_tag: avoid implicit padding in uapi
 has been removed from the -mm tree.  Its filename was
-     mm-shmem-ignore-sysfs-configs-for-shmem-forced-collapse.patch
+     alloc_tag-avoid-implicit-padding-in-uapi.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Baolin Wang <baolin.wang@linux.alibaba.com>
-Subject: mm: shmem: ignore sysfs configs for shmem forced collapse
-Date: Mon, 14 Sep 2026 10:12:41 +0800
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: alloc_tag: avoid implicit padding in uapi
+Date: Tue, 15 Sep 2026 22:23:47 +0200
 
-According to Documentation/mm/transhuge.rst, MADV_COLLAPSE is expected to
-ignore any THP or mTHP interface settings.
+The implied padding causes a harmless warning when testing the uapi
+headers with -Wpadded that could in theory indicate incompatibilities
+or data leaks:
 
-However, after commit 26c7d8413aaf ("mm: thp: support "THPeligible"
-semantics for mTHP with anonymous shmem"), performing MADV_COLLAPSE on
-shmem will depend on /sys/.../hugepages-2048kB/shmem_enabled being set to
-"inherit" (although that is the default), which can cause MADV_COLLAPSE to
-fail unexpectedly.
+./usr/include/linux/alloc_tag.h:41:1: error: padding struct size to alignment boundary with 7 bytes [-Werror=padded]
 
-This could cause a userspace-visible performance regression.
+The code here is fine, but it's better to make the padding explicit and
+avoid the warning here.
 
-Fix this by returning the result of shmem_huge_global_enabled() directly
-when MADV_COLLAPSE is requested, allowing PMD-order collapse while
-ignoring shmem THP/mTHP settings.
-
-Link: https://lore.kernel.org/063f655b4d6c4234f3aa27ed6ecab10283ecb880.1789351825.git.baolin.wang@linux.alibaba.com
-Fixes: 26c7d8413aaf ("mm: thp: support "THPeligible" semantics for mTHP with anonymous shmem")
-Signed-off-by: Baolin Wang <baolin.wang@linux.alibaba.com>
+Link: https://lore.kernel.org/20260916065830.1619425-1-arnd@kernel.org
+Link: https://lore.kernel.org/20260915202404.3568029-1-arnd@kernel.org
+Fixes: 1d581ab2348c ("alloc_tag: add ioctl to /proc/allocinfo")
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Reported-by: Kiryl Shutsemau (Meta) <kas@kernel.org>
-Closes: https://lore.kernel.org/all/20260908125105.1510704-7-kirill@shutemov.name/
-Reviewed-by: Kiryl Shutsemau (Meta) <kas@kernel.org>
-Acked-by: Zi Yan <ziy@nvidia.com>
-Reviewed-by: Lance Yang <lance.yang@linux.dev>
-Reviewed-by: Barry Song <baohua@kernel.org>
-Acked-by: Qi Zheng <qi.zheng@linux.dev>
-Acked-by: David Hildenbrand (Arm) <david@kernel.org>
-Reviewed-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
-Cc: Dev Jain <dev.jain@arm.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Liam R. Howlett <liam@infradead.org>
-Cc: Ryan Roberts <ryan.roberts@arm.com>
-Cc: <stable@vger.kernel.org>
+Acked-by: Suren Baghdasaryan <surenb@google.com>
+Acked-by: SJ Park <sj@kernel.org>
+Acked-by: Hao Ge <hao.ge@linux.dev>
 ---
 
- mm/shmem.c |    7 +++++--
- 1 file changed, 5 insertions(+), 2 deletions(-)
+ include/uapi/linux/alloc_tag.h |    1 +
+ 1 file changed, 1 insertion(+)
 
---- a/mm/shmem.c~mm-shmem-ignore-sysfs-configs-for-shmem-forced-collapse
-+++ a/mm/shmem.c
-@@ -1847,8 +1847,11 @@ unsigned long shmem_allowable_huge_order
+--- a/include/uapi/linux/alloc_tag.h~alloc_tag-avoid-implicit-padding-in-uapi
++++ a/include/uapi/linux/alloc_tag.h
+@@ -38,6 +38,7 @@ struct allocinfo_counter {
+ 	__u64 bytes;
+ 	__u64 calls;
+ 	__u8 accurate;
++	__u8 pad[7];
+ } __attribute__((aligned(8)));
  
- 	global_orders = shmem_huge_global_enabled(inode, index, write_end,
- 						  shmem_huge_force, vma, vm_flags);
--	/* Tmpfs huge pages allocation */
--	if (!vma || !vma_is_anon_shmem(vma))
-+	/*
-+	 * Tmpfs huge pages allocation or forced collapse ignores
-+	 * sysfs configs.
-+	 */
-+	if (!vma || !vma_is_anon_shmem(vma) || shmem_huge_force)
- 		return global_orders;
- 
- 	/*
+ struct allocinfo_tag_data {
 _
 
-Patches currently in -mm which might be from baolin.wang@linux.alibaba.com are
+Patches currently in -mm which might be from arnd@arndb.de are
 
-mm-mglru-clear-the-reference-counter-for-rejected-folios.patch
+mm-vmscan-avoid-false-positive-wuninitialized-warning-again.patch
 
