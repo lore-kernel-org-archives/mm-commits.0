@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4C85239C637;
-	Sat, 26 Sep 2026 20:55:42 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 43A644A1DED
+	for <mm-commits@vger.kernel.org>; Sat, 26 Sep 2026 20:55:43 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790456143; cv=none; b=O6Ivng9FEgurFz4hiH+my5oGoDXydfZFHbHKljyTwRo/f5/2G6X2zn2EKJKWnIpz/Z0+/Ag/OpyGePg7M2P2JN0FMZI+JbKQpA/pfX4xkGc/77nBI5AB8S17sj3MW/w11I3raE4zg98h7rq1hMdLkWkRMXH+szCxeFlSlfTIy+A=
+	t=1790456144; cv=none; b=KcGvLTec3IL751sZrbXtxssLRTGYlnMvOcfPSJnj8zcfkbl7y7vwejCOR/vaKBq6mjWEQzUSR8benEDV7mQdOd4vVyZTMknCxX1EY9YqIpw4A208vtUWT3WgetiUBHQGbZJ/xnN8fqIFW60rDRO8UK9yO26ANoEO4U+1bPOpjps=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1790456143; c=relaxed/simple;
-	bh=+ZEdnlQMAxgacleUqWOqohRIdAulJ7pCpBmeq4DlDlw=;
-	h=Date:To:From:Subject:Message-Id; b=YnJ/SLQY2tjXlfyLtT2dHiixOWlhBJrdgW+Yrt19S4nTuhbPX4efPQxOE6+OoSkDYCkSU5REV+YD7RggmMmIZE76NTODuM3ZvwFY5WmYM2RPyNjQwvFNBSYf++T/iJHlWjKML99E/i18ai2YakMPF7qXeYU7OYV9IsKY85Y6n2g=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=XCNaA/p/; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1790456144; c=relaxed/simple;
+	bh=YT0K3pJrcfUpJRkVRzWhQR22IsLBQNfrFASg32BPoSk=;
+	h=Date:To:From:Subject:Message-Id; b=QUEY1sLvOc4WlKNxaYiD3XgCFqdBW2jmqfsqmvcMuuk0+4BwDdAXepKp8yxEP3Xy7OCWyxNamfVVXQkRzWdLyX9uV2XXCZTS5EEd4e2EYIzdWwKqoS2NToDFefO6S8VWFfMAbkIzcJTdP/mCI9RUyzntkmHjU0M+nxQEJLR2F/c=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=AYOnKwDa; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="XCNaA/p/"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id EBAC41F000FF;
-	Sat, 26 Sep 2026 20:55:41 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="AYOnKwDa"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1F9BC1F00893;
+	Sat, 26 Sep 2026 20:55:43 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1790456142;
-	bh=8RpRseC1jc6n99D3muS7f2IpAe9tMmxNhDOLWDXLtq0=;
+	d=linux-foundation.org; s=korg; t=1790456143;
+	bh=V8EOlb/gRI3XLZY4PiRI3Fa+JKy0Il315I2ZeSrrrzg=;
 	h=Date:To:From:Subject;
-	b=XCNaA/p/qDjnyp+I4nLhQYiKr/DUF2rLHKeMJhpRLmAyGlLu6zwLB0vK1oO5lDqwJ
-	 j1JEBLUmiO4t+I/n+2ag/Oj0LhGeZy4sFgiPudYs9i0pffmU+nbGxP38j9AzKy9Lzd
-	 Uu2i0IaTq/9YLbE3z/fh/Rp2AV9cuwY2Vjl7LvT8=
-Date: Sat, 26 Sep 2026 13:55:41 -0700
-To: mm-commits@vger.kernel.org,vincenzo.frascino@arm.com,stable@vger.kernel.org,ljs@kernel.org,huangshaobo3@xiaomi.com,glider@google.com,dvyukov@google.com,david@kernel.org,andreyknvl@gmail.com,ryabinin.a.a@gmail.com,akpm@linux-foundation.org
+	b=AYOnKwDaLNciNXGRW808pwAXKRC1HjO2FF0IKW1MzHDvOkhweVO6NcxJTYLgbUS7H
+	 flkFrKzjW/HTLukatB5cJwcaFLBeTpcCnzrRQ8BanGhyjpV51sq7kQecPGVoy+mh+S
+	 NfckzMyKBuWT1JD+WsvHCBj0joSYIhfZa70c6gOM=
+Date: Sat, 26 Sep 2026 13:55:42 -0700
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,ying.huang@linux.alibaba.com,vbabka@kernel.org,surenb@google.com,sj@kernel.org,rppt@kernel.org,rakie.kim@sk.com,mhocko@suse.com,matthew.brost@intel.com,ljs@kernel.org,liam@infradead.org,joshua.hahnjy@gmail.com,gourry@gourry.net,byungchul@sk.com,apopple@nvidia.com,david@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] kasan-unpoison-task-stack-below-watermark-only-in-generic-mode.patch removed from -mm tree
-Message-Id: <20260926205541.EBAC41F000FF@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] maintainers-split-up-memory-management-memory-policy-and-migration.patch removed from -mm tree
+Message-Id: <20260926205543.1F9BC1F00893@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,107 +35,159 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: kasan: unpoison task stack below watermark only in generic mode
+     Subject: MAINTAINERS: split up MEMORY MANAGEMENT - MEMORY POLICY AND MIGRATION
 has been removed from the -mm tree.  Its filename was
-     kasan-unpoison-task-stack-below-watermark-only-in-generic-mode.patch
+     maintainers-split-up-memory-management-memory-policy-and-migration.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Andrey Ryabinin <ryabinin.a.a@gmail.com>
-Subject: kasan: unpoison task stack below watermark only in generic mode
-Date: Wed, 16 Sep 2026 19:51:13 +0200
+From: "David Hildenbrand (Arm)" <david@kernel.org>
+Subject: MAINTAINERS: split up MEMORY MANAGEMENT - MEMORY POLICY AND MIGRATION
+Date: Fri, 18 Sep 2026 18:34:24 +0200
 
-CPU resume and BPF exception handling can discard stack frames without
-running their compiler-generated epilogues.  Generic KASAN needs
-kasan_unpoison_task_stack_below() to clear the redzones left behind by
-those frames before the stack is reused.
+Patch series "MAINTAINERS: rework MEMORY MANAGEMENT - MEMORY POLICY".
 
-CONFIG_KASAN_STACK also enables this helper for SW_TAGS.  The helper
-derives the stack base from an untagged stack pointer, so kasan_unpoison()
-writes KASAN_TAG_KERNEL (0xff) into the shadow for [base, watermark).  For
-a vmapped task stack, vm_area->addr still carries the original random
-allocation tag.  This creates a tag mismatch at the stack base even if
-that memory has never held an instrumented stack object.
+Let's rework MEMORY MANAGEMENT - MEMORY POLICY AND MIGRATION.
 
-When the task exits and its stack is not cached, thread_stack_free_rcu()
-passes vm_area->addr to vfree().  In RCU callback context this reaches
-vfree_atomic(), whose llist_add() writes to the allocation base through
-the tagged pointer and triggers a false KASAN invalid-access report:
+As I can use some maintenance help in that area, add Gregory as a new
+co-maintainer for the split out MEMORY MANAGEMENT - NUMA PLACEMENT
+section.
 
-  BUG: KASAN: invalid-access in vfree_atomic+0x90/0x150
-  Write of size 8 at addr c2ffffc0a8f70000 by task rcuop/7/75
-  Pointer tag: [c2], memory tag: [ff]
-  Call trace:
-   __hwasan_store8_noabort+0xe8/0xf8
-   vfree_atomic+0x90/0x150
-   vfree+0x220/0x298
-   thread_stack_free_rcu+0x3c/0x4c
-   rcu_do_batch+0x308/0xaf0
-   rcu_nocb_cb_kthread+0x33c/0x708
 
-The deferred-free path started using the tagged vm_area->addr in commit
-449e0b4ed5a1 ("fork: clean-up naming of vm_stack/vm_struct variables in
-vmap stacks code").  Previously it freed the untagged pointer derived from
-tsk->stack, so the write was never tag-checked.
+This patch (of 3):
 
-SW_TAGS does not need the blanket shadow reset to make subsequent stack
-accesses valid: untagged kernel pointers have the match-all 0xff tag, and
-the compiler initializes the shadow tags of instrumented stack objects
-before use.
+Let's split it up into MIGRATION and NUMA PLACEMENT.  The latter is a
+better fitting description for mempolicy.c.
 
-Return early unless CONFIG_KASAN_GENERIC is enabled.  Keep the mode check
-in the common helper so it covers both resume and bpf_throw().
+Make a best guess about which pieces existing reviewers are interested in.
+Move the split sections to keep alphabetical order.
 
-Link: https://lore.kernel.org/20260916175113.1327454-1-ryabinin.a.a@gmail.com
-Fixes: 449e0b4ed5a1 ("fork: clean-up naming of vm_stack/vm_struct variables in vmap stacks code")
-Signed-off-by: Andrey Ryabinin <ryabinin.a.a@gmail.com>
+Link: https://lore.kernel.org/20260918-maintainers-mempolicy-v1-1-9a94cac6d135@kernel.org
+Signed-off-by: David Hildenbrand (Arm) <david@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Reported-by: Shaobo Huang <huangshaobo3@xiaomi.com>
-Closes: https://lore.kernel.org/all/20260806123020.90869-1-huangshaobo3@xiaomi.com/
-Assisted-by: LLM
-Cc: Alexander Potapenko <glider@google.com>
-Cc: Andrey Konovalov <andreyknvl@gmail.com>
-Cc: David Hildenbrand <david@kernel.org>
-Cc: Dmitry Vyukov <dvyukov@google.com>
-Cc: Lorenzo Stoakes <ljs@kernel.org>
-Cc: Vincenzo Frascino <vincenzo.frascino@arm.com>
-Cc: <stable@vger.kernel.org>
+Acked-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
+Acked-by: Zi Yan <ziy@nvidia.com>
+Reviewed-by: Joshua Hahn <joshua.hahnjy@gmail.com>
+Reviewed-by: SJ Park <sj@kernel.org>
+Acked-by: Vlastimil Babka (SUSE) <vbabka@kernel.org>
+Cc: Alistair Popple <apopple@nvidia.com>
+Cc: Byungchul Park <byungchul@sk.com>
+Cc: Gregory Price <gourry@gourry.net>
+Cc: "Huang, Ying" <ying.huang@linux.alibaba.com>
+Cc: Liam R. Howlett <liam@infradead.org>
+Cc: Matthew Brost <matthew.brost@intel.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Rakie Kim <rakie.kim@sk.com>
+Cc: Suren Baghdasaryan <surenb@google.com>
 ---
 
- mm/kasan/common.c |   13 ++++++++++++-
- 1 file changed, 12 insertions(+), 1 deletion(-)
+ MAINTAINERS |   62 +++++++++++++++++++++++++++++---------------------
+ 1 file changed, 37 insertions(+), 25 deletions(-)
 
---- a/mm/kasan/common.c~kasan-unpoison-task-stack-below-watermark-only-in-generic-mode
-+++ a/mm/kasan/common.c
-@@ -114,12 +114,23 @@ void kasan_unpoison_task_stack(struct ta
- /* Unpoison the stack for the current task beyond a watermark sp value. */
- asmlinkage void kasan_unpoison_task_stack_below(const void *watermark)
- {
-+	void *base;
-+
-+	/*
-+	 * Only the generic mode needs this. In the tag-based mode the
-+	 * compiler fully initializes the shadow of stack variables on
-+	 * function entry, so stale tags left below the watermark are
-+	 * harmless.
-+	 */
-+	if (!IS_ENABLED(CONFIG_KASAN_GENERIC))
-+		return;
-+
- 	/*
- 	 * Calculate the task stack base address.  Avoid using 'current'
- 	 * because this function is called by early resume code which hasn't
- 	 * yet set up the percpu register (%gs).
- 	 */
--	void *base = (void *)((unsigned long)watermark & ~(THREAD_SIZE - 1));
-+	base = (void *)((unsigned long)watermark & ~(THREAD_SIZE - 1));
+--- a/MAINTAINERS~maintainers-split-up-memory-management-memory-policy-and-migration
++++ a/MAINTAINERS
+@@ -17208,31 +17208,6 @@ F:	include/trace/events/ksm.h
+ F:	mm/ksm.c
+ F:	mm/mm_slot.h
  
- 	kasan_unpoison(base, watermark - base, false);
- }
+-MEMORY MANAGEMENT - MEMORY POLICY AND MIGRATION
+-M:	Andrew Morton <akpm@linux-foundation.org>
+-M:	David Hildenbrand <david@kernel.org>
+-R:	Zi Yan <ziy@nvidia.com>
+-R:	Matthew Brost <matthew.brost@intel.com>
+-R:	Joshua Hahn <joshua.hahnjy@gmail.com>
+-R:	Rakie Kim <rakie.kim@sk.com>
+-R:	Byungchul Park <byungchul@sk.com>
+-R:	Gregory Price <gourry@gourry.net>
+-R:	Ying Huang <ying.huang@linux.alibaba.com>
+-R:	Alistair Popple <apopple@nvidia.com>
+-L:	linux-mm@kvack.org
+-S:	Maintained
+-W:	http://www.linux-mm.org
+-T:	git git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+-F:	Documentation/ABI/testing/sysfs-kernel-mm-mempolicy
+-F:	Documentation/ABI/testing/sysfs-kernel-mm-mempolicy-weighted-interleave
+-F:	include/linux/mempolicy.h
+-F:	include/uapi/linux/mempolicy.h
+-F:	include/linux/migrate.h
+-F:	include/linux/migrate_mode.h
+-F:	mm/mempolicy.c
+-F:	mm/migrate.c
+-F:	mm/migrate_device.c
+-
+ MEMORY MANAGEMENT - MGLRU (MULTI-GEN LRU)
+ M:	Andrew Morton <akpm@linux-foundation.org>
+ R:	Kairui Song <kasong@tencent.com>
+@@ -17255,6 +17230,25 @@ F:	include/linux/mmzone.h
+ F:	mm/vmscan.c
+ F:	mm/workingset.c
+ 
++MEMORY MANAGEMENT - MIGRATION
++M:	Andrew Morton <akpm@linux-foundation.org>
++M:	David Hildenbrand <david@kernel.org>
++R:	Zi Yan <ziy@nvidia.com>
++R:	Matthew Brost <matthew.brost@intel.com>
++R:	Joshua Hahn <joshua.hahnjy@gmail.com>
++R:	Byungchul Park <byungchul@sk.com>
++R:	Gregory Price <gourry@gourry.net>
++R:	Ying Huang <ying.huang@linux.alibaba.com>
++R:	Alistair Popple <apopple@nvidia.com>
++L:	linux-mm@kvack.org
++S:	Maintained
++W:	http://www.linux-mm.org
++T:	git git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
++F:	include/linux/migrate.h
++F:	include/linux/migrate_mode.h
++F:	mm/migrate.c
++F:	mm/migrate_device.c
++
+ MEMORY MANAGEMENT - MISC
+ M:	Andrew Morton <akpm@linux-foundation.org>
+ M:	David Hildenbrand <david@kernel.org>
+@@ -17307,6 +17301,24 @@ F:	mm/numa.c
+ F:	mm/numa_emulation.c
+ F:	mm/numa_memblks.c
+ 
++MEMORY MANAGEMENT - NUMA PLACEMENT
++M:	Andrew Morton <akpm@linux-foundation.org>
++M:	David Hildenbrand <david@kernel.org>
++R:	Zi Yan <ziy@nvidia.com>
++R:	Joshua Hahn <joshua.hahnjy@gmail.com>
++R:	Rakie Kim <rakie.kim@sk.com>
++R:	Gregory Price <gourry@gourry.net>
++R:	Ying Huang <ying.huang@linux.alibaba.com>
++L:	linux-mm@kvack.org
++S:	Maintained
++W:	http://www.linux-mm.org
++T:	git git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
++F:	Documentation/ABI/testing/sysfs-kernel-mm-mempolicy
++F:	Documentation/ABI/testing/sysfs-kernel-mm-mempolicy-weighted-interleave
++F:	include/linux/mempolicy.h
++F:	include/uapi/linux/mempolicy.h
++F:	mm/mempolicy.c
++
+ MEMORY MANAGEMENT - OOM KILLER
+ M:	Michal Hocko <mhocko@suse.com>
+ R:	David Rientjes <rientjes@google.com>
 _
 
-Patches currently in -mm which might be from ryabinin.a.a@gmail.com are
+Patches currently in -mm which might be from david@kernel.org are
 
+selftests-mm-khugepaged-remove-str_dup-usage.patch
+mm-sparse-move-mem_section-init-to-sparse_extreme_init.patch
+mm-sparse-refactor-sparse_sections_init.patch
+mm-sparse-move-initialization-of-section-metadata-to-sparse_metadata_init.patch
+mm-sparse-rename-and-cleanup-sparse_init_nid.patch
+mm-sparse-cleanup-sparse_init_one_section.patch
+mm-sparse-rename-__highest_present_section_nr-to-__highest_used_section_nr.patch
+mm-sparse-remove-pfn_in_present_section.patch
+mm-sparse-move-__highest_used_section_nr-handling.patch
+scripts-gdb-mmpy-remove-fallbacks-for-section_has_mem_map-and-section_is_early.patch
+mm-sparse-remove-section_marked_present.patch
+mm-sparse-remove-flags-parameter-from-sparse_init_one_section.patch
+fs-proc-page-clarify-comment-in-get_max_dump_pfn.patch
+mm-memory_hotplug-drop-config_have_arch_pfn_valid-handling-from-pfn_to_online_page.patch
 
