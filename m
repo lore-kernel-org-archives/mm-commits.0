@@ -1,95 +1,134 @@
-Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.12])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 44AEB37A839
-	for <mm-commits@vger.kernel.org>; Sat, 26 Sep 2026 16:33:27 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.175.65.12
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0DCA937A833
+	for <mm-commits@vger.kernel.org>; Sat, 26 Sep 2026 16:36:00 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790440412; cv=none; b=soY0aE0SVTzF17ZiN0dKqq9FezFSmjY1j67CzvjRoSz5I61ftGG/ThFt3HzdDcdNn1bQophUtSmnuTDCQi3wm6j89k6iyNC7kIei/wAA7IY8WDmyDhcY9DT0iH/L01MXXNGFMCyak+tEvbYKBo+jpx0Z1S5PnDt6EZ7VE4BKgvQ=
+	t=1790440563; cv=none; b=V7cz7qL+wo+PjqXV0YKFrug8BQEDN3rtQeyHEDZLOw2MBOCxrgb0tzcPK1b0Gnu8VDUtM1/Qx0rWNtpaAMZUIaJrpD/XVshOQx2RJllECGE7cCbXLu5ESWuAwOnxpFCVkYW0fcTV5hzb8s/XuXHzO9nBS5m93Lxl5GNx2h+8hMg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1790440412; c=relaxed/simple;
-	bh=Xc4mqmXyIdGRF00RAE0TbL9TU95xsagceJS/KQl6m7w=;
-	h=Date:From:To:Cc:Subject:Message-ID; b=QzHhXFBmEU4XSMWMCC7JBnd3ek57PhojUIzkDk92nLPrbuvPylTWV8eqRvC3keX3qm3dCGaNKVLCvmD+pSxzU28JBHLuykBHpiPqhEnkApoj67p1EswP8RtGZeq0CN/yV5Bn3oV+bI/4alynWkfN941u7RRblvIgPKk963sVLCA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=dllt/aGT; arc=none smtp.client-ip=198.175.65.12
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
+	s=arc-20240116; t=1790440563; c=relaxed/simple;
+	bh=3ETqYb9OJ1RzYCJYTNHb1JXieLBgdxGWthunzjL8uwo=;
+	h=Date:To:From:Subject:Message-Id; b=nuLE69ec4S0FhyBIcjTSdlZzatbDm4SRrPLo4dU2bgYW6XXJDHj1R/ld+LbQdXL4F7xoCZalIWOuHQD0HPI0jDdPKzK2N3wRf7EA9pWuVnUZHc3deOWpMuSA+I+rIJfyFNM2AzBStPUxw4pHsaKNxyPlLDgs4p+Ze32FvY9RMyQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=i+Bcw7iR; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="dllt/aGT"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1790440408; x=1821976408;
-  h=date:from:to:cc:subject:message-id;
-  bh=Xc4mqmXyIdGRF00RAE0TbL9TU95xsagceJS/KQl6m7w=;
-  b=dllt/aGTITQWfIesNdBCt5k82C/8fSaWQyzNA1MvWZ9WpHHKb6x7MXHa
-   0NJiRpLlEj/uS8UynGDpfPleO3ND3gntl45wqysug6wN/9NH7q9/DxKhG
-   be5n9tND1fU9QrBMmUQWEjS1VCtxAbzzIgvAkJGkUEtzT4PpUD4nXuJkd
-   /fSrFHr+IyfwGigNklqQiYcoAG9YTK9klZUog19qdzuY2ooNzJhFUERXr
-   wj183EAniBcOlxTV7g2Bjr+4BAUIEhDNPhh6a+8ejSw1gFga58aRKnLQY
-   Il+k0BjM1W5AWAYEek/+B4bMvSMFVR7IiZF1sU9ulYnUYnS0iQM9u2r+7
-   Q==;
-X-CSE-ConnectionGUID: KGaj/1YRS0aefjWLiJdrRw==
-X-CSE-MsgGUID: Jsgu7o2aTQu/6RHoyhpJbA==
-X-IronPort-AV: E=McAfee;i="6800,10657,11917"; a="101725533"
-X-IronPort-AV: E=Sophos;i="6.27,124,1787036400"; 
-   d="scan'208";a="101725533"
-Received: from fmviesa010.fm.intel.com ([10.60.135.150])
-  by orvoesa104.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 26 Sep 2026 09:33:25 -0700
-X-CSE-ConnectionGUID: P0AEcz5PT6ifZ56d6jHhWg==
-X-CSE-MsgGUID: EcmS14TASEy6+k7KPaQxJA==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="6.27,124,1787036400"; 
-   d="scan'208";a="273852166"
-Received: from lkp-server01.sh.intel.com (HELO 462990a40a85) ([10.239.97.150])
-  by fmviesa010.fm.intel.com with ESMTP; 26 Sep 2026 09:33:22 -0700
-Received: from kbuild by 462990a40a85 with local (Exim 4.98.2)
-	(envelope-from <lkp@intel.com>)
-	id 1xAVKy-00000000LzN-09W0;
-	Sat, 26 Sep 2026 16:33:20 +0000
-Date: Sun, 27 Sep 2026 00:32:54 +0800
-From: kernel test robot <lkp@intel.com>
-To: Anshuman Khandual <anshuman.khandual@arm.com>
-Cc: oe-kbuild-all@lists.linux.dev, David Hildenbrand <david@kernel.org>,
- Andrew Morton <akpm@linux-foundation.org>,
- Linux Memory Management List <linux-mm@kvack.org>,
- mm-commits@vger.kernel.org, Catalin Marinas <catalin.marinas@arm.com>
-Subject: [akpm-mm:mm-new 661/679] mmu.c:undefined reference to
- `__check_safe_pte_update'
-Message-ID: <202609270030.Y0QVBPmK-lkp@intel.com>
-User-Agent: s-nail v14.9.25
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="i+Bcw7iR"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id ED5A41F00893;
+	Sat, 26 Sep 2026 16:35:59 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+	d=linux-foundation.org; s=korg; t=1790440560;
+	bh=Md5/+947wT8R4Ut96iBXum6nTCZjDzQH2iFgGo6HwyA=;
+	h=Date:To:From:Subject;
+	b=i+Bcw7iRqmb1b25wBJX5J6t6HK8+JxuwCXKTdGCKINykY9EF7cz/mHyTS2Nd79Hea
+	 AVu9eVjEpiEA546pkSOeagAHtdXYl7qP2yls4ldswerdkjeiUqMmqI69T1K9jc8ITv
+	 zOUxNG6sHbfqwGxo1TBfJMmDSx1C5o5RDiS/j3Uo=
+Date: Sat, 26 Sep 2026 09:35:59 -0700
+To: mm-commits@vger.kernel.org,urezki@gmail.com,dev.jain@arm.com,liuye@kylinos.cn,akpm@linux-foundation.org
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: [to-be-updated] mm-vmalloc-fix-vmap_purge_lock-livelock-under-memory-pressure.patch removed from -mm tree
+Message-Id: <20260926163559.ED5A41F00893@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
-tree:   https://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm.git mm-new
-head:   b4fc90c82982d98959af08b4320420bcfc01303b
-commit: 2862bcaf1aca55e0b43a5692a4595281ab780f05 [661/679] arm64/mm: move __check_safe_pte_update()
-config: arm64-randconfig-1002-20260926 (https://download.01.org/0day-ci/archive/20260927/202609270030.Y0QVBPmK-lkp@intel.com/config)
-compiler: aarch64-linux-gcc (GCC) 8.5.0
-reproduce (this is a W=1 build): (https://download.01.org/0day-ci/archive/20260927/202609270030.Y0QVBPmK-lkp@intel.com/reproduce)
 
-If you fix the issue in a separate patch/commit (i.e. not just a new version of
-the same patch/commit), kindly add following tags
-| Reported-by: kernel test robot <lkp@intel.com>
-| Closes: https://lore.kernel.org/oe-kbuild-all/202609270030.Y0QVBPmK-lkp@intel.com/
+The quilt patch titled
+     Subject: mm: vmalloc: fix vmap_purge_lock livelock under memory pressure
+has been removed from the -mm tree.  Its filename was
+     mm-vmalloc-fix-vmap_purge_lock-livelock-under-memory-pressure.patch
 
-All errors (new ones prefixed by >>):
+This patch was dropped because an updated version will be issued
 
->> aarch64-linux-ld: Unexpected GOT/PLT entries detected!
->> aarch64-linux-ld: Unexpected run-time procedure linkages detected!
-   aarch64-linux-ld: arch/arm64/mm/mmu.o: in function `__set_ptes_anysz.isra.40.constprop.47':
->> mmu.c:(.text+0x9a8): undefined reference to `__check_safe_pte_update'
-   aarch64-linux-ld: arch/arm64/mm/hugetlbpage.o: in function `__set_ptes_anysz.isra.32':
->> hugetlbpage.c:(.text+0x1a8): undefined reference to `__check_safe_pte_update'
-   aarch64-linux-ld: kernel/bpf/arena.o: in function `apply_range_set_cb':
->> arena.c:(.text+0x11fc): undefined reference to `__check_safe_pte_update'
-   aarch64-linux-ld: mm/gup.o: in function `follow_page_pte':
->> gup.c:(.text+0x2b48): undefined reference to `__check_safe_pte_update'
-   aarch64-linux-ld: mm/memory.o: in function `__set_ptes.isra.207':
->> memory.c:(.text+0x3418): undefined reference to `__check_safe_pte_update'
-   aarch64-linux-ld: mm/mprotect.o:mprotect.c:(.text+0x1080): more undefined references to `__check_safe_pte_update' follow
+------------------------------------------------------
+From: Ye Liu <liuye@kylinos.cn>
+Subject: mm: vmalloc: fix vmap_purge_lock livelock under memory pressure
+Date: Fri, 28 Aug 2026 17:17:53 +0800
 
---
-0-DAY CI Kernel Test Service
-https://github.com/intel/lkp-tests/wiki
+The vmap_purge_lock mutex can be held for an extended period by
+__purge_vmap_area_lazy() which calls flush_work() to wait for
+purge_vmap_node workers while holding the lock.  Under memory pressure,
+those workers may themselves be blocked in direct reclaim trying to
+acquire the same lock via the vmap_node_shrink_scan() shrinker callback,
+creating a circular dependency that deadlocks the entire system.
+
+Two places acquire vmap_purge_lock from paths that can be reached
+during direct reclaim:
+
+1. vmap_node_shrink_scan(): replace blocking guard(mutex) with
+   mutex_trylock().  This is a shrinker that only decays the vmap
+   pool and returns SHRINK_STOP without freeing memory; skipping a
+   decay cycle when the lock is contended is harmless and prevents
+   tasks from piling up on the mutex in the direct reclaim path.
+
+2. reclaim_and_purge_vmap_areas(): replace mutex_lock() with
+   mutex_trylock().  This is called from the vmalloc allocation
+   overflow path; if trylock fails, another thread is already
+   purging and the allocator's retry will find freed space.  The
+   notifier chain provides a fallback if the retry still fails.
+
+Both trylock failures break the circular dependency: the lock holder's
+flush_work() can complete because workers are no longer blocked on
+vmap_purge_lock in the direct reclaim path.
+
+Link: https://lore.kernel.org/20260828091753.299295-1-ye.liu@linux.dev
+Fixes: 7679ba6b36db ("mm: vmalloc: add a shrinker to drain vmap pools")
+Signed-off-by: Ye Liu <liuye@kylinos.cn>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+Suggested-by: Uladzislau Rezki <urezki@gmail.com>
+Suggested-by: Dev Jain <dev.jain@arm.com>
+Reviewed-by: Uladzislau Rezki (Sony) <urezki@gmail.com>
+---
+
+ mm/vmalloc.c |   15 +++++++++++++--
+ 1 file changed, 13 insertions(+), 2 deletions(-)
+
+--- a/mm/vmalloc.c~mm-vmalloc-fix-vmap_purge_lock-livelock-under-memory-pressure
++++ a/mm/vmalloc.c
+@@ -2452,7 +2452,8 @@ static bool __purge_vmap_area_lazy(unsig
+ static void reclaim_and_purge_vmap_areas(void)
+ 
+ {
+-	mutex_lock(&vmap_purge_lock);
++	if (!mutex_trylock(&vmap_purge_lock))
++		return;
+ 	purge_fragmented_blocks_allcpus();
+ 	__purge_vmap_area_lazy(ULONG_MAX, 0, true);
+ 	mutex_unlock(&vmap_purge_lock);
+@@ -5534,10 +5535,20 @@ vmap_node_shrink_scan(struct shrinker *s
+ {
+ 	struct vmap_node *vn;
+ 
+-	guard(mutex)(&vmap_purge_lock);
++	/*
++	 * This shrinker is invoked from direct reclaim where memory
++	 * pressure is already high.  Blocking on vmap_purge_lock here
++	 * can deadlock the system: the lock holder may be blocked in
++	 * flush_work() waiting for a worker that is stuck in this same
++	 * reclaim path trying to acquire the same lock.  Use trylock
++	 * to avoid this; skipping a pool decay cycle is harmless.
++	 */
++	if (!mutex_trylock(&vmap_purge_lock))
++		return SHRINK_STOP;
+ 	for_each_vmap_node(vn)
+ 		decay_va_pool_node(vn, true);
+ 
++	mutex_unlock(&vmap_purge_lock);
+ 	return SHRINK_STOP;
+ }
+ 
+_
+
+Patches currently in -mm which might be from liuye@kylinos.cn are
+
+tools-mm-page_owner_sort-fix-sort-option-being-silently-ignored.patch
+tools-mm-page_owner_sort-add-module-name-sort-cull-filter-support.patch
+tools-mm-page_owner_sort-show-available-sort-keys-in-usage-text.patch
+mm-oom_kill-remove-unreachable-__gfp_thisnode-check-in-constrained_alloc.patch
+mm-oom_kill-proc-replace-magic-number-1000-with-oom_score_adj_max.patch
+mm-page_table_check-add-explicit-pmd_none-check-in-pte_clear_range.patch
+mm-vmalloc-group-xa_init-with-vbq-field-initializations.patch
+mm-vmalloc-extract-vmap_insert_free_area-helper.patch
+mm-vmalloc-extract-show_busy_info-from-vmalloc_info_show.patch
+
