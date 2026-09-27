@@ -1,189 +1,195 @@
-Received: from mail-qt1-f174.google.com (mail-qt1-f174.google.com [209.85.160.174])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 651B42EACEF
-	for <mm-commits@vger.kernel.org>; Sun, 27 Sep 2026 18:43:04 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=209.85.160.174
-ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790534585; cv=pass; b=Ww/+U6/QKba14Lyfc0u37OlZcEXRHrqSfEfPXs8BHn/XOXk5QeDuVNRAhQsmSfIKbpJbptw5woxWg+T70RRrPGm1fN6VCAX/h08yh590DLTCmSZ2KGRsHjlXdTSGmYG7Bt+AD1QyM96pc4wL34Xrdx3g7RLYYPICQadJOAWRU3c=
-ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1790534585; c=relaxed/simple;
-	bh=vvaQBnCoKOyMA7uwaqokJ5yiELZmNJnMyYF7dQXjQFE=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=NpJD/2W0KJiJnZb2sqQGaFHAh4ffSwLUVRXIthMeAEzjCcEeo/aAGMQbfhixtYvHWXQ8bYxvG0ceyl3rLGjFQtiwtGjNrHCxyyRl77k1hRWXll1NHr8D+vQNfMwfJgUyhToql/UyAOTp8RcuwEVX3zTuHKV+t+HB2Y9vJqCjy60=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com; spf=pass smtp.mailfrom=google.com; dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b=uooV1+Bs; arc=pass smtp.client-ip=209.85.160.174
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=google.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2D74943B6E2;
+	Sun, 27 Sep 2026 19:52:52 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
+ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1790538774; cv=none; b=njOsG0iL7VBQIb43d0DnPYTbHLNZy3EFTWpl1jBN4amIPk4sfVCg75Fs4RcIcAs5ueSzEl5Q9xc+w3WqXBOSr2K0p6G1gYrh2fNbkWqEJmTSgAHamXAnfxCkIYKvgQFukOQJzOMWdESnx2bdg910Dm7qkgMz6UXcAUwnUkPDo8Q=
+ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1790538774; c=relaxed/simple;
+	bh=zmIrl5lAyG96x4vWQHQ9+Ljx/qgn6ezBOLllJmEIZhQ=;
+	h=Date:To:From:Subject:Message-Id; b=lgNKHu07Q7c99f7/yKJ2wbX0rtvjgV6CJKvLXFu+3jJf5xX3wZpVkDTi0RwWJKp6pO7dRrLsQ1sSyFNtgSFzaGxaqlpNUYazSlZPgsygGZjLICKKFb/VZZd9XlTf/SmNbOpBwt2SCuzmXWIo7vf6lzI+nHCFhdwokLPEfLWm5UI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=nordVHFi; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b="uooV1+Bs"
-Received: by mail-qt1-f174.google.com with SMTP id d75a77b69052e-53328262efbso167691cf.0
-        for <mm-commits@vger.kernel.org>; Sun, 27 Sep 2026 11:43:04 -0700 (PDT)
-ARC-Seal: i=1; a=rsa-sha256; t=1790534583; cv=none;
-        d=google.com; s=arc-20260327;
-        b=jtZFdItr1p6ygIGq5a5k6catKAyykdQD562Df+fTAnqGZqfCbtbe4s1K56K3bPr2gC
-         mOwNGhCYtI/3W33OfJoik9LPcmzJMCrrxmZS4P3MgwzAgs4CY5IBMrVEWF8VegiIs2Lq
-         7UMdtDqO2KTmUoFaHxlvwEbOncGWwRLry8nGL8lptkNmnAHqAvmGFHAzb5M2vqT8b33U
-         NNxxCxxmywbmlh0AbF8eTj6Y/icGzUNcJWj243mUNtJt4c3v2r9DrDjO/t/RAf2kcEML
-         s6v66F6N8fYdgapqBhTWO2i4v0HEsWuXR/7rDVtoZuBKhSkrSsgLh1+iC0bueVntpbKt
-         LYww==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20260327;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:dkim-signature;
-        bh=wz8k7MO9Giwzl9skRoyGRr6OliqXNHM85ABcpkEfXSA=;
-        fh=BC/LvadvnjQhNmJFFHvBP7+gehVtteccM97XKixpsYk=;
-        b=sdTwcQiKPdxyUe8x08Fl65vzbWQpCPsfXw+w+1zVHiwJsgSrl2UJgSjkD3S738QesF
-         IS5eohSNJffVXc1V90C8dvhYFI2I8jYZ0iV8A8I6tZAgptO+xYqCmA23rxBhHo9l81Uj
-         j44fz7U2e1ktJn7XXfnKL6wNSEFrJSeLyvcDhw5jvF7A4CqCXBgH09nE/gzyboXflUzo
-         uDzCt0V/cC35IQrRC8t9nRZtQZ8kx/v5DL8sxSJ7bfN4dCdBwugNSmTCB5jitIxODvc8
-         yci5O/t+O7Q1G7dtWHk65bTM4BXdsFuKjCg1eebJfUrZnV28ZU6uGAQj1uMwhI5e088t
-         phJw==;
-        darn=vger.kernel.org
-ARC-Authentication-Results: i=1; mx.google.com; arc=none
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="nordVHFi"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B77561F000FF;
+	Sun, 27 Sep 2026 19:52:52 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=google.com; s=20251104; t=1790534583; x=1791139383; darn=vger.kernel.org;
-        h=content-transfer-encoding:content-type:cc:to:subject:message-id
-         :date:from:in-reply-to:references:mime-version:from:to:cc:subject
-         :date:message-id:reply-to:content-type;
-        bh=wz8k7MO9Giwzl9skRoyGRr6OliqXNHM85ABcpkEfXSA=;
-        b=uooV1+BseL1lIVDes3UmxlTDK7/Y11e69KBMou4JuQPbOSwYR1/N8voYTdbLv1hP90
-         1g8Qw+qobD4YdYWof2Yjq6lp3qgAFY/ZCEoXI0Tu5sjEx97XOWlLBchCH9GhaD1WPaK4
-         bxouSq//lpOvvhgw7ri/jChHCl1F1oNCRObPWbT5cv+XHpUz8/EVLxnd9Y5676PJeWRb
-         9JSs9KHZ1pAUnanLI2d3aFzUt9dLvUXCrXlrIIO1oAoLONZdfqiJCJjzhJSRNdF8OSJw
-         su6NEH/rKIqljKv50f3gn9518Rpj4y9DwMVoxh+1BuuEK0kwdKjCa7hY6ep6DovjQT7+
-         T/Zg==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1790534583; x=1791139383;
-        h=content-transfer-encoding:content-type:cc:to:subject:message-id
-         :date:from:in-reply-to:references:mime-version:x-gm-gg
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
-         :content-type;
-        bh=wz8k7MO9Giwzl9skRoyGRr6OliqXNHM85ABcpkEfXSA=;
-        b=LjF+39Vf92bjAoaN2Gp93NeR3BeW+Hr8Itgqy3qCjSbBoF65xnUX4GFy2eosuf8cBB
-         YK3/ex6RvBYiGQZTbGnHBU62e9sIIVCr9w5b5yCzU5ff4DCpkfvIP2LWZc24kPQOFTZk
-         ZRT5Xa8+KbPPdU3J0uFg4cjM86e/dxvm0Xxq/pbUUBEIJi/tbsFMr60IMFqrZiMe6uyW
-         6jOYRbe1idT03JJ8iexHCZfPtnPS+4k1gKZnBeGTbeXUPFetkqRNTdefxUgNw7e7G5sh
-         eo/3Nym0PWfKHgRL3Ry7ZS1PyhMmWs6g3Ib46ZknPXYQ9PO6oN/WkBqFpjKrN0hDs0gL
-         jhUw==
-X-Forwarded-Encrypted: i=1; AKwUvBy8VriTXk1niDCvKrSlzFaXgSkF18Cyf0aFlL0KstCzkDDfvNkjbE0laqxW8qOvBigNIdxW6L2vV6XX@vger.kernel.org
-X-Gm-Message-State: AFuF++l6nZ1uCFGUjnejuOEjea/QPlrhRjHtRAPJc3x7fHRBjqntSMdk
-	TdbWIS+Jf0RU0/nRGRj1cH/WWxrmNd5WYsoEEqq18i+itRCQq6puM9r3gJOQGZC2jADv9/jHoeU
-	JM8kbRf4JKp/5TgKzhBNORO+Nmy0xj9P5vpsuxFGf
-X-Gm-Gg: AYBFou1JhKAwplOQDoAC4UrqFuWSXLeSL7TAxwCHmTuzHhLyMPL2VSG5mZCRjg7NuNa
-	VoDF4jw/LRZNLLwpiTAB9vvlzGlYijZc00sIwDfx03qt27ZLr90z7kdx+yFiLO1Lvw4u8HA+cJY
-	fQBM5SbxzqjxvL+AtajoFd1vadyz71lvs8+M9vzo/hqvaHnqmG/UIExeYA2ZwnGuXrvJ1xiIhd4
-	TSr/9KkJh4Y5wCd0XsrFaRjWDuadTe12u6CIfhDEsXn8bwvns51NE3lYnP2CDahlHqkvJiLBSwX
-	VCXFmJgyS/oDVbPnm/2xOdIFtAASNeVUT/kvQ5VqNzqf19xn7XprGO5cXgjdp/5IhFVmzlPeR+P
-	7v8C5Q3PrL10=
-X-Received: by 2002:ac8:5c95:0:b0:532:eff9:ca08 with SMTP id
- d75a77b69052e-53320176517mr17828151cf.12.1790534582640; Sun, 27 Sep 2026
- 11:43:02 -0700 (PDT)
+	d=linux-foundation.org; s=korg; t=1790538772;
+	bh=vT1N40GFZDiY0oR5liSlwl+l96t+yFXWPq0CoEyM/w0=;
+	h=Date:To:From:Subject;
+	b=nordVHFiG8a6wjtAr+pbkhDKSB9wWabSIK1sSdVjmw2PCQHC98uzYq4oLuHndY11O
+	 pfiynZefa1ef8DtZ/1aihYt/kpOTMl/idHToZlw6rHrSLStxh9ArBdTnbf8rXY/dpW
+	 Y4pYGSeh8kL6XhI1kg+7j6bcmMR8k3jyrrAXB9po=
+Date: Sun, 27 Sep 2026 12:52:52 -0700
+To: mm-commits@vger.kernel.org,vivek.kasireddy@intel.com,stable@vger.kernel.org,osalvador@suse.de,muchun.song@linux.dev,hughd@google.com,david@kernel.org,baolin.wang@linux.alibaba.com,lihongfu@kylinos.cn,akpm@linux-foundation.org
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: + mm-memfd-fix-hugetlb-reservation-accounting-in-error-paths.patch added to mm-unstable branch
+Message-Id: <20260927195252.B77561F000FF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
-MIME-Version: 1.0
-References: <202609271644.eX9EFdJw-lkp@intel.com> <20260927110407.8641fb46613365094f4d32ff@linux-foundation.org>
-In-Reply-To: <20260927110407.8641fb46613365094f4d32ff@linux-foundation.org>
-From: Suren Baghdasaryan <surenb@google.com>
-Date: Sun, 27 Sep 2026 11:42:51 -0700
-X-Gm-Features: AclHuK-6Kh0494iLphiRrsts5maQH8XA-Kq7q8l8Cfb9ycF_Brcsonq-LTJ1WjQ
-Message-ID: <CAJuCfpEyW=rM7T2iP3pv3fbAzH410twAmxUbMHzKDfD4gF_F-g@mail.gmail.com>
-Subject: Re: [akpm-mm:mm-new] BUILD REGRESSION b4fc90c82982d98959af08b4320420bcfc01303b
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: kernel test robot <lkp@intel.com>, David Hildenbrand <david@kernel.org>, 
-	Linux Memory Management List <linux-mm@kvack.org>, mm-commits@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
 
-On Sun, Sep 27, 2026 at 11:04=E2=80=AFAM Andrew Morton
-<akpm@linux-foundation.org> wrote:
->
-> On Sun, 27 Sep 2026 16:00:49 +0800 kernel test robot <lkp@intel.com> wrot=
-e:
->
-> > tree/branch: https://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm.gi=
-t mm-new
-> > branch HEAD: b4fc90c82982d98959af08b4320420bcfc01303b  mm/swap, PM: hib=
-ernate: atomically replace hibernation pin
-> >
-> > Error/Warning (recently discovered and may have been fixed):
-> >
-> >     https://lore.kernel.org/oe-kbuild-all/202609160337.WJiD9BqX-lkp@int=
-el.com
-> >     https://lore.kernel.org/oe-kbuild-all/202609171159.oaB1OaSG-lkp@int=
-el.com
-> >     https://lore.kernel.org/oe-kbuild-all/202609270030.Y0QVBPmK-lkp@int=
-el.com
-> >
-> >     aarch64-linux-ld: Unexpected GOT/PLT entries detected!
-> >     aarch64-linux-ld: Unexpected run-time procedure linkages detected!
-> >     arena.c:(.text+0x11fc): undefined reference to `__check_safe_pte_up=
-date'
-> >     fs/proc/task_mmu.c:3450:17: error: implicit declaration of function=
- 'drop_rcu' [-Werror=3Dimplicit-function-declaration]
-> >     fs/proc/task_mmu.c:3450:3: error: call to undeclared function 'drop=
-_rcu'; ISO C99 and later do not support implicit function declarations [-Wi=
-mplicit-function-declaration]
-> >     fs/proc/task_mmu.c:3450:3: error: implicit declaration of function =
-'drop_rcu'; did you mean 'drop_slab'? [-Werror=3Dimplicit-function-declarat=
-ion]
-> >     fs/proc/task_mmu.c:3452:17: error: implicit declaration of function=
- 'reacquire_rcu' [-Werror=3Dimplicit-function-declaration]
-> >     fs/proc/task_mmu.c:3452:3: error: call to undeclared function 'reac=
-quire_rcu'; ISO C99 and later do not support implicit function declarations=
- [-Wimplicit-function-declaration]
-> >     fs/proc/task_mmu.c:3452:3: error: implicit declaration of function =
-'reacquire_rcu'; did you mean 'get_file_rcu'? [-Werror=3Dimplicit-function-=
-declaration]
-> >     gup.c:(.text+0x2b48): undefined reference to `__check_safe_pte_upda=
-te'
-> >     hugetlbpage.c:(.text+0x1a8): undefined reference to `__check_safe_p=
-te_update'
-> >     memory.c:(.text+0x3418): undefined reference to `__check_safe_pte_u=
-pdate'
-> >     mmu.c:(.text+0x9a8): undefined reference to `__check_safe_pte_updat=
-e'
->
-> Thanks.  Against "proc/task_mmu: remove unnecessary inlines in function
-> definitions":
 
-Thanks! LGTM.
+The patch titled
+     Subject: mm/memfd: fix hugetlb reservation accounting in error paths
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-memfd-fix-hugetlb-reservation-accounting-in-error-paths.patch
 
->
->
-> From: Andrew Morton <akpm@linux-foundation.org>
-> Subject: proc-task_mmu-remove-unnecessary-inlines-in-function-definitions=
--fix
-> Date: Sun Sep 27 10:59:53 AM PDT 2026
->
-> fix CONFIG_NUMA=3Dy && CONFIG_PROC_PAGE_MONITOR=3Dn build
->
-> show_numa_map() uses drop_rcu() and reacquire_rcu(), but those helpers ar=
-e
-> currently built only when CONFIG_PROC_PAGE_MONITOR is enabled.  A kernel
-> with CONFIG_NUMA=3Dy and CONFIG_PROC_PAGE_MONITOR=3Dn therefore fails to =
-build
-> with implicit declarations for both helpers.
->
-> Cc: Suren Baghdasaryan <surenb@google.com>
-> Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-> ---
->
->  fs/proc/task_mmu.c |    2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
->
-> --- a/fs/proc/task_mmu.c~proc-task_mmu-remove-unnecessary-inlines-in-func=
-tion-definitions-fix
-> +++ a/fs/proc/task_mmu.c
-> @@ -196,7 +196,7 @@ static bool fallback_to_mmap_lock(struct
->         return true;
->  }
->
-> -#ifdef CONFIG_PROC_PAGE_MONITOR
-> +#if defined(CONFIG_PROC_PAGE_MONITOR) || defined(CONFIG_NUMA)
->  static void drop_rcu(struct proc_maps_private *priv)
->  {
->         if (priv->lock_ctx.mmap_locked)
-> _
->
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memfd-fix-hugetlb-reservation-accounting-in-error-paths.patch
+
+This patch will later appear in the mm-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via various
+branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there most days
+
+------------------------------------------------------
+From: Hongfu Li <lihongfu@kylinos.cn>
+Subject: mm/memfd: fix hugetlb reservation accounting in error paths
+Date: Thu, 3 Sep 2026 11:01:34 +0800
+
+If hugetlb_add_to_page_cache() in memfd_alloc_folio() fails with -EEXIST,
+a concurrent fault has already instantiated the folio in the page cache,
+and the reservation now belongs to that folio.  Calling
+hugetlb_unreserve_pages() in that case incorrectly removes the region
+backing the cached folio and releases one reservation more than it should,
+leaving that folio in the page cache with no region recording it.
+
+That leaves resv_huge_pages one page short until that folio is removed
+from the page cache, so available_huge_pages() reports a page that is not
+actually free and the pool can grant one reservation more than it can
+back.  Applications using hugetlb memfds can then fail to allocate or
+fault in a page they already reserved.  They see -ENOMEM or -ENOSPC from
+the allocation or fault path even though the reservation and
+HugePages_Free still look healthy.
+
+So hold the hugetlb fault mutex from hugetlb_reserve_pages() until the
+error-path unreserve completes to make the reserve, allocate and
+instantiate steps atomic against concurrent faults.  With the mutex held
+from the start, a concurrent fault can no longer consume the reservation
+between reserve and allocate/instantiate.  If a fault completed before the
+mutex was taken, it has already added the region for that index, so
+hugetlb_reserve_pages() returns 0 and the error path leaves the region in
+place.
+
+Link: https://lore.kernel.org/20260927094757.31665-1-hongfu.li@linux.dev
+Link: https://lore.kernel.org/20260903030134.7407-1-hongfu.li@linux.dev
+Fixes: 717cf9357325 ("mm/memfd: reserve hugetlb folios before allocation")
+Signed-off-by: Hongfu Li <lihongfu@kylinos.cn>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
+Cc: David Hildenbrand <david@kernel.org>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Muchun Song <muchun.song@linux.dev>
+Cc: Oscar Salvador <osalvador@suse.de>
+Cc: Vivek Kasireddy <vivek.kasireddy@intel.com>
+Cc: <stable@vger.kernel.org>
+---
+
+ mm/memfd.c |   31 ++++++++++++++++---------------
+ 1 file changed, 16 insertions(+), 15 deletions(-)
+
+--- a/mm/memfd.c~mm-memfd-fix-hugetlb-reservation-accounting-in-error-paths
++++ a/mm/memfd.c
+@@ -82,22 +82,31 @@ struct folio *memfd_alloc_folio(struct f
+ 		struct hstate *h = hstate_file(memfd);
+ 		int err = -ENOMEM;
+ 		long nr_resv;
++		u32 hash;
+ 
+ 		gfp_mask = htlb_alloc_mask(h);
+ 		gfp_mask &= ~(__GFP_HIGHMEM | __GFP_MOVABLE);
+ 		idx >>= huge_page_order(h);
+ 
++		/*
++		 * Serialize hugepage allocation and instantiation to prevent
++		 * races with concurrent allocations, as required by all other
++		 * callers of hugetlb_add_to_page_cache().
++		 */
++		hash = hugetlb_fault_mutex_hash(memfd->f_mapping, idx);
++		mutex_lock(&hugetlb_fault_mutex_table[hash]);
++
+ 		nr_resv = hugetlb_reserve_pages(inode, idx, idx + 1, NULL, EMPTY_VMA_FLAGS);
+-		if (nr_resv < 0)
+-			return ERR_PTR(nr_resv);
++		if (nr_resv < 0) {
++			err = nr_resv;
++			goto out_unlock;
++		}
+ 
+ 		folio = alloc_hugetlb_folio_reserve(h,
+ 						    numa_node_id(),
+ 						    NULL,
+ 						    gfp_mask);
+ 		if (folio) {
+-			u32 hash;
+-
+ 			/*
+ 			 * Zero the folio to prevent information leaks to userspace.
+ 			 * Use folio_zero_user() which is optimized for huge/gigantic
+@@ -112,20 +121,9 @@ struct folio *memfd_alloc_folio(struct f
+ 			 */
+ 			__folio_mark_uptodate(folio);
+ 
+-			/*
+-			 * Serialize hugepage allocation and instantiation to prevent
+-			 * races with concurrent allocations, as required by all other
+-			 * callers of hugetlb_add_to_page_cache().
+-			 */
+-			hash = hugetlb_fault_mutex_hash(memfd->f_mapping, idx);
+-			mutex_lock(&hugetlb_fault_mutex_table[hash]);
+-
+ 			err = hugetlb_add_to_page_cache(folio,
+ 							memfd->f_mapping,
+ 							idx);
+-
+-			mutex_unlock(&hugetlb_fault_mutex_table[hash]);
+-
+ 			if (err) {
+ 				folio_put(folio);
+ 				goto err_unresv;
+@@ -133,11 +131,14 @@ struct folio *memfd_alloc_folio(struct f
+ 
+ 			hugetlb_set_folio_subpool(folio, subpool_inode(inode));
+ 			folio_unlock(folio);
++			mutex_unlock(&hugetlb_fault_mutex_table[hash]);
+ 			return folio;
+ 		}
+ err_unresv:
+ 		if (nr_resv > 0)
+ 			hugetlb_unreserve_pages(inode, idx, idx + 1, 0);
++out_unlock:
++		mutex_unlock(&hugetlb_fault_mutex_table[hash]);
+ 		return ERR_PTR(err);
+ 	}
+ #endif
+_
+
+Patches currently in -mm which might be from lihongfu@kylinos.cn are
+
+mm-use-a-folio-in-the-softleaf_is_device_private-path.patch
+mm-hugetlb-fix-resv_huge_pages-double-decrement-in-memfd-error-path.patch
+mm-memcontrol-remove-unused-memcg-parameter-in-calculate_high_delay.patch
+selftests-mm-khugepaged-consolidate-error-exits-via-kselftest-helpers.patch
+mm-page_owner-preserve-original-free_pid-free_tgid-during-folio-migration.patch
+mm-memfd-fix-hugetlb-reservation-accounting-in-error-paths.patch
+selftests-mm-fix-ptrace-peekdata-check-in-memfd_secret-test.patch
+mm-hugetlb_cgroup-move-per-node-usage-on-cross-node-migration.patch
+mm-hugetlb_cgroup-move-per-node-usage-on-cgroup-reparenting.patch
+mm-hugetlb-account-migration-target-folio-in-per-node-nr_hugetlb-vmstat.patch
+mm-memcg-migrate-per-node-hugetlb-lruvec-stat-together-with-hugetlb-folio.patch
+
