@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DB37437F723
-	for <mm-commits@vger.kernel.org>; Sat, 26 Sep 2026 20:59:42 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E6BA3274FE3
+	for <mm-commits@vger.kernel.org>; Sun, 27 Sep 2026 05:43:14 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790456384; cv=none; b=Lqzi+/EgFaEYWZJxfu2azL0EDG+3384sNpa2r4kNistspUG3jstcQ8fEfqq6+Zjl6gDnEtFLl43IbMuOQhGv80NWPK7m4ALhUFaazWFMbmwaeX/eGk9X4pI0d0SrobE9l3Ma7qkXfXj9oY/IYrqL5pyJQ7rmYhNNQDGTDWgfNsE=
+	t=1790487796; cv=none; b=mmkn3N4LEQe5yPUJkquyDwUZqaX5KWuu5MdJvg1j0+Jezxu5dHDFitAwJv1244rEZG7zXc7TDA9WcmcLROMmYT/cBfTSAAQeuCa+Inyyzfw02kN2oC8TDrrfQQGfm8dScuBXPLg3lOVhwlHQJIwrEiwQBWCgvVj+SMpiQLbNvNU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1790456384; c=relaxed/simple;
-	bh=uixvqC5nj/enLVa5fBPJNI681rUAnsyqmaSpPQc62xo=;
-	h=Date:To:From:Subject:Message-Id; b=MBh1olN6OBQ8iwiVB2/1IKYZNDIfbtIyCX3BARu9OyhC6t47Ib/6jvAebVgwkJfdnVgC5980EN/5t2ueVS7pa6QQlbh69iwRrIOOjOCpifATPSik1AIg9ZKNW25RP6g3xUxovRkehURhM5K2JQYbZK6EocKYEogXyDY+vXBgo4s=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Y0tnb11T; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1790487796; c=relaxed/simple;
+	bh=/08t+pnjj6ZFLbGHIJQtVI7kEcLXO8rD4irU5Ywxmlk=;
+	h=Date:To:From:Subject:Message-Id; b=B25vFzLa9SeppzG+daouNJVSQS28hEY0D0yTEXSTVg7jhvvm2io4ZNAc37ZRApHLRxMDWOws8tJBUgXJNU6EkYo+MiispsHvEZL89yVejOrmy8AM9qfSHm+++coiDLLbLncB3MkZfPDUPgSjd6OrWkbXMtvItCid4eEkCz5KV4A=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=IqTuT3RB; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Y0tnb11T"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5F6711F000FF;
-	Sat, 26 Sep 2026 20:59:42 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="IqTuT3RB"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7C93A1F000FF;
+	Sun, 27 Sep 2026 05:43:14 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1790456382;
-	bh=d/7jckz/R5rwRilp3LN4V2FlJ9kpx8s/g/TUXL3V+zE=;
+	d=linux-foundation.org; s=korg; t=1790487794;
+	bh=RmQuB10SwOaO629TI42q0zPaFKl5oyr5lL2nHPB3TpI=;
 	h=Date:To:From:Subject;
-	b=Y0tnb11TbAwFqbPexrggZtqLa+uW+99I9LLGTYNZcq/DG9FoU0wbdyNfXbUIf4E9k
-	 kXPrCppEfO39CjN0deMp4PQ67MrfxiKRFgKE/yDz32UbfNFT06vmaJNb9YPEh6sl7+
-	 vw/pRczDoRlBDgcv9D9mScDReib4Xp/QdIQJnjZs=
-Date: Sat, 26 Sep 2026 13:59:41 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,yosry@kernel.org,xlpang@linux.alibaba.com,usama.arif@linux.dev,shakeel.butt@linux.dev,ryncsn@gmail.com,roman.gushchin@linux.dev,qi.zheng@linux.dev,nphamcs@gmail.com,muchun.song@linux.dev,mkoutny@suse.com,mhocko@kernel.org,hannes@cmpxchg.org,david@kernel.org,david@fromorbit.com,chengming.zhou@linux.dev,baolin.wang@linux.alibaba.com,qinyuntan@linux.alibaba.com,akpm@linux-foundation.org
+	b=IqTuT3RByQIsMqgVnBdFgJ482zap2V6xvYBWLnu2l78BikhzemTPgK8keto3lQWe1
+	 nDLA8crHHiPjUG0lCfAGbyIWZzZ468E8cnpHaBOrtSg/p+yM9ncHku5vWEG13L/8L9
+	 jpLfPQBVKJHVuXa2C9CtSafWwZbGOBjVVMMUN5H4=
+Date: Sat, 26 Sep 2026 22:43:13 -0700
+To: mm-commits@vger.kernel.org,songmuchun@bytedance.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [failures] mm-zswap-mark-the-zswap-shrinker-shrinker_nonslab.patch removed from -mm tree
-Message-Id: <20260926205942.5F6711F000FF@smtp.kernel.org>
+Subject: [to-be-updated] mm-sparse-vmemmap-introduce-config_vmemmap_optimization.patch removed from -mm tree
+Message-Id: <20260927054314.7C93A1F000FF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,81 +35,266 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: zswap: mark the zswap shrinker SHRINKER_NONSLAB
+     Subject: mm/sparse-vmemmap: introduce CONFIG_VMEMMAP_OPTIMIZATION
 has been removed from the -mm tree.  Its filename was
-     mm-zswap-mark-the-zswap-shrinker-shrinker_nonslab.patch
+     mm-sparse-vmemmap-introduce-config_vmemmap_optimization.patch
 
-This patch was dropped because it had testing failures
+This patch was dropped because an updated version will be issued
 
 ------------------------------------------------------
-From: Qinyun Tan <qinyuntan@linux.alibaba.com>
-Subject: mm: zswap: mark the zswap shrinker SHRINKER_NONSLAB
-Date: Thu, 10 Sep 2026 16:07:22 +0800
+From: Muchun Song <songmuchun@bytedance.com>
+Subject: mm/sparse-vmemmap: introduce CONFIG_VMEMMAP_OPTIMIZATION
+Date: Wed, 16 Sep 2026 14:43:31 +0800
 
-With kmem accounting disabled (cgroup.memory=nokmem), memcg reclaim never
-invokes the zswap shrinker: a cgroup under memory pressure does not write
-back its own zswapped pages to make room; they are only written back by
-global reclaim or once the global pool limit kicks in.
+Patch series "mm: Switch device DAX to section-based vmemmap
+optimization", v4.
 
-The zswap shrinker is registered memcg-aware but without SHRINKER_NONSLAB,
-so under nokmem it is treated as a slab shrinker: before commit
-03375203e1da ("mm: do not allocate shrinker info with
-cgroup.memory=nokmem") it was skipped by the !memcg_kmem_online() check in
-shrink_slab_memcg(); since that commit it is demoted to non-memcg-aware at
-registration.  But the zswap shrinker is not a slab shrinker: it tracks
-zswap entries and resolves the owning memcg from the folio's objcg,
-independent of kmem accounting.
+This series is split out from the earlier, larger series "mm: Generalize
+HVO for HugeTLB and device DAX" [1].  While the parent series generalizes
+vmemmap optimization across HugeTLB and device DAX, this subset addresses
+a single, self-contained step: switching device DAX to the section-based
+sparse-vmemmap optimization infrastructure introduced for HugeTLB.
 
-This was noticed by Michal during review of the patch "mm/list_lru: don't
-copy stale shrinker id from non-memcg-aware shrinkers" [1].
+After the HugeTLB conversion, optimized vmemmap state is described by the
+memory section and the sparse-vmemmap population path can allocate or
+reuse shared tail vmemmap pages based on that metadata.  Device DAX still
+uses the older DAX-specific population model, including a separate tail
+vmemmap page reservation and architecture-specific logic to locate or
+populate reusable tail pages.
 
-Mark it SHRINKER_NONSLAB so it keeps its memcg awareness and runs under
-memcg reclaim with nokmem.
+This series makes device DAX use the same section-based model.  Device DAX
+records the compound page order from pgmap->vmemmap_shift in section
+metadata before vmemmap population, uses the common per-zone shared tail
+vmemmap page, and drops the extra reserved tail page.  The powerpc radix
+path is updated to use the same shared tail-page helper, so the generic
+and powerpc DAX paths follow the same reservation model.
 
-Link: https://lore.kernel.org/20260910080722.3961351-5-qinyuntan@linux.alibaba.com
-Link: https://lore.kernel.org/lkml/697713c4-0857-485b-aba7-c74f37a3c8b4@linux.alibaba.com/ [1]
-Fixes: b5ba474f3f51 ("zswap: shrink zswap pool based on memory pressure")
-Signed-off-by: Qinyun Tan <qinyuntan@linux.alibaba.com>
+The first patches prepare the shared infrastructure by introducing a
+generic CONFIG_VMEMMAP_OPTIMIZATION symbol, factoring out shared tail-page
+allocation, and keeping the special shared-tail struct page initialization
+local to sparse-vmemmap.
+
+The middle patches move device DAX onto that infrastructure by recording
+the device DAX compound page order in memory-section metadata, using that
+metadata to back generic device DAX mappings with the common per-zone
+shared tail page, exposing the shared helpers so the powerpc radix path
+can use the same model, and dropping the extra DAX-only tail page
+reservation and the now-unused section accounting arguments.
+
+The final patch updates the documentation for the new DAX layout.
+
+This is intended to be the third smaller step toward the broader HVO
+generalization. The wider HVO consolidation between HugeTLB and device
+DAX is left for follow-up series.
+
+
+This patch (of 11):
+
+The section-based vmemmap optimization infrastructure is still guarded by
+CONFIG_HUGETLB_PAGE_OPTIMIZE_VMEMMAP, but it also can be used by device
+DAX.  Introduce CONFIG_VMEMMAP_OPTIMIZATION as a common config for the
+shared infrastructure.
+
+Select the new option from HUGETLB_PAGE_OPTIMIZE_VMEMMAP and from DEV_DAX
+when the architecture opts in to DAX vmemmap optimization, and use it to
+guard the generic sparse-vmemmap state and helpers.
+
+Link: https://lore.kernel.org/20260916064341.1825793-1-songmuchun@bytedance.com
+Link: https://lore.kernel.org/20260916064341.1825793-2-songmuchun@bytedance.com
+Link: https://lore.kernel.org/all/20260513130542.35604-1-songmuchun@bytedance.com/ [1]
+Signed-off-by: Muchun Song <songmuchun@bytedance.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Suggested-by: Michal Koutný <mkoutny@suse.com>
-Acked-by: Usama Arif <usama.arif@linux.dev>
-Acked-by: Nhat Pham <nphamcs@gmail.com>
-Acked-by: Yosry Ahmed <yosry@kernel.org>
-Reviewed-by: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Roman Gushchin <roman.gushchin@linux.dev>
-Cc: Shakeel Butt <shakeel.butt@linux.dev>
-Cc: Muchun Song <muchun.song@linux.dev>
+Acked-by: Qi Zheng <qi.zheng@linux.dev>
+Acked-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
 Cc: David Hildenbrand <david@kernel.org>
-Cc: Zi Yan <ziy@nvidia.com>
-Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: Dave Chinner <david@fromorbit.com>
-Cc: Qi Zheng <qi.zheng@linux.dev>
-Cc: Chengming Zhou <chengming.zhou@linux.dev>
-Cc: Xunlei Pang <xlpang@linux.alibaba.com>
-Cc: Kairui Song <ryncsn@gmail.com>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: Lorenzo Stoakes <ljs@kernel.org>
+Cc: Madhavan Srinivasan <maddy@linux.ibm.com>
+Cc: Michael Ellerman <mpe@ellerman.id.au>
+Cc: Nicholas Piggin <npiggin@gmail.com>
+Cc: Oscar Salvador <osalvador@suse.de>
+Cc: Randy Dunlap <rdunlap@infradead.org>
 ---
 
- mm/zswap.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ arch/x86/entry/vdso/vdso32/fake_32bit_build.h |    2 +-
+ drivers/dax/Kconfig                           |    2 ++
+ fs/Kconfig                                    |    1 +
+ include/linux/mm.h                            |    3 +++
+ include/linux/mmzone.h                        |   13 +++++++------
+ include/linux/page-flags.h                    |    5 ++---
+ mm/Kconfig                                    |    4 ++++
+ mm/sparse.h                                   |    4 ++--
+ 8 files changed, 22 insertions(+), 12 deletions(-)
 
---- a/mm/zswap.c~mm-zswap-mark-the-zswap-shrinker-shrinker_nonslab
-+++ a/mm/zswap.c
-@@ -1297,8 +1297,8 @@ static struct shrinker *zswap_alloc_shri
+--- a/arch/x86/entry/vdso/vdso32/fake_32bit_build.h~mm-sparse-vmemmap-introduce-config_vmemmap_optimization
++++ a/arch/x86/entry/vdso/vdso32/fake_32bit_build.h
+@@ -11,7 +11,7 @@
+ #undef CONFIG_PGTABLE_LEVELS
+ #undef CONFIG_ILLEGAL_POINTER_VALUE
+ #undef CONFIG_SPARSEMEM_VMEMMAP
+-#undef CONFIG_HUGETLB_PAGE_OPTIMIZE_VMEMMAP
++#undef CONFIG_VMEMMAP_OPTIMIZATION
+ #undef CONFIG_NR_CPUS
+ #undef CONFIG_PARAVIRT_XXL
+ 
+--- a/drivers/dax/Kconfig~mm-sparse-vmemmap-introduce-config_vmemmap_optimization
++++ a/drivers/dax/Kconfig
+@@ -8,6 +8,8 @@ if DAX
+ config DEV_DAX
+ 	tristate "Device DAX: direct access mapping device"
+ 	depends on TRANSPARENT_HUGEPAGE
++	depends on ZONE_DEVICE
++	select VMEMMAP_OPTIMIZATION if ARCH_WANT_OPTIMIZE_DAX_VMEMMAP
+ 	help
+ 	  Support raw access to differentiated (persistence, bandwidth,
+ 	  latency...) memory via an mmap(2) capable character
+--- a/fs/Kconfig~mm-sparse-vmemmap-introduce-config_vmemmap_optimization
++++ a/fs/Kconfig
+@@ -278,6 +278,7 @@ config HUGETLB_PAGE_OPTIMIZE_VMEMMAP
+ 	def_bool HUGETLB_PAGE
+ 	depends on ARCH_WANT_OPTIMIZE_HUGETLB_VMEMMAP
+ 	depends on SPARSEMEM_VMEMMAP
++	select VMEMMAP_OPTIMIZATION
+ 
+ config HUGETLB_PMD_PAGE_TABLE_SHARING
+ 	def_bool HUGETLB_PAGE
+--- a/include/linux/mm.h~mm-sparse-vmemmap-introduce-config_vmemmap_optimization
++++ a/include/linux/mm.h
+@@ -5175,6 +5175,9 @@ static inline bool __vmemmap_can_optimiz
+ 	unsigned long nr_pages;
+ 	unsigned long nr_vmemmap_pages;
+ 
++	if (!IS_ENABLED(CONFIG_VMEMMAP_OPTIMIZATION))
++		return false;
++
+ 	if (!pgmap || !is_power_of_2(sizeof(struct page)))
+ 		return false;
+ 
+--- a/include/linux/mmzone.h~mm-sparse-vmemmap-introduce-config_vmemmap_optimization
++++ a/include/linux/mmzone.h
+@@ -102,9 +102,9 @@
+  *
+  * HVO which is only active if the size of struct page is a power of 2.
+  */
+-#define MAX_FOLIO_VMEMMAP_ALIGN \
+-	(IS_ENABLED(CONFIG_HUGETLB_PAGE_OPTIMIZE_VMEMMAP) && \
+-	 is_power_of_2(sizeof(struct page)) ? \
++#define MAX_FOLIO_VMEMMAP_ALIGN					\
++	(IS_ENABLED(CONFIG_VMEMMAP_OPTIMIZATION) &&		\
++	 is_power_of_2(sizeof(struct page)) ?			\
+ 	 MAX_FOLIO_NR_PAGES * sizeof(struct page) : 0)
+ 
+ /* The number of retained vmemmap pages with HVO enabled. */
+@@ -116,7 +116,8 @@
+ #define __VMEMMAP_OPTIMIZATION_NR_ORDERS	\
+ 	(MAX_FOLIO_ORDER - VMEMMAP_OPTIMIZATION_MIN_ORDER + 1)
+ #define VMEMMAP_OPTIMIZATION_NR_ORDERS		\
+-	(__VMEMMAP_OPTIMIZATION_NR_ORDERS > 0 ? __VMEMMAP_OPTIMIZATION_NR_ORDERS : 0)
++	((__VMEMMAP_OPTIMIZATION_NR_ORDERS > 0 &&	\
++	  IS_ENABLED(CONFIG_VMEMMAP_OPTIMIZATION)) ? __VMEMMAP_OPTIMIZATION_NR_ORDERS : 0)
+ 
+ enum migratetype {
+ 	MIGRATE_UNMOVABLE,
+@@ -1155,7 +1156,7 @@ struct zone {
+ 	/* Zone statistics */
+ 	atomic_long_t		vm_stat[NR_VM_ZONE_STAT_ITEMS];
+ 	atomic_long_t		vm_numa_event[NR_VM_NUMA_EVENT_ITEMS];
+-#ifdef CONFIG_HUGETLB_PAGE_OPTIMIZE_VMEMMAP
++#ifdef CONFIG_VMEMMAP_OPTIMIZATION
+ 	struct page *vmemmap_tails[VMEMMAP_OPTIMIZATION_NR_ORDERS];
+ #endif
+ } ____cacheline_internodealigned_in_smp;
+@@ -2019,7 +2020,7 @@ struct mem_section {
+ 	unsigned long section_mem_map;
+ 
+ 	struct mem_section_usage *usage;
+-#ifdef CONFIG_HUGETLB_PAGE_OPTIMIZE_VMEMMAP
++#ifdef CONFIG_VMEMMAP_OPTIMIZATION
+ 	/*
+ 	 * Normally, sections hold regular (order-0) pages. However, for
+ 	 * sections with HVO enabled, this tracks the compound page order
+--- a/include/linux/page-flags.h~mm-sparse-vmemmap-introduce-config_vmemmap_optimization
++++ a/include/linux/page-flags.h
+@@ -208,14 +208,13 @@ enum pageflags {
+ static __always_inline bool compound_info_has_mask(void)
  {
- 	struct shrinker *shrinker;
+ 	/*
+-	 * Limit mask usage to HugeTLB vmemmap optimization (HVO) where it
+-	 * makes a difference.
++	 * Limit mask usage to HVO where it makes a difference.
+ 	 *
+ 	 * The approach with mask would work in the wider set of conditions,
+ 	 * but it requires validating that struct pages are naturally aligned
+ 	 * for all orders up to the MAX_FOLIO_ORDER, which can be tricky.
+ 	 */
+-	if (!IS_ENABLED(CONFIG_HUGETLB_PAGE_OPTIMIZE_VMEMMAP))
++	if (!IS_ENABLED(CONFIG_VMEMMAP_OPTIMIZATION))
+ 		return false;
  
--	shrinker =
--		shrinker_alloc(SHRINKER_NUMA_AWARE | SHRINKER_MEMCG_AWARE, "mm-zswap");
-+	shrinker = shrinker_alloc(SHRINKER_NUMA_AWARE | SHRINKER_MEMCG_AWARE |
-+				  SHRINKER_NONSLAB, "mm-zswap");
- 	if (!shrinker)
- 		return NULL;
+ 	return is_power_of_2(sizeof(struct page));
+--- a/mm/Kconfig~mm-sparse-vmemmap-introduce-config_vmemmap_optimization
++++ a/mm/Kconfig
+@@ -461,6 +461,10 @@ config SPARSEMEM_VMEMMAP
+ 	  pfn_to_page and page_to_pfn operations.  This is the most
+ 	  efficient option when sufficient kernel resources are available.
  
++config VMEMMAP_OPTIMIZATION
++	bool
++	depends on SPARSEMEM_VMEMMAP
++
+ #
+ # Select this config option from the architecture Kconfig, if it is preferred
+ # to enable the feature of HugeTLB/dev_dax vmemmap optimization.
+--- a/mm/sparse.h~mm-sparse-vmemmap-introduce-config_vmemmap_optimization
++++ a/mm/sparse.h
+@@ -10,7 +10,7 @@
+ 
+ #include <linux/mmzone.h>
+ 
+-#ifdef CONFIG_HUGETLB_PAGE_OPTIMIZE_VMEMMAP
++#ifdef CONFIG_VMEMMAP_OPTIMIZATION
+ static inline unsigned int section_compound_order(const struct mem_section *section)
+ {
+ 	return section->compound_page_order;
+@@ -75,7 +75,7 @@ static inline bool vmemmap_optimizable_p
+ 
+ static inline bool vmemmap_optimizable_order(unsigned int order)
+ {
+-	if (!IS_ENABLED(CONFIG_HUGETLB_PAGE_OPTIMIZE_VMEMMAP))
++	if (!IS_ENABLED(CONFIG_VMEMMAP_OPTIMIZATION))
+ 		return false;
+ 
+ 	if (!is_power_of_2(sizeof(struct page)))
 _
 
-Patches currently in -mm which might be from qinyuntan@linux.alibaba.com are
+Patches currently in -mm which might be from songmuchun@bytedance.com are
 
-mm-list_lru-disable-memcg-awareness-under-cgroup_disable=memory.patch
-mm-list_lru-dont-copy-stale-shrinker-id-from-non-memcg-aware-shrinkers.patch
+mm-sparse-relax-struct-mem_section-size-constraints.patch
+mm-sparse-vmemmap-rename-hvo-order-macros.patch
+mm-mm_init-skip-initializing-shared-vmemmap-tail-pages.patch
+mm-sparse-vmemmap-initialize-shared-tail-vmemmap-pages-on-allocation.patch
+mm-sparse-vmemmap-support-section-based-vmemmap-accounting.patch
+mm-mm_init-factor-out-pfn_to_zone.patch
+mm-sparse-vmemmap-move-helpers-ahead-of-future-callers.patch
+mm-sparse-vmemmap-support-section-based-vmemmap-optimization.patch
+mm-sparse-initialize-memory-sections-earlier.patch
+mm-hugetlb-switch-hugetlb-to-section-based-vmemmap-optimization.patch
+mm-sparse-vmemmap-remove-sparsemem_vmemmap_preinit-support.patch
+mm-sparse-inline-usemap-allocation-into-sparse_init_nid.patch
+mm-sparse-remove-section_map_size.patch
+mm-hugetlb-remove-huge_bootmem_hvo.patch
+mm-hugetlb-remove-huge_bootmem_cma.patch
+mm-hugetlb-localize-struct-huge_bootmem_page.patch
+mm-hugetlb-localize-huge_bootmem_zones_valid.patch
+mm-sparse-vmemmap-introduce-config_vmemmap_optimization-fix.patch
+mm-sparse-vmemmap-factor-out-shared-vmemmap-tail-page-allocation.patch
+mm-sparse-vmemmap-open-code-init_compound_tail.patch
+mm-sparse-vmemmap-prepare-dax-vmemmap-population-for-compound-page-orders.patch
+mm-sparse-vmemmap-set-compound-page-order-for-device-dax.patch
+mm-sparse-vmemmap-switch-device-dax-to-shared-tail-vmemmap-pages.patch
+mm-sparse-vmemmap-move-vmemmap-optimization-helpers-to-a-public-header.patch
+powerpc-mm-switch-device-dax-to-shared-tail-vmemmap-pages.patch
+mm-sparse-vmemmap-drop-the-extra-tail-page-from-device-dax-reservation.patch
+mm-sparse-vmemmap-drop-unused-section_nr_vmemmap_pages-arguments.patch
+documentation-mm-update-dax-vmemmap-deduplication-docs.patch
 
