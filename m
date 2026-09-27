@@ -1,130 +1,81 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A85413BED7A;
-	Sun, 27 Sep 2026 20:27:53 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1CC7C1A6836;
+	Sun, 27 Sep 2026 20:31:00 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790540874; cv=none; b=Njx+VCE1TLp7eoimuZpkkvdu/aowik30RxNlfUY4W4QxUxleom4Mlx9Evpn/3jaaiRVvM0aVAG2yVpZA7QMyn8pWTQsgGVJLsxUMsdW0luInvglG+Fdbjb19srIPP5oDwNuPeIe5/KjsJ+NAW/1XNI21+hwb0qnje98NmSiw4BA=
+	t=1790541062; cv=none; b=GCed4FddnsHvKPc9ddZhhXUq1lF+scevbsGovDuUEhL74KA0pDtNlOv42+wrSdJayyiP+yfZMKbY7WsWTfK5LrSteevPEPyBmWeJQVUXJ3G6UMiv7wG7ijq3KTYABVXlIbjCAcu8gRAv/qwO6HobKDeZOzY6EAC1k5Xg+ksyf3g=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1790540874; c=relaxed/simple;
-	bh=572VQmqb2dfr1RNCIBhU4ug/vBbdVLwltPNy6Oz231I=;
-	h=Date:To:From:Subject:Message-Id; b=NRYwzbTG4dv3kMBaTT6GfTsp4Jv4wPR7JvYME9cLaexulsXKMAdq8AQI6tIJVyZh2YRfhhXdAKqFG7I+xm83kuR46qdbazU2c/T9klyG9qGp95OCoIIQerYp65f3Y7fDCeDEcqqeNEtbyIFvv+x2+Ayf+SXJkbZbMOYt7JFMxIk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Lh0WnP6W; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1790541062; c=relaxed/simple;
+	bh=5YQQHTAuOEar06tx6HfMtvakfC4k28uDuJgvCl6jW5k=;
+	h=Date:From:To:Cc:Subject:Message-Id:In-Reply-To:References:
+	 Mime-Version:Content-Type; b=pDYCk+uD1S1VgBOE6ACnXu57idF6Dn1t4wf2TeYjpZayQKFj1Oru0y47Oh8wPCVlZGYBB3xUxiZY0IjdVJkMsnguvls2fDKHT2iJyw7vnYGZARa/FPrJLH1bT+nyFKOnHTbJDcrhMlj0fgN2U9+ADut5/x5YiuWy4drJiWlvMwc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=bZCFoArE; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Lh0WnP6W"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4A34B1F000FF;
-	Sun, 27 Sep 2026 20:27:53 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="bZCFoArE"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 72B591F000FF;
+	Sun, 27 Sep 2026 20:31:00 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1790540873;
-	bh=fi8EgsrgABmEiHSBJmJmlyhtzsI0fsLLXGIf4h1us88=;
-	h=Date:To:From:Subject;
-	b=Lh0WnP6WwtQyoMhrNQrDtqPEdp3L2VAav3QxXuMKGtmqdMOeKoVTUmzx1qBF1E8Hn
-	 tphq5tweO9MYG5gvPkqrB54t9R9AuqmS9EkjYsScMn8+gxrgxUK2+MW8KhSV1/vJFH
-	 j9jHBL9Hagt0Qs7YiTOagLA6X9l3gpSbEDZZ/rUc=
-Date: Sun, 27 Sep 2026 13:27:52 -0700
-To: mm-commits@vger.kernel.org,vishal.l.verma@intel.com,stable@vger.kernel.org,joao.m.martins@oracle.com,dave.jiang@intel.com,alison.schofield@intel.com,yaojiale02@163.com,akpm@linux-foundation.org
+	d=linux-foundation.org; s=korg; t=1790541060;
+	bh=eO1GbP2uuZa4hrp2kTCOpYiuFc7Q8kusK/y74limaec=;
+	h=Date:From:To:Cc:Subject:In-Reply-To:References;
+	b=bZCFoArExGIZS0u/zlqwhpNYP3EhjQ6VjHC3TDViHMWIi14nyx1LJjiqOzHBWx+/f
+	 kkKiUa9YyEqhCSs+ddVuXJpQLrknpYA5av9fRlCWCjHW4ecvys5Zl2f8S8OM46Ji2m
+	 MkmUEqR6W5oGGtF8GihVH2w+zfJh7emXltzcHys8=
+Date: Sun, 27 Sep 2026 13:31:00 -0700
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + dax-device-defer-publishing-the-dynamic-pgmap.patch added to mm-new branch
-Message-Id: <20260927202753.4A34B1F000FF@smtp.kernel.org>
+To: kernel test robot <lkp@intel.com>
+Cc: Anshuman Khandual <anshuman.khandual@arm.com>,
+ oe-kbuild-all@lists.linux.dev, David Hildenbrand <david@kernel.org>, Linux
+ Memory Management List <linux-mm@kvack.org>, mm-commits@vger.kernel.org,
+ Catalin Marinas <catalin.marinas@arm.com>
+Subject: Re: [akpm-mm:mm-new 661/679] mmu.c:undefined reference to
+ `__check_safe_pte_update'
+Message-Id: <20260927133100.46a4f7067c79280dcf83731b@linux-foundation.org>
+In-Reply-To: <202609270030.Y0QVBPmK-lkp@intel.com>
+References: <202609270030.Y0QVBPmK-lkp@intel.com>
+X-Mailer: Sylpheed 3.8.0beta1 (GTK+ 2.24.33; x86_64-pc-linux-gnu)
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 
+On Sun, 27 Sep 2026 00:32:54 +0800 kernel test robot <lkp@intel.com> wrote:
 
-The patch titled
-     Subject: dax/device: defer publishing the dynamic pgmap
-has been added to the -mm mm-new branch.  Its filename is
-     dax-device-defer-publishing-the-dynamic-pgmap.patch
+> tree:   https://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm.git mm-new
+> head:   b4fc90c82982d98959af08b4320420bcfc01303b
+> commit: 2862bcaf1aca55e0b43a5692a4595281ab780f05 [661/679] arm64/mm: move __check_safe_pte_update()
+> config: arm64-randconfig-1002-20260926 (https://download.01.org/0day-ci/archive/20260927/202609270030.Y0QVBPmK-lkp@intel.com/config)
+> compiler: aarch64-linux-gcc (GCC) 8.5.0
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/dax-device-defer-publishing-the-dynamic-pgmap.patch
+Thanks.  It works for me, but I'm using gcc-15.2.0.
 
-This patch will later appear in the mm-new branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Note, mm-new is a provisional staging ground for work-in-progress
-patches, and acceptance into mm-new is a notification for others take
-notice and to finish up reviews.  Please do not hesitate to respond to
-review feedback and post updated versions to replace or incrementally
-fixup patches in mm-new.
-
-The mm-new branch of mm.git is not included in linux-next
-
-If a few days of testing in mm-new is successful, the patch will me moved
-into mm.git's mm-unstable branch, which is included in linux-next
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via various
-branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there most days
-
-------------------------------------------------------
-From: Jiale Yao <yaojiale02@163.com>
-Subject: dax/device: defer publishing the dynamic pgmap
-Date: Sun, 27 Sep 2026 19:47:36 +0800
-
-The dynamic device-dax probe path publishes its devm-allocated pgmap
-before several operations that can still fail.  If one of them fails,
-devres frees the pgmap while dev_dax->pgmap remains non-NULL.  A later
-bind then fails the dynamic-dax invariant check and leaves the device
-unusable until its region is recreated.
-
-Defer assigning dev_dax->pgmap until the final devm action has been
-installed and probe can no longer fail.  A failed probe then never
-publishes the temporary pgmap.
-
-Link: https://lore.kernel.org/20260927114736.1113965-1-yaojiale02@163.com
-Fixes: fc65c4eb0b2a ("device-dax: ensure dev_dax->pgmap is valid for dynamic devices")
-Signed-off-by: Jiale Yao <yaojiale02@163.com>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Cc: Vishal Verma <vishal.l.verma@intel.com>
-Cc: Dave Jiang <dave.jiang@intel.com>
-Cc: Alison Schofield <alison.schofield@intel.com>
-Cc: Joao Martins <joao.m.martins@oracle.com>
-Cc: <stable@vger.kernel.org>
----
-
- drivers/dax/device.c |    9 +++++++--
- 1 file changed, 7 insertions(+), 2 deletions(-)
-
---- a/drivers/dax/device.c~dax-device-defer-publishing-the-dynamic-pgmap
-+++ a/drivers/dax/device.c
-@@ -409,7 +409,6 @@ static int dev_dax_probe(struct dev_dax
- 			return -ENOMEM;
- 
- 		pgmap->nr_range = dev_dax->nr_range;
--		dev_dax->pgmap = pgmap;
- 
- 		for (i = 0; i < dev_dax->nr_range; i++) {
- 			struct range *range = &dev_dax->ranges[i].range;
-@@ -450,7 +449,13 @@ static int dev_dax_probe(struct dev_dax
- 		return rc;
- 
- 	run_dax(dax_dev);
--	return devm_add_action_or_reset(dev, dev_dax_kill, dev_dax);
-+	rc = devm_add_action_or_reset(dev, dev_dax_kill, dev_dax);
-+	if (rc)
-+		return rc;
-+
-+	/* Probe can no longer fail; expose the pgmap via dev_dax. */
-+	dev_dax->pgmap = pgmap;
-+	return 0;
- }
- 
- static struct dax_device_driver device_dax_driver = {
-_
-
-Patches currently in -mm which might be from yaojiale02@163.com are
-
-dax-device-defer-publishing-the-dynamic-pgmap.patch
+> reproduce (this is a W=1 build): (https://download.01.org/0day-ci/archive/20260927/202609270030.Y0QVBPmK-lkp@intel.com/reproduce)
+> 
+> If you fix the issue in a separate patch/commit (i.e. not just a new version of
+> the same patch/commit), kindly add following tags
+> | Reported-by: kernel test robot <lkp@intel.com>
+> | Closes: https://lore.kernel.org/oe-kbuild-all/202609270030.Y0QVBPmK-lkp@intel.com/
+> 
+> All errors (new ones prefixed by >>):
+> 
+> >> aarch64-linux-ld: Unexpected GOT/PLT entries detected!
+> >> aarch64-linux-ld: Unexpected run-time procedure linkages detected!
+>    aarch64-linux-ld: arch/arm64/mm/mmu.o: in function `__set_ptes_anysz.isra.40.constprop.47':
+> >> mmu.c:(.text+0x9a8): undefined reference to `__check_safe_pte_update'
+>    aarch64-linux-ld: arch/arm64/mm/hugetlbpage.o: in function `__set_ptes_anysz.isra.32':
+> >> hugetlbpage.c:(.text+0x1a8): undefined reference to `__check_safe_pte_update'
+>    aarch64-linux-ld: kernel/bpf/arena.o: in function `apply_range_set_cb':
+> >> arena.c:(.text+0x11fc): undefined reference to `__check_safe_pte_update'
+>    aarch64-linux-ld: mm/gup.o: in function `follow_page_pte':
+> >> gup.c:(.text+0x2b48): undefined reference to `__check_safe_pte_update'
+>    aarch64-linux-ld: mm/memory.o: in function `__set_ptes.isra.207':
+> >> memory.c:(.text+0x3418): undefined reference to `__check_safe_pte_update'
+>    aarch64-linux-ld: mm/mprotect.o:mprotect.c:(.text+0x1080): more undefined references to `__check_safe_pte_update' follow
+> 
 
