@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F30502DFA3A
-	for <mm-commits@vger.kernel.org>; Sun, 27 Sep 2026 21:56:00 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C22A13CA4AB
+	for <mm-commits@vger.kernel.org>; Sun, 27 Sep 2026 21:58:39 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790546162; cv=none; b=ALCLp+zjsZCEjlHeUpAJKkmnA2aKj/mVs/PXP8SOJEB/ceiFcZUrRTh2lULGjwjgaa6QLXftO71cBMszPMuS+Zu03qdgEHLXpguB9OspD9cDKPtKmbkJNyk/BN8Dme36pbr6Es1Qx+SXwdRbKFk10IUHuD88b+y0hz0jxV5m3j4=
+	t=1790546321; cv=none; b=nGAlpHXSTCbXq+lsSHpizyO6KLvuAttELOYHXCd4Jk3grAaE+8rVnaYtWD0O13jzIO7pHjebE0XggdbRkW0VX8udDodTJEVIBsu6vqp+CDWfAHAP5Q0/9FsQ26+4Ja/9a2X8UhgDURYKncrt8onPJiUj5J/gly2BWCEZ0aSnyrg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1790546162; c=relaxed/simple;
-	bh=zP5ApxUJxfuW4jeBh6rFTnu4W2vphp14NCZq9A5ru80=;
-	h=Date:To:From:Subject:Message-Id; b=iOJlBXMKCKcpDPBH21Nr1j1pEaKDroj12WCpL28WlvzAwNGDWfqDXYlEpbzmUU+mJIKzpXudvLVjFhhu1xceVOtzxkNSRW6/aWW94kGRaR/46AJ3yO5RMfdiWoAd4OqdK8Uol4M+xzfXWJDzms4g+BoA41BsBh64d2SJlgyy4Jc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=SO6mAXiJ; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1790546321; c=relaxed/simple;
+	bh=yHsmkJBN+kTSXUzkaWsDhWisoqYDZU7HQzvO/0L9880=;
+	h=Date:To:From:Subject:Message-Id; b=rHR9q09ENlOUlbEqx2zzoHZZS6FO1hXzfZ18yaanUecKts9TjoUdAH/jF5DGGDC5XKDudQooy6xsV4HqBvmzGN9lPHel/nA1W+Rx6u6roiZBK5U0YYzYaEm6bBQvIkryrhrwayjboTsqDv8hbyST8bOBCn8nq8gA7ZkICXF5tTk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=CjKQ4O0d; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="SO6mAXiJ"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7F4E21F000FF;
-	Sun, 27 Sep 2026 21:56:00 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="CjKQ4O0d"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8BF461F000FF;
+	Sun, 27 Sep 2026 21:58:39 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1790546160;
-	bh=6klRD9sDVm045iuFOlsY/THjHV+6nXbW+UqvNsp8hJE=;
+	d=linux-foundation.org; s=korg; t=1790546319;
+	bh=JCOAkQSD8pyMEjjajGfpW1n9EIKrNk51CY5N1d6MeeM=;
 	h=Date:To:From:Subject;
-	b=SO6mAXiJ9t3Mc6cRI1o5UXsneWiMoix5khGgaN1a+FWtWjXs+cY4AFobEAeuSkLuE
-	 HJqqBk3oiCMTvUfZ3OdtFxXHn1amk7g2szX8X4Po7S1gVGjwvXefH7D7oecvsOlSS8
-	 rYhxw1lGl+Y8dhHnfMNEeUShBD+zbzQMd2dAwVcc=
-Date: Sun, 27 Sep 2026 14:56:00 -0700
-To: mm-commits@vger.kernel.org,ljs@kernel.org,akpm@linux-foundation.org
+	b=CjKQ4O0dxE1g+2ieM0AcJ0Fvk+FQFFHqIQDmpaYLpF7l4cZAMpcvLe6v4l6MvsHEe
+	 m6DstRx2aqNDQKFZHgQ6ns2TiukuppNkJwlYPLJDGA1kCiBNjg1/zhaAye1ALQvqNx
+	 hWT+FXEgI9PI0RUXBG3uLJkrlt9nJP9EChyRjQtc=
+Date: Sun, 27 Sep 2026 14:58:39 -0700
+To: mm-commits@vger.kernel.org,will@kernel.org,vbabka@kernel.org,tglx@kernel.org,svens@linux.ibm.com,surenb@google.com,sshegde@linux.ibm.com,ritesh.list@gmail.com,pjw@kernel.org,palmer@dabbelt.com,npiggin@gmail.com,mpe@ellerman.id.au,mingo@redhat.com,mhocko@suse.com,mark.rutland@arm.com,maddy@linux.ibm.com,ljs@kernel.org,linux@armlinux.org.uk,liam@infradead.org,hpa@zytor.com,hca@linux.ibm.com,gor@linux.ibm.com,gerald.schaefer@linux.ibm.com,david@kernel.org,dave.hansen@linux.intel.com,chleroy@kernel.org,catalin.marinas@arm.com,bp@alien8.de,borntraeger@linux.ibm.com,aou@eecs.berkeley.edu,alex@ghiti.fr,agordeev@linux.ibm.com,rppt@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + tools-testing-selftests-mm-add-map_private-dev-zero-merge-tests.patch added to mm-unstable branch
-Message-Id: <20260927215600.7F4E21F000FF@smtp.kernel.org>
+Subject: [to-be-updated] arch-mm-promote-debug_wx-to-check_wx.patch removed from -mm tree
+Message-Id: <20260927215839.8BF461F000FF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,238 +34,430 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The patch titled
-     Subject: tools/testing/selftests/mm: add MAP_PRIVATE-/dev/zero merge tests
-has been added to the -mm mm-unstable branch.  Its filename is
-     tools-testing-selftests-mm-add-map_private-dev-zero-merge-tests.patch
+The quilt patch titled
+     Subject: arch, mm: promote DEBUG_WX to CHECK_WX
+has been removed from the -mm tree.  Its filename was
+     arch-mm-promote-debug_wx-to-check_wx.patch
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/tools-testing-selftests-mm-add-map_private-dev-zero-merge-tests.patch
-
-This patch will later appear in the mm-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via various
-branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there most days
+This patch was dropped because an updated version will be issued
 
 ------------------------------------------------------
-From: "Lorenzo Stoakes (ARM)" <ljs@kernel.org>
-Subject: tools/testing/selftests/mm: add MAP_PRIVATE-/dev/zero merge tests
-Date: Tue, 08 Sep 2026 12:23:43 +0100
+From: "Mike Rapoport (Microsoft)" <rppt@kernel.org>
+Subject: arch, mm: promote DEBUG_WX to CHECK_WX
+Date: Fri, 25 Sep 2026 12:53:46 +0300
 
-Assert that MAP_PRIVATE-mapped /dev/zero mappings behave like they are
-anonymous.
+Verification that the kernel does not have writable + executable mappings
+is about detecting security risks rather than a pure debug feature.
 
-Test both unfaulted and faulted/unfaulted merges with page offset 0 which
-would not merge if the mappings were treated as if they were file-backed.
+Major distribution configurations enable it in their kernels as well as
+defconfigs of most architectures that have ARCH_HAS_DEBUG_WX.
 
-With the recent change that makes them behave as pure anonymous mappings,
-the merges should succeed as their page offsets are equal to their
-anonymous page offsets.
+Rename relevant generic configuration options to use CHECK_WX and move
+their definitions from mm/Kconfig.debug to mm/Kconfig.
 
-Link: https://lore.kernel.org/20260908-map-private-dev-zero-v2-6-acc7b5625305@kernel.org
-Signed-off-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
+For arm that does not widely enable it, only rename its variants of the
+config options.
+
+Enabling CHECK_WX adds a few kilobytes to the kernel binary and while the
+added size can be slightly reduced with churny updates of architecture
+implementations of ptdump, the core functionality takes most of the added
+size.  It cannot be moved to .init.text because the verification has to
+happen after init sections are freed.
+
+With this, make generic CHECK_WX default to STRICT_KERNEL_RWX while still
+leaving users targeting small kernels the possibility to opt-out.
+
+Link: https://lore.kernel.org/20260925-direct-map-verify-wx-v1-1-7fd2f7d6d23b@kernel.org
+Signed-off-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+Suggested-by: Dave Hansen <dave.hansen@linux.intel.com>
 Acked-by: David Hildenbrand (Arm) <david@kernel.org>
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Jan Kara <jack@suse.cz>
-Cc: Jann Horn <jannh@google.com>
+Acked-by: Heiko Carstens <hca@linux.ibm.com> # s390
+Cc: Albert Ou <aou@eecs.berkeley.edu>
+Cc: Alexander Gordeev <agordeev@linux.ibm.com>
+Cc: Alexandre Ghiti <alex@ghiti.fr>
+Cc: Borislav Petkov <bp@alien8.de>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Christophe Leroy <chleroy@kernel.org>
+Cc: Christian Borntraeger <borntraeger@linux.ibm.com>
+Cc: Gerald Schaefer <gerald.schaefer@linux.ibm.com>
+Cc: Ingo Molnar <mingo@redhat.com>
 Cc: Liam R. Howlett <liam@infradead.org>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Lorenzo Stoakes <ljs@kernel.org>
+Cc: Madhavan Srinivasan <maddy@linux.ibm.com>
+Cc: Mark Rutland <mark.rutland@arm.com>
+Cc: Michael Ellerman <mpe@ellerman.id.au>
 Cc: Michal Hocko <mhocko@suse.com>
-Cc: Mike Rapoport (Microsoft) <rppt@kernel.org>
-Cc: Pedro Falcato <pfalcato@suse.de>
+Cc: Nicholas Piggin <npiggin@gmail.com>
+Cc: Palmer Dabbelt <palmer@dabbelt.com>
+Cc: Paul Walmsley <pjw@kernel.org>
+Cc: H. Peter Anvin <hpa@zytor.com>
+Cc: Ritesh Harjani (IBM) <ritesh.list@gmail.com>
+Cc: Russell King <linux@armlinux.org.uk>
+Cc: Shrikanth Hegde <sshegde@linux.ibm.com>
 Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Sven Schnelle <svens@linux.ibm.com>
+Cc: Thomas Gleixner <tglx@kernel.org>
+Cc: Vasily Gorbik <gor@linux.ibm.com>
 Cc: Vlastimil Babka <vbabka@kernel.org>
+Cc: Will Deacon <will@kernel.org>
 ---
 
- tools/testing/selftests/mm/merge.c |   95 +++++++++++++++++++++++++++
- 1 file changed, 95 insertions(+)
+ arch/arm/Kconfig.debug               |    2 -
+ arch/arm/configs/aspeed_g4_defconfig |    2 -
+ arch/arm/configs/aspeed_g5_defconfig |    2 -
+ arch/arm/configs/shmobile_defconfig  |    2 -
+ arch/arm/include/asm/ptdump.h        |    2 -
+ arch/arm64/Kconfig                   |    2 -
+ arch/powerpc/Kconfig                 |    2 -
+ arch/powerpc/configs/ppc64_defconfig |    2 -
+ arch/powerpc/mm/ptdump/ptdump.c      |    2 -
+ arch/riscv/Kconfig                   |    2 -
+ arch/s390/Kconfig                    |    2 -
+ arch/s390/configs/debug_defconfig    |    2 -
+ arch/s390/configs/defconfig          |    2 -
+ arch/s390/mm/dump_pagetables.c       |    2 -
+ arch/x86/Kconfig                     |    2 -
+ arch/x86/configs/x86_64_defconfig    |    2 -
+ arch/x86/include/asm/pgtable.h       |    2 -
+ include/linux/ptdump.h               |    2 -
+ kernel/configs/debug.config          |    2 -
+ mm/Kconfig                           |   41 +++++++++++++++++++++++++
+ mm/Kconfig.debug                     |   39 -----------------------
+ 21 files changed, 60 insertions(+), 58 deletions(-)
 
---- a/tools/testing/selftests/mm/merge.c~tools-testing-selftests-mm-add-map_private-dev-zero-merge-tests
-+++ a/tools/testing/selftests/mm/merge.c
-@@ -1362,6 +1362,101 @@ TEST_F(merge, anon_and_page_offset_misma
- 	ASSERT_EQ(procmap->query.vma_end, (unsigned long)ptr + 5 * page_size);
+--- a/arch/arm64/Kconfig~arch-mm-promote-debug_wx-to-check_wx
++++ a/arch/arm64/Kconfig
+@@ -11,7 +11,7 @@ config ARM64
+ 	select ACPI_MCFG if (ACPI && PCI)
+ 	select ACPI_SPCR_TABLE if ACPI
+ 	select ACPI_PPTT if ACPI
+-	select ARCH_HAS_DEBUG_WX
++	select ARCH_HAS_CHECK_WX
+ 	select ARCH_BINFMT_ELF_EXTRA_PHDRS
+ 	select ARCH_BINFMT_ELF_STATE
+ 	select ARCH_ENABLE_HUGEPAGE_MIGRATION if HUGETLB_PAGE && MIGRATION
+--- a/arch/arm/configs/aspeed_g4_defconfig~arch-mm-promote-debug_wx-to-check_wx
++++ a/arch/arm/configs/aspeed_g4_defconfig
+@@ -249,7 +249,7 @@ CONFIG_DEBUG_INFO_REDUCED=y
+ CONFIG_GDB_SCRIPTS=y
+ CONFIG_STRIP_ASM_SYMS=y
+ CONFIG_DEBUG_FS=y
+-CONFIG_ARM_DEBUG_WX=y
++CONFIG_ARM_CHECK_WX=y
+ CONFIG_SCHED_STACK_END_CHECK=y
+ CONFIG_PANIC_ON_OOPS=y
+ CONFIG_PANIC_TIMEOUT=-1
+--- a/arch/arm/configs/aspeed_g5_defconfig~arch-mm-promote-debug_wx-to-check_wx
++++ a/arch/arm/configs/aspeed_g5_defconfig
+@@ -300,7 +300,7 @@ CONFIG_DEBUG_INFO_REDUCED=y
+ CONFIG_GDB_SCRIPTS=y
+ CONFIG_STRIP_ASM_SYMS=y
+ CONFIG_DEBUG_FS=y
+-CONFIG_ARM_DEBUG_WX=y
++CONFIG_ARM_CHECK_WX=y
+ CONFIG_SCHED_STACK_END_CHECK=y
+ CONFIG_PANIC_ON_OOPS=y
+ CONFIG_PANIC_TIMEOUT=-1
+--- a/arch/arm/configs/shmobile_defconfig~arch-mm-promote-debug_wx-to-check_wx
++++ a/arch/arm/configs/shmobile_defconfig
+@@ -225,4 +225,4 @@ CONFIG_CMA_SIZE_MBYTES=64
+ CONFIG_PRINTK_TIME=y
+ CONFIG_DEBUG_KERNEL=y
+ CONFIG_DEBUG_FS=y
+-CONFIG_ARM_DEBUG_WX=y
++CONFIG_ARM_CHECK_WX=y
+--- a/arch/arm/include/asm/ptdump.h~arch-mm-promote-debug_wx-to-check_wx
++++ a/arch/arm/include/asm/ptdump.h
+@@ -32,7 +32,7 @@ void ptdump_check_wx(void);
+ 
+ #endif /* CONFIG_ARM_PTDUMP_CORE */
+ 
+-#ifdef CONFIG_ARM_DEBUG_WX
++#ifdef CONFIG_ARM_CHECK_WX
+ #define arm_debug_checkwx() ptdump_check_wx()
+ #else
+ #define arm_debug_checkwx() do { } while (0)
+--- a/arch/arm/Kconfig.debug~arch-mm-promote-debug_wx-to-check_wx
++++ a/arch/arm/Kconfig.debug
+@@ -17,7 +17,7 @@ config ARM_PTDUMP_DEBUGFS
+ 	  kernel.
+ 	  If in doubt, say "N"
+ 
+-config ARM_DEBUG_WX
++config ARM_CHECK_WX
+ 	bool "Warn on W+X mappings at boot"
+ 	depends on MMU
+ 	select ARM_PTDUMP_CORE
+--- a/arch/powerpc/configs/ppc64_defconfig~arch-mm-promote-debug_wx-to-check_wx
++++ a/arch/powerpc/configs/ppc64_defconfig
+@@ -393,7 +393,7 @@ CONFIG_MAGIC_SYSRQ=y
+ CONFIG_PAGE_OWNER=y
+ CONFIG_PAGE_POISONING=y
+ CONFIG_DEBUG_RODATA_TEST=y
+-CONFIG_DEBUG_WX=y
++CONFIG_CHECK_WX=y
+ CONFIG_DEBUG_STACK_USAGE=y
+ CONFIG_DEBUG_VM=y
+ # CONFIG_DEBUG_VM_PGTABLE is not set
+--- a/arch/powerpc/Kconfig~arch-mm-promote-debug_wx-to-check_wx
++++ a/arch/powerpc/Kconfig
+@@ -130,7 +130,7 @@ config PPC
+ 	select ARCH_HAS_CURRENT_STACK_POINTER
+ 	select ARCH_HAS_DEBUG_VIRTUAL
+ 	select ARCH_HAS_DEBUG_VM_PGTABLE
+-	select ARCH_HAS_DEBUG_WX		if STRICT_KERNEL_RWX
++	select ARCH_HAS_CHECK_WX		if STRICT_KERNEL_RWX
+ 	select ARCH_HAS_DEVMEM_IS_ALLOWED
+ 	select ARCH_HAS_DMA_MAP_DIRECT 		if PPC_PSERIES
+ 	select ARCH_HAS_DMA_OPS			if PPC64
+--- a/arch/powerpc/mm/ptdump/ptdump.c~arch-mm-promote-debug_wx-to-check_wx
++++ a/arch/powerpc/mm/ptdump/ptdump.c
+@@ -191,7 +191,7 @@ static void note_prot_wx(struct pg_state
+ 	if (!pte_write(pte) || !pte_exec(pte))
+ 		return;
+ 
+-	WARN_ONCE(IS_ENABLED(CONFIG_DEBUG_WX),
++	WARN_ONCE(IS_ENABLED(CONFIG_CHECK_WX),
+ 		  "powerpc/mm: Found insecure W+X mapping at address %p/%pS\n",
+ 		  (void *)st->start_address, (void *)st->start_address);
+ 
+--- a/arch/riscv/Kconfig~arch-mm-promote-debug_wx-to-check_wx
++++ a/arch/riscv/Kconfig
+@@ -29,7 +29,7 @@ config RISCV
+ 	select ARCH_HAS_CURRENT_STACK_POINTER
+ 	select ARCH_HAS_DEBUG_VIRTUAL if MMU
+ 	select ARCH_HAS_DEBUG_VM_PGTABLE
+-	select ARCH_HAS_DEBUG_WX
++	select ARCH_HAS_CHECK_WX
+ 	select ARCH_HAS_DELAY_TIMER
+ 	select ARCH_HAS_ELF_CORE_EFLAGS if BINFMT_ELF && ELF_CORE
+ 	select ARCH_HAS_FAST_MULTIPLIER
+--- a/arch/s390/configs/debug_defconfig~arch-mm-promote-debug_wx-to-check_wx
++++ a/arch/s390/configs/debug_defconfig
+@@ -841,7 +841,7 @@ CONFIG_DEBUG_PAGEALLOC=y
+ CONFIG_SLUB_DEBUG_ON=y
+ CONFIG_PAGE_OWNER=y
+ CONFIG_DEBUG_RODATA_TEST=y
+-CONFIG_DEBUG_WX=y
++CONFIG_CHECK_WX=y
+ CONFIG_PTDUMP_DEBUGFS=y
+ CONFIG_DEBUG_OBJECTS=y
+ CONFIG_DEBUG_OBJECTS_SELFTEST=y
+--- a/arch/s390/configs/defconfig~arch-mm-promote-debug_wx-to-check_wx
++++ a/arch/s390/configs/defconfig
+@@ -820,7 +820,7 @@ CONFIG_DEBUG_INFO_DWARF4=y
+ CONFIG_GDB_SCRIPTS=y
+ CONFIG_DEBUG_SECTION_MISMATCH=y
+ CONFIG_MAGIC_SYSRQ=y
+-CONFIG_DEBUG_WX=y
++CONFIG_CHECK_WX=y
+ CONFIG_PTDUMP_DEBUGFS=y
+ CONFIG_DEBUG_MEMORY_INIT=y
+ CONFIG_PANIC_ON_OOPS=y
+--- a/arch/s390/Kconfig~arch-mm-promote-debug_wx-to-check_wx
++++ a/arch/s390/Kconfig
+@@ -92,7 +92,7 @@ config S390
+ 	select ARCH_HAS_CURRENT_STACK_POINTER
+ 	select ARCH_HAS_DEBUG_VIRTUAL
+ 	select ARCH_HAS_DEBUG_VM_PGTABLE
+-	select ARCH_HAS_DEBUG_WX
++	select ARCH_HAS_CHECK_WX
+ 	select ARCH_HAS_DEVMEM_IS_ALLOWED
+ 	select ARCH_HAS_DMA_OPS if PCI
+ 	select ARCH_HAS_ELF_RANDOMIZE
+--- a/arch/s390/mm/dump_pagetables.c~arch-mm-promote-debug_wx-to-check_wx
++++ a/arch/s390/mm/dump_pagetables.c
+@@ -86,7 +86,7 @@ static void note_prot_wx(struct pg_state
+ 	 */
+ 	if (addr == PAGE_SIZE && (nospec_uses_trampoline() || !cpu_has_bear()))
+ 		return;
+-	WARN_ONCE(IS_ENABLED(CONFIG_DEBUG_WX),
++	WARN_ONCE(IS_ENABLED(CONFIG_CHECK_WX),
+ 		  "s390/mm: Found insecure W+X mapping at address %pS\n",
+ 		  (void *)st->start_address);
+ 	st->wx_pages += (addr - st->start_address) / PAGE_SIZE;
+--- a/arch/x86/configs/x86_64_defconfig~arch-mm-promote-debug_wx-to-check_wx
++++ a/arch/x86/configs/x86_64_defconfig
+@@ -263,7 +263,7 @@ CONFIG_SECURITY_SELINUX_BOOTPARAM=y
+ CONFIG_PRINTK_TIME=y
+ CONFIG_DEBUG_KERNEL=y
+ CONFIG_MAGIC_SYSRQ=y
+-CONFIG_DEBUG_WX=y
++CONFIG_CHECK_WX=y
+ CONFIG_DEBUG_STACK_USAGE=y
+ CONFIG_SCHEDSTATS=y
+ CONFIG_BLK_DEV_IO_TRACE=y
+--- a/arch/x86/include/asm/pgtable.h~arch-mm-promote-debug_wx-to-check_wx
++++ a/arch/x86/include/asm/pgtable.h
+@@ -41,7 +41,7 @@ void ptdump_walk_user_pgd_level_checkwx(
+ #define pgprot_encrypted(prot)	__pgprot(cc_mkenc(pgprot_val(prot)))
+ #define pgprot_decrypted(prot)	__pgprot(cc_mkdec(pgprot_val(prot)))
+ 
+-#ifdef CONFIG_DEBUG_WX
++#ifdef CONFIG_CHECK_WX
+ #define debug_checkwx_user()	ptdump_walk_user_pgd_level_checkwx()
+ #else
+ #define debug_checkwx_user()	do { } while (0)
+--- a/arch/x86/Kconfig~arch-mm-promote-debug_wx-to-check_wx
++++ a/arch/x86/Kconfig
+@@ -109,7 +109,7 @@ config X86
+ 	select ARCH_HAS_SYNC_CORE_BEFORE_USERMODE
+ 	select ARCH_HAS_SYSCALL_WRAPPER
+ 	select ARCH_HAS_UBSAN
+-	select ARCH_HAS_DEBUG_WX
++	select ARCH_HAS_CHECK_WX
+ 	select ARCH_HAS_ZONE_DMA_SET if EXPERT
+ 	select ARCH_HAVE_NMI_SAFE_CMPXCHG
+ 	select ARCH_HAVE_EXTRA_ELF_NOTES
+--- a/include/linux/ptdump.h~arch-mm-promote-debug_wx-to-check_wx
++++ a/include/linux/ptdump.h
+@@ -33,7 +33,7 @@ bool ptdump_check_wx(void);
+ 
+ static inline void debug_checkwx(void)
+ {
+-	if (IS_ENABLED(CONFIG_DEBUG_WX))
++	if (IS_ENABLED(CONFIG_CHECK_WX))
+ 		ptdump_check_wx();
  }
  
-+TEST_F(merge, merge_map_private_dev_zero_unfaulted)
-+{
-+	struct procmap_fd *procmap = &self->procmap;
-+	unsigned int page_size = self->page_size;
-+	char *carveout = self->carveout;
-+	char *ptr, *ptr2;
-+	int fd_zero;
+--- a/kernel/configs/debug.config~arch-mm-promote-debug_wx-to-check_wx
++++ a/kernel/configs/debug.config
+@@ -50,7 +50,7 @@ CONFIG_DEBUG_NET=y
+ # CONFIG_DEBUG_PAGEALLOC is not set
+ # CONFIG_DEBUG_KMEMLEAK_DEFAULT_OFF is not set
+ # CONFIG_DEBUG_RODATA_TEST is not set
+-# CONFIG_DEBUG_WX is not set
++# CONFIG_CHECK_WX is not set
+ # CONFIG_KFENCE is not set
+ # CONFIG_PAGE_POISONING is not set
+ # CONFIG_SLUB_STATS is not set
+--- a/mm/Kconfig~arch-mm-promote-debug_wx-to-check_wx
++++ a/mm/Kconfig
+@@ -1494,6 +1494,47 @@ config LAZY_MMU_MODE_KUNIT_TEST
+ 
+ 	  If unsure, say N.
+ 
++config ARCH_HAS_CHECK_WX
++	bool
 +
-+	if (access("/dev/zero", F_OK))
-+		SKIP(return, "No /dev/zero.");
-+	fd_zero = open("/dev/zero", O_RDWR);
-+	ASSERT_NE(fd_zero, -1);
++config CHECK_WX
++	bool "Warn on W+X mappings at boot"
++	default STRICT_KERNEL_RWX
++	depends on ARCH_HAS_CHECK_WX
++	depends on ARCH_HAS_PTDUMP
++	depends on MMU
++	select PTDUMP
++	help
++	  Generate a warning if any W+X mappings are found at boot.
 +
-+	/*
-+	 * Map two MAP_PRIVATE-/dev/zero VMAs next to one another with offset 0
-+	 * each.
-+	 *
-+	 * With these being made truly anonymous upon mapping, they will
-+	 * merge. If they were file-backed VMAs the page offsets would prevent
-+	 * the merge:
-+	 *
-+	 * |-----||------|    |-------------|
-+	 * | ptr || ptr2 | -> |     ptr     |
-+	 * |-----||------|    |-------------|
-+	 */
-+	ptr = mmap(carveout, 5 * page_size, PROT_READ | PROT_WRITE,
-+		   MAP_FIXED | MAP_PRIVATE, fd_zero, 0);
-+	ptr2 = mmap(&carveout[5 * page_size], 5 * page_size,
-+		   PROT_READ | PROT_WRITE, MAP_FIXED | MAP_PRIVATE, fd_zero, 0);
-+	close(fd_zero);
-+	ASSERT_NE(ptr, MAP_FAILED);
-+	ASSERT_NE(ptr2, MAP_FAILED);
++	  This is useful for discovering cases where the kernel is leaving W+X
++	  mappings after applying NX, as such mappings are a security risk.
 +
-+	/* Assert that they merged. */
-+	ASSERT_TRUE(find_vma_procmap(procmap, ptr));
-+	ASSERT_EQ(procmap->query.vma_start, (unsigned long)ptr);
-+	ASSERT_EQ(procmap->query.vma_end, (unsigned long)ptr + 10 * page_size);
-+}
++	  Look for a message in dmesg output like this:
 +
-+TEST_F(merge, merge_map_private_dev_zero_faulted_unfaulted)
-+{
-+	struct procmap_fd *procmap = &self->procmap;
-+	unsigned int page_size = self->page_size;
-+	char *carveout = self->carveout;
-+	char *ptr, *ptr2;
-+	int fd_zero;
++	    <arch>/mm: Checked W+X mappings: passed, no W+X pages found.
 +
-+	if (access("/dev/zero", F_OK))
-+		SKIP(return, "No /dev/zero.");
-+	fd_zero = open("/dev/zero", O_RDWR);
-+	ASSERT_NE(fd_zero, -1);
++	  or like this, if the check failed:
 +
-+	/*
-+	 * Map a MAP_PRIVATE mapping of /dev/zero with page offset 0, then fault
-+	 * it in:
-+	 *
-+	 * |-------------------------------|
-+	 * |           faulted             |
-+	 * |-------------------------------|
-+	 */
-+	ptr = mmap(carveout, 15 * page_size, PROT_READ | PROT_WRITE,
-+		   MAP_FIXED | MAP_PRIVATE, fd_zero, 0);
-+	ASSERT_NE(ptr, MAP_FAILED);
-+	memset(ptr, 'x', 15 * page_size);
++	    <arch>/mm: Checked W+X mappings: failed, <N> W+X pages found.
 +
-+	/*
-+	 * Unmap the middle:
-+	 *
-+	 * |---------|           |---------|
-+	 * | faulted |           | faulted |
-+	 * |---------|           |---------|
-+	 */
-+	ASSERT_EQ(munmap(&ptr[5 * page_size], 5 * page_size), 0);
++	  Note that even if the check fails, your kernel is possibly
++	  still fine, as W+X mappings are not a security hole in
++	  themselves, what they do is that they make the exploitation
++	  of other unfixed kernel bugs easier.
 +
-+	/*
-+	 * Map in a new unfaulted mapping in the middle with page offset 0 -
-+	 * this should merge and would not if it were treated as a file rather
-+	 * than pure anon:
-+	 *
-+	 * |---------|-----------|---------|
-+	 * | faulted | unfaulted | faulted |
-+	 * |---------|-----------|---------|
-+	 */
-+	ptr2 = mmap(&carveout[5 * page_size], 5 * page_size,
-+		    PROT_READ | PROT_WRITE, MAP_FIXED | MAP_PRIVATE,
-+		    fd_zero, 0);
-+	close(fd_zero);
-+	ASSERT_NE(ptr2, MAP_FAILED);
++	  There is no runtime or memory usage effect of this option
++	  once the kernel has booted up - it's a one time check.
 +
-+	/* Assert that they merged. */
-+	ASSERT_TRUE(find_vma_procmap(procmap, ptr));
-+	ASSERT_EQ(procmap->query.vma_start, (unsigned long)ptr);
-+	ASSERT_EQ(procmap->query.vma_end, (unsigned long)ptr + 15 * page_size);
-+}
++	  If in doubt, say "Y".
 +
- TEST_F(merge_with_fork, mremap_faulted_to_unfaulted_prev)
- {
- 	struct procmap_fd *procmap = &self->procmap;
++config ARCH_HAS_PTDUMP
++	bool
++
++config PTDUMP
++	bool
++
++
+ source "mm/damon/Kconfig"
+ 
+ endmenu
+--- a/mm/Kconfig.debug~arch-mm-promote-debug_wx-to-check_wx
++++ a/mm/Kconfig.debug
+@@ -180,45 +180,6 @@ config DEBUG_RODATA_TEST
+ 	help
+ 	  This option enables a testcase for the setting rodata read-only.
+ 
+-config ARCH_HAS_DEBUG_WX
+-	bool
+-
+-config DEBUG_WX
+-	bool "Warn on W+X mappings at boot"
+-	depends on ARCH_HAS_DEBUG_WX
+-	depends on ARCH_HAS_PTDUMP
+-	depends on MMU
+-	select PTDUMP
+-	help
+-	  Generate a warning if any W+X mappings are found at boot.
+-
+-	  This is useful for discovering cases where the kernel is leaving W+X
+-	  mappings after applying NX, as such mappings are a security risk.
+-
+-	  Look for a message in dmesg output like this:
+-
+-	    <arch>/mm: Checked W+X mappings: passed, no W+X pages found.
+-
+-	  or like this, if the check failed:
+-
+-	    <arch>/mm: Checked W+X mappings: failed, <N> W+X pages found.
+-
+-	  Note that even if the check fails, your kernel is possibly
+-	  still fine, as W+X mappings are not a security hole in
+-	  themselves, what they do is that they make the exploitation
+-	  of other unfixed kernel bugs easier.
+-
+-	  There is no runtime or memory usage effect of this option
+-	  once the kernel has booted up - it's a one time check.
+-
+-	  If in doubt, say "Y".
+-
+-config ARCH_HAS_PTDUMP
+-	bool
+-
+-config PTDUMP
+-	bool
+-
+ config PTDUMP_DEBUGFS
+ 	bool "Export kernel pagetable layout to userspace via debugfs"
+ 	depends on DEBUG_KERNEL
 _
 
-Patches currently in -mm which might be from ljs@kernel.org are
+Patches currently in -mm which might be from rppt@kernel.org are
 
-mm-mremap-fix-locked_vm-leak-from-mremap_dontunmap-self-merge.patch
-mm-mremap-fix-locked_vm-leak-by-splitting-vma-for-mremap_dontunmap.patch
-mm-vmpressure-remove-window-size-todo.patch
-tools-testing-selftests-mm-add-missing-gitignore-entries.patch
-mm-move-drivers-char-memc-to-mm-char-memc.patch
-mm-implement-file_is_dev_zero-to-uniquely-identify-dev-zero.patch
-mm-vma-only-permit-map_private-dev-zero-to-be-mapped-anonymous.patch
-mm-vma-make-map_private-mapped-dev-zero-mappings-truly-anonymous.patch
-tools-testing-vma-add-test-to-assert-map_private-dev-zero-is-anon.patch
-tools-testing-selftests-mm-add-map_private-dev-zero-merge-tests.patch
-mm-madvise-swap-in-cowd-map_private-file-mappings-on-madv_willneed.patch
-mm-khugepaged-deposit-a-newly-allocated-page-table-on-collapse.patch
-mm-enable-mmu_gather_rcu_table_free-for-most-2-level-architectures.patch
-mm-enable-mmu_gather_rcu_table_free-for-mmu-riscv.patch
-mm-enable-mmu_gather_rcu_table_free-for-mmu-arm.patch
-mm-enable-mmu_gather_rcu_table_free-for-arc-microblaze-xtensa.patch
-mm-enable-mmu_gather_rcu_table_free-for-sparc64.patch
-mm-enable-mmu_gather_rcu_table_free-for-m68k-coldfire.patch
-mm-enable-mmu_gather_rcu_table_free-for-sh-x2.patch
-mm-enable-mmu_gather_rcu_table_free-for-m68k-motorola.patch
-mm-enable-mmu_gather_rcu_table_free-for-sparc32.patch
-mm-userland-pgtable-freeing-is-rcu-safe-now-remove-leftover-bits.patch
-mm-change-the-contract-for-free_pgtables-update-docs.patch
-mm-vma-fix-mmap_prepare-file-handling-remove-file_doesnt_need_get.patch
-mm-vma-introduce-and-use-vma_can_merge.patch
-mm-consistently-validate-vma-state-after-mmap-hooks.patch
-mm-vma-ensure-mmap_prepare-doesnt-set-actions-on-a-mergeable-vma.patch
-mm-make-map_kernel_pages_-internal-and-unexported.patch
-mm-vma-tidy-up-map-kernel-pages-enum-values.patch
-mm-add-mmap-action-for-discontiguous-kernel-page-mapping.patch
-docs-filesystems-update-mmap_prepare-docs-for-discontig-kernel-pgs.patch
-drivers-usb-mon-update-to-use-mmap_prepare-map-kernel-pages.patch
-infiniband-update-hfi1-to-use-remap_vmalloc_range.patch
-selinux-reject-writable-opens-of-policy-file-drop-mmap-shared-write-check.patch
-alsa-pcm-use-vm_insert_page-to-map-pcm-status-page.patch
-bpf-arena-mark-arena_map_mmap-mappings-vm_mixedmap.patch
-mm-vma-add-vma_is_kernel_owned-predicates.patch
-mm-vma-only-allow-mmap-to-clear-vma_maywrite_bit-if-kernel-owned.patch
-mm-vma-add-and-use-vma__is_fixed_mapping.patch
-scsi-sg-convert-mmap-hook-to-mmap_prepare-and-rework.patch
-fbdev-defio-assert-fbinfo_virtfb-drop-vm_io-add-vm_mixedmap.patch
-hsi-cmt_speech-convert-mmap-hook-to-mmap_prepare-refactor.patch
-mm-gup-error-out-early-on-vma_mayread_bit-vmas.patch
-uprobes-remove-vm_io-set-vm_mixedmap-for-mapped-kernel-pages.patch
-mm-mlock-clear-vma_locked_mask-over-mmap-callback.patch
-mm-mlock-eliminate-weird-vma_io_bit-abuse-and-simplify.patch
-mm-vma-enforce-that-only-kernel-owned-mappings-may-set-vma_io_bit.patch
-mm-remove-vma_io_bit-check-in-vma_is_kernel_owned.patch
-mm-remove-hugetlb_inlineh.patch
-mm-rename-is_vm_hugetlb_page-to-vma_is_hugetlb.patch
-mm-drop-some-redundant-checks-around-hugetlb-vmas.patch
-mm-madvise-update-is_valid_guard_vma-to-use-vma_can_merge.patch
-mm-vma-introduce-vma_is_persistent.patch
-mm-uffd-use-predicates-for-userfaultfd-checks.patch
-mm-madvise-use-predicates-for-madvise-madv_dofork.patch
-mm-eliminate-vma_special_flags-usage-when-hugetlb-explicitly-tested.patch
-mm-eliminate-vma_special_flags-check-in-lru_gen_look_around.patch
-mm-avoid-use-of-vma_special_flags-in-migrate_vma_setup.patch
-mm-eliminate-vm_special-vma_special_flags.patch
-fuse-dax-do-not-set-vm_mixedmap.patch
-mm-huge_memory-remove-vma_is_special_huge.patch
-mm-vma-introduce-and-use-vma_can_gup.patch
-mm-vma-const-ify-vma_assert_stabilised-and-associated-functions.patch
-mm-implement-and-use-vma_has_anon_rmap-silence-kcsan.patch
-mm-update-comments-to-refer-to-anon-rmap-rather-than-anon_vma.patch
-mm-vma-dont-remove-vma-from-rmap-if-pgoff-unchanged.patch
+set_memory-add-number-of-pages-parameter-to-set_direct_map-apis.patch
+mm-vmalloc-set-areas-page_order-after-allocation-succeeds.patch
+mm-vmalloc-constify-vm-parameter-of-get_vm_area_page_order.patch
+mm-vmalloc-make-set_area_direct_map-huge_vmap-friendly.patch
+mm-execmem-use-vm_flush_reset_perms-for-rox-cache-allocations.patch
+revert-arch-introduce-set_direct_map_valid_noflush.patch
+docs-core-api-memory-allocation-add-kalloc_obj-and-clarify-kmalloc.patch
+maintainers-add-memory-related-docs-in-core-mm-to-mm-misc-section.patch
+mm-execmem-free-rox-cache-chunks-only-when-they-span-an-entire-vm-area.patch
+mm-execmem-handle-potential-allocation-errors-in-the-maple-tree.patch
+mm-execmem-make-sure-rox-cache-always-contains-multiples-of-pmd_size.patch
+mm-vmalloc-add-define_free-for-vfree.patch
+mm-execmem-use-cleanup-infrastructure-in-rox-cache-functions.patch
+docs-core-api-memory-allocation-clarify-when-to-use-kzalloc_obj-and-kzalloc.patch
+docs-mm-describe-set_memory-and-set_direct_map-apis.patch
+docs-mm-describe-set_memory-and-set_direct_map-apis-fix.patch
+sh-remove-config_numa-and-realted-configuration-options.patch
+sh-mm-remove-numac.patch
+sh-mm-drop-allocate_pgdat.patch
+sh-remove-setup_bootmem_node-and-plat_mem_setup.patch
+sh-drop-dead-code-guarded-by-ifdef-config_numa.patch
+sh-drop-include-asm-mmzoneh.patch
+init-kconfig-drop-arch_want_numa_variable_locality.patch
+sh-init-remove-call-the-memblock_set_node.patch
+sh-remove-sparsemem-related-entries-from-kconfig.patch
+sh-drop-include-asm-sparsememh.patch
 
