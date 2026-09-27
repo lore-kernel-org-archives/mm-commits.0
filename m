@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8C5733976A9
-	for <mm-commits@vger.kernel.org>; Sun, 27 Sep 2026 05:44:13 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 17FCD36D500
+	for <mm-commits@vger.kernel.org>; Sun, 27 Sep 2026 05:51:19 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790487854; cv=none; b=YdAbmQCNTL7h724mPEYTFh0QSIuQXqPmVG+30aX6xxUQqn08w9FaMbtlrctyLE4Zowxtq8LGnSktseFPiZivSo/OtpGKji2mxZrJRQj/B2ik1J+Ab8GtWZGtkW2HG97kG9Di+cUo5qjNTjpzAgqWA/AhRwLN45wLTiSrGdVVdGw=
+	t=1790488281; cv=none; b=NHDPnQ+9NJHC1/c2jPeut3kN1nMdrJJFuGfTsTs7B3zvHswPaMyRV/wdnsSGNcZ5Y+P8yVXeKxNddV7e9CrgelMUCGp4l5Ydkmb9KIiqJXPNu8uSu2gLKSVaSJxlpNEFdPwgVWgYRpp5pG76i1r37SxsyoXDPwoHjNSEKR/6pJE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1790487854; c=relaxed/simple;
-	bh=6p0+TIaL2LR+MaEmlya35vLMc5D6aEAXBIwngUf56Uo=;
-	h=Date:To:From:Subject:Message-Id; b=Bkm9QZHKuOEVSlVoEcwoZXA5pEOj4AiHAQEJjjmmiNQEX7B+ceOQK2dMNr0upkR+EZz+3XYzqr6jmLom9mVKm+iHTZr1OKKmIgEVp9X1eAlcfB92CHRVgRmzp8mZmiO3qC1TK5Gpm851IEz7gkQBbTc8w4chuF6XT34a1KKHUEU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=sYweNNbr; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1790488281; c=relaxed/simple;
+	bh=jsSdv8mAQZ8wKfjZNSgqluCb7maPUgZJzHzWiqClF34=;
+	h=Date:To:From:Subject:Message-Id; b=Ag3pobWXjEnSrcgr+tqybO0iD5Z7y9i3K70dKP6kG/mTTWc+bMINcEbAPWKkuUfc+3gCFQ5tTzW0YW6LU61ywZCbyi3jPaxeKT6THvmyn0H00ffn7ZHUlhr60gH86kgcUhXNkdHGu/HtryU2JYXGFHeA62VG4PLxrT6ASoOO19w=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=TtbvrT+e; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="sYweNNbr"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5F42A1F000FF;
-	Sun, 27 Sep 2026 05:44:13 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="TtbvrT+e"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id BB9D81F000FF;
+	Sun, 27 Sep 2026 05:51:19 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1790487853;
-	bh=j+0Kgx3FdhybXiUNYoEOh2qC6Lb705TATjP9d4acmWs=;
+	d=linux-foundation.org; s=korg; t=1790488279;
+	bh=mI4qWqW4T3R1vkWz7ichKa8oxVm8tA/cnlV+n8GM9Js=;
 	h=Date:To:From:Subject;
-	b=sYweNNbrRUW51T+a2Jftqflz4L+41bbQyaQp0Lw1CMHTAtqZc0Xi/63mW/+VATW1N
-	 Ud3AfvK8jEXCJbrsvLlyeNcszHVihUGzM1egNcCoUB3CMp/xxt/XSFZSl85IEYf3Nb
-	 ny0EnTKQ0uOmIQi7XYQy2KhDrp8e++z0r0TyuZF0=
-Date: Sat, 26 Sep 2026 22:44:08 -0700
-To: mm-commits@vger.kernel.org,songmuchun@bytedance.com,akpm@linux-foundation.org
+	b=TtbvrT+eWDP+yNrsf4QOKBxc0h01D43ibCVDMIUElTppV9MiGOJoifgTv0hM6beTd
+	 n79A6YmTINnIEgB8loe1edLRiLrPLs+LPsJorZM0oFJCdAOwyQ5CchuOA/bXPEI+HZ
+	 EIhIPUBIeHmvp3vwI0wth3PxUsdFSXFAGxEePE38=
+Date: Sat, 26 Sep 2026 22:51:19 -0700
+To: mm-commits@vger.kernel.org,muchun.song@linux.dev,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [to-be-updated] documentation-mm-update-dax-vmemmap-deduplication-docs.patch removed from -mm tree
-Message-Id: <20260927054413.5F42A1F000FF@smtp.kernel.org>
+Subject: + mm-sparse-vmemmap-factor-out-shared-vmemmap-tail-page-allocation.patch added to mm-unstable branch
+Message-Id: <20260927055119.BB9D81F000FF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,212 +34,304 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The quilt patch titled
-     Subject: Documentation/mm: update DAX vmemmap deduplication docs
-has been removed from the -mm tree.  Its filename was
-     documentation-mm-update-dax-vmemmap-deduplication-docs.patch
+The patch titled
+     Subject: mm/sparse-vmemmap: factor out shared vmemmap tail page allocation
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-sparse-vmemmap-factor-out-shared-vmemmap-tail-page-allocation.patch
 
-This patch was dropped because an updated version will be issued
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-sparse-vmemmap-factor-out-shared-vmemmap-tail-page-allocation.patch
+
+This patch will later appear in the mm-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via various
+branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there most days
 
 ------------------------------------------------------
-From: Muchun Song <songmuchun@bytedance.com>
-Subject: Documentation/mm: update DAX vmemmap deduplication docs
-Date: Wed, 16 Sep 2026 14:43:41 +0800
+From: Muchun Song <muchun.song@linux.dev>
+Subject: mm/sparse-vmemmap: factor out shared vmemmap tail page allocation
+Date: Sun, 27 Sep 2026 10:54:30 +0800
 
-Device DAX now uses the common per-zone shared tail page for vmemmap
-deduplication.  The old documentation still described a DAX-specific
-layout with a separately populated tail vmemmap page and half the HugeTLB
-savings.
+Patch series "mm: Switch device DAX to section-based vmemmap
+optimization", v5.
 
-Update the generic and powerpc documentation to describe the shared
-layout.  In the powerpc document, keep the radix and 64K-specific details,
-drop the duplicated 4K PUD arithmetic, and replace the repeated device-dax
-diagrams with a single parameterized PMD/PUD diagram.
+This series is split out from the earlier, larger series "mm: Generalize
+HVO for HugeTLB and device DAX" [1].  While the parent series generalizes
+vmemmap optimization across HugeTLB and device DAX, this subset addresses
+a single, self-contained step: switching device DAX to the section-based
+sparse-vmemmap optimization infrastructure introduced for HugeTLB.
 
-Link: https://lore.kernel.org/20260916064341.1825793-12-songmuchun@bytedance.com
-Signed-off-by: Muchun Song <songmuchun@bytedance.com>
+After the HugeTLB conversion, optimized vmemmap state is described by the
+memory section and the sparse-vmemmap population path can allocate or
+reuse shared tail vmemmap pages based on that metadata.  Device DAX still
+uses the older DAX-specific population model, including a separate tail
+vmemmap page reservation and architecture-specific logic to locate or
+populate reusable tail pages.
+
+This series makes device DAX use the same section-based model.  Device DAX
+records the compound page order from pgmap->vmemmap_shift in section
+metadata before vmemmap population, uses the common per-zone shared tail
+vmemmap page, and drops the extra reserved tail page.  The powerpc radix
+path is updated to use the same shared tail-page helper, so the generic
+and powerpc DAX paths follow the same reservation model.
+
+The first patches prepare the shared infrastructure by factoring out
+shared tail-page allocation, allocating the per-zone shared tail-page
+array dynamically, and introducing a generic CONFIG_VMEMMAP_OPTIMIZATION
+symbol.
+
+The middle patches move device DAX onto that infrastructure by recording
+the device DAX compound page order in memory-section metadata, using that
+metadata to back generic device DAX mappings with the common per-zone
+shared tail page, exposing the shared helpers so the powerpc radix path
+can use the same model, and dropping the extra DAX-only tail page
+reservation and the now-unused section accounting arguments.
+
+The final patch updates the documentation for the new DAX layout.
+
+This is intended to be the third smaller step toward the broader HVO
+generalization.  The wider HVO consolidation between HugeTLB and device
+DAX is left for follow-up series.
+
+
+This patch (of 12):
+
+HugeTLB and sparse-vmemmap each have their own helper to allocate the
+shared vmemmap tail page used by vmemmap optimization.
+
+Factor that logic into a common vmemmap_shared_tail_page() helper. It
+allocates the page through vmemmap_alloc_block(), initializes the tail
+struct pages, and uses cmpxchg() to install the per-zone shared page.
+
+This removes duplicate allocation logic while handling both early boot
+and runtime allocation through the same helper.
+
+Link: https://lore.kernel.org/20260927025441.741633-1-songmuchun@bytedance.com
+Link: https://lore.kernel.org/20260927025441.741633-2-songmuchun@bytedance.com
+Link: https://lore.kernel.org/all/20260513130542.35604-1-songmuchun@bytedance.com/ [1]
+Signed-off-by: Muchun Song <muchun.song@linux.dev>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 Acked-by: Qi Zheng <qi.zheng@linux.dev>
-Cc: David Hildenbrand (Arm) <david@kernel.org>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Lorenzo Stoakes <ljs@kernel.org>
+Acked-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
+Cc: David Hildenbrand <david@kernel.org>
+Cc: Oscar Salvador <osalvador@suse.de>
 Cc: Madhavan Srinivasan <maddy@linux.ibm.com>
 Cc: Michael Ellerman <mpe@ellerman.id.au>
-Cc: Mike Rapoport (Microsoft) <rppt@kernel.org>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: Lorenzo Stoakes <ljs@kernel.org>
 Cc: Nicholas Piggin <npiggin@gmail.com>
-Cc: Oscar Salvador <osalvador@suse.de>
+Cc: Christophe Leroy <chleroy@kernel.org>
 Cc: Randy Dunlap <rdunlap@infradead.org>
+Cc: Lance Yang <lance.yang@linux.dev>
 ---
 
- Documentation/arch/powerpc/vmemmap_dedup.rst |   90 +++--------------
- Documentation/mm/vmemmap_dedup.rst           |   32 ------
- 2 files changed, 21 insertions(+), 101 deletions(-)
+ mm/hugetlb_vmemmap.c |   29 ----------------
+ mm/sparse-vmemmap.c  |   70 ++++++++++++++++++-----------------------
+ mm/sparse.h          |    3 +
+ 3 files changed, 36 insertions(+), 66 deletions(-)
 
---- a/Documentation/arch/powerpc/vmemmap_dedup.rst~documentation-mm-update-dax-vmemmap-deduplication-docs
-+++ a/Documentation/arch/powerpc/vmemmap_dedup.rst
-@@ -19,82 +19,28 @@ With 1G PUD level mapping, we require 16
- vmemmap page can contain 1024 struct pages (64K/sizeof(struct page)). Hence we
- require 16 64K pages in vmemmap to map the struct page for 1G PUD level mapping.
+--- a/mm/hugetlb_vmemmap.c~mm-sparse-vmemmap-factor-out-shared-vmemmap-tail-page-allocation
++++ a/mm/hugetlb_vmemmap.c
+@@ -19,7 +19,6 @@
+ #include <asm/tlbflush.h>
+ #include "hugetlb_vmemmap.h"
+ #include "sparse.h"
+-#include "internal.h"
  
--Here's how things look like on device-dax after the sections are populated::
-- +-----------+ ---virt_to_page---> +-----------+   mapping to   +-----------+
-- |           |                     |     0     | -------------> |     0     |
-- |           |                     +-----------+                +-----------+
-- |           |                     |     1     | -------------> |     1     |
-- |           |                     +-----------+                +-----------+
-- |           |                     |     2     | ----------------^ ^ ^ ^ ^ ^
-- |           |                     +-----------+                   | | | | |
-- |           |                     |     3     | ------------------+ | | | |
-- |           |                     +-----------+                     | | | |
-- |           |                     |     4     | --------------------+ | | |
-- |    PUD    |                     +-----------+                       | | |
-- |   level   |                     |     .     | ----------------------+ | |
-- |  mapping  |                     +-----------+                         | |
-- |           |                     |     .     | ------------------------+ |
-- |           |                     +-----------+                           |
-- |           |                     |     15    | --------------------------+
-- |           |                     +-----------+
-- |           |
-- |           |
-- |           |
-- +-----------+
--
--
- With 4K page size, 2M PMD level mapping requires 512 struct pages and a single
- 4K vmemmap page contains 64 struct pages(4K/sizeof(struct page)). Hence we
- require 8 4K pages in vmemmap to map the struct page for 2M pmd level mapping.
+ /**
+  * struct vmemmap_remap_walk - walk vmemmap page table
+@@ -493,32 +492,6 @@ static bool vmemmap_should_optimize_foli
+ 	return true;
+ }
  
--Here's how things look like on device-dax after the sections are populated::
+-static struct page *vmemmap_get_tail(unsigned int order, struct zone *zone)
+-{
+-	const unsigned int idx = order - VMEMMAP_OPTIMIZATION_MIN_ORDER;
+-	struct page *tail, *p;
+-	int node = zone_to_nid(zone);
 -
-- +-----------+ ---virt_to_page---> +-----------+   mapping to   +-----------+
-- |           |                     |     0     | -------------> |     0     |
-- |           |                     +-----------+                +-----------+
-- |           |                     |     1     | -------------> |     1     |
-- |           |                     +-----------+                +-----------+
-- |           |                     |     2     | ----------------^ ^ ^ ^ ^ ^
-- |           |                     +-----------+                   | | | | |
-- |           |                     |     3     | ------------------+ | | | |
-- |           |                     +-----------+                     | | | |
-- |           |                     |     4     | --------------------+ | | |
-- |    PMD    |                     +-----------+                       | | |
-- |   level   |                     |     5     | ----------------------+ | |
-- |  mapping  |                     +-----------+                         | |
-- |           |                     |     6     | ------------------------+ |
-- |           |                     +-----------+                           |
-- |           |                     |     7     | --------------------------+
-- |           |                     +-----------+
-- |           |
-- |           |
-- |           |
-- +-----------+
+-	tail = READ_ONCE(zone->vmemmap_tails[idx]);
+-	if (likely(tail))
+-		return tail;
 -
--With 1G PUD level mapping, we require 262144 struct pages and a single 4K
--vmemmap page can contain 64 struct pages (4K/sizeof(struct page)). Hence we
--require 4096 4K pages in vmemmap to map the struct pages for 1G PUD level
--mapping.
+-	tail = alloc_pages_node(node, GFP_KERNEL | __GFP_ZERO, 0);
+-	if (!tail)
+-		return NULL;
 -
--Here's how things look like on device-dax after the sections are populated::
+-	p = page_to_virt(tail);
+-	for (int i = 0; i < PAGE_SIZE / sizeof(struct page); i++)
+-		init_compound_tail(p + i, NULL, order, zone);
 -
-- +-----------+ ---virt_to_page---> +-----------+   mapping to   +-----------+
-- |           |                     |     0     | -------------> |     0     |
-- |           |                     +-----------+                +-----------+
-- |           |                     |     1     | -------------> |     1     |
-- |           |                     +-----------+                +-----------+
-- |           |                     |     2     | ----------------^ ^ ^ ^ ^ ^
-- |           |                     +-----------+                   | | | | |
-- |           |                     |     3     | ------------------+ | | | |
-- |           |                     +-----------+                     | | | |
-- |           |                     |     4     | --------------------+ | | |
-- |    PUD    |                     +-----------+                       | | |
-- |   level   |                     |     .     | ----------------------+ | |
-- |  mapping  |                     +-----------+                         | |
-- |           |                     |     .     | ------------------------+ |
-- |           |                     +-----------+                           |
-- |           |                     |   4095    | --------------------------+
-- |           |                     +-----------+
-+Here's how things look on device-dax after vmemmap-optimized sections are
-+populated. ``N`` is the number of vmemmap pages required by the DAX mapping
-+above::
+-	if (cmpxchg(&zone->vmemmap_tails[idx], NULL, tail)) {
+-		__free_page(tail);
+-		tail = READ_ONCE(zone->vmemmap_tails[idx]);
+-	}
+-
+-	return tail;
+-}
+-
+ static int __hugetlb_vmemmap_optimize_folio(const struct hstate *h,
+ 					    struct folio *folio,
+ 					    struct list_head *vmemmap_pages,
+@@ -535,7 +508,7 @@ static int __hugetlb_vmemmap_optimize_fo
+ 		return ret;
+ 
+ 	nid = folio_nid(folio);
+-	vmemmap_tail = vmemmap_get_tail(h->order, folio_zone(folio));
++	vmemmap_tail = vmemmap_shared_tail_page(h->order, folio_zone(folio));
+ 	if (!vmemmap_tail)
+ 		return -ENOMEM;
+ 
+--- a/mm/sparse.h~mm-sparse-vmemmap-factor-out-shared-vmemmap-tail-page-allocation
++++ a/mm/sparse.h
+@@ -142,6 +142,9 @@ static inline void sparse_sections_init(
+  * mm/sparse-vmemmap.c
+  */
+ #ifdef CONFIG_SPARSEMEM_VMEMMAP
++#ifdef CONFIG_HUGETLB_PAGE_OPTIMIZE_VMEMMAP
++struct page *vmemmap_shared_tail_page(unsigned int order, struct zone *zone);
++#endif
+ void sparse_init_subsection_map(void);
+ int section_nr_vmemmap_pages(unsigned long pfn, unsigned long nr_pages,
+ 		struct vmem_altmap *altmap, struct dev_pagemap *pgmap);
+--- a/mm/sparse-vmemmap.c~mm-sparse-vmemmap-factor-out-shared-vmemmap-tail-page-allocation
++++ a/mm/sparse-vmemmap.c
+@@ -42,27 +42,13 @@
+ #include "mm_init.h"
+ #include "sparse.h"
+ 
+-/*
+- * Allocate a block of memory to be used to back the virtual memory map
+- * or to back the page tables that are used to create the mapping.
+- * Uses the main allocators if they are available, else bootmem.
+- */
+-
+-static void * __ref __earlyonly_bootmem_alloc(int node,
+-				unsigned long size,
+-				unsigned long align,
+-				unsigned long goal)
+-{
+-	return memmap_alloc(size, align, goal, node, false);
+-}
+-
+-void * __meminit vmemmap_alloc_block(unsigned long size, int node)
++void __ref *vmemmap_alloc_block(unsigned long size, int node)
+ {
+ 	/* If the main allocator is up use that, fallback to bootmem. */
+ 	if (slab_is_available()) {
+ 		gfp_t gfp_mask = GFP_KERNEL|__GFP_RETRY_MAYFAIL|__GFP_NOWARN;
+ 		int order = get_order(size);
+-		static bool warned __meminitdata;
++		static bool warned;
+ 		struct page *page;
+ 
+ 		page = alloc_pages_node(node, gfp_mask, order);
+@@ -76,8 +62,7 @@ void * __meminit vmemmap_alloc_block(uns
+ 		}
+ 		return NULL;
+ 	} else
+-		return __earlyonly_bootmem_alloc(node, size, size,
+-				__pa(MAX_DMA_ADDRESS));
++		return memmap_alloc(size, size, __pa(MAX_DMA_ADDRESS), node, false);
+ }
+ 
+ static void * __meminit altmap_alloc_block_buf(unsigned long size,
+@@ -185,34 +170,43 @@ static void * __meminit vmemmap_alloc_bl
+ }
+ 
+ #ifdef CONFIG_HUGETLB_PAGE_OPTIMIZE_VMEMMAP
+-static __meminit struct page *vmemmap_get_tail(unsigned int order, struct zone *zone)
++struct page __ref *vmemmap_shared_tail_page(unsigned int order, struct zone *zone)
+ {
+-	struct page *p, *tail;
+-	unsigned int idx;
+-	int node = zone_to_nid(zone);
++	void *addr;
++	struct page *page;
++	const unsigned int idx = order - VMEMMAP_OPTIMIZATION_MIN_ORDER;
+ 
+-	if (WARN_ON_ONCE(order < VMEMMAP_OPTIMIZATION_MIN_ORDER))
+-		return NULL;
+-	if (WARN_ON_ONCE(order > MAX_FOLIO_ORDER))
++	if (WARN_ON_ONCE(idx >= VMEMMAP_OPTIMIZATION_NR_ORDERS))
+ 		return NULL;
+ 
+-	idx = order - VMEMMAP_OPTIMIZATION_MIN_ORDER;
+-	tail = zone->vmemmap_tails[idx];
+-	if (tail)
+-		return tail;
+-	p = vmemmap_alloc_block_zero(PAGE_SIZE, node);
+-	if (!p)
++	page = READ_ONCE(zone->vmemmap_tails[idx]);
++	if (likely(page))
++		return page;
 +
-+  Device DAX                  vmemmap pages (N pages)         backing page frames
-+ +-----------+ ---virt_to_page---> +-----------+   mapping to   +-------------+
-+ |           |                     |     0     | -------------> |      0      |
-+ |           |                     +-----------+                +-------------+
-+ |           |                     |     1     | ------+
-+ |           |                     +-----------+       |
-+ |           |                     |     2     | ------+
-+ |           |                     +-----------+       |
-+ |           |                     |     .     | ------+        +-------------+
-+ |  PMD/PUD  |                     +-----------+       |        | A single,   |
-+ |   level   |                     |     .     | ------+------> | per-zone    |
-+ |  mapping  |                     +-----------+       |        | shared tail |
-+ |           |                     |   N - 1   | ------+        | page        |
-+ |           |                     +-----------+                +-------------+
-  |           |
-  |           |
-  |           |
---- a/Documentation/mm/vmemmap_dedup.rst~documentation-mm-update-dax-vmemmap-deduplication-docs
-+++ a/Documentation/mm/vmemmap_dedup.rst
-@@ -1,4 +1,3 @@
--
- .. SPDX-License-Identifier: GPL-2.0
++	addr = vmemmap_alloc_block(PAGE_SIZE, zone_to_nid(zone));
++	if (!addr)
+ 		return NULL;
+-	for (int i = 0; i < PAGE_SIZE / sizeof(struct page); i++)
+-		init_compound_tail(p + i, NULL, order, zone);
  
- =========================================
-@@ -192,32 +191,7 @@ to 4 on HugeTLB pages.
+-	tail = virt_to_page(p);
+-	zone->vmemmap_tails[idx] = tail;
++	for (int i = 0; i < PAGE_SIZE / sizeof(struct page); i++) {
++		page = (struct page *)addr + i;
++		mm_zero_struct_page(page);
++		init_compound_tail(page, NULL, order, zone);
++	}
++
++	page = virt_to_page(addr);
++	if (cmpxchg(&zone->vmemmap_tails[idx], NULL, page) != NULL) {
++		if (slab_is_available())
++			__free_page(page);
++		else
++			memblock_free(addr, PAGE_SIZE);
++		page = READ_ONCE(zone->vmemmap_tails[idx]);
++	}
  
- There's no remapping of vmemmap given that device-dax memory is not part of
- System RAM ranges initialized at boot. Thus the tail page deduplication
--happens at a later stage when we populate the sections. HugeTLB reuses the
--the head vmemmap page representing, whereas device-dax reuses the tail
--vmemmap page. This results in only half of the savings compared to HugeTLB.
--
--Deduplicated tail pages are not mapped read-only.
-+happens at a later stage when we populate the sections.
+-	return tail;
++	return page;
+ }
+ #else
+-static inline struct page *vmemmap_get_tail(unsigned int order, struct zone *zone)
++static inline struct page *vmemmap_shared_tail_page(unsigned int order,
++						    struct zone *zone)
+ {
+ 	return NULL;
+ }
+@@ -229,7 +223,7 @@ static __meminit void *vmemmap_alloc_pte
+ 		return vmemmap_alloc_block_buf(PAGE_SIZE, node, altmap);
  
--Here's how things look like on device-dax after the sections are populated::
--
-- +-----------+ ---virt_to_page---> +-----------+   mapping to   +-----------+
-- |           |                     |     0     | -------------> |     0     |
-- |           |                     +-----------+                +-----------+
-- |           |                     |     1     | -------------> |     1     |
-- |           |                     +-----------+                +-----------+
-- |           |                     |     2     | ----------------^ ^ ^ ^ ^ ^
-- |           |                     +-----------+                   | | | | |
-- |           |                     |     3     | ------------------+ | | | |
-- |           |                     +-----------+                     | | | |
-- |           |                     |     4     | --------------------+ | | |
-- |    PMD    |                     +-----------+                       | | |
-- |   level   |                     |     5     | ----------------------+ | |
-- |  mapping  |                     +-----------+                         | |
-- |           |                     |     6     | ------------------------+ |
-- |           |                     +-----------+                           |
-- |           |                     |     7     | --------------------------+
-- |           |                     +-----------+
-- |           |
-- |           |
-- |           |
-- +-----------+
-+Deduplicated tail pages are not mapped read-only. The mapping layout is the same
-+as HugeTLB.
+ 	zone = pfn_to_zone(pfn, node);
+-	page = vmemmap_get_tail(order, zone);
++	page = vmemmap_shared_tail_page(order, zone);
+ 	if (!page)
+ 		return NULL;
+ 
 _
 
-Patches currently in -mm which might be from songmuchun@bytedance.com are
+Patches currently in -mm which might be from muchun.song@linux.dev are
 
-mm-sparse-relax-struct-mem_section-size-constraints.patch
-mm-sparse-vmemmap-rename-hvo-order-macros.patch
-mm-mm_init-skip-initializing-shared-vmemmap-tail-pages.patch
-mm-sparse-vmemmap-initialize-shared-tail-vmemmap-pages-on-allocation.patch
-mm-sparse-vmemmap-support-section-based-vmemmap-accounting.patch
-mm-mm_init-factor-out-pfn_to_zone.patch
-mm-sparse-vmemmap-move-helpers-ahead-of-future-callers.patch
-mm-sparse-vmemmap-support-section-based-vmemmap-optimization.patch
-mm-sparse-initialize-memory-sections-earlier.patch
-mm-hugetlb-switch-hugetlb-to-section-based-vmemmap-optimization.patch
-mm-sparse-vmemmap-remove-sparsemem_vmemmap_preinit-support.patch
-mm-sparse-inline-usemap-allocation-into-sparse_init_nid.patch
-mm-sparse-remove-section_map_size.patch
-mm-hugetlb-remove-huge_bootmem_hvo.patch
-mm-hugetlb-remove-huge_bootmem_cma.patch
-mm-hugetlb-localize-struct-huge_bootmem_page.patch
-mm-hugetlb-localize-huge_bootmem_zones_valid.patch
+mm-sparse-vmemmap-factor-out-shared-vmemmap-tail-page-allocation.patch
+mm-sparse-vmemmap-allocate-shared-tail-page-array-dynamically.patch
+mm-sparse-vmemmap-introduce-config_vmemmap_optimization.patch
+mm-sparse-vmemmap-open-code-init_compound_tail.patch
+mm-sparse-vmemmap-prepare-dax-vmemmap-population-for-compound-page-orders.patch
+mm-sparse-vmemmap-set-compound-page-order-for-device-dax.patch
+mm-sparse-vmemmap-switch-device-dax-to-shared-tail-vmemmap-pages.patch
+mm-sparse-vmemmap-move-vmemmap-optimization-helpers-to-a-public-header.patch
+powerpc-mm-switch-device-dax-to-shared-tail-vmemmap-pages.patch
+mm-sparse-vmemmap-drop-the-extra-tail-page-from-device-dax-reservation.patch
+mm-sparse-vmemmap-drop-unused-section_nr_vmemmap_pages-arguments.patch
+documentation-mm-update-dax-vmemmap-deduplication-docs.patch
 
