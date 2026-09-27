@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BF3C23B6C0C
-	for <mm-commits@vger.kernel.org>; Sun, 27 Sep 2026 05:51:54 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D1DB828505E
+	for <mm-commits@vger.kernel.org>; Sun, 27 Sep 2026 06:02:19 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790488316; cv=none; b=NwoMwQoO+DE6ba+sGABMTj5YMrQfHuyMJSpleMWEOgQEeMnAXtWtJGkOElZU1XTGz0Eak3h4ucxQabI3bP/VRP2iPkumjRTeEWYSrfpQ5kdcrMRedlxJiGr4q31dkJw7RSqeA3qUPPF+k3sA8hmchmaMEZLVGpHojqRdF3/CWHQ=
+	t=1790488941; cv=none; b=tnBELi2j2MPWkMNPzN+aisMV8WjAvdd497vRXCK/chQDgn41+3ZP0VO7wITruTVALQOq7cb3pnDgEUpL1hzxskf3tEtdChxO/Wg0/gi5V+S4SJkYaTH7x5jhQE1t6FxnsPH72slEY7TV2NvLnEpdIiaXMvdtvP4fHsRVFMVPhZ4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1790488316; c=relaxed/simple;
-	bh=a25nHWLGwS/GJLDSzM2p/vQIYk9Crk1Nk115/tz9cEw=;
-	h=Date:To:From:Subject:Message-Id; b=BFbkCrIYKWZ0PB7Uu2kqk+L5YuQcd3BF64bc2Er3OoekOI3yv8TWbZzUtBj/ohi7rxPaCe+V6hdQ2wwZOLL3KgN2X5k+DpWIl8NghBYbjoxPaaS8a3QrDNM2IuIriqHCiH5R68AACNPaM0R8msw4QPkUJGol6BcY203TrirU+e4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=nwrkP94U; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1790488941; c=relaxed/simple;
+	bh=OSpYv7q/enz4TZTpwOmg9mduvZH3wIageXJpFjShyPA=;
+	h=Date:To:From:Subject:Message-Id; b=IiIxmz2fhcTcq4dz7AQhmKUWhOIH9qLSejkAo24/v7xo8jdZiT2d9/+FdKHej/LHORJfLNpGKnKieT1Zj1b5Y3WXPqA4VHaAySLrmmPKZ+m58BMt6ugvJUgc/d2KdcmnJ3SHzL+6USeVbZQnOz/4YJpUMWPuBbwYhSs23tn925w=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=yCcN10Hv; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="nwrkP94U"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 93A2D1F000FF;
-	Sun, 27 Sep 2026 05:51:54 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="yCcN10Hv"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 413DB1F000FF;
+	Sun, 27 Sep 2026 06:02:19 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1790488314;
-	bh=/JF80SJ57g2c6dn75j/qLUf3i6pWfUkR4jMGD+rm3tg=;
+	d=linux-foundation.org; s=korg; t=1790488939;
+	bh=0Rfh1THLAe0XgiD+/pQq8TD7djOzc/Vr7cfsbL2tlk0=;
 	h=Date:To:From:Subject;
-	b=nwrkP94UV6Lk6TGPSP0pxX/DQLlIkGiOR18X7txY4bBL2M0lQGtbs3vpzXM4OhZfK
-	 nnl3IQXJaelATlgVCM4xENhtOobid5licT2uN+20ab3xFRih1yFfEZPNniGsnclXsG
-	 ItaKcCIX1DnloNctQHhnUH9ViEWQXhChwzZ1n85A=
-Date: Sat, 26 Sep 2026 22:51:54 -0700
-To: mm-commits@vger.kernel.org,muchun.song@linux.dev,akpm@linux-foundation.org
+	b=yCcN10HvMmAsgWKdmr7dOIR1XJhmq65OaaqXPRNsf4vRUaPrPCaVkfSGNaNtZS/Sf
+	 7qpKZa7GzAGK9BTqjKNiWUmDU8NPGGN67GvftbIksrfsMlnWOabEHiWztEMq3+JVJx
+	 yW8jsZ2oOHbNEXPBY4TKPjC0S/Avt++da/iwj4kg=
+Date: Sat, 26 Sep 2026 23:02:18 -0700
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,vbabka@kernel.org,surenb@google.com,shuah@kernel.org,rppt@kernel.org,mhocko@suse.com,ljs@kernel.org,liam@infradead.org,david@kernel.org,jaeyeon.lee.dev@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + documentation-mm-update-dax-vmemmap-deduplication-docs.patch added to mm-unstable branch
-Message-Id: <20260927055154.93A2D1F000FF@smtp.kernel.org>
+Subject: + selftests-mm-skip-khugepaged-file-tests-if-mkfsxfs-is-unavailable.patch added to mm-unstable branch
+Message-Id: <20260927060219.413DB1F000FF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: Documentation/mm: update DAX vmemmap deduplication docs
+     Subject: selftests/mm: skip khugepaged file tests if mkfs.xfs is unavailable
 has been added to the -mm mm-unstable branch.  Its filename is
-     documentation-mm-update-dax-vmemmap-deduplication-docs.patch
+     selftests-mm-skip-khugepaged-file-tests-if-mkfsxfs-is-unavailable.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/documentation-mm-update-dax-vmemmap-deduplication-docs.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-skip-khugepaged-file-tests-if-mkfsxfs-is-unavailable.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,201 +58,66 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Muchun Song <muchun.song@linux.dev>
-Subject: Documentation/mm: update DAX vmemmap deduplication docs
-Date: Sun, 27 Sep 2026 10:54:41 +0800
+From: Jaeyeon Lee <jaeyeon.lee.dev@gmail.com>
+Subject: selftests/mm: skip khugepaged file tests if mkfs.xfs is unavailable
+Date: Sat, 12 Sep 2026 22:29:03 +0200
 
-Device DAX now uses the common per-zone shared tail page for vmemmap
-deduplication. The old documentation still described a DAX-specific
-layout with a separately populated tail vmemmap page and half the HugeTLB
-savings.
+The XFS setup for ./khugepaged all:file checks that the kernel supports
+XFS but not that mkfs.xfs is installed.  When CONFIG_XFS_FS=y and xfsprogs
+is missing, mkfs.xfs and mount both fail, but
+SPLIT_HUGE_PAGE_TEST_XFS_PATH is assigned from mktemp -d and stays set. 
+The test then runs against plain tmpfs and six subtests fail.
 
-Update the generic and powerpc documentation to describe the shared layout.
-In the powerpc document, keep the radix and 64K-specific details, drop the
-duplicated 4K PUD arithmetic, and replace the repeated device-dax diagrams
-with a single parameterized PMD/PUD diagram.
+The script already has a skip path for this test, but it never runs
+because the path variable is always set.  Assign
+SPLIT_HUGE_PAGE_TEST_XFS_PATH only once mkfs.xfs and mount have both
+succeeded, and remove the image and directory otherwise.
 
-Link: https://lore.kernel.org/20260927025441.741633-13-songmuchun@bytedance.com
-Signed-off-by: Muchun Song <muchun.song@linux.dev>
+Link: https://lore.kernel.org/20260912202903.16157-1-jaeyeon.lee.dev@gmail.com
+Signed-off-by: Jaeyeon Lee <jaeyeon.lee.dev@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Acked-by: Qi Zheng <qi.zheng@linux.dev>
-Cc: David Hildenbrand <david@kernel.org>
-Cc: Oscar Salvador <osalvador@suse.de>
-Cc: Madhavan Srinivasan <maddy@linux.ibm.com>
-Cc: Michael Ellerman <mpe@ellerman.id.au>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Lorenzo Stoakes <ljs@kernel.org>
+Suggested-by: Zi Yan <ziy@nvidia.com>
+Reviewed-by: Zi Yan <ziy@nvidia.com>
+Acked-by: David Hildenbrand (Arm) <david@kernel.org>
+Reviewed-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
+Assisted-by: LLM
+Cc: Shuah Khan <shuah@kernel.org>
+Cc: Liam R. Howlett <liam@infradead.org>
+Cc: Vlastimil Babka <vbabka@kernel.org>
 Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Nicholas Piggin <npiggin@gmail.com>
-Cc: Christophe Leroy <chleroy@kernel.org>
-Cc: Randy Dunlap <rdunlap@infradead.org>
-Cc: Lance Yang <lance.yang@linux.dev>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Michal Hocko <mhocko@suse.com>
 ---
 
- Documentation/arch/powerpc/vmemmap_dedup.rst |   90 +++--------------
- Documentation/mm/vmemmap_dedup.rst           |   32 ------
- 2 files changed, 21 insertions(+), 101 deletions(-)
+ tools/testing/selftests/mm/run_vmtests.sh |   12 ++++++++----
+ 1 file changed, 8 insertions(+), 4 deletions(-)
 
---- a/Documentation/arch/powerpc/vmemmap_dedup.rst~documentation-mm-update-dax-vmemmap-deduplication-docs
-+++ a/Documentation/arch/powerpc/vmemmap_dedup.rst
-@@ -19,82 +19,28 @@ With 1G PUD level mapping, we require 16
- vmemmap page can contain 1024 struct pages (64K/sizeof(struct page)). Hence we
- require 16 64K pages in vmemmap to map the struct page for 1G PUD level mapping.
- 
--Here's how things look like on device-dax after the sections are populated::
-- +-----------+ ---virt_to_page---> +-----------+   mapping to   +-----------+
-- |           |                     |     0     | -------------> |     0     |
-- |           |                     +-----------+                +-----------+
-- |           |                     |     1     | -------------> |     1     |
-- |           |                     +-----------+                +-----------+
-- |           |                     |     2     | ----------------^ ^ ^ ^ ^ ^
-- |           |                     +-----------+                   | | | | |
-- |           |                     |     3     | ------------------+ | | | |
-- |           |                     +-----------+                     | | | |
-- |           |                     |     4     | --------------------+ | | |
-- |    PUD    |                     +-----------+                       | | |
-- |   level   |                     |     .     | ----------------------+ | |
-- |  mapping  |                     +-----------+                         | |
-- |           |                     |     .     | ------------------------+ |
-- |           |                     +-----------+                           |
-- |           |                     |     15    | --------------------------+
-- |           |                     +-----------+
-- |           |
-- |           |
-- |           |
-- +-----------+
--
--
- With 4K page size, 2M PMD level mapping requires 512 struct pages and a single
- 4K vmemmap page contains 64 struct pages(4K/sizeof(struct page)). Hence we
- require 8 4K pages in vmemmap to map the struct page for 2M pmd level mapping.
- 
--Here's how things look like on device-dax after the sections are populated::
--
-- +-----------+ ---virt_to_page---> +-----------+   mapping to   +-----------+
-- |           |                     |     0     | -------------> |     0     |
-- |           |                     +-----------+                +-----------+
-- |           |                     |     1     | -------------> |     1     |
-- |           |                     +-----------+                +-----------+
-- |           |                     |     2     | ----------------^ ^ ^ ^ ^ ^
-- |           |                     +-----------+                   | | | | |
-- |           |                     |     3     | ------------------+ | | | |
-- |           |                     +-----------+                     | | | |
-- |           |                     |     4     | --------------------+ | | |
-- |    PMD    |                     +-----------+                       | | |
-- |   level   |                     |     5     | ----------------------+ | |
-- |  mapping  |                     +-----------+                         | |
-- |           |                     |     6     | ------------------------+ |
-- |           |                     +-----------+                           |
-- |           |                     |     7     | --------------------------+
-- |           |                     +-----------+
-- |           |
-- |           |
-- |           |
-- +-----------+
--
--With 1G PUD level mapping, we require 262144 struct pages and a single 4K
--vmemmap page can contain 64 struct pages (4K/sizeof(struct page)). Hence we
--require 4096 4K pages in vmemmap to map the struct pages for 1G PUD level
--mapping.
--
--Here's how things look like on device-dax after the sections are populated::
--
-- +-----------+ ---virt_to_page---> +-----------+   mapping to   +-----------+
-- |           |                     |     0     | -------------> |     0     |
-- |           |                     +-----------+                +-----------+
-- |           |                     |     1     | -------------> |     1     |
-- |           |                     +-----------+                +-----------+
-- |           |                     |     2     | ----------------^ ^ ^ ^ ^ ^
-- |           |                     +-----------+                   | | | | |
-- |           |                     |     3     | ------------------+ | | | |
-- |           |                     +-----------+                     | | | |
-- |           |                     |     4     | --------------------+ | | |
-- |    PUD    |                     +-----------+                       | | |
-- |   level   |                     |     .     | ----------------------+ | |
-- |  mapping  |                     +-----------+                         | |
-- |           |                     |     .     | ------------------------+ |
-- |           |                     +-----------+                           |
-- |           |                     |   4095    | --------------------------+
-- |           |                     +-----------+
-+Here's how things look on device-dax after vmemmap-optimized sections are
-+populated. ``N`` is the number of vmemmap pages required by the DAX mapping
-+above::
-+
-+  Device DAX                  vmemmap pages (N pages)         backing page frames
-+ +-----------+ ---virt_to_page---> +-----------+   mapping to   +-------------+
-+ |           |                     |     0     | -------------> |      0      |
-+ |           |                     +-----------+                +-------------+
-+ |           |                     |     1     | ------+
-+ |           |                     +-----------+       |
-+ |           |                     |     2     | ------+
-+ |           |                     +-----------+       |
-+ |           |                     |     .     | ------+        +-------------+
-+ |  PMD/PUD  |                     +-----------+       |        | A single,   |
-+ |   level   |                     |     .     | ------+------> | per-zone    |
-+ |  mapping  |                     +-----------+       |        | shared tail |
-+ |           |                     |   N - 1   | ------+        | page        |
-+ |           |                     +-----------+                +-------------+
-  |           |
-  |           |
-  |           |
---- a/Documentation/mm/vmemmap_dedup.rst~documentation-mm-update-dax-vmemmap-deduplication-docs
-+++ a/Documentation/mm/vmemmap_dedup.rst
-@@ -1,4 +1,3 @@
--
- .. SPDX-License-Identifier: GPL-2.0
- 
- =========================================
-@@ -192,32 +191,7 @@ to 4 on HugeTLB pages.
- 
- There's no remapping of vmemmap given that device-dax memory is not part of
- System RAM ranges initialized at boot. Thus the tail page deduplication
--happens at a later stage when we populate the sections. HugeTLB reuses the
--the head vmemmap page representing, whereas device-dax reuses the tail
--vmemmap page. This results in only half of the savings compared to HugeTLB.
--
--Deduplicated tail pages are not mapped read-only.
-+happens at a later stage when we populate the sections.
- 
--Here's how things look like on device-dax after the sections are populated::
--
-- +-----------+ ---virt_to_page---> +-----------+   mapping to   +-----------+
-- |           |                     |     0     | -------------> |     0     |
-- |           |                     +-----------+                +-----------+
-- |           |                     |     1     | -------------> |     1     |
-- |           |                     +-----------+                +-----------+
-- |           |                     |     2     | ----------------^ ^ ^ ^ ^ ^
-- |           |                     +-----------+                   | | | | |
-- |           |                     |     3     | ------------------+ | | | |
-- |           |                     +-----------+                     | | | |
-- |           |                     |     4     | --------------------+ | | |
-- |    PMD    |                     +-----------+                       | | |
-- |   level   |                     |     5     | ----------------------+ | |
-- |  mapping  |                     +-----------+                         | |
-- |           |                     |     6     | ------------------------+ |
-- |           |                     +-----------+                           |
-- |           |                     |     7     | --------------------------+
-- |           |                     +-----------+
-- |           |
-- |           |
-- |           |
-- +-----------+
-+Deduplicated tail pages are not mapped read-only. The mapping layout is the same
-+as HugeTLB.
+--- a/tools/testing/selftests/mm/run_vmtests.sh~selftests-mm-skip-khugepaged-file-tests-if-mkfsxfs-is-unavailable
++++ a/tools/testing/selftests/mm/run_vmtests.sh
+@@ -435,11 +435,15 @@ if [ -z "${SPLIT_HUGE_PAGE_TEST_XFS_PATH
+     if test_selected "thp"; then
+ 	if grep xfs /proc/filesystems &>/dev/null; then
+ 	    XFS_IMG=$(mktemp /tmp/xfs_img_XXXXXX)
+-	    SPLIT_HUGE_PAGE_TEST_XFS_PATH=$(mktemp -d /tmp/xfs_dir_XXXXXX)
++	    XFS_DIR=$(mktemp -d /tmp/xfs_dir_XXXXXX)
+ 	    truncate -s 314572800 ${XFS_IMG}
+-	    mkfs.xfs -q ${XFS_IMG}
+-	    mount -o loop ${XFS_IMG} ${SPLIT_HUGE_PAGE_TEST_XFS_PATH}
+-	    MOUNTED_XFS=1
++	    if mkfs.xfs -q ${XFS_IMG} && mount -t xfs -o loop ${XFS_IMG} ${XFS_DIR}; then
++	        SPLIT_HUGE_PAGE_TEST_XFS_PATH=${XFS_DIR}
++	        MOUNTED_XFS=1
++	    else
++	        rmdir ${XFS_DIR}
++	        rm -f ${XFS_IMG}
++	    fi
+ 	fi
+     fi
+ fi
 _
 
-Patches currently in -mm which might be from muchun.song@linux.dev are
+Patches currently in -mm which might be from jaeyeon.lee.dev@gmail.com are
 
-mm-sparse-vmemmap-factor-out-shared-vmemmap-tail-page-allocation.patch
-mm-sparse-vmemmap-allocate-shared-tail-page-array-dynamically.patch
-mm-sparse-vmemmap-introduce-config_vmemmap_optimization.patch
-mm-sparse-vmemmap-open-code-init_compound_tail.patch
-mm-sparse-vmemmap-prepare-dax-vmemmap-population-for-compound-page-orders.patch
-mm-sparse-vmemmap-set-compound-page-order-for-device-dax.patch
-mm-sparse-vmemmap-switch-device-dax-to-shared-tail-vmemmap-pages.patch
-mm-sparse-vmemmap-move-vmemmap-optimization-helpers-to-a-public-header.patch
-powerpc-mm-switch-device-dax-to-shared-tail-vmemmap-pages.patch
-mm-sparse-vmemmap-drop-the-extra-tail-page-from-device-dax-reservation.patch
-mm-sparse-vmemmap-drop-unused-section_nr_vmemmap_pages-arguments.patch
-documentation-mm-update-dax-vmemmap-deduplication-docs.patch
+mm-damon-tests-use-scoped_guard-for-damon_test_ops_registration.patch
+selftests-mm-skip-khugepaged-file-tests-if-mkfsxfs-is-unavailable.patch
 
