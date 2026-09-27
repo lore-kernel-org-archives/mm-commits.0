@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C22A13CA4AB
-	for <mm-commits@vger.kernel.org>; Sun, 27 Sep 2026 21:58:39 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 477483CB569
+	for <mm-commits@vger.kernel.org>; Sun, 27 Sep 2026 21:59:22 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790546321; cv=none; b=nGAlpHXSTCbXq+lsSHpizyO6KLvuAttELOYHXCd4Jk3grAaE+8rVnaYtWD0O13jzIO7pHjebE0XggdbRkW0VX8udDodTJEVIBsu6vqp+CDWfAHAP5Q0/9FsQ26+4Ja/9a2X8UhgDURYKncrt8onPJiUj5J/gly2BWCEZ0aSnyrg=
+	t=1790546364; cv=none; b=BwK3cBFGSJc862T8YqFTN5exOL8MWM/Q2QKBmnmLdaPGlHLoVNZDapA0T6bMrU77hujp4XlcNlkquvlb/QaneDocjNz+3fH/+qdZBGMPTmT8tose/S0euFvuh8MpOZtzTe08K94Y2ieKZS6KDTsi79C2clcXQyF0mKQ1MEOpNtU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1790546321; c=relaxed/simple;
-	bh=yHsmkJBN+kTSXUzkaWsDhWisoqYDZU7HQzvO/0L9880=;
-	h=Date:To:From:Subject:Message-Id; b=rHR9q09ENlOUlbEqx2zzoHZZS6FO1hXzfZ18yaanUecKts9TjoUdAH/jF5DGGDC5XKDudQooy6xsV4HqBvmzGN9lPHel/nA1W+Rx6u6roiZBK5U0YYzYaEm6bBQvIkryrhrwayjboTsqDv8hbyST8bOBCn8nq8gA7ZkICXF5tTk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=CjKQ4O0d; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1790546364; c=relaxed/simple;
+	bh=QeJQgy9R/WnIB8h4KggIIliYRUSLGK/c1DBlbzU88ZA=;
+	h=Date:To:From:Subject:Message-Id; b=UDGyVk6E5oXtky2vMnvEGz2Ai36k4atMxBUrKZK56BQ0YymOW0osRbseL/QgKk5eUgegf8E4/cnF6IMMrGCFbo8S2gnt5bKezTOLbm1+ylA40bTc1nTsmUNDqZk40Fa/Lnl3sQiVZAzYVHBBvYaQTKfg4eC0RgsPy1qg1YUt5ac=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=yXAn56Ni; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="CjKQ4O0d"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8BF461F000FF;
-	Sun, 27 Sep 2026 21:58:39 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="yXAn56Ni"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D4FF21F000FF;
+	Sun, 27 Sep 2026 21:59:21 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1790546319;
-	bh=JCOAkQSD8pyMEjjajGfpW1n9EIKrNk51CY5N1d6MeeM=;
+	d=linux-foundation.org; s=korg; t=1790546361;
+	bh=seqAPvvyie621CA+y6423WcHERaAuRWxJ9XVkgjXNA0=;
 	h=Date:To:From:Subject;
-	b=CjKQ4O0dxE1g+2ieM0AcJ0Fvk+FQFFHqIQDmpaYLpF7l4cZAMpcvLe6v4l6MvsHEe
-	 m6DstRx2aqNDQKFZHgQ6ns2TiukuppNkJwlYPLJDGA1kCiBNjg1/zhaAye1ALQvqNx
-	 hWT+FXEgI9PI0RUXBG3uLJkrlt9nJP9EChyRjQtc=
-Date: Sun, 27 Sep 2026 14:58:39 -0700
+	b=yXAn56Ni5AyYEG9zy514oKDsAj0S7uNIvEOwIbCdlPPKRj42vMlKI4f5JFj9aX/L8
+	 j/6jzz3f9uCKSgOqmIvGq4XvyhBKerNGYYnsAj5+Hzh2SqbwIW2KfBA60HY17HIZte
+	 CbXwoCb457u41wmWSHKt83dmqPCMH21aGG7aVOzE=
+Date: Sun, 27 Sep 2026 14:59:21 -0700
 To: mm-commits@vger.kernel.org,will@kernel.org,vbabka@kernel.org,tglx@kernel.org,svens@linux.ibm.com,surenb@google.com,sshegde@linux.ibm.com,ritesh.list@gmail.com,pjw@kernel.org,palmer@dabbelt.com,npiggin@gmail.com,mpe@ellerman.id.au,mingo@redhat.com,mhocko@suse.com,mark.rutland@arm.com,maddy@linux.ibm.com,ljs@kernel.org,linux@armlinux.org.uk,liam@infradead.org,hpa@zytor.com,hca@linux.ibm.com,gor@linux.ibm.com,gerald.schaefer@linux.ibm.com,david@kernel.org,dave.hansen@linux.intel.com,chleroy@kernel.org,catalin.marinas@arm.com,bp@alien8.de,borntraeger@linux.ibm.com,aou@eecs.berkeley.edu,alex@ghiti.fr,agordeev@linux.ibm.com,rppt@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [to-be-updated] arch-mm-promote-debug_wx-to-check_wx.patch removed from -mm tree
-Message-Id: <20260927215839.8BF461F000FF@smtp.kernel.org>
+Subject: + arch-mm-promote-debug_wx-to-check_wx.patch added to mm-unstable branch
+Message-Id: <20260927215921.D4FF21F000FF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,17 +34,33 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The quilt patch titled
+The patch titled
      Subject: arch, mm: promote DEBUG_WX to CHECK_WX
-has been removed from the -mm tree.  Its filename was
+has been added to the -mm mm-unstable branch.  Its filename is
      arch-mm-promote-debug_wx-to-check_wx.patch
 
-This patch was dropped because an updated version will be issued
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/arch-mm-promote-debug_wx-to-check_wx.patch
+
+This patch will later appear in the mm-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via various
+branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there most days
 
 ------------------------------------------------------
 From: "Mike Rapoport (Microsoft)" <rppt@kernel.org>
 Subject: arch, mm: promote DEBUG_WX to CHECK_WX
-Date: Fri, 25 Sep 2026 12:53:46 +0300
+Date: Sat, 26 Sep 2026 12:29:29 +0300
 
 Verification that the kernel does not have writable + executable mappings
 is about detecting security risks rather than a pure debug feature.
@@ -55,6 +71,8 @@ defconfigs of most architectures that have ARCH_HAS_DEBUG_WX.
 Rename relevant generic configuration options to use CHECK_WX and move
 their definitions from mm/Kconfig.debug to mm/Kconfig.
 
+Rename *debug_checkwx() funcitons and macros to *pgtable_checkwx().
+
 For arm that does not widely enable it, only rename its variants of the
 config options.
 
@@ -64,15 +82,14 @@ implementations of ptdump, the core functionality takes most of the added
 size.  It cannot be moved to .init.text because the verification has to
 happen after init sections are freed.
 
-With this, make generic CHECK_WX default to STRICT_KERNEL_RWX while still
-leaving users targeting small kernels the possibility to opt-out.
+With this, make generic CHECK_WX default to STRICT_KERNEL_RWX while
+still leaving users targeting small kernels the possibility to opt-out.
 
-Link: https://lore.kernel.org/20260925-direct-map-verify-wx-v1-1-7fd2f7d6d23b@kernel.org
+Link: https://lore.kernel.org/20260926-direct-map-verify-wx-v2-1-efcd64a6b74a@kernel.org
 Signed-off-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 Suggested-by: Dave Hansen <dave.hansen@linux.intel.com>
-Acked-by: David Hildenbrand (Arm) <david@kernel.org>
-Acked-by: Heiko Carstens <hca@linux.ibm.com> # s390
+Acked-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
 Cc: Albert Ou <aou@eecs.berkeley.edu>
 Cc: Alexander Gordeev <agordeev@linux.ibm.com>
 Cc: Alexandre Ghiti <alex@ghiti.fr>
@@ -80,10 +97,11 @@ Cc: Borislav Petkov <bp@alien8.de>
 Cc: Catalin Marinas <catalin.marinas@arm.com>
 Cc: Christophe Leroy <chleroy@kernel.org>
 Cc: Christian Borntraeger <borntraeger@linux.ibm.com>
+Cc: David Hildenbrand <david@kernel.org>
 Cc: Gerald Schaefer <gerald.schaefer@linux.ibm.com>
+Cc: Heiko Carstens <hca@linux.ibm.com>
 Cc: Ingo Molnar <mingo@redhat.com>
 Cc: Liam R. Howlett <liam@infradead.org>
-Cc: Lorenzo Stoakes <ljs@kernel.org>
 Cc: Madhavan Srinivasan <maddy@linux.ibm.com>
 Cc: Mark Rutland <mark.rutland@arm.com>
 Cc: Michael Ellerman <mpe@ellerman.id.au>
@@ -107,7 +125,8 @@ Cc: Will Deacon <will@kernel.org>
  arch/arm/configs/aspeed_g4_defconfig |    2 -
  arch/arm/configs/aspeed_g5_defconfig |    2 -
  arch/arm/configs/shmobile_defconfig  |    2 -
- arch/arm/include/asm/ptdump.h        |    2 -
+ arch/arm/include/asm/ptdump.h        |    6 +--
+ arch/arm/mm/init.c                   |    2 -
  arch/arm64/Kconfig                   |    2 -
  arch/powerpc/Kconfig                 |    2 -
  arch/powerpc/configs/ppc64_defconfig |    2 -
@@ -119,12 +138,14 @@ Cc: Will Deacon <will@kernel.org>
  arch/s390/mm/dump_pagetables.c       |    2 -
  arch/x86/Kconfig                     |    2 -
  arch/x86/configs/x86_64_defconfig    |    2 -
- arch/x86/include/asm/pgtable.h       |    2 -
- include/linux/ptdump.h               |    2 -
+ arch/x86/include/asm/pgtable.h       |    6 +--
+ arch/x86/mm/pti.c                    |    2 -
+ include/linux/ptdump.h               |    4 +-
+ init/main.c                          |    2 -
  kernel/configs/debug.config          |    2 -
  mm/Kconfig                           |   41 +++++++++++++++++++++++++
  mm/Kconfig.debug                     |   39 -----------------------
- 21 files changed, 60 insertions(+), 58 deletions(-)
+ 24 files changed, 68 insertions(+), 66 deletions(-)
 
 --- a/arch/arm64/Kconfig~arch-mm-promote-debug_wx-to-check_wx
 +++ a/arch/arm64/Kconfig
@@ -169,15 +190,20 @@ Cc: Will Deacon <will@kernel.org>
 +CONFIG_ARM_CHECK_WX=y
 --- a/arch/arm/include/asm/ptdump.h~arch-mm-promote-debug_wx-to-check_wx
 +++ a/arch/arm/include/asm/ptdump.h
-@@ -32,7 +32,7 @@ void ptdump_check_wx(void);
+@@ -32,10 +32,10 @@ void ptdump_check_wx(void);
  
  #endif /* CONFIG_ARM_PTDUMP_CORE */
  
 -#ifdef CONFIG_ARM_DEBUG_WX
+-#define arm_debug_checkwx() ptdump_check_wx()
 +#ifdef CONFIG_ARM_CHECK_WX
- #define arm_debug_checkwx() ptdump_check_wx()
++#define arm_pgtable_checkwx() ptdump_check_wx()
  #else
- #define arm_debug_checkwx() do { } while (0)
+-#define arm_debug_checkwx() do { } while (0)
++#define arm_pgtable_checkwx() do { } while (0)
+ #endif
+ 
+ #endif /* __ASM_PTDUMP_H */
 --- a/arch/arm/Kconfig.debug~arch-mm-promote-debug_wx-to-check_wx
 +++ a/arch/arm/Kconfig.debug
 @@ -17,7 +17,7 @@ config ARM_PTDUMP_DEBUGFS
@@ -189,6 +215,17 @@ Cc: Will Deacon <will@kernel.org>
  	bool "Warn on W+X mappings at boot"
  	depends on MMU
  	select ARM_PTDUMP_CORE
+--- a/arch/arm/mm/init.c~arch-mm-promote-debug_wx-to-check_wx
++++ a/arch/arm/mm/init.c
+@@ -403,7 +403,7 @@ static int __mark_rodata_ro(void *unused
+ void mark_rodata_ro(void)
+ {
+ 	stop_machine(__mark_rodata_ro, NULL, NULL);
+-	arm_debug_checkwx();
++	arm_pgtable_checkwx();
+ }
+ 
+ #else
 --- a/arch/powerpc/configs/ppc64_defconfig~arch-mm-promote-debug_wx-to-check_wx
 +++ a/arch/powerpc/configs/ppc64_defconfig
 @@ -393,7 +393,7 @@ CONFIG_MAGIC_SYSRQ=y
@@ -290,15 +327,20 @@ Cc: Will Deacon <will@kernel.org>
  CONFIG_BLK_DEV_IO_TRACE=y
 --- a/arch/x86/include/asm/pgtable.h~arch-mm-promote-debug_wx-to-check_wx
 +++ a/arch/x86/include/asm/pgtable.h
-@@ -41,7 +41,7 @@ void ptdump_walk_user_pgd_level_checkwx(
+@@ -41,10 +41,10 @@ void ptdump_walk_user_pgd_level_checkwx(
  #define pgprot_encrypted(prot)	__pgprot(cc_mkenc(pgprot_val(prot)))
  #define pgprot_decrypted(prot)	__pgprot(cc_mkdec(pgprot_val(prot)))
  
 -#ifdef CONFIG_DEBUG_WX
+-#define debug_checkwx_user()	ptdump_walk_user_pgd_level_checkwx()
 +#ifdef CONFIG_CHECK_WX
- #define debug_checkwx_user()	ptdump_walk_user_pgd_level_checkwx()
++#define pgtable_checkwx_user()	ptdump_walk_user_pgd_level_checkwx()
  #else
- #define debug_checkwx_user()	do { } while (0)
+-#define debug_checkwx_user()	do { } while (0)
++#define pgtable_checkwx_user()	do { } while (0)
+ #endif
+ 
+ extern spinlock_t pgd_lock;
 --- a/arch/x86/Kconfig~arch-mm-promote-debug_wx-to-check_wx
 +++ a/arch/x86/Kconfig
 @@ -109,7 +109,7 @@ config X86
@@ -310,17 +352,40 @@ Cc: Will Deacon <will@kernel.org>
  	select ARCH_HAS_ZONE_DMA_SET if EXPERT
  	select ARCH_HAVE_NMI_SAFE_CMPXCHG
  	select ARCH_HAVE_EXTRA_ELF_NOTES
+--- a/arch/x86/mm/pti.c~arch-mm-promote-debug_wx-to-check_wx
++++ a/arch/x86/mm/pti.c
+@@ -688,5 +688,5 @@ void pti_finalize(void)
+ 	pti_clone_entry_text(true);
+ 	pti_clone_kernel_text();
+ 
+-	debug_checkwx_user();
++	pgtable_checkwx_user();
+ }
 --- a/include/linux/ptdump.h~arch-mm-promote-debug_wx-to-check_wx
 +++ a/include/linux/ptdump.h
-@@ -33,7 +33,7 @@ bool ptdump_check_wx(void);
+@@ -31,9 +31,9 @@ bool ptdump_walk_pgd_level_core(struct s
+ void ptdump_walk_pgd(struct ptdump_state *st, struct mm_struct *mm, pgd_t *pgd);
+ bool ptdump_check_wx(void);
  
- static inline void debug_checkwx(void)
+-static inline void debug_checkwx(void)
++static inline void pgtable_checkwx(void)
  {
 -	if (IS_ENABLED(CONFIG_DEBUG_WX))
 +	if (IS_ENABLED(CONFIG_CHECK_WX))
  		ptdump_check_wx();
  }
  
+--- a/init/main.c~arch-mm-promote-debug_wx-to-check_wx
++++ a/init/main.c
+@@ -1535,7 +1535,7 @@ static void mark_readonly(void)
+ 		flush_module_init_free_work();
+ 		jump_label_init_ro();
+ 		mark_rodata_ro();
+-		debug_checkwx();
++		pgtable_checkwx();
+ 		rodata_test();
+ 	} else if (IS_ENABLED(CONFIG_STRICT_KERNEL_RWX)) {
+ 		pr_info("Kernel memory protection disabled.\n");
 --- a/kernel/configs/debug.config~arch-mm-promote-debug_wx-to-check_wx
 +++ a/kernel/configs/debug.config
 @@ -50,7 +50,7 @@ CONFIG_DEBUG_NET=y
@@ -450,6 +515,7 @@ mm-execmem-use-cleanup-infrastructure-in-rox-cache-functions.patch
 docs-core-api-memory-allocation-clarify-when-to-use-kzalloc_obj-and-kzalloc.patch
 docs-mm-describe-set_memory-and-set_direct_map-apis.patch
 docs-mm-describe-set_memory-and-set_direct_map-apis-fix.patch
+arch-mm-promote-debug_wx-to-check_wx.patch
 sh-remove-config_numa-and-realted-configuration-options.patch
 sh-mm-remove-numac.patch
 sh-mm-drop-allocate_pgdat.patch
