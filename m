@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 477483CB569
-	for <mm-commits@vger.kernel.org>; Sun, 27 Sep 2026 21:59:22 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 945C7156661
+	for <mm-commits@vger.kernel.org>; Mon, 28 Sep 2026 01:21:33 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790546364; cv=none; b=BwK3cBFGSJc862T8YqFTN5exOL8MWM/Q2QKBmnmLdaPGlHLoVNZDapA0T6bMrU77hujp4XlcNlkquvlb/QaneDocjNz+3fH/+qdZBGMPTmT8tose/S0euFvuh8MpOZtzTe08K94Y2ieKZS6KDTsi79C2clcXQyF0mKQ1MEOpNtU=
+	t=1790558494; cv=none; b=StmlQp8dt1nAQ3wc5qmjFEty7lDWxC5DOciU3rGxXi34n4K5S2u4r8euNZ96mOPVdIxHWLZjRgwO9xdovQCNrK9nPDbMy3SFp0fGn+tbNg0U+P29FaBs35gYfmJs4NPyJfQZ0EbRMnvvbrX6JcezDMncaSijlDhZ9ThtrDqKyCc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1790546364; c=relaxed/simple;
-	bh=QeJQgy9R/WnIB8h4KggIIliYRUSLGK/c1DBlbzU88ZA=;
-	h=Date:To:From:Subject:Message-Id; b=UDGyVk6E5oXtky2vMnvEGz2Ai36k4atMxBUrKZK56BQ0YymOW0osRbseL/QgKk5eUgegf8E4/cnF6IMMrGCFbo8S2gnt5bKezTOLbm1+ylA40bTc1nTsmUNDqZk40Fa/Lnl3sQiVZAzYVHBBvYaQTKfg4eC0RgsPy1qg1YUt5ac=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=yXAn56Ni; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1790558494; c=relaxed/simple;
+	bh=4kMYA5jdQf0BHp8sqdgIiTdCAAcHHMLHeYJkNyk9iT4=;
+	h=Date:To:From:Subject:Message-Id; b=srVMfgbajrwhnXONxMSMPkmb7W0KE1SftPjz3hGPTqgE65vL8ZtyMXR6s4OxwLm18GO4QhXyw1q0wD8aiN9gCLaDZyZoMAthTT7vW9S8VM8Dx8F5IARbHk/LplC5UKad6rBtb80f9EAF8FEUnnto2yZ/F1FjpaSLLayD4QG9TB8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Pg4U8hk3; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="yXAn56Ni"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D4FF21F000FF;
-	Sun, 27 Sep 2026 21:59:21 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Pg4U8hk3"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 243301F000FF;
+	Mon, 28 Sep 2026 01:21:33 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1790546361;
-	bh=seqAPvvyie621CA+y6423WcHERaAuRWxJ9XVkgjXNA0=;
+	d=linux-foundation.org; s=korg; t=1790558493;
+	bh=MDreCZ36YhfTI/NYm72nKpNM+t0gmA5AhYPSWC3G8OI=;
 	h=Date:To:From:Subject;
-	b=yXAn56Ni5AyYEG9zy514oKDsAj0S7uNIvEOwIbCdlPPKRj42vMlKI4f5JFj9aX/L8
-	 j/6jzz3f9uCKSgOqmIvGq4XvyhBKerNGYYnsAj5+Hzh2SqbwIW2KfBA60HY17HIZte
-	 CbXwoCb457u41wmWSHKt83dmqPCMH21aGG7aVOzE=
-Date: Sun, 27 Sep 2026 14:59:21 -0700
-To: mm-commits@vger.kernel.org,will@kernel.org,vbabka@kernel.org,tglx@kernel.org,svens@linux.ibm.com,surenb@google.com,sshegde@linux.ibm.com,ritesh.list@gmail.com,pjw@kernel.org,palmer@dabbelt.com,npiggin@gmail.com,mpe@ellerman.id.au,mingo@redhat.com,mhocko@suse.com,mark.rutland@arm.com,maddy@linux.ibm.com,ljs@kernel.org,linux@armlinux.org.uk,liam@infradead.org,hpa@zytor.com,hca@linux.ibm.com,gor@linux.ibm.com,gerald.schaefer@linux.ibm.com,david@kernel.org,dave.hansen@linux.intel.com,chleroy@kernel.org,catalin.marinas@arm.com,bp@alien8.de,borntraeger@linux.ibm.com,aou@eecs.berkeley.edu,alex@ghiti.fr,agordeev@linux.ibm.com,rppt@kernel.org,akpm@linux-foundation.org
+	b=Pg4U8hk3iPu6uitHH/3Kz3qG4v/gOieqM1OasNP9DbvBWUYJLxj3zYrMOGt3fVBl6
+	 ty5oVRYUUsFzbblYtz8MQGWzUlj/aHuR9V+lxQ4jr94k0+Le+xVfBt/jji+TaI0wWu
+	 HGJppqfSTqVYQvRd5tdNBSKUHM42YRKkPsi3SS64=
+Date: Sun, 27 Sep 2026 18:21:32 -0700
+To: mm-commits@vger.kernel.org,jack@suse.cz,gregkh@linuxfoundation.org,matthias.goergens@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + arch-mm-promote-debug_wx-to-check_wx.patch added to mm-unstable branch
-Message-Id: <20260927215921.D4FF21F000FF@smtp.kernel.org>
+Subject: + kdev_t-shift-in-dev_t-in-mkdev.patch added to mm-nonmm-unstable branch
+Message-Id: <20260928012133.243301F000FF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: arch, mm: promote DEBUG_WX to CHECK_WX
-has been added to the -mm mm-unstable branch.  Its filename is
-     arch-mm-promote-debug_wx-to-check_wx.patch
+     Subject: kdev_t: shift in dev_t in MKDEV()
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     kdev_t-shift-in-dev_t-in-mkdev.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/arch-mm-promote-debug_wx-to-check_wx.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kdev_t-shift-in-dev_t-in-mkdev.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,472 +58,49 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: "Mike Rapoport (Microsoft)" <rppt@kernel.org>
-Subject: arch, mm: promote DEBUG_WX to CHECK_WX
-Date: Sat, 26 Sep 2026 12:29:29 +0300
+From: Matthias Goergens <matthias.goergens@gmail.com>
+Subject: kdev_t: shift in dev_t in MKDEV()
+Date: Mon, 28 Sep 2026 06:49:58 +0800
 
-Verification that the kernel does not have writable + executable mappings
-is about detecting security risks rather than a pure debug feature.
+MKDEV(ma, mi) evaluates ((ma) << MINORBITS) in whatever type the caller
+passes, usually int.  For majors >= 2048 (legal: majors go up to 4095) the
+result exceeds INT_MAX, which C11 leaves undefined for a signed left
+shift; shifting a negative ma is undefined regardless of the major's
+value.  In practice, on the compilers and two's complement targets the
+kernel supports, both cases wrap to the intended bit pattern; this patch
+makes the macro well defined regardless by casting the major to dev_t
+before shifting.  For major and minor numbers in range, the device number
+it produces is unchanged.
 
-Major distribution configurations enable it in their kernels as well as
-defconfigs of most architectures that have ARCH_HAS_DEBUG_WX.
+isofs feeds the Rock Ridge 'PN' entry's dev_high and dev_low into MKDEV()
+while holding them in int variables (fs/isofs/rock.c), so a crafted image
+can drive this exact shift.  Fixing the macro covers every caller instead
+of just that one.
 
-Rename relevant generic configuration options to use CHECK_WX and move
-their definitions from mm/Kconfig.debug to mm/Kconfig.
-
-Rename *debug_checkwx() funcitons and macros to *pgtable_checkwx().
-
-For arm that does not widely enable it, only rename its variants of the
-config options.
-
-Enabling CHECK_WX adds a few kilobytes to the kernel binary and while the
-added size can be slightly reduced with churny updates of architecture
-implementations of ptdump, the core functionality takes most of the added
-size.  It cannot be moved to .init.text because the verification has to
-happen after init sections are freed.
-
-With this, make generic CHECK_WX default to STRICT_KERNEL_RWX while
-still leaving users targeting small kernels the possibility to opt-out.
-
-Link: https://lore.kernel.org/20260926-direct-map-verify-wx-v2-1-efcd64a6b74a@kernel.org
-Signed-off-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
+Link: https://lore.kernel.org/20260927224958.508964-1-matthias.goergens@gmail.com
+Signed-off-by: Matthias Goergens <matthias.goergens@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Suggested-by: Dave Hansen <dave.hansen@linux.intel.com>
-Acked-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
-Cc: Albert Ou <aou@eecs.berkeley.edu>
-Cc: Alexander Gordeev <agordeev@linux.ibm.com>
-Cc: Alexandre Ghiti <alex@ghiti.fr>
-Cc: Borislav Petkov <bp@alien8.de>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Christophe Leroy <chleroy@kernel.org>
-Cc: Christian Borntraeger <borntraeger@linux.ibm.com>
-Cc: David Hildenbrand <david@kernel.org>
-Cc: Gerald Schaefer <gerald.schaefer@linux.ibm.com>
-Cc: Heiko Carstens <hca@linux.ibm.com>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Liam R. Howlett <liam@infradead.org>
-Cc: Madhavan Srinivasan <maddy@linux.ibm.com>
-Cc: Mark Rutland <mark.rutland@arm.com>
-Cc: Michael Ellerman <mpe@ellerman.id.au>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Nicholas Piggin <npiggin@gmail.com>
-Cc: Palmer Dabbelt <palmer@dabbelt.com>
-Cc: Paul Walmsley <pjw@kernel.org>
-Cc: H. Peter Anvin <hpa@zytor.com>
-Cc: Ritesh Harjani (IBM) <ritesh.list@gmail.com>
-Cc: Russell King <linux@armlinux.org.uk>
-Cc: Shrikanth Hegde <sshegde@linux.ibm.com>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Sven Schnelle <svens@linux.ibm.com>
-Cc: Thomas Gleixner <tglx@kernel.org>
-Cc: Vasily Gorbik <gor@linux.ibm.com>
-Cc: Vlastimil Babka <vbabka@kernel.org>
-Cc: Will Deacon <will@kernel.org>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Jan Kara <jack@suse.cz>
 ---
 
- arch/arm/Kconfig.debug               |    2 -
- arch/arm/configs/aspeed_g4_defconfig |    2 -
- arch/arm/configs/aspeed_g5_defconfig |    2 -
- arch/arm/configs/shmobile_defconfig  |    2 -
- arch/arm/include/asm/ptdump.h        |    6 +--
- arch/arm/mm/init.c                   |    2 -
- arch/arm64/Kconfig                   |    2 -
- arch/powerpc/Kconfig                 |    2 -
- arch/powerpc/configs/ppc64_defconfig |    2 -
- arch/powerpc/mm/ptdump/ptdump.c      |    2 -
- arch/riscv/Kconfig                   |    2 -
- arch/s390/Kconfig                    |    2 -
- arch/s390/configs/debug_defconfig    |    2 -
- arch/s390/configs/defconfig          |    2 -
- arch/s390/mm/dump_pagetables.c       |    2 -
- arch/x86/Kconfig                     |    2 -
- arch/x86/configs/x86_64_defconfig    |    2 -
- arch/x86/include/asm/pgtable.h       |    6 +--
- arch/x86/mm/pti.c                    |    2 -
- include/linux/ptdump.h               |    4 +-
- init/main.c                          |    2 -
- kernel/configs/debug.config          |    2 -
- mm/Kconfig                           |   41 +++++++++++++++++++++++++
- mm/Kconfig.debug                     |   39 -----------------------
- 24 files changed, 68 insertions(+), 66 deletions(-)
+ include/linux/kdev_t.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/arch/arm64/Kconfig~arch-mm-promote-debug_wx-to-check_wx
-+++ a/arch/arm64/Kconfig
-@@ -11,7 +11,7 @@ config ARM64
- 	select ACPI_MCFG if (ACPI && PCI)
- 	select ACPI_SPCR_TABLE if ACPI
- 	select ACPI_PPTT if ACPI
--	select ARCH_HAS_DEBUG_WX
-+	select ARCH_HAS_CHECK_WX
- 	select ARCH_BINFMT_ELF_EXTRA_PHDRS
- 	select ARCH_BINFMT_ELF_STATE
- 	select ARCH_ENABLE_HUGEPAGE_MIGRATION if HUGETLB_PAGE && MIGRATION
---- a/arch/arm/configs/aspeed_g4_defconfig~arch-mm-promote-debug_wx-to-check_wx
-+++ a/arch/arm/configs/aspeed_g4_defconfig
-@@ -249,7 +249,7 @@ CONFIG_DEBUG_INFO_REDUCED=y
- CONFIG_GDB_SCRIPTS=y
- CONFIG_STRIP_ASM_SYMS=y
- CONFIG_DEBUG_FS=y
--CONFIG_ARM_DEBUG_WX=y
-+CONFIG_ARM_CHECK_WX=y
- CONFIG_SCHED_STACK_END_CHECK=y
- CONFIG_PANIC_ON_OOPS=y
- CONFIG_PANIC_TIMEOUT=-1
---- a/arch/arm/configs/aspeed_g5_defconfig~arch-mm-promote-debug_wx-to-check_wx
-+++ a/arch/arm/configs/aspeed_g5_defconfig
-@@ -300,7 +300,7 @@ CONFIG_DEBUG_INFO_REDUCED=y
- CONFIG_GDB_SCRIPTS=y
- CONFIG_STRIP_ASM_SYMS=y
- CONFIG_DEBUG_FS=y
--CONFIG_ARM_DEBUG_WX=y
-+CONFIG_ARM_CHECK_WX=y
- CONFIG_SCHED_STACK_END_CHECK=y
- CONFIG_PANIC_ON_OOPS=y
- CONFIG_PANIC_TIMEOUT=-1
---- a/arch/arm/configs/shmobile_defconfig~arch-mm-promote-debug_wx-to-check_wx
-+++ a/arch/arm/configs/shmobile_defconfig
-@@ -225,4 +225,4 @@ CONFIG_CMA_SIZE_MBYTES=64
- CONFIG_PRINTK_TIME=y
- CONFIG_DEBUG_KERNEL=y
- CONFIG_DEBUG_FS=y
--CONFIG_ARM_DEBUG_WX=y
-+CONFIG_ARM_CHECK_WX=y
---- a/arch/arm/include/asm/ptdump.h~arch-mm-promote-debug_wx-to-check_wx
-+++ a/arch/arm/include/asm/ptdump.h
-@@ -32,10 +32,10 @@ void ptdump_check_wx(void);
+--- a/include/linux/kdev_t.h~kdev_t-shift-in-dev_t-in-mkdev
++++ a/include/linux/kdev_t.h
+@@ -9,7 +9,7 @@
  
- #endif /* CONFIG_ARM_PTDUMP_CORE */
+ #define MAJOR(dev)	((unsigned int) ((dev) >> MINORBITS))
+ #define MINOR(dev)	((unsigned int) ((dev) & MINORMASK))
+-#define MKDEV(ma,mi)	(((ma) << MINORBITS) | (mi))
++#define MKDEV(ma, mi)	(((dev_t)(ma) << MINORBITS) | (mi))
  
--#ifdef CONFIG_ARM_DEBUG_WX
--#define arm_debug_checkwx() ptdump_check_wx()
-+#ifdef CONFIG_ARM_CHECK_WX
-+#define arm_pgtable_checkwx() ptdump_check_wx()
- #else
--#define arm_debug_checkwx() do { } while (0)
-+#define arm_pgtable_checkwx() do { } while (0)
- #endif
- 
- #endif /* __ASM_PTDUMP_H */
---- a/arch/arm/Kconfig.debug~arch-mm-promote-debug_wx-to-check_wx
-+++ a/arch/arm/Kconfig.debug
-@@ -17,7 +17,7 @@ config ARM_PTDUMP_DEBUGFS
- 	  kernel.
- 	  If in doubt, say "N"
- 
--config ARM_DEBUG_WX
-+config ARM_CHECK_WX
- 	bool "Warn on W+X mappings at boot"
- 	depends on MMU
- 	select ARM_PTDUMP_CORE
---- a/arch/arm/mm/init.c~arch-mm-promote-debug_wx-to-check_wx
-+++ a/arch/arm/mm/init.c
-@@ -403,7 +403,7 @@ static int __mark_rodata_ro(void *unused
- void mark_rodata_ro(void)
- {
- 	stop_machine(__mark_rodata_ro, NULL, NULL);
--	arm_debug_checkwx();
-+	arm_pgtable_checkwx();
- }
- 
- #else
---- a/arch/powerpc/configs/ppc64_defconfig~arch-mm-promote-debug_wx-to-check_wx
-+++ a/arch/powerpc/configs/ppc64_defconfig
-@@ -393,7 +393,7 @@ CONFIG_MAGIC_SYSRQ=y
- CONFIG_PAGE_OWNER=y
- CONFIG_PAGE_POISONING=y
- CONFIG_DEBUG_RODATA_TEST=y
--CONFIG_DEBUG_WX=y
-+CONFIG_CHECK_WX=y
- CONFIG_DEBUG_STACK_USAGE=y
- CONFIG_DEBUG_VM=y
- # CONFIG_DEBUG_VM_PGTABLE is not set
---- a/arch/powerpc/Kconfig~arch-mm-promote-debug_wx-to-check_wx
-+++ a/arch/powerpc/Kconfig
-@@ -130,7 +130,7 @@ config PPC
- 	select ARCH_HAS_CURRENT_STACK_POINTER
- 	select ARCH_HAS_DEBUG_VIRTUAL
- 	select ARCH_HAS_DEBUG_VM_PGTABLE
--	select ARCH_HAS_DEBUG_WX		if STRICT_KERNEL_RWX
-+	select ARCH_HAS_CHECK_WX		if STRICT_KERNEL_RWX
- 	select ARCH_HAS_DEVMEM_IS_ALLOWED
- 	select ARCH_HAS_DMA_MAP_DIRECT 		if PPC_PSERIES
- 	select ARCH_HAS_DMA_OPS			if PPC64
---- a/arch/powerpc/mm/ptdump/ptdump.c~arch-mm-promote-debug_wx-to-check_wx
-+++ a/arch/powerpc/mm/ptdump/ptdump.c
-@@ -191,7 +191,7 @@ static void note_prot_wx(struct pg_state
- 	if (!pte_write(pte) || !pte_exec(pte))
- 		return;
- 
--	WARN_ONCE(IS_ENABLED(CONFIG_DEBUG_WX),
-+	WARN_ONCE(IS_ENABLED(CONFIG_CHECK_WX),
- 		  "powerpc/mm: Found insecure W+X mapping at address %p/%pS\n",
- 		  (void *)st->start_address, (void *)st->start_address);
- 
---- a/arch/riscv/Kconfig~arch-mm-promote-debug_wx-to-check_wx
-+++ a/arch/riscv/Kconfig
-@@ -29,7 +29,7 @@ config RISCV
- 	select ARCH_HAS_CURRENT_STACK_POINTER
- 	select ARCH_HAS_DEBUG_VIRTUAL if MMU
- 	select ARCH_HAS_DEBUG_VM_PGTABLE
--	select ARCH_HAS_DEBUG_WX
-+	select ARCH_HAS_CHECK_WX
- 	select ARCH_HAS_DELAY_TIMER
- 	select ARCH_HAS_ELF_CORE_EFLAGS if BINFMT_ELF && ELF_CORE
- 	select ARCH_HAS_FAST_MULTIPLIER
---- a/arch/s390/configs/debug_defconfig~arch-mm-promote-debug_wx-to-check_wx
-+++ a/arch/s390/configs/debug_defconfig
-@@ -841,7 +841,7 @@ CONFIG_DEBUG_PAGEALLOC=y
- CONFIG_SLUB_DEBUG_ON=y
- CONFIG_PAGE_OWNER=y
- CONFIG_DEBUG_RODATA_TEST=y
--CONFIG_DEBUG_WX=y
-+CONFIG_CHECK_WX=y
- CONFIG_PTDUMP_DEBUGFS=y
- CONFIG_DEBUG_OBJECTS=y
- CONFIG_DEBUG_OBJECTS_SELFTEST=y
---- a/arch/s390/configs/defconfig~arch-mm-promote-debug_wx-to-check_wx
-+++ a/arch/s390/configs/defconfig
-@@ -820,7 +820,7 @@ CONFIG_DEBUG_INFO_DWARF4=y
- CONFIG_GDB_SCRIPTS=y
- CONFIG_DEBUG_SECTION_MISMATCH=y
- CONFIG_MAGIC_SYSRQ=y
--CONFIG_DEBUG_WX=y
-+CONFIG_CHECK_WX=y
- CONFIG_PTDUMP_DEBUGFS=y
- CONFIG_DEBUG_MEMORY_INIT=y
- CONFIG_PANIC_ON_OOPS=y
---- a/arch/s390/Kconfig~arch-mm-promote-debug_wx-to-check_wx
-+++ a/arch/s390/Kconfig
-@@ -92,7 +92,7 @@ config S390
- 	select ARCH_HAS_CURRENT_STACK_POINTER
- 	select ARCH_HAS_DEBUG_VIRTUAL
- 	select ARCH_HAS_DEBUG_VM_PGTABLE
--	select ARCH_HAS_DEBUG_WX
-+	select ARCH_HAS_CHECK_WX
- 	select ARCH_HAS_DEVMEM_IS_ALLOWED
- 	select ARCH_HAS_DMA_OPS if PCI
- 	select ARCH_HAS_ELF_RANDOMIZE
---- a/arch/s390/mm/dump_pagetables.c~arch-mm-promote-debug_wx-to-check_wx
-+++ a/arch/s390/mm/dump_pagetables.c
-@@ -86,7 +86,7 @@ static void note_prot_wx(struct pg_state
- 	 */
- 	if (addr == PAGE_SIZE && (nospec_uses_trampoline() || !cpu_has_bear()))
- 		return;
--	WARN_ONCE(IS_ENABLED(CONFIG_DEBUG_WX),
-+	WARN_ONCE(IS_ENABLED(CONFIG_CHECK_WX),
- 		  "s390/mm: Found insecure W+X mapping at address %pS\n",
- 		  (void *)st->start_address);
- 	st->wx_pages += (addr - st->start_address) / PAGE_SIZE;
---- a/arch/x86/configs/x86_64_defconfig~arch-mm-promote-debug_wx-to-check_wx
-+++ a/arch/x86/configs/x86_64_defconfig
-@@ -263,7 +263,7 @@ CONFIG_SECURITY_SELINUX_BOOTPARAM=y
- CONFIG_PRINTK_TIME=y
- CONFIG_DEBUG_KERNEL=y
- CONFIG_MAGIC_SYSRQ=y
--CONFIG_DEBUG_WX=y
-+CONFIG_CHECK_WX=y
- CONFIG_DEBUG_STACK_USAGE=y
- CONFIG_SCHEDSTATS=y
- CONFIG_BLK_DEV_IO_TRACE=y
---- a/arch/x86/include/asm/pgtable.h~arch-mm-promote-debug_wx-to-check_wx
-+++ a/arch/x86/include/asm/pgtable.h
-@@ -41,10 +41,10 @@ void ptdump_walk_user_pgd_level_checkwx(
- #define pgprot_encrypted(prot)	__pgprot(cc_mkenc(pgprot_val(prot)))
- #define pgprot_decrypted(prot)	__pgprot(cc_mkdec(pgprot_val(prot)))
- 
--#ifdef CONFIG_DEBUG_WX
--#define debug_checkwx_user()	ptdump_walk_user_pgd_level_checkwx()
-+#ifdef CONFIG_CHECK_WX
-+#define pgtable_checkwx_user()	ptdump_walk_user_pgd_level_checkwx()
- #else
--#define debug_checkwx_user()	do { } while (0)
-+#define pgtable_checkwx_user()	do { } while (0)
- #endif
- 
- extern spinlock_t pgd_lock;
---- a/arch/x86/Kconfig~arch-mm-promote-debug_wx-to-check_wx
-+++ a/arch/x86/Kconfig
-@@ -109,7 +109,7 @@ config X86
- 	select ARCH_HAS_SYNC_CORE_BEFORE_USERMODE
- 	select ARCH_HAS_SYSCALL_WRAPPER
- 	select ARCH_HAS_UBSAN
--	select ARCH_HAS_DEBUG_WX
-+	select ARCH_HAS_CHECK_WX
- 	select ARCH_HAS_ZONE_DMA_SET if EXPERT
- 	select ARCH_HAVE_NMI_SAFE_CMPXCHG
- 	select ARCH_HAVE_EXTRA_ELF_NOTES
---- a/arch/x86/mm/pti.c~arch-mm-promote-debug_wx-to-check_wx
-+++ a/arch/x86/mm/pti.c
-@@ -688,5 +688,5 @@ void pti_finalize(void)
- 	pti_clone_entry_text(true);
- 	pti_clone_kernel_text();
- 
--	debug_checkwx_user();
-+	pgtable_checkwx_user();
- }
---- a/include/linux/ptdump.h~arch-mm-promote-debug_wx-to-check_wx
-+++ a/include/linux/ptdump.h
-@@ -31,9 +31,9 @@ bool ptdump_walk_pgd_level_core(struct s
- void ptdump_walk_pgd(struct ptdump_state *st, struct mm_struct *mm, pgd_t *pgd);
- bool ptdump_check_wx(void);
- 
--static inline void debug_checkwx(void)
-+static inline void pgtable_checkwx(void)
- {
--	if (IS_ENABLED(CONFIG_DEBUG_WX))
-+	if (IS_ENABLED(CONFIG_CHECK_WX))
- 		ptdump_check_wx();
- }
- 
---- a/init/main.c~arch-mm-promote-debug_wx-to-check_wx
-+++ a/init/main.c
-@@ -1535,7 +1535,7 @@ static void mark_readonly(void)
- 		flush_module_init_free_work();
- 		jump_label_init_ro();
- 		mark_rodata_ro();
--		debug_checkwx();
-+		pgtable_checkwx();
- 		rodata_test();
- 	} else if (IS_ENABLED(CONFIG_STRICT_KERNEL_RWX)) {
- 		pr_info("Kernel memory protection disabled.\n");
---- a/kernel/configs/debug.config~arch-mm-promote-debug_wx-to-check_wx
-+++ a/kernel/configs/debug.config
-@@ -50,7 +50,7 @@ CONFIG_DEBUG_NET=y
- # CONFIG_DEBUG_PAGEALLOC is not set
- # CONFIG_DEBUG_KMEMLEAK_DEFAULT_OFF is not set
- # CONFIG_DEBUG_RODATA_TEST is not set
--# CONFIG_DEBUG_WX is not set
-+# CONFIG_CHECK_WX is not set
- # CONFIG_KFENCE is not set
- # CONFIG_PAGE_POISONING is not set
- # CONFIG_SLUB_STATS is not set
---- a/mm/Kconfig~arch-mm-promote-debug_wx-to-check_wx
-+++ a/mm/Kconfig
-@@ -1494,6 +1494,47 @@ config LAZY_MMU_MODE_KUNIT_TEST
- 
- 	  If unsure, say N.
- 
-+config ARCH_HAS_CHECK_WX
-+	bool
-+
-+config CHECK_WX
-+	bool "Warn on W+X mappings at boot"
-+	default STRICT_KERNEL_RWX
-+	depends on ARCH_HAS_CHECK_WX
-+	depends on ARCH_HAS_PTDUMP
-+	depends on MMU
-+	select PTDUMP
-+	help
-+	  Generate a warning if any W+X mappings are found at boot.
-+
-+	  This is useful for discovering cases where the kernel is leaving W+X
-+	  mappings after applying NX, as such mappings are a security risk.
-+
-+	  Look for a message in dmesg output like this:
-+
-+	    <arch>/mm: Checked W+X mappings: passed, no W+X pages found.
-+
-+	  or like this, if the check failed:
-+
-+	    <arch>/mm: Checked W+X mappings: failed, <N> W+X pages found.
-+
-+	  Note that even if the check fails, your kernel is possibly
-+	  still fine, as W+X mappings are not a security hole in
-+	  themselves, what they do is that they make the exploitation
-+	  of other unfixed kernel bugs easier.
-+
-+	  There is no runtime or memory usage effect of this option
-+	  once the kernel has booted up - it's a one time check.
-+
-+	  If in doubt, say "Y".
-+
-+config ARCH_HAS_PTDUMP
-+	bool
-+
-+config PTDUMP
-+	bool
-+
-+
- source "mm/damon/Kconfig"
- 
- endmenu
---- a/mm/Kconfig.debug~arch-mm-promote-debug_wx-to-check_wx
-+++ a/mm/Kconfig.debug
-@@ -180,45 +180,6 @@ config DEBUG_RODATA_TEST
- 	help
- 	  This option enables a testcase for the setting rodata read-only.
- 
--config ARCH_HAS_DEBUG_WX
--	bool
--
--config DEBUG_WX
--	bool "Warn on W+X mappings at boot"
--	depends on ARCH_HAS_DEBUG_WX
--	depends on ARCH_HAS_PTDUMP
--	depends on MMU
--	select PTDUMP
--	help
--	  Generate a warning if any W+X mappings are found at boot.
--
--	  This is useful for discovering cases where the kernel is leaving W+X
--	  mappings after applying NX, as such mappings are a security risk.
--
--	  Look for a message in dmesg output like this:
--
--	    <arch>/mm: Checked W+X mappings: passed, no W+X pages found.
--
--	  or like this, if the check failed:
--
--	    <arch>/mm: Checked W+X mappings: failed, <N> W+X pages found.
--
--	  Note that even if the check fails, your kernel is possibly
--	  still fine, as W+X mappings are not a security hole in
--	  themselves, what they do is that they make the exploitation
--	  of other unfixed kernel bugs easier.
--
--	  There is no runtime or memory usage effect of this option
--	  once the kernel has booted up - it's a one time check.
--
--	  If in doubt, say "Y".
--
--config ARCH_HAS_PTDUMP
--	bool
--
--config PTDUMP
--	bool
--
- config PTDUMP_DEBUGFS
- 	bool "Export kernel pagetable layout to userspace via debugfs"
- 	depends on DEBUG_KERNEL
+ #define print_dev_t(buffer, dev)					\
+ 	sprintf((buffer), "%u:%u\n", MAJOR(dev), MINOR(dev))
 _
 
-Patches currently in -mm which might be from rppt@kernel.org are
+Patches currently in -mm which might be from matthias.goergens@gmail.com are
 
-set_memory-add-number-of-pages-parameter-to-set_direct_map-apis.patch
-mm-vmalloc-set-areas-page_order-after-allocation-succeeds.patch
-mm-vmalloc-constify-vm-parameter-of-get_vm_area_page_order.patch
-mm-vmalloc-make-set_area_direct_map-huge_vmap-friendly.patch
-mm-execmem-use-vm_flush_reset_perms-for-rox-cache-allocations.patch
-revert-arch-introduce-set_direct_map_valid_noflush.patch
-docs-core-api-memory-allocation-add-kalloc_obj-and-clarify-kmalloc.patch
-maintainers-add-memory-related-docs-in-core-mm-to-mm-misc-section.patch
-mm-execmem-free-rox-cache-chunks-only-when-they-span-an-entire-vm-area.patch
-mm-execmem-handle-potential-allocation-errors-in-the-maple-tree.patch
-mm-execmem-make-sure-rox-cache-always-contains-multiples-of-pmd_size.patch
-mm-vmalloc-add-define_free-for-vfree.patch
-mm-execmem-use-cleanup-infrastructure-in-rox-cache-functions.patch
-docs-core-api-memory-allocation-clarify-when-to-use-kzalloc_obj-and-kzalloc.patch
-docs-mm-describe-set_memory-and-set_direct_map-apis.patch
-docs-mm-describe-set_memory-and-set_direct_map-apis-fix.patch
-arch-mm-promote-debug_wx-to-check_wx.patch
-sh-remove-config_numa-and-realted-configuration-options.patch
-sh-mm-remove-numac.patch
-sh-mm-drop-allocate_pgdat.patch
-sh-remove-setup_bootmem_node-and-plat_mem_setup.patch
-sh-drop-dead-code-guarded-by-ifdef-config_numa.patch
-sh-drop-include-asm-mmzoneh.patch
-init-kconfig-drop-arch_want_numa_variable_locality.patch
-sh-init-remove-call-the-memblock_set_node.patch
-sh-remove-sparsemem-related-entries-from-kconfig.patch
-sh-drop-include-asm-sparsememh.patch
+kdev_t-shift-in-dev_t-in-mkdev.patch
 
