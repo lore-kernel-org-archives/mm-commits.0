@@ -1,231 +1,90 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AD76618AE3
-	for <mm-commits@vger.kernel.org>; Mon, 28 Sep 2026 03:08:13 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
+Received: from foss.arm.com (foss.arm.com [217.140.110.172])
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 14D402F8E93
+	for <mm-commits@vger.kernel.org>; Mon, 28 Sep 2026 04:42:45 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.140.110.172
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790564895; cv=none; b=PKnO51pBwUJaDquk3TylPznF8sGDb+azALRbECpOMEdK7GVoTvpoGEAuHknDO4chonOEouUNZsXuMlxV7kYCA9boqsAjeXhNjz0LFezt6aJtPeubHu7vDdljunGpsvSuVm6C/kZ4+FoDRb5P0SL7CDzuci38Z6xj1/xCHF09veo=
+	t=1790570568; cv=none; b=e3d23sQq2pjYiSALHO+cEHbUpV5Zriykmv6G20giXBRw8VizbhFwwpPfMA5CqrhK0YEuQxCMT+9sVmUm5UtFDF8VoG0yGCU+abkbLYW/s+QiP6F5FSCw/8v/c7YMgQs6IJ4LuHnQk7GrfWAt4rr5hAv4F5O1u9BlcX8qFkyS6rc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1790564895; c=relaxed/simple;
-	bh=pQ/U/guPwLgA6WZv0JVDOv9dDfkAo8WHzsqh7MzaPew=;
-	h=Date:To:From:Subject:Message-Id; b=bwZmihT7EIlqsIyH7o/l9HYin+oU7qhJruvXcvX8y4IM6SmJrVM/tj/lJH5/o9aWYfSZEDEFQ4PBxFfGnunm+37PpFnf1Vr9jjJEDVKGx9pIXXNa39vo/Vh/JuvURlAaVDjdkYKZAY+jXTkUBsXhHZUFGWNiFJpJckHFaWZkM9E=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=IS3fEQgH; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1790570568; c=relaxed/simple;
+	bh=g9+BM8LQstyMyJtvF3kyKscq7+5czkGZL/4m6fk+efo=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=WxJtun7Y/iMsQdaHtqkgEZT+Kf+IvX+OJo1aOhyGDNytXt5dixNL2GkEjAPLupgfNfdnd/P5quk9AFVwLIlZxPVQq4toulMcyPulXqc1uhofiCV2peDgJ4IlNBi5hdu1Fh50SmDO4t+C9q+Q/limK0BhENY2LPOucghB/IWaEg0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com; spf=pass smtp.mailfrom=arm.com; dkim=pass (1024-bit key) header.d=arm.com header.i=@arm.com header.b=bKrEwt2b; arc=none smtp.client-ip=217.140.110.172
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=arm.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="IS3fEQgH"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 342361F000FF;
-	Mon, 28 Sep 2026 03:08:13 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1790564893;
-	bh=D2zGZz7i/cY2p27IV5qFeDbSmDRNnQ/yyNG1iepNtmM=;
-	h=Date:To:From:Subject;
-	b=IS3fEQgH3fbAYkcqNTd0TTyiq1pDXi9rOMGzTQHPilCiFaJokOYpeT8G9m9IDlER4
-	 74mU9S3O/HdOdDVujInw5PQEQ3U+9TscjqpWD7z0IPGaaFLBpBa96qeyfQmvs/V+5t
-	 BqfOGoweANKB70WlSfvL+VplQd+IaULrYZ8RTCQg=
-Date: Sun, 27 Sep 2026 20:08:12 -0700
-To: mm-commits@vger.kernel.org,osalvador@suse.de,muchun.song@linux.dev,david@kernel.org,aiqi.i7@bytedance.com,lizhe.67@bytedance.com,akpm@linux-foundation.org
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-hugetlb-fix-overbroad-mmu-notifiers-for-unshared-pmds.patch added to mm-unstable branch
-Message-Id: <20260928030813.342361F000FF@smtp.kernel.org>
+	dkim=pass (1024-bit key) header.d=arm.com header.i=@arm.com header.b="bKrEwt2b"
+Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
+	by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id 3B62D1595;
+	Sun, 27 Sep 2026 21:42:36 -0700 (PDT)
+Received: from localhost (a085714.arm.com [10.164.19.28])
+	by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id E5F973F85F;
+	Sun, 27 Sep 2026 21:42:38 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=simple/simple; d=arm.com; s=foss;
+	t=1790570559; bh=g9+BM8LQstyMyJtvF3kyKscq7+5czkGZL/4m6fk+efo=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=bKrEwt2bC/ZQWJUMqIbP/vuS1K0gagIxbK5QMww2e+iM4X8cIC/KbLm1H+8DoVNY9
+	 URi8HP8oh6BmQp553mLeKba4VYQrdZDfLFLzocjOav/O1EFyxeVVivmwCJ0iPtKlXX
+	 i5a9pmIFqdzNhYDXPlY63UsQvBcs0j0/tnvCuMnk=
+Date: Mon, 28 Sep 2026 10:12:36 +0530
+From: Anshuman Khandual <anshuman.khandual@arm.com>
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: kernel test robot <lkp@intel.com>, oe-kbuild-all@lists.linux.dev, 
+	David Hildenbrand <david@kernel.org>, Linux Memory Management List <linux-mm@kvack.org>, 
+	mm-commits@vger.kernel.org, Catalin Marinas <catalin.marinas@arm.com>
+Subject: Re: [akpm-mm:mm-new 661/679] mmu.c:undefined reference to
+ `__check_safe_pte_update'
+Message-ID: <bao3loem52ww7aplteu4ialsb2umep6mynhofp3loamdewytxc@pexxabh7vdf4>
+References: <202609270030.Y0QVBPmK-lkp@intel.com>
+ <20260927133100.46a4f7067c79280dcf83731b@linux-foundation.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20260927133100.46a4f7067c79280dcf83731b@linux-foundation.org>
 
+On Sun, Sep 27, 2026 at 01:31:00PM -0700, Andrew Morton wrote:
+> On Sun, 27 Sep 2026 00:32:54 +0800 kernel test robot <lkp@intel.com> wrote:
+> 
+> > tree:   https://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm.git mm-new
+> > head:   b4fc90c82982d98959af08b4320420bcfc01303b
+> > commit: 2862bcaf1aca55e0b43a5692a4595281ab780f05 [661/679] arm64/mm: move __check_safe_pte_update()
+> > config: arm64-randconfig-1002-20260926 (https://download.01.org/0day-ci/archive/20260927/202609270030.Y0QVBPmK-lkp@intel.com/config)
+> > compiler: aarch64-linux-gcc (GCC) 8.5.0
+> 
+> Thanks.  It works for me, but I'm using gcc-15.2.0.
 
-The patch titled
-     Subject: mm/hugetlb: fix overbroad MMU notifiers for unshared PMDs
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-hugetlb-fix-overbroad-mmu-notifiers-for-unshared-pmds.patch
+Tried building this series with a cross compiler (gcc 14.3.1) and a native
+compiler (15.2.0). The series builds successfully in both cases.
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-hugetlb-fix-overbroad-mmu-notifiers-for-unshared-pmds.patch
+- Anshuman
 
-This patch will later appear in the mm-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via various
-branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there most days
-
-------------------------------------------------------
-From: "Li Zhe" <lizhe.67@bytedance.com>
-Subject: mm/hugetlb: fix overbroad MMU notifiers for unshared PMDs
-Date: Mon, 28 Sep 2026 10:47:23 +0800
-
-Hugetlb currently expands MMU notifier ranges to PUD boundaries whenever
-PMD sharing is possible.  That is only needed when huge_pmd_unshare()
-actually detaches a shared PMD page table, because clearing the PUD
-invalidates the whole PUD-sized virtual address range.
-
-For hugetlbfs hole punch, and similarly for other hugetlb unmap paths, a
-shared mapping can pass the "PMD sharing is possible" range test in
-adjust_range_if_pmd_sharing_possible() even when the hugetlbfs file does
-not currently have any shared PMD page tables.  KVM then receives a 1G
-invalidation for a 2M operation and zaps unrelated secondary mappings, so
-the guest has to fault them back in.
-
-Avoid this by tracking active PMD-sharing attachments per hugetlbfs inode.
-The count is incremented only after huge_pmd_share() successfully
-installs a shared PMD table, and decremented when __huge_pmd_unshare()
-actually detaches one.  Since huge_pmd_share() can run concurrently under
-i_mmap_lock_read(), use a 64-bit atomic counter.  A zero count is used to
-skip the conservative notifier range expansion only after excluding
-concurrent PMD sharing with the mapping write lock.
-
-On a Redis-in-VM workload that punches cold 2M hugetlb pages, this patch
-improves P99 QPS stability while punching pages, reducing the QPS
-degradation ratio from 7.09% to 1.45%.
-
-Link: https://lore.kernel.org/20260928024723.87708-1-lizhe.67@bytedance.com
-Signed-off-by: Li Zhe <lizhe.67@bytedance.com>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Reported-by: aiqi.i7 <aiqi.i7@bytedance.com>
-Cc: David Hildenbrand <david@kernel.org>
-Cc: Muchun Song <muchun.song@linux.dev>
-Cc: Oscar Salvador <osalvador@suse.de>
----
-
- fs/hugetlbfs/inode.c    |    1 +
- include/linux/hugetlb.h |   37 +++++++++++++++++++++++++++++++++++++
- mm/hugetlb.c            |   13 ++++++++++---
- 3 files changed, 48 insertions(+), 3 deletions(-)
-
---- a/fs/hugetlbfs/inode.c~mm-hugetlb-fix-overbroad-mmu-notifiers-for-unshared-pmds
-+++ a/fs/hugetlbfs/inode.c
-@@ -920,6 +920,7 @@ static struct inode *hugetlbfs_get_inode
- 		simple_inode_init_ts(inode);
- 		info->resv_map = resv_map;
- 		info->seals = F_SEAL_SEAL;
-+		hugetlbfs_pmd_sharing_init(inode);
- 		switch (mode & S_IFMT) {
- 		default:
- 			init_special_inode(inode, mode, dev);
---- a/include/linux/hugetlb.h~mm-hugetlb-fix-overbroad-mmu-notifiers-for-unshared-pmds
-+++ a/include/linux/hugetlb.h
-@@ -11,6 +11,7 @@
- #include <linux/page_ref.h>
- #include <linux/list.h>
- #include <linux/kref.h>
-+#include <linux/atomic.h>
- #include <linux/pgtable.h>
- #include <linux/gfp.h>
- #include <linux/userfaultfd_k.h>
-@@ -507,6 +508,9 @@ struct hugetlbfs_inode_info {
- 	struct inode vfs_inode;
- 	struct resv_map *resv_map;
- 	unsigned int seals;
-+#ifdef CONFIG_HUGETLB_PMD_PAGE_TABLE_SHARING
-+	atomic64_t pmd_sharing_count;
-+#endif
- };
- 
- static inline struct hugetlbfs_inode_info *HUGETLBFS_I(struct inode *inode)
-@@ -514,6 +518,39 @@ static inline struct hugetlbfs_inode_inf
- 	return container_of(inode, struct hugetlbfs_inode_info, vfs_inode);
- }
- 
-+#ifdef CONFIG_HUGETLB_PMD_PAGE_TABLE_SHARING
-+static inline void hugetlbfs_pmd_sharing_init(struct inode *inode)
-+{
-+	atomic64_set(&HUGETLBFS_I(inode)->pmd_sharing_count, 0);
-+}
-+
-+static inline void hugetlbfs_pmd_sharing_inc(struct inode *inode)
-+{
-+	atomic64_inc(&HUGETLBFS_I(inode)->pmd_sharing_count);
-+}
-+
-+static inline void hugetlbfs_pmd_sharing_dec(struct inode *inode)
-+{
-+	atomic64_dec(&HUGETLBFS_I(inode)->pmd_sharing_count);
-+}
-+
-+static inline bool hugetlbfs_pmd_sharing_active(struct inode *inode)
-+{
-+	return atomic64_read(&HUGETLBFS_I(inode)->pmd_sharing_count) != 0;
-+}
-+#else
-+static inline void hugetlbfs_pmd_sharing_init(struct inode *inode) {}
-+
-+static inline void hugetlbfs_pmd_sharing_inc(struct inode *inode) {}
-+
-+static inline void hugetlbfs_pmd_sharing_dec(struct inode *inode) {}
-+
-+static inline bool hugetlbfs_pmd_sharing_active(struct inode *inode)
-+{
-+	return false;
-+}
-+#endif
-+
- extern const struct vm_operations_struct hugetlb_vm_ops;
- struct file *hugetlb_file_setup(const char *name, size_t size, vma_flags_t acct,
- 				int creat_flags, int page_size_log);
---- a/mm/hugetlb.c~mm-hugetlb-fix-overbroad-mmu-notifiers-for-unshared-pmds
-+++ a/mm/hugetlb.c
-@@ -5438,10 +5438,12 @@ void __hugetlb_zap_begin(struct vm_area_
- 	if (!vma->vm_file)	/* hugetlbfs_file_mmap error */
- 		return;
- 
--	adjust_range_if_pmd_sharing_possible(vma, start, end);
- 	hugetlb_vma_lock_write(vma);
--	if (vma->vm_file)
-+	if (vma->vm_file) {
- 		i_mmap_lock_write(vma->vm_file->f_mapping);
-+		if (hugetlbfs_pmd_sharing_active(file_inode(vma->vm_file)))
-+			adjust_range_if_pmd_sharing_possible(vma, start, end);
-+	}
- }
- 
- void __hugetlb_zap_end(struct vm_area_struct *vma,
-@@ -5480,7 +5482,10 @@ void unmap_hugepage_range(struct vm_area
- 
- 	mmu_notifier_range_init(&range, MMU_NOTIFY_CLEAR, 0, vma->vm_mm,
- 				start, end);
--	adjust_range_if_pmd_sharing_possible(vma, &range.start, &range.end);
-+	i_mmap_assert_write_locked(vma->vm_file->f_mapping);
-+	if (hugetlbfs_pmd_sharing_active(file_inode(vma->vm_file)))
-+		adjust_range_if_pmd_sharing_possible(vma, &range.start,
-+						     &range.end);
- 	mmu_notifier_invalidate_range_start(&range);
- 	tlb_gather_mmu(&tlb, vma->vm_mm);
- 
-@@ -7083,6 +7088,7 @@ pte_t *huge_pmd_share(struct mm_struct *
- 	if (pud_none(*pud)) {
- 		pud_populate(mm, pud,
- 				(pmd_t *)((unsigned long)spte & PAGE_MASK));
-+		hugetlbfs_pmd_sharing_inc(file_inode(vma->vm_file));
- 		mm_inc_nr_pmds(mm);
- 	} else {
- 		ptdesc_pmd_pts_dec(virt_to_ptdesc(spte));
-@@ -7114,6 +7120,7 @@ static int __huge_pmd_unshare(struct mmu
- 	pud_clear(pud);
- 
- 	tlb_unshare_pmd_ptdesc(tlb, virt_to_ptdesc(ptep), addr);
-+	hugetlbfs_pmd_sharing_dec(file_inode(vma->vm_file));
- 
- 	mm_dec_nr_pmds(mm);
- 	return 1;
-_
-
-Patches currently in -mm which might be from lizhe.67@bytedance.com are
-
-mm-fix-stale-zone_device-refcount-comment.patch
-mm-add-a-set_page_section_from_pfn-helper.patch
-mm-add-a-template-based-fast-path-for-zone-device-page-init.patch
-mm-add-a-template-based-fast-path-for-zone-device-page-init-fix.patch
-mm-extend-the-template-fast-path-to-zone-device-compound-tails.patch
-string-introduce-memcpy_nontemporal.patch
-mm-use-memcpy_nontemporal-in-zone-device-template-copies.patch
-x86-string-extend-memcpy_flushcache-fixed-size-fastpaths.patch
-mm-hugetlb-fix-overbroad-mmu-notifiers-for-unshared-pmds.patch
-
+> 
+> > reproduce (this is a W=1 build): (https://download.01.org/0day-ci/archive/20260927/202609270030.Y0QVBPmK-lkp@intel.com/reproduce)
+> > 
+> > If you fix the issue in a separate patch/commit (i.e. not just a new version of
+> > the same patch/commit), kindly add following tags
+> > | Reported-by: kernel test robot <lkp@intel.com>
+> > | Closes: https://lore.kernel.org/oe-kbuild-all/202609270030.Y0QVBPmK-lkp@intel.com/
+> > 
+> > All errors (new ones prefixed by >>):
+> > 
+> > >> aarch64-linux-ld: Unexpected GOT/PLT entries detected!
+> > >> aarch64-linux-ld: Unexpected run-time procedure linkages detected!
+> >    aarch64-linux-ld: arch/arm64/mm/mmu.o: in function `__set_ptes_anysz.isra.40.constprop.47':
+> > >> mmu.c:(.text+0x9a8): undefined reference to `__check_safe_pte_update'
+> >    aarch64-linux-ld: arch/arm64/mm/hugetlbpage.o: in function `__set_ptes_anysz.isra.32':
+> > >> hugetlbpage.c:(.text+0x1a8): undefined reference to `__check_safe_pte_update'
+> >    aarch64-linux-ld: kernel/bpf/arena.o: in function `apply_range_set_cb':
+> > >> arena.c:(.text+0x11fc): undefined reference to `__check_safe_pte_update'
+> >    aarch64-linux-ld: mm/gup.o: in function `follow_page_pte':
+> > >> gup.c:(.text+0x2b48): undefined reference to `__check_safe_pte_update'
+> >    aarch64-linux-ld: mm/memory.o: in function `__set_ptes.isra.207':
+> > >> memory.c:(.text+0x3418): undefined reference to `__check_safe_pte_update'
+> >    aarch64-linux-ld: mm/mprotect.o:mprotect.c:(.text+0x1080): more undefined references to `__check_safe_pte_update' follow
+> > 
+> 
