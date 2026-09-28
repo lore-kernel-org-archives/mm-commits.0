@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A1F7E4DA9C3
-	for <mm-commits@vger.kernel.org>; Mon, 28 Sep 2026 23:03:14 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6D05F5038F3
+	for <mm-commits@vger.kernel.org>; Mon, 28 Sep 2026 23:40:28 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790636596; cv=none; b=iFked+knu2P/+2HW3MDn7eOSgR2cGbSrkdgOwMvI2qUd9G9NSb/hx6/vnuI1Qwnc0SvqBPzY/uB5CiGt9CgDgd7TWZuFnBTg1nrTpk1PRFC6L0S8Q6yMKqP4KfO++SmXnaxRi6IYZ/nSxQ0QvBbEyjXkxSiMAoD+Vtk+99RGUbU=
+	t=1790638832; cv=none; b=TfEPUG/SJh57NWAWpdjSEoTmix+m96l5NhE9uzTfpzXpVIx7i6wRP6WaN3WwTbXeAO1WL6oQ/Xjsqkq8qBrPngZmwypqew1AqTrey1H/doM06In90rWy2bB/yh+XdayOq0b2ebAXWo90ziNpM3/5MwT8P7wiBsixi8xFSZU9Pcs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1790636596; c=relaxed/simple;
-	bh=DKvevN52iMQDZfkcxludA0ysKk0eGURxVlTg8o1+KY4=;
-	h=Date:To:From:Subject:Message-Id; b=pa9QbkI/Uquv66VTc9TVfRtSSRHTELMVDId63QAx+64QG7tHA4wO5JWLF772lLq5eJVPh9bY+3KTNoP/by63hNtQuAmRtbSt5pely3CsR9UazHAYO2h1GA2GXS1z6stnXJHaXxjQv1G9uovkHIMrxFay+iy+7l3gRO45DChtS/Q=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=QPDS6MjN; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1790638832; c=relaxed/simple;
+	bh=WcQevuzLp4DHn6B/QtasV+NSFoMb7nPghmD/M4gga0o=;
+	h=Date:To:From:Subject:Message-Id; b=Mi3j3qIfRbe6zHkDMfVu53UqPLVGPZd9mwzxdZbPxFtsoFVDXW476lznRcgmpi2ZtR/AhjuvbfCNcjj3BMr7jA33nZD612p4iBcGm/jiIwGHy3BAWyybH3XNhinrN5Mf4IdUzkEK9YEFfvTYqa6nCxWtb0/9xAqTlEAUEGLAJY0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ts3GKYMD; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="QPDS6MjN"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6250D1F00898;
-	Mon, 28 Sep 2026 23:03:14 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ts3GKYMD"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B4BF41F000FF;
+	Mon, 28 Sep 2026 23:40:28 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1790636594;
-	bh=eucWtAwtOczg3jEwpWnIGrGKjP8YEiGKwOC4B37J048=;
+	d=linux-foundation.org; s=korg; t=1790638828;
+	bh=1Geo6z/WOdh76Ivw+qdkY9FqmLiXVSvSEK7ejZg3ZHo=;
 	h=Date:To:From:Subject;
-	b=QPDS6MjNj6IjCaDgz35gYXOWRNyvXRrhIJ7hRVIWQkqVrDWUDe2IRccQI5wHwJsxR
-	 gyeUOUm8axGD0zbzlp1bZ59cyLJtLAdBd6okxx8Q1m/jdEjfXJuD2p7wsisZIG4col
-	 FRKM8LaDoB4u97wsoIsyYWoJRhvU6tO8TeIFNM1c=
-Date: Mon, 28 Sep 2026 16:03:13 -0700
+	b=ts3GKYMDKaRPXp+vLBxMtkhxk/1WO7DAuec1f3P/HhPDhesUfUx41Q55VMsuB7+pn
+	 IWnHp4soy1kczpmIjE/UmVKHpRyZG4J+X2gB/ShxRoWLthf5xr5k3vI4h9yjs4ehRt
+	 1Z8mc5B9lg4mT/FMY5h+MhSnBHLBPAZ4b5yRglaQ=
+Date: Mon, 28 Sep 2026 16:40:28 -0700
 To: mm-commits@vger.kernel.org,ljs@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [to-be-updated] tools-testing-selftests-mm-add-map_private-dev-zero-merge-tests.patch removed from -mm tree
-Message-Id: <20260928230314.6250D1F00898@smtp.kernel.org>
+Subject: + mm-move-drivers-char-memc-to-mm-char-memc.patch added to mm-unstable branch
+Message-Id: <20260928234028.B4BF41F000FF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,154 +34,1696 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The quilt patch titled
-     Subject: tools/testing/selftests/mm: add MAP_PRIVATE-/dev/zero merge tests
-has been removed from the -mm tree.  Its filename was
-     tools-testing-selftests-mm-add-map_private-dev-zero-merge-tests.patch
+The patch titled
+     Subject: mm: move drivers/char/mem.c to mm/char-mem.c
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-move-drivers-char-memc-to-mm-char-memc.patch
 
-This patch was dropped because an updated version will be issued
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-move-drivers-char-memc-to-mm-char-memc.patch
+
+This patch will later appear in the mm-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via various
+branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there most days
 
 ------------------------------------------------------
 From: "Lorenzo Stoakes (ARM)" <ljs@kernel.org>
-Subject: tools/testing/selftests/mm: add MAP_PRIVATE-/dev/zero merge tests
-Date: Tue, 08 Sep 2026 12:23:43 +0100
+Subject: mm: move drivers/char/mem.c to mm/char-mem.c
+Date: Sat, 26 Sep 2026 11:41:06 +0100
 
-Assert that MAP_PRIVATE-mapped /dev/zero mappings behave like they are
-anonymous.
+The memory character driver implements several mm-specific features and is
+always compiled into the kernel, so move it to mm/ where it belongs.
 
-Test both unfaulted and faulted/unfaulted merges with page offset 0 which
-would not merge if the mappings were treated as if they were file-backed.
+Among other things the driver implements /dev/mem which provides raw access
+to physical memory, and /dev/zero which either allows mapping of a shmem
+region (if mapped with MAP_SHARED) or, uniquely, anonymous memory (if
+mapped MAP_PRIVATE).
 
-With the recent change that makes them behave as pure anonymous mappings,
-the merges should succeed as their page offsets are equal to their
-anonymous page offsets.
+This change lays the foundations to allow MAP_PRIVATE-/dev/zero to be
+mapped precisely the same as anonymous memory is mapped as currently it is
+an edge case within mm.
 
-Link: https://lore.kernel.org/20260908-map-private-dev-zero-v2-6-acc7b5625305@kernel.org
+Also update a couple of comments that reference 'drivers/char/mem.c' to
+reference 'mm/char-mem.c'.
+
+Link: https://lore.kernel.org/20260926-map-private-dev-zero-v3-1-d4781e84ccfc@kernel.org
 Signed-off-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 Acked-by: David Hildenbrand (Arm) <david@kernel.org>
+Acked-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
 Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
 Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Jan Kara <jack@suse.cz>
-Cc: Jann Horn <jannh@google.com>
 Cc: Liam R. Howlett <liam@infradead.org>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Mike Rapoport (Microsoft) <rppt@kernel.org>
+Cc: Vlastimil Babka <vbabka@kernel.org>
+Cc: Jann Horn <jannh@google.com>
 Cc: Pedro Falcato <pfalcato@suse.de>
 Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Vlastimil Babka <vbabka@kernel.org>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Jan Kara <jack@suse.cz>
 ---
 
- tools/testing/selftests/mm/merge.c |   95 +++++++++++++++++++++++++++
- 1 file changed, 95 insertions(+)
+ MAINTAINERS           |    4 
+ drivers/char/Makefile |    2 
+ drivers/char/mem.c    |  778 ----------------------------------------
+ mm/Makefile           |    3 
+ mm/char-mem.c         |  778 ++++++++++++++++++++++++++++++++++++++++
+ mm/shmem.c            |    2 
+ 6 files changed, 784 insertions(+), 783 deletions(-)
 
---- a/tools/testing/selftests/mm/merge.c~tools-testing-selftests-mm-add-map_private-dev-zero-merge-tests
-+++ a/tools/testing/selftests/mm/merge.c
-@@ -1362,6 +1362,101 @@ TEST_F(merge, anon_and_page_offset_misma
- 	ASSERT_EQ(procmap->query.vma_end, (unsigned long)ptr + 5 * page_size);
- }
+--- a/drivers/char/Makefile~mm-move-drivers-char-memc-to-mm-char-memc
++++ a/drivers/char/Makefile
+@@ -3,7 +3,7 @@
+ # Makefile for the kernel character device drivers.
+ #
  
-+TEST_F(merge, merge_map_private_dev_zero_unfaulted)
+-obj-y				+= mem.o random.o
++obj-y				+= random.o
+ obj-$(CONFIG_TTY_PRINTK)	+= ttyprintk.o
+ obj-y				+= misc.o
+ obj-$(CONFIG_TEST_MISC_MINOR)	+= misc_minor_kunit.o
+diff --git a/drivers/char/mem.c a/drivers/char/mem.c
+deleted file mode 100644
+--- a/drivers/char/mem.c
++++ /dev/null
+@@ -1,778 +0,0 @@
+-// SPDX-License-Identifier: GPL-2.0
+-/*
+- *  linux/drivers/char/mem.c
+- *
+- *  Copyright (C) 1991, 1992  Linus Torvalds
+- *
+- *  Added devfs support.
+- *    Jan-11-1998, C. Scott Ananian <cananian@alumni.princeton.edu>
+- *  Shared /dev/zero mmapping support, Feb 2000, Kanoj Sarcar <kanoj@sgi.com>
+- */
+-
+-#include <linux/mm.h>
+-#include <linux/miscdevice.h>
+-#include <linux/slab.h>
+-#include <linux/vmalloc.h>
+-#include <linux/mman.h>
+-#include <linux/random.h>
+-#include <linux/init.h>
+-#include <linux/tty.h>
+-#include <linux/capability.h>
+-#include <linux/ptrace.h>
+-#include <linux/device.h>
+-#include <linux/highmem.h>
+-#include <linux/backing-dev.h>
+-#include <linux/shmem_fs.h>
+-#include <linux/splice.h>
+-#include <linux/pfn.h>
+-#include <linux/export.h>
+-#include <linux/io.h>
+-#include <linux/uio.h>
+-#include <linux/uaccess.h>
+-#include <linux/security.h>
+-
+-#define DEVMEM_MINOR	1
+-#define DEVPORT_MINOR	4
+-
+-static inline unsigned long size_inside_page(unsigned long start,
+-					     unsigned long size)
+-{
+-	unsigned long sz;
+-
+-	sz = PAGE_SIZE - (start & (PAGE_SIZE - 1));
+-
+-	return min(sz, size);
+-}
+-
+-#ifndef ARCH_HAS_VALID_PHYS_ADDR_RANGE
+-static inline int valid_phys_addr_range(phys_addr_t addr, size_t count)
+-{
+-	return addr + count <= __pa(high_memory);
+-}
+-
+-static inline int valid_mmap_phys_addr_range(unsigned long pfn, size_t size)
+-{
+-	return 1;
+-}
+-#endif
+-
+-#ifdef CONFIG_STRICT_DEVMEM
+-static inline int page_is_allowed(unsigned long pfn)
+-{
+-	return devmem_is_allowed(pfn);
+-}
+-#else
+-static inline int page_is_allowed(unsigned long pfn)
+-{
+-	return 1;
+-}
+-#endif
+-
+-static inline bool should_stop_iteration(void)
+-{
+-	if (need_resched())
+-		cond_resched();
+-	return signal_pending(current);
+-}
+-
+-/*
+- * This funcion reads the *physical* memory. The f_pos points directly to the
+- * memory location.
+- */
+-static ssize_t read_mem(struct file *file, char __user *buf,
+-			size_t count, loff_t *ppos)
+-{
+-	phys_addr_t p = *ppos;
+-	ssize_t read, sz;
+-	void *ptr;
+-	char *bounce;
+-	int err;
+-
+-	if (p != *ppos)
+-		return 0;
+-
+-	if (!valid_phys_addr_range(p, count))
+-		return -EFAULT;
+-	read = 0;
+-#ifdef __ARCH_HAS_NO_PAGE_ZERO_MAPPED
+-	/* we don't have page 0 mapped on sparc and m68k.. */
+-	if (p < PAGE_SIZE) {
+-		sz = size_inside_page(p, count);
+-		if (sz > 0) {
+-			if (clear_user(buf, sz))
+-				return -EFAULT;
+-			buf += sz;
+-			p += sz;
+-			count -= sz;
+-			read += sz;
+-		}
+-	}
+-#endif
+-
+-	bounce = kmalloc(PAGE_SIZE, GFP_KERNEL);
+-	if (!bounce)
+-		return -ENOMEM;
+-
+-	while (count > 0) {
+-		unsigned long remaining;
+-		int allowed, probe;
+-
+-		sz = size_inside_page(p, count);
+-
+-		err = -EPERM;
+-		allowed = page_is_allowed(p >> PAGE_SHIFT);
+-		if (!allowed)
+-			goto failed;
+-
+-		err = -EFAULT;
+-		if (allowed == 2) {
+-			/* Show zeros for restricted memory. */
+-			remaining = clear_user(buf, sz);
+-		} else {
+-			/*
+-			 * On ia64 if a page has been mapped somewhere as
+-			 * uncached, then it must also be accessed uncached
+-			 * by the kernel or data corruption may occur.
+-			 */
+-			ptr = xlate_dev_mem_ptr(p);
+-			if (!ptr)
+-				goto failed;
+-
+-			probe = copy_from_kernel_nofault(bounce, ptr, sz);
+-			unxlate_dev_mem_ptr(p, ptr);
+-			if (probe)
+-				goto failed;
+-
+-			remaining = copy_to_user(buf, bounce, sz);
+-		}
+-
+-		if (remaining)
+-			goto failed;
+-
+-		buf += sz;
+-		p += sz;
+-		count -= sz;
+-		read += sz;
+-		if (should_stop_iteration())
+-			break;
+-	}
+-	kfree(bounce);
+-
+-	*ppos += read;
+-	return read;
+-
+-failed:
+-	kfree(bounce);
+-	return err;
+-}
+-
+-static ssize_t write_mem(struct file *file, const char __user *buf,
+-			 size_t count, loff_t *ppos)
+-{
+-	phys_addr_t p = *ppos;
+-	ssize_t written, sz;
+-	unsigned long copied;
+-	void *ptr;
+-
+-	if (p != *ppos)
+-		return -EFBIG;
+-
+-	if (!valid_phys_addr_range(p, count))
+-		return -EFAULT;
+-
+-	written = 0;
+-
+-#ifdef __ARCH_HAS_NO_PAGE_ZERO_MAPPED
+-	/* we don't have page 0 mapped on sparc and m68k.. */
+-	if (p < PAGE_SIZE) {
+-		sz = size_inside_page(p, count);
+-		/* Hmm. Do something? */
+-		buf += sz;
+-		p += sz;
+-		count -= sz;
+-		written += sz;
+-	}
+-#endif
+-
+-	while (count > 0) {
+-		int allowed;
+-
+-		sz = size_inside_page(p, count);
+-
+-		allowed = page_is_allowed(p >> PAGE_SHIFT);
+-		if (!allowed)
+-			return -EPERM;
+-
+-		/* Skip actual writing when a page is marked as restricted. */
+-		if (allowed == 1) {
+-			/*
+-			 * On ia64 if a page has been mapped somewhere as
+-			 * uncached, then it must also be accessed uncached
+-			 * by the kernel or data corruption may occur.
+-			 */
+-			ptr = xlate_dev_mem_ptr(p);
+-			if (!ptr) {
+-				if (written)
+-					break;
+-				return -EFAULT;
+-			}
+-
+-			copied = copy_from_user(ptr, buf, sz);
+-			unxlate_dev_mem_ptr(p, ptr);
+-			if (copied) {
+-				written += sz - copied;
+-				if (written)
+-					break;
+-				return -EFAULT;
+-			}
+-		}
+-
+-		buf += sz;
+-		p += sz;
+-		count -= sz;
+-		written += sz;
+-		if (should_stop_iteration())
+-			break;
+-	}
+-
+-	*ppos += written;
+-	return written;
+-}
+-
+-int __weak phys_mem_access_prot_allowed(struct file *file,
+-	unsigned long pfn, unsigned long size, pgprot_t *vma_prot)
+-{
+-	return 1;
+-}
+-
+-#ifndef __HAVE_PHYS_MEM_ACCESS_PROT
+-
+-/*
+- * Architectures vary in how they handle caching for addresses
+- * outside of main memory.
+- *
+- */
+-#ifdef pgprot_noncached
+-static int uncached_access(struct file *file, phys_addr_t addr)
+-{
+-	/*
+-	 * Accessing memory above the top the kernel knows about or through a
+-	 * file pointer
+-	 * that was marked O_DSYNC will be done non-cached.
+-	 */
+-	if (file->f_flags & O_DSYNC)
+-		return 1;
+-	return addr >= __pa(high_memory);
+-}
+-#endif
+-
+-static pgprot_t phys_mem_access_prot(struct file *file, unsigned long pfn,
+-				     unsigned long size, pgprot_t vma_prot)
+-{
+-#ifdef pgprot_noncached
+-	phys_addr_t offset = pfn << PAGE_SHIFT;
+-
+-	if (uncached_access(file, offset))
+-		return pgprot_noncached(vma_prot);
+-#endif
+-	return vma_prot;
+-}
+-#endif
+-
+-#ifndef CONFIG_MMU
+-static unsigned long get_unmapped_area_mem(struct file *file,
+-					   unsigned long addr,
+-					   unsigned long len,
+-					   unsigned long pgoff,
+-					   unsigned long flags)
+-{
+-	if (!valid_mmap_phys_addr_range(pgoff, len))
+-		return (unsigned long) -EINVAL;
+-	return pgoff << PAGE_SHIFT;
+-}
+-
+-/* permit direct mmap, for read, write or exec */
+-static unsigned memory_mmap_capabilities(struct file *file)
+-{
+-	return NOMMU_MAP_DIRECT |
+-		NOMMU_MAP_READ | NOMMU_MAP_WRITE | NOMMU_MAP_EXEC;
+-}
+-
+-static unsigned zero_mmap_capabilities(struct file *file)
+-{
+-	return NOMMU_MAP_COPY;
+-}
+-
+-/* can't do an in-place private mapping if there's no MMU */
+-static inline int private_mapping_ok(struct vm_area_desc *desc)
+-{
+-	return is_nommu_shared_vma_flags(&desc->vma_flags);
+-}
+-#else
+-
+-static inline int private_mapping_ok(struct vm_area_desc *desc)
+-{
+-	return 1;
+-}
+-#endif
+-
+-static const struct vm_operations_struct mmap_mem_ops = {
+-#ifdef CONFIG_HAVE_IOREMAP_PROT
+-	.access = generic_access_phys
+-#endif
+-};
+-
+-static int mmap_mem_prepare(struct vm_area_desc *desc)
+-{
+-	struct file *file = desc->file;
+-	const size_t size = vma_desc_size(desc);
+-	const phys_addr_t offset = (phys_addr_t)desc->pgoff << PAGE_SHIFT;
+-
+-	/* Does it even fit in phys_addr_t? */
+-	if (offset >> PAGE_SHIFT != desc->pgoff)
+-		return -EINVAL;
+-
+-	/* It's illegal to wrap around the end of the physical address space. */
+-	if (offset + (phys_addr_t)size - 1 < offset)
+-		return -EINVAL;
+-
+-	if (!valid_mmap_phys_addr_range(desc->pgoff, size))
+-		return -EINVAL;
+-
+-	if (!private_mapping_ok(desc))
+-		return -ENOSYS;
+-
+-	if (!range_is_allowed(desc->pgoff, size))
+-		return -EPERM;
+-
+-	if (!phys_mem_access_prot_allowed(file, desc->pgoff, size,
+-					  &desc->page_prot))
+-		return -EINVAL;
+-
+-	desc->page_prot = phys_mem_access_prot(file, desc->pgoff,
+-					       size,
+-					       desc->page_prot);
+-
+-	desc->vm_ops = &mmap_mem_ops;
+-
+-	/* Remap-pfn-range will mark the range with the I/O flag. */
+-	mmap_action_remap_full(desc, desc->pgoff);
+-	desc->action.error_override = -EAGAIN;
+-
+-	return 0;
+-}
+-
+-#ifdef CONFIG_DEVPORT
+-static ssize_t read_port(struct file *file, char __user *buf,
+-			 size_t count, loff_t *ppos)
+-{
+-	unsigned long i = *ppos;
+-	char __user *tmp = buf;
+-
+-	if (!access_ok(buf, count))
+-		return -EFAULT;
+-	while (count-- > 0 && i < 65536) {
+-		if (__put_user(inb(i), tmp) < 0)
+-			return -EFAULT;
+-		i++;
+-		tmp++;
+-	}
+-	*ppos = i;
+-	return tmp-buf;
+-}
+-
+-static ssize_t write_port(struct file *file, const char __user *buf,
+-			  size_t count, loff_t *ppos)
+-{
+-	unsigned long i = *ppos;
+-	const char __user *tmp = buf;
+-
+-	if (!access_ok(buf, count))
+-		return -EFAULT;
+-	while (count-- > 0 && i < 65536) {
+-		char c;
+-
+-		if (__get_user(c, tmp)) {
+-			if (tmp > buf)
+-				break;
+-			return -EFAULT;
+-		}
+-		outb(c, i);
+-		i++;
+-		tmp++;
+-	}
+-	*ppos = i;
+-	return tmp-buf;
+-}
+-#endif
+-
+-static ssize_t read_null(struct file *file, char __user *buf,
+-			 size_t count, loff_t *ppos)
+-{
+-	return 0;
+-}
+-
+-static ssize_t write_null(struct file *file, const char __user *buf,
+-			  size_t count, loff_t *ppos)
+-{
+-	return count;
+-}
+-
+-static ssize_t read_iter_null(struct kiocb *iocb, struct iov_iter *to)
+-{
+-	return 0;
+-}
+-
+-static ssize_t write_iter_null(struct kiocb *iocb, struct iov_iter *from)
+-{
+-	size_t count = iov_iter_count(from);
+-	iov_iter_advance(from, count);
+-	return count;
+-}
+-
+-static int pipe_to_null(struct pipe_inode_info *info, struct pipe_buffer *buf,
+-			struct splice_desc *sd)
+-{
+-	return sd->len;
+-}
+-
+-static ssize_t splice_write_null(struct pipe_inode_info *pipe, struct file *out,
+-				 loff_t *ppos, size_t len, unsigned int flags)
+-{
+-	return splice_from_pipe(pipe, out, ppos, len, flags, pipe_to_null);
+-}
+-
+-static int uring_cmd_null(struct io_uring_cmd *ioucmd, unsigned int issue_flags)
+-{
+-	return 0;
+-}
+-
+-static ssize_t read_iter_zero(struct kiocb *iocb, struct iov_iter *iter)
+-{
+-	size_t written = 0;
+-
+-	while (iov_iter_count(iter)) {
+-		size_t chunk = iov_iter_count(iter), n;
+-
+-		if (chunk > PAGE_SIZE)
+-			chunk = PAGE_SIZE;	/* Just for latency reasons */
+-		n = iov_iter_zero(chunk, iter);
+-		if (!n && iov_iter_count(iter))
+-			return written ? written : -EFAULT;
+-		written += n;
+-		if (signal_pending(current))
+-			return written ? written : -ERESTARTSYS;
+-		if (!need_resched())
+-			continue;
+-		if (iocb->ki_flags & IOCB_NOWAIT)
+-			return written ? written : -EAGAIN;
+-		cond_resched();
+-	}
+-	return written;
+-}
+-
+-static ssize_t read_zero(struct file *file, char __user *buf,
+-			 size_t count, loff_t *ppos)
+-{
+-	size_t cleared = 0;
+-
+-	while (count) {
+-		size_t chunk = min_t(size_t, count, PAGE_SIZE);
+-		size_t left;
+-
+-		left = clear_user(buf + cleared, chunk);
+-		if (unlikely(left)) {
+-			cleared += (chunk - left);
+-			if (!cleared)
+-				return -EFAULT;
+-			break;
+-		}
+-		cleared += chunk;
+-		count -= chunk;
+-
+-		if (signal_pending(current))
+-			break;
+-		cond_resched();
+-	}
+-
+-	return cleared;
+-}
+-
+-static int mmap_zero_prepare(struct vm_area_desc *desc)
+-{
+-#ifndef CONFIG_MMU
+-	return -ENOSYS;
+-#endif
+-	if (vma_desc_test(desc, VMA_SHARED_BIT))
+-		return shmem_zero_setup_desc(desc);
+-
+-	/*
+-	 * This is a highly unique situation where we mark a MAP_PRIVATE mapping
+-	 * of /dev/zero anonymous, despite it not being.
+-	 */
+-	vma_desc_set_anonymous(desc);
+-	return 0;
+-}
+-
+-#ifndef CONFIG_MMU
+-static unsigned long get_unmapped_area_zero(struct file *file,
+-				unsigned long addr, unsigned long len,
+-				unsigned long pgoff, unsigned long flags)
+-{
+-	return -ENOSYS;
+-}
+-#else
+-static unsigned long get_unmapped_area_zero(struct file *file,
+-				unsigned long addr, unsigned long len,
+-				unsigned long pgoff, unsigned long flags)
+-{
+-	if (flags & MAP_SHARED) {
+-		/*
+-		 * mmap_zero_prepare() will call shmem_zero_setup() to create a
+-		 * file, so use shmem's get_unmapped_area in case it can be
+-		 * huge; and pass NULL for file as in mmap.c's
+-		 * get_unmapped_area(), so as not to confuse shmem with our
+-		 * handle on "/dev/zero".
+-		 */
+-		return shmem_get_unmapped_area(NULL, addr, len, pgoff, flags);
+-	}
+-
+-	/*
+-	 * Otherwise flags & MAP_PRIVATE: with no shmem object beneath it,
+-	 * attempt to map aligned to huge page size if possible, otherwise we
+-	 * fall back to system page size mappings.
+-	 */
+-#ifdef CONFIG_TRANSPARENT_HUGEPAGE
+-	return thp_get_unmapped_area(file, addr, len, pgoff, flags);
+-#else
+-	return mm_get_unmapped_area(file, addr, len, pgoff, flags);
+-#endif
+-}
+-#endif /* CONFIG_MMU */
+-
+-static ssize_t write_full(struct file *file, const char __user *buf,
+-			  size_t count, loff_t *ppos)
+-{
+-	return -ENOSPC;
+-}
+-
+-/*
+- * Special lseek() function for /dev/null and /dev/zero.  Most notably, you
+- * can fopen() both devices with "a" now.  This was previously impossible.
+- * -- SRB.
+- */
+-static loff_t null_lseek(struct file *file, loff_t offset, int orig)
+-{
+-	return file->f_pos = 0;
+-}
+-
+-/*
+- * The memory devices use the full 32/64 bits of the offset, and so we cannot
+- * check against negative addresses: they are ok. The return value is weird,
+- * though, in that case (0).
+- *
+- * also note that seeking relative to the "end of file" isn't supported:
+- * it has no meaning, so it returns -EINVAL.
+- */
+-static loff_t memory_lseek(struct file *file, loff_t offset, int orig)
+-{
+-	loff_t ret;
+-
+-	inode_lock(file_inode(file));
+-	switch (orig) {
+-	case SEEK_CUR:
+-		offset += file->f_pos;
+-		fallthrough;
+-	case SEEK_SET:
+-		/* to avoid userland mistaking f_pos=-9 as -EBADF=-9 */
+-		if ((unsigned long long)offset >= -MAX_ERRNO) {
+-			ret = -EOVERFLOW;
+-			break;
+-		}
+-		file->f_pos = offset;
+-		ret = file->f_pos;
+-		force_successful_syscall_return();
+-		break;
+-	default:
+-		ret = -EINVAL;
+-	}
+-	inode_unlock(file_inode(file));
+-	return ret;
+-}
+-
+-static int open_port(struct inode *inode, struct file *filp)
+-{
+-	int rc;
+-
+-	if (!capable(CAP_SYS_RAWIO))
+-		return -EPERM;
+-
+-	rc = security_locked_down(LOCKDOWN_DEV_MEM);
+-	if (rc)
+-		return rc;
+-
+-	if (iminor(inode) != DEVMEM_MINOR)
+-		return 0;
+-
+-	/*
+-	 * Use a unified address space to have a single point to manage
+-	 * revocations when drivers want to take over a /dev/mem mapped
+-	 * range.
+-	 */
+-	filp->f_mapping = iomem_get_mapping();
+-
+-	return 0;
+-}
+-
+-#define zero_lseek	null_lseek
+-#define full_lseek      null_lseek
+-#define write_zero	write_null
+-#define write_iter_zero	write_iter_null
+-#define splice_write_zero	splice_write_null
+-#define open_mem	open_port
+-
+-static const struct file_operations __maybe_unused mem_fops = {
+-	.llseek		= memory_lseek,
+-	.read		= read_mem,
+-	.write		= write_mem,
+-	.mmap_prepare	= mmap_mem_prepare,
+-	.open		= open_mem,
+-#ifndef CONFIG_MMU
+-	.get_unmapped_area = get_unmapped_area_mem,
+-	.mmap_capabilities = memory_mmap_capabilities,
+-#endif
+-	.fop_flags	= FOP_UNSIGNED_OFFSET,
+-};
+-
+-static const struct file_operations null_fops = {
+-	.llseek		= null_lseek,
+-	.read		= read_null,
+-	.write		= write_null,
+-	.read_iter	= read_iter_null,
+-	.write_iter	= write_iter_null,
+-	.splice_write	= splice_write_null,
+-	.uring_cmd	= uring_cmd_null,
+-};
+-
+-#ifdef CONFIG_DEVPORT
+-static const struct file_operations port_fops = {
+-	.llseek		= memory_lseek,
+-	.read		= read_port,
+-	.write		= write_port,
+-	.open		= open_port,
+-};
+-#endif
+-
+-static const struct file_operations zero_fops = {
+-	.llseek		= zero_lseek,
+-	.write		= write_zero,
+-	.read_iter	= read_iter_zero,
+-	.read		= read_zero,
+-	.write_iter	= write_iter_zero,
+-	.splice_read	= copy_splice_read,
+-	.splice_write	= splice_write_zero,
+-	.mmap_prepare	= mmap_zero_prepare,
+-	.get_unmapped_area = get_unmapped_area_zero,
+-#ifndef CONFIG_MMU
+-	.mmap_capabilities = zero_mmap_capabilities,
+-#endif
+-};
+-
+-static const struct file_operations full_fops = {
+-	.llseek		= full_lseek,
+-	.read_iter	= read_iter_zero,
+-	.write		= write_full,
+-	.splice_read	= copy_splice_read,
+-};
+-
+-static const struct memdev {
+-	const char *name;
+-	const struct file_operations *fops;
+-	fmode_t fmode;
+-	umode_t mode;
+-} devlist[] = {
+-#ifdef CONFIG_DEVMEM
+-	[DEVMEM_MINOR] = { "mem", &mem_fops, 0, 0 },
+-#endif
+-	[3] = { "null", &null_fops, FMODE_NOWAIT, 0666 },
+-#ifdef CONFIG_DEVPORT
+-	[4] = { "port", &port_fops, 0, 0 },
+-#endif
+-	[5] = { "zero", &zero_fops, FMODE_NOWAIT, 0666 },
+-	[7] = { "full", &full_fops, 0, 0666 },
+-	[8] = { "random", &random_fops, FMODE_NOWAIT, 0666 },
+-	[9] = { "urandom", &urandom_fops, FMODE_NOWAIT, 0666 },
+-#ifdef CONFIG_PRINTK
+-	[11] = { "kmsg", &kmsg_fops, 0, 0644 },
+-#endif
+-};
+-
+-static int memory_open(struct inode *inode, struct file *filp)
+-{
+-	int minor;
+-	const struct memdev *dev;
+-
+-	minor = iminor(inode);
+-	if (minor >= ARRAY_SIZE(devlist))
+-		return -ENXIO;
+-
+-	dev = &devlist[minor];
+-	if (!dev->fops)
+-		return -ENXIO;
+-
+-	filp->f_op = dev->fops;
+-	filp->f_mode |= dev->fmode;
+-
+-	if (dev->fops->open)
+-		return dev->fops->open(inode, filp);
+-
+-	return 0;
+-}
+-
+-static const struct file_operations memory_fops = {
+-	.open = memory_open,
+-	.llseek = noop_llseek,
+-};
+-
+-static char *mem_devnode(const struct device *dev, umode_t *mode)
+-{
+-	if (mode && devlist[MINOR(dev->devt)].mode)
+-		*mode = devlist[MINOR(dev->devt)].mode;
+-	return NULL;
+-}
+-
+-static const struct class mem_class = {
+-	.name		= "mem",
+-	.devnode	= mem_devnode,
+-};
+-
+-static int __init chr_dev_init(void)
+-{
+-	int retval;
+-	int minor;
+-
+-	if (register_chrdev(MEM_MAJOR, "mem", &memory_fops))
+-		printk("unable to get major %d for memory devs\n", MEM_MAJOR);
+-
+-	retval = class_register(&mem_class);
+-	if (retval)
+-		return retval;
+-
+-	for (minor = 1; minor < ARRAY_SIZE(devlist); minor++) {
+-		if (!devlist[minor].name)
+-			continue;
+-
+-		/*
+-		 * Create /dev/port?
+-		 */
+-		if ((minor == DEVPORT_MINOR) && !arch_has_dev_port())
+-			continue;
+-
+-		device_create(&mem_class, NULL, MKDEV(MEM_MAJOR, minor),
+-			      NULL, devlist[minor].name);
+-	}
+-
+-	return tty_init();
+-}
+-
+-fs_initcall(chr_dev_init);
+--- a/MAINTAINERS~mm-move-drivers-char-memc-to-mm-char-memc
++++ a/MAINTAINERS
+@@ -17267,7 +17267,7 @@ F:	Documentation/ABI/testing/sysfs-kerne
+ F:	Documentation/ABI/testing/sysfs-kernel-mm-numa
+ F:	Documentation/admin-guide/mm/
+ F:	Documentation/mm/
+-F:	drivers/char/mem.c
++F:	mm/char-mem.c
+ F:	include/linux/cma.h
+ F:	include/linux/dmapool.h
+ F:	include/linux/ioremap.h
+@@ -17491,7 +17491,7 @@ L:	linux-mm@kvack.org
+ S:	Maintained
+ W:	http://www.linux-mm.org
+ T:	git git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+-F:	drivers/char/mem.c
++F:	mm/char-mem.c
+ F:	include/trace/events/mmap.h
+ F:	fs/proc/task_mmu.c
+ F:	fs/proc/task_nommu.c
+diff --git a/mm/char-mem.c a/mm/char-mem.c
+new file mode 100644
+--- /dev/null
++++ a/mm/char-mem.c
+@@ -0,0 +1,778 @@
++// SPDX-License-Identifier: GPL-2.0
++/*
++ *  mm/char-mem.c
++ *
++ *  Copyright (C) 1991, 1992  Linus Torvalds
++ *
++ *  Added devfs support.
++ *    Jan-11-1998, C. Scott Ananian <cananian@alumni.princeton.edu>
++ *  Shared /dev/zero mmapping support, Feb 2000, Kanoj Sarcar <kanoj@sgi.com>
++ */
++
++#include <linux/mm.h>
++#include <linux/miscdevice.h>
++#include <linux/slab.h>
++#include <linux/vmalloc.h>
++#include <linux/mman.h>
++#include <linux/random.h>
++#include <linux/init.h>
++#include <linux/tty.h>
++#include <linux/capability.h>
++#include <linux/ptrace.h>
++#include <linux/device.h>
++#include <linux/highmem.h>
++#include <linux/backing-dev.h>
++#include <linux/shmem_fs.h>
++#include <linux/splice.h>
++#include <linux/pfn.h>
++#include <linux/export.h>
++#include <linux/io.h>
++#include <linux/uio.h>
++#include <linux/uaccess.h>
++#include <linux/security.h>
++
++#define DEVMEM_MINOR	1
++#define DEVPORT_MINOR	4
++
++static inline unsigned long size_inside_page(unsigned long start,
++					     unsigned long size)
 +{
-+	struct procmap_fd *procmap = &self->procmap;
-+	unsigned int page_size = self->page_size;
-+	char *carveout = self->carveout;
-+	char *ptr, *ptr2;
-+	int fd_zero;
++	unsigned long sz;
 +
-+	if (access("/dev/zero", F_OK))
-+		SKIP(return, "No /dev/zero.");
-+	fd_zero = open("/dev/zero", O_RDWR);
-+	ASSERT_NE(fd_zero, -1);
++	sz = PAGE_SIZE - (start & (PAGE_SIZE - 1));
 +
-+	/*
-+	 * Map two MAP_PRIVATE-/dev/zero VMAs next to one another with offset 0
-+	 * each.
-+	 *
-+	 * With these being made truly anonymous upon mapping, they will
-+	 * merge. If they were file-backed VMAs the page offsets would prevent
-+	 * the merge:
-+	 *
-+	 * |-----||------|    |-------------|
-+	 * | ptr || ptr2 | -> |     ptr     |
-+	 * |-----||------|    |-------------|
-+	 */
-+	ptr = mmap(carveout, 5 * page_size, PROT_READ | PROT_WRITE,
-+		   MAP_FIXED | MAP_PRIVATE, fd_zero, 0);
-+	ptr2 = mmap(&carveout[5 * page_size], 5 * page_size,
-+		   PROT_READ | PROT_WRITE, MAP_FIXED | MAP_PRIVATE, fd_zero, 0);
-+	close(fd_zero);
-+	ASSERT_NE(ptr, MAP_FAILED);
-+	ASSERT_NE(ptr2, MAP_FAILED);
-+
-+	/* Assert that they merged. */
-+	ASSERT_TRUE(find_vma_procmap(procmap, ptr));
-+	ASSERT_EQ(procmap->query.vma_start, (unsigned long)ptr);
-+	ASSERT_EQ(procmap->query.vma_end, (unsigned long)ptr + 10 * page_size);
++	return min(sz, size);
 +}
 +
-+TEST_F(merge, merge_map_private_dev_zero_faulted_unfaulted)
++#ifndef ARCH_HAS_VALID_PHYS_ADDR_RANGE
++static inline int valid_phys_addr_range(phys_addr_t addr, size_t count)
 +{
-+	struct procmap_fd *procmap = &self->procmap;
-+	unsigned int page_size = self->page_size;
-+	char *carveout = self->carveout;
-+	char *ptr, *ptr2;
-+	int fd_zero;
-+
-+	if (access("/dev/zero", F_OK))
-+		SKIP(return, "No /dev/zero.");
-+	fd_zero = open("/dev/zero", O_RDWR);
-+	ASSERT_NE(fd_zero, -1);
-+
-+	/*
-+	 * Map a MAP_PRIVATE mapping of /dev/zero with page offset 0, then fault
-+	 * it in:
-+	 *
-+	 * |-------------------------------|
-+	 * |           faulted             |
-+	 * |-------------------------------|
-+	 */
-+	ptr = mmap(carveout, 15 * page_size, PROT_READ | PROT_WRITE,
-+		   MAP_FIXED | MAP_PRIVATE, fd_zero, 0);
-+	ASSERT_NE(ptr, MAP_FAILED);
-+	memset(ptr, 'x', 15 * page_size);
-+
-+	/*
-+	 * Unmap the middle:
-+	 *
-+	 * |---------|           |---------|
-+	 * | faulted |           | faulted |
-+	 * |---------|           |---------|
-+	 */
-+	ASSERT_EQ(munmap(&ptr[5 * page_size], 5 * page_size), 0);
-+
-+	/*
-+	 * Map in a new unfaulted mapping in the middle with page offset 0 -
-+	 * this should merge and would not if it were treated as a file rather
-+	 * than pure anon:
-+	 *
-+	 * |---------|-----------|---------|
-+	 * | faulted | unfaulted | faulted |
-+	 * |---------|-----------|---------|
-+	 */
-+	ptr2 = mmap(&carveout[5 * page_size], 5 * page_size,
-+		    PROT_READ | PROT_WRITE, MAP_FIXED | MAP_PRIVATE,
-+		    fd_zero, 0);
-+	close(fd_zero);
-+	ASSERT_NE(ptr2, MAP_FAILED);
-+
-+	/* Assert that they merged. */
-+	ASSERT_TRUE(find_vma_procmap(procmap, ptr));
-+	ASSERT_EQ(procmap->query.vma_start, (unsigned long)ptr);
-+	ASSERT_EQ(procmap->query.vma_end, (unsigned long)ptr + 15 * page_size);
++	return addr + count <= __pa(high_memory);
 +}
 +
- TEST_F(merge_with_fork, mremap_faulted_to_unfaulted_prev)
- {
- 	struct procmap_fd *procmap = &self->procmap;
++static inline int valid_mmap_phys_addr_range(unsigned long pfn, size_t size)
++{
++	return 1;
++}
++#endif
++
++#ifdef CONFIG_STRICT_DEVMEM
++static inline int page_is_allowed(unsigned long pfn)
++{
++	return devmem_is_allowed(pfn);
++}
++#else
++static inline int page_is_allowed(unsigned long pfn)
++{
++	return 1;
++}
++#endif
++
++static inline bool should_stop_iteration(void)
++{
++	if (need_resched())
++		cond_resched();
++	return signal_pending(current);
++}
++
++/*
++ * This funcion reads the *physical* memory. The f_pos points directly to the
++ * memory location.
++ */
++static ssize_t read_mem(struct file *file, char __user *buf,
++			size_t count, loff_t *ppos)
++{
++	phys_addr_t p = *ppos;
++	ssize_t read, sz;
++	void *ptr;
++	char *bounce;
++	int err;
++
++	if (p != *ppos)
++		return 0;
++
++	if (!valid_phys_addr_range(p, count))
++		return -EFAULT;
++	read = 0;
++#ifdef __ARCH_HAS_NO_PAGE_ZERO_MAPPED
++	/* we don't have page 0 mapped on sparc and m68k.. */
++	if (p < PAGE_SIZE) {
++		sz = size_inside_page(p, count);
++		if (sz > 0) {
++			if (clear_user(buf, sz))
++				return -EFAULT;
++			buf += sz;
++			p += sz;
++			count -= sz;
++			read += sz;
++		}
++	}
++#endif
++
++	bounce = kmalloc(PAGE_SIZE, GFP_KERNEL);
++	if (!bounce)
++		return -ENOMEM;
++
++	while (count > 0) {
++		unsigned long remaining;
++		int allowed, probe;
++
++		sz = size_inside_page(p, count);
++
++		err = -EPERM;
++		allowed = page_is_allowed(p >> PAGE_SHIFT);
++		if (!allowed)
++			goto failed;
++
++		err = -EFAULT;
++		if (allowed == 2) {
++			/* Show zeros for restricted memory. */
++			remaining = clear_user(buf, sz);
++		} else {
++			/*
++			 * On ia64 if a page has been mapped somewhere as
++			 * uncached, then it must also be accessed uncached
++			 * by the kernel or data corruption may occur.
++			 */
++			ptr = xlate_dev_mem_ptr(p);
++			if (!ptr)
++				goto failed;
++
++			probe = copy_from_kernel_nofault(bounce, ptr, sz);
++			unxlate_dev_mem_ptr(p, ptr);
++			if (probe)
++				goto failed;
++
++			remaining = copy_to_user(buf, bounce, sz);
++		}
++
++		if (remaining)
++			goto failed;
++
++		buf += sz;
++		p += sz;
++		count -= sz;
++		read += sz;
++		if (should_stop_iteration())
++			break;
++	}
++	kfree(bounce);
++
++	*ppos += read;
++	return read;
++
++failed:
++	kfree(bounce);
++	return err;
++}
++
++static ssize_t write_mem(struct file *file, const char __user *buf,
++			 size_t count, loff_t *ppos)
++{
++	phys_addr_t p = *ppos;
++	ssize_t written, sz;
++	unsigned long copied;
++	void *ptr;
++
++	if (p != *ppos)
++		return -EFBIG;
++
++	if (!valid_phys_addr_range(p, count))
++		return -EFAULT;
++
++	written = 0;
++
++#ifdef __ARCH_HAS_NO_PAGE_ZERO_MAPPED
++	/* we don't have page 0 mapped on sparc and m68k.. */
++	if (p < PAGE_SIZE) {
++		sz = size_inside_page(p, count);
++		/* Hmm. Do something? */
++		buf += sz;
++		p += sz;
++		count -= sz;
++		written += sz;
++	}
++#endif
++
++	while (count > 0) {
++		int allowed;
++
++		sz = size_inside_page(p, count);
++
++		allowed = page_is_allowed(p >> PAGE_SHIFT);
++		if (!allowed)
++			return -EPERM;
++
++		/* Skip actual writing when a page is marked as restricted. */
++		if (allowed == 1) {
++			/*
++			 * On ia64 if a page has been mapped somewhere as
++			 * uncached, then it must also be accessed uncached
++			 * by the kernel or data corruption may occur.
++			 */
++			ptr = xlate_dev_mem_ptr(p);
++			if (!ptr) {
++				if (written)
++					break;
++				return -EFAULT;
++			}
++
++			copied = copy_from_user(ptr, buf, sz);
++			unxlate_dev_mem_ptr(p, ptr);
++			if (copied) {
++				written += sz - copied;
++				if (written)
++					break;
++				return -EFAULT;
++			}
++		}
++
++		buf += sz;
++		p += sz;
++		count -= sz;
++		written += sz;
++		if (should_stop_iteration())
++			break;
++	}
++
++	*ppos += written;
++	return written;
++}
++
++int __weak phys_mem_access_prot_allowed(struct file *file,
++	unsigned long pfn, unsigned long size, pgprot_t *vma_prot)
++{
++	return 1;
++}
++
++#ifndef __HAVE_PHYS_MEM_ACCESS_PROT
++
++/*
++ * Architectures vary in how they handle caching for addresses
++ * outside of main memory.
++ *
++ */
++#ifdef pgprot_noncached
++static int uncached_access(struct file *file, phys_addr_t addr)
++{
++	/*
++	 * Accessing memory above the top the kernel knows about or through a
++	 * file pointer
++	 * that was marked O_DSYNC will be done non-cached.
++	 */
++	if (file->f_flags & O_DSYNC)
++		return 1;
++	return addr >= __pa(high_memory);
++}
++#endif
++
++static pgprot_t phys_mem_access_prot(struct file *file, unsigned long pfn,
++				     unsigned long size, pgprot_t vma_prot)
++{
++#ifdef pgprot_noncached
++	phys_addr_t offset = pfn << PAGE_SHIFT;
++
++	if (uncached_access(file, offset))
++		return pgprot_noncached(vma_prot);
++#endif
++	return vma_prot;
++}
++#endif
++
++#ifndef CONFIG_MMU
++static unsigned long get_unmapped_area_mem(struct file *file,
++					   unsigned long addr,
++					   unsigned long len,
++					   unsigned long pgoff,
++					   unsigned long flags)
++{
++	if (!valid_mmap_phys_addr_range(pgoff, len))
++		return (unsigned long) -EINVAL;
++	return pgoff << PAGE_SHIFT;
++}
++
++/* permit direct mmap, for read, write or exec */
++static unsigned memory_mmap_capabilities(struct file *file)
++{
++	return NOMMU_MAP_DIRECT |
++		NOMMU_MAP_READ | NOMMU_MAP_WRITE | NOMMU_MAP_EXEC;
++}
++
++static unsigned zero_mmap_capabilities(struct file *file)
++{
++	return NOMMU_MAP_COPY;
++}
++
++/* can't do an in-place private mapping if there's no MMU */
++static inline int private_mapping_ok(struct vm_area_desc *desc)
++{
++	return is_nommu_shared_vma_flags(&desc->vma_flags);
++}
++#else
++
++static inline int private_mapping_ok(struct vm_area_desc *desc)
++{
++	return 1;
++}
++#endif
++
++static const struct vm_operations_struct mmap_mem_ops = {
++#ifdef CONFIG_HAVE_IOREMAP_PROT
++	.access = generic_access_phys
++#endif
++};
++
++static int mmap_mem_prepare(struct vm_area_desc *desc)
++{
++	struct file *file = desc->file;
++	const size_t size = vma_desc_size(desc);
++	const phys_addr_t offset = (phys_addr_t)desc->pgoff << PAGE_SHIFT;
++
++	/* Does it even fit in phys_addr_t? */
++	if (offset >> PAGE_SHIFT != desc->pgoff)
++		return -EINVAL;
++
++	/* It's illegal to wrap around the end of the physical address space. */
++	if (offset + (phys_addr_t)size - 1 < offset)
++		return -EINVAL;
++
++	if (!valid_mmap_phys_addr_range(desc->pgoff, size))
++		return -EINVAL;
++
++	if (!private_mapping_ok(desc))
++		return -ENOSYS;
++
++	if (!range_is_allowed(desc->pgoff, size))
++		return -EPERM;
++
++	if (!phys_mem_access_prot_allowed(file, desc->pgoff, size,
++					  &desc->page_prot))
++		return -EINVAL;
++
++	desc->page_prot = phys_mem_access_prot(file, desc->pgoff,
++					       size,
++					       desc->page_prot);
++
++	desc->vm_ops = &mmap_mem_ops;
++
++	/* Remap-pfn-range will mark the range with the I/O flag. */
++	mmap_action_remap_full(desc, desc->pgoff);
++	desc->action.error_override = -EAGAIN;
++
++	return 0;
++}
++
++#ifdef CONFIG_DEVPORT
++static ssize_t read_port(struct file *file, char __user *buf,
++			 size_t count, loff_t *ppos)
++{
++	unsigned long i = *ppos;
++	char __user *tmp = buf;
++
++	if (!access_ok(buf, count))
++		return -EFAULT;
++	while (count-- > 0 && i < 65536) {
++		if (__put_user(inb(i), tmp) < 0)
++			return -EFAULT;
++		i++;
++		tmp++;
++	}
++	*ppos = i;
++	return tmp-buf;
++}
++
++static ssize_t write_port(struct file *file, const char __user *buf,
++			  size_t count, loff_t *ppos)
++{
++	unsigned long i = *ppos;
++	const char __user *tmp = buf;
++
++	if (!access_ok(buf, count))
++		return -EFAULT;
++	while (count-- > 0 && i < 65536) {
++		char c;
++
++		if (__get_user(c, tmp)) {
++			if (tmp > buf)
++				break;
++			return -EFAULT;
++		}
++		outb(c, i);
++		i++;
++		tmp++;
++	}
++	*ppos = i;
++	return tmp-buf;
++}
++#endif
++
++static ssize_t read_null(struct file *file, char __user *buf,
++			 size_t count, loff_t *ppos)
++{
++	return 0;
++}
++
++static ssize_t write_null(struct file *file, const char __user *buf,
++			  size_t count, loff_t *ppos)
++{
++	return count;
++}
++
++static ssize_t read_iter_null(struct kiocb *iocb, struct iov_iter *to)
++{
++	return 0;
++}
++
++static ssize_t write_iter_null(struct kiocb *iocb, struct iov_iter *from)
++{
++	size_t count = iov_iter_count(from);
++	iov_iter_advance(from, count);
++	return count;
++}
++
++static int pipe_to_null(struct pipe_inode_info *info, struct pipe_buffer *buf,
++			struct splice_desc *sd)
++{
++	return sd->len;
++}
++
++static ssize_t splice_write_null(struct pipe_inode_info *pipe, struct file *out,
++				 loff_t *ppos, size_t len, unsigned int flags)
++{
++	return splice_from_pipe(pipe, out, ppos, len, flags, pipe_to_null);
++}
++
++static int uring_cmd_null(struct io_uring_cmd *ioucmd, unsigned int issue_flags)
++{
++	return 0;
++}
++
++static ssize_t read_iter_zero(struct kiocb *iocb, struct iov_iter *iter)
++{
++	size_t written = 0;
++
++	while (iov_iter_count(iter)) {
++		size_t chunk = iov_iter_count(iter), n;
++
++		if (chunk > PAGE_SIZE)
++			chunk = PAGE_SIZE;	/* Just for latency reasons */
++		n = iov_iter_zero(chunk, iter);
++		if (!n && iov_iter_count(iter))
++			return written ? written : -EFAULT;
++		written += n;
++		if (signal_pending(current))
++			return written ? written : -ERESTARTSYS;
++		if (!need_resched())
++			continue;
++		if (iocb->ki_flags & IOCB_NOWAIT)
++			return written ? written : -EAGAIN;
++		cond_resched();
++	}
++	return written;
++}
++
++static ssize_t read_zero(struct file *file, char __user *buf,
++			 size_t count, loff_t *ppos)
++{
++	size_t cleared = 0;
++
++	while (count) {
++		size_t chunk = min_t(size_t, count, PAGE_SIZE);
++		size_t left;
++
++		left = clear_user(buf + cleared, chunk);
++		if (unlikely(left)) {
++			cleared += (chunk - left);
++			if (!cleared)
++				return -EFAULT;
++			break;
++		}
++		cleared += chunk;
++		count -= chunk;
++
++		if (signal_pending(current))
++			break;
++		cond_resched();
++	}
++
++	return cleared;
++}
++
++static int mmap_zero_prepare(struct vm_area_desc *desc)
++{
++#ifndef CONFIG_MMU
++	return -ENOSYS;
++#endif
++	if (vma_desc_test(desc, VMA_SHARED_BIT))
++		return shmem_zero_setup_desc(desc);
++
++	/*
++	 * This is a highly unique situation where we mark a MAP_PRIVATE mapping
++	 * of /dev/zero anonymous, despite it not being.
++	 */
++	vma_desc_set_anonymous(desc);
++	return 0;
++}
++
++#ifndef CONFIG_MMU
++static unsigned long get_unmapped_area_zero(struct file *file,
++				unsigned long addr, unsigned long len,
++				unsigned long pgoff, unsigned long flags)
++{
++	return -ENOSYS;
++}
++#else
++static unsigned long get_unmapped_area_zero(struct file *file,
++				unsigned long addr, unsigned long len,
++				unsigned long pgoff, unsigned long flags)
++{
++	if (flags & MAP_SHARED) {
++		/*
++		 * mmap_zero_prepare() will call shmem_zero_setup() to create a
++		 * file, so use shmem's get_unmapped_area in case it can be
++		 * huge; and pass NULL for file as in mmap.c's
++		 * get_unmapped_area(), so as not to confuse shmem with our
++		 * handle on "/dev/zero".
++		 */
++		return shmem_get_unmapped_area(NULL, addr, len, pgoff, flags);
++	}
++
++	/*
++	 * Otherwise flags & MAP_PRIVATE: with no shmem object beneath it,
++	 * attempt to map aligned to huge page size if possible, otherwise we
++	 * fall back to system page size mappings.
++	 */
++#ifdef CONFIG_TRANSPARENT_HUGEPAGE
++	return thp_get_unmapped_area(file, addr, len, pgoff, flags);
++#else
++	return mm_get_unmapped_area(file, addr, len, pgoff, flags);
++#endif
++}
++#endif /* CONFIG_MMU */
++
++static ssize_t write_full(struct file *file, const char __user *buf,
++			  size_t count, loff_t *ppos)
++{
++	return -ENOSPC;
++}
++
++/*
++ * Special lseek() function for /dev/null and /dev/zero.  Most notably, you
++ * can fopen() both devices with "a" now.  This was previously impossible.
++ * -- SRB.
++ */
++static loff_t null_lseek(struct file *file, loff_t offset, int orig)
++{
++	return file->f_pos = 0;
++}
++
++/*
++ * The memory devices use the full 32/64 bits of the offset, and so we cannot
++ * check against negative addresses: they are ok. The return value is weird,
++ * though, in that case (0).
++ *
++ * also note that seeking relative to the "end of file" isn't supported:
++ * it has no meaning, so it returns -EINVAL.
++ */
++static loff_t memory_lseek(struct file *file, loff_t offset, int orig)
++{
++	loff_t ret;
++
++	inode_lock(file_inode(file));
++	switch (orig) {
++	case SEEK_CUR:
++		offset += file->f_pos;
++		fallthrough;
++	case SEEK_SET:
++		/* to avoid userland mistaking f_pos=-9 as -EBADF=-9 */
++		if ((unsigned long long)offset >= -MAX_ERRNO) {
++			ret = -EOVERFLOW;
++			break;
++		}
++		file->f_pos = offset;
++		ret = file->f_pos;
++		force_successful_syscall_return();
++		break;
++	default:
++		ret = -EINVAL;
++	}
++	inode_unlock(file_inode(file));
++	return ret;
++}
++
++static int open_port(struct inode *inode, struct file *filp)
++{
++	int rc;
++
++	if (!capable(CAP_SYS_RAWIO))
++		return -EPERM;
++
++	rc = security_locked_down(LOCKDOWN_DEV_MEM);
++	if (rc)
++		return rc;
++
++	if (iminor(inode) != DEVMEM_MINOR)
++		return 0;
++
++	/*
++	 * Use a unified address space to have a single point to manage
++	 * revocations when drivers want to take over a /dev/mem mapped
++	 * range.
++	 */
++	filp->f_mapping = iomem_get_mapping();
++
++	return 0;
++}
++
++#define zero_lseek	null_lseek
++#define full_lseek      null_lseek
++#define write_zero	write_null
++#define write_iter_zero	write_iter_null
++#define splice_write_zero	splice_write_null
++#define open_mem	open_port
++
++static const struct file_operations __maybe_unused mem_fops = {
++	.llseek		= memory_lseek,
++	.read		= read_mem,
++	.write		= write_mem,
++	.mmap_prepare	= mmap_mem_prepare,
++	.open		= open_mem,
++#ifndef CONFIG_MMU
++	.get_unmapped_area = get_unmapped_area_mem,
++	.mmap_capabilities = memory_mmap_capabilities,
++#endif
++	.fop_flags	= FOP_UNSIGNED_OFFSET,
++};
++
++static const struct file_operations null_fops = {
++	.llseek		= null_lseek,
++	.read		= read_null,
++	.write		= write_null,
++	.read_iter	= read_iter_null,
++	.write_iter	= write_iter_null,
++	.splice_write	= splice_write_null,
++	.uring_cmd	= uring_cmd_null,
++};
++
++#ifdef CONFIG_DEVPORT
++static const struct file_operations port_fops = {
++	.llseek		= memory_lseek,
++	.read		= read_port,
++	.write		= write_port,
++	.open		= open_port,
++};
++#endif
++
++static const struct file_operations zero_fops = {
++	.llseek		= zero_lseek,
++	.write		= write_zero,
++	.read_iter	= read_iter_zero,
++	.read		= read_zero,
++	.write_iter	= write_iter_zero,
++	.splice_read	= copy_splice_read,
++	.splice_write	= splice_write_zero,
++	.mmap_prepare	= mmap_zero_prepare,
++	.get_unmapped_area = get_unmapped_area_zero,
++#ifndef CONFIG_MMU
++	.mmap_capabilities = zero_mmap_capabilities,
++#endif
++};
++
++static const struct file_operations full_fops = {
++	.llseek		= full_lseek,
++	.read_iter	= read_iter_zero,
++	.write		= write_full,
++	.splice_read	= copy_splice_read,
++};
++
++static const struct memdev {
++	const char *name;
++	const struct file_operations *fops;
++	fmode_t fmode;
++	umode_t mode;
++} devlist[] = {
++#ifdef CONFIG_DEVMEM
++	[DEVMEM_MINOR] = { "mem", &mem_fops, 0, 0 },
++#endif
++	[3] = { "null", &null_fops, FMODE_NOWAIT, 0666 },
++#ifdef CONFIG_DEVPORT
++	[4] = { "port", &port_fops, 0, 0 },
++#endif
++	[5] = { "zero", &zero_fops, FMODE_NOWAIT, 0666 },
++	[7] = { "full", &full_fops, 0, 0666 },
++	[8] = { "random", &random_fops, FMODE_NOWAIT, 0666 },
++	[9] = { "urandom", &urandom_fops, FMODE_NOWAIT, 0666 },
++#ifdef CONFIG_PRINTK
++	[11] = { "kmsg", &kmsg_fops, 0, 0644 },
++#endif
++};
++
++static int memory_open(struct inode *inode, struct file *filp)
++{
++	int minor;
++	const struct memdev *dev;
++
++	minor = iminor(inode);
++	if (minor >= ARRAY_SIZE(devlist))
++		return -ENXIO;
++
++	dev = &devlist[minor];
++	if (!dev->fops)
++		return -ENXIO;
++
++	filp->f_op = dev->fops;
++	filp->f_mode |= dev->fmode;
++
++	if (dev->fops->open)
++		return dev->fops->open(inode, filp);
++
++	return 0;
++}
++
++static const struct file_operations memory_fops = {
++	.open = memory_open,
++	.llseek = noop_llseek,
++};
++
++static char *mem_devnode(const struct device *dev, umode_t *mode)
++{
++	if (mode && devlist[MINOR(dev->devt)].mode)
++		*mode = devlist[MINOR(dev->devt)].mode;
++	return NULL;
++}
++
++static const struct class mem_class = {
++	.name		= "mem",
++	.devnode	= mem_devnode,
++};
++
++static int __init chr_dev_init(void)
++{
++	int retval;
++	int minor;
++
++	if (register_chrdev(MEM_MAJOR, "mem", &memory_fops))
++		printk("unable to get major %d for memory devs\n", MEM_MAJOR);
++
++	retval = class_register(&mem_class);
++	if (retval)
++		return retval;
++
++	for (minor = 1; minor < ARRAY_SIZE(devlist); minor++) {
++		if (!devlist[minor].name)
++			continue;
++
++		/*
++		 * Create /dev/port?
++		 */
++		if ((minor == DEVPORT_MINOR) && !arch_has_dev_port())
++			continue;
++
++		device_create(&mem_class, NULL, MKDEV(MEM_MAJOR, minor),
++			      NULL, devlist[minor].name);
++	}
++
++	return tty_init();
++}
++
++fs_initcall(chr_dev_init);
+--- a/mm/Makefile~mm-move-drivers-char-memc-to-mm-char-memc
++++ a/mm/Makefile
+@@ -55,7 +55,8 @@ obj-y			:= filemap.o mempool.o oom_kill.
+ 			   mm_init.o percpu.o slab_common.o \
+ 			   compaction.o show_mem.o \
+ 			   interval_tree.o list_lru.o workingset.o \
+-			   debug.o gup.o mmap_lock.o vma_init.o $(mmu-y)
++			   debug.o gup.o mmap_lock.o vma_init.o char-mem.o \
++			   $(mmu-y)
+ 
+ # Give 'page_alloc' its own module-parameter namespace
+ page-alloc-y := page_alloc.o
+--- a/mm/shmem.c~mm-move-drivers-char-memc-to-mm-char-memc
++++ a/mm/shmem.c
+@@ -2984,7 +2984,7 @@ unsigned long shmem_get_unmapped_area(st
+ 			sb = file_inode(file)->i_sb;
+ 		} else {
+ 			/*
+-			 * Called directly from mm/mmap.c, or drivers/char/mem.c
++			 * Called directly from mm/mmap.c, or mm/char-mem.c
+ 			 * for "/dev/zero", to create a shared anonymous object.
+ 			 */
+ 			if (IS_ERR(shm_mnt))
 _
 
 Patches currently in -mm which might be from ljs@kernel.org are
@@ -190,6 +1732,12 @@ mm-mremap-fix-locked_vm-leak-from-mremap_dontunmap-self-merge.patch
 mm-mremap-fix-locked_vm-leak-by-splitting-vma-for-mremap_dontunmap.patch
 mm-vmpressure-remove-window-size-todo.patch
 tools-testing-selftests-mm-add-missing-gitignore-entries.patch
+mm-move-drivers-char-memc-to-mm-char-memc.patch
+mm-implement-file_is_dev_zero-to-uniquely-identify-dev-zero.patch
+mm-vma-only-permit-map_private-dev-zero-to-be-mapped-anonymous.patch
+mm-vma-make-map_private-mapped-dev-zero-mappings-truly-anonymous.patch
+tools-testing-vma-add-test-to-assert-map_private-dev-zero-is-anon.patch
+tools-testing-selftests-mm-add-map_private-dev-zero-merge-tests.patch
 mm-madvise-swap-in-cowd-map_private-file-mappings-on-madv_willneed.patch
 mm-khugepaged-deposit-a-newly-allocated-page-table-on-collapse.patch
 mm-enable-mmu_gather_rcu_table_free-for-most-2-level-architectures.patch
