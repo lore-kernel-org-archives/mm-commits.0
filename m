@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DBFC44EBAEF
-	for <mm-commits@vger.kernel.org>; Mon, 28 Sep 2026 21:50:56 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A75FE4EBAE6
+	for <mm-commits@vger.kernel.org>; Mon, 28 Sep 2026 21:50:58 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790632258; cv=none; b=Qbyo0UWiyXZpyEphEdOo7AAOj6Oh2tjuIF/Oj2D/2jl7j3dkXLWO8b+TTxISWfaZ2EJpw1j7bvcHCGtPuVD6CramsJ9jIxMDqVHVAyDNonXqA8HU++wYQkV8XSbE9tEL3oBOJjJqCIznxpi0x5Bz6OrhkGjtF7+1kryL7SgejG8=
+	t=1790632260; cv=none; b=d1Ict3cMfJ6yXWFiAnDUNdHQXsFIWXw9kUXq6zaCgI10CdzxjjMHIsG1YwZhZq8V4dlXv51J3xQLvhMCHnxqRr6yNk8NfrL+HW0wbGX+ol7pEAARXLGT9MGRIEMcdVTkV9eL2ln0HXLm4CIMdNo2ebbNNul66YLkPxr32C400XA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1790632258; c=relaxed/simple;
-	bh=pWbxChu9jJkzTPtjWc0RQvHNfEnFGRng3VHFMzQPC6o=;
-	h=Date:To:From:Subject:Message-Id; b=cz1s5BbMg1bjzbILLRJOMk3rrNhzBRwathlCl6Dodccdm1ovdJRv0SjZ66aQWEf02mpaXzNrCJCgGa7GhCHtHPf6eYDAov+B9mBmbzFQ//sN/D1Zrnte9y+YPoaR7doGVmYWJMCG7AwlBXWqLudmSHt6yCl2hrD7CyVColEGG80=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=BNqcsUTF; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1790632260; c=relaxed/simple;
+	bh=duFEQ5XNEn69ur2bgOjv5441+9ALfg23R6fVv0HXz14=;
+	h=Date:To:From:Subject:Message-Id; b=gpcErBkDMIU5F0d+r9d1YluIFW3mXOD6Qd8i/ZmtxobCPapo8JTHDIniK7zjXRpO97Olr4NhxWMOucNhI9Wz9gYb2AaYU9kXhjuAsojlWzvv03E8UwhP82p+eKv1+Ims+MOD6q8JgBkmbQKNzz+KfD5Ecu1Ba6jniAbMbDQU4H8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=H7nSr1pS; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="BNqcsUTF"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6A8691F00893;
-	Mon, 28 Sep 2026 21:50:56 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="H7nSr1pS"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E95AE1F000FF;
+	Mon, 28 Sep 2026 21:50:57 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1790632256;
-	bh=qlUnEQDyqbQapORVaIPomEZyCxGKEbRt4RuFlcXTkV8=;
+	d=linux-foundation.org; s=korg; t=1790632258;
+	bh=jmgBY6V+Zgk3nUcXGTIE3s9rGc8qq+Wf+Lx7t7gbB34=;
 	h=Date:To:From:Subject;
-	b=BNqcsUTFkTgXgBRdSW/tcrpmSTa26Jk+PIPpmUL2Q9e6yW3bsgDGY0Hf5FT69zRsk
-	 81M1cNDALJwyqqOBHjvYUWJ6VFJ1G+gQr3LUYj57epiNptkkVqoFd3zfzS5Quoa+tT
-	 wEmLXe1suoGuk3U24o/FkdZHQpCT5PnM7ecSy3Fg=
-Date: Mon, 28 Sep 2026 14:50:56 -0700
+	b=H7nSr1pSk5iy63XIk51OX/AfjyqYF58KOS665q5PAHsa4MEgPQSz2ZwsYBW5kI5Fg
+	 hjFnccYyn/ZGeY8N3RLb8g+l6/UjjP+mXwnpHB8VLSOSyemCizKmKILC/1zDILGR8U
+	 EVegfPMMe8dq8LZMKbTn3T7x0ISb88/JrLShJJTc=
+Date: Mon, 28 Sep 2026 14:50:57 -0700
 To: mm-commits@vger.kernel.org,kas@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [to-be-updated] mm-khugepaged-count-collapses-where-khugepaged-makes-them.patch removed from -mm tree
-Message-Id: <20260928215056.6A8691F00893@smtp.kernel.org>
+Subject: [to-be-updated] mm-khugepaged-rename-mthp_present_ptes-bitmap-to-eligible_ptes.patch removed from -mm tree
+Message-Id: <20260928215057.E95AE1F000FF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,25 +35,29 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/khugepaged: count collapses where khugepaged makes them
+     Subject: mm/khugepaged: rename mthp_present_ptes bitmap to eligible_ptes
 has been removed from the -mm tree.  Its filename was
-     mm-khugepaged-count-collapses-where-khugepaged-makes-them.patch
+     mm-khugepaged-rename-mthp_present_ptes-bitmap-to-eligible_ptes.patch
 
 This patch was dropped because an updated version will be issued
 
 ------------------------------------------------------
 From: "Kiryl Shutsemau (Meta)" <kas@kernel.org>
-Subject: mm/khugepaged: count collapses where khugepaged makes them
-Date: Wed, 16 Sep 2026 10:31:29 +0100
+Subject: mm/khugepaged: rename mthp_present_ptes bitmap to eligible_ptes
+Date: Wed, 16 Sep 2026 10:31:30 +0100
 
-collapse_single_pmd() bumps khugepaged_pages_collapsed for its caller, and
-tests cc->is_khugepaged to know whether it should: the counter belongs to
-the daemon, and MADV_COLLAPSE must not touch it.
+The name says less than the bit means.  A set bit means not only that the
+PTE is present, but also that it passed the other checks: uffd, lazyfree,
+anonymity, sharing.  The PTE can be considered a collapse source.
 
-The daemon sees every result of every collapse it asks for, so it can keep
-its own counter without the shared path testing who called.
+mthp_collapse() then reads the bitmap starting at the PMD order, so the
+bitmap is not specific to mTHP either.
 
-Link: https://lore.kernel.org/20260916093145.4022188-3-kirill@shutemov.name
+Name it for what a set bit means, and update the comments that named it.
+
+No functional change.
+
+Link: https://lore.kernel.org/20260916093145.4022188-4-kirill@shutemov.name
 Signed-off-by: Kiryl Shutsemau (Meta) <kas@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 Reviewed-by: Zi Yan <ziy@nvidia.com>
@@ -70,43 +74,96 @@ Cc: Ryan Roberts <ryan.roberts@arm.com>
 Cc: Vlastimil Babka <vbabka@kernel.org>
 ---
 
- mm/khugepaged.c |   11 ++++-------
- 1 file changed, 4 insertions(+), 7 deletions(-)
+ mm/khugepaged.c |   32 ++++++++++++++++----------------
+ 1 file changed, 16 insertions(+), 16 deletions(-)
 
---- a/mm/khugepaged.c~mm-khugepaged-count-collapses-where-khugepaged-makes-them
+--- a/mm/khugepaged.c~mm-khugepaged-rename-mthp_present_ptes-bitmap-to-eligible_ptes
 +++ a/mm/khugepaged.c
-@@ -2838,10 +2838,8 @@ static enum scan_result collapse_single_
+@@ -115,8 +115,8 @@ struct collapse_control {
+ 	/* nodemask for allocation fallback */
+ 	nodemask_t alloc_nmask;
  
- 	mmap_assert_locked(mm);
+-	/* Each bit represents a single occupied (!none/zero) page. */
+-	DECLARE_BITMAP(mthp_present_ptes, MAX_PTRS_PER_PTE);
++	/* Each bit marks a PTE the scan accepted as a collapse source */
++	DECLARE_BITMAP(eligible_ptes, MAX_PTRS_PER_PTE);
+ };
  
--	if (vma_is_anonymous(vma)) {
--		result = collapse_scan_pmd(mm, vma, addr, lock_dropped, cc);
--		goto end;
--	}
-+	if (vma_is_anonymous(vma))
-+		return collapse_scan_pmd(mm, vma, addr, lock_dropped, cc);
- 
- 	file = get_file(vma->vm_file);
- 	pgoff = linear_page_index(vma, addr);
-@@ -2877,9 +2875,6 @@ retry:
- 			result = SCAN_SUCCEED;
- 		mmap_read_unlock(mm);
- 	}
--end:
--	if (cc->is_khugepaged && result == SCAN_SUCCEED)
--		++khugepaged_pages_collapsed;
- 	return result;
+ /**
+@@ -627,7 +627,7 @@ static void collapse_control_init_scan(s
+ {
+ 	memset(cc->node_load, 0, sizeof(cc->node_load));
+ 	nodes_clear(cc->alloc_nmask);
+-	bitmap_zero(cc->mthp_present_ptes, MAX_PTRS_PER_PTE);
++	bitmap_zero(cc->eligible_ptes, MAX_PTRS_PER_PTE);
  }
  
-@@ -2956,6 +2951,8 @@ static void collapse_scan_mm_slot(unsign
+ static void release_pte_folio(struct folio *folio)
+@@ -1512,15 +1512,15 @@ static unsigned int max_order_from_offse
+  * mthp_collapse() consumes the bitmap that is generated during
+  * collapse_scan_pmd() to determine what regions and mTHP orders fit best.
+  *
+- * Each bit in cc->mthp_present_ptes represents a single occupied (!none/zero)
+- * page. We start at the PMD order and check if it is eligible for collapse;
++ * Each bit in cc->eligible_ptes marks a PTE the scan accepted as a collapse
++ * source. We start at the PMD order and check if it is eligible for collapse;
+  * if not, we check the left and right halves of the PTE page table we are
+  * examining at a lower order.
+  *
+- * For each of these, we determine how many PTE entries are occupied in the
+- * range of PTE entries we propose to collapse, then we compare this to a
+- * threshold number of PTE entries which would need to be occupied for a
+- * collapse to be permitted at that order (accounting for max_ptes_none).
++ * For each of these, we count the eligible PTEs in the range we propose to
++ * collapse, then we compare this to the number of eligible PTEs the range
++ * would need for a collapse to be permitted at that order (accounting for
++ * max_ptes_none).
+  *
+  * If a collapse is permitted, we attempt to collapse the PTE range into a
+  * mTHP.
+@@ -1529,7 +1529,7 @@ static enum scan_result mthp_collapse(st
+ 		unsigned long address, int referenced, int unmapped,
+ 		struct collapse_control *cc, unsigned long enabled_orders)
+ {
+-	unsigned int nr_occupied_ptes, nr_ptes, max_ptes_none;
++	unsigned int nr_eligible_ptes, nr_ptes, max_ptes_none;
+ 	enum scan_result last_result = SCAN_FAIL;
+ 	int collapsed = 0;
+ 	bool alloc_failed = false;
+@@ -1544,18 +1544,18 @@ static enum scan_result mthp_collapse(st
+ 			goto next_order;
  
- 			*result = collapse_single_pmd(khugepaged_scan.address,
- 						      vma, &lock_dropped, cc);
-+			if (*result == SCAN_SUCCEED)
-+				khugepaged_pages_collapsed++;
- 			/* move to next address */
- 			khugepaged_scan.address += HPAGE_PMD_SIZE;
- 			if (lock_dropped)
+ 		max_ptes_none = collapse_max_ptes_none(cc, NULL, order);
+-		nr_occupied_ptes = bitmap_weight_from(cc->mthp_present_ptes, offset,
++		nr_eligible_ptes = bitmap_weight_from(cc->eligible_ptes, offset,
+ 						      offset + nr_ptes);
+ 
+ 		/*
+ 		 * Swap PTEs accepted during the scan are counted in @unmapped,
+-		 * not in the present-PTE bitmap. Account them for the PMD-order
++		 * not in cc->eligible_ptes. Account them for the PMD-order
+ 		 * candidate.
+ 		 */
+ 		if (is_pmd_order(order))
+-			nr_occupied_ptes += unmapped;
++			nr_eligible_ptes += unmapped;
+ 
+-		if (nr_occupied_ptes >= nr_ptes - max_ptes_none) {
++		if (nr_eligible_ptes >= nr_ptes - max_ptes_none) {
+ 			enum scan_result ret;
+ 
+ 			collapse_address = address + offset * PAGE_SIZE;
+@@ -1761,8 +1761,8 @@ static enum scan_result collapse_scan_pm
+ 			}
+ 		}
+ 
+-		/* Set bit for occupied pages */
+-		__set_bit(i, cc->mthp_present_ptes);
++		/* The scan accepted this PTE as a collapse source */
++		__set_bit(i, cc->eligible_ptes);
+ 		/*
+ 		 * Record which node the original page is from and save this
+ 		 * information to cc->node_load[].
 _
 
 Patches currently in -mm which might be from kas@kernel.org are
@@ -114,7 +171,6 @@ Patches currently in -mm which might be from kas@kernel.org are
 mm-huge_memory-do-not-touch-frozen-folios-in-deferred_split_isolate.patch
 mm-huge_memory-dequeue-the-deferred-split-after-the-split-freeze.patch
 mm-huge_memory-add-folio_reset_partially_mapped.patch
-mm-khugepaged-rename-mthp_present_ptes-bitmap-to-eligible_ptes.patch
 mm-collapse-add-collapseh-for-the-collapse-interface.patch
 mm-collapse-state-what-a-collapse-may-do-in-the-policy.patch
 mm-collapse-drop-the-collapse_possible-wrapper.patch
