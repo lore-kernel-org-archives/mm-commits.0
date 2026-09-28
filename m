@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9280534EEFD
-	for <mm-commits@vger.kernel.org>; Mon, 28 Sep 2026 01:25:40 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0435A14F70
+	for <mm-commits@vger.kernel.org>; Mon, 28 Sep 2026 03:07:13 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790558741; cv=none; b=FN8Sw65lnKFoDsQXr1Pnu5L1NVxqTTpw6VaYWWz4QvySvSQRM4pCUgeBRRzet3jFMGyNHdWmSEgR95wN3yO7J0CJJ5iM/wri5O3kKbKO21fN4MAbzEdxX9ywB0IBBO3IGIYBY+kRSeKDb7t+L8yw97wzTR+ErN68TuoSmyN/WSc=
+	t=1790564835; cv=none; b=Tnfj4Y/YLCd0yT3Z1M9FF5GGIQLKIoI96sX+4GOYsJacqdVRwY5FLbPAlVr+jPARXIb8zNCN0+/VZhRc25gyayNCKBcbj4/KKiKwLG2s2hu8CIqYzT4UCxepdF9K/WznzO16a5XoJGKphV85/sUsqPf0KK3HqjJ/0bxyt8TFXWI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1790558741; c=relaxed/simple;
-	bh=Fr4sx0Bt3caOHfKAlRTpTVpg7VfdIGAayPs1gp/olB0=;
-	h=Date:To:From:Subject:Message-Id; b=f/ZF/BbfUF8N4iqUnhaJN/MMfUVm/C2JC/uA57ICcJvQZN6pVGe4ysnfwZmN+yTDw1ADE5SQrUogKHrfYvLc0aGGz4K+5+ja4l614kMMBqx1A6Q0x1F0ZFpqkUwH10mzq1LhXyqCk3V+6KnNHN3I3CppVwvW2B40wDvyygHWcIw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=J9hnRrGE; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1790564835; c=relaxed/simple;
+	bh=EznRmZsog1woEZgBHE8V991mbVaF0Y3PRR3BwsgcTYg=;
+	h=Date:To:From:Subject:Message-Id; b=Vf+YddoMaKFRqEHBRwNt++33KxzA3iXwFzPm8IC3gK4er6gJAJ5Cg7kMXScSu64aQ8eZMNZ0H+CroCaWWEFZKa7y+IyIUg7oJFck2Z1C2h1KtQaGpwfCtOLzajIp5J0TldUSXcDPT8pMwZMQ/fNkueWdhARlb6G1DCThtzyaMxI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=dRNURTpg; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="J9hnRrGE"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id F32321F00898;
-	Mon, 28 Sep 2026 01:25:39 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="dRNURTpg"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 563701F000FF;
+	Mon, 28 Sep 2026 03:07:13 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1790558740;
-	bh=epXeStYSqKVSf/zoSMY22GVQCzuCLj6NV/0+xikWXYk=;
+	d=linux-foundation.org; s=korg; t=1790564833;
+	bh=g0czPOY5UXIsnPVnKvhL2HY1FqLDPW/1zel44IE4C3Q=;
 	h=Date:To:From:Subject;
-	b=J9hnRrGEN4sv1qPlTmhrXcKgdcDQWYlGV+2ctvv63Px9mDbsXado4LCgd0pk/DC6G
-	 Jb69tL7T1jZXCx+c2UtLgF89mhFmcuXgDQwyTvBGuNIBy0k0o6Gs7FaaB9XkP1/XF3
-	 ANGqd827MnTTXnF4a8ApLZV/sO3mdLX4YHclF1LI=
-Date: Sun, 27 Sep 2026 18:25:39 -0700
-To: mm-commits@vger.kernel.org,raemoar63@gmail.com,huang.ying.caritas@gmail.com,geert@linux-m68k.org,david@davidgow.net,brendan.higgins@linux.dev,brads@mainlining.org,andriy.shevchenko@linux.intel.com,kmehltretter@gmail.com,akpm@linux-foundation.org
+	b=dRNURTpg6ZOp9kjvm7raqzRkY7PwgrdT/SvbVdZJbLMoSYQAWFsp7mkIMV9QxBiwt
+	 xlXpAji//QvZDdayaxn2t4CfbYkXA23XUG82/8cNnF/TNeCrbAgoCsTCutHiiYFjVq
+	 pm2l7qOrTvYfOjYTgyiseSSYmcB4wntfFHqorz2k=
+Date: Sun, 27 Sep 2026 20:07:12 -0700
+To: mm-commits@vger.kernel.org,osalvador@suse.de,muchun.song@linux.dev,david@kernel.org,aiqi.i7@bytedance.com,lizhe.67@bytedance.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + resource-kunit-stop-selecting-get_free_region.patch added to mm-nonmm-unstable branch
-Message-Id: <20260928012539.F32321F00898@smtp.kernel.org>
+Subject: [to-be-updated] mm-hugetlb-fix-overbroad-mmu-notifiers-for-unshared-pmds.patch removed from -mm tree
+Message-Id: <20260928030713.563701F000FF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,101 +34,157 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The patch titled
-     Subject: resource, kunit: stop selecting GET_FREE_REGION
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     resource-kunit-stop-selecting-get_free_region.patch
+The quilt patch titled
+     Subject: mm/hugetlb: fix overbroad MMU notifiers for unshared PMDs
+has been removed from the -mm tree.  Its filename was
+     mm-hugetlb-fix-overbroad-mmu-notifiers-for-unshared-pmds.patch
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/resource-kunit-stop-selecting-get_free_region.patch
-
-This patch will later appear in the mm-nonmm-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via various
-branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there most days
+This patch was dropped because an updated version will be issued
 
 ------------------------------------------------------
-From: Karl Mehltretter <kmehltretter@gmail.com>
-Subject: resource, kunit: stop selecting GET_FREE_REGION
-Date: Sat, 26 Sep 2026 02:26:51 +0200
+From: "Li Zhe" <lizhe.67@bytedance.com>
+Subject: mm/hugetlb: fix overbroad MMU notifiers for unshared PMDs
+Date: Tue, 22 Sep 2026 17:07:49 +0800
 
-RESOURCE_KUNIT_TEST selects GET_FREE_REGION even when no other option
-needs it. Remove the selection to follow the dependency rule in
-Documentation/dev-tools/kunit/style.rst.
+Hugetlb currently expands MMU notifier ranges to PUD boundaries whenever
+PMD sharing is possible.  That is only needed when huge_pmd_unshare()
+actually detaches a shared PMD page table, because clearing the PUD
+invalidates the whole PUD-sized virtual address range.
 
-Skip resource_test_region_intersects() when GET_FREE_REGION is disabled.
-GET_FREE_REGION has no prompt, so configurations without a production
-consumer cannot enable it. Most configurations will therefore skip this
-case; this is intentional. The union and intersection tests remain
-available.
+For hugetlbfs hole punch, and similarly for other hugetlb unmap paths, a
+shared mapping can pass the "PMD sharing is possible" range test in
+adjust_range_if_pmd_sharing_possible() even when the hugetlbfs file has
+never actually had any shared PMD page tables.  KVM then receives a 1G
+invalidation for a 2M operation and zaps unrelated secondary mappings, so
+the guest has to fault them back in.
 
-Since kunit_skip() does not return, the compiler drops the reference to
-the unavailable alloc_free_mem_region(), as in the CONFIG_OF_ADDRESS
-check in drivers/of/of_test.c.
+Avoid this by remembering, per hugetlbfs inode, whether PMD sharing was
+ever established for the file.  Set the flag when huge_pmd_share()
+successfully populates a shared PMD table.  For the hugetlb unmap paths,
+skip the conservative PUD-sized notifier expansion while the file has
+never seen PMD sharing.
 
-Link: https://lore.kernel.org/20260926002651.87267-1-kmehltretter@gmail.com
-Fixes: 99185c10d5d9 ("resource, kunit: add test case for region_intersects()")
-Signed-off-by: Karl Mehltretter <kmehltretter@gmail.com>
+The state is intentionally sticky and file-wide.  Once PMD sharing has
+ever happened for the file, the unmap paths keep the existing conservative
+expansion.  This avoids the no-sharing case without adding a page-table
+walk to every unmap.
+
+On a Redis-in-VM workload that punches cold 2M hugetlb pages, this patch
+improves P99 QPS stability while punching pages, reducing the QPS
+degradation ratio from 7.09% to 1.45%.
+
+Link: https://lore.kernel.org/20260922090749.24905-1-lizhe.67@bytedance.com
+Signed-off-by: Li Zhe <lizhe.67@bytedance.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Reviewed-by: Bradley Morgan <brads@mainlining.org>
-Tested-by: Bradley Morgan <brads@mainlining.org> # Power10
-Assisted-by: LLM
-Cc: Ying Huang <huang.ying.caritas@gmail.com>
-Cc: Geert Uytterhoeven <geert@linux-m68k.org>
-Cc: Brendan Higgins <brendan.higgins@linux.dev>
-Cc: David Gow <david@davidgow.net>
-Cc: Rae Moar <raemoar63@gmail.com>
-Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-
+Reported-by: aiqi.i7 <aiqi.i7@bytedance.com>
+Cc: David Hildenbrand <david@kernel.org>
+Cc: Muchun Song <muchun.song@linux.dev>
+Cc: Oscar Salvador <osalvador@suse.de>
 ---
 
- kernel/resource_kunit.c |    3 +++
- lib/Kconfig.debug       |    1 -
- 2 files changed, 3 insertions(+), 1 deletion(-)
+ fs/hugetlbfs/inode.c    |    3 +++
+ include/linux/hugetlb.h |   24 ++++++++++++++++++++++++
+ mm/hugetlb.c            |   11 ++++++++---
+ 3 files changed, 35 insertions(+), 3 deletions(-)
 
---- a/kernel/resource_kunit.c~resource-kunit-stop-selecting-get_free_region
-+++ a/kernel/resource_kunit.c
-@@ -225,6 +225,9 @@ static void resource_test_region_interse
- 	struct resource *parent;
- 	resource_size_t start;
+--- a/fs/hugetlbfs/inode.c~mm-hugetlb-fix-overbroad-mmu-notifiers-for-unshared-pmds
++++ a/fs/hugetlbfs/inode.c
+@@ -920,6 +920,9 @@ static struct inode *hugetlbfs_get_inode
+ 		simple_inode_init_ts(inode);
+ 		info->resv_map = resv_map;
+ 		info->seals = F_SEAL_SEAL;
++#ifdef CONFIG_HUGETLB_PMD_PAGE_TABLE_SHARING
++		info->pmd_sharing_seen = false;
++#endif
+ 		switch (mode & S_IFMT) {
+ 		default:
+ 			init_special_inode(inode, mode, dev);
+--- a/include/linux/hugetlb.h~mm-hugetlb-fix-overbroad-mmu-notifiers-for-unshared-pmds
++++ a/include/linux/hugetlb.h
+@@ -507,6 +507,9 @@ struct hugetlbfs_inode_info {
+ 	struct inode vfs_inode;
+ 	struct resv_map *resv_map;
+ 	unsigned int seals;
++#ifdef CONFIG_HUGETLB_PMD_PAGE_TABLE_SHARING
++	bool pmd_sharing_seen;
++#endif
+ };
  
-+	if (!IS_ENABLED(CONFIG_GET_FREE_REGION))
-+		kunit_skip(test, "CONFIG_GET_FREE_REGION is disabled");
+ static inline struct hugetlbfs_inode_info *HUGETLBFS_I(struct inode *inode)
+@@ -514,6 +517,27 @@ static inline struct hugetlbfs_inode_inf
+ 	return container_of(inode, struct hugetlbfs_inode_info, vfs_inode);
+ }
+ 
++#ifdef CONFIG_HUGETLB_PMD_PAGE_TABLE_SHARING
++static inline void hugetlbfs_set_pmd_sharing_seen(struct inode *inode)
++{
++	HUGETLBFS_I(inode)->pmd_sharing_seen = true;
++}
 +
- 	/* Find an iomem_resource hole to hold test resources */
- 	parent = alloc_free_mem_region(&iomem_resource, RES_TEST_TOTAL_SIZE, SZ_1M,
- 				       "test resources");
---- a/lib/Kconfig.debug~resource-kunit-stop-selecting-get_free_region
-+++ a/lib/Kconfig.debug
-@@ -2776,7 +2776,6 @@ config RESOURCE_KUNIT_TEST
- 	tristate "KUnit test for resource API" if !KUNIT_ALL_TESTS
- 	depends on KUNIT
- 	default KUNIT_ALL_TESTS
--	select GET_FREE_REGION
- 	help
- 	  This builds the resource API unit test.
- 	  Tests the logic of API provided by resource.c and ioport.h.
++static inline bool hugetlbfs_pmd_sharing_seen(struct inode *inode)
++{
++	return HUGETLBFS_I(inode)->pmd_sharing_seen;
++}
++#else
++static inline void hugetlbfs_set_pmd_sharing_seen(struct inode *inode)
++{
++}
++
++static inline bool hugetlbfs_pmd_sharing_seen(struct inode *inode)
++{
++	return false;
++}
++#endif
++
+ extern const struct vm_operations_struct hugetlb_vm_ops;
+ struct file *hugetlb_file_setup(const char *name, size_t size, vma_flags_t acct,
+ 				int creat_flags, int page_size_log);
+--- a/mm/hugetlb.c~mm-hugetlb-fix-overbroad-mmu-notifiers-for-unshared-pmds
++++ a/mm/hugetlb.c
+@@ -5438,10 +5438,12 @@ void __hugetlb_zap_begin(struct vm_area_
+ 	if (!vma->vm_file)	/* hugetlbfs_file_mmap error */
+ 		return;
+ 
+-	adjust_range_if_pmd_sharing_possible(vma, start, end);
+ 	hugetlb_vma_lock_write(vma);
+-	if (vma->vm_file)
++	if (vma->vm_file) {
+ 		i_mmap_lock_write(vma->vm_file->f_mapping);
++		if (hugetlbfs_pmd_sharing_seen(file_inode(vma->vm_file)))
++			adjust_range_if_pmd_sharing_possible(vma, start, end);
++	}
+ }
+ 
+ void __hugetlb_zap_end(struct vm_area_struct *vma,
+@@ -5480,7 +5482,9 @@ void unmap_hugepage_range(struct vm_area
+ 
+ 	mmu_notifier_range_init(&range, MMU_NOTIFY_CLEAR, 0, vma->vm_mm,
+ 				start, end);
+-	adjust_range_if_pmd_sharing_possible(vma, &range.start, &range.end);
++	if (hugetlbfs_pmd_sharing_seen(file_inode(vma->vm_file)))
++		adjust_range_if_pmd_sharing_possible(vma, &range.start,
++						     &range.end);
+ 	mmu_notifier_invalidate_range_start(&range);
+ 	tlb_gather_mmu(&tlb, vma->vm_mm);
+ 
+@@ -7083,6 +7087,7 @@ pte_t *huge_pmd_share(struct mm_struct *
+ 	if (pud_none(*pud)) {
+ 		pud_populate(mm, pud,
+ 				(pmd_t *)((unsigned long)spte & PAGE_MASK));
++		hugetlbfs_set_pmd_sharing_seen(mapping->host);
+ 		mm_inc_nr_pmds(mm);
+ 	} else {
+ 		ptdesc_pmd_pts_dec(virt_to_ptdesc(spte));
 _
 
-Patches currently in -mm which might be from kmehltretter@gmail.com are
+Patches currently in -mm which might be from lizhe.67@bytedance.com are
 
-mm-damon-core-handle-uninitialized-damos_quota_goal-last_psi_total-fix.patch
-docs-mm-ksm-use-the-renamed-ksm-structure-names.patch
-mm-secretmem-fix-the-enable-parameter-description.patch
-klist-avoid-accesses-after-waking-klist_remove.patch
-squashfs-fix-fragment-index-table-sizing-overflow-on-32-bit.patch
-squashfs-make-the-fragment-index-table-bounds-check-overflow-safe.patch
-fork-honor-task_structs-declared-alignment.patch
-ocfs2-cluster-hold-a-reference-on-the-heartbeat-thread.patch
-resource-kunit-stop-selecting-get_free_region.patch
+mm-fix-stale-zone_device-refcount-comment.patch
+mm-add-a-set_page_section_from_pfn-helper.patch
+mm-add-a-template-based-fast-path-for-zone-device-page-init.patch
+mm-add-a-template-based-fast-path-for-zone-device-page-init-fix.patch
+mm-extend-the-template-fast-path-to-zone-device-compound-tails.patch
+string-introduce-memcpy_nontemporal.patch
+mm-use-memcpy_nontemporal-in-zone-device-template-copies.patch
+x86-string-extend-memcpy_flushcache-fixed-size-fastpaths.patch
 
