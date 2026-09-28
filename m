@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9F14F4EBAE6
-	for <mm-commits@vger.kernel.org>; Mon, 28 Sep 2026 21:51:01 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BEB55417D99
+	for <mm-commits@vger.kernel.org>; Mon, 28 Sep 2026 21:51:02 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790632263; cv=none; b=oNEUElENYBl05voGayypWWvnQyVJ7vzUlOwh6SwAlG9wIerzbJ6r1f7d+7CgpyhIKCBrv/foP56N6z0yZfqn5giA8XorWCi5ll3mkajjiqXK+ra5SyNhqQeNJ3u8yM0uxkAalzVbXr7t5WFybUp9w1DWT2v80P7zNwBLFzFtwiU=
+	t=1790632264; cv=none; b=Lek2ABeSbLrsQjMmKDgWVXZdzLBVWNa/NuumFxf8PlFhzNzWPRoMrZXNwuwoHSL/FPzbfO0T1PDC+BDTWl+xmpoiapugv0eUOPBqobH9Bhwb3zoMHie1PldKMuuZ7lMP1o5uda5/8mitalT84dTZ7tl2T5fUCCOJlTG6cpFuLDA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1790632263; c=relaxed/simple;
-	bh=zGruOpeYnPCC7P4sfUb9Yk82oU0inOn4S8sMXsKpA4g=;
-	h=Date:To:From:Subject:Message-Id; b=e7t8dtDQd80sps9NropVMFo3lhwVx2JdAsr8uMIqliHT0mDeFfawfFGIUPdUdoswTNqsewk3ED2iTz6eYBT0GjMr+x5CnVOtGkESUKMTC4BmUY7b5B0JppvtEqjz19bKO8zeErnGrpj8mKFpGPZqRDJB1Ok3n5hU2nESGzr9CU4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=s9JrEIsF; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1790632264; c=relaxed/simple;
+	bh=dY0o8z2CVN46AgY8yYZ7a4uQBwqiahLFjnwajbzBGn0=;
+	h=Date:To:From:Subject:Message-Id; b=Gyrq8kLvZzlFlilZrGHvvLOD8d1H8F+WzyvgwUk4D7tKOVDflZM45A5dQje0V/jqpaYwmLxKypm+tgcvxTz0PT8xz4lCC7dvDys4r3Df6ZbhABWAEJzOqXd7/9+/y7vQuFI3LJRCAv9RjEaL5e8BiP6o+JqlG6lsNstWktxpM1E=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=IdV4ld9L; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="s9JrEIsF"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 03BE51F000FF;
-	Mon, 28 Sep 2026 21:51:00 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="IdV4ld9L"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8B76C1F00893;
+	Mon, 28 Sep 2026 21:51:02 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1790632261;
-	bh=JrtVLcOqkIancKyy9fGJ/KQcX0kSOx71+gzUz9Qn7v0=;
+	d=linux-foundation.org; s=korg; t=1790632262;
+	bh=6f72iNGR7McG0iagEVPFLU5G5luk2eeAepBXQ32d4uA=;
 	h=Date:To:From:Subject;
-	b=s9JrEIsFkpos4voiupVKsGT6wPkRJAoIKBjlhKDmzjh+kIV+tBPoTY6GsQifVxtfi
-	 3FaAmqfZ1EClPHbX3N53y/Wso+Zm25dWe7rVcKg0Z8cw1CBpE0O6Kdzf3UQvhWdHVi
-	 NukuzLT1IZHBUIiG823jQS8EsmZHHNIJ+i5ReSnU=
-Date: Mon, 28 Sep 2026 14:51:00 -0700
+	b=IdV4ld9LcwYh4bscRf9YQPtpuwtzkTO6ZDN+3EdycBbxMX14S7QdU2w+6bwFKBXSz
+	 edrP1JNmPwzvo4mpVvXvN0Ey1HmZ+zvlqZ3GhLgBhh+rkKceYCI71Ig/m2gAiN6+4e
+	 O3H1/CLv4/by8GjFofIsQrWUfIZ8D5xDL1eusMhQ=
+Date: Mon, 28 Sep 2026 14:51:02 -0700
 To: mm-commits@vger.kernel.org,kas@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [to-be-updated] mm-collapse-state-what-a-collapse-may-do-in-the-policy.patch removed from -mm tree
-Message-Id: <20260928215101.03BE51F000FF@smtp.kernel.org>
+Subject: [to-be-updated] mm-collapse-drop-the-collapse_possible-wrapper.patch removed from -mm tree
+Message-Id: <20260928215102.8B76C1F00893@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,56 +35,30 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/collapse: state what a collapse may do in the policy
+     Subject: mm/collapse: drop the collapse_possible() wrapper
 has been removed from the -mm tree.  Its filename was
-     mm-collapse-state-what-a-collapse-may-do-in-the-policy.patch
+     mm-collapse-drop-the-collapse_possible-wrapper.patch
 
 This patch was dropped because an updated version will be issued
 
 ------------------------------------------------------
 From: "Kiryl Shutsemau (Meta)" <kas@kernel.org>
-Subject: mm/collapse: state what a collapse may do in the policy
-Date: Wed, 16 Sep 2026 10:31:32 +0100
+Subject: mm/collapse: drop the collapse_possible() wrapper
+Date: Wed, 16 Sep 2026 10:31:33 +0100
 
-Tests scattered through the collapse path decide what a collapse is
-allowed to do by asking whether khugepaged started it.  Between them they
-settle:
+collapse_possible() only forwards to collapse_possible_orders() and turns
+its mask into a bool.  Its three callers can test the mask themselves.
 
- - which VMAs are eligible, and how hard to try for a folio;
- - how many empty, swapped-out or shared PTEs a window may contain, and
-   whether a sub-PMD window is held to a stricter rule than a PMD;
- - whether a range has to look used, and whether a MADV_FREE'd page is
-   left alone;
- - whether the PMD is mapped as part of the request, and whether dirty
-   pages are worth writing back and retrying.
+No functional change.
 
-None of those is a fact about khugepaged.  Each is something the caller
-decided before asking, and the collapse code should not have to look up
-who called to find out.
-
-Add struct collapse_policy for the caller to fill: khugepaged from its own
-settings, MADV_COLLAPSE from the fact that a user asked explicitly.  Every
-test becomes a read of a field, and cc->is_khugepaged goes, having no
-reader left.
-
-khugepaged fills the policy once per scan pass, MADV_COLLAPSE once per
-call.  That is the one change in behaviour.  The max_ptes_* limits and the
-defrag setting behind the allocation mask are sampled once per pass rather
-than on every table.  A table scanned early in a pass and one scanned late
-are then treated alike.
-
-collapse_file() also drops a NULL check on the collapse_control.  It has
-one call site, reached only from collapse_single_pmd(), which dereferences
-cc unconditionally, so the check was already dead.
-
-Link: https://lore.kernel.org/20260916093145.4022188-6-kirill@shutemov.name
+Link: https://lore.kernel.org/20260916093145.4022188-7-kirill@shutemov.name
 Signed-off-by: Kiryl Shutsemau (Meta) <kas@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 Reviewed-by: Zi Yan <ziy@nvidia.com>
 Reviewed-by: Baolin Wang <baolin.wang@linux.alibaba.com>
+Acked-by: David Hildenbrand (Arm) <david@kernel.org>
 Assisted-by: LLM
 Cc: Barry Song <baohua@kernel.org>
-Cc: David Hildenbrand <david@kernel.org>
 Cc: Dev Jain <dev.jain@arm.com>
 Cc: Jann Horn <jannh@google.com>
 Cc: Lance Yang <lance.yang@linux.dev>
@@ -94,302 +68,50 @@ Cc: Ryan Roberts <ryan.roberts@arm.com>
 Cc: Vlastimil Babka <vbabka@kernel.org>
 ---
 
- mm/collapse.h   |   31 ++++++++++++
- mm/khugepaged.c |  114 +++++++++++++++++++++++++---------------------
- 2 files changed, 93 insertions(+), 52 deletions(-)
+ mm/khugepaged.c |   15 +++++----------
+ 1 file changed, 5 insertions(+), 10 deletions(-)
 
---- a/mm/collapse.h~mm-collapse-state-what-a-collapse-may-do-in-the-policy
-+++ a/mm/collapse.h
-@@ -45,8 +45,37 @@ enum scan_result {
- 	SCAN_PAGE_DIRTY_OR_WRITEBACK,
- };
- 
-+/* What a collapse is allowed to do, decided by the caller that asks for it */
-+struct collapse_policy {
-+	/* Limits, stated per PMD; HPAGE_PMD_NR means "no limit" */
-+	unsigned int max_ptes_none;
-+	unsigned int max_ptes_swap;
-+	unsigned int max_ptes_shared;
-+
-+	/* Take no swapped-out or shared PTE into a sub-PMD collapse */
-+	bool strict_sub_pmd;
-+
-+	/* Leave clean lazyfree folios to reclaim rather than collapse them */
-+	bool skip_lazyfree;
-+
-+	/* Refuse a range with no sign of use */
-+	bool require_referenced;
-+
-+	/* Map the PMD over a file collapse instead of leaving it to a fault */
-+	bool install_pmd;
-+
-+	/* Write dirty pages back and retry once instead of refusing them */
-+	bool writeback_dirty;
-+
-+	/* How hard to try for a destination folio */
-+	gfp_t gfp;
-+
-+	/* Which VMAs are eligible, as thp_vma_allowable_orders() spells it */
-+	enum tva_type tva_type;
-+};
-+
- struct collapse_control {
--	bool is_khugepaged;
-+	struct collapse_policy policy;
- 
- 	/* Num pages scanned per node */
- 	u32 node_load[MAX_NUMNODES];
---- a/mm/khugepaged.c~mm-collapse-state-what-a-collapse-may-do-in-the-policy
+--- a/mm/khugepaged.c~mm-collapse-drop-the-collapse_possible-wrapper
 +++ a/mm/khugepaged.c
-@@ -314,15 +314,12 @@ static bool pte_none_or_zero(pte_t pte)
- static unsigned int collapse_max_ptes_none(struct collapse_control *cc,
- 		struct vm_area_struct *vma, unsigned int order)
- {
--	const unsigned int max_ptes_none = khugepaged_max_ptes_none;
-+	const unsigned int max_ptes_none = cc->policy.max_ptes_none;
- 
- 	if (vma && userfaultfd_armed(vma))
- 		return 0;
--	/* for MADV_COLLAPSE, allow any empty/shared zeropage PTEs */
--	if (!cc->is_khugepaged)
--		return HPAGE_PMD_NR;
--	/* for PMD collapse, respect the user defined maximum */
--	if (is_pmd_order(order))
-+	/* The limit as given, at the PMD order and wherever it is not capped */
-+	if (is_pmd_order(order) || !cc->policy.strict_sub_pmd)
- 		return max_ptes_none;
- 	/*
- 	 * for mTHP collapse with the sysctl value set to COLLAPSE_MAX_PTES_LIMIT,
-@@ -354,19 +351,12 @@ static unsigned int collapse_max_ptes_sh
- 		unsigned int order)
- {
- 	/*
--	 * For MADV_COLLAPSE, do not restrict the number of PTEs that map shared
--	 * anonymous pages.
--	 */
--	if (!cc->is_khugepaged)
--		return HPAGE_PMD_NR;
--	/*
--	 * for mTHP collapse do not allow collapsing anonymous memory pages that
--	 * are shared between processes.
-+	 * A sub-PMD window held to the strict rule takes no shared page at all:
-+	 * an mTHP is not worth the CoW-breaking.
- 	 */
--	if (!is_pmd_order(order))
-+	if (!is_pmd_order(order) && cc->policy.strict_sub_pmd)
- 		return 0;
--	/* for PMD collapse, respect the user defined maximum */
--	return khugepaged_max_ptes_shared;
-+	return cc->policy.max_ptes_shared;
+@@ -512,17 +512,11 @@ static unsigned long collapse_possible_o
+ 	return thp_vma_allowable_orders(vma, vm_flags, tva_flags, orders);
  }
  
- /**
-@@ -382,16 +372,12 @@ static unsigned int collapse_max_ptes_sw
- 		unsigned int order)
+-static bool collapse_possible(struct vm_area_struct *vma,
+-		vm_flags_t vm_flags, enum tva_type tva_flags)
+-{
+-	return collapse_possible_orders(vma, vm_flags, tva_flags);
+-}
+-
+ void khugepaged_enter_vma(struct vm_area_struct *vma,
+ 			  vm_flags_t vm_flags)
  {
- 	/*
--	 * For MADV_COLLAPSE, do not restrict the number PTEs entries or
--	 * pagecache entries that are non-present.
-+	 * A sub-PMD window held to the strict rule takes nothing non-present:
-+	 * reading pages back to build an mTHP is not worth the latency.
- 	 */
--	if (!cc->is_khugepaged)
--		return HPAGE_PMD_NR;
--	/* for mTHP collapse do not allow any non-present PTEs or pagecache entries */
--	if (!is_pmd_order(order))
-+	if (!is_pmd_order(order) && cc->policy.strict_sub_pmd)
- 		return 0;
--	/* for PMD collapse, respect the user defined maximum */
--	return khugepaged_max_ptes_swap;
-+	return cc->policy.max_ptes_swap;
+-	if (!mm_flags_test(MMF_VM_HUGEPAGE, vma->vm_mm) && hugepage_enabled()
+-	    && collapse_possible(vma, vm_flags, TVA_KHUGEPAGED))
++	if (!mm_flags_test(MMF_VM_HUGEPAGE, vma->vm_mm) && hugepage_enabled() &&
++	    collapse_possible_orders(vma, vm_flags, TVA_KHUGEPAGED))
+ 		__khugepaged_enter(vma->vm_mm);
  }
  
- int hugepage_madvise(struct vm_area_struct *vma,
-@@ -678,7 +664,7 @@ static enum scan_result __collapse_huge_
- 		 * If the vma has the VM_DROPPABLE flag, the collapse will
- 		 * preserve the lazyfree property without needing to skip.
- 		 */
--		if (cc->is_khugepaged && !(vma->vm_flags & VM_DROPPABLE) &&
-+		if (cc->policy.skip_lazyfree && !(vma->vm_flags & VM_DROPPABLE) &&
- 		    folio_test_lazyfree(folio) && !pte_dirty(pteval)) {
- 			result = SCAN_PAGE_LAZYFREE;
- 			goto out;
-@@ -767,12 +753,12 @@ static enum scan_result __collapse_huge_
- 		if (folio_test_large(folio))
- 			list_add_tail(&folio->lru, compound_pagelist);
- next:
--		if (cc->is_khugepaged &&
-+		if (cc->policy.require_referenced &&
- 		    folio_pte_referenced(folio, vma, addr, pteval))
- 			referenced++;
- 	}
- 
--	if (unlikely(cc->is_khugepaged && !referenced)) {
-+	if (unlikely(cc->policy.require_referenced && !referenced)) {
- 		result = SCAN_LACK_REFERENCED_PAGE;
- 	} else {
- 		result = SCAN_SUCCEED;
-@@ -938,9 +924,7 @@ static void khugepaged_alloc_sleep(void)
- 	remove_wait_queue(&khugepaged_wait, &wait);
- }
- 
--static struct collapse_control khugepaged_collapse_control = {
--	.is_khugepaged = true,
--};
-+static struct collapse_control khugepaged_collapse_control;
- 
- static bool collapse_scan_abort(int nid, struct collapse_control *cc)
- {
-@@ -976,6 +960,36 @@ static inline gfp_t alloc_hugepage_khuge
- 	return khugepaged_defrag() ? GFP_TRANSHUGE : GFP_TRANSHUGE_LIGHT;
- }
- 
-+/* khugepaged collapses on its own initiative, so it obeys its own settings */
-+static void collapse_policy_khugepaged(struct collapse_policy *p)
-+{
-+	p->max_ptes_none = READ_ONCE(khugepaged_max_ptes_none);
-+	p->max_ptes_swap = READ_ONCE(khugepaged_max_ptes_swap);
-+	p->max_ptes_shared = READ_ONCE(khugepaged_max_ptes_shared);
-+	p->strict_sub_pmd = true;
-+	p->skip_lazyfree = true;
-+	p->require_referenced = true;
-+	p->install_pmd = false;
-+	p->writeback_dirty = false;
-+	p->gfp = alloc_hugepage_khugepaged_gfpmask();
-+	p->tva_type = TVA_KHUGEPAGED;
-+}
-+
-+/* MADV_COLLAPSE was asked for explicitly, so it is not held to those */
-+static void collapse_policy_forced(struct collapse_policy *p)
-+{
-+	p->max_ptes_none = HPAGE_PMD_NR;
-+	p->max_ptes_swap = HPAGE_PMD_NR;
-+	p->max_ptes_shared = HPAGE_PMD_NR;
-+	p->strict_sub_pmd = false;
-+	p->skip_lazyfree = false;
-+	p->require_referenced = false;
-+	p->install_pmd = true;
-+	p->writeback_dirty = true;
-+	p->gfp = GFP_TRANSHUGE;
-+	p->tva_type = TVA_FORCED_COLLAPSE;
-+}
-+
- #ifdef CONFIG_NUMA
- static int collapse_find_target_node(struct collapse_control *cc)
- {
-@@ -1013,8 +1027,7 @@ static enum scan_result hugepage_vma_rev
- 		struct collapse_control *cc, unsigned int order)
- {
- 	struct vm_area_struct *vma;
--	enum tva_type type = cc->is_khugepaged ? TVA_KHUGEPAGED :
--				 TVA_FORCED_COLLAPSE;
-+	enum tva_type type = cc->policy.tva_type;
- 
- 	if (unlikely(collapse_test_exit_or_disable(mm)))
- 		return SCAN_ANY_PROCESS;
-@@ -1197,8 +1210,7 @@ out:
- static enum scan_result alloc_charge_folio(struct folio **foliop, struct mm_struct *mm,
- 		struct collapse_control *cc, unsigned int order)
- {
--	gfp_t gfp = (cc->is_khugepaged ? alloc_hugepage_khugepaged_gfpmask() :
--		     GFP_TRANSHUGE);
-+	gfp_t gfp = cc->policy.gfp;
- 	int node = collapse_find_target_node(cc);
- 	struct folio *folio;
- 
-@@ -1581,7 +1593,7 @@ static enum scan_result collapse_scan_pm
- 	const unsigned int max_ptes_shared = collapse_max_ptes_shared(cc, HPAGE_PMD_ORDER);
- 	const unsigned int max_ptes_swap = collapse_max_ptes_swap(cc, HPAGE_PMD_ORDER);
- 	unsigned int max_ptes_none = collapse_max_ptes_none(cc, vma, HPAGE_PMD_ORDER);
--	enum tva_type tva_flags = cc->is_khugepaged ? TVA_KHUGEPAGED : TVA_FORCED_COLLAPSE;
-+	enum tva_type tva_flags = cc->policy.tva_type;
- 	pmd_t *pmd;
- 	pte_t *pte, *_pte, pteval;
- 	int i;
-@@ -1681,7 +1693,7 @@ static enum scan_result collapse_scan_pm
- 		 * If the vma has the VM_DROPPABLE flag, the collapse will
- 		 * preserve the lazyfree property without needing to skip.
- 		 */
--		if (cc->is_khugepaged && !(vma->vm_flags & VM_DROPPABLE) &&
-+		if (cc->policy.skip_lazyfree && !(vma->vm_flags & VM_DROPPABLE) &&
- 		    folio_test_lazyfree(folio) && !pte_dirty(pteval)) {
- 			result = SCAN_PAGE_LAZYFREE;
- 			failed_pfn = folio_pfn(folio);
-@@ -1747,13 +1759,13 @@ static enum scan_result collapse_scan_pm
- 			goto out_unmap;
+@@ -2880,7 +2874,8 @@ static void collapse_scan_mm_slot(unsign
+ 			cc->progress++;
+ 			break;
  		}
+-		if (!collapse_possible(vma, vma->vm_flags, TVA_KHUGEPAGED)) {
++		if (!collapse_possible_orders(vma, vma->vm_flags,
++					      TVA_KHUGEPAGED)) {
+ 			cc->progress++;
+ 			continue;
+ 		}
+@@ -3193,7 +3188,7 @@ int madvise_collapse(struct vm_area_stru
+ 	BUG_ON(vma->vm_start > start);
+ 	BUG_ON(vma->vm_end < end);
  
--		if (cc->is_khugepaged &&
-+		if (cc->policy.require_referenced &&
- 		    folio_pte_referenced(folio, vma, addr, pteval))
- 			referenced++;
- 	}
--	if (cc->is_khugepaged &&
--		   (!referenced ||
--		    (unmapped && referenced < HPAGE_PMD_NR / 2))) {
-+	if (cc->policy.require_referenced &&
-+	    (!referenced ||
-+	     (unmapped && referenced < HPAGE_PMD_NR / 2))) {
- 		result = SCAN_LACK_REFERENCED_PAGE;
- 	} else {
- 		result = SCAN_SUCCEED;
-@@ -2605,11 +2617,11 @@ immap_locked:
- 	xas_unlock_irq(&xas);
+-	if (!collapse_possible(vma, vma->vm_flags, TVA_FORCED_COLLAPSE))
++	if (!collapse_possible_orders(vma, vma->vm_flags, TVA_FORCED_COLLAPSE))
+ 		return -EINVAL;
  
- 	/*
--	 * Remove pte page tables, so we can re-fault the page as huge.
--	 * If MADV_COLLAPSE, adjust result to call try_collapse_pte_mapped_thp().
-+	 * Remove pte page tables, so we can re-fault the page as huge.  A
-+	 * caller that wants the PMD mapped now is told to go and do that.
- 	 */
- 	retract_page_tables(mapping, start);
--	if (cc && !cc->is_khugepaged)
-+	if (cc->policy.install_pmd)
- 		result = SCAN_PTE_MAPPED_HUGEPAGE;
- 	folio_unlock(new_folio);
- 
-@@ -2796,11 +2808,8 @@ static enum scan_result collapse_single_
- retry:
- 	result = collapse_scan_file(mm, addr, file, pgoff, cc);
- 
--	/*
--	 * For MADV_COLLAPSE, when encountering dirty pages, try to writeback,
--	 * then retry the collapse one time.
--	 */
--	if (!cc->is_khugepaged && result == SCAN_PAGE_DIRTY_OR_WRITEBACK &&
-+	/* Dirty pages are worth a writeback and one more try, if asked for */
-+	if (cc->policy.writeback_dirty && result == SCAN_PAGE_DIRTY_OR_WRITEBACK &&
- 	    !triggered_wb && mapping_can_writeback(file->f_mapping)) {
- 		const loff_t lstart = (loff_t)pgoff << PAGE_SHIFT;
- 		const loff_t lend = lstart + HPAGE_PMD_SIZE - 1;
-@@ -2817,7 +2826,7 @@ retry:
- 			result = SCAN_ANY_PROCESS;
- 		else
- 			result = try_collapse_pte_mapped_thp(mm, addr,
--							     !cc->is_khugepaged);
-+							cc->policy.install_pmd);
- 		if (result == SCAN_PMD_MAPPED)
- 			result = SCAN_SUCCEED;
- 		mmap_read_unlock(mm);
-@@ -2966,6 +2975,9 @@ static void khugepaged_do_scan(struct co
- 
- 	lru_add_drain_all();
- 
-+	/* One policy for the whole pass, so every table is treated the same */
-+	collapse_policy_khugepaged(&cc->policy);
-+
- 	cc->progress = 0;
- 	while (true) {
- 		cond_resched();
-@@ -3193,7 +3205,7 @@ int madvise_collapse(struct vm_area_stru
- 	cc = kmalloc_obj(*cc);
- 	if (!cc)
- 		return -ENOMEM;
--	cc->is_khugepaged = false;
-+	collapse_policy_forced(&cc->policy);
- 	cc->progress = 0;
- 
- 	lru_add_drain_all();
+ 	hstart = ALIGN(start, HPAGE_PMD_SIZE);
 _
 
 Patches currently in -mm which might be from kas@kernel.org are
@@ -397,7 +119,6 @@ Patches currently in -mm which might be from kas@kernel.org are
 mm-huge_memory-do-not-touch-frozen-folios-in-deferred_split_isolate.patch
 mm-huge_memory-dequeue-the-deferred-split-after-the-split-freeze.patch
 mm-huge_memory-add-folio_reset_partially_mapped.patch
-mm-collapse-drop-the-collapse_possible-wrapper.patch
 mm-collapse-name-the-per-table-scan-reset-for-what-it-resets.patch
 mm-collapse-separate-scanning-a-pte-table-from-collapsing-it.patch
 mm-collapse-open-code-collapse_single_pmd-in-its-two-callers.patch
