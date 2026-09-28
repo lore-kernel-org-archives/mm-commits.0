@@ -1,90 +1,136 @@
-Received: from foss.arm.com (foss.arm.com [217.140.110.172])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 14D402F8E93
-	for <mm-commits@vger.kernel.org>; Mon, 28 Sep 2026 04:42:45 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.140.110.172
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	(No client certificate requested)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8F4643624A9
+	for <mm-commits@vger.kernel.org>; Mon, 28 Sep 2026 04:45:11 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790570568; cv=none; b=e3d23sQq2pjYiSALHO+cEHbUpV5Zriykmv6G20giXBRw8VizbhFwwpPfMA5CqrhK0YEuQxCMT+9sVmUm5UtFDF8VoG0yGCU+abkbLYW/s+QiP6F5FSCw/8v/c7YMgQs6IJ4LuHnQk7GrfWAt4rr5hAv4F5O1u9BlcX8qFkyS6rc=
+	t=1790570713; cv=none; b=pL4zZJgmOs/tklqMv0DyMhfqaBQbCjkKJun+drerHkGIDvRLg9bCd86tRx5+lpNRF1XrKfefL4eDPdlF+hNBWhxYCs7pUihUPSoZli4CGste5YDSjZTACZq8dhR+gqZKKFfgA4SiV6qn6F/+fqbJC/EHF2Ix3KqQdBk0qYK6CM0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1790570568; c=relaxed/simple;
-	bh=g9+BM8LQstyMyJtvF3kyKscq7+5czkGZL/4m6fk+efo=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=WxJtun7Y/iMsQdaHtqkgEZT+Kf+IvX+OJo1aOhyGDNytXt5dixNL2GkEjAPLupgfNfdnd/P5quk9AFVwLIlZxPVQq4toulMcyPulXqc1uhofiCV2peDgJ4IlNBi5hdu1Fh50SmDO4t+C9q+Q/limK0BhENY2LPOucghB/IWaEg0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com; spf=pass smtp.mailfrom=arm.com; dkim=pass (1024-bit key) header.d=arm.com header.i=@arm.com header.b=bKrEwt2b; arc=none smtp.client-ip=217.140.110.172
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=arm.com
+	s=arc-20240116; t=1790570713; c=relaxed/simple;
+	bh=iMHky30dVwt28LZuH0JBMZyVnR22WuFWJHovD3y+DNw=;
+	h=Date:To:From:Subject:Message-Id; b=WVnQWeNibnFNQLpSL8zKYLt2je5gwa5lJRoPd7DkMI9t8CiOhUM7NyeCjFUe8aRTGkBLGFgCYxS9q0nz4ONr/NkoTiHTGn2LSGmgfcv41BbpNJXHGuHTIhDJtAyp1eJUYSdxBIZ9KX8e+D7u1DfrM/QlHEbVQBk+adYBjohOQVs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=QZ7z+Sn2; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=arm.com header.i=@arm.com header.b="bKrEwt2b"
-Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
-	by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id 3B62D1595;
-	Sun, 27 Sep 2026 21:42:36 -0700 (PDT)
-Received: from localhost (a085714.arm.com [10.164.19.28])
-	by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id E5F973F85F;
-	Sun, 27 Sep 2026 21:42:38 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=simple/simple; d=arm.com; s=foss;
-	t=1790570559; bh=g9+BM8LQstyMyJtvF3kyKscq7+5czkGZL/4m6fk+efo=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=bKrEwt2bC/ZQWJUMqIbP/vuS1K0gagIxbK5QMww2e+iM4X8cIC/KbLm1H+8DoVNY9
-	 URi8HP8oh6BmQp553mLeKba4VYQrdZDfLFLzocjOav/O1EFyxeVVivmwCJ0iPtKlXX
-	 i5a9pmIFqdzNhYDXPlY63UsQvBcs0j0/tnvCuMnk=
-Date: Mon, 28 Sep 2026 10:12:36 +0530
-From: Anshuman Khandual <anshuman.khandual@arm.com>
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: kernel test robot <lkp@intel.com>, oe-kbuild-all@lists.linux.dev, 
-	David Hildenbrand <david@kernel.org>, Linux Memory Management List <linux-mm@kvack.org>, 
-	mm-commits@vger.kernel.org, Catalin Marinas <catalin.marinas@arm.com>
-Subject: Re: [akpm-mm:mm-new 661/679] mmu.c:undefined reference to
- `__check_safe_pte_update'
-Message-ID: <bao3loem52ww7aplteu4ialsb2umep6mynhofp3loamdewytxc@pexxabh7vdf4>
-References: <202609270030.Y0QVBPmK-lkp@intel.com>
- <20260927133100.46a4f7067c79280dcf83731b@linux-foundation.org>
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="QZ7z+Sn2"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E41581F000FF;
+	Mon, 28 Sep 2026 04:45:10 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+	d=linux-foundation.org; s=korg; t=1790570711;
+	bh=rtmz560vka6+4cvWJF+v1B7c0Vkt689qtlfkxvvQevs=;
+	h=Date:To:From:Subject;
+	b=QZ7z+Sn2km41un1gl69BJCwSGSjrFl9H65eOHoVHf5iZHwsMsuCcL4SuldPrPcqKn
+	 P5S1gzEiP3ScWppfIOxFZ9jBEZLunT5Jg1zuHyACxaSVbqX/5hVCbXFgQN/PKNp3/1
+	 ogCQ5GkBnodP5Bzx1y6Vqh4oEkrCVquHK/xBhdtE=
+Date: Sun, 27 Sep 2026 21:45:10 -0700
+To: mm-commits@vger.kernel.org,rppt@kernel.org,rdunlap@infradead.org,qi.zheng@linux.dev,osalvador@suse.de,npiggin@gmail.com,mpe@ellerman.id.au,maddy@linux.ibm.com,ljs@kernel.org,lance.yang@linux.dev,david@kernel.org,corbet@lwn.net,chleroy@kernel.org,muchun.song@linux.dev,akpm@linux-foundation.org
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: + mm-sparse-vmemmap-switch-device-dax-to-shared-tail-vmemmap-pages-fix.patch added to mm-unstable branch
+Message-Id: <20260928044510.E41581F000FF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20260927133100.46a4f7067c79280dcf83731b@linux-foundation.org>
 
-On Sun, Sep 27, 2026 at 01:31:00PM -0700, Andrew Morton wrote:
-> On Sun, 27 Sep 2026 00:32:54 +0800 kernel test robot <lkp@intel.com> wrote:
-> 
-> > tree:   https://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm.git mm-new
-> > head:   b4fc90c82982d98959af08b4320420bcfc01303b
-> > commit: 2862bcaf1aca55e0b43a5692a4595281ab780f05 [661/679] arm64/mm: move __check_safe_pte_update()
-> > config: arm64-randconfig-1002-20260926 (https://download.01.org/0day-ci/archive/20260927/202609270030.Y0QVBPmK-lkp@intel.com/config)
-> > compiler: aarch64-linux-gcc (GCC) 8.5.0
-> 
-> Thanks.  It works for me, but I'm using gcc-15.2.0.
 
-Tried building this series with a cross compiler (gcc 14.3.1) and a native
-compiler (15.2.0). The series builds successfully in both cases.
+The patch titled
+     Subject: mm-sparse-vmemmap-switch-device-dax-to-shared-tail-vmemmap-pages-fix
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-sparse-vmemmap-switch-device-dax-to-shared-tail-vmemmap-pages-fix.patch
 
-- Anshuman
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-sparse-vmemmap-switch-device-dax-to-shared-tail-vmemmap-pages-fix.patch
 
-> 
-> > reproduce (this is a W=1 build): (https://download.01.org/0day-ci/archive/20260927/202609270030.Y0QVBPmK-lkp@intel.com/reproduce)
-> > 
-> > If you fix the issue in a separate patch/commit (i.e. not just a new version of
-> > the same patch/commit), kindly add following tags
-> > | Reported-by: kernel test robot <lkp@intel.com>
-> > | Closes: https://lore.kernel.org/oe-kbuild-all/202609270030.Y0QVBPmK-lkp@intel.com/
-> > 
-> > All errors (new ones prefixed by >>):
-> > 
-> > >> aarch64-linux-ld: Unexpected GOT/PLT entries detected!
-> > >> aarch64-linux-ld: Unexpected run-time procedure linkages detected!
-> >    aarch64-linux-ld: arch/arm64/mm/mmu.o: in function `__set_ptes_anysz.isra.40.constprop.47':
-> > >> mmu.c:(.text+0x9a8): undefined reference to `__check_safe_pte_update'
-> >    aarch64-linux-ld: arch/arm64/mm/hugetlbpage.o: in function `__set_ptes_anysz.isra.32':
-> > >> hugetlbpage.c:(.text+0x1a8): undefined reference to `__check_safe_pte_update'
-> >    aarch64-linux-ld: kernel/bpf/arena.o: in function `apply_range_set_cb':
-> > >> arena.c:(.text+0x11fc): undefined reference to `__check_safe_pte_update'
-> >    aarch64-linux-ld: mm/gup.o: in function `follow_page_pte':
-> > >> gup.c:(.text+0x2b48): undefined reference to `__check_safe_pte_update'
-> >    aarch64-linux-ld: mm/memory.o: in function `__set_ptes.isra.207':
-> > >> memory.c:(.text+0x3418): undefined reference to `__check_safe_pte_update'
-> >    aarch64-linux-ld: mm/mprotect.o:mprotect.c:(.text+0x1080): more undefined references to `__check_safe_pte_update' follow
-> > 
-> 
+This patch will later appear in the mm-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via various
+branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there most days
+
+------------------------------------------------------
+From: Muchun Song <muchun.song@linux.dev>
+Subject: mm-sparse-vmemmap-switch-device-dax-to-shared-tail-vmemmap-pages-fix
+Date: Mon, 28 Sep 2026 12:41:48 +0800
+
+Each PTE mapping the shared device DAX tail page takes a page reference.
+A sufficiently large range could therefore cycle the reference count back
+to zero if population were allowed to continue after it became
+non-positive.
+
+Use try_get_page() so further mappings fail once the reference count is no
+longer positive. The section population error path tears down mappings
+created for the failed section, while the warning makes this currently
+impractical limit visible.
+
+Link: https://lore.kernel.org/20260928044148.3300333-1-songmuchun@bytedance.com
+Signed-off-by: Muchun Song <muchun.song@linux.dev>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+Cc: David Hildenbrand <david@kernel.org>
+Cc: Oscar Salvador <osalvador@suse.de>
+Cc: Madhavan Srinivasan <maddy@linux.ibm.com>
+Cc: Michael Ellerman <mpe@ellerman.id.au>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: Lorenzo Stoakes <ljs@kernel.org>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Qi Zheng <qi.zheng@linux.dev>
+Cc: Nicholas Piggin <npiggin@gmail.com>
+Cc: Christophe Leroy <chleroy@kernel.org>
+Cc: Randy Dunlap <rdunlap@infradead.org>
+Cc: Lance Yang <lance.yang@linux.dev>
+---
+
+ mm/sparse-vmemmap.c |   10 +++++++---
+ 1 file changed, 7 insertions(+), 3 deletions(-)
+
+--- a/mm/sparse-vmemmap.c~mm-sparse-vmemmap-switch-device-dax-to-shared-tail-vmemmap-pages-fix
++++ a/mm/sparse-vmemmap.c
+@@ -286,14 +286,18 @@ static pte_t * __meminit vmemmap_pte_pop
+ 			/*
+ 			 * When a PTE/PMD entry is freed from the init_mm
+ 			 * there's a free_pages() call to this page allocated
+-			 * above. Thus this get_page() is paired with the
++			 * above. Thus this try_get_page() is paired with the
+ 			 * put_page_testzero() on the freeing path.
+ 			 * This can only called by certain ZONE_DEVICE path,
+ 			 * and through vmemmap_populate_compound_pages() when
+ 			 * slab is available.
++			 *
++			 * Use try_get_page() to prevent the shared page refcount
++			 * from overflowing.
+ 			 */
+-			if (flags & VMEMMAP_POPULATE_DAX)
+-				get_page(pfn_to_page(ptpfn));
++			if ((flags & VMEMMAP_POPULATE_DAX) &&
++			    !try_get_page(pfn_to_page(ptpfn)))
++				return NULL;
+ 		}
+ 		entry = pfn_pte(ptpfn, PAGE_KERNEL);
+ 		set_pte_at(&init_mm, addr, pte, entry);
+_
+
+Patches currently in -mm which might be from muchun.song@linux.dev are
+
+mm-sparse-vmemmap-factor-out-shared-vmemmap-tail-page-allocation.patch
+mm-sparse-vmemmap-allocate-shared-tail-page-array-dynamically.patch
+mm-sparse-vmemmap-introduce-config_vmemmap_optimization.patch
+mm-sparse-vmemmap-open-code-init_compound_tail.patch
+mm-sparse-vmemmap-prepare-dax-vmemmap-population-for-compound-page-orders.patch
+mm-sparse-vmemmap-set-compound-page-order-for-device-dax.patch
+mm-sparse-vmemmap-switch-device-dax-to-shared-tail-vmemmap-pages.patch
+mm-sparse-vmemmap-switch-device-dax-to-shared-tail-vmemmap-pages-fix.patch
+mm-sparse-vmemmap-move-vmemmap-optimization-helpers-to-a-public-header.patch
+powerpc-mm-switch-device-dax-to-shared-tail-vmemmap-pages.patch
+mm-sparse-vmemmap-drop-the-extra-tail-page-from-device-dax-reservation.patch
+mm-sparse-vmemmap-drop-unused-section_nr_vmemmap_pages-arguments.patch
+documentation-mm-update-dax-vmemmap-deduplication-docs.patch
+
