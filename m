@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AEA4D4D9F84
-	for <mm-commits@vger.kernel.org>; Mon, 28 Sep 2026 19:20:50 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7673D45D1B1
+	for <mm-commits@vger.kernel.org>; Mon, 28 Sep 2026 21:48:52 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790623252; cv=none; b=gTJrrbr4v6D/ntHH5/behaWsNnuKz58KxgbWgv8mcGJcbTzhEO41ecB00F5idsgT8BQci/tbFZpWKQwzJA/L6RKiK7EFjXcDozoIr28wo8d+Lnyhk8vdQSzdmXL2F3oSuqtfyV8f+yCLOK6xiFoXWUkLQAzZOiv7KnID5bzm2DI=
+	t=1790632135; cv=none; b=pFfWUUCm9U2aBpRFdskEHLWeamvQ8J/GZn+Uc+M0OWLM9ljV2KvmdDVyK5L+d5bVbzk9W4dALpNmD7b1Q6k7l07L1Klg7FGujkX349SJLQmGi7n3RWVkqsPvbf/0A1FeTgCS29ku6zyN3lyj1uwwLh9EI7Uckixx8fZi2KcVMX0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1790623252; c=relaxed/simple;
-	bh=HQcrEDi3Biv/kdgc/RILZCfATg6DaShSVJOgVZX8BKQ=;
-	h=Date:To:From:Subject:Message-Id; b=MYIZ334xsEPzJHzMyAzjAoNatt31vvDRPDoelnWKyFqunUF+T5pw9z5jU9XCdFWWxANI96Q95Ynttk9nLDDcj9mMeWRN44b6qy1NzBmsofOKAo+7csMm7z4UAdYucn6U6Mrs/O+YEpydnrlc4ntxIDFstLnY5Ecrtj2JT+hYeVw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=YwmArh8w; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1790632135; c=relaxed/simple;
+	bh=uGzTChEeVMM/k0nQi/EENDW8SR1L/frnm73lwf/dnSc=;
+	h=Date:To:From:Subject:Message-Id; b=W5WHe8n6HLcNslvXAFBJhTTgsvE7kmB6enURMepmyPGUjGDBKBCoIb3hLcEvg5nVMhuDJyvZ54j2SVCXa3ibTogs+xO3/qW7AHTEWSMe+AUkhYeKLRoh5L0Az2KHS8p4ke81132u8VJRdy2rTKfiAcgX7pYKWKOPj7q+xGC8dMg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=x52dn0ev; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="YwmArh8w"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1C4A71F000FF;
-	Mon, 28 Sep 2026 19:20:50 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="x52dn0ev"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id BD7681F000FF;
+	Mon, 28 Sep 2026 21:48:52 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1790623250;
-	bh=Z4ncwOoI8iODylp1xSX48X2s3b7/boky1sTxf0uCUiY=;
+	d=linux-foundation.org; s=korg; t=1790632132;
+	bh=M601LN12XWEJnQ+b34lFzgg8RX/eGmeEBxLQEM3QOFE=;
 	h=Date:To:From:Subject;
-	b=YwmArh8wH5/Zf7OL1gZwG8DUYeqtmuUZjsb6RgzUj0CE5JdL1ihfzb9Ad3BnPRjj1
-	 ysI70JEVlm2Q1frflS3FpMWQHf0wAkLrlL2c4VYNiyaoLz4+5e9Byi7nDSZ/4GQR0s
-	 PSpCc0MdRhRd/FqZP0dfliSVzbd9b7D1tUdBzioM=
-Date: Mon, 28 Sep 2026 12:20:49 -0700
-To: mm-commits@vger.kernel.org,lkp@intel.com,catalin.marinas@arm.com,anshuman.khandual@arm.com,david@kernel.org,akpm@linux-foundation.org
+	b=x52dn0eveFCrgyWM5L7SpXjq54BZ1a5BJSHTM//Chj+aBjtxtwbU93RREMHWPCCBn
+	 okXTDp0BSnmszeJOqGA0ZQiSUfc8gkSneR5F4o9apyTqIoux6oIFKP8WZWzXb6tg/n
+	 X/6Z2WMZBDbXZ2UqLEGYWJwES51k6hoXvLzWzsnM=
+Date: Mon, 28 Sep 2026 14:48:52 -0700
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,yukuai@fnnas.com,yizhang089@gmail.com,yangerkun@huawei.com,willy@infradead.org,wangkefeng.wang@huawei.com,vbabka@kernel.org,surenb@google.com,rppt@kernel.org,mhocko@suse.com,ljs@kernel.org,liam@infradead.org,joannelkoong@gmail.com,jack@suse.cz,hughd@google.com,djwong@kernel.org,david@kernel.org,chengzhihao1@huawei.com,bfoster@redhat.com,baolin.wang@linux.alibaba.com,yi.zhang@huawei.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + arm64-mm-move-__check_safe_pte_update-fix.patch added to mm-unstable branch
-Message-Id: <20260928192050.1C4A71F000FF@smtp.kernel.org>
+Subject: + mm-truncate-align-truncation-boundaries-to-mapping-minimum-folio-order.patch added to mm-new branch
+Message-Id: <20260928214852.BD7681F000FF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,15 +35,26 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: arm64-mm-move-__check_safe_pte_update-fix
-has been added to the -mm mm-unstable branch.  Its filename is
-     arm64-mm-move-__check_safe_pte_update-fix.patch
+     Subject: mm/truncate: align truncation boundaries to mapping minimum folio order
+has been added to the -mm mm-new branch.  Its filename is
+     mm-truncate-align-truncation-boundaries-to-mapping-minimum-folio-order.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/arm64-mm-move-__check_safe_pte_update-fix.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-truncate-align-truncation-boundaries-to-mapping-minimum-folio-order.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Note, mm-new is a provisional staging ground for work-in-progress
+patches, and acceptance into mm-new is a notification for others take
+notice and to finish up reviews.  Please do not hesitate to respond to
+review feedback and post updated versions to replace or incrementally
+fixup patches in mm-new.
+
+The mm-new branch of mm.git is not included in linux-next
+
+If a few days of testing in mm-new is successful, the patch will me moved
+into mm.git's mm-unstable branch, which is included in linux-next
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -58,70 +69,191 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: "David Hildenbrand (Arm)" <david@kernel.org>
-Subject: arm64-mm-move-__check_safe_pte_update-fix
-Date: Mon, 28 Sep 2026 09:42:06 +0200
+From: Zhang Yi <yi.zhang@huawei.com>
+Subject: mm/truncate: align truncation boundaries to mapping minimum folio order
+Date: Mon, 28 Sep 2026 20:08:30 +0800
 
-fix this:
+Patch series "mm/truncate: fix data loss when truncating straddling large
+folios", v5.
 
->> aarch64-linux-ld: Unexpected GOT/PLT entries detected!
->> aarch64-linux-ld: Unexpected run-time procedure linkages detected!
-   aarch64-linux-ld: arch/arm64/mm/mmu.o: in function `__set_ptes_anysz.isra.40.constprop.47':
->> mmu.c:(.text+0x9a8): undefined reference to `__check_safe_pte_update'
-   aarch64-linux-ld: arch/arm64/mm/hugetlbpage.o: in function `__set_ptes_anysz.isra.32':
->> hugetlbpage.c:(.text+0x1a8): undefined reference to `__check_safe_pte_update'
-   aarch64-linux-ld: kernel/bpf/arena.o: in function `apply_range_set_cb':
->> arena.c:(.text+0x11fc): undefined reference to `__check_safe_pte_update'
-   aarch64-linux-ld: mm/gup.o: in function `follow_page_pte':
->> gup.c:(.text+0x2b48): undefined reference to `__check_safe_pte_update'
-   aarch64-linux-ld: mm/memory.o: in function `__set_ptes.isra.207':
->> memory.c:(.text+0x3418): undefined reference to `__check_safe_pte_update'
-   aarch64-linux-ld: mm/mprotect.o:mprotect.c:(.text+0x1080): more undefined references to `__check_safe_pte_update' follow
+This is the fifth version fixing data loss when truncating straddling
+large folios caught on the upcomming ext4 + iomap buffered I/O conversion.
 
-Link: https://lore.kernel.org/99023678-fd8a-4eef-8e43-a07b504e3e96@kernel.org
-Signed-off-by: David Hildenbrand (Arm) <david@kernel.org>
+When truncate_inode_pages_range() punches a hole or truncates a file,
+truncate_inode_partial_folio() splits a large folio so that the caller can
+drop the in-range sub-folios while keeping the out-of-range tail intact. 
+This series fixes three distinct problems in that path that can each lose
+the valid out-of-range tail of a straddling folio, plus a follow-up that
+clarifies the return value semantics.
+
+Patch 01 aligns the truncation boundaries inwards to the mapping minimum
+folio order in truncate_inode_pages_range().  With a non-zero min_order,
+folio_split() stops at min_order instead of order 0, so a boundary
+computed at page granularity can land inside a min-order-aligned sub-folio
+and the truncate loop drops that whole chunk, valid tail included, causing
+data loss.
+
+Patch 02 looks the end-edge straddler up by its page index through
+__filemap_get_folio() in truncate_inode_partial_folio().  After the first
+split the straddler is unlocked and only transiently ref'd in the page
+cache, so the page pointer derived from the original folio can be freed
+and reallocated as a different folio in the same mapping, and the mapping
+check cannot catch it, which may cause incorrect splitting and potential
+data loss.
+
+Patch 03 reworks the contract between truncate_inode_partial_folio() and
+its callers.  If the second split of the straddler fails, the function
+reported success unconditionally, and the leftover incorrect end position
+could cause the truncate loop to drop that valid tail.  After rework, it
+tells the caller the exact page range safe to discard via new pstart/pend
+out-parameters, so the truncate loop never touches a straddling folio that
+still holds valid out-of-range data.
+
+Patch 04 clarifies the return value semantics to "at least one split
+succeeded", which is all the shmem caller needs to decide whether to reset
+its scan loop.
+
+The second patch fixes a pre-existing race issue that is reachable today,
+so it is Cc'd to stable.  Patches 01 and 03 require a dirty large folio
+that carries no filesystem private data, so they are not reachable on
+current filesystems.  They were found while developing the upcoming ext4
+iomap buffered I/O path.  [1]
+
+In addition, another two pre-existing issues were found during the
+development of this series:
+
+ - On 32-bit systems with a non-zero min_order filesystem, truncating or
+   any operation operation involving folio_next_index() on the folio
+   containing MAX_LFS_FILESIZE can cause the index calculation to
+   overflow, posing an unpredictable risk. [2]
+ - In shmem, at the last call site of truncate_inode_partial_folio() in
+   shmem_undo_range(), the restart-loop check is wrong, which leaves
+   split sub-folios behind. [3]
+
+These two issues need to be fixed separately.
+
+
+
+When the mapping has a non-zero minimum folio order (min_order),
+folio_split() in truncate_inode_partial_folio() stops at min_order instead
+of order 0, so the sub-folio containing a split point stays aligned to 1
+<< min_order rather than to a single page.  The original boundaries in
+truncate_inode_pages_range() were based on page granularity, so either
+boundary could land inside the min_order chunk at its edge, and the
+truncation loop would drop that whole chunk, valid out-of-range tail
+included.
+
+For example, a 64K (order-4) folio with min_order = 2 (16K) punched from
+offset 0 to 36K:
+
+  split @p0 -> [p0-p3, p4-p7, p8-p15]         # non-uniform, min_order
+  folio2 = p8-p15           # straddles: p8 in range, p9-p15 tail valid
+  2nd split of folio2 -> [p8-p11, p12-p15]    # success
+  end(old) = p9                               # BUG: p9 inside [p8-p11]
+  loop truncates ... p8-p11               # p9-p11's valid tail is lost
+
+It has gone unnoticed so far for two reasons.  A non-zero min_order is
+only used by filesystems with a block or sector size larger than the page
+size, and those either always write back the affected range before
+punching a hole or truncating, or they carry filesystem private data on
+dirty folios (e.g.  buffer_head), which makes filemap_release_folio() fail
+and folio_split() abort with -EBUSY, so the folio is never split and the
+old start/end boundaries remain valid.  The bug only becomes reachable on
+paths that truncate dirty large folios without prior writeback and without
+filesystem private data, such as the upcoming ext4 iomap buffered I/O
+path.
+
+Align both start (rounded up) and end (rounded down) to the mapping
+minimum folio order so they always fall on a folio boundary.
+
+Link: https://lore.kernel.org/20260928120833.3440834-2-yi.zhang@huaweicloud.com
+Link: https://lore.kernel.org/linux-fsdevel/a638a8fb-c184-4069-ae33-379ec12cd514@huaweicloud.com/ [1]
+Link: https://lore.kernel.org/linux-mm/5a454f2a-8ae2-491d-b903-750c945cfb9d@huaweicloud.com/ [2]
+Link: https://lore.kernel.org/linux-mm/5pthbyxtn7q6xi4fmkofvksmcjzfnujcw2g4fxmxjzfin5pbgf@zui3vcimb4cv/ [3]
+Fixes: e220917fa5077 ("mm: split a folio in minimum folio order chunks")
+Signed-off-by: Zhang Yi <yi.zhang@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Reported-by: kernel test robot <lkp@intel.com>
-Closes: https://lore.kernel.org/oe-kbuild-all/202609270030.Y0QVBPmK-lkp@intel.com/
-Cc: Anshuman Khandual <anshuman.khandual@arm.com>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
+Reported-by: Joanne Koong <joannelkoong@gmail.com>
+Closes: https://lore.kernel.org/linux-mm/CAJnrk1bQYUe6+1ryyJur5EEnZYrC+_5AYsy=OWzVRgD4202y1g@mail.gmail.com/
+Suggested-by: Zi Yan <ziy@nvidia.com>
+Reviewed-by: Jan Kara <jack@suse.cz>
+Reviewed-by: Brian Foster <bfoster@redhat.com>
+Reviewed-by: Zi Yan <ziy@nvidia.com>
+Cc: David Hildenbrand <david@kernel.org>
+Cc: Lorenzo Stoakes <ljs@kernel.org>
+Cc: Liam R. Howlett <liam@infradead.org>
+Cc: Vlastimil Babka <vbabka@kernel.org>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Darrick J. Wong <djwong@kernel.org>
+Cc: <yizhang089@gmail.com>
+Cc: Yang Erkun <yangerkun@huawei.com>
+Cc: Zhihao Cheng <chengzhihao1@huawei.com>
+Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
+Cc: <yukuai@fnnas.com>
 ---
 
- arch/arm64/mm/mmu.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/truncate.c |   18 ++++++++++++------
+ 1 file changed, 12 insertions(+), 6 deletions(-)
 
---- a/arch/arm64/mm/mmu.c~arm64-mm-move-__check_safe_pte_update-fix
-+++ a/arch/arm64/mm/mmu.c
-@@ -2392,6 +2392,7 @@ int arch_set_user_pkey_access(int pkey,
+--- a/mm/truncate.c~mm-truncate-align-truncation-boundaries-to-mapping-minimum-folio-order
++++ a/mm/truncate.c
+@@ -345,9 +345,11 @@ long mapping_evict_folio(struct address_
+  * @lstart: offset from which to truncate
+  * @lend: offset to which to truncate (inclusive)
+  *
+- * Truncate the page cache, removing the pages that are between
+- * specified offsets (and zeroing out partial pages
+- * if lstart or lend + 1 is not page aligned).
++ * Truncate the page cache, removing the folios that are between specified
++ * offsets (and zeroing out partial folios if lstart or lend + 1 is not
++ * folio aligned).  For mappings with a non-zero minimum folio order, the
++ * boundaries are aligned inwards to 1 << min_order so the edge sub-folio
++ * straddling the range is kept.
+  *
+  * Truncate takes two passes - the first pass is nonblocking.  It will not
+  * block on page locks and it will not block on writeback.  The second pass
+@@ -366,6 +368,7 @@ long mapping_evict_folio(struct address_
+ void truncate_inode_pages_range(struct address_space *mapping,
+ 				loff_t lstart, uoff_t lend)
+ {
++	pgoff_t		min_nrpages = mapping_min_folio_nrpages(mapping);
+ 	pgoff_t		start;		/* inclusive */
+ 	pgoff_t		end;		/* exclusive */
+ 	struct folio_batch fbatch;
+@@ -379,9 +382,8 @@ void truncate_inode_pages_range(struct a
+ 		return;
  
- 	return 0;
- }
-+#endif
+ 	/*
+-	 * 'start' and 'end' always covers the range of pages to be fully
+-	 * truncated. Partial pages are covered with 'partial_start' at the
+-	 * start of the range and 'partial_end' at the end of the range.
++	 * 'start' and 'end' always covers the range of folios to be fully
++	 * truncated, with both boundaries aligned inwards to 1 << min_order.
+ 	 * Note that 'end' is exclusive while 'lend' is inclusive.
+ 	 */
+ 	start = (lstart + PAGE_SIZE - 1) >> PAGE_SHIFT;
+@@ -395,6 +397,10 @@ void truncate_inode_pages_range(struct a
+ 	else
+ 		end = (lend + 1) >> PAGE_SHIFT;
  
- /*
-  * PTE bits configuration in the presence of hardware Dirty Bit Management
-@@ -2436,4 +2437,3 @@ void __check_safe_pte_update(struct mm_s
- 		     __func__, pte_val(old_pte), pte_val(pte));
- }
- #endif /* CONFIG_DEBUG_VM */
--#endif
++	start = round_up(start, min_nrpages);
++	if (end != (pgoff_t)-1)
++		end = round_down(end, min_nrpages);
++
+ 	folio_batch_init(&fbatch);
+ 	index = start;
+ 	while (index < end && find_lock_entries(mapping, &index, end - 1,
 _
 
-Patches currently in -mm which might be from david@kernel.org are
+Patches currently in -mm which might be from yi.zhang@huawei.com are
 
-selftests-mm-khugepaged-remove-str_dup-usage.patch
-mm-sparse-move-mem_section-init-to-sparse_extreme_init.patch
-mm-sparse-refactor-sparse_sections_init.patch
-mm-sparse-move-initialization-of-section-metadata-to-sparse_metadata_init.patch
-mm-sparse-rename-and-cleanup-sparse_init_nid.patch
-mm-sparse-cleanup-sparse_init_one_section.patch
-mm-sparse-rename-__highest_present_section_nr-to-__highest_used_section_nr.patch
-mm-sparse-remove-pfn_in_present_section.patch
-mm-sparse-move-__highest_used_section_nr-handling.patch
-scripts-gdb-mmpy-remove-fallbacks-for-section_has_mem_map-and-section_is_early.patch
-mm-sparse-remove-section_marked_present.patch
-mm-sparse-remove-flags-parameter-from-sparse_init_one_section.patch
-fs-proc-page-clarify-comment-in-get_max_dump_pfn.patch
-mm-memory_hotplug-drop-config_have_arch_pfn_valid-handling-from-pfn_to_online_page.patch
-arm64-mm-move-__check_safe_pte_update-fix.patch
+mm-truncate-align-truncation-boundaries-to-mapping-minimum-folio-order.patch
+mm-truncate-look-up-the-end-edge-straddler-by-index.patch
+mm-truncate-fix-data-loss-when-splitting-straddling-large-folios-fails.patch
+mm-truncate-clarify-return-value-of-truncate_inode_partial_folio.patch
 
