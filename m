@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BEB55417D99
-	for <mm-commits@vger.kernel.org>; Mon, 28 Sep 2026 21:51:02 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B25BA5013B8
+	for <mm-commits@vger.kernel.org>; Mon, 28 Sep 2026 21:51:04 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790632264; cv=none; b=Lek2ABeSbLrsQjMmKDgWVXZdzLBVWNa/NuumFxf8PlFhzNzWPRoMrZXNwuwoHSL/FPzbfO0T1PDC+BDTWl+xmpoiapugv0eUOPBqobH9Bhwb3zoMHie1PldKMuuZ7lMP1o5uda5/8mitalT84dTZ7tl2T5fUCCOJlTG6cpFuLDA=
+	t=1790632266; cv=none; b=ONbTy3grgIeaOlJEZwNSMuHCXEBDKSxGpUnpSjRVaFhSqLGnGP/ZGQssefkAr2aXp0rgEA68A8ZgnS/SboyrXeiTlYYIahqhzvvQnJ8EIRcv2ITMcLfpURMWw4GiY5eDuNOcedq7tFxcV6nNSXXJB/GKDOlIumnomUtciEj523M=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1790632264; c=relaxed/simple;
-	bh=dY0o8z2CVN46AgY8yYZ7a4uQBwqiahLFjnwajbzBGn0=;
-	h=Date:To:From:Subject:Message-Id; b=Gyrq8kLvZzlFlilZrGHvvLOD8d1H8F+WzyvgwUk4D7tKOVDflZM45A5dQje0V/jqpaYwmLxKypm+tgcvxTz0PT8xz4lCC7dvDys4r3Df6ZbhABWAEJzOqXd7/9+/y7vQuFI3LJRCAv9RjEaL5e8BiP6o+JqlG6lsNstWktxpM1E=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=IdV4ld9L; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1790632266; c=relaxed/simple;
+	bh=EMItiXvlfnzjDoS2T3UDcLGkHog90qa/qJ75lTyBDvU=;
+	h=Date:To:From:Subject:Message-Id; b=WnWjJgL62r6dll+WwijjcysAY9XbhskYb1iKX9jhgv9rCA/e5omUJI/1PIqzo3CgTWH9rY1F8Sg5ajNqmg+1aJHWyO/vnUFMt/B21t9cW246E0ET4ThrGvtLF03D4g6kNQVZm7UKaVScNVzib6ame4icXPQraR3aJtfjsxIAoXc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=fr6aUCVj; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="IdV4ld9L"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8B76C1F00893;
-	Mon, 28 Sep 2026 21:51:02 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="fr6aUCVj"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 177871F000FF;
+	Mon, 28 Sep 2026 21:51:04 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1790632262;
-	bh=6f72iNGR7McG0iagEVPFLU5G5luk2eeAepBXQ32d4uA=;
+	d=linux-foundation.org; s=korg; t=1790632264;
+	bh=XUIcRkqXK85dnWvBtDX90HP13V5hdS5B7zZxKrwagmo=;
 	h=Date:To:From:Subject;
-	b=IdV4ld9LcwYh4bscRf9YQPtpuwtzkTO6ZDN+3EdycBbxMX14S7QdU2w+6bwFKBXSz
-	 edrP1JNmPwzvo4mpVvXvN0Ey1HmZ+zvlqZ3GhLgBhh+rkKceYCI71Ig/m2gAiN6+4e
-	 O3H1/CLv4/by8GjFofIsQrWUfIZ8D5xDL1eusMhQ=
-Date: Mon, 28 Sep 2026 14:51:02 -0700
+	b=fr6aUCVj9IYGtdsiFLYQFqLAu3m7I9wWLkR6y11DOaFNUXk8pSNwD08CxgBEB7WNn
+	 Fn+Y9JUfoYuZX2qwl9ELaFR6RdyonlOwGgS3O3RxCeNUp396bGXqedzJxk4cwe4zPl
+	 4FSHvTvqAGsg7G4UixiyN03afCX4x9Ntpm5L6HBg=
+Date: Mon, 28 Sep 2026 14:51:03 -0700
 To: mm-commits@vger.kernel.org,kas@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [to-be-updated] mm-collapse-drop-the-collapse_possible-wrapper.patch removed from -mm tree
-Message-Id: <20260928215102.8B76C1F00893@smtp.kernel.org>
+Subject: [to-be-updated] mm-collapse-name-the-per-table-scan-reset-for-what-it-resets.patch removed from -mm tree
+Message-Id: <20260928215104.177871F000FF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,23 +35,31 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/collapse: drop the collapse_possible() wrapper
+     Subject: mm/collapse: name the per-table scan reset for what it resets
 has been removed from the -mm tree.  Its filename was
-     mm-collapse-drop-the-collapse_possible-wrapper.patch
+     mm-collapse-name-the-per-table-scan-reset-for-what-it-resets.patch
 
 This patch was dropped because an updated version will be issued
 
 ------------------------------------------------------
 From: "Kiryl Shutsemau (Meta)" <kas@kernel.org>
-Subject: mm/collapse: drop the collapse_possible() wrapper
-Date: Wed, 16 Sep 2026 10:31:33 +0100
+Subject: mm/collapse: name the per-table scan reset for what it resets
+Date: Wed, 16 Sep 2026 10:31:34 +0100
 
-collapse_possible() only forwards to collapse_possible_orders() and turns
-its mask into a bool.  Its three callers can test the mask themselves.
+collapse_control_init_scan() resets what one scan accumulates: the node
+load, the allocation nodemask and the eligible-PTE bitmap.  It runs before
+every PTE table a scan is given, not once per control, so its name points
+at the wrong thing.
+
+Call it collapse_scan_reset().
+
+Preparation for giving a control a real init and release, run once each
+for a whole series of scans.  Two names a word apart would then stand for
+two different jobs.
 
 No functional change.
 
-Link: https://lore.kernel.org/20260916093145.4022188-7-kirill@shutemov.name
+Link: https://lore.kernel.org/20260916093145.4022188-8-kirill@shutemov.name
 Signed-off-by: Kiryl Shutsemau (Meta) <kas@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 Reviewed-by: Zi Yan <ziy@nvidia.com>
@@ -68,50 +76,38 @@ Cc: Ryan Roberts <ryan.roberts@arm.com>
 Cc: Vlastimil Babka <vbabka@kernel.org>
 ---
 
- mm/khugepaged.c |   15 +++++----------
- 1 file changed, 5 insertions(+), 10 deletions(-)
+ mm/khugepaged.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
---- a/mm/khugepaged.c~mm-collapse-drop-the-collapse_possible-wrapper
+--- a/mm/khugepaged.c~mm-collapse-name-the-per-table-scan-reset-for-what-it-resets
 +++ a/mm/khugepaged.c
-@@ -512,17 +512,11 @@ static unsigned long collapse_possible_o
- 	return thp_vma_allowable_orders(vma, vm_flags, tva_flags, orders);
+@@ -550,7 +550,7 @@ void __khugepaged_exit(struct mm_struct
+ 	}
  }
  
--static bool collapse_possible(struct vm_area_struct *vma,
--		vm_flags_t vm_flags, enum tva_type tva_flags)
--{
--	return collapse_possible_orders(vma, vm_flags, tva_flags);
--}
--
- void khugepaged_enter_vma(struct vm_area_struct *vma,
- 			  vm_flags_t vm_flags)
+-static void collapse_control_init_scan(struct collapse_control *cc)
++static void collapse_scan_reset(struct collapse_control *cc)
  {
--	if (!mm_flags_test(MMF_VM_HUGEPAGE, vma->vm_mm) && hugepage_enabled()
--	    && collapse_possible(vma, vm_flags, TVA_KHUGEPAGED))
-+	if (!mm_flags_test(MMF_VM_HUGEPAGE, vma->vm_mm) && hugepage_enabled() &&
-+	    collapse_possible_orders(vma, vm_flags, TVA_KHUGEPAGED))
- 		__khugepaged_enter(vma->vm_mm);
- }
+ 	memset(cc->node_load, 0, sizeof(cc->node_load));
+ 	nodes_clear(cc->alloc_nmask);
+@@ -1609,7 +1609,7 @@ static enum scan_result collapse_scan_pm
+ 		goto out;
+ 	}
  
-@@ -2880,7 +2874,8 @@ static void collapse_scan_mm_slot(unsign
- 			cc->progress++;
- 			break;
- 		}
--		if (!collapse_possible(vma, vma->vm_flags, TVA_KHUGEPAGED)) {
-+		if (!collapse_possible_orders(vma, vma->vm_flags,
-+					      TVA_KHUGEPAGED)) {
- 			cc->progress++;
- 			continue;
- 		}
-@@ -3193,7 +3188,7 @@ int madvise_collapse(struct vm_area_stru
- 	BUG_ON(vma->vm_start > start);
- 	BUG_ON(vma->vm_end < end);
+-	collapse_control_init_scan(cc);
++	collapse_scan_reset(cc);
  
--	if (!collapse_possible(vma, vma->vm_flags, TVA_FORCED_COLLAPSE))
-+	if (!collapse_possible_orders(vma, vma->vm_flags, TVA_FORCED_COLLAPSE))
- 		return -EINVAL;
+ 	enabled_orders = collapse_possible_orders(vma, vma->vm_flags, tva_flags);
  
- 	hstart = ALIGN(start, HPAGE_PMD_SIZE);
+@@ -2680,7 +2680,7 @@ static enum scan_result collapse_scan_fi
+ 
+ 	present = 0;
+ 	swap = 0;
+-	collapse_control_init_scan(cc);
++	collapse_scan_reset(cc);
+ 	rcu_read_lock();
+ 	xas_for_each(&xas, folio, start + HPAGE_PMD_NR - 1) {
+ 		if (xas_retry(&xas, folio))
 _
 
 Patches currently in -mm which might be from kas@kernel.org are
@@ -119,7 +115,6 @@ Patches currently in -mm which might be from kas@kernel.org are
 mm-huge_memory-do-not-touch-frozen-folios-in-deferred_split_isolate.patch
 mm-huge_memory-dequeue-the-deferred-split-after-the-split-freeze.patch
 mm-huge_memory-add-folio_reset_partially_mapped.patch
-mm-collapse-name-the-per-table-scan-reset-for-what-it-resets.patch
 mm-collapse-separate-scanning-a-pte-table-from-collapsing-it.patch
 mm-collapse-open-code-collapse_single_pmd-in-its-two-callers.patch
 mm-collapse-work-out-the-orders-a-vma-allows-once-per-vma.patch
