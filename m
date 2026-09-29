@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A9FC6156C6A
-	for <mm-commits@vger.kernel.org>; Tue, 29 Sep 2026 00:08:24 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BDA8A156C6A
+	for <mm-commits@vger.kernel.org>; Tue, 29 Sep 2026 00:08:26 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790640505; cv=none; b=GLKFKo57gBXcgK1e+dbRpRn1+JQ2vcFGDi03IcwEBALrtefkhkTi/dqaUG+73tSlsMQpe2lyYqeRkPh3rZdKRfqTratKt/bIGPilGwZx6DBFHmOu/efM4r6s9q7f1IZXM3Krf64/ERHeHlbJtxFcuj4Apw032rP6SaTfCRC2B1o=
+	t=1790640508; cv=none; b=YbK/+kDhLnxGh1E/9xlB++YWQpde5KnZe5vLR0wcrHGFdWDF47975B/3zJ/c23F65OYOJjHKVjSzdfPcR4KYozV7XTpzO01yXOJU7TWQ/lTV80Sh4+2IEcakqMFS63yp5cZe4cw1ThAUkGUyAbdM3aK4l25Q7maZPooKuDPKkbM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1790640505; c=relaxed/simple;
-	bh=6f7XE7tlY5F0UpIFobTHycgP8Kb85JFgwc/9rue2vac=;
-	h=Date:To:From:Subject:Message-Id; b=fTR4f8iZ+fmNsL1lLgWJHIMBRh7Ltkg9PIIaVrgfiJQh2/bDbc27uJdWTsdvMCeJ2RZRqsFs5xVRYkNmq1D1xPy/c1XPs3X9MB4FL9wBecAIgDIPJW8a6GQ9Q5bBrwIxbDBNUFgLV6BVyfXojPGe7DWQercHmQhN+LkqB1TfdII=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=n8yED6RA; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1790640508; c=relaxed/simple;
+	bh=Xsfdx1kIcy3yqdM0fEc/MdwvCWm6j4D5QhX2MX1Osc8=;
+	h=Date:To:From:Subject:Message-Id; b=aMC7q+89ViihhMGlV5bkla6+Lesr27Vh9jFrhmJkzvt+ulhDCpKP//igSLaZ6LvMy410aCPkzFvnBFxoAyYv1GDVl/T5vesHr3KU0FUsUWmZWdge0j64IaBLxvwS4QRL/sKfrldA7L/VEK5PmueTCj+q+n6UBS1Z3b9xLCHrkyI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=nvQDBE8Q; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="n8yED6RA"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 453351F00893;
-	Tue, 29 Sep 2026 00:08:24 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="nvQDBE8Q"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 90CD31F000FF;
+	Tue, 29 Sep 2026 00:08:26 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1790640504;
-	bh=7IHU8MssRH+IJWhHfQwV7O+34HWU3jjF2gfOhKlOG/Y=;
+	d=linux-foundation.org; s=korg; t=1790640506;
+	bh=rxyC1A/KdL2ANle0jaoRryaCILnWBNn3c/y0jVKbBfw=;
 	h=Date:To:From:Subject;
-	b=n8yED6RAB/IRjLz8dQp1Eyp4u6/ATgEWolYg56wh8t8rBWACgHKFrDkKS75Qk3o0U
-	 kc12VfX2Lm8eY6pCqqH1jE7XQ4bFcl8l0cv3jjxcHbqMl5wR5en+U9nRE0YGpwlrqq
-	 d1Eu00s30VCAuOAokgm8QShYLWUw4mwqJEIfxyts=
-Date: Mon, 28 Sep 2026 17:08:23 -0700
+	b=nvQDBE8QE1SXbh7sCYiSsfHAdV6Rbl9gsQmHFmJqQpUkljQ+7QC4n8b4iIWITSWsj
+	 J3yZPnEmNL9IP3H6hNroyoHqrDkmHtk5B1+C3pfRzQ36Q48qb0qB8eLdhrXsm1m+44
+	 bZx+VVDIS8tqeBRFXqSH0dRyPmqjiUb2mug8veMM=
+Date: Mon, 28 Sep 2026 17:08:26 -0700
 To: mm-commits@vger.kernel.org,hch@lst.de,harry@kernel.org,hebaoquan@kylinos.cn,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + drm-sti-dont-use-gfp_dma-when-calling-dma_alloc_wc.patch added to mm-new branch
-Message-Id: <20260929000824.453351F00893@smtp.kernel.org>
+Subject: + alsa-n64-dont-use-gfp_dma-when-calling-dma_alloc_coherent.patch added to mm-new branch
+Message-Id: <20260929000826.90CD31F000FF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: drm/sti: don't use GFP_DMA when calling dma_alloc_wc()
+     Subject: ALSA: n64: don't use GFP_DMA when calling dma_alloc_coherent()
 has been added to the -mm mm-new branch.  Its filename is
-     drm-sti-dont-use-gfp_dma-when-calling-dma_alloc_wc.patch
+     alsa-n64-dont-use-gfp_dma-when-calling-dma_alloc_coherent.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/drm-sti-dont-use-gfp_dma-when-calling-dma_alloc_wc.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/alsa-n64-dont-use-gfp_dma-when-calling-dma_alloc_coherent.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,56 +70,35 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Baoquan He <hebaoquan@kylinos.cn>
-Subject: drm/sti: don't use GFP_DMA when calling dma_alloc_wc()
-Date: Thu,  3 Sep 2026 19:18:25 +0800
+Subject: ALSA: n64: don't use GFP_DMA when calling dma_alloc_coherent()
+Date: Thu,  3 Sep 2026 19:18:26 +0800
 
-dma_alloc_wc() allocates the DMA buffer with the device's addressing
+dma_alloc_coherent() allocates the DMA buffer with the device's addressing
 limitation in mind; the DMA core picks the zone from the device's coherent
 DMA mask and ignores GFP_DMA passed by the caller.  Remove the redundant
 GFP_DMA flag.
 
-Link: https://lore.kernel.org/20260903111836.1777265-3-hebaoquan@kylinos.cn
+Link: https://lore.kernel.org/20260903111836.1777265-4-hebaoquan@kylinos.cn
 Signed-off-by: Baoquan He <hebaoquan@kylinos.cn>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 Cc: Christoph Hellwig <hch@lst.de>
 Cc: Harry Yoo <harry@kernel.org>
 ---
 
- drivers/gpu/drm/sti/sti_cursor.c |    4 ++--
- drivers/gpu/drm/sti/sti_hqvdp.c  |    2 +-
- 2 files changed, 3 insertions(+), 3 deletions(-)
+ sound/mips/snd-n64.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/drivers/gpu/drm/sti/sti_cursor.c~drm-sti-dont-use-gfp_dma-when-calling-dma_alloc_wc
-+++ a/drivers/gpu/drm/sti/sti_cursor.c
-@@ -240,7 +240,7 @@ static int sti_cursor_atomic_check(struc
- 		cursor->pixmap.base = dma_alloc_wc(cursor->dev,
- 						   cursor->pixmap.size,
- 						   &cursor->pixmap.paddr,
--						   GFP_KERNEL | GFP_DMA);
-+						   GFP_KERNEL);
- 		if (!cursor->pixmap.base) {
- 			DRM_ERROR("Failed to allocate memory for pixmap\n");
- 			return -EINVAL;
-@@ -380,7 +380,7 @@ struct drm_plane *sti_cursor_create(stru
- 	/* Allocate clut buffer */
- 	size = 0x100 * sizeof(unsigned short);
- 	cursor->clut = dma_alloc_wc(dev, size, &cursor->clut_paddr,
--				    GFP_KERNEL | GFP_DMA);
-+				    GFP_KERNEL);
+--- a/sound/mips/snd-n64.c~alsa-n64-dont-use-gfp_dma-when-calling-dma_alloc_coherent
++++ a/sound/mips/snd-n64.c
+@@ -298,7 +298,7 @@ static int __init n64audio_probe(struct
+ 	priv->card = card;
  
- 	if (!cursor->clut) {
- 		DRM_ERROR("Failed to allocate memory for cursor clut\n");
---- a/drivers/gpu/drm/sti/sti_hqvdp.c~drm-sti-dont-use-gfp_dma-when-calling-dma_alloc_wc
-+++ a/drivers/gpu/drm/sti/sti_hqvdp.c
-@@ -860,7 +860,7 @@ static void sti_hqvdp_init(struct sti_hq
- 	size = NB_VDP_CMD * sizeof(struct sti_hqvdp_cmd);
- 	hqvdp->hqvdp_cmd = dma_alloc_wc(hqvdp->dev, size,
- 					&dma_addr,
--					GFP_KERNEL | GFP_DMA);
-+					GFP_KERNEL);
- 	if (!hqvdp->hqvdp_cmd) {
- 		DRM_ERROR("Failed to allocate memory for VDP cmd\n");
- 		return;
+ 	priv->ring_base = dma_alloc_coherent(card->dev, 32 * 1024, &priv->ring_base_dma,
+-					     GFP_DMA|GFP_KERNEL);
++					     GFP_KERNEL);
+ 	if (!priv->ring_base) {
+ 		err = -ENOMEM;
+ 		goto fail_card;
 _
 
 Patches currently in -mm which might be from hebaoquan@kylinos.cn are
