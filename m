@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6F8F121254B
-	for <mm-commits@vger.kernel.org>; Tue, 29 Sep 2026 00:08:43 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 14A4023395D
+	for <mm-commits@vger.kernel.org>; Tue, 29 Sep 2026 00:08:45 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790640524; cv=none; b=sRwK8rpQM8+i5pzQ6EuHQU1N5tPYFO/+6IRpXqK3jAT51zmUQsKCrGJoMwgC3bqKYHZ0h8eeQRuBNKphRnSP/SneuDAvCWkC4/yY20lrcnolBAMyW3FizyqqqMBvF/+PHlOuZouJu6qzC09MX69ddVNGI8EpLjYqf3b1CurX2kw=
+	t=1790640526; cv=none; b=EbPjeCwoXxEDI23qWUJwkCcIbTeBqqbVAynoHpQw29iBuzVeMdoX2vO+CnY6NmHcZ+x26Ns3R9pqTLhEPshxX5D3VHOOatR6nkXWI2cZO1fw71JqiMNz1BTNps2NM0d8+XEsToiRZuai9Rrcm8SEsAxhfXeN/TpjfJs+SYZ+OUw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1790640524; c=relaxed/simple;
-	bh=euYe+Tzj7isJY0McP+9hq7qjIVe82d3asd9Xfvegsj0=;
-	h=Date:To:From:Subject:Message-Id; b=M1g8xmwQQpbAHSwnWQ6rnmxkt6tn2GXbL5Q+abyncRF7zeeDCBQpQn2yle0J3J5H8nVTBGc424Kigq+dB0/UmSYAIf9gllg4Ojm4DgO1w/31X+fbpqy1QcGiS+Dm+eRzev99pCdXk2L+3g9uPn3fsbX5GeJE947C3MqTZW4AYLY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=0ovxuuD4; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1790640526; c=relaxed/simple;
+	bh=CO15eYE1m0RZv09r5MA3CJRyM4PNW7v8L0HDyHZQ4F8=;
+	h=Date:To:From:Subject:Message-Id; b=rqFQOZKJS9tCd3pG/pgBY3Noy9xNUIp1ewuesqhs6I2C9lExgVsYUh1oUWVcbs06rE1qKFIs8v08KQbeiuVJUA2qYOoe/JaaHb8RmzMWV6ibDqgN7RfNbInrR/Cj1TiNd1d9eLXx/ZlgBcnTqIBsBFJIs2S/Vu1RQNd4T2NWxzU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=yefY2TYW; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="0ovxuuD4"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 097F31F00893;
-	Tue, 29 Sep 2026 00:08:43 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="yefY2TYW"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D35331F00893;
+	Tue, 29 Sep 2026 00:08:44 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1790640523;
-	bh=Tk1iq+TyR/LLPY/czDqSmmSLvTp6wwQ9p0LVrhCfYis=;
+	d=linux-foundation.org; s=korg; t=1790640524;
+	bh=XntwKgN5OWYugG7B3xYU4tbGFTGgIlz8OgIJDl2x4+U=;
 	h=Date:To:From:Subject;
-	b=0ovxuuD42ZgYmJtfzOUVjVeQKl4T1J7cco3jCqydxYC1UYVpGsuajO4WDvWjOZGce
-	 5mWDL1BfdBtaCP0d3rpHaKNTeHBNabQaML6OrFJoWwYUV8CYnU6I4F5tCK7o0srVDU
-	 OPPHgEi6dFDaRhH3/Vukq+Zp8kZZjvz0QNKAqdI4=
-Date: Mon, 28 Sep 2026 17:08:42 -0700
+	b=yefY2TYWEpTvvYJQJAfzz1qdoqHZApRvUsU5Z7Yub+H9JLkvx9meXkKUPrCie1+8Z
+	 HuKMmlLmBY/6XoCJnLf3NMMSEfBFDHq7usUJELdzR3UGJ9QXmJHQVHGWeo2P6bTvOj
+	 Vmj7yyPWeYTojlvdJ+1CbOLx8FPbYkB6mCMnwveo=
+Date: Mon, 28 Sep 2026 17:08:44 -0700
 To: mm-commits@vger.kernel.org,hch@lst.de,harry@kernel.org,hebaoquan@kylinos.cn,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mtd-rawnand-gpmi-dont-use-gfp_dma-when-calling-dma_alloc_coherent.patch added to mm-new branch
-Message-Id: <20260929000843.097F31F00893@smtp.kernel.org>
+Subject: + usb-cdns2-dont-use-gfp_dma-when-calling-dma_alloc_coherent.patch added to mm-new branch
+Message-Id: <20260929000844.D35331F00893@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mtd: rawnand: gpmi: don't use GFP_DMA when calling dma_alloc_coherent()
+     Subject: usb: cdns2: don't use GFP_DMA when calling dma_alloc_coherent()
 has been added to the -mm mm-new branch.  Its filename is
-     mtd-rawnand-gpmi-dont-use-gfp_dma-when-calling-dma_alloc_coherent.patch
+     usb-cdns2-dont-use-gfp_dma-when-calling-dma_alloc_coherent.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mtd-rawnand-gpmi-dont-use-gfp_dma-when-calling-dma_alloc_coherent.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/usb-cdns2-dont-use-gfp_dma-when-calling-dma_alloc_coherent.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,35 +70,36 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Baoquan He <hebaoquan@kylinos.cn>
-Subject: mtd: rawnand: gpmi: don't use GFP_DMA when calling dma_alloc_coherent()
-Date: Thu,  3 Sep 2026 19:18:35 +0800
+Subject: usb: cdns2: don't use GFP_DMA when calling dma_alloc_coherent()
+Date: Thu,  3 Sep 2026 19:18:36 +0800
 
-dma_alloc_coherent() allocates the DMA buffer with the device's addressing
-limitation in mind; the DMA core picks the zone from the device's coherent
-DMA mask and ignores GFP_DMA passed by the caller.  Use GFP_KERNEL instead
-so the allocation may reclaim as usual for probe-time allocations.
+dma_alloc_coherent() allocates the DMA buffer with the device's
+addressing limitation in mind; the DMA core picks the zone from the
+device's coherent DMA mask and ignores GFP_DMA passed by the caller.
+Use GFP_KERNEL instead so the allocation may reclaim as usual for
+probe-time allocations.
 
-Link: https://lore.kernel.org/20260903111836.1777265-13-hebaoquan@kylinos.cn
+Link: https://lore.kernel.org/20260903111836.1777265-14-hebaoquan@kylinos.cn
 Signed-off-by: Baoquan He <hebaoquan@kylinos.cn>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 Cc: Christoph Hellwig <hch@lst.de>
 Cc: Harry Yoo <harry@kernel.org>
 ---
 
- drivers/mtd/nand/raw/gpmi-nand/gpmi-nand.c |    2 +-
+ drivers/usb/gadget/udc/cdns2/cdns2-gadget.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/drivers/mtd/nand/raw/gpmi-nand/gpmi-nand.c~mtd-rawnand-gpmi-dont-use-gfp_dma-when-calling-dma_alloc_coherent
-+++ a/drivers/mtd/nand/raw/gpmi-nand/gpmi-nand.c
-@@ -1387,7 +1387,7 @@ static int gpmi_alloc_dma_buffer(struct
- 		goto error_alloc;
+--- a/drivers/usb/gadget/udc/cdns2/cdns2-gadget.c~usb-cdns2-dont-use-gfp_dma-when-calling-dma_alloc_coherent
++++ a/drivers/usb/gadget/udc/cdns2/cdns2-gadget.c
+@@ -2341,7 +2341,7 @@ static int cdns2_gadget_start(struct cdn
  
- 	this->auxiliary_virt = dma_alloc_coherent(dev, geo->auxiliary_size,
--					&this->auxiliary_phys, GFP_DMA);
-+					&this->auxiliary_phys, GFP_KERNEL);
- 	if (!this->auxiliary_virt)
- 		goto error_alloc;
+ 	/* Allocate memory for setup packet buffer. */
+ 	buf = dma_alloc_coherent(pdev->dev, 8, &pdev->ep0_preq.request.dma,
+-				 GFP_DMA);
++				 GFP_KERNEL);
+ 	pdev->ep0_preq.request.buf = buf;
  
+ 	if (!pdev->ep0_preq.request.buf) {
 _
 
 Patches currently in -mm which might be from hebaoquan@kylinos.cn are
