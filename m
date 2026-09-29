@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 75DA2233722
-	for <mm-commits@vger.kernel.org>; Tue, 29 Sep 2026 00:08:30 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 93A6A21FF23
+	for <mm-commits@vger.kernel.org>; Tue, 29 Sep 2026 00:08:32 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790640511; cv=none; b=Hb0isccT/uprCF4gDb5mP+QhDeC4zrgkaILT1susYkVTf6Td8GasUHMN5OyD45YY7E0XR/85rSFFJMVahhMtQQni2Kq2jXim/+UaOXyWhz4v04mQ7pDGIXeFgdYbEVfcK5opfhL9gCUOYWjaW8l6DjzCWDIkTKQCmCWHPRP5EiI=
+	t=1790640513; cv=none; b=fTSGxHrVD7dofWOBDY7BE7/8K61APZDJ4O3D1965rH8g1LPBlAWGuCgvWqI/GHjBsHqxBy8dt5CSutKJiCBzeMfys3KzOxG4DFUMwItZrlLHX6yPnA5ZZ9YL0C2tYXrTqOtTlXPEZZRtWveItpiSMhL00WBOYjdNeaDAAw6hbpY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1790640511; c=relaxed/simple;
-	bh=KQ+7uO5cfvaj3cewEcnEDrDmX2reRkZTBzSlPoOQvaA=;
-	h=Date:To:From:Subject:Message-Id; b=Zu9YCFAvDQsENXCfUIJQLI8fWja0//OJaGXEhDCC2Q/79gSny1awwqo2I35zkKQF9xO2NZz2oJTlnfs2xzr1m6Od4nVR9kFweX+3OXaQc9b8UECAOTErS/3hLwHWmx7bG9oXGwRrj0hdEdErMqPugR/zlL/W1fdWi2NDQh1lJ9w=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=XzH2+eAH; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1790640513; c=relaxed/simple;
+	bh=SboNm80diKP/6/NDXnmUSTIhUrorv0o4+RaWMU+gECM=;
+	h=Date:To:From:Subject:Message-Id; b=f2qPBlkZlR9E62slm7H2I8VcsU05vZJ3nCl5pqekDIGevmHctDHGjHA02V2dPhIepwmnLAc8b4l5aMG2HxDa77i8J470HOXmU0yKP4DHj5R2bPVgkBOBTDgb9UQAL3ocRc+tg1nSH7qAl1NZ6b4zCX7ZTDfk7A2APNl5Z4Rexec=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=SjL7eweG; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="XzH2+eAH"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 36EB01F00893;
-	Tue, 29 Sep 2026 00:08:30 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="SjL7eweG"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1414E1F000FF;
+	Tue, 29 Sep 2026 00:08:32 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1790640510;
-	bh=ZE8BngKIoU9oBddqF8q3aF6A0cKEoQ0amdo+IciMZGM=;
+	d=linux-foundation.org; s=korg; t=1790640512;
+	bh=Ks9fFKWMet1ns/Iuwn5csoxPAVA08JzhBVUGiU9LnK4=;
 	h=Date:To:From:Subject;
-	b=XzH2+eAHzWaH2lN52AxjGVKO9TUjWyhc04Y9dUbQPYcBU3OWSpa/GEevaxPJc6JHG
-	 a/juGBhhhBQmR1aHbuLGuVf8O0vVrkwW5Est9IbRL+DpV7bA/8ApJBnFSwdg6PFpDS
-	 Pf9vKuda2jv2SR3tq4STGWPQcGtQ4V1goj3WhM4g=
-Date: Mon, 28 Sep 2026 17:08:29 -0700
+	b=SjL7eweGvYnCe3SGMlOGrnlFfXRea51V4tKZ7o1plDPqrKSi2x/tbQjQWNHGFJa5I
+	 00TK5ETz0TMRjiBxCHSlyUZmWTyUuyU7X+QYz+jPXVIFNwpnLugh2qBT82tKptf+Og
+	 +2DQSWGWgngzKJPcK7j3dpMUyxauE3U6Ir/RyLrI=
+Date: Mon, 28 Sep 2026 17:08:31 -0700
 To: mm-commits@vger.kernel.org,hch@lst.de,harry@kernel.org,hebaoquan@kylinos.cn,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + fbdev-fsl-diu-fb-dont-use-gfp_dma-when-calling-dmam_alloc_coherent.patch added to mm-new branch
-Message-Id: <20260929000830.36EB01F00893@smtp.kernel.org>
+Subject: + usb-gadget-lpc32xx_udc-dont-use-gfp_dma-when-calling-dma_alloc_coherent.patch added to mm-new branch
+Message-Id: <20260929000832.1414E1F000FF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: fbdev: fsl-diu-fb: don't use GFP_DMA when calling dmam_alloc_coherent()
+     Subject: usb: gadget: lpc32xx_udc: don't use GFP_DMA when calling dma_alloc_coherent()
 has been added to the -mm mm-new branch.  Its filename is
-     fbdev-fsl-diu-fb-dont-use-gfp_dma-when-calling-dmam_alloc_coherent.patch
+     usb-gadget-lpc32xx_udc-dont-use-gfp_dma-when-calling-dma_alloc_coherent.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/fbdev-fsl-diu-fb-dont-use-gfp_dma-when-calling-dmam_alloc_coherent.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/usb-gadget-lpc32xx_udc-dont-use-gfp_dma-when-calling-dma_alloc_coherent.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,35 +70,35 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Baoquan He <hebaoquan@kylinos.cn>
-Subject: fbdev: fsl-diu-fb: don't use GFP_DMA when calling dmam_alloc_coherent()
-Date: Thu,  3 Sep 2026 19:18:28 +0800
+Subject: usb: gadget: lpc32xx_udc: don't use GFP_DMA when calling dma_alloc_coherent()
+Date: Thu,  3 Sep 2026 19:18:29 +0800
 
-dmam_alloc_coherent() allocates the DMA buffer with the device's
-addressing limitation in mind; the DMA core picks the zone from the
-device's coherent DMA mask and ignores GFP_DMA passed by the caller. 
-Remove the redundant GFP_DMA flag.
+dma_alloc_coherent() allocates the DMA buffer with the device's addressing
+limitation in mind; the DMA core picks the zone from the device's coherent
+DMA mask and ignores GFP_DMA passed by the caller.  Remove the redundant
+GFP_DMA flag.
 
-Link: https://lore.kernel.org/20260903111836.1777265-6-hebaoquan@kylinos.cn
+Link: https://lore.kernel.org/20260903111836.1777265-7-hebaoquan@kylinos.cn
 Signed-off-by: Baoquan He <hebaoquan@kylinos.cn>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 Cc: Christoph Hellwig <hch@lst.de>
 Cc: Harry Yoo <harry@kernel.org>
 ---
 
- drivers/video/fbdev/fsl-diu-fb.c |    2 +-
+ drivers/usb/gadget/udc/lpc32xx_udc.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/drivers/video/fbdev/fsl-diu-fb.c~fbdev-fsl-diu-fb-dont-use-gfp_dma-when-calling-dmam_alloc_coherent
-+++ a/drivers/video/fbdev/fsl-diu-fb.c
-@@ -1690,7 +1690,7 @@ static int fsl_diu_probe(struct platform
- 	int ret;
- 
- 	data = dmam_alloc_coherent(&pdev->dev, sizeof(struct fsl_diu_data),
--				   &dma_addr, GFP_DMA | __GFP_ZERO);
-+				   &dma_addr, __GFP_ZERO);
- 	if (!data)
- 		return -ENOMEM;
- 	data->dma_addr = dma_addr;
+--- a/drivers/usb/gadget/udc/lpc32xx_udc.c~usb-gadget-lpc32xx_udc-dont-use-gfp_dma-when-calling-dma_alloc_coherent
++++ a/drivers/usb/gadget/udc/lpc32xx_udc.c
+@@ -3080,7 +3080,7 @@ static int lpc32xx_udc_probe(struct plat
+ 	/* Allocate memory for the UDCA */
+ 	udc->udca_v_base = dma_alloc_coherent(&pdev->dev, UDCA_BUFF_SIZE,
+ 					      &dma_handle,
+-					      (GFP_KERNEL | GFP_DMA));
++					      GFP_KERNEL);
+ 	if (!udc->udca_v_base) {
+ 		dev_err(udc->dev, "error getting UDCA region\n");
+ 		retval = -ENOMEM;
 _
 
 Patches currently in -mm which might be from hebaoquan@kylinos.cn are
