@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CDBD83AFCF0
-	for <mm-commits@vger.kernel.org>; Tue, 29 Sep 2026 20:49:37 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C35CD3AF664
+	for <mm-commits@vger.kernel.org>; Tue, 29 Sep 2026 20:49:39 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790714979; cv=none; b=Rhx6tzlZwvnMLWzIsjaN35ekYgOgbvic3Cje2MmfR4zBfa8dC4nlTKWFNNFGoirZFedznKMLwKQUCMMDnHYSqh7AxVme4Jq8cq4mBgJl/Y3UbeDYSTWuMa+jWfnNL48KSObgunFvf+5Xcjww7epkLLq+ThNHOLUwNvzC1ACPWGw=
+	t=1790714981; cv=none; b=qZeIYsvX05bPv66gHiK062vZc2JevmNgpwBqycOQGlekWPC22biy3xzwREIpCq00wE48B0k29nAgwCbAn2v4tAKuKG6nG4oevrF+l7k4PDBj5uNJLQc90LnOjtq7XG5dwTpHPVstOAIsPwQxX84kOntXB6cQJF1XHPq9/SCGO6k=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1790714979; c=relaxed/simple;
-	bh=mOvdWKCCMGqSnAcnN4fthL213VMLJsm427yPzjsl+S8=;
-	h=Date:To:From:Subject:Message-Id; b=nO77lOD3fMuHh6yPbYnHLyasDKJjaRr2T/+6/1fXJZ2G/o1fFAkJEypBDL0UFNv79lNSXpT4cic/hhSQFP5+OmT1CeC3lR97YW2JiIxdUfVfXeg7BsQdOn/hLrsJDdOt5G/e9dSCtj1xbPGKVEWOhQa39mFjG2/g8p35ZhpqfmI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=h8FRU3vW; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1790714981; c=relaxed/simple;
+	bh=Mmx3mPsVTKWjDCGNtE/yy3A6wGE44GgUxsDBmpF3b0M=;
+	h=Date:To:From:Subject:Message-Id; b=Y5wKiug3XkjceQU3Q/cWy2Mb2sA5d/h/ivnSJCKZ3b6F0q+jEMIF6hsdZnd+dA/yALXWUu3umXmDNcPlqs6jTK+yhikJz4O9feOKsTRbNZQLw672lLA1LzUVPu9mBBaCSAgtWeyMtlkMe/B3EkUAOzpIN+rS/VE/OgbXMX+/asg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=uIZwGzdU; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="h8FRU3vW"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 892C11F000FF;
-	Tue, 29 Sep 2026 20:49:37 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="uIZwGzdU"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 593F61F000FF;
+	Tue, 29 Sep 2026 20:49:39 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1790714977;
-	bh=WBidB8E2iJaVuRTo6qG1c9vDiN7S0jznQiP953dD/e8=;
+	d=linux-foundation.org; s=korg; t=1790714979;
+	bh=4hHWOmkAlhYwFnGQFGb0Wwung5KhriqTuE/7R0rp5yE=;
 	h=Date:To:From:Subject;
-	b=h8FRU3vWiryvhCtQIq1TIl9YNDB4F0v/al0AEiwdem2LRY2ibO3EVuIJf5n33zyyi
-	 qY7vMBZB2ezXEUE0w9edIlUkrG34oR6Av3IE4N8jJ282B8KBgi83bsOR9bZ+/jEMON
-	 e+vbfwOO3pm5pwElwBRc8MJz4txOKMyJsiBYAZ9U=
-Date: Tue, 29 Sep 2026 13:49:37 -0700
-To: mm-commits@vger.kernel.org,davidgow@davidgow.net,brendan.higgins@linux.dev,sj@kernel.org,akpm@linux-foundation.org
+	b=uIZwGzdUSfDoo+yHGP+e8suPvzYIPllEmdjpcoihelstJRKj96k5MQqbnfYFiygkt
+	 nXl0qTH3xsVhBByKuHrq4S6ypnD/OF3qARdYiNfuMJ3mFVQjjcH+CQwP53xzfp5ycl
+	 K4rI41YEYIQoHH9tdmJA+iunI9OJPNFCsTcPENzU=
+Date: Tue, 29 Sep 2026 13:49:38 -0700
+To: mm-commits@vger.kernel.org,shuah@kernel.org,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-damon-tests-core-kunit-test-quota_goal-complement-commit.patch added to mm-new branch
-Message-Id: <20260929204937.892C11F000FF@smtp.kernel.org>
+Subject: + selftests-damon-sysfssh-test-quota-goal-complement-flag-file.patch added to mm-new branch
+Message-Id: <20260929204939.593F61F000FF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/damon/tests/core-kunit: test quota_goal->complement commit
+     Subject: selftests/damon/sysfs.sh: test quota goal complement flag file
 has been added to the -mm mm-new branch.  Its filename is
-     mm-damon-tests-core-kunit-test-quota_goal-complement-commit.patch
+     selftests-damon-sysfssh-test-quota-goal-complement-flag-file.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-tests-core-kunit-test-quota_goal-complement-commit.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-damon-sysfssh-test-quota-goal-complement-flag-file.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,41 +70,33 @@ and is updated there most days
 
 ------------------------------------------------------
 From: SJ Park <sj@kernel.org>
-Subject: mm/damon/tests/core-kunit: test quota_goal->complement commit
-Date: Tue, 29 Sep 2026 01:01:07 -0700
+Subject: selftests/damon/sysfs.sh: test quota goal complement flag file
+Date: Tue, 29 Sep 2026 01:01:08 -0700
 
-Extend existing DAMOS quota goal commit unit test to test the complement
-flag.  Set the source complement flag and confirm the destination is
-updated to the given input.
+Test the existence and the valid input acceptance of the newly added
+quota goal complement flag sysfs file.
 
-Link: https://lore.kernel.org/20260929080113.41708-5-sj@kernel.org
+Link: https://lore.kernel.org/20260929080113.41708-6-sj@kernel.org
 Signed-off-by: SJ Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Cc: Brendan Higgins <brendan.higgins@linux.dev>
-Cc: David Gow <davidgow@davidgow.net>
+Cc: Shuah Khan <shuah@kernel.org>
 ---
 
- mm/damon/tests/core-kunit.h |    2 ++
- 1 file changed, 2 insertions(+)
+ tools/testing/selftests/damon/sysfs.sh |    3 +++
+ 1 file changed, 3 insertions(+)
 
---- a/mm/damon/tests/core-kunit.h~mm-damon-tests-core-kunit-test-quota_goal-complement-commit
-+++ a/mm/damon/tests/core-kunit.h
-@@ -861,6 +861,7 @@ static void damos_test_commit_quota_goal
- 	damos_commit_quota_goal(dst, src);
- 
- 	KUNIT_EXPECT_EQ(test, dst->metric, src->metric);
-+	KUNIT_EXPECT_EQ(test, dst->complement, src->complement);
- 	KUNIT_EXPECT_EQ(test, dst->target_value, src->target_value);
- 	if (src->metric == DAMOS_QUOTA_USER_INPUT)
- 		KUNIT_EXPECT_EQ(test, dst->current_value, src->current_value);
-@@ -904,6 +905,7 @@ static void damos_test_commit_quota_goal
- 	damos_test_commit_quota_goal_for(test, &dst,
- 			&(struct damos_quota_goal){
- 			.metric = DAMOS_QUOTA_USER_INPUT,
-+			.complement = true,
- 			.target_value = 789,
- 			.current_value = 12});
- 	damos_test_commit_quota_goal_for(test, &dst,
+--- a/tools/testing/selftests/damon/sysfs.sh~selftests-damon-sysfssh-test-quota-goal-complement-flag-file
++++ a/tools/testing/selftests/damon/sysfs.sh
+@@ -212,6 +212,9 @@ test_goal()
+ 	ensure_write_succ "$fpath" "node_eligible_mem_bp" "valid input"
+ 	ensure_write_succ "$fpath" "hugepage_mem_bp" "valid input"
+ 	ensure_write_fail "$fpath" "foo" "invalid input"
++	ensure_file "$goal_dir/complement" "exist" "600"
++	ensure_write_succ "$goal_dir/complement" "Y" "valid input"
++	ensure_write_succ "$goal_dir/complement" "N" "valid input"
+ 	ensure_file "$goal_dir/nid" "exist" "600"
+ 	ensure_file "$goal_dir/path" "exist" "600"
+ }
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
