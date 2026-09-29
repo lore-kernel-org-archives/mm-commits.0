@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2ED8F471243
-	for <mm-commits@vger.kernel.org>; Tue, 29 Sep 2026 21:32:43 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E7E174E4C5E
+	for <mm-commits@vger.kernel.org>; Tue, 29 Sep 2026 21:32:47 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790717567; cv=none; b=lF3tlfgON1Y+uKig8RGp+M6LARRwjW4QVY8Is2n+cPLLMiNVm7bjreSTnc5Hlly7JlDyoQ0eqNZawVMA5Oc9o/P2wHwB6NPBSoPt97qOWMZbkclIaDx6ZLBjxcj/0dFRBBN5eUpK4dQ3xxO0QRDsagjMMNlvU5DSJOT+nv6EGcY=
+	t=1790717571; cv=none; b=YEZmUXLJ96NQ5I+lUznKO4srjRXcM9fcnGl108fCfKWnPS5rD+D4o3pNQh2DXZdBIJXAtZzCnV7MmiTmN4XFmcsSCTFkwzuMHQixCs7VygheLPgvtEo5lunPM+cCPqo3njcE03Q/5snSRAYEIFyBAr0WXNV5JVnCrYmB5jxnM9A=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1790717567; c=relaxed/simple;
-	bh=na8J6EHnZeYB8/GTie8tF8Y3pjjvbonEska62ldrUP4=;
-	h=Date:To:From:Subject:Message-Id; b=mWsMoY5VgyD8uon1ndmUzN2zeF03Us9hstMmc3SHpfirMK1G59cPaDyX252kh5Ae1RBolmCb0zRm7CUb+Bh4Y0eE2/izNEvteEd9WJUoRHhEIQvkJ11RwqtqkXVzfpAiDWiqH4uZgUenJ923+5rAPz0S+xp8+JVuFINIm7bgl54=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=X1q6ybSl; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1790717571; c=relaxed/simple;
+	bh=asAcDdQf2hdqjRoVOyuuhwmOIKGH21MQtw6zdyyyZ/0=;
+	h=Date:To:From:Subject:Message-Id; b=ZP+SwaSlDiQLRgal8TAKj9XXEEOkPdH8R/uMIWSjmXRGDP4CPe8rThSzeZ+OX0uJGgBAjFvxcL6J0bVI3q9YQ+3aeHjV93h4BOBW8uUQc9ma7NF4DoPHxR/aB6v/pAaEewm774KgzYhPsYjxE6CDz/H47f6wMYR3uERXgo95idc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Mk7Wjmyp; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="X1q6ybSl"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6D86A1F00893;
-	Tue, 29 Sep 2026 21:32:42 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Mk7Wjmyp"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 490AF1F00898;
+	Tue, 29 Sep 2026 21:32:46 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1790717562;
-	bh=IBFHrn20eIQru7SRGRarPqJiMyeVzmlnGhZJ9/IzoDk=;
+	d=linux-foundation.org; s=korg; t=1790717566;
+	bh=d/K9+g+sV8MsCqU+6d/j7e5ZH5VGayLx6jlt/fIdi+E=;
 	h=Date:To:From:Subject;
-	b=X1q6ybSlKCAqrHUjFBtHzptzUVPoQ8RHToTMl7wJS2xUL/U8PQTfCReE8JhnNMvgk
-	 Id/fB3BFsLoqbuE6/VKdZjkRhhKR0sKPd7gRhDmbQ49AhGHza2ihoveQZCB9eaUK0u
-	 8YYo4AvO6oGbcxN75WjMdO+ZThs0oa8I5yw3R9kk=
-Date: Tue, 29 Sep 2026 14:32:42 -0700
+	b=Mk7WjmypVbeqBW0UtA4Vmg5bh/UttrUY/YjvwE21HvLpuSBO/sqaf3gIAfWCQsYXW
+	 5ZUrt8KU7C7AYWL3SikUHpw7ybQnR7kKE9cuq8c2zT4QxiFdDwyI0SRuzckGxQoq+9
+	 33w43jCqiGCeacOjxNlmYHAiRdILvB6M/28+X1aY=
+Date: Tue, 29 Sep 2026 14:32:45 -0700
 To: mm-commits@vger.kernel.org,muchun.song@linux.dev,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-sparse-vmemmap-remove-the-unused-ptpfn-argument.patch added to mm-new branch
-Message-Id: <20260929213242.6D86A1F00893@smtp.kernel.org>
+Subject: + mm-mm_init-add-zone-mismatch-warning-during-page-init.patch added to mm-new branch
+Message-Id: <20260929213246.490AF1F00898@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/sparse-vmemmap: remove the unused ptpfn argument
+     Subject: mm/mm_init: add zone mismatch warning during page init
 has been added to the -mm mm-new branch.  Its filename is
-     mm-sparse-vmemmap-remove-the-unused-ptpfn-argument.patch
+     mm-mm_init-add-zone-mismatch-warning-during-page-init.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-sparse-vmemmap-remove-the-unused-ptpfn-argument.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mm_init-add-zone-mismatch-warning-during-page-init.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,13 +70,17 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Muchun Song <muchun.song@linux.dev>
-Subject: mm/sparse-vmemmap: remove the unused ptpfn argument
-Date: Tue, 29 Sep 2026 13:32:29 +0800
+Subject: mm/mm_init: add zone mismatch warning during page init
+Date: Tue, 29 Sep 2026 13:32:31 +0800
 
-vmemmap_pte_populate() no longer uses ptpfn as an input.  Drop the
-argument to simplify the code.
+For vmemmap-optimized sections, tail struct pages may be backed by shared
+vmemmap pages.  Those shared pages must carry the same page zone ID as the
+struct pages initialized for the section.
 
-Link: https://lore.kernel.org/20260929053231.66085-5-songmuchun@bytedance.com
+Warn in __init_single_page() if the shared tail page has a different
+page_zone_id(), which would indicate inconsistent initialization.
+
+Link: https://lore.kernel.org/20260929053231.66085-7-songmuchun@bytedance.com
 Signed-off-by: Muchun Song <muchun.song@linux.dev>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 Acked-by: Qi Zheng <qi.zheng@linux.dev>
@@ -95,66 +99,21 @@ Cc: Suren Baghdasaryan <surenb@google.com>
 Cc: Michal Hocko <mhocko@suse.com>
 ---
 
- mm/sparse-vmemmap.c |   15 ++++++---------
- 1 file changed, 6 insertions(+), 9 deletions(-)
+ mm/mm_init.c |    3 +++
+ 1 file changed, 3 insertions(+)
 
---- a/mm/sparse-vmemmap.c~mm-sparse-vmemmap-remove-the-unused-ptpfn-argument
-+++ a/mm/sparse-vmemmap.c
-@@ -278,7 +278,7 @@ static __meminit void *vmemmap_alloc_pte
+--- a/mm/mm_init.c~mm-mm_init-add-zone-mismatch-warning-during-page-init
++++ a/mm/mm_init.c
+@@ -609,6 +609,9 @@ void __meminit __init_single_page(struct
+ 	if (!is_highmem_idx(zone))
+ 		set_page_address(page, __va(pfn << PAGE_SHIFT));
+ #endif
++	VM_WARN_ON_ONCE(vmemmap_optimizable_order(pfn_to_section_compound_order(pfn)) &&
++			page_zone_id(page + VMEMMAP_OPTIMIZATION_NR_STRUCT_PAGES) !=
++			page_zone_id(page));
  }
  
- static pte_t * __meminit vmemmap_pte_populate(pmd_t *pmd, unsigned long addr, int node,
--		struct vmem_altmap *altmap, unsigned long ptpfn)
-+		struct vmem_altmap *altmap)
- {
- 	pte_t *pte = pte_offset_kernel(pmd, addr);
- 	unsigned long pfn = page_to_pfn((struct page *)addr);
-@@ -349,8 +349,7 @@ static pgd_t * __meminit vmemmap_pgd_pop
- }
- 
- static pte_t * __meminit vmemmap_populate_address(unsigned long addr, int node,
--					      struct vmem_altmap *altmap,
--					      unsigned long ptpfn)
-+						  struct vmem_altmap *altmap)
- {
- 	pgd_t *pgd;
- 	p4d_t *p4d;
-@@ -370,7 +369,7 @@ static pte_t * __meminit vmemmap_populat
- 	pmd = vmemmap_pmd_populate(pud, addr, node);
- 	if (!pmd)
- 		return NULL;
--	pte = vmemmap_pte_populate(pmd, addr, node, altmap, ptpfn);
-+	pte = vmemmap_pte_populate(pmd, addr, node, altmap);
- 	if (!pte)
- 		return NULL;
- 	vmemmap_verify(pte, node, addr, addr + PAGE_SIZE);
-@@ -380,15 +379,13 @@ static pte_t * __meminit vmemmap_populat
- 
- static int __meminit vmemmap_populate_range(unsigned long start,
- 					    unsigned long end, int node,
--					    struct vmem_altmap *altmap,
--					    unsigned long ptpfn)
-+					    struct vmem_altmap *altmap)
- {
- 	unsigned long addr = start;
- 	pte_t *pte;
- 
- 	for (; addr < end; addr += PAGE_SIZE) {
--		pte = vmemmap_populate_address(addr, node, altmap,
--					       ptpfn);
-+		pte = vmemmap_populate_address(addr, node, altmap);
- 		if (!pte)
- 			return -ENOMEM;
- 	}
-@@ -399,7 +396,7 @@ static int __meminit vmemmap_populate_ra
- int __meminit vmemmap_populate_basepages(unsigned long start, unsigned long end,
- 					 int node, struct vmem_altmap *altmap)
- {
--	return vmemmap_populate_range(start, end, node, altmap, -1);
-+	return vmemmap_populate_range(start, end, node, altmap);
- }
- 
- /*
+ #ifdef CONFIG_NUMA
 _
 
 Patches currently in -mm which might be from muchun.song@linux.dev are
