@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id ED2F32CCC6
-	for <mm-commits@vger.kernel.org>; Tue, 29 Sep 2026 00:08:28 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 75DA2233722
+	for <mm-commits@vger.kernel.org>; Tue, 29 Sep 2026 00:08:30 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790640510; cv=none; b=dlPE5qMZm5fYwwPePR4knCaGkWIerh+QIpnwMN5bUX7hNIZx5fDDJ94v+l8FvJ/EzWjg1I10snjnK9stF8z0aWfJwaxdBr8LPm7ZrEHqISBt1tgzQqeBgdHVWVDNn8vzuBUygB55XNHGgyjHnXpTTXYu7NUTTjW3xP16E36LUsw=
+	t=1790640511; cv=none; b=Hb0isccT/uprCF4gDb5mP+QhDeC4zrgkaILT1susYkVTf6Td8GasUHMN5OyD45YY7E0XR/85rSFFJMVahhMtQQni2Kq2jXim/+UaOXyWhz4v04mQ7pDGIXeFgdYbEVfcK5opfhL9gCUOYWjaW8l6DjzCWDIkTKQCmCWHPRP5EiI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1790640510; c=relaxed/simple;
-	bh=Lxw3d+KxnnKotbTb5dPml9Ng14bFNym2ZMr5uXI2/08=;
-	h=Date:To:From:Subject:Message-Id; b=r3W5h9hvZpitw8ZWD+VEPsCoI3hs48aadRGbML8LeQgavecp59Qb9lPnkoq+PBkkK+3AhIXv1DG9QnI105vaHlmtOHIORf2fPd+GQFmFWFY6UHQy8Ih9s0DHG21UoNGiWiw9I4wEII2xoZxxRBLUk+QaUJxrlECLq8FtKPMF15s=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=CQ67Ysxy; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1790640511; c=relaxed/simple;
+	bh=KQ+7uO5cfvaj3cewEcnEDrDmX2reRkZTBzSlPoOQvaA=;
+	h=Date:To:From:Subject:Message-Id; b=Zu9YCFAvDQsENXCfUIJQLI8fWja0//OJaGXEhDCC2Q/79gSny1awwqo2I35zkKQF9xO2NZz2oJTlnfs2xzr1m6Od4nVR9kFweX+3OXaQc9b8UECAOTErS/3hLwHWmx7bG9oXGwRrj0hdEdErMqPugR/zlL/W1fdWi2NDQh1lJ9w=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=XzH2+eAH; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="CQ67Ysxy"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5A1541F000FF;
-	Tue, 29 Sep 2026 00:08:28 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="XzH2+eAH"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 36EB01F00893;
+	Tue, 29 Sep 2026 00:08:30 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1790640508;
-	bh=6YsrbhouBjZgs8H3z1I1cAG6WkmO7/bco7e7CCcjXRs=;
+	d=linux-foundation.org; s=korg; t=1790640510;
+	bh=ZE8BngKIoU9oBddqF8q3aF6A0cKEoQ0amdo+IciMZGM=;
 	h=Date:To:From:Subject;
-	b=CQ67Ysxyo/hk/35ouEJGLKn9eTnLDr6u5i3WFCyDlqO+tUSLUv23HKA1sfKZ+L78I
-	 FJWayqIBI1rc7qZ+DX0zeTAnz8+8bzyWCsuW0ztVJsd0aPPWQUywo+Va9Zpf660WDv
-	 CXAEey5xQ85rdxNIze8vI8tjafANsMswcKhjyCys=
-Date: Mon, 28 Sep 2026 17:08:27 -0700
+	b=XzH2+eAHzWaH2lN52AxjGVKO9TUjWyhc04Y9dUbQPYcBU3OWSpa/GEevaxPJc6JHG
+	 a/juGBhhhBQmR1aHbuLGuVf8O0vVrkwW5Est9IbRL+DpV7bA/8ApJBnFSwdg6PFpDS
+	 Pf9vKuda2jv2SR3tq4STGWPQcGtQ4V1goj3WhM4g=
+Date: Mon, 28 Sep 2026 17:08:29 -0700
 To: mm-commits@vger.kernel.org,hch@lst.de,harry@kernel.org,hebaoquan@kylinos.cn,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + spi-spi-ti-qspi-dont-use-gfp_dma-when-calling-dma_alloc_coherent.patch added to mm-new branch
-Message-Id: <20260929000828.5A1541F000FF@smtp.kernel.org>
+Subject: + fbdev-fsl-diu-fb-dont-use-gfp_dma-when-calling-dmam_alloc_coherent.patch added to mm-new branch
+Message-Id: <20260929000830.36EB01F00893@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: spi: spi-ti-qspi: don't use GFP_DMA when calling dma_alloc_coherent()
+     Subject: fbdev: fsl-diu-fb: don't use GFP_DMA when calling dmam_alloc_coherent()
 has been added to the -mm mm-new branch.  Its filename is
-     spi-spi-ti-qspi-dont-use-gfp_dma-when-calling-dma_alloc_coherent.patch
+     fbdev-fsl-diu-fb-dont-use-gfp_dma-when-calling-dmam_alloc_coherent.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/spi-spi-ti-qspi-dont-use-gfp_dma-when-calling-dma_alloc_coherent.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/fbdev-fsl-diu-fb-dont-use-gfp_dma-when-calling-dmam_alloc_coherent.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,35 +70,35 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Baoquan He <hebaoquan@kylinos.cn>
-Subject: spi: spi-ti-qspi: don't use GFP_DMA when calling dma_alloc_coherent()
-Date: Thu,  3 Sep 2026 19:18:27 +0800
+Subject: fbdev: fsl-diu-fb: don't use GFP_DMA when calling dmam_alloc_coherent()
+Date: Thu,  3 Sep 2026 19:18:28 +0800
 
-dma_alloc_coherent() allocates the DMA buffer with the device's addressing
-limitation in mind; the DMA core picks the zone from the device's coherent
-DMA mask and ignores GFP_DMA passed by the caller.  Remove the redundant
-GFP_DMA flag.
+dmam_alloc_coherent() allocates the DMA buffer with the device's
+addressing limitation in mind; the DMA core picks the zone from the
+device's coherent DMA mask and ignores GFP_DMA passed by the caller. 
+Remove the redundant GFP_DMA flag.
 
-Link: https://lore.kernel.org/20260903111836.1777265-5-hebaoquan@kylinos.cn
+Link: https://lore.kernel.org/20260903111836.1777265-6-hebaoquan@kylinos.cn
 Signed-off-by: Baoquan He <hebaoquan@kylinos.cn>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 Cc: Christoph Hellwig <hch@lst.de>
 Cc: Harry Yoo <harry@kernel.org>
 ---
 
- drivers/spi/spi-ti-qspi.c |    2 +-
+ drivers/video/fbdev/fsl-diu-fb.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/drivers/spi/spi-ti-qspi.c~spi-spi-ti-qspi-dont-use-gfp_dma-when-calling-dma_alloc_coherent
-+++ a/drivers/spi/spi-ti-qspi.c
-@@ -855,7 +855,7 @@ static int ti_qspi_probe(struct platform
- 	qspi->rx_bb_addr = dma_alloc_coherent(qspi->dev,
- 					      QSPI_DMA_BUFFER_SIZE,
- 					      &qspi->rx_bb_dma_addr,
--					      GFP_KERNEL | GFP_DMA);
-+					      GFP_KERNEL);
- 	if (!qspi->rx_bb_addr) {
- 		dev_err(qspi->dev,
- 			"dma_alloc_coherent failed, using PIO mode\n");
+--- a/drivers/video/fbdev/fsl-diu-fb.c~fbdev-fsl-diu-fb-dont-use-gfp_dma-when-calling-dmam_alloc_coherent
++++ a/drivers/video/fbdev/fsl-diu-fb.c
+@@ -1690,7 +1690,7 @@ static int fsl_diu_probe(struct platform
+ 	int ret;
+ 
+ 	data = dmam_alloc_coherent(&pdev->dev, sizeof(struct fsl_diu_data),
+-				   &dma_addr, GFP_DMA | __GFP_ZERO);
++				   &dma_addr, __GFP_ZERO);
+ 	if (!data)
+ 		return -ENOMEM;
+ 	data->dma_addr = dma_addr;
 _
 
 Patches currently in -mm which might be from hebaoquan@kylinos.cn are
