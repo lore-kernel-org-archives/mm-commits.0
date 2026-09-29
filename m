@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BDA8A156C6A
-	for <mm-commits@vger.kernel.org>; Tue, 29 Sep 2026 00:08:26 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id ED2F32CCC6
+	for <mm-commits@vger.kernel.org>; Tue, 29 Sep 2026 00:08:28 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790640508; cv=none; b=YbK/+kDhLnxGh1E/9xlB++YWQpde5KnZe5vLR0wcrHGFdWDF47975B/3zJ/c23F65OYOJjHKVjSzdfPcR4KYozV7XTpzO01yXOJU7TWQ/lTV80Sh4+2IEcakqMFS63yp5cZe4cw1ThAUkGUyAbdM3aK4l25Q7maZPooKuDPKkbM=
+	t=1790640510; cv=none; b=dlPE5qMZm5fYwwPePR4knCaGkWIerh+QIpnwMN5bUX7hNIZx5fDDJ94v+l8FvJ/EzWjg1I10snjnK9stF8z0aWfJwaxdBr8LPm7ZrEHqISBt1tgzQqeBgdHVWVDNn8vzuBUygB55XNHGgyjHnXpTTXYu7NUTTjW3xP16E36LUsw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1790640508; c=relaxed/simple;
-	bh=Xsfdx1kIcy3yqdM0fEc/MdwvCWm6j4D5QhX2MX1Osc8=;
-	h=Date:To:From:Subject:Message-Id; b=aMC7q+89ViihhMGlV5bkla6+Lesr27Vh9jFrhmJkzvt+ulhDCpKP//igSLaZ6LvMy410aCPkzFvnBFxoAyYv1GDVl/T5vesHr3KU0FUsUWmZWdge0j64IaBLxvwS4QRL/sKfrldA7L/VEK5PmueTCj+q+n6UBS1Z3b9xLCHrkyI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=nvQDBE8Q; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1790640510; c=relaxed/simple;
+	bh=Lxw3d+KxnnKotbTb5dPml9Ng14bFNym2ZMr5uXI2/08=;
+	h=Date:To:From:Subject:Message-Id; b=r3W5h9hvZpitw8ZWD+VEPsCoI3hs48aadRGbML8LeQgavecp59Qb9lPnkoq+PBkkK+3AhIXv1DG9QnI105vaHlmtOHIORf2fPd+GQFmFWFY6UHQy8Ih9s0DHG21UoNGiWiw9I4wEII2xoZxxRBLUk+QaUJxrlECLq8FtKPMF15s=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=CQ67Ysxy; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="nvQDBE8Q"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 90CD31F000FF;
-	Tue, 29 Sep 2026 00:08:26 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="CQ67Ysxy"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5A1541F000FF;
+	Tue, 29 Sep 2026 00:08:28 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1790640506;
-	bh=rxyC1A/KdL2ANle0jaoRryaCILnWBNn3c/y0jVKbBfw=;
+	d=linux-foundation.org; s=korg; t=1790640508;
+	bh=6YsrbhouBjZgs8H3z1I1cAG6WkmO7/bco7e7CCcjXRs=;
 	h=Date:To:From:Subject;
-	b=nvQDBE8QE1SXbh7sCYiSsfHAdV6Rbl9gsQmHFmJqQpUkljQ+7QC4n8b4iIWITSWsj
-	 J3yZPnEmNL9IP3H6hNroyoHqrDkmHtk5B1+C3pfRzQ36Q48qb0qB8eLdhrXsm1m+44
-	 bZx+VVDIS8tqeBRFXqSH0dRyPmqjiUb2mug8veMM=
-Date: Mon, 28 Sep 2026 17:08:26 -0700
+	b=CQ67Ysxyo/hk/35ouEJGLKn9eTnLDr6u5i3WFCyDlqO+tUSLUv23HKA1sfKZ+L78I
+	 FJWayqIBI1rc7qZ+DX0zeTAnz8+8bzyWCsuW0ztVJsd0aPPWQUywo+Va9Zpf660WDv
+	 CXAEey5xQ85rdxNIze8vI8tjafANsMswcKhjyCys=
+Date: Mon, 28 Sep 2026 17:08:27 -0700
 To: mm-commits@vger.kernel.org,hch@lst.de,harry@kernel.org,hebaoquan@kylinos.cn,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + alsa-n64-dont-use-gfp_dma-when-calling-dma_alloc_coherent.patch added to mm-new branch
-Message-Id: <20260929000826.90CD31F000FF@smtp.kernel.org>
+Subject: + spi-spi-ti-qspi-dont-use-gfp_dma-when-calling-dma_alloc_coherent.patch added to mm-new branch
+Message-Id: <20260929000828.5A1541F000FF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: ALSA: n64: don't use GFP_DMA when calling dma_alloc_coherent()
+     Subject: spi: spi-ti-qspi: don't use GFP_DMA when calling dma_alloc_coherent()
 has been added to the -mm mm-new branch.  Its filename is
-     alsa-n64-dont-use-gfp_dma-when-calling-dma_alloc_coherent.patch
+     spi-spi-ti-qspi-dont-use-gfp_dma-when-calling-dma_alloc_coherent.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/alsa-n64-dont-use-gfp_dma-when-calling-dma_alloc_coherent.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/spi-spi-ti-qspi-dont-use-gfp_dma-when-calling-dma_alloc_coherent.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,35 +70,35 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Baoquan He <hebaoquan@kylinos.cn>
-Subject: ALSA: n64: don't use GFP_DMA when calling dma_alloc_coherent()
-Date: Thu,  3 Sep 2026 19:18:26 +0800
+Subject: spi: spi-ti-qspi: don't use GFP_DMA when calling dma_alloc_coherent()
+Date: Thu,  3 Sep 2026 19:18:27 +0800
 
 dma_alloc_coherent() allocates the DMA buffer with the device's addressing
 limitation in mind; the DMA core picks the zone from the device's coherent
 DMA mask and ignores GFP_DMA passed by the caller.  Remove the redundant
 GFP_DMA flag.
 
-Link: https://lore.kernel.org/20260903111836.1777265-4-hebaoquan@kylinos.cn
+Link: https://lore.kernel.org/20260903111836.1777265-5-hebaoquan@kylinos.cn
 Signed-off-by: Baoquan He <hebaoquan@kylinos.cn>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 Cc: Christoph Hellwig <hch@lst.de>
 Cc: Harry Yoo <harry@kernel.org>
 ---
 
- sound/mips/snd-n64.c |    2 +-
+ drivers/spi/spi-ti-qspi.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/sound/mips/snd-n64.c~alsa-n64-dont-use-gfp_dma-when-calling-dma_alloc_coherent
-+++ a/sound/mips/snd-n64.c
-@@ -298,7 +298,7 @@ static int __init n64audio_probe(struct
- 	priv->card = card;
- 
- 	priv->ring_base = dma_alloc_coherent(card->dev, 32 * 1024, &priv->ring_base_dma,
--					     GFP_DMA|GFP_KERNEL);
-+					     GFP_KERNEL);
- 	if (!priv->ring_base) {
- 		err = -ENOMEM;
- 		goto fail_card;
+--- a/drivers/spi/spi-ti-qspi.c~spi-spi-ti-qspi-dont-use-gfp_dma-when-calling-dma_alloc_coherent
++++ a/drivers/spi/spi-ti-qspi.c
+@@ -855,7 +855,7 @@ static int ti_qspi_probe(struct platform
+ 	qspi->rx_bb_addr = dma_alloc_coherent(qspi->dev,
+ 					      QSPI_DMA_BUFFER_SIZE,
+ 					      &qspi->rx_bb_dma_addr,
+-					      GFP_KERNEL | GFP_DMA);
++					      GFP_KERNEL);
+ 	if (!qspi->rx_bb_addr) {
+ 		dev_err(qspi->dev,
+ 			"dma_alloc_coherent failed, using PIO mode\n");
 _
 
 Patches currently in -mm which might be from hebaoquan@kylinos.cn are
