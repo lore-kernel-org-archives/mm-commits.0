@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0BDF23AF664
-	for <mm-commits@vger.kernel.org>; Tue, 29 Sep 2026 20:49:44 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8442D3B83F9
+	for <mm-commits@vger.kernel.org>; Tue, 29 Sep 2026 21:13:25 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790714986; cv=none; b=dZ8zefb2kaKIykINwpq5msnwuUTz62NS2ccowed1UdsFmuaPDIoe4oFGhJ3GOLoMznrWuklLoi1Lhyl9EaXXDoeccFtTmbqY3jmaFgpbaCmqml+eBpZzYi5Cc32U4mxcWWNiqZNjNneUuxxOyc6cCtmwWRU77ZDqUnNg6h9RmDA=
+	t=1790716407; cv=none; b=c954jilQE6jcAJ19Hh0T2JVLMHb6PHwsHAwXhnqSRub0gCzHYcy79A4a/bVN1o32uCTMqV/qeU0JxqEA/ZcxFZHNwCkcLEOszaJgmzPMNXTpFm4vX7pRGL5KgLHhBDuOtP5NLKvZqAYJCPrjbxJjkSRhYNHWNLO1B1D70sdoRxw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1790714986; c=relaxed/simple;
-	bh=ChBkWuX2DlP93cpGyc3FTz1TLPnmlZHV2yEapeZIK74=;
-	h=Date:To:From:Subject:Message-Id; b=eF5RIHd9LUXt8e41YGdiqaIT0Hf4CDfqemYeVUixNo7pYSLjS/p2LPlpKHSJjcDzoJ3+HLHGug6iltoQ0S0ZWV6Gy904ofNTTyAzyz/Vekh8VnUMzSV+kdcX+zbd+nCxG36cJtJ8QhHsHLmD1983m9GS3eZnEdM+8SAyR6Esss4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=yFM5JiyP; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1790716407; c=relaxed/simple;
+	bh=sxE6EwYzus1GssTUTr/E/NrFQUzeS5swqpU+L1xa3PA=;
+	h=Date:To:From:Subject:Message-Id; b=qKRdV6ibeFjz2RJsu6m4nshBZLX8on9jaAqBrDyc7yI3Kp0WR0aJfoYZzPWmBa4SdYMKjJ1hTblFGlBnfQ0W5/wC1hWvYqj4MbRs/aVZKbcqQohIT5H8DAnSjUDSMazwpj+PUjPIN7FZ6A+6NfTtk10aOOR9jXILNfvwg/eSsys=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=nynqS5k+; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="yFM5JiyP"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C6BC01F00893;
-	Tue, 29 Sep 2026 20:49:44 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="nynqS5k+"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id EE8461F000FF;
+	Tue, 29 Sep 2026 21:13:24 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1790714984;
-	bh=r1y94xjZcFNvsltJ3dSasSow8IqPXhqvuTP2Wz1U1dU=;
+	d=linux-foundation.org; s=korg; t=1790716405;
+	bh=XeR3cIKEhwZ0mU6II0gc/g8MeFa9Ksw6H6n+iU+hfgw=;
 	h=Date:To:From:Subject;
-	b=yFM5JiyPYgQ9zYm+Y8sqnhY3cNu+G3/LIjPToBxYwg0RgsoURwf1LpH8nCmR2yvGC
-	 uHlKLCuH4MobUD7omicY9OEj/aEGlQtj2HDR2/4Acu6IqSITo+9Zgmn8YAUHGxqUGt
-	 JKfCZWv5iDrpy+85ViQrDloXeQqV9jXh/ufMZKCk=
-Date: Tue, 29 Sep 2026 13:49:44 -0700
-To: mm-commits@vger.kernel.org,vbabka@kernel.org,surenb@google.com,rppt@kernel.org,mhocko@suse.com,ljs@kernel.org,liam@infradead.org,david@kernel.org,sj@kernel.org,akpm@linux-foundation.org
+	b=nynqS5k+6as2Oa9B/rnAddhqZe2KDP2cmFamPu3jDJwp+BDFnRPorEEmOIiVqMFhq
+	 PjNVdIg+ZPqI9l2ccB5bN9F2X68Z5/KsCzSz6SPkoJQ+cVLco+hANDttJbt9QgrWej
+	 sAHlie/icgy0U9xZ8CoODl8N6orY265GXD3UfMZo=
+Date: Tue, 29 Sep 2026 14:13:24 -0700
+To: mm-commits@vger.kernel.org,senozhatsky@chromium.org,minchan@kernel.org,axboe@kernel.dk,pooyan.azadparvar@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + docs-abi-damon-update-for-quota-goal-metric-complement-sysfs-file.patch added to mm-new branch
-Message-Id: <20260929204944.C6BC01F00893@smtp.kernel.org>
+Subject: + zram-fix-short-reads-from-block_state.patch added to mm-new branch
+Message-Id: <20260929211324.EE8461F000FF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: Docs/ABI/damon: update for quota goal metric complement sysfs file
+     Subject: zram: fix short reads from block_state
 has been added to the -mm mm-new branch.  Its filename is
-     docs-abi-damon-update-for-quota-goal-metric-complement-sysfs-file.patch
+     zram-fix-short-reads-from-block_state.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/docs-abi-damon-update-for-quota-goal-metric-complement-sysfs-file.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/zram-fix-short-reads-from-block_state.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -69,152 +69,171 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: SJ Park <sj@kernel.org>
-Subject: Docs/ABI/damon: update for quota goal metric complement sysfs file
-Date: Tue, 29 Sep 2026 01:01:11 -0700
+From: Pooyan Azad <pooyan.azadparvar@gmail.com>
+Subject: zram: fix short reads from block_state
+Date: Tue, 29 Sep 2026 09:18:46 +0200
 
-Update DAMON ABI document for the newly added damos quota goal metric
-complement sysfs file.
+read_block_state() formats each entry directly into the buffer supplied by
+read().  If the remaining buffer is too small for one complete record,
+snprintf() returns the full record length and the function stops without
+copying data or advancing the file position.  A read from this debugfs
+file which is smaller than a record therefore returns zero at a non-EOF
+position and cannot make progress.
 
-Link: https://lore.kernel.org/20260929080113.41708-9-sj@kernel.org
-Signed-off-by: SJ Park <sj@kernel.org>
+Convert block_state to seq_file so formatted records are buffered
+independently of the userspace read size.  Keep dev_lock held across each
+seq_file iteration and continue to protect individual entries with their
+slot locks.
+
+Link: https://lore.kernel.org/20260929071846.24829-1-pooyan.azadparvar@gmail.com
+Fixes: c0265342bff4 ("zram: introduce zram memory tracking")
+Signed-off-by: Pooyan Azad <pooyan.azadparvar@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Cc: Liam R. Howlett <liam@infradead.org>
-Cc: David Hildenbrand <david@kernel.org>
-Cc: Lorenzo Stoakes <ljs@kernel.org>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Vlastimil Babka <vbabka@kernel.org>
+Closes: https://lore.kernel.org/r/CANC3H+LdtoydSp+o2ecErAw7k6R2+gRf9LyxcaoHv_mGhJmyQQ@mail.gmail.com/
+Reviewed-by: Sergey Senozhatsky <senozhatsky@chromium.org>
+Tested-by: Sergey Senozhatsky <senozhatsky@chromium.org>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Jens Axboe <axboe@kernel.dk>
 ---
 
- Documentation/ABI/testing/sysfs-kernel-mm-damon |    6 ++++++
- 1 file changed, 6 insertions(+)
+ drivers/block/zram/zram_drv.c |  104 ++++++++++++++++----------------
+ 1 file changed, 53 insertions(+), 51 deletions(-)
 
---- a/Documentation/ABI/testing/sysfs-kernel-mm-damon~docs-abi-damon-update-for-quota-goal-metric-complement-sysfs-file
-+++ a/Documentation/ABI/testing/sysfs-kernel-mm-damon
-@@ -375,6 +375,12 @@ Contact:	SJ Park <sj@kernel.org>
- Description:	Writing to and reading from this file sets and gets the quota
- 		auto-tuning goal metric.
+--- a/drivers/block/zram/zram_drv.c~zram-fix-short-reads-from-block_state
++++ a/drivers/block/zram/zram_drv.c
+@@ -1553,68 +1553,70 @@ static void zram_debugfs_destroy(void)
+ 	debugfs_remove_recursive(zram_debugfs_root);
+ }
  
-+What:		/sys/kernel/mm/damon/admin/kdamonds/<K>/contexts/<C>/schemes/<S>/quotas/goals/<G>/complement
-+Date:		Sep 2026
-+Contact:	SJ Park <sj@kernel.org>
-+Description:	Writing to and reading from this file sets and gets whether to
-+		use the complement value of the quota auto-tuning goal metric.
+-static ssize_t read_block_state(struct file *file, char __user *buf,
+-				size_t count, loff_t *ppos)
++static void *zram_block_state_start(struct seq_file *seq, loff_t *pos)
+ {
+-	char *kbuf;
+-	unsigned long index;
+-	ssize_t written = 0;
+-	struct zram *zram = file->private_data;
++	struct zram *zram = seq->private;
+ 	unsigned long nr_pages;
+ 
+-	kbuf = kvmalloc(count, GFP_KERNEL);
+-	if (!kbuf)
+-		return -ENOMEM;
+-
+-	guard(rwsem_read)(&zram->dev_lock);
+-	if (!init_done(zram)) {
+-		kvfree(kbuf);
+-		return -EINVAL;
+-	}
++	down_read(&zram->dev_lock);
++	if (!init_done(zram))
++		return ERR_PTR(-EINVAL);
+ 
+ 	nr_pages = zram->disksize >> PAGE_SHIFT;
++	if (*pos >= nr_pages)
++		return NULL;
+ 
+-	for (index = *ppos; index < nr_pages; index++) {
+-		int copied;
++	return pos;
++}
+ 
+-		slot_lock(zram, index);
+-		if (!slot_allocated(zram, index))
+-			goto next;
+-
+-		copied = snprintf(kbuf + written, count,
+-			"%12lu %12u.%06d %c%c%c%c%c%c\n",
+-			index, zram->table[index].attr.ac_time, 0,
+-			test_slot_flag(zram, index, ZRAM_SAME) ? 's' : '.',
+-			test_slot_flag(zram, index, ZRAM_WB) ? 'w' : '.',
+-			test_slot_flag(zram, index, ZRAM_HUGE) ? 'h' : '.',
+-			test_slot_flag(zram, index, ZRAM_IDLE) ? 'i' : '.',
+-			get_slot_comp_priority(zram, index) ? 'r' : '.',
+-			test_slot_flag(zram, index,
+-				       ZRAM_INCOMPRESSIBLE) ? 'n' : '.');
+-
+-		if (count <= copied) {
+-			slot_unlock(zram, index);
+-			break;
+-		}
+-		written += copied;
+-		count -= copied;
+-next:
+-		slot_unlock(zram, index);
+-		*ppos += 1;
+-	}
++static void *zram_block_state_next(struct seq_file *seq, void *v, loff_t *pos)
++{
++	struct zram *zram = seq->private;
++	unsigned long nr_pages = zram->disksize >> PAGE_SHIFT;
 +
- What:		/sys/kernel/mm/damon/admin/kdamonds/<K>/contexts/<C>/schemes/<S>/quotas/goals/<G>/target_value
- Date:		Nov 2023
- Contact:	SJ Park <sj@kernel.org>
++	++*pos;
++	if (*pos >= nr_pages)
++		return NULL;
++
++	return pos;
++}
+ 
+-	if (copy_to_user(buf, kbuf, written))
+-		written = -EFAULT;
+-	kvfree(kbuf);
++static void zram_block_state_stop(struct seq_file *seq, void *v)
++{
++	struct zram *zram = seq->private;
++
++	up_read(&zram->dev_lock);
++}
++
++static int zram_block_state_show(struct seq_file *seq, void *v)
++{
++	struct zram *zram = seq->private;
++	unsigned long index = *(loff_t *)v;
++
++	slot_lock(zram, index);
++	if (slot_allocated(zram, index)) {
++		seq_printf(seq, "%12lu %12u.%06d %c%c%c%c%c%c\n",
++			   index, zram->table[index].attr.ac_time, 0,
++			   test_slot_flag(zram, index, ZRAM_SAME) ? 's' : '.',
++			   test_slot_flag(zram, index, ZRAM_WB) ? 'w' : '.',
++			   test_slot_flag(zram, index, ZRAM_HUGE) ? 'h' : '.',
++			   test_slot_flag(zram, index, ZRAM_IDLE) ? 'i' : '.',
++			   get_slot_comp_priority(zram, index) ? 'r' : '.',
++			   test_slot_flag(zram, index,
++					  ZRAM_INCOMPRESSIBLE) ? 'n' : '.');
++	}
++	slot_unlock(zram, index);
+ 
+-	return written;
++	return 0;
+ }
+ 
+-static const struct file_operations proc_zram_block_state_op = {
+-	.open = simple_open,
+-	.read = read_block_state,
+-	.llseek = default_llseek,
++static const struct seq_operations zram_block_state_sops = {
++	.start = zram_block_state_start,
++	.next = zram_block_state_next,
++	.stop = zram_block_state_stop,
++	.show = zram_block_state_show,
+ };
++DEFINE_SEQ_ATTRIBUTE(zram_block_state);
+ 
+ static void zram_debugfs_register(struct zram *zram)
+ {
+@@ -1624,7 +1626,7 @@ static void zram_debugfs_register(struct
+ 	zram->debugfs_dir = debugfs_create_dir(zram->disk->disk_name,
+ 						zram_debugfs_root);
+ 	debugfs_create_file("block_state", 0400, zram->debugfs_dir,
+-				zram, &proc_zram_block_state_op);
++				zram, &zram_block_state_fops);
+ }
+ 
+ static void zram_debugfs_unregister(struct zram *zram)
 _
 
-Patches currently in -mm which might be from sj@kernel.org are
+Patches currently in -mm which might be from pooyan.azadparvar@gmail.com are
 
-mm-damon-core-skip-applying-scheme-if-region-split-for-quota-fails.patch
-mm-damon-paddr-respect-folio-end-for-damos_stat.patch
-mm-damon-paddr-respect-folio-end-for-damos-actions-except-stat.patch
-mm-damon-vaddr-respect-folio-end-for-damos_stat.patch
-mm-damon-vaddr-respect-folio-end-for-damos_migrate_hotcold.patch
-mm-damon-core-handle-extreme-memory-state-in-damon_get_node_mem_bp.patch
-mm-damon-core-handle-extreme-memory-state-in-get_node_memcg_used_bp.patch
-mm-damon-core-handle-extreme-memory-state-in-get_in_active_mem_bp.patch
-mm-damon-core-introduce-damon_filter_type_pgidle_unset.patch
-mm-damon-paddr-support-pgidle_unset-probe-filter-type.patch
-mm-damon-sysfs-support-pgidle_unset-probe-filter-type.patch
-docs-mm-damon-design-document-pgidle_unset-probe-filter-type.patch
-mm-damon-core-introduce-damon_prep-struct.patch
-mm-damon-core-commit-preps.patch
-mm-damon-core-introduce-damon_operations-prep_probes.patch
-mm-damon-paddr-support-damon_prep.patch
-mm-damon-sysfs-implement-preps-directory.patch
-mm-damon-sysfs-implement-preps-nr_preps-file.patch
-mm-damon-sysfs-create-directories-for-nr_preps-writes.patch
-mm-damon-sysfs-implement-prep_action-file.patch
-mm-damon-sysfs-pass-preps-to-damon-core.patch
-selftests-damon-sysfssh-test-probe-prep-sysfs-files.patch
-docs-mm-damon-design-document-probe-preps.patch
-docs-admin-guide-mm-damon-usage-document-probe-preps-sysfs-files.patch
-docs-abi-damon-document-probe-prep-sysfs-files.patch
-mm-damon-tests-core-kunit-test-committing-psi-goal-to-psi-goal.patch
-mm-damon-core-handle-uninitialized-damos_quota_goal-last_psi_total.patch
-mm-damon-core-copy-nid-for-eligible_mem_bp-damos-quota-goal-commit.patch
-mm-damon-sysfs-set-next-refresh-jiffies-per-sysfs-context.patch
-mm-damon-tests-core-kunit-test-damon_commit_filter.patch
-mm-damon-tests-core-kunit-add-damon_commit_probes-test.patch
-selftests-damon-_damon_sysfs-implement-damonprobes.patch
-selftests-damon-drgn_dump_damon_status-dump-probes.patch
-selftests-damon-sysfspy-extend-commit-assertion-function-for-probes.patch
-selftests-damon-sysfspy-test-damon-probes.patch
-mm-damon-core-use-damon_nr_samples_per_aggr-for-max-merge-threshold.patch
-mm-damon-core-remove-debug-messages.patch
-mm-damon-core-remove-debug-messages-fix.patch
-mm-damon-vaddr-remove-a-debug-message.patch
-mm-damon-core-validate-number-of-probes-in-valid_probe_params.patch
-mm-damon-sysfs-remove-probes-number-validation.patch
-mm-damon-tests-core-kunit-extend-set_regions-test-for-error-case.patch
-mm-damon-tests-core-kunit-test-=0-size-damon_set_regions-inputs.patch
-mm-damon-tests-core-kunit-test-overlapping-ranges-for-set_regions.patch
-mm-damon-tests-core-kunit-test-damon_nr_samples_per_aggr.patch
-selftests-damon-sysfssh-test-hugepage_mem_bp-quota-goal.patch
-docs-mm-damon-maintainer-profile-update-ai-review-for-sashiko-replies.patch
-docs-abi-damon-recommend-subsystem-doc-instead-of-admin-guide.patch
-mm-damon-core-error-damos_commit_quota_goal-for-zero-target_value.patch
-revert-mm-damon-lru_sort-error-out-for-10000-active_mem_bp.patch
-revert-samples-damon-mtier-error-out-for-zero-quota-goal-target-values.patch
-mm-damon-core-handle-null-ctx-parameter-in-damon_call.patch
-mm-damon-core-set-ctx-call_controls_obsolete-in-damon_new_ctx.patch
-mm-damon-reclaim-remove-unnecessary-damon_call-param-validation.patch
-mm-damon-lru_sort-remove-unnecessary-damon_call-param-validation.patch
-mm-damon-vaddr-support-prep_probes.patch
-mm-damon-paddr-move-probe-filter-handling-to-ops-common.patch
-mm-damon-vaddr-support-apply_probe.patch
-mm-damon-vaddr-extend-apply_probes-for-hugetlb.patch
-mm-damon-vaddr-support-pgidle_unset-probe-filter-type.patch
-mm-damon-api-introduce-damon_filter_type_pgidle_set.patch
-mm-damon-paddr-support-damon_filter_type_pgidle_set.patch
-mm-damon-vaddr-support-damon_filter_type_pgidle_set.patch
-mm-damon-sysfs-support-damon_filter_type_pgidle_set.patch
-docs-mm-damon-design-update-for-pgidle_set-probe-filter.patch
-mm-damon-api-introduce-damos_filter_type_probe_hits_wsum.patch
-mm-damon-api-introduce-damos_filter_type_probe_hits_wsum-fix.patch
-mm-damon-core-extend-probe_hits_wsum-for-moving-sum-based-calculation.patch
-mm-damon-core-support-probe_hits_wsum-damos-core-filter.patch
-mm-damon-sysfs-schemes-rename-sysfs_filter-sz_range-to-range_minmax.patch
-mm-damon-sysfs-schemes-support-probe_hits_wsum-damos-core-filter.patch
-docs-mm-damon-design-update-for-probe_hits_wsum-damos-core-filter.patch
-docs-admin-guide-mm-damon-usage-update-for-probe_hits_wsum-damos-filter.patch
-mm-damon-sysfs-schemes-read-sysfs_filter-addr_range-only-once.patch
-mm-damon-sysfs-schemes-read-sysfs_filter-sz_range-only-once.patch
-mm-damon-core-return-an-error-from-damos_commit_filter_arg.patch
-mm-damon-core-disallow-max-min-damos-filter-range-arguments-commit.patch
-mm-damon-sysfs-schemes-drop-centralized-filter-range-arg-validations.patch
-mm-damon-sysfs-schemes-use-switch-case-in-add_scheme_filters.patch
-mm-damon-core-kunit-extend-damos_commit_filter_for-for-wrong-input.patch
-mm-damon-core-kunit-test-invalid-damos-filter-commits.patch
-mm-damon-api-introduce-damon_filter_type_hugepage_size.patch
-mm-damon-core-commit-hugepage_size-type-damon-filter.patch
-mm-damon-ops-common-support-hugepage_size-damon-filter-matching.patch
-mm-damon-sysfs-add-minmax-files-under-probe-filter-directory.patch
-mm-damon-sysfs-support-hugepage_size-probe-filter.patch
-docs-mm-damon-design-update-for-hugepage_size-probe-filter.patch
-docs-admin-guide-mm-damon-usage-update-for-hugepage_size.patch
-docs-abi-damon-update-for-hugepage_size-probe-filter.patch
-mm-damon-api-remove-nr_damos_filter_types.patch
-mm-damon-core-use-abs_diff-in-damon_feed_loop_next_input.patch
-mm-damon-core-use-mult_frac-in-damon_feed_loop_next_input.patch
-mm-damon-core-set-damon_ctx-walk_control_obsolete-in-damon_new_ctx.patch
-mm-damon-core-document-damon_call-damon_start-race-hang-issue.patch
-mm-damon-paddr-remove-pa-parameter-from-damon_pa_filter_pass.patch
-mm-damon-tests-core-kunit-test-eligible_mem_bp-commitment.patch
-mm-damon-tests-core-kunit-add-probe_hits_wsum-damos-filter-commit-test.patch
-selftests-damon-sysfs_memcg_path_leak-fail-only-for-real-damon-leak.patch
-docs-mm-damon-design-clarify-bp-is-basis-point.patch
-mm-damon-core-introduce-damos_quota_goal-complement.patch
-mm-damon-core-add-complement-argument-to-damos_new_quota_goal.patch
-mm-damon-sysfs-schemes-support-quota-goal-complement-flag.patch
-mm-damon-tests-core-kunit-test-quota_goal-complement-commit.patch
-selftests-damon-sysfssh-test-quota-goal-complement-flag-file.patch
-docs-mm-damon-design-document-damos-quota-goal-complement-flag.patch
-docs-admin-guide-mm-damon-usage-update-for-quota-goal-complement-file.patch
-docs-abi-damon-update-for-quota-goal-metric-complement-sysfs-file.patch
+zram-fix-short-reads-from-block_state.patch
 
