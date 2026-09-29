@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C35CD3AF664
-	for <mm-commits@vger.kernel.org>; Tue, 29 Sep 2026 20:49:39 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A0DB33AFD18
+	for <mm-commits@vger.kernel.org>; Tue, 29 Sep 2026 20:49:41 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790714981; cv=none; b=qZeIYsvX05bPv66gHiK062vZc2JevmNgpwBqycOQGlekWPC22biy3xzwREIpCq00wE48B0k29nAgwCbAn2v4tAKuKG6nG4oevrF+l7k4PDBj5uNJLQc90LnOjtq7XG5dwTpHPVstOAIsPwQxX84kOntXB6cQJF1XHPq9/SCGO6k=
+	t=1790714983; cv=none; b=oRh3sZVJTVoBJ1RpqMvaozvbIqvYvPew7QKqHtu0fde9Tr0I/aablvhteu8HOqUPE8Oo7y1s7SWmQ3J+Kto8042syCISJ5/QEYx+zyl/WWPhiuGle+J2SIVv8wK7e9IYopnB3xJkH13XnSyCi45foLG5l5qDoYf2NgNhK7P6eDU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1790714981; c=relaxed/simple;
-	bh=Mmx3mPsVTKWjDCGNtE/yy3A6wGE44GgUxsDBmpF3b0M=;
-	h=Date:To:From:Subject:Message-Id; b=Y5wKiug3XkjceQU3Q/cWy2Mb2sA5d/h/ivnSJCKZ3b6F0q+jEMIF6hsdZnd+dA/yALXWUu3umXmDNcPlqs6jTK+yhikJz4O9feOKsTRbNZQLw672lLA1LzUVPu9mBBaCSAgtWeyMtlkMe/B3EkUAOzpIN+rS/VE/OgbXMX+/asg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=uIZwGzdU; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1790714983; c=relaxed/simple;
+	bh=3zymqvs2x/6lw33peysfPInMIavSBZnRtuJL2oEKDGk=;
+	h=Date:To:From:Subject:Message-Id; b=uZ2R0+HbXNxFaAfeSP4ArN6gkdLPc1p+w+THMR31k2h2LXQIcxKkW/v4qAV7mh7TZ95njyfnYeqozM9wcd+9NZVQ3a2wBtpYf3djYs0/zzFIeC2jD0NStLn1RwxQCYoCY8hPy88malB8CfkFcbj0fKspH/1RA/IlzSQJUEjgkzs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=BdsiuMrh; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="uIZwGzdU"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 593F61F000FF;
-	Tue, 29 Sep 2026 20:49:39 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="BdsiuMrh"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2CC001F00893;
+	Tue, 29 Sep 2026 20:49:41 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1790714979;
-	bh=4hHWOmkAlhYwFnGQFGb0Wwung5KhriqTuE/7R0rp5yE=;
+	d=linux-foundation.org; s=korg; t=1790714981;
+	bh=4QibNf01kOaLGm1ReNKAK3plJbDxR0XhBGLUOGrh5kc=;
 	h=Date:To:From:Subject;
-	b=uIZwGzdUSfDoo+yHGP+e8suPvzYIPllEmdjpcoihelstJRKj96k5MQqbnfYFiygkt
-	 nXl0qTH3xsVhBByKuHrq4S6ypnD/OF3qARdYiNfuMJ3mFVQjjcH+CQwP53xzfp5ycl
-	 K4rI41YEYIQoHH9tdmJA+iunI9OJPNFCsTcPENzU=
-Date: Tue, 29 Sep 2026 13:49:38 -0700
-To: mm-commits@vger.kernel.org,shuah@kernel.org,sj@kernel.org,akpm@linux-foundation.org
+	b=BdsiuMrhmFqfLexXYjQAhQONgIN/TpEe909+ersr+qKVg8YiDiUkDX5/w8cXOYYIR
+	 NP8L6yjEvNYGcyBUgFBu019nEdPPuupsVPdRLnno9pdbSYLBCJAwHH130TU/P7iO4c
+	 Deg1NFNmV8eFVXrwbXrkq/Ii/nNIJEuW1860SJQs=
+Date: Tue, 29 Sep 2026 13:49:40 -0700
+To: mm-commits@vger.kernel.org,vbabka@kernel.org,surenb@google.com,skhan@linuxfoundation.org,rppt@kernel.org,rdunlap@infradead.org,mhocko@suse.com,ljs@kernel.org,liam@infradead.org,david@kernel.org,corbet@lwn.net,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-damon-sysfssh-test-quota-goal-complement-flag-file.patch added to mm-new branch
-Message-Id: <20260929204939.593F61F000FF@smtp.kernel.org>
+Subject: + docs-mm-damon-design-document-damos-quota-goal-complement-flag.patch added to mm-new branch
+Message-Id: <20260929204941.2CC001F00893@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: selftests/damon/sysfs.sh: test quota goal complement flag file
+     Subject: Docs/mm/damon/design: document damos quota goal complement flag
 has been added to the -mm mm-new branch.  Its filename is
-     selftests-damon-sysfssh-test-quota-goal-complement-flag-file.patch
+     docs-mm-damon-design-document-damos-quota-goal-complement-flag.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-damon-sysfssh-test-quota-goal-complement-flag-file.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/docs-mm-damon-design-document-damos-quota-goal-complement-flag.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,33 +70,61 @@ and is updated there most days
 
 ------------------------------------------------------
 From: SJ Park <sj@kernel.org>
-Subject: selftests/damon/sysfs.sh: test quota goal complement flag file
-Date: Tue, 29 Sep 2026 01:01:08 -0700
+Subject: Docs/mm/damon/design: document damos quota goal complement flag
+Date: Tue, 29 Sep 2026 01:01:09 -0700
 
-Test the existence and the valid input acceptance of the newly added
-quota goal complement flag sysfs file.
+Update DAMON design document for the newly added damos quota goal metric
+value complement flag.
 
-Link: https://lore.kernel.org/20260929080113.41708-6-sj@kernel.org
+Link: https://lore.kernel.org/20260929080113.41708-7-sj@kernel.org
 Signed-off-by: SJ Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Cc: Shuah Khan <shuah@kernel.org>
+Cc: Liam R. Howlett <liam@infradead.org>
+Cc: David Hildenbrand <david@kernel.org>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: Lorenzo Stoakes <ljs@kernel.org>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Randy Dunlap <rdunlap@infradead.org>
+Cc: Shuah Khan <skhan@linuxfoundation.org>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Vlastimil Babka <vbabka@kernel.org>
 ---
 
- tools/testing/selftests/damon/sysfs.sh |    3 +++
- 1 file changed, 3 insertions(+)
+ Documentation/mm/damon/design.rst |   15 +++++++++++----
+ 1 file changed, 11 insertions(+), 4 deletions(-)
 
---- a/tools/testing/selftests/damon/sysfs.sh~selftests-damon-sysfssh-test-quota-goal-complement-flag-file
-+++ a/tools/testing/selftests/damon/sysfs.sh
-@@ -212,6 +212,9 @@ test_goal()
- 	ensure_write_succ "$fpath" "node_eligible_mem_bp" "valid input"
- 	ensure_write_succ "$fpath" "hugepage_mem_bp" "valid input"
- 	ensure_write_fail "$fpath" "foo" "invalid input"
-+	ensure_file "$goal_dir/complement" "exist" "600"
-+	ensure_write_succ "$goal_dir/complement" "Y" "valid input"
-+	ensure_write_succ "$goal_dir/complement" "N" "valid input"
- 	ensure_file "$goal_dir/nid" "exist" "600"
- 	ensure_file "$goal_dir/path" "exist" "600"
- }
+--- a/Documentation/mm/damon/design.rst~docs-mm-damon-design-document-damos-quota-goal-complement-flag
++++ a/Documentation/mm/damon/design.rst
+@@ -702,10 +702,10 @@ There are two such tuning algorithms tha
+   that the zero quota is a valid quota, and therefore ``qt_exceeds`` :ref:`stat
+   <damon_design_damos_stat>` will keep increasing in this case.
+ 
+-The goal can be specified with five parameters, namely ``target_metric``,
+-``target_value``, ``current_value``, ``nid`` and ``path``.  The auto-tuning
+-mechanism tries to make ``current_value`` of ``target_metric`` be same to
+-``target_value``.
++The goal can be specified with six parameters, namely ``target_metric``,
++``complement``, ``target_value``, ``current_value``, ``nid`` and ``path``.  The
++auto-tuning mechanism tries to make ``current_value`` of ``complement``-ed
++``target_metric`` be same to ``target_value``.
+ 
+ - ``user_input``: User-provided value.  Users could use any metric that they
+   has interest in for the value.  Use space main workload's latency or
+@@ -733,6 +733,13 @@ mechanism tries to make ``current_value`
+ - ``hugepage_mem_bp``: Total huge page to total used memory ratio in bp
+   (1/10,000).
+ 
++``complement`` is a boolean parameter that determines whether to use
++complemented value of the target metric.  For example, if ``complement`` is set
++and target metric is ``active_mem_bp``, it is effectively same to
++``inactive_mem_bp``.  ``complement`` is no-op when the target metric type is
++``user_input``.  For the metric type, the user should be able to emit
++complemented metric values on their own.
++
+ ``nid`` is optionally required for ``node_mem_used_bp``, ``node_mem_free_bp``,
+ ``node_memcg_used_bp``, ``node_memcg_free_bp`` and ``node_eligible_mem_bp`` to
+ point the specific NUMA node.
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
