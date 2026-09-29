@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8442D3B83F9
-	for <mm-commits@vger.kernel.org>; Tue, 29 Sep 2026 21:13:25 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BFD383E556B
+	for <mm-commits@vger.kernel.org>; Tue, 29 Sep 2026 21:32:36 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790716407; cv=none; b=c954jilQE6jcAJ19Hh0T2JVLMHb6PHwsHAwXhnqSRub0gCzHYcy79A4a/bVN1o32uCTMqV/qeU0JxqEA/ZcxFZHNwCkcLEOszaJgmzPMNXTpFm4vX7pRGL5KgLHhBDuOtP5NLKvZqAYJCPrjbxJjkSRhYNHWNLO1B1D70sdoRxw=
+	t=1790717559; cv=none; b=aKuc5riPV1ZVMBTdGyvRqLm5fXzceQqOW7PpHEEB92yUkw6KE348kOVqnkvedMR3hBsGlzYFl+YjDFRGCfHMrZJ9XNxdqwmmXubEx25iQQokElEG5cnAdalEptn/Usb/mLleHdmha1XgwEjkQncj7ouBWMKcy8LQwbr+l5/+PxA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1790716407; c=relaxed/simple;
-	bh=sxE6EwYzus1GssTUTr/E/NrFQUzeS5swqpU+L1xa3PA=;
-	h=Date:To:From:Subject:Message-Id; b=qKRdV6ibeFjz2RJsu6m4nshBZLX8on9jaAqBrDyc7yI3Kp0WR0aJfoYZzPWmBa4SdYMKjJ1hTblFGlBnfQ0W5/wC1hWvYqj4MbRs/aVZKbcqQohIT5H8DAnSjUDSMazwpj+PUjPIN7FZ6A+6NfTtk10aOOR9jXILNfvwg/eSsys=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=nynqS5k+; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1790717559; c=relaxed/simple;
+	bh=/zy3FAqnFQgLIGHV++bu4VY6FhO1PXd8Yvf2UFpXyfI=;
+	h=Date:To:From:Subject:Message-Id; b=FsAqop86sJ3K4WxgJ6SwD9UiF5T2STKB7MNknD3GhBe8FJYKil0GeLZRhepDAucexCNgSVnhP7wrLb3cdvYf5bdCNmm6/adx52ZjO7JolqJ+UW/C5fzFOVOmLHj3X5y9ljqVgJKu6VNXpgWWWceQir1hQhld/YXitWauFHkU0Cw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=chU87fY0; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="nynqS5k+"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id EE8461F000FF;
-	Tue, 29 Sep 2026 21:13:24 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="chU87fY0"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B8F3E1F000FF;
+	Tue, 29 Sep 2026 21:32:35 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1790716405;
-	bh=XeR3cIKEhwZ0mU6II0gc/g8MeFa9Ksw6H6n+iU+hfgw=;
+	d=linux-foundation.org; s=korg; t=1790717555;
+	bh=dp+5rqGEhkqhwhbcJEGe8ev5laZVRAWlueR6zT2uJZ8=;
 	h=Date:To:From:Subject;
-	b=nynqS5k+6as2Oa9B/rnAddhqZe2KDP2cmFamPu3jDJwp+BDFnRPorEEmOIiVqMFhq
-	 PjNVdIg+ZPqI9l2ccB5bN9F2X68Z5/KsCzSz6SPkoJQ+cVLco+hANDttJbt9QgrWej
-	 sAHlie/icgy0U9xZ8CoODl8N6orY265GXD3UfMZo=
-Date: Tue, 29 Sep 2026 14:13:24 -0700
-To: mm-commits@vger.kernel.org,senozhatsky@chromium.org,minchan@kernel.org,axboe@kernel.dk,pooyan.azadparvar@gmail.com,akpm@linux-foundation.org
+	b=chU87fY0zyRoF47apI7QjWUd5H/npIwgMDXj+9a4Kql0Q6J9tnbwjsbWLnDva+oee
+	 DHRff2+363judo+lWrFAzC2vWxexyGoQJuGhUiHAJXOkcnKDWDCyu5K778lOvbzoUg
+	 A16YcF2u8yphtq0/PcbSnDakK1YcxSOrs/bgRnb8=
+Date: Tue, 29 Sep 2026 14:32:35 -0700
+To: mm-commits@vger.kernel.org,muchun.song@linux.dev,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + zram-fix-short-reads-from-block_state.patch added to mm-new branch
-Message-Id: <20260929211324.EE8461F000FF@smtp.kernel.org>
+Subject: + mm-sparse-vmemmap-drop-vmemmap_populate_dax.patch added to mm-new branch
+Message-Id: <20260929213235.B8F3E1F000FF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: zram: fix short reads from block_state
+     Subject: mm/sparse-vmemmap: drop VMEMMAP_POPULATE_DAX
 has been added to the -mm mm-new branch.  Its filename is
-     zram-fix-short-reads-from-block_state.patch
+     mm-sparse-vmemmap-drop-vmemmap_populate_dax.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/zram-fix-short-reads-from-block_state.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-sparse-vmemmap-drop-vmemmap_populate_dax.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -69,171 +69,250 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Pooyan Azad <pooyan.azadparvar@gmail.com>
-Subject: zram: fix short reads from block_state
-Date: Tue, 29 Sep 2026 09:18:46 +0200
+From: Muchun Song <muchun.song@linux.dev>
+Subject: mm/sparse-vmemmap: drop VMEMMAP_POPULATE_DAX
+Date: Tue, 29 Sep 2026 13:32:26 +0800
 
-read_block_state() formats each entry directly into the buffer supplied by
-read().  If the remaining buffer is too small for one complete record,
-snprintf() returns the full record length and the function stops without
-copying data or advancing the file position.  A read from this debugfs
-file which is smaller than a record therefore returns zero at a non-EOF
-position and cannot make progress.
+Patch series "mm: Unify device DAX and HugeTLB vmemmap population paths",
+v3.
 
-Convert block_state to seq_file so formatted records are buffered
-independently of the userspace read size.  Keep dev_lock held across each
-seq_file iteration and continue to protect individual entries with their
-slot locks.
+This series is split out from the earlier, larger series "mm: Generalize
+HVO for HugeTLB and device DAX" [1].  While the parent series generalizes
+vmemmap optimization across HugeTLB and device DAX, this subset addresses
+a single, self-contained step: unifying their vmemmap population paths.
 
-Link: https://lore.kernel.org/20260929071846.24829-1-pooyan.azadparvar@gmail.com
-Fixes: c0265342bff4 ("zram: introduce zram memory tracking")
-Signed-off-by: Pooyan Azad <pooyan.azadparvar@gmail.com>
+After the preceding Device DAX conversion, both HugeTLB and Device DAX
+describe optimized vmemmap mappings through memory-section metadata and
+use per-zone shared tail vmemmap pages.  The generic code, however, still
+carries a Device DAX-specific population flag and compound-page population
+path, along with arguments and helpers needed only by that path.
+
+This series first removes VMEMMAP_POPULATE_DAX and moves selection and
+reference handling for the shared tail page into the common vmemmap
+population path.  It then removes the generic Device DAX-specific
+compound-page population path and routes section vmemmap population
+through vmemmap_populate().  The powerpc radix path continues to use its
+architecture-specific compound-page population implementation for
+optimizable sections.
+
+The remaining patches remove the unused ptpfn argument, open-code
+vmemmap_populate_address() now that no caller needs its returned PTE, and
+add a warning for inconsistent zone initialization of shared tail vmemmap
+pages.
+
+This is the fourth smaller step toward the broader HVO generalization. 
+After this series, HugeTLB and Device DAX use the same population model
+instead of parallel generic paths, while powerpc keeps its
+architecture-specific implementation.
+
+
+This patch (of 6):
+
+VMEMMAP_POPULATE_DAX currently distinguishes DAX vmemmap population in two
+places: it keeps allocations on the normal path and takes a reference when
+a backing page is supplied for reuse.
+
+After Device DAX switched to the common per-zone shared tail page, both
+conditions can be determined locally.  DAX supplies ptpfn for every shared
+tail mapping and requests an allocation only for compound head mappings,
+whose PFNs are not optimizable.  Therefore, vmemmap_optimizable_pfn()
+alone selects the correct allocation path.
+
+When ptpfn is supplied, the caller is reusing an existing backing page. 
+Once the slab allocator is available, take a reference for each reused
+mapping to balance the release performed by vmemmap_free().  Although the
+buddy allocator is available before slab, no vmemmap population occurs in
+that interval.  Earlier mappings are backed by memblock/reserved memory
+and do not need page reference accounting.
+
+Remove VMEMMAP_POPULATE_DAX and the flags argument from the vmemmap
+population helpers.
+
+Link: https://lore.kernel.org/20260929053231.66085-2-songmuchun@bytedance.com
+Link: https://lore.kernel.org/20260513130542.35604-1-songmuchun@bytedance.com/ [1]
+Signed-off-by: Muchun Song <muchun.song@linux.dev>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Closes: https://lore.kernel.org/r/CANC3H+LdtoydSp+o2ecErAw7k6R2+gRf9LyxcaoHv_mGhJmyQQ@mail.gmail.com/
-Reviewed-by: Sergey Senozhatsky <senozhatsky@chromium.org>
-Tested-by: Sergey Senozhatsky <senozhatsky@chromium.org>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: Jens Axboe <axboe@kernel.dk>
+Acked-by: Qi Zheng <qi.zheng@linux.dev>
+Cc: Madhavan Srinivasan <maddy@linux.ibm.com>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: David Hildenbrand <david@kernel.org>
+Cc: Michael Ellerman <mpe@ellerman.id.au>
+Cc: Nicholas Piggin <npiggin@gmail.com>
+Cc: Christophe Leroy <chleroy@kernel.org>
+Cc: Ritesh Harjani (IBM) <ritesh.list@gmail.com>
+Cc: Shrikanth Hegde <sshegde@linux.ibm.com>
+Cc: Lorenzo Stoakes <ljs@kernel.org>
+Cc: Liam R. Howlett <liam@infradead.org>
+Cc: Vlastimil Babka <vbabka@kernel.org>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Michal Hocko <mhocko@suse.com>
 ---
 
- drivers/block/zram/zram_drv.c |  104 ++++++++++++++++----------------
- 1 file changed, 53 insertions(+), 51 deletions(-)
+ mm/sparse-vmemmap.c |   36 +++++++++++++-----------------------
+ 1 file changed, 13 insertions(+), 23 deletions(-)
 
---- a/drivers/block/zram/zram_drv.c~zram-fix-short-reads-from-block_state
-+++ a/drivers/block/zram/zram_drv.c
-@@ -1553,68 +1553,70 @@ static void zram_debugfs_destroy(void)
- 	debugfs_remove_recursive(zram_debugfs_root);
- }
+--- a/mm/sparse-vmemmap.c~mm-sparse-vmemmap-drop-vmemmap_populate_dax
++++ a/mm/sparse-vmemmap.c
+@@ -32,12 +32,6 @@
+ #include <asm/dma.h>
+ #include <asm/tlbflush.h>
  
--static ssize_t read_block_state(struct file *file, char __user *buf,
--				size_t count, loff_t *ppos)
-+static void *zram_block_state_start(struct seq_file *seq, loff_t *pos)
+-/*
+- * Flags for vmemmap_populate_range and friends.
+- */
+-/* Vmemmap population for ZONE_DEVICE compound pages */
+-#define VMEMMAP_POPULATE_DAX		0x0001
+-
+ #include "internal.h"
+ #include "mm_init.h"
+ #include "sparse.h"
+@@ -237,7 +231,7 @@ struct page __ref *vmemmap_shared_tail_p
+ #endif
+ 
+ static __meminit void *vmemmap_alloc_pte(unsigned long pfn, int node,
+-		struct vmem_altmap *altmap, unsigned long flags)
++		struct vmem_altmap *altmap)
  {
--	char *kbuf;
--	unsigned long index;
--	ssize_t written = 0;
--	struct zram *zram = file->private_data;
-+	struct zram *zram = seq->private;
- 	unsigned long nr_pages;
+ 	struct zone *zone;
+ 	struct page *page;
+@@ -247,7 +241,7 @@ static __meminit void *vmemmap_alloc_pte
+ 	 * Device DAX still relies on vmemmap_populate_compound_pages() for
+ 	 * head/first-tail allocation and tail-page reuse.
+ 	 */
+-	if (!vmemmap_optimizable_pfn(pfn) || flags & VMEMMAP_POPULATE_DAX)
++	if (!vmemmap_optimizable_pfn(pfn))
+ 		return vmemmap_alloc_block_buf(PAGE_SIZE, node, altmap);
  
--	kbuf = kvmalloc(count, GFP_KERNEL);
--	if (!kbuf)
--		return -ENOMEM;
--
--	guard(rwsem_read)(&zram->dev_lock);
--	if (!init_done(zram)) {
--		kvfree(kbuf);
--		return -EINVAL;
--	}
-+	down_read(&zram->dev_lock);
-+	if (!init_done(zram))
-+		return ERR_PTR(-EINVAL);
- 
- 	nr_pages = zram->disksize >> PAGE_SHIFT;
-+	if (*pos >= nr_pages)
-+		return NULL;
- 
--	for (index = *ppos; index < nr_pages; index++) {
--		int copied;
-+	return pos;
-+}
- 
--		slot_lock(zram, index);
--		if (!slot_allocated(zram, index))
--			goto next;
--
--		copied = snprintf(kbuf + written, count,
--			"%12lu %12u.%06d %c%c%c%c%c%c\n",
--			index, zram->table[index].attr.ac_time, 0,
--			test_slot_flag(zram, index, ZRAM_SAME) ? 's' : '.',
--			test_slot_flag(zram, index, ZRAM_WB) ? 'w' : '.',
--			test_slot_flag(zram, index, ZRAM_HUGE) ? 'h' : '.',
--			test_slot_flag(zram, index, ZRAM_IDLE) ? 'i' : '.',
--			get_slot_comp_priority(zram, index) ? 'r' : '.',
--			test_slot_flag(zram, index,
--				       ZRAM_INCOMPRESSIBLE) ? 'n' : '.');
--
--		if (count <= copied) {
--			slot_unlock(zram, index);
--			break;
--		}
--		written += copied;
--		count -= copied;
--next:
--		slot_unlock(zram, index);
--		*ppos += 1;
--	}
-+static void *zram_block_state_next(struct seq_file *seq, void *v, loff_t *pos)
-+{
-+	struct zram *zram = seq->private;
-+	unsigned long nr_pages = zram->disksize >> PAGE_SHIFT;
-+
-+	++*pos;
-+	if (*pos >= nr_pages)
-+		return NULL;
-+
-+	return pos;
-+}
- 
--	if (copy_to_user(buf, kbuf, written))
--		written = -EFAULT;
--	kvfree(kbuf);
-+static void zram_block_state_stop(struct seq_file *seq, void *v)
-+{
-+	struct zram *zram = seq->private;
-+
-+	up_read(&zram->dev_lock);
-+}
-+
-+static int zram_block_state_show(struct seq_file *seq, void *v)
-+{
-+	struct zram *zram = seq->private;
-+	unsigned long index = *(loff_t *)v;
-+
-+	slot_lock(zram, index);
-+	if (slot_allocated(zram, index)) {
-+		seq_printf(seq, "%12lu %12u.%06d %c%c%c%c%c%c\n",
-+			   index, zram->table[index].attr.ac_time, 0,
-+			   test_slot_flag(zram, index, ZRAM_SAME) ? 's' : '.',
-+			   test_slot_flag(zram, index, ZRAM_WB) ? 'w' : '.',
-+			   test_slot_flag(zram, index, ZRAM_HUGE) ? 'h' : '.',
-+			   test_slot_flag(zram, index, ZRAM_IDLE) ? 'i' : '.',
-+			   get_slot_comp_priority(zram, index) ? 'r' : '.',
-+			   test_slot_flag(zram, index,
-+					  ZRAM_INCOMPRESSIBLE) ? 'n' : '.');
-+	}
-+	slot_unlock(zram, index);
- 
--	return written;
-+	return 0;
+ 	zone = pfn_to_zone(pfn, node);
+@@ -259,8 +253,7 @@ static __meminit void *vmemmap_alloc_pte
  }
  
--static const struct file_operations proc_zram_block_state_op = {
--	.open = simple_open,
--	.read = read_block_state,
--	.llseek = default_llseek,
-+static const struct seq_operations zram_block_state_sops = {
-+	.start = zram_block_state_start,
-+	.next = zram_block_state_next,
-+	.stop = zram_block_state_stop,
-+	.show = zram_block_state_show,
- };
-+DEFINE_SEQ_ATTRIBUTE(zram_block_state);
- 
- static void zram_debugfs_register(struct zram *zram)
+ static pte_t * __meminit vmemmap_pte_populate(pmd_t *pmd, unsigned long addr, int node,
+-				       struct vmem_altmap *altmap,
+-				       unsigned long ptpfn, unsigned long flags)
++		struct vmem_altmap *altmap, unsigned long ptpfn)
  {
-@@ -1624,7 +1626,7 @@ static void zram_debugfs_register(struct
- 	zram->debugfs_dir = debugfs_create_dir(zram->disk->disk_name,
- 						zram_debugfs_root);
- 	debugfs_create_file("block_state", 0400, zram->debugfs_dir,
--				zram, &proc_zram_block_state_op);
-+				zram, &zram_block_state_fops);
+ 	pte_t *pte = pte_offset_kernel(pmd, addr);
+ 	unsigned long pfn = page_to_pfn((struct page *)addr);
+@@ -269,7 +262,7 @@ static pte_t * __meminit vmemmap_pte_pop
+ 		pte_t entry;
+ 
+ 		if (ptpfn == (unsigned long)-1) {
+-			void *p = vmemmap_alloc_pte(pfn, node, altmap, flags);
++			void *p = vmemmap_alloc_pte(pfn, node, altmap);
+ 
+ 			if (!p)
+ 				return NULL;
+@@ -287,7 +280,7 @@ static pte_t * __meminit vmemmap_pte_pop
+ 			 * Use try_get_page() to prevent the shared page refcount
+ 			 * from overflowing.
+ 			 */
+-			if ((flags & VMEMMAP_POPULATE_DAX) &&
++			if (slab_is_available() &&
+ 			    !try_get_page(pfn_to_page(ptpfn)))
+ 				return NULL;
+ 		}
+@@ -351,8 +344,7 @@ static pgd_t * __meminit vmemmap_pgd_pop
+ 
+ static pte_t * __meminit vmemmap_populate_address(unsigned long addr, int node,
+ 					      struct vmem_altmap *altmap,
+-					      unsigned long ptpfn,
+-					      unsigned long flags)
++					      unsigned long ptpfn)
+ {
+ 	pgd_t *pgd;
+ 	p4d_t *p4d;
+@@ -372,7 +364,7 @@ static pte_t * __meminit vmemmap_populat
+ 	pmd = vmemmap_pmd_populate(pud, addr, node);
+ 	if (!pmd)
+ 		return NULL;
+-	pte = vmemmap_pte_populate(pmd, addr, node, altmap, ptpfn, flags);
++	pte = vmemmap_pte_populate(pmd, addr, node, altmap, ptpfn);
+ 	if (!pte)
+ 		return NULL;
+ 	vmemmap_verify(pte, node, addr, addr + PAGE_SIZE);
+@@ -383,15 +375,14 @@ static pte_t * __meminit vmemmap_populat
+ static int __meminit vmemmap_populate_range(unsigned long start,
+ 					    unsigned long end, int node,
+ 					    struct vmem_altmap *altmap,
+-					    unsigned long ptpfn,
+-					    unsigned long flags)
++					    unsigned long ptpfn)
+ {
+ 	unsigned long addr = start;
+ 	pte_t *pte;
+ 
+ 	for (; addr < end; addr += PAGE_SIZE) {
+ 		pte = vmemmap_populate_address(addr, node, altmap,
+-					       ptpfn, flags);
++					       ptpfn);
+ 		if (!pte)
+ 			return -ENOMEM;
+ 	}
+@@ -402,7 +393,7 @@ static int __meminit vmemmap_populate_ra
+ int __meminit vmemmap_populate_basepages(unsigned long start, unsigned long end,
+ 					 int node, struct vmem_altmap *altmap)
+ {
+-	return vmemmap_populate_range(start, end, node, altmap, -1, 0);
++	return vmemmap_populate_range(start, end, node, altmap, -1);
  }
  
- static void zram_debugfs_unregister(struct zram *zram)
+ /*
+@@ -531,7 +522,6 @@ static int __meminit vmemmap_populate_co
+ 	unsigned long size, addr;
+ 	pte_t *pte;
+ 	int rc;
+-	unsigned long flags = VMEMMAP_POPULATE_DAX;
+ 	struct page *page;
+ 	unsigned int order = pfn_to_section_compound_order(start_pfn);
+ 
+@@ -541,14 +531,14 @@ static int __meminit vmemmap_populate_co
+ 
+ 	if (reuse_compound_section(start_pfn, pgmap))
+ 		return vmemmap_populate_range(start, end, node, NULL,
+-					      page_to_pfn(page), flags);
++					      page_to_pfn(page));
+ 
+ 	size = min(end - start, (1UL << order) * sizeof(struct page));
+ 	for (addr = start; addr < end; addr += size) {
+ 		unsigned long next, last = addr + size;
+ 
+ 		/* Populate the head page vmemmap page */
+-		pte = vmemmap_populate_address(addr, node, NULL, -1, flags);
++		pte = vmemmap_populate_address(addr, node, NULL, -1);
+ 		if (!pte)
+ 			return -ENOMEM;
+ 
+@@ -558,7 +548,7 @@ static int __meminit vmemmap_populate_co
+ 		 */
+ 		next = addr + PAGE_SIZE;
+ 		rc = vmemmap_populate_range(next, last, node, NULL,
+-					    page_to_pfn(page), flags);
++					    page_to_pfn(page));
+ 		if (rc)
+ 			return -ENOMEM;
+ 	}
 _
 
-Patches currently in -mm which might be from pooyan.azadparvar@gmail.com are
+Patches currently in -mm which might be from muchun.song@linux.dev are
 
-zram-fix-short-reads-from-block_state.patch
+mm-sparse-vmemmap-factor-out-shared-vmemmap-tail-page-allocation.patch
+mm-sparse-vmemmap-allocate-shared-tail-page-array-dynamically.patch
+mm-sparse-vmemmap-introduce-config_vmemmap_optimization.patch
+mm-sparse-vmemmap-open-code-init_compound_tail.patch
+mm-sparse-vmemmap-prepare-dax-vmemmap-population-for-compound-page-orders.patch
+mm-sparse-vmemmap-set-compound-page-order-for-device-dax.patch
+mm-sparse-vmemmap-switch-device-dax-to-shared-tail-vmemmap-pages.patch
+mm-sparse-vmemmap-switch-device-dax-to-shared-tail-vmemmap-pages-fix.patch
+mm-sparse-vmemmap-move-vmemmap-optimization-helpers-to-a-public-header.patch
+powerpc-mm-switch-device-dax-to-shared-tail-vmemmap-pages.patch
+mm-sparse-vmemmap-drop-the-extra-tail-page-from-device-dax-reservation.patch
+mm-sparse-vmemmap-drop-unused-section_nr_vmemmap_pages-arguments.patch
+documentation-mm-update-dax-vmemmap-deduplication-docs.patch
+mm-sparse-vmemmap-drop-vmemmap_populate_dax.patch
+mm-sparse-vmemmap-support-device-dax-in-common-vmemmap-path.patch
+mm-sparse-vmemmap-drop-device-dax-specific-population-path.patch
+mm-sparse-vmemmap-remove-the-unused-ptpfn-argument.patch
+mm-sparse-vmemmap-open-code-vmemmap_populate_address.patch
+mm-mm_init-add-zone-mismatch-warning-during-page-init.patch
 
