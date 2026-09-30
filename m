@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EFF673B42ED
-	for <mm-commits@vger.kernel.org>; Wed, 30 Sep 2026 22:01:33 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2AC98320CBE
+	for <mm-commits@vger.kernel.org>; Wed, 30 Sep 2026 22:01:35 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790805695; cv=none; b=daQDWWKYwzBf+/2lMOf2DXesGa9zeeakUmlHzenVPPQkd4z06fXkLolZayntAPOtI3PKvhV1L/WfYwXphANREgrztBB7WU280K44PpLGxKQnEsy8H2MJNqI/nKTDMp1BZT+Hq56NQv3+XlPA3pLWjJ99skUdd+OuZZOZMi+rX+Q=
+	t=1790805698; cv=none; b=FYL28458ZZtogx6CaVuoUTYEsxaBF3ACegWXL/NSwXIOtNT5cTPp9CBtUTPT3P+rcsiBnqiKCXfdK/i8xTBjyyCTeWmpZ9Z5VtHFT2VvHEcdKUTcLhuOxjb+bzMjui5NyVfCSWoKn1RC8aFKKVJaojI44UdKds55VxS3kS7T8yE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1790805695; c=relaxed/simple;
-	bh=4MleFz30j1nyfgAVVLg7pDeAtzcJTg7oFemwWqp5txU=;
-	h=Date:To:From:Subject:Message-Id; b=erValFZpOxXpr+oGIvNfORj5sI97SkeA+6JTyCP1uPA5jxI+WehmPSmWaOI2R2t4bp6FnAZb5qmkY/z66nV+zFEiThSIB/Eebsioayc3SoNZ35i50F7Tr/hilLE3bw+tsy23mHj97l1PXH/tEJZy66juqZIxjitx1XK3J2m9AY0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=y2MFjOge; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1790805698; c=relaxed/simple;
+	bh=czpXpHr0my04LPWPJKtldwOm9vO5LZBhH/SbFr2hX2U=;
+	h=Date:To:From:Subject:Message-Id; b=ALMl1TgtCWzXWwqG68j6spA99/GKatFuMVOLVBjh18WIXUJYMDUNtmTShW9HeEJYPFWzO3Jm1SwR2cYnGib1cfpMXnlFeJ0JMEj0IL6r2XklkSedaPOMIDHjeDalG/016nXPEysxTShgSlhq0rTxB9QLdwQqevCt983NiiUDT5c=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=U2K5OBZp; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="y2MFjOge"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3D7AE1F00898;
-	Wed, 30 Sep 2026 22:01:33 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="U2K5OBZp"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8DD5F1F000FF;
+	Wed, 30 Sep 2026 22:01:35 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1790805693;
-	bh=VlIqwNM0y7qEUMs2zRu1ldGhL1CypiHNWsMYN+xYS+I=;
+	d=linux-foundation.org; s=korg; t=1790805695;
+	bh=UZnxVKK+6LdarvQU8lnfoUiTo3nJoEcJ5Cy4ohZjAbw=;
 	h=Date:To:From:Subject;
-	b=y2MFjOgeie7tALHBMoUtBRkeEcBVpgdDZSO7vGE5QCl7oILLgwh3JjzuT0LDz09UU
-	 HIIbmnNsm+QQCp9TNBF5DlSnPWtMZL9k0WbsbO87GC5dWJH/VVxHcD87/UhrK3eoR9
-	 5lR4pkKkorK2KYsfos5AXxb+EF0hmQg1ixrvf380=
-Date: Wed, 30 Sep 2026 15:01:32 -0700
+	b=U2K5OBZpagdzwwgRwIkEcBQX8X9og2rg6SmZJgRnL+7ceS3oYGT4B+IGb1O9/sXXK
+	 3HTID0oDr1aEnDVKPQrXOwQaRK1IOyPvDYU3sjYTZkDQOfVGOtsWDj0zogkWiCVCKo
+	 WeJ5Ve6NrJwHCWz6WvCCqxCYbXhBqkMZxGQWZesc=
+Date: Wed, 30 Sep 2026 15:01:35 -0700
 To: mm-commits@vger.kernel.org,wad@chromium.org,vbabka@kernel.org,surenb@google.com,shuah@kernel.org,rppt@kernel.org,rbm@suse.com,mhocko@suse.com,luto@amacapital.net,ljs@kernel.org,liuhangbin@gmail.com,liam@infradead.org,kees@kernel.org,geert@linux-m68k.org,david@kernel.org,daniel@thingy.jp,corbet@lwn.net,broonie@kernel.org,brendan.jackman@linux.dev,thehajime@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-run-tests-on-nommu-architecture.patch added to mm-new branch
-Message-Id: <20260930220133.3D7AE1F00898@smtp.kernel.org>
+Subject: + selftests-nommu-add-nommu-mmap-and-mremap-behavior-tests.patch added to mm-new branch
+Message-Id: <20260930220135.8DD5F1F000FF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: selftests: run tests on nommu architecture
+     Subject: selftests/nommu: add nommu mmap and mremap behavior tests
 has been added to the -mm mm-new branch.  Its filename is
-     selftests-run-tests-on-nommu-architecture.patch
+     selftests-nommu-add-nommu-mmap-and-mremap-behavior-tests.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-run-tests-on-nommu-architecture.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-nommu-add-nommu-mmap-and-mremap-behavior-tests.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,130 +70,718 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Hajime Tazaki <thehajime@gmail.com>
-Subject: selftests: run tests on nommu architecture
-Date: Wed, 30 Sep 2026 08:57:10 +0900
+Subject: selftests/nommu: add nommu mmap and mremap behavior tests
+Date: Wed, 30 Sep 2026 08:57:11 +0900
 
-Patch series "support kselftest on nommu platform", v4.
+Introduce a kselftest utility to validate memory mapping capabilities
+under nommu kernels, aligned with
+Documentation/admin-guide/mm/nommu-mmap.rst.
 
-This patchset adds an ability to execute kselftest on nommu platforms.
+The test implements basic checks into a generic architecture-agnostic
+test matrix applicable across nommu targets. It evaluates:
 
-Currently there are several issues if we wish to run kselftests on nommu
-targets:
+1. MAP_FIXED allocation rejections.
+2. Standard MAP_PRIVATE and MAP_ANONYMOUS allocation resilience.
+3. Regular file mappings via standard filesystem storage.
+4. Block device subsystem mappings (gracefully skipping if node is
+   missing).
+5. Shared vs Private backing discrepancies under nommu conditions.
+6. mremap limits, ensuring non-expandable restrictions behave properly.
 
-- it cannot compile/build test binaries because the current files mainly
-  assume to build with glibc,
-- some of the tests are not able to run on nommu targets as there are no
-  fork(2) syscall.
-
-The first issue can be avoided if we can build static PIE binaries (if
-targets support it), but in our case (build on ubuntu/glibc and run on
-alpine/musl-libc), it fails to invoke due to lack of the GNU ifunc
-mechanism.  Thus, we need to cross-compile with musl toolchain, which
-needs to be solved the first issue.
-
-The second issue is the lack of fork(2) syscall on those platforms. 
-Especially the test harness helper (kselftest_harness.h) uses the syscall,
-which cannot be simply with vfork(2).  `timeout` command used in
-`runner.sh` never works for nommu platform as it uses fork(2).
-
-nommu component in the mm subsystem has several known issues and having
-test cases should help this situation, thus this patchset is very first
-step toward enriching test environment which has not been well tested for
-a while.  The test cases is implemented based on the document
-(Documentation/admin-guide/mm/nommu-mmap.rst).
-
-Initial shape for this patches is implemented as an opt-in TARGET, not
-built/invoked automatically if users don't specify this nommu target.
-
-
-This patch (of 2):
-
-Architectures lacking MMU don't support fork(2) syscall and only vfork(2)
-is available with limitations.  Thus, we cannot run kselftest on nommu
-architecture as is.
-
-This commit addresses this issue with the following changes:
-
-- on test run stage, avoid calling timeout command when NOMMU=1 variable
-  added to environmental variable, since timeout command uses fork
-  syscall which nommu platform doesn't support.
-- describe the difference of nommu tests in the document.
-
-So command line to build/execute tests for nommu should be like below:
-
- $ make ARCH=um NOMMU=1 O=build kselftest-all TARGETS=nommu
- $ make ARCH=um NOMMU=1 O=build kselftest-install TARGETS=nommu
- $ NOMMU=1 ./build/kselftest/kselftest_install/run_kselftest.sh -p \
-   -c nommu
-
-Link: https://lore.kernel.org/20260929235711.2287931-1-thehajime@gmail.com
-Link: https://lore.kernel.org/20260929235711.2287931-2-thehajime@gmail.com
+Link: https://lore.kernel.org/20260929235711.2287931-3-thehajime@gmail.com
 Signed-off-by: Hajime Tazaki <thehajime@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Closes: https://sashiko.dev/#/patchset/20260813063401.1786548-1-thehajime%40gmail.com
 Reviewed-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
-Cc: Shuah Khan <shuah@kernel.org>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Kees Cook <kees@kernel.org>
-Cc: Andy Lutomirski <luto@amacapital.net>
-Cc: Will Drewry <wad@chromium.org>
-Cc: Mark Brown <broonie@kernel.org>
-Cc: Brendan Jackman <brendan.jackman@linux.dev>
-Cc: Hangbin Liu <liuhangbin@gmail.com>
-Cc: "Ricardo B. Marliere" <rbm@suse.com>
-Cc: Liam R. Howlett <liam@infradead.org>
+Closes: https://sashiko.dev/#/patchset/20260825015945.141739-1-thehajime@gmail.com
+Assisted-by: Gemini:Pro [AI_Reviewer] [Sashiko_Linter]
+Assisted-by: cubic.dev:unspecified
 Cc: David Hildenbrand <david@kernel.org>
-Cc: Michal Hocko <mhocko@suse.com>
+Cc: "Liam R. Howlett" <liam@infradead.org>
+Cc: Vlastimil Babka <vbabka@kernel.org>
 Cc: Mike Rapoport <rppt@kernel.org>
 Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Vlastimil Babka <vbabka@kernel.org>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Shuah Khan <shuah@kernel.org>
+Cc: Ricardo B . Marlière <rbm@suse.com>
+Cc: Andy Lutomirski <luto@amacapital.net>
+Cc: Brendan Jackman <brendan.jackman@linux.dev>
+Cc: Hangbin Liu <liuhangbin@gmail.com>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: Kees Cook <kees@kernel.org>
+Cc: Mark Brown <broonie@kernel.org>
+Cc: Will Drewry <wad@chromium.org>
 Cc: Geert Uytterhoeven <geert@linux-m68k.org>
 Cc: Daniel Palmer <daniel@thingy.jp>
 ---
 
- Documentation/dev-tools/kselftest.rst       |   14 ++++++++++++++
- tools/testing/selftests/kselftest/runner.sh |    6 +++++-
- 2 files changed, 19 insertions(+), 1 deletion(-)
+ tools/testing/selftests/nommu/Makefile            |    8 
+ tools/testing/selftests/nommu/local.mk            |    7 
+ tools/testing/selftests/nommu/nommu_mmap_test.c   |  261 ++++++++
+ tools/testing/selftests/nommu/nommu_mremap_test.c |  366 ++++++++++++
+ 4 files changed, 642 insertions(+)
 
---- a/Documentation/dev-tools/kselftest.rst~selftests-run-tests-on-nommu-architecture
-+++ a/Documentation/dev-tools/kselftest.rst
-@@ -230,6 +230,20 @@ section::
- 
- .. _tar's auto-compress: https://www.gnu.org/software/tar/manual/html_node/gzip.html#auto_002dcompress
- 
-+Build and test on nommu target
-+==============================
+diff --git a/tools/testing/selftests/nommu/local.mk a/tools/testing/selftests/nommu/local.mk
+new file mode 100644
+--- /dev/null
++++ a/tools/testing/selftests/nommu/local.mk
+@@ -0,0 +1,7 @@
++# detect if users request NOMMU build or not
++# User can set NOMMU to 1 to build/test for NOMMU platforms
++NOMMU ?= 0
++ifeq ($(NOMMU),1)
++CFLAGS += -DNOMMU
++export NOMMU
++endif
+diff --git a/tools/testing/selftests/nommu/Makefile a/tools/testing/selftests/nommu/Makefile
+new file mode 100644
+--- /dev/null
++++ a/tools/testing/selftests/nommu/Makefile
+@@ -0,0 +1,8 @@
++# SPDX-License-Identifier: GPL-2.0
++# Makefile for nommu selftests
 +
-+If you (cross-)build kselftests for nommu targets, or run tests on nommu targets, use
-+``NOMMU=1`` as a make variable/environment setting to tell build system to do the additional
-+checks.  These nommu targets may differ in several ways, such as not supporting fork(2) or
-+using musl or another libc.  Set this variable to apply the necessary build and test adjustments.
++TEST_GEN_PROGS += nommu_mmap_test
++TEST_GEN_PROGS += nommu_mremap_test
 +
-+::
++include ../lib.mk
++include local.mk
+diff --git a/tools/testing/selftests/nommu/nommu_mmap_test.c a/tools/testing/selftests/nommu/nommu_mmap_test.c
+new file mode 100644
+--- /dev/null
++++ a/tools/testing/selftests/nommu/nommu_mmap_test.c
+@@ -0,0 +1,261 @@
++// SPDX-License-Identifier: GPL-2.0
++#define _GNU_SOURCE
++#include <stdio.h>
++#include <stdlib.h>
++#include <sys/mman.h>
++#include <unistd.h>
++#include <fcntl.h>
++#include <errno.h>
++#include <string.h>
++#include <limits.h>
++#include "kselftest.h"
 +
-+  $ make ARCH=um NOMMU=1 O=build kselftest-all TARGETS=nommu  # <= build-only
-+  $ make ARCH=um NOMMU=1 O=build kselftest-install TARGETS=nommu
-+  $ NOMMU=1 ./build/kselftest/kselftest_install/run_kselftest.sh -p -c nommu
++#include <sys/vfs.h>
++#ifndef RAMFS_MAGIC
++#define RAMFS_MAGIC 0x858458f6
++#endif
 +
- Contributing new tests
- ======================
- 
---- a/tools/testing/selftests/kselftest/runner.sh~selftests-run-tests-on-nommu-architecture
-+++ a/tools/testing/selftests/kselftest/runner.sh
-@@ -38,8 +38,12 @@ tap_prefix()
- 
- tap_timeout()
- {
-+	# nommu doesn't support timeout command (missing fork(2))
-+	if [ "$NOMMU" = "1" ] ; then
-+		echo "timeout isn't supported for NOMMU"
-+		$1
- 	# Make sure tests will time out if utility is available.
--	if [ -x /usr/bin/timeout ] ; then
-+	elif [ -x /usr/bin/timeout ] ; then
- 		/usr/bin/timeout --foreground "$kselftest_timeout" \
- 			/usr/bin/timeout "$kselftest_timeout" $1
- 	else
++static size_t ps;
++
++struct test_case_t {
++	const char *name;
++	const char *pathname;
++	int open_flags;
++	int mmap_prot;
++	int mmap_flags;
++	int exp_err;
++	int (*resolve_exp_err)(const char *path);
++};
++
++static int get_shm_expected_error(const char *path)
++{
++	struct statfs fs;
++
++	if (statfs(path, &fs) == 0) {
++		if (fs.f_type == RAMFS_MAGIC)
++			return 0; /* ramfs succeed with contiguous memory */
++	}
++	 /* hostfs, etc returns ENODEV due to lack of contiguous allocation */
++	return ENODEV;
++}
++
++static struct test_case_t test_cases[] = {
++	{
++		.name = "anonymous private allocation",
++		.pathname = NULL,
++		.open_flags = O_CREAT | O_RDWR | O_EXCL,
++		.mmap_prot = PROT_READ | PROT_WRITE,
++		.mmap_flags = MAP_ANONYMOUS | MAP_PRIVATE,
++		.exp_err = 0,
++		.resolve_exp_err = NULL,
++	},
++	{
++		.name = "non-anonymous private file mapping (rw-)",
++		.pathname = "/tmp/ksft.nommu-reg-XXXXXX",
++		.open_flags = O_CREAT | O_RDWR | O_EXCL,
++		.mmap_prot = PROT_READ | PROT_WRITE,
++		.mmap_flags = MAP_PRIVATE,
++		.exp_err = 0,
++		.resolve_exp_err = NULL,
++	},
++	{
++		.name = "non-anonymous private file mapping (r--)",
++		.pathname = "/tmp/ksft.nommu-reg-XXXXXX",
++		.open_flags = O_CREAT | O_RDWR | O_EXCL,
++		.mmap_prot = PROT_READ,
++		.mmap_flags = MAP_PRIVATE,
++		.exp_err = 0,
++		.resolve_exp_err = NULL,
++	},
++	{
++		.name = "non-anonymous shared file mapping (rw-)",
++		.pathname = "/tmp/ksft.nommu-shm-XXXXXX",
++		.open_flags = O_CREAT | O_RDWR | O_EXCL,
++		.mmap_prot = PROT_READ | PROT_WRITE,
++		.mmap_flags = MAP_SHARED,
++		.exp_err = 0,
++#ifdef NOMMU
++		.resolve_exp_err = get_shm_expected_error,
++#else
++		.resolve_exp_err = NULL,
++#endif
++	},
++	{
++		.name = "non-anonymous shared file mapping (r--)",
++		.pathname = "/tmp/ksft.nommu-shm-XXXXXX",
++		.open_flags = O_CREAT | O_RDWR | O_EXCL,
++		.mmap_prot = PROT_READ,
++		.mmap_flags = MAP_SHARED,
++		.exp_err = 0,
++#ifdef NOMMU
++		.resolve_exp_err = get_shm_expected_error,
++#else
++		.resolve_exp_err = 0,
++#endif
++	},
++};
++
++static int run_mapping_matrix_test(struct test_case_t *tcase)
++{
++	int fd;
++	void *ptr;
++	char path_buf[PATH_MAX];
++	const char *path = tcase->pathname;
++	int rc = KSFT_PASS;
++	int expected_error;
++
++	ksft_print_msg("[RUN] %s\n", tcase->name);
++
++	if (tcase->pathname == NULL) {
++		fd = -1;
++	} else if (strstr(tcase->pathname, "XXXXXX")) {
++		strncpy(path_buf, tcase->pathname, sizeof(path_buf) - 1);
++		path_buf[sizeof(path_buf) - 1] = '\0';
++		fd = mkstemp(path_buf);
++		if (fd < 0) {
++			ksft_print_msg("Failed to setup temp node: %s\n",
++				tcase->pathname);
++			ksft_test_result_skip("%s\n", tcase->name);
++			return KSFT_SKIP;
++		}
++		if (ftruncate(fd, ps) != 0) {
++			ksft_print_msg("ftruncate failed for: %s\n", tcase->pathname);
++			ksft_test_result_fail("%s\n", tcase->name);
++			close(fd);
++			unlink(path_buf);
++			return KSFT_FAIL;
++		}
++		path = path_buf;
++	} else {
++		fd = open(tcase->pathname, tcase->open_flags, 0600);
++		if (fd < 0) {
++			ksft_print_msg("Device node not accessible: %s\n",
++				       tcase->pathname);
++			ksft_test_result_skip("%s\n", tcase->name);
++			return KSFT_SKIP;
++		}
++	}
++
++	expected_error = tcase->exp_err;
++	if (tcase->resolve_exp_err && fd >= 0)
++		expected_error = tcase->resolve_exp_err(path);
++
++	ptr = mmap(NULL, ps, tcase->mmap_prot, tcase->mmap_flags, fd, 0);
++
++	if (expected_error != 0) {
++		if (ptr != MAP_FAILED) {
++			ksft_print_msg("mmap unexpectedly succeeded (exp error %d)\n",
++					      expected_error);
++			ksft_test_result_fail("%s\n", tcase->name);
++			munmap(ptr, ps);
++			rc = KSFT_FAIL;
++			goto cleanup;
++		}
++		if (errno != expected_error) {
++			ksft_print_msg("mmap failed with %d (%s), but expected %d\n",
++				errno, strerror(errno), expected_error);
++			ksft_test_result_fail("%s\n", tcase->name);
++			rc = KSFT_FAIL;
++			goto cleanup;
++		}
++		ksft_print_msg("Correctly rejected with expected error %s(%d)\n",
++			strerror(expected_error), expected_error);
++		ksft_test_result_pass("%s\n", tcase->name);
++		rc = KSFT_PASS;
++		goto cleanup;
++	}
++
++	if (ptr == MAP_FAILED) {
++		ksft_print_msg("mmap failed unexpectedly: %s\n", strerror(errno));
++		ksft_test_result_fail("%s\n", tcase->name);
++		rc = KSFT_FAIL;
++		goto cleanup;
++	}
++
++	ksft_test_result_pass("%s\n", tcase->name);
++	munmap(ptr, ps);
++
++cleanup:
++	if (fd >= 0) {
++		close(fd);
++		if (tcase->pathname && strstr(tcase->pathname, "XXXXXX"))
++			unlink(path_buf);
++	}
++	return rc;
++}
++
++static int test_map_fixed(void)
++{
++	void *fixed_addr;
++	void *ptr;
++
++	ksft_print_msg("[RUN] %s\n", __func__);
++
++	fixed_addr = mmap(NULL, ps, PROT_READ | PROT_WRITE,
++			MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
++	if (fixed_addr == MAP_FAILED) {
++		ksft_print_msg("Unable to reserve test address: %s\n",
++				strerror(errno));
++		ksft_test_result_skip("MAP_FIXED behavior\n");
++		return KSFT_SKIP;
++	}
++
++	if (munmap(fixed_addr, ps)) {
++		ksft_print_msg("Unable to release test address: %s\n",
++			strerror(errno));
++		ksft_test_result_fail("MAP_FIXED behavior\n");
++		return KSFT_FAIL;
++	}
++
++	ptr = mmap(fixed_addr, ps, PROT_READ | PROT_WRITE,
++		MAP_PRIVATE | MAP_ANONYMOUS | MAP_FIXED, -1, 0);
++
++#ifdef NOMMU
++	if (ptr == MAP_FAILED && (errno == ENODEV || errno == EINVAL)) {
++		ksft_print_msg("MAP_FIXED correctly rejected under nommu\n");
++		ksft_test_result_pass("MAP_FIXED behavior\n");
++		return KSFT_PASS;
++	}
++	if (ptr != MAP_FAILED) {
++		ksft_print_msg("MAP_FIXED unexpectedly allowed under nommu\n");
++		ksft_test_result_fail("MAP_FIXED behavior\n");
++		munmap(ptr, ps);
++		return KSFT_FAIL;
++	}
++	ksft_print_msg("MAP_FIXED failed under NOMMU: %s\n",
++			      strerror(errno));
++	ksft_test_result_fail("MAP_FIXED behavior\n");
++	return KSFT_FAIL;
++#else
++	if (ptr != MAP_FAILED) {
++		ksft_print_msg("MAP_FIXED successfully allocated under MMU\n");
++		ksft_test_result_pass("MAP_FIXED behavior\n");
++		munmap(ptr, ps);
++		return KSFT_PASS;
++	}
++	ksft_print_msg("MAP_FIXED failed allocation under MMU\n");
++	ksft_test_result_fail("MAP_FIXED behavior\n");
++	return KSFT_FAIL;
++#endif
++}
++
++int main(int argc, char **argv)
++{
++	int i;
++
++	ps = sysconf(_SC_PAGESIZE);
++	ksft_print_header();
++	ksft_set_plan(ARRAY_SIZE(test_cases) + 1);
++
++#ifdef NOMMU
++	ksft_print_msg("Running strict MMAP test criteria under nommu architecture\n");
++#else
++	ksft_print_msg("Running MMAP test criteria under MMU architecture\n");
++#endif
++
++	test_map_fixed();
++	for (i = 0; i < (int)ARRAY_SIZE(test_cases); i++)
++		run_mapping_matrix_test(&test_cases[i]);
++
++	ksft_finished();
++}
+diff --git a/tools/testing/selftests/nommu/nommu_mremap_test.c a/tools/testing/selftests/nommu/nommu_mremap_test.c
+new file mode 100644
+--- /dev/null
++++ a/tools/testing/selftests/nommu/nommu_mremap_test.c
+@@ -0,0 +1,366 @@
++// SPDX-License-Identifier: GPL-2.0
++#define _GNU_SOURCE
++#include <stdio.h>
++#include <stdlib.h>
++#include <sys/mman.h>
++#include <unistd.h>
++#include <fcntl.h>
++#include <errno.h>
++#include <string.h>
++#include <limits.h>
++#include "kselftest.h"
++
++#include <sys/vfs.h>
++#ifndef RAMFS_MAGIC
++#define RAMFS_MAGIC 0x858458f6
++#endif
++
++static size_t ps;
++
++static long get_fs_type(const char *path)
++{
++	struct statfs fs;
++
++	if (statfs(path, &fs) == 0)
++		return fs.f_type;
++
++	return 0;
++}
++
++static void munmap_shrink_test(void)
++{
++	void *addr;
++	int ret;
++
++	/* munmap shrink test */
++	for (int i = 0; i < 4; i++) {
++		addr = mmap(NULL, ps * 4, PROT_READ | PROT_WRITE,
++			    MAP_ANONYMOUS | MAP_PRIVATE, -1, 0);
++		if (addr == MAP_FAILED) {
++			ksft_print_msg("mmap failed: %s(%d)\n", strerror(errno), errno);
++			ksft_test_result_fail("munmap shrink\n");
++			return;
++		}
++		ret = munmap((char *)addr + ps * i, ps);
++		if (ret != 0) {
++			ksft_print_msg("memory %p isn't unmapped at %p\n",
++				addr, (char *)addr + ps * i);
++			ksft_test_result_fail("munmap shrink\n");
++			return;
++		}
++
++		if (i == 0) {
++			if (munmap(addr +  ps, ps * 3))
++				goto error;
++		} else if (i == 1) {
++			if (munmap(addr, ps) || munmap(addr + (ps * 2), ps * 2))
++				goto error;
++		} else if (i == 2) {
++			if (munmap(addr, ps * 2) || munmap(addr + (ps * 3), ps))
++				goto error;
++		} else if (i == 3) {
++			if (munmap(addr, ps * 3))
++				goto error;
++		}
++	}
++
++	ksft_test_result_pass("munmap shrink\n");
++	return;
++error:
++	for (int j = 0; j < 4; j++)
++		munmap((char *)addr + j * ps, ps);
++	ksft_print_msg("clean up failures\n");
++	ksft_test_result_fail("munmap shrink\n");
++}
++
++static size_t page_align(size_t len)
++{
++	return (len + ps - 1) / ps * ps;
++}
++
++static void mremap_shrink_test(void)
++{
++	void *addr, *addr2;
++	size_t current_len;
++	size_t old_len, new_len;
++	struct param {
++		size_t old;
++		size_t new;
++	} params[] = {
++		/* should not happen any shrink */
++		{ .old = ps * 4 - 1, .new = ps * 4 - 2 },
++		/* should not happen any shrink */
++		{ .old = ps * 4 - 1, .new = ps * 4 },
++		{ .old = ps * 4, .new = ps * 2 },
++		/* should not happen any shrink */
++		{ .old = ps * 2, .new = ps * 2 - 2 },
++		{ .old = ps * 2 - 2, .new = ps * 1 },
++	};
++
++	/* mremap shrink test */
++	current_len = page_align(ps * 4 - 1);
++	addr = mmap(NULL, ps * 4 - 1, PROT_READ | PROT_WRITE,
++		    MAP_ANONYMOUS | MAP_PRIVATE, -1, 0);
++	if (addr == MAP_FAILED) {
++		ksft_print_msg("mmap failed: %s(%d)\n", strerror(errno), errno);
++		ksft_test_result_fail("mremap shrink\n");
++		return;
++	}
++
++	for (int i = 0; i < ARRAY_SIZE(params); i++) {
++		old_len = params[i].old;
++		new_len = params[i].new;
++		current_len = page_align(new_len);
++		addr2 = mremap(addr, old_len, new_len, MREMAP_MAYMOVE);
++		if (addr2 == MAP_FAILED) {
++			ksft_print_msg("memory %p isn't remapped at %p\n", addr, addr2);
++			ksft_test_result_fail("mremap shrink\n");
++			munmap(addr, page_align(old_len));
++			return;
++		}
++
++		addr = addr2;
++	}
++
++	if (munmap(addr, current_len)) {
++		ksft_print_msg("cleanup failed: %s\n", strerror(errno));
++		ksft_test_result_fail("mremap shrink\n");
++		return;
++	}
++	ksft_test_result_pass("mremap shrink\n");
++}
++
++static int get_shared_writable_file_expected_error(const char *path)
++{
++	if (get_fs_type(path) == RAMFS_MAGIC)
++		return EPERM; /* ramfs failed */
++
++	return 0;
++}
++
++struct mremap_case_t {
++	const char *name;
++	const char *pathname;
++	int open_flags;
++	int mmap_prot;
++	int mmap_flags;
++	int exp_err;
++	int (*resolve_exp_err)(const char *path);
++	unsigned int old_pages;
++	unsigned int new_pages;
++};
++
++static struct mremap_case_t mremap_cases[] = {
++	{
++		.name = "anonymous shrink (r--)",
++		.pathname = NULL,
++		.open_flags = O_CREAT | O_RDWR | O_EXCL,
++		.mmap_prot = PROT_READ,
++		.mmap_flags = MAP_ANONYMOUS | MAP_PRIVATE,
++		.exp_err = 0,
++		.resolve_exp_err = 0,
++	},
++	{
++		.name = "shared file shrink (r--)",
++		.pathname = "/tmp/ksft.nommu-remap-XXXXXX",
++		.open_flags = O_CREAT | O_RDWR | O_EXCL,
++		.mmap_prot = PROT_READ,
++		.mmap_flags = MAP_SHARED,
++		.exp_err = 0,
++#ifdef NOMMU
++		.resolve_exp_err = get_shared_writable_file_expected_error,
++#else
++		.resolve_exp_err = 0,
++#endif
++	},
++	{
++		.name = "private file unchanged length (r-)",
++		.pathname = "/tmp/ksft.nommu-remap-XXXXXX",
++		.open_flags = O_CREAT | O_RDWR | O_EXCL,
++		.mmap_prot = PROT_READ,
++		.mmap_flags = MAP_PRIVATE,
++#ifdef NOMMU
++		.exp_err = EPERM,
++#else
++		.exp_err = 0,
++#endif
++		.resolve_exp_err = 0,
++		.old_pages = 4,
++		.new_pages = 4,
++	},
++	{
++		.name = "private file unchanged length (rw-)",
++		.pathname = "/tmp/ksft.nommu-remap-XXXXXX",
++		.open_flags = O_CREAT | O_RDWR | O_EXCL,
++		.mmap_prot = PROT_READ | PROT_WRITE,
++		.mmap_flags = MAP_PRIVATE,
++		.exp_err = 0,
++		.resolve_exp_err = 0,
++		.old_pages = 4,
++		.new_pages = 4,
++	},
++	{
++		.name = "private file growth (r-)",
++		.pathname = "/tmp/ksft.nommu-remap-XXXXXX",
++		.open_flags = O_CREAT | O_RDWR | O_EXCL,
++		.mmap_prot = PROT_READ,
++		.mmap_flags = MAP_PRIVATE,
++#ifdef NOMMU
++		.exp_err = EPERM,
++#else
++		.exp_err = 0,
++#endif
++		.resolve_exp_err = 0,
++		.old_pages = 4,
++		.new_pages = 8,
++	},
++	{
++		.name = "private file growth (rw-)",
++		.pathname = "/tmp/ksft.nommu-remap-XXXXXX",
++		.open_flags = O_CREAT | O_RDWR | O_EXCL,
++		.mmap_prot = PROT_READ | PROT_WRITE,
++		.mmap_flags = MAP_PRIVATE,
++#ifdef NOMMU
++		.exp_err = ENOMEM,
++#else
++		.exp_err = 0,
++#endif
++		.resolve_exp_err = 0,
++		.old_pages = 4,
++		.new_pages = 8,
++	},
++};
++
++static int run_mremap_test(struct mremap_case_t *tcase)
++{
++	int fd = -1;
++	void *addr, *addr2;
++	char pb[PATH_MAX];
++	const char *path = tcase->pathname;
++	int rc = KSFT_PASS;
++	int expected_error;
++	unsigned int old_pages = tcase->old_pages ?: 4;
++	unsigned int new_pages = tcase->new_pages ?: 2;
++	unsigned int file_pages = old_pages > new_pages ?
++				  old_pages : new_pages;
++
++	ksft_print_msg("[RUN] Testing mremap: %s\n", tcase->name);
++
++	if (tcase->pathname && strstr(tcase->pathname, "XXXXXX")) {
++		strncpy(pb, tcase->pathname, sizeof(pb) - 1);
++		pb[sizeof(pb) - 1] = '\0';
++		fd = mkstemp(pb);
++		if (fd < 0) {
++			ksft_print_msg("Failed to setup file backing\n");
++			ksft_test_result_skip("%s\n", tcase->name);
++			return KSFT_SKIP;
++		}
++		if (ftruncate(fd, ps * file_pages) != 0) {
++			ksft_print_msg("Failed to setup file backing\n");
++			ksft_test_result_fail("%s\n", tcase->name);
++			close(fd);
++			unlink(pb);
++			return KSFT_FAIL;
++		}
++
++#ifdef NOMMU
++		if ((tcase->mmap_flags & MAP_SHARED) && get_fs_type(pb) != RAMFS_MAGIC) {
++			ksft_print_msg("Skip the test under non-ramfs filesystem (%s)\n",
++				pb);
++			ksft_test_result_skip("%s\n", tcase->name);
++			close(fd);
++			unlink(pb);
++			return KSFT_SKIP;
++		}
++#endif
++		path = pb;
++	} else if (tcase->pathname) {
++		fd = open(tcase->pathname, tcase->open_flags, 0600);
++		if (fd < 0) {
++			ksft_print_msg("Backing node not accessible\n");
++			ksft_test_result_skip("%s\n", tcase->name);
++			return KSFT_SKIP;
++		}
++
++#ifdef NOMMU
++		if ((tcase->mmap_flags & MAP_SHARED) &&
++		    get_fs_type(tcase->pathname) != RAMFS_MAGIC) {
++			ksft_print_msg("Skip the test under non-ramfs filesystem (%s)\n",
++					      tcase->pathname);
++			ksft_test_result_skip("%s\n", tcase->name);
++			close(fd);
++			return KSFT_SKIP;
++		}
++#endif
++	}
++
++	addr = mmap(NULL, ps * old_pages, tcase->mmap_prot,
++		    tcase->mmap_flags, fd, 0);
++	if (addr == MAP_FAILED) {
++		ksft_print_msg("mmap mapping failed %s(%d)\n", strerror(errno), errno);
++		rc = KSFT_FAIL;
++		goto out;
++	}
++
++	expected_error = tcase->exp_err;
++	if (tcase->resolve_exp_err && fd >= 0)
++		expected_error = tcase->resolve_exp_err(path);
++
++	addr2 = mremap(addr, ps * old_pages, ps * new_pages,
++		       MREMAP_MAYMOVE);
++
++	if (expected_error != 0) {
++		if (addr2 != MAP_FAILED) {
++			ksft_print_msg("Expected error %d, but mremap unexpectedly succeeded\n",
++				       expected_error);
++			rc = KSFT_FAIL;
++		} else if (errno != expected_error) {
++			ksft_print_msg("Expected error %d, got %s(%d)\n",
++				       expected_error, strerror(errno), errno);
++			rc = KSFT_FAIL;
++		} else {
++			ksft_print_msg("%s: Handled expected error path (errno=%d)\n",
++				       tcase->name, expected_error);
++		}
++	} else if (addr2 == MAP_FAILED) {
++		ksft_print_msg("mremap shrink failed unexpectedly: %s\n",
++			       strerror(errno));
++		rc = KSFT_FAIL;
++	} else {
++		ksft_print_msg("%s step successful\n", tcase->name);
++	}
++
++	/* clean up */
++	if (munmap(addr2 == MAP_FAILED ? addr : addr2,
++		   addr2 == MAP_FAILED ? ps * old_pages : ps * new_pages)) {
++		ksft_print_msg("munmap failed: %s\n", strerror(errno));
++		rc = KSFT_FAIL;
++	}
++
++out:
++	if (fd >= 0) {
++		close(fd);
++		if (tcase->pathname && strstr(tcase->pathname, "XXXXXX"))
++			unlink(pb);
++	}
++
++	ksft_test_result_report(rc, "%s\n", tcase->name);
++	return rc;
++}
++
++int main(int argc, char **argv)
++{
++	int i;
++
++	ps = sysconf(_SC_PAGESIZE);
++	ksft_print_header();
++	ksft_set_plan(ARRAY_SIZE(mremap_cases) + 2);
++
++	munmap_shrink_test();
++	mremap_shrink_test();
++
++	for (i = 0; i < (int)ARRAY_SIZE(mremap_cases); i++)
++		run_mremap_test(&mremap_cases[i]);
++
++	ksft_finished();
++}
 _
 
 Patches currently in -mm which might be from thehajime@gmail.com are
