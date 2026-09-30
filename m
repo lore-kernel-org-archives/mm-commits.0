@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C68EA3B6BEB
-	for <mm-commits@vger.kernel.org>; Wed, 30 Sep 2026 19:02:07 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1BCA53D4118
+	for <mm-commits@vger.kernel.org>; Wed, 30 Sep 2026 19:02:11 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790794929; cv=none; b=MXFAWZv+nqv+y85qloidQvKPKeAPZB2uR0+s6B8a9UJ3nERtsWx2X7yz1SV1omqa1anv/a3tV1QyMVWlAJLs39X8HSwx0/Fqz1FdkP7iZAegbgQkweiz29qwLJERogX7lGzhijda1MSIMlUXyuNMVyC5s1Xrn4unaKUTQDLI1gk=
+	t=1790794932; cv=none; b=Rbki2SPULVh2BnXHAhGhK3SKGtEaxKF3vRiM1lZZ7At6hSB21x7COr+A8OAJMbs5RxRUajr6rg/hhKNGSMBx73TNDs48JD0Law3glODigxMX15yACj7hAR1ah524eXXtqf1FlpvBvYVbx/a+RfDhB6o9Oh0QaiUxtSZ6nu3Ju7I=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1790794929; c=relaxed/simple;
-	bh=KC35SvGNSg/pug5yb6sfGNsIHTnFQdMZWDZBVu5rsgI=;
-	h=Date:To:From:Subject:Message-Id; b=Xij5VcPDLN9oLJrvgzHIMNdfw29538uTPMAm/UJRZx+02etwYmqZqnXAiFcEn2hGGx6D//Tf/AuFVJ1kVDlKTjS2mzawbW+TS2Vd8sFI6RQWnJVEVKf6WF4BgDpDcYw3Dl9sdc2N+Eg5jUqhX3aHPKp338gpgtdVSuz/l2oteoQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=yqeSZtYn; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1790794932; c=relaxed/simple;
+	bh=U7S2PwYyg8HiabZygY9xOV1tkkVnXa95PNaTjAxvm3E=;
+	h=Date:To:From:Subject:Message-Id; b=Nj4Vcezz9V50LovvsH+toeOSk5QYBsCb9JbOBdEd4G4E2+yPlI4uN5eSIfXL425cFBqHzmn0YqNJ3swF7KLSqIazyZu+w0z7werfkyvk4+oh4/dE9WaVhdozg+KZN2mUW4t18GH+F4MjPhbhIUPE6hWScu7v/lnXqz6UiLf+u+w=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=BreS7PMJ; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="yqeSZtYn"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 71B8A1F00898;
-	Wed, 30 Sep 2026 19:02:07 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="BreS7PMJ"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id CEFC51F00898;
+	Wed, 30 Sep 2026 19:02:10 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1790794927;
-	bh=qTc4UMnhZ3DiLZVxpmVInN3on5/yLvWBYJYvKTodeEg=;
+	d=linux-foundation.org; s=korg; t=1790794930;
+	bh=FApdQ2elaE/TEHwyl4LfoeeAlOGRCYV0u/yCc1F+ZZM=;
 	h=Date:To:From:Subject;
-	b=yqeSZtYnJEXd9sm2bkLVEligR4iU5Aud+L/myVX1BV2J828IeWRypWkVPTo4D6UCD
-	 kpn1sCGR+OMNak24ADXx2DfeWAwW4IuOFNhrsyPEiKIo+spiDmSPSgJXH0YpAlor3N
-	 ZJcbPk6Nf6nGAXabzuuD6UG1WhucnXaXmmXyGzEU=
-Date: Wed, 30 Sep 2026 12:02:07 -0700
+	b=BreS7PMJAF9ew2pkvQrJ4e4KQpU3wzLpVqmX7OTMofNl0zFxuwWgBPuEcZaiTUwbj
+	 cMCIRtYr6CF7yEgbaM1BXYle4U8PxvVwWZEp/NALH236Ay73FbO50a5wC4AzqhgB9z
+	 8ROkSw8y7SJPpIfGeks7I/nTHzEeQTtTbagnbAeQ=
+Date: Wed, 30 Sep 2026 12:02:10 -0700
 To: mm-commits@vger.kernel.org,muchun.song@linux.dev,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-sparse-vmemmap-drop-the-extra-tail-page-from-device-dax-reservation.patch added to mm-unstable branch
-Message-Id: <20260930190207.71B8A1F00898@smtp.kernel.org>
+Subject: + mm-sparse-vmemmap-drop-unused-section_nr_vmemmap_pages-arguments.patch added to mm-unstable branch
+Message-Id: <20260930190210.CEFC51F00898@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/sparse-vmemmap: drop the extra tail page from device DAX reservation
+     Subject: mm/sparse-vmemmap: drop unused section_nr_vmemmap_pages() arguments
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-sparse-vmemmap-drop-the-extra-tail-page-from-device-dax-reservation.patch
+     mm-sparse-vmemmap-drop-unused-section_nr_vmemmap_pages-arguments.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-sparse-vmemmap-drop-the-extra-tail-page-from-device-dax-reservation.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-sparse-vmemmap-drop-unused-section_nr_vmemmap_pages-arguments.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,21 +59,13 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Muchun Song <muchun.song@linux.dev>
-Subject: mm/sparse-vmemmap: drop the extra tail page from device DAX reservation
-Date: Wed, 30 Sep 2026 22:06:25 +0800
+Subject: mm/sparse-vmemmap: drop unused section_nr_vmemmap_pages() arguments
+Date: Wed, 30 Sep 2026 22:06:26 +0800
 
-The device DAX vmemmap population still reserves one extra tail vmemmap
-page after the head page.
+section_nr_vmemmap_pages() no longer uses the altmap or pgmap arguments,
+so drop them from the helper and its callers.
 
-Drop that extra reservation and let the shared tail page cover all tail
-vmemmap pages after the head page, so DAX follows the same reservation
-model as HugeTLB.
-
-This reduces the reserved vmemmap pages for optimized DAX mappings to one
-and removes the now-unneeded first-tail population from the generic and
-powerpc paths to simplify the code as well.
-
-Link: https://lore.kernel.org/20260930140627.57431-11-songmuchun@bytedance.com
+Link: https://lore.kernel.org/20260930140627.57431-12-songmuchun@bytedance.com
 Signed-off-by: Muchun Song <muchun.song@linux.dev>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 Acked-by: Qi Zheng <qi.zheng@linux.dev>
@@ -92,164 +84,80 @@ Cc: Randy Dunlap <rdunlap@infradead.org>
 Cc: Lance Yang <lance.yang@linux.dev>
 ---
 
- arch/powerpc/mm/book3s64/radix_pgtable.c |   46 ---------------------
- include/linux/mm.h                       |    4 -
- mm/mm_init.c                             |    2 
- mm/sparse-vmemmap.c                      |   13 +----
- 4 files changed, 8 insertions(+), 57 deletions(-)
+ mm/sparse-vmemmap.c |   10 ++++------
+ mm/sparse.c         |    3 +--
+ mm/sparse.h         |    6 ++----
+ 3 files changed, 7 insertions(+), 12 deletions(-)
 
---- a/arch/powerpc/mm/book3s64/radix_pgtable.c~mm-sparse-vmemmap-drop-the-extra-tail-page-from-device-dax-reservation
-+++ a/arch/powerpc/mm/book3s64/radix_pgtable.c
-@@ -1222,39 +1222,6 @@ base_mapping:
- 	return 0;
+--- a/mm/sparse.c~mm-sparse-vmemmap-drop-unused-section_nr_vmemmap_pages-arguments
++++ a/mm/sparse.c
+@@ -250,8 +250,7 @@ static void __init sparse_init_nid(int n
+ 						nid, NULL, NULL);
+ 		if (!map)
+ 			panic("Failed to allocate memmap for section %lu\n", pnum);
+-		memmap_boot_pages_add(section_nr_vmemmap_pages(pfn, PAGES_PER_SECTION,
+-							       NULL, NULL));
++		memmap_boot_pages_add(section_nr_vmemmap_pages(pfn, PAGES_PER_SECTION));
+ 		sparse_init_one_section(__nr_to_section(pnum), pnum, map, usage,
+ 					SECTION_IS_EARLY);
+ 		usage = (void *)usage + mem_section_usage_size();
+--- a/mm/sparse.h~mm-sparse-vmemmap-drop-unused-section_nr_vmemmap_pages-arguments
++++ a/mm/sparse.h
+@@ -70,12 +70,10 @@ static inline void sparse_sections_init(
+  */
+ #ifdef CONFIG_SPARSEMEM_VMEMMAP
+ void sparse_init_subsection_map(void);
+-int section_nr_vmemmap_pages(unsigned long pfn, unsigned long nr_pages,
+-		struct vmem_altmap *altmap, struct dev_pagemap *pgmap);
++int section_nr_vmemmap_pages(unsigned long pfn, unsigned long nr_pages);
+ #else
+ static inline void sparse_init_subsection_map(void) {}
+-static inline int section_nr_vmemmap_pages(unsigned long pfn, unsigned long nr_pages,
+-		struct vmem_altmap *altmap, struct dev_pagemap *pgmap)
++static inline int section_nr_vmemmap_pages(unsigned long pfn, unsigned long nr_pages)
+ {
+ 	return DIV_ROUND_UP(nr_pages * sizeof(struct page), PAGE_SIZE);
  }
- 
--static pte_t * __meminit radix__vmemmap_populate_address(unsigned long addr, int node,
--							 struct vmem_altmap *altmap,
--							 struct page *reuse)
--{
--	pgd_t *pgd;
--	p4d_t *p4d;
--	pud_t *pud;
--	pmd_t *pmd;
--	pte_t *pte;
--
--	pgd = pgd_offset_k(addr);
--	p4d = p4d_offset(pgd, addr);
--	pud = vmemmap_pud_alloc(p4d, node, addr);
--	if (!pud)
--		return NULL;
--	pmd = vmemmap_pmd_alloc(pud, node, addr);
--	if (!pmd)
--		return NULL;
--	if (pmd_leaf(*pmd))
--		/*
--		 * The second page is mapped as a hugepage due to a nearby request.
--		 * Force our mapping to page size without deduplication
--		 */
--		return NULL;
--	pte = vmemmap_pte_alloc(pmd, node, addr);
--	if (!pte)
--		return NULL;
--	radix__vmemmap_pte_populate(pmd, addr, node, NULL, NULL);
--	vmemmap_verify(pte, node, addr, addr + PAGE_SIZE);
--
--	return pte;
--}
--
- int __meminit vmemmap_populate_compound_pages(unsigned long start_pfn,
- 					      unsigned long start,
- 					      unsigned long end, int node,
-@@ -1301,7 +1268,7 @@ int __meminit vmemmap_populate_compound_
- 		if (!pte_none(*pte)) {
- 			/*
- 			 * This could be because we already have a compound
--			 * page whose VMEMMAP_RESERVE_NR pages were mapped and
-+			 * page whose retained vmemmap page was mapped and
- 			 * this request fall in those pages.
- 			 */
- 			next = addr + PAGE_SIZE;
-@@ -1322,16 +1289,7 @@ int __meminit vmemmap_populate_compound_
- 					return -ENOMEM;
- 				vmemmap_verify(pte, node, addr, addr + PAGE_SIZE);
- 
--				/*
--				 * Populate the tail pages vmemmap page
--				 * It can fall in different pmd, hence
--				 * vmemmap_populate_address()
--				 */
--				pte = radix__vmemmap_populate_address(addr + PAGE_SIZE, node, NULL, NULL);
--				if (!pte)
--					return -ENOMEM;
--
--				next = addr + 2 * PAGE_SIZE;
-+				next = addr + PAGE_SIZE;
- 				continue;
- 			}
- 
---- a/include/linux/mm.h~mm-sparse-vmemmap-drop-the-extra-tail-page-from-device-dax-reservation
-+++ a/include/linux/mm.h
-@@ -38,6 +38,7 @@
- #include <linux/bitops.h>
- #include <linux/iommu-debug-pagealloc.h>
- #include <linux/kcsan-checks.h>
-+#include <linux/vmemmap-optimization.h>
- 
- struct mempolicy;
- struct anon_vma;
-@@ -5167,7 +5168,6 @@ static inline void vmem_altmap_free(stru
- }
- #endif
- 
--#define VMEMMAP_RESERVE_NR	2
- #ifdef CONFIG_ARCH_WANT_OPTIMIZE_DAX_VMEMMAP
- static inline bool __vmemmap_can_optimize(struct vmem_altmap *altmap,
- 					  struct dev_pagemap *pgmap)
-@@ -5187,7 +5187,7 @@ static inline bool __vmemmap_can_optimiz
- 	 * For vmemmap optimization with DAX we need minimum 2 vmemmap
- 	 * pages. See layout diagram in Documentation/mm/vmemmap_dedup.rst
- 	 */
--	return !altmap && (nr_vmemmap_pages > VMEMMAP_RESERVE_NR);
-+	return !altmap && (nr_vmemmap_pages > VMEMMAP_OPTIMIZATION_PAGES);
- }
- /*
-  * If we don't have an architecture override, use the generic rule
---- a/mm/mm_init.c~mm-sparse-vmemmap-drop-the-extra-tail-page-from-device-dax-reservation
-+++ a/mm/mm_init.c
-@@ -1056,7 +1056,7 @@ static inline unsigned long compound_nr_
- 	if (!section_vmemmap_optimizable(ms))
- 		return pgmap_vmemmap_nr(pgmap);
- 
--	return VMEMMAP_RESERVE_NR * (PAGE_SIZE / sizeof(struct page));
-+	return VMEMMAP_OPTIMIZATION_PAGES * (PAGE_SIZE / sizeof(struct page));
- }
- 
- static void __ref memmap_init_compound(struct page *head,
---- a/mm/sparse-vmemmap.c~mm-sparse-vmemmap-drop-the-extra-tail-page-from-device-dax-reservation
+--- a/mm/sparse-vmemmap.c~mm-sparse-vmemmap-drop-unused-section_nr_vmemmap_pages-arguments
 +++ a/mm/sparse-vmemmap.c
-@@ -136,7 +136,6 @@ int __meminit section_nr_vmemmap_pages(u
+@@ -131,8 +131,7 @@ void __meminit vmemmap_verify(pte_t *pte
+ 			start, end - 1);
+ }
+ 
+-int __meminit section_nr_vmemmap_pages(unsigned long pfn, unsigned long nr_pages,
+-		struct vmem_altmap *altmap, struct dev_pagemap *pgmap)
++int __meminit section_nr_vmemmap_pages(unsigned long pfn, unsigned long nr_pages)
  {
  	const struct mem_section *ms = __pfn_to_section(pfn);
  	const int order = section_compound_order(ms);
--	const int vmemmap_pages = pgmap ? VMEMMAP_RESERVE_NR : VMEMMAP_OPTIMIZATION_PAGES;
- 	const unsigned long pages_per_compound = 1UL << order;
+@@ -674,7 +673,7 @@ static struct page * __meminit populate_
+ 	struct page *page = __populate_section_memmap(pfn, nr_pages, nid, altmap,
+ 						      pgmap);
  
- 	VM_WARN_ON_ONCE(!IS_ALIGNED(pfn | nr_pages, PAGES_PER_SUBSECTION));
-@@ -147,13 +146,13 @@ int __meminit section_nr_vmemmap_pages(u
+-	memmap_pages_add(section_nr_vmemmap_pages(pfn, nr_pages, altmap, pgmap));
++	memmap_pages_add(section_nr_vmemmap_pages(pfn, nr_pages));
  
- 	if (order < PFN_SECTION_SHIFT) {
- 		VM_WARN_ON_ONCE(!IS_ALIGNED(pfn | nr_pages, pages_per_compound));
--		return vmemmap_pages * nr_pages / pages_per_compound;
-+		return VMEMMAP_OPTIMIZATION_PAGES * nr_pages / pages_per_compound;
- 	}
- 
- 	VM_WARN_ON_ONCE(!IS_ALIGNED(pfn | nr_pages, PAGES_PER_SECTION));
- 
- 	if (IS_ALIGNED(pfn, pages_per_compound))
--		return vmemmap_pages;
-+		return VMEMMAP_OPTIMIZATION_PAGES;
- 
- 	return 0;
+ 	return page;
  }
-@@ -558,17 +557,11 @@ static int __meminit vmemmap_populate_co
- 		if (!pte)
- 			return -ENOMEM;
+@@ -685,7 +684,7 @@ static void depopulate_section_memmap(un
+ 	unsigned long start = (unsigned long) pfn_to_page(pfn);
+ 	unsigned long end = start + nr_pages * sizeof(struct page);
  
--		/* Populate the tail pages vmemmap page */
--		next = addr + PAGE_SIZE;
--		pte = vmemmap_populate_address(next, node, NULL, -1, flags);
--		if (!pte)
--			return -ENOMEM;
--
- 		/*
- 		 * Reuse the shared page for the rest of tail pages
- 		 * See layout diagram in Documentation/mm/vmemmap_dedup.rst
- 		 */
--		next += PAGE_SIZE;
-+		next = addr + PAGE_SIZE;
- 		rc = vmemmap_populate_range(next, last, node, NULL,
- 					    page_to_pfn(page), flags);
- 		if (rc)
+-	memmap_pages_add(-section_nr_vmemmap_pages(pfn, nr_pages, altmap, pgmap));
++	memmap_pages_add(-section_nr_vmemmap_pages(pfn, nr_pages));
+ 	vmemmap_free(start, end, altmap);
+ }
+ 
+@@ -695,8 +694,7 @@ static void free_map_bootmem(struct page
+ 	unsigned long end = (unsigned long)(memmap + PAGES_PER_SECTION);
+ 	unsigned long pfn = page_to_pfn(memmap);
+ 
+-	memmap_boot_pages_add(-section_nr_vmemmap_pages(pfn, PAGES_PER_SECTION,
+-							NULL, NULL));
++	memmap_boot_pages_add(-section_nr_vmemmap_pages(pfn, PAGES_PER_SECTION));
+ 	vmemmap_free(start, end, NULL);
+ }
+ 
 _
 
 Patches currently in -mm which might be from muchun.song@linux.dev are
