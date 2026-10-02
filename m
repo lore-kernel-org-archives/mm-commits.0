@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 59B522248AF;
-	Fri,  2 Oct 2026 22:32:08 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9975430D402
+	for <mm-commits@vger.kernel.org>; Fri,  2 Oct 2026 22:55:31 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790980329; cv=none; b=gJhN35cV+ygYhISz5mHNz2oo5hsUa2PbooQIsm4g5vsaFQvAnI4uv0b4jZNLQJwEV28ROu1Ad1ruioA6BYSezzbSFE/hsYRAE1DfRlJp41ldlL6WzCaRORsRfADmgzKqrKaDK5FUusFfcwIe5udTHY+ELLKi5AS6+4Z9wWcMmVM=
+	t=1790981732; cv=none; b=eDeML4n0vwHdSTyta4p0Q1gVqezV2q07mzh6tVK+cB15j/a1IUZmm7+AsmcoNHXvyt83c4ZBc88gtw+woY+uHlOI0/aUMbMHLPlfnXydc1u/uKVycf5FvzgRFBgs9YlVu3Q/LiQkjzgrqetz6+gfFDxIe5/OOtZjWU2wtUV8miQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1790980329; c=relaxed/simple;
-	bh=jzGmoAS4Eg9CHqDftxXdr+IUKosDaKFrNxKxm8DZm0U=;
-	h=Date:To:From:Subject:Message-Id; b=qFFABygMPdpACiJxPoABcO0bjU0lRw3Rhygf2BCnFeqiVnqhyusLNIp37PJJXaUq/FqYf79o1qNVzB3BDgE11kXgMglOzXKnkvt47o/k8atotH5sBIavMnlzhIcWnyx17rIWGx9J5N2XUbR750J/T9aq+aDXCV+ZQGRTvtZnsmY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ouFyhc/U; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1790981732; c=relaxed/simple;
+	bh=8W9K2msCbKGur5ILobHL1a1n6nOB3NFYH5QyI1WfSaw=;
+	h=Date:To:From:Subject:Message-Id; b=pGij0vi6sxcVutwUhdlsS+2jJcKafvdiRHqpglN+1m2scOtK8l1EMB8SBABbzb58w5rEhpWroQopd4khTfhxnIns0PqTShD7h+qgDmPStKLT0PSX97NgjHhBl3r8IdCeBJmNc/sCCBvQyMo75i7P18ALobvpY46s+nNtLRn1+Zs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=xVBq8IbD; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ouFyhc/U"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id DAA491F000FF;
-	Fri,  2 Oct 2026 22:32:07 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="xVBq8IbD"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 098A21F000FF;
+	Fri,  2 Oct 2026 22:55:30 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1790980328;
-	bh=7PI87bD7N3/V7sqlgot59pXkhkFZBzxJmB5o4YMnAQc=;
+	d=linux-foundation.org; s=korg; t=1790981731;
+	bh=E4jhqfl1wBqHXtDnvhwOYVZZiOrea3hpMQb81fTN7Nk=;
 	h=Date:To:From:Subject;
-	b=ouFyhc/U5IEbj2hruf9okIuL/0/BUk/XtN8ayrZGlfq4MXClHC093BC+2Q84nBIhR
-	 4m42PrQPiMJHogj47inLLAzMF05TV2G6AB0o2IIZi3yFRDem0kjUosTjQY3HgEqHg7
-	 pMJ6jA83aYTQtWdvmGl4Mnawui+Q5LDizVPQyQk4=
-Date: Fri, 02 Oct 2026 15:32:07 -0700
-To: mm-commits@vger.kernel.org,stable@vger.kernel.org,hughd@google.com,gabriel@krisman.be,brauner@kernel.org,baolin.wang@linux.alibaba.com,andrealmeid@igalia.com,hnkz.64@gmail.com,akpm@linux-foundation.org
+	b=xVBq8IbD86MyQkJG56UomjkZgnq9HqEtewD0qLGurtJAtRHgWe64mTULo/NFgqwen
+	 k4KpQOVF7Xf+0Tx7kmaQUvmJoZhNiXje3XtjaWbb7v1FCCRsnzoeheqsGAMlRS6YBd
+	 zTXXmyXfdUj2FOBKmMu7IYJMu/iDN82LzKqYkqXc=
+Date: Fri, 02 Oct 2026 15:55:30 -0700
+To: mm-commits@vger.kernel.org,tglx@kernel.org,dianders@chromium.org,blum@kernel.org,brads@mainlining.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + tmpfs-fix-unicode_map-leaks-in-casefold-option-handling.patch added to mm-nonmm-unstable branch
-Message-Id: <20261002223207.DAA491F000FF@smtp.kernel.org>
+Subject: [to-be-updated] watchdog-perf-reject-empty-config-before-the-raw-event-parse.patch removed from -mm tree
+Message-Id: <20261002225531.098A21F000FF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,100 +34,65 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The patch titled
-     Subject: tmpfs: fix unicode_map leaks in casefold option handling
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     tmpfs-fix-unicode_map-leaks-in-casefold-option-handling.patch
+The quilt patch titled
+     Subject: watchdog/perf: reject empty config before the raw event parse
+has been removed from the -mm tree.  Its filename was
+     watchdog-perf-reject-empty-config-before-the-raw-event-parse.patch
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/tmpfs-fix-unicode_map-leaks-in-casefold-option-handling.patch
-
-This patch will later appear in the mm-nonmm-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via various
-branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there most days
+This patch was dropped because an updated version will be issued
 
 ------------------------------------------------------
-From: Kazuki Hanai <hnkz.64@gmail.com>
-Subject: tmpfs: fix unicode_map leaks in casefold option handling
-Date: Fri,  2 Oct 2026 17:13:03 +0900
+From: Bradley Morgan <brads@mainlining.org>
+Subject: watchdog/perf: reject empty config before the raw event parse
+Date: Fri, 2 Oct 2026 17:39:13 +0000
 
-shmem_parse_opt_casefold() stores the unicode_map returned by utf8_load()
-in ctx->encoding.  A filesystem context can receive the casefold parameter
-more than once, and a second successful parse overwrites the stored map
-without releasing it.
+Commit 6164be01f179 ("watchdog/perf: optimize bytes copied and remove
+manual NUL-termination") replaced strscpy(buf, str, sizeof(buf)) plus a
+manual buf[len] = 0 with strscpy(buf, str, len).  strscpy() writes nothing
+at all when the count is zero, so on a comma directly after the "r"
+prefix, nmi_watchdog=r,1 for example, len is 0, buf stays uninitialized,
+and kstrtoull() parses whatever stack garbage is there.
 
-The map is also leaked when an unmounted filesystem context is freed. 
-This includes the temporary context used for remount, because
-shmem_reconfigure() does not take ownership of ctx->encoding.
+The old code was safe here by accident, strscpy() filled the whole buffer
+before buf[len] = 0 overwrote the comma position, so a zero length just
+produced an empty string and a clean parse failure.
 
-Reject a second casefold setting, clear ctx->encoding after transferring
-ownership to the superblock, and release any remaining map from
-shmem_free_fc().
+Treat an empty config the same as an overlong one and return early.
 
-An unprivileged user can repeatedly create tmpfs filesystem contexts, set
-the casefold parameter, and close them from a user namespace.  This causes
-unbounded kernel memory consumption and can result in a local denial of
-service.
-
-Link: https://lore.kernel.org/20261002081306.637148-1-hnkz.64@gmail.com
-Fixes: 58e55efd6c72 ("tmpfs: Add casefold lookup support")
-Signed-off-by: Kazuki Hanai <hnkz.64@gmail.com>
+Link: https://lore.kernel.org/20261002175000.1-brads@mainlining.org
+Fixes: 6164be01f179 ("watchdog/perf: optimize bytes copied and remove manual NUL-termination")
+Signed-off-by: Bradley Morgan <brads@mainlining.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Suggested-by: Gabriel Krisman Bertazi <gabriel@krisman.be>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: André Almeida <andrealmeid@igalia.com>
-Cc: Christian Brauner <brauner@kernel.org>
-Cc: <stable@vger.kernel.org>
+Cc: Thorsten Blum <blum@kernel.org>
+Cc: Thomas Gleixner <tglx@kernel.org>
+Cc: Douglas Anderson <dianders@chromium.org>
 ---
 
- mm/shmem.c |    7 +++++++
- 1 file changed, 7 insertions(+)
+ kernel/watchdog_perf.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/shmem.c~tmpfs-fix-unicode_map-leaks-in-casefold-option-handling
-+++ a/mm/shmem.c
-@@ -4711,6 +4711,9 @@ static int shmem_parse_opt_casefold(stru
- 	struct unicode_map *encoding;
- 	char *version_str = param->string + 5;
+--- a/kernel/watchdog_perf.c~watchdog-perf-reject-empty-config-before-the-raw-event-parse
++++ a/kernel/watchdog_perf.c
+@@ -301,7 +301,7 @@ void __init hardlockup_config_perf_event
+ 	} else {
+ 		unsigned int len = comma - str;
  
-+	if (ctx->encoding)
-+		return invalfc(fc, "casefold parameter cannot be specified twice\n");
-+
- 	if (!latest_version) {
- 		if (strncmp(param->string, "utf8-", 5))
- 			return invalfc(fc, "Only UTF-8 encodings are supported "
-@@ -5203,6 +5206,7 @@ static int shmem_fill_super(struct super
+-		if (len > sizeof(buf))
++		if (!len || len > sizeof(buf))
+ 			return;
  
- 	if (ctx->encoding) {
- 		sb->s_encoding = ctx->encoding;
-+		ctx->encoding = NULL;
- 		set_default_d_op(sb, &shmem_ci_dentry_ops);
- 		if (ctx->strict_encoding)
- 			sb->s_encoding_flags = SB_ENC_STRICT_MODE_FL;
-@@ -5303,6 +5307,9 @@ static void shmem_free_fc(struct fs_cont
- 	struct shmem_options *ctx = fc->fs_private;
- 
- 	if (ctx) {
-+#if IS_ENABLED(CONFIG_UNICODE)
-+		utf8_unload(ctx->encoding);
-+#endif
- 		mpol_put(ctx->mpol);
- 		kfree(ctx);
- 	}
+ 		strscpy(buf, str, len);
 _
 
-Patches currently in -mm which might be from hnkz.64@gmail.com are
+Patches currently in -mm which might be from brads@mainlining.org are
 
-tmpfs-fix-unicode_map-leaks-in-casefold-option-handling.patch
+taskstats-copy-signal-stats-under-siglock-in-taskstats_exit.patch
+mailmap-update-email-address-for-bradley-morgan.patch
+taskstats-drop-the-unused-cpu_dont_care-enum-member.patch
+panic-fix-redirect-cpu-race-in-panic_try_force_cpu.patch
+panic-flatten-nmi_panic-control-flow.patch
+panic-fix-va_list-reuse-in-panic_try_force_cpu.patch
+panic-restore-variable-arguments-to-nmi_panic.patch
+panic-allow-force_cpu-redirect-from-an-nmi.patch
+panic-kill-the-buffer-unavailable-redirect-fallback.patch
 
