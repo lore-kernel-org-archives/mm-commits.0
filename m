@@ -1,93 +1,250 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D422B30ACF1
-	for <mm-commits@vger.kernel.org>; Fri,  2 Oct 2026 12:24:24 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CCA113101A9
+	for <mm-commits@vger.kernel.org>; Fri,  2 Oct 2026 20:48:41 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790943865; cv=none; b=u9fP5hV05BUVVoWI1Bvvk8M3dqaz/k1YBVPA0Qtep7qukL01fMr/5lmF1IWrZ2+7UU3Bz/A8EZLQJyt80940ZLQQNvB9NtPXy1RBv2qSnh2IdL8uABv1QFoYjFpjeO9RrI9vhPZe2FUehfeOTALQOZV4ouskRuf0q/lFUerBW6U=
+	t=1790974123; cv=none; b=P30+7HAngxJ/UOdhw5WOVlrYEm2yAugO24JQpbygxmG8sxuFY9nGF+L/h9nilLDYGMmMm/8ZCZgAXrV9iwBXGHcyJBwx/nB3n6UsbYeT6AIiuDWcUn6EYi5VnUUQ8oSYV0DiDTwB0/9mQXeCm6r/p/3XXHNFULz3fcadewByUQk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1790943865; c=relaxed/simple;
-	bh=GW76cs7ysmkBpVYeQ08jcP5vvhMghnsqZOiXl7ID1Xs=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=ji/OXTQz7NPC/0t3x+wkqfTrFFx5qsEGwyoAWA1VsWIwm+gRBxntsDurjUZM0MSfD/Ruo1S/pbfb5MEvDpxAsITH4TdGb+U0TJMXhsfnDNbtRuz/i3F3/awHc2OkafGQM7QJlhAiRY+j6Ik1ZJeSJdwXeFt9+3y/ZtK0fTCnPGA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=m1adaKPY; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1790974123; c=relaxed/simple;
+	bh=QzX4YXG6dR9oeWj7E+n1/K1lgMYjnwZkQP0hQ+aDGCk=;
+	h=Date:To:From:Subject:Message-Id; b=GWhXTPbzkw38GD2lIZhrKkYAkVXecbW6Hpu5FLnKL2uXSA544hfGprA+DY4cgcDpFGpY9yKgv09ICYOTCZpv9hU5VOne7L033A1yTL6/T632tuoikpPJ4/4r34Gx+5EXfXdcJan0zqSbqsT26WZlvK2nrHULw9FBm/1z2tSOL6A=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=splT+ZMA; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="m1adaKPY"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B5A621F000FF;
-	Fri,  2 Oct 2026 12:24:22 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1790943864;
-	bh=ldHzaJ8xA1ytVviqwa8a4cfueNntrG3WiJlwdKywdmI=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To;
-	b=m1adaKPYY6e4SCvt0HqEj42JmKBsU+QznGMY2dyuUO1tGL72+dOWXqnKzF7hFlZo4
-	 kS5FGynMtocpb8Ylxwrqa1avBYorni9CFEmbWC/H4Q3q3tZ8Pxgq4DGOJ2qPQgtixe
-	 NBhx5/+Sv0iYMjKPHYS0HunCiwnFcHTF+7VO17eNdmT6ULsCzHBmxfrCRLIaTB/TQV
-	 rzENPBQVvmOpWBEq52W+9mm2JrNswEJ8ZTRmdsq8Rii+tVnqfkh1p2J+xYZq4y33ju
-	 NDFFelCahFOwQ2aiR9adYkp6QTpfvigs27mKonYmVaC3TfjZHqHNzyPPDYMCK2y5jZ
-	 gwxmXc7I/QMbw==
-Date: Fri, 2 Oct 2026 13:24:20 +0100
-From: "Lorenzo Stoakes (ARM)" <ljs@kernel.org>
-To: "David Hildenbrand (Arm)" <david@kernel.org>
-Cc: Andrew Morton <akpm@linux-foundation.org>, mm-commits@vger.kernel.org, 
-	Paolo Bonzini <pbonzini@redhat.com>, Marc Zyngier <maz@kernel.org>, Oliver Upton <oupton@kernel.org>, 
-	Zi Yan <ziy@nvidia.com>
-Subject: Re: mm-next: manual merge of the akpm/mm-unstable branch
-Message-ID: <ar-iaDmUZIIfrk0k@gremlin>
-References: <75edc952-3ada-4875-b3a9-6338d6f4d36e@kernel.org>
- <ar9n7y0cnAoAEVkx@gremlin>
- <949c4da0-6e2c-419a-9ce4-9fb6b5b36524@kernel.org>
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="splT+ZMA"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 478A21F000FF;
+	Fri,  2 Oct 2026 20:48:41 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+	d=linux-foundation.org; s=korg; t=1790974121;
+	bh=Tvt+8aaJjy6ip4dWKaij6DAeo2TRrPbBQ5AD0bsPGD4=;
+	h=Date:To:From:Subject;
+	b=splT+ZMAXpogKjW9YE1Nrr/IO3aQwgKj0qM8W6GLAopv6I8zFvWbaFcWF+WMMyS7q
+	 Hn6irumT0SrScYIh5FmxDYlQPAO2trRXhPGKAUjp4YTGVF+wAgu+QlXgAqLU88faO7
+	 KAk5/fDZP+4Ciey2yblrRg/8EKcuddSEmXQVSSvQ=
+Date: Fri, 02 Oct 2026 13:48:40 -0700
+To: mm-commits@vger.kernel.org,vbabka@kernel.org,surenb@google.com,rppt@kernel.org,mhocko@suse.com,ljs@kernel.org,liam@infradead.org,david@kernel.org,azpijr@gmail.com,ekffu200098@gmail.com,akpm@linux-foundation.org
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: [to-be-updated] mm-memory-remove-unused-vmf_insert_mixed_mkwrite.patch removed from -mm tree
+Message-Id: <20261002204841.478A21F000FF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <949c4da0-6e2c-419a-9ce4-9fb6b5b36524@kernel.org>
 
-On Fri, Oct 02, 2026 at 02:16:14PM +0200, David Hildenbrand (Arm) wrote:
-> On 10/2/26 10:15, Lorenzo Stoakes (ARM) wrote:
-> > On Fri, Oct 02, 2026 at 08:22:17AM +0200, David Hildenbrand (Arm) wrote:
-> >> Hi,
-> >>
-> >> today's mm-next merge of the akpm/mm-unstable branch tree got a conflict in:
-> >>
-> >>   arch/arm64/kvm/mmu.c
-> >>
-> >> between the commit:
-> >>
-> >>   71cc2c67fb8f KVM: arm64: Use stage-1 leaf size for VM_PFNMAP
-> >>
-> >> from Linus' tree and commits:
-> >>
-> >>   7a41ed87f53f mm: drop some redundant checks around hugetlb VMAs
-> >>   f09773c2c4d0 mm: rename is_vm_hugetlb_page() to vma_is_hugetlb()
-> >>
-> >> from the akpm/mm-unstable branch.
-> >>
-> >> I resolved the conflicts manually:
-> >
-> > Nice to see this from mm-next :)
-> >
-> > This looks the same as [0] and similar to that this LGTM.
->
-> Yes, there are some situations where we hit that in -next first and later (once
-> fixes go upstream) in mm-next. In other situations (primarily as we add new
-> material into mm-next when conflicting fixes are already upstream) we get the
-> conflicts only in mm-next.
->
-> All good dry runs for our incoming intra-mm conflicts that will be entirely in
-> mm-next :)
 
-Yes love to see it! <3
+The quilt patch titled
+     Subject: mm/memory: remove unused vmf_insert_mixed_mkwrite()
+has been removed from the -mm tree.  Its filename was
+     mm-memory-remove-unused-vmf_insert_mixed_mkwrite.patch
 
->
-> --
-> Cheers,
->
-> David
+This patch was dropped because an updated version will be issued
 
---
-Cheers, Lorenzo
+------------------------------------------------------
+From: Sang-Heon Jeon <ekffu200098@gmail.com>
+Subject: mm/memory: remove unused vmf_insert_mixed_mkwrite()
+Date: Tue, 29 Sep 2026 23:37:06 +0900
+
+Since commit 38607c62b34b ("fs/dax: properly refcount fs dax pages"),
+vmf_insert_mixed_mkwrite() has no callers, so the mkwrite argument of
+__vm_insert_mixed() and insert_pfn() is always false.
+
+So remove the function, the mkwrite argument and the unreachable mkwrite
+branches.  Also merge __vm_insert_mixed() into vmf_insert_mixed().
+
+No functional change.
+
+Link: https://lore.kernel.org/20260929143707.450805-1-ekffu200098@gmail.com
+Signed-off-by: Sang-Heon Jeon <ekffu200098@gmail.com>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+Cc: David Hildenbrand <david@kernel.org>
+Cc: Liam R. Howlett <liam@infradead.org>
+Cc: Lorenzo Stoakes <ljs@kernel.org>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Vlastimil Babka <vbabka@kernel.org>
+Cc: "Jose A. Perez de Azpillaga" <azpijr@gmail.com>
+---
+
+ include/linux/mm.h |    2 -
+ mm/memory.c        |   76 ++++++++++---------------------------------
+ 2 files changed, 19 insertions(+), 59 deletions(-)
+
+--- a/include/linux/mm.h~mm-memory-remove-unused-vmf_insert_mixed_mkwrite
++++ a/include/linux/mm.h
+@@ -5015,8 +5015,6 @@ vm_fault_t vmf_insert_pfn_prot(struct vm
+ 			unsigned long pfn, pgprot_t pgprot);
+ vm_fault_t vmf_insert_mixed(struct vm_area_struct *vma, unsigned long addr,
+ 			unsigned long pfn);
+-vm_fault_t vmf_insert_mixed_mkwrite(struct vm_area_struct *vma,
+-		unsigned long addr, unsigned long pfn);
+ int vm_iomap_memory(struct vm_area_struct *vma, phys_addr_t start, unsigned long len);
+ 
+ static inline vm_fault_t vmf_insert_page(struct vm_area_struct *vma,
+--- a/mm/memory.c~mm-memory-remove-unused-vmf_insert_mixed_mkwrite
++++ a/mm/memory.c
+@@ -2453,7 +2453,14 @@ static int insert_page_into_pte_locked(s
+ 		if (!mkwrite)
+ 			return -EBUSY;
+ 
+-		/* see insert_pfn(). */
++		/*
++		 * For read faults on private mappings the PFN passed in may
++		 * not match the PFN we have mapped if the mapped PFN is a
++		 * writeable COW page.  In the mkwrite case we are creating a
++		 * writable PTE for a shared mapping and we expect the PFNs to
++		 * match. If they don't match, we are likely racing with block
++		 * allocation and mapping invalidation.
++		 */
+ 		if (pte_pfn(pteval) != page_to_pfn(page)) {
+ 			WARN_ON_ONCE(!is_zero_pfn(pte_pfn(pteval)));
+ 			return -EFAULT;
+@@ -2858,7 +2865,7 @@ int vm_map_pages_zero(struct vm_area_str
+ EXPORT_SYMBOL(vm_map_pages_zero);
+ 
+ static vm_fault_t insert_pfn(struct vm_area_struct *vma, unsigned long addr,
+-			unsigned long pfn, pgprot_t prot, bool mkwrite)
++			unsigned long pfn, pgprot_t prot)
+ {
+ 	struct mm_struct *mm = vma->vm_mm;
+ 	pte_t *pte, entry;
+@@ -2868,38 +2875,12 @@ static vm_fault_t insert_pfn(struct vm_a
+ 	if (!pte)
+ 		return VM_FAULT_OOM;
+ 	entry = ptep_get(pte);
+-	if (!pte_none(entry)) {
+-		if (mkwrite) {
+-			/*
+-			 * For read faults on private mappings the PFN passed
+-			 * in may not match the PFN we have mapped if the
+-			 * mapped PFN is a writeable COW page.  In the mkwrite
+-			 * case we are creating a writable PTE for a shared
+-			 * mapping and we expect the PFNs to match. If they
+-			 * don't match, we are likely racing with block
+-			 * allocation and mapping invalidation so just skip the
+-			 * update.
+-			 */
+-			if (pte_pfn(entry) != pfn) {
+-				WARN_ON_ONCE(!is_zero_pfn(pte_pfn(entry)));
+-				goto out_unlock;
+-			}
+-			entry = pte_mkyoung(entry);
+-			entry = maybe_mkwrite(pte_mkdirty(entry), vma);
+-			if (ptep_set_access_flags(vma, addr, pte, entry, 1))
+-				update_mmu_cache(vma, addr, pte);
+-		}
++	if (!pte_none(entry))
+ 		goto out_unlock;
+-	}
+ 
+ 	/* Ok, finally just insert the thing.. */
+ 	entry = pte_mkspecial(pfn_pte(pfn, prot));
+ 
+-	if (mkwrite) {
+-		entry = pte_mkyoung(entry);
+-		entry = maybe_mkwrite(pte_mkdirty(entry), vma);
+-	}
+-
+ 	set_pte_at(mm, addr, pte, entry);
+ 	update_mmu_cache(vma, addr, pte); /* XXX: why not for insert_page? */
+ 
+@@ -2967,7 +2948,7 @@ vm_fault_t vmf_insert_pfn_prot(struct vm
+ 
+ 	pfnmap_setup_cachemode_pfn(pfn, &pgprot);
+ 
+-	return insert_pfn(vma, addr, pfn, pgprot, false);
++	return insert_pfn(vma, addr, pfn, pgprot);
+ }
+ EXPORT_SYMBOL(vmf_insert_pfn_prot);
+ 
+@@ -2998,11 +2979,9 @@ vm_fault_t vmf_insert_pfn(struct vm_area
+ }
+ EXPORT_SYMBOL(vmf_insert_pfn);
+ 
+-static bool vm_mixed_ok(struct vm_area_struct *vma, unsigned long pfn,
+-			bool mkwrite)
++static bool vm_mixed_ok(struct vm_area_struct *vma, unsigned long pfn)
+ {
+-	if (unlikely(is_zero_pfn(pfn)) &&
+-	    (mkwrite || !vm_mixed_zeropage_allowed(vma)))
++	if (unlikely(is_zero_pfn(pfn)) && !vm_mixed_zeropage_allowed(vma))
+ 		return false;
+ 	/* these checks mirror the abort conditions in vm_normal_page */
+ 	if (vma->vm_flags & VM_MIXEDMAP)
+@@ -3012,13 +2991,13 @@ static bool vm_mixed_ok(struct vm_area_s
+ 	return false;
+ }
+ 
+-static vm_fault_t __vm_insert_mixed(struct vm_area_struct *vma,
+-		unsigned long addr, unsigned long pfn, bool mkwrite)
++vm_fault_t vmf_insert_mixed(struct vm_area_struct *vma, unsigned long addr,
++		unsigned long pfn)
+ {
+ 	pgprot_t pgprot = vma->vm_page_prot;
+ 	int err;
+ 
+-	if (!vm_mixed_ok(vma, pfn, mkwrite))
++	if (!vm_mixed_ok(vma, pfn))
+ 		return VM_FAULT_SIGBUS;
+ 
+ 	if (addr < vma->vm_start || addr >= vma->vm_end)
+@@ -3045,9 +3024,9 @@ static vm_fault_t __vm_insert_mixed(stru
+ 		 * result in pfn_t_has_page() == false.
+ 		 */
+ 		page = pfn_to_page(pfn);
+-		err = insert_page(vma, addr, page, pgprot, mkwrite);
++		err = insert_page(vma, addr, page, pgprot, false);
+ 	} else {
+-		return insert_pfn(vma, addr, pfn, pgprot, mkwrite);
++		return insert_pfn(vma, addr, pfn, pgprot);
+ 	}
+ 
+ 	if (err == -ENOMEM)
+@@ -3057,6 +3036,7 @@ static vm_fault_t __vm_insert_mixed(stru
+ 
+ 	return VM_FAULT_NOPAGE;
+ }
++EXPORT_SYMBOL(vmf_insert_mixed);
+ 
+ vm_fault_t vmf_insert_page_mkwrite(struct vm_fault *vmf, struct page *page,
+ 			bool write)
+@@ -3078,24 +3058,6 @@ vm_fault_t vmf_insert_page_mkwrite(struc
+ }
+ EXPORT_SYMBOL_GPL(vmf_insert_page_mkwrite);
+ 
+-vm_fault_t vmf_insert_mixed(struct vm_area_struct *vma, unsigned long addr,
+-		unsigned long pfn)
+-{
+-	return __vm_insert_mixed(vma, addr, pfn, false);
+-}
+-EXPORT_SYMBOL(vmf_insert_mixed);
+-
+-/*
+- *  If the insertion of PTE failed because someone else already added a
+- *  different entry in the mean time, we treat that as success as we assume
+- *  the same entry was actually inserted.
+- */
+-vm_fault_t vmf_insert_mixed_mkwrite(struct vm_area_struct *vma,
+-		unsigned long addr, unsigned long pfn)
+-{
+-	return __vm_insert_mixed(vma, addr, pfn, true);
+-}
+-
+ /*
+  * maps a range of physical memory into the requested pages. the old
+  * mappings are removed. any references to nonexistent pages results
+_
+
+Patches currently in -mm which might be from ekffu200098@gmail.com are
+
+percpu-fix-the-comment-about-which-sizes-share-a-slot.patch
+percpu-remove-redundant-assignments-to-bits.patch
+percpu-remove-unnecessary-initialization-in-pcpu_build_alloc_info.patch
+percpu-remove-unnecessary-cpumask_clear-in-pcpu_build_alloc_info.patch
+percpu-remove-unnecessary-return-in-pcpu_populate_pte.patch
+mm-swapops-remove-unused-is_hwpoison_entry.patch
+bootconfig-remove-redundant-assignment-in-xbc_parse_array.patch
+init-mainc-remove-unreachable-check-in-obsolete_checksetup.patch
+
