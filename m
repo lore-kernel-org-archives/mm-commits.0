@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7538F365A19
-	for <mm-commits@vger.kernel.org>; Fri,  2 Oct 2026 21:22:02 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 32911407597
+	for <mm-commits@vger.kernel.org>; Fri,  2 Oct 2026 21:24:27 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790976125; cv=none; b=oIBxCgaJyGfeZJVXwsQyFD7xZEvS0YiQO5CPvu5VOCjVt8suX3Kng497hHGlSOQVbiF+jOk2F7gEaLgOfDLZvUvYt+M+1WCrCRhVfQU0HDcw4NEHy16phkfp+5q0Lw/oY5k64JwJgTtiFfLzb+MHx0bAEtvgMsyZmt/U6HZ/v9Q=
+	t=1790976268; cv=none; b=MWPcVgvA5+SMHaz6LpkDP2Ky9fllV0gbvjXPSJutemaT1PCdFqzf7F+Elv2QwHz6r005oph5xrCa6op8ULOoUhLdkwVlNAeYil0mIJCAkwMclgqENgbj4gWdXVl8wAtsZzfu5cyPu9J1mrWqjYlbtl/PRBn+T2raiLL4QnZ4upI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1790976125; c=relaxed/simple;
-	bh=38jtKKBwOGSIDZHqXZbIM1V9bOyVLl/YeouMFahNmcI=;
-	h=Date:To:From:Subject:Message-Id; b=YaOFK9xY0E63eoEQ6FqUKmMXqb0VyW1bTw4gYpwOhirMSZZM3/DUdoPpEMl/xnvaU1mxzR7eO7DNTi2BC9OcUSBVoYq17WO0Ag8uR9lMDccdClR0DR+lGc+vB2g9VOM+4qMCLXRhgJcIFvfeEa16W27xbQ+0uhEVrCbr6SNN0bU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=cHiVdsm5; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1790976268; c=relaxed/simple;
+	bh=KaFwxL3tyFqaXhwoaq6vEB5J479MmYBQ6rJ/yqeC5P8=;
+	h=Date:To:From:Subject:Message-Id; b=De7lsW2Lh/f/dw7qD6CW+l8caym0NoPv77lNNBI1N/kdUubYkp8rakQJz+M3a7P7wb1l/HhQZvt739IvJ2/Cs+rqKTI1kjld/sxAWthsTfDzt9Lm5n3myFj1VdV/R8C5QoJ86PZGJKuLmkQEdehLDWoIMGbLDlUpNwlLSpNhCHM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=oMT3tOk5; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="cHiVdsm5"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 115121F000FF;
-	Fri,  2 Oct 2026 21:22:02 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="oMT3tOk5"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E61B91F000FF;
+	Fri,  2 Oct 2026 21:24:26 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1790976122;
-	bh=oO+DjsdVCRmDi7kyiKrBuIypwsnnP0gdj7rr80dVOSk=;
+	d=linux-foundation.org; s=korg; t=1790976267;
+	bh=jwiX8bB8z8CzjomJFZp7/zI5eAJO2fipHQZO1JANQ+k=;
 	h=Date:To:From:Subject;
-	b=cHiVdsm5LnUZFfdVVZwmUAL6xy5iRjh1I+ouA3brLPjjNXM5xow7aMhHUostzoxTJ
-	 +BwE4V18LfdXTI/v84Hc6rDCpoXnbd0F7dGeAganoSDdMrMtVNFPtJKp4NvqoTp5AH
-	 UcccvjHERAV8ZVA5BI6EHGIJbypWYWp1mC/NNymU=
-Date: Fri, 02 Oct 2026 14:22:01 -0700
-To: mm-commits@vger.kernel.org,tglx@kernel.org,include@grrlz.net,glider@google.com,elver@google.com,dvyukov@google.com,brads@mainlining.org,andreyknvl@gmail.com,kmehltretter@gmail.com,akpm@linux-foundation.org
+	b=oMT3tOk5ZJxB2gaiDN6HBgyDgN4dW4rPLa08ELQnnrKtcLMiUqXlAUSIRDd//MiKP
+	 NGeEB6iE4Hg7DrlOW+U5GYAu1ceLSpC/RRDC5nOyJcRL5SYdZlpz1eJr/YqRn+pJVJ
+	 XZScaAiMC+qvMGT+Kb2I8v5RjnZbLGMtrF29nUiM=
+Date: Fri, 02 Oct 2026 14:24:26 -0700
+To: mm-commits@vger.kernel.org,tglx@kernel.org,dianders@chromium.org,blum@kernel.org,brads@mainlining.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + kcov-report-spurious-pcs-in-the-interrupt-selftest.patch added to mm-nonmm-unstable branch
-Message-Id: <20261002212202.115121F000FF@smtp.kernel.org>
+Subject: + watchdog-perf-reject-empty-config-before-the-raw-event-parse.patch added to mm-nonmm-unstable branch
+Message-Id: <20261002212426.E61B91F000FF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: kcov: report spurious PCs in the interrupt selftest
+     Subject: watchdog/perf: reject empty config before the raw event parse
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     kcov-report-spurious-pcs-in-the-interrupt-selftest.patch
+     watchdog-perf-reject-empty-config-before-the-raw-event-parse.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kcov-report-spurious-pcs-in-the-interrupt-selftest.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/watchdog-perf-reject-empty-config-before-the-raw-event-parse.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,131 +58,58 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Karl Mehltretter <kmehltretter@gmail.com>
-Subject: kcov: report spurious PCs in the interrupt selftest
-Date: Fri,  2 Oct 2026 20:13:57 +0200
+From: Bradley Morgan <brads@mainlining.org>
+Subject: watchdog/perf: reject empty config before the raw event parse
+Date: Fri, 2 Oct 2026 17:39:13 +0000
 
-The KCOV interrupt selftest enables KCOV_MODE_TRACE_PC without a coverage
-area so that spurious coverage causes a fault.  If the fault path is
-instrumented, the coverage callback faults recursively.  Observed failure
-modes include a stack overflow on x86_64 and arm32 getting stuck in abort
-handling, neither of which identifies the original coverage event.
+Commit 6164be01f179 ("watchdog/perf: optimize bytes copied and remove
+manual NUL-termination") replaced strscpy(buf, str, sizeof(buf)) plus a
+manual buf[len] = 0 with strscpy(buf, str, len).  strscpy() writes nothing
+at all when the count is zero, so on a comma directly after the "r"
+prefix, nmi_watchdog=r,1 for example, len is 0, buf stays uninitialized,
+and kstrtoull() parses whatever stack garbage is there.
 
-The recursive failure is not new, but commit 9a79524d1420 ("kcov: use
-WRITE_ONCE() for selftest mode stores") made the selftest effective on
-configurations where the compiler had previously removed the mode store,
-exposing it more broadly.
+The old code was safe here by accident, strscpy() filled the whole buffer
+before buf[len] = 0 overwrote the comma position, so a zero length just
+produced an empty string and a clean parse failure.
 
-Replace the open-coded kcov_mode stores with kcov_start() and kcov_stop(),
-passing a 16-word buffer that records up to 15 spurious PCs, with the
-first word holding the count.  Keep KCOV enabled for the original 300 ms
-window, then disable it, print all recorded PCs and panic if any were
-recorded.  Once the buffer fills, further PCs are discarded by the
-existing coverage callback.  This preserves the selftest's hard failure
-while avoiding the recursive fault path.
+Treat an empty config the same as an overlong one and return early.
 
-Add decanonicalize_ip() as the inverse of canonicalize_ip(), which
-subtracts kaslr_offset() from recorded PCs.  Restore that offset before
-printing the PCs with %pB, since KCOV records return addresses.
-
-Link: https://lore.kernel.org/20261002181357.14293-1-kmehltretter@gmail.com
-Fixes: 6cd0dd934b03 ("kcov: Add interrupt handling self test")
-Signed-off-by: Karl Mehltretter <kmehltretter@gmail.com>
+Link: https://lore.kernel.org/20261002175000.1-brads@mainlining.org
+Fixes: 6164be01f179 ("watchdog/perf: optimize bytes copied and remove manual NUL-termination")
+Signed-off-by: Bradley Morgan <brads@mainlining.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Tested-by: Alexander Potapenko <glider@google.com>
-Reviewed-by: Alexander Potapenko <glider@google.com>
-Tested-by: Bradley Morgan <brads@mainlining.org> # Power10
-Reviewed-by: Bradley Morgan <brads@mainlining.org>
-Assisted-by: LLM
-Cc: Andrey Konovalov <andreyknvl@gmail.com>
-Cc: Dmitry Vyukov <dvyukov@google.com>
-Cc: Marco Elver <elver@google.com>
-Cc: Bradley Morgan <include@grrlz.net>
+Cc: Thorsten Blum <blum@kernel.org>
 Cc: Thomas Gleixner <tglx@kernel.org>
+Cc: Douglas Anderson <dianders@chromium.org>
 ---
 
- kernel/kcov.c |   35 +++++++++++++++++++++++++++++------
- 1 file changed, 29 insertions(+), 6 deletions(-)
+ kernel/watchdog_perf.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/kernel/kcov.c~kcov-report-spurious-pcs-in-the-interrupt-selftest
-+++ a/kernel/kcov.c
-@@ -198,6 +198,16 @@ static notrace unsigned long canonicaliz
- 	return ip;
- }
+--- a/kernel/watchdog_perf.c~watchdog-perf-reject-empty-config-before-the-raw-event-parse
++++ a/kernel/watchdog_perf.c
+@@ -301,7 +301,7 @@ void __init hardlockup_config_perf_event
+ 	} else {
+ 		unsigned int len = comma - str;
  
-+#ifdef CONFIG_KCOV_SELFTEST
-+static unsigned long __init decanonicalize_ip(unsigned long ip)
-+{
-+#ifdef CONFIG_RANDOMIZE_BASE
-+	ip += kaslr_offset();
-+#endif
-+	return ip;
-+}
-+#endif
-+
- /*
-  * Entry point from instrumented code.
-  * This is called once per basic-block/edge.
-@@ -1107,9 +1117,11 @@ struct kcov_common_handle_id kcov_common
- EXPORT_SYMBOL(kcov_common_handle);
+-		if (len > sizeof(buf))
++		if (!len || len > sizeof(buf))
+ 			return;
  
- #ifdef CONFIG_KCOV_SELFTEST
-+static unsigned long selftest_area[16] __initdata;
-+
- static void __init selftest(void)
- {
--	unsigned long start;
-+	unsigned long start, i, ip, count;
- 
- 	pr_err("running self test\n");
- 	/*
-@@ -1119,15 +1131,26 @@ static void __init selftest(void)
- 	 * leaks out of that section and leads to spurious coverage.
- 	 * It's hard to call the actual interrupt handler directly,
- 	 * so we just loop here for a bit waiting for a timer interrupt.
--	 * We set kcov_mode to enable tracing, but don't setup the area,
--	 * so any attempt to trace will crash. Note: we must not call any
-+	 * A small coverage area records the PCs of any leaks. The first word
-+	 * holds the count, leaving room for 15 PCs. Note: we must not call any
- 	 * potentially traced functions in this region.
- 	 */
-+	kcov_start(current, NULL, ARRAY_SIZE(selftest_area),
-+		   selftest_area, KCOV_MODE_TRACE_PC, 0);
- 	start = jiffies;
--	WRITE_ONCE(current->kcov_mode, KCOV_MODE_TRACE_PC);
- 	while ((jiffies - start) * MSEC_PER_SEC / HZ < 300)
--		;
--	WRITE_ONCE(current->kcov_mode, 0);
-+		cpu_relax();
-+	kcov_stop(current);
-+
-+	count = READ_ONCE(selftest_area[0]);
-+	if (count) {
-+		pr_err("spurious coverage detected during interrupt selftest:\n");
-+		for (i = 1; i <= count; i++) {
-+			ip = decanonicalize_ip(selftest_area[i]);
-+			pr_err("  %pB\n", (void *)ip);
-+		}
-+		panic("kcov: interrupt selftest detected spurious coverage");
-+	}
- 	pr_err("done running self test\n");
- }
- #endif
+ 		strscpy(buf, str, len);
 _
 
-Patches currently in -mm which might be from kmehltretter@gmail.com are
+Patches currently in -mm which might be from brads@mainlining.org are
 
-mm-damon-core-handle-uninitialized-damos_quota_goal-last_psi_total-fix.patch
-docs-mm-ksm-use-the-renamed-ksm-structure-names.patch
-mm-secretmem-fix-the-enable-parameter-description.patch
-mm-damon-core-preserve-the-quota-passed-to-damon_new_scheme.patch
-mm-damon-tests-core-kunit-test-preservation-of-quota-state.patch
-mm-damon-tests-core-kunit-test-psi-goal-values-with-explicit-samples.patch
-klist-avoid-accesses-after-waking-klist_remove.patch
-squashfs-fix-fragment-index-table-sizing-overflow-on-32-bit.patch
-squashfs-make-the-fragment-index-table-bounds-check-overflow-safe.patch
-fork-honor-task_structs-declared-alignment.patch
-ocfs2-cluster-hold-a-reference-on-the-heartbeat-thread.patch
-resource-kunit-stop-selecting-get_free_region.patch
-kcov-report-spurious-pcs-in-the-interrupt-selftest.patch
+taskstats-copy-signal-stats-under-siglock-in-taskstats_exit.patch
+mailmap-update-email-address-for-bradley-morgan.patch
+taskstats-drop-the-unused-cpu_dont_care-enum-member.patch
+panic-fix-redirect-cpu-race-in-panic_try_force_cpu.patch
+panic-flatten-nmi_panic-control-flow.patch
+panic-fix-va_list-reuse-in-panic_try_force_cpu.patch
+panic-restore-variable-arguments-to-nmi_panic.patch
+panic-allow-force_cpu-redirect-from-an-nmi.patch
+panic-kill-the-buffer-unavailable-redirect-fallback.patch
+watchdog-perf-reject-empty-config-before-the-raw-event-parse.patch
 
