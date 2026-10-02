@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BF8FD29DB8F
-	for <mm-commits@vger.kernel.org>; Fri,  2 Oct 2026 21:12:38 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2634E3955DB
+	for <mm-commits@vger.kernel.org>; Fri,  2 Oct 2026 21:12:41 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790975560; cv=none; b=C5YigJrllyF4SML9HUX5pCc5MG2OOBNzAaR7kuVYFQXx0/oM7I6pwKL0ZmHyfRCJvUd0X7BNtgcQ/WIU2JDxWTaisTK2kjpCG0sesb2DBEYKLRi1Cd3AnQJYwkjl0B+TMNejYlzlfBaknL3G4wRe3piVnYwckwRFl3kdZjlhK+4=
+	t=1790975563; cv=none; b=u77gQerwaEukm6dHRm9IwWDlhjyJnekXpxt8gyQaslZax9ifK/e7GAZWZXLLYkldA+EXpsZlZPkyZFsd2vp168jv1iGQWdJoC6QlqcLq2r2ANlwj73ySlFSTyi0s7qvqVGD4k/Kcb7gN4XqXbGJgaoBF1sPBdszD8rpY26oQViE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1790975560; c=relaxed/simple;
-	bh=NA9uca34ayStaQiGiJuy6+ec9CnxZbGGDyTPKJK/cDk=;
-	h=Date:To:From:Subject:Message-Id; b=OZc3eX9jV6Q2wC322AMQOzls968F3mYs3vEiqrObYJWqMnlN9/Y6zAHBABtw/4yP+nb5yHld12Vp5L80d6hhwGQqLLJrUCxZec39Y5jAWIa86x+v+8eTSOBO8OIMLAcriVHh4hlPPuwNXz8AoWauJqKG4Knml48hmqxDNuRtxdc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=JmgUMoSt; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1790975563; c=relaxed/simple;
+	bh=6/Rp3y69cEXbDeocTxqqh7fwr7ZuUvtXNK7gPVyicwA=;
+	h=Date:To:From:Subject:Message-Id; b=ePyXobstoNdjehYe5qGYX7dO6YHNzD8qx8TZp6vOl5RXB4TsWsTRcGfeOZW6QogAl45glLzVr6feZKXx728ErGAvYEXBYUA+LokTLFahUyhnk+UYgOH/ebgklfBV0x1xSiO/CMR8abmd+apJ6e3mVFaPzKi19yW+IruKLwVPDJo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=nQO/l8AP; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="JmgUMoSt"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 48B341F000FF;
-	Fri,  2 Oct 2026 21:12:38 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="nQO/l8AP"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id ADA591F000FF;
+	Fri,  2 Oct 2026 21:12:41 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1790975558;
-	bh=Ia8soiAiUfFKcsS7Uj1qcKGlV+Y9BRHGC+rHBm2xTY0=;
+	d=linux-foundation.org; s=korg; t=1790975561;
+	bh=5lvrSZi3lt+1zd1wzZlDG7ke/VcdURfaeZEqVWHHyhk=;
 	h=Date:To:From:Subject;
-	b=JmgUMoSt9AouKVNPjzIjtVqkOXHyZHbbVlt0XaxD9KtQ81xZOo4/cmNX+xHkCy4/k
-	 xTLLXCMLy4CIp6OOZ7K4d3tqMRxvRLaNI/OD3lRpEPl2IWA3IsEIzshwYtyNjdDF//
-	 PoERD1u3YnW1QEuNJU+UX75ITmPYHFHlYz57vvA0=
-Date: Fri, 02 Oct 2026 14:12:37 -0700
+	b=nQO/l8APri3+xjIprjU+ZqoqQ1BiX4RhnHsXI1TKHGmLJHH3Yz8x1coFqlteSjAK0
+	 obDYrc7L+9p447eAviBsfZlorygaKcI7frnV7tZiew9zBW7MKOSFpi0F5yWjyEI1XW
+	 o3PDRZFVdZ8C9a2ZxuHDHEt6NKAGUyIvFdKclYSc=
+Date: Fri, 02 Oct 2026 14:12:41 -0700
 To: mm-commits@vger.kernel.org,urezki@gmail.com,glider@google.com,elver@google.com,dvyukov@google.com,dmytrokoziuk68@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-kmsan-fix-iounmap-metadata-teardown.patch added to mm-new branch
-Message-Id: <20261002211238.48B341F000FF@smtp.kernel.org>
+Subject: + mm-kmsan-fix-ioremap-error-cleanup.patch added to mm-new branch
+Message-Id: <20261002211241.ADA591F000FF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: kmsan: fix iounmap metadata teardown
+     Subject: mm: kmsan: fix ioremap error cleanup
 has been added to the -mm mm-new branch.  Its filename is
-     mm-kmsan-fix-iounmap-metadata-teardown.patch
+     mm-kmsan-fix-ioremap-error-cleanup.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-kmsan-fix-iounmap-metadata-teardown.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-kmsan-fix-ioremap-error-cleanup.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,200 +70,116 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Dima Koziuk <dmytrokoziuk68@gmail.com>
-Subject: mm: kmsan: fix iounmap metadata teardown
-Date: Fri,  2 Oct 2026 23:05:07 +0300
+Subject: mm: kmsan: fix ioremap error cleanup
+Date: Fri,  2 Oct 2026 23:05:08 +0300
 
-kmsan_vmalloc_to_page_or_null() rejects addresses outside the regular
-vmalloc and module ranges, including the shadow and origin addresses
-passed by its callers.  As a result, iounmap does not free the metadata
-backing pages.  Also, the first iteration of the teardown loop unmaps the
-entire metadata range, preventing subsequent iterations from finding their
-pages even if the address lookup is fixed.
+Looking further at kmsan_ioremap_page_range(), I found three cases where
+error cleanup leaks metadata blocks.
 
-Factor the page-table walk out of vmalloc_to_page() into
-__vmalloc_to_page(), keeping the address check in the public wrapper.  Use
-the unchecked helper in kmsan_vmalloc_to_page_or_null() and check for NULL
-before converting the returned page to a PFN.  Mark __vmalloc_to_page() as
-__always_inline to avoid an additional function call in vmalloc_to_page().
+1. If the first iteration fails, clean is zero and cleanup is skipped,
+   leaking any allocations that succeeded in that iteration.
 
-Move metadata teardown into kmsan_iounmap_pages().  Free the backing
-blocks while their mappings are still available, then unmap each metadata
-range once and flush its TLB entries.
+2. If shadow mapping succeeds but origin mapping fails, the shadow
+   pointer has already been cleared. Removing its mapping loses the
+   backing block.
 
-Link: https://lore.kernel.org/20261002200508.546-1-dmytrokoziuk68@gmail.com
-Fixes: b073d7f8aee4 ("mm: kmsan: maintain KMSAN metadata for page operations")
+3. On failures after completed iterations, cleanup removes the earlier
+   metadata mappings without freeing their backing blocks.
+
+The cleanup needed here is the same as for iounmap, so it makes sense to
+reuse kmsan_iounmap_pages().  Track the end of installed mappings with
+mapped_end and advance it after each successful shadow mapping.  This
+includes the current shadow block if origin mapping subsequently fails,
+while the helper skips the missing origin mapping.
+
+Run cleanup whenever err is non-zero.  Free allocations that have not been
+mapped directly, and use the shared helper to unmap and free the installed
+metadata, including blocks from completed iterations.
+
+Link: https://lore.kernel.org/20261002200508.546-2-dmytrokoziuk68@gmail.com
+Fixes: fdea03e12aa2 ("mm: kmsan: handle alloc failures in kmsan_ioremap_page_range()")
 Signed-off-by: Dima Koziuk <dmytrokoziuk68@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Suggested-by: Alexander Potapenko <glider@google.com>
-Link: https://lkml.iu.edu/2609.3/12748.html
+Reviewed-by: Alexander Potapenko <glider@google.com>
 Cc: Marco Elver <elver@google.com>
 Cc: Dmitry Vyukov <dvyukov@google.com>
 Cc: Uladzislau Rezki (Sony) <urezki@gmail.com>
 ---
 
- mm/kmsan/core.c  |    8 ++-----
- mm/kmsan/hooks.c |   51 +++++++++++++++++++++++++++++----------------
- mm/vmalloc.c     |   21 +++++++++++-------
- mm/vmalloc.h     |    1 
- 4 files changed, 50 insertions(+), 31 deletions(-)
+ mm/kmsan/hooks.c |   35 ++++++++++++-----------------------
+ 1 file changed, 12 insertions(+), 23 deletions(-)
 
---- a/mm/kmsan/core.c~mm-kmsan-fix-iounmap-metadata-teardown
-+++ a/mm/kmsan/core.c
-@@ -27,6 +27,7 @@
- #include <linux/vmalloc.h>
- 
- #include "../slab.h"
-+#include "../vmalloc.h"
- #include "kmsan.h"
- 
- bool kmsan_enabled __read_mostly;
-@@ -240,11 +241,8 @@ struct page *kmsan_vmalloc_to_page_or_nu
- {
- 	struct page *page;
- 
--	if (!kmsan_internal_is_vmalloc_addr(vaddr) &&
--	    !kmsan_internal_is_module_addr(vaddr))
--		return NULL;
--	page = vmalloc_to_page(vaddr);
--	if (pfn_valid(page_to_pfn(page)))
-+	page = __vmalloc_to_page(vaddr);
-+	if (page && pfn_valid(page_to_pfn(page)))
- 		return page;
- 	else
- 		return NULL;
---- a/mm/kmsan/hooks.c~mm-kmsan-fix-iounmap-metadata-teardown
+--- a/mm/kmsan/hooks.c~mm-kmsan-fix-ioremap-error-cleanup
 +++ a/mm/kmsan/hooks.c
-@@ -20,6 +20,8 @@
- #include <linux/uaccess.h>
- #include <linux/usb.h>
+@@ -186,16 +186,17 @@ int kmsan_ioremap_page_range(unsigned lo
+ 	gfp_t gfp_mask = GFP_KERNEL | __GFP_ZERO;
+ 	struct page *shadow, *origin;
+ 	unsigned long off = 0;
+-	int nr, err = 0, clean = 0, mapped;
++	unsigned long mapped_end = start;
++	int nr, err = 0, mapped;
  
-+#include <asm/tlbflush.h>
-+
- #include "../internal.h"
- #include "../vmalloc.h"
- #include "../slab.h"
-@@ -142,6 +144,36 @@ void kmsan_vunmap_range_noflush(unsigned
- 	flush_cache_vmap(vmalloc_origin(start), vmalloc_origin(end));
- }
- 
-+#define KMSAN_IOREMAP_META_ORDER 1
-+
-+static void kmsan_iounmap_pages(unsigned long start, unsigned long end)
-+{
-+	unsigned long shadow_start = vmalloc_shadow(start),
-+		      shadow_end = vmalloc_shadow(end);
-+	unsigned long origin_start = vmalloc_origin(start),
-+		      origin_end = vmalloc_origin(end);
-+	unsigned long v_shadow, v_origin;
-+	struct page *shadow, *origin;
-+	int nr;
-+
-+	nr = (end - start) / PAGE_SIZE;
-+	v_shadow = shadow_start;
-+	v_origin = origin_start;
-+	for (int i = 0; i < nr;
-+	     i++, v_shadow += PAGE_SIZE, v_origin += PAGE_SIZE) {
-+		shadow = kmsan_vmalloc_to_page_or_null((void *)v_shadow);
-+		origin = kmsan_vmalloc_to_page_or_null((void *)v_origin);
-+		if (shadow)
-+			__free_pages(shadow, KMSAN_IOREMAP_META_ORDER);
-+		if (origin)
-+			__free_pages(origin, KMSAN_IOREMAP_META_ORDER);
-+	}
-+	__vunmap_range_noflush(shadow_start, shadow_end);
-+	__vunmap_range_noflush(origin_start, origin_end);
-+	flush_tlb_kernel_range(shadow_start, shadow_end);
-+	flush_tlb_kernel_range(origin_start, origin_end);
-+}
-+
- /*
-  * This function creates new shadow/origin pages for the physical pages mapped
-  * into the virtual memory. If those physical pages already had shadow/origin,
-@@ -219,28 +251,11 @@ ret:
- 
- void kmsan_iounmap_page_range(unsigned long start, unsigned long end)
- {
--	unsigned long v_shadow, v_origin;
--	struct page *shadow, *origin;
--	int nr;
--
  	if (!kmsan_enabled || kmsan_in_runtime())
- 		return;
+ 		return 0;
  
--	nr = (end - start) / PAGE_SIZE;
+ 	nr = (end - start) / PAGE_SIZE;
  	kmsan_enter_runtime();
--	v_shadow = (unsigned long)vmalloc_shadow(start);
--	v_origin = (unsigned long)vmalloc_origin(start);
--	for (int i = 0; i < nr;
--	     i++, v_shadow += PAGE_SIZE, v_origin += PAGE_SIZE) {
--		shadow = kmsan_vmalloc_to_page_or_null((void *)v_shadow);
--		origin = kmsan_vmalloc_to_page_or_null((void *)v_origin);
--		__vunmap_range_noflush(v_shadow, vmalloc_shadow(end));
--		__vunmap_range_noflush(v_origin, vmalloc_origin(end));
--		if (shadow)
+-	for (int i = 0; i < nr; i++, off += PAGE_SIZE, clean = i) {
+-		shadow = alloc_pages(gfp_mask, 1);
+-		origin = alloc_pages(gfp_mask, 1);
++	for (int i = 0; i < nr; i++, off += PAGE_SIZE) {
++		shadow = alloc_pages(gfp_mask, KMSAN_IOREMAP_META_ORDER);
++		origin = alloc_pages(gfp_mask, KMSAN_IOREMAP_META_ORDER);
+ 		if (!shadow || !origin) {
+ 			err = -ENOMEM;
+ 			goto ret;
+@@ -209,39 +210,27 @@ int kmsan_ioremap_page_range(unsigned lo
+ 			goto ret;
+ 		}
+ 		shadow = NULL;
++		mapped_end = start + off + PAGE_SIZE;
+ 		mapped = __vmap_pages_range_noflush(
+ 			vmalloc_origin(start + off),
+ 			vmalloc_origin(start + off + PAGE_SIZE), prot, &origin,
+ 			PAGE_SHIFT);
+ 		if (mapped) {
+-			__vunmap_range_noflush(
+-				vmalloc_shadow(start + off),
+-				vmalloc_shadow(start + off + PAGE_SIZE));
+ 			err = mapped;
+ 			goto ret;
+ 		}
+ 		origin = NULL;
+ 	}
+-	/* Page mapping loop finished normally, nothing to clean up. */
+-	clean = 0;
+ 
+ ret:
+-	if (clean > 0) {
+-		/*
+-		 * Something went wrong. Clean up shadow/origin pages allocated
+-		 * on the last loop iteration, then delete mappings created
+-		 * during the previous iterations.
+-		 */
++	if (err) {
+ 		if (shadow)
 -			__free_pages(shadow, 1);
--		if (origin)
++			__free_pages(shadow, KMSAN_IOREMAP_META_ORDER);
+ 		if (origin)
 -			__free_pages(origin, 1);
--	}
-+	kmsan_iounmap_pages(start, end);
+-		__vunmap_range_noflush(
+-			vmalloc_shadow(start),
+-			vmalloc_shadow(start + clean * PAGE_SIZE));
+-		__vunmap_range_noflush(
+-			vmalloc_origin(start),
+-			vmalloc_origin(start + clean * PAGE_SIZE));
++			__free_pages(origin, KMSAN_IOREMAP_META_ORDER);
++
++		if (mapped_end > start)
++			kmsan_iounmap_pages(start, mapped_end);
+ 	}
  	flush_cache_vmap(vmalloc_shadow(start), vmalloc_shadow(end));
  	flush_cache_vmap(vmalloc_origin(start), vmalloc_origin(end));
- 	kmsan_leave_runtime();
---- a/mm/vmalloc.c~mm-kmsan-fix-iounmap-metadata-teardown
-+++ a/mm/vmalloc.c
-@@ -817,9 +817,10 @@ EXPORT_SYMBOL_GPL(is_vmalloc_or_module_a
- /*
-  * Walk a vmap address to the struct page it maps. Huge vmap mappings will
-  * return the tail page that corresponds to the base page address, which
-- * matches small vmap mappings.
-+ * matches small vmap mappings. Unlike vmalloc_to_page(), this also accepts
-+ * addresses outside the vmalloc and module ranges, such as KMSAN metadata.
-  */
--struct page *vmalloc_to_page(const void *vmalloc_addr)
-+__always_inline struct page *__vmalloc_to_page(const void *vmalloc_addr)
- {
- 	unsigned long addr = (unsigned long) vmalloc_addr;
- 	struct page *page = NULL;
-@@ -829,12 +830,6 @@ struct page *vmalloc_to_page(const void
- 	pmd_t *pmd;
- 	pte_t *ptep, pte;
- 
--	/*
--	 * XXX we might need to change this if we add VIRTUAL_BUG_ON for
--	 * architectures that do not vmalloc module space
--	 */
--	VIRTUAL_BUG_ON(!is_vmalloc_or_module_addr(vmalloc_addr));
--
- 	if (pgd_none(*pgd))
- 		return NULL;
- 	if (WARN_ON_ONCE(pgd_leaf(*pgd)))
-@@ -873,6 +868,16 @@ struct page *vmalloc_to_page(const void
- 
- 	return page;
- }
-+
-+struct page *vmalloc_to_page(const void *vmalloc_addr)
-+{
-+	/*
-+	 * XXX we might need to change this if we add VIRTUAL_BUG_ON for
-+	 * architectures that do not vmalloc module space
-+	 */
-+	VIRTUAL_BUG_ON(!is_vmalloc_or_module_addr(vmalloc_addr));
-+	return __vmalloc_to_page(vmalloc_addr);
-+}
- EXPORT_SYMBOL(vmalloc_to_page);
- 
- /*
---- a/mm/vmalloc.h~mm-kmsan-fix-iounmap-metadata-teardown
-+++ a/mm/vmalloc.h
-@@ -8,6 +8,7 @@
- #include <linux/vmalloc.h>
- 
- #ifdef CONFIG_MMU
-+struct page *__vmalloc_to_page(const void *vmalloc_addr);
- void __init vmalloc_init(void);
- int __must_check vmap_pages_range_noflush(unsigned long addr, unsigned long end,
- 		pgprot_t prot, struct page **pages,
 _
 
 Patches currently in -mm which might be from dmytrokoziuk68@gmail.com are
