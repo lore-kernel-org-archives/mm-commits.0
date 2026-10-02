@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2634E3955DB
-	for <mm-commits@vger.kernel.org>; Fri,  2 Oct 2026 21:12:41 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7538F365A19
+	for <mm-commits@vger.kernel.org>; Fri,  2 Oct 2026 21:22:02 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790975563; cv=none; b=u77gQerwaEukm6dHRm9IwWDlhjyJnekXpxt8gyQaslZax9ifK/e7GAZWZXLLYkldA+EXpsZlZPkyZFsd2vp168jv1iGQWdJoC6QlqcLq2r2ANlwj73ySlFSTyi0s7qvqVGD4k/Kcb7gN4XqXbGJgaoBF1sPBdszD8rpY26oQViE=
+	t=1790976125; cv=none; b=oIBxCgaJyGfeZJVXwsQyFD7xZEvS0YiQO5CPvu5VOCjVt8suX3Kng497hHGlSOQVbiF+jOk2F7gEaLgOfDLZvUvYt+M+1WCrCRhVfQU0HDcw4NEHy16phkfp+5q0Lw/oY5k64JwJgTtiFfLzb+MHx0bAEtvgMsyZmt/U6HZ/v9Q=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1790975563; c=relaxed/simple;
-	bh=6/Rp3y69cEXbDeocTxqqh7fwr7ZuUvtXNK7gPVyicwA=;
-	h=Date:To:From:Subject:Message-Id; b=ePyXobstoNdjehYe5qGYX7dO6YHNzD8qx8TZp6vOl5RXB4TsWsTRcGfeOZW6QogAl45glLzVr6feZKXx728ErGAvYEXBYUA+LokTLFahUyhnk+UYgOH/ebgklfBV0x1xSiO/CMR8abmd+apJ6e3mVFaPzKi19yW+IruKLwVPDJo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=nQO/l8AP; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1790976125; c=relaxed/simple;
+	bh=38jtKKBwOGSIDZHqXZbIM1V9bOyVLl/YeouMFahNmcI=;
+	h=Date:To:From:Subject:Message-Id; b=YaOFK9xY0E63eoEQ6FqUKmMXqb0VyW1bTw4gYpwOhirMSZZM3/DUdoPpEMl/xnvaU1mxzR7eO7DNTi2BC9OcUSBVoYq17WO0Ag8uR9lMDccdClR0DR+lGc+vB2g9VOM+4qMCLXRhgJcIFvfeEa16W27xbQ+0uhEVrCbr6SNN0bU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=cHiVdsm5; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="nQO/l8AP"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id ADA591F000FF;
-	Fri,  2 Oct 2026 21:12:41 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="cHiVdsm5"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 115121F000FF;
+	Fri,  2 Oct 2026 21:22:02 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1790975561;
-	bh=5lvrSZi3lt+1zd1wzZlDG7ke/VcdURfaeZEqVWHHyhk=;
+	d=linux-foundation.org; s=korg; t=1790976122;
+	bh=oO+DjsdVCRmDi7kyiKrBuIypwsnnP0gdj7rr80dVOSk=;
 	h=Date:To:From:Subject;
-	b=nQO/l8APri3+xjIprjU+ZqoqQ1BiX4RhnHsXI1TKHGmLJHH3Yz8x1coFqlteSjAK0
-	 obDYrc7L+9p447eAviBsfZlorygaKcI7frnV7tZiew9zBW7MKOSFpi0F5yWjyEI1XW
-	 o3PDRZFVdZ8C9a2ZxuHDHEt6NKAGUyIvFdKclYSc=
-Date: Fri, 02 Oct 2026 14:12:41 -0700
-To: mm-commits@vger.kernel.org,urezki@gmail.com,glider@google.com,elver@google.com,dvyukov@google.com,dmytrokoziuk68@gmail.com,akpm@linux-foundation.org
+	b=cHiVdsm5LnUZFfdVVZwmUAL6xy5iRjh1I+ouA3brLPjjNXM5xow7aMhHUostzoxTJ
+	 +BwE4V18LfdXTI/v84Hc6rDCpoXnbd0F7dGeAganoSDdMrMtVNFPtJKp4NvqoTp5AH
+	 UcccvjHERAV8ZVA5BI6EHGIJbypWYWp1mC/NNymU=
+Date: Fri, 02 Oct 2026 14:22:01 -0700
+To: mm-commits@vger.kernel.org,tglx@kernel.org,include@grrlz.net,glider@google.com,elver@google.com,dvyukov@google.com,brads@mainlining.org,andreyknvl@gmail.com,kmehltretter@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-kmsan-fix-ioremap-error-cleanup.patch added to mm-new branch
-Message-Id: <20261002211241.ADA591F000FF@smtp.kernel.org>
+Subject: + kcov-report-spurious-pcs-in-the-interrupt-selftest.patch added to mm-nonmm-unstable branch
+Message-Id: <20261002212202.115121F000FF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,26 +35,15 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: kmsan: fix ioremap error cleanup
-has been added to the -mm mm-new branch.  Its filename is
-     mm-kmsan-fix-ioremap-error-cleanup.patch
+     Subject: kcov: report spurious PCs in the interrupt selftest
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     kcov-report-spurious-pcs-in-the-interrupt-selftest.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-kmsan-fix-ioremap-error-cleanup.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kcov-report-spurious-pcs-in-the-interrupt-selftest.patch
 
-This patch will later appear in the mm-new branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Note, mm-new is a provisional staging ground for work-in-progress
-patches, and acceptance into mm-new is a notification for others take
-notice and to finish up reviews.  Please do not hesitate to respond to
-review feedback and post updated versions to replace or incrementally
-fixup patches in mm-new.
-
-The mm-new branch of mm.git is not included in linux-next
-
-If a few days of testing in mm-new is successful, the patch will me moved
-into mm.git's mm-unstable branch, which is included in linux-next
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -69,121 +58,131 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Dima Koziuk <dmytrokoziuk68@gmail.com>
-Subject: mm: kmsan: fix ioremap error cleanup
-Date: Fri,  2 Oct 2026 23:05:08 +0300
+From: Karl Mehltretter <kmehltretter@gmail.com>
+Subject: kcov: report spurious PCs in the interrupt selftest
+Date: Fri,  2 Oct 2026 20:13:57 +0200
 
-Looking further at kmsan_ioremap_page_range(), I found three cases where
-error cleanup leaks metadata blocks.
+The KCOV interrupt selftest enables KCOV_MODE_TRACE_PC without a coverage
+area so that spurious coverage causes a fault.  If the fault path is
+instrumented, the coverage callback faults recursively.  Observed failure
+modes include a stack overflow on x86_64 and arm32 getting stuck in abort
+handling, neither of which identifies the original coverage event.
 
-1. If the first iteration fails, clean is zero and cleanup is skipped,
-   leaking any allocations that succeeded in that iteration.
+The recursive failure is not new, but commit 9a79524d1420 ("kcov: use
+WRITE_ONCE() for selftest mode stores") made the selftest effective on
+configurations where the compiler had previously removed the mode store,
+exposing it more broadly.
 
-2. If shadow mapping succeeds but origin mapping fails, the shadow
-   pointer has already been cleared. Removing its mapping loses the
-   backing block.
+Replace the open-coded kcov_mode stores with kcov_start() and kcov_stop(),
+passing a 16-word buffer that records up to 15 spurious PCs, with the
+first word holding the count.  Keep KCOV enabled for the original 300 ms
+window, then disable it, print all recorded PCs and panic if any were
+recorded.  Once the buffer fills, further PCs are discarded by the
+existing coverage callback.  This preserves the selftest's hard failure
+while avoiding the recursive fault path.
 
-3. On failures after completed iterations, cleanup removes the earlier
-   metadata mappings without freeing their backing blocks.
+Add decanonicalize_ip() as the inverse of canonicalize_ip(), which
+subtracts kaslr_offset() from recorded PCs.  Restore that offset before
+printing the PCs with %pB, since KCOV records return addresses.
 
-The cleanup needed here is the same as for iounmap, so it makes sense to
-reuse kmsan_iounmap_pages().  Track the end of installed mappings with
-mapped_end and advance it after each successful shadow mapping.  This
-includes the current shadow block if origin mapping subsequently fails,
-while the helper skips the missing origin mapping.
-
-Run cleanup whenever err is non-zero.  Free allocations that have not been
-mapped directly, and use the shared helper to unmap and free the installed
-metadata, including blocks from completed iterations.
-
-Link: https://lore.kernel.org/20261002200508.546-2-dmytrokoziuk68@gmail.com
-Fixes: fdea03e12aa2 ("mm: kmsan: handle alloc failures in kmsan_ioremap_page_range()")
-Signed-off-by: Dima Koziuk <dmytrokoziuk68@gmail.com>
+Link: https://lore.kernel.org/20261002181357.14293-1-kmehltretter@gmail.com
+Fixes: 6cd0dd934b03 ("kcov: Add interrupt handling self test")
+Signed-off-by: Karl Mehltretter <kmehltretter@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+Tested-by: Alexander Potapenko <glider@google.com>
 Reviewed-by: Alexander Potapenko <glider@google.com>
-Cc: Marco Elver <elver@google.com>
+Tested-by: Bradley Morgan <brads@mainlining.org> # Power10
+Reviewed-by: Bradley Morgan <brads@mainlining.org>
+Assisted-by: LLM
+Cc: Andrey Konovalov <andreyknvl@gmail.com>
 Cc: Dmitry Vyukov <dvyukov@google.com>
-Cc: Uladzislau Rezki (Sony) <urezki@gmail.com>
+Cc: Marco Elver <elver@google.com>
+Cc: Bradley Morgan <include@grrlz.net>
+Cc: Thomas Gleixner <tglx@kernel.org>
 ---
 
- mm/kmsan/hooks.c |   35 ++++++++++++-----------------------
- 1 file changed, 12 insertions(+), 23 deletions(-)
+ kernel/kcov.c |   35 +++++++++++++++++++++++++++++------
+ 1 file changed, 29 insertions(+), 6 deletions(-)
 
---- a/mm/kmsan/hooks.c~mm-kmsan-fix-ioremap-error-cleanup
-+++ a/mm/kmsan/hooks.c
-@@ -186,16 +186,17 @@ int kmsan_ioremap_page_range(unsigned lo
- 	gfp_t gfp_mask = GFP_KERNEL | __GFP_ZERO;
- 	struct page *shadow, *origin;
- 	unsigned long off = 0;
--	int nr, err = 0, clean = 0, mapped;
-+	unsigned long mapped_end = start;
-+	int nr, err = 0, mapped;
+--- a/kernel/kcov.c~kcov-report-spurious-pcs-in-the-interrupt-selftest
++++ a/kernel/kcov.c
+@@ -198,6 +198,16 @@ static notrace unsigned long canonicaliz
+ 	return ip;
+ }
  
- 	if (!kmsan_enabled || kmsan_in_runtime())
- 		return 0;
- 
- 	nr = (end - start) / PAGE_SIZE;
- 	kmsan_enter_runtime();
--	for (int i = 0; i < nr; i++, off += PAGE_SIZE, clean = i) {
--		shadow = alloc_pages(gfp_mask, 1);
--		origin = alloc_pages(gfp_mask, 1);
-+	for (int i = 0; i < nr; i++, off += PAGE_SIZE) {
-+		shadow = alloc_pages(gfp_mask, KMSAN_IOREMAP_META_ORDER);
-+		origin = alloc_pages(gfp_mask, KMSAN_IOREMAP_META_ORDER);
- 		if (!shadow || !origin) {
- 			err = -ENOMEM;
- 			goto ret;
-@@ -209,39 +210,27 @@ int kmsan_ioremap_page_range(unsigned lo
- 			goto ret;
- 		}
- 		shadow = NULL;
-+		mapped_end = start + off + PAGE_SIZE;
- 		mapped = __vmap_pages_range_noflush(
- 			vmalloc_origin(start + off),
- 			vmalloc_origin(start + off + PAGE_SIZE), prot, &origin,
- 			PAGE_SHIFT);
- 		if (mapped) {
--			__vunmap_range_noflush(
--				vmalloc_shadow(start + off),
--				vmalloc_shadow(start + off + PAGE_SIZE));
- 			err = mapped;
- 			goto ret;
- 		}
- 		origin = NULL;
- 	}
--	/* Page mapping loop finished normally, nothing to clean up. */
--	clean = 0;
- 
- ret:
--	if (clean > 0) {
--		/*
--		 * Something went wrong. Clean up shadow/origin pages allocated
--		 * on the last loop iteration, then delete mappings created
--		 * during the previous iterations.
--		 */
-+	if (err) {
- 		if (shadow)
--			__free_pages(shadow, 1);
-+			__free_pages(shadow, KMSAN_IOREMAP_META_ORDER);
- 		if (origin)
--			__free_pages(origin, 1);
--		__vunmap_range_noflush(
--			vmalloc_shadow(start),
--			vmalloc_shadow(start + clean * PAGE_SIZE));
--		__vunmap_range_noflush(
--			vmalloc_origin(start),
--			vmalloc_origin(start + clean * PAGE_SIZE));
-+			__free_pages(origin, KMSAN_IOREMAP_META_ORDER);
++#ifdef CONFIG_KCOV_SELFTEST
++static unsigned long __init decanonicalize_ip(unsigned long ip)
++{
++#ifdef CONFIG_RANDOMIZE_BASE
++	ip += kaslr_offset();
++#endif
++	return ip;
++}
++#endif
 +
-+		if (mapped_end > start)
-+			kmsan_iounmap_pages(start, mapped_end);
- 	}
- 	flush_cache_vmap(vmalloc_shadow(start), vmalloc_shadow(end));
- 	flush_cache_vmap(vmalloc_origin(start), vmalloc_origin(end));
+ /*
+  * Entry point from instrumented code.
+  * This is called once per basic-block/edge.
+@@ -1107,9 +1117,11 @@ struct kcov_common_handle_id kcov_common
+ EXPORT_SYMBOL(kcov_common_handle);
+ 
+ #ifdef CONFIG_KCOV_SELFTEST
++static unsigned long selftest_area[16] __initdata;
++
+ static void __init selftest(void)
+ {
+-	unsigned long start;
++	unsigned long start, i, ip, count;
+ 
+ 	pr_err("running self test\n");
+ 	/*
+@@ -1119,15 +1131,26 @@ static void __init selftest(void)
+ 	 * leaks out of that section and leads to spurious coverage.
+ 	 * It's hard to call the actual interrupt handler directly,
+ 	 * so we just loop here for a bit waiting for a timer interrupt.
+-	 * We set kcov_mode to enable tracing, but don't setup the area,
+-	 * so any attempt to trace will crash. Note: we must not call any
++	 * A small coverage area records the PCs of any leaks. The first word
++	 * holds the count, leaving room for 15 PCs. Note: we must not call any
+ 	 * potentially traced functions in this region.
+ 	 */
++	kcov_start(current, NULL, ARRAY_SIZE(selftest_area),
++		   selftest_area, KCOV_MODE_TRACE_PC, 0);
+ 	start = jiffies;
+-	WRITE_ONCE(current->kcov_mode, KCOV_MODE_TRACE_PC);
+ 	while ((jiffies - start) * MSEC_PER_SEC / HZ < 300)
+-		;
+-	WRITE_ONCE(current->kcov_mode, 0);
++		cpu_relax();
++	kcov_stop(current);
++
++	count = READ_ONCE(selftest_area[0]);
++	if (count) {
++		pr_err("spurious coverage detected during interrupt selftest:\n");
++		for (i = 1; i <= count; i++) {
++			ip = decanonicalize_ip(selftest_area[i]);
++			pr_err("  %pB\n", (void *)ip);
++		}
++		panic("kcov: interrupt selftest detected spurious coverage");
++	}
+ 	pr_err("done running self test\n");
+ }
+ #endif
 _
 
-Patches currently in -mm which might be from dmytrokoziuk68@gmail.com are
+Patches currently in -mm which might be from kmehltretter@gmail.com are
 
-mm-kmsan-fix-iounmap-metadata-teardown.patch
-mm-kmsan-fix-ioremap-error-cleanup.patch
+mm-damon-core-handle-uninitialized-damos_quota_goal-last_psi_total-fix.patch
+docs-mm-ksm-use-the-renamed-ksm-structure-names.patch
+mm-secretmem-fix-the-enable-parameter-description.patch
+mm-damon-core-preserve-the-quota-passed-to-damon_new_scheme.patch
+mm-damon-tests-core-kunit-test-preservation-of-quota-state.patch
+mm-damon-tests-core-kunit-test-psi-goal-values-with-explicit-samples.patch
+klist-avoid-accesses-after-waking-klist_remove.patch
+squashfs-fix-fragment-index-table-sizing-overflow-on-32-bit.patch
+squashfs-make-the-fragment-index-table-bounds-check-overflow-safe.patch
+fork-honor-task_structs-declared-alignment.patch
+ocfs2-cluster-hold-a-reference-on-the-heartbeat-thread.patch
+resource-kunit-stop-selecting-get_free_region.patch
+kcov-report-spurious-pcs-in-the-interrupt-selftest.patch
 
