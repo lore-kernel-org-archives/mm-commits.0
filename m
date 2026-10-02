@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 32911407597
-	for <mm-commits@vger.kernel.org>; Fri,  2 Oct 2026 21:24:27 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CF44F43E9D2;
+	Fri,  2 Oct 2026 22:16:40 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790976268; cv=none; b=MWPcVgvA5+SMHaz6LpkDP2Ky9fllV0gbvjXPSJutemaT1PCdFqzf7F+Elv2QwHz6r005oph5xrCa6op8ULOoUhLdkwVlNAeYil0mIJCAkwMclgqENgbj4gWdXVl8wAtsZzfu5cyPu9J1mrWqjYlbtl/PRBn+T2raiLL4QnZ4upI=
+	t=1790979402; cv=none; b=FJ+9ookIzDiGCOfAnNi21xcH/IsfvfHUqvaQYg1pIh8Pcyqx424IddYdi9cwVxTjeYCtMCG23fAxdbyWutAmYwGirQj+Aopmtfe8a/QOYY495XBv/JOG01eGTohUr8uOL3qhak51nZa0x2zdGqVgybN4Udjpi9k+UrAPjUduZow=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1790976268; c=relaxed/simple;
-	bh=KaFwxL3tyFqaXhwoaq6vEB5J479MmYBQ6rJ/yqeC5P8=;
-	h=Date:To:From:Subject:Message-Id; b=De7lsW2Lh/f/dw7qD6CW+l8caym0NoPv77lNNBI1N/kdUubYkp8rakQJz+M3a7P7wb1l/HhQZvt739IvJ2/Cs+rqKTI1kjld/sxAWthsTfDzt9Lm5n3myFj1VdV/R8C5QoJ86PZGJKuLmkQEdehLDWoIMGbLDlUpNwlLSpNhCHM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=oMT3tOk5; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1790979402; c=relaxed/simple;
+	bh=bgHyRvxdRm2EmCTi8aSiEuilE6BMY2IeCVUd3CzVYhg=;
+	h=Date:To:From:Subject:Message-Id; b=N8+z8aNp1amj+V/iHIczPo3TLCdlzXp5xhBri0cZpZEckeQwqeS++tjxUB8CLyM94E02a9P6cvaAyTFOBvptP7P/aHz29CUxR5vh+3x2UH/jVwaPH/o2m37lLtx24jGqr6hpA1EdmafuDCnx6KKC8O6KY4qyy1jSQMaCqCtE0Jo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=xtevqPCE; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="oMT3tOk5"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E61B91F000FF;
-	Fri,  2 Oct 2026 21:24:26 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="xtevqPCE"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2D67B1F000FF;
+	Fri,  2 Oct 2026 22:16:40 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1790976267;
-	bh=jwiX8bB8z8CzjomJFZp7/zI5eAJO2fipHQZO1JANQ+k=;
+	d=linux-foundation.org; s=korg; t=1790979400;
+	bh=t8Zjuzbzeud5bj3jW6VeBQgyowcXFlqb38tXHDAM6E8=;
 	h=Date:To:From:Subject;
-	b=oMT3tOk5ZJxB2gaiDN6HBgyDgN4dW4rPLa08ELQnnrKtcLMiUqXlAUSIRDd//MiKP
-	 NGeEB6iE4Hg7DrlOW+U5GYAu1ceLSpC/RRDC5nOyJcRL5SYdZlpz1eJr/YqRn+pJVJ
-	 XZScaAiMC+qvMGT+Kb2I8v5RjnZbLGMtrF29nUiM=
-Date: Fri, 02 Oct 2026 14:24:26 -0700
-To: mm-commits@vger.kernel.org,tglx@kernel.org,dianders@chromium.org,blum@kernel.org,brads@mainlining.org,akpm@linux-foundation.org
+	b=xtevqPCEmgIiONC52l6h4/7QsXZn/HsiF29EESKk+x5znQBkDoATBnAW6OzPpgEjN
+	 Y6acL3R5bZ7JM4+9Wq2vjtVYKwpl2Hh5DynLUzlUaI2nTTNc7bDniAzFxsw/inWA0p
+	 ASFiSg84RIH1oZVEUgvgQAAtj+KMA3S99aaj2P0s=
+Date: Fri, 02 Oct 2026 15:16:39 -0700
+To: mm-commits@vger.kernel.org,xu.xin@linux.dev,stable@vger.kernel.org,bsingharora@gmail.com,tjdqudcks0424@naver.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + watchdog-perf-reject-empty-config-before-the-raw-event-parse.patch added to mm-nonmm-unstable branch
-Message-Id: <20261002212426.E61B91F000FF@smtp.kernel.org>
+Subject: [to-be-updated] taskstats-restrict-exit-listener-registration-to-init_net.patch removed from -mm tree
+Message-Id: <20261002221640.2D67B1F000FF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,82 +34,66 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The patch titled
-     Subject: watchdog/perf: reject empty config before the raw event parse
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     watchdog-perf-reject-empty-config-before-the-raw-event-parse.patch
+The quilt patch titled
+     Subject: taskstats: restrict exit listener registration to init_net
+has been removed from the -mm tree.  Its filename was
+     taskstats-restrict-exit-listener-registration-to-init_net.patch
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/watchdog-perf-reject-empty-config-before-the-raw-event-parse.patch
-
-This patch will later appear in the mm-nonmm-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via various
-branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there most days
+This patch was dropped because an updated version will be issued
 
 ------------------------------------------------------
-From: Bradley Morgan <brads@mainlining.org>
-Subject: watchdog/perf: reject empty config before the raw event parse
-Date: Fri, 2 Oct 2026 17:39:13 +0000
+From: 성병찬 <tjdqudcks0424@naver.com>
+Subject: taskstats: restrict exit listener registration to init_net
+Date: Fri,  2 Oct 2026 07:37:20 +0900
 
-Commit 6164be01f179 ("watchdog/perf: optimize bytes copied and remove
-manual NUL-termination") replaced strscpy(buf, str, sizeof(buf)) plus a
-manual buf[len] = 0 with strscpy(buf, str, len).  strscpy() writes nothing
-at all when the count is zero, so on a comma directly after the "r"
-prefix, nmi_watchdog=r,1 for example, len is 0, buf stays uninitialized,
-and kstrtoull() parses whatever stack garbage is there.
+Taskstats exit listeners are stored globally per CPU as bare netlink port
+IDs, while exit records are always sent through init_net.  Since commit
+edc73c7261ca ("kernel: make taskstats available from all net namespaces"),
+a task in the initial user and PID namespaces can register a listener from
+a child network namespace.
 
-The old code was safe here by accident, strscpy() filled the whole buffer
-before buf[len] = 0 overwrote the comma position, so a zero length just
-produced an empty string and a clean parse failure.
+An unprivileged init_net socket can bind the same namespace-local port ID
+and receive another UID task's complete exit record.  Direct taskstats
+queries and listener registration by that receiver remain denied with
+EPERM.
 
-Treat an empty config the same as an overlong one and return early.
+Reject CPU-mask listener registration and deregistration outside init_net.
+Keep PID and TGID queries available from non-initial network namespaces,
+preserving the getdelays use case added by the cited commit.
 
-Link: https://lore.kernel.org/20261002175000.1-brads@mainlining.org
-Fixes: 6164be01f179 ("watchdog/perf: optimize bytes copied and remove manual NUL-termination")
-Signed-off-by: Bradley Morgan <brads@mainlining.org>
+AI-assisted source review helped identify this issue.  The code path,
+security boundary, and three reproductions on both v7.2.8 and current
+mainline were manually verified in isolated QEMU guests.
+
+Link: https://lore.kernel.org/20261001223721.458667-2-tjdqudcks0424@naver.com
+Link: https://lore.kernel.org/all/20110630120831.GB7707@albatros/
+Link: https://lore.kernel.org/all/87v8x678ph.fsf@email.froward.int.ebiederm.org/
+Fixes: edc73c7261ca ("kernel: make taskstats available from all net namespaces")
+Signed-off-by: 성병찬 <tjdqudcks0424@naver.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Cc: Thorsten Blum <blum@kernel.org>
-Cc: Thomas Gleixner <tglx@kernel.org>
-Cc: Douglas Anderson <dianders@chromium.org>
+Balbir Singh <balbirs@nvidia.com>
+Cc: <bsingharora@gmail.com>
+Cc: <xu.xin@linux.dev>
+Cc: <stable@vger.kernel.org>
 ---
 
- kernel/watchdog_perf.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ kernel/taskstats.c |    3 +++
+ 1 file changed, 3 insertions(+)
 
---- a/kernel/watchdog_perf.c~watchdog-perf-reject-empty-config-before-the-raw-event-parse
-+++ a/kernel/watchdog_perf.c
-@@ -301,7 +301,7 @@ void __init hardlockup_config_perf_event
- 	} else {
- 		unsigned int len = comma - str;
+--- a/kernel/taskstats.c~taskstats-restrict-exit-listener-registration-to-init_net
++++ a/kernel/taskstats.c
+@@ -454,6 +454,9 @@ static int cmd_attr_cpumask(struct genl_
+ 	cpumask_var_t mask __free(free_cpumask_var) = CPUMASK_VAR_NULL;
+ 	int rc;
  
--		if (len > sizeof(buf))
-+		if (!len || len > sizeof(buf))
- 			return;
- 
- 		strscpy(buf, str, len);
++	if (!net_eq(genl_info_net(info), &init_net))
++		return -EINVAL;
++
+ 	if (!alloc_cpumask_var(&mask, GFP_KERNEL))
+ 		return -ENOMEM;
+ 	rc = parse(info->attrs[attr], mask);
 _
 
-Patches currently in -mm which might be from brads@mainlining.org are
+Patches currently in -mm which might be from tjdqudcks0424@naver.com are
 
-taskstats-copy-signal-stats-under-siglock-in-taskstats_exit.patch
-mailmap-update-email-address-for-bradley-morgan.patch
-taskstats-drop-the-unused-cpu_dont_care-enum-member.patch
-panic-fix-redirect-cpu-race-in-panic_try_force_cpu.patch
-panic-flatten-nmi_panic-control-flow.patch
-panic-fix-va_list-reuse-in-panic_try_force_cpu.patch
-panic-restore-variable-arguments-to-nmi_panic.patch
-panic-allow-force_cpu-redirect-from-an-nmi.patch
-panic-kill-the-buffer-unavailable-redirect-fallback.patch
-watchdog-perf-reject-empty-config-before-the-raw-event-parse.patch
 
