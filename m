@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3A1013B71B8
-	for <mm-commits@vger.kernel.org>; Sat,  3 Oct 2026 23:35:18 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 529A637F012
+	for <mm-commits@vger.kernel.org>; Sat,  3 Oct 2026 23:35:20 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791070520; cv=none; b=LPvVYbCh6pZ5vq5o48msT0jqJbvge1l6+lf8c2oJRROy/2Z7E+y91RXDepVPB2g0fYX6mqSePEvI2BdhyDgfrIH4ZK+DKf15wgzWDwOBewn7zvOe72OnY2sASP1OhhsUVWxOfm9wvAAW894hCd21+ZpiBfEVI3uSy+zyX8pdVZQ=
+	t=1791070523; cv=none; b=I0KxRgkh7lSozEUZQ3/tppuNz9YvrsC0I2Lu0tkZvHTYT4iWJESxsQznt34Ks/oiPEcN4YxFGR1/I1cffGMtGL0MFeKOWnI8GoLBTVhjeWQzOd1JMEZVAIKmWTwzC71P54D7tgT0o7DhujrJ2qLIIW2h24sveti3DEalb7Qy6B4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791070520; c=relaxed/simple;
-	bh=aqJ9vhxXvBfDxdPavY/SrRhiqHUb79Vbgcby8w6KNro=;
-	h=Date:To:From:Subject:Message-Id; b=OiG9/f81aasGxGt1320NK8uiaQJxf90NiK+hchNM+L57jo57tIYEbthrS9T4wfuYCvF8K/dvTOWo4UlLDgVFGVe/mYaGGo623Wb6As+dwS4+zOe0Ji3UU7w/R0SAYgETKSv9hlhyZXCXcfuVIzxofofdaorP103kOiVtdil4DIQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=aHX9mqb+; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1791070523; c=relaxed/simple;
+	bh=c0ar6bq+e61xqbgjlfiytKhdIBrtiKjZj7UoJcKbgww=;
+	h=Date:To:From:Subject:Message-Id; b=C0wNj2jWmB8T2V2F9Vc7NUdJi77JQNjfIINbBJuwDSZ03vnMttR4dr6ojK8bBofRif71IDi4F7dyLmFE6tOQx7Z/soUwg83Nxt1w7ce6WXL6WqY5Gr/Q2WTdQdcTlSfnvmAKTqM9LY9MPW0mfBxHJNpvwVflewmwaUAI+lqLYa0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ktD/Kbgc; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="aHX9mqb+"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0E69B1F0089E;
-	Sat,  3 Oct 2026 23:35:18 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ktD/Kbgc"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 825FB1F0089B;
+	Sat,  3 Oct 2026 23:35:20 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1791070518;
-	bh=DM2E3rtvqUXSv5XxRwKrJqVSZFyGQc8oSXS7BK+ODSQ=;
+	d=linux-foundation.org; s=korg; t=1791070520;
+	bh=sZAg8r4WW3h6rpKDoeIyMPobk7p4GdM2x2bGh7pF3OI=;
 	h=Date:To:From:Subject;
-	b=aHX9mqb+0oam3+abQcefB9sxnfI+uPV11gWISMx/fttfu1GRon8YI8tUaRMAIZe32
-	 2mN3CBxwTBE9bV9nYsC+qKHoQTWdpkm66RtLPScvBtZ5BoYRJELg2tT2R1PYf6T8uA
-	 8cFDNqYNoggNw4Pyl1Zvf1Puh/H89XLF/XGEFeeE=
-Date: Sat, 03 Oct 2026 16:35:17 -0700
+	b=ktD/KbgcR8VtbTGo1qnIQO8TbujrKKwOYqo7s5URJmcAf2jZIr2ce/1s3ObtKPI7b
+	 e2XlrJEcdtnnHR/CUuudGq1FI1dNQimSbLnWgdyYHjFBQolrK7GFCX1q85Y8gqShsK
+	 +vq01B4mJE7wWG6VyBKBRG8Y6OiqLOISgfrnerqI=
+Date: Sat, 03 Oct 2026 16:35:20 -0700
 To: mm-commits@vger.kernel.org,ljs@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + fbdev-defio-assert-fbinfo_virtfb-drop-vm_io-add-vm_mixedmap.patch added to mm-unstable branch
-Message-Id: <20261003233518.0E69B1F0089E@smtp.kernel.org>
+Subject: + hsi-cmt_speech-convert-mmap-hook-to-mmap_prepare-refactor.patch added to mm-unstable branch
+Message-Id: <20261003233520.825FB1F0089B@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: fbdev: defio: assert FBINFO_VIRTFB, drop VM_IO, add VM_MIXEDMAP
+     Subject: HSI: cmt_speech: convert mmap hook to mmap_prepare, refactor
 has been added to the -mm mm-unstable branch.  Its filename is
-     fbdev-defio-assert-fbinfo_virtfb-drop-vm_io-add-vm_mixedmap.patch
+     hsi-cmt_speech-convert-mmap-hook-to-mmap_prepare-refactor.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/fbdev-defio-assert-fbinfo_virtfb-drop-vm_io-add-vm_mixedmap.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/hsi-cmt_speech-convert-mmap-hook-to-mmap_prepare-refactor.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,29 +59,23 @@ and is updated there most days
 
 ------------------------------------------------------
 From: "Lorenzo Stoakes (ARM)" <ljs@kernel.org>
-Subject: fbdev: defio: assert FBINFO_VIRTFB, drop VM_IO, add VM_MIXEDMAP
-Date: Sat, 03 Oct 2026 17:32:49 +0100
+Subject: HSI: cmt_speech: convert mmap hook to mmap_prepare, refactor
+Date: Sat, 03 Oct 2026 17:32:50 +0100
 
-Currently all drivers which use defio allocate system memory. All of them
-also set FBINFO_VIRTFB, other than ssd1307fb, however this driver allocates
-system RAM, so simply failed to set this flag when it ought to.
+Use the mmap_prepare in favour of the deprecated mmap hook as part of the
+work to convert one to another.
 
-This patch sets FBINFO_VIRTFB on ssd1307fb probe, then drops setting VM_IO
-in fb_deferred_io_mmap() and instead requires FBINFO_VIRTFB to be set,
-erroring out with a kernel warning if not.
+Since this is simply a refcounted kernel page that has been allocated, it
+should not be marked VM_IO and should be inserted using the kernel page
+insertion mechanism, so convert it to do this instead.
 
-The logic requires a page from the driver and since commit 1ecbc7dd2902
-("fbdev/deferred-io: Always call get_page() for framebuffer pages") has
-always required it to be refcounted, so this was implicitly already the
-case.
+Use the VMA descriptor's private data field as a scratch buffer to store
+the page in - this stays valid throughout the kernel page mapping
+operation.
 
-Finally this patch sets VM_MIXEDMAP, as the logic is mapping
-kernel-allocated memory so this is appropriate.
-
-Link: https://lore.kernel.org/20261003-b4-mmap-prepare-vma-flag-sanify-v4-18-a1f052500fd7@kernel.org
+Link: https://lore.kernel.org/20261003-b4-mmap-prepare-vma-flag-sanify-v4-19-a1f052500fd7@kernel.org
 Signed-off-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Reviewed-by: Thomas Zimmermann <tzimmermann@suse.de>
 Cc: Liam R. Howlett <liam@infradead.org>
 Cc: Vlastimil Babka <vbabka@kernel.org>
 Cc: Jann Horn <jannh@google.com>
@@ -137,6 +131,7 @@ Cc: Juri Lelli <juri.lelli@redhat.com>
 Cc: Vincent Guittot <vincent.guittot@linaro.org>
 Cc: Maarten Lankhorst <maarten.lankhorst@linux.intel.com>
 Cc: Maxime Ripard <mripard@kernel.org>
+Cc: Thomas Zimmermann <tzimmermann@suse.de>
 Cc: David Airlie <airlied@gmail.com>
 Cc: Will Deacon <will@kernel.org>
 Cc: Aneesh Kumar K.V <aneesh.kumar@kernel.org>
@@ -190,40 +185,70 @@ Cc: Miklos Szeredi <miklos@szeredi.hu>
 Cc: Xu Xin <xu.xin@linux.dev>
 ---
 
- drivers/video/fbdev/core/fb_defio.c |    6 +++---
- drivers/video/fbdev/ssd1307fb.c     |    2 ++
- 2 files changed, 5 insertions(+), 3 deletions(-)
+ drivers/hsi/clients/cmt_speech.c |   33 +++++++----------------------
+ 1 file changed, 9 insertions(+), 24 deletions(-)
 
---- a/drivers/video/fbdev/core/fb_defio.c~fbdev-defio-assert-fbinfo_virtfb-drop-vm_io-add-vm_mixedmap
-+++ a/drivers/video/fbdev/core/fb_defio.c
-@@ -366,13 +366,13 @@ int fb_deferred_io_mmap(struct fb_info *
- {
- 	vma->vm_page_prot = pgprot_decrypted(vma->vm_page_prot);
+--- a/drivers/hsi/clients/cmt_speech.c~hsi-cmt_speech-convert-mmap-hook-to-mmap_prepare-refactor
++++ a/drivers/hsi/clients/cmt_speech.c
+@@ -1084,22 +1084,6 @@ static void cs_hsi_stop(struct cs_hsi_if
+ 	kfree(hi);
+ }
  
-+	if (WARN_ON_ONCE(!(info->flags & FBINFO_VIRTFB)))
-+		return -EINVAL;
- 	if (!try_module_get(THIS_MODULE))
+-static vm_fault_t cs_char_vma_fault(struct vm_fault *vmf)
+-{
+-	struct cs_char *csdata = vmf->vma->vm_private_data;
+-	struct page *page;
+-
+-	page = virt_to_page((void *)csdata->mmap_base);
+-	get_page(page);
+-	vmf->page = page;
+-
+-	return 0;
+-}
+-
+-static const struct vm_operations_struct cs_char_vm_ops = {
+-	.fault	= cs_char_vma_fault,
+-};
+-
+ static int cs_char_fasync(int fd, struct file *file, int on)
+ {
+ 	struct cs_char *csdata = file->private_data;
+@@ -1256,18 +1240,19 @@ static long cs_char_ioctl(struct file *f
+ 	return r;
+ }
+ 
+-static int cs_char_mmap(struct file *file, struct vm_area_struct *vma)
++static int cs_char_mmap_prepare(struct vm_area_desc *desc)
+ {
+-	if (vma->vm_end < vma->vm_start)
+-		return -EINVAL;
++	struct file *file = desc->file;
++	struct cs_char *csdata = file->private_data;
++	struct page **pages = (struct page **)&desc->private_data;
+ 
+-	if (vma_pages(vma) != 1)
++	if (vma_desc_pages(desc) != 1)
  		return -EINVAL;
  
- 	vma->vm_ops = &fb_deferred_io_vm_ops;
--	vm_flags_set(vma, VM_DONTEXPAND | VM_DONTDUMP);
--	if (!(info->flags & FBINFO_VIRTFB))
--		vm_flags_set(vma, VM_IO);
-+	vm_flags_set(vma, VM_MIXEDMAP | VM_DONTEXPAND | VM_DONTDUMP);
- 	vma->vm_private_data = info->fbdefio_state;
+-	vm_flags_set(vma, VM_IO | VM_DONTDUMP | VM_DONTEXPAND);
+-	vma->vm_ops = &cs_char_vm_ops;
+-	vma->vm_private_data = file->private_data;
++	vma_desc_set_flags(desc, VMA_DONTDUMP_BIT, VMA_DONTEXPAND_BIT);
  
- 	fb_deferred_io_state_get(info->fbdefio_state); /* released in vma->vm_ops->close() */
---- a/drivers/video/fbdev/ssd1307fb.c~fbdev-defio-assert-fbinfo_virtfb-drop-vm_io-add-vm_mixedmap
-+++ a/drivers/video/fbdev/ssd1307fb.c
-@@ -767,6 +767,8 @@ static int ssd1307fb_probe(struct i2c_cl
- 	info->fix.smem_start = __pa(vmem);
- 	info->fix.smem_len = vmem_size;
++	*pages = virt_to_page((void *)csdata->mmap_base);
++	mmap_action_map_kernel_pages_full(desc, pages);
+ 	return 0;
+ }
  
-+	info->flags = FBINFO_VIRTFB;
-+
- 	fb_deferred_io_init(info);
- 
- 	i2c_set_clientdata(client, info);
+@@ -1353,7 +1338,7 @@ static const struct file_operations cs_c
+ 	.write		= cs_char_write,
+ 	.poll		= cs_char_poll,
+ 	.unlocked_ioctl	= cs_char_ioctl,
+-	.mmap		= cs_char_mmap,
++	.mmap_prepare	= cs_char_mmap_prepare,
+ 	.open		= cs_char_open,
+ 	.release	= cs_char_release,
+ 	.fasync		= cs_char_fasync,
 _
 
 Patches currently in -mm which might be from ljs@kernel.org are
