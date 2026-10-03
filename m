@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3A1743B0585
-	for <mm-commits@vger.kernel.org>; Sat,  3 Oct 2026 22:39:04 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 751403B14AB
+	for <mm-commits@vger.kernel.org>; Sat,  3 Oct 2026 22:39:06 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791067147; cv=none; b=tuL1wwiw5pfjZCG2TCmw6LdxroQEiiaY/C3YYfUxlxFBCQrVTtyWpqm3RyTR90mUstszG5YsbaEJXsxB73cHVXcEUx6ujVZ/AxZwVqrCqQLUgRZws65gEAOC8cSXWDvk+gHlgyncatBt7ZMou86MHaGuEaklcZ4VjWikZFxFIEc=
+	t=1791067148; cv=none; b=ZygAsZTqtc0ZeuctRxIH/M7Ro47jopqA+o5cqoIwt3FuIe8ilVp9vbUkCLM0NCJJcZHD19Ont2lRk9eGzQ1DUBuOA+WX2TfyMa5dnFvOWFRXKiXDx4iqRiB+vyehZFQassWDEVUFDMZj+cAAm2Vkfy7SIH1ndQ71XB1uSmmsRAc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791067147; c=relaxed/simple;
-	bh=dLUxzf2oQWKaA09w28F50fXS9TT9pA+yO6yN45JGFUI=;
-	h=Date:To:From:Subject:Message-Id; b=C8HKhxYVJ3Xh7GM1a77uPTsdNApU5/Z6LlrSCZmIP38TyYZOyF0Ei9BMIIsLHP4katasWJR29yuUdnTIe5G/4PxNSIhGVHU91j+MW80XJ+taXJsmL/Edf2T9b+xZKrhd+CdpuVcM121r86uzXFt9ve8GMB54phI8LTWyrW8qwHY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=GuZzmoD5; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1791067148; c=relaxed/simple;
+	bh=DwpxhLk2VIbcxmgG3O/hFiHyDNZ+P2vsH5CO6WiKWH8=;
+	h=Date:To:From:Subject:Message-Id; b=M3eyYSO54ff4mO7hMQbbvbu+A3eSIZ28++xdVRESWcJSjNlehUZopwttVjLKNuNZTl/ZZ95eTBCANirV6y1zRKe7vGTv754n+yLbVtNg2ByTPa0O2i4UgVGpyvqGHqbPKuxycIi0iX33gBmTsyGdalpvWr7qP1E0kzG8QAzn0/0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=R2VKKFz3; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="GuZzmoD5"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6376E1F0089B;
-	Sat,  3 Oct 2026 22:39:04 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="R2VKKFz3"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4A29E1F0089C;
+	Sat,  3 Oct 2026 22:39:06 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1791067144;
-	bh=S2tK5mFqbfQGghPCztUTT6i459ZQjHbPvxi6O60pAb8=;
+	d=linux-foundation.org; s=korg; t=1791067146;
+	bh=x2UJP9JWSORWq1gJpugnfhZRFg+a3gKVMiRbwvN9E68=;
 	h=Date:To:From:Subject;
-	b=GuZzmoD5SoCrnSNKaXLCb0MRMso5KqXbkQ224IURiIuXxGdKmlV6E31weoNG93FTV
-	 Y7sFAepBTHDNffE3ZcxmQv1Szp7jYmF7MVLmCbjAoB1wTjxb/sD+tW7lQ6wUI4143J
-	 4q/xo/WbssEFJFBv8SoTiUqtOt9PH3vR+K/ESh+k=
-Date: Sat, 03 Oct 2026 15:39:04 -0700
+	b=R2VKKFz3P48T8KAq/3vrdmgai4WaG28jpMM2kFWiJBO4b4MTE4AdUfh45NsORdJ8U
+	 Z7ew3jtlCetFOZG59VOtsVVXC2Hlth+ozVhCHbaFLtvXVEx7nyf6LnX9ARegu3WUrH
+	 x5hYvMLoQ5+LbtWb4yOxC9vM61FJAgnUZMWnV3VQ=
+Date: Sat, 03 Oct 2026 15:39:05 -0700
 To: mm-commits@vger.kernel.org,ljs@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [to-be-updated] mm-madvise-update-is_valid_guard_vma-to-use-vma_can_merge.patch removed from -mm tree
-Message-Id: <20261003223904.6376E1F0089B@smtp.kernel.org>
+Subject: [to-be-updated] mm-vma-introduce-vma_is_persistent.patch removed from -mm tree
+Message-Id: <20261003223906.4A29E1F0089C@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,36 +35,49 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/madvise: update is_valid_guard_vma() to use vma_can_merge()
+     Subject: mm/vma: introduce vma[_flags]_is_persistent()
 has been removed from the -mm tree.  Its filename was
-     mm-madvise-update-is_valid_guard_vma-to-use-vma_can_merge.patch
+     mm-vma-introduce-vma_is_persistent.patch
 
 This patch was dropped because an updated version will be issued
 
 ------------------------------------------------------
 From: "Lorenzo Stoakes (ARM)" <ljs@kernel.org>
-Subject: mm/madvise: update is_valid_guard_vma() to use vma_can_merge()
-Date: Thu, 17 Sep 2026 17:22:39 +0100
+Subject: mm/vma: introduce vma[_flags]_is_persistent()
+Date: Thu, 17 Sep 2026 17:22:40 +0100
 
-We currently disallow the installation of lightweight guard regions in
-VMAs whose flags intersect VMA_SPECIAL_FLAGS or VMA_HUGETLB_BIT, or
-VMA_LOCKED_BIT unless allow_locked is set.
+Introduce vma[_flags]_is_persistent() for the purposes of identifying
+mappings that are persistent in the sense that bytes to the mapping stay
+there, and bytes read from the mapping are the same unless changed by
+actions taken by userland.
 
-hugetlb VMAs set VMA_DONTEXPAND_BIT so this was already redundant,
-VMA_SPECIAL_FLAGS already sufficed.
+Kernel-owned mappings do not fall into this category, as their owner may
+change the contents without the user having initiated it, and nor of
+course does memory-mapped I/O.
 
-However, now that VMA_IO_BIT is only set if VMA_PFNMAP or VMA_MIXEDMAP_BIT
-is set, this check collapses to being the equivalent of !vma_can_merge().
+We exclude fixed mappings as these are singled out as being unmergeable
+and so cannot be guaranteed to persist user data.
 
-Update is_valid_guard_vma() to reflect this.
+hugetlb mappings are fixed mappings, but their contents are entirely the
+user's, so they are explicitly carved out as persistent, as the
+MADV_DODUMP check already does.
+
+It excludes droppable mappings, which by their nature are ephemeral.
+
+Use this functionality to update the madvise MADV_DODUMP check to test for
+persistence rather than open-coding this.
+
+This replaces the VM_SPECIAL check which means it no longer checks for
+VMA_IO_BIT, however this is safe as we have established the invariant that
+only kernel-owned mappings may set VMA_IO_BIT, so we implicitly include
+these.
 
 No functional change intended.
 
-Link: https://lore.kernel.org/20260917-b4-mmap-prepare-vma-flag-sanify-v3-30-4583d8a23bca@kernel.org
+Link: https://lore.kernel.org/20260917-b4-mmap-prepare-vma-flag-sanify-v3-31-4583d8a23bca@kernel.org
 Signed-off-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 Acked-by: Zi Yan <ziy@nvidia.com>
-Acked-by: David Hildenbrand (Arm) <david@kernel.org>
 Cc: Albert Ou <aou@eecs.berkeley.edu>
 Cc: Alexander Gordeev <agordeev@linux.ibm.com>
 Cc: Alexei Starovoitov <ast@kernel.org>
@@ -90,6 +103,7 @@ Cc: Christian Brauner <brauner@kernel.org>
 Cc: Claudio Imbrenda <imbrenda@linux.ibm.com>
 Cc: Dave Airlie <airlied@gmail.com>
 Cc: Dave Hansen <dave.hansen@linux.intel.com>
+Cc: David Hildenbrand <david@kernel.org>
 Cc: David S. Miller <davem@davemloft.net>
 Cc: Dennis Dalessandro <dennis.dalessandro@cornelisnetworks.com>
 Cc: Dev Jain <dev.jain@arm.com>
@@ -164,44 +178,76 @@ Cc: Will Deacon <will@kernel.org>
 Cc: Yuanchu Xie <yuanchu@google.com>
 ---
 
- mm/madvise.c |   20 +++++++++++++-------
- 1 file changed, 13 insertions(+), 7 deletions(-)
+ include/linux/mm.h |   44 +++++++++++++++++++++++++++++++++++++++++++
+ mm/madvise.c       |    4 +--
+ 2 files changed, 46 insertions(+), 2 deletions(-)
 
---- a/mm/madvise.c~mm-madvise-update-is_valid_guard_vma-to-use-vma_can_merge
-+++ a/mm/madvise.c
-@@ -1222,19 +1222,25 @@ static long madvise_remove(struct madvis
- 	return error;
+--- a/include/linux/mm.h~mm-vma-introduce-vma_is_persistent
++++ a/include/linux/mm.h
+@@ -1743,6 +1743,50 @@ static inline bool vma_can_merge(const s
  }
  
--static bool is_valid_guard_vma(struct vm_area_struct *vma, bool allow_locked)
-+static bool is_valid_guard_vma(const struct vm_area_struct *vma,
-+			       bool allow_locked)
- {
--	vm_flags_t disallowed = VM_SPECIAL | VM_HUGETLB;
--
- 	/*
--	 * A user could lock after setting a guard range but that's fine, as
-+	 * A user could lock after setting a guard range but that's fine as
- 	 * they'd not be able to fault in. The issue arises when we try to zap
- 	 * existing locked VMAs. We don't want to do that.
- 	 */
--	if (!allow_locked)
--		disallowed |= VM_LOCKED;
-+	if (!allow_locked && vma_test(vma, VMA_LOCKED_BIT))
-+		return false;
+ /**
++ * vma_flags_is_persistent() - Do the specified VMA flags imply that the VMA
++ * contains persistent data?
++ * @flags: The VMA flags to test.
++ *
++ * Persistent in the sense that - if you write bytes to the mapping - do they
++ * stay written?
++ *
++ * If the kernel or a device could write to the memory independently of
++ * userland, or the kernel could arbitrarily discard it, then it is not
++ * persistent.
++ *
++ * Returns: true if the flags imply this VMA is persistent, otherwise false.
++ */
++static inline bool vma_flags_is_persistent(const vma_flags_t *flags)
++{
++	/* hugetlb is a fixed mapping, but its contents are the user's own. */
++	if (vma_flags_is_hugetlb(flags))
++		return true;
 +	/*
-+	 * Guard regions require a VMA whose page tables are managed solely by
-+	 * the core, which is also what merging requires, so disallow any flags
-+	 * that would prevent a merge.
++	 * MMIO mappings may not store what is written and may be changed by the
++	 * device. Kernel-owned and fixed mappings may be changed by their owner
++	 * without the user having initiated it.
 +	 */
-+	if (!vma_can_merge(vma))
++	if (vma_flags_is_kernel_owned(flags) ||
++	    vma_flags_is_fixed_mapping(flags))
 +		return false;
- 
--	return !(vma->vm_flags & disallowed);
-+	return true;
- }
- 
- static bool is_guard_pte_marker(pte_t ptent)
++	/* Droppable memory is discardable by definition. */
++	return !vma_flags_test_single_mask(flags, VMA_DROPPABLE);
++}
++
++/**
++ * vma_is_persistent() - Does the VMA contain persistent data?
++ * @vma: The VMA to test.
++ *
++ * See vma_flags_is_persistent() for details.
++ *
++ * Returns: true if the VMA is persistent, otherwise false.
++ */
++static inline bool vma_is_persistent(const struct vm_area_struct *vma)
++{
++	return vma_flags_is_persistent(&vma->flags);
++}
++
++/**
+  * vma_kernel_pagesize - Default page size granularity for this VMA.
+  * @vma: The user mapping.
+  *
+--- a/mm/madvise.c~mm-vma-introduce-vma_is_persistent
++++ a/mm/madvise.c
+@@ -1585,8 +1585,8 @@ static int madvise_vma_behavior(struct m
+ 		new_flags |= VM_DONTDUMP;
+ 		break;
+ 	case MADV_DODUMP:
+-		if ((!vma_is_hugetlb(vma) && (new_flags & VM_SPECIAL)) ||
+-		    (new_flags & VM_DROPPABLE))
++		/* Non-persistent memory cannot be dumped. */
++		if (!vma_is_persistent(vma))
+ 			return -EINVAL;
+ 		new_flags &= ~VM_DONTDUMP;
+ 		break;
 _
 
 Patches currently in -mm which might be from ljs@kernel.org are
@@ -230,7 +276,6 @@ mm-enable-mmu_gather_rcu_table_free-for-m68k-motorola.patch
 mm-enable-mmu_gather_rcu_table_free-for-sparc32.patch
 mm-userland-pgtable-freeing-is-rcu-safe-now-remove-leftover-bits.patch
 mm-change-the-contract-for-free_pgtables-update-docs.patch
-mm-vma-introduce-vma_is_persistent.patch
 mm-uffd-use-predicates-for-userfaultfd-checks.patch
 mm-madvise-use-predicates-for-madvise-madv_dofork.patch
 mm-eliminate-vma_special_flags-usage-when-hugetlb-explicitly-tested.patch
