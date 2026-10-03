@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 78FF13B1ED1
-	for <mm-commits@vger.kernel.org>; Sat,  3 Oct 2026 23:36:13 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AD78B3BADA9
+	for <mm-commits@vger.kernel.org>; Sat,  3 Oct 2026 23:36:15 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791070579; cv=none; b=oBMHpqvayhE9VmL4JYPzu9SoRBeGHHNNZdulb58NOYB98EpnubyaByM75LVNDKRI0B37TggkBatM5d1m1LylA+lzyx4/KeCNfPTjuRH4dSecDF8bCbhs0AXHs1pexDrf/A2j1Rwg+Zmv1CpImeZkEUV7E5mU2BVHX4PiJkDmS4A=
+	t=1791070581; cv=none; b=PMtlN+cNkcFkPPW46I9YYe2d9IIb2ltQfgJjv7E0b+XFTlAw/CT4uP45aMkN/BD3KfEe9t/DEar0/Pk5dwE/TIxnjwv0BD1A9+dzjFuVC/oZ34c7VmCPcjifl00fwimhnoOjUcRm4AKyhmO8MZIrT17Uqj0d0U8PpCziFgptuiE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791070579; c=relaxed/simple;
-	bh=aQLuIw0WhGtlK5CB+Z4kmgjORfiu1m/1Q2KoXxgCE50=;
-	h=Date:To:From:Subject:Message-Id; b=lV9/Gzt7iXJHUUL1rSSinJZ1S5mSUN1akc3/uW79GMDuPghFwJW8SAQpzNEO6xLze3vxPGNkOfhY2gUoodbu5U278cSHjFU0LY+X1nzPphc+cLGg6xLK1gQyFC6onE4H/3Z3++FhwJC5cl6Z0+ulGsV3BN7EJKKU4DkR09Fio3k=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=mU8g9+XP; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1791070581; c=relaxed/simple;
+	bh=96gy4M/hR+SsP3eFYocGZfa2eBAyuRHvQAzU0mIrxgs=;
+	h=Date:To:From:Subject:Message-Id; b=UA7jg8cKx3GbNAQ5kA/cxEH70Ln25WpWWoDuHoK2nmjJVQddXWY9o5Blq69vGDT2knV53aSx3L3QKy9IuXVvhQI4PH43gtfwynw3M7rsgg9WcBWfgyucuH78lK+kOPD/CAqadnNPE3CEh3tlp/C8gbLOM/YAIBYAg4FAOXh2KRs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=VL/9zwPm; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="mU8g9+XP"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id F3C211F0089D;
-	Sat,  3 Oct 2026 23:36:12 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="VL/9zwPm"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 07A531F0089C;
+	Sat,  3 Oct 2026 23:36:15 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1791070573;
-	bh=AAQ4LJShsBeJn+dtvfhDNs6D90Vt8hwuhc0mCrA672k=;
+	d=linux-foundation.org; s=korg; t=1791070575;
+	bh=vtAMfcrR4I/TP9STXL8W0viLfystDNMrQe1BoFeiNAs=;
 	h=Date:To:From:Subject;
-	b=mU8g9+XPWXqwIdNgD5H9a7W5nYuARQ3Ojl6F8Ld3xscvLSj8RnNBcXCXG3QQBoj+r
-	 YDNwbxqdRabRiBqnarVFKcpxKzhHarRcFKWP574cg605Vl+4H4ab57371k8Z8YxFvj
-	 XAwzTgJMHpzQb2fm5wxSYv/SkpXPS/zGuBHJz294=
-Date: Sat, 03 Oct 2026 16:36:12 -0700
+	b=VL/9zwPm6M/JBVLJX+aPcDwZbsRWgdbYrfXANGtBMAnjqr6kBPFeDFiL+jSJvkwSF
+	 vJ+UE1Rm6Ic3DTvDNvXlgi0IvD9QohKmDXID70Gd5HYJ+iW5VIEP6cyRzZ6ne305WX
+	 wVUPOnzd71UclV/OgfeyvJuyGVq1mRzdvbb5MI60=
+Date: Sat, 03 Oct 2026 16:36:14 -0700
 To: mm-commits@vger.kernel.org,ljs@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-uffd-use-predicates-for-userfaultfd-checks.patch added to mm-unstable branch
-Message-Id: <20261003233612.F3C211F0089D@smtp.kernel.org>
+Subject: + mm-madvise-use-predicates-for-madvise-madv_dofork.patch added to mm-unstable branch
+Message-Id: <20261003233615.07A531F0089C@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/uffd: use predicates for userfaultfd checks
+     Subject: mm/madvise: use predicates for madvise(..., MADV_DOFORK)
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-uffd-use-predicates-for-userfaultfd-checks.patch
+     mm-madvise-use-predicates-for-madvise-madv_dofork.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-uffd-use-predicates-for-userfaultfd-checks.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-madvise-use-predicates-for-madvise-madv_dofork.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,24 +59,30 @@ and is updated there most days
 
 ------------------------------------------------------
 From: "Lorenzo Stoakes (ARM)" <ljs@kernel.org>
-Subject: mm/uffd: use predicates for userfaultfd checks
-Date: Sat, 03 Oct 2026 17:33:02 +0100
+Subject: mm/madvise: use predicates for madvise(..., MADV_DOFORK)
+Date: Sat, 03 Oct 2026 17:33:03 +0100
 
-Rather than directly checking VMA flags, use the newly introduced
-vma_is_mm_managed() and vma_is_mm_backed() helpers in userfaultfd
-when assessing VMA suitability for userfaultfd and UFFDIO_MOVE.
+Make it clear what we're blocking in MADV_DOFORK. Previously we simply
+disallowed VM_SPECIAL i.e. mappings not managed by core mm, fixed mappings
+and
+VMA_IO_BIT.
 
-Update vma_move_compatible() so it's expressed in terms of VMA
-characteristics rather than arbitrary flags.
+Now the invariant is established that mm-managed mappings may not set
+VMA_IO_BIT, the VMA_IO_BIT check is redundant.
 
-Additionally, update the use of the deprecated VMA flag API when checking
-VMA_SHADOW_STACK_BIT.
+The rest is equivalent to testing for a fixed or non-mm-managed mapping,
+i.e. exactly the same check as whether the VMA is permitted to be merged.
 
-A VMA_IO_BIT check is no longer required but that is fine as a hard
-invariant has been established that mm-managed mappings may not set
-VMA_IO_BIT so the check is now redundant.
+This was established by commit 0b2758f48f22 ("Require (reasonably) normal
+mappings for MADV_DOFORK") containing my hands-down favourite call out of
+all time.
 
-Link: https://lore.kernel.org/20261003-b4-mmap-prepare-vma-flag-sanify-v4-31-a1f052500fd7@kernel.org
+Express the same thing differently - if we wouldn't be allowed to merge it,
+then we aren't allowed to manipulate CoW behaviour on fork.
+
+No functional change intended.
+
+Link: https://lore.kernel.org/20261003-b4-mmap-prepare-vma-flag-sanify-v4-32-a1f052500fd7@kernel.org
 Signed-off-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 Acked-by: Zi Yan <ziy@nvidia.com>
@@ -188,46 +194,20 @@ Cc: Miklos Szeredi <miklos@szeredi.hu>
 Cc: Xu Xin <xu.xin@linux.dev>
 ---
 
- mm/userfaultfd.c |   19 +++++++++++++------
- 1 file changed, 13 insertions(+), 6 deletions(-)
+ mm/madvise.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/userfaultfd.c~mm-uffd-use-predicates-for-userfaultfd-checks
-+++ a/mm/userfaultfd.c
-@@ -1755,10 +1755,16 @@ static inline bool move_splits_huge_pmd(
- }
- #endif
- 
--static inline bool vma_move_compatible(struct vm_area_struct *vma)
-+static inline bool vma_move_compatible(const struct vm_area_struct *vma)
- {
--	return !(vma->vm_flags & (VM_PFNMAP | VM_IO |  VM_HUGETLB |
--				  VM_MIXEDMAP | VM_SHADOW_STACK));
-+	/* uffd is generally incompatible with mappings not managed by core mm. */
-+	if (!vma_is_mm_managed(vma))
-+		return false;
-+	/* The shadow stack should not be written to by userspace. */
-+	if (vma_test_single_mask(vma, VMA_SHADOW_STACK))
-+		return false;
-+	/* hugetlb mappings cannot be safely moved. */
-+	return !vma_is_hugetlb(vma);
- }
- 
- static int validate_move_areas(struct userfaultfd_ctx *ctx,
-@@ -2147,10 +2153,11 @@ static bool vma_can_userfault(struct vm_
- {
- 	const struct vm_uffd_ops *ops = vma_uffd_ops(vma);
- 
--	if (vma->vm_flags & (VM_DROPPABLE | VM_SHADOW_STACK))
-+	/* Only mm-backed memory can have its faults handled by userspace. */
-+	if (!vma_is_mm_backed(vma))
- 		return false;
--
--	if (!vma_is_hugetlb(vma) && (vma->vm_flags & VM_SPECIAL))
-+	/* The shadow stack should not be written to by userspace. */
-+	if (vma_test_single_mask(vma, VMA_SHADOW_STACK))
- 		return false;
- 
- 	vm_flags &= __VM_UFFD_FLAGS;
+--- a/mm/madvise.c~mm-madvise-use-predicates-for-madvise-madv_dofork
++++ a/mm/madvise.c
+@@ -1566,7 +1566,7 @@ static int madvise_vma_behavior(struct m
+ 		new_flags |= VM_DONTCOPY;
+ 		break;
+ 	case MADV_DOFORK:
+-		if (new_flags & VM_SPECIAL)
++		if (!vma_can_merge(vma))
+ 			return -EINVAL;
+ 		new_flags &= ~VM_DONTCOPY;
+ 		break;
 _
 
 Patches currently in -mm which might be from ljs@kernel.org are
