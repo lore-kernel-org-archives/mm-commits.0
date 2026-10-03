@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D88383B19BA
-	for <mm-commits@vger.kernel.org>; Sat,  3 Oct 2026 22:39:21 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C010C36D9EE
+	for <mm-commits@vger.kernel.org>; Sat,  3 Oct 2026 23:34:31 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791067163; cv=none; b=ej8R5b3Wt1UWzC0Pmv1jviWg/tVm6nNCId6ytLu8cd9+6KCp67l1ZW06Hs2I4wQFl2MTC+ze+z9N1bUvxphMOCLVD3pEXmeWgXZvUI9SO0v/7sj/WO3tUKKqAccwnHo/vv9xoh1aRK47Pa3NvE9pI/+vwWcVXJC4Ju/GddM1eyE=
+	t=1791070473; cv=none; b=uB4u2Iq4phr56n2qTmAwt6TSvMTL6qZP0yMkU7JQlFdtx+j5orzh5rfSR0r9Q3yES5qtFQR/nsPdph6quGwYXSJ3V2VE5ru5taREEDr/NSN1Hx1WyazI0OGz3pTUoVNqQ/PIAf007QJCRNRy6FkPVtOQl4kvgb4XhzvPcspx/ns=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791067163; c=relaxed/simple;
-	bh=EeMEbNeX4HgbyovMTSYZVIogaW8sbaHbxDiTaq8aThc=;
-	h=Date:To:From:Subject:Message-Id; b=ZRsqapn0cXDKISVvgvmjHA0t+FtrPzaORu59c0hdBu8dhlar3qk9AryAWgZKD15y0dA8sSf0PEUYY+rhx2PissdqRpm9JXcBzBR6mFeVF84ghlJFLBqO8/1tvFWfWwA9GWjap60XL7lGk79JYFusURTZuULh7kLghO8sYeXXKmo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=hKVzuTCG; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1791070473; c=relaxed/simple;
+	bh=MXL1zJ0P8pktBy+1jqCZx2apcnx2YhXs+rQlYkE3bLc=;
+	h=Date:To:From:Subject:Message-Id; b=ijWzK9cTY7Mi1deH8ZcfimfVoo4PLmIJpR65COEl+ks4z5npt8b4EKn/p/K3eoZ8wv42aXtooQD/dukHRKsIHJEC+V//bNIBjlwgZnAZNf3haNKwOu+kPn9RpxZgleKiZLOncIeRt+iIhQF9jhjEdv65kMaRQkadJskk7kwXxXM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=wNHJ/onl; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="hKVzuTCG"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id AB95F1F0089B;
-	Sat,  3 Oct 2026 22:39:21 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="wNHJ/onl"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 23D3E1F0089B;
+	Sat,  3 Oct 2026 23:34:31 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1791067161;
-	bh=WegZWa4QbOSvqOf8EV4gPJ95WV25g0kAqKqTGXkDs/0=;
+	d=linux-foundation.org; s=korg; t=1791070471;
+	bh=mGS6VnhNa+0+q353Om+qbNWNmCVpITNy0gtDZOoNU9Q=;
 	h=Date:To:From:Subject;
-	b=hKVzuTCGMXb6Zmph8VFuLGaq0+lKnhtKZY5pH7Nw0UGNDyEgojUWmamkIBdAymTGl
-	 bcc0NWAWZxbJAeBoTeqyEQ9bBvuHfCRyn7LjbAh11Lc1RVWiZZmrBDInuH5ef/gDdF
-	 rYI0B0IihNIQs2V/sX6AQj30e35cUS42l+8LAg1M=
-Date: Sat, 03 Oct 2026 15:39:21 -0700
+	b=wNHJ/onlsGaay1OXAgPdU6y1AcOv3pYZVhdvfPWlYXTGbkdWZ3Ti2l6lPDZq3RkQW
+	 7/fOlsFl1jLfdmx6nH6CukVUHyt4+DzamNTU8IVk67u2IDvTrx8GLaGUIiPXorEXq1
+	 3Wp2VwSGpDYHwZAJhTqeD3IBMcFsoWI5Xlh+ygUs=
+Date: Sat, 03 Oct 2026 16:34:30 -0700
 To: mm-commits@vger.kernel.org,ljs@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [to-be-updated] mm-vma-introduce-and-use-vma_can_gup.patch removed from -mm tree
-Message-Id: <20261003223921.AB95F1F0089B@smtp.kernel.org>
+Subject: + mm-vma-fix-mmap_prepare-file-handling-remove-file_doesnt_need_get.patch added to mm-unstable branch
+Message-Id: <20261003233431.23D3E1F0089B@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,289 +34,469 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The quilt patch titled
-     Subject: mm/vma: introduce and use vma[_flags]_can_gup()
-has been removed from the -mm tree.  Its filename was
-     mm-vma-introduce-and-use-vma_can_gup.patch
+The patch titled
+     Subject: mm/vma: fix mmap_prepare file handling, remove file_doesnt_need_get
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-vma-fix-mmap_prepare-file-handling-remove-file_doesnt_need_get.patch
 
-This patch was dropped because an updated version will be issued
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vma-fix-mmap_prepare-file-handling-remove-file_doesnt_need_get.patch
+
+This patch will later appear in the mm-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via various
+branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there most days
 
 ------------------------------------------------------
 From: "Lorenzo Stoakes (ARM)" <ljs@kernel.org>
-Subject: mm/vma: introduce and use vma[_flags]_can_gup()
-Date: Thu, 17 Sep 2026 17:22:49 +0100
+Subject: mm/vma: fix mmap_prepare file handling, remove file_doesnt_need_get
+Date: Sat, 03 Oct 2026 17:32:32 +0100
 
-GUP cannot be used for VMAs which set VMA_IO_BIT - because memory-mapped
-I/O must not be accessed on the user's behalf - or VMA_PFNMAP_BIT -
-because PFN maps have no folios which the kernel is permitted to access.
+The map->file_doesnt_need_get flag is confusing and the existing
+implementation has holes.
 
-Rather than keeping these checks open-coded, abstract them to
-vma_flags_can_gup() and its VMA wrapper vma_can_gup().
+Drivers are permitted to change the owning file of a mapping. If they do
+so, they are required to take a reference on that file.
 
-A number of other places make the same check to decide whether a mapping
-can be populated or accessed as GUP would, so update those too.
+The mmap() operation which ultimately invokes __mmap_region() is guaranteed
+to drop the refcount for the original file the mapping was made under, but
+this is not true for the replaced file.
 
-While here, drop a reference to 'special' and replace a use of the
-deprecated VMA flags API in vma_dump_size().
+This has been addressed so far by tracking map->file_doesnt_need_get, which
+is rather poorly named and unfortunately fails to correctly track whether
+or not an additional put were needed in a number of cases.
 
-No functional change intended.
+Make life easier by removing this flag, and instead drop the reference for
+both mmap_prepare and the deprecated mmap callback in a new function
+map_put_vm_file().
 
-Link: https://lore.kernel.org/20260917-b4-mmap-prepare-vma-flag-sanify-v3-40-4583d8a23bca@kernel.org
+Track whether this needs to be done by aligning mmap_state with
+vm_area_desc and store the original file in the map->file field, keeping
+the updated file in map->vm_file.
+
+In order to have the same behaviour for both types of hooks, only drop the
+reference __mmap_new_file_vma() itself took in its error path, deferring
+the replaced file's reference to map_put_vm_file().
+
+To make this work correctly, map->vm_file has to be updated before any
+error handling, so update __mmap_new_file_vma() and call_mmap_prepare() to
+set this field first.
+
+Also when mmap_prepare() changes the file and is then merged, the reference
+count also must be decremented, so update the logic to call
+map_put_vm_file() in this case too.
+
+Also update __compat_vma_mmap() to manually perform this step for stacked
+file systems using the compatibility layer, and update
+compat_set_vma_from_desc() to replace vma_set_file() with a correct
+refcount/file update.
+
+No in-tree driver is impacted by the incorrect implementation of this
+currently (no driver that does this is mergeable for one), so this does not
+need to be a fix.
+
+Link: https://lore.kernel.org/20261003-b4-mmap-prepare-vma-flag-sanify-v4-1-a1f052500fd7@kernel.org
 Signed-off-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Reviewed-by: Zi Yan <ziy@nvidia.com>
-Cc: Albert Ou <aou@eecs.berkeley.edu>
-Cc: Alexander Gordeev <agordeev@linux.ibm.com>
-Cc: Alexei Starovoitov <ast@kernel.org>
-Cc: Alistair Popple <apopple@nvidia.com>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Andreas Larsson <andreas@gaisler.com>
-Cc: Andrii Nakryiko <andrii@kernel.org>
-Cc: "Aneesh Kumar K.V" <aneesh.kumar@kernel.org>
-Cc: Anup Patel <anup@brainfault.org>
-Cc: Arnaldo Carvalho de Melo <acme@kernel.org>
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: Axel Rasmussen <axelrasmussen@google.com>
-Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: Baoquan He <baoquan.he@linux.dev>
-Cc: Barry Song <baohua@kernel.org>
-Cc: "Borislav Petkov (AMD)" <bp@alien8.de>
-Cc: Byungchul Park <byungchul@sk.com>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Chengming Zhou <chengming.zhou@linux.dev>
-Cc: Chris Li <chrisl@kernel.org>
-Cc: Christian Borntraeger <borntraeger@linux.ibm.com>
-Cc: Christian Brauner <brauner@kernel.org>
-Cc: Claudio Imbrenda <imbrenda@linux.ibm.com>
-Cc: Dave Airlie <airlied@gmail.com>
-Cc: Dave Hansen <dave.hansen@linux.intel.com>
-Cc: David Hildenbrand <david@kernel.org>
-Cc: David S. Miller <davem@davemloft.net>
-Cc: Dennis Dalessandro <dennis.dalessandro@cornelisnetworks.com>
-Cc: Dev Jain <dev.jain@arm.com>
-Cc: Doug Gilbert <dgilbert@interlog.com>
-Cc: Eduard Zingerman <eddyz87@gmail.com>
-Cc: Emil Tsalapatis <emil@etsalapatis.com>
-Cc: Gerald Schaefer <gerald.schaefer@linux.ibm.com>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Gregory Price <gourry@gourry.net>
-Cc: Harry Yoo <harry@kernel.org>
-Cc: Heiko Carstens <hca@linux.ibm.com>
-Cc: Helge Deller <deller@gmx.de>
-Cc: "Huang, Ying" <ying.huang@linux.alibaba.com>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: James Bottomley <james.bottomley@HansenPartnership.com>
-Cc: Jan Kara <jack@suse.cz>
+Cc: Liam R. Howlett <liam@infradead.org>
+Cc: Vlastimil Babka <vbabka@kernel.org>
 Cc: Jann Horn <jannh@google.com>
-Cc: Janosch Frank <frankja@linux.ibm.com>
-Cc: Jaroslav Kysela <perex@perex.cz>
-Cc: Jason Gunthorpe <jgg@ziepe.ca>
-Cc: Jaya Kumar <jayalk@intworks.biz>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: John Hubbard <jhubbard@nvidia.com>
+Cc: Pedro Falcato <pfalcato@suse.de>
+Cc: David Hildenbrand <david@kernel.org>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Michal Hocko <mhocko@suse.com>
 Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Joshua Hahn <joshua.hahnjy@gmail.com>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Dennis Dalessandro <dennis.dalessandro@cornelisnetworks.com>
+Cc: Jason Gunthorpe <jgg@ziepe.ca>
+Cc: Leon Romanovsky <leon@kernel.org>
+Cc: Paul Moore <paul@paul-moore.com>
+Cc: Stephen Smalley <stephen.smalley.work@gmail.com>
+Cc: Jaroslav Kysela <perex@perex.cz>
+Cc: Takashi Iwai <tiwai@suse.com>
+Cc: Alexei Starovoitov <ast@kernel.org>
+Cc: Daniel Borkmann <daniel@iogearbox.net>
+Cc: Andrii Nakryiko <andrii@kernel.org>
+Cc: Eduard Zingerman <eddyz87@gmail.com>
+Cc: Kumar Kartikeya Dwivedi <memxor@gmail.com>
+Cc: Zi Yan <ziy@nvidia.com>
+Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
+Cc: Nico Pache <nico.pache@linux.dev>
+Cc: Ryan Roberts <ryan.roberts@arm.com>
+Cc: Dev Jain <dev.jain@arm.com>
+Cc: Barry Song <baohua@kernel.org>
+Cc: Lance Yang <lance.yang@linux.dev>
+Cc: Usama Arif <usama.arif@linux.dev>
+Cc: Kiryl Shutsemau <kas@kernel.org>
+Cc: Doug Gilbert <dgilbert@interlog.com>
+Cc: James Bottomley <james.bottomley@hansenpartnership.com>
+Cc: Martin K. Petersen <mkp@kernel.org>
+Cc: Simona Vetter <simona@ffwll.ch>
+Cc: Helge Deller <deller@gmx.de>
+Cc: Sebastian Reichel <sre@kernel.org>
+Cc: John Hubbard <jhubbard@nvidia.com>
+Cc: Peter Xu <peterx@redhat.com>
+Cc: Masami Hiramatsu <mhiramat@kernel.org>
+Cc: Oleg Nesterov <oleg@redhat.com>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Thomas Gleixner <tglx@kernel.org>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Borislav Petkov <bp@alien8.de>
+Cc: Dave Hansen <dave.hansen@linux.intel.com>
+Cc: Arnaldo Carvalho de Melo <acme@kernel.org>
+Cc: Namhyung Kim <namhyung@kernel.org>
+Cc: Mark Rutland <mark.rutland@arm.com>
+Cc: Rik van Riel <riel@surriel.com>
+Cc: Harry Yoo <harry@kernel.org>
 Cc: Juri Lelli <juri.lelli@redhat.com>
+Cc: Vincent Guittot <vincent.guittot@linaro.org>
+Cc: Maarten Lankhorst <maarten.lankhorst@linux.intel.com>
+Cc: Maxime Ripard <mripard@kernel.org>
+Cc: Thomas Zimmermann <tzimmermann@suse.de>
+Cc: David Airlie <airlied@gmail.com>
+Cc: Will Deacon <will@kernel.org>
+Cc: Aneesh Kumar K.V <aneesh.kumar@kernel.org>
+Cc: Nicholas Piggin <npiggin@gmail.com>
+Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: Muchun Song <muchun.song@linux.dev>
+Cc: Oscar Salvador <osalvador@suse.de>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Jan Kara <jack@suse.cz>
+Cc: Marc Zyngier <maz@kernel.org>
+Cc: Oliver Upton <oupton@kernel.org>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Madhavan Srinivasan <maddy@linux.ibm.com>
+Cc: Anup Patel <anup@brainfault.org>
+Cc: Paul Walmsley <pjw@kernel.org>
+Cc: Palmer Dabbelt <palmer@dabbelt.com>
+Cc: Albert Ou <aou@eecs.berkeley.edu>
+Cc: Christian Borntraeger <borntraeger@linux.ibm.com>
+Cc: Janosch Frank <frankja@linux.ibm.com>
+Cc: Claudio Imbrenda <imbrenda@linux.ibm.com>
+Cc: Alexander Gordeev <agordeev@linux.ibm.com>
+Cc: Gerald Schaefer <gerald.schaefer@linux.ibm.com>
+Cc: Heiko Carstens <hca@linux.ibm.com>
+Cc: Vasily Gorbik <gor@linux.ibm.com>
+Cc: David S. Miller <davem@davemloft.net>
+Cc: Andreas Larsson <andreas@gaisler.com>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Christian Brauner <brauner@kernel.org>
+Cc: Matthew Brost <matthew.brost@intel.com>
+Cc: Joshua Hahn <joshua.hahnjy@gmail.com>
+Cc: Rakie Kim <rakie.kim@sk.com>
+Cc: Byungchul Park <byungchul@sk.com>
+Cc: Gregory Price <gourry@gourry.net>
+Cc: Ying Huang <ying.huang@linux.alibaba.com>
+Cc: Alistair Popple <apopple@nvidia.com>
+Cc: Chris Li <chrisl@kernel.org>
 Cc: Kairui Song <kasong@tencent.com>
 Cc: Kemeng Shi <shikemeng@huaweicloud.com>
-Cc: Kiryl Shutsemau <kas@kernel.org>
-Cc: Kumar Kartikeya Dwivedi <memxor@gmail.com>
-Cc: Lance Yang <lance.yang@linux.dev>
-Cc: Leon Romanovsky <leon@kernel.org>
-Cc: Liam R. Howlett <liam@infradead.org>
-Cc: Maarten Lankhorst <maarten.lankhorst@linux.intel.com>
-Cc: Madhavan Srinivasan <maddy@linux.ibm.com>
-Cc: Marc Rutland <mark.rutland@arm.com>
-Cc: Marc Zyngier <maz@kernel.org>
-Cc: "Masami Hiramatsu (Google)" <mhiramat@kernel.org>
-Cc: Matthew Brost <matthew.brost@intel.com>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Maxime Ripard <mripard@kernel.org>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Miklos Szeredi <miklos@szeredi.hu>
-Cc: Muchun Song <muchun.song@linux.dev>
-Cc: Namhyung kim <namhyung@kernel.org>
 Cc: Nhat Pham <nphamcs@gmail.com>
-Cc: Nicholas Piggin <npiggin@gmail.com>
-Cc: Oleg Nesterov <oleg@redhat.com>
-Cc: Oscar Salvador <osalvador@suse.de>
-Cc: Palmer Dabbelt <palmer@dabbelt.com>
-Cc: Paul Moore <paul@paul-moore.com>
-Cc: Pedro Falcato <pfalcato@suse.de>
-Cc: Peter Xu <peterx@redhat.com>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Rakie Kim <rakie.kim@sk.com>
-Cc: Rik van Riel <riel@surriel.com>
-Cc: Ryan Roberts <ryan.roberts@arm.com>
-Cc: Sebastian Reichel <sre@kernel.org>
+Cc: Baoquan He <baoquan.he@linux.dev>
+Cc: Youngjun Park <youngjun.park@lge.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Qi Zheng <qi.zheng@linux.dev>
 Cc: Shakeel Butt <shakeel.butt@linux.dev>
-Cc: Stephen Smalley <stephen.smalley.work@gmail.com>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Takashi Iwai (SUSE) <tiwai@suse.de>
-Cc: Takashi Iwai <tiwai@suse.com>
-Cc: Thomas Zimemrmann <tzimmermann@suse.de>
-Cc: Vasily Gorbik <gor@linux.ibm.com>
-Cc: Vincent Guittot <vincent.guittot@linaro.org>
-Cc: Vlastimil Babka <vbabka@kernel.org>
-Cc: Wei Xu <weixugc@google.com>
-Cc: Will Deacon <will@kernel.org>
+Cc: Axel Rasmussen <axelrasmussen@google.com>
 Cc: Yuanchu Xie <yuanchu@google.com>
+Cc: Wei Xu <weixugc@google.com>
+Cc: Chengming Zhou <chengming.zhou@linux.dev>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Miklos Szeredi <miklos@szeredi.hu>
+Cc: Xu Xin <xu.xin@linux.dev>
 ---
 
- fs/coredump.c      |    4 ++--
- include/linux/mm.h |   29 +++++++++++++++++++++++++++++
- mm/gup.c           |    7 +++----
- mm/hmm.c           |    3 +--
- mm/memory.c        |   14 ++++++++------
- mm/mempolicy.c     |    3 ++-
- 6 files changed, 45 insertions(+), 15 deletions(-)
+ mm/internal.h |    1 
+ mm/util.c     |    5 ++
+ mm/vma.c      |   81 +++++++++++++++++++++++++++++-------------------
+ mm/vma.h      |    6 ++-
+ 4 files changed, 58 insertions(+), 35 deletions(-)
 
---- a/fs/coredump.c~mm-vma-introduce-and-use-vma_can_gup
-+++ a/fs/coredump.c
-@@ -1616,8 +1616,8 @@ static unsigned long vma_dump_size(struc
- 		return 0;
+--- a/mm/internal.h~mm-vma-fix-mmap_prepare-file-handling-remove-file_doesnt_need_get
++++ a/mm/internal.h
+@@ -7,6 +7,7 @@
+ #ifndef __MM_INTERNAL_H
+ #define __MM_INTERNAL_H
+ 
++#include <linux/file.h>
+ #include <linux/fs.h>
+ #include <linux/khugepaged.h>
+ #include <linux/mm.h>
+--- a/mm/util.c~mm-vma-fix-mmap_prepare-file-handling-remove-file_doesnt_need_get
++++ a/mm/util.c
+@@ -1228,8 +1228,11 @@ int __compat_vma_mmap(struct vm_area_des
+ 
+ 	/* Perform any preparatory tasks for mmap action. */
+ 	err = mmap_action_prepare(desc);
+-	if (err)
++	if (err) {
++		if (desc->vm_file != vma->vm_file)
++			fput(desc->vm_file);
+ 		return err;
++	}
+ 	/* Update the VMA from the descriptor. */
+ 	compat_set_vma_from_desc(vma, desc);
+ 	/* Complete any specified mmap actions. */
+--- a/mm/vma.c~mm-vma-fix-mmap_prepare-file-handling-remove-file_doesnt_need_get
++++ a/mm/vma.c
+@@ -24,7 +24,8 @@ struct mmap_state {
+ 		vm_flags_t vm_flags;
+ 		vma_flags_t vma_flags;
+ 	};
+-	struct file *file;
++	struct file *file;	/* mmap()-specified file. */
++	struct file *vm_file;	/* May be updated by mmap_prepare. */
+ 	pgprot_t page_prot;
+ 
+ 	/* User-defined fields, perhaps updated by .mmap_prepare(). */
+@@ -43,8 +44,6 @@ struct mmap_state {
+ 
+ 	/* Determine if we can check KSM flags early in mmap() logic. */
+ 	bool check_ksm_early :1;
+-	/* If .mmap_prepare changed the file, we don't need to pin. */
+-	bool file_doesnt_need_get :1;
+ };
+ 
+ #define MMAP_STATE(name, mm_, vmi_, addr_, len_, pgoff_, anon_pgoff_, vma_flags_, file_) \
+@@ -58,6 +57,7 @@ struct mmap_state {
+ 		.pglen = PHYS_PFN(len_),				\
+ 		.vma_flags = vma_flags_,				\
+ 		.file = file_,						\
++		.vm_file = file_,					\
+ 		.page_prot = vma_flags_to_page_prot(vma_flags_),	\
  	}
  
--	/* Do not dump I/O mapped devices or special mappings */
--	if (vma->vm_flags & VM_IO)
-+	/* Do not dump memory-mapped I/O, which may have side effects on read. */
-+	if (vma_test(vma, VMA_IO_BIT))
- 		return 0;
- 
- 	/* By default, dump shared memory if mapped from an anonymous file. */
---- a/include/linux/mm.h~mm-vma-introduce-and-use-vma_can_gup
-+++ a/include/linux/mm.h
-@@ -1779,6 +1779,35 @@ static inline bool vma_is_persistent(con
- }
- 
- /**
-+ * vma_flags_can_gup() - Do the specified VMA flags permit GUP to access the
-+ * mapping's pages?
-+ * @flags: The VMA flags to test.
-+ *
-+ * GUP cannot obtain pages from a PFN map (VMA_PFNMAP_BIT), which may have no
-+ * struct pages behind it, and must not provide access to memory-mapped I/O
-+ * (VMA_IO_BIT).
-+ *
-+ * Returns: true if GUP may access pages from the mapping, otherwise false.
-+ */
-+static inline bool vma_flags_can_gup(const vma_flags_t *flags)
-+{
-+	return !vma_flags_test_any(flags, VMA_IO_BIT, VMA_PFNMAP_BIT);
-+}
-+
-+/**
-+ * vma_can_gup() - May GUP obtain pages from @vma?
-+ * @vma: The VMA to test.
-+ *
-+ * See vma_flags_can_gup() for details.
-+ *
-+ * Returns: true if GUP may access pages from the mapping, otherwise false.
-+ */
-+static inline bool vma_can_gup(const struct vm_area_struct *vma)
-+{
-+	return vma_flags_can_gup(&vma->flags);
-+}
-+
-+/**
-  * vma_kernel_pagesize - Default page size granularity for this VMA.
-  * @vma: The user mapping.
-  *
---- a/mm/gup.c~mm-vma-introduce-and-use-vma_can_gup
-+++ a/mm/gup.c
-@@ -1204,7 +1204,7 @@ static int check_vma_flags(struct vm_are
- 	int foreign = (gup_flags & FOLL_REMOTE);
- 	bool vma_anon = vma_is_anonymous(vma);
- 
--	if (vm_flags & (VM_IO | VM_PFNMAP))
-+	if (!vma_can_gup(vma))
- 		return -EFAULT;
- 
- 	if ((gup_flags & FOLL_ANON) && !vma_anon)
-@@ -1955,7 +1955,7 @@ int __mm_populate(unsigned long start, u
- 		 * range with the first VMA. Also, skip undesirable VMA types.
- 		 */
- 		nend = min(end, vma->vm_end);
--		if (vma->vm_flags & (VM_IO | VM_PFNMAP))
-+		if (!vma_can_gup(vma))
- 			continue;
- 		if (nstart < vma->vm_start)
- 			nstart = vma->vm_start;
-@@ -2017,8 +2017,7 @@ static long __get_user_pages_locked(stru
- 			break;
- 
- 		/* protect what we can, including chardevs */
--		if ((vma->vm_flags & (VM_IO | VM_PFNMAP)) ||
--		    !(vm_flags & vma->vm_flags))
-+		if (!vma_can_gup(vma) || !(vm_flags & vma->vm_flags))
- 			break;
- 
- 		if (pages) {
---- a/mm/hmm.c~mm-vma-introduce-and-use-vma_can_gup
-+++ a/mm/hmm.c
-@@ -595,8 +595,7 @@ static int hmm_vma_walk_test(unsigned lo
- 	struct hmm_range *range = hmm_vma_walk->range;
- 	struct vm_area_struct *vma = walk->vma;
- 
--	if (!(vma->vm_flags & (VM_IO | VM_PFNMAP)) &&
--	    vma->vm_flags & VM_READ)
-+	if (vma_can_gup(vma) && vma_test(vma, VMA_READ_BIT))
- 		return 0;
- 
- 	/*
---- a/mm/memory.c~mm-vma-introduce-and-use-vma_can_gup
-+++ a/mm/memory.c
-@@ -2417,11 +2417,11 @@ static bool vm_mixed_zeropage_allowed(st
- 	 * be problematic as soon as the zeropage gets replaced by a different
- 	 * page due to vma->vm_ops->pfn_mkwrite, because what's mapped would
- 	 * now differ to what GUP looked up. FSDAX is incompatible to
--	 * FOLL_LONGTERM and VM_IO is incompatible to GUP completely (see
--	 * check_vma_flags).
-+	 * FOLL_LONGTERM and memory-mapped I/O is incompatible to GUP completely
-+	 * (see vma_can_gup()).
- 	 */
- 	return vma->vm_ops && vma->vm_ops->pfn_mkwrite &&
--	       (vma_is_fsdax(vma) || vma->vm_flags & VM_IO);
-+	       (vma_is_fsdax(vma) || vma_test(vma, VMA_IO_BIT));
- }
- 
- static int validate_page_before_insert(struct vm_area_struct *vma,
-@@ -7116,7 +7116,8 @@ int follow_pfnmap_start(struct follow_pf
- 	if (unlikely(address < vma->vm_start || address >= vma->vm_end))
- 		goto out;
- 
--	if (!(vma->vm_flags & (VM_IO | VM_PFNMAP)))
-+	/* Only mappings GUP cannot handle are followed here. */
-+	if (vma_can_gup(vma))
- 		goto out;
- retry:
- 	pgdp = pgd_offset(mm, address);
-@@ -7316,8 +7317,9 @@ static int __access_remote_vm(struct mm_
- 			}
- 
- 			/*
--			 * Check if this is a VM_IO | VM_PFNMAP VMA, which
--			 * we can access using slightly different code.
-+			 * GUP failed, perhaps because this is a mapping it
-+			 * cannot handle (see vma_can_gup()) - such mappings may
-+			 * provide access via vm_ops->access() instead.
- 			 */
- 			bytes = 0;
- #ifdef CONFIG_HAVE_IOREMAP_PROT
---- a/mm/mempolicy.c~mm-vma-introduce-and-use-vma_can_gup
-+++ a/mm/mempolicy.c
-@@ -2008,7 +2008,8 @@ SYSCALL_DEFINE5(get_mempolicy, int __use
- 
- bool vma_migratable(struct vm_area_struct *vma)
+@@ -70,7 +70,7 @@ struct mmap_state {
+ 		.vma_flags = (map_)->vma_flags,				\
+ 		.pgoff = (map_)->pgoff,					\
+ 		.anon_pgoff = (map_)->anon_pgoff,			\
+-		.file = (map_)->file,					\
++		.file = (map_)->vm_file,				\
+ 		.prev = (map_)->prev,					\
+ 		.middle = vma_,						\
+ 		.next = (vma_) ? NULL : (map_)->next,			\
+@@ -2462,7 +2462,7 @@ void mm_drop_all_locks(struct mm_struct
+  */
+ static bool accountable_mapping(struct mmap_state *map)
  {
--	if (vma->vm_flags & (VM_IO | VM_PFNMAP))
-+	/* Pages which GUP cannot obtain cannot be migrated either. */
-+	if (!vma_can_gup(vma))
- 		return false;
+-	const struct file *file = map->file;
++	const struct file *file = map->vm_file;
  
  	/*
+ 	 * hugetlb has its own accounting separate from the core VM
+@@ -2511,7 +2511,7 @@ static void vms_abort_munmap_vmas(struct
+ 
+ static void update_ksm_flags(struct mmap_state *map)
+ {
+-	map->vma_flags = ksm_vma_flags(map->mm, map->file, map->vma_flags);
++	map->vma_flags = ksm_vma_flags(map->mm, map->vm_file, map->vma_flags);
+ }
+ 
+ static void set_desc_from_map(struct vm_area_desc *desc,
+@@ -2521,7 +2521,7 @@ static void set_desc_from_map(struct vm_
+ 	desc->end = map->end;
+ 
+ 	desc->pgoff = map->pgoff;
+-	desc->vm_file = map->file;
++	desc->vm_file = map->vm_file;
+ 	desc->vma_flags = map->vma_flags;
+ 	desc->page_prot = map->page_prot;
+ }
+@@ -2601,6 +2601,10 @@ static int __mmap_setup(struct mmap_stat
+ 	return 0;
+ }
+ 
++static bool map_same_file(struct mmap_state *map)
++{
++	return map->vm_file == map->file;
++}
+ 
+ static int __mmap_new_file_vma(struct mmap_state *map,
+ 			       struct vm_area_struct *vma)
+@@ -2608,20 +2612,23 @@ static int __mmap_new_file_vma(struct mm
+ 	struct vma_iterator *vmi = map->vmi;
+ 	int error;
+ 
+-	vma->vm_file = map->file;
+-	if (!map->file_doesnt_need_get)
+-		get_file(map->file);
++	vma->vm_file = map->vm_file;
++	if (map_same_file(map))
++		get_file(map->vm_file);
+ 
+-	if (!map->file->f_op->mmap)
++	if (!map->vm_file->f_op->mmap)
+ 		return 0;
+ 
+ 	error = mmap_file(vma->vm_file, vma);
++	map->vm_file = vma->vm_file;
++
+ 	if (error) {
+ 		UNMAP_STATE(unmap, vmi, vma, vma->vm_start, vma->vm_end,
+ 			    map->prev, map->next);
+-		fput(vma->vm_file);
+-		vma->vm_file = NULL;
++		if (map_same_file(map))
++			fput(map->vm_file);
+ 
++		vma->vm_file = NULL;
+ 		vma_iter_set(vmi, vma->vm_end);
+ 		/* Undo any partial mapping done by a device driver. */
+ 		unmap_region(&unmap);
+@@ -2638,7 +2645,6 @@ static int __mmap_new_file_vma(struct mm
+ 			!vma_flags_test(&map->vma_flags, VMA_MAYWRITE_BIT) &&
+ 			vma_test(vma, VMA_MAYWRITE_BIT));
+ 
+-	map->file = vma->vm_file;
+ 	map->vma_flags = vma->flags;
+ 
+ 	return 0;
+@@ -2646,7 +2652,7 @@ static int __mmap_new_file_vma(struct mm
+ 
+ static void map_set_anon(struct mmap_state *map)
+ {
+-	map->file = NULL;
++	map->vm_file = NULL;
+ 	map->vm_ops = NULL;
+ 	map->pgoff = map->addr >> PAGE_SHIFT;
+ }
+@@ -2658,7 +2664,7 @@ static bool map_is_private(const struct
+ 
+ static bool map_is_anon(const struct mmap_state *map)
+ {
+-	return map_is_private(map) && !map->file;
++	return map_is_private(map) && !map->vm_file;
+ }
+ 
+ /*
+@@ -2703,7 +2709,7 @@ static int __mmap_new_vma(struct mmap_st
+ 	}
+ 
+ 	/* Invoke callbacks. */
+-	if (map->file)
++	if (map->vm_file)
+ 		error = __mmap_new_file_vma(map, vma);
+ 	else if (!is_anon)
+ 		error = shmem_zero_setup(vma);
+@@ -2812,10 +2818,14 @@ static int call_mmap_prepare(struct mmap
+ 	int err;
+ 
+ 	/* Invoke the hook. */
+-	err = vfs_mmap_prepare(map->file, desc);
++	err = vfs_mmap_prepare(map->vm_file, desc);
+ 	if (err)
+ 		return err;
+ 
++	/* Update first so file refcount tracked correctly. */
++	if (desc->vm_file != map->vm_file)
++		map->vm_file = desc->vm_file;
++
+ 	/* It's invalid for mmap_prepare hooks to clear vm_ops. */
+ 	if (!desc->vm_ops)
+ 		return -EINVAL;
+@@ -2826,10 +2836,6 @@ static int call_mmap_prepare(struct mmap
+ 
+ 	/* Update fields permitted to be changed. */
+ 	map->pgoff = desc->pgoff;
+-	if (desc->vm_file != map->file) {
+-		map->file_doesnt_need_get = true;
+-		map->file = desc->vm_file;
+-	}
+ 	map->vma_flags = desc->vma_flags;
+ 	map->page_prot = desc->page_prot;
+ 	/* User-defined fields. */
+@@ -2841,7 +2847,7 @@ static int call_mmap_prepare(struct mmap
+ 	 * anonymous mappings. Rather than allowing these mappings to be odd
+ 	 * outliers, simply make them truly anonymous.
+ 	 */
+-	if (map_is_private(map) && file_is_dev_zero(map->file))
++	if (map_is_private(map) && file_is_dev_zero(map->vm_file))
+ 		map_set_anon(map);
+ 
+ 	return 0;
+@@ -2860,7 +2866,7 @@ static void set_vma_user_defined_fields(
+  */
+ static bool can_set_ksm_flags_early(struct mmap_state *map)
+ {
+-	struct file *file = map->file;
++	struct file *file = map->vm_file;
+ 
+ 	/* Anonymous mappings have no driver which can change them. */
+ 	if (!file)
+@@ -2883,6 +2889,20 @@ static bool can_set_ksm_flags_early(stru
+ 	return false;
+ }
+ 
++static void map_put_vm_file(struct mmap_state *map)
++{
++	/*
++	 * An error occurred or the VMA was merged.
++	 *
++	 * If the file was changed by the driver (which is required to increment
++	 * the replacement file's reference count), drop its reference count.
++	 *
++	 * On error, the caller always drops the original file regardless.
++	 */
++	if (map->vm_file && !map_same_file(map))
++		fput(map->vm_file);
++}
++
+ static unsigned long __mmap_region(struct file *file, unsigned long addr,
+ 		unsigned long len, vma_flags_t vma_flags,
+ 		unsigned long pgoff, struct list_head *uf)
+@@ -2937,7 +2957,10 @@ static unsigned long __mmap_region(struc
+ 
+ 	__mmap_complete(&map, vma);
+ 
+-	if (have_mmap_prepare && allocated_new) {
++	if (!allocated_new) {
++		/* Merged, so need to drop refcount. */
++		map_put_vm_file(&map);
++	} else if (have_mmap_prepare) {
+ 		error = mmap_action_complete(vma, &desc.action,
+ 					     /*is_compat=*/false);
+ 		if (error)
+@@ -2951,13 +2974,7 @@ unacct_error:
+ 	if (map.charged)
+ 		vm_unacct_memory(map.charged);
+ abort_munmap:
+-	/*
+-	 * This indicates that .mmap_prepare has set a new file, differing from
+-	 * desc->vm_file. But since we're aborting the operation, only the
+-	 * original file will be cleaned up. Ensure we clean up both.
+-	 */
+-	if (map.file_doesnt_need_get)
+-		fput(map.file);
++	map_put_vm_file(&map);
+ 	vms_abort_munmap_vmas(&map.vms, &map.mas_detach);
+ 	return error;
+ }
+--- a/mm/vma.h~mm-vma-fix-mmap_prepare-file-handling-remove-file_doesnt_need_get
++++ a/mm/vma.h
+@@ -394,8 +394,10 @@ static inline void compat_set_vma_from_d
+ 
+ 	/* Mutable fields. Populated with initial state. */
+ 	vma_set_pgoff(vma, desc->pgoff);
+-	if (desc->vm_file != vma->vm_file)
+-		vma_set_file(vma, desc->vm_file);
++	if (desc->vm_file != vma->vm_file) {
++		fput(vma->vm_file);
++		vma->vm_file = desc->vm_file;
++	}
+ 	vma->flags = desc->vma_flags;
+ 	vma->vm_page_prot = desc->page_prot;
+ 
 _
 
 Patches currently in -mm which might be from ljs@kernel.org are
@@ -345,6 +525,44 @@ mm-enable-mmu_gather_rcu_table_free-for-m68k-motorola.patch
 mm-enable-mmu_gather_rcu_table_free-for-sparc32.patch
 mm-userland-pgtable-freeing-is-rcu-safe-now-remove-leftover-bits.patch
 mm-change-the-contract-for-free_pgtables-update-docs.patch
+mm-vma-fix-mmap_prepare-file-handling-remove-file_doesnt_need_get.patch
+mm-vma-introduce-and-use-vma_can_merge.patch
+mm-consistently-validate-vma-state-after-mmap-hooks.patch
+mm-vma-ensure-mmap_prepare-doesnt-set-actions-on-a-mergeable-vma.patch
+mm-make-map_kernel_pages_-internal-and-unexported.patch
+mm-vma-tidy-up-map-kernel-pages-enum-values.patch
+mm-add-mmap-action-for-discontiguous-kernel-page-mapping.patch
+docs-filesystems-update-mmap_prepare-docs-for-discontig-kernel-pgs.patch
+drivers-usb-mon-update-to-use-mmap_prepare-map-kernel-pages.patch
+infiniband-update-hfi1-to-use-remap_vmalloc_range.patch
+selinux-reject-writable-opens-of-policy-file-drop-mmap-shared-write-check.patch
+alsa-pcm-use-vm_insert_page-to-map-pcm-status-page.patch
+bpf-arena-mark-arena_map_mmap-mappings-vm_mixedmap.patch
+mm-vma-add-vma_is_mm_managed-predicates.patch
+mm-vma-only-allow-mmap-to-clear-vma_maywrite_bit-if-not-mm-managed.patch
+mm-vma-add-and-use-vma__is_fixed_mapping.patch
+scsi-sg-convert-mmap-hook-to-mmap_prepare-and-rework.patch
+fbdev-defio-assert-fbinfo_virtfb-drop-vm_io-add-vm_mixedmap.patch
+hsi-cmt_speech-convert-mmap-hook-to-mmap_prepare-refactor.patch
+mm-gup-error-out-early-on-vma_mayread_bit-vmas.patch
+uprobes-remove-vm_io-set-vm_mixedmap-for-mapped-kernel-pages.patch
+mm-mlock-clear-vma_locked_mask-over-mmap-callback.patch
+mm-mlock-eliminate-weird-vma_io_bit-abuse-and-simplify.patch
+mm-vma-enforce-that-mm-managed-mappings-may-not-set-vma_io_bit.patch
+mm-remove-vma_io_bit-check-in-vma_is_mm_managed.patch
+mm-remove-hugetlb_inlineh.patch
+mm-rename-is_vm_hugetlb_page-to-vma_is_hugetlb.patch
+mm-drop-some-redundant-checks-around-hugetlb-vmas.patch
+mm-madvise-update-is_valid_guard_vma-to-use-vma_can_merge.patch
+mm-vma-introduce-vma_is_mm_backed.patch
+mm-uffd-use-predicates-for-userfaultfd-checks.patch
+mm-madvise-use-predicates-for-madvise-madv_dofork.patch
+mm-eliminate-vma_special_flags-usage-when-hugetlb-explicitly-tested.patch
+mm-eliminate-vma_special_flags-check-in-lru_gen_look_around.patch
+mm-avoid-use-of-vma_special_flags-in-migrate_vma_setup.patch
+mm-eliminate-vm_special-vma_special_flags.patch
+fuse-dax-do-not-set-vm_mixedmap.patch
+mm-huge_memory-remove-vma_is_special_huge.patch
 mm-vma-const-ify-vma_assert_stabilised-and-associated-functions.patch
 mm-implement-and-use-vma_has_anon_rmap-silence-kcsan.patch
 mm-update-comments-to-refer-to-anon-rmap-rather-than-anon_vma.patch
