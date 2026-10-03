@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AD78B3BADA9
-	for <mm-commits@vger.kernel.org>; Sat,  3 Oct 2026 23:36:15 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4FC363B19A5
+	for <mm-commits@vger.kernel.org>; Sat,  3 Oct 2026 23:36:20 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791070581; cv=none; b=PMtlN+cNkcFkPPW46I9YYe2d9IIb2ltQfgJjv7E0b+XFTlAw/CT4uP45aMkN/BD3KfEe9t/DEar0/Pk5dwE/TIxnjwv0BD1A9+dzjFuVC/oZ34c7VmCPcjifl00fwimhnoOjUcRm4AKyhmO8MZIrT17Uqj0d0U8PpCziFgptuiE=
+	t=1791070583; cv=none; b=pKuP3RB1UA3rn8nmCOLqT6wBQdcOHfyjen9BSdgZ7MYMbLADGGHEJaV6xOz5meCi39Li2wZlGIzc7G4eNg7gvsQmLFz5Q+8sUEEvEiJZQWyocTVv6cnJHWzrglDNqmd2Zlx0NNu48i3/Hoh6jlVoxGqk/R/niR4BOdtsD2Sa740=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791070581; c=relaxed/simple;
-	bh=96gy4M/hR+SsP3eFYocGZfa2eBAyuRHvQAzU0mIrxgs=;
-	h=Date:To:From:Subject:Message-Id; b=UA7jg8cKx3GbNAQ5kA/cxEH70Ln25WpWWoDuHoK2nmjJVQddXWY9o5Blq69vGDT2knV53aSx3L3QKy9IuXVvhQI4PH43gtfwynw3M7rsgg9WcBWfgyucuH78lK+kOPD/CAqadnNPE3CEh3tlp/C8gbLOM/YAIBYAg4FAOXh2KRs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=VL/9zwPm; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1791070583; c=relaxed/simple;
+	bh=H8k6wG3sgMXRYTL54LewSfCxscRY2DOsfRPOL30mP8M=;
+	h=Date:To:From:Subject:Message-Id; b=nGuPSylNxjT9+GzjoTml2pJyQaqBTq7FkTF6Hvf7t4H9CIIb1FAbdeRDNvveFjdwRMBTMFcKUtxTDydbXeuqACNo5hmS3OLDzdVfj6OPzcXwXRIsuwa5GFHGqf3hTu3J/0Sszos0TGhKKZ8Da59tbi6RUT/Tx9dAlvzUhj6h3is=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Rp1jgFg8; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="VL/9zwPm"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 07A531F0089C;
-	Sat,  3 Oct 2026 23:36:15 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Rp1jgFg8"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 11CCB1F0089D;
+	Sat,  3 Oct 2026 23:36:20 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1791070575;
-	bh=vtAMfcrR4I/TP9STXL8W0viLfystDNMrQe1BoFeiNAs=;
+	d=linux-foundation.org; s=korg; t=1791070580;
+	bh=HCnOz4VWjJ1K8Mqf+M3ywvhxavE3uaeeJpFo852+880=;
 	h=Date:To:From:Subject;
-	b=VL/9zwPm6M/JBVLJX+aPcDwZbsRWgdbYrfXANGtBMAnjqr6kBPFeDFiL+jSJvkwSF
-	 vJ+UE1Rm6Ic3DTvDNvXlgi0IvD9QohKmDXID70Gd5HYJ+iW5VIEP6cyRzZ6ne305WX
-	 wVUPOnzd71UclV/OgfeyvJuyGVq1mRzdvbb5MI60=
-Date: Sat, 03 Oct 2026 16:36:14 -0700
+	b=Rp1jgFg83f8J5jqCkNTtmCbRvNww9dCnwIl5hsQjYTaDqKQE2IaejsfF9mi5kh12z
+	 n1vTRwD3ARxkvmmUW6z6SdaWZN8PR/K3u9og6SSWDLo42ZGI8Lt0lOFjB/C6czDLUT
+	 fArX7Jlrrxi2ZepVQm9gkjhP/FNLBlIBTAk+bvoM=
+Date: Sat, 03 Oct 2026 16:36:19 -0700
 To: mm-commits@vger.kernel.org,ljs@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-madvise-use-predicates-for-madvise-madv_dofork.patch added to mm-unstable branch
-Message-Id: <20261003233615.07A531F0089C@smtp.kernel.org>
+Subject: + mm-eliminate-vma_special_flags-check-in-lru_gen_look_around.patch added to mm-unstable branch
+Message-Id: <20261003233620.11CCB1F0089D@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/madvise: use predicates for madvise(..., MADV_DOFORK)
+     Subject: mm: eliminate VMA_SPECIAL_FLAGS check in lru_gen_look_around()
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-madvise-use-predicates-for-madvise-madv_dofork.patch
+     mm-eliminate-vma_special_flags-check-in-lru_gen_look_around.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-madvise-use-predicates-for-madvise-madv_dofork.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-eliminate-vma_special_flags-check-in-lru_gen_look_around.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,38 +59,28 @@ and is updated there most days
 
 ------------------------------------------------------
 From: "Lorenzo Stoakes (ARM)" <ljs@kernel.org>
-Subject: mm/madvise: use predicates for madvise(..., MADV_DOFORK)
-Date: Sat, 03 Oct 2026 17:33:03 +0100
+Subject: mm: eliminate VMA_SPECIAL_FLAGS check in lru_gen_look_around()
+Date: Sat, 03 Oct 2026 17:33:05 +0100
 
-Make it clear what we're blocking in MADV_DOFORK. Previously we simply
-disallowed VM_SPECIAL i.e. mappings not managed by core mm, fixed mappings
-and
-VMA_IO_BIT.
+A fixed or non-mm-managed mapping is one which sets VMA_PFNMAP_BIT,
+VMA_MIXEDMAP_BIT or VMA_DONTEXPAND_BIT, which is precisely what
+VMA_SPECIAL_FLAGS tests for other than VMA_IO_BIT, which is safe to drop as
+mm-managed mappings may not set it.
 
-Now the invariant is established that mm-managed mappings may not set
-VMA_IO_BIT, the VMA_IO_BIT check is redundant.
-
-The rest is equivalent to testing for a fixed or non-mm-managed mapping,
-i.e. exactly the same check as whether the VMA is permitted to be merged.
-
-This was established by commit 0b2758f48f22 ("Require (reasonably) normal
-mappings for MADV_DOFORK") containing my hands-down favourite call out of
-all time.
-
-Express the same thing differently - if we wouldn't be allowed to merge it,
-then we aren't allowed to manipulate CoW behaviour on fork.
+Using these predicates rather than VMA_SPECIAL_FLAGS makes the check
+self-documenting and helps eliminate the confusion around 'special' flags.
 
 No functional change intended.
 
-Link: https://lore.kernel.org/20261003-b4-mmap-prepare-vma-flag-sanify-v4-32-a1f052500fd7@kernel.org
+Link: https://lore.kernel.org/20261003-b4-mmap-prepare-vma-flag-sanify-v4-34-a1f052500fd7@kernel.org
 Signed-off-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Acked-by: Zi Yan <ziy@nvidia.com>
+Reviewed-by: Zi Yan <ziy@nvidia.com>
+Acked-by: David Hildenbrand (Arm) <david@kernel.org>
 Cc: Liam R. Howlett <liam@infradead.org>
 Cc: Vlastimil Babka <vbabka@kernel.org>
 Cc: Jann Horn <jannh@google.com>
 Cc: Pedro Falcato <pfalcato@suse.de>
-Cc: David Hildenbrand <david@kernel.org>
 Cc: Mike Rapoport <rppt@kernel.org>
 Cc: Suren Baghdasaryan <surenb@google.com>
 Cc: Michal Hocko <mhocko@suse.com>
@@ -194,20 +184,22 @@ Cc: Miklos Szeredi <miklos@szeredi.hu>
 Cc: Xu Xin <xu.xin@linux.dev>
 ---
 
- mm/madvise.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/vmscan.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/mm/madvise.c~mm-madvise-use-predicates-for-madvise-madv_dofork
-+++ a/mm/madvise.c
-@@ -1566,7 +1566,7 @@ static int madvise_vma_behavior(struct m
- 		new_flags |= VM_DONTCOPY;
- 		break;
- 	case MADV_DOFORK:
--		if (new_flags & VM_SPECIAL)
-+		if (!vma_can_merge(vma))
- 			return -EINVAL;
- 		new_flags &= ~VM_DONTCOPY;
- 		break;
+--- a/mm/vmscan.c~mm-eliminate-vma_special_flags-check-in-lru_gen_look_around
++++ a/mm/vmscan.c
+@@ -4421,8 +4421,8 @@ bool lru_gen_look_around(struct page_vma
+ 	if (spin_is_contended(pvmw->ptl))
+ 		return true;
+ 
+-	/* exclude special VMAs containing anon pages from COW */
+-	if (vma->vm_flags & VM_SPECIAL)
++	/* exclude fixed and non-mm-managed VMAs containing anon pages from COW */
++	if (!vma_is_mm_managed(vma) || vma_is_fixed_mapping(vma))
+ 		return true;
+ 
+ 	/* avoid taking the LRU lock under the PTL when possible */
 _
 
 Patches currently in -mm which might be from ljs@kernel.org are
