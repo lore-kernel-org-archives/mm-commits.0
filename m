@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 00E6538D404
-	for <mm-commits@vger.kernel.org>; Sat,  3 Oct 2026 23:59:15 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9F5F23BADA2
+	for <mm-commits@vger.kernel.org>; Sat,  3 Oct 2026 23:59:20 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791071957; cv=none; b=Xdl3o4tMvHIngg7SzJdlrZfiP4tSb8Q8163MQFYNOD4XftHec4CICok+V15jWtuq6hXfqfnoyL2TjeIXCtibrDsZibR8NOWbvGJ6TEmj1rb+ib2y6m3pigIVeswpWkrjrYKcHdTkiftr00kRgOUuYn2Fap1ole8yLtv8n8tzFpA=
+	t=1791071963; cv=none; b=XovV31hMY5iM59VXuZqbx/BbBKsWEf/GA2zXstDrJvehAvAf/DFDiRTKSvpiTuvLvGqRdoIoa0NytCXw9zqxmybWFtH0yai3JvW6YZuwQAw3tDxCRum7EbZFH6tsjI2kjgf0N1921QIV32bEqzVzVYQkYNy0+Brrt7VkAY3XZYM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791071957; c=relaxed/simple;
-	bh=PNUvn9fVDLWX0kJ1FOfdSCQ6b82QXNAabVh5IK5qCvc=;
-	h=Date:To:From:Subject:Message-Id; b=fhMWq9ae1sp5VsroHu7RJ7AbFmpcSeEkzsIAtdSHsNgpfs4uFEbPjcE0od90qnoimgGmMacWRhP68ae6uwBFMULnlKPT5RAGHePk/tAnrurdj4dXL2eR7LzKB+2r3I7ZnHc+89qGn7jCo4gXxpZihckqnlZqwjRJ1RqyQvT9NR4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Putlox42; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1791071963; c=relaxed/simple;
+	bh=A5sMyv7z8A66y55jyANuUrD3UaDrtqNipnJQZuyge0I=;
+	h=Date:To:From:Subject:Message-Id; b=ZAgySFVHX+t33ctSUoMLqJ0cfINYNdWJUHYA/nVc6L+wD9iClq93wi6Q/n4Gtow7lvQ57pujiqVFVtDGTcCNUlc+ilZZUi32YHNPtRQwsjmH95Nf5QFNQO7qOJoPUGcMvazU8igb3t9kAqqlm6vmYZHrfz3trIvNI4mGKjkTPA0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ZswY7LHy; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Putlox42"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 822511F0089C;
-	Sat,  3 Oct 2026 23:59:15 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ZswY7LHy"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 183E01F0089C;
+	Sat,  3 Oct 2026 23:59:20 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1791071955;
-	bh=m99dHyRMdNKRwuid1NrWQFlDd1dBQGjokF7RkOmrKaU=;
+	d=linux-foundation.org; s=korg; t=1791071960;
+	bh=8p+a22/mZM5RJW3ALAp08QwbyDLndZcn2SRcKiGTos4=;
 	h=Date:To:From:Subject;
-	b=Putlox42daHUhT1WFPGYUgm3eL/r8uvcK/wBNEyBWu2/ARmLq+f5L5FLqKj5Cg1dK
-	 c16JL+1UrqYhqeIf300qc3fJqxAf9cOV46hGHSUWYSuVqNR223GSvXM0leRVh/AB0N
-	 OzzjEwwi0R/VHXqiJT66KWfX1ZRrbZwSmCI1m1fw=
-Date: Sat, 03 Oct 2026 16:59:15 -0700
+	b=ZswY7LHy4T6xWTPtP8I5iSUvs6ItPIe7w+T0e2p7f/z3gwWkCTu7eewI9tnd6zHeb
+	 AlgAeUE+l7keqsAxqmMvqRV5E/COD5TkY7fbTyFG7GHI/j7t/pPzBeS8WocARYJUaM
+	 O7YTQ4hKpqDT2USxjHD3XwVv8bA8B8fZK0IzP9+w=
+Date: Sat, 03 Oct 2026 16:59:19 -0700
 To: mm-commits@vger.kernel.org,ljs@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + bpf-arena-mark-arena_map_mmap-mappings-vm_mixedmap.patch added to mm-unstable branch
-Message-Id: <20261003235915.822511F0089C@smtp.kernel.org>
+Subject: + mm-vma-only-allow-mmap-to-clear-vma_maywrite_bit-if-not-mm-managed.patch added to mm-unstable branch
+Message-Id: <20261003235920.183E01F0089C@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: bpf: arena: mark arena_map_mmap() mappings VM_MIXEDMAP
+     Subject: mm/vma: only allow mmap to clear VMA_MAYWRITE_BIT if not mm-managed
 has been added to the -mm mm-unstable branch.  Its filename is
-     bpf-arena-mark-arena_map_mmap-mappings-vm_mixedmap.patch
+     mm-vma-only-allow-mmap-to-clear-vma_maywrite_bit-if-not-mm-managed.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/bpf-arena-mark-arena_map_mmap-mappings-vm_mixedmap.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vma-only-allow-mmap-to-clear-vma_maywrite_bit-if-not-mm-managed.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,41 +59,54 @@ and is updated there most days
 
 ------------------------------------------------------
 From: "Lorenzo Stoakes (ARM)" <ljs@kernel.org>
-Subject: bpf: arena: mark arena_map_mmap() mappings VM_MIXEDMAP
-Date: Sat, 03 Oct 2026 17:32:44 +0100
+Subject: mm/vma: only allow mmap to clear VMA_MAYWRITE_BIT if not mm-managed
+Date: Sat, 03 Oct 2026 17:32:46 +0100
 
-The bpf_map->ops->map_mmap callback invoked by bpf_map_mmap() can be set to
-one of ringbuf_map_mmap_kern(), ringbuf_map_mmap_user(), array_map_mmap()
-or arena_map_mmap().
+For ordinary files the only way the VMA_MAYWRITE_BIT flag is cleared is if
+the underlying file is itself read-only.
 
-It is convention in mm to mark mappings whose pages the kernel manages
-itself with VM_MIXEDMAP, so core mm knows not to treat them as ordinary
-page cache or anonymous memory.
+This means that mprotect() cannot mark a shared mapping of a read-only file
+as read/write, as doing so would violate the read only attribute, and
+permit writes.
 
-The map_mmap callbacks ringbuf_map_mmap_kern() and ringbuf_map_mmap_user()
-use remap_vmalloc_range(), which ultimately invokes vm_insert_page() and so
-marks the ranges VM_MIXEDMAP, and array_map_mmap() sets VM_MIXEDMAP
-explicitly.
+In general, we do not want file systems to be able to do this for
+read/write files.
 
-However, the exception to this is arena_map_mmap(), which doesn't set the
-flag.
+Doing so would violate fundamental user expectation of file attributes and
+likely break userspace.
 
-This patch corrects this and updates the comment to reflect it.
+However, drivers pose a tricky problem here - the /dev/xxx file may be
+read/write but provide access to a resource which is fundamentally
+read-only.
 
-The pages are refcounted and vm_normal_page() finds them regardless of the
-flag, and VM_DONTEXPAND remains set (marking the memory as VM_SPECIAL and
-thus unmergeable). The one effect is that NUMA balancing now skips these
-VMAs, as it already does for the other bpf map mappings, which is the
-reason array_map_mmap() gives for setting the flag.
+Therefore we must allow drivers to be able to clear VMA_MAYWRITE_BIT.
 
-The intent of this patch is to be able to establish the invariant that only
-PFN-mapped or mixed map ranges may clear the VM_MAYWRITE flag, as is done
-in bpf_map_mmap().
+To achieve both of these things, forbid this for mm-managed mappings as
+identified by vma_flags_is_mm_managed().
 
-Link: https://lore.kernel.org/20261003-b4-mmap-prepare-vma-flag-sanify-v4-13-a1f052500fd7@kernel.org
+This constrains this ability to drivers which own the mapping's contents,
+whether memory-mapped I/O, kernel-allocated pages, or ordinary pages they
+map themselves, and so define its semantics.
+
+Every in-tree mmap hook which clears VMA_MAYWRITE_BIT, some twenty sites
+across drivers, filesystems and bpf, establishes a mapping which is not
+mm-managed,
+with usbmon and the ALSA PCM status page converted earlier in this series
+to do so.
+
+Note that drivers may, if they do not gate on VMA_SHARED_BIT, be able to
+disable MAP_PRIVATE-file-backed mapping CoW semantics.
+
+This is perhaps not always intended, but we retain this capacity to
+maintain existing behaviour.
+
+As no driver which clears VMA_MAYWRITE_BIT establishes an mm-managed
+mapping, no functional change is intended.
+
+Link: https://lore.kernel.org/20261003-b4-mmap-prepare-vma-flag-sanify-v4-15-a1f052500fd7@kernel.org
 Signed-off-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Reviewed-by: Emil Tsalapatis <emil@etsalapatis.com>
+Acked-by: Zi Yan <ziy@nvidia.com>
 Cc: Liam R. Howlett <liam@infradead.org>
 Cc: Vlastimil Babka <vbabka@kernel.org>
 Cc: Jann Horn <jannh@google.com>
@@ -116,7 +129,6 @@ Cc: Daniel Borkmann <daniel@iogearbox.net>
 Cc: Andrii Nakryiko <andrii@kernel.org>
 Cc: Eduard Zingerman <eddyz87@gmail.com>
 Cc: Kumar Kartikeya Dwivedi <memxor@gmail.com>
-Cc: Zi Yan <ziy@nvidia.com>
 Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
 Cc: Nico Pache <nico.pache@linux.dev>
 Cc: Ryan Roberts <ryan.roberts@arm.com>
@@ -203,22 +215,23 @@ Cc: Miklos Szeredi <miklos@szeredi.hu>
 Cc: Xu Xin <xu.xin@linux.dev>
 ---
 
- kernel/bpf/arena.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ mm/vma.c |    5 +++++
+ 1 file changed, 5 insertions(+)
 
---- a/kernel/bpf/arena.c~bpf-arena-mark-arena_map_mmap-mappings-vm_mixedmap
-+++ a/kernel/bpf/arena.c
-@@ -620,8 +620,9 @@ static int arena_map_mmap(struct bpf_map
- 	 * clears VM_MAYEXEC. Set VM_DONTEXPAND to avoid potential change
- 	 * of user_vm_start. Set VM_DONTCOPY to prevent arena VMA from
- 	 * being copied into the child process on fork.
-+	 * This is a kernel page so set VM_MIXEDMAP.
- 	 */
--	vm_flags_set(vma, VM_DONTEXPAND | VM_DONTCOPY);
-+	vm_flags_set(vma, VM_MIXEDMAP | VM_DONTEXPAND | VM_DONTCOPY);
- 	vma->vm_ops = &arena_vm_ops;
- 	return 0;
+--- a/mm/vma.c~mm-vma-only-allow-mmap-to-clear-vma_maywrite_bit-if-not-mm-managed
++++ a/mm/vma.c
+@@ -2813,6 +2813,11 @@ static int mmap_validate(unsigned long o
+ 	if (WARN_ON_ONCE(!was_maywrite && is_maywrite))
+ 		return -EINVAL;
+ 
++	/* mm-managed mappings may not clear VMA_MAYWRITE_BIT. */
++	if (vma_flags_is_mm_managed(curr_flags) &&
++	    WARN_ON_ONCE(was_maywrite && !is_maywrite))
++		return -EINVAL;
++
+ 	return mmap_validate_vma_flags(curr_flags);
  }
+ 
 _
 
 Patches currently in -mm which might be from ljs@kernel.org are
