@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6BECA3081A2
-	for <mm-commits@vger.kernel.org>; Sat,  3 Oct 2026 22:38:23 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CE42E397922
+	for <mm-commits@vger.kernel.org>; Sat,  3 Oct 2026 22:38:24 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791067105; cv=none; b=Tok8qrDBb6J2PEvVEGMCntSzc8YBYrH7l68e6+3hID5GwBtEMKMR8qtpluEJoHIW78tkwbou+3kpBo6mo+AWcVkPNP6GEqRrRdbCeqipKiyCIIiD68mQX+Y3+MuCPh8/eqTkUwZL5ffYTSOw47jRqlpwEhGp5SjKXmwSuhNWwJ4=
+	t=1791067106; cv=none; b=RGjwPlqhKtIF2tnydu7UcwQY0VFTnffc3iUj0O5nYdKgq4ndaquTYBiCuf6R9w2TnnuPAXRnXFlcHbvzwaPIR7Szu8JX7hGwhS6d5IcULbBT9nycTwCuNaqbMaR6SZ2nOUApwaQHQBwoRqTgm4IlvEU8EQJWHkoRfqGbLBPCeo4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791067105; c=relaxed/simple;
-	bh=jYCcBTzSuxRkvsd9ARMY1ZJzImXKvlw6NqoYQu3zvvg=;
-	h=Date:To:From:Subject:Message-Id; b=DAvlq8slkDC9sk69N2PRDd3+kSDsay9/3Mg/TcujHWIzz9ZEOfMD2p54kGYZuwMPILWwbu/H27bnk5kSXrjFxQ/tXjfU9YsgIFWtapYWiBBHsNWQNENwMUonbJtDlN/L7JndBmK5xDNw3YrWvzl/Ib10cihk894vyZ10jaxAMlQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=B5ARCGic; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1791067106; c=relaxed/simple;
+	bh=Dtei5k+lCzOHbXngSvRwyaCduDSAHaES4oPO0DkJipU=;
+	h=Date:To:From:Subject:Message-Id; b=cI1OE3jT5EOjNoQiV4h3sXqMw6TbZ9e10IWkBvWt2x5wom8psnXD6OJTrvVzQYiTVuyD3NGNSi4MaXPLE0l1qsnf7YOHw5x1zt+vIEDwIQ4jGGUgP5mV5JkaSq+PO9AYZA2HmI9fGjF+62MbOJsV0PGD127S7NYtYHN0lgyTypA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=G/8DSSsb; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="B5ARCGic"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0AECB1F0089D;
-	Sat,  3 Oct 2026 22:38:23 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="G/8DSSsb"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A4F711F0089C;
+	Sat,  3 Oct 2026 22:38:24 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1791067103;
-	bh=qRL5Bz5c3EyNVRsJViegKnckGl/KLTvIYYJDMIWVHto=;
+	d=linux-foundation.org; s=korg; t=1791067104;
+	bh=oKdsDn0SnCzkvUS3xDHyfYnEd1GuUOIhz41pANCN9s8=;
 	h=Date:To:From:Subject;
-	b=B5ARCGicsVwnVet5S9Ocx7oBwwy1JJblgYiLNcwEa+TVoP6S8kZuaN4dlYt9f8ZU6
-	 LQbjt6SeS1y7OjxezuBxNG43wRChysUzAFsUMoerO7eem4BNNTeTN3SiFMr4sg2Nyt
-	 qhQvPx1AX6Rd4N7XoMJuP9SVgazTsRp956XCLum0=
-Date: Sat, 03 Oct 2026 15:38:22 -0700
+	b=G/8DSSsbQ7d86HJZ7jQki7OTsb5K2ZR4yphKqz09dS7Nwp+I4plHZBvZPLIa+ejHL
+	 X3I0QVHf4nSa036vyvFLEz+bBhP8Pq1dg+BpnY9HtIabLc0sRM1eliVc/NUksMKbIZ
+	 hESKajWoW7ZlDbx8nN5nNfaNmR7PTGQ+MHmgE3WU=
+Date: Sat, 03 Oct 2026 15:38:24 -0700
 To: mm-commits@vger.kernel.org,ljs@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [to-be-updated] mm-vma-ensure-mmap_prepare-doesnt-set-actions-on-a-mergeable-vma.patch removed from -mm tree
-Message-Id: <20261003223823.0AECB1F0089D@smtp.kernel.org>
+Subject: [to-be-updated] mm-make-map_kernel_pages_-internal-and-unexported.patch removed from -mm tree
+Message-Id: <20261003223824.A4F711F0089C@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,34 +35,32 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/vma: ensure mmap_prepare doesn't set actions on a mergeable vma
+     Subject: mm: make map_kernel_pages_[prepare,complete] internal and unexported
 has been removed from the -mm tree.  Its filename was
-     mm-vma-ensure-mmap_prepare-doesnt-set-actions-on-a-mergeable-vma.patch
+     mm-make-map_kernel_pages_-internal-and-unexported.patch
 
 This patch was dropped because an updated version will be issued
 
 ------------------------------------------------------
 From: "Lorenzo Stoakes (ARM)" <ljs@kernel.org>
-Subject: mm/vma: ensure mmap_prepare doesn't set actions on a mergeable vma
-Date: Thu, 17 Sep 2026 17:22:14 +0100
+Subject: mm: make map_kernel_pages_[prepare,complete] internal and unexported
+Date: Thu, 17 Sep 2026 17:22:15 +0100
 
-When a user requests an mmap_action be performed in mmap_prepare, this
-involves populating the VMA range with data.
+There's no reason to export the symbols for these functions which are only
+called from internal mm logic, additionally there's no reason for them to
+be declared in mm.h.
 
-However, if the VMA is mergeable, it might then mistakenly be merged with
-another VMA without having populated the range.
+This patch therefore removes the exports and moves the declarations to
+mm/internal.h.
 
-Every mmap action currently available sets VMA flags such that the VMA
-cannot be merged.
+No functional change intended.
 
-However, to ensure that no future mmap action falls foul of this, assert
-that this is the case upon mmap_prepare validation.
-
-Link: https://lore.kernel.org/20260917-b4-mmap-prepare-vma-flag-sanify-v3-5-4583d8a23bca@kernel.org
+Link: https://lore.kernel.org/20260917-b4-mmap-prepare-vma-flag-sanify-v3-6-4583d8a23bca@kernel.org
 Signed-off-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 Reviewed-by: Zi Yan <ziy@nvidia.com>
 Reviewed-by: Suren Baghdasaryan <surenb@google.com>
+Reviewed-by: Gregory Price (Meta) <gourry@gourry.net>
 Acked-by: David Hildenbrand (Arm) <david@kernel.org>
 Cc: Albert Ou <aou@eecs.berkeley.edu>
 Cc: Alexander Gordeev <agordeev@linux.ibm.com>
@@ -97,7 +95,6 @@ Cc: Eduard Zingerman <eddyz87@gmail.com>
 Cc: Emil Tsalapatis <emil@etsalapatis.com>
 Cc: Gerald Schaefer <gerald.schaefer@linux.ibm.com>
 Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Gregory Price <gourry@gourry.net>
 Cc: Harry Yoo <harry@kernel.org>
 Cc: Heiko Carstens <hca@linux.ibm.com>
 Cc: Helge Deller <deller@gmx.de>
@@ -162,27 +159,53 @@ Cc: Will Deacon <will@kernel.org>
 Cc: Yuanchu Xie <yuanchu@google.com>
 ---
 
- mm/vma.c |    9 +++++++++
- 1 file changed, 9 insertions(+)
+ include/linux/mm.h |    3 ---
+ mm/internal.h      |    3 +++
+ mm/memory.c        |    2 --
+ 3 files changed, 3 insertions(+), 5 deletions(-)
 
---- a/mm/vma.c~mm-vma-ensure-mmap_prepare-doesnt-set-actions-on-a-mergeable-vma
-+++ a/mm/vma.c
-@@ -2824,6 +2824,15 @@ static int mmap_validate(unsigned long p
- int mmap_prepare_validate(const struct vm_area_desc *prev_desc,
- 			  const struct vm_area_desc *desc)
+--- a/include/linux/mm.h~mm-make-map_kernel_pages_-internal-and-unexported
++++ a/include/linux/mm.h
+@@ -4775,9 +4775,6 @@ int remap_pfn_range(struct vm_area_struc
+ int vm_insert_page(struct vm_area_struct *, unsigned long addr, struct page *);
+ int vm_insert_pages(struct vm_area_struct *vma, unsigned long addr,
+ 			struct page **pages, unsigned long *num);
+-int map_kernel_pages_prepare(struct vm_area_desc *desc);
+-int map_kernel_pages_complete(struct vm_area_struct *vma,
+-			      struct mmap_action *action);
+ int vm_map_pages(struct vm_area_struct *vma, struct page **pages,
+ 				unsigned long num);
+ int vm_map_pages_zero(struct vm_area_struct *vma, struct page **pages,
+--- a/mm/internal.h~mm-make-map_kernel_pages_-internal-and-unexported
++++ a/mm/internal.h
+@@ -1515,6 +1515,9 @@ int remap_pfn_range_prepare(struct vm_ar
+ int remap_pfn_range_complete(struct vm_area_struct *vma,
+ 			     struct mmap_action *action);
+ int simple_ioremap_prepare(struct vm_area_desc *desc);
++int map_kernel_pages_prepare(struct vm_area_desc *desc);
++int map_kernel_pages_complete(struct vm_area_struct *vma,
++			      struct mmap_action *action);
+ 
+ static inline int io_remap_pfn_range_prepare(struct vm_area_desc *desc)
  {
-+	/*
-+	 * It is not valid to execute mmap actions for VMAs which can be merged,
-+	 * as any such merge would leave portions of the mapping incorrectly
-+	 * unmapped.
-+	 */
-+	if (vma_flags_can_merge(&desc->vma_flags) &&
-+	    WARN_ON_ONCE(desc->action.type != MMAP_NOTHING))
-+		return -EINVAL;
-+
- 	return mmap_validate(prev_desc->start, prev_desc->end,
- 			     desc->start, desc->end,
- 			     &prev_desc->vma_flags, &desc->vma_flags);
+--- a/mm/memory.c~mm-make-map_kernel_pages_-internal-and-unexported
++++ a/mm/memory.c
+@@ -2628,7 +2628,6 @@ int map_kernel_pages_prepare(struct vm_a
+ 
+ 	return 0;
+ }
+-EXPORT_SYMBOL(map_kernel_pages_prepare);
+ 
+ int map_kernel_pages_complete(struct vm_area_struct *vma,
+ 			      struct mmap_action *action)
+@@ -2640,7 +2639,6 @@ int map_kernel_pages_complete(struct vm_
+ 			    action->map_kernel.pages,
+ 			    &nr_pages, vma->vm_page_prot);
+ }
+-EXPORT_SYMBOL(map_kernel_pages_complete);
+ 
+ /**
+  * vm_insert_page - insert single page into user vma
 _
 
 Patches currently in -mm which might be from ljs@kernel.org are
@@ -211,7 +234,6 @@ mm-enable-mmu_gather_rcu_table_free-for-m68k-motorola.patch
 mm-enable-mmu_gather_rcu_table_free-for-sparc32.patch
 mm-userland-pgtable-freeing-is-rcu-safe-now-remove-leftover-bits.patch
 mm-change-the-contract-for-free_pgtables-update-docs.patch
-mm-make-map_kernel_pages_-internal-and-unexported.patch
 mm-vma-tidy-up-map-kernel-pages-enum-values.patch
 mm-add-mmap-action-for-discontiguous-kernel-page-mapping.patch
 docs-filesystems-update-mmap_prepare-docs-for-discontig-kernel-pgs.patch
