@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B82E538F947
-	for <mm-commits@vger.kernel.org>; Sun,  4 Oct 2026 20:08:35 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1355447F78B
+	for <mm-commits@vger.kernel.org>; Sun,  4 Oct 2026 20:11:46 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791144517; cv=none; b=Uiw3R+sAFMcxBN2pCi2EOWuwotyavXjDBSHChNrTvgX3Hcyvpn/DgPXsBHNfRjfzc9KS3gJn5cuo8hvsN2ck/luXcvEUVbV0HDybYHBMdGruWGcgX3DMfVsNwH67XyEJALJIkTIwDRop7joq/rZmks+EjAPKO6RGrj0E55Ft8Wc=
+	t=1791144708; cv=none; b=U0m8X6DupJx3nK45cVwN3bAsT5pKKuU6RutMPHFMkImQCnN0X/UU0fXuO0nP05f1+QpoTqgbAfjHpf10HyJ5LyVARXPySaeTvyQzr+vL2YHtgFPTIctSTAMxH+j8o49glUeHJ252RB+IeOokTcDJDLYqFbC8QXO3ms2iEJq8Hqw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791144517; c=relaxed/simple;
-	bh=jdwBxIrpXSw/U9GxOUy3aS4hC5+6c3Wr5e63DvqSPvU=;
-	h=Date:To:From:Subject:Message-Id; b=uG8+GbOkHYazhT5oofTPtdQ/pzXF9pWCKUueK0i2cpZ+VHp+Hi3iB7ZFRTw4b7xnPeJCnRI1XuT/UMDaMSau3XHgFPmqlceSbEk7L1YXKMFGBtayEGCFMqfq+T+lgbeGlIVwJAL7MnRv232YRNX+KJG9uWp7iewpEg/KNGdSyJk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=zNDB+/AZ; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1791144708; c=relaxed/simple;
+	bh=fxCjFH+EkbaO56OR/05LdouITSIRwI+d4nq3daOIGKI=;
+	h=Date:To:From:Subject:Message-Id; b=IYprMgllgfYFcw1v6M3CSmhpytCnGTtg1g0P0WFXDuK4GQ0V6iAVTJSZLo3dIFBo6m1Fu3nzcj820PAnSC0OPDI7pRxhGGX51IclIk4mHWJ4Glw1gBdsoUeyIie3hfowTKsJpZW3AfU6R6z7ZZKCSgoePHUybSKfigvbNjFgKgk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=kUrleMn/; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="zNDB+/AZ"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4D9251F000FF;
-	Sun,  4 Oct 2026 20:08:35 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="kUrleMn/"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 938941F000FF;
+	Sun,  4 Oct 2026 20:11:46 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1791144515;
-	bh=5zDiAIh7Wva4Z7RtES1yI9SDNow2BNsZJKG8H8g+ZY4=;
+	d=linux-foundation.org; s=korg; t=1791144706;
+	bh=2L2NcnWa8ox7dq1De8zDERaUdfcZHiqZ+qtIiy0JSdg=;
 	h=Date:To:From:Subject;
-	b=zNDB+/AZivkx/TohYegshBRhcuNOTxbFVux8+9YmuQvHJ+wgw8AzrusxQwf5KX/y4
-	 xmmxp5aF+Zuf2Z6XxEUy9HyjpnGtTBhToE+R1+U1fljNk+l8UCqr4CrKtdf8Bcmt9t
-	 t/bZ6SSNnFVlTZrOtHgpD9Veg7CkvrOtHbWROzlI=
-Date: Sun, 04 Oct 2026 13:08:34 -0700
-To: mm-commits@vger.kernel.org,vbabka@kernel.org,surenb@google.com,shuah@kernel.org,rppt@kernel.org,peterx@redhat.com,mhocko@suse.com,ljs@kernel.org,liam@infradead.org,kas@kernel.org,david@kernel.org,aarcange@redhat.com,donggeunyoo.kernel@gmail.com,akpm@linux-foundation.org
+	b=kUrleMn/jB+ipiThaT3lt3Fe39CpJTUfHaJBYU70PdHQB5bTkpygrVtOM0/raVIWe
+	 q+P1nPp9AAVQacCjO0/LG6rpOBvufsP0UAnYBUE46wnACcBOruwSJd+ZqfPFp45y3U
+	 VDJbdpZbylqPNBFgRfALjKSoogT9BS2ENl6T5rpg=
+Date: Sun, 04 Oct 2026 13:11:46 -0700
+To: mm-commits@vger.kernel.org,sj@kernel.org,osalvador@suse.de,muchun.song@linux.dev,joe@perches.com,david@kernel.org,lienze@kylinos.cn,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-mm-add-tests-for-uffdio_move-of-a-uffd-protected-swap-entry.patch added to mm-hotfixes-unstable branch
-Message-Id: <20261004200835.4D9251F000FF@smtp.kernel.org>
+Subject: + maintainers-cover-all-hugetlb-headers-under-hugetlb-subsystem.patch added to mm-unstable branch
+Message-Id: <20261004201146.938941F000FF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: selftests/mm: add tests for UFFDIO_MOVE of a uffd-protected swap entry
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     selftests-mm-add-tests-for-uffdio_move-of-a-uffd-protected-swap-entry.patch
+     Subject: MAINTAINERS: cover all hugetlb headers under HUGETLB SUBSYSTEM
+has been added to the -mm mm-unstable branch.  Its filename is
+     maintainers-cover-all-hugetlb-headers-under-hugetlb-subsystem.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-add-tests-for-uffdio_move-of-a-uffd-protected-swap-entry.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/maintainers-cover-all-hugetlb-headers-under-hugetlb-subsystem.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,143 +58,50 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Donggeun Yoo <donggeunyoo.kernel@gmail.com>
-Subject: selftests/mm: add tests for UFFDIO_MOVE of a uffd-protected swap entry
-Date: Sat,  3 Oct 2026 19:30:30 +0900
+From: Enze Li <lienze@kylinos.cn>
+Subject: MAINTAINERS: cover all hugetlb headers under HUGETLB SUBSYSTEM
+Date: Sat,  3 Oct 2026 14:00:28 +0800
 
-Move a swapped-out page out of a write-protected or RWP-protected area into
-a destination registered for missing faults only, and read pagemap bit 57
-at the destination.  The destination was never protected, so the bit must
-be clear.
+The HUGETLB SUBSYSTEM F: entries list include/linux/hugetlb.h explicitly,
+but other hugetlb headers are not covered, so get_maintainer.pl does not
+attribute them to the hugetlb maintainers.
 
-Link: https://lore.kernel.org/20261003103030.63380-3-donggeunyoo.kernel@gmail.com
-Signed-off-by: Donggeun Yoo <donggeunyoo.kernel@gmail.com>
+Enumerating headers by hand is also fragile: any header not listed (such
+as hugetlb_cgroup.h) falls outside the subsystem.  Joe Perches suggested
+using a glob F: entry, which covers all current and future hugetlb headers
+in one line and avoids the gap.
+
+Link: https://lore.kernel.org/20261003060029.2152489-1-lienze@kylinos.cn
+Signed-off-by: Enze Li <lienze@kylinos.cn>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Assisted-by: LLM
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Peter Xu <peterx@redhat.com>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: David Hildenbrand <david@kernel.org>
-Cc: Lorenzo Stoakes <ljs@kernel.org>
-Cc: Liam R. Howlett <liam@infradead.org>
-Cc: Vlastimil Babka <vbabka@kernel.org>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Shuah Khan <shuah@kernel.org>
-Cc: Kiryl Shutsemau <kas@kernel.org>
+Suggested-by: Joe Perches <joe@perches.com>
+Acked-by: David Hildenbrand (Arm) <david@kernel.org>
+Reviewed-by: SJ Park <sj@kernel.org>
+Cc: Muchun Song <muchun.song@linux.dev>
+Cc: Oscar Salvador <osalvador@suse.de>
 ---
 
- tools/testing/selftests/mm/uffd-unit-tests.c |   84 +++++++++++++++++
- 1 file changed, 84 insertions(+)
+ MAINTAINERS |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/tools/testing/selftests/mm/uffd-unit-tests.c~selftests-mm-add-tests-for-uffdio_move-of-a-uffd-protected-swap-entry
-+++ a/tools/testing/selftests/mm/uffd-unit-tests.c
-@@ -2037,6 +2037,75 @@ static void uffd_move_pmd_split_test(uff
- 			      uffd_move_pmd_handle_fault);
- }
- 
-+/*
-+ * Moving a swapped-out page out of a write-protected or RWP-protected area
-+ * must not carry the uffd bit into a destination registered for missing
-+ * faults only: such a bit is never cleared afterwards, so pagemap keeps
-+ * reporting the page as uffd-tracked.
-+ *
-+ * Needs a swap device; skipped if MADV_PAGEOUT cannot evict the page.
-+ */
-+static void uffd_move_swap_test_common(uffd_global_test_opts_t *gopts,
-+				       bool rwp)
-+{
-+	unsigned long page_size = gopts->page_size;
-+	struct uffdio_move move = {
-+		.dst = (unsigned long)gopts->area_dst,
-+		.src = (unsigned long)gopts->area_src,
-+		.len = page_size,
-+	};
-+	int pagemap_fd = pagemap_open();
-+
-+	if (rwp) {
-+		if (uffd_register_rwp(gopts->uffd, gopts->area_src, page_size))
-+			err("register src failure");
-+		rwprotect_range(gopts->uffd, (unsigned long)gopts->area_src,
-+				page_size, true);
-+	} else {
-+		if (uffd_register(gopts->uffd, gopts->area_src, page_size,
-+				  false, true, false))
-+			err("register src failure");
-+		wp_range(gopts->uffd, (unsigned long)gopts->area_src,
-+			 page_size, true);
-+	}
-+	if (uffd_register(gopts->uffd, gopts->area_dst, page_size,
-+			  true, false, false))
-+		err("register dst failure");
-+
-+	if (madvise(gopts->area_src, page_size, MADV_PAGEOUT))
-+		err("MADV_PAGEOUT");
-+	if (!pagemap_is_swapped(pagemap_fd, gopts->area_src)) {
-+		uffd_test_skip("MADV_PAGEOUT did not swap the page; is swap enabled?");
-+		goto out;
-+	}
-+
-+	if (ioctl(gopts->uffd, UFFDIO_MOVE, &move)) {
-+		uffd_test_fail("UFFDIO_MOVE failed: %s", strerror(errno));
-+		goto out;
-+	}
-+
-+	if (pagemap_get_entry(pagemap_fd, gopts->area_dst) & PM_UFFD_WP)
-+		uffd_test_fail("uffd bit moved into an area registered for missing faults only");
-+	else
-+		uffd_test_pass();
-+out:
-+	close(pagemap_fd);
-+	uffd_unregister(gopts->uffd, gopts->area_src, page_size);
-+	uffd_unregister(gopts->uffd, gopts->area_dst, page_size);
-+}
-+
-+static void uffd_move_swap_wp_test(uffd_global_test_opts_t *gopts,
-+				   uffd_test_args_t *targs)
-+{
-+	uffd_move_swap_test_common(gopts, false);
-+}
-+
-+static void uffd_move_swap_rwp_test(uffd_global_test_opts_t *gopts,
-+				    uffd_test_args_t *targs)
-+{
-+	uffd_move_swap_test_common(gopts, true);
-+}
-+
- static bool
- uffdio_verify_results(const char *name, int ret, int error, long result)
- {
-@@ -2360,6 +2429,21 @@ uffd_test_case_t uffd_tests[] = {
- 		.test_case_ops = &uffd_move_test_pmd_case_ops,
- 	},
- 	{
-+		.name = "move-swap-wp",
-+		.uffd_fn = uffd_move_swap_wp_test,
-+		.mem_targets = MEM_ANON,
-+		.uffd_feature_required = UFFD_FEATURE_MOVE |
-+		UFFD_FEATURE_PAGEFAULT_FLAG_WP,
-+		.test_case_ops = &uffd_move_test_case_ops,
-+	},
-+	{
-+		.name = "move-swap-rwp",
-+		.uffd_fn = uffd_move_swap_rwp_test,
-+		.mem_targets = MEM_ANON,
-+		.uffd_feature_required = UFFD_FEATURE_MOVE | UFFD_FEATURE_RWP,
-+		.test_case_ops = &uffd_move_test_case_ops,
-+	},
-+	{
- 		.name = "wp-fork",
- 		.uffd_fn = uffd_wp_fork_test,
- 		.mem_targets = MEM_ALL,
+--- a/MAINTAINERS~maintainers-cover-all-hugetlb-headers-under-hugetlb-subsystem
++++ a/MAINTAINERS
+@@ -12097,7 +12097,7 @@ F:	Documentation/admin-guide/mm/hugetlbp
+ F:	Documentation/mm/hugetlbfs_reserv.rst
+ F:	Documentation/mm/vmemmap_dedup.rst
+ F:	fs/hugetlbfs/
+-F:	include/linux/hugetlb.h
++F:	include/linux/hugetlb*
+ F:	include/linux/vmemmap-optimization.h
+ F:	include/trace/events/hugetlbfs.h
+ F:	mm/hugetlb.c
 _
 
-Patches currently in -mm which might be from donggeunyoo.kernel@gmail.com are
+Patches currently in -mm which might be from lienze@kylinos.cn are
 
-userfaultfd-clear-the-inherited-uffd-bit-in-move_swap_pte.patch
-selftests-mm-add-tests-for-uffdio_move-of-a-uffd-protected-swap-entry.patch
-mm-damon-core-charge-only-the-part-of-a-region-the-filter-left.patch
-mm-damon-tests-core-kunit-test-the-size-charged-for-a-filter-trimmed-region.patch
-mm-damon-core-prevent-size-quota-overflow-in-the-temporal-goal-tuner.patch
-mm-damon-tests-core-kunit-test-the-temporal-tuners-size-quota-conversion.patch
+mm-damon-core-introduce-damon_set_target_pid.patch
+samples-damon-mtier-add-comment-for-struct-region_range.patch
+maintainers-cover-all-hugetlb-headers-under-hugetlb-subsystem.patch
+mm-hugetlb_cgroup-add-trailing-endif-comment-for-include-guard.patch
+docs-hugetlbpagerst-fix-typo-in-per-node-attribute-description.patch
 
