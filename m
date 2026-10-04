@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E3F7837F333
-	for <mm-commits@vger.kernel.org>; Sun,  4 Oct 2026 00:00:17 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7B1A3306B3D
+	for <mm-commits@vger.kernel.org>; Sun,  4 Oct 2026 00:00:22 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791072021; cv=none; b=W+r7Dq1i6PdjV7FVo0Gcl2YVl3ZE+BNn1RmPXwbnBMFGT8WGeBAarRYbywOu+zqf/36WTE/ztQP4sLqwAkqtQw+bPFVljrTIyaxRjtNIxCumnhUR1ORbfcm9O0gtFFqEHWP6a+igGmF6sMEBtmCChjB0WfHdDg8okZ1hnfrresU=
+	t=1791072024; cv=none; b=OCpL/TvBj2AG4tO9/TemsZ5IBvRvIAE/JTpJhdtvtQ/k7c6mZ7UiC04LZodntsvGOobkMYRYr0Qm+De+3gCBugJoSsJ1jZ/qCvFF/vIXeI/0GStkcVKiW3J8PqWby+LOSChT4IdXxR8gv4yK1ahRPQV1UzjSKx3484HqvO/6jPw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791072021; c=relaxed/simple;
-	bh=vUHTN9UZv1l4i/MWMbi1YWbUC7elY2bERuFwT+gP1rM=;
-	h=Date:To:From:Subject:Message-Id; b=G4jE2/p9/juqsQLMRNC8PsfcGYMHAXGlMjyBMhM9aMFXJ/to3fb9IPv4lu0dvjJ/OOS2UCsAXY5bOdLHILuY6Qr149WFejW5BbEpYtgRhw3oZL+gFCKHRp75I9WwX49nAZsJhygO1j4/htomdp7NrXRDPWtjsjIkVIcvK2j1VcA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=VH6hrWyl; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1791072024; c=relaxed/simple;
+	bh=aQLuIw0WhGtlK5CB+Z4kmgjORfiu1m/1Q2KoXxgCE50=;
+	h=Date:To:From:Subject:Message-Id; b=Ao7iJIc3WKPtqXKYDN8QBa7ABqL58kAfNqxOJBkiC4CRLsvbSsjo2sNYej81u32EW0gPNNb6Ewl+46XfaoAxUFL8SXFvDS9ThgYbo9FnMKr7lHmbsXS7HpBj60K4+QZ+Xv04bXr7bJu6xeSXJTO182yh/faEZorO6D+sq95oDug=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=RJh4M5Wz; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="VH6hrWyl"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id ABB0D1F0089C;
-	Sun,  4 Oct 2026 00:00:17 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="RJh4M5Wz"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4A6511F0089C;
+	Sun,  4 Oct 2026 00:00:22 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1791072017;
-	bh=duC20Aw8cQ9Ppk2TuRkQ1SSxAah69I5evhQr8chO0Qk=;
+	d=linux-foundation.org; s=korg; t=1791072022;
+	bh=AAQ4LJShsBeJn+dtvfhDNs6D90Vt8hwuhc0mCrA672k=;
 	h=Date:To:From:Subject;
-	b=VH6hrWylNcQkTQdgptvJLQL9nsLanZRtuvfBDB0uLacdmE8Tq6hBNY6UGxOo3c3WM
-	 F5VOyj9rh6yfCn5pgQJxL1+Yu475AoRN6QNY8UzhMHcEDhLNRg9iDYBriy1073wbgu
-	 QGZ1K5GQVvd2cUyvmHaDHu3ajyLR/ISNbln2nQOY=
-Date: Sat, 03 Oct 2026 17:00:17 -0700
+	b=RJh4M5WzAD0tgRbbouU2NjJ7Ac+9spvMDc2pbnvvvaCEb0cQMjKwHCqa8zLHjpxvu
+	 jMijOQk1DfNIHhYvMF8kBewrgflSCl7STiIqGk5eUbiCa14szsn3Znxh18NIFCbYXz
+	 Ld7nc+E0EVhdv9REY9IaqoryibA6knFIxe53acEw=
+Date: Sat, 03 Oct 2026 17:00:21 -0700
 To: mm-commits@vger.kernel.org,ljs@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-madvise-update-is_valid_guard_vma-to-use-vma_can_merge.patch added to mm-unstable branch
-Message-Id: <20261004000017.ABB0D1F0089C@smtp.kernel.org>
+Subject: + mm-uffd-use-predicates-for-userfaultfd-checks.patch added to mm-unstable branch
+Message-Id: <20261004000022.4A6511F0089C@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/madvise: update is_valid_guard_vma() to use vma_can_merge()
+     Subject: mm/uffd: use predicates for userfaultfd checks
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-madvise-update-is_valid_guard_vma-to-use-vma_can_merge.patch
+     mm-uffd-use-predicates-for-userfaultfd-checks.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-madvise-update-is_valid_guard_vma-to-use-vma_can_merge.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-uffd-use-predicates-for-userfaultfd-checks.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,33 +59,32 @@ and is updated there most days
 
 ------------------------------------------------------
 From: "Lorenzo Stoakes (ARM)" <ljs@kernel.org>
-Subject: mm/madvise: update is_valid_guard_vma() to use vma_can_merge()
-Date: Sat, 03 Oct 2026 17:33:00 +0100
+Subject: mm/uffd: use predicates for userfaultfd checks
+Date: Sat, 03 Oct 2026 17:33:02 +0100
 
-We currently disallow the installation of lightweight guard regions in VMAs
-whose flags intersect VMA_SPECIAL_FLAGS or VMA_HUGETLB_BIT, or
-VMA_LOCKED_BIT unless allow_locked is set.
+Rather than directly checking VMA flags, use the newly introduced
+vma_is_mm_managed() and vma_is_mm_backed() helpers in userfaultfd
+when assessing VMA suitability for userfaultfd and UFFDIO_MOVE.
 
-hugetlb VMAs set VMA_DONTEXPAND_BIT so this was already redundant,
-VMA_SPECIAL_FLAGS already sufficed.
+Update vma_move_compatible() so it's expressed in terms of VMA
+characteristics rather than arbitrary flags.
 
-However, now that VMA_IO_BIT is only set if VMA_PFNMAP or VMA_MIXEDMAP_BIT
-is set, this check collapses to being the equivalent of
-!vma_can_merge().
+Additionally, update the use of the deprecated VMA flag API when checking
+VMA_SHADOW_STACK_BIT.
 
-Update is_valid_guard_vma() to reflect this.
+A VMA_IO_BIT check is no longer required but that is fine as a hard
+invariant has been established that mm-managed mappings may not set
+VMA_IO_BIT so the check is now redundant.
 
-No functional change intended.
-
-Link: https://lore.kernel.org/20261003-b4-mmap-prepare-vma-flag-sanify-v4-29-a1f052500fd7@kernel.org
+Link: https://lore.kernel.org/20261003-b4-mmap-prepare-vma-flag-sanify-v4-31-a1f052500fd7@kernel.org
 Signed-off-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 Acked-by: Zi Yan <ziy@nvidia.com>
-Acked-by: David Hildenbrand (Arm) <david@kernel.org>
 Cc: Liam R. Howlett <liam@infradead.org>
 Cc: Vlastimil Babka <vbabka@kernel.org>
 Cc: Jann Horn <jannh@google.com>
 Cc: Pedro Falcato <pfalcato@suse.de>
+Cc: David Hildenbrand <david@kernel.org>
 Cc: Mike Rapoport <rppt@kernel.org>
 Cc: Suren Baghdasaryan <surenb@google.com>
 Cc: Michal Hocko <mhocko@suse.com>
@@ -189,44 +188,46 @@ Cc: Miklos Szeredi <miklos@szeredi.hu>
 Cc: Xu Xin <xu.xin@linux.dev>
 ---
 
- mm/madvise.c |   20 +++++++++++++-------
- 1 file changed, 13 insertions(+), 7 deletions(-)
+ mm/userfaultfd.c |   19 +++++++++++++------
+ 1 file changed, 13 insertions(+), 6 deletions(-)
 
---- a/mm/madvise.c~mm-madvise-update-is_valid_guard_vma-to-use-vma_can_merge
-+++ a/mm/madvise.c
-@@ -1222,19 +1222,25 @@ static long madvise_remove(struct madvis
- 	return error;
+--- a/mm/userfaultfd.c~mm-uffd-use-predicates-for-userfaultfd-checks
++++ a/mm/userfaultfd.c
+@@ -1755,10 +1755,16 @@ static inline bool move_splits_huge_pmd(
  }
+ #endif
  
--static bool is_valid_guard_vma(struct vm_area_struct *vma, bool allow_locked)
-+static bool is_valid_guard_vma(const struct vm_area_struct *vma,
-+			       bool allow_locked)
+-static inline bool vma_move_compatible(struct vm_area_struct *vma)
++static inline bool vma_move_compatible(const struct vm_area_struct *vma)
  {
--	vm_flags_t disallowed = VM_SPECIAL | VM_HUGETLB;
--
- 	/*
--	 * A user could lock after setting a guard range but that's fine, as
-+	 * A user could lock after setting a guard range but that's fine as
- 	 * they'd not be able to fault in. The issue arises when we try to zap
- 	 * existing locked VMAs. We don't want to do that.
- 	 */
--	if (!allow_locked)
--		disallowed |= VM_LOCKED;
-+	if (!allow_locked && vma_test(vma, VMA_LOCKED_BIT))
+-	return !(vma->vm_flags & (VM_PFNMAP | VM_IO |  VM_HUGETLB |
+-				  VM_MIXEDMAP | VM_SHADOW_STACK));
++	/* uffd is generally incompatible with mappings not managed by core mm. */
++	if (!vma_is_mm_managed(vma))
 +		return false;
-+	/*
-+	 * Guard regions require a VMA whose page tables are managed solely by
-+	 * the core, which is also what merging requires, so disallow any flags
-+	 * that would prevent a merge.
-+	 */
-+	if (!vma_can_merge(vma))
++	/* The shadow stack should not be written to by userspace. */
++	if (vma_test_single_mask(vma, VMA_SHADOW_STACK))
 +		return false;
- 
--	return !(vma->vm_flags & disallowed);
-+	return true;
++	/* hugetlb mappings cannot be safely moved. */
++	return !vma_is_hugetlb(vma);
  }
  
- static bool is_guard_pte_marker(pte_t ptent)
+ static int validate_move_areas(struct userfaultfd_ctx *ctx,
+@@ -2147,10 +2153,11 @@ static bool vma_can_userfault(struct vm_
+ {
+ 	const struct vm_uffd_ops *ops = vma_uffd_ops(vma);
+ 
+-	if (vma->vm_flags & (VM_DROPPABLE | VM_SHADOW_STACK))
++	/* Only mm-backed memory can have its faults handled by userspace. */
++	if (!vma_is_mm_backed(vma))
+ 		return false;
+-
+-	if (!vma_is_hugetlb(vma) && (vma->vm_flags & VM_SPECIAL))
++	/* The shadow stack should not be written to by userspace. */
++	if (vma_test_single_mask(vma, VMA_SHADOW_STACK))
+ 		return false;
+ 
+ 	vm_flags &= __VM_UFFD_FLAGS;
 _
 
 Patches currently in -mm which might be from ljs@kernel.org are
