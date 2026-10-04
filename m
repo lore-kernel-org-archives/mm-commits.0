@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CFC31367B65
-	for <mm-commits@vger.kernel.org>; Sun,  4 Oct 2026 20:03:01 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2C7DC40B396
+	for <mm-commits@vger.kernel.org>; Sun,  4 Oct 2026 20:04:24 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791144190; cv=none; b=XWP1xf3QHYB60bXisvGEMefEjn2QcZjRD5L1ZxEkUJ8cJseSM+wKzoG5eoltysO4QIxktrr3XLOYUzTuf7K3JKlvCD287JygW2hOKSZcLsrZNUCiaqSOneo1MpIwfsyko0MUIRmoikjINhxaCZpxaabSTY6A/VLg/JG+85dDEFg=
+	t=1791144267; cv=none; b=JrA3sifDaQX8tI3CVPisy74kdiY2WhQxZW5YGVOJcImKRDB1eQjtRPhBkCVwYCU0FeJkN8O9PazYVg0WKj+J+/XYv2o8ARkuy02bTkzjSJ1rw9pRMzm7aRHVJ2Pgo42K23xZBei6u/Vxe80g11ERF7qoj7TaAS2QW5y1Sxotixk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791144190; c=relaxed/simple;
-	bh=QqgepMKCYKhPdROxapv+1GnLVdR+fstx3oaLleGfy0E=;
-	h=Date:To:From:Subject:Message-Id; b=dUrHnm3WNHLy2sScrHx57Zu70AV4NJnB83eYjwtmtIZWob+27IWUk1l1tfq6GGtyzdHNdsoRcSKyZ11DE7rRJNbltv+jA6+SZEs5ki3gtEfSGiUt5rmF4ZZENefva9OrgXTkLdgK02LZTc/TD2oRcrMha5NmMvoMOcNv9yMKsrQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=H44fpx8L; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1791144267; c=relaxed/simple;
+	bh=Bk8SD+ei4rdW6ri049lTyWWdQ+dCi99H6HSI2R7Q7TM=;
+	h=Date:To:From:Subject:Message-Id; b=H0wgfVGIi3IloYek2PZKL/fK4hiBNIdNofCTH2KdcW+JB8cnYAbY9g2Q6t+IBiM1ll/wSuc1ShFUIZ+O9OpkyBf8Ks1cyLiFAKOXnNUCpxwbSNlNKQX3A8PjnU829XuPxmMV3VqhNcE19iMzSFPBrnh1GdcxPQx5VgQAjxQLF/c=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=x5tKy4+L; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="H44fpx8L"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 582971F000FF;
-	Sun,  4 Oct 2026 20:02:59 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="x5tKy4+L"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B6F0B1F000FF;
+	Sun,  4 Oct 2026 20:04:24 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1791144179;
-	bh=gy4ai4v3lbU5pRHxJ+AoiEcO9n5aNs8i/3SkVV7jHbo=;
+	d=linux-foundation.org; s=korg; t=1791144264;
+	bh=nzTBLKqm5V5NRBTHE7bi+SZIS6quURJQSq/zSPJvLpQ=;
 	h=Date:To:From:Subject;
-	b=H44fpx8LDEbvrvOLSMGRfvv9oeoAyEimMr9Ip1khQa0fFewXS0BoQpsgRy/LQcRkP
-	 YWUPEroyNW7aswXnyKW5pAU0Ogz04uwliYFC4X5dmXA+wlBDQFJHsyEaqzfrt0obUA
-	 PfFR7NDk57nkB3hQGiBRfSkDKYp/IflKgMJ6LAV4=
-Date: Sun, 04 Oct 2026 13:02:58 -0700
-To: mm-commits@vger.kernel.org,tglx@kernel.org,dianders@chromium.org,blum@kernel.org,brads@mainlining.org,akpm@linux-foundation.org
+	b=x5tKy4+Lg36ZUYyzjExwsgr+ozopvdsaf/WUrBQwMP/VelsEUSkKVz/DkAqsPuMBv
+	 KGuGuMcN9FsF/V2VzgDJJSLfW6zcH6SIx6Gl2pc0hV35hDGebCGDGHXcpix01uam1m
+	 v4/i6DgpkMZhR77vvjvImGd+QiEtlhZ3kQazWfO0=
+Date: Sun, 04 Oct 2026 13:04:24 -0700
+To: mm-commits@vger.kernel.org,donggeunyoo.kernel@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + watchdog-perf-one-digit-too-short-in-the-raw-event-config-copy.patch added to mm-nonmm-unstable branch
-Message-Id: <20261004200259.582971F000FF@smtp.kernel.org>
+Subject: [to-be-updated] userfaultfd-clear-the-inherited-uffd-bit-in-move_swap_pte.patch removed from -mm tree
+Message-Id: <20261004200424.B6F0B1F000FF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,92 +34,106 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The patch titled
-     Subject: watchdog/perf: one digit too short in the raw event config copy
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     watchdog-perf-one-digit-too-short-in-the-raw-event-config-copy.patch
+The quilt patch titled
+     Subject: userfaultfd: clear the inherited uffd bit in move_swap_pte()
+has been removed from the -mm tree.  Its filename was
+     userfaultfd-clear-the-inherited-uffd-bit-in-move_swap_pte.patch
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/watchdog-perf-one-digit-too-short-in-the-raw-event-config-copy.patch
-
-This patch will later appear in the mm-nonmm-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via various
-branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there most days
+This patch was dropped because an updated version will be issued
 
 ------------------------------------------------------
-From: Bradley Morgan <brads@mainlining.org>
-Subject: watchdog/perf: one digit too short in the raw event config copy
-Date: Sat, 3 Oct 2026 11:02:00 +0000
+From: Donggeun Yoo <donggeunyoo.kernel@gmail.com>
+Subject: userfaultfd: clear the inherited uffd bit in move_swap_pte()
+Date: Sat, 26 Sep 2026 21:41:44 +0900
 
-Commit 6164be01f179 ("watchdog/perf: optimize bytes copied and remove
-manual NUL-termination") swapped strscpy(buf, str, sizeof(buf)) plus a
-manual buf[len] = 0 for strscpy(buf, str, len), and that count is one
-short.  strscpy() keeps the last byte of the destination for the NUL, so
-the config loses its final digit, nmi_watchdog=r300,panic for example ends
-up with buf = "30" and arms the raw event with the wrong config.
+Patch series "userfaultfd: clear the inherited uffd bit in
+move_swap_pte()", v3.
 
-The empty case falls over too, strscpy() with a zero count writes nothing
-at all, so nmi_watchdog=r,1 leaves buf uninitialized and kstrtoull() reads
-whatever stack garbage is sitting there.
 
-The old code was safe on both by accident, it filled the whole buffer
-first and buf[len] = 0 then stomped the comma position, so the worst you
-got was a truncated parse failure.
+UFFDIO_MOVE on a swapped-out page installs the source PTE at the
+destination unchanged, so a uffd bit set on a write-protected or
+RWP-protected source lands in a destination VMA that was never registered
+for either, and nothing clears it afterwards.  Patch 1 clears the bit,
+then re-arms it if the destination is RWP-registered, which is what the
+present-page and zeropage move paths already do.  Patch 2 adds the tests
+that catch it.
 
-Pass len + 1 so the copy includes the character the NUL replaces, and
-reject len >= sizeof(buf) like it was before the optimization, which also
-turns an empty config back into a clean parse failure.
 
-Link: https://lore.kernel.org/20261003110200.3-brads@mainlining.org
-Fixes: 6164be01f179 ("watchdog/perf: optimize bytes copied and remove manual NUL-termination")
-Signed-off-by: Bradley Morgan <brads@mainlining.org>
+This patch (of 2):
+
+UFFDIO_MOVE on a swapped-out page installs the source PTE at the
+destination unchanged, so a uffd bit set on a write-protected or
+RWP-protected source lands in a destination VMA that was never registered
+for either.  Nothing clears it there, and userspace sees:
+
+ - /proc/<pid>/pagemap reports the page as uffd-tracked (bit 57), both
+   while it is swapped out and after it is faulted back in.
+ - MADV_COLLAPSE fails with EINVAL on a range containing it, because the
+   collapse scan bails on a swap entry with the uffd bit set.
+ - With CONFIG_PAGE_TABLE_CHECK, faulting the page in warns.
+   do_swap_page() carries the bit into the present PTE and, since the
+   destination isn't WP-registered, also makes it writable:
+
+   WARNING: mm/page_table_check.c:202 at __page_table_check_ptes_set+0x185/0x1e0
+   Call Trace:
+    set_ptes+0x67/0xc0
+    do_swap_page+0x990/0xfe0
+    __handle_mm_fault+0x7d0/0xeb0
+    handle_mm_fault+0x9c/0x250
+    do_user_addr_fault+0x207/0x650
+    exc_page_fault+0x65/0x150
+    asm_exc_page_fault+0x26/0x30
+
+Reaching it takes UFFDIO_MOVE out of a WP- or RWP-protected area into one
+that isn't, on a page that is swapped out at the time.  It hasn't been
+seen in practice.
+
+A resident page doesn't carry the bit, because move_present_ptes() builds
+the destination PTE from dst_vma->vm_page_prot.  Clear it on the moved
+swap entry as well, then re-arm it if the destination is RWP-registered.
+
+The WP case has been there since v6.8, where UFFDIO_MOVE was added.
+
+Link: https://lore.kernel.org/20260926124145.2878520-1-donggeunyoo.kernel@gmail.com
+Link: https://lore.kernel.org/20260926124145.2878520-2-donggeunyoo.kernel@gmail.com
+Fixes: adef440691ba ("userfaultfd: UFFDIO_MOVE uABI")
+Signed-off-by: Donggeun Yoo <donggeunyoo.kernel@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Reviewed-by: Douglas Anderson <dianders@chromium.org>
-Cc: Thorsten Blum <blum@kernel.org>
-Cc: Thomas Gleixner <tglx@kernel.org>
+Acked-by: David Hildenbrand (Arm) <david@kernel.org>
+Acked-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
+Assisted-by: LLM
+Cc: Peter Xu <peterx@redhat.com>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Lorenzo Stoakes <ljs@kernel.org>
+Cc: Liam R. Howlett <liam@infradead.org>
+Cc: Vlastimil Babka <vbabka@kernel.org>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Shuah Khan <shuah@kernel.org>
+Cc: Kiryl Shutsemau <kas@kernel.org>
+Cc: <stable@vger.kernel.org>
 ---
 
- kernel/watchdog_perf.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ mm/userfaultfd.c |    1 +
+ 1 file changed, 1 insertion(+)
 
---- a/kernel/watchdog_perf.c~watchdog-perf-one-digit-too-short-in-the-raw-event-config-copy
-+++ a/kernel/watchdog_perf.c
-@@ -301,10 +301,10 @@ void __init hardlockup_config_perf_event
- 	} else {
- 		unsigned int len = comma - str;
- 
--		if (len > sizeof(buf))
-+		if (len >= sizeof(buf))
- 			return;
- 
--		strscpy(buf, str, len);
-+		strscpy(buf, str, len + 1);
- 		if (kstrtoull(buf, 16, &config))
- 			return;
- 	}
+--- a/mm/userfaultfd.c~userfaultfd-clear-the-inherited-uffd-bit-in-move_swap_pte
++++ a/mm/userfaultfd.c
+@@ -1449,6 +1449,7 @@ static int move_swap_pte(struct mm_struc
+ 	orig_src_pte = ptep_get_and_clear(mm, src_addr, src_pte);
+ 	if (pgtable_supports_soft_dirty())
+ 		orig_src_pte = pte_swp_mksoft_dirty(orig_src_pte);
++	orig_src_pte = pte_swp_clear_uffd(orig_src_pte);
+ 	/* Re-arm RWP on the moved swap entry if dst_vma is RWP-registered. */
+ 	if (userfaultfd_rwp(dst_vma))
+ 		orig_src_pte = pte_swp_mkuffd(orig_src_pte);
 _
 
-Patches currently in -mm which might be from brads@mainlining.org are
+Patches currently in -mm which might be from donggeunyoo.kernel@gmail.com are
 
-taskstats-copy-signal-stats-under-siglock-in-taskstats_exit.patch
-mailmap-update-email-address-for-bradley-morgan.patch
-taskstats-drop-the-unused-cpu_dont_care-enum-member.patch
-panic-fix-redirect-cpu-race-in-panic_try_force_cpu.patch
-panic-flatten-nmi_panic-control-flow.patch
-panic-fix-va_list-reuse-in-panic_try_force_cpu.patch
-panic-restore-variable-arguments-to-nmi_panic.patch
-panic-allow-force_cpu-redirect-from-an-nmi.patch
-panic-kill-the-buffer-unavailable-redirect-fallback.patch
-watchdog-perf-one-digit-too-short-in-the-raw-event-config-copy.patch
+selftests-mm-add-tests-for-uffdio_move-of-a-uffd-protected-swap-entry.patch
+mm-damon-core-charge-only-the-part-of-a-region-the-filter-left.patch
+mm-damon-tests-core-kunit-test-the-size-charged-for-a-filter-trimmed-region.patch
+mm-damon-core-prevent-size-quota-overflow-in-the-temporal-goal-tuner.patch
+mm-damon-tests-core-kunit-test-the-temporal-tuners-size-quota-conversion.patch
 
