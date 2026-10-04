@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3B87347F3A0
-	for <mm-commits@vger.kernel.org>; Sun,  4 Oct 2026 18:29:56 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C182C3911AF
+	for <mm-commits@vger.kernel.org>; Sun,  4 Oct 2026 20:02:01 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791138597; cv=none; b=NAGDyxIHAjTFqG9OaW52mccdY+gaBR5R5gou0ms21h1cCEZLwem0gzMD9R4XllyBz4D9IT6TDQtnJxn7TGuN/S0QlBtSiEdj1hTjsQ8AYH9A+GPsbeppbszvbvjVBNwcs0DXzn5MzTjCR9vL4T9KLEjp/szyPa5g5NhiS9EPsyc=
+	t=1791144123; cv=none; b=JYjY4gp7AwZ15y/lWfzW9wVW3QAIfHyP03EKLH4SucAvf492Pxs5Q+fo19/V/1hzN54VcUrtJWDXEu+/t47gplSA061qy1BNWPjV4am/l0mXVw688btvy3r9sZY0dQTwiV9gZ8dB4CJ3hYMLfKmkz5LxxAANK12tL8IDNnX+TI4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791138597; c=relaxed/simple;
-	bh=mj4NLHxMecxfoGti3kz9ixvdspO+3asqjGbCdZyn2es=;
-	h=Date:To:From:Subject:Message-Id; b=XuwpsJT3dA3wnWOSbOkJCpjP0cs1yaG9pgyAxWY2bW7ijpV56I/ot9z3uLKME+qf4UnbTDbJyrsrBQyArnB0s4+OoXpc0gVgpl200d8bzgJVQMqzYMAcWKcWp2lC7fuk4O2zq2+XDUm9MRfnj0zOFyFSenWVZD16OLb25qLvQRQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=VKPPgqNh; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1791144123; c=relaxed/simple;
+	bh=hEYluV4XTxjy64ZNSpygj2v1KNCcrkHE6hrfBFoPY50=;
+	h=Date:To:From:Subject:Message-Id; b=Mf75Ey2Un3HkmTEpWmTWQkO5C4IfnxlkA93ls3B7Nk/BHsao2bauGAaIuiu/zW070MdWgiIqUqB0BtYwpkdNRDkg2ZqP97AqI0qMI9syFOYDiLdZg8vSKYdlMAPUJ+gif0tXkOWyJ6mbE7WBE3QebWoL+7zroR9hYUzR5l8OGg8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=qrRY44gx; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="VKPPgqNh"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 105BD1F000FF;
-	Sun,  4 Oct 2026 18:29:56 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="qrRY44gx"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D13441F000FF;
+	Sun,  4 Oct 2026 20:02:00 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1791138596;
-	bh=gJ6awC53aI3ri9L7MS74sxpCdha6eMUAvqmDhB3O6wU=;
+	d=linux-foundation.org; s=korg; t=1791144120;
+	bh=FScariYrYIeKEBAyBDten1xJ3vskjweUqWCYKqj7wSc=;
 	h=Date:To:From:Subject;
-	b=VKPPgqNhEIsr5T66Lj3ZgogSVZglNeCVEjIF0zJCPIkCRE1g5znFnFxn2FCyJ9cf1
-	 trZ2ZVm+8WN7b/jdIapDTh7YalzD4lnyc5peOVGCy/d+ETYf+VYljX722T7/yQp7N8
-	 LhvgyZlfvRYvecejwhh3Iyhc9AUgNfqnWFryCz84=
-Date: Sun, 04 Oct 2026 11:29:55 -0700
-To: mm-commits@vger.kernel.org,vishal.moola@gmail.com,urezki@gmail.com,dev.jain@arm.com,baohua@kernel.org,jiangwen6@xiaomi.com,akpm@linux-foundation.org
+	b=qrRY44gx8UNNwWV40EV8svGe/o7L3oAEgTYouBPfEFBPUcgOewHkvCNaPTr9yihBa
+	 tWZ8rdt5RnFbCdjM+2SK5nj++/eDpqGEygjBxfDnym6FuO1bvK88J8I9FxmNyStYdw
+	 Y1Y72pTJYVc03J/mu8VijAiIPrqGcovY07NNB3TU=
+Date: Sun, 04 Oct 2026 13:02:00 -0700
+To: mm-commits@vger.kernel.org,osalvador@suse.de,muchun.song@linux.dev,david@kernel.org,corbet@lwn.net,lienze@kylinos.cn,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-vmalloc-bail-out-early-on-invalid-page_shift-in-__vmap_pages_range_noflush.patch added to mm-new branch
-Message-Id: <20261004182956.105BD1F000FF@smtp.kernel.org>
+Subject: + docs-hugetlbpagerst-fix-typo-in-per-node-attribute-description.patch added to mm-new branch
+Message-Id: <20261004200200.D13441F000FF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/vmalloc: bail out early on invalid page_shift in __vmap_pages_range_noflush()
+     Subject: docs: hugetlbpage.rst: fix typo in per-node attribute description
 has been added to the -mm mm-new branch.  Its filename is
-     mm-vmalloc-bail-out-early-on-invalid-page_shift-in-__vmap_pages_range_noflush.patch
+     docs-hugetlbpagerst-fix-typo-in-per-node-attribute-description.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vmalloc-bail-out-early-on-invalid-page_shift-in-__vmap_pages_range_noflush.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/docs-hugetlbpagerst-fix-typo-in-per-node-attribute-description.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -69,42 +69,46 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Wen Jiang <jiangwen6@xiaomi.com>
-Subject: mm/vmalloc: bail out early on invalid page_shift in __vmap_pages_range_noflush()
-Date: Sun,  4 Oct 2026 15:16:39 +0800
+From: Enze Li <lienze@kylinos.cn>
+Subject: docs: hugetlbpage.rst: fix typo in per-node attribute description
+Date: Sun,  4 Oct 2026 00:11:25 +0800
 
-__vmap_pages_range_noflush() currently only warns when page_shift is
-smaller than PAGE_SHIFT, then continues with the invalid shift.  Return
--EINVAL instead so the bogus argument is caught immediately.
+The per-node hugepages section writes the free_hugepages and
+surplus_hugepages file names with stray trailing quotes.  Quote the real
+names as inline literals instead.
 
-Link: https://lore.kernel.org/20261004071639.119857-1-jiangwenxiaomi@gmail.com
-Signed-off-by: Wen Jiang <jiangwen6@xiaomi.com>
+Link: https://lore.kernel.org/20261003161125.40485-1-lienze@kylinos.cn
+Signed-off-by: Enze Li <lienze@kylinos.cn>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Suggested-by: Uladzislau Rezki (Sony) <urezki@gmail.com>
-Reviewed-by: Barry Song <baohua@kernel.org>
-Reviewed-by: Uladzislau Rezki (Sony) <urezki@gmail.com>
-Reviewed-by: Vishal Moola (Fractile) <vishal.moola@gmail.com>
-Cc: Dev Jain <dev.jain@arm.com>
+Cc: Muchun Song <muchun.song@linux.dev>
+Cc: Oscar Salvador <osalvador@suse.de>
+Cc: David Hildenbrand <david@kernel.org>
+Cc: Jonathan Corbet <corbet@lwn.net>
 ---
 
- mm/vmalloc.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ Documentation/admin-guide/mm/hugetlbpage.rst |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
---- a/mm/vmalloc.c~mm-vmalloc-bail-out-early-on-invalid-page_shift-in-__vmap_pages_range_noflush
-+++ a/mm/vmalloc.c
-@@ -684,7 +684,8 @@ int __vmap_pages_range_noflush(unsigned
- {
- 	unsigned int i, nr = (end - addr) >> PAGE_SHIFT;
+--- a/Documentation/admin-guide/mm/hugetlbpage.rst~docs-hugetlbpagerst-fix-typo-in-per-node-attribute-description
++++ a/Documentation/admin-guide/mm/hugetlbpage.rst
+@@ -373,9 +373,9 @@ contains the following attribute files::
+ 	free_hugepages
+ 	surplus_hugepages
  
--	WARN_ON(page_shift < PAGE_SHIFT);
-+	if (WARN_ON_ONCE(page_shift < PAGE_SHIFT))
-+		return -EINVAL;
+-The free\_' and surplus\_' attribute files are read-only.  They return the number
+-of free and surplus [overcommitted] huge pages, respectively, on the parent
+-node.
++The ``free_hugepages`` and ``surplus_hugepages`` attribute files are read-only.
++They return the number of free and surplus [overcommitted] huge pages,
++respectively, on the parent node.
  
- 	if (!IS_ENABLED(CONFIG_HAVE_ARCH_HUGE_VMALLOC) ||
- 			page_shift == PAGE_SHIFT)
+ The ``nr_hugepages`` attribute returns the total number of huge pages on the
+ specified node.  When this attribute is written, the number of persistent huge
 _
 
-Patches currently in -mm which might be from jiangwen6@xiaomi.com are
+Patches currently in -mm which might be from lienze@kylinos.cn are
 
-mm-vmalloc-bail-out-early-on-invalid-page_shift-in-__vmap_pages_range_noflush.patch
+mm-damon-core-introduce-damon_set_target_pid.patch
+samples-damon-mtier-add-comment-for-struct-region_range.patch
+docs-hugetlbpagerst-fix-typo-in-per-node-attribute-description.patch
 
