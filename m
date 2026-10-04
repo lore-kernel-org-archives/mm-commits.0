@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5F8F118A6DB
-	for <mm-commits@vger.kernel.org>; Sun,  4 Oct 2026 00:00:36 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9EEAE470EA0
+	for <mm-commits@vger.kernel.org>; Sun,  4 Oct 2026 18:21:31 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791072040; cv=none; b=UMflARVmFGOsFTUddwH7z6PwdS0wQ+ruD4tVtq7BXWc4NUGu/gWE5OZmgMy0o6qOCFHeMvua51IGuBp+Iwsq+Ys7dHDmtkA8cF8PGmT9doK0PF7gOB/cMFOxCpf2IuKCrNpCeVkhfuHMhn/CDYdxOseh3jzucGaI+SjOy1KRv0g=
+	t=1791138093; cv=none; b=pJzD29pSzmyN4LmbG+4Vv5a7/Pmjyt0TRGwaSx8n08fFsBrFrl/8Yn5Lb8XiyanrAevt+j0Y7MvXXv237CAFzZ1SMniJWCK26TYEPARPjLrPjQ4+7iH8itn3HOkvuAs5MAjQdJnjnZNZZ9bP6EezZtMAg/S+paxmzolFeM8Hbwk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791072040; c=relaxed/simple;
-	bh=GYKwYVBgVJGpZvcd0KWtQHVHibTukzwf4K08KsqUc+I=;
-	h=Date:To:From:Subject:Message-Id; b=ep5krEQGSN5pGPOvioJIay/C6mKLRwEtdMZhEHGO1uA1S2fqhb/92dN+TNcKXfnUoLvAllqdBktuSFIqoma2/MfUjWZe+LjNbpxoQJOcaGvO9LonXZ8YMfFICITrAX5qH4Nqgl3kdVOgKTXX10Q0cXJosKYRC+29bjemapLwhiA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=oRkyTjKi; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1791138093; c=relaxed/simple;
+	bh=ovmEjDQGsP6w1PIkFPABDFMBJ4ntsk8Mz7fYeGZK9Po=;
+	h=Date:To:From:Subject:Message-Id; b=ib70JJvlLdOSMeJamZHOne9FDVeE61JUkMppOd1HWN5Z4MDNjp/R6IGITxvfQ6bzvNPSoQnbKpAGN92hRBmCt0Ug6AM7XmPR587j3+uqrJ246UQ9nKc7Yj/c2/XoZp9FjnaEbjOV9s4R4NjqnnvgWpyVNkS0/hOx8RxN7W9MEAI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=aQeGxmN5; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="oRkyTjKi"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E3A831F0089B;
-	Sun,  4 Oct 2026 00:00:35 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="aQeGxmN5"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 18E251F000FF;
+	Sun,  4 Oct 2026 18:21:31 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1791072036;
-	bh=Y4geLPiCjVYovmIZjTd+3M4jWuOcjv+7DEj9hfiL8Xo=;
+	d=linux-foundation.org; s=korg; t=1791138091;
+	bh=dylOfUROjaePBRYzNmET361EQnzGGKjl4wAsMEzgFJs=;
 	h=Date:To:From:Subject;
-	b=oRkyTjKi8fQ5dl++q2Rq/hGq5qUePE+F9kj7mLnyfBqzA28XOxTYxf4ehezXoIaGf
-	 ygISZinXJJA7auVbNrsaMTtVIUH3r0b//UqAh7ZZ4Ny/UdohB/p9wz50ID8aD1gvAI
-	 2Ns8wlUDK8hAfMEvXN6+l+9jSeP8eRjX/PFD55j0=
-Date: Sat, 03 Oct 2026 17:00:35 -0700
-To: mm-commits@vger.kernel.org,ljs@kernel.org,akpm@linux-foundation.org
+	b=aQeGxmN50QBes/I1yulO5EyYGeIGy45H9ipVZ/YFDpZpvRNTNQBBqQILN1zUEONj1
+	 vYQXtGO10WYERT3GH8zxT4/3ZUuJMVDgPeoNJRscTN3KDE37y6z9xlVvW5MZm8adPA
+	 RpwO5V21BOFhnN9Nksdm3kulCMzREUWjCQEkI5xI=
+Date: Sun, 04 Oct 2026 11:21:30 -0700
+To: mm-commits@vger.kernel.org,atomlin@atomlin.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + fuse-dax-do-not-set-vm_mixedmap.patch added to mm-unstable branch
-Message-Id: <20261004000035.E3A831F0089B@smtp.kernel.org>
+Subject: [to-be-updated] hung_task-reset-warning-budget-when-problem-gets-resolved.patch removed from -mm tree
+Message-Id: <20261004182131.18E251F000FF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,249 +34,220 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The patch titled
-     Subject: fuse: dax: do not set VM_MIXEDMAP
-has been added to the -mm mm-unstable branch.  Its filename is
-     fuse-dax-do-not-set-vm_mixedmap.patch
+The quilt patch titled
+     Subject: hung_task: reset warning budget when problem gets resolved
+has been removed from the -mm tree.  Its filename was
+     hung_task-reset-warning-budget-when-problem-gets-resolved.patch
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/fuse-dax-do-not-set-vm_mixedmap.patch
-
-This patch will later appear in the mm-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via various
-branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there most days
+This patch was dropped because an updated version will be issued
 
 ------------------------------------------------------
-From: "Lorenzo Stoakes (ARM)" <ljs@kernel.org>
-Subject: fuse: dax: do not set VM_MIXEDMAP
-Date: Sat, 03 Oct 2026 17:33:08 +0100
+From: Aaron Tomlin <atomlin@atomlin.com>
+Subject: hung_task: reset warning budget when problem gets resolved
+Date: Sat, 29 Aug 2026 10:53:20 -0400
 
-Commit e1fb4a086495 ("dax: remove VM_MIXEDMAP for fsdax and device dax")
-prevented fsdax and device-dax from setting VM_MIXEDMAP, as DAX no longer
-relies on it to direct core mm paths.
+Patch series "hung_task: Improve warning budget handling and task
+reporting", v10.
 
-The fuse DAX implementation, added later, copied the old pattern and still
-sets it.
+The hung_task watchdog detects tasks stuck in TASK_UNINTERRUPTIBLE (D)
+state for longer than CONFIG_DEFAULT_HUNG_TASK_TIMEOUT seconds.  To
+prevent log spam during system spikes, sysctl_hung_task_warnings enforces
+a budget on the number of logged warnings.
 
-Fuse DAX maps pages the same way fsdax does, via dax_iomap_fault() and
-ultimately vmf_insert_page_mkwrite() and vmf_insert_folio_pmd(), which
-insert ordinary refcounted pages and so do not require VM_MIXEDMAP.
+However, the current implementation has two major limitations:
 
-Setting it only serves to mark the mapping as not mm-managed, making fuse
-DAX the sole DAX implementation whose mappings are unmergeable, cannot be
-mlock()'d, eagerly copy page tables on fork and reject MADV_DOFORK and
-MADV_DODUMP.
+    1. Permanent exhaustion of warning budget
 
-It also requires vma_is_special_huge() in mm/huge_memory.c to carve DAX out
-of its check for mappings not managed by core mm explicitly.
+       sysctl_hung_task_warnings is decremented directly when
+       printing warnings.  Once this budget hits zero, no further warnings
+       are reported until an administrator manually updates the sysctl
+       value or reboots the system.  Consequently, a single temporary hang
+       episode permanently blinds the kernel watchdog to any subsequent
+       hung tasks after system recovery.
 
-There is no reason for fuse DAX to keep on using this flag so drop it.
+    2. Total log suppression when budget is exhausted
 
-Link: https://lore.kernel.org/20261003-b4-mmap-prepare-vma-flag-sanify-v4-37-a1f052500fd7@kernel.org
-Signed-off-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
+       Once the warning budget reaches zero, hung_task_info()
+       completely suppresses all output, including the basic single-line
+       alert.  While suppressing verbose stack dumps and lock debugging is
+       desirable to prevent dmesg flooding, hiding basic task alerts
+       leaves administrators entirely unaware that tasks are hanging.
+
+This patch series resolves both limitations by decoupling the configured
+warning limit from the active runtime budget, automatically resetting the
+budget upon system recovery or sysctl updates, and emitting a single
+aggregate summary line when hung tasks are detected under an exhausted
+warning budget.
+
+Patch 1 separates the configured sysctl hung_task_warnings from the
+runtime budget, making khungtaskd the sole owner of runtime budget
+updates.  The budget is reloaded directly when a scan finds zero hung
+tasks, or via an atomic reset request published on sysctl write.
+
+Patch 2 prevents dmesg flooding during system-wide hangs by keeping
+non-panic per-task stack dumps budgeted, while providing ongoing
+visibility by logging a single aggregate summary line at the end of each
+scan iteration when the warning budget is exhausted.
+
+
+This patch (of 2):
+
+The sysctl hung_task_warnings currently holds both the configured warning
+limit and the remaining budget.  Each detailed report decrements the
+sysctl, so once it reaches zero, the configured limit is lost and cannot
+be restored automatically.
+
+Keep sysctl_hung_task_warnings as the configured warning limit and make
+khungtaskd the sole owner of the remaining budget.  A check that finds no
+hung tasks reloads the budget directly from the configured limit.  A
+successful sysctl write publishes an atomic reset request, which
+khungtaskd consumes at the start of the next check.
+
+Link: https://lore.kernel.org/20260829145321.18423-1-atomlin@atomlin.com
+Link: https://lore.kernel.org/20260829145321.18423-2-atomlin@atomlin.com
+Signed-off-by: Aaron Tomlin <atomlin@atomlin.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Acked-by: David Hildenbrand (Arm) <david@kernel.org>
-Cc: Liam R. Howlett <liam@infradead.org>
-Cc: Vlastimil Babka <vbabka@kernel.org>
-Cc: Jann Horn <jannh@google.com>
-Cc: Pedro Falcato <pfalcato@suse.de>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Dennis Dalessandro <dennis.dalessandro@cornelisnetworks.com>
-Cc: Jason Gunthorpe <jgg@ziepe.ca>
-Cc: Leon Romanovsky <leon@kernel.org>
-Cc: Paul Moore <paul@paul-moore.com>
-Cc: Stephen Smalley <stephen.smalley.work@gmail.com>
-Cc: Jaroslav Kysela <perex@perex.cz>
-Cc: Takashi Iwai <tiwai@suse.com>
-Cc: Alexei Starovoitov <ast@kernel.org>
-Cc: Daniel Borkmann <daniel@iogearbox.net>
-Cc: Andrii Nakryiko <andrii@kernel.org>
-Cc: Eduard Zingerman <eddyz87@gmail.com>
-Cc: Kumar Kartikeya Dwivedi <memxor@gmail.com>
-Cc: Zi Yan <ziy@nvidia.com>
-Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: Nico Pache <nico.pache@linux.dev>
-Cc: Ryan Roberts <ryan.roberts@arm.com>
-Cc: Dev Jain <dev.jain@arm.com>
-Cc: Barry Song <baohua@kernel.org>
-Cc: Lance Yang <lance.yang@linux.dev>
-Cc: Usama Arif <usama.arif@linux.dev>
-Cc: Kiryl Shutsemau <kas@kernel.org>
-Cc: Doug Gilbert <dgilbert@interlog.com>
-Cc: James Bottomley <james.bottomley@hansenpartnership.com>
-Cc: Martin K. Petersen <mkp@kernel.org>
-Cc: Simona Vetter <simona@ffwll.ch>
-Cc: Helge Deller <deller@gmx.de>
-Cc: Sebastian Reichel <sre@kernel.org>
-Cc: John Hubbard <jhubbard@nvidia.com>
-Cc: Peter Xu <peterx@redhat.com>
-Cc: Masami Hiramatsu <mhiramat@kernel.org>
-Cc: Oleg Nesterov <oleg@redhat.com>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Thomas Gleixner <tglx@kernel.org>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Borislav Petkov <bp@alien8.de>
-Cc: Dave Hansen <dave.hansen@linux.intel.com>
-Cc: Arnaldo Carvalho de Melo <acme@kernel.org>
-Cc: Namhyung Kim <namhyung@kernel.org>
-Cc: Mark Rutland <mark.rutland@arm.com>
-Cc: Rik van Riel <riel@surriel.com>
-Cc: Harry Yoo <harry@kernel.org>
-Cc: Juri Lelli <juri.lelli@redhat.com>
-Cc: Vincent Guittot <vincent.guittot@linaro.org>
-Cc: Maarten Lankhorst <maarten.lankhorst@linux.intel.com>
-Cc: Maxime Ripard <mripard@kernel.org>
-Cc: Thomas Zimmermann <tzimmermann@suse.de>
-Cc: David Airlie <airlied@gmail.com>
-Cc: Will Deacon <will@kernel.org>
-Cc: Aneesh Kumar K.V <aneesh.kumar@kernel.org>
-Cc: Nicholas Piggin <npiggin@gmail.com>
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: Muchun Song <muchun.song@linux.dev>
-Cc: Oscar Salvador <osalvador@suse.de>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Jan Kara <jack@suse.cz>
-Cc: Marc Zyngier <maz@kernel.org>
-Cc: Oliver Upton <oupton@kernel.org>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Madhavan Srinivasan <maddy@linux.ibm.com>
-Cc: Anup Patel <anup@brainfault.org>
-Cc: Paul Walmsley <pjw@kernel.org>
-Cc: Palmer Dabbelt <palmer@dabbelt.com>
-Cc: Albert Ou <aou@eecs.berkeley.edu>
-Cc: Christian Borntraeger <borntraeger@linux.ibm.com>
-Cc: Janosch Frank <frankja@linux.ibm.com>
-Cc: Claudio Imbrenda <imbrenda@linux.ibm.com>
-Cc: Alexander Gordeev <agordeev@linux.ibm.com>
-Cc: Gerald Schaefer <gerald.schaefer@linux.ibm.com>
-Cc: Heiko Carstens <hca@linux.ibm.com>
-Cc: Vasily Gorbik <gor@linux.ibm.com>
-Cc: David S. Miller <davem@davemloft.net>
-Cc: Andreas Larsson <andreas@gaisler.com>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Christian Brauner <brauner@kernel.org>
-Cc: Matthew Brost <matthew.brost@intel.com>
-Cc: Joshua Hahn <joshua.hahnjy@gmail.com>
-Cc: Rakie Kim <rakie.kim@sk.com>
-Cc: Byungchul Park <byungchul@sk.com>
-Cc: Gregory Price <gourry@gourry.net>
-Cc: Ying Huang <ying.huang@linux.alibaba.com>
-Cc: Alistair Popple <apopple@nvidia.com>
-Cc: Chris Li <chrisl@kernel.org>
-Cc: Kairui Song <kasong@tencent.com>
-Cc: Kemeng Shi <shikemeng@huaweicloud.com>
-Cc: Nhat Pham <nphamcs@gmail.com>
-Cc: Baoquan He <baoquan.he@linux.dev>
-Cc: Youngjun Park <youngjun.park@lge.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Qi Zheng <qi.zheng@linux.dev>
-Cc: Shakeel Butt <shakeel.butt@linux.dev>
-Cc: Axel Rasmussen <axelrasmussen@google.com>
-Cc: Yuanchu Xie <yuanchu@google.com>
-Cc: Wei Xu <weixugc@google.com>
-Cc: Chengming Zhou <chengming.zhou@linux.dev>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Miklos Szeredi <miklos@szeredi.hu>
-Cc: Xu Xin <xu.xin@linux.dev>
+Suggested-by: Petr Mladek <pmladek@suse.com>
+Suggested-by: Lance Yang <lance.yang@linux.dev>
+Tested-by: Lance Yang <lance.yang@linux.dev>
+Reviewed-by: Lance Yang <lance.yang@linux.dev>
+Reviewed-by: Bradley Morgan <brads@mainlining.org>
+Cc: David Laight <david.laight.linux@gmail.com>
+Cc: "Masami Hiramatsu (Google)" <mhiramat@kernel.org>
 ---
 
- fs/fuse/dax.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ Documentation/admin-guide/sysctl/kernel.rst |    5 +
+ kernel/hung_task.c                          |   49 +++++++++++++++---
+ 2 files changed, 44 insertions(+), 10 deletions(-)
 
---- a/fs/fuse/dax.c~fuse-dax-do-not-set-vm_mixedmap
-+++ a/fs/fuse/dax.c
-@@ -826,7 +826,7 @@ int fuse_dax_mmap(struct file *file, str
- {
- 	file_accessed(file);
- 	vma->vm_ops = &fuse_dax_vm_ops;
--	vm_flags_set(vma, VM_MIXEDMAP | VM_HUGEPAGE);
-+	vma_set_flags(vma, VMA_HUGEPAGE_BIT);
- 	return 0;
+--- a/Documentation/admin-guide/sysctl/kernel.rst~hung_task-reset-warning-budget-when-problem-gets-resolved
++++ a/Documentation/admin-guide/sysctl/kernel.rst
+@@ -459,8 +459,9 @@ hung_task_warnings
+ ==================
+ 
+ The maximum number of warnings to report. During a check interval
+-if a hung task is detected, this value is decreased by 1.
+-When this value reaches 0, no more warnings will be reported.
++if a hung task is detected, the internal warning budget is decreased by 1.
++When this budget reaches 0, no more detailed warnings will be reported. The
++warning budget is reset to the configured limit when no hung task is found.
+ This file shows up if ``CONFIG_DETECT_HUNG_TASK`` is enabled.
+ 
+ -1: report an infinite number of warnings.
+--- a/kernel/hung_task.c~hung_task-reset-warning-budget-when-problem-gets-resolved
++++ a/kernel/hung_task.c
+@@ -57,8 +57,20 @@ unsigned long __read_mostly sysctl_hung_
+  */
+ static unsigned long __read_mostly sysctl_hung_task_check_interval_secs;
+ 
++/*
++ * Limit the number of printed hung tasks to prevent printing
++ * the same or similar backtraces repeatedly.
++ */
+ static int __read_mostly sysctl_hung_task_warnings = 10;
+ 
++/*
++ * The number of hung tasks which still can be reported.
++ * The budget gets restored to the original limit when
++ * the previous stall is resolved.
++ */
++static int hung_task_warnings_budget = 10;
++static atomic_t reset_hung_task_warnings = ATOMIC_INIT(0);
++
+ static int __read_mostly did_panic;
+ static bool hung_task_call_panic;
+ 
+@@ -245,11 +257,11 @@ static void hung_task_info(struct task_s
+ 	/*
+ 	 * The given task did not get scheduled for more than
+ 	 * CONFIG_DEFAULT_HUNG_TASK_TIMEOUT. Therefore, complain
+-	 * accordingly
++	 * accordingly with full details if the budget is not exhausted.
+ 	 */
+-	if (sysctl_hung_task_warnings || hung_task_call_panic) {
+-		if (sysctl_hung_task_warnings > 0)
+-			sysctl_hung_task_warnings--;
++	if (hung_task_warnings_budget || hung_task_call_panic) {
++		if (hung_task_warnings_budget > 0)
++			hung_task_warnings_budget--;
+ 		pr_err("INFO: task %s:%d blocked%s for more than %ld seconds.\n",
+ 		       t->comm, t->pid, t->in_iowait ? " in I/O wait" : "",
+ 		       (jiffies - t->last_switch_time) / HZ);
+@@ -264,7 +276,7 @@ static void hung_task_info(struct task_s
+ 		sched_show_task(t);
+ 		debug_show_blocker(t, timeout);
+ 
+-		if (!sysctl_hung_task_warnings)
++		if (!hung_task_warnings_budget)
+ 			pr_info("Future hung task reports are suppressed, see sysctl kernel.hung_task_warnings\n");
+ 	}
+ 
+@@ -304,7 +316,7 @@ static void check_hung_uninterruptible_t
+ 	unsigned long last_break = jiffies;
+ 	struct task_struct *g, *t;
+ 	unsigned long this_round_count;
+-	int need_warning = sysctl_hung_task_warnings;
++	int need_warning;
+ 	unsigned long si_mask = hung_task_si_mask;
+ 
+ 	/*
+@@ -314,6 +326,11 @@ static void check_hung_uninterruptible_t
+ 	if (test_taint(TAINT_DIE) || did_panic)
+ 		return;
+ 
++	if (atomic_xchg_acquire(&reset_hung_task_warnings, 0))
++		hung_task_warnings_budget =
++			READ_ONCE(sysctl_hung_task_warnings);
++	need_warning = hung_task_warnings_budget;
++
+ 	this_round_count = 0;
+ 	rcu_read_lock();
+ 	for_each_process_thread(g, t) {
+@@ -340,8 +357,11 @@ static void check_hung_uninterruptible_t
+  unlock:
+ 	rcu_read_unlock();
+ 
+-	if (!this_round_count)
++	if (!this_round_count) {
++		hung_task_warnings_budget =
++			READ_ONCE(sysctl_hung_task_warnings);
+ 		return;
++	}
+ 
+ 	if (need_warning || hung_task_call_panic) {
+ 		si_mask |= SYS_INFO_LOCKS;
+@@ -425,6 +445,19 @@ static int proc_dohung_task_timeout_secs
+ 	return ret;
  }
  
++static int proc_dohung_task_warnings(const struct ctl_table *table, int write,
++				     void *buffer,
++				     size_t *lenp, loff_t *ppos)
++{
++	int ret;
++
++	ret = proc_dointvec_minmax(table, write, buffer, lenp, ppos);
++	if (!ret && write)
++		atomic_set_release(&reset_hung_task_warnings, 1);
++
++	return ret;
++}
++
+ /*
+  * This is needed for proc_doulongvec_minmax of sysctl_hung_task_timeout_secs
+  * and hung_task_check_interval_secs
+@@ -480,7 +513,7 @@ static const struct ctl_table hung_task_
+ 		.data		= &sysctl_hung_task_warnings,
+ 		.maxlen		= sizeof(int),
+ 		.mode		= 0644,
+-		.proc_handler	= proc_dointvec_minmax,
++		.proc_handler	= proc_dohung_task_warnings,
+ 		.extra1		= SYSCTL_NEG_ONE,
+ 	},
+ 	{
 _
 
-Patches currently in -mm which might be from ljs@kernel.org are
+Patches currently in -mm which might be from atomlin@atomlin.com are
 
-mm-mremap-fix-locked_vm-leak-from-mremap_dontunmap-self-merge.patch
-mm-mremap-fix-locked_vm-leak-by-splitting-vma-for-mremap_dontunmap.patch
-drivers-char-mem-mmap-readonly-map_shared-dev-zero-correctly.patch
-mm-vmpressure-remove-window-size-todo.patch
-tools-testing-selftests-mm-add-missing-gitignore-entries.patch
-mm-move-drivers-char-memc-to-mm-char-memc.patch
-mm-implement-file_is_dev_zero-to-uniquely-identify-dev-zero.patch
-mm-vma-only-permit-map_private-dev-zero-to-be-mapped-anonymous.patch
-mm-vma-make-map_private-mapped-dev-zero-mappings-truly-anonymous.patch
-tools-testing-vma-add-test-to-assert-map_private-dev-zero-is-anon.patch
-tools-testing-selftests-mm-add-map_private-dev-zero-merge-tests.patch
-mm-madvise-swap-in-cowd-map_private-file-mappings-on-madv_willneed.patch
-mm-khugepaged-deposit-a-newly-allocated-page-table-on-collapse.patch
-mm-enable-mmu_gather_rcu_table_free-for-most-2-level-architectures.patch
-mm-enable-mmu_gather_rcu_table_free-for-mmu-riscv.patch
-mm-enable-mmu_gather_rcu_table_free-for-mmu-arm.patch
-mm-enable-mmu_gather_rcu_table_free-for-arc-microblaze-xtensa.patch
-mm-enable-mmu_gather_rcu_table_free-for-sparc64.patch
-mm-enable-mmu_gather_rcu_table_free-for-m68k-coldfire.patch
-mm-enable-mmu_gather_rcu_table_free-for-sh-x2.patch
-mm-enable-mmu_gather_rcu_table_free-for-m68k-motorola.patch
-mm-enable-mmu_gather_rcu_table_free-for-sparc32.patch
-mm-userland-pgtable-freeing-is-rcu-safe-now-remove-leftover-bits.patch
-mm-change-the-contract-for-free_pgtables-update-docs.patch
-mm-vma-fix-mmap_prepare-file-handling-remove-file_doesnt_need_get.patch
-mm-vma-introduce-and-use-vma_can_merge.patch
-mm-consistently-validate-vma-state-after-mmap-hooks.patch
-mm-vma-ensure-mmap_prepare-doesnt-set-actions-on-a-mergeable-vma.patch
-mm-make-map_kernel_pages_-internal-and-unexported.patch
-mm-vma-tidy-up-map-kernel-pages-enum-values.patch
-mm-add-mmap-action-for-discontiguous-kernel-page-mapping.patch
-docs-filesystems-update-mmap_prepare-docs-for-discontig-kernel-pgs.patch
-drivers-usb-mon-update-to-use-mmap_prepare-map-kernel-pages.patch
-infiniband-update-hfi1-to-use-remap_vmalloc_range.patch
-selinux-reject-writable-opens-of-policy-file-drop-mmap-shared-write-check.patch
-alsa-pcm-use-vm_insert_page-to-map-pcm-status-page.patch
-bpf-arena-mark-arena_map_mmap-mappings-vm_mixedmap.patch
-mm-vma-add-vma_is_mm_managed-predicates.patch
-mm-vma-only-allow-mmap-to-clear-vma_maywrite_bit-if-not-mm-managed.patch
-mm-vma-add-and-use-vma__is_fixed_mapping.patch
-scsi-sg-convert-mmap-hook-to-mmap_prepare-and-rework.patch
-fbdev-defio-assert-fbinfo_virtfb-drop-vm_io-add-vm_mixedmap.patch
-hsi-cmt_speech-convert-mmap-hook-to-mmap_prepare-refactor.patch
-mm-gup-error-out-early-on-vma_mayread_bit-vmas.patch
-uprobes-remove-vm_io-set-vm_mixedmap-for-mapped-kernel-pages.patch
-mm-mlock-clear-vma_locked_mask-over-mmap-callback.patch
-mm-mlock-eliminate-weird-vma_io_bit-abuse-and-simplify.patch
-mm-vma-enforce-that-mm-managed-mappings-may-not-set-vma_io_bit.patch
-mm-remove-vma_io_bit-check-in-vma_is_mm_managed.patch
-mm-remove-hugetlb_inlineh.patch
-mm-rename-is_vm_hugetlb_page-to-vma_is_hugetlb.patch
-mm-drop-some-redundant-checks-around-hugetlb-vmas.patch
-mm-madvise-update-is_valid_guard_vma-to-use-vma_can_merge.patch
-mm-vma-introduce-vma_is_mm_backed.patch
-mm-uffd-use-predicates-for-userfaultfd-checks.patch
-mm-madvise-use-predicates-for-madvise-madv_dofork.patch
-mm-eliminate-vma_special_flags-usage-when-hugetlb-explicitly-tested.patch
-mm-eliminate-vma_special_flags-check-in-lru_gen_look_around.patch
-mm-avoid-use-of-vma_special_flags-in-migrate_vma_setup.patch
-mm-eliminate-vm_special-vma_special_flags.patch
-fuse-dax-do-not-set-vm_mixedmap.patch
-mm-huge_memory-remove-vma_is_special_huge.patch
-mm-vma-const-ify-vma_assert_stabilised-and-associated-functions.patch
-mm-implement-and-use-vma_has_anon_rmap-silence-kcsan.patch
-mm-update-comments-to-refer-to-anon-rmap-rather-than-anon_vma.patch
-mm-vma-dont-remove-vma-from-rmap-if-pgoff-unchanged.patch
+hung_task-log-summary-line-when-warning-budget-is-exhausted.patch
 
