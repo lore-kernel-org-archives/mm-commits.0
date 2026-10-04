@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0A56D2DEA93
-	for <mm-commits@vger.kernel.org>; Sun,  4 Oct 2026 00:00:20 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 885F523909F
+	for <mm-commits@vger.kernel.org>; Sun,  4 Oct 2026 00:00:24 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791072024; cv=none; b=Lm9HcfQDUm8Ii0tZEUrXerSLwaY1WLB59B+wg6ahEkhM1mDPRlOqFa08xfhiIGtQ92Al7F93o5ZbqBmKJfEDSfsvb26wDicDqwrxd5gYSCSwhyuSdcepJ3x6KTqw5MiX9tYFSiEiUlCh3jgo//LFGOpEmZ3DcEXkp1yNLJhCeSE=
+	t=1791072026; cv=none; b=TQ/NEsMIFnd2YRXXAjJjb+/LPjJJq8zWW+qHMHruFaYxGLPSS2rPK6cior00Pr7jhnUHbRO1AJd/E3kRxOuWf4twdevIaGfok43gZLUum43UOHj/lOpo2C7GAYv3gEeOZVB+VIPstI3UICBeg+zKBG4J7kgZKhv5bEIOVjPZ93U=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791072024; c=relaxed/simple;
-	bh=7XoOFk8DqcYSOF3tgIXKgqVbk9wu7d+YZ35BtqaYF8w=;
-	h=Date:To:From:Subject:Message-Id; b=NoROolh5zbKQNQoYblOAnZRm8yjsmPggwcVELf+f7nP8wK9KxhyvItjDJnfdWtchGbCww2HC/XvdOsTzwrjgJHB/LZJ56X8Ba6wnDQmEzKuPiLhoOT5a3s/C61dTv2JHWQ4ZMeJ565cr3i2zTMiplH9lbbkhcKlsV3V1xreCb0A=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ul5FsLt8; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1791072026; c=relaxed/simple;
+	bh=96gy4M/hR+SsP3eFYocGZfa2eBAyuRHvQAzU0mIrxgs=;
+	h=Date:To:From:Subject:Message-Id; b=jFe9mJ0Mk5PT40VOLvDGOfZvbf0jh0ziU2dc5QTtnEfc9vhdKLn/hNCDGgFOjxY94cfWEPvfoMF0fu5tcgPdiw7I/GGf6GL3XQJyfr8TUnZLvcvLHoXl96iIuYsrWl7/seznkbPVVvlUsVdYMGiFjudE9o1ATOxrkubv0YJf/H0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=gLseRdRa; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ul5FsLt8"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B3E7F1F0089B;
-	Sun,  4 Oct 2026 00:00:19 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="gLseRdRa"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5EE791F0089D;
+	Sun,  4 Oct 2026 00:00:24 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1791072019;
-	bh=PIk+DDvF9M49PsBBR/bFvXR7Wk9FCad4pInaea8tvWU=;
+	d=linux-foundation.org; s=korg; t=1791072024;
+	bh=vtAMfcrR4I/TP9STXL8W0viLfystDNMrQe1BoFeiNAs=;
 	h=Date:To:From:Subject;
-	b=ul5FsLt8jJ5+guyBTvqfeW6GPwH59ClxNwdURYt8/YRvbxo3g+RChKJe5Ixfht6TJ
-	 mHQnhbTdnH0oXCFkGWvSjU44OTn9BthWLouNeKvwvtGIUMPGUPoh6GL7uFRI3mMSDh
-	 4eiEB9qDgOzH7b6Sz6T5uyGGyFOQI0qBX/rZl0hY=
-Date: Sat, 03 Oct 2026 17:00:19 -0700
+	b=gLseRdRa0TX+RmeJWELc5oGQmmLt7cpsipdawnwZgZ0NwsF9ehWs8t98dg4AmFeVW
+	 KVrZ4JoAH6uSVMLcsGmNqYBdsNPjwQoxA9AVwG7h+e9AnNzYgZX/AN4uu2E05S4Che
+	 Lgrn92rnclnFMG4a/1squBYJcL+Obb7isv2hxEqc=
+Date: Sat, 03 Oct 2026 17:00:23 -0700
 To: mm-commits@vger.kernel.org,ljs@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-vma-introduce-vma_is_mm_backed.patch added to mm-unstable branch
-Message-Id: <20261004000019.B3E7F1F0089B@smtp.kernel.org>
+Subject: + mm-madvise-use-predicates-for-madvise-madv_dofork.patch added to mm-unstable branch
+Message-Id: <20261004000024.5EE791F0089D@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/vma: introduce vma[_flags]_is_mm_backed()
+     Subject: mm/madvise: use predicates for madvise(..., MADV_DOFORK)
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-vma-introduce-vma_is_mm_backed.patch
+     mm-madvise-use-predicates-for-madvise-madv_dofork.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vma-introduce-vma_is_mm_backed.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-madvise-use-predicates-for-madvise-madv_dofork.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,38 +59,30 @@ and is updated there most days
 
 ------------------------------------------------------
 From: "Lorenzo Stoakes (ARM)" <ljs@kernel.org>
-Subject: mm/vma: introduce vma[_flags]_is_mm_backed()
-Date: Sat, 03 Oct 2026 17:33:01 +0100
+Subject: mm/madvise: use predicates for madvise(..., MADV_DOFORK)
+Date: Sat, 03 Oct 2026 17:33:03 +0100
 
-Introduce vma[_flags]_is_mm_backed() for the purposes of identifying
-mappings which are mm-managed and whose contents were placed there by core
-mm's own fault path - rather than a custom ->fault handler - and which core
-mm has not reserved the right to discard.
+Make it clear what we're blocking in MADV_DOFORK. Previously we simply
+disallowed VM_SPECIAL i.e. mappings not managed by core mm, fixed mappings
+and
+VMA_IO_BIT.
 
-Mappings not managed by core mm do not fall into this category, as they are
-populated by their owner, and nor of course does memory-mapped I/O.
+Now the invariant is established that mm-managed mappings may not set
+VMA_IO_BIT, the VMA_IO_BIT check is redundant.
 
-We exclude fixed mappings as these have a layout core mm cannot assume
-ordinary fault semantics over.
+The rest is equivalent to testing for a fixed or non-mm-managed mapping,
+i.e. exactly the same check as whether the VMA is permitted to be merged.
 
-hugetlb mappings are fixed mappings, but core mm owns them entirely, so
-they are explicitly carved out as mm-backed, as the MADV_DODUMP check
-already does.
+This was established by commit 0b2758f48f22 ("Require (reasonably) normal
+mappings for MADV_DOFORK") containing my hands-down favourite call out of
+all time.
 
-Droppable mappings are excluded as core mm has promised it may discard them
-at any time.
-
-Use this functionality to update the madvise MADV_DODUMP check to test for
-this rather than open-coding it.
-
-This replaces the VM_SPECIAL check which means it no longer checks for
-VMA_IO_BIT, however this is safe as we have established the invariant that
-mm-managed mappings may not set VMA_IO_BIT, so we implicitly include
-these.
+Express the same thing differently - if we wouldn't be allowed to merge it,
+then we aren't allowed to manipulate CoW behaviour on fork.
 
 No functional change intended.
 
-Link: https://lore.kernel.org/20261003-b4-mmap-prepare-vma-flag-sanify-v4-30-a1f052500fd7@kernel.org
+Link: https://lore.kernel.org/20261003-b4-mmap-prepare-vma-flag-sanify-v4-32-a1f052500fd7@kernel.org
 Signed-off-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 Acked-by: Zi Yan <ziy@nvidia.com>
@@ -202,81 +194,19 @@ Cc: Miklos Szeredi <miklos@szeredi.hu>
 Cc: Xu Xin <xu.xin@linux.dev>
 ---
 
- include/linux/mm.h |   50 +++++++++++++++++++++++++++++++++++++++++++
- mm/madvise.c       |    4 +--
- 2 files changed, 52 insertions(+), 2 deletions(-)
+ mm/madvise.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/include/linux/mm.h~mm-vma-introduce-vma_is_mm_backed
-+++ a/include/linux/mm.h
-@@ -1740,6 +1740,56 @@ static inline bool vma_can_merge(const s
- }
- 
- /**
-+ * vma_flags_is_mm_backed() - Do the specified VMA flags imply the mapping is
-+ * backed by core mm?
-+ * @flags: The VMA flags to test.
-+ *
-+ * An mm-backed mapping is one managed by core mm (see
-+ * vma_flags_is_mm_managed()) for which two further things are true:
-+ *
-+ * 1. Everything mapped was placed there by core mm's fault path (no custom
-+ *    ->fault).
-+ * 2. What is mapped stays there until it is zapped or unmapped by the user.
-+ *
-+ * These mappings are the only ones which can be sensibly locked, merged, dumped
-+ * or be subject to uffd faulting, as all of these assume core mm and core mm
-+ * alone manages these, and that the mappings will remain there.
-+ *
-+ * Returns: true if the flags imply an mm-backed mapping, otherwise false.
-+ */
-+static inline bool vma_flags_is_mm_backed(const vma_flags_t *flags)
-+{
-+	/* hugetlb is a fixed mapping, but core mm owns it entirely. */
-+	if (vma_flags_is_hugetlb(flags))
-+		return true;
-+	/*
-+	 * Mappings not managed by core mm are populated by their owner.
-+	 *
-+	 * Fixed mappings may be mm-managed, but their contents are established
-+	 * by a custom ->fault handler, so core mm cannot assume ordinary fault
-+	 * semantics over them.
-+	 */
-+	if (!vma_flags_is_mm_managed(flags) ||
-+	    vma_flags_is_fixed_mapping(flags))
-+		return false;
-+	/* Core mm may discard droppable memory at any time. */
-+	return !vma_flags_test_single_mask(flags, VMA_DROPPABLE);
-+}
-+
-+/**
-+ * vma_is_mm_backed() - Is @vma backed by core mm?
-+ * @vma: The VMA to test.
-+ *
-+ * See vma_flags_is_mm_backed() for details.
-+ *
-+ * Returns: true if the VMA is mm-backed, otherwise false.
-+ */
-+static inline bool vma_is_mm_backed(const struct vm_area_struct *vma)
-+{
-+	return vma_flags_is_mm_backed(&vma->flags);
-+}
-+
-+/**
-  * vma_kernel_pagesize - Default page size granularity for this VMA.
-  * @vma: The user mapping.
-  *
---- a/mm/madvise.c~mm-vma-introduce-vma_is_mm_backed
+--- a/mm/madvise.c~mm-madvise-use-predicates-for-madvise-madv_dofork
 +++ a/mm/madvise.c
-@@ -1585,8 +1585,8 @@ static int madvise_vma_behavior(struct m
- 		new_flags |= VM_DONTDUMP;
+@@ -1566,7 +1566,7 @@ static int madvise_vma_behavior(struct m
+ 		new_flags |= VM_DONTCOPY;
  		break;
- 	case MADV_DODUMP:
--		if ((!vma_is_hugetlb(vma) && (new_flags & VM_SPECIAL)) ||
--		    (new_flags & VM_DROPPABLE))
-+		/* Only mm-backed memory can be meaningfully dumped. */
-+		if (!vma_is_mm_backed(vma))
+ 	case MADV_DOFORK:
+-		if (new_flags & VM_SPECIAL)
++		if (!vma_can_merge(vma))
  			return -EINVAL;
- 		new_flags &= ~VM_DONTDUMP;
+ 		new_flags &= ~VM_DONTCOPY;
  		break;
 _
 
