@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A974E18A6DB
-	for <mm-commits@vger.kernel.org>; Sun,  4 Oct 2026 00:00:33 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2EEE922FDE6
+	for <mm-commits@vger.kernel.org>; Sun,  4 Oct 2026 00:00:38 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791072035; cv=none; b=Ry0RkDdcPLb7kKlZZnvjKbPnQJk2AvKguvz0r4VI7sDdP49vha+iwZ7FSvpmtB6Q0OvXMxosGgcMDhNmMcCAP5TDskYa+BVWi8crP5ynsP45+Lp/X8QKDqTD5RnOGLoW6jD2Sftd/uVVKpMohnW9bVlDO9QuHb1payb2lDRcA18=
+	t=1791072040; cv=none; b=o/pEW4skluFF05eN05kvSb2OD7XCr+lm/jdogrmmzICe8sahRrcn3sGa8kLrzl+FSWwyrwiQ10siehQ+BbnIuTRzolBEL1WwBG/aeSWWYOFQqPW11P28+/T2ijvY+YQJ2XseH8Rv5nhD3nYX4dyjAIM6+7bQ97kuq2fyu4MtRik=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791072035; c=relaxed/simple;
-	bh=aGSvTVqLjOyIIAlEiEDdaR5yeRK19PFlgrw2lcBKDhI=;
-	h=Date:To:From:Subject:Message-Id; b=YaXy3D2XPOtFiQ06J+vv3Sl21syb8QrileBAvVgk3ZCSyz4ytYfnwahQbFABjmlFwcK2Um+YL254sjQa6iCZ/JNESln3D5Zu0VL93LudXzZPWu+BwX1fniafmG3F370+etb7ZhRSyeQnXe/X6n+bMlEaSYhO6lh+4TWs+40rudk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=2V7uZCSk; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1791072040; c=relaxed/simple;
+	bh=KGRWrhA5cmKOex1+ywzT1NF8kZ7IT3BzDOTObFuI4+8=;
+	h=Date:To:From:Subject:Message-Id; b=UKqUJ/pSBX7vreOo9UQzwqlEfNy9a3XIurlDOeMpqp/YzJy6WoI0RP04atTx3JW342mGmmnF18MjGDXUCnGqoNyy0Aw4LgPvUnh+qIxDFXLf/QaC+lT39F/TwoA/7JJG3TX4tMoBnCg/RRdfAFxSQxJfNMTsvtYVng+K2V8Uh+s=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=1VZEZ7je; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="2V7uZCSk"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7DD0A1F0089B;
-	Sun,  4 Oct 2026 00:00:33 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="1VZEZ7je"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0218F1F0089C;
+	Sun,  4 Oct 2026 00:00:37 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1791072033;
-	bh=/quGUsX8OSTVilhNMoMqf4eVhLtj1CnTY2kiAwbPkZI=;
+	d=linux-foundation.org; s=korg; t=1791072038;
+	bh=cihHGUQ+5Uh4LlkLjFhUsaXV0GWxxk9wGOZ+BsPlRuY=;
 	h=Date:To:From:Subject;
-	b=2V7uZCSkT91sxS009dwJ2m1ST9w/CKu1WZEMbsYcafm/FeMVbMuG+2Rs3VSp10evi
-	 OxL/uEUcXRsLG53JJdwXJnngQPSSw6Gy3hjGsMZzkzLG4hO/PtRGMZ4exNQyZjjU+F
-	 /AGmV039KDUshouKxYFgmA8ZlBcn/5ps0eYnuc5w=
-Date: Sat, 03 Oct 2026 17:00:33 -0700
+	b=1VZEZ7jevyQ8tBLernvlg9Y/9KK2IE850BgS92chVfOUnxmWmkBoF2G46kFdweLG2
+	 Ztaej3ZSZ0JCseSwNtyBtrixSzfSpr1E5rDz42EDqMPOT4NAlq4KpVqiIiAWvELZuc
+	 fNigO7DxC6imn38dL1ROQxUnu4NueQ8Q4SN2GQ34=
+Date: Sat, 03 Oct 2026 17:00:37 -0700
 To: mm-commits@vger.kernel.org,ljs@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-eliminate-vm_special-vma_special_flags.patch added to mm-unstable branch
-Message-Id: <20261004000033.7DD0A1F0089B@smtp.kernel.org>
+Subject: + mm-huge_memory-remove-vma_is_special_huge.patch added to mm-unstable branch
+Message-Id: <20261004000038.0218F1F0089C@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: eliminate VM_SPECIAL, VMA_SPECIAL_FLAGS
+     Subject: mm/huge_memory: remove vma_is_special_huge()
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-eliminate-vm_special-vma_special_flags.patch
+     mm-huge_memory-remove-vma_is_special_huge.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-eliminate-vm_special-vma_special_flags.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-huge_memory-remove-vma_is_special_huge.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,30 +59,33 @@ and is updated there most days
 
 ------------------------------------------------------
 From: "Lorenzo Stoakes (ARM)" <ljs@kernel.org>
-Subject: mm: eliminate VM_SPECIAL, VMA_SPECIAL_FLAGS
-Date: Sat, 03 Oct 2026 17:33:07 +0100
+Subject: mm/huge_memory: remove vma_is_special_huge()
+Date: Sat, 03 Oct 2026 17:33:09 +0100
 
-Every user of the VM_SPECIAL or VMA_SPECIAL_FLAGS has now been converted to
-predicates which explicitly express what is actually being checked for
-rather than the nebulous concept of possessing 'special' VMA flags.
+vma_is_special_huge() tests whether either the VMA_PFNMAP_BIT or
+VMA_MIXEDMAP_BIT is set (i.e. whether the VMA is not mm-managed),
+but with a DAX carve-out.
 
-In any case 'special' is not so special a term of art in mm - it includes
-VDSO/VVAR mappings, special in the sense of vm_normal_folio() and probably
-other cases too.
+DAX however no longer sets VMA_MIXEDMAP_BIT, so this carve-out is no longer
+required.
 
-Therefore make things less special by eliminating these now unused flags.
+Therefore test for !vma_is_mm_managed() instead and also drop the
+VMA_IO_BIT check, as it is now redundant since it is enforced that
+mm-managed mappings may not set VMA_IO_BIT.
+
+This also eliminates another overloaded use of 'special' within mm.
 
 No functional change intended.
 
-Link: https://lore.kernel.org/20261003-b4-mmap-prepare-vma-flag-sanify-v4-36-a1f052500fd7@kernel.org
+Link: https://lore.kernel.org/20261003-b4-mmap-prepare-vma-flag-sanify-v4-38-a1f052500fd7@kernel.org
 Signed-off-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 Acked-by: Zi Yan <ziy@nvidia.com>
-Acked-by: David Hildenbrand (Arm) <david@kernel.org>
 Cc: Liam R. Howlett <liam@infradead.org>
 Cc: Vlastimil Babka <vbabka@kernel.org>
 Cc: Jann Horn <jannh@google.com>
 Cc: Pedro Falcato <pfalcato@suse.de>
+Cc: David Hildenbrand <david@kernel.org>
 Cc: Mike Rapoport <rppt@kernel.org>
 Cc: Suren Baghdasaryan <surenb@google.com>
 Cc: Michal Hocko <mhocko@suse.com>
@@ -186,44 +189,64 @@ Cc: Miklos Szeredi <miklos@szeredi.hu>
 Cc: Xu Xin <xu.xin@linux.dev>
 ---
 
- include/linux/mm.h              |    8 --------
- tools/testing/vma/include/dup.h |    8 --------
- 2 files changed, 16 deletions(-)
+ mm/huge_memory.c |   18 ++++--------------
+ 1 file changed, 4 insertions(+), 14 deletions(-)
 
---- a/include/linux/mm.h~mm-eliminate-vm_special-vma_special_flags
-+++ a/include/linux/mm.h
-@@ -578,14 +578,6 @@ enum {
- #define VMA_ACCESS_FLAGS mk_vma_flags(VMA_READ_BIT, VMA_WRITE_BIT, VMA_EXEC_BIT)
+--- a/mm/huge_memory.c~mm-huge_memory-remove-vma_is_special_huge
++++ a/mm/huge_memory.c
+@@ -110,14 +110,6 @@ static inline bool file_thp_enabled(cons
+ 	return S_ISREG(inode->i_mode);
+ }
  
- /*
-- * Special vmas that are non-mergable, non-mlock()able.
-- */
+-/* If returns true, we are unable to access the VMA's folios. */
+-static bool vma_is_special_huge(const struct vm_area_struct *vma)
+-{
+-	if (vma_is_dax(vma))
+-		return false;
+-	return vma_test_any(vma, VMA_PFNMAP_BIT, VMA_MIXEDMAP_BIT);
+-}
 -
--#define VMA_SPECIAL_FLAGS mk_vma_flags(VMA_IO_BIT, VMA_DONTEXPAND_BIT, \
--				       VMA_PFNMAP_BIT, VMA_MIXEDMAP_BIT)
--#define VM_SPECIAL vma_flags_to_legacy(VMA_SPECIAL_FLAGS)
--
--/*
-  * Physically remapped pages are special. Tell the
-  * rest of the world about it:
-  *   IO tells people not to look at these pages
---- a/tools/testing/vma/include/dup.h~mm-eliminate-vm_special-vma_special_flags
-+++ a/tools/testing/vma/include/dup.h
-@@ -352,14 +352,6 @@ enum {
- #define VM_ACCESS_FLAGS (VM_READ | VM_WRITE | VM_EXEC)
- #define VMA_ACCESS_FLAGS mk_vma_flags(VMA_READ_BIT, VMA_WRITE_BIT, VMA_EXEC_BIT)
- 
--/*
-- * Special vmas that are non-mergable, non-mlock()able.
-- */
--#define VM_SPECIAL (VM_IO | VM_DONTEXPAND | VM_PFNMAP | VM_MIXEDMAP)
--
--#define VMA_SPECIAL_FLAGS mk_vma_flags(VMA_IO_BIT, VMA_DONTEXPAND_BIT, \
--				       VMA_PFNMAP_BIT, VMA_MIXEDMAP_BIT)
--
- #define VMA_REMAP_FLAGS mk_vma_flags(VMA_IO_BIT, VMA_PFNMAP_BIT,	\
- 				     VMA_DONTEXPAND_BIT, VMA_DONTDUMP_BIT)
- 
+ static bool vma_file_bypass_thp_tuneables(const struct vm_area_struct *vma,
+ 		enum tva_type type)
+ {
+@@ -192,7 +184,7 @@ unsigned long __thp_vma_allowable_orders
+ 	/* Check the intersection of requested and supported orders. */
+ 	if (vma_is_anonymous(vma))
+ 		supported_orders = THP_ORDERS_ALL_ANON;
+-	else if (vma_is_dax(vma) || vma_is_special_huge(vma))
++	else if (vma_is_dax(vma) || !vma_is_mm_managed(vma))
+ 		supported_orders = THP_ORDERS_ALL_SPECIAL_DAX;
+ 	else
+ 		supported_orders = THP_ORDERS_ALL_FILE_DEFAULT;
+@@ -3065,7 +3057,7 @@ int zap_huge_pud(struct mmu_gather *tlb,
+ 	orig_pud = pudp_huge_get_and_clear_full(vma, addr, pud, tlb->fullmm);
+ 	arch_check_zapped_pud(vma, orig_pud);
+ 	tlb_remove_pud_tlb_entry(tlb, pud, addr);
+-	if (vma_is_special_huge(vma)) {
++	if (!vma_is_mm_managed(vma)) {
+ 		spin_unlock(ptl);
+ 		/* No zero page support yet */
+ 	} else {
+@@ -3221,7 +3213,7 @@ static void __split_huge_pmd_locked(stru
+ 		 */
+ 		if (arch_needs_pgtable_deposit())
+ 			zap_deposited_table(mm, pmd);
+-		if (vma_is_special_huge(vma))
++		if (!vma_is_mm_managed(vma))
+ 			return;
+ 		if (unlikely(pmd_is_migration_entry(old_pmd))) {
+ 			const softleaf_t old_entry = softleaf_from_pmd(old_pmd);
+@@ -4788,9 +4780,7 @@ static inline bool vma_not_suitable_for_
+ {
+ 	if (vma_is_dax(vma))
+ 		return true;
+-	if (vma_is_special_huge(vma))
+-		return true;
+-	if (vma_test(vma, VMA_IO_BIT))
++	if (!vma_is_mm_managed(vma))
+ 		return true;
+ 	if (vma_is_hugetlb(vma))
+ 		return true;
 _
 
 Patches currently in -mm which might be from ljs@kernel.org are
