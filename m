@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1951A47F3D4
-	for <mm-commits@vger.kernel.org>; Sun,  4 Oct 2026 18:28:39 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3B87347F3A0
+	for <mm-commits@vger.kernel.org>; Sun,  4 Oct 2026 18:29:56 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791138521; cv=none; b=HsNBzEXyknThNlbMedj39pncmfEDU6FkUAj9+7WxY1FSFxqq56In8yh9KjPoxvaSaEPaas5AFEUyRGv/LGFyhtkX5Wbw+IOvh6mnBKDmVd/ertxiB/SY4hoY+8Umtrmk9ele2wSJaVoMWnFCeSlpI7SNnCJthy0B8EDOxkNeP3k=
+	t=1791138597; cv=none; b=NAGDyxIHAjTFqG9OaW52mccdY+gaBR5R5gou0ms21h1cCEZLwem0gzMD9R4XllyBz4D9IT6TDQtnJxn7TGuN/S0QlBtSiEdj1hTjsQ8AYH9A+GPsbeppbszvbvjVBNwcs0DXzn5MzTjCR9vL4T9KLEjp/szyPa5g5NhiS9EPsyc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791138521; c=relaxed/simple;
-	bh=o4L/o7x0lJ05btyFA15REMY12kLiJyW43s6HE0N1tQs=;
-	h=Date:To:From:Subject:Message-Id; b=BGgZCmBEE0Qamg9LZ01Wk2lHF+GxR6+DVIrYOLRSSRGpcaksR7MO8CCXsoZUY3Y02h4e4NAnTYcQvIkWzIIzrSM2L8QUJOtbCR0EryQwfnOxRbryVgM/fRZKjGzlamse5Yc/NzHQUKJixGKWIIlVPR8zdD051RpnRvioXayL8LQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=wmFyeKS4; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1791138597; c=relaxed/simple;
+	bh=mj4NLHxMecxfoGti3kz9ixvdspO+3asqjGbCdZyn2es=;
+	h=Date:To:From:Subject:Message-Id; b=XuwpsJT3dA3wnWOSbOkJCpjP0cs1yaG9pgyAxWY2bW7ijpV56I/ot9z3uLKME+qf4UnbTDbJyrsrBQyArnB0s4+OoXpc0gVgpl200d8bzgJVQMqzYMAcWKcWp2lC7fuk4O2zq2+XDUm9MRfnj0zOFyFSenWVZD16OLb25qLvQRQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=VKPPgqNh; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="wmFyeKS4"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9B1271F000FF;
-	Sun,  4 Oct 2026 18:28:39 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="VKPPgqNh"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 105BD1F000FF;
+	Sun,  4 Oct 2026 18:29:56 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1791138519;
-	bh=alLgtAn1zEnZPFzCLSbE0jjN+qQ4VyDqKtdfsdG/5Sk=;
+	d=linux-foundation.org; s=korg; t=1791138596;
+	bh=gJ6awC53aI3ri9L7MS74sxpCdha6eMUAvqmDhB3O6wU=;
 	h=Date:To:From:Subject;
-	b=wmFyeKS4zFHhVsP9YG9yPt2lOXKffhVToBFCZkCe8e+mLlhjyjq14QZFs5tP1m5Oe
-	 sByTbM9X5lJ/D7Fj9O/MmUs3fUevCAcnv5+/5YO6igZsINLDB8TJ6PSIlsKCorgd7C
-	 OGkyPo9oB1TTN5VybAtRb78UmLtAMnsVuUtrMTWk=
-Date: Sun, 04 Oct 2026 11:28:39 -0700
-To: mm-commits@vger.kernel.org,steve@abita.co,sean@ashe.io,pmladek@suse.com,nick.lange@gmail.com,neelx@suse.com,mproche@gmail.com,mhiramat@kernel.org,lance.yang@linux.dev,david.laight.linux@gmail.com,chjohnst@gmail.com,brads@mainlining.org,atomlin@atomlin.com,akpm@linux-foundation.org
+	b=VKPPgqNhEIsr5T66Lj3ZgogSVZglNeCVEjIF0zJCPIkCRE1g5znFnFxn2FCyJ9cf1
+	 trZ2ZVm+8WN7b/jdIapDTh7YalzD4lnyc5peOVGCy/d+ETYf+VYljX722T7/yQp7N8
+	 LhvgyZlfvRYvecejwhh3Iyhc9AUgNfqnWFryCz84=
+Date: Sun, 04 Oct 2026 11:29:55 -0700
+To: mm-commits@vger.kernel.org,vishal.moola@gmail.com,urezki@gmail.com,dev.jain@arm.com,baohua@kernel.org,jiangwen6@xiaomi.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + hung_task-log-summary-line-when-warning-budget-is-exhausted.patch added to mm-nonmm-unstable branch
-Message-Id: <20261004182839.9B1271F000FF@smtp.kernel.org>
+Subject: + mm-vmalloc-bail-out-early-on-invalid-page_shift-in-__vmap_pages_range_noflush.patch added to mm-new branch
+Message-Id: <20261004182956.105BD1F000FF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,15 +35,26 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: hung_task: log summary line when warning budget is exhausted
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     hung_task-log-summary-line-when-warning-budget-is-exhausted.patch
+     Subject: mm/vmalloc: bail out early on invalid page_shift in __vmap_pages_range_noflush()
+has been added to the -mm mm-new branch.  Its filename is
+     mm-vmalloc-bail-out-early-on-invalid-page_shift-in-__vmap_pages_range_noflush.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/hung_task-log-summary-line-when-warning-budget-is-exhausted.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vmalloc-bail-out-early-on-invalid-page_shift-in-__vmap_pages_range_noflush.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Note, mm-new is a provisional staging ground for work-in-progress
+patches, and acceptance into mm-new is a notification for others take
+notice and to finish up reviews.  Please do not hesitate to respond to
+review feedback and post updated versions to replace or incrementally
+fixup patches in mm-new.
+
+The mm-new branch of mm.git is not included in linux-next
+
+If a few days of testing in mm-new is successful, the patch will me moved
+into mm.git's mm-unstable branch, which is included in linux-next
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -58,68 +69,42 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Aaron Tomlin <atomlin@atomlin.com>
-Subject: hung_task: log summary line when warning budget is exhausted
-Date: Sun,  4 Oct 2026 12:36:10 -0400
+From: Wen Jiang <jiangwen6@xiaomi.com>
+Subject: mm/vmalloc: bail out early on invalid page_shift in __vmap_pages_range_noflush()
+Date: Sun,  4 Oct 2026 15:16:39 +0800
 
-Once the warning budget is exhausted, hung_task_info() normally stops
-printing per-task details. When panic is triggered, full details are
-still printed so diagnostics remain available before panic.
+__vmap_pages_range_noflush() currently only warns when page_shift is
+smaller than PAGE_SHIFT, then continues with the invalid shift.  Return
+-EINVAL instead so the bogus argument is caught immediately.
 
-To retain visibility without restoring per-task output after budget
-exhaustion, emit a single aggregate summary line at the end of each
-watchdog scan that detects hung tasks with an exhausted budget. This
-keeps non-panic per-task reports budgeted during system-wide hangs.
-
-Link: https://lore.kernel.org/20261004163610.413506-3-atomlin@atomlin.com
-Signed-off-by: Aaron Tomlin <atomlin@atomlin.com>
+Link: https://lore.kernel.org/20261004071639.119857-1-jiangwenxiaomi@gmail.com
+Signed-off-by: Wen Jiang <jiangwen6@xiaomi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Suggested-by: Petr Mladek <pmladek@suse.com>
-Suggested-by: Lance Yang <lance.yang@linux.dev>
-Reviewed-by: Petr Mladek <pmladek@suse.com>
-Reviewed-by: Lance Yang <lance.yang@linux.dev>
-Reviewed-by: Bradley Morgan <brads@mainlining.org>
-Cc: Masami Hiramatsu <mhiramat@kernel.org>
-Cc: David Laight <david.laight.linux@gmail.com>
-Cc: Daniel Vacek <neelx@suse.com>
-Cc: Sean Ashe <sean@ashe.io>
-Cc: <chjohnst@gmail.com>
-Cc: <steve@abita.co>
-Cc: <mproche@gmail.com>
-Cc: <nick.lange@gmail.com>
+Suggested-by: Uladzislau Rezki (Sony) <urezki@gmail.com>
+Reviewed-by: Barry Song <baohua@kernel.org>
+Reviewed-by: Uladzislau Rezki (Sony) <urezki@gmail.com>
+Reviewed-by: Vishal Moola (Fractile) <vishal.moola@gmail.com>
+Cc: Dev Jain <dev.jain@arm.com>
 ---
 
- kernel/hung_task.c |    8 ++++++--
- 1 file changed, 6 insertions(+), 2 deletions(-)
+ mm/vmalloc.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
---- a/kernel/hung_task.c~hung_task-log-summary-line-when-warning-budget-is-exhausted
-+++ a/kernel/hung_task.c
-@@ -276,8 +276,8 @@ static void hung_task_info(struct task_s
- 		sched_show_task(t);
- 		debug_show_blocker(t, timeout);
+--- a/mm/vmalloc.c~mm-vmalloc-bail-out-early-on-invalid-page_shift-in-__vmap_pages_range_noflush
++++ a/mm/vmalloc.c
+@@ -684,7 +684,8 @@ int __vmap_pages_range_noflush(unsigned
+ {
+ 	unsigned int i, nr = (end - addr) >> PAGE_SHIFT;
  
--		if (!hung_task_warnings_budget)
--			pr_info("Future hung task reports are suppressed, see sysctl kernel.hung_task_warnings\n");
-+		if (!hung_task_warnings_budget && !hung_task_call_panic)
-+			pr_info("hung_task: further per-task details suppressed until warning budget is reset (see sysctl kernel.hung_task_warnings)\n");
- 	}
+-	WARN_ON(page_shift < PAGE_SHIFT);
++	if (WARN_ON_ONCE(page_shift < PAGE_SHIFT))
++		return -EINVAL;
  
- 	touch_nmi_watchdog();
-@@ -363,6 +363,10 @@ static void check_hung_uninterruptible_t
- 		return;
- 	}
- 
-+	if (!hung_task_warnings_budget && !hung_task_call_panic)
-+		pr_info("hung_task: %lu hung tasks detected, warning budget exhausted\n",
-+			this_round_count);
-+
- 	if (need_warning || hung_task_call_panic) {
- 		si_mask |= SYS_INFO_LOCKS;
- 
+ 	if (!IS_ENABLED(CONFIG_HAVE_ARCH_HUGE_VMALLOC) ||
+ 			page_shift == PAGE_SHIFT)
 _
 
-Patches currently in -mm which might be from atomlin@atomlin.com are
+Patches currently in -mm which might be from jiangwen6@xiaomi.com are
 
-hung_task-reset-warning-budget-when-problem-gets-resolved.patch
-hung_task-log-summary-line-when-warning-budget-is-exhausted.patch
+mm-vmalloc-bail-out-early-on-invalid-page_shift-in-__vmap_pages_range_noflush.patch
 
