@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E8CAC47F78B
-	for <mm-commits@vger.kernel.org>; Sun,  4 Oct 2026 20:11:48 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 492774A8A24
+	for <mm-commits@vger.kernel.org>; Sun,  4 Oct 2026 20:59:27 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791144710; cv=none; b=L0hXBYYC7IYXOV3rjuqKTJNmG6XL+SSXRloJT6IQzOfyX0dUOJ3J24TG7UBNzsqJW/vWumlRKEKsVDfQb1ob866Q+HEl8X7/9z+G4q54xfJS80i9dCtWSxhnbvRi1js6glJb2Z8v5JeRjwftk4t5eBD+nNFUPoesBpOa+zmxvaU=
+	t=1791147569; cv=none; b=NOeWYhnQSOaTZFdx8Fb7RwOEqYoXsB5iDb9yRKke1wGjJHZ2MQz9wJ2Lw8VA/q5HOE+Z4fRqdhg1JX3yHTUqNYQ2V+UkfwrK2d1Rw+iDdjd/9aA9JYN4G5aKq1j1LY4Y5lhElUuaJvouaw3wIeRV/Pa0CiA0r8ABZnsr/qoc/aA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791144710; c=relaxed/simple;
-	bh=VFGa/s6tE2TPZVY/65beASnvSwCwvPI8S4qd/3oheXo=;
-	h=Date:To:From:Subject:Message-Id; b=uGbYRpTkvakf0TQ6UmEEohXi658oVlhMA66U3Q4WqBzzHuL7ggyC6fzk9nzbBlhigTlM9FZ5hHmSojAbasqv7CcYZ2JFxXaQeEdmWM1ymWsT+xg1MCmXMG0GYYHxvGBGPlXHYXBLbwN1Fce8LDEs/48s+H2DWTWDfHJRnuFKrUg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=hx78P7Yq; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1791147569; c=relaxed/simple;
+	bh=ysBxquxNEk2sHnwHAHUSDtXi/NsMTnu7DHUbeYRKVTk=;
+	h=Date:To:From:Subject:Message-Id; b=qx8falNY71KSBnUzi5N5dC78pXMrcz1Otr1EBNsVy0Oeh399wYYeFW9K/MlXs7bzbWk0N+qBOMAkkY6+i9zUgur63x6IGdORa5ZXbV24AVpCwtmJv2JbwDjwWR814Z+A3e8asaH55i4FSHzuRT8xAO2+PmPSu6TeWS+crSFNQvQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=MZ17RUO9; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="hx78P7Yq"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5BC4B1F000FF;
-	Sun,  4 Oct 2026 20:11:48 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="MZ17RUO9"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B20841F000FF;
+	Sun,  4 Oct 2026 20:59:27 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1791144708;
-	bh=q0LxiUXPKpnpKgtIcmfOju9MPK+NbIq/xOdtau5jBa8=;
+	d=linux-foundation.org; s=korg; t=1791147567;
+	bh=23NpjaNFnDQMTErInEENjEogziD5Y+40anK/8FqgmXM=;
 	h=Date:To:From:Subject;
-	b=hx78P7YqMcavWyU4JnHVNyED91B/ZmQtAo6crYetLRbw4VxQTGUzoAJmYHRiKl04P
-	 s5WjB0kU0C2Eq/kbUYoNPeUEEIw88D7fZR7g9/eqSUdUNg+S13bVEMVlT8bAPlsAZC
-	 9q1HkeSzV5d85IT0ppolABArYrIcdmgkuYp6zpvo=
-Date: Sun, 04 Oct 2026 13:11:47 -0700
-To: mm-commits@vger.kernel.org,sj@kernel.org,osalvador@suse.de,muchun.song@linux.dev,david@kernel.org,lienze@kylinos.cn,akpm@linux-foundation.org
+	b=MZ17RUO9VsgS6EkUUFULVRGiI3+1sq09MJzBjkYuP2QD6syT4ZgJj5Ab0f/j9yEE1
+	 sLj6GvLIguN7kksHrKOc7ZfPEIRclloOqlkEVAZ4UX5WXn9wP2WFWZjN2iRJMvqp1B
+	 bVvbkn4p3arHw7mwQXAlbGPGe0JXf979UgvttqzU=
+Date: Sun, 04 Oct 2026 13:59:27 -0700
+To: mm-commits@vger.kernel.org,vbabka@kernel.org,surenb@google.com,shuah@kernel.org,rppt@kernel.org,mhocko@suse.com,ljs@kernel.org,liam@infradead.org,david@kernel.org,jaeyeon.lee.dev@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-hugetlb_cgroup-add-trailing-endif-comment-for-include-guard.patch added to mm-unstable branch
-Message-Id: <20261004201148.5BC4B1F000FF@smtp.kernel.org>
+Subject: + selftests-mm-hugetlb-read-hwpoison-add-setup-of-hugetlb-pages.patch added to mm-new branch
+Message-Id: <20261004205927.B20841F000FF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,15 +35,26 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/hugetlb_cgroup: add trailing #endif comment for include guard
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-hugetlb_cgroup-add-trailing-endif-comment-for-include-guard.patch
+     Subject: selftests/mm: hugetlb-read-hwpoison: add setup of HugeTLB pages
+has been added to the -mm mm-new branch.  Its filename is
+     selftests-mm-hugetlb-read-hwpoison-add-setup-of-hugetlb-pages.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-hugetlb_cgroup-add-trailing-endif-comment-for-include-guard.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-hugetlb-read-hwpoison-add-setup-of-hugetlb-pages.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Note, mm-new is a provisional staging ground for work-in-progress
+patches, and acceptance into mm-new is a notification for others take
+notice and to finish up reviews.  Please do not hesitate to respond to
+review feedback and post updated versions to replace or incrementally
+fixup patches in mm-new.
+
+The mm-new branch of mm.git is not included in linux-next
+
+If a few days of testing in mm-new is successful, the patch will me moved
+into mm.git's mm-unstable branch, which is included in linux-next
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -58,41 +69,69 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Enze Li <lienze@kylinos.cn>
-Subject: mm/hugetlb_cgroup: add trailing #endif comment for include guard
-Date: Sat,  3 Oct 2026 14:00:29 +0800
+From: Jaeyeon Lee <jaeyeon.lee.dev@gmail.com>
+Subject: selftests/mm: hugetlb-read-hwpoison: add setup of HugeTLB pages
+Date: Sun,  4 Oct 2026 22:54:58 +0200
 
-The final #endif that closes the _LINUX_HUGETLB_CGROUP_H include guard
-is left without a comment.  Add the macro name to the comment for
-consistency and easier navigation.
+Every test is expected to reserve the HugeTLB pages it needs. 
+hugetlb-read-hwpoison was not converted, so on a system without
+pre-reserved huge pages the MAP_POPULATE mmap() fails with ENOMEM and
+every test case is skipped.
 
-Link: https://lore.kernel.org/20261003060029.2152489-2-lienze@kylinos.cn
-Signed-off-by: Enze Li <lienze@kylinos.cn>
+Reserve the pages with hugetlb_setup_default().  Each chunk size runs two
+HWPOISON tests and a poisoned huge page can't be reused, so reserve two
+pages per chunk size.  The pool size is restored on exit.  The poisoned
+pages remain allocated until reboot.
+
+With the patch, all 12 cases pass on a system with no huge pages
+reserved (tested on Fedora, x86_64, CONFIG_MEMORY_FAILURE=y).
+
+Link: https://lore.kernel.org/20261004205458.119608-1-jaeyeon.lee.dev@gmail.com
+Signed-off-by: Jaeyeon Lee <jaeyeon.lee.dev@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Acked-by: David Hildenbrand (Arm) <david@kernel.org>
-Acked-by: Muchun Song <muchun.song@linux.dev>
-Reviewed-by: SJ Park <sj@kernel.org>
-Cc: Oscar Salvador <osalvador@suse.de>
+Assisted-by: LLM
+Cc: David Hildenbrand <david@kernel.org>
+Cc: Shuah Khan <shuah@kernel.org>
+Cc: Lorenzo Stoakes <ljs@kernel.org>
+Cc: Liam R. Howlett <liam@infradead.org>
+Cc: Vlastimil Babka <vbabka@kernel.org>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Michal Hocko <mhocko@suse.com>
 ---
 
- include/linux/hugetlb_cgroup.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ tools/testing/selftests/mm/hugetlb-read-hwpoison.c |    8 ++++++++
+ 1 file changed, 8 insertions(+)
 
---- a/include/linux/hugetlb_cgroup.h~mm-hugetlb_cgroup-add-trailing-endif-comment-for-include-guard
-+++ a/include/linux/hugetlb_cgroup.h
-@@ -268,4 +268,4 @@ static inline void hugetlb_cgroup_migrat
- }
+--- a/tools/testing/selftests/mm/hugetlb-read-hwpoison.c~selftests-mm-hugetlb-read-hwpoison-add-setup-of-hugetlb-pages
++++ a/tools/testing/selftests/mm/hugetlb-read-hwpoison.c
+@@ -13,6 +13,7 @@
+ #include <signal.h>
  
- #endif  /* CONFIG_CGROUP_HUGETLB */
--#endif
-+#endif /* _LINUX_HUGETLB_CGROUP_H */
+ #include "kselftest.h"
++#include "vm_util.h"
+ 
+ #define MAX_WRITE_READ_CHUNK_SIZE (getpagesize() * 16)
+ #define MAX(a, b) (((a) > (b)) ? (a) : (b))
+@@ -281,6 +282,13 @@ int main(void)
+ 	size_t i;
+ 
+ 	ksft_print_header();
++
++	if (!hugetlb_available())
++		ksft_exit_skip("HugeTLB is not available\n");
++
++	if (!hugetlb_setup_default(ARRAY_SIZE(wr_chunk_sizes) * 2))
++		ksft_exit_skip("Not enough free huge pages\n");
++
+ 	ksft_set_plan(ARRAY_SIZE(wr_chunk_sizes) * 3);
+ 
+ 	signal(SIGBUS, sigbus_handler);
 _
 
-Patches currently in -mm which might be from lienze@kylinos.cn are
+Patches currently in -mm which might be from jaeyeon.lee.dev@gmail.com are
 
-mm-damon-core-introduce-damon_set_target_pid.patch
-samples-damon-mtier-add-comment-for-struct-region_range.patch
-maintainers-cover-all-hugetlb-headers-under-hugetlb-subsystem.patch
-mm-hugetlb_cgroup-add-trailing-endif-comment-for-include-guard.patch
-docs-hugetlbpagerst-fix-typo-in-per-node-attribute-description.patch
+mm-damon-tests-use-scoped_guard-for-damon_test_ops_registration.patch
+selftests-mm-skip-khugepaged-file-tests-if-mkfsxfs-is-unavailable.patch
+selftests-mm-hugetlb-read-hwpoison-add-setup-of-hugetlb-pages.patch
 
