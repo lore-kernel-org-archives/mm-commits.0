@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A69F4259C80
-	for <mm-commits@vger.kernel.org>; Wed,  7 Oct 2026 00:50:05 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AFAD02DEA8F
+	for <mm-commits@vger.kernel.org>; Wed,  7 Oct 2026 00:50:06 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791334206; cv=none; b=Og95H5s4FGizmu4JofXphnzZOHLkVB0ra6Ti4V0zF6P8TVdiTY9kJWlQ/S3m4uN3ZIgfdCo0efwrBQAYp8K4cNWUZkSL0LjiLMoiuy0xbzlUqnOdhfT4LpcN9iCVjQOVl805N3BneWtT9sO4/YLDtoGTQyCTFXV7Ky+JntFDgns=
+	t=1791334207; cv=none; b=N+QzSGcdicCvSnn38JFYbTwiKkoYkg0qtMTf6bZ/xdClOVU+1ngMP8+OvNjKecbfRfzVe/wJkgPucJkbVjr7mci29UWDj4m98r1ItT+sIKx/4NkIEUpFN+rwUkBwnRRYgdcL0UJVMXkOQr2NsnsSiac29zLFFJB8Ly7etxog13Y=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791334206; c=relaxed/simple;
-	bh=0jL6cUM6ZgO+yj76H3MgqUwYNAmpIX91ZXH57nfoZfs=;
-	h=Date:To:From:Subject:Message-Id; b=dtaI/3mReFXe0rqKtZLu5D4IMzAeaIGAKJoKSuC5HoktWuD8WMr+M4Ltv1RFkzXjgG/va+4Bo79e9QxWd8jf2KCOVJtparJHevmfAl6DjrkbhnZ1UHwLOxfGg7OSvfL+3lef5P5hIi3BbRPlMi6FURioK8B1knYyVgk+tkA9CmQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=WaDuhnqc; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1791334207; c=relaxed/simple;
+	bh=++t7AlCkfpKouYqWxlPlo34mYjboXGYwthspuO3UmCU=;
+	h=Date:To:From:Subject:Message-Id; b=cxw0SbEhbtZOMwrsDZlWC34jxO5Txop08mMdKmgzDri5uzCSiXtIo+0Sc4W0De8KzDgQyk9MBW7/840YdNJ+tXBbHIpxylKuXY+q44nnDwxaw8+t3HZ1nlsv8A954WdXGbNJlLgjuamvna5fwxcdgHgIwVVogLKFRvzYkrJ+BS8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=uJ9xz5yd; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="WaDuhnqc"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7B2E11F0089C;
-	Wed,  7 Oct 2026 00:50:05 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="uJ9xz5yd"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 878381F0089B;
+	Wed,  7 Oct 2026 00:50:06 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1791334205;
-	bh=YXWrfH2eig1KrZ2cGP+l57c9ylSuspS31CI5Y6/Wlms=;
+	d=linux-foundation.org; s=korg; t=1791334206;
+	bh=76sMvNOaFZ7fIlwqt+G4D4znWr8oq8QN/IebwVbT2C4=;
 	h=Date:To:From:Subject;
-	b=WaDuhnqcv6k+k97196tqjIW9Fw4eeb3nrrxtQUDXJQ/veDo4E5oFiWhKbjmKI3uT5
-	 fM1SeQPf3O4KnAYOaTLJdKW5SI47uLowbZCUfuKnfth+Try+hK+l07wvS8m5rtQd6M
-	 T4sxNoaGDSSqnbN1s9vve51QFg9uzg4ThqyPBo1E=
-Date: Tue, 06 Oct 2026 17:50:05 -0700
-To: mm-commits@vger.kernel.org,zhengqi.arch@bytedance.com,shakeel.butt@linux.dev,roman.gushchin@linux.dev,muchun.song@linux.dev,mhocko@kernel.org,hughd@google.com,hannes@cmpxchg.org,david@kernel.org,brauner@kernel.org,baolin.wang@linux.alibaba.com,qinyuntan@linux.alibaba.com,akpm@linux-foundation.org
+	b=uJ9xz5ydyjU2dX2K0gn6LjUQVHZwkW+pmVuZAwhurKFF0v4KQEo7gfIMlVGZCPZco
+	 8ijb4YMqVxR+fDP5xBOc8Isb0ryl98EWqiPRQvNkX1G1lf3RM/4mQCYBeL+dkSnz3+
+	 63T9/2nKXFiNY9TN7xfwIwJGIP+AIiQeHwuDtodM=
+Date: Tue, 06 Oct 2026 17:50:06 -0700
+To: mm-commits@vger.kernel.org,tj@kernel.org,shuah@kernel.org,nphamcs@gmail.com,mkoutny@suse.com,hannes@cmpxchg.org,chengming.zhou@linux.dev,wfelipe@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-list_lru-disable-memcg-awareness-under-cgroup_disable=memory.patch removed from -mm tree
-Message-Id: <20261007005005.7B2E11F0089C@smtp.kernel.org>
+Subject: [merged mm-stable] selftests-cgroup-test_zswap-wait-for-cgroup-to-unpopulate-in-test_zswap_writeback.patch removed from -mm tree
+Message-Id: <20261007005006.878381F0089B@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,92 +35,88 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/list_lru: disable memcg awareness under cgroup_disable=memory
+     Subject: selftests/cgroup: test_zswap: wait for cgroup to unpopulate in test_zswap_writeback
 has been removed from the -mm tree.  Its filename was
-     mm-list_lru-disable-memcg-awareness-under-cgroup_disable=memory.patch
+     selftests-cgroup-test_zswap-wait-for-cgroup-to-unpopulate-in-test_zswap_writeback.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Qinyun Tan <qinyuntan@linux.alibaba.com>
-Subject: mm/list_lru: disable memcg awareness under cgroup_disable=memory
-Date: Wed, 2 Sep 2026 17:32:02 +0800
+From: Wilson Felipe Pereira <wfelipe@google.com>
+Subject: selftests/cgroup: test_zswap: wait for cgroup to unpopulate in test_zswap_writeback
+Date: Fri, 28 Aug 2026 03:37:31 +0000
 
-__list_lru_init() only collapses a memcg-aware list_lru into plain
-per-node lists when kmem accounting is disabled (cgroup.memory=nokmem). 
-When the memory controller is disabled entirely (cgroup_disable=memory),
-mem_cgroup_kmem_disabled() is false, so the lru stays memcg aware even
-though no object will ever be charged to a memcg.
+Patch series "selftests/cgroup: fixes for test_zswap on single core VM",
+v4.
 
-This is more than a semantic inconsistency.  folio_memcg_list_lru_alloc()
-trusts list_lru_memcg_aware() and dereferences the folio's memcg, which is
-always NULL with the controller disabled.  The only mainline caller,
-folio_memcg_alloc_deferred(), papers over this with an explicit
-mem_cgroup_disabled() check.  The shmem unused-huge shrinker conversion
-("mm: shmem: make unused huge shrinker memcg aware") adds a second caller
-without such a guard, so booting with cgroup_disable=memory and writing to
-a huge=always tmpfs oopses:
+This series fixes two test failures in test_zswap observed when running on
+a single-core VM (-smp 1) with 4GB of RAM.
 
-  BUG: unable to handle page fault for address: 0000000000000488
-  RIP: 0010:folio_memcg_list_lru_alloc+0x41/0xf0
-  Call Trace:
-   <TASK>
-   shmem_get_folio_gfp+0x1cd/0x7c0
-   shmem_write_begin+0x5d/0x100
-   generic_perform_write+0x89/0x2a0
-   shmem_file_write_iter+0x82/0x90
-   vfs_write+0x256/0x410
-   ksys_write+0x61/0xe0
-   do_syscall_64+0x8d/0x460
-   entry_SYSCALL_64_after_hwframe+0x76/0x7e
+Patch 1 addresses a race condition in test_zswap_writeback() where
+waitpid() returns before the exiting child process is switched away by the
+kernel, causing an immediate write of "+memory" to cgroup.subtree_control
+to fail with -EBUSY.  We fix this by waiting for cgroup.events to report
+"populated 0".
 
-The faulting address is the offset of mem_cgroup->kmemcg_id, dereferenced
-on a NULL memcg in memcg_list_lru_allocated():
+Patch 2 fixes an implicit unsigned conversion bug in test_no_kmem_bypass()
+where small negative timing differences between debugfs stored_pages and
+cgroup zswapped bytes caused the comparison to falsely fail due to
+unsigned promotion.
 
-  folio_memcg_list_lru_alloc()
-    list_lru_memcg_aware()               <- true, only nokmem checked
-    memcg = folio_memcg(folio)           <- NULL
-    memcg_list_lru_allocated(memcg, lru)
-      memcg->kmemcg_id                   <- NULL pointer dereference
 
-Check mem_cgroup_disabled() in __list_lru_init() so that all list_lrus
-fall back to plain per-node lists when the controller is disabled,
-matching what the shrinker side already does (shrinker_memcg_alloc() bails
-out on mem_cgroup_disabled()).  This makes the mem_cgroup_disabled() check
-in callers unnecessary rather than mandatory.
+This patch (of 2):
 
-Link: https://lore.kernel.org/20260902093202.609559-1-qinyuntan@linux.alibaba.com
-Signed-off-by: Qinyun Tan <qinyuntan@linux.alibaba.com>
+When running test_zswap on a single-core VM (-smp 1) with 4GB of RAM,
+test_zswap_writeback intermittently fails on the initial run after boot.
+
+In test_zswap_writeback(), after waitpid() reaps the child process created
+by test_zswap_writeback_one(), writing "+memory" to cgroup.subtree_control
+can fail with -EBUSY.  Under cgroup v2, enabling domain subtree
+controllers is forbidden while any tasks remain in cgroup.procs.
+
+When a child process exits, exit_notify() wakes the parent process,
+allowing waitpid() to return immediately.  However, the cgroup populated
+task count (nr_populated_csets) is only decremented when the exiting task
+is switched away via finish_task_switch() -> cgroup_task_dead().  On
+single-core systems, the parent runs before the dead child has been
+switched out, causing "+memory" to fail with -EBUSY if written immediately
+after waitpid() returns.
+
+Fix this by waiting for cgroup.events to report "populated 0\n" via
+cg_read_strcmp_wait() before enabling subtree control.
+
+Link: https://lore.kernel.org/20260828033741.2184560-1-wfelipe@google.com
+Link: https://lore.kernel.org/20260828033741.2184560-2-wfelipe@google.com
+Signed-off-by: Wilson Felipe Pereira <wfelipe@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Reviewed-by: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: Christian Brauner <brauner@kernel.org>
-Cc: David Hildenbrand <david@kernel.org>
-Cc: Hugh Dickins <hughd@google.com>
+Acked-by: Michal Koutný <mkoutny@suse.com>
+Cc: Chengming Zhou <chengming.zhou@linux.dev>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Muchun Song <muchun.song@linux.dev>
-Cc: Qi Zheng <zhengqi.arch@bytedance.com>
-Cc: Roman Gushchin <roman.gushchin@linux.dev>
-Cc: Shakeel Butt <shakeel.butt@linux.dev>
+Cc: Nhat Pham <nphamcs@gmail.com>
+Cc: Shuah Khan <shuah@kernel.org>
+Cc: Tejun Heo <tj@kernel.org>
 ---
 
- mm/list_lru.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ tools/testing/selftests/cgroup/test_zswap.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
---- a/mm/list_lru.c~mm-list_lru-disable-memcg-awareness-under-cgroup_disable=memory
-+++ a/mm/list_lru.c
-@@ -671,7 +671,7 @@ int __list_lru_init(struct list_lru *lru
- 	else
- 		lru->shrinker_id = -1;
- 
--	if (mem_cgroup_kmem_disabled())
-+	if (mem_cgroup_disabled() || mem_cgroup_kmem_disabled())
- 		memcg_aware = false;
- #endif
+--- a/tools/testing/selftests/cgroup/test_zswap.c~selftests-cgroup-test_zswap-wait-for-cgroup-to-unpopulate-in-test_zswap_writeback
++++ a/tools/testing/selftests/cgroup/test_zswap.c
+@@ -409,6 +409,8 @@ static int test_zswap_writeback(const ch
+ 	 * Thus, the parent's setting shall be what's in effect. */
+ 	if (cg_write(test_group, "memory.zswap.max", "max"))
+ 		goto out;
++	if (cg_read_strcmp_wait(test_group, "cgroup.events", "populated 0\n"))
++		goto out;
+ 	if (cg_write(test_group, "cgroup.subtree_control", "+memory"))
+ 		goto out;
  
 _
 
-Patches currently in -mm which might be from qinyuntan@linux.alibaba.com are
+Patches currently in -mm which might be from wfelipe@google.com are
 
+mm-zswap-convert-zswap_store_page-and-zswap_compress-to-take-a-folio.patch
+init-main-fix-off-by-one-in-argv_init-cleanup.patch
+init-main-fix-false-positive-kernel-panic-on-environment-variable-overwrite.patch
 
