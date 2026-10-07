@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 94EBA2F7F01
-	for <mm-commits@vger.kernel.org>; Wed,  7 Oct 2026 00:50:43 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0BE302F8EAA
+	for <mm-commits@vger.kernel.org>; Wed,  7 Oct 2026 00:50:45 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791334244; cv=none; b=XxEBjQVJi0P/vpMQo9WThsi97jYCsAMNZKZWYzpxKlgOGBKT7ZIKsNp5LFfsoT73QSWUh8DDGmH2xyhk5WKY69OppaQVV2/XEMlMtN7RvqR/2bCBhovuNuBABjPkjNp18nS4IqvKu+Oqt1K9mCXyQKPxhJLsRwZF0fCMuguD0UI=
+	t=1791334246; cv=none; b=pDRV+aa5V3u2O1IppWIWVM/Yhkj5P8VCUWkLrzr3vv3N5ELdw4S7sMlRP3z98n084JRRbD21i+vu1tfK+AibLyic70DrVgEtj0MtJuydPprIhjY+N/jI7/YT06CUKMZ4pqfdjeMjK8HzpQrPt4wyWen/vUwOZrsl42p+6GOVsR4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791334244; c=relaxed/simple;
-	bh=a0LUjdhsQp6F6JA6cOb2K2Hy4K5wX9Xw/GeFP21WUGo=;
-	h=Date:To:From:Subject:Message-Id; b=EcuPxwU0ZGW5sLwZ49ibab2zTpmHPbn+h2bYY0kCDMGKDQ6U421fcxRiSvLbdsOMJSF9MqJm9EERnk/nCfXMGUJFladrCFoTIRwnbmdpNg9pWs0v033+hcQ+5EC/uQuIWDu+f9OflcdowRarnvuH7RtsSQkVyORDFEmIoGHR/n4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=rXo5pqFC; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1791334246; c=relaxed/simple;
+	bh=3mEuTrOlaXIO54LUdZLqiVq2VKO1xCQY3feztt8SQ1c=;
+	h=Date:To:From:Subject:Message-Id; b=iG5jIsv9W/yzDjSDNK0rls2TATaiegyv5XaZlWJO5M6wj2jZUAOmDdL+wN+KiHp12IK/g/HIz5aAR0pqPFn/RS2AOSjZqSm+qPpqHgtqhv6Rb06P1fvWravynBjrgQLffzeZiQQX6C4hckoNkdOHNFWkPVfR1JdbmCft1uyz1V0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=PmNKAMhs; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="rXo5pqFC"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 682B01F0089C;
-	Wed,  7 Oct 2026 00:50:43 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="PmNKAMhs"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D4BC81F0089B;
+	Wed,  7 Oct 2026 00:50:44 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1791334243;
-	bh=zHQxLx425IWMPmWO+vhjt7p0/1JUdSGfoRcRYMmWYDs=;
+	d=linux-foundation.org; s=korg; t=1791334244;
+	bh=kum6WjDuLx62exlxctPX9aBSm1RSdVMM94/Y7iv+Vpk=;
 	h=Date:To:From:Subject;
-	b=rXo5pqFCXlk9FpO418KeUwqfzTlTumwBE13MgLasl2vk20WWfZHlE9rDk81CipVVX
-	 Z0N6bhFWhfukkQ1rZaPRxz8NoZQMhan1dcgUiwR927qk/j5jCdOKBqIVNfglT4mhwU
-	 3LSmwxZ/P2Q3TGG5rTBvR7dGWg0t+zHO4vqniZzk=
-Date: Tue, 06 Oct 2026 17:50:43 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,ying.huang@linux.alibaba.com,willy@infradead.org,rakie.kim@sk.com,matthew.brost@intel.com,joshua.hahnjy@gmail.com,david@kernel.org,byungchul@sk.com,apopple@nvidia.com,gourry@gourry.net,akpm@linux-foundation.org
+	b=PmNKAMhsc8EL97eqOV2P6hWa/i3+w3YHxUg18m05aqvVte6iQTDy1utnRux+na6T3
+	 oGd6Mgg36ijVKL8WymKzBEbTs2GlH9KEgO8TdcptQqrGlVYvmKsi9UDID5JJML/Ae4
+	 ekPjPRyBQuS7Yd3IeX3WWx0/9JB92xLF+aFVeMEk=
+Date: Tue, 06 Oct 2026 17:50:44 -0700
+To: mm-commits@vger.kernel.org,tj@kernel.org,dennis@kernel.org,cl@linux.com,ekffu200098@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-mempolicy-stop-copying-the-nodemask-in-the-interleave-paths.patch removed from -mm tree
-Message-Id: <20261007005043.682B01F0089C@smtp.kernel.org>
+Subject: [merged mm-stable] percpu-fix-the-comment-about-which-sizes-share-a-slot.patch removed from -mm tree
+Message-Id: <20261007005044.D4BC81F0089B@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,287 +35,51 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/mempolicy: stop copying the nodemask in the interleave paths
+     Subject: percpu: fix the comment about which sizes share a slot
 has been removed from the -mm tree.  Its filename was
-     mm-mempolicy-stop-copying-the-nodemask-in-the-interleave-paths.patch
+     percpu-fix-the-comment-about-which-sizes-share-a-slot.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Gregory Price <gourry@gourry.net>
-Subject: mm/mempolicy: stop copying the nodemask in the interleave paths
-Date: Thu, 17 Sep 2026 20:12:03 -0400
+From: Sang-Heon Jeon <ekffu200098@gmail.com>
+Subject: percpu: fix the comment about which sizes share a slot
+Date: Wed, 19 Aug 2026 01:48:30 +0900
 
-The interleave node selectors copy pol->nodes onto the stack so the mask
-cannot change while they walk it.  nodemask_t is 128 bytes at
-MAX_NUMNODES=1024, and two of the three run per folio fault.
+A percpu allocation is at least PCPU_MIN_ALLOC_SIZE bytes, and
+__pcpu_size_to_slot() returns 1 for sizes below 16 bytes and 2 for sizes
+from 16 to 31 bytes.
 
-The copy only buys consistency between the node count and the walk.  Drop
-the consistency and just bounds check the walk instead.
+So fix the wrong comment.
 
-The nodelist access is racy by design, but safe as long as we handle the
-scenario where a cpuset rebind causes a torn nodemask read to perceive the
-nodemask as empty (weight_total == 0).
-
-If an empty nodelist or weight is perceived, fall back to numa_node_id(),
-which is what the functions already did when the copy came back empty
-
-Otherwise, iterating the nodelist during the actual allocation loop is
-perfectly safe - a concurrent rebind may simply cause a skew in in the
-distribution of memory (or fail and fall back the same as any other error
-condition).
-
-weighted_interleave_nid() counts the nodes as we sum the weights.  We use
-that node count to limit the maximum skew a single node can host.
-
-interleave_nid() walks with next_node_in() rather than next_node(), so a
-mask that shrank mid-walk wraps to a node still in the policy.
-
-alloc_pages_bulk_weighted_interleave() derives per-node counts from a
-weight total summed over the mask, so a changing mask can make them exceed
-the request.  Clamp each chunk to the space left in page_array.
-
-A cpuset cookie will not work here: two of these take VMA policies, which
-mpol_rebind_mm() rebinds under mmap_write_lock(), not mems_allowed_seq.
-
-Cost is distribution accuracy during a rebind - but the copy never
-corrected this anyway, it was just a safety mechanism to prevent div/0 and
-overrunning the alloc request buffer.
-
-Remove read_once_policy_nodemask(), now unused.
-
--fstack-usage at MAX_NUMNODES=1024:
-
-  weighted_interleave_nid            184 -> 56
-  interleave_nid                     168 -> 32
-  alloc_pages_bulk_mempolicy_noprof  360 -> 136
-
-Link: https://lore.kernel.org/20260918001203.3389165-3-gourry@gourry.net
-Signed-off-by: Gregory Price (Meta) <gourry@gourry.net>
+Link: https://lore.kernel.org/20260818164831.3138490-1-ekffu200098@gmail.com
+Signed-off-by: Sang-Heon Jeon <ekffu200098@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Acked-by: David Hildenbrand (Arm) <david@kernel.org>
-Reviewed-by: Rakie Kim <rakie.kim@sk.com>
-Assisted-by: LLM
-Cc: Alistair Popple <apopple@nvidia.com>
-Cc: Byungchul Park <byungchul@sk.com>
-Cc: "Huang, Ying" <ying.huang@linux.alibaba.com>
-Cc: Joshua Hahn <joshua.hahnjy@gmail.com>
-Cc: Matthew Brost <matthew.brost@intel.com>
-Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Zi Yan <ziy@nvidia.com>
+Cc: Dennis Zhou <dennis@kernel.org>
+Cc: Tejun Heo <tj@kernel.org>
+Cc: Christoph Lameter <cl@linux.com>
 ---
 
- mm/mempolicy.c |   93 ++++++++++++++++++++++++++++-------------------
- 1 file changed, 56 insertions(+), 37 deletions(-)
+ mm/percpu.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/mempolicy.c~mm-mempolicy-stop-copying-the-nodemask-in-the-interleave-paths
-+++ a/mm/mempolicy.c
-@@ -2197,34 +2197,15 @@ unsigned int mempolicy_slab_node(void)
- 	}
- }
+--- a/mm/percpu.c~percpu-fix-the-comment-about-which-sizes-share-a-slot
++++ a/mm/percpu.c
+@@ -100,7 +100,7 @@
  
--static unsigned int read_once_policy_nodemask(struct mempolicy *pol,
--					      nodemask_t *mask)
--{
--	/*
--	 * barrier stabilizes the nodemask locally so that it can be iterated
--	 * over safely without concern for changes. Allocators validate node
--	 * selection does not violate mems_allowed, so this is safe.
--	 */
--	barrier();
--	memcpy(mask, &pol->nodes, sizeof(nodemask_t));
--	barrier();
--	return nodes_weight(*mask);
--}
--
- static unsigned int weighted_interleave_nid(struct mempolicy *pol, pgoff_t ilx)
- {
- 	struct weighted_interleave_state *state;
--	nodemask_t nodemask;
--	unsigned int target, nr_nodes;
-+	unsigned int target, nnodes = 0;
- 	u8 *table = NULL;
- 	unsigned int weight_total = 0;
- 	u8 weight;
- 	int nid = 0;
- 
--	nr_nodes = read_once_policy_nodemask(pol, &nodemask);
--	if (!nr_nodes)
--		return numa_node_id();
--
- 	rcu_read_lock();
- 
- 	state = rcu_dereference(wi_state);
-@@ -2232,22 +2213,45 @@ static unsigned int weighted_interleave_
- 	if (state)
- 		table = state->iw_table;
- 
--	/* calculate the total weight */
--	for_each_node_mask(nid, nodemask)
-+	/* calculate the total weight and the node count */
-+	for_each_node_mask(nid, pol->nodes) {
- 		weight_total += table ? table[nid] : 1;
-+		nnodes++;
-+	}
-+
-+	/* the mask is empty */
-+	if (!weight_total) {
-+		rcu_read_unlock();
-+		return numa_node_id();
-+	}
- 
- 	/* Calculate the node offset based on totals */
- 	target = ilx % weight_total;
--	nid = first_node(nodemask);
--	while (target) {
-+	nid = first_node(pol->nodes);
-+
-+	/*
-+	 * The target was calculated in a separate loop, and a concurrent
-+	 * rebind can change the contents of pol->nodes as we calculate.
-+	 * Access is safe, in the worst case we suddenly perceive an empty
-+	 * nodemask and return numa_node_id() below - otherwise we may
-+	 * simply cause a skew in allocations.
-+	 *
-+	 * Clamp this loop to a single pass (nnodes) to keep the walk
-+	 * bounded by node count.
-+	 */
-+	while (target && nnodes-- && nid < MAX_NUMNODES) {
- 		/* detect system default usage */
- 		weight = table ? table[nid] : 1;
- 		if (target < weight)
- 			break;
- 		target -= weight;
--		nid = next_node_in(nid, nodemask);
-+		nid = next_node_in(nid, pol->nodes);
- 	}
- 	rcu_read_unlock();
-+
-+	/* the mask emptied under the walk */
-+	if (nid >= MAX_NUMNODES)
-+		return numa_node_id();
- 	return nid;
- }
- 
-@@ -2258,18 +2262,23 @@ static unsigned int weighted_interleave_
+ /*
+  * The slots are sorted by the size of the biggest continuous free area.
+- * 1-31 bytes share the same slot.
++ * [PCPU_MIN_ALLOC_SIZE..15] bytes share the same slot.
   */
- static unsigned int interleave_nid(struct mempolicy *pol, pgoff_t ilx)
- {
--	nodemask_t nodemask;
- 	unsigned int target, nnodes;
- 	int i;
- 	int nid;
- 
--	nnodes = read_once_policy_nodemask(pol, &nodemask);
-+	nnodes = nodes_weight(pol->nodes);
- 	if (!nnodes)
- 		return numa_node_id();
- 	target = ilx % nnodes;
--	nid = first_node(nodemask);
--	for (i = 0; i < target; i++)
--		nid = next_node(nid, nodemask);
-+	nid = first_node(pol->nodes);
-+
-+	/* A concurrent cpuset rebind may cause us to see an empty nodemask */
-+	for (i = 0; i < target && nid < MAX_NUMNODES; i++)
-+		nid = next_node_in(nid, pol->nodes);
-+
-+	/* the mask emptied under the walk */
-+	if (nid >= MAX_NUMNODES)
-+		return numa_node_id();
- 	return nid;
- }
- 
-@@ -2665,7 +2674,6 @@ static unsigned long alloc_pages_bulk_we
- 	u8 *table, weight;
- 	unsigned int weight_total = 0;
- 	unsigned long rem_pages = nr_pages;
--	nodemask_t nodes;
- 	int nnodes, node;
- 	int resume_node = MAX_NUMNODES - 1;
- 	u8 resume_weight = 0;
-@@ -2675,10 +2683,10 @@ static unsigned long alloc_pages_bulk_we
- 	if (!nr_pages)
- 		return 0;
- 
--	/* read the nodes onto the stack, retry if done during rebind */
-+	/* count the nodes, retry if a rebind happened during the read */
- 	do {
- 		cpuset_mems_cookie = read_mems_allowed_begin();
--		nnodes = read_once_policy_nodemask(pol, &nodes);
-+		nnodes = nodes_weight(pol->nodes);
- 	} while (read_mems_allowed_retry(cpuset_mems_cookie));
- 
- 	/* if the nodemask has become invalid, we cannot do anything */
-@@ -2688,7 +2696,7 @@ static unsigned long alloc_pages_bulk_we
- 	/* Continue allocating from most recent node and adjust the nr_pages */
- 	node = me->il_prev;
- 	weight = me->il_weight;
--	if (weight && node_isset(node, nodes)) {
-+	if (weight && node_isset(node, pol->nodes)) {
- 		node_pages = min(rem_pages, weight);
- 		nr_allocated = __alloc_pages_bulk(gfp, node, NULL, node_pages,
- 						  page_array);
-@@ -2712,9 +2720,13 @@ static unsigned long alloc_pages_bulk_we
- 	table = state ? state->iw_table : NULL;
- 
- 	/* calculate total, detect system default usage */
--	for_each_node_mask(node, nodes)
-+	for_each_node_mask(node, pol->nodes)
- 		weight_total += table ? table[node] : 1;
- 
-+	/* the mask emptied since it was counted */
-+	if (!weight_total)
-+		goto out;
-+
- 	/*
- 	 * Calculate rounds/partial rounds to minimize __alloc_pages_bulk calls.
- 	 * Track which node weighted interleave should resume from.
-@@ -2724,10 +2736,14 @@ static unsigned long alloc_pages_bulk_we
- 	 */
- 	rounds = rem_pages / weight_total;
- 	delta = rem_pages % weight_total;
--	resume_node = next_node_in(prev_node, nodes);
-+	resume_node = next_node_in(prev_node, pol->nodes);
-+	if (resume_node >= MAX_NUMNODES)
-+		goto out;
- 	resume_weight = table ? table[resume_node] : 1;
- 	for (i = 0; i < nnodes; i++) {
--		node = next_node_in(prev_node, nodes);
-+		node = next_node_in(prev_node, pol->nodes);
-+		if (node >= MAX_NUMNODES)
-+			break;
- 		weight = table ? table[node] : 1;
- 		node_pages = weight * rounds;
- 		/* If a delta exists, add this node's portion of the delta */
-@@ -2744,6 +2760,8 @@ static unsigned long alloc_pages_bulk_we
- 		/* node_pages can be 0 if an allocation fails and rounds == 0 */
- 		if (!node_pages)
- 			break;
-+		/* a rebind can invalidate the counts: never overrun page_array */
-+		node_pages = min(node_pages, nr_pages - total_allocated);
- 		nr_allocated = __alloc_pages_bulk(gfp, node, NULL, node_pages,
- 						  page_array);
- 		page_array += nr_allocated;
-@@ -2754,6 +2772,7 @@ static unsigned long alloc_pages_bulk_we
- 	}
- 	me->il_prev = resume_node;
- 	me->il_weight = resume_weight;
-+out:
- 	srcu_read_unlock_fast(&wi_srcu, scp);
- 	return total_allocated;
- }
+ #define PCPU_SLOT_BASE_SHIFT		5
+ /* chunks in slots below this are subject to being sidelined on failed alloc */
 _
 
-Patches currently in -mm which might be from gourry@gourry.net are
+Patches currently in -mm which might be from ekffu200098@gmail.com are
 
-mm-memory_hotplug-factor-out-node_is_memoryless.patch
-mm-mempolicy-use-vm_normal_folio_pmd-in-queue_folios_pmd.patch
-mm-madvise-use-vm_normal_folio_pmd-in-cold-pageout-pmd-range.patch
-mm-refactor-find_next_best_node-to-find_next_best_node_in.patch
-mm-page_alloc-refactor-build_node_zonelist-out-of-build_zonelists.patch
-proc-task_mmu-handle-special-pmds-in-clear_refs-and-pagemap.patch
-mm-madvise-reclaim-isolated-folios-if-pte-restart-fails.patch
-mm-madvise-use-folio_trylock-in-the-cold-pageout-pmd-split.patch
+mm-swapops-remove-unused-is_hwpoison_entry.patch
+bootconfig-remove-redundant-assignment-in-xbc_parse_array.patch
+init-mainc-remove-unreachable-check-in-obsolete_checksetup.patch
 
