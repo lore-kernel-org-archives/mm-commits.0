@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 11EDA235045
-	for <mm-commits@vger.kernel.org>; Wed,  7 Oct 2026 02:04:22 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CE4F217A2F6;
+	Wed,  7 Oct 2026 02:04:23 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791338664; cv=none; b=TobTuF0P6zdE+wWMeLVj+ex104rNc9BSXwixeaZks4d4nPWeCK2nrqMNTaNF8HbkW/5GzV8+mww3tjbnoWFzKJdCOEuW2feNXnZpKjYNqQn+ar+fz39wVDg6dtTmPUc9EcawU+1jOGa4ZxT/zZ6kwAeL3X1Qjq+avNd7Qzpnfdw=
+	t=1791338664; cv=none; b=HbRD1pUT9O0vyUUKDMNuPiH5QVc3UCb9Bv8ciyMlfX+i22CXPBvMhuM9zP8TM08D4c82nL0oUT9iyppMBHGY9CAsRnwmu+pB2537e7AS9xv9BluOTX/9BQiCPQYuzHdwFPSjli238hi5LrFyyOwansogsUfoS+VDTl9fWODHoTw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1791338664; c=relaxed/simple;
-	bh=LxNTs2WMpO0yTAWvgMLhXaFO73Ra0TFsK1u9nus1Tko=;
-	h=Date:To:From:Subject:Message-Id; b=jkHplukrO6sqAqHR4+YwOuZq1iBI3Lz15Fy1UkVgomuq1H09TEUGQXYlI4uI3JfbWP9CedNUmu3nYuoixLQ/m+zO+x5jzL9eg0jj6lG7hT3qXL6i/GA7YjlhH6bAeLskQ2rmD0kIB5goOre7EBLu5SqOevoVJzWP757moyac1Ns=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=eqTd41L0; arc=none smtp.client-ip=100.103.45.18
+	bh=lvVRA69GMu4TysbVZCWE6FO2WDGUPOAuhpulAOE9PIg=;
+	h=Date:To:From:Subject:Message-Id; b=m3c9CAqhs5N/Nc5Pc5/NFF8ilB7h3fy4faOZdgECe/Db3G0F47Z9Zr22t43tUpIFlgMPAnlSmySNjENg2k9TibVwI7ONmNt3xTVmrb5AI+U+yhPr+7a/+s/Bt9KsVz8dVgTk9ptAHtPqsftjBq/OEJesE9ZT6qqFPadNovqZ1TE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Ugc/biyQ; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="eqTd41L0"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7D7CD1F0089C;
-	Wed,  7 Oct 2026 02:04:22 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Ugc/biyQ"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A31261F0089B;
+	Wed,  7 Oct 2026 02:04:23 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1791338662;
-	bh=UcziYHsVy36+qnC+fj+kcK974MVZtwf6ht8fLXxgdRY=;
+	d=linux-foundation.org; s=korg; t=1791338663;
+	bh=0BKFVlNDmuBiYnoqtrNEMjHDaYGWOZ3c2gzNR2UimpQ=;
 	h=Date:To:From:Subject;
-	b=eqTd41L0Vm/apsjJ/cNfcIL5HcJnxTVaXcQEBYX7i7zmYdnWRnA4aDUa5I7yaMvFg
-	 ykSuawabtWq4O4axo4tfNbXeBQyPWu6R+PohL2GgdYcXM5KQAbCPQ3J02JjMopUXTg
-	 x1whNMETAdIwudZ1AsYQrLXoN2EfahKtKdwuiljc=
-Date: Tue, 06 Oct 2026 19:04:22 -0700
-To: mm-commits@vger.kernel.org,tglx@linutronix.de,ptikhomirov@virtuozzo.com,avagin@google.com,akpm@linux-foundation.org
+	b=Ugc/biyQwqEgYZdywM67eV49Lc5bYpnmmFb1SHIzTolj8LKuVTmkwB6BWcEbKp+Qu
+	 A07ca7WAJiparUmRqhPi59V9P8rPj/JpbFFcYmaYJgzN3XzfTPxxD4ATbZcMwaWGvH
+	 l2ZMzA3MkLVgrm55MQ3zIN0ebiLKFW6DZZxcIMVM=
+Date: Tue, 06 Oct 2026 19:04:23 -0700
+To: mm-commits@vger.kernel.org,stable@vger.kernel.org,shuah@kernel.org,richard.weiyang@gmail.com,eva.kurchatova@virtuozzo.com,khorenko@virtuozzo.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] proc-report-sigev_none-in-proc-pid-timers-if-target-task-has-died.patch removed from -mm tree
-Message-Id: <20261007020422.7D7CD1F0089C@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] selftests-core-fix-unshare_test-with-large-fsnr_open.patch removed from -mm tree
+Message-Id: <20261007020423.A31261F0089B@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,83 +35,96 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: proc: report SIGEV_NONE in /proc/pid/timers if target task has died
+     Subject: selftests/core: fix unshare_test with large fs.nr_open
 has been removed from the -mm tree.  Its filename was
-     proc-report-sigev_none-in-proc-pid-timers-if-target-task-has-died.patch
+     selftests-core-fix-unshare_test-with-large-fsnr_open.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Andrei Vagin <avagin@google.com>
-Subject: proc: report SIGEV_NONE in /proc/pid/timers if target task has died
-Date: Sun, 16 Aug 2026 16:12:15 +0000
+From: Konstantin Khorenko <khorenko@virtuozzo.com>
+Subject: selftests/core: fix unshare_test with large fs.nr_open
+Date: Fri, 14 Aug 2026 18:57:09 +0200
 
-When a posix timer is created targeting a specific thread (using
-SIGEV_SIGNAL | SIGEV_THREAD_ID), it takes a reference to the target struct
-pid in timer->it_pid.  If the target thread subsequently terminates, its
-numeric tid is freed and can be recycled for an unrelated task.  However,
-the timer holds its reference to the original struct pid.
+The test assumes fs.nr_open is close to the default 1048576, but some
+systems set it much higher (e.g.  1073741816).  This is systemd's doing:
+since systemd v240 (2018), PID 1 bumps fs.nr_open and fs.file-max to their
+largest possible values on boot, as file descriptors are already accounted
+for by memcg [1].
 
-show_timer() in /proc/[pid]/timers previously called pid_nr_ns() directly
-on timer->it_pid without checking whether any task remained attached to
-that struct pid.  As a result:
+In that case, dup2() to nr_open + 64 requires the kernel to allocate a
+file descriptor table with ~1 billion entries, which fails with ENOMEM.
 
-1. It reported the stale tid, which could mistakenly refer to a recycled
-   pid.
+On a kernel that already carries 04a2c4b4511d1, dup2() no longer fails
+with ENOMEM.  The allocation is now rejected up front and the caller
+gets EMFILE instead, without the WARNING, but the test still fails.
 
-2. In the kernel, expired signals for dead target threads are dropped by
-   posixtimer_send_sigqueue() because posixtimer_get_target() returns
-   NULL, so the timer functionally acts as SIGEV_NONE.
+Cap the nr_open value used for the test's own arithmetic to a known
+reasonable base value (1048576) and restore the true original value once
+the test has completed.
 
-3. Checkpoint/restore tools (CRIU) parsing /proc/[pid]/timers would try
-   to restore a timer with SIGEV_SIGNAL | SIGEV_THREAD_ID targeting a
-   non-existent or unrelated thread.
-
-Check pid_has_task(timer->it_pid, timer->it_pid_type) in show_timer().  If
-the target task has died, override notify to SIGEV_NONE and report PID 0
-(e.g., 'notify: none/pid.0').
-
-Link: https://lore.kernel.org/20260816161216.984580-1-avagin@google.com
-Fixes: 57b8015e07a7 ("posix-timers: Show sigevent info in proc file")
-Signed-off-by: Andrei Vagin <avagin@google.com>
+Link: https://lore.kernel.org/20260814165709.513263-1-khorenko@virtuozzo.com
+Link: https://github.com/systemd/systemd/commit/a8b627aaed409a15260c25988970c795bf963812 [1]
+Signed-off-by: Konstantin Khorenko <khorenko@virtuozzo.com>
+Signed-off-by: Eva Kurchatova <eva.kurchatova@virtuozzo.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Reviewed-by: Pavel Tikhomirov <ptikhomirov@virtuozzo.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Shuah Khan <shuah@kernel.org>
+Cc: Wei Yang <richard.weiyang@gmail.com>
+Cc: <stable@vger.kernel.org>
 ---
 
- fs/proc/base.c |    8 +++++++-
- 1 file changed, 7 insertions(+), 1 deletion(-)
+ tools/testing/selftests/core/unshare_test.c |   19 ++++++++++++++++--
+ 1 file changed, 17 insertions(+), 2 deletions(-)
 
---- a/fs/proc/base.c~proc-report-sigev_none-in-proc-pid-timers-if-target-task-has-died
-+++ a/fs/proc/base.c
-@@ -2519,17 +2519,23 @@ static int show_timer(struct seq_file *m
- 	struct k_itimer *timer = hlist_entry((struct hlist_node *)v, struct k_itimer, list);
- 	struct timers_private *tp = m->private;
- 	int notify = timer->it_sigev_notify;
-+	pid_t nr = 0;
+--- a/tools/testing/selftests/core/unshare_test.c~selftests-core-fix-unshare_test-with-large-fsnr_open
++++ a/tools/testing/selftests/core/unshare_test.c
+@@ -40,6 +40,14 @@ TEST(unshare_EMFILE)
  
- 	guard(spinlock_irq)(&timer->it_lock);
- 	if (!posixtimer_valid(timer))
- 		return 0;
+ 	ASSERT_EQ(sscanf(buf, "%d", &nr_open), 1);
  
-+	if (timer->it_pid && pid_has_task(timer->it_pid, timer->it_pid_type))
-+		nr = pid_nr_ns(timer->it_pid, tp->ns);
-+	else
-+		notify = SIGEV_NONE;
++	/*
++	 * Cap nr_open for the duration of the test to avoid ENOMEM from a
++	 * huge fd table allocation; buf/n keep the real original value so
++	 * fs.nr_open can be restored to it once the test is done.
++	 */
++	if (nr_open > 1024 * 1024)
++		nr_open = 1024 * 1024;
 +
- 	seq_printf(m, "ID: %d\n", timer->it_id);
- 	seq_printf(m, "signal: %d/%px\n", timer->sigq.info.si_signo,
- 		   timer->sigq.info.si_value.sival_ptr);
- 	seq_printf(m, "notify: %s/%s.%d\n", nstr[notify & ~SIGEV_THREAD_ID],
- 		   (notify & SIGEV_THREAD_ID) ? "tid" : "pid",
--		   pid_nr_ns(timer->it_pid, tp->ns));
-+		   nr);
- 	seq_printf(m, "ClockID: %d\n", timer->it_clock);
+ 	ASSERT_EQ(0, getrlimit(RLIMIT_NOFILE, &rlimit));
  
- 	return 0;
+ 	/* bump fs.nr_open */
+@@ -73,10 +81,13 @@ TEST(unshare_EMFILE)
+ 
+ 	if (pid == 0) {
+ 		int err;
++		char buf3[32];
++		ssize_t n3;
+ 
+-		/* restore fs.nr_open */
++		/* restore fs.nr_open to the (possibly capped) test baseline */
++		n3 = sprintf(buf3, "%d\n", nr_open);
+ 		lseek(fd, 0, SEEK_SET);
+-		write(fd, buf, n);
++		write(fd, buf3, n3);
+ 		/* ... and now unshare(CLONE_FILES) must fail with EMFILE */
+ 		err = unshare(CLONE_FILES);
+ 		EXPECT_EQ(err, -1)
+@@ -89,6 +100,10 @@ TEST(unshare_EMFILE)
+ 	EXPECT_EQ(waitpid(pid, &status, 0), pid);
+ 	EXPECT_EQ(true, WIFEXITED(status));
+ 	EXPECT_EQ(0, WEXITSTATUS(status));
++
++	/* restore the real fs.nr_open value */
++	lseek(fd, 0, SEEK_SET);
++	write(fd, buf, n);
+ }
+ 
+ TEST_HARNESS_MAIN
 _
 
-Patches currently in -mm which might be from avagin@google.com are
+Patches currently in -mm which might be from khorenko@virtuozzo.com are
 
+kbuild-use-cflags_gcov-in-the-prefer-atomic-try-run-test.patch
+kbuild-move-gcov-flags-to-scripts-makefilegcov.patch
 
