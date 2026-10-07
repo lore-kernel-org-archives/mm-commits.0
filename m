@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2FF13235045
-	for <mm-commits@vger.kernel.org>; Wed,  7 Oct 2026 02:04:09 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 574A83346A6;
+	Wed,  7 Oct 2026 02:04:10 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791338650; cv=none; b=MVBVU0LcKiBVPUMRTaFBp2C2tOItD/y5y9eFL2O3YybGtgygLsn5k1WNDZpu2Lzx4bupBXjysgwHSX0OPcUJHEdINkj4q8++Kse8oir7+pWRrMIh6z9BqCo/6X6tWPNm0yypaf1fh5Ydp5E+BBxbyHku0IRT7lwaxoNvis5ihDM=
+	t=1791338651; cv=none; b=gZjyc/HAoIuAz6iknt+AC8API92z/sjjBHI+OUXd/oHCyVQTIXb5MrzOlKEsgyB7OGWuhgtAGvVUaNcUYvzUhn4G4QcrBaXpg8P9UQbJx45pIDZs9eNrSyfSZxU0a3tyOTsujLJ9JpF71fEFpDD8yHKqR2MoCqJ/rfGD7OxtyB8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791338650; c=relaxed/simple;
-	bh=bSOeFYpZuJTYVkJCkKL29fLn9npvBfDEC7DCqzEI6ec=;
-	h=Date:To:From:Subject:Message-Id; b=ETEd6PrEJ5PC546qSml/H9PhtyUSpSL5Y5WcUsoUit6aZ8k86185OZJiCmXmMaP+WE5GDhGkM8CGERQmxuK70KMmeLHsvgkAAWCvPLmZS6/DnVohVryKp1YrrRoYyq50TnJOIGhczD4AuYN4Vbk6tkoiqVPH5XedDHSE2BAvsOk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Ey0swD+F; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1791338651; c=relaxed/simple;
+	bh=uJ1RgXdWWEShC4JU9dpOZFla18TMYFszoqnBYvonFQw=;
+	h=Date:To:From:Subject:Message-Id; b=pB0JCQR5EjeD8Qc8OYUp+/PKrLPI5SooJuJPxnm6nNgQ1dJ4w69V5a+VoJr9VN7L34jyV7I60YRUxT6/Yzh+oZAGeq36e4uHhJPotEiPmLUeCkBK6VEMpgl7RfIqPcAr8LglD1HjJBj70nkG02DY4RF2majpc7gUBfnbTedpXW4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=EygL2zEB; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Ey0swD+F"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 065541F0089B;
-	Wed,  7 Oct 2026 02:04:08 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="EygL2zEB"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2D3DB1F0089C;
+	Wed,  7 Oct 2026 02:04:10 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1791338649;
-	bh=3wuigDk6+PTbOAmMDQNcvjnR/Yxlalg6aN0hxrQCiVo=;
+	d=linux-foundation.org; s=korg; t=1791338650;
+	bh=jSMXwHaKmPIfP7Y88hOpe26rewh+r8icedeyKDbG+Q0=;
 	h=Date:To:From:Subject;
-	b=Ey0swD+FtM+Ut0INtYmrSqOZf7Iu+yJpsvXiPOoLChdfxMZPJN5SzPYAR/W2Y/3vV
-	 tgMbLsAotOTwrYT5eng9EsDkZqueebKOWFdjvDT8/0lzlDIsAzIkaZ75TiuUgsy+aO
-	 IBIx+R984fABbXtiFTAyhBEpQmH/Sg6XqYeS2axg=
-Date: Tue, 06 Oct 2026 19:04:08 -0700
-To: mm-commits@vger.kernel.org,shuah@kernel.org,rpenyaev@suse.de,r@hev.cc,brauner@kernel.org,florian.schmaus@codasip.com,akpm@linux-foundation.org
+	b=EygL2zEB1Lep+/CqTohKrjD2ah4ChDQPljkGCkzm3unOiHTiiKFIv0rBx0xbXTpSD
+	 EOxQXD6AYVk1F6RYEwMsVT/2qevhXO7HuYkrSztilpe0mb5ZCBymTk74gYUTCVv0aw
+	 s6IWtR1t/6PBkamdjCasKNcMUs4M231aUM+B2xMc=
+Date: Tue, 06 Oct 2026 19:04:09 -0700
+To: mm-commits@vger.kernel.org,stable@vger.kernel.org,piaojun@huawei.com,mark@fasheh.com,junxiao.bi@oracle.com,jlbec@evilplan.org,heming.zhao@suse.com,gechangwei@live.cn,joseph.qi@linux.alibaba.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] selftests-epoll-fix-race-condition-in-multi-waiter-wakeup-tests.patch removed from -mm tree
-Message-Id: <20261007020409.065541F0089B@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] ocfs2-exit-recovery-thread-on-mount-error-path.patch removed from -mm tree
+Message-Id: <20261007020410.2D3DB1F0089C@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,149 +35,76 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: selftests/epoll: fix race condition in multi-waiter wakeup tests
+     Subject: ocfs2: exit recovery thread on mount error path
 has been removed from the -mm tree.  Its filename was
-     selftests-epoll-fix-race-condition-in-multi-waiter-wakeup-tests.patch
+     ocfs2-exit-recovery-thread-on-mount-error-path.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Florian Schmaus <florian.schmaus@codasip.com>
-Subject: selftests/epoll: fix race condition in multi-waiter wakeup tests
-Date: Fri, 28 Aug 2026 17:54:07 +0200
+From: Joseph Qi <joseph.qi@linux.alibaba.com>
+Subject: ocfs2: exit recovery thread on mount error path
+Date: Fri, 28 Aug 2026 19:28:23 +0800
 
-In tests with multiple concurrent waiters on edge-triggered epoll
-instances where an emitter writes to multiple sockets (epoll16, epoll56,
-epoll58):
+When a mount fails after the cluster connection has been established, e.g.
+in ocfs2_mount_volume(), ocfs2_fill_super() unwinds via
+out_debugfs/out_super and frees the osb without disabling recovery.
 
-When the emitter performs its first write(), ep_poll_callback() fires and
-wakes up both waiters because one waiter uses epoll_wait() and the other
-one uses poll().  This translates to different wait queues, ep->wq for
-epoll and ep->poll_wait for poll/select, which are both awoken by the
-kernel because of that single write.  Next, both waiter threads invoke
-epoll_wait(), but since there is only one event, only one epoll_wait()
-will return non-zero because of the edge-triggered mode being used (in
-level-triggered mode, the kernel would re-queue the event because of
-remaining unread data).
+A node failure event can concurrently launch the recovery thread, which
+blocks in __ocfs2_wait_on_mount() waiting for the volume state to become
+VOLUME_MOUNTED or VOLUME_DISABLED.  As the mount error path neither sets
+VOLUME_DISABLED nor wakes osb_mount_event, the thread can never make
+progress: the kthread leaks and stays blocked on the wait queue embedded
+in the freed osb, which may then be accessed as freed memory.
 
-Since the second waiter sees an empty ready list, it does not increment
-ctx.count and the test fails spuriously with ctx.count == 1 instead of 2.
+Fix it by setting VOLUME_DISABLED and waking osb_mount_event on this path
+so the thread bails out, and replace the plain kfree(osb->recovery_map)
+with ocfs2_recovery_exit(), which waits for a running recovery thread to
+exit before the recovery map is freed.
 
-  Emitter (CPU 0)      Thread 0 (CPU 1)        Thread 1 (CPU 2)
-  ===============      ================        ================
-                       epoll_wait(e0, -1)      poll(e0, -1)
-                       [on e0->wq]             [on e0->poll_wait]
-
-  write(sfd[1])
-       |
-       +--(Kernel wakes BOTH e0->wq and e0->poll_wait via callback)--+
-       |                                                             |
-       |               wakes up                wakes up              |
-       |               epoll_wait() reaps e1   poll() returns 1      |
-       |               (e1 removed via ET)     (wants event)         |
-       |               e0->rdllist is EMPTY          |               |
-       |               count++ (count = 1)           v               |
-       |                                       epoll_wait(e0, 0)     |
-       |                                       sees EMPTY list!      |
-       |                                       returns 0!            |
-       |                                       thread exits          |
-       v                                                             |
-  write(sfd[3])                                                      |
-  (event arrives too late!)                                          v
-                           EXPECT_EQ(count, 2)  <-- SPURIOUS FAILURE!
-
-Introduce waiter_entry1ap_loop() to retry poll() if the initial
-epoll_wait(..., 0) yielded no events.  This ensures the thread waits for
-the subsequent write rather than failing immediately.  Apply this helper
-in epoll16, epoll56, and for both waiter threads in epoll58.
-
-Link: https://lore.kernel.org/20260828-selftest-epoll-fix-race-v2-1-953ab57fd60a@codasip.com
-Fixes: f2728fe80cef ("selftests: add epoll selftests")
-Signed-off-by: Florian Schmaus <florian.schmaus@codasip.com>
+Link: https://lore.kernel.org/20260828112825.666097-1-joseph.qi@linux.alibaba.com
+Fixes: f1e75d128b46 ("ocfs2: rewrite error handling of ocfs2_fill_super")
+Signed-off-by: Joseph Qi <joseph.qi@linux.alibaba.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Cc: Heiher <r@hev.cc>
-Cc: Roman Penyaev <rpenyaev@suse.de>
-Cc: Shuah Khan <shuah@kernel.org>
-Cc: Christian Brauner <brauner@kernel.org>
+Reviewed-by: Heming Zhao <heming.zhao@suse.com>
+Cc: Changwei Ge <gechangwei@live.cn>
+Cc: Joel Becker <jlbec@evilplan.org>
+Cc: Jun Piao <piaojun@huawei.com>
+Cc: Junxiao Bi <junxiao.bi@oracle.com>
+Cc: Mark Fasheh <mark@fasheh.com>
+Cc: <stable@vger.kernel.org>
 ---
 
- tools/testing/selftests/filesystems/epoll/epoll_wakeup_test.c |   32 ++++++----
- 1 file changed, 22 insertions(+), 10 deletions(-)
+ fs/ocfs2/super.c |   11 ++++++++++-
+ 1 file changed, 10 insertions(+), 1 deletion(-)
 
---- a/tools/testing/selftests/filesystems/epoll/epoll_wakeup_test.c~selftests-epoll-fix-race-condition-in-multi-waiter-wakeup-tests
-+++ a/tools/testing/selftests/filesystems/epoll/epoll_wakeup_test.c
-@@ -74,6 +74,24 @@ static void *waiter_entry1ap(void *data)
- 	return NULL;
- }
- 
-+static void *waiter_entry1ap_loop(void *data)
-+{
-+	struct pollfd pfd;
-+	struct epoll_event e;
-+	struct epoll_mtcontext *ctx = data;
-+
-+	pfd.fd = ctx->efd[0];
-+	pfd.events = POLLIN;
-+	while (poll(&pfd, 1, 2000) > 0) {
-+		if (epoll_wait(ctx->efd[0], &e, 1, 0) > 0) {
-+			__sync_fetch_and_add(&ctx->count, 1);
-+			break;
-+		}
-+	}
-+
-+	return NULL;
-+}
-+
- static void *waiter_entry1o(void *data)
- {
- 	struct epoll_event e;
-@@ -809,7 +827,7 @@ TEST(epoll16)
- 	ASSERT_EQ(epoll_ctl(ctx.efd[0], EPOLL_CTL_ADD, ctx.sfd[2], events), 0);
- 
- 	ctx.main = pthread_self();
--	ASSERT_EQ(pthread_create(&ctx.waiter, NULL, waiter_entry1ap, &ctx), 0);
-+	ASSERT_EQ(pthread_create(&ctx.waiter, NULL, waiter_entry1ap_loop, &ctx), 0);
- 	ASSERT_EQ(pthread_create(&emitter, NULL, emitter_entry2, &ctx), 0);
- 
- 	if (epoll_wait(ctx.efd[0], events, 1, -1) > 0)
-@@ -2925,7 +2943,7 @@ TEST(epoll56)
- 	ASSERT_EQ(epoll_ctl(ctx.efd[0], EPOLL_CTL_ADD, ctx.efd[2], &e), 0);
- 
- 	ctx.main = pthread_self();
--	ASSERT_EQ(pthread_create(&ctx.waiter, NULL, waiter_entry1ap, &ctx), 0);
-+	ASSERT_EQ(pthread_create(&ctx.waiter, NULL, waiter_entry1ap_loop, &ctx), 0);
- 	ASSERT_EQ(pthread_create(&emitter, NULL, emitter_entry2, &ctx), 0);
- 
- 	if (epoll_wait(ctx.efd[0], &e, 1, -1) > 0)
-@@ -3030,7 +3048,6 @@ TEST(epoll57)
- TEST(epoll58)
- {
- 	pthread_t emitter;
--	struct pollfd pfd;
- 	struct epoll_event e;
- 	struct epoll_mtcontext ctx = { 0 };
- 
-@@ -3061,15 +3078,10 @@ TEST(epoll58)
- 	ASSERT_EQ(epoll_ctl(ctx.efd[0], EPOLL_CTL_ADD, ctx.efd[2], &e), 0);
- 
- 	ctx.main = pthread_self();
--	ASSERT_EQ(pthread_create(&ctx.waiter, NULL, waiter_entry1ap, &ctx), 0);
-+	ASSERT_EQ(pthread_create(&ctx.waiter, NULL, waiter_entry1ap_loop, &ctx), 0);
- 	ASSERT_EQ(pthread_create(&emitter, NULL, emitter_entry2, &ctx), 0);
- 
--	pfd.fd = ctx.efd[0];
--	pfd.events = POLLIN;
--	if (poll(&pfd, 1, -1) > 0) {
--		if (epoll_wait(ctx.efd[0], &e, 1, 0) > 0)
--			__sync_fetch_and_add(&ctx.count, 1);
--	}
-+	waiter_entry1ap_loop(&ctx);
- 
- 	ASSERT_EQ(pthread_join(ctx.waiter, NULL), 0);
- 	EXPECT_EQ(ctx.count, 2);
+--- a/fs/ocfs2/super.c~ocfs2-exit-recovery-thread-on-mount-error-path
++++ a/fs/ocfs2/super.c
+@@ -1169,8 +1169,17 @@ out_dismount:
+ out_debugfs:
+ 	debugfs_remove_recursive(osb->osb_debug_root);
+ out_super:
++	/*
++	 * A recovery thread launched by a node failure event may still be
++	 * waiting for the volume to be mounted.  Set VOLUME_DISABLED and
++	 * wake it up, then wait for it to exit before osb is freed,
++	 * otherwise the kthread would leak and stay blocked on the wait
++	 * queue embedded in the freed osb.
++	 */
++	atomic_set(&osb->vol_state, VOLUME_DISABLED);
++	wake_up(&osb->osb_mount_event);
+ 	ocfs2_release_system_inodes(osb);
+-	kfree(osb->recovery_map);
++	ocfs2_recovery_exit(osb);
+ 	ocfs2_delete_osb(osb);
+ 	kfree(osb);
+ out:
 _
 
-Patches currently in -mm which might be from florian.schmaus@codasip.com are
+Patches currently in -mm which might be from joseph.qi@linux.alibaba.com are
 
+ocfs2-retain-all-security-xattrs-during-inode-creation.patch
+ocfs2-restore-erange-check-in-ocfs2_xattr_tree_list_index_block.patch
+ocfs2-fix-possible-deadlock-between-nfs_sync_rwlock-and-fs_reclaim.patch
 
