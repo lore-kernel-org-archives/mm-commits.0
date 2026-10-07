@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BE50122D7A1
-	for <mm-commits@vger.kernel.org>; Wed,  7 Oct 2026 00:48:46 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 88D5E1D5146
+	for <mm-commits@vger.kernel.org>; Wed,  7 Oct 2026 00:48:47 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791334127; cv=none; b=ulcxoCjDLqW8/ijkMxxQUo8MNPN1xUBf9nzDYvEBb/TKk5zkVQgOtFnGSGok9OD35vqiMhtQZYuEUg+kjjUrBFa8JzdDoyhBWt9IPOYFNPOxGQuYqKc2t5zyxrC+puD9+qPWQXdMsYII0ggrjR3kr7d6fK/8l4Njyg43LfmTHQc=
+	t=1791334128; cv=none; b=tUm4CmHU1jjDAbQhSzlRy3odi9MzJdku/WJ5dsB2UPWyryxk+aOniIxvFQMlTm1O5cb4Etxt+dCvFQS+fnyhtfND9DRrSWPNDqjLA5BGCShX9TQ/tk/oGEvNxfbZmJbWT+iMPrqR1Z9ZdaWlfNdm7Ypr0jHwW9Df3izf69EMwbU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791334127; c=relaxed/simple;
-	bh=v7BIq7+sLW6buYAc/FRzA9l/T3GFq1Xzh4thkrJuYfc=;
-	h=Date:To:From:Subject:Message-Id; b=BemV4RNn7WYDQ+kLpw7aQhB0tNY4z5hhH0Krsc9Fuhjay/BL/snpWbR/KnnaXd3DXJpUoMgDmKZnVPlvlC93kVSY8OVNZbdQgQDBwr6hCg+Lkcy7DEneA3CdIE8EUxHGLSeng4ChrzLOMqNsSxfIm3u1sapV03Gkms0GHhcl8AM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=vm70X6Ih; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1791334128; c=relaxed/simple;
+	bh=6rRr443CE5jcRO9BpVvs7Fe3j0bMusAWDbA6o2V9/OM=;
+	h=Date:To:From:Subject:Message-Id; b=tuczLFPqasNhheXFeCW+ndaG7mHwOvj41yxcqEJELsmTNgh8gjCliCVdijlyYKnpPtR8UabZ5cRi4+6/h8k1Oe5vfKKxz4yhlsFuFDXpLCig2eY4Wlxi9CEu+O26by/LeiqOvGbDPUlq6kuFLGHMOzldf0V1T4dcJeMf/WlsyyQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=TNl26IBy; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="vm70X6Ih"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 38CD11F0089C;
-	Wed,  7 Oct 2026 00:48:46 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="TNl26IBy"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4B6CD1F0089B;
+	Wed,  7 Oct 2026 00:48:47 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1791334126;
-	bh=vfQUMCbchXTPE62Xvip8mC4+2YWFKWaXdDp4dKJ2XA0=;
+	d=linux-foundation.org; s=korg; t=1791334127;
+	bh=5ujT0LCVCAe+i+l7kJe/nWCoCqVIphW+U6vJ999mLkI=;
 	h=Date:To:From:Subject;
-	b=vm70X6IhziWbUtwkred5LkhfL3xewdqypZszFupXDSsLeXLtKhFYcG6qwO/YYy0k4
-	 ofr8VDDRiv203AnHjns3NTCEbNLeQlcqfSy0Af+FpJC6zJJV8QX5GZ2MtLfP5hYgJc
-	 2fwfz8Jv70og/v8+8LPbFrzDKK0W4aBJLC7UZZCM=
-Date: Tue, 06 Oct 2026 17:48:45 -0700
-To: mm-commits@vger.kernel.org,vivek.kasireddy@intel.com,steven.sistare@oracle.com,osalvador@suse.de,muchun.song@linux.dev,david@kernel.org,lihongfu@kylinos.cn,akpm@linux-foundation.org
+	b=TNl26IByrdEtWW6RN+mlFR2Mrfrw+nr3hkQHc2Gr0XjVfq6I5ir/MY/a/DObDbHQ7
+	 QPvGPFEHdkpGsWSGBCwrUpi4xWEulaLX8gNDEHY1mC4QxddieYbdV0P1EP3nsXqB/L
+	 Y9fecAekVAJ6hUzNTl8EiSTvbLRWpoA8xTfEQYYQ=
+Date: Tue, 06 Oct 2026 17:48:46 -0700
+To: mm-commits@vger.kernel.org,yury.khrustalev@arm.com,vbabka@kernel.org,surenb@google.com,sj@kernel.org,shuah@kernel.org,rppt@kernel.org,mhocko@suse.com,ljs@kernel.org,liam@infradead.org,kevin.brodsky@arm.com,david@kernel.org,hemanth.selam@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-hugetlb-fix-resv_huge_pages-double-decrement-in-memfd-error-path.patch removed from -mm tree
-Message-Id: <20261007004846.38CD11F0089C@smtp.kernel.org>
+Subject: [merged mm-stable] selftests-mm-remove-the-local-pkey_unrestricted-fallback.patch removed from -mm tree
+Message-Id: <20261007004847.4B6CD1F0089B@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,73 +35,73 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/hugetlb: fix resv_huge_pages double decrement in memfd error path
+     Subject: selftests/mm: remove the local PKEY_UNRESTRICTED fallback
 has been removed from the -mm tree.  Its filename was
-     mm-hugetlb-fix-resv_huge_pages-double-decrement-in-memfd-error-path.patch
+     selftests-mm-remove-the-local-pkey_unrestricted-fallback.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Hongfu Li <lihongfu@kylinos.cn>
-Subject: mm/hugetlb: fix resv_huge_pages double decrement in memfd error path
-Date: Tue, 25 Aug 2026 10:10:13 +0800
+From: Hemanth Selam <hemanth.selam@gmail.com>
+Subject: selftests/mm: remove the local PKEY_UNRESTRICTED fallback
+Date: Tue, 25 Aug 2026 21:47:15 +0530
 
-alloc_hugetlb_folio_reserve() decrements h->resv_huge_pages when dequeuing
-a folio, but unlike the use_global_reservation handling in
-hugetlb_alloc_folio(), it does not set HPageRestoreReserve on the folio.
+pkey-helpers.h defines PKEY_UNRESTRICTED itself when the macro is not
+already known, a stopgap from when the generic definition was still under
+review.  It has been merged since, commit 6d61527d931b ("mm/pkey: Add
+PKEY_UNRESTRICTED macro"), so the guard is never taken and the FIXME can
+be honoured.
 
-Its sole caller memfd_alloc_folio() pre-allocates a reservation via
-hugetlb_reserve_pages() before allocating.  When
-hugetlb_add_to_page_cache() fails, folio_put() drops the folio without
-HPageRestoreReserve set, so free_huge_folio() does not restore the
-reservation.  The subsequent hugetlb_unreserve_pages() on the err_unresv
-path decrements the counter a second time, leaving resv_huge_pages off by
-one for every failed allocation.
+The definition comes from tools/include/uapi/asm-generic/mman-common.h via
+TOOLS_INCLUDES, which commit e076eaca5906 ("selftests: break the
+dependency upon local header files") added so that the mm selftests build
+without "make headers".  It is reached through the <asm-generic/mman.h>
+that the system <asm/mman.h> includes.  Building the pkey tests with
+KHDR_INCLUDES pointing at an empty directory confirms that; emptying
+TOOLS_INCLUDES as well is what makes the macro go missing.
 
-Set HPageRestoreReserve when consuming the reservation in
-alloc_hugetlb_folio_reserve().  On the error path, free_huge_folio() then
-restores the reservation before hugetlb_unreserve_pages() releases it. 
-The success path is unaffected, as hugetlb_add_to_page_cache() clears the
-flag once the folio is added to the page cache.
+No functional change intended.
 
-Link: https://lore.kernel.org/20260825021013.25672-1-hongfu.li@linux.dev
-Fixes: 26a8ea80929c ("mm/hugetlb: fix memfd_pin_folios resv_huge_pages leak")
-Signed-off-by: Hongfu Li <lihongfu@kylinos.cn>
+Link: https://lore.kernel.org/20260825161715.2807297-1-hemanth.selam@gmail.com
+Signed-off-by: Hemanth Selam <hemanth.selam@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Reviewed-by: Muchun Song <muchun.song@linux.dev>
-Cc: David Hildenbrand <david@kernel.org>
-Cc: Oscar Salvador <osalvador@suse.de>
-Cc: Steven Sistare <steven.sistare@oracle.com>
-Cc: Vivek Kasireddy <vivek.kasireddy@intel.com>
+Acked-by: David Hildenbrand (Arm) <david@kernel.org>
+Acked-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
+Reviewed-by: SJ Park <sj@kernel.org>
+Assisted-by: Cursor:claude-opus-5
+Cc: Kevin Brodsky <kevin.brodsky@arm.com>
+Cc: Liam R. Howlett <liam@infradead.org>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Shuah Khan <shuah@kernel.org>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Vlastimil Babka <vbabka@kernel.org>
+Cc: Yury Khrustalev <yury.khrustalev@arm.com>
 ---
 
- mm/hugetlb.c |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ tools/testing/selftests/mm/pkey-helpers.h |    7 -------
+ 1 file changed, 7 deletions(-)
 
---- a/mm/hugetlb.c~mm-hugetlb-fix-resv_huge_pages-double-decrement-in-memfd-error-path
-+++ a/mm/hugetlb.c
-@@ -2187,8 +2187,10 @@ struct folio *alloc_hugetlb_folio_reserv
+--- a/tools/testing/selftests/mm/pkey-helpers.h~selftests-mm-remove-the-local-pkey_unrestricted-fallback
++++ a/tools/testing/selftests/mm/pkey-helpers.h
+@@ -114,13 +114,6 @@ void record_pkey_malloc(void *ptr, long
+ #define PKEY_MASK	(PKEY_DISABLE_ACCESS | PKEY_DISABLE_WRITE)
+ #endif
  
- 	folio = dequeue_hugetlb_folio_nodemask(h, gfp_mask, preferred_nid,
- 					       nmask);
--	if (folio)
-+	if (folio) {
-+		folio_set_hugetlb_restore_reserve(folio);
- 		h->resv_huge_pages--;
-+	}
- 
- 	spin_unlock_irq(&hugetlb_lock);
- 	return folio;
+-/*
+- * FIXME: Remove once the generic PKEY_UNRESTRICTED definition is merged.
+- */
+-#ifndef PKEY_UNRESTRICTED
+-#define PKEY_UNRESTRICTED 0x0
+-#endif
+-
+ #ifndef set_pkey_bits
+ static inline u64 set_pkey_bits(u64 reg, int pkey, u64 flags)
+ {
 _
 
-Patches currently in -mm which might be from lihongfu@kylinos.cn are
+Patches currently in -mm which might be from hemanth.selam@gmail.com are
 
-mm-page_owner-preserve-original-free_pid-free_tgid-during-folio-migration.patch
-mm-memfd-fix-hugetlb-reservation-accounting-in-error-paths.patch
-selftests-mm-fix-ptrace-peekdata-check-in-memfd_secret-test.patch
-mm-hugetlb_cgroup-move-per-node-usage-on-cross-node-migration.patch
-mm-hugetlb_cgroup-move-per-node-usage-on-cgroup-reparenting.patch
-mm-hugetlb-account-migration-target-folio-in-per-node-nr_hugetlb-vmstat.patch
-mm-memcg-migrate-per-node-hugetlb-lruvec-stat-together-with-hugetlb-folio.patch
+scripts-spellingtxt-keep-british-spelling-for-initalise.patch
 
