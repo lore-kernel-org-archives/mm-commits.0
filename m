@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7EEAF2E282B
-	for <mm-commits@vger.kernel.org>; Wed,  7 Oct 2026 00:50:26 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EC4CD2EFD95
+	for <mm-commits@vger.kernel.org>; Wed,  7 Oct 2026 00:50:27 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791334227; cv=none; b=PRdhizgwqlEToAD1qBVUor2slP9F4oZNQZFzexHE7bxGSt6DUCKHQGFAlLzN/5R+1HxevHHQDVkXCnKz/KrRquTXMMPfCjqE2dhx9siGto6uyUYU+GDJdp+g9MSDGfnoV9S1tpnXSU7zg+zpDEaajL5hZIIg7Ox0T6ImHYyko2I=
+	t=1791334229; cv=none; b=dmNUrmZfrm8yLwcmyimUxXBe8LMg6W0/IhioCdT5eYBBLLok/ArUohzfd5jgvv92H1AeXPxOfeIsAT45AgXrREIa8bsiNmSYQ1Y7jdZnj0kePtcwVlwQ00NSGlqUq0LwH16vJGX5t4qIEHg1NdUTiHK1jGydfA/OkxI6m3KI1TE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791334227; c=relaxed/simple;
-	bh=z4IQFRZarpV5xUj6P4CBBElLoNEuq2QCXVeQvqGXm0M=;
-	h=Date:To:From:Subject:Message-Id; b=mpXpuHTua8o9AInXejML19ZPjEc0C+Zw8EBoZKemZttkUF7+ilMFikRH+H5b45gb/yHgNgcem2ADbAMgkilGx2HDK9aJNWT7B84p1LWbax+yJd2jevZaJX7f1wzZeBhFP9tK7iKx/qRILem/XkJFt+hHc5t479jGQFYZHdjsc/E=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=nj/srqrR; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1791334229; c=relaxed/simple;
+	bh=qMMwHQ5M4jmsaAjD5KYp2P1OqrvWFWhjTxyvrhGFIks=;
+	h=Date:To:From:Subject:Message-Id; b=fNg8yP2HxGAGzXyp0uT3PiJUoshx8wNb010bWxVkiqdAzLp/hOzV1OoMCSpSg0KM6UMQ+71uaordUmZtyhxRA6n5IaGiiksvqZD6GwCoSqt0Syql7sXyEjMRiT0F1jjbEonfS3KbVd7XisZPooOOBD8zuipODiY7hYA5pQXGxDM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=L0K2fSe1; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="nj/srqrR"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 52E3F1F0089B;
-	Wed,  7 Oct 2026 00:50:26 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="L0K2fSe1"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C4B0D1F0089C;
+	Wed,  7 Oct 2026 00:50:27 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1791334226;
-	bh=QvZqAmQtTBl0FXnwFZPYRHw9icdWyRN7RUpJ64htY+M=;
+	d=linux-foundation.org; s=korg; t=1791334227;
+	bh=hjrraBz9VjdXr01oW/sedoUCC8PygImTjEKVyuSROeQ=;
 	h=Date:To:From:Subject;
-	b=nj/srqrR7kCYEsMmkUBhWsMYas9OnXHS9of5ZaUcPRm9be0hqpXYSTE+gSHjLJHGW
-	 /6UzYjT1RC4GfBqC5xsRufwB+GW/x8orVY6DC1J4ys+AUw99/qycBSzj0aHXGcpQld
-	 CWw7rYAfHiVP9VwHjUPqaTTTPBlMnZ0Vt7PXwEts=
-Date: Tue, 06 Oct 2026 17:50:25 -0700
-To: mm-commits@vger.kernel.org,tjmercier@google.com,roman.gushchin@linux.dev,muchun.song@linux.dev,mhocko@suse.com,ljs@kernel.org,kasong@tencent.com,hannes@cmpxchg.org,david@kernel.org,baohua@kernel.org,axelrasmussen@google.com,shakeel.butt@linux.dev,akpm@linux-foundation.org
+	b=L0K2fSe1AntDjQYBNzNgxLWJP2qa04qoABhz8HoiE/2ccdnrFeykYco6Xhz5sIRim
+	 4ne8/+yZDa6GIzr0oJOIN24ffTbZUpUibwkk3aLG63mKi6ToSPuHWkeT+xe7vt/qdX
+	 A1w73kj7u12Rw/8GneZPh5L4clAsmShCw5Dq6eow=
+Date: Tue, 06 Oct 2026 17:50:27 -0700
+To: mm-commits@vger.kernel.org,willy@infradead.org,vbabka@kernel.org,surenb@google.com,shikemeng@huaweicloud.com,rppt@kernel.org,nphamcs@gmail.com,mhocko@suse.com,ljs@kernel.org,liam@infradead.org,kasong@tencent.com,hch@lst.de,hannes@cmpxchg.org,david@kernel.org,chrisl@kernel.org,chengming.zhou@linux.dev,baoquan.he@linux.dev,baohua@kernel.org,tz2294@columbia.edu,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] memcg-simplify-v1-event-ratelimiting.patch removed from -mm tree
-Message-Id: <20261007005026.52E3F1F0089B@smtp.kernel.org>
+Subject: [merged mm-stable] mm-page_io-convert-write-completion-handlers-to-folios.patch removed from -mm tree
+Message-Id: <20261007005027.C4B0D1F0089C@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,205 +35,128 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: memcg: simplify v1 event ratelimiting
+     Subject: mm/page_io: convert write completion handlers to folios
 has been removed from the -mm tree.  Its filename was
-     memcg-simplify-v1-event-ratelimiting.patch
+     mm-page_io-convert-write-completion-handlers-to-folios.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Shakeel Butt <shakeel.butt@linux.dev>
-Subject: memcg: simplify v1 event ratelimiting
-Date: Wed, 2 Sep 2026 10:43:11 -0700
+From: Tal Zussman <tz2294@columbia.edu>
+Subject: mm/page_io: convert write completion handlers to folios
+Date: Sat, 29 Aug 2026 15:09:00 -0400
 
-Thresholds are the only periodic v1 event left, so the target enum, the
-per-cpu target array and the switch in memcg1_event_ratelimit() all
-collapse to a single counter.
+Patch series "mm/page_io: folio conversion cleanups", v2.
 
-memcg1_check_events() no longer needs a node id either, which lets
-memcg1_uncharge_batch() drop its nid argument and struct uncharge_gather
-drop the field feeding it.
+Convert the remaining struct page usage in mm/page_io.c to folios.  This
+removes one of the last callers of end_page_writeback(), along with the
+last caller of ClearPageReclaim().  This allows us to remove the
+PG_reclaim page accessors entirely.  Clean up a few other stale references
+to pages throughout while at it.
 
-Link: https://lore.kernel.org/20260902174311.1772372-9-shakeel.butt@linux.dev
-Signed-off-by: Shakeel Butt <shakeel.butt@linux.dev>
+The rename of mm/page_io.c to mm/swap_io.c is deferred to a separate
+series.
+
+
+This patch (of 6):
+
+Convert swap_write_end() and swap_fs_write_complete() to operate on folios
+directly instead of going through the folio-compat page APIs.  This
+removes calls to end_page_writeback() and set_page_dirty(), and the last
+caller of ClearPageReclaim(), saving two calls to compound_head() per
+folio on the write error path.
+
+Link: https://lore.kernel.org/20260829-b4-page_io-folios-v2-0-649728091117@columbia.edu
+Link: https://lore.kernel.org/20260829-b4-page_io-folios-v2-1-649728091117@columbia.edu
+Signed-off-by: Tal Zussman <tz2294@columbia.edu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Acked-by: Michal Hocko <mhocko@suse.com>
-Acked-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
-Cc: Axel Rasmussen <axelrasmussen@google.com>
+Acked-by: Johannes Weiner <hannes@cmpxchg.org>
+Reviewed-by: Matthew Wilcox (Oracle) <willy@infradead.org>
+Reviewed-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
+Cc: Baoquan He <baoquan.he@linux.dev>
 Cc: Barry Song <baohua@kernel.org>
+Cc: Chengming Zhou <chengming.zhou@linux.dev>
+Cc: Chris Li <chrisl@kernel.org>
+Cc: Christoph Hellwig <hch@lst.de>
 Cc: David Hildenbrand <david@kernel.org>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Kairui Song <kasong@tencent.com>
-Cc: Muchun Song <muchun.song@linux.dev>
-Cc: Roman Gushchin <roman.gushchin@linux.dev>
-Cc: T.J. Mercier <tjmercier@google.com>
+Cc: Kemeng Shi <shikemeng@huaweicloud.com>
+Cc: Liam R. Howlett <liam@infradead.org>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Nhat Pham <nphamcs@gmail.com>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Vlastimil Babka <vbabka@kernel.org>
 ---
 
- mm/memcontrol-v1.c |   43 +++++++++++--------------------------------
- mm/memcontrol-v1.h |    4 ++--
- mm/memcontrol.c    |    4 +---
- 3 files changed, 14 insertions(+), 37 deletions(-)
+ mm/page_io.c |   14 +++++++-------
+ 1 file changed, 7 insertions(+), 7 deletions(-)
 
---- a/mm/memcontrol.c~memcg-simplify-v1-event-ratelimiting
-+++ a/mm/memcontrol.c
-@@ -5328,7 +5328,6 @@ struct uncharge_gather {
- 	unsigned long nr_memory;
- 	unsigned long pgpgout;
- 	unsigned long nr_kmem;
--	int nid;
- };
+--- a/mm/page_io.c~mm-page_io-convert-write-completion-handlers-to-folios
++++ a/mm/page_io.c
+@@ -497,13 +497,13 @@ static void swap_write_end(struct swap_i
+ 	int p;
  
- static inline void uncharge_gather_clear(struct uncharge_gather *ug)
-@@ -5351,7 +5350,7 @@ static void uncharge_batch(const struct
- 		memcg1_oom_recover(memcg);
- 	}
+ 	for (p = 0; p < sio->nr_bvecs; p++) {
+-		struct page *page = sio->bvecs[p].bv_page;
++		struct folio *folio = bvec_folio(&sio->bvecs[p]);
  
--	memcg1_uncharge_batch(memcg, ug->pgpgout, ug->nr_memory, ug->nid);
-+	memcg1_uncharge_batch(memcg, ug->pgpgout, ug->nr_memory);
- 	rcu_read_unlock();
- 
- 	/* drop reference from uncharge_folio */
-@@ -5380,7 +5379,6 @@ static void uncharge_folio(struct folio
- 			uncharge_gather_clear(ug);
+ 		if (failed) {
+-			set_page_dirty(page);
+-			ClearPageReclaim(page);
++			folio_mark_dirty(folio);
++			folio_clear_reclaim(folio);
  		}
- 		ug->objcg = objcg;
--		ug->nid = folio_nid(folio);
- 
- 		/* pairs with obj_cgroup_put in uncharge_batch */
- 		obj_cgroup_get(objcg);
---- a/mm/memcontrol-v1.c~memcg-simplify-v1-event-ratelimiting
-+++ a/mm/memcontrol-v1.c
-@@ -200,15 +200,9 @@ static void mem_cgroup_threshold(struct
-  * to trigger some periodic events. This is straightforward and better
-  * than using jiffies etc. to handle periodic memcg event.
-  */
--enum mem_cgroup_events_target {
--	MEM_CGROUP_TARGET_THRESH,
--	MEM_CGROUP_TARGET_SOFTLIMIT,
--	MEM_CGROUP_NTARGETS,
--};
--
- struct memcg1_events_percpu {
- 	unsigned long nr_page_events;
--	unsigned long targets[MEM_CGROUP_NTARGETS];
-+	unsigned long threshold_target;
- };
- 
- static void memcg1_charge_statistics(struct mem_cgroup *memcg, int nr_pages)
-@@ -225,43 +219,28 @@ static void memcg1_charge_statistics(str
- }
- 
- #define THRESHOLDS_EVENTS_TARGET 128
--#define SOFTLIMIT_EVENTS_TARGET 1024
- 
--static bool memcg1_event_ratelimit(struct mem_cgroup *memcg,
--				enum mem_cgroup_events_target target)
-+static bool memcg1_event_ratelimit(struct mem_cgroup *memcg)
- {
- 	unsigned long val, next;
- 
- 	val = __this_cpu_read(memcg->events_percpu->nr_page_events);
--	next = __this_cpu_read(memcg->events_percpu->targets[target]);
-+	next = __this_cpu_read(memcg->events_percpu->threshold_target);
- 	/* from time_after() in jiffies.h */
- 	if ((long)(next - val) < 0) {
--		switch (target) {
--		case MEM_CGROUP_TARGET_THRESH:
--			next = val + THRESHOLDS_EVENTS_TARGET;
--			break;
--		case MEM_CGROUP_TARGET_SOFTLIMIT:
--			next = val + SOFTLIMIT_EVENTS_TARGET;
--			break;
--		default:
--			break;
--		}
--		__this_cpu_write(memcg->events_percpu->targets[target], next);
-+		__this_cpu_write(memcg->events_percpu->threshold_target,
-+				 val + THRESHOLDS_EVENTS_TARGET);
- 		return true;
+-		end_page_writeback(page);
++		folio_end_writeback(folio);
  	}
- 	return false;
+ 	mempool_free(sio, sio_pool);
  }
+@@ -514,16 +514,16 @@ static void swap_fs_write_complete(struc
+ 	bool failed = ret != sio->len;
  
--/*
-- * Check events in order.
-- *
-- */
--static void memcg1_check_events(struct mem_cgroup *memcg, int nid)
-+static void memcg1_check_events(struct mem_cgroup *memcg)
- {
- 	if (IS_ENABLED(CONFIG_PREEMPT_RT))
- 		return;
+ 	if (failed) {
+-		struct page *page = sio->bvecs[0].bv_page;
++		struct folio *folio = bvec_folio(&sio->bvecs[0]);
  
--	if (unlikely(memcg1_event_ratelimit(memcg, MEM_CGROUP_TARGET_THRESH)))
-+	if (unlikely(memcg1_event_ratelimit(memcg)))
- 		mem_cgroup_threshold(memcg);
- }
+ 		/*
+ 		 * In the case of swap-over-nfs, this can be a temporary failure
+ 		 * if the system has limited memory for allocating transmit
+-		 * buffers.  Mark the page dirty and avoid
++		 * buffers.  Mark the folio dirty and avoid
+ 		 * folio_rotate_reclaimable but rate-limit the messages.
+ 		 */
+ 		pr_err_ratelimited("Write error %ld on dio swapfile (%llu)\n",
+-				   ret, swap_dev_pos(page_swap_entry(page)));
++				   ret, swap_dev_pos(folio->swap));
+ 	}
  
-@@ -271,7 +250,7 @@ void memcg1_commit_charge(struct folio *
- 
- 	local_irq_save(flags);
- 	memcg1_charge_statistics(memcg, folio_nr_pages(folio));
--	memcg1_check_events(memcg, folio_nid(folio));
-+	memcg1_check_events(memcg);
- 	local_irq_restore(flags);
- }
- 
-@@ -344,7 +323,7 @@ void __memcg1_swapout(struct folio *foli
- 	VM_WARN_ON_IRQS_ENABLED();
- 	memcg1_charge_statistics(memcg, -folio_nr_pages(folio));
- 	preempt_enable_nested();
--	memcg1_check_events(memcg, folio_nid(folio));
-+	memcg1_check_events(memcg);
- 
- 	rcu_read_unlock();
- 	obj_cgroup_put(objcg);
-@@ -398,14 +377,14 @@ void memcg1_swapin(struct folio *folio)
- #endif
- 
- void memcg1_uncharge_batch(struct mem_cgroup *memcg, unsigned long pgpgout,
--			   unsigned long nr_memory, int nid)
-+			   unsigned long nr_memory)
- {
- 	unsigned long flags;
- 
- 	local_irq_save(flags);
- 	count_memcg_events(memcg, PGPGOUT, pgpgout);
- 	__this_cpu_add(memcg->events_percpu->nr_page_events, nr_memory);
--	memcg1_check_events(memcg, nid);
-+	memcg1_check_events(memcg);
- 	local_irq_restore(flags);
- }
- 
---- a/mm/memcontrol-v1.h~memcg-simplify-v1-event-ratelimiting
-+++ a/mm/memcontrol-v1.h
-@@ -59,7 +59,7 @@ void memcg1_oom_recover(struct mem_cgrou
- 
- void memcg1_commit_charge(struct folio *folio, struct mem_cgroup *memcg);
- void memcg1_uncharge_batch(struct mem_cgroup *memcg, unsigned long pgpgout,
--			   unsigned long nr_memory, int nid);
-+			   unsigned long nr_memory);
- 
- void memcg1_stat_format(struct mem_cgroup *memcg, struct seq_buf *s);
- void reparent_memcg1_state_local(struct mem_cgroup *memcg, struct mem_cgroup *parent);
-@@ -107,7 +107,7 @@ static inline void memcg1_commit_charge(
- 
- static inline void memcg1_uncharge_batch(struct mem_cgroup *memcg,
- 					 unsigned long pgpgout,
--					 unsigned long nr_memory, int nid) {}
-+					 unsigned long nr_memory) {}
- 
- static inline void memcg1_stat_format(struct mem_cgroup *memcg, struct seq_buf *s) {}
- 
+ 	swap_write_end(sio, failed);
 _
 
-Patches currently in -mm which might be from shakeel.butt@linux.dev are
+Patches currently in -mm which might be from tz2294@columbia.edu are
 
-memcg-move-per-node-objcg-to-the-read-mostly-fields.patch
-memcg-split-mem_cgroup_private_id-into-two-fields.patch
-memcg-group-the-write-hot-fields-of-struct-mem_cgroup.patch
-memcg-group-the-cold-fields-of-struct-mem_cgroup.patch
-memcg-group-the-read-mostly-fields-of-struct-mem_cgroup.patch
-memcg-group-the-fields-of-struct-mem_cgroup_per_node.patch
+mm-remove-pagewriteback.patch
+mm-swap-add-folio_swap_entry-and-folio_page_swap_entry.patch
+mm-swap-add-folio_swap_entry-and-folio_page_swap_entry-fix.patch
+mm-huge_memory-add-a-comment-to-the-open-coded-swap-entry.patch
+mm-rmap-use-folio_page_swap_entry-in-ttu_anon_swapbacked_folio.patch
+mm-zswap-use-folio_swap_entry-in-zswap_store_page.patch
+mm-swapfile-use-folio_page_swap_entry.patch
+arm64-mte-make-mte_save_tags-and-mte_restore_tags-static.patch
+arm64-mte-pass-the-swap-entry-to-mte_save_tags.patch
+mm-swap-remove-page_swap_entry.patch
+mm-memcontrol-take-a-const-folio-in-folio_memcg-and-friends.patch
+mm-memcontrol-constify-obj_cgroup_memcg-and-friends.patch
+mm-memcontrol-constify-the-lruvec-helpers.patch
+mm-page_io-take-a-const-folio-in-bio_associate_blkg_from_folio.patch
+mm-memcontrol-constify-the-mem_cgroup-accessors.patch
+mm-page_counter-constify-page_counter_read-and-page_counter_margin.patch
+mm-memcontrol-constify-the-reclaim-protection-helpers.patch
+mm-memcontrol-constify-the-memcg-and-lruvec-stat-readers.patch
+mm-memcontrol-constify-the-swap-accounting-helpers.patch
+mm-memcontrol-constify-mem_cgroup_swappiness-and-mem_cgroup_get_max.patch
+mm-memcontrol-constify-the-zswap-and-socket-pressure-helpers.patch
+vmcore-convert-mmap_vmcore_fault-to-use-folios.patch
 
