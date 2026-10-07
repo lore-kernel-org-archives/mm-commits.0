@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CBBD1313523
-	for <mm-commits@vger.kernel.org>; Wed,  7 Oct 2026 00:52:25 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E1919257827
+	for <mm-commits@vger.kernel.org>; Wed,  7 Oct 2026 00:52:26 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791334347; cv=none; b=H5lg7DMsRizl5e6oSluIphy6lpMXSTEnXbOt71LwvCK6xhcxtgjhEHKH3H+OXw3oKjMym1xgVOL3PAioCtz5YMb0hgAkNaTISPvQ3nU8E1RA6M9GB08umM5JqR1PBlMcRoEnJll87zIc8sxocBluz4l7A7PxbYXIJYZe6kpsCfA=
+	t=1791334348; cv=none; b=EtPz07X9aa2Ls2kIHLxO468wdPi9ysu8wTB4qG2ePDcdb0cw+qF0SjxphZR3J/OnOu710sMTqlJxkTxSEnoyvg66hV111vi/8yIFs/Rayylw23teBh0EGD5HTw3VVtps/z3VzWeqO8gxO36gyPy4ktVwn5zcSQolP15NUBAEIz4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791334347; c=relaxed/simple;
-	bh=qewKRTLI1UN/tdAYVRJeaYY3arx6gFl/Wp53khz2KAk=;
-	h=Date:To:From:Subject:Message-Id; b=jw1qhLOx35TkL+qj4S1x1JikD7K2VD0hJHLHzOIv1/D/yV1m2hR71bFRl65VmU2Hr0OfE0gQTT2B7hRK/WiA63gBuyboFpH2fkHvl0ns1xLR0PEQ6Pz1PoTPj9OHZB3AYrafFHD3dJmRr7ZPv6Z9eGyM2Az5Rep5DwJxBbTXFeE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=nyEKEDnC; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1791334348; c=relaxed/simple;
+	bh=No2X8pS17FxnOpwQP9FBS1mx8d7pgY6mM2oUos21Z4w=;
+	h=Date:To:From:Subject:Message-Id; b=RJYFJquJUHZ0pmuXS/13hWkJa/8icTCrdlufDZtvURtCnwYAZVfAWxWyuyldg6zZyrhN0ljC3dhiMO/dUdM0HXbF0yaEGRN5nKcL77lDmuj+b1bi71rwp2auqCWoQQJMX1+R36F+mKPUdVOJ4a5ZzksMbZJqVqnO580a557Vhmw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=EVcyxsZ5; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="nyEKEDnC"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A1BC31F0089C;
-	Wed,  7 Oct 2026 00:52:25 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="EVcyxsZ5"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B76D11F0089B;
+	Wed,  7 Oct 2026 00:52:26 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1791334345;
-	bh=iO9OHqdAt9r161EfHC1VH4xm5jsIFrHQatwtPL6oPBA=;
+	d=linux-foundation.org; s=korg; t=1791334346;
+	bh=8Vr0fz/pSz+H5I+EqWLJnURZTLO9HLaPkPBh92DuczU=;
 	h=Date:To:From:Subject;
-	b=nyEKEDnCnRQm2ZA0lPlbSAJkjBLdev1ZggZyCriQ7U22GEzGRpmNBkJZJyS6ynXWB
-	 fx3k+YhphFuj5VhOZLU27sKaL6QgrTaAqGHrBKPFV1iXTT06ATvZBGnvlTN7q/RiAZ
-	 5pHJsLjeshCeOK7/RYN3nO7KjaLSwm89Q+WWZ9/Q=
-Date: Tue, 06 Oct 2026 17:52:25 -0700
+	b=EVcyxsZ5u/6OglUcv0biWCpiEtNpwOBBTmrMz5r9bVhm+uLEoJY4x56uejUZ7hufF
+	 MeHa5uGSXP69IHOir5zOCxsKGPxA85B5WJqX2hM7JbGW76KPyELMVnYSaz0Czrke3x
+	 aFY6ePdiRLR3Gd4alG5rtAz3pWnpjvOY1MoeKEy4=
+Date: Tue, 06 Oct 2026 17:52:26 -0700
 To: mm-commits@vger.kernel.org,vbabka@kernel.org,surenb@google.com,shuah@kernel.org,rppt@kernel.org,rdunlap@infradead.org,mhocko@suse.com,ljs@kernel.org,liam@infradead.org,david@kernel.org,corbet@lwn.net,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-damon-sysfs-implement-preps-nr_preps-file.patch removed from -mm tree
-Message-Id: <20261007005225.A1BC31F0089C@smtp.kernel.org>
+Subject: [merged mm-stable] mm-damon-sysfs-create-directories-for-nr_preps-writes.patch removed from -mm tree
+Message-Id: <20261007005226.B76D11F0089B@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,23 +35,23 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/damon/sysfs: implement preps/nr_preps file
+     Subject: mm/damon/sysfs: create directories for nr_preps writes
 has been removed from the -mm tree.  Its filename was
-     mm-damon-sysfs-implement-preps-nr_preps-file.patch
+     mm-damon-sysfs-create-directories-for-nr_preps-writes.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: SJ Park <sj@kernel.org>
-Subject: mm/damon/sysfs: implement preps/nr_preps file
-Date: Tue, 1 Sep 2026 06:24:57 -0700
+Subject: mm/damon/sysfs: create directories for nr_preps writes
+Date: Tue, 1 Sep 2026 06:24:58 -0700
 
-Implement nr_preps file under the preps directory.  It will be evolved to
-be used for generating sub directories that will represent each probe
+Implement nr_preps write action to actually create subdirectories of the
+number.  Each of the directory will be evolved to represent each probe
 preparation action.
 
-Link: https://lore.kernel.org/20260901132506.99243-11-sj@kernel.org
+Link: https://lore.kernel.org/20260901132506.99243-12-sj@kernel.org
 Signed-off-by: SJ Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 Cc: David Hildenbrand <david@kernel.org>
@@ -66,92 +66,116 @@ Cc: Suren Baghdasaryan <surenb@google.com>
 Cc: Vlastimil Babka <vbabka@kernel.org>
 ---
 
- mm/damon/sysfs.c |   53 ++++++++++++++++++++++++++++++++++++++++++++-
- 1 file changed, 52 insertions(+), 1 deletion(-)
+ mm/damon/sysfs.c |   80 ++++++++++++++++++++++++++++++++++++++++++++-
+ 1 file changed, 79 insertions(+), 1 deletion(-)
 
---- a/mm/damon/sysfs.c~mm-damon-sysfs-implement-preps-nr_preps-file
+--- a/mm/damon/sysfs.c~mm-damon-sysfs-create-directories-for-nr_preps-writes
 +++ a/mm/damon/sysfs.c
-@@ -755,6 +755,7 @@ static const struct kobj_type damon_sysf
+@@ -750,11 +750,49 @@ static const struct kobj_type damon_sysf
+ };
+ 
+ /*
++ * prep directory
++ */
++
++struct damon_sysfs_prep {
++	struct kobject kobj;
++};
++
++static struct damon_sysfs_prep *damon_sysfs_prep_alloc(void)
++{
++	struct damon_sysfs_prep *prep;
++
++	prep = kzalloc_obj(struct damon_sysfs_prep);
++	if (!prep)
++		return prep;
++	return prep;
++}
++
++static void damon_sysfs_prep_release(struct kobject *kobj)
++{
++	struct damon_sysfs_prep *prep = container_of(kobj,
++			struct damon_sysfs_prep, kobj);
++
++	kfree(prep);
++}
++
++static struct attribute *damon_sysfs_prep_attrs[] = {
++	NULL,
++};
++ATTRIBUTE_GROUPS(damon_sysfs_prep);
++
++static const struct kobj_type damon_sysfs_prep_ktype = {
++	.release = damon_sysfs_prep_release,
++	.sysfs_ops = &kobj_sysfs_ops,
++	.default_groups = damon_sysfs_prep_groups,
++};
++
++/*
+  * preps directory
+  */
  
  struct damon_sysfs_preps {
  	struct kobject kobj;
-+	int nr;
++	struct damon_sysfs_prep **preps_arr;
+ 	int nr;
  };
  
- static struct damon_sysfs_preps *damon_sysfs_preps_alloc(void)
-@@ -762,12 +763,60 @@ static struct damon_sysfs_preps *damon_s
- 	return kzalloc_obj(struct damon_sysfs_preps);
- }
+@@ -765,13 +803,53 @@ static struct damon_sysfs_preps *damon_s
  
-+static void damon_sysfs_preps_rm_dirs(struct damon_sysfs_preps *preps)
-+{
-+	preps->nr = 0;
-+}
-+
-+static int damon_sysfs_preps_add_dirs(struct damon_sysfs_preps *preps,
-+		int nr_preps)
-+{
-+	preps->nr = nr_preps;
-+	return 0;
-+}
-+
-+static ssize_t nr_preps_show(struct kobject *kobj, struct kobj_attribute *attr,
-+		char *buf)
-+{
-+	struct damon_sysfs_preps *preps = container_of(kobj,
-+			struct damon_sysfs_preps, kobj);
-+
-+	return sysfs_emit(buf, "%d\n", preps->nr);
-+}
-+
-+static ssize_t nr_preps_store(struct kobject *kobj,
-+		struct kobj_attribute *attr, const char *buf, size_t count)
-+{
-+	struct damon_sysfs_preps *preps;
-+	int nr, err = kstrtoint(buf, 0, &nr);
-+
-+	if (err)
-+		return err;
-+	if (nr < 0)
-+		return -EINVAL;
-+
-+	preps = container_of(kobj, struct damon_sysfs_preps, kobj);
-+
-+	if (!mutex_trylock(&damon_sysfs_lock))
-+		return -EBUSY;
-+	err = damon_sysfs_preps_add_dirs(preps, nr);
-+	mutex_unlock(&damon_sysfs_lock);
-+	if (err)
-+		return err;
-+
-+	return count;
-+}
-+
- static void damon_sysfs_preps_release(struct kobject *kobj)
+ static void damon_sysfs_preps_rm_dirs(struct damon_sysfs_preps *preps)
  {
- 	kfree(container_of(kobj, struct damon_sysfs_preps, kobj));
- }
- 
-+static struct kobj_attribute damon_sysfs_preps_nr_attr =
-+		__ATTR_RW_MODE(nr_preps, 0600);
++	struct damon_sysfs_prep **preps_arr = preps->preps_arr;
++	int i;
 +
- static struct attribute *damon_sysfs_preps_attrs[] = {
-+	&damon_sysfs_preps_nr_attr.attr,
- 	NULL,
- };
- ATTRIBUTE_GROUPS(damon_sysfs_preps);
-@@ -1149,8 +1198,10 @@ put_preps_out:
- 
- static void damon_sysfs_probe_rm_dirs(struct damon_sysfs_probe *probe)
- {
--	if (probe->preps)
-+	if (probe->preps) {
-+		damon_sysfs_preps_rm_dirs(probe->preps);
- 		kobject_put(&probe->preps->kobj);
++	for (i = 0; i < preps->nr; i++) {
++		kobject_del(&preps_arr[i]->kobj);
++		kobject_put(&preps_arr[i]->kobj);
 +	}
- 	if (probe->filters) {
- 		damon_sysfs_filters_rm_dirs(probe->filters);
- 		kobject_put(&probe->filters->kobj);
+ 	preps->nr = 0;
++	kfree(preps_arr);
++	preps->preps_arr = NULL;
+ }
+ 
+ static int damon_sysfs_preps_add_dirs(struct damon_sysfs_preps *preps,
+ 		int nr_preps)
+ {
+-	preps->nr = nr_preps;
++	struct damon_sysfs_prep **preps_arr, *prep;
++	int err, i;
++
++	damon_sysfs_preps_rm_dirs(preps);
++	if (!nr_preps)
++		return 0;
++
++	preps_arr = kmalloc_objs(*preps_arr, nr_preps,
++				   GFP_KERNEL | __GFP_NOWARN);
++	if (!preps_arr)
++		return -ENOMEM;
++	preps->preps_arr = preps_arr;
++
++	for (i = 0; i < nr_preps; i++) {
++		prep = damon_sysfs_prep_alloc();
++		if (!prep) {
++			damon_sysfs_preps_rm_dirs(preps);
++			return -ENOMEM;
++		}
++
++		err = kobject_init_and_add(&prep->kobj,
++				&damon_sysfs_prep_ktype, &preps->kobj, "%d",
++				i);
++		if (err) {
++			kobject_put(&prep->kobj);
++			damon_sysfs_preps_rm_dirs(preps);
++			return err;
++		}
++
++		preps_arr[i] = prep;
++		preps->nr++;
++	}
+ 	return 0;
+ }
+ 
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
