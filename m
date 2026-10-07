@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6B48A3128A3
-	for <mm-commits@vger.kernel.org>; Wed,  7 Oct 2026 00:51:33 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9590F2DCF55
+	for <mm-commits@vger.kernel.org>; Wed,  7 Oct 2026 00:51:34 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791334294; cv=none; b=bHxmhpEa8QK6Z21Jniwp52mGZLX7myjTBXz2SO7RTDGMUKNvUPDDnQdM+u2GAKoZqoFA1ebdlAZN+fjS+oJnIBNWmubJEMHtdnVyL56cK3N14k/GtgAhzNJxuPcG/Akw7qVwqbKLps6fpqOICId40jl2m9KfQHccDlgRfvpcHUs=
+	t=1791334295; cv=none; b=Nl03YfNORjzv6HkmrqVvMX3nhrrnp51sfrcNx+2TbJqmtFUBBW1D42r2/27pA2+k6IElHmmEZS17rgFpUUFMuQaVJFM3kHbNoEbJf3TjUw6l85vRR7wBoBS3V8Ve9FqqR1znvid9vzhsu+I9XEOweGbcEowA1ECj7qMPohM/SlI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791334294; c=relaxed/simple;
-	bh=lwUS3x25PCs/f/cLTM9Jb8T/wpsc9z4qcQJj0KSxepQ=;
-	h=Date:To:From:Subject:Message-Id; b=Z4aWyeqTX2KHXrUd6dQ6DoxN3n7vNznf7R7TTf5bkEgGoeo9OFIZxUUwRkXpVg0okP5b5nCJdsRbXKWLy/4fulkvMdTCYZKX2J3DZIxsjk9YCoRzbkfQwXXM/PLLOATTOBpdyQeenLCFlcjaunVpt0ksr1c50+krB0SO3KbiYC8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=WGDopQgs; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1791334295; c=relaxed/simple;
+	bh=6uT5o7GbuI63O8diCXfbTkyxw5E/BupwWLtNe1mZ8ao=;
+	h=Date:To:From:Subject:Message-Id; b=XSkCR3wxnijylPePDUOOZE7w8ZdVR+bk70vTYsJ383jQNZ/gf/07LIvLGlC+BdVg40hPnN0cRXUoU0H12DzlFaTndhBQ62Iu18U9UU5El2YkFH+HrQcXWwNB7oTLn9yw11NOOnUrHTRz6UX4ydtOMZi3BVjR+oS6jjLLoCeluS8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=aGkE3ii4; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="WGDopQgs"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id F381F1F0089C;
-	Wed,  7 Oct 2026 00:51:32 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="aGkE3ii4"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6CFE71F0089B;
+	Wed,  7 Oct 2026 00:51:34 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1791334293;
-	bh=G4CyQeV9Qo70WjCyEiGgwZvQAA2gfq9jKm9V+q0vRBA=;
+	d=linux-foundation.org; s=korg; t=1791334294;
+	bh=oE+Q+vPdCva20oTbgoxe+CikdslCzEcmSeXv8fby66g=;
 	h=Date:To:From:Subject;
-	b=WGDopQgs8X6z0ye16RU2xicaHFDwdGugMc4/YP7j1G80AM70FJqZfivMmvcGWlhRf
-	 xArRsVwxfNc9DZBkk8d7rILvOl92TRxpEuwA6KJlBC5RYM4gxmQR/XsyL2Hk835jJE
-	 gbD5oYo76HQjWJYCE6zWYlmp/k5wx3lOFDsC7zig=
-Date: Tue, 06 Oct 2026 17:51:32 -0700
+	b=aGkE3ii4xvBOwBpapCkQBLr9oq2kVCKVwIAoyan0ANKhhRHCzJgVmZazDGULaka/X
+	 d/iefjsI7xhmwAHPQgd1mNySP+bS1L3dXCKhGTsfxj5Zhro+nlfQot8m0MnUaWduAG
+	 NkRLZ+ny6BFu2qBmy9naNvU+TfkiOIe2gGATN4L4=
+Date: Tue, 06 Oct 2026 17:51:34 -0700
 To: mm-commits@vger.kernel.org,rppt@kernel.org,muchun.song@linux.dev,mingo@redhat.com,kees@kernel.org,david@kernel.org,dave.hansen@linux.intel.com,bp@alien8.de,balbirs@nvidia.com,arnd@arndb.de,apopple@nvidia.com,lizhe.67@bytedance.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-add-a-set_page_section_from_pfn-helper.patch removed from -mm tree
-Message-Id: <20261007005132.F381F1F0089C@smtp.kernel.org>
+Subject: [merged mm-stable] mm-add-a-template-based-fast-path-for-zone-device-page-init.patch removed from -mm tree
+Message-Id: <20261007005134.6CFE71F0089B@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,96 +35,138 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: add a set_page_section_from_pfn() helper
+     Subject: mm: add a template-based fast path for zone-device page init
 has been removed from the -mm tree.  Its filename was
-     mm-add-a-set_page_section_from_pfn-helper.patch
+     mm-add-a-template-based-fast-path-for-zone-device-page-init.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: "Li Zhe" <lizhe.67@bytedance.com>
-Subject: mm: add a set_page_section_from_pfn() helper
-Date: Mon, 31 Aug 2026 19:16:33 +0800
+Subject: mm: add a template-based fast path for zone-device page init
+Date: Mon, 31 Aug 2026 19:16:34 +0800
 
-Callers that want to update section bits from a PFN currently need to
-open-code:
+memmap_init_zone_device() repeats nearly identical head-page
+initialization for each PFN.  Initialize the first real ZONE_DEVICE head
+page through the existing path, copy that final state into a reusable
+template, refresh the PFN-dependent fields in that template before each
+copy, and copy it into the remaining destination pages.
 
-	set_page_section(page, pfn_to_section_nr(pfn));
+Use the template path unconditionally.  The page_ref_set tracepoint is
+primarily a debugging aid, while this code is still initializing struct
+pages before they are handed out.  From the perspective of users of those
+pages, the initialization-time refcount transitions are not part of the
+observable page lifetime.
 
-and guard that sequence with #ifdef SECTION_IN_PAGE_FLAGS.
+This means page_ref_set will no longer observe every initialization-time
+refcount assignment for copied ZONE_DEVICE head pages.  The impact is
+controlled because the final initialized struct page state is unchanged,
+and keeping a separate non-template path only for this local tracepoint
+observability would add complexity to the common path.
 
-Add set_page_section_from_pfn() to wrap that update in one place.  When
-section bits are stored in page flags, the helper derives the section
-number from the PFN and updates the page flags.  Otherwise keep it as a
-no-op so callers can use one helper without open-coding
-SECTION_IN_PAGE_FLAGS.
+This patch accelerates head-page initialization.  The pfns_per_compound ==
+1 case gets the full benefit here, compound tails are handled in the next
+patch.
 
-Convert set_page_links() to use the new helper so later ZONE_DEVICE
-fast-path patches can also update section bits without open-coding
-SECTION_IN_PAGE_FLAGS at each callsite.
+Tested in a VM with a 100 GB fsdax namespace device configured with
+map=dev on Intel Ice Lake server.  This test exercises the nd_pmem rebind
+path (pfns_per_compound == 1).
 
-This keeps the PFN-to-section translation local to the configurations that
-actually store section bits in struct page flags, and avoids exposing that
-detail to generic callers.
+Test procedure:
+Rebind the nd_pmem driver 30 times and collect the memmap initialization
+time from the pr_debug() output of memmap_init_zone_device().
 
-No functional change intended.
+Base(v7.3-rc1):
+  Average of rebinds for nd_pmem driver: 221.07 ms
 
-Link: https://lore.kernel.org/20260831111638.76012-3-lizhe.67@bytedance.com
+With this patch and its prerequisites applied:
+  Average of rebinds for nd_pmem driver: 155.00 ms
+
+This reduces the average memmap initialization time measured during
+rebind from 221.07 ms to 155.00 ms, or about 29.9%.
+
+[lizhe.67@bytedance.com: whitespace fix, per Mike]
+  Link: https://lore.kernel.org/20260903025806.70825-1-lizhe.67@bytedance.com
+Link: https://lore.kernel.org/20260831111638.76012-4-lizhe.67@bytedance.com
 Signed-off-by: Li Zhe <lizhe.67@bytedance.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 Reviewed-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
-Acked-by: Muchun Song <muchun.song@linux.dev>
-Reviewed-by: Balbir Singh <balbirs@nvidia.com>
 Cc: Alistair Popple <apopple@nvidia.com>
 Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: Balbir Singh <balbirs@nvidia.com>
 Cc: "Borislav Petkov (AMD)" <bp@alien8.de>
 Cc: Dave Hansen <dave.hansen@linux.intel.com>
 Cc: David Hildenbrand (Arm) <david@kernel.org>
 Cc: Ingo Molnar <mingo@redhat.com>
 Cc: Kees Cook <kees@kernel.org>
+Cc: Muchun Song <muchun.song@linux.dev>
 ---
 
- include/linux/mm.h |   15 ++++++++++++---
- 1 file changed, 12 insertions(+), 3 deletions(-)
+ mm/mm_init.c |   37 ++++++++++++++++++++++++++++++++++---
+ 1 file changed, 34 insertions(+), 3 deletions(-)
 
---- a/include/linux/mm.h~mm-add-a-set_page_section_from_pfn-helper
-+++ a/include/linux/mm.h
-@@ -2632,12 +2632,23 @@ static inline void set_page_section(stru
- 	page->flags.f |= (section & SECTIONS_MASK) << SECTIONS_PGSHIFT;
+--- a/mm/mm_init.c~mm-add-a-template-based-fast-path-for-zone-device-page-init
++++ a/mm/mm_init.c
+@@ -1029,6 +1029,17 @@ static void __ref __init_zone_device_pag
+ 	}
  }
  
-+static inline void set_page_section_from_pfn(struct page *page,
-+		unsigned long pfn)
++static void zone_device_page_init_from_template(struct page *page,
++		unsigned long pfn, struct page *template)
 +{
-+	set_page_section(page, pfn_to_section_nr(pfn));
++	set_page_section_from_pfn(template, pfn);
++#ifdef WANT_PAGE_VIRTUAL
++	if (!is_highmem_idx(ZONE_DEVICE))
++		set_page_address(template, __va(pfn << PAGE_SHIFT));
++#endif
++	memcpy(page, template, sizeof(*page));
 +}
 +
- static inline unsigned long memdesc_section(const memdesc_flags_t *mdf)
- {
- 	ASSERT_EXCLUSIVE_BITS(mdf->f, SECTIONS_MASK << SECTIONS_PGSHIFT);
- 	return (mdf->f >> SECTIONS_PGSHIFT) & SECTIONS_MASK;
- }
- #else /* !SECTION_IN_PAGE_FLAGS */
-+static inline void set_page_section_from_pfn(struct page *page,
-+		unsigned long pfn)
-+{
-+}
-+
- static inline unsigned long memdesc_section(const memdesc_flags_t *mdf)
- {
- 	return 0;
-@@ -2860,9 +2871,7 @@ static inline void set_page_links(struct
- {
- 	set_page_zone(page, zone);
- 	set_page_node(page, node);
--#ifdef SECTION_IN_PAGE_FLAGS
--	set_page_section(page, pfn_to_section_nr(pfn));
--#endif
-+	set_page_section_from_pfn(page, pfn);
- }
+ /*
+  * With compound page geometry and when struct pages are stored in ram most
+  * tail pages are reused. Consequently, the amount of unique struct pages to
+@@ -1091,6 +1102,8 @@ void __ref memmap_init_zone_device(struc
+ 	unsigned long zone_idx = zone_idx(zone);
+ 	unsigned long start = jiffies;
+ 	int nid = pgdat->node_id;
++	struct page template;
++	struct page *page;
  
- /**
+ 	if (WARN_ON_ONCE(!pgmap || zone_idx != ZONE_DEVICE))
+ 		return;
+@@ -1105,10 +1118,28 @@ void __ref memmap_init_zone_device(struc
+ 		nr_pages = end_pfn - start_pfn;
+ 	}
+ 
+-	for (pfn = start_pfn; pfn < end_pfn; pfn += pfns_per_compound) {
+-		struct page *page = pfn_to_page(pfn);
++	if (!nr_pages)
++		return;
+ 
+-		__init_zone_device_page(page, pfn, zone_idx, nid, pgmap);
++	/*
++	 * Seed the reusable head-page template from the first real struct
++	 * page. The normal page-init and refcount helpers must operate on
++	 * a real memmap entry rather than a stack object.
++	 */
++	pfn = start_pfn;
++	page = pfn_to_page(pfn);
++	__init_zone_device_page(page, pfn, zone_idx, nid, pgmap);
++	memcpy(&template, page, sizeof(*page));
++	if (pfns_per_compound != 1)
++		memmap_init_compound(page, pfn, zone_idx, nid, pgmap,
++				     compound_nr_pages(pfn, altmap, pgmap));
++	pfn += pfns_per_compound;
++
++	/* Initialize the remaining head pages from template. */
++	for (; pfn < end_pfn; pfn += pfns_per_compound) {
++		page = pfn_to_page(pfn);
++
++		zone_device_page_init_from_template(page, pfn, &template);
+ 
+ 		if (IS_ALIGNED(pfn, PAGES_PER_SECTION))
+ 			cond_resched();
 _
 
 Patches currently in -mm which might be from lizhe.67@bytedance.com are
