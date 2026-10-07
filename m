@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2D2D82EEE61
-	for <mm-commits@vger.kernel.org>; Wed,  7 Oct 2026 00:50:31 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 411872F8E8B
+	for <mm-commits@vger.kernel.org>; Wed,  7 Oct 2026 00:50:32 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791334232; cv=none; b=Y+3ioXjXYTjm6RgZdszR6aCVihGsC7C+p7mcKpd3U7V6yoTHiKEnD+XVKFdOj6RPxO/JTGouCJG9+wG1C2h82ZjluQSn0/ORgkldgRIr1oOuxPiQ9tPr7zzoI9FRmoiWMuSW7xJYUzKyE9AmV2wtKwEbufpbzSjiLIb4lnYkyWs=
+	t=1791334233; cv=none; b=fGMTKNyzWqUteo9bpVgPjVKIifTMNNzlo74vBa7FodLuBvO/f6xl6L9dfMwGkfz8yWw1W16Dx+JGB7jtPhtpyzoCOjgFJ06NiS724H2ioOxaGCv78MBwdm7lRQJmDBgM9xil3CXAULD7zfa2ES16mRDnjE9jN45LXXt1x6bHeMw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791334232; c=relaxed/simple;
-	bh=P5OJ/RBct2zu0GpjNSfTY7nbJh7VGefBNkVBIUqUfxY=;
-	h=Date:To:From:Subject:Message-Id; b=bhBYrgnAaxs13dAFiPGKI5pfv0AOc8TPIqFCrbTsYZYxtlW4YMt6uy7Fl7lmAOsDxyhiMx8tsXUz3XFmx+aRtlRBZ7gcu4ovEVkfMt50mtPFKRm+RAsENxQYZyFZtybL9nPTiQbQRIwyOVpcdZ6/eqoQH5LrnhkGNGuxn5kCJ0w=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=yr+D/c4b; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1791334233; c=relaxed/simple;
+	bh=ISo1V4H7SJPj14KEv7bp+VxDFIsV4z0Hck9CXDDPDzg=;
+	h=Date:To:From:Subject:Message-Id; b=Tkvm0XpDTbqmVkYdVv0Dzhn8JhvGR6BqHLx3dYImr0W3d7IkJrdxtg8n7wZoTK8JrwYARGlx+T9UH9sgaH0+YDEtejrwy/BTijUAeve2mjjOtdXDKy/d7cyYTX1j60nLNTofy3BUZqAbVOG4jlXsdW3VFSgmjR7jljDsGrgAxwU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Ca6zuAG5; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="yr+D/c4b"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 01B2E1F0089B;
-	Wed,  7 Oct 2026 00:50:30 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Ca6zuAG5"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 194B61F0089C;
+	Wed,  7 Oct 2026 00:50:32 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1791334231;
-	bh=NMVpYLJwgL2TQsA2b0iDR4tvXm7fg0595z1J14Ymjw8=;
+	d=linux-foundation.org; s=korg; t=1791334232;
+	bh=Yx3pDX3soBLE2m6+ltqEHR8c502BxUmUbZvw6Y/tLuk=;
 	h=Date:To:From:Subject;
-	b=yr+D/c4bAI3pcXhz0o6Rk9HX6itWbrTG3os2218KkeMAfwxmaduENbtfXL8moRRJF
-	 6cZeTj/fMKtcI72Orr5mPh1w9FHpJPGTOmOARbz8VOUNWdHYqlws/cSIdPyRTk2/tQ
-	 67zNe0qdsb3Dh4/Dsre8G3yaKDGhcscySjJ9t1w8=
-Date: Tue, 06 Oct 2026 17:50:30 -0700
+	b=Ca6zuAG5d669oc/KwyIXeUJ6ymcxkzpkH2kYStR3u/d1+x21brs7KobQ3qE2Ai/MW
+	 NLO/aq72/EKgkoBe1DlwGZmBcHYHyfHvx2SGhTGH7FIrJvbudMAMwenSXHlEDr25se
+	 DJ9OscsXGSxfPvJYrTmf3IK7jofcTLny/TiTTqN4=
+Date: Tue, 06 Oct 2026 17:50:31 -0700
 To: mm-commits@vger.kernel.org,willy@infradead.org,ljs@kernel.org,hannes@cmpxchg.org,tz2294@columbia.edu,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-page_io-rename-bio_associate_blkg_from_page.patch removed from -mm tree
-Message-Id: <20261007005031.01B2E1F0089B@smtp.kernel.org>
+Subject: [merged mm-stable] mm-page_io-refer-to-folios-in-swap_writeout-comments.patch removed from -mm tree
+Message-Id: <20261007005032.194B61F0089C@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,23 +35,22 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/page_io: rename bio_associate_blkg_from_page()
+     Subject: mm/page_io: refer to folios in swap_writeout() comments
 has been removed from the -mm tree.  Its filename was
-     mm-page_io-rename-bio_associate_blkg_from_page.patch
+     mm-page_io-refer-to-folios-in-swap_writeout-comments.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Tal Zussman <tz2294@columbia.edu>
-Subject: mm/page_io: rename bio_associate_blkg_from_page()
-Date: Sat, 29 Aug 2026 15:09:03 -0400
+Subject: mm/page_io: refer to folios in swap_writeout() comments
+Date: Sat, 29 Aug 2026 15:09:04 -0400
 
-This function takes a folio.  Rename it to bio_associate_blkg_from_folio()
-accordingly.  While at it, convert the macro in the !CONFIG_MEMCG ||
-!CONFIG_BLK_CGROUP case to a function.
+swap_writeout() operates on folios, not pages.  Update its comments
+accordingly.
 
-Link: https://lore.kernel.org/20260829-b4-page_io-folios-v2-4-649728091117@columbia.edu
+Link: https://lore.kernel.org/20260829-b4-page_io-folios-v2-5-649728091117@columbia.edu
 Signed-off-by: Tal Zussman <tz2294@columbia.edu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 Acked-by: Johannes Weiner <hannes@cmpxchg.org>
@@ -59,40 +58,29 @@ Reviewed-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Reviewed-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
 ---
 
- mm/page_io.c |    8 +++++---
- 1 file changed, 5 insertions(+), 3 deletions(-)
+ mm/page_io.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/mm/page_io.c~mm-page_io-rename-bio_associate_blkg_from_page
+--- a/mm/page_io.c~mm-page_io-refer-to-folios-in-swap_writeout-comments
 +++ a/mm/page_io.c
-@@ -277,7 +277,7 @@ static bool folio_blkg_can_merge(struct
- 	return can_merge;
- }
+@@ -209,7 +209,7 @@ int swap_writeout(struct swap_io_ctx *ct
+ 		goto out_unlock;
  
--static void bio_associate_blkg_from_page(struct bio *bio, struct folio *folio)
-+static void bio_associate_blkg_from_folio(struct bio *bio, struct folio *folio)
- {
- 	struct cgroup_subsys_state *css;
+ 	/*
+-	 * Arch code may have to preserve more data than just the page
++	 * Arch code may have to preserve more data than just the folio
+ 	 * contents, e.g. memory tags.
+ 	 */
+ 	ret = arch_prepare_to_swap(folio);
+@@ -220,7 +220,7 @@ int swap_writeout(struct swap_io_ctx *ct
  
-@@ -298,7 +298,9 @@ static bool folio_blkg_can_merge(struct
- {
- 	return true;
- }
--#define bio_associate_blkg_from_page(bio, folio)		do { } while (0)
-+static void bio_associate_blkg_from_folio(struct bio *bio, struct folio *folio)
-+{
-+}
- #endif /* CONFIG_MEMCG && CONFIG_BLK_CGROUP */
- 
- static mempool_t *sio_pool;
-@@ -596,7 +598,7 @@ static void swap_bdev_submit_write(struc
- 			REQ_OP_WRITE | REQ_SWAP);
- 	bio->bi_iter.bi_size = sio->len;
- 	bio->bi_iter.bi_sector = swap_folio_sector(bio_first_folio_all(bio));
--	bio_associate_blkg_from_page(bio, bio_first_folio_all(bio));
-+	bio_associate_blkg_from_folio(bio, bio_first_folio_all(bio));
- 
- 	if (ctx->sis->flags & SWP_SYNCHRONOUS_IO) {
- 		submit_bio_wait(bio);
+ 	/*
+ 	 * Use the swap table zero mark to avoid doing IO for zero-filled
+-	 * pages. The zero mark is protected by the cluster lock, which is
++	 * folios. The zero mark is protected by the cluster lock, which is
+ 	 * acquired internally by swap_zeromap_folio_set/clear.
+ 	 */
+ 	if (is_folio_zero_filled(folio)) {
 _
 
 Patches currently in -mm which might be from tz2294@columbia.edu are
