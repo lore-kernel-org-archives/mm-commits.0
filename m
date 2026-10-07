@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id ED0042D47F4
-	for <mm-commits@vger.kernel.org>; Wed,  7 Oct 2026 00:49:07 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0DB6E27E05F
+	for <mm-commits@vger.kernel.org>; Wed,  7 Oct 2026 00:49:10 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791334151; cv=none; b=ivNWdZWRg7vnw073SMEwWeILfX6zJBDgmfOc2zAnm2DUuCWmeWDEse7c5J/ecbpQw0jwuAGgUt0fJl5D3l+cNx765RTKQzpWqTBeQMfATu7EhlA6+usIqLOAnDPaHwHgrj4NFsG12Qo336tPdpK2TWZZHRSgTrSzu5lADFVHPYw=
+	t=1791334152; cv=none; b=SAwR9D1NVDn5ujvZHCKLjFftP/ysKKGaDhZ5UnqbVNz7/s0OWJaOtzOVkqvercm66XxGdOmqvLNblZunIFnKTeAUXF1VOQfiKQ66OJ8tsCHO6fRjMuN9jCot7udVwomXnWgED7VxqXcOmFqzCFCIMafqEKcCEp6PwS2xPJFk6M8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791334151; c=relaxed/simple;
-	bh=p7ZhDfJcSMZaXE7Tw6Ky2ELqO+ZE1GKQS/nacOHRfQY=;
-	h=Date:To:From:Subject:Message-Id; b=O1XqEqmBAr1pDPUaYj8HZt+w+05QKxsLEB6BNMqb117NQNeGsLYLgMRw9PRuPYOalBZkAM1aCFvQZKSDoWAD3wUPdUyQm9kSgxZR5CiaNc2VkO5JzaaMZb++8lWjJH6oD3Euz3Ob+Xn2K9hScFL6cSgrx1B4G7cLyIrVqJ7X5bk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=RT+81KWr; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1791334152; c=relaxed/simple;
+	bh=+D9ujnjDrcood9swnfcqx5UMAtpP9to7OuwThU7/h/Q=;
+	h=Date:To:From:Subject:Message-Id; b=CWHgkF/qgev7+LIBNFMo1w+tS5WDxGD+f0D3mz3vVnviCooPoTf05FeX+VLaleQl27B07OE3uMjyBu7xyClQCq2zt/L4hS6aY2+Yb3wo4bCXU66Hje2O8d3BxA74ngHdfwRlBwvBmCcARBtOF4ggtoHY+OUqyAYoNyRrG3++6o0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=fadCyTHT; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="RT+81KWr"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C01D71F0089B;
-	Wed,  7 Oct 2026 00:49:07 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="fadCyTHT"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 90E621F0089C;
+	Wed,  7 Oct 2026 00:49:10 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1791334147;
-	bh=bVMk4/YVWqRQq0uYm5FvXQgJrMNX9cbnzuHSlICy/UQ=;
+	d=linux-foundation.org; s=korg; t=1791334150;
+	bh=RoEq3UDFleu4CxOqUo49IJJXAukAZLgzs1JQvX/d3M4=;
 	h=Date:To:From:Subject;
-	b=RT+81KWrEBkh5dmlijgf82KWp7hIHH+QlGrFKghoTwp5jiiPgM6XIOv4WE9Rkk3Wi
-	 RXbs02eNpcycRNOoeuQqIrcIYbY/RUsXZ/B/UteX8//3JxJIShiTazAHImt3tds0lg
-	 g9yJoAg7EX3JWmdtkdRrDERe2bnnD319BDuRtgI0=
-Date: Tue, 06 Oct 2026 17:49:07 -0700
+	b=fadCyTHTtp6HGkFqVbTg3iGfZjBdNjTrd4abYcFXn+zk61zGD1FyLHyfUWrtkBoHz
+	 xQzCzM/4fHPP1v5kqb6U2C7//+9S/dhaL1lwLP28AqZXVjgQTX840A1dvx1jLjUuWl
+	 8zx2Gx6lJOZhVPBlRYx6c1Jvun2UIQKPgFvh5Hy8=
+Date: Tue, 06 Oct 2026 17:49:10 -0700
 To: mm-commits@vger.kernel.org,vbabka@kernel.org,surenb@google.com,rppt@kernel.org,qi.zheng@linux.dev,osalvador@suse.de,mhocko@suse.com,ljs@kernel.org,liam@infradead.org,david.laight.linux@gmail.com,david@kernel.org,songmuchun@bytedance.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-sparse-vmemmap-rename-hvo-order-macros.patch removed from -mm tree
-Message-Id: <20261007004907.C01D71F0089B@smtp.kernel.org>
+Subject: [merged mm-stable] mm-mm_init-skip-initializing-shared-vmemmap-tail-pages.patch removed from -mm tree
+Message-Id: <20261007004910.90E621F0089C@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,32 +35,48 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/sparse-vmemmap: rename HVO order macros
+     Subject: mm/mm_init: skip initializing shared vmemmap tail pages
 has been removed from the -mm tree.  Its filename was
-     mm-sparse-vmemmap-rename-hvo-order-macros.patch
+     mm-mm_init-skip-initializing-shared-vmemmap-tail-pages.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Muchun Song <songmuchun@bytedance.com>
-Subject: mm/sparse-vmemmap: rename HVO order macros
-Date: Thu, 10 Sep 2026 14:32:41 +0800
+Subject: mm/mm_init: skip initializing shared vmemmap tail pages
+Date: Thu, 10 Sep 2026 14:32:42 +0800
 
-The macros VMEMMAP_TAIL_MIN_ORDER and NR_VMEMMAP_TAILS describe the order
-range where HVO can be applied, but their names tie that range to the
-tail-page cache implementation.
+memmap_init_range() initializes every struct page in the target range. 
+For compound pages with vmemmap optimization, the tail struct pages are
+backed by a shared vmemmap page.
 
-Rename them with a VMEMMAP_OPTIMIZATION prefix and use the new names in
-the HVO paths.  This makes the code describe the optimization requirements
-rather than the tail-page cache implementation detail.
+Initializing those tail struct pages would overwrite the shared vmemmap
+page contents, requiring users such as HugeTLB to restore the metadata
+afterwards.
 
-No functional change intended.
+Track the compound page order for HVO-backed sections and use that
+metadata to detect struct pages that fall into the shared tail vmemmap
+range.  Skip those shared tail pages in memmap_init_range(), then
+initialize pageblock migratetypes for the processed range with a helper
+after the per-page initialization loop.
 
-Link: https://lore.kernel.org/20260910063256.64386-3-songmuchun@bytedance.com
+Keep direct mem_section access inside sparse helpers.  Expose
+pfn_to_section_compound_order() for callers that only need the order
+associated with a PFN.  This lets memmap_init_range() skip shared tail
+vmemmap pages without exposing __pfn_to_section() to !SPARSEMEM builds.
+
+This is a preparatory change for consolidating handling across users of
+vmemmap optimization, and it also avoids redundant initialization of
+shared tail vmemmap pages during early boot.  That early-boot benefit
+appears only once HugeTLB is switched to this common handling, since
+HugeTLB is the early-boot user that creates those shared tail vmemmap
+pages.
+
+Link: https://lore.kernel.org/20260910063256.64386-4-songmuchun@bytedance.com
 Signed-off-by: Muchun Song <songmuchun@bytedance.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Acked-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
+Reviewed-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
 Acked-by: Qi Zheng <qi.zheng@linux.dev>
 Cc: David Hildenbrand (Arm) <david@kernel.org>
 Cc: David Laight <david.laight.linux@gmail.com>
@@ -72,93 +88,167 @@ Cc: Suren Baghdasaryan <surenb@google.com>
 Cc: Vlastimil Babka <vbabka@kernel.org>
 ---
 
- include/linux/mmzone.h |   17 +++++++++--------
- mm/hugetlb.c           |    4 ++--
- mm/hugetlb_vmemmap.c   |    2 +-
- mm/sparse-vmemmap.c    |    4 ++--
- 4 files changed, 14 insertions(+), 13 deletions(-)
+ include/linux/mmzone.h |    8 +++++++
+ mm/mm_init.c           |   40 ++++++++++++++++++++++-----------------
+ mm/sparse.h            |   33 ++++++++++++++++++++++++++++++++
+ 3 files changed, 64 insertions(+), 17 deletions(-)
 
---- a/include/linux/mmzone.h~mm-sparse-vmemmap-rename-hvo-order-macros
+--- a/include/linux/mmzone.h~mm-mm_init-skip-initializing-shared-vmemmap-tail-pages
 +++ a/include/linux/mmzone.h
-@@ -107,13 +107,14 @@
- 	 is_power_of_2(sizeof(struct page)) ? \
- 	 MAX_FOLIO_NR_PAGES * sizeof(struct page) : 0)
+@@ -2022,6 +2022,14 @@ struct mem_section {
+ 	unsigned long section_mem_map;
  
--/*
-- * vmemmap optimization (like HVO) is only possible for page orders that fill
-- * two or more pages with struct pages.
-- */
--#define VMEMMAP_TAIL_MIN_ORDER (ilog2(2 * PAGE_SIZE / sizeof(struct page)))
--#define __NR_VMEMMAP_TAILS (MAX_FOLIO_ORDER - VMEMMAP_TAIL_MIN_ORDER + 1)
--#define NR_VMEMMAP_TAILS (__NR_VMEMMAP_TAILS > 0 ? __NR_VMEMMAP_TAILS : 0)
-+/* The number of struct pages covered by the retained vmemmap pages with HVO enabled. */
-+#define VMEMMAP_OPTIMIZATION_NR_STRUCT_PAGES	(PAGE_SIZE / sizeof(struct page))
-+#define VMEMMAP_OPTIMIZATION_MIN_ORDER		(ilog2(VMEMMAP_OPTIMIZATION_NR_STRUCT_PAGES) + 1)
-+
-+#define __VMEMMAP_OPTIMIZATION_NR_ORDERS	\
-+	(MAX_FOLIO_ORDER - VMEMMAP_OPTIMIZATION_MIN_ORDER + 1)
-+#define VMEMMAP_OPTIMIZATION_NR_ORDERS		\
-+	(__VMEMMAP_OPTIMIZATION_NR_ORDERS > 0 ? __VMEMMAP_OPTIMIZATION_NR_ORDERS : 0)
+ 	struct mem_section_usage *usage;
++#ifdef CONFIG_HUGETLB_PAGE_OPTIMIZE_VMEMMAP
++	/*
++	 * Normally, sections hold regular (order-0) pages. However, for
++	 * sections with HVO enabled, this tracks the compound page order
++	 * to enable deduplication of redundant vmemmap pages.
++	 */
++	unsigned int compound_page_order;
++#endif
+ #ifdef CONFIG_PAGE_EXTENSION
+ 	/*
+ 	 * If SPARSEMEM, pgdat doesn't have page_ext pointer. We use
+--- a/mm/mm_init.c~mm-mm_init-skip-initializing-shared-vmemmap-tail-pages
++++ a/mm/mm_init.c
+@@ -29,6 +29,7 @@
+ #include <linux/cma.h>
+ #include <linux/crash_dump.h>
+ #include <linux/execmem.h>
++#include <linux/sizes.h>
+ #include <linux/vmstat.h>
+ #include <linux/kexec_handover.h>
+ #include <linux/hugetlb.h>
+@@ -677,21 +678,19 @@ static inline void fixup_hashdist(void)
+ static inline void fixup_hashdist(void) {}
+ #endif /* CONFIG_NUMA */
  
- enum migratetype {
- 	MIGRATE_UNMOVABLE,
-@@ -1158,7 +1159,7 @@ struct zone {
- 	atomic_long_t		vm_stat[NR_VM_ZONE_STAT_ITEMS];
- 	atomic_long_t		vm_numa_event[NR_VM_NUMA_EVENT_ITEMS];
- #ifdef CONFIG_HUGETLB_PAGE_OPTIMIZE_VMEMMAP
--	struct page *vmemmap_tails[NR_VMEMMAP_TAILS];
-+	struct page *vmemmap_tails[VMEMMAP_OPTIMIZATION_NR_ORDERS];
- #endif
- } ____cacheline_internodealigned_in_smp;
- 
---- a/mm/hugetlb.c~mm-sparse-vmemmap-rename-hvo-order-macros
-+++ a/mm/hugetlb.c
-@@ -3357,7 +3357,7 @@ void __init hugetlb_bootmem_struct_page_
- 	struct zone *zone;
- 
- 	for_each_zone(zone) {
--		for (int i = 0; i < NR_VMEMMAP_TAILS; i++) {
-+		for (int i = 0; i < VMEMMAP_OPTIMIZATION_NR_ORDERS; i++) {
- 			struct page *tail, *p;
- 			unsigned int order;
- 
-@@ -3365,7 +3365,7 @@ void __init hugetlb_bootmem_struct_page_
- 			if (!tail)
- 				continue;
- 
--			order = i + VMEMMAP_TAIL_MIN_ORDER;
-+			order = i + VMEMMAP_OPTIMIZATION_MIN_ORDER;
- 			p = page_to_virt(tail);
- 			/*
- 			 * prep_and_add_bootmem_folios() can access pageblock
---- a/mm/hugetlb_vmemmap.c~mm-sparse-vmemmap-rename-hvo-order-macros
-+++ a/mm/hugetlb_vmemmap.c
-@@ -494,7 +494,7 @@ static bool vmemmap_should_optimize_foli
- 
- static struct page *vmemmap_get_tail(unsigned int order, struct zone *zone)
+-#if defined(CONFIG_ZONE_DEVICE) || defined(CONFIG_DEFERRED_STRUCT_PAGE_INIT)
+ static __meminit void pageblock_migratetype_init_range(unsigned long pfn,
+-		unsigned long nr_pages, int migratetype, bool atomic)
++		unsigned long nr_pages, int migratetype, bool isolate, bool atomic)
  {
--	const unsigned int idx = order - VMEMMAP_TAIL_MIN_ORDER;
-+	const unsigned int idx = order - VMEMMAP_OPTIMIZATION_MIN_ORDER;
- 	struct page *tail, *p;
- 	int node = zone_to_nid(zone);
+ 	const unsigned long end = pfn + nr_pages;
  
---- a/mm/sparse-vmemmap.c~mm-sparse-vmemmap-rename-hvo-order-macros
-+++ a/mm/sparse-vmemmap.c
-@@ -329,12 +329,12 @@ static __meminit struct page *vmemmap_ge
- 	unsigned int idx;
- 	int node = zone_to_nid(zone);
+ 	for (pfn = pageblock_align(pfn); pfn < end; pfn += pageblock_nr_pages) {
+ 		enum migratetype mt = kho_scratch_migratetype(pfn, migratetype);
  
--	if (WARN_ON_ONCE(order < VMEMMAP_TAIL_MIN_ORDER))
-+	if (WARN_ON_ONCE(order < VMEMMAP_OPTIMIZATION_MIN_ORDER))
- 		return NULL;
- 	if (WARN_ON_ONCE(order > MAX_FOLIO_ORDER))
- 		return NULL;
+-		init_pageblock_migratetype(pfn_to_page(pfn), mt, false);
+-		if (!atomic && IS_ALIGNED(pfn, PAGES_PER_SECTION))
++		init_pageblock_migratetype(pfn_to_page(pfn), mt, isolate);
++		if (!atomic && IS_ALIGNED(pfn, PFN_DOWN(SZ_1G)))
+ 			cond_resched();
+ 	}
+ }
+-#endif
  
--	idx = order - VMEMMAP_TAIL_MIN_ORDER;
-+	idx = order - VMEMMAP_OPTIMIZATION_MIN_ORDER;
- 	tail = zone->vmemmap_tails[idx];
- 	if (tail)
- 		return tail;
+ #ifdef CONFIG_DEFERRED_STRUCT_PAGE_INIT
+ static inline void pgdat_set_deferred_range(pg_data_t *pgdat)
+@@ -886,6 +885,17 @@ void __meminit memmap_init_range(unsigne
+ 			}
+ 		}
+ 
++		/*
++		 * Vmemmap-optimizable PFNs are backed by shared tail struct pages,
++		 * which have already been initialized during vmemmap population.
++		 */
++		if (vmemmap_optimizable_pfn(pfn)) {
++			const unsigned int order = pfn_to_section_compound_order(pfn);
++
++			pfn = min(ALIGN(pfn, 1UL << order), end_pfn);
++			continue;
++		}
++
+ 		page = pfn_to_page(pfn);
+ 		__init_single_page(page, pfn, zone, nid);
+ 		if (context == MEMINIT_HOTPLUG) {
+@@ -897,19 +907,13 @@ void __meminit memmap_init_range(unsigne
+ 				__SetPageOffline(page);
+ 		}
+ 
+-		/*
+-		 * Usually, we want to mark the pageblock MIGRATE_MOVABLE,
+-		 * such that unmovable allocations won't be scattered all
+-		 * over the place during system boot.
+-		 */
+-		if (pageblock_aligned(pfn)) {
+-			enum migratetype mt = kho_scratch_migratetype(pfn, migratetype);
+-
+-			init_pageblock_migratetype(page, mt, isolate_pageblock);
++		if (pageblock_aligned(pfn))
+ 			cond_resched();
+-		}
+ 		pfn++;
+ 	}
++
++	pageblock_migratetype_init_range(start_pfn, pfn - start_pfn, migratetype,
++					 isolate_pageblock, /* atomic */ false);
+ }
+ 
+ static void __init memmap_init_zone_range(struct zone *zone,
+@@ -1112,7 +1116,8 @@ void __ref memmap_init_zone_device(struc
+ 				     compound_nr_pages(pfn, altmap, pgmap));
+ 	}
+ 
+-	pageblock_migratetype_init_range(start_pfn, nr_pages, MIGRATE_MOVABLE, false);
++	pageblock_migratetype_init_range(start_pfn, nr_pages, MIGRATE_MOVABLE,
++					 /* isolate */ false, /* atomic */ false);
+ 
+ 	pr_debug("%s initialised %lu pages in %ums\n", __func__,
+ 		nr_pages, jiffies_to_msecs(jiffies - start));
+@@ -1921,7 +1926,8 @@ static void __init deferred_free_pages(u
+ 	if (!nr_pages)
+ 		return;
+ 
+-	pageblock_migratetype_init_range(pfn, nr_pages, MIGRATE_MOVABLE, true);
++	pageblock_migratetype_init_range(pfn, nr_pages, MIGRATE_MOVABLE,
++					 /* isolate */ false, /* atomic */ true);
+ 
+ 	page = pfn_to_page(pfn);
+ 
+--- a/mm/sparse.h~mm-mm_init-skip-initializing-shared-vmemmap-tail-pages
++++ a/mm/sparse.h
+@@ -10,6 +10,39 @@
+ 
+ #include <linux/mmzone.h>
+ 
++#ifdef CONFIG_HUGETLB_PAGE_OPTIMIZE_VMEMMAP
++static inline unsigned int section_compound_order(const struct mem_section *section)
++{
++	return section->compound_page_order;
++}
++
++static inline unsigned int pfn_to_section_compound_order(unsigned long pfn)
++{
++	return section_compound_order(__pfn_to_section(pfn));
++}
++#else
++static inline unsigned int section_compound_order(const struct mem_section *section)
++{
++	return 0;
++}
++
++static inline unsigned int pfn_to_section_compound_order(unsigned long pfn)
++{
++	return 0;
++}
++#endif
++
++static inline bool vmemmap_optimizable_pfn(unsigned long pfn)
++{
++	const unsigned int order = pfn_to_section_compound_order(pfn);
++	const unsigned long nr_pages = 1UL << order;
++
++	if (!is_power_of_2(sizeof(struct page)))
++		return false;
++
++	return (pfn & (nr_pages - 1)) >= VMEMMAP_OPTIMIZATION_NR_STRUCT_PAGES;
++}
++
+ /*
+  * mm/sparse.c
+  */
 _
 
 Patches currently in -mm which might be from songmuchun@bytedance.com are
