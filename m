@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 46B8532B10F
-	for <mm-commits@vger.kernel.org>; Wed,  7 Oct 2026 00:53:06 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1D2D93242B2;
+	Wed,  7 Oct 2026 00:53:07 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791334387; cv=none; b=VTzUQbSrV846bIgdXiHz4SW4lhbAdavV5yld2cPOH+coOW55TIyjmY41AZ0uIJJs6xHtZ9mZuG1pmtGrBl1UMtV1JL5ZFWMnjBEJanMVCn/xlqCdpOqsAWlh+evxVBU50XPEp8aU1OhfqwkYdbfuzaMnhwzjZFdvOA1mmnKJDSk=
+	t=1791334388; cv=none; b=lh0qUNmhVCNPbvofycirr3vgAMmoXIKL2pnV5riXk+MG6N3a0Dc1r3OfiUlaQ3BoMFCG1VBVjUPVOc7s8bB3vk2EGAHouFYe2mtyINwkZ9i5PF1BMmvE2rd0lRU7lbQMUlMy881ucMNjb0N0z1xTxKEOeAU0u/GKhGAIXMjrNJ0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791334387; c=relaxed/simple;
-	bh=de6hGLVD28/lLnXlIKTxPNdC3MZo1/5FFksT169Ci0E=;
-	h=Date:To:From:Subject:Message-Id; b=qm2EinJseS9DNgYgTWJQwQ7BBqwZxRV+AB9gnSzpE/sPzJNrDhLtpaFS12N7eidfO2eQxk5mY57JHaO2nG+9kceYeM3vhq4flST5URa397eYwmdier+g4SfAhmyNtkGWl9UTGIz7Nzudus6WHYImzkrLCFVXESBhANTuyJKhL28=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=L4Y12DV8; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1791334388; c=relaxed/simple;
+	bh=qphc/j+GhKoGF1I0lCLd+2a5RgMKU1hhhBJVtQgWRHw=;
+	h=Date:To:From:Subject:Message-Id; b=XLsdm060Te2Sa82ZWevhCgjQLdodbOf8VkvBYxkSSOiyLVGzA5/epQcvmUHvWsxUDRTjWV50El4gXY+hVRgPsaUNHGUHL4kxXTC3YJDcVR8yt9uGS5lsj2HCvgekLQrQlgKsDFoSC54en6MwyNejxyHITxct6GxE78SK9zEgOQQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=wtT8r97I; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="L4Y12DV8"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D3D4B1F0089C;
-	Wed,  7 Oct 2026 00:53:05 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="wtT8r97I"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E35DB1F0089B;
+	Wed,  7 Oct 2026 00:53:06 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1791334385;
-	bh=hz6ocT/bcQuUD50yi1zMCxjIHJSfzwmCcfK8ILhDr3A=;
+	d=linux-foundation.org; s=korg; t=1791334387;
+	bh=Q2AW3Ucy1L4jHj4Ho3lQNj5FDvELGEgkXOo+3pSAlLE=;
 	h=Date:To:From:Subject;
-	b=L4Y12DV8NRTByISqJXaePuXXdrS6onM2xyw/jDOPMuTD5/jYD3Ga1Haf6otkRc0iU
-	 QPz4zZKolXthgJYsCOA3JH6P0q2pZBpnYFfBsMvdBB0gBbqRUfQeriWLhSXb7j380l
-	 lmYVR4objKuD8S5o36OBX92YHf9aUijnnDm1+7l8=
-Date: Tue, 06 Oct 2026 17:53:05 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,vbabka@kernel.org,surenb@google.com,shakeel.butt@linux.dev,mhocko@suse.com,ljs@kernel.org,hch@lst.de,hannes@cmpxchg.org,djwong@kernel.org,david@kernel.org,cem@kernel.org,brendan.jackman@linux.dev,brauner@kernel.org,wangkefeng.wang@huawei.com,akpm@linux-foundation.org
+	b=wtT8r97Inp6abb5to7KwVKVQe/otNgYnOWAcQ7K5Pz5lyEMF118DiBZmLs4oG+lTk
+	 COWNXOUZoHSLj56XnWKI1A5KNWnGowS/TITcjJq+m7NAK5X381hKcU8RU00gY599Qb
+	 5zjA/yFfvoOqFes3EK4p4SgkPGsVwBvK5Yc5+ivE=
+Date: Tue, 06 Oct 2026 17:53:06 -0700
+To: mm-commits@vger.kernel.org,vbabka@kernel.org,vannapurve@google.com,surenb@google.com,stable@vger.kernel.org,si.yanteng@linux.dev,shakeel.butt@linux.dev,rppt@kernel.org,roman.gushchin@linux.dev,rientjes@google.com,peterx@redhat.com,osalvador@suse.de,nphamcs@gmail.com,muchun.song@linux.dev,mhocko@kernel.org,mawupeng1@huawei.com,louhongxiang@huawei.com,ljs@kernel.org,linmiaohe@huawei.com,liam@infradead.org,jthoughton@google.com,joshua.hahnjy@gmail.com,hannes@cmpxchg.org,fvdl@google.com,dzm91@hust.edu.cn,david@kernel.org,corbet@lwn.net,alexs@kernel.org,ackerleytng@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-replace-pf_kcompactd-flag-with-kthread_func-check.patch removed from -mm tree
-Message-Id: <20261007005305.D3D4B1F0089C@smtp.kernel.org>
+Subject: [merged mm-stable] mm-hugetlb-return-enospc-on-memcg-charge-failure.patch removed from -mm tree
+Message-Id: <20261007005306.E35DB1F0089B@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,140 +35,110 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: replace PF_KCOMPACTD flag with kthread_func() check
+     Subject: mm: hugetlb: return -ENOSPC on memcg charge failure
 has been removed from the -mm tree.  Its filename was
-     mm-replace-pf_kcompactd-flag-with-kthread_func-check.patch
+     mm-hugetlb-return-enospc-on-memcg-charge-failure.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Kefeng Wang <wangkefeng.wang@huawei.com>
-Subject: mm: replace PF_KCOMPACTD flag with kthread_func() check
-Date: Wed, 2 Sep 2026 21:16:53 +0800
+From: Ackerley Tng <ackerleytng@google.com>
+Subject: mm: hugetlb: return -ENOSPC on memcg charge failure
+Date: Wed, 09 Sep 2026 10:11:00 -0700
 
-PF_KCOMPACTD was introduced by commit ce6d9c1c2b5c ("NFS: fix
-nfs_release_folio() to not deadlock via kcompactd writeback") so
-nfs_release_folio() could detect kcompactd context and skip writeback. 
-The flag is only consumed by current_is_kcompactd(), whose sole caller is
-nfs_release_folio().
+Patch series "Fix bugs in HugeTLB allocation when
+mem_cgroup_charge_hugetlb() fails", v2.
 
-Replace the flag-based check with kthread_func(current) == kcompactd,
-freeing the 0x00010000 PF flag bit.
+In hugetlb_alloc_folio(), when mem_cgroup_charge_hugetlb() fails, there
+are 2 issues:
 
-Link: https://lore.kernel.org/20260902131653.1338227-5-wangkefeng.wang@huawei.com
-Signed-off-by: Kefeng Wang <wangkefeng.wang@huawei.com>
+1. free_huge_folio() expects a non-refcounted folio and will
+   VM_BUG_ON_FOLIO().
+
+2. -ENOMEM is returned, causing an infinite loop retrying the fault.
+
+
+This patch (of 2):
+
+When mem_cgroup_charge_hugetlb() fails with -ENOMEM, alloc_hugetlb_folio()
+currently propagates this error.  This results in the page fault handler
+returning VM_FAULT_OOM.
+
+Because HugeTLB allocations are high-order and use __GFP_RETRY_MAYFAIL,
+they bypass the OOM killer.  Returning VM_FAULT_OOM to the #PF handler
+without triggering the OOM killer (or having it make progress) leads to an
+infinite loop of retrying the fault.
+
+Avoid this loop by returning -ENOSPC when charging fails, which maps to
+VM_FAULT_SIGBUS, terminating the process cleanly.
+
+Make mem_cgroup_charge_hugetlb() fault handling use a common error
+handling path, the same handling used for
+hugetlb_cgroup_uncharge_cgroup{,_rsvd}(), which also don't trigger the OOM
+killer and hence opt to terminate the process with a SIGBUS.
+
+Link: https://lore.kernel.org/20260909-hugetlb-alloc-folio-memcg-charge-error-handling-v2-1-4b4a8a19a7f7@google.com
+Fixes: 991135774c0e ("memcg/hugetlb: introduce mem_cgroup_charge_hugetlb")
+Signed-off-by: Ackerley Tng <ackerleytng@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Acked-by: Shakeel Butt <shakeel.butt@linux.dev>
-Acked-by: Zi Yan <ziy@nvidia.com>
-Acked-by: Vlastimil Babka (SUSE) <vbabka@kernel.org>
-Reviewed-by: David Hildenbrand (Arm) <david@kernel.org>
-Cc: Brendan Jackman <brendan.jackman@linux.dev>
-Cc: Carlos Maiolino <cem@kernel.org>
-Cc: Christian Brauner <brauner@kernel.org>
-Cc: Christoph Hellwig <hch@lst.de>
-Cc: "Darrick J. Wong" <djwong@kernel.org>
+Reviewed-by: Muchun Song <muchun.song@linux.dev>
+Reviewed-by: Joshua Hahn <joshua.hahnjy@gmail.com>
+Cc: Alex Shi <alexs@kernel.org>
+Cc: David Hildenbrand <david@kernel.org>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Dongliang Mu <dzm91@hust.edu.cn>
+Cc: Frank van der Linden <fvdl@google.com>
+Cc: Hongxiang Lou <louhongxiang@huawei.com>
+Cc: James Houghton <jthoughton@google.com>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: Liam R. Howlett <liam@infradead.org>
 Cc: Lorenzo Stoakes <ljs@kernel.org>
-Cc: Michal Hocko <mhocko@suse.com>
+Cc: Ma Wupeng <mawupeng1@huawei.com>
+Cc: Miaohe Lin <linmiaohe@huawei.com>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Nhat Pham <nphamcs@gmail.com>
+Cc: Oscar Salvador <osalvador@suse.de>
+Cc: Peter Xu <peterx@redhat.com>
+Cc: Roman Gushchin <roman.gushchin@linux.dev>
+Cc: Shakeel Butt <shakeel.butt@linux.dev>
 Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Vishal Annapurve <vannapurve@google.com>
+Cc: Vlastimil Babka <vbabka@kernel.org>
+Cc: Yanteng Si <si.yanteng@linux.dev>
+Cc: <stable@vger.kernel.org>
 ---
 
- include/linux/compaction.h               |   11 ++++++-----
- include/linux/sched.h                    |    2 +-
- mm/compaction.c                          |    9 ++++++---
- tools/sched_ext/include/scx/common.bpf.h |    1 -
- 4 files changed, 13 insertions(+), 10 deletions(-)
+ mm/hugetlb.c |    7 +++++--
+ 1 file changed, 5 insertions(+), 2 deletions(-)
 
---- a/include/linux/compaction.h~mm-replace-pf_kcompactd-flag-with-kthread_func-check
-+++ a/include/linux/compaction.h
-@@ -81,10 +81,6 @@ static inline unsigned long compact_gap(
- 	return min(2UL << order, COMPACT_CLUSTER_MAX);
- }
- 
--static inline int current_is_kcompactd(void)
--{
--	return current->flags & PF_KCOMPACTD;
--}
- 
- #ifdef CONFIG_COMPACTION
- 
-@@ -103,7 +99,7 @@ extern void compaction_defer_reset(struc
- 
- bool compaction_zonelist_suitable(struct alloc_context *ac, int order,
- 					int alloc_flags, gfp_t gfp_mask);
--
-+bool current_is_kcompactd(void);
- extern void __meminit kcompactd_run(int nid);
- extern void __meminit kcompactd_stop(int nid);
- extern void wakeup_kcompactd(pg_data_t *pgdat, int order, int highest_zoneidx);
-@@ -119,6 +115,11 @@ static inline bool compaction_suitable(s
- {
- 	return false;
- }
-+
-+static inline bool current_is_kcompactd(void)
-+{
-+	return false;
-+}
- 
- static inline void kcompactd_run(int nid)
- {
---- a/include/linux/sched.h~mm-replace-pf_kcompactd-flag-with-kthread_func-check
-+++ a/include/linux/sched.h
-@@ -1809,7 +1809,7 @@ extern struct pid __rcu *cad_pid;
- #define PF_USED_MATH		0x00002000	/* If unset the fpu must be initialized before use */
- #define PF_USER_WORKER		0x00004000	/* Kernel thread cloned from userspace thread */
- #define PF_NOFREEZE		0x00008000	/* This thread should not be frozen */
--#define PF_KCOMPACTD		0x00010000	/* I am kcompactd */
-+#define PF__HOLE__00010000	0x00010000
- #define PF__HOLE__00020000	0x00020000
- #define PF_MEMALLOC_NOFS	0x00040000	/* All allocations inherit GFP_NOFS. See memalloc_nfs_save() */
- #define PF_MEMALLOC_NOIO	0x00080000	/* All allocations inherit GFP_NOIO. See memalloc_noio_save() */
---- a/mm/compaction.c~mm-replace-pf_kcompactd-flag-with-kthread_func-check
-+++ a/mm/compaction.c
-@@ -3197,7 +3197,6 @@ static int kcompactd(void *p)
- 	long default_timeout = msecs_to_jiffies(HPAGE_FRAG_CHECK_INTERVAL_MSEC);
- 	long timeout = default_timeout;
- 
--	current->flags |= PF_KCOMPACTD;
- 	set_freezable();
- 
- 	pgdat->kcompactd_max_order = 0;
-@@ -3254,11 +3253,15 @@ static int kcompactd(void *p)
- 			pgdat->proactive_compact_trigger = false;
+--- a/mm/hugetlb.c~mm-hugetlb-return-enospc-on-memcg-charge-failure
++++ a/mm/hugetlb.c
+@@ -2851,7 +2851,6 @@ void wait_for_freed_hugetlb_folios(void)
+  *
+  * Return: A pointer to the allocated folio, or an ERR_PTR on failure.
+  *         -ENOSPC if cgroup charging fails or no folio is available.
+- *         -ENOMEM if mem cgroup charging fails.
+  */
+ struct folio *hugetlb_alloc_folio(struct hstate *h,
+ 		struct mempolicy_interpreted *mpoli, u8 alloc_flags)
+@@ -2924,7 +2923,11 @@ struct folio *hugetlb_alloc_folio(struct
+ 		 * were committed to the folio and freeing the folio
+ 		 * would have cleared those up.
+ 		 */
+-		return ERR_PTR(ret);
++		/*
++		 * Return -ENOSPC, since retrying the fault is futile:
++		 * the OOM killer is not triggered for HugeTLB.
++		 */
++		return ERR_PTR(-ENOSPC);
  	}
  
--	current->flags &= ~PF_KCOMPACTD;
--
- 	return 0;
- }
- 
-+bool current_is_kcompactd(void)
-+{
-+	return kthread_func(current) == kcompactd;
-+}
-+EXPORT_SYMBOL_GPL(current_is_kcompactd);
-+
- /*
-  * This kcompactd start function will be called by init and node-hot-add.
-  * On node-hot-add, kcompactd will moved to proper cpus if cpus are hot-added.
---- a/tools/sched_ext/include/scx/common.bpf.h~mm-replace-pf_kcompactd-flag-with-kthread_func-check
-+++ a/tools/sched_ext/include/scx/common.bpf.h
-@@ -31,7 +31,6 @@
- #define PF_IDLE				0x00000002	/* I am an IDLE thread */
- #define PF_IO_WORKER			0x00000010	/* Task is an IO worker */
- #define PF_WQ_WORKER			0x00000020	/* I'm a workqueue worker */
--#define PF_KCOMPACTD			0x00010000      /* I am kcompactd */
- #define PF_KTHREAD			0x00200000	/* I am a kernel thread */
- #define PF_EXITING			0x00000004
- #define CLOCK_MONOTONIC			1
+ 	return folio;
 _
 
-Patches currently in -mm which might be from wangkefeng.wang@huawei.com are
+Patches currently in -mm which might be from ackerleytng@google.com are
 
-mm-zswap-convert-zswap_invalidate-to-take-a-range.patch
-mm-zswap-skip-xarray-walk-in-zswap_invalidate-when-zswap-is-unused.patch
-mm-zswap-reuse-zswap_invalidate-in-zswap_store.patch
-mm-mincore-use-per-vma-lock-during-page-table-walk.patch
 
