@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DFC7D351C22
-	for <mm-commits@vger.kernel.org>; Wed,  7 Oct 2026 02:04:58 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CDB27274B53
+	for <mm-commits@vger.kernel.org>; Wed,  7 Oct 2026 02:04:59 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791338699; cv=none; b=dzPbNT42ae7gVMsHjtpl1lhfRT+BJirUQCQKwYtynFzyeb8Z3zVpHYjswEMkmAPclBu+Hu1gOeVsjDuZuaaHq3ysN9dDJ6OCbDSsePv1Lb9C54/EJyVmOeiowiL1l/ncmIsNulT7xuGxQnxwheYfx+WKDEFERV4PxtBlF/FcZWQ=
+	t=1791338700; cv=none; b=U7aL37hHNuRuvr6rD55Xw9cqDrp8oB5/HNZ++bEoItcur6CqOsQhYoNitFlxP9YWS65+EQSNlDOB3CBdXivm1nqmzY8K4x0GJOJFcGpbe0pIoKPRZ7jzqSsfjcoqO6+VT1GUbmyveIg5JVwkH8nMb40Tjbre3YPD0BTVPgnh5GI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791338699; c=relaxed/simple;
-	bh=YYCHg7FWD6FPRafKca1oPz4udd3oSLyB/+ojx0ciBw0=;
-	h=Date:To:From:Subject:Message-Id; b=Q22HTwQbwlt2lQ91RYhE6OySBZR51N4EUzpVTl876CO1YQ24Rj8hFpl9ZUuKaNBMvqtWqx61j6fyjolZxSWN/Jf4r0GlhHCHS/89TRHULgG1ImgfH/6f6yljwhIa8lIrb+4xImS/dI9+ty+WSVNjXZpuLqYlrSIDNx4nTG5BV9s=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=rfi8ow1x; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1791338700; c=relaxed/simple;
+	bh=Xg4pEiRP6cYPgfLhthcuH0kD9NBMgD9gmAUM8+PTs7E=;
+	h=Date:To:From:Subject:Message-Id; b=Z4JsdQWTGNHfeDlpGG4b6VQetKYpnB+4bypcCm3/v4tyaYgherX0882k4m9fHFUIzOoP92pOWZVFonZtp2wtyy83XeELkz+0ZsJ+ZthSmIEG27IKOL+P6yoT6maiyjSuglSEGUhHlq3EpdzdaK/46zsSQKNGO/DlPBrDZvbR+do=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=B+FFGEC8; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="rfi8ow1x"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7DE241F0089B;
-	Wed,  7 Oct 2026 02:04:58 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="B+FFGEC8"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A157F1F0089C;
+	Wed,  7 Oct 2026 02:04:59 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1791338698;
-	bh=Y2OSW1iKO84TArj8PXkzJsdmk7YJ1QK3J6I5QmJ0x1E=;
+	d=linux-foundation.org; s=korg; t=1791338699;
+	bh=4SnvG4xZbg+zqfwBfMETr7acpUtfgo6AG81MVyszu7I=;
 	h=Date:To:From:Subject;
-	b=rfi8ow1x/fwD6FHac+d8nwweuir9iXKypp8cYInqqPtUb6FkP4Mczo1L9KXwTKlRl
-	 5gJwurDsX7p2EIwpg0v5DlikxEsh/paIWdk0e6sGCJSWygN+xecSJswHQRmfT0UOGF
-	 4RvZroJS5K9xYGp1bUgfwrODNpQDju61NS6G1ceY=
-Date: Tue, 06 Oct 2026 19:04:58 -0700
-To: mm-commits@vger.kernel.org,lukas.bulwahn@gmail.com,joe@perches.com,dwaipayanray1@gmail.com,apw@canonical.com,pvorel@suse.cz,akpm@linux-foundation.org
+	b=B+FFGEC8jRTc7eNu1fTEFm6gwnveH2Up5VztKuIA0EgyomX1A+1P5R4lcNVh2JVmm
+	 USFPNhkjsw2lIgDRo7HfLXzZrrWE+4U88eXDHyX2y3ZjJW6a1rZMGrQV4QjtF9TXu5
+	 oHcYoxv2K4Uw8Q3rYc3Ot3pB8tWHwfPCu6+PCke8=
+Date: Tue, 06 Oct 2026 19:04:59 -0700
+To: mm-commits@vger.kernel.org,mhiramat@kernel.org,ekffu200098@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] checkpatch-skip-kernel-specific-checks-for-userspace.patch removed from -mm tree
-Message-Id: <20261007020458.7DE241F0089B@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] bootconfig-remove-redundant-assignment-in-xbc_parse_array.patch removed from -mm tree
+Message-Id: <20261007020459.A157F1F0089C@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,91 +35,52 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: checkpatch: skip kernel specific checks for userspace
+     Subject: bootconfig: remove redundant assignment in xbc_parse_array()
 has been removed from the -mm tree.  Its filename was
-     checkpatch-skip-kernel-specific-checks-for-userspace.patch
+     bootconfig-remove-redundant-assignment-in-xbc_parse_array.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Petr Vorel <pvorel@suse.cz>
-Subject: checkpatch: skip kernel specific checks for userspace
-Date: Fri, 4 Sep 2026 13:02:30 +0200
+From: Sang-Heon Jeon <ekffu200098@gmail.com>
+Subject: bootconfig: remove redundant assignment in xbc_parse_array()
+Date: Fri, 11 Sep 2026 01:30:48 +0900
 
-These check are kernel specific, do not warn about it when testing
-userspace code:
+After the loop, node is the last array value that xbc_add_child() added,
+and xbc_parse_array() sets node->child to 0.
 
-* BIT_MACRO
-* LONG_UDELAY
-* MSLEEP
-* PREFER_KERNEL_TYPES
-* USLEEP_RANGE
+xbc_init_node() already set node->child to 0 when the value was
+added, and node->child is not modified after that, so the assignment
+is redundant.
 
-This is a follow-up to 99b70ece33d8 ("checkpatch: suppress strscpy
-warnings for userspace tools").
+So remove the assignment.
 
-Link: https://lore.kernel.org/20260904110230.1219037-5-pvorel@suse.cz
-Signed-off-by: Petr Vorel <pvorel@suse.cz>
+No functional change.
+
+Link: https://lore.kernel.org/20260910163051.1973775-1-ekffu200098@gmail.com
+Signed-off-by: Sang-Heon Jeon <ekffu200098@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Cc: Andy Whitcroft <apw@canonical.com>
-Cc: Dwaipayan Ray <dwaipayanray1@gmail.com>
-Cc: Joe Perches <joe@perches.com>
-Cc: Lukas Bulwahn <lukas.bulwahn@gmail.com>
+Acked-by: Masami Hiramatsu <mhiramat@kernel.org>
 ---
 
- scripts/checkpatch.pl |   10 +++++++---
- 1 file changed, 7 insertions(+), 3 deletions(-)
+ lib/bootconfig.c |    1 -
+ 1 file changed, 1 deletion(-)
 
---- a/scripts/checkpatch.pl~checkpatch-skip-kernel-specific-checks-for-userspace
-+++ a/scripts/checkpatch.pl
-@@ -6696,7 +6696,8 @@ sub process {
- 		}
+--- a/lib/bootconfig.c~bootconfig-remove-redundant-assignment-in-xbc_parse_array
++++ a/lib/bootconfig.c
+@@ -836,7 +836,6 @@ static int __init xbc_parse_array(char *
+ 			return -ENOMEM;
+ 		*__v = next;
+ 	} while (c == ',');
+-	node->child = 0;
  
- # prefer usleep_range over udelay
--		if ($line =~ /\budelay\s*\(\s*(\d+)\s*\)/) {
-+		if (!is_userspace($realfile) &&
-+			$line =~ /\budelay\s*\(\s*(\d+)\s*\)/) {
- 			my $delay = $1;
- 			# ignore udelay's < 10, however
- 			if (! ($delay < 10) ) {
-@@ -6710,7 +6711,8 @@ sub process {
- 		}
- 
- # warn about unexpectedly long msleep's
--		if ($line =~ /\bmsleep\s*\((\d+)\);/) {
-+		if (!is_userspace($realfile) &&
-+			$line =~ /\bmsleep\s*\((\d+)\);/) {
- 			if ($1 < 20) {
- 				WARN("MSLEEP",
- 				     "msleep < 20ms can sleep for up to 20ms; see function description of msleep().\n" . $herecurr);
-@@ -6932,7 +6934,7 @@ sub process {
- 
- # check for c99 types like uint8_t used outside of uapi/ and tools/
- 		if ($realfile !~ m@\binclude/uapi/@ &&
--		    $realfile !~ m@\btools/@ &&
-+		    !is_userspace($realfile) &&
- 		    $line =~ /\b($Declare)\s*$Ident\s*[=;,\[]/) {
- 			my $type = $1;
- 			if ($type =~ /\b($typeC99Typedefs)\b/) {
-@@ -7182,6 +7184,7 @@ sub process {
- # check usleep_range arguments
- 		if ($perl_version_ok &&
- 		    defined $stat &&
-+		    !is_userspace($realfile) &&
- 		    $stat =~ /^\+(?:.*?)\busleep_range\s*\(\s*($FuncArg)\s*,\s*($FuncArg)\s*\)/) {
- 			my $min = $1;
- 			my $max = $7;
-@@ -7425,6 +7428,7 @@ sub process {
- 
- # check for #defines like: 1 << <digit> that could be BIT(digit), it is not exported to uapi
- 		if ($realfile !~ m@^include/uapi/@ &&
-+		    !is_userspace($realfile) &&
- 		    $line =~ /#\s*define\s+\w+\s+\(?\s*1\s*([ulUL]*)\s*\<\<\s*(?:\d+|$Ident)\s*\)?/) {
- 			my $ull = "";
- 			$ull = "_ULL" if (defined($1) && $1 =~ /ll/i);
+ 	return c;
+ }
 _
 
-Patches currently in -mm which might be from pvorel@suse.cz are
+Patches currently in -mm which might be from ekffu200098@gmail.com are
 
+mm-swapops-remove-unused-is_hwpoison_entry.patch
+init-mainc-remove-unreachable-check-in-obsolete_checksetup.patch
 
