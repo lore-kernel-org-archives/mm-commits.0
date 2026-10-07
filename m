@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0B8392EEE61
-	for <mm-commits@vger.kernel.org>; Wed,  7 Oct 2026 00:51:11 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7AECC3033EB;
+	Wed,  7 Oct 2026 00:51:12 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791334272; cv=none; b=rPiN8ZAjrirwEnhU3mZeBky+gUZT/j3vs3zzqhZEVRfx1HTV3qU4Ms7RTWEjliOHzUe1bqdNQfCb2piUXAvWHa/3BJhi3HdeOAE1bUG5bcWTzb95YlfTTIH31DffMrOFbsJ8z63M+DPqzZE7qaspzEnOFMj91HN52CtyKwCVb0A=
+	t=1791334273; cv=none; b=d954rfCBkdjsU+Hsw5SCZHHVKuyHk6439zMAzqUMIAUnO3dc7I79W14KnJ89o78D7syIaGkN09Rxf93bAKJZPhSXTy0SSCcKcXWZDfU6bUgAqALwL/9cmzokRtXoMqz8oLagMrxrRxQRQ7aTRIAqsglLZoXj0D9oPwj1Dhz867s=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791334272; c=relaxed/simple;
-	bh=4OKh7efvuOhRJHCzqRvQAe77iZMBgoy2GbVeBqqvXXw=;
-	h=Date:To:From:Subject:Message-Id; b=cq+NYJATkFr+UFAc9Ai7/Fng38IOE7SXNzbeGveGcAca8W1Y6UCJyVbrxu7fiH5Im586teP+FbqIGOEwl9mfQnuttm1NlcPS2LL9v6GIOnidf0vx4ZGgHj+5izr+Xf7orUGywS/1Jbt+X5ku71EQIELGv3k2l69KgAxOgGYZC3U=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=nJawqAwX; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1791334273; c=relaxed/simple;
+	bh=nRebXaQGjXgbMxl3PAnfIIP/xjygcSSt0oedEithBGs=;
+	h=Date:To:From:Subject:Message-Id; b=pTuO1umiBRi6ng/imV/rT7cr0IMunt9j70Tcn5QcMmIoDWrxs/3OV5jkUEi4LHXV4oJQMf0LIA8eznH0FWwcVbNVb4FFVjYa4bhN+KBov8OIRXqcWA4+sliBktfkAC577bA19oW9abcL36g8CdzCKHSd/Wf65Dn+9+1cn2Ij9iY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=iO2cXwz7; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="nJawqAwX"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D91291F0089C;
-	Wed,  7 Oct 2026 00:51:10 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="iO2cXwz7"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4F6111F0089C;
+	Wed,  7 Oct 2026 00:51:12 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1791334270;
-	bh=4u9YPWMlcaWTOQORj/dRAbYDrnnRXSwF2ik4wtiipo4=;
+	d=linux-foundation.org; s=korg; t=1791334272;
+	bh=XFpOPKLXCCm6Ib5+aPbEyd3OlC4TjA7W6JKSt2QEngE=;
 	h=Date:To:From:Subject;
-	b=nJawqAwXtY3BhzGDLw52DZG/IO44ZwHzhWBBF5EQbiMPijRRJPxPGmu9lC0KIPW86
-	 CRyxwkiKtckbhfz5seNT/wpYCUlwBrZg1nWiCsOUokji3+U9O8iD76e0mJnkzkFeUJ
-	 8dhDWn63jtTpB2NEKFUd20n1u1o54SWH1HnEAkTs=
-Date: Tue, 06 Oct 2026 17:51:10 -0700
-To: mm-commits@vger.kernel.org,vbabka@kernel.org,tkjos@android.com,syzbot@syzkaller.appspotmail.com,surenb@google.com,shakeel.butt@linux.dev,ljs@kernel.org,liam@infradead.org,gregkh@linuxfoundation.org,dsahern@kernel.org,david@kernel.org,davem@davemloft.net,cmllamas@google.com,christian@brauner.io,arve@android.com,aliceryhl@google.com,dave.hansen@linux.intel.com,akpm@linux-foundation.org
+	b=iO2cXwz77hIQjt2LAYTj4w6J2adZJF2ivzyFjEi/bPLcapGf87mn3wapHUHHkGA/P
+	 O7vDVVrW7FGKRkxLN2SYTRCF2fIXtJBbWUVFNs7VTjStGa+1qICIoI6yCT36shM/2G
+	 +bcpmf0hjJLTenREuNSQ94jTK9Q4VTtmbdFQi/xE=
+Date: Tue, 06 Oct 2026 17:51:11 -0700
+To: mm-commits@vger.kernel.org,stable@vger.kernel.org,shakeel.butt@linux.dev,roman.gushchin@linux.dev,muchun.song@linux.dev,mhocko@kernel.org,hannes@cmpxchg.org,joe@dama.to,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] tcp-remove-mmap_lock-fallback-path.patch removed from -mm tree
-Message-Id: <20261007005110.D91291F0089C@smtp.kernel.org>
+Subject: [merged mm-stable] mm-memcontrol-raise-memcg_max-for-charges-that-fail-without-reclaiming.patch removed from -mm tree
+Message-Id: <20261007005112.4F6111F0089C@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,120 +35,129 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: tcp: remove mmap_lock fallback path
+     Subject: mm: memcontrol: raise MEMCG_MAX for charges that fail without reclaiming
 has been removed from the -mm tree.  Its filename was
-     tcp-remove-mmap_lock-fallback-path.patch
+     mm-memcontrol-raise-memcg_max-for-charges-that-fail-without-reclaiming.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Dave Hansen <dave.hansen@linux.intel.com>
-Subject: tcp: remove mmap_lock fallback path
-Date: Mon, 31 Aug 2026 13:30:56 -0700
+From: Joe Damato <joe@dama.to>
+Subject: mm: memcontrol: raise MEMCG_MAX for charges that fail without reclaiming
+Date: Mon, 31 Aug 2026 10:48:35 -0700
 
-Previously, the per-VMA locking could fail in the face of writers
-which necessitates a fallback to mmap_lock. The new
-vma_start_read_unlocked() will wait for writers instead of failing.
+Charges that exceed memory.max and return through the nomem label can
+raise no event and simply return -ENOMEM.
 
-Use the new helper. Wait for writers. Remove the fallback to mmap_lock.
-The fallback removal does not affect NOMMU case because TCP_ZEROCOPY
-is gated on CONFIG_MMU.
+A non-blocking charge can hit the limit, get rejected, but is not visible
+in memory.events.
 
-This really is a nice cleanup. It removes the need to pass the lock
-state back and forth to find_tcp_vma().
+This was noticed in a production setting where bpf_mem_alloc() attempted
+to refill its per-cpu freelists, which triggered a non-blocking charge
+while at the limit.
 
-Link: https://lore.kernel.org/20260831203056.838265-6-surenb@google.com
-Signed-off-by: Dave Hansen <dave.hansen@linux.intel.com>
-Signed-off-by: Suren Baghdasaryan <surenb@google.com>
+Commit d6e103a757fa ("mm: memcontrol: do not miss MEMCG_MAX events for
+enforced allocations") added raised_max_event to cover charges that are
+force charged without ever reaching reclaim, but charges that are rejected
+outright were left out.  Getting an allocation failure without the
+corresponding MEMCG_MAX event is unexpected and makes debugging and
+monitoring harder.
+
+Raise the event on the way out for rejected charges as well, by routing
+the -ENOMEM return through the same exit path that already covers forced
+charges.  The existing behavior of raising a MEMCG_MAX event on every
+charge/reclaim/retry iteration is left unchanged.
+
+Tested with a module that performs accounted GFP_NOWAIT page allocations
+from a task in a cgroup at its memory.max, and measures the resulting
+memory.events:max delta.  Without this patch the rejected charges raise no
+event at all; with it the delta matches the number of rejected charges
+exactly.  A GFP_KERNEL|__GFP_NORETRY control, which reaches reclaim,
+raises the same two events per failed charge before and after, confirming
+the existing charge/reclaim/retry accounting is unchanged.
+
+Link: https://lore.kernel.org/20260831174836.3102406-1-joe@dama.to
+Fixes: d6e103a757fa ("mm: memcontrol: do not miss MEMCG_MAX events for enforced allocations")
+Signed-off-by: Joe Damato <joe@dama.to>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Acked-by: Lorenzo Stoakes <ljs@kernel.org>
-Acked-by: Vlastimil Babka (SUSE) <vbabka@kernel.org>
-Tested-by: syzbot@syzkaller.appspotmail.com
-Cc: Liam R. Howlett <liam@infradead.org>
-Cc: Shakeel Butt <shakeel.butt@linux.dev>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Arve Hjønnevåg <arve@android.com>
-Cc: Todd Kjos <tkjos@android.com>
-Cc: Christian Brauner <christian@brauner.io>
-Cc: Carlos Llamas <cmllamas@google.com>
-Cc: Alice Ryhl <aliceryhl@google.com>
-Cc: David S. Miller <davem@davemloft.net>
-Cc: David Ahern <dsahern@kernel.org>
-Cc: David Hildenbrand (Arm) <david@kernel.org>
+Suggested-by: Shakeel Butt <shakeel.butt@linux.dev>
+Acked-by: Shakeel Butt <shakeel.butt@linux.dev>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Muchun Song <muchun.song@linux.dev>
+Cc: Roman Gushchin <roman.gushchin@linux.dev>
+Cc: <stable@vger.kernel.org>
 ---
 
- net/ipv4/tcp.c |   31 +++++++++----------------------
- 1 file changed, 9 insertions(+), 22 deletions(-)
+ mm/memcontrol.c |   28 ++++++++++++++++------------
+ 1 file changed, 16 insertions(+), 12 deletions(-)
 
---- a/net/ipv4/tcp.c~tcp-remove-mmap_lock-fallback-path
-+++ a/net/ipv4/tcp.c
-@@ -2167,27 +2167,18 @@ static void tcp_zc_finalize_rx_tstamp(st
- }
+--- a/mm/memcontrol.c~mm-memcontrol-raise-memcg_max-for-charges-that-fail-without-reclaiming
++++ a/mm/memcontrol.c
+@@ -2685,10 +2685,11 @@ static int try_charge_memcg(struct mem_c
+ 	bool raised_max_event = false;
+ 	unsigned long pflags;
+ 	bool allow_spinning = gfpflags_allow_spinning(gfp_mask);
++	int ret = 0;
  
- static struct vm_area_struct *find_tcp_vma(struct mm_struct *mm,
--					   unsigned long address,
--					   bool *mmap_locked)
-+					   unsigned long address)
- {
--	struct vm_area_struct *vma = lock_vma_under_rcu(mm, address);
-+	struct vm_area_struct *vma = vma_start_read_unlocked(mm, address);
+ retry:
+ 	if (consume_stock(memcg, nr_pages))
+-		return 0;
++		return ret;
  
--	if (vma) {
--		if (vma->vm_ops != &tcp_vm_ops) {
--			vma_end_read(vma);
--			return NULL;
--		}
--		*mmap_locked = false;
--		return vma;
--	}
-+	if (!vma)
-+		return NULL;
+ 	if (!allow_spinning)
+ 		/* Avoid the refill and flush of the older stock */
+@@ -2799,17 +2800,12 @@ nomem:
+ 	 * put the burden of reclaim on regular allocation requests
+ 	 * and let these go through as privileged allocations.
+ 	 */
+-	if (!(gfp_mask & (__GFP_NOFAIL | __GFP_HIGH)))
+-		return -ENOMEM;
++	if (!(gfp_mask & (__GFP_NOFAIL | __GFP_HIGH))) {
++		ret = -ENOMEM;
++		goto out;
++	}
+ force:
+ 	/*
+-	 * If the allocation has to be enforced, don't forget to raise
+-	 * a MEMCG_MAX event.
+-	 */
+-	if (!raised_max_event)
+-		__memcg_memory_event(mem_over_limit, MEMCG_MAX, allow_spinning);
+-
+-	/*
+ 	 * The allocation either can't fail or will lead to more memory
+ 	 * being freed very soon.  Allow memory usage go over the limit
+ 	 * temporarily by force charging it.
+@@ -2818,7 +2814,15 @@ force:
+ 	if (do_memsw_account())
+ 		page_counter_charge(&memcg->memsw, nr_pages);
  
--	mmap_read_lock(mm);
--	vma = vma_lookup(mm, address);
--	if (!vma || vma->vm_ops != &tcp_vm_ops) {
--		mmap_read_unlock(mm);
-+	if (vma->vm_ops != &tcp_vm_ops) {
-+		vma_end_read(vma);
- 		return NULL;
- 	}
--	*mmap_locked = true;
+-	return 0;
++out:
++	/*
++	 * Don't forget to raise a MEMCG_MAX event for forced or rejected
++	 * requests.
++	 */
++	if (!raised_max_event)
++		__memcg_memory_event(mem_over_limit, MEMCG_MAX, allow_spinning);
 +
- 	return vma;
++	return ret;
+ 
+ done_restock:
+ 	if (batch > nr_pages)
+@@ -2877,7 +2881,7 @@ done_restock:
+ 	    !(current->flags & PF_MEMALLOC) &&
+ 	    gfpflags_allow_blocking(gfp_mask))
+ 		__mem_cgroup_handle_over_high(gfp_mask);
+-	return 0;
++	return ret;
  }
  
-@@ -2208,7 +2199,6 @@ static int tcp_zerocopy_receive(struct s
- 	u32 seq = tp->copied_seq;
- 	u32 total_bytes_to_map;
- 	int inq = tcp_inq(sk);
--	bool mmap_locked;
- 	int ret;
- 
- 	zc->copybuf_len = 0;
-@@ -2233,7 +2223,7 @@ static int tcp_zerocopy_receive(struct s
- 		return 0;
- 	}
- 
--	vma = find_tcp_vma(current->mm, address, &mmap_locked);
-+	vma = find_tcp_vma(current->mm, address);
- 	if (!vma)
- 		return -EINVAL;
- 
-@@ -2315,10 +2305,7 @@ static int tcp_zerocopy_receive(struct s
- 						   zc, total_bytes_to_map);
- 	}
- out:
--	if (mmap_locked)
--		mmap_read_unlock(current->mm);
--	else
--		vma_end_read(vma);
-+	vma_end_read(vma);
- 	/* Try to copy straggler data. */
- 	if (!ret)
- 		copylen = tcp_zc_handle_leftover(zc, sk, skb, &seq, copybuf_len, tss);
+ static inline int try_charge(struct mem_cgroup *memcg, gfp_t gfp_mask,
 _
 
-Patches currently in -mm which might be from dave.hansen@linux.intel.com are
+Patches currently in -mm which might be from joe@dama.to are
 
 
