@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5764930BF6D
-	for <mm-commits@vger.kernel.org>; Wed,  7 Oct 2026 00:51:26 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6667230C146
+	for <mm-commits@vger.kernel.org>; Wed,  7 Oct 2026 00:51:27 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791334287; cv=none; b=WXYAtP9l9lsg3X1s3sX+5VOINUj1y0pOreHpQiFz/IVLGPdHfjWhySU1J7b8Yp7OrW2MPgexHQ84ACzBuZTcjg8qJ2YKFEFzTjhpD/sQWTOF7g+eVsOfP5lMxsUrDMzOXmAEtbwCwSQFVNKmwpKsBt4JDCjnU61uUVIXKeHX828=
+	t=1791334288; cv=none; b=I/hQl55tfTRuvD3YHqqd391yLiXrwTvdBOEd2Cw7f5dIXlXP30zkv2p1rHsY7hgw3UqEcq8vwQxFZotbozL1+Nfl8E0ZR/CmkuiIkDoYTRYwKo1Hsc/cXwLPYSouFA/1zvYCQKFreRiyls7e2SdgiGQX72kIW6REvHQxywJOB7Q=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791334287; c=relaxed/simple;
-	bh=7oiF5wbxuegoYqfTyroEIjCrcIlG1DaCjoV44k9i5UQ=;
-	h=Date:To:From:Subject:Message-Id; b=G70BrYiGCoxiO06s9s1JcrJI3Qzea/SWAlnQEpDl5rwMHDMFuRBdaBkBzyjOKHPycBkS+dEQNjw/cupMI7qOaV+9mwmOHCLNnnueG7V8Dfl+ifyRbgZSkEfqlYdUMx/PHqerXkCWtS/HT8G/3gAJj2dJKyMmczMnPX+B8Im3afs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=XtXQ3PgJ; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1791334288; c=relaxed/simple;
+	bh=a+m5cY5xXdFO+8lqTcZ2eNv0CaUk1YnKLmM2byFC1Ko=;
+	h=Date:To:From:Subject:Message-Id; b=E+rF3jK6iAPRlrOy9Au28WrESz0bBMNRRARHi+UJZQqMp1PSW7nhaNV7uxJlDHL9DxeSd+9laGkhVy65HOBC+1d4E1C33z3bwB9LdIcgwd30q+fzwCQ4O3J1VE3x/HbR0mYoC3sGkr6BfvPEyc1G/UK1bxonxGSK9lZoS/uux+Q=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=n1liychG; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="XtXQ3PgJ"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2E6541F0089C;
-	Wed,  7 Oct 2026 00:51:26 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="n1liychG"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3E07C1F0089B;
+	Wed,  7 Oct 2026 00:51:27 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1791334286;
-	bh=p+HpBJpMEZtArAQs8aoC6lSG9JXUcl3n+501CM0Li7M=;
+	d=linux-foundation.org; s=korg; t=1791334287;
+	bh=SJqZVJ7FHfW0fmIVY4dVThERN1CD9VjtBLhsmDNW124=;
 	h=Date:To:From:Subject;
-	b=XtXQ3PgJi5FoK+J29nZxyFih9I4KDDPnOR84crrJZJDjyZrtOB6H3DJeJ74z/obg4
-	 +2lZ7W0RdB94kZzxgR09OdO/HuGL7EBx4aFz+qwEzVQYAYBjXCSBWK3BZbZaRds4jT
-	 80bLCDiK/fKmjAeGbgVR5BCG/ED34jwSFJHb1x7A=
-Date: Tue, 06 Oct 2026 17:51:25 -0700
-To: mm-commits@vger.kernel.org,zhaozhengzhuo@uniontech.com,zenghui.yu@linux.dev,sj@kernel.org,shuah@kernel.org,lienze@kylinos.cn,jaeyeon.lee.dev@gmail.com,harimishal1@gmail.com,gregkh@linuxfoundation.org,liyouhong@kylinos.cn,akpm@linux-foundation.org
+	b=n1liychGeqa01gsX8LDcXRFXtCfxlvXTIsYda61MdLBhldQreHfuhzbHgPDdy94zQ
+	 Pwsmb1xEsmd+V4sUrk+4AsPN5RxGFO5FbMbaRYpVQHIgk99KIG51Bsn/STS9s9n6fn
+	 JFRtbDgOD9ly9v5Ne/R9hDvuZo25g1dNIbCuc+5w=
+Date: Tue, 06 Oct 2026 17:51:26 -0700
+To: mm-commits@vger.kernel.org,zhaozhengzhuo@uniontech.com,zenghui.yu@linux.dev,sj@kernel.org,shuah@kernel.org,liyouhong@kylinos.cn,lienze@kylinos.cn,jaeyeon.lee.dev@gmail.com,gregkh@linuxfoundation.org,harimishal1@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-damon-ops-common-factor-out-damon_putback_folio_list.patch removed from -mm tree
-Message-Id: <20261007005126.2E6541F0089C@smtp.kernel.org>
+Subject: [merged mm-stable] selftests-damon-sysfspy-clean-up-sh-processes-used-for-obsolete_target-test.patch removed from -mm tree
+Message-Id: <20261007005127.3E07C1F0089B@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,94 +35,58 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/damon/ops-common: factor out damon_putback_folio_list()
+     Subject: selftests/damon/sysfs.py: clean up sh processes used for obsolete_target test
 has been removed from the -mm tree.  Its filename was
-     mm-damon-ops-common-factor-out-damon_putback_folio_list.patch
+     selftests-damon-sysfspy-clean-up-sh-processes-used-for-obsolete_target-test.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Li Youhong <liyouhong@kylinos.cn>
-Subject: mm/damon/ops-common: factor out damon_putback_folio_list()
-Date: Mon, 31 Aug 2026 07:26:05 -0700
+From: Hari Mishal <harimishal1@gmail.com>
+Subject: selftests/damon/sysfs.py: clean up sh processes used for obsolete_target test
+Date: Mon, 31 Aug 2026 07:26:06 -0700
 
-The putback loop is duplicated in damon_migrate_folio_list() and on the
-invalid-nid path of damon_migrate_pages().  Factor it into a small helper
-for readability.  No functional change.
+The obsolete_target test spawns three sh processes and uses their pids as
+DAMON monitoring targets.  These processes are never terminated or waited
+on, so they are left running (or become zombies) as orphaned children
+after the test program exits.
 
-Link: https://lore.kernel.org/20260831142611.77572-4-sj@kernel.org
-Signed-off-by: Li Youhong <liyouhong@kylinos.cn>
+Terminate each process and communicate() with it after the targets are no
+longer needed, so it exits and gets reaped instead of being leaked.
+
+Link: https://lore.kernel.org/20260831142611.77572-5-sj@kernel.org
+Signed-off-by: Hari Mishal <harimishal1@gmail.com>
 Signed-off-by: SJ Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 Reviewed-by: SJ Park <sj@kernel.org>
-Cc: Enze Li <lienze@kylinos.cn>
 Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Hari Mishal <harimishal1@gmail.com>
+Cc: Enze Li <lienze@kylinos.cn>
 Cc: Jaeyeon Lee <jaeyeon.lee.dev@gmail.com>
+Cc: Li Youhong <liyouhong@kylinos.cn>
 Cc: Shuah Khan <shuah@kernel.org>
 Cc: "Zenghui Yu (Huawei)" <zenghui.yu@linux.dev>
 Cc: zhaozhengzhuo <zhaozhengzhuo@uniontech.com>
 ---
 
- mm/damon/ops-common.c |   30 +++++++++++++++---------------
- 1 file changed, 15 insertions(+), 15 deletions(-)
+ tools/testing/selftests/damon/sysfs.py |    4 ++++
+ 1 file changed, 4 insertions(+)
 
---- a/mm/damon/ops-common.c~mm-damon-ops-common-factor-out-damon_putback_folio_list
-+++ a/mm/damon/ops-common.c
-@@ -335,6 +335,19 @@ static unsigned int __damon_migrate_foli
- 	return nr_succeeded;
- }
+--- a/tools/testing/selftests/damon/sysfs.py~selftests-damon-sysfspy-clean-up-sh-processes-used-for-obsolete_target-test
++++ a/tools/testing/selftests/damon/sysfs.py
+@@ -385,6 +385,10 @@ def main():
+     assert_ctxs_committed(kdamonds)
+     kdamonds.stop()
  
-+static void damon_putback_folio_list(struct list_head *folio_list)
-+{
-+	struct folio *folio;
++    for proc in (proc1, proc2, proc3):
++        proc.terminate()
++        proc.communicate()
 +
-+	while (!list_empty(folio_list)) {
-+		folio = lru_to_folio(folio_list);
-+		list_del(&folio->lru);
-+		node_stat_sub_folio(folio, NR_ISOLATED_ANON +
-+				folio_is_file_lru(folio));
-+		folio_putback_lru(folio);
-+	}
-+}
-+
- static unsigned int damon_migrate_folio_list(struct list_head *folio_list,
- 						struct pglist_data *pgdat,
- 						int target_nid)
-@@ -376,13 +389,7 @@ keep:
+     test_memcg_filter_memcg_path_staging()
  
- 	list_splice(&ret_folios, folio_list);
- 
--	while (!list_empty(folio_list)) {
--		folio = lru_to_folio(folio_list);
--		list_del(&folio->lru);
--		node_stat_sub_folio(folio, NR_ISOLATED_ANON +
--				folio_is_file_lru(folio));
--		folio_putback_lru(folio);
--	}
-+	damon_putback_folio_list(folio_list);
- 
- 	return nr_migrated;
- }
-@@ -399,14 +406,7 @@ unsigned long damon_migrate_pages(struct
- 
- 	if (target_nid < 0 || target_nid >= MAX_NUMNODES ||
- 			!node_state(target_nid, N_MEMORY)) {
--		while (!list_empty(folio_list)) {
--			struct folio *folio = lru_to_folio(folio_list);
--
--			list_del(&folio->lru);
--			node_stat_sub_folio(folio, NR_ISOLATED_ANON +
--					folio_is_file_lru(folio));
--			folio_putback_lru(folio);
--		}
-+		damon_putback_folio_list(folio_list);
- 		return nr_migrated;
- 	}
- 
+ if __name__ == '__main__':
 _
 
-Patches currently in -mm which might be from liyouhong@kylinos.cn are
+Patches currently in -mm which might be from harimishal1@gmail.com are
 
 
