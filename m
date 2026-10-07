@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1CD6D3546FC
-	for <mm-commits@vger.kernel.org>; Wed,  7 Oct 2026 02:04:44 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DB2863546CD
+	for <mm-commits@vger.kernel.org>; Wed,  7 Oct 2026 02:04:45 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791338686; cv=none; b=j/9UXyS6Bc9ILCkGPC2mUNmZugPOIBcoUnFxHu6Oe8P5g8UOW+62O3K10N3wKrZtmJbVRl0TcPRufMjNVjkqmHnCk84RTAJgGh0aPArz/CjO+RVL5SkLFGFllndbF3U8HbZFGucXKOsMR891iY7Oo94aUh85dg8stAzYg6DNXaM=
+	t=1791338687; cv=none; b=PqNgt9zJyPrtDNw+1vQSSmsRAkglW9qplkICs72VKsoNVzWtYTNO/zdwJ9JnzPKiGBKkyeunXWGieLZ1WYoSidh/BjilYHitgQPxb5WGtV5sCHkC+6eXqknICFes5hkfl1Geg7RR1fqlNmhukSQUlHm4FSmCkLH7UInWYuc+fl4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791338686; c=relaxed/simple;
-	bh=IXSTOgK3vm694ICjiy9rSK7CXia2MdcJREOQPxrDeuk=;
-	h=Date:To:From:Subject:Message-Id; b=ajtRYC5qhBi6c3nUhrNXwu+/t3mqdUiJrqLsBXYvBisBUezkjgz9lUdBjlSY6UjQpsMTc38/WsbFV3A6ne03KoX9f1SJZ7uv85v++h6QEH4hlsfS50/GEdRc+pwR5FeL0JuLa0KL7jlg6pU1iU38eq0vU3YCXzAnYBrYtVLhpCw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=LtGaEl+f; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1791338687; c=relaxed/simple;
+	bh=U+5UkXUnjT2pQV2HslzI3Jb25Y+AiF+SaJGrHvXJrjI=;
+	h=Date:To:From:Subject:Message-Id; b=ojD78bAbVsFwcWetnTvZHt1jg7b9oYd+/HPWJ2cwuEQqjH5P0kineh1TCy5dP03B+GyrfJ/hz2ufkyI29PuSDEBzlzSOHKNOMg/c18DKwI2hE7KEspJzjQ/7Y3QGwVnPEG+e2QssDtip8+VbG+4mugJOGx6YXqBitRaCE6TTSf0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=fyRde691; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="LtGaEl+f"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8D3E71F0089B;
-	Wed,  7 Oct 2026 02:04:44 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="fyRde691"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B014D1F0089C;
+	Wed,  7 Oct 2026 02:04:45 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1791338684;
-	bh=f86eTnY7gQKLIQ/owpk6kp3kiOBCxFCiuKpIefaKRpM=;
+	d=linux-foundation.org; s=korg; t=1791338685;
+	bh=kFGK1IibVWFyC9eCU2/Zcr8D0yajyheVmaKEiOHDq4E=;
 	h=Date:To:From:Subject;
-	b=LtGaEl+flMUwJwZr2oPW7XCx3Tav97uFqdNordgyuP27yiCDSs8PkifHTzod7Dpx4
-	 n8bGBo7o1mYXKaqACyLUCZ77YRxwB/tiZrc3bFZ/6UTIQUdE7jAF5gcUJYUAdxvgr3
-	 xXd3usC7PWa596CBqadLd4eQKLzbG3o4LvnpQ+D0=
-Date: Tue, 06 Oct 2026 19:04:44 -0700
-To: mm-commits@vger.kernel.org,nathan@kernel.org,morbo@google.com,justinstitt@google.com,ndesaulniers@google.com,akpm@linux-foundation.org
+	b=fyRde6919qPQQtjzAu0Dd04f1p2O/NbSgPGcB0lUhrKrfSv5hYlkmuOsKRUS5G+7U
+	 sR87nh7tMn5IY+TipAzQetVv2DkFmETZPsegRJQQaknkf6iZuuP5ak2jSAIYbSkMNk
+	 FhlI8cMaV4DGlA85+SWjFjoc+H1mv0Pq6QTJRMKU=
+Date: Tue, 06 Oct 2026 19:04:45 -0700
+To: mm-commits@vger.kernel.org,piaojun@huawei.com,mark@fasheh.com,junxiao.bi@oracle.com,jlbec@evilplan.org,heming.zhao@suse.com,gechangwei@live.cn,joseph.qi@linux.alibaba.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] scripts-checkstackpl-support-llvm-objdump-disassembly-for-x86.patch removed from -mm tree
-Message-Id: <20261007020444.8D3E71F0089B@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] ocfs2-allow-xattr-bucket-entries-to-span-multiple-blocks.patch removed from -mm tree
+Message-Id: <20261007020445.B014D1F0089C@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,61 +35,123 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: scripts/checkstack.pl: support llvm-objdump disassembly for x86
+     Subject: ocfs2: allow xattr bucket entries to span multiple blocks
 has been removed from the -mm tree.  Its filename was
-     scripts-checkstackpl-support-llvm-objdump-disassembly-for-x86.patch
+     ocfs2-allow-xattr-bucket-entries-to-span-multiple-blocks.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Nick Desaulniers <ndesaulniers@google.com>
-Subject: scripts/checkstack.pl: support llvm-objdump disassembly for x86
-Date: Wed, 02 Sep 2026 14:01:53 -0700
+From: Joseph Qi <joseph.qi@linux.alibaba.com>
+Subject: ocfs2: allow xattr bucket entries to span multiple blocks
+Date: Thu, 3 Sep 2026 21:13:12 +0800
 
-When running `make LLVM=1 checkstack`, OBJDUMP is set to llvm-objdump. 
-llvm-objdump outputs disassembly with instruction size suffixes (such as
-subq/addq/subl/addl), tabs/whitespace differences, spaces after commas,
-and trailing comments (e.g.  `# imm = 0x...`).
+Patch series "ocfs2: xattr bucket validation fixes", v2.
 
-Because scripts/checkstack.pl used rigid regular expressions specifically
-tuned to GNU objdump format (e.g.  requiring exactly four spaces, no
-suffix, and no space after comma), checkstack.pl failed to match any stack
-adjustment instructions and yielded no output when using llvm-objdump on
-x86.
+This series fixes two problems around xattr bucket validation.
 
-Update the regular expressions for x86 to match optional suffixes,
-variable whitespace, and trailing comments.
+Patch 1 fixes a false-corruption failure on blocksize-512 volumes: the
+bucket validator limited the entry array to the first bucket block while
+the write path stores entries across the whole 4096-byte bucket region, so
+a legitimately written, fsck-clean bucket could be rejected and force the
+filesystem read-only.  It also adds an alignment check on the bucket block
+number, since the entry array is accessed as one contiguous region and a
+corrupted xattr tree could otherwise point a bucket at blocks straddling a
+page boundary.
 
-Link: https://lore.kernel.org/20260902-checkstack_llvm_objdump-v1-1-edb4eca5f163@google.com
-Signed-off-by: Nick Desaulniers <ndesaulniers@google.com>
+Patch 2 converts two mlog_bug_on_msg() checks in the bucket defrag path to
+ocfs2_error() returns, so that a corrupt bucket holding overlapping
+entries or an inflated xh_free_start marks the filesystem read-only and
+fails the setxattr instead of panicking the kernel.
+
+Both patches have been tested in QEMU: the blocksize-512 reproducer (40
+xattrs with 100-byte values, previously failing with "entry count 32
+exceeds maximum 31") now passes with a clean fsck.ocfs2 result, and the
+ocfs2 testsuite xattr tests pass 48/48 across blocksize combinations.
+
+
+This patch (of 2):
+
+ocfs2_validate_xattr_bucket() limits the entry array to the first bucket
+block, but the write path stores entries across the whole
+OCFS2_XATTR_BUCKET_SIZE region.  With 512-byte blocks a bucket spans eight
+blocks, and a bucket filled with small xattrs places its last entries past
+offset 512.  Reading such a bucket back errors out:
+
+  OCFS2: ERROR (device loop0): ocfs2_validate_xattr_bucket: Invalid xattr bucket 86072: entry count 32 exceeds maximum 31
+  On-disk corruption discovered. Please run fsck.ocfs2 once the filesystem is unmounted.
+  OCFS2: File system is now read-only.
+
+This is reproducible by setting ~33 xattrs with 100-byte values on a file
+on a blocksize-512 volume; fsck.ocfs2 reports the resulting image clean.
+
+Check the entry count against the full bucket region instead.  The
+per-block bounds checks for names and values stay as they are, since
+ocfs2_bucket_align_free_start() keeps each name+value pair within a single
+block.
+
+The entry array is one contiguous region, so a bucket from a corrupted
+xattr tree whose first block is not aligned to OCFS2_XATTR_BUCKET_SIZE
+could straddle a page and make the validation loop read out of bounds. 
+Buckets allocated within clusters are always aligned, so reject any other
+block number while validating.
+
+Link: https://lore.kernel.org/20260903131313.2396208-1-joseph.qi@linux.alibaba.com
+Link: https://lore.kernel.org/20260903131313.2396208-2-joseph.qi@linux.alibaba.com
+Fixes: 2cf82b46d5e4 ("ocfs2: validate external xattr entries when reading metadata")
+Signed-off-by: Joseph Qi <joseph.qi@linux.alibaba.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Assisted-by: LLM Gemini
-Cc: Bill Wendling <morbo@google.com>
-Cc: Justin Stitt <justinstitt@google.com>
-Cc: Nathan Chancellor <nathan@kernel.org>
+Cc: Mark Fasheh <mark@fasheh.com>
+Cc: Joel Becker <jlbec@evilplan.org>
+Cc: Junxiao Bi <junxiao.bi@oracle.com>
+Cc: Changwei Ge <gechangwei@live.cn>
+Cc: Jun Piao <piaojun@huawei.com>
+Cc: Heming Zhao <heming.zhao@suse.com>
 ---
 
- scripts/checkstack.pl |    6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ fs/ocfs2/xattr.c |   21 ++++++++++++++++++++-
+ 1 file changed, 20 insertions(+), 1 deletion(-)
 
---- a/scripts/checkstack.pl~scripts-checkstackpl-support-llvm-objdump-disassembly-for-x86
-+++ a/scripts/checkstack.pl
-@@ -66,8 +66,10 @@ my (@stack, $re, $dre, $sub, $x, $xs, $f
- 		#c0105234:       81 ec ac 05 00 00       sub    $0x5ac,%esp
- 		# or
- 		#    2f60:    48 81 ec e8 05 00 00       sub    $0x5e8,%rsp
--		$re = qr/^.*[as][du][db]    \$(0x$x{1,8}),\%(e|r)sp$/o;
--		$dre = qr/^.*[as][du][db]    (%.*),\%(e|r)sp$/o;
-+		# or
-+		#       0: 48 81 ec e8 05 00 00          subq   $0x5e8, %rsp
-+		$re = qr/^.*[as][du][db][ql]?\s+\$(0x$x{1,8}),\s*\%(e|r)sp/o;
-+		$dre = qr/^.*[as][du][db][ql]?\s+(%.*),\s*\%(e|r)sp/o;
- 	} elsif ($arch eq 'm68k') {
- 		#    2b6c:       4e56 fb70       linkw %fp,#-1168
- 		#  1df770:       defc ffe4       addaw #-28,%sp
+--- a/fs/ocfs2/xattr.c~ocfs2-allow-xattr-bucket-entries-to-span-multiple-blocks
++++ a/fs/ocfs2/xattr.c
+@@ -1150,11 +1150,30 @@ static int ocfs2_validate_xattr_bucket(s
+ 	struct ocfs2_xattr_header *xh = bucket_xh(bucket);
+ 	u16 xattr_count = le16_to_cpu(xh->xh_count);
+ 	size_t region_size = (size_t)sb->s_blocksize * bucket->bu_blocks;
+-	size_t entries_limit = sb->s_blocksize;
++	/*
++	 * The entry array grows up from the header across the whole
++	 * bucket region, so it may extend beyond the first bucket block
++	 * when the blocksize is smaller than OCFS2_XATTR_BUCKET_SIZE.
++	 * Name/value pairs, however, always live within a single block.
++	 */
++	size_t entries_limit = region_size;
+ 	size_t nv_limit = sb->s_blocksize;
+ 	size_t max_entries;
+ 	int i, ret;
+ 
++	/*
++	 * The entry array is one contiguous region that may span the
++	 * bucket's buffer_heads.  Buckets are allocated within clusters,
++	 * so their first block is always aligned to
++	 * OCFS2_XATTR_BUCKET_SIZE and the whole bucket fits in one page.
++	 * A corrupted xattr tree can point a bucket at blocks straddling
++	 * a page, so reject it before touching the entry array.
++	 */
++	if (blkno & (bucket->bu_blocks - 1))
++		return ocfs2_error(sb,
++				   "Invalid xattr bucket %llu: unaligned block number\n",
++				   (unsigned long long)blkno);
++
+ 	if (region_size < sizeof(*xh))
+ 		return ocfs2_error(sb,
+ 				   "Invalid xattr bucket %llu: region size %zu is too small\n",
 _
 
-Patches currently in -mm which might be from ndesaulniers@google.com are
+Patches currently in -mm which might be from joseph.qi@linux.alibaba.com are
 
+ocfs2-retain-all-security-xattrs-during-inode-creation.patch
+ocfs2-restore-erange-check-in-ocfs2_xattr_tree_list_index_block.patch
+ocfs2-fix-possible-deadlock-between-nfs_sync_rwlock-and-fs_reclaim.patch
 
