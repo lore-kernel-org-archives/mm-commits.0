@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 20DFB32AAA8
-	for <mm-commits@vger.kernel.org>; Wed,  7 Oct 2026 00:52:54 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 337BE32D7F8
+	for <mm-commits@vger.kernel.org>; Wed,  7 Oct 2026 00:52:55 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791334375; cv=none; b=g8pqcynmkFG+wTe4VaBJcXHPEs7DM101nKy1no6upDsglwoKFVIWQQ2q0JDQub6/pmsyxdop/9LWrxcErjwslfmlYVfQ048VPzv/B8KAY0C8vOEevIcebAvH183waR7MS27DWz/O99Zc/eE3nTkPA+cZ3HcJlpf7QkkhTLfKeOg=
+	t=1791334376; cv=none; b=domcd5iuhe8R+MvMY7m6ht0/JNDJ0a8VHmM+EjAGBRUQwZz9STZsYYKWRM8lGL0k5VldVLvCkhSl0gmX5G2GREqmGUjXePV16oCWifSQTCGnnHPOKLTSiPOPJnlWtMsNhQev2y3fKvmdgY51dETv4/G0XL0brdYijnXfqvWpMYM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791334375; c=relaxed/simple;
-	bh=qD5ShDSppRyHWkCUGdB54GkTtC7zz7Z6X9XmDuXBzZE=;
-	h=Date:To:From:Subject:Message-Id; b=Wg/U5AeP8DRaWQtAGSTFTgA5k4d75EcmGQWN2f5QhpMx68pH/WHWhesPGqsak64p8YM1EIrfV6kvukJGQ5roXhdrk6RYQ4ZV6gzTn1RhXSgYTaEzkWbCtEW5z4OWaE0wH6ThDhdjkeTXYl76vRzPxxahAilk2ZGV5BFKOGmfrq8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ZzzkJ3+6; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1791334376; c=relaxed/simple;
+	bh=LnKD/fzhiz1b4h+/KgysogREgJIeZn3s8wvjMN66bgw=;
+	h=Date:To:From:Subject:Message-Id; b=EO0B1ZkkDR5HyA0Puz+6U4+EGDLfhE89Oj2h+AjZge26qtLiTR6XKrOBND9tlbpaoV32ocI3foAP3EK1s4cV7B5lGZJbDVwd4tiQ9vIvgwc8b9/dvQVUtagV4iz4IcB8OS4zPuUZlAoAIiXbfR+iGNnzQWKoWMPC8dttJvcP7Uk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=pmXFU1qx; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ZzzkJ3+6"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id F1A6E1F0089C;
-	Wed,  7 Oct 2026 00:52:53 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="pmXFU1qx"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0E8CD1F0089B;
+	Wed,  7 Oct 2026 00:52:55 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1791334374;
-	bh=t6FRYTI1KdpnHWCZtLxZlpG3p6Mw+UJrAe7p54VkgCY=;
+	d=linux-foundation.org; s=korg; t=1791334375;
+	bh=It3bH0zr7ctZZh1fVa+PaRLxhZb3STYZUctM1Vci69s=;
 	h=Date:To:From:Subject;
-	b=ZzzkJ3+6IfwcLY1Or9St4DhC/U3W1qxadz/Cpdreoz7fA7CP2PilN+mTh726THsPB
-	 CeTlkmfcKUGjZAEjnBViCeAoE52tjetiiDn6/jHIWrLfrLSUWGbu9NQbTFP4Dwo3i7
-	 E7S/y/HizP0ceIDXity+MhUtU8DGtLdD6O0UgnZw=
-Date: Tue, 06 Oct 2026 17:52:53 -0700
+	b=pmXFU1qxR3rHFRXUQSASFKqNPbfaYXNt/zrMTpT1yBsZ54Hb8Axn0WR5R3iatOEt+
+	 NfRLDvRDhmd2CcVZnmr5hsnayGHV1oMEcPXXpl2nUVuMsYFHqczRujwYlT5m6aH3AH
+	 j6FfAkWiOrqTJl5/+P5ud96OebPwqVjnTh4GuTAI=
+Date: Tue, 06 Oct 2026 17:52:54 -0700
 To: mm-commits@vger.kernel.org,yuanchu@google.com,xueyuan.chen21@gmail.com,weixugc@google.com,stevensd@chromium.org,shakeel.butt@linux.dev,ridong.chen@linux.dev,mhocko@kernel.org,ljs@kernel.org,lianux.mm@gmail.com,kunwu.chan@gmail.com,kasong@tencent.com,hannes@cmpxchg.org,david@kernel.org,baoquan.he@linux.dev,baolin.wang@linux.alibaba.com,axelrasmussen@google.com,baohua@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-mglru-move-folios-from-oldest-gen-to-second-oldest-gen-from-head-to-tail.patch removed from -mm tree
-Message-Id: <20261007005253.F1A6E1F0089C@smtp.kernel.org>
+Subject: [merged mm-stable] mm-mglru-batch-move-folios-to-the-second-oldest-gens-lru.patch removed from -mm tree
+Message-Id: <20261007005255.0E8CD1F0089B@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,102 +35,32 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/mglru: move folios from oldest gen to second-oldest gen from head to tail
+     Subject: mm/mglru: batch move folios to the second-oldest gen's LRU
 has been removed from the -mm tree.  Its filename was
-     mm-mglru-move-folios-from-oldest-gen-to-second-oldest-gen-from-head-to-tail.patch
+     mm-mglru-batch-move-folios-to-the-second-oldest-gens-lru.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: "Barry Song (Xiaomi)" <baohua@kernel.org>
-Subject: mm/mglru: move folios from oldest gen to second-oldest gen from head to tail
-Date: Wed, 2 Sep 2026 07:24:20 +0800
+Subject: mm/mglru: batch move folios to the second-oldest gen's LRU
+Date: Wed, 2 Sep 2026 07:24:21 +0800
 
-For reclamation, it makes sense to reclaim folios from tail to head, as
-folios near the head are relatively hot.  However, when moving folios from
-the oldest generation to the second-oldest generation, using the
-tail-to-head order would effectively cause a cold/hot inversion.
+Detect folios that need to move from the oldest generation to the
+second-oldest generation, and batch-move them together.  This can
+significantly reduce the sys time of inc_min_seq(), especially when the
+other type is significantly behind the preferred type.
 
-The impact of the added prefetching might be arch-dependent.  Some
-architectures could benefit more from prefetching, while others might
-see little to no impact.  In my x86 test, it shows a very slight
-improvement:
-
-
-***** no-prefetch:
-
-agetest:
-...
-gen 100:  2.421 ms
-gen 101:  2.424 ms
-gen 102:  2.420 ms
-gen 103:  2.413 ms
-
-Total: 248.418 ms
-Average: 2.460 ms
-
-agetest:
-...
-gen 100:  2.393 ms
-gen 101:  2.396 ms
-gen 102:  2.395 ms
-gen 103:  2.392 ms
-
-Total: 245.627 ms
-Average: 2.432 ms
-
-agetest:
-...
-gen 100:  2.433 ms
-gen 101:  2.427 ms
-gen 102:  2.432 ms
-gen 103:  2.450 ms
-
-Total: 249.186 ms
-Average: 2.467 ms
-
-**** has-prefetch:
-
-agetest:
-....
-gen 100:  2.314 ms
-gen 101:  2.310 ms
-gen 102:  2.321 ms
-gen 103:  2.303 ms
-
-Total: 237.619 ms
-Average: 2.353 ms
-
-agetest:
-gen 100:  2.342 ms
-gen 101:  2.343 ms
-gen 102:  2.339 ms
-gen 103:  2.335 ms
-
-Total: 239.929 ms
-Average: 2.376 ms
-
-agetest:
-
-gen 100:  2.344 ms
-gen 101:  2.347 ms
-gen 102:  2.352 ms
-gen 103:  2.348 ms
-
-Total: 241.188 ms
-Average: 2.388 ms
-
-Basically, its 2.3xx vs. 2.4xx, lower is better.
-
-Link: https://lore.kernel.org/20260901232421.40157-7-baohua@kernel.org
+Link: https://lore.kernel.org/20260901232421.40157-8-baohua@kernel.org
 Signed-off-by: Barry Song (Xiaomi) <baohua@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 Reviewed-by: Baoquan He <baoquan.he@linux.dev>
 Tested-by: Xueyuan Chen <xueyuan.chen21@gmail.com>
 Reviewed-by: Lian Wang <lianux.mm@gmail.com>
+Reviewed-by: Baolin Wang <baolin.wang@linux.alibaba.com>
+Assisted-by: gemini:gemini-3.6-flash
 Cc: Axel Rasmussen <axelrasmussen@google.com>
-Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
 Cc: David Hildenbrand <david@kernel.org>
 Cc: David Stevens <stevensd@chromium.org>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
@@ -144,62 +74,66 @@ Cc: Wei Xu <weixugc@google.com>
 Cc: Yuanchu Xie <yuanchu@google.com>
 ---
 
- mm/vmscan.c |   23 +++++++++++++++++++++--
- 1 file changed, 21 insertions(+), 2 deletions(-)
+ mm/vmscan.c |   20 +++++++++++++++++++-
+ 1 file changed, 19 insertions(+), 1 deletion(-)
 
---- a/mm/vmscan.c~mm-mglru-move-folios-from-oldest-gen-to-second-oldest-gen-from-head-to-tail
+--- a/mm/vmscan.c~mm-mglru-batch-move-folios-to-the-second-oldest-gens-lru
 +++ a/mm/vmscan.c
-@@ -192,11 +192,27 @@ static inline void prefetchw_prev_lru_fo
- 		prefetchw(&prev->flags);
- 	}
+@@ -3936,6 +3936,19 @@ static void clear_mm_walk(void)
+ 		kfree(walk);
  }
-+
-+static inline void prefetchw_next_lru_folio(struct folio *folio,
-+		struct list_head *base)
-+{
-+	if (folio->lru.next != base) {
-+		struct folio *next;
-+
-+		next = list_entry(folio->lru.next, struct folio, lru);
-+		prefetchw(&next->flags);
-+	}
-+}
- #else
- static inline void prefetchw_prev_lru_folio(struct folio *folio,
- 		struct list_head *base)
- {
- }
-+
-+static inline void prefetchw_next_lru_folio(struct folio *folio,
-+		struct list_head *base)
-+{
-+}
- #endif
  
- /*
-@@ -3943,10 +3959,11 @@ static bool inc_min_seq(struct lruvec *l
++static inline void flush_lru_batch(struct list_head *head, struct list_head **batch_end,
++				   struct list_head *dst)
++{
++	LIST_HEAD(movable);
++
++	if (!*batch_end)
++		return;
++
++	list_cut_position(&movable, head, *batch_end);
++	list_splice_tail_init(&movable, dst);
++	*batch_end = NULL;
++}
++
+ static bool inc_min_seq(struct lruvec *lruvec, int type, int swappiness)
+ {
+ 	int zone;
+@@ -3958,8 +3971,10 @@ static bool inc_min_seq(struct lruvec *l
+ 			lru_gen_is_active(lruvec, target_gen));
  	/* prevent cold/hot inversion if the type is evictable */
  	for (zone = 0; zone < MAX_NR_ZONES; zone++) {
++		struct list_head *target_list = &lrugen->folios[target_gen][type][zone];
  		struct list_head *head = &lrugen->folios[old_gen][type][zone];
-+		struct list_head *pos = head->next;
+ 		struct list_head *pos = head->next;
++		struct list_head *batch_end = NULL;
  		long delta = 0;
  
--		while (!list_empty(head)) {
--			struct folio *folio = lru_to_folio(head);
-+		while (pos != head) {
-+			struct folio *folio = list_entry(pos, struct folio, lru);
- 			long nr_pages = folio_nr_pages(folio);
- 			int refs = folio_lru_refs(folio);
- 			bool workingset = folio_test_workingset(folio);
-@@ -3957,6 +3974,8 @@ static bool inc_min_seq(struct lruvec *l
- 			VM_WARN_ON_ONCE_FOLIO(folio_is_file_lru(folio) != type, folio);
- 			VM_WARN_ON_ONCE_FOLIO(folio_zonenum(folio) != zone, folio);
+ 		while (pos != head) {
+@@ -3984,7 +3999,7 @@ static bool inc_min_seq(struct lruvec *l
+ 			 */
+ 			if (gen_increased) {
+ 				delta += nr_pages;
+-				list_move_tail(&folio->lru, &lrugen->folios[new_gen][type][zone]);
++				batch_end = &folio->lru;
  
-+			prefetchw_next_lru_folio(folio, head);
-+			pos = pos->next;
- 			new_gen = __folio_inc_gen(folio, old_gen, &gen_increased);
- 			/*
- 			 * If gen_increased is false, this is a promotion. Put folios
+ 				/* don't count the workingset being lazily promoted */
+ 				if (refs + workingset != BIT(LRU_REFS_WIDTH) + 1) {
+@@ -3994,11 +4009,14 @@ static bool inc_min_seq(struct lruvec *l
+ 						   lrugen->protected[hist][type][tier] + nr_pages);
+ 				}
+ 			} else {
++				flush_lru_batch(head, &batch_end, target_list);
+ 				list_move(&folio->lru, &lrugen->folios[new_gen][type][zone]);
+ 			}
+ 			if (!--remaining)
+ 				break;
+ 		}
++		flush_lru_batch(head, &batch_end, target_list);
++
+ 		WRITE_ONCE(lrugen->nr_pages[old_gen][type][zone],
+ 			   lrugen->nr_pages[old_gen][type][zone] - delta);
+ 		WRITE_ONCE(lrugen->nr_pages[target_gen][type][zone],
 _
 
 Patches currently in -mm which might be from baohua@kernel.org are
