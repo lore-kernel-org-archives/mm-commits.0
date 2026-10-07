@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DE433314A90;
-	Wed,  7 Oct 2026 00:52:13 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id ED2BA30D419;
+	Wed,  7 Oct 2026 00:52:14 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791334335; cv=none; b=PP7r2l5Bh8FdMVPf/1AREeJ2/4fyrfXin1AC4+mb/HgGVV5iCPHVUcUmt2v9Vgy05dnw9aUZXyPLLHzNf4Sp7uMxwuqo2avCv1sFATkA6vcpmnxmB9oB7cXHoqjsDWVFbETPoLncON/7XYtucnSaYV4xJjrUMX9hqPy7YCJFKKA=
+	t=1791334336; cv=none; b=gKrFVLYAOnte4LMJC2xDr30fxtoO9TmkH3ggQGjDtC87xPV3nncp7eKAwuQUDRfcDfiNyqcVW9fN+q4GRjUtUw84AtZsyT9X3G0xTIQsAlvY0Nsi6y4b6zT6y0B9LQk7p/vMSNHhzoM5xfuQy1rGmoRG6dnGJcffbi6zvIKFR6k=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791334335; c=relaxed/simple;
-	bh=BaXUt2ILMj/vBXCrn7BuqRG3UuMKkoQiIhjymSRohiU=;
-	h=Date:To:From:Subject:Message-Id; b=oAYVi6YGrvHbhsP+qdah17TvEdGlB6KFLmyFnNS+XRlqChOzXAILQPer4zzstCN674GG1/eyXs1obV9d32ubTOusLIU75DiMi57b4x815kSNyS2ebgtoIZkOgI23dBZXmPS4mzxCMTY9lbhMBHhgUfJRuiCQNmEV1UXfSLp/0PA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=s1if2U8F; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1791334336; c=relaxed/simple;
+	bh=Xzpenz2JO56Q6jybIleQQ0436UD50Nfoo2r6uBJZkzc=;
+	h=Date:To:From:Subject:Message-Id; b=jcUXvHjtP+WfPueGeb7xpDfCKaL+Vuzap93FZa8DxymtfMEQHp6YPkT9kyEq9WJCr1LEj9+bOQv51G7K3uATuq0y6a+X/vIr/n1pSWz1ba78sWntV4684XzMdbnhsybaASLGPBrYTvMXB+6khtdDS4n88i4dFC8g3CeWOlvejvs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=MhF3pY0o; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="s1if2U8F"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B57971F0089B;
-	Wed,  7 Oct 2026 00:52:13 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="MhF3pY0o"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C3E821F0089C;
+	Wed,  7 Oct 2026 00:52:14 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1791334333;
-	bh=Ng+BOIjKEsiDmsg6vv3mI+RvHjyIJXfE3tVkDlpvJ2M=;
+	d=linux-foundation.org; s=korg; t=1791334334;
+	bh=tV9673NcL8i+Vs0Bxa68GE0mD8NRyR2ONZQp+DpElCU=;
 	h=Date:To:From:Subject;
-	b=s1if2U8F9z3bLgvlgdniV/kZBnrJUfSmxd5dQLx/Al01N1p3QDcyXXuWdCuZ8mT6G
-	 FgYe4VTjAqiLV3uweZ18DvLrZGIHEJiugRDjdrmPKyfb59aj0y5ioAUz35sbX/piSl
-	 lR290hPFrD9IDZVbCAuHwO1Sp7Nvzey2t4Hmq8Vo=
-Date: Tue, 06 Oct 2026 17:52:13 -0700
+	b=MhF3pY0omFEB4dB/oHkYSkYY0ZNebmT61wPdDxSfsNACNqdKgjPrEprTgeQzi+s0Z
+	 hOrCZOJHSx9376Nf79Dp665f0uGF2+KxI4iy4qGbDkipC7jJjrr4B/X6zeFYvSSxC7
+	 vQmjnfKldT+Y4Ux/U83zsS7C/Nl7YomclOOuBhwk=
+Date: Tue, 06 Oct 2026 17:52:14 -0700
 To: mm-commits@vger.kernel.org,usamaarif642@gmail.com,stable@vger.kernel.org,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-damon-core-handle-extreme-memory-state-in-get_node_memcg_used_bp.patch removed from -mm tree
-Message-Id: <20261007005213.B57971F0089B@smtp.kernel.org>
+Subject: [merged mm-stable] mm-damon-core-handle-extreme-memory-state-in-get_in_active_mem_bp.patch removed from -mm tree
+Message-Id: <20261007005214.C3E821F0089C@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,55 +35,49 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/damon/core: handle extreme memory state in get_node_memcg_used_bp()
+     Subject: mm/damon/core: handle extreme memory state in get_in_active_mem_bp()
 has been removed from the -mm tree.  Its filename was
-     mm-damon-core-handle-extreme-memory-state-in-get_node_memcg_used_bp.patch
+     mm-damon-core-handle-extreme-memory-state-in-get_in_active_mem_bp.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: SJ Park <sj@kernel.org>
-Subject: mm/damon/core: handle extreme memory state in get_node_memcg_used_bp()
-Date: Tue, 1 Sep 2026 06:18:48 -0700
+Subject: mm/damon/core: handle extreme memory state in get_in_active_mem_bp()
+Date: Tue, 1 Sep 2026 06:18:49 -0700
 
-In extreme unlikely situations, total memory might be zero.  In less
-extreme but still very unlikely situations, lruvec_page_state() calls
-might let the caller show used memory larger than total memory.  In the
-two cases, damos_get_node_memcg_used_bp() could cause division by zero, or
-return underflowed value, respectively.  Handle the cases by respectively
-returning 100% and 0% for used and free memory queries in the corner
-cases.
+damos_get_in_active_mem_bp() uses the sum of the active and inactive
+memory amount as a denominator.  In an extreme and unlikely environment,
+active and inactive memory might be zero.  In this case, hence, it results
+in a divide by zero problem.  Avoid it by changing the denominator to one
+if it is zero, before it is being used.
 
-This issue was discovered [1] by Sashiko.
+The issue was discovered [1] by Sashiko.
 
-Link: https://lore.kernel.org/20260901131850.98037-8-sj@kernel.org
-Link: https://lore.kernel.org/20260329154813.47382-1-sj@kernel.org [1]
-Fixes: b74a120bcf50 ("mm/damon/core: implement DAMOS_QUOTA_NODE_MEMCG_USED_BP")
+Link: https://lore.kernel.org/20260901131850.98037-9-sj@kernel.org
+Link: https://lore.kernel.org/20260721034756.147011-1-sj@kernel.org [1]
+Fixes: 4835e2871321 ("mm/damon/core: introduce [in]active memory ratio damos quota goal metric")
 Signed-off-by: SJ Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 Cc: Usama Arif <usamaarif642@gmail.com>
-Cc: <stable@vger.kernel.org> # 6.19.x
+Cc: <stable@vger.kernel.org> # 7.0.x
 ---
 
- mm/damon/core.c |    6 ++++++
- 1 file changed, 6 insertions(+)
+ mm/damon/core.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/damon/core.c~mm-damon-core-handle-extreme-memory-state-in-get_node_memcg_used_bp
+--- a/mm/damon/core.c~mm-damon-core-handle-extreme-memory-state-in-get_in_active_mem_bp
 +++ a/mm/damon/core.c
-@@ -2857,6 +2857,12 @@ static unsigned long damos_get_node_memc
- 	mem_cgroup_put(memcg);
- 
- 	si_meminfo_node(&i, goal->nid);
-+	if (!i.totalram || i.totalram < used_pages) {
-+		if (goal->metric == DAMOS_QUOTA_NODE_MEMCG_USED_BP)
-+			return 10000;
-+		else	/* DAMOS_QUOTA_NODE_MEMCG_FREE_BP */
-+			return 0;
-+	}
- 	if (goal->metric == DAMOS_QUOTA_NODE_MEMCG_USED_BP)
- 		numerator = used_pages;
- 	else	/* DAMOS_QUOTA_NODE_MEMCG_FREE_BP */
+@@ -3009,7 +3009,7 @@ static unsigned int damos_get_in_active_
+ 		global_node_page_state(NR_LRU_BASE + LRU_ACTIVE_FILE);
+ 	inactive = global_node_page_state(NR_LRU_BASE + LRU_INACTIVE_ANON) +
+ 		global_node_page_state(NR_LRU_BASE + LRU_INACTIVE_FILE);
+-	total = active + inactive;
++	total = max(active + inactive, 1);
+ 	if (active_ratio)
+ 		return mult_frac(active, 10000, total);
+ 	return mult_frac(inactive, 10000, total);
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
