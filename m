@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C0727356A38;
-	Wed,  7 Oct 2026 02:04:50 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AEB53259C80
+	for <mm-commits@vger.kernel.org>; Wed,  7 Oct 2026 02:04:51 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791338691; cv=none; b=W7GV9vozx0E784tHnw0yuvUfeT8WjpG/kTe7+FOGS/DJXDbdhlg/+xLvGU31ku/EMXEcB0omfAuIOyR3FZH+NobyzMODigUAjhLAaBrMJIWm8wDgHCgtlyzGHV+Cq2jE7H0kYm/8Ax5aJ3iTpJShC7S/NzSfW8PHJhxt33uAD4M=
+	t=1791338693; cv=none; b=KqKtvXFxmbLM/0kjKOJ9SXkwt4GKqGhHogX1junKsjVQdrl/yZh7kWMpSxJ78KLI2EMPyea5GeajQyvL2vvglZFuDO8lBeGXpfAL8ypZ1wuZWbroqvDzDnjpi0nLy2RRdfkkfydJdwG8W5ff2VNAdn4fEv/ehPolFd2GdT7lfyU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791338691; c=relaxed/simple;
-	bh=z7DymRIAzepgxBKMSbeAjkdZQDsXnzIJXeiPO5x+H9Q=;
-	h=Date:To:From:Subject:Message-Id; b=kPuS2Q+Whl/zmBYejK8rubWwHIKLDlLqbvSelhl7eidr0hKQB3rY2OgxwdSK165UXFo33DHV78jBGLeKgvJ1qi5lFuCrMhHK2s/eL9y7E5datuKqpe6dWd0ho8Ox424aIHElPv99T0XPYJWogBk6CuN3t2QvY5nZrkSdqRj1lEE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=OIBkGFR8; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1791338693; c=relaxed/simple;
+	bh=xIYkvIahexaDcayop6hq1GdWcVnmsE3BF26y6yfgLiw=;
+	h=Date:To:From:Subject:Message-Id; b=dh+IEiNZ8Hh0mn7CaoEl/y8dLk0KiZwlbNWNI5ovRfbZ9NCxg8kFyW1Z1O1EDp7TyE5Kt7DeIf50eM3YsY1nEJcoEZMhcotobUYADSQvvwvFu3foc85GvaHF0kGqvPaRyevz731uBgHA6xEQ0fbhn0UiawlJ+sL7lhN73Zk33OU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=j0NP0h7N; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="OIBkGFR8"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5D1761F0089C;
-	Wed,  7 Oct 2026 02:04:50 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="j0NP0h7N"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 83A181F0089B;
+	Wed,  7 Oct 2026 02:04:51 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1791338690;
-	bh=dIblRx55xfVh/ae/uhnH8tbE7cCWQ32taKkXA4sBx0c=;
+	d=linux-foundation.org; s=korg; t=1791338691;
+	bh=P1QC7vtG729kXd+6U5+k4O2yAOa+oehB9LNdG7qdR+o=;
 	h=Date:To:From:Subject;
-	b=OIBkGFR8IR1khCjZbArdZvyPWsZ9UXQhjaX3FPuL/xyDmHzkE7f9lV+W0j6/XAx1h
-	 Xm68Z2LmEJHtsCp85RndfbRxSPO9qcmjJ9vBDwpOTdJcaasJjSDNFvcsnyAX7ytAdN
-	 f4io0tQd6u3SyQ0oteom3XCgXlF8gIhmiLiUzDnQ=
-Date: Tue, 06 Oct 2026 19:04:49 -0700
-To: mm-commits@vger.kernel.org,stable@vger.kernel.org,richard120310@gmail.com,handyhandyman.adam@gmail.com,akpm@linux-foundation.org
+	b=j0NP0h7N13gSmHAKbcXVybbE0RjXqNdoaJKAwEPqFRLHyPvEa6Crn5ZMjL21IO1Ya
+	 eMfG+YohmSv9HWU0RMR39xLKIIl1cNf3177DZQxGtxaLcVxSrkkVYOUZ+QqOs3L8h1
+	 1+XKEBTQAfuq7H3zN+8S1JHbk2Ds7V2i5SEwkYeY=
+Date: Tue, 06 Oct 2026 19:04:51 -0700
+To: mm-commits@vger.kernel.org,aliamemis@disroot.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] lib-plist-fix-plist_requeue-corrupting-order-in-the-last-bucket.patch removed from -mm tree
-Message-Id: <20261007020450.5D1761F0089C@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] mailmap-update-email-address-for-ali-ahmet-memiş.patch removed from -mm tree
+Message-Id: <20261007020451.83A181F0089B@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,100 +35,45 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: lib/plist: fix plist_requeue() corrupting order in the last bucket
+     Subject: mailmap: update email address for Ali Ahmet Memiş
 has been removed from the -mm tree.  Its filename was
-     lib-plist-fix-plist_requeue-corrupting-order-in-the-last-bucket.patch
+     mailmap-update-email-address-for-ali-ahmet-memiş.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Adam Harshbarger <handyhandyman.adam@gmail.com>
-Subject: lib/plist: fix plist_requeue() corrupting order in the last bucket
-Date: Thu, 3 Sep 2026 17:24:56 -0500
+From: Ali Ahmet Memiş <aliamemis@disroot.org>
+Subject: mailmap: update email address for Ali Ahmet Memiş
+Date: Sat, 5 Sep 2026 22:49:39 +0300
 
-plist_requeue() is meant to move a node to the end of its own priority
-run.  When the node heads the *last* priority bucket it is instead placed
-at the head of the whole list, leaving the plist unsorted:
+I'm switching to my disroot address for kernel contributions.  Map the
+address my earlier patches were sent from to it, so that get_maintainer.pl
+stops offering the old one as a recipient.
 
-  built:      A(prio 0) B(prio 1) C(prio 1)
-  requeue(B): B(prio 1) A(prio 0) C(prio 1)
-  expected:   A(prio 0) C(prio 1) B(prio 1)
+Also switch to the proper spelling of my name with diacritics, which is
+what I use with the new address.
 
-prio_list is a *headless* circular ring of the nodes that lead each
-priority bucket.  The shortcut added by commit 95d4b3450ebe ("lib/plist.c:
-add shortcut for plist_requeue()") takes
-
-	iter = list_entry(iter->prio_list.next, struct plist_node,
-			  prio_list);
-	node_next = &iter->node_list;
-
-which from the last bucket wraps round to the *first* bucket, so node_next
-ends up pointing at the head of the list rather than at its end.  The
-plist_for_each_continue() loop immediately below it computes the correct
-answer (&head->node_list) for that case.
-
-With any bucket after it the shortcut is correct, which is why this went
-unnoticed: the benchmark in that commit measured elapsed time and never
-checked the resulting order.
-
-Keep the shortcut -- it is a real win -- but exclude the case where iter's
-bucket is the last one, which is exactly when its ring successor is the
-first bucket again.
-
-Reachable from mm/swapfile.c, which rotates swap_avail_heads[] with
-plist_requeue().  It takes three or more swap devices: at least two
-distinct priorities, so that a later bucket exists for the ring to wrap
-round from, and two or more devices sharing the lowest priority, so that
-plist_requeue() does not return early.  One device per priority returns
-early at the node->prio != iter->prio test.  A single priority is also
-safe, but for a different reason worth stating: with one bucket no node is
-ever linked onto prio_list at all -- plist_add() skips it for the first
-node and for every node whose predecessor shares its priority -- so
-list_empty(&iter->prio_list) holds and the shortcut is never entered.
-
-Tested by driving three implementations -- the pre-95d4b3450ebe code,
-current mainline, and this patch -- through 1,084,492 identical random
-add/del/requeue operations over 24 nodes and 1..5 distinct priorities,
-comparing the resulting node_list node for node after every operation:
-
-  variant             differs from pre-95d4b3450ebe  left list unsorted
-  pre-95d4b3450ebe    -- (reference)                                  0
-  mainline                                  289,297             276,660
-  this patch                                      0                   0
-
-Link: https://lore.kernel.org/20260903222456.1881786-1-handyhandyman.adam@gmail.com
-Fixes: 95d4b3450ebe ("lib/plist.c: add shortcut for plist_requeue()")
-Signed-off-by: Adam Harshbarger <handyhandyman.adam@gmail.com>
+Link: https://lore.kernel.org/20260905195000.556185-1-aliamemis@disroot.org
+Signed-off-by: Ali Ahmet Memiş <aliamemis@disroot.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Assisted-by: Claude:claude-opus-5
-Cc: I Hsin Cheng <richard120310@gmail.com>
-Cc: <stable@vger.kernel.org> # v6.15+
 ---
 
- lib/plist.c |    7 +++++++
- 1 file changed, 7 insertions(+)
+ .mailmap |    1 +
+ 1 file changed, 1 insertion(+)
 
---- a/lib/plist.c~lib-plist-fix-plist_requeue-corrupting-order-in-the-last-bucket
-+++ a/lib/plist.c
-@@ -174,8 +174,15 @@ void plist_requeue(struct plist_node *no
- 	/*
- 	 * After plist_del(), iter is the replacement of the node.  If the node
- 	 * was on prio_list, take shortcut to find node_next instead of looping.
-+	 *
-+	 * prio_list is a headless ring, so from the LAST bucket ->next wraps
-+	 * round to the first one; in that case node_next is the list head.
- 	 */
- 	if (!list_empty(&iter->prio_list)) {
-+		struct plist_node *first = plist_first(head);
-+
-+		if (iter->prio_list.next == &first->prio_list)
-+			goto queue;
- 		iter = list_entry(iter->prio_list.next, struct plist_node,
- 				  prio_list);
- 		node_next = &iter->node_list;
+--- a/.mailmap~mailmap-update-email-address-for-ali-ahmet-memiş
++++ a/.mailmap
+@@ -67,6 +67,7 @@ Alex Hung <alexhung@gmail.com> <alex.hun
+ Alex Shi <alexs@kernel.org> <alex.shi@intel.com>
+ Alex Shi <alexs@kernel.org> <alex.shi@linaro.org>
+ Alex Shi <alexs@kernel.org> <alex.shi@linux.alibaba.com>
++Ali Ahmet Memiş <aliamemis@disroot.org> <ali@iusegentoo.com>
+ Alice Mikityanska <alice.kernel@fastmail.im> <maxtram95@gmail.com>
+ Alice Mikityanska <alice.kernel@fastmail.im> <maximmi@mellanox.com>
+ Alice Mikityanska <alice.kernel@fastmail.im> <maximmi@nvidia.com>
 _
 
-Patches currently in -mm which might be from handyhandyman.adam@gmail.com are
+Patches currently in -mm which might be from aliamemis@disroot.org are
 
 
