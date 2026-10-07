@@ -1,109 +1,136 @@
-Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.133.124])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BE1773DA7CC
-	for <mm-commits@vger.kernel.org>; Wed,  7 Oct 2026 18:06:11 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=170.10.133.124
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 030844E06EA;
+	Wed,  7 Oct 2026 18:44:13 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791396373; cv=none; b=YkV1kWZzm7MyIfUwMAd7T7RDrvFanEXfrAjwMkRzsvecXB8uiXc95nQCsSdxkDlRRba3UKsTWEKR5ZYnLSdK9oD/as2vya9qW07y/wSEu/VS4yjW/lKFZF3NyEO0KfcbKIo3eS+9Bd2EeQbnFIKy9WeF/03zbOtbwtRZySlxp2Y=
+	t=1791398655; cv=none; b=Eeb+ffVBTxWO0LSVBc6TeWjYrljXt1S9IAd3ujbfE40Lal9eKOrGVr+nHAWr3AkP6Cw8B9Woc58880Rxp8TqDvbfNLNqN4sg3RjTP1ae4MrVCqZZfhuns8ih7v9x8XY+3J7aLSAivYDOQAG6VyH3JEmMCCC/3H0vRJgWr8fVG0s=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791396373; c=relaxed/simple;
-	bh=n0QyWhrhm9acceTGuEWxrsWW9BZVMA/qAEKGz3jHlE8=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=pXJfUDvihDXq0+KloWtHtIGHBrSmqfFNy3RjW+3P2IfXks+zaELuN318NJARyBrsWRlXa5q/BHYI2A0qoIIK/+b/238ahrVrQQBih/ndVyavBWm259Mwt2+05cQ7ZtYk3tyh8t9TPY0jgLunnO2rVuU2GUyYx+OkelGavnfSONs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com; spf=pass smtp.mailfrom=redhat.com; dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b=e+M96Qlq; arc=none smtp.client-ip=170.10.133.124
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=redhat.com
+	s=arc-20240116; t=1791398655; c=relaxed/simple;
+	bh=lPkrtCH3PJjnoX0U/IdH/1lq8CqqgobSQ57/S6/LeJI=;
+	h=Date:To:From:Subject:Message-Id; b=mrzhf3sWulQ9P9PrVM6hG9/ayONAE3h4ghNLGaMFkuAAKB7qZR/TkJVlbvFiJonnmhFwao3UCACTrTkx1cCl0aEHlHaGAyZBlZ2Z5MSmvb6kbc2wL07GBgW2beVHtSt1WspWtdSHBWJschRS9ztdbbpq3MjSLH0gXC1JuSsaMWI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=N2FcXa5L; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="e+M96Qlq"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-	s=mimecast20190719; t=1791396370;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-	 in-reply-to:in-reply-to:references:references;
-	bh=2fQy0gH4jBuk/GkjYe79GSoXE0kJTpqvpiUcKQbNvg4=;
-	b=e+M96QlqPjayqS32EGFkEU5ZnsKFSGv5m9gYdKwTU3hVm78nS57cX6rjjrV0K+0SVwhKiu
-	k5KypWhnZmoEGgIILDHEwPzWSH9oFcEdV+ts7dvitweXIqVkAD+XnDQWtcAtt18/5wwU03
-	GHUMHsVgiKvtfHcBDZO3zRaqzw4VNG8=
-Received: from mx-prod-mc-08.mail-002.prod.us-west-2.aws.redhat.com
- (ec2-35-165-154-97.us-west-2.compute.amazonaws.com [35.165.154.97]) by
- relay.mimecast.com with ESMTP with STARTTLS (version=TLSv1.3,
- cipher=TLS_AES_256_GCM_SHA384) id us-mta-474-TOdfJvT3OjWeiyaxIwrscw-1; Wed,
- 07 Oct 2026 14:06:06 -0400
-X-MC-Unique: TOdfJvT3OjWeiyaxIwrscw-1
-X-Mimecast-MFC-AGG-ID: TOdfJvT3OjWeiyaxIwrscw_1791396365
-Received: from mx-prod-int-05.mail-002.prod.us-west-2.aws.redhat.com (mx-prod-int-05.mail-002.prod.us-west-2.aws.redhat.com [10.30.177.17])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
-	(No client certificate requested)
-	by mx-prod-mc-08.mail-002.prod.us-west-2.aws.redhat.com (Postfix) with ESMTPS id 5CDC51800BE2;
-	Wed,  7 Oct 2026 18:06:05 +0000 (UTC)
-Received: from onestero-thinkpadp1gen7.tpbc.csb (headnet03.pony-001.prod.iad2.dc.redhat.com [10.2.32.114])
-	by mx-prod-int-05.mail-002.prod.us-west-2.aws.redhat.com (Postfix) with SMTP id 060B21956095;
-	Wed,  7 Oct 2026 18:06:03 +0000 (UTC)
-Received: by onestero-thinkpadp1gen7.tpbc.csb (nbSMTP-1.00) for uid 13628
-	oleg@redhat.com; Wed,  7 Oct 2026 20:06:05 +0200 (CEST)
-Date: Wed, 7 Oct 2026 20:06:02 +0200
-From: Oleg Nesterov <oleg@redhat.com>
-To: Bradley Morgan <brads@mainlining.org>
-Cc: Andrew Morton <akpm@linux-foundation.org>, mm-commits@vger.kernel.org,
-	bsingharora@gmail.com
-Subject: Re: [to-be-updated]
- taskstats-copy-signal-stats-under-siglock-in-taskstats_exit.patch removed
- from -mm tree
-Message-ID: <asaKCo5lwB3nzWNM@redhat.com>
-References: <20261007012108.780B01F0089B@smtp.kernel.org>
- <CB0B268A-5D7E-4FDE-A706-1A7AD877EA93@mainlining.org>
- <20261007101242.050caf151539d660e8bdc100@linux-foundation.org>
- <A2B94D8E-F026-406E-B346-9200FA081EB0@mainlining.org>
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="N2FcXa5L"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6205A1F000FF;
+	Wed,  7 Oct 2026 18:44:13 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+	d=linux-foundation.org; s=korg; t=1791398653;
+	bh=Ev+4/KBlQxrmG8hIqrDOUjOzJhvBWOzFhgdK3O0GXgw=;
+	h=Date:To:From:Subject;
+	b=N2FcXa5LLDGKmIJ3/ewt05LATPyxuPBqLXY53QUENVIiPb6QM57Qt9yJb0A8llfo7
+	 4aP+RtqV3zjw5xp9eX/y8m2itJQER5v1+iM3f6tVpq4Zs9GI234zkgHxtwFppAW/I1
+	 caB671TdZFjlbSGuKHYPXXh68CNPuQGOHJW3WycM=
+Date: Wed, 07 Oct 2026 11:44:12 -0700
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,willy@infradead.org,usama.arif@linux.dev,stable@vger.kernel.org,ryan.roberts@arm.com,nico.pache@linux.dev,liam@infradead.org,lance.yang@linux.dev,kas@kernel.org,hughd@google.com,dev.jain@arm.com,david@kernel.org,baolin.wang@linux.alibaba.com,baohua@kernel.org,kylebot@openai.com,akpm@linux-foundation.org
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: + mm-khugepaged-flush-deferred-unmaps-before-dropping-a-failed-folio.patch added to mm-hotfixes-unstable branch
+Message-Id: <20261007184413.6205A1F000FF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <A2B94D8E-F026-406E-B346-9200FA081EB0@mainlining.org>
-X-Scanned-By: MIMEDefang 3.0 on 10.30.177.17
 
-On 10/07, Bradley Morgan wrote:
->
-> Changes since V1:
-> - spin_lock_irq() instead of spin_lock_irqsave() (Oleg)
 
-I have already reviewed this version... Let me quote
-https://lore.kernel.org/all/anMC3eRoRdaST0Se@redhat.com/
+The patch titled
+     Subject: mm/khugepaged: flush deferred unmaps before dropping a failed folio
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     mm-khugepaged-flush-deferred-unmaps-before-dropping-a-failed-folio.patch
 
-	Acked-by: Oleg Nesterov <oleg@redhat.com>
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-khugepaged-flush-deferred-unmaps-before-dropping-a-failed-folio.patch
 
-	However. I won't blame your fix, but I am not sure it actually fixes the
-	real problem.
+This patch will later appear in the mm-hotfixes-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
-	In the scenario above, if thread B takes ->siglock first (before thread A)
-	it will report TASKSTATS_TYPE_TGID/AGROUP without accounting thread A.
-	Looks "obviously wrong" but I forgot everything about taskstats.
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
 
-	And OTOH... for_each_thread() in fill_stats_for_tgid() can't rely on the
-	tsk->exit_state check, the same thread can be accounted twice.
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
 
-So perhaps the changelog should mention that this patch doesn't fix all the
-related problems? Or may be you can try to make V3 which fixes them all?
+The -mm tree is included into linux-next via various
+branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there most days
 
-> --- a/kernel/taskstats.c
-> +++ b/kernel/taskstats.c
-> @@ -635,7 +635,10 @@ void taskstats_exit(struct task_struct *tsk, int group_dead)
->  	if (!stats)
->  		goto err;
->
-> +	/* This was racy before, copy the stats under siglock. */
+------------------------------------------------------
+From: Kyle Zeng <kylebot@openai.com>
+Subject: mm/khugepaged: flush deferred unmaps before dropping a failed folio
+Date: Tue,  6 Oct 2026 21:10:01 -0700
 
-Well, this comment looks strange to me. I'd suggest to drop it.
+collapse_file() can fail its reference-count or dirty-folio check after
+unmapping with TTU_BATCH_FLUSH.  Both paths put back the isolated folio,
+then unlock it and drop the lookup reference before reaching the common
+try_to_unmap_flush().
 
-> +	spin_lock_irq(&tsk->sighand->siglock);
->  	memcpy(stats, tsk->signal->stats, sizeof(*stats));
-> +	spin_unlock_irq(&tsk->sighand->siglock);
->  	stats->version = TASKSTATS_VERSION;
+The page-cache reference does not keep the folio stable once the lock is
+released.  Another collapse can replace and free it.  With its PTEs
+already gone, that collapse cannot flush the first task's per-task TLB
+batch, and retract_page_tables() skips short or unaligned VMAs.  A CPU can
+therefore retain a user translation to the freed folio.  This has been
+reproduced with unprivileged MADV_COLLAPSE on a memfd.
 
-Oleg.
+Flush at out_unlock while the lookup reference and folio lock are still
+held.  The common flush continues to cover the accumulated pagelist on
+both success and rollback, preserving batching on successful collapses.
+
+Link: https://lore.kernel.org/20261007041001.43181-1-kylebot@openai.com
+Fixes: 6d9df8a5889c ("mm/thp: collapse_file() do try_to_unmap(TTU_BATCH_FLUSH)")
+Signed-off-by: Kyle Zeng <kylebot@openai.com>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+Acked-by: David Hildenbrand (Arm) <david@kernel.org>
+Reviewed-by: Zi Yan <ziy@nvidia.com>
+Assisted-by: LLM
+Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
+Cc: Barry Song <baohua@kernel.org>
+Cc: Dev Jain <dev.jain@arm.com>
+Cc: Kiryl Shutsemau <kas@kernel.org>
+Cc: Lance Yang <lance.yang@linux.dev>
+Cc: "Liam R. Howlett" <liam@infradead.org>
+Cc: Nico Pache <nico.pache@linux.dev>
+Cc: Ryan Roberts <ryan.roberts@arm.com>
+Cc: Usama Arif <usama.arif@linux.dev>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: <stable@vger.kernel.org>
+---
+
+ mm/khugepaged.c |   10 +++++++---
+ 1 file changed, 7 insertions(+), 3 deletions(-)
+
+--- a/mm/khugepaged.c~mm-khugepaged-flush-deferred-unmaps-before-dropping-a-failed-folio
++++ a/mm/khugepaged.c
+@@ -2478,6 +2478,11 @@ static enum scan_result collapse_file(st
+ 		index += folio_nr_pages(folio);
+ 		continue;
+ out_unlock:
++		/*
++		 * The folio may have been unmapped with TTU_BATCH_FLUSH.
++		 * Flush before releasing the lock and our last reference.
++		 */
++		try_to_unmap_flush();
+ 		folio_unlock(folio);
+ 		folio_put(folio);
+ 		goto xa_unlocked;
+@@ -2488,9 +2493,8 @@ xa_locked:
+ xa_unlocked:
+ 
+ 	/*
+-	 * If collapse is successful, flush must be done now before copying.
+-	 * If collapse is unsuccessful, does flush actually need to be done?
+-	 * Do it anyway, to clear the state.
++	 * Flush before copying the folios, or releasing them in rollback.
++	 * This is a no-op if out_unlock already flushed the batch.
+ 	 */
+ 	try_to_unmap_flush();
+ 
+_
+
+Patches currently in -mm which might be from kylebot@openai.com are
+
+mm-khugepaged-flush-deferred-unmaps-before-dropping-a-failed-folio.patch
 
