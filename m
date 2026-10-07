@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5F322175A86;
-	Wed,  7 Oct 2026 02:03:54 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 797302472AA;
+	Wed,  7 Oct 2026 02:03:55 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791338635; cv=none; b=aZr5BbH532iz7ggDs2cq86CkMBRPoMMqE07OzcvZQm3RelS00JKwaDD0mYhMAUdn/hEv373RdGWLLCOiQaR8VBEtGvM8+DiHwf8QRLaMZh7bwOAbuv7o1GJewKUVlIvmkdu5pjNdJlRw/U1bSRbNUtSBk2Gu5Yk4Rr5/ldKlOhU=
+	t=1791338636; cv=none; b=TPmcFEtlVNSVwkoQ1JWqWLUBRhkx7pf6GRcd7jQlyDef9Uu7PF74a5UDHsC96cvpWmD50Sln50pM0kKhWMZA5vf+0Xk7rH4DEkzYn0prPomOU77UK61AA/vnob7fj5mYUkqpIBBjTCglaXA5vUK7PSvzIq+iUQ41C+nzhzHdUQo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791338635; c=relaxed/simple;
-	bh=I6R+MgEYWHwW7eObQOmnaJmIgprA6XOb/GOtvYGuM9Y=;
-	h=Date:To:From:Subject:Message-Id; b=AJJmUX9GhsN7XodX0feM6YlepnHLJoHONRocXsqBx3pHuncWXeG9Pp9xdrzXF4N44Em/xyvvLXIAc7Xg2xIz1Nx9aWmkVFudkdnidWEez1AsaNHuJDUGQqTXqn3plTFvOsVQunLjssNLalQ1168zzi0OJY9m7uT3Z/qC8GHr2L0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=CXvzdEAX; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1791338636; c=relaxed/simple;
+	bh=C7ECeFBeY34UmADSZQlKXA26hgknt7GgnEdhMluTLHc=;
+	h=Date:To:From:Subject:Message-Id; b=B2z0YB6KnTg0LiaqAbK5SktHOK6EFhygZ6Nlu+8A+AoxQtWwfkQvY+AyXQDkm5BJSxp5CHDVio7VoIKT6FkW7rnuEgrkkLsG2sLTHuvUBvjU+Fr3Jup5oYeDC1fyuhcGyhvejPRANuLiOkKHnldK6T6fAqFAdrd+B5Bi3lCVydo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=jWDthwZY; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="CXvzdEAX"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E87681F0089B;
-	Wed,  7 Oct 2026 02:03:53 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="jWDthwZY"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 21A071F0089C;
+	Wed,  7 Oct 2026 02:03:55 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1791338634;
-	bh=IAZFyv6PFeYpQZ9EbjZjM0e9oP7I5Ys8XsrjmKShJ7E=;
+	d=linux-foundation.org; s=korg; t=1791338635;
+	bh=bw3K1nnjtuHs64Dbh5mcHl2Qf3C8XN2Rn5pjLX2y2ys=;
 	h=Date:To:From:Subject;
-	b=CXvzdEAXAUKfvmzvZJMg7Yn+97qCyz1cRrW3S1+8iyyZHrzQa4k/um94FwjVMIOAk
-	 Q5x85lp5iDvpMnnqOH6ggMTFUyO3Q2oWpUm/xaaSdPUrsjwzDPEf3HNsGFIOG8WG/6
-	 j+pXugswvPcr9h76gL/zTCY68l2mnulKo2vhCwyg=
-Date: Tue, 06 Oct 2026 19:03:53 -0700
-To: mm-commits@vger.kernel.org,yuantan098@gmail.com,yifanwucs@gmail.com,tomapufckgml@gmail.com,syzbot+e64c6472a3d96a75172a@syzkaller.appspotmail.com,syzbot+26461e903494e689c24f@syzkaller.appspotmail.com,stable@vger.kernel.org,prcups@krgm.moe,n05ec@lzu.edu.cn,bird@lzu.edu.cn,hirofumi@mail.parknet.co.jp,akpm@linux-foundation.org
+	b=jWDthwZYeidyPs3v7mjkTgb+aRfhfWxAHtFJlOpN6fKCdvaM1QnWZaVgcMnAal+H1
+	 96NLJ/Qep63YIukiHA0/9fGJZpPGI7q7eDNV+h9e/jAlo6tsFDEar6u6p/IwRhUCA0
+	 NJhJaWMotH7m5mUv4RzBj4lwQgLBEQJKvNFSfYnM=
+Date: Tue, 06 Oct 2026 19:03:54 -0700
+To: mm-commits@vger.kernel.org,vbabka@kernel.org,stable@vger.kernel.org,leon@kernel.org,jgg@ziepe.ca,dennis.dalessandro@cornelisnetworks.com,akpm@linux-foundation.org,akinobu.mita@gmail.com,mliang@purestorage.com
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] fat-fix-fat_ent_write-for-reverting-the-value.patch removed from -mm tree
-Message-Id: <20261007020353.E87681F0089B@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] fault-inject-fix-dentry-leak.patch removed from -mm tree
+Message-Id: <20261007020355.21A071F0089C@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,130 +35,163 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: fat: fix fat_ent_write() for reverting the value
+     Subject: fault-inject: fix dentry leak
 has been removed from the -mm tree.  Its filename was
-     fat-fix-fat_ent_write-for-reverting-the-value.patch
+     fault-inject-fix-dentry-leak.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
-Subject: fat: fix fat_ent_write() for reverting the value
-Date: Tue, 25 Aug 2026 21:11:32 +0900
+From: Michael Liang <mliang@purestorage.com>
+Subject: fault-inject: fix dentry leak
+Date: Fri, 21 Aug 2026 12:15:27 -0600
 
-commit 64d9183203ee ("fat: restore original value when fat_ent_write
-failed") try to revert the fatent value to old value when got the error on
-mirror FAT.
+fault_create_debugfs_attr() has always taken an extra dentry reference on
+the created directory (attr->dname = dget(dir)) so that fail_dump() could
+print the name via %pd from any context.  Nothing anywhere in the tree
+ever calls dput() on attr->dname.
 
-However it didn't work if the error is when writing the fatent bh.  In
-that case, the bh is cleared the uptodate flag, so reuse bh is invalid.
+For callers with a matching teardown, that unmatched reference causes one
+dentry plus its attached inode to leak per fault_create_debugfs_attr /
+debugfs_remove_recursive cycle.  simple_recursive_removal() drops
+debugfs's own +1 ref on the child dentry, but the dget()'d ref keeps its
+refcount at 1: the dentry ends up unhashed but pinned, and its inode is
+never freed.
 
-Fix this by reverting the fatent only if got the error on mirror FAT.
+Boot-once callers (mm/failslab, block/blk-core, etc.) leak exactly once at
+init and never destroy the tree, so the impact there is bounded.  But
+per-lifecycle callers (drivers/nvme, drivers/infiniband/hw/hfi1,
+drivers/mmc, drivers/iommu/iommufd, drivers/media, drivers/misc,
+drivers/gpu/drm/msm, drivers/crypto, net/sunrpc) leak on every
+create/destroy cycle.
 
-Link: https://lore.kernel.org/87ik4yz9fv.fsf_-_@mail.parknet.co.jp
-Fixes: 64d9183203ee ("fat: restore original value when fat_ent_write failed")
-Signed-off-by: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
+We observed this in production: an NVMe/RDMA host repeatedly reconnecting
+to a target that rejected the CRTO Property Get went through ~50 nvme
+controller create/destroy cycles per second, and dentry and inode_cache
+grew by ~13k pinned objects per 240 s -- unrecoverable through
+drop_caches.  Byte math matched a per-cycle 1-dentry / 1-inode leak from
+the "fault_inject" directory dentry.
+
+Fix this by not holding any external reference in fault_attr.  Embed the
+directory name as a fixed-size char array (FAULT_ATTR_DNAME_LEN, 64 bytes)
+inside struct fault_attr, copied by strscpy() at
+fault_create_debugfs_attr() time.  fail_dump() prints it via %s.
+
+Advantages of an embedded array over kstrdup() + kfree() paired with a new
+destroy API:
+
+  - Zero API footprint.  No new export and no caller changes required:
+    callers already own their fault_attr's memory and free it when
+    they are done, and now that suffices.
+  - No allocation on the create path.
+  - fault_create_debugfs_attr() cannot fail from the name-copy step.
+  - No lifetime coupling between attr->dname and debugfs; the string
+    is valid for exactly as long as the containing struct.
+
+The 64-byte length accommodates every in-tree caller with generous
+headroom (the longest current name is "fail_dma_array_full", 19 chars).
+
+The user-visible fail_dump() format changes from "name %pd" to "name %s",
+but the printed content is identical -- %pd on the created directory
+renders the same string that was passed in as @name.
+
+drivers/infiniband/hw/hfi1/fault.c drops a now-invalid "attr.dname = NULL"
+statement; the surrounding kzalloc() already zero-initialises the array.
+
+Link: https://lore.kernel.org/20260821181527.3271414-1-mliang@purestorage.com
+Fixes: 6adc4a22f20b ("fault-inject: add ratelimit option")
+Signed-off-by: Michael Liang <mliang@purestorage.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Reported-by: syzbot+e64c6472a3d96a75172a@syzkaller.appspotmail.com
-Closes: https://syzkaller.appspot.com/bug?extid=e64c6472a3d96a75172a
-Reported-by: syzbot+26461e903494e689c24f@syzkaller.appspotmail.com
-Closes: https://syzkaller.appspot.com/bug?extid=26461e903494e689c24f
-Cc: Yemu Lu <prcups@krgm.moe>
-Cc: Ren Wei <n05ec@lzu.edu.cn>
-Cc: Yuan Tan <yuantan098@gmail.com>
-Cc: Yifan Wu <yifanwucs@gmail.com>
-Cc: Juefei Pu <tomapufckgml@gmail.com>
-Cc: Xin Liu <bird@lzu.edu.cn>
+Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
+Cc: Akinbou Mita <akinobu.mita@gmail.com>
+Cc: Dennis Dalessandro <dennis.dalessandro@cornelisnetworks.com>
+Cc: Jason Gunthorpe <jgg@ziepe.ca>
+Cc: Leon Romanovsky <leon@kernel.org>
+Cc: Vlastimil Babka <vbabka@kernel.org>
 Cc: <stable@vger.kernel.org>
 ---
 
- fs/fat/fat.h    |    2 +-
- fs/fat/fatent.c |   21 ++++++++++++++++++---
- fs/fat/file.c   |    3 ++-
- fs/fat/misc.c   |    6 ++----
- 4 files changed, 23 insertions(+), 9 deletions(-)
+ drivers/infiniband/hw/hfi1/fault.c |    1 -
+ include/linux/fault-inject.h       |   10 ++++++++--
+ lib/fault-inject.c                 |    7 +++++--
+ 3 files changed, 13 insertions(+), 5 deletions(-)
 
---- a/fs/fat/fatent.c~fat-fix-fat_ent_write-for-reverting-the-value
-+++ a/fs/fat/fatent.c
-@@ -413,7 +413,7 @@ error:
- }
+--- a/drivers/infiniband/hw/hfi1/fault.c~fault-inject-fix-dentry-leak
++++ a/drivers/infiniband/hw/hfi1/fault.c
+@@ -216,7 +216,6 @@ int hfi1_fault_init_debugfs(struct hfi1_
+ 	ibd->fault->attr.interval = 1;
+ 	ibd->fault->attr.require_end = ULONG_MAX;
+ 	ibd->fault->attr.stacktrace_depth = 32;
+-	ibd->fault->attr.dname = NULL;
+ 	ibd->fault->attr.verbose = 0;
+ 	ibd->fault->enable = false;
+ 	ibd->fault->opcode = false;
+--- a/include/linux/fault-inject.h~fault-inject-fix-dentry-leak
++++ a/include/linux/fault-inject.h
+@@ -19,6 +19,13 @@ enum fault_flags {
+ #include <linux/ratelimit.h>
  
- int fat_ent_write(struct inode *inode, struct fat_entry *fatent,
--		  int new, int wait)
-+		  int new, int old, int wait)
- {
- 	struct super_block *sb = inode->i_sb;
- 	const struct fatent_operations *ops = MSDOS_SB(sb)->fatent_ops;
-@@ -422,10 +422,25 @@ int fat_ent_write(struct inode *inode, s
- 	ops->ent_put(fatent, new);
- 	if (wait) {
- 		err = fat_sync_bhs(fatent->bhs, fatent->nr_bhs);
--		if (err)
-+		if (err) {
-+			/*
-+			 * bhs are not uptodate after I/O error. So we
-+			 * can't simply re-dirty to revert. And it
-+			 * would not have value to write again on I/O
-+			 * error.
-+			 */
- 			return err;
-+		}
- 	}
--	return fat_mirror_bhs(sb, fatent->bhs, fatent->nr_bhs);
+ /*
++ * Length of the debugfs directory name embedded in struct fault_attr.
++ * Chosen to accommodate every in-tree caller of fault_create_debugfs_attr()
++ * (the longest is "fail_dma_array_full", 19 chars) with generous headroom.
++ */
++#define FAULT_ATTR_DNAME_LEN	64
 +
-+	err = fat_mirror_bhs(sb, fatent->bhs, fatent->nr_bhs);
-+	if (err) {
-+		/* Try to revert if got the error on mirror FAT */
-+		ops->ent_put(fatent, old);
-+		if (wait)
-+			fat_sync_bhs(fatent->bhs, fatent->nr_bhs);
-+	}
-+	return err;
++/*
+  * For explanation of the elements of this struct, see
+  * Documentation/fault-injection/fault-injection.rst
+  */
+@@ -37,7 +44,7 @@ struct fault_attr {
+ 
+ 	unsigned long count;
+ 	struct ratelimit_state ratelimit_state;
+-	struct dentry *dname;
++	char dname[FAULT_ATTR_DNAME_LEN];
+ };
+ 
+ #define FAULT_ATTR_INITIALIZER {					\
+@@ -47,7 +54,6 @@ struct fault_attr {
+ 		.stacktrace_depth = 32,					\
+ 		.ratelimit_state = RATELIMIT_STATE_INIT_DISABLED,	\
+ 		.verbose = 2,						\
+-		.dname = NULL,						\
+ 	}
+ 
+ #define DECLARE_FAULT_ATTR(name) struct fault_attr name = FAULT_ATTR_INITIALIZER
+--- a/lib/fault-inject.c~fault-inject-fix-dentry-leak
++++ a/lib/fault-inject.c
+@@ -5,6 +5,7 @@
+ #include <linux/debugfs.h>
+ #include <linux/sched.h>
+ #include <linux/stat.h>
++#include <linux/string.h>
+ #include <linux/types.h>
+ #include <linux/fs.h>
+ #include <linux/export.h>
+@@ -64,7 +65,7 @@ static void fail_dump(struct fault_attr
+ {
+ 	if (attr->verbose > 0 && __ratelimit(&attr->ratelimit_state)) {
+ 		printk(KERN_NOTICE "FAULT_INJECTION: forcing a failure.\n"
+-		       "name %pd, interval %lu, probability %lu, "
++		       "name %s, interval %lu, probability %lu, "
+ 		       "space %d, times %d\n", attr->dname,
+ 		       attr->interval, attr->probability,
+ 		       atomic_read(&attr->space),
+@@ -261,7 +262,9 @@ struct dentry *fault_create_debugfs_attr
+ 	debugfs_create_xul("reject-end", mode, dir, &attr->reject_end);
+ #endif /* CONFIG_FAULT_INJECTION_STACKTRACE_FILTER */
+ 
+-	attr->dname = dget(dir);
++	if (strscpy(attr->dname, name, sizeof(attr->dname)) == -E2BIG)
++		pr_warn("FAULT_INJECTION: name '%s' truncated to '%s'\n",
++			name, attr->dname);
+ 	return dir;
  }
- 
- static inline int fat_ent_next(struct msdos_sb_info *sbi,
---- a/fs/fat/fat.h~fat-fix-fat_ent_write-for-reverting-the-value
-+++ a/fs/fat/fat.h
-@@ -392,7 +392,7 @@ extern void fat_ent_access_init(struct s
- extern int fat_ent_read(struct inode *inode, struct fat_entry *fatent,
- 			int entry);
- extern int fat_ent_write(struct inode *inode, struct fat_entry *fatent,
--			 int new, int wait);
-+			 int new, int old, int wait);
- extern int fat_alloc_clusters(struct inode *inode, int *cluster,
- 			      int nr_cluster);
- extern int fat_free_clusters(struct inode *inode, int cluster);
---- a/fs/fat/file.c~fat-fix-fat_ent_write-for-reverting-the-value
-+++ a/fs/fat/file.c
-@@ -363,7 +363,8 @@ static int fat_free(struct inode *inode,
- 				     __func__, MSDOS_I(inode)->i_pos);
- 			ret = -EIO;
- 		} else if (ret > 0) {
--			err = fat_ent_write(inode, &fatent, FAT_ENT_EOF, wait);
-+			err = fat_ent_write(inode, &fatent, FAT_ENT_EOF, ret,
-+					    wait);
- 			if (err)
- 				ret = err;
- 		}
---- a/fs/fat/misc.c~fat-fix-fat_ent_write-for-reverting-the-value
-+++ a/fs/fat/misc.c
-@@ -133,11 +133,9 @@ int fat_chain_add(struct inode *inode, i
- 		ret = fat_ent_read(inode, &fatent, last);
- 		if (ret >= 0) {
- 			int wait = inode_needs_sync(inode);
--			int old = ret;
- 
--			ret = fat_ent_write(inode, &fatent, new_dclus, wait);
--			if (ret < 0)
--				fat_ent_write(inode, &fatent, old, wait);
-+			ret = fat_ent_write(inode, &fatent, new_dclus, ret,
-+					    wait);
- 			fatent_brelse(&fatent);
- 		}
- 		if (ret < 0)
+ EXPORT_SYMBOL_GPL(fault_create_debugfs_attr);
 _
 
-Patches currently in -mm which might be from hirofumi@mail.parknet.co.jp are
+Patches currently in -mm which might be from mliang@purestorage.com are
 
 
