@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BC7E42DB780
-	for <mm-commits@vger.kernel.org>; Wed,  7 Oct 2026 00:50:17 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3ECFA2DFA3A
+	for <mm-commits@vger.kernel.org>; Wed,  7 Oct 2026 00:50:19 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791334218; cv=none; b=dVbLUQwU9PeV9cFhdcMtxnNIta85KsobsiqZexwvhrCGSX455nIvh/U2+BGHCMEcdeOgtE8uYKiseJp3FH7EbMtYyg06o5W2uh6Ll3rM2mvDqu/8ypnzhteux1qzPqHKY+JYZIEf4raGYg7QBK7JgtapqbayjhRGrztMfL1hts4=
+	t=1791334220; cv=none; b=KBQ1rB1REsxWUL1Sgiad7Gr60H8QjXNovlSV1jPLiLXXfMj8csrxtrnhYq8iccdUt8ooYHF/w9yBD5tjFWb0bVNGc2Qr+2jdNuRd+pVHBTYKdi5Bt8Grpf8Uhv6D/ryBoB347wpzBACFZ55gu9Ve12BCPigul0v4EJv8mEVQf5Q=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791334218; c=relaxed/simple;
-	bh=HbMhCbvwUaGt97HBJCnO6btNvnHiC9PCOvQdlt266I0=;
-	h=Date:To:From:Subject:Message-Id; b=CeR+cX1j8JlJGz3rAVN3OaA6XEDzHHR6GSGlA5Bg50a5B+EWn5Ge5njLn/km9MWtn75WwCS50OfMtYQUs97PNf/0kok67DYmPTSoeuTBb+j1L2cZ4XAgRwAecViiJkC+wbKuLRuEp7bhDGrDr2cFVZf4E1tI8UiqT5bQYFt9S1s=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=aRwz5AHU; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1791334220; c=relaxed/simple;
+	bh=7RQ1mGbGq4HcXEmeoNIf77BtHafcQM0AjzdcqwlBXkI=;
+	h=Date:To:From:Subject:Message-Id; b=u/1SYB03+IZxaqOUgijhlJgaAz1H4ezWl5eFOEe03ozRwntQ1wxh3Y96hDAYuMPbj7Jq6T1eQYwPIpPx9ViQ21yTYIH3+X8M5yW1+TmCE0SzuAUy+7/hy2NMFtB00KZzC7C1PrVuLL8cbVsbhaK/04zbus/315dA4EnQLmJz5mA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=1Wup20Mz; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="aRwz5AHU"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 93A3C1F0089B;
-	Wed,  7 Oct 2026 00:50:17 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="1Wup20Mz"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 11F191F0089B;
+	Wed,  7 Oct 2026 00:50:19 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1791334217;
-	bh=Li9yrEkZLno8zvcqOvy9p6iK8RNYyhaB8F2qTWS7FeQ=;
+	d=linux-foundation.org; s=korg; t=1791334219;
+	bh=4H1gpXPn75LOCkMK5VXmg2dW/0Y2EUIZ/qas2fSlIfM=;
 	h=Date:To:From:Subject;
-	b=aRwz5AHUvm6cpL0H5DAPfBUQLbku9DCJcyZhsC8KHXblm9HMl3AmSgZyrheQ3/YsF
-	 MA3xIn9GWFEs4kGD6RG6GF+8gSTU6S52RqovZ6MQfJv4JIkUH2soP3dVPPFbR0mvgP
-	 aS58mCPiHK9UXuM3MAl4MTsq92LS06bS5oknH5Us=
-Date: Tue, 06 Oct 2026 17:50:17 -0700
+	b=1Wup20MzrksE8g5rytMKTkr9OkeHWdkjHSMpOdmLZwxx9jo1hg2gI9TqBSL94NAiK
+	 z1I6FZQvkAVsChh1HQIkC/HAACyqQTCKHIZKnWLg4hD3OyWTdmWFCaIpaiE+Z/yUSQ
+	 VOK3cMmICPOQZcxxjKWxWi1Hincmy+0NiAAax84k=
+Date: Tue, 06 Oct 2026 17:50:18 -0700
 To: mm-commits@vger.kernel.org,tjmercier@google.com,roman.gushchin@linux.dev,muchun.song@linux.dev,mhocko@suse.com,ljs@kernel.org,kasong@tencent.com,hannes@cmpxchg.org,david@kernel.org,baohua@kernel.org,axelrasmussen@google.com,shakeel.butt@linux.dev,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] memcg-remove-mem_cgroup_shrink_node.patch removed from -mm tree
-Message-Id: <20261007005017.93A3C1F0089B@smtp.kernel.org>
+Subject: [merged mm-stable] memcg-remove-the-soft-limit-reclaim-tracepoints.patch removed from -mm tree
+Message-Id: <20261007005019.11F191F0089B@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,21 +35,23 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: memcg: remove mem_cgroup_shrink_node()
+     Subject: memcg: remove the soft limit reclaim tracepoints
 has been removed from the -mm tree.  Its filename was
-     memcg-remove-mem_cgroup_shrink_node.patch
+     memcg-remove-the-soft-limit-reclaim-tracepoints.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Shakeel Butt <shakeel.butt@linux.dev>
-Subject: memcg: remove mem_cgroup_shrink_node()
-Date: Wed, 2 Sep 2026 10:43:05 -0700
+Subject: memcg: remove the soft limit reclaim tracepoints
+Date: Wed, 2 Sep 2026 10:43:06 -0700
 
-Its only caller was soft limit reclaim, which is gone.
+mm_vmscan_memcg_softlimit_reclaim_begin and
+mm_vmscan_memcg_softlimit_reclaim_end were only emitted by
+mem_cgroup_shrink_node(), which is gone, so they can never fire again.
 
-Link: https://lore.kernel.org/20260902174311.1772372-3-shakeel.butt@linux.dev
+Link: https://lore.kernel.org/20260902174311.1772372-4-shakeel.butt@linux.dev
 Signed-off-by: Shakeel Butt <shakeel.butt@linux.dev>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 Acked-by: Michal Hocko <mhocko@suse.com>
@@ -64,73 +66,39 @@ Cc: Roman Gushchin <roman.gushchin@linux.dev>
 Cc: T.J. Mercier <tjmercier@google.com>
 ---
 
- mm/internal.h |    4 ----
- mm/vmscan.c   |   41 -----------------------------------------
- 2 files changed, 45 deletions(-)
+ include/trace/events/vmscan.h |   14 --------------
+ 1 file changed, 14 deletions(-)
 
---- a/mm/internal.h~memcg-remove-mem_cgroup_shrink_node
-+++ a/mm/internal.h
-@@ -78,10 +78,6 @@ unsigned long try_to_free_mem_cgroup_pag
- 					   gfp_t gfp_mask,
- 					   unsigned int reclaim_options,
- 					   int *swappiness);
--unsigned long mem_cgroup_shrink_node(struct mem_cgroup *memcg,
--				     gfp_t gfp_mask, bool noswap,
--				     pg_data_t *pgdat,
--				     unsigned long *nr_scanned);
+--- a/include/trace/events/vmscan.h~memcg-remove-the-soft-limit-reclaim-tracepoints
++++ a/include/trace/events/vmscan.h
+@@ -214,13 +214,6 @@ DEFINE_EVENT(mm_vmscan_direct_reclaim_be
  
- #ifdef CONFIG_NUMA
- extern int sysctl_min_unmapped_ratio;
---- a/mm/vmscan.c~memcg-remove-mem_cgroup_shrink_node
-+++ a/mm/vmscan.c
-@@ -6805,47 +6805,6 @@ unsigned long try_to_free_pages(struct z
+ 	TP_ARGS(gfp_flags, order, memcg)
+ );
+-
+-DEFINE_EVENT(mm_vmscan_direct_reclaim_begin_template, mm_vmscan_memcg_softlimit_reclaim_begin,
+-
+-	TP_PROTO(gfp_t gfp_flags, int order, struct mem_cgroup *memcg),
+-
+-	TP_ARGS(gfp_flags, order, memcg)
+-);
+ #endif /* CONFIG_MEMCG */
  
- #ifdef CONFIG_MEMCG
+ DECLARE_EVENT_CLASS(mm_vmscan_direct_reclaim_end_template,
+@@ -258,13 +251,6 @@ DEFINE_EVENT(mm_vmscan_direct_reclaim_en
  
--/* Only used by soft limit reclaim. Do not reuse for anything else. */
--unsigned long mem_cgroup_shrink_node(struct mem_cgroup *memcg,
--						gfp_t gfp_mask, bool noswap,
--						pg_data_t *pgdat,
--						unsigned long *nr_scanned)
--{
--	struct lruvec *lruvec = mem_cgroup_lruvec(memcg, pgdat);
--	struct scan_control sc = {
--		.nr_to_reclaim = SWAP_CLUSTER_MAX,
--		.target_mem_cgroup = memcg,
--		.may_writepage = 1,
--		.may_unmap = 1,
--		.reclaim_idx = MAX_NR_ZONES - 1,
--		.may_swap = !noswap,
--	};
+ 	TP_PROTO(unsigned long nr_reclaimed, struct mem_cgroup *memcg),
+ 
+-	TP_ARGS(nr_reclaimed, memcg)
+-);
 -
--	WARN_ON_ONCE(!current->reclaim_state);
+-DEFINE_EVENT(mm_vmscan_direct_reclaim_end_template, mm_vmscan_memcg_softlimit_reclaim_end,
 -
--	sc.gfp_mask = (gfp_mask & GFP_RECLAIM_MASK) |
--			(GFP_HIGHUSER_MOVABLE & ~GFP_RECLAIM_MASK);
+-	TP_PROTO(unsigned long nr_reclaimed, struct mem_cgroup *memcg),
 -
--	trace_mm_vmscan_memcg_softlimit_reclaim_begin(sc.gfp_mask,
--						      sc.order,
--						      memcg);
--
--	/*
--	 * NOTE: Although we can get the priority field, using it
--	 * here is not a good idea, since it limits the pages we can scan.
--	 * if we don't reclaim here, the shrink_node from balance_pgdat
--	 * will pick up pages from other mem cgroup's as well. We hack
--	 * the priority and make it zero.
--	 */
--	shrink_lruvec(lruvec, &sc);
--
--	trace_mm_vmscan_memcg_softlimit_reclaim_end(sc.nr_reclaimed, memcg);
--
--	*nr_scanned = sc.nr_scanned;
--
--	return sc.nr_reclaimed;
--}
--
- unsigned long try_to_free_mem_cgroup_pages(struct mem_cgroup *memcg,
- 					   unsigned long nr_pages,
- 					   gfp_t gfp_mask,
+ 	TP_ARGS(nr_reclaimed, memcg)
+ );
+ #endif /* CONFIG_MEMCG */
 _
 
 Patches currently in -mm which might be from shakeel.butt@linux.dev are
