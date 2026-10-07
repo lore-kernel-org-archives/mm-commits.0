@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 74EFC352022;
-	Wed,  7 Oct 2026 02:04:28 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9CA5F351C1E
+	for <mm-commits@vger.kernel.org>; Wed,  7 Oct 2026 02:04:29 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791338669; cv=none; b=ENwb59+KfrYOq8AoMjWDEosaOJyeInxLSlzQPVCoPKIbQAFzZI+nwrGkrWBM2CCoeCozgycwChCj9jlvJlNoR1MCX+85f3dcggLZx96EBSdwOMW69aFKIFqRN1EqKNmQpdoY7NxeXWjQEbmmeLqVe4iwMHuSjzM0N+aj0xsq6XI=
+	t=1791338670; cv=none; b=NFSRb4w+3xdbUct95y8J39cjr+WxBaGsOmAO1jP3bYXsiTIR0hPPpKKXwcU6yBdS8iKCVSrqOpdCzRMm7dTz73AWA/cjc3JqgIABN7WtfBwjQThcsmQVYDPVdlztQ7pBWgOX8w5Jt1N3vdyICgHaHQoKsxAumG57MBE8qp/dJUI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791338669; c=relaxed/simple;
-	bh=q55pYg8PPA0WvLlc0Fu29gxKJC2RJeHVyVpjjHTFoX0=;
-	h=Date:To:From:Subject:Message-Id; b=NfGFVDofRfimKX7TPyxwuvRPK1CIcyfMQuTzqKI3bq7lZ1sXRPi5SLVLZqSIl8MWTOI4QeN/Q63NDYFaPMqIRCLwlMYYy/z7rz5/jCvdXw1iaDEiQpmnMp1ojsZh9yllTwVCEBE7nzaoJA24/Q0yWK5fFsGiTQ2YC08n11Pjmmk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=rDUM1D8F; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1791338670; c=relaxed/simple;
+	bh=0elMq1hVN0Wjm/zBbFOyizlOBjmIPqre/sHG5nJgHFM=;
+	h=Date:To:From:Subject:Message-Id; b=eKvKvBOZzw0Ng5Ad6rThalgJ08Z8J2wlJGcdABAyHmUWcI+aNbduru6V7Sw1x3ZNkJfECB7VjD50SGMAuHt/C4cY13vppzsJJHZ5BSJTg/8noe1rzka6n23fOvPj4fQdqMqLkrwWc4Rq5Q4orYCu6Qvj80c0bDNaBZ6ULa84a8g=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=OylXD1L5; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="rDUM1D8F"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 49F6F1F0089B;
-	Wed,  7 Oct 2026 02:04:28 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="OylXD1L5"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 70DA71F0089C;
+	Wed,  7 Oct 2026 02:04:29 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1791338668;
-	bh=NkaVSFHzYTJjEyoM/n2SPusiyPocuQuhFMRthhT3Isg=;
+	d=linux-foundation.org; s=korg; t=1791338669;
+	bh=Y2d9qq426f4H9N3XKwcczOlvZAOQEgHZmsupfLlP8Vo=;
 	h=Date:To:From:Subject;
-	b=rDUM1D8F4fSHzWW0ZQ3DDKQ7BTVGb4ZG71Os9UI5B72JMNWGOUqHbcmbdOW+oAqvK
-	 CMojVtcvJi0xBoEfa4UIW2iNuGk8t8aSd+l6wKhQS6epkEyLFKDwRkFzvC6de4FLfV
-	 Xkc8yKJGL7vEi5eLk3TJQH4tG0cmjaod3nh0tJ/o=
-Date: Tue, 06 Oct 2026 19:04:27 -0700
-To: mm-commits@vger.kernel.org,stable@vger.kernel.org,hch@lst.de,ebiggers@kernel.org,akpm@linux-foundation.org
+	b=OylXD1L5Coji34ij0cAF4lafOakDJwOgahORC3mNu/D9LRJVCTbJdmo63cepSNFSW
+	 +wN5/QTbYfuExj7PdEkfd/+u7nmQZqzpPrfaHjcQhZ9c1Il3MafCvon0bozkfaWO90
+	 LsUEwGgdPu1uta7pE2BhmVR16//S5NGI1d0Lbc+Y=
+Date: Tue, 06 Oct 2026 19:04:29 -0700
+To: mm-commits@vger.kernel.org,oberpar@linux.ibm.com,brads@mainlining.org,hrushirajg23@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] raid6-add-missing-vzeroupper-to-avx-512-code.patch removed from -mm tree
-Message-Id: <20261007020428.49F6F1F0089B@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] gcov-use-strscpy-instead-of-strcpy-in-init_node.patch removed from -mm tree
+Message-Id: <20261007020429.70DA71F0089C@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,105 +35,49 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: raid6: add missing vzeroupper to AVX-512 code
+     Subject: gcov: use strscpy() instead of strcpy() in init_node()
 has been removed from the -mm tree.  Its filename was
-     raid6-add-missing-vzeroupper-to-avx-512-code.patch
+     gcov-use-strscpy-instead-of-strcpy-in-init_node.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Eric Biggers <ebiggers@kernel.org>
-Subject: raid6: add missing vzeroupper to AVX-512 code
-Date: Mon, 31 Aug 2026 14:23:16 -0700
+From: Hrushiraj Gandhi <hrushirajg23@gmail.com>
+Subject: gcov: use strscpy() instead of strcpy() in init_node()
+Date: Mon, 31 Aug 2026 20:19:53 +0530
 
-Since the AVX-512 optimized RAID6 code uses ZMM registers, execute
-vzeroupper before returning from it.  This is needed to avoid degrading
-the performance of any later SSE code that may happen to be executed.
+node->name is a flexible array member sized to exactly strlen(name) + 1
+bytes at allocation time in new_node(), so this copy can never actually
+overflow.  Still, prefer the bounded strscpy() over strcpy() on general
+principle; pass the same strlen(name) + 1 bound the allocation used, since
+sizeof() cannot be applied to a flexible array member.
 
-Link: https://lore.kernel.org/20260831212316.213896-1-ebiggers@kernel.org
-Fixes: e0a491c12968 ("lib/raid6: Add AVX512 optimized gen_syndrome functions")
-Fixes: 13c520b2993c ("lib/raid6: Add AVX512 optimized recovery functions")
-Signed-off-by: Eric Biggers <ebiggers@kernel.org>
+No functional change.
+
+Link: https://lore.kernel.org/20260831144953.324441-1-hrushirajg23@gmail.com
+Signed-off-by: Hrushiraj Gandhi <hrushirajg23@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Cc: Christoph Hellwig <hch@lst.de>
-Cc: <stable@vger.kernel.org>
+Reviewed-by: Bradley Morgan <brads@mainlining.org>
+Cc: Peter Oberparleiter <oberpar@linux.ibm.com>
 ---
 
- lib/raid/raid6/x86/avx512.c       |    6 ++++++
- lib/raid/raid6/x86/recov_avx512.c |    2 ++
- 2 files changed, 8 insertions(+)
+ kernel/gcov/fs.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/lib/raid/raid6/x86/avx512.c~raid6-add-missing-vzeroupper-to-avx-512-code
-+++ a/lib/raid/raid6/x86/avx512.c
-@@ -78,6 +78,7 @@ static void raid6_avx5121_gen_syndrome(i
+--- a/kernel/gcov/fs.c~gcov-use-strscpy-instead-of-strcpy-in-init_node
++++ a/kernel/gcov/fs.c
+@@ -529,7 +529,7 @@ static void init_node(struct gcov_node *
  	}
- 
- 	asm volatile("sfence" : : : "memory");
-+	asm volatile("vzeroupper");
- 	kernel_fpu_end();
+ 	node->parent = parent;
+ 	if (name)
+-		strcpy(node->name, name);
++		strscpy(node->name, name, strlen(name) + 1);
  }
  
-@@ -137,6 +138,7 @@ static void raid6_avx5121_xor_syndrome(i
- 	}
- 
- 	asm volatile("sfence" : : : "memory");
-+	asm volatile("vzeroupper");
- 	kernel_fpu_end();
- }
- 
-@@ -208,6 +210,7 @@ static void raid6_avx5122_gen_syndrome(i
- 	}
- 
- 	asm volatile("sfence" : : : "memory");
-+	asm volatile("vzeroupper");
- 	kernel_fpu_end();
- }
- 
-@@ -292,6 +295,7 @@ static void raid6_avx5122_xor_syndrome(i
- 	}
- 
- 	asm volatile("sfence" : : : "memory");
-+	asm volatile("vzeroupper");
- 	kernel_fpu_end();
- }
- 
-@@ -396,6 +400,7 @@ static void raid6_avx5124_gen_syndrome(i
- 	}
- 
- 	asm volatile("sfence" : : : "memory");
-+	asm volatile("vzeroupper");
- 	kernel_fpu_end();
- }
- 
-@@ -529,6 +534,7 @@ static void raid6_avx5124_xor_syndrome(i
- 			       "m" (q[d+128]), "m" (q[d+192]));
- 	}
- 	asm volatile("sfence" : : : "memory");
-+	asm volatile("vzeroupper");
- 	kernel_fpu_end();
- }
- const struct raid6_calls raid6_avx512x4 = {
---- a/lib/raid/raid6/x86/recov_avx512.c~raid6-add-missing-vzeroupper-to-avx-512-code
-+++ a/lib/raid/raid6/x86/recov_avx512.c
-@@ -211,6 +211,7 @@ static void raid6_2data_recov_avx512(int
- #endif
- 	}
- 
-+	asm volatile("vzeroupper");
- 	kernel_fpu_end();
- }
- 
-@@ -353,6 +354,7 @@ static void raid6_datap_recov_avx512(int
- #endif
- 	}
- 
-+	asm volatile("vzeroupper");
- 	kernel_fpu_end();
- }
- 
+ /*
 _
 
-Patches currently in -mm which might be from ebiggers@kernel.org are
+Patches currently in -mm which might be from hrushirajg23@gmail.com are
 
 
