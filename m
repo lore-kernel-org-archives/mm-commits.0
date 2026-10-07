@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 16BF1313523
-	for <mm-commits@vger.kernel.org>; Wed,  7 Oct 2026 00:52:29 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 24B9B30F533
+	for <mm-commits@vger.kernel.org>; Wed,  7 Oct 2026 00:52:30 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791334350; cv=none; b=kIk0XWFbrINi5cL2Y9VADTnBffk6XOe7sE4YLo+I4ClYBH4likMLiSILbbKhNYfXV2jPyOybIr1dyxd5Dg2fyDo9LnyicKIpQCoSeAXs3Elufc1/aHj1Hbq4JkZa102Fk98ng/Bz6qH63xhCS34dz1pi77ibZqg07IcYIqd3p1c=
+	t=1791334351; cv=none; b=Ap0Phc5qSf1MFnHQcK3SweSPlEplA+3MLxAnH9UA8hLIu2eoVw3LKElFeCLznyPdFBk9AWlCGf5Kx0Cg29xg9ydmyT6mr3mt55ciOfzzRI2C5zvUUiKA6Bf41PB9OSwG5YH0Mm9jJIuplmN0emM6/gLYcmxGgQ4my0nkpHjWhcQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791334350; c=relaxed/simple;
-	bh=0AK+nIyteW7QVxlcES1jaexr+z4tB4xgfXNfcNsWNdg=;
-	h=Date:To:From:Subject:Message-Id; b=tXaOlkBHDhOwHZlBzx3o35Of5sLB7u9EdaZoQO03Tltj5tYmftQ9GJSvrftUp2teJlLUK3FXUk/y2BflI+BvfO7W9MmPu4M0S+yZwxgsNfzmFS5NRLiOYjTas+e/5NTCx6HSPe5Z7kWJKLJMUbaHVY5HFj9hFVhkHoR8Uw8s8Wc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Lyr2ZyS+; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1791334351; c=relaxed/simple;
+	bh=1s+v3AjBxv4+OkaRB6Yr3W22syGltuNTXp71D/kHp5k=;
+	h=Date:To:From:Subject:Message-Id; b=DQGxzqCQIc1OLJdi5PjOiEq8EnCWzbIoHLBeeKLORB3L0MZzJai+Is+fLSbC9TbW1D41B5pBcpaDEwsX6lzSBNxM9E1E3C8yQ06k54utVgalC3McDr8t0obhpMOTiYY/S6jetZqOZtnUxM99JokoeIF1HCVCOj6LUTZUlQoZ6jA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=mT7njOXo; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Lyr2ZyS+"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E09A61F0089B;
-	Wed,  7 Oct 2026 00:52:28 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="mT7njOXo"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id F038D1F0089C;
+	Wed,  7 Oct 2026 00:52:29 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1791334349;
-	bh=3sfhMAb3uHHBRhgDxEzns5C4RDbQW4G52pv/2gQA6WE=;
+	d=linux-foundation.org; s=korg; t=1791334350;
+	bh=lvqTHLUDZ6NufEbHGff9K652hYEm84zZj5HloZ/kuVU=;
 	h=Date:To:From:Subject;
-	b=Lyr2ZyS+FEKzLkzD/scywY5d5x+t1CT9Mej6jOMTixsO/AvRh8QIp7bWbnWztCUrI
-	 PldQryBwF3wHGXwxImXVligNLH8Qp0SNyOxa1AW3JJq39cu0WzEPQ8IizYJQXGrslh
-	 tgqOSTV5Y5bVXAJzLFqOo9vlxuM11N6ziv80TaxE=
-Date: Tue, 06 Oct 2026 17:52:28 -0700
+	b=mT7njOXoC0uXSVC+Dxsqj2oo537rxdbfxvMKp9GO38rmrGSdd0w6KiffYmvgRLHUZ
+	 mPzI/QkTQqp/FTDm3lamT/S5YITH88VqHQ10yHJE2h7tv9LH8fqCxnSykKBIRMJyqa
+	 hN6FDYr/7FQ9RxGYH6+xvQ5K+taGo5YGPLuC/uIs=
+Date: Tue, 06 Oct 2026 17:52:29 -0700
 To: mm-commits@vger.kernel.org,vbabka@kernel.org,surenb@google.com,shuah@kernel.org,rppt@kernel.org,rdunlap@infradead.org,mhocko@suse.com,ljs@kernel.org,liam@infradead.org,david@kernel.org,corbet@lwn.net,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-damon-sysfs-pass-preps-to-damon-core.patch removed from -mm tree
-Message-Id: <20261007005228.E09A61F0089B@smtp.kernel.org>
+Subject: [merged mm-stable] selftests-damon-sysfssh-test-probe-prep-sysfs-files.patch removed from -mm tree
+Message-Id: <20261007005229.F038D1F0089C@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,23 +35,22 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/damon/sysfs: pass preps to DAMON core
+     Subject: selftests/damon/sysfs.sh: test probe prep sysfs files
 has been removed from the -mm tree.  Its filename was
-     mm-damon-sysfs-pass-preps-to-damon-core.patch
+     selftests-damon-sysfssh-test-probe-prep-sysfs-files.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: SJ Park <sj@kernel.org>
-Subject: mm/damon/sysfs: pass preps to DAMON core
-Date: Tue, 1 Sep 2026 06:25:00 -0700
+Subject: selftests/damon/sysfs.sh: test probe prep sysfs files
+Date: Tue, 1 Sep 2026 06:25:01 -0700
 
-DAMON sysfs interface provides the files for setting DAMON probe preps. 
-But the underlying code is not really passing the user-set values to DAMON
-core.  Pass those.
+Add basic file operations test for newly introduced DAMON probe prep sysfs
+directories and files.
 
-Link: https://lore.kernel.org/20260901132506.99243-14-sj@kernel.org
+Link: https://lore.kernel.org/20260901132506.99243-15-sj@kernel.org
 Signed-off-by: SJ Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 Cc: David Hildenbrand <david@kernel.org>
@@ -66,62 +65,52 @@ Cc: Suren Baghdasaryan <surenb@google.com>
 Cc: Vlastimil Babka <vbabka@kernel.org>
 ---
 
- mm/damon/sysfs.c |   28 ++++++++++++++++++++++++++++
- 1 file changed, 28 insertions(+)
+ tools/testing/selftests/damon/sysfs.sh |   27 +++++++++++++++++++++++
+ 1 file changed, 27 insertions(+)
 
---- a/mm/damon/sysfs.c~mm-damon-sysfs-pass-preps-to-damon-core
-+++ a/mm/damon/sysfs.c
-@@ -812,7 +812,10 @@ static ssize_t prep_action_store(struct
- 
- 		action_name = &damon_sysfs_prep_action_names[i];
- 		if (sysfs_streq(buf, action_name->name)) {
-+			if (!mutex_trylock(&damon_sysfs_lock))
-+				return -EBUSY;
- 			prep->action = action_name->action;
-+			mutex_unlock(&damon_sysfs_lock);
- 			ret = count;
- 			break;
- 		}
-@@ -2175,6 +2178,23 @@ static int damon_sysfs_set_attrs(struct
- 	return damon_set_attrs(ctx, &attrs);
+--- a/tools/testing/selftests/damon/sysfs.sh~selftests-damon-sysfssh-test-probe-prep-sysfs-files
++++ a/tools/testing/selftests/damon/sysfs.sh
+@@ -361,6 +361,32 @@ test_intervals()
+ 	test_intervals_goal "$intervals_dir/intervals_goal"
  }
  
-+static int damon_sysfs_set_preps(struct damon_probe *probe,
-+		struct damon_sysfs_preps *sys_preps)
++test_damon_prep()
 +{
-+	int i;
-+
-+	for (i = 0; i < sys_preps->nr; i++) {
-+		struct damon_sysfs_prep *sys_prep = sys_preps->preps_arr[i];
-+		struct damon_prep *prep;
-+
-+		prep = damon_new_prep(sys_prep->action);
-+		if (!prep)
-+			return -ENOMEM;
-+		damon_add_prep(probe, prep);
-+	}
-+	return 0;
++	damon_prep_dir=$1
++	ensure_file "$damon_prep_dir/prep_action" "exist" "600"
++	ensure_write_succ "$damon_prep_dir/prep_action" "set_pgidle" \
++		"valid input"
++	ensure_write_fail "$damon_prep_dir/prep_action" "foo" "invalid input"
 +}
 +
- static int damon_sysfs_set_filters(struct damon_probe *probe,
- 		struct damon_sysfs_filters *sys_filters)
++test_damon_preps()
++{
++	preps_dir=$1
++	ensure_dir "$preps_dir" "exist"
++	ensure_file "$preps_dir/nr_preps" "exist" "600"
++	ensure_write_succ "$preps_dir/nr_preps" "1" "valid input"
++	test_damon_prep "$preps_dir/0"
++
++	ensure_write_succ  "$preps_dir/nr_preps" "2" "valid input"
++	test_damon_prep "$preps_dir/0"
++	test_damon_prep "$preps_dir/1"
++
++	ensure_write_succ "$preps_dir/nr_preps" "0" "valid input"
++	ensure_dir "$preps_dir/0" "not_exist"
++	ensure_dir "$preps_dir/1" "not_exist"
++}
++
+ test_damon_filter()
  {
-@@ -2210,7 +2230,15 @@ static int damon_sysfs_set_probe(struct
- 		struct damon_sysfs_probe *sys_probe)
+ 	damon_filter_dir=$1
+@@ -392,6 +418,7 @@ test_probe()
  {
- 	struct damon_sysfs_filters *sys_filters;
-+	struct damon_sysfs_preps *sys_preps;
-+	int err;
+ 	probe_dir=$1
+ 	ensure_dir "$probe_dir" "exist"
++	test_damon_preps "$probe_dir/preps"
+ 	test_damon_filters "$probe_dir/filters"
+ }
  
-+	sys_preps = sys_probe->preps;
-+	if (sys_preps) {
-+		err = damon_sysfs_set_preps(probe, sys_preps);
-+		if (err)
-+			return err;
-+	}
- 	sys_filters = sys_probe->filters;
- 	if (!sys_filters)
- 		return 0;
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
