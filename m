@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9F2DC2E2DD2
-	for <mm-commits@vger.kernel.org>; Wed,  7 Oct 2026 00:51:01 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B482F2DCF55
+	for <mm-commits@vger.kernel.org>; Wed,  7 Oct 2026 00:51:02 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791334262; cv=none; b=NsQmhfPajaxiJ/uw7nZfvb69V4B5p3AwhDGpLhZ9tqiY09qB56+HOvhpmulwSRGIZWcbF8mG0ouokpcDFvq/lW8s0FM/M3v085C7P/8GhldPlfZ+a46qw+zP5eAS4Fx6+WvZ3V/l9Wx57gNTCMSD2SJbD/cyZ8POMnk6VxjGJz8=
+	t=1791334263; cv=none; b=BjZ8BvuKVWU0pf/HxDN+vt6HsPOfzbk7v3PwravYxYkAVxeHKtmWcyk6Tkpf+9wB8eSY/WFs7OdEygwB3SOthIelR1nWPHvtTGuYHI/wpAp+DGG4/vhFLyIyZAdgAI4W6Q/Rxeph6bTC5evLsOL84auvU/TRmIiy81EkMun35Yo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791334262; c=relaxed/simple;
-	bh=X1EbECglSwnBM1jS1BfB5h3NWd8LIqDiEQv4gp69TCE=;
-	h=Date:To:From:Subject:Message-Id; b=bWwvD6tpJ8bFLM5Q38pG09GiGHWvnTGr3zTXeqIkvRpywxwre1rxNG3Mv9sTYFyiPXBg2YCDC+gIeTDRYGUZ4Wz1it+7xyvHCFW59uyLAk56sVNTlwvPjZ6AnWBK22lHwJUzZyrs3h8sAYKMilH4dgOIZhqrMaAgcWYlOGhJIqE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=DDutVUDu; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1791334263; c=relaxed/simple;
+	bh=RuyurXtmYwuKvNTJCqf3s/r3rK6sgcTtYUn42f0R8zg=;
+	h=Date:To:From:Subject:Message-Id; b=W1ND4Vp68dba3ytIHxG1LpHfyaVgOudMU9T7P9dLSs3/3rn+Pnv+f/qz0KLIhQMSK2xx/pasy+vqSLZoXwsp5zT5e/kJqO9pikFqZGB3LQyS+eKb3dhLeZti1KteYfnug5ZFH72Qpgf9+J7roBvLSiha3iqrUSZWNcm3GqiDiwE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=oqs3WLbj; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="DDutVUDu"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 75E251F0089B;
-	Wed,  7 Oct 2026 00:51:01 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="oqs3WLbj"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8B1D51F0089C;
+	Wed,  7 Oct 2026 00:51:02 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1791334261;
-	bh=GOwRizQZOZO415DcW+tQkQyYkJQBRBFKWPb24uZemLY=;
+	d=linux-foundation.org; s=korg; t=1791334262;
+	bh=LmTFsHIfKfrQEWpZXrtk6k7fJDpSV/quPPReOtHxuaQ=;
 	h=Date:To:From:Subject;
-	b=DDutVUDu/FBeNHSx9EkREacp0LjYzl1GuUK0Kvkct4cIDvxEj0ZTeXq9occYeUib0
-	 k5xvFMOerYgVXilxjJ6hh/bYUrFjeFqra7/c6IdjN3S3epspfs2Ht15+LP1Lo6ZFkO
-	 tzafjo6AnF+4ugTQlufCWsIedpLmWV3vo86eGMUw=
-Date: Tue, 06 Oct 2026 17:51:01 -0700
-To: mm-commits@vger.kernel.org,vbabka@kernel.org,surenb@google.com,rppt@kernel.org,mhocko@suse.com,liam@infradead.org,david@kernel.org,ljs@kernel.org,akpm@linux-foundation.org
+	b=oqs3WLbjt3n/Fr7uo5enkjCRhtOvOw5opOYYeOTYuUGYyejZU36kAZCAD6yuHKRs7
+	 iZ9FwaqNxb4RI6WzW2/pczyPM13zCt3/s93ykLQJst7EiuNQnAil0lEAmuNdk2AtDI
+	 eJobTbXEqJum2+8ZqaCmDHFZ7r1VbodcdUTWXgrQ=
+Date: Tue, 06 Oct 2026 17:51:02 -0700
+To: mm-commits@vger.kernel.org,vbabka@kernel.org,surenb@google.com,shuah@kernel.org,sarthak.sharma@arm.com,rppt@kernel.org,mhocko@suse.com,liam@infradead.org,gourry@gourry.net,david@kernel.org,ljs@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-vmpressure-remove-window-size-todo.patch removed from -mm tree
-Message-Id: <20261007005101.75E251F0089B@smtp.kernel.org>
+Subject: [merged mm-stable] tools-testing-selftests-mm-add-missing-gitignore-entries.patch removed from -mm tree
+Message-Id: <20261007005102.8B1D51F0089C@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,66 +35,61 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/vmpressure: remove window size TODO
+     Subject: tools/testing/selftests/mm: add missing .gitignore entries
 has been removed from the -mm tree.  Its filename was
-     mm-vmpressure-remove-window-size-todo.patch
+     tools-testing-selftests-mm-add-missing-gitignore-entries.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: "Lorenzo Stoakes (ARM)" <ljs@kernel.org>
-Subject: mm/vmpressure: remove window size TODO
-Date: Mon, 31 Aug 2026 14:42:11 +0100
+Subject: tools/testing/selftests/mm: add missing .gitignore entries
+Date: Mon, 31 Aug 2026 15:18:23 +0100
 
-There has been a steady stream of patches that have been submitted by
-newcomers to core mm 'fixing' this TODO, with all but the original having
-very likely been generated by LLMs.
+Commit 2bee308f3adb ("selftests/mm: use pattern matching in .gitignore")
+switched to a pattern-matching mechanism to reduce churn in .gitignore.
 
-It appears that TODOs to LLMs are like red rags to a bull.
+It however accidentally excluded the page_frag test's-generated module
+intermediate C file with .mod.c extension, and also the local_config.h
+header generated if liburing is available locally.
 
-In addition, TODOs in code often bitrot and are distracting - those who
-understand the code know what could be improved in future.
+Explicitly fix both the issues, fixing the module-generated C file as a
+general pattern as these are always intermediate files that should be
+ignored.
 
-Therefore remove the TODO.
+Since this is a trivial .gitignore change it doesn't seem necessary to
+treat it as a hotfix.
 
-The work required to actually fix this TODO requires somebody who both has
-understanding of the code and significant real-world data to back their
-changes.
-
-Such a person doesn't require a TODO prompt to implement this change, so
-nothing of value is being lost here.
-
-Link: https://lore.kernel.org/all/20260831130316.448-1-tahasezer.is@gmail.com/
-Link: https://lore.kernel.org/linux-mm/20260724054305.516126-1-cui.tao@linux.dev/
-Link: https://lore.kernel.org/linux-mm/20260715143646.15828-1-gaikwad.dcg@gmail.com/
-Link: https://lore.kernel.org/all/20260227221555.29969-1-mcq@disroot.org/
-Link: https://lore.kernel.org/20260831-remove-vmpressure-todo-v1-1-498515e59cdf@kernel.org
+Link: https://lore.kernel.org/20260831-fix-mm-selftests-gitignore-v1-1-c984bbd4c5e4@kernel.org
 Signed-off-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Acked-by: Vlastimil Babka (SUSE) <vbabka@kernel.org>
-Cc: David Hildenbrand <david@kernel.org>
+Reviewed-by: Gregory Price (Meta) <gourry@gourry.net>
+Reviewed-by: Sarthak Sharma <sarthak.sharma@arm.com>
+Acked-by: David Hildenbrand (Arm) <david@kernel.org>
 Cc: Liam R. Howlett <liam@infradead.org>
 Cc: Michal Hocko <mhocko@suse.com>
 Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Shuah Khan <shuah@kernel.org>
 Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Vlastimil Babka <vbabka@kernel.org>
 ---
 
- mm/vmpressure.c |    3 ---
- 1 file changed, 3 deletions(-)
+ tools/testing/selftests/mm/.gitignore |    2 ++
+ 1 file changed, 2 insertions(+)
 
---- a/mm/vmpressure.c~mm-vmpressure-remove-window-size-todo
-+++ a/mm/vmpressure.c
-@@ -30,9 +30,6 @@
-  *
-  * As the vmscan reclaimer logic works with chunks which are multiple of
-  * SWAP_CLUSTER_MAX, it makes sense to use it for the window size as well.
-- *
-- * TODO: Make the window size depend on machine size, as we do for vmstat
-- * thresholds. Currently we set it to 512 pages (2MB for 4KB pages).
-  */
- const unsigned long vmpressure_win = SWAP_CLUSTER_MAX * 16;
- 
+--- a/tools/testing/selftests/mm/.gitignore~tools-testing-selftests-mm-add-missing-gitignore-entries
++++ a/tools/testing/selftests/mm/.gitignore
+@@ -2,7 +2,9 @@
+ *
+ !/**/
+ !*.c
++*.mod.c
+ !*.h
++local_config.h
+ !*.sh
+ !.gitignore
+ !Makefile
 _
 
 Patches currently in -mm which might be from ljs@kernel.org are
