@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 40594359A81
-	for <mm-commits@vger.kernel.org>; Wed,  7 Oct 2026 02:05:14 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3B21E35C197;
+	Wed,  7 Oct 2026 02:05:16 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791338716; cv=none; b=Qxv+aMqqAFCL6oKw++J93PZNok0pCERSbN2IS/wKe2RLNhnSNcUd/fPGJ0jD3uVLSO+V4P9TohgAcMWedZVnhB7cTCgp8A5aBNn0r4iDIaxZaQCSh9dXilNuCN6ZHRqmpnEczPbgAIOVTG15By3nyXs4nmdZ1/KRNTdYgTl6Hgw=
+	t=1791338717; cv=none; b=Wu+Df69rttkWqFbyVxt//0KBv7U8lNaQahKIY5XGcWu2Vahs0xZdVhmwhaJIn+yICwvftQZBasOxpzqySKzszyr6hKGhd7Ta3UR0lFQBrN5T5rC3BLaB9PYzPBYQ81ZH89YPv31w+Mr4S5HarxUOxku1PFvq1/DEvrIaY+gPeac=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791338716; c=relaxed/simple;
-	bh=I/jTtYmm5f8mmg13Vzdq/lZzHwTs1/jdxpQEnFwOUqw=;
-	h=Date:To:From:Subject:Message-Id; b=eHjXjrBPmJrqq3DP+pZjY3HzX+DJVMGeo+pVRHFCAIb8gWgAS6CtD9TYbglouUM8LsuPI3UVNyVrcw61VcVWQ64ypoWF4kNywyD0ABYwqNSzph9wlJi0jCeNeFo+5vU1DwVYi5uh9ftn0DsJn72kCBlO3RndouPTZ32rm941ioU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Oyvck1CH; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1791338717; c=relaxed/simple;
+	bh=5XpZ4X4pa3rEssQz50lYlq0lnNGzoCfhjwlGc6oS9BA=;
+	h=Date:To:From:Subject:Message-Id; b=b46wC7UV7HcS6/K47Wl46IYVMMgE572EGz93nQZomIxYYVwqmNP4btMxTyf1Jgmqt0b1aU+gHbe2IqNds73hGb3d+T9IxJRougXKjLLinrKHkeUMTTkXOe8lNMbSc0dJ2meRtjGsx3NDAphUDgUQfsYSv7Uiu1b3d/R5tcKlsJ4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=mjScxCbL; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Oyvck1CH"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id BA82E1F0089B;
-	Wed,  7 Oct 2026 02:05:14 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="mjScxCbL"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E1F881F0089C;
+	Wed,  7 Oct 2026 02:05:15 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1791338714;
-	bh=rdVfIkW2JBqA1hhNjbB+ZG3g+Exkp7As7msRVfjb0hI=;
+	d=linux-foundation.org; s=korg; t=1791338716;
+	bh=SQdF4yK0O4yBomTqIj3aZLrn1AvTpfxweylCS2heRbE=;
 	h=Date:To:From:Subject;
-	b=Oyvck1CHzKbSuwtY+TkYBxKNs5YRLvzlvMUax0KBntG0mkPf7BrW/phWd3Cx2zLgO
-	 wuL5IPH2UReZf2H6WdZO1ALMVhkU/m3cGTBooTxdLFh0QDcmrovtwrWg9pE6MFzj1M
-	 mKpfRRKGf50efp82p2sO0gr0Hs0i9Zw0nQ3aIKWQ=
-Date: Tue, 06 Oct 2026 19:05:14 -0700
-To: mm-commits@vger.kernel.org,matthias.bgg@gmail.com,angelogioacchino.delregno@collabora.com,andriy.shevchenko@linux.intel.com,akpm@linux-foundation.org
+	b=mjScxCbLEQsbgVp3ZtrH5nU9dSMSCidINSSicqi8o1gpYRzPjQJnhHVORbG4JLv7R
+	 mbcOUkJMiAlyxmhuOpHrQgKfDhKTexPrAarfHB50mMgftnWqQiNRn/Miorp/cb9U3L
+	 FM7zE66SqrOnIZGZrQAI6Zdybe1ZLPL4aldvTwRc=
+Date: Tue, 06 Oct 2026 19:05:15 -0700
+To: mm-commits@vger.kernel.org,wim@linux-watchdog.org,wangjinchao600@gmail.com,stable@vger.kernel.org,sashiko-bot@kernel.org,pmladek@suse.com,linux@roeck-us.net,brads@mainlining.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] credits-fix-the-ordering-and-other-issues.patch removed from -mm tree
-Message-Id: <20261007020514.BA82E1F0089B@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] panic-fix-redirect-cpu-race-in-panic_try_force_cpu.patch removed from -mm tree
+Message-Id: <20261007020515.E1F881F0089C@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,425 +35,147 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: CREDITS: fix the ordering and other issues
+     Subject: panic: fix redirect CPU race in panic_try_force_cpu()
 has been removed from the -mm tree.  Its filename was
-     credits-fix-the-ordering-and-other-issues.patch
+     panic-fix-redirect-cpu-race-in-panic_try_force_cpu.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Subject: CREDITS: fix the ordering and other issues
-Date: Tue, 15 Sep 2026 10:42:45 +0200
+From: Bradley Morgan <brads@mainlining.org>
+Subject: panic: fix redirect CPU race in panic_try_force_cpu()
+Date: Wed, 16 Sep 2026 18:29:52 +0000
 
-I assume that the ordering should be done in default (C) locale as other
-gives more lines shuffled.  Fix the ordering accordingly.  With that being
-said, clearly make at the top header how it should be sorted.
+Patch series "panic: fix panic_force_cpu= redirect races and NMI bypass",
+v7.
 
-Note, I took some empirical assumptions that people usually put their
-names in accordance with the First name(s) Last Name(s) split based on the
-records around (before and after the move).  I hope I made no or little
-amount of mistakes.  In any case it's just a dozen of names to update.
+The panic_force_cpu= parameter redirects a panic to a specific CPU so the
+crash kernel runs there.  The redirect code in panic_try_force_cpu() had
+two races and an NMI bypass, all found by Sashiko.  This series closes
+them and kills one more hack that the rework turned up.
 
-Link: https://lore.kernel.org/20260915084248.3460260-1-andriy.shevchenko@linux.intel.com
-Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Panic from NMI still goes through the redirect path first, so the crash
+kernel ends up on the CPU the admin asked for.  The redirect buffer is a
+static 1KB now, no initcall, no fallback message.
+
+
+This patch (of 6):
+
+The cmpxchg() in panic_try_force_cpu() makes sure that only one CPU tries
+to redirect panic() to the requested CPU.  It is similar to the cmpxchg()
+in panic_try_start() which makes sure that only one CPU does the panic(). 
+In both situations, only the winner of cmpxchg() should proceed further. 
+Other CPUs should go offline.
+
+There is a bug because the cmpxchg loser returns false and falls through
+into vpanic().  Two non-target CPUs A and B panic, the requested CPU is C:
+
+             cpu A                          cpu B
+          ----------                     ----------
+    panic()                              panic()
+    vpanic()                             vpanic()
+    panic_try_force_cpu()                panic_try_force_cpu()
+        cmpxchg wins                        cmpxchg fails
+        redirect = A                        old_cpu = A
+        IPI -> C                            return false      <- BUG
+        return true                     panic_try_start() wins
+    panic_smp_self_stop()                __crash_kexec() on B
+    (A stops)                            (target C bypassed)
+
+The loser must stop, not fall through.  It cannot just return true,
+though.  A CPU that already won the redirect cmpxchg can reenter
+panic_try_force_cpu() on the same CPU, for example a nested NMI during the
+message formatting, before the IPI is sent:
+
+             cpu A (1st)                  cpu A (nested)
+          ----------                     ----------
+    panic()
+    vpanic()
+    panic_try_force_cpu()
+        cmpxchg wins (redirect = A)
+        vsnprintf(msg) ...
+            <-- NMI, nested panic -->
+                                     panic()
+                                     vpanic()
+                                     panic_try_force_cpu()
+                                         cmpxchg fails
+                                         old_cpu == A (this CPU)
+                                         return true   <- would halt
+                                     panic_smp_self_stop()
+                                     (IPI never sent, panic abandoned)
+
+Check old_cpu against this_cpu so a second call from the same CPU returns
+false and falls through to panic_try_start() instead.
+
+Also fix the panic_in_progress() check.  We must not redirect when
+panic_cpu is already assigned.  Return true to stop when the panic is on
+another CPU, false to proceed when it is this one.
+
+Update the panic_try_force_cpu() doc comment for the new return value
+semantics.
+
+Link: https://lore.kernel.org/20260916182957.7788-1-brads@mainlining.org
+Link: https://lore.kernel.org/20260916182957.7788-2-brads@mainlining.org
+Fixes: 2e171ab29f91 ("panic: add panic_force_cpu= parameter to redirect panic to a specific CPU")
+Signed-off-by: Bradley Morgan <brads@mainlining.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Cc: AngeloGiaocchino Del Regno <angelogioacchino.delregno@collabora.com>
-Cc: Mathias Brugger <matthias.bgg@gmail.com>
+Reported-by: Sashiko <sashiko-bot@kernel.org>
+Closes: https://sashiko.dev/#/patchset/20260705164123.18746-1-include@grrlz.net
+Closes: https://sashiko.dev/#/patchset/20260707172252.4842-1-include@grrlz.net
+Reviewed-by: Petr Mladek <pmladek@suse.com>
+Cc: Guenetr Roeck <linux@roeck-us.net>
+Cc: Wang Jinchao <wangjinchao600@gmail.com>
+Cc: Wim Van Sebroeck <wim@linux-watchdog.org>
+Cc: <stable@vger.kernel.org>
 ---
 
- CREDITS |  181 +++++++++++++++++++++++++++---------------------------
- 1 file changed, 91 insertions(+), 90 deletions(-)
+ kernel/panic.c |   19 ++++++++++++-------
+ 1 file changed, 12 insertions(+), 7 deletions(-)
 
---- a/CREDITS~credits-fix-the-ordering-and-other-issues
-+++ a/CREDITS
-@@ -1,6 +1,7 @@
- 	This is at least a partial credits-file of people that have
--	contributed to the Linux project.  It is sorted by name and
--	formatted to allow easy grepping and beautification by
-+	contributed to the Linux project.  It is sorted by family name,
-+	assuming the used locale is default, e.g. by setting LC_ALL=C,
-+	and formatted to allow easy grepping and beautification by
- 	scripts.  The fields are: name (N), email (E), web-address
- 	(W), PGP key ID and fingerprint (P), description (D), and
- 	snail-mail address (S).
-@@ -344,6 +345,14 @@ D: Hardware spinlock (hwspinlock) subsys
- D: OMAP hwspinlock driver
- D: OMAP remoteproc driver
+--- a/kernel/panic.c~panic-fix-redirect-cpu-race-in-panic_try_force_cpu
++++ a/kernel/panic.c
+@@ -371,8 +371,9 @@ int __weak panic_smp_redirect_cpu(int ta
+  * for the crash kernel to function correctly. This function redirects
+  * panic handling to the CPU specified via the panic_force_cpu= boot parameter.
+  *
+- * Returns false if panic should proceed on current CPU.
+- * Returns true if panic was redirected.
++ * Returns true when this CPU must stop: the panic was redirected or is
++ * already running on another CPU.
++ * Returns false when panic() should proceed on this CPU.
+  */
+ __printf(1, 0)
+ static bool panic_try_force_cpu(const char *fmt, va_list args)
+@@ -396,16 +397,20 @@ static bool panic_try_force_cpu(const ch
+ 		return false;
+ 	}
  
-+N: Muli Ben-Yehuda
-+E: mulix@mulix.org
-+E: muli@il.ibm.com
-+W: http://www.mulix.org
-+D: trident OSS sound driver, x86-64 dma-ops and Calgary IOMMU,
-+D: KVM and Xen bits and other misc. hackery.
-+S: Haifa, Israel
-+
- N: Krzysztof Benedyczak
- E: golbi@mat.uni.torun.pl
- W: http://www.mat.uni.torun.pl/~golbi
-@@ -362,14 +371,6 @@ S: 2322 37th Ave SW
- S: Seattle, Washington 98126-2010
- S: USA
+-	/* Another panic already in progress */
++	/*
++	 * Don't redirect when a panic is already in progress. Stop this
++	 * CPU when it's another one, proceed when it's this one.
++	 */
+ 	if (panic_in_progress())
+-		return false;
++		return panic_on_other_cpu();
  
--N: Muli Ben-Yehuda
--E: mulix@mulix.org
--E: muli@il.ibm.com
--W: http://www.mulix.org
--D: trident OSS sound driver, x86-64 dma-ops and Calgary IOMMU,
--D: KVM and Xen bits and other misc. hackery.
--S: Haifa, Israel
--
- N: Johannes Berg
- E: johannes@sipsolutions.net
- W: https://johannes.sipsolutions.net/
-@@ -393,14 +394,14 @@ S: 1549 Hiironen Rd.
- S: Brimson, MN  55602
- S: USA
+ 	/*
+-	 * Only one CPU can do the redirect. Use atomic cmpxchg to ensure
+-	 * we don't race with another CPU also trying to redirect.
++	 * Only one CPU can do the redirection. Others should go offline.
++	 * Continue with panic() when we already tried the redirection
++	 * from this CPU before, for example via nmi_panic().
+ 	 */
+ 	if (!atomic_try_cmpxchg(&panic_redirect_cpu, &old_cpu, this_cpu))
+-		return false;
++		return old_cpu != this_cpu;
  
--N: Arnd Bergmann
--D: Maintainer of Cell Broadband Engine Architecture
--
- N: Hennus Bergman
- P: 1024/77D50909 76 99 FD 31 91 E1 96 1C  90 BB 22 80 62 F6 BD 63
- D: Author and maintainer of the QIC-02 tape driver
- S: The Netherlands
- 
-+N: Arnd Bergmann
-+D: Maintainer of Cell Broadband Engine Architecture
-+
- N: Tomas Berndtsson
- E: tomas@nocrew.org
- W: http://tomas.nocrew.org/
-@@ -492,10 +493,6 @@ D: Various fixes (mostly networking)
- S: Montreal, Quebec
- S: Canada
- 
--N: Zoltán Böszörményi
--E: zboszor@mail.externet.hu
--D: MTRR emulation with Cyrix style ARR registers, Athlon MTRR support
--
- N: John Boyd
- E: boyd@cis.ohio-state.edu
- D: Co-author of wd7000 SCSI driver
-@@ -589,9 +586,6 @@ N: Zach Brown
- E: zab@zabbo.net
- D: maestro pci sound
- 
--N: Zefan Li
--D: Contribution to control group stuff
--
- N: David Brownell
- D: Kernel engineer, mentor, and friend.  Maintained USB EHCI and
- D: gadget layers, SPI subsystem, GPIO subsystem, and more than a few
-@@ -632,6 +626,10 @@ S: Ravenhorst 58
- S: 2317 AK Leiden
- S: The Netherlands
- 
-+N: Zoltán Böszörményi
-+E: zboszor@mail.externet.hu
-+D: MTRR emulation with Cyrix style ARR registers, Athlon MTRR support
-+
- N: Michael Callahan
- E: callahan@maths.ox.ac.uk
- D: PPP for Linux
-@@ -703,6 +701,10 @@ S: Tamsui town, Taipei county,
- S: Taiwan 251
- S: Republic of China
- 
-+N: Landen Chao
-+E: Landen.Chao@mediatek.com
-+D: MT7531 Ethernet switch support
-+
- N: Michael Elizabeth Chastain
- E: mec@shout.net
- D: Configure, Menuconfig, xconfig
-@@ -715,10 +717,6 @@ D: Media subsystem (V4L/DVB) drivers and
- D: EDAC drivers and EDAC 3.0 core rework
- S: Brazil
- 
--N: Landen Chao
--E: Landen.Chao@mediatek.com
--D: MT7531 Ethernet switch support
--
- N: Raymond Chen
- E: raymondc@microsoft.com
- D: Author of Configure script
-@@ -1447,6 +1445,10 @@ D: Made support for modules, ramdisk, ge
- D: Transformed old user space bdflush into 1st kernel thread - kflushd.
- D: Many other patches, documentation files, mini kernels, utilities, ...
- 
-+N: Andy Gospodarek
-+E: andy@greyhouse.net
-+D: Maintenance and contributions to the network interface bonding driver.
-+
- N: Masanori GOTO
- E: gotom@debian.or.jp
- D: Workbit NinjaSCSI-32Bi/UDE driver
-@@ -1459,10 +1461,6 @@ S: 8124 Constitution Apt. 7
- S: Sterling Heights, Michigan 48313
- S: USA
- 
--N: Andy Gospodarek
--E: andy@greyhouse.net
--D: Maintenance and contributions to the network interface bonding driver.
--
- N: Vivek Goyal
- E: vgoyal@redhat.com
- D: KDUMP, KEXEC, and VIRTIO FILE SYSTEM
-@@ -1535,6 +1533,14 @@ S: 44 St. Joseph Street, Suite 506
- S: Toronto, Ontario, M4Y 2W4
- S: Canada
- 
-+N: Nitin Gupta
-+E: ngupta@vflare.org
-+D: zsmalloc memory allocator and zram block device driver
-+
-+N: Justin Guyett
-+E: jguyett@andrew.cmu.edu
-+D: via-rhine net driver hacking
-+
- N: Richard Günther
- E: rguenth@tat.physik.uni-tuebingen.de
- W: http://www.tat.physik.uni-tuebingen.de/~rguenth
-@@ -1543,14 +1549,6 @@ D: binfmt_misc
- S: 72074 Tübingen
- S: Germany
- 
--N: Justin Guyett
--E: jguyett@andrew.cmu.edu
--D: via-rhine net driver hacking
--
--N: Nitin Gupta
--E: ngupta@vflare.org
--D: zsmalloc memory allocator and zram block device driver
--
- N: Danny ter Haar
- E: dth@cistron.nl
- D: /proc/cpuinfo, reboot on panic , kernel pre-patch tester ;)
-@@ -1945,16 +1943,6 @@ E: sjenning@redhat.com
- D: Creation and maintenance of zswap
- D: Creation and maintenace of the zbud allocator
- 
--N: Jeremy Kerr
--D: Maintainer of SPU File System
--
--N: Michael Kerrisk
--E: mtk.manpages@gmail.com
--W: https://man7.org/
--P: 4096R/3A35CE5E E522 595B 52ED A4E6 BFCC  CB5E 8561 9911 3A35 CE5E
--D: Maintainer of the Linux man-pages project
--D: Linux man pages online, at <https://man7.org/linux/man-pages/>
--
- N: Niels Kristian Bech Jensen
- E: nkbj1970@hotmail.com
- D: Miscellaneous kernel updates and fixes.
-@@ -2099,6 +2087,16 @@ S: Keplerstr. 6
- S: 4050 Traun
- S: Austria
- 
-+N: Jeremy Kerr
-+D: Maintainer of SPU File System
-+
-+N: Michael Kerrisk
-+E: mtk.manpages@gmail.com
-+W: https://man7.org/
-+P: 4096R/3A35CE5E E522 595B 52ED A4E6 BFCC  CB5E 8561 9911 3A35 CE5E
-+D: Maintainer of the Linux man-pages project
-+D: Linux man pages online, at <https://man7.org/linux/man-pages/>
-+
- N: Karl Keyte
- E: karl@koft.com
- D: Disk usage statistics and modifications to line printer driver
-@@ -2483,6 +2481,9 @@ D: and much more. He was the maintainer
- D: passed away late 2018, he will be greatly missed.
- W: https://www.spinics.net/lists/raid/msg61993.html
- 
-+N: Zefan Li
-+D: Contribution to control group stuff
-+
- N: Stephan Linz
- E: linz@mazet.de
- E: Stephan.Linz@gmx.de
-@@ -2542,11 +2543,6 @@ D: misc. kernel hacking and debugging
- S: Cambridge, MA 02139
- S: USA
- 
--N: Martin von Löwis
--E: loewis@informatik.hu-berlin.de
--D: script binary format
--D: NTFS driver
--
- N: H.J. Lu
- E: hjl@gnu.ai.mit.edu
- D: GCC + libraries hacker
-@@ -2575,6 +2571,11 @@ S: Puistokaari 1 E 18
- S: 00200 Helsinki
- S: Finland
- 
-+N: Martin von Löwis
-+E: loewis@informatik.hu-berlin.de
-+D: script binary format
-+D: NTFS driver
-+
- N: Daniel J. Maas
- E: dmaas@dcine.com
- W: https://www.maasdigital.com
-@@ -2625,10 +2626,6 @@ S: PO BOX 220, HFX. CENTRAL
- S: Halifax, Nova Scotia
- S: Canada B3J 3C8
- 
--N: Kai Mäkisara
--E: Kai.Makisara@kolumbus.fi
--D: SCSI Tape Driver
--
- N: Asit Mallick
- E: asit.k.mallick@intel.com
- D: Linux/IA-64
-@@ -2912,13 +2909,6 @@ S: 12725 SW Millikan Way, Suite 400
- S: Beaverton, Oregon 97005
- S: USA
- 
--N: Eberhard Mönkeberg
--E: emoenke@gwdg.de
--D: CDROM driver "sbpcd" (Matsushita/Panasonic/Soundblaster)
--S: Ruhstrathöhe 2 b.
--S: D-37085 Göttingen
--S: Germany
--
- N: Thomas Molina
- E: tmolina@cablespeed.com
- D: bug fixes, documentation, minor hackery
-@@ -3005,6 +2995,17 @@ S: Dragonvagen 1 A 13
- S: FIN-00330 Helsingfors
- S: Finland
- 
-+N: Kai Mäkisara
-+E: Kai.Makisara@kolumbus.fi
-+D: SCSI Tape Driver
-+
-+N: Eberhard Mönkeberg
-+E: emoenke@gwdg.de
-+D: CDROM driver "sbpcd" (Matsushita/Panasonic/Soundblaster)
-+S: Ruhstrathöhe 2 b.
-+S: D-37085 Göttingen
-+S: Germany
-+
- N: Matija Nalis
- E: mnalis@jagor.srce.hr
- E: mnalis@voyager.hr
-@@ -3200,13 +3201,6 @@ S: RR #5, 497 Pole Line Road
- S: Thunder Bay, Ontario
- S: CANADA P7C 5M9
- 
--N: Inaky Perez-Gonzalez
--E: inaky.perez-gonzalez@intel.com
--E: linux-wimax@intel.com
--E: inakypg@yahoo.com
--D: WiMAX stack
--D: Intel Wireless WiMAX Connection 2400 driver
--
- N: Yuri Per
- E: yuri@pts.mipt.ru
- D: Some smbfs fixes
-@@ -3214,6 +3208,13 @@ S: Demonstratsii 8-382
- S: Tula 300000
- S: Russia
- 
-+N: Inaky Perez-Gonzalez
-+E: inaky.perez-gonzalez@intel.com
-+E: linux-wimax@intel.com
-+E: inakypg@yahoo.com
-+D: WiMAX stack
-+D: Intel Wireless WiMAX Connection 2400 driver
-+
- N: Thomas Petazzoni
- E: thomas.petazzoni@bootlin.com
- D: Driver for the Marvell Armada 370/XP network unit.
-@@ -3328,14 +3329,14 @@ N: Frederic Potter
- E: fpotter@cirpack.com
- D: Some PCI kernel support
- 
--N: Rui Prior
--E: rprior@inescn.pt
--D: ATM device driver for NICStAR based cards
--
- N: Roopa Prabhu
- E: roopa@nvidia.com
- D: Bridge co-maintainer, vxlan and networking contributor
- 
-+N: Rui Prior
-+E: rprior@inescn.pt
-+D: ATM device driver for NICStAR based cards
-+
- N: Stefan Probst
- E: sp@caldera.de
- D: The Linux Support Team Erlangen, 1993-97
-@@ -4023,12 +4024,6 @@ S: C/ Federico Garcia Lorca 1 10-A
- S: Sevilla 41005
- S: Spain
- 
--N: Björn Töpel
--E: bjorn@kernel.org
--D: AF_XDP
--S: Gothenburg
--S: Sweden
--
- N: Linus Torvalds
- E: torvalds@linux-foundation.org
- D: Original kernel hacker
-@@ -4082,17 +4077,6 @@ D: Linux-Workshop Köln (aka LUG Cologne
- S: Tacitusstr. 6
- S: D-50968 Köln
- 
--N: Tsu-Sheng Tsao
--E: tsusheng@scf.usc.edu
--D: IGMP (Internet Group Management Protocol) version 2
--S: 2F 14 ALY 31 LN 166 SEC 1 SHIH-PEI RD
--S: Taipei
--S: Taiwan 112
--S: Republic of China
--S: 24335 Delta Drive
--S: Diamond Bar, California 91765
--S: USA
--
- N: Theodore Ts'o
- E: tytso@mit.edu
- D: Random Linux hacker
-@@ -4109,6 +4093,17 @@ S: 1 Amherst Street
- S: Cambridge, Massachusetts 02139
- S: USA
- 
-+N: Tsu-Sheng Tsao
-+E: tsusheng@scf.usc.edu
-+D: IGMP (Internet Group Management Protocol) version 2
-+S: 2F 14 ALY 31 LN 166 SEC 1 SHIH-PEI RD
-+S: Taipei
-+S: Taiwan 112
-+S: Republic of China
-+S: 24335 Delta Drive
-+S: Diamond Bar, California 91765
-+S: USA
-+
- N: Luben Tuikov
- E: Luben Tuikov <ltuikov89@gmail.com>
- D: Maintainer of the DRM GPU Scheduler
-@@ -4135,6 +4130,12 @@ S: 44 Campbell Park Crescent
- S: Edinburgh EH13 0HT
- S: United Kingdom
- 
-+N: Björn Töpel
-+E: bjorn@kernel.org
-+D: AF_XDP
-+S: Gothenburg
-+S: Sweden
-+
- N: Thomas Uhl
- E: uhl@sun1.rz.fh-heilbronn.de
- D: Application programmer
+ 	/*
+ 	 * Use dynamically allocated buffer if available, otherwise
 _
 
-Patches currently in -mm which might be from andriy.shevchenko@linux.intel.com are
+Patches currently in -mm which might be from brads@mainlining.org are
 
+watchdog-perf-one-digit-too-short-in-the-raw-event-config-copy.patch
 
