@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4FC941ABEDE;
-	Wed,  7 Oct 2026 02:04:05 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 24644345EDC
+	for <mm-commits@vger.kernel.org>; Wed,  7 Oct 2026 02:04:06 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791338647; cv=none; b=toPHMUavQO6tvQQ+h6WLCQnRIwrZBHIvm1NFLOd5CekV+3g1ifZM92tRwnRdLEPnk7ENuHh45myeuwpN7QVmyW7kfvj0lJZNVUc1/4t2uhBWcUamJxIVHuppV2vOoKHvQwxZkzs0IKxHtmx/jzP7w9qoXrMBh+c2Y5q3NX+DuXA=
+	t=1791338648; cv=none; b=T5pAiu5Spik7nZvqDdVJxn1j2ns48O6GLMQKQ0d0opVSEfXhcW5n2x9RDf+ayXJ2PSfndeDiEkYpE+M7XPsN09SqOht0URZ6J1HjbmCUqgDnaODz5VeslkPP9y+t+RQrHWj/rXieiM+b5s1KopOkCEpO2fnsxNdcjfCsMDP484g=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791338647; c=relaxed/simple;
-	bh=6YZ9pS97jaliZjYJ14cFEh77mMWXRvXF6h6lJaqJjDY=;
-	h=Date:To:From:Subject:Message-Id; b=nsH4EkY66U6/kN3P25mNOkosoZJNrvoMB7Ec4t52Rdicwvr2Ko/jp27oqqzmYmezFqsKMP4U7FTB0OMdby1ZF5t/k2qbseAV4lPw4ZuOIdhPOywfAoTxrS/7HT+4+h18utKDSBD5Liuj5vMAeolbcjeqsOw2aLRlUeoZLSO9Oeo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=sUYDG62M; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1791338648; c=relaxed/simple;
+	bh=lYt2an4vDQ9v1sanbjxaa9G1hNcePixbwDWnPPYa94U=;
+	h=Date:To:From:Subject:Message-Id; b=pTMxztlUk0pV6LhD5eIKUApvt0EF2Htl3Y7J00orLdIpz6q7f3Hss2rnMOooRMZbRlTcCw6tQgGDn0CQRokG8mrl0igQFv6BE7gsbgrSkGIjkjuunY5C+c4b0LmOklwU6LbRhJAUx5LmGLgjUpSlCuAYnkiwPa83c3YndRg0ai4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=k03ql+Xv; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="sUYDG62M"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 90B691F0089C;
-	Wed,  7 Oct 2026 02:04:05 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="k03ql+Xv"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id BA6471F0089B;
+	Wed,  7 Oct 2026 02:04:06 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1791338645;
-	bh=CbVKQO0iP3YB6cdF8JAo2mumrIdfz4HZiSSO1fT4jYY=;
+	d=linux-foundation.org; s=korg; t=1791338646;
+	bh=IclrGpw+LaUrPe4+VaFxTxHsalLvLSP5lQF3Yp0/Zds=;
 	h=Date:To:From:Subject;
-	b=sUYDG62M10XfnoFfpyT2Pmqzs4dzvtHJEO6rb7++B2A1fhzcEpEn6NfoNZr7cHVPy
-	 SVVmThcZ3K4vjItN/Y5XPhUXatJ02+huHTUgVNTzgImnFMej0rT/p4jnnU489Klv0c
-	 TZYeImrK7VDE/9LgPAIRQblaQlFUuXqriHFhgkKo=
-Date: Tue, 06 Oct 2026 19:04:05 -0700
-To: mm-commits@vger.kernel.org,willy@infradead.org,stable@vger.kernel.org,rafael@kernel.org,gregkh@linuxfoundation.org,dakr@kernel.org,kmehltretter@gmail.com,akpm@linux-foundation.org
+	b=k03ql+XvRjmC19aCI2yM3n0TghjSbi57hmApuW+WB/8SOF8uR5WMG9bLT8lTKgpHu
+	 2VcTHgksvdvi/tpylA+otrIqE3u5KN60TSGL8h1zkliMqwXYNVSOGE08BQZgDKjbwq
+	 y6vxHKF3xUkNYKQeEMN10El+6dVYASZ78q7rUeto=
+Date: Tue, 06 Oct 2026 19:04:06 -0700
+To: mm-commits@vger.kernel.org,vschneid@redhat.com,vincent.guittot@linaro.org,shuah@kernel.org,rostedt@goodmis.org,richard.weiyang@gmail.com,peterz@infradead.org,paulmck@kernel.org,mjeanson@efficios.com,mingo@redhat.com,mgorman@suse.de,mathieu.desnoyers@efficios.com,kprateek.nayak@amd.com,juri.lelli@redhat.com,dietmar.eggemann@arm.com,bsegall@google.com,christian.gellermann@codasip.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] klist-avoid-accesses-after-waking-klist_remove.patch removed from -mm tree
-Message-Id: <20261007020405.90B691F0089C@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] selftests-membarrier-introduce-helper-to-get-membarrier-command-registrations.patch removed from -mm tree
+Message-Id: <20261007020406.BA6471F0089B@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,113 +35,80 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: klist: avoid accesses after waking klist_remove()
+     Subject: selftests/membarrier: introduce helper to get membarrier command registrations
 has been removed from the -mm tree.  Its filename was
-     klist-avoid-accesses-after-waking-klist_remove.patch
+     selftests-membarrier-introduce-helper-to-get-membarrier-command-registrations.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Karl Mehltretter <kmehltretter@gmail.com>
-Subject: klist: avoid accesses after waking klist_remove()
-Date: Thu, 27 Aug 2026 06:17:08 +0200
+From: Chris Gellermann <christian.gellermann@codasip.com>
+Subject: selftests/membarrier: introduce helper to get membarrier command registrations
+Date: Mon, 3 Aug 2026 14:48:59 +0200
 
-klist_remove() waits until a node is unreferenced so that its caller can
-free the containing object.  klist_release() currently publishes
-waiter->woken and wakes the waiter before its final accesses to the waiter
-and node.  klist_remove() can then return, allowing its stack waiter and
-the containing object to be freed or reused while klist_release() is still
-running.  In particular, bus_remove_driver() can free drv->p while
-__device_attach() walks the same bus klist with bus_for_each_drv().
+Patch series "selftests/membarrier: Skip an unregistered memory barrier
+test on Musl".
 
-On an arm64 Cortex-A72 system, an unpatched 7.2.0-rc3 kernel with
-CONFIG_PREEMPT_RT=y and CONFIG_KASAN=y reproduced the bug through the
-in-tree I2C/at24 path.  KASAN reported a use-after-free in
-klist_dec_and_del() reached from klist_next()/bus_for_each_drv() while
-at24 was being unregistered.
+The membarrier test "membarrier MEMBARRIER_CMD_PRIVATE_EXPEDITED not
+registered failure" fails in the multithreaded test scenario when using
+Musl libc as the command gets preregistered implicitly during thread
+creation.  Skip the test if command registration is detected.
 
-Clear n_klist and take a task reference before publishing woken.  Use
-release/acquire accesses for that publication and wake the referenced
-task.  The task reference keeps the waiter task alive if it returns and
-exits before wake_up_process().
 
-Link: https://lore.kernel.org/20260827041708.31682-1-kmehltretter@gmail.com
-Fixes: 8b0c250be489 ("[PATCH] add klist_node_attached() to determine if a node is on a list or not.")
-Fixes: 210272a28465 ("driver core: Remove completion from struct klist_node")
-Signed-off-by: Karl Mehltretter <kmehltretter@gmail.com>
+This patch (of 2):
+
+Add a new membarrier_get_registrations() for reusage.
+
+Link: https://lore.kernel.org/20260803124900.3328789-1-christian.gellermann@codasip.com
+Link: https://lore.kernel.org/20260803124900.3328789-2-christian.gellermann@codasip.com
+Signed-off-by: Chris Gellermann <christian.gellermann@codasip.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Assisted-by: LLM
-Cc: Danilo Krummrich <dakr@kernel.org>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: "Rafael J. Wysocki" <rafael@kernel.org>
-Cc: <stable@vger.kernel.org>
+Tested-by: Michael Jeanson <mjeanson@efficios.com>
+Cc: Ben Segall <bsegall@google.com>
+Cc: Dietmar Eggemann <dietmar.eggemann@arm.com>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Juri Lelli <juri.lelli@redhat.com>
+Cc: K Prateek Nayak <kprateek.nayak@amd.com>
+Cc: Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: "Paul E . McKenney" <paulmck@kernel.org>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Shuah Khan <shuah@kernel.org>
+Cc: Steven Rostedt <rostedt@goodmis.org>
+Cc: Valentin Schneider <vschneid@redhat.com>
+Cc: Vincent Guittot <vincent.guittot@linaro.org>
+Cc: Wei Yang <richard.weiyang@gmail.com>
 ---
 
- lib/klist.c |   16 ++++++++++++----
- 1 file changed, 12 insertions(+), 4 deletions(-)
+ tools/testing/selftests/membarrier/membarrier_test_impl.h |    7 ++++++-
+ 1 file changed, 6 insertions(+), 1 deletion(-)
 
---- a/lib/klist.c~klist-avoid-accesses-after-waking-klist_remove
-+++ a/lib/klist.c
-@@ -36,6 +36,7 @@
- #include <linux/klist.h>
- #include <linux/export.h>
- #include <linux/sched.h>
-+#include <linux/sched/task.h>
- 
- /*
-  * Use the lowest bit of n_klist to mark deleted nodes and exclude
-@@ -187,18 +188,24 @@ static void klist_release(struct kref *k
- 
- 	WARN_ON(!knode_dead(n));
- 	list_del(&n->n_node);
-+	knode_set_klist(n, NULL);
- 	spin_lock(&klist_remove_lock);
- 	list_for_each_entry_safe(waiter, tmp, &klist_remove_waiters, list) {
-+		struct task_struct *p;
-+
- 		if (waiter->node != n)
- 			continue;
- 
-+		p = waiter->process;
-+		get_task_struct(p);
- 		list_del(&waiter->list);
--		waiter->woken = 1;
-+		/* Publish only after the final waiter and n accesses */
-+		smp_store_release(&waiter->woken, 1);
- 		mb();
--		wake_up_process(waiter->process);
-+		wake_up_process(p);
-+		put_task_struct(p);
- 	}
- 	spin_unlock(&klist_remove_lock);
--	knode_set_klist(n, NULL);
+--- a/tools/testing/selftests/membarrier/membarrier_test_impl.h~selftests-membarrier-introduce-helper-to-get-membarrier-command-registrations
++++ a/tools/testing/selftests/membarrier/membarrier_test_impl.h
+@@ -16,6 +16,11 @@ static int sys_membarrier(int cmd, int f
+ 	return syscall(__NR_membarrier, cmd, flags);
  }
  
- static int klist_dec_and_del(struct klist_node *n)
-@@ -250,7 +257,8 @@ void klist_remove(struct klist_node *n)
++static int membarrier_get_registrations(void)
++{
++	return sys_membarrier(MEMBARRIER_CMD_GET_REGISTRATIONS, 0);
++}
++
+ static int test_membarrier_get_registrations(int cmd)
+ {
+ 	int ret, flags = 0;
+@@ -24,7 +29,7 @@ static int test_membarrier_get_registrat
  
- 	for (;;) {
- 		set_current_state(TASK_UNINTERRUPTIBLE);
--		if (waiter.woken)
-+		/* Pairs with the release store in klist_release() */
-+		if (smp_load_acquire(&waiter.woken))
- 			break;
- 		schedule();
- 	}
+ 	registrations |= cmd;
+ 
+-	ret = sys_membarrier(MEMBARRIER_CMD_GET_REGISTRATIONS, 0);
++	ret = membarrier_get_registrations();
+ 	if (ret < 0) {
+ 		ksft_exit_fail_msg(
+ 			"%s test: flags = %d, errno = %d\n",
 _
 
-Patches currently in -mm which might be from kmehltretter@gmail.com are
+Patches currently in -mm which might be from christian.gellermann@codasip.com are
 
-docs-mm-ksm-use-the-renamed-ksm-structure-names.patch
-mm-secretmem-fix-the-enable-parameter-description.patch
-mm-damon-core-preserve-the-quota-passed-to-damon_new_scheme.patch
-mm-damon-tests-core-kunit-test-preservation-of-quota-state.patch
-mm-damon-tests-core-kunit-test-psi-goal-values-with-explicit-samples.patch
-ocfs2-cluster-hold-a-reference-on-the-heartbeat-thread.patch
-resource-kunit-stop-selecting-get_free_region.patch
-kcov-report-spurious-pcs-in-the-interrupt-selftest.patch
-squashfs-fix-fragment-index-table-sizing-overflow-on-32-bit.patch
-squashfs-make-the-fragment-index-table-bounds-check-overflow-safe.patch
 
