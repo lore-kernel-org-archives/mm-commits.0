@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3DF892EEE61
-	for <mm-commits@vger.kernel.org>; Wed,  7 Oct 2026 00:50:29 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 18F492D7DE9
+	for <mm-commits@vger.kernel.org>; Wed,  7 Oct 2026 00:50:30 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791334230; cv=none; b=gO3duJZnUB8M/v+unNdj8JjM1CdYCHtoFtDx6j5z3UgraDua2BUS2f4j8HllMXa/dxI62/Qx9vM9iLX9X6ir0u7uj3zOQ4LWtLy9+fEoEM7wTO/uY1uj5E7jLEk5/UmjFlmgV0p8Yw6AK2aXJ1v73W4YqW7glJTdk0uyErk4DO4=
+	t=1791334231; cv=none; b=CommIOz3+ZamE1bQSWoMhf+7tQTR7d+MxMvVldIKwMpq1bi2bwj5eMn4m9jDNq5xDOZyTcn21gzgPCcY2CsYncCndRRQI/oLB7zdPlFeXyx45lhbLLCJXhN+1WWrF7BY5gi8tG5d1groY2WR+K99/wIpRwOrcEIOEfKgXCyUazw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791334230; c=relaxed/simple;
-	bh=VQA48LMDxwn9jqxw6DD45OTpq6lB/WkXkHLRxSKXQdM=;
-	h=Date:To:From:Subject:Message-Id; b=d+7zd0g6AC44BcJJqCpJiHHppbZwR9ZcVXnFWFXvkHsnzdZTFiOWdE6a1vKqcVu2Q5zQYkZ9F7l8fsoVW/pbgaEGk6dKfc4kRP0AWrFwSmK9/vvoq63H5P5fQLCI5z6uZcogx5hfG6H0DSUgwgo8iTKZBSucfAhuNJqvOpOOkYg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=mMjNg2r6; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1791334231; c=relaxed/simple;
+	bh=wDpC+dxnp/rawVfxE81YTA7YWiglTOHep1ZF2EOr9go=;
+	h=Date:To:From:Subject:Message-Id; b=IyUJuz/8Mc8nZ9psrsVWqQ+I1uzKZ2h5tzYpebfkhFsklyA7GWEx7V1uY67qbR0YytvAJwLdIAEX4nHJiOT8KkJcdlfR2WRvGy00BJzi6dY3cg5IoxZhX9Cw6cAbkNnfjtLFkneaDfd4/zq/om+g5fbVwOL18dmKpkLCa7gttGk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=OdLsIy63; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="mMjNg2r6"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D07C91F0089B;
-	Wed,  7 Oct 2026 00:50:28 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="OdLsIy63"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E17941F0089C;
+	Wed,  7 Oct 2026 00:50:29 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1791334228;
-	bh=t+YQoBYFPSJ+qhLHvrE030HkM+zMQ6WzJZiVsiUU9N4=;
+	d=linux-foundation.org; s=korg; t=1791334230;
+	bh=CNAhmi+64W3PtiEX910ErZSoBVQxyUl6y+fQXbf/Tqk=;
 	h=Date:To:From:Subject;
-	b=mMjNg2r6BzbS/9FIq8C0Zi3YabYfiXBiOiQCj5W3nhOrXkduB8kkcsjlAsAwVAC+q
-	 Lw2tVR7ME/5VRFLZTym0ESUW9bqChramkQMa7ns8LBHYmh+YvfMozeWcWjQTv6C7xa
-	 ujMyYE5FKFlBeJcSgO4KzDP6siA1WfQnW1YfT+28=
-Date: Tue, 06 Oct 2026 17:50:28 -0700
-To: mm-commits@vger.kernel.org,willy@infradead.org,ljs@kernel.org,hannes@cmpxchg.org,david@kernel.org,tz2294@columbia.edu,akpm@linux-foundation.org
+	b=OdLsIy63nur0FLCe5TDaAIqkr7GNzbqgLEKW2/KV75lV0NuZz4PYFfp8MGlgf6JXc
+	 TmO+vbzv2qd8z8DtyrI6KXwTJF0xyhpk14uWDHtmvV3KQkM3ms6N7HiQYRFkokNkIg
+	 YlvZvbnOTvx9b7pIMCGfKM1DyyGEKYraxg0hxIVI=
+Date: Tue, 06 Oct 2026 17:50:29 -0700
+To: mm-commits@vger.kernel.org,willy@infradead.org,ljs@kernel.org,hannes@cmpxchg.org,tz2294@columbia.edu,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-remove-pagereclaim.patch removed from -mm tree
-Message-Id: <20261007005028.D07C91F0089B@smtp.kernel.org>
+Subject: [merged mm-stable] mm-page_io-use-swap-entries-directly-in-zeromap-helpers.patch removed from -mm tree
+Message-Id: <20261007005029.E17941F0089C@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,46 +35,73 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: remove PageReclaim
+     Subject: mm/page_io: use swap entries directly in zeromap helpers
 has been removed from the -mm tree.  Its filename was
-     mm-remove-pagereclaim.patch
+     mm-page_io-use-swap-entries-directly-in-zeromap-helpers.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Tal Zussman <tz2294@columbia.edu>
-Subject: mm: remove PageReclaim
-Date: Sat, 29 Aug 2026 15:09:01 -0400
+Subject: mm/page_io: use swap entries directly in zeromap helpers
+Date: Sat, 29 Aug 2026 15:09:02 -0400
 
-This flag is now only used on folios, so we can remove all the page
-accessors.  folio_test_clear_reclaim() is not used, so don't add
-FOLIO_TEST_CLEAR_FLAG() for it.
+Increment swp_entry_t::val directly instead of recomputing each entry with
+page_swap_entry().  This removes the last struct page usage in page_io.c
+and saves one call to compound_head() per page.
 
-Link: https://lore.kernel.org/20260829-b4-page_io-folios-v2-2-649728091117@columbia.edu
+Link: https://lore.kernel.org/20260829-b4-page_io-folios-v2-3-649728091117@columbia.edu
 Signed-off-by: Tal Zussman <tz2294@columbia.edu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 Acked-by: Johannes Weiner <hannes@cmpxchg.org>
 Reviewed-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Reviewed-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
-Acked-by: David Hildenbrand (Arm) <david@kernel.org>
 ---
 
- include/linux/page-flags.h |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ mm/page_io.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
---- a/include/linux/page-flags.h~mm-remove-pagereclaim
-+++ a/include/linux/page-flags.h
-@@ -593,8 +593,7 @@ TESTPAGEFLAG(Writeback, writeback, PF_NO
- FOLIO_FLAG(mappedtodisk, FOLIO_HEAD_PAGE)
+--- a/mm/page_io.c~mm-page_io-use-swap-entries-directly-in-zeromap-helpers
++++ a/mm/page_io.c
+@@ -160,7 +160,7 @@ static void swap_zeromap_folio_set(struc
+ 	struct obj_cgroup *objcg = get_obj_cgroup_from_folio(folio);
+ 	int nr_pages = folio_nr_pages(folio);
+ 	struct swap_cluster_info *ci;
+-	swp_entry_t entry;
++	swp_entry_t entry = folio->swap;
+ 	unsigned int i;
  
- /* PG_readahead is only used for reads; PG_reclaim is only for writes */
--PAGEFLAG(Reclaim, reclaim, PF_NO_TAIL)
--	TESTCLEARFLAG(Reclaim, reclaim, PF_NO_TAIL)
-+FOLIO_FLAG(reclaim, FOLIO_HEAD_PAGE)
- FOLIO_FLAG(readahead, FOLIO_HEAD_PAGE)
- 	FOLIO_TEST_CLEAR_FLAG(readahead, FOLIO_HEAD_PAGE)
+ 	VM_WARN_ON_ONCE_FOLIO(!folio_test_swapcache(folio), folio);
+@@ -168,8 +168,8 @@ static void swap_zeromap_folio_set(struc
  
+ 	ci = swap_cluster_get_and_lock(folio);
+ 	for (i = 0; i < folio_nr_pages(folio); i++) {
+-		entry = page_swap_entry(folio_page(folio, i));
+ 		__swap_table_set_zero(ci, swp_cluster_offset(entry));
++		entry.val++;
+ 	}
+ 	swap_cluster_unlock(ci);
+ 
+@@ -183,7 +183,7 @@ static void swap_zeromap_folio_set(struc
+ static void swap_zeromap_folio_clear(struct folio *folio)
+ {
+ 	struct swap_cluster_info *ci;
+-	swp_entry_t entry;
++	swp_entry_t entry = folio->swap;
+ 	unsigned int i;
+ 
+ 	VM_WARN_ON_ONCE_FOLIO(!folio_test_swapcache(folio), folio);
+@@ -191,8 +191,8 @@ static void swap_zeromap_folio_clear(str
+ 
+ 	ci = swap_cluster_get_and_lock(folio);
+ 	for (i = 0; i < folio_nr_pages(folio); i++) {
+-		entry = page_swap_entry(folio_page(folio, i));
+ 		__swap_table_clear_zero(ci, swp_cluster_offset(entry));
++		entry.val++;
+ 	}
+ 	swap_cluster_unlock(ci);
+ }
 _
 
 Patches currently in -mm which might be from tz2294@columbia.edu are
