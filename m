@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 513BC3515DA
-	for <mm-commits@vger.kernel.org>; Wed,  7 Oct 2026 02:04:18 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8BAC4235045
+	for <mm-commits@vger.kernel.org>; Wed,  7 Oct 2026 02:04:19 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791338659; cv=none; b=KdZihKU36FfPbJhVtOXY4YoNqM6cBA9ApKTU1A/Femq2bWskye1HwELXYlnwvRpWA3hqywlOVKPpf4CZe9BMnE3H2SbKQpWJbhNdMekJmvtItKEhrdpn8jNw6JXzOW/84x8BGVWmHYaekePnm4oIsBHzx4YqrA7hRci7l/LACUU=
+	t=1791338660; cv=none; b=i+9gaKjYNJwTbvB6nr5KOBocru06rmH+JG1gaqUGt/uWVzuGfz2Yh4NgiPTwtqpTYa/pCdbWa12i2kHXvLdYMwmgCYDuKQXhmHK7EyXSN3GyC1d6auK5ybmq+8By5fIfhpD4cEwGkm1W7gAXcxUk3vsOHP464LMCUHWRQSLIjGg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791338659; c=relaxed/simple;
-	bh=IUgOw8rmoPwvR8wW8CkFqNGfSCbM4q39+SppNf2HHOA=;
-	h=Date:To:From:Subject:Message-Id; b=idpTv9sicLea7MqdjA3yRMEH+XIdAwlgKIuneeGUKZ6sdQd9y40fnPEOP3b0CdEmMws/8Pyy6dROstdLzFJYRvYOUwFi2myQi945sL9mPaFtuzpRTsxeQ/n2Uk/k258rgPcom9gIUdlcl6CzVU0/NPO6rAcd2huLLsxE2+Hy4mE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ZcRBxHVy; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1791338660; c=relaxed/simple;
+	bh=L+oWKgz1gL2nuypXI9ahOj1Zt09T4WsSDRZH746a/BQ=;
+	h=Date:To:From:Subject:Message-Id; b=hk2awbOFIWE3aoZ242k5bQ0jJdw7vVmmh75sd76TgzaosOhw72fzQDH4M8D0Kfu0opTSXoE7Z8kLFuLFWMvQKwdTAefL9z7BObUrREoza1D4CYia8gBZ+9bnwwu2oCTNSUAzfkG4xPVOC2bAp71UHW/XQeIfdGDBzRfTgKzdXhQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=EMTgPfcu; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ZcRBxHVy"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id DD3211F0089C;
-	Wed,  7 Oct 2026 02:04:17 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="EMTgPfcu"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0EC281F0089B;
+	Wed,  7 Oct 2026 02:04:19 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1791338658;
-	bh=qJ3txw3fGGC0Yw+hXyjMpTf6szi4nlodfz5jQuisjQY=;
+	d=linux-foundation.org; s=korg; t=1791338659;
+	bh=EJNQsT4UYxcbtHOJkXWtha+sOVvb0mSqE7yynkaPHqE=;
 	h=Date:To:From:Subject;
-	b=ZcRBxHVyUt+4TsHd9iRObKDE/akkv8Ajub6QF7xYWJ66vChW6HX90sl1blev1qQYl
-	 jw/n0DhpJT6OIVPXkPGIs3g3pbERWvZBGb2SbSsGqCqx0lmydiz6BpW/MC1D8k5Rjv
-	 6RuYQsW5E7qtvtblHcynPHX29zUjsvAIFA2VRpzs=
-Date: Tue, 06 Oct 2026 19:04:17 -0700
-To: mm-commits@vger.kernel.org,hpa@zytor.com,david.laight.linux@gmail.com,zhanxusheng@xiaomi.com,akpm@linux-foundation.org
+	b=EMTgPfcuQT3PDkast85vW8O7PDaQ6KYlf4H5fDt6nrOzeR2orwv6PwfDrW8ABJxw6
+	 edlbw/ebxtzasxYb6riHPqKDXJbNas9LLMHd7wieorUDwXRfSx7RCrVm0VgSJbLfzO
+	 01pq9EMgY2F5zlK+vhb1Ddwb+wmdiGtzbKxpL6/0=
+Date: Tue, 06 Oct 2026 19:04:18 -0700
+To: mm-commits@vger.kernel.org,julia.lawall@inria.fr,jani.nikula@linux.intel.com,arnd@arndb.de,julianbraha@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] minmaxh-update-the-stale-x-versus-ux-comment.patch removed from -mm tree
-Message-Id: <20261007020417.DD3211F0089C@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] lib-cleanup-fake-tristates-in-kconfig.patch removed from -mm tree
+Message-Id: <20261007020419.0EC281F0089B@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,57 +35,79 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: minmax.h: update the stale 'x' versus 'ux' comment
+     Subject: lib: cleanup "fake" tristates in Kconfig
 has been removed from the -mm tree.  Its filename was
-     minmaxh-update-the-stale-x-versus-ux-comment.patch
+     lib-cleanup-fake-tristates-in-kconfig.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Zhan Xusheng <zhanxusheng@xiaomi.com>
-Subject: minmax.h: update the stale 'x' versus 'ux' comment
-Date: Mon, 17 Aug 2026 20:16:13 +0800
+From: Julian Braha <julianbraha@gmail.com>
+Subject: lib: cleanup "fake" tristates in Kconfig
+Date: Mon, 17 Aug 2026 22:03:11 +0100
 
-Commit b280bb27a9f7 ("minmax.h: reduce the #define expansion of min(),
-max() and clamp()") made __sign_use(), __is_nonneg() and __types_ok() take
-only 'ux', and commit a5743f32baec ("minmax.h: use BUILD_BUG_ON_MSG() for
-the lo < hi test in clamp()") did the same for the clamp() limit test. 
-The comment describing the old split was added one patch earlier and was
-never updated.
+These 7 DECOMPRESS_ options (e.g.  DECOMPRESS_GZIP) currently have the
+tristate type, but can never be set to M.  Their only valid values are Y
+and N, making them effectively booleans.
 
-'ux' now carries the value check too, since __is_nonneg() tests it rather
-than the original expression, and nothing here looks at the value of 'x'
-any more: it is expanded only to initialise 'ux' and in the error message,
-as the first of those changes intended.
+Let's make their types more accurate by changing them to 'bool'.  Note
+that this is only a code cleanup, there is no functional change.
 
-Link: https://lore.kernel.org/20260817121613.3846511-1-zhanxusheng@xiaomi.com
-Signed-off-by: Zhan Xusheng <zhanxusheng@xiaomi.com>
+These bistates were found by kconfirm, a static analysis tool for Kconfig.
+
+Link: https://lore.kernel.org/20260817210311.2142999-1-julianbraha@gmail.com
+Signed-off-by: Julian Braha <julianbraha@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Cc: David Laight <david.laight.linux@gmail.com>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: Jani Nikula <jani.nikula@linux.intel.com>
+Cc: Julia Lawall <julia.lawall@inria.fr>
 ---
 
- include/linux/minmax.h |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ lib/Kconfig |   14 +++++++-------
+ 1 file changed, 7 insertions(+), 7 deletions(-)
 
---- a/include/linux/minmax.h~minmaxh-update-the-stale-x-versus-ux-comment
-+++ a/include/linux/minmax.h
-@@ -38,9 +38,9 @@
-  * Note that 'x' is the original expression, and 'ux' is the unique variable
-  * that contains the value.
-  *
-- * We use 'ux' for pure type checking, and 'x' for when we need to look at the
-- * value (but without evaluating it for side effects!
-- * Careful to only ever evaluate it with sizeof() or __builtin_constant_p() etc).
-+ * We use 'ux' for both the type and the value checks, so 'x' itself is only
-+ * expanded twice: once to initialise 'ux', and once quoted in the error
-+ * message.
-  *
-  * Pointers end up being checked by the normal C type rules at the actual
-  * comparison, and these expressions only need to be careful to not cause
+--- a/lib/Kconfig~lib-cleanup-fake-tristates-in-kconfig
++++ a/lib/Kconfig
+@@ -219,29 +219,29 @@ source "lib/xz/Kconfig"
+ #
+ config DECOMPRESS_GZIP
+ 	select ZLIB_INFLATE
+-	tristate
++	bool
+ 
+ config DECOMPRESS_BZIP2
+-	tristate
++	bool
+ 
+ config DECOMPRESS_LZMA
+-	tristate
++	bool
+ 
+ config DECOMPRESS_XZ
+ 	select XZ_DEC
+-	tristate
++	bool
+ 
+ config DECOMPRESS_LZO
+ 	select LZO_DECOMPRESS
+-	tristate
++	bool
+ 
+ config DECOMPRESS_LZ4
+ 	select LZ4_DECOMPRESS
+-	tristate
++	bool
+ 
+ config DECOMPRESS_ZSTD
+ 	select ZSTD_DECOMPRESS
+-	tristate
++	bool
+ 
+ #
+ # Generic allocator support is selected if needed
 _
 
-Patches currently in -mm which might be from zhanxusheng@xiaomi.com are
+Patches currently in -mm which might be from julianbraha@gmail.com are
 
 
