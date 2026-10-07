@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 05F39547058
-	for <mm-commits@vger.kernel.org>; Wed,  7 Oct 2026 00:49:00 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0FA642C3245
+	for <mm-commits@vger.kernel.org>; Wed,  7 Oct 2026 00:49:01 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791334141; cv=none; b=EzdBYU9E0b9XsTidrKq/BfhGRlWItipJgnebyX8Rg2hJ71+HyVhagZndpYxkbREJo4syEsw6IHB5+hDd3YLs5v9uJ5EYR9N/NYvndcaQLuT3jpjLAALlmGh5qmlqgt3BOeloiYoOak0qmvFeqWsJes806NecP623Swt7KfZyD4c=
+	t=1791334142; cv=none; b=q0LbEM5qDHiYtQ3XPFJ6EtAve4zV+y+Rx57jIZsJkfIjDUmGUgmJVFviVpsd1Rrxk0TKPTpjYiWIZxkHjWlSoxxZhqU7SrxFENbAsBRWKhM+EcbAEwlp/RyxYNg8rOx5KH1Z6L3oVwlRVxyDelq95Svrjti8EBz6NUvP6bvyjJU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791334141; c=relaxed/simple;
-	bh=IX4XmnqKHawUHflhwPxz6ctwLhz72YqRjfFZbvJNloE=;
-	h=Date:To:From:Subject:Message-Id; b=G7rel3QlZMqITJE/slVDf6ASpjNSKTfiMpNbsOvM+liAw3pI5/4Gd1UC91fm93Rrm91OZp7FvRnFyMLXMn6Jvjek3dhmX22vsOWUMT2UY1DSTltbBfKBcRBNAw3NseWXlabVYdvBJkpAcWL6Qb9sb4U/t2a0tDEapwwRMMpnqYA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=gl4zBlGd; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1791334142; c=relaxed/simple;
+	bh=7bwS2SNLFrKwl75ItK7pQJRhkSTB6KLPRDWpUIcfuRE=;
+	h=Date:To:From:Subject:Message-Id; b=dTrbANEJufGnlEjAsoIXhfA6yT7OClL7iiEI4vD0BT6SOskHJwp55oOakJykbx1Wnn8MsQb5is3xS5Zpsd9VlZeDeko6bc7kRlGOxnYwXo0/U1LxnTw2ZDkLlTToce/85BQJ+ecsRPZmsTwDO3s+euMLcW8GL6yN6hG1glF/W5c=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=tX1IFZMd; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="gl4zBlGd"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id CF5961F0089C;
-	Wed,  7 Oct 2026 00:48:59 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="tX1IFZMd"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id DBDF41F0089B;
+	Wed,  7 Oct 2026 00:49:00 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1791334139;
-	bh=BMqXHJu8zW9HT+9eJLghGCRPnUAYlq9+FYpOh2SwJ0s=;
+	d=linux-foundation.org; s=korg; t=1791334141;
+	bh=pGzHVXs+TW4KM1yhAhlyepuJouXh0oB1+rJ2m9z71gw=;
 	h=Date:To:From:Subject;
-	b=gl4zBlGdFWGOto+I67iFxSMyl6Xj/+H3Rjxx4a23baDNH4yernaH5SwtXfdlpd8Tt
-	 Sm1cllz2g+V1Uh2fpbuUk9W2tAM4xPeJhP8m01KCQgV9TbpL/Ixmas8T3skdtLkCvM
-	 P8x7DVVUoV8kZtJYd6nJOUrMhHvhFuw6YsnpnBSc=
-Date: Tue, 06 Oct 2026 17:48:59 -0700
-To: mm-commits@vger.kernel.org,tj@kernel.org,shakeel.butt@linux.dev,roman.gushchin@linux.dev,muchun.song@linux.dev,mkoutny@suse.com,mhocko@suse.com,hannes@cmpxchg.org,cuitao@kylinos.cn,akpm@linux-foundation.org
+	b=tX1IFZMdGCEZ0T2pO472DyuuE92onaYOV0c/0MEcyAY/RAWCo02zliu7I4issnZUp
+	 PO4Vpn5PCmPMt6ZdAsr+8zYCcFrCBkqdOk0IRaUWpnygqpbh6+GdU/fJj3cn2joEpP
+	 VVbLnR7tDk1AQyMHaJdq3W9cATGsVWye1yw+dmeg=
+Date: Tue, 06 Oct 2026 17:49:00 -0700
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,usama.arif@linux.dev,ljs@kernel.org,lance.yang@linux.dev,dev.jain@arm.com,baolin.wang@linux.alibaba.com,baohua@kernel.org,anshumantewari123@gmail.com,akpm@linux-foundation.org,david@kernel.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] docs-cgroup-document-empty-write-behavior-of-memory-limit-knobs.patch removed from -mm tree
-Message-Id: <20261007004859.CF5961F0089C@smtp.kernel.org>
+Subject: [merged mm-stable] selftests-mm-khugepaged-remove-str_dup-usage.patch removed from -mm tree
+Message-Id: <20261007004900.DBDF41F0089B@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,72 +35,71 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: docs: cgroup: document empty-write behavior of memory limit knobs
+     Subject: selftests/mm: khugepaged: remove str_dup() usage
 has been removed from the -mm tree.  Its filename was
-     docs-cgroup-document-empty-write-behavior-of-memory-limit-knobs.patch
+     selftests-mm-khugepaged-remove-str_dup-usage.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Tao Cui <cuitao@kylinos.cn>
-Subject: docs: cgroup: document empty-write behavior of memory limit knobs
-Date: Wed, 26 Aug 2026 10:17:53 +0800
+From: "David Hildenbrand (Arm)" <david@kernel.org>
+Subject: selftests/mm: khugepaged: remove str_dup() usage
+Date: Tue, 25 Aug 2026 13:20:59 +0200
 
-A maintenance script on a cluster wrote an unset variable into memory.max
-of a workload cgroup; the variable expanded to an empty string, the write
-succeeded, and the workload in the cgroup was OOM-killed.  Nothing pointed
-back at the write, so it took quite some time to trace the OOM kills to
-that script.
+We don't check str_dup() return value and never free it.  While both
+things are irrelevant in practice, let's just clean it up by working on
+argv[0] directly and avoiding the str_dup().
 
-The memory controller documentation does not say what an empty write does;
-the cpuset controller documents its empty-value semantics.  The actual
-behavior is that the empty string is accepted as 0.  Reproduced on a k8s
-cluster (v1.29, cgroup v2, two-container pod, 384M limit):
+Nobody after us needs these parts of the argv[0] string anyway.
 
-  # LIMIT=
-  # echo "$LIMIT" > $CG/memory.max
-  # echo $?
-  0
+This patch is inspired by previous work from Anshuman Tewari [1].
 
-  m6demo   0/2     OOMKilled   0
-
-  Memory cgroup out of memory: Killed process 339529 (sleep) ... anon-rss:32kB
-
-State it where the interface files are introduced, alongside the existing
-notes on units and page rounding.
-
-Link: https://lore.kernel.org/all/aoVUlFdZYLFn_gvJ@tiehlicka/
-Link: https://lore.kernel.org/20260826021753.197871-1-cui.tao@linux.dev
-Signed-off-by: Tao Cui <cuitao@kylinos.cn>
+Link: https://lore.kernel.org/r/20260821114416.12255-1-anshumantewari123@gmail.com [1]
+Link: https://lore.kernel.org/20260825-remove_str_dup-v1-1-0ba2121a820c@kernel.org
+Signed-off-by: David Hildenbrand (Arm) <david@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Acked-by: Michal Hocko <mhocko@suse.com>
-Acked-by: Shakeel Butt <shakeel.butt@linux.dev>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Michal Koutný <mkoutny@suse.com>
-Cc: Muchun Song <muchun.song@linux.dev>
-Cc: Roman Gushchin <roman.gushchin@linux.dev>
-Cc: Tejun Heo <tj@kernel.org>
+Reviewed-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
+Reviewed-by: Anshuman Tewari <anshumantewari123@gmail.com>
+Reviewed-by: Zi Yan <ziy@nvidia.com>
+Reviewed-by: Lance Yang <lance.yang@linux.dev>
+Reviewed-by: Dev Jain <dev.jain@arm.com>
+Acked-by: Usama Arif <usama.arif@linux.dev>
+Reviewed-by: Baolin Wang <baolin.wang@linux.alibaba.com>
+Reviewed-by: Barry Song <baohua@kernel.org>
+Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/admin-guide/cgroup-v2.rst |    4 ++++
- 1 file changed, 4 insertions(+)
+ tools/testing/selftests/mm/khugepaged.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/Documentation/admin-guide/cgroup-v2.rst~docs-cgroup-document-empty-write-behavior-of-memory-limit-knobs
-+++ a/Documentation/admin-guide/cgroup-v2.rst
-@@ -1321,6 +1321,10 @@ All memory amounts are in bytes.  If a v
- PAGE_SIZE is written, the value may be rounded up to the closest
- PAGE_SIZE multiple when read back.
+--- a/tools/testing/selftests/mm/khugepaged.c~selftests-mm-khugepaged-remove-str_dup-usage
++++ a/tools/testing/selftests/mm/khugepaged.c
+@@ -1227,7 +1227,7 @@ static void parse_test_type(int argc, ch
+ 		return;
+ 	}
  
-+For the limit files described below, an empty or all-whitespace
-+write is accepted and sets the limit to 0.  To disable a limit,
-+write "max"; to set it to zero explicitly, write "0".
-+
-   memory.current
- 	A read-only single value file which exists on non-root
- 	cgroups.
+-	buf = strdup(argv[0]);
++	buf = argv[0];
+ 	token = strsep(&buf, ":");
+ 
+ 	if (!strcmp(token, "all")) {
 _
 
-Patches currently in -mm which might be from cuitao@kylinos.cn are
+Patches currently in -mm which might be from david@kernel.org are
 
+mm-sparse-move-mem_section-init-to-sparse_extreme_init.patch
+mm-sparse-refactor-sparse_sections_init.patch
+mm-sparse-move-initialization-of-section-metadata-to-sparse_metadata_init.patch
+mm-sparse-rename-and-cleanup-sparse_init_nid.patch
+mm-sparse-cleanup-sparse_init_one_section.patch
+mm-sparse-rename-__highest_present_section_nr-to-__highest_used_section_nr.patch
+mm-sparse-remove-pfn_in_present_section.patch
+mm-sparse-move-__highest_used_section_nr-handling.patch
+scripts-gdb-mmpy-remove-fallbacks-for-section_has_mem_map-and-section_is_early.patch
+mm-sparse-remove-section_marked_present.patch
+mm-sparse-remove-flags-parameter-from-sparse_init_one_section.patch
+fs-proc-page-clarify-comment-in-get_max_dump_pfn.patch
+mm-memory_hotplug-drop-config_have_arch_pfn_valid-handling-from-pfn_to_online_page.patch
+arm64-mm-move-__check_safe_pte_update-fix.patch
 
