@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A38F2351C1E;
-	Wed,  7 Oct 2026 02:04:36 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C5D3833122D
+	for <mm-commits@vger.kernel.org>; Wed,  7 Oct 2026 02:04:37 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791338677; cv=none; b=VaXLtPAOSLZT5985CNVAq5MvCK0sv0wXBWntJ9dgO/5emllMeaTRFWTOSPhQVmiligdajoJBsSKaW/X/j2cAjCb1iKtitJjk117y4DEHgy2viOgG6woVfw9c+Gp25GPGW6PN+7MZjcp3J2Vu1Oq2aSglU5+vV9W4hQWSqOZkuOY=
+	t=1791338679; cv=none; b=alrZ7f83f/uyQQOm1jlK7fG23nHO96D40FHlE8XuvttUDzvdquJ4yvn3/bd9J1nagx+Cd6qHikiplx52u7SdMMvHSoKQDMZ1uVve4b/tQNYrYowZovFo1EV3GrJKBlRIenxg3Q3DyMda5N63xFIFlQIl55JC2FAuu5hobHpvCTs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791338677; c=relaxed/simple;
-	bh=PwzR/ysO+s24mTwsG/AacQqcFPleu87XDZpPpXmgw/Y=;
-	h=Date:To:From:Subject:Message-Id; b=CV14mYKxRBIJiN5NSOFVfJKPh2ghVx0zpIVVShM8wtbXhDhWDQnd3cLnBy6fIikiZ219AkD0NUpIK0l/kgM2vEi3gKmYVfQUtEyoTF6f8Kb8PwNS9FqKf8uTNLahs+mcJ7sJoseYNniMhYOxKwZBMWoVgWGkxxqQP6/OhFUWu+U=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=gma53Nmg; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1791338679; c=relaxed/simple;
+	bh=7M4JGVBklQuP8mC9l1OPlOzUAYnyt92rqtvV6SvO0Bs=;
+	h=Date:To:From:Subject:Message-Id; b=niMF+0hNXhh+bVTjh+gOKJS4boU4+mw7bWvb3PhsXbzSsiWv5rAU/N8GZnvKBMbHgvaLbhc4cfdYePp9c3VZf+yuSKOnwNeQCnMxeKhaEoaNcCCD2/pjHXS3CBuIHSRgV0NJnzNo7mHEocWknVddHBO4FngUBn047IJQdca5uNs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=mpoa43NE; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="gma53Nmg"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 76A1C1F0089C;
-	Wed,  7 Oct 2026 02:04:36 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="mpoa43NE"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9B08D1F0089B;
+	Wed,  7 Oct 2026 02:04:37 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1791338676;
-	bh=GgdayeBC89P3JHvyvvCmvvAzWpEcs/PN7NCA/oCuOdo=;
+	d=linux-foundation.org; s=korg; t=1791338677;
+	bh=2ttoKxWXcYg2YY0V+FVAIw+kRIB6djsqc6WToLgYstc=;
 	h=Date:To:From:Subject;
-	b=gma53NmggWukp4p1Hi+xjqiX575sRb1BNwmuo/vqoNZcSB1lIcsVeJBKN4kxGtEhW
-	 hjPBEntKQBj/pBDOBI9RRsoc/h7G1aS8JWHUGJGArX3FiHZ2GYkMLECDlLIdaVdoFG
-	 /iJ9zE+OgEn5nx58sL7EsIM85ikVRE1Fdpu0ARuQ=
-Date: Tue, 06 Oct 2026 19:04:36 -0700
-To: mm-commits@vger.kernel.org,vbabka@kernel.org,stable@vger.kernel.org,peterz@infradead.org,mingo@redhat.com,kees@kernel.org,include@grrlz.net,kmehltretter@gmail.com,akpm@linux-foundation.org
+	b=mpoa43NEaoushpceNXAyVwoQ7RMBvp9HgEHVN5lFq99aDz7ki04OjpOq+4IfhPjwN
+	 QRBSByzX40qK4/06UIziwvf+fxnDLxkzr52v7u6+S+uX9C9XmnkJ3DND+PV7BR9CK7
+	 nTniBOsf5tXgu2OQjB36T48Zp5oKhVglqooe49ro=
+Date: Tue, 06 Oct 2026 19:04:37 -0700
+To: mm-commits@vger.kernel.org,bsingharora@gmail.com,balbirs@nvidia.com,akpm@linux-foundation.org,include@grrlz.net
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] fork-honor-task_structs-declared-alignment.patch removed from -mm tree
-Message-Id: <20261007020436.76A1C1F0089C@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] taskstats-fold-the-two-pid-tgid-handlers-into-one.patch removed from -mm tree
+Message-Id: <20261007020437.9B08D1F0089B@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,83 +35,111 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: fork: honor task_struct's declared alignment
+     Subject: taskstats: fold the two pid/tgid handlers into one
 has been removed from the -mm tree.  Its filename was
-     fork-honor-task_structs-declared-alignment.patch
+     taskstats-fold-the-two-pid-tgid-handlers-into-one.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Karl Mehltretter <kmehltretter@gmail.com>
-Subject: fork: honor task_struct's declared alignment
-Date: Fri, 10 Jul 2026 14:39:57 +0200
+From: Bradley Morgan <include@grrlz.net>
+Subject: taskstats: fold the two pid/tgid handlers into one
+Date: Sat, 1 Aug 2026 22:58:44 +0000
 
-Since commit cb7ca40a3882 ("x86/fpu: Make task_struct::thread constant
-size"), struct task_struct is declared __attribute__((aligned(64))) on all
-architectures.
+cmd_attr_pid() and cmd_attr_tgid() are copy paste.  fold them into one
+handler that takes the attr type and fill function as parameters, same
+pattern as the cpumask fold in 59c0bc949c5e.
 
-But fork_init() still sets the task_struct slab cache's alignment to
+No functional change.
 
-	align = max(L1_CACHE_BYTES, ARCH_MIN_TASKALIGN)
-
-which is smaller than 64 on architectures whose cache lines are below 64
-bytes: e.g.  32 on ARMv5.
-
-In practice plain SLUB happens to hand out 64-byte-aligned objects anyway.
-With CONFIG_SLUB_DEBUG_ON the red-zone padding shifts objects to the
-requested alignment.
-
-With CONFIG_UBSAN_ALIGNMENT=y a boot on QEMU versatilepb (ARM926EJ-S,
-v7.2-rc2, gcc 13.3) floods the console with reports like:
-
-  UBSAN: misaligned-access in include/linux/sched.h:2087:9
-  member access within misaligned address c295d7e0 for type 'struct task_struct'
-  which requires 64 byte alignment
-  CPU: 0 UID: 0 PID: 15 Comm: pr/ttyAMA-1 Not tainted 7.2.0-rc2 #1 VOLUNTARY
-
-Set the slab alignment to at least the type's declared alignment.
-
-Link: https://lore.kernel.org/20260710123957.31774-1-kmehltretter@gmail.com
-Fixes: cb7ca40a3882 ("x86/fpu: Make task_struct::thread constant size")
-Signed-off-by: Karl Mehltretter <kmehltretter@gmail.com>
+Link: https://lore.kernel.org/20260801225845.23855-1-include@grrlz.net
+Signed-off-by: Bradley Morgan <include@grrlz.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Reviewed-by: Bradley Morgan <include@grrlz.net>
-Assisted-by: Claude:claude-fable-5
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Kees Cook <kees@kernel.org>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Vlastimil Babka <vbabka@kernel.org>
-Cc: <stable@vger.kernel.org>
+Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
+Cc: Balbir Singh <bsingharora@gmail.com>
+Cc: Balbir Singh <balbirs@nvidia.com>
 ---
 
- kernel/fork.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ kernel/taskstats.c |   47 ++++++++++---------------------------------
+ 1 file changed, 12 insertions(+), 35 deletions(-)
 
---- a/kernel/fork.c~fork-honor-task_structs-declared-alignment
-+++ a/kernel/fork.c
-@@ -858,7 +858,8 @@ void __init fork_init(void)
- #ifndef ARCH_MIN_TASKALIGN
- #define ARCH_MIN_TASKALIGN	0
- #endif
--	int align = max_t(int, L1_CACHE_BYTES, ARCH_MIN_TASKALIGN);
-+	int align = max3(L1_CACHE_BYTES, ARCH_MIN_TASKALIGN,
-+			 __alignof__(struct task_struct));
- 	unsigned long useroffset, usersize;
+--- a/kernel/taskstats.c~taskstats-fold-the-two-pid-tgid-handlers-into-one
++++ a/kernel/taskstats.c
+@@ -473,7 +473,8 @@ static size_t taskstats_packet_size(void
+ 	return size;
+ }
  
- 	/* create a slab on which task_structs can be allocated */
+-static int cmd_attr_pid(struct genl_info *info)
++static int cmd_attr_pid_tgid(struct genl_info *info, int attr,
++			     int (*fill)(pid_t, struct taskstats *))
+ {
+ 	struct taskstats *stats;
+ 	struct sk_buff *rep_skb;
+@@ -488,41 +489,15 @@ static int cmd_attr_pid(struct genl_info
+ 		return rc;
+ 
+ 	rc = -EINVAL;
+-	pid = nla_get_u32(info->attrs[TASKSTATS_CMD_ATTR_PID]);
+-	stats = mk_reply(rep_skb, TASKSTATS_TYPE_PID, pid);
++	pid = nla_get_u32(info->attrs[attr]);
++	stats = mk_reply(rep_skb,
++			 attr == TASKSTATS_CMD_ATTR_PID
++				? TASKSTATS_TYPE_PID : TASKSTATS_TYPE_TGID,
++			 pid);
+ 	if (!stats)
+ 		goto err;
+ 
+-	rc = fill_stats_for_pid(pid, stats);
+-	if (rc < 0)
+-		goto err;
+-	return send_reply(rep_skb, info);
+-err:
+-	nlmsg_free(rep_skb);
+-	return rc;
+-}
+-
+-static int cmd_attr_tgid(struct genl_info *info)
+-{
+-	struct taskstats *stats;
+-	struct sk_buff *rep_skb;
+-	size_t size;
+-	u32 tgid;
+-	int rc;
+-
+-	size = taskstats_packet_size();
+-
+-	rc = prepare_reply(info, TASKSTATS_CMD_NEW, &rep_skb, size);
+-	if (rc < 0)
+-		return rc;
+-
+-	rc = -EINVAL;
+-	tgid = nla_get_u32(info->attrs[TASKSTATS_CMD_ATTR_TGID]);
+-	stats = mk_reply(rep_skb, TASKSTATS_TYPE_TGID, tgid);
+-	if (!stats)
+-		goto err;
+-
+-	rc = fill_stats_for_tgid(tgid, stats);
++	rc = fill(pid, stats);
+ 	if (rc < 0)
+ 		goto err;
+ 	return send_reply(rep_skb, info);
+@@ -542,9 +517,11 @@ static int taskstats_user_cmd(struct sk_
+ 					TASKSTATS_CMD_ATTR_DEREGISTER_CPUMASK,
+ 					DEREGISTER);
+ 	else if (info->attrs[TASKSTATS_CMD_ATTR_PID])
+-		return cmd_attr_pid(info);
++		return cmd_attr_pid_tgid(info, TASKSTATS_CMD_ATTR_PID,
++					 fill_stats_for_pid);
+ 	else if (info->attrs[TASKSTATS_CMD_ATTR_TGID])
+-		return cmd_attr_tgid(info);
++		return cmd_attr_pid_tgid(info, TASKSTATS_CMD_ATTR_TGID,
++					 fill_stats_for_tgid);
+ 	else
+ 		return -EINVAL;
+ }
 _
 
-Patches currently in -mm which might be from kmehltretter@gmail.com are
+Patches currently in -mm which might be from include@grrlz.net are
 
-docs-mm-ksm-use-the-renamed-ksm-structure-names.patch
-mm-secretmem-fix-the-enable-parameter-description.patch
-mm-damon-core-preserve-the-quota-passed-to-damon_new_scheme.patch
-mm-damon-tests-core-kunit-test-preservation-of-quota-state.patch
-mm-damon-tests-core-kunit-test-psi-goal-values-with-explicit-samples.patch
-ocfs2-cluster-hold-a-reference-on-the-heartbeat-thread.patch
-resource-kunit-stop-selecting-get_free_region.patch
-kcov-report-spurious-pcs-in-the-interrupt-selftest.patch
-squashfs-fix-fragment-index-table-sizing-overflow-on-32-bit.patch
-squashfs-make-the-fragment-index-table-bounds-check-overflow-safe.patch
 
