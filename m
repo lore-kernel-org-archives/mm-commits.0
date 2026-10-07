@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D626F30D419
-	for <mm-commits@vger.kernel.org>; Wed,  7 Oct 2026 00:51:58 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 20AF93128A3
+	for <mm-commits@vger.kernel.org>; Wed,  7 Oct 2026 00:52:02 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791334322; cv=none; b=oi+1uXrVUZuU/EW8xJIqbR/TacBwILzIJmRev/TGmmzOfdmF4HMZ0cLghHr0k89Qq9LNqSK4SCyGxOFu4E8SWmb/F403Z7xuGLzyyPBBOOq1WC9Us02zJq+SIFH1zNW0ktVr/EIafisOQJ2jlPOsFvDlaabZfUbN/bVH7AbKRNU=
+	t=1791334323; cv=none; b=h6QL9GRTwJRWeGjQjw4k9p0J3Fv/PoKVluZdT2dUkJ4MjvKK18TWQ6qvrkcx0eSBFvya1/KbmITIeb+N6AtRXzXiEuC4BoLTp7rZtwN1H55Qkbf0e/ulaFgD3XU1BqWYOXUr3gUQAzYQjIPEUsNb3y4UZkTsCiJbVQOPIQBkgDQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791334322; c=relaxed/simple;
-	bh=pR/XSWvOykquHvEd03nAeEAnJFiHalTOiJyTt9ha5Vw=;
-	h=Date:To:From:Subject:Message-Id; b=qG2GYalgrVRKkafwxvzdFEQFohk+yb7zCra7fpxhTy1r6iEMrzk1mlWIXk4JmEWrc/wx+kFIC02qxzkIjYbXIhTVX2anJpIl2h633YjA1eupeBtp+lnFWFnrZd8qGt/ktrwtoz8s8v7HY89p4Bvl2FIrc8nhK801sewvlV6LRN8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=0d8ZPkGd; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1791334323; c=relaxed/simple;
+	bh=77pHn6Q0c83KD89rJZPZyPkmy9qkWFyKd2eL8+/c/fk=;
+	h=Date:To:From:Subject:Message-Id; b=e8Zuo8pFS4D5gsQ+7sxRVor875C9QRCJANAqxFQLWpHO1XGhT0As6F75EK+uXUPsynYdfX53C9HKevO0PkkeLAY8q/7FOTDjvMQ+LjxPqXf6ZxfTD1sF0zc/A3ORLnTOFJObH615tFdNvSdrY5up5qQAGBmJEPG1pL/cOcJ31/A=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Ul973f9n; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="0d8ZPkGd"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id AF1041F0089B;
-	Wed,  7 Oct 2026 00:51:58 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Ul973f9n"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id EB8491F0089D;
+	Wed,  7 Oct 2026 00:52:01 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1791334318;
-	bh=VXnVdeQdNPP+VRy9xonZs4TNlq4pwt4AxBmWzCAAryc=;
+	d=linux-foundation.org; s=korg; t=1791334322;
+	bh=8fLIWq2MDWbb5JTkuK9K/DHJ768mT3Jp48RI4Z8+gTo=;
 	h=Date:To:From:Subject;
-	b=0d8ZPkGd8BjKSU+QeGpbkeKJx2T128DzaVuNY/5g/Dl9tH8VToRDalky3Ftw94hWl
-	 T+sNn1CpXH2SGZq32YqfaKNfPqK2F6vFfKJIUbXLZoIhdt1eJM/A7rNc3T6sTCVpvg
-	 e4fp1WVHc4ya2JeUXRkMXegGSS7nB/DWPlyOPgKk=
-Date: Tue, 06 Oct 2026 17:51:58 -0700
-To: mm-commits@vger.kernel.org,zhaonanzhe@xiaomi.com,youngjun.park@lge.com,xueyuan.chen21@gmail.com,shikemeng@huaweicloud.com,shakeel.butt@linux.dev,ryncsn@gmail.com,roman.gushchin@linux.dev,nphamcs@gmail.com,muchun.song@linux.dev,mhocko@kernel.org,ljs@kernel.org,hughd@google.com,david@kernel.org,chrisl@kernel.org,baoquan.he@linux.dev,baolin.wang@linux.alibaba.com,baohua@kernel.org,hannes@cmpxchg.org,akpm@linux-foundation.org
+	b=Ul973f9nlQVyXp6K4AEgowgZ9kIs/wibowJO/KOk67xrDV/61NG9D0b62rU8vXZ6s
+	 b7m/fsiNjMkrXj4OGZQmndyslPpCvoIduHlRDX57gLvfE30Y8WeE3+eG/jYpU8Elj3
+	 zuujjFyjkVBKoSjD4YMMAOMDw1QHMspxPi+oG6e4=
+Date: Tue, 06 Oct 2026 17:52:01 -0700
+To: mm-commits@vger.kernel.org,zhaonanzhe@xiaomi.com,youngjun.park@lge.com,shikemeng@huaweicloud.com,shakeel.butt@linux.dev,ryncsn@gmail.com,roman.gushchin@linux.dev,nphamcs@gmail.com,muchun.song@linux.dev,mhocko@kernel.org,ljs@kernel.org,hughd@google.com,hannes@cmpxchg.org,david@kernel.org,chrisl@kernel.org,baoquan.he@linux.dev,baolin.wang@linux.alibaba.com,baohua@kernel.org,xueyuan.chen21@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-add-page_counter_margin.patch removed from -mm tree
-Message-Id: <20261007005158.AF1041F0089B@smtp.kernel.org>
+Subject: [merged mm-stable] mm-shmem-split-large-folios-only-on-e2big.patch removed from -mm tree
+Message-Id: <20261007005201.EB8491F0089D@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,164 +35,84 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: add page_counter_margin()
+     Subject: mm/shmem: split large folios only on -E2BIG
 has been removed from the -mm tree.  Its filename was
-     mm-add-page_counter_margin.patch
+     mm-shmem-split-large-folios-only-on-e2big.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Johannes Weiner <hannes@cmpxchg.org>
-Subject: mm: add page_counter_margin()
-Date: Sun, 30 Aug 2026 12:29:17 +0800
+From: Xueyuan Chen <xueyuan.chen21@gmail.com>
+Subject: mm/shmem: split large folios only on -E2BIG
+Date: Sun, 30 Aug 2026 12:29:20 +0800
 
-Patch series "mm: avoid large folio splits when swap is unavailable", v7.
+shmem_writeout() currently splits a large folio on every
+folio_alloc_swap() failure.  With the refined return-value contract, only
+-E2BIG indicates that splitting might allow smaller folios to be swapped
+out.
 
-This is v7 of Barry's original RFC patch, "mm: Avoiding split large folios
-if swap has no space":
+Enter the split fallback only for -E2BIG.  For -ENOSPC and -ENOMEM,
+redirty and reactivate the folio as before.
 
-https://lore.kernel.org/r/20260618221720.71768-1-baohua@kernel.org
-
-Barry's RFC showed the no-swap case with MADV_PAGEOUT on 16KB mTHP: the
-large-folio split counter increased by 1024 even though no swapout
-progress was possible.  Skipping the split in that case kept the counter
-at 0.
-
-This series makes folio_alloc_swap() classify failures according to
-whether splitting a large folio might allow swapout to make progress. 
-Callers can then avoid destroying the large folio when neither global swap
-availability nor the folio's memcg swap hierarchy has capacity for even a
-smaller folio.
-
-Patch #1 adds page_counter_margin(), a small helper that computes the
-minimum remaining chargeable space across a page_counter hierarchy.
-
-Patch #2 establishes the folio_alloc_swap() return-value contract:
-
-  - -E2BIG: splitting may let smaller folios make progress
-  - -ENOSPC: no global swap space is available
-  - -ENOMEM: splitting is not expected to help, including when the
-    folio's memcg swap hierarchy has no remaining capacity
-
-Patch #3 makes vmscan split a large folio only when folio_alloc_swap()
-returns -E2BIG.  Other failures keep the existing activation path and
-avoid destroying the large folio when no smaller part can be backed by
-swap either.
-
-Patch #4 applies the same contract to shmem_writeout(), which currently
-splits a large folio on every folio_alloc_swap() failure.  It now enters
-the split fallback only on -E2BIG; other failures redirty and reactivate
-the folio as before.
-
-Testing:
-
-With a 1GB anonymous mapping backed by 16KB mTHPs and memory.swap.max=0,
-the patch reduced the median latency of 30 process_madvise(MADV_PAGEOUT)
-runs from 743.8 ms to 181.7 ms, while the number of large-folio splits per
-run dropped from 65536 to 0.  Neither kernel swapped out any pages.
-
-I also ran DaCapo h2 under swap pressure and found no statistically
-significant change in wall time or CPU time.  The overall benefit appears
-minor and workload-dependent.
-
-
-This patch (of 4):
-
-mem_cgroup_get_nr_swap_pages() open-codes the remaining capacity across
-the memcg swap counter hierarchy.
-
-Add page_counter_margin() to return the minimum usable space from a page
-counter to the root, and use it in mem_cgroup_get_nr_swap_pages().  This
-is a pure refactoring with no intended behavior change.
-
-Link: https://lore.kernel.org/20260830042920.2280454-1-xueyuan.chen21@gmail.com
-Link: https://lore.kernel.org/20260830042920.2280454-2-xueyuan.chen21@gmail.com
-Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
+Link: https://lore.kernel.org/20260830042920.2280454-5-xueyuan.chen21@gmail.com
 Signed-off-by: Xueyuan Chen <xueyuan.chen21@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Reviewed-by: David Hildenbrand (Arm) <david@kernel.org>
+Suggested-by: Baolin Wang <baolin.wang@linux.alibaba.com>
+Reviewed-by: Baolin Wang <baolin.wang@linux.alibaba.com>
+Acked-by: David Hildenbrand (Arm) <david@kernel.org>
 Reviewed-by: Barry Song <baohua@kernel.org>
-Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
 Cc: Baoquan He <baoquan.he@linux.dev>
 Cc: Chris Li <chrisl@kernel.org>
 Cc: Hugh Dickins <hughd@google.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Kairui Song <ryncsn@gmail.com>
 Cc: Kemeng Shi <shikemeng@huaweicloud.com>
 Cc: Lorenzo Stoakes <ljs@kernel.org>
 Cc: Michal Hocko <mhocko@kernel.org>
 Cc: Muchun Song <muchun.song@linux.dev>
+Cc: Nanzhe Zhao <zhaonanzhe@xiaomi.com>
 Cc: Nhat Pham <nphamcs@gmail.com>
 Cc: Roman Gushchin <roman.gushchin@linux.dev>
 Cc: Shakeel Butt <shakeel.butt@linux.dev>
-Cc: Nanzhe Zhao <zhaonanzhe@xiaomi.com>
 Cc: Youngjun Park <youngjun.park@lge.com>
 ---
 
- include/linux/page_counter.h |    1 +
- mm/memcontrol.c              |    9 +++------
- mm/page_counter.c            |   20 ++++++++++++++++++++
- 3 files changed, 24 insertions(+), 6 deletions(-)
+ mm/shmem.c |    7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
 
---- a/include/linux/page_counter.h~mm-add-page_counter_margin
-+++ a/include/linux/page_counter.h
-@@ -68,6 +68,7 @@ static inline unsigned long page_counter
- 	return atomic_long_read(&counter->usage);
- }
+--- a/mm/shmem.c~mm-shmem-split-large-folios-only-on-e2big
++++ a/mm/shmem.c
+@@ -1813,7 +1813,7 @@ int shmem_writeout(struct swap_io_ctx *c
+ 	struct shmem_inode_info *info = SHMEM_I(inode);
+ 	struct shmem_sb_info *sbinfo = SHMEM_SB(inode->i_sb);
+ 	pgoff_t index;
+-	int nr_pages;
++	int nr_pages, ret;
+ 	bool split = false;
  
-+long page_counter_margin(struct page_counter *counter);
- void page_counter_cancel(struct page_counter *counter, unsigned long nr_pages);
- void page_counter_charge(struct page_counter *counter, unsigned long nr_pages);
- bool page_counter_try_charge(struct page_counter *counter,
---- a/mm/memcontrol.c~mm-add-page_counter_margin
-+++ a/mm/memcontrol.c
-@@ -5832,12 +5832,9 @@ long mem_cgroup_get_nr_swap_pages(struct
- {
- 	long nr_swap_pages = get_nr_swap_pages();
+ 	if ((info->flags & SHMEM_F_LOCKED) || sbinfo->noswap)
+@@ -1894,7 +1894,8 @@ try_split:
+ 		folio_mark_uptodate(folio);
+ 	}
  
--	if (mem_cgroup_disabled() || do_memsw_account())
--		return nr_swap_pages;
--	for (; !mem_cgroup_is_root(memcg); memcg = parent_mem_cgroup(memcg))
--		nr_swap_pages = min_t(long, nr_swap_pages,
--				      READ_ONCE(memcg->swap.max) -
--				      page_counter_read(&memcg->swap));
-+	if (!mem_cgroup_disabled() && !do_memsw_account())
-+		nr_swap_pages = min(nr_swap_pages, page_counter_margin(&memcg->swap));
-+
- 	return nr_swap_pages;
- }
+-	if (!folio_alloc_swap(folio)) {
++	ret = folio_alloc_swap(folio);
++	if (!ret) {
+ 		bool first_swapped = shmem_recalc_inode(inode, 0, nr_pages);
+ 		int error;
  
---- a/mm/page_counter.c~mm-add-page_counter_margin
-+++ a/mm/page_counter.c
-@@ -47,6 +47,26 @@ static void propagate_protected_usage(st
- }
- 
- /**
-+ * page_counter_margin - remaining usable space within hierarchical limits
-+ * @counter: counter
-+ *
-+ * Return: The minimum value of max minus usage across @counter and all of
-+ * its ancestors. The value may be negative during a concurrent charge.
-+ */
-+long page_counter_margin(struct page_counter *counter)
-+{
-+	long margin = PAGE_COUNTER_MAX;
-+
-+	do {
-+		long m = READ_ONCE(counter->max) - page_counter_read(counter);
-+
-+		margin = min(margin, m);
-+	} while ((counter = counter->parent));
-+
-+	return margin;
-+}
-+
-+/**
-  * page_counter_cancel - take pages out of the local counter
-  * @counter: counter
-  * @nr_pages: number of pages to cancel
+@@ -1947,7 +1948,7 @@ try_split:
+ 		swap_cache_del_folio(folio);
+ 		goto redirty;
+ 	}
+-	if (nr_pages > 1)
++	if (nr_pages > 1 && ret == -E2BIG)
+ 		goto try_split;
+ redirty:
+ 	folio_mark_dirty(folio);
 _
 
-Patches currently in -mm which might be from hannes@cmpxchg.org are
+Patches currently in -mm which might be from xueyuan.chen21@gmail.com are
 
 
