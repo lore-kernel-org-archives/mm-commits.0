@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 24B9B30F533
-	for <mm-commits@vger.kernel.org>; Wed,  7 Oct 2026 00:52:30 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3DB02313523
+	for <mm-commits@vger.kernel.org>; Wed,  7 Oct 2026 00:52:31 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791334351; cv=none; b=Ap0Phc5qSf1MFnHQcK3SweSPlEplA+3MLxAnH9UA8hLIu2eoVw3LKElFeCLznyPdFBk9AWlCGf5Kx0Cg29xg9ydmyT6mr3mt55ciOfzzRI2C5zvUUiKA6Bf41PB9OSwG5YH0Mm9jJIuplmN0emM6/gLYcmxGgQ4my0nkpHjWhcQ=
+	t=1791334352; cv=none; b=lKpviTl1/zR4LJNKmsjbiKN+lQWKEdiFMAGrjbnI4qCQHl2+E5R7SLVDD9JqZ6Ndk4aqsT9T0wNTOrx6+BeekOQIGHCiMYcrHGxYWcCI/DLjbQqbFgZ/+wA6jmseSe4GG36PwNDlhfX6XoOfhHhpfkUptTRFlVwfCGpZMaKOIew=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791334351; c=relaxed/simple;
-	bh=1s+v3AjBxv4+OkaRB6Yr3W22syGltuNTXp71D/kHp5k=;
-	h=Date:To:From:Subject:Message-Id; b=DQGxzqCQIc1OLJdi5PjOiEq8EnCWzbIoHLBeeKLORB3L0MZzJai+Is+fLSbC9TbW1D41B5pBcpaDEwsX6lzSBNxM9E1E3C8yQ06k54utVgalC3McDr8t0obhpMOTiYY/S6jetZqOZtnUxM99JokoeIF1HCVCOj6LUTZUlQoZ6jA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=mT7njOXo; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1791334352; c=relaxed/simple;
+	bh=NcKqvm6jy/Hfk7W/MqZ+wIgdu609xJE5u4fuN5TLFCg=;
+	h=Date:To:From:Subject:Message-Id; b=rbsVya0vTOeYPruT/M1D4EUeNuhBnug4l+NiZDKUdNw9UzwMPQa4vfQPtOjl/e38DNE32PjplFJCprqLUnIbGuSawoWm1v8hedaDzz9r6jW8dr9pxgCE2wEPyoVf6nSvOTzkrzIGHTtfSw0OpZ+M86Bw6EyCIkjZFySLZS3N4c8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=U9CVs7zJ; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="mT7njOXo"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id F038D1F0089C;
-	Wed,  7 Oct 2026 00:52:29 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="U9CVs7zJ"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 13C451F0089B;
+	Wed,  7 Oct 2026 00:52:31 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1791334350;
-	bh=lvqTHLUDZ6NufEbHGff9K652hYEm84zZj5HloZ/kuVU=;
+	d=linux-foundation.org; s=korg; t=1791334351;
+	bh=LqjaZ9o5ClAFryshZk5uLVakiUvuHReFgyVsbFxu1D8=;
 	h=Date:To:From:Subject;
-	b=mT7njOXoC0uXSVC+Dxsqj2oo537rxdbfxvMKp9GO38rmrGSdd0w6KiffYmvgRLHUZ
-	 mPzI/QkTQqp/FTDm3lamT/S5YITH88VqHQ10yHJE2h7tv9LH8fqCxnSykKBIRMJyqa
-	 hN6FDYr/7FQ9RxGYH6+xvQ5K+taGo5YGPLuC/uIs=
-Date: Tue, 06 Oct 2026 17:52:29 -0700
+	b=U9CVs7zJLuvUOU5meXhJKoJSDwBN3s6ghflmIlGfMgo7vCeMRMlWFlNqwxLdHG2VW
+	 XsKIOT+Nd4m81cil0kc1EdxZpAD7lVosHkZu6ge64WoFKdUFkLuZ64I3Y9px43liKu
+	 BmbgnGzHkDTYt+OjTpc4rNgxanLHMxxupcPufa7s=
+Date: Tue, 06 Oct 2026 17:52:30 -0700
 To: mm-commits@vger.kernel.org,vbabka@kernel.org,surenb@google.com,shuah@kernel.org,rppt@kernel.org,rdunlap@infradead.org,mhocko@suse.com,ljs@kernel.org,liam@infradead.org,david@kernel.org,corbet@lwn.net,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] selftests-damon-sysfssh-test-probe-prep-sysfs-files.patch removed from -mm tree
-Message-Id: <20261007005229.F038D1F0089C@smtp.kernel.org>
+Subject: [merged mm-stable] docs-mm-damon-design-document-probe-preps.patch removed from -mm tree
+Message-Id: <20261007005231.13C451F0089B@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,22 +35,22 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: selftests/damon/sysfs.sh: test probe prep sysfs files
+     Subject: Docs/mm/damon/design: document probe preps
 has been removed from the -mm tree.  Its filename was
-     selftests-damon-sysfssh-test-probe-prep-sysfs-files.patch
+     docs-mm-damon-design-document-probe-preps.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: SJ Park <sj@kernel.org>
-Subject: selftests/damon/sysfs.sh: test probe prep sysfs files
-Date: Tue, 1 Sep 2026 06:25:01 -0700
+Subject: Docs/mm/damon/design: document probe preps
+Date: Tue, 1 Sep 2026 06:25:02 -0700
 
-Add basic file operations test for newly introduced DAMON probe prep sysfs
-directories and files.
+Update DAMON design document for the newly added DAMON probe preps
+feature.
 
-Link: https://lore.kernel.org/20260901132506.99243-15-sj@kernel.org
+Link: https://lore.kernel.org/20260901132506.99243-16-sj@kernel.org
 Signed-off-by: SJ Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 Cc: David Hildenbrand <david@kernel.org>
@@ -65,52 +65,25 @@ Cc: Suren Baghdasaryan <surenb@google.com>
 Cc: Vlastimil Babka <vbabka@kernel.org>
 ---
 
- tools/testing/selftests/damon/sysfs.sh |   27 +++++++++++++++++++++++
- 1 file changed, 27 insertions(+)
+ Documentation/mm/damon/design.rst |    7 +++++++
+ 1 file changed, 7 insertions(+)
 
---- a/tools/testing/selftests/damon/sysfs.sh~selftests-damon-sysfssh-test-probe-prep-sysfs-files
-+++ a/tools/testing/selftests/damon/sysfs.sh
-@@ -361,6 +361,32 @@ test_intervals()
- 	test_intervals_goal "$intervals_dir/intervals_goal"
- }
+--- a/Documentation/mm/damon/design.rst~docs-mm-damon-design-document-probe-preps
++++ a/Documentation/mm/damon/design.rst
+@@ -309,6 +309,13 @@ Users can therefore know how much of a g
+ attribute by reading the per-region per-probe probe hits counter after each
+ aggregation interval.
  
-+test_damon_prep()
-+{
-+	damon_prep_dir=$1
-+	ensure_file "$damon_prep_dir/prep_action" "exist" "600"
-+	ensure_write_succ "$damon_prep_dir/prep_action" "set_pgidle" \
-+		"valid input"
-+	ensure_write_fail "$damon_prep_dir/prep_action" "foo" "invalid input"
-+}
++Users can optionally register probing preparation actions per probe.  If such
++actions are registered, DAMON applies the actions to each region's sampling
++memory before starting the next sampling interval.  Currently only one action,
++``set_pgidle`` is supported.  The action marks the page for the probing target
++memory as access-idle.  This can be useful to be used together with
++``pgidle_unset`` probe filter.
 +
-+test_damon_preps()
-+{
-+	preps_dir=$1
-+	ensure_dir "$preps_dir" "exist"
-+	ensure_file "$preps_dir/nr_preps" "exist" "600"
-+	ensure_write_succ "$preps_dir/nr_preps" "1" "valid input"
-+	test_damon_prep "$preps_dir/0"
-+
-+	ensure_write_succ  "$preps_dir/nr_preps" "2" "valid input"
-+	test_damon_prep "$preps_dir/0"
-+	test_damon_prep "$preps_dir/1"
-+
-+	ensure_write_succ "$preps_dir/nr_preps" "0" "valid input"
-+	ensure_dir "$preps_dir/0" "not_exist"
-+	ensure_dir "$preps_dir/1" "not_exist"
-+}
-+
- test_damon_filter()
- {
- 	damon_filter_dir=$1
-@@ -392,6 +418,7 @@ test_probe()
- {
- 	probe_dir=$1
- 	ensure_dir "$probe_dir" "exist"
-+	test_damon_preps "$probe_dir/preps"
- 	test_damon_filters "$probe_dir/filters"
- }
- 
+ This is a sampling based mechanism.  Hence, it is lightweight but the output
+ may include some measurement errors.  The output should be used with good
+ understanding of statistics.
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
