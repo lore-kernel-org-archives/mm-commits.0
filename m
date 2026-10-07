@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3209931E83B
-	for <mm-commits@vger.kernel.org>; Wed,  7 Oct 2026 00:52:03 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3DE3B3115BC
+	for <mm-commits@vger.kernel.org>; Wed,  7 Oct 2026 00:52:04 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791334325; cv=none; b=FuAYLySSePiDUlUqHKbrlrfbw0GuHil52lUuR1zCcpjcyQTjMKkpzyTAlPOteNUBYCQUFQvonQujNTC/hSRTt+E7QLl6CZL2rID7E2VZCW27mcsKIzXCPDM5uxJw6fQ6PI58i0HaEhyjsWpSRCW4fVPx1vIwsZowSdL/wgei15M=
+	t=1791334325; cv=none; b=eGGPTlB2tYYg51SPmBhiehT4MppUfDrdZRBBo+DdBH3IlSPBHHg0vchkmcRZwthnNH8CBTR92dTZdzgHEeeL9zjcAh/Y1S3AxsnKd0BaYkmXpeqQA7wwqlYlJM2f7mP8KsDnwuVIjbwgPlEkQnWMsMCxBMODWnaeO//TpX9nsv0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1791334325; c=relaxed/simple;
-	bh=YGGq2/THsg7B3FJ8IhRqFRz57aUMwbi/cR+VM/NPejU=;
-	h=Date:To:From:Subject:Message-Id; b=ab305H1zWVeSTw8UF0wF+n6w1/dc2qKERqFFyyTBa5ByWjCM0cR9gINex+V+IAxfxft1CvhNfuLZhDr5d0JfXrIFSACQ+akCFov+DFOn60C4BBtDk+MAaMUgmSMDggExj3QUAUHMN+MQsmQ46sFNRG6dEUeuOn9YV+Zr5hnpFMo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Fjb/UJvz; arc=none smtp.client-ip=100.103.45.18
+	bh=OmghmHgSeeGxuf9F5A15dOEYSI8/hO4tX/U1LkYf6YM=;
+	h=Date:To:From:Subject:Message-Id; b=ujH/vz+/cie1Zd7oiMEGkc+Qa359FHhT4RV99qZNvVDD7Sa4dZaW/RNE4u0z91yzr74NZtqtZMh47SsqMOEu43bmJUJnzYXLM5/K+41arPv1ZI+Ui13unEcH7KIJV8MQcbn+yD9xu7tFyHlIJvw35RPfH/obA40RTzRa6gu007Q=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=03tg+Rkd; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Fjb/UJvz"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 101921F0089B;
-	Wed,  7 Oct 2026 00:52:03 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="03tg+Rkd"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 13B2B1F0089C;
+	Wed,  7 Oct 2026 00:52:04 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1791334323;
-	bh=h4lD48GZaG4miD80zt5NjW4frfqGHxuNYZZf4soJULs=;
+	d=linux-foundation.org; s=korg; t=1791334324;
+	bh=F6dXTAVcIgFWpXSoRtSRdMB0Sz2az017dNFgvETtH0Y=;
 	h=Date:To:From:Subject;
-	b=Fjb/UJvzb/fxeSye6s7JuFMouXqaMBxlaVSXN+0TwnTrCPWtV8zcl4e710PIL16Da
-	 My9ka3EFoSEF6rwbZRPkd11ZrfaACyQ1xsLHgS/v9Wu5UCQvnbglKyzFJLz1va0FTP
-	 kfbuHbqrRrP8HYCaTe2XVlRRIY3gHvMTu5IFUTrU=
-Date: Tue, 06 Oct 2026 17:52:02 -0700
+	b=03tg+RkdXI6hz1fNPMdjl85z3wsmwhyvn9M2MP/VsLxyr2sF0WnvTFiZFK0ymJT90
+	 hb9akOUevkNO2bXr9z5FQ7VD1WN8xN4/LMWqXPjH895tkalB5rFLUHreRhD3WX9t8k
+	 3+vbxoOe/P+9ic9pF9ZRPp2PgZ+c5tWQvTdwBmSg=
+Date: Tue, 06 Oct 2026 17:52:03 -0700
 To: mm-commits@vger.kernel.org,peterx@redhat.com,jhubbard@nvidia.com,jgg@ziepe.ca,david@kernel.org,aris@ruivo.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-gup-move-pmd_protnone-into-gup_fast_pmd_leaf.patch removed from -mm tree
-Message-Id: <20261007005203.101921F0089B@smtp.kernel.org>
+Subject: [merged mm-stable] mm-gup-cleanup-the-gup_fast_-call-chain.patch removed from -mm tree
+Message-Id: <20261007005204.13B2B1F0089C@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,32 +35,24 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: gup: move pmd_protnone() into gup_fast_pmd_leaf()
+     Subject: mm: gup: cleanup the gup_fast_*() call chain
 has been removed from the -mm tree.  Its filename was
-     mm-gup-move-pmd_protnone-into-gup_fast_pmd_leaf.patch
+     mm-gup-cleanup-the-gup_fast_-call-chain.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Aristeu Rozanski <aris@ruivo.org>
-Subject: mm: gup: move pmd_protnone() into gup_fast_pmd_leaf()
-Date: Thu, 27 Aug 2026 21:55:43 -0400
+Subject: mm: gup: cleanup the gup_fast_*() call chain
+Date: Thu, 27 Aug 2026 21:55:44 -0400
 
-Patch series "mm: gup: cleanup gup_fast call chain", v3.
+Refactor gup_fast functions so each step of the way returns the number of
+pages pinned.  Because the previous step of the chain knows what the
+number it should be, less indicates an error.  This way there's no need to
+pass *nr along.
 
-These two patches implement the refactor in gup_fast call chain David
-Hildenbrand mentioned in [1].
-
-
-This patch (of 2):	
-
-Make pmd handling match pud handling by calling pmd_protnone() inside
-gup_fast_pmd_leaf().
-
-Link: https://lore.kernel.org/20260828015542.125576330@ruivo.org
-Link: https://lore.kernel.org/20260828015542.245315718@ruivo.org
-Link: https://lore.kernel.org/all/85e760cf-b994-40db-8d13-221feee55c60@redhat.com/T/#u [1]
+Link: https://lore.kernel.org/20260828015542.334186653@ruivo.org
 Signed-off-by: Aristeu Rozanski <aris@ruivo.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 Suggested-by: David Hildenbrand <david@kernel.org>
@@ -71,33 +63,348 @@ Cc: John Hubbard <jhubbard@nvidia.com>
 Cc: Peter Xu <peterx@redhat.com>
 ---
 
- mm/gup.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ mm/gup.c |  179 +++++++++++++++++++++++++++--------------------------
+ 1 file changed, 94 insertions(+), 85 deletions(-)
 
---- a/mm/gup.c~mm-gup-move-pmd_protnone-into-gup_fast_pmd_leaf
+--- a/mm/gup.c~mm-gup-cleanup-the-gup_fast_-call-chain
 +++ a/mm/gup.c
-@@ -2929,6 +2929,10 @@ static int gup_fast_pmd_leaf(pmd_t orig,
- 	struct folio *folio;
- 	int refs;
+@@ -2826,11 +2826,11 @@ static bool gup_fast_folio_allowed(struc
+  * also check pmd here to make sure pmd doesn't change (corresponds to
+  * pmdp_collapse_flush() in the THP collapse code path).
+  */
+-static int gup_fast_pte_range(pmd_t pmd, pmd_t *pmdp, unsigned long addr,
+-		unsigned long end, unsigned int flags, struct page **pages,
+-		int *nr)
++static unsigned long gup_fast_pte_range(pmd_t pmd, pmd_t *pmdp,
++		unsigned long addr, unsigned long end,
++		unsigned int flags, struct page **pages)
+ {
+-	int ret = 0;
++	unsigned long nr_pages = 0;
+ 	pte_t *ptep, *ptem;
  
-+	/* See gup_fast_pte_range() */
-+	if (pmd_protnone(orig))
-+		return 0;
-+
- 	if (!pmd_access_permitted(orig, flags & FOLL_WRITE))
+ 	ptem = ptep = pte_offset_map(&pmd, addr);
+@@ -2892,15 +2892,13 @@ static int gup_fast_pte_range(pmd_t pmd,
+ 			goto pte_unmap;
+ 		}
+ 		folio_set_referenced(folio);
+-		pages[*nr] = page;
+-		(*nr)++;
++		pages[nr_pages] = page;
++		nr_pages++;
+ 	} while (ptep++, addr += PAGE_SIZE, addr != end);
+ 
+-	ret = 1;
+-
+ pte_unmap:
+ 	pte_unmap(ptem);
+-	return ret;
++	return nr_pages;
+ }
+ #else
+ 
+@@ -2913,21 +2911,21 @@ pte_unmap:
+  * get_user_pages_fast_only implementation that can pin pages. Thus it's still
+  * useful to have gup_fast_pmd_leaf even if we can't operate on ptes.
+  */
+-static int gup_fast_pte_range(pmd_t pmd, pmd_t *pmdp, unsigned long addr,
+-		unsigned long end, unsigned int flags, struct page **pages,
+-		int *nr)
++static unsigned long gup_fast_pte_range(pmd_t pmd, pmd_t *pmdp,
++		unsigned long addr, unsigned long end,
++		unsigned int flags, struct page **pages)
+ {
+ 	return 0;
+ }
+ #endif /* CONFIG_ARCH_HAS_PTE_SPECIAL */
+ 
+-static int gup_fast_pmd_leaf(pmd_t orig, pmd_t *pmdp, unsigned long addr,
+-		unsigned long end, unsigned int flags, struct page **pages,
+-		int *nr)
++static unsigned long gup_fast_pmd_leaf(pmd_t orig, pmd_t *pmdp,
++		unsigned long addr, unsigned long end,
++		unsigned int flags, struct page **pages)
+ {
+ 	struct page *page;
+ 	struct folio *folio;
+-	int refs;
++	unsigned long nr_pages, i;
+ 
+ 	/* See gup_fast_pte_range() */
+ 	if (pmd_protnone(orig))
+@@ -2939,42 +2937,40 @@ static int gup_fast_pmd_leaf(pmd_t orig,
+ 	if (pmd_special(orig))
  		return 0;
  
-@@ -3024,10 +3028,6 @@ static int gup_fast_pmd_range(pud_t *pud
- 			return 0;
+-	refs = (end - addr) >> PAGE_SHIFT;
++	nr_pages = (end - addr) >> PAGE_SHIFT;
+ 	page = pmd_page(orig) + ((addr & ~PMD_MASK) >> PAGE_SHIFT);
+ 
+-	folio = try_grab_folio_fast(page, refs, flags);
++	folio = try_grab_folio_fast(page, nr_pages, flags);
+ 	if (!folio)
+ 		return 0;
+ 
+ 	if (unlikely(pmd_val(orig) != pmd_val(pmdp_get_lockless(pmdp)))) {
+-		gup_put_folio(folio, refs, flags);
++		gup_put_folio(folio, nr_pages, flags);
+ 		return 0;
+ 	}
+ 
+ 	if (!gup_fast_folio_allowed(folio, flags)) {
+-		gup_put_folio(folio, refs, flags);
++		gup_put_folio(folio, nr_pages, flags);
+ 		return 0;
+ 	}
+ 	if (!pmd_write(orig) && gup_must_unshare(NULL, flags, &folio->page)) {
+-		gup_put_folio(folio, refs, flags);
++		gup_put_folio(folio, nr_pages, flags);
+ 		return 0;
+ 	}
+ 
+-	pages += *nr;
+-	*nr += refs;
+-	for (; refs; refs--)
++	for (i = 0; i < nr_pages; i++)
+ 		*(pages++) = page++;
+ 	folio_set_referenced(folio);
+-	return 1;
++	return nr_pages;
+ }
+ 
+-static int gup_fast_pud_leaf(pud_t orig, pud_t *pudp, unsigned long addr,
+-		unsigned long end, unsigned int flags, struct page **pages,
+-		int *nr)
++static unsigned long gup_fast_pud_leaf(pud_t orig, pud_t *pudp,
++		unsigned long addr, unsigned long end,
++		unsigned int flags, struct page **pages)
+ {
+ 	struct page *page;
+ 	struct folio *folio;
+-	int refs;
++	unsigned long nr_pages, i;
+ 
+ 	if (!pud_access_permitted(orig, flags & FOLL_WRITE))
+ 		return 0;
+@@ -2982,41 +2978,39 @@ static int gup_fast_pud_leaf(pud_t orig,
+ 	if (pud_special(orig))
+ 		return 0;
+ 
+-	refs = (end - addr) >> PAGE_SHIFT;
++	nr_pages = (end - addr) >> PAGE_SHIFT;
+ 	page = pud_page(orig) + ((addr & ~PUD_MASK) >> PAGE_SHIFT);
+ 
+-	folio = try_grab_folio_fast(page, refs, flags);
++	folio = try_grab_folio_fast(page, nr_pages, flags);
+ 	if (!folio)
+ 		return 0;
+ 
+ 	if (unlikely(pud_val(orig) != pud_val(pudp_get(pudp)))) {
+-		gup_put_folio(folio, refs, flags);
++		gup_put_folio(folio, nr_pages, flags);
+ 		return 0;
+ 	}
+ 
+ 	if (!gup_fast_folio_allowed(folio, flags)) {
+-		gup_put_folio(folio, refs, flags);
++		gup_put_folio(folio, nr_pages, flags);
+ 		return 0;
+ 	}
+ 
+ 	if (!pud_write(orig) && gup_must_unshare(NULL, flags, &folio->page)) {
+-		gup_put_folio(folio, refs, flags);
++		gup_put_folio(folio, nr_pages, flags);
+ 		return 0;
+ 	}
+ 
+-	pages += *nr;
+-	*nr += refs;
+-	for (; refs; refs--)
++	for (i = 0; i < nr_pages; i++)
+ 		*(pages++) = page++;
+ 	folio_set_referenced(folio);
+-	return 1;
++	return nr_pages;
+ }
+ 
+-static int gup_fast_pmd_range(pud_t *pudp, pud_t pud, unsigned long addr,
+-		unsigned long end, unsigned int flags, struct page **pages,
+-		int *nr)
++static unsigned long gup_fast_pmd_range(pud_t *pudp, pud_t pud,
++		unsigned long addr, unsigned long end,
++		unsigned int flags, struct page **pages)
+ {
+-	unsigned long next;
++	unsigned long next, nr_pages = 0, chunk_nr_pages;
+ 	pmd_t *pmdp;
+ 
+ 	pmdp = pmd_offset_lockless(pudp, pud, addr);
+@@ -3025,26 +3019,30 @@ static int gup_fast_pmd_range(pud_t *pud
+ 
+ 		next = pmd_addr_end(addr, end);
+ 		if (!pmd_present(pmd))
+-			return 0;
++			break;
  
  		if (unlikely(pmd_leaf(pmd))) {
--			/* See gup_fast_pte_range() */
--			if (pmd_protnone(pmd))
+-			if (!gup_fast_pmd_leaf(pmd, pmdp, addr, next, flags,
+-				pages, nr))
 -				return 0;
 -
- 			if (!gup_fast_pmd_leaf(pmd, pmdp, addr, next, flags,
- 				pages, nr))
- 				return 0;
+-		} else if (!gup_fast_pte_range(pmd, pmdp, addr, next, flags,
+-					       pages, nr))
+-			return 0;
++			chunk_nr_pages = gup_fast_pmd_leaf(pmd, pmdp, addr,
++							   next, flags,
++							   &pages[nr_pages]);
++
++		} else
++			chunk_nr_pages = gup_fast_pte_range(pmd, pmdp, addr,
++							    next, flags,
++							    &pages[nr_pages]);
++		nr_pages += chunk_nr_pages;
++		if (chunk_nr_pages != (next - addr) >> PAGE_SHIFT)
++			break;
+ 	} while (pmdp++, addr = next, addr != end);
+ 
+-	return 1;
++	return nr_pages;
+ }
+ 
+-static int gup_fast_pud_range(p4d_t *p4dp, p4d_t p4d, unsigned long addr,
+-		unsigned long end, unsigned int flags, struct page **pages,
+-		int *nr)
++static unsigned long gup_fast_pud_range(p4d_t *p4dp, p4d_t p4d,
++		unsigned long addr, unsigned long end,
++		unsigned int flags, struct page **pages)
+ {
+-	unsigned long next;
++	unsigned long next, nr_pages = 0, chunk_nr_pages;
+ 	pud_t *pudp;
+ 
+ 	pudp = pud_offset_lockless(p4dp, p4d, addr);
+@@ -3053,24 +3051,27 @@ static int gup_fast_pud_range(p4d_t *p4d
+ 
+ 		next = pud_addr_end(addr, end);
+ 		if (unlikely(!pud_present(pud)))
+-			return 0;
+-		if (unlikely(pud_leaf(pud))) {
+-			if (!gup_fast_pud_leaf(pud, pudp, addr, next, flags,
+-					       pages, nr))
+-				return 0;
+-		} else if (!gup_fast_pmd_range(pudp, pud, addr, next, flags,
+-					       pages, nr))
+-			return 0;
++			break;
++		if (unlikely(pud_leaf(pud)))
++			chunk_nr_pages = gup_fast_pud_leaf(pud, pudp, addr,
++							   next, flags,
++							   &pages[nr_pages]);
++		else
++			chunk_nr_pages = gup_fast_pmd_range(pudp, pud, addr,
++							    next, flags,
++							    &pages[nr_pages]);
++		nr_pages += chunk_nr_pages;
++		if (chunk_nr_pages != (next - addr) >> PAGE_SHIFT)
++			break;
+ 	} while (pudp++, addr = next, addr != end);
+ 
+-	return 1;
++	return nr_pages;
+ }
+ 
+-static int gup_fast_p4d_range(pgd_t *pgdp, pgd_t pgd, unsigned long addr,
+-		unsigned long end, unsigned int flags, struct page **pages,
+-		int *nr)
++static unsigned long gup_fast_p4d_range(pgd_t *pgdp, pgd_t pgd, unsigned long addr,
++		unsigned long end, unsigned int flags, struct page **pages)
+ {
+-	unsigned long next;
++	unsigned long next, nr_pages = 0, chunk_nr_pages;
+ 	p4d_t *p4dp;
+ 
+ 	p4dp = p4d_offset_lockless(pgdp, pgd, addr);
+@@ -3079,20 +3080,23 @@ static int gup_fast_p4d_range(pgd_t *pgd
+ 
+ 		next = p4d_addr_end(addr, end);
+ 		if (!p4d_present(p4d))
+-			return 0;
++			break;
+ 		BUILD_BUG_ON(p4d_leaf(p4d));
+-		if (!gup_fast_pud_range(p4dp, p4d, addr, next, flags,
+-					pages, nr))
+-			return 0;
++		chunk_nr_pages = gup_fast_pud_range(p4dp, p4d, addr, next,
++						    flags, &pages[nr_pages]);
++		nr_pages += chunk_nr_pages;
++		if (chunk_nr_pages != (next - addr) >> PAGE_SHIFT)
++			break;
+ 	} while (p4dp++, addr = next, addr != end);
+ 
+-	return 1;
++	return nr_pages;
+ }
+ 
+-static void gup_fast_pgd_range(unsigned long addr, unsigned long end,
+-		unsigned int flags, struct page **pages, int *nr)
++static unsigned long gup_fast_pgd_range(unsigned long addr,
++		unsigned long end, unsigned int flags,
++		struct page **pages)
+ {
+-	unsigned long next;
++	unsigned long next, nr_pages = 0, chunk_nr_pages;
+ 	pgd_t *pgdp;
+ 
+ 	pgdp = pgd_offset(current->mm, addr);
+@@ -3101,17 +3105,23 @@ static void gup_fast_pgd_range(unsigned
+ 
+ 		next = pgd_addr_end(addr, end);
+ 		if (pgd_none(pgd))
+-			return;
++			break;
+ 		BUILD_BUG_ON(pgd_leaf(pgd));
+-		if (!gup_fast_p4d_range(pgdp, pgd, addr, next, flags,
+-					pages, nr))
+-			return;
++		chunk_nr_pages = gup_fast_p4d_range(pgdp, pgd, addr, next,
++						    flags, &pages[nr_pages]);
++		nr_pages += chunk_nr_pages;
++		if (chunk_nr_pages != (next - addr) >> PAGE_SHIFT)
++			break;
+ 	} while (pgdp++, addr = next, addr != end);
++
++	return nr_pages;
+ }
+ #else
+-static inline void gup_fast_pgd_range(unsigned long addr, unsigned long end,
+-		unsigned int flags, struct page **pages, int *nr)
++static inline unsigned long gup_fast_pgd_range(unsigned long addr,
++		unsigned long end, unsigned int flags,
++		struct page **pages)
+ {
++	return 0;
+ }
+ #endif /* CONFIG_HAVE_GUP_FAST */
+ 
+@@ -3129,8 +3139,7 @@ static bool gup_fast_permitted(unsigned
+ static unsigned long gup_fast(unsigned long start, unsigned long end,
+ 		unsigned int gup_flags, struct page **pages)
+ {
+-	unsigned long flags;
+-	int nr_pinned = 0;
++	unsigned long flags, nr_pinned;
+ 	unsigned seq;
+ 
+ 	if (!IS_ENABLED(CONFIG_HAVE_GUP_FAST) ||
+@@ -3154,7 +3163,7 @@ static unsigned long gup_fast(unsigned l
+ 	 * that come from callers of tlb_remove_table_sync_one().
+ 	 */
+ 	local_irq_save(flags);
+-	gup_fast_pgd_range(start, end, gup_flags, pages, &nr_pinned);
++	nr_pinned = gup_fast_pgd_range(start, end, gup_flags, pages);
+ 	local_irq_restore(flags);
+ 
+ 	/*
 _
 
 Patches currently in -mm which might be from aris@ruivo.org are
