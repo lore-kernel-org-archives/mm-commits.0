@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0FA642C3245
-	for <mm-commits@vger.kernel.org>; Wed,  7 Oct 2026 00:49:01 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 303C72D0629
+	for <mm-commits@vger.kernel.org>; Wed,  7 Oct 2026 00:49:02 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791334142; cv=none; b=q0LbEM5qDHiYtQ3XPFJ6EtAve4zV+y+Rx57jIZsJkfIjDUmGUgmJVFviVpsd1Rrxk0TKPTpjYiWIZxkHjWlSoxxZhqU7SrxFENbAsBRWKhM+EcbAEwlp/RyxYNg8rOx5KH1Z6L3oVwlRVxyDelq95Svrjti8EBz6NUvP6bvyjJU=
+	t=1791334143; cv=none; b=O22EbAPQYpNg8kWYZu8wgkz9pBsOOslOSNreGbCIqgw/SFHgFUFEnXc0BTJyntsCHtLY+1t0D3BYtk2kkQAgC3gjuTy1QrEmdKx8iCW5IRzmPH26A0xyBymyHznDiJRT3QHFwVIHIfJ7jlqHqcdALQu4SSLfmFUx1JQ7GTxB5fQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791334142; c=relaxed/simple;
-	bh=7bwS2SNLFrKwl75ItK7pQJRhkSTB6KLPRDWpUIcfuRE=;
-	h=Date:To:From:Subject:Message-Id; b=dTrbANEJufGnlEjAsoIXhfA6yT7OClL7iiEI4vD0BT6SOskHJwp55oOakJykbx1Wnn8MsQb5is3xS5Zpsd9VlZeDeko6bc7kRlGOxnYwXo0/U1LxnTw2ZDkLlTToce/85BQJ+ecsRPZmsTwDO3s+euMLcW8GL6yN6hG1glF/W5c=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=tX1IFZMd; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1791334143; c=relaxed/simple;
+	bh=Eyte1+S3Etj6NQFqvDZkyYRZTn6HY0E8Qx/IhrUcvLc=;
+	h=Date:To:From:Subject:Message-Id; b=Esm+LMnqqe08ezHct7N+FJcw7Q1G+bq35B343QWL5MI6pvGxIAaQap7zyzSO+DDw7eduofjhZkZZRnCUxdIhjmSzcMq8T5JKFOVgPst3EbxstS0vxSiE8+4u27Wm92v+dzTgV4uHm6usT9WoxUkv6kLSdr1TufjIdce7r/25wvU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=TdellIVX; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="tX1IFZMd"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id DBDF41F0089B;
-	Wed,  7 Oct 2026 00:49:00 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="TdellIVX"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0C3E51F0089C;
+	Wed,  7 Oct 2026 00:49:02 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1791334141;
-	bh=pGzHVXs+TW4KM1yhAhlyepuJouXh0oB1+rJ2m9z71gw=;
+	d=linux-foundation.org; s=korg; t=1791334142;
+	bh=D4LlSP+Ok5F7280E+aix/VRUJ7lBFs90eHmX2ubcJU0=;
 	h=Date:To:From:Subject;
-	b=tX1IFZMdGCEZ0T2pO472DyuuE92onaYOV0c/0MEcyAY/RAWCo02zliu7I4issnZUp
-	 PO4Vpn5PCmPMt6ZdAsr+8zYCcFrCBkqdOk0IRaUWpnygqpbh6+GdU/fJj3cn2joEpP
-	 VVbLnR7tDk1AQyMHaJdq3W9cATGsVWye1yw+dmeg=
-Date: Tue, 06 Oct 2026 17:49:00 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,usama.arif@linux.dev,ljs@kernel.org,lance.yang@linux.dev,dev.jain@arm.com,baolin.wang@linux.alibaba.com,baohua@kernel.org,anshumantewari123@gmail.com,akpm@linux-foundation.org,david@kernel.org
+	b=TdellIVX5myot55ZuPjXHWvGGRN5ae9FW5Bjnd0+gMocZJMwuXP7j63xBdJZkXvu5
+	 VVfWWNJiedECOJOtsSoH9WBvrwIMOKMr6LGYlh/J+Fxi/2hS0S4oBHn1fnVvBtSWLl
+	 31hC4cRWoqI9ZeB+nkPE7W+WLMyYlP95jyNiHzQA=
+Date: Tue, 06 Oct 2026 17:49:01 -0700
+To: mm-commits@vger.kernel.org,sj@kernel.org,shakeel.butt@linux.dev,mhocko@suse.com,gourry@gourry.net,lihongfu@kylinos.cn,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] selftests-mm-khugepaged-remove-str_dup-usage.patch removed from -mm tree
-Message-Id: <20261007004900.DBDF41F0089B@smtp.kernel.org>
+Subject: [merged mm-stable] mm-memcontrol-remove-unused-memcg-parameter-in-calculate_high_delay.patch removed from -mm tree
+Message-Id: <20261007004902.0C3E51F0089C@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,71 +35,72 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: selftests/mm: khugepaged: remove str_dup() usage
+     Subject: mm/memcontrol: remove unused memcg parameter in calculate_high_delay()
 has been removed from the -mm tree.  Its filename was
-     selftests-mm-khugepaged-remove-str_dup-usage.patch
+     mm-memcontrol-remove-unused-memcg-parameter-in-calculate_high_delay.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: "David Hildenbrand (Arm)" <david@kernel.org>
-Subject: selftests/mm: khugepaged: remove str_dup() usage
-Date: Tue, 25 Aug 2026 13:20:59 +0200
+From: Hongfu Li <lihongfu@kylinos.cn>
+Subject: mm/memcontrol: remove unused memcg parameter in calculate_high_delay()
+Date: Tue, 25 Aug 2026 20:01:53 +0800
 
-We don't check str_dup() return value and never free it.  While both
-things are irrelevant in practice, let's just clean it up by working on
-argv[0] directly and avoiding the str_dup().
+The memcg argument of calculate_high_delay() is never referenced in its
+function body.  The delay calculation only depends on nr_pages and
+max_overage, and both callers have already obtained max_overage from the
+same memcg.
 
-Nobody after us needs these parts of the argv[0] string anyway.
+Drop this unused parameter and update the two call sites inside
+__mem_cgroup_handle_over_high().
 
-This patch is inspired by previous work from Anshuman Tewari [1].
-
-Link: https://lore.kernel.org/r/20260821114416.12255-1-anshumantewari123@gmail.com [1]
-Link: https://lore.kernel.org/20260825-remove_str_dup-v1-1-0ba2121a820c@kernel.org
-Signed-off-by: David Hildenbrand (Arm) <david@kernel.org>
+Link: https://lore.kernel.org/20260825120153.1405-1-hongfu.li@linux.dev
+Signed-off-by: Hongfu Li <lihongfu@kylinos.cn>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Reviewed-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
-Reviewed-by: Anshuman Tewari <anshumantewari123@gmail.com>
-Reviewed-by: Zi Yan <ziy@nvidia.com>
-Reviewed-by: Lance Yang <lance.yang@linux.dev>
-Reviewed-by: Dev Jain <dev.jain@arm.com>
-Acked-by: Usama Arif <usama.arif@linux.dev>
-Reviewed-by: Baolin Wang <baolin.wang@linux.alibaba.com>
-Reviewed-by: Barry Song <baohua@kernel.org>
-Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
+Acked-by: Michal Hocko <mhocko@suse.com>
+Reviewed-by: Gregory Price (Meta) <gourry@gourry.net>
+Reviewed-by: SJ Park <sj@kernel.org>
+Acked-by: Shakeel Butt <shakeel.butt@linux.dev>
 ---
 
- tools/testing/selftests/mm/khugepaged.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/memcontrol.c |    7 +++----
+ 1 file changed, 3 insertions(+), 4 deletions(-)
 
---- a/tools/testing/selftests/mm/khugepaged.c~selftests-mm-khugepaged-remove-str_dup-usage
-+++ a/tools/testing/selftests/mm/khugepaged.c
-@@ -1227,7 +1227,7 @@ static void parse_test_type(int argc, ch
- 		return;
- 	}
+--- a/mm/memcontrol.c~mm-memcontrol-remove-unused-memcg-parameter-in-calculate_high_delay
++++ a/mm/memcontrol.c
+@@ -2515,8 +2515,7 @@ static u64 swap_find_max_overage(struct
+  * Get the number of jiffies that we should penalise a mischievous cgroup which
+  * is exceeding its memory.high by checking both it and its ancestors.
+  */
+-static unsigned long calculate_high_delay(struct mem_cgroup *memcg,
+-					  unsigned int nr_pages,
++static unsigned long calculate_high_delay(unsigned int nr_pages,
+ 					  u64 max_overage)
+ {
+ 	unsigned long penalty_jiffies;
+@@ -2594,10 +2593,10 @@ retry_reclaim:
+ 	 * memory.high is breached and reclaim is unable to keep up. Throttle
+ 	 * allocators proactively to slow down excessive growth.
+ 	 */
+-	penalty_jiffies = calculate_high_delay(memcg, nr_pages,
++	penalty_jiffies = calculate_high_delay(nr_pages,
+ 					       mem_find_max_overage(memcg));
  
--	buf = strdup(argv[0]);
-+	buf = argv[0];
- 	token = strsep(&buf, ":");
+-	penalty_jiffies += calculate_high_delay(memcg, nr_pages,
++	penalty_jiffies += calculate_high_delay(nr_pages,
+ 						swap_find_max_overage(memcg));
  
- 	if (!strcmp(token, "all")) {
+ 	/*
 _
 
-Patches currently in -mm which might be from david@kernel.org are
+Patches currently in -mm which might be from lihongfu@kylinos.cn are
 
-mm-sparse-move-mem_section-init-to-sparse_extreme_init.patch
-mm-sparse-refactor-sparse_sections_init.patch
-mm-sparse-move-initialization-of-section-metadata-to-sparse_metadata_init.patch
-mm-sparse-rename-and-cleanup-sparse_init_nid.patch
-mm-sparse-cleanup-sparse_init_one_section.patch
-mm-sparse-rename-__highest_present_section_nr-to-__highest_used_section_nr.patch
-mm-sparse-remove-pfn_in_present_section.patch
-mm-sparse-move-__highest_used_section_nr-handling.patch
-scripts-gdb-mmpy-remove-fallbacks-for-section_has_mem_map-and-section_is_early.patch
-mm-sparse-remove-section_marked_present.patch
-mm-sparse-remove-flags-parameter-from-sparse_init_one_section.patch
-fs-proc-page-clarify-comment-in-get_max_dump_pfn.patch
-mm-memory_hotplug-drop-config_have_arch_pfn_valid-handling-from-pfn_to_online_page.patch
-arm64-mm-move-__check_safe_pte_update-fix.patch
+mm-page_owner-preserve-original-free_pid-free_tgid-during-folio-migration.patch
+mm-memfd-fix-hugetlb-reservation-accounting-in-error-paths.patch
+selftests-mm-fix-ptrace-peekdata-check-in-memfd_secret-test.patch
+mm-hugetlb_cgroup-move-per-node-usage-on-cross-node-migration.patch
+mm-hugetlb_cgroup-move-per-node-usage-on-cgroup-reparenting.patch
+mm-hugetlb-account-migration-target-folio-in-per-node-nr_hugetlb-vmstat.patch
+mm-memcg-migrate-per-node-hugetlb-lruvec-stat-together-with-hugetlb-folio.patch
 
