@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4636C2FD1AA
-	for <mm-commits@vger.kernel.org>; Wed,  7 Oct 2026 00:50:15 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4B8182DFA3A
+	for <mm-commits@vger.kernel.org>; Wed,  7 Oct 2026 00:50:16 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791334216; cv=none; b=E5kOad7HqdwK/npMY+3NbPmLnw5NMY3t6NedlF+iCd/Jx3zBvuZyAfAfgWC7v0qHEfX78WcP9u+aTWk43tVJsFABFLSL+xI65ZQrCqpwfWvVSTIKkVaKOqmoQwdWNOekF7LyQiahySTT12xz6Xrdgz7PK0XDLppD7q34+i7p9rk=
+	t=1791334217; cv=none; b=iBU5ZcHq9gYm++RNS21xx+41dy+ony/g05o9vVL3KhWCApDTDMtUhxGHQI+CsTRrZ9I6c8so6AuPVacjSeUW4lwDKKAEsRHxpw5H+knP50O9gmokbZjz1rnS9+J7zsS8aEVNfqETH6k0p+343lQBDWOZ1YRhLifvjaB2Ar1QnXY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791334216; c=relaxed/simple;
-	bh=XQxrzzAp4G0i2UFLrokrKcXFcThSGf/Bj/4MyIZ7G9A=;
-	h=Date:To:From:Subject:Message-Id; b=mWsTuWlPHP3m4xMvO/6jjwit2umxK1eDCEiPAY5WkIIYwBJDe3p85FlgbWZNTCNPylN3BKOqKygyvuqlHsUy+auMVW2XfQpuIBxGbw+3PUMr3unfcatAcXp+SDarV+Kdd5yJN8a9csqbNTyIUQQwlC8Ol5Fxepfoc+wybtRU2d8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=gz/ziWNT; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1791334217; c=relaxed/simple;
+	bh=DD5NAAu6Js5v9g2Re0SvANXQLwMO7TL1eajuBlgzl8s=;
+	h=Date:To:From:Subject:Message-Id; b=k41acyi7SxMUMdFeUupTsXSuXHHQqhrJkeptBjrdVdA0+TUmRq1lETDwTz33rQMbgP1GWCbon4kiFT5Xhe0CiR/mHeGfyLWQVV7d/WUH5a4PEuiZ9BHh9GArYBRTkiLbmOmj+lleS4pRlR045YzWxq8mFYH1GGu5mvHpTrXCoPE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=dJU0bBtl; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="gz/ziWNT"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1DCB91F0089B;
-	Wed,  7 Oct 2026 00:50:15 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="dJU0bBtl"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 222D71F0089C;
+	Wed,  7 Oct 2026 00:50:16 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1791334215;
-	bh=yv7/O3AtZLOf9lisMtEMSyWmJ8JJzxalHX9OoqIV09w=;
+	d=linux-foundation.org; s=korg; t=1791334216;
+	bh=PFBWRYnMokhA0o/ML3AipdOYWNgwFnFrWfqCWVRQ3Bo=;
 	h=Date:To:From:Subject;
-	b=gz/ziWNTjiqw3mNVAxcBgI0Ku5FaLGfCg0S+oSl0l9lyQHTya+gZ7bATH1A8q1m9x
-	 C6ChS/bewbzkOuzfjpoOmyZM9+5++dnrb02XZm5+xqLG7TvJnnx4FxTjI/OJS/YvO3
-	 0qVmFYidf4qweAeSS+zA9Rzrr6HChdl+6gpCMuPE=
-Date: Tue, 06 Oct 2026 17:50:14 -0700
-To: mm-commits@vger.kernel.org,roman.gushchin@linux.dev,muchun.song@linux.dev,mhocko@suse.com,kuba@kernel.org,joshua.hahnjy@gmail.com,hannes@cmpxchg.org,cxiong@meta.com,shakeel.butt@linux.dev,akpm@linux-foundation.org
+	b=dJU0bBtlzGA3v3+E5EN1YH0ZgccYQ3pDMU47OznI3no44+m5Ykkmbel2jDgJi9idl
+	 Svy9O3uzVi2nEZRh17zUZXiAH3Ics1kGoCw1nK+uFG+Wes0eMY5wW0+D4jENsluwvW
+	 VLaLDjTcPqzR0hu269OJGnxfpwbCzJ19WA12IJbc=
+Date: Tue, 06 Oct 2026 17:50:15 -0700
+To: mm-commits@vger.kernel.org,tjmercier@google.com,roman.gushchin@linux.dev,muchun.song@linux.dev,mhocko@suse.com,ljs@kernel.org,kasong@tencent.com,hannes@cmpxchg.org,david@kernel.org,baohua@kernel.org,axelrasmussen@google.com,shakeel.butt@linux.dev,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] memcg-trim-the-per-cpu-charge-stock-instead-of-draining-it.patch removed from -mm tree
-Message-Id: <20261007005015.1DCB91F0089B@smtp.kernel.org>
+Subject: [merged mm-stable] memcg-remove-v1-soft-limit-reclaim.patch removed from -mm tree
+Message-Id: <20261007005016.222D71F0089C@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,120 +35,367 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: memcg: trim the per-cpu charge stock instead of draining it
+     Subject: memcg: remove v1 soft limit reclaim
 has been removed from the -mm tree.  Its filename was
-     memcg-trim-the-per-cpu-charge-stock-instead-of-draining-it.patch
+     memcg-remove-v1-soft-limit-reclaim.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Shakeel Butt <shakeel.butt@linux.dev>
-Subject: memcg: trim the per-cpu charge stock instead of draining it
-Date: Wed, 19 Aug 2026 18:20:10 -0700
+Subject: memcg: remove v1 soft limit reclaim
+Date: Wed, 2 Sep 2026 10:43:04 -0700
 
-Joy reported that an application generating a request/response traffic
-pattern spends 44.6% to 57.0% of CPU in the memcg charge/uncharge path for
-a range of message sizes, against 0.27% to 0.71% outside that range. 
-Running from the root memcg, where socket memory accounting is skipped,
-recovers the performance.
+Patch series "memcg: remove the v1 soft limit", v2.
 
-Tracing the charge path showed that the application generates a pattern
-where the write syscall charges one page and the read syscall uncharges
-two pages on the same CPU.  This hits a corner case in the memcg percpu
-stock code that thrashes the stock continuously.
+The v1 soft limit was deprecated in v6.12 by commit 569c4f62d84a ("memcg:
+initiate deprecation of v1 soft limit") and nobody has reported depending
+on it in the ~21 months since.  memory.low and memory.min in v2 have
+covered the same ground for far longer.
 
-In the memcg percpu stock code, MEMCG_CHARGE_BATCH (64) is both the high
-watermark and the emptying target, i.e.  on a request to charge one page
-the kernel charges MEMCG_CHARGE_BATCH pages and caches (MEMCG_CHARGE_BATCH
-- 1) of them in the percpu stock.  The following uncharge of 2 pages takes
-the cached count to (MEMCG_CHARGE_BATCH + 1), and refill_stock() then
-empties the cache completely.  With such a pattern the percpu stock
-becomes completely ineffective.
+The knob has since been made inert by "memcg: make the v1 soft limit knob
+inert", already queued in mm-hotfixes as a backportable fix for a syzbot
+report [1].  Nothing can enter the soft limit rbtree anymore, so this
+series just deletes the machinery that is now dead: the reclaim pass in
+kswapd and direct reclaim, mem_cgroup_shrink_node() and its tracepoints,
+the per-node rbtree, lru_gen_soft_reclaim() and the MEMCG_LRU_HEAD op, the
+per-node tree fields, mem_cgroup->soft_limit, and finally the v1 event
+ratelimiting which is now down to a single target.
 
-Instead of a single boundary point for charges, use the technique the page
-allocator uses for its own percpu caches, which keeps the watermark and
-the emptying target apart: nr_pcp_free() frees between batch and high -
-batch pages, leaving at least pcp->batch on the list.  Add a high
-watermark MEMCG_STOCK_HIGH and, once the cached count goes over it, return
-only the pages above MEMCG_STOCK_LOW.  The watermarks are
-MEMCG_CHARGE_BATCH apart, so a page_counter update still covers a full
-batch.
+memory.soft_limit_in_bytes itself is untouched: writes stay ignored and
+reads keep returning the maximum value.
 
-For now, keep MEMCG_STOCK_HIGH same as MEMCG_CHARGE_BATCH and in future we
-will reevaluate if it makes sense to increase it.
 
-Link: https://lore.kernel.org/20260820012010.2016086-1-shakeel.butt@linux.dev
+This patch (of 8):
+
+Nothing can put a cgroup on the soft limit rbtree anymore, so the tree is
+always empty and both callers of memcg1_soft_limit_reclaim() are
+guaranteed no-ops.  Remove the reclaim pass from direct reclaim and from
+kswapd, along with its implementation.
+
+In shrink_zones() this leaves the global reclaim branch with a last_pgdat
+check that is now redundant with the identical check right below it, so
+drop it and move the explaining comment down to the check that remains. 
+That check could only ever fire once last_pgdat was set, which implies
+first_pgdat had already been assigned, so skipping it does not change
+which node consider_reclaim_throttle() gets.
+
+Link: https://lore.kernel.org/20260902174311.1772372-1-shakeel.butt@linux.dev
+Link: https://lore.kernel.org/20260902174311.1772372-2-shakeel.butt@linux.dev
 Signed-off-by: Shakeel Butt <shakeel.butt@linux.dev>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Reported-by: Joy Chaoyue Xiong <cxiong@meta.com>
 Acked-by: Michal Hocko <mhocko@suse.com>
-Cc: Jakub Kacinski <kuba@kernel.org>
+Acked-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
+Cc: Axel Rasmussen <axelrasmussen@google.com>
+Cc: Barry Song <baohua@kernel.org>
+Cc: David Hildenbrand <david@kernel.org>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Joshua Hahn <joshua.hahnjy@gmail.com>
+Cc: Kairui Song <kasong@tencent.com>
 Cc: Muchun Song <muchun.song@linux.dev>
 Cc: Roman Gushchin <roman.gushchin@linux.dev>
+Cc: T.J. Mercier <tjmercier@google.com>
 ---
 
- mm/memcontrol.c |   25 +++++++++++++++++++------
- 1 file changed, 19 insertions(+), 6 deletions(-)
+ include/linux/memcontrol.h |   12 --
+ mm/memcontrol-v1.c         |  175 -----------------------------------
+ mm/vmscan.c                |   39 +------
+ 3 files changed, 6 insertions(+), 220 deletions(-)
 
---- a/mm/memcontrol.c~memcg-trim-the-per-cpu-charge-stock-instead-of-draining-it
-+++ a/mm/memcontrol.c
-@@ -2048,6 +2048,15 @@ void mem_cgroup_print_oom_group(struct m
-  * nr_pages in a single cacheline. This may change in future.
-  */
- #define NR_MEMCG_STOCK 7
-+
-+/*
-+ * Watermarks for a charge stock slot, in the spirit of pcp->high and
-+ * pcp->batch: MEMCG_STOCK_HIGH is the high watermark at which a slot is
-+ * trimmed, and it is trimmed down to MEMCG_STOCK_LOW rather than emptied.
-+ */
-+#define MEMCG_STOCK_LOW		(MEMCG_CHARGE_BATCH / 2)
-+#define MEMCG_STOCK_HIGH	(MEMCG_CHARGE_BATCH)
-+
- #define FLUSHING_CACHED_CHARGE	0
- struct memcg_stock_pcp {
- 	local_trylock_t lock;
-@@ -2228,17 +2237,18 @@ static void refill_stock(struct mem_cgro
+--- a/include/linux/memcontrol.h~memcg-remove-v1-soft-limit-reclaim
++++ a/include/linux/memcontrol.h
+@@ -1924,10 +1924,6 @@ static inline bool mem_cgroup_zswap_writ
+ /* Cgroup v1-related declarations */
+ 
+ #ifdef CONFIG_MEMCG_V1
+-unsigned long memcg1_soft_limit_reclaim(pg_data_t *pgdat, int order,
+-					gfp_t gfp_mask,
+-					unsigned long *total_scanned);
+-
+ bool mem_cgroup_oom_synchronize(bool wait);
+ 
+ static inline bool task_in_memcg_oom(struct task_struct *p)
+@@ -1948,14 +1944,6 @@ static inline void mem_cgroup_exit_user_
+ }
+ 
+ #else /* CONFIG_MEMCG_V1 */
+-static inline
+-unsigned long memcg1_soft_limit_reclaim(pg_data_t *pgdat, int order,
+-					gfp_t gfp_mask,
+-					unsigned long *total_scanned)
+-{
+-	return 0;
+-}
+-
+ static inline bool task_in_memcg_oom(struct task_struct *p)
  {
- 	struct memcg_stock_pcp *stock;
- 	struct mem_cgroup *cached;
--	uint8_t stock_pages;
-+	unsigned int stock_pages;
- 	bool success = false;
- 	int empty_slot = -1;
- 	int i;
+ 	return false;
+--- a/mm/memcontrol-v1.c~memcg-remove-v1-soft-limit-reclaim
++++ a/mm/memcontrol-v1.c
+@@ -34,13 +34,6 @@ struct mem_cgroup_tree {
  
- 	/*
--	 * For now limit MEMCG_CHARGE_BATCH to 127 and less. In future if we
--	 * decide to increase it more than 127 then we will need more careful
--	 * handling of nr_pages[] in struct memcg_stock_pcp.
-+	 * nr_pages[] is a uint8_t and a slot's count is capped at
-+	 * MEMCG_STOCK_HIGH. Raising MEMCG_CHARGE_BATCH beyond 127 would need
-+	 * more careful handling of nr_pages[] in struct memcg_stock_pcp.
- 	 */
- 	BUILD_BUG_ON(MEMCG_CHARGE_BATCH > S8_MAX);
-+	BUILD_BUG_ON(MEMCG_STOCK_HIGH > U8_MAX);
+ static struct mem_cgroup_tree soft_limit_tree __read_mostly;
  
- 	VM_WARN_ON_ONCE(mem_cgroup_is_root(memcg));
+-/*
+- * Maximum loops in mem_cgroup_soft_reclaim(), used for soft
+- * limit reclaim to prevent infinite loops, if they ever occur.
+- */
+-#define	MEM_CGROUP_MAX_RECLAIM_LOOPS		100
+-#define	MEM_CGROUP_MAX_SOFT_LIMIT_RECLAIM_LOOPS	2
+-
+ /* for OOM */
+ struct mem_cgroup_eventfd_list {
+ 	struct list_head list;
+@@ -233,174 +226,6 @@ void memcg1_remove_from_trees(struct mem
+ 	}
+ }
  
-@@ -2259,9 +2269,12 @@ static void refill_stock(struct mem_cgro
- 			empty_slot = i;
- 		if (memcg == READ_ONCE(stock->cached[i])) {
- 			stock_pages = READ_ONCE(stock->nr_pages[i]) + nr_pages;
-+			if (stock_pages > MEMCG_STOCK_HIGH) {
-+				memcg_uncharge(memcg,
-+					       stock_pages - MEMCG_STOCK_LOW);
-+				stock_pages = MEMCG_STOCK_LOW;
-+			}
- 			WRITE_ONCE(stock->nr_pages[i], stock_pages);
--			if (stock_pages > MEMCG_CHARGE_BATCH)
--				drain_stock(stock, i);
- 			success = true;
- 			break;
+-static struct mem_cgroup_per_node *
+-__mem_cgroup_largest_soft_limit_node(struct mem_cgroup_tree_per_node *mctz)
+-{
+-	struct mem_cgroup_per_node *mz;
+-
+-retry:
+-	mz = NULL;
+-	if (!mctz->rb_rightmost)
+-		goto done;		/* Nothing to reclaim from */
+-
+-	mz = rb_entry(mctz->rb_rightmost,
+-		      struct mem_cgroup_per_node, tree_node);
+-	/*
+-	 * Remove the node now but someone else can add it back,
+-	 * we will to add it back at the end of reclaim to its correct
+-	 * position in the tree.
+-	 */
+-	__mem_cgroup_remove_exceeded(mz, mctz);
+-	if (!soft_limit_excess(mz->memcg) ||
+-	    !css_tryget(&mz->memcg->css))
+-		goto retry;
+-done:
+-	return mz;
+-}
+-
+-static struct mem_cgroup_per_node *
+-mem_cgroup_largest_soft_limit_node(struct mem_cgroup_tree_per_node *mctz)
+-{
+-	struct mem_cgroup_per_node *mz;
+-
+-	spin_lock_irq(&mctz->lock);
+-	mz = __mem_cgroup_largest_soft_limit_node(mctz);
+-	spin_unlock_irq(&mctz->lock);
+-	return mz;
+-}
+-
+-static int mem_cgroup_soft_reclaim(struct mem_cgroup *root_memcg,
+-				   pg_data_t *pgdat,
+-				   gfp_t gfp_mask,
+-				   unsigned long *total_scanned)
+-{
+-	struct mem_cgroup *victim = NULL;
+-	int total = 0;
+-	int loop = 0;
+-	unsigned long excess;
+-	unsigned long nr_scanned;
+-	struct mem_cgroup_reclaim_cookie reclaim = {
+-		.pgdat = pgdat,
+-	};
+-
+-	excess = soft_limit_excess(root_memcg);
+-
+-	while (1) {
+-		victim = mem_cgroup_iter(root_memcg, victim, &reclaim);
+-		if (!victim) {
+-			loop++;
+-			if (loop >= 2) {
+-				/*
+-				 * If we have not been able to reclaim
+-				 * anything, it might because there are
+-				 * no reclaimable pages under this hierarchy
+-				 */
+-				if (!total)
+-					break;
+-				/*
+-				 * We want to do more targeted reclaim.
+-				 * excess >> 2 is not to excessive so as to
+-				 * reclaim too much, nor too less that we keep
+-				 * coming back to reclaim from this cgroup
+-				 */
+-				if (total >= (excess >> 2) ||
+-					(loop > MEM_CGROUP_MAX_RECLAIM_LOOPS))
+-					break;
+-			}
+-			continue;
+-		}
+-		total += mem_cgroup_shrink_node(victim, gfp_mask, false,
+-					pgdat, &nr_scanned);
+-		*total_scanned += nr_scanned;
+-		if (!soft_limit_excess(root_memcg))
+-			break;
+-	}
+-	mem_cgroup_iter_break(root_memcg, victim);
+-	return total;
+-}
+-
+-unsigned long memcg1_soft_limit_reclaim(pg_data_t *pgdat, int order,
+-					    gfp_t gfp_mask,
+-					    unsigned long *total_scanned)
+-{
+-	unsigned long nr_reclaimed = 0;
+-	struct mem_cgroup_per_node *mz, *next_mz = NULL;
+-	unsigned long reclaimed;
+-	int loop = 0;
+-	struct mem_cgroup_tree_per_node *mctz;
+-	unsigned long excess;
+-
+-	if (lru_gen_enabled())
+-		return 0;
+-
+-	if (order > 0)
+-		return 0;
+-
+-	mctz = soft_limit_tree.rb_tree_per_node[pgdat->node_id];
+-
+-	/*
+-	 * Do not even bother to check the largest node if the root
+-	 * is empty. Do it lockless to prevent lock bouncing. Races
+-	 * are acceptable as soft limit is best effort anyway.
+-	 */
+-	if (!mctz || RB_EMPTY_ROOT(&mctz->rb_root))
+-		return 0;
+-
+-	/*
+-	 * This loop can run a while, specially if mem_cgroup's continuously
+-	 * keep exceeding their soft limit and putting the system under
+-	 * pressure
+-	 */
+-	do {
+-		if (next_mz)
+-			mz = next_mz;
+-		else
+-			mz = mem_cgroup_largest_soft_limit_node(mctz);
+-		if (!mz)
+-			break;
+-
+-		reclaimed = mem_cgroup_soft_reclaim(mz->memcg, pgdat,
+-						    gfp_mask, total_scanned);
+-		nr_reclaimed += reclaimed;
+-		spin_lock_irq(&mctz->lock);
+-
+-		/*
+-		 * If we failed to reclaim anything from this memory cgroup
+-		 * it is time to move on to the next cgroup
+-		 */
+-		next_mz = NULL;
+-		if (!reclaimed)
+-			next_mz = __mem_cgroup_largest_soft_limit_node(mctz);
+-
+-		excess = soft_limit_excess(mz->memcg);
+-		/*
+-		 * One school of thought says that we should not add
+-		 * back the node to the tree if reclaim returns 0.
+-		 * But our reclaim could return 0, simply because due
+-		 * to priority we are exposing a smaller subset of
+-		 * memory to reclaim from. Consider this as a longer
+-		 * term TODO.
+-		 */
+-		/* If excess == 0, no tree ops */
+-		__mem_cgroup_insert_exceeded(mz, mctz, excess);
+-		spin_unlock_irq(&mctz->lock);
+-		css_put(&mz->memcg->css);
+-		loop++;
+-		/*
+-		 * Could not reclaim anything and there are no more
+-		 * mem cgroups to try or we seem to be looping without
+-		 * reclaiming anything.
+-		 */
+-		if (!nr_reclaimed &&
+-			(next_mz == NULL ||
+-			loop > MEM_CGROUP_MAX_SOFT_LIMIT_RECLAIM_LOOPS))
+-			break;
+-	} while (!nr_reclaimed);
+-	if (next_mz)
+-		css_put(&next_mz->memcg->css);
+-	return nr_reclaimed;
+-}
+-
+ static u64 mem_cgroup_move_charge_read(struct cgroup_subsys_state *css,
+ 				struct cftype *cft)
+ {
+--- a/mm/vmscan.c~memcg-remove-v1-soft-limit-reclaim
++++ a/mm/vmscan.c
+@@ -6439,8 +6439,6 @@ static void shrink_zones(struct zonelist
+ {
+ 	struct zoneref *z;
+ 	struct zone *zone;
+-	unsigned long nr_soft_reclaimed;
+-	unsigned long nr_soft_scanned;
+ 	gfp_t orig_mask;
+ 	pg_data_t *last_pgdat = NULL;
+ 	pg_data_t *first_pgdat = NULL;
+@@ -6482,35 +6480,17 @@ static void shrink_zones(struct zonelist
+ 				sc->compaction_ready = true;
+ 				continue;
+ 			}
+-
+-			/*
+-			 * Shrink each node in the zonelist once. If the
+-			 * zonelist is ordered by zone (not the default) then a
+-			 * node may be shrunk multiple times but in that case
+-			 * the user prefers lower zones being preserved.
+-			 */
+-			if (zone->zone_pgdat == last_pgdat)
+-				continue;
+-
+-			/*
+-			 * This steals pages from memory cgroups over softlimit
+-			 * and returns the number of reclaimed pages and
+-			 * scanned pages. This works for global memory pressure
+-			 * and balancing, not for a memcg's limit.
+-			 */
+-			nr_soft_scanned = 0;
+-			nr_soft_reclaimed = memcg1_soft_limit_reclaim(zone->zone_pgdat,
+-								      sc->order, sc->gfp_mask,
+-								      &nr_soft_scanned);
+-			sc->nr_reclaimed += nr_soft_reclaimed;
+-			sc->nr_scanned += nr_soft_scanned;
+-			/* need some check for avoid more shrink_zone() */
  		}
+ 
+ 		if (!first_pgdat)
+ 			first_pgdat = zone->zone_pgdat;
+ 
+-		/* See comment about same check for global reclaim above */
++		/*
++		 * Shrink each node in the zonelist once. If the zonelist is
++		 * ordered by zone (not the default) then a node may be shrunk
++		 * multiple times but in that case the user prefers lower zones
++		 * being preserved.
++		 */
+ 		if (zone->zone_pgdat == last_pgdat)
+ 			continue;
+ 		last_pgdat = zone->zone_pgdat;
+@@ -7171,8 +7151,6 @@ clear_reclaim_active(pg_data_t *pgdat, i
+ static int balance_pgdat(pg_data_t *pgdat, int order, int highest_zoneidx)
+ {
+ 	int i;
+-	unsigned long nr_soft_reclaimed;
+-	unsigned long nr_soft_scanned;
+ 	unsigned long pflags;
+ 	unsigned long nr_boost_reclaim;
+ 	unsigned long zone_boosts[MAX_NR_ZONES] = { 0, };
+@@ -7278,12 +7256,7 @@ restart:
+ 		 */
+ 		kswapd_age_node(pgdat, &sc);
+ 
+-		/* Call soft limit reclaim before calling shrink_node. */
+ 		sc.nr_scanned = 0;
+-		nr_soft_scanned = 0;
+-		nr_soft_reclaimed = memcg1_soft_limit_reclaim(pgdat, sc.order,
+-							      sc.gfp_mask, &nr_soft_scanned);
+-		sc.nr_reclaimed += nr_soft_reclaimed;
+ 
+ 		/*
+ 		 * There should be no need to raise the scanning priority if
 _
 
 Patches currently in -mm which might be from shakeel.butt@linux.dev are
