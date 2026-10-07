@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E7FAE34678E
-	for <mm-commits@vger.kernel.org>; Wed,  7 Oct 2026 02:00:08 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2981717A2F6;
+	Wed,  7 Oct 2026 02:03:52 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791338410; cv=none; b=IFO4w7fNDXMLrfzkks04a+Ur51y6LBlsalHb93v/VBVOxEDIt58tDTnZg4dp+iznuOpVGXK/gcCMMqepGe5zF2YO3BvyFsqGcW22ji+zU8NhXa2MObR2P1Bt8g5NvV6mzDcoJWd2WjEXcvDv1wauQtAWM9SOz7XlCtrExGNz67I=
+	t=1791338634; cv=none; b=FUYvwI4xzoujpENT7xUlbPDC038CePMdj2RbK6wrizLEILzNK9Ks6QV8u7lP1f+9lqh7TiJfLu0t7RwVt7VXrqTw6APRCh1EADstGQv6fMIb3CaiV01PwZTkmRV9Eg0p7rTQXXlHE/ENUsBLXRKWE3D1ofCCBQlB+kJPCleXudU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791338410; c=relaxed/simple;
-	bh=SQSRGE5uD9aC8frViBJ8Xn2/1PkXdQ2bH16lAaFOQTs=;
-	h=Date:To:From:Subject:Message-Id; b=pXeTfd3ozF9VIoOnGhABjJ+1HKfJ3c6JTRKXjXKZbwvFGbUno2/iXb+WdGFaOitJKcUMLqF16F0NTjS/Ktuk4zPs3g0MN1Tey0gFZUKCTsHAcp51NX6rN9Vz7+h7X1pvzXRTAf2C8nfv2m4vYg/W6pnRJnFL8MGEM4UVw8I3YG0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=T0d1NRCa; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1791338634; c=relaxed/simple;
+	bh=RGid0mU3pHGEdZcx9P+mpMu3dPDYo3kE9VNVDC3zf0w=;
+	h=Date:To:From:Subject:Message-Id; b=D496cqaxnstwu4OQg6tUf6+zNujwRESgzTVAvPh4Tbo2IflQJkg5S/+DICBvc9CUyUtPo5joAISVCEuwjUb+MVYEX4V2IGcLlN9xC5nzPOvv5wHVqLrO6Tr0RbPyUsqjzu6das04+Dak+GY1nYc8bo95j0u8egV5KPEtK2OK3j0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=bsB6lNuM; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="T0d1NRCa"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A45F01F0089E;
-	Wed,  7 Oct 2026 02:00:08 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="bsB6lNuM"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id BE1831F0089C;
+	Wed,  7 Oct 2026 02:03:52 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1791338408;
-	bh=b6U/wv0kt3N4IvgovZnqso8X1OcwOR1IPCHs5VROunI=;
+	d=linux-foundation.org; s=korg; t=1791338632;
+	bh=fn066DqE7sB9QHcf5d49HPdGflr7Jz04qjWuI/JqXzs=;
 	h=Date:To:From:Subject;
-	b=T0d1NRCa3dyJtX5tnH/5DVUBTRiRwBwSSUYbt6NGCP7xaCVh2LKvf9fDD+8Q2SV3W
-	 uIy7kawscDeE+pEqopesPjwoflOY/dVzNhJTtNR8o5OUzDE5sh9IkWMYumh4cHD7mZ
-	 hdcnch2iyYAhkDdBbGx3oV1Q5FaDOXOlaPeja2fk=
-Date: Tue, 06 Oct 2026 19:00:08 -0700
-To: mm-commits@vger.kernel.org,kernel@pengutronix.de,kees@kernel.org,andy@kernel.org,jre@pengutronix.de,akpm@linux-foundation.org
+	b=bsB6lNuM7lLJvQj+hKqkLhVmv869qa0sQbV6KdLGkN3/lKmO2xMOER9zY/7cTaGuW
+	 +x41yfDLlTnrgeYWguP8GuX7YmHdY9BMmcEDqVSRXKpT4nVQE3WFHb+xPgi1AF1F4S
+	 qk7IvS4OeQvlr5jRCStPfuoxxQgm+QtikKQu3YdI=
+Date: Tue, 06 Oct 2026 19:03:52 -0700
+To: mm-commits@vger.kernel.org,stable@vger.kernel.org,kees@kernel.org,broonie@kernel.org,brads@mainlining.org,bhelgaas@google.com,akpm@linux-foundation.org,drj19981414013@gmail.com
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [to-be-updated] lib-string_helpers-fix-counting-of-remaining-bytes-in-string_unescape.patch removed from -mm tree
-Message-Id: <20261007020008.A45F01F0089E@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] resource-fix-lost-wakeup-when-waiting-for-a-muxed-region.patch removed from -mm tree
+Message-Id: <20261007020352.BE1831F0089C@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,79 +35,77 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: lib/string_helpers: fix counting of remaining bytes in string_unescape()
+     Subject: resource: fix lost wakeup when waiting for a muxed region
 has been removed from the -mm tree.  Its filename was
-     lib-string_helpers-fix-counting-of-remaining-bytes-in-string_unescape.patch
+     resource-fix-lost-wakeup-when-waiting-for-a-muxed-region.patch
 
-This patch was dropped because an updated version will be issued
+This patch was dropped because it was merged into the mm-nonmm-stable branch
+of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Jonas Rebmann <jre@pengutronix.de>
-Subject: lib/string_helpers: fix counting of remaining bytes in string_unescape()
-Date: Wed, 16 Sep 2026 19:38:10 +0200
+From: DAI RENJIE <drj19981414013@gmail.com>
+Subject: resource: fix lost wakeup when waiting for a muxed region
+Date: Fri, 21 Aug 2026 14:08:17 +0000
 
-All of the available sequences expand to exactly one byte, the size check
-in the loop condition is sufficient for the case of an escaped character
-too.
+A task waiting for a muxed region can sleep forever in
+TASK_UNINTERRUPTIBLE even though the region it waits for is already free. 
+__request_region_locked() queues itself on muxed_resource_wait and drops
+resource_lock before setting TASK_UNINTERRUPTIBLE, while
+__release_region() wakes the queue after dropping the same lock.  A wakeup
+landing in between finds TASK_RUNNING, does not match TASK_NORMAL and is
+discarded; callers hold a muxed region only across a bounded transaction,
+so no further release is coming.  The task is unkillable and its caller
+never returns.
 
-Otherwise, an escape sequence that should be unescaped to the last
-character before terminating with null in the destination buffer will be
-output as backslash instead of the escaped character.
+The window is one store wide, but an interrupt is enough to hold the
+waiter in it, and the machine this was seen on runs PREEMPT_DYNAMIC in its
+voluntary default.  Since v6.11 spd5118 exports the DDR5 sensors of AMD
+boards through i2c-piix4, which takes a muxed region per SMBus
+transaction; a third of the in-tree users of request_muxed_region() are
+hwmon drivers, so reading a world-readable attribute is all an
+unprivileged user needs to drive the contention.  The blocked task sleeps
+holding the i2c adapter bus lock, and 27 more piled up behind it.
 
-The only exception is when encountering a backslash that turns out to not
-start a valid escape sequence and both the backslash and the character
-following are handled in one iteration.  Move the check there.
+Reproduced by building a kernel with the two orderings selectable at
+runtime and a 2ms delay inside the window.  Switching only that knob, a
+two-thread barriered reproducer loses the wakeup 200 times out of 200
+before the fix and 0 out of 200 after it; without the delay it goes 20000
+times through the wait path and loses none.
 
-Add a kunit regression-test that unescapes a character to right in front
-of the null terminator of the destination buffer.
+Fix it by setting the task state before dropping resource_lock, as
+prepare_to_wait() does: the releasing side needs resource_lock to unlink
+the resource, so it cannot reach the wakeup before the state is published.
 
-Link: https://lore.kernel.org/20260916-string_unescape-v1-5-7f8bd986fa33@pengutronix.de
-Fixes: 16c7fa05829e ("lib/string_helpers: introduce generic string_unescape")
-Signed-off-by: Jonas Rebmann <jre@pengutronix.de>
+Link: https://lore.kernel.org/20260821-b4-resource-muxed-lost-wakeup-v1-1-37eb6473a76c@gmail.com
+Fixes: 8b6d043b7ee2 ("resource: shared I/O region support")
+Signed-off-by: DAI RENJIE <drj19981414013@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Cc: Andy Shevchenko <andy@kernel.org>
+Reviewed-by: Bradley Morgan <brads@mainlining.org>
+Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
+Assisted-by: Claude:claude-opus-5
+Cc: Mark Brown <broonie@kernel.org>
 Cc: Kees Cook <kees@kernel.org>
-Cc: Sascha Hauer <kernel@pengutronix.de>
+Cc: Bjorn Helgaas <bhelgaas@google.com>
+Cc: <stable@vger.kernel.org>
 ---
 
- lib/string_helpers.c             |    5 +++--
- lib/tests/string_helpers_kunit.c |    2 ++
- 2 files changed, 5 insertions(+), 2 deletions(-)
+ kernel/resource.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/lib/string_helpers.c~lib-string_helpers-fix-counting-of-remaining-bytes-in-string_unescape
-+++ a/lib/string_helpers.c
-@@ -329,7 +329,7 @@ int string_unescape(char *src, char *dst
- 		size = SIZE_MAX;
- 
- 	while (*src && --size) {
--		if (src[0] == '\\' && src[1] != '\0' && size > 1) {
-+		if (src[0] == '\\' && src[1] != '\0') {
- 			src++;
- 
- 			if (flags & UNESCAPE_SPACE &&
-@@ -349,7 +349,8 @@ int string_unescape(char *src, char *dst
- 				continue;
- 
- 			*out++ = '\\';
--			size--;
-+			if (!--size)
-+				break;
+--- a/kernel/resource.c~resource-fix-lost-wakeup-when-waiting-for-a-muxed-region
++++ a/kernel/resource.c
+@@ -1350,8 +1350,8 @@ static int __request_region_locked(struc
  		}
- 		*out++ = *src++;
- 	}
---- a/lib/tests/string_helpers_kunit.c~lib-string_helpers-fix-counting-of-remaining-bytes-in-string_unescape
-+++ a/lib/tests/string_helpers_kunit.c
-@@ -626,6 +626,8 @@ static void test_unescape(struct kunit *
- 
- 	test_string_unescape_one(test, "short buffer", UNESCAPE_HEX, "\\x41\\x41B", 4, "AAB", 3);
- 	test_string_unescape_one(test, "unrecognized escape at end", UNESCAPE_HEX, "B\\qX", 4, "B\\q", 3);
-+
-+	test_string_unescape_one(test, "end of buffer", UNESCAPE_HEX, "B\\x41", 3, "BA", 2);
- }
- 
- static void test_escape(struct kunit *test)
+ 		if (conflict->flags & flags & IORESOURCE_MUXED) {
+ 			add_wait_queue(&muxed_resource_wait, &wait);
+-			write_unlock(&resource_lock);
+ 			set_current_state(TASK_UNINTERRUPTIBLE);
++			write_unlock(&resource_lock);
+ 			schedule();
+ 			remove_wait_queue(&muxed_resource_wait, &wait);
+ 			write_lock(&resource_lock);
 _
 
-Patches currently in -mm which might be from jre@pengutronix.de are
+Patches currently in -mm which might be from drj19981414013@gmail.com are
 
 
