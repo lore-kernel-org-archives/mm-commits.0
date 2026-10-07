@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 36F68547041
-	for <mm-commits@vger.kernel.org>; Wed,  7 Oct 2026 00:49:48 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 13A97547041
+	for <mm-commits@vger.kernel.org>; Wed,  7 Oct 2026 00:49:50 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791334189; cv=none; b=kFQwOnzoMw6jTlqrgEA+5qnhgAqniQP83da2oRezCndUwootI8BUKS09yqxLIesgnopJ942wTyH0ylqC8fTEnMUAg4pD6KbnY50ZHu7p/360eTPHmVHcISSJN4chGJikTi0A9Ae4sFiHOypdHctTJ94AT/AdOLGpcoHNECRIDtw=
+	t=1791334192; cv=none; b=Tz3rcBcKurAPggtf/CqrXyS/YAAuRyORFS6laDqN+Ja+rfU0UoWuaqDJNq8KgaeONjEfKoqihj7sAxvIabF6fqtamh4mGRbKf3PgiHKEmrlDUbWIwTJNCyz8nKfrfz1NmOTQz9HfE3xlUoqMMcwLFRTscBV92plQwQbmOZSI970=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791334189; c=relaxed/simple;
-	bh=0RfZEBxxdmqYFF8PuxESdw8VgVCHRoQRZbuuhTr2fSE=;
-	h=Date:To:From:Subject:Message-Id; b=CtbX8AoLJYl3FXAon0Km+rfsSpZrWeddZXVfZFUzLblSCerSI933BUEeZ08wZylW8ZkXbmX1f+8P7+0+/W5k2g85gQ+nqymdUU0tiZU0x85GtO9mFhfh37SBXwE7xkon8KIQXwxTaQ6Iqd2gsufCuouFE6K/vb4rdH8+eMWzUFs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=zdprz5wA; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1791334192; c=relaxed/simple;
+	bh=z3Pt5eWbunWs6mrbKW8NEkTgPnfVEWUvmzWoYyWV67o=;
+	h=Date:To:From:Subject:Message-Id; b=ALmvTxrZCAzfjJ03Cg/7G8rqvNN/xCrdlTfLI26+5ZGtCTj/vYO2GHLHniel+ENzSQ7NBjvb7WYDL4JEw2Strd/TUWig2VbAVNjrjmBPk1GSaxmGTtQv5LBMwJHM3V110GCa0vHLXyHWqzPSxrofvYiL9DwX2RzchHVhcpdESqc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=u1DMXW2k; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="zdprz5wA"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id CBB891F0089C;
-	Wed,  7 Oct 2026 00:49:47 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="u1DMXW2k"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9B7DB1F0089B;
+	Wed,  7 Oct 2026 00:49:50 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1791334187;
-	bh=4B3KUmddjmZcvUR2daxwpHwLM+t9X6C0Wm/KrzZwEaM=;
+	d=linux-foundation.org; s=korg; t=1791334190;
+	bh=Q5NQJEU16X7dXE3YgtslTwqiBTDcQ+gGKG2HqtzKnrY=;
 	h=Date:To:From:Subject;
-	b=zdprz5wAg5tEeBWZJgfmgzTvxjmPsxYRBiV6WX2jdSxxw21TLsv4s6HRP+qG2q3Ov
-	 aZ1rKP71KzbDBmyK3RByP7UTgJp7s32+/PSdZErEX/5iwgjA3lIUm8EZZI8xXntdfH
-	 0i9rVL7SMheQqrzyuKKXSRBtsQobQ8AqbRYw5qUs=
-Date: Tue, 06 Oct 2026 17:49:47 -0700
+	b=u1DMXW2kuYwMTRbxKWx/w/7VJo/4hwLMHBgjlgh6CUya6oOBMwkszC90yP3Detfsu
+	 8yWn9UAIDceB0Q5U4sovNCuEYgVI+k006dMj3Pkh2pwQkMZ/vSxLCP88dS3hQ1Gzn9
+	 gMhMWBHpK4gMdRyalRBL/SzTLTt2hWgPJJyx00vs=
+Date: Tue, 06 Oct 2026 17:49:50 -0700
 To: mm-commits@vger.kernel.org,will@kernel.org,urezki@gmail.com,svens@linux.ibm.com,ryan.roberts@arm.com,rafael@kernel.org,peterz@infradead.org,palmer@dabbelt.com,mingo@redhat.com,luto@kernel.org,lenb@kernel.org,kevin.brodsky@arm.com,kernel@xen0n.name,hpa@zytor.com,hca@linux.ibm.com,gor@linux.ibm.com,gerald.schaefer@linux.ibm.com,dev.jain@arm.com,david@kernel.org,dave.hansen@linux.intel.com,chenhuacai@kernel.org,catalin.marinas@arm.com,brendan.jackman@linux.dev,bp@alien8.de,borntraeger@linux.ibm.com,aou@eecs.berkeley.edu,alex@ghiti.fr,agordeev@linux.ibm.com,rppt@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-vmalloc-constify-vm-parameter-of-get_vm_area_page_order.patch removed from -mm tree
-Message-Id: <20261007004947.CBB891F0089C@smtp.kernel.org>
+Subject: [merged mm-stable] mm-vmalloc-make-set_area_direct_map-huge_vmap-friendly.patch removed from -mm tree
+Message-Id: <20261007004950.9B7DB1F0089B@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,29 +35,39 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/vmalloc: constify vm parameter of get_vm_area_page_order()
+     Subject: mm/vmalloc: make set_area_direct_map HUGE_VMAP friendly
 has been removed from the -mm tree.  Its filename was
-     mm-vmalloc-constify-vm-parameter-of-get_vm_area_page_order.patch
+     mm-vmalloc-make-set_area_direct_map-huge_vmap-friendly.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: "Mike Rapoport (Microsoft)" <rppt@kernel.org>
-Subject: mm/vmalloc: constify vm parameter of get_vm_area_page_order()
-Date: Thu, 03 Sep 2026 12:28:29 +0300
+Subject: mm/vmalloc: make set_area_direct_map HUGE_VMAP friendly
+Date: Thu, 03 Sep 2026 12:28:30 +0300
 
-get_vm_area_page_order() and vm_area_page_order() do not need to modify
-struct vm_struct passed to them.
+set_area_direct_map() always updates direct map alias permissions in
+single page increments.
 
-Constify the parameter.
+For HUGE_VMAP areas it's suboptimal.  Not only the loop in
+set_area_direct_map() needlessly has more iterations (e.g times 512 on
+x86), but it also causes fragmentation of the direct map that could be
+avoided for the HUGE_VMAP areas populated with large pages.
 
-Link: https://lore.kernel.org/20260903-execmem-set-vm-perms-v0-2-v3-3-949b64a9f755@kernel.org
+All pages in an area are always of the same order: either same-order large
+pages when VM_ALLOW_HUGE_VMAP is set and all huge pages were successfully
+allocated, or order-0 page when VM_ALLOW_HUGE_VMAP is cleared or when huge
+pages allocation fails and fallback path is taken.
+
+Instead of updating the direct map permissions for every order-0 page in
+an area, use the area's page_order as the loop increment and update the
+large pages in one call to set_direct_map_{invalid,default}_noflush().
+
+Link: https://lore.kernel.org/20260903-execmem-set-vm-perms-v0-2-v3-4-949b64a9f755@kernel.org
 Signed-off-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Reviewed-by: Uladzislau Rezki (Sony) <urezki@gmail.com>
 Reviewed-by: Dev Jain <dev.jain@arm.com>
-Reviewed-by: David Hildenbrand (Arm) <david@kernel.org>
 Reviewed-by: Kevin Brodsky <kevin.brodsky@arm.com>
 Cc: Albert Ou <aou@eecs.berkeley.edu>
 Cc: Alexander Gordeev <agordeev@linux.ibm.com>
@@ -68,6 +78,7 @@ Cc: Brendan Jackman <brendan.jackman@linux.dev>
 Cc: Catalin Marinas <catalin.marinas@arm.com>
 Cc: Christian Borntraeger <borntraeger@linux.ibm.com>
 Cc: Dave Hansen <dave.hansen@linux.intel.com>
+Cc: David Hildenbrand <david@kernel.org>
 Cc: Gerald Schaefer <gerald.schaefer@linux.ibm.com>
 Cc: Heiko Carstens <hca@linux.ibm.com>
 Cc: "H. Peter Anvin" <hpa@zytor.com>
@@ -79,46 +90,38 @@ Cc: Peter Zijlstra <peterz@infradead.org>
 Cc: "Rafael J. Wysocki" <rafael@kernel.org>
 Cc: Ryan Roberts <ryan.roberts@arm.com>
 Cc: Sven Schnelle <svens@linux.ibm.com>
+Cc: "Uladzislau Rezki (Sony)" <urezki@gmail.com>
 Cc: Vasily Gorbik <gor@linux.ibm.com>
 Cc: WANG Xuerui <kernel@xen0n.name>
 Cc: Will Deacon <will@kernel.org>
 ---
 
- mm/vmalloc.c |    4 ++--
- mm/vmalloc.h |    2 +-
- 2 files changed, 3 insertions(+), 3 deletions(-)
+ mm/vmalloc.c |   13 ++++++++-----
+ 1 file changed, 8 insertions(+), 5 deletions(-)
 
---- a/mm/vmalloc.c~mm-vmalloc-constify-vm-parameter-of-get_vm_area_page_order
+--- a/mm/vmalloc.c~mm-vmalloc-make-set_area_direct_map-huge_vmap-friendly
 +++ a/mm/vmalloc.c
-@@ -3124,7 +3124,7 @@ EXPORT_SYMBOL(vm_map_ram);
- 
- static struct vm_struct *vmlist __initdata;
- 
--static inline unsigned int vm_area_page_order(struct vm_struct *vm)
-+static inline unsigned int vm_area_page_order(const struct vm_struct *vm)
+@@ -3361,12 +3361,15 @@ static inline void set_area_direct_map(c
+ 				       int (*set_direct_map)(struct page *page,
+ 							     unsigned int nr))
  {
- #ifdef CONFIG_HAVE_ARCH_HUGE_VMALLOC
- 	return vm->page_order;
-@@ -3133,7 +3133,7 @@ static inline unsigned int vm_area_page_
- #endif
+-	unsigned long i;
++	unsigned int nr = (1U << vm_area_page_order(area));
+ 
+-	/* HUGE_VMALLOC passes small pages to set_direct_map */
+-	for (i = 0; i < area->nr_pages; i++)
+-		if (page_address(area->pages[i]))
+-			set_direct_map(area->pages[i], 1);
++	for (unsigned long i = 0; i < area->nr_pages; i += nr) {
++		if (page_address(area->pages[i])) {
++			int err = set_direct_map(area->pages[i], nr);
++
++			WARN_ON_ONCE(err);
++		}
++	}
  }
  
--unsigned int get_vm_area_page_order(struct vm_struct *vm)
-+unsigned int get_vm_area_page_order(const struct vm_struct *vm)
- {
- 	return vm_area_page_order(vm);
- }
---- a/mm/vmalloc.h~mm-vmalloc-constify-vm-parameter-of-get_vm_area_page_order
-+++ a/mm/vmalloc.h
-@@ -12,7 +12,7 @@ void __init vmalloc_init(void);
- int __must_check vmap_pages_range_noflush(unsigned long addr, unsigned long end,
- 		pgprot_t prot, struct page **pages,
- 		unsigned int page_shift, gfp_t gfp_mask);
--unsigned int get_vm_area_page_order(struct vm_struct *vm);
-+unsigned int get_vm_area_page_order(const struct vm_struct *vm);
- #else
- static inline void vmalloc_init(void) {}
- 
+ /*
 _
 
 Patches currently in -mm which might be from rppt@kernel.org are
