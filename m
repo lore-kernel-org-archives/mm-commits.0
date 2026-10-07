@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 439B530C168
-	for <mm-commits@vger.kernel.org>; Wed,  7 Oct 2026 00:51:44 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5560B3115B8
+	for <mm-commits@vger.kernel.org>; Wed,  7 Oct 2026 00:51:45 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791334305; cv=none; b=oBdO/FnT2AqN6EGZkZl1WhgKLIIiN1lExD5qd5iyCt3bddpVWwnBHDL9KT0dk+nURQD2usuovYJeRT0pvm7VkO2Zac+JgQ8RE7u4fiegKoUigSSbQhKOnokOy4OdfT7A9J9LLKHRXjsswaSiTe2kKMFPelLhNkwf/rh4eS4yTO4=
+	t=1791334306; cv=none; b=CWPy5ZKhkZQbRZ+MoBzC+l5W93ELfbgvtv2TQHcSGqyryJkLJb2ApOunKlXgH9bcXga/stWAn+Wf6psln79Hgo7bfwnIq3bKm09wakuHdEHD+v9YnwEbJep8Ihvle4o2t+AubXbRinBnFCXaxsyZHw1LxpJZ8MJ9YomSV+aNc+Y=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791334305; c=relaxed/simple;
-	bh=bY8HHw4s2s679gnsOxyYwntiniBVGo3UyNZ5o93TtEc=;
-	h=Date:To:From:Subject:Message-Id; b=jd7L8gmrSCQBaLnNOfHZxD7KMT5WYONKgHIYYpQCzgQOwN0ys554mTTPJMhq02Sz+rEYqKc0j35Ic4EJxfzE71+ytfxf7dCRd7C8SVt9NjhYF1thMvA1w+vn3Jcb7YkAM1noRU48KDM+HHeyDyQPdvj5+gSfeBaSEF3E3Q2zbh0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=RtyKodmd; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1791334306; c=relaxed/simple;
+	bh=SEcIfCC1WAKV5mo1XHL8nFmy9/zgcuxMoDJGsuNxXMw=;
+	h=Date:To:From:Subject:Message-Id; b=DyI50ZFOGzjMsx/pdg5zqvZbVT6WpWIi8BGGVglVjQL+5AI9itllFtnnsobRmVN2Yj1fHU6hkjUtcKsU/MOjDFC3pHUartMAgI7aMLBYKyEK9sTQvzRWCIE0L7GBNIC5vQO1u5OPMJoTZJXxwTZUkT9TFZHvGvCq6HAxiOc7/Es=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=CjEmtcno; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="RtyKodmd"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1A94F1F0089D;
-	Wed,  7 Oct 2026 00:51:44 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="CjEmtcno"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2CA0B1F0089B;
+	Wed,  7 Oct 2026 00:51:45 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1791334304;
-	bh=SkgfXKK3APHNF3DzgjT6SVnn1No1sUTWYLnzxioFxPQ=;
+	d=linux-foundation.org; s=korg; t=1791334305;
+	bh=TLSwCSnYii+D41fLgP6sN8jcbmnxPMC+moKVsEVprpc=;
 	h=Date:To:From:Subject;
-	b=RtyKodmdrqqAFXJmjU51W+TrUA6whye7be29Fy27gztAIPILhu7wQZdL4OrmaV4Be
-	 5GVlIwNRaH8TGe0KUEt0s697GEt6HVU4Bcqb0acIo47Sas2Jq/P/GBO3+5yIXRUMzt
-	 icc/X+4VXZzhFETOhn5aE0kJysuucF1EqHRYO59M=
-Date: Tue, 06 Oct 2026 17:51:43 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,usama.arif@linux.dev,ryan.roberts@arm.com,ljs@kernel.org,liam@infradead.org,lance.yang@linux.dev,kasong@tencent.com,hughd@google.com,hannes@cmpxchg.org,dev.jain@arm.com,david@kernel.org,baolin.wang@linux.alibaba.com,baohua@kernel.org,balbirs@nvidia.com,kas@kernel.org,akpm@linux-foundation.org
+	b=CjEmtcnokW3L2vBV3MCfioA9rJXcltOq+a9QNjQqQlOBz+Tj0iCnhAjQDlcMVfTbl
+	 idjBmKW9FuPyemi+qeSDQCJNAzsYHxD1cBSAefnZBbV5o4/T8adPrOmixQ5Pf1WuJM
+	 bgnSoBqkOHhKoSaufUFNV+GVR7BQ5iCWeZHxHZIM=
+Date: Tue, 06 Oct 2026 17:51:44 -0700
+To: mm-commits@vger.kernel.org,yuzhao@google.com,osalvador@suse.de,muchun.song@linux.dev,david@kernel.org,xialonglong@kylinos.cn,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-huge_memory-dequeue-the-deferred-split-after-the-split-freeze.patch removed from -mm tree
-Message-Id: <20261007005144.1A94F1F0089D@smtp.kernel.org>
+Subject: [merged mm-stable] mm-hugetlb-preserve-source-surplus-accounting-during-demotion.patch removed from -mm tree
+Message-Id: <20261007005145.2CA0B1F0089B@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,161 +35,261 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/huge_memory: dequeue the deferred split after the split freeze
+     Subject: mm/hugetlb: preserve source surplus accounting during demotion
 has been removed from the -mm tree.  Its filename was
-     mm-huge_memory-dequeue-the-deferred-split-after-the-split-freeze.patch
+     mm-hugetlb-preserve-source-surplus-accounting-during-demotion.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: "Kiryl Shutsemau (Meta)" <kas@kernel.org>
-Subject: mm/huge_memory: dequeue the deferred split after the split freeze
-Date: Mon, 31 Aug 2026 10:15:14 +0100
+From: Longlong Xia <xialonglong@kylinos.cn>
+Subject: mm/hugetlb: preserve source surplus accounting during demotion
+Date: Mon, 31 Aug 2026 21:35:18 +0800
 
-__folio_freeze_and_split_unmapped() takes the deferred split list_lru lock
-across the freeze.  It is only there to stop deferred_split_scan() from
-touching the folio under split.
+Patch series "mm/hugetlb: fix surplus accounting and availability checks
+during demotion", v2.
 
-With deferred_split_isolate() fixed, the workaround can be dropped.
+Fix surplus accounting and availability checks in the hugetlb demote path.
 
-Unqueue the folio after folio_ref_freeze(), the way
-__folio_migrate_mapping() does: folio_unqueue_deferred_split() needs a
-zero refcount and a memcg still set, and both hold there.
+Patch 1 fixes source hstate accounting when the free folio selected for
+demotion accounts for a surplus page.  Patch 2 prevents demotion from
+removing free huge pages that back reservations.
 
-If the split is called from deferred_split_scan(), the unqueue is a no-op
--- the folio is already removed from the list.  But PG_partially_mapped is
-still set, so it has to be cleared here or
-MTHP_STAT_NR_ANON_PARTIALLY_MAPPED never comes back down.
+Both fixes were tested with x86_64 QEMU guests. The commands below use:
 
-Link: https://lore.kernel.org/20260831091514.1879786-3-kirill@shutemov.name
-Signed-off-by: Kiryl Shutsemau (Meta) <kas@kernel.org>
+  hstate=/sys/kernel/mm/hugepages/hugepages-1048576kB
+
+Patch 1: surplus accounting
+
+A vmemmap restoration failure is difficult to trigger deterministically. 
+For this test only, add a one-shot fault injection that makes the first
+attempt to restore the vmemmap of an optimized 1 GiB folio fail:
+
+  /* TEST ONLY: fail the first optimized 1G folio restore. */
+  static atomic_t fail_next_1g_restore = ATOMIC_INIT(1);
+
+  /* In __hugetlb_vmemmap_restore_folio(). */
+  if (huge_page_size(h) == SZ_1G &&
+      atomic_cmpxchg(&fail_next_1g_restore, 1, 0) == 1) {
+          pr_info("TEST ONLY: forcing one 1G vmemmap "
+                  "restore failure\n");
+          return -ENOMEM;
+  }
+
+The injection does not modify the demotion or accounting code. It is
+one-shot so that the later restore performed during demotion can succeed.
+
+1. Boot QEMU with:
+
+     hugepagesz=1G hugepages=0 hugetlb_cma=1G
+     hugetlb_free_vmemmap=on
+
+2. Enable overcommit:
+
+     echo 1 > "$hstate/nr_overcommit_hugepages"
+
+3. Allocate one 1 GiB huge page:
+
+     nr=1 surplus=1 free=0 resv=0
+
+4. Unmap it. The forced restoration failure leaves the folio on the
+   freelist while it is still accounted as surplus:
+
+     nr=1 surplus=1 free=1 resv=0
+
+5. Demote one page:
+
+     echo 1 > "$hstate/demote"
+
+   Before this fix:
+
+     nr=0 surplus=1 free=0 resv=0
+     surplus > nr
+
+   After this fix:
+
+     nr=0 surplus=0 free=0 resv=0
+
+Patch 2: cap demotion
+
+This reproducer requires no kernel instrumentation.
+
+1. Boot QEMU with:
+
+     hugepagesz=1G hugepages=2
+     nr=2 surplus=0 free=2 resv=0
+
+2. Reserve one 1 GiB huge page with an untouched hugetlbfs mapping:
+
+     nr=2 surplus=0 free=2 resv=1
+
+3. Request demotion of two pages:
+
+     echo 2 > "$hstate/demote"
+
+   Before this fix:
+
+     nr=0 surplus=0 free=0 resv=1
+     resv > free
+
+   After this fix:
+
+     nr=1 surplus=0 free=1 resv=1
+     resv == free
+
+4. Touch the reserved page and let the process exit.
+
+   Before this fix, the access fails with SIGBUS and leaves:
+
+     nr=0 surplus=0 free=0 resv=0
+
+   After this fix, the access succeeds and leaves:
+
+     nr=1 surplus=0 free=1 resv=0
+
+
+This patch (of 2):
+
+demote_pool_huge_page() currently removes every source folio as a
+persistent folio.  A free folio can instead account for one of the source
+hstate's surplus pages, for example after a vmemmap restoration failure. 
+Removing such a folio without adjusting surplus_huge_pages makes the
+persistent count underflow, and later subtracting it from max_huge_pages
+can underflow that counter as well.
+
+Classify selected folios against the node's surplus count while holding
+hugetlb_lock, and preserve that classification on rollback.  Track the
+number of successfully demoted persistent folios separately so only those
+folios reduce the source max_huge_pages target.  All successfully demoted
+folios still increase the destination target because the new destination
+folios are added as persistent pages.
+
+Testing:
+Tested on an x86_64 QEMU guest booted with:
+
+  hugepagesz=1G hugepages=0 hugetlb_cma=1G
+  hugetlb_free_vmemmap=on
+
+For testing only, add a one-shot fault injection that makes the first call
+to __hugetlb_vmemmap_restore_folio() for an optimized 1 GiB folio return
+-ENOMEM.  Set nr_overcommit_hugepages to 1, then allocate one 1 GiB huge
+page:
+
+  nr=1 surplus=1 free=0 resv=0
+
+Unmap it. The failed restoration leaves the folio on the freelist while it
+is still accounted as surplus:
+
+  nr=1 surplus=1 free=1 resv=0
+
+Demote one page. Before this fix, the result is:
+
+  nr=0 surplus=1 free=0 resv=0
+
+After this fix, the result is:
+
+  nr=0 surplus=0 free=0 resv=0
+
+The fault injection is one-shot, so the restore performed during demotion
+can succeed.
+
+Link: https://lore.kernel.org/20260831133519.2505020-2-xialonglong2025@163.com
+Fixes: 8531fc6f52f5 ("hugetlb: add hugetlb demote page support")
+Signed-off-by: Longlong Xia <xialonglong@kylinos.cn>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Reviewed-by: Zi Yan <ziy@nvidia.com>
-Reviewed-by: Johannes Weiner <hannes@cmpxchg.org>
-Acked-by: David Hildenbrand (Arm) <david@kernel.org>
-Reviewed-by: Lance Yang <lance.yang@linux.dev>
-Assisted-by: Claude-Code:claude-opus-5
-Cc: Balbir Singh <balbirs@nvidia.com>
-Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: Barry Song <baohua@kernel.org>
-Cc: Dev Jain <dev.jain@arm.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Kairui Song <kasong@tencent.com>
-Cc: Liam R. Howlett <liam@infradead.org>
-Cc: Lorenzo Stoakes <ljs@kernel.org>
-Cc: Ryan Roberts <ryan.roberts@arm.com>
-Cc: Usama Arif <usama.arif@linux.dev>
+Assisted-by: Codex:gpt-5.6-sol
+Cc: David Hildenbrand <david@kernel.org>
+Cc: Muchun Song <muchun.song@linux.dev>
+Cc: Oscar Salvador <osalvador@suse.de>
+Cc: Yu Zhao <yuzhao@google.com>
 ---
 
- mm/huge_memory.c |   46 +++++++++++++--------------------------------
- 1 file changed, 14 insertions(+), 32 deletions(-)
+ mm/hugetlb.c |   35 +++++++++++++++++++++++++++++++----
+ 1 file changed, 31 insertions(+), 4 deletions(-)
 
---- a/mm/huge_memory.c~mm-huge_memory-dequeue-the-deferred-split-after-the-split-freeze
-+++ a/mm/huge_memory.c
-@@ -3979,41 +3979,27 @@ static int __folio_freeze_and_split_unma
- 	struct folio *end_folio = folio_next(folio);
- 	struct folio *new_folio, *next;
- 	int old_order = folio_order(folio);
--	struct list_lru_one *lru;
--	bool dequeue_deferred;
- 	int ret = 0;
+--- a/mm/hugetlb.c~mm-hugetlb-preserve-source-surplus-accounting-during-demotion
++++ a/mm/hugetlb.c
+@@ -4000,6 +4000,7 @@ long demote_pool_huge_page(struct hstate
+ 	struct hstate *dst;
+ 	long rc = 0;
+ 	long nr_demoted = 0;
++	long nr_persistent = 0;
  
- 	VM_WARN_ON_ONCE(!mapping && end);
--	/*
--	 * If this folio can be on the deferred split queue, lock out
--	 * the shrinker before freezing the ref. If the shrinker sees
--	 * a 0-ref folio, it assumes it beat folio_put() to the list
--	 * lock and must clean up the LRU state - the same dequeue we
--	 * will do below as part of the split.
--	 */
--	dequeue_deferred = folio_test_anon(folio) && old_order > 1;
--	if (dequeue_deferred) {
--		struct mem_cgroup *memcg;
--
--		rcu_read_lock();
--		memcg = folio_memcg(folio);
--		lru = list_lru_lock(&deferred_split_lru,
--				    folio_nid(folio), &memcg);
--	}
-+
- 	if (folio_ref_freeze(folio, folio_cache_ref_count(folio) + 1)) {
- 		struct swap_cluster_info *ci = NULL;
- 		struct lruvec *lruvec;
+ 	lockdep_assert_held(&hugetlb_lock);
  
--		if (dequeue_deferred) {
--			__list_lru_del(&deferred_split_lru, lru,
--				       &folio->_deferred_list, folio_nid(folio));
--			if (folio_test_partially_mapped(folio)) {
--				folio_clear_partially_mapped(folio);
--				mod_mthp_stat(old_order,
--					MTHP_STAT_NR_ANON_PARTIALLY_MAPPED, -1);
--			}
--			list_lru_unlock(lru);
--			rcu_read_unlock();
-+		/* Take off the deferred split queue while frozen and memcg set */
-+		folio_unqueue_deferred_split(folio);
+@@ -4012,22 +4013,40 @@ long demote_pool_huge_page(struct hstate
+ 
+ 	for_each_node_mask_to_free(src, nr_nodes, node, nodes_allowed) {
+ 		LIST_HEAD(list);
++		LIST_HEAD(surplus_list);
+ 		struct folio *folio, *next;
+ 
+ 		list_for_each_entry_safe(folio, next, &src->hugepage_freelists[node], lru) {
++			bool adjust_surplus;
 +
-+		/*
-+		 * deferred_split_scan() takes the folio off the queue before it
-+		 * splits it, so the unqueue above finds an empty list and
-+		 * leaves PG_partially_mapped set.
-+		 * Clear it here: the flag does not survive the split.
-+		 */
-+		if (folio_test_partially_mapped(folio)) {
-+			folio_clear_partially_mapped(folio);
-+			mod_mthp_stat(old_order,
-+				      MTHP_STAT_NR_ANON_PARTIALLY_MAPPED, -1);
+ 			if (folio_test_hwpoison(folio))
+ 				continue;
+ 
+-			remove_hugetlb_folio(src, folio, false);
+-			list_add(&folio->lru, &list);
++			/* Surplus accounting is maintained per node, not per folio. */
++			adjust_surplus = src->surplus_huge_pages_node[node] > 0;
++			remove_hugetlb_folio(src, folio, adjust_surplus);
++			list_add(&folio->lru, adjust_surplus ? &surplus_list : &list);
++			if (!adjust_surplus)
++				nr_persistent++;
+ 
+ 			if (++nr_demoted == nr_to_demote)
+ 				break;
  		}
  
- 		if (mapping) {
-@@ -4115,10 +4101,6 @@ static int __folio_freeze_and_split_unma
- 		if (ci)
- 			swap_cluster_unlock(ci);
- 	} else {
--		if (dequeue_deferred) {
--			list_lru_unlock(lru);
--			rcu_read_unlock();
--		}
- 		return -EAGAIN;
- 	}
++		if (list_empty(&list) && list_empty(&surplus_list))
++			continue;
++
+ 		spin_unlock_irq(&hugetlb_lock);
  
+-		rc = demote_free_hugetlb_folios(src, dst, &list);
++		if (!list_empty(&list))
++			rc = demote_free_hugetlb_folios(src, dst, &list);
++		if (!list_empty(&surplus_list)) {
++			long tmp_rc;
++
++			tmp_rc = demote_free_hugetlb_folios(src, dst, &surplus_list);
++			if (rc >= 0)
++				rc = tmp_rc;
++		}
+ 
+ 		spin_lock_irq(&hugetlb_lock);
+ 
+@@ -4036,6 +4055,14 @@ long demote_pool_huge_page(struct hstate
+ 			add_hugetlb_folio(src, folio, false);
+ 
+ 			nr_demoted--;
++			nr_persistent--;
++		}
++
++		list_for_each_entry_safe(folio, next, &surplus_list, lru) {
++			list_del(&folio->lru);
++			add_hugetlb_folio(src, folio, true);
++
++			nr_demoted--;
+ 		}
+ 
+ 		if (rc < 0 || nr_demoted == nr_to_demote)
+@@ -4046,7 +4073,7 @@ long demote_pool_huge_page(struct hstate
+ 	 * Not absolutely necessary, but for consistency update max_huge_pages
+ 	 * based on pool changes for the demoted page.
+ 	 */
+-	src->max_huge_pages -= nr_demoted;
++	src->max_huge_pages -= nr_persistent;
+ 	dst->max_huge_pages += nr_demoted << (huge_page_order(src) - huge_page_order(dst));
+ 
+ 	if (rc < 0)
 _
 
-Patches currently in -mm which might be from kas@kernel.org are
+Patches currently in -mm which might be from xialonglong@kylinos.cn are
 
-mm-page_alloc-make-defrag_mode-retries-follow-the-promoted-order.patch
-mm-huge_memory-add-folio_reset_partially_mapped.patch
-mm-khugepaged-drop-redundant-mm_struct-pin-in-madvise_collapse.patch
-mm-khugepaged-count-collapses-where-khugepaged-makes-them.patch
-mm-khugepaged-rename-mthp_present_ptes-bitmap-to-eligible_ptes.patch
-mm-collapse-add-collapseh-for-the-collapse-interface.patch
-mm-collapse-state-what-a-collapse-may-do-in-the-policy.patch
-mm-collapse-drop-the-collapse_possible-wrapper.patch
-mm-collapse-name-the-per-table-scan-reset-for-what-it-resets.patch
-mm-collapse-call-collapse_file-from-collapse_single_pmd.patch
-mm-collapse-separate-scanning-a-pte-table-from-collapsing-it.patch
-mm-collapse-open-code-collapse_single_pmd-in-its-two-callers.patch
-mm-collapse-work-out-the-orders-a-vma-allows-once-per-vma.patch
-mm-collapse-declare-the-collapse-interface-in-collapseh.patch
-mm-collapse-implement-madv_collapse-in-madvisec.patch
-selftests-mm-raise-the-khugepaged-test-case-cap.patch
-selftests-mm-skip-collapse_compound_extreme-where-the-pmd-is-too-large.patch
-selftests-mm-scale-khugepageds-collapse-wait-with-the-pmd-size.patch
-selftests-mm-skip-khugepaged-page-cache-cases-without-a-pmd-folio.patch
-selftests-mm-make-the-swap-cases-swapout-reliable.patch
-selftests-mm-stop-khugepaged-during-the-madv_collapse-cases.patch
-selftests-mm-move-is_backed_by_folio-into-vm_util.patch
-selftests-mm-add-folio-order-check-for-address-ranges.patch
-selftests-mm-add-folio-order-detection-self-check.patch
-selftests-mm-add-khugepaged-completion-barrier-helper.patch
-selftests-mm-add-order-parameterized-khugepaged-collapse-cases.patch
-selftests-mm-parameterize-the-mixed-source-collapse-case-by-source-order.patch
-selftests-mm-cover-a-shared-source-collapse-write-race.patch
-selftests-mm-run-every-supported-collapse-order-by-default.patch
-selftests-mm-check-that-one-khugepaged-pass-collapses-one-window.patch
-selftests-mm-add-khugepaged-race-harness.patch
-selftests-mm-race-the-collapse-of-windows-with-holes.patch
-selftests-mm-add-memory-pressure-threads-to-the-khugepaged-race-harness.patch
-selftests-mm-zap-whole-pte-tables-in-the-khugepaged-race-harness.patch
+mm-zswap-publish-the-initial-pool-with-list_add_rcu.patch
+mm-zswap-enable-zswap_ever_enabled-in-zswap_pool_create.patch
 
