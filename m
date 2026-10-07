@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 830BF30B53E
-	for <mm-commits@vger.kernel.org>; Wed,  7 Oct 2026 00:51:29 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 931972C17A3
+	for <mm-commits@vger.kernel.org>; Wed,  7 Oct 2026 00:51:30 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791334290; cv=none; b=DycoHhJi/j2t8Qhbu3IBANri4zYQxhmlX3/xyyGMe0RrQu0uf5ZUp/p8VJSlbmvUdcB3k45vfUd+kIwJKF14C3DmiCCrB/TamTz1zvxAJjMy6E/aedFOVTjj9kE31PeO1I2MA0SVnKh9iZezMZd8focMRF3kOwzaMwdJtsYRoh8=
+	t=1791334291; cv=none; b=AVgVsTAML4SyHrVX5WoYQRVJOIh6y8GT1dXIkUooK8vas5SF484R/y+2hITFZUv8ZH1owcvej8RJsqIBsunj6wBtikK0+cXgHglDMI5dlayz+17TAX6Gs0KyxRaG/1X8KRQEMVY4EY58fuL1TrbC9S7Hk7a7RabRIDkeXSn3oV8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791334290; c=relaxed/simple;
-	bh=e8bCyLrIz/Rmm5kEaLGDjhuuaWkJOq8fV547hVjqkwA=;
-	h=Date:To:From:Subject:Message-Id; b=pz0WvUo91q6s/tXa/dzAvCRwE7sEk5/6xBbTJchV+cQgziRu1ewCsX6vgqkT9gRn5Y8GQwJkJqowORICU4voz3gRABfpxdPqMRPK/uhmiYP3O+OQW1A9Nv/ciL3cBhMrqluSTHcQn1N8tfh4f7LCOLM05GEg07hdsMisZV222c4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=o41edjSf; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1791334291; c=relaxed/simple;
+	bh=fDjp6+Ju4w8rEUB5HyiqcfryxTez/gMCV4cJnn/G57Q=;
+	h=Date:To:From:Subject:Message-Id; b=sIreGi+Orv3/17JAdTMBsvEmWyrgiZKmT64weeI57AzuYbgZ7GkJIkNSxMmwQ/uT4oa5KTNqNWfxlW7340voCQBaW9sbRNwnsTtb2hMXBm1IU28ALnHD5098U6lby3BKONbCIQWhID9tLOvoAgHgwTKUhAWRP47NbrIsLlVssU8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=emf9D/wt; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="o41edjSf"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5AD281F0089B;
-	Wed,  7 Oct 2026 00:51:29 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="emf9D/wt"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6A6541F0089C;
+	Wed,  7 Oct 2026 00:51:30 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1791334289;
-	bh=MaROh+/zsgMFqYoVUTzicDMSxg7Yinq+zpIIavPeE7Y=;
+	d=linux-foundation.org; s=korg; t=1791334290;
+	bh=Znlyt9JvTin0hrXPAUAntFZr3kjX10k2yMEKvo8L26s=;
 	h=Date:To:From:Subject;
-	b=o41edjSfmzv/67qSV1y1DGlW6anGjyJG63D8p+1sm4qqX97wNTL8fcqmr4uQ41hW7
-	 FCo1nyM6sejX47EYBW/H246WK0WJziu8u5UbcMPWTgVIaG/sVn3y+/qLZ49jP0XJ3Z
-	 lJYtjLTNkwb09QURxDBI1n3/gAHApS70gOehGEAk=
-Date: Tue, 06 Oct 2026 17:51:28 -0700
-To: mm-commits@vger.kernel.org,zenghui.yu@linux.dev,sj@kernel.org,shuah@kernel.org,liyouhong@kylinos.cn,lienze@kylinos.cn,jaeyeon.lee.dev@gmail.com,harimishal1@gmail.com,gregkh@linuxfoundation.org,zhaozhengzhuo@uniontech.com,akpm@linux-foundation.org
+	b=emf9D/wth4GpdnAEBPRBPFRiO86SZEBxpzkF/+X4rZILbQN11Mzq7c914ZQZkwzM5
+	 hsRs2kPJe8Y3xjj2CY2bLky6N+y5WoeylQauHjCnIy0fy7DKESCQLpApaHGlaCX2aA
+	 iXZgyklfmTN+5fbPJ76EiIlp2xe014EOSQ1Ksm84=
+Date: Tue, 06 Oct 2026 17:51:30 -0700
+To: mm-commits@vger.kernel.org,zhaozhengzhuo@uniontech.com,zenghui.yu@linux.dev,sj@kernel.org,shuah@kernel.org,liyouhong@kylinos.cn,jaeyeon.lee.dev@gmail.com,harimishal1@gmail.com,gregkh@linuxfoundation.org,lienze@kylinos.cn,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] selftests-damon-prevent-remaining-cross-object-state-pollution.patch removed from -mm tree
-Message-Id: <20261007005129.5AD281F0089B@smtp.kernel.org>
+Subject: [merged mm-stable] samples-damon-mtier-add-comment-for-struct-region_range.patch removed from -mm tree
+Message-Id: <20261007005130.6A6541F0089C@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,160 +35,59 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: selftests/damon: prevent remaining cross-object state pollution
+     Subject: samples/damon/mtier: add comment for struct region_range
 has been removed from the -mm tree.  Its filename was
-     selftests-damon-prevent-remaining-cross-object-state-pollution.patch
+     samples-damon-mtier-add-comment-for-struct-region_range.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: zhaozhengzhuo <zhaozhengzhuo@uniontech.com>
-Subject: selftests/damon: prevent remaining cross-object state pollution
-Date: Mon, 31 Aug 2026 07:26:08 -0700
+From: Enze Li <lienze@kylinos.cn>
+Subject: samples/damon/mtier: add comment for struct region_range
+Date: Mon, 31 Aug 2026 07:26:09 -0700
 
-_damon_sysfs.py defines constructors with mutable default arguments,
-including DamosAccessPattern(), DamosQuota(), DamosWatermarks(),
-DamosDests(), IntervalsGoal(), and empty lists.
+The mtier sample defines a local struct region_range using phys_addr_t
+instead of damon_addr_range which uses unsigned long.  Add a comment
+explaining the rationale: on 32-bit systems with more than 4GiB memory,
+phys_addr_t will be 64-bit while unsigned long is 32-bit.
 
-Default arguments are evaluated once at function definition time.  Damos()
-instances created without explicit arguments therefore share the same
-DamosQuota(), and the other default-constructed sub-objects and lists are
-shared in the same way.  The sub-objects keep back-pointers to their owner
-scheme, so constructing the second Damos() rebinds the shared quota's
-scheme pointer to the second object.  An item appended to one object's
-default contexts or filters list is also visible from other
-default-constructed objects.
-
-The shared state can corrupt test configurations.  DamosQuota.sysfs_dir()
-derives the sysfs directory from its scheme pointer, so operating on the
-first scheme's default quota may write to the second scheme's directory. 
-The wrong values often match the defaults, so tests still pass, but the
-behavior depends on object creation order.
-
-Commit 8319dadcbd81 ("selftests/damon: prevent cross-context state
-pollution in DamonCtx") fixed the same pattern in DamonCtx only.  Fix the
-remaining constructors by defaulting to None and creating fresh objects or
-lists inside each constructor.  Explicit arguments keep their previous
-behavior.
-
-Link: https://lore.kernel.org/20260831142611.77572-7-sj@kernel.org
-Signed-off-by: zhaozhengzhuo <zhaozhengzhuo@uniontech.com>
+Link: https://lore.kernel.org/20260831142611.77572-8-sj@kernel.org
+Signed-off-by: Enze Li <lienze@kylinos.cn>
 Signed-off-by: SJ Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 Reviewed-by: SJ Park <sj@kernel.org>
-Cc: Enze Li <lienze@kylinos.cn>
 Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 Cc: Hari Mishal <harimishal1@gmail.com>
 Cc: Jaeyeon Lee <jaeyeon.lee.dev@gmail.com>
 Cc: Li Youhong <liyouhong@kylinos.cn>
 Cc: Shuah Khan <shuah@kernel.org>
 Cc: "Zenghui Yu (Huawei)" <zenghui.yu@linux.dev>
+Cc: zhaozhengzhuo <zhaozhengzhuo@uniontech.com>
 ---
 
- tools/testing/selftests/damon/_damon_sysfs.py |   38 +++++++++++-----
- 1 file changed, 28 insertions(+), 10 deletions(-)
+ samples/damon/mtier.c |    5 +++++
+ 1 file changed, 5 insertions(+)
 
---- a/tools/testing/selftests/damon/_damon_sysfs.py~selftests-damon-prevent-remaining-cross-object-state-pollution
-+++ a/tools/testing/selftests/damon/_damon_sysfs.py
-@@ -321,8 +321,10 @@ class DamosFilters:
-     filters = None
-     scheme = None   # owner scheme
+--- a/samples/damon/mtier.c~samples-damon-mtier-add-comment-for-struct-region_range
++++ a/samples/damon/mtier.c
+@@ -52,6 +52,11 @@ module_param(detect_node_addresses, bool
  
--    def __init__(self, name, filters=[]):
-+    def __init__(self, name, filters=None):
-         self.name = name
-+        if filters is None:
-+            filters = []
-         self.filters = filters
-         for idx, filter_ in enumerate(self.filters):
-             filter_.idx = idx
-@@ -368,7 +370,9 @@ class DamosDests:
-     dests = None
-     scheme = None   # owner scheme
+ static struct damon_ctx *ctxs[2];
  
--    def __init__(self, dests=[]):
-+    def __init__(self, dests=None):
-+        if dests is None:
-+            dests = []
-         self.dests = dests
-         for idx, dest in enumerate(self.dests):
-             dest.idx = idx
-@@ -426,15 +430,21 @@ class Damos:
-     stats = None
-     tried_regions = None
- 
--    def __init__(self, action='stat', access_pattern=DamosAccessPattern(),
--                 quota=DamosQuota(), watermarks=DamosWatermarks(),
--                 core_filters=[], ops_filters=[], filters=[], target_nid=0,
--                 dests=DamosDests(), apply_interval_us=0):
-+    def __init__(self, action='stat', access_pattern=None, quota=None,
-+                 watermarks=None, core_filters=None, ops_filters=None,
-+                 filters=None, target_nid=0, dests=None,
-+                 apply_interval_us=0):
-         self.action = action
-+        if access_pattern is None:
-+            access_pattern = DamosAccessPattern()
-         self.access_pattern = access_pattern
-         self.access_pattern.scheme = self
-+        if quota is None:
-+            quota = DamosQuota()
-         self.quota = quota
-         self.quota.scheme = self
-+        if watermarks is None:
-+            watermarks = DamosWatermarks()
-         self.watermarks = watermarks
-         self.watermarks.scheme = self
- 
-@@ -448,6 +458,8 @@ class Damos:
-         self.filters.scheme = self
- 
-         self.target_nid = target_nid
-+        if dests is None:
-+            dests = DamosDests()
-         self.dests = dests
-         self.dests.scheme = self
- 
-@@ -568,10 +580,12 @@ class DamonAttrs:
-     context = None
- 
-     def __init__(self, sample_us=5000, aggr_us=100000,
--                 intervals_goal=IntervalsGoal(), update_us=1000000,
--            min_nr_regions=10, max_nr_regions=1000):
-+                 intervals_goal=None, update_us=1000000, min_nr_regions=10,
-+                 max_nr_regions=1000):
-         self.sample_us = sample_us
-         self.aggr_us = aggr_us
-+        if intervals_goal is None:
-+            intervals_goal = IntervalsGoal()
-         self.intervals_goal = intervals_goal
-         self.intervals_goal.attrs = self
-         self.update_us = update_us
-@@ -703,7 +717,9 @@ class Kdamond:
-     idx = None      # index of this kdamond between siblings
-     kdamonds = None # parent
- 
--    def __init__(self, contexts=[], refresh_ms=None):
-+    def __init__(self, contexts=None, refresh_ms=None):
-+        if contexts is None:
-+            contexts = []
-         self.contexts = contexts
-         self.refresh_ms = refresh_ms
-         for idx, context in enumerate(self.contexts):
-@@ -853,7 +869,9 @@ class Kdamond:
- class Kdamonds:
-     kdamonds = []
- 
--    def __init__(self, kdamonds=[]):
-+    def __init__(self, kdamonds=None):
-+        if kdamonds is None:
-+            kdamonds = []
-         self.kdamonds = kdamonds
-         for idx, kdamond in enumerate(self.kdamonds):
-             kdamond.idx = idx
++/*
++ * Use phys_addr_t instead of damon_addr_range (unsigned long) for physical
++ * addresses.  On 32-bit systems with more than 4GB memory, phys_addr_t will
++ * be 64-bit while unsigned long is 32-bit.
++ */
+ struct region_range {
+ 	phys_addr_t start;
+ 	phys_addr_t end;
 _
 
-Patches currently in -mm which might be from zhaozhengzhuo@uniontech.com are
+Patches currently in -mm which might be from lienze@kylinos.cn are
 
-mm-migrate_device-fix-function-name-in-kernel-doc.patch
+maintainers-cover-all-hugetlb-headers-under-hugetlb-subsystem.patch
+mm-hugetlb_cgroup-add-trailing-endif-comment-for-include-guard.patch
+docs-hugetlbpagerst-fix-typo-in-per-node-attribute-description.patch
 
