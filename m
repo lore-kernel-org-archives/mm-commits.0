@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EABD1296BAF
-	for <mm-commits@vger.kernel.org>; Wed,  7 Oct 2026 00:48:58 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 05F39547058
+	for <mm-commits@vger.kernel.org>; Wed,  7 Oct 2026 00:49:00 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791334140; cv=none; b=Kh6B/mjf1Iyvuih1dBoI4BkFrwslj1yl7ggw2nWq41i2V4fyDXu5TxJk+ix+kaCvvkfSy99geVgu+K6p0BRCmBxOgAy/12ayTonQZaq1WhJCew/1EgzwhYgJWh+IlE02/Ps6IbCooLiT8bldqA9cTVjDeRq5/v+uQbQvc+7koA0=
+	t=1791334141; cv=none; b=EzdBYU9E0b9XsTidrKq/BfhGRlWItipJgnebyX8Rg2hJ71+HyVhagZndpYxkbREJo4syEsw6IHB5+hDd3YLs5v9uJ5EYR9N/NYvndcaQLuT3jpjLAALlmGh5qmlqgt3BOeloiYoOak0qmvFeqWsJes806NecP623Swt7KfZyD4c=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791334140; c=relaxed/simple;
-	bh=uW49w28KiopNthTjkx7V0+I1ygNcLrGzNDTvPlCZbow=;
-	h=Date:To:From:Subject:Message-Id; b=ntDf10uQVeSvCrVLpajPqQ2xrS5TSVmI4ajkX8j1CU5pKINKKxOvN4/Tu0FTQatszXyX+duDZckuxYrVK0kcgUIi6eceUlVBiwlLftRCstRicDmNkVzys8/EQtvXtLtgl1ZG3nYb9Y5qMVhX1IBNFHfc/TANS3KOcBhnlbUewq8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=G7SIA2tC; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1791334141; c=relaxed/simple;
+	bh=IX4XmnqKHawUHflhwPxz6ctwLhz72YqRjfFZbvJNloE=;
+	h=Date:To:From:Subject:Message-Id; b=G7rel3QlZMqITJE/slVDf6ASpjNSKTfiMpNbsOvM+liAw3pI5/4Gd1UC91fm93Rrm91OZp7FvRnFyMLXMn6Jvjek3dhmX22vsOWUMT2UY1DSTltbBfKBcRBNAw3NseWXlabVYdvBJkpAcWL6Qb9sb4U/t2a0tDEapwwRMMpnqYA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=gl4zBlGd; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="G7SIA2tC"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id BF8F81F0089B;
-	Wed,  7 Oct 2026 00:48:58 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="gl4zBlGd"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id CF5961F0089C;
+	Wed,  7 Oct 2026 00:48:59 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1791334138;
-	bh=ieEx5UMrGa5tLWuidbCcV/Iz25k1e8BE/v1sQPWVnc4=;
+	d=linux-foundation.org; s=korg; t=1791334139;
+	bh=BMqXHJu8zW9HT+9eJLghGCRPnUAYlq9+FYpOh2SwJ0s=;
 	h=Date:To:From:Subject;
-	b=G7SIA2tCcbx8x6TVfiQHh7LruErjE3ykNixPlJA1YDQ89pPWo1sVTx1SNDs1jR6U6
-	 qykmik1e7/TLoPuK+bTmIW0ypL/kBWguYFKcypF4q6oeXKTOXn9lZ1gqr+z3QjfNtS
-	 8+NYuDnrqZk+cNSxlzAbad0TfUbzUbmK5yxMZzp4=
-Date: Tue, 06 Oct 2026 17:48:58 -0700
-To: mm-commits@vger.kernel.org,sj@kernel.org,shikemeng@huaweicloud.com,sef1548@gmail.com,nphamcs@gmail.com,kasong@tencent.com,chrisl@kernel.org,baoquan.he@linux.dev,baohua@kernel.org,yuehaibing@huawei.com,akpm@linux-foundation.org
+	b=gl4zBlGdFWGOto+I67iFxSMyl6Xj/+H3Rjxx4a23baDNH4yernaH5SwtXfdlpd8Tt
+	 Sm1cllz2g+V1Uh2fpbuUk9W2tAM4xPeJhP8m01KCQgV9TbpL/Ixmas8T3skdtLkCvM
+	 P8x7DVVUoV8kZtJYd6nJOUrMhHvhFuw6YsnpnBSc=
+Date: Tue, 06 Oct 2026 17:48:59 -0700
+To: mm-commits@vger.kernel.org,tj@kernel.org,shakeel.butt@linux.dev,roman.gushchin@linux.dev,muchun.song@linux.dev,mkoutny@suse.com,mhocko@suse.com,hannes@cmpxchg.org,cuitao@kylinos.cn,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-swap-remove-unused-declaration-swapcache_clear.patch removed from -mm tree
-Message-Id: <20261007004858.BF8F81F0089B@smtp.kernel.org>
+Subject: [merged mm-stable] docs-cgroup-document-empty-write-behavior-of-memory-limit-knobs.patch removed from -mm tree
+Message-Id: <20261007004859.CF5961F0089C@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,49 +35,72 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/swap: remove unused declaration swapcache_clear()
+     Subject: docs: cgroup: document empty-write behavior of memory limit knobs
 has been removed from the -mm tree.  Its filename was
-     mm-swap-remove-unused-declaration-swapcache_clear.patch
+     docs-cgroup-document-empty-write-behavior-of-memory-limit-knobs.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Yue Haibing <yuehaibing@huawei.com>
-Subject: mm/swap: remove unused declaration swapcache_clear()
-Date: Thu, 27 Aug 2026 16:27:22 +0800
+From: Tao Cui <cuitao@kylinos.cn>
+Subject: docs: cgroup: document empty-write behavior of memory limit knobs
+Date: Wed, 26 Aug 2026 10:17:53 +0800
 
-Commit c246d236b18b ("mm/shmem: never bypass the swap cache for
-SWP_SYNCHRONOUS_IO") removed the implementations but leave this.
+A maintenance script on a cluster wrote an unset variable into memory.max
+of a workload cgroup; the variable expanded to an empty string, the write
+succeeded, and the workload in the cgroup was OOM-killed.  Nothing pointed
+back at the write, so it took quite some time to trace the OOM kills to
+that script.
 
-Link: https://lore.kernel.org/20260827082722.1809702-1-yuehaibing@huawei.com
-Signed-off-by: Yue Haibing <yuehaibing@huawei.com>
+The memory controller documentation does not say what an empty write does;
+the cpuset controller documents its empty-value semantics.  The actual
+behavior is that the empty string is accepted as 0.  Reproduced on a k8s
+cluster (v1.29, cgroup v2, two-container pod, 384M limit):
+
+  # LIMIT=
+  # echo "$LIMIT" > $CG/memory.max
+  # echo $?
+  0
+
+  m6demo   0/2     OOMKilled   0
+
+  Memory cgroup out of memory: Killed process 339529 (sleep) ... anon-rss:32kB
+
+State it where the interface files are introduced, alongside the existing
+notes on units and page rounding.
+
+Link: https://lore.kernel.org/all/aoVUlFdZYLFn_gvJ@tiehlicka/
+Link: https://lore.kernel.org/20260826021753.197871-1-cui.tao@linux.dev
+Signed-off-by: Tao Cui <cuitao@kylinos.cn>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Reviewed-by: Baoquan He <baoquan.he@linux.dev>
-Acked-by: Kairui Song <kasong@tencent.com>
-Acked-by: Nick Huang <sef1548@gmail.com>
-Reviewed-by: Barry Song <baohua@kernel.org>
-Reviewed-by: SJ Park <sj@kernel.org>
-Cc: Chris Li <chrisl@kernel.org>
-Cc: Kemeng Shi <shikemeng@huaweicloud.com>
-Cc: Nhat Pham <nphamcs@gmail.com>
+Acked-by: Michal Hocko <mhocko@suse.com>
+Acked-by: Shakeel Butt <shakeel.butt@linux.dev>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Michal Koutný <mkoutny@suse.com>
+Cc: Muchun Song <muchun.song@linux.dev>
+Cc: Roman Gushchin <roman.gushchin@linux.dev>
+Cc: Tejun Heo <tj@kernel.org>
 ---
 
- mm/swap.h |    1 -
- 1 file changed, 1 deletion(-)
+ Documentation/admin-guide/cgroup-v2.rst |    4 ++++
+ 1 file changed, 4 insertions(+)
 
---- a/mm/swap.h~mm-swap-remove-unused-declaration-swapcache_clear
-+++ a/mm/swap.h
-@@ -324,7 +324,6 @@ void __swap_cache_replace_folio(struct s
- 				struct folio *old, struct folio *new);
+--- a/Documentation/admin-guide/cgroup-v2.rst~docs-cgroup-document-empty-write-behavior-of-memory-limit-knobs
++++ a/Documentation/admin-guide/cgroup-v2.rst
+@@ -1321,6 +1321,10 @@ All memory amounts are in bytes.  If a v
+ PAGE_SIZE is written, the value may be rounded up to the closest
+ PAGE_SIZE multiple when read back.
  
- void show_swap_cache_info(void);
--void swapcache_clear(struct swap_info_struct *si, swp_entry_t entry, int nr);
- struct folio *read_swap_cache_async(struct swap_io_ctx *ctx, swp_entry_t entry,
- 		gfp_t gfp_mask, struct vm_area_struct *vma, unsigned long addr);
- struct folio *swap_cluster_readahead(swp_entry_t entry, gfp_t flag,
++For the limit files described below, an empty or all-whitespace
++write is accepted and sets the limit to 0.  To disable a limit,
++write "max"; to set it to zero explicitly, write "0".
++
+   memory.current
+ 	A read-only single value file which exists on non-root
+ 	cgroups.
 _
 
-Patches currently in -mm which might be from yuehaibing@huawei.com are
+Patches currently in -mm which might be from cuitao@kylinos.cn are
 
 
