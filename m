@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C592D30566D
-	for <mm-commits@vger.kernel.org>; Wed,  7 Oct 2026 00:51:00 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9F2DC2E2DD2
+	for <mm-commits@vger.kernel.org>; Wed,  7 Oct 2026 00:51:01 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791334261; cv=none; b=O8KTdp/tLXHAYXjVcsScjsBB64yLOVGPWQDo8F9WhDeZnupfILWRTc2A91CO1tGsLJfOmbJUdM62pwiT8FM7mZP6zu5egF5szw8fLfQbkoW8wYnbg30OtUutlpxQBcZlZZPsd9QrumD5XpzI+ohU8WPvSHk6cds4AxAwxTpT8Zc=
+	t=1791334262; cv=none; b=NsQmhfPajaxiJ/uw7nZfvb69V4B5p3AwhDGpLhZ9tqiY09qB56+HOvhpmulwSRGIZWcbF8mG0ouokpcDFvq/lW8s0FM/M3v085C7P/8GhldPlfZ+a46qw+zP5eAS4Fx6+WvZ3V/l9Wx57gNTCMSD2SJbD/cyZ8POMnk6VxjGJz8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791334261; c=relaxed/simple;
-	bh=x7KBD9uoMfZXXgVtdIXPRpJ9OhpcW9qTEurTU3IAQ9A=;
-	h=Date:To:From:Subject:Message-Id; b=Cu1PkIKQ9dIhKgN1VjOJk/2upKUgGgF6ZrhmHAv1wSK/WmAEEtRp+4uwE4y3+2woTefCEH0yRWi2epyLP9xBwDW8DOHF2v3g9rdAVbehzrNeu9rtRBrvN71873tHMyZ+OvBBih4XTzjUb013kfu8ywCjkf5nqPNMjEcs1+NRXbg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=obNsibUo; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1791334262; c=relaxed/simple;
+	bh=X1EbECglSwnBM1jS1BfB5h3NWd8LIqDiEQv4gp69TCE=;
+	h=Date:To:From:Subject:Message-Id; b=bWwvD6tpJ8bFLM5Q38pG09GiGHWvnTGr3zTXeqIkvRpywxwre1rxNG3Mv9sTYFyiPXBg2YCDC+gIeTDRYGUZ4Wz1it+7xyvHCFW59uyLAk56sVNTlwvPjZ6AnWBK22lHwJUzZyrs3h8sAYKMilH4dgOIZhqrMaAgcWYlOGhJIqE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=DDutVUDu; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="obNsibUo"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6AEDA1F0089C;
-	Wed,  7 Oct 2026 00:51:00 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="DDutVUDu"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 75E251F0089B;
+	Wed,  7 Oct 2026 00:51:01 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1791334260;
-	bh=Hv6TdTwPPAQE0mPJGDteLKVYrJMYTl1AOWvdVr/X5l8=;
+	d=linux-foundation.org; s=korg; t=1791334261;
+	bh=GOwRizQZOZO415DcW+tQkQyYkJQBRBFKWPb24uZemLY=;
 	h=Date:To:From:Subject;
-	b=obNsibUoxGgT6q/bkW2zgTXfAl6W/3Ksr9G0i4I5fynKAsJDyqvG6An6Zg3jlYS23
-	 LdAWIGx2UBbQ1bhVwKaDhWg5P6xgRVJKQ0R+jKyurbbz24HSutCMmBei/E18qWDA5x
-	 2gghQSBTUqQ10LSZ8dhKdaUWX2Xvxk+ziwcK9bhU=
-Date: Tue, 06 Oct 2026 17:50:59 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,vbabka@kernel.org,surenb@google.com,sj@kernel.org,rppt@kernel.org,mhocko@suse.com,ljs@kernel.org,liam@infradead.org,hannes@cmpxchg.org,david@kernel.org,brendan.jackman@linux.dev,pfalcato@suse.de,akpm@linux-foundation.org
+	b=DDutVUDu/FBeNHSx9EkREacp0LjYzl1GuUK0Kvkct4cIDvxEj0ZTeXq9occYeUib0
+	 k5xvFMOerYgVXilxjJ6hh/bYUrFjeFqra7/c6IdjN3S3epspfs2Ht15+LP1Lo6ZFkO
+	 tzafjo6AnF+4ugTQlufCWsIedpLmWV3vo86eGMUw=
+Date: Tue, 06 Oct 2026 17:51:01 -0700
+To: mm-commits@vger.kernel.org,vbabka@kernel.org,surenb@google.com,rppt@kernel.org,mhocko@suse.com,liam@infradead.org,david@kernel.org,ljs@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-page_alloc-replace-custom-bad-page-ratelimiting-logic.patch removed from -mm tree
-Message-Id: <20261007005100.6AEDA1F0089C@smtp.kernel.org>
+Subject: [merged mm-stable] mm-vmpressure-remove-window-size-todo.patch removed from -mm tree
+Message-Id: <20261007005101.75E251F0089B@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,89 +35,129 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/page_alloc: replace custom bad page ratelimiting logic
+     Subject: mm/vmpressure: remove window size TODO
 has been removed from the -mm tree.  Its filename was
-     mm-page_alloc-replace-custom-bad-page-ratelimiting-logic.patch
+     mm-vmpressure-remove-window-size-todo.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Pedro Falcato <pfalcato@suse.de>
-Subject: mm/page_alloc: replace custom bad page ratelimiting logic
-Date: Tue, 11 Aug 2026 18:21:56 +0100
+From: "Lorenzo Stoakes (ARM)" <ljs@kernel.org>
+Subject: mm/vmpressure: remove window size TODO
+Date: Mon, 31 Aug 2026 14:42:11 +0100
 
-The current logic (allow up to $BURST prints per minute) can be entirely
-replaced by the generic version in lib/ratelimit.c, used around the
-kernel.
+There has been a steady stream of patches that have been submitted by
+newcomers to core mm 'fixing' this TODO, with all but the original having
+very likely been generated by LLMs.
 
-Do so. The only functional difference should be that the new logs will
-read something like:
+It appears that TODOs to LLMs are like red rags to a bull.
 
-KERN_WARNING "bad_page: %d callbacks suppressed\n", ...
+In addition, TODOs in code often bitrot and are distracting - those who
+understand the code know what could be improved in future.
 
-But that should be fine enough.
+Therefore remove the TODO.
 
-Link: https://lore.kernel.org/20260811172156.356053-3-pfalcato@suse.de
-Signed-off-by: Pedro Falcato <pfalcato@suse.de>
+The work required to actually fix this TODO requires somebody who both has
+understanding of the code and significant real-world data to back their
+changes.
+
+Such a person doesn't require a TODO prompt to implement this change, so
+nothing of value is being lost here.
+
+Link: https://lore.kernel.org/all/20260831130316.448-1-tahasezer.is@gmail.com/
+Link: https://lore.kernel.org/linux-mm/20260724054305.516126-1-cui.tao@linux.dev/
+Link: https://lore.kernel.org/linux-mm/20260715143646.15828-1-gaikwad.dcg@gmail.com/
+Link: https://lore.kernel.org/all/20260227221555.29969-1-mcq@disroot.org/
+Link: https://lore.kernel.org/20260831-remove-vmpressure-todo-v1-1-498515e59cdf@kernel.org
+Signed-off-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Acked-by: Johannes Weiner <hannes@cmpxchg.org>
-Acked-by: Zi Yan <ziy@nvidia.com>
-Reviewed-by: SJ Park <sj@kernel.org>
-Acked-by: David Hildenbrand (Arm) <david@kernel.org>
-Reviewed-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
 Acked-by: Vlastimil Babka (SUSE) <vbabka@kernel.org>
-Acked-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
-Cc: Brendan Jackman <brendan.jackman@linux.dev>
+Cc: David Hildenbrand <david@kernel.org>
 Cc: Liam R. Howlett <liam@infradead.org>
 Cc: Michal Hocko <mhocko@suse.com>
+Cc: Mike Rapoport <rppt@kernel.org>
 Cc: Suren Baghdasaryan <surenb@google.com>
 ---
 
- mm/page_alloc.c |   28 +++++-----------------------
- 1 file changed, 5 insertions(+), 23 deletions(-)
+ mm/vmpressure.c |    3 ---
+ 1 file changed, 3 deletions(-)
 
---- a/mm/page_alloc.c~mm-page_alloc-replace-custom-bad-page-ratelimiting-logic
-+++ a/mm/page_alloc.c
-@@ -613,31 +613,13 @@ static inline bool __maybe_unused bad_ra
- }
- #endif
+--- a/mm/vmpressure.c~mm-vmpressure-remove-window-size-todo
++++ a/mm/vmpressure.c
+@@ -30,9 +30,6 @@
+  *
+  * As the vmscan reclaimer logic works with chunks which are multiple of
+  * SWAP_CLUSTER_MAX, it makes sense to use it for the window size as well.
+- *
+- * TODO: Make the window size depend on machine size, as we do for vmstat
+- * thresholds. Currently we set it to 512 pages (2MB for 4KB pages).
+  */
+ const unsigned long vmpressure_win = SWAP_CLUSTER_MAX * 16;
  
-+/* Allow a burst of 60 reports per minute */
-+static DEFINE_RATELIMIT_STATE(bad_page_ratelimit, 60 * HZ, 60);
-+
- static void bad_page(struct page *page, const char *reason)
- {
--	static unsigned long resume;
--	static unsigned long nr_shown;
--	static unsigned long nr_unshown;
--
--	/*
--	 * Allow a burst of 60 reports, then keep quiet for that minute;
--	 * or allow a steady drip of one report per second.
--	 */
--	if (nr_shown == 60) {
--		if (time_before(jiffies, resume)) {
--			nr_unshown++;
--			goto out;
--		}
--		if (nr_unshown) {
--			pr_alert(
--			      "BUG: Bad page state: %lu messages suppressed\n",
--				nr_unshown);
--			nr_unshown = 0;
--		}
--		nr_shown = 0;
--	}
--	if (nr_shown++ == 0)
--		resume = jiffies + 60 * HZ;
-+	if (!__ratelimit(&bad_page_ratelimit))
-+		goto out;
- 
- 	pr_alert("BUG: Bad page state in process %s  pfn:%05lx\n",
- 		current->comm, page_to_pfn(page));
 _
 
-Patches currently in -mm which might be from pfalcato@suse.de are
+Patches currently in -mm which might be from ljs@kernel.org are
 
+mm-madvise-swap-in-cowd-map_private-file-mappings-on-madv_willneed.patch
+mm-khugepaged-deposit-a-newly-allocated-page-table-on-collapse.patch
+mm-enable-mmu_gather_rcu_table_free-for-most-2-level-architectures.patch
+mm-enable-mmu_gather_rcu_table_free-for-mmu-riscv.patch
+mm-enable-mmu_gather_rcu_table_free-for-mmu-arm.patch
+mm-enable-mmu_gather_rcu_table_free-for-arc-microblaze-xtensa.patch
+mm-enable-mmu_gather_rcu_table_free-for-sparc64.patch
+mm-enable-mmu_gather_rcu_table_free-for-m68k-coldfire.patch
+mm-enable-mmu_gather_rcu_table_free-for-sh-x2.patch
+mm-enable-mmu_gather_rcu_table_free-for-m68k-motorola.patch
+mm-enable-mmu_gather_rcu_table_free-for-sparc32.patch
+mm-userland-pgtable-freeing-is-rcu-safe-now-remove-leftover-bits.patch
+mm-change-the-contract-for-free_pgtables-update-docs.patch
+mm-move-drivers-char-memc-to-mm-char-memc.patch
+mm-implement-file_is_dev_zero-to-uniquely-identify-dev-zero.patch
+mm-vma-only-permit-map_private-dev-zero-to-be-mapped-anonymous.patch
+mm-vma-make-map_private-mapped-dev-zero-mappings-truly-anonymous.patch
+tools-testing-vma-add-test-to-assert-map_private-dev-zero-is-anon.patch
+tools-testing-selftests-mm-add-map_private-dev-zero-merge-tests.patch
+mm-vma-fix-mmap_prepare-file-handling-remove-file_doesnt_need_get.patch
+mm-vma-introduce-and-use-vma_can_merge.patch
+mm-consistently-validate-vma-state-after-mmap-hooks.patch
+mm-vma-ensure-mmap_prepare-doesnt-set-actions-on-a-mergeable-vma.patch
+mm-make-map_kernel_pages_-internal-and-unexported.patch
+mm-vma-tidy-up-map-kernel-pages-enum-values.patch
+mm-add-mmap-action-for-discontiguous-kernel-page-mapping.patch
+docs-filesystems-update-mmap_prepare-docs-for-discontig-kernel-pgs.patch
+drivers-usb-mon-update-to-use-mmap_prepare-map-kernel-pages.patch
+infiniband-update-hfi1-to-use-remap_vmalloc_range.patch
+selinux-reject-writable-opens-of-policy-file-drop-mmap-shared-write-check.patch
+alsa-pcm-use-vm_insert_page-to-map-pcm-status-page.patch
+bpf-arena-mark-arena_map_mmap-mappings-vm_mixedmap.patch
+mm-vma-add-vma_is_mm_managed-predicates.patch
+mm-vma-only-allow-mmap-to-clear-vma_maywrite_bit-if-not-mm-managed.patch
+mm-vma-add-and-use-vma__is_fixed_mapping.patch
+scsi-sg-convert-mmap-hook-to-mmap_prepare-and-rework.patch
+fbdev-defio-assert-fbinfo_virtfb-drop-vm_io-add-vm_mixedmap.patch
+hsi-cmt_speech-convert-mmap-hook-to-mmap_prepare-refactor.patch
+mm-gup-error-out-early-on-vma_mayread_bit-vmas.patch
+uprobes-remove-vm_io-set-vm_mixedmap-for-mapped-kernel-pages.patch
+mm-mlock-clear-vma_locked_mask-over-mmap-callback.patch
+mm-mlock-eliminate-weird-vma_io_bit-abuse-and-simplify.patch
+mm-vma-enforce-that-mm-managed-mappings-may-not-set-vma_io_bit.patch
+mm-remove-vma_io_bit-check-in-vma_is_mm_managed.patch
+mm-remove-hugetlb_inlineh.patch
+mm-rename-is_vm_hugetlb_page-to-vma_is_hugetlb.patch
+mm-drop-some-redundant-checks-around-hugetlb-vmas.patch
+mm-madvise-update-is_valid_guard_vma-to-use-vma_can_merge.patch
+mm-vma-introduce-vma_is_mm_backed.patch
+mm-uffd-use-predicates-for-userfaultfd-checks.patch
+mm-madvise-use-predicates-for-madvise-madv_dofork.patch
+mm-eliminate-vma_special_flags-usage-when-hugetlb-explicitly-tested.patch
+mm-eliminate-vma_special_flags-check-in-lru_gen_look_around.patch
+mm-avoid-use-of-vma_special_flags-in-migrate_vma_setup.patch
+mm-eliminate-vm_special-vma_special_flags.patch
+fuse-dax-do-not-set-vm_mixedmap.patch
+mm-huge_memory-remove-vma_is_special_huge.patch
+mm-vma-const-ify-vma_assert_stabilised-and-associated-functions.patch
+mm-implement-and-use-vma_has_anon_rmap-silence-kcsan.patch
+mm-update-comments-to-refer-to-anon-rmap-rather-than-anon_vma.patch
+mm-vma-dont-remove-vma-from-rmap-if-pgoff-unchanged.patch
 
