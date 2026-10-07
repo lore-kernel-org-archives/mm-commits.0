@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 14418331EBE
-	for <mm-commits@vger.kernel.org>; Wed,  7 Oct 2026 02:04:01 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 408572472AA
+	for <mm-commits@vger.kernel.org>; Wed,  7 Oct 2026 02:04:02 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791338642; cv=none; b=FydnvbDsEXOYE0HOLvwxGunvX2Exdv8IN9UBHNG2IX47xih/BWrzPwfoajY14vStYqJObcAQjeBCcegVtIfwQjaNbHvdw1e6bfu4uwQF5Fv/QMQBSjXMSYbgg44Zfy9a5Yk+nd7pGFnCoeLWaROvatLh7WBRryQqnkA32XIvdQ8=
+	t=1791338643; cv=none; b=NvqD08UGY/P75hLjdkIAktG4rpUvYxvj4K7ZPNTMM4xvuw8ukGERs6ZOkztZ2ozn7DimTVoilFZUnw6raiJ0biTm2zUvD+iCXH6Qnpj2o0ciN6ym4pMKx8dMn616mUnadMRh387s7yLzylOah3rSdzN7AmUzmT79upRUzDNxoCc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791338642; c=relaxed/simple;
-	bh=/hJsqI6FDaRou8/Zgb3J144DqEo9JTtViDKVB+H2BUY=;
-	h=Date:To:From:Subject:Message-Id; b=PUaGUOc2x9s2ZPHSCebWTZqTFW/08pOdvbNxQXOv0N4t3hsuThpqVlNszzfbGPfXme3v9ZEaQlZVBSwRv0hUoTZZ+qdjaj3tRTqHtfHgTsMnG5NT8obry8pFT1hzDUAVnITy5B7erMqvR3DPY3LE7m7mUciWqiPurPLWcd4A8sM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=NSBRzLEP; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1791338643; c=relaxed/simple;
+	bh=wQKK+okUUMcdGvPF72SQgXoJhxSAA5oltHzss3qhPb8=;
+	h=Date:To:From:Subject:Message-Id; b=DP7PAk9f0GP7xOTv4KhvkYckw5EmU4yNbjb5eK+VGQyejvS2UPVY1BOeg0w+/xZQbzltRjc9V2VmtPm8YkP2soEeQKbCTw3Vle4EoVEs4TKf8lxIyGKQssnq4T2AV2pkhFch7wdk+BndtvDezLkX/eoThFQRAKctu7UZHW3TgxM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=jYz+0zx5; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="NSBRzLEP"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id DF3A51F0089D;
-	Wed,  7 Oct 2026 02:04:00 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="jYz+0zx5"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1DD7C1F0089B;
+	Wed,  7 Oct 2026 02:04:02 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1791338641;
-	bh=Ip9ob+hPpf/C17Gz75knUDOc1os3RLR0QYeWNoFnyqQ=;
+	d=linux-foundation.org; s=korg; t=1791338642;
+	bh=QHO6vSdIolaOD+wMga1bZGSo01sL+N2X+4i+Q1DRDmw=;
 	h=Date:To:From:Subject;
-	b=NSBRzLEPm8Akf/WyDaR0ywuB5AihfqjAV5bo1bXYBjx+EE16qN4QvD3PM7eSinmqr
-	 xJZ3t7WvXMzEbiJx8TFVojT01F6Qy6zc9eJ9B4DtCmaam6GKb8hAvAVa3WIYl4+1h7
-	 gziObXgCUPnF87riGBWbUY3S+7/JkjHCBQASAeuQ=
-Date: Tue, 06 Oct 2026 19:04:00 -0700
-To: mm-commits@vger.kernel.org,piaojun@huawei.com,mark@fasheh.com,junxiao.bi@oracle.com,jlbec@evilplan.org,heming.zhao@suse.com,gechangwei@live.cn,gality369@gmail.com,joseph.qi@linux.alibaba.com,akpm@linux-foundation.org
+	b=jYz+0zx5iID+y8qypp8LeGDuDiE1sF8t4syxnbLNvyqAtfr6RxuX8km/W71dgi3K6
+	 3NQ/ElwS4Fz3UOzpCv4Vj8WfpFZBE5LOUK4nyixXTDCFoNll4JdH1QP6DRjs6ze5bA
+	 SN/Rv85oU/4q0nhK/XxUjsqShwfbZvwknEm8gJfo=
+Date: Tue, 06 Oct 2026 19:04:01 -0700
+To: mm-commits@vger.kernel.org,piaojun@huawei.com,mark@fasheh.com,junxiao.bi@oracle.com,joseph.qi@linux.alibaba.com,jlbec@evilplan.org,heming.zhao@suse.com,gechangwei@live.cn,gality369@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] ocfs2-fix-deadlock-in-inline-data-truncate-transactions.patch removed from -mm tree
-Message-Id: <20261007020400.DF3A51F0089D@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] ocfs2-reject-inconsistent-local-xattr-entries.patch removed from -mm tree
+Message-Id: <20261007020402.1DD7C1F0089B@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,59 +35,68 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: ocfs2: fix deadlock in inline-data truncate transactions
+     Subject: ocfs2: reject inconsistent local xattr entries
 has been removed from the -mm tree.  Its filename was
-     ocfs2-fix-deadlock-in-inline-data-truncate-transactions.patch
+     ocfs2-reject-inconsistent-local-xattr-entries.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Joseph Qi <joseph.qi@linux.alibaba.com>
-Subject: ocfs2: fix deadlock in inline-data truncate transactions
-Date: Wed, 26 Aug 2026 19:26:59 +0800
+From: ZhengYuan Huang <gality369@gmail.com>
+Subject: ocfs2: reject inconsistent local xattr entries
+Date: Thu, 6 Aug 2026 16:50:12 +0800
 
-Updating an inode xattr can cause an ABBA deadlock with inline file
-truncation:
+[BUG]
+A corrupt OCFS2 xattr entry can set OCFS2_XATTR_ENTRY_LOCAL while
+keeping xe_value_size larger than OCFS2_XATTR_INLINE_SIZE. When that
+entry reaches namevalue_size_xe(), the filesystem hits its BUG_ON:
 
-  ocfs2_truncate_file()
-    down_write(&oi->ip_alloc_sem)
-    ocfs2_truncate_inline()
-      ocfs2_start_trans()
+kernel BUG at fs/ocfs2/xattr.c:231!
+Oops: invalid opcode: 0000 [#1] SMP KASAN NOPTI
+RIP: 0010:namevalue_size_xe fs/ocfs2/xattr.c:231 [inline]
+RIP: 0010:ocfs2_xa_block_wipe_namevalue+0x2e4/0x330 fs/ocfs2/xattr.c:1638
+Call Trace:
+ ocfs2_xa_wipe_namevalue fs/ocfs2/xattr.c:1470 [inline]
+ ocfs2_xa_remove_entry+0xae/0x1d0 fs/ocfs2/xattr.c:1941
+ ocfs2_xa_remove fs/ocfs2/xattr.c:2043 [inline]
+ ocfs2_xa_set+0x11a8/0x30a0 fs/ocfs2/xattr.c:2247
+ ocfs2_xattr_ibody_set+0x302/0xc50 fs/ocfs2/xattr.c:2795
+ __ocfs2_xattr_set_handle+0x7e6/0xdb0 fs/ocfs2/xattr.c:3416
+ ocfs2_xattr_set+0x1447/0x2610 fs/ocfs2/xattr.c:3650
+ ocfs2_xattr_security_set+0x37/0x50 fs/ocfs2/xattr.c:7241
+ __vfs_removexattr+0x14d/0x1d0 fs/xattr.c:518
+ cap_inode_killpriv+0x29/0x50 security/commoncap.c:355
+ security_inode_killpriv+0x105/0x220 security/security.c:2724
+ setattr_prepare+0x147/0x8a0 fs/attr.c:219
+ ocfs2_setattr+0x504/0x1fd0 fs/ocfs2/file.c:1148
+ notify_change+0x4b5/0x1030 fs/attr.c:546
+ do_truncate+0x1d2/0x230 fs/open.c:68
+ handle_truncate fs/namei.c:3596 [inline]
+ do_open fs/namei.c:3979 [inline]
+ path_openat+0x260f/0x2ce0 fs/namei.c:4134
+ do_filp_open+0x1f6/0x430 fs/namei.c:4161
+ do_sys_openat2+0x117/0x1c0 fs/open.c:1437
+ ...
 
-  ocfs2_xattr_set()
-    ocfs2_start_trans()
-    ocfs2_xattr_ibody_set()
-      down_write(&oi->ip_alloc_sem)
+[CAUSE]
+namevalue_size_xe() assumes that local entries contain an inline value
+no larger than OCFS2_XATTR_INLINE_SIZE. Existing xattr metadata
+validation only checks whether the value fits the storage region, and
+cached entries can reach lookup and bucket maintenance paths without a
+semantic check. A corrupt entry can therefore be passed to
+namevalue_size_xe().
 
-The xattr set path starts the merged transaction before the inode-body
-xattr helper acquires ip_alloc_sem, reversing the ip_alloc_sem ->
-transaction order used by the allocation and truncate paths.  The
-transaction merge in commit 85db90e77806 ("ocfs2/xattr: Merge xattr set
-transaction.") introduced this ordering.
+[FIX]
+Validate the local/value-size invariant in the existing flat and bucket
+metadata validators and before accepting matched entries or traversing
+bucket entries in paths that call namevalue_size_xe(). Return an OCFS2
+corruption error instead of firing the assertion.
 
-Fix it by acquiring ip_alloc_sem once in ocfs2_xattr_set(), before xattr
-preparation, allocation reservations and ocfs2_start_trans(), and removing
-the per-helper acquisition from ocfs2_xattr_ibody_find(),
-ocfs2_xattr_ibody_set() and ocfs2_xattr_create_index_block().  These
-helpers now assert via lockdep that the caller holds ip_alloc_sem.
-
-ocfs2_xattr_set_handle(), which only sets initial ACL or security xattrs
-on unpublished inodes inside the create transaction, takes ip_alloc_sem
-under a dedicated lockdep subclass so that the assertions hold without
-creating a transaction -> ip_alloc_sem cycle against the ip_alloc_sem ->
-transaction order.  The inode is unpublished, so the acquisition can never
-contend.
-
-This keeps the established ip_alloc_sem -> transaction order and makes the
-locking unconditional, so lockdep can verify a single plain ordering
-instead of conditional acquisitions.
-
-Link: https://lore.kernel.org/20260826112659.246574-1-joseph.qi@linux.alibaba.com
-Fixes: 85db90e77806 ("ocfs2/xattr: Merge xattr set transaction.")
-Signed-off-by: Joseph Qi <joseph.qi@linux.alibaba.com>
+Link: https://lore.kernel.org/20260806085012.2650042-1-gality369@gmail.com
+Signed-off-by: ZhengYuan Huang <gality369@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Cc: ZhengYuan Huang <gality369@gmail.com>
+Reviewed-by: Joseph Qi <joseph.qi@linux.alibaba.com>
 Cc: Mark Fasheh <mark@fasheh.com>
 Cc: Joel Becker <jlbec@evilplan.org>
 Cc: Junxiao Bi <junxiao.bi@oracle.com>
@@ -96,254 +105,150 @@ Cc: Jun Piao <piaojun@huawei.com>
 Cc: Heming Zhao <heming.zhao@suse.com>
 ---
 
- fs/ocfs2/xattr.c |   79 ++++++++++++++++++++++++++++++---------------
- 1 file changed, 53 insertions(+), 26 deletions(-)
+ fs/ocfs2/xattr.c |   53 +++++++++++++++++++++++++++++++++++++++------
+ 1 file changed, 46 insertions(+), 7 deletions(-)
 
---- a/fs/ocfs2/xattr.c~ocfs2-fix-deadlock-in-inline-data-truncate-transactions
+--- a/fs/ocfs2/xattr.c~ocfs2-reject-inconsistent-local-xattr-entries
 +++ a/fs/ocfs2/xattr.c
-@@ -2909,6 +2909,9 @@ static int ocfs2_xattr_has_space_inline(
-  *
-  * Find extended attribute in inode block and
-  * fill search info into struct ocfs2_xattr_search.
-+ *
-+ * The inline free-space check races with truncate and allocation, so
-+ * callers must hold ip_alloc_sem for writing.
-  */
- static int ocfs2_xattr_ibody_find(struct inode *inode,
- 				  int name_index,
-@@ -2920,13 +2923,13 @@ static int ocfs2_xattr_ibody_find(struct
- 	int ret;
- 	int has_space = 0;
+@@ -237,6 +237,21 @@ static int namevalue_size_xe(struct ocfs
+ 	return namevalue_size(xe->xe_name_len, value_len);
+ }
  
-+	lockdep_assert_held_write(&oi->ip_alloc_sem);
++static int ocfs2_validate_xattr_entry(struct super_block *sb, u64 blkno,
++				      struct ocfs2_xattr_entry *xe)
++{
++	u64 value_len = le64_to_cpu(xe->xe_value_size);
 +
- 	if (inode->i_sb->s_blocksize == OCFS2_MIN_BLOCKSIZE)
- 		return 0;
- 
- 	if (!(oi->ip_dyn_features & OCFS2_INLINE_XATTR_FL)) {
--		down_read(&oi->ip_alloc_sem);
- 		has_space = ocfs2_xattr_has_space_inline(inode, di);
--		up_read(&oi->ip_alloc_sem);
- 		if (!has_space)
- 			return 0;
- 	}
-@@ -3007,6 +3010,7 @@ out:
-  *
-  * Set, replace or remove an extended attribute into inode block.
-  *
-+ * Callers must hold ip_alloc_sem for writing.
-  */
- static int ocfs2_xattr_ibody_set(struct inode *inode,
- 				 struct ocfs2_xattr_info *xi,
-@@ -3017,16 +3021,17 @@ static int ocfs2_xattr_ibody_set(struct
- 	struct ocfs2_inode_info *oi = OCFS2_I(inode);
- 	struct ocfs2_xa_loc loc;
- 
-+	lockdep_assert_held_write(&oi->ip_alloc_sem);
++	if (value_len > OCFS2_XATTR_INLINE_SIZE &&
++	    ocfs2_xattr_is_local(xe))
++		return ocfs2_error(sb,
++				   "Invalid local xattr in block %llu: value size %llu\n",
++				   (unsigned long long)blkno,
++				   (unsigned long long)value_len);
 +
- 	if (inode->i_sb->s_blocksize == OCFS2_MIN_BLOCKSIZE)
- 		return -ENOSPC;
++	return 0;
++}
++
  
--	down_write(&oi->ip_alloc_sem);
- 	if (!(oi->ip_dyn_features & OCFS2_INLINE_XATTR_FL)) {
- 		ret = ocfs2_xattr_ibody_init(inode, xs->inode_bh, ctxt);
- 		if (ret) {
- 			if (ret != -ENOSPC)
- 				mlog_errno(ret);
--			goto out;
+ static int ocfs2_xattr_bucket_get_name_value(struct super_block *sb,
+ 					     struct ocfs2_xattr_header *xh,
+@@ -989,7 +1004,7 @@ static int ocfs2_validate_xattr_entries_
+ 	size_t entries_limit = region_size;
+ 	size_t nv_limit = region_size;
+ 	size_t max_entries;
+-	int i;
++	int i, ret;
+ 
+ 	if (region_size < sizeof(*xh))
+ 		return ocfs2_error(sb,
+@@ -1009,6 +1024,11 @@ static int ocfs2_validate_xattr_entries_
+ 		struct ocfs2_xattr_entry *xe = &xh->xh_entries[i];
+ 		size_t name_offset = le16_to_cpu(xe->xe_name_offset);
+ 		size_t value_offset;
++		u64 value_len = le64_to_cpu(xe->xe_value_size);
++
++		ret = ocfs2_validate_xattr_entry(sb, blkno, xe);
++		if (ret)
 +			return ret;
- 		}
- 	}
  
-@@ -3036,13 +3041,10 @@ static int ocfs2_xattr_ibody_set(struct
- 	if (ret) {
- 		if (ret != -ENOSPC)
- 			mlog_errno(ret);
--		goto out;
-+		return ret;
- 	}
- 	xs->here = loc.xl_entry;
+ 		if (name_offset > nv_limit ||
+ 		    xe->xe_name_len > nv_limit - name_offset)
+@@ -1023,8 +1043,7 @@ static int ocfs2_validate_xattr_entries_
+ 					   (unsigned long long)blkno, i);
  
--out:
--	up_write(&oi->ip_alloc_sem);
--
- 	return ret;
- }
+ 		if (ocfs2_xattr_is_local(xe)) {
+-			if (le64_to_cpu(xe->xe_value_size) >
+-			    nv_limit - value_offset)
++			if (value_len > nv_limit - value_offset)
+ 				return ocfs2_error(sb,
+ 						   "Invalid xattr in block %llu: entry %d value is out of bounds\n",
+ 						   (unsigned long long)blkno,
+@@ -1109,7 +1128,7 @@ static int ocfs2_validate_xattr_bucket(s
+ 	size_t entries_limit = sb->s_blocksize;
+ 	size_t nv_limit = sb->s_blocksize;
+ 	size_t max_entries;
+-	int i;
++	int i, ret;
  
-@@ -3687,6 +3689,18 @@ out:
- }
- 
- /*
-+ * ip_alloc_sem subclass for inodes being initialized before publication.
-+ * ocfs2_xattr_set_handle() runs inside the create transaction, so taking
-+ * ip_alloc_sem there adds a transaction -> ip_alloc_sem order that would
-+ * form a lockdep cycle with the ip_alloc_sem -> transaction order used
-+ * elsewhere, if not for this separate subclass.  The inode is unpublished
-+ * so the acquisition can never contend.
-+ */
-+enum {
-+	OCFS2_IP_ALLOC_SEM_UNPUBLISHED = 1,
-+};
+ 	if (region_size < sizeof(*xh))
+ 		return ocfs2_error(sb,
+@@ -1137,6 +1156,11 @@ static int ocfs2_validate_xattr_bucket(s
+ 		size_t block_off = name_offset >> sb->s_blocksize_bits;
+ 		size_t block_offset = name_offset % nv_limit;
+ 		size_t value_offset;
++		u64 value_len = le64_to_cpu(xe->xe_value_size);
 +
-+/*
-  * This helper is only for setting initial ACL or security xattrs on an inode
-  * that is still unpublished, unhashed, and unattached to a dentry.
-  * Ordinary xattr updates must use ocfs2_xattr_set().
-@@ -3747,6 +3761,13 @@ int ocfs2_xattr_set_handle(handle_t *han
- 	xis.inode_bh = xbs.inode_bh = di_bh;
- 	di = (struct ocfs2_dinode *)di_bh->b_data;
++		ret = ocfs2_validate_xattr_entry(sb, blkno, xe);
++		if (ret)
++			return ret;
  
-+	/*
-+	 * The inode is unpublished and cannot contend, but take the
-+	 * semaphore anyway so the helpers' lockdep assertions hold.
-+	 */
-+	down_write_nested(&OCFS2_I(inode)->ip_alloc_sem,
-+			  OCFS2_IP_ALLOC_SEM_UNPUBLISHED);
-+
- 	ret = ocfs2_xattr_ibody_find(inode, name_index, name, &xis);
- 	if (ret)
- 		goto cleanup;
-@@ -3759,6 +3780,7 @@ int ocfs2_xattr_set_handle(handle_t *han
- 	ret = __ocfs2_xattr_set_handle(inode, di, &xi, &xis, &xbs, &ctxt);
+ 		if (name_offset >= region_size || block_off >= bucket->bu_blocks)
+ 			return ocfs2_error(sb,
+@@ -1155,8 +1179,7 @@ static int ocfs2_validate_xattr_bucket(s
+ 					   (unsigned long long)blkno, i);
  
- cleanup:
-+	up_write(&OCFS2_I(inode)->ip_alloc_sem);
- 	brelse(xbs.xattr_bh);
- 	ocfs2_xattr_bucket_free(xbs.bucket);
+ 		if (ocfs2_xattr_is_local(xe)) {
+-			if (le64_to_cpu(xe->xe_value_size) >
+-			    nv_limit - value_offset)
++			if (value_len > nv_limit - value_offset)
+ 				return ocfs2_error(sb,
+ 						   "Invalid xattr bucket %llu: entry %d value is out of bounds\n",
+ 						   (unsigned long long)blkno,
+@@ -1304,7 +1327,7 @@ static int ocfs2_xattr_find_entry(struct
+ {
+ 	struct ocfs2_xattr_entry *entry;
+ 	size_t name_len;
+-	int i, name_offset, cmp = 1;
++	int i, name_offset, cmp = 1, ret;
  
-@@ -3828,29 +3850,37 @@ int ocfs2_xattr_set(struct inode *inode,
- 
- 	down_write(&OCFS2_I(inode)->ip_xattr_sem);
- 	/*
-+	 * The allocation and truncate paths take ip_alloc_sem before
-+	 * starting a transaction, so take it here before xattr
-+	 * preparation, allocation reservations and ocfs2_start_trans()
-+	 * to keep that order.  The xattr helpers below no longer take
-+	 * it themselves.
-+	 */
-+	down_write(&OCFS2_I(inode)->ip_alloc_sem);
-+	/*
- 	 * Scan inode and external block to find the same name
- 	 * extended attribute and collect search information.
- 	 */
- 	ret = ocfs2_xattr_ibody_find(inode, name_index, name, &xis);
- 	if (ret)
--		goto cleanup;
-+		goto out_free_ac;
- 	if (xis.not_found) {
- 		ret = ocfs2_xattr_block_find(inode, name_index, name, &xbs);
- 		if (ret)
--			goto cleanup;
-+			goto out_free_ac;
- 	}
- 
- 	if (xis.not_found && xbs.not_found) {
- 		ret = -ENODATA;
- 		if (flags & XATTR_REPLACE)
--			goto cleanup;
-+			goto out_free_ac;
- 		ret = 0;
- 		if (!value)
--			goto cleanup;
-+			goto out_free_ac;
- 	} else {
- 		ret = -EEXIST;
- 		if (flags & XATTR_CREATE)
--			goto cleanup;
-+			goto out_free_ac;
- 	}
- 
- 	/* Check whether the value is refcounted and do some preparation. */
-@@ -3861,7 +3891,7 @@ int ocfs2_xattr_set(struct inode *inode,
- 						   &ref_meta, &ref_credits);
- 		if (ret) {
- 			mlog_errno(ret);
--			goto cleanup;
-+			goto out_free_ac;
+ 	if (name == NULL)
+ 		return -EINVAL;
+@@ -1327,6 +1350,12 @@ static int ocfs2_xattr_find_entry(struct
+ 				return -EFSCORRUPTED;
+ 			}
+ 			cmp = memcmp(name, (xs->base + name_offset), name_len);
++			if (!cmp) {
++				ret = ocfs2_validate_xattr_entry(inode->i_sb,
++								 OCFS2_I(inode)->ip_blkno, entry);
++				if (ret)
++					return ret;
++			}
  		}
- 	}
+ 		if (cmp == 0)
+ 			break;
+@@ -4068,6 +4097,10 @@ static int ocfs2_find_xe_in_bucket(struc
  
-@@ -3872,7 +3902,7 @@ int ocfs2_xattr_set(struct inode *inode,
- 		if (ret < 0) {
- 			inode_unlock(tl_inode);
- 			mlog_errno(ret);
--			goto cleanup;
-+			goto out_free_ac;
- 		}
- 	}
- 	inode_unlock(tl_inode);
-@@ -3881,7 +3911,7 @@ int ocfs2_xattr_set(struct inode *inode,
- 					&xbs, &ctxt, ref_meta, &credits);
- 	if (ret) {
- 		mlog_errno(ret);
--		goto cleanup;
-+		goto out_free_ac;
- 	}
+ 		xe_name = bucket_block(bucket, block_off) + new_offset;
+ 		if (!memcmp(name, xe_name, name_len)) {
++			ret = ocfs2_validate_xattr_entry(inode->i_sb,
++							 OCFS2_I(inode)->ip_blkno, xe);
++			if (ret)
++				break;
+ 			*xe_index = i;
+ 			*found = 1;
+ 			ret = 0;
+@@ -4705,6 +4738,9 @@ static int ocfs2_defrag_xattr_bucket(str
+ 	xe = xh->xh_entries;
+ 	end = OCFS2_XATTR_BUCKET_SIZE;
+ 	for (i = 0; i < le16_to_cpu(xh->xh_count); i++, xe++) {
++		ret = ocfs2_validate_xattr_entry(inode->i_sb, blkno, xe);
++		if (ret)
++			goto out;
+ 		offset = le16_to_cpu(xe->xe_name_offset);
+ 		len = namevalue_size_xe(xe);
  
- 	/* we need to update inode's ctime field, so add credit for it. */
-@@ -3899,6 +3929,7 @@ int ocfs2_xattr_set(struct inode *inode,
- 	ocfs2_commit_trans(osb, ctxt.handle);
- 
- out_free_ac:
-+	up_write(&OCFS2_I(inode)->ip_alloc_sem);
- 	if (ctxt.data_ac)
- 		ocfs2_free_alloc_context(ctxt.data_ac);
- 	if (ctxt.meta_ac)
-@@ -3907,7 +3938,6 @@ out_free_ac:
- 		ocfs2_schedule_truncate_log_flush(osb, 1);
- 	ocfs2_run_deallocs(osb, &ctxt.dealloc);
- 
--cleanup:
- 	if (ref_tree)
- 		ocfs2_unlock_refcount_tree(osb, ref_tree, 1);
- 	up_write(&OCFS2_I(inode)->ip_xattr_sem);
-@@ -4508,6 +4538,10 @@ static void ocfs2_xattr_update_xattr_sea
- 	xs->here = &xs->header->xh_entries[i];
- }
- 
-+/*
-+ * Caller must hold ip_alloc_sem for writing, since a new xattr block
-+ * is allocated and the xattr block header is rewritten.
-+ */
- static int ocfs2_xattr_create_index_block(struct inode *inode,
- 					  struct ocfs2_xattr_search *xs,
- 					  struct ocfs2_xattr_set_ctxt *ctxt)
-@@ -4523,19 +4557,14 @@ static int ocfs2_xattr_create_index_bloc
- 	struct ocfs2_xattr_tree_root *xr;
- 	u16 xb_flags = le16_to_cpu(xb->xb_flags);
- 
-+	lockdep_assert_held_write(&oi->ip_alloc_sem);
-+
- 	trace_ocfs2_xattr_create_index_block_begin(
- 				(unsigned long long)xb_bh->b_blocknr);
- 
- 	BUG_ON(xb_flags & OCFS2_XATTR_INDEXED);
- 	BUG_ON(!xs->bucket);
- 
--	/*
--	 * XXX:
--	 * We can use this lock for now, and maybe move to a dedicated mutex
--	 * if performance becomes a problem later.
--	 */
--	down_write(&oi->ip_alloc_sem);
--
- 	ret = ocfs2_journal_access_xb(handle, INODE_CACHE(inode), xb_bh,
- 				      OCFS2_JOURNAL_ACCESS_WRITE);
- 	if (ret) {
-@@ -4597,8 +4626,6 @@ static int ocfs2_xattr_create_index_bloc
- 	ocfs2_journal_dirty(handle, xb_bh);
- 
- out:
--	up_write(&oi->ip_alloc_sem);
--
- 	return ret;
- }
- 
+@@ -4987,6 +5023,9 @@ static int ocfs2_divide_xattr_bucket(str
+ 	name_value_len = 0;
+ 	for (i = 0; i < start; i++) {
+ 		xe = &xh->xh_entries[i];
++		ret = ocfs2_validate_xattr_entry(inode->i_sb, blk, xe);
++		if (ret)
++			goto out;
+ 		name_value_len += namevalue_size_xe(xe);
+ 		if (le16_to_cpu(xe->xe_name_offset) < name_offset)
+ 			name_offset = le16_to_cpu(xe->xe_name_offset);
 _
 
-Patches currently in -mm which might be from joseph.qi@linux.alibaba.com are
+Patches currently in -mm which might be from gality369@gmail.com are
 
-ocfs2-retain-all-security-xattrs-during-inode-creation.patch
-ocfs2-restore-erange-check-in-ocfs2_xattr_tree_list_index_block.patch
-ocfs2-fix-possible-deadlock-between-nfs_sync_rwlock-and-fs_reclaim.patch
 
