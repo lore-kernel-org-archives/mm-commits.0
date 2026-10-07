@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6476033F36D;
-	Wed,  7 Oct 2026 02:04:49 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C0727356A38;
+	Wed,  7 Oct 2026 02:04:50 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791338690; cv=none; b=FqIF/G8DV+I/IMaV9nMS+ZxvFrvkcH6TK8OLa44JM9HkTm+0vZbkS5u4BYbdTF8aoEX4EI5Sv2afRGfBbrzr8jy2DWBD289LBaU9fRLuivMTIGv7Vid8QyLDRJlFhCG4ZFRCI8wFqA+Z08+XZ53RKg/Vgcy3Ca2XWk/X2E3OYXM=
+	t=1791338691; cv=none; b=W7GV9vozx0E784tHnw0yuvUfeT8WjpG/kTe7+FOGS/DJXDbdhlg/+xLvGU31ku/EMXEcB0omfAuIOyR3FZH+NobyzMODigUAjhLAaBrMJIWm8wDgHCgtlyzGHV+Cq2jE7H0kYm/8Ax5aJ3iTpJShC7S/NzSfW8PHJhxt33uAD4M=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791338690; c=relaxed/simple;
-	bh=knLzUsjpfq6PBzDzcOIU4qNbXdB02Hxt29bRt23EJfo=;
-	h=Date:To:From:Subject:Message-Id; b=GbwD96PwKzXRDb91LokjMr9KixP/Nu0G6vKdUvC7/M6UJTBZX5I736lnV7p+yG642HCROuFwwDXC7ohuPUQFgKxVJtRY7h7nL1H2AOoH8xbWH50KxbhnOaw1+10kTW1cRVsfSAu/JBY1s/1d3gleOyOWT/ZGPb9jWHUmp3ZE8Qg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=KBZ+fquI; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1791338691; c=relaxed/simple;
+	bh=z7DymRIAzepgxBKMSbeAjkdZQDsXnzIJXeiPO5x+H9Q=;
+	h=Date:To:From:Subject:Message-Id; b=kPuS2Q+Whl/zmBYejK8rubWwHIKLDlLqbvSelhl7eidr0hKQB3rY2OgxwdSK165UXFo33DHV78jBGLeKgvJ1qi5lFuCrMhHK2s/eL9y7E5datuKqpe6dWd0ho8Ox424aIHElPv99T0XPYJWogBk6CuN3t2QvY5nZrkSdqRj1lEE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=OIBkGFR8; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="KBZ+fquI"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3A8241F0089B;
-	Wed,  7 Oct 2026 02:04:49 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="OIBkGFR8"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5D1761F0089C;
+	Wed,  7 Oct 2026 02:04:50 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1791338689;
-	bh=Xz2543Re/MvMVoyaytolaIDHeo1yY7vhMyfS/R5+Tkc=;
+	d=linux-foundation.org; s=korg; t=1791338690;
+	bh=dIblRx55xfVh/ae/uhnH8tbE7cCWQ32taKkXA4sBx0c=;
 	h=Date:To:From:Subject;
-	b=KBZ+fquILUuR2+nS7yYadHKL3UDeOIuA2TokbdG04aOyqhaF/EULzUwMF8i7t6d5H
-	 F1wrAYRZ4pGusTuEzcXm8TcrnoUUXIDUkHbr2yG4+RttCCHTgsJuSlS38xrstXPUN3
-	 VRUb4bk81bz/Kx3KlGqE1GrNUUUUTT0HtzPTPfWE=
-Date: Tue, 06 Oct 2026 19:04:48 -0700
-To: mm-commits@vger.kernel.org,tangzw515@gmail.com,stable@vger.kernel.org,piaojun@huawei.com,mark@fasheh.com,junxiao.bi@oracle.com,jlbec@evilplan.org,heming.zhao@suse.com,gechangwei@live.cn,joseph.qi@linux.alibaba.com,akpm@linux-foundation.org
+	b=OIBkGFR8IR1khCjZbArdZvyPWsZ9UXQhjaX3FPuL/xyDmHzkE7f9lV+W0j6/XAx1h
+	 Xm68Z2LmEJHtsCp85RndfbRxSPO9qcmjJ9vBDwpOTdJcaasJjSDNFvcsnyAX7ytAdN
+	 f4io0tQd6u3SyQ0oteom3XCgXlF8gIhmiLiUzDnQ=
+Date: Tue, 06 Oct 2026 19:04:49 -0700
+To: mm-commits@vger.kernel.org,stable@vger.kernel.org,richard120310@gmail.com,handyhandyman.adam@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] ocfs2-skip-uninitialized-lockres-in-ocfs2_mark_lockres_freeing.patch removed from -mm tree
-Message-Id: <20261007020449.3A8241F0089B@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] lib-plist-fix-plist_requeue-corrupting-order-in-the-last-bucket.patch removed from -mm tree
+Message-Id: <20261007020450.5D1761F0089C@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,71 +35,100 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: ocfs2: skip uninitialized lockres in ocfs2_mark_lockres_freeing()
+     Subject: lib/plist: fix plist_requeue() corrupting order in the last bucket
 has been removed from the -mm tree.  Its filename was
-     ocfs2-skip-uninitialized-lockres-in-ocfs2_mark_lockres_freeing.patch
+     lib-plist-fix-plist_requeue-corrupting-order-in-the-last-bucket.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Joseph Qi <joseph.qi@linux.alibaba.com>
-Subject: ocfs2: skip uninitialized lockres in ocfs2_mark_lockres_freeing()
-Date: Thu, 3 Sep 2026 18:47:44 +0800
+From: Adam Harshbarger <handyhandyman.adam@gmail.com>
+Subject: lib/plist: fix plist_requeue() corrupting order in the last bucket
+Date: Thu, 3 Sep 2026 17:24:56 -0500
 
-A hard readonly mount skips ocfs2_dlm_init(), so the per-osb lock
-resources are never initialized and osb->cconn stays NULL.  Before commit
-550842cc60987 ("ocfs2: fix freeing uninitialized resource on
-ocfs2_dlm_shutdown") ocfs2_dismount_volume() only called
-ocfs2_dlm_shutdown() when osb->cconn was set.  It now calls it
-unconditionally, so unmounting a hard readonly mount drops the osb locks
-and takes the never initialized l_lock in ocfs2_mark_lockres_freeing(). 
-With lockdep enabled this triggers:
+plist_requeue() is meant to move a node to the end of its own priority
+run.  When the node heads the *last* priority bucket it is instead placed
+at the head of the whole list, leaving the plist unsorted:
 
-INFO: trying to register non-static key.  The code is fine but needs
-lockdep annotation, or maybe you didn't initialize this object before use?
-turning off the locking correctness validator.
+  built:      A(prio 0) B(prio 1) C(prio 1)
+  requeue(B): B(prio 1) A(prio 0) C(prio 1)
+  expected:   A(prio 0) C(prio 1) B(prio 1)
 
-ocfs2_drop_lock() and ocfs2_lock_res_free() already skip lock resources
-without OCFS2_LOCK_INITIALIZED.  Add the same check to
-ocfs2_mark_lockres_freeing(), which is reachable before them through
-ocfs2_simple_drop_lockres(), so an uninitialized lockres is never touched.
+prio_list is a *headless* circular ring of the nodes that lead each
+priority bucket.  The shortcut added by commit 95d4b3450ebe ("lib/plist.c:
+add shortcut for plist_requeue()") takes
 
-Link: https://lore.kernel.org/20260903104744.2164235-1-joseph.qi@linux.alibaba.com
-Fixes: 550842cc6098 ("ocfs2: fix freeing uninitialized resource on ocfs2_dlm_shutdown")
-Signed-off-by: Joseph Qi <joseph.qi@linux.alibaba.com>
+	iter = list_entry(iter->prio_list.next, struct plist_node,
+			  prio_list);
+	node_next = &iter->node_list;
+
+which from the last bucket wraps round to the *first* bucket, so node_next
+ends up pointing at the head of the list rather than at its end.  The
+plist_for_each_continue() loop immediately below it computes the correct
+answer (&head->node_list) for that case.
+
+With any bucket after it the shortcut is correct, which is why this went
+unnoticed: the benchmark in that commit measured elapsed time and never
+checked the resulting order.
+
+Keep the shortcut -- it is a real win -- but exclude the case where iter's
+bucket is the last one, which is exactly when its ring successor is the
+first bucket again.
+
+Reachable from mm/swapfile.c, which rotates swap_avail_heads[] with
+plist_requeue().  It takes three or more swap devices: at least two
+distinct priorities, so that a later bucket exists for the ring to wrap
+round from, and two or more devices sharing the lowest priority, so that
+plist_requeue() does not return early.  One device per priority returns
+early at the node->prio != iter->prio test.  A single priority is also
+safe, but for a different reason worth stating: with one bucket no node is
+ever linked onto prio_list at all -- plist_add() skips it for the first
+node and for every node whose predecessor shares its priority -- so
+list_empty(&iter->prio_list) holds and the shortcut is never entered.
+
+Tested by driving three implementations -- the pre-95d4b3450ebe code,
+current mainline, and this patch -- through 1,084,492 identical random
+add/del/requeue operations over 24 nodes and 1..5 distinct priorities,
+comparing the resulting node_list node for node after every operation:
+
+  variant             differs from pre-95d4b3450ebe  left list unsorted
+  pre-95d4b3450ebe    -- (reference)                                  0
+  mainline                                  289,297             276,660
+  this patch                                      0                   0
+
+Link: https://lore.kernel.org/20260903222456.1881786-1-handyhandyman.adam@gmail.com
+Fixes: 95d4b3450ebe ("lib/plist.c: add shortcut for plist_requeue()")
+Signed-off-by: Adam Harshbarger <handyhandyman.adam@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Reported-by: ZW Tang <tangzw515@gmail.com>
-Cc: Mark Fasheh <mark@fasheh.com>
-Cc: Joel Becker <jlbec@evilplan.org>
-Cc: Junxiao Bi <junxiao.bi@oracle.com>
-Cc: Changwei Ge <gechangwei@live.cn>
-Cc: Jun Piao <piaojun@huawei.com>
-Cc: Heming Zhao <heming.zhao@suse.com>
-Cc: <stable@vger.kernel.org>
+Assisted-by: Claude:claude-opus-5
+Cc: I Hsin Cheng <richard120310@gmail.com>
+Cc: <stable@vger.kernel.org> # v6.15+
 ---
 
- fs/ocfs2/dlmglue.c |    4 ++++
- 1 file changed, 4 insertions(+)
+ lib/plist.c |    7 +++++++
+ 1 file changed, 7 insertions(+)
 
---- a/fs/ocfs2/dlmglue.c~ocfs2-skip-uninitialized-lockres-in-ocfs2_mark_lockres_freeing
-+++ a/fs/ocfs2/dlmglue.c
-@@ -3525,6 +3525,10 @@ void ocfs2_mark_lockres_freeing(struct o
- 	struct ocfs2_mask_waiter mw;
- 	unsigned long flags, flags2;
- 
-+	/* We didn't get anywhere near actually using this lockres. */
-+	if (!(lockres->l_flags & OCFS2_LOCK_INITIALIZED))
-+		return;
+--- a/lib/plist.c~lib-plist-fix-plist_requeue-corrupting-order-in-the-last-bucket
++++ a/lib/plist.c
+@@ -174,8 +174,15 @@ void plist_requeue(struct plist_node *no
+ 	/*
+ 	 * After plist_del(), iter is the replacement of the node.  If the node
+ 	 * was on prio_list, take shortcut to find node_next instead of looping.
++	 *
++	 * prio_list is a headless ring, so from the LAST bucket ->next wraps
++	 * round to the first one; in that case node_next is the list head.
+ 	 */
+ 	if (!list_empty(&iter->prio_list)) {
++		struct plist_node *first = plist_first(head);
 +
- 	ocfs2_init_mask_waiter(&mw);
- 
- 	spin_lock_irqsave(&lockres->l_lock, flags);
++		if (iter->prio_list.next == &first->prio_list)
++			goto queue;
+ 		iter = list_entry(iter->prio_list.next, struct plist_node,
+ 				  prio_list);
+ 		node_next = &iter->node_list;
 _
 
-Patches currently in -mm which might be from joseph.qi@linux.alibaba.com are
+Patches currently in -mm which might be from handyhandyman.adam@gmail.com are
 
-ocfs2-retain-all-security-xattrs-during-inode-creation.patch
-ocfs2-restore-erange-check-in-ocfs2_xattr_tree_list_index_block.patch
-ocfs2-fix-possible-deadlock-between-nfs_sync_rwlock-and-fs_reclaim.patch
 
