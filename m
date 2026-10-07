@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6AF88356766
-	for <mm-commits@vger.kernel.org>; Wed,  7 Oct 2026 02:04:47 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7DFDA351C22
+	for <mm-commits@vger.kernel.org>; Wed,  7 Oct 2026 02:04:48 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791338688; cv=none; b=ZIY/P+KX7x9KjixdOaBywpxlFS+aLbsG4x4wRjh+ZC8hzNCRuFuiWDY2r6aSfBLZ2s6lyUkm9ix90zfEOxMNk4D0lUIlP62K/lXuRRix2GnDqFdbRvyafID7H6A1BJooD3x6JW35k4dVTRJgcu2tKtNUXaw/VeQMlD4lCo7XkjY=
+	t=1791338689; cv=none; b=CgzZ8Yfo9vy9syCHGkFX5DdhPFa5Yys+eXwGdHuWmGCrwrEwKZOmMx2kFOzl17mrc0RnIsGC11h8CPyaZJ9V1UkOyeJYXko8Bwk7W9MH6px0GewGsZSBgWfYch/8X2uWZQWGdmbW8yTYo3ivlEkeAog6SpyzaOXkEl9OcnmQmB8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791338688; c=relaxed/simple;
-	bh=ZSW+a5jDdC3sZhe1h0RMvwtmyMm7T8L1O099baPZP1s=;
-	h=Date:To:From:Subject:Message-Id; b=og2aduL5TiPmJWT1Eqh7IDkqnMHIteqyIDkqMKEaOmSwjeVgTr4o/oQfyb30xA4pXHs4tysjM1qf6I4gNTLvlSVJ+btrP+nCml8kFJZ41SLxfHZPvx06dfqlS+VB6B2Nvbht75h6lCKVwECq2ARxSoSM1FaQC0rGvEH0AyI9ZJ8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=KGCa3ElS; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1791338689; c=relaxed/simple;
+	bh=7jB4NkguNTqU0l1XZuPU0lTjZjK2SDkJ8mUZpE3Sbzc=;
+	h=Date:To:From:Subject:Message-Id; b=SOCsyAQIyuDDMlURrFytKiLc+qtfJuT9uocn5VQHhxdQtToBdbx6uu4LMmQhYhWPwJc3AThswV3snRrHdHBdud7BiodRCTiNUgJXsE3cn2fv8yyfGgQm+gQ6ukpWNuKK7oKdXzZRZ+ZnC0KoiBZqxzudRwikhj1j8n059pjjuBE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=zcEwBbPZ; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="KGCa3ElS"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D8CBE1F0089B;
-	Wed,  7 Oct 2026 02:04:46 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="zcEwBbPZ"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1065D1F0089C;
+	Wed,  7 Oct 2026 02:04:48 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1791338687;
-	bh=k7ZgKpErLqfbRWR5O7PwRMRD7/AWOxYAwfOLfFYUXU8=;
+	d=linux-foundation.org; s=korg; t=1791338688;
+	bh=ibRHEcQFNd/k+DsqiWpKvTOviy00kYyEher6iKJTIDc=;
 	h=Date:To:From:Subject;
-	b=KGCa3ElSndleq+1lUF98MxKdPzbTCh2j5rv56nf/8RylzL4uYG069uE8ncGawtQg8
-	 spqsWSyCPdupdgAq+LdUwaXNJxSP3KEOdztu9FkrWTZ0CNa7fsbMsKOtHOYVTWmCUd
-	 qA/JBd1fnsgcOt7gyJJW3qg7UAJutUNRAw9D8G6I=
-Date: Tue, 06 Oct 2026 19:04:46 -0700
-To: mm-commits@vger.kernel.org,piaojun@huawei.com,mark@fasheh.com,junxiao.bi@oracle.com,jlbec@evilplan.org,heming.zhao@suse.com,gechangwei@live.cn,joseph.qi@linux.alibaba.com,akpm@linux-foundation.org
+	b=zcEwBbPZ7iPqgTd9hOC3xAOeJKEXv9wqsiSqNQFj9YYhMo+aa4aq+IAhSbsYyZoYE
+	 A9idCFX5YebsBQ0cD3VbmCGQxNmSYOe7YApGhLds8V4Ix6JSH+lm3T+2pqiR+NQJ6w
+	 TL+HOT3i6FQMKRlrWF97beJvpyQMku7vFjleuXDo=
+Date: Tue, 06 Oct 2026 19:04:47 -0700
+To: mm-commits@vger.kernel.org,hirofumi@mail.parknet.co.jp,hengyul@cs.unc.edu,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] ocfs2-reject-inconsistent-xattr-bucket-during-defrag.patch removed from -mm tree
-Message-Id: <20261007020446.D8CBE1F0089B@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] fat-calculate-data-area-start-without-overflow.patch removed from -mm tree
+Message-Id: <20261007020448.1065D1F0089C@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,81 +35,184 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: ocfs2: reject inconsistent xattr bucket during defrag
+     Subject: fat: calculate data area start without overflow
 has been removed from the -mm tree.  Its filename was
-     ocfs2-reject-inconsistent-xattr-bucket-during-defrag.patch
+     fat-calculate-data-area-start-without-overflow.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Joseph Qi <joseph.qi@linux.alibaba.com>
-Subject: ocfs2: reject inconsistent xattr bucket during defrag
-Date: Thu, 3 Sep 2026 21:13:13 +0800
+From: Hengyu Liang <hengyul@cs.unc.edu>
+Subject: fat: calculate data area start without overflow
+Date: Wed, 2 Sep 2026 13:01:15 -0400
 
-ocfs2_defrag_xattr_bucket() has two mlog_bug_on_msg() checks that assume
-the name/value pairs in a bucket are disjoint and that xh_free_start is
-not below the compacted region.
+On 32-bit architectures, sbi->fat_length, sbi->dir_start and
+sbi->data_start are unsigned long.  The number of FATs is an 8-bit BPB
+field, while the FAT32 length is a 32-bit BPB field.  Therefore, the
+calculation
 
-ocfs2_validate_xattr_bucket() only checks each entry in isolation, so a
-corrupt bucket holding overlapping entries, or one with an inflated
-xh_free_start, passes validation and then hits BUG() in defrag when a
-setxattr triggers it.
+    sbi->fat_start + sbi->fats * sbi->fat_length
 
-Defrag works on a linear copy of the bucket and does not touch the real
-blocks before the copy back, so the checks can return an error instead of
-calling BUG().
+can wrap before data_start is checked against total_sectors.
 
-Link: https://lore.kernel.org/20260903131313.2396208-3-joseph.qi@linux.alibaba.com
-Fixes: 012255961c9e ("ocfs2: Enable xattr set in index btree")
-Signed-off-by: Joseph Qi <joseph.qi@linux.alibaba.com>
+For example, with fat_start=32, fats=2 and fat_length=0x80000001, the
+unwrapped data area start is 0x100000022 (4294967330), but the calculation
+wraps to 34 on i386.  With total_sectors=36, the validation then
+incorrectly passes.
+
+The following script creates an image that demonstrates the problem:
+
+    python3 - <<'PY'
+    import struct
+
+    S = 512
+    b = bytearray(36 * S)
+
+    def p(off, fmt, value):
+        struct.pack_into(fmt, b, off, value)
+
+    # FAT32 BPB
+    b[0:3] = b'\xeb\x58\x90'
+    b[3:11] = b'MSWIN4.1'
+    p(11, '<H', 512)
+    b[13] = 1
+    p(14, '<H', 32)             # reserved sectors
+    b[16] = 2                   # number of FATs
+    p(17, '<H', 0)
+    p(19, '<H', 0)
+    b[21] = 0xf8
+    p(22, '<H', 0)
+    p(24, '<H', 1)
+    p(26, '<H', 1)
+    p(32, '<I', 36)             # total sectors
+    p(36, '<I', 0x80000001)     # FAT32 length
+    p(44, '<I', 2)              # root cluster
+    p(48, '<H', 1)              # FSINFO sector
+    b[64] = 0x80
+    b[66] = 0x29
+    p(67, '<I', 0x12345678)
+    b[71:82] = b'OVERFLOW   '
+    b[82:90] = b'FAT32   '
+    b[510:512] = b'\x55\xaa'
+
+    # FSINFO
+    p(S, '<I', 0x41615252)
+    p(S + 484, '<I', 0x61417272)
+    p(S + 488, '<I', 0xffffffff)
+    p(S + 492, '<I', 0xffffffff)
+
+    # Wrapped FAT starts at sector 32
+    fat = 32 * S
+    p(fat + 8, '<I', 0x0fffffff)   # FAT[2]
+    p(fat + 12, '<I', 0x0fffffff)  # FAT[3]
+
+    # Wrapped data_start == 34
+    root = 34 * S
+    b[root:root + 11] = b'ESCAPE  TXT'
+    b[root + 11] = 0x20
+    p(root + 26, '<H', 3)
+    p(root + 28, '<I', 4)
+    b[35 * S:35 * S + 4] = b'OOB!'
+
+    open('fat-overflow.img', 'wb').write(b)
+    PY
+
+Attach fat-overflow.img as /dev/sdb and run:
+
+    mount -t vfat -o ro /dev/sdb /mnt
+    cat /mnt/ESCAPE.TXT
+
+On an unpatched i386 kernel, the mount succeeds and reading the file
+returns:
+
+    OOB!
+
+On an x86-64 kernel and on a patched i386 kernel, mounting is rejected
+with:
+
+    mount: mounting /dev/sdb on /mnt failed: Invalid argument
+
+Calculate dir_start and data_start in u32 using check_mul_overflow() and
+check_add_overflow().  Since total_sectors is also a u32 value, any result
+that overflows u32 cannot describe a valid volume.  Reject such layouts
+before storing the values in the existing unsigned long fields.  The
+existing total_sectors check handles values that fit in u32 but still lie
+beyond the volume.
+
+Link: https://lore.kernel.org/20260902170115.4162222-1-hengyul@cs.unc.edu
+Signed-off-by: Hengyu Liang <hengyul@cs.unc.edu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Cc: Changwei Ge <gechangwei@live.cn>
-Cc: Heming Zhao <heming.zhao@suse.com>
-Cc: Joel Becker <jlbec@evilplan.org>
-Cc: Jun Piao <piaojun@huawei.com>
-Cc: Junxiao Bi <junxiao.bi@oracle.com>
-Cc: Mark Fasheh <mark@fasheh.com>
+Acked-by: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
 ---
 
- fs/ocfs2/xattr.c |   16 +++++++++++-----
- 1 file changed, 11 insertions(+), 5 deletions(-)
+ fs/fat/inode.c |   23 +++++++++++++++++------
+ 1 file changed, 17 insertions(+), 6 deletions(-)
 
---- a/fs/ocfs2/xattr.c~ocfs2-reject-inconsistent-xattr-bucket-during-defrag
-+++ a/fs/ocfs2/xattr.c
-@@ -4801,16 +4801,22 @@ static int ocfs2_defrag_xattr_bucket(str
- 			memmove(bucket_buf + end - len,
- 				bucket_buf + offset, len);
- 			xe->xe_name_offset = cpu_to_le16(end - len);
-+		} else if (end < offset + len) {
-+			ret = ocfs2_error(inode->i_sb,
-+					  "Defrag check failed for bucket %llu\n",
-+					  (unsigned long long)blkno);
-+			goto out;
- 		}
+--- a/fs/fat/inode.c~fat-calculate-data-area-start-without-overflow
++++ a/fs/fat/inode.c
+@@ -20,6 +20,7 @@
+ #include <linux/blkdev.h>
+ #include <linux/backing-dev.h>
+ #include <linux/unaligned.h>
++#include <linux/overflow.h>
+ #include <linux/random.h>
+ #include <linux/iversion.h>
+ #include <linux/fs_struct.h>
+@@ -1577,6 +1578,7 @@ int fat_fill_super(struct super_block *s
+ 	struct msdos_sb_info *sbi;
+ 	u16 logical_sector_size;
+ 	u32 total_sectors, total_clusters, fat_clusters, rootdir_sectors;
++	u32 dir_start, data_start;
+ 	long error;
+ 	char buf[50];
+ 	struct timespec64 ts;
+@@ -1752,7 +1754,6 @@ int fat_fill_super(struct super_block *s
+ 	sbi->dir_per_block = sb->s_blocksize / sizeof(struct msdos_dir_entry);
+ 	sbi->dir_per_block_bits = ffs(sbi->dir_per_block) - 1;
  
--		mlog_bug_on_msg(end < offset + len, "Defrag check failed for "
--				"bucket %llu\n", (unsigned long long)blkno);
--
- 		end -= len;
+-	sbi->dir_start = sbi->fat_start + sbi->fats * sbi->fat_length;
+ 	sbi->dir_entries = bpb.fat_dir_entries;
+ 	if (sbi->dir_entries & (sbi->dir_per_block - 1)) {
+ 		if (!silent)
+@@ -1763,20 +1764,30 @@ int fat_fill_super(struct super_block *s
+ 
+ 	rootdir_sectors = sbi->dir_entries
+ 		* sizeof(struct msdos_dir_entry) / sb->s_blocksize;
+-	sbi->data_start = sbi->dir_start + rootdir_sectors;
++	if (check_mul_overflow(sbi->fats, sbi->fat_length, &dir_start) ||
++	    check_add_overflow(sbi->fat_start, dir_start, &dir_start) ||
++	    check_add_overflow(dir_start, rootdir_sectors, &data_start)) {
++		if (!silent)
++			fat_msg(sb, KERN_ERR,
++				"overflow of root dir or data layout");
++		goto out_invalid;
++	}
++
+ 	total_sectors = bpb.fat_sectors;
+ 	if (total_sectors == 0)
+ 		total_sectors = bpb.fat_total_sect;
+ 
+-	if (total_sectors < sbi->data_start) {
++	if (total_sectors < data_start) {
+ 		if (!silent)
+ 			fat_msg(sb, KERN_ERR,
+-				"data area starts beyond volume (%lu > %u)",
+-				sbi->data_start, total_sectors);
++				"data area starts beyond volume (%u > %u)",
++				data_start, total_sectors);
+ 		goto out_invalid;
  	}
  
--	mlog_bug_on_msg(xh_free_start > end, "Defrag check failed for "
--			"bucket %llu\n", (unsigned long long)blkno);
-+	if (xh_free_start > end) {
-+		ret = ocfs2_error(inode->i_sb,
-+				  "Defrag check failed for bucket %llu\n",
-+				  (unsigned long long)blkno);
-+		goto out;
-+	}
+-	total_clusters = (total_sectors - sbi->data_start) / sbi->sec_per_clus;
++	sbi->dir_start = dir_start;
++	sbi->data_start = data_start;
++	total_clusters = (total_sectors - data_start) / sbi->sec_per_clus;
  
- 	if (xh_free_start == end)
- 		goto out;
+ 	if (!is_fat32(sbi))
+ 		sbi->fat_bits = (total_clusters > MAX_FAT12) ? 16 : 12;
 _
 
-Patches currently in -mm which might be from joseph.qi@linux.alibaba.com are
+Patches currently in -mm which might be from hengyul@cs.unc.edu are
 
-ocfs2-retain-all-security-xattrs-during-inode-creation.patch
-ocfs2-restore-erange-check-in-ocfs2_xattr_tree_list_index_block.patch
-ocfs2-fix-possible-deadlock-between-nfs_sync_rwlock-and-fs_reclaim.patch
 
