@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DC8BB34C130
-	for <mm-commits@vger.kernel.org>; Wed,  7 Oct 2026 02:04:16 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 513BC3515DA
+	for <mm-commits@vger.kernel.org>; Wed,  7 Oct 2026 02:04:18 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791338658; cv=none; b=uvVsLUcffK7EVhrU4TutLQ9dvKvyBwl0XyIwmReSZ5Sxg3U2ktWQRnbUE0UTPGFA30GU5GC30cmzzrlDIsSWu+uSz2x44i4PdU6/8dcsezmTdrbE52ZUqweRdWaevJZ9OsWT7v3EAyS/JW2n21mWXcXUWoLGiL38v3zhSXRFth8=
+	t=1791338659; cv=none; b=KdZihKU36FfPbJhVtOXY4YoNqM6cBA9ApKTU1A/Femq2bWskye1HwELXYlnwvRpWA3hqywlOVKPpf4CZe9BMnE3H2SbKQpWJbhNdMekJmvtItKEhrdpn8jNw6JXzOW/84x8BGVWmHYaekePnm4oIsBHzx4YqrA7hRci7l/LACUU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791338658; c=relaxed/simple;
-	bh=cNr1A28wjFQAYuJvR0u6HjhBx/xVs+zwsl1z8Yn4XH0=;
-	h=Date:To:From:Subject:Message-Id; b=u8OIf6ROFT5Qv/4mmwtniPuIbJ0iCkBnfzL+hKnt21T5EzMa84MXrlWG3tU6lwfTkk1vWmwWEyxCPBa4q5b/GwNAl6iyfhq3r/cPG0qemI3PMLoYr+zGsl8ftZ1sBzBCT5MauJnyhHpGiC0Nbp2BwC21RJqYOdH/XPvjdQEvTWc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=gcKf+Eit; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1791338659; c=relaxed/simple;
+	bh=IUgOw8rmoPwvR8wW8CkFqNGfSCbM4q39+SppNf2HHOA=;
+	h=Date:To:From:Subject:Message-Id; b=idpTv9sicLea7MqdjA3yRMEH+XIdAwlgKIuneeGUKZ6sdQd9y40fnPEOP3b0CdEmMws/8Pyy6dROstdLzFJYRvYOUwFi2myQi945sL9mPaFtuzpRTsxeQ/n2Uk/k258rgPcom9gIUdlcl6CzVU0/NPO6rAcd2huLLsxE2+Hy4mE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ZcRBxHVy; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="gcKf+Eit"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 58C1D1F0089B;
-	Wed,  7 Oct 2026 02:04:16 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ZcRBxHVy"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id DD3211F0089C;
+	Wed,  7 Oct 2026 02:04:17 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1791338656;
-	bh=K1hQvzGjfQHBCUpJM+O9+T1xIBwPRKdMAjuhR1HEfoo=;
+	d=linux-foundation.org; s=korg; t=1791338658;
+	bh=qJ3txw3fGGC0Yw+hXyjMpTf6szi4nlodfz5jQuisjQY=;
 	h=Date:To:From:Subject;
-	b=gcKf+EitSu64HyJigIMeiWLeldojr7PhXRMH6VKwjoi8pGRmeJbuVXaapPcLQlSLR
-	 Pr5CqqUNnEuIRKgwkp5zTH3tbuGJlfFvY1ct6Bkjc+rusSz0m6k7qD17REp1ED4Om2
-	 B+v4F2JfQBZWWuac8mK58YKYB9JV6E5ZUFxol0bk=
-Date: Tue, 06 Oct 2026 19:04:15 -0700
-To: mm-commits@vger.kernel.org,steve@abita.co,sean@ashe.io,pmladek@suse.com,nick.lange@gmail.com,neelx@suse.com,mproche@gmail.com,mhiramat@kernel.org,lance.yang@linux.dev,david.laight.linux@gmail.com,chjohnst@gmail.com,brads@mainlining.org,atomlin@atomlin.com,akpm@linux-foundation.org
+	b=ZcRBxHVyUt+4TsHd9iRObKDE/akkv8Ajub6QF7xYWJ66vChW6HX90sl1blev1qQYl
+	 jw/n0DhpJT6OIVPXkPGIs3g3pbERWvZBGb2SbSsGqCqx0lmydiz6BpW/MC1D8k5Rjv
+	 6RuYQsW5E7qtvtblHcynPHX29zUjsvAIFA2VRpzs=
+Date: Tue, 06 Oct 2026 19:04:17 -0700
+To: mm-commits@vger.kernel.org,hpa@zytor.com,david.laight.linux@gmail.com,zhanxusheng@xiaomi.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] hung_task-log-summary-line-when-warning-budget-is-exhausted.patch removed from -mm tree
-Message-Id: <20261007020416.58C1D1F0089B@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] minmaxh-update-the-stale-x-versus-ux-comment.patch removed from -mm tree
+Message-Id: <20261007020417.DD3211F0089C@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,74 +35,57 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: hung_task: log summary line when warning budget is exhausted
+     Subject: minmax.h: update the stale 'x' versus 'ux' comment
 has been removed from the -mm tree.  Its filename was
-     hung_task-log-summary-line-when-warning-budget-is-exhausted.patch
+     minmaxh-update-the-stale-x-versus-ux-comment.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Aaron Tomlin <atomlin@atomlin.com>
-Subject: hung_task: log summary line when warning budget is exhausted
-Date: Sun,  4 Oct 2026 12:36:10 -0400
+From: Zhan Xusheng <zhanxusheng@xiaomi.com>
+Subject: minmax.h: update the stale 'x' versus 'ux' comment
+Date: Mon, 17 Aug 2026 20:16:13 +0800
 
-Once the warning budget is exhausted, hung_task_info() normally stops
-printing per-task details. When panic is triggered, full details are
-still printed so diagnostics remain available before panic.
+Commit b280bb27a9f7 ("minmax.h: reduce the #define expansion of min(),
+max() and clamp()") made __sign_use(), __is_nonneg() and __types_ok() take
+only 'ux', and commit a5743f32baec ("minmax.h: use BUILD_BUG_ON_MSG() for
+the lo < hi test in clamp()") did the same for the clamp() limit test. 
+The comment describing the old split was added one patch earlier and was
+never updated.
 
-To retain visibility without restoring per-task output after budget
-exhaustion, emit a single aggregate summary line at the end of each
-watchdog scan that detects hung tasks with an exhausted budget. This
-keeps non-panic per-task reports budgeted during system-wide hangs.
+'ux' now carries the value check too, since __is_nonneg() tests it rather
+than the original expression, and nothing here looks at the value of 'x'
+any more: it is expanded only to initialise 'ux' and in the error message,
+as the first of those changes intended.
 
-Link: https://lore.kernel.org/20261004163610.413506-3-atomlin@atomlin.com
-Signed-off-by: Aaron Tomlin <atomlin@atomlin.com>
+Link: https://lore.kernel.org/20260817121613.3846511-1-zhanxusheng@xiaomi.com
+Signed-off-by: Zhan Xusheng <zhanxusheng@xiaomi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Suggested-by: Petr Mladek <pmladek@suse.com>
-Suggested-by: Lance Yang <lance.yang@linux.dev>
-Reviewed-by: Petr Mladek <pmladek@suse.com>
-Reviewed-by: Lance Yang <lance.yang@linux.dev>
-Reviewed-by: Bradley Morgan <brads@mainlining.org>
-Cc: Masami Hiramatsu <mhiramat@kernel.org>
 Cc: David Laight <david.laight.linux@gmail.com>
-Cc: Daniel Vacek <neelx@suse.com>
-Cc: Sean Ashe <sean@ashe.io>
-Cc: <chjohnst@gmail.com>
-Cc: <steve@abita.co>
-Cc: <mproche@gmail.com>
-Cc: <nick.lange@gmail.com>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
 ---
 
- kernel/hung_task.c |    8 ++++++--
- 1 file changed, 6 insertions(+), 2 deletions(-)
+ include/linux/minmax.h |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
---- a/kernel/hung_task.c~hung_task-log-summary-line-when-warning-budget-is-exhausted
-+++ a/kernel/hung_task.c
-@@ -276,8 +276,8 @@ static void hung_task_info(struct task_s
- 		sched_show_task(t);
- 		debug_show_blocker(t, timeout);
- 
--		if (!hung_task_warnings_budget)
--			pr_info("Future hung task reports are suppressed, see sysctl kernel.hung_task_warnings\n");
-+		if (!hung_task_warnings_budget && !hung_task_call_panic)
-+			pr_info("hung_task: further per-task details suppressed until warning budget is reset (see sysctl kernel.hung_task_warnings)\n");
- 	}
- 
- 	touch_nmi_watchdog();
-@@ -363,6 +363,10 @@ static void check_hung_uninterruptible_t
- 		return;
- 	}
- 
-+	if (!hung_task_warnings_budget && !hung_task_call_panic)
-+		pr_info("hung_task: %lu hung tasks detected, warning budget exhausted\n",
-+			this_round_count);
-+
- 	if (need_warning || hung_task_call_panic) {
- 		si_mask |= SYS_INFO_LOCKS;
- 
+--- a/include/linux/minmax.h~minmaxh-update-the-stale-x-versus-ux-comment
++++ a/include/linux/minmax.h
+@@ -38,9 +38,9 @@
+  * Note that 'x' is the original expression, and 'ux' is the unique variable
+  * that contains the value.
+  *
+- * We use 'ux' for pure type checking, and 'x' for when we need to look at the
+- * value (but without evaluating it for side effects!
+- * Careful to only ever evaluate it with sizeof() or __builtin_constant_p() etc).
++ * We use 'ux' for both the type and the value checks, so 'x' itself is only
++ * expanded twice: once to initialise 'ux', and once quoted in the error
++ * message.
+  *
+  * Pointers end up being checked by the normal C type rules at the actual
+  * comparison, and these expressions only need to be careful to not cause
 _
 
-Patches currently in -mm which might be from atomlin@atomlin.com are
+Patches currently in -mm which might be from zhanxusheng@xiaomi.com are
 
 
