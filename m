@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 35D6725FA29
-	for <mm-commits@vger.kernel.org>; Wed,  7 Oct 2026 00:52:17 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5593D25FA29
+	for <mm-commits@vger.kernel.org>; Wed,  7 Oct 2026 00:52:19 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791334338; cv=none; b=O6ZCEqf0579sgImLlZIoH7CCY3Lv/p0uCU3oyFLq7Xu0P4LoRpCWU2+tkN1gTF0AFwcFM7w6D6QWkdweC+lR9+0wKQsBtEN/V6rdQdIdFxL01Ath97b75RkKq+eFiRhevEY/08AEBrUHkraZbBCqEAh1i1b+oIpZgLmp7e/6KaI=
+	t=1791334340; cv=none; b=sAyyf9BAWF75ViZAg0140BnfYxiAg2FRM2Eqtm7jnSrj2KTVh8nYrgeWEu3ZDDwDvFZeWpSiksq5CJ2ihc2fSQ2rV4oiQ83evBtEnKJ5OnI3YHOCAqm97nD60Xx4e6w3ReyHkynbl7XvPUKLNC+n+rrWWUVCy/j+4Lh7ma3zs8A=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791334338; c=relaxed/simple;
-	bh=8PT/UCCwVIr/T/MTozsIGM94YjT32BRrvFeYBbYVGOA=;
-	h=Date:To:From:Subject:Message-Id; b=QsJG/YZzuGvQGa5JsX0Vi+Dc/62xJAgSuxTG3Y2sTmxtTDhJvqBiq3E0XRQ1FDumqlMEv4RPrJ8e9D1MIw9WyD6VzPW54YNk93/M5LLu3b37i5wray1uRhjRpHBbrEpzUajIqUc+2Bg/JdNbci/7bELgT3GNZ023UlptleJbSI4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=wnHYTN2d; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1791334340; c=relaxed/simple;
+	bh=zw0wzt1UrkpzWcz4poyImvPpzjijHzpHm62f4Uc2p1s=;
+	h=Date:To:From:Subject:Message-Id; b=I2xD5tbc1yNxhoNrHSfdrakjsdWvH7uZejswzzW2+l0fyEGGSRy1ZzqV5TADdzAFqHwAb30uvT+etVib80JYyXVguKxGGlvDzNhxfkdklmF5Fu+4LgVSEQcMiko1yn4lW0rlbss4DJwh9DLHnLDu6bLdBj6YUmQ9z67It+RxNCk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=sKXiei+Q; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="wnHYTN2d"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0C2F91F0089C;
-	Wed,  7 Oct 2026 00:52:17 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="sKXiei+Q"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2C3E71F0089C;
+	Wed,  7 Oct 2026 00:52:19 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1791334337;
-	bh=yDm3s+eDhC1lnUTGgOuur4WIrjj0l6PO+amSBJN+o10=;
+	d=linux-foundation.org; s=korg; t=1791334339;
+	bh=4nP0MpQHMYZEun6h2LF0OEreYlU2YxxpCBeuRWvvVzg=;
 	h=Date:To:From:Subject;
-	b=wnHYTN2de9i+lovfCCHIatjskwK1SuvLEYX+gR/XuFJPenHhsaHU/61xZi0BtKA+k
-	 qzKTu2g1+ciyY0j8mWtpkRvIU+vWHxTSb/qLvHdrzd/m5r1tr3+Ef1r+YaESoJIR8f
-	 enkvMjankTlYSDIb8KAr5JTouZ14vH98NkJU8ZCE=
-Date: Tue, 06 Oct 2026 17:52:16 -0700
+	b=sKXiei+QJpLBKOCoBzNbtyR0fWHlbaBsOYZp3l6XVsj2V5l7fXbwXugmAyVBMllrm
+	 RKMzFQ+kD8mWffm9PTOE6rjacVBLdipEJ6LwPiUjTo5pDdzMhW8FPwak5J/y82XHLo
+	 KBiI2w1Vrtz+9GJtNh/xxtlKFQHuDiugGmlzwgII=
+Date: Tue, 06 Oct 2026 17:52:18 -0700
 To: mm-commits@vger.kernel.org,vbabka@kernel.org,surenb@google.com,shuah@kernel.org,rppt@kernel.org,rdunlap@infradead.org,mhocko@suse.com,ljs@kernel.org,liam@infradead.org,david@kernel.org,corbet@lwn.net,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-damon-paddr-support-pgidle_unset-probe-filter-type.patch removed from -mm tree
-Message-Id: <20261007005217.0C2F91F0089C@smtp.kernel.org>
+Subject: [merged mm-stable] docs-mm-damon-design-document-pgidle_unset-probe-filter-type.patch removed from -mm tree
+Message-Id: <20261007005219.2C3E71F0089C@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,23 +35,23 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/damon/paddr: support PGIDLE_UNSET probe filter type
+     Subject: Docs/mm/damon/design: document pgidle_unset probe filter type
 has been removed from the -mm tree.  Its filename was
-     mm-damon-paddr-support-pgidle_unset-probe-filter-type.patch
+     docs-mm-damon-design-document-pgidle_unset-probe-filter-type.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: SJ Park <sj@kernel.org>
-Subject: mm/damon/paddr: support PGIDLE_UNSET probe filter type
-Date: Tue, 1 Sep 2026 06:24:49 -0700
+Subject: Docs/mm/damon/design: document pgidle_unset probe filter type
+Date: Tue, 1 Sep 2026 06:24:51 -0700
 
-Implement support of DAMON_FILTER_TYPE_PGIDLE_UNSET in the physical
-address space DAMON operations set.  It reuses damon_folio_young(), which
-was being used for access monitoring.
+Update DAMON design document for the newly added pgidle_unset probe filter
+type.  Also use a list for the types, as it becomes not very easy to read
+the whole types in a simple sentence.
 
-Link: https://lore.kernel.org/20260901132506.99243-3-sj@kernel.org
+Link: https://lore.kernel.org/20260901132506.99243-5-sj@kernel.org
 Signed-off-by: SJ Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 Cc: David Hildenbrand <david@kernel.org>
@@ -66,24 +66,26 @@ Cc: Suren Baghdasaryan <surenb@google.com>
 Cc: Vlastimil Babka <vbabka@kernel.org>
 ---
 
- mm/damon/paddr.c |    6 ++++++
- 1 file changed, 6 insertions(+)
+ Documentation/mm/damon/design.rst |    8 ++++++--
+ 1 file changed, 6 insertions(+), 2 deletions(-)
 
---- a/mm/damon/paddr.c~mm-damon-paddr-support-pgidle_unset-probe-filter-type
-+++ a/mm/damon/paddr.c
-@@ -132,6 +132,12 @@ static bool damon_pa_filter_match(struct
- 			matched = filter->memcg_id == mem_cgroup_id(memcg);
- 		rcu_read_unlock();
- 		break;
-+	case DAMON_FILTER_TYPE_PGIDLE_UNSET:
-+		if (!folio)
-+			matched = false;
-+		else
-+			matched = damon_folio_young(folio);
-+		break;
- 	default:
- 		break;
- 	}
+--- a/Documentation/mm/damon/design.rst~docs-mm-damon-design-document-pgidle_unset-probe-filter-type
++++ a/Documentation/mm/damon/design.rst
+@@ -293,8 +293,12 @@ registration is made by specifying a pro
+ specifies a rule to determine if a given memory region has the related
+ attribute.  The rule is constructed with multiple filters.  The filters work
+ same to :ref:`DAMOS filters <damon_design_damos_filters>` except the supported
+-filter types.  Currently only ``anon`` and ``memcg`` filter types are supported
+-for data attributes monitoring.
++filter types.  Currently below filter types are supported.
++
++- ``anon``: Same to that for DAMOS filters.
++- ``memcg``: Same to that for DAMOS filters.
++- ``pgidle_unset``: Matches if the page for the memory is marked as not
++  access-idle.
+ 
+ If such probes are registered, DAMON executes the probes for each region's
+ sampling memory when it does the access :ref:`sampling
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
