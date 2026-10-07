@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C379C3546EA
-	for <mm-commits@vger.kernel.org>; Wed,  7 Oct 2026 02:05:05 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D7164356A38;
+	Wed,  7 Oct 2026 02:05:06 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791338706; cv=none; b=hEMkD4/pC7AppTswDFNkbJkyAt+vrYw1RaSX0G3iZNMmyFpjHfV94xYlFoHr8SNfgk2n1wMeqpTkGNU9DoHi1MhhEhM7GjHE6kGv8DfkM/ajIoV1HI5IAYzzeEppjqdvrRt+zgnDu+/da+FhB43yCUk3HEiqxLPCz+tz29PweAU=
+	t=1791338708; cv=none; b=LJciA6G7mrDhboflPEcefXJVizM03/4IyG13VtATkEF3Gqz9Dnt9z4QRIt75sPwjsFyzs8hI9gKEwbyZmjFFe16D4PtA41V/LzLSLrlbB6731vRh7v40qc4Je66TQuuTsXnrSrVICqcCqwY/FUobAlQVON+TiaxG2QOtf3zGDWI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791338706; c=relaxed/simple;
-	bh=/avSlIJMLFp7st+EwH4UwWL41q+jqqiQUkYuB2OiEoI=;
-	h=Date:To:From:Subject:Message-Id; b=mzFQcOPei2LYHHS5iRmyzv8YBStKvg/83lNHDjZpkcTkQIsXI2IF+visTdP9a7QbcYZBUssDfj69ar+rN3Ert0Ly8zm4vZUQgGCQ6oyoKAC/oIW3LNT8poNAhAc6znxs1bmYukzikbDuB4nSad50x/xhL5G/D7TT0R0Ke+xN9DI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=wFsts5gh; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1791338708; c=relaxed/simple;
+	bh=EFt3zlY6v1Gmy32QHRSxHi1wDP8ovnI1oW3EdF5zRDQ=;
+	h=Date:To:From:Subject:Message-Id; b=USlMbLU85emMYrwbWwEL2pkGOblmbjvDi2/dbL4wMCItiQyLNcnlsf59F5ppf+3kJLvE0YM99B8chBFTt/e1XOaoa3H5ph6Wa8QhZZ6VO7DRhvL70BoIndL6FX1ybJY8z3HBCWbkUwFfwHejsWFukKcP2qO5bn3I4XuN8NxoRmk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=HpKorAoj; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="wFsts5gh"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 84F171F0089B;
-	Wed,  7 Oct 2026 02:05:05 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="HpKorAoj"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id AB8031F0089C;
+	Wed,  7 Oct 2026 02:05:06 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1791338705;
-	bh=u0OynU/mJrEqnbcZvfAxNQ4MZl7B7hMp0dCHQ0SfqgQ=;
+	d=linux-foundation.org; s=korg; t=1791338706;
+	bh=Zh7WkOAFIxpteijsSCYXy8ynTWihg20T2z23l23DXrA=;
 	h=Date:To:From:Subject;
-	b=wFsts5ghwdWZELNDmDGU7FE8hxKO1N71XjSU6oe9BjZsSxAcohBa3WpWc0oc5EyM5
-	 H3dToeCowRlaZ3AttAv9hEjkCemWXrNq1oftRlryOvNeuiwXq8ghLKmX307A71IyXL
-	 tbszZbJYHkSV/5gD/gOj9KWyMCl+vUDl4Ifrn224=
-Date: Tue, 06 Oct 2026 19:05:05 -0700
-To: mm-commits@vger.kernel.org,rdunlap@infradead.org,joe@perches.com,corbet@lwn.net,colin.i.king@gmail.com,hemanth.selam@gmail.com,akpm@linux-foundation.org
+	b=HpKorAojC9lU4Tm1mVa0jifula92x0HKEGNXCFkS7BqPpmNeO3Gf7JUOS/Se+Ry1v
+	 O+iXUn1CYto8HnG1wXMV2n8d5Lt/VGf19/ZalPOl5d4xxeyKW5NWMm7t8DeNh+T9Ec
+	 7g0TQYlQORFlHOOtVHsfW9tOymgw2/JXtnYoJaF4=
+Date: Tue, 06 Oct 2026 19:05:06 -0700
+To: mm-commits@vger.kernel.org,stable@vger.kernel.org,hpa@zytor.com,alain@knaff.lu,mattst88@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] scripts-spellingtxt-keep-british-spelling-for-initalise.patch removed from -mm tree
-Message-Id: <20261007020505.84F171F0089B@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] lib-decompress_bunzip2-fix-off-by-one-in-run-length-bounds-check.patch removed from -mm tree
+Message-Id: <20261007020506.AB8031F0089C@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,63 +35,65 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: scripts/spelling.txt: keep British spelling for "initalise"
+     Subject: lib/decompress_bunzip2: fix off-by-one in run-length bounds check
 has been removed from the -mm tree.  Its filename was
-     scripts-spellingtxt-keep-british-spelling-for-initalise.patch
+     lib-decompress_bunzip2-fix-off-by-one-in-run-length-bounds-check.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Hemanth Selam <hemanth.selam@gmail.com>
-Subject: scripts/spelling.txt: keep British spelling for "initalise"
-Date: Mon, 7 Sep 2026 14:43:24 +0530
+From: Matt Turner <mattst88@gmail.com>
+Subject: lib/decompress_bunzip2: fix off-by-one in run-length bounds check
+Date: Sat, 12 Sep 2026 14:17:35 -0400
 
-These are the only two entries in the file that map a British spelling to
-an American one:
+The run-length path rejects a block when dbufCount+t equals dbufSize, but
+the loop that follows writes exactly t bytes starting at dbufCount, so a
+block that fills the buffer exactly is legal.  bzip2 allows it too: its
+decompressor bounds a block at 100000 * blockSize100k and checks that
+limit per byte appended.  Use > instead of >=.
 
-  initalised||initialized
-  initalise||initialize
+bzip2's encoder stops filling a block 19 bytes early, so nothing it
+produces ever reaches the limit and the bug stays hidden.  Compressors
+that use the full block size do reach it: an lbzip2 -9 image whose block
+ends on a run fails to decode, and a self-extracting kernel built that way
+does not boot.
 
-doc-guide/checkpatch.rst asks that British and American spellings be left
-alone, so correcting the missing "i" should not also change the variety of
-English.  Following checkpatch here silently rewrites "initalised" to
-"initialized" in files that otherwise use British forms; arch/arm64 alone
-has 58 uses of "initialised" against 132 of "initialized", so both are
-clearly in use.
+This code came from busybox, which fixed the same line in 2013 in commit
+932e233a491b ("bunzip2: fix off-by-one check").
 
-Map them to the British forms instead, so the misspelling is still caught
-while the spelling variety is left to the author.
+I ran into this because my system uses lbzip2 as /bin/bzip2 -- a common
+thing on Gentoo I believe.  As far as I can tell, anyone using lbzip2
+as their system bzip2 would run into this and it's only because it's
+very uncommon these days to compress a kernel with bzip2 that no one
+has noticed.  I only noticed because I was adding support for various
+compression formats on alpha.
 
-Link: https://lore.kernel.org/20260907091324.32211-1-hemanth.selam@gmail.com
-Signed-off-by: Hemanth Selam <hemanth.selam@gmail.com>
+Link: https://lore.kernel.org/20260912-b4-bunzip2-blocksize-fix-v1-1-c7384bbfc954@gmail.com
+Fixes: bc22c17e12c1 ("bzip2/lzma: library support for gzip, bzip2 and lzma decompression")
+Signed-off-by: Matt Turner <mattst88@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Suggested-by: Randy Dunlap <rdunlap@infradead.org>
-Acked-by: Randy Dunlap <rdunlap@infradead.org>
-Assisted-by: Cursor:claude-opus-5
-Cc: Colin Ian King <colin.i.king@gmail.com>
-Cc: Joe Perches <joe@perches.com>
-Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: Alain Knaff <alain@knaff.lu>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: <stable@vger.kernel.org>
 ---
 
- scripts/spelling.txt |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ lib/decompress_bunzip2.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/scripts/spelling.txt~scripts-spellingtxt-keep-british-spelling-for-initalise
-+++ a/scripts/spelling.txt
-@@ -872,8 +872,8 @@ infromation||information
- ingore||ignore
- inheritence||inheritance
- inital||initial
--initalised||initialized
--initalise||initialize
-+initalised||initialised
-+initalise||initialise
- initalized||initialized
- initalize||initialize
- initation||initiation
+--- a/lib/decompress_bunzip2.c~lib-decompress_bunzip2-fix-off-by-one-in-run-length-bounds-check
++++ a/lib/decompress_bunzip2.c
+@@ -439,7 +439,7 @@ got_huff_bits:
+ 		   array.) */
+ 		if (runPos) {
+ 			runPos = 0;
+-			if (dbufCount+t >= dbufSize)
++			if (dbufCount+t > dbufSize)
+ 				return RETVAL_DATA_ERROR;
+ 
+ 			uc = symToByte[mtfSymbol[0]];
 _
 
-Patches currently in -mm which might be from hemanth.selam@gmail.com are
+Patches currently in -mm which might be from mattst88@gmail.com are
 
 
