@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CCB9A2EFD95;
-	Wed,  7 Oct 2026 00:50:08 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DC2FF2DC765
+	for <mm-commits@vger.kernel.org>; Wed,  7 Oct 2026 00:50:09 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791334210; cv=none; b=nRkPn6oHJMBHAb9/feBHPNKLqFchbuK8mop7WWn8ScWGbsxpRCUYWgYKSEihEipJuYJUSr0NrxA/yug0b2m3bXUYQKT8rAeN4jtAoF5IARY4m1Z4UGLDDuGwwXR18HdNPX+fSeI3OC1kWg0WypzfFKhi+R3jVTobyiExHY11dII=
+	t=1791334210; cv=none; b=pv98ZC5aH5baeRRIoGvbsAZnOVWc2W3AQUUwqUDINXBVnTrJ2zNlIrn3texG7Dt1vTLn1jfEwvTdNzOo8Vj2fEm/1IUFgrdqAfYNxRWz3YxiwReed2abXi2H2HM5d1J16xo/BjkY/c2xs0yjDZfICZO7VpOz6PDhsX42USSKuQ8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1791334210; c=relaxed/simple;
-	bh=oNN6TP4BltXHQcOndG3cmc8pUI9jBb9PoMzfRz9SjfU=;
-	h=Date:To:From:Subject:Message-Id; b=s/bhQ2uDANFGOJDcXTyYEY7/eHftHB2Boji1Mfzp1MMRToSJek8tau4lzX6BaKwzEWrAgt7Wp1EZT/Y3T64nghC2OrXR9OgeFdTFv988PzRtD9sTGO3lbrYzeTsC9eYHNlf6f9BN9OEx2Dlx1QROgUKGD6DRg6ozvSIMiU1l0Uk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=cRud9dUR; arc=none smtp.client-ip=100.103.45.18
+	bh=MGFRwDmFvZ49+BP+GybffmF+b6wm+AVvvM6Zq4V35w4=;
+	h=Date:To:From:Subject:Message-Id; b=NuFRW4yUjeVfVoP9P1f8Klj09LrlNByjMPlTGk7cop9/yp7B6R+dro7o7Dk+y098cafM9/0piAQn0EFRTkGq4V6gfMcvCh0qiTvPwD/SqV5nJWOJO8F1tAN1XWPlRp9jq92E3bGUFVlWMId8nmbI4QhEs0DMs6Lil0fqu85AsNw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=AWUttjFd; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="cRud9dUR"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A46471F0089B;
-	Wed,  7 Oct 2026 00:50:08 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="AWUttjFd"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B35971F0089C;
+	Wed,  7 Oct 2026 00:50:09 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1791334208;
-	bh=BrYdgWURON3os/gkhSCHSN8P7mYOxLBs6vbZbT0H9is=;
+	d=linux-foundation.org; s=korg; t=1791334209;
+	bh=WqAFj2rnHbEsGsfsvF6oRTB9qEY9NIhZ8KTv0qK+jlM=;
 	h=Date:To:From:Subject;
-	b=cRud9dURAwTWcS2+nfpq2J6M5xFXADc7xHAgPVT14aiLUdqAz9F26cj9yh9IsJIN9
-	 W/xqChDwTt0y+eW0PDPdyk+FOazrum+UJiYxXMrOSwmoKdHDiNYb+WNjc5NkyYqEmJ
-	 1wkUfUqe3a9Rl1lKDVH3VYmtJ0HFTCU4C/95pv2E=
-Date: Tue, 06 Oct 2026 17:50:08 -0700
-To: mm-commits@vger.kernel.org,stable@vger.kernel.org,shakeel.butt@linux.dev,roman.gushchin@linux.dev,muchun.song@linux.dev,mhocko@suse.com,hannes@cmpxchg.org,riel@surriel.com,akpm@linux-foundation.org
+	b=AWUttjFdxLs/hyxVk/JUVfGlw2UxBriwoPWWhySyqmRv2Kr/J0RfGhK3YpUDCIsQd
+	 Qe1tMXm3XzYeqVeshniJmhiVHEmeyiuLX6jmE5iWUd/U2yAmGw3zTOwJlh8ZLJxFUy
+	 MU7zemoOxjbaMYCxq/DzamVJOua3yuM3IqTyncSE=
+Date: Tue, 06 Oct 2026 17:50:09 -0700
+To: mm-commits@vger.kernel.org,sashiko-bot@kernel.org,roman.gushchin@linux.dev,riel@surriel.com,muchun.song@linux.dev,mhocko@suse.com,hannes@cmpxchg.org,shakeel.butt@linux.dev,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-memcontrol-fix-stuck-flushing_cached_charge-bit-on-isolated-cpus.patch removed from -mm tree
-Message-Id: <20261007005008.A46471F0089B@smtp.kernel.org>
+Subject: [merged mm-stable] memcg-clear-flushing_cached_charge-on-cpu-offline.patch removed from -mm tree
+Message-Id: <20261007005009.B35971F0089C@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,98 +35,81 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/memcontrol: fix stuck FLUSHING_CACHED_CHARGE bit on isolated cpus
+     Subject: memcg: clear FLUSHING_CACHED_CHARGE on cpu offline
 has been removed from the -mm tree.  Its filename was
-     mm-memcontrol-fix-stuck-flushing_cached_charge-bit-on-isolated-cpus.patch
+     memcg-clear-flushing_cached_charge-on-cpu-offline.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Rik van Riel <riel@surriel.com>
-Subject: mm/memcontrol: fix stuck FLUSHING_CACHED_CHARGE bit on isolated cpus
-Date: Fri, 28 Aug 2026 13:50:36 -0400
+From: Shakeel Butt <shakeel.butt@linux.dev>
+Subject: memcg: clear FLUSHING_CACHED_CHARGE on cpu offline
+Date: Fri, 28 Aug 2026 12:24:19 -0700
 
-When drain_all_stock() sets FLUSHING_CACHED_CHARGE before checking
-isolation, schedule_drain_work() can drop the work in a separate RCU
-critical section, and housekeeping_update()'s synchronize_rcu() can race
-that second check, leaving the flag set.
+Sashiko [1] reported that memcg_hotplug_cpu_dead() drains the stocks of
+the CPU which went away but leaves FLUSHING_CACHED_CHARGE alone.
 
-drain_local_stock() only clears the bit for work that ran, so the flag
-remains set and the stock is never drained again.
+The flag can be set at that point: drain_all_stock() may have claimed the
+stock and queued the drain work shortly before the CPU went down. 
+workqueue_offline_cpu() unbinds the per-cpu workers, so such a pending
+work item is executed by an unbound worker on some other CPU, where
+drain_local_memcg_stock() operates on this_cpu_ptr() and thus drains and
+clears the flag of that other CPU instead.  Nothing clears the flag of the
+dead CPU, so drain_all_stock() would skip its stock forever once the CPU
+comes back online.
 
-Have schedule_drain_work() return whether the work was queued, and clear
-FLUSHING_CACHED_CHARGE in drain_all_stock() when the remote CPU is
-isolated, so future drains can retry.
+Clear the flag of both stocks after draining them.
 
-Link: https://lore.kernel.org/20260828135036.7d44361f@fangorn
-Fixes: 6a792697a53a ("memcg: do not drain charge pcp caches on remote isolated cpus")
-Suggested-by: Michal Hocko <mhocko@suse.com>
-Suggested-by: Shakeel Butt <shakeel.butt@linux.dev>
-Signed-off-by: Rik van Riel <riel@surriel.com>
+Link: https://lore.kernel.org/20260828192419.3057939-1-shakeel.butt@linux.dev
+Link: https://sashiko.dev/#/patchset/20260828135036.7d44361f%40fangorn [1]
+Signed-off-by: Shakeel Butt <shakeel.butt@linux.dev>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Acked-by: Shakeel Butt <shakeel.butt@linux.dev>
+Reviewed-by: Rik van Riel <riel@surriel.com>
+Reported-by: Sashiko <sashiko-bot@kernel.org>
 Acked-by: Michal Hocko <mhocko@suse.com>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Muchun Song <muchun.song@linux.dev>
 Cc: Roman Gushchin <roman.gushchin@linux.dev>
-Cc: <stable@vger.kernel.org>
 ---
 
- mm/memcontrol.c |   19 ++++++++++++-------
- 1 file changed, 12 insertions(+), 7 deletions(-)
+ mm/memcontrol.c |   16 ++++++++++++++--
+ 1 file changed, 14 insertions(+), 2 deletions(-)
 
---- a/mm/memcontrol.c~mm-memcontrol-fix-stuck-flushing_cached_charge-bit-on-isolated-cpus
+--- a/mm/memcontrol.c~memcg-clear-flushing_cached_charge-on-cpu-offline
 +++ a/mm/memcontrol.c
-@@ -2306,7 +2306,7 @@ static bool is_memcg_drain_needed(struct
- 	return flush;
- }
+@@ -2373,9 +2373,21 @@ void drain_all_stock(struct mem_cgroup *
  
--static void schedule_drain_work(int cpu, struct work_struct *work)
-+static bool schedule_drain_work(int cpu, struct work_struct *work)
+ static int memcg_hotplug_cpu_dead(unsigned int cpu)
  {
- 	/*
- 	 * Protect housekeeping cpumask read and work enqueue together
-@@ -2315,8 +2315,11 @@ static void schedule_drain_work(int cpu,
- 	 * pending work on newly isolated CPUs.
- 	 */
- 	guard(rcu)();
--	if (!cpu_is_isolated(cpu))
--		queue_work_on(cpu, memcg_wq, work);
-+	if (cpu_is_isolated(cpu))
-+		return false;
++	struct memcg_stock_pcp *memcg_st = &per_cpu(memcg_stock, cpu);
++	struct obj_stock_pcp *obj_st = &per_cpu(obj_stock, cpu);
 +
-+	queue_work_on(cpu, memcg_wq, work);
-+	return true;
+ 	/* no need for the local lock */
+-	drain_obj_stock(&per_cpu(obj_stock, cpu));
+-	drain_stock_fully(&per_cpu(memcg_stock, cpu));
++	drain_obj_stock(obj_st);
++	drain_stock_fully(memcg_st);
++
++	/*
++	 * A drain work queued before the CPU went away is executed by an
++	 * unbound worker on some other CPU and clears that CPU's flag, so
++	 * clear the flags here to make these stocks drainable again once
++	 * the CPU comes back online.
++	 */
++	clear_bit(FLUSHING_CACHED_CHARGE, &memcg_st->flags);
++	clear_bit(FLUSHING_CACHED_CHARGE, &obj_st->flags);
+ 
+ 	return 0;
  }
- 
- /*
-@@ -2348,8 +2351,9 @@ void drain_all_stock(struct mem_cgroup *
- 				      &memcg_st->flags)) {
- 			if (cpu == curcpu)
- 				drain_local_memcg_stock(&memcg_st->work);
--			else
--				schedule_drain_work(cpu, &memcg_st->work);
-+			else if (!schedule_drain_work(cpu, &memcg_st->work))
-+				clear_bit(FLUSHING_CACHED_CHARGE,
-+					  &memcg_st->flags);
- 		}
- 
- 		if (!test_bit(FLUSHING_CACHED_CHARGE, &obj_st->flags) &&
-@@ -2358,8 +2362,9 @@ void drain_all_stock(struct mem_cgroup *
- 				      &obj_st->flags)) {
- 			if (cpu == curcpu)
- 				drain_local_obj_stock(&obj_st->work);
--			else
--				schedule_drain_work(cpu, &obj_st->work);
-+			else if (!schedule_drain_work(cpu, &obj_st->work))
-+				clear_bit(FLUSHING_CACHED_CHARGE,
-+					  &obj_st->flags);
- 		}
- 	}
- 	migrate_enable();
 _
 
-Patches currently in -mm which might be from riel@surriel.com are
+Patches currently in -mm which might be from shakeel.butt@linux.dev are
 
+memcg-move-per-node-objcg-to-the-read-mostly-fields.patch
+memcg-split-mem_cgroup_private_id-into-two-fields.patch
+memcg-group-the-write-hot-fields-of-struct-mem_cgroup.patch
+memcg-group-the-cold-fields-of-struct-mem_cgroup.patch
+memcg-group-the-read-mostly-fields-of-struct-mem_cgroup.patch
+memcg-group-the-fields-of-struct-mem_cgroup_per_node.patch
 
