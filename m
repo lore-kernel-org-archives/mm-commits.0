@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 53AAC2EB874
-	for <mm-commits@vger.kernel.org>; Wed,  7 Oct 2026 00:50:33 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 666932EF653
+	for <mm-commits@vger.kernel.org>; Wed,  7 Oct 2026 00:50:34 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791334234; cv=none; b=N1kDwAH7YHsDqqOo08spqUcdjyv7m1yyjWORLX4KzS8Lj/JFYw5HnWvIJpEkPISL98j1AJRaJUnSAsoYZP//wLP8b+suiKXS/E5Vw5OXi6jtZRRs9f/F3vC0CoOEhiKyJizCaST0K2jj0o+Mirm2xFR6AiSgT3pOrDoShcMlA+4=
+	t=1791334235; cv=none; b=mz/5D3iezhuJljmlj4wFklFo0knMlNDriZUtnxrAeVRR4qsTjYoUJNJmAKrgXgSc819mJW25O3ZhFvDARAExafymLl6geRCXaJLne6zhx2xMXyLEIakx+HXw6/jSJoh+LFMg6YGx92e/JClu44GNcbmdYeMFXlNyHe+2aR+zfPA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791334234; c=relaxed/simple;
-	bh=k2iCUuyDJF+tyg1baA5vrZTODrnSy8yGvT3C+xQkQCo=;
-	h=Date:To:From:Subject:Message-Id; b=jCwqDj0kdeaS99bU4qW3UYj+LyuWy1dtySV/XJJ0OLTf447y1rH+nfCQ8yCC06YKFUO320ibrHG/9HuQ8JQLHfQeJrlvueO0zQD4S33vnhzdh0yiJ3pD51633JMawTEYNOZQtMT1mljgisZQCEelZdMrk1z8Dyr9v52A517i2XU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=cTrIae/q; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1791334235; c=relaxed/simple;
+	bh=RVgZgZutFORQYoQGXlqq45UJUhvu4+LK8xMAjretuQs=;
+	h=Date:To:From:Subject:Message-Id; b=NxM9dOn0t0IrRQHxqvAaROYEoqeojwxuGzRkCu2fBlHn2Hmz92MWpF5sivaQRdP3Y0aOOqANPBAIEMv6KAWRa/WIr/qfGuhQdkJX5j/AMtiHTlgK5gI4K2CjyPX86RfSzH1f3jzRlj7k3x4t5TVmvawdIrJlVnaHPBJf4gcITB8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=yMNjudg/; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="cTrIae/q"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 290AA1F0089B;
-	Wed,  7 Oct 2026 00:50:33 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="yMNjudg/"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3D30B1F0089C;
+	Wed,  7 Oct 2026 00:50:34 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1791334233;
-	bh=rxeeTqze11wRDO2LVEoqDWxgwbOvP2C9U4kq9tP1nZE=;
+	d=linux-foundation.org; s=korg; t=1791334234;
+	bh=stxQlYPIA2ZqqRbyvhS2w/CyFUTS83onYN3QObX6LWE=;
 	h=Date:To:From:Subject;
-	b=cTrIae/q6BAp3C1VBifkFPhL11LvvOXpEX/oG9l9nHsiQiWpsfhJDyTOb9c3l/k5f
-	 rfDMkj/WfMuaj+Iondmrz1ijF2szSgV7TaNbHhEkRxCSzzR5XIdQerCk24cx0GKw2m
-	 GtSIrBEEtcqdAh4kLwqmsYfpM88sKYGsfet1VpmY=
-Date: Tue, 06 Oct 2026 17:50:32 -0700
-To: mm-commits@vger.kernel.org,willy@infradead.org,ljs@kernel.org,tz2294@columbia.edu,akpm@linux-foundation.org
+	b=yMNjudg//e46wWuW9JhC98ee/I4t5QUWSihiMXvV5JoAbzFh1ppkEyprn8TxKhEVM
+	 +Px/5Zhbfu78mKNQ71+QWxR38Aj9jNPP2ZCjicJQFx3hO3z97N6pzqjqAXdlpi55dO
+	 AIWDVbQi+KScvFhMXIvBcYMQag64Z2WwEKZH/SDs=
+Date: Tue, 06 Oct 2026 17:50:33 -0700
+To: mm-commits@vger.kernel.org,yuanchu@google.com,weixugc@google.com,stevensd@chromium.org,shakeel.butt@linux.dev,mhocko@kernel.org,ljs@kernel.org,lianux.mm@gmail.com,kasong@tencent.com,hannes@cmpxchg.org,david@kernel.org,baoquan.he@linux.dev,baolin.wang@linux.alibaba.com,baohua@kernel.org,axelrasmussen@google.com,chenridong@xiaomi.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-swap-rename-__swap_writepage-to-__swap_writeout.patch removed from -mm tree
-Message-Id: <20261007005033.290AA1F0089B@smtp.kernel.org>
+Subject: [merged mm-stable] mm-mglru-make-type-fallback-logic-explicit-in-isolate_folios.patch removed from -mm tree
+Message-Id: <20261007005034.3D30B1F0089C@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,113 +35,145 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/swap: rename __swap_writepage() to __swap_writeout()
+     Subject: mm/mglru: make type fallback logic explicit in isolate_folios()
 has been removed from the -mm tree.  Its filename was
-     mm-swap-rename-__swap_writepage-to-__swap_writeout.patch
+     mm-mglru-make-type-fallback-logic-explicit-in-isolate_folios.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Tal Zussman <tz2294@columbia.edu>
-Subject: mm/swap: rename __swap_writepage() to __swap_writeout()
-Date: Sat, 29 Aug 2026 15:09:05 -0400
+From: Ridong Chen <chenridong@xiaomi.com>
+Subject: mm/mglru: make type fallback logic explicit in isolate_folios()
+Date: Sat, 29 Aug 2026 15:42:03 +0800
 
-Commit 84798514db50 ("mm: Remove swap_writepage() and shmem_writepage()")
-renamed swap_writepage() to swap_writeout().  Rename __swap_writepage(),
-which operates on a folio, to match its caller.  Update a stale reference
-to swap_writepage() in swapfile.c as well.
+Patch series "mm/mglru: clean up isolate_folios for readability and
+clarity", v2.
 
-Link: https://lore.kernel.org/20260829-b4-page_io-folios-v2-6-649728091117@columbia.edu
-Signed-off-by: Tal Zussman <tz2294@columbia.edu>
+Right now, isolate_folios() is quite difficult to follow:
+
+1. It uses for_each_evictable_type(i, swappiness) to iterate over
+   the types, but 'i' is not actually used as the type within the
+   loop body.
+
+2. It retries the same type when folios were scanned but none could
+   be isolated, but the retry is implemented in a rather subtle way
+   that is difficult to understand.
+
+This patchset makes both behaviors explicit and much easier to follow.
+
+There are no functional changes for swappiness values from 1 to 200. 
+There is a slight functional change for 0 and 201: with the existing code,
+there is no chance to retry for these values because
+for_each_evictable_type() only iterates once.  After this patch, 0 and 201
+have behavior that is more consistent with the 1-200 range.
+
+
+This patch (of 2):
+
+The for_each_evictable_type() loop in isolate_folios() is misleading: it
+does not actually iterate over each evictable type.  Instead,
+get_type_to_scan() selects the type to scan, while the iterator `i` merely
+bounds the number of attempts.
+
+Make the fallback behavior explicit in the code and remove the opaque
+for_each_evictable_type(i, swappiness).
+
+Link: https://lore.kernel.org/20260829074204.45304-1-baohua@kernel.org
+Link: https://lore.kernel.org/20260829074204.45304-2-baohua@kernel.org
+Signed-off-by: Ridong Chen <chenridong@xiaomi.com>
+Co-developed-by: Barry Song (Xiaomi) <baohua@kernel.org>
+Signed-off-by: Barry Song (Xiaomi) <baohua@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Reviewed-by: Matthew Wilcox (Oracle) <willy@infradead.org>
-Reviewed-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
+Reviewed-by: Lian Wang <lianux.mm@gmail.com>
+Reviewed-by: Baoquan He <baoquan.he@linux.dev>
+Cc: Axel Rasmussen <axelrasmussen@google.com>
+Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
+Cc: David Hildenbrand <david@kernel.org>
+Cc: David Stevens <stevensd@chromium.org>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Kairui Song <kasong@tencent.com>
+Cc: Lorenzo Stoakes <ljs@kernel.org>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Shakeel Butt <shakeel.butt@linux.dev>
+Cc: Wei Xu <weixugc@google.com>
+Cc: Yuanchu Xie <yuanchu@google.com>
 ---
 
- mm/page_io.c  |    4 ++--
- mm/swap.h     |    2 +-
- mm/swapfile.c |    2 +-
- mm/zswap.c    |    2 +-
- 4 files changed, 5 insertions(+), 5 deletions(-)
+ mm/vmscan.c |   50 ++++++++++++++++++++++++++++----------------------
+ 1 file changed, 28 insertions(+), 22 deletions(-)
 
---- a/mm/page_io.c~mm-swap-rename-__swap_writepage-to-__swap_writeout
-+++ a/mm/page_io.c
-@@ -248,7 +248,7 @@ int swap_writeout(struct swap_io_ctx *ct
- 	}
- 	rcu_read_unlock();
- 
--	__swap_writepage(ctx, folio);
-+	__swap_writeout(ctx, folio);
- 	return 0;
- out_unlock:
- 	folio_unlock(folio);
-@@ -369,7 +369,7 @@ static void swap_add_folio(struct swap_i
- 	}
+--- a/mm/vmscan.c~mm-mglru-make-type-fallback-logic-explicit-in-isolate_folios
++++ a/mm/vmscan.c
+@@ -4826,35 +4826,41 @@ static int get_type_to_scan(struct lruve
+ 	return positive_ctrl_err(&sp, &pv);
  }
  
--void __swap_writepage(struct swap_io_ctx *ctx, struct folio *folio)
-+void __swap_writeout(struct swap_io_ctx *ctx, struct folio *folio)
++static inline bool is_single_type_reclaim(int swappiness)
++{
++	return swappiness == MIN_SWAPPINESS ||
++	       swappiness == SWAPPINESS_ANON_ONLY;
++}
++
+ static int isolate_folios(unsigned long nr_to_scan, struct lruvec *lruvec,
+ 			  struct scan_control *sc, int swappiness,
+ 			  struct list_head *list, int *isolated,
+ 			  int *isolate_type, int *isolate_scanned)
  {
- 	VM_BUG_ON_FOLIO(!folio_test_swapcache(folio), folio);
+-	int i;
+-	int total_scanned = 0;
++	bool type_fallback_allowed = !is_single_type_reclaim(swappiness);
+ 	int type = get_type_to_scan(lruvec, swappiness);
++	int total_scanned = 0, scanned, tier;
++
++retry:
++	tier = get_tier_idx(lruvec, type);
++	scanned = scan_folios(nr_to_scan, lruvec, sc,
++			      type, tier, list, isolated);
++
++	total_scanned += scanned;
++	if (*isolated) {
++		*isolate_type = type;
++		*isolate_scanned = scanned;
++		return total_scanned;
++	}
  
---- a/mm/swapfile.c~mm-swap-rename-__swap_writepage-to-__swap_writeout
-+++ a/mm/swapfile.c
-@@ -2928,7 +2928,7 @@ EXPORT_SYMBOL_GPL(add_swap_extent);
- /*
-  * A `swap extent' is a simple thing which maps a contiguous range of pages
-  * onto a contiguous range of disk blocks.  A rbtree of swap extents is
-- * built at swapon time and is then used at swap_writepage/swap_read_folio
-+ * built at swapon time and is then used at swap_writeout/swap_read_folio
-  * time for locating where on disk a page belongs.
-  *
-  * If the swapfile is an S_ISBLK block device, a single extent is installed.
---- a/mm/swap.h~mm-swap-rename-__swap_writepage-to-__swap_writeout
-+++ a/mm/swap.h
-@@ -258,7 +258,7 @@ void swap_read_folio(struct swap_io_ctx
- void swap_read_submit(struct swap_io_ctx *ctx);
- void swap_write_submit(struct swap_io_ctx *ctx);
- int swap_writeout(struct swap_io_ctx *ctx, struct folio *folio);
--void __swap_writepage(struct swap_io_ctx *ctx, struct folio *folio);
-+void __swap_writeout(struct swap_io_ctx *ctx, struct folio *folio);
+-	for_each_evictable_type(i, swappiness) {
+-		int scanned;
+-		int tier = get_tier_idx(lruvec, type);
+-
+-		scanned = scan_folios(nr_to_scan, lruvec, sc,
+-				      type, tier, list, isolated);
+-
+-		total_scanned += scanned;
+-		if (*isolated) {
+-			*isolate_type = type;
+-			*isolate_scanned = scanned;
+-			break;
+-		}
+-		/*
+-		 * If scanned > 0 and isolated == 0, avoid falling back to the
+-		 * other type, as this type remains sufficient. Falling back
+-		 * too readily can disrupt the positive_ctrl_err() bias.
+-		 */
+-		if (!scanned)
+-			type = !type;
++	/*
++	 * We are running out of the current reclaim type. Fall back to
++	 * the other type if allowed.
++	 */
++	if (!scanned && type_fallback_allowed) {
++		type = !type;
++		type_fallback_allowed = false;
++		goto retry;
+ 	}
  
- /* linux/mm/swap_state.c */
- extern struct address_space swap_space __read_mostly;
---- a/mm/zswap.c~mm-swap-rename-__swap_writepage-to-__swap_writeout
-+++ a/mm/zswap.c
-@@ -1037,7 +1037,7 @@ static int zswap_writeback_entry(struct
- 	folio_set_reclaim(folio);
- 
- 	/* start writeback */
--	__swap_writepage(&ctx, folio);
-+	__swap_writeout(&ctx, folio);
- 	swap_write_submit(&ctx);
- 
- out:
+ 	return total_scanned;
 _
 
-Patches currently in -mm which might be from tz2294@columbia.edu are
+Patches currently in -mm which might be from chenridong@xiaomi.com are
 
-mm-remove-pagewriteback.patch
-mm-swap-add-folio_swap_entry-and-folio_page_swap_entry.patch
-mm-swap-add-folio_swap_entry-and-folio_page_swap_entry-fix.patch
-mm-huge_memory-add-a-comment-to-the-open-coded-swap-entry.patch
-mm-rmap-use-folio_page_swap_entry-in-ttu_anon_swapbacked_folio.patch
-mm-zswap-use-folio_swap_entry-in-zswap_store_page.patch
-mm-swapfile-use-folio_page_swap_entry.patch
-arm64-mte-make-mte_save_tags-and-mte_restore_tags-static.patch
-arm64-mte-pass-the-swap-entry-to-mte_save_tags.patch
-mm-swap-remove-page_swap_entry.patch
-mm-memcontrol-take-a-const-folio-in-folio_memcg-and-friends.patch
-mm-memcontrol-constify-obj_cgroup_memcg-and-friends.patch
-mm-memcontrol-constify-the-lruvec-helpers.patch
-mm-page_io-take-a-const-folio-in-bio_associate_blkg_from_folio.patch
-mm-memcontrol-constify-the-mem_cgroup-accessors.patch
-mm-page_counter-constify-page_counter_read-and-page_counter_margin.patch
-mm-memcontrol-constify-the-reclaim-protection-helpers.patch
-mm-memcontrol-constify-the-memcg-and-lruvec-stat-readers.patch
-mm-memcontrol-constify-the-swap-accounting-helpers.patch
-mm-memcontrol-constify-mem_cgroup_swappiness-and-mem_cgroup_get_max.patch
-mm-memcontrol-constify-the-zswap-and-socket-pressure-helpers.patch
-vmcore-convert-mmap_vmcore_fault-to-use-folios.patch
+mm-page_counter-avoid-integer-overflow-in-effective_protection.patch
+mm-mglru-fix-ineffective-memory-protection-for-non-kswapd-reclaim.patch
+mm-vmscan-put-rotation-missed-folios-at-the-lru-tail.patch
 
