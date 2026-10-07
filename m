@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4E95B311C1D
-	for <mm-commits@vger.kernel.org>; Wed,  7 Oct 2026 00:51:50 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9E41A312837
+	for <mm-commits@vger.kernel.org>; Wed,  7 Oct 2026 00:51:51 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791334311; cv=none; b=sCjXcCn2D+gkWJTxa4bZngrccEVVZaCWDgGMqsi79EaVSE3h9WNdwMF+HNygmpK5uLKwCUX2dpu454c3jQbGLUSuwo/LAFEFshxB3S8xu1VdIRHK6jvhgzKr+tDtSx/dShEmIYbRFbEujJDDMNBVwRlVWZSfenVyi3I3SMrAYqs=
+	t=1791334312; cv=none; b=XF8QZqAIeay6shxK/qJc0OeFgI2L1skdkvmouF00RIwcB5xYQkOthOt+JChlbwSp12EeQpjepy23ypEi4cdQA7capNHP7ZM7Bfchir2aY08pXyiHrZJRZ4/WxadjkfSBK0hF86JPyP4Vk9OEqh+gj2kt3W8NjBWhCDTd3UP0+Tg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791334311; c=relaxed/simple;
-	bh=+NUXgARNSNGsjEnY9Mnl7UP41bcVKLPdLeyAwyYlLMM=;
-	h=Date:To:From:Subject:Message-Id; b=FE/gvJOWh5IhA4wf74Qzul5l/jWvBezNRYWF/aI1tC3cXN3cNyX98Ut1+NfQx1yKdqX0sbvQWZz+HmDoAgBuKGDddbaKwokQ14RLjgnzDjq7w9GxuPsrnJgqcZqjunL+Z488OWAxIdm/QA5q8smb7q2708VA9a829y64UuTURig=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=KOkNjL+N; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1791334312; c=relaxed/simple;
+	bh=hAQW7m7gFpz+BLozddHJXGjbJdyOC8qtFZgGVFdMT2U=;
+	h=Date:To:From:Subject:Message-Id; b=cwyD8QCwo5r8KoQDUssVejrr63eVA8qlPsPhjWbiXSA+DRn75+hif1SyXTZmGrZNVMTcvQ3mS4u9NJ6blePqeZMaUmqroSgiceSrgZpKSj1I7Ci8y6wnVn27NnukhoKDOBp8fnmoJC4gfZvqX0V2LIgySRV7r6Y9tYofpoti1Fs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=kDYgvd3F; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="KOkNjL+N"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 22B6B1F0089B;
-	Wed,  7 Oct 2026 00:51:50 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="kDYgvd3F"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 355FD1F0089C;
+	Wed,  7 Oct 2026 00:51:51 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1791334310;
-	bh=rbgyQ6AyZiX13MUvr5qyl0OfVwg0YV589pTOHVbQt4A=;
+	d=linux-foundation.org; s=korg; t=1791334311;
+	bh=NpOwW552zw+BBAnyhkVMIpan4IgxAJC6jhb/mN3jB/w=;
 	h=Date:To:From:Subject;
-	b=KOkNjL+NSc9HZGTe16Ap4PwIwg0+t2Z3JPq0K6TMUInhsfw/M8nAAsMRF/W8+5Voa
-	 LR7/4cYlJH3FOpFZQONp3+wBro0eHe/2obXtFGZk8BareZBk/SEaTMAhzp8IN7xi5h
-	 wRVS0jfMnB71B/JzluPBBHL8Ivisyu7d0byEIPLc=
-Date: Tue, 06 Oct 2026 17:51:49 -0700
+	b=kDYgvd3F/onxZwcScoJUFZi3EWY80gZdYQ9lFX5jqBvY/0udyUgJsnjwt6rZn9hHa
+	 rbcei1kCmzpmsLoOUv0w91QffIhC3rHeOZkQe36SWgAgeUsGq7Ptcb9XLZLLeQE5xS
+	 nf42Z3UyNihYSatNrMTTzax4Ee7z6YNpfpB7WGOk=
+Date: Tue, 06 Oct 2026 17:51:50 -0700
 To: mm-commits@vger.kernel.org,ysato@users.sourceforge.jp,samuel.holland@sifive.com,rppt@kernel.org,ljs@kernel.org,kernel@xen0n.name,james.bottomley@HansenPartnership.com,glaubitz@physik.fu-berlin.de,geert@linux-m68k.org,deller@gmx.de,david@kernel.org,dalias@libc.org,chenhuacai@kernel.org,anshuman.khandual@arm.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-make-ptval_to_str-generally-available.patch removed from -mm tree
-Message-Id: <20261007005150.22B6B1F0089B@smtp.kernel.org>
+Subject: [merged mm-stable] mm-stop-using-pxd_error.patch removed from -mm tree
+Message-Id: <20261007005151.355FD1F0089C@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,114 +35,97 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: make ptval_to_str() generally available
+     Subject: mm: stop using pxd_ERROR()
 has been removed from the -mm tree.  Its filename was
-     mm-make-ptval_to_str-generally-available.patch
+     mm-stop-using-pxd_error.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Anshuman Khandual <anshuman.khandual@arm.com>
-Subject: mm: make ptval_to_str() generally available
-Date: Mon, 31 Aug 2026 11:13:23 +0530
+Subject: mm: stop using pxd_ERROR()
+Date: Mon, 31 Aug 2026 11:13:24 +0530
 
-Patch series "mm: Drop pxd_ERROR()".
+pxd_ERROR() has been used in generic mm just to print the page table entry
+in pxd_clear_bad() before clearing those out with pxd_clear() later. 
+These pxd_ERROR() macros have been provided by all platforms which
+basically did the same thing.
 
-pxd_ERROR() macros have been provided by all platforms, which are very
-much identical and can be dropped off completely if these pgtable printing
-could be moved to callers in generic MM aka all pxd_clear_bad().
+Make pxd_clear_bad() use recently added ptval_to_str() instead for
+printing page table entries thus completely dropping dependency on
+platform provided pxd_ERROR() macros which can then be dropped off later
+on.
 
-But first cleanups and re-organizations are required in some platforms
-that are using these macros internally.  Afterwards
-[pte|pmd|pud|p4d|pgd]_ERROR() macros have been completely dropped from the
-entire tree.
-
-
-This patch (of 8):
-
-Move ptval_to_str() inside a header thus making the helper more generally
-available for new users which are being added later.  While here, also
-move another related string size macro PTVAL_STR_MAX inside the header as
-well.
-
-Link: https://lore.kernel.org/20260831054331.625505-1-anshuman.khandual@arm.com
-Link: https://lore.kernel.org/20260831054331.625505-2-anshuman.khandual@arm.com
+Link: https://lore.kernel.org/20260831054331.625505-3-anshuman.khandual@arm.com
 Signed-off-by: Anshuman Khandual <anshuman.khandual@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 Acked-by: David Hildenbrand (Arm) <david@kernel.org>
 Acked-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
 Cc: Lorenzo Stoakes <ljs@kernel.org>
+Cc: Geert Uytterhoeven <geert@linux-m68k.org>
 Cc: Helge Deller <deller@gmx.de>
 Cc: Huacai Chen <chenhuacai@kernel.org>
 Cc: James Bottomley <james.bottomley@HansenPartnership.com>
 Cc: John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>
-Cc: Lorenzo Stoakes <ljs@kernel.org>
 Cc: Rich Felker <dalias@libc.org>
 Cc: Samuel Holland <samuel.holland@sifive.com>
 Cc: WANG Xuerui <kernel@xen0n.name>
 Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
-Cc: Geert Uytterhoeven <geert@linux-m68k.org>
 ---
 
- include/linux/pgtable.h |   14 ++++++++++++++
- mm/memory.c             |   15 +--------------
- 2 files changed, 15 insertions(+), 14 deletions(-)
+ mm/pgtable-generic.c |   20 ++++++++++++++++----
+ 1 file changed, 16 insertions(+), 4 deletions(-)
 
---- a/include/linux/pgtable.h~mm-make-ptval_to_str-generally-available
-+++ a/include/linux/pgtable.h
-@@ -2313,6 +2313,20 @@ static inline const char *pgtable_level_
- 	}
+--- a/mm/pgtable-generic.c~mm-stop-using-pxd_error
++++ a/mm/pgtable-generic.c
+@@ -26,14 +26,20 @@
+ 
+ void pgd_clear_bad(pgd_t *pgd)
+ {
+-	pgd_ERROR(*pgd);
++	char str[PTVAL_STR_MAX];
++
++	ptval_to_str(str, pgd_val(*pgd));
++	pr_err("bad pgd %s.\n", str);
+ 	pgd_clear(pgd);
  }
  
-+void ptval_bytes_to_hex_str(char *buf, size_t buf_size, const void *entry, size_t entry_size);
-+
-+#define ptval_to_str(buf, val)								\
-+	do {										\
-+		auto __val = (val);							\
-+											\
-+		ptval_bytes_to_hex_str((buf), sizeof(buf), &__val, sizeof(__val));	\
-+	} while (0)
-+
-+#if defined(__SIZEOF_INT128__)
-+#define PTVAL_STR_MAX	(32 + 1) /* Max 128-bit value in hex + NUL */
-+#else
-+#define PTVAL_STR_MAX	(16 + 1) /* Max 64-bit value in hex + NUL */
-+#endif
- #endif /* !__ASSEMBLER__ */
- 
- #if !defined(MAX_POSSIBLE_PHYSMEM_BITS) && !defined(CONFIG_64BIT)
---- a/mm/memory.c~mm-make-ptval_to_str-generally-available
-+++ a/mm/memory.c
-@@ -495,7 +495,7 @@ static inline void add_mm_rss_vec(struct
- /* Allow a burst of 60 bad page map reports per minute. */
- static DEFINE_RATELIMIT_STATE(bad_page_map_ratelimit, 60 * HZ, 60);
- 
--static void ptval_bytes_to_hex_str(char *buf, size_t buf_size, const void *entry, size_t entry_size)
-+void ptval_bytes_to_hex_str(char *buf, size_t buf_size, const void *entry, size_t entry_size)
+ #ifndef __PAGETABLE_P4D_FOLDED
+ void p4d_clear_bad(p4d_t *p4d)
  {
- 	if (WARN_ON_ONCE(buf_size < entry_size * 2 + 1)) {
- 		snprintf(buf, buf_size, "overflow");
-@@ -522,19 +522,6 @@ static void ptval_bytes_to_hex_str(char
- 	}
+-	p4d_ERROR(*p4d);
++	char str[PTVAL_STR_MAX];
++
++	ptval_to_str(str, p4d_val(*p4d));
++	pr_err("bad p4d %s.\n", str);
+ 	p4d_clear(p4d);
+ }
+ #endif
+@@ -41,7 +47,10 @@ void p4d_clear_bad(p4d_t *p4d)
+ #ifndef __PAGETABLE_PUD_FOLDED
+ void pud_clear_bad(pud_t *pud)
+ {
+-	pud_ERROR(*pud);
++	char str[PTVAL_STR_MAX];
++
++	ptval_to_str(str, pud_val(*pud));
++	pr_err("bad pud %s.\n", str);
+ 	pud_clear(pud);
+ }
+ #endif
+@@ -53,7 +62,10 @@ void pud_clear_bad(pud_t *pud)
+  */
+ void pmd_clear_bad(pmd_t *pmd)
+ {
+-	pmd_ERROR(*pmd);
++	char str[PTVAL_STR_MAX];
++
++	ptval_to_str(str, pmd_val(*pmd));
++	pr_err("bad pmd %s.\n", str);
+ 	pmd_clear(pmd);
  }
  
--#define ptval_to_str(buf, val)								\
--	do {										\
--		auto __val = (val);							\
--											\
--		ptval_bytes_to_hex_str((buf), sizeof(buf), &__val, sizeof(__val));	\
--	} while (0)
--
--#if defined(__SIZEOF_INT128__)
--#define PTVAL_STR_MAX	(32 + 1) /* Max 128-bit value in hex + NUL */
--#else
--#define PTVAL_STR_MAX	(16 + 1) /* Max 64-bit value in hex + NUL */
--#endif
--
- static void __print_bad_page_map_pgtable(struct mm_struct *mm, unsigned long addr)
- {
- 	char pgd_str[PTVAL_STR_MAX];
 _
 
 Patches currently in -mm which might be from anshuman.khandual@arm.com are
