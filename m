@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9D20A29D288
-	for <mm-commits@vger.kernel.org>; Wed,  7 Oct 2026 00:49:53 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 34AE82DCBFA
+	for <mm-commits@vger.kernel.org>; Wed,  7 Oct 2026 00:49:55 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791334194; cv=none; b=nbGQfhTCy/dRJcBNkuYelkARK3ebvBqQHC3I+i0kGOyGaF3bfrwfxOnzrFOQqyYHVQuid4KfFHM2Vhv9nuuFmCAMZp6qWTm6iYy47VSzBquGK4oEB5lrmD0+bX6YElGMgAaPaZMofPbwVf8PU8CSYZUufbU1ADTDuIvMBhTa770=
+	t=1791334196; cv=none; b=cHfY/iqX0fXTGqxj3sfGApv40g4rHAzclaIkiPHcC/kXEYU9yMlvFKHP2XqBJYTFFxssALLsmd+R62zttT7P4Fm3JnV464Z7wqv0NruKdhpG6mQXi9gAfF8ZeZaIrvnIgL45HV23XG/GKhcDP3lovHKlRB22lhBNW+YZ5gy5GFI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791334194; c=relaxed/simple;
-	bh=L279huS1cYJxf/rZEh0vTetzYpn+Icyq6+I5kWo+plw=;
-	h=Date:To:From:Subject:Message-Id; b=X6c/2tTWKCFVdi9yFwhAkQc/HW+btIz2WKPvm84SJAbAlyZD1Q2DRrDLr8OJCCqlG0JopLLbJ/X/peUvm1ls7GGgVJmgqlvJaRNyCRkRdi4Zljq+IdPUriYH+/0B5mkE7WrIuUvXdFcIA0Ha6WX1ubBFZnPXSErZ9vJia1qEJ8E=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=OXuQPm8e; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1791334196; c=relaxed/simple;
+	bh=iJXIriIIWl/atDSZ5kFjvkpDxgxJcjolMb1w4NERAZ0=;
+	h=Date:To:From:Subject:Message-Id; b=nKQTx5X5YEtIc2P2KOxWUlnb3o9YA7kN0CiHIoFU4oWTs64zYTA2BthL9H+GNlFjGsSv00NYB4N6SGBsP3ri1ND9TH06SstLOGkpe3fQzDCbWsetLa1w68J+YL5XxGoQp/bNF/5kP0CJVkVvlWWigKSwH9zW0fNhwQcGZSFyxgE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=sTtAEh/d; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="OXuQPm8e"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6AD481F0089B;
-	Wed,  7 Oct 2026 00:49:53 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="sTtAEh/d"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id DDD1C1F0089C;
+	Wed,  7 Oct 2026 00:49:54 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1791334193;
-	bh=hk/pKmdqtaWcPA4BX/VeQovzskA4ERYIPrUSxY/RI2M=;
+	d=linux-foundation.org; s=korg; t=1791334195;
+	bh=IgMbMs1L/+0KAvYgFtEKYWTgM31Uq4QrJ7HfJaFYTPE=;
 	h=Date:To:From:Subject;
-	b=OXuQPm8euhUqCYutRdwwliVW/njtZoa47l3yQHzJvatTHlWJ312nAtjgv0TUBGO7a
-	 llEJOqtZpyIkCJ/ERr9oTgDTvZlhsMV9NfeGw/D+VdPtzEeXJBJR+FAO0sNh2RLCB7
-	 WPs/uIXt6uSKhMq3yUvXylHjVEteVWJ3sbACMTpQ=
-Date: Tue, 06 Oct 2026 17:49:53 -0700
+	b=sTtAEh/dPK4nXp4Nx2DrdlLSDI7MfJc7rAKC7hu1SlWUtAFZVtZNmWUhZUvYf9WFD
+	 oVDNWpxgOXTt+x7WbgwQlu+Z4Ukq1D+105grooNTSiRrn6QRP3iUzlVGki9yDRLi+7
+	 OdCcgW3sjqglo9xmsfK9DqpsmpT+jGUSbjHQpH04=
+Date: Tue, 06 Oct 2026 17:49:54 -0700
 To: mm-commits@vger.kernel.org,will@kernel.org,urezki@gmail.com,svens@linux.ibm.com,ryan.roberts@arm.com,rafael@kernel.org,peterz@infradead.org,palmer@dabbelt.com,mingo@redhat.com,luto@kernel.org,lenb@kernel.org,kevin.brodsky@arm.com,kernel@xen0n.name,hpa@zytor.com,hca@linux.ibm.com,gor@linux.ibm.com,gerald.schaefer@linux.ibm.com,dev.jain@arm.com,david@kernel.org,dave.hansen@linux.intel.com,chenhuacai@kernel.org,catalin.marinas@arm.com,brendan.jackman@linux.dev,bp@alien8.de,borntraeger@linux.ibm.com,aou@eecs.berkeley.edu,alex@ghiti.fr,agordeev@linux.ibm.com,rppt@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-execmem-use-vm_flush_reset_perms-for-rox-cache-allocations.patch removed from -mm tree
-Message-Id: <20261007004953.6AD481F0089B@smtp.kernel.org>
+Subject: [merged mm-stable] revert-arch-introduce-set_direct_map_valid_noflush.patch removed from -mm tree
+Message-Id: <20261007004954.DDD1C1F0089C@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,57 +35,58 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/execmem: use VM_FLUSH_RESET_PERMS for ROX cache allocations
+     Subject: Revert "arch: introduce set_direct_map_valid_noflush()"
 has been removed from the -mm tree.  Its filename was
-     mm-execmem-use-vm_flush_reset_perms-for-rox-cache-allocations.patch
+     revert-arch-introduce-set_direct_map_valid_noflush.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: "Mike Rapoport (Microsoft)" <rppt@kernel.org>
-Subject: mm/execmem: use VM_FLUSH_RESET_PERMS for ROX cache allocations
-Date: Thu, 03 Sep 2026 12:28:31 +0300
+Subject: Revert "arch: introduce set_direct_map_valid_noflush()"
+Date: Thu, 03 Sep 2026 12:28:32 +0300
 
-Initially execmem completely removed direct map alias for the memory
-allocated for the ROX cache in PMD_SIZE chunks.  When that memory was
-freed, its direct map was restored also in PMD_SIZE chunks to avoid
-fragmentation of the direct map caused by vmalloc::vm_reset_perms().
+Commit 0c6378a71574 ("arch: introduce set_direct_map_valid_noflush()")
+added set_direct_map_valid_noflush() to allow updating the direct map for
+a physically contiguous range in execmem.
 
-This required execmem to implement the wrappers for set_direct_map APIs
-for proper sequencing of removal and restoration of the direct map
-aliases.
+As Brendan recently pointed out [1], this API is confusing because on
+arm64 it means that is sets VALID bit in ptes, while on other
+architectures it is an analog of set_direct_map_default_noflush().
 
-Since then x86's CPA gained support for collapsing the direct map page
-tables for ROX pages and execmem switched from removing ROX caches from
-the direct map to making them ROX there, so execmem only needs to update
-direct map alias permissions when freeing the ROX cache memory.
+The only user of set_direct_map_valid_noflush() was execmem's ROX cache
+freeing path and it was switched to utilize VM_FLUSH_RESET_PERMS for
+resetting permissions of the direct map alias.
 
-vmalloc already handles those updates for areas with VM_FLUSH_RESET_PERMS
-set and vmalloc::vm_reset_perms() does not force split of the direct map
-for PMD_SIZE chunks.
+With the last user gone and with
+set_direct_map_{invalid,default}_noflush() accepting number of pages as a
+parameter, set_direct_map_valid_noflush() become a copy of
+set_memory_valid() on arm64 and a duplicate of
+set_direct_map_{invalid,default}_noflush() on other architecture, it is
+safe to remove set_direct_map_valid_noflush().
 
-Set the area permissions with set_vm_flush_reset_perms() when populating
-the execmem cache just before flipping the area to ROX.
+Also drop a stale comment in arm64::__kernel_map_pages() that Linus
+bothered to add when merging changes containing
+set_direct_map_valid_noflush() to his tree.
 
-This way freeing an allocated area on an error path won't incur two
-updates of the direct map alias of that area and TLB flushing in
-vm_reset_perms().
+This reverts commit 0c6378a71574daa6cd1534ad42a956e3262756c7.
 
-Link: https://lore.kernel.org/20260903-execmem-set-vm-perms-v0-2-v3-5-949b64a9f755@kernel.org
+Link: https://lore.kernel.org/20260903-execmem-set-vm-perms-v0-2-v3-6-949b64a9f755@kernel.org
+Link: https://lore.kernel.org/all/DJ69RCVRBO0Y.3JCYSW50IC4RC@linux.dev [1]
 Signed-off-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+Reviewed-by: Brendan Jackman <brendan.jackman@linux.dev>
+Acked-by: David Hildenbrand (Arm) <david@kernel.org>
 Reviewed-by: Kevin Brodsky <kevin.brodsky@arm.com>
 Cc: Albert Ou <aou@eecs.berkeley.edu>
 Cc: Alexander Gordeev <agordeev@linux.ibm.com>
 Cc: Alexandre Ghiti <alex@ghiti.fr>
 Cc: Andy Lutomirski <luto@kernel.org>
 Cc: "Borislav Petkov (AMD)" <bp@alien8.de>
-Cc: Brendan Jackman <brendan.jackman@linux.dev>
 Cc: Catalin Marinas <catalin.marinas@arm.com>
 Cc: Christian Borntraeger <borntraeger@linux.ibm.com>
 Cc: Dave Hansen <dave.hansen@linux.intel.com>
-Cc: David Hildenbrand <david@kernel.org>
 Cc: Gerald Schaefer <gerald.schaefer@linux.ibm.com>
 Cc: Heiko Carstens <hca@linux.ibm.com>
 Cc: "H. Peter Anvin" <hpa@zytor.com>
@@ -104,83 +105,196 @@ Cc: Will Deacon <will@kernel.org>
 Cc: Dev Jain <dev.jain@arm.com>
 ---
 
- mm/execmem.c |   40 +++++++---------------------------------
- 1 file changed, 7 insertions(+), 33 deletions(-)
+ arch/arm64/include/asm/set_memory.h     |    1 -
+ arch/arm64/mm/pageattr.c                |   16 ----------------
+ arch/loongarch/include/asm/set_memory.h |    1 -
+ arch/loongarch/mm/pageattr.c            |   19 -------------------
+ arch/riscv/include/asm/set_memory.h     |    1 -
+ arch/riscv/mm/pageattr.c                |   15 ---------------
+ arch/s390/include/asm/set_memory.h      |    1 -
+ arch/s390/mm/pageattr.c                 |   12 ------------
+ arch/x86/include/asm/set_memory.h       |    1 -
+ arch/x86/mm/pat/set_memory.c            |    8 --------
+ include/linux/set_memory.h              |    6 ------
+ 11 files changed, 81 deletions(-)
 
---- a/mm/execmem.c~mm-execmem-use-vm_flush_reset_perms-for-rox-cache-allocations
-+++ a/mm/execmem.c
-@@ -113,28 +113,6 @@ static inline unsigned long mas_range_le
- 	return mas->last - mas->index + 1;
+--- a/arch/arm64/include/asm/set_memory.h~revert-arch-introduce-set_direct_map_valid_noflush
++++ a/arch/arm64/include/asm/set_memory.h
+@@ -13,7 +13,6 @@ int set_memory_valid(unsigned long addr,
+ 
+ int set_direct_map_invalid_noflush(struct page *page, unsigned int numpages);
+ int set_direct_map_default_noflush(struct page *page, unsigned int numpages);
+-int set_direct_map_valid_noflush(struct page *page, unsigned nr, bool valid);
+ bool kernel_page_present(struct page *page);
+ 
+ int set_memory_encrypted(unsigned long addr, int numpages);
+--- a/arch/arm64/mm/pageattr.c~revert-arch-introduce-set_direct_map_valid_noflush
++++ a/arch/arm64/mm/pageattr.c
+@@ -355,23 +355,7 @@ int realm_register_memory_enc_ops(void)
+ 	return arm64_mem_crypt_ops_register(&realm_crypt_ops);
  }
  
--static int execmem_set_direct_map_valid(struct vm_struct *vm, bool valid)
+-int set_direct_map_valid_noflush(struct page *page, unsigned nr, bool valid)
 -{
--	unsigned int nr = (1 << get_vm_area_page_order(vm));
--	unsigned int updated = 0;
--	int err = 0;
+-	unsigned long addr = (unsigned long)page_address(page);
 -
--	for (int i = 0; i < vm->nr_pages; i += nr) {
--		err = set_direct_map_valid_noflush(vm->pages[i], nr, valid);
--		if (err)
--			goto err_restore;
--		updated += nr;
--	}
+-	if (!can_set_direct_map())
+-		return 0;
 -
--	return 0;
--
--err_restore:
--	for (int i = 0; i < updated; i += nr)
--		set_direct_map_valid_noflush(vm->pages[i], nr, !valid);
--
--	return err;
+-	return set_memory_valid(addr, nr, valid);
 -}
 -
- static int execmem_force_rw(void *ptr, size_t size)
+ #ifdef CONFIG_DEBUG_PAGEALLOC
+-/*
+- * This is - apart from the return value - doing the same
+- * thing as the new set_direct_map_valid_noflush() function.
+- *
+- * Unify? Explain the conceptual differences?
+- */
+ void __kernel_map_pages(struct page *page, int numpages, int enable)
  {
- 	unsigned int nr = PAGE_ALIGN(size) >> PAGE_SHIFT;
-@@ -169,9 +147,6 @@ static void execmem_cache_clean(struct w
+ 	if (!can_set_direct_map())
+--- a/arch/loongarch/include/asm/set_memory.h~revert-arch-introduce-set_direct_map_valid_noflush
++++ a/arch/loongarch/include/asm/set_memory.h
+@@ -17,6 +17,5 @@ int set_memory_rw(unsigned long addr, in
+ bool kernel_page_present(struct page *page);
+ int set_direct_map_default_noflush(struct page *page, unsigned int nr);
+ int set_direct_map_invalid_noflush(struct page *page, unsigned int nr);
+-int set_direct_map_valid_noflush(struct page *page, unsigned nr, bool valid);
  
- 		if (IS_ALIGNED(size, PMD_SIZE) &&
- 		    IS_ALIGNED(mas.index, PMD_SIZE)) {
--			struct vm_struct *vm = find_vm_area(area);
+ #endif /* _ASM_LOONGARCH_SET_MEMORY_H */
+--- a/arch/loongarch/mm/pageattr.c~revert-arch-introduce-set_direct_map_valid_noflush
++++ a/arch/loongarch/mm/pageattr.c
+@@ -217,22 +217,3 @@ int set_direct_map_invalid_noflush(struc
+ 
+ 	return __set_memory(addr, nr, __pgprot(0), __pgprot(_PAGE_PRESENT | _PAGE_VALID));
+ }
 -
--			execmem_set_direct_map_valid(vm, true);
- 			mas_store_gfp(&mas, NULL, GFP_KERNEL);
- 			vfree(area);
- 		}
-@@ -301,6 +276,8 @@ static void *execmem_cache_populate_allo
- 	/* fill memory with instructions that will trap */
- 	execmem_fill_trapping_insns(p, alloc_size);
- 
-+	set_vm_flush_reset_perms(p);
-+
- 	err = set_memory_rox((unsigned long)p, vm->nr_pages);
- 	if (err)
- 		goto err_free_mem;
-@@ -312,18 +289,15 @@ static void *execmem_cache_populate_allo
- 	 */
- 	mutex_lock(mutex);
- 	err = execmem_cache_add_locked(p, alloc_size, GFP_KERNEL);
--	if (err)
--		goto err_reset_direct_map;
+-int set_direct_map_valid_noflush(struct page *page, unsigned nr, bool valid)
+-{
+-	unsigned long addr = (unsigned long)page_address(page);
+-	pgprot_t set, clear;
 -
--	p = execmem_cache_alloc_locked(range, size);
+-	if (addr < vm_map_base)
+-		return 0;
 -
-+	if (!err)
-+		p = execmem_cache_alloc_locked(range, size);
- 	mutex_unlock(mutex);
+-	if (valid) {
+-		set = PAGE_KERNEL;
+-		clear = __pgprot(0);
+-	} else {
+-		set = __pgprot(0);
+-		clear = __pgprot(_PAGE_PRESENT | _PAGE_VALID);
+-	}
+-
+-	return __set_memory(addr, nr, set, clear);
+-}
+--- a/arch/riscv/include/asm/set_memory.h~revert-arch-introduce-set_direct_map_valid_noflush
++++ a/arch/riscv/include/asm/set_memory.h
+@@ -42,7 +42,6 @@ static inline int set_kernel_memory(char
  
-+	if (err)
-+		goto err_free_mem;
-+
- 	return p;
+ int set_direct_map_invalid_noflush(struct page *page, unsigned int nr);
+ int set_direct_map_default_noflush(struct page *page, unsigned int nr);
+-int set_direct_map_valid_noflush(struct page *page, unsigned nr, bool valid);
+ bool kernel_page_present(struct page *page);
  
--err_reset_direct_map:
--	mutex_unlock(mutex);
--	execmem_set_direct_map_valid(vm, true);
- err_free_mem:
- 	vfree(p);
- 	return NULL;
+ #endif /* __ASSEMBLER__ */
+--- a/arch/riscv/mm/pageattr.c~revert-arch-introduce-set_direct_map_valid_noflush
++++ a/arch/riscv/mm/pageattr.c
+@@ -386,21 +386,6 @@ int set_direct_map_default_noflush(struc
+ 			    PAGE_KERNEL, __pgprot(_PAGE_EXEC));
+ }
+ 
+-int set_direct_map_valid_noflush(struct page *page, unsigned nr, bool valid)
+-{
+-	pgprot_t set, clear;
+-
+-	if (valid) {
+-		set = PAGE_KERNEL;
+-		clear = __pgprot(_PAGE_EXEC);
+-	} else {
+-		set = __pgprot(0);
+-		clear = __pgprot(_PAGE_PRESENT);
+-	}
+-
+-	return __set_memory((unsigned long)page_address(page), nr, set, clear);
+-}
+-
+ #ifdef CONFIG_DEBUG_PAGEALLOC
+ static int debug_pagealloc_set_page(pte_t *pte, unsigned long addr, void *data)
+ {
+--- a/arch/s390/include/asm/set_memory.h~revert-arch-introduce-set_direct_map_valid_noflush
++++ a/arch/s390/include/asm/set_memory.h
+@@ -62,7 +62,6 @@ __SET_MEMORY_FUNC(set_memory_4k, SET_MEM
+ 
+ int set_direct_map_invalid_noflush(struct page *page, unsigned int nr);
+ int set_direct_map_default_noflush(struct page *page, unsigned int nr);
+-int set_direct_map_valid_noflush(struct page *page, unsigned nr, bool valid);
+ bool kernel_page_present(struct page *page);
+ 
+ #endif
+--- a/arch/s390/mm/pageattr.c~revert-arch-introduce-set_direct_map_valid_noflush
++++ a/arch/s390/mm/pageattr.c
+@@ -392,18 +392,6 @@ int set_direct_map_default_noflush(struc
+ 	return __set_memory((unsigned long)page_to_virt(page), nr, SET_MEMORY_DEF);
+ }
+ 
+-int set_direct_map_valid_noflush(struct page *page, unsigned nr, bool valid)
+-{
+-	unsigned long flags;
+-
+-	if (valid)
+-		flags = SET_MEMORY_DEF;
+-	else
+-		flags = SET_MEMORY_INV;
+-
+-	return __set_memory((unsigned long)page_to_virt(page), nr, flags);
+-}
+-
+ bool kernel_page_present(struct page *page)
+ {
+ 	unsigned long addr;
+--- a/arch/x86/include/asm/set_memory.h~revert-arch-introduce-set_direct_map_valid_noflush
++++ a/arch/x86/include/asm/set_memory.h
+@@ -88,7 +88,6 @@ int set_pages_rw(struct page *page, int
+ 
+ int set_direct_map_invalid_noflush(struct page *page, unsigned int nr);
+ int set_direct_map_default_noflush(struct page *page, unsigned int nr);
+-int set_direct_map_valid_noflush(struct page *page, unsigned nr, bool valid);
+ bool kernel_page_present(struct page *page);
+ 
+ extern int kernel_set_to_readonly;
+--- a/arch/x86/mm/pat/set_memory.c~revert-arch-introduce-set_direct_map_valid_noflush
++++ a/arch/x86/mm/pat/set_memory.c
+@@ -2695,14 +2695,6 @@ int set_direct_map_default_noflush(struc
+ 	return __set_pages_p(page, nr, 0);
+ }
+ 
+-int set_direct_map_valid_noflush(struct page *page, unsigned nr, bool valid)
+-{
+-	if (valid)
+-		return __set_pages_p(page, nr, 0);
+-
+-	return __set_pages_np(page, nr, 0);
+-}
+-
+ #ifdef CONFIG_DEBUG_PAGEALLOC
+ void __kernel_map_pages(struct page *page, int numpages, int enable)
+ {
+--- a/include/linux/set_memory.h~revert-arch-introduce-set_direct_map_valid_noflush
++++ a/include/linux/set_memory.h
+@@ -36,12 +36,6 @@ static inline int set_direct_map_default
+ 	return 0;
+ }
+ 
+-static inline int set_direct_map_valid_noflush(struct page *page,
+-					       unsigned nr, bool valid)
+-{
+-	return 0;
+-}
+-
+ static inline bool kernel_page_present(struct page *page)
+ {
+ 	return true;
 _
 
 Patches currently in -mm which might be from rppt@kernel.org are
