@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AA46E30D419
-	for <mm-commits@vger.kernel.org>; Wed,  7 Oct 2026 00:52:23 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B7142257827
+	for <mm-commits@vger.kernel.org>; Wed,  7 Oct 2026 00:52:24 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791334344; cv=none; b=mh8YOeAHh8pVme66zAcVwfPNYVYg1R/oSqwWdboAVzY745Q3KZG13kLjmXztNOzt9f36tkaqJM2X/RHBfcmXjnJLyimHbhrkFXnpvLMcI9+3cGhhJCimhEZgeO3SgmzhFm+jD6ORzWW1yXVI76Li561rxVicfOpDMhsj9b5kN78=
+	t=1791334346; cv=none; b=gqAOSE3aqXI6ZCycogLOaeVcZBi2CmlbgGkmlP9a1T6PEIW20jUBGCaFTrASnnoBkfPwDzKzkHNGE0G+lLbrAcQn2bxfTl0W6mQWx2LveRfreQmAGYcpAzmDaC1xDIYtMXWC4z9P3xoXEz9zb0ws5Nk1t5YdgrGGsXXCkpQ7zXA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791334344; c=relaxed/simple;
-	bh=aZOeXODBeBxX5/XsSUmx1xtgy+6lCMcyVLdPME2W9D8=;
-	h=Date:To:From:Subject:Message-Id; b=FkIYluVNQzaopLo0B28OStAbc1QSTZClMP/E+v4uEzHQhRH4sCsbeowU6NjjbHEFLjiurhxK8UXAZSnRLRGIm9QBneQz5EQ3DiL2yDBpYcia5wMMsTId60w8Ugcg2CO3Lq0rlL/kn4w3vQtN+9NmbvyAvwJvpHlOJEE7SWiCcv4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=AZTRNurs; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1791334346; c=relaxed/simple;
+	bh=xUuMHAH5OZavRknc0/RDf8oyDgWMYPlMVGC4tTgz15A=;
+	h=Date:To:From:Subject:Message-Id; b=oRvVujgeRuoOTYnPFl2/nzfH1Trnhe2T2RP7Wof7rIWLZBpcuwf6f/zZtll2MfguumN0/Rp88LLOca4bA0n813ZW7Em5w2hNtOohR0YXAMZdiln7HdrFKhvi4sWUkhGji5NAmAVOnRo4xeXVqSUlQpXXJ/J2fFf227zW3sR8vjU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=YYs/Z3wk; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="AZTRNurs"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 813531F0089C;
-	Wed,  7 Oct 2026 00:52:23 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="YYs/Z3wk"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8EE001F0089B;
+	Wed,  7 Oct 2026 00:52:24 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1791334343;
-	bh=gYQIpoaimJMmErEabV8UC0voeeThLAQOIG9uWPOOMEg=;
+	d=linux-foundation.org; s=korg; t=1791334344;
+	bh=MatRxqAjWCiN6BVdu11tmaWL6g+MMxkQ9KC03HibhhQ=;
 	h=Date:To:From:Subject;
-	b=AZTRNurs79hWvkhVf+5pvVckv61mLU7+5jrCZl/f6C93ooZv871BqawfPgD0n34oR
-	 pNqpU1tBiXogA3pdX3kZUitsiSce1TCVlJIQfF+LErbBNjLRntkSCmex9uwkU3Ntz4
-	 GX7HlhNCJqK1DGPGrY+gZL9Gw/PerbylGi0fH6Sc=
-Date: Tue, 06 Oct 2026 17:52:23 -0700
+	b=YYs/Z3wkPgd8mXj6mBasg0EMa6usgjnpmywxI00v/oBG+BruwBO24D5O7iRW3RcNi
+	 OGNTPt6l/4jzgNY2R0ubx2fpL4cD4VlkYqrVz/sBIZcnU1Rj+JR+f+wN/PLIzSUN76
+	 5DS8gxpAEe1KQ/nkg3/5utsf0H4zrd784a1WU08I=
+Date: Tue, 06 Oct 2026 17:52:24 -0700
 To: mm-commits@vger.kernel.org,vbabka@kernel.org,surenb@google.com,shuah@kernel.org,rppt@kernel.org,rdunlap@infradead.org,mhocko@suse.com,ljs@kernel.org,liam@infradead.org,david@kernel.org,corbet@lwn.net,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-damon-paddr-support-damon_prep.patch removed from -mm tree
-Message-Id: <20261007005223.813531F0089C@smtp.kernel.org>
+Subject: [merged mm-stable] mm-damon-sysfs-implement-preps-directory.patch removed from -mm tree
+Message-Id: <20261007005224.8EE001F0089B@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,25 +35,22 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/damon/paddr: support damon_prep
+     Subject: mm/damon/sysfs: implement preps directory
 has been removed from the -mm tree.  Its filename was
-     mm-damon-paddr-support-damon_prep.patch
+     mm-damon-sysfs-implement-preps-directory.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: SJ Park <sj@kernel.org>
-Subject: mm/damon/paddr: support damon_prep
-Date: Tue, 1 Sep 2026 06:24:55 -0700
+Subject: mm/damon/sysfs: implement preps directory
+Date: Tue, 1 Sep 2026 06:24:56 -0700
 
-Implement damon_operations->prep_probes() callback.  Support the only
-existing prep action, DAMON_PREP_SET_PGIDLE in a way similar to what it
-was doing for the access check preparation: unset page table accessed bits
-and set PG_Idle flag.  Reuse the function for the access check
-preparation.
+Implement a sysfs directory named 'preps' under the probe directory.  It
+will be evolved to be used for specifying probe preps.
 
-Link: https://lore.kernel.org/20260901132506.99243-9-sj@kernel.org
+Link: https://lore.kernel.org/20260901132506.99243-10-sj@kernel.org
 Signed-off-by: SJ Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 Cc: David Hildenbrand <david@kernel.org>
@@ -68,60 +65,110 @@ Cc: Suren Baghdasaryan <surenb@google.com>
 Cc: Vlastimil Babka <vbabka@kernel.org>
 ---
 
- mm/damon/paddr.c |   35 +++++++++++++++++++++++++++++++++++
- 1 file changed, 35 insertions(+)
+ mm/damon/sysfs.c |   65 ++++++++++++++++++++++++++++++++++++++++-----
+ 1 file changed, 59 insertions(+), 6 deletions(-)
 
---- a/mm/damon/paddr.c~mm-damon-paddr-support-damon_prep
-+++ a/mm/damon/paddr.c
-@@ -105,6 +105,40 @@ static unsigned int damon_pa_check_acces
- 	return max_nr_accesses;
+--- a/mm/damon/sysfs.c~mm-damon-sysfs-implement-preps-directory
++++ a/mm/damon/sysfs.c
+@@ -750,6 +750,35 @@ static const struct kobj_type damon_sysf
+ };
+ 
+ /*
++ * preps directory
++ */
++
++struct damon_sysfs_preps {
++	struct kobject kobj;
++};
++
++static struct damon_sysfs_preps *damon_sysfs_preps_alloc(void)
++{
++	return kzalloc_obj(struct damon_sysfs_preps);
++}
++
++static void damon_sysfs_preps_release(struct kobject *kobj)
++{
++	kfree(container_of(kobj, struct damon_sysfs_preps, kobj));
++}
++
++static struct attribute *damon_sysfs_preps_attrs[] = {
++	NULL,
++};
++ATTRIBUTE_GROUPS(damon_sysfs_preps);
++
++static const struct kobj_type damon_sysfs_preps_ktype = {
++	.release = damon_sysfs_preps_release,
++	.sysfs_ops = &kobj_sysfs_ops,
++	.default_groups = damon_sysfs_preps_groups,
++};
++
++/*
+  * filter directory
+  */
+ 
+@@ -1069,6 +1098,7 @@ static const struct kobj_type damon_sysf
+ struct damon_sysfs_probe {
+ 	struct kobject kobj;
+ 	unsigned int weight;
++	struct damon_sysfs_preps *preps;
+ 	struct damon_sysfs_filters *filters;
+ };
+ 
+@@ -1079,25 +1109,48 @@ static struct damon_sysfs_probe *damon_s
+ 
+ static int damon_sysfs_probe_add_dirs(struct damon_sysfs_probe *probe)
+ {
++	struct damon_sysfs_preps *preps;
+ 	struct damon_sysfs_filters *filters;
+ 	int err;
+ 
+-	filters = damon_sysfs_filters_alloc();
+-	if (!filters)
++	preps = damon_sysfs_preps_alloc();
++	if (!preps)
+ 		return -ENOMEM;
++	probe->preps = preps;
++
++	err = kobject_init_and_add(&preps->kobj, &damon_sysfs_preps_ktype,
++			&probe->kobj, "preps");
++	if (err)
++		goto put_preps_out;
++
++	filters = damon_sysfs_filters_alloc();
++	if (!filters) {
++		err = -ENOMEM;
++		goto del_preps_out;
++	}
+ 	probe->filters = filters;
+ 
+ 	err = kobject_init_and_add(&filters->kobj, &damon_sysfs_filters_ktype,
+ 			&probe->kobj, "filters");
+-	if (err) {
+-		kobject_put(&filters->kobj);
+-		probe->filters = NULL;
+-	}
++	if (err)
++		goto put_filters_out;
++	return err;
++
++put_filters_out:
++	kobject_put(&filters->kobj);
++	probe->filters = NULL;
++del_preps_out:
++	kobject_del(&preps->kobj);
++put_preps_out:
++	kobject_put(&preps->kobj);
++	probe->preps = NULL;
+ 	return err;
  }
  
-+static void damon_pa_prep_probes_region(struct damon_region *r,
-+		struct damon_probe *probe, struct damon_ctx *ctx)
-+{
-+	struct damon_prep *p;
-+
-+	damon_for_each_prep(p, probe) {
-+		switch (p->action) {
-+		case DAMON_PREP_SET_PGIDLE:
-+			damon_pa_mkold(damon_pa_phys_addr(r->sampling_addr,
-+						ctx->addr_unit));
-+			break;
-+		default:
-+			break;
-+		}
-+	}
-+}
-+
-+static void damon_pa_prep_probes(struct damon_ctx *ctx, bool set_samples)
-+{
-+	struct damon_target *t;
-+	struct damon_region *r;
-+	struct damon_probe *p;
-+
-+	damon_for_each_target(t, ctx) {
-+		damon_for_each_region(r, t) {
-+			if (set_samples)
-+				r->sampling_addr = damon_rand(ctx, r->ar.start,
-+						r->ar.end);
-+			damon_for_each_probe(p, ctx)
-+				damon_pa_prep_probes_region(r, p, ctx);
-+		}
-+	}
-+}
-+
- static bool damon_pa_filter_match(struct damon_filter *filter,
- 		struct folio *folio)
+ static void damon_sysfs_probe_rm_dirs(struct damon_sysfs_probe *probe)
  {
-@@ -448,6 +482,7 @@ static int __init damon_pa_initcall(void
- 		.update = NULL,
- 		.prepare_access_checks = damon_pa_prepare_access_checks,
- 		.check_accesses = damon_pa_check_accesses,
-+		.prep_probes = damon_pa_prep_probes,
- 		.apply_probes = damon_pa_apply_probes,
- 		.target_valid = NULL,
- 		.apply_scheme = damon_pa_apply_scheme,
++	if (probe->preps)
++		kobject_put(&probe->preps->kobj);
+ 	if (probe->filters) {
+ 		damon_sysfs_filters_rm_dirs(probe->filters);
+ 		kobject_put(&probe->filters->kobj);
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
