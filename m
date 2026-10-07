@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A64842F8EAA
-	for <mm-commits@vger.kernel.org>; Wed,  7 Oct 2026 00:50:39 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 221892DECCB
+	for <mm-commits@vger.kernel.org>; Wed,  7 Oct 2026 00:50:42 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791334240; cv=none; b=s4nXY7c369lJLXVV7/QF5B4SmdgI3e7PO/Pkb7HLhgp1358LMcWT3baPaALumxI8inwx8yuuSUnnJVsWih5RwHlZljjfdW3Kfbu+dsHuFn3HAwqE+VcrmZkJOMiKsVlhrujiYLl2BDALyw88ClVV57EXr300zYk9hsr3LB6hluY=
+	t=1791334243; cv=none; b=q0QLqX5mzEvgD79YoJnDbWUMDODiuTJhSVyoss6AprpF2xzfLt7Cxu3dv90M8PJicwjuQ3+DU9HkMBsc8u6os1jwO7b32mx3Zyonh6ZvQ1glJIy+hwZGNHnF4zF37iqpUE0wn5EGinnZ2eVv3EwQcnQHMjmB1hPAn6mu8AyQIx8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791334240; c=relaxed/simple;
-	bh=7RsuM745W2X4c9Q2PyennPcwwFYgvk4a+4yf3vmvdpo=;
-	h=Date:To:From:Subject:Message-Id; b=EqdyHvW36BuMUSyUm/5tbq9Wne6OY62ufcgIrpsN2rqc7jmUzxb+OeuAOsMJcP0CrMGKr4sA/aQfoTUOv35cybZ80DPBqfsnWDDdtGPeNfWu45yeP6jNJW0I8XC75uA8b85SB2d24PeF5G3FkF5KgVVdzGBOeZkDFKZVmETaQFM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Uqk1dMq4; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1791334243; c=relaxed/simple;
+	bh=v8HtB85xx5KltQH9tcVMNB/9BonxDitrv113GCdkdHY=;
+	h=Date:To:From:Subject:Message-Id; b=RGW+VKiAg6hcAK+5bfugOCNOJZ4FU76VwbEKVnbA/eP6Ug4AehS8uKgXPQKL12uhluFzBK/Ic4209CY54vK+J72cdz6WZjDMO3bHhpEIjJqNu3nu5aau1G3hvI6paMLk49WlsbfNLBL+uen6457z60Qu4YpS5BjhT041vcUTnkU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=jv1SbWR9; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Uqk1dMq4"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7D8811F0089B;
-	Wed,  7 Oct 2026 00:50:39 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="jv1SbWR9"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E9AE61F0089B;
+	Wed,  7 Oct 2026 00:50:41 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1791334239;
-	bh=CaeprX72Lr1y8p75GO3g9n2TfdgMeCo4ApDtrgoROqE=;
+	d=linux-foundation.org; s=korg; t=1791334242;
+	bh=HEJUIEIlEQD0g/cpmaCrcJRvzORskjNs7RKFACr72tg=;
 	h=Date:To:From:Subject;
-	b=Uqk1dMq4pzWYh/pKC20x+5zpyaOofIXTimpmQM42Z0d3BQNEf2ZmHsDyeUgGNDqkk
-	 6tCyFmTY+6znm0pfr2+xs1Im+jCIPPtVh4nlQtK97V0pWTfOjzEkKCQRwS1RtK4n7y
-	 vNT7/UuZwVrujdcabSQOMS4bcVHC29KoFtXKbRcg=
-Date: Tue, 06 Oct 2026 17:50:39 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,vbabka@kernel.org,surenb@google.com,rppt@kernel.org,mhocko@suse.com,ljs@kernel.org,liam@infradead.org,hannes@cmpxchg.org,david@kernel.org,brendan.jackman@linux.dev,richard.weiyang@gmail.com,akpm@linux-foundation.org
+	b=jv1SbWR95cqmd/13foc+mRklXlaSro4DLkoIgRv4ttXAzAR/EUBdiCymgcMeKNvd/
+	 i0M3g7c8Eb7w9r2yce/Vt79oLED6Ck7fzIRdQS7uGEetM+cRZij5gl7STcUhE8FP1Z
+	 nG2MuOJP9nAkamhhyTbOcQx5jwWYMbMcPUo20B9s=
+Date: Tue, 06 Oct 2026 17:50:41 -0700
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,ying.huang@linux.alibaba.com,willy@infradead.org,rakie.kim@sk.com,matthew.brost@intel.com,joshua.hahnjy@gmail.com,david@kernel.org,byungchul@sk.com,apopple@nvidia.com,akpm@linux-foundation.org,gourry@gourry.net
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-adjust-out-dated-document-of-__gfp_nofail.patch removed from -mm tree
-Message-Id: <20261007005039.7D8811F0089B@smtp.kernel.org>
+Subject: [merged mm-stable] mm-mempolicy-use-srcu-for-the-weighted-interleave-state.patch removed from -mm tree
+Message-Id: <20261007005041.E9AE61F0089B@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,74 +35,251 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: adjust out-dated document of __GFP_NOFAIL
+     Subject: mm/mempolicy: use SRCU for the weighted interleave state
 has been removed from the -mm tree.  Its filename was
-     mm-adjust-out-dated-document-of-__gfp_nofail.patch
+     mm-mempolicy-use-srcu-for-the-weighted-interleave-state.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Wei Yang <richard.weiyang@gmail.com>
-Subject: mm: adjust out-dated document of __GFP_NOFAIL
-Date: Sat, 29 Aug 2026 02:58:47 +0000
+From: Gregory Price <gourry@gourry.net>
+Subject: mm/mempolicy: use SRCU for the weighted interleave state
+Date: Thu, 17 Sep 2026 20:12:02 -0400
 
-Commit ee040cbd6e48 ("mm/page_alloc: don't warn about large allocations
-with __GFP_NOFAIL") remove a warning on allocating large folio with
-__GFP_NOFAIL, which was placed there by commit 903edea6c53f ("mm: warn
-about illegal __GFP_NOFAIL usage in a more appropriate location and
-manner").
+Patch series "mm/mempolicy: stop copying state in the interleave paths", v2.
 
-While in that commit, it also documented this behavior which is out-dated
-now.
+The interleave node selectors and bulk allocators take copies of nodemasks
+and node weights (for weighted interleave) in the fault path.  Both of
+these copies can be entirely eliminated.
 
-Adjust the document to align to current code, and adjust the comment while
-at it.
+For node weights, use SRCU to pin the weights in place.  This eliminates a
+copy and a kmalloc from the bulk allocator path.
 
-Link: https://lore.kernel.org/20260829025847.26779-1-richard.weiyang@gmail.com
-Signed-off-by: Wei Yang <richard.weiyang@gmail.com>
+For nodemasks, we can operate directly on pol->nodes as long as we bounds
+check the walk.  A concurrent rebind can shrink the mask, or tear the read
+of it so the mask appears empty.
+
+ - The interleave node selectors fall back to numa_node_id() when that
+   happens, which is what they already did when a copy came back empty.
+
+ - The bulk allocator simply returns what it managed to allocate.
+
+The node count and weight totals are read separately from the nodemask
+walk that consumes them - creating a time-of-check / time-of-use race. 
+Just clamp the walk to a single pass (number of nodes), and clamp each
+bulk allocation chunk to the space left in the request.
+
+The cost is distribution accuracy during a rebind.  The copies never
+corrected for that either - they only kept the code from dividing by zero
+and overrunning the allocation request.
+
+
+This patch (of 2):
+
+alloc_pages_bulk_weighted_interleave() copies iw_table into a scratch
+array on every call so it can walk the weights outside of RCU.  The copy
+exists only because the loop may sleep in the page allocator and so cannot
+hold rcu_read_lock().
+
+Use SRCU to pin the global iw_table object and use it in-place instead.
+
+Retire through both flavors - call_srcu() for the sleeping readers, then
+kfree_rcu() for the reference-less ones - so writers no longer block on
+synchronize_rcu() either.
+
+Tested in a VM with KASAN, PROVE_LOCKING and DEBUG_OBJECTS_RCU_HEAD, with
+a udelay() injected into the read section to widen the race against
+concurrent sysfs weight writers, and placement checked against the
+configured weights.
+
+Every retired state reached its callback.  Swapping the deferred free for
+a bare kfree() in the same test reports a use-after-free immediately.
+
+Link: https://lore.kernel.org/20260918001203.3389165-1-gourry@gourry.net
+Link: https://lore.kernel.org/20260918001203.3389165-2-gourry@gourry.net
+Signed-off-by: Gregory Price (Meta) <gourry@gourry.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Reviewed-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
-Reviewed-by: Zi Yan <ziy@nvidia.com>
-Reviewed-by: Vlastimil Babka (SUSE) <vbabka@kernel.org>
-Cc: Brendan Jackman <brendan.jackman@linux.dev>
-Cc: David Hildenbrand <david@kernel.org>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Liam R. Howlett <liam@infradead.org>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Suren Baghdasaryan <surenb@google.com>
+Suggested-by: Andrew Morton <akpm@linux-foundation.org>
+Suggested-by: Matthew Wilcox <willy@infradead.org>
+Acked-by: David Hildenbrand (Arm) <david@kernel.org>
+Assisted-by: LLM
+Cc: Alistair Popple <apopple@nvidia.com>
+Cc: Byungchul Park <byungchul@sk.com>
+Cc: "Huang, Ying" <ying.huang@linux.alibaba.com>
+Cc: Joshua Hahn <joshua.hahnjy@gmail.com>
+Cc: Matthew Brost <matthew.brost@intel.com>
+Cc: Rakie Kim <rakie.kim@sk.com>
+Cc: Zi Yan <ziy@nvidia.com>
 ---
 
- include/linux/gfp_types.h |    2 +-
- mm/page_alloc.c           |    2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+ mm/mempolicy.c |   70 ++++++++++++++++++++++-------------------------
+ 1 file changed, 34 insertions(+), 36 deletions(-)
 
---- a/include/linux/gfp_types.h~mm-adjust-out-dated-document-of-__gfp_nofail
-+++ a/include/linux/gfp_types.h
-@@ -244,7 +244,7 @@ enum {
-  * definitely preferable to use the flag rather than opencode endless
-  * loop around allocator.
-  * Allocating pages from the buddy with __GFP_NOFAIL and order > 1 is
-- * not supported. Please consider using kvmalloc() instead.
-+ * discouraged. Please consider using kvmalloc() instead if possible.
-  */
- #define __GFP_IO	((__force gfp_t)___GFP_IO)
- #define __GFP_FS	((__force gfp_t)___GFP_FS)
---- a/mm/page_alloc.c~mm-adjust-out-dated-document-of-__gfp_nofail
-+++ a/mm/page_alloc.c
-@@ -4804,7 +4804,7 @@ __alloc_pages_slowpath(gfp_t gfp_mask, u
+--- a/mm/mempolicy.c~mm-mempolicy-use-srcu-for-the-weighted-interleave-state
++++ a/mm/mempolicy.c
+@@ -112,6 +112,7 @@
+ #include <linux/printk.h>
+ #include <linux/leafops.h>
+ #include <linux/gcd.h>
++#include <linux/srcu.h>
  
- 	if (unlikely(nofail)) {
- 		/*
--		 * Also we don't support __GFP_NOFAIL without __GFP_DIRECT_RECLAIM,
-+		 * We don't support __GFP_NOFAIL without __GFP_DIRECT_RECLAIM,
- 		 * otherwise, we may result in lockup.
- 		 */
- 		WARN_ON_ONCE(!can_direct_reclaim);
+ #include <asm/tlbflush.h>
+ #include <asm/tlb.h>
+@@ -157,6 +158,7 @@ static const int weightiness = 32;
+  */
+ struct weighted_interleave_state {
+ 	bool mode_auto;
++	struct rcu_head rcu;
+ 	u8 iw_table[];
+ };
+ static struct weighted_interleave_state __rcu *wi_state;
+@@ -168,6 +170,24 @@ static unsigned int *node_bw_table;
+  */
+ static DEFINE_MUTEX(wi_state_lock);
+ 
++/* Readers that sleep while walking iw_table hold this instead */
++DEFINE_STATIC_SRCU_FAST(wi_srcu);
++
++static void wi_state_free_rcu(struct rcu_head *head)
++{
++	struct weighted_interleave_state *state =
++		container_of(head, struct weighted_interleave_state, rcu);
++
++	kfree_rcu(state, rcu);
++}
++
++/* Retire through both flavors: sleeping readers use SRCU, the rest RCU */
++static void wi_state_retire(struct weighted_interleave_state *state)
++{
++	if (state)
++		call_srcu(&wi_srcu, &state->rcu, wi_state_free_rcu);
++}
++
+ static u8 get_il_weight(int node)
+ {
+ 	struct weighted_interleave_state *state;
+@@ -266,10 +286,7 @@ int mempolicy_set_node_perf(unsigned int
+ 	rcu_assign_pointer(wi_state, new_wi_state);
+ 
+ 	mutex_unlock(&wi_state_lock);
+-	if (old_wi_state) {
+-		synchronize_rcu();
+-		kfree(old_wi_state);
+-	}
++	wi_state_retire(old_wi_state);
+ out:
+ 	kfree(old_bw);
+ 	return 0;
+@@ -2644,7 +2661,8 @@ static unsigned long alloc_pages_bulk_we
+ 	unsigned long nr_allocated = 0;
+ 	unsigned long rounds;
+ 	unsigned long node_pages, delta;
+-	u8 *weights, weight;
++	struct srcu_ctr __percpu *scp;
++	u8 *table, weight;
+ 	unsigned int weight_total = 0;
+ 	unsigned long rem_pages = nr_pages;
+ 	nodemask_t nodes;
+@@ -2688,25 +2706,14 @@ static unsigned long alloc_pages_bulk_we
+ 	me->il_weight = 0;
+ 	prev_node = node;
+ 
+-	/* create a local copy of node weights to operate on outside rcu */
+-	weights = kmalloc(nr_node_ids, gfp & GFP_RECLAIM_MASK);
+-	if (!weights)
+-		return total_allocated;
+-
+-	rcu_read_lock();
+-	state = rcu_dereference(wi_state);
+-	if (state) {
+-		memcpy(weights, state->iw_table, nr_node_ids * sizeof(u8));
+-		rcu_read_unlock();
+-	} else {
+-		rcu_read_unlock();
+-		for (i = 0; i < nr_node_ids; i++)
+-			weights[i] = 1;
+-	}
++	/* The page allocator may sleep, pin the weight table with SRCU */
++	scp = srcu_read_lock_fast(&wi_srcu);
++	state = srcu_dereference(wi_state, &wi_srcu);
++	table = state ? state->iw_table : NULL;
+ 
+ 	/* calculate total, detect system default usage */
+ 	for_each_node_mask(node, nodes)
+-		weight_total += weights[node];
++		weight_total += table ? table[node] : 1;
+ 
+ 	/*
+ 	 * Calculate rounds/partial rounds to minimize __alloc_pages_bulk calls.
+@@ -2718,10 +2725,10 @@ static unsigned long alloc_pages_bulk_we
+ 	rounds = rem_pages / weight_total;
+ 	delta = rem_pages % weight_total;
+ 	resume_node = next_node_in(prev_node, nodes);
+-	resume_weight = weights[resume_node];
++	resume_weight = table ? table[resume_node] : 1;
+ 	for (i = 0; i < nnodes; i++) {
+ 		node = next_node_in(prev_node, nodes);
+-		weight = weights[node];
++		weight = table ? table[node] : 1;
+ 		node_pages = weight * rounds;
+ 		/* If a delta exists, add this node's portion of the delta */
+ 		if (delta > weight) {
+@@ -2747,7 +2754,7 @@ static unsigned long alloc_pages_bulk_we
+ 	}
+ 	me->il_prev = resume_node;
+ 	me->il_weight = resume_weight;
+-	kfree(weights);
++	srcu_read_unlock_fast(&wi_srcu, scp);
+ 	return total_allocated;
+ }
+ 
+@@ -3673,10 +3680,7 @@ static ssize_t node_store(struct kobject
+ 
+ 	rcu_assign_pointer(wi_state, new_wi_state);
+ 	mutex_unlock(&wi_state_lock);
+-	if (old_wi_state) {
+-		synchronize_rcu();
+-		kfree(old_wi_state);
+-	}
++	wi_state_retire(old_wi_state);
+ 	return count;
+ }
+ 
+@@ -3742,10 +3746,7 @@ static ssize_t weighted_interleave_auto_
+ update_wi_state:
+ 	rcu_assign_pointer(wi_state, new_wi_state);
+ 	mutex_unlock(&wi_state_lock);
+-	if (old_wi_state) {
+-		synchronize_rcu();
+-		kfree(old_wi_state);
+-	}
++	wi_state_retire(old_wi_state);
+ 	return count;
+ }
+ 
+@@ -3789,10 +3790,7 @@ static void wi_state_free(void)
+ 	rcu_assign_pointer(wi_state, NULL);
+ 	mutex_unlock(&wi_state_lock);
+ 
+-	if (old_wi_state) {
+-		synchronize_rcu();
+-		kfree(old_wi_state);
+-	}
++	wi_state_retire(old_wi_state);
+ }
+ 
+ static struct kobj_attribute wi_auto_attr = {
 _
 
-Patches currently in -mm which might be from richard.weiyang@gmail.com are
+Patches currently in -mm which might be from gourry@gourry.net are
 
-mm-page_vma_mapped-guard-check_pmd-with-config_transparent_hugepage.patch
+mm-memory_hotplug-factor-out-node_is_memoryless.patch
+mm-mempolicy-use-vm_normal_folio_pmd-in-queue_folios_pmd.patch
+mm-madvise-use-vm_normal_folio_pmd-in-cold-pageout-pmd-range.patch
+mm-refactor-find_next_best_node-to-find_next_best_node_in.patch
+mm-page_alloc-refactor-build_node_zonelist-out-of-build_zonelists.patch
+proc-task_mmu-handle-special-pmds-in-clear_refs-and-pagemap.patch
+mm-madvise-reclaim-isolated-folios-if-pte-restart-fails.patch
+mm-madvise-use-folio_trylock-in-the-cold-pageout-pmd-split.patch
 
