@@ -1,99 +1,104 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 522BC547066
-	for <mm-commits@vger.kernel.org>; Thu,  8 Oct 2026 00:08:54 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2A6662E737E;
+	Thu,  8 Oct 2026 04:52:41 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791418135; cv=none; b=C+whd74XY8/iv+/crx6n9+gMAYxDXz+PRwnnUgIAtyB3y9KcvOmKyWgDYC3lR9j7ThIpITAjwKIp/32gyaSc3Ez08sD82PSDyhr25eVm+A7V8r0MxFGZVki/PkhPBL4yeLwpbT3KpVUoMJQshWAvwgncE8XFlEJbhQgzZcaJcG8=
+	t=1791435163; cv=none; b=ulYtJqTJ3bMhFjwq0J4bBnr/OgF8nYJX+0xLwB3xgWDV8TpZ4PyWMdFGc6GR444GdXkePYZT6Ua/nMyKH6Vv6yd62PHV/lKlTweOV14sVqYA8FPrhSKMNcgUoA+KTKiJmQMME8BAQVxrap3cDW5XHVt3bX11/moM87rKDPdKqoM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791418135; c=relaxed/simple;
-	bh=dyC0eyfz+zwGNEVUhdDrxu5w1Oj3oY379v8JNDL4k68=;
-	h=Date:To:From:Subject:Message-Id; b=afR6roVMaV91Le35oPRJcoU18Y8qEhTtA1dj3l5RPGEMt9NFAp9QxR2wPVGRzM2+VRoe/8iSOmohMb5+5X1gHzqYP7yECDExfJ/T4P5zCdtBRgz/IKfS0XnPVyD78oq8C73h3OXIio0TxRdWuSUE11k6u61TTdNCg/8ITlQo0ew=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=tjh42gAH; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1791435163; c=relaxed/simple;
+	bh=nYuaXI0WvYdUNdDoFqQ8mm/JRWt31TA/Liyvw3vELMg=;
+	h=Date:From:To:Cc:Subject:Message-Id:Mime-Version:Content-Type; b=Mn2gnNjB1gykcwRoACnbO0veKkPZAnVNAkC01TMWKNOjehAA1f9oF//RFsWT6MzXFt0x8oFiMrOYSzn7cfKeElVDWK6nReAt+A7NQV2EpQRUc8jTFLYaB1Vwby7uDOXDaJ3Z5/s3hhVKnbKYsDM8kNv465HX15CwICrxS4i3vd0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=fVPs4xde; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="tjh42gAH"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id DAD8C1F000FF;
-	Thu,  8 Oct 2026 00:08:53 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="fVPs4xde"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6493F1F000FF;
+	Thu,  8 Oct 2026 04:52:41 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1791418134;
-	bh=tQ9Z1a0wIe9TioQCqrzAuTJJgiEb+kekwbPu3pLfCD8=;
-	h=Date:To:From:Subject;
-	b=tjh42gAHFilHIpPQ7+7LpnkTXK7VYFLSBzvmTpx86A/YU9a2xmMwV02fvVhoC9uTj
-	 tu9MpTX2yk3D/c6u+B57fPEV1WzvJisp5YaT2ux2yrfo2ja+WX1wfGukJE9eJSz08L
-	 0je0FFg0JkF76l5uBGdWPz278X6PhgRN5TmkkZ0Y=
-Date: Wed, 07 Oct 2026 17:08:53 -0700
-To: mm-commits@vger.kernel.org,lzsx618@gmail.com,armaan.sandhu0504@gmail.com,andriy.shevchenko@intel.com,akpm@linux-foundation.org
+	d=linux-foundation.org; s=korg; t=1791435161;
+	bh=Lz6NwmBv4G2rCkGI87SBT6ZAwtyKhNjtPQCSipSuiTw=;
+	h=Date:From:To:Cc:Subject;
+	b=fVPs4xdevullPh5Bb4mHpoS2UTtAnakdFgtts7y4Aa+qXZfI7+cTOGXA0Jjqm00ei
+	 Ggo74/zddKHZHaLT+3dd9QkNSDl8PdEiXZLUfZh2NBvT46yvYyQqgR6wUNDDTIPSAG
+	 gd4Y8m56fE7hhlxG9FTUWy4XkWzchZ7x1OYmUInI=
+Date: Wed, 7 Oct 2026 21:52:40 -0700
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + lib-cmdline-fix-get_options-count-and-overflow-with-large-ranges-fix.patch added to mm-nonmm-unstable branch
-Message-Id: <20261008000853.DAD8C1F000FF@smtp.kernel.org>
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: linux-kernel@vger.kernel.org, linux-mm@kvack.org,
+ mm-commits@vger.kernel.org
+Subject: [GIT PULL]  MM hotfixes for 7.3-rc7
+Message-Id: <20261007215240.377006c9206afa07f769e92f@linux-foundation.org>
+X-Mailer: Sylpheed 3.8.0beta1 (GTK+ 2.24.33; x86_64-pc-linux-gnu)
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 
 
-The patch titled
-     Subject: lib-cmdline-fix-get_options-count-and-overflow-with-large-ranges-fix
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     lib-cmdline-fix-get_options-count-and-overflow-with-large-ranges-fix.patch
+Linus, please merge this batch of hotfixes, thanks.
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/lib-cmdline-fix-get_options-count-and-overflow-with-large-ranges-fix.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+The following changes since commit ff47652a4b66c067c765a7ad464d930b5a9367cc:
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
+  Merge tag 'cifs-fixes-7.3-rc6' of https://git.manguebit.org/linux (2026-10-02 14:04:11 -0700)
 
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+are available in the Git repository at:
 
-The -mm tree is included into linux-next via various
-branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there most days
+  git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm tags/mm-hotfixes-stable-2026-10-07-21-48
 
-------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: lib-cmdline-fix-get_options-count-and-overflow-with-large-ranges-fix
-Date: Wed Oct  7 05:06:09 PM PDT 2026
+for you to fetch changes up to 80ce29104123be4d61b5912dae543c70af0fcb75:
 
-add additional test case from Leizhen
+  mailmap: update entry for Andy Yan (2026-10-06 16:44:19 -0700)
 
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Cc: Andy Shevchenko <andriy.shevchenko@intel.com>
-Cc: Armaan Sandhu <armaan.sandhu0504@gmail.com>
-Cc: Leizhen Zhang <lzsx618@gmail.com>
----
+----------------------------------------------------------------
+7 hotfixes.  4 are cc:stable.
 
- lib/tests/cmdline_kunit.c |    1 +
- 1 file changed, 1 insertion(+)
+- Update .mailmap entries for Andy Yan and John Garry.
 
---- a/lib/tests/cmdline_kunit.c~lib-cmdline-fix-get_options-count-and-overflow-with-large-ranges-fix
-+++ a/lib/tests/cmdline_kunit.c
-@@ -151,6 +151,7 @@ static const struct {
- 	{ "0-2147483647",  { 3, 0, 1, 2, },    0,          },
- 	{ "-5-2147483647", { 3, -5, -4, -3, }, 0,          },
- 	{ "2147483647--5", { 0, 2147483647, }, 0,          },
-+	{ "1,0-2147483647", { 3, 1, 0, 1, },   1, },
- };
- 
- static void cmdline_test_range_overflow(struct kunit *test)
-_
+- Fix read-only MAP_SHARED /dev/zero mappings so they retain shared-file
+  semantics instead of being treated as anonymous memory, also avoiding a
+  CONFIG_DEBUG_VM assertion.
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+- Fix 32-bit build warnings in the hugetlb-mmap selftest caused by using the
+  wrong printf format for size_t values.
 
-mm-memory_hotplug-factor-out-node_is_memoryless-fix.patch
-docs-admin-guide-mm-damon-usage-update-for-hugepage_size-fix.patch
-docs-admin-guide-mm-damon-usage-update-for-hugepage_size-fix-fix.patch
-mm-selftests-add-shmem-into-memory-failure-test-fix.patch
-proc-task_mmu-remove-unnecessary-inlines-in-function-definitions-fix.patch
-mm-update-comments-to-refer-to-anon-rmap-rather-than-anon_vma-fix.patch
-mm-damon-core-introduce-damos_quota_goal-complement-fix.patch
-lib-cmdline-fix-get_options-count-and-overflow-with-large-ranges-fix.patch
-drivers-media-v4l2-core-v4l2-vp9c-reduce-inlining.patch
+- Fix a boot-time crash when early function tracing causes CPA to free kernel
+  page tables before the workqueues used for deferred freeing are available.
+
+- Fix two MREMAP_DONTUNMAP locked_vm accounting leaks: one caused by an
+  mlock-on-fault VMA self-merging, and one caused by partially remapping a
+  locked VMA.
+
+----------------------------------------------------------------
+Andy Yan (1):
+      mailmap: update entry for Andy Yan
+
+Carlos Llamas (1):
+      selftests/mm: cleanup -Wformat issues in hugetlb-mmap
+
+John Garry (1):
+      mailmap: update addresses for John Garry
+
+Lorenzo Stoakes (ARM) (3):
+      mm/mremap: fix locked_vm leak from MREMAP_DONTUNMAP self-merge
+      mm/mremap: fix locked_vm leak by splitting VMA for MREMAP_DONTUNMAP
+      drivers/char/mem: mmap readonly MAP_SHARED-/dev/zero correctly
+
+Mikhail Gavrilov (1):
+      mm: don't schedule deferred kernel page table freeing while booting
+
+ .mailmap                                  |  4 +-
+ drivers/char/mem.c                        |  2 +-
+ mm/mremap.c                               | 70 +++++++++++++++++++++++--------
+ mm/pgtable-generic.c                      | 20 ++++++++-
+ mm/vma.c                                  | 21 ++++++++--
+ mm/vma.h                                  |  7 +++-
+ tools/testing/selftests/mm/hugetlb-mmap.c |  4 +-
+ tools/testing/vma/tests/vma.c             | 10 ++---
+ 8 files changed, 106 insertions(+), 32 deletions(-)
 
