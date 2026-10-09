@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 966F2411F9F
-	for <mm-commits@vger.kernel.org>; Fri,  9 Oct 2026 05:58:37 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B9D90414439;
+	Fri,  9 Oct 2026 05:58:38 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791525518; cv=none; b=oh/J2dZlzPGe6KHuTz0TXe2HqvY3jKksgxACSVHYERIRzkqBc0cGLmovOFZwaqeMSp6dsjlvFSMUtrTVBsSNCZ2mFPS/Il7/BkgQ6jKzOnwMN4nAVjYd7c0Xai3fZmM0oK+9yy3J2BH0vwlipdgv7CuFmjQKaKKe3/AnmYzW7qk=
+	t=1791525519; cv=none; b=NsVMEuOslu+RmC6ZiN7tTSuVpq1ozgih6/phRFBZGx0Ymvdx523HlZkkD9QnokDhQZzqLU7qVULTzBkNGZXv2FJQbY8PNBmDC/QaE323xrMVu3kuUlo0f+tTWLAMNF9reLlikulnfU/Ry//Kog8+wzVMyeAfbmgCVci7kIvXLSQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791525518; c=relaxed/simple;
-	bh=fH9/XQZ8hMHco4qQHb5aLorERBaVpxF/Yc5zqXxb5OI=;
-	h=Date:To:From:Subject:Message-Id; b=u19tcuLLt9W6fOir6F6YzpDumVDCcz4Bwgap0XYp4qL25q7LG7yn0Ow/UfNX1eCUmoukCUUk9MI2ZC4W7xThcC3i+AimxFOgv0oJjxTjdapEzhDlQDt+6BEtZs/FhXHl5xg9DRiTIGNEyaFbSSlpL3vXnesa/UHlcj27HXTsD3Y=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=xkAbvo6i; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1791525519; c=relaxed/simple;
+	bh=T7N6Z3Ccv1UOfGzwLyP32GsVwjB8EeRzg2I+0SsVN5c=;
+	h=Date:To:From:Subject:Message-Id; b=Gp+BMcPKQwc7bv20vHABDzkUsqv1XakdixBLBrPArcSBvmikz5PTRagzt0mjJUNpUx6sB7anrX3UlP/mzJtQyJ8Kjwmgj4TMK1hyO4OwFNzRm9NMhUINVMIWZDVL/lre4l/9BEkCeWNAXIpr/JynC1fZOWTPpHzNafZa4bjxXik=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=YqtqSfDp; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="xkAbvo6i"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 679F51F000FF;
-	Fri,  9 Oct 2026 05:58:37 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="YqtqSfDp"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 903E81F00893;
+	Fri,  9 Oct 2026 05:58:38 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1791525517;
-	bh=tWZ7R8oYsej/PwsAhwks0JbWxsIxSyzyDxM6dLFKxzM=;
+	d=linux-foundation.org; s=korg; t=1791525518;
+	bh=Hd8MUiGCJtmOzx2ddpRr94hXpGVG8cJEVuwEmhMgVlg=;
 	h=Date:To:From:Subject;
-	b=xkAbvo6iqyJrrthzhgb560/vfrmQS9FGbtzzWQ09JSMew4w6zY8VXCkaXJbhpSj4H
-	 cnkVtPingKpATfjY0l6tXTNBlwNBHoPjkxIu84/p+y0VnViUu0vq3QBg3SbUTT365i
-	 MGedhpqTkBJ52Cnli72KwkZAriSSdm5CgXEsHR2k=
-Date: Thu, 08 Oct 2026 22:58:36 -0700
-To: mm-commits@vger.kernel.org,vbabka@kernel.org,pfalcato@suse.de,ljs@kernel.org,liam@infradead.org,jannh@google.com,hi@tychen.cc,akpm@linux-foundation.org
+	b=YqtqSfDpwfUdY4KmA2Bdu1Nm/OcagBHLpUvFQHEOKnwhYIt0NJNVe4kn7OpTb1G1S
+	 CxYYQvSXOZN+u1E1IvT/xPGI5BBdBCOWArkCH4kWTCnC11GN7G9UKffCaKdq9RCY88
+	 BktUUFmhMLt/aIRjbIpQpdIUHtkmNVyLWVqoT5LY=
+Date: Thu, 08 Oct 2026 22:58:38 -0700
+To: mm-commits@vger.kernel.org,yosry@kernel.org,stable@vger.kernel.org,nphamcs@gmail.com,hannes@cmpxchg.org,chengming.zhou@linux.dev,xialonglong@kylinos.cn,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] tools-testing-vma-cover-hole-filling-through-__mmap_region.patch removed from -mm tree
-Message-Id: <20261009055837.679F51F000FF@smtp.kernel.org>
+Subject: [merged mm-stable] mm-zswap-enable-zswap_ever_enabled-in-zswap_pool_create.patch removed from -mm tree
+Message-Id: <20261009055838.903E81F00893@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,127 +35,75 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: tools/testing/vma: cover hole filling through __mmap_region()
+     Subject: mm/zswap: enable zswap_ever_enabled in zswap_pool_create()
 has been removed from the -mm tree.  Its filename was
-     tools-testing-vma-cover-hole-filling-through-__mmap_region.patch
+     mm-zswap-enable-zswap_ever_enabled-in-zswap_pool_create.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Tianyi Chen <hi@tychen.cc>
-Subject: tools/testing/vma: cover hole filling through __mmap_region()
-Date: Tue, 8 Sep 2026 17:55:15 +0800
+From: Longlong Xia <xialonglong@kylinos.cn>
+Subject: mm/zswap: enable zswap_ever_enabled in zswap_pool_create()
+Date: Sun, 6 Sep 2026 21:59:38 +0800
 
-The mmap tests extend existing mappings one neighbor at a time, while
-merge tests construct merge state directly.  Neither exercises filling a
-hole between compatible mappings through the mmap setup and completion
-path.
+If zswap is enabled by default at boot and pool creation fails, then a
+pool is later created by updating the compressor, data written to zswap is
+corrupted on swapin.
 
-Fill a gap through __mmap_region() and require both neighbors to merge
-into one VMA.  Repeat with only the new mapping's execute permission set
-and require three separate VMAs.  Check boundaries, permissions, page
-offsets, map_count and cleanup.
+Enable the static key in zswap_pool_create(), covering boot-time and
+runtime pool creation with a single site.
 
-Link: https://lore.kernel.org/178886112560.138404.17741948638665342936.vma-v2@tychen.cc
-Signed-off-by: Tianyi Chen <hi@tychen.cc>
+Verified with fault injection on a stock kernel (compressor builtin,
+CONFIG_ZSWAP_DEFAULT_ON=n):
+
+  1. Boot with zswap.enabled=1; pool creation fails, init completes
+     pool-less (static key off).
+  2. Echo an available compressor name to zswap.compressor.
+  3. Enable zswap.
+  4. madvise(MADV_PAGEOUT) a pattern-verified 512 MiB region, then
+     fault it back in and verify.
+
+Step 4 reads back 131072/131072 zeroed pages (zswpin=0, zswpout=131072)
+without this patch; all pages intact (zswpin=131072) with it.
+
+Link: https://lore.kernel.org/20260906135938.3568108-1-xialonglong2025@163.com
+Fixes: 2d4d2b1cfb85 ("mm: zswap: add zswap_never_enabled()")
+Signed-off-by: Longlong Xia <xialonglong@kylinos.cn>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Reviewed-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
-Assisted-by: Codex:GPT-6
-Cc: Jann Horn <jannh@google.com>
-Cc: Liam R. Howlett <liam@infradead.org>
-Cc: Pedro Falcato <pfalcato@suse.de>
-Cc: Vlastimil Babka <vbabka@kernel.org>
+Suggested-by: Yosry Ahmed <yosry@kernel.org>
+Acked-by: Yosry Ahmed <yosry@kernel.org>
+Assisted-by: Zcode:GLM-5.3
+Cc: Chengming Zhou <chengming.zhou@linux.dev>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Nhat Pham <nphamcs@gmail.com>
+Cc: <stable@vger.kernel.org>
 ---
 
- tools/testing/vma/tests/mmap.c |   68 +++++++++++++++++++++++++++++++
- 1 file changed, 68 insertions(+)
+ mm/zswap.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
---- a/tools/testing/vma/tests/mmap.c~tools-testing-vma-cover-hole-filling-through-__mmap_region
-+++ a/tools/testing/vma/tests/mmap.c
-@@ -45,6 +45,72 @@ static bool test_mmap_region_basic(void)
- 	return true;
- }
+--- a/mm/zswap.c~mm-zswap-enable-zswap_ever_enabled-in-zswap_pool_create
++++ a/mm/zswap.c
+@@ -329,6 +329,8 @@ static struct zswap_pool *zswap_pool_cre
  
-+static bool mmap_region_fill_hole(bool merge)
-+{
-+	const vma_flags_t vma_flags = mk_vma_flags(VMA_READ_BIT, VMA_WRITE_BIT,
-+			VMA_MAYREAD_BIT, VMA_MAYWRITE_BIT, VMA_MAYEXEC_BIT);
-+	vma_flags_t middle_flags = vma_flags;
-+	struct mm_struct mm = {};
-+	struct vm_area_struct *vma;
-+	unsigned long addr;
-+	int count = 0;
-+	VMA_ITERATOR(vmi, &mm, 0);
+ 	zswap_pool_debug("created", pool);
+ 
++	static_branch_enable(&zswap_ever_enabled);
 +
-+	current->mm = &mm;
-+	if (!merge)
-+		vma_flags_set(&middle_flags, VMA_EXEC_BIT);
-+
-+	/* Map at 0x300000, length 0x3000. */
-+	addr = __mmap_region(NULL, 0x300000, 0x3000, vma_flags, 0x300, NULL);
-+	ASSERT_EQ(addr, 0x300000);
-+
-+	/* Map at 0x306000, length 0x3000, leaving a hole. */
-+	addr = __mmap_region(NULL, 0x306000, 0x3000, vma_flags, 0x306, NULL);
-+	ASSERT_EQ(addr, 0x306000);
-+	ASSERT_EQ(mm.map_count, 2);
-+
-+	/* Map at 0x303000, length 0x3000, filling the hole. */
-+	addr = __mmap_region(NULL, 0x303000, 0x3000, middle_flags, 0x303, NULL);
-+	ASSERT_EQ(addr, 0x303000);
-+	ASSERT_EQ(mm.map_count, merge ? 1 : 3);
-+
-+	vma_iter_set(&vmi, 0);
-+	for_each_vma(vmi, vma) {
-+		const unsigned long start = 0x300000 + count * 0x3000;
-+		const unsigned long end = merge ? 0x309000 : start + 0x3000;
-+		/* Only the middle VMA in the non-merge case has VMA_EXEC. */
-+		const bool is_middle_vma = count == 1;
-+		const bool expect_exec_vma = is_middle_vma && !merge;
-+
-+		ASSERT_EQ(vma->vm_start, start);
-+		ASSERT_EQ(vma->vm_end, end);
-+		ASSERT_EQ(vma_start_pgoff(vma), start >> PAGE_SHIFT);
-+		ASSERT_EQ(vma_start_anon_pgoff(vma), start >> PAGE_SHIFT);
-+
-+		ASSERT_TRUE(vma_test_all(vma, VMA_READ_BIT, VMA_WRITE_BIT,
-+					 VMA_MAYREAD_BIT, VMA_MAYWRITE_BIT,
-+					 VMA_MAYEXEC_BIT));
-+		ASSERT_EQ(vma_test(vma, VMA_EXEC_BIT), expect_exec_vma);
-+
-+		count++;
-+	}
-+
-+	ASSERT_EQ(count, mm.map_count);
-+
-+	ASSERT_EQ(cleanup_mm(&mm, &vmi), count);
-+	return true;
-+}
-+
-+static bool test_mmap_region_fill_hole_merge(void)
-+{
-+	return mmap_region_fill_hole(true);
-+}
-+
-+static bool test_mmap_region_fill_hole_flags_mismatch(void)
-+{
-+	return mmap_region_fill_hole(false);
-+}
-+
- static bool test_pure_anon_dev_zero(void)
- {
- 	const vma_flags_t vma_flags = mk_vma_flags(VMA_READ_BIT, VMA_WRITE_BIT,
-@@ -84,5 +150,7 @@ static bool test_pure_anon_dev_zero(void
- static void run_mmap_tests(int *num_tests, int *num_fail)
- {
- 	TEST(mmap_region_basic);
-+	TEST(mmap_region_fill_hole_merge);
-+	TEST(mmap_region_fill_hole_flags_mismatch);
- 	TEST(pure_anon_dev_zero);
- }
+ 	return pool;
+ 
+ ref_fail:
+@@ -1818,7 +1820,6 @@ static int zswap_setup(void)
+ 		pr_info("loaded using pool %s\n", pool->tfm_name);
+ 		list_add_rcu(&pool->list, &zswap_pools);
+ 		zswap_has_pool = true;
+-		static_branch_enable(&zswap_ever_enabled);
+ 	} else {
+ 		pr_err("pool creation failed\n");
+ 		zswap_enabled = false;
 _
 
-Patches currently in -mm which might be from hi@tychen.cc are
+Patches currently in -mm which might be from xialonglong@kylinos.cn are
 
 
