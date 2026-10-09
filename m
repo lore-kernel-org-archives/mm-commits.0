@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E207140F726
-	for <mm-commits@vger.kernel.org>; Fri,  9 Oct 2026 05:58:32 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1CC89414439
+	for <mm-commits@vger.kernel.org>; Fri,  9 Oct 2026 05:58:34 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791525513; cv=none; b=f3McYYSSA2s+W0crJmHxcebwHaYobV4oDmB45jksbmIYVCnUPZ7/bcqQ4UcC3jhjl0Z3UqleSQLg8e9qdNZCPzV7UmVtrSnrEng1Kdu2Dco77IJk29o13Gwet9XXqxBbELQFPSOJFz83e8iW49X4sPuVzk95GAPxBOkMRHxwIYg=
+	t=1791525515; cv=none; b=TCvcWc9hrgpUOJWtmimljNzemDhI6K4xwcYhSm16kcqzkV27pqIdo2msk5VxjW+XoJgBndvgfsXSPWbjv3zhCKIjkPRAf7iWih9m24cVuN/PWYljhVG7S9rZz/S13MNoRZ34sTPpg6NRxawBWCeVsQQe4PY/SAvWCMkcjBKnoPI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791525513; c=relaxed/simple;
-	bh=wMiCsJwH7GxsTnLjns2cLbx6RUyvJB2wY4BtJRpzqMU=;
-	h=Date:To:From:Subject:Message-Id; b=NEYP1LgfGkuWtSp7cePI1tufpUaj39JbWlQIMDPBvCOX5S8KNf+N9OM7HsYSRefqPR9phkBPjA+o4xPCHcWg19ClTggdKLIQh0nJtyyVMfTZiw0f1RiHibSQrc3U+o8Mb5fC/UBB6gtEeskF9ynqNXXAPAZNvflIQzdag8fA5Yc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=05uNNOug; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1791525515; c=relaxed/simple;
+	bh=wMumZS9AuXU8B8fnKxTy40MrDn4Hm7kTeDOjv1nbWX8=;
+	h=Date:To:From:Subject:Message-Id; b=SUyPXN8PiwI7mHkt0+mkuEONXJZa3pLPFOs80Z7n1Aexh0mMMY/Ydc2Hnt9ruArU4KWMAZsXb08CUmQw4BIlEzrghCiJXTprlackI8LSnObeHg47tMwFN8hOD58kCD90aMZWAiylRrk15Eh044vHylgNmDyFDTrfIiHYRIM/DS8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Y3qmvZxS; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="05uNNOug"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B80C11F00893;
-	Fri,  9 Oct 2026 05:58:32 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Y3qmvZxS"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E2FA11F00898;
+	Fri,  9 Oct 2026 05:58:33 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1791525512;
-	bh=srWwYf5gWvSzsmJ9mGXtab2Cw0Gb3mTL1l5wkI5TsWA=;
+	d=linux-foundation.org; s=korg; t=1791525514;
+	bh=14mhtSPOcetwtBCOeszCymQIb1i4jABY04QC3QFp/UA=;
 	h=Date:To:From:Subject;
-	b=05uNNOugtGqyod7II+zOu7VC5utLOUAEXfBNBtgHMpR+BvFlzZVSpz345g/YwXmIo
-	 l2ExEsY5qyQCSKGGYeSa6/XbGB9x+ArsjVodnHNGXZOg3OoZu+LXa1EoTVPLZqlllv
-	 YD8JMPOZDKfXfqq3bDaaEzhnCAuRykud0QrIu3es=
-Date: Thu, 08 Oct 2026 22:58:32 -0700
+	b=Y3qmvZxSWzVlU/8mxqzWmcwBDRy/SOlwDO7J+KVNyOxarsOjM1v7cpHg1mL920rYd
+	 yzJ5AkxVw6dUyepgSHQQIwMD825rr44EHRP5PJHHS/R7KUiulmA+N80jVu9cxyvsCY
+	 DOnUgRYWMhZVJzo4dB4Bm/k0XjGHvTD/fQ9TrqDA=
+Date: Thu, 08 Oct 2026 22:58:33 -0700
 To: mm-commits@vger.kernel.org,vbabka@kernel.org,surenb@google.com,sj@kernel.org,rdunlap@infradead.org,mhocko@suse.com,ljs@kernel.org,liam@infradead.org,david@kernel.org,corbet@lwn.net,rppt@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] maintainers-add-memory-related-docs-in-core-mm-to-mm-misc-section.patch removed from -mm tree
-Message-Id: <20261009055832.B80C11F00893@smtp.kernel.org>
+Subject: [merged mm-stable] docs-core-api-memory-allocation-clarify-when-to-use-kzalloc_obj-and-kzalloc.patch removed from -mm tree
+Message-Id: <20261009055833.E2FA11F00898@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,54 +35,57 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: MAINTAINERS: add memory related docs in core-mm/ to MM - MISC section
+     Subject: docs/core-api: memory-allocation: clarify when to use kzalloc_obj and kzalloc
 has been removed from the -mm tree.  Its filename was
-     maintainers-add-memory-related-docs-in-core-mm-to-mm-misc-section.patch
+     docs-core-api-memory-allocation-clarify-when-to-use-kzalloc_obj-and-kzalloc.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: "Mike Rapoport (Microsoft)" <rppt@kernel.org>
-Subject: MAINTAINERS: add memory related docs in core-mm/ to MM - MISC section
-Date: Wed, 02 Sep 2026 11:10:12 +0300
+Subject: docs/core-api: memory-allocation: clarify when to use kzalloc_obj and kzalloc
+Date: Mon, 7 Sep 2026 09:36:54 +0300
 
-Previous efforts to make sure that mm files are properly listed in
-MAINTAINERS missed
+Make it abundantly clear that in the most cases objects should be
+allocated with kzalloc_obj() and buffers should be allocated with
+kzalloc().
 
-Documentation/core-api/mm-api.rst
-Documentation/core-api/memory-allocation.rst
-
-Add them to "MEMORY MANAGEMENT - MISC"
-
-Link: https://lore.kernel.org/20260902-docs-memalloc-guide-v2-2-218c1a4dcb80@kernel.org
+Link: https://lore.kernel.org/20260907063654.2248617-1-rppt@kernel.org
 Signed-off-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Acked-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
-Reviewed-by: SJ Park <sj@kernel.org>
 Acked-by: Vlastimil Babka (SUSE) <vbabka@kernel.org>
-Cc: David Hildenbrand <david@kernel.org>
+Acked-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
+Reviewed-by: David Hildenbrand (Arm) <david@kernel.org>
 Cc: Jonathan Corbet <corbet@lwn.net>
 Cc: Liam R. Howlett <liam@infradead.org>
 Cc: Michal Hocko <mhocko@suse.com>
 Cc: Randy Dunlap <rdunlap@infradead.org>
+Cc: SeongJae Park <sj@kernel.org>
 Cc: Suren Baghdasaryan <surenb@google.com>
 ---
 
- MAINTAINERS |    2 ++
- 1 file changed, 2 insertions(+)
+ Documentation/core-api/memory-allocation.rst |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
---- a/MAINTAINERS~maintainers-add-memory-related-docs-in-core-mm-to-mm-misc-section
-+++ a/MAINTAINERS
-@@ -17268,6 +17268,8 @@ F:	Documentation/ABI/testing/sysfs-kerne
- F:	Documentation/ABI/testing/sysfs-kernel-mm-cma
- F:	Documentation/ABI/testing/sysfs-kernel-mm-numa
- F:	Documentation/admin-guide/mm/
-+F:	Documentation/core-api/memory-allocation.rst
-+F:	Documentation/core-api/mm-api.rst
- F:	Documentation/mm/
- F:	mm/char-mem.c
- F:	include/linux/cma.h
+--- a/Documentation/core-api/memory-allocation.rst~docs-core-api-memory-allocation-clarify-when-to-use-kzalloc_obj-and-kzalloc
++++ a/Documentation/core-api/memory-allocation.rst
+@@ -23,12 +23,14 @@ answer, although very likely you should
+ 
+   kzalloc_obj(<VAR_OR_TYPE>);
+ 
+-or
++if you need memory for an object and
+ 
+ ::
+ 
+   kzalloc(<size>, GFP_KERNEL);
+ 
++if you need memory for a buffer.
++
+ Of course there are cases when other allocation APIs and different GFP
+ flags must be used.
+ 
 _
 
 Patches currently in -mm which might be from rppt@kernel.org are
