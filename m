@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4E9F73FD132;
-	Fri,  9 Oct 2026 05:56:47 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 702DF3FC5B7;
+	Fri,  9 Oct 2026 05:56:48 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791525408; cv=none; b=KnYsrg6f7QELFHCTjPaB2/S6bJoSs/T37115R8KDHtcIMdJfpShbJI4eUiqRQdgfg37jx/QaSK1Kvf/yhfdy+kfICTnxmQq9+usr4cHUamGmcLciutfHawz0SZSIjYno1pxswsB3CZa8QCoel9zXI1u8m263lVHfW19gs6/UFjc=
+	t=1791525409; cv=none; b=bFdilXx65vWFVHIWvC3AKXdIVLq7CF4ZL/woUVPjwmnzR9NjAayV4S6sbZ8/XwDfDraFs4rns6GsGvMwjcu/HtT9xeMY0X6jyrNl/aa2i1rxWmTFaFNz3VVeh9Gy9YEhJ5HQYgbQAIiccdLGsQOT0hq8Iz0HfMDi8qLZ9bHkekw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791525408; c=relaxed/simple;
-	bh=BOFtcvCDqQUmeYKzzPXwWeOSuwjuK1PN2qhe93D2oi4=;
-	h=Date:To:From:Subject:Message-Id; b=RLEKHMHtQRt+JC68tTM6mxTJ5xPtWuSNIN2jqhKvYor8SQV3qiiOxqdokHcSaqgJ8FBrjr8plX3+XkPYif95QqF/xMYb4o+Hn9kvLMhzTDN4MuC/n73MkgTCGX3H71rpsGaPrtl5CedxB63/pRSKsIoMcrBGRr+p6KgFOPt8bYw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ssPO2RIk; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1791525409; c=relaxed/simple;
+	bh=+hDTA8HiU+lzzBtHPNAhmr62RpjZlTHzKOSC7lKlcyw=;
+	h=Date:To:From:Subject:Message-Id; b=WBlcbxpLyKUtfP6UuRoHQAcy65O8H11NTN146RaEe88nJvyssQKPu4gpqNvSvT798MBY7O+1K28leueXDg2gkMiY72IlBlC7BWY4x8MvSoISatbHG6h2LZe4LPJiI2zVTLEioLgA2gqDGVQLZeg36ur+XtKgKtDT2Xf7+4e+AMU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=AyOvo0ip; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ssPO2RIk"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D90341F00893;
-	Fri,  9 Oct 2026 05:56:46 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="AyOvo0ip"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 123E81F000FF;
+	Fri,  9 Oct 2026 05:56:48 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1791525407;
-	bh=R94sB/yF4aeXfxcaCWgf8A7/VHroURWuswW6V11lEiQ=;
+	d=linux-foundation.org; s=korg; t=1791525408;
+	bh=zVt6U/zpO1+ZaZEFyZnq3/HHH+wa0kEwi2rwy5IlMuM=;
 	h=Date:To:From:Subject;
-	b=ssPO2RIk0N07pQX7j0kF6MMbb2BMUGkMjVnmyUFXIC7xGTaBl+ZZOE1aPxEL5BonT
-	 MpfSZ+95bKcqk/S1eaTAKC2PGTnZalfW+tWfiNQ8ZGaHpusI51C6buKH51tTlxw0kG
-	 dq0oGI8NGB/6UJUXzdbYQKMjwYcBmT5X/PuxdPHw=
-Date: Thu, 08 Oct 2026 22:56:46 -0700
-To: mm-commits@vger.kernel.org,yuanchu@google.com,weixugc@google.com,stable@vger.kernel.org,shakeel.butt@linux.dev,mhocko@kernel.org,ljs@kernel.org,kasong@tencent.com,hannes@cmpxchg.org,david@kernel.org,baoquan.he@linux.dev,baolin.wang@linux.alibaba.com,baohua@kernel.org,axelrasmussen@google.com,arnd@arndb.de,akpm@linux-foundation.org
+	b=AyOvo0ipy6ExhQfJRtDUN7PhTYOpU0G8wx9QafSkAdXJxIeNMxgBuJQ9Cn9KgPpUP
+	 2ADtCzHrVPMszZQYk93cngW7Tt9Bvtf2R9DSsMj6LzJBItjZBa9KWC//WOn0vPf6kH
+	 fMM9BvNf1uXQIC61hKdTVzzxQfYzL/vDXqtCEtY4=
+Date: Thu, 08 Oct 2026 22:56:47 -0700
+To: mm-commits@vger.kernel.org,weir@nebusec.ai,vega@nebusec.ai,vbabka@kernel.org,surenb@google.com,stable@vger.kernel.org,rppt@kernel.org,notasas@gmail.com,mhocko@suse.com,ljs@kernel.org,liam@infradead.org,david@kernel.org,rakukuip@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-vmscan-avoid-false-positive-wuninitialized-warning-again.patch removed from -mm tree
-Message-Id: <20261009055646.D90341F00893@smtp.kernel.org>
+Subject: [merged mm-stable] mm-memory-constrain-generic_access_phys-to-page-boundary.patch removed from -mm tree
+Message-Id: <20261009055648.123E81F000FF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,97 +35,99 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/vmscan: avoid false-positive -Wuninitialized warning, again
+     Subject: mm/memory: constrain generic_access_phys() to page boundary
 has been removed from the -mm tree.  Its filename was
-     mm-vmscan-avoid-false-positive-wuninitialized-warning-again.patch
+     mm-memory-constrain-generic_access_phys-to-page-boundary.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: mm/vmscan: avoid false-positive -Wuninitialized warning, again
-Date: Wed, 16 Sep 2026 10:34:46 +0200
+From: Luxiao Xu <rakukuip@gmail.com>
+Subject: mm/memory: constrain generic_access_phys() to page boundary
+Date: Thu, 10 Sep 2026 11:42:50 +0800
 
-I previously worked around a false-postive gcc-16 warning in the
-get_tier_idx() function, by adding a fake initializer. This happens with
-the -fsanitize=bounds sanitizer when the compiler creates a specialized
-variant of isolate_folios():
+This patch addresses an issue in generic_access_phys() where accessing
+memory across page boundaries in PFNMAP VMAs assumes physical pages are
+contiguous, which can lead to accessing unintended physical memory or
+exceeding VMA boundaries.
 
-In function 'get_tier_idx',
-    inlined from 'isolate_folios.constprop' at mm/vmscan.c:4982:9:
-mm/vmscan.c:4934:9: error: 'sp.refaulted' is used uninitialized [-Werror=uninitialized]
- 4934 |         read_ctrl_pos(lruvec, type, LRU_TIER_MIN, LRU_TIER_MIN, 2, &sp);
-      |         ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-mm/vmscan.c: In function 'isolate_folios.constprop':
-mm/vmscan.c:4946:25: note: 'sp.refaulted' was declared here
- 4946 |         struct ctrl_pos sp, pv = {};
-      |                         ^~
+generic_access_phys() improperly validates the memory access range: it
+only validates the start address using follow_pfnmap_start() and passes
+PAGE_ALIGN(len + offset) to ioremap_prot().
 
-Adding another "= {}" would solve the problem as well, but to prevent
-this from happening again after the next code refactoring, try instead to
-prevent this by forbidding interprocedural optimizations on this function.
+This poses two problems:
+1. In PFNMAP VMAs, consecutive virtual pages are not guaranteed to be
+   physically contiguous, and individual PTEs may have different access
+   permissions or writability.
+2. The mapping may cross VMA boundaries if len extends beyond vma->vm_end.
 
-Link: https://lore.kernel.org/all/20260213123902.3466040-1-arnd@kernel.org/
-Link: https://lore.kernel.org/20260916083456.4136132-1-arnd@kernel.org
-Fixes: 3de705a43a46 ("mm/vmscan: avoid false-positive -Wuninitialized warning")
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+Constrain the access in generic_access_phys() to at most the current page
+boundary (PAGE_SIZE - offset) and map only a single PAGE_SIZE via
+ioremap_prot().  Since the caller __access_remote_vm() already loops over
+the requested length and handles partial transfers, it will naturally
+iterate over the remaining pages.
+
+Also add a missing (resource_size_t) cast during PFN re-validation to
+avoid truncation on 32-bit PAE systems.
+
+Link: https://lore.kernel.org/e06e28a46c2a176238f03b5740df0913e57c2861.1788842306.git.rakukuip@gmail.com
+Fixes: 9cb12d7b4cca ("mm/memory.c: actually remap enough memory")
+Signed-off-by: Luxiao Xu <rakukuip@gmail.com>
+Signed-off-by: Ren Wei <weir@nebusec.ai>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Cc: Axel Rasmussen <axelrasmussen@google.com>
-Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: Baoquan He <baoquan.he@linux.dev>
-Cc: Barry Song <baohua@kernel.org>
-Cc: David Hildenbrand <david@kernel.org>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Kairui Song <kasong@tencent.com>
+Reported-by: Vega <vega@nebusec.ai>
+Suggested-by: David Hildenbrand <david@kernel.org>
+Acked-by: David Hildenbrand (Arm) <david@kernel.org>
+Assisted-by: LLM
+Cc: Grazvydas Ignotas <notasas@gmail.com>
+Cc: Liam R. Howlett <liam@infradead.org>
 Cc: Lorenzo Stoakes <ljs@kernel.org>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Shakeel Butt <shakeel.butt@linux.dev>
-Cc: Wei Xu <weixugc@google.com>
-Cc: Yuanchu Xie <yuanchu@google.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Vlastimil Babka <vbabka@kernel.org>
 Cc: <stable@vger.kernel.org>
 ---
 
- mm/vmscan.c |   11 +++++++----
- 1 file changed, 7 insertions(+), 4 deletions(-)
+ mm/memory.c |   10 ++++++++--
+ 1 file changed, 8 insertions(+), 2 deletions(-)
 
---- a/mm/vmscan.c~mm-vmscan-avoid-false-positive-wuninitialized-warning-again
-+++ a/mm/vmscan.c
-@@ -3223,8 +3223,11 @@ struct ctrl_pos {
- 	int gain;
- };
+--- a/mm/memory.c~mm-memory-constrain-generic_access_phys-to-page-boundary
++++ a/mm/memory.c
+@@ -7131,6 +7131,12 @@ int generic_access_phys(struct vm_area_s
+ 	bool writable;
+ 	struct follow_pfnmap_args args = { .vma = vma, .address = addr };
  
--static void read_ctrl_pos(struct lruvec *lruvec, int type, int tier_min,
--			  int tier_max, int gain, struct ctrl_pos *pos)
-+/*
-+ * __noipa works around gcc-16 warning for uninitialized use of pos->refaulted
-+ */
-+static void __noipa read_ctrl_pos(struct lruvec *lruvec, int type, int tier_min,
-+				  int tier_max, int gain, struct ctrl_pos *pos)
- {
- 	int i;
- 	struct lru_gen_folio *lrugen = &lruvec->lrugen;
-@@ -4873,7 +4876,7 @@ static int scan_folios(unsigned long nr_
- static int get_tier_idx(struct lruvec *lruvec, int type)
- {
- 	int tier;
--	struct ctrl_pos sp, pv = {};
-+	struct ctrl_pos sp, pv;
++	/*
++	 * Limit access to one page at a time, as that's what follow_pfnmap_start()
++	 * guarantees; expect the caller to retry to read larger ranges.
++	 */
++	len = min_t(int, len, PAGE_SIZE - offset);
++
+ retry:
+ 	if (follow_pfnmap_start(&args))
+ 		return -EINVAL;
+@@ -7142,7 +7148,7 @@ retry:
+ 	if ((write & FOLL_WRITE) && !writable)
+ 		return -EINVAL;
  
- 	/*
- 	 * To leave a margin for fluctuations, use a larger gain factor (2:3).
-@@ -4892,7 +4895,7 @@ static int get_tier_idx(struct lruvec *l
+-	maddr = ioremap_prot(phys_addr, PAGE_ALIGN(len + offset), prot);
++	maddr = ioremap_prot(phys_addr, PAGE_SIZE, prot);
+ 	if (!maddr)
+ 		return -ENOMEM;
  
- static int get_type_to_scan(struct lruvec *lruvec, int swappiness)
- {
--	struct ctrl_pos sp, pv = {};
-+	struct ctrl_pos sp, pv;
+@@ -7150,7 +7156,7 @@ retry:
+ 		goto out_unmap;
  
- 	if (swappiness <= MIN_SWAPPINESS + 1)
- 		return LRU_GEN_FILE;
+ 	if ((pgprot_val(prot) != pgprot_val(args.pgprot)) ||
+-	    (phys_addr != (args.pfn << PAGE_SHIFT)) ||
++	    (phys_addr != ((resource_size_t)args.pfn << PAGE_SHIFT)) ||
+ 	    (writable != args.writable)) {
+ 		follow_pfnmap_end(&args);
+ 		iounmap(maddr);
 _
 
-Patches currently in -mm which might be from arnd@arndb.de are
+Patches currently in -mm which might be from rakukuip@gmail.com are
 
-mm-damon-core-reduce-stack-usage-further.patch
 
