@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 75625407CEF
-	for <mm-commits@vger.kernel.org>; Fri,  9 Oct 2026 05:58:14 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B603D407CEF
+	for <mm-commits@vger.kernel.org>; Fri,  9 Oct 2026 05:58:16 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791525495; cv=none; b=kCJDoth2qrt9T+r7OYG98wIm1V/bA+4y+jhtGFg98br2kDgDRYWujPrI9vFPdvoPRQMi5J9PGy4ruxjEP3FjuFtYwB+I3GuMssh7sY2scITO/ggrX+FfIIWbNbm0vNTV48NUPV40Y1oD+qRyh/G9pBwdczL7xZGOoVZj3vSrhb8=
+	t=1791525497; cv=none; b=a5+qP0Dmf8swDmUI1bCig/jNpgsWrCGFcXZEa3fIQN2hp3iOQQGFYm6e+ZxFC40xyZcsmKjmJTeiA6ayE5UwOMkyq3QAyRVkah8tI07ZjIriarnpxFgq8Rr+pY3yKJM7YBLaGAoU7thXiSTvch/50S0EorUq8iQszg6VXbzASQE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791525495; c=relaxed/simple;
-	bh=B/cguZ3wx8l04BFW6FvCpgrb2WtCBjCyPAwH8MFK68A=;
-	h=Date:To:From:Subject:Message-Id; b=QBgQt+d1D4Lr2CbqHRpHOITZcEEtcDmcBV1XIGoSNytkNmz/i2PfmD/EqwmvWI1mahyjJh4X4a78ZxhLaCx7GWIwjVbjVUgo6dRU8I1haNiN0Ik3JPcGKAQBd7KCtinrNLHO62JefS+ImAP4panDotOD40xQwyoRIeyVitFf6TY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=JQW3+Afr; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1791525497; c=relaxed/simple;
+	bh=We9O2bT3x1IEvAWapqVncTJPeyFnSEWm5RvIjP+aKbs=;
+	h=Date:To:From:Subject:Message-Id; b=nq2FwWiYC0J3xqIm1Zr6EaK4VsHy86X17DB2kJmTm2hjfvcH30FEk8XF7fp4jTb64wwuTCui4xPS9WgEyyYY3Ifm1MLxRHRxt9Bs1VkVxh7XTMoLFeZt1Xr8NE1j6fh1vB+3fDEY0Ni7TUlhf0d4K+M1LrdrFbIr0hrmtbXq4OY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=XUEhmL6l; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="JQW3+Afr"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4BADD1F00893;
-	Fri,  9 Oct 2026 05:58:14 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="XUEhmL6l"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8C7E01F00893;
+	Fri,  9 Oct 2026 05:58:16 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1791525494;
-	bh=08obKo8GAReIuK1Fe15laW7WmghFIAGNTO2yLPq4eh8=;
+	d=linux-foundation.org; s=korg; t=1791525496;
+	bh=fFOfq5sGyVrsB/fARjUM7kmJ+2kVQT2jCdfeaSsvzy4=;
 	h=Date:To:From:Subject;
-	b=JQW3+AfrtB4f4wDfTnCVD2wBRWFBayMg9kcCW4KAQP5kYzilPt4jrrNEXAqcdHqJV
-	 VpuDfbHb79I2DAIRrc8HvwD+QSXopSt1ZEb4K2qAS8S4WkvCCVdhEon1AFP5ltESqP
-	 e+XuEMitfTlqc8LyXeLGEwWn5gvLJI0xrcg/NARE=
-Date: Thu, 08 Oct 2026 22:58:13 -0700
-To: mm-commits@vger.kernel.org,osalvador@suse.de,muchun.song@linux.dev,david@kernel.org,yehuaisheng@open-hieco.net,akpm@linux-foundation.org
+	b=XUEhmL6lhuRI7Tfq+XjR7sJGmTVjFxbDwuIuLwzPLF10TCl/SJo86So+s3Jx59e5z
+	 NQG8PuN5fDlHw6a5cKtV99RnkiAb9b5sr4Yn/Q4JJJ/cq+qHMRU3xw5/0q6oqusK0R
+	 3n/K9iTDGZKXcBI17oo+BUy1Fmv2qzE7uxIsHP9w=
+Date: Thu, 08 Oct 2026 22:58:16 -0700
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,vbabka@kernel.org,surenb@google.com,mhocko@suse.com,hannes@cmpxchg.org,gourry@gourry.net,brendan.jackman@linux.dev,liuqiqi@kylinos.cn,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-hugetlb-account-for-allowed-nodes-when-gathering-surplus-pages.patch removed from -mm tree
-Message-Id: <20261009055814.4BADD1F00893@smtp.kernel.org>
+Subject: [merged mm-stable] mm-page_alloc-add-missing-hooks-to-bulk-allocation-path.patch removed from -mm tree
+Message-Id: <20261009055816.8C7E01F00893@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,128 +35,61 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/hugetlb: account for allowed nodes when gathering surplus pages
+     Subject: mm: page_alloc: add missing hooks to bulk allocation path
 has been removed from the -mm tree.  Its filename was
-     mm-hugetlb-account-for-allowed-nodes-when-gathering-surplus-pages.patch
+     mm-page_alloc-add-missing-hooks-to-bulk-allocation-path.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Huaisheng Ye <yehuaisheng@open-hieco.net>
-Subject: mm/hugetlb: account for allowed nodes when gathering surplus pages
-Date: Wed, 9 Sep 2026 15:46:42 +0800
+From: Qiqi Liu <liuqiqi@kylinos.cn>
+Subject: mm: page_alloc: add missing hooks to bulk allocation path
+Date: Tue, 8 Sep 2026 18:23:56 +0800
 
-Hugetlb reservations are accounted globally, but hugetlb_acct_memory()
-also verifies that the current cpuset and MPOL_BIND policy contain enough
-free huge pages to add a new reservation.
+The bulk allocation path in alloc_pages_bulk_noprof() currently misses
+trace_mm_page_alloc() and kmsan_alloc_page() calls, leaving bulk-allocated
+pages invisible to ftrace/BPF/perf and leaving KMSAN shadow memory stale.
 
-gather_surplus_pages() calculates its allocation shortfall from the global
-free and reserved counters.  If the global pool has enough free pages, but
-those pages reside outside the nodes allowed by the task, it allocates no
-surplus pages.  The subsequent allowed_mems_nr() check then rejects the
-reservation and mmap() fails with ENOMEM, even when
-nr_overcommit_hugepages permits allocating surplus pages on the allowed
-nodes.
+Add both calls in the bulk loop to match the standard allocation path,
+placing them before set_page_refcounted() for consistency.  The gfp mask
+passed to kmsan_alloc_page() is stripped of __GFP_RECLAIM because the bulk
+loop runs under the PCP spinlock, and KMSAN's stack depot allocation must
+not sleep.
 
-Calculate both the global shortfall and the shortfall within the allowed
-nodes, and allocate the larger of the two.  Include surplus pages
-allocated outside hugetlb_lock in both calculations when rechecking after
-reacquiring the lock.  These pages are constrained by alloc_nodemask, so
-they satisfy both shortages.
+Both are no-ops when their respective features are disabled, so there
+is no overhead in production kernels.
 
-Easy way to reproduce this issue with 2+ NUMA nodes system:
-
-  # echo 0 > /sys/kernel/mm/hugepages/hugepages-2048kB/nr_hugepage
-  # echo 3 > /sys/devices/system/node/node0/hugepages/hugepages-2048kB/nr_hugepages
-  # echo 1 > /sys/kernel/mm/hugepages/hugepages-2048kB/nr_overcommit_hugepages
-  # cd tools/testing/selftests/mm
-  # numactl --membind=1 ./hugetlb-mmap 2 21
-  TAP version 13
-  # [INFO] detected hugetlb page size: 2048 KiB
-  # [INFO] detected hugetlb page size: 1048576 KiB
-  # 2048 kB hugepages
-  1..2
-  # Mapping 2 Mbytes
-  Bail out! mmap: Cannot allocate memory (12)
-  # Planned tests != run tests (2 != 0)
-  # Totals: pass:0 fail:0 xfail:0 xpass:0 skip:0 error:0
-
-This fixes hugetlb mappings when, for example, a task runs with MPOL_BIND
-on Node 1 while the existing free huge pages are on Node 0.
-
-Similar issue also could be found in ltp if the free pages of global pool
-reside outside the nodes allowed by the application.
-  # cd ltp/testcases/kernel/mem/hugetlb/hugemmap/
-  # numactl --cpunodebind=0 --membind=1 ./hugemmap10
-
-Link: https://lore.kernel.org/20260909074642.7308-1-yehuaisheng@open-hieco.net
-Fixes: e4e574b767ba ("hugetlb: Try to grow hugetlb pool for MAP_SHARED mappings")
-Signed-off-by: Huaisheng Ye <yehuaisheng@open-hieco.net>
+Link: https://lore.kernel.org/20260908102356.344075-1-liuqiqi@kylinos.cn
+Signed-off-by: Qiqi Liu <liuqiqi@kylinos.cn>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Acked-by: Muchun Song <muchun.song@linux.dev>
-Cc: David Hildenbrand <david@kernel.org>
-Cc: Oscar Salvador <osalvador@suse.de>
+Suggested-by: Gregory Price <gourry@gourry.net>
+Reviewed-by: Vlastimil Babka (SUSE) <vbabka@kernel.org>
+Reviewed-by: Gregory Price (Meta) <gourry@gourry.net>
+Reviewed-by: Zi Yan <ziy@nvidia.com>
+Cc: Brendan Jackman <brendan.jackman@linux.dev>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Suren Baghdasaryan <surenb@google.com>
 ---
 
- mm/hugetlb.c |   21 +++++++++++++++++----
- 1 file changed, 17 insertions(+), 4 deletions(-)
+ mm/page_alloc.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
---- a/mm/hugetlb.c~mm-hugetlb-account-for-allowed-nodes-when-gathering-surplus-pages
-+++ a/mm/hugetlb.c
-@@ -125,6 +125,7 @@ struct mutex *hugetlb_fault_mutex_table
+--- a/mm/page_alloc.c~mm-page_alloc-add-missing-hooks-to-bulk-allocation-path
++++ a/mm/page_alloc.c
+@@ -5261,6 +5261,8 @@ retry_this_zone:
+ 		nr_account++;
  
- /* Forward declaration */
- static int hugetlb_acct_memory(struct hstate *h, long delta);
-+static unsigned int allowed_mems_nr(struct hstate *h);
- static void hugetlb_vma_lock_free(struct vm_area_struct *vma);
- static void hugetlb_vma_lock_alloc(struct vm_area_struct *vma);
- static void __hugetlb_vma_unlock_write_free(struct vm_area_struct *vma);
-@@ -2253,6 +2254,19 @@ static nodemask_t *policy_mbind_nodemask
- }
- 
- /*
-+ * Reservations are globally accounted, but they must also be backed by free
-+ * pages on nodes allowed by the current cpuset and MPOL_BIND policy.
-+ */
-+static long surplus_pages_needed(struct hstate *h, long delta, long allocated)
-+{
-+	long global_free = (long)h->free_huge_pages + allocated;
-+	long allowed_free = (long)allowed_mems_nr(h) + allocated;
-+
-+	return max((long)h->resv_huge_pages + delta - global_free,
-+		   delta - allowed_free);
-+}
-+
-+/*
-  * Increase the hugetlb pool such that it can accommodate a reservation
-  * of size 'delta'.
-  */
-@@ -2274,7 +2288,7 @@ static int gather_surplus_pages(struct h
- 		alloc_nodemask = cpuset_current_mems_allowed;
- 
- 	lockdep_assert_held(&hugetlb_lock);
--	needed = (h->resv_huge_pages + delta) - h->free_huge_pages;
-+	needed = surplus_pages_needed(h, delta, 0);
- 	if (needed <= 0) {
- 		h->resv_huge_pages += delta;
- 		return 0;
-@@ -2305,11 +2319,10 @@ retry:
- 
- 	/*
- 	 * After retaking hugetlb_lock, we need to recalculate 'needed'
--	 * because either resv_huge_pages or free_huge_pages may have changed.
-+	 * because either resv_huge_pages or the free page counts may have changed.
- 	 */
- 	spin_lock_irq(&hugetlb_lock);
--	needed = (h->resv_huge_pages + delta) -
--			(h->free_huge_pages + allocated);
-+	needed = surplus_pages_needed(h, delta, allocated);
- 	if (needed > 0) {
- 		if (alloc_ok)
- 			goto retry;
+ 		prep_new_page(page, 0, gfp, ALLOC_DEFAULT);
++		trace_mm_page_alloc(page, 0, gfp, ac.migratetype);
++		kmsan_alloc_page(page, 0, gfp & ~__GFP_RECLAIM);
+ 		set_page_refcounted(page);
+ 		page_array[nr_populated++] = page;
+ 	}
 _
 
-Patches currently in -mm which might be from yehuaisheng@open-hieco.net are
+Patches currently in -mm which might be from liuqiqi@kylinos.cn are
 
+mm-page_alloc-apply-per-task-gfp-context-in-bulk-allocator.patch
 
