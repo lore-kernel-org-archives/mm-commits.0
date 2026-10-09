@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D473B3FB7F1
-	for <mm-commits@vger.kernel.org>; Fri,  9 Oct 2026 05:56:35 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AD1BE3B4423
+	for <mm-commits@vger.kernel.org>; Fri,  9 Oct 2026 05:56:34 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791525397; cv=none; b=RLRr00pYB02KkJ6udf/iG5Z6ywFhnJmtMH6YdccM/lwcTyZvTmNKDBqwHeeLFAOofRPW5b6fgR/rsxwVO1+BAqf2PoKQ7F7PGthTRqo98MLanqG2TCTOCh2ekmITTfRmJUE224IgImy0IgDOq16Ci/vCiOXSM/ize6FyE0i7b6g=
+	t=1791525398; cv=none; b=LStWnlxNff3U2/pUl3iP63Z1SNNVx8Z6TE0js4u0Ipf2fvdm9vXs6IxOwk5TFCuOJi2B8wKVGjAxIBWeDNU+JJKXJ5Nde8619XOKii5KWKV4tXb58pG5PWA82cBQAn2xoJZ5w/mzcg46Vmh4RZYjDKyqtf4Ecl36lwxCOvEqiiE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791525397; c=relaxed/simple;
-	bh=zR09xpH8hvCvnUTzOoR8xYvlByaEi3P0y4QWMLwVkDI=;
-	h=Date:To:From:Subject:Message-Id; b=LqgEe7WEnLOBpvfemMd/tvLG4O0tD4fo2bujCLbI0bz6jH/ZDub2DMFub39p3lT3lW6nYEgYJt0m2cQrEDrfIg954EVHbp1pdegJ3UZnoaKtCmKa+8/u4zxPMOttfn6ZtIShecG9rh22Agr4YAQACE1x/liH0tLzop4cuHAgX+0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=paMw/I81; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1791525398; c=relaxed/simple;
+	bh=AbXNmugqzx70+QZAJAdWcNASlpCcU3Sp5oVTxTPlMbM=;
+	h=Date:To:From:Subject:Message-Id; b=rG4EWfs+PVCUmdIPRbp0cm79nZtjNOvqEC7O9fXzCKRDzEmWUD4rlaDG65yJyyNALwE2+s48LO6htdUZm0lq9TNxpBp4rY/q/XaxKlUwZ8avCF8vy2jhQ9bk+HYtjK5E1/q7EUdv8BrszNPaS4kFFMYvxnjpjYsR/Lz8ILwV1iQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=krL+1Dmp; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="paMw/I81"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id AA7991F00893;
-	Fri,  9 Oct 2026 05:56:35 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="krL+1Dmp"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 83F7E1F000FF;
+	Fri,  9 Oct 2026 05:56:34 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1791525395;
-	bh=/Ot/FpHucuiWB74IOR6d3nuIQJz9mCiCwQMy5v5OuoY=;
+	d=linux-foundation.org; s=korg; t=1791525394;
+	bh=H9nLyXONREbgYUPLtVbubSdmxn9FAtB6TGAE+WdvvKU=;
 	h=Date:To:From:Subject;
-	b=paMw/I81j8Gy1sFhznjDaMPT1s5FgdhinZSk3nUUv4yBH2Fb3Kw8/bKNi5XPmh/Zz
-	 lFFc0BzVScTJm+EQIRYjAC73uCgoDX2uct4ZZ1XoF1/inwGKjjA465qAEuChMBdGMl
-	 Ww7GgWz8Yiqojs07alh6uu0eFHtutyNV0ei7UHkg=
-Date: Thu, 08 Oct 2026 22:56:35 -0700
-To: mm-commits@vger.kernel.org,osalvador@suse.de,david@kernel.org,gourry@gourry.net,akpm@linux-foundation.org
+	b=krL+1DmpDValuOn6zHfKkzpO7olL1hwu7f8AcYvCH93rvmthY4htbq+w9/ZN1J/lV
+	 MMJOJGuYMnPHLY5yI0k7hsj3untQEqfZBUuzbcGoIrBrWG7MVT0iKTxO2lbS8TpARc
+	 qWBBcaoByIMMmSeQYWna5dpMjS6AH3g99Gj/c318=
+Date: Thu, 08 Oct 2026 22:56:34 -0700
+To: mm-commits@vger.kernel.org,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-memory_hotplug-factor-out-node_is_memoryless.patch removed from -mm tree
-Message-Id: <20261009055635.AA7991F00893@smtp.kernel.org>
+Subject: [merged mm-stable] mm-damon-lru_sort-remove-unnecessary-damon_call-param-validation.patch removed from -mm tree
+Message-Id: <20261009055634.83F7E1F000FF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,130 +35,98 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/memory_hotplug: factor out node_is_memoryless()
+     Subject: mm/damon/lru_sort: remove unnecessary damon_call() param validation
 has been removed from the -mm tree.  Its filename was
-     mm-memory_hotplug-factor-out-node_is_memoryless.patch
+     mm-damon-lru_sort-remove-unnecessary-damon_call-param-validation.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Gregory Price <gourry@gourry.net>
-Subject: mm/memory_hotplug: factor out node_is_memoryless()
-Date: Wed, 2 Sep 2026 15:55:07 -0400
+From: SJ Park <sj@kernel.org>
+Subject: mm/damon/lru_sort: remove unnecessary damon_call() param validation
+Date: Wed, 2 Sep 2026 18:03:33 -0700
 
-A memoryless node neither spans present pages (populated or ZONE_DEVICE)
-nor has an offline-but-added memory block still linked to it in sysfs.
+DAMON_LRU_SORT avoids passing NULL or unstarted damon_ctx to damon_call()
+with its own validation.  The validation is no longer needed, because the
+DAMON core layer now handles the corner cases itself.  Remove the
+unnecessary check.
 
-try_offline_node() presently open-codes this memoryless check.
-
-Pull that into a node_is_memoryless() helper and pull the existing
-check_no_memblock_for_node_cb() helper ahead of the add/online path so
-it's clearer what is happening here.
-
-No functional change.
-
-[akpm@linux-foundation.org: move node_is_memoryless() inside CONFIG_MEMORY_HOTREMOVE]
-Link: https://lore.kernel.org/20260902195507.88655-1-gourry@gourry.net
-Signed-off-by: Gregory Price <gourry@gourry.net>
+Link: https://lore.kernel.org/20260903010334.93622-5-sj@kernel.org
+Signed-off-by: SJ Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Acked-by: David Hildenbrand (Arm) <david@kernel.org>
-Cc: Oscar Salvador <osalvador@suse.de>
 ---
 
- mm/memory_hotplug.c |   61 ++++++++++++++++++++++--------------------
- 1 file changed, 32 insertions(+), 29 deletions(-)
+ mm/damon/lru_sort.c |    8 --------
+ 1 file changed, 8 deletions(-)
 
---- a/mm/memory_hotplug.c~mm-memory_hotplug-factor-out-node_is_memoryless
-+++ a/mm/memory_hotplug.c
-@@ -1785,6 +1785,37 @@ bool mhp_range_allowed(u64 start, u64 si
+--- a/mm/damon/lru_sort.c~mm-damon-lru_sort-remove-unnecessary-damon_call-param-validation
++++ a/mm/damon/lru_sort.c
+@@ -344,8 +344,6 @@ static int damon_lru_sort_commit_inputs_
+ 	return damon_lru_sort_apply_parameters();
  }
  
- #ifdef CONFIG_MEMORY_HOTREMOVE
-+
-+static int check_no_memblock_for_node_cb(struct memory_block *mem, void *arg)
-+{
-+	int nid = *(int *)arg;
-+
-+	/*
-+	 * If a memory block belongs to multiple nodes, the stored nid is not
-+	 * reliable. However, such blocks are always online (e.g., cannot get
-+	 * offlined) and, therefore, are still spanned by the node.
-+	 */
-+	return mem->nid == nid ? -EEXIST : 0;
-+}
-+
-+/* Caller must hold the memory hotplug lock for this check. */
-+static bool node_is_memoryless(int nid)
-+{
-+	/*
-+	 * A node still spanning pages (especially ZONE_DEVICE) is not
-+	 * memoryless.  A node spans memory after move_pfn_range_to_zone(),
-+	 * e.g. once a memory block has been onlined.
-+	 */
-+	if (node_spanned_pages(nid))
-+		return false;
-+	/*
-+	 * Offline memory blocks may not be spanned by the node yet, but they
-+	 * link to it in sysfs and can be onlined later, so the node is not
-+	 * memoryless while any remain.
-+	 */
-+	return !for_each_memory_block(&nid, check_no_memblock_for_node_cb);
-+}
-+
- /*
-  * Scan pfn range [start,end) to find movable/migratable pages (LRU and
-  * hugetlb folio, movable_ops pages). Will skip over most unmovable
-@@ -2214,18 +2245,6 @@ static int check_cpu_on_node(int nid)
- 	return 0;
- }
- 
--static int check_no_memblock_for_node_cb(struct memory_block *mem, void *arg)
--{
--	int nid = *(int *)arg;
+-static bool damon_lru_sort_damon_has_started;
 -
--	/*
--	 * If a memory block belongs to multiple nodes, the stored nid is not
--	 * reliable. However, such blocks are always online (e.g., cannot get
--	 * offlined) and, therefore, are still spanned by the node.
--	 */
--	return mem->nid == nid ? -EEXIST : 0;
--}
--
- /**
-  * try_offline_node
-  * @nid: the node ID
-@@ -2237,23 +2256,7 @@ static int check_no_memblock_for_node_cb
-  */
- void try_offline_node(int nid)
+ static int damon_lru_sort_commit_inputs_store(const char *val,
+ 					      const struct kernel_param *kp)
  {
--	int rc;
--
--	/*
--	 * If the node still spans pages (especially ZONE_DEVICE), don't
--	 * offline it. A node spans memory after move_pfn_range_to_zone(),
--	 * e.g., after the memory block was onlined.
--	 */
--	if (node_spanned_pages(nid))
--		return;
--
--	/*
--	 * Especially offline memory blocks might not be spanned by the
--	 * node. They will get spanned by the node once they get onlined.
--	 * However, they link to the node in sysfs and can get onlined later.
--	 */
--	rc = for_each_memory_block(&nid, check_no_memblock_for_node_cb);
--	if (rc)
-+	if (!node_is_memoryless(nid))
- 		return;
+@@ -366,10 +364,6 @@ static int damon_lru_sort_commit_inputs_
+ 	if (!commit_inputs_request)
+ 		return 0;
  
- 	if (check_cpu_on_node(nid))
+-	/* Skip damon_call() if ctx has not successfully started. */
+-	if (!damon_lru_sort_damon_has_started)
+-		return -EINVAL;
+-
+ 	err = damon_call(ctx, &control);
+ 
+ 	return err ? err : control.return_code;
+@@ -420,8 +414,6 @@ static int damon_lru_sort_turn(bool on)
+ 	err = damon_start(&ctx, 1, true);
+ 	if (err)
+ 		return err;
+-	if (!damon_lru_sort_damon_has_started)
+-		damon_lru_sort_damon_has_started = true;
+ 	return damon_call(ctx, &call_control);
+ }
+ 
 _
 
-Patches currently in -mm which might be from gourry@gourry.net are
+Patches currently in -mm which might be from sj@kernel.org are
 
-proc-task_mmu-handle-special-pmds-in-clear_refs-and-pagemap.patch
-mm-madvise-reclaim-isolated-folios-if-pte-restart-fails.patch
-mm-madvise-use-folio_trylock-in-the-cold-pageout-pmd-split.patch
-mm-damon-use-damon_get_monitor_folio-for-hugetlb-entries.patch
+mm-damon-sysfs-schemes-read-sysfs_filter-addr_range-only-once.patch
+mm-damon-sysfs-schemes-read-sysfs_filter-sz_range-only-once.patch
+mm-damon-core-return-an-error-from-damos_commit_filter_arg.patch
+mm-damon-core-disallow-max-min-damos-filter-range-arguments-commit.patch
+mm-damon-sysfs-schemes-drop-centralized-filter-range-arg-validations.patch
+mm-damon-sysfs-schemes-use-switch-case-in-add_scheme_filters.patch
+mm-damon-core-kunit-extend-damos_commit_filter_for-for-wrong-input.patch
+mm-damon-core-kunit-test-invalid-damos-filter-commits.patch
+mm-damon-api-introduce-damon_filter_type_hugepage_size.patch
+mm-damon-core-commit-hugepage_size-type-damon-filter.patch
+mm-damon-ops-common-support-hugepage_size-damon-filter-matching.patch
+mm-damon-sysfs-add-minmax-files-under-probe-filter-directory.patch
+mm-damon-sysfs-support-hugepage_size-probe-filter.patch
+docs-mm-damon-design-update-for-hugepage_size-probe-filter.patch
+docs-admin-guide-mm-damon-usage-update-for-hugepage_size.patch
+docs-abi-damon-update-for-hugepage_size-probe-filter.patch
+mm-damon-api-remove-nr_damos_filter_types.patch
+mm-damon-core-use-abs_diff-in-damon_feed_loop_next_input.patch
+mm-damon-core-use-mult_frac-in-damon_feed_loop_next_input.patch
+mm-damon-core-set-damon_ctx-walk_control_obsolete-in-damon_new_ctx.patch
+mm-damon-core-document-damon_call-damon_start-race-hang-issue.patch
+mm-damon-paddr-remove-pa-parameter-from-damon_pa_filter_pass.patch
+mm-damon-tests-core-kunit-test-eligible_mem_bp-commitment.patch
+mm-damon-tests-core-kunit-add-probe_hits_wsum-damos-filter-commit-test.patch
+selftests-damon-sysfs_memcg_path_leak-fail-only-for-real-damon-leak.patch
+docs-mm-damon-design-clarify-bp-is-basis-point.patch
+mm-damon-core-introduce-damos_quota_goal-complement.patch
+mm-damon-core-add-complement-argument-to-damos_new_quota_goal.patch
+mm-damon-sysfs-schemes-support-quota-goal-complement-flag.patch
+mm-damon-tests-core-kunit-test-quota_goal-complement-commit.patch
+selftests-damon-sysfssh-test-quota-goal-complement-flag-file.patch
+docs-mm-damon-design-document-damos-quota-goal-complement-flag.patch
+docs-admin-guide-mm-damon-usage-update-for-quota-goal-complement-file.patch
+docs-abi-damon-update-for-quota-goal-metric-complement-sysfs-file.patch
 
