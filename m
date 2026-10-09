@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 69F2E414439
-	for <mm-commits@vger.kernel.org>; Fri,  9 Oct 2026 05:58:42 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6A328415B79
+	for <mm-commits@vger.kernel.org>; Fri,  9 Oct 2026 05:58:43 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791525523; cv=none; b=EKrUf6bk0wIXUEymQSimONRLFDu/d36le4+y7yMu46u02ZTEGTC4N+/nzo8I6LFmb0TqwTbgFZrQzSf6y/9tWJ2y9ikdwV+Fw6nEb4S+KIIeZJEKjxxe5gshdvrSavqltteV8RGkZ/LZVTyVjqLlp8qt7zf8IF2LUvQFC238LTg=
+	t=1791525524; cv=none; b=kneUetxj3GaBKcotLsT72XW6GOziF7HWT3dAdTGvq5GLwMDkxWLMS3VU/PiLfByVEwGafKG1VA2zhqxjuDhb5RtxI8hcIdFeTLas+1S0HHXQLu+8Q7Qg3EZ4LHCdnBOwdxDmpaK4JLoxGbZbwSci2iDNGk/L3c8OrpbdkKj/owI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791525523; c=relaxed/simple;
-	bh=TvJjKMU2Uq9CAfAzADu8IqiaMGuIII0eu+kPFE2/DTI=;
-	h=Date:To:From:Subject:Message-Id; b=IpF0pzcHHKe29pEimgidYouO9grM0r6SM4BSkP9i3GxHuRvYo3kdjOyMOi/FX97mF1hUqsHsHr5vM+bNLBSFHNEtIYNRYQJG/I+dfIfWHIVAdyFMMl6L9qEtAMiJJxQqyOWhdpZrMm+m39JyJsXiQhwupvz0iL4iRab0rBVe0fI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=vwPuwIHm; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1791525524; c=relaxed/simple;
+	bh=oiMiI7HyC8kR+5Cw7RTOXfuMIj/ed9iTH5nQptplPso=;
+	h=Date:To:From:Subject:Message-Id; b=nuO1DWx7zwJwr7ypYYzKFnCQUkhBiILApE2T+nRKKtvyYG5VWQmCNajwtA1KmIRy5+/svpaNB/aBih4WzVO0B2VAqMmGzpkzSj3ZCCEehAvkSLFgIFaKPm2C0albHJw2Qi0YSgZkZceTVEIVUj2Ta5Fp2gYmuYiQUjInYWSmYDE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=fRWc67vL; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="vwPuwIHm"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 152B41F000FF;
-	Fri,  9 Oct 2026 05:58:42 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="fRWc67vL"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3CD1B1F00893;
+	Fri,  9 Oct 2026 05:58:43 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1791525522;
-	bh=uHe74b7cCqM1Xl/LTRRs4VTNtmEJpMG0Q4ioZz79y/M=;
+	d=linux-foundation.org; s=korg; t=1791525523;
+	bh=U4Hwu/jfEWosNZ9/j72FO6sWlyPeIQSEeXSl9yA3g6c=;
 	h=Date:To:From:Subject;
-	b=vwPuwIHmAunFQDWSkHnll34dMAnffS+Nc7qhyjROrxn8euDxndtj6AKKSDdVhvJGU
-	 bazq6/9HLfxB5ywDqhgwni2twjOQiaWMDc9bvzH7uELiwp7kSUJjkAuUIkMFnenFLB
-	 CQ6QErPKhQUs5BM3DVIHr4Kf37vy8WiL5544LHn8=
-Date: Thu, 08 Oct 2026 22:58:41 -0700
-To: mm-commits@vger.kernel.org,yosry@kernel.org,nphamcs@gmail.com,hannes@cmpxchg.org,chrisl@kernel.org,chengming.zhou@linux.dev,wujianyue000@gmail.com,akpm@linux-foundation.org
+	b=fRWc67vL0VsSFrp+DmFn5WwijYaEzgvXWHtrhaN6cJyQLzxkkqtJqa/vJDocdu82T
+	 7S+H09SAwy+gVuehCdNsAGY5YapLhl9ScZndSjAt2VbaFdMVjqs56Bc7NafrU5P/KF
+	 47FUE/jUSwV3G5r7XWcxODkdP7IyUcebsNp+yQYY=
+Date: Thu, 08 Oct 2026 22:58:42 -0700
+To: mm-commits@vger.kernel.org,vbabka@kernel.org,surenb@google.com,rppt@kernel.org,rdunlap@infradead.org,mhocko@suse.com,ljs@kernel.org,liam@infradead.org,david@kernel.org,corbet@lwn.net,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-zswap-reference-the-pool-by-id-to-shrink-struct-zswap_entry.patch removed from -mm tree
-Message-Id: <20261009055842.152B41F000FF@smtp.kernel.org>
+Subject: [merged mm-stable] mm-damon-api-introduce-damon_filter_type_pgidle_set.patch removed from -mm tree
+Message-Id: <20261009055843.3CD1B1F00893@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,149 +35,118 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/zswap: reference the pool by id to shrink struct zswap_entry
+     Subject: mm/damon/api: introduce DAMON_FILTER_TYPE_PGIDLE_SET
 has been removed from the -mm tree.  Its filename was
-     mm-zswap-reference-the-pool-by-id-to-shrink-struct-zswap_entry.patch
+     mm-damon-api-introduce-damon_filter_type_pgidle_set.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Jianyue Wu <wujianyue000@gmail.com>
-Subject: mm/zswap: reference the pool by id to shrink struct zswap_entry
-Date: Sun, 06 Sep 2026 15:47:19 +0800
+From: SJ Park <sj@kernel.org>
+Subject: mm/damon/api: introduce DAMON_FILTER_TYPE_PGIDLE_SET
+Date: Thu, 10 Sep 2026 07:22:28 -0700
 
-struct zswap_entry is one allocation per stored page, so its size is pure
-overhead.  It currently embeds an 8-byte pool pointer, even though the
-live pools now sit in an allocating xarray keyed by a small integer id
-that fits in a u8.
+Patch series "mm/damon: introduce pgidle_set probe filter type".
 
-Replace the per-entry pool pointer with that u8 id and resolve it through
-the xarray with xa_load().  xa_load() does its own RCU-protected lookup,
-so the caller needs no rcu_read_lock() section of its own.  The resolved
-pool stays valid because a live entry pins it via percpu_ref (taken in
-zswap_store_page()), so its id cannot be reused.  A live entry never uses
-the reserved id 0, so a zeroed id resolves to NULL and trips a WARN rather
-than aliasing a live pool.
+Users can do effective access monitoring with DAMON, using set_pgidle
+probe prep operation and pgidle_unset allowing probe filter.  In the
+setup, high probe_hits means the region was accessed frequently.  Zero
+probe_hits means the region was not accessed.  The filter, however,
+matches only the memory that can show the idleness.  Regions of zero
+probe_hits may contain memory that was just unable to show the idleness. 
+On virtual address space based monitoring, for example, non-present pages
+are reported as cold.  It is truly cold, but if the purpose is to make
+some operations like reclaiming or compressing the data, this is not
+really useful.  Introduce a new probe filter type, pgidle_set, that
+confirms the page is marked as idle.  Using it instead of pgidle_unset,
+users can find cold pages that can effectively be processed.
 
-The u8 fits in the padding after the bool referenced field, shrinking the
-entry from 56 to 48 bytes on 64-bit.  This raises objs_per_slab from 73 to
-85 and saves about 2MiB of metadata per 1GiB of data held in zswap.
+Patch 1 introduces the pgidle_set probe filter type to DAMON kernel API. 
+Patches 2 and 3 add support for it on physical and virtual address space
+operation sets, respectively.  Patch 4 adds support for it on the DAMON
+sysfs interface.  Finally, patch 5 updates the documentation for the new
+filter type.
 
-Link: https://lore.kernel.org/20260906-shrink_zswap_entry_v6-v6-3-ac4cf61565fb@gmail.com
-Signed-off-by: Jianyue Wu <wujianyue000@gmail.com>
+
+This patch (of 5):
+
+DAMON_FILTER_TYPE_PGIDLE_UNSET matches only memory that was able to
+confirm if it is marked as idle.  If the memory cannot be marked as idle,
+it simply doesn't match.  Hence, finding memory that was marked as idle
+with only DAMON_FILTER_TYPE_PGIDLE_UNSET is impossible.  Introduce a new
+filter for the purpose, DAMON_FILTER_TYPE_PGIDLE_SET.
+
+Link: https://lore.kernel.org/20260910142234.171562-1-sj@kernel.org
+Link: https://lore.kernel.org/20260910142234.171562-2-sj@kernel.org
+Signed-off-by: SJ Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Suggested-by: Chris Li <chrisl@kernel.org>
-Acked-by: Yosry Ahmed <yosry@kernel.org>
-Cc: Chengming Zhou <chengming.zhou@linux.dev>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Nhat Pham <nphamcs@gmail.com>
+Cc: David Hildenbrand <david@kernel.org>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: Liam R. Howlett <liam@infradead.org>
+Cc: Lorenzo Stoakes <ljs@kernel.org>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Randy Dunlap <rdunlap@infradead.org>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Vlastimil Babka <vbabka@kernel.org>
 ---
 
- mm/zswap.c |   37 ++++++++++++++++++++++++++++++-------
- 1 file changed, 30 insertions(+), 7 deletions(-)
+ include/linux/damon.h |    2 ++
+ 1 file changed, 2 insertions(+)
 
---- a/mm/zswap.c~mm-zswap-reference-the-pool-by-id-to-shrink-struct-zswap_entry
-+++ a/mm/zswap.c
-@@ -194,7 +194,7 @@ static struct shrinker *zswap_shrinker;
-  *              writeback logic. The entry is only reclaimed by the writeback
-  *              logic if referenced is unset. See comments in the shrinker
-  *              section for context.
-- * pool - the zswap_pool the entry's data is in
-+ * pool_idx - id of the zswap_pool that the entry's data is in.
-  * handle - zsmalloc allocation handle that stores the compressed page data
-  * objcg - the obj_cgroup that the compressed memory is charged to
-  * lru - handle to the pool's lru used to evict pages.
-@@ -203,12 +203,22 @@ struct zswap_entry {
- 	swp_entry_t swpentry;
- 	unsigned int length;
- 	bool referenced;
--	struct zswap_pool *pool;
-+	u8 pool_idx;
- 	unsigned long handle;
- 	struct obj_cgroup *objcg;
- 	struct list_head lru;
+--- a/include/linux/damon.h~mm-damon-api-introduce-damon_filter_type_pgidle_set
++++ a/include/linux/damon.h
+@@ -774,11 +774,13 @@ struct damon_prep {
+  * @DAMON_FILTER_TYPE_ANON:		Anonymous pages.
+  * @DAMON_FILTER_TYPE_MEMCG:		Specific memcg's pages.
+  * @DAMON_FILTER_TYPE_PGIDLE_UNSET:	Pgidle is unset.
++ * @DAMON_FILTER_TYPE_PGIDLE_SET:	Pgidle is set.
+  */
+ enum damon_filter_type {
+ 	DAMON_FILTER_TYPE_ANON,
+ 	DAMON_FILTER_TYPE_MEMCG,
+ 	DAMON_FILTER_TYPE_PGIDLE_UNSET,
++	DAMON_FILTER_TYPE_PGIDLE_SET,
  };
  
-+/*
-+ * No RCU section is needed around the returned pointer: a stored entry pins
-+ * its pool via percpu_ref (taken in zswap_store_page()), so the id cannot be
-+ * reused under us.  Callers WARN and handle a NULL from a corrupt pool_idx.
-+ */
-+static struct zswap_pool *zswap_entry_pool(struct zswap_entry *entry)
-+{
-+	return xa_load(&zswap_pools, entry->pool_idx);
-+}
-+
- static struct xarray *zswap_trees[MAX_SWAPFILES];
- static unsigned int nr_zswap_trees[MAX_SWAPFILES];
- 
-@@ -766,9 +776,13 @@ static void zswap_entry_cache_free(struc
-  */
- static void zswap_entry_free(struct zswap_entry *entry)
- {
-+	struct zswap_pool *pool = zswap_entry_pool(entry);
-+
- 	zswap_lru_del(entry);
--	zs_free(entry->pool->zs_pool, entry->handle);
--	zswap_pool_put(entry->pool);
-+	if (!WARN_ON_ONCE(!pool)) {
-+		zs_free(pool->zs_pool, entry->handle);
-+		zswap_pool_put(pool);
-+	}
- 	if (entry->objcg) {
- 		obj_cgroup_uncharge_zswap(entry->objcg, entry->length);
- 		obj_cgroup_put(entry->objcg);
-@@ -924,12 +938,15 @@ unlock:
- 
- static bool zswap_decompress(struct zswap_entry *entry, struct folio *folio)
- {
--	struct zswap_pool *pool = entry->pool;
-+	struct zswap_pool *pool = zswap_entry_pool(entry);
- 	struct scatterlist input[2]; /* zsmalloc returns an SG list 1-2 entries */
- 	struct scatterlist output;
- 	struct crypto_acomp_ctx *acomp_ctx;
- 	int ret = 0, dlen;
- 
-+	if (WARN_ON_ONCE(!pool))
-+		return false;
-+
- 	acomp_ctx = raw_cpu_ptr(pool->acomp_ctx);
- 	mutex_lock(&acomp_ctx->mutex);
- 	zs_obj_read_sg_begin(pool->zs_pool, entry->handle, input, entry->length);
-@@ -965,7 +982,7 @@ static bool zswap_decompress(struct zswa
- 	pr_alert_ratelimited("Decompression error from zswap (%d:%lu %s %u->%d)\n",
- 						swp_type(entry->swpentry),
- 						swp_offset(entry->swpentry),
--						entry->pool->tfm_name,
-+						pool->tfm_name,
- 						entry->length, dlen);
- 	return false;
- }
-@@ -1423,6 +1440,13 @@ static bool zswap_store_page(struct foli
- 	if (!zswap_compress(folio, index, entry, pool))
- 		goto compress_failed;
- 
-+	/*
-+	 * Set pool_idx before the xa_store() below publishes the entry, or a
-+	 * concurrent reader could resolve a stale pool_idx left by slab reuse
-+	 * to an unrelated live pool.
-+	 */
-+	entry->pool_idx = pool->idx;
-+
- 	old = xa_store(swap_zswap_tree(page_swpentry),
- 		       swp_offset(page_swpentry),
- 		       entry, GFP_KERNEL);
-@@ -1468,7 +1492,6 @@ static bool zswap_store_page(struct foli
- 	 *    The publishing order matters to prevent writeback from seeing
- 	 *    an incoherent entry.
- 	 */
--	entry->pool = pool;
- 	entry->swpentry = page_swpentry;
- 	entry->objcg = objcg;
- 	entry->referenced = true;
+ /**
 _
 
-Patches currently in -mm which might be from wujianyue000@gmail.com are
+Patches currently in -mm which might be from sj@kernel.org are
 
+mm-damon-sysfs-schemes-read-sysfs_filter-addr_range-only-once.patch
+mm-damon-sysfs-schemes-read-sysfs_filter-sz_range-only-once.patch
+mm-damon-core-return-an-error-from-damos_commit_filter_arg.patch
+mm-damon-core-disallow-max-min-damos-filter-range-arguments-commit.patch
+mm-damon-sysfs-schemes-drop-centralized-filter-range-arg-validations.patch
+mm-damon-sysfs-schemes-use-switch-case-in-add_scheme_filters.patch
+mm-damon-core-kunit-extend-damos_commit_filter_for-for-wrong-input.patch
+mm-damon-core-kunit-test-invalid-damos-filter-commits.patch
+mm-damon-api-introduce-damon_filter_type_hugepage_size.patch
+mm-damon-core-commit-hugepage_size-type-damon-filter.patch
+mm-damon-ops-common-support-hugepage_size-damon-filter-matching.patch
+mm-damon-sysfs-add-minmax-files-under-probe-filter-directory.patch
+mm-damon-sysfs-support-hugepage_size-probe-filter.patch
+docs-mm-damon-design-update-for-hugepage_size-probe-filter.patch
+docs-admin-guide-mm-damon-usage-update-for-hugepage_size.patch
+docs-abi-damon-update-for-hugepage_size-probe-filter.patch
+mm-damon-api-remove-nr_damos_filter_types.patch
+mm-damon-core-use-abs_diff-in-damon_feed_loop_next_input.patch
+mm-damon-core-use-mult_frac-in-damon_feed_loop_next_input.patch
+mm-damon-core-set-damon_ctx-walk_control_obsolete-in-damon_new_ctx.patch
+mm-damon-core-document-damon_call-damon_start-race-hang-issue.patch
+mm-damon-paddr-remove-pa-parameter-from-damon_pa_filter_pass.patch
+mm-damon-tests-core-kunit-test-eligible_mem_bp-commitment.patch
+mm-damon-tests-core-kunit-add-probe_hits_wsum-damos-filter-commit-test.patch
+selftests-damon-sysfs_memcg_path_leak-fail-only-for-real-damon-leak.patch
+docs-mm-damon-design-clarify-bp-is-basis-point.patch
+mm-damon-core-introduce-damos_quota_goal-complement.patch
+mm-damon-core-add-complement-argument-to-damos_new_quota_goal.patch
+mm-damon-sysfs-schemes-support-quota-goal-complement-flag.patch
+mm-damon-tests-core-kunit-test-quota_goal-complement-commit.patch
+selftests-damon-sysfssh-test-quota-goal-complement-flag-file.patch
+docs-mm-damon-design-document-damos-quota-goal-complement-flag.patch
+docs-admin-guide-mm-damon-usage-update-for-quota-goal-complement-file.patch
+docs-abi-damon-update-for-quota-goal-metric-complement-sysfs-file.patch
 
