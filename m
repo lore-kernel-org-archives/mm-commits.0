@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 89E9C4078E5;
-	Fri,  9 Oct 2026 05:58:07 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B3F48406804
+	for <mm-commits@vger.kernel.org>; Fri,  9 Oct 2026 05:58:08 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791525488; cv=none; b=uPVbK3VoM15RXnaUtOD2zcQhCW8n+g8zQhwcW98aOBzbqgA3KtCyE03hialsu49tg6tHThwtdO8orZRSpVR+0TfKWoDQ+yAG026XLhjUc4VxtBlnaqIGmGYriNpehwsV+ChS4BVEYApv2oTEhxDkxU3/T/EWPiYQYlIVyKClvcU=
+	t=1791525489; cv=none; b=GbvnAI7hEkB/E6Y6qeG6ieCkn3uvYlBCQYdjWWQivCeBD3/gbKMkp2ERGPfNrx6Lz7CTAGx8KuNbPuDmPEzxl+Ki5VId2tShTVc0/Cwi8+YNkV9WbT3u2oS3L+jAc3dnKxFvEMEYOgPRwVQzlAYFAj8vi9a7k7PbU6KuZ0WdZ8k=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791525488; c=relaxed/simple;
-	bh=DHbJrNuMDRpu6bXFPYbrsdRmknOLKIdLF8NRlyD66ZM=;
-	h=Date:To:From:Subject:Message-Id; b=Z1xcy+10A6EgnI8YgsFDEVo2P6Lbitluyww3Ay9dIKiT11qV4a6Nrd3z8FW/0Y+ARJgM0DJBxxB2+lKKxzE6ShL5NB5kI+1bNxmHaAKcYVaVjONGfdOnb8u+aDLqL7k1Yqm+FRnS9QxYOWnnPaY0Owjnm7Qb172g7FWZDSc8CRQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Hg8AR2KE; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1791525489; c=relaxed/simple;
+	bh=T53f7lAbOrAupxjwnf3panZJXSKugGNDAEDGRkm+zaE=;
+	h=Date:To:From:Subject:Message-Id; b=X0u9SWA5MKvOEdbRygBgNi6qTKk8lbqQFhH/G0PYWHRjkyQxwNjc3l/BxXA0n3EmmgLyP8nEyrzV49uIaJAhLwGT17iqCN8fM/QiQnqI8MjhReuEDLu/XkNTKMYlkUEcfQa8grUH6juzJQDFvcL8LvdZe0EwyeVRU5yEsfDtNIE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=EaO9qJyz; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Hg8AR2KE"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 654CD1F00893;
-	Fri,  9 Oct 2026 05:58:07 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="EaO9qJyz"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 891A71F000FF;
+	Fri,  9 Oct 2026 05:58:08 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1791525487;
-	bh=m5obJNJsIrrzulnptEOGpu57dvg0bVsJw6mp08hC7BI=;
+	d=linux-foundation.org; s=korg; t=1791525488;
+	bh=zCTyb6Hu4oFP0RkUNjOzRQA3rhbkdOdjcXIPsI/PkyY=;
 	h=Date:To:From:Subject;
-	b=Hg8AR2KEgTWZXp8kaRheb1vuWjjUkHQoYsAtRvi2SnDca3p4Bp83fK/OD/LUwLAQj
-	 FBrpeMIE+soOl1ipRWnbI4EXgX5s2tlWCktI36nrnkDcwyUDmK+2yYD4Dh87ex5ZRH
-	 sgdzDeyfhEutTE6MQbw8dPFM9+oBsP48+w5zbnwo=
-Date: Thu, 08 Oct 2026 22:58:07 -0700
-To: mm-commits@vger.kernel.org,yuanchu@google.com,weixugc@google.com,stable@vger.kernel.org,shikemeng@huaweicloud.com,shakeel.butt@linux.dev,nphamcs@gmail.com,mhocko@kernel.org,ljs@kernel.org,kasong@tencent.com,hannes@cmpxchg.org,david@kernel.org,chrisl@kernel.org,baoquan.he@linux.dev,baohua@kernel.org,axelrasmussen@google.com,bingfangguo@tencent.com,akpm@linux-foundation.org
+	b=EaO9qJyzflt07kW5mMOsYKA6HeRjuho0Gn5vqk/lYlJ/LRYVWqjCIH2dZCiNaFxgu
+	 Mofd6qXp1OZW5KN0Nu9+8pP4Rv/4uD/3yERzplBdTNGJoUQgHPttXfV6M1AnVqhk8A
+	 2KNGtt11Pe/OpV3o6//lFdMjaCAnHxofJ8esAPrk=
+Date: Thu, 08 Oct 2026 22:58:08 -0700
+To: mm-commits@vger.kernel.org,shuah@kernel.org,jsavitz@redhat.com,david@kernel.org,hi@tychen.cc,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-memcg-clear-folio-memcg-after-changing-per-memcg-stats.patch removed from -mm tree
-Message-Id: <20261009055807.654CD1F00893@smtp.kernel.org>
+Subject: [merged mm-stable] selftests-mm-reject-invalid-test-selections-before-running-tests.patch removed from -mm tree
+Message-Id: <20261009055808.891A71F000FF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,152 +35,109 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/memcg: clear folio memcg after changing per memcg stats
+     Subject: selftests/mm: reject invalid test selections before running tests
 has been removed from the -mm tree.  Its filename was
-     mm-memcg-clear-folio-memcg-after-changing-per-memcg-stats.patch
+     selftests-mm-reject-invalid-test-selections-before-running-tests.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Bingfang Guo <bingfangguo@tencent.com>
-Subject: mm/memcg: clear folio memcg after changing per memcg stats
-Date: Thu, 10 Sep 2026 11:46:58 +0800
+From: Tianyi Chen <hi@tychen.cc>
+Subject: selftests/mm: reject invalid test selections before running tests
+Date: Thu, 10 Sep 2026 20:56:44 +0800
 
-I notice extremely high swapcached count in the per memcg level
-memory.stat when running tests with cgroupv1 setup by swapping pages in
-and out.  It seems that the counter never gets decreased so the value is
-rather useless and confusing to users reading it.  So I think fixing it so
-that the value can reflect the actual swapcache usage correctly could be
-helpful.
+Patch series "selftests/mm: Validate selections and scope memfd_secret
+setup", v3.
 
-__memcg1_swapout() transfers the memsw charge of a folio to its swap entry
-and clears folio->memcg_data as part of that.  In the vmscan swapout path
-it runs before __swap_cache_del_folio(), which then decrements the
-swapcache stats through lruvec_stat_mod_folio().  Since folio->memcg_data
-has already been cleared, folio_memcg() returns NULL and the NR_SWAPCACHE
-decrement only updates the node-level counter instead of the memcg's
-lruvec, leaking the per-memcg swapcache count.
+run_vmtests.sh can reach test setup after invalid options or category
+selections.  Its memfd_secret preparation can also change ptrace_scope
+when that category was not selected.
 
-Users using swaps will read totally meaningless swapcache value from
-per memcg memory.stat, like 200GB of swapcache on a 64GB setup, which
-is quite confusing and may trigger monitoring alerts, if any.
+Patch 1 rejects invalid selections before setup.  Patch 2 gates
+memfd_secret preparation on category selection and executable presence.
 
-Move the __memcg1_swapout() call into __swap_cache_del_folio(), after the
-NR_FILE_PAGES and NR_SWAPCACHE updates but before
-__swap_cache_do_del_folio() removes the folio from the swap cache.  This
-keeps the stats attributed to the folio's memcg while still recording the
-swap cgroup with a valid folio->swap.  Add a swapout parameter so the
-plain swap_cache_del_folio() path is left unchanged.
 
-Link: https://lore.kernel.org/20260910-memcg-swapcache-stats-fix-v5-1-033f510ba748@tencent.com
-Fixes: 2732acda82c9 ("mm, swap: use swap cache as the swap in synchronize layer")
-Signed-off-by: Bingfang Guo <bingfangguo@tencent.com>
+This patch (of 2):
+
+getopts reports unknown options and missing arguments, but run_vmtests.sh
+ignores its error result and continues with test setup.  An empty -t
+argument also falls back to the default selection, while unknown category
+names can silently select no tests and still reach setup code.
+
+Exit on getopts errors and validate category names against the existing
+list in usage() before any test setup.  Reject empty and whitespace-only
+selections, and normalize category separators so validation and execution
+agree.  Initialize the default selection before parsing options so only -t
+changes the selection.
+
+Link: https://lore.kernel.org/20260910125645.285866-1-diannaaav@gmail.com
+Link: https://lore.kernel.org/20260910125645.285866-2-diannaaav@gmail.com
+Fixes: 85463321e726 ("selftests/vm: enable running select groups of tests")
+Signed-off-by: Tianyi Chen <hi@tychen.cc>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Acked-by: Kairui Song <kasong@tencent.com>
-Cc: Axel Rasmussen <axelrasmussen@google.com>
-Cc: Baoquan He <baoquan.he@linux.dev>
-Cc: Barry Song <baohua@kernel.org>
-Cc: Chris Li <chrisl@kernel.org>
-Cc: David Hildenbrand <david@kernel.org>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Kemeng Shi <shikemeng@huaweicloud.com>
-Cc: Lorenzo Stoakes <ljs@kernel.org>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Nhat Pham <nphamcs@gmail.com>
-Cc: Shakeel Butt <shakeel.butt@linux.dev>
-Cc: Wei Xu <weixugc@google.com>
-Cc: Yuanchu Xie <yuanchu@google.com>
-Cc: <stable@vger.kernel.org>
+Assisted-by: LLM
+Cc: David Hildenbrand (Arm) <david@kernel.org>
+Cc: Joel Savitz <jsavitz@redhat.com>
+Cc: Shuah Khan <shuah@kernel.org>
 ---
 
- mm/swap.h       |    6 ++++--
- mm/swap_state.c |   13 ++++++++++---
- mm/vmscan.c     |    3 +--
- 3 files changed, 15 insertions(+), 7 deletions(-)
+ tools/testing/selftests/mm/run_vmtests.sh |   26 ++++++++++++++++----
+ 1 file changed, 22 insertions(+), 4 deletions(-)
 
---- a/mm/swap.h~mm-memcg-clear-folio-memcg-after-changing-per-memcg-stats
-+++ a/mm/swap.h
-@@ -319,7 +319,8 @@ struct folio *swap_cache_alloc_folio(swp
- void __swap_cache_add_folio(struct swap_cluster_info *ci,
- 			    struct folio *folio, swp_entry_t entry);
- void __swap_cache_del_folio(struct swap_cluster_info *ci,
--			    struct folio *folio, swp_entry_t entry, void *shadow);
-+			    struct folio *folio, swp_entry_t entry, void *shadow,
-+			    bool swapout);
- void __swap_cache_replace_folio(struct swap_cluster_info *ci,
- 				struct folio *old, struct folio *new);
+--- a/tools/testing/selftests/mm/run_vmtests.sh~selftests-mm-reject-invalid-test-selections-before-running-tests
++++ a/tools/testing/selftests/mm/run_vmtests.sh
+@@ -96,26 +96,44 @@ separated by spaces:
  
-@@ -452,7 +453,8 @@ static inline void swap_cache_del_folio(
+ example: ./run_vmtests.sh -t "hmm mmap ksm"
+ EOF
+-	exit 0
  }
  
- static inline void __swap_cache_del_folio(struct swap_cluster_info *ci,
--		struct folio *folio, swp_entry_t entry, void *shadow)
-+		struct folio *folio, swp_entry_t entry, void *shadow,
-+		bool swapout)
- {
- }
+ RUN_ALL=false
+ RUN_DESTRUCTIVE=false
+ TAP_PREFIX="# "
  
---- a/mm/swap_state.c~mm-memcg-clear-folio-memcg-after-changing-per-memcg-stats
-+++ a/mm/swap_state.c
-@@ -306,21 +306,28 @@ static void __swap_cache_do_del_folio(st
-  * @folio: The folio.
-  * @entry: The first swap entry that the folio corresponds to.
-  * @shadow: shadow value to be filled in the swap cache.
-+ * @swapout: whether this folio is being reclaimed after swapout.
-  *
-  * Removes a folio from the swap cache and fills a shadow in place.
-  * This won't put the folio's refcount. The caller has to do that.
-  *
-  * Context: Caller must ensure the folio is locked and in the swap cache
-  * using the index of @entry, and lock the cluster that holds the entries.
-+ * If @swapout is set, the folio should be in reclaim path and IRQs
-+ * should be disabled.
-  */
- void __swap_cache_del_folio(struct swap_cluster_info *ci, struct folio *folio,
--			    swp_entry_t entry, void *shadow)
-+			    swp_entry_t entry, void *shadow, bool swapout)
- {
- 	unsigned long nr_pages = folio_nr_pages(folio);
- 
--	__swap_cache_do_del_folio(ci, folio, entry, shadow);
- 	node_stat_mod_folio(folio, NR_FILE_PAGES, -nr_pages);
- 	lruvec_stat_mod_folio(folio, NR_SWAPCACHE, -nr_pages);
++VM_SELFTEST_ITEMS="default"
 +
-+	if (swapout)
-+		__memcg1_swapout(folio, ci);
+ while getopts "aht:nd" OPT; do
+ 	case ${OPT} in
+ 		"a") RUN_ALL=true ;;
+-		"h") usage ;;
++		"h") usage; exit 0 ;;
+ 		"t") VM_SELFTEST_ITEMS=${OPTARG} ;;
+ 		"n") TAP_PREFIX= ;;
+ 		"d") RUN_DESTRUCTIVE=true ;;
++		"?") exit 1 ;;
+ 	esac
+ done
+ shift $((OPTIND -1))
+ 
+-# default behavior: run all tests
+-VM_SELFTEST_ITEMS=${VM_SELFTEST_ITEMS:-default}
++# Normalize whitespace so validation and test_selected() use the same names.
++read -r -a selected_categories <<< "${VM_SELFTEST_ITEMS//$'\n'/ }"
++VM_SELFTEST_ITEMS="${selected_categories[*]}"
++if [ -z "$VM_SELFTEST_ITEMS" ]; then
++	echo "No test categories specified" >&2
++	exit 1
++fi
 +
-+	__swap_cache_do_del_folio(ci, folio, entry, shadow);
- }
++if [ "$VM_SELFTEST_ITEMS" != "default" ]; then
++	# Keep the documented category list as the source of valid names.
++	valid_categories=$(usage | sed -n 's/^- //p')
++	for category in "${selected_categories[@]}"; do
++		if ! grep -Fxq -- "$category" <<< "$valid_categories"; then
++			echo "Unknown test category: $category" >&2
++			exit 1
++		fi
++	done
++fi
  
- /**
-@@ -339,7 +346,7 @@ void swap_cache_del_folio(struct folio *
- 	swp_entry_t entry = folio->swap;
- 
- 	ci = swap_cluster_lock(__swap_entry_to_info(entry), swp_offset(entry));
--	__swap_cache_del_folio(ci, folio, entry, NULL);
-+	__swap_cache_del_folio(ci, folio, entry, NULL, false);
- 	swap_cluster_unlock(ci);
- 
- 	folio_ref_sub(folio, folio_nr_pages(folio));
---- a/mm/vmscan.c~mm-memcg-clear-folio-memcg-after-changing-per-memcg-stats
-+++ a/mm/vmscan.c
-@@ -807,8 +807,7 @@ static int __remove_mapping(struct addre
- 
- 		if (reclaimed && !mapping_exiting(mapping))
- 			shadow = workingset_eviction(folio, target_memcg);
--		__memcg1_swapout(folio, ci);
--		__swap_cache_del_folio(ci, folio, swap, shadow);
-+		__swap_cache_del_folio(ci, folio, swap, shadow, true);
- 		swap_cluster_unlock_irq(ci);
- 	} else {
- 		void (*free_folio)(struct folio *);
+ test_selected() {
+ 	if [ "$VM_SELFTEST_ITEMS" == "default" ]; then
 _
 
-Patches currently in -mm which might be from bingfangguo@tencent.com are
+Patches currently in -mm which might be from hi@tychen.cc are
 
-memcg-keep-swap-charging-under-rcu-protection.patch
-memcg-base-swap-charge-accounting-on-memcgid-root-status.patch
-memcg-manipulate-memcg-private-id-references-by-id.patch
-memcg-move-memcg-private-id-refcount-to-objcg.patch
 
