@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4D1053F44D5
-	for <mm-commits@vger.kernel.org>; Fri,  9 Oct 2026 05:56:37 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 31D993F88A2
+	for <mm-commits@vger.kernel.org>; Fri,  9 Oct 2026 05:56:38 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791525398; cv=none; b=cWGXnTiBS1epB9QV15GoloaIHWZRGTWZtrRZrMrwaMdOxRAcBYBxAkPUvfMMt32IrKYdVUXFnUgl3h0OWqx6b24C2Aec0G2rIZ4X7SLPkYyZjqXHI7YPZ4IouqTjkdKPI3ujE1SAk2MW4dLxV1e3+rslbZxOStRPg1WpjyXScSs=
+	t=1791525399; cv=none; b=rgnm5cHA3AHuclGoTWTiZ4QGHkrzaIh/Pn+/5hGZ4r06FnRxlUyjHEITrV9m2R3ytxZ4pq70R+PFS+XU1wmOvD+m0lezgh9Q4eHlbPcTq8jIlz26saBu9xEWWwwPAwS+oZBNRPrYrsIqHepwaBFITx5kEFYl//3UtDhnAkgPjgs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791525398; c=relaxed/simple;
-	bh=FIfFhBsztFSqWOFUqPynoxWIk8OjVGmkBAMQevhRRek=;
-	h=Date:To:From:Subject:Message-Id; b=G/j8RoLDuvljbsjBHTk+tykN2zBjYGqyT23EQVqTpfhD4g6d9MDdl8uvr7/+XAcHYEW4tUwELKGA7dukpoNN29O37NfO5VTwGi2pe21YNRnEzFRSD5Fnkg0nByvBM5JSgr6PPcqw+9d4dAduC1k9yCYk8hQ4FO3UhY64sJJWS8A=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=0qWzPydo; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1791525399; c=relaxed/simple;
+	bh=dAi3BXox6E8KGi/I1OqCpdYFrq4VGcw07l3sWPhfo1E=;
+	h=Date:To:From:Subject:Message-Id; b=igFdd5Rno3e6Hxe2228wHcnFLx1GT/AwG3sHq+qss+yJ/Nfjc58xTPvgPv9WOO245eFqsmk/xgHqFeoVkUp3jC5aAkGmYzhpK8wbYRsEfmVZPU7814gD2GUOb4qy8kYDH/U/2iLIZbXUXKXsViOYhY9ry8qJz66iJVYpveg0CxI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=YsK3OJsl; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="0qWzPydo"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D20BC1F00898;
-	Fri,  9 Oct 2026 05:56:36 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="YsK3OJsl"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0AFA41F00893;
+	Fri,  9 Oct 2026 05:56:38 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1791525396;
-	bh=Ip2IrgH/I1jtVMCBH7GU3XytLJTWnsoPDt4IVf/KBn8=;
+	d=linux-foundation.org; s=korg; t=1791525398;
+	bh=9JeVEhgibUaw6E7Tzier/ADDM0DgJfSrb925tMoMeX4=;
 	h=Date:To:From:Subject;
-	b=0qWzPydoDuh9BQJzGfmw26+qKFc3YSuHVuR4ZNdxbSLHm4GJvDY1r224Pt2vvy3pD
-	 FnHcy2WMF6JGEdSVUEleQm2VeoI1lgqIWRnL+x6PpJ79aeEmmYnZXNfabtJlRCgbX2
-	 A+IEI4J3JIztFxDWIqeZlhD+CcOELdAF9cEXGCxU=
-Date: Thu, 08 Oct 2026 22:56:36 -0700
-To: mm-commits@vger.kernel.org,willy@infradead.org,vbabka@kernel.org,surenb@google.com,sj@kernel.org,rppt@kernel.org,mhocko@suse.com,ljs@kernel.org,liam@infradead.org,david@kernel.org,tz2294@columbia.edu,akpm@linux-foundation.org
+	b=YsK3OJsl/nK4Yo/F2umx7YZwn5nB0XiA5w3GHBBFCsOF0vQSWbOConzD79jJWf/zO
+	 /nwoAOa9zJUkJ11w41dNQQH+IgNgIk0dyH7i+1KKb7ZnavhVKp8LvIiIhYj3n7jqzD
+	 j1MFQCO1LtbyJPb7JPzGOCymhfaLgRHYFaOYSpjs=
+Date: Thu, 08 Oct 2026 22:56:37 -0700
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,yuzhao@google.com,yuanchu@google.com,weixugc@google.com,vbabka@kernel.org,shakeel.butt@linux.dev,ryncsn@gmail.com,roman.gushchin@linux.dev,ridong.chen@linux.dev,qi.zheng@linux.dev,muchun.song@linux.dev,mhocko@kernel.org,ljs@kernel.org,lianux.mm@gmail.com,liam@infradead.org,hannes@cmpxchg.org,david@kernel.org,chrisl@kernel.org,baoquan.he@linux.dev,baolin.wang@linux.alibaba.com,baohua@kernel.org,axelrasmussen@google.com,kasong@tencent.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-remove-pagewriteback.patch removed from -mm tree
-Message-Id: <20261009055636.D20BC1F00898@smtp.kernel.org>
+Subject: [merged mm-stable] mm-memcontrol-move-the-lru_zone_size-sanity-check-to-the-reader-side.patch removed from -mm tree
+Message-Id: <20261009055638.0AFA41F00893@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,68 +35,167 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: remove PageWriteback
+     Subject: mm/memcontrol: move the lru_zone_size sanity check to the reader side
 has been removed from the -mm tree.  Its filename was
-     mm-remove-pagewriteback.patch
+     mm-memcontrol-move-the-lru_zone_size-sanity-check-to-the-reader-side.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Tal Zussman <tz2294@columbia.edu>
-Subject: mm: remove PageWriteback
-Date: Sat, 05 Sep 2026 15:08:30 -0400
+From: Kairui Song <kasong@tencent.com>
+Subject: mm/memcontrol: move the lru_zone_size sanity check to the reader side
+Date: Sun, 06 Sep 2026 00:51:06 +0800
 
-The last caller of PageWriteback() was removed in commit f75987e543c2
-("libceph: remove pinning assertion in ceph_msg_data_iter_next()").  This
-flag is now only used on folios, so we can remove all the page accessors. 
-folio_test_clear_writeback() is not used, so don't add
-FOLIO_TEST_CLEAR_FLAG() for it.
+Patch series "mm/mglru: clean up folio counters and flag usage", v6.
 
-Link: https://lore.kernel.org/20260905-remove-pagewriteback-v1-1-06f41c00db03@columbia.edu
-Signed-off-by: Tal Zussman <tz2294@columbia.edu>
+This is a cleanup series separated out from the MGLRU-FG series [1].  As
+that series is getting too long in following updates, separate out the
+clean up part for easier review and merge.
+
+No feature change is intended, except one bugfix.  It mostly replaces the
+open-coded bit operations scattered throughout the MGLRU code with new
+helpers, with proper kdocs, sanity debug checks, and hardens a few MGLRU
+functions.
+
+A subtle generation counter leak is also found during the refactoring and
+the fix is included.
+
+Also collected review feedbacks on the cleanup part from the posted
+series.
+
+
+This patch (of 6):
+
+Instead of using an unsigned long and checking the counter value at the
+updater side, turn the counter into a signed long and check at the reader
+side.  This reduces overhead and simplifies the code.
+
+commit ca707239e8a7 ("mm: update_lru_size warn and reset bad lru_size")
+added a sanity check for memcg counter underflow: lru_zone_size is
+unsigned, so an underflow wraps it around and returns an enormously large
+number, then the memcg shrinker loops almost forever as the calculated
+number of folios to shrink is huge.  It also checked if a zero value
+matches the empty LRU list, so the positive and negative deltas had to be
+handled separately.  However that emptiness check was already removed by
+commit b4536f0c829c ("mm, memcg: fix the active list aging for lowmem
+requests when memcg is enabled"), so handling the deltas separately is no
+longer needed.
+
+The remaining update-side check is costly and cannot really catch the leak
+it is after anyway.  It runs on every LRU folio, and if a folio was
+removed without updating the counter while other folios remain on the LRU,
+the WARN only triggers much later, from a likely innocent callsite.  While
+readers are much rarer than writers, only the reclaim and reparenting
+paths read it, once per batch.
+
+Checking at the reader side instead leaves the update path a plain
+addition, and puts the warning where the value is actually consumed.
+
+Note this changes the behavior on underflow: the correction is removed and
+a negative value is kept.  A massive leak of the LRU size counter would
+indicate that something else has gone very wrong, and one should fix that
+leaking site instead.  Besides, the original behavior might cause false
+positives, or make things worse if the accounting happens after the actual
+insertion: the value is not leaked, just delayed, so force-fixing it would
+cause a bigger problem.  The warning now only kicks in when a consumer
+actually uses it, in which case the reader gets zero.
+
+Link: https://lore.kernel.org/20260906-mglru-flags-cleanup-v6-0-9aacbd77d4ca@tencent.com
+Link: https://lore.kernel.org/20260906-mglru-flags-cleanup-v6-1-9aacbd77d4ca@tencent.com
+Link: https://lore.kernel.org/linux-mm/20260804-mglru-fg-v1-0-4d8dad39dad6@tencent.com/ [1]
+Signed-off-by: Kairui Song <kasong@tencent.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Reviewed-by: SJ Park <sj@kernel.org>
-Reviewed-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
-Acked-by: David Hildenbrand (Arm) <david@kernel.org>
+Reviewed-by: Ridong Chen <ridong.chen@linux.dev>
+Reviewed-by: Barry Song <baohua@kernel.org>
+Acked-by: Shakeel Butt <shakeel.butt@linux.dev>
+Cc: Axel Rasmussen <axelrasmussen@google.com>
+Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
+Cc: Baoquan He <baoquan.he@linux.dev>
+Cc: Chris Li <chrisl@kernel.org>
+Cc: David Hildenbrand <david@kernel.org>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Kairui Song <ryncsn@gmail.com>
 Cc: Liam R. Howlett <liam@infradead.org>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Lorenzo Stoakes <ljs@kernel.org>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Muchun Song <muchun.song@linux.dev>
+Cc: Roman Gushchin <roman.gushchin@linux.dev>
 Cc: Vlastimil Babka <vbabka@kernel.org>
+Cc: Wei Xu <weixugc@google.com>
+Cc: Yuanchu Xie <yuanchu@google.com>
+Cc: Yu Zhao <yuzhao@google.com>
+Cc: Zi Yan <ziy@nvidia.com>
+Cc: Lian Wang <lianux.mm@gmail.com>
+Cc: Qi Zheng <qi.zheng@linux.dev>
 ---
 
- include/linux/page-flags.h |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ include/linux/memcontrol.h |    9 +++++++--
+ mm/memcontrol.c            |   18 +-----------------
+ 2 files changed, 8 insertions(+), 19 deletions(-)
 
---- a/include/linux/page-flags.h~mm-remove-pagewriteback
-+++ a/include/linux/page-flags.h
-@@ -588,8 +588,8 @@ FOLIO_FLAG(owner_2, FOLIO_HEAD_PAGE)
-  * Only test-and-set exist for PG_writeback.  The unconditional operators are
-  * risky: they bypass page accounting.
-  */
--TESTPAGEFLAG(Writeback, writeback, PF_NO_TAIL)
--	TESTSCFLAG(Writeback, writeback, PF_NO_TAIL)
-+FOLIO_TEST_FLAG(writeback, FOLIO_HEAD_PAGE)
-+	FOLIO_TEST_SET_FLAG(writeback, FOLIO_HEAD_PAGE)
- FOLIO_FLAG(mappedtodisk, FOLIO_HEAD_PAGE)
+--- a/include/linux/memcontrol.h~mm-memcontrol-move-the-lru_zone_size-sanity-check-to-the-reader-side
++++ a/include/linux/memcontrol.h
+@@ -100,7 +100,7 @@ struct mem_cgroup_per_node {
+ 	/* Fields which get updated often at the end. */
+ 	struct lruvec		lruvec;
+ 	CACHELINE_PADDING(_pad2_);
+-	unsigned long		lru_zone_size[MAX_NR_ZONES][NR_LRU_LISTS];
++	long			lru_zone_size[MAX_NR_ZONES][NR_LRU_LISTS];
+ 	struct mem_cgroup_reclaim_iter	iter;
  
- /* PG_readahead is only used for reads; PG_reclaim is only for writes */
+ 	/*
+@@ -888,10 +888,15 @@ static inline
+ unsigned long mem_cgroup_get_zone_lru_size(struct lruvec *lruvec,
+ 		enum lru_list lru, int zone_idx)
+ {
++	long val;
+ 	struct mem_cgroup_per_node *mz;
+ 
+ 	mz = container_of(lruvec, struct mem_cgroup_per_node, lruvec);
+-	return READ_ONCE(mz->lru_zone_size[zone_idx][lru]);
++	val = READ_ONCE(mz->lru_zone_size[zone_idx][lru]);
++	if (WARN_ON_ONCE(val < 0))
++		return 0;
++
++	return val;
+ }
+ 
+ void __mem_cgroup_handle_over_high(gfp_t gfp_mask);
+--- a/mm/memcontrol.c~mm-memcontrol-move-the-lru_zone_size-sanity-check-to-the-reader-side
++++ a/mm/memcontrol.c
+@@ -1529,28 +1529,12 @@ void mem_cgroup_update_lru_size(struct l
+ 				int zid, long nr_pages)
+ {
+ 	struct mem_cgroup_per_node *mz;
+-	unsigned long *lru_size;
+-	long size;
+ 
+ 	if (mem_cgroup_disabled())
+ 		return;
+ 
+ 	mz = container_of(lruvec, struct mem_cgroup_per_node, lruvec);
+-	lru_size = &mz->lru_zone_size[zid][lru];
+-
+-	if (nr_pages < 0)
+-		*lru_size += nr_pages;
+-
+-	size = *lru_size;
+-	if (WARN_ONCE(size < 0,
+-		"%s(%p, %d, %ld): lru_size %ld\n",
+-		__func__, lruvec, lru, nr_pages, size)) {
+-		VM_BUG_ON(1);
+-		*lru_size = 0;
+-	}
+-
+-	if (nr_pages > 0)
+-		*lru_size += nr_pages;
++	mz->lru_zone_size[zid][lru] += nr_pages;
+ }
+ 
+ /**
 _
 
-Patches currently in -mm which might be from tz2294@columbia.edu are
+Patches currently in -mm which might be from kasong@tencent.com are
 
-mm-memcontrol-take-a-const-folio-in-folio_memcg-and-friends.patch
-mm-memcontrol-constify-obj_cgroup_memcg-and-friends.patch
-mm-memcontrol-constify-the-lruvec-helpers.patch
-mm-page_io-take-a-const-folio-in-bio_associate_blkg_from_folio.patch
-mm-memcontrol-constify-the-mem_cgroup-accessors.patch
-mm-page_counter-constify-page_counter_read-and-page_counter_margin.patch
-mm-memcontrol-constify-the-reclaim-protection-helpers.patch
-mm-memcontrol-constify-the-memcg-and-lruvec-stat-readers.patch
-mm-memcontrol-constify-the-swap-accounting-helpers.patch
-mm-memcontrol-constify-mem_cgroup_swappiness-and-mem_cgroup_get_max.patch
-mm-memcontrol-constify-the-zswap-and-socket-pressure-helpers.patch
-vmcore-convert-mmap_vmcore_fault-to-use-folios.patch
 
