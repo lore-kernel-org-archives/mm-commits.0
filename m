@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 70F4F3F927B
-	for <mm-commits@vger.kernel.org>; Fri,  9 Oct 2026 05:56:32 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 888D73D9667
+	for <mm-commits@vger.kernel.org>; Fri,  9 Oct 2026 05:56:33 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791525393; cv=none; b=EW0e+9JlKhldp8cCPQ8JhhGwQAJPkLw5u0jTJIRqQwi/Is3jnUOFLG6PrWP3LhH1uNrLmMOWay2q03BdGe5KYPvoYxjaoeUBks7z4M87jfYkyY4Pjp/HzcPw2IzOrnDVapcoQVOdunA4ly4dAIos35KDDLakA3pWgg0pPWMObYY=
+	t=1791525394; cv=none; b=m1Nw752iHvkyB3cT8QNxyAr5YfaRQO3HdyOmH8eDf+2g8sSx1yzY9zzKSI2WyRrXsswp2rDjA+iFZeIeEUjj5M1H8rj3VCv4gQHICRK5wU+QA9k6hqQC1Zi4A9Xv9F1/dQdn23DHe27LjYbi4UOk0ywOS2F9bDbVyCu7Mv1bRfQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791525393; c=relaxed/simple;
-	bh=EIrOfjzZ1MenHy9m+qajvRi7BlrG2Gkpr0eZj7nwskg=;
-	h=Date:To:From:Subject:Message-Id; b=A+eFIdTgPU1lDapwAP2c+JeU68+JLJSFI64qol6PtmAJpueCO7zUgBDbIfVE7jbV7D7LHuZ8pO0YueCY8fhhRrTi7Mg1rc3k9aYi3OYR3kiNc269BnFlkF47SVJSlkKgJ7sAl8ilAPVpyXbryyWX0xVdyZpk7QLbn1OJlcCguoY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=xaM1osaQ; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1791525394; c=relaxed/simple;
+	bh=8qN2uR7n2fMn9VSxshW8TYL0INoFOkIcK6VetbLE98M=;
+	h=Date:To:From:Subject:Message-Id; b=s3OSbnjo3CFT22B0pYxuNqdna3YFAsznGD63I+VCf37tnBqWrbJPOFghIDaDIdJug0XqWWJmbNnKFQAePDVk35XdUbau0is36lOIeR2Z2FGrJrG+0iugWL2VHyWHHunMzofYfClNxgciKTLnUuVS571EMTj/MYGYN4sjJyrQAe0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=WYnPybsS; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="xaM1osaQ"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 47AF11F000FF;
-	Fri,  9 Oct 2026 05:56:32 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="WYnPybsS"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5F3311F00893;
+	Fri,  9 Oct 2026 05:56:33 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1791525392;
-	bh=8wpD7Q5ub1HdQWaxYDGmgoFPXSRbiXP2cHNQTVqpc/0=;
+	d=linux-foundation.org; s=korg; t=1791525393;
+	bh=C+8LeFKMEkIY7ZWb/JhvtT4ynOpYo3TCcWVr2poa6uc=;
 	h=Date:To:From:Subject;
-	b=xaM1osaQZ9Z8lEO7RKMFRxzuBY5XVBPwwciycPI92PJfWb7sBOS9d0SAz3NpV4T8X
-	 7ipBqYIugVV9TrOhaRVdtgwvaU9esxpsQ3D8wH0boJGNjhBn+T55DqTZpUpSIPPjj4
-	 cbLIn9QJam35V29L/b/8BaMpOkctQNXUIpUsKbfw=
-Date: Thu, 08 Oct 2026 22:56:31 -0700
+	b=WYnPybsSONd3iYVPi5j2kcIpwitFMVoYQbRGQpH8eN5QY2htRKRRLTP29ZY8dB4Lo
+	 3NMn1xLIFa8ioztfYXEbanY6EtLaOnEScDvegFpjA8Mi5UG4wPRHyKl4lmHv4SAEhp
+	 XXwQ2AMSwDT6tnEvgfkGLoyqy3n8QNOnbaGbmvjg=
+Date: Thu, 08 Oct 2026 22:56:33 -0700
 To: mm-commits@vger.kernel.org,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-damon-core-set-ctx-call_controls_obsolete-in-damon_new_ctx.patch removed from -mm tree
-Message-Id: <20261009055632.47AF11F000FF@smtp.kernel.org>
+Subject: [merged mm-stable] mm-damon-reclaim-remove-unnecessary-damon_call-param-validation.patch removed from -mm tree
+Message-Id: <20261009055633.5F3311F00893@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,64 +35,62 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/damon/core: set ctx->call_controls_obsolete in damon_new_ctx()
+     Subject: mm/damon/reclaim: remove unnecessary damon_call() param validation
 has been removed from the -mm tree.  Its filename was
-     mm-damon-core-set-ctx-call_controls_obsolete-in-damon_new_ctx.patch
+     mm-damon-reclaim-remove-unnecessary-damon_call-param-validation.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: SJ Park <sj@kernel.org>
-Subject: mm/damon/core: set ctx->call_controls_obsolete in damon_new_ctx()
-Date: Wed, 2 Sep 2026 18:03:31 -0700
+Subject: mm/damon/reclaim: remove unnecessary damon_call() param validation
+Date: Wed, 2 Sep 2026 18:03:32 -0700
 
-damon_ctx->call_controls_obsolete is used to disallow damon_call()
-requests when the request cannot be served.  The field is unset and set
-when the context execution is started and terminated, respectively.  The
-intention is to allow damon_call() requests only while the context is
-actively being executed.
+DAMON_RECLAIM avoids passing NULL or unstarted damon_ctx to damon_call()
+with its own validation.  The validation is no longer needed, because the
+DAMON core layer now handles the corner cases itself.  Remove the
+unnecessary check.
 
-damon_ctx constructor, damon_new_ctx() unsets the field, though.  As a
-result, passing the damon_ctx parameter that never successfully
-damon_start()-ed to damon_call() can indefinitely hang.  The callers
-should ensure to avoid the case.  Such parameter validation is not always
-simple.  Actually such bugs in DAMON_RECLAIM and DAMON_LRU_SORT have been
-found and fixed [1].
-
-Set the field in damon_new_ctx(), so that DAMON API callers can pass the
-context parameter to damon_call() without the additional check.
-
-Link: https://lore.kernel.org/20260903010334.93622-3-sj@kernel.org
-Link: https://lore.kernel.org/20260803134646.16640-1-sj@kernel.org [1]
+Link: https://lore.kernel.org/20260903010334.93622-4-sj@kernel.org
 Signed-off-by: SJ Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/core.c |    5 +----
- 1 file changed, 1 insertion(+), 4 deletions(-)
+ mm/damon/reclaim.c |    8 --------
+ 1 file changed, 8 deletions(-)
 
---- a/mm/damon/core.c~mm-damon-core-set-ctx-call_controls_obsolete-in-damon_new_ctx
-+++ a/mm/damon/core.c
-@@ -933,6 +933,7 @@ struct damon_ctx *damon_new_ctx(void)
- 	INIT_LIST_HEAD(&ctx->adaptive_targets);
- 	INIT_LIST_HEAD(&ctx->schemes);
+--- a/mm/damon/reclaim.c~mm-damon-reclaim-remove-unnecessary-damon_call-param-validation
++++ a/mm/damon/reclaim.c
+@@ -271,8 +271,6 @@ static int damon_reclaim_commit_inputs_f
+ 	return damon_reclaim_apply_parameters();
+ }
  
-+	ctx->call_controls_obsolete = true;
- 	prandom_seed_state(&ctx->rnd_state, get_random_u64());
+-static bool damon_reclaim_damon_has_started;
+-
+ static int damon_reclaim_commit_inputs_store(const char *val,
+ 					     const struct kernel_param *kp)
+ {
+@@ -293,10 +291,6 @@ static int damon_reclaim_commit_inputs_s
+ 	if (!commit_inputs_request)
+ 		return 0;
  
- 	return ctx;
-@@ -2206,10 +2207,6 @@ int damon_kdamond_pid(struct damon_ctx *
-  * synchronization.  The return value of the function will be saved in
-  * &damon_call_control->return_code.
-  *
-- * Note that this function should be called only after damon_start() with the
-- * @ctx has succeeded.  Otherwise, this function could fall into an indefinite
-- * wait.
-- *
-  * When this function is failed, the @ctx is guaranteed to be stopped.
-  *
-  * Return: 0 on success, negative error code otherwise.
+-	/* Skip damon_call() if ctx has not successfully started. */
+-	if (!damon_reclaim_damon_has_started)
+-		return -EINVAL;
+-
+ 	err = damon_call(ctx, &control);
+ 
+ 	return err ? err : control.return_code;
+@@ -343,8 +337,6 @@ static int damon_reclaim_turn(bool on)
+ 	err = damon_start(&ctx, 1, true);
+ 	if (err)
+ 		return err;
+-	if (!damon_reclaim_damon_has_started)
+-		damon_reclaim_damon_has_started = true;
+ 	return damon_call(ctx, &call_control);
+ }
+ 
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
