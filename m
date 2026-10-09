@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 99E5E41B8F2
-	for <mm-commits@vger.kernel.org>; Fri,  9 Oct 2026 05:59:12 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3888741BA81
+	for <mm-commits@vger.kernel.org>; Fri,  9 Oct 2026 05:59:16 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791525557; cv=none; b=b4BNrW0yvyBNSHo5Ts71ewWUUQbF6BOdBUNtkIcMfY+41HOfzbNduSAuApiLVilQtIyd/ZOAo4iL3oTHWZAl6eDoy0bvBqMvCHTVKsfC3hxkESHheVkBIpRiD6//b6ARSWaYYQTZcBTd5osWluwVS0XbWTGlX8FooqvmkAxKlxs=
+	t=1791525558; cv=none; b=AUeAN5aySbmrkmTZPM+L5J/6I4QzHt5T7J9iIPo0t1wSG2fEAbPrP9KY4+8hErkdJaxnFyVLeelAGBfYIRLcswt4Xkc6sji5bjbulyUz1ja9Winm3gf9WNZBs4JYO9TRLY+v98nV7Oglkn8lbrKnN5VMTTyFPkX4UpNAzjiNMiQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791525557; c=relaxed/simple;
-	bh=z4NCdCtbYyRKRihvgIFZORYPMoLUfbGlSnWwzFVacjs=;
-	h=Date:To:From:Subject:Message-Id; b=W04mTe1JAlArgrsMinewKLX844VMXjU3wTGRUKt1dpSOk+FofEE7F5yvNv5ktEQorAi63VFq8eW9mnuoQ9Cq2m6kgsBl1dpK0tLFUTxlEkgH7A+qTZdC5KXTiWV5zZkTfRqWmPLvePlKhSQtFCDLtwBMU1DdMUboZw3O/cOJm1Y=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=yYFIQj9L; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1791525558; c=relaxed/simple;
+	bh=Z8P6KwfFOGKa7SdIGQQsPv3BqVR+XEf70psAWqxceuE=;
+	h=Date:To:From:Subject:Message-Id; b=UE7IBlK3C+M2JmVsxU2KQyR/WI80v1/I2JkvafVuTCaTAgeUpGX8Wqt7Sl2jJjINt7J2SJmkXLQmMA2SoM98fJ0HWeFuzTZjWPGsO0QqpSC9rCN8RgEgZ8H+RfYgMyb1/5o47zWVZhEluto8rRxZTx3wA2VUFW8nblJ7jQdQ33g=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=qJZfTE3Y; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="yYFIQj9L"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 653301F000FF;
-	Fri,  9 Oct 2026 05:59:12 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="qJZfTE3Y"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E7BCD1F0089A;
+	Fri,  9 Oct 2026 05:59:15 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1791525552;
-	bh=RKnOgT487wE1d5mvRFN5k7MM9AJoRT111yU+hytrpfc=;
+	d=linux-foundation.org; s=korg; t=1791525556;
+	bh=6AHs6/HbJ3E35vCOB5/eqZrm7F5tvM+eihQYv2QHhpg=;
 	h=Date:To:From:Subject;
-	b=yYFIQj9LfJEJcb7HBBiAsjaixOAM+M9ABI2sjstU5Ze8OnnOERDCrg6b0nRlMkI/k
-	 HCem7pgXFCqZ7WafA3Pm1we1BETIHYSVpYNutkzq/fCYhcD/VbUt896GqMrffY29ud
-	 pMBIcnqPzrepx0CQold8KNskLl9ffOiLiNsuGJAo=
-Date: Thu, 08 Oct 2026 22:59:12 -0700
+	b=qJZfTE3YhWMvpE9A+GvO8EOTHCVF5zPxoRsnAqUP3YvYhs3sD7NW3sng0B0jrTAx1
+	 39NYpDBzcVqdscIsKsdz00eCgYOYLIJzyILqRCCLglrEWPYDNQa413tJO7NlDhFVzF
+	 pv3D25Qhl0MEXn/Wb44Yry7OGUGGc1o2GVhKeHlI=
+Date: Thu, 08 Oct 2026 22:59:15 -0700
 To: mm-commits@vger.kernel.org,vbabka@kernel.org,surenb@google.com,rppt@kernel.org,rdunlap@infradead.org,mhocko@suse.com,ljs@kernel.org,liam@infradead.org,david@kernel.org,corbet@lwn.net,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-damon-core-support-probe_hits_wsum-damos-core-filter.patch removed from -mm tree
-Message-Id: <20261009055912.653301F000FF@smtp.kernel.org>
+Subject: [merged mm-stable] docs-mm-damon-design-update-for-probe_hits_wsum-damos-core-filter.patch removed from -mm tree
+Message-Id: <20261009055915.E7BCD1F0089A@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,28 +35,22 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/damon/core: support probe_hits_wsum damos core filter
+     Subject: Docs/mm/damon/design: update for probe_hits_wsum DAMOS core filter
 has been removed from the -mm tree.  Its filename was
-     mm-damon-core-support-probe_hits_wsum-damos-core-filter.patch
+     docs-mm-damon-design-update-for-probe_hits_wsum-damos-core-filter.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: SJ Park <sj@kernel.org>
-Subject: mm/damon/core: support probe_hits_wsum damos core filter
-Date: Fri, 11 Sep 2026 06:55:05 -0700
+Subject: Docs/mm/damon/design: update for probe_hits_wsum DAMOS core filter
+Date: Fri, 11 Sep 2026 06:55:08 -0700
 
-Implement probe_hits_wsum DAMOS core filter support in the core layer. 
-Make three small changes for the support.  First, update
-damos_filter_for_ops() to treat probe_hits_wsum filter as core filter. 
-Second, Update destination damos_filter->range_{min,max} for
-probe_hits_wsum type damos filter commits.  Third, extend
-damos_filter_match() to handle probe_hits_wsum type filter.  Calculate the
-weighted sum of the given region and compare it with the given filter's
-target weighted sum range.
+Update DAMON design document for the newly added probe hits weighted sum
+based DAMOS core filter type.
 
-Link: https://lore.kernel.org/20260911135510.96914-4-sj@kernel.org
+Link: https://lore.kernel.org/20260911135510.96914-7-sj@kernel.org
 Signed-off-by: SJ Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 Cc: David Hildenbrand <david@kernel.org>
@@ -70,51 +64,21 @@ Cc: Suren Baghdasaryan <surenb@google.com>
 Cc: Vlastimil Babka <vbabka@kernel.org>
 ---
 
- mm/damon/core.c |   12 +++++++++++-
- 1 file changed, 11 insertions(+), 1 deletion(-)
+ Documentation/mm/damon/design.rst |    3 +++
+ 1 file changed, 3 insertions(+)
 
---- a/mm/damon/core.c~mm-damon-core-support-probe_hits_wsum-damos-core-filter
-+++ a/mm/damon/core.c
-@@ -658,6 +658,7 @@ bool damos_filter_for_ops(enum damos_fil
- 	switch (type) {
- 	case DAMOS_FILTER_TYPE_ADDR:
- 	case DAMOS_FILTER_TYPE_TARGET:
-+	case DAMOS_FILTER_TYPE_PROBE_HITS_WSUM:
- 		return false;
- 	default:
- 		break;
-@@ -1332,6 +1333,10 @@ static void damos_commit_filter_arg(
- 	case DAMOS_FILTER_TYPE_HUGEPAGE_SIZE:
- 		dst->sz_range = src->sz_range;
- 		break;
-+	case DAMOS_FILTER_TYPE_PROBE_HITS_WSUM:
-+		dst->range_min = src->range_min;
-+		dst->range_max = src->range_max;
-+		break;
- 	default:
- 		break;
- 	}
-@@ -2510,7 +2515,7 @@ static bool damos_filter_match(struct da
- 	bool matched = false;
- 	struct damon_target *ti;
- 	int target_idx = 0;
--	unsigned long start, end;
-+	unsigned long start, end, wsum;
- 
- 	switch (filter->type) {
- 	case DAMOS_FILTER_TYPE_TARGET:
-@@ -2545,6 +2550,11 @@ static bool damos_filter_match(struct da
- 		damon_split_region_at(t, r, end - r->ar.start);
- 		matched = true;
- 		break;
-+	case DAMOS_FILTER_TYPE_PROBE_HITS_WSUM:
-+		wsum = damon_probe_hits_wsum(r, false, true, ctx);
-+		matched = filter->range_min <= wsum &&
-+			wsum <= filter->range_max;
-+		break;
- 	default:
- 		return false;
- 	}
+--- a/Documentation/mm/damon/design.rst~docs-mm-damon-design-update-for-probe_hits_wsum-damos-core-filter
++++ a/Documentation/mm/damon/design.rst
+@@ -823,6 +823,9 @@ Below ``type`` of filters are currently
+         - Applied to pages that belonging to a given address range.
+     - target
+         - Applied to pages that belonging to a given DAMON monitoring target.
++    - probe_hits_wsum
++        - Matches to monitoring regions having a given range of :ref:`probe
++          hits weighted sum <damon_design_attrs_only_monitoring>` value.
+ - Operations layer handled, supported by only ``paddr`` operations set.
+     - anon
+         - Applied to pages that containing data that not stored in files.
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
