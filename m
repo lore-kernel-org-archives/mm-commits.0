@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CF93D3FE375
-	for <mm-commits@vger.kernel.org>; Fri,  9 Oct 2026 05:57:00 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B7A1D3F6C30
+	for <mm-commits@vger.kernel.org>; Fri,  9 Oct 2026 05:57:01 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791525422; cv=none; b=nZxGu0fiiTqYaFPHxsEgKw97RhGXYoVsGF6Ufn+fZkd3QG+IktLG0UzhdyR8LI3mnJYLTQRieXFEdba9jTPFwqrEyzKEmtcskscy/rhLY7ElMfISBKxCtcXQabUJLG0HIZqtSRu0nvyQ1pDA+DhxHfQrzsqmaJtWAnf75yrhjmQ=
+	t=1791525423; cv=none; b=N1mzuGyPAs+rZ49UfroTzjljH9ke3jDBlhAWzSDKcQ82s7bWzRB8jDmFopkv0VS1hICaiSKj2uNNI6nfSv4AmXSHa00GHzX6yNSTGDzBv22jBFvIycgDv7fQ3dYKLFyDF2Q2QRBBCtVEiT1CKuUOU74pRL7oYODXstBMgelu9vc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791525422; c=relaxed/simple;
-	bh=OV8+IdAq/q0CStu52DRKW0Ke7Khs5aKl/8gf5y4eYQg=;
-	h=Date:To:From:Subject:Message-Id; b=gKzch1UQOtWiictOfTyuBLRTSWjoYajBE3FwDj53gepYejFqfv3gpY2BOJRf3q7lHBUn2WonepZMeFc7P/e7Mxh0fwixNEs6jP7HLSpwyPczL+1/L1T+er1KPmhPhiE7UZcUPUvjL59KzCkxP6oGxKGjHfPSLx9sh6ilgH2gRuM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=MLW8UM6l; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1791525423; c=relaxed/simple;
+	bh=pWGFp52wwSAdWGNzChufJ5/ZQe6/70Svua8YrISCgJs=;
+	h=Date:To:From:Subject:Message-Id; b=DyZKBZnODt6hlngO51c8BvW9r5Zggw1lmE0RqkqDQGo+oKoeywZ3QhvtGxfIxqIsqaglovMtHeXGjNIY+iKtZbgh6Ocp2lSuLI73tRTfdmsiTrYPklsMKbKiVrtEB3yE0WfyfxGGW2J8B8bFTZW0naNlxYJa+7I/ZXzaak8oSMc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=M0Wm6aOs; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="MLW8UM6l"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6273A1F000FF;
-	Fri,  9 Oct 2026 05:57:00 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="M0Wm6aOs"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8A15B1F00893;
+	Fri,  9 Oct 2026 05:57:01 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1791525420;
-	bh=RsaJ3unAp8OO3qErOh1NydqO6Iuos9faQnoRWdmwDns=;
+	d=linux-foundation.org; s=korg; t=1791525421;
+	bh=h1RrV2zPgDCCGSOnAcoiJznPSR8880JMSyE9GLVso7c=;
 	h=Date:To:From:Subject;
-	b=MLW8UM6lQwbViBgpkuHLAmqctngjRc6d8KseEzXjKEHzq44vztszbw9IjQk7O0obK
-	 8leSu69FSQPLbZTFw0wJIE1TWU6kTCpnvex52OnXCsAFCfJymm9DBd12NTQloC6SLF
-	 VKk/u3d6e4ZB/6SeYA+Mr2ebS9uJ0hu3GYj7Y6Yc=
-Date: Thu, 08 Oct 2026 22:57:00 -0700
-To: mm-commits@vger.kernel.org,yosry@kernel.org,shakeel.butt@linux.dev,roman.gushchin@linux.dev,muchun.song@linux.dev,mhocko@kernel.org,hannes@cmpxchg.org,joannelkoong@gmail.com,akpm@linux-foundation.org
+	b=M0Wm6aOsHfUHKrGcGNP8J/0MFVaNndPVVG7iVCrSsNWxnu7X4orq+ovA9b99X8S1j
+	 DQ411NV9Km25o/OHCt3QHFeOUefYNKJuQ3FBnQZeu9etpyEqwhF9IeaELgI1diEvJ7
+	 75BPzcmIha6rntPfUUYtPxIC0kxS+izOaURrfMmo=
+Date: Thu, 08 Oct 2026 22:57:01 -0700
+To: mm-commits@vger.kernel.org,vbabka@kernel.org,pfalcato@suse.de,mike@recall.ai,liam@infradead.org,jannh@google.com,david@kernel.org,ljs@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-memcontrol-skip-non-hierarchical-memcg-wide-stats-when-v1-is-unavailable.patch removed from -mm tree
-Message-Id: <20261009055700.6273A1F000FF@smtp.kernel.org>
+Subject: [merged mm-stable] mm-madvise-swap-in-cowd-map_private-file-mappings-on-madv_willneed.patch removed from -mm tree
+Message-Id: <20261009055701.8A15B1F00893@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,227 +35,109 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/memcontrol: skip non-hierarchical memcg-wide stats when v1 is unavailable
+     Subject: mm/madvise: swap in CoW'd MAP_PRIVATE-file mappings on MADV_WILLNEED
 has been removed from the -mm tree.  Its filename was
-     mm-memcontrol-skip-non-hierarchical-memcg-wide-stats-when-v1-is-unavailable.patch
+     mm-madvise-swap-in-cowd-map_private-file-mappings-on-madv_willneed.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Joanne Koong <joannelkoong@gmail.com>
-Subject: mm/memcontrol: skip non-hierarchical memcg-wide stats when v1 is unavailable
-Date: Thu, 3 Sep 2026 14:56:16 -0700
+From: "Lorenzo Stoakes (ARM)" <ljs@kernel.org>
+Subject: mm/madvise: swap in CoW'd MAP_PRIVATE-file mappings on MADV_WILLNEED
+Date: Thu, 3 Sep 2026 20:08:39 +0100
 
-memcg_vmstats keeps a non-hierarchical copy of every memcg-wide stat item
-and event alongside the hierarchical one.  The only readers however are
-the legacy memory.stat and memory.numa_stat, and reparenting on offline. 
-All of them live under CONFIG_MEMCG_V1, and their accessors
-(memcg_page_state_local() and memcg_events_local()) are already compiled
-out with it.  This means on a CONFIG_MEMCG_V1=n kernel, memcg_vmstats's
-non-hierarchical arrays are written to on every rstat flush, despite their
-values never being read / accessed.
+Currently MADV_WILLNEED treats file-backed and pure anonymous mappings
+entirely separately - using POSIX_FADV_WILLNEED (equivalent of a
+readahead) for the former and a tree walk and swap in to swap cache for
+the latter.
 
-The same holds when the kernel does support v1 but the controller has been
-blocked from v1 hierarchies with the boot param cgroup_no_v1={memory,all}.
-A v1 mount is refused in that case, so the legacy memory.stat can never
-exist and the arrays are just as unread / unaccessed.
+MAP_PRIVATE-file backed mappings straddle the two and currently get
+treated as if they were purely file-backed, meaning any swapped out
+private pages remain swapped out.
 
-Compile out the non-hierarchical memcg-wide arrays if CONFIG_MEMCG_V1 is
-not set.  If it is set but cgroup_no_v1= has blocked the controller, skip
-updates on the arrays.
+Resolve the issue by explicitly checking for CoW'd MAP_PRIVATE-file backed
+mappings and performing both walks in this case.
 
-This makes flushes cheaper.  mem_cgroup_stat_aggregate() can now skip the
-read-modify-write of ac->local[i].  Nothing else accesses state_local or
-events_local, so those cachelines were getting pulled in solely for the
-writes and they are separate from the ones the loop is already walking.
+Since the logic checks for vma->anon_vma this means un-CoW'd
+MAP_PRIVATE-file backed mappings retain only the single file walk.
 
-On an 80-cpu x86_64 machine with 500 cgroups each running a workload that
-dirties anon, file, dirty/writeback, slab, kmem, mlock, and reclaim
-counters, timing mem_cgroup_css_rstat_flush() in-kernel in TSC ticks per
-flush showed roughly
-
-                         before   after    delta
-memcg-wide aggregation   1231     1180     -4.1%
-overall flush function   2452     2397     -2.2%
-
-These numbers are from taking the median of 70 samples, one per 20s window
-on each kernel.  The 95% intervals observed on the two deltas are [-5.41%,
--1.76%] and [-4.53%, -0.14%].  The values above include the timing
-overhead itself, so only the delta is meaningful here.
-
-Counting the items that actually changed, a median of 1.5 of the 77
-memcg-wide items (57 state + 20 events) had a non-zero per-cpu delta at
-each flush, which means the benchmarks above are with one or two fewer
-cachelines pulled in per flush.  The count is low because the benchmark
-reads memory.stat in a loop to keep the flush rate up.  For cases where
-flushes are triggered only by the 2s periodic worker, more changes will
-have accumulated between flushes, so more cachelines are skipped and the
-per-flush saving should be larger.
-
-Link: https://lore.kernel.org/20260903215616.1456239-1-joannelkoong@gmail.com
-Signed-off-by: Joanne Koong <joannelkoong@gmail.com>
+Link: https://lore.kernel.org/aprjOxDy3JCPb2oa@gremlin
+Reported-by: Mike Kaplinskiy <mike@recall.ai>
+Closes: https://lore.kernel.org/all/CABeknB_S2XJSHFgnHdgnN0rjzHhH4oQJs_APq9fvxHztQ_pgiA@mail.gmail.com/
+Signed-off-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Reviewed-by: Johannes Weiner <hannes@cmpxchg.org>
-Acked-by: Shakeel Butt <shakeel.butt@linux.dev>
-Reviewed-by: Yosry Ahmed <yosry@kernel.org>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Muchun Song <muchun.song@linux.dev>
-Cc: Roman Gushchin <roman.gushchin@linux.dev>
+Acked-by: Vlastimil Babka (SUSE) <vbabka@kernel.org>
+Reviewed-by: Pedro Falcato <pfalcato@suse.de>
+Cc: David Hildenbrand <david@kernel.org>
+Cc: Jann Horn <jannh@google.com>
+Cc: Liam R. Howlett <liam@infradead.org>
 ---
 
- include/linux/cgroup.h          |    3 +
- kernel/cgroup/cgroup-internal.h |    1 
- mm/memcontrol.c                 |   48 +++++++++++++++++++++++++-----
- 3 files changed, 44 insertions(+), 8 deletions(-)
+ mm/madvise.c |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
---- a/include/linux/cgroup.h~mm-memcontrol-skip-non-hierarchical-memcg-wide-stats-when-v1-is-unavailable
-+++ a/include/linux/cgroup.h
-@@ -154,6 +154,9 @@ struct cgroup *cgroup_get_from_path(cons
- struct cgroup *cgroup_get_from_fd(int fd);
- struct cgroup *cgroup_v1v2_get_from_fd(int fd);
+--- a/mm/madvise.c~mm-madvise-swap-in-cowd-map_private-file-mappings-on-madv_willneed
++++ a/mm/madvise.c
+@@ -297,11 +297,12 @@ static long madvise_willneed(struct madv
+ 	loff_t offset;
  
-+/* Was this controller blocked from v1 hierarchies by cgroup_no_v1= ? */
-+bool cgroup1_ssid_disabled(int ssid);
-+
- int cgroup_attach_task_all(struct task_struct *from, struct task_struct *);
- int cgroup_transfer_tasks(struct cgroup *to, struct cgroup *from);
- 
---- a/kernel/cgroup/cgroup-internal.h~mm-memcontrol-skip-non-hierarchical-memcg-wide-stats-when-v1-is-unavailable
-+++ a/kernel/cgroup/cgroup-internal.h
-@@ -285,7 +285,6 @@ extern struct kernfs_syscall_ops cgroup1
- extern const struct fs_parameter_spec cgroup1_fs_parameters[];
- 
- int proc_cgroupstats_show(struct seq_file *m, void *v);
--bool cgroup1_ssid_disabled(int ssid);
- void cgroup1_pidlist_destroy_all(struct cgroup *cgrp);
- void cgroup1_release_agent(struct work_struct *work);
- void cgroup1_check_for_release(struct cgroup *cgrp);
---- a/mm/memcontrol.c~mm-memcontrol-skip-non-hierarchical-memcg-wide-stats-when-v1-is-unavailable
-+++ a/mm/memcontrol.c
-@@ -676,9 +676,11 @@ struct memcg_vmstats {
- 	long			state[MEMCG_VMSTAT_SIZE];
- 	unsigned long		events[NR_MEMCG_EVENTS];
- 
-+#ifdef CONFIG_MEMCG_V1
- 	/* Non-hierarchical (CPU aggregated) page state & events */
- 	long			state_local[MEMCG_VMSTAT_SIZE];
- 	unsigned long		events_local[NR_MEMCG_EVENTS];
-+#endif
- 
- 	/* Pending child counts during tree propagation */
- 	long			state_pending[MEMCG_VMSTAT_SIZE];
-@@ -689,6 +691,31 @@ struct memcg_vmstats {
- };
- 
- /*
-+ * The non-hierarchical memcg-wide counters are read back only by the legacy
-+ * memory.stat and memory.numa_stat, and by reparenting on offline, all of which
-+ * are v1-only. If the kernel is built without CONFIG_MEMCG_V1, or if the boot
-+ * param cgroup_no_v1= has blocked the memory controller from v1 hierarchies,
-+ * then nothing reads them and writers can skip the updates.
-+ */
-+static long *memcg_state_local_array(struct mem_cgroup *memcg)
-+{
-+#ifdef CONFIG_MEMCG_V1
-+	if (!cgroup1_ssid_disabled(memory_cgrp_id))
-+		return memcg->vmstats->state_local;
-+#endif
-+	return NULL;
-+}
-+
-+static unsigned long *memcg_events_local_array(struct mem_cgroup *memcg)
-+{
-+#ifdef CONFIG_MEMCG_V1
-+	if (!cgroup1_ssid_disabled(memory_cgrp_id))
-+		return memcg->vmstats->events_local;
-+#endif
-+	return NULL;
-+}
-+
-+/*
-  * memcg and lruvec stats flushing
-  *
-  * Many codepaths leading to stats update or read are performance sensitive and
-@@ -4469,7 +4496,10 @@ static void mem_cgroup_css_reset(struct
- struct aggregate_control {
- 	/* pointer to the aggregated (CPU and subtree aggregated) counters */
- 	long *aggregate;
--	/* pointer to the non-hierarchichal (CPU aggregated) counters */
-+	/*
-+	 * pointer to the non-hierarchical (CPU aggregated) counters or NULL to
-+	 * skip updating them (see memcg_state_local_array())
-+	 */
- 	long *local;
- 	/* pointer to the pending child counters during tree propagation */
- 	long *pending;
-@@ -4508,7 +4538,7 @@ static void mem_cgroup_stat_aggregate(st
- 		}
- 
- 		/* Aggregate counts on this level and propagate upwards */
--		if (delta_cpu)
-+		if (delta_cpu && ac->local)
- 			ac->local[i] += delta_cpu;
- 
- 		if (delta) {
-@@ -4522,6 +4552,7 @@ static void mem_cgroup_stat_aggregate(st
- #ifdef CONFIG_MEMCG_NMI_SAFETY_REQUIRES_ATOMIC
- static void flush_nmi_stats(struct mem_cgroup *memcg, struct mem_cgroup *parent)
- {
-+	long *state_local = memcg_state_local_array(memcg);
- 	int nid;
- 
- 	if (atomic_read(&memcg->kmem_stat)) {
-@@ -4529,7 +4560,8 @@ static void flush_nmi_stats(struct mem_c
- 		int index = memcg_stats_index(MEMCG_KMEM);
- 
- 		memcg->vmstats->state[index] += kmem;
--		memcg->vmstats->state_local[index] += kmem;
-+		if (state_local)
-+			state_local[index] += kmem;
- 		if (parent)
- 			parent->vmstats->state_pending[index] += kmem;
+ #ifdef CONFIG_SWAP
+-	if (!file) {
++	if (vma_is_cow_mapping(vma) && vma->anon_vma) {
+ 		walk_page_range_vma(vma, start, end, &swapin_walk_ops, vma);
+ 		lru_add_drain(); /* Push any new pages onto the LRU now */
+-		return 0;
  	}
-@@ -4551,7 +4583,8 @@ static void flush_nmi_stats(struct mem_c
- 			if (plstats)
- 				plstats->state_pending[index] += slab;
- 			memcg->vmstats->state[index] += slab;
--			memcg->vmstats->state_local[index] += slab;
-+			if (state_local)
-+				state_local[index] += slab;
- 			if (parent)
- 				parent->vmstats->state_pending[index] += slab;
- 		}
-@@ -4564,7 +4597,8 @@ static void flush_nmi_stats(struct mem_c
- 			if (plstats)
- 				plstats->state_pending[index] += slab;
- 			memcg->vmstats->state[index] += slab;
--			memcg->vmstats->state_local[index] += slab;
-+			if (state_local)
-+				state_local[index] += slab;
- 			if (parent)
- 				parent->vmstats->state_pending[index] += slab;
- 		}
-@@ -4589,7 +4623,7 @@ static void mem_cgroup_css_rstat_flush(s
++	if (!file)
++		return 0;
  
- 	ac = (struct aggregate_control) {
- 		.aggregate = memcg->vmstats->state,
--		.local = memcg->vmstats->state_local,
-+		.local = memcg_state_local_array(memcg),
- 		.pending = memcg->vmstats->state_pending,
- 		.ppending = parent ? parent->vmstats->state_pending : NULL,
- 		.cstat = statc->state,
-@@ -4600,7 +4634,7 @@ static void mem_cgroup_css_rstat_flush(s
- 
- 	ac = (struct aggregate_control) {
- 		.aggregate = memcg->vmstats->events,
--		.local = memcg->vmstats->events_local,
-+		.local = memcg_events_local_array(memcg),
- 		.pending = memcg->vmstats->events_pending,
- 		.ppending = parent ? parent->vmstats->events_pending : NULL,
- 		.cstat = statc->events,
+ 	if (shmem_mapping(file->f_mapping)) {
+ 		shmem_swapin_range(vma, start, end, file->f_mapping);
 _
 
-Patches currently in -mm which might be from joannelkoong@gmail.com are
+Patches currently in -mm which might be from ljs@kernel.org are
 
+mm-vma-fix-mmap_prepare-file-handling-remove-file_doesnt_need_get.patch
+mm-vma-introduce-and-use-vma_can_merge.patch
+mm-consistently-validate-vma-state-after-mmap-hooks.patch
+mm-vma-ensure-mmap_prepare-doesnt-set-actions-on-a-mergeable-vma.patch
+mm-make-map_kernel_pages_-internal-and-unexported.patch
+mm-vma-tidy-up-map-kernel-pages-enum-values.patch
+mm-add-mmap-action-for-discontiguous-kernel-page-mapping.patch
+docs-filesystems-update-mmap_prepare-docs-for-discontig-kernel-pgs.patch
+drivers-usb-mon-update-to-use-mmap_prepare-map-kernel-pages.patch
+infiniband-update-hfi1-to-use-remap_vmalloc_range.patch
+selinux-reject-writable-opens-of-policy-file-drop-mmap-shared-write-check.patch
+alsa-pcm-use-vm_insert_page-to-map-pcm-status-page.patch
+bpf-arena-mark-arena_map_mmap-mappings-vm_mixedmap.patch
+mm-vma-add-vma_is_mm_managed-predicates.patch
+mm-vma-only-allow-mmap-to-clear-vma_maywrite_bit-if-not-mm-managed.patch
+mm-vma-add-and-use-vma__is_fixed_mapping.patch
+scsi-sg-convert-mmap-hook-to-mmap_prepare-and-rework.patch
+fbdev-defio-assert-fbinfo_virtfb-drop-vm_io-add-vm_mixedmap.patch
+hsi-cmt_speech-convert-mmap-hook-to-mmap_prepare-refactor.patch
+mm-gup-error-out-early-on-vma_mayread_bit-vmas.patch
+uprobes-remove-vm_io-set-vm_mixedmap-for-mapped-kernel-pages.patch
+mm-mlock-clear-vma_locked_mask-over-mmap-callback.patch
+mm-mlock-eliminate-weird-vma_io_bit-abuse-and-simplify.patch
+mm-vma-enforce-that-mm-managed-mappings-may-not-set-vma_io_bit.patch
+mm-remove-vma_io_bit-check-in-vma_is_mm_managed.patch
+mm-remove-hugetlb_inlineh.patch
+mm-rename-is_vm_hugetlb_page-to-vma_is_hugetlb.patch
+mm-drop-some-redundant-checks-around-hugetlb-vmas.patch
+mm-madvise-update-is_valid_guard_vma-to-use-vma_can_merge.patch
+mm-vma-introduce-vma_is_mm_backed.patch
+mm-uffd-use-predicates-for-userfaultfd-checks.patch
+mm-madvise-use-predicates-for-madvise-madv_dofork.patch
+mm-eliminate-vma_special_flags-usage-when-hugetlb-explicitly-tested.patch
+mm-eliminate-vma_special_flags-check-in-lru_gen_look_around.patch
+mm-avoid-use-of-vma_special_flags-in-migrate_vma_setup.patch
+mm-eliminate-vm_special-vma_special_flags.patch
+fuse-dax-do-not-set-vm_mixedmap.patch
+mm-huge_memory-remove-vma_is_special_huge.patch
+mm-vma-const-ify-vma_assert_stabilised-and-associated-functions.patch
+mm-implement-and-use-vma_has_anon_rmap-silence-kcsan.patch
+mm-update-comments-to-refer-to-anon-rmap-rather-than-anon_vma.patch
+mm-vma-dont-remove-vma-from-rmap-if-pgoff-unchanged.patch
 
