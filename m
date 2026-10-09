@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7477041687C
-	for <mm-commits@vger.kernel.org>; Fri,  9 Oct 2026 05:59:43 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E516541DE01
+	for <mm-commits@vger.kernel.org>; Fri,  9 Oct 2026 05:59:46 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791525587; cv=none; b=Y8dYptpDeOtyMUQ6XuL3hcVrQX2jLpjtsXdXzycb2xFbWQte1BNW/0CzW7cCA2mHiSMHD+JL5YGSnE7zYV0pdrXjOFeXCwTBf9uJD9fugEg5fQ1r3DRrUDjZAbBOZ8JRTqcMy0aSne/uxw1bCjuGiTu7wvF71YvJY7olkW4ZY8Q=
+	t=1791525589; cv=none; b=cFkS5nBvtWsfaJm+rzo1FXoxDiWSjaZVKVufMjFui9GFiWxmsNOkKuGyTZy5TxW7jtCV/lwHBcu+HMWkmJF+u/QDjuSCJsaCzI2vuOcxDXUNeWfYwKJdg/AbiTaayOZrUl4QpFsvPyWuhA+7uvT4eou7jPuj2pFkxJ4a2RBsT7I=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791525587; c=relaxed/simple;
-	bh=o8wEX+PEpyHNTFudNCEg4tjZ3QiZXH/YXi7fAx9cPbU=;
-	h=Date:To:From:Subject:Message-Id; b=tpR10YVgcto8DSDsZk6jhgWQSebqL90BLpLb+d597yUTyPH3mon4Ecv+b5SeFOd4uiCq+5KKcng+7z+3Y9948hUJSd60MafnxEOKGlxxhE6TOwkjjgEfzAflBXQLr/bqAdGu6TxsPnIi52zhL80yBjwQU39ZpuEHeoTgPj+061k=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=CTfcVbc0; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1791525589; c=relaxed/simple;
+	bh=XiFbdKshswtPf2Mo3ypPHmgr2G/QZbo2x4B3wk61kxc=;
+	h=Date:To:From:Subject:Message-Id; b=cPDD1W1iwE74QSIPJkLo8mY7Hig4nM+Gf0KrQFrJrdx0ZUYk4fmAhWnVeeS8JDjtJIq0cKS4U4TEQDbL/j3+CMqGvWQWfQC24uabYyadGbF8pnltaIUoucTrAMk+HG3sJqB2MOnEgfFfBLGFmeG0CgXzucKNmcYAUrikmsyPdxk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=K8Cdt+IM; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="CTfcVbc0"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 482731F00899;
-	Fri,  9 Oct 2026 05:59:43 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="K8Cdt+IM"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B71A41F0089A;
+	Fri,  9 Oct 2026 05:59:46 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1791525583;
-	bh=NoCX30CjQCSTT2ExfNffSQBixnLqaAsOFhMQvkeYIGk=;
+	d=linux-foundation.org; s=korg; t=1791525586;
+	bh=nsqGE+ohApQa9xUZdTWBmMJ32paIVkbLCaDt0FS0oB0=;
 	h=Date:To:From:Subject;
-	b=CTfcVbc0wC7vLkQQWnA3INLgU2eFrPR4hP+kjOpwGkozg/BuhIENDW3WOSi5KGfmh
-	 csKKW3EeaqOKK1clp1jV6jb4OKbxRmFXTOFDaS2qkomWE2MsCltMw2W+xTEa3IMnZu
-	 Mc1Zsu30BPmJseuzeWudhOxhnIYwwq5+5wUVjYgc=
-Date: Thu, 08 Oct 2026 22:59:42 -0700
-To: mm-commits@vger.kernel.org,ying.huang@linux.alibaba.com,willy@infradead.org,trondmy@kernel.org,rakie.kim@sk.com,matthew.brost@intel.com,joshua.hahnjy@gmail.com,jack@suse.cz,gourry@gourry.net,david@kernel.org,byungchul@sk.com,apopple@nvidia.com,anna@kernel.org,ziy@nvidia.com,akpm@linux-foundation.org
+	b=K8Cdt+IMMtlNqDvymgcSDUJbVTY8SaxcedZx9z6mXEMRPeLyNDq3y6ReAdlpxij5r
+	 KhX5KeJCdfb7GKnrxe6LRNeHX3Wg/WOrQBLkVYzPZt9RKX++uIG+rqNsuLU4BWjRV2
+	 54iTKgNuv+o+c9nvceugZpux+XsBnkHsEuX9gtt0=
+Date: Thu, 08 Oct 2026 22:59:46 -0700
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,david@kernel.org,willy@infradead.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] treewide-remove-folio_set-clear_private-usage.patch removed from -mm tree
-Message-Id: <20261009055943.482731F00899@smtp.kernel.org>
+Subject: [merged mm-stable] md-use-folio-apis-in-free_page.patch removed from -mm tree
+Message-Id: <20261009055946.B71A41F0089A@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,94 +35,65 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: treewide: remove folio_set/clear_private() usage
+     Subject: md: use folio APIs in free_page()
 has been removed from the -mm tree.  Its filename was
-     treewide-remove-folio_set-clear_private-usage.patch
+     md-use-folio-apis-in-free_page.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Zi Yan <ziy@nvidia.com>
-Subject: treewide: remove folio_set/clear_private() usage
-Date: Sun, 20 Sep 2026 22:28:07 -0400
+From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
+Subject: md: use folio APIs in free_page()
+Date: Sun, 20 Sep 2026 22:28:10 -0400
 
-They are no-ops now. Remove them.
+Convert the page to a folio.  This removes some of the last uses of a few
+page APIs (detach_page_private(), page_buffers()).  Replaces two calls to
+compound_head() with one.
 
-Link: https://lore.kernel.org/20260920-remove-pg_private-v5-11-bb68b6a21869@nvidia.com
+Remove the early return in free_buffers() to avoid memory leak and
+uninitialized file bitmap pages.[1][2]
+
+[ziy@nvidia.com: drop early return]
+Link: https://lore.kernel.org/20260920-remove-pg_private-v5-14-bb68b6a21869@nvidia.com
+Link: https://sashiko.dev/#/patchset/20260913-remove-pg_private-v4-0-848550f7574e%40nvidia.com?part=2 [1]
+Link: https://lore.kernel.org/all/aqgfA0QFi98gXYG2@casper.infradead.org/ [2]
+Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Signed-off-by: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Acked-by: David Hildenbrand (Arm) <david@kernel.org>
-Assisted-by: LLM
-Cc: Trond Myklebust <trondmy@kernel.org>
-Cc: Anna Schumaker <anna@kernel.org>
-Cc: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Cc: Jan Kara <jack@suse.cz>
-Cc: Matthew Brost <matthew.brost@intel.com>
-Cc: Joshua Hahn <joshua.hahnjy@gmail.com>
-Cc: Rakie Kim <rakie.kim@sk.com>
-Cc: Byungchul Park <byungchul@sk.com>
-Cc: Gregory Price <gourry@gourry.net>
-Cc: Ying Huang <ying.huang@linux.alibaba.com>
-Cc: Alistair Popple <apopple@nvidia.com>
+Reviewed-by: David Hildenbrand (Arm) <david@kernel.org>
 ---
 
- fs/nfs/write.c          |    2 --
- include/linux/pagemap.h |    4 +---
- mm/migrate.c            |    1 -
- 3 files changed, 1 insertion(+), 6 deletions(-)
+ drivers/md/md-bitmap.c |   10 +++-------
+ 1 file changed, 3 insertions(+), 7 deletions(-)
 
---- a/fs/nfs/write.c~treewide-remove-folio_set-clear_private-usage
-+++ a/fs/nfs/write.c
-@@ -717,7 +717,6 @@ static void nfs_inode_add_request(struct
- 	nfs_lock_request(req);
- 	spin_lock(&mapping->i_private_lock);
- 	set_bit(PG_MAPPED, &req->wb_flags);
--	folio_set_private(folio);
- 	folio->private = req;
- 	spin_unlock(&mapping->i_private_lock);
- 	atomic_long_inc(&nfsi->nrequests);
-@@ -745,7 +744,6 @@ static void nfs_inode_remove_request(str
+--- a/drivers/md/md-bitmap.c~md-use-folio-apis-in-free_page
++++ a/drivers/md/md-bitmap.c
+@@ -533,19 +533,15 @@ static void write_file_page(struct bitma
  
- 			spin_lock(&mapping->i_private_lock);
- 			folio->private = NULL;
--			folio_clear_private(folio);
- 			clear_bit(PG_MAPPED, &req->wb_head->wb_flags);
- 			spin_unlock(&mapping->i_private_lock);
- 
---- a/include/linux/pagemap.h~treewide-remove-folio_set-clear_private-usage
-+++ a/include/linux/pagemap.h
-@@ -594,7 +594,6 @@ static inline void folio_attach_private(
+ static void free_buffers(struct page *page)
  {
- 	folio_get(folio);
- 	folio->private = data;
--	folio_set_private(folio);
+-	struct buffer_head *bh;
++	struct folio *folio = page_folio(page);
++	struct buffer_head *bh = folio_detach_private(folio);
+ 
+-	if (!PagePrivate(page))
+-		return;
+-
+-	bh = page_buffers(page);
+ 	while (bh) {
+ 		struct buffer_head *next = bh->b_this_page;
+ 		free_buffer_head(bh);
+ 		bh = next;
+ 	}
+-	detach_page_private(page);
+-	put_page(page);
++	folio_put(folio);
  }
  
- /**
-@@ -629,9 +628,8 @@ static inline void *folio_detach_private
- {
- 	void *data = folio_get_private(folio);
- 
--	if (!folio_test_private(folio))
-+	if (!data)
- 		return NULL;
--	folio_clear_private(folio);
- 	folio->private = NULL;
- 	folio_put(folio);
- 
---- a/mm/migrate.c~treewide-remove-folio_set-clear_private-usage
-+++ a/mm/migrate.c
-@@ -835,7 +835,6 @@ void folio_migrate_flags(struct folio *n
- 	 */
- 	if (folio_test_swapcache(folio))
- 		folio_clear_swapcache(folio);
--	folio_clear_private(folio);
- 
- 	/* page->private contains hugetlb specific flags */
- 	if (!folio_test_hugetlb(folio))
+ /* read a page from a file.
 _
 
-Patches currently in -mm which might be from ziy@nvidia.com are
+Patches currently in -mm which might be from willy@infradead.org are
 
 
