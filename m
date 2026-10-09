@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EB9FB3EA97B
-	for <mm-commits@vger.kernel.org>; Fri,  9 Oct 2026 06:00:16 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7A2163A759C
+	for <mm-commits@vger.kernel.org>; Fri,  9 Oct 2026 06:00:18 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791525618; cv=none; b=KXOAetGBVSdRQnHkyuRcXi7Tqq8joPOvdMPfX5vl9SgLyjJPraL+VVXr3hJ3MDKoOScaGghfCtUm+ZvM2ExG6hefRJfsqQ44AjLpHxW9yDO1AJmv2sJG3PYthXtGR7t2Rvf5Sies4GoaXO56Oj5KRkn5sCXehE3/cst9e/u7UUM=
+	t=1791525619; cv=none; b=BPShfGdAmOtoCPCLhbJILIDynPpn4ICLZgxqEwe6MOYRp4VlN/ovyY0ypGn7yHX8okfFVN60vSZmzYgiXTdA0Y8YPnjG2mB08cUNivew08ZOshwmii3GPmnDrWjEfM+mF/+47ral2FynNeR/gyF047zNmWY3WRCwAxCFeaWcpGs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791525618; c=relaxed/simple;
-	bh=nZifsPZbAm0eF1+EO+XxFola5N1rSnRVMjajG6yiiPU=;
-	h=Date:To:From:Subject:Message-Id; b=hSZWaeGfmAdJfJeSJTsfcbz5OTDAH0kElm0Gi5/5ChJ5fAjFl0+LDYnZq72pTSdHWMURz/QJH9u7zgtUJqUk9SuAWc1uiCZmlwIEaFfBQjXVQF4uD4gbG7XGJPgsNQMA5ZXM4YGOgN5Q+x9VulQPSs51CJ9RkLrUilencz3RMsk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=orFVYRyn; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1791525619; c=relaxed/simple;
+	bh=ufk/TD9SUPSkogqKxWVPmMhFhZiJzPE5GywhviDACl8=;
+	h=Date:To:From:Subject:Message-Id; b=Myk8ejBFoLuSZjStpb8sB04Uke7sovvzAKe++TvIhoFxbEOxGw2u1dZ1luyE5inWG0JvJ2GIfw2x/U5Jdbccj8S0Fo0kjZGn8f4C6x4SX95aFokROswA5FFUoNfLFw1tM2+g9z871dN8gMwJ77oAauBw4BduqkO/wJrjY6gYCyA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=T9FTZVAC; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="orFVYRyn"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id BC2121F000FF;
-	Fri,  9 Oct 2026 06:00:16 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="T9FTZVAC"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4E5541F00899;
+	Fri,  9 Oct 2026 06:00:18 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1791525616;
-	bh=GOU688qzRXNil7AvDBm7hF5yAxbzJJv2Gh6MuDDYA/w=;
+	d=linux-foundation.org; s=korg; t=1791525618;
+	bh=Z3lWMPDjRqyIMeEK6b4Wy4GZ+9eftzQY0ivJ+Y8TsZY=;
 	h=Date:To:From:Subject;
-	b=orFVYRynnjLrZryrYBBZ/JcN/mVVY2MnC55Z9Bc/7/8BErDg05zWfm0odTAwMu9R0
-	 sO7NZhzXx2wxrA4uQgnGKizty1DSPlP+3IGNh6ZqIAFmPzXeh+IZN9DTMH2HzR0p9e
-	 PlpipYyexeznxXcmKzVj9FDn5RuGnldlcA/ieAMw=
-Date: Thu, 08 Oct 2026 23:00:16 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,youngjun.park@lge.com,yeoreum.yun@arm.com,vbabka@kernel.org,usama.arif@linux.dev,surenb@google.com,shivamkalra98@zohomail.in,shikemeng@huaweicloud.com,ryncsn@gmail.com,ryan.roberts@arm.com,rppt@kernel.org,nphamcs@gmail.com,nico.pache@linux.dev,mhocko@suse.com,ljs@kernel.org,liam@infradead.org,lance.yang@linux.dev,kas@kernel.org,dev.jain@arm.com,david@kernel.org,chrisl@kernel.org,baoquan.he@linux.dev,baolin.wang@linux.alibaba.com,baohua@kernel.org,kasong@tencent.com,akpm@linux-foundation.org
+	b=T9FTZVACpz00tIkC2GHSK+H+sGPg1+iF5BMvl/vLij0GY5DfCu0FMpLBkqJ+Omc4k
+	 ISxR5jb+m0Xz01nRYX0e/6gFt6FjZYfkvv5LAefBNJnleHr4U2Vt2Rhy6giRw2zoYl
+	 sieXLgdIYksfUp2qOCCnFLaN3IxVni1n7JnbcCxU=
+Date: Thu, 08 Oct 2026 23:00:17 -0700
+To: mm-commits@vger.kernel.org,rppt@kernel.org,leitao@debian.org,guillaume@morinfr.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-huge_memory-drop-the-redundant-mapping-argument-of-__split_frozen_folio.patch removed from -mm tree
-Message-Id: <20261009060016.BC2121F000FF@smtp.kernel.org>
+Subject: [merged mm-stable] selftests-mm-hugetlb_madv_vs_map-add-underflow-test.patch removed from -mm tree
+Message-Id: <20261009060018.4E5541F00899@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,108 +35,249 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/huge_memory: drop the redundant mapping argument of __split_frozen_folio
+     Subject: selftests/mm: hugetlb_madv_vs_map: add underflow test
 has been removed from the -mm tree.  Its filename was
-     mm-huge_memory-drop-the-redundant-mapping-argument-of-__split_frozen_folio.patch
+     selftests-mm-hugetlb_madv_vs_map-add-underflow-test.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Kairui Song <kasong@tencent.com>
-Subject: mm/huge_memory: drop the redundant mapping argument of __split_frozen_folio
-Date: Wed, 23 Sep 2026 23:32:48 +0200
+From: Guillaume Morin <guillaume@morinfr.org>
+Subject: selftests/mm: hugetlb_madv_vs_map: add underflow test
+Date: Mon, 14 Sep 2026 17:36:21 +0200
 
-The mapping parameter only served as a non-NULL check to detect whether
-page cache entries need updating.  The xa_state pointer conveys exactly
-the same information: the anon split helper passes NULL and the file split
-helper passes &xas, which is non-NULL iff the folio is in the page cache.
+Add a test that checks for underflows when a parent unmaps the page first.
+Also check that when the child exits the reserve count is correct.
 
-Use the xas pointer instead and drop the parameter, along with its
-kerneldoc entry.
-
-Link: https://lore.kernel.org/20260923-swap-thp-cleanup-v6-17-ba1b4ba72c6f@tencent.com
-Signed-off-by: Kairui Song <kasong@tencent.com>
+Link: https://lore.kernel.org/all/alEJkwn5VlTTH_ZX@bender.morinfr.org/
+Link: https://lore.kernel.org/aqgUdbtumaO8RiIb@bender.morinfr.org
+Signed-off-by: Guillaume Morin <guillaume@morinfr.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Reviewed-by: Zi Yan <ziy@nvidia.com>
-Reviewed-by: Yeoreum Yun <yeoreum.yun@arm.com>
-Reviewed-by: Kiryl Shutsemau (Meta) <kas@kernel.org>
-Acked-by: David Hildenbrand (Arm) <david@kernel.org>
-Cc: Lorenzo Stoakes <ljs@kernel.org>
-Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: Liam R. Howlett <liam@infradead.org>
-Cc: Nico Pache <nico.pache@linux.dev>
-Cc: Ryan Roberts <ryan.roberts@arm.com>
-Cc: Dev Jain <dev.jain@arm.com>
-Cc: Lance Yang <lance.yang@linux.dev>
-Cc: Usama Arif <usama.arif@linux.dev>
-Cc: Vlastimil Babka <vbabka@kernel.org>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Chris Li <chrisl@kernel.org>
-Cc: Kemeng Shi <shikemeng@huaweicloud.com>
-Cc: Nhat Pham <nphamcs@gmail.com>
-Cc: Baoquan He <baoquan.he@linux.dev>
-Cc: Barry Song <baohua@kernel.org>
-Cc: Youngjun Park <youngjun.park@lge.com>
-Cc: Shivam Kalra <shivamkalra98@zohomail.in>
-Cc: Kairui Song <ryncsn@gmail.com>
+Reviewed-by: Breno Leitao <leitao@debian.org>
+Reviewed-by: Mike Rapoport <rppt@kernel.org>
+Tested-by: Breno Leitao <leitao@debian.org>
 ---
 
- mm/huge_memory.c |   11 ++++-------
- 1 file changed, 4 insertions(+), 7 deletions(-)
+ tools/testing/selftests/mm/hugepage_settings.c   |    9 
+ tools/testing/selftests/mm/hugepage_settings.h   |    1 
+ tools/testing/selftests/mm/hugetlb_madv_vs_map.c |  141 +++++++++++--
+ 3 files changed, 130 insertions(+), 21 deletions(-)
 
---- a/mm/huge_memory.c~mm-huge_memory-drop-the-redundant-mapping-argument-of-__split_frozen_folio
-+++ a/mm/huge_memory.c
-@@ -3833,7 +3833,6 @@ static void __split_folio_to_order(struc
-  * @split_at: in buddy allocator like split, the folio containing @split_at
-  *            will be split until its order becomes @new_order.
-  * @xas: xa_state pointing to folio->mapping->i_pages and locked by caller
-- * @mapping: @folio->mapping
-  * @split_type: if the split is uniform or not (buddy allocator like split)
-  *
-  *
-@@ -3866,7 +3865,7 @@ static void __split_folio_to_order(struc
-  */
- static int __split_frozen_folio(struct folio *folio, int new_order,
- 		struct page *split_at, struct xa_state *xas,
--		struct address_space *mapping, enum split_type split_type)
-+		enum split_type split_type)
+--- a/tools/testing/selftests/mm/hugepage_settings.c~selftests-mm-hugetlb_madv_vs_map-add-underflow-test
++++ a/tools/testing/selftests/mm/hugepage_settings.c
+@@ -449,6 +449,15 @@ unsigned long hugetlb_free_pages(unsigne
+ 	return read_num(path);
+ }
+ 
++unsigned long hugetlb_nr_resv_pages(unsigned long size)
++{
++	char path[PATH_MAX];
++
++	hugetlb_sysfs_path(path, sizeof(path), size, "resv_hugepages");
++
++	return read_num(path);
++}
++
+ static bool __hugetlb_setup(unsigned long size, unsigned long nr)
  {
- 	const bool is_anon = folio_test_anon(folio);
- 	int old_order = folio_order(folio);
-@@ -3890,7 +3889,7 @@ static int __split_frozen_folio(struct f
- 		if (is_anon && split_order == 1)
- 			continue;
+ 	unsigned long free = hugetlb_free_pages(size);
+--- a/tools/testing/selftests/mm/hugepage_settings.h~selftests-mm-hugetlb_madv_vs_map-add-underflow-test
++++ a/tools/testing/selftests/mm/hugepage_settings.h
+@@ -98,6 +98,7 @@ unsigned long default_huge_page_size(voi
+ unsigned long hugetlb_nr_pages(unsigned long size);
+ void hugetlb_set_nr_pages(unsigned long size, unsigned long nr);
+ unsigned long hugetlb_free_pages(unsigned long size);
++unsigned long hugetlb_nr_resv_pages(unsigned long size);
  
--		if (mapping) {
-+		if (xas) {
- 			/*
- 			 * uniform split has xas_split_alloc() called before
- 			 * irq is disabled to allocate enough memory, whereas
-@@ -4089,8 +4088,7 @@ static int __folio_freeze_split_anon(str
- 	if (do_lru)
- 		lruvec = folio_lruvec_lock(folio);
+ static inline void hugetlb_save_settings(void)
+ {
+--- a/tools/testing/selftests/mm/hugetlb_madv_vs_map.c~selftests-mm-hugetlb_madv_vs_map-add-underflow-test
++++ a/tools/testing/selftests/mm/hugetlb_madv_vs_map.c
+@@ -3,18 +3,6 @@
+  * A test case that must run on a system with one and only one huge page available.
+  *	# echo 1 > /sys/kernel/mm/hugepages/hugepages-2048kB/nr_hugepages
+  *
+- * During setup, the test allocates the only available page, and starts three threads:
+- *  - thread1:
+- *	* madvise(MADV_DONTNEED) on the allocated huge page
+- *  - thread 2:
+- *	* Write to the allocated huge page
+- *  - thread 3:
+- *	* Try to allocated an extra huge page (which must not available)
+- *
+- *  The test fails if thread3 is able to allocate a page.
+- *
+- *  Touching the first page after thread3's allocation will raise a SIGBUS
+- *
+  *  Author: Breno Leitao <leitao@debian.org>
+  */
+ #include <pthread.h>
+@@ -22,6 +10,7 @@
+ #include <stdlib.h>
+ #include <sys/mman.h>
+ #include <sys/types.h>
++#include <sys/wait.h>
+ #include <unistd.h>
  
--	ret = __split_frozen_folio(folio, new_order, split_at, NULL,
--				   NULL, split_type);
-+	ret = __split_frozen_folio(folio, new_order, split_at, NULL, split_type);
+ #include "vm_util.h"
+@@ -74,7 +63,21 @@ void *map_extra(void *unused)
+ 	return NULL;
+ }
  
- 	/*
- 	 * Unfreeze the after-split folios and put them back to the right
-@@ -4226,8 +4224,7 @@ static int __folio_freeze_split_file(str
+-int main(void)
++/* During setup in main, the only available page was allocated. This test then
++ * starts three threads:
++ *
++ * - thread1:
++ *	* madvise(MADV_DONTNEED) on the allocated huge page
++ *  - thread 2:
++ *	* Write to the allocated huge page
++ *  - thread 3:
++ *	* Try to allocated an extra huge page (which must not available)
++ *
++ *  The test fails if thread3 is able to allocate a page.
++ *
++ *  Touching the first page after thread3's allocation will raise a SIGBUS
++ */
++void test_madv_vs_map(void)
+ {
+ 	pthread_t thread1, thread2, thread3;
+ 	void *ret;
+@@ -85,13 +88,6 @@ int main(void)
+ 	 */
+ 	int max = 10;
  
- 	/* lock lru list/PageCompound, ref frozen by page_ref_freeze */
- 	lruvec = folio_lruvec_lock(folio);
--	ret = __split_frozen_folio(folio, new_order, split_at, &xas,
--				   mapping, split_type);
-+	ret = __split_frozen_folio(folio, new_order, split_at, &xas, split_type);
+-	ksft_print_header();
+-	ksft_set_plan(1);
+-
+-	if (!hugetlb_setup_default_exact(1))
+-		ksft_exit_skip("This test needs one and only one page to execute. Got %lu\n",
+-			       hugetlb_free_default_pages());
+-
+ 	mmap_size = default_huge_page_size();
  
- 	/*
- 	 * Unfreeze after-split folios and put them back to the right
+ 	while (max--) {
+@@ -100,7 +96,7 @@ int main(void)
+ 				-1, 0);
+ 
+ 		if ((unsigned long)huge_ptr == -1)
+-			ksft_exit_fail_msg("Failed to allocate huge page\n");
++			ksft_exit_fail_perror("Failed to allocate huge page");
+ 
+ 		pthread_create(&thread1, NULL, madv, NULL);
+ 		pthread_create(&thread2, NULL, touch, NULL);
+@@ -120,5 +116,108 @@ int main(void)
+ 	}
+ 
+ 	ksft_test_result_pass("No unexpected huge page allocations\n");
++}
++
++/*  We create a child process, then unmap the page in the parent while the child
++ *  waits and verify that there is no underflow of the reserved count. We also
++ *  verify that after the child exits, the reserved count is properly restored.
++ */
++void test_underflow(void)
++{
++	pid_t pid;
++	int pipe_fds[2];
++	unsigned long nr_reserved = 0;
++
++	huge_ptr = mmap(NULL, mmap_size, PROT_READ | PROT_WRITE,
++			MAP_PRIVATE | MAP_ANONYMOUS | MAP_HUGETLB, -1, 0);
++
++	if ((unsigned long)huge_ptr == -1)
++		ksft_exit_fail_perror("Failed to allocate huge page");
++
++	nr_reserved = hugetlb_nr_resv_pages(default_huge_page_size());
++	if (nr_reserved != 1)
++		ksft_exit_fail_msg("Unexpected number of reserved pages: %lu, expected 1\n",
++				   nr_reserved);
++
++	/* Force the fault to ensure the reservation is consumed */
++	*huge_ptr = 0;
++	nr_reserved = hugetlb_nr_resv_pages(default_huge_page_size());
++	if (nr_reserved != 0)
++		ksft_exit_fail_msg("Unexpected number of reserved pages: %lu, expected 0\n",
++				   nr_reserved);
++
++	if (pipe(pipe_fds) != 0)
++		ksft_exit_fail_perror("pipe failed");
++
++	pid = fork();
++	if (pid < 0)
++		ksft_exit_fail_perror("fork failed");
++
++	if (pid == 0) {
++		/* Child: Simply wait for the parent */
++		char b;
++
++		close(pipe_fds[1]);
++		if (read(pipe_fds[0], &b, 1) < 0)
++			ksft_perror("child read failed");
++		/* Let the parent do the cleanup */
++		_exit(0);
++	}
++
++	/* Parent */
++	close(pipe_fds[0]);
++
++	/* First unmap, this will close the vma */
++	if (munmap(huge_ptr, mmap_size) != 0) {
++		ksft_perror("munmap failed");
++		goto err_cleanup;
++	}
++
++	nr_reserved = hugetlb_nr_resv_pages(default_huge_page_size());
++	if (nr_reserved == 0) {
++		ksft_test_result_pass("Underflow not present!\n");
++	} else {
++		ksft_test_result_fail("Unexpected HugePages_Rsvd=%ld after munmap, should be 0\n",
++				      nr_reserved);
++		goto err_cleanup;
++	}
++	/* Make the child exit, this should restore HugePages_Rsvd to 0 */
++	if (write(pipe_fds[1], &nr_reserved, 1) < 0) {
++		/* If write failed, the child is likely already gone */
++		ksft_exit_fail_perror("write failed");
++	}
++	close(pipe_fds[1]);
++	if (waitpid(pid, NULL, 0) <= 0)
++		ksft_exit_fail_msg("waitpid failed\n");
++
++	nr_reserved = hugetlb_nr_resv_pages(default_huge_page_size());
++	if (nr_reserved == 0)
++		ksft_test_result_pass("After the child dies, HugePages_Rsvd is properly set to 0\n");
++	else
++		ksft_exit_fail_msg("Unexpected HugePages_Rsvd=%ld after the child termination munmap, should be 0\n", nr_reserved);
++
++	return;
++
++err_cleanup:
++	if (write(pipe_fds[1], &nr_reserved, 1) < 0)
++		ksft_exit_fail_perror("write failed");
++	if (waitpid(pid, NULL, 0) <= 0)
++		ksft_exit_fail_perror("waitpid failed");
++
++	ksft_exit_fail();
++}
++
++int main(void)
++{
++	ksft_print_header();
++	ksft_set_plan(3);
++
++	if (!hugetlb_setup_default_exact(1))
++		ksft_exit_skip("This test needs one and only one page to execute. Got %lu\n",
++			       hugetlb_free_default_pages());
++
++	test_madv_vs_map();
++	test_underflow();
++
+ 	ksft_finished();
+ }
 _
 
-Patches currently in -mm which might be from kasong@tencent.com are
+Patches currently in -mm which might be from guillaume@morinfr.org are
 
 
