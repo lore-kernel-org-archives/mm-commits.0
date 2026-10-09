@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6113741A794
-	for <mm-commits@vger.kernel.org>; Fri,  9 Oct 2026 05:59:00 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9569B40803D
+	for <mm-commits@vger.kernel.org>; Fri,  9 Oct 2026 05:59:01 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791525541; cv=none; b=AqKUV1l67iCj6fXMFXfcY5bznEhPB6LfoPWLSYZz8yAnpg72KSno+qNNRp1SE0uUjuuAZl1pTVZ7NCt+dTHJupjNJYKK66cc38ynawN1RyHb2mLyoq9FWuqyUUNNEa7knWPQhAwLTIARKFIgDhidUhm1ZW+3yaPpqlZq+0Z67Jc=
+	t=1791525542; cv=none; b=JXRr3UVZ9UMrppEe2I1XiQ8k0qxK5l7C5DIj9Iwm5t8YORvQ4I1cjq47bODlykm7jlWHCkyf0uJIPd3LLlZ48HXea1CE5g6fxGM3DpYu7M4b2kNOWvVznaEuNYJuzpGTNTtimLNocsl0IePpgxW147YaZm1+AwWJdQZRruPGd6c=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791525541; c=relaxed/simple;
-	bh=j/rUmzGBHz643KxsANC8dK2RgM6Q1EC0j36JPY/A4h4=;
-	h=Date:To:From:Subject:Message-Id; b=g2lm3Fqz3GNSuySbOjZMaPiEhGSZPfykIv0WtZzaTMey48aNm3WmVftXa/vKfTz+cf1lOKYfl8KITj4G8En2fWnll9mxFZsdAvuH3WAE+Oxac80VoazghnkLPEfDo6mTC/Nynp8zEYO10Q5TdVbexCswhtdEXJb8u9upXYCXPbc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=HwVpkIW2; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1791525542; c=relaxed/simple;
+	bh=4HHruWwIbDgjzglyd2yIjZI1fDsc3L4HCfT8HPLDVjA=;
+	h=Date:To:From:Subject:Message-Id; b=VMKXU6RYMCE3OvHtcMFxFxpBKB3ZyvSrNNHQqSP5UtBNj1G6rD/fTX51WbrseHAfQcL2qxmNTCTD0d+bLr9yNomIsHdpRfH7TU1STjeOlB0+0JpCyOdHgjj65Ps5vsEHBsKqu4uJEQynUtFUaFL6tnWeMqCRHUmeLIx3cMGkVd4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=oll0xhqi; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="HwVpkIW2"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D23341F00893;
-	Fri,  9 Oct 2026 05:58:59 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="oll0xhqi"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 68B911F000FF;
+	Fri,  9 Oct 2026 05:59:01 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1791525539;
-	bh=bdGfufICOo2TTK/f6yzLQB4s4aLctiRAnT8QSTharsg=;
+	d=linux-foundation.org; s=korg; t=1791525541;
+	bh=/pxqbAHiF3LGwbE5c/bNbzJBX66LBx10OjoFVh8zWp8=;
 	h=Date:To:From:Subject;
-	b=HwVpkIW2BlXR1iCGyDJpsPJXH/ThPb2vs8MLoGm0qRNy0f9o70bes6wBbNyJOlX0q
-	 Pd29dlJCIIGH55UfFxai/osRmkoszWo0HkpZIVaBeX8PN5zxbMPF/z2bYyJcm1uuyY
-	 YlZyjPlJySBA5Puw5ZRHXmLGdmptgg8pYTodW1qY=
-Date: Thu, 08 Oct 2026 22:58:59 -0700
+	b=oll0xhqizl6G2nkF9x0qnTvlrXZpIxsDQeCk3ngJHKvIYi++MQJCsX+Ux+6xVCNHt
+	 DW77osFv7u8C3s6UrG6yaihdLIYQrudKfFURZFNyxTdND0Ltm9srzfWhiEfrHVrLgT
+	 tb1mGGTDFJzvZUDbp/oUOvUQtZrGRDihr9Tl+RaM=
+Date: Thu, 08 Oct 2026 22:59:00 -0700
 To: mm-commits@vger.kernel.org,sshegde@linux.ibm.com,rppt@kernel.org,ritesh.list@gmail.com,rdunlap@infradead.org,qi.zheng@linux.dev,osalvador@suse.de,npiggin@gmail.com,mpe@ellerman.id.au,maddy@linux.ibm.com,ljs@kernel.org,lance.yang@linux.dev,david@kernel.org,corbet@lwn.net,chleroy@kernel.org,muchun.song@linux.dev,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-sparse-vmemmap-move-vmemmap-optimization-helpers-to-a-public-header.patch removed from -mm tree
-Message-Id: <20261009055859.D23341F00893@smtp.kernel.org>
+Subject: [merged mm-stable] powerpc-mm-switch-device-dax-to-shared-tail-vmemmap-pages.patch removed from -mm tree
+Message-Id: <20261009055901.68B911F000FF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,38 +35,40 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/sparse-vmemmap: move vmemmap optimization helpers to a public header
+     Subject: powerpc/mm: switch device DAX to shared tail vmemmap pages
 has been removed from the -mm tree.  Its filename was
-     mm-sparse-vmemmap-move-vmemmap-optimization-helpers-to-a-public-header.patch
+     powerpc-mm-switch-device-dax-to-shared-tail-vmemmap-pages.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Muchun Song <muchun.song@linux.dev>
-Subject: mm/sparse-vmemmap: move vmemmap optimization helpers to a public header
-Date: Wed, 30 Sep 2026 22:06:23 +0800
+Subject: powerpc/mm: switch device DAX to shared tail vmemmap pages
+Date: Wed, 30 Sep 2026 22:06:24 +0800
 
-The vmemmap optimization helpers currently live in mm/sparse.h, which is
-an internal MM header.  That works for MM code, but prevents powerpc from
-using the same interfaces without including a private header.
+The powerpc radix compound vmemmap population path still finds a reusable
+tail page by walking the vmemmap page tables.
 
-Move the declarations and inline helpers to vmemmap-optimization.h.  This
-is a preparatory change for powerpc, which has its own vmemmap
-optimization implementation and needs to use the common vmemmap
-optimization interfaces from architecture code.
+Switch it to the common vmemmap_shared_tail_page() helper instead, so it
+can use the shared vmemmap page directly to simplify the code.
 
-Link: https://lore.kernel.org/20260930140627.57431-9-songmuchun@bytedance.com
+This removes the powerpc-specific tail-page lookup and its fallback path
+and aligns the device DAX vmemmap optimization path with HugeTLB.
+
+[muchun.song@linux.dev: use try_get_page()]
+  Link: https://lore.kernel.org/20260930152826.76084-1-songmuchun@bytedance.com
+Link: https://lore.kernel.org/20260930140627.57431-10-songmuchun@bytedance.com
 Signed-off-by: Muchun Song <muchun.song@linux.dev>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Acked-by: Qi Zheng <qi.zheng@linux.dev>
-Acked-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
 Acked-by: David Hildenbrand (Arm) <david@kernel.org>
 Cc: Oscar Salvador <osalvador@suse.de>
 Cc: Madhavan Srinivasan <maddy@linux.ibm.com>
 Cc: Michael Ellerman <mpe@ellerman.id.au>
 Cc: Jonathan Corbet <corbet@lwn.net>
 Cc: Lorenzo Stoakes <ljs@kernel.org>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Qi Zheng <qi.zheng@linux.dev>
 Cc: Nicholas Piggin <npiggin@gmail.com>
 Cc: Christophe Leroy <chleroy@kernel.org>
 Cc: Ritesh Harjani (IBM) <ritesh.list@gmail.com>
@@ -75,312 +77,181 @@ Cc: Randy Dunlap <rdunlap@infradead.org>
 Cc: Lance Yang <lance.yang@linux.dev>
 ---
 
- MAINTAINERS                          |    1 
- arch/loongarch/include/asm/pgtable.h |    1 
- arch/riscv/mm/init.c                 |    1 
- include/linux/mmzone.h               |   17 ---
- include/linux/vmemmap-optimization.h |  109 +++++++++++++++++++++++++
- mm/hugetlb.c                         |    2 
- mm/hugetlb_vmemmap.c                 |    2 
- mm/sparse.h                          |   78 -----------------
- 8 files changed, 115 insertions(+), 96 deletions(-)
+ arch/powerpc/mm/book3s64/radix_pgtable.c |   88 +++------------------
+ include/linux/vmemmap-optimization.h     |    6 +
+ mm/sparse-vmemmap.c                      |    6 -
+ 3 files changed, 21 insertions(+), 79 deletions(-)
 
---- a/arch/loongarch/include/asm/pgtable.h~mm-sparse-vmemmap-move-vmemmap-optimization-helpers-to-a-public-header
-+++ a/arch/loongarch/include/asm/pgtable.h
-@@ -72,6 +72,7 @@
- 
- #include <linux/mm_types.h>
- #include <linux/mmzone.h>
-+#include <linux/vmemmap-optimization.h>
- #include <asm/fixmap.h>
- #include <asm/sparsemem.h>
- 
---- a/arch/riscv/mm/init.c~mm-sparse-vmemmap-move-vmemmap-optimization-helpers-to-a-public-header
-+++ a/arch/riscv/mm/init.c
-@@ -22,6 +22,7 @@
- #include <linux/hugetlb.h>
+--- a/arch/powerpc/mm/book3s64/radix_pgtable.c~powerpc-mm-switch-device-dax-to-shared-tail-vmemmap-pages
++++ a/arch/powerpc/mm/book3s64/radix_pgtable.c
+@@ -19,6 +19,7 @@
+ #include <linux/string_helpers.h>
+ #include <linux/memory.h>
  #include <linux/kfence.h>
- #include <linux/execmem.h>
 +#include <linux/vmemmap-optimization.h>
  
- #include <asm/alternative.h>
- #include <asm/fixmap.h>
---- a/include/linux/mmzone.h~mm-sparse-vmemmap-move-vmemmap-optimization-helpers-to-a-public-header
-+++ a/include/linux/mmzone.h
-@@ -96,23 +96,6 @@
+ #include <asm/pgalloc.h>
+ #include <asm/mmu_context.h>
+@@ -1041,13 +1042,17 @@ static pte_t * __meminit radix__vmemmap_
+ 			/*
+ 			 * When a PTE/PMD entry is freed from the init_mm
+ 			 * there's a free_pages() call to this page allocated
+-			 * above. Thus this get_page() is paired with the
++			 * above. Thus this try_get_page() is paired with the
+ 			 * put_page_testzero() on the freeing path.
+ 			 * This can only called by certain ZONE_DEVICE path,
+ 			 * and through vmemmap_populate_compound_pages() when
+ 			 * slab is available.
++			 *
++			 * Use try_get_page() to prevent the shared page refcount
++			 * from overflowing.
+ 			 */
+-			get_page(reuse);
++			if (!try_get_page(reuse))
++				return NULL;
+ 			p = page_to_virt(reuse);
+ 			pr_debug("Tail page reuse vmemmap mapping\n");
+ 		}
+@@ -1250,59 +1255,6 @@ static pte_t * __meminit radix__vmemmap_
+ 	return pte;
+ }
  
- #define MAX_FOLIO_NR_PAGES	(1UL << MAX_FOLIO_ORDER)
+-static pte_t * __meminit vmemmap_compound_tail_page(unsigned long addr,
+-						    unsigned long pfn_offset, int node)
+-{
+-	pgd_t *pgd;
+-	p4d_t *p4d;
+-	pud_t *pud;
+-	pmd_t *pmd;
+-	pte_t *pte;
+-	unsigned long map_addr;
+-
+-	/* the second vmemmap page which we use for duplication */
+-	map_addr = addr - pfn_offset * sizeof(struct page) + PAGE_SIZE;
+-	pgd = pgd_offset_k(map_addr);
+-	p4d = p4d_offset(pgd, map_addr);
+-	pud = vmemmap_pud_alloc(p4d, node, map_addr);
+-	if (!pud)
+-		return NULL;
+-	pmd = vmemmap_pmd_alloc(pud, node, map_addr);
+-	if (!pmd)
+-		return NULL;
+-	if (pmd_leaf(*pmd))
+-		/*
+-		 * The second page is mapped as a hugepage due to a nearby request.
+-		 * Force our mapping to page size without deduplication
+-		 */
+-		return NULL;
+-	pte = vmemmap_pte_alloc(pmd, node, map_addr);
+-	if (!pte)
+-		return NULL;
+-	/*
+-	 * Check if there exist a mapping to the left
+-	 */
+-	if (pte_none(*pte)) {
+-		/*
+-		 * Populate the head page vmemmap page.
+-		 * It can fall in different pmd, hence
+-		 * vmemmap_populate_address()
+-		 */
+-		pte = radix__vmemmap_populate_address(map_addr - PAGE_SIZE, node, NULL, NULL);
+-		if (!pte)
+-			return NULL;
+-		/*
+-		 * Populate the tail pages vmemmap page
+-		 */
+-		pte = radix__vmemmap_pte_populate(pmd, map_addr, node, NULL, NULL);
+-		if (!pte)
+-			return NULL;
+-		vmemmap_verify(pte, node, map_addr, map_addr + PAGE_SIZE);
+-		return pte;
+-	}
+-	return pte;
+-}
+-
+ int __meminit vmemmap_populate_compound_pages(unsigned long start_pfn,
+ 					      unsigned long start,
+ 					      unsigned long end, int node,
+@@ -1320,6 +1272,12 @@ int __meminit vmemmap_populate_compound_
+ 	pud_t *pud;
+ 	pmd_t *pmd;
+ 	pte_t *pte;
++	struct page *tail_page;
++	unsigned int order = pfn_to_section_compound_order(start_pfn);
++
++	tail_page = vmemmap_shared_tail_page(order, device_zone(node));
++	if (!tail_page)
++		return -ENOMEM;
  
--/*
-- * HugeTLB Vmemmap Optimization (HVO) requires struct pages of the head page to
-- * be naturally aligned with regard to the folio size.
-- *
-- * HVO which is only active if the size of struct page is a power of 2.
-- */
--#define MAX_FOLIO_VMEMMAP_ALIGN					\
--	(IS_ENABLED(CONFIG_VMEMMAP_OPTIMIZATION) &&		\
--	 is_power_of_2(sizeof(struct page)) ?			\
--	 MAX_FOLIO_NR_PAGES * sizeof(struct page) : 0)
+ 	for (addr = start; addr < end; addr = next) {
+ 
+@@ -1349,10 +1307,9 @@ int __meminit vmemmap_populate_compound_
+ 			next = addr + PAGE_SIZE;
+ 			continue;
+ 		} else {
+-			unsigned long nr_pages = pgmap_vmemmap_nr(pgmap);
++			unsigned long nr_pages = 1UL << order;
+ 			unsigned long addr_pfn = page_to_pfn((struct page *)addr);
+ 			unsigned long pfn_offset = addr_pfn - ALIGN_DOWN(addr_pfn, nr_pages);
+-			pte_t *tail_page_pte;
+ 
+ 			/*
+ 			 * if the address is aligned to huge page size it is the
+@@ -1377,23 +1334,8 @@ int __meminit vmemmap_populate_compound_
+ 				next = addr + 2 * PAGE_SIZE;
+ 				continue;
+ 			}
+-			/*
+-			 * get the 2nd mapping details
+-			 * Also create it if that doesn't exist
+-			 */
+-			tail_page_pte = vmemmap_compound_tail_page(addr, pfn_offset, node);
+-			if (!tail_page_pte) {
 -
--/* The number of retained vmemmap pages with HVO enabled. */
--#define VMEMMAP_OPTIMIZATION_PAGES		1
--#define VMEMMAP_OPTIMIZATION_NR_STRUCT_PAGES	\
--	(VMEMMAP_OPTIMIZATION_PAGES * PAGE_SIZE / sizeof(struct page))
--#define VMEMMAP_OPTIMIZATION_MIN_ORDER		(ilog2(VMEMMAP_OPTIMIZATION_NR_STRUCT_PAGES) + 1)
+-				pte = radix__vmemmap_pte_populate(pmd, addr, node, NULL, NULL);
+-				if (!pte)
+-					return -ENOMEM;
+-				vmemmap_verify(pte, node, addr, addr + PAGE_SIZE);
 -
- enum migratetype {
- 	MIGRATE_UNMOVABLE,
- 	MIGRATE_MOVABLE,
-diff --git a/include/linux/vmemmap-optimization.h a/include/linux/vmemmap-optimization.h
-new file mode 100644
---- /dev/null
+-				next = addr + PAGE_SIZE;
+-				continue;
+-			}
+ 
+-			pte = radix__vmemmap_pte_populate(pmd, addr, node, NULL, pte_page(*tail_page_pte));
++			pte = radix__vmemmap_pte_populate(pmd, addr, node, NULL, tail_page);
+ 			if (!pte)
+ 				return -ENOMEM;
+ 			vmemmap_verify(pte, node, addr, addr + PAGE_SIZE);
+--- a/include/linux/vmemmap-optimization.h~powerpc-mm-switch-device-dax-to-shared-tail-vmemmap-pages
 +++ a/include/linux/vmemmap-optimization.h
-@@ -0,0 +1,109 @@
-+/* SPDX-License-Identifier: GPL-2.0-or-later */
-+/*
-+ * vmemmap-optimization.h
-+ *
-+ * Generic vmemmap optimization declarations.
-+ *
-+ * Author: Muchun Song <songmuchun@bytedance.com>
-+ */
-+#ifndef _LINUX_VMEMMAP_OPTIMIZATION_H
-+#define _LINUX_VMEMMAP_OPTIMIZATION_H
+@@ -83,6 +83,12 @@ static inline unsigned int pfn_to_sectio
+ {
+ 	return 0;
+ }
 +
-+#include <linux/align.h>
-+#include <linux/log2.h>
-+#include <linux/mmdebug.h>
-+#include <linux/mmzone.h>
-+
-+/*
-+ * HugeTLB Vmemmap Optimization (HVO) requires struct pages of the head page to
-+ * be naturally aligned with regard to the folio size.
-+ *
-+ * HVO which is only active if the size of struct page is a power of 2.
-+ */
-+#define MAX_FOLIO_VMEMMAP_ALIGN					\
-+	(IS_ENABLED(CONFIG_VMEMMAP_OPTIMIZATION) &&		\
-+	 is_power_of_2(sizeof(struct page)) ?			\
-+	 MAX_FOLIO_NR_PAGES * sizeof(struct page) : 0)
-+
-+/* The number of retained vmemmap pages with HVO enabled. */
-+#define VMEMMAP_OPTIMIZATION_PAGES		1
-+#define VMEMMAP_OPTIMIZATION_NR_STRUCT_PAGES	\
-+	(VMEMMAP_OPTIMIZATION_PAGES * PAGE_SIZE / sizeof(struct page))
-+#define VMEMMAP_OPTIMIZATION_MIN_ORDER		(ilog2(VMEMMAP_OPTIMIZATION_NR_STRUCT_PAGES) + 1)
-+
-+#ifdef CONFIG_VMEMMAP_OPTIMIZATION
-+static inline unsigned int section_compound_order(const struct mem_section *section)
++static inline struct page *vmemmap_shared_tail_page(unsigned int order,
++						    struct zone *zone)
 +{
-+	return section->compound_page_order;
++	return NULL;
 +}
-+
-+static inline void section_set_compound_order(struct mem_section *section,
-+					      unsigned int order)
-+{
-+	VM_WARN_ON(section_compound_order(section) && order &&
-+		   section_compound_order(section) != order);
-+	section->compound_page_order = order;
-+}
-+
-+static inline void section_set_compound_order_range(unsigned long pfn,
-+		unsigned long nr_pages, unsigned int order)
-+{
-+	unsigned long section_nr = pfn_to_section_nr(pfn);
-+
-+	if (!IS_ALIGNED(pfn | nr_pages, PAGES_PER_SECTION))
-+		return;
-+
-+	for (unsigned long i = 0; i < nr_pages / PAGES_PER_SECTION; i++)
-+		section_set_compound_order(__nr_to_section(section_nr + i), order);
-+}
-+
-+static inline unsigned int pfn_to_section_compound_order(unsigned long pfn)
-+{
-+	return section_compound_order(__pfn_to_section(pfn));
-+}
-+
-+struct page *vmemmap_shared_tail_page(unsigned int order, struct zone *zone);
-+#else
-+static inline unsigned int section_compound_order(const struct mem_section *section)
-+{
-+	return 0;
-+}
-+
-+static inline void section_set_compound_order(struct mem_section *section,
-+					      unsigned int order)
-+{
-+}
-+
-+static inline void section_set_compound_order_range(unsigned long pfn,
-+		unsigned long nr_pages, unsigned int order)
-+{
-+}
-+
-+static inline unsigned int pfn_to_section_compound_order(unsigned long pfn)
-+{
-+	return 0;
-+}
-+#endif /* CONFIG_VMEMMAP_OPTIMIZATION */
-+
-+static inline bool vmemmap_optimizable_pfn(unsigned long pfn)
-+{
-+	const unsigned int order = pfn_to_section_compound_order(pfn);
-+	const unsigned long nr_pages = 1UL << order;
-+
-+	if (!is_power_of_2(sizeof(struct page)))
-+		return false;
-+
-+	return (pfn & (nr_pages - 1)) >= VMEMMAP_OPTIMIZATION_NR_STRUCT_PAGES;
-+}
-+
-+static inline bool vmemmap_optimizable_order(unsigned int order)
-+{
-+	if (!IS_ENABLED(CONFIG_VMEMMAP_OPTIMIZATION))
-+		return false;
-+
-+	if (!is_power_of_2(sizeof(struct page)))
-+		return false;
-+
-+	return order >= VMEMMAP_OPTIMIZATION_MIN_ORDER;
-+}
-+#endif /* _LINUX_VMEMMAP_OPTIMIZATION_H */
---- a/MAINTAINERS~mm-sparse-vmemmap-move-vmemmap-optimization-helpers-to-a-public-header
-+++ a/MAINTAINERS
-@@ -12098,6 +12098,7 @@ F:	Documentation/mm/hugetlbfs_reserv.rst
- F:	Documentation/mm/vmemmap_dedup.rst
- F:	fs/hugetlbfs/
- F:	include/linux/hugetlb.h
-+F:	include/linux/vmemmap-optimization.h
- F:	include/trace/events/hugetlbfs.h
- F:	mm/hugetlb.c
- F:	mm/hugetlb_cgroup.c
---- a/mm/hugetlb.c~mm-sparse-vmemmap-move-vmemmap-optimization-helpers-to-a-public-header
-+++ a/mm/hugetlb.c
-@@ -38,6 +38,7 @@
- #include <linux/mm_inline.h>
- #include <linux/padata.h>
- #include <linux/pgalloc.h>
-+#include <linux/vmemmap-optimization.h>
+ #endif /* CONFIG_VMEMMAP_OPTIMIZATION */
  
- #include <asm/page.h>
- #include <asm/tlb.h>
-@@ -52,7 +53,6 @@
- #include "hugetlb_cma.h"
- #include "hugetlb_internal.h"
- #include "mm_init.h"
--#include "sparse.h"
- #include <linux/page-isolation.h>
+ static inline bool vmemmap_optimizable_pfn(unsigned long pfn)
+--- a/mm/sparse-vmemmap.c~powerpc-mm-switch-device-dax-to-shared-tail-vmemmap-pages
++++ a/mm/sparse-vmemmap.c
+@@ -240,12 +240,6 @@ struct page __ref *vmemmap_shared_tail_p
  
- #define HUGE_BOOTMEM_ZONES_VALID	BIT(0)
---- a/mm/hugetlb_vmemmap.c~mm-sparse-vmemmap-move-vmemmap-optimization-helpers-to-a-public-header
-+++ a/mm/hugetlb_vmemmap.c
-@@ -15,10 +15,10 @@
- #include <linux/mmdebug.h>
- #include <linux/pagewalk.h>
- #include <linux/pgalloc.h>
-+#include <linux/vmemmap-optimization.h>
- 
- #include <asm/tlbflush.h>
- #include "hugetlb_vmemmap.h"
--#include "sparse.h"
- 
- /**
-  * struct vmemmap_remap_walk - walk vmemmap page table
---- a/mm/sparse.h~mm-sparse-vmemmap-move-vmemmap-optimization-helpers-to-a-public-header
-+++ a/mm/sparse.h
-@@ -9,80 +9,7 @@
- #define __MM_SPARSE_H
- 
- #include <linux/mmzone.h>
--
--#ifdef CONFIG_VMEMMAP_OPTIMIZATION
--static inline unsigned int section_compound_order(const struct mem_section *section)
--{
--	return section->compound_page_order;
--}
--
--static inline void section_set_compound_order(struct mem_section *section,
--					      unsigned int order)
--{
--	VM_WARN_ON(section_compound_order(section) && order &&
--		   section_compound_order(section) != order);
--	section->compound_page_order = order;
--}
--
--static inline void section_set_compound_order_range(unsigned long pfn,
--		unsigned long nr_pages, unsigned int order)
--{
--	unsigned long section_nr = pfn_to_section_nr(pfn);
--
--	if (!IS_ALIGNED(pfn | nr_pages, PAGES_PER_SECTION))
--		return;
--
--	for (unsigned long i = 0; i < nr_pages / PAGES_PER_SECTION; i++)
--		section_set_compound_order(__nr_to_section(section_nr + i), order);
--}
--
--static inline unsigned int pfn_to_section_compound_order(unsigned long pfn)
--{
--	return section_compound_order(__pfn_to_section(pfn));
--}
+ 	return page;
+ }
 -#else
--static inline unsigned int section_compound_order(const struct mem_section *section)
+-static inline struct page *vmemmap_shared_tail_page(unsigned int order,
+-						    struct zone *zone)
 -{
--	return 0;
+-	return NULL;
 -}
--
--static inline void section_set_compound_order(struct mem_section *section,
--					      unsigned int order)
--{
--}
--
--static inline void section_set_compound_order_range(unsigned long pfn,
--		unsigned long nr_pages, unsigned int order)
--{
--}
--
--static inline unsigned int pfn_to_section_compound_order(unsigned long pfn)
--{
--	return 0;
--}
--#endif
--
--static inline bool vmemmap_optimizable_pfn(unsigned long pfn)
--{
--	const unsigned int order = pfn_to_section_compound_order(pfn);
--	const unsigned long nr_pages = 1UL << order;
--
--	if (!is_power_of_2(sizeof(struct page)))
--		return false;
--
--	return (pfn & (nr_pages - 1)) >= VMEMMAP_OPTIMIZATION_NR_STRUCT_PAGES;
--}
--
--static inline bool vmemmap_optimizable_order(unsigned int order)
--{
--	if (!IS_ENABLED(CONFIG_VMEMMAP_OPTIMIZATION))
--		return false;
--
--	if (!is_power_of_2(sizeof(struct page)))
--		return false;
--
--	return order >= VMEMMAP_OPTIMIZATION_MIN_ORDER;
--}
-+#include <linux/vmemmap-optimization.h>
+ #endif
  
- /*
-  * mm/sparse.c
-@@ -142,9 +69,6 @@ static inline void sparse_sections_init(
-  * mm/sparse-vmemmap.c
-  */
- #ifdef CONFIG_SPARSEMEM_VMEMMAP
--#ifdef CONFIG_VMEMMAP_OPTIMIZATION
--struct page *vmemmap_shared_tail_page(unsigned int order, struct zone *zone);
--#endif
- void sparse_init_subsection_map(void);
- int section_nr_vmemmap_pages(unsigned long pfn, unsigned long nr_pages,
- 		struct vmem_altmap *altmap, struct dev_pagemap *pgmap);
+ static __meminit void *vmemmap_alloc_pte(unsigned long pfn, int node,
 _
 
 Patches currently in -mm which might be from muchun.song@linux.dev are
