@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6159E3F4DEB
-	for <mm-commits@vger.kernel.org>; Fri,  9 Oct 2026 05:56:05 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8D09E3F106D
+	for <mm-commits@vger.kernel.org>; Fri,  9 Oct 2026 05:56:06 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791525366; cv=none; b=SC9bXr/LZX8hQJhpZtXfGgDd8cXuSXrzNf6NsIFDE3zv5TeaZpATVIx42C/UJ7x7CPI8EBnvfQcxtx3ior0dfVUSZgHFi9R1aEgCvY7kg8AZcIILVZ2Yprn2B050oSiYXtsBIi2kwvUMX0YERyxZXrzLENsilZMZ0azA9ZfAQJU=
+	t=1791525367; cv=none; b=BS3NjflwplbDAE26TrtaXMcZtSM3+2tDl2ZfQOxNY0qkfaRfKSsoCerddd/DYp/NfYKQdR5MH0d+nV1/Uv7xU2fMNUqnv0J0Y6TGtxYjbiiN9HWj484GSdPcI9wHnYBAfK+KaXxl/cztJEUTzKN6zsV6M/UBPfO1kw4UmDUSq8o=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791525366; c=relaxed/simple;
-	bh=cVUlj8ID22SyLHwupooN5bQf5Yq8Kb+44JrDNNFHfgs=;
-	h=Date:To:From:Subject:Message-Id; b=Vr/DDPQkarXxj5FWhC6kNcRjslZAB38lqCvHRAEK6Zr0OdKgIdLhl0p9G7p8FISHd4hVYBkc++dkxt23kpSMP/dqPgIyFwct8Xzt/pSV2Qv3x2gZ7wh62OfbPQM1HIOTuXxMexRQVaSbt3yq6mHNf1GOFMP+66zBvJHbxYpLoAg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ZKlFYREp; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1791525367; c=relaxed/simple;
+	bh=kr91WIE9RUkbQNaYR5jeckXy4Dkob6bMSQJXq4xdB9Y=;
+	h=Date:To:From:Subject:Message-Id; b=QQSOuPel+CsgJl/a0kMxMRvMZ06WHzuFhzZp6yPZZV+SglhtErn8Xzx30IN4DljHajWiVXrC+ILNxiCAuEXqMdeNU+YRZs3Z2UKOAAYayiFxKIuBwfabJqhmRy9ap0ta5HX2NVbz1dIvbw+LTkPrK1FQDkGvThh4idXSeAHTU7k=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=XhBsninu; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ZKlFYREp"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 364621F000FF;
-	Fri,  9 Oct 2026 05:56:05 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="XhBsninu"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 634AD1F00893;
+	Fri,  9 Oct 2026 05:56:06 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1791525365;
-	bh=bUwAJkRsdY7dQp4/dmXUhH/WdaJl+inEPw4ze89Nbrk=;
+	d=linux-foundation.org; s=korg; t=1791525366;
+	bh=eJ6dW6QF3ROVJcAxXTrMYewOdzWnrOeM4Q1rzvRwqwU=;
 	h=Date:To:From:Subject;
-	b=ZKlFYREpkpJtZFO01w/zMwnJ9d9H8uYOn5hDCf7mFojUh30PNWPmq63K3Kgm17Dto
-	 py2qltv2X9ay07tbTonen67t31JFCoXffWITmRviDH0AdQx22oFT44uzSGJyKI2UO8
-	 ERCZu6FceduLpahTlpott2zVVMV/62zVQnr8/N5A=
-Date: Thu, 08 Oct 2026 22:56:04 -0700
+	b=XhBsninukoZAu7izWSl2yl2eoQMFcl/twdNM2QSVv8/QcTfqI4Hy0523fVAoXaMVN
+	 eKEjRvsYUf86KcHgjWiqCvXqfnARI37rvqI2JjbQ+Lzgf8sR9xXtCV1Ii3VueEQKaj
+	 L0AQgzAOryoimjywgl88fXfmiiq9lHmliiNrCd/U=
+Date: Thu, 08 Oct 2026 22:56:06 -0700
 To: mm-commits@vger.kernel.org,vbabka@kernel.org,surenb@google.com,shuah@kernel.org,rppt@kernel.org,rdunlap@infradead.org,mhocko@suse.com,ljs@kernel.org,liam@infradead.org,kunwu.chan@gmail.com,david@kernel.org,davidgow@davidgow.net,corbet@lwn.net,brendan.higgins@linux.dev,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-damon-core-remove-debug-messages.patch removed from -mm tree
-Message-Id: <20261009055605.364621F000FF@smtp.kernel.org>
+Subject: [merged mm-stable] mm-damon-core-remove-debug-messages-fix.patch removed from -mm tree
+Message-Id: <20261009055606.634AD1F00893@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,22 +35,21 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/damon/core: remove debug messages
+     Subject: mm/damon/core: remove string_choices.h include
 has been removed from the -mm tree.  Its filename was
-     mm-damon-core-remove-debug-messages.patch
+     mm-damon-core-remove-debug-messages-fix.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: SJ Park <sj@kernel.org>
-Subject: mm/damon/core: remove debug messages
-Date: Tue, 1 Sep 2026 22:47:35 -0700
+Subject: mm/damon/core: remove string_choices.h include
+Date: Tue, 1 Sep 2026 23:08:16 -0700
 
-There are a few debug messages in DAMON core.  Those have not really been
-used in a meaningful way for the last few years, though.  Remove those.
+It is no more being used.
 
-Link: https://lore.kernel.org/20260902054747.99370-3-sj@kernel.org
+Link: https://lore.kernel.org/20260902061401.104419-1-sj@kernel.org
 Signed-off-by: SJ Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 Cc: Brendan Higgins <brendan.higgins@linux.dev>
@@ -68,48 +67,19 @@ Cc: Vlastimil Babka <vbabka@kernel.org>
 Cc: Kunwu Chan <kunwu.chan@gmail.com>
 ---
 
- mm/damon/core.c |    9 ---------
- 1 file changed, 9 deletions(-)
+ mm/damon/core.c |    1 -
+ 1 file changed, 1 deletion(-)
 
---- a/mm/damon/core.c~mm-damon-core-remove-debug-messages
+--- a/mm/damon/core.c~mm-damon-core-remove-debug-messages-fix
 +++ a/mm/damon/core.c
-@@ -3756,10 +3756,6 @@ static unsigned long damos_wmark_wait_us
+@@ -15,7 +15,6 @@
+ #include <linux/sched.h>
+ #include <linux/slab.h>
+ #include <linux/string.h>
+-#include <linux/string_choices.h>
  
- 	/* higher than high watermark or lower than low watermark */
- 	if (metric > scheme->wmarks.high || scheme->wmarks.low > metric) {
--		if (scheme->wmarks.activated)
--			pr_debug("deactivate a scheme (%d) for %s wmark\n",
--				 scheme->action,
--				 str_high_low(metric > scheme->wmarks.high));
- 		scheme->wmarks.activated = false;
- 		return scheme->wmarks.interval;
- 	}
-@@ -3769,8 +3765,6 @@ static unsigned long damos_wmark_wait_us
- 			!scheme->wmarks.activated)
- 		return scheme->wmarks.interval;
- 
--	if (!scheme->wmarks.activated)
--		pr_debug("activate a scheme (%d)\n", scheme->action);
- 	scheme->wmarks.activated = true;
- 	return 0;
- }
-@@ -3913,8 +3907,6 @@ static int kdamond_fn(void *data)
- 	struct damon_ctx *ctx = data;
- 	unsigned long sz_limit = 0;
- 
--	pr_debug("kdamond (%d) starts\n", current->pid);
--
- 	mutex_lock(&ctx->call_controls_lock);
- 	ctx->call_controls_obsolete = false;
- 	mutex_unlock(&ctx->call_controls_lock);
-@@ -4068,7 +4060,6 @@ done:
- 	mutex_unlock(&ctx->walk_control_lock);
- 	damos_walk_cancel(ctx);
- 
--	pr_debug("kdamond (%d) finishes\n", current->pid);
- 	mutex_lock(&ctx->kdamond_lock);
- 	ctx->kdamond = NULL;
- 	mutex_unlock(&ctx->kdamond_lock);
+ /* for damon_get_folio() used by node eligible memory metrics */
+ #include "ops-common.h"
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
