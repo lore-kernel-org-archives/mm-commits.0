@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 989D64071F3
-	for <mm-commits@vger.kernel.org>; Fri,  9 Oct 2026 05:58:30 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BD4E540F72D
+	for <mm-commits@vger.kernel.org>; Fri,  9 Oct 2026 05:58:31 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791525511; cv=none; b=rCzZI6Gyf+CSewmNQrK/jZL0Y0X93iU8Yz/B9oymleffCt0alwRcSOyrAhX0BsIReZDYy/a21l23h9lAJCusBdWsJpiOe8fPGqXwgy7dq0oz7JF2k8pDu/zpThl5uAXvQizqrVYR38RE9Jn+cqwDqnue2Y4P/E4/BwjR7Lbt24w=
+	t=1791525512; cv=none; b=e4C9CXhxdo43/FcUv97kFrxhlXKhKnPt6tjZ+5AUqJk2abl510VizAfhAOu37Sc480wnXhcAf3rrXUKv6ruaWFHT5F1cGQEekAXIoRWl3bJNSXsGCDVAEvSkuVosnPwEs1U7F94dYvGYVPdepScw5Pn612YXXrOowaBoawulv1k=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791525511; c=relaxed/simple;
-	bh=t6Tl8Bm9c/SB7nnJ4Q96wrVC0yzdyslp4nEekue7Ysc=;
-	h=Date:To:From:Subject:Message-Id; b=GOj02SNlD/Wg9KrBhNa/15AmsjUT7n9wwB+gv7xTwoTMh30h6ULdAV/D1I1lw81ByfN/Y3avIR39ayF30kOwPMrNmnhmDRMUyHSgVZfKlBqkMOWEreeboMjXb60mA92T9fA5+TLEwBkg642ZKNruwnzLQGID1KLjezHBV/ogVSM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ohAVprrO; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1791525512; c=relaxed/simple;
+	bh=AaPqgq9hFnHieCbLCTvwatiaCGPmMzZGibEi9/foJ2g=;
+	h=Date:To:From:Subject:Message-Id; b=gwhoxnPRP+GVEgeT3C7vamt8cQE+R/IBGqZOwpVYyfSauxhLj13suhDxTp7m1rsQC2d5zltWfeGIxTXKsl5XG0jt26j753PWG3ef7JUq3HBH0ACtWb/fhus9XgZ4lExqQDi6Dy0j0rTuFz+XWyNWu+IMi268ZgGh5b+U2E4gGp4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=MRCBTSnE; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ohAVprrO"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6ED251F00893;
-	Fri,  9 Oct 2026 05:58:30 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="MRCBTSnE"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 937DB1F000FF;
+	Fri,  9 Oct 2026 05:58:31 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1791525510;
-	bh=bo15Y7Tjx+s29rFa7nbIdAuMm7YfKWHBPjWgJKFmZds=;
+	d=linux-foundation.org; s=korg; t=1791525511;
+	bh=/egNrlY+3S4fILWoYi664FZECG0uf2rqFpNRMrAbY3g=;
 	h=Date:To:From:Subject;
-	b=ohAVprrOID9CD/8DIvNMINrpXS8gtdZFSw7M7YxPnR+gks8qoYNdMsQSPUnYXOShd
-	 VZAdgCYZHFDUgFDe/5ykshXDMoDe8UbE7AZo4lKIQj4x47qj61xIoCHmVJ8/FyR6u/
-	 HXv9omQ6vsRUMUERpyoWU/GdFU2LEmcxG0iml1Bo=
-Date: Thu, 08 Oct 2026 22:58:30 -0700
-To: mm-commits@vger.kernel.org,willy@infradead.org,vbabka@kernel.org,surenb@google.com,rppt@kernel.org,pfalcato@suse.de,mhocko@suse.com,liam@infradead.org,jannh@google.com,jack@suse.cz,hughd@google.com,gregkh@linuxfoundation.org,david@kernel.org,baolin.wang@linux.alibaba.com,arnd@arndb.de,ljs@kernel.org,akpm@linux-foundation.org
+	b=MRCBTSnEFoXW6k6cJX+9qYGnpSWssD9aStOmyMGIyE0rx+0I+eSGDhUCjMx6CZbPz
+	 G8ho+PcIhheWECKu97+WqY5tMqt0RwdQ1Kz8faBl+Oli9fW4bqVS3KWX7wZvsLWAEs
+	 jBxUGsykKz24yWAjdQL28+AyNxIRCnXFn1hwKh/4=
+Date: Thu, 08 Oct 2026 22:58:31 -0700
+To: mm-commits@vger.kernel.org,vbabka@kernel.org,surenb@google.com,sj@kernel.org,rdunlap@infradead.org,mhocko@suse.com,ljs@kernel.org,liam@infradead.org,david@kernel.org,corbet@lwn.net,rppt@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] tools-testing-selftests-mm-add-map_private-dev-zero-merge-tests.patch removed from -mm tree
-Message-Id: <20261009055830.6ED251F00893@smtp.kernel.org>
+Subject: [merged mm-stable] docs-core-api-memory-allocation-add-kalloc_obj-and-clarify-kmalloc.patch removed from -mm tree
+Message-Id: <20261009055831.937DB1F000FF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,198 +35,124 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: tools/testing/selftests/mm: add MAP_PRIVATE-/dev/zero merge tests
+     Subject: docs/core-api: memory-allocation: add k[mz]alloc_obj() and clarify kmalloc
 has been removed from the -mm tree.  Its filename was
-     tools-testing-selftests-mm-add-map_private-dev-zero-merge-tests.patch
+     docs-core-api-memory-allocation-add-kalloc_obj-and-clarify-kmalloc.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: "Lorenzo Stoakes (ARM)" <ljs@kernel.org>
-Subject: tools/testing/selftests/mm: add MAP_PRIVATE-/dev/zero merge tests
-Date: Sat, 26 Sep 2026 11:41:11 +0100
+From: "Mike Rapoport (Microsoft)" <rppt@kernel.org>
+Subject: docs/core-api: memory-allocation: add k[mz]alloc_obj() and clarify kmalloc
+Date: Wed, 02 Sep 2026 11:10:11 +0300
 
-Assert that MAP_PRIVATE-mapped /dev/zero mappings behave like they are
-anonymous.
+Patch series "docs/core-api: memory-allocation: add k[mz]alloc_obj() and
+clarify kmalloc", v2.
 
-Test both unfaulted and faulted/unfaulted merges with page offset 0 which
-would not merge if the mappings were treated as if they were file-backed.
+Update the memory-allocation guide to describe k[mz]alloc_obj() and
+clarify description of kmalloc() size limitations.
 
-With the recent change that makes them behave as pure anonymous mappings,
-the merges should succeed as their page offsets are equal to their
-anonymous page offsets.
+And when I realized that get_maintainers.pl does not list any of mm people
+for that patch I added the MAINTAINERS update as well :)
 
-Link: https://lore.kernel.org/20260926-map-private-dev-zero-v3-6-d4781e84ccfc@kernel.org
-Signed-off-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
+
+This patch (of 2):
+
+Since v7.0 the most used memory allocation function is kzalloc_obj().
+
+Update the memory-allocation guide to describe k[mz]alloc_obj() family and
+make kzalloc_obj() the first answer to "How should I allocate memory?"
+question.
+
+While on it, clarify description of kmalloc() size limitations.
+
+Link: https://lore.kernel.org/20260902-docs-memalloc-guide-v2-0-218c1a4dcb80@kernel.org
+Link: https://lore.kernel.org/20260902-docs-memalloc-guide-v2-1-218c1a4dcb80@kernel.org
+Signed-off-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Acked-by: David Hildenbrand (Arm) <david@kernel.org>
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Reviewed-by: Suren Baghdasaryan <surenb@google.com>
+Acked-by: SJ Park <sj@kernel.org>
+Acked-by: Vlastimil Babka (SUSE) <vbabka@kernel.org>
+Cc: David Hildenbrand <david@kernel.org>
+Cc: Jonathan Corbet <corbet@lwn.net>
 Cc: Liam R. Howlett <liam@infradead.org>
-Cc: Vlastimil Babka <vbabka@kernel.org>
-Cc: Jann Horn <jannh@google.com>
-Cc: Pedro Falcato <pfalcato@suse.de>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Lorenzo Stoakes <ljs@kernel.org>
 Cc: Michal Hocko <mhocko@suse.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Jan Kara <jack@suse.cz>
+Cc: Randy Dunlap <rdunlap@infradead.org>
 ---
 
- tools/testing/selftests/mm/merge.c |   95 +++++++++++++++++++++++++++
- 1 file changed, 95 insertions(+)
+ Documentation/core-api/memory-allocation.rst |   30 +++++++++++++----
+ 1 file changed, 23 insertions(+), 7 deletions(-)
 
---- a/tools/testing/selftests/mm/merge.c~tools-testing-selftests-mm-add-map_private-dev-zero-merge-tests
-+++ a/tools/testing/selftests/mm/merge.c
-@@ -1362,6 +1362,101 @@ TEST_F(merge, anon_and_page_offset_misma
- 	ASSERT_EQ(procmap->query.vma_end, (unsigned long)ptr + 5 * page_size);
- }
+--- a/Documentation/core-api/memory-allocation.rst~docs-core-api-memory-allocation-add-kalloc_obj-and-clarify-kmalloc
++++ a/Documentation/core-api/memory-allocation.rst
+@@ -21,6 +21,12 @@ answer, although very likely you should
  
-+TEST_F(merge, merge_map_private_dev_zero_unfaulted)
-+{
-+	struct procmap_fd *procmap = &self->procmap;
-+	unsigned int page_size = self->page_size;
-+	char *carveout = self->carveout;
-+	char *ptr, *ptr2;
-+	int fd_zero;
+ ::
+ 
++  kzalloc_obj(<VAR_OR_TYPE>);
 +
-+	if (access("/dev/zero", F_OK))
-+		SKIP(return, "No /dev/zero.");
-+	fd_zero = open("/dev/zero", O_RDWR);
-+	ASSERT_NE(fd_zero, -1);
++or
 +
-+	/*
-+	 * Map two MAP_PRIVATE-/dev/zero VMAs next to one another with offset 0
-+	 * each.
-+	 *
-+	 * With these being made truly anonymous upon mapping, they will
-+	 * merge. If they were file-backed VMAs the page offsets would prevent
-+	 * the merge:
-+	 *
-+	 * |-----||------|    |-------------|
-+	 * | ptr || ptr2 | -> |     ptr     |
-+	 * |-----||------|    |-------------|
-+	 */
-+	ptr = mmap(carveout, 5 * page_size, PROT_READ | PROT_WRITE,
-+		   MAP_FIXED | MAP_PRIVATE, fd_zero, 0);
-+	ptr2 = mmap(&carveout[5 * page_size], 5 * page_size,
-+		   PROT_READ | PROT_WRITE, MAP_FIXED | MAP_PRIVATE, fd_zero, 0);
-+	close(fd_zero);
-+	ASSERT_NE(ptr, MAP_FAILED);
-+	ASSERT_NE(ptr2, MAP_FAILED);
++::
 +
-+	/* Assert that they merged. */
-+	ASSERT_TRUE(find_vma_procmap(procmap, ptr));
-+	ASSERT_EQ(procmap->query.vma_start, (unsigned long)ptr);
-+	ASSERT_EQ(procmap->query.vma_end, (unsigned long)ptr + 10 * page_size);
-+}
+   kzalloc(<size>, GFP_KERNEL);
+ 
+ Of course there are cases when other allocation APIs and different GFP
+@@ -139,10 +145,13 @@ allocate memory for an array, there are
+ helpers. The helpers struct_size(), array_size() and array3_size() can
+ be used to safely calculate object sizes without overflowing.
+ 
+-The maximal size of a chunk that can be allocated with `kmalloc` is
+-limited. The actual limit depends on the hardware and the kernel
+-configuration, but it is a good practice to use `kmalloc` for objects
+-smaller than page size.
++Since 7.0 there are type aware kmalloc-family helpers that let you safely and
++conveniently allocate a single object or arrays of objects with kzalloc_obj()
++and kmalloc_obj() and their array versions kzalloc_objs() and
++kmalloc_objs(). These helpers only need the type of the object that should be
++allocated and the count of elements in the array for the array versions.
 +
-+TEST_F(merge, merge_map_private_dev_zero_faulted_unfaulted)
-+{
-+	struct procmap_fd *procmap = &self->procmap;
-+	unsigned int page_size = self->page_size;
-+	char *carveout = self->carveout;
-+	char *ptr, *ptr2;
-+	int fd_zero;
++As of v7.2, vast majority of the memory allocations use kzalloc_obj().
+ 
+ The address of a chunk allocated with `kmalloc` is aligned to at least
+ ARCH_KMALLOC_MINALIGN bytes. For sizes which are a power of two, the
+@@ -154,9 +163,16 @@ Chunks allocated with kmalloc() can be r
+ to kmalloc_array(): a helper for resizing arrays is provided in the form of
+ krealloc_array().
+ 
+-For large allocations you can use vmalloc() and vzalloc(), or directly
+-request pages from the page allocator. The memory allocated by `vmalloc`
+-and related functions is not physically contiguous.
++`kmalloc` always allocates physically contiguous memory and the maximal size of
++a chunk that can be allocated with `kmalloc` is limited by `KMALLOC_MAX_SIZE`,
++which matches the page allocator's MAX_PAGE_ORDER limit.
 +
-+	if (access("/dev/zero", F_OK))
-+		SKIP(return, "No /dev/zero.");
-+	fd_zero = open("/dev/zero", O_RDWR);
-+	ASSERT_NE(fd_zero, -1);
++Internally, the slab allocator differentiates allocations of different orders
++and delegates larger allocations to the page allocator, but for the users of
++`kmalloc` family it is entirely transparent.
 +
-+	/*
-+	 * Map a MAP_PRIVATE mapping of /dev/zero with page offset 0, then fault
-+	 * it in:
-+	 *
-+	 * |-------------------------------|
-+	 * |           faulted             |
-+	 * |-------------------------------|
-+	 */
-+	ptr = mmap(carveout, 15 * page_size, PROT_READ | PROT_WRITE,
-+		   MAP_FIXED | MAP_PRIVATE, fd_zero, 0);
-+	ASSERT_NE(ptr, MAP_FAILED);
-+	memset(ptr, 'x', 15 * page_size);
-+
-+	/*
-+	 * Unmap the middle:
-+	 *
-+	 * |---------|           |---------|
-+	 * | faulted |           | faulted |
-+	 * |---------|           |---------|
-+	 */
-+	ASSERT_EQ(munmap(&ptr[5 * page_size], 5 * page_size), 0);
-+
-+	/*
-+	 * Map in a new unfaulted mapping in the middle with page offset 0 -
-+	 * this should merge and would not if it were treated as a file rather
-+	 * than pure anon:
-+	 *
-+	 * |---------|-----------|---------|
-+	 * | faulted | unfaulted | faulted |
-+	 * |---------|-----------|---------|
-+	 */
-+	ptr2 = mmap(&carveout[5 * page_size], 5 * page_size,
-+		    PROT_READ | PROT_WRITE, MAP_FIXED | MAP_PRIVATE,
-+		    fd_zero, 0);
-+	close(fd_zero);
-+	ASSERT_NE(ptr2, MAP_FAILED);
-+
-+	/* Assert that they merged. */
-+	ASSERT_TRUE(find_vma_procmap(procmap, ptr));
-+	ASSERT_EQ(procmap->query.vma_start, (unsigned long)ptr);
-+	ASSERT_EQ(procmap->query.vma_end, (unsigned long)ptr + 15 * page_size);
-+}
-+
- TEST_F(merge_with_fork, mremap_faulted_to_unfaulted_prev)
- {
- 	struct procmap_fd *procmap = &self->procmap;
++For large allocations that do not require physically contiguous memory you can
++use vmalloc() and vzalloc() family.
+ 
+ If you are not sure whether the allocation size is too large for
+ `kmalloc`, it is possible to use kvmalloc() and its derivatives. It will
 _
 
-Patches currently in -mm which might be from ljs@kernel.org are
+Patches currently in -mm which might be from rppt@kernel.org are
 
-mm-vma-fix-mmap_prepare-file-handling-remove-file_doesnt_need_get.patch
-mm-vma-introduce-and-use-vma_can_merge.patch
-mm-consistently-validate-vma-state-after-mmap-hooks.patch
-mm-vma-ensure-mmap_prepare-doesnt-set-actions-on-a-mergeable-vma.patch
-mm-make-map_kernel_pages_-internal-and-unexported.patch
-mm-vma-tidy-up-map-kernel-pages-enum-values.patch
-mm-add-mmap-action-for-discontiguous-kernel-page-mapping.patch
-docs-filesystems-update-mmap_prepare-docs-for-discontig-kernel-pgs.patch
-drivers-usb-mon-update-to-use-mmap_prepare-map-kernel-pages.patch
-infiniband-update-hfi1-to-use-remap_vmalloc_range.patch
-selinux-reject-writable-opens-of-policy-file-drop-mmap-shared-write-check.patch
-alsa-pcm-use-vm_insert_page-to-map-pcm-status-page.patch
-bpf-arena-mark-arena_map_mmap-mappings-vm_mixedmap.patch
-mm-vma-add-vma_is_mm_managed-predicates.patch
-mm-vma-only-allow-mmap-to-clear-vma_maywrite_bit-if-not-mm-managed.patch
-mm-vma-add-and-use-vma__is_fixed_mapping.patch
-scsi-sg-convert-mmap-hook-to-mmap_prepare-and-rework.patch
-fbdev-defio-assert-fbinfo_virtfb-drop-vm_io-add-vm_mixedmap.patch
-hsi-cmt_speech-convert-mmap-hook-to-mmap_prepare-refactor.patch
-mm-gup-error-out-early-on-vma_mayread_bit-vmas.patch
-uprobes-remove-vm_io-set-vm_mixedmap-for-mapped-kernel-pages.patch
-mm-mlock-clear-vma_locked_mask-over-mmap-callback.patch
-mm-mlock-eliminate-weird-vma_io_bit-abuse-and-simplify.patch
-mm-vma-enforce-that-mm-managed-mappings-may-not-set-vma_io_bit.patch
-mm-remove-vma_io_bit-check-in-vma_is_mm_managed.patch
-mm-remove-hugetlb_inlineh.patch
-mm-rename-is_vm_hugetlb_page-to-vma_is_hugetlb.patch
-mm-drop-some-redundant-checks-around-hugetlb-vmas.patch
-mm-madvise-update-is_valid_guard_vma-to-use-vma_can_merge.patch
-mm-vma-introduce-vma_is_mm_backed.patch
-mm-uffd-use-predicates-for-userfaultfd-checks.patch
-mm-madvise-use-predicates-for-madvise-madv_dofork.patch
-mm-eliminate-vma_special_flags-usage-when-hugetlb-explicitly-tested.patch
-mm-eliminate-vma_special_flags-check-in-lru_gen_look_around.patch
-mm-avoid-use-of-vma_special_flags-in-migrate_vma_setup.patch
-mm-eliminate-vm_special-vma_special_flags.patch
-fuse-dax-do-not-set-vm_mixedmap.patch
-mm-huge_memory-remove-vma_is_special_huge.patch
-mm-vma-const-ify-vma_assert_stabilised-and-associated-functions.patch
-mm-implement-and-use-vma_has_anon_rmap-silence-kcsan.patch
-mm-update-comments-to-refer-to-anon-rmap-rather-than-anon_vma.patch
-mm-vma-dont-remove-vma-from-rmap-if-pgoff-unchanged.patch
+docs-mm-describe-set_memory-and-set_direct_map-apis.patch
+docs-mm-describe-set_memory-and-set_direct_map-apis-fix.patch
+arch-mm-promote-debug_wx-to-check_wx.patch
+sh-remove-config_numa-and-realted-configuration-options.patch
+sh-mm-remove-numac.patch
+sh-mm-drop-allocate_pgdat.patch
+sh-remove-setup_bootmem_node-and-plat_mem_setup.patch
+sh-drop-dead-code-guarded-by-ifdef-config_numa.patch
+sh-drop-include-asm-mmzoneh.patch
+init-kconfig-drop-arch_want_numa_variable_locality.patch
+sh-init-remove-call-the-memblock_set_node.patch
+sh-remove-sparsemem-related-entries-from-kconfig.patch
+sh-drop-include-asm-sparsememh.patch
 
