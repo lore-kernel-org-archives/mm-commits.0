@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 31CA341687C
-	for <mm-commits@vger.kernel.org>; Fri,  9 Oct 2026 05:59:15 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0F28042046E
+	for <mm-commits@vger.kernel.org>; Fri,  9 Oct 2026 05:59:23 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791525563; cv=none; b=ugsgZon5GZqs0CfMLthP5WDwY7lX/gyaxZFFrT1OUJUqfFngTWcOtu+OFKfIOXUPuI7FoXEFjITtL1r/eXh5fACK42okV7ZXBqlpqtdD80tBHvEJW71SG1zgnF0Cy+GDbaKVaumxFGt0xqlnOxUKER9Q5Hdm2DnRTHRT0KaTwsw=
+	t=1791525564; cv=none; b=OSqzP1bTVQHYWiO2NCOwjz8/sxjE+64Kewb7P2+8cWSyE0XkhBy+m+T85oA8py+h/mMbu9lJjTAUUpnnnZhpzMPFWHFC6847h4RAn35jmz6uYb6mUA+6ZVrA+CdVyV95RguxGpdV+bjbC9gsSuTpnqe5PjI145y1F/0lF+MBrVM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791525563; c=relaxed/simple;
-	bh=EEue6TTj7973me0iEtcloBfkyQWCrantMe5As6euHo0=;
-	h=Date:To:From:Subject:Message-Id; b=acfm0HCVZ6KTdnz9+9bX4g5ehc4znWZYEDLMaJ5G848IQNogX2Ok00/Btumu3ZUGJ/1SJ8F/CVor83aDr3jW2PPMgIf9XIk+b6B+ty9FNoT4KdP33mkhhkFvIz4bZhwZ7OSM+I05mSfUyR13fvyZxwTnlm+SyDzXSMb+UGkjJek=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=eqQQPddR; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1791525564; c=relaxed/simple;
+	bh=RSQAnIQ3i6vWQJ3IXkOfjwtnUCUIEPKDioODvu3p6cc=;
+	h=Date:To:From:Subject:Message-Id; b=hGIV/13p45ffQc0gX5gpCxUXhpeYYtyIc278g1ejY8EZNE0R8yklNt93WwRRS7oDTbO6YmUYNtQ9gnV7qswAVMYGVqE242B5FxWVyDaLLnXVza8Ttgd4izY2Ygrg8TornKX0MFzJqdbLTJ+ihtxTJBEMdOjkIUrraejIX55DYHg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=OrjpEZM+; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="eqQQPddR"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id BAF911F00893;
-	Fri,  9 Oct 2026 05:59:14 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="OrjpEZM+"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id DF7B41F000FF;
+	Fri,  9 Oct 2026 05:59:22 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1791525554;
-	bh=5zutYAGmVyiX5R71if5V0QYR+57a910f+Aes8y3Quz4=;
+	d=linux-foundation.org; s=korg; t=1791525563;
+	bh=PprlYhkPpf9ryztyAbylsH9gn7IkG2mxdUcXJCDAjQk=;
 	h=Date:To:From:Subject;
-	b=eqQQPddRWkMRWFW6czhgIZcBev/TxajxrlKi8vVsRGVkAVUFx1l80m6AI0vrZNCai
-	 Vpp63iZRSTSJqbh8a94wGszm2qUXbMemBFnUOnvEuroJEHRpZdLShq8mbjBhUeYeJQ
-	 /56Qvy6mBOGZen0QlNEtIXa7OfKsKriQnMBbz0Nw=
-Date: Thu, 08 Oct 2026 22:59:14 -0700
-To: mm-commits@vger.kernel.org,vbabka@kernel.org,surenb@google.com,rppt@kernel.org,rdunlap@infradead.org,mhocko@suse.com,ljs@kernel.org,liam@infradead.org,david@kernel.org,corbet@lwn.net,sj@kernel.org,akpm@linux-foundation.org
+	b=OrjpEZM+fxGUW2i2jym0Zv9wXn92bOjTcrLjO1tVFHBxa+fDmU8nZRQjmFFchCewO
+	 Ofr4MoXxeCTaVH0jE0UWiMkxXNpytWEoYo0zpLaEGo9lMoSRlYoizjWG/qiAQO2MJV
+	 EFeuZMeQg9kgcBCJtvoK1lVJH3/pekZX96PhYaR0=
+Date: Thu, 08 Oct 2026 22:59:22 -0700
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,zenghui.yu@linux.dev,ying.huang@linux.alibaba.com,vbabka@kernel.org,surenb@google.com,rppt@kernel.org,rakie.kim@sk.com,mhocko@suse.com,ljs@kernel.org,liam@infradead.org,joshua.hahnjy@gmail.com,hannes@cmpxchg.org,david@kernel.org,brendan.jackman@linux.dev,balbirs@nvidia.com,gourry@gourry.net,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-damon-sysfs-schemes-support-probe_hits_wsum-damos-core-filter.patch removed from -mm tree
-Message-Id: <20261009055914.BAF911F00893@smtp.kernel.org>
+Subject: [merged mm-stable] mm-refactor-find_next_best_node-to-find_next_best_node_in.patch removed from -mm tree
+Message-Id: <20261009055922.DF7B41F000FF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,103 +35,188 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/damon/sysfs-schemes: support probe_hits_wsum damos core filter
+     Subject: mm: refactor find_next_best_node to find_next_best_node_in
 has been removed from the -mm tree.  Its filename was
-     mm-damon-sysfs-schemes-support-probe_hits_wsum-damos-core-filter.patch
+     mm-refactor-find_next_best_node-to-find_next_best_node_in.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: SJ Park <sj@kernel.org>
-Subject: mm/damon/sysfs-schemes: support probe_hits_wsum damos core filter
-Date: Fri, 11 Sep 2026 06:55:07 -0700
+From: Gregory Price <gourry@gourry.net>
+Subject: mm: refactor find_next_best_node to find_next_best_node_in
+Date: Tue, 22 Sep 2026 22:29:01 -0400
 
-Extend DAMON sysfs interface to support probe_hits_wsum input.  Also
-update sysfs input based scheme build logic to setup the min/max probe
-hits weighted sum range as user provided.
+Patch series "mm: refactor zonelist constructors and iterators", v3.
 
-Link: https://lore.kernel.org/20260911135510.96914-6-sj@kernel.org
-Signed-off-by: SJ Park <sj@kernel.org>
+find_next_best_node() picks the next-closest node when building a fallback
+list, and hardcodes N_MEMORY as the set it picks from.
+
+Refactor it into find_next_best_node_in(), which takes the candidate set
+explicitly.
+
+This makes the existing behaviour explicit at both mm/memory-tiers.c call
+sites - they select demotion targets in fallback order from N_MEMORY - and
+lets callers narrow that set.
+
+Then extract the per-node construction loop out of build_zonelists() into
+build_node_zonelist(), parameterised on the candidate nodemask and
+destination zonelist index.
+
+Together these allow a zonelist to be built over a candidate set other
+than N_MEMORY, into a zonelist other than FALLBACK, and iterated in
+fallback order over a caller-defined subset.
+
+These are prerequisites for generating a private node zonelist (nodes
+unreachable by default), but are otherwise general improvements to the
+existing interfaces so I'm proposing them separately.
+
+No functional change intended - purely refactor commits.
+
+
+This patch (of 2):
+
+find_next_best_node() picks the next-closest node for a fallback list
+from the full N_MEMORY set. Refactor it into find_next_best_node_in(),
+which takes an explicit candidates nodemask.
+
+This enables building fallback lists with non-N_MEMORY candidates.
+
+No functional change: every caller still selects from N_MEMORY.
+
+Link: https://lore.kernel.org/20260923022902.2433614-1-gourry@gourry.net
+Link: https://lore.kernel.org/20260923022902.2433614-2-gourry@gourry.net
+Signed-off-by: Gregory Price <gourry@gourry.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+Reviewed-by: Vlastimil Babka (SUSE) <vbabka@kernel.org>
+Acked-by: Balbir Singh <balbirs@nvidia.com>
+Reviewed-by: Zi Yan <ziy@nvidia.com>
+Reviewed-by: Zenghui Yu (Huawei) <zenghui.yu@linux.dev>
 Cc: David Hildenbrand <david@kernel.org>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Liam R. Howlett <liam@infradead.org>
 Cc: Lorenzo Stoakes <ljs@kernel.org>
-Cc: Michal Hocko <mhocko@suse.com>
+Cc: Liam R. Howlett <liam@infradead.org>
 Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Randy Dunlap <rdunlap@infradead.org>
 Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Vlastimil Babka <vbabka@kernel.org>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Joshua Hahn <joshua.hahnjy@gmail.com>
+Cc: Rakie Kim <rakie.kim@sk.com>
+Cc: Ying Huang <ying.huang@linux.alibaba.com>
+Cc: Brendan Jackman <brendan.jackman@linux.dev>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
 ---
 
- mm/damon/sysfs-schemes.c |   12 +++++++++++-
- 1 file changed, 11 insertions(+), 1 deletion(-)
+ mm/internal.h     |    6 ++++--
+ mm/memory-tiers.c |    7 ++++---
+ mm/page_alloc.c   |   13 ++++++++-----
+ 3 files changed, 16 insertions(+), 10 deletions(-)
 
---- a/mm/damon/sysfs-schemes.c~mm-damon-sysfs-schemes-support-probe_hits_wsum-damos-core-filter
-+++ a/mm/damon/sysfs-schemes.c
-@@ -589,7 +589,10 @@ damos_sysfs_filter_type_names[] = {
- 		.type = DAMOS_FILTER_TYPE_TARGET,
- 		.name = "target",
- 	},
--
-+	{
-+		.type = DAMOS_FILTER_TYPE_PROBE_HITS_WSUM,
-+		.name = "probe_hits_wsum",
-+	},
- };
+--- a/mm/internal.h~mm-refactor-find_next_best_node-to-find_next_best_node_in
++++ a/mm/internal.h
+@@ -1124,7 +1124,8 @@ extern int node_reclaim_mode;
  
- static ssize_t type_show(struct kobject *kobj,
-@@ -2844,6 +2847,13 @@ static int damon_sysfs_add_scheme_filter
- 			}
- 			filter->sz_range.min = sysfs_filter->range_min;
- 			filter->sz_range.max = sysfs_filter->range_max;
-+		} else if (filter->type == DAMOS_FILTER_TYPE_PROBE_HITS_WSUM) {
-+			filter->range_min = sysfs_filter->range_min;
-+			filter->range_max = sysfs_filter->range_max;
-+			if (filter->range_min > filter->range_max) {
-+				damos_destroy_filter(filter);
-+				return -EINVAL;
-+			}
- 		}
+ extern unsigned long node_reclaim(struct pglist_data *pgdat,
+ 				  gfp_t gfp_mask, unsigned int order);
+-extern int find_next_best_node(int node, nodemask_t *used_node_mask);
++int find_next_best_node_in(int node, nodemask_t *used_node_mask,
++		const nodemask_t *candidates);
+ #else
+ #define node_reclaim_mode 0
  
- 		damos_add_filter(scheme, filter);
+@@ -1133,7 +1134,8 @@ static inline unsigned long node_reclaim
+ {
+ 	return 0;
+ }
+-static inline int find_next_best_node(int node, nodemask_t *used_node_mask)
++static inline int find_next_best_node_in(int node, nodemask_t *used_node_mask,
++		const nodemask_t *candidates)
+ {
+ 	return NUMA_NO_NODE;
+ }
+--- a/mm/memory-tiers.c~mm-refactor-find_next_best_node-to-find_next_best_node_in
++++ a/mm/memory-tiers.c
+@@ -370,7 +370,7 @@ int next_demotion_node(int node, const n
+ 	 * closest demotion target.
+ 	 */
+ 	nodes_complement(mask, *allowed_mask);
+-	return find_next_best_node(node, &mask);
++	return find_next_best_node_in(node, &mask, &node_states[N_MEMORY]);
+ }
+ 
+ static void disable_all_demotion_targets(void)
+@@ -450,7 +450,7 @@ static void establish_demotion_targets(v
+ 		memtier = list_next_entry(memtier, list);
+ 		tier_nodes = get_memtier_nodemask(memtier);
+ 		/*
+-		 * find_next_best_node, use 'used' nodemask as a skip list.
++		 * find_next_best_node_in, use 'used' nodemask as a skip list.
+ 		 * Add all memory nodes except the selected memory tier
+ 		 * nodelist to skip list so that we find the best node from the
+ 		 * memtier nodelist.
+@@ -463,7 +463,8 @@ static void establish_demotion_targets(v
+ 		 * in the preferred mask when allocating pages during demotion.
+ 		 */
+ 		do {
+-			target = find_next_best_node(node, &tier_nodes);
++			target = find_next_best_node_in(node, &tier_nodes,
++							&node_states[N_MEMORY]);
+ 			if (target == NUMA_NO_NODE)
+ 				break;
+ 
+--- a/mm/page_alloc.c~mm-refactor-find_next_best_node-to-find_next_best_node_in
++++ a/mm/page_alloc.c
+@@ -5781,9 +5781,10 @@ static int numa_zonelist_order_handler(c
+ static int node_load[MAX_NUMNODES];
+ 
+ /**
+- * find_next_best_node - find the next node that should appear in a given node's fallback list
++ * find_next_best_node_in - find the next node that should appear in a given node's fallback list
+  * @node: node whose fallback list we're appending
+  * @used_node_mask: nodemask_t of already used nodes
++ * @candidates: nodemask_t of nodes eligible for selection
+  *
+  * We use a number of factors to determine which is the next node that should
+  * appear on a given node's fallback list.  The node should not have appeared
+@@ -5795,7 +5796,8 @@ static int node_load[MAX_NUMNODES];
+  *
+  * Return: node id of the found node or %NUMA_NO_NODE if no node is found.
+  */
+-int find_next_best_node(int node, nodemask_t *used_node_mask)
++int find_next_best_node_in(int node, nodemask_t *used_node_mask,
++			   const nodemask_t *candidates)
+ {
+ 	int n, val;
+ 	int min_val = INT_MAX;
+@@ -5805,12 +5807,12 @@ int find_next_best_node(int node, nodema
+ 	 * Use the local node if we haven't already, but for memoryless local
+ 	 * node, we should skip it and fall back to other nodes.
+ 	 */
+-	if (!node_isset(node, *used_node_mask) && node_state(node, N_MEMORY)) {
++	if (!node_isset(node, *used_node_mask) && node_isset(node, *candidates)) {
+ 		node_set(node, *used_node_mask);
+ 		return node;
+ 	}
+ 
+-	for_each_node_state(n, N_MEMORY) {
++	for_each_node_mask(n, *candidates) {
+ 
+ 		/* Don't want a node to appear more than once */
+ 		if (node_isset(n, *used_node_mask))
+@@ -5895,7 +5897,8 @@ static void build_zonelists(pg_data_t *p
+ 	prev_node = local_node;
+ 
+ 	memset(node_order, 0, sizeof(node_order));
+-	while ((node = find_next_best_node(local_node, &used_mask)) >= 0) {
++	while ((node = find_next_best_node_in(local_node, &used_mask,
++					      &node_states[N_MEMORY])) >= 0) {
+ 		/*
+ 		 * We don't want to pressure a particular node.
+ 		 * So adding penalty to the first node in same
 _
 
-Patches currently in -mm which might be from sj@kernel.org are
+Patches currently in -mm which might be from gourry@gourry.net are
 
-mm-damon-sysfs-schemes-read-sysfs_filter-addr_range-only-once.patch
-mm-damon-sysfs-schemes-read-sysfs_filter-sz_range-only-once.patch
-mm-damon-core-return-an-error-from-damos_commit_filter_arg.patch
-mm-damon-core-disallow-max-min-damos-filter-range-arguments-commit.patch
-mm-damon-sysfs-schemes-drop-centralized-filter-range-arg-validations.patch
-mm-damon-sysfs-schemes-use-switch-case-in-add_scheme_filters.patch
-mm-damon-core-kunit-extend-damos_commit_filter_for-for-wrong-input.patch
-mm-damon-core-kunit-test-invalid-damos-filter-commits.patch
-mm-damon-api-introduce-damon_filter_type_hugepage_size.patch
-mm-damon-core-commit-hugepage_size-type-damon-filter.patch
-mm-damon-ops-common-support-hugepage_size-damon-filter-matching.patch
-mm-damon-sysfs-add-minmax-files-under-probe-filter-directory.patch
-mm-damon-sysfs-support-hugepage_size-probe-filter.patch
-docs-mm-damon-design-update-for-hugepage_size-probe-filter.patch
-docs-admin-guide-mm-damon-usage-update-for-hugepage_size.patch
-docs-abi-damon-update-for-hugepage_size-probe-filter.patch
-mm-damon-api-remove-nr_damos_filter_types.patch
-mm-damon-core-use-abs_diff-in-damon_feed_loop_next_input.patch
-mm-damon-core-use-mult_frac-in-damon_feed_loop_next_input.patch
-mm-damon-core-set-damon_ctx-walk_control_obsolete-in-damon_new_ctx.patch
-mm-damon-core-document-damon_call-damon_start-race-hang-issue.patch
-mm-damon-paddr-remove-pa-parameter-from-damon_pa_filter_pass.patch
-mm-damon-tests-core-kunit-test-eligible_mem_bp-commitment.patch
-mm-damon-tests-core-kunit-add-probe_hits_wsum-damos-filter-commit-test.patch
-selftests-damon-sysfs_memcg_path_leak-fail-only-for-real-damon-leak.patch
-docs-mm-damon-design-clarify-bp-is-basis-point.patch
-mm-damon-core-introduce-damos_quota_goal-complement.patch
-mm-damon-core-add-complement-argument-to-damos_new_quota_goal.patch
-mm-damon-sysfs-schemes-support-quota-goal-complement-flag.patch
-mm-damon-tests-core-kunit-test-quota_goal-complement-commit.patch
-selftests-damon-sysfssh-test-quota-goal-complement-flag-file.patch
-docs-mm-damon-design-document-damos-quota-goal-complement-flag.patch
-docs-admin-guide-mm-damon-usage-update-for-quota-goal-complement-file.patch
-docs-abi-damon-update-for-quota-goal-metric-complement-sysfs-file.patch
+proc-task_mmu-handle-special-pmds-in-clear_refs-and-pagemap.patch
+mm-madvise-reclaim-isolated-folios-if-pte-restart-fails.patch
+mm-madvise-use-folio_trylock-in-the-cold-pageout-pmd-split.patch
+mm-damon-use-damon_get_monitor_folio-for-hugetlb-entries.patch
 
