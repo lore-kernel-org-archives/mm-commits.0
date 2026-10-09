@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 66EDF409E12
-	for <mm-commits@vger.kernel.org>; Fri,  9 Oct 2026 05:59:18 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 86B8541A91C;
+	Fri,  9 Oct 2026 05:59:21 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791525562; cv=none; b=GtJq0VrzN+WFP96ZQYX1mWFwTCGsJhp9BC5mEPaePKVHDTnUcK2JM4x1TBb54x8JJQl5JR7BUYQdB2NQH7lssTTtOXgyK3mH48HR3WhgX2zVogBGMMvvtNv5kXjbukuHeAegdLro0SLXIjjhcHLOcyAikGCNLiwDNWL+unLkB5M=
+	t=1791525562; cv=none; b=JjwKpXGbx6itL4VGbuHDbsbjEUzZYGpQqd15nQlqpm6CCsUTxlaTUEJoIW+r3mxvEBPl4hn9xRrkgKKBz8Sf970URPNfaPCsynureKnZWrooUWW74QIrk+j2RiEuBZXj3h4zfMCGduCCButfaDt0otOsAvHSQR+R/fODg+TGHX8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1791525562; c=relaxed/simple;
-	bh=e+rvJFBSc9I5L45nDQp2QvzQUq4248EnHT4K/Qthhms=;
-	h=Date:To:From:Subject:Message-Id; b=rwR9RXT6lmWfM/kZZkaHLaZcLwhB6Aj0Ed+qG+DyWmVxZFaSlEMODdw9BG5NoTtsjQ6XRKN6l/rrsMJ819PxtKN4eqiGkgW6chBE5X260R7ThN9eM5B63caaXN8Pr7KFG8ZTkkAbXo6Mfq14EtBZWF8Q1OQ9DspDb61qx2KtH7E=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=sF4YWdm/; arc=none smtp.client-ip=100.103.45.18
+	bh=2Q1Trajgp8yS7NnqrcE0k/mBCW5XnDP22sMxhCOW9QY=;
+	h=Date:To:From:Subject:Message-Id; b=aB3e52zqEOyX5fgH6XMwlnkbgUlvsJ5Cvk76vn5FfBpa1/dwC0iG6OlI8nd4OmyMRKF//TBtI1BK0ufZpvgiXSD08dAiZpRMewxFPo1p9ESiR0rE89Ko+Xk5VNval5zDr/urek9OACnTDik9bt/S7W8RWAbyGrGo1n3O+ldtAoo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=0LjM6PDd; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="sF4YWdm/"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 383571F000FF;
-	Fri,  9 Oct 2026 05:59:18 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="0LjM6PDd"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 59A2B1F0089A;
+	Fri,  9 Oct 2026 05:59:21 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1791525558;
-	bh=EVg6VPhAiRF7MFvFQzB1H3HKv+D5HkLelJlTr9FnTVE=;
+	d=linux-foundation.org; s=korg; t=1791525561;
+	bh=P+M3EwXC6EZpsWn62MmV5bM6JCrmUlzcdE7XGROA3iE=;
 	h=Date:To:From:Subject;
-	b=sF4YWdm/QyQme6fpgbKdgPEyd12a0jttduTU5plX9iAOwJ03Sm9iQl9kEHQdHrsOD
-	 oYHvnuohwH9tkHUiG7VxUYaP0Iao3WkO5FRGxeVAcw66ccizb1L2/SY1lG+ANb2zW+
-	 qgRTyE3GQri9PMaaAMq7RTv/hQ0dnro2kT2vu1iE=
-Date: Thu, 08 Oct 2026 22:59:17 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,vbabka@kernel.org,surenb@google.com,shuah@kernel.org,rppt@kernel.org,mhocko@suse.com,ljs@kernel.org,liam@infradead.org,david@kernel.org,jaeyeon.lee.dev@gmail.com,akpm@linux-foundation.org
+	b=0LjM6PDdN1wzAZt2NhxFR8wpCSuV9I6bVwfOkxu+Dm1SMH9OdHKnxOXAqzgbhNl0y
+	 L4u5oZnbwL9EEZlgAtakGaym17UwoTeCidYhJJLU6pgA6z3iQ3J7Lh5ra5PTNWaBSN
+	 6NNr52fAi6XYmagOkdquuEvoCwTjss6Uux1R1GOU=
+Date: Thu, 08 Oct 2026 22:59:20 -0700
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,ying.huang@linux.alibaba.com,vbabka@kernel.org,stable@vger.kernel.org,sashiko-bot@kernel.org,rakie.kim@sk.com,peterx@redhat.com,ljs@kernel.org,liam@infradead.org,joshua.hahnjy@gmail.com,jgg@ziepe.ca,jannh@google.com,david@kernel.org,gourry@gourry.net,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] selftests-mm-skip-khugepaged-file-tests-if-mkfsxfs-is-unavailable.patch removed from -mm tree
-Message-Id: <20261009055918.383571F000FF@smtp.kernel.org>
+Subject: [merged mm-stable] mm-madvise-use-vm_normal_folio_pmd-in-cold-pageout-pmd-range.patch removed from -mm tree
+Message-Id: <20261009055921.59A2B1F0089A@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,75 +35,104 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: selftests/mm: skip khugepaged file tests if mkfs.xfs is unavailable
+     Subject: mm/madvise: use vm_normal_folio_pmd() in cold/pageout PMD range
 has been removed from the -mm tree.  Its filename was
-     selftests-mm-skip-khugepaged-file-tests-if-mkfsxfs-is-unavailable.patch
+     mm-madvise-use-vm_normal_folio_pmd-in-cold-pageout-pmd-range.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Jaeyeon Lee <jaeyeon.lee.dev@gmail.com>
-Subject: selftests/mm: skip khugepaged file tests if mkfs.xfs is unavailable
-Date: Sat, 12 Sep 2026 22:29:03 +0200
+From: Gregory Price <gourry@gourry.net>
+Subject: mm/madvise: use vm_normal_folio_pmd() in cold/pageout PMD range
+Date: Sat, 26 Sep 2026 06:51:10 -0400
 
-The XFS setup for ./khugepaged all:file checks that the kernel supports
-XFS but not that mkfs.xfs is installed.  When CONFIG_XFS_FS=y and xfsprogs
-is missing, mkfs.xfs and mount both fail, but
-SPLIT_HUGE_PAGE_TEST_XFS_PATH is assigned from mktemp -d and stays set. 
-The test then runs against plain tmpfs and six subtests fail.
+mmap a VM_MIXEDMAP region whose ->huge_fault installs a PMD through
+vmf_insert_pfn_pmd() - mshv_vtl_low does this, and needs CAP_SYS_ADMIN
+to open - then:
 
-The script already has a skip path for this test, but it never runs
-because the path variable is always set.  Assign
-SPLIT_HUGE_PAGE_TEST_XFS_PATH only once mkfs.xfs and mount have both
-succeeded, and remove the image and directory otherwise.
+  madvise(p, PMD_SIZE, MADV_PAGEOUT);
 
-Link: https://lore.kernel.org/20260912202903.16157-1-jaeyeon.lee.dev@gmail.com
-Signed-off-by: Jaeyeon Lee <jaeyeon.lee.dev@gmail.com>
+With a stand-in module for the driver:
+
+  BUG: unable to handle page fault for address: fffff587c0000008
+  RIP: 0010:madvise_cold_or_pageout_pte_range+0x410/0x9b0
+   walk_pgd_range+0x52b/0xaf0
+   __walk_page_range+0x6a/0x1d0
+   walk_page_range_vma_unsafe+0x8e/0x120
+   madvise_pageout+0xb2/0x180
+   madvise_vma_behavior+0x46b/0xa90
+   do_madvise+0x108/0x190
+   __x64_sys_madvise+0x26/0x30
+
+Nothing validates the pfn on the way in:
+
+  can_madv_lru_vma()     rejects VM_PFNMAP, but not VM_MIXEDMAP
+  can_fault()            *pfn = vmf->pgoff & ~(mask >> PAGE_SHIFT);
+  vmf_insert_pfn_pmd()   no pfn_valid() check
+  pmd_folio()            pfn_to_page() -> unpopulated vmemmap
+
+Even with a valid pfn the path is wrong.  The mapping carries no rmap, so
+folio_maybe_mapped_shared() sees mapcount 0, and the walker goes on to
+folio_deactivate(), or folio_isolate_lru() plus reclaim_pages(), against a
+folio this mapping does not own.
+
+Use vm_normal_folio_pmd() and skip on NULL, as the PTE half of this same
+walker already does with vm_normal_folio().  This also filters the huge
+zero PMD, so its separate check is no longer needed.
+
+Link: https://lore.kernel.org/20260926105110.2156652-3-gourry@gourry.net
+Fixes: 3c8e44c9b369 ("mm: mark special bits for huge pfn mappings when inject")
+Signed-off-by: Gregory Price (Meta) <gourry@gourry.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Suggested-by: Zi Yan <ziy@nvidia.com>
-Reviewed-by: Zi Yan <ziy@nvidia.com>
-Acked-by: David Hildenbrand (Arm) <david@kernel.org>
+Reported-by: sashiko-bot <sashiko-bot@kernel.org>
+Closes: https://sashiko.dev/#/patchset/20260817220810.1175596-1-gourry%40gourry.net
 Reviewed-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
+Acked-by: David Hildenbrand (Arm) <david@kernel.org>
+Reviewed-by: Zi Yan <ziy@nvidia.com>
 Assisted-by: LLM
-Cc: Shuah Khan <shuah@kernel.org>
 Cc: Liam R. Howlett <liam@infradead.org>
 Cc: Vlastimil Babka <vbabka@kernel.org>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Michal Hocko <mhocko@suse.com>
+Cc: Jann Horn <jannh@google.com>
+Cc: Joshua Hahn <joshua.hahnjy@gmail.com>
+Cc: Rakie Kim <rakie.kim@sk.com>
+Cc: Ying Huang <ying.huang@linux.alibaba.com>
+Cc: Peter Xu <peterx@redhat.com>
+Cc: Jason Gunthorpe <jgg@ziepe.ca>
+Cc: <stable@vger.kernel.org> # v6.19+
 ---
 
- tools/testing/selftests/mm/run_vmtests.sh |   12 ++++++++----
- 1 file changed, 8 insertions(+), 4 deletions(-)
+ mm/madvise.c |    7 +++----
+ 1 file changed, 3 insertions(+), 4 deletions(-)
 
---- a/tools/testing/selftests/mm/run_vmtests.sh~selftests-mm-skip-khugepaged-file-tests-if-mkfsxfs-is-unavailable
-+++ a/tools/testing/selftests/mm/run_vmtests.sh
-@@ -435,11 +435,15 @@ if [ -z "${SPLIT_HUGE_PAGE_TEST_XFS_PATH
-     if test_selected "thp"; then
- 	if grep xfs /proc/filesystems &>/dev/null; then
- 	    XFS_IMG=$(mktemp /tmp/xfs_img_XXXXXX)
--	    SPLIT_HUGE_PAGE_TEST_XFS_PATH=$(mktemp -d /tmp/xfs_dir_XXXXXX)
-+	    XFS_DIR=$(mktemp -d /tmp/xfs_dir_XXXXXX)
- 	    truncate -s 314572800 ${XFS_IMG}
--	    mkfs.xfs -q ${XFS_IMG}
--	    mount -o loop ${XFS_IMG} ${SPLIT_HUGE_PAGE_TEST_XFS_PATH}
--	    MOUNTED_XFS=1
-+	    if mkfs.xfs -q ${XFS_IMG} && mount -t xfs -o loop ${XFS_IMG} ${XFS_DIR}; then
-+	        SPLIT_HUGE_PAGE_TEST_XFS_PATH=${XFS_DIR}
-+	        MOUNTED_XFS=1
-+	    else
-+	        rmdir ${XFS_DIR}
-+	        rm -f ${XFS_IMG}
-+	    fi
- 	fi
-     fi
- fi
+--- a/mm/madvise.c~mm-madvise-use-vm_normal_folio_pmd-in-cold-pageout-pmd-range
++++ a/mm/madvise.c
+@@ -394,16 +394,15 @@ static int madvise_cold_or_pageout_pte_r
+ 			return 0;
+ 
+ 		orig_pmd = *pmd;
+-		if (is_huge_zero_pmd(orig_pmd))
+-			goto huge_unlock;
+-
+ 		if (unlikely(!pmd_present(orig_pmd))) {
+ 			VM_WARN_ON_ONCE(!pmd_is_migration_entry(orig_pmd) &&
+ 					!pmd_is_device_private_entry(orig_pmd));
+ 			goto huge_unlock;
+ 		}
+ 
+-		folio = pmd_folio(orig_pmd);
++		folio = vm_normal_folio_pmd(vma, addr, orig_pmd);
++		if (!folio)
++			goto huge_unlock;
+ 
+ 		if (folio_is_zone_device(folio))
+ 			goto huge_unlock;
 _
 
-Patches currently in -mm which might be from jaeyeon.lee.dev@gmail.com are
+Patches currently in -mm which might be from gourry@gourry.net are
 
-selftests-mm-hugetlb-read-hwpoison-add-setup-of-hugetlb-pages.patch
-selftests-mm-hugetlb_madv_vs_map-fix-tap-plan-mismatches.patch
-mm-damon-ops-common-fix-age_in_sec-overflow-on-32-bit.patch
+proc-task_mmu-handle-special-pmds-in-clear_refs-and-pagemap.patch
+mm-madvise-reclaim-isolated-folios-if-pte-restart-fails.patch
+mm-madvise-use-folio_trylock-in-the-cold-pageout-pmd-split.patch
+mm-damon-use-damon_get_monitor_folio-for-hugetlb-entries.patch
 
