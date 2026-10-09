@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5894F403AEA
-	for <mm-commits@vger.kernel.org>; Fri,  9 Oct 2026 05:57:20 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7FE9F403E9D
+	for <mm-commits@vger.kernel.org>; Fri,  9 Oct 2026 05:57:21 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791525441; cv=none; b=GRFfjhuyyd8BcLVJEvhArTwyTJem94ZUzQbN98MnaZtkIi0lb1B8JqSCFM/VVZe50LqImSHzDz1vTZB33/y+jKnM4Wl1ZZldJA8K6quTdOOneFPAGNY3jlYMWUV/sqzz6Ocm1znmWgw3Ric1IwUgQgir/Eykt0gonOgZTIJoLrQ=
+	t=1791525442; cv=none; b=eP4d7q8guKjdFc0GVi4LN55FYfl9af40R2azZcIYv4UIaZ5vghb2aSXn9CHmLU+oCYvCPlCd8chdjkWX5nQ6b3fEFhrBNTfOFQ/LV+mBrd1R2AFabTL0gGvJUY4T1O/ph9QwSmurwtZTJ9rclJdx+nnkKP/fXiSl/2iV8fdHiIA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791525441; c=relaxed/simple;
-	bh=mTE2mAomXM9Eqnjpt1p5bAcGtHtYyFs3TYGsLV7pph4=;
-	h=Date:To:From:Subject:Message-Id; b=PhP4niD515+is6smIW6aCkFRgeZ5TxvoYhNxozXlmeyvKI10GugqeZgYuQNfDQ193MnDWM9IMqdUDyjB21RuF1dBsiuD93UaLxNpCnNIIwZIHN4FrqZ6OwPgWOe+91ck76HocajFA4aMnPLblb/8PgePo5obaFEEh0yp20TJ51A=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=IaDLoYd8; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1791525442; c=relaxed/simple;
+	bh=CRsZcRJirNTU16kQ0VMLbtWsLWrUBrt/Cyo5wndsDEY=;
+	h=Date:To:From:Subject:Message-Id; b=EFsJlx6Ne9IIQhph/RhdpDZ3VnnDbykUnaN/mpUFl2gCnHL/D4Z/0ayUc6m15pkPa5YYxrIV9YnKk21G6lKbdcMkDHLV3Jwfd1F6mijJiESQa2DF+HoHp26jKSBReE0oaUq9MApEPSdUnFFEOEh7f+MSmlqMW/IF6n05OzGLXXw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=OvgaK80I; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="IaDLoYd8"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 277EE1F000FF;
-	Fri,  9 Oct 2026 05:57:20 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="OvgaK80I"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 51CCD1F00893;
+	Fri,  9 Oct 2026 05:57:21 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1791525440;
-	bh=mEDjn4nbRO1Pu9fs8LU6Vp80n+6sql7fw1Hm3Pc/jXA=;
+	d=linux-foundation.org; s=korg; t=1791525441;
+	bh=c3XKATS9ADQLX1D8bqH8FtZ3e/6wPfTQB7MidXWP49Q=;
 	h=Date:To:From:Subject;
-	b=IaDLoYd8UuCnTQwWL9sjHujB7Yl4r3PIf9tTi+3DlT3iWkDy343c5n3mGznGCE0xp
-	 D998fFyrGhk/AGLmLdP7zcILuEVEi4lW/ML/cEBrWvGvdWHCNsegvr90KZuOgErBBm
-	 72aBWPa+xDsbnA2H5Y2PAAzkkMcuxFQHLYlwwdlg=
-Date: Thu, 08 Oct 2026 22:57:19 -0700
+	b=OvgaK80Ic42MzLts9BZdbIAin8XHS42DG498unOirEPoRYGIU2u9JVjC1jTdRzzVO
+	 TFK/LLiqYZzxCmQSoy/K7m7fnCNjr64b31luQOGiaKhVLlmTzApi+nBKlI6AQ+/PLz
+	 KSJCfZSe5S3sBH+auB6WP58vRG6yqJ30fUkWrZP4=
+Date: Thu, 08 Oct 2026 22:57:20 -0700
 To: mm-commits@vger.kernel.org,ziy@nvidia.com,will@kernel.org,vbabka@kernel.org,shikemeng@huaweicloud.com,ryan.roberts@arm.com,riel@surriel.com,nphamcs@gmail.com,mark.rutland@arm.com,ljs@kernel.org,liam@infradead.org,lance.yang@linux.dev,kasong@tencent.com,kas@kernel.org,jannh@google.com,harry@kernel.org,hannes@cmpxchg.org,dev.jain@arm.com,david@kernel.org,chrisl@kernel.org,chengming.zhou@linux.dev,catalin.marinas@arm.com,baoquan.he@linux.dev,baolin.wang@linux.alibaba.com,baohua@kernel.org,tz2294@columbia.edu,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] arm64-mte-make-mte_save_tags-and-mte_restore_tags-static.patch removed from -mm tree
-Message-Id: <20261009055720.277EE1F000FF@smtp.kernel.org>
+Subject: [merged mm-stable] arm64-mte-pass-the-swap-entry-to-mte_save_tags.patch removed from -mm tree
+Message-Id: <20261009055721.51CCD1F00893@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,25 +35,31 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: arm64: mte: make mte_save_tags() and mte_restore_tags() static
+     Subject: arm64: mte: pass the swap entry to mte_save_tags()
 has been removed from the -mm tree.  Its filename was
-     arm64-mte-make-mte_save_tags-and-mte_restore_tags-static.patch
+     arm64-mte-pass-the-swap-entry-to-mte_save_tags.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Tal Zussman <tz2294@columbia.edu>
-Subject: arm64: mte: make mte_save_tags() and mte_restore_tags() static
-Date: Tue, 08 Sep 2026 11:16:36 -0400
+Subject: arm64: mte: pass the swap entry to mte_save_tags()
+Date: Tue, 08 Sep 2026 11:16:37 -0400
 
-mte_save_tags() and mte_restore_tags() are only used by
-arch_prepare_to_swap() and arch_swap_restore() in mteswap.c.  Make them
-static and remove their declarations from mte.h.
+arch_prepare_to_swap() derives a page from the folio only for
+mte_save_tags() to recompute the folio's swap entry from that page.  Pass
+the entry in directly with folio_swap_entry(), matching
+mte_restore_tags(), and move the page_mte_tagged() check into the caller
+so we only compute the entry for tagged pages.
+
+__mte_invalidate_tags() loses its only user, so remove it and call
+mte_invalidate_tags() directly in the error path.  This removes two calls
+to compound_head().
 
 No functional change.
 
-Link: https://lore.kernel.org/20260908-folio_swap_entry-v2-6-ee6d01dfa5e1@columbia.edu
+Link: https://lore.kernel.org/20260908-folio_swap_entry-v2-7-ee6d01dfa5e1@columbia.edu
 Signed-off-by: Tal Zussman <tz2294@columbia.edu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 Acked-by: David Hildenbrand (Arm) <david@kernel.org>
@@ -82,41 +88,76 @@ Cc: Will Deacon <will@kernel.org>
 Cc: Zi Yan <ziy@nvidia.com>
 ---
 
- arch/arm64/include/asm/mte.h |    2 --
- arch/arm64/mm/mteswap.c      |    4 ++--
- 2 files changed, 2 insertions(+), 4 deletions(-)
+ arch/arm64/mm/mteswap.c |   30 +++++++++++++-----------------
+ 1 file changed, 13 insertions(+), 17 deletions(-)
 
---- a/arch/arm64/include/asm/mte.h~arm64-mte-make-mte_save_tags-and-mte_restore_tags-static
-+++ a/arch/arm64/include/asm/mte.h
-@@ -23,9 +23,7 @@ unsigned long mte_copy_tags_from_user(vo
- 				      unsigned long n);
- unsigned long mte_copy_tags_to_user(void __user *to, void *from,
- 				    unsigned long n);
--int mte_save_tags(struct page *page);
- void mte_save_page_tags(const void *page_addr, void *tag_storage);
--void mte_restore_tags(swp_entry_t entry, struct page *page);
- void mte_restore_page_tags(void *page_addr, const void *tag_storage);
- void mte_invalidate_tags(int type, pgoff_t offset);
- void mte_invalidate_tags_area(int type);
---- a/arch/arm64/mm/mteswap.c~arm64-mte-make-mte_save_tags-and-mte_restore_tags-static
+--- a/arch/arm64/mm/mteswap.c~arm64-mte-pass-the-swap-entry-to-mte_save_tags
 +++ a/arch/arm64/mm/mteswap.c
-@@ -20,7 +20,7 @@ void mte_free_tag_storage(char *storage)
+@@ -20,22 +20,17 @@ void mte_free_tag_storage(char *storage)
  	kfree(storage);
  }
  
--int mte_save_tags(struct page *page)
-+static int mte_save_tags(struct page *page)
+-static int mte_save_tags(struct page *page)
++static int mte_save_tags(swp_entry_t entry, struct page *page)
  {
  	void *tag_storage, *ret;
  
-@@ -47,7 +47,7 @@ int mte_save_tags(struct page *page)
- 	return 0;
+-	if (!page_mte_tagged(page))
+-		return 0;
+-
+ 	tag_storage = mte_allocate_tag_storage();
+ 	if (!tag_storage)
+ 		return -ENOMEM;
+ 
+ 	mte_save_page_tags(page_address(page), tag_storage);
+ 
+-	/* lookup the swap entry.val from the page */
+-	ret = xa_store(&mte_pages, page_swap_entry(page).val, tag_storage,
+-		       GFP_KERNEL);
++	ret = xa_store(&mte_pages, entry.val, tag_storage, GFP_KERNEL);
+ 	if (WARN(xa_is_err(ret), "Failed to store MTE tags")) {
+ 		mte_free_tag_storage(tag_storage);
+ 		return xa_err(ret);
+@@ -68,13 +63,6 @@ void mte_invalidate_tags(int type, pgoff
+ 	mte_free_tag_storage(tags);
  }
  
--void mte_restore_tags(swp_entry_t entry, struct page *page)
-+static void mte_restore_tags(swp_entry_t entry, struct page *page)
+-static inline void __mte_invalidate_tags(struct page *page)
+-{
+-	swp_entry_t entry = page_swap_entry(page);
+-
+-	mte_invalidate_tags(swp_type(entry), swp_offset(entry));
+-}
+-
+ void mte_invalidate_tags_area(int type)
  {
- 	void *tags = xa_load(&mte_pages, entry.val);
+ 	swp_entry_t entry = swp_entry(type, 0);
+@@ -102,15 +90,23 @@ int arch_prepare_to_swap(struct folio *f
+ 	nr = folio_nr_pages(folio);
+ 
+ 	for (i = 0; i < nr; i++) {
+-		err = mte_save_tags(folio_page(folio, i));
++		struct page *page = folio_page(folio, i);
++
++		if (!page_mte_tagged(page))
++			continue;
++
++		err = mte_save_tags(folio_swap_entry(folio, i), page);
+ 		if (err)
+ 			goto out;
+ 	}
+ 	return 0;
+ 
+ out:
+-	while (i--)
+-		__mte_invalidate_tags(folio_page(folio, i));
++	while (i--) {
++		swp_entry_t swap = folio_swap_entry(folio, i);
++
++		mte_invalidate_tags(swp_type(swap), swp_offset(swap));
++	}
+ 	return err;
+ }
  
 _
 
