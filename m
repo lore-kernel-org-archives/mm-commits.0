@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 859E64266B8
-	for <mm-commits@vger.kernel.org>; Fri,  9 Oct 2026 06:00:01 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A7F65423A79
+	for <mm-commits@vger.kernel.org>; Fri,  9 Oct 2026 06:00:04 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791525604; cv=none; b=VdcTfZDFPPxK9py4GxDHSoxd7XHkZIf4ejtoMwdeRf2x80fyHzlajIj4VsWZKyB4FIWVmy3sD3bszKdIVx/vQXa3rGTkV9Een04hWTv4hBVnbyGoAXBN/4NcacztKW2uqb1+N0OqhD4vhr3y2HANisZzRChPNNBor4mqcjao4kE=
+	t=1791525606; cv=none; b=YUFLA954ix0UIWcseGQf64gVp2lV8Rdqkg0wLoxUe6MID3ACCd4plVPWHLvJA/zLiWEe0g2RPJBkclcjHkF+VJUuk+PDKVYPvmfldEiYQlPAeHadV9tpuDOpKxRosUz7lOnHLY81GmqiQOCC33EXWQZbaU0K13n8+pg+owS+11Y=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791525604; c=relaxed/simple;
-	bh=Hx79cSaNv5at7c3dF7Cno0Mr7Xy+TUnW5EfbxOB/FdE=;
-	h=Date:To:From:Subject:Message-Id; b=B/QhFrV9Su0Rmpr7ZWiaBtodocbh/gfK3DW5xUttVo2LBDw5Jy35MXtVmtQ0KTdHwrmtlc/xa/hQkTcdxR/K7Ixk2HdKhYXvajES7wX214VOdWFuYil6HZu6fJGj/PrtN+nddwfodEImHflEoKL488CXHgslx33h4SxEdEY4fkA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Aza2c76N; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1791525606; c=relaxed/simple;
+	bh=MjTeISom24hIcu/SoGw95qofnxKyc2foaUFAURfHfRA=;
+	h=Date:To:From:Subject:Message-Id; b=agbUxEGTCTFXsTXLmxXBjvB/Ah9aM7n/tM0FRJtEQXZe3CJaqVIbRE/vctN5BTrNR34K90LFzeRoJJarF9u1/QVJoL4EUVbdSxj/ZhOUOtgwiYTt55s6yTLhaQ0avzqja/IMwaJ6GD4VscjQ7f5TQ34AlIqN6mVagQpOq0lmJ/Q=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=WcuOPTVm; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Aza2c76N"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id DF1B01F000FF;
-	Fri,  9 Oct 2026 06:00:00 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="WcuOPTVm"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 601DB1F0089B;
+	Fri,  9 Oct 2026 06:00:04 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1791525601;
-	bh=q/L5da+BDXof3jMvDJUcXy1vcuzVwRHPAIOqvigNkik=;
+	d=linux-foundation.org; s=korg; t=1791525604;
+	bh=jCqxgkYA8hbTqdFN8jSLopOKCLMrVAR7/vsM17xiXdA=;
 	h=Date:To:From:Subject;
-	b=Aza2c76ND8teXCjg93R1p2ExJI6T58xJDyRkSomLpCRBN9WwOgr/XUHnDE7AIQmpg
-	 g6Dxt2thEFRj8vE6liGesMSxWmWCaj+nUaiZ2gpCYy5yg12GbVtBiAHzuzDqTZnKQN
-	 cOZ91TBd0cdtNRO1hCMX38VrrsZsrQPi3MFfHOM0=
-Date: Thu, 08 Oct 2026 23:00:00 -0700
+	b=WcuOPTVmaR068Ns3MGL8bUj3gIAvOc6GqotSTpSQMujyC6IBpUCsfjFCrTlZaqwQR
+	 sSM0nnpWfUco18HtBbVgyKb62SKK3P4Zf2uYHsN26gM9AloDJU9Ef3MeZeuuZUkfK/
+	 6R8GXKA7e0r3jTpKIfIRoXRRLsGfjRHIVZwQ8qR8=
+Date: Thu, 08 Oct 2026 23:00:03 -0700
 To: mm-commits@vger.kernel.org,ziy@nvidia.com,youngjun.park@lge.com,yeoreum.yun@arm.com,vbabka@kernel.org,usama.arif@linux.dev,surenb@google.com,shivamkalra98@zohomail.in,shikemeng@huaweicloud.com,ryncsn@gmail.com,ryan.roberts@arm.com,rppt@kernel.org,nphamcs@gmail.com,nico.pache@linux.dev,mhocko@suse.com,ljs@kernel.org,liam@infradead.org,lance.yang@linux.dev,kas@kernel.org,dev.jain@arm.com,david@kernel.org,chrisl@kernel.org,baoquan.he@linux.dev,baolin.wang@linux.alibaba.com,baohua@kernel.org,kasong@tencent.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-huge_memory-move-eof-trimming-into-the-file-split-helper.patch removed from -mm tree
-Message-Id: <20261009060000.DF1B01F000FF@smtp.kernel.org>
+Subject: [merged mm-stable] mm-huge_memory-rename-remap_page-to-remap_anon_folio.patch removed from -mm tree
+Message-Id: <20261009060004.601DB1F0089B@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,30 +35,32 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/huge_memory: move EOF trimming into the file split helper
+     Subject: mm/huge_memory: rename remap_page() to remap_anon_folio()
 has been removed from the -mm tree.  Its filename was
-     mm-huge_memory-move-eof-trimming-into-the-file-split-helper.patch
+     mm-huge_memory-rename-remap_page-to-remap_anon_folio.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Kairui Song <kasong@tencent.com>
-Subject: mm/huge_memory: move EOF trimming into the file split helper
-Date: Wed, 23 Sep 2026 23:32:38 +0200
+Subject: mm/huge_memory: rename remap_page() to remap_anon_folio()
+Date: Wed, 23 Sep 2026 23:32:40 +0200
 
-Instead of receiving @end and @nr_shmem_dropped from the caller, the file
-split helper now computes the EOF boundary and trims pages beyond it
-itself, as this is only needed for file split.  This drops the redundant
-parameter passing and sanity check.
+remap_page() now only has one caller, __folio_freeze_split_anon(), and is
+only ever called for anon folios: unmap_folio() currently leaves file
+folios unmapped after the split, so they need no remapping.
 
-Link: https://lore.kernel.org/20260923-swap-thp-cleanup-v6-7-ba1b4ba72c6f@tencent.com
+Rename it to remap_anon_folio() to make that explicit, and add a
+VM_WARN_ON_FOLIO() documenting it.
+
+Link: https://lore.kernel.org/20260923-swap-thp-cleanup-v6-9-ba1b4ba72c6f@tencent.com
 Signed-off-by: Kairui Song <kasong@tencent.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 Reviewed-by: Zi Yan <ziy@nvidia.com>
-Acked-by: David Hildenbrand (Arm) <david@kernel.org>
 Reviewed-by: Kiryl Shutsemau (Meta) <kas@kernel.org>
 Reviewed-by: Yeoreum Yun <yeoreum.yun@arm.com>
+Acked-by: David Hildenbrand (Arm) <david@kernel.org>
 Cc: Lorenzo Stoakes <ljs@kernel.org>
 Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
 Cc: Liam R. Howlett <liam@infradead.org>
@@ -81,105 +83,56 @@ Cc: Shivam Kalra <shivamkalra98@zohomail.in>
 Cc: Kairui Song <ryncsn@gmail.com>
 ---
 
- mm/huge_memory.c |   41 +++++++++++++++++++----------------------
- 1 file changed, 19 insertions(+), 22 deletions(-)
+ mm/huge_memory.c |   14 ++++++++++----
+ 1 file changed, 10 insertions(+), 4 deletions(-)
 
---- a/mm/huge_memory.c~mm-huge_memory-move-eof-trimming-into-the-file-split-helper
+--- a/mm/huge_memory.c~mm-huge_memory-rename-remap_page-to-remap_anon_folio
 +++ a/mm/huge_memory.c
-@@ -4082,16 +4082,29 @@ static int __folio_freeze_split_file(str
- 		unsigned int new_order, struct page *split_at,
- 		struct xa_state *xas, struct address_space *mapping,
- 		bool do_lru, struct list_head *list,
--		enum split_type split_type, pgoff_t end, int *nr_shmem_dropped)
-+		enum split_type split_type)
- {
- 	struct folio *end_folio = folio_next(folio);
- 	struct folio *new_folio, *next;
-+	int nr_shmem_dropped = 0;
- 	struct lruvec *lruvec;
-+	pgoff_t end;
- 	int ret;
- 
- 	/* Currently device private folios can only back anonymous memory. */
- 	VM_WARN_ON_ONCE_FOLIO(folio_is_device_private(folio), folio);
- 
-+	/*
-+	 * The loop below may need to trim off pages beyond
-+	 * EOF: but on 32-bit, i_size_read() takes an irq-unsafe
-+	 * seqlock, which cannot be nested inside the page tree lock.
-+	 * So note end now: i_size itself may be changed at any moment,
-+	 * but folio lock is good enough to serialize the trimming.
-+	 */
-+	end = DIV_ROUND_UP(i_size_read(mapping->host), PAGE_SIZE);
-+	if (shmem_mapping(mapping))
-+		end = shmem_fallocend(mapping->host, end);
-+
- 	xas_lock_irq(xas);
- 
+@@ -3551,7 +3551,6 @@ static void unmap_folio(struct folio *fo
  	/*
-@@ -4156,10 +4169,9 @@ static int __folio_freeze_split_file(str
- 			continue;
- 		}
- 
--		VM_WARN_ON_ONCE(!nr_shmem_dropped);
- 		/* Drop folio beyond EOF: ->index >= end */
--		if (shmem_mapping(mapping) && nr_shmem_dropped)
--			*nr_shmem_dropped += nr_pages;
-+		if (shmem_mapping(mapping))
-+			nr_shmem_dropped += nr_pages;
- 		else if (folio_test_clear_dirty(new_folio))
- 			folio_account_cleaned(
- 				new_folio, inode_to_wb(mapping->host));
-@@ -4180,6 +4192,8 @@ static int __folio_freeze_split_file(str
- 
- fail:
- 	xas_unlock_irq(xas);
-+	if (nr_shmem_dropped)
-+		shmem_uncharge(mapping->host, nr_shmem_dropped);
- 	return ret;
+ 	 * Anon pages need migration entries to preserve them, but file
+ 	 * pages can simply be left unmapped, then faulted back on demand.
+-	 * If that is ever changed (perhaps for mlock), update remap_page().
+ 	 */
+ 	if (folio_test_anon(folio))
+ 		try_to_migrate(folio, ttu_flags);
+@@ -3636,10 +3635,17 @@ bool unmap_huge_pmd_locked(struct vm_are
+ 	return __discard_anon_folio_pmd_locked(vma, addr, pmdp, folio);
  }
  
-@@ -4216,9 +4230,7 @@ static int __folio_split(struct folio *f
- 	struct anon_vma *anon_vma = NULL;
- 	int old_order = folio_order(folio);
- 	struct folio *new_folio, *next;
--	int nr_shmem_dropped = 0;
- 	enum ttu_flags ttu_flags = 0;
--	pgoff_t end = 0;
- 	int ret;
+-static void remap_page(struct folio *folio, unsigned long nr, int flags)
++static void remap_anon_folio(struct folio *folio, unsigned long nr, int flags)
+ {
+ 	int i = 0;
  
- 	VM_WARN_ON_ONCE_FOLIO(!folio_test_locked(folio), folio);
-@@ -4295,17 +4307,6 @@ static int __folio_split(struct folio *f
- 
- 		anon_vma = NULL;
- 		i_mmap_lock_read(mapping);
--
--		/*
--		 * __split_frozen_folio() may need to trim off pages beyond
--		 * EOF: but on 32-bit, i_size_read() takes an irq-unsafe
--		 * seqlock, which cannot be nested inside the page tree lock.
--		 * So note end now: i_size itself may be changed at any moment,
--		 * but folio lock is good enough to serialize the trimming.
--		 */
--		end = DIV_ROUND_UP(i_size_read(mapping->host), PAGE_SIZE);
--		if (shmem_mapping(mapping))
--			end = shmem_fallocend(mapping->host, end);
++	/*
++	 * unmap_folio() installs migration entries only for anon folios,
++	 * so currently only anon folios need to be remapped. File folios
++	 * stay unmapped after the split and are faulted back on demand.
++	 */
++	VM_WARN_ON_FOLIO(!folio_test_anon(folio), folio);
++
+ 	for (;;) {
+ 		remove_migration_ptes(folio, folio, TTU_RMAP_LOCKED | flags);
+ 		i += folio_nr_pages(folio);
+@@ -3723,7 +3729,7 @@ static void __split_folio_to_order(struc
+ 		 *
+ 		 * Note that for mapped sub-pages of an anonymous THP,
+ 		 * PG_anon_exclusive has been cleared in unmap_folio() and is stored in
+-		 * the migration entry instead from where remap_page() will restore it.
++		 * the migration entry instead from where remap_anon_folio() will restore it.
+ 		 * We can still have PG_anon_exclusive set on effectively unmapped and
+ 		 * unreferenced sub-pages of an anonymous THP: we can simply drop
+ 		 * PG_anon_exclusive (-> PG_mappedtodisk) for these here.
+@@ -4083,7 +4089,7 @@ out_no_split:
+ 	if (need_remap) {
+ 		if (!ret && !folio_is_device_private(folio))
+ 			ttu_flags = TTU_USE_SHARED_ZEROPAGE;
+-		remap_page(folio, 1 << old_order, ttu_flags);
++		remap_anon_folio(folio, 1 << old_order, ttu_flags);
  	}
  
- 	/*
-@@ -4324,11 +4325,7 @@ static int __folio_split(struct folio *f
- 						true, list, split_type);
- 	else
- 		ret = __folio_freeze_split_file(folio, new_order, split_at, &xas, mapping,
--						true, list, split_type, end,
--						&nr_shmem_dropped);
--
--	if (nr_shmem_dropped)
--		shmem_uncharge(mapping->host, nr_shmem_dropped);
-+						true, list, split_type);
- 
- 	if (!ret && is_anon && !folio_is_device_private(folio))
- 		ttu_flags = TTU_USE_SHARED_ZEROPAGE;
+ 	return ret;
 _
 
 Patches currently in -mm which might be from kasong@tencent.com are
