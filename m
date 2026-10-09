@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9C96A403135
-	for <mm-commits@vger.kernel.org>; Fri,  9 Oct 2026 05:57:15 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C656D403B1E
+	for <mm-commits@vger.kernel.org>; Fri,  9 Oct 2026 05:57:16 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791525436; cv=none; b=cTA/mmjqWHS7W48UIjAmfdslrbsM8L4AVY02c/bClZX8p4s9D/SsYNAL+oQ38aTWcJ9f0lWT55oGmyOtU2FxN4UehEibiw5KeeBE35hjFk9YEeprPnijP0h9PQi5PTq3wCjYrkRCe2DaBZm0plbkA7oB604Vi4bVEV5496P74s8=
+	t=1791525438; cv=none; b=ok3jSRdTbGnbd3n8gQZyMSqXVwFlybvLHJA7QoS9kA7IFyXFKfeIMEPfbnT+ckwEJzgmjZEa3IkcyyvPNQrV309TXb9/qMDCGg9W9Yf5WW4wBmsAYBGWCFef5QziFxXTfKG2185v5bGgBwrclsehTeTCb1BNN3LDzK/hQr/HcHs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791525436; c=relaxed/simple;
-	bh=Nm1XsTtIIzqH0jkUscjFTJ0kYBV8VfgP3Xk/4rCdOSg=;
-	h=Date:To:From:Subject:Message-Id; b=SR7r5OdHdsSDz7RZwHYJ0IA0USXbBzXsSeTT1Az8nPrGbTM8HW4cO/TMHfyRo2B8E/UskM13sXt7TZsP99awtw702BE52khhIr0TD2MgGLq6i2hymxWkX3WUZuxrImjk+tXv7bVakVymYOO8rfeA2RG9m61OYYG8PHAIlD3AO/I=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=cTnjfECA; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1791525438; c=relaxed/simple;
+	bh=fdFUGPPexNpspiR8rUyJpm88jhznjxoma53nqqptCoQ=;
+	h=Date:To:From:Subject:Message-Id; b=WezWGmgnzQ/J16HAy+r1B87oVn7zfUbhnt7lpaojnPibiONaDkYRJdpWODoCHpksKRJPb3vxsJtQPsDddQNHy7H/32q9UWTTiRlyuWwsyTSPQOIvHsV9X8x+qrUvKbUw8InFOOEkNWEQ/RnLYxmSd5HSazzg2BYMP/Q7GKrUJSs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=nC5JxHZP; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="cTnjfECA"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6D6CF1F000FF;
-	Fri,  9 Oct 2026 05:57:15 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="nC5JxHZP"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9793C1F00893;
+	Fri,  9 Oct 2026 05:57:16 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1791525435;
-	bh=RqT7TGjkfMXdUB/N1YqMRJgfsUvWdM3v8vgluzCMKJs=;
+	d=linux-foundation.org; s=korg; t=1791525436;
+	bh=0gHxE2C/3YMcHi6l1ybmvTJAJUIWgzDE2iAAGTtTpUE=;
 	h=Date:To:From:Subject;
-	b=cTnjfECAbKtokBFsBazSNmpjrKQVP7OiVS9BJk/mCcPGEfhT9Nx/UCFE0fWDqc0kk
-	 TooR4yI2mqE++zdef/csRo5h1FcBtkfnsAukYSQq9pf9Uy0/Hjq7cSP/CuDXBpsjR5
-	 1t3Xh6apuakk1s4bDJUZjezUgdGNlUuNNaUx0WdI=
-Date: Thu, 08 Oct 2026 22:57:15 -0700
+	b=nC5JxHZP14YlP+s8pk6rg2d9MHHOVy9Av3v73W/iVzQzv3og8ThVNhvT7RaOdXPDU
+	 jPi5upR8mxm5xmNTDiVIFm9fbNLBXi5pXuFwdUIs7ew63E1u1vVHe71nYFmiiDOAxG
+	 FiFUR0LdHzqGN93hUfsdyjBTLq+mIIK2blsdCMZU=
+Date: Thu, 08 Oct 2026 22:57:16 -0700
 To: mm-commits@vger.kernel.org,ziy@nvidia.com,will@kernel.org,vbabka@kernel.org,shikemeng@huaweicloud.com,ryan.roberts@arm.com,riel@surriel.com,nphamcs@gmail.com,mark.rutland@arm.com,ljs@kernel.org,liam@infradead.org,lance.yang@linux.dev,kasong@tencent.com,kas@kernel.org,jannh@google.com,harry@kernel.org,hannes@cmpxchg.org,dev.jain@arm.com,david@kernel.org,chrisl@kernel.org,chengming.zhou@linux.dev,catalin.marinas@arm.com,baoquan.he@linux.dev,baolin.wang@linux.alibaba.com,baohua@kernel.org,tz2294@columbia.edu,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-huge_memory-add-a-comment-to-the-open-coded-swap-entry.patch removed from -mm tree
-Message-Id: <20261009055715.6D6CF1F000FF@smtp.kernel.org>
+Subject: [merged mm-stable] mm-rmap-use-folio_page_swap_entry-in-ttu_anon_swapbacked_folio.patch removed from -mm tree
+Message-Id: <20261009055716.9793C1F00893@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,27 +35,26 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/huge_memory: add a comment to the open-coded swap entry
+     Subject: mm/rmap: use folio_page_swap_entry() in ttu_anon_swapbacked_folio()
 has been removed from the -mm tree.  Its filename was
-     mm-huge_memory-add-a-comment-to-the-open-coded-swap-entry.patch
+     mm-rmap-use-folio_page_swap_entry-in-ttu_anon_swapbacked_folio.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Tal Zussman <tz2294@columbia.edu>
-Subject: mm/huge_memory: add a comment to the open-coded swap entry
-Date: Tue, 08 Sep 2026 11:16:32 -0400
+Subject: mm/rmap: use folio_page_swap_entry() in ttu_anon_swapbacked_folio()
+Date: Tue, 08 Sep 2026 11:16:33 -0400
 
-The swap entry of each new folio in __split_folio_to_order() is computed
-by hand from folio->swap rather than with folio_swap_entry(), because the
-folio's page count is not valid while it is being split.  Add a comment
-explaining this.
+We already have the folio here, so use folio_page_swap_entry() instead of
+going through page_swap_entry().  This saves a call to compound_head().
 
-Link: https://lore.kernel.org/20260908-folio_swap_entry-v2-2-ee6d01dfa5e1@columbia.edu
+No functional change.
+
+Link: https://lore.kernel.org/20260908-folio_swap_entry-v2-3-ee6d01dfa5e1@columbia.edu
 Signed-off-by: Tal Zussman <tz2294@columbia.edu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Reviewed-by: Zi Yan <ziy@nvidia.com>
 Acked-by: David Hildenbrand (Arm) <david@kernel.org>
 Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
 Cc: Baoquan He <baoquan.he@linux.dev>
@@ -79,24 +78,23 @@ Cc: Rik van Riel <riel@surriel.com>
 Cc: Ryan Roberts <ryan.roberts@arm.com>
 Cc: Vlastimil Babka <vbabka@kernel.org>
 Cc: Will Deacon <will@kernel.org>
+Cc: Zi Yan <ziy@nvidia.com>
 ---
 
- mm/huge_memory.c |    4 ++++
- 1 file changed, 4 insertions(+)
+ mm/rmap.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/huge_memory.c~mm-huge_memory-add-a-comment-to-the-open-coded-swap-entry
-+++ a/mm/huge_memory.c
-@@ -3762,6 +3762,10 @@ static void __split_folio_to_order(struc
- 		 */
- 		VM_WARN_ON_ONCE_PAGE(new_folio->private, new_head);
+--- a/mm/rmap.c~mm-rmap-use-folio_page_swap_entry-in-ttu_anon_swapbacked_folio
++++ a/mm/rmap.c
+@@ -2147,7 +2147,7 @@ static bool ttu_anon_swapbacked_folio(st
+ {
+ 	const bool anon_exclusive = folio_test_anon(folio) &&
+ 				    PageAnonExclusive(page);
+-	swp_entry_t entry = page_swap_entry(page);
++	swp_entry_t entry = folio_page_swap_entry(folio, page);
+ 	struct mm_struct *mm = vma->vm_mm;
  
-+		/*
-+		 * Not all folio fields are valid during a split, so open-code
-+		 * the swap entry rather than using folio_swap_entry().
-+		 */
- 		if (folio_test_swapcache(folio))
- 			new_folio->swap.val = folio->swap.val + i;
- 
+ 	if (folio_dup_swap(folio, page) < 0)
 _
 
 Patches currently in -mm which might be from tz2294@columbia.edu are
