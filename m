@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A63653F927B
-	for <mm-commits@vger.kernel.org>; Fri,  9 Oct 2026 05:56:45 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4E9F73FD132;
+	Fri,  9 Oct 2026 05:56:47 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791525406; cv=none; b=nEXocyiUXBcY3CNaEcTf9peH9nZ8YmNsCiJ1G2bEdATJLOH1wn4PnDRGzZEKd04KWvrqE5mDUEq5YTG5afcUg110mDx3hAEZYz4QDroFr6Np4E2Givbjgx5yFVBkZBpbsl8QhiQiQujADaOTwVYYbn0/CaTv7pTnrft/PJ5dj9s=
+	t=1791525408; cv=none; b=KnYsrg6f7QELFHCTjPaB2/S6bJoSs/T37115R8KDHtcIMdJfpShbJI4eUiqRQdgfg37jx/QaSK1Kvf/yhfdy+kfICTnxmQq9+usr4cHUamGmcLciutfHawz0SZSIjYno1pxswsB3CZa8QCoel9zXI1u8m263lVHfW19gs6/UFjc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791525406; c=relaxed/simple;
-	bh=xx3HdUU9ypLDjDfG5W2oMqsgtDpsMbKz8umF4UzrkDs=;
-	h=Date:To:From:Subject:Message-Id; b=LygLkjeiNMilWUjbvPUOhCuHY6G20BeNH9vu66v2IT0U4g2N1lVAjqMg3JTW0/ujZ6aIhqLbx42t22tI03rA4nakGn0Fl4toh7ZSHWRs/0iCeIiIZsgke0q0arWWm5gIit4Jcb9rZ8I3dKhEXgqrZrcTCVhalHD/ZgLlWHWcUF0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=h68kNVCZ; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1791525408; c=relaxed/simple;
+	bh=BOFtcvCDqQUmeYKzzPXwWeOSuwjuK1PN2qhe93D2oi4=;
+	h=Date:To:From:Subject:Message-Id; b=RLEKHMHtQRt+JC68tTM6mxTJ5xPtWuSNIN2jqhKvYor8SQV3qiiOxqdokHcSaqgJ8FBrjr8plX3+XkPYif95QqF/xMYb4o+Hn9kvLMhzTDN4MuC/n73MkgTCGX3H71rpsGaPrtl5CedxB63/pRSKsIoMcrBGRr+p6KgFOPt8bYw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ssPO2RIk; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="h68kNVCZ"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 59F321F000FF;
-	Fri,  9 Oct 2026 05:56:45 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ssPO2RIk"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D90341F00893;
+	Fri,  9 Oct 2026 05:56:46 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1791525405;
-	bh=NEcNiu3NWhms01Xwlt8wDNMNuj2XCRihMWsAmAhvs1k=;
+	d=linux-foundation.org; s=korg; t=1791525407;
+	bh=R94sB/yF4aeXfxcaCWgf8A7/VHroURWuswW6V11lEiQ=;
 	h=Date:To:From:Subject;
-	b=h68kNVCZOwvRPMrwK7pasWvVY00szD81pvpL7xRpBrH4DOTdoOGUXtVGh4/k0mRjA
-	 xIG7Vav1yyQdzYi+e1bnLmuCoaQII0TZFiVU9Zcyq1dULY6wqljchPh1FMrKdfmWLQ
-	 d9jQG0i2kceS5TZMufQNxQyQr5aoS1Fp868Tj2Pg=
-Date: Thu, 08 Oct 2026 22:56:44 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,yuzhao@google.com,yuanchu@google.com,weixugc@google.com,vbabka@kernel.org,shakeel.butt@linux.dev,ryncsn@gmail.com,roman.gushchin@linux.dev,ridong.chen@linux.dev,qi.zheng@linux.dev,muchun.song@linux.dev,mhocko@kernel.org,ljs@kernel.org,lianux.mm@gmail.com,liam@infradead.org,hannes@cmpxchg.org,david@kernel.org,chrisl@kernel.org,baoquan.he@linux.dev,baolin.wang@linux.alibaba.com,baohua@kernel.org,axelrasmussen@google.com,kasong@tencent.com,akpm@linux-foundation.org
+	b=ssPO2RIk0N07pQX7j0kF6MMbb2BMUGkMjVnmyUFXIC7xGTaBl+ZZOE1aPxEL5BonT
+	 MpfSZ+95bKcqk/S1eaTAKC2PGTnZalfW+tWfiNQ8ZGaHpusI51C6buKH51tTlxw0kG
+	 dq0oGI8NGB/6UJUXzdbYQKMjwYcBmT5X/PuxdPHw=
+Date: Thu, 08 Oct 2026 22:56:46 -0700
+To: mm-commits@vger.kernel.org,yuanchu@google.com,weixugc@google.com,stable@vger.kernel.org,shakeel.butt@linux.dev,mhocko@kernel.org,ljs@kernel.org,kasong@tencent.com,hannes@cmpxchg.org,david@kernel.org,baoquan.he@linux.dev,baolin.wang@linux.alibaba.com,baohua@kernel.org,axelrasmussen@google.com,arnd@arndb.de,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-mglru-fix-potential-generation-folio-number-leak.patch removed from -mm tree
-Message-Id: <20261009055645.59F321F000FF@smtp.kernel.org>
+Subject: [merged mm-stable] mm-vmscan-avoid-false-positive-wuninitialized-warning-again.patch removed from -mm tree
+Message-Id: <20261009055646.D90341F00893@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,160 +35,97 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/mglru: fix potential generation folio number leak
+     Subject: mm/vmscan: avoid false-positive -Wuninitialized warning, again
 has been removed from the -mm tree.  Its filename was
-     mm-mglru-fix-potential-generation-folio-number-leak.patch
+     mm-vmscan-avoid-false-positive-wuninitialized-warning-again.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Kairui Song <kasong@tencent.com>
-Subject: mm/mglru: fix potential generation folio number leak
-Date: Sun, 06 Sep 2026 00:51:11 +0800
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: mm/vmscan: avoid false-positive -Wuninitialized warning, again
+Date: Wed, 16 Sep 2026 10:34:46 +0200
 
-Each generation of MGLRU accounts anon and file folio numbers separately,
-and the page table walker updates each generation's counters in batch once
-the walk is done.  The walker promotes a folio's generation with a cmpxchg
-on folio->flags, and update_batch_size() then reads the live flags again
-to pick the anon/file column to charge.  The walk holds neither the lruvec
-lock nor the folio lock, so the type can flip between the cmpxchg and that
-read: the lazyfree path clears PG_swapbacked, and reclaim sets it back on
-a dirty lazyfree folio.  The batched delta pair is then recorded in the
-wrong type column.  Nothing reconciles it afterwards, permanently skewing
-lrugen->nr_pages and the reclaim budgets derived from it.
+I previously worked around a false-postive gcc-16 warning in the
+get_tier_idx() function, by adding a fake initializer. This happens with
+the -fsanitize=bounds sanitizer when the compiler creates a specialized
+variant of isolate_folios():
 
-Fix it by capturing the type from the flags snapshot the cmpxchg
-linearized against: folio_update_gen() returns the type of the state it
-transitioned from, and update_batch_size() accounts with that.
+In function 'get_tier_idx',
+    inlined from 'isolate_folios.constprop' at mm/vmscan.c:4982:9:
+mm/vmscan.c:4934:9: error: 'sp.refaulted' is used uninitialized [-Werror=uninitialized]
+ 4934 |         read_ctrl_pos(lruvec, type, LRU_TIER_MIN, LRU_TIER_MIN, 2, &sp);
+      |         ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+mm/vmscan.c: In function 'isolate_folios.constprop':
+mm/vmscan.c:4946:25: note: 'sp.refaulted' was declared here
+ 4946 |         struct ctrl_pos sp, pv = {};
+      |                         ^~
 
-A folio's type only changes while it is off the LRU list, inside a del/add
-pair under the lruvec lock, with the gen bits cleared in between.  The
-generation and PG_swapbacked sit in the same folio->flags word, so the
-cmpxchg snapshot captures them together.  Let G be the generation that
-snapshot captured (old_gen) and G' the one it wrote (new_gen); the CAS can
-land in only three places:
+Adding another "= {}" would solve the problem as well, but to prevent
+this from happening again after the next code refactoring, try instead to
+prevent this by forbidding interprocedural optimizations on this function.
 
-  - before the del: the folio is anon at G; the batch records anon
-    G -> G', and the del later removes the folio from the anon
-    counters;
-  - between del and add: gen == -1, so folio_update_gen() returns -1
-    without touching the flags and no batch is recorded; the del/add
-    pair accounts for the move alone;
-  - after the add: the folio is file at the fresh generation the add
-    charged; the batch records file, that gen -> G', matching that
-    charge.
-
-Unlike the drift of lazy promotions, which sort_folio() repairs under the
-lruvec lock, the phantom deltas from before this fix land in a column the
-folio never occupies again, so nothing ever repairs them.
-
-Link: https://lore.kernel.org/20260906-mglru-flags-cleanup-v6-6-9aacbd77d4ca@tencent.com
-Fixes: bd74fdaea146 ("mm: multi-gen LRU: support page table walks")
-Signed-off-by: Kairui Song <kasong@tencent.com>
+Link: https://lore.kernel.org/all/20260213123902.3466040-1-arnd@kernel.org/
+Link: https://lore.kernel.org/20260916083456.4136132-1-arnd@kernel.org
+Fixes: 3de705a43a46 ("mm/vmscan: avoid false-positive -Wuninitialized warning")
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Reviewed-by: Barry Song <baohua@kernel.org>
 Cc: Axel Rasmussen <axelrasmussen@google.com>
 Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
 Cc: Baoquan He <baoquan.he@linux.dev>
-Cc: Chris Li <chrisl@kernel.org>
-Cc: David Hildenbrand (Arm) <david@kernel.org>
+Cc: Barry Song <baohua@kernel.org>
+Cc: David Hildenbrand <david@kernel.org>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Kairui Song <ryncsn@gmail.com>
-Cc: Liam R. Howlett <liam@infradead.org>
-Cc: Lian Wang <lianux.mm@gmail.com>
+Cc: Kairui Song <kasong@tencent.com>
 Cc: Lorenzo Stoakes <ljs@kernel.org>
 Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Muchun Song <muchun.song@linux.dev>
-Cc: Qi Zheng <qi.zheng@linux.dev>
-Cc: Ridong Chen <ridong.chen@linux.dev>
-Cc: Roman Gushchin <roman.gushchin@linux.dev>
 Cc: Shakeel Butt <shakeel.butt@linux.dev>
-Cc: Vlastimil Babka <vbabka@kernel.org>
 Cc: Wei Xu <weixugc@google.com>
 Cc: Yuanchu Xie <yuanchu@google.com>
-Cc: Yu Zhao <yuzhao@google.com>
-Cc: Zi Yan <ziy@nvidia.com>
+Cc: <stable@vger.kernel.org>
 ---
 
- include/linux/mm_inline.h |   11 +++++++++++
- mm/vmscan.c               |   13 +++++++------
- 2 files changed, 18 insertions(+), 6 deletions(-)
+ mm/vmscan.c |   11 +++++++----
+ 1 file changed, 7 insertions(+), 4 deletions(-)
 
---- a/include/linux/mm_inline.h~mm-mglru-fix-potential-generation-folio-number-leak
-+++ a/include/linux/mm_inline.h
-@@ -30,6 +30,17 @@ static inline int folio_is_file_lru(cons
- 	return !folio_test_swapbacked(folio);
- }
- 
-+/**
-+ * folio_flags_is_file_lru - Should the folio be on a file LRU or anon LRU?
-+ * @flags: The folio's flags.
-+ *
-+ * Just like folio_is_file_lru but take the folio flags directly instead.
-+ */
-+static inline int folio_flags_is_file_lru(const unsigned long *flags)
-+{
-+	return !test_bit(PG_swapbacked, flags);
-+}
-+
- static __always_inline void __update_lru_size(struct lruvec *lruvec,
- 				enum lru_list lru, enum zone_type zid,
- 				long nr_pages)
---- a/mm/vmscan.c~mm-mglru-fix-potential-generation-folio-number-leak
+--- a/mm/vmscan.c~mm-vmscan-avoid-false-positive-wuninitialized-warning-again
 +++ a/mm/vmscan.c
-@@ -3294,7 +3294,8 @@ static bool positive_ctrl_err(struct ctr
-  ******************************************************************************/
+@@ -3223,8 +3223,11 @@ struct ctrl_pos {
+ 	int gain;
+ };
  
- /* promote pages accessed through page tables */
--static int folio_update_gen(struct folio *folio, int new_gen, const vma_flags_t *vma_flags)
-+static int folio_update_gen(struct folio *folio, int new_gen, int *type,
-+			    const vma_flags_t *vma_flags)
+-static void read_ctrl_pos(struct lruvec *lruvec, int type, int tier_min,
+-			  int tier_max, int gain, struct ctrl_pos *pos)
++/*
++ * __noipa works around gcc-16 warning for uninitialized use of pos->refaulted
++ */
++static void __noipa read_ctrl_pos(struct lruvec *lruvec, int type, int tier_min,
++				  int tier_max, int gain, struct ctrl_pos *pos)
  {
- 	unsigned long new_flags, old_flags = READ_ONCE(*folio_flags(folio, 0));
- 	int old_gen;
-@@ -3323,6 +3324,7 @@ static int folio_update_gen(struct folio
- 		new_flags |= BIT(PG_workingset);
- 	} while (!try_cmpxchg(folio_flags(folio, 0), &old_flags, new_flags));
- 
-+	*type = folio_flags_is_file_lru(&old_flags);
- 	return old_gen;
- }
- 
-@@ -3368,9 +3370,8 @@ static int folio_inc_gen(struct lruvec *
- }
- 
- static void update_batch_size(struct lru_gen_mm_walk *walk, struct folio *folio,
--			      int old_gen, int new_gen)
-+			      int old_gen, int new_gen, int type)
+ 	int i;
+ 	struct lru_gen_folio *lrugen = &lruvec->lrugen;
+@@ -4873,7 +4876,7 @@ static int scan_folios(unsigned long nr_
+ static int get_tier_idx(struct lruvec *lruvec, int type)
  {
--	int type = folio_is_file_lru(folio);
- 	int zone = folio_zonenum(folio);
- 	int delta = folio_nr_pages(folio);
+ 	int tier;
+-	struct ctrl_pos sp, pv = {};
++	struct ctrl_pos sp, pv;
  
-@@ -3559,7 +3560,7 @@ static bool suitable_to_scan(int total,
- static void walk_update_folio(struct lru_gen_mm_walk *walk, struct vm_area_struct *vma,
- 		struct lruvec *lruvec, struct folio *folio, bool dirty)
+ 	/*
+ 	 * To leave a margin for fluctuations, use a larger gain factor (2:3).
+@@ -4892,7 +4895,7 @@ static int get_tier_idx(struct lruvec *l
+ 
+ static int get_type_to_scan(struct lruvec *lruvec, int swappiness)
  {
--	int new_gen, old_gen;
-+	int new_gen, old_gen, type;
+-	struct ctrl_pos sp, pv = {};
++	struct ctrl_pos sp, pv;
  
- 	if (!folio)
- 		return;
-@@ -3572,9 +3573,9 @@ static void walk_update_folio(struct lru
- 		folio_mark_dirty(folio);
- 
- 	if (walk) {
--		old_gen = folio_update_gen(folio, new_gen, &vma->flags);
-+		old_gen = folio_update_gen(folio, new_gen, &type, &vma->flags);
- 		if (old_gen >= 0 && old_gen != new_gen)
--			update_batch_size(walk, folio, old_gen, new_gen);
-+			update_batch_size(walk, folio, old_gen, new_gen, type);
- 	} else if (lru_gen_set_refs(folio, &vma->flags)) {
- 		old_gen = folio_lru_gen(folio);
- 		if (old_gen >= 0 && old_gen != new_gen)
+ 	if (swappiness <= MIN_SWAPPINESS + 1)
+ 		return LRU_GEN_FILE;
 _
 
-Patches currently in -mm which might be from kasong@tencent.com are
+Patches currently in -mm which might be from arnd@arndb.de are
 
+mm-damon-core-reduce-stack-usage-further.patch
 
