@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1CC89414439
-	for <mm-commits@vger.kernel.org>; Fri,  9 Oct 2026 05:58:34 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 43D954119FA;
+	Fri,  9 Oct 2026 05:58:35 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791525515; cv=none; b=TCvcWc9hrgpUOJWtmimljNzemDhI6K4xwcYhSm16kcqzkV27pqIdo2msk5VxjW+XoJgBndvgfsXSPWbjv3zhCKIjkPRAf7iWih9m24cVuN/PWYljhVG7S9rZz/S13MNoRZ34sTPpg6NRxawBWCeVsQQe4PY/SAvWCMkcjBKnoPI=
+	t=1791525516; cv=none; b=MjVqAJ2b053/LMeltMj9L6UoV34XYAYeNiibtVkpaUbnQOmblYq+U6Rq72Ay+N8wodfHxVHCjMZmDgnr//J0jaImJuI+sTQBwudxK8NTLJ7scIljyRPZGaxMWkWpGWktAhYo31hBcjFL/AMRDR7CTaj4twRpkIHj8sWXBLzac3E=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791525515; c=relaxed/simple;
-	bh=wMumZS9AuXU8B8fnKxTy40MrDn4Hm7kTeDOjv1nbWX8=;
-	h=Date:To:From:Subject:Message-Id; b=SUyPXN8PiwI7mHkt0+mkuEONXJZa3pLPFOs80Z7n1Aexh0mMMY/Ydc2Hnt9ruArU4KWMAZsXb08CUmQw4BIlEzrghCiJXTprlackI8LSnObeHg47tMwFN8hOD58kCD90aMZWAiylRrk15Eh044vHylgNmDyFDTrfIiHYRIM/DS8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Y3qmvZxS; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1791525516; c=relaxed/simple;
+	bh=EsqqXqwYaGtYaXVjbeyXvqvu+aYZvTacMnB9coYvjeA=;
+	h=Date:To:From:Subject:Message-Id; b=ueO7tKopjLQLqkgc8ApmZrIgVRKviqRkRcG8w5VZOdb2l3tF2f+IkIcaw50Inel0QURRtYtWqBVSvD2bC2RtdmikJfO964sMuJ+CieueYUvAB9sub/2okXM+PHoVsapkEdMDjmlulniy2QmhavR0E4DlbwPUvypfduyEDitsm8o=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ZL97q7CK; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Y3qmvZxS"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E2FA11F00898;
-	Fri,  9 Oct 2026 05:58:33 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ZL97q7CK"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1B1511F000FF;
+	Fri,  9 Oct 2026 05:58:35 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1791525514;
-	bh=14mhtSPOcetwtBCOeszCymQIb1i4jABY04QC3QFp/UA=;
+	d=linux-foundation.org; s=korg; t=1791525515;
+	bh=L1XMLg/6P8xhyj9ZvlUcshKoYRkfy6/gGMYSJ5K3mak=;
 	h=Date:To:From:Subject;
-	b=Y3qmvZxSWzVlU/8mxqzWmcwBDRy/SOlwDO7J+KVNyOxarsOjM1v7cpHg1mL920rYd
-	 yzJ5AkxVw6dUyepgSHQQIwMD825rr44EHRP5PJHHS/R7KUiulmA+N80jVu9cxyvsCY
-	 DOnUgRYWMhZVJzo4dB4Bm/k0XjGHvTD/fQ9TrqDA=
-Date: Thu, 08 Oct 2026 22:58:33 -0700
-To: mm-commits@vger.kernel.org,vbabka@kernel.org,surenb@google.com,sj@kernel.org,rdunlap@infradead.org,mhocko@suse.com,ljs@kernel.org,liam@infradead.org,david@kernel.org,corbet@lwn.net,rppt@kernel.org,akpm@linux-foundation.org
+	b=ZL97q7CKlddu5u9dPZN39+uuYWxw0t5CE0UfaEFcNshr7Mp99rxRUPl/e7ql3+dwJ
+	 LfQnA1TzTHiH6uxER5bjpdCin1dEk4HdCNLOa7PrI42P3/lIYskrKJ3MOyofbVqq7S
+	 zhKa/ZKIs461IjB2QoFt1Of5VVUzioun1jZTP/aM=
+Date: Thu, 08 Oct 2026 22:58:34 -0700
+To: mm-commits@vger.kernel.org,yuzhao@google.com,yuanchu@google.com,weixugc@google.com,tj@kernel.org,stable@vger.kernel.org,shakeel.butt@linux.dev,roman.gushchin@linux.dev,muchun.song@linux.dev,mhocko@kernel.org,ljs@kernel.org,kasong@tencent.com,hannes@cmpxchg.org,david@kernel.org,chris@chrisdown.name,baohua@kernel.org,axelrasmussen@google.com,chenridong@xiaomi.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] docs-core-api-memory-allocation-clarify-when-to-use-kzalloc_obj-and-kzalloc.patch removed from -mm tree
-Message-Id: <20261009055833.E2FA11F00898@smtp.kernel.org>
+Subject: [merged mm-stable] mm-page_counter-avoid-integer-overflow-in-effective_protection.patch removed from -mm tree
+Message-Id: <20261009055835.1B1511F000FF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,72 +35,128 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: docs/core-api: memory-allocation: clarify when to use kzalloc_obj and kzalloc
+     Subject: mm/page_counter: avoid integer overflow in effective_protection()
 has been removed from the -mm tree.  Its filename was
-     docs-core-api-memory-allocation-clarify-when-to-use-kzalloc_obj-and-kzalloc.patch
+     mm-page_counter-avoid-integer-overflow-in-effective_protection.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: "Mike Rapoport (Microsoft)" <rppt@kernel.org>
-Subject: docs/core-api: memory-allocation: clarify when to use kzalloc_obj and kzalloc
-Date: Mon, 7 Sep 2026 09:36:54 +0300
+From: Ridong Chen <chenridong@xiaomi.com>
+Subject: mm/page_counter: avoid integer overflow in effective_protection()
+Date: Mon, 7 Sep 2026 10:54:44 +0800
 
-Make it abundantly clear that in the most cases objects should be
-allocated with kzalloc_obj() and buffers should be allocated with
-kzalloc().
+Patch series "mm/mglru: fix ineffective memory protection for non-kswapd
+reclaim", v4.
 
-Link: https://lore.kernel.org/20260907063654.2248617-1-rppt@kernel.org
-Signed-off-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
+For MGLRU, memory.min/low is not honored during non-kswapd global reclaim
+(global direct reclaim and root-level memory.reclaim), because these paths
+shrink memcgs using stale protection (emin/elow).
+
+Patch 2 is the actual fix.  Patch 1 is a prerequisite: an integer overflow
+in effective_protection(), spotted by the sashiko review tool, which patch
+2's new caller would also be exposed to.
+
+
+This patch (of 2):
+
+effective_protection() scales a parent's protection by a ratio of page
+counts, e.g.  for recursive protection:
+
+	(parent_effective - siblings_protected) * (usage - protected)
+		/ (parent_usage - siblings_protected)
+
+The multiply is done at unsigned long width before dividing.  On systems
+with >= 16TB RAM the product can exceed 2^64 and wrap, giving a bogus
+protection value and silently breaking memory.min/low enforcement.
+
+Use mul_u64_u64_div_u64() to multiply in a 128-bit intermediate.  Because
+usage and parent_usage are not read atomically (a child is charged before
+its parent), usage - protected can briefly exceed the divisor, making the
+quotient overflow 64 bits and trap (#DE on x86).  Cap it so the ratio
+stays <= 1.
+
+Reported by the sashiko review tool [1].
+
+Link: https://lore.kernel.org/20260907025445.1836238-1-ridong.chen@linux.dev
+Link: https://lore.kernel.org/20260907025445.1836238-2-ridong.chen@linux.dev
+Link: https://sashiko.dev/#/patchset/20260826133054.88529-1-ridong.chen@linux.dev?part=1 [1]
+Fixes: bc50bcc6e00b ("mm: memcontrol: clean up and document effective low/min calculations")
+Fixes: 8a931f801340 ("mm: memcontrol: recursive memory.low protection")
+Reviewed-by: Barry Song <baohua@kernel.org>
+Reviewed-by: Johannes Weiner <hannes@cmpxchg.org>
+Signed-off-by: Ridong Chen <chenridong@xiaomi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Acked-by: Vlastimil Babka (SUSE) <vbabka@kernel.org>
-Acked-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
-Reviewed-by: David Hildenbrand (Arm) <david@kernel.org>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Liam R. Howlett <liam@infradead.org>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Randy Dunlap <rdunlap@infradead.org>
-Cc: SeongJae Park <sj@kernel.org>
-Cc: Suren Baghdasaryan <surenb@google.com>
+Assisted-by: Claude:claude-opus-4-8
+Cc: Axel Rasmussen <axelrasmussen@google.com>
+Cc: Chris Down <chris@chrisdown.name>
+Cc: David Hildenbrand <david@kernel.org>
+Cc: Kairui Song <kasong@tencent.com>
+Cc: Lorenzo Stoakes <ljs@kernel.org>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Muchun Song <muchun.song@linux.dev>
+Cc: Roman Gushchin <roman.gushchin@linux.dev>
+Cc: Shakeel Butt <shakeel.butt@linux.dev>
+Cc: Tejun Heo <tj@kernel.org>
+Cc: Wei Xu <weixugc@google.com>
+Cc: Yuanchu Xie <yuanchu@google.com>
+Cc: Yu Zhao <yuzhao@google.com>
+Cc: <stable@vger.kernel.org>
 ---
 
- Documentation/core-api/memory-allocation.rst |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ mm/page_counter.c |   21 +++++++++++++++------
+ 1 file changed, 15 insertions(+), 6 deletions(-)
 
---- a/Documentation/core-api/memory-allocation.rst~docs-core-api-memory-allocation-clarify-when-to-use-kzalloc_obj-and-kzalloc
-+++ a/Documentation/core-api/memory-allocation.rst
-@@ -23,12 +23,14 @@ answer, although very likely you should
+--- a/mm/page_counter.c~mm-page_counter-avoid-integer-overflow-in-effective_protection
++++ a/mm/page_counter.c
+@@ -8,6 +8,7 @@
+ #include <linux/page_counter.h>
+ #include <linux/atomic.h>
+ #include <linux/kernel.h>
++#include <linux/math64.h>
+ #include <linux/string.h>
+ #include <linux/sched.h>
+ #include <linux/bug.h>
+@@ -376,7 +377,8 @@ static unsigned long effective_protectio
+ 	 * otherwise get a smaller chunk than what they claimed.
+ 	 */
+ 	if (siblings_protected > parent_effective)
+-		return protected * parent_effective / siblings_protected;
++		return mul_u64_u64_div_u64(protected, parent_effective,
++					   siblings_protected);
  
-   kzalloc_obj(<VAR_OR_TYPE>);
+ 	/*
+ 	 * Ok, utilized protection of all children is within what the
+@@ -417,13 +419,20 @@ static unsigned long effective_protectio
+ 	if (parent_effective > siblings_protected &&
+ 	    parent_usage > siblings_protected &&
+ 	    usage > protected) {
+-		unsigned long unclaimed;
++		unsigned long parent_unclaimed, parent_unprotected, unprotected;
  
--or
-+if you need memory for an object and
+-		unclaimed = parent_effective - siblings_protected;
+-		unclaimed *= usage - protected;
+-		unclaimed /= parent_usage - siblings_protected;
++		parent_unclaimed = parent_effective - siblings_protected;
++		parent_unprotected = parent_usage - siblings_protected;
  
- ::
- 
-   kzalloc(<size>, GFP_KERNEL);
- 
-+if you need memory for a buffer.
+-		ep += unclaimed;
++		/*
++		 * The usages aren't read atomically, so a child can transiently
++		 * appear to use more than its parent, making the ratio exceed 1
++		 * and the quotient overflow 64 bits (#DE on x86).  Cap it.
++		 */
++		unprotected = min(usage - protected, parent_unprotected);
 +
- Of course there are cases when other allocation APIs and different GFP
- flags must be used.
++		ep += mul_u64_u64_div_u64(parent_unclaimed, unprotected,
++					  parent_unprotected);
+ 	}
  
+ 	return ep;
 _
 
-Patches currently in -mm which might be from rppt@kernel.org are
+Patches currently in -mm which might be from chenridong@xiaomi.com are
 
-docs-mm-describe-set_memory-and-set_direct_map-apis.patch
-docs-mm-describe-set_memory-and-set_direct_map-apis-fix.patch
-arch-mm-promote-debug_wx-to-check_wx.patch
-sh-remove-config_numa-and-realted-configuration-options.patch
-sh-mm-remove-numac.patch
-sh-mm-drop-allocate_pgdat.patch
-sh-remove-setup_bootmem_node-and-plat_mem_setup.patch
-sh-drop-dead-code-guarded-by-ifdef-config_numa.patch
-sh-drop-include-asm-mmzoneh.patch
-init-kconfig-drop-arch_want_numa_variable_locality.patch
-sh-init-remove-call-the-memblock_set_node.patch
-sh-remove-sparsemem-related-entries-from-kconfig.patch
-sh-drop-include-asm-sparsememh.patch
+mm-vmscan-put-rotation-missed-folios-at-the-lru-tail.patch
 
