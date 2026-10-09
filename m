@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BB0833F54C6
-	for <mm-commits@vger.kernel.org>; Fri,  9 Oct 2026 05:56:07 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DB5C93F8EA2
+	for <mm-commits@vger.kernel.org>; Fri,  9 Oct 2026 05:56:08 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791525369; cv=none; b=iWWRFXgfDE1/dUajTdqhf8YE54tow8YBtuMILMOl68FZlb1AE/8LMCUPJLp3SuiU47r7NpqxlkOM0V9cv1i8wHPZE9UxQ8meCXOHz/OityLC9nix0mOdufPSvps9TBu7kAV9WBt+LvcKkfscvk4NENkslMAiHcOVdgf+6piLqmY=
+	t=1791525370; cv=none; b=CpMsEwzt0kdFvl2crTh5K7p7Uk8p17PpsxzsXZZi9hKqCHzSzf/STJM++Fbb6El8TxzM14IwwIJXZQdDjqp6q7x3c/ltkmuYg76TlnUAWJ6ec2mUD/7xYh6aiynCOiaUBdoGQAeTcnF3KzO83G/ZghlBYU1RWCI45S532mnluLM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791525369; c=relaxed/simple;
-	bh=IzmS4KIJPbjBCwOfffd4tGGhnqGot+ySEMSOQ0vUFP8=;
-	h=Date:To:From:Subject:Message-Id; b=DHyD90KpJUY2zOToRZvy5+GZO/UfrGFqTFIaIy9DP4WjjUNIIIhcxUNh3RAdSqX+lb6h3ijdaBztWrnURRu+A+5CAfsrDHBsBFanZ9eimF0Ji677hC7UBhGB8fSX1rK7VXeHWpt+MWK2SyDqe++BiJr4JnjVumtkyhHDtNqJ+54=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=MR+Uoi8R; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1791525370; c=relaxed/simple;
+	bh=2CiA3KKyB4Bj/8LOiPGbpBSiejqirf5KNvcp+ZedX1o=;
+	h=Date:To:From:Subject:Message-Id; b=i0hia2DTC/j6AmU4xeZ1QXMW5SXeRciq2UMrgNJkLeWqq3M9ezgk/dnnnvfA6/AUaIM/jEwADpNISdgqGiSz8EJBp9JYjxmRmAv+JlbZYkNzIuW1/ZUHA9Wl0WbB6D04dpF2HFUgN7BnjGYiDZixysSiypo6ZHKBrv+v/tOF+OY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=a8FrH1+g; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="MR+Uoi8R"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8F2F71F000FF;
-	Fri,  9 Oct 2026 05:56:07 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="a8FrH1+g"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B07C01F00893;
+	Fri,  9 Oct 2026 05:56:08 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1791525367;
-	bh=koC84JH8nCi3wjlJ/t8KPw9Ut9ec7LdciX7wyyi+s20=;
+	d=linux-foundation.org; s=korg; t=1791525368;
+	bh=YVuRQR65A/TOJPQUd0HNs30IlMg//lS5nmygjf03UIk=;
 	h=Date:To:From:Subject;
-	b=MR+Uoi8RZUhAr6LCKGYmJA+viMle9X74bTE1wuhI021WpgEyve04pL6IbCjIXSvg+
-	 gG5B978hYYYim0i1dS87O04+JH34cRyv4YUCCrz0ddzlxOcsLvJ3LmG75cMcJou+B0
-	 yD1B03Je774MPwexpG65sX3BRuafi07LDEu319fw=
-Date: Thu, 08 Oct 2026 22:56:07 -0700
+	b=a8FrH1+gTOgcKY+y0ZGraKuMqNaYCSkL+Z9rKSOHbNr6519/s17uL51lbAHOzck6k
+	 S0yST3vrJlE4bg5PVtMWrzrUJq7o36sqJrII916ONKJTEHxl52kD/ifFwPVTpOBOPM
+	 beeJr4Q5QXcg/eYAqKdLuvwloJFMiGul9kwvjRJM=
+Date: Thu, 08 Oct 2026 22:56:08 -0700
 To: mm-commits@vger.kernel.org,vbabka@kernel.org,surenb@google.com,shuah@kernel.org,rppt@kernel.org,rdunlap@infradead.org,mhocko@suse.com,ljs@kernel.org,liam@infradead.org,kunwu.chan@gmail.com,david@kernel.org,davidgow@davidgow.net,corbet@lwn.net,brendan.higgins@linux.dev,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-damon-vaddr-remove-a-debug-message.patch removed from -mm tree
-Message-Id: <20261009055607.8F2F71F000FF@smtp.kernel.org>
+Subject: [merged mm-stable] mm-damon-core-validate-number-of-probes-in-valid_probe_params.patch removed from -mm tree
+Message-Id: <20261009055608.B07C01F00893@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,23 +35,24 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/damon/vaddr: remove a debug message
+     Subject: mm/damon/core: validate number of probes in valid_probe_params()
 has been removed from the -mm tree.  Its filename was
-     mm-damon-vaddr-remove-a-debug-message.patch
+     mm-damon-core-validate-number-of-probes-in-valid_probe_params.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: SJ Park <sj@kernel.org>
-Subject: mm/damon/vaddr: remove a debug message
-Date: Tue, 1 Sep 2026 22:47:36 -0700
+Subject: mm/damon/core: validate number of probes in valid_probe_params()
+Date: Tue, 1 Sep 2026 22:47:37 -0700
 
-There is a debug message in the DAMON virtual address space operation set.
-It has not really been used in a meaningful way for the last few years,
-though.  Remove it.
+Each DAMON context is allowed to have only up to DAMON_MAX_PROBES probes. 
+The central place for validating DAMON probe parameters,
+damon_valid_probe_params(), is not validating the upper limit, though.  Do
+the validation.
 
-Link: https://lore.kernel.org/20260902054747.99370-4-sj@kernel.org
+Link: https://lore.kernel.org/20260902054747.99370-5-sj@kernel.org
 Signed-off-by: SJ Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 Reviewed-by: Kunwu Chan <kunwu.chan@gmail.com>
@@ -69,45 +70,25 @@ Cc: Suren Baghdasaryan <surenb@google.com>
 Cc: Vlastimil Babka <vbabka@kernel.org>
 ---
 
- mm/damon/vaddr.c |   16 +++-------------
- 1 file changed, 3 insertions(+), 13 deletions(-)
+ mm/damon/core.c |    7 +++++++
+ 1 file changed, 7 insertions(+)
 
---- a/mm/damon/vaddr.c~mm-damon-vaddr-remove-a-debug-message
-+++ a/mm/damon/vaddr.c
-@@ -189,22 +189,12 @@ static int damon_va_three_regions(struct
-  *   <BIG UNMAPPED REGION 2>
-  *   <stack>
-  */
--static void __damon_va_init_regions(struct damon_ctx *ctx,
--				     struct damon_target *t)
-+static void __damon_va_init_regions(struct damon_target *t)
- {
--	struct damon_target *ti;
- 	struct damon_addr_range regions[3];
--	int tidx = 0;
+--- a/mm/damon/core.c~mm-damon-core-validate-number-of-probes-in-valid_probe_params
++++ a/mm/damon/core.c
+@@ -1419,6 +1419,13 @@ static bool damon_valid_probe_params(str
+ 	unsigned char max_probe_hits;
+ 	struct damon_probe *probe;
+ 	unsigned int wsum, wsum_to_add;
++	int nr_probes;
++
++	nr_probes = 0;
++	damon_for_each_probe(probe, ctx)
++		nr_probes++;
++	if (nr_probes > DAMON_MAX_PROBES)
++		return false;
  
--	if (damon_va_three_regions(t, regions)) {
--		damon_for_each_target(ti, ctx) {
--			if (ti == t)
--				break;
--			tidx++;
--		}
--		pr_debug("Failed to get three regions of %dth target\n", tidx);
-+	if (damon_va_three_regions(t, regions))
- 		return;
--	}
- 
- 	damon_set_regions(t, regions, 3, DAMON_MIN_REGION_SZ);
- }
-@@ -217,7 +207,7 @@ static void damon_va_init(struct damon_c
- 	damon_for_each_target(t, ctx) {
- 		/* the user may set the target regions as they want */
- 		if (!damon_nr_regions(t))
--			__damon_va_init_regions(ctx, t);
-+			__damon_va_init_regions(t);
- 	}
- }
- 
+ 	if (!damon_has_probe_weights(ctx))
+ 		return true;
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
