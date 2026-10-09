@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AF74832E141
-	for <mm-commits@vger.kernel.org>; Fri,  9 Oct 2026 04:14:31 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 780D83ACEF3
+	for <mm-commits@vger.kernel.org>; Fri,  9 Oct 2026 04:15:15 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791519275; cv=none; b=jHon7N99mId7XwlpPhAEBb1vbZkfaJG5oAYsxhwpTafkEhfYglVilbamHKCNzdsnGDv3wsVLX5v791dLLf3iSwz5982nw9xEd6qPGkNw6VDkFseC2LCTYlf35/Neqg/b0EIxttj3OGhiVvVwwlXhvp3kh8pEq8jS2teqkprXCO4=
+	t=1791519328; cv=none; b=YKZCRlMvO7JJPpv2zmfHRhBw/Bo72vq4gVOfajzVMSXBAiL9OYt1aB8lFLpwrBDeZajX7MgZ936oe0F3EBOcd3XJU9wLXM1HSzx2aq0lWFNkS4MPGg43ViyC0KlD/pDE87b5gUTuR3OR/pU5dkdBGCD/myp6Z2PmcpbW3jVc/bw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791519275; c=relaxed/simple;
-	bh=HmtdntnnHCIEsn0CW/jR477mCWsxyGyXbS/EIfgc4RY=;
-	h=Date:To:From:Subject:Message-Id; b=fz1JlzIPcmh9ZZpL2X5uCAIPO3lJaj56ed+dqlQ7VPeOQKW9yDaknELKbVmmoJbV5a8gtWcCvMiXbjUB2ficTU2AGxGEdkNsAlQTSG81Obr4MmRUt1JnodQyAVqIlsfToZ27TMiA+XJmSbSw0eOx+HxFE2MOKbX4o4vyEihdYcE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=CORJ2UW9; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1791519328; c=relaxed/simple;
+	bh=qIvWGtw+AWVN0+A9Mcu1t7Mwus8EMKGFZj84wBBfOGA=;
+	h=Date:To:From:Subject:Message-Id; b=KncoDfc46W5Lqo/pgktpMVyXMEmQ9eUT8OcNA0LU/zghyCl+HWI3KjNqLGKTUBaIZExevkEjXrzJY3b83m3pjmUZvFKMP1BW9tHgNPLEYJXM/vfJwTtckUbpx0gplLALHgO735ua4KzMeTHH8jP7UYvpj1kibWpV5TOZiuEOZrQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=nOGmY3Wx; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="CORJ2UW9"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0A05A1F000FF;
-	Fri,  9 Oct 2026 04:14:31 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="nOGmY3Wx"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8DB541F000FF;
+	Fri,  9 Oct 2026 04:15:14 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1791519271;
-	bh=1vvdwlaeG3GdTIgaThEkP8x9PBJAJd/soUmiGTNqqZ8=;
+	d=linux-foundation.org; s=korg; t=1791519314;
+	bh=+Ny2xhNxWHN5xDHLaT+qi+VcwoTGGRXFI1fTkcTMEQw=;
 	h=Date:To:From:Subject;
-	b=CORJ2UW9E8tlVR/EtIYhmbnkalT0Ag37l0X/XfPEXYGTdhfKkQL4bcAIMSKe1mwxn
-	 8djN8+JltpdtKel8nAYS+87Eyjbb4s/KGrZZQXe3vvamQeN3t2Bh2Tk3u4H9LWZLpv
-	 /TYF6o+WrNP0VwNosBbWKw2ww6zogT7kpualRNBg=
-Date: Thu, 08 Oct 2026 21:14:30 -0700
-To: mm-commits@vger.kernel.org,osalvador@suse.de,lkp@intel.com,gourry@gourry.net,david@kernel.org,akpm@linux-foundation.org
+	b=nOGmY3WxGhJ0YsLh1scVMA8tqE6vMuvy76jgmMkmVh113T5GpnBgFevYD1LOuEYAV
+	 V1hqRH9Zi9LcHFdyPfeZw6RHX69gh/i1siqpBjBEeM7jIBbtAAqvM74tFJ5N+TUyKH
+	 3NBPzNqRBpYTskADTlNjWvtuRAU0M/zyAl0l178A=
+Date: Thu, 08 Oct 2026 21:15:14 -0700
+To: mm-commits@vger.kernel.org,david@kernel.org,tz2294@columbia.edu,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [folded-merged] mm-memory_hotplug-factor-out-node_is_memoryless-fix.patch removed from -mm tree
-Message-Id: <20261009041431.0A05A1F000FF@smtp.kernel.org>
+Subject: [folded-merged] mm-swap-add-folio_swap_entry-and-folio_page_swap_entry-fix.patch removed from -mm tree
+Message-Id: <20261009041514.8DB541F000FF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,119 +35,62 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm-memory_hotplug-factor-out-node_is_memoryless-fix
+     Subject: mm-swap-add-folio_swap_entry-and-folio_page_swap_entry-fix
 has been removed from the -mm tree.  Its filename was
-     mm-memory_hotplug-factor-out-node_is_memoryless-fix.patch
+     mm-swap-add-folio_swap_entry-and-folio_page_swap_entry-fix.patch
 
-This patch was dropped because it was folded into mm-memory_hotplug-factor-out-node_is_memoryless.patch
+This patch was dropped because it was folded into mm-swap-add-folio_swap_entry-and-folio_page_swap_entry.patch
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-memory_hotplug-factor-out-node_is_memoryless-fix
-Date: Fri Sep  4 06:54:43 PM PDT 2026
+From: Tal Zussman <tz2294@columbia.edu>
+Subject: mm-swap-add-folio_swap_entry-and-folio_page_swap_entry-fix
+Date: Sun, 13 Sep 2026 17:52:28 -0400
 
-move node_is_memoryless() inside CONFIG_MEMORY_HOTREMOVE
+adjust the folio_swap_entry() kerneldoc summary, per David
 
+Link: https://lore.kernel.org/20260913-folio_swap_entry-doc-fix-1@columbia.edu
+Signed-off-by: Tal Zussman <tz2294@columbia.edu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Reported-by: kernel test robot <lkp@intel.com>
-Closes: https://lore.kernel.org/oe-kbuild-all/202609050628.ywCLhOj5-lkp@intel.com/
 Cc: David Hildenbrand <david@kernel.org>
-Cc: Gregory Price <gourry@gourry.net>
-Cc: Oscar Salvador <osalvador@suse.de>
 ---
 
- mm/memory_hotplug.c |   61 +++++++++++++++++++++---------------------
- 1 file changed, 31 insertions(+), 30 deletions(-)
+ include/linux/swap.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/memory_hotplug.c~mm-memory_hotplug-factor-out-node_is_memoryless-fix
-+++ a/mm/memory_hotplug.c
-@@ -1491,36 +1491,6 @@ out:
- 	return ret;
- }
+--- a/include/linux/swap.h~mm-swap-add-folio_swap_entry-and-folio_page_swap_entry-fix
++++ a/include/linux/swap.h
+@@ -273,7 +273,7 @@ struct swap_info_struct {
+ };
  
--static int check_no_memblock_for_node_cb(struct memory_block *mem, void *arg)
--{
--	int nid = *(int *)arg;
--
--	/*
--	 * If a memory block belongs to multiple nodes, the stored nid is not
--	 * reliable. However, such blocks are always online (e.g., cannot get
--	 * offlined) and, therefore, are still spanned by the node.
--	 */
--	return mem->nid == nid ? -EEXIST : 0;
--}
--
--/* Caller must hold the memory hotplug lock for this check. */
--static bool node_is_memoryless(int nid)
--{
--	/*
--	 * A node still spanning pages (especially ZONE_DEVICE) is not
--	 * memoryless.  A node spans memory after move_pfn_range_to_zone(),
--	 * e.g. once a memory block has been onlined.
--	 */
--	if (node_spanned_pages(nid))
--		return false;
--	/*
--	 * Offline memory blocks may not be spanned by the node yet, but they
--	 * link to it in sysfs and can be onlined later, so the node is not
--	 * memoryless while any remain.
--	 */
--	return !for_each_memory_block(&nid, check_no_memblock_for_node_cb);
--}
--
- /*
-  * NOTE: The caller must call lock_device_hotplug() to serialize hotplug
-  * and online/offline operations (triggered e.g. by sysfs).
-@@ -1815,6 +1785,37 @@ bool mhp_range_allowed(u64 start, u64 si
- }
- 
- #ifdef CONFIG_MEMORY_HOTREMOVE
-+
-+static int check_no_memblock_for_node_cb(struct memory_block *mem, void *arg)
-+{
-+	int nid = *(int *)arg;
-+
-+	/*
-+	 * If a memory block belongs to multiple nodes, the stored nid is not
-+	 * reliable. However, such blocks are always online (e.g., cannot get
-+	 * offlined) and, therefore, are still spanned by the node.
-+	 */
-+	return mem->nid == nid ? -EEXIST : 0;
-+}
-+
-+/* Caller must hold the memory hotplug lock for this check. */
-+static bool node_is_memoryless(int nid)
-+{
-+	/*
-+	 * A node still spanning pages (especially ZONE_DEVICE) is not
-+	 * memoryless.  A node spans memory after move_pfn_range_to_zone(),
-+	 * e.g. once a memory block has been onlined.
-+	 */
-+	if (node_spanned_pages(nid))
-+		return false;
-+	/*
-+	 * Offline memory blocks may not be spanned by the node yet, but they
-+	 * link to it in sysfs and can be onlined later, so the node is not
-+	 * memoryless while any remain.
-+	 */
-+	return !for_each_memory_block(&nid, check_no_memblock_for_node_cb);
-+}
-+
- /*
-  * Scan pfn range [start,end) to find movable/migratable pages (LRU and
-  * hugetlb folio, movable_ops pages). Will skip over most unmovable
+ /**
+- * folio_swap_entry - Return the swap entry for a page within a folio.
++ * folio_swap_entry - Return the swap entry at a page index within a folio.
+  * @folio: The folio.
+  * @idx: The index of the page within the folio.
+  *
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from tz2294@columbia.edu are
 
-mm-memory_hotplug-factor-out-node_is_memoryless.patch
-docs-admin-guide-mm-damon-usage-update-for-hugepage_size-fix.patch
-docs-admin-guide-mm-damon-usage-update-for-hugepage_size-fix-fix.patch
-mm-selftests-add-shmem-into-memory-failure-test-fix.patch
-proc-task_mmu-remove-unnecessary-inlines-in-function-definitions-fix.patch
-mm-update-comments-to-refer-to-anon-rmap-rather-than-anon_vma-fix.patch
-mm-damon-core-introduce-damos_quota_goal-complement-fix.patch
-selftests-mm-build-page-frag-test-with-the-kernel.patch
-lib-cmdline-fix-get_options-count-and-overflow-with-large-ranges-fix.patch
-drivers-media-v4l2-core-v4l2-vp9c-reduce-inlining.patch
+mm-remove-pagewriteback.patch
+mm-swap-add-folio_swap_entry-and-folio_page_swap_entry.patch
+mm-huge_memory-add-a-comment-to-the-open-coded-swap-entry.patch
+mm-rmap-use-folio_page_swap_entry-in-ttu_anon_swapbacked_folio.patch
+mm-zswap-use-folio_swap_entry-in-zswap_store_page.patch
+mm-swapfile-use-folio_page_swap_entry.patch
+arm64-mte-make-mte_save_tags-and-mte_restore_tags-static.patch
+arm64-mte-pass-the-swap-entry-to-mte_save_tags.patch
+mm-swap-remove-page_swap_entry.patch
+mm-memcontrol-take-a-const-folio-in-folio_memcg-and-friends.patch
+mm-memcontrol-constify-obj_cgroup_memcg-and-friends.patch
+mm-memcontrol-constify-the-lruvec-helpers.patch
+mm-page_io-take-a-const-folio-in-bio_associate_blkg_from_folio.patch
+mm-memcontrol-constify-the-mem_cgroup-accessors.patch
+mm-page_counter-constify-page_counter_read-and-page_counter_margin.patch
+mm-memcontrol-constify-the-reclaim-protection-helpers.patch
+mm-memcontrol-constify-the-memcg-and-lruvec-stat-readers.patch
+mm-memcontrol-constify-the-swap-accounting-helpers.patch
+mm-memcontrol-constify-mem_cgroup_swappiness-and-mem_cgroup_get_max.patch
+mm-memcontrol-constify-the-zswap-and-socket-pressure-helpers.patch
+vmcore-convert-mmap_vmcore_fault-to-use-folios.patch
 
