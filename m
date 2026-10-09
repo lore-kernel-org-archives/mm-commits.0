@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8D09E3F106D
-	for <mm-commits@vger.kernel.org>; Fri,  9 Oct 2026 05:56:06 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BB0833F54C6
+	for <mm-commits@vger.kernel.org>; Fri,  9 Oct 2026 05:56:07 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791525367; cv=none; b=BS3NjflwplbDAE26TrtaXMcZtSM3+2tDl2ZfQOxNY0qkfaRfKSsoCerddd/DYp/NfYKQdR5MH0d+nV1/Uv7xU2fMNUqnv0J0Y6TGtxYjbiiN9HWj484GSdPcI9wHnYBAfK+KaXxl/cztJEUTzKN6zsV6M/UBPfO1kw4UmDUSq8o=
+	t=1791525369; cv=none; b=iWWRFXgfDE1/dUajTdqhf8YE54tow8YBtuMILMOl68FZlb1AE/8LMCUPJLp3SuiU47r7NpqxlkOM0V9cv1i8wHPZE9UxQ8meCXOHz/OityLC9nix0mOdufPSvps9TBu7kAV9WBt+LvcKkfscvk4NENkslMAiHcOVdgf+6piLqmY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791525367; c=relaxed/simple;
-	bh=kr91WIE9RUkbQNaYR5jeckXy4Dkob6bMSQJXq4xdB9Y=;
-	h=Date:To:From:Subject:Message-Id; b=QQSOuPel+CsgJl/a0kMxMRvMZ06WHzuFhzZp6yPZZV+SglhtErn8Xzx30IN4DljHajWiVXrC+ILNxiCAuEXqMdeNU+YRZs3Z2UKOAAYayiFxKIuBwfabJqhmRy9ap0ta5HX2NVbz1dIvbw+LTkPrK1FQDkGvThh4idXSeAHTU7k=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=XhBsninu; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1791525369; c=relaxed/simple;
+	bh=IzmS4KIJPbjBCwOfffd4tGGhnqGot+ySEMSOQ0vUFP8=;
+	h=Date:To:From:Subject:Message-Id; b=DHyD90KpJUY2zOToRZvy5+GZO/UfrGFqTFIaIy9DP4WjjUNIIIhcxUNh3RAdSqX+lb6h3ijdaBztWrnURRu+A+5CAfsrDHBsBFanZ9eimF0Ji677hC7UBhGB8fSX1rK7VXeHWpt+MWK2SyDqe++BiJr4JnjVumtkyhHDtNqJ+54=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=MR+Uoi8R; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="XhBsninu"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 634AD1F00893;
-	Fri,  9 Oct 2026 05:56:06 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="MR+Uoi8R"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8F2F71F000FF;
+	Fri,  9 Oct 2026 05:56:07 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1791525366;
-	bh=eJ6dW6QF3ROVJcAxXTrMYewOdzWnrOeM4Q1rzvRwqwU=;
+	d=linux-foundation.org; s=korg; t=1791525367;
+	bh=koC84JH8nCi3wjlJ/t8KPw9Ut9ec7LdciX7wyyi+s20=;
 	h=Date:To:From:Subject;
-	b=XhBsninukoZAu7izWSl2yl2eoQMFcl/twdNM2QSVv8/QcTfqI4Hy0523fVAoXaMVN
-	 eKEjRvsYUf86KcHgjWiqCvXqfnARI37rvqI2JjbQ+Lzgf8sR9xXtCV1Ii3VueEQKaj
-	 L0AQgzAOryoimjywgl88fXfmiiq9lHmliiNrCd/U=
-Date: Thu, 08 Oct 2026 22:56:06 -0700
+	b=MR+Uoi8RZUhAr6LCKGYmJA+viMle9X74bTE1wuhI021WpgEyve04pL6IbCjIXSvg+
+	 gG5B978hYYYim0i1dS87O04+JH34cRyv4YUCCrz0ddzlxOcsLvJ3LmG75cMcJou+B0
+	 yD1B03Je774MPwexpG65sX3BRuafi07LDEu319fw=
+Date: Thu, 08 Oct 2026 22:56:07 -0700
 To: mm-commits@vger.kernel.org,vbabka@kernel.org,surenb@google.com,shuah@kernel.org,rppt@kernel.org,rdunlap@infradead.org,mhocko@suse.com,ljs@kernel.org,liam@infradead.org,kunwu.chan@gmail.com,david@kernel.org,davidgow@davidgow.net,corbet@lwn.net,brendan.higgins@linux.dev,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-damon-core-remove-debug-messages-fix.patch removed from -mm tree
-Message-Id: <20261009055606.634AD1F00893@smtp.kernel.org>
+Subject: [merged mm-stable] mm-damon-vaddr-remove-a-debug-message.patch removed from -mm tree
+Message-Id: <20261009055607.8F2F71F000FF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,23 +35,26 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/damon/core: remove string_choices.h include
+     Subject: mm/damon/vaddr: remove a debug message
 has been removed from the -mm tree.  Its filename was
-     mm-damon-core-remove-debug-messages-fix.patch
+     mm-damon-vaddr-remove-a-debug-message.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: SJ Park <sj@kernel.org>
-Subject: mm/damon/core: remove string_choices.h include
-Date: Tue, 1 Sep 2026 23:08:16 -0700
+Subject: mm/damon/vaddr: remove a debug message
+Date: Tue, 1 Sep 2026 22:47:36 -0700
 
-It is no more being used.
+There is a debug message in the DAMON virtual address space operation set.
+It has not really been used in a meaningful way for the last few years,
+though.  Remove it.
 
-Link: https://lore.kernel.org/20260902061401.104419-1-sj@kernel.org
+Link: https://lore.kernel.org/20260902054747.99370-4-sj@kernel.org
 Signed-off-by: SJ Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+Reviewed-by: Kunwu Chan <kunwu.chan@gmail.com>
 Cc: Brendan Higgins <brendan.higgins@linux.dev>
 Cc: David Gow <davidgow@davidgow.net>
 Cc: David Hildenbrand <david@kernel.org>
@@ -64,22 +67,47 @@ Cc: Randy Dunlap <rdunlap@infradead.org>
 Cc: Shuah Khan <shuah@kernel.org>
 Cc: Suren Baghdasaryan <surenb@google.com>
 Cc: Vlastimil Babka <vbabka@kernel.org>
-Cc: Kunwu Chan <kunwu.chan@gmail.com>
 ---
 
- mm/damon/core.c |    1 -
- 1 file changed, 1 deletion(-)
+ mm/damon/vaddr.c |   16 +++-------------
+ 1 file changed, 3 insertions(+), 13 deletions(-)
 
---- a/mm/damon/core.c~mm-damon-core-remove-debug-messages-fix
-+++ a/mm/damon/core.c
-@@ -15,7 +15,6 @@
- #include <linux/sched.h>
- #include <linux/slab.h>
- #include <linux/string.h>
--#include <linux/string_choices.h>
+--- a/mm/damon/vaddr.c~mm-damon-vaddr-remove-a-debug-message
++++ a/mm/damon/vaddr.c
+@@ -189,22 +189,12 @@ static int damon_va_three_regions(struct
+  *   <BIG UNMAPPED REGION 2>
+  *   <stack>
+  */
+-static void __damon_va_init_regions(struct damon_ctx *ctx,
+-				     struct damon_target *t)
++static void __damon_va_init_regions(struct damon_target *t)
+ {
+-	struct damon_target *ti;
+ 	struct damon_addr_range regions[3];
+-	int tidx = 0;
  
- /* for damon_get_folio() used by node eligible memory metrics */
- #include "ops-common.h"
+-	if (damon_va_three_regions(t, regions)) {
+-		damon_for_each_target(ti, ctx) {
+-			if (ti == t)
+-				break;
+-			tidx++;
+-		}
+-		pr_debug("Failed to get three regions of %dth target\n", tidx);
++	if (damon_va_three_regions(t, regions))
+ 		return;
+-	}
+ 
+ 	damon_set_regions(t, regions, 3, DAMON_MIN_REGION_SZ);
+ }
+@@ -217,7 +207,7 @@ static void damon_va_init(struct damon_c
+ 	damon_for_each_target(t, ctx) {
+ 		/* the user may set the target regions as they want */
+ 		if (!damon_nr_regions(t))
+-			__damon_va_init_regions(ctx, t);
++			__damon_va_init_regions(t);
+ 	}
+ }
+ 
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
