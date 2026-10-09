@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D6FBB4071DE
-	for <mm-commits@vger.kernel.org>; Fri,  9 Oct 2026 05:57:51 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0846E407CEF
+	for <mm-commits@vger.kernel.org>; Fri,  9 Oct 2026 05:57:53 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791525473; cv=none; b=lImw3WLqQTvcRCM7SPfUxgrkFlSTP9oU19539pBGQHh8L0Eczbaq8xl2IlDDtrjoyKX4HaPUytm2JuiD6GVsZ32Wc9MEdS8tnW7On4YwgHjSXYzvbFXYDy4leJCV/kFc/+V17FDMloySmhC0iiaCMk5vAVPzHqey2bCJ8vK7soo=
+	t=1791525474; cv=none; b=bGaxV3HLdR8NWTjeOUpjHr+W2pV7h0sNIREm5Mta+CHPpNBw9If4RFMUumHy2hn5XmY/TUE6voefJ6xO9AsZW61kF7OSXaJqyrPQ20rH9DUuWTMIItnavBDnHKBKiwS01Jjv0qldc9yaP3o7yn0Lq7U7CS222OnojDYcUDQ0K2s=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791525473; c=relaxed/simple;
-	bh=DNHeJYGbAxRe78T9yp+CIPlCjzTvYkpuGMmHJEno2Gk=;
-	h=Date:To:From:Subject:Message-Id; b=prYBVQbs1QL2Bssis4w7kSnaP4VZ+oKOfjNujEnQDqToLrU9Ysn9D3AXvmIv/oBkvTsjKJMr+OC22CQU7vq/eqqBe3ovbbsC7IU+lFTpomR/9wClJ9GUo3LmsVkGeMWi/8uu51T6ETps5CATGOfAF9lAWJr8q0eR8Q1ZUvYOG9A=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=nfoaduHa; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1791525474; c=relaxed/simple;
+	bh=mpt5KWn+8CaHSOeq2CbuNDaumLNj3z5zOY2kccj0jsk=;
+	h=Date:To:From:Subject:Message-Id; b=Re4o6Xb1jYgdSltK5Bjj6Ql5YMJn1fmuvhRThaJQUaZKYm/d7biLWCpC8lSc/3nnsI8cyoY7uy/gOrLg0kUGZX0o8/CDGS0mTAFlMIa/GV2smxSNhDG2eqvZqJZzKLrFS//lrz2DwMrASZUeqLdhz9zEZj0lk3iWf9ul32zBOXs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=asRkzYZN; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="nfoaduHa"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id ACB1D1F000FF;
-	Fri,  9 Oct 2026 05:57:51 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="asRkzYZN"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D2FF11F00893;
+	Fri,  9 Oct 2026 05:57:52 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1791525471;
-	bh=XD7zfu0t76t4Ly4bK6GgddhMqw9Uj4SVDx6w0Hm0oQ8=;
+	d=linux-foundation.org; s=korg; t=1791525472;
+	bh=SetZndSN1OL/lWGs3sVi3hzRPaMgogbqWrGfjirxY+c=;
 	h=Date:To:From:Subject;
-	b=nfoaduHa+QdMSEZveeP8heAbzh0CxdJot37CQ6FyteYcE7mhHxG9oNL54zazex90j
-	 +HDM4W8qAk+g7S4YtsRZYJJttIv9Q7B7lZaBJRsPmrLXNOE5KE35873u5TmtY+TeVD
-	 WWK3ycxlJbZ5kKSCFnJ3FWO7AZy9Cw/AD89Va3Og=
-Date: Thu, 08 Oct 2026 22:57:51 -0700
-To: mm-commits@vger.kernel.org,shakeel.butt@linux.dev,mhocko@kernel.org,ljs@kernel.org,kasong@tencent.com,hannes@cmpxchg.org,david@kernel.org,baohua@kernel.org,zhangbo56@xiaomi.com,akpm@linux-foundation.org
+	b=asRkzYZNFifhdZI9ubQwJx+OURwu9OO0JxueZwYVUARKU4ASVboMRMWj1eC6qnxj6
+	 BanDj9q64p4LNKXW7ldl1bHEs7NxZwaKDxotbaaAYyA0c60oEVUZ6KAlNQFjYXdE27
+	 8N8W+foual6OTP2HoolIZ/EO1+1iFm6YIf0/L568=
+Date: Thu, 08 Oct 2026 22:57:52 -0700
+To: mm-commits@vger.kernel.org,yuanchu@google.com,weixugc@google.com,shakeel.butt@linux.dev,mhocko@kernel.org,ljs@kernel.org,kasong@tencent.com,hannes@cmpxchg.org,david@kernel.org,baoquan.he@linux.dev,baohua@kernel.org,axelrasmussen@google.com,baolin.wang@linux.alibaba.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-vmscan-avoid-anon-scanning-for-gfp_noio-with-low-swapcache.patch removed from -mm tree
-Message-Id: <20261009055751.ACB1D1F000FF@smtp.kernel.org>
+Subject: [merged mm-stable] mm-mglru-clear-the-reference-counter-for-rejected-folios.patch removed from -mm tree
+Message-Id: <20261009055752.D2FF11F00893@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,161 +35,93 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: vmscan: avoid anon scanning for GFP_NOIO with low swapcache
+     Subject: mm: mglru: clear the reference counter for rejected folios
 has been removed from the -mm tree.  Its filename was
-     mm-vmscan-avoid-anon-scanning-for-gfp_noio-with-low-swapcache.patch
+     mm-mglru-clear-the-reference-counter-for-rejected-folios.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Bo Zhang <zhangbo56@xiaomi.com>
-Subject: mm: vmscan: avoid anon scanning for GFP_NOIO with low swapcache
-Date: Tue, 8 Sep 2026 14:26:49 +0800
+From: Baolin Wang <baolin.wang@linux.alibaba.com>
+Subject: mm: mglru: clear the reference counter for rejected folios
+Date: Mon, 14 Sep 2026 19:29:22 +0800
 
-We have observed some cases where memory is allocated with GFP_NOIO, so we
-cannot reclaim any anon folios unless they are in swapcache.  We can end
-up spending more than 150 ms looping in `shrink_folio_list()` scanning
-non-swapcache folios without reclaiming a single folio.  This is pure
-overhead.
+As per the comment on LRU_REFS_FLAGS, when accessed folios are promoted to
+a new generation, LRU_REFS_FLAGS should be cleared so that the reference
+counter can start over.
 
-This is particularly true on systems using zRAM, where swapcache is
-relatively rare.  So let's check whether anon reclaim is allowed by GFP_IO
-and whether there is enough swapcache to make it worthwhile.  If the
-swapcache is extremely low, we're essentially searching for a needle in a
-haystack, so let's avoid scanning anon in the first place.
+For folios rejected by shrink_folio_list(), we clear LRU_REFS_FLAGS and
+set the PG_active flag when lru_gen_folio_seq() would place them in the
+oldest generation.  That's fine.
 
-On Android this is triggered by dm-verity hash-block reads through
-dm-bufio, which legitimately use GFP_NOIO because they run underneath the
-IO path:
+But for rejected folios where lru_gen_folio_seq() returns a generation
+other than the oldest one (which can be treated as a promotion), we do not
+clear LRU_REFS_FLAGS.  This can violate the promotion mechanism.  And this
+means the rejected folio enters the new generation with stale, inflated
+tier bits, which can inflate reference counts and distort eviction
+statistics for these rejected folios.
 
-  verity_verify_io -> verity_hash_for_block -> verity_verify_level
-    -> dm_bufio_read_with_ioprio -> new_read -> __bufio_new
-      -> alloc_buffer
-         gfp: GFP_NOIO | __GFP_NORETRY | __GFP_NOMEMALLOC | __GFP_NOWARN
+Fix this by clearing LRU_REFS_FLAGS for rejected folios.  Of course, I
+need to evaluate the impact of the changes, which mainly falls into 3
+cases: 1.  When lru_gen_folio_seq() returns the oldest generation for
+rejected folios, there are no logic changes, and they will be put back
+into the 2nd youngest generation.  2.  For rejected folios with PG_active
+set by shrink_folio_list(), we only clear the LRU_REFS_FLAGS and do not
+change the generation.  3.  For rejected folios with PG_referenced set,
+the original code would put them back into the 2nd oldest generation. 
+After this patch, we will put them back into the 2nd youngest generation.
 
-Such a reclaimer can land on a memcg with a large, unswapped anon LRU and
-a tiny file LRU (e.g.  inactive_anon ~335 MB vs inactive_file ~4 MB, with
-negligible swapcache).  shrink_lruvec() then keeps feeding that huge anon
-list into shrink_folio_list() - ~2400 shrink_folio_list() calls, ~93,000
-anon folios scanned - where every folio is kept because it needs IO.  The
-150+ ms above is one such single shrink_lruvec() pass (not accumulated
-across a reclaim cycle), and it reclaims nothing; the actual progress
-comes entirely from the file side.
+I think case 3 is also reasonable, before commmit 6cbdd9726fb5 ("mm/mglru:
+use folio_mark_accessed to replace folio_set_active"), a rejected
+referenced folio was also put back to the 2nd youngest gen.  Meanwhile, I
+didn't see any noticeable performance impact on my 32-core Arm machine
+when running 'make -j32' to build the kernel inside a 3G-limited memcg
+with either zram or NVMe swap.
 
-Aging anon alongside file does have some value for a later __GFP_IO
-reclaimer, so it is not strictly pure overhead.  But that aging is only
-deferred, not lost: kswapd and other __GFP_IO reclaimers still walk and
-age anon.  Spending ~168 ms aging memory that this context cannot reclaim
-is not a worthwhile trade-off in a latency-sensitive path.
-
-To stay conservative, this only skips anon when the swapcache is really
-tiny - below 1/64 of the anon LRU - i.e.  when essentially no anon on the
-list can be reclaimed without IO.  Whenever there is a meaningful amount
-of swapcached anon, the normal path is used and anon is scanned and aged
-as before.
-
-Note this only addresses the traditional active/inactive LRU.  MGLRU
-selects anon vs file scanning in its own path and is not covered here;
-fixing the MGLRU case is left as a TODO.
-
-Link: https://lore.kernel.org/20260908062649.1045883-1-zhangbo56@xiaomi.com
-Signed-off-by: Bo Zhang <zhangbo56@xiaomi.com>
+Link: https://lore.kernel.org/7384df363c12e4acdaa2e0428420cd8eed320ee7.1789384831.git.baolin.wang@linux.alibaba.com
+Signed-off-by: Baolin Wang <baolin.wang@linux.alibaba.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+Reviewed-by: Baoquan He <baoquan.he@linux.dev>
+Reviewed-by: Kairui Song <kasong@tencent.com>
 Reviewed-by: Barry Song <baohua@kernel.org>
+Cc: Axel Rasmussen <axelrasmussen@google.com>
 Cc: David Hildenbrand <david@kernel.org>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Kairui Song <kasong@tencent.com>
 Cc: Lorenzo Stoakes <ljs@kernel.org>
 Cc: Michal Hocko <mhocko@kernel.org>
 Cc: Shakeel Butt <shakeel.butt@linux.dev>
+Cc: Wei Xu <weixugc@google.com>
+Cc: Yuanchu Xie <yuanchu@google.com>
 ---
 
- mm/vmscan.c |   62 +++++++++++++++++++++++++++++++++++++++++++++-----
- 1 file changed, 57 insertions(+), 5 deletions(-)
+ mm/vmscan.c |   12 ++++++++----
+ 1 file changed, 8 insertions(+), 4 deletions(-)
 
---- a/mm/vmscan.c~mm-vmscan-avoid-anon-scanning-for-gfp_noio-with-low-swapcache
+--- a/mm/vmscan.c~mm-mglru-clear-the-reference-counter-for-rejected-folios
 +++ a/mm/vmscan.c
-@@ -362,20 +362,72 @@ static bool can_demote(int nid, struct s
- 	return !nodes_empty(allowed_mask);
- }
+@@ -5075,11 +5075,15 @@ retry:
+ 			continue;
+ 		}
  
-+#ifdef CONFIG_SWAP
-+static inline bool reclaimable_anon_is_low(struct mem_cgroup *memcg,
-+		int nid, struct scan_control *sc)
-+{
-+	pg_data_t *pgdat = NODE_DATA(nid);
-+	unsigned long anon_pages, swapcache;
-+
-+	/*
-+	 * A GFP_NOIO reclaimer can only reclaim anon that is already in the
-+	 * swapcache (adding anon to the swapcache needs IO). When swapcache is
-+	 * far below the anon LRU, scanning anon reclaims nothing and only burns
-+	 * CPU. The 1/64 threshold keeps this to the case where anon is
-+	 * effectively unreclaimable.
-+	 */
-+	if (!sc || (sc->gfp_mask & __GFP_IO))
-+		return false;
-+
-+	/*
-+	 * FIXME: MGLRU doesn't fully respect can_reclaim_anon_pages() for the
-+	 * scanning type, so only apply this to the traditional LRU for now.
-+	 */
-+	if (lru_gen_enabled())
-+		return false;
-+
-+	if (memcg) {
-+		struct lruvec *lruvec = mem_cgroup_lruvec(memcg, pgdat);
-+
-+		anon_pages = lruvec_page_state(lruvec, NR_INACTIVE_ANON) +
-+			     lruvec_page_state(lruvec, NR_ACTIVE_ANON);
-+		swapcache = lruvec_page_state(lruvec, NR_SWAPCACHE);
-+	} else {
-+		anon_pages = node_page_state(pgdat, NR_INACTIVE_ANON) +
-+			     node_page_state(pgdat, NR_ACTIVE_ANON);
-+		swapcache = node_page_state(pgdat, NR_SWAPCACHE);
-+	}
-+
-+	return swapcache < (anon_pages >> 6);
-+}
-+#else
-+static inline bool reclaimable_anon_is_low(struct mem_cgroup *memcg,
-+		int nid, struct scan_control *sc)
-+{
-+	return true;
-+}
-+#endif /* CONFIG_SWAP */
-+
- static inline bool can_reclaim_anon_pages(struct mem_cgroup *memcg,
- 					  int nid,
- 					  struct scan_control *sc)
- {
- 	if (memcg == NULL) {
- 		/*
--		 * For non-memcg reclaim, is there
--		 * space in any swap device?
-+		 * For non-memcg reclaim, is there space in any swap device?
-+		 * And under GFP_NOIO, is there enough swapcached anon to make
-+		 * scanning anon worthwhile?
- 		 */
--		if (get_nr_swap_pages() > 0)
-+		if (get_nr_swap_pages() > 0 &&
-+		    !reclaimable_anon_is_low(memcg, nid, sc))
- 			return true;
- 	} else {
--		/* Is the memcg below its swap limit? */
--		if (mem_cgroup_get_nr_swap_pages(memcg) > 0)
+-		/* don't add rejected folios to the oldest generation */
+-		if (lru_gen_folio_seq(lruvec, folio, false) == min_seq[type]) {
+-			folio_set_lru_refs(folio, 0);
 +		/*
-+		 * Is the memcg below its swap limit, and under GFP_NOIO does
-+		 * it have enough swapcached anon to make scanning worthwhile?
++		 * See the comments on LRU_REFS_FLAGS.
++		 *
++		 * The rejected folios are never added to the oldest generation,
++		 * so this effectively promotes them by at least one generation.
 +		 */
-+		if (mem_cgroup_get_nr_swap_pages(memcg) > 0 &&
-+		    !reclaimable_anon_is_low(memcg, nid, sc))
- 			return true;
++		folio_set_lru_refs(folio, 0);
++		if (lru_gen_folio_seq(lruvec, folio, false) == min_seq[type])
+ 			folio_set_active(folio);
+-		}
  	}
  
+ 	move_folios_to_lru(&list);
 _
 
-Patches currently in -mm which might be from zhangbo56@xiaomi.com are
+Patches currently in -mm which might be from baolin.wang@linux.alibaba.com are
 
 
