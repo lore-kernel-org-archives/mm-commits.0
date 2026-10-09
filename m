@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 519C24071F3
-	for <mm-commits@vger.kernel.org>; Fri,  9 Oct 2026 05:58:13 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 75625407CEF
+	for <mm-commits@vger.kernel.org>; Fri,  9 Oct 2026 05:58:14 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791525494; cv=none; b=HYE3WGwD63cKB1WVN7ATilTIUWw+271UIcm25hz0nF4GGKT3YbK4Z201gQqsVKM8mNa3hCZCmUR2oTofFWD9Ikigsw50BBwbTm4tjlLNV+m1RqCwGr62Z9aI8M1Gv5YEtIxWhAUuY4+MpYOLjILiUWTFQUU8c4tEbcXk2SPXgCk=
+	t=1791525495; cv=none; b=kCJDoth2qrt9T+r7OYG98wIm1V/bA+4y+jhtGFg98br2kDgDRYWujPrI9vFPdvoPRQMi5J9PGy4ruxjEP3FjuFtYwB+I3GuMssh7sY2scITO/ggrX+FfIIWbNbm0vNTV48NUPV40Y1oD+qRyh/G9pBwdczL7xZGOoVZj3vSrhb8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791525494; c=relaxed/simple;
-	bh=UtJw9/klAm+LJjKymXvqTZiFNCpz8HqNKKb4YOUtWug=;
-	h=Date:To:From:Subject:Message-Id; b=kSF7MvhC7Sfc/OULMaU8xw0o2qj3Y5mkvy50Wvlch0fo1TwcFnU8jizpzCD9iTg7tQq0tW/Dkq/c9avEpVObNiW4GmvFYqVzeRi7Y0EkiwBrmz4vG8Cd8AWtsltWo+4rv9W+VNHUivbFOcKUb2lbK7k1f8vrxWHXATyxL6Jc+O0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=CIm4UKJf; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1791525495; c=relaxed/simple;
+	bh=B/cguZ3wx8l04BFW6FvCpgrb2WtCBjCyPAwH8MFK68A=;
+	h=Date:To:From:Subject:Message-Id; b=QBgQt+d1D4Lr2CbqHRpHOITZcEEtcDmcBV1XIGoSNytkNmz/i2PfmD/EqwmvWI1mahyjJh4X4a78ZxhLaCx7GWIwjVbjVUgo6dRU8I1haNiN0Ik3JPcGKAQBd7KCtinrNLHO62JefS+ImAP4panDotOD40xQwyoRIeyVitFf6TY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=JQW3+Afr; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="CIm4UKJf"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2807E1F000FF;
-	Fri,  9 Oct 2026 05:58:13 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="JQW3+Afr"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4BADD1F00893;
+	Fri,  9 Oct 2026 05:58:14 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1791525493;
-	bh=sjeIb4tT6DL+mcUU0V2VD/lT+KJo4J3OG/XR6qsldF0=;
+	d=linux-foundation.org; s=korg; t=1791525494;
+	bh=08obKo8GAReIuK1Fe15laW7WmghFIAGNTO2yLPq4eh8=;
 	h=Date:To:From:Subject;
-	b=CIm4UKJf5bVTRo+PfgH2SiK0t9fyCSvTIECWfd8w24Znk5/HB3UQzvlPzrwV3MsMU
-	 UwDZbs+fLk0vMJGKpNB5MinZffByfJKkdX7xV+YAOgGlFXn0DbKR5p5/ScFOQOM0MV
-	 ApELzMq0z0Zy6XJeG+5rOR6dC3cAtw0+/LcQfGxY=
-Date: Thu, 08 Oct 2026 22:58:12 -0700
-To: mm-commits@vger.kernel.org,yosry@kernel.org,yosryahmed@google.com,nphamcs@gmail.com,kasong@tencent.com,hannes@cmpxchg.org,chengming.zhou@linux.dev,wangkefeng.wang@huawei.com,akpm@linux-foundation.org
+	b=JQW3+AfrtB4f4wDfTnCVD2wBRWFBayMg9kcCW4KAQP5kYzilPt4jrrNEXAqcdHqJV
+	 VpuDfbHb79I2DAIRrc8HvwD+QSXopSt1ZEb4K2qAS8S4WkvCCVdhEon1AFP5ltESqP
+	 e+XuEMitfTlqc8LyXeLGEwWn5gvLJI0xrcg/NARE=
+Date: Thu, 08 Oct 2026 22:58:13 -0700
+To: mm-commits@vger.kernel.org,osalvador@suse.de,muchun.song@linux.dev,david@kernel.org,yehuaisheng@open-hieco.net,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-zswap-reuse-zswap_invalidate-in-zswap_store.patch removed from -mm tree
-Message-Id: <20261009055813.2807E1F000FF@smtp.kernel.org>
+Subject: [merged mm-stable] mm-hugetlb-account-for-allowed-nodes-when-gathering-surplus-pages.patch removed from -mm tree
+Message-Id: <20261009055814.4BADD1F00893@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,63 +35,128 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: zswap: reuse zswap_invalidate() in zswap_store()
+     Subject: mm/hugetlb: account for allowed nodes when gathering surplus pages
 has been removed from the -mm tree.  Its filename was
-     mm-zswap-reuse-zswap_invalidate-in-zswap_store.patch
+     mm-hugetlb-account-for-allowed-nodes-when-gathering-surplus-pages.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Kefeng Wang <wangkefeng.wang@huawei.com>
-Subject: mm: zswap: reuse zswap_invalidate() in zswap_store()
-Date: Thu, 10 Sep 2026 20:35:44 +0800
+From: Huaisheng Ye <yehuaisheng@open-hieco.net>
+Subject: mm/hugetlb: account for allowed nodes when gathering surplus pages
+Date: Wed, 9 Sep 2026 15:46:42 +0800
 
-Reuse zswap_invalidate() in zswap_store() check_old path.  Its
-zswap_never_enabled() and xa_empty() guards avoid redundant xarray lookups
-and deduplicate the per-slot free logic.
+Hugetlb reservations are accounted globally, but hugetlb_acct_memory()
+also verifies that the current cpuset and MPOL_BIND policy contain enough
+free huge pages to add a new reservation.
 
-Link: https://lore.kernel.org/20260910123544.818146-4-wangkefeng.wang@huawei.com
-Signed-off-by: Kefeng Wang <wangkefeng.wang@huawei.com>
+gather_surplus_pages() calculates its allocation shortfall from the global
+free and reserved counters.  If the global pool has enough free pages, but
+those pages reside outside the nodes allowed by the task, it allocates no
+surplus pages.  The subsequent allowed_mems_nr() check then rejects the
+reservation and mmap() fails with ENOMEM, even when
+nr_overcommit_hugepages permits allocating surplus pages on the allowed
+nodes.
+
+Calculate both the global shortfall and the shortfall within the allowed
+nodes, and allocate the larger of the two.  Include surplus pages
+allocated outside hugetlb_lock in both calculations when rechecking after
+reacquiring the lock.  These pages are constrained by alloc_nodemask, so
+they satisfy both shortages.
+
+Easy way to reproduce this issue with 2+ NUMA nodes system:
+
+  # echo 0 > /sys/kernel/mm/hugepages/hugepages-2048kB/nr_hugepage
+  # echo 3 > /sys/devices/system/node/node0/hugepages/hugepages-2048kB/nr_hugepages
+  # echo 1 > /sys/kernel/mm/hugepages/hugepages-2048kB/nr_overcommit_hugepages
+  # cd tools/testing/selftests/mm
+  # numactl --membind=1 ./hugetlb-mmap 2 21
+  TAP version 13
+  # [INFO] detected hugetlb page size: 2048 KiB
+  # [INFO] detected hugetlb page size: 1048576 KiB
+  # 2048 kB hugepages
+  1..2
+  # Mapping 2 Mbytes
+  Bail out! mmap: Cannot allocate memory (12)
+  # Planned tests != run tests (2 != 0)
+  # Totals: pass:0 fail:0 xfail:0 xpass:0 skip:0 error:0
+
+This fixes hugetlb mappings when, for example, a task runs with MPOL_BIND
+on Node 1 while the existing free huge pages are on Node 0.
+
+Similar issue also could be found in ltp if the free pages of global pool
+reside outside the nodes allowed by the application.
+  # cd ltp/testcases/kernel/mem/hugetlb/hugemmap/
+  # numactl --cpunodebind=0 --membind=1 ./hugemmap10
+
+Link: https://lore.kernel.org/20260909074642.7308-1-yehuaisheng@open-hieco.net
+Fixes: e4e574b767ba ("hugetlb: Try to grow hugetlb pool for MAP_SHARED mappings")
+Signed-off-by: Huaisheng Ye <yehuaisheng@open-hieco.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Acked-by: Yosry Ahmed <yosry@kernel.org>
-Reviewed-by: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Chengming Zhou <chengming.zhou@linux.dev>
-Cc: Kairui Song <kasong@tencent.com>
-Cc: Nhat Pham <nphamcs@gmail.com>
-Cc: Yosry Ahmed <yosryahmed@google.com>
+Acked-by: Muchun Song <muchun.song@linux.dev>
+Cc: David Hildenbrand <david@kernel.org>
+Cc: Oscar Salvador <osalvador@suse.de>
 ---
 
- mm/zswap.c |   15 ++-------------
- 1 file changed, 2 insertions(+), 13 deletions(-)
+ mm/hugetlb.c |   21 +++++++++++++++++----
+ 1 file changed, 17 insertions(+), 4 deletions(-)
 
---- a/mm/zswap.c~mm-zswap-reuse-zswap_invalidate-in-zswap_store
-+++ a/mm/zswap.c
-@@ -1543,19 +1543,8 @@ check_old:
- 	 * offsets corresponding to each page of the folio. Otherwise,
- 	 * writeback could overwrite the new data in the swapfile.
- 	 */
--	if (!ret) {
--		unsigned type = swp_type(swp);
--		pgoff_t offset = swp_offset(swp);
--		struct zswap_entry *entry;
--		struct xarray *tree;
--
--		for (index = 0; index < nr_pages; ++index) {
--			tree = swap_zswap_tree(swp_entry(type, offset + index));
--			entry = xa_erase(tree, offset + index);
--			if (entry)
--				zswap_entry_free(entry);
--		}
--	}
-+	if (!ret)
-+		zswap_invalidate(swp_type(swp), swp_offset(swp), nr_pages);
+--- a/mm/hugetlb.c~mm-hugetlb-account-for-allowed-nodes-when-gathering-surplus-pages
++++ a/mm/hugetlb.c
+@@ -125,6 +125,7 @@ struct mutex *hugetlb_fault_mutex_table
  
- 	return ret;
+ /* Forward declaration */
+ static int hugetlb_acct_memory(struct hstate *h, long delta);
++static unsigned int allowed_mems_nr(struct hstate *h);
+ static void hugetlb_vma_lock_free(struct vm_area_struct *vma);
+ static void hugetlb_vma_lock_alloc(struct vm_area_struct *vma);
+ static void __hugetlb_vma_unlock_write_free(struct vm_area_struct *vma);
+@@ -2253,6 +2254,19 @@ static nodemask_t *policy_mbind_nodemask
  }
+ 
+ /*
++ * Reservations are globally accounted, but they must also be backed by free
++ * pages on nodes allowed by the current cpuset and MPOL_BIND policy.
++ */
++static long surplus_pages_needed(struct hstate *h, long delta, long allocated)
++{
++	long global_free = (long)h->free_huge_pages + allocated;
++	long allowed_free = (long)allowed_mems_nr(h) + allocated;
++
++	return max((long)h->resv_huge_pages + delta - global_free,
++		   delta - allowed_free);
++}
++
++/*
+  * Increase the hugetlb pool such that it can accommodate a reservation
+  * of size 'delta'.
+  */
+@@ -2274,7 +2288,7 @@ static int gather_surplus_pages(struct h
+ 		alloc_nodemask = cpuset_current_mems_allowed;
+ 
+ 	lockdep_assert_held(&hugetlb_lock);
+-	needed = (h->resv_huge_pages + delta) - h->free_huge_pages;
++	needed = surplus_pages_needed(h, delta, 0);
+ 	if (needed <= 0) {
+ 		h->resv_huge_pages += delta;
+ 		return 0;
+@@ -2305,11 +2319,10 @@ retry:
+ 
+ 	/*
+ 	 * After retaking hugetlb_lock, we need to recalculate 'needed'
+-	 * because either resv_huge_pages or free_huge_pages may have changed.
++	 * because either resv_huge_pages or the free page counts may have changed.
+ 	 */
+ 	spin_lock_irq(&hugetlb_lock);
+-	needed = (h->resv_huge_pages + delta) -
+-			(h->free_huge_pages + allocated);
++	needed = surplus_pages_needed(h, delta, allocated);
+ 	if (needed > 0) {
+ 		if (alloc_ok)
+ 			goto retry;
 _
 
-Patches currently in -mm which might be from wangkefeng.wang@huawei.com are
+Patches currently in -mm which might be from yehuaisheng@open-hieco.net are
 
-mm-mincore-use-per-vma-lock-during-page-table-walk.patch
 
