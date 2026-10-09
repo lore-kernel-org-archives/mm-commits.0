@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8FB4640EB80
-	for <mm-commits@vger.kernel.org>; Fri,  9 Oct 2026 05:58:44 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B8B8540F726
+	for <mm-commits@vger.kernel.org>; Fri,  9 Oct 2026 05:58:45 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791525525; cv=none; b=Wb15LWCIXhA44iXM9IGX+rjnx91t8HyiG5hE1aPQS7648fuSetVnvKTbpWhrBpOTHSONUamPPc0VaCmZ1DwLkBZiNXyDdThFTMz0X8xyN47MKGKW7jEaGeN+TRUMFdA781PwrYRe6CPUu3CVUku8ao8618K38JGbiiX8wjAyDfI=
+	t=1791525526; cv=none; b=FiBEkGpjfd9GKerPjygySSW17NkaSBqU/+iX6LFMq4nrrooZnOKXIlPQ6VNlNxcjH3GJzqOzbjLk2Bjn9ZJPi8gSURMIju5u2kToFChTk97LrRBfT7mifY6VLDLiFB8jTghIPgEmRF8U5Hr14vjJeqOldc8htwdTmYqzyOb4i60=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791525525; c=relaxed/simple;
-	bh=ru7J0R9mbpIoDVub5f7xM2JWddju7VHN3ZHoP9gnR9M=;
-	h=Date:To:From:Subject:Message-Id; b=Bg8oqZaCbnWqoinZBPXyprhKKqnnup/KbGEMsi+d+TF8nHcwh0HPvDWwDGN/IjM2svTldMRbXWdvEiHaiJFtpe5bpayo9tStyGKEIaV5/9QQOxckUpzTDjavF81qgV8opDI8tEks3NEgE/hmB+kBlRJis7jT9j1qZHHaIKovrHc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=uWdbZfwd; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1791525526; c=relaxed/simple;
+	bh=LShfvDb5Dg5btd6g6XBU8aw5LO8eIcPzFntMBLHae5k=;
+	h=Date:To:From:Subject:Message-Id; b=cL5a0Sa7x3OnX4o76Evm62xNPEqLOONlBdvMKLmUUGUSezCZL0RS/1EcXRzIzBWtaZrJD9kwu4PJNgcx6ytLHp07AtxMmAHntqkpaoZsJ5qsILhY/OknX44qTvqkYqTN5O5B7wXEkvTH2S3V5EYhBcsPflXCais3iZ9MYs+EtwM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=goUG7Rtl; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="uWdbZfwd"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 65F501F000FF;
-	Fri,  9 Oct 2026 05:58:44 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="goUG7Rtl"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8DD9D1F00893;
+	Fri,  9 Oct 2026 05:58:45 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1791525524;
-	bh=5NNNwHtvsbF4HJHhO2YX7vjO9He7lkCVzOKM11dAAXE=;
+	d=linux-foundation.org; s=korg; t=1791525525;
+	bh=Cw8AQygJE9686uXYo114lFNAaLu4AGJKMnk8oeMQvJ4=;
 	h=Date:To:From:Subject;
-	b=uWdbZfwdMrcDPrwtkqfBTCdEcMxgPHY6BITpiTHqtYGLi2lwLY8on0B9pUOTtt/7v
-	 99LmF2+KqoLacv3SICrDYSll7xDXZC4oUW/lLeCTjYWZWsBRek9XLFek58ZvB/GzJV
-	 L6A9VdORr/jsSZN5NxPAtTwNaouiO7faXMQdf3c8=
-Date: Thu, 08 Oct 2026 22:58:44 -0700
+	b=goUG7RtltHikmPg5kzaf3LxXKPen80UFPdrRs67igLV0AFAa1Zums1a4q29bCiy8q
+	 0kdQhHfV0IH6Z4uWzvN1h4mUPn0s9MsvlYub1mnhDioHewvh4SG+tu9EI9l+s/f7fx
+	 ELa9WnAGE9rqkj9Sy7dDMQeTdKujH/R3Vl57w11M=
+Date: Thu, 08 Oct 2026 22:58:45 -0700
 To: mm-commits@vger.kernel.org,vbabka@kernel.org,surenb@google.com,rppt@kernel.org,rdunlap@infradead.org,mhocko@suse.com,ljs@kernel.org,liam@infradead.org,david@kernel.org,corbet@lwn.net,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-damon-paddr-support-damon_filter_type_pgidle_set.patch removed from -mm tree
-Message-Id: <20261009055844.65F501F000FF@smtp.kernel.org>
+Subject: [merged mm-stable] mm-damon-vaddr-support-damon_filter_type_pgidle_set.patch removed from -mm tree
+Message-Id: <20261009055845.8DD9D1F00893@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,22 +35,22 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/damon/paddr: support DAMON_FILTER_TYPE_PGIDLE_SET
+     Subject: mm/damon/vaddr: support DAMON_FILTER_TYPE_PGIDLE_SET
 has been removed from the -mm tree.  Its filename was
-     mm-damon-paddr-support-damon_filter_type_pgidle_set.patch
+     mm-damon-vaddr-support-damon_filter_type_pgidle_set.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: SJ Park <sj@kernel.org>
-Subject: mm/damon/paddr: support DAMON_FILTER_TYPE_PGIDLE_SET
-Date: Thu, 10 Sep 2026 07:22:29 -0700
+Subject: mm/damon/vaddr: support DAMON_FILTER_TYPE_PGIDLE_SET
+Date: Thu, 10 Sep 2026 07:22:30 -0700
 
-Implement DAMON_FILTER_TYPE_PGIDLE_SET support on the physical address
-space DAMON operation set (paddr).
+Implement DAMON_FILTER_TYPE_PGIDLE_SET support on the virtual address
+space DAMON operation set (vaddr).
 
-Link: https://lore.kernel.org/20260910142234.171562-3-sj@kernel.org
+Link: https://lore.kernel.org/20260910142234.171562-4-sj@kernel.org
 Signed-off-by: SJ Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 Cc: David Hildenbrand <david@kernel.org>
@@ -64,20 +64,21 @@ Cc: Suren Baghdasaryan <surenb@google.com>
 Cc: Vlastimil Babka <vbabka@kernel.org>
 ---
 
- mm/damon/paddr.c |    6 ++++++
- 1 file changed, 6 insertions(+)
+ mm/damon/vaddr.c |    7 +++++++
+ 1 file changed, 7 insertions(+)
 
---- a/mm/damon/paddr.c~mm-damon-paddr-support-damon_filter_type_pgidle_set
-+++ a/mm/damon/paddr.c
-@@ -151,6 +151,12 @@ static bool damon_pa_filter_match(struct
- 		else
- 			matched = damon_folio_young(folio);
+--- a/mm/damon/vaddr.c~mm-damon-vaddr-support-damon_filter_type_pgidle_set
++++ a/mm/damon/vaddr.c
+@@ -550,6 +550,13 @@ static bool damon_va_filter_match(struct
+ 			matched = damon_va_young_addr(folio, pte, pmd, mm,
+ 					addr);
  		break;
 +	case DAMON_FILTER_TYPE_PGIDLE_SET:
 +		if (!folio)
 +			matched = false;
 +		else
-+			matched = damon_folio_young(folio) == false;
++			matched = !damon_va_young_addr(folio, pte, pmd, mm,
++					addr);
 +		break;
  	default:
  		return damon_ops_filter_match(filter, folio);
