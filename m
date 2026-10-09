@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D9E6741BA69
-	for <mm-commits@vger.kernel.org>; Fri,  9 Oct 2026 05:59:38 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5058B411FBE
+	for <mm-commits@vger.kernel.org>; Fri,  9 Oct 2026 05:59:42 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791525583; cv=none; b=SIp8xg6oZMifOSyKgg8Ekox4YWmX4YME+D9CYjX3hqg4LfeWB42otykbHd8M7DXGCRv299AIixttwTq7ZOzqIQU5avZRbIgyu6z3nInIpV25BJEbn2Jht7WKeAhSMfEqR42cAG42xVZgealTMzXcJx95YFKFcY1uifWIkak/qZA=
+	t=1791525584; cv=none; b=f6Ic3bCofGTpONUKP3S+hblnJfsAd7hFa2uck8n16XC9+EfdX76Bg0l7R4EK0ZtgP8dznXNE3XRWloi/QNof73AWIA4PfqTAiwoPqLkbZDyOW22y1QwhwAom2VLjDfdw++LiDCj1K8QyqwrpisgjrxV5jV3y+IrYWZshIjJa9A0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791525583; c=relaxed/simple;
-	bh=2jKzmoy0Oqy6LpIawpajkUoFL18zCHjYqiK+a0haIzc=;
-	h=Date:To:From:Subject:Message-Id; b=lkeMfIqcVKhmeOVvMIdKZ5djNe21A3+971VSlYdA6E4srH6YsKG05SdMnb7cn6vKfc/ir7QrDy3oy9Jrjz9HT6VH6BhoD5yfthOFAe2EcgmRGUrINF7AbAH2lsbdTnQ7cs5io0ta2YPS6QERi4+Lte+haO4xj5agh897pZWe5uM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Bu1sc3dF; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1791525584; c=relaxed/simple;
+	bh=cwLDZy1s1Fqks/B891p55J1UPoBpAoySVWjkJNoAR2A=;
+	h=Date:To:From:Subject:Message-Id; b=EtxF/PQcfE1TJn6+UKVQYi0+rnovAplj/IbpQr8YF8PEL5MqqfO7ZB1fMLa+8iXToXykt7KxEqyOWq9L4/GTYhdX0l3qD542QGKzPeXGqgjCX/oRHf0ChUPUNDyUWiUxdubueVsVZiFNZCZxWTwwtxjQ+8lHyAV4/lwLTR8X0Ig=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=EkzqkwZh; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Bu1sc3dF"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id AFDDF1F00893;
-	Fri,  9 Oct 2026 05:59:38 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="EkzqkwZh"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2779E1F00898;
+	Fri,  9 Oct 2026 05:59:42 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1791525578;
-	bh=zR3xdkHSoQ4gZwQWd2Jz9IpFbXKNRDhPxpQ2oBeLoBI=;
+	d=linux-foundation.org; s=korg; t=1791525582;
+	bh=ESUJPTzhtrqfHU5lFtSLEXEsTG+n6VJl0yUU1vNBnPk=;
 	h=Date:To:From:Subject;
-	b=Bu1sc3dF+mMt02jwBuNVtwqTk3CbFA4xRm82/vs+4JIY7DMJUgm60HyrzxqIHfURn
-	 1jOY857e/XPeWuB101uW6T7Rr+YcCZKuIbd7pnAgmKkW9r++/oS6Gjm5RGN5L+yKXk
-	 GgMC82qF4YlcyRfrumQ5naBdJBk7iGNGzcbFKUmw=
-Date: Thu, 08 Oct 2026 22:59:38 -0700
-To: mm-commits@vger.kernel.org,tz2294@columbia.edu,lance.yang@linux.dev,jaegeuk@kernel.org,david@kernel.org,chao@kernel.org,ziy@nvidia.com,akpm@linux-foundation.org
+	b=EkzqkwZh9vo90qKbwPcokrN5uK2/0TrLZdYy7bc+m+e0tb9TBIW2rpqRLkvrrMDTu
+	 bNGBZQ2EQUTXMLAFGNNZqBurEDxxE6sEH8jJMKNlLu9uAWyI/BVsI1WCSarqRmcUe7
+	 QAaAsJyKxQ5Ya7MlWw/QPQ9VJCwpy26zRpdt3jkw=
+Date: Thu, 08 Oct 2026 22:59:41 -0700
+To: mm-commits@vger.kernel.org,yuanchu@google.com,ying.huang@linux.alibaba.com,willy@infradead.org,weixugc@google.com,vbabka@kernel.org,usama.arif@linux.dev,surenb@google.com,shakeel.butt@linux.dev,ryan.roberts@arm.com,rppt@kernel.org,rostedt@goodmis.org,rakie.kim@sk.com,qi.zheng@linux.dev,nico.pache@linux.dev,mhocko@suse.com,mhiramat@kernel.org,matthew.brost@intel.com,mathieu.desnoyers@efficios.com,ljs@kernel.org,liam@infradead.org,lance.yang@linux.dev,kasong@tencent.com,joshua.hahnjy@gmail.com,jack@suse.cz,hannes@cmpxchg.org,gourry@gourry.net,dev.jain@arm.com,david@kernel.org,byungchul@sk.com,baolin.wang@linux.alibaba.com,baohua@kernel.org,axelrasmussen@google.com,apopple@nvidia.com,ziy@nvidia.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] f2fs-convert-the-private-flag-helpers-to-folio-only.patch removed from -mm tree
-Message-Id: <20261009055938.AFDDF1F00893@smtp.kernel.org>
+Subject: [merged mm-stable] mm-page-flags-check-page-folio-private-instead-of-pg_private.patch removed from -mm tree
+Message-Id: <20261009055942.2779E1F00898@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,321 +35,312 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: f2fs: convert the ->private flag helpers to folio-only
+     Subject: mm/page-flags: check page/folio->private instead of PG_private
 has been removed from the -mm tree.  Its filename was
-     f2fs-convert-the-private-flag-helpers-to-folio-only.patch
+     mm-page-flags-check-page-folio-private-instead-of-pg_private.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Zi Yan <ziy@nvidia.com>
-Subject: f2fs: convert the ->private flag helpers to folio-only
-Date: Sun, 20 Sep 2026 22:28:03 -0400
+Subject: mm/page-flags: check page/folio->private instead of PG_private
+Date: Sun, 20 Sep 2026 22:28:06 -0400
 
-page-based ->private flag helpers are used in the compression path, where
-large folios are not enabled.  They can use folio versions with
-page_folio().  The two remaining users in data.c and segment.c can use
-fio->folio instead of fio->page (two are in a union).
+After the changes of the prior commits, page/folio->private != NULL is now
+equivalent to checking PG_private.
 
-Drop page-based helpers after the conversion and rename
-PAGE_PRIVATE_{GET,SET,CLEAR}_FUNC() and the PAGE_PRIVATE_* flags to
-F2FS_FOLIO_PRIVATE_* to match.  Convert the folio/page union from
-f2fs_io_info union to folio only, since no page user is left.
+Stop checking PG_private on pages and folios and use page/folio->private
+instead, except swapcache and hugetlb folios, because the former uses a
+field (swp_entry_t swap) overlapping with ->private and the latter sets
+its flags in ->private.  Exclude swapcache and hugetlb when the code is
+meant to check PG_private only.  PG_swapcache and folio->swap.val cannot
+be set/clear as a whole, so excluding swapcache with
+folio_test_swapcache() is not reliable.  Instead, use
+folio_test_swapbacked(), since PG_swapbacked is stable when a folio is
+added to/removed from swapcache.  Add a helper,
+folio_has_attached_private(), for this check.
 
-The folio helpers do a plain read-modify-write where the page ones used
-set_bit()/clear_bit().  It is fine because the converted code either holds
-folio lock or, in f2fs_compress_write_end_io(), matches what the
-non-compressed code does in f2fs_write_end_bio().
+folio_test_private() and PagePrivate() now read folio/page->private
+plainly instead of an atomic read of PG_private bit, so KCSAN complains
+about possible data races.  Annotate them with data_race().
 
-Link: https://lore.kernel.org/20260920-remove-pg_private-v5-7-bb68b6a21869@nvidia.com
+folio_expected_ref_count() can be called without the folio lock, so
+annotate folio->mapping with data_race() while at it.
+
+folio_set/clear_private() and Set/ClearPagePrivate() become no-ops.
+PG_private is no longer checked at page free time. They will be removed in
+an upcoming commit.
+
+Remove KPF_PRIVATE since PG_private is no longer used.
+
+Link: https://lore.kernel.org/20260920-remove-pg_private-v5-10-bb68b6a21869@nvidia.com
 Signed-off-by: Zi Yan <ziy@nvidia.com>
-Co-developed-by: David Hildenbrand (Arm) <david@kernel.org>
-Signed-off-by: David Hildenbrand (Arm) <david@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Suggested-by: Tal Zussman <tz2294@columbia.edu>
-Reviewed-by: Tal Zussman <tz2294@columbia.edu>
-Reviewed-by: Lance Yang <lance.yang@linux.dev>
-Reviewed-by: Chao Yu <chao@kernel.org>
+Acked-by: David Hildenbrand (Arm) <david@kernel.org>
 Assisted-by: LLM
-Cc: Jaegeuk Kim <jaegeuk@kernel.org>
+Cc: Steven Rostedt <rostedt@goodmis.org>
+Cc: Masami Hiramatsu <mhiramat@kernel.org>
+Cc: Lorenzo Stoakes <ljs@kernel.org>
+Cc: "Matthew Wilcox (Oracle)" <willy@infradead.org>
+Cc: Jan Kara <jack@suse.cz>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: "Liam R. Howlett" <liam@infradead.org>
+Cc: Vlastimil Babka <vbabka@kernel.org>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
+Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
+Cc: Nico Pache <nico.pache@linux.dev>
+Cc: Ryan Roberts <ryan.roberts@arm.com>
+Cc: Dev Jain <dev.jain@arm.com>
+Cc: Barry Song <baohua@kernel.org>
+Cc: Lance Yang <lance.yang@linux.dev>
+Cc: Usama Arif <usama.arif@linux.dev>
+Cc: Matthew Brost <matthew.brost@intel.com>
+Cc: Joshua Hahn <joshua.hahnjy@gmail.com>
+Cc: Rakie Kim <rakie.kim@sk.com>
+Cc: Byungchul Park <byungchul@sk.com>
+Cc: Gregory Price <gourry@gourry.net>
+Cc: Ying Huang <ying.huang@linux.alibaba.com>
+Cc: Alistair Popple <apopple@nvidia.com>
+Cc: Qi Zheng <qi.zheng@linux.dev>
+Cc: Shakeel Butt <shakeel.butt@linux.dev>
+Cc: Kairui Song <kasong@tencent.com>
+Cc: Axel Rasmussen <axelrasmussen@google.com>
+Cc: Yuanchu Xie <yuanchu@google.com>
+Cc: Wei Xu <weixugc@google.com>
 ---
 
- fs/f2fs/compress.c |   35 ++++++++------
- fs/f2fs/data.c     |    2 
- fs/f2fs/f2fs.h     |  107 +++++++++++++++++--------------------------
- fs/f2fs/segment.c  |    2 
- 4 files changed, 67 insertions(+), 79 deletions(-)
+ fs/proc/page.c                    |    1 
+ include/linux/kernel-page-flags.h |    1 
+ include/linux/mm.h                |   19 +++++----
+ include/linux/page-flags.h        |   57 +++++++++++++++++++++++++---
+ include/trace/events/pagemap.h    |    2 
+ mm/huge_memory.c                  |    2 
+ mm/migrate.c                      |    2 
+ mm/page-writeback.c               |    2 
+ mm/vmscan.c                       |    2 
+ tools/mm/page-types.c             |    2 
+ 10 files changed, 68 insertions(+), 22 deletions(-)
 
---- a/fs/f2fs/compress.c~f2fs-convert-the-private-flag-helpers-to-folio-only
-+++ a/fs/f2fs/compress.c
-@@ -1064,13 +1064,15 @@ static void cancel_cluster_writeback(str
+--- a/fs/proc/page.c~mm-page-flags-check-page-folio-private-instead-of-pg_private
++++ a/fs/proc/page.c
+@@ -232,7 +232,6 @@ u64 stable_page_flags(const struct page
  
- 	/* Cancel writeback and stay locked. */
- 	for (i = 0; i < cc->cluster_size; i++) {
-+		struct folio *folio = page_folio(cc->rpages[i]);
-+
- 		if (i < submitted) {
- 			inode_inc_dirty_pages(cc->inode);
--			lock_page(cc->rpages[i]);
-+			folio_lock(folio);
- 		}
--		clear_page_private_gcing(cc->rpages[i]);
--		if (folio_test_writeback(page_folio(cc->rpages[i])))
--			end_page_writeback(cc->rpages[i]);
-+		folio_clear_f2fs_gcing(folio);
-+		if (folio_test_writeback(folio))
-+			folio_end_writeback(folio);
- 	}
- }
+ 	u |= kpf_copy_bit(k, KPF_RESERVED,	PG_reserved);
+ 	u |= kpf_copy_bit(k, KPF_OWNER_2,	PG_owner_2);
+-	u |= kpf_copy_bit(k, KPF_PRIVATE,	PG_private);
+ 	u |= kpf_copy_bit(k, KPF_PRIVATE_2,	PG_private_2);
+ 	u |= kpf_copy_bit(k, KPF_OWNER_PRIVATE,	PG_owner_priv_1);
+ 	u |= kpf_copy_bit(k, KPF_ARCH,		PG_arch_1);
+--- a/include/linux/kernel-page-flags.h~mm-page-flags-check-page-folio-private-instead-of-pg_private
++++ a/include/linux/kernel-page-flags.h
+@@ -11,7 +11,6 @@
+ #define KPF_RESERVED		32
+ #define KPF_MLOCKED		33
+ #define KPF_OWNER_2		34
+-#define KPF_PRIVATE		35
+ #define KPF_PRIVATE_2		36
+ #define KPF_OWNER_PRIVATE	37
+ #define KPF_ARCH		38
+--- a/include/linux/mm.h~mm-page-flags-check-page-folio-private-instead-of-pg_private
++++ a/include/linux/mm.h
+@@ -3005,9 +3005,9 @@ static inline bool folio_maybe_mapped_sh
+  * @folio: the folio
+  *
+  * Calculate the expected folio refcount, taking references from the pagecache,
+- * swapcache, PG_private and page table mappings into account. Useful in
+- * combination with folio_ref_count() to detect unexpected references (e.g.,
+- * GUP or other temporary references).
++ * swapcache, private data (folio->private != NULL) and page table mappings into
++ * account. Useful in combination with folio_ref_count() to detect unexpected
++ * references (e.g., GUP or other temporary references).
+  *
+  * Does currently not consider references from the LRU cache. If the folio
+  * was isolated from the LRU (which is the case during migration or split),
+@@ -3045,10 +3045,15 @@ static inline int folio_expected_ref_cou
+ 	ref_count += folio_test_swapcache(folio) << order;
  
-@@ -1078,11 +1080,15 @@ static void set_cluster_dirty(struct com
- {
- 	int i;
- 
--	for (i = 0; i < cc->cluster_size; i++)
--		if (cc->rpages[i]) {
--			set_page_dirty(cc->rpages[i]);
--			set_page_private_gcing(cc->rpages[i]);
--		}
-+	for (i = 0; i < cc->cluster_size; i++) {
-+		struct folio *folio;
-+
-+		if (!cc->rpages[i])
-+			continue;
-+		folio = page_folio(cc->rpages[i]);
-+		folio_mark_dirty(folio);
-+		folio_set_f2fs_gcing(folio);
-+	}
- }
- 
- static int prepare_compress_overwrite(struct compress_ctx *cc,
-@@ -1281,7 +1287,7 @@ static int f2fs_write_compressed_pages(s
- 		.op = REQ_OP_WRITE,
- 		.op_flags = wbc_to_write_flags(wbc),
- 		.old_blkaddr = NEW_ADDR,
--		.page = NULL,
-+		.folio = NULL,
- 		.encrypted_page = NULL,
- 		.compressed_page = NULL,
- 		.io_type = io_type,
-@@ -1370,7 +1376,7 @@ static int f2fs_write_compressed_pages(s
- 		block_t blkaddr;
- 
- 		blkaddr = f2fs_data_blkaddr(&dn);
--		fio.page = cc->rpages[i];
-+		fio.folio = page_folio(cc->rpages[i]);
- 		fio.old_blkaddr = blkaddr;
- 
- 		/* cluster header */
-@@ -1476,9 +1482,12 @@ void f2fs_compress_write_end_io(struct b
+ 	if (!folio_test_anon(folio)) {
+-		/* One reference per page from the pagecache. */
+-		ref_count += !!folio->mapping << order;
+-		/* One reference from PG_private. */
+-		ref_count += folio_test_private(folio);
++		/*
++		 * One reference per page from the pagecache.
++		 * Use data_race() since folio might not be locked.
++		 */
++		ref_count += !!data_race(folio->mapping) << order;
++		/*
++		 * One reference from filesystem private data.
++		 */
++		ref_count += folio_has_attached_private(folio);
  	}
  
- 	for (i = 0; i < cic->nr_rpages; i++) {
-+		struct folio *rfolio;
-+
- 		WARN_ON(!cic->rpages[i]);
--		clear_page_private_gcing(cic->rpages[i]);
--		end_page_writeback(cic->rpages[i]);
-+		rfolio = page_folio(cic->rpages[i]);
-+		folio_clear_f2fs_gcing(rfolio);
-+		folio_end_writeback(rfolio);
- 	}
- 
- 	page_array_free(sbi, cic->rpages, cic->nr_rpages);
---- a/fs/f2fs/data.c~f2fs-convert-the-private-flag-helpers-to-folio-only
-+++ a/fs/f2fs/data.c
-@@ -2923,7 +2923,7 @@ bool f2fs_should_update_outplace(struct
- 		return true;
- 
- 	if (fio) {
--		if (page_private_gcing(fio->page))
-+		if (folio_test_f2fs_gcing(fio->folio))
- 			return true;
- 		if (unlikely(is_sbi_flag_set(sbi, SBI_CP_DISABLED) &&
- 			f2fs_is_checkpointed_data(sbi, fio->old_blkaddr)))
---- a/fs/f2fs/f2fs.h~f2fs-convert-the-private-flag-helpers-to-folio-only
-+++ a/fs/f2fs/f2fs.h
-@@ -1357,10 +1357,7 @@ struct f2fs_io_info {
- 	blk_opf_t op_flags;	/* req_flag_bits */
- 	block_t new_blkaddr;	/* new block address to be written */
- 	block_t old_blkaddr;	/* old block address before Cow */
--	union {
--		struct page *page;	/* page to be written */
--		struct folio *folio;
--	};
-+	struct folio *folio;	/* folio to be written */
- 	struct page *encrypted_page;	/* encrypted page */
- 	struct page *compressed_page;	/* compressed page */
- 	struct list_head list;		/* serialize IOs */
-@@ -1613,27 +1610,27 @@ static inline void f2fs_set_bit(unsigned
- static inline void f2fs_clear_bit(unsigned int nr, char *addr);
- 
+ 	/* One reference per page table mapping. */
+--- a/include/linux/page-flags.h~mm-page-flags-check-page-folio-private-instead-of-pg_private
++++ a/include/linux/page-flags.h
+@@ -575,9 +575,31 @@ FOLIO_FLAG(swapbacked, FOLIO_HEAD_PAGE)
  /*
-- * Layout of f2fs page.private:
-+ * Layout of f2fs folio->private:
-  *
-  * Layout A: lowest bit should be 1
-  * | bit0 = 1 | bit1 | bit2 | ... | bit MAX | private data .... |
-- * bit 0	PAGE_PRIVATE_NOT_POINTER
-- * bit 1	PAGE_PRIVATE_ONGOING_MIGRATION
-- * bit 2	PAGE_PRIVATE_INLINE_INODE
-- * bit 3	PAGE_PRIVATE_REF_RESOURCE
-- * bit 4	PAGE_PRIVATE_ATOMIC_WRITE
-+ * bit 0	F2FS_FOLIO_PRIVATE_NOT_POINTER
-+ * bit 1	F2FS_FOLIO_PRIVATE_ONGOING_MIGRATION
-+ * bit 2	F2FS_FOLIO_PRIVATE_INLINE_INODE
-+ * bit 3	F2FS_FOLIO_PRIVATE_REF_RESOURCE
-+ * bit 4	F2FS_FOLIO_PRIVATE_ATOMIC_WRITE
-  * bit 5-	f2fs private data
-  *
-  * Layout B: lowest bit should be 0
-- * page.private is a wrapped pointer.
-+ * folio->private is a wrapped pointer.
+  * Private page markings that may be used by the filesystem that owns the page
+  * for its own purposes.
+- * - PG_private and PG_private_2 cause release_folio() and co to be invoked
++ * - folio->private and PG_private_2 cause release_folio() and co to be invoked
   */
- enum {
--	PAGE_PRIVATE_NOT_POINTER,		/* private contains non-pointer data */
--	PAGE_PRIVATE_ONGOING_MIGRATION,		/* data page which is on-going migrating */
--	PAGE_PRIVATE_INLINE_INODE,		/* inode page contains inline data */
--	PAGE_PRIVATE_REF_RESOURCE,		/* dirty page has referenced resources */
--	PAGE_PRIVATE_ATOMIC_WRITE,		/* data page from atomic write path */
--	PAGE_PRIVATE_MAX
-+	F2FS_FOLIO_PRIVATE_NOT_POINTER,		/* private contains non-pointer data */
-+	F2FS_FOLIO_PRIVATE_ONGOING_MIGRATION,		/* data page which is on-going migrating */
-+	F2FS_FOLIO_PRIVATE_INLINE_INODE,		/* inode page contains inline data */
-+	F2FS_FOLIO_PRIVATE_REF_RESOURCE,		/* dirty page has referenced resources */
-+	F2FS_FOLIO_PRIVATE_ATOMIC_WRITE,		/* data page from atomic write path */
-+	F2FS_FOLIO_PRIVATE_MAX
- };
- 
- /* For compression */
-@@ -2681,86 +2678,68 @@ release_quota:
- 	return -ENOSPC;
- }
- 
--#define PAGE_PRIVATE_GET_FUNC(name, flagname) \
-+#define F2FS_FOLIO_PRIVATE_GET_FUNC(name, flagname) \
- static inline bool folio_test_f2fs_##name(const struct folio *folio)	\
- {									\
- 	unsigned long priv = (unsigned long)folio->private;		\
--	unsigned long v = (1UL << PAGE_PRIVATE_NOT_POINTER) |		\
--			     (1UL << PAGE_PRIVATE_##flagname);		\
-+	unsigned long v = (1UL << F2FS_FOLIO_PRIVATE_NOT_POINTER) |	\
-+			     (1UL << F2FS_FOLIO_PRIVATE_##flagname);	\
- 	return (priv & v) == v;						\
--}									\
--static inline bool page_private_##name(struct page *page) \
--{ \
--	return page_private(page) && \
--		test_bit(PAGE_PRIVATE_NOT_POINTER, &page_private(page)) && \
--		test_bit(PAGE_PRIVATE_##flagname, &page_private(page)); \
- }
- 
--#define PAGE_PRIVATE_SET_FUNC(name, flagname) \
-+#define F2FS_FOLIO_PRIVATE_SET_FUNC(name, flagname) \
- static inline void folio_set_f2fs_##name(struct folio *folio)		\
- {									\
--	unsigned long v = (1UL << PAGE_PRIVATE_NOT_POINTER) |		\
--			     (1UL << PAGE_PRIVATE_##flagname);		\
-+	unsigned long v = (1UL << F2FS_FOLIO_PRIVATE_NOT_POINTER) |	\
-+			     (1UL << F2FS_FOLIO_PRIVATE_##flagname);	\
- 	if (!folio->private)						\
- 		folio_attach_private(folio, (void *)v);			\
- 	else {								\
- 		v |= (unsigned long)folio->private;			\
- 		folio->private = (void *)v;				\
- 	}								\
--}									\
--static inline void set_page_private_##name(struct page *page) \
--{ \
--	if (!page_private(page)) \
--		attach_page_private(page, \
--				(void *)BIT(PAGE_PRIVATE_NOT_POINTER)); \
--	set_bit(PAGE_PRIVATE_##flagname, &page_private(page)); \
- }
- 
--#define PAGE_PRIVATE_CLEAR_FUNC(name, flagname) \
-+#define F2FS_FOLIO_PRIVATE_CLEAR_FUNC(name, flagname) \
- static inline void folio_clear_f2fs_##name(struct folio *folio)		\
- {									\
- 	unsigned long v = (unsigned long)folio->private;		\
- 									\
--	v &= ~(1UL << PAGE_PRIVATE_##flagname);				\
--	if (v == (1UL << PAGE_PRIVATE_NOT_POINTER))			\
-+	v &= ~(1UL << F2FS_FOLIO_PRIVATE_##flagname);			\
-+	if (v == (1UL << F2FS_FOLIO_PRIVATE_NOT_POINTER))		\
- 		folio_detach_private(folio);				\
- 	else								\
- 		folio->private = (void *)v;				\
--}									\
--static inline void clear_page_private_##name(struct page *page) \
--{ \
--	clear_bit(PAGE_PRIVATE_##flagname, &page_private(page)); \
--	if (page_private(page) == BIT(PAGE_PRIVATE_NOT_POINTER)) \
--		detach_page_private(page); \
--}
--
--PAGE_PRIVATE_GET_FUNC(nonpointer, NOT_POINTER);
--PAGE_PRIVATE_GET_FUNC(inline, INLINE_INODE);
--PAGE_PRIVATE_GET_FUNC(gcing, ONGOING_MIGRATION);
--PAGE_PRIVATE_GET_FUNC(atomic, ATOMIC_WRITE);
--
--PAGE_PRIVATE_SET_FUNC(reference, REF_RESOURCE);
--PAGE_PRIVATE_SET_FUNC(inline, INLINE_INODE);
--PAGE_PRIVATE_SET_FUNC(gcing, ONGOING_MIGRATION);
--PAGE_PRIVATE_SET_FUNC(atomic, ATOMIC_WRITE);
--
--PAGE_PRIVATE_CLEAR_FUNC(reference, REF_RESOURCE);
--PAGE_PRIVATE_CLEAR_FUNC(inline, INLINE_INODE);
--PAGE_PRIVATE_CLEAR_FUNC(gcing, ONGOING_MIGRATION);
--PAGE_PRIVATE_CLEAR_FUNC(atomic, ATOMIC_WRITE);
+-PAGEFLAG(Private, private, PF_ANY)
++
++static __always_inline bool folio_test_private(const struct folio *folio)
++{
++	/*
++	 * data_race() is added for readers without holding the folio lock.
++	 * Only the NULL/non-NULL answer is used and both are valid while
++	 * private is being attached or detached, so the race is benign.
++	 */
++	return data_race(folio->private);
 +}
 +
-+F2FS_FOLIO_PRIVATE_GET_FUNC(nonpointer, NOT_POINTER);
-+F2FS_FOLIO_PRIVATE_GET_FUNC(inline, INLINE_INODE);
-+F2FS_FOLIO_PRIVATE_GET_FUNC(gcing, ONGOING_MIGRATION);
-+F2FS_FOLIO_PRIVATE_GET_FUNC(atomic, ATOMIC_WRITE);
++static __always_inline int PagePrivate(const struct page *page)
++{
++	/* See folio_test_private() for data_race() use */
++	return !!data_race(page->private);
++}
 +
-+F2FS_FOLIO_PRIVATE_SET_FUNC(reference, REF_RESOURCE);
-+F2FS_FOLIO_PRIVATE_SET_FUNC(inline, INLINE_INODE);
-+F2FS_FOLIO_PRIVATE_SET_FUNC(gcing, ONGOING_MIGRATION);
-+F2FS_FOLIO_PRIVATE_SET_FUNC(atomic, ATOMIC_WRITE);
++/* no-ops during transition */
++static __always_inline void folio_set_private(struct folio *folio) { }
++static __always_inline void folio_clear_private(struct folio *folio) { }
++static __always_inline void SetPagePrivate(struct page *page) { }
++static __always_inline void ClearPagePrivate(struct page *page) { }
 +
-+F2FS_FOLIO_PRIVATE_CLEAR_FUNC(reference, REF_RESOURCE);
-+F2FS_FOLIO_PRIVATE_CLEAR_FUNC(inline, INLINE_INODE);
-+F2FS_FOLIO_PRIVATE_CLEAR_FUNC(gcing, ONGOING_MIGRATION);
-+F2FS_FOLIO_PRIVATE_CLEAR_FUNC(atomic, ATOMIC_WRITE);
+ FOLIO_FLAG(private_2, FOLIO_HEAD_PAGE)
  
- static inline unsigned long folio_get_f2fs_data(struct folio *folio)
+ /* owner_2 can be set on tail pages for anon memory */
+@@ -1169,7 +1191,7 @@ static __always_inline void __ClearPageA
+  */
+ #define PAGE_FLAGS_CHECK_AT_FREE				\
+ 	(1UL << PG_lru		| 1UL << PG_locked	|	\
+-	 1UL << PG_private	| 1UL << PG_private_2	|	\
++	 1UL << PG_private_2	|				\
+ 	 1UL << PG_writeback	| 1UL << PG_reserved	|	\
+ 	 1UL << PG_active 	|				\
+ 	 1UL << PG_unevictable	| __PG_MLOCKED | LRU_GEN_MASK)
+@@ -1193,8 +1215,31 @@ static __always_inline void __ClearPageA
+ 	(0xffUL /* order */		| 1UL << PG_has_hwpoisoned |	\
+ 	 1UL << PG_large_rmappable	| 1UL << PG_partially_mapped)
+ 
+-#define PAGE_FLAGS_PRIVATE				\
+-	(1UL << PG_private | 1UL << PG_private_2)
++/**
++ * folio_has_attached_private - check if the folio has private data attached
++ * @folio: The folio to check.
++ *
++ * Use this in code that may encounter swapcache or hugetlb folios but only
++ * wants to detect attached private data.
++ *
++ * Return: true if the folio has private data attached.
++ */
++static inline bool folio_has_attached_private(const struct folio *folio)
++{
++	/*
++	 * Swapcache stores swp_entry_t in folio->swap, a union with
++	 * folio->private, and hugetlb stores its own flags in folio->private;
++	 * both are excluded.
++	 *
++	 * NOTE: For swapcache, folio->swap.val PG_swapcache are not set as
++	 * a whole, so folio_test_swapcache() is not reliable to exclude
++	 * swapcache. Use folio_test_swapbacked() instead, since it remains set
++	 * when a folio is added to/removed from swapcache.
++	 */
++
++	return folio_test_private(folio) && !folio_test_swapbacked(folio) &&
++	       !folio_test_hugetlb(folio);
++}
+ /**
+  * folio_has_private - Determine if folio has private stuff
+  * @folio: The folio to be checked
+@@ -1204,7 +1249,7 @@ static __always_inline void __ClearPageA
+  */
+ static inline int folio_has_private(const struct folio *folio)
  {
- 	unsigned long data = (unsigned long)folio->private;
- 
--	if (!test_bit(PAGE_PRIVATE_NOT_POINTER, &data))
-+	if (!test_bit(F2FS_FOLIO_PRIVATE_NOT_POINTER, &data))
- 		return 0;
--	return data >> PAGE_PRIVATE_MAX;
-+	return data >> F2FS_FOLIO_PRIVATE_MAX;
+-	return !!(folio->flags.f & PAGE_FLAGS_PRIVATE);
++	return folio_has_attached_private(folio) || folio_test_private_2(folio);
  }
  
- static inline void folio_set_f2fs_data(struct folio *folio, unsigned long data)
- {
--	data = (1UL << PAGE_PRIVATE_NOT_POINTER) | (data << PAGE_PRIVATE_MAX);
-+	data = (1UL << F2FS_FOLIO_PRIVATE_NOT_POINTER) |
-+	       (data << F2FS_FOLIO_PRIVATE_MAX);
+ #undef PF_ANY
+--- a/include/trace/events/pagemap.h~mm-page-flags-check-page-folio-private-instead-of-pg_private
++++ a/include/trace/events/pagemap.h
+@@ -22,7 +22,7 @@
+ 	(folio_test_swapcache(folio)	? PAGEMAP_SWAPCACHE  : 0) | \
+ 	(folio_test_swapbacked(folio)	? PAGEMAP_SWAPBACKED : 0) | \
+ 	(folio_test_mappedtodisk(folio)	? PAGEMAP_MAPPEDDISK : 0) | \
+-	(folio_test_private(folio)	? PAGEMAP_BUFFERS    : 0) \
++	(folio_has_attached_private(folio)	? PAGEMAP_BUFFERS    : 0) \
+ 	)
  
- 	if (!folio_test_private(folio))
- 		folio_attach_private(folio, (void *)data);
---- a/fs/f2fs/segment.c~f2fs-convert-the-private-flag-helpers-to-folio-only
-+++ a/fs/f2fs/segment.c
-@@ -3803,7 +3803,7 @@ static int __get_segment_type_6(struct f
- 		if (is_inode_flag_set(inode, FI_ALIGNED_WRITE))
- 			return CURSEG_COLD_DATA_PINNED;
+ TRACE_EVENT(mm_lru_insertion,
+--- a/mm/huge_memory.c~mm-page-flags-check-page-folio-private-instead-of-pg_private
++++ a/mm/huge_memory.c
+@@ -4845,7 +4845,7 @@ static int split_huge_pages_pid(int pid,
+ 		 * will try to drop it before split and then check if the folio
+ 		 * can be split or not. So skip the check here.
+ 		 */
+-		if (!folio_test_private(folio) &&
++		if (!folio_has_attached_private(folio) &&
+ 		    folio_expected_ref_count(folio) != folio_ref_count(folio))
+ 			goto next;
  
--		if (page_private_gcing(fio->page)) {
-+		if (folio_test_f2fs_gcing(fio->folio)) {
- 			if (fio->sbi->am.atgc_enabled &&
- 				(fio->io_type == FS_DATA_IO) &&
- 				(fio->sbi->gc_mode != GC_URGENT_HIGH) &&
+--- a/mm/migrate.c~mm-page-flags-check-page-folio-private-instead-of-pg_private
++++ a/mm/migrate.c
+@@ -1327,7 +1327,7 @@ static int migrate_folio_unmap(new_folio
+ 	 * free the metadata, so the page can be freed.
+ 	 */
+ 	if (!src->mapping) {
+-		if (folio_test_private(src)) {
++		if (folio_has_attached_private(src)) {
+ 			try_to_free_buffers(src);
+ 			goto out;
+ 		}
+--- a/mm/page-writeback.c~mm-page-flags-check-page-folio-private-instead-of-pg_private
++++ a/mm/page-writeback.c
+@@ -2705,7 +2705,7 @@ bool filemap_dirty_folio(struct address_
+ 	if (folio_test_set_dirty(folio))
+ 		return false;
+ 
+-	__folio_mark_dirty(folio, mapping, !folio_test_private(folio));
++	__folio_mark_dirty(folio, mapping, !folio_has_attached_private(folio));
+ 
+ 	if (mapping->host) {
+ 		/* !PageAnon && !swapper_space */
+--- a/mm/vmscan.c~mm-page-flags-check-page-folio-private-instead-of-pg_private
++++ a/mm/vmscan.c
+@@ -1029,7 +1029,7 @@ static void folio_check_dirty_writeback(
+ 	*writeback = folio_test_writeback(folio);
+ 
+ 	/* Verify dirty/writeback state if the filesystem supports it */
+-	if (!folio_test_private(folio))
++	if (!folio_has_attached_private(folio))
+ 		return;
+ 
+ 	mapping = folio_mapping(folio);
+--- a/tools/mm/page-types.c~mm-page-flags-check-page-folio-private-instead-of-pg_private
++++ a/tools/mm/page-types.c
+@@ -73,7 +73,6 @@
+ #define KPF_RESERVED		32
+ #define KPF_MLOCKED		33
+ #define KPF_OWNER_2		34
+-#define KPF_PRIVATE		35
+ #define KPF_PRIVATE_2		36
+ #define KPF_OWNER_PRIVATE	37
+ #define KPF_ARCH		38
+@@ -131,7 +130,6 @@ static const char * const page_flag_name
+ 	[KPF_RESERVED]		= "r:reserved",
+ 	[KPF_MLOCKED]		= "m:mlocked",
+ 	[KPF_OWNER_2]		= "d:owner_2",
+-	[KPF_PRIVATE]		= "P:private",
+ 	[KPF_PRIVATE_2]		= "p:private_2",
+ 	[KPF_OWNER_PRIVATE]	= "O:owner_private",
+ 	[KPF_ARCH]		= "h:arch",
 _
 
 Patches currently in -mm which might be from ziy@nvidia.com are
