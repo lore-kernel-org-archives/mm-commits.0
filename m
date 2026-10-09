@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C35D141D22A
-	for <mm-commits@vger.kernel.org>; Fri,  9 Oct 2026 05:59:13 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 99E5E41B8F2
+	for <mm-commits@vger.kernel.org>; Fri,  9 Oct 2026 05:59:12 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791525556; cv=none; b=um7ftsEBvMtAOGWNT8gIrCArbt42Ij1Akilpnpr2nzXmphPL5mMCjiPOa+azVdxBIl2/T5LVgYcvhV5ToqJGmvwT68MbJlsGOoMjRO/iFHDGcjT+B6bzWxXHq4lu9FPasV6g2D2CnlPwclUYF1QvR/h11FrOwToDGEHBu1rA0Cg=
+	t=1791525557; cv=none; b=b4BNrW0yvyBNSHo5Ts71ewWUUQbF6BOdBUNtkIcMfY+41HOfzbNduSAuApiLVilQtIyd/ZOAo4iL3oTHWZAl6eDoy0bvBqMvCHTVKsfC3hxkESHheVkBIpRiD6//b6ARSWaYYQTZcBTd5osWluwVS0XbWTGlX8FooqvmkAxKlxs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791525556; c=relaxed/simple;
-	bh=8FrEOK1TIaNgm0IzquIAA9dCqQas2rtVJsWzKD0GT/Q=;
-	h=Date:To:From:Subject:Message-Id; b=bsE+k/FOpIyf278NUvjfvhuOnK4iuc9vdGRm1JubRZOM667HaKf0qp1tzow4qoCa9s5vdyK2w0cpohHVgIuHDh2WG7I6Lt15C00/grO4Wqg5pfcH5S7k/lV9/lwUOgUbUTPairi8FG6/OTjnrNktmOeYdZ9WDuCYluyx6q8IHYE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=eQkHxkus; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1791525557; c=relaxed/simple;
+	bh=z4NCdCtbYyRKRihvgIFZORYPMoLUfbGlSnWwzFVacjs=;
+	h=Date:To:From:Subject:Message-Id; b=W04mTe1JAlArgrsMinewKLX844VMXjU3wTGRUKt1dpSOk+FofEE7F5yvNv5ktEQorAi63VFq8eW9mnuoQ9Cq2m6kgsBl1dpK0tLFUTxlEkgH7A+qTZdC5KXTiWV5zZkTfRqWmPLvePlKhSQtFCDLtwBMU1DdMUboZw3O/cOJm1Y=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=yYFIQj9L; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="eQkHxkus"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8F5721F00898;
-	Fri,  9 Oct 2026 05:59:13 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="yYFIQj9L"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 653301F000FF;
+	Fri,  9 Oct 2026 05:59:12 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1791525553;
-	bh=po7gCThe3L3+I5KeYOpdnmXzr6SanghlEIhJTBGQzB0=;
+	d=linux-foundation.org; s=korg; t=1791525552;
+	bh=RKnOgT487wE1d5mvRFN5k7MM9AJoRT111yU+hytrpfc=;
 	h=Date:To:From:Subject;
-	b=eQkHxkusNSXQ5jjrsTOvK/aYdO2ZU4fuD0ZiLF8J2kGrma8q5XYP86T1X5nn2nxEP
-	 qyC8ZJ7DTlqGF5SQIFIeR4N0/XiPNPCsH4JReXPbnLj6keELqy5QMbHal1XAat+oV5
-	 MWUaGD2bYpqUrY2c8VicYnEMLc7vp4Cvh0B5BWOg=
-Date: Thu, 08 Oct 2026 22:59:13 -0700
+	b=yYFIQj9LfJEJcb7HBBiAsjaixOAM+M9ABI2sjstU5Ze8OnnOERDCrg6b0nRlMkI/k
+	 HCem7pgXFCqZ7WafA3Pm1we1BETIHYSVpYNutkzq/fCYhcD/VbUt896GqMrffY29ud
+	 pMBIcnqPzrepx0CQold8KNskLl9ffOiLiNsuGJAo=
+Date: Thu, 08 Oct 2026 22:59:12 -0700
 To: mm-commits@vger.kernel.org,vbabka@kernel.org,surenb@google.com,rppt@kernel.org,rdunlap@infradead.org,mhocko@suse.com,ljs@kernel.org,liam@infradead.org,david@kernel.org,corbet@lwn.net,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-damon-sysfs-schemes-rename-sysfs_filter-sz_range-to-range_minmax.patch removed from -mm tree
-Message-Id: <20261009055913.8F5721F00898@smtp.kernel.org>
+Subject: [merged mm-stable] mm-damon-core-support-probe_hits_wsum-damos-core-filter.patch removed from -mm tree
+Message-Id: <20261009055912.653301F000FF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,31 +35,28 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/damon/sysfs-schemes: rename sysfs_filter->sz_range to range_{min,max}
+     Subject: mm/damon/core: support probe_hits_wsum damos core filter
 has been removed from the -mm tree.  Its filename was
-     mm-damon-sysfs-schemes-rename-sysfs_filter-sz_range-to-range_minmax.patch
+     mm-damon-core-support-probe_hits_wsum-damos-core-filter.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: SJ Park <sj@kernel.org>
-Subject: mm/damon/sysfs-schemes: rename sysfs_filter->sz_range to range_{min,max}
-Date: Fri, 11 Sep 2026 06:55:06 -0700
+Subject: mm/damon/core: support probe_hits_wsum damos core filter
+Date: Fri, 11 Sep 2026 06:55:05 -0700
 
-DAMON sysfs interface provides 'min' and 'max' files under the DAMOS
-filter directory.  The purpose is setting the general range arguments for
-hugepage_size like filters that require range arguments.  So far,
-hugepage_size was the only filter using it.  Hence sz_range field of
-damon_sysfs_scheme_filter struct was connected to the files.
+Implement probe_hits_wsum DAMOS core filter support in the core layer. 
+Make three small changes for the support.  First, update
+damos_filter_for_ops() to treat probe_hits_wsum filter as core filter. 
+Second, Update destination damos_filter->range_{min,max} for
+probe_hits_wsum type damos filter commits.  Third, extend
+damos_filter_match() to handle probe_hits_wsum type filter.  Calculate the
+weighted sum of the given region and compare it with the given filter's
+target weighted sum range.
 
-In future, we could add a new filter that can reuse the 'min' and 'max'
-files.  And the filter might use a range of a type that is not size.  For
-example, probe_hits weighted sum.  In this case, simply reusing the
-sz_range field would make it a little confusing.  Rename sz_range to
-range_{min,max} to avoid such confusion.
-
-Link: https://lore.kernel.org/20260911135510.96914-5-sj@kernel.org
+Link: https://lore.kernel.org/20260911135510.96914-4-sj@kernel.org
 Signed-off-by: SJ Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 Cc: David Hildenbrand <david@kernel.org>
@@ -73,82 +70,51 @@ Cc: Suren Baghdasaryan <surenb@google.com>
 Cc: Vlastimil Babka <vbabka@kernel.org>
 ---
 
- mm/damon/sysfs-schemes.c |   19 +++++++++++--------
- 1 file changed, 11 insertions(+), 8 deletions(-)
+ mm/damon/core.c |   12 +++++++++++-
+ 1 file changed, 11 insertions(+), 1 deletion(-)
 
---- a/mm/damon/sysfs-schemes.c~mm-damon-sysfs-schemes-rename-sysfs_filter-sz_range-to-range_minmax
-+++ a/mm/damon/sysfs-schemes.c
-@@ -534,7 +534,8 @@ struct damon_sysfs_scheme_filter {
- 	bool allow;
- 	char *memcg_path;
- 	struct damon_addr_range addr_range;
--	struct damon_size_range sz_range;
-+	unsigned long range_min;
-+	unsigned long range_max;
- 	int target_idx;
- };
+--- a/mm/damon/core.c~mm-damon-core-support-probe_hits_wsum-damos-core-filter
++++ a/mm/damon/core.c
+@@ -658,6 +658,7 @@ bool damos_filter_for_ops(enum damos_fil
+ 	switch (type) {
+ 	case DAMOS_FILTER_TYPE_ADDR:
+ 	case DAMOS_FILTER_TYPE_TARGET:
++	case DAMOS_FILTER_TYPE_PROBE_HITS_WSUM:
+ 		return false;
+ 	default:
+ 		break;
+@@ -1332,6 +1333,10 @@ static void damos_commit_filter_arg(
+ 	case DAMOS_FILTER_TYPE_HUGEPAGE_SIZE:
+ 		dst->sz_range = src->sz_range;
+ 		break;
++	case DAMOS_FILTER_TYPE_PROBE_HITS_WSUM:
++		dst->range_min = src->range_min;
++		dst->range_max = src->range_max;
++		break;
+ 	default:
+ 		break;
+ 	}
+@@ -2510,7 +2515,7 @@ static bool damos_filter_match(struct da
+ 	bool matched = false;
+ 	struct damon_target *ti;
+ 	int target_idx = 0;
+-	unsigned long start, end;
++	unsigned long start, end, wsum;
  
-@@ -588,6 +589,7 @@ damos_sysfs_filter_type_names[] = {
- 		.type = DAMOS_FILTER_TYPE_TARGET,
- 		.name = "target",
- 	},
-+
- };
- 
- static ssize_t type_show(struct kobject *kobj,
-@@ -778,7 +780,7 @@ static ssize_t min_show(struct kobject *
- 	struct damon_sysfs_scheme_filter *filter = container_of(kobj,
- 			struct damon_sysfs_scheme_filter, kobj);
- 
--	return sysfs_emit(buf, "%lu\n", filter->sz_range.min);
-+	return sysfs_emit(buf, "%lu\n", filter->range_min);
- }
- 
- static ssize_t min_store(struct kobject *kobj,
-@@ -786,7 +788,7 @@ static ssize_t min_store(struct kobject
- {
- 	struct damon_sysfs_scheme_filter *filter = container_of(kobj,
- 			struct damon_sysfs_scheme_filter, kobj);
--	int err = kstrtoul(buf, 0, &filter->sz_range.min);
-+	int err = kstrtoul(buf, 0, &filter->range_min);
- 
- 	return err ? err : count;
- }
-@@ -797,7 +799,7 @@ static ssize_t max_show(struct kobject *
- 	struct damon_sysfs_scheme_filter *filter = container_of(kobj,
- 			struct damon_sysfs_scheme_filter, kobj);
- 
--	return sysfs_emit(buf, "%lu\n", filter->sz_range.max);
-+	return sysfs_emit(buf, "%lu\n", filter->range_max);
- }
- 
- static ssize_t max_store(struct kobject *kobj,
-@@ -805,7 +807,7 @@ static ssize_t max_store(struct kobject
- {
- 	struct damon_sysfs_scheme_filter *filter = container_of(kobj,
- 			struct damon_sysfs_scheme_filter, kobj);
--	int err = kstrtoul(buf, 0, &filter->sz_range.max);
-+	int err = kstrtoul(buf, 0, &filter->range_max);
- 
- 	return err ? err : count;
- }
-@@ -2835,12 +2837,13 @@ static int damon_sysfs_add_scheme_filter
- 		} else if (filter->type == DAMOS_FILTER_TYPE_TARGET) {
- 			filter->target_idx = sysfs_filter->target_idx;
- 		} else if (filter->type == DAMOS_FILTER_TYPE_HUGEPAGE_SIZE) {
--			if (sysfs_filter->sz_range.min >
--					sysfs_filter->sz_range.max) {
-+			if (sysfs_filter->range_min >
-+					sysfs_filter->range_max) {
- 				damos_destroy_filter(filter);
- 				return -EINVAL;
- 			}
--			filter->sz_range = sysfs_filter->sz_range;
-+			filter->sz_range.min = sysfs_filter->range_min;
-+			filter->sz_range.max = sysfs_filter->range_max;
- 		}
- 
- 		damos_add_filter(scheme, filter);
+ 	switch (filter->type) {
+ 	case DAMOS_FILTER_TYPE_TARGET:
+@@ -2545,6 +2550,11 @@ static bool damos_filter_match(struct da
+ 		damon_split_region_at(t, r, end - r->ar.start);
+ 		matched = true;
+ 		break;
++	case DAMOS_FILTER_TYPE_PROBE_HITS_WSUM:
++		wsum = damon_probe_hits_wsum(r, false, true, ctx);
++		matched = filter->range_min <= wsum &&
++			wsum <= filter->range_max;
++		break;
+ 	default:
+ 		return false;
+ 	}
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
