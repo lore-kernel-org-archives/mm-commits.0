@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B8B8540F726
-	for <mm-commits@vger.kernel.org>; Fri,  9 Oct 2026 05:58:45 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 36BE540F726
+	for <mm-commits@vger.kernel.org>; Fri,  9 Oct 2026 05:58:46 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791525526; cv=none; b=FiBEkGpjfd9GKerPjygySSW17NkaSBqU/+iX6LFMq4nrrooZnOKXIlPQ6VNlNxcjH3GJzqOzbjLk2Bjn9ZJPi8gSURMIju5u2kToFChTk97LrRBfT7mifY6VLDLiFB8jTghIPgEmRF8U5Hr14vjJeqOldc8htwdTmYqzyOb4i60=
+	t=1791525528; cv=none; b=F8SVUEI4KS56ofa8xTGpACjWMgaimnjmqIvIH8Tz7wBR3ffiYT0fUNTlZpUGEoCGGmMAcPI99YFudyTXcdUCju1ep2UwkKufDe3AnJQ0eCPJ4izqXiEMqCd76sZoqAty8a3hph6ergqji/Cq/AXeoklfQeN0T4I1jm3zwfBmLMM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791525526; c=relaxed/simple;
-	bh=LShfvDb5Dg5btd6g6XBU8aw5LO8eIcPzFntMBLHae5k=;
-	h=Date:To:From:Subject:Message-Id; b=cL5a0Sa7x3OnX4o76Evm62xNPEqLOONlBdvMKLmUUGUSezCZL0RS/1EcXRzIzBWtaZrJD9kwu4PJNgcx6ytLHp07AtxMmAHntqkpaoZsJ5qsILhY/OknX44qTvqkYqTN5O5B7wXEkvTH2S3V5EYhBcsPflXCais3iZ9MYs+EtwM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=goUG7Rtl; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1791525528; c=relaxed/simple;
+	bh=UPTzWWES5O6jTcXBAUE6REfXInLVXOAVVAIuft4t9hk=;
+	h=Date:To:From:Subject:Message-Id; b=PNkg2qcfEOVP5pKf4fPC+R/FS7jfRVYkW3jBt4+r8AKMS3q7crOZdDNxSuMYBA3JK/ooli8IcIAU2t6KYbqgvEk1S84jZkWPjnQLKTuFC3zgUMcJZzMoDg8f/n4DSA01c0p8LvyO7jPCz1uHIEfE0NqIFfexffwCaVxm8Cvu+S4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Y978/WTd; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="goUG7Rtl"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8DD9D1F00893;
-	Fri,  9 Oct 2026 05:58:45 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Y978/WTd"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B57CB1F000FF;
+	Fri,  9 Oct 2026 05:58:46 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1791525525;
-	bh=Cw8AQygJE9686uXYo114lFNAaLu4AGJKMnk8oeMQvJ4=;
+	d=linux-foundation.org; s=korg; t=1791525526;
+	bh=sY8ges2W3XQ2VcDU6YyOxw44y+3+kzHHUI4VdGmbQHM=;
 	h=Date:To:From:Subject;
-	b=goUG7RtltHikmPg5kzaf3LxXKPen80UFPdrRs67igLV0AFAa1Zums1a4q29bCiy8q
-	 0kdQhHfV0IH6Z4uWzvN1h4mUPn0s9MsvlYub1mnhDioHewvh4SG+tu9EI9l+s/f7fx
-	 ELa9WnAGE9rqkj9Sy7dDMQeTdKujH/R3Vl57w11M=
-Date: Thu, 08 Oct 2026 22:58:45 -0700
+	b=Y978/WTdzjZXRZgeMteCA7mr3RPeWtTgpYTqf4ZamGjMLaX/LMxUX2IijTDEpt+6W
+	 WvJwMIC/9FkMoqX/wKe1lbL92rv7Win3n0raOCUgKisWsi7C0E2z/rR4dd60dZ6NLP
+	 ThmCwNMFCKa3AdW6YQON/X5gSO8pq/G0w/PbsXp8=
+Date: Thu, 08 Oct 2026 22:58:46 -0700
 To: mm-commits@vger.kernel.org,vbabka@kernel.org,surenb@google.com,rppt@kernel.org,rdunlap@infradead.org,mhocko@suse.com,ljs@kernel.org,liam@infradead.org,david@kernel.org,corbet@lwn.net,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-damon-vaddr-support-damon_filter_type_pgidle_set.patch removed from -mm tree
-Message-Id: <20261009055845.8DD9D1F00893@smtp.kernel.org>
+Subject: [merged mm-stable] mm-damon-sysfs-support-damon_filter_type_pgidle_set.patch removed from -mm tree
+Message-Id: <20261009055846.B57CB1F000FF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,22 +35,22 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/damon/vaddr: support DAMON_FILTER_TYPE_PGIDLE_SET
+     Subject: mm/damon/sysfs: support DAMON_FILTER_TYPE_PGIDLE_SET
 has been removed from the -mm tree.  Its filename was
-     mm-damon-vaddr-support-damon_filter_type_pgidle_set.patch
+     mm-damon-sysfs-support-damon_filter_type_pgidle_set.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: SJ Park <sj@kernel.org>
-Subject: mm/damon/vaddr: support DAMON_FILTER_TYPE_PGIDLE_SET
-Date: Thu, 10 Sep 2026 07:22:30 -0700
+Subject: mm/damon/sysfs: support DAMON_FILTER_TYPE_PGIDLE_SET
+Date: Thu, 10 Sep 2026 07:22:31 -0700
 
-Implement DAMON_FILTER_TYPE_PGIDLE_SET support on the virtual address
-space DAMON operation set (vaddr).
+Extend DAMON sysfs interface to let users setup
+DAMON_FILTER_TYPE_PGIDLE_SET probe filter.
 
-Link: https://lore.kernel.org/20260910142234.171562-4-sj@kernel.org
+Link: https://lore.kernel.org/20260910142234.171562-5-sj@kernel.org
 Signed-off-by: SJ Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 Cc: David Hildenbrand <david@kernel.org>
@@ -64,25 +64,22 @@ Cc: Suren Baghdasaryan <surenb@google.com>
 Cc: Vlastimil Babka <vbabka@kernel.org>
 ---
 
- mm/damon/vaddr.c |    7 +++++++
- 1 file changed, 7 insertions(+)
+ mm/damon/sysfs.c |    4 ++++
+ 1 file changed, 4 insertions(+)
 
---- a/mm/damon/vaddr.c~mm-damon-vaddr-support-damon_filter_type_pgidle_set
-+++ a/mm/damon/vaddr.c
-@@ -550,6 +550,13 @@ static bool damon_va_filter_match(struct
- 			matched = damon_va_young_addr(folio, pte, pmd, mm,
- 					addr);
- 		break;
-+	case DAMON_FILTER_TYPE_PGIDLE_SET:
-+		if (!folio)
-+			matched = false;
-+		else
-+			matched = !damon_va_young_addr(folio, pte, pmd, mm,
-+					addr);
-+		break;
- 	default:
- 		return damon_ops_filter_match(filter, folio);
- 	}
+--- a/mm/damon/sysfs.c~mm-damon-sysfs-support-damon_filter_type_pgidle_set
++++ a/mm/damon/sysfs.c
+@@ -1001,6 +1001,10 @@ damon_sysfs_filter_type_names[] = {
+ 		.type = DAMON_FILTER_TYPE_PGIDLE_UNSET,
+ 		.name = "pgidle_unset",
+ 	},
++	{
++		.type = DAMON_FILTER_TYPE_PGIDLE_SET,
++		.name = "pgidle_set",
++	},
+ };
+ 
+ static ssize_t type_show(struct kobject *kobj,
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
