@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 86B8541A91C;
-	Fri,  9 Oct 2026 05:59:21 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 31CA341687C
+	for <mm-commits@vger.kernel.org>; Fri,  9 Oct 2026 05:59:15 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791525562; cv=none; b=JjwKpXGbx6itL4VGbuHDbsbjEUzZYGpQqd15nQlqpm6CCsUTxlaTUEJoIW+r3mxvEBPl4hn9xRrkgKKBz8Sf970URPNfaPCsynureKnZWrooUWW74QIrk+j2RiEuBZXj3h4zfMCGduCCButfaDt0otOsAvHSQR+R/fODg+TGHX8=
+	t=1791525563; cv=none; b=ugsgZon5GZqs0CfMLthP5WDwY7lX/gyaxZFFrT1OUJUqfFngTWcOtu+OFKfIOXUPuI7FoXEFjITtL1r/eXh5fACK42okV7ZXBqlpqtdD80tBHvEJW71SG1zgnF0Cy+GDbaKVaumxFGt0xqlnOxUKER9Q5Hdm2DnRTHRT0KaTwsw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791525562; c=relaxed/simple;
-	bh=2Q1Trajgp8yS7NnqrcE0k/mBCW5XnDP22sMxhCOW9QY=;
-	h=Date:To:From:Subject:Message-Id; b=aB3e52zqEOyX5fgH6XMwlnkbgUlvsJ5Cvk76vn5FfBpa1/dwC0iG6OlI8nd4OmyMRKF//TBtI1BK0ufZpvgiXSD08dAiZpRMewxFPo1p9ESiR0rE89Ko+Xk5VNval5zDr/urek9OACnTDik9bt/S7W8RWAbyGrGo1n3O+ldtAoo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=0LjM6PDd; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1791525563; c=relaxed/simple;
+	bh=EEue6TTj7973me0iEtcloBfkyQWCrantMe5As6euHo0=;
+	h=Date:To:From:Subject:Message-Id; b=acfm0HCVZ6KTdnz9+9bX4g5ehc4znWZYEDLMaJ5G848IQNogX2Ok00/Btumu3ZUGJ/1SJ8F/CVor83aDr3jW2PPMgIf9XIk+b6B+ty9FNoT4KdP33mkhhkFvIz4bZhwZ7OSM+I05mSfUyR13fvyZxwTnlm+SyDzXSMb+UGkjJek=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=eqQQPddR; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="0LjM6PDd"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 59A2B1F0089A;
-	Fri,  9 Oct 2026 05:59:21 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="eqQQPddR"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id BAF911F00893;
+	Fri,  9 Oct 2026 05:59:14 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1791525561;
-	bh=P+M3EwXC6EZpsWn62MmV5bM6JCrmUlzcdE7XGROA3iE=;
+	d=linux-foundation.org; s=korg; t=1791525554;
+	bh=5zutYAGmVyiX5R71if5V0QYR+57a910f+Aes8y3Quz4=;
 	h=Date:To:From:Subject;
-	b=0LjM6PDdN1wzAZt2NhxFR8wpCSuV9I6bVwfOkxu+Dm1SMH9OdHKnxOXAqzgbhNl0y
-	 L4u5oZnbwL9EEZlgAtakGaym17UwoTeCidYhJJLU6pgA6z3iQ3J7Lh5ra5PTNWaBSN
-	 6NNr52fAi6XYmagOkdquuEvoCwTjss6Uux1R1GOU=
-Date: Thu, 08 Oct 2026 22:59:20 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,ying.huang@linux.alibaba.com,vbabka@kernel.org,stable@vger.kernel.org,sashiko-bot@kernel.org,rakie.kim@sk.com,peterx@redhat.com,ljs@kernel.org,liam@infradead.org,joshua.hahnjy@gmail.com,jgg@ziepe.ca,jannh@google.com,david@kernel.org,gourry@gourry.net,akpm@linux-foundation.org
+	b=eqQQPddRWkMRWFW6czhgIZcBev/TxajxrlKi8vVsRGVkAVUFx1l80m6AI0vrZNCai
+	 Vpp63iZRSTSJqbh8a94wGszm2qUXbMemBFnUOnvEuroJEHRpZdLShq8mbjBhUeYeJQ
+	 /56Qvy6mBOGZen0QlNEtIXa7OfKsKriQnMBbz0Nw=
+Date: Thu, 08 Oct 2026 22:59:14 -0700
+To: mm-commits@vger.kernel.org,vbabka@kernel.org,surenb@google.com,rppt@kernel.org,rdunlap@infradead.org,mhocko@suse.com,ljs@kernel.org,liam@infradead.org,david@kernel.org,corbet@lwn.net,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-madvise-use-vm_normal_folio_pmd-in-cold-pageout-pmd-range.patch removed from -mm tree
-Message-Id: <20261009055921.59A2B1F0089A@smtp.kernel.org>
+Subject: [merged mm-stable] mm-damon-sysfs-schemes-support-probe_hits_wsum-damos-core-filter.patch removed from -mm tree
+Message-Id: <20261009055914.BAF911F00893@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,104 +35,103 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/madvise: use vm_normal_folio_pmd() in cold/pageout PMD range
+     Subject: mm/damon/sysfs-schemes: support probe_hits_wsum damos core filter
 has been removed from the -mm tree.  Its filename was
-     mm-madvise-use-vm_normal_folio_pmd-in-cold-pageout-pmd-range.patch
+     mm-damon-sysfs-schemes-support-probe_hits_wsum-damos-core-filter.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Gregory Price <gourry@gourry.net>
-Subject: mm/madvise: use vm_normal_folio_pmd() in cold/pageout PMD range
-Date: Sat, 26 Sep 2026 06:51:10 -0400
+From: SJ Park <sj@kernel.org>
+Subject: mm/damon/sysfs-schemes: support probe_hits_wsum damos core filter
+Date: Fri, 11 Sep 2026 06:55:07 -0700
 
-mmap a VM_MIXEDMAP region whose ->huge_fault installs a PMD through
-vmf_insert_pfn_pmd() - mshv_vtl_low does this, and needs CAP_SYS_ADMIN
-to open - then:
+Extend DAMON sysfs interface to support probe_hits_wsum input.  Also
+update sysfs input based scheme build logic to setup the min/max probe
+hits weighted sum range as user provided.
 
-  madvise(p, PMD_SIZE, MADV_PAGEOUT);
-
-With a stand-in module for the driver:
-
-  BUG: unable to handle page fault for address: fffff587c0000008
-  RIP: 0010:madvise_cold_or_pageout_pte_range+0x410/0x9b0
-   walk_pgd_range+0x52b/0xaf0
-   __walk_page_range+0x6a/0x1d0
-   walk_page_range_vma_unsafe+0x8e/0x120
-   madvise_pageout+0xb2/0x180
-   madvise_vma_behavior+0x46b/0xa90
-   do_madvise+0x108/0x190
-   __x64_sys_madvise+0x26/0x30
-
-Nothing validates the pfn on the way in:
-
-  can_madv_lru_vma()     rejects VM_PFNMAP, but not VM_MIXEDMAP
-  can_fault()            *pfn = vmf->pgoff & ~(mask >> PAGE_SHIFT);
-  vmf_insert_pfn_pmd()   no pfn_valid() check
-  pmd_folio()            pfn_to_page() -> unpopulated vmemmap
-
-Even with a valid pfn the path is wrong.  The mapping carries no rmap, so
-folio_maybe_mapped_shared() sees mapcount 0, and the walker goes on to
-folio_deactivate(), or folio_isolate_lru() plus reclaim_pages(), against a
-folio this mapping does not own.
-
-Use vm_normal_folio_pmd() and skip on NULL, as the PTE half of this same
-walker already does with vm_normal_folio().  This also filters the huge
-zero PMD, so its separate check is no longer needed.
-
-Link: https://lore.kernel.org/20260926105110.2156652-3-gourry@gourry.net
-Fixes: 3c8e44c9b369 ("mm: mark special bits for huge pfn mappings when inject")
-Signed-off-by: Gregory Price (Meta) <gourry@gourry.net>
+Link: https://lore.kernel.org/20260911135510.96914-6-sj@kernel.org
+Signed-off-by: SJ Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Reported-by: sashiko-bot <sashiko-bot@kernel.org>
-Closes: https://sashiko.dev/#/patchset/20260817220810.1175596-1-gourry%40gourry.net
-Reviewed-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
-Acked-by: David Hildenbrand (Arm) <david@kernel.org>
-Reviewed-by: Zi Yan <ziy@nvidia.com>
-Assisted-by: LLM
+Cc: David Hildenbrand <david@kernel.org>
+Cc: Jonathan Corbet <corbet@lwn.net>
 Cc: Liam R. Howlett <liam@infradead.org>
+Cc: Lorenzo Stoakes <ljs@kernel.org>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Randy Dunlap <rdunlap@infradead.org>
+Cc: Suren Baghdasaryan <surenb@google.com>
 Cc: Vlastimil Babka <vbabka@kernel.org>
-Cc: Jann Horn <jannh@google.com>
-Cc: Joshua Hahn <joshua.hahnjy@gmail.com>
-Cc: Rakie Kim <rakie.kim@sk.com>
-Cc: Ying Huang <ying.huang@linux.alibaba.com>
-Cc: Peter Xu <peterx@redhat.com>
-Cc: Jason Gunthorpe <jgg@ziepe.ca>
-Cc: <stable@vger.kernel.org> # v6.19+
 ---
 
- mm/madvise.c |    7 +++----
- 1 file changed, 3 insertions(+), 4 deletions(-)
+ mm/damon/sysfs-schemes.c |   12 +++++++++++-
+ 1 file changed, 11 insertions(+), 1 deletion(-)
 
---- a/mm/madvise.c~mm-madvise-use-vm_normal_folio_pmd-in-cold-pageout-pmd-range
-+++ a/mm/madvise.c
-@@ -394,16 +394,15 @@ static int madvise_cold_or_pageout_pte_r
- 			return 0;
- 
- 		orig_pmd = *pmd;
--		if (is_huge_zero_pmd(orig_pmd))
--			goto huge_unlock;
+--- a/mm/damon/sysfs-schemes.c~mm-damon-sysfs-schemes-support-probe_hits_wsum-damos-core-filter
++++ a/mm/damon/sysfs-schemes.c
+@@ -589,7 +589,10 @@ damos_sysfs_filter_type_names[] = {
+ 		.type = DAMOS_FILTER_TYPE_TARGET,
+ 		.name = "target",
+ 	},
 -
- 		if (unlikely(!pmd_present(orig_pmd))) {
- 			VM_WARN_ON_ONCE(!pmd_is_migration_entry(orig_pmd) &&
- 					!pmd_is_device_private_entry(orig_pmd));
- 			goto huge_unlock;
++	{
++		.type = DAMOS_FILTER_TYPE_PROBE_HITS_WSUM,
++		.name = "probe_hits_wsum",
++	},
+ };
+ 
+ static ssize_t type_show(struct kobject *kobj,
+@@ -2844,6 +2847,13 @@ static int damon_sysfs_add_scheme_filter
+ 			}
+ 			filter->sz_range.min = sysfs_filter->range_min;
+ 			filter->sz_range.max = sysfs_filter->range_max;
++		} else if (filter->type == DAMOS_FILTER_TYPE_PROBE_HITS_WSUM) {
++			filter->range_min = sysfs_filter->range_min;
++			filter->range_max = sysfs_filter->range_max;
++			if (filter->range_min > filter->range_max) {
++				damos_destroy_filter(filter);
++				return -EINVAL;
++			}
  		}
  
--		folio = pmd_folio(orig_pmd);
-+		folio = vm_normal_folio_pmd(vma, addr, orig_pmd);
-+		if (!folio)
-+			goto huge_unlock;
- 
- 		if (folio_is_zone_device(folio))
- 			goto huge_unlock;
+ 		damos_add_filter(scheme, filter);
 _
 
-Patches currently in -mm which might be from gourry@gourry.net are
+Patches currently in -mm which might be from sj@kernel.org are
 
-proc-task_mmu-handle-special-pmds-in-clear_refs-and-pagemap.patch
-mm-madvise-reclaim-isolated-folios-if-pte-restart-fails.patch
-mm-madvise-use-folio_trylock-in-the-cold-pageout-pmd-split.patch
-mm-damon-use-damon_get_monitor_folio-for-hugetlb-entries.patch
+mm-damon-sysfs-schemes-read-sysfs_filter-addr_range-only-once.patch
+mm-damon-sysfs-schemes-read-sysfs_filter-sz_range-only-once.patch
+mm-damon-core-return-an-error-from-damos_commit_filter_arg.patch
+mm-damon-core-disallow-max-min-damos-filter-range-arguments-commit.patch
+mm-damon-sysfs-schemes-drop-centralized-filter-range-arg-validations.patch
+mm-damon-sysfs-schemes-use-switch-case-in-add_scheme_filters.patch
+mm-damon-core-kunit-extend-damos_commit_filter_for-for-wrong-input.patch
+mm-damon-core-kunit-test-invalid-damos-filter-commits.patch
+mm-damon-api-introduce-damon_filter_type_hugepage_size.patch
+mm-damon-core-commit-hugepage_size-type-damon-filter.patch
+mm-damon-ops-common-support-hugepage_size-damon-filter-matching.patch
+mm-damon-sysfs-add-minmax-files-under-probe-filter-directory.patch
+mm-damon-sysfs-support-hugepage_size-probe-filter.patch
+docs-mm-damon-design-update-for-hugepage_size-probe-filter.patch
+docs-admin-guide-mm-damon-usage-update-for-hugepage_size.patch
+docs-abi-damon-update-for-hugepage_size-probe-filter.patch
+mm-damon-api-remove-nr_damos_filter_types.patch
+mm-damon-core-use-abs_diff-in-damon_feed_loop_next_input.patch
+mm-damon-core-use-mult_frac-in-damon_feed_loop_next_input.patch
+mm-damon-core-set-damon_ctx-walk_control_obsolete-in-damon_new_ctx.patch
+mm-damon-core-document-damon_call-damon_start-race-hang-issue.patch
+mm-damon-paddr-remove-pa-parameter-from-damon_pa_filter_pass.patch
+mm-damon-tests-core-kunit-test-eligible_mem_bp-commitment.patch
+mm-damon-tests-core-kunit-add-probe_hits_wsum-damos-filter-commit-test.patch
+selftests-damon-sysfs_memcg_path_leak-fail-only-for-real-damon-leak.patch
+docs-mm-damon-design-clarify-bp-is-basis-point.patch
+mm-damon-core-introduce-damos_quota_goal-complement.patch
+mm-damon-core-add-complement-argument-to-damos_new_quota_goal.patch
+mm-damon-sysfs-schemes-support-quota-goal-complement-flag.patch
+mm-damon-tests-core-kunit-test-quota_goal-complement-commit.patch
+selftests-damon-sysfssh-test-quota-goal-complement-flag-file.patch
+docs-mm-damon-design-document-damos-quota-goal-complement-flag.patch
+docs-admin-guide-mm-damon-usage-update-for-quota-goal-complement-file.patch
+docs-abi-damon-update-for-quota-goal-metric-complement-sysfs-file.patch
 
