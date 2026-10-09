@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B603D407CEF
-	for <mm-commits@vger.kernel.org>; Fri,  9 Oct 2026 05:58:16 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 944174052B7
+	for <mm-commits@vger.kernel.org>; Fri,  9 Oct 2026 05:58:15 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791525497; cv=none; b=a5+qP0Dmf8swDmUI1bCig/jNpgsWrCGFcXZEa3fIQN2hp3iOQQGFYm6e+ZxFC40xyZcsmKjmJTeiA6ayE5UwOMkyq3QAyRVkah8tI07ZjIriarnpxFgq8Rr+pY3yKJM7YBLaGAoU7thXiSTvch/50S0EorUq8iQszg6VXbzASQE=
+	t=1791525497; cv=none; b=Y1zxjqqIWzavH9sxiqCM4AYxd6oL1fVhsmYZfWVk0UqtIOEdM7kLlTxYo+4f6Aj1DQf0GB9yq/Slw/yLFacsUhhuo/ac0Gzn/6sAKCqjiO4i8Szwz22HG+wB5uiznsW19nvn5PLDVfvMAev8VjqK0k6gWDkdmztVnCNGia0bB3c=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1791525497; c=relaxed/simple;
-	bh=We9O2bT3x1IEvAWapqVncTJPeyFnSEWm5RvIjP+aKbs=;
-	h=Date:To:From:Subject:Message-Id; b=nq2FwWiYC0J3xqIm1Zr6EaK4VsHy86X17DB2kJmTm2hjfvcH30FEk8XF7fp4jTb64wwuTCui4xPS9WgEyyYY3Ifm1MLxRHRxt9Bs1VkVxh7XTMoLFeZt1Xr8NE1j6fh1vB+3fDEY0Ni7TUlhf0d4K+M1LrdrFbIr0hrmtbXq4OY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=XUEhmL6l; arc=none smtp.client-ip=100.103.45.18
+	bh=8j7pRGWrz/6EfVzF+4ROdoh8GNUPUwtI+02Fq0GkYEQ=;
+	h=Date:To:From:Subject:Message-Id; b=r1jvQjhn14oaszcHC48SbtB5J4+e+ZPUTu3JN9GdlKvNPf127obgwysHV4C5jdONtTUiGAU9+3OLkmN8OwKBBcIVKNqC+d7dNuiMkeJAa1A8XpOMYm3sQGKJs+grXZu2E2DWK3J22IDSYF6QCgfyN4DGGMSEEKrGzH0G8C7sRxw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=UMKZqCtm; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="XUEhmL6l"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8C7E01F00893;
-	Fri,  9 Oct 2026 05:58:16 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="UMKZqCtm"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6AA251F000FF;
+	Fri,  9 Oct 2026 05:58:15 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1791525496;
-	bh=fFOfq5sGyVrsB/fARjUM7kmJ+2kVQT2jCdfeaSsvzy4=;
+	d=linux-foundation.org; s=korg; t=1791525495;
+	bh=QuRfH+2ivGjKOOz4ph4yrW1m7ryn+8IT4zBIAUbOcd4=;
 	h=Date:To:From:Subject;
-	b=XUEhmL6lhuRI7Tfq+XjR7sJGmTVjFxbDwuIuLwzPLF10TCl/SJo86So+s3Jx59e5z
-	 NQG8PuN5fDlHw6a5cKtV99RnkiAb9b5sr4Yn/Q4JJJ/cq+qHMRU3xw5/0q6oqusK0R
-	 3n/K9iTDGZKXcBI17oo+BUy1Fmv2qzE7uxIsHP9w=
-Date: Thu, 08 Oct 2026 22:58:16 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,vbabka@kernel.org,surenb@google.com,mhocko@suse.com,hannes@cmpxchg.org,gourry@gourry.net,brendan.jackman@linux.dev,liuqiqi@kylinos.cn,akpm@linux-foundation.org
+	b=UMKZqCtmNk5f4yD/py48r/kbSmFm2shlizmLj9LTY8WyTwMUfsYY8+kPvgyOWnXQI
+	 gDdCboVR9fbcTR2bu/Zx/WrdERNjGgVjpwUGPFobEsVFhzEn1huLjfzz3TzqlLRZWn
+	 FLdNGJPeTRKQHscFAQhxEqnYbbczmXpfswO+ZDnY=
+Date: Thu, 08 Oct 2026 22:58:15 -0700
+To: mm-commits@vger.kernel.org,vbabka@kernel.org,surenb@google.com,shuah@kernel.org,rppt@kernel.org,mhocko@suse.com,ljs@kernel.org,liam@infradead.org,james.bottomley@HansenPartnership.com,david@kernel.org,lihongfu@kylinos.cn,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-page_alloc-add-missing-hooks-to-bulk-allocation-path.patch removed from -mm tree
-Message-Id: <20261009055816.8C7E01F00893@smtp.kernel.org>
+Subject: [merged mm-stable] selftests-mm-fix-ptrace-peekdata-check-in-memfd_secret-test.patch removed from -mm tree
+Message-Id: <20261009055815.6AA251F000FF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,61 +35,63 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: page_alloc: add missing hooks to bulk allocation path
+     Subject: selftests/mm: fix ptrace PEEKDATA check in memfd_secret test
 has been removed from the -mm tree.  Its filename was
-     mm-page_alloc-add-missing-hooks-to-bulk-allocation-path.patch
+     selftests-mm-fix-ptrace-peekdata-check-in-memfd_secret-test.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Qiqi Liu <liuqiqi@kylinos.cn>
-Subject: mm: page_alloc: add missing hooks to bulk allocation path
-Date: Tue, 8 Sep 2026 18:23:56 +0800
+From: Hongfu Li <lihongfu@kylinos.cn>
+Subject: selftests/mm: fix ptrace PEEKDATA check in memfd_secret test
+Date: Thu, 10 Sep 2026 14:44:15 +0800
 
-The bulk allocation path in alloc_pages_bulk_noprof() currently misses
-trace_mm_page_alloc() and kmsan_alloc_page() calls, leaving bulk-allocated
-pages invisible to ftrace/BPF/perf and leaving KMSAN shadow memory stale.
+try_ptrace() treats PTRACE_PEEKDATA return value as a boolean check.  A
+successful read returns non-zero data (memory filled with 0x55), causing
+the test to incorrectly report PASS when secret memory protection is
+broken.
 
-Add both calls in the bulk loop to match the standard allocation path,
-placing them before set_page_refcounted() for consistency.  The gfp mask
-passed to kmsan_alloc_page() is stripped of __GFP_RECLAIM because the bulk
-loop runs under the PCP spinlock, and KMSAN's stack depot allocation must
-not sleep.
+Check the return value against -1 instead.  The test should only pass when
+PTRACE_PEEKDATA fails, which means secret memory protection works.
 
-Both are no-ops when their respective features are disabled, so there
-is no overhead in production kernels.
-
-Link: https://lore.kernel.org/20260908102356.344075-1-liuqiqi@kylinos.cn
-Signed-off-by: Qiqi Liu <liuqiqi@kylinos.cn>
+Link: https://lore.kernel.org/20260910064415.71623-1-hongfu.li@linux.dev
+Fixes: 76fe17ef588a ("secretmem: test: add basic selftest for memfd_secret(2)")
+Signed-off-by: Hongfu Li <lihongfu@kylinos.cn>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Suggested-by: Gregory Price <gourry@gourry.net>
-Reviewed-by: Vlastimil Babka (SUSE) <vbabka@kernel.org>
-Reviewed-by: Gregory Price (Meta) <gourry@gourry.net>
-Reviewed-by: Zi Yan <ziy@nvidia.com>
-Cc: Brendan Jackman <brendan.jackman@linux.dev>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
+Acked-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
+Acked-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
+Cc: David Hildenbrand <david@kernel.org>
+Cc: James Bottomley <james.bottomley@HansenPartnership.com>
+Cc: Liam R. Howlett <liam@infradead.org>
 Cc: Michal Hocko <mhocko@suse.com>
+Cc: Shuah Khan <shuah@kernel.org>
 Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Vlastimil Babka <vbabka@kernel.org>
 ---
 
- mm/page_alloc.c |    2 ++
- 1 file changed, 2 insertions(+)
+ tools/testing/selftests/mm/memfd_secret.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
---- a/mm/page_alloc.c~mm-page_alloc-add-missing-hooks-to-bulk-allocation-path
-+++ a/mm/page_alloc.c
-@@ -5261,6 +5261,8 @@ retry_this_zone:
- 		nr_account++;
- 
- 		prep_new_page(page, 0, gfp, ALLOC_DEFAULT);
-+		trace_mm_page_alloc(page, 0, gfp, ac.migratetype);
-+		kmsan_alloc_page(page, 0, gfp & ~__GFP_RECLAIM);
- 		set_page_refcounted(page);
- 		page_array[nr_populated++] = page;
+--- a/tools/testing/selftests/mm/memfd_secret.c~selftests-mm-fix-ptrace-peekdata-check-in-memfd_secret-test
++++ a/tools/testing/selftests/mm/memfd_secret.c
+@@ -145,7 +145,8 @@ static void try_ptrace(int fd, int pipef
+ 		exit(KSFT_FAIL);
  	}
+ 
+-	if (ptrace(PTRACE_PEEKDATA, ppid, mem, 0))
++	/* PEEKDATA on secret memory must fail, else protection is broken. */
++	if (ptrace(PTRACE_PEEKDATA, ppid, mem, 0) == -1)
+ 		exit(KSFT_PASS);
+ 
+ 	exit(KSFT_FAIL);
 _
 
-Patches currently in -mm which might be from liuqiqi@kylinos.cn are
+Patches currently in -mm which might be from lihongfu@kylinos.cn are
 
-mm-page_alloc-apply-per-task-gfp-context-in-bulk-allocator.patch
+mm-hugetlb_cgroup-move-per-node-usage-on-cross-node-migration.patch
+mm-hugetlb_cgroup-move-per-node-usage-on-cgroup-reparenting.patch
+mm-hugetlb-account-migration-target-folio-in-per-node-nr_hugetlb-vmstat.patch
+mm-memcg-migrate-per-node-hugetlb-lruvec-stat-together-with-hugetlb-folio.patch
+mm-memfd-fix-hugetlb-reservation-accounting-in-error-paths.patch
 
