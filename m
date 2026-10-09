@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D5FAA3F6C30
-	for <mm-commits@vger.kernel.org>; Fri,  9 Oct 2026 05:56:57 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 554243FE375
+	for <mm-commits@vger.kernel.org>; Fri,  9 Oct 2026 05:56:59 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791525419; cv=none; b=OfexePl960BQXL+hggGr/Cek1ModkrWqglwMXns5WUY7C79wUINpDHOJQZ9OU5LCwUH3/uHe+C5t4ON+NYq/ZjNowoJQ36mgZOgoXzWEylVke3vXa0yp4SMuwLwV7H2M/azoZMDOXLeFfRtVNvm4eIW6p/5riKU5W7bh9AGPjhU=
+	t=1791525420; cv=none; b=ZSfBP2lk/qEzWQlCVukO1CnklXzjySIXV60wasXSQTxbfce0J5MgiCd+KyH9FsO17zdYH1NtoV+YtQLY+qjiWJO7/Fz4Ti9iCTKxMlogluqg+x2xvmtu9NFCkcjuRL4hdIM86LGI6oNt2qvwDyGam8x4B4iVyN/9ZS8chYIcMpU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791525419; c=relaxed/simple;
-	bh=+uiXBhCyJaxzjM2ymRjzLu9Xk0vjvX/gcsvaveLOYvA=;
-	h=Date:To:From:Subject:Message-Id; b=nOheOt71m3VN0D128PyMoQKKD7op6z+ctKZaR0SEUoY16q0Evo9Jh9zSA/RT/YZVgvjZH/gs2zP1+NAE59xe7Uv5JhLLIP1LAuh3XbdZAXmLCO1G2tr1eXxteY4IS7vt+YOhk+lPMKyLttte1UqnKJT6l2zH7QR/o/X8U39SkTE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=jX44yqjU; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1791525420; c=relaxed/simple;
+	bh=NhEI67H28T/vHLJIQStH0eOD+q+1OCuVY+GgFJVxrlg=;
+	h=Date:To:From:Subject:Message-Id; b=uqYMtzOwEQRf0EMPHZOl9OZQbtJT7dD2cOEHRTRPAlHRCwmcQN41O6R8J83QnRRpX5EwGfkKj8s6DPnqWiZRRCglEEaY7lrFWweA6Vi6NetJ7WSwLEacQr6rBjLsZNOLsoTOBnCHQLXhV9uaHjdVHXvvVgZr3rnj/gmrmvmqMAw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=xH523AfV; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="jX44yqjU"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id ACA3C1F000FF;
-	Fri,  9 Oct 2026 05:56:57 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="xH523AfV"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D260E1F00893;
+	Fri,  9 Oct 2026 05:56:58 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1791525417;
-	bh=E/7U7icnZLFaVV3RrN+C/LY+YgyUi8YghQ+rHabYLG0=;
+	d=linux-foundation.org; s=korg; t=1791525418;
+	bh=hhCxsVSKouFJfzlEe+KNzXrKvDv6lKTYlsfhBgXpHGM=;
 	h=Date:To:From:Subject;
-	b=jX44yqjUs3vcp6Mj+c1jytrQaKDwdeV7J3YPeHjbxiCZ5SIT0XtxhfDPJ3b8ASgnv
-	 5eYjG2Jc0+40rJHHVp5gzWOgkK+rvaZWbsou+qpBeyCl93/j9yb282u482fh1TrqkV
-	 wssgMK/tYqTif/kVOyC/E99eo9ytO+boDs4NqYZY=
-Date: Thu, 08 Oct 2026 22:56:57 -0700
-To: mm-commits@vger.kernel.org,tz2294@columbia.edu,nphamcs@gmail.com,hannes@cmpxchg.org,chengming.zhou@linux.dev,wfelipe@google.com,akpm@linux-foundation.org
+	b=xH523AfVv3rr4B3JmPGUWmVS8rqGEgLyOrSfmSQN/ksvznskh6R6TdqEeqPMaVhHM
+	 X5MTlCF6iK3zE5nfw+ad+OYIh4N6fEx+eroaDPyulKkK4bdiBzk8QaYTVgk3I+z3BR
+	 RI19O6DwFEqW/B3AFpSSMnxAUx8fpJzSQhYtibxM=
+Date: Thu, 08 Oct 2026 22:56:58 -0700
+To: mm-commits@vger.kernel.org,shakeel.butt@linux.dev,roman.gushchin@linux.dev,muchun.song@linux.dev,mhocko@suse.com,ljs@kernel.org,hannes@cmpxchg.org,stevensd@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-zswap-convert-zswap_store_page-and-zswap_compress-to-take-a-folio.patch removed from -mm tree
-Message-Id: <20261009055657.ACA3C1F000FF@smtp.kernel.org>
+Subject: [merged mm-stable] memcg-dont-call-schedule_work-when-no-spinning-is-allowed.patch removed from -mm tree
+Message-Id: <20261009055658.D260E1F00893@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,131 +35,112 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/zswap: convert zswap_store_page() and zswap_compress() to take a folio
+     Subject: memcg: don't call schedule_work when no spinning is allowed
 has been removed from the -mm tree.  Its filename was
-     mm-zswap-convert-zswap_store_page-and-zswap_compress-to-take-a-folio.patch
+     memcg-dont-call-schedule_work-when-no-spinning-is-allowed.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Wilson Felipe Pereira <wfelipe@google.com>
-Subject: mm/zswap: convert zswap_store_page() and zswap_compress() to take a folio
-Date: Fri, 4 Sep 2026 23:20:47 +0000
+From: David Stevens <stevensd@google.com>
+Subject: memcg: don't call schedule_work when no spinning is allowed
+Date: Fri, 4 Sep 2026 10:31:45 -0700
 
-Currently, zswap_store() iterates through a folio and extracts individual
-struct page pointers using folio_page() to pass into zswap_store_page()
-and zswap_compress().
+Memcg charging can be done from any context, but calling schedule_work()
+isn't safe from an NMI.  If memory.high is breached from a context where
+spinning isn't allowed, use irq_work to schedule the reclaim work.
 
-Pass the folio and the page index directly into these functions instead. 
-This eliminates the need to materialize struct page pointers inside the
-zswap_store() loop and replaces legacy page-based accessors with their
-folio equivalents:
+Found this via code inspection.  I spent a little bit trying to trigger it
+for real, but the only way I managed was by writing a hacky driver absuing
+alloc_pages_nolock().
 
-- sg_set_page() -> sg_set_folio()
-- kmap_local_page() -> kmap_local_folio()
-- page_to_nid() -> folio_nid()
-- page_swap_entry() -> calculated via folio->swap and index
-
-Link: https://lore.kernel.org/20260904232108.3034333-1-wfelipe@google.com
-Signed-off-by: Wilson Felipe Pereira <wfelipe@google.com>
+Link: https://lore.kernel.org/20260904173145.2028377-1-stevensd@google.com
+Fixes: 3ac4638a734a ("memcg: make memcg_rstat_updated nmi safe")
+Signed-off-by: David Stevens <stevensd@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Reviewed-by: Tal Zussman <tz2294@columbia.edu>
-Cc: Chengming Zhou <chengming.zhou@linux.dev>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Nhat Pham <nphamcs@gmail.com>
+Acked-by: Michal Hocko <mhocko@suse.com>
+Reviewed-by: Johannes Weiner <hannes@cmpxchg.org>
+Acked-by: Shakeel Butt <shakeel.butt@linux.dev>
+Cc: Lorenzo Stoakes <ljs@kernel.org>
+Cc: Muchun Song <muchun.song@linux.dev>
+Cc: Roman Gushchin <roman.gushchin@linux.dev>
 ---
 
- mm/zswap.c |   26 ++++++++++++--------------
- 1 file changed, 12 insertions(+), 14 deletions(-)
+ include/linux/memcontrol.h |    2 ++
+ mm/memcontrol.c            |   13 ++++++++++++-
+ 2 files changed, 14 insertions(+), 1 deletion(-)
 
---- a/mm/zswap.c~mm-zswap-convert-zswap_store_page-and-zswap_compress-to-take-a-folio
-+++ a/mm/zswap.c
-@@ -824,8 +824,8 @@ fail:
- 	return ret;
+--- a/include/linux/memcontrol.h~memcg-dont-call-schedule_work-when-no-spinning-is-allowed
++++ a/include/linux/memcontrol.h
+@@ -23,6 +23,7 @@
+ #include <linux/writeback.h>
+ #include <linux/page-flags.h>
+ #include <linux/shrinker.h>
++#include <linux/irq_work_types.h>
+ 
+ struct mem_cgroup;
+ struct obj_cgroup;
+@@ -233,6 +234,7 @@ struct mem_cgroup {
+ #endif
+ 
+ 	/* Range enforcement for interrupt charges */
++	struct irq_work high_irq_work;
+ 	struct work_struct high_work;
+ 
+ 	__cacheline_group_end_aligned(memcg_write_hot);
+--- a/mm/memcontrol.c~memcg-dont-call-schedule_work-when-no-spinning-is-allowed
++++ a/mm/memcontrol.c
+@@ -62,6 +62,7 @@
+ #include <linux/seq_buf.h>
+ #include <linux/sched/isolation.h>
+ #include <linux/kmemleak.h>
++#include <linux/irq_work.h>
+ #include "internal.h"
+ #include "swap.h"
+ #include "swap_table.h"
+@@ -2424,6 +2425,11 @@ static void high_work_func(struct work_s
+ 	reclaim_high(memcg, MEMCG_CHARGE_BATCH, GFP_KERNEL);
  }
  
--static bool zswap_compress(struct page *page, struct zswap_entry *entry,
--			   struct zswap_pool *pool)
-+static bool zswap_compress(struct folio *folio, long index,
-+			   struct zswap_entry *entry, struct zswap_pool *pool)
- {
- 	struct crypto_acomp_ctx *acomp_ctx;
- 	struct scatterlist input, output;
-@@ -841,7 +841,7 @@ static bool zswap_compress(struct page *
++static void high_irq_work_func(struct irq_work *work)
++{
++	schedule_work(&container_of(work, struct mem_cgroup, high_irq_work)->high_work);
++}
++
+ /*
+  * Clamp the maximum sleep time per allocation batch to 2 seconds. This is
+  * enough to still cause a significant slowdown in most cases, while still
+@@ -2832,7 +2838,10 @@ done_restock:
+ 		/* Don't bother a random interrupted task */
+ 		if (!in_task()) {
+ 			if (mem_high) {
+-				schedule_work(&memcg->high_work);
++				if (allow_spinning)
++					schedule_work(&memcg->high_work);
++				else
++					irq_work_queue(&memcg->high_irq_work);
+ 				break;
+ 			}
+ 			continue;
+@@ -4207,6 +4216,7 @@ static struct mem_cgroup *mem_cgroup_all
+ 		goto fail;
  
- 	dst = acomp_ctx->buffer;
- 	sg_init_table(&input, 1);
--	sg_set_page(&input, page, PAGE_SIZE, 0);
-+	sg_set_folio(&input, folio, PAGE_SIZE, index * PAGE_SIZE);
+ 	INIT_WORK(&memcg->high_work, high_work_func);
++	init_irq_work(&memcg->high_irq_work, high_irq_work_func);
+ 	vmpressure_init(&memcg->vmpressure);
+ 	INIT_LIST_HEAD(&memcg->memory_peaks);
+ 	INIT_LIST_HEAD(&memcg->swap_peaks);
+@@ -4415,6 +4425,7 @@ static void mem_cgroup_css_free(struct c
+ 		static_branch_dec(&memcg_bpf_enabled_key);
  
- 	sg_init_one(&output, dst, PAGE_SIZE);
- 	acomp_request_set_params(acomp_ctx->req, &input, &output, PAGE_SIZE, dlen);
-@@ -870,8 +870,7 @@ static bool zswap_compress(struct page *
- 	 */
- 	if (comp_ret || !dlen || dlen >= PAGE_SIZE) {
- 		rcu_read_lock();
--		if (!mem_cgroup_zswap_writeback_enabled(
--					folio_memcg(page_folio(page)))) {
-+		if (!mem_cgroup_zswap_writeback_enabled(folio_memcg(folio))) {
- 			rcu_read_unlock();
- 			comp_ret = comp_ret ? comp_ret : -EINVAL;
- 			goto unlock;
-@@ -879,12 +878,12 @@ static bool zswap_compress(struct page *
- 		rcu_read_unlock();
- 		comp_ret = 0;
- 		dlen = PAGE_SIZE;
--		dst = kmap_local_page(page);
-+		dst = kmap_local_folio(folio, index * PAGE_SIZE);
- 		mapped = true;
- 	}
- 
- 	gfp = GFP_NOWAIT | __GFP_NORETRY | __GFP_HIGHMEM | __GFP_MOVABLE;
--	handle = zs_malloc(pool->zs_pool, dlen, gfp, page_to_nid(page));
-+	handle = zs_malloc(pool->zs_pool, dlen, gfp, folio_nid(folio));
- 	if (IS_ERR_VALUE(handle)) {
- 		alloc_ret = PTR_ERR((void *)handle);
- 		goto unlock;
-@@ -1392,21 +1391,22 @@ resched:
- * main API
- **********************************/
- 
--static bool zswap_store_page(struct page *page,
-+static bool zswap_store_page(struct folio *folio, long index,
- 			     struct obj_cgroup *objcg,
- 			     struct zswap_pool *pool)
- {
--	swp_entry_t page_swpentry = page_swap_entry(page);
-+	swp_entry_t page_swpentry = swp_entry(swp_type(folio->swap),
-+					      swp_offset(folio->swap) + index);
- 	struct zswap_entry *entry, *old;
- 
- 	/* allocate entry */
--	entry = zswap_entry_cache_alloc(GFP_KERNEL, page_to_nid(page));
-+	entry = zswap_entry_cache_alloc(GFP_KERNEL, folio_nid(folio));
- 	if (!entry) {
- 		zswap_reject_kmemcache_fail++;
- 		return false;
- 	}
- 
--	if (!zswap_compress(page, entry, pool))
-+	if (!zswap_compress(folio, index, entry, pool))
- 		goto compress_failed;
- 
- 	old = xa_store(swap_zswap_tree(page_swpentry),
-@@ -1515,9 +1515,7 @@ bool zswap_store(struct folio *folio)
- 	}
- 
- 	for (index = 0; index < nr_pages; ++index) {
--		struct page *page = folio_page(folio, index);
--
--		if (!zswap_store_page(page, objcg, pool))
-+		if (!zswap_store_page(folio, index, objcg, pool))
- 			goto put_pool;
- 	}
- 
+ 	vmpressure_cleanup(&memcg->vmpressure);
++	irq_work_sync(&memcg->high_irq_work);
+ 	cancel_work_sync(&memcg->high_work);
+ 	free_shrinker_info(memcg);
+ 	mem_cgroup_free(memcg);
 _
 
-Patches currently in -mm which might be from wfelipe@google.com are
+Patches currently in -mm which might be from stevensd@google.com are
 
 
