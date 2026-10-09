@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B9D90414439;
-	Fri,  9 Oct 2026 05:58:38 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E760F4137A1
+	for <mm-commits@vger.kernel.org>; Fri,  9 Oct 2026 05:58:39 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791525519; cv=none; b=NsVMEuOslu+RmC6ZiN7tTSuVpq1ozgih6/phRFBZGx0Ymvdx523HlZkkD9QnokDhQZzqLU7qVULTzBkNGZXv2FJQbY8PNBmDC/QaE323xrMVu3kuUlo0f+tTWLAMNF9reLlikulnfU/Ry//Kog8+wzVMyeAfbmgCVci7kIvXLSQ=
+	t=1791525521; cv=none; b=BbI0wrC8FdSDdCDj8bzz0/MRBzpJDv+CQVOSFWrmSj9TjK2VSueIyxXO961geoIbt3v7yBLLKeY3XYMDe14xLA1vAwxp74VMnHgjSGgPR5/AyYyxc6ftx22hhr1euGBhJ0EDTWv0tfZ5hpyW4UrD6gYT3sN9d50Pwiu/LszyQEs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791525519; c=relaxed/simple;
-	bh=T7N6Z3Ccv1UOfGzwLyP32GsVwjB8EeRzg2I+0SsVN5c=;
-	h=Date:To:From:Subject:Message-Id; b=Gp+BMcPKQwc7bv20vHABDzkUsqv1XakdixBLBrPArcSBvmikz5PTRagzt0mjJUNpUx6sB7anrX3UlP/mzJtQyJ8Kjwmgj4TMK1hyO4OwFNzRm9NMhUINVMIWZDVL/lre4l/9BEkCeWNAXIpr/JynC1fZOWTPpHzNafZa4bjxXik=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=YqtqSfDp; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1791525521; c=relaxed/simple;
+	bh=+qaGjn8EqeYIpRiwHHXcOOToojj7uES0hnjljLuDFZA=;
+	h=Date:To:From:Subject:Message-Id; b=K7Lge1ePBjcalluphsedNjV3KPZVRPrUUw0VPp7D92RgsXbsPwzMIWFVdL66eJ+GoEz1JPx3TcjSstz7bf0TQBFyYeHdB34M+JMvdaTguOSXim93EoYf1nm2eJgTU/Sd6cCT4ImsZHyq9Juz2h0RTSQKkv1FmzsdT9w+a9dleg0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=RT7G9KpT; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="YqtqSfDp"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 903E81F00893;
-	Fri,  9 Oct 2026 05:58:38 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="RT7G9KpT"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B9B2F1F000FF;
+	Fri,  9 Oct 2026 05:58:39 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1791525518;
-	bh=Hd8MUiGCJtmOzx2ddpRr94hXpGVG8cJEVuwEmhMgVlg=;
+	d=linux-foundation.org; s=korg; t=1791525519;
+	bh=FbJQSgDtOwJbOPjUJrqpV6AMbj5tYyNZAeSo9RTNb3Q=;
 	h=Date:To:From:Subject;
-	b=YqtqSfDpwfUdY4KmA2Bdu1Nm/OcagBHLpUvFQHEOKnwhYIt0NJNVe4kn7OpTb1G1S
-	 CxYYQvSXOZN+u1E1IvT/xPGI5BBdBCOWArkCH4kWTCnC11GN7G9UKffCaKdq9RCY88
-	 BktUUFmhMLt/aIRjbIpQpdIUHtkmNVyLWVqoT5LY=
-Date: Thu, 08 Oct 2026 22:58:38 -0700
-To: mm-commits@vger.kernel.org,yosry@kernel.org,stable@vger.kernel.org,nphamcs@gmail.com,hannes@cmpxchg.org,chengming.zhou@linux.dev,xialonglong@kylinos.cn,akpm@linux-foundation.org
+	b=RT7G9KpTLQJb20n24Vs6NNhND+096FPX4HOfpYUOg81qqjfrrf8LwP/3HWptF5Aa+
+	 aKrpk3GmIC+q2U7hgNjRUTy0EKTCEDTImmpxzfFPyLPEdTJMSGIqOI6fv1lSP+CS8Y
+	 PMQxl0fck7ik07AePzwd6xUSClkP5cWf5NfuLNU4=
+Date: Thu, 08 Oct 2026 22:58:39 -0700
+To: mm-commits@vger.kernel.org,yosry@kernel.org,nphamcs@gmail.com,hannes@cmpxchg.org,chrisl@kernel.org,chengming.zhou@linux.dev,wujianyue000@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-zswap-enable-zswap_ever_enabled-in-zswap_pool_create.patch removed from -mm tree
-Message-Id: <20261009055838.903E81F00893@smtp.kernel.org>
+Subject: [merged mm-stable] mm-zswap-release-retired-pools-via-queue_rcu_work-instead-of-synchronize_rcu.patch removed from -mm tree
+Message-Id: <20261009055839.B9B2F1F000FF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,75 +35,139 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/zswap: enable zswap_ever_enabled in zswap_pool_create()
+     Subject: mm/zswap: release retired pools via queue_rcu_work() instead of synchronize_rcu()
 has been removed from the -mm tree.  Its filename was
-     mm-zswap-enable-zswap_ever_enabled-in-zswap_pool_create.patch
+     mm-zswap-release-retired-pools-via-queue_rcu_work-instead-of-synchronize_rcu.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Longlong Xia <xialonglong@kylinos.cn>
-Subject: mm/zswap: enable zswap_ever_enabled in zswap_pool_create()
-Date: Sun, 6 Sep 2026 21:59:38 +0800
+From: Jianyue Wu <wujianyue000@gmail.com>
+Subject: mm/zswap: release retired pools via queue_rcu_work() instead of synchronize_rcu()
+Date: Sun, 06 Sep 2026 15:47:17 +0800
 
-If zswap is enabled by default at boot and pool creation fails, then a
-pool is later created by updating the compressor, data written to zswap is
-corrupted on swapin.
+Patch series "mm/zswap: shrink zswap_entry via a pool id", v6.
 
-Enable the static key in zswap_pool_create(), covering boot-time and
-runtime pool creation with a single site.
+Every stored page has a struct zswap_entry, so its size is pure per-page
+overhead.  On 64-bit it is currently 56 bytes, of which 8 bytes are a
+pointer to the owning zswap_pool.
 
-Verified with fault injection on a stock kernel (compressor builtin,
-CONFIG_ZSWAP_DEFAULT_ON=n):
+Only a handful of pools are ever live: a new pool is created only when the
+compressor is (re)set, and pools are reused across compressor switches.  A
+list cannot look a pool up by id.  An allocating xarray can, which lets
+each zswap_entry store a u8 instead of a pointer.
 
-  1. Boot with zswap.enabled=1; pool creation fails, init completes
-     pool-less (static key off).
-  2. Echo an available compressor name to zswap.compressor.
-  3. Enable zswap.
-  4. madvise(MADV_PAGEOUT) a pattern-verified 512 MiB region, then
-     fault it back in and verify.
+This series:
 
-Step 4 reads back 131072/131072 zeroed pages (zswpin=0, zswpout=131072)
-without this patch; all pages intact (zswpin=131072) with it.
+  1. Releases retired pools with queue_rcu_work() instead of a worker
+     calling synchronize_rcu(), so the release worker no longer blocks
+     on an RCU grace period.
+  2. Replaces the zswap_pools list with an allocating xarray
+     (XA_FLAGS_ALLOC1 | XA_FLAGS_LOCK_BH) and a separate RCU-protected
+     current-pool pointer, giving each pool a stable small id.  Ids
+     start at 1.  The reserved id 0 is never allocated, so looking it
+     up resolves to NULL.  The table grows as needed up to 255 live
+     pools (u8 pool_idx), not a fixed slot array.
+  3. Stores that u8 pool id in each zswap_entry instead of the pool
+     pointer.  The u8 fits in padding after the bool referenced field.
 
-Link: https://lore.kernel.org/20260906135938.3568108-1-xialonglong2025@163.com
-Fixes: 2d4d2b1cfb85 ("mm: zswap: add zswap_never_enabled()")
-Signed-off-by: Longlong Xia <xialonglong@kylinos.cn>
+On 64-bit that shrinks the entry from 56 to 48 bytes, which fits 73 to 85
+objects in a 4K slab (~2MiB of metadata saved per 1GiB of data held in
+zswap).
+
+The 255-id cap counts every pool still in the xarray.  Switching
+compressor kills the old pool, but that pool stays in the table until its
+last entry drops the pool's ref, so a draining pool still occupies an id. 
+The id is reused only after xa_erase.  Switching back to a compressor
+whose pool is still in the table resurrects it instead of allocating a new
+id.  If every id is occupied, creating a pool for another compressor fails
+and the switch is rejected.
+
+Pool table locking: xa_for_each() walks and the current-pool pointer use
+an explicit rcu_read_lock(), because xa_for_each()'s own RCU does not span
+the loop body.  xa_load() takes RCU around the lookup itself, so
+zswap_entry_pool() needs no extra rcu_read_lock().  The returned pool
+stays valid because a live entry pins it via percpu_ref, so the id cannot
+be reused under it.  xa_lock is taken only in xa_alloc_bh() and
+xa_erase_bh().
+
+Benchmark (x86_64, compressor=lzo, MADV_PAGEOUT store + fault-in load):
+
+  - e2e store+load median latency: no measurable regression vs baseline
+    at matched stored_delta
+
+Each store, free, and decompress looks up the pool with xa_load() instead
+of following a pointer.  With only a handful of live pools the xarray walk
+is short.
+
+
+This patch (of 3):
+
+When a pool's last reference is dropped, __zswap_pool_empty() removes it
+from the pool list and schedules __zswap_pool_release(), which calls
+synchronize_rcu() to wait for readers before tearing the pool down.
+
+synchronize_rcu() is a synchronous, potentially long wait.  Replace it
+with queue_rcu_work(): __zswap_pool_empty() hands the pool to
+queue_rcu_work(), which waits for a grace period asynchronously and then
+runs __zswap_pool_release() from a worker for the sleepable teardown
+(__zswap_pool_empty() can run in atomic context and must not block).  The
+grace-period guarantee is unchanged; the retirement path just no longer
+blocks on it.
+
+Link: https://lore.kernel.org/20260906-shrink_zswap_entry_v6-v6-0-ac4cf61565fb@gmail.com
+Link: https://lore.kernel.org/20260906-shrink_zswap_entry_v6-v6-1-ac4cf61565fb@gmail.com
+Signed-off-by: Jianyue Wu <wujianyue000@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 Suggested-by: Yosry Ahmed <yosry@kernel.org>
 Acked-by: Yosry Ahmed <yosry@kernel.org>
-Assisted-by: Zcode:GLM-5.3
 Cc: Chengming Zhou <chengming.zhou@linux.dev>
+Cc: Chris Li <chrisl@kernel.org>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Nhat Pham <nphamcs@gmail.com>
-Cc: <stable@vger.kernel.org>
 ---
 
- mm/zswap.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ mm/zswap.c |   12 +++++-------
+ 1 file changed, 5 insertions(+), 7 deletions(-)
 
---- a/mm/zswap.c~mm-zswap-enable-zswap_ever_enabled-in-zswap_pool_create
+--- a/mm/zswap.c~mm-zswap-release-retired-pools-via-queue_rcu_work-instead-of-synchronize_rcu
 +++ a/mm/zswap.c
-@@ -329,6 +329,8 @@ static struct zswap_pool *zswap_pool_cre
+@@ -155,7 +155,7 @@ struct zswap_pool {
+ 	struct crypto_acomp_ctx __percpu *acomp_ctx;
+ 	struct percpu_ref ref;
+ 	struct list_head list;
+-	struct work_struct release_work;
++	struct rcu_work release_rwork;
+ 	struct hlist_node node;
+ 	char tfm_name[CRYPTO_MAX_ALG_NAME];
+ };
+@@ -386,10 +386,8 @@ static void zswap_pool_destroy(struct zs
  
- 	zswap_pool_debug("created", pool);
+ static void __zswap_pool_release(struct work_struct *work)
+ {
+-	struct zswap_pool *pool = container_of(work, typeof(*pool),
+-						release_work);
+-
+-	synchronize_rcu();
++	struct zswap_pool *pool = container_of(to_rcu_work(work),
++					       typeof(*pool), release_rwork);
  
-+	static_branch_enable(&zswap_ever_enabled);
-+
- 	return pool;
+ 	/* nobody should have been able to get a ref... */
+ 	WARN_ON(!percpu_ref_is_zero(&pool->ref));
+@@ -413,8 +411,8 @@ static void __zswap_pool_empty(struct pe
  
- ref_fail:
-@@ -1818,7 +1820,6 @@ static int zswap_setup(void)
- 		pr_info("loaded using pool %s\n", pool->tfm_name);
- 		list_add_rcu(&pool->list, &zswap_pools);
- 		zswap_has_pool = true;
--		static_branch_enable(&zswap_ever_enabled);
- 	} else {
- 		pr_err("pool creation failed\n");
- 		zswap_enabled = false;
+ 	list_del_rcu(&pool->list);
+ 
+-	INIT_WORK(&pool->release_work, __zswap_pool_release);
+-	schedule_work(&pool->release_work);
++	INIT_RCU_WORK(&pool->release_rwork, __zswap_pool_release);
++	queue_rcu_work(system_percpu_wq, &pool->release_rwork);
+ 
+ 	spin_unlock_bh(&zswap_pools_lock);
+ }
 _
 
-Patches currently in -mm which might be from xialonglong@kylinos.cn are
+Patches currently in -mm which might be from wujianyue000@gmail.com are
 
 
