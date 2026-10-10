@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 416CF38C2D1
-	for <mm-commits@vger.kernel.org>; Sat, 10 Oct 2026 21:39:29 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A8C8D38AC78
+	for <mm-commits@vger.kernel.org>; Sat, 10 Oct 2026 21:39:32 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791668373; cv=none; b=EVHp6oXE3VR+Ec1fYVCBuOqRWxeaUhzy6dLKTTEidFqXZ2ZnAbgFRHzC4kC8c0afvRoLg7oxXXlehKRr7LI+CXRg2TGcoCWWNm7ktGnKUZ1lpooS1x+UYgW/XZZcHCsT5ma9fVvjcVDFDUMWUQlu3857VdcmdwUVK2I379JMDbI=
+	t=1791668374; cv=none; b=kwbJht8QxfJ8S5zaz30dpEeSTVZvq2wi29D/vtXGEstNOH368ngCJSQ+kK4K9nuIQsmubLfalRHNgZS8H0XWH3nrxF5skCeDSoT6Z4aLxuJw79J2eVQEDXYqkMRgWnrT81sIF1r408zW63fVaSE3ltjaCnNH8l+MVqY+lF6vQxw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791668373; c=relaxed/simple;
-	bh=kymDqG1QKwfML4kwoTXUIi2NHBEiKFk40rfErBLZmWo=;
-	h=Date:To:From:Subject:Message-Id; b=RALJuK5mUSll7txKX4aqSde1Rczjgdp4OsV+EhOg5bUvXsVtR1XFRYdSWhldOlARrZ76YR/eYOj5CyNQNGgokEL4g1X7XEzGCk4J88VqGlWqrEJYSnE6xkUAT0B4HlHSJgri3zWVKTNaH9gAmL6uPb2SUlTtjy8N8Bo/OB3xeK4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=jaWhSkBK; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1791668374; c=relaxed/simple;
+	bh=w2HMFMK6uQme5citLbNq1q7HF0DcjaqM6EAiWAHkgBI=;
+	h=Date:To:From:Subject:Message-Id; b=r2wQdYpDwPGXZMRTlqNiEVqZ824cV/SvpWtl5XUURL2xb5izOGJT3K5OcYSU9saLg8fZmzpgnpA1vY7GTqZtkuI2hFJronye3C9XUv4oMYDY8MB/FPsEJB5X8mn2Z/R+oWOKjUHMNbZlalfpqZ3qCqBQwzzdBCVKCJrjWxUmnyQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=mboXMYDu; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="jaWhSkBK"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 164F61F000FF;
-	Sat, 10 Oct 2026 21:39:29 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="mboXMYDu"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 535C91F00898;
+	Sat, 10 Oct 2026 21:39:32 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1791668369;
-	bh=0IDACN1C65yHGg7Xao10UjSh8BH9OsCvRt/EQk0HJW8=;
+	d=linux-foundation.org; s=korg; t=1791668372;
+	bh=WvEA0it+RlDwhqgH98hjIBPRxgCd4nOtpULysbV3Gvw=;
 	h=Date:To:From:Subject;
-	b=jaWhSkBKb/wCjiuf+JVH9F54iHIR0Ng+agbYCLpc7o2fghmaPy0zsFGj8esd5i4xo
-	 jEh0QmlypOAP84MvojHdnitd21Kahzg599bv7AqQOpPsGh04FdsT/38jMORKj2Ejr1
-	 f287mMBN+DLWB51H3Oa39MLvL8gd35/MMncRKfog=
-Date: Sat, 10 Oct 2026 14:39:28 -0700
+	b=mboXMYDu4CYetNXf2ZVw+BcIhXNPeXejqzkRV3A9rk8SaIZGJ1pxS7dgpM+HO4Y6F
+	 HO6r8s5L/1ArLrYFrBCM0ysc2JA0OMV2CD2xy/S1Yo9aL/bCGLVuaEUr1rTQndXBNO
+	 D2A5ogR+WHfBEkvUUaR2qEWGWeM6toUTt5kqtsQQ=
+Date: Sat, 10 Oct 2026 14:39:31 -0700
 To: mm-commits@vger.kernel.org,ljs@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [to-be-updated] infiniband-update-hfi1-to-use-remap_vmalloc_range.patch removed from -mm tree
-Message-Id: <20261010213929.164F61F000FF@smtp.kernel.org>
+Subject: [to-be-updated] alsa-pcm-use-vm_insert_page-to-map-pcm-status-page.patch removed from -mm tree
+Message-Id: <20261010213932.535C91F00898@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,81 +35,45 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: infiniband: update hfi1 to use remap_vmalloc_range()
+     Subject: ALSA: pcm: use vm_insert_page() to map PCM status page
 has been removed from the -mm tree.  Its filename was
-     infiniband-update-hfi1-to-use-remap_vmalloc_range.patch
+     alsa-pcm-use-vm_insert_page-to-map-pcm-status-page.patch
 
 This patch was dropped because an updated version will be issued
 
 ------------------------------------------------------
 From: "Lorenzo Stoakes (ARM)" <ljs@kernel.org>
-Subject: infiniband: update hfi1 to use remap_vmalloc_range()
-Date: Sat, 03 Oct 2026 17:32:41 +0100
+Subject: ALSA: pcm: use vm_insert_page() to map PCM status page
+Date: Sat, 03 Oct 2026 17:32:43 +0100
 
-In cases which map chip memory from vmalloc()'d ranges, the hfi1 infiniband
-drivers currently installs a fault handler, and then smuggles the kernel
-virtual address of this range in vma->vm_pgoff.
+There's no need to keep a fault handler around for this, instead map on
+mmap.
 
-This is exposing KASLR-sensitive internal kernel state in the VMA, and is
-entirely unnecessary.
+While we're here, rename area to vma to be consistent.
 
-Instead, use remap_vmalloc_range() to remap the VMA to the span, and
-eliminate the fault handler altogether.
+This correctly makes the mapping a mixed map mapping.
 
-remap_vmalloc_range() checks that the VMA does not extend beyond the
-vmalloc area, and the driver already requires the VMA to exactly match the
-span of the memory being mapped, so this has no impact.
+This works towards establishing the invariant that only PFN mapped or mixed
+map mappings may clear the VM_MAYWRITE flag. The status page mapping clears
+VM_MAYWRITE, so it must not be mm-managed; the control page mapping remains
+writable and is left fault-based.
 
-The memory is all preallocated so not having a fault handler has no impact
-either, other than pre-mapping the ranges which is beneficial.
+The assumption is made that the struct pcm_mmap_status structure is at most
+a page in size, which is asserted as a build bug.
 
-We also remove the VM_IO flag as it's not appropriate here, and the
-VM_DONTEXPAND flag as remap_vmalloc_range() will set it (and also mark the
-range correctly as a mixed map).
+This is safe to assume, as the size of the structure is 56 bytes at most.
 
-We also update the vmalloc paths to place the virtual kernel address in
-memvirt, rather than overloading the physical address memaddr. We predicate
-the vmalloc handling on the vmalloc flag before we check memvirt for the
-virtual address-derived PFN remap path, so this works fine.
-
-remap_vmalloc_range() requires that the vmalloc()'d areas were all
-allocated using vmalloc_user() - each of cq->comps,
-uctxt->subctxt_rcvegrbuf, uctxt->subctxt_rcvhdr_base,
-uctxt->subctxt_uregbase and dd->events were allocated this way, so that
-requirement is satisfied.
-
-We also remove VM_IO and VM_DONTEXPAND from the STATUS command, as these
-are both set on remap.
-
-Finally, we remove VM_DONTEXPAND from the PIO_BUFS, PIO_BUFS_SOP and UREGS
-commands, as these are also all set on remap. PIO_CRED retains it, as
-dma_mmap_coherent() may map via vm_insert_page() on the IOMMU-DMA path,
-which sets only VM_MIXEDMAP. The RCV_HDRQ, RCV_EGRBUF and RTAIL commands
-also map via dma_mmap_coherent() and never set VM_DONTEXPAND, so set it for
-them for the same reason.
-
-Note that we retain expected behaviour throughout - the vmalloc remapped
-ranges set VM_MIXEDMAP | VM_DONTDUMP | VM_DONTEXPAND for each range.
-
-VM_IO was never appropriate as the ranges are explicitly not MMIO, and the
-reference to the v3.7 VM_RESERVED semantics map on to VM_MIXEDMAP |
-VM_DONTDUMP | VM_DONTEXPAND correctly - no core dump, unmergeable, no
-normal vm page for purposes of reclaim/migration/etc.
-
-There is a change in behaviour in that pages mapped using
-remap_vmalloc_range() will now have normal GUP-able pages, however this
-should have no impact as there is no reason not to allow this.
-
-Link: https://lore.kernel.org/20261003-b4-mmap-prepare-vma-flag-sanify-v4-10-a1f052500fd7@kernel.org
+Link: https://lore.kernel.org/20261003-b4-mmap-prepare-vma-flag-sanify-v4-12-a1f052500fd7@kernel.org
 Signed-off-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+Acked-by: Takashi Iwai <tiwai@suse.de>
+Reviewed-by: Suren Baghdasaryan <surenb@google.com>
 Cc: Liam R. Howlett <liam@infradead.org>
 Cc: Vlastimil Babka <vbabka@kernel.org>
 Cc: Jann Horn <jannh@google.com>
 Cc: Pedro Falcato <pfalcato@suse.de>
 Cc: David Hildenbrand <david@kernel.org>
 Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Suren Baghdasaryan <surenb@google.com>
 Cc: Michal Hocko <mhocko@suse.com>
 Cc: Jonathan Corbet <corbet@lwn.net>
 Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
@@ -212,229 +176,68 @@ Cc: Miklos Szeredi <miklos@szeredi.hu>
 Cc: Xu Xin <xu.xin@linux.dev>
 ---
 
- drivers/infiniband/hw/hfi1/file_ops.c |   83 +++++++-----------------
- 1 file changed, 25 insertions(+), 58 deletions(-)
+ sound/core/pcm_native.c |   38 +++++++++++++-------------------------
+ 1 file changed, 13 insertions(+), 25 deletions(-)
 
---- a/drivers/infiniband/hw/hfi1/file_ops.c~infiniband-update-hfi1-to-use-remap_vmalloc_range
-+++ a/drivers/infiniband/hw/hfi1/file_ops.c
-@@ -70,7 +70,6 @@ static int set_ctxt_pkey(struct hfi1_ctx
- static int ctxt_reset(struct hfi1_ctxtdata *uctxt);
- static int manage_rcvq(struct hfi1_ctxtdata *uctxt, u16 subctxt,
- 		       unsigned long arg);
--static vm_fault_t vma_fault(struct vm_fault *vmf);
- static long hfi1_file_ioctl(struct file *fp, unsigned int cmd,
- 			    unsigned long arg);
- 
-@@ -85,10 +84,6 @@ static const struct file_operations hfi1
- 	.llseek = noop_llseek,
- };
- 
--static const struct vm_operations_struct vm_ops = {
--	.fault = vma_fault,
--};
--
+--- a/sound/core/pcm_native.c~alsa-pcm-use-vm_insert_page-to-map-pcm-status-page
++++ a/sound/core/pcm_native.c
+@@ -3760,39 +3760,27 @@ static __poll_t snd_pcm_poll(struct file
  /*
-  * Types of memories mapped into user processes' space
+  * mmap status record
   */
-@@ -304,13 +299,13 @@ static ssize_t hfi1_write_iter(struct ki
- 	return reqs;
- }
- 
--static inline void mmap_cdbg(u16 ctxt, u8 subctxt, u8 type, u8 mapio, u8 vmf,
-+static inline void mmap_cdbg(u16 ctxt, u8 subctxt, u8 type, u8 mapio, u8 is_vmalloc,
- 			     u64 memaddr, void *memvirt, dma_addr_t memdma,
- 			     ssize_t memlen, struct vm_area_struct *vma)
+-static vm_fault_t snd_pcm_mmap_status_fault(struct vm_fault *vmf)
++static int snd_pcm_mmap_status(struct snd_pcm_substream *substream, struct file *file,
++			       struct vm_area_struct *vma)
  {
- 	hfi1_cdbg(PROC,
--		  "%u:%u type:%u io/vf/dma:%d/%d/%d, addr:0x%llx, len:%lu(%lu), flags:0x%lx",
--		  ctxt, subctxt, type, mapio, vmf, !!memdma,
-+		  "%u:%u type:%u io/vmalloc/dma:%d/%d/%d, addr:0x%llx, len:%lu(%lu), flags:0x%lx",
-+		  ctxt, subctxt, type, mapio, is_vmalloc, !!memdma,
- 		  memaddr ?: (u64)memvirt, memlen,
- 		  vma->vm_end - vma->vm_start, vma->vm_flags);
- }
-@@ -325,7 +320,7 @@ static int hfi1_file_mmap(struct file *f
- 		memaddr = 0;
- 	void *memvirt = NULL;
- 	dma_addr_t memdma = 0;
--	u8 subctxt, mapio = 0, vmf = 0, type;
-+	u8 subctxt, mapio = 0, is_vmalloc = 0, type;
- 	size_t memdmalen = 0;
- 	ssize_t memlen = 0;
- 	int ret = 0;
-@@ -348,7 +343,7 @@ static int hfi1_file_mmap(struct file *f
- 	/*
- 	 * vm_pgoff is used as a buffer selector cookie.  Always mmap from
- 	 * the beginning.
--	 */ 
-+	 */
- 	vma->vm_pgoff = 0;
- 	flags = vma->vm_flags;
- 
-@@ -367,7 +362,7 @@ static int hfi1_file_mmap(struct file *f
- 		 */
- 		memlen = PAGE_ALIGN(uctxt->sc->credits * PIO_BLOCK_SIZE);
- 		flags &= ~VM_MAYREAD;
--		flags |= VM_DONTCOPY | VM_DONTEXPAND;
-+		flags |= VM_DONTCOPY;
- 		vma->vm_page_prot = pgprot_writecombine(vma->vm_page_prot);
- 		mapio = 1;
- 		break;
-@@ -411,6 +406,7 @@ static int hfi1_file_mmap(struct file *f
- 		memlen = rcvhdrq_size(uctxt);
- 		memvirt = uctxt->rcvhdrq;
- 		memdma = uctxt->rcvhdrq_dma;
-+		flags |= VM_DONTEXPAND;
- 		break;
- 	case RCV_EGRBUF: {
- 		unsigned long vm_start_save;
-@@ -432,7 +428,7 @@ static int hfi1_file_mmap(struct file *f
- 			ret = -EPERM;
- 			goto done;
- 		}
--		vm_flags_clear(vma, VM_MAYWRITE);
-+		vm_flags_mod(vma, VM_DONTEXPAND, VM_MAYWRITE);
- 		/*
- 		 * Mmap multiple separate allocations into a single vma.  From
- 		 * here, dma_mmap_coherent() calls dma_direct_mmap(), which
-@@ -448,7 +444,7 @@ static int hfi1_file_mmap(struct file *f
- 			memvirt = uctxt->egrbufs.buffers[i].addr;
- 			memdma = uctxt->egrbufs.buffers[i].dma;
- 			vma->vm_end += memlen;
--			mmap_cdbg(ctxt, subctxt, type, mapio, vmf, memaddr,
-+			mmap_cdbg(ctxt, subctxt, type, mapio, is_vmalloc, memaddr,
- 				  memvirt, memdma, memlen, vma);
- 			ret = dma_mmap_coherent(&dd->pcidev->dev, vma,
- 						memvirt, memdma, memlen);
-@@ -477,7 +473,7 @@ static int hfi1_file_mmap(struct file *f
- 		 * user registers.
- 		 */
- 		memlen = PAGE_SIZE;
--		flags |= VM_DONTCOPY | VM_DONTEXPAND;
-+		flags |= VM_DONTCOPY;
- 		vma->vm_page_prot = pgprot_noncached(vma->vm_page_prot);
- 		mapio = 1;
- 		break;
-@@ -486,15 +482,10 @@ static int hfi1_file_mmap(struct file *f
- 		 * Use the page where this context's flags are. User level
- 		 * knows where it's own bitmap is within the page.
- 		 */
--		memaddr = (unsigned long)
--			(dd->events + uctxt_offset(uctxt)) & PAGE_MASK;
-+		memvirt = dd->events + uctxt_offset(uctxt);
-+		memvirt = (void *)(((uintptr_t)memvirt) & PAGE_MASK);
- 		memlen = PAGE_SIZE;
--		/*
--		 * v3.7 removes VM_RESERVED but the effect is kept by
--		 * using VM_IO.
--		 */
--		flags |= VM_IO | VM_DONTEXPAND;
--		vmf = 1;
-+		is_vmalloc = 1;
- 		break;
- 	case STATUS:
- 		if (flags & VM_WRITE) {
-@@ -503,7 +494,6 @@ static int hfi1_file_mmap(struct file *f
- 		}
- 		memaddr = kvirt_to_phys((void *)dd->status);
- 		memlen = PAGE_SIZE;
--		flags |= VM_IO | VM_DONTEXPAND;
- 		break;
- 	case RTAIL:
- 		if (!HFI1_CAP_IS_USET(DMA_RTAIL)) {
-@@ -522,25 +512,23 @@ static int hfi1_file_mmap(struct file *f
- 		memvirt = (void *)hfi1_rcvhdrtail_kvaddr(uctxt);
- 		memdma = uctxt->rcvhdrqtailaddr_dma;
- 		flags &= ~VM_MAYWRITE;
-+		flags |= VM_DONTEXPAND;
- 		break;
- 	case SUBCTXT_UREGS:
--		memaddr = (u64)uctxt->subctxt_uregbase;
-+		memvirt = uctxt->subctxt_uregbase;
- 		memlen = PAGE_SIZE;
--		flags |= VM_IO | VM_DONTEXPAND;
--		vmf = 1;
-+		is_vmalloc = 1;
- 		break;
- 	case SUBCTXT_RCV_HDRQ:
--		memaddr = (u64)uctxt->subctxt_rcvhdr_base;
-+		memvirt = uctxt->subctxt_rcvhdr_base;
- 		memlen = rcvhdrq_size(uctxt) * uctxt->subctxt_cnt;
--		flags |= VM_IO | VM_DONTEXPAND;
--		vmf = 1;
-+		is_vmalloc = 1;
- 		break;
- 	case SUBCTXT_EGRBUF:
--		memaddr = (u64)uctxt->subctxt_rcvegrbuf;
-+		memvirt = uctxt->subctxt_rcvegrbuf;
- 		memlen = uctxt->egrbufs.size * uctxt->subctxt_cnt;
--		flags |= VM_IO | VM_DONTEXPAND;
- 		flags &= ~VM_MAYWRITE;
--		vmf = 1;
-+		is_vmalloc = 1;
- 		break;
- 	case SDMA_COMP: {
- 		struct hfi1_user_sdma_comp_q *cq = fd->cq;
-@@ -549,10 +537,9 @@ static int hfi1_file_mmap(struct file *f
- 			ret = -EFAULT;
- 			goto done;
- 		}
--		memaddr = (u64)cq->comps;
-+		memvirt = cq->comps;
- 		memlen = PAGE_ALIGN(sizeof(*cq->comps) * cq->nentries);
--		flags |= VM_IO | VM_DONTEXPAND;
--		vmf = 1;
-+		is_vmalloc = 1;
- 		break;
- 	}
- 	default:
-@@ -569,12 +556,10 @@ static int hfi1_file_mmap(struct file *f
- 	}
- 
- 	vm_flags_reset(vma, flags);
--	mmap_cdbg(ctxt, subctxt, type, mapio, vmf, memaddr, memvirt, memdma, 
-+	mmap_cdbg(ctxt, subctxt, type, mapio, is_vmalloc, memaddr, memvirt, memdma,
- 		  memlen, vma);
--	if (vmf) {
--		vma->vm_pgoff = PFN_DOWN(memaddr);
--		vma->vm_ops = &vm_ops;
--		ret = 0;
-+	if (is_vmalloc) {
-+		ret = remap_vmalloc_range(vma, memvirt, 0);
- 	} else if (memdma) {
- 		ret = dma_mmap_coherent(&dd->pcidev->dev, vma,
- 					memvirt, memdma,
-@@ -599,24 +584,6 @@ done:
- 	return ret;
- }
- 
--/*
-- * Local (non-chip) user memory is not mapped right away but as it is
-- * accessed by the user-level code.
-- */
--static vm_fault_t vma_fault(struct vm_fault *vmf)
--{
--	struct page *page;
--
--	page = vmalloc_to_page((void *)(vmf->pgoff << PAGE_SHIFT));
--	if (!page)
+-	struct snd_pcm_substream *substream = vmf->vma->vm_private_data;
++	const unsigned long size = vma->vm_end - vma->vm_start;
+ 	struct snd_pcm_runtime *runtime;
+-	
+-	if (substream == NULL)
 -		return VM_FAULT_SIGBUS;
--
--	get_page(page);
--	vmf->page = page;
--
+-	runtime = substream->runtime;
+-	vmf->page = virt_to_page(runtime->status);
+-	get_page(vmf->page);
 -	return 0;
 -}
--
- static __poll_t hfi1_poll(struct file *fp, struct poll_table_struct *pt)
- {
- 	struct hfi1_ctxtdata *uctxt;
++	struct page *page;
+ 
+-static const struct vm_operations_struct snd_pcm_vm_ops_status =
+-{
+-	.fault =	snd_pcm_mmap_status_fault,
+-};
++	BUILD_BUG_ON(sizeof(struct snd_pcm_mmap_status) > PAGE_SIZE);
+ 
+-static int snd_pcm_mmap_status(struct snd_pcm_substream *substream, struct file *file,
+-			       struct vm_area_struct *area)
+-{
+-	long size;
+-	if (!(area->vm_flags & VM_READ))
++	if (!(vma->vm_flags & VM_READ))
+ 		return -EINVAL;
+-	size = area->vm_end - area->vm_start;
+-	if (size != PAGE_ALIGN(sizeof(struct snd_pcm_mmap_status)))
++	if (size != PAGE_SIZE)
+ 		return -EINVAL;
+-	area->vm_ops = &snd_pcm_vm_ops_status;
+-	area->vm_private_data = substream;
+-	vm_flags_mod(area, VM_DONTEXPAND | VM_DONTDUMP,
++
++	vm_flags_mod(vma, VM_DONTEXPAND | VM_DONTDUMP,
+ 		     VM_WRITE | VM_MAYWRITE);
++	vma->vm_page_prot = vm_get_page_prot(vma->vm_flags);
+ 
+-	return 0;
++	runtime = substream->runtime;
++	page = virt_to_page(runtime->status);
++	return vm_insert_page(vma, vma->vm_start, page);
+ }
+ 
+ /*
 _
 
 Patches currently in -mm which might be from ljs@kernel.org are
 
-selinux-reject-writable-opens-of-policy-file-drop-mmap-shared-write-check.patch
-alsa-pcm-use-vm_insert_page-to-map-pcm-status-page.patch
 bpf-arena-mark-arena_map_mmap-mappings-vm_mixedmap.patch
 mm-vma-add-vma_is_mm_managed-predicates.patch
 mm-vma-only-allow-mmap-to-clear-vma_maywrite_bit-if-not-mm-managed.patch
