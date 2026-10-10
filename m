@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8DF52387359
-	for <mm-commits@vger.kernel.org>; Sat, 10 Oct 2026 21:39:37 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0D4B238AC78
+	for <mm-commits@vger.kernel.org>; Sat, 10 Oct 2026 21:39:38 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791668380; cv=none; b=W4NeZ6W6+p/Srdo/X0P4tiBIcyNrUW6JdYEt0VehTql7ExcjX+uqkg3C7dA0MP0TV6GzgFXU8asVkV9uKunzA+p3RDC70CmwR2tFgMU2UytVrufjp/BehYXM0+NF7VkGbDmOie9sGHij5bLsPOxuZOyd0KCVjaycIkAVA6dHk+Y=
+	t=1791668383; cv=none; b=nML+YJln5OfZZIrSW9tvdOW6SScxxaKB/M556/V0NGzi/H7Ff1kv7a48QsoyaPMSi1YAY64de70IGzZHXr6BKzXORLlSTwaFXpoL3rOYKVs0Sy6qey7+zt6yGzaQ4DxHmWmFFMZ6Q6Tjc18wMpduAY7RcjN6KcRe+3oqNf47BSw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791668380; c=relaxed/simple;
-	bh=fEPpLUoqUTo5tVzdoTyMfbzUruoGQuMYfckyB+RTF/k=;
-	h=Date:To:From:Subject:Message-Id; b=XUcZPqBLsb/qPgUDB6J4OmR3KRMOwllynCGmSFSvuFppn1Q4hyzHV4X75Tb/LroIxfon6sPHA0xYZFmXrjZGz9TElxjT+FRMS8MjCh11L6Ufn72j54Wznj5MxFeZjHDWKGZdwGkZIlhdjoDeP03c4Q8LpIz/wJCMoQEL0z/z1gU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ntHF5zwG; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1791668383; c=relaxed/simple;
+	bh=RR83JOPfkPSHPvQUuiqugsfcUNEt/ZyZjEEYkVECOyo=;
+	h=Date:To:From:Subject:Message-Id; b=jnOv3wG8hnCY7WfPhOXP+HBsgdeGoO5TZadSlPIo/vNUz2Vd9niKWr7jguUB5KlSV3z26p7JDJpXusgodgbNpNz4CKI9yHdfTp+DfZoBKsAaNc4MzvjI90t4kXj6Ea1Up0fqPCwhsPjYEo59lx/yKQJVgdX9687Txb7FZDZ7tGg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=r7WhGMXI; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ntHF5zwG"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0D0E51F00898;
-	Sat, 10 Oct 2026 21:39:37 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="r7WhGMXI"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9CE2D1F00899;
+	Sat, 10 Oct 2026 21:39:38 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1791668377;
-	bh=Ny0RKPPx7BBg1bO32oHwUGZM1+BrO9ft5VdJOeNtn/w=;
+	d=linux-foundation.org; s=korg; t=1791668378;
+	bh=d1Iwunrv3fzRBNxfqUjYqBZ4lzrhrzOhra+a4YGrVlg=;
 	h=Date:To:From:Subject;
-	b=ntHF5zwGAeLuYcSP/C181DrUTEbtI2R21vOvn9x32uQJltKXdPO3JzJ0jeUlQXwij
-	 weLU3JnJy4K8fjdSLZix+YHb/EjmQe8s/V5zNy1yT9KMMyiy/O3qSOLZ+mRhutkDCB
-	 cP160OvBy9lrHUC+OPXEdD5p0sMA/NWxcv1FEouM=
-Date: Sat, 10 Oct 2026 14:39:36 -0700
+	b=r7WhGMXIW2Ng1y9SIJZXh+9raizXqpxo4C4rp2gJweg25zJNpPMkeWUq6XQAOt4sk
+	 Wu17nb4mZeRdH2vZa5Bg2TlRkQXT4jwvDAq0kYW/WEXmqrbpoc1Aae8G3vgIFKW80M
+	 0uCMFPz2e3PCRcCXrZKPeugYONC40WniFGJ7vU9E=
+Date: Sat, 10 Oct 2026 14:39:38 -0700
 To: mm-commits@vger.kernel.org,ljs@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [to-be-updated] mm-vma-only-allow-mmap-to-clear-vma_maywrite_bit-if-not-mm-managed.patch removed from -mm tree
-Message-Id: <20261010213937.0D0E51F00898@smtp.kernel.org>
+Subject: [to-be-updated] mm-vma-add-and-use-vma__is_fixed_mapping.patch removed from -mm tree
+Message-Id: <20261010213938.9CE2D1F00899@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,69 +35,54 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/vma: only allow mmap to clear VMA_MAYWRITE_BIT if not mm-managed
+     Subject: mm/vma: add and use vma_[flags]_is_fixed_mapping
 has been removed from the -mm tree.  Its filename was
-     mm-vma-only-allow-mmap-to-clear-vma_maywrite_bit-if-not-mm-managed.patch
+     mm-vma-add-and-use-vma__is_fixed_mapping.patch
 
 This patch was dropped because an updated version will be issued
 
 ------------------------------------------------------
 From: "Lorenzo Stoakes (ARM)" <ljs@kernel.org>
-Subject: mm/vma: only allow mmap to clear VMA_MAYWRITE_BIT if not mm-managed
-Date: Sat, 03 Oct 2026 17:32:46 +0100
+Subject: mm/vma: add and use vma_[flags]_is_fixed_mapping
+Date: Sat, 03 Oct 2026 17:32:47 +0100
 
-For ordinary files the only way the VMA_MAYWRITE_BIT flag is cleared is if
-the underlying file is itself read-only.
+This determines whether a VMA cannot be expanded or merged because what
+they mapped was determined to be a set size at mmap time.
 
-This means that mprotect() cannot mark a shared mapping of a read-only file
-as read/write, as doing so would violate the read only attribute, and
-permit writes.
+This typically refers to mappings not managed by core mm, however
+VMA_DONTEXPAND_BIT
+is not reliably set alongside VMA_PFNMAP_BIT or VMA_MIXEDMAP_BIT, so we
+must explicitly test for this for now.
 
-In general, we do not want file systems to be able to do this for
-read/write files.
+We also explicitly test for VMA_PFNMAP_BIT as VMA_DONTEXPAND_BIT may not be
+set for VMA_PFNMAP_BIT's despite the one implying the other.
 
-Doing so would violate fundamental user expectation of file attributes and
-likely break userspace.
+Use this predicate in vma_flags_can_merge() and in check_prep_vma() in the
+mremap logic testing to see if mremap() can expand the VMA. The criteria
+for khugepaged and MADV_COLLAPSE eligibility in
+__thp_vma_allowable_orders() are precisely those for mergeability, so use
+vma_can_merge() there (with an expanded comment).
 
-However, drivers pose a tricky problem here - the /dev/xxx file may be
-read/write but provide access to a resource which is fundamentally
-read-only.
+This obviates the need for the VM_NO_KHUGEPAGED mask, so remove it.
 
-Therefore we must allow drivers to be able to clear VMA_MAYWRITE_BIT.
+Hugetlb VMAs remain excluded from khugepaged as hugetlbfs always sets
+VMA_DONTEXPAND_BIT.
 
-To achieve both of these things, forbid this for mm-managed mappings as
-identified by vma_flags_is_mm_managed().
+Also update the userland VMA tests to reflect the change.
 
-This constrains this ability to drivers which own the mapping's contents,
-whether memory-mapped I/O, kernel-allocated pages, or ordinary pages they
-map themselves, and so define its semantics.
+No functional change intended.
 
-Every in-tree mmap hook which clears VMA_MAYWRITE_BIT, some twenty sites
-across drivers, filesystems and bpf, establishes a mapping which is not
-mm-managed,
-with usbmon and the ALSA PCM status page converted earlier in this series
-to do so.
-
-Note that drivers may, if they do not gate on VMA_SHARED_BIT, be able to
-disable MAP_PRIVATE-file-backed mapping CoW semantics.
-
-This is perhaps not always intended, but we retain this capacity to
-maintain existing behaviour.
-
-As no driver which clears VMA_MAYWRITE_BIT establishes an mm-managed
-mapping, no functional change is intended.
-
-Link: https://lore.kernel.org/20261003-b4-mmap-prepare-vma-flag-sanify-v4-15-a1f052500fd7@kernel.org
+Link: https://lore.kernel.org/20261003-b4-mmap-prepare-vma-flag-sanify-v4-16-a1f052500fd7@kernel.org
 Signed-off-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Acked-by: Zi Yan <ziy@nvidia.com>
+Reviewed-by: Zi Yan <ziy@nvidia.com>
+Reviewed-by: Suren Baghdasaryan <surenb@google.com>
 Cc: Liam R. Howlett <liam@infradead.org>
 Cc: Vlastimil Babka <vbabka@kernel.org>
 Cc: Jann Horn <jannh@google.com>
 Cc: Pedro Falcato <pfalcato@suse.de>
 Cc: David Hildenbrand <david@kernel.org>
 Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Suren Baghdasaryan <surenb@google.com>
 Cc: Michal Hocko <mhocko@suse.com>
 Cc: Jonathan Corbet <corbet@lwn.net>
 Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
@@ -199,28 +184,152 @@ Cc: Miklos Szeredi <miklos@szeredi.hu>
 Cc: Xu Xin <xu.xin@linux.dev>
 ---
 
- mm/vma.c |    5 +++++
- 1 file changed, 5 insertions(+)
+ include/linux/mm.h              |   39 ++++++++++++++++++++++++++----
+ mm/huge_memory.c                |   11 +++++---
+ mm/mremap.c                     |    5 +--
+ tools/testing/vma/include/dup.h |   16 +++++++++++-
+ 4 files changed, 59 insertions(+), 12 deletions(-)
 
---- a/mm/vma.c~mm-vma-only-allow-mmap-to-clear-vma_maywrite_bit-if-not-mm-managed
-+++ a/mm/vma.c
-@@ -2816,6 +2816,11 @@ static int mmap_validate(unsigned long o
- 	if (WARN_ON_ONCE(!was_maywrite && is_maywrite))
- 		return -EINVAL;
+--- a/include/linux/mm.h~mm-vma-add-and-use-vma__is_fixed_mapping
++++ a/include/linux/mm.h
+@@ -601,9 +601,6 @@ enum {
+ #define VMA_REMAP_FLAGS mk_vma_flags(VMA_IO_BIT, VMA_PFNMAP_BIT,	\
+ 				     VMA_DONTEXPAND_BIT, VMA_DONTDUMP_BIT)
  
-+	/* mm-managed mappings may not clear VMA_MAYWRITE_BIT. */
-+	if (vma_flags_is_mm_managed(curr_flags) &&
-+	    WARN_ON_ONCE(was_maywrite && !is_maywrite))
-+		return -EINVAL;
-+
- 	return mmap_validate_vma_flags(curr_flags);
+-/* This mask prevents VMA from being scanned with khugepaged */
+-#define VM_NO_KHUGEPAGED (VM_SPECIAL | VM_HUGETLB)
+-
+ /* This mask defines which mm->def_flags a process can inherit its parent */
+ #define VM_INIT_DEF_MASK	VM_NOHUGEPAGE
+ 
+@@ -1649,6 +1646,40 @@ static inline bool vma_is_mm_managed(con
  }
  
+ /**
++ * vma_flags_is_fixed_mapping() - Do the specified VMA flags indicate that this
++ * is a fixed mapping that cannot be expanded or merged?
++ * @flags: The VMA flags to test.
++ *
++ * Fixed mappings are those whose size is set at the point of mmap (for
++ * instance, a mapping of a fixed range of memory established by a driver),
++ * and thus cannot be expanded or merged.
++ *
++ * Returns: true if the flags indicate a fixed mapping.
++ */
++static inline bool vma_flags_is_fixed_mapping(const vma_flags_t *flags)
++{
++	/*
++	 * VMA_PFNMAP_BIT should imply VMA_DONTEXPAND_BIT, but some callers set
++	 * only the former.
++	 */
++	return vma_flags_test_any(flags, VMA_PFNMAP_BIT, VMA_DONTEXPAND_BIT);
++}
++
++/**
++ * vma_is_fixed_mapping() - Is this VMA a fixed mapping that cannot be
++ * expanded or merged?
++ * @vma: The VMA to test.
++ *
++ * See vma_flags_is_fixed_mapping() for a description of this property.
++ *
++ * Returns: true if the VMA maps a fixed mapping.
++ */
++static inline bool vma_is_fixed_mapping(const struct vm_area_struct *vma)
++{
++	return vma_flags_is_fixed_mapping(&vma->flags);
++}
++
++/**
+  * vma_flags_can_merge() - Do the specified VMA flags permit the VMA to be
+  * merged with another?
+  * @flags: The VMA flags to test.
+@@ -1669,7 +1700,7 @@ static inline bool vma_flags_can_merge(c
+ 	if (!vma_flags_is_mm_managed(flags))
+ 		return false;
+ 	/* VMA explicitly marked as being unmergeable. */
+-	if (vma_flags_test(flags, VMA_DONTEXPAND_BIT))
++	if (vma_flags_is_fixed_mapping(flags))
+ 		return false;
+ 
+ 	return true;
+--- a/mm/huge_memory.c~mm-vma-add-and-use-vma__is_fixed_mapping
++++ a/mm/huge_memory.c
+@@ -212,11 +212,14 @@ unsigned long __thp_vma_allowable_orders
+ 		return in_pf ? orders : 0;
+ 
+ 	/*
+-	 * khugepaged special VMA and hugetlb VMA.
+-	 * Must be checked after dax since some dax mappings may have
+-	 * VM_MIXEDMAP set.
++	 * khugepaged moves data from VMAs once collapsed, after they have been
++	 * faulted in, relying on refaulting for file-backed memory.
++	 *
++	 * Mappings not managed by core mm cannot be reliably reconstructed from
++	 * page faults, and fixed mappings (including hugetlb) may well be
++	 * mm-managed - precisely the mappings which cannot be merged.
+ 	 */
+-	if (!in_pf && !smaps && (vm_flags & VM_NO_KHUGEPAGED))
++	if (!in_pf && !smaps && !vma_can_merge(vma))
+ 		return 0;
+ 
+ 	/*
+--- a/mm/mremap.c~mm-vma-add-and-use-vma__is_fixed_mapping
++++ a/mm/mremap.c
+@@ -1822,8 +1822,7 @@ static int check_prep_vma(struct vma_rem
+ 		return -EINVAL;
+ 	}
+ 
+-	if ((vrm->flags & MREMAP_DONTUNMAP) &&
+-	    vma_test_any(vma, VMA_DONTEXPAND_BIT, VMA_PFNMAP_BIT))
++	if ((vrm->flags & MREMAP_DONTUNMAP) && vma_is_fixed_mapping(vma))
+ 		return -EINVAL;
+ 
+ 	/*
+@@ -1861,7 +1860,7 @@ static int check_prep_vma(struct vma_rem
+ 	if (pgoff + (new_len >> PAGE_SHIFT) < pgoff)
+ 		return -EINVAL;
+ 
+-	if (vma_test_any(vma, VMA_DONTEXPAND_BIT, VMA_PFNMAP_BIT))
++	if (vma_is_fixed_mapping(vma))
+ 		return -EFAULT;
+ 
+ 	if (!mlock_future_ok(mm, vma_test(vma, VMA_LOCKED_BIT), vrm->delta))
+--- a/tools/testing/vma/include/dup.h~mm-vma-add-and-use-vma__is_fixed_mapping
++++ a/tools/testing/vma/include/dup.h
+@@ -1676,6 +1676,20 @@ static inline bool vma_is_mm_managed(con
+ 	return vma_flags_is_mm_managed(&vma->flags);
+ }
+ 
++static inline bool vma_flags_is_fixed_mapping(const vma_flags_t *flags)
++{
++	/*
++	 * VMA_PFNMAP_BIT should imply VMA_DONTEXPAND_BIT, but some callers set
++	 * only the former.
++	 */
++	return vma_flags_test_any(flags, VMA_PFNMAP_BIT, VMA_DONTEXPAND_BIT);
++}
++
++static inline bool vma_is_fixed_mapping(const struct vm_area_struct *vma)
++{
++	return vma_flags_is_fixed_mapping(&vma->flags);
++}
++
+ static inline bool vma_flags_can_merge(const vma_flags_t *flags)
+ {
+ 	/*
+@@ -1691,7 +1705,7 @@ static inline bool vma_flags_can_merge(c
+ 	if (!vma_flags_is_mm_managed(flags))
+ 		return false;
+ 	/* VMA explicitly marked as being unmergeable. */
+-	if (vma_flags_test(flags, VMA_DONTEXPAND_BIT))
++	if (vma_flags_is_fixed_mapping(flags))
+ 		return false;
+ 
+ 	return true;
 _
 
 Patches currently in -mm which might be from ljs@kernel.org are
 
-mm-vma-add-and-use-vma__is_fixed_mapping.patch
 scsi-sg-convert-mmap-hook-to-mmap_prepare-and-rework.patch
 fbdev-defio-assert-fbinfo_virtfb-drop-vm_io-add-vm_mixedmap.patch
 hsi-cmt_speech-convert-mmap-hook-to-mmap_prepare-refactor.patch
