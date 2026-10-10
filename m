@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6F0DF376A17
-	for <mm-commits@vger.kernel.org>; Sat, 10 Oct 2026 21:39:51 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D5D4B38DC6C
+	for <mm-commits@vger.kernel.org>; Sat, 10 Oct 2026 21:39:49 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791668393; cv=none; b=SBUcdQNZEMRTfEb7fW/N5abik63YBMFQ8Ba9nut7GhZMs6UwYLiyeAAMgXu6aScTIRRxonxdb/0xw4W1kt6sZPwr8BTQCL4QMBfuDrj2nW2SGIN6VyDqdE+DSplCzoNh8mi92FN9fYFFvxkJrf32hlzAw5Qc5jZ/vqAymm8fXwo=
+	t=1791668394; cv=none; b=F4jY+GIDMKs+elIbp7tK3pGDJP5TuwAyeT+QPQbLYSyT7KVmmnJTW1pzf9SvwiNcULvcS0rOWDpvHrPfxM1O87RBq+gIOCLAUqZc7CnWftZs1bQewykj31cOIpNY+Ok0sjlK6OCXNBq/AOE0ySk5jubMTQJYN6gm1j3pK1f9ybw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791668393; c=relaxed/simple;
-	bh=i2SPD7/dH4Q2mCvripIeVw0bAn0tCvgPano9DaszQZw=;
-	h=Date:To:From:Subject:Message-Id; b=FwJA3Com0NIuPEfasuCr7p6RUKkA/SRab0GIa/pS/4XXBB8bFlwJAgTRC7WPDW48F3Hv0VZfuyb0XrvlubHH8lNYS6zr5o3cHvP0rz5Xm/KSeYcBwjTzixcNlO6x0tAAa9DluoT0xv00jDYQITKKWzUL2I+Y6vbK/OAwJSfJ4aI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=SCBZ5dl/; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1791668394; c=relaxed/simple;
+	bh=MHlwsa8bF/HZb6o/cwTJ1Ute5mDWAPwN0LbeUX5SP7s=;
+	h=Date:To:From:Subject:Message-Id; b=hA5HilRpYF9SxJ02GaPU99VK176Bh6xT+FlfgyOp26bncrGN3NBR8ZegrfAvHrBVZWhYlHkvmqO4XRMbjM3ILdps21dHSQ3SGhhKtBnW5HKMgX/RZznWJmRv5TLsHH1XsyZUYkPPKC9AvTRHgZCoPKkPwEaBruxcLIshNMO4XM8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=0+r/lZt2; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="SCBZ5dl/"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 456091F00893;
-	Sat, 10 Oct 2026 21:39:51 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="0+r/lZt2"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id AB7F91F000FF;
+	Sat, 10 Oct 2026 21:39:49 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1791668391;
-	bh=5O1g4yBQKltgG3Lyll4Ck7rc2kLDHTbPOCroxHe0f1A=;
+	d=linux-foundation.org; s=korg; t=1791668389;
+	bh=mpAiPVH+U07rAJPv6NQuJ+seMcK5SX1j7Z6fzreCfCM=;
 	h=Date:To:From:Subject;
-	b=SCBZ5dl/ylo9FnGuUhd5eQ5UmPIk68gnXbXvallsQ0homGn9ayE/ZLyiLL8IyJC7f
-	 pBXuJkHlMi2XPw87rblSLdSFWdojAU4H3Vo6ZHuyQj+v7FXhnPHdk7L49btt9jg9Qs
-	 FRBvkJMW9E+kicIWFxV1SOdclMQqOiizFfEQkmGA=
-Date: Sat, 10 Oct 2026 14:39:50 -0700
+	b=0+r/lZt2HlNfLsiP6XAGt6Y3nbf52A/ZV1Mi6FmbGXuXxPhUSv33g846OdGfaAvEZ
+	 TnyMIIC++97hyYRUi+s6NCJ+JsjbPfT7b/IknTuL5urT9vFTIx1RW+6mKa62dK9Fa/
+	 Tw1EpOpGmDpPQBRsBau7U08fqeEi2PIgQd1bNq8M=
+Date: Sat, 10 Oct 2026 14:39:49 -0700
 To: mm-commits@vger.kernel.org,ljs@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [to-be-updated] mm-vma-enforce-that-mm-managed-mappings-may-not-set-vma_io_bit.patch removed from -mm tree
-Message-Id: <20261010213951.456091F00893@smtp.kernel.org>
+Subject: [to-be-updated] mm-mlock-eliminate-weird-vma_io_bit-abuse-and-simplify.patch removed from -mm tree
+Message-Id: <20261010213949.AB7F91F000FF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,28 +35,55 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/vma: enforce that mm-managed mappings may not set VMA_IO_BIT
+     Subject: mm/mlock: eliminate weird VMA_IO_BIT abuse and simplify
 has been removed from the -mm tree.  Its filename was
-     mm-vma-enforce-that-mm-managed-mappings-may-not-set-vma_io_bit.patch
+     mm-mlock-eliminate-weird-vma_io_bit-abuse-and-simplify.patch
 
 This patch was dropped because an updated version will be issued
 
 ------------------------------------------------------
 From: "Lorenzo Stoakes (ARM)" <ljs@kernel.org>
-Subject: mm/vma: enforce that mm-managed mappings may not set VMA_IO_BIT
-Date: Sat, 03 Oct 2026 17:32:55 +0100
+Subject: mm/mlock: eliminate weird VMA_IO_BIT abuse and simplify
+Date: Sat, 03 Oct 2026 17:32:54 +0100
 
-It makes no sense for a mapping whose contents the kernel does not own to
-specify that the range is MMIO.
+When performing mlock() or munlock() otherwise normal VMAs have VMA_IO_BIT
+solely to fix a race with migration which might otherwise double-count
+mlock VMAs.
 
-Prior to this patch, all in-tree drivers which did so have been updated
-such that they are marked as not being mm-managed. The check WARNs and
-fails the mmap for any out-of-tree driver that still sets VMA_IO_BIT
-without a kernel mapping.
+This is unnecessary - at the point of applying folio mlock state, whether
+setting or clearing PG_mlocked, we know whether or not we are locking.
 
-No functional change intended for in-tree code.
+Solve this in two ways - thread a boolean through the page table walk
+indicating whether a lock or unlock is being performed, and run a locking
+walk with VMA_LOCKONFAULT_BIT set and VMA_LOCKED_BIT cleared.
 
-Link: https://lore.kernel.org/20261003-b4-mmap-prepare-vma-flag-sanify-v4-24-a1f052500fd7@kernel.org
+This state never occurs otherwise, as VMA_LOCKONFAULT_BIT always implies
+VMA_LOCKED_BIT. These are also always cleared together.
+
+Then, update folio_add_lru_vma() and mlock_folio() to check only for
+VMA_LOCKED_BIT, and update try_to_unmap_one() to check for VMA_LOCKED_MASK
+instead.
+
+Also remove the useless invocation of allow_mlock_munlock() which simply
+returns true if unlocking and instead rename it to allow_mlock() and only
+call it when locking.
+
+With the other mlock abuse of VMA_IO_BIT addressed, update
+mlock_vma_folio() and folio_add_lru_vma() to simply test for
+VMA_LOCKED_BIT.
+
+The munlock_vma_folio() function tests VMA_LOCKED_MASK instead, as an
+unmap racing with the locking walk must still munlock folios the walk has
+already counted.
+
+Additionally, in order to ensure a racing unmap/migration releases the
+reference munlock_folio() took (whose put was batched), check
+VMA_LOCKED_MASK before calling mlock_drain_local() in try_to_unmap_one()
+and try_to_migrate_one().
+
+While here, also replace some deprecated VMA flag predicates.
+
+Link: https://lore.kernel.org/20261003-b4-mmap-prepare-vma-flag-sanify-v4-23-a1f052500fd7@kernel.org
 Signed-off-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 Reviewed-by: Zi Yan <ziy@nvidia.com>
@@ -168,28 +195,189 @@ Cc: Miklos Szeredi <miklos@szeredi.hu>
 Cc: Xu Xin <xu.xin@linux.dev>
 ---
 
- mm/vma.c |    6 ++++++
- 1 file changed, 6 insertions(+)
+ mm/folio.c    |    2 -
+ mm/internal.h |   10 ++++++---
+ mm/mlock.c    |   51 +++++++++++++++++-------------------------------
+ mm/rmap.c     |    8 ++++---
+ 4 files changed, 32 insertions(+), 39 deletions(-)
 
---- a/mm/vma.c~mm-vma-enforce-that-mm-managed-mappings-may-not-set-vma_io_bit
-+++ a/mm/vma.c
-@@ -2811,6 +2811,12 @@ static int mmap_validate_vma_flags(const
- 		return -EINVAL;
- #endif
+--- a/mm/folio.c~mm-mlock-eliminate-weird-vma_io_bit-abuse-and-simplify
++++ a/mm/folio.c
+@@ -505,7 +505,7 @@ void folio_add_lru_vma(struct folio *fol
+ {
+ 	VM_BUG_ON_FOLIO(folio_test_lru(folio), folio);
  
-+	if (!vma_flags_test_any(flags, VMA_PFNMAP_BIT, VMA_MIXEDMAP_BIT)) {
-+		/* mm-managed mappings may not set VMA_IO_BIT. */
-+		if (WARN_ON_ONCE(vma_flags_test(flags, VMA_IO_BIT)))
-+			return -EINVAL;
-+	}
-+
- 	return 0;
+-	if (unlikely((vma->vm_flags & (VM_LOCKED | VM_SPECIAL)) == VM_LOCKED))
++	if (vma_test(vma, VMA_LOCKED_BIT))
+ 		mlock_new_folio(folio);
+ 	else
+ 		folio_add_lru(folio);
+--- a/mm/internal.h~mm-mlock-eliminate-weird-vma_io_bit-abuse-and-simplify
++++ a/mm/internal.h
+@@ -970,8 +970,7 @@ void mlock_folio(struct folio *folio);
+ static inline void mlock_vma_folio(struct folio *folio,
+ 				struct vm_area_struct *vma)
+ {
+-	/* The VM_IO check prevents migration from double-counting during mlock. */
+-	if (unlikely((vma->vm_flags & (VM_LOCKED|VM_SPECIAL)) == VM_LOCKED))
++	if (vma_test(vma, VMA_LOCKED_BIT))
+ 		mlock_folio(folio);
  }
  
+@@ -988,7 +987,12 @@ static inline void munlock_vma_folio(str
+ 	 * always munlock the folio and page reclaim will correct it
+ 	 * if it's wrong.
+ 	 */
+-	if (unlikely(vma->vm_flags & VM_LOCKED))
++	/*
++	 * VMA_LOCKONFAULT_BIT alone marks an mlock walk in progress, see
++	 * mlock_vma_pages_range(). An unmap racing with the walk must still
++	 * munlock folios the walk has already counted.
++	 */
++	if (unlikely(vma_test_any_mask(vma, VMA_LOCKED_MASK)))
+ 		munlock_folio(folio);
+ }
+ 
+--- a/mm/mlock.c~mm-mlock-eliminate-weird-vma_io_bit-abuse-and-simplify
++++ a/mm/mlock.c
+@@ -316,22 +316,10 @@ static inline unsigned int folio_mlock_s
+ 	return folio_pte_batch(folio, pte, ptent, count);
+ }
+ 
+-static inline bool allow_mlock_munlock(struct folio *folio,
++static inline bool allow_mlock(struct folio *folio,
+ 		struct vm_area_struct *vma, unsigned long start,
+ 		unsigned long end, unsigned int step)
+ {
+-	/*
+-	 * For unlock, allow munlock large folio which is partially
+-	 * mapped to VMA. As it's possible that large folio is
+-	 * mlocked and VMA is split later.
+-	 *
+-	 * During memory pressure, such kind of large folio can
+-	 * be split. And the pages are not in VM_LOCKed VMA
+-	 * can be reclaimed.
+-	 */
+-	if (!vma_test(vma, VMA_LOCKED_BIT))
+-		return true;
+-
+ 	/* folio_within_range() cannot take KSM, but any small folio is OK */
+ 	if (!folio_test_large(folio))
+ 		return true;
+@@ -352,6 +340,7 @@ static int mlock_pte_range(pmd_t *pmd, u
+ 
+ {
+ 	struct vm_area_struct *vma = walk->vma;
++	const bool lock = walk->private;
+ 	spinlock_t *ptl;
+ 	pte_t *start_pte, *pte;
+ 	pte_t ptent;
+@@ -368,7 +357,7 @@ static int mlock_pte_range(pmd_t *pmd, u
+ 		folio = pmd_folio(*pmd);
+ 		if (folio_is_zone_device(folio))
+ 			goto out;
+-		if (vma_test(vma, VMA_LOCKED_BIT))
++		if (lock)
+ 			mlock_folio(folio);
+ 		else
+ 			munlock_folio(folio);
+@@ -390,10 +379,10 @@ static int mlock_pte_range(pmd_t *pmd, u
+ 			continue;
+ 
+ 		step = folio_mlock_step(folio, pte, addr, end);
+-		if (!allow_mlock_munlock(folio, vma, start, end, step))
++		if (lock && !allow_mlock(folio, vma, start, end, step))
+ 			goto next_entry;
+ 
+-		if (vma_test(vma, VMA_LOCKED_BIT))
++		if (lock)
+ 			mlock_folio(folio);
+ 		else
+ 			munlock_folio(folio);
+@@ -428,31 +417,29 @@ static void mlock_vma_pages_range(struct
+ 		.pmd_entry = mlock_pte_range,
+ 		.walk_lock = PGWALK_WRLOCK_VERIFY,
+ 	};
++	const bool lock = vma_flags_test(new_vma_flags, VMA_LOCKED_BIT);
++	vma_flags_t walk_flags = *new_vma_flags;
+ 
+ 	/*
+-	 * There is a slight chance that concurrent page migration,
+-	 * or page reclaim finding a page of this now-VMA_LOCKED_BIT vma,
+-	 * will call mlock_vma_folio() and raise page's mlock_count:
+-	 * double counting, leaving the page unevictable indefinitely.
+-	 * Communicate this danger to mlock_vma_folio() with VMA_IO_BIT,
+-	 * which is a VMA_SPECIAL_FLAGS flag not allowed on VMA_LOCKED_BIT vmas.
+-	 * mmap_lock is held in write mode here, so this weird
+-	 * combination should not be visible to other mmap_lock users;
+-	 * but WRITE_ONCE so rmap walkers must see VMA_IO_BIT if VMA_LOCKED_BIT.
++	 * LOCKONFAULT without LOCKED never otherwise occurs: it marks a walk in
++	 * progress so that rmap-side callers, which test VMA_LOCKED_BIT, do not
++	 * count folios, while try_to_unmap_one(), which tests VMA_LOCKED_MASK,
++	 * still refuses to unmap them.
+ 	 */
+-	if (vma_flags_test(new_vma_flags, VMA_LOCKED_BIT))
+-		vma_flags_set(new_vma_flags, VMA_IO_BIT);
++	if (lock) {
++		vma_flags_clear(&walk_flags, VMA_LOCKED_BIT);
++		vma_flags_set(&walk_flags, VMA_LOCKONFAULT_BIT);
++	}
++
+ 	vma_start_write(vma);
+-	vma_flags_reset_once(vma, new_vma_flags);
++	vma_flags_reset_once(vma, &walk_flags);
+ 
+ 	lru_add_drain();
+-	walk_page_range_vma(vma, start, end, &mlock_walk_ops, NULL);
++	walk_page_range_vma(vma, start, end, &mlock_walk_ops, (void *)lock);
+ 	lru_add_drain();
+ 
+-	if (vma_flags_test(new_vma_flags, VMA_IO_BIT)) {
+-		vma_flags_clear(new_vma_flags, VMA_IO_BIT);
++	if (lock)
+ 		vma_flags_reset_once(vma, new_vma_flags);
+-	}
+ }
+ 
+ /*
+--- a/mm/rmap.c~mm-mlock-eliminate-weird-vma_io_bit-abuse-and-simplify
++++ a/mm/rmap.c
+@@ -2239,9 +2239,11 @@ static bool try_to_unmap_one(struct foli
+ 
+ 		/*
+ 		 * If the folio is in an mlock()d vma, we must not swap it out.
++		 * VMA_LOCKONFAULT_BIT alone marks an mlock walk in progress, see
++		 * mlock_vma_pages_range().
+ 		 */
+ 		if (!(flags & TTU_IGNORE_MLOCK) &&
+-		    (vma->vm_flags & VM_LOCKED)) {
++		    vma_test_any_mask(vma, VMA_LOCKED_MASK)) {
+ 			ptes++;
+ 
+ 			/*
+@@ -2395,7 +2397,7 @@ static bool try_to_unmap_one(struct foli
+ 		}
+ finish_unmap:
+ 		folio_remove_rmap_ptes(folio, page, nr_pages, vma);
+-		if (vma->vm_flags & VM_LOCKED)
++		if (vma_test_any_mask(vma, VMA_LOCKED_MASK))
+ 			mlock_drain_local();
+ 		folio_put_refs(folio, nr_pages);
+ 
+@@ -2770,7 +2772,7 @@ static bool try_to_migrate_one(struct fo
+ 			hugetlb_remove_rmap(folio);
+ 		else
+ 			folio_remove_rmap_pte(folio, subpage, vma);
+-		if (vma->vm_flags & VM_LOCKED)
++		if (vma_test_any_mask(vma, VMA_LOCKED_MASK))
+ 			mlock_drain_local();
+ 		folio_put(folio);
+ 	}
 _
 
 Patches currently in -mm which might be from ljs@kernel.org are
 
+mm-vma-enforce-that-mm-managed-mappings-may-not-set-vma_io_bit.patch
 mm-remove-vma_io_bit-check-in-vma_is_mm_managed.patch
 mm-remove-hugetlb_inlineh.patch
 mm-rename-is_vm_hugetlb_page-to-vma_is_hugetlb.patch
