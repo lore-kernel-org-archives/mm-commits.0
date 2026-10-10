@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4B910374186
-	for <mm-commits@vger.kernel.org>; Sat, 10 Oct 2026 22:02:16 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 125D1370AC7
+	for <mm-commits@vger.kernel.org>; Sat, 10 Oct 2026 22:02:20 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791669737; cv=none; b=jVAK6vofQuV1amJmiuGAL2bdNyDPtuD+S5xZMyjnqu/tH8E52fPw5mecmqBsuJzGHevMslOvI8icxzJEVoMfbzN0vowkDgodQ646KxGnrkbV/ZW2Xq0aBKXTFX44St+swi35brww0oivPlbaHRrVYzp9XVNMkoYUVmMeP9xC3UU=
+	t=1791669741; cv=none; b=iLiGsOxw8npSxKnk04yK5H5WjtNWfPI7b1L1VPaZfhtITZvev0fruK/FEUmd7FMRhxBNYpoG1jlj84LIR6YS6FJy1ZNt2ky26hQ0XNByAHx3PXoi5hNeDRAtpOYIRkz4DX9DFEKmTp8e8PPIjcXK86tJQCTegzlMLXgLFP9T1pg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791669737; c=relaxed/simple;
-	bh=3VJcSrtZ0gF47m3ajZJjikMJRgbRUbGaEcl3hMjUaSs=;
-	h=Date:To:From:Subject:Message-Id; b=DaUgmrtT6tPK9Lfc/Y5p2WQ2njTU2iu/m8i/jv6K7gapfMcQ4qTa1JtPDPTlfOgAS0cweCa/iTIbqlbTM2ZL3OBclfTxSlov4rRUpNkaF9yOfsQc7v+dPusuHf5qHO+ttb+8gym0J+wjlDH3iaCOUPCWW7H/u4X5N1FnxpELDuQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=kG5FcUsA; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1791669741; c=relaxed/simple;
+	bh=aOj5246Q2F2xcivMtPpNBupvk3Q9+fa/GH47dyJ28VM=;
+	h=Date:To:From:Subject:Message-Id; b=Vlp2+QvsCEifXM3lIL8ELWPkYkcoyxVmXe/nzpHzc2J4fy91r/T7uixgsPWSv1qfvv6PpnEdcaZ6H9xfwzxuxJKS7F6Jyjc5wzddz80fwV74JwR0aSJXmuxXttMalrfIZmqiw48O0NDdweyVV0lZFQGuz63Bx8pNNHak6NoPzME=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=d32mG6Er; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="kG5FcUsA"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D63181F000FF;
-	Sat, 10 Oct 2026 22:02:15 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="d32mG6Er"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id DA1FB1F000FF;
+	Sat, 10 Oct 2026 22:02:19 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1791669736;
-	bh=8dpnZKPKUgVlXqn8griBGNtOEVORO+RNuC2hpRzGLOM=;
+	d=linux-foundation.org; s=korg; t=1791669740;
+	bh=6LQdvaVqVYjl/RR/8l/B2E5uZKuf2GRLnWwtA1vAM/k=;
 	h=Date:To:From:Subject;
-	b=kG5FcUsAJMPOBEovqkWqNMAfn3b0H3b8qEG5HhWlmo+EAw2oyzeKU5T44pIsa5Eic
-	 5JOi145yffYJnfEQZTac0JEKwSDx47wf3+kqiyafqemntfkM7c/U6CbeEN2jOcAQd5
-	 3Yd3zrrzPwCzUZy8s1SY5dmcBhF0S6EwIscyOXfY=
-Date: Sat, 10 Oct 2026 15:02:15 -0700
+	b=d32mG6ErC8zSfZKjdC5MgilJZBkFz7DtQ0uhMsPSZLPdWnX5rnq/Hd0gdtI5rSxqJ
+	 9ILl/kWUOXvMBJ2BuEF1Gsg6xzOzS0Skm31pibRE/6t6knJfRjq6r66MoQ6/tcCrkw
+	 PdrZUsRh1mLReiAKN2H8vkPz8yzEJzxAUwbjdjZw=
+Date: Sat, 10 Oct 2026 15:02:19 -0700
 To: mm-commits@vger.kernel.org,ljs@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + hsi-cmt_speech-convert-mmap-hook-to-mmap_prepare-refactor.patch added to mm-unstable branch
-Message-Id: <20261010220215.D63181F000FF@smtp.kernel.org>
+Subject: + uprobes-remove-vm_io-set-vm_mixedmap-for-mapped-kernel-pages.patch added to mm-unstable branch
+Message-Id: <20261010220219.DA1FB1F000FF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: HSI: cmt_speech: convert mmap hook to mmap_prepare, refactor
+     Subject: uprobes: remove VM_IO, set VM_MIXEDMAP for mapped kernel pages
 has been added to the -mm mm-unstable branch.  Its filename is
-     hsi-cmt_speech-convert-mmap-hook-to-mmap_prepare-refactor.patch
+     uprobes-remove-vm_io-set-vm_mixedmap-for-mapped-kernel-pages.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/hsi-cmt_speech-convert-mmap-hook-to-mmap_prepare-refactor.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/uprobes-remove-vm_io-set-vm_mixedmap-for-mapped-kernel-pages.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,21 +59,32 @@ and is updated there most days
 
 ------------------------------------------------------
 From: "Lorenzo Stoakes (ARM)" <ljs@kernel.org>
-Subject: HSI: cmt_speech: convert mmap hook to mmap_prepare, refactor
-Date: Fri, 09 Oct 2026 19:04:13 +0100
+Subject: uprobes: remove VM_IO, set VM_MIXEDMAP for mapped kernel pages
+Date: Fri, 09 Oct 2026 19:04:15 +0100
 
-Use the mmap_prepare in favour of the deprecated mmap hook as part of the
-work to convert one to another.
+These are not MMIO pages so VMA_IO_BIT is an inappropriate flag to set.
 
-Since this is simply a refcounted kernel page that has been allocated, it
-should not be marked VM_IO and should be inserted using the kernel page
-insertion mechanism, so convert it to do this instead.
+Instead, set them VMA_MIXEDMAP_BIT as they are kernel mappings and this is
+the appropriate flag to set for those.
 
-Use the VMA descriptor's private data field as a scratch buffer to store
-the page in - this stays valid throughout the kernel page mapping
-operation.
+This provides the semantics required - no VMA merging is permitted, but
+does not prevent GUP.
 
-Link: https://lore.kernel.org/20261009-b4-mmap-prepare-vma-flag-sanify-v5-19-923b70125b1e@kernel.org
+However this has no meaningful impact as these are refcounted and thus can
+be GUPed.
+
+A previous commit already prevented __mm_populate() from being invoked on
+XOL areas, which VMA_IO_BIT was previously relied upon to do, so that is no
+longer required.
+
+Both VMAs set a VMA name, so always_dump_vma() returns true before
+vma_dump_size() reaches its VMA_IO_BIT check, and thus there is no change
+in core dump behaviour.
+
+Change this for both the core xol_add_vma() function and the x86-specific
+get_uprobe_trampoline() function.
+
+Link: https://lore.kernel.org/20261009-b4-mmap-prepare-vma-flag-sanify-v5-21-923b70125b1e@kernel.org
 Signed-off-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 Reviewed-by: Suren Baghdasaryan <surenb@google.com>
@@ -187,70 +198,34 @@ Cc: Ihor Solodrai <ihor.solodrai@linux.dev>
 Cc: Bert Karwatzki <spasswolf@web.de>
 ---
 
- drivers/hsi/clients/cmt_speech.c |   33 +++++++----------------------
- 1 file changed, 9 insertions(+), 24 deletions(-)
+ arch/x86/kernel/uprobes.c |    2 +-
+ kernel/events/uprobes.c   |    4 ++--
+ 2 files changed, 3 insertions(+), 3 deletions(-)
 
---- a/drivers/hsi/clients/cmt_speech.c~hsi-cmt_speech-convert-mmap-hook-to-mmap_prepare-refactor
-+++ a/drivers/hsi/clients/cmt_speech.c
-@@ -1084,22 +1084,6 @@ static void cs_hsi_stop(struct cs_hsi_if
- 	kfree(hi);
+--- a/arch/x86/kernel/uprobes.c~uprobes-remove-vm_io-set-vm_mixedmap-for-mapped-kernel-pages
++++ a/arch/x86/kernel/uprobes.c
+@@ -715,7 +715,7 @@ static struct vm_area_struct *get_uprobe
+ 
+ 	*new_mapping = true;
+ 	return _install_special_mapping(mm, vaddr, PAGE_SIZE,
+-				VM_READ|VM_EXEC|VM_MAYEXEC|VM_MAYREAD|VM_IO,
++				VM_READ|VM_EXEC|VM_MAYEXEC|VM_MAYREAD|VM_MIXEDMAP,
+ 				&tramp_mapping);
  }
  
--static vm_fault_t cs_char_vma_fault(struct vm_fault *vmf)
--{
--	struct cs_char *csdata = vmf->vma->vm_private_data;
--	struct page *page;
--
--	page = virt_to_page((void *)csdata->mmap_base);
--	get_page(page);
--	vmf->page = page;
--
--	return 0;
--}
--
--static const struct vm_operations_struct cs_char_vm_ops = {
--	.fault	= cs_char_vma_fault,
--};
--
- static int cs_char_fasync(int fd, struct file *file, int on)
- {
- 	struct cs_char *csdata = file->private_data;
-@@ -1256,18 +1240,19 @@ static long cs_char_ioctl(struct file *f
- 	return r;
- }
+--- a/kernel/events/uprobes.c~uprobes-remove-vm_io-set-vm_mixedmap-for-mapped-kernel-pages
++++ a/kernel/events/uprobes.c
+@@ -1726,8 +1726,8 @@ static int xol_add_vma(struct mm_struct
+ 	}
  
--static int cs_char_mmap(struct file *file, struct vm_area_struct *vma)
-+static int cs_char_mmap_prepare(struct vm_area_desc *desc)
- {
--	if (vma->vm_end < vma->vm_start)
--		return -EINVAL;
-+	struct file *file = desc->file;
-+	struct cs_char *csdata = file->private_data;
-+	struct page **pages = (struct page **)&desc->private_data;
- 
--	if (vma_pages(vma) != 1)
-+	if (vma_desc_pages(desc) != 1)
- 		return -EINVAL;
- 
--	vm_flags_set(vma, VM_IO | VM_DONTDUMP | VM_DONTEXPAND);
--	vma->vm_ops = &cs_char_vm_ops;
--	vma->vm_private_data = file->private_data;
-+	vma_desc_set_flags(desc, VMA_DONTDUMP_BIT, VMA_DONTEXPAND_BIT);
- 
-+	*pages = virt_to_page((void *)csdata->mmap_base);
-+	mmap_action_map_kernel_pages_full(desc, pages);
- 	return 0;
- }
- 
-@@ -1353,7 +1338,7 @@ static const struct file_operations cs_c
- 	.write		= cs_char_write,
- 	.poll		= cs_char_poll,
- 	.unlocked_ioctl	= cs_char_ioctl,
--	.mmap		= cs_char_mmap,
-+	.mmap_prepare	= cs_char_mmap_prepare,
- 	.open		= cs_char_open,
- 	.release	= cs_char_release,
- 	.fasync		= cs_char_fasync,
+ 	vma = _install_special_mapping(mm, area->vaddr, PAGE_SIZE,
+-				VM_EXEC|VM_MAYEXEC|VM_DONTCOPY|VM_IO|
+-				VM_SEALED_SYSMAP,
++				VM_EXEC|VM_MAYEXEC|VM_DONTCOPY|
++				VM_MIXEDMAP|VM_SEALED_SYSMAP,
+ 				&xol_mapping);
+ 	if (IS_ERR(vma)) {
+ 		ret = PTR_ERR(vma);
 _
 
 Patches currently in -mm which might be from ljs@kernel.org are
