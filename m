@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7A2163A759C
-	for <mm-commits@vger.kernel.org>; Fri,  9 Oct 2026 06:00:18 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8A4C6547044;
+	Sat, 10 Oct 2026 16:48:22 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791525619; cv=none; b=BPShfGdAmOtoCPCLhbJILIDynPpn4ICLZgxqEwe6MOYRp4VlN/ovyY0ypGn7yHX8okfFVN60vSZmzYgiXTdA0Y8YPnjG2mB08cUNivew08ZOshwmii3GPmnDrWjEfM+mF/+47ral2FynNeR/gyF047zNmWY3WRCwAxCFeaWcpGs=
+	t=1791650904; cv=none; b=gpO3bY0XExjaSZUdRP44L+7hG540nsLBnBdTfdozS9/nIZcj1FDmW2WhJXRxTNPx6/mwDxG1/VX3eX7uRh9Bw/WT37jxP28fmdAHyciE4Ue3Br+C2WA//AHNHuRiCVPIg0YQGyoXNtEf8tUxUPIqSJU3X4cAt+RW04SSXmMcZaI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791525619; c=relaxed/simple;
-	bh=ufk/TD9SUPSkogqKxWVPmMhFhZiJzPE5GywhviDACl8=;
-	h=Date:To:From:Subject:Message-Id; b=Myk8ejBFoLuSZjStpb8sB04Uke7sovvzAKe++TvIhoFxbEOxGw2u1dZ1luyE5inWG0JvJ2GIfw2x/U5Jdbccj8S0Fo0kjZGn8f4C6x4SX95aFokROswA5FFUoNfLFw1tM2+g9z871dN8gMwJ77oAauBw4BduqkO/wJrjY6gYCyA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=T9FTZVAC; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1791650904; c=relaxed/simple;
+	bh=nz23+LSUA915DFq4HRv4hSWjlt8GI7vSicxxZHCzHNc=;
+	h=Date:To:From:Subject:Message-Id; b=IPjIYgDLG/Rsj3217jUjsWigLGEW8LD08qgxJntWntS4uGA38V04BebXZ5SRpI4vt5wEmRRU9jm0wShkftiN7d0/FxyfgIFnz93YTocy/mFE/sHFGyM7Ovz4xfmhHdXgtu23ySBFoV9wWohdBbnLKwFvXW/qdey89eju4Pl/fZg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=vG2KhEsF; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="T9FTZVAC"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4E5541F00899;
-	Fri,  9 Oct 2026 06:00:18 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="vG2KhEsF"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E27121F00893;
+	Sat, 10 Oct 2026 16:48:21 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1791525618;
-	bh=Z3lWMPDjRqyIMeEK6b4Wy4GZ+9eftzQY0ivJ+Y8TsZY=;
+	d=linux-foundation.org; s=korg; t=1791650902;
+	bh=jOnI+hYs+PYvBRzzuL9uAYOL5D6bbfTwCWGPO+XJWA4=;
 	h=Date:To:From:Subject;
-	b=T9FTZVACpz00tIkC2GHSK+H+sGPg1+iF5BMvl/vLij0GY5DfCu0FMpLBkqJ+Omc4k
-	 ISxR5jb+m0Xz01nRYX0e/6gFt6FjZYfkvv5LAefBNJnleHr4U2Vt2Rhy6giRw2zoYl
-	 sieXLgdIYksfUp2qOCCnFLaN3IxVni1n7JnbcCxU=
-Date: Thu, 08 Oct 2026 23:00:17 -0700
-To: mm-commits@vger.kernel.org,rppt@kernel.org,leitao@debian.org,guillaume@morinfr.org,akpm@linux-foundation.org
+	b=vG2KhEsFMLitN0vKcNukLQzOLUZHDfipgs8aag/4Q7gnxKcD3U48uF7FtGsPBlbMb
+	 1TN6kqFC8bSzpASegKFUoIqnz7ieALpgLqxf3xAqBqBUS4FafhakJyTOd6kYSz5u3h
+	 Zg7Y4vnPO9r3Milmt+n5M5n3hHzIjKGKPcgEjw14=
+Date: Sat, 10 Oct 2026 09:48:21 -0700
+To: mm-commits@vger.kernel.org,stable@vger.kernel.org,mark@fasheh.com,jlbec@evilplan.org,heming.zhao@suse.com,joseph.qi@linux.alibaba.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] selftests-mm-hugetlb_madv_vs_map-add-underflow-test.patch removed from -mm tree
-Message-Id: <20261009060018.4E5541F00899@smtp.kernel.org>
+Subject: + ocfs2-reserve-metadata-for-a-new-xattr-block-and-its-value-tree.patch added to mm-nonmm-unstable branch
+Message-Id: <20261010164821.E27121F00893@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,250 +34,136 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The quilt patch titled
-     Subject: selftests/mm: hugetlb_madv_vs_map: add underflow test
-has been removed from the -mm tree.  Its filename was
-     selftests-mm-hugetlb_madv_vs_map-add-underflow-test.patch
+The patch titled
+     Subject: ocfs2: reserve metadata for a new xattr block and its value tree
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     ocfs2-reserve-metadata-for-a-new-xattr-block-and-its-value-tree.patch
 
-This patch was dropped because it was merged into the mm-stable branch
-of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/ocfs2-reserve-metadata-for-a-new-xattr-block-and-its-value-tree.patch
+
+This patch will later appear in the mm-nonmm-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via various
+branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there most days
 
 ------------------------------------------------------
-From: Guillaume Morin <guillaume@morinfr.org>
-Subject: selftests/mm: hugetlb_madv_vs_map: add underflow test
-Date: Mon, 14 Sep 2026 17:36:21 +0200
+From: Joseph Qi <joseph.qi@linux.alibaba.com>
+Subject: ocfs2: reserve metadata for a new xattr block and its value tree
+Date: Sat, 10 Oct 2026 19:34:52 +0800
 
-Add a test that checks for underflows when a parent unmaps the page first.
-Also check that when the child exits the reserve count is correct.
+Patch series "ocfs2: fix metadata reservation for xattr value trees".
 
-Link: https://lore.kernel.org/all/alEJkwn5VlTTH_ZX@bender.morinfr.org/
-Link: https://lore.kernel.org/aqgUdbtumaO8RiIb@bender.morinfr.org
-Signed-off-by: Guillaume Morin <guillaume@morinfr.org>
+ocfs2_calc_xattr_set_need() reserves too little metadata for a new xattr
+value's extent tree on three paths.  The reservation cannot be topped up
+once the transaction has started, so ocfs2_add_clusters_in_btree() gives
+up with RESTART_META when the value root fills and nothing is left. 
+ocfs2_xattr_extend_allocation() turns that into -ENOSPC, after
+ocfs2_xa_cleanup_value_truncate() has dropped the entry and leaked the
+clusters already handed out; before commit 0cdc7dde00ec ("ocfs2: fix
+missing metadata reservation for large xattrs") it was a BUG_ON() instead.
+It takes a fragmented cluster allocator to get there, since the first
+extent always fits in the root.
+
+Patch 1 fixes the create side of meta_guess: commit 3ed2be719eb9 ("ocfs2:
+allow for more than one data extent when creating xattr") replaced the
+block reserved for the new xattr block with the two the value tree needs
+instead of adding them together.
+
+Patch 2 fixes the arm that moves an xattr back into the inode, which
+charges credits for a value tree but no metadata for one.
+
+Patch 3 drops a second copy of the same reservation on the path that falls
+through to meta_guess.  That one is cleanup rather than a fix and is not
+for stable, and it must not be backported without patch 1: the duplicate
+it removes is what currently covers the shortfall patch 1 fixes.
+
+
+This patch (of 3):
+
+The create side of meta_guess in ocfs2_calc_xattr_set_need() reserves
+metadata for the new value's extent tree and nothing for the xattr block
+that will hold it:
+
+        } else {
+                credits += OCFS2_XATTR_BLOCK_CREATE_CREDITS;
+                if (xi->xi_value_len > OCFS2_XATTR_INLINE_SIZE) {
+                        struct ocfs2_extent_list *el = &def_xv.xv.xr_list;
+                        meta_add += ocfs2_extend_meta_needed(el);
+                        ...
+
+Commit 3ed2be719eb9 ("ocfs2: allow for more than one data extent when
+creating xattr") meant to add that tree on top of the meta_add += 1 the
+branch already had, but it moved the 1 into the else arm instead, so the
+external-value case lost it.  The 1 is not optional: it is what
+ocfs2_create_xattr_block() takes from meta_ac through
+ocfs2_claim_metadata(), and it is spent before the value tree exists.
+
+ocfs2_extend_meta_needed() on the empty def_xv list returns 2, so the
+branch reserves 2 where 3 are needed.  The xattr block consumes one, and
+when the cluster allocator is fragmented enough that the value needs more
+than one extent, ocfs2_add_clusters_in_btree() comes back around with a
+full value root and ocfs2_alloc_context_bits_left() of 1 against a
+threshold of 2.  It answers RESTART_META, which
+ocfs2_xattr_extend_allocation() turns into a BUG_ON().  Commit
+0cdc7dde00ec ("ocfs2: fix missing metadata reservation for large xattrs")
+downgraded that to -ENOSPC, at the cost of leaking the clusters already
+handed out: ocfs2_xa_cleanup_value_truncate() takes its !orig_clusters
+arm, drops the entry and leaves the clusters for fsck.ocfs2 to reclaim.
+
+Reserve for the block and the tree separately.
+
+Link: https://lore.kernel.org/20261010113454.1420939-1-joseph.qi@linux.alibaba.com
+Link: https://lore.kernel.org/20261010113454.1420939-2-joseph.qi@linux.alibaba.com
+Fixes: 3ed2be719eb9 ("ocfs2: allow for more than one data extent when creating xattr")
+Signed-off-by: Joseph Qi <joseph.qi@linux.alibaba.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Reviewed-by: Breno Leitao <leitao@debian.org>
-Reviewed-by: Mike Rapoport <rppt@kernel.org>
-Tested-by: Breno Leitao <leitao@debian.org>
+Cc: Heming Zhao <heming.zhao@suse.com>
+Cc: Mark Fasheh <mark@fasheh.com>
+Cc: Joel Becker <jlbec@evilplan.org>
+Cc: <stable@vger.kernel.org>
 ---
 
- tools/testing/selftests/mm/hugepage_settings.c   |    9 
- tools/testing/selftests/mm/hugepage_settings.h   |    1 
- tools/testing/selftests/mm/hugetlb_madv_vs_map.c |  141 +++++++++++--
- 3 files changed, 130 insertions(+), 21 deletions(-)
+ fs/ocfs2/xattr.c |    8 +++++++-
+ 1 file changed, 7 insertions(+), 1 deletion(-)
 
---- a/tools/testing/selftests/mm/hugepage_settings.c~selftests-mm-hugetlb_madv_vs_map-add-underflow-test
-+++ a/tools/testing/selftests/mm/hugepage_settings.c
-@@ -449,6 +449,15 @@ unsigned long hugetlb_free_pages(unsigne
- 	return read_num(path);
- }
- 
-+unsigned long hugetlb_nr_resv_pages(unsigned long size)
-+{
-+	char path[PATH_MAX];
-+
-+	hugetlb_sysfs_path(path, sizeof(path), size, "resv_hugepages");
-+
-+	return read_num(path);
-+}
-+
- static bool __hugetlb_setup(unsigned long size, unsigned long nr)
- {
- 	unsigned long free = hugetlb_free_pages(size);
---- a/tools/testing/selftests/mm/hugepage_settings.h~selftests-mm-hugetlb_madv_vs_map-add-underflow-test
-+++ a/tools/testing/selftests/mm/hugepage_settings.h
-@@ -98,6 +98,7 @@ unsigned long default_huge_page_size(voi
- unsigned long hugetlb_nr_pages(unsigned long size);
- void hugetlb_set_nr_pages(unsigned long size, unsigned long nr);
- unsigned long hugetlb_free_pages(unsigned long size);
-+unsigned long hugetlb_nr_resv_pages(unsigned long size);
- 
- static inline void hugetlb_save_settings(void)
- {
---- a/tools/testing/selftests/mm/hugetlb_madv_vs_map.c~selftests-mm-hugetlb_madv_vs_map-add-underflow-test
-+++ a/tools/testing/selftests/mm/hugetlb_madv_vs_map.c
-@@ -3,18 +3,6 @@
-  * A test case that must run on a system with one and only one huge page available.
-  *	# echo 1 > /sys/kernel/mm/hugepages/hugepages-2048kB/nr_hugepages
-  *
-- * During setup, the test allocates the only available page, and starts three threads:
-- *  - thread1:
-- *	* madvise(MADV_DONTNEED) on the allocated huge page
-- *  - thread 2:
-- *	* Write to the allocated huge page
-- *  - thread 3:
-- *	* Try to allocated an extra huge page (which must not available)
-- *
-- *  The test fails if thread3 is able to allocate a page.
-- *
-- *  Touching the first page after thread3's allocation will raise a SIGBUS
-- *
-  *  Author: Breno Leitao <leitao@debian.org>
-  */
- #include <pthread.h>
-@@ -22,6 +10,7 @@
- #include <stdlib.h>
- #include <sys/mman.h>
- #include <sys/types.h>
-+#include <sys/wait.h>
- #include <unistd.h>
- 
- #include "vm_util.h"
-@@ -74,7 +63,21 @@ void *map_extra(void *unused)
- 	return NULL;
- }
- 
--int main(void)
-+/* During setup in main, the only available page was allocated. This test then
-+ * starts three threads:
-+ *
-+ * - thread1:
-+ *	* madvise(MADV_DONTNEED) on the allocated huge page
-+ *  - thread 2:
-+ *	* Write to the allocated huge page
-+ *  - thread 3:
-+ *	* Try to allocated an extra huge page (which must not available)
-+ *
-+ *  The test fails if thread3 is able to allocate a page.
-+ *
-+ *  Touching the first page after thread3's allocation will raise a SIGBUS
-+ */
-+void test_madv_vs_map(void)
- {
- 	pthread_t thread1, thread2, thread3;
- 	void *ret;
-@@ -85,13 +88,6 @@ int main(void)
- 	 */
- 	int max = 10;
- 
--	ksft_print_header();
--	ksft_set_plan(1);
--
--	if (!hugetlb_setup_default_exact(1))
--		ksft_exit_skip("This test needs one and only one page to execute. Got %lu\n",
--			       hugetlb_free_default_pages());
--
- 	mmap_size = default_huge_page_size();
- 
- 	while (max--) {
-@@ -100,7 +96,7 @@ int main(void)
- 				-1, 0);
- 
- 		if ((unsigned long)huge_ptr == -1)
--			ksft_exit_fail_msg("Failed to allocate huge page\n");
-+			ksft_exit_fail_perror("Failed to allocate huge page");
- 
- 		pthread_create(&thread1, NULL, madv, NULL);
- 		pthread_create(&thread2, NULL, touch, NULL);
-@@ -120,5 +116,108 @@ int main(void)
- 	}
- 
- 	ksft_test_result_pass("No unexpected huge page allocations\n");
-+}
-+
-+/*  We create a child process, then unmap the page in the parent while the child
-+ *  waits and verify that there is no underflow of the reserved count. We also
-+ *  verify that after the child exits, the reserved count is properly restored.
-+ */
-+void test_underflow(void)
-+{
-+	pid_t pid;
-+	int pipe_fds[2];
-+	unsigned long nr_reserved = 0;
-+
-+	huge_ptr = mmap(NULL, mmap_size, PROT_READ | PROT_WRITE,
-+			MAP_PRIVATE | MAP_ANONYMOUS | MAP_HUGETLB, -1, 0);
-+
-+	if ((unsigned long)huge_ptr == -1)
-+		ksft_exit_fail_perror("Failed to allocate huge page");
-+
-+	nr_reserved = hugetlb_nr_resv_pages(default_huge_page_size());
-+	if (nr_reserved != 1)
-+		ksft_exit_fail_msg("Unexpected number of reserved pages: %lu, expected 1\n",
-+				   nr_reserved);
-+
-+	/* Force the fault to ensure the reservation is consumed */
-+	*huge_ptr = 0;
-+	nr_reserved = hugetlb_nr_resv_pages(default_huge_page_size());
-+	if (nr_reserved != 0)
-+		ksft_exit_fail_msg("Unexpected number of reserved pages: %lu, expected 0\n",
-+				   nr_reserved);
-+
-+	if (pipe(pipe_fds) != 0)
-+		ksft_exit_fail_perror("pipe failed");
-+
-+	pid = fork();
-+	if (pid < 0)
-+		ksft_exit_fail_perror("fork failed");
-+
-+	if (pid == 0) {
-+		/* Child: Simply wait for the parent */
-+		char b;
-+
-+		close(pipe_fds[1]);
-+		if (read(pipe_fds[0], &b, 1) < 0)
-+			ksft_perror("child read failed");
-+		/* Let the parent do the cleanup */
-+		_exit(0);
-+	}
-+
-+	/* Parent */
-+	close(pipe_fds[0]);
-+
-+	/* First unmap, this will close the vma */
-+	if (munmap(huge_ptr, mmap_size) != 0) {
-+		ksft_perror("munmap failed");
-+		goto err_cleanup;
-+	}
-+
-+	nr_reserved = hugetlb_nr_resv_pages(default_huge_page_size());
-+	if (nr_reserved == 0) {
-+		ksft_test_result_pass("Underflow not present!\n");
-+	} else {
-+		ksft_test_result_fail("Unexpected HugePages_Rsvd=%ld after munmap, should be 0\n",
-+				      nr_reserved);
-+		goto err_cleanup;
-+	}
-+	/* Make the child exit, this should restore HugePages_Rsvd to 0 */
-+	if (write(pipe_fds[1], &nr_reserved, 1) < 0) {
-+		/* If write failed, the child is likely already gone */
-+		ksft_exit_fail_perror("write failed");
-+	}
-+	close(pipe_fds[1]);
-+	if (waitpid(pid, NULL, 0) <= 0)
-+		ksft_exit_fail_msg("waitpid failed\n");
-+
-+	nr_reserved = hugetlb_nr_resv_pages(default_huge_page_size());
-+	if (nr_reserved == 0)
-+		ksft_test_result_pass("After the child dies, HugePages_Rsvd is properly set to 0\n");
-+	else
-+		ksft_exit_fail_msg("Unexpected HugePages_Rsvd=%ld after the child termination munmap, should be 0\n", nr_reserved);
-+
-+	return;
-+
-+err_cleanup:
-+	if (write(pipe_fds[1], &nr_reserved, 1) < 0)
-+		ksft_exit_fail_perror("write failed");
-+	if (waitpid(pid, NULL, 0) <= 0)
-+		ksft_exit_fail_perror("waitpid failed");
-+
-+	ksft_exit_fail();
-+}
-+
-+int main(void)
-+{
-+	ksft_print_header();
-+	ksft_set_plan(3);
-+
-+	if (!hugetlb_setup_default_exact(1))
-+		ksft_exit_skip("This test needs one and only one page to execute. Got %lu\n",
-+			       hugetlb_free_default_pages());
-+
-+	test_madv_vs_map();
-+	test_underflow();
-+
- 	ksft_finished();
- }
+--- a/fs/ocfs2/xattr.c~ocfs2-reserve-metadata-for-a-new-xattr-block-and-its-value-tree
++++ a/fs/ocfs2/xattr.c
+@@ -3598,7 +3598,13 @@ meta_guess:
+ 		credits += OCFS2_XATTR_BLOCK_CREATE_CREDITS;
+ 		if (xi->xi_value_len > OCFS2_XATTR_INLINE_SIZE) {
+ 			struct ocfs2_extent_list *el = &def_xv.xv.xr_list;
+-			meta_add += ocfs2_extend_meta_needed(el);
++			/*
++			 * One block for the xattr block we may have to
++			 * allocate, the rest for growing the value tree it
++			 * would hold.  If ocfs2_xattr_ibody_set() succeeds
++			 * instead, that first block goes unused.
++			 */
++			meta_add += 1 + ocfs2_extend_meta_needed(el);
+ 			credits += ocfs2_calc_extend_credits(inode->i_sb,
+ 							     el);
+ 		} else {
 _
 
-Patches currently in -mm which might be from guillaume@morinfr.org are
+Patches currently in -mm which might be from joseph.qi@linux.alibaba.com are
 
+ocfs2-retain-all-security-xattrs-during-inode-creation.patch
+ocfs2-restore-erange-check-in-ocfs2_xattr_tree_list_index_block.patch
+ocfs2-fix-possible-deadlock-between-nfs_sync_rwlock-and-fs_reclaim.patch
+ocfs2-deal-with-legacy-signed-dir-index-name-hash-values.patch
+ocfs2-deal-with-legacy-signed-xattr-name-hash-values.patch
+ocfs2-reserve-metadata-for-a-new-xattr-block-and-its-value-tree.patch
+ocfs2-reserve-value-tree-metadata-when-moving-an-xattr-into-the-inode.patch
+ocfs2-reserve-xattr-value-tree-metadata-only-once.patch
 
