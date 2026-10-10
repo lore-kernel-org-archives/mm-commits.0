@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D127D352C5B
-	for <mm-commits@vger.kernel.org>; Sat, 10 Oct 2026 20:34:49 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B427934D398
+	for <mm-commits@vger.kernel.org>; Sat, 10 Oct 2026 20:34:50 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791664490; cv=none; b=FezrA/cu/jJoDF+YghSJxHEzgKKzlPmf0NyIPkG0EVkcYu6V5NZrIW1KxOo/g09ttR5cy4AOWeC07uNQEqGN1rI1iVIADj9/Q+j/XnFLxQR4s0bP/S+J6ikNV/i3AJewQFbqNxFtp7hlHYucJtwaA/2PA8s6ID+HxBd5LzkZtYc=
+	t=1791664491; cv=none; b=V60u2eRQlEff44E07AqtB3Iy4A/EiTOj8zH9WLcVYSwIrr/CXXHSUrT8k97SQNSV7v54L6ibOM4QP3n449pF0N6gSgL7VeXE8XU1c98n3/RzCGMQLTJVixIOYMgjWO2yyx/mNHPAf+0na5dhBpfdJt7N43SW6DVPwQ9avA2LZbc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791664490; c=relaxed/simple;
-	bh=XhqoQJc4sdKTtE6W/a8bs6a0Nu7+sSbQ7VFYX3A7rLM=;
-	h=Date:To:From:Subject:Message-Id; b=HbBUfDMj5TmZD6qRmcEcUXblNm4CKMWemokUWum8skwB2jg+w1bMrcSUYlvuYAdDp9uQ0d+8tjGpAFk73tzSPIMdsuEFYsVlU7LF7a31RJhP7cX9nlj2/cgE+kEhEYS3s53pvWeFGCFEXW4AcJCbOIIqumPfUaFcZ2ec8/CuKYo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=dUUXJqAJ; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1791664491; c=relaxed/simple;
+	bh=kaZB3R66IzrfqFWFIVd4hXbwJhGlooHgYVtKjecVRAY=;
+	h=Date:To:From:Subject:Message-Id; b=iBRbxPny9QbBtMJWawA0GogR0/YrefbZ+ASDrC0MBEnNhOFY7gWM7+Ik6r7LZzJ+JjmVKxflYrOUYC1dFd+vIgmyJnw/71Bn6NLjComX+e8FWApYsa6bgSAPAD/iyMW6fV/RsbIQFLoEO8MOjcUrcTb3ekIXnmJQMhlUHjs6vtA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Nkxj3IqU; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="dUUXJqAJ"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 695C81F00893;
-	Sat, 10 Oct 2026 20:34:49 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Nkxj3IqU"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 895211F000FF;
+	Sat, 10 Oct 2026 20:34:50 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1791664489;
-	bh=OkWKs4bxZ4TE6RBgt/PMUis0/rhjfgaR9h4MFZq0GOs=;
+	d=linux-foundation.org; s=korg; t=1791664490;
+	bh=bFt7oxic04uNdoYHZN3wXsL4xrNrRCmiIG/WPxzB+vc=;
 	h=Date:To:From:Subject;
-	b=dUUXJqAJOyVQMinhbIzPlBd5LiGl5BJBH5/xNR8XGOcncK1sgMjPLPHXcbmk2/KVx
-	 uLgJbYBp/Dezlu/gWwAx0oi+8/T32hduHBhIvYsrlb7Jbk6JrKezTP2onRqifQ/hNt
-	 InNi0gAOtYxQV6LfsBx19KtDQBZd6nayKc9sL0oc=
-Date: Sat, 10 Oct 2026 13:34:49 -0700
+	b=Nkxj3IqUdt04oMcmouqVaKEZRn2kUKPa807LZLVhnULJfC0D5JZDjw2ykX7IfGQBx
+	 DY/Tap5ajPuoyvgIRpdpw5ymPxWZMf6+LlMagnp1D51uA2w6Hn/VD+U6Oyzi/pHHSD
+	 VZ3t9W80ROHk0msqDmqF8qYYQNvJdbd8/obAHx/g=
+Date: Sat, 10 Oct 2026 13:34:50 -0700
 To: mm-commits@vger.kernel.org,muchun.song@linux.dev,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [to-be-updated] mm-sparse-vmemmap-remove-the-unused-ptpfn-argument.patch removed from -mm tree
-Message-Id: <20261010203449.695C81F00893@smtp.kernel.org>
+Subject: [to-be-updated] mm-sparse-vmemmap-open-code-vmemmap_populate_address.patch removed from -mm tree
+Message-Id: <20261010203450.895211F000FF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,21 +35,26 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/sparse-vmemmap: remove the unused ptpfn argument
+     Subject: mm/sparse-vmemmap: open-code vmemmap_populate_address()
 has been removed from the -mm tree.  Its filename was
-     mm-sparse-vmemmap-remove-the-unused-ptpfn-argument.patch
+     mm-sparse-vmemmap-open-code-vmemmap_populate_address.patch
 
 This patch was dropped because an updated version will be issued
 
 ------------------------------------------------------
 From: Muchun Song <muchun.song@linux.dev>
-Subject: mm/sparse-vmemmap: remove the unused ptpfn argument
-Date: Tue, 29 Sep 2026 13:32:29 +0800
+Subject: mm/sparse-vmemmap: open-code vmemmap_populate_address()
+Date: Tue, 29 Sep 2026 13:32:30 +0800
 
-vmemmap_pte_populate() no longer uses ptpfn as an input.  Drop the
-argument to simplify the code.
+vmemmap_populate_address() no longer has any callers that need the
+returned PTE.  Its only remaining user, vmemmap_populate_range(), only
+checks whether population succeeded.
 
-Link: https://lore.kernel.org/20260929053231.66085-5-songmuchun@bytedance.com
+Open-code vmemmap_populate_address() directly in
+vmemmap_populate_basepages(), remove the now-redundant range helper, and
+return -ENOMEM directly on failure.
+
+Link: https://lore.kernel.org/20260929053231.66085-6-songmuchun@bytedance.com
 Signed-off-by: Muchun Song <muchun.song@linux.dev>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 Acked-by: Qi Zheng <qi.zheng@linux.dev>
@@ -69,71 +74,90 @@ Cc: Suren Baghdasaryan <surenb@google.com>
 Cc: Michal Hocko <mhocko@suse.com>
 ---
 
- mm/sparse-vmemmap.c |   15 ++++++---------
- 1 file changed, 6 insertions(+), 9 deletions(-)
+ mm/sparse-vmemmap.c |   54 +++++++++++++-----------------------------
+ 1 file changed, 17 insertions(+), 37 deletions(-)
 
---- a/mm/sparse-vmemmap.c~mm-sparse-vmemmap-remove-the-unused-ptpfn-argument
+--- a/mm/sparse-vmemmap.c~mm-sparse-vmemmap-open-code-vmemmap_populate_address
 +++ a/mm/sparse-vmemmap.c
-@@ -282,7 +282,7 @@ static __meminit void *vmemmap_alloc_pte
+@@ -352,8 +352,8 @@ static pgd_t * __meminit vmemmap_pgd_pop
+ 	return pgd;
  }
  
- static pte_t * __meminit vmemmap_pte_populate(pmd_t *pmd, unsigned long addr, int node,
--		struct vmem_altmap *altmap, unsigned long ptpfn)
-+		struct vmem_altmap *altmap)
- {
- 	pte_t *pte = pte_offset_kernel(pmd, addr);
- 	unsigned long pfn = page_to_pfn((struct page *)addr);
-@@ -353,8 +353,7 @@ static pgd_t * __meminit vmemmap_pgd_pop
- }
- 
- static pte_t * __meminit vmemmap_populate_address(unsigned long addr, int node,
--					      struct vmem_altmap *altmap,
--					      unsigned long ptpfn)
-+						  struct vmem_altmap *altmap)
+-static pte_t * __meminit vmemmap_populate_address(unsigned long addr, int node,
+-						  struct vmem_altmap *altmap)
++int __meminit vmemmap_populate_basepages(unsigned long start, unsigned long end,
++					 int node, struct vmem_altmap *altmap)
  {
  	pgd_t *pgd;
  	p4d_t *p4d;
-@@ -374,7 +373,7 @@ static pte_t * __meminit vmemmap_populat
- 	pmd = vmemmap_pmd_populate(pud, addr, node);
- 	if (!pmd)
- 		return NULL;
--	pte = vmemmap_pte_populate(pmd, addr, node, altmap, ptpfn);
-+	pte = vmemmap_pte_populate(pmd, addr, node, altmap);
- 	if (!pte)
- 		return NULL;
- 	vmemmap_verify(pte, node, addr, addr + PAGE_SIZE);
-@@ -384,15 +383,13 @@ static pte_t * __meminit vmemmap_populat
- 
- static int __meminit vmemmap_populate_range(unsigned long start,
- 					    unsigned long end, int node,
--					    struct vmem_altmap *altmap,
--					    unsigned long ptpfn)
-+					    struct vmem_altmap *altmap)
- {
- 	unsigned long addr = start;
+@@ -361,48 +361,28 @@ static pte_t * __meminit vmemmap_populat
+ 	pmd_t *pmd;
  	pte_t *pte;
  
- 	for (; addr < end; addr += PAGE_SIZE) {
--		pte = vmemmap_populate_address(addr, node, altmap,
--					       ptpfn);
-+		pte = vmemmap_populate_address(addr, node, altmap);
+-	pgd = vmemmap_pgd_populate(addr, node);
+-	if (!pgd)
+-		return NULL;
+-	p4d = vmemmap_p4d_populate(pgd, addr, node);
+-	if (!p4d)
+-		return NULL;
+-	pud = vmemmap_pud_populate(p4d, addr, node);
+-	if (!pud)
+-		return NULL;
+-	pmd = vmemmap_pmd_populate(pud, addr, node);
+-	if (!pmd)
+-		return NULL;
+-	pte = vmemmap_pte_populate(pmd, addr, node, altmap);
+-	if (!pte)
+-		return NULL;
+-	vmemmap_verify(pte, node, addr, addr + PAGE_SIZE);
+-
+-	return pte;
+-}
+-
+-static int __meminit vmemmap_populate_range(unsigned long start,
+-					    unsigned long end, int node,
+-					    struct vmem_altmap *altmap)
+-{
+-	unsigned long addr = start;
+-	pte_t *pte;
+-
+-	for (; addr < end; addr += PAGE_SIZE) {
+-		pte = vmemmap_populate_address(addr, node, altmap);
++	for (unsigned long addr = start; addr < end; addr += PAGE_SIZE) {
++		pgd = vmemmap_pgd_populate(addr, node);
++		if (!pgd)
++			return -ENOMEM;
++		p4d = vmemmap_p4d_populate(pgd, addr, node);
++		if (!p4d)
++			return -ENOMEM;
++		pud = vmemmap_pud_populate(p4d, addr, node);
++		if (!pud)
++			return -ENOMEM;
++		pmd = vmemmap_pmd_populate(pud, addr, node);
++		if (!pmd)
++			return -ENOMEM;
++		pte = vmemmap_pte_populate(pmd, addr, node, altmap);
  		if (!pte)
  			return -ENOMEM;
++		vmemmap_verify(pte, node, addr, addr + PAGE_SIZE);
  	}
-@@ -403,7 +400,7 @@ static int __meminit vmemmap_populate_ra
- int __meminit vmemmap_populate_basepages(unsigned long start, unsigned long end,
- 					 int node, struct vmem_altmap *altmap)
- {
--	return vmemmap_populate_range(start, end, node, altmap, -1);
-+	return vmemmap_populate_range(start, end, node, altmap);
+ 
+ 	return 0;
  }
  
+-int __meminit vmemmap_populate_basepages(unsigned long start, unsigned long end,
+-					 int node, struct vmem_altmap *altmap)
+-{
+-	return vmemmap_populate_range(start, end, node, altmap);
+-}
+-
  /*
+  * Write protect the mirrored tail page structs for HVO. This will be
+  * called from the hugetlb code when gathering and initializing the
 _
 
 Patches currently in -mm which might be from muchun.song@linux.dev are
 
-mm-sparse-vmemmap-open-code-vmemmap_populate_address.patch
 mm-mm_init-add-zone-mismatch-warning-during-page-init.patch
 mm-fix-missing-page-table-destructor-in-pagetable_free.patch
 riscv-mm-fix-hotplug-page-table-destructor-handling.patch
