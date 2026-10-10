@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 78B51377A94
-	for <mm-commits@vger.kernel.org>; Sat, 10 Oct 2026 22:01:59 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AE58F3793BA
+	for <mm-commits@vger.kernel.org>; Sat, 10 Oct 2026 22:02:01 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791669721; cv=none; b=s7F470YdtYdD80me23XldqE+/1uONKFO73NWe0CKF+9pmt5vyX6GlgYVl5a5J80XbhUWt4y7zO+tUW1ZXfN58Ybcr81zRv82xe8bQ+nPrQu2jJ9pEGBCruyLZM+zHe+DViZw4YeV7O/JdwD7lRDCqk+sZWzSh7mJmnmgq/HG3HM=
+	t=1791669723; cv=none; b=dK2MAPfWMhio+u5FU1VE3D2jXO76etWwsbVnDDB2MoYSOIZk/SKm7uop++gFMhOyOBUT1AJzwmrQJSwEb3kiGwsIzZES9dlyBMNai9eSjv0p4we2TWkSotyoS2TpMP5ksRvIYnwliq/gVvcSuVBwIm5Y/BvaxPOpcwIZQtRz3+o=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791669721; c=relaxed/simple;
-	bh=aIUWJDRGM7u9GZEn44qYw4tiG8GY7KobxMHr5QyvW4c=;
-	h=Date:To:From:Subject:Message-Id; b=Omm1TbOyjAi7EMnp0MYm1R5iReoV51NUh/MMWBZB/sIYbVLaISAtXBWLy753wpepLIC8g02ncHmmw0bXA0ra40zW/ePUhYZCxqDmxkocHj1UNyBtzD4x1cZ80mr6lBsnpBVoIU00YMfb0ioxNv7RGRc23W9ftHXYhgwDRzlR2Rw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=CO10pwxw; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1791669723; c=relaxed/simple;
+	bh=ZAwgAAGt0fCHXB5huGqIvHTwa7H4M3wj7POe5apVvXM=;
+	h=Date:To:From:Subject:Message-Id; b=VNbBdLKmhPWLxgpvo/jypXIGuR7dWVdrYyhP82xMZK2kUBfd/xQkodFBkC4sGLRTkyFFqn4Kl8CDjqii35JwL2K0cdPCUYr1wZf7s+lrGr+lCC1kP9tMtOcwxUx5qZ1fkTZimiOiHAAtVR9x/ge2DR0pRJcO7MgYYug+iB1B19U=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=MEGoFwCy; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="CO10pwxw"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2F92B1F000FF;
-	Sat, 10 Oct 2026 22:01:59 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="MEGoFwCy"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 31CC81F00893;
+	Sat, 10 Oct 2026 22:02:01 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1791669719;
-	bh=OfqO/PYR9lmxTlMAvd6NXc16DS5/uiItDFrliRDZ+jk=;
+	d=linux-foundation.org; s=korg; t=1791669721;
+	bh=ByZkMjgJQLg04eNtx8tmdhWFg+rg1VmI5wUAVLym5Ng=;
 	h=Date:To:From:Subject;
-	b=CO10pwxw8Ps+NW4PKO4Lyw7qw57FpjvfonXK3GF0h/8Dti3cZU89o7AAzn6K3BDnf
-	 iQtUT5lurVV01/VOx62jO4+VJxxJ52L8s6LgT8/nZ4ysegICkDOUiY5auZ2WTDN0Sg
-	 D1oHhJ2Vwgib/cvzspM/uayMIsiX+47uOF2H/U0E=
-Date: Sat, 10 Oct 2026 15:01:58 -0700
+	b=MEGoFwCyKc6XTh8jwfKSy7edGnb+9bd3P6cI8Kp2DIBcU1wzep2+k8X5nPPjDUUTu
+	 h1x+i2jSauOeLFMTPR/QM9za1FUmfdmzlxyCsD6z+763+SSa/pZuwW4v4wNz++0MCX
+	 pm8jFq7DlzCmv+QzBcfLClYwk9dJVmr2CHKBMB7A=
+Date: Sat, 10 Oct 2026 15:02:00 -0700
 To: mm-commits@vger.kernel.org,ljs@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + alsa-pcm-use-vm_insert_page-to-map-pcm-status-page.patch added to mm-unstable branch
-Message-Id: <20261010220159.2F92B1F000FF@smtp.kernel.org>
+Subject: + bpf-arena-mark-arena_map_mmap-mappings-vm_mixedmap.patch added to mm-unstable branch
+Message-Id: <20261010220201.31CC81F00893@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: ALSA: pcm: use vm_insert_page() to map PCM status page
+     Subject: bpf: arena: mark arena_map_mmap() mappings VM_MIXEDMAP
 has been added to the -mm mm-unstable branch.  Its filename is
-     alsa-pcm-use-vm_insert_page-to-map-pcm-status-page.patch
+     bpf-arena-mark-arena_map_mmap-mappings-vm_mixedmap.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/alsa-pcm-use-vm_insert_page-to-map-pcm-status-page.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/bpf-arena-mark-arena_map_mmap-mappings-vm_mixedmap.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,30 +59,41 @@ and is updated there most days
 
 ------------------------------------------------------
 From: "Lorenzo Stoakes (ARM)" <ljs@kernel.org>
-Subject: ALSA: pcm: use vm_insert_page() to map PCM status page
-Date: Fri, 09 Oct 2026 19:04:06 +0100
+Subject: bpf: arena: mark arena_map_mmap() mappings VM_MIXEDMAP
+Date: Fri, 09 Oct 2026 19:04:07 +0100
 
-There's no need to keep a fault handler around for this, instead map on
-mmap.
+The bpf_map->ops->map_mmap callback invoked by bpf_map_mmap() can be set to
+one of ringbuf_map_mmap_kern(), ringbuf_map_mmap_user(), array_map_mmap()
+or arena_map_mmap().
 
-While we're here, rename area to vma to be consistent.
+It is convention in mm to mark mappings whose pages the kernel manages
+itself with VM_MIXEDMAP, so core mm knows not to treat them as ordinary
+page cache or anonymous memory.
 
-This correctly makes the mapping a mixed map mapping.
+The map_mmap callbacks ringbuf_map_mmap_kern() and ringbuf_map_mmap_user()
+use remap_vmalloc_range(), which ultimately invokes vm_insert_page() and so
+marks the ranges VM_MIXEDMAP, and array_map_mmap() sets VM_MIXEDMAP
+explicitly.
 
-This works towards establishing the invariant that only PFN mapped or mixed
-map mappings may clear the VM_MAYWRITE flag. The status page mapping clears
-VM_MAYWRITE, so it must not be mm-managed; the control page mapping remains
-writable and is left fault-based.
+However, the exception to this is arena_map_mmap(), which doesn't set the
+flag.
 
-The assumption is made that the struct pcm_mmap_status structure is at most
-a page in size, which is asserted as a build bug.
+This patch corrects this and updates the comment to reflect it.
 
-This is safe to assume, as the size of the structure is 56 bytes at most.
+The pages are refcounted and vm_normal_page() finds them regardless of the
+flag, and VM_DONTEXPAND remains set (marking the memory as VM_SPECIAL and
+thus unmergeable). The one effect is that NUMA balancing now skips these
+VMAs, as it already does for the other bpf map mappings, which is the
+reason array_map_mmap() gives for setting the flag.
 
-Link: https://lore.kernel.org/20261009-b4-mmap-prepare-vma-flag-sanify-v5-12-923b70125b1e@kernel.org
+The intent of this patch is to be able to establish the invariant that only
+PFN-mapped or mixed map ranges may clear the VM_MAYWRITE flag, as is done
+in bpf_map_mmap().
+
+Link: https://lore.kernel.org/20261009-b4-mmap-prepare-vma-flag-sanify-v5-13-923b70125b1e@kernel.org
 Signed-off-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Acked-by: Takashi Iwai <tiwai@suse.de>
+Reviewed-by: Emil Tsalapatis <emil@etsalapatis.com>
 Reviewed-by: Suren Baghdasaryan <surenb@google.com>
 Cc: Liam R. Howlett <liam@infradead.org>
 Cc: Vlastimil Babka <vbabka@kernel.org>
@@ -194,64 +205,22 @@ Cc: Ihor Solodrai <ihor.solodrai@linux.dev>
 Cc: Bert Karwatzki <spasswolf@web.de>
 ---
 
- sound/core/pcm_native.c |   38 +++++++++++++-------------------------
- 1 file changed, 13 insertions(+), 25 deletions(-)
+ kernel/bpf/arena.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
---- a/sound/core/pcm_native.c~alsa-pcm-use-vm_insert_page-to-map-pcm-status-page
-+++ a/sound/core/pcm_native.c
-@@ -3760,39 +3760,27 @@ static __poll_t snd_pcm_poll(struct file
- /*
-  * mmap status record
-  */
--static vm_fault_t snd_pcm_mmap_status_fault(struct vm_fault *vmf)
-+static int snd_pcm_mmap_status(struct snd_pcm_substream *substream, struct file *file,
-+			       struct vm_area_struct *vma)
- {
--	struct snd_pcm_substream *substream = vmf->vma->vm_private_data;
-+	const unsigned long size = vma->vm_end - vma->vm_start;
- 	struct snd_pcm_runtime *runtime;
--	
--	if (substream == NULL)
--		return VM_FAULT_SIGBUS;
--	runtime = substream->runtime;
--	vmf->page = virt_to_page(runtime->status);
--	get_page(vmf->page);
--	return 0;
--}
-+	struct page *page;
- 
--static const struct vm_operations_struct snd_pcm_vm_ops_status =
--{
--	.fault =	snd_pcm_mmap_status_fault,
--};
-+	BUILD_BUG_ON(sizeof(struct snd_pcm_mmap_status) > PAGE_SIZE);
- 
--static int snd_pcm_mmap_status(struct snd_pcm_substream *substream, struct file *file,
--			       struct vm_area_struct *area)
--{
--	long size;
--	if (!(area->vm_flags & VM_READ))
-+	if (!(vma->vm_flags & VM_READ))
- 		return -EINVAL;
--	size = area->vm_end - area->vm_start;
--	if (size != PAGE_ALIGN(sizeof(struct snd_pcm_mmap_status)))
-+	if (size != PAGE_SIZE)
- 		return -EINVAL;
--	area->vm_ops = &snd_pcm_vm_ops_status;
--	area->vm_private_data = substream;
--	vm_flags_mod(area, VM_DONTEXPAND | VM_DONTDUMP,
-+
-+	vm_flags_mod(vma, VM_DONTEXPAND | VM_DONTDUMP,
- 		     VM_WRITE | VM_MAYWRITE);
-+	vma->vm_page_prot = vm_get_page_prot(vma->vm_flags);
- 
--	return 0;
-+	runtime = substream->runtime;
-+	page = virt_to_page(runtime->status);
-+	return vm_insert_page(vma, vma->vm_start, page);
+--- a/kernel/bpf/arena.c~bpf-arena-mark-arena_map_mmap-mappings-vm_mixedmap
++++ a/kernel/bpf/arena.c
+@@ -620,8 +620,9 @@ static int arena_map_mmap(struct bpf_map
+ 	 * clears VM_MAYEXEC. Set VM_DONTEXPAND to avoid potential change
+ 	 * of user_vm_start. Set VM_DONTCOPY to prevent arena VMA from
+ 	 * being copied into the child process on fork.
++	 * This is a kernel page so set VM_MIXEDMAP.
+ 	 */
+-	vm_flags_set(vma, VM_DONTEXPAND | VM_DONTCOPY);
++	vm_flags_set(vma, VM_MIXEDMAP | VM_DONTEXPAND | VM_DONTCOPY);
+ 	vma->vm_ops = &arena_vm_ops;
+ 	return 0;
  }
- 
- /*
 _
 
 Patches currently in -mm which might be from ljs@kernel.org are
