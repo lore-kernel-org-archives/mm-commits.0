@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 164E23793D2
-	for <mm-commits@vger.kernel.org>; Sat, 10 Oct 2026 22:02:18 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D0F5D36E48C
+	for <mm-commits@vger.kernel.org>; Sat, 10 Oct 2026 22:02:22 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791669742; cv=none; b=CQ+9XikfN3uG2X7ybCisoawKurBpzhqqOUpMdkCAaxYZfY/t/Ay2lcY2e0lBeHARHscxgAizlqQ70l7IOOfCihygMrs14rsw31Nxli+qKkiy8oy7O1Q/KKW02Va3mZFZPXeqfkTZWKowhJQbTHPoOo0bPwpB6/wSIZCcJQvwIkc=
+	t=1791669744; cv=none; b=VQGFtmxnzGD9BKYop5t2+z/JLLVwX6O7uWa50GHMWinVKMln/RkXGzxdr8vPBuBM44WKcTk0Z5XI5WZcjnLWTEuejeKmE2yXwHHm+s91/tis+FtKHcQtGZB9BWmtgucaWONQ4IoWubmyEYrhje0D15r3XGdOXrwLeUOZDvewSLQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791669742; c=relaxed/simple;
-	bh=qRaygJqvkkkv7T8hzlIoNsJdViw6q/LmWkI1vMcK0Ig=;
-	h=Date:To:From:Subject:Message-Id; b=VC55tjm5XTCup6PrrwvJxg7xLKtsY56AE3PhQh9DD4Qr4twiTAxeInAwSnVEv/0uoY3FePw2HOiSZ5CpwzDukDlMgGEi+o1eoI6egFdwQfOxuv1aziYI7Z9mjnBRSwMydiKMpLR+CfB2fHOnfwM/tDzfwceYBgNBfj57v6b3uoc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=UPOXTpe3; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1791669744; c=relaxed/simple;
+	bh=N+m9j9UT3RAJPkgtshTsXtkk6cDl7GpiJ72C48NHNk4=;
+	h=Date:To:From:Subject:Message-Id; b=Y/bPH8p+hJ4tRRVV7QXqalyjmjGCjmG+nj0D1AU71xi9FdKEcBwDD9AH3WYWuBgopUvgJ3ALpgBk6Jl4cOl7HzllU6xz3nhgJVhSwz5x0BR6lPw8s1HeH3XH4oqpa1DYvulyIdGYml22jZx3Ls9ZoRTfDOfKWR8GoEHjVY9evAc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ra0ftR2R; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="UPOXTpe3"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id DCB151F00893;
-	Sat, 10 Oct 2026 22:02:17 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ra0ftR2R"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 510451F000FF;
+	Sat, 10 Oct 2026 22:02:22 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1791669738;
-	bh=pw1Vm8a5//P7QogN4kEUljzOfJC3d4+YrYs4v27g8C8=;
+	d=linux-foundation.org; s=korg; t=1791669742;
+	bh=B8iIY0yHBYUU9jqsb731Wg/DdtyztlxD5+UIKSekPjI=;
 	h=Date:To:From:Subject;
-	b=UPOXTpe3fy+TWzc07/p4ZNElQTb6UMQwXz24d57NeXHjQFiEp8+73FlQAt0kpkqni
-	 rnrUDDKGGCXkZlgBci/JyTahKdZnPsNkVkqW7gbWtM7MkHePL28AVM7mRbIv8N5icf
-	 Od1wh8e8stNZwtqTtTMSs9IbqQXpLvUDNDvwYVu4=
-Date: Sat, 10 Oct 2026 15:02:17 -0700
+	b=ra0ftR2RzNAXGmAbslWACwpfr4thZzgWwlJ3HhofhWUtJ4ASzRd4jpLMOyk95CYNb
+	 m2KLDcTZk9R3M6yxBF9VG8YPHcKfqtRDXUTk364AbC1Cd59RrJsJtQIiPp16zCCfj1
+	 04fzAJ3CbMg4A+z4UCIXu2ydVQbG6ilANGfLU+co=
+Date: Sat, 10 Oct 2026 15:02:21 -0700
 To: mm-commits@vger.kernel.org,ljs@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-gup-error-out-early-on-vma_mayread_bit-vmas.patch added to mm-unstable branch
-Message-Id: <20261010220217.DCB151F00893@smtp.kernel.org>
+Subject: + mm-mlock-clear-vma_locked_mask-over-mmap-callback.patch added to mm-unstable branch
+Message-Id: <20261010220222.510451F000FF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/gup: error out early on !VMA_MAYREAD_BIT VMAs
+     Subject: mm/mlock: clear VMA_LOCKED_MASK over mmap callback
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-gup-error-out-early-on-vma_mayread_bit-vmas.patch
+     mm-mlock-clear-vma_locked_mask-over-mmap-callback.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-gup-error-out-early-on-vma_mayread_bit-vmas.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mlock-clear-vma_locked_mask-over-mmap-callback.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,38 +59,39 @@ and is updated there most days
 
 ------------------------------------------------------
 From: "Lorenzo Stoakes (ARM)" <ljs@kernel.org>
-Subject: mm/gup: error out early on !VMA_MAYREAD_BIT VMAs
-Date: Fri, 09 Oct 2026 19:04:14 +0100
+Subject: mm/mlock: clear VMA_LOCKED_MASK over mmap callback
+Date: Fri, 09 Oct 2026 19:04:16 +0100
 
-When populating a VMA range via the aptly named populate_vma_page_range()
-an unreadable VMA will always eventually fail with -EFAULT.
+Currently there's a confusing mess around VMA_LOCKED_BIT and
+VMA_LOCKONFAULT_BIT.
 
-That a VMA is accessible is always checked, however VMA_MAYREAD_BIT is not.
+It is permitted for drivers to set any flags they like, with the VMA
+already possessing lock flags.
 
-All user mappings always have VMA_MAYREAD_BIT set, so this check only
-impacts kernel mappings.
+This results in the absurd situation of a VMA possessing both
+VMA_SPECIAL_FLAGS and VMA_LOCKED_MASK flags, which is not permitted.
 
-It is implemented specifically to disallow population of uprobes XOL
-mappings which are exec-only.
+This has resulted in mlock_vma_folio() having a very silly check for this
+scenario to work around it.
 
-A nasty interaction with these mappings may occur if they are mlocked, so
-actively disallow this early.
+There is no need for this - just clear the flags before invoking the hook
+and reinstate them afterwards if they are required.
 
-This allows a subsequent commit to remove the VM_IO check in
-__mm_populate() which otherwise requires non-MMIO mappings to be wrongly
-flagged simply as a workaround.
+Nothing relies upon this being set during the mmap operation.
 
-Link: https://lore.kernel.org/20261009-b4-mmap-prepare-vma-flag-sanify-v5-20-923b70125b1e@kernel.org
+mmap_prepare is unaffected by this so requires no fix.
+
+Link: https://lore.kernel.org/20261009-b4-mmap-prepare-vma-flag-sanify-v5-22-923b70125b1e@kernel.org
 Signed-off-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Acked-by: Zi Yan <ziy@nvidia.com>
-Reviewed-by: Suren Baghdasaryan <surenb@google.com>
+Reviewed-by: Zi Yan <ziy@nvidia.com>
 Cc: Liam R. Howlett <liam@infradead.org>
 Cc: Vlastimil Babka <vbabka@kernel.org>
 Cc: Jann Horn <jannh@google.com>
 Cc: Pedro Falcato <pfalcato@suse.de>
 Cc: David Hildenbrand <david@kernel.org>
 Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Suren Baghdasaryan <surenb@google.com>
 Cc: Michal Hocko <mhocko@suse.com>
 Cc: Jonathan Corbet <corbet@lwn.net>
 Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
@@ -194,22 +195,61 @@ Cc: Ihor Solodrai <ihor.solodrai@linux.dev>
 Cc: Bert Karwatzki <spasswolf@web.de>
 ---
 
- mm/gup.c |    4 ++++
- 1 file changed, 4 insertions(+)
+ mm/internal.h |    9 +--------
+ mm/vma.c      |   17 +++++++++++++++++
+ 2 files changed, 18 insertions(+), 8 deletions(-)
 
---- a/mm/gup.c~mm-gup-error-out-early-on-vma_mayread_bit-vmas
-+++ a/mm/gup.c
-@@ -1836,6 +1836,10 @@ long populate_vma_page_range(struct vm_a
- 	if (!vma_is_accessible(vma))
- 		return -EFAULT;
+--- a/mm/internal.h~mm-mlock-clear-vma_locked_mask-over-mmap-callback
++++ a/mm/internal.h
+@@ -970,14 +970,7 @@ void mlock_folio(struct folio *folio);
+ static inline void mlock_vma_folio(struct folio *folio,
+ 				struct vm_area_struct *vma)
+ {
+-	/*
+-	 * The VM_SPECIAL check here serves two purposes.
+-	 * 1) VM_IO check prevents migration from double-counting during mlock.
+-	 * 2) Although mmap_region() and mlock_fixup() take care that VM_LOCKED
+-	 *    is never left set on a VM_SPECIAL vma, there is an interval while
+-	 *    file->f_op->mmap() is using vm_insert_page(s), when VM_LOCKED may
+-	 *    still be set while VM_SPECIAL bits are added: so ignore it then.
+-	 */
++	/* The VM_IO check prevents migration from double-counting during mlock. */
+ 	if (unlikely((vma->vm_flags & (VM_LOCKED|VM_SPECIAL)) == VM_LOCKED))
+ 		mlock_folio(folio);
+ }
+--- a/mm/vma.c~mm-mlock-clear-vma_locked_mask-over-mmap-callback
++++ a/mm/vma.c
+@@ -2622,6 +2622,11 @@ static int __mmap_new_file_vma(struct mm
+ 	if (!map->vm_file->f_op->mmap)
+ 		return 0;
  
-+	/* Unreadable VMAs also cannot be faulted in. */
-+	if (!vma_test(vma, VMA_MAYREAD_BIT))
-+		return -EFAULT;
++	/*
++	 * Driver-specified flags may make the lock flags invalid, so clear
++	 * VMA_LOCKED_MASK and reinstate it afterwards if appropriate.
++	 */
++	vma_clear_flags_mask(vma, VMA_LOCKED_MASK);
+ 	error = mmap_file(vma->vm_file, vma);
+ 	map->vm_file = vma->vm_file;
+ 
+@@ -2644,6 +2649,18 @@ static int __mmap_new_file_vma(struct mm
+ 		return error;
+ 	}
+ 
++	/*
++	 * If the VMA is still eligible for mlock(), reinstate any original
++	 * VMA_LOCKED_BIT and/or VMA_LOCKONFAULT_BIT flags.
++	 */
++	if (vma_supports_mlock(vma)) {
++		const vma_flags_t mask =
++			vma_flags_and_mask(&map->vma_flags,
++					   VMA_LOCKED_MASK);
 +
- 	gup_flags = FOLL_TOUCH;
- 	/*
- 	 * We want to touch writable mappings with a write fault in order
++		vma_set_flags_mask(vma, mask);
++	}
++
+ 	map->vma_flags = vma->flags;
+ 
+ 	return 0;
 _
 
 Patches currently in -mm which might be from ljs@kernel.org are
