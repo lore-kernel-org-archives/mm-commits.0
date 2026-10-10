@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A76B0387359
-	for <mm-commits@vger.kernel.org>; Sat, 10 Oct 2026 21:39:27 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DA77D38A71F
+	for <mm-commits@vger.kernel.org>; Sat, 10 Oct 2026 21:39:30 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791668369; cv=none; b=UKafcmbdNVXh5deW101C+K4TrgjgHRd5DWFnF5J0VRpTiTPI6iCKGCtJCEeoiAxk2SdMkRKuYR88e6+g/hEzrEMDLrhuz3ALcY7eFqQ4k9UZqVfCfuqpUXQka/H5eJZ64+ejMalVCFH98VBEbHmtrzND8WwEvhgnUTTKbLsOeNw=
+	t=1791668372; cv=none; b=SBeRNe3xVNw3EFMogUGhpkKhaAo+ImFpYCMq4sAmCBlzX+U77zw7ShFvS6MluqOIPwpsdC4cpMGK+QCF8f1tqUJowgyOWpGTsld06Z5pzfpH1Z7jrwd8qw+zeA7Ne7hGpWknZmuSz8JkbUKS4zoxqWe3RNwM5leEYeJBsG640wY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791668369; c=relaxed/simple;
-	bh=WE01YRURIzWDttHrbMfSXwbIftWMrmqiu7OflmD9cNo=;
-	h=Date:To:From:Subject:Message-Id; b=NwJ9GHBqSO2wucINAsVMrcGBYKAMnEEkO1+OXchU/3zPLXVc5yfUSpabnbVgAQguAcILcHh8moF73+izt4IvTqCprZmAQveAYcmX8qtwGrO/+F4W0Mpt+gQPF5Zpu8XfyDwgSQtVKIEDecU9BUfwB5aUfnWmoeD0xJ4f+H5WNMs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=AqfbZ3Qd; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1791668372; c=relaxed/simple;
+	bh=3QCGGPqQZuQbQJFXgAP8Fs0/ShoLlqZZFCkcRqhhoP0=;
+	h=Date:To:From:Subject:Message-Id; b=pG/9c3RIt0ZNVmIwUo56/NctFzPbtQdFu3LRWKjpOJk6ipJdU2IAmYrvJP67cjLcFnrkV4ZEohRl83mzdRVp8Nt7LVV9Mda5r+mWw85ZZ9dQAgSQ/NvYc+YuqYTGEK+6tMD59w1cH29uBUZ6CsslaIW4OESQe7X0jYLMu9wSuLw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=TL6iWGTW; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="AqfbZ3Qd"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7D3E41F00893;
-	Sat, 10 Oct 2026 21:39:27 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="TL6iWGTW"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id AE4AA1F00893;
+	Sat, 10 Oct 2026 21:39:30 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1791668367;
-	bh=lZvjWgkyotYpURVnZgdtyj2Nn9XWMBnMnvIwoOjbRFM=;
+	d=linux-foundation.org; s=korg; t=1791668370;
+	bh=IwyFLg/qMc+U/aDVP8S8wPc4R4JpclRqxdAZKyFqjEs=;
 	h=Date:To:From:Subject;
-	b=AqfbZ3QdBESOE4VpNNJieFWdvnFkp+QWY4fb6BYAZQZAYplAWeU2Pnk+BnBNOgx3W
-	 Z9/guPSnCESR01qcduk3dfS3hI4Oy48ao1ujUFbpOHPrxlPHjgMGAqGwb7Lr4NbS+C
-	 ufemc7StqY+zmJTt/MD//6E0IieWCxOz0rnLycYM=
-Date: Sat, 10 Oct 2026 14:39:27 -0700
+	b=TL6iWGTWTOn8yzaeGG/ig3TP4ZbsOIG1nAfzSWEPMEMBZSYcc87VxNk9MVu+3mhCx
+	 3aLWFoUsSmZpYGDNWMrWuUWBcQ24trps8fPo5igJ1r7jr70SR/ycHhBi0YmtoPb8Gx
+	 J3nXGkVb1CD/8atihQKquJCdZB5CRR+Km8bJKS0w=
+Date: Sat, 10 Oct 2026 14:39:30 -0700
 To: mm-commits@vger.kernel.org,ljs@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [to-be-updated] drivers-usb-mon-update-to-use-mmap_prepare-map-kernel-pages.patch removed from -mm tree
-Message-Id: <20261010213927.7D3E41F00893@smtp.kernel.org>
+Subject: [to-be-updated] selinux-reject-writable-opens-of-policy-file-drop-mmap-shared-write-check.patch removed from -mm tree
+Message-Id: <20261010213930.AE4AA1F00893@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,70 +35,48 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: drivers/usb/mon: update to use mmap_prepare + map kernel pages
+     Subject: selinux: reject writable opens of policy file, drop mmap shared/write check
 has been removed from the -mm tree.  Its filename was
-     drivers-usb-mon-update-to-use-mmap_prepare-map-kernel-pages.patch
+     selinux-reject-writable-opens-of-policy-file-drop-mmap-shared-write-check.patch
 
 This patch was dropped because an updated version will be issued
 
 ------------------------------------------------------
 From: "Lorenzo Stoakes (ARM)" <ljs@kernel.org>
-Subject: drivers/usb/mon: update to use mmap_prepare + map kernel pages
-Date: Sat, 03 Oct 2026 17:32:40 +0100
+Subject: selinux: reject writable opens of policy file, drop mmap shared/write check
+Date: Sat, 03 Oct 2026 17:32:42 +0100
 
-Replace the deprecated .mmap hook with its replacement .mmap_prepare. As
-part of this change, additionally take the approach of mapping pages upon
-mmap rather than providing a fault handler.
+The policy file has no write method and is exposed read-only (S_IRUGO in
+selinux_files[]), yet sel_open_policy() performs no open mode check, so a
+CAP_DAC_OVERRIDE caller can open it O_RDWR. Reject FMODE_WRITE at open, as
+kernfs does.
 
-The page span cannot be mutated when an mmap mapping is in place, so this
-is safe to do in advance (the MON_IOCT_RING_SIZE ioctl operation exits
--EBUSY if it's attempted, gated by the rp->mmap_active reference count).
+The file can then never be mapped with FMODE_WRITE, so do_mmap() always
+clears VM_MAYWRITE and VM_SHARED for MAP_SHARED mappings and the VM_SHARED
+check in sel_mmap_policy() cannot be reached. Remove it.
 
-Utilise the newly introduced mmap_action_map_discontig_kernel_pages() to do
-this, which allows for iteration over pages in mon_bin_discontig_get().
+This also stops sel_mmap_policy() clearing VM_MAYWRITE on a mapping that is
+neither a PFN map nor a mixed map, ahead of the core enforcing that only
+such mappings may do so.
 
-mon_bin_discontig_init() increments the rp->mmap_active reference count to
-stabilise page spans. Should an error arise the core unmaps the VMA and
-mon_bin_vma_close() drops the reference again.
-
-The vm_ops->close hook implemented in mon_bin_vma_close() will ensure
-correct reference count arithmetic upon unmap (with mon_bin_vma_open()
-accounting for splitting).
-
-The existing semantics are all retained, including not mapping past the
-range of available pages, with a SIGBUS being raised in a userland process
-that attempts to access past this point.
-
-Ultimately insert_page() is invoked to insert each page, which increments
-the reference count on each mapped page. This mimics what was being done
-previously, only we pre-map the entire range rather than doing so on
-demand.
-
-The existing fault handler did nothing that required demand paging, and was
-presumably implemented this way for historical reasons.
-
-One behavioural difference: pages are no longer faulted in on demand, so a
-page discarded with MADV_DONTNEED is not repopulated and a subsequent
-access raises SIGBUS, as with other pre-populated kernel mappings.
-
-Link: https://lore.kernel.org/20261003-b4-mmap-prepare-vma-flag-sanify-v4-9-a1f052500fd7@kernel.org
+Link: https://lore.kernel.org/20261003-b4-mmap-prepare-vma-flag-sanify-v4-11-a1f052500fd7@kernel.org
 Signed-off-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Acked-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Acked-by: Stephen Smalley <stephen.smalley.work@gmail.com>
+Reviewed-by: Jann Horn <jannh@google.com>
+Acked-by: Paul Moore <paul@paul-moore.com>
 Reviewed-by: Suren Baghdasaryan <surenb@google.com>
 Cc: Liam R. Howlett <liam@infradead.org>
 Cc: Vlastimil Babka <vbabka@kernel.org>
-Cc: Jann Horn <jannh@google.com>
 Cc: Pedro Falcato <pfalcato@suse.de>
 Cc: David Hildenbrand <david@kernel.org>
 Cc: Mike Rapoport <rppt@kernel.org>
 Cc: Michal Hocko <mhocko@suse.com>
 Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 Cc: Dennis Dalessandro <dennis.dalessandro@cornelisnetworks.com>
 Cc: Jason Gunthorpe <jgg@ziepe.ca>
 Cc: Leon Romanovsky <leon@kernel.org>
-Cc: Paul Moore <paul@paul-moore.com>
-Cc: Stephen Smalley <stephen.smalley.work@gmail.com>
 Cc: Jaroslav Kysela <perex@perex.cz>
 Cc: Takashi Iwai <tiwai@suse.com>
 Cc: Alexei Starovoitov <ast@kernel.org>
@@ -193,150 +171,40 @@ Cc: Miklos Szeredi <miklos@szeredi.hu>
 Cc: Xu Xin <xu.xin@linux.dev>
 ---
 
- drivers/usb/mon/mon_bin.c |   82 +++++++++++++++++++++++-------------
- 1 file changed, 53 insertions(+), 29 deletions(-)
+ security/selinux/selinuxfs.c |   11 +++--------
+ 1 file changed, 3 insertions(+), 8 deletions(-)
 
---- a/drivers/usb/mon/mon_bin.c~drivers-usb-mon-update-to-use-mmap_prepare-map-kernel-pages
-+++ a/drivers/usb/mon/mon_bin.c
-@@ -1219,6 +1219,15 @@ mon_bin_poll(struct file *file, struct p
- 	return mask;
- }
+--- a/security/selinux/selinuxfs.c~selinux-reject-writable-opens-of-policy-file-drop-mmap-shared-write-check
++++ a/security/selinux/selinuxfs.c
+@@ -340,6 +340,9 @@ static int sel_open_policy(struct inode
+ 	struct policy_load_memory *plm = NULL;
+ 	int rc;
  
-+static void __mon_bin_vma_open(struct mon_reader_bin *rp)
-+{
-+	unsigned long flags;
++	if (filp->f_mode & FMODE_WRITE)
++		return -EACCES;
 +
-+	spin_lock_irqsave(&rp->b_lock, flags);
-+	rp->mmap_active++;
-+	spin_unlock_irqrestore(&rp->b_lock, flags);
-+}
-+
- /*
-  * open and close: just keep track of how many times the device is
-  * mapped, to use the proper memory allocation function.
-@@ -1226,64 +1235,79 @@ mon_bin_poll(struct file *file, struct p
- static void mon_bin_vma_open(struct vm_area_struct *vma)
+ 	rc = avc_has_perm(current_sid(), SECINITSID_SECURITY,
+ 			  SECCLASS_SECURITY, SECURITY__READ_POLICY, NULL);
+ 	if (rc)
+@@ -424,14 +427,6 @@ static const struct vm_operations_struct
+ 
+ static int sel_mmap_policy(struct file *filp, struct vm_area_struct *vma)
  {
- 	struct mon_reader_bin *rp = vma->vm_private_data;
--	unsigned long flags;
+-	if (vma->vm_flags & VM_SHARED) {
+-		/* do not allow mprotect to make mapping writable */
+-		vm_flags_clear(vma, VM_MAYWRITE);
+-
+-		if (vma->vm_flags & VM_WRITE)
+-			return -EACCES;
+-	}
+-
+ 	vm_flags_set(vma, VM_DONTEXPAND | VM_DONTDUMP);
+ 	vma->vm_ops = &sel_mmap_policy_ops;
  
--	spin_lock_irqsave(&rp->b_lock, flags);
--	rp->mmap_active++;
--	spin_unlock_irqrestore(&rp->b_lock, flags);
-+	__mon_bin_vma_open(rp);
- }
- 
--static void mon_bin_vma_close(struct vm_area_struct *vma)
-+static void __mon_bin_vma_close(struct mon_reader_bin *rp)
- {
- 	unsigned long flags;
- 
--	struct mon_reader_bin *rp = vma->vm_private_data;
- 	spin_lock_irqsave(&rp->b_lock, flags);
- 	rp->mmap_active--;
- 	spin_unlock_irqrestore(&rp->b_lock, flags);
- }
- 
--/*
-- * Map ring pages to user space.
-- */
--static vm_fault_t mon_bin_vma_fault(struct vm_fault *vmf)
-+static void mon_bin_vma_close(struct vm_area_struct *vma)
-+{
-+	struct mon_reader_bin *rp = vma->vm_private_data;
-+
-+	__mon_bin_vma_close(rp);
-+}
-+
-+static const struct vm_operations_struct mon_bin_vm_ops = {
-+	.open =     mon_bin_vma_open,
-+	.close =    mon_bin_vma_close,
-+};
-+
-+static int mon_bin_discontig_init(void *vm_private_data, void **private)
- {
--	struct mon_reader_bin *rp = vmf->vma->vm_private_data;
-+	struct mon_reader_bin *rp = vm_private_data;
-+
-+	/* Dropped by mon_bin_vma_close() on unmap, including on error. */
-+	__mon_bin_vma_open(rp);
-+	return 0;
-+}
-+
-+static int mon_bin_discontig_get(struct discontig_kernel_page_state *state)
-+{
-+	struct mon_reader_bin *rp = state->vm_private_data;
- 	unsigned long offset, chunk_idx;
--	struct page *pageptr;
- 	unsigned long flags;
- 
- 	spin_lock_irqsave(&rp->b_lock, flags);
--	offset = vmf->pgoff << PAGE_SHIFT;
-+
-+	offset = state->pgoff << PAGE_SHIFT;
- 	if (offset >= rp->b_size) {
- 		spin_unlock_irqrestore(&rp->b_lock, flags);
--		return VM_FAULT_SIGBUS;
-+		discontig_kernel_map_abort(state);
-+		return 0;
- 	}
- 	chunk_idx = offset / CHUNK_SIZE;
--	pageptr = rp->b_vec[chunk_idx].pg;
--	get_page(pageptr);
--	vmf->page = pageptr;
-+	discontig_kernel_map_page(state, rp->b_vec[chunk_idx].pg);
-+
- 	spin_unlock_irqrestore(&rp->b_lock, flags);
- 	return 0;
- }
- 
--static const struct vm_operations_struct mon_bin_vm_ops = {
--	.open =     mon_bin_vma_open,
--	.close =    mon_bin_vma_close,
--	.fault =    mon_bin_vma_fault,
-+static const struct discontig_kernel_page_ops mon_discontig_ops = {
-+	.init = mon_bin_discontig_init,
-+	.get = mon_bin_discontig_get,
- };
- 
--static int mon_bin_mmap(struct file *filp, struct vm_area_struct *vma)
-+static int mon_bin_mmap_prepare(struct vm_area_desc *desc)
- {
--	/* don't do anything here: "fault" will set up page table entries */
--	vma->vm_ops = &mon_bin_vm_ops;
-+	const struct file *filp = desc->file;
- 
--	if (vma->vm_flags & VM_WRITE)
-+	if (vma_desc_test(desc, VMA_WRITE_BIT))
- 		return -EPERM;
- 
--	vm_flags_mod(vma, VM_DONTEXPAND | VM_DONTDUMP, VM_MAYWRITE);
--	vma->vm_private_data = filp->private_data;
--	mon_bin_vma_open(vma);
-+	desc->vm_ops = &mon_bin_vm_ops;
-+	vma_desc_clear_flags(desc, VMA_MAYWRITE_BIT);
-+	vma_desc_set_flags(desc, VMA_DONTEXPAND_BIT, VMA_DONTDUMP_BIT);
-+	desc->private_data = filp->private_data;
-+
-+	mmap_action_map_discontig_kernel_pages(desc, NULL, &mon_discontig_ops);
- 	return 0;
- }
- 
-@@ -1298,7 +1322,7 @@ static const struct file_operations mon_
- 	.compat_ioctl =	mon_bin_compat_ioctl,
- #endif
- 	.release =	mon_bin_release,
--	.mmap =		mon_bin_mmap,
-+	.mmap_prepare = mon_bin_mmap_prepare,
- };
- 
- static int mon_bin_wait_event(struct file *file, struct mon_reader_bin *rp)
 _
 
 Patches currently in -mm which might be from ljs@kernel.org are
 
-infiniband-update-hfi1-to-use-remap_vmalloc_range.patch
-selinux-reject-writable-opens-of-policy-file-drop-mmap-shared-write-check.patch
 alsa-pcm-use-vm_insert_page-to-map-pcm-status-page.patch
 bpf-arena-mark-arena_map_mmap-mappings-vm_mixedmap.patch
 mm-vma-add-vma_is_mm_managed-predicates.patch
