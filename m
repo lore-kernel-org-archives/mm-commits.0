@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 85057391851
-	for <mm-commits@vger.kernel.org>; Sat, 10 Oct 2026 21:40:10 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EDA79391E52
+	for <mm-commits@vger.kernel.org>; Sat, 10 Oct 2026 21:40:08 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791668412; cv=none; b=B8zgUTNkHsK1ZApeqpMTKO6FGpaDJM9I6rhBwJoAoC58mUx7rTl/IQcZx5ojq9IfoRC7sE0SWmuID16f+bD7/QoqOfNfIVAnkU1mhxN832J5AdQOL/yX6u65HJkyQgEK59TTnHV7nHXSVYOmFucp6di1jWvZ7aEEl4P6K1dYuag=
+	t=1791668413; cv=none; b=GpojsiJ7OIarV9kAj4izFFokqH3C4E6d+wEkCbWw0O4T9QrZ6DELI9Vz2JNzSCVLduiJNXg6YVlwhAxxaWsEkbh0eLkhxnQrEkBxpRcWmcTihCSxFL+oYehXZNf/oTzhwyByaswrKs3FMR3Aho3sWGqjSODTKrMuzrfZLpuLRZ4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791668412; c=relaxed/simple;
-	bh=xAtFD/QPCYE85XCXnGgy1VGUFOfwF/uh75y+a5AmV1Y=;
-	h=Date:To:From:Subject:Message-Id; b=NKny+/0fdsWj3MPv13t5TUpnfCGYpbXzO7iHyMNojscFRiXY8luG1SF2c8DlsJHrYROp+fgCeoJiyTWCJK3QBteF7IJZcrXfSDRo3qVIi0GNwebIRulBoT5cszyaN8ucGctYBx3wzLfabAz55CpQUOkVBTeUhJV3i+BBBNSvRk4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ut77u0dJ; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1791668413; c=relaxed/simple;
+	bh=hgnJbfHlJZ5xLkf2TmfagN5KsyVu+4qZTwKC37d86TQ=;
+	h=Date:To:From:Subject:Message-Id; b=NeBVKS8F0fY62Oua0JZ5WYssfgumouUtY4oJxmM8TuvbNmM6fzaZsUKhCFqLE5DzTiWEuBhxG8E5Ed3VGCW0HKkCF8dX7VZn03GYB7LZ8aaM1eQJpTsqbnq5fZll8lODouY835DB2hBqQWZH6gBX7p7a8SxTqzbuESuZQN32+kw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=YJL07qOy; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ut77u0dJ"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5C6C91F00893;
-	Sat, 10 Oct 2026 21:40:10 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="YJL07qOy"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C238D1F00898;
+	Sat, 10 Oct 2026 21:40:08 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1791668410;
-	bh=YYhx1ZNCpBTUjTk7GyMF4MPI92q0MTKy4k5oJDRs75Q=;
+	d=linux-foundation.org; s=korg; t=1791668408;
+	bh=TV2OxkJfQ/kPvKFVwFvVMJJvy77maX4JZTTK4dTQ/mM=;
 	h=Date:To:From:Subject;
-	b=ut77u0dJS9+JLkccKgwyQH79jVYvzGwdyMST2dxpDdHsx4/Ig8ptr7uV1XJo1XHLm
-	 55t9TqrEJEb+kSNupEwiauny8+gRr9M68MI3J6TE1xh3a/oRbkM1ydjWUj4dbDppRD
-	 MnCrt79l0XNciGSYDjCrmXK+5Lm4JA8Pfww/4DwM=
-Date: Sat, 10 Oct 2026 14:40:09 -0700
+	b=YJL07qOyEcWAbg5LHT4mnwj89hiIKI1HUpqCYWYSYIttHzEOi1fg9toHUs2+vAv7e
+	 8ExtNlLkkWQggEBIKiUjI3aCRyDLvN+qE8vj59IVeFZt+yfA6Cal+1rtXD7D36hb9D
+	 gwGxuvD7jiDR9TmXfCH8ZH70dnndKq+4Yf/wP13A=
+Date: Sat, 10 Oct 2026 14:40:08 -0700
 To: mm-commits@vger.kernel.org,ljs@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [to-be-updated] mm-eliminate-vm_special-vma_special_flags.patch removed from -mm tree
-Message-Id: <20261010214010.5C6C91F00893@smtp.kernel.org>
+Subject: [to-be-updated] mm-avoid-use-of-vma_special_flags-in-migrate_vma_setup.patch removed from -mm tree
+Message-Id: <20261010214008.C238D1F00898@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,33 +35,30 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: eliminate VM_SPECIAL, VMA_SPECIAL_FLAGS
+     Subject: mm: avoid use of VMA_SPECIAL_FLAGS in migrate_vma_setup()
 has been removed from the -mm tree.  Its filename was
-     mm-eliminate-vm_special-vma_special_flags.patch
+     mm-avoid-use-of-vma_special_flags-in-migrate_vma_setup.patch
 
 This patch was dropped because an updated version will be issued
 
 ------------------------------------------------------
 From: "Lorenzo Stoakes (ARM)" <ljs@kernel.org>
-Subject: mm: eliminate VM_SPECIAL, VMA_SPECIAL_FLAGS
-Date: Sat, 03 Oct 2026 17:33:07 +0100
+Subject: mm: avoid use of VMA_SPECIAL_FLAGS in migrate_vma_setup()
+Date: Sat, 03 Oct 2026 17:33:06 +0100
 
-Every user of the VM_SPECIAL or VMA_SPECIAL_FLAGS has now been converted to
-predicates which explicitly express what is actually being checked for
-rather than the nebulous concept of possessing 'special' VMA flags.
+Now we have the expressive vma_is_mm_managed() and vma_is_fixed_mapping()
+predicates, use them to determine whether to proceed with migration. This
+drops the VMA_IO_BIT test, which is safe as mm-managed mappings may not set
+it.
 
-In any case 'special' is not so special a term of art in mm - it includes
-VDSO/VVAR mappings, special in the sense of vm_normal_folio() and probably
-other cases too.
-
-Therefore make things less special by eliminating these now unused flags.
+hugetlb mappings remain excluded, as they are fixed mappings.
 
 No functional change intended.
 
-Link: https://lore.kernel.org/20261003-b4-mmap-prepare-vma-flag-sanify-v4-36-a1f052500fd7@kernel.org
+Link: https://lore.kernel.org/20261003-b4-mmap-prepare-vma-flag-sanify-v4-35-a1f052500fd7@kernel.org
 Signed-off-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Acked-by: Zi Yan <ziy@nvidia.com>
+Reviewed-by: Zi Yan <ziy@nvidia.com>
 Acked-by: David Hildenbrand (Arm) <david@kernel.org>
 Cc: Liam R. Howlett <liam@infradead.org>
 Cc: Vlastimil Babka <vbabka@kernel.org>
@@ -170,48 +167,43 @@ Cc: Miklos Szeredi <miklos@szeredi.hu>
 Cc: Xu Xin <xu.xin@linux.dev>
 ---
 
- include/linux/mm.h              |    8 --------
- tools/testing/vma/include/dup.h |    8 --------
- 2 files changed, 16 deletions(-)
+ mm/migrate_device.c |   12 +++++++-----
+ 1 file changed, 7 insertions(+), 5 deletions(-)
 
---- a/include/linux/mm.h~mm-eliminate-vm_special-vma_special_flags
-+++ a/include/linux/mm.h
-@@ -578,14 +578,6 @@ enum {
- #define VMA_ACCESS_FLAGS mk_vma_flags(VMA_READ_BIT, VMA_WRITE_BIT, VMA_EXEC_BIT)
+--- a/mm/migrate_device.c~mm-avoid-use-of-vma_special_flags-in-migrate_vma_setup
++++ a/mm/migrate_device.c
+@@ -739,19 +739,21 @@ static void migrate_vma_unmap(struct mig
+  */
+ int migrate_vma_setup(struct migrate_vma *args)
+ {
++	const struct vm_area_struct *vma = args->vma;
+ 	long nr_pages = (args->end - args->start) >> PAGE_SHIFT;
  
- /*
-- * Special vmas that are non-mergable, non-mlock()able.
-- */
--
--#define VMA_SPECIAL_FLAGS mk_vma_flags(VMA_IO_BIT, VMA_DONTEXPAND_BIT, \
--				       VMA_PFNMAP_BIT, VMA_MIXEDMAP_BIT)
--#define VM_SPECIAL vma_flags_to_legacy(VMA_SPECIAL_FLAGS)
--
--/*
-  * Physically remapped pages are special. Tell the
-  * rest of the world about it:
-  *   IO tells people not to look at these pages
---- a/tools/testing/vma/include/dup.h~mm-eliminate-vm_special-vma_special_flags
-+++ a/tools/testing/vma/include/dup.h
-@@ -352,14 +352,6 @@ enum {
- #define VM_ACCESS_FLAGS (VM_READ | VM_WRITE | VM_EXEC)
- #define VMA_ACCESS_FLAGS mk_vma_flags(VMA_READ_BIT, VMA_WRITE_BIT, VMA_EXEC_BIT)
- 
--/*
-- * Special vmas that are non-mergable, non-mlock()able.
-- */
--#define VM_SPECIAL (VM_IO | VM_DONTEXPAND | VM_PFNMAP | VM_MIXEDMAP)
--
--#define VMA_SPECIAL_FLAGS mk_vma_flags(VMA_IO_BIT, VMA_DONTEXPAND_BIT, \
--				       VMA_PFNMAP_BIT, VMA_MIXEDMAP_BIT)
--
- #define VMA_REMAP_FLAGS mk_vma_flags(VMA_IO_BIT, VMA_PFNMAP_BIT,	\
- 				     VMA_DONTEXPAND_BIT, VMA_DONTDUMP_BIT)
- 
+ 	args->start &= PAGE_MASK;
+ 	args->end &= PAGE_MASK;
+-	if (!args->vma || vma_test_any_mask(args->vma, VMA_SPECIAL_FLAGS) ||
+-	    vma_is_dax(args->vma))
++	if (!vma)
++		return -EINVAL;
++	if (!vma_is_mm_managed(vma) || vma_is_fixed_mapping(vma) ||
++	    vma_is_dax(vma))
+ 		return -EINVAL;
+ 	if (nr_pages <= 0)
+ 		return -EINVAL;
+-	if (args->start < args->vma->vm_start ||
+-	    args->start >= args->vma->vm_end)
++	if (args->start < vma->vm_start || args->start >= vma->vm_end)
+ 		return -EINVAL;
+-	if (args->end <= args->vma->vm_start || args->end > args->vma->vm_end)
++	if (args->end <= vma->vm_start || args->end > vma->vm_end)
+ 		return -EINVAL;
+ 	if (!args->src || !args->dst)
+ 		return -EINVAL;
 _
 
 Patches currently in -mm which might be from ljs@kernel.org are
 
+mm-eliminate-vm_special-vma_special_flags.patch
 fuse-dax-do-not-set-vm_mixedmap.patch
 mm-huge_memory-remove-vma_is_special_huge.patch
 mm-vma-const-ify-vma_assert_stabilised-and-associated-functions.patch
