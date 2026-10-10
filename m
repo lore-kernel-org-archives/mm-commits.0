@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id ED9AE3C108B
-	for <mm-commits@vger.kernel.org>; Sat, 10 Oct 2026 16:48:25 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A4D4A4B403F;
+	Sat, 10 Oct 2026 19:12:26 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791650907; cv=none; b=SFopvLWItx9fM/chjFjUyxha6jKEa0VvpUe0FptBckYtkJW6/Jz9U0mZZHP4ShkmVIK3SHgW2EVbmGyPAYzggIY3vg3dZoToyFBpx08/Ae6QMJLxX1YrfMIahgKvbowDH0+K18qWSfy7mmvKpO7lYEF1tXjzfQwi99ZUDemT4Ao=
+	t=1791659548; cv=none; b=fLbgNxsFJVKFntpHOXxPPLgC6bsdu2OxUedoChywNOD3ep7sC4Kq3RmL+SvY+w7aiyHryuoOFforjB5NRe5T5aY5ImPeM1rF7HVJdopMMWWZC3F/lioGZrx1W4G8MBaNRQ2xBIwoaMNWz31JWQMk8E8TBV780GNjEc7PaIJztp0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791650907; c=relaxed/simple;
-	bh=iOPG20iEluLZSdVs2+gglk+l2rqhdfgTyAO21n9Cxvw=;
-	h=Date:To:From:Subject:Message-Id; b=M26tt/nUcWNz9I/KQGU5IHgOfbpQ4mnVqtJoc7ZAc5hKbWfcSU71bY/p9DqSmBdyjVBKGlu6KqRyPH4xVlFl+aPUi/DCxVqfI9ShCanlvu3leNd+VZVIlNSs5GZAgud1Q5EqvPmyyrHYSVMMlTNPdQadSRpJBS7LvoG5uuq7Sos=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=T98C8jM9; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1791659548; c=relaxed/simple;
+	bh=i2R1j87DdvdPm5zzCUiB/kLw2ooEOUJv41YBgQUtgfw=;
+	h=Date:To:From:Subject:Message-Id; b=ZHchhMw94ObYvL3xDUU3pvQWLwZ+xPde6436u9e1XP91vxrxe42RIHIIP5ozMrMclpk1qRbmR3bgIZKotgS4XogFlscrBT3DYOUdxBSACCr36yN50d85Hg22SN4OvOztRiHVMv8YMqiK95URRWSIuhCd/YTv96TtdBGmH9pATvc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=vHo/K5E3; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="T98C8jM9"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C1FC51F000FF;
-	Sat, 10 Oct 2026 16:48:25 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="vHo/K5E3"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 13F051F000FF;
+	Sat, 10 Oct 2026 19:12:26 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1791650905;
-	bh=DiwxFHQ8kw6jzyoEJM88/0f2ZmmxVH1J37zFlZ8xOps=;
+	d=linux-foundation.org; s=korg; t=1791659546;
+	bh=MENVa0NuinOwz5GuUefqGmQRI48AhugaEkeulW8O1i4=;
 	h=Date:To:From:Subject;
-	b=T98C8jM9cbJB6ocZaDz26cAf+yIXW9zALAuns4zs5k4b1L8UJ0oBh1Giy3FnTDy3g
-	 PA1fj3FAtkTuvCW7cKmix+zf0e9SnRHKp1GlSjw1Ene+SaE9I7fINLVsosarStILIO
-	 yauGhs3Vlj9QtqaF7iYc0K4GaGWoQQBs/yhkqo1A=
-Date: Sat, 10 Oct 2026 09:48:25 -0700
-To: mm-commits@vger.kernel.org,mark@fasheh.com,jlbec@evilplan.org,heming.zhao@suse.com,joseph.qi@linux.alibaba.com,akpm@linux-foundation.org
+	b=vHo/K5E3BxLjb/XEwHAQUGYKorYz1RPKZKHiyCjIOBjzc/Vwq8rl6hZnCx20Yf5Oo
+	 IOXbTGo8b1S97kkfRUtyqBK3CBILBy/AH3uSFeqLG6GTCM4IDxYp/3+lre2xupCnye
+	 DmGLpRBUmk+PYvN6RzMbssAfmUIjKaqou7s2ffls=
+Date: Sat, 10 Oct 2026 12:12:25 -0700
+To: mm-commits@vger.kernel.org,will@kernel.org,stable@vger.kernel.org,pjw@kernel.org,palmer@dabbelt.com,osalvador@suse.de,mark.rutland@arm.com,kevin.brodsky@arm.com,david@kernel.org,dave.hansen@intel.com,bjorn@rivosinc.com,apopple@nvidia.com,aou@eecs.berkeley.edu,alex@ghiti.fr,agordeev@linux.ibm.com,muchun.song@linux.dev,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + ocfs2-reserve-xattr-value-tree-metadata-only-once.patch added to mm-nonmm-unstable branch
-Message-Id: <20261010164825.C1FC51F000FF@smtp.kernel.org>
+Subject: + mm-fix-missing-page-table-destructor-in-pagetable_free.patch added to mm-unstable branch
+Message-Id: <20261010191226.13F051F000FF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: ocfs2: reserve xattr value tree metadata only once
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     ocfs2-reserve-xattr-value-tree-metadata-only-once.patch
+     Subject: mm: fix missing page-table destructor in pagetable_free()
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-fix-missing-page-table-destructor-in-pagetable_free.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/ocfs2-reserve-xattr-value-tree-metadata-only-once.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-fix-missing-page-table-destructor-in-pagetable_free.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,127 +58,112 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Joseph Qi <joseph.qi@linux.alibaba.com>
-Subject: ocfs2: reserve xattr value tree metadata only once
-Date: Sat, 10 Oct 2026 19:34:54 +0800
+From: Muchun Song <muchun.song@linux.dev>
+Subject: mm: fix missing page-table destructor in pagetable_free()
+Date: Sat, 10 Oct 2026 19:24:54 +0800
 
-ocfs2_calc_xattr_set_need() asks for the new value's extent tree twice
-when it replaces an inline value smaller than a value root with one large
-enough to be stored outside.  The "stored outside" branch reserves the
-tree and then falls through to meta_guess instead of going out:
+Since commit 49f599666420 ("mm: call ctor/dtor for kernel PTEs"),
+pte_alloc_one_kernel() runs the page-table constructor for kernel PTE
+tables.
 
-        if (!ocfs2_xattr_is_local(xe)) {
-                ...
-                xv = (struct ocfs2_xattr_value_root *)
-                     (base + name_offset + name_len);
-                value_size = OCFS2_XATTR_ROOT_SIZE;
-        } else
-                xv = &def_xv.xv;
+HVO (HugeTLB Vmemmap Optimization) uses pte_alloc_one_kernel() when
+splitting a PMD. Restoring the vmemmap backing pages does not collapse
+the PTE table, so a later memory hot-remove eventually frees it through
+pagetable_free() on x86-64. That releases the page without running the
+matching destructor and leaves NR_PAGETABLE elevated.
 
-        if (old_clusters >= new_clusters) {
-                ...
-                goto out;
-        } else {
-                meta_add += ocfs2_extend_meta_needed(&xv->xr_list);
-                ...
-                if (value_size >= OCFS2_XATTR_ROOT_SIZE)
-                        goto out;
-        }
+Make pagetable_free() detect constructor-backed pages and run the
+destructor before releasing their memory to fix the problem.
 
-On the fall-through xv is def_xv, so what gets added here is the two
-blocks ocfs2_extend_meta_needed() wants for an empty value root -- and
-both sides of meta_guess reserve that same tree again.  The create side
-has done so since commit 3ed2be719eb9 ("ocfs2: allow for more than one
-data extent when creating xattr"), which ported this reservation to the
-create case without noticing it was already on the way in, and the
-existing-block side since commit 0cdc7dde00ec ("ocfs2: fix missing
-metadata reservation for large xattrs").  Both were chasing the same
-RESTART_META failure in ocfs2_xattr_extend_allocation(), for xattr create
-and then for xattr update.
-
-ocfs2_init_xattr_set_ctxt() hands the total straight to
-ocfs2_reserve_new_metadata_blocks(), so the surplus is two blocks held for
-the whole transaction.  A setxattr that would otherwise fit can come back
--ENOSPC on a filesystem whose metadata allocator is nearly exhausted.
-
-Move the reservation into the branch that stops there, leaving meta_guess
-as the only place that reserves for a value tree the fall through is about
-to create.  The paths that do go out keep reserving against the value root
-they already have, which for an external old value is the on-disk one and
-so can legitimately ask for more than two blocks.
-
-Both sides of meta_guess have to come out even on their own now that the
-copy covering for them is gone.  The existing-block side only started
-reserving the value tree in the commit this one is tagged against.  The
-create side has reserved the tree since 3ed2be719eb9, but only the tree:
-the block ocfs2_create_xattr_block() claims came out of the same two, and
-on the fall-through it was the duplicate removed here that made up the
-difference.  So "ocfs2: reserve metadata for a new xattr block and its
-value tree" has to land first -- without it the create side reserves 2
-where 3 are needed and the value tree is back to RESTART_META.  That one
-fixes a shortfall of its own on the path that reaches meta_guess directly,
-where there was never a duplicate to cover it, so it is worth taking
-alone; this patch is not.
-
-Link: https://lore.kernel.org/20261010113454.1420939-4-joseph.qi@linux.alibaba.com
-Fixes: 0cdc7dde00ec ("ocfs2: fix missing metadata reservation for large xattrs")
-Signed-off-by: Joseph Qi <joseph.qi@linux.alibaba.com>
+Link: https://lore.kernel.org/20261010112457.49485-2-songmuchun@bytedance.com
+Fixes: 49f599666420 ("mm: call ctor/dtor for kernel PTEs")
+Signed-off-by: Muchun Song <muchun.song@linux.dev>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Cc: Heming Zhao <heming.zhao@suse.com>
-Cc: Mark Fasheh <mark@fasheh.com>
-Cc: Joel Becker <jlbec@evilplan.org>
+Assisted-by: LLM
+Cc: David Hildenbrand <david@kernel.org>
+Cc: Oscar Salvador <osalvador@suse.de>
+Cc: Dave Hansen <dave.hansen@intel.com>
+Cc: Paul Walmsley <pjw@kernel.org>
+Cc: Palmer Dabbelt <palmer@dabbelt.com>
+Cc: Albert Ou <aou@eecs.berkeley.edu>
+Cc: Alexandre Ghiti <alex@ghiti.fr>
+Cc: Björn Töpel <bjorn@rivosinc.com>
+Cc: Will Deacon <will@kernel.org>
+Cc: Mark Rutland <mark.rutland@arm.com>
+Cc: Kevin Brodsky <kevin.brodsky@arm.com>
+Cc: Alexander Gordeev <agordeev@linux.ibm.com>
+Cc: Alistair Popple <apopple@nvidia.com>
+Cc: <stable@vger.kernel.org>
 ---
 
- fs/ocfs2/xattr.c |   17 +++++++++++++++--
- 1 file changed, 15 insertions(+), 2 deletions(-)
+ include/linux/mm.h |   37 ++++++++++++++++++++-----------------
+ 1 file changed, 20 insertions(+), 17 deletions(-)
 
---- a/fs/ocfs2/xattr.c~ocfs2-reserve-xattr-value-tree-metadata-only-once
-+++ a/fs/ocfs2/xattr.c
-@@ -3527,12 +3527,21 @@ static int ocfs2_calc_xattr_set_need(str
- 			credits += ocfs2_remove_extent_credits(inode->i_sb);
- 			goto out;
- 		} else {
--			meta_add += ocfs2_extend_meta_needed(&xv->xr_list);
- 			clusters_add += new_clusters - old_clusters;
- 			credits += ocfs2_calc_extend_credits(inode->i_sb,
- 							     &xv->xr_list);
--			if (value_size >= OCFS2_XATTR_ROOT_SIZE)
-+			/*
-+			 * The old value occupies at least as much room as a
-+			 * value root, whether it sat outside or inline, so the
-+			 * new root fits where it was and no new xattr block or
-+			 * bucket is needed -- only the metadata to extend the
-+			 * tree hanging off it.  A smaller one is replaced
-+			 * outright, which meta_guess below reserves for.
-+			 */
-+			if (value_size >= OCFS2_XATTR_ROOT_SIZE) {
-+				meta_add += ocfs2_extend_meta_needed(&xv->xr_list);
- 				goto out;
-+			}
- 		}
- 	} else {
- 		/*
-@@ -3584,6 +3593,10 @@ meta_guess:
- 		 * Reserve metadata for the new xattr's value extent tree.
- 		 * The not_found path above adds credits for this tree but
- 		 * omits meta_add, leaving meta_ac NULL for large values.
-+		 *
-+		 * This is all of meta_ac on this side beyond the xattr tree
-+		 * above: no xattr block is allocated here, and a new bucket or
-+		 * index block is paid for out of data_ac.
- 		 */
- 		if (xi->xi_value_len > OCFS2_XATTR_INLINE_SIZE)
- 			meta_add += ocfs2_extend_meta_needed(&def_xv.xv.xr_list);
+--- a/include/linux/mm.h~mm-fix-missing-page-table-destructor-in-pagetable_free
++++ a/include/linux/mm.h
+@@ -3969,23 +3969,6 @@ static inline void pagetable_free_kernel
+ 	__pagetable_free(pt);
+ }
+ #endif
+-/**
+- * pagetable_free - Free pagetables
+- * @pt:	The page table descriptor
+- *
+- * pagetable_free frees the memory of all page tables described by a page
+- * table descriptor and the memory for the descriptor itself.
+- */
+-static inline void pagetable_free(struct ptdesc *pt)
+-{
+-	if (ptdesc_test_kernel(pt)) {
+-		ptdesc_clear_kernel(pt);
+-		pagetable_free_kernel(pt);
+-	} else {
+-		__pagetable_free(pt);
+-	}
+-}
+-
+ #if defined(CONFIG_SPLIT_PTE_PTLOCKS)
+ #if ALLOC_SPLIT_PTLOCKS
+ void __init ptlock_cache_init(void);
+@@ -4078,6 +4061,26 @@ static inline void pagetable_dtor(struct
+ 	lruvec_stat_sub_folio(folio, NR_PAGETABLE);
+ }
+ 
++/**
++ * pagetable_free - Free pagetables
++ * @pt:	The page table descriptor
++ *
++ * pagetable_free frees the memory of all page tables described by a page
++ * table descriptor and the memory for the descriptor itself.
++ */
++static inline void pagetable_free(struct ptdesc *pt)
++{
++	if (PageTable(ptdesc_page(pt)))
++		pagetable_dtor(pt);
++
++	if (ptdesc_test_kernel(pt)) {
++		ptdesc_clear_kernel(pt);
++		pagetable_free_kernel(pt);
++	} else {
++		__pagetable_free(pt);
++	}
++}
++
+ static inline void pagetable_dtor_free(struct ptdesc *ptdesc)
+ {
+ 	pagetable_dtor(ptdesc);
 _
 
-Patches currently in -mm which might be from joseph.qi@linux.alibaba.com are
+Patches currently in -mm which might be from muchun.song@linux.dev are
 
-ocfs2-retain-all-security-xattrs-during-inode-creation.patch
-ocfs2-restore-erange-check-in-ocfs2_xattr_tree_list_index_block.patch
-ocfs2-fix-possible-deadlock-between-nfs_sync_rwlock-and-fs_reclaim.patch
-ocfs2-deal-with-legacy-signed-dir-index-name-hash-values.patch
-ocfs2-deal-with-legacy-signed-xattr-name-hash-values.patch
-ocfs2-reserve-metadata-for-a-new-xattr-block-and-its-value-tree.patch
-ocfs2-reserve-value-tree-metadata-when-moving-an-xattr-into-the-inode.patch
-ocfs2-reserve-xattr-value-tree-metadata-only-once.patch
+mm-sparse-vmemmap-drop-vmemmap_populate_dax.patch
+mm-sparse-vmemmap-support-device-dax-in-common-vmemmap-path.patch
+mm-sparse-vmemmap-drop-device-dax-specific-population-path.patch
+mm-sparse-vmemmap-remove-the-unused-ptpfn-argument.patch
+mm-sparse-vmemmap-open-code-vmemmap_populate_address.patch
+mm-mm_init-add-zone-mismatch-warning-during-page-init.patch
+mm-fix-missing-page-table-destructor-in-pagetable_free.patch
+riscv-mm-fix-hotplug-page-table-destructor-handling.patch
+riscv-mm-fix-missing-destructor-for-hotplug-pud-tables.patch
+arm64-mm-fix-destructor-for-unconstructed-hotplug-page-tables.patch
 
