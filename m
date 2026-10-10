@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 67B8F36920D
-	for <mm-commits@vger.kernel.org>; Sat, 10 Oct 2026 22:49:52 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6137F2EB5A6;
+	Sat, 10 Oct 2026 22:50:43 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791672594; cv=none; b=ZFDTiwp4GIYCQ9Ecxbwu4kx8L0uzK8h+a28GteIHao9FZzsJbrdRxfm+U34O2IVEa0GcrQhTs3sa42wfU9lAG6iZRk0XlaXYDoCkA0pqBE7NUtB25gbs9m/nZGP8gL2UKowxoe7B5+UB5dJFRZDGAKqiS42Xfz9ncx/N43eecZw=
+	t=1791672645; cv=none; b=mBMe+PFBfyAlZh8jjKQRfXzsY23vkPiHd+BrLD21XQFDH5/xxpw/oCb9MHG9/PGb6p+4IcvTADr19NjqO9yhAr0anh0NDJ/uFZnRLcUU5mHwKBt0aFke1HiqrLFatj3JE7zoKxQZE0hk+B5Q5FEmFimHHEfVVSDo+aG7s5jLZ/M=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791672594; c=relaxed/simple;
-	bh=EH+E3q/OLfoJwx9aIyNJPZrcZHUtRkuS8JZPzE4u1bE=;
-	h=Date:To:From:Subject:Message-Id; b=DmNlAyuGKTw7Speah5bfkvT0WQPHbvfq2azQJ6jf3f3+sGI/Hdw4Ki+N1BBMtBQR19FD7LYjowmikg9l3X24KX84c/7XzdGzdbQDaNxHR236fLNZ6/JvpFgW6gu+NbazZoLdKncpa7ljEaRHgpcd26ToAVMckc0jD/Vj1kxel/g=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=vEE16W83; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1791672645; c=relaxed/simple;
+	bh=8EoOI/9NBwUetvMSA5Fha4jKifnY/IZFx5PwB+2334A=;
+	h=Date:To:From:Subject:Message-Id; b=HnCBxOjT8suA74ro0UY8K8NWniCnhag4+W+mtpb6sb8rxkyMYCqrHUhy6zVxoYHMRKo4prUzbmw/oc1VBgktv7ljFx3FXNWqxasxcLfK+5+oext9jDxo8Wyz0/OACn8wwhNUFv2Uji4rqy/Lj7oxeTxCfoNZw0iL64x8NcU40cs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=uyqsK+nP; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="vEE16W83"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C55271F000FF;
-	Sat, 10 Oct 2026 22:49:52 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="uyqsK+nP"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E35791F000FF;
+	Sat, 10 Oct 2026 22:50:42 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1791672592;
-	bh=UJZtdAIC3ziWneuZAcMWRxc+1+OeKnmf3i9ZnKvI2t4=;
+	d=linux-foundation.org; s=korg; t=1791672643;
+	bh=eRdrDd14kQCLFgE7H5m97OgNkT69/Co2zjYOnZ+LHxU=;
 	h=Date:To:From:Subject;
-	b=vEE16W83riEis5bYjhrCEBOX+zBtM+jScf/qjqZjzxa49v9I2uc/v2SJqzfruVEbz
-	 V/9Z1/XqMJFSCoNmwH4wzFXiI2UHHHzS6rJhbj4RjNeBoj9HBeF3SyFk4zE1IzzGtU
-	 deVwfasElszrNGXtGJjfTrPyNmmHwvWh7GABc1rA=
-Date: Sat, 10 Oct 2026 15:49:52 -0700
-To: mm-commits@vger.kernel.org,kas@kernel.org,akpm@linux-foundation.org
+	b=uyqsK+nPhUU6Xt3mOLGUchZ6g9dMqj6CyeI+5zNO3d8zrW4M6V/sh0xoefgiYokeE
+	 S/EjA60yYiSCTf2uxmItiBdzxyHQ+9cUg5X05lMrlyMqygOOGU/TShimIUPBYkffC4
+	 QlMZDxRTVmG+TpILcfpdQPwqwOcASjQduJSdRvoU=
+Date: Sat, 10 Oct 2026 15:50:42 -0700
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,vbabka@kernel.org,usama.arif@linux.dev,surenb@google.com,stable@vger.kernel.org,shakeel.butt@linux.dev,mhocko@suse.com,harry@kernel.org,hannes@cmpxchg.org,david@kernel.org,brendan.jackman@linux.dev,kas@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [to-be-updated] mm-page_alloc-make-defrag_mode-retries-follow-the-promoted-order.patch removed from -mm tree
-Message-Id: <20261010224952.C55271F000FF@smtp.kernel.org>
+Subject: + mm-page_alloc-make-defrag_mode-retries-follow-the-promoted-order.patch added to mm-unstable branch
+Message-Id: <20261010225042.E35791F000FF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,17 +34,33 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The quilt patch titled
+The patch titled
      Subject: mm: page_alloc: make defrag_mode retries follow the promoted order
-has been removed from the -mm tree.  Its filename was
+has been added to the -mm mm-unstable branch.  Its filename is
      mm-page_alloc-make-defrag_mode-retries-follow-the-promoted-order.patch
 
-This patch was dropped because an updated version will be issued
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-page_alloc-make-defrag_mode-retries-follow-the-promoted-order.patch
+
+This patch will later appear in the mm-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via various
+branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there most days
 
 ------------------------------------------------------
 From: "Kiryl Shutsemau (Meta)" <kas@kernel.org>
 Subject: mm: page_alloc: make defrag_mode retries follow the promoted order
-Date: Tue,  6 Oct 2026 10:18:13 +0100
+Date: Fri,  9 Oct 2026 13:55:02 +0100
 
 Since commit 7e8756d7ad22 ("mm: page_alloc: fix non-movable reclaim
 storm in defrag_mode"), direct reclaim and compaction for non-movable
@@ -88,9 +104,11 @@ For promoted requests:
   limit stay those of the request order, so a non-costly request still
   gets its COMPACT_PRIO_SYNC_FULL pass before it falls back.
 
-When the fallback is taken, reset the retry counters, so that the
-fallback attempt gets a full retry budget before the OOM killer is
-considered.
+When a promoted request takes the fallback, reset the retry counters,
+so that the fallback attempt gets a full retry budget before the OOM
+killer is considered. A request whose reclaim was not promoted spent
+its budget on the request itself and keeps its counters, as Usama Arif
+pointed out.
 
 __alloc_pages_slowpath() computes the promoted order once per iteration
 and passes it to direct reclaim, direct compaction and the two retry
@@ -106,10 +124,11 @@ In a VM reproducer (32G, defrag_mode, inode churn under memory.low):
 
 File creation runs 5.7x faster.
 
-Link: https://lore.kernel.org/20261006091815.897133-1-kirill@shutemov.name
+Link: https://lore.kernel.org/20261009125503.126202-1-kas@kernel.org
 Fixes: 7e8756d7ad22 ("mm: page_alloc: fix non-movable reclaim storm in defrag_mode")
 Signed-off-by: Kiryl Shutsemau (Meta) <kas@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+Acked-by: Usama Arif <usama.arif@linux.dev>
 Assisted-by: LLM
 Cc: Vlastimil Babka <vbabka@kernel.org>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
@@ -120,12 +139,11 @@ Cc: Michal Hocko <mhocko@suse.com>
 Cc: Brendan Jackman <brendan.jackman@linux.dev>
 Cc: Zi Yan <ziy@nvidia.com>
 Cc: Shakeel Butt <shakeel.butt@linux.dev>
-Cc: Usama Arif <usama.arif@linux.dev>
 Cc: <stable@vger.kernel.org>
 ---
 
- mm/page_alloc.c |  123 +++++++++++++++++++++++++++++-----------------
- 1 file changed, 78 insertions(+), 45 deletions(-)
+ mm/page_alloc.c |  126 +++++++++++++++++++++++++++++-----------------
+ 1 file changed, 81 insertions(+), 45 deletions(-)
 
 --- a/mm/page_alloc.c~mm-page_alloc-make-defrag_mode-retries-follow-the-promoted-order
 +++ a/mm/page_alloc.c
@@ -352,7 +370,7 @@ Cc: <stable@vger.kernel.org>
  		goto retry;
  
  	/*
-@@ -4997,14 +5024,20 @@ retry:
+@@ -4997,14 +5024,23 @@ retry:
  	 * of free memory (see __compaction_suitable)
  	 */
  	if (did_some_progress > 0 && can_compact &&
@@ -365,14 +383,17 @@ Cc: <stable@vger.kernel.org>
  
 -	/* Reclaim/compaction failed to prevent the fallback */
 +	/*
-+	 * Reclaim/compaction failed to prevent the fallback. The retry
-+	 * budget was spent on making blocks, not on the request itself;
-+	 * give the fallback a fresh one before considering OOM.
++	 * Reclaim/compaction failed to prevent the fallback. A promoted
++	 * request spent its retry budget on making blocks, not on the
++	 * request itself; give its fallback a fresh one before
++	 * considering OOM.
 +	 */
  	if (defrag_mode && (alloc_flags & ALLOC_NOFRAGMENT)) {
  		alloc_flags &= ~ALLOC_NOFRAGMENT;
-+		no_progress_loops = 0;
-+		compaction_retries = 0;
++		if (reclaim_order != order) {
++			no_progress_loops = 0;
++			compaction_retries = 0;
++		}
  		goto retry;
  	}
  
@@ -399,6 +420,7 @@ selftests-mm-add-khugepaged-race-harness.patch
 selftests-mm-race-the-collapse-of-windows-with-holes.patch
 selftests-mm-add-memory-pressure-threads-to-the-khugepaged-race-harness.patch
 selftests-mm-zap-whole-pte-tables-in-the-khugepaged-race-harness.patch
+mm-page_alloc-make-defrag_mode-retries-follow-the-promoted-order.patch
 mm-khugepaged-drop-redundant-mm_struct-pin-in-madvise_collapse.patch
 mm-khugepaged-count-collapses-where-khugepaged-makes-them.patch
 mm-khugepaged-rename-mthp_present_ptes-bitmap-to-eligible_ptes.patch
