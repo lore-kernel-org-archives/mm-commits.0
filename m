@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 76B234B44C6;
-	Sat, 10 Oct 2026 19:12:32 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C696B352C5B
+	for <mm-commits@vger.kernel.org>; Sat, 10 Oct 2026 20:32:58 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791659559; cv=none; b=gtMkmhNys7Lb0kfjhq2W65juujoQNzQAmaWBbCgwSNAk97jQO0IuznZxS6xzOJ20TGE5cg7GYj/DO+TVCsZdPat2RxiH28/no6MTfLTCMiEvOl85FaJlJ5aLa6Cp2uAzM3ZVMhX/Nu8gLjhiHlVw7JB90ED2lDMCFP3NAX75B3s=
+	t=1791664380; cv=none; b=A9BkEGy/JrMHkbO860qHDyfVoWdRIyxde9i5bbAOd2vFjvlj6rY4QTxKXapx91EyAxkd0KrVHyGiPer6nbWlvw+84mnGfuJnpoAFfqe81oASy74Qzcek6+rwcIfrtPsq6CKC6o05aX5BYst9cQt0UBO9XkhdQy5YEL0HjySQGj8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791659559; c=relaxed/simple;
-	bh=C8dhOMAvzqB/pWyOA2TQ56vcpMFtnMqp/TrZUi2v4sQ=;
-	h=Date:To:From:Subject:Message-Id; b=R0GUOLOC0RJ4ldWmUXDj6EQ8K8ZeUiJVZk4frvuQHbHpCHLnwoE9Kzczxnbk/7PGJG2xLWRAwbjShOykkhAIvGz8yjhICCZzop2y5TR02cz8tHv6oUDpYvXpC3hC5lBEXmJcEEOAPviN3hGIRNlHxzkl33yHQaO3IzwPx6Iksms=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=MxXSYgDM; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1791664380; c=relaxed/simple;
+	bh=vqFGu+tLYTRej0gKxU7ye3ezAmVcFfxmWAbQ5mLYr4w=;
+	h=Date:To:From:Subject:Message-Id; b=hcfpbPesGHUlJ5P9KfIfGrW4xYfAaeuYawpeJo5BO8Sdaya8h1rEkoKFlU3YuFfRRt1odscZgosspWe6YwcXcDIdgieUSwfT+UaKDcN3441bHcO3JoT/wN31eZYTtWl1s0v6oOxvcmKR6gV6e2mHocwvFIdwjW35LkfXBzSFEiM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Bb2N4M/F; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="MxXSYgDM"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C87391F00893;
-	Sat, 10 Oct 2026 19:12:31 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Bb2N4M/F"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 27EBD1F000FF;
+	Sat, 10 Oct 2026 20:32:58 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1791659551;
-	bh=qV7XfIQNA4NXHQcnMvIujTdMhhEhzpF1e19HABkRIkw=;
+	d=linux-foundation.org; s=korg; t=1791664378;
+	bh=KsaSmOpl3EFwruo+amkF0VesqLJW7XWokFkbblJBJL8=;
 	h=Date:To:From:Subject;
-	b=MxXSYgDMHHR7yZ/YNf7GSyF19lPLEZvsB7S9aAgyzEe0T1ZyP5AefvuPTOgdMFwZD
-	 xCUUItAs9kpHoUIlOW7TnL/+5ILo7CtWwz3T6xjBr0/AyK/ZWbV7URHsLzK7GMIvmv
-	 K2Cc5PmXATgqdN3a7/dMYZZwoyDbhebVEHT2aFs0=
-Date: Sat, 10 Oct 2026 12:12:31 -0700
-To: mm-commits@vger.kernel.org,will@kernel.org,stable@vger.kernel.org,pjw@kernel.org,palmer@dabbelt.com,osalvador@suse.de,mark.rutland@arm.com,kevin.brodsky@arm.com,david@kernel.org,dave.hansen@intel.com,catalin.marinas@arm.com,bjorn@rivosinc.com,apopple@nvidia.com,aou@eecs.berkeley.edu,alex@ghiti.fr,agordeev@linux.ibm.com,muchun.song@linux.dev,akpm@linux-foundation.org
+	b=Bb2N4M/Fg0XiFa0YmCTVWFsdkBcFUXw1H35MyrlOA4ul6puQ9HhoS3cSK99kS2oqD
+	 rmJWhc6xj5mSOPSAB9hnJdt6JU5OgIqqkO6HR7CGCW99P1c+nGPRpkRIlerQgMbrF7
+	 wKDZYjvqJ2APleasuscPe3RY2a2cvV9mMuooTdBQ=
+Date: Sat, 10 Oct 2026 13:32:57 -0700
+To: mm-commits@vger.kernel.org,osalvador@suse.de,muchun.song@linux.dev,enze.li@gmx.com,david@kernel.org,lienze@kylinos.cn,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + arm64-mm-fix-destructor-for-unconstructed-hotplug-page-tables.patch added to mm-unstable branch
-Message-Id: <20261010191231.C87391F00893@smtp.kernel.org>
+Subject: + mm-hugetlb-prefix-log-messages-via-pr_fmt.patch added to mm-unstable branch
+Message-Id: <20261010203258.27EBD1F000FF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: arm64/mm: fix destructor for unconstructed hotplug page tables
+     Subject: mm/hugetlb: prefix log messages via pr_fmt
 has been added to the -mm mm-unstable branch.  Its filename is
-     arm64-mm-fix-destructor-for-unconstructed-hotplug-page-tables.patch
+     mm-hugetlb-prefix-log-messages-via-pr_fmt.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/arm64-mm-fix-destructor-for-unconstructed-hotplug-page-tables.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-hugetlb-prefix-log-messages-via-pr_fmt.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,75 +58,257 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Muchun Song <muchun.song@linux.dev>
-Subject: arm64/mm: fix destructor for unconstructed hotplug page tables
-Date: Sat, 10 Oct 2026 19:24:57 +0800
+From: Enze Li <lienze@kylinos.cn>
+Subject: mm/hugetlb: prefix log messages via pr_fmt
+Date: Sat, 10 Oct 2026 17:23:33 +0800
 
-Commit c594b83457cc ("arm64: mm: call pagetable dtor when freeing
-hot-removed page tables") made free_hotplug_pgtable_page()
-unconditionally run the page-table destructor. This matches page tables
-allocated by the arm64 mapping code, which runs the corresponding
-constructors.
+Pretty much every pr_* message in this file starts with "HugeTLB: ", typed
+out by hand, and one of them even drifted to lowercase ("hugetlb:"). 
+hugetlb_vmemmap.c already handles this with pr_fmt, so let's do the same
+here instead of repeating the prefix over and over.
 
-However, arm64 also uses the generic sparse-vmemmap population code.
-Runtime intermediate page tables allocated by that code do not run a
-page-table constructor. Freeing one during memory hot-remove therefore
-runs a destructor without a matching constructor and corrupts
-NR_PAGETABLE accounting.
+The output stays the same for almost everything; the only tweaks are that
+the lowercase message now matches the others, and the ratelimited "killed
+due to inadequate hugepage pool" warning picks up the prefix like
+everything else.
 
-Free intermediate page-table pages through pagetable_free(). It runs the
-destructor only for constructor-backed pages and then releases the page
-through the page-table freeing path.
-
-Link: https://lore.kernel.org/20261010112457.49485-5-songmuchun@bytedance.com
-Fixes: c594b83457cc ("arm64: mm: call pagetable dtor when freeing hot-removed page tables")
-Signed-off-by: Muchun Song <muchun.song@linux.dev>
+Link: https://lore.kernel.org/20261010092333.137126-1-lienze@kylinos.cn
+Signed-off-by: Enze Li <lienze@kylinos.cn>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Assisted-by: LLM
-Cc: David Hildenbrand <david@kernel.org>
+Acked-by: Muchun Song <muchun.song@linux.dev>
 Cc: Oscar Salvador <osalvador@suse.de>
-Cc: Dave Hansen <dave.hansen@intel.com>
-Cc: Paul Walmsley <pjw@kernel.org>
-Cc: Palmer Dabbelt <palmer@dabbelt.com>
-Cc: Albert Ou <aou@eecs.berkeley.edu>
-Cc: Alexandre Ghiti <alex@ghiti.fr>
-Cc: Björn Töpel <bjorn@rivosinc.com>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Will Deacon <will@kernel.org>
-Cc: Mark Rutland <mark.rutland@arm.com>
-Cc: Kevin Brodsky <kevin.brodsky@arm.com>
-Cc: Alexander Gordeev <agordeev@linux.ibm.com>
-Cc: Alistair Popple <apopple@nvidia.com>
-Cc: <stable@vger.kernel.org>
+Cc: David Hildenbrand <david@kernel.org>
+Cc: Enze Li <enze.li@gmx.com>
 ---
 
- arch/arm64/mm/mmu.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ mm/hugetlb.c |   52 +++++++++++++++++++++++++------------------------
+ 1 file changed, 27 insertions(+), 25 deletions(-)
 
---- a/arch/arm64/mm/mmu.c~arm64-mm-fix-destructor-for-unconstructed-hotplug-page-tables
-+++ a/arch/arm64/mm/mmu.c
-@@ -1495,8 +1495,7 @@ static void free_hotplug_page_range(stru
+--- a/mm/hugetlb.c~mm-hugetlb-prefix-log-messages-via-pr_fmt
++++ a/mm/hugetlb.c
+@@ -3,6 +3,8 @@
+  * Generic hugetlb support.
+  * (C) Nadia Yvette Chambers, April 2004
+  */
++#define pr_fmt(fmt)	"HugeTLB: " fmt
++
+ #include <linux/list.h>
+ #include <linux/init.h>
+ #include <linux/mm.h>
+@@ -458,7 +460,7 @@ static void hugetlb_vma_lock_alloc(struc
+ 		 * until the file is removed.  Warn in the unlikely case of
+ 		 * allocation failure.
+ 		 */
+-		pr_warn_once("HugeTLB: unable to allocate vma specific lock\n");
++		pr_warn_once("unable to allocate vma specific lock\n");
+ 		return;
+ 	}
  
- static void free_hotplug_pgtable_page(struct page *page)
- {
--	pagetable_dtor(page_ptdesc(page));
--	free_hotplug_page_range(page, PAGE_SIZE, NULL);
-+	pagetable_free(page_ptdesc(page));
+@@ -987,7 +989,7 @@ void hugetlb_fix_reserve_counts(struct i
+ 	}
+ 
+ 	if (!reserved)
+-		pr_warn("hugetlb: Huge Page Reserved count may go negative.\n");
++		pr_warn("Huge Page Reserved count may go negative.\n");
  }
  
- static bool pgtable_range_aligned(unsigned long start, unsigned long end,
+ /*
+@@ -3419,7 +3421,7 @@ static unsigned long __init hugetlb_free
+ 		char buf[32];
+ 
+ 		string_get_size(huge_page_size(h), 1, STRING_UNITS_2, buf, sizeof(buf));
+-		pr_warn("HugeTLB: freed %lu cross-zone hugepages of size %s on node %d.\n",
++		pr_warn("freed %lu cross-zone hugepages of size %s on node %d.\n",
+ 			freed, buf, nid);
+ 	}
+ 
+@@ -3465,7 +3467,7 @@ static void __init hugetlb_hstate_alloc_
+ 		return;
+ 
+ 	string_get_size(huge_page_size(h), 1, STRING_UNITS_2, buf, 32);
+-	pr_warn("HugeTLB: allocating %u of page size %s failed node%d.  Only allocated %lu hugepages.\n",
++	pr_warn("allocating %u of page size %s failed node%d.  Only allocated %lu hugepages.\n",
+ 		h->max_huge_pages_node[nid], buf, nid, i);
+ 	h->max_huge_pages -= (h->max_huge_pages_node[nid] - i);
+ 	h->max_huge_pages_node[nid] = i;
+@@ -3492,7 +3494,7 @@ static void __init hugetlb_hstate_alloc_
+ 		char buf[32];
+ 
+ 		string_get_size(huge_page_size(h), 1, STRING_UNITS_2, buf, 32);
+-		pr_warn("HugeTLB: allocating %lu of page size %s failed.  Only allocated %lu hugepages.\n",
++		pr_warn("allocating %lu of page size %s failed.  Only allocated %lu hugepages.\n",
+ 			h->max_huge_pages, buf, allocated);
+ 		h->max_huge_pages = allocated;
+ 	}
+@@ -3607,7 +3609,7 @@ static unsigned long __init hugetlb_page
+ 
+ 	jiffies_end = jiffies;
+ 
+-	pr_info("HugeTLB: allocation took %dms with hugepage_allocation_threads=%ld\n",
++	pr_info("allocation took %dms with hugepage_allocation_threads=%ld\n",
+ 		jiffies_to_msecs(jiffies_end - jiffies_start),
+ 		hugepage_allocation_threads);
+ 
+@@ -3635,7 +3637,7 @@ static void __init hugetlb_hstate_alloc_
+ 	 */
+ 	if (hstate_is_gigantic(h) && hugetlb_cma_total_size() &&
+ 	    !hugetlb_early_cma(h)) {
+-		pr_warn_once("HugeTLB: hugetlb_cma is enabled, skip boot time allocation\n");
++		pr_warn_once("hugetlb_cma is enabled, skip boot time allocation\n");
+ 		return;
+ 	}
+ 
+@@ -3703,9 +3705,9 @@ static void __init report_hugepages(void
+ 		char buf[32];
+ 
+ 		string_get_size(huge_page_size(h), 1, STRING_UNITS_2, buf, 32);
+-		pr_info("HugeTLB: registered %s page size, pre-allocated %ld pages\n",
++		pr_info("registered %s page size, pre-allocated %ld pages\n",
+ 			buf, h->nr_huge_pages);
+-		pr_info("HugeTLB: %d KiB vmemmap can be freed for a %s page\n",
++		pr_info("%d KiB vmemmap can be freed for a %s page\n",
+ 			hugetlb_vmemmap_optimizable_size(h) / SZ_1K, buf);
+ 	}
+ }
+@@ -4045,7 +4047,7 @@ long demote_pool_huge_page(struct hstate
+ 
+ 	/* We should never get here if no demote order */
+ 	if (!src->demote_order) {
+-		pr_warn("HugeTLB: NULL demote order passed to demote_pool_huge_page.\n");
++		pr_warn("NULL demote order passed to demote_pool_huge_page.\n");
+ 		return -EINVAL;		/* internal error */
+ 	}
+ 	dst = size_to_hstate(PAGE_SIZE << src->demote_order);
+@@ -4190,7 +4192,7 @@ static int __init hugetlb_init(void)
+ 
+ 	if (!hugepages_supported()) {
+ 		if (hugetlb_max_hstate || default_hstate_max_huge_pages)
+-			pr_warn("HugeTLB: huge pages not supported, ignoring associated command-line parameters\n");
++			pr_warn("huge pages not supported, ignoring associated command-line parameters\n");
+ 		return 0;
+ 	}
+ 
+@@ -4215,9 +4217,9 @@ static int __init hugetlb_init(void)
+ 
+ 				string_get_size(huge_page_size(&default_hstate),
+ 					1, STRING_UNITS_2, buf, 32);
+-				pr_warn("HugeTLB: Ignoring hugepages=%lu associated with %s page size\n",
++				pr_warn("Ignoring hugepages=%lu associated with %s page size\n",
+ 					default_hstate.max_huge_pages, buf);
+-				pr_warn("HugeTLB: Using hugepages=%lu for number of default huge pages\n",
++				pr_warn("Using hugepages=%lu for number of default huge pages\n",
+ 					default_hstate_max_huge_pages);
+ 			}
+ 			default_hstate.max_huge_pages =
+@@ -4357,12 +4359,12 @@ static int __init hugepages_setup(char *
+ 	char *p = s;
+ 
+ 	if (!hugepages_supported()) {
+-		pr_warn("HugeTLB: hugepages unsupported, ignoring hugepages=%s cmdline\n", s);
++		pr_warn("hugepages unsupported, ignoring hugepages=%s cmdline\n", s);
+ 		return 0;
+ 	}
+ 
+ 	if (!parsed_valid_hugepagesz) {
+-		pr_warn("HugeTLB: hugepages=%s does not follow a valid hugepagesz, ignoring\n", s);
++		pr_warn("hugepages=%s does not follow a valid hugepagesz, ignoring\n", s);
+ 		parsed_valid_hugepagesz = true;
+ 		return -EINVAL;
+ 	}
+@@ -4379,7 +4381,7 @@ static int __init hugepages_setup(char *
+ 		mhp = &parsed_hstate->max_huge_pages;
+ 
+ 	if (mhp == last_mhp) {
+-		pr_warn("HugeTLB: hugepages= specified twice without interleaving hugepagesz=, ignoring hugepages=%s\n", s);
++		pr_warn("hugepages= specified twice without interleaving hugepagesz=, ignoring hugepages=%s\n", s);
+ 		return 1;
+ 	}
+ 
+@@ -4390,7 +4392,7 @@ static int __init hugepages_setup(char *
+ 		/* Parameter is node format */
+ 		if (p[count] == ':') {
+ 			if (!hugetlb_node_alloc_supported()) {
+-				pr_warn("HugeTLB: architecture can't support node specific alloc, ignoring!\n");
++				pr_warn("architecture can't support node specific alloc, ignoring!\n");
+ 				return 1;
+ 			}
+ 			if (tmp >= MAX_NUMNODES || !node_online(tmp))
+@@ -4423,7 +4425,7 @@ static int __init hugepages_setup(char *
+ 	return 0;
+ 
+ invalid:
+-	pr_warn("HugeTLB: Invalid hugepages parameter %s\n", p);
++	pr_warn("Invalid hugepages parameter %s\n", p);
+ 	hugepages_clear_pages_in_node();
+ 	return -EINVAL;
+ }
+@@ -4442,7 +4444,7 @@ static int __init hugepagesz_setup(char
+ 	struct hstate *h;
+ 
+ 	if (!hugepages_supported()) {
+-		pr_warn("HugeTLB: hugepages unsupported, ignoring hugepagesz=%s cmdline\n", s);
++		pr_warn("hugepages unsupported, ignoring hugepagesz=%s cmdline\n", s);
+ 		return 0;
+ 	}
+ 
+@@ -4450,7 +4452,7 @@ static int __init hugepagesz_setup(char
+ 	size = (unsigned long)memparse(s, NULL);
+ 
+ 	if (!arch_hugetlb_valid_size(size)) {
+-		pr_err("HugeTLB: unsupported hugepagesz=%s\n", s);
++		pr_err("unsupported hugepagesz=%s\n", s);
+ 		return -EINVAL;
+ 	}
+ 
+@@ -4465,7 +4467,7 @@ static int __init hugepagesz_setup(char
+ 		 */
+ 		if (!parsed_default_hugepagesz ||  h != &default_hstate ||
+ 		    default_hstate.max_huge_pages) {
+-			pr_warn("HugeTLB: hugepagesz=%s specified twice, ignoring\n", s);
++			pr_warn("hugepagesz=%s specified twice, ignoring\n", s);
+ 			return -EINVAL;
+ 		}
+ 
+@@ -4495,21 +4497,21 @@ static int __init default_hugepagesz_set
+ 	int i;
+ 
+ 	if (!hugepages_supported()) {
+-		pr_warn("HugeTLB: hugepages unsupported, ignoring default_hugepagesz=%s cmdline\n",
++		pr_warn("hugepages unsupported, ignoring default_hugepagesz=%s cmdline\n",
+ 			s);
+ 		return 0;
+ 	}
+ 
+ 	parsed_valid_hugepagesz = false;
+ 	if (parsed_default_hugepagesz) {
+-		pr_err("HugeTLB: default_hugepagesz previously specified, ignoring %s\n", s);
++		pr_err("default_hugepagesz previously specified, ignoring %s\n", s);
+ 		return -EINVAL;
+ 	}
+ 
+ 	size = (unsigned long)memparse(s, NULL);
+ 
+ 	if (!arch_hugetlb_valid_size(size)) {
+-		pr_err("HugeTLB: unsupported default_hugepagesz=%s\n", s);
++		pr_err("unsupported default_hugepagesz=%s\n", s);
+ 		return -EINVAL;
+ 	}
+ 
+@@ -4774,7 +4776,7 @@ static void hugetlb_vm_op_open(struct vm
+ 				vma->vm_private_data = NULL;
+ 				hugetlb_vma_lock_alloc(vma);
+ 			} else {
+-				pr_warn("HugeTLB: vma_lock already exists in %s.\n", __func__);
++				pr_warn("vma_lock already exists in %s.\n", __func__);
+ 			}
+ 		} else {
+ 			hugetlb_vma_lock_alloc(vma);
 _
 
-Patches currently in -mm which might be from muchun.song@linux.dev are
+Patches currently in -mm which might be from lienze@kylinos.cn are
 
-mm-sparse-vmemmap-drop-vmemmap_populate_dax.patch
-mm-sparse-vmemmap-support-device-dax-in-common-vmemmap-path.patch
-mm-sparse-vmemmap-drop-device-dax-specific-population-path.patch
-mm-sparse-vmemmap-remove-the-unused-ptpfn-argument.patch
-mm-sparse-vmemmap-open-code-vmemmap_populate_address.patch
-mm-mm_init-add-zone-mismatch-warning-during-page-init.patch
-mm-fix-missing-page-table-destructor-in-pagetable_free.patch
-riscv-mm-fix-hotplug-page-table-destructor-handling.patch
-riscv-mm-fix-missing-destructor-for-hotplug-pud-tables.patch
-arm64-mm-fix-destructor-for-unconstructed-hotplug-page-tables.patch
+maintainers-cover-all-hugetlb-headers-under-hugetlb-subsystem.patch
+mm-hugetlb_cgroup-add-trailing-endif-comment-for-include-guard.patch
+docs-hugetlbpagerst-fix-typo-in-per-node-attribute-description.patch
+mm-hugetlb-prefix-log-messages-via-pr_fmt.patch
 
