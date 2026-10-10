@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8BA2238E13F
-	for <mm-commits@vger.kernel.org>; Sat, 10 Oct 2026 21:39:48 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6F0DF376A17
+	for <mm-commits@vger.kernel.org>; Sat, 10 Oct 2026 21:39:51 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791668390; cv=none; b=h1W6nbAz63SakekB5A84V6yGQc3tHr7AMQQSiN2HV3ihcIoGOcGBAyp0OfNeN48yYJqLE5L2FFos0js9XouQwa2ToUCvMUBIIdJWdonSND0jdopBZpxk1muAPb8ADWtfCj8Ko8pEzRgV1XyFcz92aYLXHgBi70uyq1sj71v0Lew=
+	t=1791668393; cv=none; b=SBUcdQNZEMRTfEb7fW/N5abik63YBMFQ8Ba9nut7GhZMs6UwYLiyeAAMgXu6aScTIRRxonxdb/0xw4W1kt6sZPwr8BTQCL4QMBfuDrj2nW2SGIN6VyDqdE+DSplCzoNh8mi92FN9fYFFvxkJrf32hlzAw5Qc5jZ/vqAymm8fXwo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791668390; c=relaxed/simple;
-	bh=R8t6Qb2dNj+tYFpTpwD6Jv9FGN/auk24fsTlBoPw5yE=;
-	h=Date:To:From:Subject:Message-Id; b=q79nWcyF43bj8nxGYA4ogWsqlR8/b6twFgkI9D2zIj6a9PwTX5PO7HPsvw8WQdb993kn0MoX2lXCCTwUJhPZ+QTHiTj8qJVzX5rUz14ew0KYnRhLxOK/hVH9uPMEGTsMOkb7BZx9b/0DIGEoxDnEL1PnfiLpqgDLdD2jyPS4e0A=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=BOFRXBu9; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1791668393; c=relaxed/simple;
+	bh=i2SPD7/dH4Q2mCvripIeVw0bAn0tCvgPano9DaszQZw=;
+	h=Date:To:From:Subject:Message-Id; b=FwJA3Com0NIuPEfasuCr7p6RUKkA/SRab0GIa/pS/4XXBB8bFlwJAgTRC7WPDW48F3Hv0VZfuyb0XrvlubHH8lNYS6zr5o3cHvP0rz5Xm/KSeYcBwjTzixcNlO6x0tAAa9DluoT0xv00jDYQITKKWzUL2I+Y6vbK/OAwJSfJ4aI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=SCBZ5dl/; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="BOFRXBu9"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 175FF1F00898;
-	Sat, 10 Oct 2026 21:39:48 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="SCBZ5dl/"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 456091F00893;
+	Sat, 10 Oct 2026 21:39:51 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1791668388;
-	bh=co8qC0lVaaA3EtYLKSA1cxSZKVszrEbeGzY9p18qWdU=;
+	d=linux-foundation.org; s=korg; t=1791668391;
+	bh=5O1g4yBQKltgG3Lyll4Ck7rc2kLDHTbPOCroxHe0f1A=;
 	h=Date:To:From:Subject;
-	b=BOFRXBu9K3lo/ELzKYst3dt41xRQGISFALJiI716cgzyHPNFyts5sH/8uNXMBwpQD
-	 EYqY8Rwhgct919EPsZt4tyJ6rFs7wa+a+3WV46rtUNGAFuN6+YN6QpBCSk9B5ThNhU
-	 BFrNejn4vAA3kVtxo+hNGVPjD7bvZXqOnljDycEg=
-Date: Sat, 10 Oct 2026 14:39:47 -0700
+	b=SCBZ5dl/ylo9FnGuUhd5eQ5UmPIk68gnXbXvallsQ0homGn9ayE/ZLyiLL8IyJC7f
+	 pBXuJkHlMi2XPw87rblSLdSFWdojAU4H3Vo6ZHuyQj+v7FXhnPHdk7L49btt9jg9Qs
+	 FRBvkJMW9E+kicIWFxV1SOdclMQqOiizFfEQkmGA=
+Date: Sat, 10 Oct 2026 14:39:50 -0700
 To: mm-commits@vger.kernel.org,ljs@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [to-be-updated] mm-mlock-clear-vma_locked_mask-over-mmap-callback.patch removed from -mm tree
-Message-Id: <20261010213948.175FF1F00898@smtp.kernel.org>
+Subject: [to-be-updated] mm-vma-enforce-that-mm-managed-mappings-may-not-set-vma_io_bit.patch removed from -mm tree
+Message-Id: <20261010213951.456091F00893@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,37 +35,28 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/mlock: clear VMA_LOCKED_MASK over mmap callback
+     Subject: mm/vma: enforce that mm-managed mappings may not set VMA_IO_BIT
 has been removed from the -mm tree.  Its filename was
-     mm-mlock-clear-vma_locked_mask-over-mmap-callback.patch
+     mm-vma-enforce-that-mm-managed-mappings-may-not-set-vma_io_bit.patch
 
 This patch was dropped because an updated version will be issued
 
 ------------------------------------------------------
 From: "Lorenzo Stoakes (ARM)" <ljs@kernel.org>
-Subject: mm/mlock: clear VMA_LOCKED_MASK over mmap callback
-Date: Sat, 03 Oct 2026 17:32:53 +0100
+Subject: mm/vma: enforce that mm-managed mappings may not set VMA_IO_BIT
+Date: Sat, 03 Oct 2026 17:32:55 +0100
 
-Currently there's a confusing mess around VMA_LOCKED_BIT and
-VMA_LOCKONFAULT_BIT.
+It makes no sense for a mapping whose contents the kernel does not own to
+specify that the range is MMIO.
 
-It is permitted for drivers to set any flags they like, with the VMA
-already possessing lock flags.
+Prior to this patch, all in-tree drivers which did so have been updated
+such that they are marked as not being mm-managed. The check WARNs and
+fails the mmap for any out-of-tree driver that still sets VMA_IO_BIT
+without a kernel mapping.
 
-This results in the absurd situation of a VMA possessing both
-VMA_SPECIAL_FLAGS and VMA_LOCKED_MASK flags, which is not permitted.
+No functional change intended for in-tree code.
 
-This has resulted in mlock_vma_folio() having a very silly check for this
-scenario to work around it.
-
-There is no need for this - just clear the flags before invoking the hook
-and reinstate them afterwards if they are required.
-
-Nothing relies upon this being set during the mmap operation.
-
-mmap_prepare is unaffected by this so requires no fix.
-
-Link: https://lore.kernel.org/20261003-b4-mmap-prepare-vma-flag-sanify-v4-22-a1f052500fd7@kernel.org
+Link: https://lore.kernel.org/20261003-b4-mmap-prepare-vma-flag-sanify-v4-24-a1f052500fd7@kernel.org
 Signed-off-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 Reviewed-by: Zi Yan <ziy@nvidia.com>
@@ -177,67 +168,28 @@ Cc: Miklos Szeredi <miklos@szeredi.hu>
 Cc: Xu Xin <xu.xin@linux.dev>
 ---
 
- mm/internal.h |    9 +--------
- mm/vma.c      |   17 +++++++++++++++++
- 2 files changed, 18 insertions(+), 8 deletions(-)
+ mm/vma.c |    6 ++++++
+ 1 file changed, 6 insertions(+)
 
---- a/mm/internal.h~mm-mlock-clear-vma_locked_mask-over-mmap-callback
-+++ a/mm/internal.h
-@@ -970,14 +970,7 @@ void mlock_folio(struct folio *folio);
- static inline void mlock_vma_folio(struct folio *folio,
- 				struct vm_area_struct *vma)
- {
--	/*
--	 * The VM_SPECIAL check here serves two purposes.
--	 * 1) VM_IO check prevents migration from double-counting during mlock.
--	 * 2) Although mmap_region() and mlock_fixup() take care that VM_LOCKED
--	 *    is never left set on a VM_SPECIAL vma, there is an interval while
--	 *    file->f_op->mmap() is using vm_insert_page(s), when VM_LOCKED may
--	 *    still be set while VM_SPECIAL bits are added: so ignore it then.
--	 */
-+	/* The VM_IO check prevents migration from double-counting during mlock. */
- 	if (unlikely((vma->vm_flags & (VM_LOCKED|VM_SPECIAL)) == VM_LOCKED))
- 		mlock_folio(folio);
- }
---- a/mm/vma.c~mm-mlock-clear-vma_locked_mask-over-mmap-callback
+--- a/mm/vma.c~mm-vma-enforce-that-mm-managed-mappings-may-not-set-vma_io_bit
 +++ a/mm/vma.c
-@@ -2622,6 +2622,11 @@ static int __mmap_new_file_vma(struct mm
- 	if (!map->vm_file->f_op->mmap)
- 		return 0;
+@@ -2811,6 +2811,12 @@ static int mmap_validate_vma_flags(const
+ 		return -EINVAL;
+ #endif
  
-+	/*
-+	 * Driver-specified flags may make the lock flags invalid, so clear
-+	 * VMA_LOCKED_MASK and reinstate it afterwards if appropriate.
-+	 */
-+	vma_clear_flags_mask(vma, VMA_LOCKED_MASK);
- 	error = mmap_file(vma->vm_file, vma);
- 	map->vm_file = vma->vm_file;
- 
-@@ -2644,6 +2649,18 @@ static int __mmap_new_file_vma(struct mm
- 		return error;
- 	}
- 
-+	/*
-+	 * If the VMA is still eligible for mlock(), reinstate any original
-+	 * VMA_LOCKED_BIT and/or VMA_LOCKONFAULT_BIT flags.
-+	 */
-+	if (vma_supports_mlock(vma)) {
-+		const vma_flags_t mask =
-+			vma_flags_and_mask(&map->vma_flags,
-+					   VMA_LOCKED_MASK);
-+
-+		vma_set_flags_mask(vma, mask);
++	if (!vma_flags_test_any(flags, VMA_PFNMAP_BIT, VMA_MIXEDMAP_BIT)) {
++		/* mm-managed mappings may not set VMA_IO_BIT. */
++		if (WARN_ON_ONCE(vma_flags_test(flags, VMA_IO_BIT)))
++			return -EINVAL;
 +	}
 +
- 	map->vma_flags = vma->flags;
- 
  	return 0;
+ }
+ 
 _
 
 Patches currently in -mm which might be from ljs@kernel.org are
 
-mm-mlock-eliminate-weird-vma_io_bit-abuse-and-simplify.patch
-mm-vma-enforce-that-mm-managed-mappings-may-not-set-vma_io_bit.patch
 mm-remove-vma_io_bit-check-in-vma_is_mm_managed.patch
 mm-remove-hugetlb_inlineh.patch
 mm-rename-is_vm_hugetlb_page-to-vma_is_hugetlb.patch
