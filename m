@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0D4B238AC78
-	for <mm-commits@vger.kernel.org>; Sat, 10 Oct 2026 21:39:38 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id ECFBA38DC7A
+	for <mm-commits@vger.kernel.org>; Sat, 10 Oct 2026 21:39:41 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791668383; cv=none; b=nML+YJln5OfZZIrSW9tvdOW6SScxxaKB/M556/V0NGzi/H7Ff1kv7a48QsoyaPMSi1YAY64de70IGzZHXr6BKzXORLlSTwaFXpoL3rOYKVs0Sy6qey7+zt6yGzaQ4DxHmWmFFMZ6Q6Tjc18wMpduAY7RcjN6KcRe+3oqNf47BSw=
+	t=1791668383; cv=none; b=rwe2qQpN7+kx0weuelr4gD6dfAsovG+Bb9q/bMmjWGge8/DqpMjB6SmhGlfBr7UtPd9U01djyIPCVKKqpAMcvFtO0DXi6bcd5aRsFea/RJnAVURMI7SE5F2bGcftQQYZ7nTqs2zWQ7i81gJKx8hxiYc2OuxDogn2E43RXuUzZHE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1791668383; c=relaxed/simple;
-	bh=RR83JOPfkPSHPvQUuiqugsfcUNEt/ZyZjEEYkVECOyo=;
-	h=Date:To:From:Subject:Message-Id; b=jnOv3wG8hnCY7WfPhOXP+HBsgdeGoO5TZadSlPIo/vNUz2Vd9niKWr7jguUB5KlSV3z26p7JDJpXusgodgbNpNz4CKI9yHdfTp+DfZoBKsAaNc4MzvjI90t4kXj6Ea1Up0fqPCwhsPjYEo59lx/yKQJVgdX9687Txb7FZDZ7tGg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=r7WhGMXI; arc=none smtp.client-ip=100.103.45.18
+	bh=d295GXecZI2DxdK6zW8tRK+170GXYDLjES/DGJcwxhk=;
+	h=Date:To:From:Subject:Message-Id; b=rj1p87TE7n/oU5CZWeygzFEbkYGtjqG/U80LLIR/68qcA2P1Dsem2Kp+EIb+rFS3iUHYIBjt6+sCznx65BNMXuL4gLxVz4Tz9JSTh1tCuZevaaS0laggM3nVPlai8xHVJHWFu86PwwBghq9oJuyx1DQClipAJCPOPAR6LvfiiJg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=zI9BBiLK; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="r7WhGMXI"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9CE2D1F00899;
-	Sat, 10 Oct 2026 21:39:38 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="zI9BBiLK"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C33B31F00893;
+	Sat, 10 Oct 2026 21:39:41 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1791668378;
-	bh=d1Iwunrv3fzRBNxfqUjYqBZ4lzrhrzOhra+a4YGrVlg=;
+	d=linux-foundation.org; s=korg; t=1791668381;
+	bh=5056g/ohRLMVK+ujANMsfROhX/yqXIgu5Bw4OMtTzJ0=;
 	h=Date:To:From:Subject;
-	b=r7WhGMXIW2Ng1y9SIJZXh+9raizXqpxo4C4rp2gJweg25zJNpPMkeWUq6XQAOt4sk
-	 Wu17nb4mZeRdH2vZa5Bg2TlRkQXT4jwvDAq0kYW/WEXmqrbpoc1Aae8G3vgIFKW80M
-	 0uCMFPz2e3PCRcCXrZKPeugYONC40WniFGJ7vU9E=
-Date: Sat, 10 Oct 2026 14:39:38 -0700
+	b=zI9BBiLKpFwPIxQjOkywd2bvWMSDTiNIBV0GPEtsC1+bRayCfVi66aeiCSr4Po4I/
+	 tkznLuyl4bZq/h4BBx64xLA5nzFnhVdVXdljmn6QGm7fiQ96AYTGNttOomNoltYbS7
+	 G7JDMAzPvQEI8gJ2LD0XSfHAHRxlwp2sbiGmB8VU=
+Date: Sat, 10 Oct 2026 14:39:41 -0700
 To: mm-commits@vger.kernel.org,ljs@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [to-be-updated] mm-vma-add-and-use-vma__is_fixed_mapping.patch removed from -mm tree
-Message-Id: <20261010213938.9CE2D1F00899@smtp.kernel.org>
+Subject: [to-be-updated] fbdev-defio-assert-fbinfo_virtfb-drop-vm_io-add-vm_mixedmap.patch removed from -mm tree
+Message-Id: <20261010213941.C33B31F00893@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,47 +35,37 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/vma: add and use vma_[flags]_is_fixed_mapping
+     Subject: fbdev: defio: assert FBINFO_VIRTFB, drop VM_IO, add VM_MIXEDMAP
 has been removed from the -mm tree.  Its filename was
-     mm-vma-add-and-use-vma__is_fixed_mapping.patch
+     fbdev-defio-assert-fbinfo_virtfb-drop-vm_io-add-vm_mixedmap.patch
 
 This patch was dropped because an updated version will be issued
 
 ------------------------------------------------------
 From: "Lorenzo Stoakes (ARM)" <ljs@kernel.org>
-Subject: mm/vma: add and use vma_[flags]_is_fixed_mapping
-Date: Sat, 03 Oct 2026 17:32:47 +0100
+Subject: fbdev: defio: assert FBINFO_VIRTFB, drop VM_IO, add VM_MIXEDMAP
+Date: Sat, 03 Oct 2026 17:32:49 +0100
 
-This determines whether a VMA cannot be expanded or merged because what
-they mapped was determined to be a set size at mmap time.
+Currently all drivers which use defio allocate system memory. All of them
+also set FBINFO_VIRTFB, other than ssd1307fb, however this driver allocates
+system RAM, so simply failed to set this flag when it ought to.
 
-This typically refers to mappings not managed by core mm, however
-VMA_DONTEXPAND_BIT
-is not reliably set alongside VMA_PFNMAP_BIT or VMA_MIXEDMAP_BIT, so we
-must explicitly test for this for now.
+This patch sets FBINFO_VIRTFB on ssd1307fb probe, then drops setting VM_IO
+in fb_deferred_io_mmap() and instead requires FBINFO_VIRTFB to be set,
+erroring out with a kernel warning if not.
 
-We also explicitly test for VMA_PFNMAP_BIT as VMA_DONTEXPAND_BIT may not be
-set for VMA_PFNMAP_BIT's despite the one implying the other.
+The logic requires a page from the driver and since commit 1ecbc7dd2902
+("fbdev/deferred-io: Always call get_page() for framebuffer pages") has
+always required it to be refcounted, so this was implicitly already the
+case.
 
-Use this predicate in vma_flags_can_merge() and in check_prep_vma() in the
-mremap logic testing to see if mremap() can expand the VMA. The criteria
-for khugepaged and MADV_COLLAPSE eligibility in
-__thp_vma_allowable_orders() are precisely those for mergeability, so use
-vma_can_merge() there (with an expanded comment).
+Finally this patch sets VM_MIXEDMAP, as the logic is mapping
+kernel-allocated memory so this is appropriate.
 
-This obviates the need for the VM_NO_KHUGEPAGED mask, so remove it.
-
-Hugetlb VMAs remain excluded from khugepaged as hugetlbfs always sets
-VMA_DONTEXPAND_BIT.
-
-Also update the userland VMA tests to reflect the change.
-
-No functional change intended.
-
-Link: https://lore.kernel.org/20261003-b4-mmap-prepare-vma-flag-sanify-v4-16-a1f052500fd7@kernel.org
+Link: https://lore.kernel.org/20261003-b4-mmap-prepare-vma-flag-sanify-v4-18-a1f052500fd7@kernel.org
 Signed-off-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Reviewed-by: Zi Yan <ziy@nvidia.com>
+Reviewed-by: Thomas Zimmermann <tzimmermann@suse.de>
 Reviewed-by: Suren Baghdasaryan <surenb@google.com>
 Cc: Liam R. Howlett <liam@infradead.org>
 Cc: Vlastimil Babka <vbabka@kernel.org>
@@ -98,6 +88,7 @@ Cc: Daniel Borkmann <daniel@iogearbox.net>
 Cc: Andrii Nakryiko <andrii@kernel.org>
 Cc: Eduard Zingerman <eddyz87@gmail.com>
 Cc: Kumar Kartikeya Dwivedi <memxor@gmail.com>
+Cc: Zi Yan <ziy@nvidia.com>
 Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
 Cc: Nico Pache <nico.pache@linux.dev>
 Cc: Ryan Roberts <ryan.roberts@arm.com>
@@ -130,7 +121,6 @@ Cc: Juri Lelli <juri.lelli@redhat.com>
 Cc: Vincent Guittot <vincent.guittot@linaro.org>
 Cc: Maarten Lankhorst <maarten.lankhorst@linux.intel.com>
 Cc: Maxime Ripard <mripard@kernel.org>
-Cc: Thomas Zimmermann <tzimmermann@suse.de>
 Cc: David Airlie <airlied@gmail.com>
 Cc: Will Deacon <will@kernel.org>
 Cc: Aneesh Kumar K.V <aneesh.kumar@kernel.org>
@@ -184,154 +174,44 @@ Cc: Miklos Szeredi <miklos@szeredi.hu>
 Cc: Xu Xin <xu.xin@linux.dev>
 ---
 
- include/linux/mm.h              |   39 ++++++++++++++++++++++++++----
- mm/huge_memory.c                |   11 +++++---
- mm/mremap.c                     |    5 +--
- tools/testing/vma/include/dup.h |   16 +++++++++++-
- 4 files changed, 59 insertions(+), 12 deletions(-)
+ drivers/video/fbdev/core/fb_defio.c |    6 +++---
+ drivers/video/fbdev/ssd1307fb.c     |    2 ++
+ 2 files changed, 5 insertions(+), 3 deletions(-)
 
---- a/include/linux/mm.h~mm-vma-add-and-use-vma__is_fixed_mapping
-+++ a/include/linux/mm.h
-@@ -601,9 +601,6 @@ enum {
- #define VMA_REMAP_FLAGS mk_vma_flags(VMA_IO_BIT, VMA_PFNMAP_BIT,	\
- 				     VMA_DONTEXPAND_BIT, VMA_DONTDUMP_BIT)
- 
--/* This mask prevents VMA from being scanned with khugepaged */
--#define VM_NO_KHUGEPAGED (VM_SPECIAL | VM_HUGETLB)
--
- /* This mask defines which mm->def_flags a process can inherit its parent */
- #define VM_INIT_DEF_MASK	VM_NOHUGEPAGE
- 
-@@ -1649,6 +1646,40 @@ static inline bool vma_is_mm_managed(con
- }
- 
- /**
-+ * vma_flags_is_fixed_mapping() - Do the specified VMA flags indicate that this
-+ * is a fixed mapping that cannot be expanded or merged?
-+ * @flags: The VMA flags to test.
-+ *
-+ * Fixed mappings are those whose size is set at the point of mmap (for
-+ * instance, a mapping of a fixed range of memory established by a driver),
-+ * and thus cannot be expanded or merged.
-+ *
-+ * Returns: true if the flags indicate a fixed mapping.
-+ */
-+static inline bool vma_flags_is_fixed_mapping(const vma_flags_t *flags)
-+{
-+	/*
-+	 * VMA_PFNMAP_BIT should imply VMA_DONTEXPAND_BIT, but some callers set
-+	 * only the former.
-+	 */
-+	return vma_flags_test_any(flags, VMA_PFNMAP_BIT, VMA_DONTEXPAND_BIT);
-+}
-+
-+/**
-+ * vma_is_fixed_mapping() - Is this VMA a fixed mapping that cannot be
-+ * expanded or merged?
-+ * @vma: The VMA to test.
-+ *
-+ * See vma_flags_is_fixed_mapping() for a description of this property.
-+ *
-+ * Returns: true if the VMA maps a fixed mapping.
-+ */
-+static inline bool vma_is_fixed_mapping(const struct vm_area_struct *vma)
-+{
-+	return vma_flags_is_fixed_mapping(&vma->flags);
-+}
-+
-+/**
-  * vma_flags_can_merge() - Do the specified VMA flags permit the VMA to be
-  * merged with another?
-  * @flags: The VMA flags to test.
-@@ -1669,7 +1700,7 @@ static inline bool vma_flags_can_merge(c
- 	if (!vma_flags_is_mm_managed(flags))
- 		return false;
- 	/* VMA explicitly marked as being unmergeable. */
--	if (vma_flags_test(flags, VMA_DONTEXPAND_BIT))
-+	if (vma_flags_is_fixed_mapping(flags))
- 		return false;
- 
- 	return true;
---- a/mm/huge_memory.c~mm-vma-add-and-use-vma__is_fixed_mapping
-+++ a/mm/huge_memory.c
-@@ -212,11 +212,14 @@ unsigned long __thp_vma_allowable_orders
- 		return in_pf ? orders : 0;
- 
- 	/*
--	 * khugepaged special VMA and hugetlb VMA.
--	 * Must be checked after dax since some dax mappings may have
--	 * VM_MIXEDMAP set.
-+	 * khugepaged moves data from VMAs once collapsed, after they have been
-+	 * faulted in, relying on refaulting for file-backed memory.
-+	 *
-+	 * Mappings not managed by core mm cannot be reliably reconstructed from
-+	 * page faults, and fixed mappings (including hugetlb) may well be
-+	 * mm-managed - precisely the mappings which cannot be merged.
- 	 */
--	if (!in_pf && !smaps && (vm_flags & VM_NO_KHUGEPAGED))
-+	if (!in_pf && !smaps && !vma_can_merge(vma))
- 		return 0;
- 
- 	/*
---- a/mm/mremap.c~mm-vma-add-and-use-vma__is_fixed_mapping
-+++ a/mm/mremap.c
-@@ -1822,8 +1822,7 @@ static int check_prep_vma(struct vma_rem
- 		return -EINVAL;
- 	}
- 
--	if ((vrm->flags & MREMAP_DONTUNMAP) &&
--	    vma_test_any(vma, VMA_DONTEXPAND_BIT, VMA_PFNMAP_BIT))
-+	if ((vrm->flags & MREMAP_DONTUNMAP) && vma_is_fixed_mapping(vma))
- 		return -EINVAL;
- 
- 	/*
-@@ -1861,7 +1860,7 @@ static int check_prep_vma(struct vma_rem
- 	if (pgoff + (new_len >> PAGE_SHIFT) < pgoff)
- 		return -EINVAL;
- 
--	if (vma_test_any(vma, VMA_DONTEXPAND_BIT, VMA_PFNMAP_BIT))
-+	if (vma_is_fixed_mapping(vma))
- 		return -EFAULT;
- 
- 	if (!mlock_future_ok(mm, vma_test(vma, VMA_LOCKED_BIT), vrm->delta))
---- a/tools/testing/vma/include/dup.h~mm-vma-add-and-use-vma__is_fixed_mapping
-+++ a/tools/testing/vma/include/dup.h
-@@ -1676,6 +1676,20 @@ static inline bool vma_is_mm_managed(con
- 	return vma_flags_is_mm_managed(&vma->flags);
- }
- 
-+static inline bool vma_flags_is_fixed_mapping(const vma_flags_t *flags)
-+{
-+	/*
-+	 * VMA_PFNMAP_BIT should imply VMA_DONTEXPAND_BIT, but some callers set
-+	 * only the former.
-+	 */
-+	return vma_flags_test_any(flags, VMA_PFNMAP_BIT, VMA_DONTEXPAND_BIT);
-+}
-+
-+static inline bool vma_is_fixed_mapping(const struct vm_area_struct *vma)
-+{
-+	return vma_flags_is_fixed_mapping(&vma->flags);
-+}
-+
- static inline bool vma_flags_can_merge(const vma_flags_t *flags)
+--- a/drivers/video/fbdev/core/fb_defio.c~fbdev-defio-assert-fbinfo_virtfb-drop-vm_io-add-vm_mixedmap
++++ a/drivers/video/fbdev/core/fb_defio.c
+@@ -366,13 +366,13 @@ int fb_deferred_io_mmap(struct fb_info *
  {
- 	/*
-@@ -1691,7 +1705,7 @@ static inline bool vma_flags_can_merge(c
- 	if (!vma_flags_is_mm_managed(flags))
- 		return false;
- 	/* VMA explicitly marked as being unmergeable. */
--	if (vma_flags_test(flags, VMA_DONTEXPAND_BIT))
-+	if (vma_flags_is_fixed_mapping(flags))
- 		return false;
+ 	vma->vm_page_prot = pgprot_decrypted(vma->vm_page_prot);
  
- 	return true;
++	if (WARN_ON_ONCE(!(info->flags & FBINFO_VIRTFB)))
++		return -EINVAL;
+ 	if (!try_module_get(THIS_MODULE))
+ 		return -EINVAL;
+ 
+ 	vma->vm_ops = &fb_deferred_io_vm_ops;
+-	vm_flags_set(vma, VM_DONTEXPAND | VM_DONTDUMP);
+-	if (!(info->flags & FBINFO_VIRTFB))
+-		vm_flags_set(vma, VM_IO);
++	vm_flags_set(vma, VM_MIXEDMAP | VM_DONTEXPAND | VM_DONTDUMP);
+ 	vma->vm_private_data = info->fbdefio_state;
+ 
+ 	fb_deferred_io_state_get(info->fbdefio_state); /* released in vma->vm_ops->close() */
+--- a/drivers/video/fbdev/ssd1307fb.c~fbdev-defio-assert-fbinfo_virtfb-drop-vm_io-add-vm_mixedmap
++++ a/drivers/video/fbdev/ssd1307fb.c
+@@ -767,6 +767,8 @@ static int ssd1307fb_probe(struct i2c_cl
+ 	info->fix.smem_start = __pa(vmem);
+ 	info->fix.smem_len = vmem_size;
+ 
++	info->flags = FBINFO_VIRTFB;
++
+ 	fb_deferred_io_init(info);
+ 
+ 	i2c_set_clientdata(client, info);
 _
 
 Patches currently in -mm which might be from ljs@kernel.org are
 
-scsi-sg-convert-mmap-hook-to-mmap_prepare-and-rework.patch
-fbdev-defio-assert-fbinfo_virtfb-drop-vm_io-add-vm_mixedmap.patch
 hsi-cmt_speech-convert-mmap-hook-to-mmap_prepare-refactor.patch
 mm-gup-error-out-early-on-vma_mayread_bit-vmas.patch
 uprobes-remove-vm_io-set-vm_mixedmap-for-mapped-kernel-pages.patch
