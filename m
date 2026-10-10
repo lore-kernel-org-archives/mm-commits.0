@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5A34837A49D
-	for <mm-commits@vger.kernel.org>; Sat, 10 Oct 2026 20:43:16 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 785C93624B8
+	for <mm-commits@vger.kernel.org>; Sat, 10 Oct 2026 20:43:18 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791664997; cv=none; b=ifYFKryNXsEzVjhqQOAUiDSFNnMwj5BTUGjzmowgBrx692m6WsoeiaXQGEHijDMlxTy9xiiiZ9+kSYJoJ0Il3SeviCNCN10ohCenmHsZt1VwyR/bGr334Bmqkg7eA9qJxX8CA1VVx26EJn1VjzdH+61eL/qKsVRaCzq6YudAsVs=
+	t=1791664999; cv=none; b=KbHDNDssRqIpRu4pXy8YfwuvHixTiNCUMKuWSJOoty8RBrOIDRnX7mbwq3Qo5HV8ycN+7xXE5b+QuVc6X5s6HBGo6vAifPKLoivSqm4h2FEpZS3w/oEx++G9bQXuJqKHc/nx/4BlS3ZWIM3Tmn96FHF0AKRmj4FxxzAJH6ZUI8o=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791664997; c=relaxed/simple;
-	bh=Dfq/ttQhCPy3SOugS4HKCDzhQyTJyI5Ob8BE+sAtm7M=;
-	h=Date:To:From:Subject:Message-Id; b=r89ra9Lyf4Gcvby2e59dvW6JN8NvSJwEAc2bhS9I4Q1D9wz0IZtGi2vfJ2IW3jTps+ieyPENEIUGEnVYTxF+xOBHAjwOBBYnffLtBMJx7z6f1J+tn7sS1LDgXRgOOzxHBpbRodZuVInSIANz9hhqIVXVrf5D0go3z+YkwC6jzkg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Es/ySiv0; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1791664999; c=relaxed/simple;
+	bh=mEMxkDOVXFKASz+H1pch6Mvy2gCoG7x451sJn7SCWDc=;
+	h=Date:To:From:Subject:Message-Id; b=LOHKdhu7Y7XCRYwTy74UTsxnhrNPMCPUEy5kXgysfK0h0XYf1trMVbR0H1j1yLKp8dtxE2GimWFSqiGSOPYLkkl2jfIAYYn6YzjoOXBGQOHDyCtkvqg+vtv3mErNMud6+zGfIyL6wrq/uiaOXxSrv8WZ8kitO2iBwKqvVpFKvEM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=nAySPSPY; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Es/ySiv0"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2AAE61F000FF;
-	Sat, 10 Oct 2026 20:43:16 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="nAySPSPY"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1165E1F000FF;
+	Sat, 10 Oct 2026 20:43:18 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1791664996;
-	bh=59x3ummQdTrdu9sJpGwhxI4wZFti5LvIAlJStUuqGZ4=;
+	d=linux-foundation.org; s=korg; t=1791664998;
+	bh=KRK04JyJjkZKbxkbDBPj1aVNN3WGZjIcTK3R12UTPsw=;
 	h=Date:To:From:Subject;
-	b=Es/ySiv0O93qndIFIy48hRSoCSf82GYil2zmb4rAzwFG7dDPG7aVjUb+m41ouqRjf
-	 mX+s78LJtlgQOhjuXFzEzsUMIFYI6iJcuyw5vwDnvD6X8fW/0/23uXy/3smDiwKl29
-	 XZ+ySWXzqryXwvRSoWNa5IyOkreVHyHv+y6UrFyU=
-Date: Sat, 10 Oct 2026 13:43:15 -0700
+	b=nAySPSPYIlGVdStEnKM+JLQhg1IsHfnsI9goDdo8VDOcGWb3tCZEaiFAfxAgnHdYz
+	 Xz9TupjwXq+THoyRePQG0VMwjDQ26VxidD9r2chIckBNfZkPE+nst94KAIsaBNHiPm
+	 0yT9o56ngmdZDtPe7WvSa21u/d0DlNRkTd/HmPOU=
+Date: Sat, 10 Oct 2026 13:43:17 -0700
 To: mm-commits@vger.kernel.org,muchun.song@linux.dev,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-sparse-vmemmap-remove-the-unused-ptpfn-argument.patch added to mm-unstable branch
-Message-Id: <20261010204316.2AAE61F000FF@smtp.kernel.org>
+Subject: + mm-sparse-vmemmap-open-code-vmemmap_populate_address.patch added to mm-unstable branch
+Message-Id: <20261010204318.1165E1F000FF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/sparse-vmemmap: remove the unused ptpfn argument
+     Subject: mm/sparse-vmemmap: open-code vmemmap_populate_address()
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-sparse-vmemmap-remove-the-unused-ptpfn-argument.patch
+     mm-sparse-vmemmap-open-code-vmemmap_populate_address.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-sparse-vmemmap-remove-the-unused-ptpfn-argument.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-sparse-vmemmap-open-code-vmemmap_populate_address.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,13 +59,18 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Muchun Song <muchun.song@linux.dev>
-Subject: mm/sparse-vmemmap: remove the unused ptpfn argument
-Date: Sat, 10 Oct 2026 15:57:53 +0800
+Subject: mm/sparse-vmemmap: open-code vmemmap_populate_address()
+Date: Sat, 10 Oct 2026 15:57:54 +0800
 
-vmemmap_pte_populate() no longer uses ptpfn as an input.  Drop the
-argument to simplify the code.
+vmemmap_populate_address() no longer has any callers that need the
+returned PTE.  Its only remaining user, vmemmap_populate_range(), only
+checks whether population succeeded.
 
-Link: https://lore.kernel.org/20261010075755.83339-5-songmuchun@bytedance.com
+Open-code vmemmap_populate_address() directly in
+vmemmap_populate_basepages(), remove the now-redundant range helper, and
+return -ENOMEM directly on failure.
+
+Link: https://lore.kernel.org/20261010075755.83339-6-songmuchun@bytedance.com
 Signed-off-by: Muchun Song <muchun.song@linux.dev>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 Reviewed-by: Lance Yang <lance.yang@linux.dev>
@@ -85,66 +90,86 @@ Cc: Suren Baghdasaryan <surenb@google.com>
 Cc: Michal Hocko <mhocko@suse.com>
 ---
 
- mm/sparse-vmemmap.c |   15 ++++++---------
- 1 file changed, 6 insertions(+), 9 deletions(-)
+ mm/sparse-vmemmap.c |   54 +++++++++++++-----------------------------
+ 1 file changed, 17 insertions(+), 37 deletions(-)
 
---- a/mm/sparse-vmemmap.c~mm-sparse-vmemmap-remove-the-unused-ptpfn-argument
+--- a/mm/sparse-vmemmap.c~mm-sparse-vmemmap-open-code-vmemmap_populate_address
 +++ a/mm/sparse-vmemmap.c
-@@ -282,7 +282,7 @@ static __meminit void *vmemmap_alloc_pte
+@@ -352,8 +352,8 @@ static pgd_t * __meminit vmemmap_pgd_pop
+ 	return pgd;
  }
  
- static pte_t * __meminit vmemmap_pte_populate(pmd_t *pmd, unsigned long addr, int node,
--		struct vmem_altmap *altmap, unsigned long ptpfn)
-+		struct vmem_altmap *altmap)
- {
- 	pte_t *pte = pte_offset_kernel(pmd, addr);
- 	unsigned long pfn = page_to_pfn((struct page *)addr);
-@@ -353,8 +353,7 @@ static pgd_t * __meminit vmemmap_pgd_pop
- }
- 
- static pte_t * __meminit vmemmap_populate_address(unsigned long addr, int node,
--					      struct vmem_altmap *altmap,
--					      unsigned long ptpfn)
-+						  struct vmem_altmap *altmap)
+-static pte_t * __meminit vmemmap_populate_address(unsigned long addr, int node,
+-						  struct vmem_altmap *altmap)
++int __meminit vmemmap_populate_basepages(unsigned long start, unsigned long end,
++					 int node, struct vmem_altmap *altmap)
  {
  	pgd_t *pgd;
  	p4d_t *p4d;
-@@ -374,7 +373,7 @@ static pte_t * __meminit vmemmap_populat
- 	pmd = vmemmap_pmd_populate(pud, addr, node);
- 	if (!pmd)
- 		return NULL;
--	pte = vmemmap_pte_populate(pmd, addr, node, altmap, ptpfn);
-+	pte = vmemmap_pte_populate(pmd, addr, node, altmap);
- 	if (!pte)
- 		return NULL;
- 	vmemmap_verify(pte, node, addr, addr + PAGE_SIZE);
-@@ -384,15 +383,13 @@ static pte_t * __meminit vmemmap_populat
- 
- static int __meminit vmemmap_populate_range(unsigned long start,
- 					    unsigned long end, int node,
--					    struct vmem_altmap *altmap,
--					    unsigned long ptpfn)
-+					    struct vmem_altmap *altmap)
- {
- 	unsigned long addr = start;
+@@ -361,48 +361,28 @@ static pte_t * __meminit vmemmap_populat
+ 	pmd_t *pmd;
  	pte_t *pte;
  
- 	for (; addr < end; addr += PAGE_SIZE) {
--		pte = vmemmap_populate_address(addr, node, altmap,
--					       ptpfn);
-+		pte = vmemmap_populate_address(addr, node, altmap);
+-	pgd = vmemmap_pgd_populate(addr, node);
+-	if (!pgd)
+-		return NULL;
+-	p4d = vmemmap_p4d_populate(pgd, addr, node);
+-	if (!p4d)
+-		return NULL;
+-	pud = vmemmap_pud_populate(p4d, addr, node);
+-	if (!pud)
+-		return NULL;
+-	pmd = vmemmap_pmd_populate(pud, addr, node);
+-	if (!pmd)
+-		return NULL;
+-	pte = vmemmap_pte_populate(pmd, addr, node, altmap);
+-	if (!pte)
+-		return NULL;
+-	vmemmap_verify(pte, node, addr, addr + PAGE_SIZE);
+-
+-	return pte;
+-}
+-
+-static int __meminit vmemmap_populate_range(unsigned long start,
+-					    unsigned long end, int node,
+-					    struct vmem_altmap *altmap)
+-{
+-	unsigned long addr = start;
+-	pte_t *pte;
+-
+-	for (; addr < end; addr += PAGE_SIZE) {
+-		pte = vmemmap_populate_address(addr, node, altmap);
++	for (unsigned long addr = start; addr < end; addr += PAGE_SIZE) {
++		pgd = vmemmap_pgd_populate(addr, node);
++		if (!pgd)
++			return -ENOMEM;
++		p4d = vmemmap_p4d_populate(pgd, addr, node);
++		if (!p4d)
++			return -ENOMEM;
++		pud = vmemmap_pud_populate(p4d, addr, node);
++		if (!pud)
++			return -ENOMEM;
++		pmd = vmemmap_pmd_populate(pud, addr, node);
++		if (!pmd)
++			return -ENOMEM;
++		pte = vmemmap_pte_populate(pmd, addr, node, altmap);
  		if (!pte)
  			return -ENOMEM;
++		vmemmap_verify(pte, node, addr, addr + PAGE_SIZE);
  	}
-@@ -403,7 +400,7 @@ static int __meminit vmemmap_populate_ra
- int __meminit vmemmap_populate_basepages(unsigned long start, unsigned long end,
- 					 int node, struct vmem_altmap *altmap)
- {
--	return vmemmap_populate_range(start, end, node, altmap, -1);
-+	return vmemmap_populate_range(start, end, node, altmap);
+ 
+ 	return 0;
  }
  
+-int __meminit vmemmap_populate_basepages(unsigned long start, unsigned long end,
+-					 int node, struct vmem_altmap *altmap)
+-{
+-	return vmemmap_populate_range(start, end, node, altmap);
+-}
+-
  /*
+  * Write protect the mirrored tail page structs for HVO. This will be
+  * called from the hugetlb code when gathering and initializing the
 _
 
 Patches currently in -mm which might be from muchun.song@linux.dev are
