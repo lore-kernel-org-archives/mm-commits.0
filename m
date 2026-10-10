@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A3DDC364EB0
-	for <mm-commits@vger.kernel.org>; Sat, 10 Oct 2026 22:02:03 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E7B9C374186
+	for <mm-commits@vger.kernel.org>; Sat, 10 Oct 2026 22:02:05 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791669725; cv=none; b=nMGXGJlXF5TOxWFifNfIvynsqvHdXEDMTGmKU0jKAKvOnalmP8n/QrtEowPZ9eWqq2k6Ztle1qHbPPLd87FsXCQdCY9Xtb4Il+3oF7fs7Gp4fkLNKRO4rmfIJFuO5NILzvs+vjULiirwTCzJQ9UO2ZtCioxKoTk+VtMbhXOnBfY=
+	t=1791669727; cv=none; b=TCBaVjkTvvxu7mbej7o8Kd8VFtlwMMlfFZwmw8hbMCpmr8Bi1DVYw8/Win1yCeTn8HA4r7bJc8mdjY5Hk5hfJDxqnIJvXtyS9+fj11m7aR7hJW0nKaExSclvS5eXhxwETd/Xg8+rPADipGcM8T39M/GasMIEz7IUn3WBEFMr/2s=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791669725; c=relaxed/simple;
-	bh=v+q3N/p2lzrJai7NDnqGfx/P0slqdz9poZXTbMa7wFQ=;
-	h=Date:To:From:Subject:Message-Id; b=CO8AGvrzXMgDmZ14euGcygKEaAjVvzeOmSYIxRhMJiWlJ1j8n4aGM6IYiBtyazLZCd2uGG9ahbnEZiblaN+BbxP+PuAqQ8wu73dD4HkmdBlXv6oooubfvStkNXap8CTZOuF6bmkwp6uenJ8QSwO0AVbH0/58QjgHatgF1d0stc0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=yc6iQ8Fz; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1791669727; c=relaxed/simple;
+	bh=aNawgKKlorxqIMsslLwTRCWxRV5NF7Qlc4lv+T7Yx/4=;
+	h=Date:To:From:Subject:Message-Id; b=gdS5J1HiJ2V8LFYoCJ0jvIyptsvpNKSKXs9b3B7gRewt0vjfZIlzqozbEffZq/7jWXknmZSYHRdcrQJSI/qWt1h1X1iOkJxVQvguL/aWY6XbaaA94qiGzq5nbHEcPmol9MX02si357aZaVKTkNBk4PeuHEjGSdwdcJ4BPjKHZhE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=dsefAR8v; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="yc6iQ8Fz"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 324AF1F000FF;
-	Sat, 10 Oct 2026 22:02:03 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="dsefAR8v"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id BB5C51F000FF;
+	Sat, 10 Oct 2026 22:02:05 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1791669723;
-	bh=EFyC3w3G2peR1Yf/hn0+TK9v4HQZcKBabFHOiqst6wc=;
+	d=linux-foundation.org; s=korg; t=1791669725;
+	bh=TgQoN8sGyC+3oIdxSZK8t6uOYq93nrCN8WIOjUW/JOo=;
 	h=Date:To:From:Subject;
-	b=yc6iQ8FzkgPoKdmJ5JFAYRMSQhacCnXkbTiteAzSVmTcsVgXfXalIMVOokLIvMLiu
-	 XawjuANn9qvn62zIMhpm2gE7vq0xzZvk56CJ5+QtbPcBTd9DRT+MaFiZaQgpiApD0v
-	 W0rGCZOhFjoI5a60LaRbhhU6l7wU0xIBxLJyE+KE=
-Date: Sat, 10 Oct 2026 15:02:02 -0700
+	b=dsefAR8vJPgL6pLM0vz1HEJHrIE1qFv1Ql7EhCBIJQeEipcwSf38x+YOgI43JnAPs
+	 CB4EaKuzbQh6sUnZ8lGkzpLA3EN1E3l32lXzksQt4XwxdrarAgdahljGGqIaT9sFsD
+	 fjqhMF6peEAnS31K+u5c691kXUeTtAQvcn0lvKoQ=
+Date: Sat, 10 Oct 2026 15:02:05 -0700
 To: mm-commits@vger.kernel.org,ljs@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-vma-add-vma_is_mm_managed-predicates.patch added to mm-unstable branch
-Message-Id: <20261010220203.324AF1F000FF@smtp.kernel.org>
+Subject: + mm-vma-only-allow-mmap-to-clear-vma_maywrite_bit-if-not-mm-managed.patch added to mm-unstable branch
+Message-Id: <20261010220205.BB5C51F000FF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/vma: add vma[_flags]_is_mm_managed() predicates
+     Subject: mm/vma: only allow mmap to clear VMA_MAYWRITE_BIT if not mm-managed
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-vma-add-vma_is_mm_managed-predicates.patch
+     mm-vma-only-allow-mmap-to-clear-vma_maywrite_bit-if-not-mm-managed.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vma-add-vma_is_mm_managed-predicates.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vma-only-allow-mmap-to-clear-vma_maywrite_bit-if-not-mm-managed.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,48 +59,61 @@ and is updated there most days
 
 ------------------------------------------------------
 From: "Lorenzo Stoakes (ARM)" <ljs@kernel.org>
-Subject: mm/vma: add vma[_flags]_is_mm_managed() predicates
-Date: Fri, 09 Oct 2026 19:04:08 +0100
+Subject: mm/vma: only allow mmap to clear VMA_MAYWRITE_BIT if not mm-managed
+Date: Fri, 09 Oct 2026 19:04:09 +0100
 
-Rather than referring to VMA flags with uncertain meaning, add a new
-predicate that explicitly describes what absence of the VMA_PFNMAP_BIT and
-VMA_MIXEDMAP_BIT flags means, and then refer to that function for
-determining VMA mergeability.
+For ordinary files the only way the VMA_MAYWRITE_BIT flag is cleared is if
+the underlying file is itself read-only.
 
-If neither of these flags are set, that means the contents of the mapping
-are managed by core mm.
+This means that mprotect() cannot mark a shared mapping of a read-only file
+as read/write, as doing so would violate the read only attribute, and
+permit writes.
 
-Otherwise they are instead owned by some other kernel component, usually a
-driver: the memory may be MMIO, kernel-allocated pages or even ordinary
-pages the driver maps itself, but core mm must not populate, reclaim,
-migrate, copy-on-write or merge the range itself.
+In general, we do not want file systems to be able to do this for
+read/write files.
 
-We initially also treat VMA_IO_BIT as implying a mapping is not mm-managed,
-as by implication it cannot be. (mlock() also sets VMA_IO_BIT transiently
-on ordinary VMAs while locking them, which is addressed later in this
-series.)
+Doing so would violate fundamental user expectation of file attributes and
+likely break userspace.
 
-However the intent is to in future remove this, as no mapping should be
-marked as an I/O mapping without also being marked with VMA_PFNMAP_BIT.
+However, drivers pose a tricky problem here - the /dev/xxx file may be
+read/write but provide access to a resource which is fundamentally
+read-only.
 
-This forms the basis of further work intended to improve how we express VMA
-properties such as this.
+Therefore we must allow drivers to be able to clear VMA_MAYWRITE_BIT.
 
-Also update the VMA userland tests to reflect the change.
+To achieve both of these things, forbid this for mm-managed mappings as
+identified by vma_flags_is_mm_managed().
 
-No functional change intended.
+This constrains this ability to drivers which own the mapping's contents,
+whether memory-mapped I/O, kernel-allocated pages, or ordinary pages they
+map themselves, and so define its semantics.
 
-Link: https://lore.kernel.org/20261009-b4-mmap-prepare-vma-flag-sanify-v5-14-923b70125b1e@kernel.org
+Every in-tree mmap hook which clears VMA_MAYWRITE_BIT, some twenty sites
+across drivers, filesystems and bpf, establishes a mapping which is not
+mm-managed,
+with usbmon and the ALSA PCM status page converted earlier in this series
+to do so.
+
+Note that drivers may, if they do not gate on VMA_SHARED_BIT, be able to
+disable MAP_PRIVATE-file-backed mapping CoW semantics.
+
+This is perhaps not always intended, but we retain this capacity to
+maintain existing behaviour.
+
+As no driver which clears VMA_MAYWRITE_BIT establishes an mm-managed
+mapping, no functional change is intended.
+
+Link: https://lore.kernel.org/20261009-b4-mmap-prepare-vma-flag-sanify-v5-15-923b70125b1e@kernel.org
 Signed-off-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Reviewed-by: Zi Yan <ziy@nvidia.com>
-Reviewed-by: Suren Baghdasaryan <surenb@google.com>
+Acked-by: Zi Yan <ziy@nvidia.com>
 Cc: Liam R. Howlett <liam@infradead.org>
 Cc: Vlastimil Babka <vbabka@kernel.org>
 Cc: Jann Horn <jannh@google.com>
 Cc: Pedro Falcato <pfalcato@suse.de>
 Cc: David Hildenbrand <david@kernel.org>
 Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Suren Baghdasaryan <surenb@google.com>
 Cc: Michal Hocko <mhocko@suse.com>
 Cc: Jonathan Corbet <corbet@lwn.net>
 Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
@@ -204,117 +217,23 @@ Cc: Ihor Solodrai <ihor.solodrai@linux.dev>
 Cc: Bert Karwatzki <spasswolf@web.de>
 ---
 
- include/linux/mm.h              |   53 +++++++++++++++++++++++++++++-
- tools/testing/vma/include/dup.h |   29 +++++++++++++++-
- 2 files changed, 80 insertions(+), 2 deletions(-)
+ mm/vma.c |    5 +++++
+ 1 file changed, 5 insertions(+)
 
---- a/include/linux/mm.h~mm-vma-add-vma_is_mm_managed-predicates
-+++ a/include/linux/mm.h
-@@ -1614,6 +1614,41 @@ static inline bool vma_is_shared_maywrit
+--- a/mm/vma.c~mm-vma-only-allow-mmap-to-clear-vma_maywrite_bit-if-not-mm-managed
++++ a/mm/vma.c
+@@ -2816,6 +2816,11 @@ static int mmap_validate(unsigned long o
+ 	if (WARN_ON_ONCE(!was_maywrite && is_maywrite))
+ 		return -EINVAL;
+ 
++	/* mm-managed mappings may not clear VMA_MAYWRITE_BIT. */
++	if (vma_flags_is_mm_managed(curr_flags) &&
++	    WARN_ON_ONCE(was_maywrite && !is_maywrite))
++		return -EINVAL;
++
+ 	return mmap_validate_vma_flags(curr_flags);
  }
  
- /**
-+ * vma_flags_is_mm_managed() - Do the specified VMA flags indicate that the
-+ * contents of the VMA are managed by core mm?
-+ * @flags: The VMA flags to test.
-+ *
-+ * Such a mapping is one established by a simple mmap() or brk() with no driver
-+ * or other kernel component involved.
-+ *
-+ * They are rmappable, and core mm services rmap operations including reclaim,
-+ * as well as population, CoW and merge/split (if eligible).
-+ *
-+ * Mappings which fail this test are those where this is not the case -
-+ * e.g. MMIO, user-mapped kernel pages, udmabuf (pfnmap shmem), etc.
-+ *
-+ * Returns: true if the flags indicate an mm-managed mapping.
-+ */
-+static inline bool vma_flags_is_mm_managed(const vma_flags_t *flags)
-+{
-+	return !vma_flags_test_any(flags, VMA_PFNMAP_BIT, VMA_MIXEDMAP_BIT,
-+				   VMA_IO_BIT);
-+}
-+
-+/**
-+ * vma_is_mm_managed() - Are the contents of @vma managed by core mm?
-+ * @vma: The VMA to test.
-+ *
-+ * See vma_flags_is_mm_managed() for a description of this property.
-+ *
-+ * Returns: true if the VMA is mm-managed.
-+ */
-+static inline bool vma_is_mm_managed(const struct vm_area_struct *vma)
-+{
-+	return vma_flags_is_mm_managed(&vma->flags);
-+}
-+
-+/**
-  * vma_flags_can_merge() - Do the specified VMA flags permit the VMA to be
-  * merged with another?
-  * @flags: The VMA flags to test.
-@@ -1621,7 +1656,23 @@ static inline bool vma_is_shared_maywrit
-  */
- static inline bool vma_flags_can_merge(const vma_flags_t *flags)
- {
--	return !vma_flags_test_any_mask(flags, VMA_SPECIAL_FLAGS);
-+	/*
-+	 * VMA merging assumes that a VMA's flags and fields completely describe
-+	 * its state.
-+	 *
-+	 * However, mappings which are not mm-managed may have established state
-+	 * upon mapping not embodied in any attribute of the VMA.
-+	 *
-+	 * Additionally, private (CoW) PFN maps encode the source PFN of the
-+	 * range in vma->vm_pgoff, which may otherwise cause spurious merges.
-+	 */
-+	if (!vma_flags_is_mm_managed(flags))
-+		return false;
-+	/* VMA explicitly marked as being unmergeable. */
-+	if (vma_flags_test(flags, VMA_DONTEXPAND_BIT))
-+		return false;
-+
-+	return true;
- }
- 
- /**
---- a/tools/testing/vma/include/dup.h~mm-vma-add-vma_is_mm_managed-predicates
-+++ a/tools/testing/vma/include/dup.h
-@@ -1665,7 +1665,34 @@ static inline bool file_is_dev_zero(cons
- 	return file && file->f_op == &zero_fops;
- }
- 
-+static inline bool vma_flags_is_mm_managed(const vma_flags_t *flags)
-+{
-+	return !vma_flags_test_any(flags, VMA_PFNMAP_BIT, VMA_MIXEDMAP_BIT,
-+				   VMA_IO_BIT);
-+}
-+
-+static inline bool vma_is_mm_managed(const struct vm_area_struct *vma)
-+{
-+	return vma_flags_is_mm_managed(&vma->flags);
-+}
-+
- static inline bool vma_flags_can_merge(const vma_flags_t *flags)
- {
--	return !vma_flags_test_any_mask(flags, VMA_SPECIAL_FLAGS);
-+	/*
-+	 * VMA merging assumes that a VMA's flags and fields completely describe
-+	 * its state.
-+	 *
-+	 * However, mappings which are not mm-managed may have established state
-+	 * upon mapping not embodied in any attribute of the VMA.
-+	 *
-+	 * Additionally, private (CoW) PFN maps encode the source PFN of the
-+	 * range in vma->vm_pgoff, which may otherwise cause spurious merges.
-+	 */
-+	if (!vma_flags_is_mm_managed(flags))
-+		return false;
-+	/* VMA explicitly marked as being unmergeable. */
-+	if (vma_flags_test(flags, VMA_DONTEXPAND_BIT))
-+		return false;
-+
-+	return true;
- }
 _
 
 Patches currently in -mm which might be from ljs@kernel.org are
