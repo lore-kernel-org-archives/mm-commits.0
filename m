@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1B89D372B5A
-	for <mm-commits@vger.kernel.org>; Sat, 10 Oct 2026 22:03:22 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 85720324B33
+	for <mm-commits@vger.kernel.org>; Sat, 10 Oct 2026 22:22:12 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791669804; cv=none; b=XOpOdB/tQJLwPWi0DHPX8qhg/SzzJb/TeIlRCQNAhX6YtUyYYQ42ivL3j5f3fI+TrIk2FeO5lp8f1/hH7GP0GiHXHi79mmrQAF4xXdgqSJGpoid1bRo9AQyNZejL5+M8b3cNSs4vsSFNlaaSGP2Y7eUcNVv8ZziLWAeLkhqUkSA=
+	t=1791670934; cv=none; b=ublzCPBgMRRLtpDA+Hj832NfapMEzKuhSTtJ6UVW8xCE/mJ10nQ7+lj59YP5FCcngeKXtUsaOf1Sn/+udusL6BGEV6+aXgZLfezTI1hPbjtOIL9kalkD6z3AwTlme/cMP7ZqbainQ+/2OdHIMeGPq3BeafCinoGs61cczfmgFZU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791669804; c=relaxed/simple;
-	bh=G8rkxutgoboCY7DwmVI1dQadX81qUWsdW5JHOvq1Pjk=;
-	h=Date:To:From:Subject:Message-Id; b=M4uPQau718EouFtOejei5Fppc+VJL1chpJ6QvjScyFu1FEzfN3mt7pY8JvYzhyJdI57XpG1iVNzMHlnbe5QgcH7KLHj/v++BivmBkfvOASpmRshOrmfy3kzgmGot1HG3a8iL8BHwNrdJsXlmJ73WrtCSmPp7zdO+SwuIEMEW0Bs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=wIJfZ401; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1791670934; c=relaxed/simple;
+	bh=thFNPnSM2Mntb2bO/ysaAleTnM2y73shUwWDMyMH1iI=;
+	h=Date:To:From:Subject:Message-Id; b=GpVcfO53OpjT7eCN8hAsmVaRjPJlSrkzi/XhI7LOMipUS8gJPmY9oICysPLnqbxVT/LvND6sSrZakWft5lbqxwSd8FZr8qM7STiNncN4fctyZXaVR7UenPwzBRvaxKAWxCZlv/pKXKmTbXQxVOuOyuanqZ6cGQwIfDQ5lyacqFQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=QNf89z+R; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="wIJfZ401"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9C0BA1F000FF;
-	Sat, 10 Oct 2026 22:03:22 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="QNf89z+R"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id DCC401F00893;
+	Sat, 10 Oct 2026 22:22:11 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1791669802;
-	bh=AQW3sAfa1pvdIcIUUBQef0iBbe9vCgfJKKfQTeewU1E=;
+	d=linux-foundation.org; s=korg; t=1791670932;
+	bh=m0NyTyeUClVuHBqZ2ku1880InqeijizrwsxvOaFveNY=;
 	h=Date:To:From:Subject;
-	b=wIJfZ401bDeVIV9ay5mxzIG/NQssp44bcUfPDewHPfJusyZDxGWKITE4M/DswVbfw
-	 e03FO4Hf1aQGQK7TAqWtm0jOc3ccg5msXa5TnQ5T7GnpPw5n4dhC9PWQmZ8wLeMhP7
-	 wgJcXv2otA4wW6vsxdDGp409BQWDOI7WISJBK50c=
-Date: Sat, 10 Oct 2026 15:03:22 -0700
-To: mm-commits@vger.kernel.org,ljs@kernel.org,akpm@linux-foundation.org
+	b=QNf89z+RJpFlJuJFByYj3jHeFJV89sgNNQXou3RrHdFCU8ipKz9PpS9xua3Uu5nA7
+	 w8HrBqXNeI+htsAgtUef0NoX1Nt7S3Tz/+CTVUzIYFlUpHnG+Rg5La3rmoHD1wGqve
+	 qtZT/IJUor5tl9Q0trwItuOGpbACF74iOzXkhbu0=
+Date: Sat, 10 Oct 2026 15:22:11 -0700
+To: mm-commits@vger.kernel.org,yosry@kernel.org,terrelln@fb.com,shakeel.butt@linux.dev,senozhatsky@chromium.org,riel@surriel.com,nphamcs@gmail.com,herbert@gondor.apana.org.au,hannes@cmpxchg.org,dsterba@suse.com,davem@davemloft.net,chengming.zhou@linux.dev,alex@ghiti.fr,usama.arif@linux.dev,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-huge_memory-remove-vma_is_special_huge.patch added to mm-unstable branch
-Message-Id: <20261010220322.9C0BA1F000FF@smtp.kernel.org>
+Subject: + mm-zswap-use-separate-compression-and-decompression-requests.patch added to mm-new branch
+Message-Id: <20261010222211.DCC401F00893@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,15 +35,26 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/huge_memory: remove vma_is_special_huge()
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-huge_memory-remove-vma_is_special_huge.patch
+     Subject: mm: zswap: use separate compression and decompression requests
+has been added to the -mm mm-new branch.  Its filename is
+     mm-zswap-use-separate-compression-and-decompression-requests.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-huge_memory-remove-vma_is_special_huge.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-zswap-use-separate-compression-and-decompression-requests.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Note, mm-new is a provisional staging ground for work-in-progress
+patches, and acceptance into mm-new is a notification for others take
+notice and to finish up reviews.  Please do not hesitate to respond to
+review feedback and post updated versions to replace or incrementally
+fixup patches in mm-new.
+
+The mm-new branch of mm.git is not included in linux-next
+
+If a few days of testing in mm-new is successful, the patch will me moved
+into mm.git's mm-unstable branch, which is included in linux-next
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -58,241 +69,317 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: "Lorenzo Stoakes (ARM)" <ljs@kernel.org>
-Subject: mm/huge_memory: remove vma_is_special_huge()
-Date: Fri, 09 Oct 2026 19:04:32 +0100
+From: Usama Arif <usama.arif@linux.dev>
+Subject: mm: zswap: use separate compression and decompression requests
+Date: Fri, 09 Oct 2026 09:30:30 -0700
 
-vma_is_special_huge() tests whether either the VMA_PFNMAP_BIT or
-VMA_MIXEDMAP_BIT is set (i.e. whether the VMA is not mm-managed),
-but with a DAX carve-out.
+Patch series "mm: zswap: reduce request contention on loads", v2.
 
-DAX however no longer sets VMA_MIXEDMAP_BIT, so this carve-out is no longer
-required.
+Stores and loads share a per-CPU acomp request and mutex.  A low-priority
+store can be preempted right after the compressor drops its stream lock,
+while it still holds the zswap mutex, and a higher-priority load on that
+CPU then waits for the store to run again.  This follows the work from
+Sergey Senozhatsky's zram series which splits it for the same reason [1].
 
-Therefore test for !vma_is_mm_managed() instead and also drop the
-VMA_IO_BIT check, as it is now redundant since it is enforced that
-mm-managed mappings may not set VMA_IO_BIT.
+Patch 1 gives compression and decompression separate requests, waits and
+mutexes, so loads no longer wait for stores, though they can still wait
+for each other.  Patch 2 decompresses with an on-stack request when the
+algorithm is synchronous and needs no request context, which covers all
+in-tree software compressors, so those loads take no zswap lock. 
+Asynchronous algorithms keep the per-CPU request and mutex.  For software
+compressors the series allocates the same number of requests as before;
+each per-CPU context grows by 72 bytes, and the load path is about 270
+bytes deeper on x86-64.
 
-This also eliminates another overloaded use of 'special' within mm.
+The series does not fix two related cases:
+- Stores still serialize on the compression mutex, so a high-priority
+  task that reclaims (direct reclaim, MADV_PAGEOUT) can still wait for
+  a preempted store.
+- On PREEMPT_RT the codec stream locks are preemptible, so a load can
+  still wait for a preempted store inside the codec.
 
-No functional change intended.
+The numbers below are the slowest read per run, as a median (min-max) of 5
+runs.  Each run is 12 seconds in a zstd VM with lazy preemption,
+vm.page-cluster=0 and swap on /dev/ram0.  With 1 vCPU, four nice +10
+workers page memory out and read it back while a nice 0 task spins.  A
+nice -19 reader pages out its own buffer and measures how long each read
+of it takes.  With 8 vCPUs there are 16 workers, 8 spinning tasks and 8
+readers.
 
-Link: https://lore.kernel.org/20261009-b4-mmap-prepare-vma-flag-sanify-v5-38-923b70125b1e@kernel.org
-Signed-off-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
+              Before series (ms)      With series (ms)
+  1 vCPU      22.3 (21.6-22.6)        0.97 (0.72-1.4)
+  8 vCPUs     314 (97-2542)           7.0 (5.0-98)
+
+Reads over 10 ms fell from 26-35 per run to none with 1 vCPU, and from
+3-18 per run to at most one with 8 vCPUs. The benchmark and test programs
+were written with the help of an LLM.
+
+
+This patch (of 2):
+
+Stores and loads serialize on the same per-CPU acomp request and mutex.
+A low-priority store can be preempted as soon as the compressor drops
+its stream lock, while it still holds the mutex. A higher-priority load
+on that CPU then waits until the store runs again, which can take a
+long time when other tasks are runnable.
+
+Give compression and decompression their own request, completion wait
+and mutex. Since commit e2c3b6b21c77f ("mm: zswap: use SG list
+decompression APIs from zsmalloc"), the per-CPU buffer is only used for
+compression, so group it with the compression request. Independent
+requests can share the per-CPU transform; the codecs and drivers
+synchronize their shared state internally. Loads can still wait for
+each other on the decompression mutex, and stores still serialize on
+the compression mutex.
+
+acomp_request_free() ignores NULL requests, so drop the check in
+acomp_ctx_free().
+
+This follows the proposal from Sergey Senozhatsky for the same split
+for zram [1].
+
+Link: https://lore.kernel.org/20261009163146.83112-1-usama.arif@linux.dev
+Link: https://lore.kernel.org/20261009163146.83112-2-usama.arif@linux.dev
+Link: https://lore.kernel.org/all/20261005122036.718976-10-senozhatsky@chromium.org/ [1]
+Signed-off-by: Usama Arif <usama.arif@linux.dev>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Acked-by: Zi Yan <ziy@nvidia.com>
-Cc: Liam R. Howlett <liam@infradead.org>
-Cc: Vlastimil Babka <vbabka@kernel.org>
-Cc: Jann Horn <jannh@google.com>
-Cc: Pedro Falcato <pfalcato@suse.de>
-Cc: David Hildenbrand <david@kernel.org>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Dennis Dalessandro <dennis.dalessandro@cornelisnetworks.com>
-Cc: Jason Gunthorpe <jgg@ziepe.ca>
-Cc: Leon Romanovsky <leon@kernel.org>
-Cc: Paul Moore <paul@paul-moore.com>
-Cc: Stephen Smalley <stephen.smalley.work@gmail.com>
-Cc: Jaroslav Kysela <perex@perex.cz>
-Cc: Takashi Iwai <tiwai@suse.com>
-Cc: Alexei Starovoitov <ast@kernel.org>
-Cc: Daniel Borkmann <daniel@iogearbox.net>
-Cc: Andrii Nakryiko <andrii@kernel.org>
-Cc: Eduard Zingerman <eddyz87@gmail.com>
-Cc: Kumar Kartikeya Dwivedi <memxor@gmail.com>
-Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: Nico Pache <nico.pache@linux.dev>
-Cc: Ryan Roberts <ryan.roberts@arm.com>
-Cc: Dev Jain <dev.jain@arm.com>
-Cc: Barry Song <baohua@kernel.org>
-Cc: Lance Yang <lance.yang@linux.dev>
-Cc: Usama Arif <usama.arif@linux.dev>
-Cc: Kiryl Shutsemau <kas@kernel.org>
-Cc: Doug Gilbert <dgilbert@interlog.com>
-Cc: James Bottomley <james.bottomley@hansenpartnership.com>
-Cc: Martin K. Petersen <mkp@kernel.org>
-Cc: Simona Vetter <simona@ffwll.ch>
-Cc: Helge Deller <deller@gmx.de>
-Cc: Sebastian Reichel <sre@kernel.org>
-Cc: John Hubbard <jhubbard@nvidia.com>
-Cc: Peter Xu <peterx@redhat.com>
-Cc: Masami Hiramatsu <mhiramat@kernel.org>
-Cc: Oleg Nesterov <oleg@redhat.com>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Thomas Gleixner <tglx@kernel.org>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Borislav Petkov <bp@alien8.de>
-Cc: Dave Hansen <dave.hansen@linux.intel.com>
-Cc: Arnaldo Carvalho de Melo <acme@kernel.org>
-Cc: Namhyung Kim <namhyung@kernel.org>
-Cc: Mark Rutland <mark.rutland@arm.com>
-Cc: Rik van Riel <riel@surriel.com>
-Cc: Harry Yoo <harry@kernel.org>
-Cc: Juri Lelli <juri.lelli@redhat.com>
-Cc: Vincent Guittot <vincent.guittot@linaro.org>
-Cc: Maarten Lankhorst <maarten.lankhorst@linux.intel.com>
-Cc: Maxime Ripard <mripard@kernel.org>
-Cc: Thomas Zimmermann <tzimmermann@suse.de>
-Cc: David Airlie <airlied@gmail.com>
-Cc: Will Deacon <will@kernel.org>
-Cc: Aneesh Kumar K.V <aneesh.kumar@kernel.org>
-Cc: Nicholas Piggin <npiggin@gmail.com>
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: Muchun Song <muchun.song@linux.dev>
-Cc: Oscar Salvador <osalvador@suse.de>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Jan Kara <jack@suse.cz>
-Cc: Marc Zyngier <maz@kernel.org>
-Cc: Oliver Upton <oupton@kernel.org>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Madhavan Srinivasan <maddy@linux.ibm.com>
-Cc: Anup Patel <anup@brainfault.org>
-Cc: Paul Walmsley <pjw@kernel.org>
-Cc: Palmer Dabbelt <palmer@dabbelt.com>
-Cc: Albert Ou <aou@eecs.berkeley.edu>
-Cc: Christian Borntraeger <borntraeger@linux.ibm.com>
-Cc: Janosch Frank <frankja@linux.ibm.com>
-Cc: Claudio Imbrenda <imbrenda@linux.ibm.com>
-Cc: Alexander Gordeev <agordeev@linux.ibm.com>
-Cc: Gerald Schaefer <gerald.schaefer@linux.ibm.com>
-Cc: Heiko Carstens <hca@linux.ibm.com>
-Cc: Vasily Gorbik <gor@linux.ibm.com>
-Cc: David S. Miller <davem@davemloft.net>
-Cc: Andreas Larsson <andreas@gaisler.com>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Christian Brauner <brauner@kernel.org>
-Cc: Matthew Brost <matthew.brost@intel.com>
-Cc: Joshua Hahn <joshua.hahnjy@gmail.com>
-Cc: Rakie Kim <rakie.kim@sk.com>
-Cc: Byungchul Park <byungchul@sk.com>
-Cc: Gregory Price <gourry@gourry.net>
-Cc: Ying Huang <ying.huang@linux.alibaba.com>
-Cc: Alistair Popple <apopple@nvidia.com>
-Cc: Chris Li <chrisl@kernel.org>
-Cc: Kairui Song <kasong@tencent.com>
-Cc: Kemeng Shi <shikemeng@huaweicloud.com>
-Cc: Nhat Pham <nphamcs@gmail.com>
-Cc: Baoquan He <baoquan.he@linux.dev>
-Cc: Youngjun Park <youngjun.park@lge.com>
+Acked-by: Nhat Pham <nphamcs@gmail.com>
+Cc: Herbert Xu <herbert@gondor.apana.org.au>
+Cc: <chengming.zhou@linux.dev>
+Cc: David Sterba <dsterba@suse.com>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Qi Zheng <qi.zheng@linux.dev>
+Cc: Nick Terrell <terrelln@fb.com>
+Cc: Yosry Ahmed <yosry@kernel.org>
+Cc: Rik van Riel <riel@surriel.com>
 Cc: Shakeel Butt <shakeel.butt@linux.dev>
-Cc: Axel Rasmussen <axelrasmussen@google.com>
-Cc: Yuanchu Xie <yuanchu@google.com>
-Cc: Wei Xu <weixugc@google.com>
-Cc: Chengming Zhou <chengming.zhou@linux.dev>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Miklos Szeredi <miklos@szeredi.hu>
-Cc: Xu Xin <xu.xin@linux.dev>
-Cc: Ihor Solodrai <ihor.solodrai@linux.dev>
-Cc: Bert Karwatzki <spasswolf@web.de>
+Cc: <alex@ghiti.fr>
+Cc: Sergey Senozhatsky <senozhatsky@chromium.org>
+Cc: David S. Miller <davem@davemloft.net>
 ---
 
- mm/huge_memory.c |   18 ++++--------------
- 1 file changed, 4 insertions(+), 14 deletions(-)
+ mm/zswap.c |  108 ++++++++++++++++++++++++++++++---------------------
+ 1 file changed, 64 insertions(+), 44 deletions(-)
 
---- a/mm/huge_memory.c~mm-huge_memory-remove-vma_is_special_huge
-+++ a/mm/huge_memory.c
-@@ -110,14 +110,6 @@ static inline bool file_thp_enabled(cons
- 	return S_ISREG(inode->i_mode);
+--- a/mm/zswap.c~mm-zswap-use-separate-compression-and-decompression-requests
++++ a/mm/zswap.c
+@@ -137,14 +137,25 @@ bool zswap_never_enabled(void)
+ * data structures
+ **********************************/
+ 
+-struct crypto_acomp_ctx {
+-	struct crypto_acomp *acomp;
++struct zswap_acomp_req {
+ 	struct acomp_req *req;
+ 	struct crypto_wait wait;
+-	u8 *buffer;
+ 	struct mutex mutex;
+ };
+ 
++/* The compression mutex also protects the output buffer. */
++struct zswap_comp_ctx {
++	struct zswap_acomp_req areq;
++	u8 *buffer;
++};
++
++/* Separate requests, so that decompression does not wait for compression. */
++struct crypto_acomp_ctx {
++	struct crypto_acomp *acomp;
++	struct zswap_comp_ctx comp;
++	struct zswap_acomp_req decomp;
++};
++
+ /*
+  * The lock ordering is zswap_tree.lock -> zswap_pool.lru_lock.
+  * The only case where lru_lock is not acquired while holding tree.lock is
+@@ -270,14 +281,10 @@ static void acomp_ctx_free(struct crypto
+ 	if (!acomp_ctx)
+ 		return;
+ 
+-	/*
+-	 * If there was an error in allocating @acomp_ctx->req, it
+-	 * would be set to NULL.
+-	 */
+-	if (acomp_ctx->req)
+-		acomp_request_free(acomp_ctx->req);
+-
+-	acomp_ctx->req = NULL;
++	acomp_request_free(acomp_ctx->comp.areq.req);
++	acomp_ctx->comp.areq.req = NULL;
++	acomp_request_free(acomp_ctx->decomp.req);
++	acomp_ctx->decomp.req = NULL;
+ 
+ 	/*
+ 	 * We have to handle both cases here: an error pointer return from
+@@ -289,8 +296,8 @@ static void acomp_ctx_free(struct crypto
+ 
+ 	acomp_ctx->acomp = NULL;
+ 
+-	kfree(acomp_ctx->buffer);
+-	acomp_ctx->buffer = NULL;
++	kfree(acomp_ctx->comp.buffer);
++	acomp_ctx->comp.buffer = NULL;
  }
  
--/* If returns true, we are unable to access the VMA's folios. */
--static bool vma_is_special_huge(const struct vm_area_struct *vma)
--{
--	if (vma_is_dax(vma))
--		return false;
--	return vma_test_any(vma, VMA_PFNMAP_BIT, VMA_MIXEDMAP_BIT);
--}
+ static struct zswap_pool *zswap_pool_create(char *compressor)
+@@ -796,6 +803,28 @@ static void zswap_entry_free(struct zswa
+ /*********************************
+ * compressed storage functions
+ **********************************/
++static int zswap_acomp_req_init(struct zswap_acomp_req *areq,
++				struct crypto_acomp *acomp)
++{
++	/* acomp_request_alloc() returns NULL in case of an error. */
++	areq->req = acomp_request_alloc(acomp);
++	if (!areq->req)
++		return -ENOMEM;
++
++	crypto_init_wait(&areq->wait);
++
++	/*
++	 * if the backend of acomp is async zip, crypto_req_done() will wakeup
++	 * crypto_wait_req(); if the backend of acomp is scomp, the callback
++	 * won't be called, crypto_wait_req() will return without blocking.
++	 */
++	acomp_request_set_callback(areq->req, CRYPTO_TFM_REQ_MAY_BACKLOG,
++				   crypto_req_done, &areq->wait);
++
++	mutex_init(&areq->mutex);
++	return 0;
++}
++
+ static int zswap_cpu_comp_prepare(unsigned int cpu, struct hlist_node *node)
+ {
+ 	struct zswap_pool *pool = hlist_entry(node, struct zswap_pool, node);
+@@ -811,8 +840,8 @@ static int zswap_cpu_comp_prepare(unsign
+ 		return 0;
+ 	}
+ 
+-	acomp_ctx->buffer = kmalloc_node(PAGE_SIZE, GFP_KERNEL, cpu_to_node(cpu));
+-	if (!acomp_ctx->buffer)
++	acomp_ctx->comp.buffer = kmalloc_node(PAGE_SIZE, GFP_KERNEL, cpu_to_node(cpu));
++	if (!acomp_ctx->comp.buffer)
+ 		return ret;
+ 
+ 	/*
+@@ -827,25 +856,13 @@ static int zswap_cpu_comp_prepare(unsign
+ 		goto fail;
+ 	}
+ 
+-	/* acomp_request_alloc() returns NULL in case of an error. */
+-	acomp_ctx->req = acomp_request_alloc(acomp_ctx->acomp);
+-	if (!acomp_ctx->req) {
++	if (zswap_acomp_req_init(&acomp_ctx->comp.areq, acomp_ctx->acomp) ||
++	    zswap_acomp_req_init(&acomp_ctx->decomp, acomp_ctx->acomp)) {
+ 		pr_err("could not alloc crypto acomp_request %s\n",
+ 		       pool->tfm_name);
+ 		goto fail;
+ 	}
+ 
+-	crypto_init_wait(&acomp_ctx->wait);
 -
- static bool vma_file_bypass_thp_tuneables(const struct vm_area_struct *vma,
- 		enum tva_type type)
+-	/*
+-	 * if the backend of acomp is async zip, crypto_req_done() will wakeup
+-	 * crypto_wait_req(); if the backend of acomp is scomp, the callback
+-	 * won't be called, crypto_wait_req() will return without blocking.
+-	 */
+-	acomp_request_set_callback(acomp_ctx->req, CRYPTO_TFM_REQ_MAY_BACKLOG,
+-				   crypto_req_done, &acomp_ctx->wait);
+-
+-	mutex_init(&acomp_ctx->mutex);
+ 	return 0;
+ 
+ fail:
+@@ -856,7 +873,7 @@ fail:
+ static bool zswap_compress(struct folio *folio, long index,
+ 			   struct zswap_entry *entry, struct zswap_pool *pool)
  {
-@@ -192,7 +184,7 @@ unsigned long __thp_vma_allowable_orders
- 	/* Check the intersection of requested and supported orders. */
- 	if (vma_is_anonymous(vma))
- 		supported_orders = THP_ORDERS_ALL_ANON;
--	else if (vma_is_dax(vma) || vma_is_special_huge(vma))
-+	else if (vma_is_dax(vma) || !vma_is_mm_managed(vma))
- 		supported_orders = THP_ORDERS_ALL_SPECIAL_DAX;
- 	else
- 		supported_orders = THP_ORDERS_ALL_FILE_DEFAULT;
-@@ -3056,7 +3048,7 @@ int zap_huge_pud(struct mmu_gather *tlb,
- 	orig_pud = pudp_huge_get_and_clear_full(vma, addr, pud, tlb->fullmm);
- 	arch_check_zapped_pud(vma, orig_pud);
- 	tlb_remove_pud_tlb_entry(tlb, pud, addr);
--	if (vma_is_special_huge(vma)) {
-+	if (!vma_is_mm_managed(vma)) {
- 		spin_unlock(ptl);
- 		/* No zero page support yet */
+-	struct crypto_acomp_ctx *acomp_ctx;
++	struct zswap_comp_ctx *comp_ctx;
+ 	struct scatterlist input, output;
+ 	int comp_ret = 0, alloc_ret = 0;
+ 	unsigned int dlen = PAGE_SIZE;
+@@ -865,15 +882,16 @@ static bool zswap_compress(struct folio
+ 	u8 *dst;
+ 	bool mapped = false;
+ 
+-	acomp_ctx = raw_cpu_ptr(pool->acomp_ctx);
+-	mutex_lock(&acomp_ctx->mutex);
++	comp_ctx = &raw_cpu_ptr(pool->acomp_ctx)->comp;
++	mutex_lock(&comp_ctx->areq.mutex);
+ 
+-	dst = acomp_ctx->buffer;
++	dst = comp_ctx->buffer;
+ 	sg_init_table(&input, 1);
+ 	sg_set_folio(&input, folio, PAGE_SIZE, index * PAGE_SIZE);
+ 
+ 	sg_init_one(&output, dst, PAGE_SIZE);
+-	acomp_request_set_params(acomp_ctx->req, &input, &output, PAGE_SIZE, dlen);
++	acomp_request_set_params(comp_ctx->areq.req, &input, &output,
++				 PAGE_SIZE, dlen);
+ 
+ 	/*
+ 	 * it maybe looks a little bit silly that we send an asynchronous request,
+@@ -885,10 +903,12 @@ static bool zswap_compress(struct folio
+ 	 * existing method to send the second page before the first page is done
+ 	 * in one thread doing zswap.
+ 	 * but in different threads running on different cpu, we have different
+-	 * acomp instance, so multiple threads can do (de)compression in parallel.
++	 * acomp instance, and compression and decompression use separate
++	 * requests, so multiple threads can do (de)compression in parallel.
+ 	 */
+-	comp_ret = crypto_wait_req(crypto_acomp_compress(acomp_ctx->req), &acomp_ctx->wait);
+-	dlen = acomp_ctx->req->dlen;
++	comp_ret = crypto_wait_req(crypto_acomp_compress(comp_ctx->areq.req),
++				   &comp_ctx->areq.wait);
++	dlen = comp_ctx->areq.req->dlen;
+ 
+ 	/*
+ 	 * If a page cannot be compressed into a size smaller than PAGE_SIZE,
+@@ -932,7 +952,7 @@ unlock:
+ 	else if (alloc_ret)
+ 		zswap_reject_alloc_fail++;
+ 
+-	mutex_unlock(&acomp_ctx->mutex);
++	mutex_unlock(&comp_ctx->areq.mutex);
+ 	return comp_ret == 0 && alloc_ret == 0;
+ }
+ 
+@@ -948,7 +968,7 @@ static bool zswap_decompress(struct zswa
+ 		return false;
+ 
+ 	acomp_ctx = raw_cpu_ptr(pool->acomp_ctx);
+-	mutex_lock(&acomp_ctx->mutex);
++	mutex_lock(&acomp_ctx->decomp.mutex);
+ 	zs_obj_read_sg_begin(pool->zs_pool, entry->handle, input, entry->length);
+ 
+ 	/* zswap entries of length PAGE_SIZE are not compressed. */
+@@ -965,15 +985,15 @@ static bool zswap_decompress(struct zswa
  	} else {
-@@ -3212,7 +3204,7 @@ static void __split_huge_pmd_locked(stru
- 		 */
- 		if (arch_needs_pgtable_deposit())
- 			zap_deposited_table(mm, pmd);
--		if (vma_is_special_huge(vma))
-+		if (!vma_is_mm_managed(vma))
- 			return;
- 		if (unlikely(pmd_is_migration_entry(old_pmd))) {
- 			const softleaf_t old_entry = softleaf_from_pmd(old_pmd);
-@@ -4779,9 +4771,7 @@ static inline bool vma_not_suitable_for_
- {
- 	if (vma_is_dax(vma))
- 		return true;
--	if (vma_is_special_huge(vma))
--		return true;
--	if (vma_test(vma, VMA_IO_BIT))
-+	if (!vma_is_mm_managed(vma))
- 		return true;
- 	if (vma_is_hugetlb(vma))
+ 		sg_init_table(&output, 1);
+ 		sg_set_folio(&output, folio, PAGE_SIZE, 0);
+-		acomp_request_set_params(acomp_ctx->req, input, &output,
++		acomp_request_set_params(acomp_ctx->decomp.req, input, &output,
+ 					 entry->length, PAGE_SIZE);
+-		ret = crypto_acomp_decompress(acomp_ctx->req);
+-		ret = crypto_wait_req(ret, &acomp_ctx->wait);
+-		dlen = acomp_ctx->req->dlen;
++		ret = crypto_acomp_decompress(acomp_ctx->decomp.req);
++		ret = crypto_wait_req(ret, &acomp_ctx->decomp.wait);
++		dlen = acomp_ctx->decomp.req->dlen;
+ 	}
+ 
+ 	zs_obj_read_sg_end(pool->zs_pool, entry->handle);
+-	mutex_unlock(&acomp_ctx->mutex);
++	mutex_unlock(&acomp_ctx->decomp.mutex);
+ 
+ 	if (!ret && dlen == PAGE_SIZE)
  		return true;
 _
 
-Patches currently in -mm which might be from ljs@kernel.org are
+Patches currently in -mm which might be from usama.arif@linux.dev are
 
-mm-vma-fix-mmap_prepare-file-handling-remove-file_doesnt_need_get.patch
-mm-vma-introduce-and-use-vma_can_merge.patch
-mm-consistently-validate-vma-state-after-mmap-hooks.patch
-mm-vma-ensure-mmap_prepare-doesnt-set-actions-on-a-mergeable-vma.patch
-mm-make-map_kernel_pages_-internal-and-unexported.patch
-mm-vma-tidy-up-map-kernel-pages-enum-values.patch
-mm-add-mmap-action-for-discontiguous-kernel-page-mapping.patch
-docs-filesystems-update-mmap_prepare-docs-for-discontig-kernel-pgs.patch
-drivers-usb-mon-update-to-use-mmap_prepare-map-kernel-pages.patch
-infiniband-update-hfi1-to-use-remap_vmalloc_range.patch
-selinux-reject-writable-opens-of-policy-file-drop-mmap-shared-write-check.patch
-alsa-pcm-use-vm_insert_page-to-map-pcm-status-page.patch
-bpf-arena-mark-arena_map_mmap-mappings-vm_mixedmap.patch
-mm-vma-add-vma_is_mm_managed-predicates.patch
-mm-vma-only-allow-mmap-to-clear-vma_maywrite_bit-if-not-mm-managed.patch
-mm-vma-add-and-use-vma__is_fixed_mapping.patch
-scsi-sg-convert-mmap-hook-to-mmap_prepare-and-rework.patch
-fbdev-defio-assert-fbinfo_virtfb-drop-vm_io-add-vm_mixedmap.patch
-hsi-cmt_speech-convert-mmap-hook-to-mmap_prepare-refactor.patch
-mm-gup-error-out-early-on-vma_mayread_bit-vmas.patch
-uprobes-remove-vm_io-set-vm_mixedmap-for-mapped-kernel-pages.patch
-mm-mlock-clear-vma_locked_mask-over-mmap-callback.patch
-mm-mlock-eliminate-weird-vma_io_bit-abuse-and-simplify.patch
-mm-vma-enforce-that-mm-managed-mappings-may-not-set-vma_io_bit.patch
-mm-remove-vma_io_bit-check-in-vma_is_mm_managed.patch
-mm-remove-hugetlb_inlineh.patch
-mm-rename-is_vm_hugetlb_page-to-vma_is_hugetlb.patch
-mm-drop-some-redundant-checks-around-hugetlb-vmas.patch
-mm-madvise-update-is_valid_guard_vma-to-use-vma_can_merge.patch
-mm-vma-introduce-vma_is_mm_backed.patch
-mm-uffd-use-predicates-for-userfaultfd-checks.patch
-mm-madvise-use-predicates-for-madvise-madv_dofork.patch
-mm-eliminate-vma_special_flags-usage-when-hugetlb-explicitly-tested.patch
-mm-eliminate-vma_special_flags-check-in-lru_gen_look_around.patch
-mm-avoid-use-of-vma_special_flags-in-migrate_vma_setup.patch
-mm-eliminate-vm_special-vma_special_flags.patch
-fuse-dax-do-not-set-vm_mixedmap.patch
-mm-huge_memory-remove-vma_is_special_huge.patch
-mm-vma-const-ify-vma_assert_stabilised-and-associated-functions.patch
-mm-implement-and-use-vma_has_anon_rmap-silence-kcsan.patch
-mm-update-comments-to-refer-to-anon-rmap-rather-than-anon_vma.patch
-mm-vma-dont-remove-vma-from-rmap-if-pgoff-unchanged.patch
+mm-filemap-move-lruvec-accounting-outside-the-xarray-lock.patch
+mm-remove-the-unused-zone-unaccepted_cleanup.patch
+mm-zswap-use-separate-compression-and-decompression-requests.patch
+mm-zswap-use-stack-requests-for-synchronous-decompression.patch
 
