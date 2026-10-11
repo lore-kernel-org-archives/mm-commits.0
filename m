@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 82D161FE471
-	for <mm-commits@vger.kernel.org>; Sun, 11 Oct 2026 15:16:12 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3BAC01B87C9;
+	Sun, 11 Oct 2026 22:19:47 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791731773; cv=none; b=HJ33NsofV/Pi0+2tiPXjRp5t+Is9vPvLEta4jawQDia3dpNpdwD9N21KEqu6dMPR6FS/5SYyB+LlNqJxay22xsns6vPYC0WcJnBigPbCUS0UF5JFZjhS5gfDNAUo3uFGttyAfVG92Rh7vkctaKPzWohTBgIz2kA3VdKq8/h5/n4=
+	t=1791757189; cv=none; b=YoAVO7kHIBhhmHbiHUNvGP2uNRFYaqxd/SenSwn1qF1LFGguRL7uRzO74WXpOXjhrQa+jnOSwiF/fJswAGatWyxEVBx5BWIItNKP7iNPFdHzw0gfzQ7BB3UGoFGi9SaTbEKO0kUXncEOvKCodtHCkylBoKBlixbFQl7So/s8kaU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791731773; c=relaxed/simple;
-	bh=9+4vfKWmVqBSrP3cCortuZ+vS/fgbQzuwD2Am7pilSo=;
-	h=Date:To:From:Subject:Message-Id; b=UP04hyx1wxWt4r7nIA3utyRtLOeXspXbrOpynfwjvlYo9XeqvnFE2pMlbKe/KhzpHKP3001TGXWQC+pXOPJCcgkRnpD67KfVQDbId3bGmkfK2cBw0mXx6qSqcfgRJml6EU4ZPt3BgC5HLmPzlRJJdi0el446/pjiYSitSf+gR2k=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=HZ+tg5p2; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1791757189; c=relaxed/simple;
+	bh=6es5G3IGavXbjiMHPzsB4S997ybqweU+2EebgYPfIxE=;
+	h=Date:To:From:Subject:Message-Id; b=hYG4qLZH3WfphbBIGhUIOmzpVr2BgW7tldUDjdrpWvEa1ZJlmqdhaGLToyUYyNocZTtFt1Kw+RNOvpiScQCwdKa7maml+QSDMf3WuBq7eIKS4vJjbCdUdrZGkfqSFc6RL1sZ9c3+O5f7D+DqgLsOyfqU0MmNAjNV+/5KYlggIYQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=keQ+qIZ+; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="HZ+tg5p2"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 58FC01F0089B;
-	Sun, 11 Oct 2026 15:16:12 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="keQ+qIZ+"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9644D1F0089B;
+	Sun, 11 Oct 2026 22:19:47 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1791731772;
-	bh=SOphisbfgQCvAYjf7JI7hViH7+BTlWsVx1uSsNqVLFE=;
+	d=linux-foundation.org; s=korg; t=1791757187;
+	bh=IFmwh1OG80gZLkyYzW4M+5j0BuT79PCnvrq1d8bxbyo=;
 	h=Date:To:From:Subject;
-	b=HZ+tg5p2fhdfH3J+QLREPibcaLYU8ueFYpTxck+YVHAnXwXcqeRfnSTiunRsa/qdU
-	 xcO5phiNpT/a0Kb0q60UlaiwpWAMfDBI5JyUQzFCpyzsa68MhANV/C2uB/3rcCi9sI
-	 ND+x/+QD6KSFY+BDfh01ZDrWZchA8KRxewhp7h1A=
-Date: Sun, 11 Oct 2026 08:16:11 -0700
-To: mm-commits@vger.kernel.org,thunder.leizhen@huawei.com,thomas.weissschuh@linutronix.de,rostedt@goodmis.org,pmladek@suse.com,olsajiri@gmail.com,nsc@kernel.org,nathan@kernel.org,mcgrof@kernel.org,masahiroy@kernel.org,ljs@kernel.org,kees@kernel.org,geert@linux-m68k.org,denis.benato@linux.dev,david.laight.linux@gmail.com,chewi@gentoo.org,andrey.grodzovsky@crowdstrike.com,abelvesa@kernel.org,jim.cromie@gmail.com,akpm@linux-foundation.org
+	b=keQ+qIZ+Q9QlX63WgMZznwSoF8VeQlP3KKh0XhK/rLlepcNbJPrQO9qXIm11zcCed
+	 7AabjdDTooEDoW0ebBcIyPJgsPD5A4QICNunTqk1OXnbYj5/MDuAc44x3bNgFfka0N
+	 XcaxaaPykd6T/hycgs8sP2v8GRdQk+vMjhG2DqM8=
+Date: Sun, 11 Oct 2026 15:19:47 -0700
+To: mm-commits@vger.kernel.org,stable@vger.kernel.org,hpa@zytor.com,alain@knaff.lu,elb12345@hotmail.co.uk,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [to-be-updated] kallsyms-unroll-24-bit-sequence-reconstruction-in-get_symbol_seq.patch removed from -mm tree
-Message-Id: <20261011151612.58FC01F0089B@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] lib-decompress_bunzip2-fix-integer-overflow-in-run-length-decoding.patch removed from -mm tree
+Message-Id: <20261011221947.9644D1F0089B@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,77 +35,62 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: kallsyms: unroll 24-bit sequence reconstruction in get_symbol_seq()
+     Subject: lib: decompress_bunzip2: fix integer overflow in run-length decoding
 has been removed from the -mm tree.  Its filename was
-     kallsyms-unroll-24-bit-sequence-reconstruction-in-get_symbol_seq.patch
+     lib-decompress_bunzip2-fix-integer-overflow-in-run-length-decoding.patch
 
-This patch was dropped because an updated version will be issued
+This patch was dropped because it was merged into the mm-nonmm-stable branch
+of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Jim Cromie <jim.cromie@gmail.com>
-Subject: kallsyms: unroll 24-bit sequence reconstruction in get_symbol_seq()
-Date: Tue, 29 Sep 2026 12:07:32 -0600
+From: Aamir Ahmed <elb12345@hotmail.co.uk>
+Subject: lib: decompress_bunzip2: fix integer overflow in run-length decoding
+Date: Wed, 16 Sep 2026 09:53:51 +0100
 
-kallsyms_seqs_of_names[] stores 3-byte big-endian sequence indices that
-map alphabetical symbol positions to address-ordered symbol records. 
-Currently, get_symbol_seq() reconstructs each 24-bit integer using a
-3-iteration for-loop that shifts and bitwise-ORs each byte sequentially. 
-During binary search in kallsyms_lookup_names() and duplicate boundary
-scans, this loop introduces branch and loop overhead on the hot lookup
-path.
+The RUNA/RUNB decoder in get_next_block() accumulates a run length into
+the signed int t with no bound.  runPos doubles per symbol, so t grows as
+at least 2^n-1 and reaches INT_MAX after 31 RUNA symbols.  The guard that
+follows, dbufCount+t >= dbufSize, is itself a signed addition, and as the
+kernel builds with -fno-strict-overflow it wraps negative once dbufCount
+is nonzero, so the guard is skipped.  while (t--) dbuf[dbufCount++] = uc
+then writes INT_MAX entries into a buffer holding at most 900000.  One
+literal symbol ahead of the run is enough to make dbufCount nonzero.
 
-Mark get_symbol_seq() as static inline and unroll the 3-byte extraction
-into direct byte shifts: (p[0] << 16) | (p[1] << 8) | p[2].  This
-eliminates loop induction variable maintenance and allows the compiler to
-generate direct loads and constant shifts.
+Bound t to the block size as it is accumulated.  t only grows within a
+run, so the value tested never exceeds the final run length; any stream
+that decodes today satisfies dbufCount+t < dbufSize at the flush, hence t
+< dbufSize throughout, and no such stream is rejected.  Because t grows as
+at least 2^n-1 the bound trips by the 20th symbol, leaving runPos at most
+2^19, so the following runPos <<= 1 cannot overflow either.
 
-Link: https://lore.kernel.org/20260929-ksyms-tune-v7-3-be568ceef41e@gmail.com
-Signed-off-by: Jim Cromie <jim.cromie@gmail.com>
+Link: https://lore.kernel.org/AS8P251MB00010FE5E38D253CF98A652AC8B92@AS8P251MB0001.EURP251.PROD.OUTLOOK.COM
+Fixes: bc22c17e12c1 ("bzip2/lzma: library support for gzip, bzip2 and lzma decompression")
+Signed-off-by: Aamir Ahmed <elb12345@hotmail.co.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Reviewed-by: Kees Cook <kees@kernel.org>
-Cc: Petr Mladek <pmladek@suse.com>
-Cc: Zhen Lei <thunder.leizhen@huawei.com>
-Cc: Luis Chamberlain <mcgrof@kernel.org>
-Cc: Andrey Grodzovsky <andrey.grodzovsky@crowdstrike.com>
-Cc: Steven Rostedt <rostedt@goodmis.org>
-Cc: Lorenzo Stoakes <ljs@kernel.org>
-Cc: David Laight <david.laight.linux@gmail.com>
-Cc: Masahiro Yamada <masahiroy@kernel.org>
-Cc: Jiri Olsa <olsajiri@gmail.com>
-Cc: Geert Uytterhoeven <geert@linux-m68k.org>
-Cc: Abel Vesa <abelvesa@kernel.org>
-Cc: Denis Benato <denis.benato@linux.dev>
-Cc: James Le Cuirot <chewi@gentoo.org>
-Cc: Nathan Chancellor <nathan@kernel.org>
-Cc: Nicolas Schier <nsc@kernel.org>
-Cc: Thomas Weißschuh <thomas.weissschuh@linutronix.de>
+Assisted-by: LLM
+Cc: Alain Knaff <alain@knaff.lu>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: <stable@vger.kernel.org>
 ---
 
- kernel/kallsyms.c |    9 +++------
- 1 file changed, 3 insertions(+), 6 deletions(-)
+ lib/decompress_bunzip2.c |    4 ++++
+ 1 file changed, 4 insertions(+)
 
---- a/kernel/kallsyms.c~kallsyms-unroll-24-bit-sequence-reconstruction-in-get_symbol_seq
-+++ a/kernel/kallsyms.c
-@@ -185,14 +185,11 @@ unsigned long kallsyms_sym_address(int i
- 	return (unsigned long)offset_to_ptr(kallsyms_offsets + idx);
- }
+--- a/lib/decompress_bunzip2.c~lib-decompress_bunzip2-fix-integer-overflow-in-run-length-decoding
++++ a/lib/decompress_bunzip2.c
+@@ -428,6 +428,10 @@ got_huff_bits:
+ 			t += (runPos << nextSym);
+ 			/* +runPos if RUNA; +2*runPos if RUNB */
  
--static unsigned int get_symbol_seq(int index)
-+static inline unsigned int get_symbol_seq(int index)
- {
--	unsigned int i, seq = 0;
-+	const u8 *p = &kallsyms_seqs_of_names[3 * index];
- 
--	for (i = 0; i < 3; i++)
--		seq = (seq << 8) | kallsyms_seqs_of_names[3 * index + i];
--
--	return seq;
-+	return (p[0] << 16) | (p[1] << 8) | p[2];
- }
- 
- static int kallsyms_lookup_names(const char *name,
++			/* Bound the run so t and runPos cannot overflow. */
++			if (t >= dbufSize)
++				return RETVAL_DATA_ERROR;
++
+ 			runPos <<= 1;
+ 			continue;
+ 		}
 _
 
-Patches currently in -mm which might be from jim.cromie@gmail.com are
+Patches currently in -mm which might be from elb12345@hotmail.co.uk are
 
 
