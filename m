@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 181FA4052C2
-	for <mm-commits@vger.kernel.org>; Sun, 11 Oct 2026 22:20:02 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6608F3FE36C
+	for <mm-commits@vger.kernel.org>; Sun, 11 Oct 2026 22:20:03 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791757203; cv=none; b=T3S+YiuKKbnqiUNJQpVk2fRfL67MATujG9FPYODlSIgd8S3w1agkUKZdqeHeBV2qmuMsSVMkZGkQuCRX+9vBpxUORx0shC14HElCf0CNnFrT2IVkiqLqzZTnevbW4iTI7G1qFPkM9RX75TAV26rDcECEtDK531weqF+G8fuGHHs=
+	t=1791757204; cv=none; b=svXpgRtIAYL2WI0jUMlzh57KQUCh1RzX/IyHDE0htWSMNOD1ciuBkIciiwqzw853mCKcDo3v15jTQH680NpnlHQwP5kA8E3aI46pqsmuFxH1gY6U7+Xprku/haPXNYPprIoJIglTSPdhSWA1rs2KvgWoaBOBIOnR0prVX9zhj28=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791757203; c=relaxed/simple;
-	bh=Q1RLb3szwTrHcqvff7uJFCcVq5Yc1ICogRHNPmtJOg8=;
-	h=Date:To:From:Subject:Message-Id; b=RSR/uuJpwXlvIrHCRNzaM+RsbRHfE9Zp5BFP/1uaoahlJxzJFz7sHAY2dI+wHEzXP0PXw/RtxzVLtNy2kyY0N7y099EFo2v15GN0VgRPcneGhfj+NjKevqbZm8sPs1TqrjEIGI0qv2CFDBdjrg17o+QqFMZ+5bUcH0Aqk4CDDTE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=WS0hqPdg; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1791757204; c=relaxed/simple;
+	bh=9KWNk8GdHakksdrJdCDbCJL80WXK+Dbg4Ugt2vcSuc4=;
+	h=Date:To:From:Subject:Message-Id; b=P7KJFFLOHH/ZF9bFbTun4bFH23oznDulflAXgQNM60ClFi2wLcGxfWextmdhdxXnW8EGSAbG2wkKHWnhVpFplvn3Fqm8EOojx2n8SEUkJm5za/C8RDiTDg8B8KgsbK7xSc65+dA0A/nW1g9OJRbIV7m88lOyJRBl7xB5D/hMHOM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=iAiteKyJ; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="WS0hqPdg"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E563F1F0089B;
-	Sun, 11 Oct 2026 22:20:01 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="iAiteKyJ"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2693A1F0089C;
+	Sun, 11 Oct 2026 22:20:03 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1791757202;
-	bh=d+n9yYlYTg3RkcNlnezVY574ioyn1WbTjKKa+EPNIow=;
+	d=linux-foundation.org; s=korg; t=1791757203;
+	bh=Ympk6zIWufeCKJeQI8hah/rhIUXMzcaPH2AkTpf1ZbA=;
 	h=Date:To:From:Subject;
-	b=WS0hqPdgLtS8wvRdALc1bprW9ZxX8LKgH+bYEnjcqctA17M7YN0ugfPsrc28K0p0K
-	 CdQZLQMUr7CWht+xmmI70tBFLXHYHyPVZDCdDFc8SVPpeG5xGA6Z/CCduUmXpTrxwf
-	 Hj5WW1MXyFqWSaashgNukI2zm7nsNk0QDcCL2Qjo=
-Date: Sun, 11 Oct 2026 15:20:01 -0700
-To: mm-commits@vger.kernel.org,joe@perches.com,jic23@kernel.org,apw@canonical.com,alison.schofield@intel.com,kanie@linux.alibaba.com,akpm@linux-foundation.org
+	b=iAiteKyJxdCg/+mwbXnDig3jzWMYOeMf4H8uxVDD6kZ+cCWjy81lb5s9ClFaEsdjQ
+	 d/X9WbqbtjUzsriIqqXeCWOWFUBIOzrDX8cYk24+JtIBDN1IOpACjpjn4tm276J48z
+	 RO86pHtydig7qrdJm8jv1CnJ8k6bo1bO3MB8jWcs=
+Date: Sun, 11 Oct 2026 15:20:02 -0700
+To: mm-commits@vger.kernel.org,shuah@kernel.org,jlayton@kernel.org,broonie@kernel.org,danishkhateeb03@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] checkpatch-dont-flag-acquire_err-assignments-in-if-conditions.patch removed from -mm tree
-Message-Id: <20261011222001.E563F1F0089B@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] kselftest-filelock-plan-for-the-five-ofdlocks-tests.patch removed from -mm tree
+Message-Id: <20261011222003.2693A1F0089C@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,74 +35,51 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: checkpatch: don't flag ACQUIRE_ERR() assignments in if conditions
+     Subject: kselftest/filelock: plan for the five ofdlocks tests
 has been removed from the -mm tree.  Its filename was
-     checkpatch-dont-flag-acquire_err-assignments-in-if-conditions.patch
+     kselftest-filelock-plan-for-the-five-ofdlocks-tests.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Guixin Liu <kanie@linux.alibaba.com>
-Subject: checkpatch: don't flag ACQUIRE_ERR() assignments in if conditions
-Date: Thu, 24 Sep 2026 11:39:23 +0800
+From: Danish Khateeb <danishkhateeb03@gmail.com>
+Subject: kselftest/filelock: plan for the five ofdlocks tests
+Date: Fri, 25 Sep 2026 15:55:02 -0500
 
-ACQUIRE_ERR() and its wrappers, PM_RUNTIME_ACQUIRE_ERR() and
-IIO_DEV_ACQUIRE_FAILED(), report whether a conditional cleanup.h guard was
-acquired, and drivers consume the result directly in an if condition:
+ofdlocks reports five results but plans for four, so even when they
+all pass it ends with
 
-	if ((rc = ACQUIRE_ERR(mutex_intr, &lock)))
-		return rc;
+  # Planned tests != run tests (4 != 5)
 
-That combined form is the established style at the 49 in-tree call sites
-under drivers/cxl and drivers/pci/tsm.c, so ASSIGN_IN_IF fires there only
-as a false positive, and every patch touching those lines carries noise
-that reviewers have to wave off manually.
+and exits with KSFT_FAIL, which run_kselftest.sh reports as a failure.
 
-Skip the check only when every assignment in the condition assigns the
-result of such a call, matched by the *_ACQUIRE_ERR() / *_ACQUIRE_FAILED()
-naming convention of its wrappers.  Plain assignments, mixed conditions
-and near-miss identifiers still get flagged.
-
-Link: https://lore.kernel.org/20260924033923.4140210-1-kanie@linux.alibaba.com
-Signed-off-by: Guixin Liu <kanie@linux.alibaba.com>
+Link: https://lore.kernel.org/20260925205502.115327-1-danishkhateeb03@gmail.com
+Fixes: 33d5b13098fb ("kselftest/filelock: report each test in oftlocks separately")
+Signed-off-by: Danish Khateeb <danishkhateeb03@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Suggested-by: Alison Schofield <alison.schofield@intel.com>
-Acked-by: Joe Perches <joe@perches.com>
 Assisted-by: LLM
-Cc: Andy Whitcroft <apw@canonical.com>
-Cc: Jonathan Cameron <jic23@kernel.org>
+Cc: Shuah Khan <shuah@kernel.org>
+Cc: Mark Brown <broonie@kernel.org>
+Cc: Jeff Layton <jlayton@kernel.org>
 ---
 
- scripts/checkpatch.pl |   14 ++++++++++++++
- 1 file changed, 14 insertions(+)
+ tools/testing/selftests/filelock/ofdlocks.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/scripts/checkpatch.pl~checkpatch-dont-flag-acquire_err-assignments-in-if-conditions
-+++ a/scripts/checkpatch.pl
-@@ -5787,7 +5787,21 @@ sub process {
- 			my ($s, $c) = ($stat, $cond);
- 			my $fixed_assign_in_if = 0;
+--- a/tools/testing/selftests/filelock/ofdlocks.c~kselftest-filelock-plan-for-the-five-ofdlocks-tests
++++ a/tools/testing/selftests/filelock/ofdlocks.c
+@@ -40,7 +40,7 @@ int main(void)
+ 	int fd2 = open("/tmp/aa", O_RDONLY);
  
-+			# ACQUIRE_ERR() and its wrappers, e.g. PM_RUNTIME_ACQUIRE_ERR()
-+			# and IIO_DEV_ACQUIRE_FAILED(), are meant to be evaluated in an
-+			# if condition, with the error assigned in the condition:
-+			#	if ((rc = ACQUIRE_ERR(name, &lock)))
-+			# Allow that only when every assignment in the condition assigns
-+			# the result of such a call, so that a mixed condition keeps
-+			# getting flagged:
-+			#	if ((rc = regular_function()) || (ret = ACQUIRE_ERR(name, &lock)))
-+			my $assign_in_if = 0;
- 			if ($c =~ /\bif\s*\(.*[^<>!=]=[^=].*/s) {
-+				my $has_assignment = $c =~ /\b$Lval\s*=\s*[^,)&|=]+/;
-+				my $has_other_assignment = $c =~ /\b$Lval\s*=\s*(?!\s*\w*ACQUIRE_(?:ERR|FAILED)\s*\()[^,)&|=]+/;
-+				$assign_in_if = !$has_assignment || $has_other_assignment;
-+			}
-+			if ($assign_in_if) {
- 				if (ERROR("ASSIGN_IN_IF",
- 					  "do not use assignment in if condition\n" . $herecurr) &&
- 				    $fix && $perl_version_ok) {
+ 	ksft_print_header();
+-	ksft_set_plan(4);
++	ksft_set_plan(5);
+ 
+ 	unlink("/tmp/aa");
+ 	assert(fd != -1);
 _
 
-Patches currently in -mm which might be from kanie@linux.alibaba.com are
+Patches currently in -mm which might be from danishkhateeb03@gmail.com are
 
 
