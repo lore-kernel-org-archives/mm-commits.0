@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3BAC01B87C9;
-	Sun, 11 Oct 2026 22:19:47 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 16F4513B5B3;
+	Sun, 11 Oct 2026 22:19:48 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791757189; cv=none; b=YoAVO7kHIBhhmHbiHUNvGP2uNRFYaqxd/SenSwn1qF1LFGguRL7uRzO74WXpOXjhrQa+jnOSwiF/fJswAGatWyxEVBx5BWIItNKP7iNPFdHzw0gfzQ7BB3UGoFGi9SaTbEKO0kUXncEOvKCodtHCkylBoKBlixbFQl7So/s8kaU=
+	t=1791757190; cv=none; b=be00HSjH7GKFo7Hb7QCOIW2K+xbCw9hEkLt/4dQSgvmHhjiXGWXaI1xZf9W5zpUCC9obJXyJ0hWitJYWR+HQWeAUhQ/LG/zkrA9sguL9TOregPzjIb+DQN37v60WvbYWgZfBUzccX2TLRYqFEzJupFe2BT9MmCO6PQV6cZuJmVU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791757189; c=relaxed/simple;
-	bh=6es5G3IGavXbjiMHPzsB4S997ybqweU+2EebgYPfIxE=;
-	h=Date:To:From:Subject:Message-Id; b=hYG4qLZH3WfphbBIGhUIOmzpVr2BgW7tldUDjdrpWvEa1ZJlmqdhaGLToyUYyNocZTtFt1Kw+RNOvpiScQCwdKa7maml+QSDMf3WuBq7eIKS4vJjbCdUdrZGkfqSFc6RL1sZ9c3+O5f7D+DqgLsOyfqU0MmNAjNV+/5KYlggIYQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=keQ+qIZ+; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1791757190; c=relaxed/simple;
+	bh=Lk6m2NMnTL4aRugo6B27NBXyOdel1PoILGkGRwMV16I=;
+	h=Date:To:From:Subject:Message-Id; b=mDjiPV8Bwds6jDzvJqYbsjyzU3T9iMOfWRj+peEY6QZ4HLZY1jfeLEdcz8oKobspi1V6l1rHNYxrqLHEBR6aeTWWxZPmrlC17J82hWaNBJm9UnEQOt8vN72wJXTpININT2oQwG99+uPaOqzwgMIIU32jaOHpiIPf0gahjxxQqFo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=F67+7AHK; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="keQ+qIZ+"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9644D1F0089B;
-	Sun, 11 Oct 2026 22:19:47 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="F67+7AHK"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id BDBCD1F0089C;
+	Sun, 11 Oct 2026 22:19:48 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1791757187;
-	bh=IFmwh1OG80gZLkyYzW4M+5j0BuT79PCnvrq1d8bxbyo=;
+	d=linux-foundation.org; s=korg; t=1791757188;
+	bh=t6Se+3ZSPFBFzfStVUQZbNlryyS44gYL9ELc8fNSp14=;
 	h=Date:To:From:Subject;
-	b=keQ+qIZ+Q9QlX63WgMZznwSoF8VeQlP3KKh0XhK/rLlepcNbJPrQO9qXIm11zcCed
-	 7AabjdDTooEDoW0ebBcIyPJgsPD5A4QICNunTqk1OXnbYj5/MDuAc44x3bNgFfka0N
-	 XcaxaaPykd6T/hycgs8sP2v8GRdQk+vMjhG2DqM8=
-Date: Sun, 11 Oct 2026 15:19:47 -0700
-To: mm-commits@vger.kernel.org,stable@vger.kernel.org,hpa@zytor.com,alain@knaff.lu,elb12345@hotmail.co.uk,akpm@linux-foundation.org
+	b=F67+7AHK/JdSLJFIhT5Pz/6DdJpO3Amy9r+SVdHqia/U4PSPDwBv+EDlx7UrqVzfh
+	 47QgHQX+gpOeoKqOdcgeYfrFit5ZgRMFaK4Znl6hQx2tjLi3b/F0VG6uvHyhE8jAj0
+	 ZnVQsApBBHOyXoj5xN0ZNBQHc49Yj+o+S0fzcCiM=
+Date: Sun, 11 Oct 2026 15:19:48 -0700
+To: mm-commits@vger.kernel.org,stable@vger.kernel.org,piaojun@huawei.com,mark@fasheh.com,junxiao.bi@oracle.com,joseph.qi@linux.alibaba.com,jlbec@evilplan.org,heming.zhao@suse.com,gechangwei@live.cn,glass.su@suse.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] lib-decompress_bunzip2-fix-integer-overflow-in-run-length-decoding.patch removed from -mm tree
-Message-Id: <20261011221947.9644D1F0089B@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] ocfs2-update-xattr-count-before-moving-bucket-entries.patch removed from -mm tree
+Message-Id: <20261011221948.BDBCD1F0089C@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,62 +35,84 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: lib: decompress_bunzip2: fix integer overflow in run-length decoding
+     Subject: ocfs2: update xattr count before moving bucket entries
 has been removed from the -mm tree.  Its filename was
-     lib-decompress_bunzip2-fix-integer-overflow-in-run-length-decoding.patch
+     ocfs2-update-xattr-count-before-moving-bucket-entries.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Aamir Ahmed <elb12345@hotmail.co.uk>
-Subject: lib: decompress_bunzip2: fix integer overflow in run-length decoding
-Date: Wed, 16 Sep 2026 09:53:51 +0100
+From: Su Yue <glass.su@suse.com>
+Subject: ocfs2: update xattr count before moving bucket entries
+Date: Wed, 16 Sep 2026 10:47:50 +0800
 
-The RUNA/RUNB decoder in get_next_block() accumulates a run length into
-the signed int t with no bound.  runPos doubles per symbol, so t grows as
-at least 2^n-1 and reaches INT_MAX after 31 RUNA symbols.  The guard that
-follows, dbufCount+t >= dbufSize, is itself a signed addition, and as the
-kernel builds with -fno-strict-overflow it wraps negative once dbufCount
-is nonzero, so the guard is skipped.  while (t--) dbuf[dbufCount++] = uc
-then writes INT_MAX entries into a buffer holding at most 900000.  One
-literal symbol ahead of the run is enough to make dbufCount nonzero.
+Since commit 2f26f58df041 ("ocfs2: annotate flexible array members with
+__counted_by_le()"), the xh_entries array is annotated with
+__counted_by_le(xh_count), so FORTIFY uses xh_count to determine its
+bounds.  When inserting an entry into a bucket,
+ocfs2_xa_bucket_add_entry() shifts existing entries before incrementing
+xh_count.  The destination therefore extends one entry past the bounds
+described by the old count.
 
-Bound t to the block size as it is accumulated.  t only grows within a
-run, so the value tested never exceeds the final run length; any stream
-that decodes today satisfies dbufCount+t < dbufSize at the flush, hence t
-< dbufSize throughout, and no such stream is rejected.  Because t grows as
-at least 2^n-1 the bound trips by the 20th symbol, leaving runPos at most
-2^19, so the following runPos <<= 1 cannot overflow either.
+With CONFIG_CC_HAS_COUNTED_BY and CONFIG_FORTIFY_SOURCE enabled,
+ocfs2-test: single_run-WIP.sh -t reflink triggers the following failure
+while adding an extended attribute:
 
-Link: https://lore.kernel.org/AS8P251MB00010FE5E38D253CF98A652AC8B92@AS8P251MB0001.EURP251.PROD.OUTLOOK.COM
-Fixes: bc22c17e12c1 ("bzip2/lzma: library support for gzip, bzip2 and lzma decompression")
-Signed-off-by: Aamir Ahmed <elb12345@hotmail.co.uk>
+[  150.156484] memmove: detected buffer overflow: 352 byte write of buffer size 336
+[  150.156487] WARNING: lib/string_helpers.c:1036 at __fortify_report+0x3d/0x50, CPU#15: reflink_test/2336
+[  150.160496] RIP: 0010:__fortify_report+0x40/0x50
+[  150.164031] Call Trace:
+[  150.164141]  <TASK>
+[  150.164232]  __fortify_panic+0x9/0xb
+[  150.164383]  ocfs2_xa_bucket_add_entry.cold+0x17/0x28 [ocfs2]
+[  150.164661]  ocfs2_xa_set+0x8fb/0xf40 [ocfs2]
+
+Increment xh_count before memmove() so the destination bounds include the
+new entry.  Keep the local count unchanged to calculate the insertion
+position and move length from the original number of entries.  The caller
+has already checked that there is enough space for the new entry.
+
+Link: https://lore.kernel.org/20260916024750.9450-1-glass.su@suse.com
+Fixes: 2f26f58df041 ("ocfs2: annotate flexible array members with __counted_by_le()")
+Signed-off-by: Su Yue <glass.su@suse.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Assisted-by: LLM
-Cc: Alain Knaff <alain@knaff.lu>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
+Reviewed-by: Heming Zhao <heming.zhao@suse.com>
+Reviewed-by: Joseph Qi <joseph.qi@linux.alibaba.com>
+Cc: Mark Fasheh <mark@fasheh.com>
+Cc: Joel Becker <jlbec@evilplan.org>
+Cc: Junxiao Bi <junxiao.bi@oracle.com>
+Cc: Changwei Ge <gechangwei@live.cn>
+Cc: Jun Piao <piaojun@huawei.com>
 Cc: <stable@vger.kernel.org>
 ---
 
- lib/decompress_bunzip2.c |    4 ++++
- 1 file changed, 4 insertions(+)
+ fs/ocfs2/xattr.c |    7 ++++++-
+ 1 file changed, 6 insertions(+), 1 deletion(-)
 
---- a/lib/decompress_bunzip2.c~lib-decompress_bunzip2-fix-integer-overflow-in-run-length-decoding
-+++ a/lib/decompress_bunzip2.c
-@@ -428,6 +428,10 @@ got_huff_bits:
- 			t += (runPos << nextSym);
- 			/* +runPos if RUNA; +2*runPos if RUNB */
- 
-+			/* Bound the run so t and runPos cannot overflow. */
-+			if (t >= dbufSize)
-+				return RETVAL_DATA_ERROR;
-+
- 			runPos <<= 1;
- 			continue;
+--- a/fs/ocfs2/xattr.c~ocfs2-update-xattr-count-before-moving-bucket-entries
++++ a/fs/ocfs2/xattr.c
+@@ -2146,12 +2146,17 @@ static void ocfs2_xa_bucket_add_entry(st
  		}
+ 	}
+ 
++	/*
++	 * Increment xh_count before memmove() so __counted_by_le(xh_count)
++	 * includes the new entry in the destination bounds.
++	 */
++	le16_add_cpu(&xh->xh_count, 1);
++
+ 	if (low != count)
+ 		memmove(&xh->xh_entries[low + 1],
+ 			&xh->xh_entries[low],
+ 			((count - low) * sizeof(struct ocfs2_xattr_entry)));
+ 
+-	le16_add_cpu(&xh->xh_count, 1);
+ 	loc->xl_entry = &xh->xh_entries[low];
+ 	memset(loc->xl_entry, 0, sizeof(struct ocfs2_xattr_entry));
+ }
 _
 
-Patches currently in -mm which might be from elb12345@hotmail.co.uk are
+Patches currently in -mm which might be from glass.su@suse.com are
 
 
