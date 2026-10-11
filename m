@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8552717A303
-	for <mm-commits@vger.kernel.org>; Sun, 11 Oct 2026 00:23:41 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6A5A53B3C15
+	for <mm-commits@vger.kernel.org>; Sun, 11 Oct 2026 03:59:15 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791678222; cv=none; b=WgZ2LDBowuOES08yMS7oUYwN7e4HFYvEsmeprLvRUIp9dhrNeJRSwP0okNzfpkswQgSzHfB7cnv8MdtOK9URenA0iaHkRAoKI+BP0AvTfs3lTkR/urBe/cIzLNOU0OsJi+YVnlVAE64NFxi5zYYRH22KGGrm6yXDdU8uV9+LyqU=
+	t=1791691156; cv=none; b=LBNOV4T2xGw3Zee/tOZBikpJmyX0JWVBUlShst0mUYF0nRjwqWozfzNYtwQqjd0mel8BrzlgBzDAM0Lm8HOVJ0i/fNaCsF/Do7HjQOSuIcLiEuxSubmxTGSrOWh5dw4agkTurw+z/f6a7k5cWYP84ZToOHJ+S+/QSf02yNZIYXU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791678222; c=relaxed/simple;
-	bh=AcwOp3aGLitxxEdc/RECGK+M9tkKgGv7Kyn8vWjAG6M=;
-	h=Date:To:From:Subject:Message-Id; b=O45E7SShyljVKexXFfJ+Amph2Crd+lIwRHeTER5d9FJ9fAn0aEfuixytzEUbYGJLfWQ2gm6coCAOLTuaWgKlTxounIIUewq5y1fDS0u8K0QU7DkHhyoADwSlzKwRf7l22KzF8MiPwQmhW+fce7k5bMk7imS1ldLmmO3YoFlei2c=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=HruHOTqq; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1791691156; c=relaxed/simple;
+	bh=H/RZ91r7M1MFQht+p5H7gakLpCfEpC/kpZhpjLEc/sM=;
+	h=Date:To:From:Subject:Message-Id; b=JWQM7B08tRLglq0C+hTJYPnI79bw1VCgy/aIbegEFrS3xH/+kewiewKq7PbJz0f0GnhgQpFTgj1B41c9ajC10tTjF9TGNvoKoMZZm+Plc7XB5ysyfKe5ah5NjzfjX0VzzgKUTmtGur3V/NMzlUA0XnkinmLRWUqZ7KVEe6ycMLg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=lSB2gkZn; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="HruHOTqq"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E44771F000FF;
-	Sun, 11 Oct 2026 00:23:40 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="lSB2gkZn"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id CDADC1F000FF;
+	Sun, 11 Oct 2026 03:59:14 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1791678221;
-	bh=dHnxIcRWydVuf7h1zetdXXsPSc4JCxfxscKOXCai6Lo=;
+	d=linux-foundation.org; s=korg; t=1791691154;
+	bh=ZLfLSONXhsL8KVivW8skTw2tfMzyaFtyx7FaFDxhgrA=;
 	h=Date:To:From:Subject;
-	b=HruHOTqqMB8vpKwicHpWDbGSAyhau2gSCYyuNRGuuVTcYLlu5eoQ3E5i5X0q8lW9a
-	 1Jb4OqpDEev8LJo5T3Mypr8GVtWsL/QJFhKuD62i9Nvg8Q1wzCY0wlwtZyoD4BxeSO
-	 cIHztO/icT7LlsPegHgwCPl5sE3I7OMMiGqmRHT8=
-Date: Sat, 10 Oct 2026 17:23:40 -0700
-To: mm-commits@vger.kernel.org,thunder.leizhen@huawei.com,thomas.weissschuh@linutronix.de,rostedt@goodmis.org,pmladek@suse.com,olsajiri@gmail.com,nsc@kernel.org,nathan@kernel.org,mcgrof@kernel.org,masahiroy@kernel.org,ljs@kernel.org,kees@kernel.org,geert@linux-m68k.org,denis.benato@linux.dev,david.laight.linux@gmail.com,chewi@gentoo.org,andrey.grodzovsky@crowdstrike.com,abelvesa@kernel.org,jim.cromie@gmail.com,akpm@linux-foundation.org
+	b=lSB2gkZnRTApf0C9XnjQyJXLSktZdueXZ2nHKGPScVfyGI1n/MJw3L7bG3tFJgY8K
+	 HPNsIpJv3EaM0ijxt+IWlNvN6Cwgo0dGpjBe12q2DXl5pTRC1Kz4ATaaOHIpmOdEWE
+	 RVFUP3lvJKKhSIhzAitzxYdbt4XNzwYnmbY5nx1Q=
+Date: Sat, 10 Oct 2026 20:59:14 -0700
+To: mm-commits@vger.kernel.org,kuan-ying.lee@canonical.com,kbingham@kernel.org,jan.kiszka@siemens.com,ue081723@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + kallsyms-increase-marker-density-to-16-1-to-accelerate-lookups-fix.patch added to mm-nonmm-unstable branch
-Message-Id: <20261011002340.E44771F000FF@smtp.kernel.org>
+Subject: + scripts-gdb-fix-radix-tree-lookup-pointer-handling.patch added to mm-nonmm-unstable branch
+Message-Id: <20261011035914.CDADC1F000FF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: kallsyms: copy constants from __KERNEL__ to user, drop the inclusion
+     Subject: scripts/gdb: fix radix tree lookup pointer handling
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     kallsyms-increase-marker-density-to-16-1-to-accelerate-lookups-fix.patch
+     scripts-gdb-fix-radix-tree-lookup-pointer-handling.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kallsyms-increase-marker-density-to-16-1-to-accelerate-lookups-fix.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/scripts-gdb-fix-radix-tree-lookup-pointer-handling.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,105 +58,159 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Jim Cromie <jim.cromie@gmail.com>
-Subject: kallsyms: copy constants from __KERNEL__ to user, drop the inclusion
-Date: Thu, 08 Oct 2026 17:19:12 -0600
+From: Ting-Han Hou <ue081723@gmail.com>
+Subject: scripts/gdb: fix radix tree lookup pointer handling
+Date: Sun, 11 Oct 2026 10:30:43 +0800
 
-commit 4fafd1165b33 replaced hardcoded values which determine marker array
-size, with new values that accelerate symbol-name lookups.  These symbols
-are needed in user-space to generate the lookup tables, and in kernel to
-read the generated table.
+Patch series "scripts/gdb: fix radix tree lookup and stack depot
+diagnostic", v2.
 
-To avoid 2-defns problem, they were added to a kernel header (with ifdef
-guards) and included by scripts/kallsyms.c.  But that creates packaging
-problems elsewhere, so just add the 2nd defns, with an explicit comment
-about the user-kernel coupling.
+Two scripts/gdb fixes.
 
-Link: https://lore.kernel.org/20261008-fix-kallsyms-v1-1-3339fdac2ab3@gmail.com
-Fixes: 4fafd1165b33 ("kallsyms: increase marker density to 16:1 to accelerate lookups")
-Signed-off-by: Jim Cromie <jim.cromie@gmail.com>
+Patch 1 fixes $lx_radix_tree_lookup(), which dereferenced slot contents
+as if they were node pointers. v2 also handles the XArray sibling,
+retry and zero entries that Sashiko pointed out: they carry the
+internal tag but are not node pointers, and the v1 patch raised a GDB
+MemoryError on them. Large folios in the page cache make sibling
+entries common, so this was worth fixing rather than documenting.
+
+Patch 2 is unchanged from v1 apart from being resent with git
+send-email, since the earlier copy was word-wrapped by the mail
+client. Sorry about that.
+
+Both patches are tested against standalone GCC-built fixtures that use
+the kernel struct layouts (details below the --- line of each patch),
+not against a running kernel.
+
+
+This patch (of 2):
+
+lookup() casts each slot to a pointer to a node pointer and then
+dereferences it. Since the slot already contains an entry pointer,
+this reads the entry's contents as another pointer instead of
+returning the entry itself. Internal entries also keep their tag
+bits when descending, so multi-level trees are read from the wrong
+address and $lx_radix_tree_lookup() fails with a memory error.
+
+Sibling, retry and zero entries carry the same internal tag but are
+small integers rather than node pointers, so the tag alone must not
+decide whether to descend. A page cache populated with large folios
+has a sibling entry in every slot but the first of each folio.
+
+Walk the tree the way xas_load() does: descend only through entries
+that xa_is_node() would accept, follow sibling entries to the
+canonical slot of a multi-index entry, and treat retry and zero
+entries like empty slots since they hold no data. Remove the explicit
+shift counter, as traversal now follows the entry type.
+
+Link: https://lore.kernel.org/20261011023044.1722-1-ue081723@gmail.com
+Link: https://lore.kernel.org/20261011023044.1722-2-ue081723@gmail.com
+Fixes: b7235d6bb516 ("scripts/gdb: add a Radix Tree Parser")
+Signed-off-by: Ting-Han Hou <ue081723@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Tested-by: Nicolas Schier <nsc@kernel.org>
-Reviewed-by: Nicolas Schier <nsc@kernel.org>
-Cc: Nathan Chancellor <nathan@kernel.org>
-Cc: Denis Benato <denis.benato@linux.dev>
-Cc: Kees Cook <kees@kernel.org>
-Cc: Thomas Weißschuh <thomas.weissschuh@linutronix.de>
-Cc: James Le Cuirot <chewi@gentoo.org>
-Cc: Abel Vesa <abelvesa@kernel.org>
-Cc: Andrey Grodzovsky <andrey.grodzovsky@crowdstrike.com>
-Cc: David Laight <david.laight.linux@gmail.com>
-Cc: Geert Uytterhoeven <geert@linux-m68k.org>
-Cc: Jiri Olsa <olsajiri@gmail.com>
-Cc: Lorenzo Stoakes <ljs@kernel.org>
-Cc: Luis Chamberlain <mcgrof@kernel.org>
-Cc: Masahiro Yamada <masahiroy@kernel.org>
-Cc: Petr Mladek <pmladek@suse.com>
-Cc: Steven Rostedt <rostedt@goodmis.org>
-Cc: Zhen Lei <thunder.leizhen@huawei.com>
+Assisted-by: LLM
+Cc: Jan Kiszka <jan.kiszka@siemens.com>
+Cc: Kieran Bingham <kbingham@kernel.org>
+Cc: Kuan-Ying Lee <kuan-ying.lee@canonical.com>
 ---
 
- kernel/kallsyms_internal.h |   12 +++++-------
- scripts/kallsyms.c         |    9 ++++++++-
- 2 files changed, 13 insertions(+), 8 deletions(-)
+ scripts/gdb/linux/radixtree.py |   68 ++++++++++++++++++-------------
+ 1 file changed, 41 insertions(+), 27 deletions(-)
 
---- a/kernel/kallsyms_internal.h~kallsyms-increase-marker-density-to-16-1-to-accelerate-lookups-fix
-+++ a/kernel/kallsyms_internal.h
-@@ -2,18 +2,17 @@
- #ifndef LINUX_KALLSYMS_INTERNAL_H_
- #define LINUX_KALLSYMS_INTERNAL_H_
+--- a/scripts/gdb/linux/radixtree.py~scripts-gdb-fix-radix-tree-lookup-pointer-handling
++++ a/scripts/gdb/linux/radixtree.py
+@@ -27,6 +27,24 @@ def entry_to_node(node):
+     indirect_ptr = node.cast(long_type) & ~constants.LX_RADIX_TREE_INTERNAL_NODE
+     return indirect_ptr.cast(radix_tree_node_type.get_type().pointer())
  
-+#include <linux/types.h>
++def is_node(entry):
++    # Like xa_is_node(): internal entries below 4096 are sibling, retry
++    # or zero entries rather than pointers to a struct xa_node.
++    ulong_type = utils.get_ulong_type()
++    return is_internal_node(entry) and entry.cast(ulong_type) > 4096
 +
- /*
-- * Provide compile-constants for scripts/kallsyms.c
-- * so it can build the corresponding kallsyms_marker[] table.
-- * and wrap the rest in __KERNEL__
-+ * These constants determine the size of the kallsyms_markers array
-+ * written by scripts/kallsyms.c during the build.  The symbol values
-+ * must be kept in sync.
-  */
- #define KALLSYMS_MARKER_SHIFT 4
- #define KALLSYMS_MARKER_SIZE  (1U << KALLSYMS_MARKER_SHIFT)
- #define KALLSYMS_MARKER_MASK  (KALLSYMS_MARKER_SIZE - 1U)
++def is_sibling(entry):
++    # Like xa_is_sibling(): a multi-index entry occupies several slots,
++    # and all but the first hold a sibling entry that encodes the offset
++    # of the first one.
++    ulong_type = utils.get_ulong_type()
++    return is_internal_node(entry) and entry.cast(ulong_type) < \
++        xa_mk_internal(constants.LX_RADIX_TREE_MAP_SIZE - 1)
++
++def sibling_offset(entry):
++    ulong_type = utils.get_ulong_type()
++    return int(entry.cast(ulong_type)) >> 2
++
+ def node_maxindex(node):
+     return (constants.LX_RADIX_TREE_MAP_SIZE << node['shift']) - 1
  
--#ifdef __KERNEL__
--#include <linux/types.h>
+@@ -40,39 +58,35 @@ def resolve_root(root):
+ 
+ def lookup(root, index):
+     root = resolve_root(root)
+-    node = root['xa_head']
+-    if node == 0:
+-        return None
++    entry = root['xa_head']
+ 
+-    if not (is_internal_node(node)):
+-        if (index > 0):
++    if is_node(entry):
++        node = entry_to_node(entry)
++        if index > node_maxindex(node):
+             return None
+-        return node
 -
- extern const int kallsyms_offsets[];
- extern const u8 kallsyms_names[];
+-    node = entry_to_node(node)
+-    maxindex = node_maxindex(node)
  
-@@ -24,6 +23,5 @@ extern const u16 kallsyms_token_index[];
+-    if (index > maxindex):
++        # Walk down the tree like xas_load() does.
++        while True:
++            offset = (index >> node['shift']) & constants.LX_RADIX_TREE_MAP_MASK
++            entry = node['slots'][offset]
++
++            while is_sibling(entry):
++                entry = node['slots'][sibling_offset(entry)]
++                if node['shift'] and is_node(entry):
++                    # xas_descend() turns this into a retry entry.
++                    return None
++
++            if not is_node(entry) or node['shift'] == 0:
++                break
++            node = entry_to_node(entry)
++    elif index > 0:
+         return None
  
- extern const unsigned int kallsyms_markers[];
- extern const u8 kallsyms_seqs_of_names[];
--#endif /* __KERNEL__ */
+-    shift = node['shift'] + constants.LX_RADIX_TREE_MAP_SHIFT
+-
+-    while True:
+-        offset = (index >> node['shift']) & constants.LX_RADIX_TREE_MAP_MASK
+-        slot = node['slots'][offset]
+-
+-        if slot == 0:
+-            return None
+-
+-        node = slot.cast(node.type.pointer()).dereference()
+-        if node == 0:
+-            return None
+-
+-        shift -= constants.LX_RADIX_TREE_MAP_SHIFT
+-        if (shift <= 0):
+-            break
++    # Empty slots and retry or zero entries hold no data.
++    if entry == 0 or is_internal_node(entry):
++        return None
  
- #endif // LINUX_KALLSYMS_INTERNAL_H_
---- a/scripts/kallsyms.c~kallsyms-increase-marker-density-to-16-1-to-accelerate-lookups-fix
-+++ a/scripts/kallsyms.c
-@@ -29,7 +29,14 @@
+-    return node
++    return entry
  
- #include <xalloc.h>
- 
--#include "../kernel/kallsyms_internal.h"
-+/*
-+ * These constants determine the size of the marker array filled here,
-+ * and they're duplicated in kernel/kallsyms.c, where they're used in
-+ * get_symbol_offset().  They must be kept in agreement.
-+ */
-+#define KALLSYMS_MARKER_SHIFT 4
-+#define KALLSYMS_MARKER_SIZE  (1U << KALLSYMS_MARKER_SHIFT)
-+#define KALLSYMS_MARKER_MASK  (KALLSYMS_MARKER_SIZE - 1U)
- 
- #define ARRAY_SIZE(arr) (sizeof(arr) / sizeof(arr[0]))
- 
+ def descend(parent, index):
+     offset = (index >> int(parent["shift"])) & constants.LX_RADIX_TREE_MAP_MASK
 _
 
-Patches currently in -mm which might be from jim.cromie@gmail.com are
+Patches currently in -mm which might be from ue081723@gmail.com are
 
-kallsyms-match-compressed-tokens-on-the-fly-during-binary-search.patch
-kallsyms-increase-marker-density-to-16-1-to-accelerate-lookups.patch
-kallsyms-increase-marker-density-to-16-1-to-accelerate-lookups-fix.patch
-kallsyms-unroll-24-bit-sequence-reconstruction-in-get_symbol_seq.patch
+scripts-gdb-fix-radix-tree-lookup-pointer-handling.patch
+scripts-gdb-fix-stack-depot-out-of-bounds-diagnostic.patch
 
