@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2FBB1279DAD
-	for <mm-commits@vger.kernel.org>; Mon, 12 Oct 2026 02:19:27 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BC5CD38B143;
+	Mon, 12 Oct 2026 02:21:14 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791771568; cv=none; b=Ta2tYKTVhXWrJQ6jDUtDrMNTReTN9h0pIXJAQxjPDfugxqLdi9E6L2sx9mdpXzBvO1h18N08VIzbX0JCSZvRzdDTAU+P9DfDnI9r7m7+imGAee2w2f35pyHzsta/LiC5F6DtTTgFk72rlrK/bBZUFmmv7KLiGae+zcd24ymAJv8=
+	t=1791771675; cv=none; b=nq8BZkR2tPVxxzj5/c8Z3FRb599gOhKo2itBK2x/BtlYX41nq9NVC9KEftSFWfrvPrhIN89ugtCZUgHlXrZ2RrDPDQGjc7h/jOtHOs1Ofr4vpggwW4xRNkmW84AxmMnvw8Z6UJa8UfmezdXuDCJ2t2yKs+CWz+Mrzk6DDh1SQ8A=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791771568; c=relaxed/simple;
-	bh=CwInEZp8cdiVt4Tle4cWwB2ktoQTZdNe8T0jbGOobdk=;
-	h=Date:To:From:Subject:Message-Id; b=iU0H50Yq9kFWi52NVF3h8x5X0oR2ijyXgnIMVtIqGViocubmw/a8vt6lJSZ11hTkfdm/Y6SBLkJPpYtvKtcrBkHI0nW+HSgh9cd1IyWfXZiCE/Un6v3CrJvi8y8XgqMe3lB+5PpXpP4i7PHctKeVu1N2yanYSdPSBhMN8B9SLeA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=OR1U5rpC; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1791771675; c=relaxed/simple;
+	bh=aKgdryeWoobGJ7K/pvy9EFcfjPH2Tn/POnPqMtepJw0=;
+	h=Date:To:From:Subject:Message-Id; b=u+yw7ZOUuqBnZ8/vO9GqLpo7PkafYt2ANUfb13KUUGSicYrLZANma3moSGQP1BxWvvTgb/1ajbiE3vRXoKgcnhBGJpigjMoiWWwM6GQw6oCrHa15KizfakbOL3/lDuJTUVFTqHKGel0PRQgMcnRN4+R6e5GKiVKUR/6AB7Ozi2k=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=uZCm/loR; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="OR1U5rpC"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D27011F0089B;
-	Mon, 12 Oct 2026 02:19:26 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="uZCm/loR"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4238D1F0089B;
+	Mon, 12 Oct 2026 02:21:14 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1791771566;
-	bh=NUXgG3xWtz5iOUQq0CjgSm0/HzOURA5Ps5BpwkK6BAg=;
+	d=linux-foundation.org; s=korg; t=1791771674;
+	bh=IzRWNMnEtrINrufRcsgznRsyGlOmvfNuDh13CBTZz9c=;
 	h=Date:To:From:Subject;
-	b=OR1U5rpCbJY53mTB4irp4d3VE1s6HceuZzv99t4BeDaSR36hF0H9DTrDCSB2iuauf
-	 x+R7mbCLnEySLcjre0LLw620jhkVY25XnFtK7Jeg3t5ILgD0xTFmEgwgK1n/eEB1sI
-	 eZWtqPJQ9tGqQx6J+tLZBlMnTka/dSII0AWnjQrI=
-Date: Sun, 11 Oct 2026 19:19:26 -0700
-To: mm-commits@vger.kernel.org,vbabka@kernel.org,surenb@google.com,rppt@kernel.org,peterx@redhat.com,mhocko@suse.com,ljs@kernel.org,liam@infradead.org,david@kernel.org,zenghui.yu@linux.dev,akpm@linux-foundation.org
+	b=uZCm/loRB+czaD3/eZZW8+b4t23TME1ohIACPiw8ArV/ZP50Achfd9RoQN3oM4hJe
+	 dYNE/YNQ3EUKbS7sSOI/96YoBI85rsc1Xvdb60zPnqcEXRswlRl8y7W4KHT5UCJDKn
+	 A8ZxSyjHhd0jKixLera65aJBIBbBQ88SZJDUHHC4=
+Date: Sun, 11 Oct 2026 19:21:13 -0700
+To: mm-commits@vger.kernel.org,vbabka@kernel.org,surenb@google.com,stable@vger.kernel.org,pfalcato@suse.de,ljs@kernel.org,liam@infradead.org,jannh@google.com,andreas@gaisler.com,stian@itx.no,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-mm-fix-uffd-move-pmd-test-crash-on-64k-base-page-systems.patch added to mm-new branch
-Message-Id: <20261012021926.D27011F0089B@smtp.kernel.org>
+Subject: + fs-proc-task_mmu-fix-lost-maps-entries-above-263.patch added to mm-new branch
+Message-Id: <20261012022114.4238D1F0089B@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: selftests/mm: fix uffd move-pmd test crash on 64K base page systems
+     Subject: fs/proc/task_mmu: fix lost maps entries above 2^63
 has been added to the -mm mm-new branch.  Its filename is
-     selftests-mm-fix-uffd-move-pmd-test-crash-on-64k-base-page-systems.patch
+     fs-proc-task_mmu-fix-lost-maps-entries-above-263.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-fix-uffd-move-pmd-test-crash-on-64k-base-page-systems.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/fs-proc-task_mmu-fix-lost-maps-entries-above-263.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -69,61 +69,59 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: "Zenghui Yu (Huawei)" <zenghui.yu@linux.dev>
-Subject: selftests/mm: fix uffd move-pmd test crash on 64K base page systems
-Date: Mon, 12 Oct 2026 00:35:27 +0800
+From: Stian Halseth <stian@itx.no>
+Subject: fs/proc/task_mmu: fix lost maps entries above 2^63
+Date: Sun, 11 Oct 2026 18:20:19 +0200
 
-uffd_move_pmd_test()/uffd_move_test_common() splits the test area into
-chunks of chunk_size and moves them one by one.  On arm64 with 64K base
-pages the chunk_size (read_pmd_pagesize()) is 512MB, which is larger than
-the whole 32MB (UFFD_TEST_MEM_SIZE) test area:
+When a read of /proc/pid/{maps,smaps,numa_maps} resumes, m_start() rewinds
+*ppos to priv->last_pos so that the vma which did not fit into the
+previous buffer is shown again.  It only does so for last_addr > 0,
+meaning to exclude the start of the file and SENTINEL_VMA_GATE, but
+last_addr is a signed loff_t holding a vm_end.  sparc64 maps shared
+libraries, anonymous memory and the stack above 0x8000000000000000, so the
+rewind does not happen there and one entry is lost at every read()
+boundary.
 
-  step_count = nr_pages / (chunk_size / page_size) == 0
+Reading the maps file of a process with read sizes from 64 to 8192 bytes
+in steps of 64 loses lines at 126 of the 128 sizes, smaps at 123 and
+numa_maps at 97, and the proc-maps-race selftest fails 4 of its 6 tests. 
+Python's sys.remote_exec() reads maps with fgets() and fails
+intermittently when it misses the libpython data mapping.
 
-Because chunk_size > page_size, the test then aligns both areas up to
-512MB, which points far outside of the 32MB mappings, and decrements
-step_count, which underflows to ULONG_MAX.  The verification loop then
-runs away and the first dereference of area_src faults with a SIGSEGV.
+Test for the two values that are not a vma end instead.
 
-Skip the test when a single chunk cannot fit into the test area.
-
-Link: https://lore.kernel.org/20261011163527.95988-1-zenghui.yu@linux.dev
-Fixes: a2bf6a9ca805 ("selftests/mm: add UFFDIO_MOVE ioctl test")
-Signed-off-by: Zenghui Yu (Huawei) <zenghui.yu@linux.dev>
+Link: https://lore.kernel.org/20261011162019.922436-1-stian@itx.no
+Fixes: 5631da56c9a87 ("fs/proc/task_mmu: read proc/pid/maps under per-vma lock")
+Signed-off-by: Stian Halseth <stian@itx.no>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Peter Xu <peterx@redhat.com>
-Cc: David Hildenbrand <david@kernel.org>
-Cc: Lorenzo Stoakes <ljs@kernel.org>
-Cc: Liam R. Howlett <liam@infradead.org>
-Cc: Vlastimil Babka <vbabka@kernel.org>
+Closes: https://github.com/sparclinux/issues/issues/111
 Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Michal Hocko <mhocko@suse.com>
+Cc: Liam R. Howlett <liam@infradead.org>
+Cc: Lorenzo Stoakes <ljs@kernel.org>
+Cc: Vlastimil Babka <vbabka@kernel.org>
+Cc: Jann Horn <jannh@google.com>
+Cc: Pedro Falcato <pfalcato@suse.de>
+Cc: Andreas Larsson <andreas@gaisler.com>
+Cc: <stable@vger.kernel.org>
 ---
 
- tools/testing/selftests/mm/uffd-unit-tests.c |    5 +++++
- 1 file changed, 5 insertions(+)
+ fs/proc/task_mmu.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/tools/testing/selftests/mm/uffd-unit-tests.c~selftests-mm-fix-uffd-move-pmd-test-crash-on-64k-base-page-systems
-+++ a/tools/testing/selftests/mm/uffd-unit-tests.c
-@@ -1937,6 +1937,11 @@ uffd_move_test_common(uffd_global_test_o
- 
- 	args.gopts = gopts;
- 
-+	if (chunk_size > gopts->nr_pages * gopts->page_size) {
-+		uffd_test_skip("chunk size does not fit in the test area");
-+		return;
-+	}
-+
- 	/* Prevent source pages from being mapped more than once */
- 	if (madvise(gopts->area_src, gopts->nr_pages * gopts->page_size, MADV_DONTFORK))
- 		err("madvise(MADV_DONTFORK) failure");
+--- a/fs/proc/task_mmu.c~fs-proc-task_mmu-fix-lost-maps-entries-above-263
++++ a/fs/proc/task_mmu.c
+@@ -263,7 +263,7 @@ static void *m_start(struct seq_file *m,
+ 	 * Reset current position if last_addr was set before
+ 	 * and it's not a sentinel.
+ 	 */
+-	if (last_addr > 0)
++	if (last_addr && last_addr != SENTINEL_VMA_GATE)
+ 		*ppos = last_addr = priv->last_pos;
+ 	vma_iter_init(&priv->iter, mm, (unsigned long)last_addr);
+ 	hold_task_mempolicy(priv);
 _
 
-Patches currently in -mm which might be from zenghui.yu@linux.dev are
+Patches currently in -mm which might be from stian@itx.no are
 
-selftests-damon-stop-kdamond-on-error-exits-of-no-op-commit-test.patch
-selftests-damon-ignore-test-generated-damon_dump_output.patch
-mm-damon-api-remove-unused-nr_damos_-enumerators.patch
-selftests-mm-fix-uffd-move-pmd-test-crash-on-64k-base-page-systems.patch
+fs-proc-task_mmu-fix-lost-maps-entries-above-263.patch
 
