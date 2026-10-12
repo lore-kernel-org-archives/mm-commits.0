@@ -1,149 +1,133 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-wm1-f53.google.com (mail-wm1-f53.google.com [209.85.128.53])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8A79F1684B0
-	for <mm-commits@vger.kernel.org>; Mon, 12 Oct 2026 02:26:55 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D30F446EF60
+	for <mm-commits@vger.kernel.org>; Mon, 12 Oct 2026 10:14:29 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.128.53
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791772016; cv=none; b=J/00N7+9+UZf/7I2Ju6HCF+qY8pC2H/VOyWil9BTKwqgq4sU4ZUUxinwgz3i/72nfX6p4ngnrSLW9BJCzoQMxFDRU6kynX/bPutGYgW81OqsjYWngzJrDP73ROul0c4m8KrA9FIoj5gLL2J7hcNu6jlAw7lITAz/Ff7WOkT3A0E=
+	t=1791800076; cv=none; b=pSiyc0KO6MLqDkhdEMTNa8VrxMvgImHNrW3Fqconvh+gxm8+FBpHX6OfYoOMQKYeVgaR0DqTDmhBB3L2o7Y52yAiZt7TjfNztpxiArIQXTMB9e0QZJvoKYDK+FCZ6uEfrld2fI3mQoAL7QdCmpBRx/S1gzFQBuXl606GPFO/7Bg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791772016; c=relaxed/simple;
-	bh=MLS6Y9Nkz1O3fx/muDhVosJbWy52wiUJC+3FVK606EY=;
-	h=Date:To:From:Subject:Message-Id; b=NiSVDP66tkHGn0jl7ioNsbai+wJQmPI7nlqB/N41OkUiqmgE8zeVsA/XDRRVsQzNskN+Ua/U2uPRICoiS1UCtzNVxt7/OYI6HVtIZDY2ND4CsSnc4VYNrcItOGZHnzf++9xp3zcBKJ52zmkXRVd9JU/RdlEmCP5ktwkKym/S0S8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=afXdxXHI; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1791800076; c=relaxed/simple;
+	bh=bLanx5uvYKx3aLlpDQ+hbsUiLrvp2ShbaU8G1fgwZVc=;
+	h=Date:From:To:Cc:Subject:Message-ID:In-Reply-To:References:
+	 MIME-Version:Content-Type; b=BfxmT4DW1Jbxj4bWKjHyKet/crCYCbw6nnCFu/n1U2pxjB5VHCTsKTsKArcT4phfFem+DuDv8Stn9+2gmZzoacv/aeIG/xdd/k3SVQtIWEezjotHwxssFVjuHYVMZWSLOiXHQzpSc7SnpYSq8wbO6RgwWQXEdAM1cz+86EHZq6U=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=oThFtVEB; arc=none smtp.client-ip=209.85.128.53
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="afXdxXHI"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 358861F0089B;
-	Mon, 12 Oct 2026 02:26:55 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="oThFtVEB"
+Received: by mail-wm1-f53.google.com with SMTP id 5b1f17b1804b1-49fbb2acc90so12791745e9.2
+        for <mm-commits@vger.kernel.org>; Mon, 12 Oct 2026 03:14:29 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1791772015;
-	bh=s1uROt8xcpDQD3VycttKkaKIRFUekAeCcKefH/KuFcs=;
-	h=Date:To:From:Subject;
-	b=afXdxXHIQcI0Oa1XX2DV1kz0t3ojIy8JtyPyA6IF2sEf6vO+JPXwar8rl9ugIoCS8
-	 vBfnPeOkJ1viw2taYYKxG2Kfvh6hyJLO4AQIM3GQgNFmnIS5iFB0rQeDIruMDI0wc3
-	 5X/eDufX8BROCMLJ0YVYfRbeXh78Kter7oXMDBWk=
-Date: Sun, 11 Oct 2026 19:26:54 -0700
-To: mm-commits@vger.kernel.org,oleg@redhat.com,brauner@kernel.org,nickolai@csail.mit.edu,akpm@linux-foundation.org
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + exit-fix-lost-update-race-on-the-child_subreaper-bitfields.patch added to mm-nonmm-unstable branch
-Message-Id: <20261012022655.358861F0089B@smtp.kernel.org>
+        d=gmail.com; s=20251104; t=1791800068; x=1792404868; darn=vger.kernel.org;
+        h=content-transfer-encoding:content-type:mime-version:references
+         :in-reply-to:message-id:subject:cc:to:from:date:from:to:cc:subject
+         :date:message-id:reply-to:content-type;
+        bh=T133sU6/Idf+X7mBizn2U5ECJTsSfA4qf+8cqYy7fbc=;
+        b=oThFtVEBVL1SvrIRQcI+5GVDqAQMinfbeMkLfFtzyfMBPeiH5Ed/f3bgrAdbD3O7mE
+         FjOqoeF01SZbqDwrLIPo0bW0jnspE/01BjQ7rbHit55WpTvVkW/2FKrtlaM8MqNFY0ei
+         Q31g6b77J3I+WAmrPei6+cNxg5vj8WvNX51w4kMSBTnzNpTV/Sw5YmJ/d5vPnPayQ94L
+         lYdMUkQtPiXGGUh2G7ZGMgO6+4N8kbB4eDuyhsOhVYeRLQV8DtF9WKiCw98ZWkhgIee0
+         3IdDDhKZEJnEGJlH2uk/fJBsmbYHYKRVtWVgZBdAgnkN7BiAyNPmT1jRc6JubLg5I2PT
+         nglQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20260707; t=1791800068; x=1792404868;
+        h=content-transfer-encoding:content-type:mime-version:references
+         :in-reply-to:message-id:subject:cc:to:from:date:x-gm-gg
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
+         :content-type;
+        bh=T133sU6/Idf+X7mBizn2U5ECJTsSfA4qf+8cqYy7fbc=;
+        b=ZVpLGXNNIpEp1XNvIJI4O6RMD4MJAEPsnxDsn8ZA1OxtxGjbncJs31xzobArt5tP4Q
+         cM+T/xOYOiUG1zdAarP2XHxBGKDyYgOnde6ID1grxJbOhfQp3PyK1ZJCpVSsHszpnMhP
+         asQIsqSi1HFm64B1CNeG/MENtw0w4t5PDxYNmRmnaoVkL3oLh0mrPmGYypqEMB9sGKbW
+         aupBrNGCZdnCqqY6/84gZtvQClf9XdHi7tCtsggTbyyG3K9ZWMG9q7DrBN1EKW0P/MxZ
+         Rh5ElvVX5e5Xw3dvPC0uGx7FQf+okRgTYZsr5u5R9OAADh6BqUXa91H9HU50usY5a95g
+         1Lng==
+X-Gm-Message-State: AFq9FYLdlgOt19VBnh5CnucSnwE31o2Ww+W1o9HwtbBxpobjfMHsxnMR
+	vhF+PvmjWOnnit1tclB0wBrAHM4nr0LcErvGab6V9ALYyxE/NU5JGLiz
+X-Gm-Gg: AYBFou0BruIc6AkZ/ORZXhST3ULQNa+1SFd5Pnn7QJCKuBZTRdOyPpNKw37/TCsqSUW
+	UOoQU4C47phYlh7thGY13KtUV5SrjNixH2O73v0jvaYu1+dlMamCdvOJzzXtls+lKps+9RcxV02
+	cjRqiqjR3vUykrbWh4xkB7ZEAfzMLPx1FhpOpL2V/yZ2VcqvvgLuDnu7F9n5fsAdBHIGXzapJLU
+	8lpLyvEfoTozEbO4fm3GPAIgZuTn/JMuE1iQVoeO6MMWpfiA15B2WIPwlMJCIS8bgSk8JkNcNMZ
+	w0PN7Ou5oQkmM7AOLcYcX94yAPE1Vr1NgyX8UPsGcho52fHlZ3ZoKdVDKMnNViMojUv9uPXokSf
+	jptvdQHRuEIeXHhCIw2iVf9AtCEGWGVS3zwEt5a6n1B1CvGqYxgIwUIbtCU/GsRYbyVwlgieA8c
+	q4OpEMn6IdL8qsPkdMfYZ4uKKtrRD9CKs0Rr9DCYQiS7dMwSEBIo3e1vRlENHMjl7BTYjAw3b93
+	OF1PvpmXBuukqQKDF+Cu5dPFybUX9pd+yc=
+X-Received: by 2002:a05:600c:354a:b0:49c:d019:70c5 with SMTP id 5b1f17b1804b1-4a18e3ef23cmr161777035e9.0.1791800067536;
+        Mon, 12 Oct 2026 03:14:27 -0700 (PDT)
+Received: from pumpkin (82-69-66-36.dsl.in-addr.zen.co.uk. [82.69.66.36])
+        by smtp.gmail.com with ESMTPSA id ffacd0b85a97d-48db9ab981asm19150729f8f.30.2026.10.12.03.14.25
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Mon, 12 Oct 2026 03:14:26 -0700 (PDT)
+Date: Mon, 12 Oct 2026 11:14:24 +0100
+From: David Laight <david.laight.linux@gmail.com>
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: mm-commits@vger.kernel.org, thunder.leizhen@huawei.com,
+ thomas.weissschuh@linutronix.de, rostedt@goodmis.org, pmladek@suse.com,
+ olsajiri@gmail.com, nsc@kernel.org, nathan@kernel.org, mcgrof@kernel.org,
+ masahiroy@kernel.org, ljs@kernel.org, kees@kernel.org,
+ geert@linux-m68k.org, denis.benato@linux.dev, chewi@gentoo.org,
+ andrey.grodzovsky@crowdstrike.com, abelvesa@kernel.org,
+ jim.cromie@gmail.com
+Subject: Re: +
+ kallsyms-increase-marker-density-to-16-1-to-accelerate-lookups-fix.patch
+ added to mm-nonmm-unstable branch
+Message-ID: <20261012111424.4b88e041@pumpkin>
+In-Reply-To: <20261011081552.e6f08178e6fc8b865e2715d3@linux-foundation.org>
+References: <20261011002340.E44771F000FF@smtp.kernel.org>
+	<20261011154401.479c51b6@pumpkin>
+	<20261011081552.e6f08178e6fc8b865e2715d3@linux-foundation.org>
+X-Mailer: Claws Mail 4.1.1 (GTK 3.24.38; arm-unknown-linux-gnueabihf)
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 
+On Sun, 11 Oct 2026 08:15:52 -0700
+Andrew Morton <akpm@linux-foundation.org> wrote:
 
-The patch titled
-     Subject: exit: fix lost-update race on the child_subreaper bitfields
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     exit-fix-lost-update-race-on-the-child_subreaper-bitfields.patch
+> On Sun, 11 Oct 2026 15:44:01 +0100 David Laight <david.laight.linux@gmail.com> wrote:
+> 
+> > On Sat, 10 Oct 2026 17:23:40 -0700
+> > Andrew Morton <akpm@linux-foundation.org> wrote:
+> >   
+> > > The patch titled
+> > >      Subject: kallsyms: copy constants from __KERNEL__ to user, drop the inclusion
+> > > has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+> > >      kallsyms-increase-marker-density-to-16-1-to-accelerate-lookups-fix.patch  
+> > 
+> > There is a problem with the way this change in implemented.
+> > Basically the kernel Makefile (etc) only builds scripts/kallsyms if it doesn't exist.
+> > This means that if the header file is changed you can easily end up with a kernel
+> > that expects a different marker density from that in the data file.
+> > That will lead to all sorts of strange/confusing issues.
+> > 
+> > It would be better to put the 'shift' value into the .S file.
+> > It isn't used anywhere where that will make a performance difference.  
+> 
+> OK, thanks.  I'll remove the v7 series from the 7.3-rcX queue - let's
+> revisit for the next -rc cycle.
+> 
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/exit-fix-lost-update-race-on-the-child_subreaper-bitfields.patch
+The patch that changes the name comparison can go in.
+That saves 512 bytes of stack but doesn't make (much) difference to
+lookups because other things dominate (probably unless you have some
+very long symbols from rust code).
 
-This patch will later appear in the mm-nonmm-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+I am working on an additional change.
+(I posted a v1, v2 adds some extra changes and is taking a while.)
+Performance wise it improves name lookup by a factor of ~18 while
+only increasing the 'density' to 64:1 (1 bit per two pixels).
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
+I've make the density a kernel config option (default 6 => 64:1).
 
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+One of the reasons it is taking 'ages' is because I discovered that four
+of the 'token' values aren't actually used in any symbol names (in the
+dataset I'm using) - so they can be reused reducing the main table by
+~8k (in 1.7M).
 
-The -mm tree is included into linux-next via various
-branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there most days
-
-------------------------------------------------------
-From: Nickolai Zeldovich <nickolai@csail.mit.edu>
-Subject: exit: fix lost-update race on the child_subreaper bitfields
-Date: Sun, 11 Oct 2026 08:34:39 -0400
-
-is_child_subreaper, has_child_subreaper, autoreap and, with
-CONFIG_POSIX_TIMERS=y, timer_create_restore_ids are 1-bit fields that
-share one memory location in struct signal_struct.  A store to any of
-them is a read-modify-write of the whole word, and three of the stores
-run without a common lock:
-
-  - PR_SET_CHILD_SUBREAPER writes me->signal->is_child_subreaper with
-    no lock held.
-
-  - propagate_has_child_subreaper(), run by walk_process_tree() from
-    the same prctl in an ancestor, writes p->signal->has_child_subreaper
-    of every descendant p under read_lock(&tasklist_lock), which does
-    not exclude the other writers.
-
-  - PR_TIMER_CREATE_RESTORE_IDS writes
-    current->signal->timer_create_restore_ids with no lock held.
-
-When a process calls prctl(PR_SET_CHILD_SUBREAPER, 1) while an
-ancestor's PR_SET_CHILD_SUBREAPER walk visits it, or while another
-thread of the same process calls prctl(PR_TIMER_CREATE_RESTORE_IDS),
-the read-modify-write sequences interleave and one of the bits is
-silently lost:
-
-  - If has_child_subreaper is lost, the process's orphaned descendants
-    are reparented straight to init when it exits: find_new_reaper()
-    tests father->signal->has_child_subreaper first and never looks for
-    the ancestor subreaper.  The service manager that registered as the
-    subreaper never gets SIGCHLD for them and cannot wait() on them.
-
-  - If is_child_subreaper is lost, the prctl returned 0 but the process
-    is not a subreaper: orphans of its descendants skip it and are
-    reparented to the next subreaper up or to init.
-    PR_GET_CHILD_SUBREAPER reads back 0.
-
-  - If timer_create_restore_ids is lost, the prctl returned 0 but
-    timer_create() does not restore the requested timer ids (or keeps
-    restoring them after _OFF), and _GET reads back the old value.
-
-Documentation/memory-barriers.txt requires all fields of one bitfield
-to be protected by one lock for exactly this reason.  No lock is taken
-or documented for these flags, and the prctls need no privilege, so any
-process can hit the race against its own ancestors or descendants, or
-between two of its own threads.
-
-Make is_child_subreaper and has_child_subreaper separate bool members.
-Each store then has its own memory location and no read-modify-write
-of a neighbour.  The readers and their locking are unchanged.
-
-autoreap stays a bit-field and so shares a memory location only with
-timer_create_restore_ids.  That pair is race-free: autoreap is stored
-exactly once, in copy_process() before the new signal_struct is
-reachable by any other task, and timer_create_restore_ids is only
-stored to the signal_struct of an already running process.
-
-Link: https://lore.kernel.org/20261011123440.768054-1-nickolai@csail.mit.edu
-Fixes: 749860ce2427 ("prctl: propagate has_child_subreaper flag to every descendant")
-Signed-off-by: Nickolai Zeldovich <nickolai@csail.mit.edu>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Acked-by: Oleg Nesterov <oleg@redhat.com>
-Assisted-by: LLM
-Cc: Christian Brauner <brauner@kernel.org>
----
-
- include/linux/sched/signal.h |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
-
---- a/include/linux/sched/signal.h~exit-fix-lost-update-race-on-the-child_subreaper-bitfields
-+++ a/include/linux/sched/signal.h
-@@ -130,8 +130,8 @@ struct signal_struct {
- 	 * process will inherit a flag if they should look for a
- 	 * child_subreaper process at exit.
- 	 */
--	unsigned int		is_child_subreaper:1;
--	unsigned int		has_child_subreaper:1;
-+	bool			is_child_subreaper;
-+	bool			has_child_subreaper;
- 	unsigned int		autoreap:1;
- 
- #ifdef CONFIG_POSIX_TIMERS
-_
-
-Patches currently in -mm which might be from nickolai@csail.mit.edu are
-
-exit-fix-lost-update-race-on-the-child_subreaper-bitfields.patch
-
+David
