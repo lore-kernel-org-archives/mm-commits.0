@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D0DAF485503
-	for <mm-commits@vger.kernel.org>; Tue, 13 Oct 2026 04:34:08 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3FD3F48643D
+	for <mm-commits@vger.kernel.org>; Tue, 13 Oct 2026 04:34:10 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791866050; cv=none; b=Uvinqo4FkWZ5lls8G+2QVOEi8x6T1v7vgXrnrRUYBeBLKpX0CmPincdXcepL2Sgo9OGyYazj14BvQeuOYXLu2Jz7I9lv2mbfiQUZc29hEPv/oT3/fVjxozbZEQJSi01lmBbOZt4Aod3DPYFDCO5mPbJKdLQagsCcyUesJyf+GbU=
+	t=1791866052; cv=none; b=TqotVGnpqMvABFO1fMeuphCV0XUUHWyql/NprB7Zmnq4QSPO4C8c8zavhuulWGD8k49oy2Wvv4UeGSgjjoCGnaKJboYeq5cu2yna2BollgyRHGKUa+jdUFEAZhnln35OwlDbn7guCcYklwk34hEmUzz351FnkgujYhm3u8zz86I=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791866050; c=relaxed/simple;
-	bh=56JDLUxHs5kSK6hs1TB+IQDVHfprvAIRleRvnERgWK0=;
-	h=Date:To:From:Subject:Message-Id; b=hDX0y5+4ByLie598ImDIviiDM4pP2NuuqvqQd+NnO++tvn3uencAujLl+ukfSzVKVnbioyiM+RI3h789jqOrKrVPkRU2rY3yZgpQEHDuCni9lJNZvsphlki1VTT6ZZ7KWcca39hi+N7xOESKRiQrTy14G1whMUnGupcyMzMwWJs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=NO6Iv/SW; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1791866052; c=relaxed/simple;
+	bh=0eafWbwOpAI9RuvvNEvZSFgUenRHim7NMBGPnEF9g4I=;
+	h=Date:To:From:Subject:Message-Id; b=XImJi+nbTwdWTDke5yAJ34Ggj2/3Ut8FlDJkrN/uRuuFmhMtGF73AzC3M40qjBYiEjRlv82M/LdQ+JoZV5Or4hKxK5DA+OFocS6h2v7d+K5mX5FIjxUoYM43JrVOBdJFwYZN0l6Cmq0n0XM8ZFPZh8V2OG1TnmCCDCFNUfwd0Iw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=pkbSD1RY; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="NO6Iv/SW"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A37AF1F000FF;
-	Tue, 13 Oct 2026 04:34:08 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="pkbSD1RY"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 14EF21F00898;
+	Tue, 13 Oct 2026 04:34:10 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1791866048;
-	bh=Y0uIKyspucfouOuXXZiy8d2qrOjZ43GIUjEuapCm8TQ=;
+	d=linux-foundation.org; s=korg; t=1791866050;
+	bh=1MjUe/Eq17PhkRcP89mYRhWT3dngLTYytpBaz0khQjE=;
 	h=Date:To:From:Subject;
-	b=NO6Iv/SW+ixX01h0SLSRkTK8pTJqs3dpY0ffbBNNRaeCrnsaE1VMZHhxX7uJ41ZQd
-	 0HfJKkQrYLyNUOtmxBm+YJX3AFXRYMc1BYUBnGUb4BJXGIyRHPYl4YBTjtrhzr1aKu
-	 KSaULA8yBT3UwJ6Dj6GoyQQ67Qjb/dPAFHdBfGiI=
-Date: Mon, 12 Oct 2026 21:34:08 -0700
-To: mm-commits@vger.kernel.org,zenghui.yu@linux.dev,wangxuewen@kylinos.cn,sj@kernel.org,karthiproffesional@gmail.com,aethernet65535@gmail.com,adrianhuang0701@gmail.com,akpm@linux-foundation.org
+	b=pkbSD1RYU8UPFWTLCYwhJR/8Nj3VEvDR65Se6ob1LtHstpi+pZ8XNhE4BEYPd6844
+	 /Sa0iZw4L+MY3fOyylATBm/PcHBN7pU/XEbhAyzu3sQ75anYcnzuJdDuJByuYwGHCg
+	 qsdApV4z8x0uNbTdt+9f5Vbqc7BkIajR5NNwMWvU=
+Date: Mon, 12 Oct 2026 21:34:09 -0700
+To: mm-commits@vger.kernel.org,zenghui.yu@linux.dev,wangxuewen@kylinos.cn,sj@kernel.org,aethernet65535@gmail.com,adrianhuang0701@gmail.com,karthiproffesional@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-damon-fix-typos-in-comments.patch removed from -mm tree
-Message-Id: <20261013043408.A37AF1F000FF@smtp.kernel.org>
+Subject: [merged mm-stable] mm-damon-document-that-a-zero-sample_interval-is-accepted.patch removed from -mm tree
+Message-Id: <20261013043410.14EF21F00898@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,77 +35,54 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/damon: fix typos in comments
+     Subject: mm/damon: document that a zero sample_interval is accepted
 has been removed from the -mm tree.  Its filename was
-     mm-damon-fix-typos-in-comments.patch
+     mm-damon-document-that-a-zero-sample_interval-is-accepted.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: "Adrian Huang (Lenovo)" <adrianhuang0701@gmail.com>
-Subject: mm/damon: fix typos in comments
-Date: Mon, 21 Sep 2026 08:15:45 -0700
+From: Karthikeyan KS <karthiproffesional@gmail.com>
+Subject: mm/damon: document that a zero sample_interval is accepted
+Date: Mon, 21 Sep 2026 08:15:46 -0700
 
-Correct spelling mistakes. No functional changes.
+damon_set_attrs() accepts sample_interval == 0.  This was reported as a
+bug in v1 of this patch (rejecting it in damon_set_attrs()).  A similar
+patch was already declined for the same reason: a zero interval is
+intentionally supported [1].
 
-Link: https://lore.kernel.org/20260921151547.78472-4-sj@kernel.org
-Signed-off-by: Adrian Huang (Lenovo) <adrianhuang0701@gmail.com>
+Document the behavior instead of changing it.
+
+Link: https://lore.kernel.org/20260921151547.78472-5-sj@kernel.org
+Link: https://lore.kernel.org/all/20260722094304.3132750-1-dayou5941@163.com/ [1]
+Signed-off-by: Karthikeyan KS <karthiproffesional@gmail.com>
 Signed-off-by: SJ Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Reviewed-by: Zenghui Yu (Huawei) <zenghui.yu@linux.dev>
 Reviewed-by: SJ Park <sj@kernel.org>
-Cc: Karthikeyan KS <karthiproffesional@gmail.com>
+Cc: Adrian Huang <adrianhuang0701@gmail.com>
 Cc: Liew Rui Yan <aethernet65535@gmail.com>
 Cc: Xuewen Wang <wangxuewen@kylinos.cn>
+Cc: Zenghui Yu (Huawei) <zenghui.yu@linux.dev>
 ---
 
- mm/damon/core.c     |    6 +++---
- mm/damon/lru_sort.c |    2 +-
- 2 files changed, 4 insertions(+), 4 deletions(-)
+ include/linux/damon.h |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
---- a/mm/damon/core.c~mm-damon-fix-typos-in-comments
-+++ a/mm/damon/core.c
-@@ -2486,7 +2486,7 @@ static bool damos_valid_target(struct da
-  * This function checks if a given region should be skipped or not for the
-  * reason.  If only the starting part of the region has previously charged,
-  * this function splits the region into two so that the second one covers the
-- * area that not charged in the previous charge widnow, and return true.  The
-+ * area that not charged in the previous charge window, and return true.  The
-  * caller can see the second one on the next iteration of the region walk.
-  * Note that this means the caller should use damon_for_each_region() instead
-  * of damon_for_each_region_safe().  If damon_for_each_region_safe() is used,
-@@ -2652,7 +2652,7 @@ static void damos_walk_call_walk(struct
-  * This function is called when kdamond finished applying the action of a DAMOS
-  * scheme to all regions that eligible for the given &damos->apply_interval_us.
-  * If every scheme of @ctx including @s now finished walking for at least one
-- * &damos->apply_interval_us, this function makrs the handling of the given
-+ * &damos->apply_interval_us, this function marks the handling of the given
-  * DAMOS walk request is done, so that damos_walk() can wake up and return.
-  */
- static void damos_walk_complete(struct damon_ctx *ctx, struct damos *s)
-@@ -4194,7 +4194,7 @@ static bool damon_find_system_rams_range
-  * This function sets the region of @t as requested by @start and @end.  If the
-  * values of @start and @end are zero, however, this function finds 'System
-  * RAM' resources and sets the region to cover all the resource.  In the latter
-- * case, this function saves the start and the end addresseses of the first and
-+ * case, this function saves the start and the end addresses of the first and
-  * the last resources in @start and @end, respectively.
+--- a/include/linux/damon.h~mm-damon-document-that-a-zero-sample_interval-is-accepted
++++ a/include/linux/damon.h
+@@ -836,7 +836,8 @@ struct damon_probe {
+ /**
+  * struct damon_attrs - Monitoring attributes for accuracy/overhead control.
   *
-  * Return: 0 on success, negative error code otherwise.
---- a/mm/damon/lru_sort.c~mm-damon-fix-typos-in-comments
-+++ a/mm/damon/lru_sort.c
-@@ -260,7 +260,7 @@ static int damon_lru_sort_add_filters(st
- 		return -ENOMEM;
- 	damos_add_filter(hot_scheme, filter);
- 
--	/* disabllow de-prioritizing young pages */
-+	/* disallow de-prioritizing young pages */
- 	filter = damos_new_filter(DAMOS_FILTER_TYPE_YOUNG, true, false);
- 	if (!filter)
- 		return -ENOMEM;
+- * @sample_interval:		The time between access samplings.
++ * @sample_interval:		The time between access samplings.  Zero is
++ *				accepted.
+  * @aggr_interval:		The time between monitor results aggregations.
+  * @ops_update_interval:	The time between monitoring operations updates.
+  * @intervals_goal:		Intervals auto-tuning goal.
 _
 
-Patches currently in -mm which might be from adrianhuang0701@gmail.com are
+Patches currently in -mm which might be from karthiproffesional@gmail.com are
 
 
