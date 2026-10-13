@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7688F2D9EE7
-	for <mm-commits@vger.kernel.org>; Tue, 13 Oct 2026 04:33:45 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6A594486658
+	for <mm-commits@vger.kernel.org>; Tue, 13 Oct 2026 04:33:49 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791866030; cv=none; b=QJcEBtk1XfBYJrpERegGK7v4m2bqPHZfxdJtP3v1vUs0lIjcZ1J01pyENv2W9dMOY9IbI/e6uBBjaXrU8gLPokve1VXpyWhErl5EXLf+59aR/3nPsMv6blg46Bp6H+DWQYYVtxaaQVROqRBPMF1UcenYWxullE0VUxZ4HcYsXj8=
+	t=1791866032; cv=none; b=c+JihoB2NR5308MaBhptC49Us6xwQb7i5/d71nJaO08PmgqrKnQD9JuU8P78ONzsSe93J3AKSoEFlVkN8VV28g98nkRgGGVG7vVwbyv2wR9IeH/tautCeWETrf9x2stgCrtPrk//a65oAFLpTSe2+QOPjP72+xwn5IlA9Ywp/O4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791866030; c=relaxed/simple;
-	bh=3RH4O4O01s4JVezEbCYMsENgCxBXkyarjqatbbrrLuI=;
-	h=Date:To:From:Subject:Message-Id; b=iufob6VouiGwYbioFext2Lr1Vw08fJKkqpyFhYnjQkl3dxjjzTsvc7krG+vpobl8KU1MICrx/qz9raOL46j0dRycjKIVNVwtG34rwcZCWHIixlRDdrgtSF4n9/8FnN0WoWV/mfo0V4+zfDTLac1JjztkltTsaXD/x93NdSevYW8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=07q90qd+; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1791866032; c=relaxed/simple;
+	bh=SnJBEdTjf6VoKl/iUzhysInHj41eyQTIKUfRHVUt5V4=;
+	h=Date:To:From:Subject:Message-Id; b=CGvwTpm/7Qkh85FnkIO6cDTyu3XnHFIsU2e4T+FGzN5ee5/AeCrSaxDlQEMwZPLUiySlUCZ6ATAs5zkVTLgdwr50Fcdz1RcmCnqYqxx28SiEU7MCCeOeHcczG1xIpaleeAwjklpSdwXC6jj17W+mMpx74DqC7g6jPEggF6LEqDc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=qAQNOp/3; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="07q90qd+"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E70471F0089A;
-	Tue, 13 Oct 2026 04:33:44 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="qAQNOp/3"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 39F781F00893;
+	Tue, 13 Oct 2026 04:33:49 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1791866025;
-	bh=La7IQHLumuc7oaLk++E0X1y98Qs214v2HC4ua5Y5SHY=;
+	d=linux-foundation.org; s=korg; t=1791866029;
+	bh=TFiWKaaSvNWytQmvYmglPIg5j4AhxNcmiqexN35mgfY=;
 	h=Date:To:From:Subject;
-	b=07q90qd+xp6lZ50ZrDNDvuRsfFL5sX7dqF+ZmDktMa9hmKVvnNQOgCOHPZqJSrUEw
-	 +mSne4d/4JfbxVqnCwTzmnl64Z1YPxLFwgdJpjvtnXq35sHHbwpje0Bl5uNaOYlkE4
-	 1SxDoF4YDALT2MB+4iRA/vN8jvMh3JkVKsHb+CQE=
-Date: Mon, 12 Oct 2026 21:33:44 -0700
+	b=qAQNOp/31Z2ZVzfYW3LBi+i++HIZMbHlrjnnBN1J27FGKF3CNOZK2kjzzjvWygBN+
+	 3JDZk+OLp17bvph2mQ/RQBt3/zGehPRp5Asqq2ghob/HMdXbUq4zwL+kx/flmohzUh
+	 qtwOcSja7tgRRYvdCgL/gcDcwIWMXkghiaDhiafU=
+Date: Mon, 12 Oct 2026 21:33:48 -0700
 To: mm-commits@vger.kernel.org,ziy@nvidia.com,vbabka@kernel.org,usama.arif@linux.dev,usama.anjum@arm.com,surenb@google.com,shuah@kernel.org,ryan.roberts@arm.com,rppt@kernel.org,nico.pache@linux.dev,mhocko@suse.com,ljs@kernel.org,liam@infradead.org,leon@kernel.org,lance.yang@linux.dev,kernel-team@meta.com,jgg@ziepe.ca,hughd@google.com,dev.jain@arm.com,david@kernel.org,baolin.wang@linux.alibaba.com,baohua@kernel.org,agordeev@linux.ibm.com,kas@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] selftests-mm-add-folio-order-check-for-address-ranges.patch removed from -mm tree
-Message-Id: <20261013043344.E70471F0089A@smtp.kernel.org>
+Subject: [merged mm-stable] selftests-mm-add-order-parameterized-khugepaged-collapse-cases.patch removed from -mm tree
+Message-Id: <20261013043349.39F781F00893@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,40 +35,48 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: selftests/mm: add folio-order check for address ranges
+     Subject: selftests/mm: add order-parameterized khugepaged collapse cases
 has been removed from the -mm tree.  Its filename was
-     selftests-mm-add-folio-order-check-for-address-ranges.patch
+     selftests-mm-add-order-parameterized-khugepaged-collapse-cases.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: "Kiryl Shutsemau (Meta)" <kas@kernel.org>
-Subject: selftests/mm: add folio-order check for address ranges
-Date: Sat, 19 Sep 2026 01:24:38 +0100
+Subject: selftests/mm: add order-parameterized khugepaged collapse cases
+Date: Sat, 19 Sep 2026 01:24:41 +0100
 
-An mTHP collapse test needs to know that a range is backed by folios of
-the target order, and that they sit where a collapse would put them. 
-Nothing answers both: is_backed_by_folio() classifies the folio behind a
-single page, and check_huge_anon() counts the folios of an order in a
-range without saying where they start.
+The mthp_khugepaged context runs the generic cases at a sub-PMD order,
+which answers how many folios of that order a range ends up with.  It
+cannot say which order-sized window they landed in, so "the populated
+window collapsed" and "the empty window next to it collapsed instead" look
+alike.
 
-Add is_range_backed_by_order().  It requires every folio-sized, folio-
-aligned part of the range to map one folio of that order, head to tail,
-with the head at the start of the part.
+Add four cases that check each window on its own, with the folio-order
+helpers in vm_util:
 
-A part backed by two smaller folios fails, and so does a folio mapped off
-its natural alignment.  The mTHP cases need both to tell a collapsed range
-from the one beside it.
+- collapse_order_single_window(): only the populated window collapses;
+- collapse_order_partial_window(): the default max_ptes_none lets a window
+  with one present PTE collapse;
+- collapse_order_max_ptes_none(): with max_ptes_none=0 a full window
+  collapses and one missing a page does not;
+- collapse_order_mixed_sources(): sources that are already large folios of
+  a smaller order collapse to the target.
 
-Link: https://lore.kernel.org/20260919002451.496763-9-kirill@shutemov.name
+Each case faults its region before MADV_HUGEPAGE with only the target
+order enabled, so the sources are order 0 and the result can only come
+from khugepaged.  They wait for a full pass rather than for the result to
+appear: without a completed pass, "not collapsed" and "not scanned yet"
+are the same thing.
+
+Link: https://lore.kernel.org/20260919002451.496763-12-kirill@shutemov.name
 Signed-off-by: Kiryl Shutsemau (Meta) <kas@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Reviewed-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
 Tested-by: Muhammad Usama Anjum <usama.anjum@arm.com>
+Tested-by: Baolin Wang <baolin.wang@linux.alibaba.com>
 Assisted-by: LLM
 Cc: Alexander Gordeev <agordeev@linux.ibm.com>
-Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
 Cc: Barry Song <baohua@kernel.org>
 Cc: "David Hildenbrand (arm)" <david@kernel.org>
 Cc: Dev Jain <dev.jain@arm.com>
@@ -80,6 +88,7 @@ Cc: Leon Romanovsky <leon@kernel.org>
 Cc: Liam Howlett <liam@infradead.org>
 Cc: Lorenzo Stoakes (ARM) <ljs@kernel.org>
 Cc: Michal Hocko <mhocko@suse.com>
+Cc: Mike Rapoport (Microsoft) <rppt@kernel.org>
 Cc: Nico Pache (Red Hat) <nico.pache@linux.dev>
 Cc: Ryan Roberts <ryan.roberts@arm.com>
 Cc: Shuah Khan (Samsung OSG) <shuah@kernel.org>
@@ -89,77 +98,251 @@ Cc: "Vlastimil Babka (SUSE)" <vbabka@kernel.org>
 Cc: Zi Yan <ziy@nvidia.com>
 ---
 
- tools/testing/selftests/mm/vm_util.c |   47 +++++++++++++++++++++++++
- tools/testing/selftests/mm/vm_util.h |    2 +
- 2 files changed, 49 insertions(+)
+ tools/testing/selftests/mm/khugepaged.c |  212 ++++++++++++++++++++++
+ 1 file changed, 212 insertions(+)
 
---- a/tools/testing/selftests/mm/vm_util.c~selftests-mm-add-folio-order-check-for-address-ranges
-+++ a/tools/testing/selftests/mm/vm_util.c
-@@ -551,6 +551,53 @@ fail:
- 	ksft_exit_fail_msg("Failed to get folio info\n");
+--- a/tools/testing/selftests/mm/khugepaged.c~selftests-mm-add-order-parameterized-khugepaged-collapse-cases
++++ a/tools/testing/selftests/mm/khugepaged.c
+@@ -30,6 +30,8 @@ static unsigned long page_size;
+ static int hpage_pmd_nr;
+ static int anon_order;
+ static int collapse_order;
++static int pagemap_fd = -1;
++static int kpageflags_fd = -1;
+ 
+ #define PID_SMAPS "/proc/self/smaps"
+ #define TEST_FILE "collapse_test_file"
+@@ -1209,6 +1211,198 @@ static void madvise_retracted_page_table
+ 	ksft_test_result_report(exit_status, "%s\n", __func__);
  }
  
-+/**
-+ * is_range_backed_by_order() - check that a range is backed by @order folios
-+ * @start: start of the range, a multiple of the folio size
-+ * @len: length of the range in bytes, a multiple of the folio size
-+ * @order: the folio order to check for
-+ * @pagemap_fd: open /proc/<pid>/pagemap of the range's owner
-+ * @kpageflags_fd: open /proc/kpageflags
-+ *
-+ * Every folio-sized, folio-aligned part of the range must map one folio of
-+ * @order, head to tail, with the head at the start of the part.  A part
-+ * backed by several smaller folios fails, and so does a folio mapped off
-+ * its natural alignment.
-+ *
-+ * Returns: true if the whole range is backed that way, false otherwise.
-+ */
-+bool is_range_backed_by_order(char *start, size_t len, int order,
-+			      int pagemap_fd, int kpageflags_fd)
++/* Smallest order khugepaged will consider for mTHP collapse */
++#define MIN_MTHP_ORDER 2
++
++/* Time budget for one khugepaged pass in the collapse_order_* cases */
++#define MTHP_PASS_TIMEOUT_S 30
++
++static size_t mthp_window_size(void)
 +{
-+	const unsigned long nr_pages = 1UL << order;
-+	const size_t folio_size = nr_pages * psize();
-+	char *vaddr;
-+
-+	if ((uintptr_t)start % folio_size || len % folio_size)
-+		return false;
-+
-+	for (vaddr = start; vaddr < start + len; vaddr += folio_size) {
-+		const unsigned long pfn = pagemap_get_pfn(pagemap_fd, vaddr);
-+		unsigned long i;
-+
-+		/* Not present, or a tail page */
-+		if (pfn == -1UL || pfn % nr_pages)
-+			return false;
-+
-+		for (i = 1; i < nr_pages; i++) {
-+			char *page = vaddr + i * psize();
-+
-+			if (pagemap_get_pfn(pagemap_fd, page) != pfn + i)
-+				return false;
-+		}
-+
-+		if (!is_backed_by_folio(vaddr, order, pagemap_fd, kpageflags_fd))
-+			return false;
-+	}
-+
-+	return true;
++	return page_size << collapse_order;
 +}
 +
- /* If `ioctls' non-NULL, the allowed ioctls will be returned into the var */
- int uffd_register_with_ioctls(int uffd, void *addr, uint64_t len,
- 			      bool miss, bool wp, bool minor, uint64_t *ioctls)
---- a/tools/testing/selftests/mm/vm_util.h~selftests-mm-add-folio-order-check-for-address-ranges
-+++ a/tools/testing/selftests/mm/vm_util.h
-@@ -101,6 +101,8 @@ int gather_folio_orders(char *vaddr_star
- 		int pagemap_fd, int kpageflags_fd, int orders[], int nr_orders);
- bool is_backed_by_folio(char *vaddr, int order, int pagemap_fd,
- 			int kpageflags_fd);
-+bool is_range_backed_by_order(char *start, size_t len, int order,
-+			      int pagemap_fd, int kpageflags_fd);
++static void mthp_push_target_order(void)
++{
++	struct thp_settings settings = *thp_current_settings();
++	int i;
++
++	/*
++	 * Only the target order, and only for madvise: the cases fault their
++	 * region first, so the sources stay order 0 whatever -s asked for.
++	 */
++	settings.thp_enabled = THP_NEVER;
++	for (i = 0; i < NR_ORDERS; i++)
++		settings.hugepages[i].enabled = THP_NEVER;
++	settings.hugepages[collapse_order].enabled = THP_MADVISE;
++	thp_push_settings(&settings);
++}
++
++static bool all_windows_at_order(void *p, size_t len)
++{
++	return is_range_backed_by_order(p, len, collapse_order,
++					pagemap_fd, kpageflags_fd);
++}
++
++static bool any_window_at_order(void *p, size_t len)
++{
++	size_t window = mthp_window_size();
++	char *addr = p;
++
++	for (; len >= window; addr += window, len -= window) {
++		if (all_windows_at_order(addr, window))
++			return true;
++	}
++	return false;
++}
++
++static void collapse_order_single_window(struct collapse_context *c,
++					 struct mem_ops *ops)
++{
++	size_t window = mthp_window_size();
++	void *p;
++
++	mthp_push_target_order();
++
++	p = ops->setup_area(1);
++	ops->fault(p, window, 2 * window);
++	if (any_window_at_order(p, hpage_pmd_size))
++		ksft_exit_fail_msg("Unexpected large folio after fault\n");
++
++	if (madvise(p, hpage_pmd_size, MADV_HUGEPAGE))
++		ksft_exit_fail_perror("madvise(MADV_HUGEPAGE)");
++	ksft_print_msg("Collapse one fully populated window...");
++	if (!khugepaged_full_pass(MTHP_PASS_TIMEOUT_S))
++		fail("Timeout");
++	else if (all_windows_at_order(p + window, window) &&
++		 !any_window_at_order(p, window) &&
++		 !any_window_at_order(p + 2 * window,
++				      hpage_pmd_size - 2 * window))
++		success("OK");
++	else
++		fail("Fail");
++
++	validate_memory(p, window, 2 * window);
++	ops->cleanup_area(p, hpage_pmd_size);
++	thp_pop_settings();
++	ksft_test_result_report(exit_status, "%s\n", __func__);
++}
++
++static void collapse_order_partial_window(struct collapse_context *c,
++					  struct mem_ops *ops)
++{
++	void *p;
++
++	mthp_push_target_order();
++
++	p = ops->setup_area(1);
++	ops->fault(p, 0, page_size);
++	if (any_window_at_order(p, hpage_pmd_size))
++		ksft_exit_fail_msg("Unexpected large folio after fault\n");
++
++	if (madvise(p, hpage_pmd_size, MADV_HUGEPAGE))
++		ksft_exit_fail_perror("madvise(MADV_HUGEPAGE)");
++	ksft_print_msg("Collapse window with single PTE entry present...");
++	if (!khugepaged_full_pass(MTHP_PASS_TIMEOUT_S))
++		fail("Timeout");
++	else if (all_windows_at_order(p, mthp_window_size()))
++		success("OK");
++	else
++		fail("Fail");
++
++	validate_memory(p, 0, page_size);
++	ops->cleanup_area(p, hpage_pmd_size);
++	thp_pop_settings();
++	ksft_test_result_report(exit_status, "%s\n", __func__);
++}
++
++static void collapse_order_max_ptes_none(struct collapse_context *c,
++					 struct mem_ops *ops)
++{
++	struct thp_settings settings;
++	size_t window = mthp_window_size();
++	void *p;
++
++	mthp_push_target_order();
++	settings = *thp_current_settings();
++	settings.khugepaged.max_ptes_none = 0;
++	thp_push_settings(&settings);
++
++	p = ops->setup_area(1);
++	ops->fault(p, 0, 2 * window - page_size);
++	if (any_window_at_order(p, hpage_pmd_size))
++		ksft_exit_fail_msg("Unexpected large folio after fault\n");
++
++	if (madvise(p, hpage_pmd_size, MADV_HUGEPAGE))
++		ksft_exit_fail_perror("madvise(MADV_HUGEPAGE)");
++	ksft_print_msg("Collapse full window, not the one missing a page...");
++	if (!khugepaged_full_pass(MTHP_PASS_TIMEOUT_S))
++		fail("Timeout");
++	else if (all_windows_at_order(p, window) &&
++		 !any_window_at_order(p + window, window))
++		success("OK");
++	else
++		fail("Fail");
++
++	validate_memory(p, 0, 2 * window - page_size);
++	ops->cleanup_area(p, hpage_pmd_size);
++	thp_pop_settings();
++	thp_pop_settings();
++	ksft_test_result_report(exit_status, "%s\n", __func__);
++}
++
++static void collapse_order_mixed_sources(struct collapse_context *c,
++					 struct mem_ops *ops)
++{
++	struct thp_settings settings;
++	void *p;
++
++	if (collapse_order <= MIN_MTHP_ORDER) {
++		ksft_test_result_skip("%s: no source order below target\n",
++				      __func__);
++		return;
++	}
++
++	mthp_push_target_order();
++
++	settings = *thp_current_settings();
++	settings.hugepages[MIN_MTHP_ORDER].enabled = THP_ALWAYS;
++	thp_push_settings(&settings);
++	p = ops->setup_area(1);
++	ops->fault(p, 0, hpage_pmd_size);
++	thp_pop_settings();
++
++	/*
++	 * The allocator can fall back to smaller folios under fragmentation;
++	 * having nothing to collapse from is not a failure.
++	 */
++	if (!is_range_backed_by_order(p, hpage_pmd_size, MIN_MTHP_ORDER,
++				      pagemap_fd, kpageflags_fd)) {
++		ksft_print_msg("No order-%d sources to collapse...",
++			       MIN_MTHP_ORDER);
++		skip("Skip");
++		ops->cleanup_area(p, hpage_pmd_size);
++		thp_pop_settings();
++		ksft_test_result_report(exit_status, "%s\n", __func__);
++		return;
++	}
++
++	if (madvise(p, hpage_pmd_size, MADV_HUGEPAGE))
++		ksft_exit_fail_perror("madvise(MADV_HUGEPAGE)");
++	ksft_print_msg("Collapse region backed by smaller large folios...");
++	if (!khugepaged_full_pass(MTHP_PASS_TIMEOUT_S))
++		fail("Timeout");
++	else if (all_windows_at_order(p, hpage_pmd_size))
++		success("OK");
++	else
++		fail("Fail");
++
++	validate_memory(p, 0, hpage_pmd_size);
++	ops->cleanup_area(p, hpage_pmd_size);
++	thp_pop_settings();
++	ksft_test_result_report(exit_status, "%s\n", __func__);
++}
++
+ static void usage(void)
+ {
+ 	fprintf(stderr, "\nUsage: ./khugepaged [OPTIONS] <test type> [dir]\n\n");
+@@ -1377,6 +1571,20 @@ int main(int argc, char **argv)
  
- int uffd_register(int uffd, void *addr, uint64_t len,
- 		  bool miss, bool wp, bool minor);
+ 	parse_test_type(argc, argv);
+ 
++	if (mthp_khugepaged_context &&
++	    !(thp_supported_orders() & (1UL << collapse_order)))
++		ksft_exit_skip("Order %d is not a supported anon THP order\n",
++			       collapse_order);
++
++	if (mthp_khugepaged_context) {
++		pagemap_fd = open("/proc/self/pagemap", O_RDONLY);
++		if (pagemap_fd < 0)
++			ksft_exit_fail_perror("open(/proc/self/pagemap)");
++		kpageflags_fd = open("/proc/kpageflags", O_RDONLY);
++		if (kpageflags_fd < 0)
++			ksft_exit_fail_perror("open(/proc/kpageflags)");
++	}
++
+ 	setbuf(stdout, NULL);
+ 
+ 	/*
+@@ -1427,6 +1635,10 @@ int main(int argc, char **argv)
+ 	TEST(collapse_empty, madvise_context, anon_ops);
+ 
+ 	TEST(collapse_single_mthp, mthp_khugepaged_context, anon_ops);
++	TEST(collapse_order_single_window, mthp_khugepaged_context, anon_ops);
++	TEST(collapse_order_partial_window, mthp_khugepaged_context, anon_ops);
++	TEST(collapse_order_max_ptes_none, mthp_khugepaged_context, anon_ops);
++	TEST(collapse_order_mixed_sources, mthp_khugepaged_context, anon_ops);
+ 
+ 	TEST(collapse_single_pte_entry, khugepaged_context, anon_ops);
+ 	TEST(collapse_single_pte_entry, khugepaged_context, read_only_file_ops);
 _
 
 Patches currently in -mm which might be from kas@kernel.org are
