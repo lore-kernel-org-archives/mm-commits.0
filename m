@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A00FD4825A2
-	for <mm-commits@vger.kernel.org>; Tue, 13 Oct 2026 04:32:55 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BEAFA481A98
+	for <mm-commits@vger.kernel.org>; Tue, 13 Oct 2026 04:32:57 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791865976; cv=none; b=lnMOEEyq1ssPHMlu9/razP+ClLTzjZcEu80VHXBMr6rueRuqmymB92TvNp1nSYvR9nxH8eX5QGFB+lU3Jjs+rlE+0H5HZQnhVdvWMzJ7T6Peyc1VThoxrTtsMlGbucGm6BaSCrnh3Q1/ZkNFF7M+JD6x2rZQx+kJv9SyHjTBktU=
+	t=1791865979; cv=none; b=fWF5XZJAlurPhRxOgzb1TyyNlcPUFKMfYKVosZfZ1a8a0MAB7NYQbmudVbgRdxKbIH4xMk9Bw5JgRfIiV/hPaPQzQYIaZwF7bH7MT9XpdKcLD5CfEZFV7qZmxFLhNYlFMMICIFrcdpMIJ05Nqe7cTGdD77UUVJoMwc5xq+e/21I=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791865976; c=relaxed/simple;
-	bh=MXqy1rleRAJuvjgtx/SHnxy/geKw7+ayzTW54jnJW6I=;
-	h=Date:To:From:Subject:Message-Id; b=hNHkKHs4zUEM1GEnSzma40cSRndit9bQhi+4X4DKdvEBCY2ZwkEUbvK+56BmEZ7xnjvHbeA6wpfDh8ZSuThKP53hcVl2ToOVNiwZfXWh2bxkeoYx0V5fhOyt1QmABmLMnpWvigXnE8HtjbjxE7kKm1cV0Cw0SgALHT6Kh6joKCk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=nTmK8v1B; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1791865979; c=relaxed/simple;
+	bh=f6ucxPB2hrvApcCX9vlDj+VXSVGPrDY04nLYkMuKZnk=;
+	h=Date:To:From:Subject:Message-Id; b=MZHGUYoTO5v9da3BkIJoHrfzEsCq2iKxjhx7uDRxHfhln1+36YlYojJkGnNWtUbunVi6Af30pMrhAUo55n4CQurshwp0TLcEBDHXZR3eH4gUjB2hNuQCgkESZFHfg+gWklKg4q5ivpGl0dB3tj16y5arWYb7sN+sJr/02useB3g=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=YeKgT7hQ; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="nTmK8v1B"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 761D01F00893;
-	Tue, 13 Oct 2026 04:32:55 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="YeKgT7hQ"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8C7B71F00893;
+	Tue, 13 Oct 2026 04:32:57 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1791865975;
-	bh=CpYgJkNPDqc1MykOpcAczADFRb/fM/s26OdX+dKCVOE=;
+	d=linux-foundation.org; s=korg; t=1791865977;
+	bh=E8tlPVzumBBLcsqTrfeMIO5oRtB70JjdMyg4UJOJx8Q=;
 	h=Date:To:From:Subject;
-	b=nTmK8v1B36k4qIYkxCzF27k2ztsxDU12x5e9uM/dnyryLiVR86G2JNhMojmbAews6
-	 InfyhoCe81uhDbaFQdAa04zXg1U219yvLKcWIxgqSxlp3fzbgCmXX5IGR9rhtlqAsH
-	 ics/BZmf8lVkPwGTGuI8GkjpMgfhENOW9Rhnr7Ho=
-Date: Mon, 12 Oct 2026 21:32:55 -0700
-To: mm-commits@vger.kernel.org,vbabka@kernel.org,surenb@google.com,shuah@kernel.org,rppt@kernel.org,rdunlap@infradead.org,mhocko@suse.com,ljs@kernel.org,liam@infradead.org,gutierrez.asier@huawei-partners.com,david@kernel.org,davidgow@davidgow.net,corbet@lwn.net,brendan.higgins@linux.dev,sj@kernel.org,akpm@linux-foundation.org
+	b=YeKgT7hQaLrUJj5wBvGYBy5PE5GEFNZjynEIpXCvhjL7XRnu5Xz1Hm1NZqxQFv1w0
+	 BxbM1aRdknvoqTxRQ6cBF9ScXkm5l6bZHWkNoSpsNCyREXyeH7CoZMZZjyQKimMhjB
+	 /cObvO9hDNZSjlw1aY8WXA6uKzhG2KnKzGIYq1/k=
+Date: Mon, 12 Oct 2026 21:32:57 -0700
+To: mm-commits@vger.kernel.org,rdunlap@infradead.org,corbet@lwn.net,catalin.marinas@arm.com,leitao@debian.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] selftests-damon-sysfs_memcg_path_leak-fail-only-for-real-damon-leak.patch removed from -mm tree
-Message-Id: <20261013043255.761D01F00893@smtp.kernel.org>
+Subject: [merged mm-stable] documentation-kmemleak-describe-the-metadata-pool-not-the-early-log.patch removed from -mm tree
+Message-Id: <20261013043257.8C7B71F00893@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,68 +35,75 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: selftests/damon/sysfs_memcg_path_leak: fail only for real DAMON leak
+     Subject: Documentation: kmemleak: describe the metadata pool, not the early log
 has been removed from the -mm tree.  Its filename was
-     selftests-damon-sysfs_memcg_path_leak-fail-only-for-real-damon-leak.patch
+     documentation-kmemleak-describe-the-metadata-pool-not-the-early-log.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: SJ Park <sj@kernel.org>
-Subject: selftests/damon/sysfs_memcg_path_leak: fail only for real DAMON leak
-Date: Thu, 17 Sep 2026 07:22:07 -0700
+From: Breno Leitao <leitao@debian.org>
+Subject: Documentation: kmemleak: describe the metadata pool, not the early log
+Date: Thu, 17 Sep 2026 06:47:35 -0700
 
-The selftest can fail for any leak if it happens while the test is
-running.  Remove the false positive test failures by further checking if
-the expected leaking function is called out on the report.
+Patch series "kmemleak: fix stale documentation and raise the verbose
+default".
 
-Link: https://lore.kernel.org/20260917142210.90829-10-sj@kernel.org
-Signed-off-by: SJ Park <sj@kernel.org>
+The first two patches fix statements in
+Documentation/dev-tools/kmemleak.rst that do not match mm/kmemleak.c.
+
+The third requires one more consecutive unreferenced scan before a
+CONFIG_DEBUG_KMEMLEAK_VERBOSE kernel reports a leak on the console, to
+avoid the last false positives I am seeing when running
+CONFIG_DEBUG_KMEMLEAK_VERBOSE on a daily basis.
+
+
+This patch (of 3):
+
+commit c5665868183f ("mm: kmemleak: use the memory pool for early
+allocations") removed the early log buffer in favour of a static pool of
+kmemleak_object structures, but the documentation still describes the old
+mechanism.
+
+Fix the documentation by describing what the pool actually is, matching
+the Kconfig help text.
+
+Link: https://lore.kernel.org/20260917142210.90829-1-sj@kernel.org
+Link: https://lore.kernel.org/20260917-b4-kmemleak-doc-v1-1-84fde6d1f749@debian.org
+Fixes: c5665868183f ("mm: kmemleak: use the memory pool for early allocations")
+Signed-off-by: Breno Leitao <leitao@debian.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Cc: Asier Gutierrez <gutierrez.asier@huawei-partners.com>
-Cc: Brendan Higgins <brendan.higgins@linux.dev>
-Cc: David Gow <davidgow@davidgow.net>
-Cc: David Hildenbrand <david@kernel.org>
+Reviewed-by: Catalin Marinas <catalin.marinas@arm.com>
 Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Liam R. Howlett <liam@infradead.org>
-Cc: Lorenzo Stoakes <ljs@kernel.org>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Mike Rapoport <rppt@kernel.org>
 Cc: Randy Dunlap <rdunlap@infradead.org>
-Cc: Shuah Khan <shuah@kernel.org>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Vlastimil Babka <vbabka@kernel.org>
 ---
 
- tools/testing/selftests/damon/sysfs_memcg_path_leak.sh |    7 +++++++
- 1 file changed, 7 insertions(+)
+ Documentation/dev-tools/kmemleak.rst |   11 ++++++++---
+ 1 file changed, 8 insertions(+), 3 deletions(-)
 
---- a/tools/testing/selftests/damon/sysfs_memcg_path_leak.sh~selftests-damon-sysfs_memcg_path_leak-fail-only-for-real-damon-leak
-+++ a/tools/testing/selftests/damon/sysfs_memcg_path_leak.sh
-@@ -41,5 +41,12 @@ if [ "$kmemleak_report" = "" ]
- then
- 	exit 0
- fi
-+if ! echo "$kmemleak_report" | grep "memcg_path_store" --quiet
-+then
-+	echo "[WARN] memleak found; apparently not from DAMON, though"
-+	echo "$kmemleak_report"
-+	exit 0
-+fi
-+
- echo "$kmemleak_report"
- exit 1
+--- a/Documentation/dev-tools/kmemleak.rst~documentation-kmemleak-describe-the-metadata-pool-not-the-early-log
++++ a/Documentation/dev-tools/kmemleak.rst
+@@ -66,9 +66,14 @@ Memory scanning parameters can be modifi
+ Kmemleak can also be disabled at boot-time by passing ``kmemleak=off`` on
+ the kernel command line.
+ 
+-Memory may be allocated or freed before kmemleak is initialised and
+-these actions are stored in an early log buffer. The size of this buffer
+-is configured via the CONFIG_DEBUG_KMEMLEAK_MEM_POOL_SIZE option.
++Memory may be allocated or freed before kmemleak is initialised, so a
++static pool of metadata objects is used to track those allocations. Once
++kmemleak is fully initialised the pool becomes an emergency reserve, used
++whenever a metadata object cannot be allocated from the slab. The number
++of objects in the pool is configured via the
++CONFIG_DEBUG_KMEMLEAK_MEM_POOL_SIZE option. Exhausting it at run time
++prints "Cannot allocate a kmemleak_object structure" and disables
++kmemleak.
+ 
+ If CONFIG_DEBUG_KMEMLEAK_DEFAULT_OFF are enabled, the kmemleak is
+ disabled by default. Passing ``kmemleak=on`` on the kernel command
 _
 
-Patches currently in -mm which might be from sj@kernel.org are
+Patches currently in -mm which might be from leitao@debian.org are
 
-mm-damon-core-introduce-damos_quota_goal-complement.patch
-mm-damon-core-add-complement-argument-to-damos_new_quota_goal.patch
-mm-damon-sysfs-schemes-support-quota-goal-complement-flag.patch
-mm-damon-tests-core-kunit-test-quota_goal-complement-commit.patch
-selftests-damon-sysfssh-test-quota-goal-complement-flag-file.patch
-docs-mm-damon-design-document-damos-quota-goal-complement-flag.patch
-docs-admin-guide-mm-damon-usage-update-for-quota-goal-complement-file.patch
-docs-abi-damon-update-for-quota-goal-metric-complement-sysfs-file.patch
 
