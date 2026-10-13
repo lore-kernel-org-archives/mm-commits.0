@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4DD535372E9
-	for <mm-commits@vger.kernel.org>; Tue, 13 Oct 2026 18:51:39 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 751295372E2
+	for <mm-commits@vger.kernel.org>; Tue, 13 Oct 2026 18:51:41 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791917504; cv=none; b=KoZGqO7XUZHUnG/TDMMLUiay/1zl57okuiNvnw4dXZfUfoFeicF6BPCvXbctT7719MYlLPm8l3JOV3N/3teptGDUqRDfOMMAo2n6M6fzpBQwEXLtfAhNh/mwLRwK+myLFJoIF7tfnxUc04fQl31rCF0ouid2PImzzw8tV//vVHA=
+	t=1791917505; cv=none; b=R39eRgLehmOXV3Lb7YV4ODmjgrLdDovBj/nnbW4gPq5oMA1laFVsCOkHhETpwTBEK4KL49U4RmW6k1IjaO4C95WvycNaudrYgtZ3ygcilBb1vlJqVEJabTSTPO3tS2IlmhYhodHpxqfTrHGwj5v5eDYBHrTKAFWN7jO+uxvzVXw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791917504; c=relaxed/simple;
-	bh=b0bfJY7QLk6lD8shfH5onu0l3Q35wEhNk8RdYR0OYpI=;
-	h=Date:To:From:Subject:Message-Id; b=K28KuDS4DqZK+R2LoG7djXxlK9Y5zrINGLM1+YU23sYytIpczRWGZBMVYSYZyeHxR1ziOOMn0/OicD1d7VeO//cu4ZXvei4Kpg9/neIvD0P/EPk/gJAiUX0kZJIUHdFZf2CGbvFWwW4SYA4KMezBID4bYWiPjKmxg+GDkWMksiA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=M2ObBiRf; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1791917505; c=relaxed/simple;
+	bh=s2nfnRn2BpCZs1q6A1aNjfpKzczm7maKTgCA2dOfKcg=;
+	h=Date:To:From:Subject:Message-Id; b=BLn1by0+boQiWV0DP+zDQJQ6JFatGi1y80jXs7COXMilUh/7gJvL+hFME0+Dl98MJiw0Mq1F8p3qCjfWbjHaU3mAmCU4QA9AcO7GjrPm3JzdDGezZSNLEchBodxfTV3Buit+iRcujrZ88SyxbaSvvmbsknjtFYsOOCqM7sLbkOg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=zjANUkvn; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="M2ObBiRf"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id BE12A1F00893;
-	Tue, 13 Oct 2026 18:51:38 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="zjANUkvn"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id BF62A1F00898;
+	Tue, 13 Oct 2026 18:51:40 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1791917498;
-	bh=Mkhv0jLXA8AF3IfsG/78cT8e4tVc9xNJwjAZmqNmuBU=;
+	d=linux-foundation.org; s=korg; t=1791917500;
+	bh=TwuGdLAzLlRuMUrZxM+wgYQESV+zQwrsPD9/1qsG4Ok=;
 	h=Date:To:From:Subject;
-	b=M2ObBiRfkCcuSY3u6OdJn4BTESRVKtsTgpTx4r2v8x8RziQn02zHS7qavEOFlHdPi
-	 Tt1P645q6Qo7UP+pHBu0NAnIJDYkLRjsNM/4xiQ/9AE/RclLmTAcZOQXE4WNFUuT2G
-	 hF7kYVQUceA9e32DK8BHTosa7dtiNp96qcRRzhME=
-Date: Tue, 13 Oct 2026 11:51:38 -0700
+	b=zjANUkvnkeJDKA3xT4+GLGCGNpNdGVrNhD+cUgLMKs44/uEoQzR4cpBfSuvq1p6KJ
+	 VPRMmksAAJWWb5htR9eJRnuvOmHFuCFBy8vpZ7lpbz8XYoEhAKTSLkcsR2kT9YvhHy
+	 v/BVfF9+ClQnHHOK/7NntJ5yLLklbXnrU8dVt8nQ=
+Date: Tue, 13 Oct 2026 11:51:40 -0700
 To: mm-commits@vger.kernel.org,ljs@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + selinux-reject-writable-opens-of-policy-file-drop-mmap-shared-write-check.patch added to mm-unstable branch
-Message-Id: <20261013185138.BE12A1F00893@smtp.kernel.org>
+Subject: + alsa-pcm-use-vm_insert_page-to-map-pcm-status-page.patch added to mm-unstable branch
+Message-Id: <20261013185140.BF62A1F00898@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: selinux: reject writable opens of policy file, drop mmap shared/write check
+     Subject: ALSA: pcm: use vm_insert_page() to map PCM status page
 has been added to the -mm mm-unstable branch.  Its filename is
-     selinux-reject-writable-opens-of-policy-file-drop-mmap-shared-write-check.patch
+     alsa-pcm-use-vm_insert_page-to-map-pcm-status-page.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selinux-reject-writable-opens-of-policy-file-drop-mmap-shared-write-check.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/alsa-pcm-use-vm_insert_page-to-map-pcm-status-page.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,33 +59,36 @@ and is updated there most days
 
 ------------------------------------------------------
 From: "Lorenzo Stoakes (ARM)" <ljs@kernel.org>
-Subject: selinux: reject writable opens of policy file, drop mmap shared/write check
-Date: Tue, 13 Oct 2026 16:04:52 +0100
+Subject: ALSA: pcm: use vm_insert_page() to map PCM status page
+Date: Tue, 13 Oct 2026 16:04:53 +0100
 
-The policy file has no write method and is exposed read-only (S_IRUGO in
-selinux_files[]), yet sel_open_policy() performs no open mode check, so a
-CAP_DAC_OVERRIDE caller can open it O_RDWR. Reject FMODE_WRITE at open, as
-kernfs does.
+There's no need to keep a fault handler around for this, instead map on
+mmap.
 
-The file can then never be mapped with FMODE_WRITE, so do_mmap() always
-clears VM_MAYWRITE and VM_SHARED for MAP_SHARED mappings and the VM_SHARED
-check in sel_mmap_policy() cannot be reached. Remove it.
+While we're here, rename area to vma to be consistent.
 
-This also stops sel_mmap_policy() clearing VM_MAYWRITE on a mapping that is
-neither a PFN map nor a mixed map, ahead of the core enforcing that only
-such mappings may do so.
+This correctly makes the mapping a mixed map mapping.
 
-Link: https://lore.kernel.org/20261013-b4-mmap-prepare-vma-flag-sanify-v6-12-1aa3c9b139f9@kernel.org
+This works towards establishing the invariant that only PFN mapped or mixed
+map mappings may clear the VM_MAYWRITE flag. The status page mapping clears
+VM_MAYWRITE, so it must not be mm-managed; the control page mapping remains
+writable and is left fault-based.
+
+The assumption is made that the struct pcm_mmap_status structure is at most
+a page in size, which is asserted as a build bug.
+
+This is safe to assume, as the size of the structure is 56 bytes at most.
+
+Link: https://lore.kernel.org/20261013-b4-mmap-prepare-vma-flag-sanify-v6-13-1aa3c9b139f9@kernel.org
 Signed-off-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Acked-by: Stephen Smalley <stephen.smalley.work@gmail.com>
-Reviewed-by: Jann Horn <jannh@google.com>
-Acked-by: Paul Moore <paul@paul-moore.com>
+Acked-by: Takashi Iwai <tiwai@suse.de>
 Reviewed-by: Suren Baghdasaryan <surenb@google.com>
-Acked-by: David Hildenbrand (Arm) <david@kernel.org>
 Cc: Liam R. Howlett <liam@infradead.org>
 Cc: Vlastimil Babka <vbabka@kernel.org>
+Cc: Jann Horn <jannh@google.com>
 Cc: Pedro Falcato <pfalcato@suse.de>
+Cc: David Hildenbrand <david@kernel.org>
 Cc: Mike Rapoport <rppt@kernel.org>
 Cc: Michal Hocko <mhocko@suse.com>
 Cc: Jonathan Corbet <corbet@lwn.net>
@@ -93,6 +96,8 @@ Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 Cc: Dennis Dalessandro <dennis.dalessandro@cornelisnetworks.com>
 Cc: Jason Gunthorpe <jgg@ziepe.ca>
 Cc: Leon Romanovsky <leon@kernel.org>
+Cc: Paul Moore <paul@paul-moore.com>
+Cc: Stephen Smalley <stephen.smalley.work@gmail.com>
 Cc: Jaroslav Kysela <perex@perex.cz>
 Cc: Takashi Iwai <tiwai@suse.com>
 Cc: Alexei Starovoitov <ast@kernel.org>
@@ -189,36 +194,64 @@ Cc: Ihor Solodrai <ihor.solodrai@linux.dev>
 Cc: Bert Karwatzki <spasswolf@web.de>
 ---
 
- security/selinux/selinuxfs.c |   11 +++--------
- 1 file changed, 3 insertions(+), 8 deletions(-)
+ sound/core/pcm_native.c |   38 +++++++++++++-------------------------
+ 1 file changed, 13 insertions(+), 25 deletions(-)
 
---- a/security/selinux/selinuxfs.c~selinux-reject-writable-opens-of-policy-file-drop-mmap-shared-write-check
-+++ a/security/selinux/selinuxfs.c
-@@ -340,6 +340,9 @@ static int sel_open_policy(struct inode
- 	struct policy_load_memory *plm = NULL;
- 	int rc;
- 
-+	if (filp->f_mode & FMODE_WRITE)
-+		return -EACCES;
-+
- 	rc = avc_has_perm(current_sid(), SECINITSID_SECURITY,
- 			  SECCLASS_SECURITY, SECURITY__READ_POLICY, NULL);
- 	if (rc)
-@@ -424,14 +427,6 @@ static const struct vm_operations_struct
- 
- static int sel_mmap_policy(struct file *filp, struct vm_area_struct *vma)
+--- a/sound/core/pcm_native.c~alsa-pcm-use-vm_insert_page-to-map-pcm-status-page
++++ a/sound/core/pcm_native.c
+@@ -3760,39 +3760,27 @@ static __poll_t snd_pcm_poll(struct file
+ /*
+  * mmap status record
+  */
+-static vm_fault_t snd_pcm_mmap_status_fault(struct vm_fault *vmf)
++static int snd_pcm_mmap_status(struct snd_pcm_substream *substream, struct file *file,
++			       struct vm_area_struct *vma)
  {
--	if (vma->vm_flags & VM_SHARED) {
--		/* do not allow mprotect to make mapping writable */
--		vm_flags_clear(vma, VM_MAYWRITE);
--
--		if (vma->vm_flags & VM_WRITE)
--			return -EACCES;
--	}
--
- 	vm_flags_set(vma, VM_DONTEXPAND | VM_DONTDUMP);
- 	vma->vm_ops = &sel_mmap_policy_ops;
+-	struct snd_pcm_substream *substream = vmf->vma->vm_private_data;
++	const unsigned long size = vma->vm_end - vma->vm_start;
+ 	struct snd_pcm_runtime *runtime;
+-	
+-	if (substream == NULL)
+-		return VM_FAULT_SIGBUS;
+-	runtime = substream->runtime;
+-	vmf->page = virt_to_page(runtime->status);
+-	get_page(vmf->page);
+-	return 0;
+-}
++	struct page *page;
  
+-static const struct vm_operations_struct snd_pcm_vm_ops_status =
+-{
+-	.fault =	snd_pcm_mmap_status_fault,
+-};
++	BUILD_BUG_ON(sizeof(struct snd_pcm_mmap_status) > PAGE_SIZE);
+ 
+-static int snd_pcm_mmap_status(struct snd_pcm_substream *substream, struct file *file,
+-			       struct vm_area_struct *area)
+-{
+-	long size;
+-	if (!(area->vm_flags & VM_READ))
++	if (!(vma->vm_flags & VM_READ))
+ 		return -EINVAL;
+-	size = area->vm_end - area->vm_start;
+-	if (size != PAGE_ALIGN(sizeof(struct snd_pcm_mmap_status)))
++	if (size != PAGE_SIZE)
+ 		return -EINVAL;
+-	area->vm_ops = &snd_pcm_vm_ops_status;
+-	area->vm_private_data = substream;
+-	vm_flags_mod(area, VM_DONTEXPAND | VM_DONTDUMP,
++
++	vm_flags_mod(vma, VM_DONTEXPAND | VM_DONTDUMP,
+ 		     VM_WRITE | VM_MAYWRITE);
++	vma->vm_page_prot = vm_get_page_prot(vma->vm_flags);
+ 
+-	return 0;
++	runtime = substream->runtime;
++	page = virt_to_page(runtime->status);
++	return vm_insert_page(vma, vma->vm_start, page);
+ }
+ 
+ /*
 _
 
 Patches currently in -mm which might be from ljs@kernel.org are
