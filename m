@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A22D7484255
-	for <mm-commits@vger.kernel.org>; Tue, 13 Oct 2026 04:33:13 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1D5FD480DFC
+	for <mm-commits@vger.kernel.org>; Tue, 13 Oct 2026 04:33:16 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791865996; cv=none; b=LTSmNQPcwfKA/yie9rbvn/dM1nuzidT/dlEkHpVcygxHy+wtT4SecEZlCLmYPqXTzisGyYlOnMhecnJjLQ0KPQujz9g3gDRR9Y9E9McX2rGx402srHQtiWYVSHJ6S3benRoyaQZ1tay3hHR9Kxyqqv9JP+JGU2SJtLhfFG4I6tw=
+	t=1791865997; cv=none; b=QjCtfFovt7RosAy74s40+qjJgvehCgl+GcHnl7FYnqIq/Sr5B8gTppABqiLBWPVxgFGL+lXpMaditM6rRTSwPfKbgKNU8jVPsl9kaJfDVrTI2hLxwtnjHRjde945D5MpJUINBXgOwSBUXsAF3Nm/Af54FiNzwFeqN2AJPpH54Ec=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791865996; c=relaxed/simple;
-	bh=nt6A7Z5zCGf1AuAXuKhD88/mRwnMEHh/oloSzo1MI4k=;
-	h=Date:To:From:Subject:Message-Id; b=pjL8692F2bpMvrMJjs3s+LqMp054rxTrGN5zACEjYZ0WkfM9i2tndYzzJS7QACnc0I2IYBcPFXZj1Dj+jrT7l22DhK2/tTncfmRHD5Tgupkmhs4Pkp22p8HbKxf96KmGKxse0oWud38UeKWKR1662xcQTQ2m1Wa3YeT55/oK2HQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=EBpX7F0e; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1791865997; c=relaxed/simple;
+	bh=6bm5lH/u4iNlTFDO6Ct809deag59uPM1ygppJiQ5vFI=;
+	h=Date:To:From:Subject:Message-Id; b=NGzKAx0zgNx3/6iy3+UZopj4X6Z7kW306Z5JSmRZO1dsAN+wvC5NOFxrAz6jXLEDfw0hLWvsmiONV+FKxAFCKrZ8PvEUWwBU+PU3lGtRkqufQCqL7vT+AYYMPaZgyiUiQL1kRfOiy0o1lEnKlWajP2sd+D2vqmeAVREZVblQG8Y=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Lzf8/jHy; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="EBpX7F0e"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 18DCB1F00898;
-	Tue, 13 Oct 2026 04:33:13 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Lzf8/jHy"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E43A11F000FF;
+	Tue, 13 Oct 2026 04:33:15 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1791865993;
-	bh=RO+HcrFbL6zgUWJRJTYRz9QvFT2Xf6WNlLophhn2vhQ=;
+	d=linux-foundation.org; s=korg; t=1791865996;
+	bh=J9i81bHkc+rEZp7SOHVBtP7yWS4LGRZArLTm8HDgvPA=;
 	h=Date:To:From:Subject;
-	b=EBpX7F0eHmLIThTen2dGo/fp3HWqRV4dOiw9iRw5HY0rOxs7xdPgLZ0MP9ePJM810
-	 1Lxyjob1Q/OCLGbt6bEbBSm1CGve9dS637HDaHXhVZi7H1nMYg4Gz6gg1K9fNmYE/Z
-	 t5nog3t+l/sNGgkwbRPM9hqmh1TjaW7LYMHF7Usc=
-Date: Mon, 12 Oct 2026 21:33:12 -0700
+	b=Lzf8/jHyf/3v1Fm0OLX16G0yV0V5LiNzHT2qtAAwiLtZc1bBSxQ0hgr2gnoH4O8Da
+	 kw9asOivHHs/kh8MhAvdKCmF7gDGqKz32GznA8dL58L1bdilO2X9amH91S5ANdGyhD
+	 xQdENhaEsEigBySpTeFeSt/QTg7ruEVlKg1z2zXg=
+Date: Mon, 12 Oct 2026 21:33:15 -0700
 To: mm-commits@vger.kernel.org,willy@infradead.org,vbabka@kernel.org,usama.arif@linux.dev,pfalcato@suse.de,paulmck@kernel.org,ljs@kernel.org,liam@infradead.org,jannh@google.com,david@kernel.org,surenb@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] proc-task_mmu-clarify-shmem-mapping-walk-conditions-in-smap_gather_stats.patch removed from -mm tree
-Message-Id: <20261013043313.18DCB1F00898@smtp.kernel.org>
+Subject: [merged mm-stable] proc-task_mmu-change-proc_get_vma-to-stop-returning-gate-vma-at-the-end.patch removed from -mm tree
+Message-Id: <20261013043315.E43A11F000FF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,27 +35,29 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: proc/task_mmu: clarify shmem mapping walk conditions in smap_gather_stats()
+     Subject: proc/task_mmu: change proc_get_vma() to stop returning gate VMA at the end
 has been removed from the -mm tree.  Its filename was
-     proc-task_mmu-clarify-shmem-mapping-walk-conditions-in-smap_gather_stats.patch
+     proc-task_mmu-change-proc_get_vma-to-stop-returning-gate-vma-at-the-end.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Suren Baghdasaryan <surenb@google.com>
-Subject: proc/task_mmu: clarify shmem mapping walk conditions in smap_gather_stats()
-Date: Fri, 18 Sep 2026 08:33:14 -0700
+Subject: proc/task_mmu: change proc_get_vma() to stop returning gate VMA at the end
+Date: Fri, 18 Sep 2026 08:33:16 -0700
 
-smap_gather_stats() optimizes stats gathering by skipping the walk for
-shmem mappings in certain conditions.  Update the comment to clarify these
-conditions and use vma_is_cow_mapping() for CoW identification instead of
-open-coding it.
+proc_get_vma() returning gate VMA at the end is desirable for the its
+current m_start/m_next callers, as they need to report a gate VMA at the
+end of the address space.  This behavior is very specific to these callers
+and makes proc_get_vma() hard to use for other purposes.
 
-No functional change intended.
+Move this usage-specific behavior into the callers themselves so that
+proc_get_vma() returns either a valid VMA, an error or a NULL when no more
+VMAs are available.  This makes it more generic, simpler and usable in the
+later patches.
 
-Link: https://lore.kernel.org/20260918153318.758387-4-surenb@google.com
-Suggested-by: David Hildenbrand (Arm) <david@kernel.org>
+Link: https://lore.kernel.org/20260918153318.758387-6-surenb@google.com
 Signed-off-by: Suren Baghdasaryan <surenb@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 Reviewed-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
@@ -69,44 +71,71 @@ Cc: Usama Arif <usama.arif@linux.dev>
 Cc: Vlastimil Babka <vbabka@kernel.org>
 ---
 
- fs/proc/task_mmu.c |   23 +++++++++--------------
- 1 file changed, 9 insertions(+), 14 deletions(-)
+ fs/proc/task_mmu.c |   28 +++++++++++++++++++++++-----
+ 1 file changed, 23 insertions(+), 5 deletions(-)
 
---- a/fs/proc/task_mmu.c~proc-task_mmu-clarify-shmem-mapping-walk-conditions-in-smap_gather_stats
+--- a/fs/proc/task_mmu.c~proc-task_mmu-change-proc_get_vma-to-stop-returning-gate-vma-at-the-end
 +++ a/fs/proc/task_mmu.c
-@@ -1274,23 +1274,18 @@ static void smap_gather_stats(struct pro
- 
- 	if (vma->vm_file && shmem_mapping(vma->vm_file->f_mapping)) {
- 		/*
--		 * For shared or readonly shmem mappings we know that all
--		 * swapped out pages belong to the shmem object, and we can
--		 * obtain the swap value much more efficiently. For private
--		 * writable mappings, we might have COW pages that are
--		 * not affected by the parent swapped out pages of the shmem
--		 * object, so we have to distinguish them during the page walk.
--		 * Unless we know that the shmem object (or the part mapped by
--		 * our VMA) has no swapped out pages at all.
-+		 * CoW mappings might map anon folios that do not belong to
-+		 * shmem. Perform a less efficient page table walk in this
-+		 * situation, unless we know that the shmem object (or the
-+		 * part mapped by our VMA) has no swapped out pages at all.
+@@ -240,9 +240,6 @@ retry:
+ 		 * found the extended vma with the same vm_start.
  		 */
--		unsigned long shmem_swapped = shmem_swap_usage(vma);
-+		const unsigned long shmem_swapped = shmem_swap_usage(vma);
-+		const bool is_cow = vma_is_cow_mapping(vma);
- 
--		if (!start && (!shmem_swapped || (vma->vm_flags & VM_SHARED) ||
--					!(vma->vm_flags & VM_WRITE))) {
--			mss->swap += shmem_swapped;
--		} else {
-+		if (start || (shmem_swapped && is_cow))
- 			ops = get_smaps_shmem_walk_ops(priv);
--		}
-+		else
-+			mss->swap += shmem_swapped;
+ 		*ppos = vma->vm_end;
+-	} else {
+-		*ppos = SENTINEL_VMA_GATE;
+-		vma = get_gate_vma(priv->lock_ctx.mm);
  	}
  
- 	if (!start)
+ 	return vma;
+@@ -252,6 +249,7 @@ static void *m_start(struct seq_file *m,
+ {
+ 	struct proc_maps_private *priv = m->private;
+ 	struct proc_maps_locking_ctx *lock_ctx;
++	struct vm_area_struct *vma;
+ 	loff_t last_addr = *ppos;
+ 	struct mm_struct *mm;
+ 
+@@ -281,19 +279,39 @@ static void *m_start(struct seq_file *m,
+ 		*ppos = last_addr = priv->last_pos;
+ 	vma_iter_init(&priv->iter, mm, (unsigned long)last_addr);
+ 	hold_task_mempolicy(priv);
++	/*
++	 * If seq_file had to flush its collected data right after m_next() set
++	 * position to SENTINEL_VMA_GATE, m_start() will get that sentinel and
++	 * should return gate_vma without calling proc_get_vma().
++	 */
+ 	if (last_addr == SENTINEL_VMA_GATE)
+ 		return get_gate_vma(mm);
+ 
+-	return proc_get_vma(m, ppos);
++	vma = proc_get_vma(m, ppos);
++	if (vma)
++		return vma;
++
++	/* Return gate VMA at the end */
++	*ppos = SENTINEL_VMA_GATE;
++	return get_gate_vma(mm);
+ }
+ 
+ static void *m_next(struct seq_file *m, void *v, loff_t *ppos)
+ {
++	struct proc_maps_private *priv = m->private;
++	struct vm_area_struct *vma;
++
+ 	if (*ppos == SENTINEL_VMA_GATE) {
+ 		*ppos = SENTINEL_VMA_END;
+ 		return NULL;
+ 	}
+-	return proc_get_vma(m, ppos);
++	vma = proc_get_vma(m, ppos);
++	if (vma)
++		return vma;
++
++	/* Return gate VMA at the end */
++	*ppos = SENTINEL_VMA_GATE;
++	return get_gate_vma(priv->lock_ctx.mm);
+ }
+ 
+ static void m_stop(struct seq_file *m, void *v)
 _
 
 Patches currently in -mm which might be from surenb@google.com are
