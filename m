@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 67ED33A168E
-	for <mm-commits@vger.kernel.org>; Tue, 13 Oct 2026 02:20:39 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F35ED472F65;
+	Tue, 13 Oct 2026 02:45:25 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791858040; cv=none; b=l5fazqyiueeS5cUOJhH3GTBq9E3LbbEJXADuX3/YjixqrKEPCSAGOmQWh1XN324OSSCrdvK1BVnrGNRSKuH9TMtdGsGyYzFSpbbaBt6Hwx3FbAPgNix5ig1GqpP07iVdJlpeXbItViTJxCcQKoh8MsqxJzB7H126ivnwZ+3pffI=
+	t=1791859527; cv=none; b=ViEPupLTBmQYSg5FSHePKawVbJbEOOtRVQUGyud4YpkWyiY+teCaMTsLHy8/WI6p0C+wazo2nAh2JBr4A/55xOcV4IRAX4t54HmdoqlFDvJ3V6QicL0DKC5GHB306m2B98CtdXA0TL8KNfEWj8iFV+TGkMyEfINYPp4XRLk6Kic=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791858040; c=relaxed/simple;
-	bh=UBUMeFLThd0qkO7bsMW2jTD6gt9FQSyIp3rMr3IWBi4=;
-	h=Date:To:From:Subject:Message-Id; b=ObM3KBgTXkePxC7s6O7l6B+n243ToRHBZLqx4cfhLZupzlc76WqXjuVvTpdKs5zkwbj4T3JUymh3GBIGfGhgmh7ovLWvzDELQpp0NuqCcuewu70D8f/CrABL3Wz9q4aG3g0Wb87xQnc4+0uvDy67FEugeNmFUb0zvPj+r2yvI3k=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=TEKI4n+t; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1791859527; c=relaxed/simple;
+	bh=WeehgmvqQnP25MuVHW11H3D9E7AtzSWp/Eej5Xiqnu8=;
+	h=Date:To:From:Subject:Message-Id; b=VwaLDLg6+ZAYu84tBImQy2zqzZm7+LRc7HUndeW+2YuDu+MsEfqBYv/Us1iZ+FY11f8311ARgoSpM05WjOi2etZby9KpyCLZ7WyljNvIrBZ/3sXw6p0f77k03X9H3633urz2nV0vEum4aA2Wc95vPWHsM8uvVGD+CntUps1O0dI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=icPC7ZY3; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="TEKI4n+t"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0595D1F00893;
-	Tue, 13 Oct 2026 02:20:38 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="icPC7ZY3"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8F5431F000FF;
+	Tue, 13 Oct 2026 02:45:25 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1791858039;
-	bh=ON06Ie1t6ICBUWU7XDEYmeW/7fcFGmcAm9/t2YCYrWE=;
+	d=linux-foundation.org; s=korg; t=1791859525;
+	bh=V4afKLdFxWirfZ4LA1N4o2DSZ//qZVuqWnEFtGG6cPY=;
 	h=Date:To:From:Subject;
-	b=TEKI4n+tqMyORSYxf7cLtm7R3Dds7W5VfWpOG3F/0lERCxqWpb1KWel7ffIsV4npE
-	 Q+01ASq3v8/pApA9oE9iNpA06EKzm9A7I/RPBq6XhQfCucf+WStK9I17THNU0XSyHD
-	 JD+jB3y6jMWW4EP5ikLKwpHXUps+qfQw/lWMWyRc=
-Date: Mon, 12 Oct 2026 19:20:38 -0700
-To: mm-commits@vger.kernel.org,shuah@kernel.org,akpm@linux-foundation.org,adobriyan@gmail.com,sashal@kernel.org
+	b=icPC7ZY3LfuJJO3JvhuXwC5HrtAGuSGUI8FT+SJUXwTR2B3z+fT2iazSx2J0GHnAR
+	 ftWzECcFAhe9Vi6UusZVDEDU3d5ARklvequTjLNxJaIsxv+AkftWdRDZNJiDcqvMT1
+	 badoLUWljizTndjpuJx1BpffHiFuzKAy2TwbpJHc=
+Date: Mon, 12 Oct 2026 19:45:25 -0700
+To: mm-commits@vger.kernel.org,stable@vger.kernel.org,mark@fasheh.com,joseph.qi@linux.alibaba.com,jlbec@evilplan.org,jjzuming@gmail.com,heming.zhao@suse.com,ghe@suse.com,baijiaju1990@gmail.com,zzzccc427@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-proc-proc-pid-vm-fix-unused-variable-warning-on-non-x86.patch added to mm-nonmm-unstable branch
-Message-Id: <20261013022039.0595D1F00893@smtp.kernel.org>
+Subject: + ocfs2-publish-the-filecheck-owner-before-adding-sysfs-attributes.patch added to mm-nonmm-unstable branch
+Message-Id: <20261013024525.8F5431F000FF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: selftests/proc: proc-pid-vm: fix unused variable warning on non-x86
+     Subject: ocfs2: publish the filecheck owner before adding sysfs attributes
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     selftests-proc-proc-pid-vm-fix-unused-variable-warning-on-non-x86.patch
+     ocfs2-publish-the-filecheck-owner-before-adding-sysfs-attributes.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-proc-proc-pid-vm-fix-unused-variable-warning-on-non-x86.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/ocfs2-publish-the-filecheck-owner-before-adding-sysfs-attributes.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,77 +58,90 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Sasha Levin <sashal@kernel.org>
-Subject: selftests/proc: proc-pid-vm: fix unused variable warning on non-x86
-Date: Mon, 12 Oct 2026 07:53:29 -0400
+From: Cen Zhang <zzzccc427@gmail.com>
+Subject: ocfs2: publish the filecheck owner before adding sysfs attributes
+Date: Tue, 13 Oct 2026 09:58:58 +0800
 
-g_vsyscall is only used by the x86_64 test, so clang builds for other
-architectures get:
+ocfs2_filecheck_create_sysfs() initializes the filecheck allocation before
+calling kobject_init_and_add(), but assigns entry->fs_fcheck only after
+that call returns.  The default attribute group can already be visible
+while registration is in progress.  A concurrent read can therefore enter
+ocfs2_filecheck_attr_show() with a NULL fs_fcheck and try to lock its
+fc_lock.
 
-  proc-pid-vm.c:224:21: warning: unused variable 'g_vsyscall' [-Wunused-variable]
+Assign the initialized owner before adding the kobject, so every activated
+attribute has valid state.  Clear the pointer when addition fails,
+preserving the existing teardown guard and error cleanup.
 
-The vsyscall strings next to it had the same problem and were marked
-__maybe_unused for it. Move all of the vsyscall variables into the
-__x86_64__ block that uses them instead, and drop those annotations
-along with the local __maybe_unused fallback that was added for them.
+A controlled probe-instrumented test kernel with the original OCFS2
+registration ordering produced this Oops during a concurrent sysfs read:
 
-Link: https://lore.kernel.org/20261012115330.3777115-1-sashal@kernel.org
-Fixes: 17415606f9d8b ("tools/testing/selftests/proc/proc-pid-vm.c: test with vsyscall in mind")
-Signed-off-by: Sasha Levin <sashal@kernel.org>
+  KASAN: null-ptr-deref in range [0x0000000000000028-0x000000000000002f]
+  RIP: 0010:kasan_byte_accessible+0x15/0x30
+  Call Trace:
+   <TASK>
+   __kasan_check_byte+0x13/0x50
+   lock_acquire+0x113/0x300
+   _raw_spin_lock+0x31/0x40
+   ocfs2_filecheck_attr_show+0x138/0x5f0
+   ocfs2_filecheck_show+0x5d/0x90
+   sysfs_kf_seq_show+0x1d3/0x360
+   seq_read_iter+0x480/0x1110
+   kernfs_fop_read_iter+0x419/0x5a0
+   vfs_read+0x7d2/0xc20
+   ksys_read+0x111/0x200
+   do_syscall_64+0x114/0x620
+   entry_SYSCALL_64_after_hwframe+0x77/0x7f
+   </TASK>
+  Modules linked in:
+
+Link: https://lore.kernel.org/pm-ocfs2-objects-candidate-0086-v4-1b3a3c5fd05c1fb41df9@gmail.com
+Fixes: 5f483c4abb50 ("ocfs2: add kobject for online file check")
+Signed-off-by: Cen Zhang <zzzccc427@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Suggested-by: Andrew Morton <akpm@linux-foundation.org>
+Reviewed-by: Heming Zhao <heming.zhao@suse.com>
+Reviewed-by: Joseph Qi <joseph.qi@linux.alibaba.com>
 Assisted-by: LLM
-Cc: Shuah Khan <shuah@kernel.org>
-Cc: Alexey Dobriyan <adobriyan@gmail.com>
+Cc: Mark Fasheh <mark@fasheh.com>
+Cc: Joel Becker <jlbec@evilplan.org>
+Cc: Gang He <ghe@suse.com>
+Cc: Jia-Ju Bai <baijiaju1990@gmail.com>
+Cc: <jjzuming@gmail.com>
+Cc: <stable@vger.kernel.org>
 ---
 
- tools/testing/selftests/proc/proc-pid-vm.c |   14 ++++----------
- 1 file changed, 4 insertions(+), 10 deletions(-)
+ fs/ocfs2/filecheck.c |    5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
---- a/tools/testing/selftests/proc/proc-pid-vm.c~selftests-proc-proc-pid-vm-fix-unused-variable-warning-on-non-x86
-+++ a/tools/testing/selftests/proc/proc-pid-vm.c
-@@ -47,10 +47,6 @@
- #include <sys/resource.h>
- #include <linux/fs.h>
+--- a/fs/ocfs2/filecheck.c~ocfs2-publish-the-filecheck-owner-before-adding-sysfs-attributes
++++ a/fs/ocfs2/filecheck.c
+@@ -179,17 +179,20 @@ int ocfs2_filecheck_create_sysfs(struct
+ 	fcheck->fc_size = 0;
+ 	fcheck->fc_done = 0;
  
--#ifndef __maybe_unused
--#define __maybe_unused __attribute__((__unused__))
--#endif
--
- #include "kselftest.h"
++	/* Publish the initialized owner before activating its sysfs callbacks. */
++	entry->fs_fcheck = fcheck;
+ 	entry->fs_kobj.kset = osb->osb_dev_kset;
+ 	init_completion(&entry->fs_kobj_unregister);
+ 	ret = kobject_init_and_add(&entry->fs_kobj, &ocfs2_ktype_filecheck,
+ 					NULL, "filecheck");
+ 	if (ret) {
++		/* Mount failure still calls ocfs2_filecheck_remove_sysfs(). */
++		entry->fs_fcheck = NULL;
+ 		kobject_put(&entry->fs_kobj);
+ 		kfree(fcheck);
+ 		return ret;
+ 	}
  
- static inline long sys_execveat(int dirfd, const char *pathname, char **argv, char **envp, int flags)
-@@ -214,7 +210,6 @@ static int make_exe(const uint8_t *paylo
- 
- 	return fd1;
+-	entry->fs_fcheck = fcheck;
+ 	return 0;
  }
--#endif
  
- /*
-  * 0: vsyscall VMA doesn't exist	vsyscall=none
-@@ -222,15 +217,14 @@ static int make_exe(const uint8_t *paylo
-  * 2: vsyscall VMA is r-xp		vsyscall=emulate
-  */
- static volatile int g_vsyscall;
--static const char *str_vsyscall __maybe_unused;
-+static const char *str_vsyscall;
- 
--static const char str_vsyscall_0[] __maybe_unused = "";
--static const char str_vsyscall_1[] __maybe_unused =
-+static const char str_vsyscall_0[] = "";
-+static const char str_vsyscall_1[] =
- "ffffffffff600000-ffffffffff601000 --xp 00000000 00:00 0                  [vsyscall]\n";
--static const char str_vsyscall_2[] __maybe_unused =
-+static const char str_vsyscall_2[] =
- "ffffffffff600000-ffffffffff601000 r-xp 00000000 00:00 0                  [vsyscall]\n";
- 
--#ifdef __x86_64__
- static void sigaction_SIGSEGV(int _, siginfo_t *__, void *___)
- {
- 	_exit(g_vsyscall);
 _
 
-Patches currently in -mm which might be from sashal@kernel.org are
+Patches currently in -mm which might be from zzzccc427@gmail.com are
 
-selftests-proc-proc-pid-vm-fix-unused-variable-warning-on-non-x86.patch
+ocfs2-heartbeat-unlink-live-slots-when-their-node-is-missing.patch
+ocfs2-initialize-status-waiters-before-publishing-them.patch
+ocfs2-publish-the-filecheck-owner-before-adding-sysfs-attributes.patch
 
