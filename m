@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AF2F4485924
-	for <mm-commits@vger.kernel.org>; Tue, 13 Oct 2026 04:33:43 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7688F2D9EE7
+	for <mm-commits@vger.kernel.org>; Tue, 13 Oct 2026 04:33:45 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791866029; cv=none; b=IomW8HW4kIGOeUeFeGJTCx6mR01tKUvOCxMKRAqBRCkYjWbIPM5i2ZHg41L+mE+Jf+n6mx0dSt9gPztxBvtF++HGPE/5QDFJ/XU1Znh2cgF8tKOOPtiC8t7J6o81kcXYL51tXPNa2rurxaEBxF2PUkJ2cZVLwA7JtsquJ23XeRI=
+	t=1791866030; cv=none; b=QJcEBtk1XfBYJrpERegGK7v4m2bqPHZfxdJtP3v1vUs0lIjcZ1J01pyENv2W9dMOY9IbI/e6uBBjaXrU8gLPokve1VXpyWhErl5EXLf+59aR/3nPsMv6blg46Bp6H+DWQYYVtxaaQVROqRBPMF1UcenYWxullE0VUxZ4HcYsXj8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791866029; c=relaxed/simple;
-	bh=p0L+28XCM7+29WsOu3aRCiMjGfl3iXR1dI6qbnzdi1A=;
-	h=Date:To:From:Subject:Message-Id; b=ZSdM5iQJACK72otk/cqgXNBU6JxuimqGXvKNbaw0iSkW0kzIX/UMx+SeoW3QgN5G1uzysBw9kz1EEvmHLxMeufWmtMqp8aJT3wekFQQpBjNmIBw53thk1wliUbXuXO/nnAKM3+ByCNxbeumKoNazriEZP31NYaSj1jGGNhOkcNg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=r/eusU8I; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1791866030; c=relaxed/simple;
+	bh=3RH4O4O01s4JVezEbCYMsENgCxBXkyarjqatbbrrLuI=;
+	h=Date:To:From:Subject:Message-Id; b=iufob6VouiGwYbioFext2Lr1Vw08fJKkqpyFhYnjQkl3dxjjzTsvc7krG+vpobl8KU1MICrx/qz9raOL46j0dRycjKIVNVwtG34rwcZCWHIixlRDdrgtSF4n9/8FnN0WoWV/mfo0V4+zfDTLac1JjztkltTsaXD/x93NdSevYW8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=07q90qd+; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="r/eusU8I"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 84B411F00893;
-	Tue, 13 Oct 2026 04:33:43 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="07q90qd+"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E70471F0089A;
+	Tue, 13 Oct 2026 04:33:44 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1791866023;
-	bh=Acgm7HkHk3lWlzq66DD/1fA+CcC6X94HWX+0kSKHe4E=;
+	d=linux-foundation.org; s=korg; t=1791866025;
+	bh=La7IQHLumuc7oaLk++E0X1y98Qs214v2HC4ua5Y5SHY=;
 	h=Date:To:From:Subject;
-	b=r/eusU8I1gtvMv9Hk0g+L+MUfHSepwyjCm6rRHcPkw7apX2tlK1QoeHVnOC6wQwUC
-	 rXCrzwqNaRhHnOHJ+nxXLcrE1FtxzQSvudfrDEECmnGYYM9zs3H/tukAgyckaRt8Bi
-	 9KtlehRgp5PPNNKLwAk+SMl+9TkFyHNY6zCxpFyU=
-Date: Mon, 12 Oct 2026 21:33:43 -0700
+	b=07q90qd+xp6lZ50ZrDNDvuRsfFL5sX7dqF+ZmDktMa9hmKVvnNQOgCOHPZqJSrUEw
+	 +mSne4d/4JfbxVqnCwTzmnl64Z1YPxLFwgdJpjvtnXq35sHHbwpje0Bl5uNaOYlkE4
+	 1SxDoF4YDALT2MB+4iRA/vN8jvMh3JkVKsHb+CQE=
+Date: Mon, 12 Oct 2026 21:33:44 -0700
 To: mm-commits@vger.kernel.org,ziy@nvidia.com,vbabka@kernel.org,usama.arif@linux.dev,usama.anjum@arm.com,surenb@google.com,shuah@kernel.org,ryan.roberts@arm.com,rppt@kernel.org,nico.pache@linux.dev,mhocko@suse.com,ljs@kernel.org,liam@infradead.org,leon@kernel.org,lance.yang@linux.dev,kernel-team@meta.com,jgg@ziepe.ca,hughd@google.com,dev.jain@arm.com,david@kernel.org,baolin.wang@linux.alibaba.com,baohua@kernel.org,agordeev@linux.ibm.com,kas@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] selftests-mm-move-is_backed_by_folio-into-vm_util.patch removed from -mm tree
-Message-Id: <20261013043343.84B411F00893@smtp.kernel.org>
+Subject: [merged mm-stable] selftests-mm-add-folio-order-check-for-address-ranges.patch removed from -mm tree
+Message-Id: <20261013043344.E70471F0089A@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,37 +35,40 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: selftests/mm: move is_backed_by_folio() into vm_util
+     Subject: selftests/mm: add folio-order check for address ranges
 has been removed from the -mm tree.  Its filename was
-     selftests-mm-move-is_backed_by_folio-into-vm_util.patch
+     selftests-mm-add-folio-order-check-for-address-ranges.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: "Kiryl Shutsemau (Meta)" <kas@kernel.org>
-Subject: selftests/mm: move is_backed_by_folio() into vm_util
-Date: Sat, 19 Sep 2026 01:24:37 +0100
+Subject: selftests/mm: add folio-order check for address ranges
+Date: Sat, 19 Sep 2026 01:24:38 +0100
 
-Checking that an address range is backed by a folio of a given order is
-useful to any test that builds or collapses large folios.  mTHP collapse
-coverage in the khugepaged selftest needs exactly that.
+An mTHP collapse test needs to know that a range is backed by folios of
+the target order, and that they sit where a collapse would put them. 
+Nothing answers both: is_backed_by_folio() classifies the folio behind a
+single page, and check_huge_anon() counts the folios of an order in a
+range without saying where they start.
 
-split_huge_page_test.c already has the building block:
-is_backed_by_folio() reads the compound head and tail flags from
-/proc/kpageflags to classify the folio behind a page.
+Add is_range_backed_by_order().  It requires every folio-sized, folio-
+aligned part of the range to map one folio of that order, head to tail,
+with the head at the start of the part.
 
-Move it into vm_util so other tests can use it.  No functional change.
+A part backed by two smaller folios fails, and so does a folio mapped off
+its natural alignment.  The mTHP cases need both to tell a collapsed range
+from the one beside it.
 
-Link: https://lore.kernel.org/20260919002451.496763-8-kirill@shutemov.name
+Link: https://lore.kernel.org/20260919002451.496763-9-kirill@shutemov.name
 Signed-off-by: Kiryl Shutsemau (Meta) <kas@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Acked-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
-Acked-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
-Reviewed-by: Baolin Wang <baolin.wang@linux.alibaba.com>
+Reviewed-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
 Tested-by: Muhammad Usama Anjum <usama.anjum@arm.com>
 Assisted-by: LLM
 Cc: Alexander Gordeev <agordeev@linux.ibm.com>
+Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
 Cc: Barry Song <baohua@kernel.org>
 Cc: "David Hildenbrand (arm)" <david@kernel.org>
 Cc: Dev Jain <dev.jain@arm.com>
@@ -75,6 +78,7 @@ Cc: kernel-team@meta.com
 Cc: Lance Yang <lance.yang@linux.dev>
 Cc: Leon Romanovsky <leon@kernel.org>
 Cc: Liam Howlett <liam@infradead.org>
+Cc: Lorenzo Stoakes (ARM) <ljs@kernel.org>
 Cc: Michal Hocko <mhocko@suse.com>
 Cc: Nico Pache (Red Hat) <nico.pache@linux.dev>
 Cc: Ryan Roberts <ryan.roberts@arm.com>
@@ -85,159 +89,74 @@ Cc: "Vlastimil Babka (SUSE)" <vbabka@kernel.org>
 Cc: Zi Yan <ziy@nvidia.com>
 ---
 
- tools/testing/selftests/mm/split_huge_page_test.c |   61 ------------
- tools/testing/selftests/mm/vm_util.c              |   61 ++++++++++++
- tools/testing/selftests/mm/vm_util.h              |    2 
- 3 files changed, 63 insertions(+), 61 deletions(-)
+ tools/testing/selftests/mm/vm_util.c |   47 +++++++++++++++++++++++++
+ tools/testing/selftests/mm/vm_util.h |    2 +
+ 2 files changed, 49 insertions(+)
 
---- a/tools/testing/selftests/mm/split_huge_page_test.c~selftests-mm-move-is_backed_by_folio-into-vm_util
-+++ a/tools/testing/selftests/mm/split_huge_page_test.c
-@@ -41,67 +41,6 @@ const char *kpageflags_proc = "/proc/kpa
- int pagemap_fd;
- int kpageflags_fd;
- 
--static bool is_backed_by_folio(char *vaddr, int order, int pagemap_fd,
--		int kpageflags_fd)
--{
--	const uint64_t folio_head_flags = KPF_THP | KPF_COMPOUND_HEAD;
--	const uint64_t folio_tail_flags = KPF_THP | KPF_COMPOUND_TAIL;
--	const unsigned long nr_pages = 1UL << order;
--	unsigned long pfn_head;
--	uint64_t pfn_flags;
--	unsigned long pfn;
--	unsigned long i;
--
--	pfn = pagemap_get_pfn(pagemap_fd, vaddr);
--
--	/* non present page */
--	if (pfn == -1UL)
--		return false;
--
--	if (pageflags_get(pfn, kpageflags_fd, &pfn_flags))
--		goto fail;
--
--	/* check for order-0 pages */
--	if (!order) {
--		if (pfn_flags & (folio_head_flags | folio_tail_flags))
--			return false;
--		return true;
--	}
--
--	/* non THP folio */
--	if (!(pfn_flags & KPF_THP))
--		return false;
--
--	pfn_head = pfn & ~(nr_pages - 1);
--
--	if (pageflags_get(pfn_head, kpageflags_fd, &pfn_flags))
--		goto fail;
--
--	/* head PFN has no compound_head flag set */
--	if ((pfn_flags & folio_head_flags) != folio_head_flags)
--		return false;
--
--	/* check all tail PFN flags */
--	for (i = 1; i < nr_pages; i++) {
--		if (pageflags_get(pfn_head + i, kpageflags_fd, &pfn_flags))
--			goto fail;
--		if ((pfn_flags & folio_tail_flags) != folio_tail_flags)
--			return false;
--	}
--
--	/*
--	 * check the PFN after this folio, but if its flags cannot be obtained,
--	 * assume this folio has the expected order
--	 */
--	if (pageflags_get(pfn_head + nr_pages, kpageflags_fd, &pfn_flags))
--		return true;
--
--	/* If we find another tail page, then the folio is larger. */
--	return (pfn_flags & folio_tail_flags) != folio_tail_flags;
--fail:
--	ksft_exit_fail_msg("Failed to get folio info\n");
--}
--
- static int check_after_split_folio_orders(char *vaddr_start, size_t len,
- 		int pagemap_fd, int kpageflags_fd, int orders[], int nr_orders)
- {
---- a/tools/testing/selftests/mm/vm_util.c~selftests-mm-move-is_backed_by_folio-into-vm_util
+--- a/tools/testing/selftests/mm/vm_util.c~selftests-mm-add-folio-order-check-for-address-ranges
 +++ a/tools/testing/selftests/mm/vm_util.c
-@@ -490,6 +490,67 @@ int pageflags_get(unsigned long pfn, int
- 	return 0;
+@@ -551,6 +551,53 @@ fail:
+ 	ksft_exit_fail_msg("Failed to get folio info\n");
  }
  
-+bool is_backed_by_folio(char *vaddr, int order, int pagemap_fd,
-+			int kpageflags_fd)
++/**
++ * is_range_backed_by_order() - check that a range is backed by @order folios
++ * @start: start of the range, a multiple of the folio size
++ * @len: length of the range in bytes, a multiple of the folio size
++ * @order: the folio order to check for
++ * @pagemap_fd: open /proc/<pid>/pagemap of the range's owner
++ * @kpageflags_fd: open /proc/kpageflags
++ *
++ * Every folio-sized, folio-aligned part of the range must map one folio of
++ * @order, head to tail, with the head at the start of the part.  A part
++ * backed by several smaller folios fails, and so does a folio mapped off
++ * its natural alignment.
++ *
++ * Returns: true if the whole range is backed that way, false otherwise.
++ */
++bool is_range_backed_by_order(char *start, size_t len, int order,
++			      int pagemap_fd, int kpageflags_fd)
 +{
-+	const uint64_t folio_head_flags = KPF_THP | KPF_COMPOUND_HEAD;
-+	const uint64_t folio_tail_flags = KPF_THP | KPF_COMPOUND_TAIL;
 +	const unsigned long nr_pages = 1UL << order;
-+	unsigned long pfn_head;
-+	uint64_t pfn_flags;
-+	unsigned long pfn;
-+	unsigned long i;
++	const size_t folio_size = nr_pages * psize();
++	char *vaddr;
 +
-+	pfn = pagemap_get_pfn(pagemap_fd, vaddr);
-+
-+	/* non present page */
-+	if (pfn == -1UL)
++	if ((uintptr_t)start % folio_size || len % folio_size)
 +		return false;
 +
-+	if (pageflags_get(pfn, kpageflags_fd, &pfn_flags))
-+		goto fail;
++	for (vaddr = start; vaddr < start + len; vaddr += folio_size) {
++		const unsigned long pfn = pagemap_get_pfn(pagemap_fd, vaddr);
++		unsigned long i;
 +
-+	/* check for order-0 pages */
-+	if (!order) {
-+		if (pfn_flags & (folio_head_flags | folio_tail_flags))
++		/* Not present, or a tail page */
++		if (pfn == -1UL || pfn % nr_pages)
 +			return false;
-+		return true;
-+	}
 +
-+	/* non THP folio */
-+	if (!(pfn_flags & KPF_THP))
-+		return false;
++		for (i = 1; i < nr_pages; i++) {
++			char *page = vaddr + i * psize();
 +
-+	pfn_head = pfn & ~(nr_pages - 1);
++			if (pagemap_get_pfn(pagemap_fd, page) != pfn + i)
++				return false;
++		}
 +
-+	if (pageflags_get(pfn_head, kpageflags_fd, &pfn_flags))
-+		goto fail;
-+
-+	/* head PFN has no compound_head flag set */
-+	if ((pfn_flags & folio_head_flags) != folio_head_flags)
-+		return false;
-+
-+	/* check all tail PFN flags */
-+	for (i = 1; i < nr_pages; i++) {
-+		if (pageflags_get(pfn_head + i, kpageflags_fd, &pfn_flags))
-+			goto fail;
-+		if ((pfn_flags & folio_tail_flags) != folio_tail_flags)
++		if (!is_backed_by_folio(vaddr, order, pagemap_fd, kpageflags_fd))
 +			return false;
 +	}
 +
-+	/*
-+	 * check the PFN after this folio, but if its flags cannot be obtained,
-+	 * assume this folio has the expected order
-+	 */
-+	if (pageflags_get(pfn_head + nr_pages, kpageflags_fd, &pfn_flags))
-+		return true;
-+
-+	/* If we find another tail page, then the folio is larger. */
-+	return (pfn_flags & folio_tail_flags) != folio_tail_flags;
-+fail:
-+	ksft_exit_fail_msg("Failed to get folio info\n");
++	return true;
 +}
 +
  /* If `ioctls' non-NULL, the allowed ioctls will be returned into the var */
  int uffd_register_with_ioctls(int uffd, void *addr, uint64_t len,
  			      bool miss, bool wp, bool minor, uint64_t *ioctls)
---- a/tools/testing/selftests/mm/vm_util.h~selftests-mm-move-is_backed_by_folio-into-vm_util
+--- a/tools/testing/selftests/mm/vm_util.h~selftests-mm-add-folio-order-check-for-address-ranges
 +++ a/tools/testing/selftests/mm/vm_util.h
-@@ -99,6 +99,8 @@ int64_t allocate_transhuge(void *ptr, in
- int pageflags_get(unsigned long pfn, int kpageflags_fd, uint64_t *flags);
- int gather_folio_orders(char *vaddr_start, size_t len,
+@@ -101,6 +101,8 @@ int gather_folio_orders(char *vaddr_star
  		int pagemap_fd, int kpageflags_fd, int orders[], int nr_orders);
-+bool is_backed_by_folio(char *vaddr, int order, int pagemap_fd,
-+			int kpageflags_fd);
+ bool is_backed_by_folio(char *vaddr, int order, int pagemap_fd,
+ 			int kpageflags_fd);
++bool is_range_backed_by_order(char *start, size_t len, int order,
++			      int pagemap_fd, int kpageflags_fd);
  
  int uffd_register(int uffd, void *addr, uint64_t len,
  		  bool miss, bool wp, bool minor);
