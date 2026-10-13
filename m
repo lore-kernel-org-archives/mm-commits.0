@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B3FE63019C8
-	for <mm-commits@vger.kernel.org>; Tue, 13 Oct 2026 04:32:38 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C94D2483830;
+	Tue, 13 Oct 2026 04:32:39 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791865959; cv=none; b=L4O4FDyhkhKCeVXHqGRRlzO9iq5NNZYStqoB9+FWqUdqV5s4QxxnTxHWNagr1LhM+BByl8DD1TMFXjy2YZhVJ4hIS6yWIevefR4D6epzVJzBp8mUHSEEN/jG20+e0ee+dhRnXh7IaQmBBWdcHrJ9SdQgB79qBGRXt/aCquXdr70=
+	t=1791865961; cv=none; b=pBgE3Kk5ON/fgK1+HEo+4wSx8NuwwO0Ki32HzxSqnglh6t+h1lhGBXP6G2rL7Udy6401O34oT5vdSRH1q3WHtStsCioP/CFEE/daRMEebJlRY67pKA7LmG3f/y2+dj2y9UUoENZmPhlL2Fwq0pVbTbbocPLXQOdoppEwrsrsnpA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791865959; c=relaxed/simple;
-	bh=ElD/MpJAmruxn7uzH88cFvYzF49pCPyAaYt+X6bt/J4=;
-	h=Date:To:From:Subject:Message-Id; b=qyZtVFNQk2WEaPc6jk0Nbljs57mq76vaMud6RWENsM3KV6kPVgLKbpF4RPx0ebsKtI1MKaLzx9x4X98SOzfUreVAKhMx5d4DOCqddF+bIQ2vBHe1dFnbvITU/T0JwLq0Qd9xDY51z2RMDywJpdnl4i+wgRLOKF1WZ8CErzBL+v8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=e8XjDuKx; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1791865961; c=relaxed/simple;
+	bh=LiAfohgMLkffHtZafOBYJyB6f+rE0knUX+VU7kVul1Q=;
+	h=Date:To:From:Subject:Message-Id; b=BQ30X6/3QZecCj7KekHHyZB+MVrFtFtHcPgqqzDgcK7/lyUGM/OmC9fkP4UJEHVmKVt4al4bsu6NqdaKrVWmsKF/y15+h90A3nPZajwPyF+M2IYgK1c+LiBkwZD8ka6f+H8ALHgBj/9fv2ldIzWx6EpC8NjjMei8fIAGyG4/uLc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=n4yJfZqE; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="e8XjDuKx"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 885181F00893;
-	Tue, 13 Oct 2026 04:32:38 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="n4yJfZqE"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9DB291F000FF;
+	Tue, 13 Oct 2026 04:32:39 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1791865958;
-	bh=4BwPynG8yfIqL6LRvbpqrrr5Tdj2SRJGlKy22wUIctw=;
+	d=linux-foundation.org; s=korg; t=1791865959;
+	bh=I6YV5zFI2Qtmp9vRfMOF1rahkGQKuvSLNImz4NkmO3o=;
 	h=Date:To:From:Subject;
-	b=e8XjDuKxksgoQRYo67qsW7aWsECoAToC151B66tNyy7JojDDdYgWR9Yw6b5TH06uA
-	 lO0eySVhQ/Ua+7tV9tSRnpndOIm83IOIlsTOiWW+feifqsIyen1KxpJa93sK3Xl/Yl
-	 tgRGwYNFPkVbwGNa2SEjlotnjae36dCg1/kFkvpQ=
-Date: Mon, 12 Oct 2026 21:32:38 -0700
-To: mm-commits@vger.kernel.org,willy@infradead.org,vishal.moola@gmail.com,shakeel.butt@linux.dev,roman.gushchin@linux.dev,riel@surriel.com,muchun.song@linux.dev,mhocko@kernel.org,jack@suse.cz,hannes@cmpxchg.org,david@kernel.org,usama.arif@linux.dev,akpm@linux-foundation.org
+	b=n4yJfZqEv/XhD6GWvPjRBbC8+ctujdDbftZ2c/h/trvWT+H6bmlC7nmRqLA8onx24
+	 4scV+xrZ83dlJUjd+wToORC7loIuSnvjOUrybgw4iI6vr9u3LYPr3zs/Fw/RfU+lTc
+	 y6QnU2nL+PVMMqSXu/wJ3fn0aybVL8d426rRlh24=
+Date: Mon, 12 Oct 2026 21:32:39 -0700
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,vbabka@kernel.org,surenb@google.com,stable@vger.kernel.org,mhocko@suse.com,mgorman@techsingularity.net,henry.willard@oracle.com,hannes@cmpxchg.org,david@kernel.org,brendan.jackman@linux.dev,xiangzao@linux.alibaba.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-filemap-move-lruvec-accounting-outside-the-xarray-lock.patch removed from -mm tree
-Message-Id: <20261013043238.885181F00893@smtp.kernel.org>
+Subject: [merged mm-stable] mm-page_alloc-do-not-boost-watermarks-in-kdump-capture-kernels.patch removed from -mm tree
+Message-Id: <20261013043239.9DB291F000FF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,92 +35,112 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: filemap: move lruvec accounting outside the xarray lock
+     Subject: mm/page_alloc: do not boost watermarks in kdump capture kernels
 has been removed from the -mm tree.  Its filename was
-     mm-filemap-move-lruvec-accounting-outside-the-xarray-lock.patch
+     mm-page_alloc-do-not-boost-watermarks-in-kdump-capture-kernels.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Usama Arif <usama.arif@linux.dev>
-Subject: mm: filemap: move lruvec accounting outside the xarray lock
-Date: Wed, 16 Sep 2026 05:51:22 -0700
+From: Yuanhe Shu <xiangzao@linux.alibaba.com>
+Subject: mm/page_alloc: do not boost watermarks in kdump capture kernels
+Date: Wed, 16 Sep 2026 19:25:45 +0800
 
-__filemap_add_folio() inserts a folio and updates mapping->nrpages while
-holding mapping->i_pages.xa_lock with interrupts disabled.  The XArray
-insertion and nrpages update require the lock, but the lruvec statistic
-updates do not.  With CONFIG_MEMCG, those calls also update per-CPU memcg
-and lruvec counters and notify cgroup rstat, extending the critical
-section.
+A watermark boost is not confined to one watermark: wmark_pages() adds it
+to min, low and high alike, so every watermark check sees it, including
+should_reclaim_retry() and the last ditch ALLOC_WMARK_HIGH attempt in
+__alloc_pages_may_oom().  Once the boost exceeds the memory still free the
+allocator gives up and invokes the OOM killer, and a capture kernel that
+is still booting has nothing to kill: the boot panics and the vmcore is
+lost.
 
-Move the lruvec accounting after a successful XArray insertion and after
-xas_unlock_irq().  The page-cache references pin the folio, while the
-folio lock keeps folio->mapping stable and prevents removal until
-accounting is complete.  This moves one lruvec update for ordinary folios
-and a second for PMD-mappable folios out of the serialized section.
+Seen on an arm64 machine with 64K pages, CONFIG_PAGE_BLOCK_MAX_ORDER=10
+(pageblock = 64M) and crashkernel=512M, running a distribution kernel
+based on 7.0.14.  A high order UNMOVABLE allocation fell back to a MOVABLE
+pageblock while the capture kernel was still in do_initcalls():
 
-In a 30-second system-wide perf lock contention -ab capture on a
-production host, the hottest caller-stack record attributed to
-__filemap_add_folio() had 20,867 contentions and 557.930 ms total wait. 
-That was 14% of the 3.998 seconds of aggregate lock wait in the capture. 
-Moving lruvec accuting outside of critical section should help optimize
-it.
+  Node 0 DMA free:68096kB boost:65536kB min:68160kB
+  low:68800kB high:69440kB managed:479168kB
+  Out of memory and no killable processes...
+  Kernel panic - not syncing: System is deadlocked on memory
 
-Link: https://lore.kernel.org/20260916125122.2696271-1-usama.arif@linux.dev
-Signed-off-by: Usama Arif <usama.arif@linux.dev>
+The zone was not short of memory.  Subtracting the boost gives min:2624kB
+low:3264kB high:3904kB, so the 68096kB still free sat 17 times above the
+high watermark and the allocator would not even have entered its slow
+path.  The boost supplied 65536kB of the 68160kB min and by itself put the
+zone 64kB under water.  It is that large because boost_watermark() clamps
+it with max(pageblock_nr_pages, max_boost); watermark_boost_factor alone
+would have allowed 5824kB.
+
+Commit 14f69140ff9c ("mm: limit boost_watermark on small zones") already
+tried to protect capture kernels, but it infers them from the zone size
+and skips the boost only below four pageblocks.  arm64 64K pageblocks were
+512M then, so the guard reached zones up to 2G;
+CONFIG_PAGE_BLOCK_MAX_ORDER can cap them at 64M, which shrinks the guard
+to zones under 256M and lets this 468M zone through.
+
+kdump is a property of the kernel, not of the zone, so test for it
+directly.  A capture kernel exits within seconds and never uses the
+fragmentation avoidance the boost buys.  Normal kernels are unaffected:
+the size based check still covers their genuinely tiny zones.
+
+Passing sysctl.vm.watermark_boost_factor=0 to the capture kernel does not
+cover this window: sysctl.* parameters are written through procfs by
+do_sysctl_args(), which runs after do_initcalls() where the panic above
+happened, and watermark_boost_factor has no early_param of its own.
+
+Link: https://lore.kernel.org/20260916112545.3707893-1-xiangzao@linux.alibaba.com
+Fixes: 1c30844d2dfe ("mm: reclaim small amounts of memory when an external fragmentation event occurs")
+Signed-off-by: Yuanhe Shu <xiangzao@linux.alibaba.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Reviewed-by: Shakeel Butt <shakeel.butt@linux.dev>
-Acked-by: Muchun Song <muchun.song@linux.dev>
-Reviewed-by: Vishal Moola (Fractile) <vishal.moola@gmail.com>
-Reviewed-by: Jan Kara <jack@suse.cz>
+Reviewed-by: Vlastimil Babka (SUSE) <vbabka@kernel.org>
+Reviewed-by: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Henry Willard <henry.willard@oracle.com>
+Cc: Brendan Jackman <brendan.jackman@linux.dev>
 Cc: David Hildenbrand <david@kernel.org>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Rik van Riel <riel@surriel.com>
-Cc: Roman Gushchin <roman.gushchin@linux.dev>
+Cc: Mel Gorman <mgorman@techsingularity.net>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Zi Yan <ziy@nvidia.com>
+Cc: <stable@vger.kernel.org> # v5.0
 ---
 
- mm/filemap.c |   15 +++++++--------
- 1 file changed, 7 insertions(+), 8 deletions(-)
+ mm/page_alloc.c |   12 ++++++++++--
+ 1 file changed, 10 insertions(+), 2 deletions(-)
 
---- a/mm/filemap.c~mm-filemap-move-lruvec-accounting-outside-the-xarray-lock
-+++ a/mm/filemap.c
-@@ -918,14 +918,6 @@ noinline int __filemap_add_folio(struct
+--- a/mm/page_alloc.c~mm-page_alloc-do-not-boost-watermarks-in-kdump-capture-kernels
++++ a/mm/page_alloc.c
+@@ -37,6 +37,7 @@
+ #include <linux/vmstat.h>
+ #include <linux/fault-inject.h>
+ #include <linux/compaction.h>
++#include <linux/crash_dump.h>
+ #include <trace/events/kmem.h>
+ #include <trace/events/oom.h>
+ #include <linux/prefetch.h>
+@@ -2160,10 +2161,17 @@ static inline bool boost_watermark(struc
  
- 		mapping->nrpages += nr;
- 
--		/* hugetlb pages do not participate in page cache accounting */
--		if (!huge) {
--			lruvec_stat_mod_folio(folio, NR_FILE_PAGES, nr);
--			if (folio_test_pmd_mappable(folio))
--				lruvec_stat_mod_folio(folio,
--						NR_FILE_THPS, nr);
--		}
--
- unlock:
- 		xas_unlock_irq(&xas);
- 
-@@ -942,6 +934,13 @@ unlock:
- 	if (xas_error(&xas))
- 		goto error;
- 
-+	/* hugetlb pages do not participate in page cache accounting */
-+	if (!huge) {
-+		lruvec_stat_mod_folio(folio, NR_FILE_PAGES, nr);
-+		if (folio_test_pmd_mappable(folio))
-+			lruvec_stat_mod_folio(folio, NR_FILE_THPS, nr);
-+	}
+ 	if (!watermark_boost_factor)
+ 		return false;
 +
- 	trace_mm_filemap_add_to_page_cache(folio);
- 	return 0;
- error:
++	/*
++	 * A kdump capture kernel exits before a boost can pay off, while
++	 * the raised watermark can exceed the memory left for the dump.
++	 */
++	if (is_kdump_kernel())
++		return false;
++
+ 	/*
+ 	 * Don't bother in zones that are unlikely to produce results.
+-	 * On small machines, including kdump capture kernels running
+-	 * in a small area, boosting the watermark can cause an out of
++	 * On small machines, boosting the watermark can cause an out of
+ 	 * memory situation immediately.
+ 	 */
+ 	if ((pageblock_nr_pages * 4) > zone_managed_pages(zone))
 _
 
-Patches currently in -mm which might be from usama.arif@linux.dev are
+Patches currently in -mm which might be from xiangzao@linux.alibaba.com are
 
-mm-remove-the-unused-zone-unaccepted_cleanup.patch
-mm-zswap-use-separate-compression-and-decompression-requests.patch
-mm-zswap-use-stack-requests-for-synchronous-decompression.patch
 
