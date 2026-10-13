@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0BF9B4848AE;
-	Tue, 13 Oct 2026 04:33:32 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 01C1A480DEF
+	for <mm-commits@vger.kernel.org>; Tue, 13 Oct 2026 04:33:31 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791866013; cv=none; b=r38X7r1Csk7Du4FWeP2wq/YxZwElea+WJ/Ji3/5yNfWH1Z2FFIQKjls5r6wFD0dqbsRnRxjVR4V6NX56I8IVrKWtu15tpv2h0vJBkcTStoOxIoJliNn1YC35arFZyeiTSAisYnjly/oo3trtHrpWAwUARBF+kwcwz3Xkcd50ka8=
+	t=1791866013; cv=none; b=clIWzLQsBBqbesc1DjkVGVkb3R2LNpm3IqQE5N/Aha0Knq4kdNBLFoJg2+tx++T/0WvWMGrThCDCFmifCmL2bacPD6TV/0FReqAPS89gs1g43eibGA481GMLnwo+zPHuMvfILgGM7apgQZB/eZQJyiP7NX/FcQDpaM2E3lilqXQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1791866013; c=relaxed/simple;
-	bh=BfNSoFD8k7Ma7kzeBKUw5LIPlbQIYVE37mD9cBuEelE=;
-	h=Date:To:From:Subject:Message-Id; b=UyEKUwVM/87IrS0R1F52+Eo9LadKaE6PyURYL6JCA+FrS+tp0v4X2WNLT9mTGHgr8H1pRlH6L2TTu+r9fTyVFDIoFp83gzH4rQC9ebigBz78dvHXf6jT2AmLA5m8Y+5PqdPYretA2n15hrsh87HTTd+wJDQw4+6mASimI27r7Ss=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=EEl/Qoa8; arc=none smtp.client-ip=100.103.45.18
+	bh=GBw8VNWdHVoRfZ/ZkgZCF/mea1fgVjrExWFQgGVd9CA=;
+	h=Date:To:From:Subject:Message-Id; b=gYDGQhH1ceVWszdESlQHak8yR8heEEPHc7g0jQvIjAHW+dO2Fq1uIsYaCGmWQACnw2XieQ/00J8kZnmP05Le/ubcUW9aF941318KiCdO5anVa9rLYTCvM5O4Y23cjZPTqTBY0oDOhYHV5EzVheAOVCMTdHdWy2ucvPM1y98/sTM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=s12TYHI+; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="EEl/Qoa8"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D614E1F00893;
-	Tue, 13 Oct 2026 04:33:31 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="s12TYHI+"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id CAFB81F00898;
+	Tue, 13 Oct 2026 04:33:30 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1791866011;
-	bh=j/H1y1PR3CpQsl4JbM8mbFUv74LBinvKUbuYvC/sceU=;
+	d=linux-foundation.org; s=korg; t=1791866010;
+	bh=4oCjhC3N6RlRBq4sy65UVrkSiS3iXs1t4dcOvKHLw3w=;
 	h=Date:To:From:Subject;
-	b=EEl/Qoa8TtUqEIrHZjLF1dcYKC1bM5ZxvsMOqkWPIYIIn69v8tkrec0vs4xEtlBsn
-	 dUphPZnm8z79FL412leijgk5WE0UnDm/OK58s9P9eEWIOr5+4jxC9jQw2scdJu6Tvz
-	 PXRS709CNa16g6Md29LeO3SJWFIhhpMKsJ2ePe1o=
-Date: Mon, 12 Oct 2026 21:33:31 -0700
-To: mm-commits@vger.kernel.org,surenb@google.com,stable@vger.kernel.org,hao.ge@linux.dev,akpm@linux-foundation.org
+	b=s12TYHI+5XnFpX9/yiY1h31dY+/0ISwpRTNi18hoBxYcunGJdY3/vP7OxNG0SL2nC
+	 WvUlOyoW6fSUG+liFCFEL1Jqef2Fzo09Ac+Pl0csj66MxV+94HFGpSrwjAK2XIBwX+
+	 ojCSuBJQ7Oj/QEvWhjIfU7PcJord4Z++u2laTbso=
+Date: Mon, 12 Oct 2026 21:33:30 -0700
+To: mm-commits@vger.kernel.org,sj@kernel.org,pfalcato@suse.de,ljs@kernel.org,david@kernel.org,anshuman.khandual@arm.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-alloc_tag-account-for-reserved-tag-ids-in-the-kernel-tag-check.patch removed from -mm tree
-Message-Id: <20261013043331.D614E1F00893@smtp.kernel.org>
+Subject: [merged mm-stable] mm-constify-arguments-in-default-pxdp_get.patch removed from -mm tree
+Message-Id: <20261013043330.CAFB81F00898@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,54 +35,82 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/alloc_tag: account for reserved tag ids in the kernel tag check
+     Subject: mm: constify arguments in default pxdp_get()
 has been removed from the -mm tree.  Its filename was
-     mm-alloc_tag-account-for-reserved-tag-ids-in-the-kernel-tag-check.patch
+     mm-constify-arguments-in-default-pxdp_get.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Hao Ge <hao.ge@linux.dev>
-Subject: mm/alloc_tag: account for reserved tag ids in the kernel tag check
-Date: Wed, 16 Sep 2026 15:55:57 +0800
+From: Anshuman Khandual <anshuman.khandual@arm.com>
+Subject: mm: constify arguments in default pxdp_get()
+Date: Fri, 18 Sep 2026 12:19:28 +0530
 
-The tag ids stored in the page flags include two reserved markers.
-Id 0 means the page has no tag and id 1 means the tag was cleared,
-so real tags start at CODETAG_ID_FIRST. The kernel-side check in
-alloc_tag_sec_init() compared kernel_tags.count alone against the
-addressable limit, so with the count at or just under the limit
-the last tag ids wrapped into those markers. Pages allocated
-through them then look the same as untagged pages on free, nothing
-is ever subtracted from the real tag and /proc/allocinfo shows
-that memory as still allocated.
+Generic MM default pxdp_get() helpers fetch the values contained in
+pgtable entries via READ_ONCE() without modifying them.  Just make their
+arguments explicitly 'const' for some additional protection.
 
-Add the missing CODETAG_ID_FIRST, same as tags_addressable().
-
-Link: https://lore.kernel.org/20260916075557.121316-1-hao.ge@linux.dev
-Fixes: 4835f747d3ed ("alloc_tag: support for page allocation tag compression")
-Signed-off-by: Hao Ge <hao.ge@linux.dev>
+Link: https://lore.kernel.org/20260918064928.793742-1-anshuman.khandual@arm.com
+Signed-off-by: Anshuman Khandual <anshuman.khandual@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Acked-by: Suren Baghdasaryan <surenb@google.com>
-Cc: <stable@vger.kernel.org>
+Suggested-by: David Hildenbrand <david@kernel.org>
+Acked-by: David Hildenbrand (Arm) <david@kernel.org>
+Acked-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
+Reviewed-by: SJ Park <sj@kernel.org>
+Cc: Pedro Falcato <pfalcato@suse.de>
 ---
 
- mm/alloc_tag.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/pgtable.h |   10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
 
---- a/mm/alloc_tag.c~mm-alloc_tag-account-for-reserved-tag-ids-in-the-kernel-tag-check
-+++ a/mm/alloc_tag.c
-@@ -621,7 +621,7 @@ void __init alloc_tag_sec_init(void)
- 	kernel_tags.count = last_codetag - kernel_tags.first_tag;
+--- a/include/linux/pgtable.h~mm-constify-arguments-in-default-pxdp_get
++++ a/include/linux/pgtable.h
+@@ -490,35 +490,35 @@ static inline int pudp_set_access_flags(
+ #endif
  
- 	/* Check if kernel tags fit into page flags */
--	if (kernel_tags.count > (1UL << NR_UNUSED_PAGEFLAG_BITS)) {
-+	if (CODETAG_ID_FIRST + kernel_tags.count > (1UL << NR_UNUSED_PAGEFLAG_BITS)) {
- 		shutdown_mem_profiling(false); /* allocinfo file does not exist yet */
- 		pr_err("%lu allocation tags cannot be references using %d available page flag bits. Memory allocation profiling is disabled!\n",
- 			kernel_tags.count, NR_UNUSED_PAGEFLAG_BITS);
+ #ifndef ptep_get
+-static inline pte_t ptep_get(pte_t *ptep)
++static inline pte_t ptep_get(const pte_t *ptep)
+ {
+ 	return READ_ONCE(*ptep);
+ }
+ #endif
+ 
+ #ifndef pmdp_get
+-static inline pmd_t pmdp_get(pmd_t *pmdp)
++static inline pmd_t pmdp_get(const pmd_t *pmdp)
+ {
+ 	return READ_ONCE(*pmdp);
+ }
+ #endif
+ 
+ #ifndef pudp_get
+-static inline pud_t pudp_get(pud_t *pudp)
++static inline pud_t pudp_get(const pud_t *pudp)
+ {
+ 	return READ_ONCE(*pudp);
+ }
+ #endif
+ 
+ #ifndef p4dp_get
+-static inline p4d_t p4dp_get(p4d_t *p4dp)
++static inline p4d_t p4dp_get(const p4d_t *p4dp)
+ {
+ 	return READ_ONCE(*p4dp);
+ }
+ #endif
+ 
+ #ifndef pgdp_get
+-static inline pgd_t pgdp_get(pgd_t *pgdp)
++static inline pgd_t pgdp_get(const pgd_t *pgdp)
+ {
+ 	return READ_ONCE(*pgdp);
+ }
 _
 
-Patches currently in -mm which might be from hao.ge@linux.dev are
+Patches currently in -mm which might be from anshuman.khandual@arm.com are
 
+arm64-mm-move-__check_safe_pte_update.patch
+arm64-mm-standardize-printing-for-pgtable-entries.patch
 
