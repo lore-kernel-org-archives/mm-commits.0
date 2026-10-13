@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3100D54B1BF;
-	Tue, 13 Oct 2026 22:02:32 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C0EB8531631;
+	Tue, 13 Oct 2026 22:03:51 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791928954; cv=none; b=lcdiMqYlVLsIos1t9aLV5n+dli2v9b0b0XM7xkDClE/ZhOsIrjNDVjx/5indZ6JoK2CXca2gUr3dAtY33jlNkWcSUzcqhxiSa7v009S+ztmXzzWER0tvN9/TGo+SDGnPQGd7bCZJJXH51p32Cotg0dn9fvd9RKJ63Gz4PTSsPnk=
+	t=1791929032; cv=none; b=dZK9o52r9zzPHkFEjPsJh4K17l8GdF8LQ23GiAPz6025KxP6MH/2brloKifqU9MhZSe4hQ6KLu/soCeFMFbctEoatvzdAI2y55sFqNicMQEIBYtw8ob1KavzTcCmQzRuM9hKl+Eip6/b8xbCUzpHCP4MA7hGrMrrb3EGn3lpXZM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791928954; c=relaxed/simple;
-	bh=ElsmuEl2r+k4rQVr16uTUO9c0t9RndogXhHwQQ2ZOlQ=;
-	h=Date:To:From:Subject:Message-Id; b=OCjppTSLLdSvsoyJZi5rGmyz5jET9ChU11dRzBLGpzcAyFR4jIk2o4Za2uuwNw16TxKfHeWeqbmsDi8i3rmjfIHl0B7rgMMzVyxTg/OnSA+oF5N8tT60a7PUBBCUVhoQFPjVlX6qYC7gswnc5UwpPCjWbbvW333sNlLH0yDQMI8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=i2kiwQiP; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1791929032; c=relaxed/simple;
+	bh=vs20gosu5BkEagPWNjKnlIQMISf6i/Vb34TT7qhddm0=;
+	h=Date:To:From:Subject:Message-Id; b=clhNxHj6DZ5FuO15F0+jy6uOTkaO8OB1Y/Ik7fjLyffhkxQvezZz+gmG7hLVqbprTmWuVWwWEa4nrFQkV1xjuSA1IzSyJGWi5i9Ytx3WiVL1t1h+7UjKNqn3xdwLTa4Pk98jFBGcEQ2MnWvMz1u/OAh2QgjxUugQPC/5Bqptp7k=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=cuugeKDx; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="i2kiwQiP"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A751E1F000FF;
-	Tue, 13 Oct 2026 22:02:32 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="cuugeKDx"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 59EDF1F000FF;
+	Tue, 13 Oct 2026 22:03:51 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1791928952;
-	bh=EM7tg3+Toknh97+VAzuSYXSolNpu3pMv7yorOvfSQoI=;
+	d=linux-foundation.org; s=korg; t=1791929031;
+	bh=CMEJ5TtrAxLfn2bAeNc0FmgUbaFeWvP+COI1/cz9JLc=;
 	h=Date:To:From:Subject;
-	b=i2kiwQiP+JOYJzGr2U6HE1qkqq77kBJPtctPYqAypiWKjLGS20kjW2/82tpgczy+d
-	 h/C0FjWASWYJiCPHeUKbKl7UrYY2XdQCro44sorCjGmHu84pShHa+eapFjCRl74eMr
-	 tLFhcuWqW50eDgVZOl27D7dKQG0sLO1eHY3F/lwE=
-Date: Tue, 13 Oct 2026 15:02:32 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,vbabka@kernel.org,usama.arif@linux.dev,surenb@google.com,stable@vger.kernel.org,shakeel.butt@linux.dev,mhocko@suse.com,harry@kernel.org,hannes@cmpxchg.org,david@kernel.org,brendan.jackman@linux.dev,kas@kernel.org,akpm@linux-foundation.org
+	b=cuugeKDxL9ny0KznpAELG1lFynj1D85iAph+cHjgbDXpelm0ZC0WkSP1UgEe3QtKj
+	 IcPKLaF7qpgUAx/wJX56zrRLXeRpHXsiF9Y1O9D0PV+3hj/G+nc8uCMS8P4MGuCQ2R
+	 JbzHSSqJLhC+6BM4/JirG9vNom0gTl0VRYLmMDMo=
+Date: Tue, 13 Oct 2026 15:03:50 -0700
+To: mm-commits@vger.kernel.org,vbabka@kernel.org,surenb@google.com,stable@vger.kernel.org,pfalcato@suse.de,ljs@kernel.org,liam@infradead.org,jannh@google.com,andreas@gaisler.com,stian@itx.no,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-page_alloc-make-defrag_mode-retries-follow-the-promoted-order.patch added to mm-unstable branch
-Message-Id: <20261013220232.A751E1F000FF@smtp.kernel.org>
+Subject: [to-be-updated] fs-proc-task_mmu-fix-lost-maps-entries-above-263.patch removed from -mm tree
+Message-Id: <20261013220351.59EDF1F000FF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,257 +34,66 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The patch titled
-     Subject: mm: page_alloc: make defrag_mode retries follow the promoted order
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-page_alloc-make-defrag_mode-retries-follow-the-promoted-order.patch
+The quilt patch titled
+     Subject: fs/proc/task_mmu: fix lost maps entries above 2^63
+has been removed from the -mm tree.  Its filename was
+     fs-proc-task_mmu-fix-lost-maps-entries-above-263.patch
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-page_alloc-make-defrag_mode-retries-follow-the-promoted-order.patch
-
-This patch will later appear in the mm-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via various
-branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there most days
+This patch was dropped because an updated version will be issued
 
 ------------------------------------------------------
-From: "Kiryl Shutsemau (Meta)" <kas@kernel.org>
-Subject: mm: page_alloc: make defrag_mode retries follow the promoted order
-Date: Tue, 13 Oct 2026 18:37:20 +0100
+From: Stian Halseth <stian@itx.no>
+Subject: fs/proc/task_mmu: fix lost maps entries above 2^63
+Date: Sun, 11 Oct 2026 18:20:19 +0200
 
+When a read of /proc/pid/{maps,smaps,numa_maps} resumes, m_start() rewinds
+*ppos to priv->last_pos so that the vma which did not fit into the
+previous buffer is shown again.  It only does so for last_addr > 0,
+meaning to exclude the start of the file and SENTINEL_VMA_GATE, but
+last_addr is a signed loff_t holding a vm_end.  sparc64 maps shared
+libraries, anonymous memory and the stack above 0x8000000000000000, so the
+rewind does not happen there and one entry is lost at every read()
+boundary.
 
-Since commit 7e8756d7ad22 ("mm: page_alloc: fix non-movable reclaim storm
-in defrag_mode"), direct reclaim and compaction for non-movable requests
-under defrag_mode run at pageblock_order, to produce the whole blocks that
-ALLOC_NOFRAGMENT needs.  The retry decisions that follow still use the
-request order.  An order-0 request can therefore retry indefinitely
-without ever reaching the ALLOC_NOFRAGMENT fallback:
+Reading the maps file of a process with read sizes from 64 to 8192 bytes
+in steps of 64 loses lines at 126 of the 128 sizes, smaps at 123 and
+numa_maps at 97, and the proc-maps-race selftest fails 4 of its 6 tests. 
+Python's sys.remote_exec() reads maps with fgets() and fails
+intermittently when it misses the libpython data mapping.
 
-- Reclaim at pageblock_order gives up after one pass as soon as a zone
-  looks compaction_ready(), and do_try_to_free_pages() then returns 1
-  even though nothing was reclaimed. It returns before the retry that
-  would reclaim memory.low-protected cgroups, so when most memory is
-  protected, the pass that did run finds next to nothing.
+Test for the two values that are not a vma end instead.
 
-- Compaction at pageblock_order fails or is deferred.
-
-- should_reclaim_retry() takes the reported progress as progress for
-  the order-0 request and resets no_progress_loops. The request
-  retries.
-
-Order 1-3 requests loop the same way, and should_compact_retry() also
-checks their pageblock_order compaction result against the request order.
-
-On a production host (64G, defrag_mode, memory.low covering most of the
-workload), 95% of direct reclaim runs were order-9 runs that returned 1
-with nothing reclaimed, at up to 60k runs per second.  Across ~200M
-should_reclaim_retry() calls in a day, no_progress_loops never left 0. 
-The spinning allocations were SLUB slab refills for inode and dentry
-caches.  The time spent registers as memory pressure, and pressure-based
-OOM killing takes down both workloads and system services.
-
-For promoted requests:
-
-- Reclaim progress does not reset no_progress_loops, as for costly
-  orders.
-
-- should_compact_retry() checks the compaction result at the promoted
-  order and does not retry COMPACT_SKIPPED, since the request can fall
-  back. The compaction priority floor and the COMPACT_SUCCESS retry
-  limit stay those of the request order, so a non-costly request still
-  gets its COMPACT_PRIO_SYNC_FULL pass before it falls back.
-
-When a promoted request takes the fallback, reset the retry counters, so
-that the fallback attempt gets a full retry budget before the OOM killer
-is considered.  A request whose reclaim was not promoted spent its budget
-on the request itself and keeps its counters, as Usama Arif pointed out.
-
-__alloc_pages_slowpath() computes the promoted order once per iteration
-and keeps it in alloc_context for direct reclaim, direct compaction and
-the two retry helpers, so no callee has to recompute it.  Harry Yoo asked
-for the promoted order to be explicit rather than derived in each callee,
-and Vlastimil Babka suggested alloc_context over new function parameters.
-
-In a VM reproducer (32G, defrag_mode, inode churn under memory.low):
-
-                                        before    after
-    should_reclaim_retry() calls           63M     293k
-    peak memory pressure (PSI some avg10)  99%      12%
-
-File creation runs 5.7x faster.
-
-Link: https://lore.kernel.org/as5q14OsbK2CmOrh@thinkstation
-Fixes: 7e8756d7ad22 ("mm: page_alloc: fix non-movable reclaim storm in defrag_mode")
-Signed-off-by: Kiryl Shutsemau (Meta) <kas@kernel.org>
+Link: https://lore.kernel.org/20261011162019.922436-1-stian@itx.no
+Fixes: 5631da56c9a8 ("fs/proc/task_mmu: read proc/pid/maps under per-vma lock")
+Signed-off-by: Stian Halseth <stian@itx.no>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Reviewed-by: Vlastimil Babka (SUSE) <vbabka@kernel.org>
-Assisted-by: LLM
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: David Hildenbrand <david@kernel.org>
-Cc: Harry Yoo <harry@kernel.org>
-Cc: Usama Arif <usama.arif@linux.dev>
+Closes: https://github.com/sparclinux/issues/issues/111
 Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Brendan Jackman <brendan.jackman@linux.dev>
-Cc: Zi Yan <ziy@nvidia.com>
-Cc: Shakeel Butt <shakeel.butt@linux.dev>
+Cc: Liam R. Howlett <liam@infradead.org>
+Cc: Lorenzo Stoakes <ljs@kernel.org>
+Cc: Vlastimil Babka <vbabka@kernel.org>
+Cc: Jann Horn <jannh@google.com>
+Cc: Pedro Falcato <pfalcato@suse.de>
+Cc: Andreas Larsson <andreas@gaisler.com>
 Cc: <stable@vger.kernel.org>
 ---
 
- mm/page_alloc.c |   65 +++++++++++++++++++++++++++-------------------
- mm/page_alloc.h |    2 +
- 2 files changed, 41 insertions(+), 26 deletions(-)
+ fs/proc/task_mmu.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/page_alloc.c~mm-page_alloc-make-defrag_mode-retries-follow-the-promoted-order
-+++ a/mm/page_alloc.c
-@@ -4117,6 +4117,12 @@ out:
- 	return page;
- }
- 
-+static inline bool order_nofrag_promoted(unsigned int order,
-+					 const struct alloc_context *ac)
-+{
-+	return ac->reclaim_compact_order != order;
-+}
-+
- /*
-  * Maximum number of compaction retries with a progress before OOM
-  * killer is consider as the only way to move forward.
-@@ -4139,22 +4145,7 @@ __alloc_pages_direct_compact(gfp_t gfp_m
- 		.order = order,
- 		.page = NULL,
- 	};
--	int compact_order = order;
--
--	/*
--	 * If fallbacks are not permitted (defrag_mode), we either
--	 * need to reclaim space in a block of matching type, or clear
--	 * out an entire block to allow __rmqueue_claim() to convert.
--	 *
--	 * Reclaim by itself is primarily freeing space in movable
--	 * blocks, since that's where the LRU pages live. So this
--	 * works for movable requests, but not for others.
--	 *
--	 * For those, promote the order to help make blocks, instead
--	 * of spinning in reclaim alone unproductively.
--	 */
--	if ((alloc_flags & ALLOC_NOFRAGMENT) && ac->migratetype != MIGRATE_MOVABLE)
--		compact_order = max(order, pageblock_order);
-+	int compact_order = ac->reclaim_compact_order;
- 
- 	if (!compact_order)
- 		return NULL;
-@@ -4247,7 +4238,7 @@ should_compact_retry(gfp_t gfp_mask, str
- 	int retries = *compaction_retries;
- 	enum compact_priority priority = *compact_priority;
- 
--	if (!order)
-+	if (!ac->reclaim_compact_order)
- 		return false;
- 
- 	if (fatal_signal_pending(current))
-@@ -4256,10 +4247,12 @@ should_compact_retry(gfp_t gfp_mask, str
- 	/*
- 	 * Compaction was skipped due to a lack of free order-0
- 	 * migration targets. Continue if reclaim can help.
-+	 * Promoted requests fall back instead.
+--- a/fs/proc/task_mmu.c~fs-proc-task_mmu-fix-lost-maps-entries-above-263
++++ a/fs/proc/task_mmu.c
+@@ -263,7 +263,7 @@ static void *m_start(struct seq_file *m,
+ 	 * Reset current position if last_addr was set before
+ 	 * and it's not a sentinel.
  	 */
- 	if (compact_result == COMPACT_SKIPPED) {
--		ret = compaction_zonelist_suitable(ac, order, alloc_flags,
--						   gfp_mask);
-+		if (!order_nofrag_promoted(order, ac))
-+			ret = compaction_zonelist_suitable(ac, order,
-+							   alloc_flags, gfp_mask);
- 		goto out;
- 	}
- 
-@@ -4458,11 +4451,7 @@ __alloc_pages_direct_reclaim(gfp_t gfp_m
- 	struct page *page = NULL;
- 	unsigned long pflags;
- 	bool drained = false;
--	int reclaim_order = order;
--
--	/* Match the slowpath compaction promotion in __alloc_pages_direct_compact */
--	if ((alloc_flags & ALLOC_NOFRAGMENT) && ac->migratetype != MIGRATE_MOVABLE)
--		reclaim_order = max(order, pageblock_order);
-+	int reclaim_order = ac->reclaim_compact_order;
- 
- 	psi_memstall_enter(&pflags);
- 	*did_some_progress = __perform_reclaim(gfp_mask, reclaim_order, ac);
-@@ -4638,9 +4627,12 @@ should_reclaim_retry(gfp_t gfp_mask, uns
- 	/*
- 	 * Costly allocations might have made a progress but this doesn't mean
- 	 * their order will become available due to high fragmentation so
--	 * always increment the no progress counter for them
-+	 * always increment the no progress counter for them. The same goes for
-+	 * promoted requests: their reclaim reports progress when it backs off
-+	 * for compaction without freeing anything.
- 	 */
--	if (did_some_progress && order <= PAGE_ALLOC_COSTLY_ORDER)
-+	if (did_some_progress && order <= PAGE_ALLOC_COSTLY_ORDER &&
-+	    !order_nofrag_promoted(order, ac))
- 		*no_progress_loops = 0;
- 	else
- 		(*no_progress_loops)++;
-@@ -4939,6 +4931,22 @@ retry:
- 	/* If allocation has taken excessively long, warn about it */
- 	check_alloc_stall_warn(gfp_mask, ac->nodemask, order, alloc_start_time);
- 
-+	/*
-+	 * If fallbacks are not permitted (defrag_mode), we either
-+	 * need to reclaim space in a block of matching type, or clear
-+	 * out an entire block to allow __rmqueue_claim() to convert.
-+	 *
-+	 * Reclaim by itself is primarily freeing space in movable
-+	 * blocks, since that's where the LRU pages live. So this
-+	 * works for movable requests, but not for others.
-+	 *
-+	 * For those, promote the order to help make blocks, instead
-+	 * of spinning in reclaim alone unproductively.
-+	 */
-+	ac->reclaim_compact_order = order;
-+	if ((alloc_flags & ALLOC_NOFRAGMENT) && ac->migratetype != MIGRATE_MOVABLE)
-+		ac->reclaim_compact_order = max(order, pageblock_order);
-+
- 	/* Try direct reclaim and then allocating */
- 	if (!compact_first) {
- 		page = __alloc_pages_direct_reclaim(gfp_mask, order, alloc_flags,
-@@ -5020,6 +5028,11 @@ retry:
- 	/* Reclaim/compaction failed to prevent the fallback */
- 	if (defrag_mode && (alloc_flags & ALLOC_NOFRAGMENT)) {
- 		alloc_flags &= ~ALLOC_NOFRAGMENT;
-+		/* Retries went into making blocks, start the fallback afresh */
-+		if (order_nofrag_promoted(order, ac)) {
-+			no_progress_loops = 0;
-+			compaction_retries = 0;
-+		}
- 		goto retry;
- 	}
- 
---- a/mm/page_alloc.h~mm-page_alloc-make-defrag_mode-retries-follow-the-promoted-order
-+++ a/mm/page_alloc.h
-@@ -93,6 +93,8 @@ struct alloc_context {
- 	bool spread_dirty_pages;
- 	/* Only flags that are global to the whole allocation go here. */
- 	unsigned int alloc_flags;
-+	/* Set by __alloc_pages_slowpath() before reclaim and compaction */
-+	unsigned int reclaim_compact_order;
- };
- 
- /*
+-	if (last_addr > 0)
++	if (last_addr && last_addr != SENTINEL_VMA_GATE)
+ 		*ppos = last_addr = priv->last_pos;
+ 	vma_iter_init(&priv->iter, mm, (unsigned long)last_addr);
+ 	hold_task_mempolicy(priv);
 _
 
-Patches currently in -mm which might be from kas@kernel.org are
+Patches currently in -mm which might be from stian@itx.no are
 
-mm-page_alloc-make-defrag_mode-retries-follow-the-promoted-order.patch
 
