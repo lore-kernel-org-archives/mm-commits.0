@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DBCAB4848A8
-	for <mm-commits@vger.kernel.org>; Tue, 13 Oct 2026 04:33:00 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F0609483BFE
+	for <mm-commits@vger.kernel.org>; Tue, 13 Oct 2026 04:33:01 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791865982; cv=none; b=nNfGmjyDHMxiztNz2fyjKDrDCtMH9wtBO2jyRKbeVmjrJZ3FpCfYMxz0Q1RsxrdpPZjR4JmnpjzwTf4e1KtfUveu7X2if/93Z42fY5hc2wNDAPzXKv2cvpB2Jo4SOQXXqYAUyExceqDcEdT242riyWloBEnmKBgYXzQPeb43eTk=
+	t=1791865983; cv=none; b=NFdiK4HLbv/ZuKiwZjOPH2fSDLK7Oe1jGhx+edVXaNkeUluRgCaQcSHj7JBTve7boKmuNDVdqECevDohk2ZnhxozTUrpCTfQ2yFzzmLdC/kBIu/ugIFNLXrp8fYY0MzAWc2/lHER4lrtn8YDJ4jBhH2j0DHtgVUG/X9kW2dgsMQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791865982; c=relaxed/simple;
-	bh=J3hPLaaYY4RQT2vsgZi69lMvi75M1qs3m3DaDQyKuu8=;
-	h=Date:To:From:Subject:Message-Id; b=ZMQI4Qi5D+bh8K9mmnqcwBT1ppJOUpeV+cUPqe623v581S8P3h4tuob5V2jiqlDu8MtUrbDaoeO9zPhppr9wW8ulMCC5sThFlfQAKukyG1uE1xe2OSJJx6U2O3c8nTit6Mh7okU4kH2vta88UVZiJW7JoEb7W+5Tr9dzgIVdfr8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=vPE6AN1G; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1791865983; c=relaxed/simple;
+	bh=jL/T9Qbtz7+sWbLE9hat1fWFmX/ThG9iofRawRq+VC8=;
+	h=Date:To:From:Subject:Message-Id; b=rmz1gW9wc/Tnf3GvKhlEPHEZEaEnKTWpL2/8ZNfj2e+h6f6BUl2gVnQ7gPZkvghEW+amD3tkbDBzo3/Ym7k/SasQl8PlEViITHAZ9tH7cVNNr/MaQsrpL8C/cwlD9GJ4IlYtuPwim40tDGvXJVyip4lCipA9GHTBrpjr/zpTtfo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=p2B32afc; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="vPE6AN1G"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id AD8CF1F000FF;
-	Tue, 13 Oct 2026 04:33:00 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="p2B32afc"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id BFC561F00893;
+	Tue, 13 Oct 2026 04:33:01 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1791865980;
-	bh=V9T1wBzGqV7ZwJsn1PO8oMc+dvXZqRF+ot1PMMzLv7Y=;
+	d=linux-foundation.org; s=korg; t=1791865981;
+	bh=L5dd90PnJHa7IYaifZ81TTmqx+0zifsa/AHF8vJSWqE=;
 	h=Date:To:From:Subject;
-	b=vPE6AN1GoPL/QS26lIC+Wog/w5V3qGaoL2qQ75YZWaFwb5FfFu6zb3CqMnE9KkKt1
-	 gngXXSwhPo2Ys1ttnquyelMzNUtI+KJgR0w5Rftg86heCHV/5HSAFD6/H9FO9gwWNq
-	 qEcmTcrbQzCBGEKSL4qF5c047IdYHvriR/jF79TY=
-Date: Mon, 12 Oct 2026 21:33:00 -0700
+	b=p2B32afceWsGGCqwL+UpvSRu+TYFN12PAIHSq5bLXPebk1FzmTuREl0bA+IpWAK3u
+	 cQ0IP6wrd9+Qys7e6lkLGS5pFk0wl/cmi6Q9trNNagbcQ6cUaJ9VbAGJa87ROpaOwI
+	 OiwztOPo4NHITwH8Nhsq6MNKk/eG0S+pb8gbTcqw=
+Date: Mon, 12 Oct 2026 21:33:01 -0700
 To: mm-commits@vger.kernel.org,yu.c.zhang@linux.intel.com,xiaoyao.li@intel.com,vbabka@kernel.org,vannapurve@google.com,tabba@google.com,surenb@google.com,shuah@kernel.org,seanjc@google.com,rppt@kernel.org,rientjes@google.com,riel@redhat.com,pbonzini@redhat.com,nao.horiguchi@gmail.com,michael.roth@amd.com,mhocko@suse.com,ljs@kernel.org,linmiaohe@huawei.com,liam@infradead.org,jiaqiyan@google.com,isaku.yamahata@intel.com,hughd@google.com,hidehiro.kawai.ez@hitachi.com,david@kernel.org,dave.hansen@linux.intel.com,baolin.wang@linux.alibaba.com,andi@firstfloor.org,ackerleytng@google.com,wyihan@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-memory_failure-clarify-the-mf_delayed-definition.patch removed from -mm tree
-Message-Id: <20261013043300.AD8CF1F000FF@smtp.kernel.org>
+Subject: [merged mm-stable] mm-memory_failure-allow-truncate_error_folio-to-return-mf_delayed.patch removed from -mm tree
+Message-Id: <20261013043301.BFC561F00893@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,40 +35,37 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: memory_failure: clarify the MF_DELAYED definition
+     Subject: mm: memory_failure: Allow truncate_error_folio to return MF_DELAYED
 has been removed from the -mm tree.  Its filename was
-     mm-memory_failure-clarify-the-mf_delayed-definition.patch
+     mm-memory_failure-allow-truncate_error_folio-to-return-mf_delayed.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Lisa Wang <wyihan@google.com>
-Subject: mm: memory_failure: clarify the MF_DELAYED definition
-Date: Thu, 17 Sep 2026 20:43:47 +0000
+Subject: mm: memory_failure: Allow truncate_error_folio to return MF_DELAYED
+Date: Thu, 17 Sep 2026 20:43:48 +0000
 
-Patch series "mm: Fix MF_DELAYED handling on memory failure", v6.
+The .error_remove_folio a_ops is used by different filesystems to handle
+folio truncation upon discovery of a memory failure in the memory
+associated with the given folio.
 
-This series addresses an issue in the memory failure handling path where
-MF_DELAYED is incorrectly treated as an error.  This issue was discovered
-while testing memory failure handling for guest_memfd.
+Currently, MF_DELAYED is treated as an error, causing "Failed to punch
+page" to be written to the console.  MF_DELAYED is then relayed to the
+caller of truncate_error_folio() as MF_FAILED.  This further causes
+memory_failure() to return -EBUSY, which then always causes a SIGBUS.
 
-The proposed solution involves -
-1. Clarifying the definition of MF_DELAYED to mean that memory failure
-   handling is only partially completed, and that the metadata for the
-   memory that failed (as in struct page/folio) is still referenced.
-2. Updating shmems handling to align with the clarified definition.
-3. Updating how the result of .error_remove_folio() is interpreted.
+This is also implies that regardless of whether the thread's memory
+corruption kill policy is PR_MCE_KILL_EARLY or PR_MCE_KILL_LATE, a memory
+failure with MF_DELAYED will always cause a SIGBUS.
 
+Update truncate_error_folio() to return MF_DELAYED to the caller if the
+.error_remove_folio() callback reports MF_DELAYED.
 
-This patch (of 5):
-
-This patch clarifies the definition of MF_DELAYED to represent cases where
-a folio's removal is initiated but not immediately completed (e.g., due to
-remaining metadata references).
-
-Link: https://lore.kernel.org/20260917-memory-failure-mf-delayed-fix-v6-0-4b00856b5364@google.com
-Link: https://lore.kernel.org/20260917-memory-failure-mf-delayed-fix-v6-1-4b00856b5364@google.com
+Link: https://lore.kernel.org/20260917-memory-failure-mf-delayed-fix-v6-2-4b00856b5364@google.com
+Fixes: 6a46079cf57a ("HWPOISON: The high level memory error handler in the VM v7")
+Fixes: a7800aa80ea4 ("KVM: Add KVM_CREATE_GUEST_MEMFD ioctl() for guest-specific backing memory")
 Signed-off-by: Lisa Wang <wyihan@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 Acked-by: David Hildenbrand (Arm) <david@kernel.org>
@@ -100,44 +97,26 @@ Cc: Xiaoyao Li <xiaoyao.li@intel.com>
 Cc: Yu Zhang <yu.c.zhang@linux.intel.com>
 ---
 
- mm/memory-failure.c |   15 ++++++++-------
- 1 file changed, 8 insertions(+), 7 deletions(-)
+ mm/memory-failure.c |    6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
---- a/mm/memory-failure.c~mm-memory_failure-clarify-the-mf_delayed-definition
+--- a/mm/memory-failure.c~mm-memory_failure-allow-truncate_error_folio-to-return-mf_delayed
 +++ a/mm/memory-failure.c
-@@ -847,24 +847,25 @@ static int kill_accessing_process(struct
- }
+@@ -939,10 +939,12 @@ static int truncate_error_folio(struct f
+ 	if (mapping->a_ops->error_remove_folio) {
+ 		int err = mapping->a_ops->error_remove_folio(mapping, folio);
  
- /*
-- * MF_IGNORED - The m-f() handler marks the page as PG_hwpoisoned'ed.
-+ * MF_IGNORED - The m-f() handler marks the page as PG_hwpoison'ed.
-  * But it could not do more to isolate the page from being accessed again,
-  * nor does it kill the process. This is extremely rare and one of the
-  * potential causes is that the page state has been changed due to
-  * underlying race condition. This is the most severe outcomes.
-  *
-- * MF_FAILED - The m-f() handler marks the page as PG_hwpoisoned'ed.
-+ * MF_FAILED - The m-f() handler marks the page as PG_hwpoison'ed.
-  * It should have killed the process, but it can't isolate the page,
-  * due to conditions such as extra pin, unmap failure, etc. Accessing
-  * the page again may trigger another MCE and the process will be killed
-  * by the m-f() handler immediately.
-  *
-- * MF_DELAYED - The m-f() handler marks the page as PG_hwpoisoned'ed.
-- * The page is unmapped, and is removed from the LRU or file mapping.
-- * An attempt to access the page again will trigger page fault and the
-- * PF handler will kill the process.
-+ * MF_DELAYED - The m-f() handler marks the page as PG_hwpoison'ed.
-+ * It means the page was unmapped and partially isolated (e.g. removed from
-+ * file mapping or the LRU) but full cleanup is deferred (e.g. the metadata
-+ * for the memory, as in struct page/folio, is still referenced). Any
-+ * further access to the page will result in the process being killed.
-  *
-- * MF_RECOVERED - The m-f() handler marks the page as PG_hwpoisoned'ed.
-+ * MF_RECOVERED - The m-f() handler marks the page as PG_hwpoison'ed.
-  * The page has been completely isolated, that is, unmapped, taken out of
-  * the buddy system, or hole-punched out of the file mapping.
-  */
+-		if (err != 0)
++		if (err == MF_DELAYED)
++			ret = err;
++		else if (err != 0)
+ 			pr_info("%#lx: Failed to punch page: %d\n", pfn, err);
+ 		else if (!filemap_release_folio(folio, GFP_NOIO))
+-			pr_info("%#lx: failed to release buffers\n", pfn);
++			pr_info("%#lx: Failed to release buffers\n", pfn);
+ 		else
+ 			ret = MF_RECOVERED;
+ 	} else {
 _
 
 Patches currently in -mm which might be from wyihan@google.com are
