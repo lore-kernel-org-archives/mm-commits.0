@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 692C648641C
-	for <mm-commits@vger.kernel.org>; Tue, 13 Oct 2026 04:34:13 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 546C948551E
+	for <mm-commits@vger.kernel.org>; Tue, 13 Oct 2026 04:34:11 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791866056; cv=none; b=Ztu1RdE/6D668vDKxhsB5xL0NpIR19KU70eJcxo3XNZNZIg0oDmtkTNAtMz6amaUZE0HYM32DPnIjfwp0yVBFXMlcnXMY7uGBdizMiLLli3CjioH3Srwe0tL6hnqQ4zP6LpBPINDwTwO9GTFftDu3EwCuMyi4DTH/pfUTAAP8Ms=
+	t=1791866057; cv=none; b=LKaGW+AO0fPHp+T4YtNQXfu/a5/AMYx1hoAlN2Rohyu2bSrOWHu2JrimnZexYNCYcNqeN58HTigEtSuOYGJUL/cUSq55/Ki/vu/7Z6uUTyeDL0lV0VBJqcg4W4w2vt3dM9UtPVLZ7ccJFUD/jtKWYxWkPJdZfImJPlLwjsxJ5Ik=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791866056; c=relaxed/simple;
-	bh=8YcbKvk0wM3aOREhS1DC/qb9Me/qbVpczsrL2qafMms=;
-	h=Date:To:From:Subject:Message-Id; b=HHECdHopb6ErkenNuS5oSd//9KpUThB34uIa+/XcCaZWZE7571g73qP0Gq4FipBmfNLk0u6s++AdYsLmhYoAvHlzCV0kbUULKY5x7UxvBvZSNaCNW3+Fpa07Ob7j7+hlyZW/+3h/Pb/TtQip0TddZoZkQ1hpjr17fTjNWYMO5gk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=dJvfPB5J; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1791866057; c=relaxed/simple;
+	bh=pMxQisfOm6Wx9qw6N+JtKgYsSLI5FN678Jwf10//PUQ=;
+	h=Date:To:From:Subject:Message-Id; b=g8EKDzuTETe4QrVez1YkuvYx6u1Dv1CocHQNax+Na+Nsas/6UKy/AhlvyP/h1Zlu9g9a+b4z9Z8VNL5kIBR4h7kncXIkal/TTFt2kz8jaysIFcjtS/GLEWzOLqrHBtiIieM5ycOe37kNFZ6tVxm9hAg38kQ6OsLrWFWQKaX8w44=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=YVp/uK3U; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="dJvfPB5J"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3AA5F1F00898;
-	Tue, 13 Oct 2026 04:34:13 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="YVp/uK3U"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 226011F000FF;
+	Tue, 13 Oct 2026 04:34:11 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1791866053;
-	bh=BLI88p2CcH7bW3kjsfaX33ju4wj0qsWoAD+9E31Xz5Y=;
+	d=linux-foundation.org; s=korg; t=1791866051;
+	bh=GIoe0SXEKWDKzme2y9Lpo/Kpe3GJoWv0sQYf3NQDRFs=;
 	h=Date:To:From:Subject;
-	b=dJvfPB5J/cl0C47q8whZjzNpYl0Y47BS9sfpVCc/4jJiZVG5xz8uegpHhX+JKLcyW
-	 7YLyRJzjWizToDDYFnSl1wCpWDf3STejKc6z0kjLSQv8ox83Wq1KXsKVJO/xvY9Ozz
-	 fZN9zr9enY6Km2EyS4xAV4pKtJ5G75r5/M83imfQ=
-Date: Mon, 12 Oct 2026 21:34:12 -0700
-To: mm-commits@vger.kernel.org,yuanchu@google.com,weixugc@google.com,shakeel.butt@linux.dev,qi.zheng@linux.dev,mhocko@kernel.org,ljs@kernel.org,kasong@tencent.com,hannes@cmpxchg.org,david@kernel.org,baoquan.he@linux.dev,baolin.wang@linux.alibaba.com,baohua@kernel.org,axelrasmussen@google.com,chenridong@xiaomi.com,akpm@linux-foundation.org
+	b=YVp/uK3UGHAIRsv/i/JQAEAK6Kz/R/hHl9EKZZt3JEdkmoSroLT1ZfQ75dTRiyNaB
+	 kk7G2qDunbpcQiggHRa3xPsvOHsEpLrAiRuMrMWK7bR/EYjEOWQGX1wCxz1FUQ3hb8
+	 VeIMzfiqW62+H8a7ZSTMMHPV31f22mz4sIUSWbTY=
+Date: Mon, 12 Oct 2026 21:34:10 -0700
+To: mm-commits@vger.kernel.org,catalin.marinas@arm.com,leitao@debian.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-vmscan-put-rotation-missed-folios-at-the-lru-tail.patch removed from -mm tree
-Message-Id: <20261013043413.3AA5F1F00898@smtp.kernel.org>
+Subject: [merged mm-stable] mm-kmemleak-move-the-struct-page-scan-into-a-helper.patch removed from -mm tree
+Message-Id: <20261013043411.226011F000FF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,173 +35,146 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: vmscan: put rotation-missed folios at the LRU tail
+     Subject: mm: kmemleak: move the struct page scan into a helper
 has been removed from the -mm tree.  Its filename was
-     mm-vmscan-put-rotation-missed-folios-at-the-lru-tail.patch
+     mm-kmemleak-move-the-struct-page-scan-into-a-helper.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Ridong Chen <chenridong@xiaomi.com>
-Subject: mm: vmscan: put rotation-missed folios at the LRU tail
-Date: Sun, 20 Sep 2026 21:25:19 +0800
+From: Breno Leitao <leitao@debian.org>
+Subject: mm: kmemleak: move the struct page scan into a helper
+Date: Mon, 21 Sep 2026 05:30:26 -0700
 
-The page reclaim isolates a batch of folios from the tail of an LRU list
-and works on them one by one.  For a suitable swap-backed folio on an
-async swap device, it queues the folio for writeback and, after finishing
-the batch, puts the folio back to the head of the original LRU list.
+Patch series "mm: kmemleak: batch the struct page scan".
 
-Meanwhile the page writeback flushes the queued folios in its own,
-independent batches.  For each folio it writes back it calls
-folio_rotate_reclaimable(), which tries to rotate the folio to the LRU
-tail.  But folio_rotate_reclaimable() only takes effect once the folio has
-been put back by reclaim.  If the async swap device is fast enough, the
-writeback can complete a folio while reclaim is still working on the rest
-of the batch that contains it.  In that case the folio stays near the head
-and reclaim will not revisit it before wrapping around, causing a cold/hot
-inversion: a clean, written-back folio that should be a prime reclaim
-candidate is kept ahead of hotter folios.
+kmemleak walks the struct page array as a scan root and hands it to
+scan_block() one page at a time.
 
-commit 359a5e1416ca ("mm: multi-gen LRU: retry folios written back while
-isolated") addressed this for MGLRU only.  The traditional active/inactive
-LRU has the same problem, reported at [1].  A reproducer is available at
-[2].
+scan_block() takes kmemleak_lock with interrupts disabled for the duration
+of the call, so the scanner acquires the lock once per online PFN in order
+to look at a single 64-byte struct page.
 
-Rather than re-reclaiming those folios (which would drop the swap cache
-that may still be useful for a future hit [4]), restore the rotation that
-was missed: when move_folios_to_lru() puts a folio back, add it to the LRU
-tail if it looks like it missed folio_rotate_reclaimable() (inactive, not
-mapped, not dirty and not under writeback).  A referenced folio is left at
-the head so it still gets a second chance, and a folio with an unexpected
-reference (e.g.  a GUP or speculative pin) is left at the head because it
-cannot be reclaimed yet anyway.  A new do_rotate parameter gates this so
-it only applies on the reclaim put-back path (shrink_inactive_list()), not
-on shrink_active_list() where the list order is already deliberate.  This
-approach was suggested by Barry Song [3].
+Batching adjacent pages up to that size keeps exactly the same pages under
+the same maximum lock hold time, with MAX_SCAN_SIZE / pagesize fewer
+acquisitions.
 
-Only the traditional LRU is handled here.  MGLRU already retries such
-folios via its own clean-list retry pass in evict_folios(), so it is left
-unchanged.  The same do_rotate scheme could later replace that retry pass
-to unify both LRUs, which is left for a follow-up.
+Patch 1 lifts the loop out of __kmemleak_scan() into scan_zone_pages()
+with no functional change.  Patch 2 does the batching, which is then
+contained in that one function.
 
-Test result with [2]:
+This improves the performance due to less atomic operations, which is not
+a big deal on a regular machine, but, given kmemleak usually comes with
+extra debug options, such as PROVE_LOCKING, DEBUG_SPINLOCK, etc.
 
-  Without patch:
-    cat memory.usage_in_bytes
-    1073700864
-    cat memory.memsw.usage_in_bytes
-    1413124096
+For instance, measuring Meta's "debug kernel flavor" on an arm64 hosts,
+this improve the scan time by 20%.
 
-    free -h
-                  total        used        free
-    Mem:           1.6Gi       1.2Gi       299Mi
-    Swap:          1.0Gi       678Mi       346Mi
+It is safe to get more work into scan_block(), given it has the
+protections, added by commit eb11f56eeca560 ("mm/kmemleak: stop the task
+stack scan early when interrupted")
 
-  With patch:
-    cat memory.usage_in_bytes
-    1071140864
-    cat memory.memsw.usage_in_bytes
-    1413423104
+MAX_SCAN_SIZE is also not a new maximum for a single scan_block() call. 
+kmemleak_scan_task_stacks() already hands it a whole task stack in one go.
+On arm64 and x86_64 THREAD_SIZE is never below 16 KiB, four times
+MAX_SCAN_SIZE, and it is 64 KiB on arm64 with 64K pages.
 
-    free -h
-                  total        used        free
-    Mem:           1.6Gi       1.2Gi       322Mi
-    Swap:          1.0Gi       328Mi       695Mi
 
-After applying the patch, the difference between
-memory.memsw.usage_in_bytes and memory.usage_in_bytes is close to the swap
-"used" value reported by 'free -h'.
+This patch (of 2):
 
-Link: https://lore.kernel.org/20260920132519.3369946-1-ridong.chen@linux.dev
-Link: https://lore.kernel.org/linux-kernel/20241010081802.290893-1-chenridong@huaweicloud.com/ [1]
-Link: https://lore.kernel.org/lkml/46037a37-4cf6-448e-a94b-30a4d16e8814@linux.dev/ [2]
-Link: https://lore.kernel.org/linux-mm/20260911121341.178028-1-alex@ghiti.fr/ [4]
-Signed-off-by: Ridong Chen <chenridong@xiaomi.com>
+The struct page scanning loop sits inline in __kmemleak_scan(), nested
+three levels deep and sharing the caller's "stop" variable with the
+zone walk around it. Move it into scan_zone_pages(), which scans one
+zone and returns 1 if scanning should stop.
+
+No functional change; this only makes room for changing how the pages
+are handed to scan_block().
+
+Link: https://lore.kernel.org/20260921-b4-kmemleak-page-scan-v1-1-fb97d4801b3a@debian.org
+Signed-off-by: Breno Leitao <leitao@debian.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Suggested-by: Barry Song <baohua@kernel.org>
-Link: https://lore.kernel.org/lkml/CAGsJ_4zwP3_+EYY5Ug9EJ+yD1UdxsBSGr25u8s1K3u_i7LH3Zg@mail.gmail.com/ [3]
-Reviewed-by: Barry Song <baohua@kernel.org>
-Reviewed-by: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: David Hildenbrand <david@kernel.org>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Qi Zheng <qi.zheng@linux.dev>
-Cc: Shakeel Butt <shakeel.butt@linux.dev>
-Cc: Lorenzo Stoakes <ljs@kernel.org>
-Cc: Kairui Song <kasong@tencent.com>
-Cc: Axel Rasmussen <axelrasmussen@google.com>
-Cc: Yuanchu Xie <yuanchu@google.com>
-Cc: Wei Xu <weixugc@google.com>
-Cc: Baoquan He <baoquan.he@linux.dev>
+Reviewed-by: Catalin Marinas <catalin.marinas@arm.com>
 ---
 
- mm/vmscan.c |   24 ++++++++++++++++++------
- 1 file changed, 18 insertions(+), 6 deletions(-)
+ mm/kmemleak.c |   57 ++++++++++++++++++++++++++++--------------------
+ 1 file changed, 34 insertions(+), 23 deletions(-)
 
---- a/mm/vmscan.c~mm-vmscan-put-rotation-missed-folios-at-the-lru-tail
-+++ a/mm/vmscan.c
-@@ -1971,7 +1971,7 @@ static bool too_many_isolated(struct pgl
-  *
-  * Note: The caller must not hold any lruvec lock.
-  */
--static unsigned int move_folios_to_lru(struct list_head *list)
-+static unsigned int move_folios_to_lru(struct list_head *list, bool do_rotate)
- {
- 	int nr_pages, nr_moved = 0;
- 	struct lruvec *lruvec = NULL;
-@@ -2018,7 +2018,19 @@ static unsigned int move_folios_to_lru(s
- 			continue;
- 		}
+--- a/mm/kmemleak.c~mm-kmemleak-move-the-struct-page-scan-into-a-helper
++++ a/mm/kmemleak.c
+@@ -1856,6 +1856,39 @@ static void dedup_flush(struct xarray *d
+ }
  
--		lruvec_add_folio(lruvec, folio);
-+		/*
-+		 * Put clean, unreferenced and unpinned folios that may have
-+		 * missed folio_rotate_reclaimable() at the tail to avoid
-+		 * cold/hot inversion.
-+		 */
-+		if (do_rotate && !folio_test_active(folio) && !folio_mapped(folio) &&
-+		    !folio_test_dirty(folio) && !folio_test_writeback(folio) &&
-+		    !folio_test_referenced(folio) &&
-+		    folio_ref_count(folio) == folio_expected_ref_count(folio))
-+			lruvec_add_folio_tail(lruvec, folio);
-+		else
-+			lruvec_add_folio(lruvec, folio);
+ /*
++ * Scan the struct pages of a zone, skipping memory holes, pages that belong to
++ * another zone and pages that are not in use. Returns 1 if the scan should be
++ * stopped.
++ */
++static int scan_zone_pages(struct zone *zone)
++{
++	unsigned long start_pfn = zone->zone_start_pfn;
++	unsigned long end_pfn = zone_end_pfn(zone);
++	unsigned long pfn;
 +
- 		nr_pages = folio_nr_pages(folio);
- 		nr_moved += nr_pages;
- 		if (folio_test_active(folio))
-@@ -2135,7 +2147,7 @@ static unsigned long shrink_inactive_lis
- 	nr_reclaimed = shrink_folio_list(&folio_list, pgdat, sc, &stat, false,
- 					 lruvec_memcg(lruvec));
- 
--	move_folios_to_lru(&folio_list);
-+	move_folios_to_lru(&folio_list, true);
- 
- 	mod_lruvec_state(lruvec, PGDEMOTE_KSWAPD + reclaimer_offset(sc),
- 					stat.nr_demoted);
-@@ -2246,8 +2258,8 @@ static void shrink_active_list(unsigned
- 	/*
- 	 * Move folios back to the lru list.
++	for (pfn = start_pfn; pfn < end_pfn; pfn++) {
++		struct page *page = pfn_to_online_page(pfn);
++
++		if (!(pfn & 63))
++			cond_resched_tasks_rcu_qs();
++
++		if (!page)
++			continue;
++
++		/* only scan pages belonging to this zone */
++		if (page_zone(page) != zone)
++			continue;
++		/* only scan if page is in use */
++		if (page_count(page) == 0)
++			continue;
++		if (scan_block(page, page + 1, NULL))
++			return 1;
++	}
++
++	return 0;
++}
++
++/*
+  * Scan data sections and all the referenced memory blocks allocated via the
+  * kernel's standard allocators. This function must be called with the
+  * scan_mutex held.
+@@ -1928,29 +1961,7 @@ static int __kmemleak_scan(bool full)
  	 */
--	nr_activate = move_folios_to_lru(&l_active);
--	nr_deactivate = move_folios_to_lru(&l_inactive);
-+	nr_activate = move_folios_to_lru(&l_active, false);
-+	nr_deactivate = move_folios_to_lru(&l_inactive, false);
- 
- 	count_vm_events(PGDEACTIVATE, nr_deactivate);
- 	count_memcg_events(lruvec_memcg(lruvec), PGDEACTIVATE, nr_deactivate);
-@@ -5114,7 +5126,7 @@ retry:
- 			folio_set_active(folio);
+ 	get_online_mems();
+ 	for_each_populated_zone(zone) {
+-		unsigned long start_pfn = zone->zone_start_pfn;
+-		unsigned long end_pfn = zone_end_pfn(zone);
+-		unsigned long pfn;
+-
+-		for (pfn = start_pfn; pfn < end_pfn; pfn++) {
+-			struct page *page = pfn_to_online_page(pfn);
+-
+-			if (!(pfn & 63))
+-				cond_resched_tasks_rcu_qs();
+-
+-			if (!page)
+-				continue;
+-
+-			/* only scan pages belonging to this zone */
+-			if (page_zone(page) != zone)
+-				continue;
+-			/* only scan if page is in use */
+-			if (page_count(page) == 0)
+-				continue;
+-			stop = scan_block(page, page + 1, NULL);
+-			if (stop)
+-				break;
+-		}
++		stop = scan_zone_pages(zone);
+ 		if (stop)
+ 			break;
  	}
- 
--	move_folios_to_lru(&list);
-+	move_folios_to_lru(&list, false);
- 
- 	walk = current->reclaim_state->mm_walk;
- 	if (walk && walk->batched) {
 _
 
-Patches currently in -mm which might be from chenridong@xiaomi.com are
+Patches currently in -mm which might be from leitao@debian.org are
 
 
