@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 70BA249363E
-	for <mm-commits@vger.kernel.org>; Tue, 13 Oct 2026 18:32:17 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 418EE495AC4
+	for <mm-commits@vger.kernel.org>; Tue, 13 Oct 2026 18:32:19 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791916339; cv=none; b=BmhJaljwbyPE4PlV0nc0gZS1LEY9+diJLSSYs7/oVx1AHoVnwRANHZPpYjsJM77n7bAWs3ZKPdJr44Cx2rlm2sGuE7pmX9fa85Hedu0VZo4syaz+ZG2vM6/Wir4YxMvsM5jO6pdNqxhnGRBZXPkJgRsPpdxZw5jJ3C2qS32RcxA=
+	t=1791916342; cv=none; b=RWZt1C5JJnH9tWgf+pA6V/63JJjgHzAQZxrp/BDHuyFt/6GK6xMtElGFblo15KdvTo2Vhj19q/TEya2u7HGEPZQo75KPmrKhkyY1tMJ+5OEQ+XkKLPWW12Jjcgy2FEHyxydga1/yFHdfvUj/Z9PeCld3xjPkYtELMKTFneZlpNo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791916339; c=relaxed/simple;
-	bh=aSZkFJCjf41ZJtfMO7A4LabkRtGMhLyCzN+VdJ7NsoM=;
-	h=Date:To:From:Subject:Message-Id; b=ckzcSVgx9/91eDXyBdGsr5PUCu6WI7C2bviugCzb3VwpL5WacVytwzl6B+XuUnd0WVeHeUUYR4lEld5xOG7zyrSSV0ph1bXguWl0m42ltSAJKnNCbfywJ8aFC3ODH+qQkQNPZ39QZeCd0TWX29T0V+wjuTxRU3O8WxOdbCqdBbk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=uZLv4L60; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1791916342; c=relaxed/simple;
+	bh=J64y0B0c2RLSAWyyKPSu7KsXa1s70dVecR6Ua1oZF0k=;
+	h=Date:To:From:Subject:Message-Id; b=nLHJ+los5tXXhONGJceTvy+FwMRlvl91+l9mJXhVoBjSiwz4mhEWuCw6uDiNXZhG3VDYTnT4nBGeXUP2cvfsUl7ijVKY2+uPON7ax6VFbiGnj13/vawprC4i1uM/VNWuDoUNW9gqpJaPvJw7wlpQE3adNeGJUcZhbs7G2/8CkMs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=SQhPcaSd; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="uZLv4L60"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 47B5F1F000FF;
-	Tue, 13 Oct 2026 18:32:17 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="SQhPcaSd"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D8B2D1F00893;
+	Tue, 13 Oct 2026 18:32:18 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1791916337;
-	bh=2Twn8jfEPzveXfArGbANIbD79a8/EcVWL/u4WrS+JEM=;
+	d=linux-foundation.org; s=korg; t=1791916339;
+	bh=Vh1UeSzAEstvLgf7CbJj+7TZBnmPGTBtNe8OTrPkJFM=;
 	h=Date:To:From:Subject;
-	b=uZLv4L60pgpLTr5jESMF7K4zQhBetsJegtuRd1lORrdYp9Yi1+7PInHmq5SdPdjXt
-	 gbFfEjMxygX1IvZ+sF3J2v8XwyB9vVMJlky1JwZyPJVNWmRBny8SXN+bOvAvXRFOga
-	 fTS/tkU2aTbdDwN24MblhBrdaJp3zG4SIE5O91/0=
-Date: Tue, 13 Oct 2026 11:32:16 -0700
+	b=SQhPcaSdl+bWbiKsigtNLTWZqD1h5NVR4BjrRv3PYOeBNgcQtQ6wWlM+8KJ2QoxH0
+	 fgwJEy5UpdcQ30Bj715igD6ePDLeFIvE2mmKdK/LNNTBuaeuhaCqdExLBvTHSoTmh3
+	 3IldsyjaB1kGKzrdfukA6kpgplVUcIY82+hxe3bw=
+Date: Tue, 13 Oct 2026 11:32:18 -0700
 To: mm-commits@vger.kernel.org,ljs@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [to-be-updated] mm-make-map_kernel_pages_-internal-and-unexported.patch removed from -mm tree
-Message-Id: <20261013183217.47B5F1F000FF@smtp.kernel.org>
+Subject: [to-be-updated] mm-vma-tidy-up-map-kernel-pages-enum-values.patch removed from -mm tree
+Message-Id: <20261013183218.D8B2D1F00893@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,27 +35,28 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: make map_kernel_pages_[prepare,complete] internal and unexported
+     Subject: mm/vma: tidy up map kernel pages enum values
 has been removed from the -mm tree.  Its filename was
-     mm-make-map_kernel_pages_-internal-and-unexported.patch
+     mm-vma-tidy-up-map-kernel-pages-enum-values.patch
 
 This patch was dropped because an updated version will be issued
 
 ------------------------------------------------------
 From: "Lorenzo Stoakes (ARM)" <ljs@kernel.org>
-Subject: mm: make map_kernel_pages_[prepare,complete] internal and unexported
-Date: Fri, 09 Oct 2026 19:03:59 +0100
+Subject: mm/vma: tidy up map kernel pages enum values
+Date: Fri, 09 Oct 2026 19:04:00 +0100
 
-There's no reason to export the symbols for these functions which are only
-called from internal mm logic, additionally there's no reason for them to
-be declared in mm.h.
+MMAP_MAP_KERNEL_PAGES is a mouthful, discard the MAP_ as that's implied by
+MMAP.
 
-This patch therefore removes the exports and moves the declarations to
-mm/internal.h.
+Also while we're here delete useless comments for mmap actions whose names
+clearly indicate what they are for.
+
+Also update the userland VMA tests to reflect this change.
 
 No functional change intended.
 
-Link: https://lore.kernel.org/20261009-b4-mmap-prepare-vma-flag-sanify-v5-5-923b70125b1e@kernel.org
+Link: https://lore.kernel.org/20261009-b4-mmap-prepare-vma-flag-sanify-v5-6-923b70125b1e@kernel.org
 Signed-off-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 Reviewed-by: Suren Baghdasaryan <surenb@google.com>
@@ -169,58 +170,101 @@ Cc: Ihor Solodrai <ihor.solodrai@linux.dev>
 Cc: Bert Karwatzki <spasswolf@web.de>
 ---
 
- include/linux/mm.h |    3 ---
- mm/internal.h      |    3 +++
- mm/memory.c        |    2 --
- 3 files changed, 3 insertions(+), 5 deletions(-)
+ include/linux/mm.h              |    2 +-
+ include/linux/mm_types.h        |    8 ++++----
+ mm/util.c                       |    8 ++++----
+ tools/testing/vma/include/dup.h |    8 ++++----
+ 4 files changed, 13 insertions(+), 13 deletions(-)
 
---- a/include/linux/mm.h~mm-make-map_kernel_pages_-internal-and-unexported
+--- a/include/linux/mm.h~mm-vma-tidy-up-map-kernel-pages-enum-values
 +++ a/include/linux/mm.h
-@@ -4775,9 +4775,6 @@ int remap_pfn_range(struct vm_area_struc
- int vm_insert_page(struct vm_area_struct *, unsigned long addr, struct page *);
- int vm_insert_pages(struct vm_area_struct *vma, unsigned long addr,
- 			struct page **pages, unsigned long *num);
--int map_kernel_pages_prepare(struct vm_area_desc *desc);
--int map_kernel_pages_complete(struct vm_area_struct *vma,
--			      struct mmap_action *action);
- int vm_map_pages(struct vm_area_struct *vma, struct page **pages,
- 				unsigned long num);
- int vm_map_pages_zero(struct vm_area_struct *vma, struct page **pages,
---- a/mm/internal.h~mm-make-map_kernel_pages_-internal-and-unexported
-+++ a/mm/internal.h
-@@ -1514,6 +1514,9 @@ int remap_pfn_range_prepare(struct vm_ar
- int remap_pfn_range_complete(struct vm_area_struct *vma,
- 			     struct mmap_action *action);
- int simple_ioremap_prepare(struct vm_area_desc *desc);
-+int map_kernel_pages_prepare(struct vm_area_desc *desc);
-+int map_kernel_pages_complete(struct vm_area_struct *vma,
-+			      struct mmap_action *action);
- 
- static inline int io_remap_pfn_range_prepare(struct vm_area_desc *desc)
+@@ -4630,7 +4630,7 @@ static inline void mmap_action_map_kerne
  {
---- a/mm/memory.c~mm-make-map_kernel_pages_-internal-and-unexported
-+++ a/mm/memory.c
-@@ -2639,7 +2639,6 @@ int map_kernel_pages_prepare(struct vm_a
+ 	struct mmap_action *action = &desc->action;
  
- 	return 0;
- }
--EXPORT_SYMBOL(map_kernel_pages_prepare);
+-	action->type = MMAP_MAP_KERNEL_PAGES;
++	action->type = MMAP_KERNEL_PAGES;
+ 	action->map_kernel.start = start;
+ 	action->map_kernel.pages = pages;
+ 	action->map_kernel.nr_pages = nr_pages;
+--- a/include/linux/mm_types.h~mm-vma-tidy-up-map-kernel-pages-enum-values
++++ a/include/linux/mm_types.h
+@@ -815,11 +815,11 @@ struct pfnmap_track_ctx {
  
- int map_kernel_pages_complete(struct vm_area_struct *vma,
- 			      struct mmap_action *action)
-@@ -2651,7 +2650,6 @@ int map_kernel_pages_complete(struct vm_
- 			    action->map_kernel.pages,
- 			    &nr_pages, vma->vm_page_prot);
- }
--EXPORT_SYMBOL(map_kernel_pages_complete);
+ /* What action should be taken after an .mmap_prepare call is complete? */
+ enum mmap_action_type {
+-	MMAP_NOTHING,		/* Mapping is complete, no further action. */
+-	MMAP_REMAP_PFN,		/* Remap PFN range. */
+-	MMAP_IO_REMAP_PFN,	/* I/O remap PFN range. */
++	MMAP_NOTHING,
++	MMAP_REMAP_PFN,
++	MMAP_IO_REMAP_PFN,
+ 	MMAP_SIMPLE_IO_REMAP,	/* I/O remap with guardrails. */
+-	MMAP_MAP_KERNEL_PAGES,	/* Map kernel page range from array. */
++	MMAP_KERNEL_PAGES,	/* Map kernel page range from array. */
+ };
  
- /**
-  * vm_insert_page - insert single page into user vma
+ /*
+--- a/mm/util.c~mm-vma-tidy-up-map-kernel-pages-enum-values
++++ a/mm/util.c
+@@ -1467,7 +1467,7 @@ int mmap_action_prepare(struct vm_area_d
+ 		return io_remap_pfn_range_prepare(desc);
+ 	case MMAP_SIMPLE_IO_REMAP:
+ 		return simple_ioremap_prepare(desc);
+-	case MMAP_MAP_KERNEL_PAGES:
++	case MMAP_KERNEL_PAGES:
+ 		return map_kernel_pages_prepare(desc);
+ 	}
+ 
+@@ -1498,7 +1498,7 @@ int mmap_action_complete(struct vm_area_
+ 	case MMAP_REMAP_PFN:
+ 		err = remap_pfn_range_complete(vma, action);
+ 		break;
+-	case MMAP_MAP_KERNEL_PAGES:
++	case MMAP_KERNEL_PAGES:
+ 		err = map_kernel_pages_complete(vma, action);
+ 		break;
+ 	case MMAP_IO_REMAP_PFN:
+@@ -1521,7 +1521,7 @@ int mmap_action_prepare(struct vm_area_d
+ 	case MMAP_REMAP_PFN:
+ 	case MMAP_IO_REMAP_PFN:
+ 	case MMAP_SIMPLE_IO_REMAP:
+-	case MMAP_MAP_KERNEL_PAGES:
++	case MMAP_KERNEL_PAGES:
+ 		WARN_ON_ONCE(1); /* nommu cannot handle these. */
+ 		break;
+ 	}
+@@ -1542,7 +1542,7 @@ int mmap_action_complete(struct vm_area_
+ 	case MMAP_REMAP_PFN:
+ 	case MMAP_IO_REMAP_PFN:
+ 	case MMAP_SIMPLE_IO_REMAP:
+-	case MMAP_MAP_KERNEL_PAGES:
++	case MMAP_KERNEL_PAGES:
+ 		WARN_ON_ONCE(1); /* nommu cannot handle this. */
+ 
+ 		err = -EINVAL;
+--- a/tools/testing/vma/include/dup.h~mm-vma-tidy-up-map-kernel-pages-enum-values
++++ a/tools/testing/vma/include/dup.h
+@@ -454,11 +454,11 @@ static __always_inline bool vma_flags_em
+ 
+ /* What action should be taken after an .mmap_prepare call is complete? */
+ enum mmap_action_type {
+-	MMAP_NOTHING,		/* Mapping is complete, no further action. */
+-	MMAP_REMAP_PFN,		/* Remap PFN range. */
+-	MMAP_IO_REMAP_PFN,	/* I/O remap PFN range. */
++	MMAP_NOTHING,
++	MMAP_REMAP_PFN,
++	MMAP_IO_REMAP_PFN,
+ 	MMAP_SIMPLE_IO_REMAP,	/* I/O remap with guardrails. */
+-	MMAP_MAP_KERNEL_PAGES,	/* Map kernel page range from an array. */
++	MMAP_KERNEL_PAGES,	/* Map kernel page range from array. */
+ };
+ 
+ /*
 _
 
 Patches currently in -mm which might be from ljs@kernel.org are
 
-mm-vma-tidy-up-map-kernel-pages-enum-values.patch
 mm-add-mmap-action-for-discontiguous-kernel-page-mapping.patch
 docs-filesystems-update-mmap_prepare-docs-for-discontig-kernel-pgs.patch
 drivers-usb-mon-update-to-use-mmap_prepare-map-kernel-pages.patch
