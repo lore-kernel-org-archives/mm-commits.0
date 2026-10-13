@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B5EF9480DFC
-	for <mm-commits@vger.kernel.org>; Tue, 13 Oct 2026 04:32:10 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 81E0A4825BC
+	for <mm-commits@vger.kernel.org>; Tue, 13 Oct 2026 04:32:11 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791865931; cv=none; b=Nmw3FNvKorEPhYHPX7hUknpiuaoiujMbhibcuWATc9fl4xIfcmCcx0P7pfFjHnCYigm3PdMa6hbduICDWNTM8dz5iPinHNqXZyqzbyIeUGqeyo9CMGXFIJyONgu3Tl7UNiyxXWiNtCI1p3DWfyzHU6/l6YubRCzJCwkimPgI6zY=
+	t=1791865932; cv=none; b=itnaWvyfAUl+hRf54es/figVTyJ6YiMge7LR3euZFu8D361ZJStmF6z76rH4n+kX8WeFHFKP0pH/93rQ4uizaJMS4XpnQlCYwJcmuvbI8QDox/EE9MX2tHGsjb6zCP+vZUE+7O2rzjtZ1TWtbfM7TnlTIp/u8LB0WKI8vYDherw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791865931; c=relaxed/simple;
-	bh=goxbD7BRUMmUmTGPhwG+GqomCgnkjhVrYW/54MpSNZs=;
-	h=Date:To:From:Subject:Message-Id; b=aJOMTQljLyDdxUg/TbfeZlthgvRh8Syg+HeZwIvh/BtpIc6ajN3p+BYV4L/0JoS8U0lQGnGLf+0fT0a9jZAngJjhYoiWJeLQbzqrCUqOi0Wwi1rJQ+diLfb3J+eHOJVVMBTlg7wxkQWE0+FuuH9JL3rJ0vtigU1F99jiIsa4kdI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=J4fW95P9; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1791865932; c=relaxed/simple;
+	bh=E3UThmuMXh1Yei0jADg50h8o1QgYY2Hbr0dV9z3wzYk=;
+	h=Date:To:From:Subject:Message-Id; b=RfkVAGv7nrfJQRN687PDEPyCHS0g4nXmK1VY4r+Q5E0qyjp4ztMuwdl14TU9Wlpj6ThuJCDMuQWyyFzQC5cc1dCFvdoj46iahkOX0BzmiKVApL9x7hWCapO+Kb5hVlC3nJcFtgsObyexVCIaKPry82TXRtD8I6r5+MDgJUI/SQQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=kkAcQGXW; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="J4fW95P9"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4A9C31F00898;
-	Tue, 13 Oct 2026 04:32:10 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="kkAcQGXW"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 577B01F000FF;
+	Tue, 13 Oct 2026 04:32:11 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1791865930;
-	bh=wGTYJ+D5d88Vg1yPbRdOJjqTVnt5uafVprybo/KYNA0=;
+	d=linux-foundation.org; s=korg; t=1791865931;
+	bh=IgD9QKyqo6KyVl5DBkeecRwKiXUn4RZ8oXJMTNbpz4w=;
 	h=Date:To:From:Subject;
-	b=J4fW95P9oCDkhYJnD246c/LtySLrMWtWYLvenuRAf9lMkRwjtOD6tIl6eN9rTIK2k
-	 xjhwue3HuP5n7Rux9Uw3mUYMjBfeXJAvALc8QAHgDMwvipYStNat95Fzl6BZMuXfwB
-	 StRVzHh7XyHcNvGEQtSqoNbp+s9/pnPlpav+wlKY=
-Date: Mon, 12 Oct 2026 21:32:09 -0700
+	b=kkAcQGXWY7cvKdXkxww5l/PxgX5dwT6vuPC/ngmvJVPR1Xy4R1vKbapU/Yi2TxSBT
+	 oOopLXEL4Axqwlscz6PzU6sLZYHyyfujOpOp02mimR2Mdg0mZa936Il/1XY6H0cm5S
+	 06Oxe+FLsPdHbJJu3Qq6D+nVq9bMFhsl0186QYrg=
+Date: Mon, 12 Oct 2026 21:32:10 -0700
 To: mm-commits@vger.kernel.org,vbabka@kernel.org,surenb@google.com,rppt@kernel.org,mhocko@suse.com,ljs@kernel.org,liam@infradead.org,david@kernel.org,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-damon-ops-common-support-hugepage_size-damon-filter-matching.patch removed from -mm tree
-Message-Id: <20261013043210.4A9C31F00898@smtp.kernel.org>
+Subject: [merged mm-stable] mm-damon-sysfs-add-minmax-files-under-probe-filter-directory.patch removed from -mm tree
+Message-Id: <20261013043211.577B01F000FF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,22 +35,24 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/damon/ops-common: support hugepage_size damon filter matching
+     Subject: mm/damon/sysfs: add min,max files under probe filter directory
 has been removed from the -mm tree.  Its filename was
-     mm-damon-ops-common-support-hugepage_size-damon-filter-matching.patch
+     mm-damon-sysfs-add-minmax-files-under-probe-filter-directory.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: SJ Park <sj@kernel.org>
-Subject: mm/damon/ops-common: support hugepage_size damon filter matching
-Date: Tue, 15 Sep 2026 07:33:52 -0700
+Subject: mm/damon/sysfs: add min,max files under probe filter directory
+Date: Tue, 15 Sep 2026 07:33:53 -0700
 
-Update ops-common data attribute filter matching logic to support
-hugepage_size filter type.
+In future, DAMON sysfs interface will support data attribute probe filter
+types that have range arguments like the newly added hugepage_size type
+filter.  To prepare such supports, add two new DAMON sysfs files, min and
+max, under the probe filter directory.
 
-Link: https://lore.kernel.org/20260915143359.91472-4-sj@kernel.org
+Link: https://lore.kernel.org/20260915143359.91472-5-sj@kernel.org
 Signed-off-by: SJ Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 Cc: David Hildenbrand <david@kernel.org>
@@ -62,35 +64,85 @@ Cc: Suren Baghdasaryan <surenb@google.com>
 Cc: Vlastimil Babka <vbabka@kernel.org>
 ---
 
- mm/damon/ops-common.c |   10 ++++++++++
- 1 file changed, 10 insertions(+)
+ mm/damon/sysfs.c |   48 +++++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 48 insertions(+)
 
---- a/mm/damon/ops-common.c~mm-damon-ops-common-support-hugepage_size-damon-filter-matching
-+++ a/mm/damon/ops-common.c
-@@ -536,6 +536,7 @@ bool damon_ops_filter_match(struct damon
- {
- 	bool matched = false;
- 	struct mem_cgroup *memcg;
-+	size_t folio_sz;
+--- a/mm/damon/sysfs.c~mm-damon-sysfs-add-minmax-files-under-probe-filter-directory
++++ a/mm/damon/sysfs.c
+@@ -975,6 +975,8 @@ struct damon_sysfs_filter {
+ 	bool matching;
+ 	bool allow;
+ 	char *path;
++	unsigned long range_min;
++	unsigned long range_max;
+ };
  
- 	switch (filter->type) {
- 	case DAMON_FILTER_TYPE_ANON:
-@@ -558,6 +559,15 @@ bool damon_ops_filter_match(struct damon
- 			matched = filter->memcg_id == mem_cgroup_id(memcg);
- 		rcu_read_unlock();
- 		break;
-+	case DAMON_FILTER_TYPE_HUGEPAGE_SIZE:
-+		if (!folio) {
-+			matched = false;
-+			break;
-+		}
-+		folio_sz = folio_size(folio);
-+		matched = filter->range_min <= folio_sz &&
-+			folio_sz <= filter->range_max;
-+		break;
- 	default:
- 		break;
- 	}
+ static struct damon_sysfs_filter *damon_sysfs_filter_alloc(void)
+@@ -1127,6 +1129,44 @@ static ssize_t path_store(struct kobject
+ 	return count;
+ }
+ 
++static ssize_t min_show(struct kobject *kobj,
++		struct kobj_attribute *attr, char *buf)
++{
++	struct damon_sysfs_filter *filter = container_of(kobj,
++			struct damon_sysfs_filter, kobj);
++
++	return sysfs_emit(buf, "%lu\n", filter->range_min);
++}
++
++static ssize_t min_store(struct kobject *kobj,
++		struct kobj_attribute *attr, const char *buf, size_t count)
++{
++	struct damon_sysfs_filter *filter = container_of(kobj,
++			struct damon_sysfs_filter, kobj);
++	int err = kstrtoul(buf, 0, &filter->range_min);
++
++	return err ? err : count;
++}
++
++static ssize_t max_show(struct kobject *kobj,
++		struct kobj_attribute *attr, char *buf)
++{
++	struct damon_sysfs_filter *filter = container_of(kobj,
++			struct damon_sysfs_filter, kobj);
++
++	return sysfs_emit(buf, "%lu\n", filter->range_max);
++}
++
++static ssize_t max_store(struct kobject *kobj,
++		struct kobj_attribute *attr, const char *buf, size_t count)
++{
++	struct damon_sysfs_filter *filter = container_of(kobj,
++			struct damon_sysfs_filter, kobj);
++	int err = kstrtoul(buf, 0, &filter->range_max);
++
++	return err ? err : count;
++}
++
+ static void damon_sysfs_filter_release(struct kobject *kobj)
+ {
+ 	struct damon_sysfs_filter *filter = container_of(kobj,
+@@ -1148,11 +1188,19 @@ static struct kobj_attribute damon_sysfs
+ static struct kobj_attribute damon_sysfs_filter_path_attr =
+ 		__ATTR_RW_MODE(path, 0600);
+ 
++static struct kobj_attribute damon_sysfs_filter_min_attr =
++		__ATTR_RW_MODE(min, 0600);
++
++static struct kobj_attribute damon_sysfs_filter_max_attr =
++		__ATTR_RW_MODE(max, 0600);
++
+ static struct attribute *damon_sysfs_filter_attrs[] = {
+ 	&damon_sysfs_filter_type_attr.attr,
+ 	&damon_sysfs_filter_matching_attr.attr,
+ 	&damon_sysfs_filter_allow_attr.attr,
+ 	&damon_sysfs_filter_path_attr.attr,
++	&damon_sysfs_filter_min_attr.attr,
++	&damon_sysfs_filter_max_attr.attr,
+ 	NULL,
+ };
+ ATTRIBUTE_GROUPS(damon_sysfs_filter);
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
