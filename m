@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E9274549382
-	for <mm-commits@vger.kernel.org>; Tue, 13 Oct 2026 21:55:14 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F38D054B1DB;
+	Tue, 13 Oct 2026 21:59:36 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791928516; cv=none; b=FgQ1CmAo/9Tz9ZpSBF97Dby4j998ZLnotoJL/09K8LYhxuOHHWy/OebOxNX3Uv1lPxRwdl5+kk0Bc0t64KsYX9u8K+rk6otGSDcP55KA+alH1BRfKaGb4NgN3goybEi1+rwrlwEaQig52KeynGUyQqj9W2HCd8Dl06OCcbGeEUc=
+	t=1791928778; cv=none; b=eBZBqZSHrwtqygjbuqmTVrR9JxlaQTB4WzfzkXS/MFqQmey5h5AVSN2cPbtJAQbsCgJffeVlmj7M90lz95VanBxzA++RkEiqL8QnMk+9OZsoGzHZP84QwFywaT1wb8OYWsCSKriDqV7ivzFWkR6pIxXyMSgcZEpMYqe4N0b0EDU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791928516; c=relaxed/simple;
-	bh=EzbA9cr7mNR+6jAQnOjsPNGDhCZDt5qyRL0rcV+jn3E=;
-	h=Date:To:From:Subject:Message-Id; b=rFqeOvdB76DP1olc6fnO3XbEE7GDcLVEq8/IX3QSHxnnkb5UrGjB79PuGISJZtLOZ62Nl1gdazSwi/26DIEjO4JBblM1DrsEFWqEmbpQ3RTTzB3o1ZfnjI63vWQkWBdXxZ/1hwlkpHFM7DssabVzOOlMM4N8u8oUvtXMl29RL8A=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=L/w1XYCh; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1791928778; c=relaxed/simple;
+	bh=0MmfTw0rqjIcVHo7nKLcdaNqIsaJEPfH65XL75d7eJc=;
+	h=Date:To:From:Subject:Message-Id; b=rOYtnjT0hrXmNFl7cVwp4ZfosN5msCY7GEg8IsKBzKjVwWf6DlfdvaHp92RDuUpAv2i3KWG2rJ7fYiTyYcr1PZ9kIh/hPZX0ATRm9eJ4prgurWJ4uDiLgzoe+2oMk2xg3T+jT0W+tTsDLIeiUOYlWTfFMHp+/88Tu+KMoK9Ixms=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=O4+z5swK; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="L/w1XYCh"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 637361F000FF;
-	Tue, 13 Oct 2026 21:55:14 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="O4+z5swK"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4C6DA1F000FF;
+	Tue, 13 Oct 2026 21:59:36 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1791928514;
-	bh=kYvBt/JZYvo1+Gp+2BmVk/5luxbCwqDcbQ1KQEhwvMY=;
+	d=linux-foundation.org; s=korg; t=1791928776;
+	bh=NZSxhaQqGrdSOf00mdC5Ac1S3qCd0cvRtlQoqmCVYs0=;
 	h=Date:To:From:Subject;
-	b=L/w1XYCh38/RJRwBh0yJqGbz9Jgvh45CbB8RqV+1mxNYDeMXMQiEGYmuxV2t6qkO+
-	 giOHsSHVzQD8xB+87TlqTsL+9nsUFTIurT6KH+g+0mHtEopjRMzbz2OSkAXxOVtKQ/
-	 VWSJH0YTfIo8piHCib31bw9RCssbBKbZ2YziJ1Qc=
-Date: Tue, 13 Oct 2026 14:55:14 -0700
-To: mm-commits@vger.kernel.org,tj@kernel.org,surenb@google.com,hao.ge@linux.dev,dennis@kernel.org,cl@gentwo.org,harry@kernel.org,akpm@linux-foundation.org
+	b=O4+z5swKm/shqTqJ+PjM314WFQdN+WPjsGN9ITbpTP9c+vmEGMTmPsamkjM88OYzm
+	 f7Sbi8sVSHCHRlIFrKvWNE7Unp+/cp8oUg3VtlmU3SrPyGK2wJXXDauuwb3B+u0AS4
+	 7LCJrZx4v7OIC+QTjNnnBx9EqrmBHuC4Uw//GOVs=
+Date: Tue, 13 Oct 2026 14:59:35 -0700
+To: mm-commits@vger.kernel.org,vbabka@kernel.org,stable@vger.kernel.org,samarth.colleges@gmail.com,minchan@kernel.org,mhocko@suse.com,ljs@kernel.org,liam@infradead.org,jannh@google.com,hannes@cmpxchg.org,gourry@gourry.net,david@kernel.org,pfalcato@suse.de,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-percpu-account-full-object-size-for-percpu-memory-allocations.patch added to mm-new branch
-Message-Id: <20261013215514.637361F000FF@smtp.kernel.org>
+Subject: + mm-madvise-atomically-clear-the-young-bit-on-thp-madv_cold.patch added to mm-new branch
+Message-Id: <20261013215936.4C6DA1F000FF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/percpu: account full object size for percpu memory allocations
+     Subject: mm/madvise: atomically clear the young bit on THP MADV_COLD
 has been added to the -mm mm-new branch.  Its filename is
-     mm-percpu-account-full-object-size-for-percpu-memory-allocations.patch
+     mm-madvise-atomically-clear-the-young-bit-on-thp-madv_cold.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-percpu-account-full-object-size-for-percpu-memory-allocations.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-madvise-atomically-clear-the-young-bit-on-thp-madv_cold.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -69,77 +69,80 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: "Harry Yoo (Meta)" <harry@kernel.org>
-Subject: mm/percpu: account full object size for percpu memory allocations
-Date: Tue, 13 Oct 2026 20:34:39 +0100
+From: Pedro Falcato <pfalcato@suse.de>
+Subject: mm/madvise: atomically clear the young bit on THP MADV_COLD
+Date: Tue, 13 Oct 2026 20:17:19 +0100
 
-When memory allocation profiling is enabled, the pages backing percpu
-memory chunks are attributed to pcpu_alloc_pages().  However, the
-accounting of individual percpu memory allocations via alloc_percpu() and
-friends record only the size of a single object rather than its full size
-across all CPUs.
+As-is, madvise_cold_or_pageout_pte_range() discards the hardware young bit
+by invalidating the PMD, doing pmd_mkold() and subsequently writing to the
+pmd again.  However, it does so in a racy manner, looking at a
+possibly-stale snapshot.  It's entirely possible that a write elsewhere
+set the hardware D bit, which this logic now loses.
 
-As a result, it is often not straightforward to identify which kernel code
-is actually responsible for percpu memory, because the size is
-under-accounted by a factor of num_possible_cpus().
+Fix it by using pmdp_test_and_clear_young().  This is an atomic
+modification of the PMD entry, and thus safe against any possible racing
+writes.  As a (nice) side-effect, this elides one non-required TLB flush
+in pmdp_invalidate().
 
-Account full object size with pcpu_obj_full_size(size) instead, which
-multiplies the object size by num_possible_cpus() and adds the objcg
-pointer overhead.  This is consistent with what memcg already does for
-charging percpu allocations.
+This bug can interact with the swapping system in complicated ways,
+leading to data loss.  For instance, if a folio is marked lazyfree, but
+was later read from, and then MADV_COLD'd while racing a write to that
+same THP, dropping the dirty bit may lead to data loss as
+reclaim/MADV_PAGEOUT drops the "clean" anon folio:
 
-Verified with 64-CPU VM by spawning 400 processes in a memory cgroup and
-measuring mm_init()'s rss_stat counters.
+T0                                T1
+================================================================
+MADV_FREE(thp)			|
+  folio marked lazyfree		|
+read(thp)			|
+  PMD marked young by hardware	|
+				| MADV_COLD(thp)
+write(thp)			|   if (pmd_young(pmd)) {
+  PMD marked dirty by hardware	|     set(pmdp, pmd_mkold(pmd));
+MADV_PAGEOUT/reclaim		|
+  dirty bit may or may not be   |
+  set				|
+    reclaim/pageout may drop    |
+    the folio			|
 
-Delta of kernel/fork.c:1142 mm_init() in /proc/allocinfo:
-
-                  bytes   calls   per allocation
-    unpatched      6320     395         16
-    patched      418176     396       1056
-
-'percpu' field in memory.stat: 422400 (1056 bytes per process)
-
-Memory allocation profiling now accounts the same amount of memory as
-what memcg charges.
-
-Link: https://lore.kernel.org/20261013-fix-alloc-percpu-accounting-v1-1-03e788a1e41f@kernel.org
-Fixes: 60fa4a9e2323 ("mm: percpu: add codetag reference into pcpuobj_ext")
-Signed-off-by: Harry Yoo (Meta) <harry@kernel.org>
+Link: https://lore.kernel.org/20261013191719.95502-1-pfalcato@suse.de
+Fixes: 9c276cc65a58 ("mm: introduce MADV_COLD")
+Signed-off-by: Pedro Falcato <pfalcato@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Assisted-by: LLM # Verification
-Cc: Dennis Zhou <dennis@kernel.org>
-Cc: Tejun Heo <tj@kernel.org>
-Cc: Christoph Lameter <cl@gentwo.org>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Hao Ge <hao.ge@linux.dev>
+Reported-by: Samarth Narang <samarth.colleges@gmail.com>
+Closes: https://lore.kernel.org/linux-mm/20261011132227.413217-1-samarth.colleges@gmail.com/
+Reviewed-by: Gregory Price (Meta) <gourry@gourry.net>
+Cc: Liam R. Howlett <liam@infradead.org>
+Cc: Lorenzo Stoakes <ljs@kernel.org>
+Cc: David Hildenbrand <david@kernel.org>
+Cc: Vlastimil Babka <vbabka@kernel.org>
+Cc: Jann Horn <jannh@google.com>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: <stable@vger.kernel.org>
 ---
 
- mm/percpu.c |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ mm/madvise.c |    5 +----
+ 1 file changed, 1 insertion(+), 4 deletions(-)
 
---- a/mm/percpu.c~mm-percpu-account-full-object-size-for-percpu-memory-allocations
-+++ a/mm/percpu.c
-@@ -1696,14 +1696,15 @@ static void pcpu_alloc_tag_alloc_hook(st
- {
- 	if (mem_alloc_profiling_enabled() && likely(chunk->obj_exts)) {
- 		alloc_tag_add(&chunk->obj_exts[off >> PCPU_MIN_ALLOC_SHIFT].tag,
--			      current->alloc_tag, size);
-+			      current->alloc_tag, pcpu_obj_full_size(size));
- 	}
- }
+--- a/mm/madvise.c~mm-madvise-atomically-clear-the-young-bit-on-thp-madv_cold
++++ a/mm/madvise.c
+@@ -430,10 +430,7 @@ static int madvise_cold_or_pageout_pte_r
+ 		}
  
- static void pcpu_alloc_tag_free_hook(struct pcpu_chunk *chunk, int off, size_t size)
- {
- 	if (mem_alloc_profiling_enabled() && likely(chunk->obj_exts))
--		alloc_tag_sub(&chunk->obj_exts[off >> PCPU_MIN_ALLOC_SHIFT].tag, size);
-+		alloc_tag_sub(&chunk->obj_exts[off >> PCPU_MIN_ALLOC_SHIFT].tag,
-+			      pcpu_obj_full_size(size));
- }
- #else
- static void pcpu_alloc_tag_alloc_hook(struct pcpu_chunk *chunk, int off,
+ 		if (!pageout && pmd_young(orig_pmd)) {
+-			pmdp_invalidate(vma, addr, pmd);
+-			orig_pmd = pmd_mkold(orig_pmd);
+-
+-			set_pmd_at(mm, addr, pmd, orig_pmd);
++			pmdp_test_and_clear_young(vma, addr, pmd);
+ 			tlb_remove_pmd_tlb_entry(tlb, pmd, addr);
+ 		}
+ 
 _
 
-Patches currently in -mm which might be from harry@kernel.org are
+Patches currently in -mm which might be from pfalcato@suse.de are
 
-mm-percpu-account-full-object-size-for-percpu-memory-allocations.patch
+mm-madvise-atomically-clear-the-young-bit-on-thp-madv_cold.patch
 
