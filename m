@@ -1,94 +1,145 @@
-Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.9])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 45F3353C3CC
-	for <mm-commits@vger.kernel.org>; Tue, 13 Oct 2026 19:17:54 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.9
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E9274549382
+	for <mm-commits@vger.kernel.org>; Tue, 13 Oct 2026 21:55:14 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791919077; cv=none; b=Llz/JmQ/6vdqhgyHuhhpyy9W49Hgl0FcjP39xot1Rzu8ZP0gznCRrCa0yaBRxwOyHVAdJO/WqYs7xCZZ07suVGmSa/mYkXQ9SXkv1AdwykP7p62cZGSjbssFk0aliLtvCX8ilOGtaEIVN+K9b3lnQ2t2CkZr04u7M1tt78Ukoio=
+	t=1791928516; cv=none; b=FgQ1CmAo/9Tz9ZpSBF97Dby4j998ZLnotoJL/09K8LYhxuOHHWy/OebOxNX3Uv1lPxRwdl5+kk0Bc0t64KsYX9u8K+rk6otGSDcP55KA+alH1BRfKaGb4NgN3goybEi1+rwrlwEaQig52KeynGUyQqj9W2HCd8Dl06OCcbGeEUc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791919077; c=relaxed/simple;
-	bh=qHyTz6RuPakAqc/Zebd8QJuZhnOZIORZp6jNItBdjyY=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=ddPgwNHlwDipav5La91umPAacxxPzK0byM7Rjuj539f50C5AON1b+ZyDjIkkUqCpogn3rjpVm92RjE8cQEbh7xtCJpQ8Cs4TAg3/TOlutjf6XosRFap7y2qmqnuKAIRZJiHVgKIaLZSBdzT8xNKyrE9DS6LHOau3E8wTiktbNbk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com; spf=pass smtp.mailfrom=linux.intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=jf/Fu/RG; arc=none smtp.client-ip=192.198.163.9
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.intel.com
+	s=arc-20240116; t=1791928516; c=relaxed/simple;
+	bh=EzbA9cr7mNR+6jAQnOjsPNGDhCZDt5qyRL0rcV+jn3E=;
+	h=Date:To:From:Subject:Message-Id; b=rFqeOvdB76DP1olc6fnO3XbEE7GDcLVEq8/IX3QSHxnnkb5UrGjB79PuGISJZtLOZ62Nl1gdazSwi/26DIEjO4JBblM1DrsEFWqEmbpQ3RTTzB3o1ZfnjI63vWQkWBdXxZ/1hwlkpHFM7DssabVzOOlMM4N8u8oUvtXMl29RL8A=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=L/w1XYCh; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="jf/Fu/RG"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1791919075; x=1823455075;
-  h=date:from:to:cc:subject:message-id:references:
-   mime-version:in-reply-to;
-  bh=qHyTz6RuPakAqc/Zebd8QJuZhnOZIORZp6jNItBdjyY=;
-  b=jf/Fu/RGtkSjR10hxzPgJ90469VDA6eItoGzflLfWL6LfUBRCO/Xkv5d
-   aJ1LKESLbGwzrpv2nxn6+WjfV+RLpoFc3IRCDNyFtNcbRp1Q4X31mNM6a
-   XBaxR0rVZbfeVS8XoyscScI3MCLg5lk9u6cNROy5uKSCuJ68HYKuEX1NK
-   Beq7a70gZ+inYqzrn2PbHcPH5yDy8AgdjZdf/yPZcN7DxlYFN06VlcnRV
-   bDLv8bla3hLfdYOJ6jmvfhvqZ/ahiMhIxKEHYV7o3L7uF/gAuvcFFHhru
-   QMTMIzDFM6qLu/IP53/EgBP18gl48ylRUVrL1AQWJld/EIKUrM7GDjhza
-   g==;
-X-CSE-ConnectionGUID: spR6/IYFQyybMT4gpvd5sg==
-X-CSE-MsgGUID: eNOCgFD8QvqSPhExaB7eMw==
-X-IronPort-AV: E=McAfee;i="6800,10657,11934"; a="552723"
-X-IronPort-AV: E=Sophos;i="6.27,156,1787036400"; 
-   d="scan'208";a="552723"
-Received: from fmviesa003.fm.intel.com ([10.60.135.143])
-  by fmvoesa103.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 13 Oct 2026 12:17:54 -0700
-X-CSE-ConnectionGUID: XPPkE58CSPSGca/wORSTDA==
-X-CSE-MsgGUID: Y8vNwj7ZTISc9kFK+ZEsnQ==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="6.27,156,1787036400"; 
-   d="scan'208";a="1319076"
-Received: from ncintean-mobl1.ger.corp.intel.com (HELO localhost) ([10.245.245.48])
-  by smtpauth.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 13 Oct 2026 12:17:53 -0700
-Date: Tue, 13 Oct 2026 22:17:46 +0300
-From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: mm-commits@vger.kernel.org
-Subject: Re: [merged mm-nonmm-stable]
- resource-kunit-stop-selecting-get_free_region.patch removed from -mm tree
-Message-ID: <as6D2iE5F0RVcbXa@ashevche-desk.local>
-References: <20261011222005.847FB1F0089C@smtp.kernel.org>
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="L/w1XYCh"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 637361F000FF;
+	Tue, 13 Oct 2026 21:55:14 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+	d=linux-foundation.org; s=korg; t=1791928514;
+	bh=kYvBt/JZYvo1+Gp+2BmVk/5luxbCwqDcbQ1KQEhwvMY=;
+	h=Date:To:From:Subject;
+	b=L/w1XYCh38/RJRwBh0yJqGbz9Jgvh45CbB8RqV+1mxNYDeMXMQiEGYmuxV2t6qkO+
+	 giOHsSHVzQD8xB+87TlqTsL+9nsUFTIurT6KH+g+0mHtEopjRMzbz2OSkAXxOVtKQ/
+	 VWSJH0YTfIo8piHCib31bw9RCssbBKbZ2YziJ1Qc=
+Date: Tue, 13 Oct 2026 14:55:14 -0700
+To: mm-commits@vger.kernel.org,tj@kernel.org,surenb@google.com,hao.ge@linux.dev,dennis@kernel.org,cl@gentwo.org,harry@kernel.org,akpm@linux-foundation.org
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: + mm-percpu-account-full-object-size-for-percpu-memory-allocations.patch added to mm-new branch
+Message-Id: <20261013215514.637361F000FF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20261011222005.847FB1F0089C@smtp.kernel.org>
-Organization: Intel Finland Oy - BIC 0357606-4 - c/o Alberga Business Park, 6
- krs, Bertel Jungin Aukio 5, 02600 Espoo
 
-On Sun, Oct 11, 2026 at 03:20:05PM -0700, Andrew Morton wrote:
 
-...
+The patch titled
+     Subject: mm/percpu: account full object size for percpu memory allocations
+has been added to the -mm mm-new branch.  Its filename is
+     mm-percpu-account-full-object-size-for-percpu-memory-allocations.patch
 
-> Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-> Reviewed-by: Bradley Morgan <brads@mainlining.org>
-> Tested-by: Bradley Morgan <brads@mainlining.org> # Power10
-> Assisted-by: LLM
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-percpu-account-full-object-size-for-percpu-memory-allocations.patch
 
-I'm wondering if it will be a big deal to you to add to your scripts something
-that will emit a '---' line here (before Cc list). This will reduce a lot of
-noise in the commit messages, especially when the Cc list is hypothetically 20
-lines while commit message hypothetically only 3. Note, that emails will be still
-send as usual (in case you use some kind of `git send-email` or `b4`.
+This patch will later appear in the mm-new branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
-> Cc: Ying Huang <huang.ying.caritas@gmail.com>
-> Cc: Geert Uytterhoeven <geert@linux-m68k.org>
-> Cc: Brendan Higgins <brendan.higgins@linux.dev>
-> Cc: David Gow <david@davidgow.net>
-> Cc: Rae Moar <raemoar63@gmail.com>
-> Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-> 
-> ---
+Note, mm-new is a provisional staging ground for work-in-progress
+patches, and acceptance into mm-new is a notification for others take
+notice and to finish up reviews.  Please do not hesitate to respond to
+review feedback and post updated versions to replace or incrementally
+fixup patches in mm-new.
 
--- 
-With Best Regards,
-Andy Shevchenko
+The mm-new branch of mm.git is not included in linux-next
 
+If a few days of testing in mm-new is successful, the patch will me moved
+into mm.git's mm-unstable branch, which is included in linux-next
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via various
+branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there most days
+
+------------------------------------------------------
+From: "Harry Yoo (Meta)" <harry@kernel.org>
+Subject: mm/percpu: account full object size for percpu memory allocations
+Date: Tue, 13 Oct 2026 20:34:39 +0100
+
+When memory allocation profiling is enabled, the pages backing percpu
+memory chunks are attributed to pcpu_alloc_pages().  However, the
+accounting of individual percpu memory allocations via alloc_percpu() and
+friends record only the size of a single object rather than its full size
+across all CPUs.
+
+As a result, it is often not straightforward to identify which kernel code
+is actually responsible for percpu memory, because the size is
+under-accounted by a factor of num_possible_cpus().
+
+Account full object size with pcpu_obj_full_size(size) instead, which
+multiplies the object size by num_possible_cpus() and adds the objcg
+pointer overhead.  This is consistent with what memcg already does for
+charging percpu allocations.
+
+Verified with 64-CPU VM by spawning 400 processes in a memory cgroup and
+measuring mm_init()'s rss_stat counters.
+
+Delta of kernel/fork.c:1142 mm_init() in /proc/allocinfo:
+
+                  bytes   calls   per allocation
+    unpatched      6320     395         16
+    patched      418176     396       1056
+
+'percpu' field in memory.stat: 422400 (1056 bytes per process)
+
+Memory allocation profiling now accounts the same amount of memory as
+what memcg charges.
+
+Link: https://lore.kernel.org/20261013-fix-alloc-percpu-accounting-v1-1-03e788a1e41f@kernel.org
+Fixes: 60fa4a9e2323 ("mm: percpu: add codetag reference into pcpuobj_ext")
+Signed-off-by: Harry Yoo (Meta) <harry@kernel.org>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+Assisted-by: LLM # Verification
+Cc: Dennis Zhou <dennis@kernel.org>
+Cc: Tejun Heo <tj@kernel.org>
+Cc: Christoph Lameter <cl@gentwo.org>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Hao Ge <hao.ge@linux.dev>
+---
+
+ mm/percpu.c |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
+
+--- a/mm/percpu.c~mm-percpu-account-full-object-size-for-percpu-memory-allocations
++++ a/mm/percpu.c
+@@ -1696,14 +1696,15 @@ static void pcpu_alloc_tag_alloc_hook(st
+ {
+ 	if (mem_alloc_profiling_enabled() && likely(chunk->obj_exts)) {
+ 		alloc_tag_add(&chunk->obj_exts[off >> PCPU_MIN_ALLOC_SHIFT].tag,
+-			      current->alloc_tag, size);
++			      current->alloc_tag, pcpu_obj_full_size(size));
+ 	}
+ }
+ 
+ static void pcpu_alloc_tag_free_hook(struct pcpu_chunk *chunk, int off, size_t size)
+ {
+ 	if (mem_alloc_profiling_enabled() && likely(chunk->obj_exts))
+-		alloc_tag_sub(&chunk->obj_exts[off >> PCPU_MIN_ALLOC_SHIFT].tag, size);
++		alloc_tag_sub(&chunk->obj_exts[off >> PCPU_MIN_ALLOC_SHIFT].tag,
++			      pcpu_obj_full_size(size));
+ }
+ #else
+ static void pcpu_alloc_tag_alloc_hook(struct pcpu_chunk *chunk, int off,
+_
+
+Patches currently in -mm which might be from harry@kernel.org are
+
+mm-percpu-account-full-object-size-for-percpu-memory-allocations.patch
 
