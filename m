@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A15F24825B8
-	for <mm-commits@vger.kernel.org>; Tue, 13 Oct 2026 04:32:37 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B3FE63019C8
+	for <mm-commits@vger.kernel.org>; Tue, 13 Oct 2026 04:32:38 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791865958; cv=none; b=Yg0awjirgcIGTQYGgS2L7nvxCcl/3qFKL2RMIvjYZznQE1sFIiclOk5UKGXIYFvlXY+KboQBPSEqydN5375JDzvHHgNYuaevDXmA1/UygnOKz5qrqGeOwy04GqoIGhIe1movWLCaW2yV1fQkuiZBi1iHT0fIMxeUyYRj6wHasak=
+	t=1791865959; cv=none; b=L4O4FDyhkhKCeVXHqGRRlzO9iq5NNZYStqoB9+FWqUdqV5s4QxxnTxHWNagr1LhM+BByl8DD1TMFXjy2YZhVJ4hIS6yWIevefR4D6epzVJzBp8mUHSEEN/jG20+e0ee+dhRnXh7IaQmBBWdcHrJ9SdQgB79qBGRXt/aCquXdr70=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791865958; c=relaxed/simple;
-	bh=67NlLZhMJXXl8MVX3vrE9kDAA3q6ElJsu6yAPf+wgiA=;
-	h=Date:To:From:Subject:Message-Id; b=DvyciapbDuige+sRS437K9LU1T+ZuStgDfftWzhukeTkHybiMSN+yDTHbobaEcCIys+yMBiMFv+LVz9xMqesf2JIGjaS0Qr8PWcrx0NCtAmOD/UT1tv+4RWCHC6UUSdccmClEhJazr0EgmxqXm4l1uiyW5gkF99BQSEiQ+nJtvA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=iMEaaPJM; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1791865959; c=relaxed/simple;
+	bh=ElD/MpJAmruxn7uzH88cFvYzF49pCPyAaYt+X6bt/J4=;
+	h=Date:To:From:Subject:Message-Id; b=qyZtVFNQk2WEaPc6jk0Nbljs57mq76vaMud6RWENsM3KV6kPVgLKbpF4RPx0ebsKtI1MKaLzx9x4X98SOzfUreVAKhMx5d4DOCqddF+bIQ2vBHe1dFnbvITU/T0JwLq0Qd9xDY51z2RMDywJpdnl4i+wgRLOKF1WZ8CErzBL+v8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=e8XjDuKx; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="iMEaaPJM"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7BD3A1F000FF;
-	Tue, 13 Oct 2026 04:32:37 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="e8XjDuKx"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 885181F00893;
+	Tue, 13 Oct 2026 04:32:38 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1791865957;
-	bh=Wl3Fj2UdLWs0DQMzWeyFGU11wQzcR2EomrIIH7FuZ3I=;
+	d=linux-foundation.org; s=korg; t=1791865958;
+	bh=4BwPynG8yfIqL6LRvbpqrrr5Tdj2SRJGlKy22wUIctw=;
 	h=Date:To:From:Subject;
-	b=iMEaaPJMeeMJcKTsOXflpZ05m8sFAU7BKjPD/HTpiynYbZ25x+yF+NOH+EWV5Yx6U
-	 yH2jzLIgwYG/LApMftO5TErW2xGmYmkNHEZcR9gL6v3iIr9HN9Ihr9bgyLrJtPOkB2
-	 sAh4zxv24NPTu+f8tuU2wb4dq8iJUHSRANVPL7VI=
-Date: Mon, 12 Oct 2026 21:32:37 -0700
-To: mm-commits@vger.kernel.org,yuanchu@google.com,willy@infradead.org,weixugc@google.com,vbabka@kernel.org,surenb@google.com,shikemeng@huaweicloud.com,shakeel.butt@linux.dev,rppt@kernel.org,roman.gushchin@linux.dev,nphamcs@gmail.com,muchun.song@linux.dev,mhocko@kernel.org,ljs@kernel.org,liam@infradead.org,kasong@tencent.com,hannes@cmpxchg.org,david@kernel.org,chrisl@kernel.org,baoquan.he@linux.dev,baolin.wang@linux.alibaba.com,baohua@kernel.org,axelrasmussen@google.com,tz2294@columbia.edu,akpm@linux-foundation.org
+	b=e8XjDuKxksgoQRYo67qsW7aWsECoAToC151B66tNyy7JojDDdYgWR9Yw6b5TH06uA
+	 lO0eySVhQ/Ua+7tV9tSRnpndOIm83IOIlsTOiWW+feifqsIyen1KxpJa93sK3Xl/Yl
+	 tgRGwYNFPkVbwGNa2SEjlotnjae36dCg1/kFkvpQ=
+Date: Mon, 12 Oct 2026 21:32:38 -0700
+To: mm-commits@vger.kernel.org,willy@infradead.org,vishal.moola@gmail.com,shakeel.butt@linux.dev,roman.gushchin@linux.dev,riel@surriel.com,muchun.song@linux.dev,mhocko@kernel.org,jack@suse.cz,hannes@cmpxchg.org,david@kernel.org,usama.arif@linux.dev,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-memcontrol-constify-the-zswap-and-socket-pressure-helpers.patch removed from -mm tree
-Message-Id: <20261013043237.7BD3A1F000FF@smtp.kernel.org>
+Subject: [merged mm-stable] mm-filemap-move-lruvec-accounting-outside-the-xarray-lock.patch removed from -mm tree
+Message-Id: <20261013043238.885181F00893@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,104 +35,92 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: memcontrol: constify the zswap and socket pressure helpers
+     Subject: mm: filemap: move lruvec accounting outside the xarray lock
 has been removed from the -mm tree.  Its filename was
-     mm-memcontrol-constify-the-zswap-and-socket-pressure-helpers.patch
+     mm-filemap-move-lruvec-accounting-outside-the-xarray-lock.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Tal Zussman <tz2294@columbia.edu>
-Subject: mm: memcontrol: constify the zswap and socket pressure helpers
-Date: Tue, 15 Sep 2026 19:20:15 -0400
+From: Usama Arif <usama.arif@linux.dev>
+Subject: mm: filemap: move lruvec accounting outside the xarray lock
+Date: Wed, 16 Sep 2026 05:51:22 -0700
 
-mem_cgroup_zswap_writeback_enabled() only reads the zswap_writeback flags,
-and mem_cgroup_get_socket_pressure() only reads the socket pressure
-timestamp.  Constify them.
+__filemap_add_folio() inserts a folio and updates mapping->nrpages while
+holding mapping->i_pages.xa_lock with interrupts disabled.  The XArray
+insertion and nrpages update require the lock, but the lruvec statistic
+updates do not.  With CONFIG_MEMCG, those calls also update per-CPU memcg
+and lruvec counters and notify cgroup rstat, extending the critical
+section.
 
-Link: https://lore.kernel.org/20260915-folio_memcg-const-v3-11-c239a6010b58@columbia.edu
-Signed-off-by: Tal Zussman <tz2294@columbia.edu>
+Move the lruvec accounting after a successful XArray insertion and after
+xas_unlock_irq().  The page-cache references pin the folio, while the
+folio lock keeps folio->mapping stable and prevents removal until
+accounting is complete.  This moves one lruvec update for ordinary folios
+and a second for PMD-mappable folios out of the serialized section.
+
+In a 30-second system-wide perf lock contention -ab capture on a
+production host, the hottest caller-stack record attributed to
+__filemap_add_folio() had 20,867 contentions and 557.930 ms total wait. 
+That was 14% of the 3.998 seconds of aggregate lock wait in the capture. 
+Moving lruvec accuting outside of critical section should help optimize
+it.
+
+Link: https://lore.kernel.org/20260916125122.2696271-1-usama.arif@linux.dev
+Signed-off-by: Usama Arif <usama.arif@linux.dev>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+Reviewed-by: Shakeel Butt <shakeel.butt@linux.dev>
 Acked-by: Muchun Song <muchun.song@linux.dev>
-Acked-by: Shakeel Butt <shakeel.butt@linux.dev>
-Acked-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
-Cc: Axel Rasmussen <axelrasmussen@google.com>
-Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: Baoquan He <baoquan.he@linux.dev>
-Cc: Barry Song <baohua@kernel.org>
-Cc: Chris Li <chrisl@kernel.org>
+Reviewed-by: Vishal Moola (Fractile) <vishal.moola@gmail.com>
+Reviewed-by: Jan Kara <jack@suse.cz>
 Cc: David Hildenbrand <david@kernel.org>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Kairui Song <kasong@tencent.com>
-Cc: Kemeng Shi <shikemeng@huaweicloud.com>
-Cc: Liam R. Howlett <liam@infradead.org>
 Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
 Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Nhat Pham <nphamcs@gmail.com>
+Cc: Rik van Riel <riel@surriel.com>
 Cc: Roman Gushchin <roman.gushchin@linux.dev>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Vlastimil Babka <vbabka@kernel.org>
-Cc: Wei Xu <weixugc@google.com>
-Cc: Yuanchu Xie <yuanchu@google.com>
 ---
 
- include/linux/memcontrol.h |    8 ++++----
- mm/memcontrol.c            |    2 +-
- 2 files changed, 5 insertions(+), 5 deletions(-)
+ mm/filemap.c |   15 +++++++--------
+ 1 file changed, 7 insertions(+), 8 deletions(-)
 
---- a/include/linux/memcontrol.h~mm-memcontrol-constify-the-zswap-and-socket-pressure-helpers
-+++ a/include/linux/memcontrol.h
-@@ -1684,7 +1684,7 @@ static inline void mem_cgroup_set_socket
- 	write_sequnlock_irqrestore(&memcg->socket_pressure_seqlock, flags);
- }
+--- a/mm/filemap.c~mm-filemap-move-lruvec-accounting-outside-the-xarray-lock
++++ a/mm/filemap.c
+@@ -918,14 +918,6 @@ noinline int __filemap_add_folio(struct
  
--static inline u64 mem_cgroup_get_socket_pressure(struct mem_cgroup *memcg)
-+static inline u64 mem_cgroup_get_socket_pressure(const struct mem_cgroup *memcg)
- {
- 	unsigned int seq;
- 	u64 val;
-@@ -1702,7 +1702,7 @@ static inline void mem_cgroup_set_socket
- 	WRITE_ONCE(memcg->socket_pressure, jiffies + HZ);
- }
+ 		mapping->nrpages += nr;
  
--static inline u64 mem_cgroup_get_socket_pressure(struct mem_cgroup *memcg)
-+static inline u64 mem_cgroup_get_socket_pressure(const struct mem_cgroup *memcg)
- {
- 	return READ_ONCE(memcg->socket_pressure);
- }
-@@ -1937,7 +1937,7 @@ static inline void mem_cgroup_calculate_
- bool obj_cgroup_may_zswap(struct obj_cgroup *objcg);
- void obj_cgroup_charge_zswap(struct obj_cgroup *objcg, size_t size);
- void obj_cgroup_uncharge_zswap(struct obj_cgroup *objcg, size_t size);
--bool mem_cgroup_zswap_writeback_enabled(struct mem_cgroup *memcg);
-+bool mem_cgroup_zswap_writeback_enabled(const struct mem_cgroup *memcg);
- #else
- static inline bool obj_cgroup_may_zswap(struct obj_cgroup *objcg)
- {
-@@ -1951,7 +1951,7 @@ static inline void obj_cgroup_uncharge_z
- 					     size_t size)
- {
- }
--static inline bool mem_cgroup_zswap_writeback_enabled(struct mem_cgroup *memcg)
-+static inline bool mem_cgroup_zswap_writeback_enabled(const struct mem_cgroup *memcg)
- {
- 	/* if zswap is disabled, do not block pages going to the swapping device */
- 	return true;
---- a/mm/memcontrol.c~mm-memcontrol-constify-the-zswap-and-socket-pressure-helpers
-+++ a/mm/memcontrol.c
-@@ -6318,7 +6318,7 @@ void obj_cgroup_uncharge_zswap(struct ob
- 	rcu_read_unlock();
- }
+-		/* hugetlb pages do not participate in page cache accounting */
+-		if (!huge) {
+-			lruvec_stat_mod_folio(folio, NR_FILE_PAGES, nr);
+-			if (folio_test_pmd_mappable(folio))
+-				lruvec_stat_mod_folio(folio,
+-						NR_FILE_THPS, nr);
+-		}
+-
+ unlock:
+ 		xas_unlock_irq(&xas);
  
--bool mem_cgroup_zswap_writeback_enabled(struct mem_cgroup *memcg)
-+bool mem_cgroup_zswap_writeback_enabled(const struct mem_cgroup *memcg)
- {
- 	/* if zswap is disabled, do not block pages going to the swapping device */
- 	if (!zswap_is_enabled())
+@@ -942,6 +934,13 @@ unlock:
+ 	if (xas_error(&xas))
+ 		goto error;
+ 
++	/* hugetlb pages do not participate in page cache accounting */
++	if (!huge) {
++		lruvec_stat_mod_folio(folio, NR_FILE_PAGES, nr);
++		if (folio_test_pmd_mappable(folio))
++			lruvec_stat_mod_folio(folio, NR_FILE_THPS, nr);
++	}
++
+ 	trace_mm_filemap_add_to_page_cache(folio);
+ 	return 0;
+ error:
 _
 
-Patches currently in -mm which might be from tz2294@columbia.edu are
+Patches currently in -mm which might be from usama.arif@linux.dev are
 
+mm-remove-the-unused-zone-unaccepted_cleanup.patch
+mm-zswap-use-separate-compression-and-decompression-requests.patch
+mm-zswap-use-stack-requests-for-synchronous-decompression.patch
 
