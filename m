@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3A6EA49B5CA
-	for <mm-commits@vger.kernel.org>; Tue, 13 Oct 2026 18:33:10 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E28155349CE
+	for <mm-commits@vger.kernel.org>; Tue, 13 Oct 2026 18:51:09 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791916391; cv=none; b=n98ds5XPgSuLK1bp/G5BX4N4rHo3M4uGC3gNK547mDVTAAKs8JFaAA6mLbjf4t/U2Nu+UjY1p/UFVeSmI5QntobXvTE1HjOCACU1KUO8NhrZ9xXvmacf1xwfD1C1HEeGn68P+aBC9QVoaPsRhSS7nAQXDR9nWxkChJpIT9gBH/c=
+	t=1791917471; cv=none; b=ERrAQpkLg6Xo7kyaAzStIaGn0VKDkjii+DBUK00r5sDz7EnI62C5OVoDN1C2SmVH2WGbhNDC7q2YYkoR77vBwN7/gOWkQokiUvrRUy4PX/K79pqYmQSx/15ZiKyRD8IZotNwfqxlv0pw+Luymk+/Ieh1i7D3XjPuSQP0OnqQpWA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791916391; c=relaxed/simple;
-	bh=bwPw/5iJoPJjZLlLbpA+o5PtwUCiMnunrWvqVGFdXUg=;
-	h=Date:To:From:Subject:Message-Id; b=fzpHeguy+19SGMyH26osXaTFgS50tqKIh1SqLYUP8l0qgCGWAa3+dOhAToAw10x2QuLe62KD+VKVHqrjBdXlH94pxGDEk8pMumrR+wVs6qhK9XonEm7gfNKh7Ic3Xaw8eu5TJYTEaE/ZnzhfkL0J5Yj0dplenz7yxnkF89liYQQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Amziq52L; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1791917471; c=relaxed/simple;
+	bh=wuBkJj1az28riInQDDEoA2Qm+npcOmndT9ML/TZawpE=;
+	h=Date:To:From:Subject:Message-Id; b=X+llPhOS6hfXLDvBHvMCLwb/l5k2k8D314y5O3BElsdPB/77Yblytepp5SHl5TlNGBtozsrBeTAKOnWDRZZ7sdvlIUkjpcdNYUbxBJvTdOjjnJIRm2wESx3DeJuDgUFWRnoNX1i7XvCrBZ84dYEZ/wxIlW1MM1HMWhVA7G5UXo4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=sj56m25D; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Amziq52L"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 10E791F000FF;
-	Tue, 13 Oct 2026 18:33:10 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="sj56m25D"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B4C751F00893;
+	Tue, 13 Oct 2026 18:51:09 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1791916390;
-	bh=Cmoz+gk29woTdgnrF8ur9I8lUcMjDZNN/NIGO63ClHI=;
+	d=linux-foundation.org; s=korg; t=1791917469;
+	bh=i17VW6WdFtEhpzAUa1mNh88k6GLI9oyvsLggIVfJ93M=;
 	h=Date:To:From:Subject;
-	b=Amziq52Lwc28QEFp5EkGtOwY7RdkOc16WUNCMN9BDjuoBCbIh1smE1epu+KoUQdxl
-	 bL3D6Op1cpZzAK4HCf6M69CvB8huNyGqCnVIehOsdOK39Uf1b+OAbUh6lraJzhVuQi
-	 Cq/NWmpqOd74hHQcOCTJ8/b39frUtlN9xdjdOws0=
-Date: Tue, 13 Oct 2026 11:33:09 -0700
+	b=sj56m25DRJj56OR2l6kfe2w+YcMTYPWEmEJbgDfszJOmnGh/FnKPpT8wkWHiz0iHj
+	 5jcXyS08aRuPCZJ7vt5Xe9tdXrPJZ2i9PSFGsXJkeAO6FFYOhGkRa7RC98MJ+ebMhQ
+	 hs5TGPEHsnOF79R8RmgdS31tZUl08KIQpWp50N8o=
+Date: Tue, 13 Oct 2026 11:51:09 -0700
 To: mm-commits@vger.kernel.org,ljs@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [to-be-updated] mm-huge_memory-remove-vma_is_special_huge.patch removed from -mm tree
-Message-Id: <20261013183310.10E791F000FF@smtp.kernel.org>
+Subject: + mm-vma-introduce-and-use-vma_can_merge.patch added to mm-unstable branch
+Message-Id: <20261013185109.B4C751F00893@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,44 +34,60 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The quilt patch titled
-     Subject: mm/huge_memory: remove vma_is_special_huge()
-has been removed from the -mm tree.  Its filename was
-     mm-huge_memory-remove-vma_is_special_huge.patch
+The patch titled
+     Subject: mm/vma: introduce and use vma_[flags_]can_merge()
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-vma-introduce-and-use-vma_can_merge.patch
 
-This patch was dropped because an updated version will be issued
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vma-introduce-and-use-vma_can_merge.patch
+
+This patch will later appear in the mm-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via various
+branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there most days
 
 ------------------------------------------------------
 From: "Lorenzo Stoakes (ARM)" <ljs@kernel.org>
-Subject: mm/huge_memory: remove vma_is_special_huge()
-Date: Fri, 09 Oct 2026 19:04:32 +0100
+Subject: mm/vma: introduce and use vma_[flags_]can_merge()
+Date: Tue, 13 Oct 2026 16:04:42 +0100
 
-vma_is_special_huge() tests whether either the VMA_PFNMAP_BIT or
-VMA_MIXEDMAP_BIT is set (i.e. whether the VMA is not mm-managed),
-but with a DAX carve-out.
+Replace the open-coded VMA_SPECIAL_FLAGS check in the VMA merge logic with
+two new functions vma_flags_can_merge() and vma_can_merge() and update the
+merge logic to use the former.
 
-DAX however no longer sets VMA_MIXEDMAP_BIT, so this carve-out is no longer
-required.
+This abstracts the check and expresses it in terms of the desired behaviour
+rather than an arbitrary and confusing VMA flag.
 
-Therefore test for !vma_is_mm_managed() instead and also drop the
-VMA_IO_BIT check, as it is now redundant since it is enforced that
-mm-managed mappings may not set VMA_IO_BIT.
+This also lays the groundwork for making further improvements in VMA flag
+usage.
 
-This also eliminates another overloaded use of 'special' within mm.
+Also update the userland VMA tests to reflect the change.
 
 No functional change intended.
 
-Link: https://lore.kernel.org/20261009-b4-mmap-prepare-vma-flag-sanify-v5-38-923b70125b1e@kernel.org
+Link: https://lore.kernel.org/20261013-b4-mmap-prepare-vma-flag-sanify-v6-2-1aa3c9b139f9@kernel.org
 Signed-off-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Acked-by: Zi Yan <ziy@nvidia.com>
+Reviewed-by: Gregory Price (Meta) <gourry@gourry.net>
+Reviewed-by: Zi Yan <ziy@nvidia.com>
+Reviewed-by: Suren Baghdasaryan <surenb@google.com>
 Acked-by: David Hildenbrand (Arm) <david@kernel.org>
 Cc: Liam R. Howlett <liam@infradead.org>
 Cc: Vlastimil Babka <vbabka@kernel.org>
 Cc: Jann Horn <jannh@google.com>
 Cc: Pedro Falcato <pfalcato@suse.de>
 Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Suren Baghdasaryan <surenb@google.com>
 Cc: Michal Hocko <mhocko@suse.com>
 Cc: Jonathan Corbet <corbet@lwn.net>
 Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
@@ -152,7 +168,6 @@ Cc: Matthew Brost <matthew.brost@intel.com>
 Cc: Joshua Hahn <joshua.hahnjy@gmail.com>
 Cc: Rakie Kim <rakie.kim@sk.com>
 Cc: Byungchul Park <byungchul@sk.com>
-Cc: Gregory Price <gourry@gourry.net>
 Cc: Ying Huang <ying.huang@linux.alibaba.com>
 Cc: Alistair Popple <apopple@nvidia.com>
 Cc: Chris Li <chrisl@kernel.org>
@@ -175,68 +190,132 @@ Cc: Ihor Solodrai <ihor.solodrai@linux.dev>
 Cc: Bert Karwatzki <spasswolf@web.de>
 ---
 
- mm/huge_memory.c |   18 ++++--------------
- 1 file changed, 4 insertions(+), 14 deletions(-)
+ include/linux/mm.h              |   21 +++++++++++++++++++++
+ mm/vma.c                        |   19 +++++++++++--------
+ tools/testing/vma/include/dup.h |    5 +++++
+ 3 files changed, 37 insertions(+), 8 deletions(-)
 
---- a/mm/huge_memory.c~mm-huge_memory-remove-vma_is_special_huge
-+++ a/mm/huge_memory.c
-@@ -110,14 +110,6 @@ static inline bool file_thp_enabled(cons
- 	return S_ISREG(inode->i_mode);
+--- a/include/linux/mm.h~mm-vma-introduce-and-use-vma_can_merge
++++ a/include/linux/mm.h
+@@ -1614,6 +1614,27 @@ static inline bool vma_is_shared_maywrit
  }
  
--/* If returns true, we are unable to access the VMA's folios. */
--static bool vma_is_special_huge(const struct vm_area_struct *vma)
--{
--	if (vma_is_dax(vma))
--		return false;
--	return vma_test_any(vma, VMA_PFNMAP_BIT, VMA_MIXEDMAP_BIT);
--}
--
- static bool vma_file_bypass_thp_tuneables(const struct vm_area_struct *vma,
- 		enum tva_type type)
+ /**
++ * vma_flags_can_merge() - Do the specified VMA flags permit the VMA to be
++ * merged with another?
++ * @flags: The VMA flags to test.
++ * Returns: true if the flags permit merging, false otherwise.
++ */
++static inline bool vma_flags_can_merge(const vma_flags_t *flags)
++{
++	return !vma_flags_test_any_mask(flags, VMA_SPECIAL_FLAGS);
++}
++
++/**
++ * vma_can_merge() - Do @vma's flags permit it to be merged with another VMA?
++ * @vma: The VMA to test.
++ * Returns: true if the flags permit merging, otherwise false.
++ */
++static inline bool vma_can_merge(const struct vm_area_struct *vma)
++{
++	return vma_flags_can_merge(&vma->flags);
++}
++
++/**
+  * vma_kernel_pagesize - Default page size granularity for this VMA.
+  * @vma: The user mapping.
+  *
+--- a/mm/vma.c~mm-vma-introduce-and-use-vma_can_merge
++++ a/mm/vma.c
+@@ -924,13 +924,14 @@ static __must_check struct vm_area_struc
+ 
+ 	vmg->state = VMA_MERGE_NOMERGE;
+ 
++	if (!vma_flags_can_merge(&vmg->vma_flags))
++		return NULL;
+ 	/*
+-	 * If a special mapping or if the range being modified is neither at the
+-	 * furthermost left or right side of the VMA, then we have no chance of
+-	 * merging and should abort.
++	 * If the range being modified is neither at the furthermost left or
++	 * right side of the VMA, then we have no chance of merging and should
++	 * abort.
+ 	 */
+-	if (vma_flags_test_any_mask(&vmg->vma_flags, VMA_SPECIAL_FLAGS) ||
+-	    (!left_side && !right_side))
++	if (!left_side && !right_side)
+ 		return NULL;
+ 
+ 	if (left_side)
+@@ -1152,9 +1153,11 @@ struct vm_area_struct *vma_merge_new_ran
+ 
+ 	vmg->state = VMA_MERGE_NOMERGE;
+ 
+-	/* Special VMAs are unmergeable, also if no prev/next. */
+-	if (vma_flags_test_any_mask(&vmg->vma_flags, VMA_SPECIAL_FLAGS) ||
+-	    (!prev && !next))
++	if (!vma_flags_can_merge(&vmg->vma_flags))
++		return NULL;
++
++	/* VMAs with no prev/next are unmergeable. */
++	if (!prev && !next)
+ 		return NULL;
+ 
+ 	can_merge_left = can_vma_merge_left(vmg);
+--- a/tools/testing/vma/include/dup.h~mm-vma-introduce-and-use-vma_can_merge
++++ a/tools/testing/vma/include/dup.h
+@@ -1647,3 +1647,8 @@ static inline bool file_is_dev_zero(cons
  {
-@@ -192,7 +184,7 @@ unsigned long __thp_vma_allowable_orders
- 	/* Check the intersection of requested and supported orders. */
- 	if (vma_is_anonymous(vma))
- 		supported_orders = THP_ORDERS_ALL_ANON;
--	else if (vma_is_dax(vma) || vma_is_special_huge(vma))
-+	else if (vma_is_dax(vma) || !vma_is_mm_managed(vma))
- 		supported_orders = THP_ORDERS_ALL_SPECIAL_DAX;
- 	else
- 		supported_orders = THP_ORDERS_ALL_FILE_DEFAULT;
-@@ -3056,7 +3048,7 @@ int zap_huge_pud(struct mmu_gather *tlb,
- 	orig_pud = pudp_huge_get_and_clear_full(vma, addr, pud, tlb->fullmm);
- 	arch_check_zapped_pud(vma, orig_pud);
- 	tlb_remove_pud_tlb_entry(tlb, pud, addr);
--	if (vma_is_special_huge(vma)) {
-+	if (!vma_is_mm_managed(vma)) {
- 		spin_unlock(ptl);
- 		/* No zero page support yet */
- 	} else {
-@@ -3212,7 +3204,7 @@ static void __split_huge_pmd_locked(stru
- 		 */
- 		if (arch_needs_pgtable_deposit())
- 			zap_deposited_table(mm, pmd);
--		if (vma_is_special_huge(vma))
-+		if (!vma_is_mm_managed(vma))
- 			return;
- 		if (unlikely(pmd_is_migration_entry(old_pmd))) {
- 			const softleaf_t old_entry = softleaf_from_pmd(old_pmd);
-@@ -4779,9 +4771,7 @@ static inline bool vma_not_suitable_for_
- {
- 	if (vma_is_dax(vma))
- 		return true;
--	if (vma_is_special_huge(vma))
--		return true;
--	if (vma_test(vma, VMA_IO_BIT))
-+	if (!vma_is_mm_managed(vma))
- 		return true;
- 	if (vma_is_hugetlb(vma))
- 		return true;
+ 	return file && file->f_op == &zero_fops;
+ }
++
++static inline bool vma_flags_can_merge(const vma_flags_t *flags)
++{
++	return !vma_flags_test_any_mask(flags, VMA_SPECIAL_FLAGS);
++}
 _
 
 Patches currently in -mm which might be from ljs@kernel.org are
 
+mm-vma-fix-mmap_prepare-file-handling-remove-file_doesnt_need_get.patch
+mm-vma-introduce-and-use-vma_can_merge.patch
+mm-consistently-validate-vma-state-after-mmap-hooks.patch
+mm-vma-ensure-mmap_prepare-doesnt-set-actions-on-a-mergeable-vma.patch
+mm-make-map_kernel_pages_-internal-and-unexported.patch
+mm-vma-tidy-up-map-kernel-pages-enum-values.patch
+mm-assert-mmap-lock-held-use-new-flags-api-in-vm_insert_page.patch
+mm-add-mmap-action-for-discontiguous-kernel-page-mapping.patch
+docs-filesystems-update-mmap_prepare-docs-for-discontig-kernel-pgs.patch
+drivers-usb-mon-update-to-use-mmap_prepare-map-kernel-pages.patch
+infiniband-update-hfi1-to-use-remap_vmalloc_range.patch
+selinux-reject-writable-opens-of-policy-file-drop-mmap-shared-write-check.patch
+alsa-pcm-use-vm_insert_page-to-map-pcm-status-page.patch
+bpf-arena-mark-arena_map_mmap-mappings-vm_mixedmap.patch
+mm-vma-add-vma_is_mm_managed-predicates.patch
+mm-vma-only-allow-mmap-to-clear-vma_maywrite_bit-if-not-mm-managed.patch
+mm-vma-add-and-use-vma__is_fixed_mapping.patch
+scsi-sg-convert-mmap-hook-to-mmap_prepare-and-rework.patch
+fbdev-defio-assert-fbinfo_virtfb-drop-vm_io-add-vm_mixedmap.patch
+hsi-cmt_speech-convert-mmap-hook-to-mmap_prepare-refactor.patch
+mm-gup-error-out-early-on-vma_mayread_bit-vmas.patch
+uprobes-remove-vm_io-set-vm_mixedmap-for-mapped-kernel-pages.patch
+mm-mlock-clear-vma_locked_mask-over-mmap-callback.patch
+mm-mlock-eliminate-weird-vma_io_bit-abuse-and-simplify.patch
+mm-vma-enforce-that-mm-managed-mappings-may-not-set-vma_io_bit.patch
+mm-remove-vma_io_bit-check-in-vma_is_mm_managed.patch
+mm-remove-hugetlb_inlineh.patch
+mm-rename-is_vm_hugetlb_page-to-vma_is_hugetlb.patch
+mm-drop-some-redundant-checks-around-hugetlb-vmas.patch
+mm-vma-introduce-vma_is_mm_backed.patch
+mm-madvise-update-is_valid_guard_vma-to-use-vma_is_mm_backed.patch
+mm-uffd-use-predicates-for-userfaultfd-checks.patch
+mm-madvise-use-predicates-for-madvise-madv_dofork.patch
+mm-eliminate-vma_special_flags-usage-when-hugetlb-explicitly-tested.patch
+mm-eliminate-vma_special_flags-check-in-lru_gen_look_around.patch
+mm-avoid-use-of-vma_special_flags-in-migrate_vma_setup.patch
+mm-eliminate-vm_special-vma_special_flags.patch
+fuse-dax-do-not-set-vm_mixedmap.patch
+mm-huge_memory-remove-vma_is_special_huge.patch
 mm-vma-const-ify-vma_assert_stabilised-and-associated-functions.patch
 mm-implement-and-use-vma_has_anon_rmap-silence-kcsan.patch
 mm-update-comments-to-refer-to-anon-rmap-rather-than-anon_vma.patch
