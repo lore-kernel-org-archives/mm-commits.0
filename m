@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 008A1484222;
-	Tue, 13 Oct 2026 04:33:08 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6DC0A48489A
+	for <mm-commits@vger.kernel.org>; Tue, 13 Oct 2026 04:33:10 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791865990; cv=none; b=IsdeNXXbQm9eaydGtAwFqsbsa1wElwmwvZmd5JJOeKpE8er0eVsp+4fAz2FYErTa5e3bGvYjYj/KD+iSCQrVRbTGpHLKv1bFBgVotj46dtQzP9YIc1bBgS3NYOy4k9Jm6PSs9h5DipDH1BRext71LF7+GJY2ZEe7VFAllNoiULk=
+	t=1791865993; cv=none; b=euRttp58vBVVlhDScALBsLlKv/6nNQbqcBFusKnO4KJPqEEg5t9oscePgGw33NQY8MC908jk8o7QqUsGO9EZiIGam3dk9Db18jaiJKtueSeguXYJ3T2Y6WsXp7BM7suCo/Htb+x4OJgbmdlaKadJcgPftPMCHLN8mPw5M8R5CW8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791865990; c=relaxed/simple;
-	bh=Km12nEYM4voutnoiIq9ZxNNCTKZHTz6z396oyE+vNok=;
-	h=Date:To:From:Subject:Message-Id; b=On76KQ0p5UXVKl6kTwWEe/Ndstbnc2mVWkRDchR3IP+i6bRWddwdKDlbRnutc1HkSFEJ9GRo/3L4SWGeay76WHOZ/NH2CR0V7ci/rSAjm2EY7hqwM25GORd4nR9PhK1HSCaR0uVvWyjaGBK+SVebT3K4tjYcW3siGt0Rnl1uPt4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=gdMY3FXp; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1791865993; c=relaxed/simple;
+	bh=VH+MHERcV3dDxtIGVasfug7LsDqjKBj2nSjmPKnMZtE=;
+	h=Date:To:From:Subject:Message-Id; b=U3bYKHyhrF1yqwHdXXxXs8D2VQSzJ0wzol5RzXU/CY04OAC6MTGhIdtyprlfjVmcFktJHkEedFxegbMJtnoCJQuwfhCmpOcLV6r0ayHDuQojE8sNlDUC9gahkpDyQ3lm8bFPUmpYdz528RX8Fqsz83H2gJkoUb+pUMw47YP0adw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=fBQIAtHZ; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="gdMY3FXp"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C5B641F00893;
-	Tue, 13 Oct 2026 04:33:08 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="fBQIAtHZ"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3D5B41F000FF;
+	Tue, 13 Oct 2026 04:33:10 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1791865988;
-	bh=87COmUTPCIpGpkgi1vaUqWPNPsrfYfKn4NsRWqds6rg=;
+	d=linux-foundation.org; s=korg; t=1791865990;
+	bh=4UrCCkDxodEsZnGiXq+j8+Aty8OE/XwADDACtwS8vmo=;
 	h=Date:To:From:Subject;
-	b=gdMY3FXpnOgVQ9PvIngJry2Pu6pU65M2qVCRMBX9VTJY6uaVm5aOAS49dun7Kkbdb
-	 3X/6vChkg0mLVSMxZ8DUzE1xy0vIQeU3mBhyzcZsIXClDRafyZopjsC6bXM3PErs2Q
-	 hqYrZ37BkuOOZI/nQd/rtOYvyWqV2SctOWAWXUeg=
-Date: Mon, 12 Oct 2026 21:33:08 -0700
-To: mm-commits@vger.kernel.org,stable@vger.kernel.org,shakeel.butt@linux.dev,osalvador@suse.de,muchun.song@linux.dev,kees@kernel.org,david@kernel.org,colin.i.king@gmail.com,almasrymina@google.com,lihongfu@kylinos.cn,akpm@linux-foundation.org
+	b=fBQIAtHZgUGl9qRhyx5Ye+yg7xonzr3JHDKqW/0b2Ze26sjE3xOn/A2rSTSpyt6HC
+	 uCSChgiCnFekiaHt+P+7/jk9j8Dg3n0BCVn4Jmf7JwZdc1WWozzds0MaacKlGZ2Ctt
+	 5oEXcJJpYbygCoM/KNpdJPCPcrLOd6VrYBglZtG4=
+Date: Mon, 12 Oct 2026 21:33:09 -0700
+To: mm-commits@vger.kernel.org,willy@infradead.org,vbabka@kernel.org,usama.arif@linux.dev,pfalcato@suse.de,paulmck@kernel.org,ljs@kernel.org,liam@infradead.org,jannh@google.com,david@kernel.org,surenb@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-hugetlb_cgroup-move-per-node-usage-on-cgroup-reparenting.patch removed from -mm tree
-Message-Id: <20261013043308.C5B641F00893@smtp.kernel.org>
+Subject: [merged mm-stable] proc-task_mmu-remove-unnecessary-helpers.patch removed from -mm tree
+Message-Id: <20261013043310.3D5B41F000FF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,61 +35,180 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/hugetlb_cgroup: move per-node usage on cgroup reparenting
+     Subject: proc/task_mmu: remove unnecessary helpers
 has been removed from the -mm tree.  Its filename was
-     mm-hugetlb_cgroup-move-per-node-usage-on-cgroup-reparenting.patch
+     proc-task_mmu-remove-unnecessary-helpers.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Hongfu Li <lihongfu@kylinos.cn>
-Subject: mm/hugetlb_cgroup: move per-node usage on cgroup reparenting
-Date: Fri, 18 Sep 2026 10:56:11 +0800
+From: Suren Baghdasaryan <surenb@google.com>
+Subject: proc/task_mmu: remove unnecessary helpers
+Date: Fri, 18 Sep 2026 08:33:12 -0700
 
-hugetlb_cgroup_css_offline() hands the folios of a dying cgroup over to
-its parent with hugetlb_cgroup_move_parent(), which moves the page_counter
-charges and the hugetlb_cgroup pointer of the folio but not its per-node
-usage.  The parent's hugetlb.<size>.numa_stat is short by that usage while
-they are charged, and underflows once they are freed, exposing incorrect
-per-node usage values to userspace.
+Patch series "read proc/pid/smaps_rollup under per-vma lock", v5.
 
-Move the per-node usage to the parent as well.  The folios keep their node
-here, so only the cgroup which holds the usage changes.
+proc/pid/smaps_rollup can be read using the combination of RCU and VMA
+read locks, similar to proc/pid/{maps|smaps|numa_maps}.  RCU is required
+to safely traverse the VMA tree and VMA lock stabilizes the VMA being
+processed and the pagetable walk.  Note that we have to keep the logic to
+drop mmap_lock on contention because even when using per-VMA locks we
+might have to fall back to holding the mmap_lock.
 
-Link: https://lore.kernel.org/20260918-for-hugetlb-charge-v2-2-2b6d8c2bdc36@kylinos.cn
-Fixes: f47761999052 ("hugetlb: add hugetlb.*.numa_stat file")
-Signed-off-by: Hongfu Li <lihongfu@kylinos.cn>
+The first 5 patches are cleanups making later change simpler.  The main
+change is in patch 6.  Patch 7 extends existing proc-maps-race tearing
+test to verify smaps_rollup content.
+
+
+This patch (of 7):
+
+When per-vma locks were behind a config option, a number of helper
+functions were needed to simplify the locking code.  Now that these locks
+are universally available, we can do a little cleanup.  Remove
+lock_vma_range(), unlock_vma_range(), query_vma_setup(),
+query_vma_teardown() helpers.
+
+No functional change intended.
+
+Link: https://lore.kernel.org/20260918153318.758387-1-surenb@google.com
+Link: https://lore.kernel.org/20260918153318.758387-2-surenb@google.com
+Signed-off-by: Suren Baghdasaryan <surenb@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Acked-by: Muchun Song <muchun.song@linux.dev>
-Cc: Colin Ian King <colin.i.king@gmail.com>
-Cc: David Hildenbrand <david@kernel.org>
-Cc: Kees Cook <kees@kernel.org>
-Cc: Mina Almasry <almasrymina@google.com>
-Cc: Oscar Salvador <osalvador@suse.de>
-Cc: Shakeel Butt <shakeel.butt@linux.dev>
-Cc: <stable@vger.kernel.org>
+Reviewed-by: Liam R. Howlett (Oracle) <liam@infradead.org>
+Reviewed-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
+Acked-by: Usama Arif <usama.arif@linux.dev>
+Acked-by: David Hildenbrand (Arm) <david@kernel.org>
+Cc: Jann Horn <jannh@google.com>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: "Paul E . McKenney" <paulmck@kernel.org>
+Cc: Pedro Falcato <pfalcato@suse.de>
+Cc: Vlastimil Babka <vbabka@kernel.org>
 ---
 
- mm/hugetlb_cgroup.c |    2 ++
- 1 file changed, 2 insertions(+)
+ fs/proc/task_mmu.c |   67 ++++++++++---------------------------------
+ 1 file changed, 17 insertions(+), 50 deletions(-)
 
---- a/mm/hugetlb_cgroup.c~mm-hugetlb_cgroup-move-per-node-usage-on-cgroup-reparenting
-+++ a/mm/hugetlb_cgroup.c
-@@ -241,6 +241,8 @@ static void hugetlb_cgroup_move_parent(i
- 	/* Take the pages off the local counter */
- 	page_counter_cancel(counter, nr_pages);
+--- a/fs/proc/task_mmu.c~proc-task_mmu-remove-unnecessary-helpers
++++ a/fs/proc/task_mmu.c
+@@ -160,25 +160,6 @@ static void unlock_ctx_vma(struct proc_m
+ 	}
+ }
  
-+	hugetlb_cgroup_move_usage(h_cg, parent, folio, folio);
-+
- 	set_hugetlb_cgroup(folio, parent);
+-static inline bool lock_vma_range(struct seq_file *m,
+-				  struct proc_maps_locking_ctx *lock_ctx)
+-{
+-	rcu_read_lock();
+-	reset_lock_ctx(lock_ctx);
+-
+-	return true;
+-}
+-
+-static inline void unlock_vma_range(struct proc_maps_locking_ctx *lock_ctx)
+-{
+-	if (lock_ctx->mmap_locked) {
+-		unlock_ctx_mm(lock_ctx);
+-	} else {
+-		unlock_ctx_vma(lock_ctx);
+-		rcu_read_unlock();
+-	}
+-}
+-
+ static struct vm_area_struct *get_next_vma(struct proc_maps_private *priv,
+ 					   loff_t last_pos)
+ {
+@@ -286,13 +267,8 @@ static void *m_start(struct seq_file *m,
+ 		return NULL;
+ 	}
+ 
+-	if (!lock_vma_range(m, lock_ctx)) {
+-		mmput(mm);
+-		put_task_struct(priv->task);
+-		priv->task = NULL;
+-		return ERR_PTR(-EINTR);
+-	}
+-
++	rcu_read_lock();
++	reset_lock_ctx(lock_ctx);
+ 	/*
+ 	 * Reset current position if last_addr was set before
+ 	 * and it's not a sentinel.
+@@ -325,7 +301,12 @@ static void m_stop(struct seq_file *m, v
+ 		return;
+ 
+ 	release_task_mempolicy(priv);
+-	unlock_vma_range(&priv->lock_ctx);
++	if (priv->lock_ctx.mmap_locked) {
++		unlock_ctx_mm(&priv->lock_ctx);
++	} else {
++		unlock_ctx_vma(&priv->lock_ctx);
++		rcu_read_unlock();
++	}
+ 	mmput(mm);
+ 	put_task_struct(priv->task);
+ 	priv->task = NULL;
+@@ -518,21 +499,6 @@ static int pid_maps_open(struct inode *i
+ 		PROCMAP_QUERY_VMA_FLAGS				\
+ )
+ 
+-static int query_vma_setup(struct proc_maps_locking_ctx *lock_ctx)
+-{
+-	reset_lock_ctx(lock_ctx);
+-
+-	return 0;
+-}
+-
+-static void query_vma_teardown(struct proc_maps_locking_ctx *lock_ctx)
+-{
+-	if (lock_ctx->mmap_locked)
+-		unlock_ctx_mm(lock_ctx);
+-	else
+-		unlock_ctx_vma(lock_ctx);
+-}
+-
+ static struct vm_area_struct *query_vma_find_by_addr(struct proc_maps_locking_ctx *lock_ctx,
+ 						     unsigned long addr)
+ {
+@@ -653,12 +619,7 @@ static int do_procmap_query(struct mm_st
+ 	if (!mm || !mmget_not_zero(mm))
+ 		return -ESRCH;
+ 
+-	err = query_vma_setup(&lock_ctx);
+-	if (err) {
+-		mmput(mm);
+-		return err;
+-	}
+-
++	reset_lock_ctx(&lock_ctx);
+ 	vma = query_matching_vma(&lock_ctx, karg.query_addr, karg.query_flags);
+ 	if (IS_ERR(vma)) {
+ 		err = PTR_ERR(vma);
+@@ -732,7 +693,10 @@ static int do_procmap_query(struct mm_st
+ 		vm_file = get_file(vma->vm_file);
+ 
+ 	/* unlock vma or mmap_lock, and put mm_struct before copying data to user */
+-	query_vma_teardown(&lock_ctx);
++	if (lock_ctx.mmap_locked)
++		unlock_ctx_mm(&lock_ctx);
++	else
++		unlock_ctx_vma(&lock_ctx);
+ 	mmput(mm);
+ 
+ 	if (karg.build_id_size) {
+@@ -773,7 +737,10 @@ static int do_procmap_query(struct mm_st
+ 	return 0;
+ 
  out:
- 	return;
+-	query_vma_teardown(&lock_ctx);
++	if (lock_ctx.mmap_locked)
++		unlock_ctx_mm(&lock_ctx);
++	else
++		unlock_ctx_vma(&lock_ctx);
+ 	mmput(mm);
+ out_file:
+ 	if (vm_file)
 _
 
-Patches currently in -mm which might be from lihongfu@kylinos.cn are
+Patches currently in -mm which might be from surenb@google.com are
 
-mm-hugetlb-account-migration-target-folio-in-per-node-nr_hugetlb-vmstat.patch
-mm-memcg-migrate-per-node-hugetlb-lruvec-stat-together-with-hugetlb-folio.patch
-mm-memfd-fix-hugetlb-reservation-accounting-in-error-paths.patch
 
