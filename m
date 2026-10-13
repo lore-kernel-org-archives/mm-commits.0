@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C3715538D8C
-	for <mm-commits@vger.kernel.org>; Tue, 13 Oct 2026 18:52:54 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E8F542D7DD8
+	for <mm-commits@vger.kernel.org>; Tue, 13 Oct 2026 18:52:57 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791917577; cv=none; b=Pt6X7xxTCVp8Q8nNASsTdYTe7ylbW+qG+vrwKr5Bf46NdMqpmGvO3zsmXI8DXsvn/eLr+tj777/NIq6+ZggOsmyAoiKiC9OKjZICgL4tyWesnYOsgrdLoGVvtfCqf8MemCo7ImjyRCWlKbN0D+cRb/yen8L1cAo6P4OkfInnnY0=
+	t=1791917579; cv=none; b=BGSpe3DptNMncIM3ZCJ50BSoKI9c/1sejaqygLRN77kbSS5lW6m0Ued+qqoToURfUpafKphkB/3ha1uAhkpHJXRv4M9dg0rFC2LvVRfH3SjhSsMoFFOjmydnLiPdvxdakpz+erLvxXi6lcpmFQ+NURVewCH0DwQM8hhFoO7tYNc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791917577; c=relaxed/simple;
-	bh=mosDsjyaWV91gdcbuspHKb+DjsdT2h9Z/kgXjpnqS84=;
-	h=Date:To:From:Subject:Message-Id; b=Urnhbgy8BXtJIXBbeP/vJt8r+5hRXFXo0mvC2UBKeSioa7DtYq96NZCf+s7tvw7rXk1jguNxHUcN07hQ6oE4+J5oOKQ41tMr0ZaToR+XjASNqZNMYlYBGtmGgIwyexNlka6is9TQ/E6BOxmzIwXNEsN2d9b69dk514a4zUlAzX0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=wkpdLld6; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1791917579; c=relaxed/simple;
+	bh=yeEotNncuYxtsOpF4vpRCsfQ9rdEUbEboWccAqI5ui8=;
+	h=Date:To:From:Subject:Message-Id; b=Z9yaN2F4MmXvGWDFrvG2rDM55tEqU/q88c/oFa79QiQRCdPNF+yxkNX6x5VERhTehoHel8EuIObFqeorbxuQalgNqRizp1iUo2Yv/PRmyMeIgVwejSHukO//mufaYhbm2flDiERsTTcLBYfS703kCYjlm+kTlHXfeQl3J4NZX+A=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=cK3GD5ZM; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="wkpdLld6"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 827541F00893;
-	Tue, 13 Oct 2026 18:52:54 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="cK3GD5ZM"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 78B691F000FF;
+	Tue, 13 Oct 2026 18:52:57 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1791917574;
-	bh=9rOrrPo9xaoAcutMoQ96TK3B0Y0fMiZQzo9c8p7aaoA=;
+	d=linux-foundation.org; s=korg; t=1791917577;
+	bh=c1tgecxrUaKRWaYQXGV15KUJTZedTTc21Re/WlHKEpU=;
 	h=Date:To:From:Subject;
-	b=wkpdLld6QRrPzsNCOydi9mZ1vbTyIySw8VNG23Jphuigp/LSqbgcR6KbwJ+LP0+Zw
-	 mbeePzFDLTR6Rz2z8Q0VrlP2Yoasiub029UGeP54LWpro9jSWx8ZCk14SdpnyVxeLC
-	 KayoLEdGrKyN+k36yfeWZSczmIQZHCwaKzWSagJc=
-Date: Tue, 13 Oct 2026 11:52:54 -0700
+	b=cK3GD5ZMYxlJlZrzE2NMW8LKwLYi2IQpAkEeD7YAlookWTiHyD7hqTqsVjFoFR+zm
+	 w/59l5tX9YNvF0F/7HClKvGVHRWypDzo7Lgv3LpJEoA8BuVONdy2AWpv2m5jkBos/n
+	 /wk5aB1SI1DoaQNMsKgNrvfZ+j9ao/9ChhIuubiM=
+Date: Tue, 13 Oct 2026 11:52:57 -0700
 To: mm-commits@vger.kernel.org,ljs@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-eliminate-vma_special_flags-usage-when-hugetlb-explicitly-tested.patch added to mm-unstable branch
-Message-Id: <20261013185254.827541F00893@smtp.kernel.org>
+Subject: + mm-eliminate-vma_special_flags-check-in-lru_gen_look_around.patch added to mm-unstable branch
+Message-Id: <20261013185257.78B691F000FF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: eliminate VMA_SPECIAL_FLAGS usage when hugetlb explicitly tested
+     Subject: mm: eliminate VMA_SPECIAL_FLAGS check in lru_gen_look_around()
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-eliminate-vma_special_flags-usage-when-hugetlb-explicitly-tested.patch
+     mm-eliminate-vma_special_flags-check-in-lru_gen_look_around.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-eliminate-vma_special_flags-usage-when-hugetlb-explicitly-tested.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-eliminate-vma_special_flags-check-in-lru_gen_look_around.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,28 +59,27 @@ and is updated there most days
 
 ------------------------------------------------------
 From: "Lorenzo Stoakes (ARM)" <ljs@kernel.org>
-Subject: mm: eliminate VMA_SPECIAL_FLAGS usage when hugetlb explicitly tested
-Date: Tue, 13 Oct 2026 16:05:14 +0100
+Subject: mm: eliminate VMA_SPECIAL_FLAGS check in lru_gen_look_around()
+Date: Tue, 13 Oct 2026 16:05:15 +0100
 
-It is now an invariant that VMA_IO_BIT is not set by mm-managed mappings,
-so each existing VMA_SPECIAL_FLAGS test need only test for
-VMA_DONTEXPAND_BIT, VMA_PFNMAP_BIT and VMA_MIXEDMAP_BIT.
+A fixed or non-mm-managed mapping is one which sets VMA_PFNMAP_BIT,
+VMA_MIXEDMAP_BIT or VMA_DONTEXPAND_BIT, which is precisely what
+VMA_SPECIAL_FLAGS tests for other than VMA_IO_BIT, which is safe to drop as
+mm-managed mappings may not set it.
 
-This is precisely a test for a fixed or non-mm-managed mapping.
+This is equivalent to testing for an mm-backed mapping, except for hugetlb.
 
-Update a number of callsites which already explicitly handle hugetlb
-mappings.
+However, hugetlb folios are never placed on the LRU and
+lru_gen_look_around() is only called from LRU shrinkers on reclaim so this
+is fine.
 
-vma_supports_mlock(), ksm_compatible() and should_skip_vma() explicitly
-check for non-mm-managed or fixed mappings, i.e. for !vma_is_mm_backed(),
-with hugetlb having already been excluded separately.
-
-So update those to check for mm-backed (and add comments for the retained
-droppable checks).
+Using vma_is_mm_backed() rather than checking VMA_SPECIAL_FLAGS makes the
+check self-documenting and helps eliminate confusion around 'special
+flags'.
 
 No functional change intended.
 
-Link: https://lore.kernel.org/20261013-b4-mmap-prepare-vma-flag-sanify-v6-34-1aa3c9b139f9@kernel.org
+Link: https://lore.kernel.org/20261013-b4-mmap-prepare-vma-flag-sanify-v6-35-1aa3c9b139f9@kernel.org
 Signed-off-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 Reviewed-by: Zi Yan <ziy@nvidia.com>
@@ -194,50 +193,22 @@ Cc: Ihor Solodrai <ihor.solodrai@linux.dev>
 Cc: Bert Karwatzki <spasswolf@web.de>
 ---
 
- mm/internal.h |    3 ++-
- mm/ksm.c      |    5 +++--
- mm/vmscan.c   |    2 +-
- 3 files changed, 6 insertions(+), 4 deletions(-)
+ mm/vmscan.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/mm/internal.h~mm-eliminate-vma_special_flags-usage-when-hugetlb-explicitly-tested
-+++ a/mm/internal.h
-@@ -1112,8 +1112,9 @@ static inline struct file *maybe_unlock_
- 
- static inline bool vma_supports_mlock(const struct vm_area_struct *vma)
- {
--	if (vma_test_any_mask(vma, VMA_SPECIAL_FLAGS))
-+	if (!vma_is_mm_backed(vma))
- 		return false;
-+	/* Core mm may discard droppable memory at any time. */
- 	if (vma_test_single_mask(vma, VMA_DROPPABLE))
- 		return false;
- 	if (vma_is_dax(vma) || vma_is_hugetlb(vma))
---- a/mm/ksm.c~mm-eliminate-vma_special_flags-usage-when-hugetlb-explicitly-tested
-+++ a/mm/ksm.c
-@@ -747,9 +747,10 @@ static bool ksm_compatible(const struct
- 	if (vma_flags_test_any(&vma_flags, VMA_SHARED_BIT, VMA_MAYSHARE_BIT,
- 			       VMA_HUGETLB_BIT))
- 		return false;
--	if (vma_flags_test_single_mask(&vma_flags, VMA_DROPPABLE))
-+	if (!vma_flags_is_mm_backed(&vma_flags))
- 		return false;
--	if (vma_flags_test_any_mask(&vma_flags, VMA_SPECIAL_FLAGS))
-+	/* Core mm may discard droppable memory at any time. */
-+	if (vma_flags_test_single_mask(&vma_flags, VMA_DROPPABLE))
- 		return false;
- 	if (file_is_dax(file))
- 		return false;
---- a/mm/vmscan.c~mm-eliminate-vma_special_flags-usage-when-hugetlb-explicitly-tested
+--- a/mm/vmscan.c~mm-eliminate-vma_special_flags-check-in-lru_gen_look_around
 +++ a/mm/vmscan.c
-@@ -3521,7 +3521,7 @@ static int should_skip_vma(unsigned long
- 	if (!vma_has_recency(vma))
+@@ -4461,8 +4461,8 @@ bool lru_gen_look_around(struct page_vma
+ 	if (spin_is_contended(pvmw->ptl))
  		return true;
  
--	if (vma->vm_flags & (VM_LOCKED | VM_SPECIAL))
-+	if (vma_test(vma, VMA_LOCKED_BIT) || !vma_is_mm_backed(vma))
+-	/* exclude special VMAs containing anon pages from COW */
+-	if (vma->vm_flags & VM_SPECIAL)
++	/* exclude non-mm-backed VMAs containing anon pages from COW */
++	if (!vma_is_mm_backed(vma))
  		return true;
  
- 	if (vma == get_gate_vma(vma->vm_mm))
+ 	/* avoid taking the LRU lock under the PTL when possible */
 _
 
 Patches currently in -mm which might be from ljs@kernel.org are
