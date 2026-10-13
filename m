@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5A2E218C02E
-	for <mm-commits@vger.kernel.org>; Tue, 13 Oct 2026 04:32:07 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6AB034825AA
+	for <mm-commits@vger.kernel.org>; Tue, 13 Oct 2026 04:32:09 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791865928; cv=none; b=A50BpUuIyQBLZCIDc7Z7ZUmFwlxJL5sAr5pj0KjsEn/i6xrC9VeP8CMqY3lPaxKgCld/AJYQGd82+mfI5Ui+Jr5z7egIw/N3DzJfYkpCgiLEhjLAv6Krdm5NZnrJIcNyK1WcECRMLfxQGahZUjwf/D5kVX6wE790624M9tTQC0A=
+	t=1791865930; cv=none; b=IAiDya/8aYmTLHYioU2fL/bpPRSXJO0a21an8POr7k6xw5ZWIHJf/jFeKuJxPIkQtwP+kDkNFVE3L8Tg1e02aFbiZdQpG34+Ex0w4JI3N0XEpfPe+TEeyoewTYCjd8pC85BLlDqsPWLsl1aq6HKoGxf7NUTpOo7luzWwUWPDpuk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791865928; c=relaxed/simple;
-	bh=a2hQo0eBENBsg6QJKI21Yd0yZf5mo1ZSEHjB+yLITmQ=;
-	h=Date:To:From:Subject:Message-Id; b=kGVpNqLKhewWOY9NXeRy6pJqhhdQdVdU8g/h+cNB/MRfqyy/AirIaL3vT06K3jwak4GTiPugEshUdXAKqYkD7fE74CL39VxVkvuQo/dzKk2y6ajHK+uFUW6oXsQGcudmdtkWre4ZnkgqhTXb+wLgIguxHI+RegLuEt0/jd5jOAQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Un5Wkibc; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1791865930; c=relaxed/simple;
+	bh=TSLjRyPtqudHlLwQ50j7na9Agnk8Xhv4zzNPGowP1YE=;
+	h=Date:To:From:Subject:Message-Id; b=j32tghG0qsC+qH1jyWbk7lZYR4PsBZipmwADYaVJrFnYgiC2tzhniDByiVf1cMfU1Btr0Q/76Ziw+SFXQcxOaZSm5xG1PVuOoNuQOgG1G7gsbSPoB3LmaiHErAkEqmw9xwx1d19HzsnEpNAsF3IgPI8QIJtY+icKhy+Tim1OnsM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=cQQWUVvy; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Un5Wkibc"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2C7171F00893;
-	Tue, 13 Oct 2026 04:32:07 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="cQQWUVvy"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 40AEC1F00893;
+	Tue, 13 Oct 2026 04:32:09 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1791865927;
-	bh=7xKanlr9qBZ/JG9v2kLlzG3h/v0cKB8lPvxTOowF/KQ=;
+	d=linux-foundation.org; s=korg; t=1791865929;
+	bh=+sOzdbi+f1C/mpycn+KKXI5i9/hNmvME6lJMdsDQqpI=;
 	h=Date:To:From:Subject;
-	b=Un5Wkibc9Zk2uyXvcDpp4p5YM/gcgRO+fQ9XcD9YHwNL1fcPj/fecOOaiAPCz4FEe
-	 1VM+Js1bRIBc3j4s6Tw3cF8FxWQ02pduxCP/cuXodYzuw7vbNIufMDKbE1TJParZE2
-	 rz3bnzDlN3foLFFVKD4FJ0IN2CQUuG41nQhrpjio=
-Date: Mon, 12 Oct 2026 21:32:06 -0700
-To: mm-commits@vger.kernel.org,weiyongjun1@huawei.com,rcampbell@nvidia.com,leon@kernel.org,jglisse@redhat.com,jgg@ziepe.ca,apopple@nvidia.com,error27@gmail.com,akpm@linux-foundation.org
+	b=cQQWUVvy3RahbAB2naGgRsAfUQGeuM2S1Bcv5lQhWG/F7bPMnoNlWPZ7GFdSoUq+5
+	 tfSmb6Aqs2v2DJuZUsaH0RqxRVVa13iYCIrme2qoM6o+EzG2hsUh3I3B/+wkabSxPM
+	 0snCrtQ8dXbj3Sjko9X7jYAYnbT6IGxK9ZQBFqfQ=
+Date: Mon, 12 Oct 2026 21:32:08 -0700
+To: mm-commits@vger.kernel.org,vbabka@kernel.org,surenb@google.com,rppt@kernel.org,mhocko@suse.com,ljs@kernel.org,liam@infradead.org,david@kernel.org,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-hmm-test-reject-overflowing-page-counts.patch removed from -mm tree
-Message-Id: <20261013043207.2C7171F00893@smtp.kernel.org>
+Subject: [merged mm-stable] mm-damon-core-commit-hugepage_size-type-damon-filter.patch removed from -mm tree
+Message-Id: <20261013043209.40AEC1F00893@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,58 +35,113 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/hmm/test: reject overflowing page counts
+     Subject: mm/damon/core: commit hugepage_size type damon filter
 has been removed from the -mm tree.  Its filename was
-     mm-hmm-test-reject-overflowing-page-counts.patch
+     mm-damon-core-commit-hugepage_size-type-damon-filter.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Dan Carpenter <error27@gmail.com>
-Subject: mm/hmm/test: reject overflowing page counts
-Date: Tue, 15 Sep 2026 19:37:27 +0300
+From: SJ Park <sj@kernel.org>
+Subject: mm/damon/core: commit hugepage_size type damon filter
+Date: Tue, 15 Sep 2026 07:33:51 -0700
 
-The number of pages comes directly from userspace.  Shifting a value
-larger than ULONG_MAX >> PAGE_SHIFT discards its high bits before the
-existing end-address check.  A request for a huge number of pages can
-therefore be accepted and processed as a much smaller request.
+Extend data attribute probe filters commit logic for the new hugepage_size
+filter type.  Since it needs to carry the size range of the hugepage,
+update the logic to update the size range fields of the commit destination
+filter struct.  While doing that, validate the given range and propagate
+an error if it is invalid.  Add the error handling in the callers, too.
 
-Reject page counts that cannot be represented as a byte size before
-performing the shift.
-
-So far as ChatGPT and I can tell this doesn't cause an issue in practice
-but preventing this integer overflow is the correct thing to do.
-
-Link: https://lore.kernel.org/6f0d39089e938d4f53dc72632eb84aca34de7015.1789457465.git.error27@gmail.com
-Fixes: b2ef9f5a5cb3 ("mm/hmm/test: add selftest driver for HMM")
-Signed-off-by: Dan Carpenter <error27@gmail.com>
+Link: https://lore.kernel.org/20260915143359.91472-3-sj@kernel.org
+Signed-off-by: SJ Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Reviewed-by: Alistair Popple <apopple@nvidia.com>
-Assisted-by: ChatGPT:gpt-5
-Cc: Jason Gunthorpe <jgg@ziepe.ca>
-Cc: Jerome Glisse <jglisse@redhat.com>
-Cc: Leon Romanovsky <leon@kernel.org>
-Cc: Ralph Campbell <rcampbell@nvidia.com>
-Cc: Wei Yongjun <weiyongjun1@huawei.com>
+Cc: David Hildenbrand <david@kernel.org>
+Cc: Liam R. Howlett <liam@infradead.org>
+Cc: Lorenzo Stoakes <ljs@kernel.org>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Vlastimil Babka <vbabka@kernel.org>
 ---
 
- lib/test_hmm.c |    2 ++
- 1 file changed, 2 insertions(+)
+ mm/damon/core.c |   28 +++++++++++++++++++++++-----
+ 1 file changed, 23 insertions(+), 5 deletions(-)
 
---- a/lib/test_hmm.c~mm-hmm-test-reject-overflowing-page-counts
-+++ a/lib/test_hmm.c
-@@ -1624,6 +1624,8 @@ static long dmirror_fops_unlocked_ioctl(
+--- a/mm/damon/core.c~mm-damon-core-commit-hugepage_size-type-damon-filter
++++ a/mm/damon/core.c
+@@ -1818,7 +1818,7 @@ static int damon_commit_preps(struct dam
+ 	return 0;
+ }
  
- 	if (cmd.addr & ~PAGE_MASK)
- 		return -EINVAL;
-+	if (cmd.npages > ULONG_MAX >> PAGE_SHIFT)
-+		return -EINVAL;
- 	if (cmd.addr >= (cmd.addr + (cmd.npages << PAGE_SHIFT)))
- 		return -EINVAL;
+-static void damon_commit_filter(struct damon_filter *dst,
++static int damon_commit_filter(struct damon_filter *dst,
+ 		struct damon_filter *src)
+ {
+ 	dst->type = src->type;
+@@ -1828,23 +1828,33 @@ static void damon_commit_filter(struct d
+ 	case DAMON_FILTER_TYPE_MEMCG:
+ 		dst->memcg_id = src->memcg_id;
+ 		break;
++	case DAMON_FILTER_TYPE_HUGEPAGE_SIZE:
++		if (src->range_max < src->range_min)
++			return -EINVAL;
++		dst->range_min = src->range_min;
++		dst->range_max = src->range_max;
++		break;
+ 	default:
+ 		break;
+ 	}
++	return 0;
+ }
  
+ static int damon_commit_filters(struct damon_probe *dst,
+ 		struct damon_probe *src)
+ {
+ 	struct damon_filter *dst_filter, *next, *src_filter, *new_filter;
+-	int i = 0, j = 0;
++	int i = 0, j = 0, err;
+ 
+ 	damon_for_each_filter_safe(dst_filter, next, dst) {
+ 		src_filter = damon_nth_filter(i++, src);
+-		if (src_filter)
+-			damon_commit_filter(dst_filter, src_filter);
+-		else
++		if (src_filter) {
++			err = damon_commit_filter(dst_filter, src_filter);
++			if (err)
++				return err;
++		} else {
+ 			damon_destroy_filter(dst_filter);
++		}
+ 	}
+ 
+ 	damon_for_each_filter_safe(src_filter, next, src) {
+@@ -1859,6 +1869,14 @@ static int damon_commit_filters(struct d
+ 		case DAMON_FILTER_TYPE_MEMCG:
+ 			new_filter->memcg_id = src_filter->memcg_id;
+ 			break;
++		case DAMON_FILTER_TYPE_HUGEPAGE_SIZE:
++			if (src_filter->range_max < src_filter->range_min) {
++				damon_destroy_filter(new_filter);
++				return -EINVAL;
++			}
++			new_filter->range_min = src_filter->range_min;
++			new_filter->range_max = src_filter->range_max;
++			break;
+ 		default:
+ 			break;
+ 		}
 _
 
-Patches currently in -mm which might be from error27@gmail.com are
+Patches currently in -mm which might be from sj@kernel.org are
 
+mm-damon-core-introduce-damos_quota_goal-complement.patch
+mm-damon-core-add-complement-argument-to-damos_new_quota_goal.patch
+mm-damon-sysfs-schemes-support-quota-goal-complement-flag.patch
+mm-damon-tests-core-kunit-test-quota_goal-complement-commit.patch
+selftests-damon-sysfssh-test-quota-goal-complement-flag-file.patch
+docs-mm-damon-design-document-damos-quota-goal-complement-flag.patch
+docs-admin-guide-mm-damon-usage-update-for-quota-goal-complement-file.patch
+docs-abi-damon-update-for-quota-goal-metric-complement-sysfs-file.patch
 
