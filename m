@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AA80C484889
-	for <mm-commits@vger.kernel.org>; Tue, 13 Oct 2026 04:32:56 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CE2CD484236
+	for <mm-commits@vger.kernel.org>; Tue, 13 Oct 2026 04:32:59 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791865980; cv=none; b=SJtW5p3VC/jYlH6cMQYxliwK+mB/PH/WYZ/bDTpv52UdX3SWCp9aA+HCaoKrIjJHiF5peX7rgyCTTzTwbzzLG3OilIVIju6Lj70vIImJovFyJMZQ6P+d5rnKz1CLfH/6IiM3C49n/nRGeZHXNL74cyUV7qHgqzttUZUI31u7rMY=
+	t=1791865981; cv=none; b=pdw+6gO9FKPLJk8jxa36ACtzT1xUzvupelekP1vOKQTh303tOPt2Tst7BRk5BqUaeEphyZvZJL66O/wkV/48SYl6JRHU4ymCf+s9nAeiVPCfrZRioKmLvzjPEf0DGV8DERiEQ/NrcdWM+pezzjlEVUOdWMyDWVkPnP+03Jo/caY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791865980; c=relaxed/simple;
-	bh=uIX9evh7QDIZO7WqLN0jYtMZUP6XyIjPIq9uoW6vxTo=;
-	h=Date:To:From:Subject:Message-Id; b=WjfV4Kos+4uwH6zSbLA31Vqxg0Ve5DReTfY7GM8pOoHBDpjk0VeaygWnclY0rkmSwqP+y71gd2s+qmxE5Fk6ljXhaHBgxwYlVebSHB4rb+/8COMCkybdm/Gc6Lp8xEXBbT3QD1ojha3JSE6asheRCukPyiJjtwrTudnr+sV3EZ8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=0VC4EENg; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1791865981; c=relaxed/simple;
+	bh=FsAPagM+r+bmHxN7y/MGqQPcbhoB5gweHdzs6XRCyT8=;
+	h=Date:To:From:Subject:Message-Id; b=CkwDYMIjbbk9FS0TVOqMyG8A/P7m41aMl/XOXS7xmIcTD8wuNFpFZmh5iXbNOa8Ic77hdW9qq8P6JsiQgOK/qPtNucfAlkBzXaKR70jNjAuCBRynYLZYrV+rFglrGVA98bcjAbAZrfXVWkw9dyLe0NQ/EU1E6M+UWQHb/wRxgQg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=LZdZ3hgf; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="0VC4EENg"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 815191F000FF;
-	Tue, 13 Oct 2026 04:32:56 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="LZdZ3hgf"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A3E6D1F00893;
+	Tue, 13 Oct 2026 04:32:59 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1791865976;
-	bh=NudKbIngZc8mMJsXlUx+D9gJcjksHbvmZFoGRpoHvEw=;
+	d=linux-foundation.org; s=korg; t=1791865979;
+	bh=ojzlL2D3IDKTS9L4VNvakB+7C42HnoDWshBfrUtD8IA=;
 	h=Date:To:From:Subject;
-	b=0VC4EENgNoT4eeMStqHkEvSQRxOUAv9c8i1YyfzOgW4pBX43aWrYD8CXsR6HCoJs3
-	 YNnezPIxEpARU+skr0Q+EsgorzYYQuFDIeka0Y9Q/06oQNmoIvvxoisI18Rybn8M+/
-	 w182IAOo/VCNJPL9rcAhO6ACnx/xNxNBVBgamCvA=
-Date: Mon, 12 Oct 2026 21:32:56 -0700
-To: mm-commits@vger.kernel.org,zenghui.yu@linux.dev,vbabka@kernel.org,surenb@google.com,shuah@kernel.org,rppt@kernel.org,rdunlap@infradead.org,mhocko@suse.com,ljs@kernel.org,liam@infradead.org,gutierrez.asier@huawei-partners.com,david@kernel.org,davidgow@davidgow.net,corbet@lwn.net,brendan.higgins@linux.dev,sj@kernel.org,akpm@linux-foundation.org
+	b=LZdZ3hgf4pVI7kd+yIKia2DTr9hGyZUGzYTXaDoe7c58rCCezAGosoIiKjPqc3ik9
+	 gqouPxgwuSYf8E+7WS7WVK2Yd3uY62IIZkCb+DYpmtRIsFfIAAVP4w0n6eksPKTYvt
+	 Wmy90N7tFciRCtzkSoheZ/n2Xg2MeOb8q1pSDdhs=
+Date: Mon, 12 Oct 2026 21:32:59 -0700
+To: mm-commits@vger.kernel.org,rdunlap@infradead.org,corbet@lwn.net,catalin.marinas@arm.com,leitao@debian.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] docs-mm-damon-design-clarify-bp-is-basis-point.patch removed from -mm tree
-Message-Id: <20261013043256.815191F000FF@smtp.kernel.org>
+Subject: [merged mm-stable] mm-kmemleak-raise-min_unref_scans-to-3-for-verbose-auto-scan.patch removed from -mm tree
+Message-Id: <20261013043259.A3E6D1F00893@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,77 +35,72 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: Docs/mm/damon/design: clarify bp is basis point
+     Subject: mm: kmemleak: raise min_unref_scans to 3 for verbose auto-scan
 has been removed from the -mm tree.  Its filename was
-     docs-mm-damon-design-clarify-bp-is-basis-point.patch
+     mm-kmemleak-raise-min_unref_scans-to-3-for-verbose-auto-scan.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: SJ Park <sj@kernel.org>
-Subject: Docs/mm/damon/design: clarify bp is basis point
-Date: Thu, 17 Sep 2026 07:22:08 -0700
+From: Breno Leitao <leitao@debian.org>
+Subject: mm: kmemleak: raise min_unref_scans to 3 for verbose auto-scan
+Date: Thu, 17 Sep 2026 06:47:37 -0700
 
-DAMON design document uses "bp" for "basis point" in multiple places.
-Because it is not clearly mentioned, it is difficult to understand what
-"bp" stands for.  Add the clarification.
+CONFIG_DEBUG_KMEMLEAK_VERBOSE sends every report to the console, so a
+transient false positive there is broadcast to whatever collects the
+kernel log rather than sitting in the debugfs file until someone looks. 
+That asymmetry justifies being more conservative than the general case.
 
-Link: https://lore.kernel.org/20260917142210.90829-11-sj@kernel.org
-Signed-off-by: SJ Park <sj@kernel.org>
+Require one more consecutive unreferenced scan before reporting.  The only
+cost is that a genuine leak is reported one scan interval later (600s by
+default); the value stays writable at run time through the module
+parameter.
+
+Kernels without CONFIG_DEBUG_KMEMLEAK_VERBOSE keep reporting on the first
+unreferenced scan.
+
+I've been running constant upstream kernel with
+CONFIG_DEBUG_KMEMLEAK_VERBOSE set, and I am still seeing some rare false
+positive, that goes away with min_unref_scans=3, so, making it the default
+based on my heuristic.
+
+Link: https://lore.kernel.org/20260917-b4-kmemleak-doc-v1-3-84fde6d1f749@debian.org
+Signed-off-by: Breno Leitao <leitao@debian.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Reported-by: Randy Dunlap <rdunlap@infradead.org>
-Closes: https://lore.kernel.org/107dc6ba-697e-4b25-ba3e-8ce2499cac9a@infradead.org
-Acked-by: Randy Dunlap <rdunlap@infradead.org>
-Acked-by: Zenghui Yu (Huawei) <zenghui.yu@linux.dev>
-Cc: Asier Gutierrez <gutierrez.asier@huawei-partners.com>
-Cc: Brendan Higgins <brendan.higgins@linux.dev>
-Cc: David Gow <davidgow@davidgow.net>
-Cc: David Hildenbrand <david@kernel.org>
+Reviewed-by: Catalin Marinas <catalin.marinas@arm.com>
 Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Liam R. Howlett <liam@infradead.org>
-Cc: Lorenzo Stoakes <ljs@kernel.org>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Shuah Khan <shuah@kernel.org>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Vlastimil Babka <vbabka@kernel.org>
+Cc: Randy Dunlap <rdunlap@infradead.org>
 ---
 
- Documentation/mm/damon/design.rst |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ Documentation/dev-tools/kmemleak.rst |    2 +-
+ mm/kmemleak.c                        |    2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
---- a/Documentation/mm/damon/design.rst~docs-mm-damon-design-clarify-bp-is-basis-point
-+++ a/Documentation/mm/damon/design.rst
-@@ -445,7 +445,7 @@ users to set the aimed amount of access
- given time interval.  The target can be specified by the user as a ratio of
- DAMON-observed access events to the theoretical maximum amount of the events
- (``access_bp``) that measured within a given number of aggregations
--(``aggrs``).
-+(``aggrs``).  The ratio is in basis point (bp or 1/10,000).
+--- a/Documentation/dev-tools/kmemleak.rst~mm-kmemleak-raise-min_unref_scans-to-3-for-verbose-auto-scan
++++ a/Documentation/dev-tools/kmemleak.rst
+@@ -206,7 +206,7 @@ the minimum age of an object to be repor
  
- The DAMON-observed access events are calculated in byte granularity based on
- DAMON :ref:`region assumption <damon_design_region_based_sampling>`.  For
-@@ -717,7 +717,8 @@ mechanism tries to make ``current_value`
-   in microseconds that measured from last quota reset to next quota reset.
-   DAMOS does the measurement on its own, so only ``target_value`` need to be
-   set by users at the initial time.  In other words, DAMOS does self-feedback.
--- ``node_mem_used_bp``: Specific NUMA node's used memory ratio in bp (1/10,000).
-+- ``node_mem_used_bp``: Specific NUMA node's used memory ratio in basis point
-+  (bp or 1/10,000).
- - ``node_mem_free_bp``: Specific NUMA node's free memory ratio in bp (1/10,000).
- - ``node_memcg_used_bp``: Specific cgroup's node used memory ratio for a
-   specific NUMA node, in bp (1/10,000).
+ The ``min_unref_scans`` module parameter requires an object to be seen
+ unreferenced in that many consecutive scans before it is reported. It
+-defaults to 2 when CONFIG_DEBUG_KMEMLEAK_VERBOSE is enabled, where the
++defaults to 3 when CONFIG_DEBUG_KMEMLEAK_VERBOSE is enabled, where the
+ periodic scan thread confirms a leak on its own, and to 1 otherwise. A
+ value of 1 preserves the historical behaviour; higher values filter the
+ transient false positives described above, at the cost of delaying genuine
+--- a/mm/kmemleak.c~mm-kmemleak-raise-min_unref_scans-to-3-for-verbose-auto-scan
++++ a/mm/kmemleak.c
+@@ -238,7 +238,7 @@ static struct task_struct *scan_thread;
+ static unsigned long jiffies_min_age;
+ /* consecutive scans an object must stay unreferenced before reporting */
+ static unsigned int min_unref_scans =
+-	IS_ENABLED(CONFIG_DEBUG_KMEMLEAK_VERBOSE) ? 2 : 1;
++	IS_ENABLED(CONFIG_DEBUG_KMEMLEAK_VERBOSE) ? 3 : 1;
+ module_param(min_unref_scans, uint, 0644);
+ static unsigned long jiffies_last_scan;
+ /* delay between automatic memory scannings */
 _
 
-Patches currently in -mm which might be from sj@kernel.org are
+Patches currently in -mm which might be from leitao@debian.org are
 
-mm-damon-core-introduce-damos_quota_goal-complement.patch
-mm-damon-core-add-complement-argument-to-damos_new_quota_goal.patch
-mm-damon-sysfs-schemes-support-quota-goal-complement-flag.patch
-mm-damon-tests-core-kunit-test-quota_goal-complement-commit.patch
-selftests-damon-sysfssh-test-quota-goal-complement-flag-file.patch
-docs-mm-damon-design-document-damos-quota-goal-complement-flag.patch
-docs-admin-guide-mm-damon-usage-update-for-quota-goal-complement-file.patch
-docs-abi-damon-update-for-quota-goal-metric-complement-sysfs-file.patch
 
