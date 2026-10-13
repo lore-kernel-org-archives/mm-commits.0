@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F35ED472F65;
-	Tue, 13 Oct 2026 02:45:25 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3CA283A6B66;
+	Tue, 13 Oct 2026 02:59:50 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791859527; cv=none; b=ViEPupLTBmQYSg5FSHePKawVbJbEOOtRVQUGyud4YpkWyiY+teCaMTsLHy8/WI6p0C+wazo2nAh2JBr4A/55xOcV4IRAX4t54HmdoqlFDvJ3V6QicL0DKC5GHB306m2B98CtdXA0TL8KNfEWj8iFV+TGkMyEfINYPp4XRLk6Kic=
+	t=1791860392; cv=none; b=DYcOuVYfuTxpRynv69skn1o2nIvTYzhOptM0edwkzRn100JV8uEI2JWiIOCNuEWT1gL+suZif9pQ2oLF5PgN/nJU1FVtAFlR22MBLXamwUcZEe/s+IPauKPk37cFStKS/fah7UzJ/g5VXA1YY7aggSOhu0GzKwj3I77EaPDNuRw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791859527; c=relaxed/simple;
-	bh=WeehgmvqQnP25MuVHW11H3D9E7AtzSWp/Eej5Xiqnu8=;
-	h=Date:To:From:Subject:Message-Id; b=VwaLDLg6+ZAYu84tBImQy2zqzZm7+LRc7HUndeW+2YuDu+MsEfqBYv/Us1iZ+FY11f8311ARgoSpM05WjOi2etZby9KpyCLZ7WyljNvIrBZ/3sXw6p0f77k03X9H3633urz2nV0vEum4aA2Wc95vPWHsM8uvVGD+CntUps1O0dI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=icPC7ZY3; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1791860392; c=relaxed/simple;
+	bh=PYSJiGd0l5WJz+JNVGOEPeRcx8tm/i9fUuFmwZA6wNw=;
+	h=Date:To:From:Subject:Message-Id; b=CqGpO+zOpTWuiyoSNZ/iyebnuRLOs3Sy0/o5/iF4BkTTVQQhtbo56SAGuvdDf4tbXDggQYcqFxnz1tXWojpykDxKDexue6KX7cVCfQcl+zbYTJzPKkR4TVst6YFIqejgCO+qdF3BUTsEZrGq5CWPyn8Wj7YkqVrxx6Ac0qI0Veg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=0O9emrW1; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="icPC7ZY3"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8F5431F000FF;
-	Tue, 13 Oct 2026 02:45:25 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="0O9emrW1"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id AADF61F000FF;
+	Tue, 13 Oct 2026 02:59:50 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1791859525;
-	bh=V4afKLdFxWirfZ4LA1N4o2DSZ//qZVuqWnEFtGG6cPY=;
+	d=linux-foundation.org; s=korg; t=1791860390;
+	bh=jLGAIDiHYECYT2h2ALjpRCXmcQT+GU+H5NQDpPAkAVs=;
 	h=Date:To:From:Subject;
-	b=icPC7ZY3LfuJJO3JvhuXwC5HrtAGuSGUI8FT+SJUXwTR2B3z+fT2iazSx2J0GHnAR
-	 ftWzECcFAhe9Vi6UusZVDEDU3d5ARklvequTjLNxJaIsxv+AkftWdRDZNJiDcqvMT1
-	 badoLUWljizTndjpuJx1BpffHiFuzKAy2TwbpJHc=
-Date: Mon, 12 Oct 2026 19:45:25 -0700
-To: mm-commits@vger.kernel.org,stable@vger.kernel.org,mark@fasheh.com,joseph.qi@linux.alibaba.com,jlbec@evilplan.org,jjzuming@gmail.com,heming.zhao@suse.com,ghe@suse.com,baijiaju1990@gmail.com,zzzccc427@gmail.com,akpm@linux-foundation.org
+	b=0O9emrW1S0+HHQ2v5RCFHav/8dhe+V1mMOJ23BIZLiTkCH1wVVfqz3+ncV91OWhJs
+	 6fu8JoN38RqzhGKxxLNjNRABrkAfEku5w15JEX2j59s5I4QQ8riZS+PFmqp2bPsX6U
+	 ZrgtfMfneN4Ghbp9jSXJ/ArJI2s7n88RqHisO+gA=
+Date: Mon, 12 Oct 2026 19:59:50 -0700
+To: mm-commits@vger.kernel.org,stable@vger.kernel.org,mark@fasheh.com,jlbec@evilplan.org,heming.zhao@suse.com,anderson.ferneda@braza.com.br,joseph.qi@linux.alibaba.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + ocfs2-publish-the-filecheck-owner-before-adding-sysfs-attributes.patch added to mm-nonmm-unstable branch
-Message-Id: <20261013024525.8F5431F000FF@smtp.kernel.org>
+Subject: [to-be-updated] ocfs2-deal-with-legacy-signed-dir-index-name-hash-values.patch removed from -mm tree
+Message-Id: <20261013025950.AADF61F000FF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,114 +34,206 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The patch titled
-     Subject: ocfs2: publish the filecheck owner before adding sysfs attributes
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     ocfs2-publish-the-filecheck-owner-before-adding-sysfs-attributes.patch
+The quilt patch titled
+     Subject: ocfs2: deal with legacy signed dir index name hash values
+has been removed from the -mm tree.  Its filename was
+     ocfs2-deal-with-legacy-signed-dir-index-name-hash-values.patch
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/ocfs2-publish-the-filecheck-owner-before-adding-sysfs-attributes.patch
-
-This patch will later appear in the mm-nonmm-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via various
-branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there most days
+This patch was dropped because an updated version will be issued
 
 ------------------------------------------------------
-From: Cen Zhang <zzzccc427@gmail.com>
-Subject: ocfs2: publish the filecheck owner before adding sysfs attributes
-Date: Tue, 13 Oct 2026 09:58:58 +0800
+From: Joseph Qi <joseph.qi@linux.alibaba.com>
+Subject: ocfs2: deal with legacy signed dir index name hash values
+Date: Thu,  8 Oct 2026 20:27:42 +0800
 
-ocfs2_filecheck_create_sysfs() initializes the filecheck allocation before
-calling kobject_init_and_add(), but assigns entry->fs_fcheck only after
-that call returns.  The default attribute group can already be visible
-while registration is in progress.  A concurrent read can therefore enter
-ocfs2_filecheck_attr_show() with a NULL fs_fcheck and try to lock its
-fc_lock.
+Commit 3bc753c06dd0 ("kbuild: treat char as always unsigned") set
+-funsigned-char globally, which changed the result of the naked 'char'
+load in str2hashbuf():
 
-Assign the initialized owner before adding the kobject, so every activated
-attribute has valid state.  Clear the pointer when addition fails,
-preserving the existing teardown guard and error cleanup.
+	val = msg[i] + (val << 8);
 
-A controlled probe-instrumented test kernel with the original OCFS2
-registration ordering produced this Oops during a concurrent sysfs read:
+A name byte >= 0x80 used to sign-extend and now zero-extends, so
+ocfs2_dx_dir_name_hash() computes a different hash pair for every name
+containing one.  The pair is written into the dx leaf when the entry is
+created, so an index built by an older kernel no longer matches and
+ocfs2_dx_dir_search() returns -ENOENT for a name that readdir still lists.
 
-  KASAN: null-ptr-deref in range [0x0000000000000028-0x000000000000002f]
-  RIP: 0010:kasan_byte_accessible+0x15/0x30
-  Call Trace:
-   <TASK>
-   __kasan_check_byte+0x13/0x50
-   lock_acquire+0x113/0x300
-   _raw_spin_lock+0x31/0x40
-   ocfs2_filecheck_attr_show+0x138/0x5f0
-   ocfs2_filecheck_show+0x5d/0x90
-   sysfs_kf_seq_show+0x1d3/0x360
-   seq_read_iter+0x480/0x1110
-   kernfs_fop_read_iter+0x419/0x5a0
-   vfs_read+0x7d2/0xc20
-   ksys_read+0x111/0x200
-   do_syscall_64+0x114/0x620
-   entry_SYSCALL_64_after_hwframe+0x77/0x7f
-   </TASK>
-  Modules linked in:
+Search with the current unsigned hash and, on a miss, retry with the
+legacy signed one, as ext4 does in commit f3bbac32475b2 ("ext4: deal with
+legacy signed xattr name hash values").  New entries are always indexed
+under the unsigned hash.  Skip the retry when the two hashes are equal, so
+that a miss on an ASCII name does not walk the index twice.
 
-Link: https://lore.kernel.org/pm-ocfs2-objects-candidate-0086-v4-1b3a3c5fd05c1fb41df9@gmail.com
-Fixes: 5f483c4abb50 ("ocfs2: add kobject for online file check")
-Signed-off-by: Cen Zhang <zzzccc427@gmail.com>
+The retry costs a second walk of the dx tree, so a negative lookup of a
+name containing a byte >= 0x80 does twice the work.  That is bounded and
+worth it, and directories whose dx root is still inline pay nothing extra,
+since there the retry only rescans the root block that is already loaded. 
+Nothing retires it at runtime: a legacy entry keeps its legacy hash,
+because neither deleting nor updating an entry rewrites the dx hash, and
+the only code that rehashes existing dirents is ocfs2_expand_inline_dir()
+on the inline to extent conversion.  Rebuilding the index offline is what
+removes the cost for good.
+
+Also spell out the signedness in str2hashbuf() instead of leaving the
+current hash to -funsigned-char, as commit 854f0912f813 ("ext4: make xattr
+char unsignedness in hash explicit") did, so that both variants stay
+correct if this is backported to a kernel without the flag.
+
+Link: https://lore.kernel.org/20261008122743.616779-1-joseph.qi@linux.alibaba.com
+Signed-off-by: Joseph Qi <joseph.qi@linux.alibaba.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+Reported-by: Anderson Ferneda <anderson.ferneda@braza.com.br>
+Closes: https://lore.kernel.org/ocfs2-devel/CP5P284MB2780AC2C3C2AB2CF2B6CB7AFBE942@CP5P284MB2780.BRAP284.PROD.OUTLOOK.COM/
+Exposed-by: 3bc753c06dd0 ("kbuild: treat char as always unsigned")
 Reviewed-by: Heming Zhao <heming.zhao@suse.com>
-Reviewed-by: Joseph Qi <joseph.qi@linux.alibaba.com>
-Assisted-by: LLM
 Cc: Mark Fasheh <mark@fasheh.com>
 Cc: Joel Becker <jlbec@evilplan.org>
-Cc: Gang He <ghe@suse.com>
-Cc: Jia-Ju Bai <baijiaju1990@gmail.com>
-Cc: <jjzuming@gmail.com>
-Cc: <stable@vger.kernel.org>
+Cc: <stable@vger.kernel.org> # 6.2+
 ---
 
- fs/ocfs2/filecheck.c |    5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+ fs/ocfs2/dir.c |   76 ++++++++++++++++++++++++++++++++++++++++-------
+ 1 file changed, 65 insertions(+), 11 deletions(-)
 
---- a/fs/ocfs2/filecheck.c~ocfs2-publish-the-filecheck-owner-before-adding-sysfs-attributes
-+++ a/fs/ocfs2/filecheck.c
-@@ -179,17 +179,20 @@ int ocfs2_filecheck_create_sysfs(struct
- 	fcheck->fc_size = 0;
- 	fcheck->fc_done = 0;
- 
-+	/* Publish the initialized owner before activating its sysfs callbacks. */
-+	entry->fs_fcheck = fcheck;
- 	entry->fs_kobj.kset = osb->osb_dev_kset;
- 	init_completion(&entry->fs_kobj_unregister);
- 	ret = kobject_init_and_add(&entry->fs_kobj, &ocfs2_ktype_filecheck,
- 					NULL, "filecheck");
- 	if (ret) {
-+		/* Mount failure still calls ocfs2_filecheck_remove_sysfs(). */
-+		entry->fs_fcheck = NULL;
- 		kobject_put(&entry->fs_kobj);
- 		kfree(fcheck);
- 		return ret;
- 	}
- 
--	entry->fs_fcheck = fcheck;
- 	return 0;
+--- a/fs/ocfs2/dir.c~ocfs2-deal-with-legacy-signed-dir-index-name-hash-values
++++ a/fs/ocfs2/dir.c
+@@ -221,7 +221,8 @@ static void TEA_transform(__u32 buf[4],
+ 	buf[1] += b1;
  }
  
+-static void str2hashbuf(const char *msg, int len, __u32 *buf, int num)
++static void str2hashbuf(const char *msg, int len, __u32 *buf, int num,
++			bool legacy_signed)
+ {
+ 	__u32	pad, val;
+ 	int	i;
+@@ -235,7 +236,10 @@ static void str2hashbuf(const char *msg,
+ 	for (i = 0; i < len; i++) {
+ 		if ((i % 4) == 0)
+ 			val = pad;
+-		val = msg[i] + (val << 8);
++		if (legacy_signed)
++			val = (signed char)msg[i] + (val << 8);
++		else
++			val = (unsigned char)msg[i] + (val << 8);
+ 		if ((i % 4) == 3) {
+ 			*buf++ = val;
+ 			val = pad;
+@@ -248,8 +252,9 @@ static void str2hashbuf(const char *msg,
+ 		*buf++ = pad;
+ }
+ 
+-static void ocfs2_dx_dir_name_hash(struct inode *dir, const char *name, int len,
+-				   struct ocfs2_dx_hinfo *hinfo)
++static void __ocfs2_dx_dir_name_hash(struct inode *dir, const char *name,
++				     int len, struct ocfs2_dx_hinfo *hinfo,
++				     bool legacy_signed)
+ {
+ 	struct ocfs2_super *osb = OCFS2_SB(dir->i_sb);
+ 	const char	*p;
+@@ -279,7 +284,7 @@ static void ocfs2_dx_dir_name_hash(struc
+ 
+ 	p = name;
+ 	while (len > 0) {
+-		str2hashbuf(p, len, in, 4);
++		str2hashbuf(p, len, in, 4, legacy_signed);
+ 		TEA_transform(buf, in);
+ 		len -= 16;
+ 		p += 16;
+@@ -290,6 +295,19 @@ out:
+ 	hinfo->minor_hash = buf[1];
+ }
+ 
++static void ocfs2_dx_dir_name_hash(struct inode *dir, const char *name, int len,
++				   struct ocfs2_dx_hinfo *hinfo)
++{
++	__ocfs2_dx_dir_name_hash(dir, name, len, hinfo, false);
++}
++
++static void ocfs2_dx_dir_name_hash_signed(struct inode *dir, const char *name,
++					  int len,
++					  struct ocfs2_dx_hinfo *hinfo)
++{
++	__ocfs2_dx_dir_name_hash(dir, name, len, hinfo, true);
++}
++
+ /*
+  * bh passed here can be an inode block or a dir data block, depending
+  * on the inode inline data flag.
+@@ -1021,10 +1039,10 @@ out:
+ 	return ret;
+ }
+ 
+-static int ocfs2_dx_dir_search(const char *name, int namelen,
+-			       struct inode *dir,
+-			       struct ocfs2_dx_root_block *dx_root,
+-			       struct ocfs2_dir_lookup_result *res)
++static int __ocfs2_dx_dir_search(const char *name, int namelen,
++				 struct inode *dir,
++				 struct ocfs2_dx_root_block *dx_root,
++				 struct ocfs2_dir_lookup_result *res)
+ {
+ 	int ret, i, found;
+ 	u64 phys;
+@@ -1037,8 +1055,6 @@ static int ocfs2_dx_dir_search(const cha
+ 	struct ocfs2_extent_list *dr_el;
+ 	struct ocfs2_dx_entry_list *entry_list;
+ 
+-	ocfs2_dx_dir_name_hash(dir, name, namelen, &res->dl_hinfo);
+-
+ 	if (ocfs2_dx_root_inline(dx_root)) {
+ 		entry_list = &dx_root->dr_entries;
+ 		goto search;
+@@ -1135,6 +1151,44 @@ out:
+ 	return ret;
+ }
+ 
++static int ocfs2_dx_dir_search(const char *name, int namelen,
++			       struct inode *dir,
++			       struct ocfs2_dx_root_block *dx_root,
++			       struct ocfs2_dir_lookup_result *res)
++{
++	struct ocfs2_dx_hinfo legacy;
++	int ret;
++
++	ocfs2_dx_dir_name_hash(dir, name, namelen, &res->dl_hinfo);
++
++	ret = __ocfs2_dx_dir_search(name, namelen, dir, dx_root, res);
++	if (ret != -ENOENT)
++		return ret;
++
++	/*
++	 * Nothing under the current hash.  The entry may have been indexed by
++	 * an older kernel, which sign-extended the name bytes when hashing.
++	 * New entries are always indexed under the unsigned hash, so only fall
++	 * back to the legacy signed one when it can actually differ: an ASCII
++	 * name hashes the same either way, and a genuine miss on one should
++	 * not have to walk the index twice.
++	 */
++	ocfs2_dx_dir_name_hash_signed(dir, name, namelen, &legacy);
++	if (legacy.major_hash == res->dl_hinfo.major_hash &&
++	    legacy.minor_hash == res->dl_hinfo.minor_hash)
++		return ret;
++
++	res->dl_hinfo = legacy;
++
++	ret = __ocfs2_dx_dir_search(name, namelen, dir, dx_root, res);
++	if (ret)
++		return ret;
++
++	pr_warn_once("ocfs2: directory index with signed name hash\n");
++
++	return 0;
++}
++
+ static int ocfs2_find_entry_dx(const char *name, int namelen,
+ 			       struct inode *dir,
+ 			       struct ocfs2_dir_lookup_result *lookup)
 _
 
-Patches currently in -mm which might be from zzzccc427@gmail.com are
+Patches currently in -mm which might be from joseph.qi@linux.alibaba.com are
 
-ocfs2-heartbeat-unlink-live-slots-when-their-node-is-missing.patch
-ocfs2-initialize-status-waiters-before-publishing-them.patch
-ocfs2-publish-the-filecheck-owner-before-adding-sysfs-attributes.patch
+ocfs2-deal-with-legacy-signed-xattr-name-hash-values.patch
+ocfs2-reserve-metadata-for-a-new-xattr-block-and-its-value-tree.patch
+ocfs2-reserve-value-tree-metadata-when-moving-an-xattr-into-the-inode.patch
+ocfs2-reserve-xattr-value-tree-metadata-only-once.patch
 
