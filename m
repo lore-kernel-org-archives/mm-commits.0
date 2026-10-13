@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 73F054848A6
-	for <mm-commits@vger.kernel.org>; Tue, 13 Oct 2026 04:33:39 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 46042486658
+	for <mm-commits@vger.kernel.org>; Tue, 13 Oct 2026 04:33:42 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791866022; cv=none; b=O0+XsZdJLLP2Rvq0tec1fcav6pyCC+/KZ9/6Lqp1FFPOymzhX+EMfsCAcg1z7LjziKEjuFDIrvxWDl9YIbdGZx9eE/I8gFqNygQ58vjIPwEa8AqZkhiO3fExd/8WtHgzrTRN3fIWwHxlfqLEJrIWQSz2h3gsgMbTc6iOpXNxv2w=
+	t=1791866026; cv=none; b=ExdjQxTx6A7DJDrcOvCh+ORKxxKbloU9W5dgFE1qXqTVfyvfCvp2Je/qN6Bg/M1e9Wpy9KzDcGG7tBaOe8lz831J4DpDbADqmuipmHwWqaHbWfC7iu4yIKh4CTDDVSqYC5PHVWFZL9WGoqGNKhZWUZAL89e+aAX4QDf4u3beej8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791866022; c=relaxed/simple;
-	bh=T5UWN61dJ2E6uINktrg57TnYggYS5c0in5y5uul5ZKs=;
-	h=Date:To:From:Subject:Message-Id; b=qxsqkgfPgzQs6pSIOeDM30zxxkWTd9Cg0lLVV6Y4ylk9EMPt+EyLB7Xr42mHVCXQxpkwA6u2FVLt1uqIbi9Csr8TLdwC/v3DfPl/2Qg9BstKuF6ihX9yQGUHjDnTQZK/SykeWwQtnRBgT0tHMPgQo1b+tj4aAR2IXXEfMhM2FZ0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=b/9TUc63; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1791866026; c=relaxed/simple;
+	bh=z+udP7+ds3yBFt7BdTdDSKyufrbbQ2QgOwnHvMZJHSo=;
+	h=Date:To:From:Subject:Message-Id; b=FW2dTOCBiqAALlqdBbnBaTEoA4b/NfZSxr2B76gmdnLR4UYxzxzplw+Ngi53qZtFIz0GridtPSefS4j57FZo/QPdQ9BwHTMYi6yeqfjJ+W5Y0Pi3kh/F6Y8Ucxnf/S+jlCj4IrQPKldWXDQPKUg4a9JtBjqBWrbho/0j/rjw3mY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=j+B/Yaju; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="b/9TUc63"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 460461F00893;
-	Tue, 13 Oct 2026 04:33:39 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="j+B/Yaju"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1F3361F00898;
+	Tue, 13 Oct 2026 04:33:42 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1791866019;
-	bh=TThPb3ky/yS8OEHbCTzeV4lNNIZ+ajYTtWjR2i4kel4=;
+	d=linux-foundation.org; s=korg; t=1791866022;
+	bh=S3vKdG+u6r8ILngkdgMBjFlYI6p6vfDUV4YHTWrFfC4=;
 	h=Date:To:From:Subject;
-	b=b/9TUc63OZtA9JCROMRwhqcyueV+3gJf+xzmL6NQyHb0ZUgNxnta+yTXflsAOTJuc
-	 DB741R9KdIGGkiVC+HYHj5/Az6vCs4T86773RJoFn8ZEgUdHgsXw0yqhFEjeARDVsC
-	 aP4g0a2953J2dX5HvZFic2tQpIQQ1nAaPCMZE5pc=
-Date: Mon, 12 Oct 2026 21:33:38 -0700
+	b=j+B/Yajuc4ys5OTpA0Wnno3c9xHKeAKtfyk1xwrXWAGZfJ9yuD2stAml6sAKp9yuV
+	 GKoDotvlnJWPyE+FWtAsW6S4CGDQDo8Jw1EWZofF2ZCvCiyanY/ncSn7Pzv13blNHG
+	 eqQiAIpEJ3POfnKZjz3Gb6vioUCIkICBdvx2s6TM=
+Date: Mon, 12 Oct 2026 21:33:41 -0700
 To: mm-commits@vger.kernel.org,ziy@nvidia.com,vbabka@kernel.org,usama.arif@linux.dev,usama.anjum@arm.com,surenb@google.com,shuah@kernel.org,ryan.roberts@arm.com,rppt@kernel.org,nico.pache@linux.dev,mhocko@suse.com,ljs@kernel.org,liam@infradead.org,leon@kernel.org,lance.yang@linux.dev,kernel-team@meta.com,jgg@ziepe.ca,hughd@google.com,dev.jain@arm.com,david@kernel.org,baolin.wang@linux.alibaba.com,baohua@kernel.org,agordeev@linux.ibm.com,kas@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] selftests-mm-skip-khugepaged-page-cache-cases-without-a-pmd-folio.patch removed from -mm tree
-Message-Id: <20261013043339.460461F00893@smtp.kernel.org>
+Subject: [merged mm-stable] selftests-mm-stop-khugepaged-during-the-madv_collapse-cases.patch removed from -mm tree
+Message-Id: <20261013043342.1F3361F00898@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,38 +35,35 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: selftests/mm: skip khugepaged page cache cases without a PMD folio
+     Subject: selftests/mm: stop khugepaged during the MADV_COLLAPSE cases
 has been removed from the -mm tree.  Its filename was
-     selftests-mm-skip-khugepaged-page-cache-cases-without-a-pmd-folio.patch
+     selftests-mm-stop-khugepaged-during-the-madv_collapse-cases.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: "Kiryl Shutsemau (Meta)" <kas@kernel.org>
-Subject: selftests/mm: skip khugepaged page cache cases without a PMD folio
-Date: Sat, 19 Sep 2026 01:24:34 +0100
+Subject: selftests/mm: stop khugepaged during the MADV_COLLAPSE cases
+Date: Sat, 19 Sep 2026 01:24:36 +0100
 
-The page cache caps folio order at MAX_PAGECACHE_ORDER, which is below the
-PMD order on arm64 with 64K pages, where a PMD is 512M.  A PMD-sized page
-cache folio is impossible there, so the kernel refuses these collapses:
-MADV_COLLAPSE answers -EINVAL and khugepaged passes over the range.  Four
-shmem cases ask for a PMD-sized folio anyway, fail, and the run bails out
-in the middle.
+__madvise_collapse() turns THP off before each MADV_COLLAPSE, both to keep
+khugepaged out of the range and to prove MADV_COLLAPSE ignores the
+setting.  It clears the global controls only, which is no longer enough. 
+A per-order control overrides them, and -s, which makes the cases fault in
+folios of one order, leaves that order's control at "always".  khugepaged
+then collapses the very range the case is working on, and the case fails
+on a collapse that was interfered with rather than refused.
 
-Skip the shmem and file mem types where the cap is below the PMD order.
+Clear the per-order controls too.  MADV_COLLAPSE does not consult them:
+anon never did, and shmem stopped with "mm: shmem: ignore sysfs configs
+for shmem forced collapse".
 
-The cap is not shmem-specific: it applies to every file folio.  Add
-thp_file_supported_orders() to read the orders the page cache allows.
-
-Anonymous collapse is unaffected: its orders are not capped this way.
-
-Link: https://lore.kernel.org/20260919002451.496763-5-kirill@shutemov.name
+Link: https://lore.kernel.org/20260919002451.496763-7-kirill@shutemov.name
+Fixes: b7f16963efe7 ("mm/khugepaged: run khugepaged for all orders")
 Signed-off-by: Kiryl Shutsemau (Meta) <kas@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Reviewed-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
 Reviewed-by: Baolin Wang <baolin.wang@linux.alibaba.com>
-Tested-by: Muhammad Usama Anjum <usama.anjum@arm.com>
 Assisted-by: LLM
 Cc: Alexander Gordeev <agordeev@linux.ibm.com>
 Cc: Barry Song <baohua@kernel.org>
@@ -80,6 +77,8 @@ Cc: Leon Romanovsky <leon@kernel.org>
 Cc: Liam Howlett <liam@infradead.org>
 Cc: Lorenzo Stoakes (ARM) <ljs@kernel.org>
 Cc: Michal Hocko <mhocko@suse.com>
+Cc: Mike Rapoport (Microsoft) <rppt@kernel.org>
+Cc: Muhammad Usama Anjum <usama.anjum@arm.com>
 Cc: Nico Pache (Red Hat) <nico.pache@linux.dev>
 Cc: Ryan Roberts <ryan.roberts@arm.com>
 Cc: Shuah Khan (Samsung OSG) <shuah@kernel.org>
@@ -89,56 +88,32 @@ Cc: "Vlastimil Babka (SUSE)" <vbabka@kernel.org>
 Cc: Zi Yan <ziy@nvidia.com>
 ---
 
- tools/lib/mm/hugepage_settings.h        |    9 +++++++++
- tools/testing/selftests/mm/khugepaged.c |   19 +++++++++++++++++++
- 2 files changed, 28 insertions(+)
+ tools/testing/selftests/mm/khugepaged.c |    6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
 
---- a/tools/lib/mm/hugepage_settings.h~selftests-mm-skip-khugepaged-page-cache-cases-without-a-pmd-folio
-+++ a/tools/lib/mm/hugepage_settings.h
-@@ -87,6 +87,15 @@ void thp_set_read_ahead_path(char *path)
- unsigned long thp_supported_orders(void);
- unsigned long thp_shmem_supported_orders(void);
- 
-+/*
-+ * The per-order shmem_enabled attribute is created for the orders the page
-+ * cache can hold, not just for shmem, so it answers for regular files too.
-+ */
-+static inline unsigned long thp_file_supported_orders(void)
-+{
-+	return thp_shmem_supported_orders();
-+}
-+
- bool thp_available(void);
- bool thp_is_enabled(void);
- 
---- a/tools/testing/selftests/mm/khugepaged.c~selftests-mm-skip-khugepaged-page-cache-cases-without-a-pmd-folio
+--- a/tools/testing/selftests/mm/khugepaged.c~selftests-mm-stop-khugepaged-during-the-madv_collapse-cases
 +++ a/tools/testing/selftests/mm/khugepaged.c
-@@ -1358,6 +1358,25 @@ int main(int argc, char **argv)
+@@ -538,8 +538,8 @@ static bool is_anon(struct mem_ops *ops)
+ static void __madvise_collapse(const char *msg, char *p, int nr_hpages,
+ 			       struct mem_ops *ops, bool expect)
+ {
+-	int ret;
+ 	struct thp_settings settings = *thp_current_settings();
++	int ret, i;
  
- 	setbuf(stdout, NULL);
+ 	ksft_print_msg("%s...", msg);
  
-+	/*
-+	 * Without a PMD-order page cache folio the kernel refuses these
-+	 * collapses, so there is nothing to test.
-+	 */
-+	if (!(thp_file_supported_orders() & (1UL << hpage_pmd_order))) {
-+		if (shmem_ops) {
-+			ksft_print_msg("no PMD-order page cache folio: skipping shmem\n");
-+			shmem_ops = NULL;
-+		}
-+		if (read_only_file_ops) {
-+			ksft_print_msg("no PMD-order page cache folio: skipping file\n");
-+			read_only_file_ops = NULL;
-+			read_write_file_read_ops = NULL;
-+			read_write_file_write_ops = NULL;
-+		}
-+		if (!anon_ops && !shmem_ops && !read_only_file_ops)
-+			ksft_exit_skip("No mem_type left to run\n");
+@@ -555,6 +555,10 @@ static void __madvise_collapse(const cha
+ 	 */
+ 	settings.thp_enabled = THP_NEVER;
+ 	settings.shmem_enabled = SHMEM_NEVER;
++	for (i = 0; i < NR_ORDERS; i++) {
++		settings.hugepages[i].enabled = THP_NEVER;
++		settings.shmem_hugepages[i].enabled = SHMEM_NEVER;
 +	}
-+
- 	default_settings.khugepaged.max_ptes_none = hpage_pmd_nr - 1;
- 	default_settings.khugepaged.max_ptes_swap = hpage_pmd_nr / 8;
- 	default_settings.khugepaged.max_ptes_shared = hpage_pmd_nr / 2;
+ 	thp_push_settings(&settings);
+ 
+ 	/* Clear VM_NOHUGEPAGE */
 _
 
 Patches currently in -mm which might be from kas@kernel.org are
