@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C0939481FCF
-	for <mm-commits@vger.kernel.org>; Tue, 13 Oct 2026 04:32:17 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3AB203750D5
+	for <mm-commits@vger.kernel.org>; Tue, 13 Oct 2026 04:32:20 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791865938; cv=none; b=lHhnvWhASZgqRHuUGxACDmtGcfVMcJ3DUkChZDgUx9pbXeT79B0YGxOY81FSitPLvdh1l3DT9Zl2+qrPEVEpVMg7wuxMKTVIHky0+KypgkeEWFGpLX6NRgPoo874sThw4t6jXx1AjivP4KkDvWLaCx/GeXc0Dtuf38jFAdDi6l8=
+	t=1791865941; cv=none; b=HmAJYRhuOsuW+Z2NQkDuaIvfjKg6WRbWbZU5YpD2E4X1e8XeMP8snFHtzPGAxLxckCm5wgTA6mZbUSvxmBIdMMGHE8Xk/wbTyqh5WEVz4fe3VZ09dd5aiC9ye01vnYfuWzmwywC9G/TEgFHyI0MH9UiqdXYgj2B1hhA8opFxxm8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791865938; c=relaxed/simple;
-	bh=tPVPnSZSIlFuJsgbzcdO95G3vyTh6+pcg5e8heAkrNY=;
-	h=Date:To:From:Subject:Message-Id; b=OwF8cvSqcYtebE+HACTkiurbpUeBkyL3RI0Z5hdEW+JqWg90uAHHnZ4+1CtSslDAraBywLhvCH/MJ2v9b7/k3czjjXGfWuI7+sTFWW2ZDjZpqMcpmOSagSrVJ7ogwlH3AElCKyAlZJlLodhsZd6nZal/qNUf1Do6T/QBv00SQDM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=AERd3LoU; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1791865941; c=relaxed/simple;
+	bh=I7PzHCfpqezJwIpKrKR2KTJMvPqcjOdlsmuttuBVdVY=;
+	h=Date:To:From:Subject:Message-Id; b=HxKSKaFs8RHQ1kW++WR+vMVv4NRS4px6qW9ZlHLD1rpveID4G7/itlP7H57Xa983zuWeCzxVeyP3FWMd3NOoJubLwGsTRiennIrb/bCzLydxVw0f/Y7ACfj0z9SkCAuX0D5czVmqdc+6Jq8l+bVvj6T8/4YPOKZgwL2exnF7434=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=RgRr8pV0; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="AERd3LoU"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 97C811F00893;
-	Tue, 13 Oct 2026 04:32:17 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="RgRr8pV0"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0E2C71F000FF;
+	Tue, 13 Oct 2026 04:32:20 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1791865937;
-	bh=NNjZK1PRmP69q3DGEMcj2oE7QqdHj1scZ4JgTZPpzGg=;
+	d=linux-foundation.org; s=korg; t=1791865940;
+	bh=u4JzTWpPwEEIysp9CiCwcHSH0CcU/wf+CYtZaiMj0/c=;
 	h=Date:To:From:Subject;
-	b=AERd3LoUCLH0thgT40DFcjH+9jE1ZetyHV4Nm1PJkNI9bzjGThMvWbe8RrJVr+rEk
-	 c/qxUlCgCmJrTlKEdCV6OIfNQlwQk+YIHrxRDCUxert+HhWleFuRSZnzzXC3NB/2wt
-	 X7/XOobiXmQgSEfuNu6rsdmO5wnSZnlBYEhdWmco=
-Date: Mon, 12 Oct 2026 21:32:17 -0700
-To: mm-commits@vger.kernel.org,urezki@gmail.com,sj@kernel.org,bigeasy@linutronix.de,akpm@linux-foundation.org
+	b=RgRr8pV024toFutV175ksikRqgF79kgzNsdqjTm0Qh1/xw4YraOJzmo7vefT17eUs
+	 z8VjrDq2u3J9cgI2Ckf51TE1D0CjCzlYX7OwHFE854gj8kp8Km7l0q6rbHuM9xi9m0
+	 QbQRx/scxfhHqrFP3IlWOPoPlacusSF/0zGBhQKA=
+Date: Mon, 12 Oct 2026 21:32:19 -0700
+To: mm-commits@vger.kernel.org,peterx@redhat.com,kas@kernel.org,jhubbard@nvidia.com,jgg@ziepe.ca,david@kernel.org,sarthak.sharma@arm.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-vmalloc-use-%p-for-pointer-formatting.patch removed from -mm tree
-Message-Id: <20261013043217.97C811F00893@smtp.kernel.org>
+Subject: [merged mm-stable] mm-gup_test-safely-calculate-gup-batch-size.patch removed from -mm tree
+Message-Id: <20261013043220.0E2C71F000FF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,74 +35,77 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/vmalloc: use %p for pointer formatting
+     Subject: mm/gup_test: safely calculate GUP batch size
 has been removed from the -mm tree.  Its filename was
-     mm-vmalloc-use-%p-for-pointer-formatting.patch
+     mm-gup_test-safely-calculate-gup-batch-size.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Subject: mm/vmalloc: use %p for pointer formatting
-Date: Fri, 18 Sep 2026 12:50:13 +0200
+From: Sarthak Sharma <sarthak.sharma@arm.com>
+Subject: mm/gup_test: safely calculate GUP batch size
+Date: Tue, 15 Sep 2026 15:55:24 +0530
 
-Commit 45ec16908e84e ("mm: use %pK for /proc/vmallocinfo") introduced the
-%pK in order not to leak kernel pointers.  Since commit ad67b74d2469d
-("printk: hash addresses printed with %p") pointers are hashed by default
-and the behaviour can be controlled by `hash_pointers' boot argument.  The
-policy on %p is to not introduce new ones.  Removing %pK makes it possible
-to remove its handling from the library.
+__gup_test_ioctl() calculates the end of a GUP batch using:
 
-Looking at the output, having the pointer in the output makes it
-possible to distinguish the individual entries.
+next = addr + nr * PAGE_SIZE;
 
-Use %p instead %pK.
+If nr is too large, it can cause next to overflow and wrap around.  If it
+wraps, the next > end check is bypassed and a large value of nr is passed
+to the GUP call, even though the pages array was allocated according to
+gup->size.  This can lead to out of bounds writes.
 
-/proc/vmallocinfo has mode 0400, so this change doesn't make kernel
-pointer information available to unprivileged userspace.
+Also, when fewer than PAGE_SIZE bytes remain, the calculated batch
+contains zero pages.  The code still calls GUP functions with pages + i,
+which can point past the allocated array.
 
-Link: https://lore.kernel.org/20260918105013.UpdykT6j@linutronix.de
-Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Calculate nr by taking the minimum of the number of pages per call and the
+pages remaining in the address range.  Reject zero sized and non page
+aligned gup->size values and zero nr_pages_per_call value.
+
+Link: https://lore.kernel.org/20260915102524.125758-1-sarthak.sharma@arm.com
+Fixes: 64c349f4ae78 ("mm: add infrastructure for get_user_pages_fast() benchmarking")
+Signed-off-by: Sarthak Sharma <sarthak.sharma@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Reviewed-by: SJ Park <sj@kernel.org>
-Reviewed-by: Uladzislau Rezki (Sony) <urezki@gmail.com>
+Reviewed-by: Kiryl Shutsemau (Meta) <kas@kernel.org>
+Acked-by: David Hildenbrand (Arm) <david@kernel.org>
+Cc: Jason Gunthorpe <jgg@ziepe.ca>
+Cc: John Hubbard <jhubbard@nvidia.com>
+Cc: Peter Xu <peterx@redhat.com>
 ---
 
- mm/vmalloc.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ mm/gup_test.c |    9 ++++-----
+ 1 file changed, 4 insertions(+), 5 deletions(-)
 
---- a/mm/vmalloc.c~mm-vmalloc-use-%p-for-pointer-formatting
-+++ a/mm/vmalloc.c
-@@ -5323,7 +5323,7 @@ static void show_purge_info(struct seq_f
- 	for_each_vmap_node(vn) {
- 		spin_lock(&vn->lazy.lock);
- 		list_for_each_entry(va, &vn->lazy.head, list) {
--			seq_printf(m, "0x%pK-0x%pK %7ld unpurged vm_area\n",
-+			seq_printf(m, "0x%p-0x%p %7ld unpurged vm_area\n",
- 				(void *)va->va_start, (void *)va->va_end,
- 				va_size(va));
- 		}
-@@ -5346,7 +5346,7 @@ static void show_busy_info(struct seq_fi
- 		list_for_each_entry(va, &vn->busy.head, list) {
- 			if (!va->vm) {
- 				if (va->flags & VMAP_RAM)
--					seq_printf(m, "0x%pK-0x%pK %7ld vm_map_ram\n",
-+					seq_printf(m, "0x%p-0x%p %7ld vm_map_ram\n",
- 						(void *)va->va_start, (void *)va->va_end,
- 						va_size(va));
+--- a/mm/gup_test.c~mm-gup_test-safely-calculate-gup-batch-size
++++ a/mm/gup_test.c
+@@ -116,7 +116,8 @@ static int __gup_test_ioctl(unsigned int
+ 	bool needs_mmap_lock =
+ 		cmd != GUP_FAST_BENCHMARK && cmd != PIN_FAST_BENCHMARK;
  
-@@ -5360,7 +5360,7 @@ static void show_busy_info(struct seq_fi
- 			/* Pair with smp_wmb() in clear_vm_uninitialized_flag() */
- 			smp_rmb();
+-	if (gup->addr > ULONG_MAX || gup->size > ULONG_MAX)
++	if (gup->addr > ULONG_MAX || gup->size > ULONG_MAX || !gup->size ||
++	    !gup->nr_pages_per_call || !PAGE_ALIGNED(gup->size))
+ 		return -EINVAL;
+ 	if (check_add_overflow((unsigned long)gup->addr,
+ 			       (unsigned long)gup->size, &end))
+@@ -139,11 +140,9 @@ static int __gup_test_ioctl(unsigned int
+ 		if (nr != gup->nr_pages_per_call)
+ 			break;
  
--			seq_printf(m, "0x%pK-0x%pK %7ld",
-+			seq_printf(m, "0x%p-0x%p %7ld",
- 				v->addr, v->addr + v->size, v->size);
++		nr = min_t(unsigned long, nr, (end - addr) / PAGE_SIZE);
++
+ 		next = addr + nr * PAGE_SIZE;
+-		if (next > end) {
+-			next = end;
+-			nr = (next - addr) / PAGE_SIZE;
+-		}
  
- 			if (v->caller)
+ 		switch (cmd) {
+ 		case GUP_FAST_BENCHMARK:
 _
 
-Patches currently in -mm which might be from bigeasy@linutronix.de are
+Patches currently in -mm which might be from sarthak.sharma@arm.com are
 
 
