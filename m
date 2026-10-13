@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 78B0C486B90
-	for <mm-commits@vger.kernel.org>; Tue, 13 Oct 2026 04:34:14 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C3752485930
+	for <mm-commits@vger.kernel.org>; Tue, 13 Oct 2026 04:34:07 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791866059; cv=none; b=rQlkbOcE+3k9WGacqDtRgP09V6etpLLReXEyU3ZN13LxScDmzXLCWyFTYd1OTCzR/TG8oThWFKpWX4HgSbgdU5cJcNeXC/HL2yXE3NZn9R+Z/WI+RWboXcqjMa9HXb6lcbIF1XHQBSiJiMfZ8U046Fg+z7x6yk/HaieEZEnEdIo=
+	t=1791866059; cv=none; b=PxEsajx2ovLHa2/Bld9Vi5hU4JPfen2Tb0kKTHpaDxyv6B7wOKNzCXKOTvETbaA2v2gtYd0pgfqVACi6+SeYzb/cVM0wRDbnas6LQhri3v/OXbqiEqhrqMMowHO9kqnOo7G+k7zUXggpspRS70kBMOhJkrKwUVAvRSjrNoc/qnw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1791866059; c=relaxed/simple;
-	bh=lN20/N8vS+Ywl4PfiQejjW4PrJAscIkcaoECDjhN10A=;
-	h=Date:To:From:Subject:Message-Id; b=Uv74gibYElh4Nfy+M+NubiCY8g+NRfwwTzJkPFROW9V5Rcl/JbkzUMkTVWTjQwUiRQmaOKZ3PXB5PQuHWdFyi+kLY3/1ejuzbaewdoIJJLPDx+gLEUDYhBHNaKKZuPp/Rk9ziqM8pcvugHXubMsWo7s+HemdRWg/7vU63PSsoqc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=euD/zQP2; arc=none smtp.client-ip=100.103.45.18
+	bh=SKXKoQZLsj87ZFFgPmzcM3PbLIPUQ6glW9vBqYnJsgw=;
+	h=Date:To:From:Subject:Message-Id; b=PxtxhklNA6uFbvaRGGvj6M19DxVwoRNWWjGRppfbSw8NWPQXjDTK/ZNqzjWZtfcNQ/2RT2qGuoSf9viiimhI1COWHU576sJKDJsaWRpQ1gXJT1NULJuPqeqwQonb7he9rtVlYatL0tzgITiOaFhZbsM95DGKOU0smjIEoBO5DK8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=vdhSUfxD; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="euD/zQP2"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 42B7B1F0089A;
-	Tue, 13 Oct 2026 04:34:14 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="vdhSUfxD"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 95D3F1F00893;
+	Tue, 13 Oct 2026 04:34:07 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1791866054;
-	bh=316xhpP7PQl/KvpfHqYUpexXJUn0Qc2qaMv7qnMbvFA=;
+	d=linux-foundation.org; s=korg; t=1791866047;
+	bh=OJFTTZCyEXqk/MPOCrXXXkh0D25LZVIQU1PX2F5f9xk=;
 	h=Date:To:From:Subject;
-	b=euD/zQP2QAJZahU/QCCQ5QME/aE9CPnUf5gSfHHLzuEPjoF9iuBSoDGNgSEglbCjo
-	 XxHivimo8DpKorQIce2//9s5eQn94KX2WuPDBL91mMXR5hzUUIqAx/J2RR3BWpjqEq
-	 h6UtTsNXQfdeC58z/zWHkziHBdQjm2dW5swVXHk8=
-Date: Mon, 12 Oct 2026 21:34:13 -0700
-To: mm-commits@vger.kernel.org,yi1.lai@intel.com,usama.arif@linux.dev,hughd@google.com,baolin.wang@linux.alibaba.com,qi.zheng@linux.dev,akpm@linux-foundation.org
+	b=vdhSUfxDS4oO4o9+g+zTuoFjQd9RuChLtuswDf+DQJDvSFQZvKny6xka/44KiHLAA
+	 sScSfb3YmLpEdQkq67qtJ9lRQIZBmwPosvA2w3RonDIsIUPHA3s7c9we9jQrpVrjEZ
+	 gG/MnBI0GRrEw1dh0MQd5S+X1ZVeLAU7nYCJP0KA=
+Date: Mon, 12 Oct 2026 21:34:07 -0700
+To: mm-commits@vger.kernel.org,zenghui.yu@linux.dev,sj@kernel.org,karthiproffesional@gmail.com,aethernet65535@gmail.com,adrianhuang0701@gmail.com,wangxuewen@kylinos.cn,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-shmem-assign-a-lock-class-to-the-unused-huge-shrinklist.patch removed from -mm tree
-Message-Id: <20261013043414.42B7B1F0089A@smtp.kernel.org>
+Subject: [merged mm-stable] mm-damon-sysfs-propagate-damon_call-error-in-turn_damon_on.patch removed from -mm tree
+Message-Id: <20261013043407.95D3F1F00893@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,65 +35,56 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: shmem: assign a lock class to the unused huge shrinklist
+     Subject: mm/damon/sysfs: propagate damon_call() error in turn_damon_on
 has been removed from the -mm tree.  Its filename was
-     mm-shmem-assign-a-lock-class-to-the-unused-huge-shrinklist.patch
+     mm-damon-sysfs-propagate-damon_call-error-in-turn_damon_on.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Qi Zheng <qi.zheng@linux.dev>
-Subject: mm: shmem: assign a lock class to the unused huge shrinklist
-Date: Sun, 11 Oct 2026 12:59:56 +0800
+From: Xuewen Wang <wangxuewen@kylinos.cn>
+Subject: mm/damon/sysfs: propagate damon_call() error in turn_damon_on
+Date: Mon, 21 Sep 2026 08:15:44 -0700
 
-The unused huge shrinklist shares the default list_lru lock class with the
-dentry LRU.  Although they use distinct lock instances, lockdep conflates
-their dependencies and reports a circular locking dependency:
+damon_sysfs_turn_damon_on() ignored the return value of damon_call() for
+the repeat call control registration and always returned the stale result
+of damon_start() (0 at that point).  When damon_call() fails, e.g., the
+kdamond is already exiting, the user still gets success from the state
+file write while monitoring is not actually on.
 
-	WARNING: possible circular locking dependency detected
+Save and return the damon_call() result instead.  No rollback of
+damon_start() is needed since a failed damon_call() guarantees the context
+is stopped.
 
-Give the unused huge shrinklist a dedicated lock class to fix this
-false-positive lockdep warning.
-
-Link: https://lore.kernel.org/20261011045956.30277-1-qi.zheng@linux.dev
-Fixes: b9b1861d4f7a ("mm: shmem: make unused huge shrinker memcg aware")
-Signed-off-by: Qi Zheng <qi.zheng@linux.dev>
+Link: https://lore.kernel.org/20260921151547.78472-3-sj@kernel.org
+Signed-off-by: Xuewen Wang <wangxuewen@kylinos.cn>
+Signed-off-by: SJ Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Reported-by: kernel test robot <yi1.lai@intel.com>
-Closes: https://lore.kernel.org/oe-lkp/202610091403.d1d8080b-lkp@intel.com
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: Usama Arif <usama.arif@linux.dev>
+Reviewed-by: SJ Park <sj@kernel.org>
+Cc: Adrian Huang <adrianhuang0701@gmail.com>
+Cc: Karthikeyan KS <karthiproffesional@gmail.com>
+Cc: Liew Rui Yan <aethernet65535@gmail.com>
+Cc: Zenghui Yu (Huawei) <zenghui.yu@linux.dev>
 ---
 
- mm/shmem.c |    6 +++++-
- 1 file changed, 5 insertions(+), 1 deletion(-)
+ mm/damon/sysfs.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
---- a/mm/shmem.c~mm-shmem-assign-a-lock-class-to-the-unused-huge-shrinklist
-+++ a/mm/shmem.c
-@@ -5160,6 +5160,9 @@ static const struct dentry_operations sh
- 
- static int shmem_fill_super(struct super_block *sb, struct fs_context *fc)
- {
-+#ifdef CONFIG_TRANSPARENT_HUGEPAGE
-+	static struct lock_class_key shmem_unused_huge_lock_key;
-+#endif
- 	struct shmem_options *ctx = fc->fs_private;
- 	struct inode *inode;
- 	struct shmem_sb_info *sbinfo;
-@@ -5238,7 +5241,8 @@ static int shmem_fill_super(struct super
- 		goto failed;
- 
- #ifdef CONFIG_TRANSPARENT_HUGEPAGE
--	if (list_lru_init_memcg(&sbinfo->shrinklist, sb->s_shrink))
-+	if (list_lru_init_memcg_key(&sbinfo->shrinklist, sb->s_shrink,
-+				    &shmem_unused_huge_lock_key))
- 		goto failed;
- #endif
- 
+--- a/mm/damon/sysfs.c~mm-damon-sysfs-propagate-damon_call-error-in-turn_damon_on
++++ a/mm/damon/sysfs.c
+@@ -2607,7 +2607,8 @@ static int damon_sysfs_turn_damon_on(str
+ 	repeat_call_control->data = kdamond;
+ 	repeat_call_control->repeat = true;
+ 	repeat_call_control->dealloc_on_cancel = true;
+-	if (damon_call(ctx, repeat_call_control))
++	err = damon_call(ctx, repeat_call_control);
++	if (err)
+ 		kfree(repeat_call_control);
+ 	return err;
+ }
 _
 
-Patches currently in -mm which might be from qi.zheng@linux.dev are
+Patches currently in -mm which might be from wangxuewen@kylinos.cn are
 
 
