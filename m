@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AD55B519DF7
-	for <mm-commits@vger.kernel.org>; Tue, 13 Oct 2026 16:29:02 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3F19547F3B1
+	for <mm-commits@vger.kernel.org>; Tue, 13 Oct 2026 18:23:03 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791908943; cv=none; b=k9NIhc2KZq+9q5CyB8nvdkB4PynZ5MMTWJUo6bAs0EXqQFf+f3Iir8pD/eh4MjARnjhSGzXjp8KDw2xMYZpzf6g0teEniABf8Z0T3i542IPejtl8yDDcVikySxfv5F4EhD4+CIccvsoe52gVaUs1slujLUtMIKodAyh+3V1caW8=
+	t=1791915785; cv=none; b=sjX19zzQQn91vCkPXBM9m0Fb1j6jgizPmoce5r4zm3RcooYbyQNNmCr17afpF7L+3lnVfF8Qdw9AwkBLCyNiwGqCm6sSmolc7vSo/YrkCYkgFGanzlRY2rvpcLX54a42IH6aOaImd4SVgwXD7CYmohgjzM2Vwy6RTL+OF4AN0Ks=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791908943; c=relaxed/simple;
-	bh=rAJVXrHjRrPijrEowWkIT12/t3CLMe/XG1K2Vcpnx2g=;
-	h=Date:To:From:Subject:Message-Id; b=G3r756nVu5YqRfOyQcNL45M8FnIOMhNeuZyXv4PHkotnEKabvUaGQjvhZczxEVeDq3EeLyGLL/d2G67SZNrAq6LB8f4esMMF3JLTfXo6wdMJRB+5NIAYYQqaaJ/yK0TSlPV9y3nExM7Z+nq6/X4XJXi9AUXtMYZj/wT4J8pCLPM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=DJtcoHey; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1791915785; c=relaxed/simple;
+	bh=M1qV3cg6jfTjJ8u3QrYLLhzu2/fPzGPOFzzNBufq3xY=;
+	h=Date:To:From:Subject:Message-Id; b=Q2S4NScsfZNyjTW7aN77KzAqreSEV3vbIEInJ/Q7WLfTYo2+8NJPLdhBDSSY3VzasCzrX3vA6kIbsW/3O2m5TwxBSiqmWcOZ9O1xOTX9pD4Yd0IJW3y4MekLyLGMygtkwbIjYsHjgI4h8FL7ObbOKFBcQd1FRworil6HR6rvbYg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=kYyKGzvs; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="DJtcoHey"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 40BEB1F000FF;
-	Tue, 13 Oct 2026 16:29:02 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="kYyKGzvs"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9C13A1F000FF;
+	Tue, 13 Oct 2026 18:23:03 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1791908942;
-	bh=Z5wz4LJckN0FzW6vHuTQJfqUchr3J8ECgQlWKp3bsF0=;
+	d=linux-foundation.org; s=korg; t=1791915783;
+	bh=IDf3QWzJsqeBrO/G4v5tNZ+6ZPSwYpAOqcI9SfIZN6M=;
 	h=Date:To:From:Subject;
-	b=DJtcoHeyO9cHjfQva6HkQH8Nh538FzsRZIaya6Uf8LPry81dS7uIZnk5AY6wgjFvY
-	 YvDrU8wPTVwNGys/A46s8DcUK72PR4J8c0UdG+Xqij9FNQLPIDcPb9semSycpdKuC0
-	 0xtSkd0VraEdsEwrMxFrRSnCObb4MJHCL5KAm29s=
-Date: Tue, 13 Oct 2026 09:29:01 -0700
-To: mm-commits@vger.kernel.org,hirofumi@mail.parknet.co.jp,teczm@foxmail.com,akpm@linux-foundation.org
+	b=kYyKGzvsPXOyFrRJz8qPinzEc3jg2AGjw4+wGfiEaQBw3qRb9rMZtvJQv8dNPOHpI
+	 DrVpcsIOWAGJX23EhCI9qwJm1Hdl7pXZ9fGJ8wwkGoT9Zd73XksJ6faEkW6YhLp7Kx
+	 Nb9ER1E6nYYuFP+OEPmowUs+TSZaRvoL4n1crPjw=
+Date: Tue, 13 Oct 2026 11:23:03 -0700
+To: mm-commits@vger.kernel.org,hirofumi@mail.parknet.co.jp,matheus.aalmeida@inf.ufrgs.br,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + fat-roll-back-the-new-entry-when-create-mkdir-fails-to-build-the-inode.patch added to mm-nonmm-unstable branch
-Message-Id: <20261013162902.40BEB1F000FF@smtp.kernel.org>
+Subject: + fat-remove-cluster-allocation-size-limit.patch added to mm-nonmm-unstable branch
+Message-Id: <20261013182303.9C13A1F000FF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: fat: roll back the new entry when create/mkdir fails to build the inode
+     Subject: fat: remove cluster allocation size limit
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     fat-roll-back-the-new-entry-when-create-mkdir-fails-to-build-the-inode.patch
+     fat-remove-cluster-allocation-size-limit.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/fat-roll-back-the-new-entry-when-create-mkdir-fails-to-build-the-inode.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/fat-remove-cluster-allocation-size-limit.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,121 +58,125 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: zhoumin <teczm@foxmail.com>
-Subject: fat: roll back the new entry when create/mkdir fails to build the inode
-Date: Mon, 12 Oct 2026 21:20:06 +0800
+From: Matheus Alves de Almeida <matheus.aalmeida@inf.ufrgs.br>
+Subject: fat: remove cluster allocation size limit
+Date: Mon, 12 Oct 2026 14:11:04 -0300
 
-vfat_create(), vfat_mkdir(), msdos_create() and msdos_mkdir() add the
-on-disk entry before calling fat_build_inode() to set up the VFS inode. 
-If fat_build_inode() fails, the error is returned but the entry stays on
-disk and the file or directory shows up after remount.
+Patch series "fat: allocate multiple clusters in fallocate", v2.
 
-Remove the entry in that case.  For mkdir, also free the directory cluster
-and decrement the parent's link count.
+This series adds support for allocating multiple clusters in a single
+fat_add_clusters() call in fat_fallocate().
 
-Link: https://lore.kernel.org/tencent_4EDD66523CED299DB0C99498B4D8C939A009@qq.com
-Signed-off-by: zhoumin <teczm@foxmail.com>
+The multi-cluster TODO in inode.c is not implemented, as doing so would
+require speculative preallocation or an iomap conversion.
+
+
+This patch (of 3):
+
+fat_alloc_clusters() currently BUG()s when asked to allocate more than
+MAX_BUF_PER_PAGE / 2 clusters. This limit comes from the buffer_head
+array used to defer syncing and mirroring.
+
+Remove the allocation size limit by doing buffer_head batching like
+fat_free_clusters() does.
+
+Link: https://lore.kernel.org/20261012171106.146243-1-matheus.aalmeida@inf.ufrgs.br
+Link: https://lore.kernel.org/20261012171106.146243-2-matheus.aalmeida@inf.ufrgs.br
+Signed-off-by: Matheus Alves de Almeida <matheus.aalmeida@inf.ufrgs.br>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 Acked-by: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
 ---
 
- fs/fat/namei_msdos.c |   22 ++++++++++++++++++----
- fs/fat/namei_vfat.c  |   22 ++++++++++++++++++----
- 2 files changed, 36 insertions(+), 8 deletions(-)
+ fs/fat/fatent.c |   44 +++++++++++++++++++++++++++++++-------------
+ 1 file changed, 31 insertions(+), 13 deletions(-)
 
---- a/fs/fat/namei_msdos.c~fat-roll-back-the-new-entry-when-create-mkdir-fails-to-build-the-inode
-+++ a/fs/fat/namei_msdos.c
-@@ -292,11 +292,17 @@ static int msdos_create(struct mnt_idmap
- 	if (err)
- 		goto out;
- 	inode = fat_build_inode(sb, sinfo.de, sinfo.i_pos);
--	brelse(sinfo.bh);
- 	if (IS_ERR(inode)) {
-+		int err2;
-+
- 		err = PTR_ERR(inode);
-+		err2 = fat_remove_entries(dir, &sinfo);
-+		if (err2)
-+			fat_msg(sb, KERN_WARNING,
-+				"failed to roll back new entry (%d)", err2);
- 		goto out;
+--- a/fs/fat/fatent.c~fat-remove-cluster-allocation-size-limit
++++ a/fs/fat/fatent.c
+@@ -483,6 +483,26 @@ static void fat_collect_bhs(struct buffe
  	}
-+	brelse(sinfo.bh);
- 	fat_truncate_time(inode, &ts, FAT_UPDATE_ATIME | FAT_UPDATE_CMTIME);
- 	/* timestamp is already written, so mark_inode_dirty() is unneeded. */
+ }
  
-@@ -381,12 +387,20 @@ static struct dentry *msdos_mkdir(struct
- 	inc_nlink(dir);
- 
- 	inode = fat_build_inode(sb, sinfo.de, sinfo.i_pos);
--	brelse(sinfo.bh);
- 	if (IS_ERR(inode)) {
-+		int err2;
++static int fat_flush_bhs(struct super_block *sb, struct buffer_head **bhs,
++			 int *nr_bhs, bool sync)
++{
++	int err, i;
 +
- 		err = PTR_ERR(inode);
--		/* the directory was completed, just return a error */
--		goto out;
-+		err2 = fat_remove_entries(dir, &sinfo);
-+		if (err2) {
-+			fat_msg(sb, KERN_WARNING,
-+				"failed to roll back new entry (%d)", err2);
-+			goto out;
-+		}
-+		drop_nlink(dir);
-+		goto out_free;
- 	}
-+	brelse(sinfo.bh);
- 	set_nlink(inode, 2);
- 	fat_truncate_time(inode, &ts, FAT_UPDATE_ATIME | FAT_UPDATE_CMTIME);
- 	/* timestamp is already written, so mark_inode_dirty() is unneeded. */
---- a/fs/fat/namei_vfat.c~fat-roll-back-the-new-entry-when-create-mkdir-fails-to-build-the-inode
-+++ a/fs/fat/namei_vfat.c
-@@ -771,11 +771,17 @@ static int vfat_create(struct mnt_idmap
- 	inode_inc_iversion(dir);
- 
- 	inode = fat_build_inode(sb, sinfo.de, sinfo.i_pos);
--	brelse(sinfo.bh);
- 	if (IS_ERR(inode)) {
-+		int err2;
++	if (sync) {
++		err = fat_sync_bhs(bhs, *nr_bhs);
++		if (err)
++			return err;
++	}
++	err = fat_mirror_bhs(sb, bhs, *nr_bhs);
++	if (err)
++		return err;
++	for (i = 0; i < *nr_bhs; i++)
++		brelse(bhs[i]);
++	*nr_bhs = 0;
 +
- 		err = PTR_ERR(inode);
-+		err2 = fat_remove_entries(dir, &sinfo);
-+		if (err2)
-+			fat_msg(sb, KERN_WARNING,
-+				"failed to roll back new entry (%d)", err2);
- 		goto out;
- 	}
-+	brelse(sinfo.bh);
- 	inode_inc_iversion(inode);
- 
- 	d_instantiate(dentry, inode);
-@@ -870,12 +876,20 @@ static struct dentry *vfat_mkdir(struct
- 	inc_nlink(dir);
- 
- 	inode = fat_build_inode(sb, sinfo.de, sinfo.i_pos);
--	brelse(sinfo.bh);
- 	if (IS_ERR(inode)) {
-+		int err2;
++	return 0;
++}
 +
- 		err = PTR_ERR(inode);
--		/* the directory was completed, just return a error */
--		goto out;
-+		err2 = fat_remove_entries(dir, &sinfo);
-+		if (err2) {
-+			fat_msg(sb, KERN_WARNING,
-+				"failed to roll back new entry (%d)", err2);
-+			goto out;
-+		}
-+		drop_nlink(dir);
-+		goto out_free;
- 	}
-+	brelse(sinfo.bh);
- 	inode_inc_iversion(inode);
- 	set_nlink(inode, 2);
+ int fat_alloc_clusters(struct inode *inode, int *cluster, int nr_cluster)
+ {
+ 	struct super_block *sb = inode->i_sb;
+@@ -492,8 +512,6 @@ int fat_alloc_clusters(struct inode *ino
+ 	struct buffer_head *bhs[MAX_BUF_PER_PAGE];
+ 	int i, count, err, nr_bhs, idx_clus;
  
+-	BUG_ON(nr_cluster > (MAX_BUF_PER_PAGE / 2));	/* fixed limit */
+-
+ 	lock_fat(sbi);
+ 	if (sbi->free_clusters != -1 && sbi->free_clus_valid &&
+ 	    sbi->free_clusters < nr_cluster) {
+@@ -524,14 +542,21 @@ int fat_alloc_clusters(struct inode *ino
+ 				if (prev_ent.nr_bhs)
+ 					ops->ent_put(&prev_ent, entry);
+ 
+-				fat_collect_bhs(bhs, &nr_bhs, &fatent);
+-
+ 				sbi->prev_free = entry;
+ 				if (sbi->free_clusters != -1)
+ 					sbi->free_clusters--;
+ 
+ 				cluster[idx_clus] = entry;
+ 				idx_clus++;
++
++				if (nr_bhs + fatent.nr_bhs > MAX_BUF_PER_PAGE) {
++					err = fat_flush_bhs(sb, bhs, &nr_bhs,
++							    inode_needs_sync(inode));
++					if (err)
++						goto out;
++				}
++				fat_collect_bhs(bhs, &nr_bhs, &fatent);
++
+ 				if (idx_clus == nr_cluster)
+ 					goto out;
+ 
+@@ -621,17 +646,10 @@ int fat_free_clusters(struct inode *inod
+ 		}
+ 
+ 		if (nr_bhs + fatent.nr_bhs > MAX_BUF_PER_PAGE) {
+-			if (sb->s_flags & SB_SYNCHRONOUS) {
+-				err = fat_sync_bhs(bhs, nr_bhs);
+-				if (err)
+-					goto error;
+-			}
+-			err = fat_mirror_bhs(sb, bhs, nr_bhs);
++			err = fat_flush_bhs(sb, bhs, &nr_bhs,
++					    sb->s_flags & SB_SYNCHRONOUS);
+ 			if (err)
+ 				goto error;
+-			for (i = 0; i < nr_bhs; i++)
+-				brelse(bhs[i]);
+-			nr_bhs = 0;
+ 		}
+ 		fat_collect_bhs(bhs, &nr_bhs, &fatent);
+ 	} while (cluster != FAT_ENT_EOF);
 _
 
-Patches currently in -mm which might be from teczm@foxmail.com are
+Patches currently in -mm which might be from matheus.aalmeida@inf.ufrgs.br are
 
-fat-roll-back-the-new-entry-when-create-mkdir-fails-to-build-the-inode.patch
+fat-remove-cluster-allocation-size-limit.patch
+fat-support-adding-multiple-clusters.patch
+fat-allocate-multiple-clusters-in-fallocate.patch
 
