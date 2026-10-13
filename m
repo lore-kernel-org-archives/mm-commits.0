@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 46042486658
-	for <mm-commits@vger.kernel.org>; Tue, 13 Oct 2026 04:33:42 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0AD9248592A
+	for <mm-commits@vger.kernel.org>; Tue, 13 Oct 2026 04:33:38 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791866026; cv=none; b=ExdjQxTx6A7DJDrcOvCh+ORKxxKbloU9W5dgFE1qXqTVfyvfCvp2Je/qN6Bg/M1e9Wpy9KzDcGG7tBaOe8lz831J4DpDbADqmuipmHwWqaHbWfC7iu4yIKh4CTDDVSqYC5PHVWFZL9WGoqGNKhZWUZAL89e+aAX4QDf4u3beej8=
+	t=1791866027; cv=none; b=C3s6+RQu2XWmCc8kiDo5ZX78t2ZqAgu3jp3YXcMHvJL+0vODcGL5DQfl3f5cL1xakoFkDG5R8Kk4d96rMHERu1fBcxj3Yk3N4RK/duTCI4MUzKO0zR4DhCKHuy+FdEwy1K/RVuIHDKD0/m9KOhjd2Bfpb2uePWfjLXBw0ugb0kw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791866026; c=relaxed/simple;
-	bh=z+udP7+ds3yBFt7BdTdDSKyufrbbQ2QgOwnHvMZJHSo=;
-	h=Date:To:From:Subject:Message-Id; b=FW2dTOCBiqAALlqdBbnBaTEoA4b/NfZSxr2B76gmdnLR4UYxzxzplw+Ngi53qZtFIz0GridtPSefS4j57FZo/QPdQ9BwHTMYi6yeqfjJ+W5Y0Pi3kh/F6Y8Ucxnf/S+jlCj4IrQPKldWXDQPKUg4a9JtBjqBWrbho/0j/rjw3mY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=j+B/Yaju; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1791866027; c=relaxed/simple;
+	bh=G3d7nT4TA1F8QphLY4C67JXDXHdYCft+Mp+gZGrbJ3Y=;
+	h=Date:To:From:Subject:Message-Id; b=eIyr68fz918CWaUdXbrCDRncFX6IAAracH2z1veoPG5+S7ATM4ZwngLlwUH73AgRaXEWMPrvCOSJrR19ysU4Ra3+zJ0v464crXOUbbOPwD72vpwhePS23/pRKEY0LfPLtNsZlwgsHHBsoxyO9eA8erYT1PlrRZCMP8wSNeUvWa0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=rv4Lxgw8; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="j+B/Yaju"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1F3361F00898;
-	Tue, 13 Oct 2026 04:33:42 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="rv4Lxgw8"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D531F1F000FF;
+	Tue, 13 Oct 2026 04:33:37 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1791866022;
-	bh=S3vKdG+u6r8ILngkdgMBjFlYI6p6vfDUV4YHTWrFfC4=;
+	d=linux-foundation.org; s=korg; t=1791866017;
+	bh=VGq3Cj7Yxpg+CMUQQckzJk7J9pCNWDyWEHx/KHu3thI=;
 	h=Date:To:From:Subject;
-	b=j+B/Yajuc4ys5OTpA0Wnno3c9xHKeAKtfyk1xwrXWAGZfJ9yuD2stAml6sAKp9yuV
-	 GKoDotvlnJWPyE+FWtAsW6S4CGDQDo8Jw1EWZofF2ZCvCiyanY/ncSn7Pzv13blNHG
-	 eqQiAIpEJ3POfnKZjz3Gb6vioUCIkICBdvx2s6TM=
-Date: Mon, 12 Oct 2026 21:33:41 -0700
+	b=rv4Lxgw8zkglOuqdeeODX4G2+FCDsm8VNGx4YoMDaiE7y6+GLFETvOhghYLffLY5i
+	 4LDbQViQFj27LgOR1FnEwn8Yzi/8aqVFwiJu4Mvxzq+Rv35qbqtgqoxFIJoqGf5/MP
+	 Rl8O9FvEkwxln4oUV4UxlwCPxBQwlj6h96GYER4s=
+Date: Mon, 12 Oct 2026 21:33:37 -0700
 To: mm-commits@vger.kernel.org,ziy@nvidia.com,vbabka@kernel.org,usama.arif@linux.dev,usama.anjum@arm.com,surenb@google.com,shuah@kernel.org,ryan.roberts@arm.com,rppt@kernel.org,nico.pache@linux.dev,mhocko@suse.com,ljs@kernel.org,liam@infradead.org,leon@kernel.org,lance.yang@linux.dev,kernel-team@meta.com,jgg@ziepe.ca,hughd@google.com,dev.jain@arm.com,david@kernel.org,baolin.wang@linux.alibaba.com,baohua@kernel.org,agordeev@linux.ibm.com,kas@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] selftests-mm-stop-khugepaged-during-the-madv_collapse-cases.patch removed from -mm tree
-Message-Id: <20261013043342.1F3361F00898@smtp.kernel.org>
+Subject: [merged mm-stable] selftests-mm-scale-khugepageds-collapse-wait-with-the-pmd-size.patch removed from -mm tree
+Message-Id: <20261013043337.D531F1F000FF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,35 +35,43 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: selftests/mm: stop khugepaged during the MADV_COLLAPSE cases
+     Subject: selftests/mm: scale khugepaged's collapse wait with the PMD size
 has been removed from the -mm tree.  Its filename was
-     selftests-mm-stop-khugepaged-during-the-madv_collapse-cases.patch
+     selftests-mm-scale-khugepageds-collapse-wait-with-the-pmd-size.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: "Kiryl Shutsemau (Meta)" <kas@kernel.org>
-Subject: selftests/mm: stop khugepaged during the MADV_COLLAPSE cases
-Date: Sat, 19 Sep 2026 01:24:36 +0100
+Subject: selftests/mm: scale khugepaged's collapse wait with the PMD size
+Date: Sat, 19 Sep 2026 01:24:33 +0100
 
-__madvise_collapse() turns THP off before each MADV_COLLAPSE, both to keep
-khugepaged out of the range and to prove MADV_COLLAPSE ignores the
-setting.  It clears the global controls only, which is no longer enough. 
-A per-order control overrides them, and -s, which makes the cases fault in
-folios of one order, leaves that order's control at "always".  khugepaged
-then collapses the very range the case is working on, and the case fails
-on a collapse that was interfered with rather than refused.
+wait_for_scan() gives every case the same three seconds, whatever the huge
+page costs to build.  collapse_full() asks for four of them: 8M at a 2M
+PMD, but 2G at a 512M PMD -- arm64 with 64K base pages.  Three seconds is
+thin at that size, and the case has reported a failure for a collapse that
+was still going.
 
-Clear the per-order controls too.  MADV_COLLAPSE does not consult them:
-anon never did, and shmem stopped with "mm: shmem: ignore sysfs configs
-for shmem forced collapse".
+The timeout is a ceiling on a poll loop, not a sleep: the loop stops as
+soon as ops->check_huge() sees the collapse, or as soon as full_scans has
+advanced by two.  Raising it costs a passing case nothing.  Across 80 runs
+of collapse_full() on arm64 with 64K pages the wait was half a second in
+73 of them, with a tail to two seconds.
 
-Link: https://lore.kernel.org/20260919002451.496763-7-kirill@shutemov.name
-Fixes: b7f16963efe7 ("mm/khugepaged: run khugepaged for all orders")
+Keep three seconds as the floor and add a second per 128M collapsed.  A 2M
+PMD is unchanged, so x86-64 is too; a 512M PMD gets 19 seconds.
+
+On arm64 with 64K pages a passing ./khugepaged all:anon takes 49 seconds
+under TCG before and after this change.
+
+Link: https://lore.kernel.org/20260919002451.496763-4-kirill@shutemov.name
 Signed-off-by: Kiryl Shutsemau (Meta) <kas@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+Acked-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
+Reviewed-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
 Reviewed-by: Baolin Wang <baolin.wang@linux.alibaba.com>
+Tested-by: Muhammad Usama Anjum <usama.anjum@arm.com>
 Assisted-by: LLM
 Cc: Alexander Gordeev <agordeev@linux.ibm.com>
 Cc: Barry Song <baohua@kernel.org>
@@ -75,10 +83,7 @@ Cc: kernel-team@meta.com
 Cc: Lance Yang <lance.yang@linux.dev>
 Cc: Leon Romanovsky <leon@kernel.org>
 Cc: Liam Howlett <liam@infradead.org>
-Cc: Lorenzo Stoakes (ARM) <ljs@kernel.org>
 Cc: Michal Hocko <mhocko@suse.com>
-Cc: Mike Rapoport (Microsoft) <rppt@kernel.org>
-Cc: Muhammad Usama Anjum <usama.anjum@arm.com>
 Cc: Nico Pache (Red Hat) <nico.pache@linux.dev>
 Cc: Ryan Roberts <ryan.roberts@arm.com>
 Cc: Shuah Khan (Samsung OSG) <shuah@kernel.org>
@@ -88,32 +93,25 @@ Cc: "Vlastimil Babka (SUSE)" <vbabka@kernel.org>
 Cc: Zi Yan <ziy@nvidia.com>
 ---
 
- tools/testing/selftests/mm/khugepaged.c |    6 +++++-
- 1 file changed, 5 insertions(+), 1 deletion(-)
+ tools/testing/selftests/mm/khugepaged.c |    7 +++++--
+ 1 file changed, 5 insertions(+), 2 deletions(-)
 
---- a/tools/testing/selftests/mm/khugepaged.c~selftests-mm-stop-khugepaged-during-the-madv_collapse-cases
+--- a/tools/testing/selftests/mm/khugepaged.c~selftests-mm-scale-khugepageds-collapse-wait-with-the-pmd-size
 +++ a/tools/testing/selftests/mm/khugepaged.c
-@@ -538,8 +538,8 @@ static bool is_anon(struct mem_ops *ops)
- static void __madvise_collapse(const char *msg, char *p, int nr_hpages,
- 			       struct mem_ops *ops, bool expect)
+@@ -561,8 +561,11 @@ static bool wait_for_scan(const char *ms
+ 		int nr_hpages, int collap_order, struct mem_ops *ops)
  {
--	int ret;
- 	struct thp_settings settings = *thp_current_settings();
-+	int ret, i;
+ 	unsigned long hpage_size = page_size << collap_order;
+-	int full_scans;
+-	int timeout = 6; /* 3 seconds */
++	unsigned long bytes = (unsigned long)nr_hpages * hpage_size;
++	int timeout, full_scans;
++
++	/* Half-second ticks: three seconds floor, plus a second per 128M */
++	timeout = 6 + 2 * (bytes / (128UL << 20));
  
- 	ksft_print_msg("%s...", msg);
- 
-@@ -555,6 +555,10 @@ static void __madvise_collapse(const cha
- 	 */
- 	settings.thp_enabled = THP_NEVER;
- 	settings.shmem_enabled = SHMEM_NEVER;
-+	for (i = 0; i < NR_ORDERS; i++) {
-+		settings.hugepages[i].enabled = THP_NEVER;
-+		settings.shmem_hugepages[i].enabled = SHMEM_NEVER;
-+	}
- 	thp_push_settings(&settings);
- 
- 	/* Clear VM_NOHUGEPAGE */
+ 	/* Sanity check */
+ 	if (!ops->check_huge(p, len, 0, hpage_size))
 _
 
 Patches currently in -mm which might be from kas@kernel.org are
