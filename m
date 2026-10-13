@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AF21E46EF90;
-	Tue, 13 Oct 2026 03:02:25 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 200EB30F52B;
+	Tue, 13 Oct 2026 03:17:18 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791860547; cv=none; b=WhdrRY3Eb+ho3czq8eMFecbZO6SsYojxbfYl8y5ht1+27r19xvFMI9shjfRkRJpFg/dVy1r0j4SLZ0boSUasvm652v+cyfAiS8JuyOph/V6PvsQapYkLJV2rF9xyY3w3alaWcQ3ucOw8zDYAoQhL+lI+Fk3N2bwPr34/VQAvij8=
+	t=1791861440; cv=none; b=RmykxC4r33gFZJAo449Zgo/W+saAM8U+W7V51ID9IBOvo2mfOEmdo8XBzUZGt4+SnhIrQsbPPcNsKFUfkR4eQUECpevtzoPo8kfPxeUiDGE9/Hj1lMpbz5l52iQumhdYQ8esTBepwxZaUA3R2kvinkU9Z+18M/YwrbhNlkQevfo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791860547; c=relaxed/simple;
-	bh=cmMJWh9A07yARxn9CT+EWVWGrISyXH/I5TcF6kdNqBs=;
-	h=Date:To:From:Subject:Message-Id; b=Cwkpp9ZIzv4HTcSc4IZO4FYJuzBGtuhRmInKYKRk36DO7JphR+LBXexrKJJ80pCw7QmLsayyEmZ0JLHBO/WdWh0gx0ouz03SFnj7vXlwJ1/JP0Ayf0P0IpkVPcWVzW1RfN1+WQLsH1NsZ7GUn7auC6iTMpibu9HrL2OgyeD+biU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=oN6Av+jd; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1791861440; c=relaxed/simple;
+	bh=n0EYfALjysSL6EnpbgycVs6maZaXGm5Zpt2V+4ST85I=;
+	h=Date:To:From:Subject:Message-Id; b=Sl5iY1iOPF3au5iaporr47auv6IuJWEadaoRObiTajbPeF7hpTHP1HxwUi/pkpBE0jLgg6T9vf7s8XBhYo+XTiNykO3Z8LpeIm1gWj0V7E1NLfEXxinUrc+1bXtnGHYgZ1grR8jZbUuQ2nWsq6a6DvIWrYbQ85JLxL2jvXozp9Q=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=uVqSce9v; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="oN6Av+jd"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 473341F000FF;
-	Tue, 13 Oct 2026 03:02:25 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="uVqSce9v"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7D42A1F000FF;
+	Tue, 13 Oct 2026 03:17:18 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1791860545;
-	bh=OX/1d2s48b1c7RcEo62TBfMzeMI+wcDcjrK0OXQ0yAo=;
+	d=linux-foundation.org; s=korg; t=1791861438;
+	bh=eHCVjNJgbanG0StU0eXmW71Wbwp74ANQIRuO3XXYunM=;
 	h=Date:To:From:Subject;
-	b=oN6Av+jd32jpEQbDwepPRVpujxEwVsASHM9Vx95jh1eefZPQP8dV6knTkFo3j37hF
-	 k6pwPczMgFuGewsbx25ETenGxWT7e1oMTe8sjb9Pih8VHkNUU270ULa0UlhooIgZdD
-	 EiAZaf58Wb1KAAabdnGvLrJjhUBphzpg7sPyCrug=
-Date: Mon, 12 Oct 2026 20:02:24 -0700
-To: mm-commits@vger.kernel.org,stable@vger.kernel.org,mark@fasheh.com,jlbec@evilplan.org,heming.zhao@suse.com,anderson.ferneda@braza.com.br,joseph.qi@linux.alibaba.com,akpm@linux-foundation.org
+	b=uVqSce9v314h/ZULhXOUj4lsjPoGZjPCnhn5i1cDryWN3Bj4XX7sWTEcEfEmDvStS
+	 nUZhQ0kV5ZvkQxz1ej3+7A0PcdKKl5gddJy+7Wu9hqMCW7DqJ98VRW1Va2Iq2sG4UK
+	 uG62DgU95OcxPEugNZPm6TxNgcJ4i1SQdsex27v8=
+Date: Mon, 12 Oct 2026 20:17:18 -0700
+To: mm-commits@vger.kernel.org,vbabka@kernel.org,stable@vger.kernel.org,riel@surriel.com,ljs@kernel.org,liam@infradead.org,lance.yang@linux.dev,kylebot@openai.com,jannh@google.com,harry@kernel.org,david@kernel.org,ziy@nvidia.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + ocfs2-deal-with-legacy-signed-xattr-name-hash-values.patch added to mm-nonmm-unstable branch
-Message-Id: <20261013030225.473341F000FF@smtp.kernel.org>
+Subject: [to-be-updated] mm-rmap-dont-discard-lazyfree-thps-at-pmd-level.patch removed from -mm tree
+Message-Id: <20261013031718.7D42A1F000FF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,227 +34,74 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The patch titled
-     Subject: ocfs2: deal with legacy signed xattr name hash values
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     ocfs2-deal-with-legacy-signed-xattr-name-hash-values.patch
+The quilt patch titled
+     Subject: mm/rmap: don't discard lazyfree THPs at PMD level
+has been removed from the -mm tree.  Its filename was
+     mm-rmap-dont-discard-lazyfree-thps-at-pmd-level.patch
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/ocfs2-deal-with-legacy-signed-xattr-name-hash-values.patch
-
-This patch will later appear in the mm-nonmm-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via various
-branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there most days
+This patch was dropped because an updated version will be issued
 
 ------------------------------------------------------
-From: Joseph Qi <joseph.qi@linux.alibaba.com>
-Subject: ocfs2: deal with legacy signed xattr name hash values
-Date: Fri, 09 Oct 2026 16:30:02 +0800
+From: Zi Yan <ziy@nvidia.com>
+Subject: mm/rmap: don't discard lazyfree THPs at PMD level
+Date: Fri, 09 Oct 2026 22:08:18 -0400
 
-Commit 3bc753c06dd0 ("kbuild: treat char as always unsigned") set
--funsigned-char globally, which changed the result of the naked 'char'
-load in ocfs2_xattr_name_hash():
+__discard_anon_folio_pmd_locked() clears a lazyfree THP PMD before it
+knows whether the folio can be discarded, and restores it if the folio was
+redirtied or has extra references.  A concurrent munmap() or
+MREMAP_DONTUNMAP skips the temporary none PMD and unlinks the VMA from its
+anon_vma, so the folio stays mapped after the anon_vma is freed and a
+later rmap walk uses the freed anon_vma.
 
-	hash = (hash << OCFS2_HASH_SHIFT) ^
-	       (hash >> (8*sizeof(hash) - OCFS2_HASH_SHIFT)) ^
-	       *name++;
+Using an invalidated PMD instead of a cleared one requires additional arch
+code fixes.  Instead, disable the PMD level discard of lazyfree THPs, as
+before commit 735ecdfaf4e8 ("mm/vmscan: avoid split lazyfree THP during
+shrink_folio_list()").
 
-A name byte >= 0x80 used to sign-extend and now zero-extends, so the
-hash no longer matches the xe_name_hash an older kernel stored.  An
-indexed xattr tree is searched by that hash alone, and both the bucket
-binary search and the entry scan within it stop as soon as the wanted
-hash falls below an entry's, so the entry is never reached: getxattr,
-setxattr and removexattr return -ENODATA for a name that listxattr
-still lists.
-
-Search with the current unsigned hash and, on a miss, retry with the
-legacy signed one, as ext4 does in commit f3bbac32475b2 ("ext4: deal
-with legacy signed xattr name hash values").  New entries are always
-stored under the unsigned hash.  Skip the retry when the two hashes are
-equal, so that a miss on an ASCII name does not walk the tree twice.
-
-A miss is not empty handed: ocfs2_xattr_bucket_find() leaves xs->bucket
-holding the bucket a new entry would go into.  So after a double miss
-drop it and search once more with the unsigned hash, otherwise a new
-entry would be placed by its legacy hash and stored under its unsigned
-one, breaking the ordering the search relies on.
-
-Only indexed trees are affected; inline xattrs and non-indexed xattr
-blocks compare names with memcmp and never look at the hash.
-
-Also spell out the signedness instead of leaving the current hash to
--funsigned-char, as commit 854f0912f813 ("ext4: make xattr char
-unsignedness in hash explicit") did, so that both variants stay correct
-if this is backported to a kernel without the flag.
-
-Link: https://lore.kernel.org/20261009083002.2621201-4-joseph.qi@linux.alibaba.com
-Signed-off-by: Joseph Qi <joseph.qi@linux.alibaba.com>
+Link: https://lore.kernel.org/20261009-lazyfree-stable-fix-v1-1-70997958ef8d@nvidia.com
+Fixes: 735ecdfaf4e8 ("mm/vmscan: avoid split lazyfree THP during shrink_folio_list()")
+Signed-off-by: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Fixes: 3bc753c06dd0 ("kbuild: treat char as always unsigned")
-Reviewed-by: Heming Zhao <heming.zhao@suse.com>
-Cc: Anderson Ferneda <anderson.ferneda@braza.com.br>
-Cc: Mark Fasheh <mark@fasheh.com>
-Cc: Joel Becker <jlbec@evilplan.org>
-Cc: <stable@vger.kernel.org> # 6.2+
+Reported-by: Kyle Zeng <kylebot@openai.com>
+Closes: https://lore.kernel.org/r/20261009165214.40212-2-kylebot@openai.com
+Reviewed-by: Kyle Zeng <kylebot@openai.com>
+Reviewed-by: Lance Yang <lance.yang@linux.dev>
+Assisted-by: LLM
+Cc: David Hildenbrand <david@kernel.org>
+Cc: Lorenzo Stoakes <ljs@kernel.org>
+Cc: Rik van Riel <riel@surriel.com>
+Cc: Liam R. Howlett <liam@infradead.org>
+Cc: Vlastimil Babka <vbabka@kernel.org>
+Cc: Harry Yoo <harry@kernel.org>
+Cc: Jann Horn <jannh@google.com>
+Cc: <stable@vger.kernel.org>
 ---
 
- fs/ocfs2/xattr.c |   93 +++++++++++++++++++++++++++++++++++++++------
- 1 file changed, 82 insertions(+), 11 deletions(-)
+ mm/rmap.c |   11 -----------
+ 1 file changed, 11 deletions(-)
 
---- a/fs/ocfs2/xattr.c~ocfs2-deal-with-legacy-signed-xattr-name-hash-values
-+++ a/fs/ocfs2/xattr.c
-@@ -601,9 +601,10 @@ static inline const char *ocfs2_xattr_pr
- 	return handler ? xattr_prefix(handler) : NULL;
- }
+--- a/mm/rmap.c~mm-rmap-dont-discard-lazyfree-thps-at-pmd-level
++++ a/mm/rmap.c
+@@ -2275,17 +2275,6 @@ static bool try_to_unmap_one(struct foli
+ 		}
  
--static u32 ocfs2_xattr_name_hash(struct inode *inode,
--				 const char *name,
--				 int name_len)
-+static u32 __ocfs2_xattr_name_hash(struct inode *inode,
-+				   const char *name,
-+				   int name_len,
-+				   bool legacy_signed)
- {
- 	/* Get hash value of uuid from super block */
- 	u32 hash = OCFS2_SB(inode->i_sb)->uuid_hash;
-@@ -612,13 +613,30 @@ static u32 ocfs2_xattr_name_hash(struct
- 	/* hash extended attribute name */
- 	for (i = 0; i < name_len; i++) {
- 		hash = (hash << OCFS2_HASH_SHIFT) ^
--		       (hash >> (8*sizeof(hash) - OCFS2_HASH_SHIFT)) ^
--		       *name++;
-+		       (hash >> (8*sizeof(hash) - OCFS2_HASH_SHIFT));
-+		if (legacy_signed)
-+			hash ^= (signed char)name[i];
-+		else
-+			hash ^= (unsigned char)name[i];
- 	}
- 
- 	return hash;
- }
- 
-+static u32 ocfs2_xattr_name_hash(struct inode *inode,
-+				 const char *name,
-+				 int name_len)
-+{
-+	return __ocfs2_xattr_name_hash(inode, name, name_len, false);
-+}
-+
-+static u32 ocfs2_xattr_name_hash_signed(struct inode *inode,
-+					const char *name,
-+					int name_len)
-+{
-+	return __ocfs2_xattr_name_hash(inode, name, name_len, true);
-+}
-+
- static int ocfs2_xattr_entry_real_size(int name_len, size_t value_len)
- {
- 	return namevalue_size(name_len, value_len) +
-@@ -4331,11 +4349,12 @@ out:
- 	return ret;
- }
- 
--static int ocfs2_xattr_index_block_find(struct inode *inode,
--					struct buffer_head *root_bh,
--					int name_index,
--					const char *name,
--					struct ocfs2_xattr_search *xs)
-+static int __ocfs2_xattr_index_block_find(struct inode *inode,
-+					  struct buffer_head *root_bh,
-+					  int name_index,
-+					  const char *name,
-+					  u32 name_hash,
-+					  struct ocfs2_xattr_search *xs)
- {
- 	int ret;
- 	struct ocfs2_xattr_block *xb =
-@@ -4344,7 +4363,6 @@ static int ocfs2_xattr_index_block_find(
- 	struct ocfs2_extent_list *el = &xb_root->xt_list;
- 	u64 p_blkno = 0;
- 	u32 first_hash, num_clusters = 0;
--	u32 name_hash = ocfs2_xattr_name_hash(inode, name, strlen(name));
- 
- 	if (le16_to_cpu(el->l_next_free_rec) == 0)
- 		return -ENODATA;
-@@ -4375,6 +4393,59 @@ out:
- 	return ret;
- }
- 
-+static int ocfs2_xattr_index_block_find(struct inode *inode,
-+					struct buffer_head *root_bh,
-+					int name_index,
-+					const char *name,
-+					struct ocfs2_xattr_search *xs)
-+{
-+	u32 name_hash, legacy_hash;
-+	int name_len = strlen(name);
-+	int ret;
-+
-+	name_hash = ocfs2_xattr_name_hash(inode, name, name_len);
-+
-+	ret = __ocfs2_xattr_index_block_find(inode, root_bh, name_index, name,
-+					     name_hash, xs);
-+	if (ret != -ENODATA)
-+		return ret;
-+
-+	/*
-+	 * Nothing under the current hash.  The entry may have been stored by
-+	 * an older kernel, which sign-extended the name bytes when hashing.
-+	 * Skip the retry when the two hashes are equal, so that a name made
-+	 * only of ASCII does not have to walk the tree twice.
-+	 */
-+	legacy_hash = ocfs2_xattr_name_hash_signed(inode, name, name_len);
-+	if (legacy_hash == name_hash)
-+		return ret;
-+
-+	/*
-+	 * A miss still leaves xs->bucket holding the bucket a new entry would
-+	 * be inserted into, so drop it before searching again.
-+	 */
-+	ocfs2_xattr_bucket_relse(xs->bucket);
-+
-+	ret = __ocfs2_xattr_index_block_find(inode, root_bh, name_index, name,
-+					     legacy_hash, xs);
-+	if (!ret) {
-+		pr_warn_once("ocfs2: xattr tree with signed name hash\n");
-+		return ret;
-+	}
-+	if (ret != -ENODATA)
-+		return ret;
-+
-+	/*
-+	 * Not under either hash.  Restore the unsigned placement, since that
-+	 * is where a new entry is stored: leaving the bucket where the legacy
-+	 * hash put it would break the ordering the search relies on.
-+	 */
-+	ocfs2_xattr_bucket_relse(xs->bucket);
-+
-+	return __ocfs2_xattr_index_block_find(inode, root_bh, name_index, name,
-+					      name_hash, xs);
-+}
-+
- static int ocfs2_iterate_xattr_buckets(struct inode *inode,
- 				       u64 blkno,
- 				       u32 clusters,
+ 		if (!pvmw.pte) {
+-			if (folio_test_lazyfree(folio)) {
+-				if (unmap_huge_pmd_locked(vma, pvmw.address, pvmw.pmd, folio))
+-					goto walk_done;
+-				/*
+-				 * unmap_huge_pmd_locked has either already marked
+-				 * the folio as swap-backed or decided to retain it
+-				 * due to GUP or speculative references.
+-				 */
+-				goto walk_abort;
+-			}
+-
+ 			if (flags & TTU_SPLIT_HUGE_PMD) {
+ 				/*
+ 				 * We temporarily have to drop the PTL and
 _
 
-Patches currently in -mm which might be from joseph.qi@linux.alibaba.com are
+Patches currently in -mm which might be from ziy@nvidia.com are
 
-ocfs2-reserve-metadata-for-a-new-xattr-block-and-its-value-tree.patch
-ocfs2-reserve-value-tree-metadata-when-moving-an-xattr-into-the-inode.patch
-ocfs2-reserve-xattr-value-tree-metadata-only-once.patch
-ocfs2-deal-with-legacy-signed-dir-index-name-hash-values.patch
-ocfs2-use-the-stored-hash-when-checking-xattr-bucket-collision.patch
-ocfs2-deal-with-legacy-signed-xattr-name-hash-values.patch
 
