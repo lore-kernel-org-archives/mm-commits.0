@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 90C0B484230
-	for <mm-commits@vger.kernel.org>; Tue, 13 Oct 2026 04:33:06 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 90282484889;
+	Tue, 13 Oct 2026 04:33:07 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791865987; cv=none; b=N7SeVvcgVMq+rLlUKRi8AB3CEHsu0tqnHhaJgt6P4xInpMvgRWHgdxKqkCEQrqztf2mAO9JT6SygISNmuz1eREsHVMRFri3wMqXCZR6QRpUPVBzkcFkNLoV4UMeHwXSydxg3p5Cd3oVMrWVBCJCtzmyXBue38Kj0FJfLK8G8FOk=
+	t=1791865989; cv=none; b=Vbww67KCbjU14N+4XVWkw5Z8DoOcK7YJh/TO4LPQ+MTu/cGyUX65THvnvSMWX3b7KR7OpvevKxlyzPLjEojRshRibodrBMARCfkbnIkvqykH645VzovyDg7yLsygBv6Iwc6Sy87wWX203Jx+lMf4c4U2RocY3Ra3Gunrx9FdSZg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791865987; c=relaxed/simple;
-	bh=vXpYiveG5X2tbAJ0yvotW6ZaF9TGhwLhAf5eGmSJrSg=;
-	h=Date:To:From:Subject:Message-Id; b=VpQFrgwhPxycKs2L+SnIyZPm1eTxamwL/zR6xh8gJghRv5WhRy87Q3rQ78sF9aZ3aCL22p+03xoUYr8lN9slUwSResTDuQy8RdZ/Oxs3SakLlqug7LKH8HBcBqO7sx4Me1nmCvq3hcDr31TvYCu+pDZqpMpEnzG9lwfPlDeE4a0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=SYz2OJzi; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1791865989; c=relaxed/simple;
+	bh=kjtoB2WbLZN+4WMIePtmXIPTf6oLK7EidU6vfqUYegs=;
+	h=Date:To:From:Subject:Message-Id; b=sZtNb8wh5SLodWZHlHHtsY00oDQ9ll+faHyb0KouCRSJivez30g/UyPrgmZVv1o3VImfkvUKwvaCZwO4qYp4FmZqqwQqRIoOQRpHwuhLVl1XyucIhGJgUhSDgbYNzdY3ZSVy5MlnLCOSKjiO5SJUfdGcH04NJUdYvejcg8Uby6g=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=jf/FASTD; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="SYz2OJzi"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5F5AB1F00893;
-	Tue, 13 Oct 2026 04:33:06 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="jf/FASTD"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 632C51F000FF;
+	Tue, 13 Oct 2026 04:33:07 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1791865986;
-	bh=YdHbZjC6lmIRENxkbVuh+0JzM0mfQQzmvfk/VLUadiQ=;
+	d=linux-foundation.org; s=korg; t=1791865987;
+	bh=a5PKf1Hg0CIdy55n8qMp4eapn+6iEoBK7AWlQ5AIOnk=;
 	h=Date:To:From:Subject;
-	b=SYz2OJziSfs+Zu3nZu8ce3nRR+hiuElRPB9WRjk5ULNk/dgHi9lWDNuB7lDMcIzWG
-	 nLpyDUPrKVjd2FUJdAjVbxdAnIj63G7MWMxbmODRUMnWGAhzjb7BjK7pawjBWNHJGs
-	 qj3dFO26HAg8/e6eZQBGdqIc6sOn0eLYT4yfc1KE=
-Date: Mon, 12 Oct 2026 21:33:06 -0700
-To: mm-commits@vger.kernel.org,yu.c.zhang@linux.intel.com,xiaoyao.li@intel.com,vbabka@kernel.org,vannapurve@google.com,tabba@google.com,surenb@google.com,shuah@kernel.org,seanjc@google.com,rppt@kernel.org,rientjes@google.com,riel@redhat.com,pbonzini@redhat.com,nao.horiguchi@gmail.com,michael.roth@amd.com,mhocko@suse.com,ljs@kernel.org,linmiaohe@huawei.com,liam@infradead.org,jiaqiyan@google.com,isaku.yamahata@intel.com,hughd@google.com,hidehiro.kawai.ez@hitachi.com,david@kernel.org,dave.hansen@linux.intel.com,baolin.wang@linux.alibaba.com,andi@firstfloor.org,ackerleytng@google.com,wyihan@google.com,akpm@linux-foundation.org
+	b=jf/FASTDhzT0o5gFyjPzTSadcnZeq1ZN6NjGjFBzntoozrkvnSp3rBlDyUIq6Qd84
+	 e0wvY+22QLjdfsdrqTs2TsMyE6dBHwdRnxW4GrbhUF/JP/FEv6Ki30c/ni+35zFL/L
+	 y0gpu8VJ4ZV3SrJp01cmKbJeCK74z6/WhzgClknQ=
+Date: Mon, 12 Oct 2026 21:33:07 -0700
+To: mm-commits@vger.kernel.org,stable@vger.kernel.org,shakeel.butt@linux.dev,osalvador@suse.de,muchun.song@linux.dev,kees@kernel.org,david@kernel.org,colin.i.king@gmail.com,almasrymina@google.com,lihongfu@kylinos.cn,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-selftests-add-shmem-into-memory-failure-test.patch removed from -mm tree
-Message-Id: <20261013043306.5F5AB1F00893@smtp.kernel.org>
+Subject: [merged mm-stable] mm-hugetlb_cgroup-move-per-node-usage-on-cross-node-migration.patch removed from -mm tree
+Message-Id: <20261013043307.632C51F000FF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,226 +35,125 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: selftests: Add shmem into memory failure test
+     Subject: mm/hugetlb_cgroup: move per-node usage on cross node migration
 has been removed from the -mm tree.  Its filename was
-     mm-selftests-add-shmem-into-memory-failure-test.patch
+     mm-hugetlb_cgroup-move-per-node-usage-on-cross-node-migration.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Lisa Wang <wyihan@google.com>
-Subject: mm: selftests: Add shmem into memory failure test
-Date: Thu, 17 Sep 2026 20:43:51 +0000
+From: Hongfu Li <lihongfu@kylinos.cn>
+Subject: mm/hugetlb_cgroup: move per-node usage on cross node migration
+Date: Fri, 18 Sep 2026 10:56:10 +0800
 
-Add a shmem memory failure selftest to test the shmem memory failure is
-correct after modifying shmem return value.
+Patch series "mm/hugetlb_cgroup: move the per-node usage along with the
+folio", v2.
 
-Specifically, test the expected behavior under various scenarios
-combining page dirtiness (dirty vs clean) and failure types (hard vs
-soft):
-+ Dirty + Hard: Trigger a SIGBUS on injection, and trigger another
-  SIGBUS when reading the page again.
-+ Dirty + Soft: No SIGBUS is triggered, and the original value can be
-  read successfully.
-+ Clean + Hard: No SIGBUS is triggered on injection, but trigger a
-  SIGBUS when trying to read the page again.
-+ Clean + Soft: No SIGBUS is triggered, and the page can be read
-  successfully.
+The per-node usage reported by hugetlb.<size>.numa_stat is accounted
+against folio_nid() in __hugetlb_cgroup_commit_charge() and
+__hugetlb_cgroup_uncharge_folio(), so it is only correct while a folio
+stays charged on the same node and in the same hugetlb_cgroup.
 
-[akpm@linux-foundation.org: fix comment typo, per Lisa]
-Link: https://lore.kernel.org/20260917-memory-failure-mf-delayed-fix-v6-5-4b00856b5364@google.com
-Signed-off-by: Lisa Wang <wyihan@google.com>
+Two paths move a folio which stays charged, and neither moves the usage
+with it.  hugetlb_cgroup_migrate() only moves the hugetlb_cgroup pointers
+of a folio migrated to another node, and hugetlb_cgroup_move_parent() only
+moves the page_counter charges and the hugetlb_cgroup pointer of the
+folios of a dying cgroup.  In both cases the node (or cgroup) which was
+charged keeps a usage which never goes away, while the node (or cgroup)
+which ends up uncharging the folio underflows as soon as the folio is
+freed.
+
+Patch 1/2 moves the usage along with the folio on cross node migration,
+patch 2/2 does the same for the folios a dying cgroup reparents.
+
+
+This patch (of 2):
+
+hugetlb.<size>.numa_stat uses folio_nid() to account usage in
+__hugetlb_cgroup_commit_charge() and __hugetlb_cgroup_uncharge_folio(). 
+hugetlb_cgroup_migrate() only moves hugetlb_cgroup pointers, leaving
+per-node usage behind on the source node during cross-node migration.
+
+When the migrated folio gets uncharged, we subtract usage from the
+destination node counter.  This creates stale usage on the source node and
+unsigned long counter underflow on the destination node.  The
+hugetlb.<size>.numa_stat interface exposes these incorrect per-node usage
+values to userspace.
+
+Add a hugetlb_cgroup_move_usage() helper which moves the usage from the
+old node to the new node, and call it from hugetlb_cgroup_migrate().
+
+Link: https://lore.kernel.org/20260918-for-hugetlb-charge-v2-0-2b6d8c2bdc36@kylinos.cn
+Link: https://lore.kernel.org/20260918-for-hugetlb-charge-v2-1-2b6d8c2bdc36@kylinos.cn
+Fixes: f47761999052 ("hugetlb: add hugetlb.*.numa_stat file")
+Signed-off-by: Hongfu Li <lihongfu@kylinos.cn>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Acked-by: Miaohe Lin <linmiaohe@huawei.com>
-Cc: Ackerley Tng <ackerleytng@google.com>
-Cc: Andi Kleen <andi@firstfloor.org>
-Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: Dave Hansen <dave.hansen@linux.intel.com>
-Cc: David Hildenbrand (Arm) <david@kernel.org>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Fuad Tabba <tabba@google.com>
-Cc: Hidehiro Kawai <hidehiro.kawai.ez@hitachi.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Isaku Yamahata <isaku.yamahata@intel.com>
-Cc: Jiaqi Yan <jiaqiyan@google.com>
-Cc: Liam R. Howlett <liam@infradead.org>
-Cc: Lorenzo Stoakes <ljs@kernel.org>
-Cc: Michael Roth <michael.roth@amd.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Naoya Horiguchi <nao.horiguchi@gmail.com>
-Cc: Paolo Bonzini <pbonzini@redhat.com>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: Sean Christopherson <seanjc@google.com>
-Cc: Shuah Khan <shuah@kernel.org>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Vishal Annapurve <vannapurve@google.com>
-Cc: Vlastimil Babka <vbabka@kernel.org>
-Cc: Xiaoyao Li <xiaoyao.li@intel.com>
-Cc: Yu Zhang <yu.c.zhang@linux.intel.com>
+Acked-by: Muchun Song <muchun.song@linux.dev>
+Cc: Colin Ian King <colin.i.king@gmail.com>
+Cc: David Hildenbrand <david@kernel.org>
+Cc: Kees Cook <kees@kernel.org>
+Cc: Mina Almasry <almasrymina@google.com>
+Cc: Oscar Salvador <osalvador@suse.de>
+Cc: Shakeel Butt <shakeel.butt@linux.dev>
+Cc: <stable@vger.kernel.org>
 ---
 
- tools/testing/selftests/mm/memory-failure.c |  114 +++++++++++++++++-
- 1 file changed, 111 insertions(+), 3 deletions(-)
+ mm/hugetlb_cgroup.c |   31 +++++++++++++++++++++++++++++++
+ 1 file changed, 31 insertions(+)
 
---- a/tools/testing/selftests/mm/memory-failure.c~mm-selftests-add-shmem-into-memory-failure-test
-+++ a/tools/testing/selftests/mm/memory-failure.c
-@@ -29,9 +29,14 @@ enum result_type {
- 	MADV_HARD_ANON,
- 	MADV_HARD_CLEAN_PAGECACHE,
- 	MADV_HARD_DIRTY_PAGECACHE,
-+	MADV_HARD_CLEAN_SHMEM,
-+	MADV_HARD_DIRTY_SHMEM,
- 	MADV_SOFT_ANON,
- 	MADV_SOFT_CLEAN_PAGECACHE,
- 	MADV_SOFT_DIRTY_PAGECACHE,
-+	MADV_SOFT_CLEAN_SHMEM,
-+	MADV_SOFT_DIRTY_SHMEM,
-+	READ_ERROR,
- };
- 
- static jmp_buf signal_jmp_buf;
-@@ -157,17 +162,22 @@ static void check(struct __test_metadata
- 	case MADV_HARD_CLEAN_PAGECACHE:
- 	case MADV_SOFT_CLEAN_PAGECACHE:
- 	case MADV_SOFT_DIRTY_PAGECACHE:
--		/* It is not expected to receive a SIGBUS signal. */
--		ASSERT_EQ(setjmp, 0);
--
-+	case MADV_SOFT_DIRTY_SHMEM:
- 		/* The page content should remain unchanged. */
- 		ASSERT_TRUE(check_memory(vaddr, self->page_size));
-+		/* FALLTHROUGH */
-+	case MADV_HARD_CLEAN_SHMEM:
-+	case MADV_SOFT_CLEAN_SHMEM:
-+		/* It is not expected to receive a SIGBUS signal. */
-+		ASSERT_EQ(setjmp, 0);
- 
- 		/* The backing pfn of addr should have changed. */
- 		ASSERT_NE(pagemap_get_pfn(self->pagemap_fd, vaddr), self->pfn);
- 		break;
- 	case MADV_HARD_ANON:
- 	case MADV_HARD_DIRTY_PAGECACHE:
-+	case MADV_HARD_DIRTY_SHMEM:
-+	case READ_ERROR:
- 		/* The SIGBUS signal should have been received. */
- 		ASSERT_EQ(setjmp, 1);
- 
-@@ -263,6 +273,20 @@ static int prepare_file(const char *fnam
- 	return fd;
+--- a/mm/hugetlb_cgroup.c~mm-hugetlb_cgroup-move-per-node-usage-on-cross-node-migration
++++ a/mm/hugetlb_cgroup.c
+@@ -179,6 +179,34 @@ static void hugetlb_cgroup_css_free(stru
+ 	hugetlb_cgroup_free(hugetlb_cgroup_from_css(css));
  }
  
-+static int prepare_shmem(const char *fname, unsigned long size)
++static void hugetlb_cgroup_move_usage(struct hugetlb_cgroup *from,
++				      struct hugetlb_cgroup *to,
++				      struct folio *from_folio,
++				      struct folio *to_folio)
 +{
-+	int fd;
++	int idx = hstate_index(folio_hstate(from_folio));
++	unsigned long nr_pages = folio_nr_pages(from_folio);
++	int from_nid = folio_nid(from_folio);
++	int to_nid = folio_nid(to_folio);
++	unsigned long usage;
 +
-+	fd = memfd_create(fname, 0);
-+	if (fd < 0)
-+		return -1;
-+	if (ftruncate(fd, size) < 0) {
-+		close(fd);
-+		return -1;
-+	}
-+	return fd;
++	lockdep_assert_held(&hugetlb_lock);
++
++	if (!from || !to)
++		return;
++
++	if (from == to && from_nid == to_nid)
++		return;
++
++	usage = from->nodeinfo[from_nid]->usage[idx];
++	if (WARN_ON_ONCE(usage < nr_pages))
++		return;
++	WRITE_ONCE(from->nodeinfo[from_nid]->usage[idx], usage - nr_pages);
++
++	usage = to->nodeinfo[to_nid]->usage[idx];
++	WRITE_ONCE(to->nodeinfo[to_nid]->usage[idx], usage + nr_pages);
 +}
 +
- /* Borrowed from mm/gup_longterm.c. */
- static int get_fs_type(int fd)
- {
-@@ -362,6 +386,90 @@ TEST_F(memory_failure, dirty_pagecache)
- 
- 	ASSERT_EQ(munmap(addr, self->page_size), 0);
- 
-+	ASSERT_EQ(close(fd), 0);
-+}
+ /*
+  * Should be called with hugetlb_lock held.
+  * Since we are holding hugetlb_lock, pages cannot get moved from
+@@ -906,6 +934,9 @@ void hugetlb_cgroup_migrate(struct folio
+ 	/* move the h_cg details to new cgroup */
+ 	set_hugetlb_cgroup(new_folio, h_cg);
+ 	set_hugetlb_cgroup_rsvd(new_folio, h_cg_rsvd);
 +
-+TEST_F(memory_failure, dirty_shmem)
-+{
-+	int fd;
-+	char *addr;
-+	int ret;
++	hugetlb_cgroup_move_usage(h_cg, h_cg, old_folio, new_folio);
 +
-+	fd = prepare_shmem("shmem-file", self->page_size);
-+	if (fd < 0)
-+		SKIP(return, "failed to open test shmem-file.\n");
-+
-+	addr = mmap(0, self->page_size, PROT_READ | PROT_WRITE,
-+		    MAP_SHARED, fd, 0);
-+	if (addr == MAP_FAILED) {
-+		close(fd);
-+		SKIP(return, "mmap failed, not enough memory.\n");
-+	}
-+	memset(addr, 0xce, self->page_size);
-+
-+	prepare(_metadata, self, addr);
-+
-+	ret = sigsetjmp(signal_jmp_buf, 1);
-+	if (!ret && !self->injection_attempted) {
-+		self->injection_attempted = true;
-+		ASSERT_EQ(variant->inject(self, addr), 0);
-+	}
-+
-+	if (variant->type == MADV_HARD) {
-+		check(_metadata, self, addr, MADV_HARD_DIRTY_SHMEM, ret);
-+		ret = sigsetjmp(signal_jmp_buf, 1);
-+		if (ret == 0)
-+			FORCE_READ(*addr);
-+		check(_metadata, self, addr, READ_ERROR, ret);
-+	} else {
-+		check(_metadata, self, addr, MADV_SOFT_DIRTY_SHMEM, ret);
-+	}
-+
-+	ASSERT_EQ(munmap(addr, self->page_size), 0);
-+
-+	ASSERT_EQ(close(fd), 0);
-+}
-+
-+TEST_F(memory_failure, clean_shmem)
-+{
-+	int fd;
-+	char *addr;
-+	int ret;
-+
-+	fd = prepare_shmem("shmem-file", self->page_size);
-+	if (fd < 0)
-+		SKIP(return, "failed to open test shmem-file.\n");
-+
-+	addr = mmap(0, self->page_size, PROT_READ | PROT_WRITE,
-+		    MAP_SHARED, fd, 0);
-+	if (addr == MAP_FAILED) {
-+		close(fd);
-+		SKIP(return, "mmap failed, not enough memory.\n");
-+	}
-+	FORCE_READ(*addr);
-+
-+	prepare(_metadata, self, addr);
-+
-+	ret = sigsetjmp(signal_jmp_buf, 1);
-+	if (!ret && !self->injection_attempted) {
-+		self->injection_attempted = true;
-+		ASSERT_EQ(variant->inject(self, addr), 0);
-+	}
-+
-+	if (variant->type == MADV_HARD) {
-+		check(_metadata, self, addr, MADV_HARD_CLEAN_SHMEM, ret);
-+		ret = sigsetjmp(signal_jmp_buf, 1);
-+		if (ret == 0)
-+			FORCE_READ(*addr);
-+		check(_metadata, self, addr, READ_ERROR, ret);
-+	} else {
-+		/* Test the address accessability without check_memory(). */
-+		FORCE_READ(*addr);
-+		check(_metadata, self, addr, MADV_SOFT_CLEAN_SHMEM, ret);
-+	}
-+
-+	ASSERT_EQ(munmap(addr, self->page_size), 0);
-+
- 	ASSERT_EQ(close(fd), 0);
+ 	list_move(&new_folio->lru, &h->hugepage_activelist);
+ 	spin_unlock_irq(&hugetlb_lock);
  }
- 
 _
 
-Patches currently in -mm which might be from wyihan@google.com are
+Patches currently in -mm which might be from lihongfu@kylinos.cn are
 
+mm-hugetlb-account-migration-target-folio-in-per-node-nr_hugetlb-vmstat.patch
+mm-memcg-migrate-per-node-hugetlb-lruvec-stat-together-with-hugetlb-folio.patch
+mm-memfd-fix-hugetlb-reservation-accounting-in-error-paths.patch
 
