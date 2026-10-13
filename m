@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4248D391838
-	for <mm-commits@vger.kernel.org>; Tue, 13 Oct 2026 04:32:47 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 01C50391838
+	for <mm-commits@vger.kernel.org>; Tue, 13 Oct 2026 04:32:48 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791865968; cv=none; b=Si5oK79JUCvP/YXGN0Mc3s17tsgARBjdlEnCnYUsG1SwxvQ1lY5QvTh+oiSkUrvdZsqabUspCQ1F0KFR+HnVBuN0XvgqlLbmc9mc4ZFcDUAUU/IjATRlCPjGhjXLWIn3oUVx04TJwERcz2S6hz3RyDYk1sli9PWllNt8i9nMYQA=
+	t=1791865970; cv=none; b=kSphTmzjpxIRzMnkzoPTenI4EpayBN8gMCtXkyalj6lzj7g/zEE4MNYEA2QSnD8by/RR9g5nJcAp9Js3b1Zvs2cATxRUp2Xgcxf9vqDcpZZJwSP2YHUA7mA+QhAEiew0v2PxZBEkrV64zo8VdmLiQnfWrVe2L2iVlB8LUwxWj+Y=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791865968; c=relaxed/simple;
-	bh=pai5xnQmbxMZU1az+Mz6vDMEOVV08ryoSjIXBBK4X3Y=;
-	h=Date:To:From:Subject:Message-Id; b=DJQ4a9y68F4LMSop8vMOI432hMD4hKgKpwrnWB4eeVmLrdLMYe+3brhqiSaaSFdcr1/5Fx77Ky5zQApt4jrCmIsga3u4IpI4RXNSlSPnIydrG596uM4bxmg9dsKxvSVU97a9RUz2/8v6vRByffL5306EgwGAlkCDFK2fQ+B11xg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=gDshMprD; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1791865970; c=relaxed/simple;
+	bh=gOg8ME7zrlis8ms2navzdUCxbG6gnjAN7DOzWA/+ukI=;
+	h=Date:To:From:Subject:Message-Id; b=YNkQP4jMouZQT5FcJjDourSK6hR76DrJdZbxKNVop9HI9xKP9zdidjw3c/nkGNtSxhMyI1tmSc4UIqr/kUou182dLDPE00+u6r5mshb4M6O6PBweRYNKc1EYReWLVRlLyS5NLAXnfuGX3bTjIF35I8oNYj55eSE5rKyA2e4d5Vs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=xnEfL53W; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="gDshMprD"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 15CCB1F000FF;
-	Tue, 13 Oct 2026 04:32:47 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="xnEfL53W"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 228061F00893;
+	Tue, 13 Oct 2026 04:32:48 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1791865967;
-	bh=QOcr9oLitFruGPIsiBRbN16q/CLiDzjgud6V6+QT/4k=;
+	d=linux-foundation.org; s=korg; t=1791865968;
+	bh=X6/mhIJ68EGOACHNzsXNX1ARNOFL26IHGrTeeiOg/sE=;
 	h=Date:To:From:Subject;
-	b=gDshMprDuou/RUg9VPfRBf/SeBNhF+Lw0ZgLEftlkobZ6YZ1n1SW18TRDqgFAyBBT
-	 HIhFc/wDWybtvIWUT26Q8HCCeoPjNaGs6phKG4viQ/b1MjA1Ua9uPqugeVqXINNisl
-	 KcImhwFiiFQtalk1v08xSRGE/Yk1giiyGXOQH/1w=
-Date: Mon, 12 Oct 2026 21:32:46 -0700
+	b=xnEfL53WjJBeco7QJjTa4TbJzIFyXQSzDhnOgXXb3LSREZTbXirwSmfTe9xNd1hfl
+	 y92DZXIQKRXDliL4oHWrFh8GTYpELXyitVMTkNXUJ4vZflO9kYffvPnlHYq8uEKFv/
+	 AJPA3IbTve8/Cz2qIvBatDo0AdmrLNWsLa38bbHw=
+Date: Mon, 12 Oct 2026 21:32:47 -0700
 To: mm-commits@vger.kernel.org,vbabka@kernel.org,surenb@google.com,shuah@kernel.org,rppt@kernel.org,rdunlap@infradead.org,mhocko@suse.com,ljs@kernel.org,liam@infradead.org,gutierrez.asier@huawei-partners.com,david@kernel.org,davidgow@davidgow.net,corbet@lwn.net,brendan.higgins@linux.dev,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-damon-api-remove-nr_damos_filter_types.patch removed from -mm tree
-Message-Id: <20261013043247.15CCB1F000FF@smtp.kernel.org>
+Subject: [merged mm-stable] mm-damon-core-use-abs_diff-in-damon_feed_loop_next_input.patch removed from -mm tree
+Message-Id: <20261013043248.228061F00893@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,31 +35,23 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/damon/api: remove NR_DAMOS_FILTER_TYPES
+     Subject: mm/damon/core: use abs_diff() in damon_feed_loop_next_input()
 has been removed from the -mm tree.  Its filename was
-     mm-damon-api-remove-nr_damos_filter_types.patch
+     mm-damon-core-use-abs_diff-in-damon_feed_loop_next_input.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: SJ Park <sj@kernel.org>
-Subject: mm/damon/api: remove NR_DAMOS_FILTER_TYPES
-Date: Thu, 17 Sep 2026 07:21:59 -0700
+Subject: mm/damon/core: use abs_diff() in damon_feed_loop_next_input()
+Date: Thu, 17 Sep 2026 07:22:00 -0700
 
-Patch series "mm/damon: improve readability, clarity and test coverage".
+damon_feed_loop_next_input() is open-coding absolute diff calculation
+instead of the dedicated helper, abs_diff(), for no good reason.  Use
+the dedicated helper.
 
-Yet another batch of miscellaneous DAMON minor improvements.  Mostly
-focused on readability and clarity of code and document, and unit/self
-test coverage.  No user-visible behavioral change is intended.
-
-
-This patch (of 10):
-
-Nobody uses NR_DAMOS_FILTER_TYPES.  Remove it.
-
-Link: https://lore.kernel.org/20260917142210.90829-1-sj@kernel.org
-Link: https://lore.kernel.org/20260917142210.90829-2-sj@kernel.org
+Link: https://lore.kernel.org/20260917142210.90829-3-sj@kernel.org
 Signed-off-by: SJ Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 Reviewed-by: Asier Gutierrez <gutierrez.asier@huawei-partners.com>
@@ -77,27 +69,23 @@ Cc: Suren Baghdasaryan <surenb@google.com>
 Cc: Vlastimil Babka <vbabka@kernel.org>
 ---
 
- include/linux/damon.h |    2 --
- 1 file changed, 2 deletions(-)
+ mm/damon/core.c |    5 +----
+ 1 file changed, 1 insertion(+), 4 deletions(-)
 
---- a/include/linux/damon.h~mm-damon-api-remove-nr_damos_filter_types
-+++ a/include/linux/damon.h
-@@ -400,7 +400,6 @@ struct damos_stat {
-  * @DAMOS_FILTER_TYPE_ADDR:	Address range.
-  * @DAMOS_FILTER_TYPE_TARGET:	Data Access Monitoring target.
-  * @DAMOS_FILTER_TYPE_PROBE_HITS_WSUM:	probe_hits weighted sum range.
-- * @NR_DAMOS_FILTER_TYPES:	Number of filter types.
-  *
-  * All types except &DAMOS_FILTER_TYPE_ADDR, &DAMOS_FILTER_TYPE_TARGET and
-  * &DAMOS_FILTER_TYPE_PROBE_HITS_WSUM are handled by the underlying &struct
-@@ -422,7 +421,6 @@ enum damos_filter_type {
- 	DAMOS_FILTER_TYPE_ADDR,
- 	DAMOS_FILTER_TYPE_TARGET,
- 	DAMOS_FILTER_TYPE_PROBE_HITS_WSUM,
--	NR_DAMOS_FILTER_TYPES,
- };
+--- a/mm/damon/core.c~mm-damon-core-use-abs_diff-in-damon_feed_loop_next_input
++++ a/mm/damon/core.c
+@@ -2926,10 +2926,7 @@ static unsigned long damon_feed_loop_nex
+ 	if (score >= goal * 2)
+ 		return min_input;
  
- /**
+-	if (over_achieving)
+-		score_goal_diff = score - goal;
+-	else
+-		score_goal_diff = goal - score;
++	score_goal_diff = abs_diff(score, goal);
+ 
+ 	if (last_input < ULONG_MAX / score_goal_diff)
+ 		compensation = last_input * score_goal_diff / goal;
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
