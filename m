@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D35C63D7A01
-	for <mm-commits@vger.kernel.org>; Wed, 14 Oct 2026 21:28:11 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 040D03E7159;
+	Wed, 14 Oct 2026 21:51:41 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1792013292; cv=none; b=hU/LQsSUxOGwySDCT7wK82xCp42Z5uGDGBSO2mQrBC510K0xsQlwI6YqfVPToH2JaA02sjsQDdTsHQjSsMU9wPUM2IOb6SZn70k1ZxNv1ks4h66D35W5zQCKPz4YTHGNl0JBILOS86qMD7U8benw7FP/XTKQkQmArWZRMIJsMiI=
+	t=1792014703; cv=none; b=hnqrE7XxB+mT1c74JwGHC+p8Oq2/jHqUUVlx0nqHgicVyi/bK8QC0tCBHUq6qm/TpwzC6HXJvZysdYQYzUe0cm2pqei8raIaaJCpcUn2TxAxbyHFvDgeFm15vAtT689zsHxDoWTiWoN/7nIRNNCt2PT5x3ITfIpYzTaQDR3dACE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1792013292; c=relaxed/simple;
-	bh=3EyVg2OBSIFg+sB7LL+6hphM81VY59kCCXmxyYT4odo=;
-	h=Date:To:From:Subject:Message-Id; b=noWOvdTnjfEL0/RlmpnL6oEcaehKGEkueWwj6sUIGDhHuyObnIwxLhFncmDbWrzRPCntQ3hgIcjQH5nn0Rmg1wbmQnx6LMFGDvxpPgS4MfCfYZVGuinAg+DHNPVVm1StJ5Epo1K1S+hFUdnVw8Phk+4Vf74icMyrS+iZGl68CwU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=jT5p3OeB; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1792014703; c=relaxed/simple;
+	bh=IpBdc7VdF4MHCTTmvgFMWDBgROijq6bO/OSSW9BxFt4=;
+	h=Date:To:From:Subject:Message-Id; b=fYQsuNjKi4AZq+DvSF+M2AhDOhuMy9OWm3YnGtxPdkmjlHHoa+BBU4jlj7wKUsq1ZsqC+5vPw/jmI1wwLiT7h67uzuGSouRikfoU+7fgvE+Rl4z3NGAUIPzGHDoOTGkhTyl06gEKaU8uJOpDj1wF7LErZVNHy6c0tVR9QEF9ofE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=us76MAKU; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="jT5p3OeB"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 921FC1F000C4;
-	Wed, 14 Oct 2026 21:28:11 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="us76MAKU"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7BC771F000C4;
+	Wed, 14 Oct 2026 21:51:41 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1792013291;
-	bh=ki4GF1Yc0q1Ll/sx5H8fkdgvw1fL0zyirKxjO6rCxhA=;
+	d=linux-foundation.org; s=korg; t=1792014701;
+	bh=FLrjp4FscbAmKjlIYtwlxBX/diiKrPyjDio2dkLoIqY=;
 	h=Date:To:From:Subject;
-	b=jT5p3OeBsA74A8ymJZ4N1ZUN+6UtlClSemqG2lJNucL0vM3QbwDT0G9WEKItZMHbM
-	 Xp5czuP1UBJWT9CLA4upHZsNFgEscR6IaFPUxHVGDVbc/z7mWgPE7a3l3Pwcol7Rab
-	 fPlj0KU5x9h3zctzn6hcpjt15MEG9AeyJrCTmyHg=
-Date: Wed, 14 Oct 2026 14:28:11 -0700
-To: mm-commits@vger.kernel.org,shuah@kernel.org,ljs@kernel.org,li.wang@linux.dev,david@kernel.org,sashal@kernel.org,akpm@linux-foundation.org
+	b=us76MAKUPR9Gw7LrFNG10ym2nVhOJYbAOU4ZyPp22lGhBYOtBFPd2tt+O7Ahhh0kD
+	 HZwGn94VNUpN0p62u+/NddUu9PuDFptHNzQ7hyRpE6dF/bfTsIYz36HlYiolcvxjAd
+	 EcMxRyz5pT2ZCkFr/yAghjsI+PhVT9nEofw2/Kuw=
+Date: Wed, 14 Oct 2026 14:51:41 -0700
+To: mm-commits@vger.kernel.org,vbabka@kernel.org,stable@vger.kernel.org,pfalcato@suse.de,ljs@kernel.org,liam@infradead.org,jannh@google.com,nickolai@csail.mit.edu,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-mm-report-the-configuration-check-on-stderr.patch added to mm-unstable branch
-Message-Id: <20261014212811.921FC1F000C4@smtp.kernel.org>
+Subject: + mm-mlock-use-a-long-for-the-page-count-in-mlock_fixup.patch added to mm-unstable branch
+Message-Id: <20261014215141.7BC771F000C4@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: selftests/mm: report the configuration check on stderr
+     Subject: mm/mlock: use a long for the page count in mlock_fixup()
 has been added to the -mm mm-unstable branch.  Its filename is
-     selftests-mm-report-the-configuration-check-on-stderr.patch
+     mm-mlock-use-a-long-for-the-page-count-in-mlock_fixup.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-report-the-configuration-check-on-stderr.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mlock-use-a-long-for-the-page-count-in-mlock_fixup.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,50 +58,87 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Sasha Levin <sashal@kernel.org>
-Subject: selftests/mm: report the configuration check on stderr
-Date: Wed, 14 Oct 2026 16:01:37 -0400
+From: Nickolai Zeldovich <nickolai@csail.mit.edu>
+Subject: mm/mlock: use a long for the page count in mlock_fixup()
+Date: Wed, 14 Oct 2026 09:13:58 -0400
 
-The mm Makefile includes local_config.mk, which is generated by a rule
-that announces itself with "CHK [config] local_config.mk" on standard
-output, which make -s does not suppress. When make has to regenerate the
-file while it reads the Makefile for emit_tests, for example on a fresh
-tree or when the selftests are installed with make -B, the message
-becomes part of the emit_tests output that the selftests install target
-appends to kselftest-list.txt, so the runlist gains a line that is not a
-test.
+mlock_fixup() adjusts mm->locked_vm, an unsigned long, by the number of
+pages whose VM_LOCKED state it changes, but computes that number in an
+int:
 
-Print the message on standard error. With V=1 the message is empty and
-only the redirection of an empty command remains.
+	int nr_pages;
+	...
+	nr_pages = (end - start) >> PAGE_SHIFT;
+	...
+	mm->locked_vm += nr_pages;
 
-Link: https://lore.kernel.org/20261014200137.1364121-1-sashal@kernel.org
-Fixes: 04cf82a741e0 ("selftests/mm: suppress compiler error in liburing check")
-Signed-off-by: Sasha Levin <sashal@kernel.org>
+When a single VMA range of 2^31 pages (8 TiB with 4 KiB pages) or more
+is locked or unlocked, the count is truncated to 32 bits and then
+sign-extended, so locked_vm is changed by the wrong amount, while
+munmap(), mremap() and the other paths that maintain locked_vm use the
+full unsigned long page count.
+
+Such a range is reachable on 64-bit architectures with a 47-bit or
+larger user address space (x86_64, arm64 with 48-bit VA, riscv64 Sv48)
+by a task with CAP_IPC_LOCK or a raised RLIMIT_MEMLOCK, which do_mlock()
+checks against the full untruncated length.  It costs nothing with
+MAP_NORESERVE and MLOCK_ONFAULT/MCL_ONFAULT, since then no page is
+populated.  On x86_64, after
+
+	p = mmap(NULL, 8UL << 40, PROT_READ | PROT_WRITE,
+		 MAP_PRIVATE | MAP_ANONYMOUS | MAP_NORESERVE, -1, 0);
+	mlock2(p, 8UL << 40, MLOCK_ONFAULT);
+
+VmLck in /proc/self/status reads 18446744065119617024 kB instead of
+8589934592 kB; munmap() of the region then subtracts the true size and
+leaves VmLck at 18446744056529682432 kB instead of 0.  With 16 TiB,
+locked_vm is not changed at all, VmLck stays 0 kB, and after the task
+drops CAP_IPC_LOCK or lowers RLIMIT_MEMLOCK, mlock(), mmap(MAP_LOCKED)
+and the other mlock_future_ok() and account_locked_vm() users enforce
+RLIMIT_MEMLOCK against that count, so they let the task lock memory
+beyond its limit (or, in the 8 TiB case, refuse every further lock).
+The error persists for the life of the mm; unlocking the range in pieces
+skews it further.  The wrong count is per-mm accounting only: it does
+not change which pages are locked.
+
+The int has been there since before git history (the variable was named
+"pages" until it was renamed in 2.6.28); every other updater of
+locked_vm uses an unsigned long or long count.  Make nr_pages a long,
+which holds the page count of any user range and its negation, so the
+existing sign handling is unchanged.
+
+Found by formal verification of mm/mlock.c against the kernel binary.
+
+Link: https://lore.kernel.org/20261014131358.780240-1-nickolai@csail.mit.edu
+Fixes: 1da177e4c3f4 ("Linux-2.6.12-rc2")
+Signed-off-by: Nickolai Zeldovich <nickolai@csail.mit.edu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Cc: Li Wang <li.wang@linux.dev>
-Cc: David Hildenbrand <david@kernel.org>
+Reviewed-by: Pedro Falcato <pfalcato@suse.de>
+Assisted-by: LLM
+Cc: Liam R. Howlett <liam@infradead.org>
 Cc: Lorenzo Stoakes <ljs@kernel.org>
-Cc: Shuah Khan <shuah@kernel.org>
+Cc: Vlastimil Babka <vbabka@kernel.org>
+Cc: Jann Horn <jannh@google.com>
+Cc: <stable@vger.kernel.org>
 ---
 
- tools/testing/selftests/mm/Makefile |    2 +-
+ mm/mlock.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/tools/testing/selftests/mm/Makefile~selftests-mm-report-the-configuration-check-on-stderr
-+++ a/tools/testing/selftests/mm/Makefile
-@@ -266,7 +266,7 @@ $(OUTPUT)/migration: LDLIBS += -lnuma
- $(OUTPUT)/rmap: LDLIBS += -lnuma
+--- a/mm/mlock.c~mm-mlock-use-a-long-for-the-page-count-in-mlock_fixup
++++ a/mm/mlock.c
+@@ -457,7 +457,7 @@ static int mlock_fixup(struct vma_iterat
+ {
+ 	const vma_flags_t old_vma_flags = vma->flags;
+ 	struct mm_struct *mm = vma->vm_mm;
+-	int nr_pages;
++	long nr_pages;
+ 	int ret = 0;
  
- local_config.mk local_config.h_gen: check_config.sh
--	$(call msg,CHK,config,$@)
-+	@{ $(patsubst @%,%,$(call msg,CHK,config,$@)) :; } >&2
- 	$(Q)CC="$(CC)" CFLAGS="$(CFLAGS)" ./check_config.sh
- 
- EXTRA_CLEAN += local_config.mk local_config.h_gen
+ 	if (vma_flags_same_pair(&old_vma_flags, new_vma_flags) ||
 _
 
-Patches currently in -mm which might be from sashal@kernel.org are
+Patches currently in -mm which might be from nickolai@csail.mit.edu are
 
-selftests-mm-report-the-configuration-check-on-stderr.patch
-selftests-proc-proc-pid-vm-fix-unused-variable-warning-on-non-x86.patch
+mm-mlock-use-a-long-for-the-page-count-in-mlock_fixup.patch
 
