@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DE6113C1D7E;
-	Thu, 15 Oct 2026 22:58:18 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A8AB512B94;
+	Thu, 15 Oct 2026 22:58:20 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1792105101; cv=none; b=R9OSZBzSxAt+XFsjBZMYgwfhyv7kLNG2DyFSuTUxKjHy6QysXcUiprLgmOaPcniVbPOEQM1fysrhVAg76UdKIfgFMPHfBh+cCOpnOiSSsykA6I0xMQ9X3jq1hElMOqQ53vS0JY7Bl55yrj2BNg7SwHYnra63Nalrbbt/j4vHQzI=
+	t=1792105101; cv=none; b=oRG42u2BglZUuxC1Fex6M3a8JZ7hWxNFQoDGMi0OmhejRtmILv9PxsoQyLcmRwK94a8eEdlfo9as6xc/wMk9uEnU0169Lp+CJ6IPVV8aV4P3vK8I+z1nwNBpXDle72+yDe2M0yqxgz8rJRahEKGcjULo8YEnlogR+ClftxpTPxQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1792105101; c=relaxed/simple;
-	bh=Xbma7a4OiHmw+brIGl3XV001oD62IJ6YkwJpWnwKWBA=;
-	h=Date:To:From:Subject:Message-Id; b=rO09RfYUO83p61EonObwl3OLkiHDORQ0SwQBoiWJUV63O0vZ86TiXlciAOWviLjSeXrH7NpvVd4SNluZZYjT4n/U+SigBqF9pbtyfMhPp/zU65Svme6yfaTX71n25javTgS25wZlpIjbgnjwYLvt/sfTQbDACy1NgUF8sULPfq4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=aHnpBPqL; arc=none smtp.client-ip=100.103.45.18
+	bh=MdWDHgnFwRQhUR/c2ERsgAqx9qXoa/diigwjMKn9iCo=;
+	h=Date:To:From:Subject:Message-Id; b=HA3UK+PcfooCe872P39heAnJap1TRE1Auk1mwD+dfMoi70KtQ1N1vye/ekPzk6yir2+argZ4Ynliddpz+bxvVcCxNxNKeBldBYYzMPMaCBVKjHA4MUuxPJguXAa9GHEi+R7cluMgFPCeUiX2sHHBsUryyRHjubQ5xwByiYSUVVs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=QbWIhkDm; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="aHnpBPqL"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5279B1F000C5;
-	Thu, 15 Oct 2026 22:58:18 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="QbWIhkDm"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 345701F000C4;
+	Thu, 15 Oct 2026 22:58:20 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1792105098;
-	bh=RBBYKDU9OoOfMAfhL9s1zqDdjyJuT+PGV3X3QHbnm9k=;
+	d=linux-foundation.org; s=korg; t=1792105100;
+	bh=9zDsEilw2IExJGDrBfzncpAIgcNkqqLMtTUyydtfZw0=;
 	h=Date:To:From:Subject;
-	b=aHnpBPqLejRjQ3PCcaGjqrrVIlSRMpoVW9A69VrpmzRgUhOyoKN6ui1vpv0Ak4DI1
-	 eShrv2YgECMGm5RrtXmryEWu1OZwLMgrJwGQ0Vtn6Mifce4PqYeotz84WkL3DUSgRv
-	 3shM+qpPGHiiRusea3hUUONupTXlLpM6q5WnaXoM=
-Date: Thu, 15 Oct 2026 15:58:17 -0700
-To: mm-commits@vger.kernel.org,vbabka@kernel.org,stable@vger.kernel.org,rppt@kernel.org,riel@surriel.com,pfalcato@suse.de,peterx@redhat.com,osalvador@suse.de,nao.horiguchi@gmail.com,muchun.song@linux.dev,mel@csn.ul.ie,ljs@kernel.org,linmiaohe@huawei.com,liam@infradead.org,kas@kernel.org,jannh@google.com,david@kernel.org,agl@us.ibm.com,josef@toxicpanda.com,akpm@linux-foundation.org
+	b=QbWIhkDmsYRXzeWI7B/r69PKYos8O3WziI8jKMTLvkb3AKqpRqZjZO7Ej+eFAfWyA
+	 cf0TytfCCmn6IlnKD3bapPVc+8LwwREc4oX6ADc12nDCUNxsmMAycELyLT9nuVU5aH
+	 zRDbrSMiIrZb0ClMibVRHh7/qqHVzhJ5ce1IPZmI=
+Date: Thu, 15 Oct 2026 15:58:19 -0700
+To: mm-commits@vger.kernel.org,vbabka@kernel.org,stable@vger.kernel.org,rppt@kernel.org,riel@surriel.com,pfalcato@suse.de,peterx@redhat.com,osalvador@suse.de,nao.horiguchi@gmail.com,muchun.song@linux.dev,mel@csn.ul.ie,ljs@kernel.org,linmiaohe@huawei.com,liam@infradead.org,kas@kernel.org,josef@toxicpanda.com,jannh@google.com,agl@us.ibm.com,david@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-hugetlb-fix-use-after-free-of-a-new-anon-folio.patch added to mm-hotfixes-unstable branch
-Message-Id: <20261015225818.5279B1F000C5@smtp.kernel.org>
+Subject: + mm-hugetlb-fix-use-after-free-in-hugetlb_mfill_atomic_pte.patch added to mm-hotfixes-unstable branch
+Message-Id: <20261015225820.345701F000C4@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/hugetlb: fix use-after-free of a new anon folio
+     Subject: mm/hugetlb: fix use-after-free in hugetlb_mfill_atomic_pte()
 has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mm-hugetlb-fix-use-after-free-of-a-new-anon-folio.patch
+     mm-hugetlb-fix-use-after-free-in-hugetlb_mfill_atomic_pte.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-hugetlb-fix-use-after-free-of-a-new-anon-folio.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-hugetlb-fix-use-after-free-in-hugetlb_mfill_atomic_pte.patch
 
 This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,59 +58,20 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Josef Bacik <josef@toxicpanda.com>
-Subject: mm/hugetlb: fix use-after-free of a new anon folio
-Date: Thu, 15 Oct 2026 18:07:08 +0200
+From: "David Hildenbrand (Arm)" <david@kernel.org>
+Subject: mm/hugetlb: fix use-after-free in hugetlb_mfill_atomic_pte()
+Date: Thu, 15 Oct 2026 18:07:09 +0200
 
-For a fault in a private mapping with nothing in the page cache,
-hugetlb_no_page() allocates a folio, locks it and maps it.  The folio has
-one reference, which belongs to the page table entry from then on.  After
-dropping the page table lock the function still sets the migratable flag
-of the folio and unlocks it.
+Let's fix another instance where we use a folio after dropping the PTL,
+where someone else could e.g., MADV_DONTNEED it once we drop the PTL,
+making us trigger a use-after-free on the folio.
 
-Whoever zaps the entry in between frees the folio.  The fault holds the
-fault mutex and the lock of the vma.  MADV_DONTNEED and the first unmap of
-a hole punch, hugetlb_vmdelete_list(), do not take the fault mutex, and a
-private vma only has a lock if it owns a reservation map: not with
-MAP_NORESERVE, and not in the child after fork().
-
-Then the flag is set in, and folio_unlock() is called on, a folio that is
-free or has a new owner.  A surplus page goes back to the page allocator
-while it is locked:
-
-  BUG: Bad page state in process init  pfn:108e00
-  flags: 0x200000000000059(locked|uptodate|dirty|head|node=0|zone=2)
-  page dumped because: PAGE_FLAGS_CHECK_AT_FREE flag(s) set
-
-A page of the pool can be given to the next user, of any file, who locks
-it and loses the lock to the late folio_unlock():
-
-  kernel BUG at mm/filemap.c:1532!
-   hugetlb_no_page+0x111b/0x23e0
-   hugetlb_fault+0x3a9/0x14a0
-
-An unprivileged process is enough: threads that write to a MAP_PRIVATE |
-MAP_NORESERVE hugetlb mapping, threads that call MADV_DONTNEED on it, and
-one that takes the freed pages for another file.
-
-Until commit 3a47c54f09c4 ("hugetlbfs: revert use i_mmap_rwsem for more
-pmd sharing synchronization") the fault held i_mmap_rwsem for reading,
-which everybody who zaps takes for writing.  The lock that commit
-bf4916922c60 ("hugetlbfs: extend hugetlb_vma_lock to private VMAs") gave
-to private vmas closed the window again, but only for those with a
-reservation map.
-
-Be done with the folio before the page table lock is dropped, as
-hugetlb_wp() is with its copy.  The function already unlocks page cache
-folios under that lock.
-
-Original fix generated by an LLM and sent in private by Josef.
-
-Link: https://lore.kernel.org/20261015-urgent_fixes-v1-2-42796911043b@kernel.org
-Fixes: 3a47c54f09c4 ("hugetlbfs: revert use i_mmap_rwsem for more pmd sharing synchronization")
-Signed-off-by: Josef Bacik <josef@toxicpanda.com>
+Link: https://lore.kernel.org/20261015-urgent_fixes-v1-3-42796911043b@kernel.org
+Fixes: cb6acd01e2e4 ("hugetlbfs: fix races and page leaks during migration")
+Fixes: 1c9e8def43a3 ("userfaultfd: hugetlbfs: add UFFDIO_COPY support for shared mappings")
 Signed-off-by: David Hildenbrand (Arm) <david@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+Reported-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
 Reviewed-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
 Cc: Liam R. Howlett <liam@infradead.org>
 Cc: Vlastimil Babka <vbabka@kernel.org>
@@ -126,45 +87,57 @@ Cc: Rik van Riel <riel@surriel.com>
 Cc: Peter Xu <peterx@redhat.com>
 Cc: Kiryl Shutsemau <kas@kernel.org>
 Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Josef Bacik <josef@toxicpanda.com>
 Cc: <stable@vger.kernel.org>
-[ david: simplify+move comment ]
 ---
 
- mm/hugetlb.c |    8 ++++++--
- 1 file changed, 6 insertions(+), 2 deletions(-)
+ mm/hugetlb.c |    7 ++++++-
+ 1 file changed, 6 insertions(+), 1 deletion(-)
 
---- a/mm/hugetlb.c~mm-hugetlb-fix-use-after-free-of-a-new-anon-folio
+--- a/mm/hugetlb.c~mm-hugetlb-fix-use-after-free-in-hugetlb_mfill_atomic_pte
 +++ a/mm/hugetlb.c
-@@ -5960,8 +5960,6 @@ static vm_fault_t hugetlb_no_page(struct
- 		ret = hugetlb_wp(vmf);
- 	}
+@@ -6489,11 +6489,16 @@ int hugetlb_mfill_atomic_pte(pte_t *dst_
+ 	/* No need to invalidate - it was non-present before */
+ 	update_mmu_cache(dst_vma, dst_addr, dst_pte);
  
--	spin_unlock(vmf->ptl);
--
- 	/*
- 	 * Only set hugetlb_migratable in newly allocated pages.  Existing pages
- 	 * found in the pagecache may not have hugetlb_migratable if they have
-@@ -5972,6 +5970,12 @@ static vm_fault_t hugetlb_no_page(struct
- 
- 	if (folio_locked)
+-	spin_unlock(ptl);
+ 	if (!is_continue)
+ 		folio_set_hugetlb_migratable(folio);
+ 	if (vm_shared || is_continue)
  		folio_unlock(folio);
 +
 +	/*
 +	 * Hold the PTL until we're done with the folio: the page table owns the
 +	 * folio reference now.
 +	 */
-+	spin_unlock(vmf->ptl);
++	spin_unlock(ptl);
+ 	ret = 0;
  out:
- 	hugetlb_vma_unlock_read(vma);
- 
+ 	return ret;
 _
 
-Patches currently in -mm which might be from josef@toxicpanda.com are
+Patches currently in -mm which might be from david@kernel.org are
 
-mm-vma-dont-leak-the-commit-charge-on-mmap-failure.patch
-mm-hugetlb-fix-use-after-free-of-a-new-anon-folio.patch
-mm-hugetlb-unmap-the-page-where-the-other-vma-maps-it.patch
-mm-hugetlb-dont-clear-the-resv_map-of-a-vma-whose-lock-is-held.patch
-mm-hugetlb-fix-endless-write-fault-on-a-leftover-uffd-bit.patch
-mm-hugetlb-dont-leave-a-uffd-wp-marker-when-zapping-an-rwp-entry.patch
+mm-fix-address-wraparound-when-scanning-large-folio-ptes.patch
+mm-hugetlb-fix-use-after-free-in-hugetlb_mfill_atomic_pte.patch
+mm-hugetlb-tolerate-uffd-bits-set-without-uffd-for-prot_none-ptes.patch
+mm-hugetlb-tolerate-uffd_wp-markers-outside-uffd-wp-vmas.patch
+mm-mremap-fix-calling-fixup_hugetlb_reservations-on-the-wrong-vma.patch
+arm64-mm-move-__check_safe_pte_update-fix.patch
+mm-sparse-move-mem_section-init-to-sparse_extreme_init.patch
+mm-sparse-refactor-sparse_sections_init.patch
+mm-sparse-move-initialization-of-section-metadata-to-sparse_metadata_init.patch
+mm-sparse-rename-and-cleanup-sparse_init_nid.patch
+mm-sparse-cleanup-sparse_init_one_section.patch
+mm-sparse-rename-__highest_present_section_nr-to-__highest_used_section_nr.patch
+mm-sparse-remove-pfn_in_present_section.patch
+mm-sparse-move-__highest_used_section_nr-handling.patch
+scripts-gdb-mmpy-remove-fallbacks-for-section_has_mem_map-and-section_is_early.patch
+mm-sparse-remove-section_marked_present.patch
+mm-sparse-remove-flags-parameter-from-sparse_init_one_section.patch
+fs-proc-page-clarify-comment-in-get_max_dump_pfn.patch
+mm-memory_hotplug-drop-config_have_arch_pfn_valid-handling-from-pfn_to_online_page.patch
+vmcoreinfo-export-section_has_mem_map.patch
+mm-disallow-ioremaping-ordinary-ram-in-generic_access_phys.patch
+mm-userfaultfd-only-allocate-anon_vma-in-cow-mappings.patch
 
