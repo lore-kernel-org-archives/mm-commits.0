@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 060B349CF27;
-	Thu, 15 Oct 2026 22:58:29 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D96CA4FD28D;
+	Thu, 15 Oct 2026 22:58:31 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1792105112; cv=none; b=lfHVv/L06QhSePkn8K2PAcRGEEdk+wHTDzok8eR0pAF+czXgU1GfnmIH0j5T3FiktgSZTveiCr7uDRGtzA7K2NgcBVl0jev/viZtctaYWcayoJFcglLFUIjV9WPY9DMmM6dma25yGfYs5IobfLCbuqDfyrtuXCLU6XRnG/8piT4=
+	t=1792105113; cv=none; b=YGxtehGcn0Tp1morLdo90d1wORL6lDEmb0Hb9bMJMEWtEbcA388Ts4eXPM/KCIV9k9pH5AFem88UQp/ChGyju8yfAuPHLZE4kfdYbwiw+QIasDgdoTpLEHc9SAu5qpsBd3PT9I5ImXu52IPb4exw/m8qlZpF9IBwXcMUjkIsNtE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1792105112; c=relaxed/simple;
-	bh=1Cc3FNrWCWXXH4f11d/FCkixEutefev1mNSMhm4b3Lk=;
-	h=Date:To:From:Subject:Message-Id; b=GbXIV+1deZah04UW1BQgsOzhgZ/bXMz6iK9+HOz51nsQ1sX0GJxvU8MB7a35q2oZi/nnZ0edxkKT53GZvTL+r1J7DHEq5L1ePVu1BXqNJCJlREyaziVVnvcV6cMqnAKh0diTgeFYZ7CEOfWYVlRSeyOtEUMllbYi+LcHjjPnjGw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=e5eUBNTX; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1792105113; c=relaxed/simple;
+	bh=Q7GKQ7KXDhCNAUMjGmmevZsV1ieJnVYq36yzbBfn6Ks=;
+	h=Date:To:From:Subject:Message-Id; b=AKcBEehNBjlpGJlrkX5aC9lIxNyClWhmsAcR/8mN0+123vwhKKp1FyrWI7ZqeRDXuD9xVqVBMCITGithRySmReJZkK/ZboZN5kuDtVoa8qGQkp0uPB3H8DY9irQApjL8ottcc/zOvR8MPd3IdDXyGFVKIPmXIusEYTdJop9fTdQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=nrNNTYo9; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="e5eUBNTX"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 96E721F000C5;
-	Thu, 15 Oct 2026 22:58:29 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="nrNNTYo9"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6922D1F000C6;
+	Thu, 15 Oct 2026 22:58:31 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1792105109;
-	bh=0HDIYpCBzi5gTs9PhE/juRRu1ahxPehNnrmTol8REzI=;
+	d=linux-foundation.org; s=korg; t=1792105111;
+	bh=j2XK3fCtru7aUZZ2lxt1iKD1fnh+jY46ppB0dpQVDi4=;
 	h=Date:To:From:Subject;
-	b=e5eUBNTXjkgSZeDaqq6AWSuHbfal07v5sjS1qlFDlRALJl8aQmRudhISbyxhT/c69
-	 xwexW/YJEztldXBOzoxNSes6nZBRV14KJkyPaukT0R+yAAjzVSIoRoFwVjql7HR7/v
-	 DuJBD/mmOog9knQJuLF1bGuMk3enl2/IvjuSo+t4=
-Date: Thu, 15 Oct 2026 15:58:29 -0700
-To: mm-commits@vger.kernel.org,vbabka@kernel.org,stable@vger.kernel.org,rppt@kernel.org,riel@surriel.com,pfalcato@suse.de,peterx@redhat.com,osalvador@suse.de,nao.horiguchi@gmail.com,muchun.song@linux.dev,mel@csn.ul.ie,ljs@kernel.org,linmiaohe@huawei.com,liam@infradead.org,kas@kernel.org,josef@toxicpanda.com,jannh@google.com,agl@us.ibm.com,david@kernel.org,akpm@linux-foundation.org
+	b=nrNNTYo9Zs0D75PeTp6XwQR6fzNKP6MNzXTJWZOsf/gSS1+03utzsESXtcUjfRp0o
+	 UnMy0CCvsLOBgGD1p8Wrwf2uDPX2ugpZdvHHhsXogLhPybCVS6vzmfccTlwMNSlJAS
+	 XAu8wIjQeSgudYsOXjVxby0QtwCa3HPB3pZReocc=
+Date: Thu, 15 Oct 2026 15:58:31 -0700
+To: mm-commits@vger.kernel.org,vbabka@kernel.org,stable@vger.kernel.org,rppt@kernel.org,riel@surriel.com,pfalcato@suse.de,peterx@redhat.com,osalvador@suse.de,nao.horiguchi@gmail.com,muchun.song@linux.dev,mel@csn.ul.ie,mason@kernel.org,ljs@kernel.org,linmiaohe@huawei.com,liam@infradead.org,kas@kernel.org,jannh@google.com,david@kernel.org,agl@us.ibm.com,josef@toxicpanda.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-hugetlb-tolerate-uffd_wp-markers-outside-uffd-wp-vmas.patch added to mm-hotfixes-unstable branch
-Message-Id: <20261015225829.96E721F000C5@smtp.kernel.org>
+Subject: + mm-hugetlb-dont-leave-a-uffd-wp-marker-when-zapping-an-rwp-entry.patch added to mm-hotfixes-unstable branch
+Message-Id: <20261015225831.6922D1F000C6@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/hugetlb: tolerate UFFD_WP markers outside uffd-wp VMAs
+     Subject: mm/hugetlb: don't leave a uffd-wp marker when zapping an RWP entry
 has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mm-hugetlb-tolerate-uffd_wp-markers-outside-uffd-wp-vmas.patch
+     mm-hugetlb-dont-leave-a-uffd-wp-marker-when-zapping-an-rwp-entry.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-hugetlb-tolerate-uffd_wp-markers-outside-uffd-wp-vmas.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-hugetlb-dont-leave-a-uffd-wp-marker-when-zapping-an-rwp-entry.patch
 
 This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,22 +58,40 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: "David Hildenbrand (Arm)" <david@kernel.org>
-Subject: mm/hugetlb: tolerate UFFD_WP markers outside uffd-wp VMAs
-Date: Thu, 15 Oct 2026 18:07:14 +0200
+From: Josef Bacik <josef@toxicpanda.com>
+Subject: mm/hugetlb: don't leave a uffd-wp marker when zapping an RWP entry
+Date: Thu, 15 Oct 2026 18:07:15 +0200
 
-UFFD PTE bit handling is a bit like swiss cheese, in particular with
-recently added RWP mode. Having uffd-wp markers outside uffd-wp VMAs
-already confused this code in the past and resulted in uffd-pte bits
-confusing other code later.
+An entry that is protected with UFFDIO_RWPROTECT is PAGE_NONE with the
+uffd bit set, the bit that userfaultfd write protection uses too.  When
+__unmap_hugepage_range() zaps an entry with that bit it leaves a
+PTE_MARKER_UFFD_WP behind, whatever the VMA is registered for.
 
-Let's play safe and just ignore these markers in hugetlb_no_page(), not
-silently propagating the uffd-wp PTE bit.
+In a VMA registered with UFFDIO_REGISTER_MODE_RWP that marker means
+nothing.  The next fault has hugetlb_no_page() turn it into a present,
+read-only entry with the uffd bit.  That is not an RWP entry, since it is
+not PAGE_NONE, and the VMA has no VM_UFFD_WP (the two modes can not be
+registered together).  An earlier fix solved some side effects, now just
+stop the zap from wrongly installing a marker.
 
-Link: https://lore.kernel.org/20261015-urgent_fixes-v1-8-42796911043b@kernel.org
+Leave a marker only if the VMA is registered for write protection, both
+for present and for non-present entries.  The zap of ordinary page
+tables has the same test, in cond_install_uffd_wp_ptes(), and
+hugetlb_change_protection() says that "uffd_rwp does not install markers".
+
+After a zap the range of an RWP VMA is simply empty, as it is for
+anonymous memory and shmem.  Nothing changes for VMAs with VM_UFFD_WP.  In
+a VMA that is not registered at all a leftover uffd bit or marker is now
+dropped by the zap and no longer kept alive.
+
+Original fix generated by an LLM and sent in private by Josef.
+
+Link: https://lore.kernel.org/20261015-urgent_fixes-v1-9-42796911043b@kernel.org
 Fixes: 2d427bb01639 ("mm/userfaultfd: add RWP fault delivery and expose UFFDIO_REGISTER_MODE_RWP")
+Signed-off-by: Josef Bacik <josef@toxicpanda.com>
 Signed-off-by: David Hildenbrand (Arm) <david@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+Reported-by: Chris Mason <mason@kernel.org>
 Acked-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
 Cc: Liam R. Howlett <liam@infradead.org>
 Cc: Vlastimil Babka <vbabka@kernel.org>
@@ -89,52 +107,41 @@ Cc: Rik van Riel <riel@surriel.com>
 Cc: Peter Xu <peterx@redhat.com>
 Cc: Kiryl Shutsemau <kas@kernel.org>
 Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Josef Bacik <josef@toxicpanda.com>
 Cc: <stable@vger.kernel.org>
+[ david: a bit of description overhaul+simplification ]
 ---
 
- mm/hugetlb.c |    5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+ mm/hugetlb.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/mm/hugetlb.c~mm-hugetlb-tolerate-uffd_wp-markers-outside-uffd-wp-vmas
+--- a/mm/hugetlb.c~mm-hugetlb-dont-leave-a-uffd-wp-marker-when-zapping-an-rwp-entry
 +++ a/mm/hugetlb.c
-@@ -5950,8 +5950,11 @@ static vm_fault_t hugetlb_no_page(struct
- 	/*
- 	 * If this pte was previously wr-protected, keep it wr-protected even
- 	 * if populated.
-+	 *
-+	 * TODO: fix all cases where uffd-wp markers remain in VMAs that are no
-+	 * longer registered with uffd.
- 	 */
--	if (unlikely(pte_is_uffd_wp_marker(vmf->orig_pte)))
-+	if (unlikely(userfaultfd_wp(vma) && pte_is_uffd_wp_marker(vmf->orig_pte)))
- 		new_pte = huge_pte_mkuffd(new_pte);
- 	set_huge_pte_at(mm, vmf->address, vmf->pte, new_pte, huge_page_size(h));
- 
+@@ -5278,7 +5278,7 @@ void __unmap_hugepage_range(struct mmu_g
+ 			 * drop the uffd-wp bit in this zap, then replace the
+ 			 * pte with a marker.
+ 			 */
+-			if (pte_swp_uffd_any(pte) &&
++			if (userfaultfd_wp(vma) && pte_swp_uffd_any(pte) &&
+ 			    !(zap_flags & ZAP_FLAG_DROP_MARKER))
+ 				set_huge_pte_at(mm, address, ptep,
+ 						make_pte_marker(PTE_MARKER_UFFD_WP),
+@@ -5314,7 +5314,7 @@ void __unmap_hugepage_range(struct mmu_g
+ 		if (huge_pte_dirty(pte))
+ 			folio_mark_dirty(folio);
+ 		/* Leave a uffd-wp pte marker if needed */
+-		if (huge_pte_uffd(pte) &&
++		if (userfaultfd_wp(vma) && huge_pte_uffd(pte) &&
+ 		    !(zap_flags & ZAP_FLAG_DROP_MARKER))
+ 			set_huge_pte_at(mm, address, ptep,
+ 					make_pte_marker(PTE_MARKER_UFFD_WP),
 _
 
-Patches currently in -mm which might be from david@kernel.org are
+Patches currently in -mm which might be from josef@toxicpanda.com are
 
-mm-fix-address-wraparound-when-scanning-large-folio-ptes.patch
-mm-hugetlb-fix-use-after-free-in-hugetlb_mfill_atomic_pte.patch
-mm-hugetlb-tolerate-uffd-bits-set-without-uffd-for-prot_none-ptes.patch
-mm-hugetlb-tolerate-uffd_wp-markers-outside-uffd-wp-vmas.patch
-mm-mremap-fix-calling-fixup_hugetlb_reservations-on-the-wrong-vma.patch
-arm64-mm-move-__check_safe_pte_update-fix.patch
-mm-sparse-move-mem_section-init-to-sparse_extreme_init.patch
-mm-sparse-refactor-sparse_sections_init.patch
-mm-sparse-move-initialization-of-section-metadata-to-sparse_metadata_init.patch
-mm-sparse-rename-and-cleanup-sparse_init_nid.patch
-mm-sparse-cleanup-sparse_init_one_section.patch
-mm-sparse-rename-__highest_present_section_nr-to-__highest_used_section_nr.patch
-mm-sparse-remove-pfn_in_present_section.patch
-mm-sparse-move-__highest_used_section_nr-handling.patch
-scripts-gdb-mmpy-remove-fallbacks-for-section_has_mem_map-and-section_is_early.patch
-mm-sparse-remove-section_marked_present.patch
-mm-sparse-remove-flags-parameter-from-sparse_init_one_section.patch
-fs-proc-page-clarify-comment-in-get_max_dump_pfn.patch
-mm-memory_hotplug-drop-config_have_arch_pfn_valid-handling-from-pfn_to_online_page.patch
-vmcoreinfo-export-section_has_mem_map.patch
-mm-disallow-ioremaping-ordinary-ram-in-generic_access_phys.patch
-mm-userfaultfd-only-allocate-anon_vma-in-cow-mappings.patch
+mm-vma-dont-leak-the-commit-charge-on-mmap-failure.patch
+mm-hugetlb-fix-use-after-free-of-a-new-anon-folio.patch
+mm-hugetlb-unmap-the-page-where-the-other-vma-maps-it.patch
+mm-hugetlb-dont-clear-the-resv_map-of-a-vma-whose-lock-is-held.patch
+mm-hugetlb-fix-endless-write-fault-on-a-leftover-uffd-bit.patch
+mm-hugetlb-dont-leave-a-uffd-wp-marker-when-zapping-an-rwp-entry.patch
 
