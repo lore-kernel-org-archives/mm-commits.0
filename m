@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C1C9B38F642
-	for <mm-commits@vger.kernel.org>; Fri, 16 Oct 2026 02:14:04 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AFCBF328616;
+	Fri, 16 Oct 2026 02:21:11 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1792116846; cv=none; b=u7HWF4LwJQAJr431rODVQr6aKy8FzR6JsFO7Jt9+srcoCG3NTQUCTMTVRP3a5/xaQpfemhjHvQBulSl5hcSvNmAH1/N1u64j6Lje37bu8cpJ9U8xHPxHZAUW/Ajxb8D36f0NPqPLDcQAMLDKj+fvz1gwkjSk4pNrl81gsA35UJE=
+	t=1792117272; cv=none; b=ql5HON5odvttLPN63boHlW1XVKUxm3qSQL4yisedHhUHifpSKUqooQYbWtaQfUFuPUKn6Snetva4HBLxk7afPtW5sDF8Pd/dtgDani8ZbHR20hNYZPP+BlKTWLgKDQs6j49siIYjc6Nt2kAcBObSLn/C9HnjwX/X2tFX+jpOqOU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1792116846; c=relaxed/simple;
-	bh=D3gAhLq79eAaT2QXVg82+aZr4+81IEK3Kd/OweId3lc=;
-	h=Date:To:From:Subject:Message-Id; b=GLgk8WDKx4A4zbPMdxE6oqIgBoNZa0ijGjWWziyLlJeM/d42LYPHcE+LBKGy/NJJ2XtSehzF7e4fGYWlnpLcS/BbZ1xdWn+nZyedrBpL3bXycqv0C3dl5NgiwadCTz6V1UWSfGHj9CHeUdrYoMr7cZXfGu6l/Zwp6+SVfzyxStY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=qwn7f3yN; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1792117272; c=relaxed/simple;
+	bh=YCfWA++OUnih0PfTLsagLZ7URbZD/ILBkM3HYJe42qk=;
+	h=Date:To:From:Subject:Message-Id; b=Y1oYBvOBm/BlCih1yLxbtuVIlaO4UyJwB8MBDGvFLNaZVxZw7ZdHOXDH3bnMucnNmUn3H9ob9fOBVL0Uib0IL2trbltumV2+ELB2XcDseSE2d+h6x+cU8U6N4FH6ywPhQDN8oKW46TJQ9SEh3+N/+BhScUmLdrhtQRSLQdT5UjY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=fXRchXs2; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="qwn7f3yN"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 40DDB1F000C4;
-	Fri, 16 Oct 2026 02:14:04 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="fXRchXs2"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3DF391F000C5;
+	Fri, 16 Oct 2026 02:21:11 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1792116844;
-	bh=XStYwtlEQrM1mlngv2d8v3KG4w9VPMd0Bu51smDmbYY=;
+	d=linux-foundation.org; s=korg; t=1792117271;
+	bh=V1QedP4fN2M9thqPf0qlPISD2AKg2Ixnt39oi5YN/GI=;
 	h=Date:To:From:Subject;
-	b=qwn7f3yNi8ISvq599ifRTp7boHbmqeRdhwZq66KpJwHW3/uXUw//DUaqRIVGIvo7A
-	 spUWQuYOOY/piqSx03HWSyuayV2SWtTkyaguFobT3q8VRunArujUQAOdZ2Z+SfOx7W
-	 o4NXx7td3elm3WZ6EtOQlJDxswENLe1NfZxFcg6M=
-Date: Thu, 15 Oct 2026 19:14:03 -0700
-To: mm-commits@vger.kernel.org,vbabka@kernel.org,surenb@google.com,rppt@kernel.org,qi.zheng@linux.dev,pfalcato@suse.de,mhocko@suse.com,ljs@kernel.org,liam@infradead.org,jack@suse.cz,david@kernel.org,ayushr@modal.com,baolin.wang@linux.alibaba.com,akpm@linux-foundation.org
+	b=fXRchXs2q8cZQrMX5LBEwo1vB2hBi/tu5LB34WNxsg/QXpWlLrV+w/QqUx7iooGV5
+	 67mdg1ow9o4h3fu+lfkTZ9sF2Rj2KohPk07YflFFEIX/DblP9unJhcQXL7KKFSVeQ4
+	 csrEDz7cF6ZOSr16814iJ/Q4vExaLsW+KiDlHAII=
+Date: Thu, 15 Oct 2026 19:21:10 -0700
+To: mm-commits@vger.kernel.org,youngjun.park@lge.com,stable@vger.kernel.org,shikemeng@huaweicloud.com,nphamcs@gmail.com,kasong@tencent.com,chrisl@kernel.org,baoquan.he@linux.dev,baohua@kernel.org,jiayuan.chen@shopee.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-memory-fix-truncation-removing-mapped-folios.patch added to mm-hotfixes-unstable branch
-Message-Id: <20261016021404.40DDB1F000C4@smtp.kernel.org>
+Subject: + mm-swap-fix-swap_cache_get_folio-returning-a-folio-that-left-the-swap-cache.patch added to mm-unstable branch
+Message-Id: <20261016022111.3DF391F000C5@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: memory: fix truncation removing mapped folios
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mm-memory-fix-truncation-removing-mapped-folios.patch
+     Subject: mm/swap: fix swap_cache_get_folio() returning a folio that left the swap cache
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-swap-fix-swap_cache_get_folio-returning-a-folio-that-left-the-swap-cache.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memory-fix-truncation-removing-mapped-folios.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-swap-fix-swap_cache_get_folio-returning-a-folio-that-left-the-swap-cache.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,177 +58,114 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Baolin Wang <baolin.wang@linux.alibaba.com>
-Subject: mm: memory: fix truncation removing mapped folios
-Date: Fri, 16 Oct 2026 09:48:08 +0800
+From: Jiayuan Chen <jiayuan.chen@shopee.com>
+Subject: mm/swap: fix swap_cache_get_folio() returning a folio that left the swap cache
+Date: Thu, 15 Oct 2026 14:05:27 +0800
 
-Ayush reported an issue that shmem/tmpfs folios are still mapped when
-truncating them on production:
-"
-BUG: Bad page cache in process ...  pfn:...
-page dumped because: still mapped when deleted
-"
+swap_cache_get_folio() reads the folio from the swap table and takes a
+reference with folio_try_get(), without any lock.  If the folio is removed
+from the swap cache and freed in between, and its memory gets reused,
+folio_try_get() still succeeds and we return a page that has nothing to do
+with the swap entry:
 
-I reproduced the issue with Ayush's reproducer [1] with the latest
-mm-unstable branch, and I got the following crash info.  From the dump
-message, we can see that truncate_inode_folio() is really trying to remove
-mapped folios, which is incorrect.
+  CPU 0                                  CPU 1
+  do_swap_page()
+    swap_cache_get_folio()
+      swp_tb = swap_table_get()
+      folio = swp_tb_to_folio(swp_tb)
+                                         madvise(MADV_DONTNEED)
+                                           zap_nonpresent_ptes()
+                                             swap_put_entries_direct()
+                                               swap_put_entries_cluster()
+                                                 __try_to_reclaim_swap()
+                                                   swap_cache_del_folio()
+                                                   folio_put()   <- freed
+                                         page reused, e.g. as an anon
+                                         folio of another task
+      folio_try_get(folio)               <- succeeds
+      return folio
+    swap_update_readahead()              <- may clear PG_readahead on it
+    folio_lock_or_retry()                <- locks it
+    folio_matches_swap_entry() fails, unlock and put
 
-"
-[  189.171977] page: refcount:3 mapcount:1 mapping:00000000fe168ee1
-index:0x3880 pfn:0x191647
-[  189.171995] memcg:ffff0000cc073d40
-[  189.171997] aops:shmem_aops ino:3c01 dentry name(?):"memfd:runsc-memory"
-[  189.172006] flags: 0x17fffef0002022d(locked|referenced|uptodate|lru|
-workingset|swapbacked|node=0|zone=2|lastcpupid=0x3ffff)
-.......
-[  189.172017] page dumped because: VM_BUG_ON_FOLIO(folio_mapped(folio))
-[  189.172026] ------------[ cut here ]------------
-[  189.172027] kernel BUG at mm/filemap.c:155!
-[  189.172057] Internal error: Oops - BUG: 00000000f2000800 [#1]  SMP
-.......
-[  189.177721] CPU: 3 UID: 0 PID: 5521 Comm: repro Kdump: loaded Tainted:
-7.3.0-rc4+ #277 PREEMPT(lazy)
-.......
-[  189.183986] Call trace:
-[  189.184124]  filemap_unaccount_folio+0xf0/0x1e8 (P)
-[  189.184391]  __filemap_remove_folio+0x34/0x160
-[  189.184633]  filemap_remove_folio+0x4c/0xb0
-[  189.184859]  truncate_inode_folio+0x34/0x58
-[  189.185087]  shmem_undo_range+0x220/0x658
-[  189.185308]  shmem_fallocate+0x2f0/0x470
-[  189.185527]  vfs_fallocate+0x128/0x328
-......
-[  189.187078]  el0t_64_sync+0x184/0x188
-"
+filemap_get_entry() does the same lockless lookup for the page cache, and
+after folio_try_get() it rechecks the xarray, because the folio may have
+been freed and reused in between.  swap_cache_get_folio() lost that
+recheck when the swap cache moved to the swap table.
 
-After analysis, I believe the race exists between truncation and
-MADV_DONTNEED, and shmem's ->map_pages() merely makes the issue easier to
-reproduce.  Since MADV_DONTNEED synchronously releases the pagetable page
-before calling tlb_flush_rmaps(), this could cause another thread's
-truncation to skip zap_pte_range() (due to pmd is none) but still observe
-the folio's mapcount as non-zero.  A possible race scenario is as follows:
+So CPU 0 writes to a folio it doesn't own: it may clear PG_readahead and
+takes the folio lock of someone else's page, before
+folio_matches_swap_entry() finds out the folio is not ours.
 
-CPU 0                           CPU 1
-shmem_fallocate                 madvise_dontneed_single_vma
-  unmap_mapping_range            .......
-  ......
-  (filemap_map_pages() remap folios)
-				  zap_pte_range
-  truncate_inode_folio		    zap_empty_pte_table(pmd clear)
-    unmap_mapping_folio
-    ......
-      zap_pmd_range (saw pmd none, skip)
+When the race occurs, a swap fault can acquire a reference to a physical
+page that has been freed and reused for an unrelated purpose, potentially
+by another process.  The fault handler may then clear that page's
+PG_readahead/PG_reclaim flag, wait on or acquire its folio lock, and
+potentially attempt to remove it from an unrelated swap cache.
 
-  filemap_remove_folio
-    BUG_ON(folio_mapped)
-                                    tlb_flush_rmaps(remove rmaps)
+These operations can interfere with unrelated workloads and may cause
+unexpected stalls, impaired reclaim or writeback, and potentially system
+hangs.  The subsequent swap-entry validation normally prevents the wrong
+folio from being mapped into the faulting process, and neither data
+corruption nor a kernel crash has been demonstrated.
 
-To fix this issue, we should move the pmd clear operation (via
-zap_empty_pte_table()) to after tlb_flush_rmaps() and use
-sync_with_folio_pmd_zap() to sync with concurrent zapping, so that when we
-find a pmd_none() while unmapping a folio without holding the PTL, the
-folio's mappings are guaranteed to have been removed via
-tlb_flush_rmaps().
+Recheck the slot after folio_try_get() and retry if it no longer holds
+this folio.
 
-Link: https://lore.kernel.org/e2f76ed117b0c22a26b7688fd46a38c9d035336e.1792114445.git.baolin.wang@linux.alibaba.com
-Link: https://lore.kernel.org/all/20260925065013.3682431-1-ayushr@modal.com/ [1]
-Fixes: 6375e95f381e ("mm: pgtable: reclaim empty PTE page in madvise(MADV_DONTNEED)")
-Signed-off-by: Baolin Wang <baolin.wang@linux.alibaba.com>
+[akpm@linux-foundation.org: add LLM-generated description of userspace impact]
+Link: https://lore.kernel.org/20261015060528.302634-1-jiayuan.chen@linux.dev
+Fixes: 8578e0c00dcf ("mm, swap: use the swap table for the swap cache and switch API")
+Signed-off-by: Jiayuan Chen <jiayuan.chen@shopee.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Reported-by: Ayush Ranjan <ayushr@modal.com>
-Closes: https://lore.kernel.org/all/20260924061708.1645968-1-ayushr@modal.com/
-Cc: David Hildenbrand <david@kernel.org>
-Cc: Lorenzo Stoakes <ljs@kernel.org>
-Cc: Liam R. Howlett <liam@infradead.org>
-Cc: Vlastimil Babka <vbabka@kernel.org>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Qi Zheng <qi.zheng@linux.dev>
-Cc: Jan Kara <jack@suse.cz>
-Cc: Pedro Falcato <pfalcato@suse.de>
+Cc: Chris Li <chrisl@kernel.org>
+Cc: Kairui Song <kasong@tencent.com>
+Cc: Kemeng Shi <shikemeng@huaweicloud.com>
+Cc: Nhat Pham <nphamcs@gmail.com>
+Cc: Baoquan He <baoquan.he@linux.dev>
+Cc: Barry Song <baohua@kernel.org>
+Cc: Youngjun Park <youngjun.park@lge.com>
+Cc: <stable@vger.kernel.org>
 ---
 
- mm/internal.h |    9 +++++----
- mm/memory.c   |   25 ++++++++++++-------------
- 2 files changed, 17 insertions(+), 17 deletions(-)
+ mm/swap_state.c |   16 +++++++++++++---
+ 1 file changed, 13 insertions(+), 3 deletions(-)
 
---- a/mm/internal.h~mm-memory-fix-truncation-removing-mapped-folios
-+++ a/mm/internal.h
-@@ -584,14 +584,15 @@ void free_pgtables(struct mmu_gather *tl
- void pmd_install(struct mm_struct *mm, pmd_t *pmd, pgtable_t *pte);
- 
- /**
-- * sync_with_folio_pmd_zap - sync with concurrent zapping of a folio PMD
-+ * sync_with_folio_pmd_zap - sync with concurrent zapping of folios
-  * @mm: The mm_struct.
-  * @pmdp: Pointer to the pmd that was found to be pmd_none().
-  *
-  * When we find a pmd_none() while unmapping a folio without holding the PTL,
-- * zap_huge_pmd() may have cleared the PMD but not yet modified the folio to
-- * indicate that it's unmapped. Skipping the PMD without synchronization could
-- * make folio unmapping code assume that unmapping failed.
-+ * zap_huge_pmd() or zap_empty_pte_table() may have cleared the PMD but not
-+ * yet modified the mapped folios to indicate they are unmapped. Skipping the
-+ * PMD without synchronization could make folio unmapping code assume that
-+ * unmapping failed.
-  *
-  * Wait for concurrent zapping to complete by grabbing the PTL.
+--- a/mm/swap_state.c~mm-swap-fix-swap_cache_get_folio-returning-a-folio-that-left-the-swap-cache
++++ a/mm/swap_state.c
+@@ -92,17 +92,27 @@ void show_swap_cache_info(void)
   */
---- a/mm/memory.c~mm-memory-fix-truncation-removing-mapped-folios
-+++ a/mm/memory.c
-@@ -2073,6 +2073,15 @@ retry:
- 		}
- 	} while (pte += nr, addr += PAGE_SIZE * nr, addr != end);
+ struct folio *swap_cache_get_folio(swp_entry_t entry)
+ {
++	struct swap_cluster_info *ci = __swap_entry_to_cluster(entry);
++	unsigned int ci_off = swp_cluster_offset(entry);
+ 	unsigned long swp_tb;
+ 	struct folio *folio;
  
-+	add_mm_rss_vec(mm, rss);
-+	lazy_mmu_mode_disable();
-+
-+	/* Do the actual TLB flush before dropping ptl */
-+	if (force_flush) {
-+		tlb_flush_mmu_tlbonly(tlb);
-+		tlb_flush_rmaps(tlb, vma);
-+	}
-+
- 	/*
- 	 * Fast path: try to hold the pmd lock and unmap the PTE page.
- 	 *
-@@ -2083,15 +2092,6 @@ retry:
- 	 */
- 	if (can_reclaim_pt && direct_reclaim && addr == end)
- 		direct_reclaim = zap_empty_pte_table(mm, pmd, ptl, &pmdval);
--
--	add_mm_rss_vec(mm, rss);
--	lazy_mmu_mode_disable();
--
--	/* Do the actual TLB flush before dropping ptl */
--	if (force_flush) {
--		tlb_flush_mmu_tlbonly(tlb);
--		tlb_flush_rmaps(tlb, vma);
--	}
- 	pte_unmap_unlock(start_pte, ptl);
+ 	for (;;) {
+-		swp_tb = swap_table_get(__swap_entry_to_cluster(entry),
+-					swp_cluster_offset(entry));
++		swp_tb = swap_table_get(ci, ci_off);
+ 		if (!swp_tb_is_folio(swp_tb))
+ 			return NULL;
+ 		folio = swp_tb_to_folio(swp_tb);
+-		if (likely(folio_try_get(folio)))
++		if (!folio_try_get(folio))
++			continue;
++		/*
++		 * The folio may have been freed and its memory reused before
++		 * we got the reference. Make sure it is still in the slot.
++		 */
++		swp_tb = swap_table_get(ci, ci_off);
++		if (likely(swp_tb_is_folio(swp_tb) &&
++			   swp_tb_to_folio(swp_tb) == folio))
+ 			return folio;
++		folio_put(folio);
+ 	}
  
- 	/*
-@@ -2139,12 +2139,11 @@ static inline unsigned long zap_pmd_rang
- 				continue;
- 			}
- 			/* fall through */
--		} else if (details && details->single_folio &&
--			   folio_test_pmd_mappable(details->single_folio) &&
--			   next - addr == HPAGE_PMD_SIZE && pmd_none(*pmd)) {
--			sync_with_folio_pmd_zap(tlb->mm, pmd);
- 		}
-+
- 		if (pmd_none(*pmd)) {
-+			if (details && details->single_folio)
-+				sync_with_folio_pmd_zap(tlb->mm, pmd);
- 			addr = next;
- 			continue;
- 		}
+ 	return NULL;
 _
 
-Patches currently in -mm which might be from baolin.wang@linux.alibaba.com are
+Patches currently in -mm which might be from jiayuan.chen@shopee.com are
 
-mm-memory-fix-truncation-removing-mapped-folios.patch
+mm-swap-fix-swap_cache_get_folio-returning-a-folio-that-left-the-swap-cache.patch
 
