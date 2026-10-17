@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5E12636196C;
-	Sat, 17 Oct 2026 02:19:06 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 90479379ED7
+	for <mm-commits@vger.kernel.org>; Sat, 17 Oct 2026 02:21:36 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1792203548; cv=none; b=kjizRbzhP1mWN4ZBIyRZZGKDM1iHHV7RKu0PQh5M5lf1Pq/t6tW5AKk9w01Fe/U4LBRlCYHzHyiNfhhV6rJULSdFrDZi8PBSG24ka32E/iyV2NyAih+dJRW4ISlbkm4+P85VOXL4nhLxq9+Ii7Kb2GHFUN7ied9CVV83kH1qvhY=
+	t=1792203697; cv=none; b=jGCwDwMjJYlN4t4KBl76Aba+PwQ6od7eKtqEHFnw6q8eoccd8yJkzhtp8yXgO76gu7cTTffdMZhmj2iMAyZrFfgV3sww7sqZGDtkPDyrEdwYGIei6jZvi1kbCWhAQ5XKF0hZOqgHOspGLlkE2WZUDu7mGfn1Xk1GZuJOaeyYDyc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1792203548; c=relaxed/simple;
-	bh=igvinsW+WE0Xrk6PvS01W8RqOu+HtAMwlrWEqygYgUk=;
-	h=Date:To:From:Subject:Message-Id; b=Th1m+a3frOif6yukXEzhR6mYLgUUvpphWxGzPYHwRhS6u2R7+3sSPF3EWyYx7YNM8MxYk1jr1r4rXD903OeFjudOSmtx1fNw7hwbvHe1pcJs+84Y0KPSGnw1u+xYw9YktWcfW3NTcl21qZYw5IU3d4P2MZDRv0NGAscXkfQz358=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=J0Rsy4pW; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1792203697; c=relaxed/simple;
+	bh=Iirutwm8PHN1O8i85EYylC0H9krUFHNc9etL6nY5yqs=;
+	h=Date:To:From:Subject:Message-Id; b=l6zKeZzoOpDisFqKeOd0IpMe9RJSf72YzB35aL8f4a6ZgqNjbNBAfhbS+mVYFirZgPfNDQCIMcug3u+gzBso/IhPDOnMft9htXD1YFk3S58dN+0KCEfJtxC21rKdPrq0N975lTfGNg+UDdqvtbePZX5SfSmtrz4uRGRsQrUA16Y=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=MLYmSN2R; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="J0Rsy4pW"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 731E51F000C4;
-	Sat, 17 Oct 2026 02:19:06 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="MLYmSN2R"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0D7411F000C4;
+	Sat, 17 Oct 2026 02:21:36 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1792203546;
-	bh=xvAItuCTtweGFYklw6PH5cuLL96b7K4a/2GA7CVBPN8=;
+	d=linux-foundation.org; s=korg; t=1792203696;
+	bh=9PiOMUmSkVOch0aKDqpu794Jzm3OO3jn9ZudsT5tqng=;
 	h=Date:To:From:Subject;
-	b=J0Rsy4pWzW/SboA6gf0/6nFH0DVt1gw2dGlMImv1BwYL49U+N3sZyb1ktFz/lWKe0
-	 eVeIN40VwwX3XZlihioB+WIg8bBfRDc0ZRv1+coe2YIxY3h8/0ExyRf7xAFgXhgbF9
-	 6NbMU1C356Gow8SIR/HgTRMUDLGtx/tr6NZAe0Ck=
-Date: Fri, 16 Oct 2026 19:19:06 -0700
-To: mm-commits@vger.kernel.org,treding@nvidia.com,tj@kernel.org,stable@vger.kernel.org,ilpo.jarvinen@linux.intel.com,brads@mainlining.org,bhelgaas@google.com,nickolai@csail.mit.edu,akpm@linux-foundation.org
+	b=MLYmSN2RNhgXpYQ3m/fKf/OXSOKj0tPWhLrXEbLBoi3R9fX/ZRjHYNxAQKtJju3De
+	 xjG3ugeNBAxhZuUc2CpVTWLjs32JjcErvZ/g+t+cq6zLRJesWZMDU3G3OuIYsU7Mq+
+	 HQPMzMmdIJ+aK0icCs6UeKPuKPoHWehfcC9jk5Fc=
+Date: Fri, 16 Oct 2026 19:21:35 -0700
+To: mm-commits@vger.kernel.org,vishal.l.verma@intel.com,rppt@kernel.org,ritesh.list@gmail.com,joao.m.martins@oracle.com,dave.jiang@intel.com,alison.schofield@intel.com,muchun.song@linux.dev,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + resource-report-a-devm_request_resource-conflict-under-the-lock.patch added to mm-unstable branch
-Message-Id: <20261017021906.731E51F000C4@smtp.kernel.org>
+Subject: + mm-warn-on-unaligned-compound-zone-device-ranges.patch added to mm-unstable branch
+Message-Id: <20261017022136.0D7411F000C4@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: resource: report a devm_request_resource() conflict under the lock
+     Subject: mm: warn on unaligned compound zone device ranges
 has been added to the -mm mm-unstable branch.  Its filename is
-     resource-report-a-devm_request_resource-conflict-under-the-lock.patch
+     mm-warn-on-unaligned-compound-zone-device-ranges.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/resource-report-a-devm_request_resource-conflict-under-the-lock.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-warn-on-unaligned-compound-zone-device-ranges.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,103 +58,60 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Nickolai Zeldovich <nickolai@csail.mit.edu>
-Subject: resource: report a devm_request_resource() conflict under the lock
-Date: Fri, 16 Oct 2026 10:00:43 -0400
+From: Muchun Song <muchun.song@linux.dev>
+Subject: mm: warn on unaligned compound zone device ranges
+Date: Fri, 16 Oct 2026 21:13:34 +0800
 
-devm_request_resource() calls request_resource_conflict(), which takes
-resource_lock, tries to insert the new resource and returns a pointer to
-the conflicting resource after dropping the lock.  The error message is
-then formatted from that pointer: conflict->name and the %pR argument
-read the name, start, end, flags and desc of a resource that nothing
-pins any more.  The owner of the conflicting resource may call
-release_resource() and free it the moment the lock is dropped.
+A compound page of order N must start at a PFN aligned to 2^N pages. 
+Therefore, a range used to initialize compound pages must start on a
+compound-page boundary and contain an integral number of compound pages.
 
-The conflicting resource normally belongs to another device.  With two
-devices whose drivers claim overlapping regions (two PCI host bridges
-whose "ranges" windows overlap, two instances of a controller on the
-same aperture, or a stale claim an administrator is replacing), the
-following interleaving reads freed memory:
+Two recent Device DAX bugs were caused by ranges that violated this
+invariant, but neither was detected by memmap_init_zone_device().
 
-  CPU 0: driver B probe                  CPU 1: driver A unbind
-  devm_request_resource(devB, root, resB)
-    request_resource_conflict()
-      write_lock(&resource_lock)
-      __request_resource() -> resA
-      write_unlock(&resource_lock)
-                                         devres_release_all(devA)
-                                           devm_resource_release()
-                                             release_resource(resA)
-                                         put_device() -> kfree(resA)
-    dev_err(..., resA->name, resA)        use after free
+Warn if the adjusted zone-device range violates this invariant so future
+violations are reported when the compound pages are initialized.
 
-Both halves are reachable from userspace on any kernel: a write to the
-"unbind" file of the driver that holds the region and a write to the
-"bind" file of the driver that wants it.  One in-tree path is
-drivers/pci/bus.c devm_request_pci_bus_resources(), called from host
-bridge probe for every bridge window; the windows are the embedded
-struct resource of kzalloc'ed resource_entry objects that
-pci_free_resource_list() frees when the other bridge is released.
-In the common case the "resource collision" message is garbled; with
-the slab object poisoned (CONFIG_SLUB_DEBUG) or reused, formatting
-conflict->name oopses, and KASAN reports a slab-use-after-free read in
-devm_request_resource().  All of this happens in a probe that is
-already failing with -EBUSY.  The window is a few hundred instructions
-wide and exists only when two devices actually collide, so the race
-has not been observed outside of analysis.
-
-Do the same here: take resource_lock, insert with __request_resource()
-and print the diagnostic while the lock still keeps the conflicting
-resource in the tree, then drop the lock.  The return values and the
-devres handling are unchanged.
-
-The change was built for x86_64 and RISC-V; the resource KUnit tests
-pass on both.
-
-Found by formal verification of kernel/resource.c against the kernel
-binary.
-
-Link: https://lore.kernel.org/20261016140043.790048-1-nickolai@csail.mit.edu
-Fixes: 8d38821cbcf5 ("resources: Add device-managed request/release_resource()")
-Signed-off-by: Nickolai Zeldovich <nickolai@csail.mit.edu>
+Link: https://lore.kernel.org/20261016131334.3419393-1-songmuchun@bytedance.com
+Link: https://lore.kernel.org/r/20261016053944.2579541-1-songmuchun@bytedance.com
+Link: https://lore.kernel.org/r/20261016054914.2601510-1-songmuchun@bytedance.com
+Signed-off-by: Muchun Song <muchun.song@linux.dev>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Acked-by: Tejun Heo <tj@kernel.org>
-Reviewed-by: Bradley Morgan <brads@mainlining.org>
 Assisted-by: LLM
-Cc: Bjorn Helgaas <bhelgaas@google.com>
-Cc: Ilpo Järvinen <ilpo.jarvinen@linux.intel.com>
-Cc: Thierry Reding <treding@nvidia.com>
-Cc: <stable@vger.kernel.org>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Vishal Verma <vishal.l.verma@intel.com>
+Cc: Dave Jiang <dave.jiang@intel.com>
+Cc: Alison Schofield <alison.schofield@intel.com>
+Cc: Joao Martins <joao.m.martins@oracle.com>
+Cc: Ritesh Harjani (IBM) <ritesh.list@gmail.com>
 ---
 
- kernel/resource.c |    9 +++++++--
- 1 file changed, 7 insertions(+), 2 deletions(-)
+ mm/mm_init.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
---- a/kernel/resource.c~resource-report-a-devm_request_resource-conflict-under-the-lock
-+++ a/kernel/resource.c
-@@ -1695,10 +1695,15 @@ int devm_request_resource(struct device
+--- a/mm/mm_init.c~mm-warn-on-unaligned-compound-zone-device-ranges
++++ a/mm/mm_init.c
+@@ -1142,6 +1142,8 @@ void __ref memmap_init_zone_device(struc
+ 	if (!nr_pages)
+ 		return;
  
- 	*ptr = new;
- 
--	conflict = request_resource_conflict(root, new);
--	if (conflict) {
-+	/* Report a conflict while the lock still keeps it in the tree. */
-+	write_lock(&resource_lock);
-+	conflict = __request_resource(root, new);
-+	if (conflict)
- 		dev_err(dev, "resource collision: %pR conflicts with %s %pR\n",
- 			new, conflict->name, conflict);
-+	write_unlock(&resource_lock);
++	VM_WARN_ON(!IS_ALIGNED(start_pfn | nr_pages, pfns_per_compound));
 +
-+	if (conflict) {
- 		devres_free(ptr);
- 		return -EBUSY;
- 	}
+ 	/*
+ 	 * Seed the reusable head-page template from the first real struct
+ 	 * page. The normal page-init and refcount helpers must operate on
 _
 
-Patches currently in -mm which might be from nickolai@csail.mit.edu are
+Patches currently in -mm which might be from muchun.song@linux.dev are
 
-mm-mlock-use-a-long-for-the-page-count-in-mlock_fixup.patch
-mm-truncate-fix-the-zeroing-end-of-pagecache_isize_extended.patch
-resource-report-a-devm_request_resource-conflict-under-the-lock.patch
+mm-sparse-vmemmap-drop-vmemmap_populate_dax.patch
+mm-sparse-vmemmap-support-device-dax-in-common-vmemmap-path.patch
+mm-sparse-vmemmap-drop-device-dax-specific-population-path.patch
+mm-sparse-vmemmap-remove-the-unused-ptpfn-argument.patch
+mm-sparse-vmemmap-open-code-vmemmap_populate_address.patch
+mm-mm_init-add-zone-mismatch-warning-during-page-init.patch
+mm-mm_init-add-zone-mismatch-warning-during-page-init-fix.patch
+mm-fix-missing-page-table-destructor-in-pagetable_free.patch
+arm64-mm-fix-destructor-for-unconstructed-hotplug-page-tables.patch
+mm-warn-on-unaligned-compound-zone-device-ranges.patch
 
