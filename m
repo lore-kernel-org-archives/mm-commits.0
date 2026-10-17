@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6F8FE3CBE96
-	for <mm-commits@vger.kernel.org>; Sat, 17 Oct 2026 20:26:52 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AA0AC3C1085;
+	Sat, 17 Oct 2026 22:48:15 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1792268813; cv=none; b=O8vU513BLyNMlKgqaupgxUS9JgFX9RMOU/T21sME7TcPuHSoxSDQmuNWXyCbl1UAE+tvsqLIlMKatPigilSMLBHGXynyXlq9WVTXaBD6mcbjVSVPZFSBu2rd8W5ak2v+7f7Cncv+o/QUM2/BgjdtFQOoiHvoPLeb6oE0EuakuqA=
+	t=1792277297; cv=none; b=Fe/RlXcsHAE5MYb51MWYoZJt+msd2JuEWPp0Xoj5kdpmEWrFGpoP3ibDEj0AL+bQ4NK8Jvfcq5pI9QR/BK1lg5QT4bL8DX8yhdRLAHjg2QIot5gcpepqIRZdURKE3ClzMU8LkxUS0vFPlkG1kCquLsTnjay/MZDTOO2F30g6Y/c=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1792268813; c=relaxed/simple;
-	bh=KwaYQStJ4agftObHmNASEWNAmOFeop58jYm9EUI5Eqg=;
-	h=Date:To:From:Subject:Message-Id; b=TH78WrZNsNxWG5nEtY4eUokAh2Q0J7Tf2hm3nl8GgNy3nsAO3bLPUFFG2XU3Ze5k3QDIgr/a91ixZA7Dal7iZGjjBUUBW9+3vZoULBOkYFv2gmQqXGg8GqPf39fVjuFao5Iqhb4ow85oaABi3DrMowPQn/tfqWOmoSQDf75Im4M=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ohxPUP16; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1792277297; c=relaxed/simple;
+	bh=6w8ls3ddkRvHs/SvfiBj9mUf44LhNGmVgEDCnRr19l0=;
+	h=Date:To:From:Subject:Message-Id; b=fB2jNyMJRZ+3q/wJCdBI/3vQ4QhwoMtdtRCJAlwtN9WXSMLu7IBvMVX1gce9elPaSJEQhGNHeV5vSFJLn7IFnl8sQvg51AA3vHzlN1JIE8hjiyVLb2tx1LBEDAVzNAa+3qVHl2fRFoAj0F8c45wUDqEZdds/KjE9Tykrg67y/Bw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=xyCvCBv/; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ohxPUP16"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id BC79F1F000C4;
-	Sat, 17 Oct 2026 20:26:51 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="xyCvCBv/"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 389E61F000C4;
+	Sat, 17 Oct 2026 22:48:15 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1792268811;
-	bh=1XaSh+mVWM/R0Pk0Ydbq7OR1/3wi9VQix9aWYlWg0Dg=;
+	d=linux-foundation.org; s=korg; t=1792277295;
+	bh=nb5bVlnL/h85VHg0klCqgnRR52cvArehTizxOnGXOLE=;
 	h=Date:To:From:Subject;
-	b=ohxPUP16xrRpdIvKM4NRwghQ+rEdFD5WNUgqyKW1i33KNCHm/7vh46NpxIWUxHWot
-	 4MuLZ0OCBBx4sYUE8XfwFXWG91fnfSE+R/D7TwTq9jRvVozGQGP0P4LKx7FUouLD7b
-	 obB42DpX9jncDfrgOdL00NHiHCXiFdfiI4K/3UYQ=
-Date: Sat, 17 Oct 2026 13:26:51 -0700
-To: mm-commits@vger.kernel.org,vbabka@kernel.org,surenb@google.com,rppt@kernel.org,peterz@infradead.org,mj0123.lee@samsung.com,mhocko@suse.com,ljs@kernel.org,liam@infradead.org,jack@suse.cz,david@kernel.org,nickolai@csail.mit.edu,akpm@linux-foundation.org
+	b=xyCvCBv/40zAjSfPXG4WpJmu7IckzLlvfBrWjzUzCPMu2C/SLnD3k7DfE4VQwYA8K
+	 8kHYB/HlF012qO8zbCOZTZo0x3kcbwl2j907DjXjiGll+MvT5XWrahrfEtItI7BAQZ
+	 U8ZrS9SBscNCVImrQe+pR2OzQzmBUwaT5bmNYaAI=
+Date: Sat, 17 Oct 2026 15:48:14 -0700
+To: mm-commits@vger.kernel.org,yuzhao@google.com,yuanchu@google.com,weixugc@google.com,stable@vger.kernel.org,shakeel.butt@linux.dev,qi.zheng@linux.dev,lance.yang@linux.dev,kasong@tencent.com,ehab.ababneh@intel.com,baoquan.he@linux.dev,baolin.wang@linux.alibaba.com,axelrasmussen@google.com,baohua@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-bdi-reset-min_ratio-after-the-sysfs-attributes-are-gone.patch added to mm-unstable branch
-Message-Id: <20261017202651.BC79F1F000C4@smtp.kernel.org>
+Subject: [to-be-updated] mm-mglru-fix-using-folio_mark_accessed-to-replace-folio_set_active.patch removed from -mm tree
+Message-Id: <20261017224815.389E61F000C4@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,119 +34,194 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The patch titled
-     Subject: mm: bdi: reset min_ratio after the sysfs attributes are gone
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-bdi-reset-min_ratio-after-the-sysfs-attributes-are-gone.patch
+The quilt patch titled
+     Subject: mm/mglru: fix using folio_mark_accessed to replace folio_set_active
+has been removed from the -mm tree.  Its filename was
+     mm-mglru-fix-using-folio_mark_accessed-to-replace-folio_set_active.patch
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-bdi-reset-min_ratio-after-the-sysfs-attributes-are-gone.patch
-
-This patch will later appear in the mm-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via various
-branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there most days
+This patch was dropped because an updated version will be issued
 
 ------------------------------------------------------
-From: Nickolai Zeldovich <nickolai@csail.mit.edu>
-Subject: mm: bdi: reset min_ratio after the sysfs attributes are gone
-Date: Fri, 16 Oct 2026 23:06:20 -0400
+From: "Barry Song (Xiaomi)" <baohua@kernel.org>
+Subject: mm/mglru: fix using folio_mark_accessed to replace folio_set_active
+Date: Sat, 17 Oct 2026 05:31:15 +0800
 
-A write to /sys/class/bdi/<dev>/min_ratio (or min_ratio_fine or min_bytes)
-that races with the removal of the device leaves the global sum of minimum
-dirty shares charged for a bdi that no longer exists.  Until the next
-reboot, that share of the dirty threshold is withheld from every other bdi
-(__wb_calc_thresh() scales by 100 % minus the sum), and a later min_ratio
-store on any bdi that would push the sum to 100 % fails with EINVAL
-although every bdi reads 0.  Root privilege is needed for the store; the
-removal is any del_gendisk() (a disk or loop device going away) or the
-unmount of a filesystem with its own bdi.  On an x86_64 defconfig kernel
-(v7.3-rc7), 2000 rounds of LOOP_CTL_ADD/LOOP_CTL_REMOVE on one loop device
-with a second thread writing 50 to its min_ratio leak the share on the
-first round the store lands in the window; afterwards `echo 99 >
-min_ratio` on another loop device fails with EINVAL.  With the fix the
-same run keeps the sum at 0 and the store succeeds.  Affected since v5.16,
-when the reset in bdi_unregister() was added.
+Commit 6cbdd9726fb5 ("mm/mglru: use folio_mark_accessed to replace
+folio_set_active") attempted to avoid over-protecting in-fault read-ahead
+file folios by placing them in the second-oldest generation rather than
+the young generations.
 
-bdi_unregister() gives the bdi's share back with bdi_set_min_ratio(bdi, 0)
-and only then calls device_unregister(), which removes the sysfs
-attributes.  A min_ratio_store() that gets its kernfs active reference
-before the removal runs to completion after the reset:
-__bdi_set_min_ratio() takes bdi_lock, sees bdi->min_ratio == 0, adds the
-new value to bdi_min_ratio and stores it in the bdi, which bdi_put() then
-frees.  Nothing gives that share back.
+However, it repurposes `PG_referenced` on in-fault read-ahead file folios
+for this purpose, potentially coupling their handling with that of regular
+file accesses through syscalls, which also use `PG_referenced`.
 
-Move the reset after device_unregister(): once the attributes are gone no
-store can run, and bdi_set_min_ratio() needs nothing from the device.
+This could regress some workloads, as reported by Kairui Song[1] and Ehab
+Ababneh[2].  Many thanks to both for reporting these issues!
 
-Found while formally verifying bdi_unregister() against the kernel binary.
+The long-term fix is Kairui's MGLRU-FG, but in the meantime, we also need
+a quick fix that can be backported to stable.
 
-Link: https://lore.kernel.org/20261017030620.793108-1-nickolai@csail.mit.edu
-Fixes: 3c376dfafbf7 ("mm: bdi: initialize bdi_min_ratio when bdi is unregistered")
-Signed-off-by: Nickolai Zeldovich <nickolai@csail.mit.edu>
+This patch reverts the original commit's abuse of `PG_referenced` while
+preserving its goal of avoiding over-protection of in-fault read-ahead
+file folios by adjusting only `lru_gen_folio_seq()`.
+
+Specifically, in-fault read-ahead file folios with `PG_active` set but
+`PG_workingset` clear are placed in the second-oldest generation (the
+third-youngest generation).  Activated file folios and refaulted
+workingset file folios remain in the youngest generations.
+
+Kernel build tests in a memcg show that this approach not only preserves
+the original patch's benefits but also further improves performance.
+
+w/o fix:
+
+real    1m49.094s
+user    25m31.484s
+sys     3m40.959s
+pswpin: 662112
+pswpout: 2504415
+pgpgin: 4424336
+pgpgout: 10355273
+refault_file: 359626
+refault_anon: 670724
+
+w/ fix:
+
+real    1m48.913s
+user    25m31.639s
+sys     3m30.875s
+pswpin: 689815
+pswpout: 2689894
+pgpgin: 4422659
+pgpgout: 11043464
+refault_file: 326566
+refault_anon: 697138
+
+Revert original patch:
+
+real    1m50.044s
+user    25m37.137s
+sys     4m4.493s
+pswpin: 1349087
+pswpout: 4317933
+pgpgin: 7083597
+pgpgout: 17602735
+refault_file: 337676
+refault_anon: 1368542
+
+Link: https://lore.kernel.org/20261016213115.70515-1-baohua@kernel.org
+Link: https://lore.kernel.org/linux-mm/20261003-mglru-fg-v3-0-cbd4546a5bd9@tencent.com/ [1]
+Link: https://lore.kernel.org/linux-mm/20260901180704.168106-1-ehab.ababneh@intel.com/ [2]
+Fixes: 6cbdd9726fb5 ("mm/mglru: use folio_mark_accessed to replace folio_set_active")
+Signed-off-by: Barry Song (Xiaomi) <baohua@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Assisted-by: LLM
-Cc: David Hildenbrand <david@kernel.org>
-Cc: Lorenzo Stoakes <ljs@kernel.org>
-Cc: Liam R. Howlett <liam@infradead.org>
-Cc: Vlastimil Babka <vbabka@kernel.org>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Manjong Lee <mj0123.lee@samsung.com>
-Cc: Jan Kara <jack@suse.cz>
+Cc: Ehab Ababneh <ehab.ababneh@intel.com>
+Cc: Axel Rasmussen <axelrasmussen@google.com>
+Cc: Kairui Song <kasong@tencent.com>
+Cc: Lance Yang <lance.yang@linux.dev>
+Cc: Qi Zheng <qi.zheng@linux.dev>
+Cc: Shakeel Butt <shakeel.butt@linux.dev>
+Cc: Wei Xu <weixugc@google.com>
+Cc: Yuanchu Xie <yuanchu@google.com>
+Cc: Yu Zhao <yuzhao@google.com>
+Cc: Baoquan He <baoquan.he@linux.dev>
+Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
+Cc: <stable@vger.kernel.org>
 ---
 
- mm/backing-dev.c |   15 ++++++++-------
- 1 file changed, 8 insertions(+), 7 deletions(-)
+ include/linux/mm_inline.h |    5 +++--
+ mm/folio.c                |   16 +++-------------
+ mm/vmscan.c               |    9 ++-------
+ mm/workingset.c           |   10 ++++------
+ 4 files changed, 12 insertions(+), 28 deletions(-)
 
---- a/mm/backing-dev.c~mm-bdi-reset-min_ratio-after-the-sysfs-attributes-are-gone
-+++ a/mm/backing-dev.c
-@@ -1162,19 +1162,20 @@ void bdi_unregister(struct backing_dev_i
- 	wb_shutdown(&bdi->wb);
- 	cgwb_bdi_unregister(bdi);
+--- a/include/linux/mm_inline.h~mm-mglru-fix-using-folio_mark_accessed-to-replace-folio_set_active
++++ a/include/linux/mm_inline.h
+@@ -319,7 +319,8 @@ static inline unsigned long lru_gen_foli
+ 	 * |<---------------------------- MAX_NR_GENS ---------------------------->|
+ 	 */
+ 	if (folio_test_active(folio))
+-		gen = MIN_NR_GENS - folio_test_workingset(folio);
++		gen = MIN_NR_GENS - folio_test_workingset(folio) +
++		      (type ? !folio_test_workingset(folio) : 0);
+ 	else if (reclaiming)
+ 		gen = MAX_NR_GENS;
+ 	else if ((!folio_is_file_lru(folio) && !folio_test_swapcache(folio)) ||
+@@ -327,7 +328,7 @@ static inline unsigned long lru_gen_foli
+ 		  (folio_test_dirty(folio) || folio_test_writeback(folio))))
+ 		gen = MIN_NR_GENS;
+ 	else
+-		gen = MAX_NR_GENS - (folio_test_workingset(folio) || folio_test_referenced(folio));
++		gen = MAX_NR_GENS - folio_test_workingset(folio);
+ 
+ 	return max(READ_ONCE(lrugen->max_seq) - gen + 1, READ_ONCE(lrugen->min_seq[type]));
+ }
+--- a/mm/folio.c~mm-mglru-fix-using-folio_mark_accessed-to-replace-folio_set_active
++++ a/mm/folio.c
+@@ -474,20 +474,10 @@ void folio_add_lru(struct folio *folio)
+ 			folio_test_unevictable(folio), folio);
+ 	VM_BUG_ON_FOLIO(folio_test_lru(folio), folio);
  
 -	/*
--	 * If this BDI's min ratio has been set, use bdi_set_min_ratio() to
--	 * update the global bdi_min_ratio.
+-	 * For refaulted workingset folios, set PG_active so they
+-	 * can be added to active generations.
+-	 * For prefaulted file folios, folio_mark_accessed() sets
+-	 * PG_referenced so lru_gen_folio_seq() places them into
+-	 * the second oldest generation.
 -	 */
--	if (bdi->min_ratio)
--		bdi_set_min_ratio(bdi, 0);
--
- 	if (bdi->dev) {
- 		bdi_debug_unregister(bdi);
- 		device_unregister(bdi->dev);
- 		bdi->dev = NULL;
++	/* see the comment in lru_gen_folio_seq() */
+ 	if (lru_gen_enabled() && !folio_test_unevictable(folio) &&
+-	    lru_gen_in_fault() && !(current->flags & PF_MEMALLOC)) {
+-		if (folio_test_workingset(folio))
+-			folio_set_active(folio);
+-		else if (!folio_test_referenced(folio))
+-			folio_mark_accessed(folio);
+-	}
++	    lru_gen_in_fault() && !(current->flags & PF_MEMALLOC))
++		folio_set_active(folio);
+ 
+ 	folio_batch_add_and_move(folio, lru_add);
+ }
+--- a/mm/vmscan.c~mm-mglru-fix-using-folio_mark_accessed-to-replace-folio_set_active
++++ a/mm/vmscan.c
+@@ -952,13 +952,8 @@ static bool lru_gen_set_refs(struct foli
+ 		return false;
  	}
  
-+	/*
-+	 * If this BDI's min ratio has been set, use bdi_set_min_ratio() to
-+	 * update the global bdi_min_ratio. After device_unregister(): the
-+	 * sysfs min_ratio stores can no longer run and set it again.
-+	 */
-+	if (bdi->min_ratio)
-+		bdi_set_min_ratio(bdi, 0);
+-	/* Promote on second access */
+-	if (folio_lru_refs(folio) > 1) {
+-		folio_set_workingset(folio);
+-		folio_set_lru_refs(folio, 0);
+-	} else {
+-		folio_mark_accessed(folio);
+-	}
++	folio_set_workingset(folio);
++	folio_set_lru_refs(folio, 0);
+ 	return true;
+ }
+ #else
+--- a/mm/workingset.c~mm-mglru-fix-using-folio_mark_accessed-to-replace-folio_set_active
++++ a/mm/workingset.c
+@@ -319,13 +319,11 @@ static void lru_gen_refault(struct folio
+ 
+ 	atomic_long_add(delta, &lrugen->refaulted[hist][type][tier]);
+ 
++	/* see folio_add_lru() where folio_set_active() will be called */
++	if (lru_gen_in_fault())
++		mod_lruvec_state(lruvec, WORKINGSET_ACTIVATE_BASE + type, delta);
 +
- 	if (bdi->owner) {
- 		put_device(bdi->owner);
- 		bdi->owner = NULL;
+ 	if (workingset) {
+-		/*
+-		 * see folio_add_lru(), where folio_set_active() is
+-		 * called for workingset folios
+-		 */
+-		if (lru_gen_in_fault())
+-			mod_lruvec_state(lruvec, WORKINGSET_ACTIVATE_BASE + type, delta);
+ 		folio_set_workingset(folio);
+ 		mod_lruvec_state(lruvec, WORKINGSET_RESTORE_BASE + type, delta);
+ 	} else
 _
 
-Patches currently in -mm which might be from nickolai@csail.mit.edu are
+Patches currently in -mm which might be from baohua@kernel.org are
 
-mm-mlock-use-a-long-for-the-page-count-in-mlock_fixup.patch
-mm-truncate-fix-the-zeroing-end-of-pagecache_isize_extended.patch
-resource-report-a-devm_request_resource-conflict-under-the-lock.patch
-mm-bdi-reset-min_ratio-after-the-sysfs-attributes-are-gone.patch
 
