@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D460A3822A6
-	for <mm-commits@vger.kernel.org>; Sat, 17 Oct 2026 01:58:31 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9A65D3839A1;
+	Sat, 17 Oct 2026 01:58:55 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1792202313; cv=none; b=b+znP6d/Vs0AKJ/+6AdQn7FGxD1WriPqeTZ2TF0R59QsG+kI+mwRkPL+cBKA5thjqD+KighD0uUajoyNNc46Y2dgQpL/yxiyI/Fl+2UYqJo4MSIrmYYgdQ08u7Jn+aUfGgWy5pLgrSJr7YNvxLpWGcqzcrP4FpWGNS0Y8WKmPCQ=
+	t=1792202336; cv=none; b=kg99LD/p0Go9NvsjHE220Elvmiu0UKYhDxQJ3Q5Oh37Qv0EvoxUTnzAw7nMlA5kNqwPnpDQhZtOqXvnV0ySg0bogRZrbWzFbWyqMvMO4QNFIz8r8sacCROe1Rkvhsat77Ikg6mWpC+brQADn9NZcQRoIOdyR4W6gBWNw6OWE9Oo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1792202313; c=relaxed/simple;
-	bh=duUlxkHDYDE+7B+xaHNZff4qc2YIaxhSJAlFuVjJjJA=;
-	h=Date:To:From:Subject:Message-Id; b=cUeSRnFC1tGHtcRMx397QDwliz/SHOJjVjBactEbZ8Sja7Zu0BfF+Jty0XbEqpMpeoBiilZecsalmrlJQPFtTR6sEwQqQPjFmBP0egRrk7LK7iDwTZmyqK53eMok8gDItVtp4jBE3Od6XNgd6DwP+LE2j9/AsaITFiCvZ4RYvzc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=0GeUzXCf; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1792202336; c=relaxed/simple;
+	bh=HplwlsGM2lyiBq2P77ojlm6MTaRfdEFAmJaL+hDUqIk=;
+	h=Date:To:From:Subject:Message-Id; b=uo3zX9gjFYup6notYeTqHuZCNNURMnYOStoHMOo9cOczaUI3d0nqhHdG1W8oMqzZbSMlaVgFscP7nMRM+38Isf05zG3ykQnZTXiQOu0paqpsrFdBvYBc8qAPSHhhRc1AYUDBhAGMNaVNxMevD2TDvHPDEs9mHvcQCZegCJLMpXE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Z9cTw3vf; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="0GeUzXCf"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4B8A91F000C4;
-	Sat, 17 Oct 2026 01:58:31 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Z9cTw3vf"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2FC941F000C4;
+	Sat, 17 Oct 2026 01:58:55 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1792202311;
-	bh=tADIhVDY67mhnRWyRMjYsrqytnlKPLNtvt8ucxTNH38=;
+	d=linux-foundation.org; s=korg; t=1792202335;
+	bh=Y6PL4QJpzuOuNlOKSjKEgmfWQ4KB4rl13vCBS87J/iw=;
 	h=Date:To:From:Subject;
-	b=0GeUzXCfQiSE6N/KwaGQSV9pzbzujKKSiBnNYXQnTJxVuH9wwSaqf2KTVzstnb56R
-	 Ix7hef4cxX6ygaRGWR8rL4/aj3c7a0nf6Hf5EW/Uj3gsiBsyCe6cOJeZETaCLe5NPQ
-	 P6/wFsRf2JUO53gz78WBeCylJpUirmThLsCxuxfM=
-Date: Fri, 16 Oct 2026 18:58:30 -0700
-To: mm-commits@vger.kernel.org,willy@infradead.org,tytso@mit.edu,jack@suse.cz,bfoster@redhat.com,nickolai@csail.mit.edu,akpm@linux-foundation.org
+	b=Z9cTw3vfcE5SdYnK0hZKFaj8b4ykb3hfHFYgzZnMxlOmre48wBOvdW9CKCPcOJKLA
+	 2+igazlDQDn215OAEsWMcjEO5SpqyZLpTSi79CNTt+jeN7CGKGwXNsayfBGK4LKRsO
+	 wqouPBm0yvFH6VZaSKXMltJCjZ4LW/MtmVqjZ+Wg=
+Date: Fri, 16 Oct 2026 18:58:54 -0700
+To: mm-commits@vger.kernel.org,willy@infradead.org,tytso@mit.edu,stable@vger.kernel.org,jack@suse.cz,bfoster@redhat.com,nickolai@csail.mit.edu,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
 Subject: + mm-truncate-fix-the-zeroing-end-of-pagecache_isize_extended.patch added to mm-unstable branch
-Message-Id: <20261017015831.4B8A91F000C4@smtp.kernel.org>
+Message-Id: <20261017015855.2FC941F000C4@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -104,6 +104,7 @@ Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
 Cc: Jan Kara <jack@suse.cz>
 Cc: Brian Foster <bfoster@redhat.com>
 Cc: Theodore Ts'o <tytso@mit.edu>
+Cc: <stable@vger.kernel.org>
 ---
 
  mm/truncate.c |    3 +--
