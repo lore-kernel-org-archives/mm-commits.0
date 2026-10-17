@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CF344299929;
-	Sat, 17 Oct 2026 00:33:52 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D460A3822A6
+	for <mm-commits@vger.kernel.org>; Sat, 17 Oct 2026 01:58:31 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1792197234; cv=none; b=SvUkyhKPq84SPljVXuJ3xGoM2imk5kGCCHziduIPPnKfs7M7evYXKGBG+UT46e8Ey10HzIc9CTMh74UTsS51aat8vv6V59VWHKRTZAkCgP5ZzGjJrXFkJwk4usIWX4XmO3uQHBqFJ2Nxi+hoWoOSRPR+usjhMFgacC7CUNu0qWI=
+	t=1792202313; cv=none; b=b+znP6d/Vs0AKJ/+6AdQn7FGxD1WriPqeTZ2TF0R59QsG+kI+mwRkPL+cBKA5thjqD+KighD0uUajoyNNc46Y2dgQpL/yxiyI/Fl+2UYqJo4MSIrmYYgdQ08u7Jn+aUfGgWy5pLgrSJr7YNvxLpWGcqzcrP4FpWGNS0Y8WKmPCQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1792197234; c=relaxed/simple;
-	bh=Q+UQFFOGkGQoah/uga72iNFZA2qYmB7N1/Xk2r915fs=;
-	h=Date:To:From:Subject:Message-Id; b=u3dlOOqS/oPqUTJWdrbPv3Cl4z/HEonIc5vHKufsMJZXtgjWGI9G8XiuP1HeO/DIcinS6IpbtRbFoB1uod5X1uN9SuqDcWRqylRkV1sx0zS69I90ku+oLHocaUCeZa/NbRKJDl0I6gLQE/cQqXUfKZCYvEieNLQgJUfEeayhkLs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=F1mzAskr; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1792202313; c=relaxed/simple;
+	bh=duUlxkHDYDE+7B+xaHNZff4qc2YIaxhSJAlFuVjJjJA=;
+	h=Date:To:From:Subject:Message-Id; b=cUeSRnFC1tGHtcRMx397QDwliz/SHOJjVjBactEbZ8Sja7Zu0BfF+Jty0XbEqpMpeoBiilZecsalmrlJQPFtTR6sEwQqQPjFmBP0egRrk7LK7iDwTZmyqK53eMok8gDItVtp4jBE3Od6XNgd6DwP+LE2j9/AsaITFiCvZ4RYvzc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=0GeUzXCf; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="F1mzAskr"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 550971F000C4;
-	Sat, 17 Oct 2026 00:33:52 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="0GeUzXCf"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4B8A91F000C4;
+	Sat, 17 Oct 2026 01:58:31 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1792197232;
-	bh=RLfFRIaGC6rGRICe2F35aLRGT7qZ2ykMvmZr9tvxxB8=;
+	d=linux-foundation.org; s=korg; t=1792202311;
+	bh=tADIhVDY67mhnRWyRMjYsrqytnlKPLNtvt8ucxTNH38=;
 	h=Date:To:From:Subject;
-	b=F1mzAskrdLBleP/je9bJZjDcmllcr3EbhxvxbGGMSQH7ZAiPmFXTlnt/XEL1fHY+2
-	 hHT/LVVFz+IV0kknBlyI9zO3nMrjj+FGndwzJ+uuR02q9Gt6QPGcyLT5hsJ7T2VBca
-	 5WVDC2TrjgM3HEl3iugNGA7zH4/yXGuwFlrXIQPk=
-Date: Fri, 16 Oct 2026 17:33:51 -0700
-To: mm-commits@vger.kernel.org,yuzhao@google.com,yuanchu@google.com,weixugc@google.com,stable@vger.kernel.org,shakeel.butt@linux.dev,qi.zheng@linux.dev,lance.yang@linux.dev,kasong@tencent.com,ehab.ababneh@intel.com,baoquan.he@linux.dev,baolin.wang@linux.alibaba.com,axelrasmussen@google.com,baohua@kernel.org,akpm@linux-foundation.org
+	b=0GeUzXCfQiSE6N/KwaGQSV9pzbzujKKSiBnNYXQnTJxVuH9wwSaqf2KTVzstnb56R
+	 Ix7hef4cxX6ygaRGWR8rL4/aj3c7a0nf6Hf5EW/Uj3gsiBsyCe6cOJeZETaCLe5NPQ
+	 P6/wFsRf2JUO53gz78WBeCylJpUirmThLsCxuxfM=
+Date: Fri, 16 Oct 2026 18:58:30 -0700
+To: mm-commits@vger.kernel.org,willy@infradead.org,tytso@mit.edu,jack@suse.cz,bfoster@redhat.com,nickolai@csail.mit.edu,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-mglru-fix-using-folio_mark_accessed-to-replace-folio_set_active.patch added to mm-unstable branch
-Message-Id: <20261017003352.550971F000C4@smtp.kernel.org>
+Subject: + mm-truncate-fix-the-zeroing-end-of-pagecache_isize_extended.patch added to mm-unstable branch
+Message-Id: <20261017015831.4B8A91F000C4@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/mglru: fix using folio_mark_accessed to replace folio_set_active
+     Subject: mm/truncate: fix the zeroing end of pagecache_isize_extended()
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-mglru-fix-using-folio_mark_accessed-to-replace-folio_set_active.patch
+     mm-truncate-fix-the-zeroing-end-of-pagecache_isize_extended.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mglru-fix-using-folio_mark_accessed-to-replace-folio_set_active.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-truncate-fix-the-zeroing-end-of-pagecache_isize_extended.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,187 +58,73 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: "Barry Song (Xiaomi)" <baohua@kernel.org>
-Subject: mm/mglru: fix using folio_mark_accessed to replace folio_set_active
-Date: Sat, 17 Oct 2026 05:31:15 +0800
+From: Nickolai Zeldovich <nickolai@csail.mit.edu>
+Subject: mm/truncate: fix the zeroing end of pagecache_isize_extended()
+Date: Fri, 16 Oct 2026 18:27:21 -0400
 
-Commit 6cbdd9726fb5 ("mm/mglru: use folio_mark_accessed to replace
-folio_set_active") attempted to avoid over-protecting in-fault read-ahead
-file folios by placing them in the second-oldest generation rather than
-the young generations.
+A process that extends a file by 4 GiB or more past a dirty folio, on a
+file system whose block size is smaller than the page size (ext4 with 1k
+blocks), reads back the bytes it wrote through a shared mapping beyond the
+old end of file instead of zeroes, and a later write into that block
+carries them to the disk.  With the example of commit 52aecaee1c26 ("mm:
+zero range of eof folio exposed by inode size extension") and the truncate
+taken 4 GiB further (pwrite 2k at 0, mmap the first page and write 'X'
+over [2k, 4k), truncate(2) to 4 GiB + 2k), the read of [2k, 4k) returns
+the 2048 'X' bytes, and a pwrite of 16 bytes at 3k followed by fsync() and
+a remount leaves 1008 'X' bytes on the disk in [3k+16, 4k).  No privilege
+is needed, and every size extension of 4 GiB or more reaches it:
+truncate(2)/ftruncate(2) through truncate_setsize(), writes beyond the end
+of file through generic_write_end(), ext4, iomap, btrfs, exfat, ntfs, afs
+and orangefs.  Affected since v6.13.
 
-However, it repurposes `PG_referenced` on in-fault read-ahead file folios
-for this purpose, potentially coupling their handling with that of regular
-file accesses through syscalls, which also use `PG_referenced`.
+pagecache_isize_extended() zeroes the part of the dirty folio straddling
+the old end of file that the size extension exposes, from the old size to
+the new size or the end of the folio, whichever comes first:
 
-This could regress some workloads, as reported by Kairui Song[1] and Ehab
-Ababneh[2].  Many thanks to both for reporting these issues!
+	end = min_t(unsigned int, to - folio_pos(folio), folio_size(folio));
 
-The long-term fix is Kairui's MGLRU-FG, but in the meantime, we also need
-a quick fix that can be backported to stable.
+min_t() converts both operands to unsigned int before comparing, so the
+loff_t difference to - folio_pos(folio) is reduced modulo 2^32 first. 
+When the file grows by 4 GiB or more past the folio, end is that residue
+instead of folio_size(folio): below offset nothing is zeroed, above it
+only [offset, end) is.  The bytes beyond the old end of file stay in the
+dirty folio and, now inside i_size, are file data.
 
-This patch reverts the original commit's abuse of `PG_referenced` while
-preserving its goal of avoiding over-protection of in-fault read-ahead
-file folios by adjusting only `lru_gen_folio_seq()`.
+Compare in loff_t; the result is at most folio_size(folio) and fits end.
 
-Specifically, in-fault read-ahead file folios with `PG_active` set but
-`PG_workingset` clear are placed in the second-oldest generation (the
-third-youngest generation).  Activated file folios and refaulted
-workingset file folios remain in the youngest generations.
+Found while formally verifying pagecache_isize_extended() against the
+kernel binary.
 
-Kernel build tests in a memcg show that this approach not only preserves
-the original patch's benefits but also further improves performance.
-
-w/o fix:
-
-real    1m49.094s
-user    25m31.484s
-sys     3m40.959s
-pswpin: 662112
-pswpout: 2504415
-pgpgin: 4424336
-pgpgout: 10355273
-refault_file: 359626
-refault_anon: 670724
-
-w/ fix:
-
-real    1m48.913s
-user    25m31.639s
-sys     3m30.875s
-pswpin: 689815
-pswpout: 2689894
-pgpgin: 4422659
-pgpgout: 11043464
-refault_file: 326566
-refault_anon: 697138
-
-Revert original patch:
-
-real    1m50.044s
-user    25m37.137s
-sys     4m4.493s
-pswpin: 1349087
-pswpout: 4317933
-pgpgin: 7083597
-pgpgout: 17602735
-refault_file: 337676
-refault_anon: 1368542
-
-Link: https://lore.kernel.org/20261016213115.70515-1-baohua@kernel.org
-Link: https://lore.kernel.org/linux-mm/20261003-mglru-fg-v3-0-cbd4546a5bd9@tencent.com/ [1]
-Link: https://lore.kernel.org/linux-mm/20260901180704.168106-1-ehab.ababneh@intel.com/ [2]
-Fixes: 6cbdd9726fb5 ("mm/mglru: use folio_mark_accessed to replace folio_set_active")
-Signed-off-by: Barry Song (Xiaomi) <baohua@kernel.org>
+Link: https://lore.kernel.org/20261016222721.791785-1-nickolai@csail.mit.edu
+Fixes: 52aecaee1c26 ("mm: zero range of eof folio exposed by inode size extension")
+Signed-off-by: Nickolai Zeldovich <nickolai@csail.mit.edu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Cc: Ehab Ababneh <ehab.ababneh@intel.com>
-Cc: Axel Rasmussen <axelrasmussen@google.com>
-Cc: Kairui Song <kasong@tencent.com>
-Cc: Lance Yang <lance.yang@linux.dev>
-Cc: Qi Zheng <qi.zheng@linux.dev>
-Cc: Shakeel Butt <shakeel.butt@linux.dev>
-Cc: Wei Xu <weixugc@google.com>
-Cc: Yuanchu Xie <yuanchu@google.com>
-Cc: Yu Zhao <yuzhao@google.com>
-Cc: Baoquan He <baoquan.he@linux.dev>
-Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: <stable@vger.kernel.org>
+Assisted-by: LLM
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Jan Kara <jack@suse.cz>
+Cc: Brian Foster <bfoster@redhat.com>
+Cc: Theodore Ts'o <tytso@mit.edu>
 ---
 
- include/linux/mm_inline.h |    5 +++--
- mm/folio.c                |   16 +++-------------
- mm/vmscan.c               |    9 ++-------
- mm/workingset.c           |   10 ++++------
- 4 files changed, 12 insertions(+), 28 deletions(-)
+ mm/truncate.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
---- a/include/linux/mm_inline.h~mm-mglru-fix-using-folio_mark_accessed-to-replace-folio_set_active
-+++ a/include/linux/mm_inline.h
-@@ -319,7 +319,8 @@ static inline unsigned long lru_gen_foli
- 	 * |<---------------------------- MAX_NR_GENS ---------------------------->|
- 	 */
- 	if (folio_test_active(folio))
--		gen = MIN_NR_GENS - folio_test_workingset(folio);
-+		gen = MIN_NR_GENS - folio_test_workingset(folio) +
-+		      (type ? !folio_test_workingset(folio) : 0);
- 	else if (reclaiming)
- 		gen = MAX_NR_GENS;
- 	else if ((!folio_is_file_lru(folio) && !folio_test_swapcache(folio)) ||
-@@ -327,7 +328,7 @@ static inline unsigned long lru_gen_foli
- 		  (folio_test_dirty(folio) || folio_test_writeback(folio))))
- 		gen = MIN_NR_GENS;
- 	else
--		gen = MAX_NR_GENS - (folio_test_workingset(folio) || folio_test_referenced(folio));
-+		gen = MAX_NR_GENS - folio_test_workingset(folio);
+--- a/mm/truncate.c~mm-truncate-fix-the-zeroing-end-of-pagecache_isize_extended
++++ a/mm/truncate.c
+@@ -919,8 +919,7 @@ void pagecache_isize_extended(struct ino
+ 		unsigned int offset, end;
  
- 	return max(READ_ONCE(lrugen->max_seq) - gen + 1, READ_ONCE(lrugen->min_seq[type]));
- }
---- a/mm/folio.c~mm-mglru-fix-using-folio_mark_accessed-to-replace-folio_set_active
-+++ a/mm/folio.c
-@@ -474,20 +474,10 @@ void folio_add_lru(struct folio *folio)
- 			folio_test_unevictable(folio), folio);
- 	VM_BUG_ON_FOLIO(folio_test_lru(folio), folio);
- 
--	/*
--	 * For refaulted workingset folios, set PG_active so they
--	 * can be added to active generations.
--	 * For prefaulted file folios, folio_mark_accessed() sets
--	 * PG_referenced so lru_gen_folio_seq() places them into
--	 * the second oldest generation.
--	 */
-+	/* see the comment in lru_gen_folio_seq() */
- 	if (lru_gen_enabled() && !folio_test_unevictable(folio) &&
--	    lru_gen_in_fault() && !(current->flags & PF_MEMALLOC)) {
--		if (folio_test_workingset(folio))
--			folio_set_active(folio);
--		else if (!folio_test_referenced(folio))
--			folio_mark_accessed(folio);
--	}
-+	    lru_gen_in_fault() && !(current->flags & PF_MEMALLOC))
-+		folio_set_active(folio);
- 
- 	folio_batch_add_and_move(folio, lru_add);
- }
---- a/mm/vmscan.c~mm-mglru-fix-using-folio_mark_accessed-to-replace-folio_set_active
-+++ a/mm/vmscan.c
-@@ -952,13 +952,8 @@ static bool lru_gen_set_refs(struct foli
- 		return false;
+ 		offset = from - folio_pos(folio);
+-		end = min_t(unsigned int, to - folio_pos(folio),
+-			    folio_size(folio));
++		end = min_t(loff_t, to - folio_pos(folio), folio_size(folio));
+ 		folio_zero_segment(folio, offset, end);
  	}
  
--	/* Promote on second access */
--	if (folio_lru_refs(folio) > 1) {
--		folio_set_workingset(folio);
--		folio_set_lru_refs(folio, 0);
--	} else {
--		folio_mark_accessed(folio);
--	}
-+	folio_set_workingset(folio);
-+	folio_set_lru_refs(folio, 0);
- 	return true;
- }
- #else
---- a/mm/workingset.c~mm-mglru-fix-using-folio_mark_accessed-to-replace-folio_set_active
-+++ a/mm/workingset.c
-@@ -319,13 +319,11 @@ static void lru_gen_refault(struct folio
- 
- 	atomic_long_add(delta, &lrugen->refaulted[hist][type][tier]);
- 
-+	/* see folio_add_lru() where folio_set_active() will be called */
-+	if (lru_gen_in_fault())
-+		mod_lruvec_state(lruvec, WORKINGSET_ACTIVATE_BASE + type, delta);
-+
- 	if (workingset) {
--		/*
--		 * see folio_add_lru(), where folio_set_active() is
--		 * called for workingset folios
--		 */
--		if (lru_gen_in_fault())
--			mod_lruvec_state(lruvec, WORKINGSET_ACTIVATE_BASE + type, delta);
- 		folio_set_workingset(folio);
- 		mod_lruvec_state(lruvec, WORKINGSET_RESTORE_BASE + type, delta);
- 	} else
 _
 
-Patches currently in -mm which might be from baohua@kernel.org are
+Patches currently in -mm which might be from nickolai@csail.mit.edu are
 
-mm-mglru-fix-using-folio_mark_accessed-to-replace-folio_set_active.patch
+mm-mlock-use-a-long-for-the-page-count-in-mlock_fixup.patch
+mm-truncate-fix-the-zeroing-end-of-pagecache_isize_extended.patch
 
