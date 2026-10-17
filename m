@@ -1,324 +1,456 @@
-Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.21])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BBEF73BED7A
-	for <mm-commits@vger.kernel.org>; Sat, 17 Oct 2026 03:00:15 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.175.65.21
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3E10536F41C
+	for <mm-commits@vger.kernel.org>; Sat, 17 Oct 2026 03:05:33 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1792206030; cv=none; b=lV5HpTBUNp01+fShtFmcUi47sS9Cb75P1JgoPCp/F5/S92zZ5oKPhh3tfR0fkqudv+b/zNt/1qWJiYmvAiFHKISmpIEBCwZB+XIjOiO7EoY+YYS2FXH4YM4Bfn7uxAbTJ4xhNZthY1u5QhwWh80v8aywHuo9agIzwiCqoiMN7WY=
+	t=1792206335; cv=none; b=MQHSHLdRPWfDprRjL21WsmkwcgX7w1huh9e6hmRaD+1AXRIXXKYqR+Me77UqYcyncbTiptyaL6T7BEiKGrgJjU6sfM+mukRhEBGTcXpIIKGExTcfuHXXjxAl/O9HFKg7GlDVpgiEvRELqSNQHTv7zFgZBJOIGaq7dzAghit9z1Y=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1792206030; c=relaxed/simple;
-	bh=yhkxpKG7hbFe7QFxlmahDP4c51CYA/HTlvgm6wjdRbg=;
-	h=Date:From:To:Cc:Subject:Message-ID; b=lkDJKwHQp84qBtWPZbbNfDdYV3+y+0Oj5fIgpT67nA9YrBQzFb8iC8ZyMaYariWoBBWqJ650yJnIQnH98ACK1SCHs0xUfb+UMAgaKJQaDkbCurBQQ74eCW9ZQN0ONUqrDgkXkVBfE184rw+4geJsprSj0apUKlPiIL1osmcSCCo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=MB3CTKqP; arc=none smtp.client-ip=198.175.65.21
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
+	s=arc-20240116; t=1792206335; c=relaxed/simple;
+	bh=ZlXzj5cB5Scogqm/D2sluHLzvmU6+Wmu3a4hKvYgNcc=;
+	h=Date:To:From:Subject:Message-Id; b=ZIWA1vEhdFhFDqK899qB+bO1VoITUgBke37mtSlnEUMZBIUmItqDBvrGADvQTahZWq4ZYnFzvUBhBm86WDThiBTc3XCJWlAmIvu20wUImfaoqLTPcM2lSSTt9WRoDW/gALcROxHSIkvVYI2DiZejLdzYFkFZylKjeLuUnatFHgE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=AxDIREuG; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="MB3CTKqP"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1792206016; x=1823742016;
-  h=date:from:to:cc:subject:message-id;
-  bh=yhkxpKG7hbFe7QFxlmahDP4c51CYA/HTlvgm6wjdRbg=;
-  b=MB3CTKqPdWfAMfbsDhUYvuU94krawxoSmyIhLDjvVR7kLvDH9Jn+DWA7
-   ilNYdMMyfhBmXFSyepmhVn7Ur0mQuUQ9JS8Fjh+hL7B0Soiq2YZu0Qakz
-   /dmi+M54c0Wku3hkVS4PEQ/QAOuSnCXOLMohX7lpHABl4D1dMg+S33pac
-   Te0LA/uBMI4zukg/5kVLVuJ/UIDkIobByIPDojrP9c6a2bOrJ4ktKnhCQ
-   kYo2w9r4cmyw4HP9Ey/8f5CFwl6ySWBmFvjukVqf9C8cOA9YGxbz0AlM6
-   oAzNhdr7T1zoFNsBRw2tNZQulguUHG2dipKhD8IWurwitLMw0a75+G2GP
-   g==;
-X-CSE-ConnectionGUID: Nev7LkrATGqBGbAO33UKKw==
-X-CSE-MsgGUID: MII/HkTJTE+mt2pD4bOYfA==
-X-IronPort-AV: E=McAfee;i="6800,10657,11937"; a="1090294"
-X-IronPort-AV: E=Sophos;i="6.27,163,1787036400"; 
-   d="scan'208";a="1090294"
-Received: from orviesa006.jf.intel.com ([10.64.159.146])
-  by orvoesa113.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 16 Oct 2026 20:00:15 -0700
-X-CSE-ConnectionGUID: NN3EKJJKSDeys0y3LUpJQg==
-X-CSE-MsgGUID: 7Uv9Dm1WT+e1EagwLGq+sg==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="6.27,163,1787036400"; 
-   d="scan'208";a="2144040"
-Received: from lkp-server01.sh.intel.com (HELO 0caa9d2d175c) ([10.239.97.150])
-  by orviesa006.jf.intel.com with ESMTP; 16 Oct 2026 20:00:13 -0700
-Received: from kbuild by 0caa9d2d175c with local (Exim 4.98.2)
-	(envelope-from <lkp@intel.com>)
-	id 1xHueY-00000000IzS-40RJ;
-	Sat, 17 Oct 2026 03:00:10 +0000
-Date: Sat, 17 Oct 2026 10:59:15 +0800
-From: kernel test robot <lkp@intel.com>
-To: David Hildenbrand <david@kernel.org>
-Cc: Andrew Morton <akpm@linux-foundation.org>,
- Linux Memory Management List <linux-mm@kvack.org>,
- mm-commits@vger.kernel.org
-Subject: [akpm-mm:mm-new] BUILD SUCCESS
- 63562804f25cb5b6f5e4f5e3a9f0d1c3c6868596
-Message-ID: <202610171013.FZ7lgaJX-lkp@intel.com>
-User-Agent: s-nail v14.9.25
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="AxDIREuG"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8EA141F000C4;
+	Sat, 17 Oct 2026 03:05:33 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+	d=linux-foundation.org; s=korg; t=1792206333;
+	bh=4uEVRGZQnZVxwuw2zucd31Dhib0+ksXsOjxe5HHyX60=;
+	h=Date:To:From:Subject;
+	b=AxDIREuGEY8i8TO0V8dsxfLntNSvIhRIDgmMlk+EPdoUJzA8aerGROycVYPrBcqts
+	 2UTEb5TdylzRiwH3bNBYpJX348jId5ChBhLG80F+iaJLu2JgLiraV29oykkLLF5QEb
+	 Et6hk5q8lTaz0npmewDxPnS12P/79b3b4TT25VnE=
+Date: Fri, 16 Oct 2026 20:05:33 -0700
+To: mm-commits@vger.kernel.org,ljs@kernel.org,akpm@linux-foundation.org
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: [to-be-updated] mm-vma-avoid-spurious-write-locks-when-mm-mm_lock_seq-overflows.patch removed from -mm tree
+Message-Id: <20261017030533.8EA141F000C4@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
-tree/branch: https://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm.git mm-new
-branch HEAD: 63562804f25cb5b6f5e4f5e3a9f0d1c3c6868596  riscv: mm: exclude invalid THP PMDs from page table check
 
-elapsed time: 804m
+The quilt patch titled
+     Subject: mm/vma: avoid spurious write locks when mm->mm_lock_seq overflows
+has been removed from the -mm tree.  Its filename was
+     mm-vma-avoid-spurious-write-locks-when-mm-mm_lock_seq-overflows.patch
 
-configs tested: 245
-configs skipped: 11
+This patch was dropped because an updated version will be issued
 
-The following configs have been built successfully.
-More configs may be tested in the coming days.
+------------------------------------------------------
+From: "Lorenzo Stoakes (ARM)" <ljs@kernel.org>
+Subject: mm/vma: avoid spurious write locks when mm->mm_lock_seq overflows
+Date: Thu, 15 Oct 2026 21:31:44 +0100
 
-tested configs:
-alpha                              allnoconfig    gcc-16.1.0
-alpha                             allyesconfig    gcc-16.1.0
-alpha                                defconfig    gcc-16.1.0
-alpha                randconfig-r2202-20261016    gcc-15.2.0 smatch
-arc                               allmodconfig    gcc-16.1.0
-arc                                allnoconfig    gcc-16.1.0
-arc                               allyesconfig    gcc-16.1.0
-arc                                  defconfig    gcc-16.1.0
-arc                   randconfig-1000-20261017    gcc-12.5.0
-arc                   randconfig-1001-20261017    gcc-10.5.0
-arc                   randconfig-2000-20261016    gcc-8.5.0
-arc                   randconfig-2001-20261016    gcc-8.5.0
-arc                  randconfig-r2107-20261016    gcc-8.5.0  cocci
-arc                  randconfig-r2305-20261016    gcc-13.4.0 sparse
-arc                  randconfig-r2308-20261016    gcc-15.2.0 sparse
-arm                                allnoconfig    clang-17
-arm                               allyesconfig    gcc-16.1.0
-arm                                  defconfig    clang-24
-arm                           ep93xx_defconfig    clang-24
-arm                          lpc18xx_defconfig    clang-24
-arm                             qcom_defconfig    clang-24
-arm                   randconfig-1000-20261017    gcc-8.5.0
-arm                   randconfig-1001-20261017    clang-20
-arm                   randconfig-1002-20261017    gcc-10.5.0
-arm                   randconfig-1003-20261017    clang-22
-arm                   randconfig-2000-20261016    gcc-12.5.0
-arm                   randconfig-2001-20261016    gcc-8.5.0
-arm                              rpc_defconfig    clang-19
-arm                            sunxi_defconfig    gcc-16.1.0
-arm64                              allnoconfig    gcc-16.1.0
-arm64                                defconfig    gcc-16.1.0
-arm64                 randconfig-1000-20261016    gcc-8.5.0
-arm64                 randconfig-1001-20261016    clang-19
-arm64                 randconfig-1002-20261016    gcc-8.5.0
-arm64                 randconfig-1003-20261016    clang-17
-arm64                 randconfig-2000-20261016    gcc-13.4.0
-arm64                 randconfig-2001-20261016    clang-18
-arm64                randconfig-r2100-20261016    gcc-9.5.0  cocci
-arm64                randconfig-r2310-20261016    gcc-8.5.0  sparse
-csky                              allmodconfig    gcc-16.1.0
-csky                               allnoconfig    gcc-16.1.0
-csky                                 defconfig    gcc-16.1.0
-csky                  randconfig-1000-20261016    gcc-13.4.0
-csky                  randconfig-1001-20261016    gcc-11.5.0
-csky                  randconfig-2000-20261016    gcc-16.1.0
-csky                  randconfig-2001-20261016    gcc-12.5.0
-hexagon                           allmodconfig    clang-24
-hexagon                            allnoconfig    clang-24
-hexagon                              defconfig    clang-24
-hexagon               randconfig-1000-20261016    clang-24
-hexagon               randconfig-1001-20261016    clang-17
-hexagon               randconfig-2000-20261016    clang-22
-hexagon               randconfig-2001-20261016    clang-22
-hexagon              randconfig-r2103-20261016    clang-17   cocci
-i386                              allmodconfig    gcc-14
-i386                               allnoconfig    gcc-14
-i386        buildonly-randconfig-1000-20261017    clang-22
-i386        buildonly-randconfig-1001-20261017    gcc-14
-i386        buildonly-randconfig-1002-20261017    clang-22
-i386        buildonly-randconfig-1003-20261017    gcc-14
-i386        buildonly-randconfig-1004-20261017    clang-22
-i386        buildonly-randconfig-1005-20261017    gcc-14
-i386                                 defconfig    clang-22
-i386                  randconfig-1000-20261017    gcc-14
-i386                  randconfig-1001-20261017    clang-22
-i386                  randconfig-1002-20261017    gcc-14
-i386                  randconfig-1003-20261017    gcc-14
-i386                  randconfig-1004-20261017    gcc-14
-i386                  randconfig-1005-20261017    gcc-14
-i386                  randconfig-1006-20261017    gcc-14
-i386                  randconfig-1007-20261016    clang-22
-i386                  randconfig-1008-20261016    gcc-14
-i386                  randconfig-1009-20261016    gcc-13
-i386                  randconfig-1010-20261016    clang-22
-i386                  randconfig-1011-20261016    clang-22
-i386                  randconfig-1012-20261016    gcc-14
-i386                  randconfig-1013-20261016    gcc-12
-i386                  randconfig-2000-20261016    clang-22
-i386                  randconfig-2001-20261016    clang-22
-i386                  randconfig-2100-20261016    gcc-14     cocci
-i386                  randconfig-2101-20261016    clang-22   cocci
-i386                  randconfig-2102-20261016    clang-22   cocci
-i386                  randconfig-2103-20261016    gcc-14     cocci
-i386                  randconfig-2104-20261016    clang-22   cocci
-i386                  randconfig-2105-20261016    clang-22   cocci
-i386                  randconfig-2200-20261016    clang-22   smatch
-i386                  randconfig-2300-20261016    gcc-14     sparse
-i386                  randconfig-2301-20261016    clang-22   sparse
-i386                  randconfig-2302-20261016    clang-22   sparse
-loongarch                          allnoconfig    clang-20
-loongarch                            defconfig    clang-24
-loongarch             randconfig-1000-20261016    gcc-16.1.0
-loongarch             randconfig-1001-20261016    clang-24
-loongarch             randconfig-2000-20261016    gcc-16.1.0
-loongarch             randconfig-2001-20261016    clang-18
-loongarch            randconfig-r2304-20261016    gcc-13.4.0 sparse
-m68k                              allmodconfig    gcc-16.1.0
-m68k                               allnoconfig    gcc-16.1.0
-m68k                              allyesconfig    gcc-16.1.0
-m68k                                 defconfig    gcc-16.1.0
-microblaze                         allnoconfig    gcc-16.1.0
-microblaze                        allyesconfig    gcc-16.1.0
-microblaze                           defconfig    gcc-16.1.0
-microblaze           randconfig-r2104-20261016    gcc-8.5.0  cocci
-microblaze           randconfig-r2105-20261016    gcc-12.5.0 cocci
-mips                               allnoconfig    gcc-16.1.0
-mips                              allyesconfig    gcc-16.1.0
-nios2                             allmodconfig    gcc-11.5.0
-nios2                              allnoconfig    gcc-11.5.0
-nios2                                defconfig    gcc-11.5.0
-nios2                 randconfig-1000-20261016    gcc-11.5.0
-nios2                 randconfig-1001-20261016    gcc-8.5.0
-nios2                 randconfig-2000-20261016    gcc-8.5.0
-nios2                 randconfig-2001-20261016    gcc-11.5.0
-nios2                randconfig-r2309-20261016    gcc-11.5.0 sparse
-openrisc                          allmodconfig    gcc-16.1.0
-openrisc                           allnoconfig    gcc-16.1.0
-openrisc                             defconfig    gcc-16.1.0
-openrisc             randconfig-r2301-20261016    gcc-16.1.0 sparse
-parisc                            allmodconfig    gcc-16.1.0
-parisc                             allnoconfig    gcc-16.1.0
-parisc                            allyesconfig    gcc-16.1.0
-parisc                               defconfig    gcc-16.1.0
-parisc                randconfig-1000-20261016    gcc-15.2.0
-parisc                randconfig-1000-20261017    gcc-10.5.0
-parisc                randconfig-1001-20261017    gcc-8.5.0
-parisc                randconfig-2000-20261016    gcc-8.5.0
-parisc                randconfig-2001-20261016    gcc-10.5.0
-parisc               randconfig-r2307-20261016    gcc-8.5.0  sparse
-parisc               randconfig-r2311-20261016    gcc-8.5.0  sparse
-parisc64                             defconfig    gcc-16.1.0
-powerpc                            allnoconfig    gcc-16.1.0
-powerpc                       pmac32_defconfig    clang-24
-powerpc               randconfig-1000-20261017    clang-17
-powerpc               randconfig-1001-20261017    gcc-15.2.0
-powerpc               randconfig-2000-20261016    gcc-11.5.0
-powerpc               randconfig-2001-20261016    gcc-9.5.0
-powerpc64             randconfig-1000-20261017    clang-20
-powerpc64             randconfig-1001-20261017    gcc-8.5.0
-powerpc64             randconfig-2000-20261016    clang-24
-powerpc64             randconfig-2001-20261016    gcc-8.5.0
-powerpc64            randconfig-r2110-20261016    gcc-16.1.0 cocci
-riscv                              allnoconfig    gcc-16.1.0
-riscv                             allyesconfig    clang-24
-riscv                                defconfig    clang-24
-riscv                 randconfig-1000-20261017    clang-19
-riscv                 randconfig-1001-20261017    clang-24
-riscv                 randconfig-2000-20261016    clang-24
-riscv                 randconfig-2001-20261016    clang-24
-riscv                randconfig-r2102-20261016    gcc-9.5.0  cocci
-s390                              allmodconfig    clang-24
-s390                               allnoconfig    clang-24
-s390                                 defconfig    clang-18
-s390                  randconfig-1000-20261017    clang-24
-s390                  randconfig-1001-20261017    clang-24
-s390                  randconfig-2000-20261016    clang-24
-s390                  randconfig-2001-20261016    gcc-8.5.0
-s390                 randconfig-r2108-20261016    clang-24   cocci
-s390                 randconfig-r2303-20261016    clang-17   sparse
-sh                                allmodconfig    gcc-16.1.0
-sh                                 allnoconfig    gcc-16.1.0
-sh                                allyesconfig    gcc-16.1.0
-sh                                   defconfig    gcc-16.1.0
-sh                           landisk_defconfig    gcc-16.1.0
-sh                           lboxre2_defconfig    gcc-16.1.0
-sh                    randconfig-1000-20261017    gcc-16.1.0
-sh                    randconfig-1001-20261017    gcc-10.5.0
-sh                    randconfig-2000-20261016    gcc-16.1.0
-sh                    randconfig-2001-20261016    gcc-12.5.0
-sh                   randconfig-r2106-20261016    gcc-14.3.0 cocci
-sh                   randconfig-r2111-20261016    gcc-15.2.0 cocci
-sparc                              allnoconfig    gcc-16.1.0
-sparc                                defconfig    gcc-16.1.0
-sparc                 randconfig-1000-20261016    gcc-16.1.0
-sparc                 randconfig-1001-20261016    gcc-15.2.0
-sparc                 randconfig-2000-20261016    gcc-16.1.0
-sparc                 randconfig-2001-20261016    gcc-12.5.0
-sparc                randconfig-r2200-20261016    gcc-8.5.0  smatch
-sparc64                           allmodconfig    clang-20
-sparc64                              defconfig    clang-24
-sparc64               randconfig-1000-20261016    clang-20
-sparc64               randconfig-1001-20261016    clang-24
-sparc64               randconfig-2000-20261016    clang-24
-sparc64               randconfig-2001-20261016    clang-24
-sparc64              randconfig-r2109-20261016    gcc-13.4.0 cocci
-um                                allmodconfig    clang-17
-um                                 allnoconfig    clang-17
-um                                allyesconfig    gcc-14
-um                                   defconfig    clang-24
-um                              i386_defconfig    gcc-14
-um                    randconfig-1000-20261016    gcc-14
-um                    randconfig-1001-20261016    gcc-14
-um                    randconfig-2000-20261016    clang-17
-um                    randconfig-2001-20261016    gcc-14
-um                   randconfig-r2101-20261016    clang-24   cocci
-um                   randconfig-r2300-20261016    clang-17   sparse
-um                            x86_64_defconfig    clang-24
-x86_64                             allnoconfig    clang-22
-x86_64      buildonly-randconfig-1000-20261017    gcc-14
-x86_64      buildonly-randconfig-1001-20261017    clang-22
-x86_64      buildonly-randconfig-1002-20261017    gcc-14
-x86_64      buildonly-randconfig-1003-20261017    gcc-12
-x86_64      buildonly-randconfig-1004-20261017    clang-22
-x86_64      buildonly-randconfig-1005-20261017    clang-22
-x86_64                               defconfig    gcc-14
-x86_64                randconfig-1000-20261017    gcc-14
-x86_64                randconfig-1001-20261017    clang-22
-x86_64                randconfig-1002-20261017    clang-22
-x86_64                randconfig-1003-20261017    gcc-12
-x86_64                randconfig-1004-20261017    gcc-14
-x86_64                randconfig-1005-20261017    gcc-12
-x86_64                randconfig-1006-20261017    clang-22
-x86_64                randconfig-1007-20261017    clang-22
-x86_64                randconfig-1008-20261017    gcc-12
-x86_64                randconfig-1009-20261017    gcc-14
-x86_64                randconfig-1010-20261017    gcc-13
-x86_64                randconfig-1011-20261017    clang-22
-x86_64                randconfig-1012-20261016    gcc-14
-x86_64                randconfig-1013-20261016    gcc-12
-x86_64                randconfig-1014-20261016    gcc-14
-x86_64                randconfig-1015-20261016    gcc-14
-x86_64                randconfig-1016-20261016    clang-22
-x86_64                randconfig-1017-20261016    clang-22
-x86_64                randconfig-2000-20261016    clang-22
-x86_64                randconfig-2001-20261016    gcc-14
-x86_64                randconfig-2100-20261016    gcc-14     cocci
-x86_64                randconfig-2101-20261016    clang-22   cocci
-x86_64                randconfig-2102-20261016    clang-22   cocci
-x86_64                randconfig-2103-20261016    clang-22   cocci
-x86_64                randconfig-2104-20261016    clang-22   cocci
-x86_64                randconfig-2105-20261016    gcc-14     cocci
-x86_64                randconfig-2200-20261016    gcc-14     smatch
-x86_64                randconfig-2300-20261016    clang-22   sparse
-x86_64                randconfig-2301-20261016    clang-22   sparse
-x86_64                randconfig-2302-20261016    clang-22   sparse
-x86_64               randconfig-r2201-20261016    gcc-14     smatch
-x86_64               randconfig-r2302-20261016    clang-22   sparse
-x86_64               randconfig-r2306-20261016    clang-22   sparse
-x86_64                           rhel-9.4-rust    clang-22
-xtensa                             allnoconfig    gcc-16.1.0
-xtensa                            allyesconfig    gcc-16.1.0
-xtensa                randconfig-1000-20261016    gcc-11.5.0
-xtensa                randconfig-1001-20261016    gcc-9.5.0
-xtensa                randconfig-2000-20261016    gcc-12.5.0
-xtensa                randconfig-2001-20261016    gcc-10.5.0
+So far the assumption has been that mm->mm_lock_seq overflow is benign,
+resulting only in readers spuriously falling back to the mmap lock, however
+it turns out that this was an unsafe assumption.
 
---
-0-DAY CI Kernel Test Service
-https://github.com/intel/lkp-tests/wiki
+If a VMA can be spuriously considered write locked that means read lock
+exclusion does not take place, and thus a VMA can end up write-locked with
+concurrent readers.
+
+Since overflow only occurs every 2^31 write lock/unlock cycles, resolve the
+issue by resetting every VMA's vma->vm_lock_seq each time such an overflow
+occurs.
+
+This is done in vma_end_write_all(), which is called when the mmap write
+lock is released, i.e. in mmap_write_unlock() and mmap_write_downgrade().
+
+Care must be taken, as resetting the sequence count at overflow means
+changing the seqcount of VMAs which are already attached and observable.
+
+The mm's seqcount is guaranteed to be odd when a write lock is held, and
+thus any write locked VMA will have an odd seqcount assigned.
+
+Therefore resetting to an even value prevents spurious write locks, since
+these can only occur with the mmap write lock held, at which point the mmap
+seqcount will be odd.
+
+However, vma_start_read() also checks vma->vm_lock_seq == mm->mm_lock_seq,
+bailing if so (indicating a write lock).
+
+This would cause any even reset value chosen to prevent VMA read locks from
+being taken - avoid this by also checking whether the VMA seqcount is odd
+before bailing on the read lock.
+
+So far, vma->vm_lock_seq has defaulted to UINT_MAX, but this has been
+unnecessary since commit e5e7fb278e59 ("mm: convert mm_lock_seq to a proper
+seqcount"), since this is assigned when the VMA is still detached, and
+cannot be observed.
+
+Therefore perform both reset and initialisation of vma->vm_lock_seq by
+simply setting vma->vm_lock_seq to zero.
+
+The reset, performed in reset_vma_seqcounts(), only needs to WRITE_ONCE()
+the value. The stores follow the smp_wmb() in do_raw_write_seqcount_end(),
+so a reader observing a reset value also observes the VMA modifications
+made under the write lock.
+
+Since all VMA write locks were just released and the mmap write lock is
+still held, there are no concurrent VMA writers.
+
+Concurrent VMA readers are unaffected. New VMA readers observe either zero,
+never a write lock, or the prior seqcount, behaving as before the reset.
+
+Since this only occurs every 2^31 write lock/unlock cycles, the time taken
+to update all VMAs is considered to be acceptable.
+
+Also update comments, documentation and VMA userland tests to reflect the
+change.
+
+Link: https://lore.kernel.org/20261015-fix-vma-lock-overflow-v1-1-01beb245d9da@kernel.org
+Fixes: 5e31275cc997 ("mm: add per-VMA lock and helper functions to control it")
+Signed-off-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+Reported-by: Daehyeon Ko <4ncienth@gmail.com>
+Closes: https://lore.kernel.org/all/20261015143735.1630957-1-4ncienth@gmail.com/
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Liam R. Howlett <liam@infradead.org>
+Cc: Vlastimil Babka <vbabka@kernel.org>
+Cc: Shakeel Butt <shakeel.butt@linux.dev>
+Cc: David Hildenbrand <david@kernel.org>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: Randy Dunlap <rdunlap@infradead.org>
+Cc: Jann Horn <jannh@google.com>
+Cc: Pedro Falcato <pfalcato@suse.de>
+Cc: <stable@vger.kernel.org>
+---
+
+ Documentation/mm/process_addrs.rst |   14 +++-
+ include/linux/mm_types.h           |   12 ++--
+ include/linux/mmap_lock.h          |   24 ++++++--
+ mm/mmap_lock.c                     |   76 ++++++++++++++++++++++++---
+ tools/testing/vma/include/dup.h    |    2 
+ tools/testing/vma/shared.c         |    8 +-
+ 6 files changed, 111 insertions(+), 25 deletions(-)
+
+--- a/Documentation/mm/process_addrs.rst~mm-vma-avoid-spurious-write-locks-when-mm-mm_lock_seq-overflows
++++ a/Documentation/mm/process_addrs.rst
+@@ -819,9 +819,17 @@ All this is achieved by the use of per-m
+ used in order to reduce complexity, especially for operations which write-lock
+ multiple VMAs at once.
+ 
+-If the mm sequence count, :c:member:`!mm->mm_lock_seq` is equal to the VMA
+-sequence count :c:member:`!vma->vm_lock_seq` then the VMA is write-locked. If
+-they differ, then it is not.
++The mm sequence count :c:member:`!mm->mm_lock_seq` is incremented on both mmap
++write lock and unlock, so it is odd while the mmap write lock is held. If it is
++equal to the VMA sequence count :c:member:`!vma->vm_lock_seq`, and that value
++is odd, then the VMA is write-locked. If they differ, then it is not.
++
++A VMA's sequence count is not updated on unlock, so after 2^31 write lock/unlock
++cycles the mm sequence count would wrap and match stale VMA values again. To
++prevent this, when the mm sequence count wraps to zero,
++:c:func:`!vma_end_write_all` invokes :c:func:`!reset_vma_seqcounts` to reset
++every VMA's sequence count to zero, an even value which can never indicate a
++write lock.
+ 
+ Each time the mmap write lock is released in :c:func:`!mmap_write_unlock` or
+ :c:func:`!mmap_write_downgrade`, :c:func:`!vma_end_write_all` is invoked which
+--- a/include/linux/mmap_lock.h~mm-vma-avoid-spurious-write-locks-when-mm-mm_lock_seq-overflows
++++ a/include/linux/mmap_lock.h
+@@ -154,7 +154,7 @@ static inline void vma_lock_init(struct
+ #endif
+ 	if (reset_refcnt)
+ 		refcount_set(&vma->vm_refcnt, 0);
+-	vma->vm_lock_seq = UINT_MAX;
++	vma->vm_lock_seq = 0;
+ }
+ 
+ /*
+@@ -229,8 +229,9 @@ static inline void vma_refcount_put(stru
+ 
+ /*
+  * Use only while holding mmap read lock which guarantees that vma lock is not
+- * contended (nobody can concurrently write-lock the vma). vma_start_read() should
+- * not be used in such cases because it might fail due to mm_lock_seq overflow.
++ * contended (nobody can concurrently write-lock the vma). vma_start_read() need
++ * not be used in such cases, as the mmap lock already excludes VMA writers so
++ * its sequence number checks are redundant.
+  * This functionality is used to obtain vma read lock and drop the mmap read lock.
+  *
+  * VMA can't be detached while we are holding mmap lock, therefore in practice this
+@@ -252,8 +253,9 @@ static inline bool vma_start_read_locked
+ 
+ /*
+  * Use only while holding mmap read lock which guarantees that vma lock is not
+- * contended (nobody can concurrently write-lock the vma). vma_start_read() should
+- * not be used in such cases because it might fail due to mm_lock_seq overflow.
++ * contended (nobody can concurrently write-lock the vma). vma_start_read() need
++ * not be used in such cases, as the mmap lock already excludes VMA writers so
++ * its sequence number checks are redundant.
+  * This functionality is used to obtain vma read lock and drop the mmap read lock.
+  *
+  * VMA can't be detached while we are holding mmap lock, therefore in practice this
+@@ -552,6 +554,8 @@ static inline int __must_check mmap_writ
+ 	return ret;
+ }
+ 
++void reset_vma_seqcounts(struct mm_struct *mm);
++
+ /*
+  * Drop all currently-held per-VMA locks.
+  * This is called from the mmap_lock implementation directly before releasing
+@@ -564,6 +568,16 @@ static inline void vma_end_write_all(str
+ {
+ 	mmap_assert_write_locked(mm);
+ 	mm_lock_seqcount_end(mm);
++
++	/*
++	 * VMA seqcounts are not updated on unlock, so once the mm seqcount has
++	 * wrapped, any VMA still carrying a sequence number from before the
++	 * wrap would satisfy __is_vma_write_locked() when that number comes
++	 * round again, and readers would not be excluded. Reset every VMA's
++	 * seqcount so that no stale value survives the wrap.
++	 */
++	if (unlikely(!mm->mm_lock_seq.sequence))
++		reset_vma_seqcounts(mm);
+ }
+ 
+ static inline void mmap_write_unlock(struct mm_struct *mm)
+--- a/include/linux/mm_types.h~mm-vma-avoid-spurious-write-locks-when-mm-mm_lock_seq-overflows
++++ a/include/linux/mm_types.h
+@@ -992,15 +992,19 @@ struct vm_area_struct {
+ 	 * Can only be written (using WRITE_ONCE()) while holding both:
+ 	 *  - mmap_lock (in write mode)
+ 	 *  - vm_refcnt bit at VM_REFCNT_EXCLUDE_READERS_FLAG is set
++	 * The one exception is reset_vma_seqcounts(), which stores zero (an
++	 * even value, which can never indicate a write lock) under the mmap
++	 * write lock alone once the mm seqcount has wrapped, so a reader
++	 * holding only vm_refcnt may observe the value change from odd to zero.
+ 	 * Can be read reliably while holding one of:
+ 	 *  - mmap_lock (in read or write mode)
+-	 *  - vm_refcnt bit at VM_REFCNT_EXCLUDE_READERS_BIT is set or vm_refcnt > 1
++	 *  - vm_refcnt bit at VM_REFCNT_EXCLUDE_READERS_BIT is set
+ 	 * Can be read unreliably (using READ_ONCE()) for pessimistic bailout
+ 	 * while holding nothing (except RCU to keep the VMA struct allocated).
+ 	 *
+-	 * This sequence counter is explicitly allowed to overflow; sequence
+-	 * counter reuse can only lead to occasional unnecessary use of the
+-	 * slowpath.
++	 * Assigned the (odd) mm seqcount on write lock and not updated on
++	 * unlock, so a stale value would alias the mm seqcount again 2^31 write
++	 * lock/unlock cycles later. The reset described above prevents this.
+ 	 */
+ 	unsigned int vm_lock_seq;
+ 
+--- a/mm/mmap_lock.c~mm-vma-avoid-spurious-write-locks-when-mm-mm_lock_seq-overflows
++++ a/mm/mmap_lock.c
+@@ -194,21 +194,37 @@ void __vma_exclude_readers_for_detach(st
+ 	WARN_ON_ONCE(!ves.detached);
+ }
+ 
++/* Do the VMA, mm seqcounts indicate the VMA is write locked? */
++static bool vma_seqcount_is_write_locked(unsigned int vma_seq, unsigned int mm_seq)
++{
++	/* VMA and mm sequence numbers must match for a write lock. */
++	if (vma_seq != mm_seq)
++		return false;
++
++	/*
++	 * The VMA seqcount is always odd if locked. An even value can only be
++	 * the zero stored by reset_vma_seqcounts(), never a write lock.
++	 */
++	return vma_seq & 1;
++}
++
+ /*
+  * Try to read-lock a vma. The function is allowed to occasionally yield false
+  * locked result to avoid performance overhead, in which case we fall back to
+  * using mmap_lock. The function should never yield false unlocked result.
+- * False locked result is possible if mm_lock_seq overflows or if vma gets
+- * reused and attached to a different mm before we lock it.
++ * False locked result is possible if vma gets reused and attached to a
++ * different mm before we lock it.
+  * Returns the vma on success, NULL on failure to lock and EAGAIN if vma got
+  * detached.
+  *
+  * IMPORTANT: RCU lock must be held upon entering the function, but upon error
+  *            IT IS RELEASED. The caller must handle this correctly.
+  */
+-static inline struct vm_area_struct *vma_start_read(struct mm_struct *mm,
+-						    struct vm_area_struct *vma)
++static struct vm_area_struct *vma_start_read(struct mm_struct *mm,
++					     struct vm_area_struct *vma)
+ {
++	unsigned int vma_seq;
++	unsigned int mm_seq;
+ 	struct mm_struct *other_mm;
+ 	int oldcnt;
+ 
+@@ -220,7 +236,9 @@ static inline struct vm_area_struct *vma
+ 	 * we don't rely on for anything - the mm_lock_seq read against which we
+ 	 * need ordering is below.
+ 	 */
+-	if (READ_ONCE(vma->vm_lock_seq) == READ_ONCE(mm->mm_lock_seq.sequence)) {
++	vma_seq = READ_ONCE(vma->vm_lock_seq);
++	mm_seq = READ_ONCE(mm->mm_lock_seq.sequence);
++	if (vma_seqcount_is_write_locked(vma_seq, mm_seq)) {
+ 		vma = NULL;
+ 		goto err;
+ 	}
+@@ -246,17 +264,23 @@ static inline struct vm_area_struct *vma
+ 		goto err_unstable;
+ 
+ 	/*
+-	 * Overflow of vm_lock_seq/mm_lock_seq might produce false locked result.
+-	 * False unlocked result is impossible because we modify and check
++	 * False unlocked result is impossible because a write lock sets
+ 	 * vma->vm_lock_seq under vma->vm_refcnt protection and mm->mm_lock_seq
+ 	 * modification invalidates all existing locks.
+ 	 *
++	 * The only other writer is reset_vma_seqcounts(), which stores zero
++	 * (even, so never a write lock) after the mmap write lock's seqcount
++	 * has been released and before any new write lock can be taken, hence
++	 * the READ_ONCE().
++	 *
+ 	 * We must use ACQUIRE semantics for the mm_lock_seq so that if we are
+ 	 * racing with vma_end_write_all(), we only start reading from the VMA
+ 	 * after it has been unlocked.
+ 	 * This pairs with RELEASE semantics in vma_end_write_all().
+ 	 */
+-	if (unlikely(vma->vm_lock_seq == raw_read_seqcount(&mm->mm_lock_seq))) {
++	vma_seq = READ_ONCE(vma->vm_lock_seq);
++	mm_seq = raw_read_seqcount(&mm->mm_lock_seq);
++	if (unlikely(vma_seqcount_is_write_locked(vma_seq, mm_seq))) {
+ 		vma_refcount_put(vma);
+ 		vma = NULL;
+ 		goto err;
+@@ -466,6 +490,42 @@ fallback:
+ 	return vma;
+ }
+ 
++/*
++ * Called with mmap write lock held after mm->mm_lock_seq just overflowed (and
++ * therefore zero), with all VMA write locks now released.
++ *
++ * The stores below follow the smp_wmb() in do_raw_write_seqcount_end(), so
++ * a reader that observes a reset value also observes this cycle's VMA
++ * modifications (ordered by the smp_rmb() in raw_read_seqcount()).
++ */
++void reset_vma_seqcounts(struct mm_struct *mm)
++{
++	struct vm_area_struct *vma;
++	VMA_ITERATOR(vmi, mm, 0);
++
++	mmap_assert_write_locked(mm);
++	VM_WARN_ON_ONCE(mm->mm_lock_seq.sequence);
++
++	/*
++	 * Failing to reset means stale vma->vm_lock_seq values could result in
++	 * those VMAs becoming spuriously write locked when mm->mm_lock_seq
++	 * happens to match their values.
++	 *
++	 * This is problematic, as it causes the VMA write lock to not exclude
++	 * readers, which can result in concurrent readers while a VMA write
++	 * lock is held.
++	 *
++	 * Avoid this by resetting to an even value (indicates no write lock
++	 * held).
++	 *
++	 * Readers will either observe zero (not write locked) or the previous
++	 * value, so this is safe.
++	 */
++	for_each_vma(vmi, vma)
++		WRITE_ONCE(vma->vm_lock_seq, 0);
++}
++EXPORT_SYMBOL(reset_vma_seqcounts);
++
+ #ifdef CONFIG_LOCK_MM_AND_FIND_VMA
+ #include <linux/extable.h>
+ 
+--- a/tools/testing/vma/include/dup.h~mm-vma-avoid-spurious-write-locks-when-mm-mm_lock_seq-overflows
++++ a/tools/testing/vma/include/dup.h
+@@ -1225,7 +1225,7 @@ static inline void vma_init(struct vm_ar
+ 	vma->vm_mm = mm;
+ 	vma->vm_ops = &vma_dummy_vm_ops;
+ 	INIT_LIST_HEAD(&vma->anon_vma_chain);
+-	vma->vm_lock_seq = UINT_MAX;
++	vma->vm_lock_seq = 0;
+ }
+ 
+ /*
+--- a/tools/testing/vma/shared.c~mm-vma-avoid-spurious-write-locks-when-mm-mm_lock_seq-overflows
++++ a/tools/testing/vma/shared.c
+@@ -65,7 +65,7 @@ struct vm_area_struct *alloc_and_link_vm
+ 	 * begun. Linking to the tree will have caused this to be incremented,
+ 	 * which means we will get a false positive otherwise.
+ 	 */
+-	vma->vm_lock_seq = UINT_MAX;
++	vma->vm_lock_seq = 0;
+ 
+ 	return vma;
+ }
+@@ -97,13 +97,13 @@ int cleanup_mm(struct mm_struct *mm, str
+ 
+ bool vma_write_started(struct vm_area_struct *vma)
+ {
+-	int seq = vma->vm_lock_seq;
++	unsigned int seq = vma->vm_lock_seq;
+ 
+ 	/* We reset after each check. */
+-	vma->vm_lock_seq = UINT_MAX;
++	vma->vm_lock_seq = 0;
+ 
+ 	/* The vma_start_write() stub simply increments this value. */
+-	return seq > -1;
++	return seq > 0;
+ }
+ 
+ void __vma_set_dummy_anon_vma(struct vm_area_struct *vma,
+_
+
+Patches currently in -mm which might be from ljs@kernel.org are
+
+mm-vma-fix-mmap_prepare-file-handling-remove-file_doesnt_need_get.patch
+mm-vma-introduce-and-use-vma_can_merge.patch
+mm-consistently-validate-vma-state-after-mmap-hooks.patch
+mm-vma-ensure-mmap_prepare-doesnt-set-actions-on-a-mergeable-vma.patch
+mm-make-map_kernel_pages_-internal-and-unexported.patch
+mm-vma-tidy-up-map-kernel-pages-enum-values.patch
+mm-assert-mmap-lock-held-use-new-flags-api-in-vm_insert_page.patch
+mm-add-mmap-action-for-discontiguous-kernel-page-mapping.patch
+docs-filesystems-update-mmap_prepare-docs-for-discontig-kernel-pgs.patch
+drivers-usb-mon-update-to-use-mmap_prepare-map-kernel-pages.patch
+infiniband-update-hfi1-to-use-remap_vmalloc_range.patch
+selinux-reject-writable-opens-of-policy-file-drop-mmap-shared-write-check.patch
+alsa-pcm-use-vm_insert_page-to-map-pcm-status-page.patch
+bpf-arena-mark-arena_map_mmap-mappings-vm_mixedmap.patch
+mm-vma-add-vma_is_mm_managed-predicates.patch
+mm-vma-only-allow-mmap-to-clear-vma_maywrite_bit-if-not-mm-managed.patch
+mm-vma-add-and-use-vma__is_fixed_mapping.patch
+scsi-sg-convert-mmap-hook-to-mmap_prepare-and-rework.patch
+fbdev-defio-assert-fbinfo_virtfb-drop-vm_io-add-vm_mixedmap.patch
+hsi-cmt_speech-convert-mmap-hook-to-mmap_prepare-refactor.patch
+mm-gup-error-out-early-on-vma_mayread_bit-vmas.patch
+uprobes-remove-vm_io-set-vm_mixedmap-for-mapped-kernel-pages.patch
+mm-mlock-clear-vma_locked_mask-over-mmap-callback.patch
+mm-mlock-eliminate-weird-vma_io_bit-abuse-and-simplify.patch
+mm-vma-enforce-that-mm-managed-mappings-may-not-set-vma_io_bit.patch
+mm-remove-vma_io_bit-check-in-vma_is_mm_managed.patch
+mm-remove-hugetlb_inlineh.patch
+mm-rename-is_vm_hugetlb_page-to-vma_is_hugetlb.patch
+mm-drop-some-redundant-checks-around-hugetlb-vmas.patch
+mm-vma-introduce-vma_is_mm_backed.patch
+mm-madvise-update-is_valid_guard_vma-to-use-vma_is_mm_backed.patch
+mm-uffd-use-predicates-for-userfaultfd-checks.patch
+mm-madvise-use-predicates-for-madvise-madv_dofork.patch
+mm-eliminate-vma_special_flags-usage-when-hugetlb-explicitly-tested.patch
+mm-eliminate-vma_special_flags-check-in-lru_gen_look_around.patch
+mm-avoid-use-of-vma_special_flags-in-migrate_vma_setup.patch
+mm-eliminate-vm_special-vma_special_flags.patch
+fuse-dax-do-not-set-vm_mixedmap.patch
+mm-huge_memory-remove-vma_is_special_huge.patch
+mm-vma-const-ify-vma_assert_stabilised-and-associated-functions.patch
+mm-implement-and-use-vma_has_anon_rmap-silence-kcsan.patch
+mm-update-comments-to-refer-to-anon-rmap-rather-than-anon_vma.patch
+mm-vma-dont-remove-vma-from-rmap-if-pgoff-unchanged.patch
+a.patch
+
