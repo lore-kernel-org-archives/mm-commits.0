@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DE0573A784E;
-	Sat, 17 Oct 2026 03:53:24 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6F8FE3CBE96
+	for <mm-commits@vger.kernel.org>; Sat, 17 Oct 2026 20:26:52 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1792209206; cv=none; b=FLFH67zAGkaJ9WHR0b+I1hOhIXjGRmU2nNlqpFgEy9kpawSWOLemEqM10nMQNirQHmHGqf6+dC/iTEU4qXlWyrLipwhDoOZslXJUH5rPgkmEyy3zmd2CUKlRBZYuFoShnti2b0RbHPLBCVZ1q22wrxwkFLOcifZDd//VxFteCkE=
+	t=1792268813; cv=none; b=O8vU513BLyNMlKgqaupgxUS9JgFX9RMOU/T21sME7TcPuHSoxSDQmuNWXyCbl1UAE+tvsqLIlMKatPigilSMLBHGXynyXlq9WVTXaBD6mcbjVSVPZFSBu2rd8W5ak2v+7f7Cncv+o/QUM2/BgjdtFQOoiHvoPLeb6oE0EuakuqA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1792209206; c=relaxed/simple;
-	bh=uDbrNcn3PQrPLj24gmTqvEmzw2JSVOhrEXaGdzHE6fg=;
-	h=Date:To:From:Subject:Message-Id; b=rfIAR+aiCxyEmcN1BqgQVsXVS8us5h0AtpsadnJ4Qc1MWnZ7/N58UUyZCsLfpkdb89SfZCj6QVOIBvT8patO/Dxive/tsFjbjNszcnlswjzevP2kZTsxZPJaB3zcLmRD0puuGKHblqsdprADEPA097j3JGrmGG557j6NBI6S5Qs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=mTFfIy9O; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1792268813; c=relaxed/simple;
+	bh=KwaYQStJ4agftObHmNASEWNAmOFeop58jYm9EUI5Eqg=;
+	h=Date:To:From:Subject:Message-Id; b=TH78WrZNsNxWG5nEtY4eUokAh2Q0J7Tf2hm3nl8GgNy3nsAO3bLPUFFG2XU3Ze5k3QDIgr/a91ixZA7Dal7iZGjjBUUBW9+3vZoULBOkYFv2gmQqXGg8GqPf39fVjuFao5Iqhb4ow85oaABi3DrMowPQn/tfqWOmoSQDf75Im4M=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ohxPUP16; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="mTFfIy9O"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 33EF11F000C4;
-	Sat, 17 Oct 2026 03:53:24 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ohxPUP16"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id BC79F1F000C4;
+	Sat, 17 Oct 2026 20:26:51 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1792209204;
-	bh=V9yVhW6LMS/FMKYEyK5kTFvzEQZl+6WYZRCcqXmu57k=;
+	d=linux-foundation.org; s=korg; t=1792268811;
+	bh=1XaSh+mVWM/R0Pk0Ydbq7OR1/3wi9VQix9aWYlWg0Dg=;
 	h=Date:To:From:Subject;
-	b=mTFfIy9OYNJ1KNGSnG+m7ntWNFm9paO/gunUAOCDyhnuSpOh1EEo6K/3HwagTfLSW
-	 JkUr5cEbzG/RGj7St6TYUUkXhUxgxhgL8pRalAGNCvB/gikCJD2xW1oeZtJY/CkizN
-	 Cee6Atfl6qlIRdOJIlnw1XXcga5D5hq3Dwvg5CKs=
-Date: Fri, 16 Oct 2026 20:53:23 -0700
-To: mm-commits@vger.kernel.org,vbabka@kernel.org,stable@vger.kernel.org,riel@surriel.com,ljs@kernel.org,liam@infradead.org,lance.yang@linux.dev,jannh@google.com,harry@kernel.org,david@kernel.org,kylebot@openai.com,akpm@linux-foundation.org
+	b=ohxPUP16xrRpdIvKM4NRwghQ+rEdFD5WNUgqyKW1i33KNCHm/7vh46NpxIWUxHWot
+	 4MuLZ0OCBBx4sYUE8XfwFXWG91fnfSE+R/D7TwTq9jRvVozGQGP0P4LKx7FUouLD7b
+	 obB42DpX9jncDfrgOdL00NHiHCXiFdfiI4K/3UYQ=
+Date: Sat, 17 Oct 2026 13:26:51 -0700
+To: mm-commits@vger.kernel.org,vbabka@kernel.org,surenb@google.com,rppt@kernel.org,peterz@infradead.org,mj0123.lee@samsung.com,mhocko@suse.com,ljs@kernel.org,liam@infradead.org,jack@suse.cz,david@kernel.org,nickolai@csail.mit.edu,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-page_vma_mapped-continue-past-nonmatching-huge-pmds.patch added to mm-unstable branch
-Message-Id: <20261017035324.33EF11F000C4@smtp.kernel.org>
+Subject: + mm-bdi-reset-min_ratio-after-the-sysfs-attributes-are-gone.patch added to mm-unstable branch
+Message-Id: <20261017202651.BC79F1F000C4@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/page_vma_mapped: continue past nonmatching huge PMDs
+     Subject: mm: bdi: reset min_ratio after the sysfs attributes are gone
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-page_vma_mapped-continue-past-nonmatching-huge-pmds.patch
+     mm-bdi-reset-min_ratio-after-the-sysfs-attributes-are-gone.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-page_vma_mapped-continue-past-nonmatching-huge-pmds.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-bdi-reset-min_ratio-after-the-sysfs-attributes-are-gone.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,119 +58,95 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Kyle Zeng <kylebot@openai.com>
-Subject: mm/page_vma_mapped: continue past nonmatching huge PMDs
-Date: Thu, 15 Oct 2026 18:15:49 -0700
+From: Nickolai Zeldovich <nickolai@csail.mit.edu>
+Subject: mm: bdi: reset min_ratio after the sysfs attributes are gone
+Date: Fri, 16 Oct 2026 23:06:20 -0400
 
-A PTE-mapped large folio can straddle PMD boundaries after an unaligned
-mremap().  If the first part is discarded and replaced with an unrelated
-huge PMD, page_vma_mapped_walk() stops instead of looking for the rest of
-the folio in subsequent PMDs.
+A write to /sys/class/bdi/<dev>/min_ratio (or min_ratio_fine or min_bytes)
+that races with the removal of the device leaves the global sum of minimum
+dirty shares charged for a bdi that no longer exists.  Until the next
+reboot, that share of the dirty threshold is withheld from every other bdi
+(__wb_calc_thresh() scales by 100 % minus the sum), and a later min_ratio
+store on any bdi that would push the sum to 100 % fails with EINVAL
+although every bdi reads 0.  Root privilege is needed for the store; the
+removal is any del_gendisk() (a disk or loop device going away) or the
+unmount of a filesystem with its own bdi.  On an x86_64 defconfig kernel
+(v7.3-rc7), 2000 rounds of LOOP_CTL_ADD/LOOP_CTL_REMOVE on one loop device
+with a second thread writing 50 to its min_ratio leak the share on the
+first round the store lands in the window; afterwards `echo 99 >
+min_ratio` on another loop device fails with EINVAL.  With the fix the
+same run keeps the sum at 0 and the store succeeds.  Affected since v5.16,
+when the reset in bdi_unregister() was added.
 
-This also affects migration entries.  A walk that stops at an unrelated
-huge PMD can leave migration PTEs behind when migration or an anonymous
-folio split restores the mappings.  Those entries do not hold mapping
-references and can outlive the source folio.
+bdi_unregister() gives the bdi's share back with bdi_set_min_ratio(bdi, 0)
+and only then calls device_unregister(), which removes the sysfs
+attributes.  A min_ratio_store() that gets its kernfs active reference
+before the removal runs to completion after the reset:
+__bdi_set_min_ratio() takes bdi_lock, sees bdi->min_ratio == 0, adds the
+new value to bdi_min_ratio and stores it in the bdi, which bdi_put() then
+frees.  Nothing gives that share back.
 
-This issue can lead to memory corruption and I have a reproducer for
-it.
+Move the reset after device_unregister(): once the attributes are gone no
+store can run, and bdi_set_min_ratio() needs nothing from the device.
 
-Skip the current PMD rather than ending the walk on a flag or PFN
-mismatch.  Do the same if the PMD became nonpresent before the locked
-recheck.  Release the PMD lock, clear the per-PMD state and advance with
-step_forward(), so the existing range limit controls termination.  This
-covers present, migration and device-private huge PMDs while preserving
-the matching-PMD and split-to-PTE paths.
+Found while formally verifying bdi_unregister() against the kernel binary.
 
-Link: https://lore.kernel.org/20261016011549.61146-1-kylebot@openai.com
-Fixes: ace71a19cec5 ("mm: introduce page_vma_mapped_walk()")
-Signed-off-by: Kyle Zeng <kylebot@openai.com>
+Link: https://lore.kernel.org/20261017030620.793108-1-nickolai@csail.mit.edu
+Fixes: 3c376dfafbf7 ("mm: bdi: initialize bdi_min_ratio when bdi is unregistered")
+Signed-off-by: Nickolai Zeldovich <nickolai@csail.mit.edu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Acked-by: David Hildenbrand (Arm) <david@kernel.org>
 Assisted-by: LLM
+Cc: David Hildenbrand <david@kernel.org>
 Cc: Lorenzo Stoakes <ljs@kernel.org>
-Cc: Rik van Riel <riel@surriel.com>
 Cc: Liam R. Howlett <liam@infradead.org>
 Cc: Vlastimil Babka <vbabka@kernel.org>
-Cc: Harry Yoo <harry@kernel.org>
-Cc: Jann Horn <jannh@google.com>
-Cc: Lance Yang <lance.yang@linux.dev>
-Cc: <stable@vger.kernel.org>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Manjong Lee <mj0123.lee@samsung.com>
+Cc: Jan Kara <jack@suse.cz>
 ---
 
- mm/page_vma_mapped.c |   28 +++++++++++++++++++---------
- 1 file changed, 19 insertions(+), 9 deletions(-)
+ mm/backing-dev.c |   15 ++++++++-------
+ 1 file changed, 8 insertions(+), 7 deletions(-)
 
---- a/mm/page_vma_mapped.c~mm-page_vma_mapped-continue-past-nonmatching-huge-pmds
-+++ a/mm/page_vma_mapped.c
-@@ -265,28 +265,28 @@ restart:
- 				softleaf_t entry;
+--- a/mm/backing-dev.c~mm-bdi-reset-min_ratio-after-the-sysfs-attributes-are-gone
++++ a/mm/backing-dev.c
+@@ -1162,19 +1162,20 @@ void bdi_unregister(struct backing_dev_i
+ 	wb_shutdown(&bdi->wb);
+ 	cgwb_bdi_unregister(bdi);
  
- 				if (!(pvmw->flags & PVMW_MIGRATION))
--					return not_found(pvmw);
-+					goto next_pmd;
- 				entry = softleaf_from_pmd(pmde);
- 				if (!check_pmd(softleaf_to_pfn(entry), pvmw))
--					return not_found(pvmw);
-+					goto next_pmd;
- 				return true;
- 			} else if (pmd_is_device_private_entry(pmde)) {
- 				softleaf_t entry;
+-	/*
+-	 * If this BDI's min ratio has been set, use bdi_set_min_ratio() to
+-	 * update the global bdi_min_ratio.
+-	 */
+-	if (bdi->min_ratio)
+-		bdi_set_min_ratio(bdi, 0);
+-
+ 	if (bdi->dev) {
+ 		bdi_debug_unregister(bdi);
+ 		device_unregister(bdi->dev);
+ 		bdi->dev = NULL;
+ 	}
  
- 				if (pvmw->flags & PVMW_MIGRATION)
--					return not_found(pvmw);
-+					goto next_pmd;
- 				entry = softleaf_from_pmd(pmde);
- 				if (!check_pmd(softleaf_to_pfn(entry), pvmw))
--					return not_found(pvmw);
-+					goto next_pmd;
- 				return true;
- 			} else if (!pmd_present(pmde)) {
--				return not_found(pvmw);
-+				goto next_pmd;
- 			}
- 			if (likely(pmd_trans_huge(pmde))) {
- 				if (pvmw->flags & PVMW_MIGRATION)
--					return not_found(pvmw);
-+					goto next_pmd;
- 				if (!check_pmd(pmd_pfn(pmde), pvmw))
--					return not_found(pvmw);
-+					goto next_pmd;
- 				return true;
- 			}
- 			/* THP/device-private pmd was split under us: handle on pte level */
-@@ -299,8 +299,7 @@ restart:
- 			    (pvmw->nr_pages >= HPAGE_PMD_NR))
- 				sync_with_folio_pmd_zap(mm, pvmw->pmd);
- 
--			step_forward(pvmw, PMD_SIZE);
--			continue;
-+			goto next_pmd;
- 		}
- 		if (!map_pte(pvmw, &pmde, &ptl)) {
- 			if (!pvmw->pte)
-@@ -343,6 +342,17 @@ next_pte:
- 			pvmw->ptl = ptl;
- 		}
- 		goto this_pte;
-+next_pmd:
-+		/*
-+		 * A large folio can be PTE-mapped across PMDs, so a
-+		 * nonmatching PMD does not end the walk.
-+		 */
-+		if (pvmw->ptl) {
-+			spin_unlock(pvmw->ptl);
-+			pvmw->ptl = NULL;
-+		}
-+		pvmw->pmd = NULL;
-+		step_forward(pvmw, PMD_SIZE);
- 	} while (pvmw->address < end);
- 
- 	return false;
++	/*
++	 * If this BDI's min ratio has been set, use bdi_set_min_ratio() to
++	 * update the global bdi_min_ratio. After device_unregister(): the
++	 * sysfs min_ratio stores can no longer run and set it again.
++	 */
++	if (bdi->min_ratio)
++		bdi_set_min_ratio(bdi, 0);
++
+ 	if (bdi->owner) {
+ 		put_device(bdi->owner);
+ 		bdi->owner = NULL;
 _
 
-Patches currently in -mm which might be from kylebot@openai.com are
+Patches currently in -mm which might be from nickolai@csail.mit.edu are
 
-mm-khugepaged-flush-deferred-unmaps-before-dropping-a-failed-folio.patch
-mm-page_vma_mapped-continue-past-nonmatching-huge-pmds.patch
+mm-mlock-use-a-long-for-the-page-count-in-mlock_fixup.patch
+mm-truncate-fix-the-zeroing-end-of-pagecache_isize_extended.patch
+resource-report-a-devm_request_resource-conflict-under-the-lock.patch
+mm-bdi-reset-min_ratio-after-the-sysfs-attributes-are-gone.patch
 
