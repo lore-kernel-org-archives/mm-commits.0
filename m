@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 63DA94CF483
-	for <mm-commits@vger.kernel.org>; Sat, 17 Oct 2026 02:18:29 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5E12636196C;
+	Sat, 17 Oct 2026 02:19:06 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1792203510; cv=none; b=kZeFKsDNgwnp4Ozx4ZcPKrTUYs9Gy0IMXC5I2/E5MS5xA2PBoteQPLdGkgbhefpCSMNjJbk/Bt/BU07fiCT4t2RKDdnzNJqRbu4zkNYAarkU9Efq+5npAL6YbOlN61ShSOkj+IqWZ3HVMWdetm5/8k4gpXBeXSVphzMcRbS2Ptw=
+	t=1792203548; cv=none; b=kjizRbzhP1mWN4ZBIyRZZGKDM1iHHV7RKu0PQh5M5lf1Pq/t6tW5AKk9w01Fe/U4LBRlCYHzHyiNfhhV6rJULSdFrDZi8PBSG24ka32E/iyV2NyAih+dJRW4ISlbkm4+P85VOXL4nhLxq9+Ii7Kb2GHFUN7ied9CVV83kH1qvhY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1792203510; c=relaxed/simple;
-	bh=DGAh50VwTqf/HYOc1caVdJol5N5RMHa7N5bi55HsXEg=;
-	h=Date:To:From:Subject:Message-Id; b=NjesJiIy9Cp94TeXlyQSzo3gEyWjhzby95oJuO/XwEi9BUry+LToYEmbx1Ri4RGS7cZR+fixqWcKBhp1KcDKMoRinHhcB+YQKyp284doIjqThYRg5AjUyoYdOs2f2Qthbn6pZ3BcfqFQkJTRdeH+aBTgP1Mun2S3YjsIVfng8tk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=l0HqZzsd; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1792203548; c=relaxed/simple;
+	bh=igvinsW+WE0Xrk6PvS01W8RqOu+HtAMwlrWEqygYgUk=;
+	h=Date:To:From:Subject:Message-Id; b=Th1m+a3frOif6yukXEzhR6mYLgUUvpphWxGzPYHwRhS6u2R7+3sSPF3EWyYx7YNM8MxYk1jr1r4rXD903OeFjudOSmtx1fNw7hwbvHe1pcJs+84Y0KPSGnw1u+xYw9YktWcfW3NTcl21qZYw5IU3d4P2MZDRv0NGAscXkfQz358=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=J0Rsy4pW; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="l0HqZzsd"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id BD1EC1F000C4;
-	Sat, 17 Oct 2026 02:18:28 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="J0Rsy4pW"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 731E51F000C4;
+	Sat, 17 Oct 2026 02:19:06 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1792203508;
-	bh=x2w3EIRskTgZhzhQbJKkiPlmHAynltuH+cn4lT5N/W0=;
+	d=linux-foundation.org; s=korg; t=1792203546;
+	bh=xvAItuCTtweGFYklw6PH5cuLL96b7K4a/2GA7CVBPN8=;
 	h=Date:To:From:Subject;
-	b=l0HqZzsdXcIIRgz3ihqSUB11ax+hadpUPdPJ/ikNy+vUEs83ozHZtuuljr+zNFTvU
-	 cMW6g71oJoKdz/AiS27Em4iVU6aJPI82f6ypLLGBUxsB217/EaqI5yDeRMONveC918
-	 mtGQfmrF9kBnyAK9FkZ/8IqIeugKPuTUkM2+6D/Y=
-Date: Fri, 16 Oct 2026 19:18:28 -0700
-To: mm-commits@vger.kernel.org,treding@nvidia.com,tj@kernel.org,ilpo.jarvinen@linux.intel.com,brads@mainlining.org,bhelgaas@google.com,nickolai@csail.mit.edu,akpm@linux-foundation.org
+	b=J0Rsy4pWzW/SboA6gf0/6nFH0DVt1gw2dGlMImv1BwYL49U+N3sZyb1ktFz/lWKe0
+	 eVeIN40VwwX3XZlihioB+WIg8bBfRDc0ZRv1+coe2YIxY3h8/0ExyRf7xAFgXhgbF9
+	 6NbMU1C356Gow8SIR/HgTRMUDLGtx/tr6NZAe0Ck=
+Date: Fri, 16 Oct 2026 19:19:06 -0700
+To: mm-commits@vger.kernel.org,treding@nvidia.com,tj@kernel.org,stable@vger.kernel.org,ilpo.jarvinen@linux.intel.com,brads@mainlining.org,bhelgaas@google.com,nickolai@csail.mit.edu,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
 Subject: + resource-report-a-devm_request_resource-conflict-under-the-lock.patch added to mm-unstable branch
-Message-Id: <20261017021828.BD1EC1F000C4@smtp.kernel.org>
+Message-Id: <20261017021906.731E51F000C4@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -124,6 +124,7 @@ Assisted-by: LLM
 Cc: Bjorn Helgaas <bhelgaas@google.com>
 Cc: Ilpo Järvinen <ilpo.jarvinen@linux.intel.com>
 Cc: Thierry Reding <treding@nvidia.com>
+Cc: <stable@vger.kernel.org>
 ---
 
  kernel/resource.c |    9 +++++++--
