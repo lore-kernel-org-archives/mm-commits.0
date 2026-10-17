@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 90479379ED7
-	for <mm-commits@vger.kernel.org>; Sat, 17 Oct 2026 02:21:36 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E73B91E5B70
+	for <mm-commits@vger.kernel.org>; Sat, 17 Oct 2026 02:28:24 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1792203697; cv=none; b=jGCwDwMjJYlN4t4KBl76Aba+PwQ6od7eKtqEHFnw6q8eoccd8yJkzhtp8yXgO76gu7cTTffdMZhmj2iMAyZrFfgV3sww7sqZGDtkPDyrEdwYGIei6jZvi1kbCWhAQ5XKF0hZOqgHOspGLlkE2WZUDu7mGfn1Xk1GZuJOaeyYDyc=
+	t=1792204106; cv=none; b=a5KeE+O6kFQhsLfVctS4zMYzGe3IKkR3nspwSOqkqAQRtMFZIc7sbTawVeSXVxSPI+Fze49hABrlVqxHwQj79sWuNXkHYypnC6plXna37z4pYbsX7tCodxpN/HKpg7DNyUvCkDUsvPumQdBrxgtrYra38820KBDjrBApC4YEHlE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1792203697; c=relaxed/simple;
-	bh=Iirutwm8PHN1O8i85EYylC0H9krUFHNc9etL6nY5yqs=;
-	h=Date:To:From:Subject:Message-Id; b=l6zKeZzoOpDisFqKeOd0IpMe9RJSf72YzB35aL8f4a6ZgqNjbNBAfhbS+mVYFirZgPfNDQCIMcug3u+gzBso/IhPDOnMft9htXD1YFk3S58dN+0KCEfJtxC21rKdPrq0N975lTfGNg+UDdqvtbePZX5SfSmtrz4uRGRsQrUA16Y=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=MLYmSN2R; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1792204106; c=relaxed/simple;
+	bh=nGs11YgejclGxwj2polcRQ29JlBQqQYfJ2V+w3yGg/8=;
+	h=Date:To:From:Subject:Message-Id; b=GpVdSTD2et4cjv/V0L77zBsx+pwPlifudpzyximYj19sqynXbTrvCUmoeaMG3ylFyS9fkVWRy3e8k+lO6aZoz/KaszCXaMJQOvZhGiHsw3SO37Eg1fx42XfN5mtD4SoLEjAEMS5vb95I4eWN7nBC3SDcGYX00/SCNZAYdAcWNr0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=tJuEEJU2; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="MLYmSN2R"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0D7411F000C4;
-	Sat, 17 Oct 2026 02:21:36 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="tJuEEJU2"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5B3BF1F000C4;
+	Sat, 17 Oct 2026 02:28:24 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1792203696;
-	bh=9PiOMUmSkVOch0aKDqpu794Jzm3OO3jn9ZudsT5tqng=;
+	d=linux-foundation.org; s=korg; t=1792204104;
+	bh=MW5+nxVRjyGEtRx1Lo/C5Q0C7sQ0lBgSwVcIc6Rcjq8=;
 	h=Date:To:From:Subject;
-	b=MLYmSN2RNhgXpYQ3m/fKf/OXSOKj0tPWhLrXEbLBoi3R9fX/ZRjHYNxAQKtJju3De
-	 xjG3ugeNBAxhZuUc2CpVTWLjs32JjcErvZ/g+t+cq6zLRJesWZMDU3G3OuIYsU7Mq+
-	 HQPMzMmdIJ+aK0icCs6UeKPuKPoHWehfcC9jk5Fc=
-Date: Fri, 16 Oct 2026 19:21:35 -0700
-To: mm-commits@vger.kernel.org,vishal.l.verma@intel.com,rppt@kernel.org,ritesh.list@gmail.com,joao.m.martins@oracle.com,dave.jiang@intel.com,alison.schofield@intel.com,muchun.song@linux.dev,akpm@linux-foundation.org
+	b=tJuEEJU22DpxvLtVjyIaDArgZCGDvusQ7nTbpeGQSUEjutmY74T+iO8p1VqJvximU
+	 sjA7gEMz7V/hajd1UfVJS1z3F9YQFE+QsewOD94pDr6u+YgDE4X69Pn3KuUZkrf7W2
+	 bEg7Mg0S0YILgwzW2+opgy8PSqpsE/9legX/aC6Q=
+Date: Fri, 16 Oct 2026 19:28:23 -0700
+To: mm-commits@vger.kernel.org,vbabka@kernel.org,surenb@google.com,shuah@kernel.org,rppt@kernel.org,osalvador@suse.de,muchun.song@linux.dev,mhocko@suse.com,ljs@kernel.org,liam@infradead.org,joshua.hahnjy@gmail.com,david@kernel.org,almasrymina@google.com,odys.yuan@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-warn-on-unaligned-compound-zone-device-ranges.patch added to mm-unstable branch
-Message-Id: <20261017022136.0D7411F000C4@smtp.kernel.org>
+Subject: + selftests-mm-skip-hugetlb-cgroup-v2-tests-without-the-needed-controllers.patch added to mm-unstable branch
+Message-Id: <20261017022824.5B3BF1F000C4@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: warn on unaligned compound zone device ranges
+     Subject: selftests/mm: skip hugetlb cgroup v2 tests without the needed controllers
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-warn-on-unaligned-compound-zone-device-ranges.patch
+     selftests-mm-skip-hugetlb-cgroup-v2-tests-without-the-needed-controllers.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-warn-on-unaligned-compound-zone-device-ranges.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-skip-hugetlb-cgroup-v2-tests-without-the-needed-controllers.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,60 +58,92 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Muchun Song <muchun.song@linux.dev>
-Subject: mm: warn on unaligned compound zone device ranges
-Date: Fri, 16 Oct 2026 21:13:34 +0800
+From: Qiliang Yuan <odys.yuan@gmail.com>
+Subject: selftests/mm: skip hugetlb cgroup v2 tests without the needed controllers
+Date: Fri, 16 Oct 2026 20:54:48 +0800
 
-A compound page of order N must start at a PFN aligned to 2^N pages. 
-Therefore, a range used to initialize compound pages must start on a
-compound-page boundary and contain an integral number of compound pages.
+With -cgroup-v2, charge_reserved_hugetlb.sh and
+hugetlb_reparenting_test.sh mount a cgroup2 hierarchy on a temporary
+directory when none is mounted and enable the hugetlb controller
+(hugetlb_reparenting_test.sh also enables memory) in its
+cgroup.subtree_control.
 
-Two recent Device DAX bugs were caused by ranges that violated this
-invariant, but neither was detected by memmap_init_zone_device().
+On a system that still binds these controllers to cgroup v1, they are not
+available in the new hierarchy.  Writing to cgroup.subtree_control fails
+with ENOENT, "set -e" aborts the script, the test is reported as failed,
+and the temporary cgroup2 mount is left behind.
 
-Warn if the adjusted zone-device range violates this invariant so future
-violations are reported when the compound pages are initialized.
+Check cgroup.controllers first, and skip the test when a controller is
+missing, after unmounting the hierarchy and removing the directory the
+script created.
 
-Link: https://lore.kernel.org/20261016131334.3419393-1-songmuchun@bytedance.com
-Link: https://lore.kernel.org/r/20261016053944.2579541-1-songmuchun@bytedance.com
-Link: https://lore.kernel.org/r/20261016054914.2601510-1-songmuchun@bytedance.com
-Signed-off-by: Muchun Song <muchun.song@linux.dev>
+With hugetlb and memory bound to cgroup v1, per script:
+
+                                before      after
+  result                        fail        skip
+  cgroup2 mounts left behind       1           0
+
+Link: https://lore.kernel.org/20261016-bug-selftests-mm-hugetlb-cgroup2-skip-v1-1-7c78883a67b4@gmail.com
+Fixes: 29750f71a9b4 ("hugetlb_cgroup: add hugetlb_cgroup reservation tests")
+Signed-off-by: Qiliang Yuan <odys.yuan@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Assisted-by: LLM
+Reviewed-by: Joshua Hahn <joshua.hahnjy@gmail.com>
+Cc: David Hildenbrand <david@kernel.org>
+Cc: Lorenzo Stoakes <ljs@kernel.org>
+Cc: Liam R. Howlett <liam@infradead.org>
+Cc: Vlastimil Babka <vbabka@kernel.org>
 Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Vishal Verma <vishal.l.verma@intel.com>
-Cc: Dave Jiang <dave.jiang@intel.com>
-Cc: Alison Schofield <alison.schofield@intel.com>
-Cc: Joao Martins <joao.m.martins@oracle.com>
-Cc: Ritesh Harjani (IBM) <ritesh.list@gmail.com>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Shuah Khan <shuah@kernel.org>
+Cc: Mina Almasry <almasrymina@google.com>
+Cc: Muchun Song <muchun.song@linux.dev>
+Cc: Oscar Salvador <osalvador@suse.de>
 ---
 
- mm/mm_init.c |    2 ++
- 1 file changed, 2 insertions(+)
+ tools/testing/selftests/mm/charge_reserved_hugetlb.sh  |    8 ++++++++
+ tools/testing/selftests/mm/hugetlb_reparenting_test.sh |   10 ++++++++++
+ 2 files changed, 18 insertions(+)
 
---- a/mm/mm_init.c~mm-warn-on-unaligned-compound-zone-device-ranges
-+++ a/mm/mm_init.c
-@@ -1142,6 +1142,8 @@ void __ref memmap_init_zone_device(struc
- 	if (!nr_pages)
- 		return;
- 
-+	VM_WARN_ON(!IS_ALIGNED(start_pfn | nr_pages, pfns_per_compound));
-+
- 	/*
- 	 * Seed the reusable head-page template from the first real struct
- 	 * page. The normal page-init and refcount helpers must operate on
+--- a/tools/testing/selftests/mm/charge_reserved_hugetlb.sh~selftests-mm-skip-hugetlb-cgroup-v2-tests-without-the-needed-controllers
++++ a/tools/testing/selftests/mm/charge_reserved_hugetlb.sh
+@@ -39,6 +39,14 @@ if [[ $cgroup2 ]]; then
+     mount -t cgroup2 none $cgroup_path
+     do_umount=1
+   fi
++  if ! grep -qw hugetlb $cgroup_path/cgroup.controllers; then
++    echo "hugetlb controller not available in cgroup v2. Skipping..."
++    if [[ $do_umount ]]; then
++      umount $cgroup_path
++      rmdir $cgroup_path
++    fi
++    exit $ksft_skip
++  fi
+   echo "+hugetlb" >$cgroup_path/cgroup.subtree_control
+ else
+   cgroup_path=$(mount -t cgroup | grep ",hugetlb" | awk '{print $3}')
+--- a/tools/testing/selftests/mm/hugetlb_reparenting_test.sh~selftests-mm-skip-hugetlb-cgroup-v2-tests-without-the-needed-controllers
++++ a/tools/testing/selftests/mm/hugetlb_reparenting_test.sh
+@@ -29,6 +29,16 @@ if [[ $cgroup2 ]]; then
+     mount -t cgroup2 none $CGROUP_ROOT
+     do_umount=1
+   fi
++  for ctrl in hugetlb memory; do
++    if ! grep -qw $ctrl $CGROUP_ROOT/cgroup.controllers; then
++      echo "$ctrl controller not available in cgroup v2. Skipping..."
++      if [[ $do_umount ]]; then
++        umount $CGROUP_ROOT
++        rmdir $CGROUP_ROOT
++      fi
++      exit $ksft_skip
++    fi
++  done
+   echo "+hugetlb +memory" >$CGROUP_ROOT/cgroup.subtree_control
+ else
+   CGROUP_ROOT=$(mount -t cgroup | grep ",hugetlb" | awk '{print $3}')
 _
 
-Patches currently in -mm which might be from muchun.song@linux.dev are
+Patches currently in -mm which might be from odys.yuan@gmail.com are
 
-mm-sparse-vmemmap-drop-vmemmap_populate_dax.patch
-mm-sparse-vmemmap-support-device-dax-in-common-vmemmap-path.patch
-mm-sparse-vmemmap-drop-device-dax-specific-population-path.patch
-mm-sparse-vmemmap-remove-the-unused-ptpfn-argument.patch
-mm-sparse-vmemmap-open-code-vmemmap_populate_address.patch
-mm-mm_init-add-zone-mismatch-warning-during-page-init.patch
-mm-mm_init-add-zone-mismatch-warning-during-page-init-fix.patch
-mm-fix-missing-page-table-destructor-in-pagetable_free.patch
-arm64-mm-fix-destructor-for-unconstructed-hotplug-page-tables.patch
-mm-warn-on-unaligned-compound-zone-device-ranges.patch
+selftests-mm-skip-hugetlb-cgroup-v2-tests-without-the-needed-controllers.patch
 
