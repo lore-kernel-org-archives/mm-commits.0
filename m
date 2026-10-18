@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AA0AC3C1085;
-	Sat, 17 Oct 2026 22:48:15 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3FB711B808
+	for <mm-commits@vger.kernel.org>; Sun, 18 Oct 2026 00:12:57 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1792277297; cv=none; b=Fe/RlXcsHAE5MYb51MWYoZJt+msd2JuEWPp0Xoj5kdpmEWrFGpoP3ibDEj0AL+bQ4NK8Jvfcq5pI9QR/BK1lg5QT4bL8DX8yhdRLAHjg2QIot5gcpepqIRZdURKE3ClzMU8LkxUS0vFPlkG1kCquLsTnjay/MZDTOO2F30g6Y/c=
+	t=1792282379; cv=none; b=b/QbeDpcGGfcO7BP05p7ekbKbdyA7aojrcaKPEMkBwB+QNBL4tJ70cLUA71FFpgPbgCa41ncAsu/bf3aVrnNVTle795FBr8T4Fk9ttacK4BZ/kAy5wDddEjNl1BTKv6q2wBw8VF4mWn8O3ctDYEw+lS+xK3XsSP6ZfdH39tA5HY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1792277297; c=relaxed/simple;
-	bh=6w8ls3ddkRvHs/SvfiBj9mUf44LhNGmVgEDCnRr19l0=;
-	h=Date:To:From:Subject:Message-Id; b=fB2jNyMJRZ+3q/wJCdBI/3vQ4QhwoMtdtRCJAlwtN9WXSMLu7IBvMVX1gce9elPaSJEQhGNHeV5vSFJLn7IFnl8sQvg51AA3vHzlN1JIE8hjiyVLb2tx1LBEDAVzNAa+3qVHl2fRFoAj0F8c45wUDqEZdds/KjE9Tykrg67y/Bw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=xyCvCBv/; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1792282379; c=relaxed/simple;
+	bh=lJrbzeA7T1yPU1Vy76AtgPeMSIIUKTf89n3Q4pDUb8c=;
+	h=Date:To:From:Subject:Message-Id; b=A1DXo68ZizC3LOsfKcH9SuAJsUSurw/JATOn4R3vXE2iwrPO0KfJjs1GS9hVUOgdfqdfF6vk0slUHaQH54xVWaJxztWQX55xNDve75ps5TENpN3/rKy1ff97lPVmWXeSlVm2a3zRv855Cck1HUcM+mDx6CnxElyx/5/Ezzcd+0s=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=d63eTvVK; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="xyCvCBv/"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 389E61F000C4;
-	Sat, 17 Oct 2026 22:48:15 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="d63eTvVK"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B247E1F000C4;
+	Sun, 18 Oct 2026 00:12:57 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1792277295;
-	bh=nb5bVlnL/h85VHg0klCqgnRR52cvArehTizxOnGXOLE=;
+	d=linux-foundation.org; s=korg; t=1792282377;
+	bh=/xP+Ve0zIPG3qbDR2g+77EM8UhxrCZY7tVgdUaoXKVA=;
 	h=Date:To:From:Subject;
-	b=xyCvCBv/40zAjSfPXG4WpJmu7IckzLlvfBrWjzUzCPMu2C/SLnD3k7DfE4VQwYA8K
-	 8kHYB/HlF012qO8zbCOZTZo0x3kcbwl2j907DjXjiGll+MvT5XWrahrfEtItI7BAQZ
-	 U8ZrS9SBscNCVImrQe+pR2OzQzmBUwaT5bmNYaAI=
-Date: Sat, 17 Oct 2026 15:48:14 -0700
-To: mm-commits@vger.kernel.org,yuzhao@google.com,yuanchu@google.com,weixugc@google.com,stable@vger.kernel.org,shakeel.butt@linux.dev,qi.zheng@linux.dev,lance.yang@linux.dev,kasong@tencent.com,ehab.ababneh@intel.com,baoquan.he@linux.dev,baolin.wang@linux.alibaba.com,axelrasmussen@google.com,baohua@kernel.org,akpm@linux-foundation.org
+	b=d63eTvVK/x3jga9asmwwrhJXOeai3e4ID0RNZHjjPOgc2BcurQBjqGvxbHPJ2PFYr
+	 DFa7EFUeIt4B5IQE3M/lClXCFhKB8qDlTgsvI+IAu1ubDDAA9TDRRRz3c/OdCvd8o4
+	 enBSumMXHEl1fjgn70OjxjA+ykb/O+kHvTZ+K73k=
+Date: Sat, 17 Oct 2026 17:12:57 -0700
+To: mm-commits@vger.kernel.org,urezki@gmail.com,ljs@kernel.org,baoquan.he@linux.dev,nickolai@csail.mit.edu,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [to-be-updated] mm-mglru-fix-using-folio_mark_accessed-to-replace-folio_set_active.patch removed from -mm tree
-Message-Id: <20261017224815.389E61F000C4@smtp.kernel.org>
+Subject: + mm-vmalloc-read-vm_map_ram-block-regions-from-the-requested-offset.patch added to mm-unstable branch
+Message-Id: <20261018001257.B247E1F000C4@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,194 +34,123 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The quilt patch titled
-     Subject: mm/mglru: fix using folio_mark_accessed to replace folio_set_active
-has been removed from the -mm tree.  Its filename was
-     mm-mglru-fix-using-folio_mark_accessed-to-replace-folio_set_active.patch
+The patch titled
+     Subject: mm/vmalloc: read vm_map_ram block regions from the requested offset
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-vmalloc-read-vm_map_ram-block-regions-from-the-requested-offset.patch
 
-This patch was dropped because an updated version will be issued
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vmalloc-read-vm_map_ram-block-regions-from-the-requested-offset.patch
+
+This patch will later appear in the mm-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via various
+branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there most days
 
 ------------------------------------------------------
-From: "Barry Song (Xiaomi)" <baohua@kernel.org>
-Subject: mm/mglru: fix using folio_mark_accessed to replace folio_set_active
-Date: Sat, 17 Oct 2026 05:31:15 +0800
+From: Nickolai Zeldovich <nickolai@csail.mit.edu>
+Subject: mm/vmalloc: read vm_map_ram block regions from the requested offset
+Date: Sat, 17 Oct 2026 19:13:25 -0400
 
-Commit 6cbdd9726fb5 ("mm/mglru: use folio_mark_accessed to replace
-folio_set_active") attempted to avoid over-protecting in-fault read-ahead
-file folios by placing them in the second-oldest generation rather than
-the young generations.
+Reading a vm_map_ram() mapping through /proc/kcore returns the wrong
+memory for every page except the first page of the first used region in
+its vmap block.  read_kcore_iter() calls vread_iter() one page at a time,
+so a root user reading a live system with drgn, crash or gdb gets that
+first page in place of every later page of the mapping, and in place of
+the zeroes of the unused pages after it.  This affects every vm_map_ram()
+mapping that fits in a vmap block (up to BITS_PER_LONG pages): erofs and
+f2fs decompression buffers, videobuf2 vmalloc/dma-sg buffers, udmabuf
+vmaps, fuse readdir pages.  Kernels since v6.3 are affected.
 
-However, it repurposes `PG_referenced` on in-fault read-ahead file folios
-for this purpose, potentially coupling their handling with that of regular
-file accesses through syscalls, which also use `PG_referenced`.
+vmap_ram_vread_iter() walks the used regions of the block and, for each
+region, zero-fills up to its start and then copies from start +
+offset_in_page(addr).  A read starting in a later page of a region
+therefore copies the region's first page, and a read starting past the end
+of a region still copies from that region.
 
-This could regress some workloads, as reported by Kairui Song[1] and Ehab
-Ababneh[2].  Many thanks to both for reporting these issues!
+Skip regions that end at or before addr, and copy from addr itself, i.e. 
+use addr - start as the offset into the region.  The region is re - rs
+pages long, not re - rs + 1: for_each_set_bitrange() returns [rs, re) with
+re the first clear bit.  The extra page is one whose used_map bit is
+clear, and vb_free() clears the bits before it unmaps the pages, so a read
+racing with vm_unmap_ram() copied the page being freed instead of
+zero-filling it.
 
-The long-term fix is Kairui's MGLRU-FG, but in the meantime, we also need
-a quick fix that can be backported to stable.
+Tested on x86_64 by queueing a 29-page V4L2_MEMORY_USERPTR buffer on a
+vivid capture device, which videobuf2-vmalloc maps with vm_map_ram(), page
+i starting with "userptr page i", and reading every page of its vmap block
+through /proc/kcore.  Before, all 1024 pages of the block read as page 0. 
+After, pages 0..28 read back in order and the rest of the block carries no
+tag.  With a second buffer in the same block and a 100-page buffer outside
+the block path, reads at unaligned offsets, across page and region
+boundaries, into and within the unused part of the block, and of the whole
+block return the true contents.  With an msleep() inserted between the
+bitmap_clear() and the vunmap_range_noflush() of vb_free(), a read of a
+one-page buffer being unmapped between two mapped ones returns zeroes.
 
-This patch reverts the original commit's abuse of `PG_referenced` while
-preserving its goal of avoiding over-protection of in-fault read-ahead
-file folios by adjusting only `lru_gen_folio_seq()`.
-
-Specifically, in-fault read-ahead file folios with `PG_active` set but
-`PG_workingset` clear are placed in the second-oldest generation (the
-third-youngest generation).  Activated file folios and refaulted
-workingset file folios remain in the youngest generations.
-
-Kernel build tests in a memcg show that this approach not only preserves
-the original patch's benefits but also further improves performance.
-
-w/o fix:
-
-real    1m49.094s
-user    25m31.484s
-sys     3m40.959s
-pswpin: 662112
-pswpout: 2504415
-pgpgin: 4424336
-pgpgout: 10355273
-refault_file: 359626
-refault_anon: 670724
-
-w/ fix:
-
-real    1m48.913s
-user    25m31.639s
-sys     3m30.875s
-pswpin: 689815
-pswpout: 2689894
-pgpgin: 4422659
-pgpgout: 11043464
-refault_file: 326566
-refault_anon: 697138
-
-Revert original patch:
-
-real    1m50.044s
-user    25m37.137s
-sys     4m4.493s
-pswpin: 1349087
-pswpout: 4317933
-pgpgin: 7083597
-pgpgout: 17602735
-refault_file: 337676
-refault_anon: 1368542
-
-Link: https://lore.kernel.org/20261016213115.70515-1-baohua@kernel.org
-Link: https://lore.kernel.org/linux-mm/20261003-mglru-fg-v3-0-cbd4546a5bd9@tencent.com/ [1]
-Link: https://lore.kernel.org/linux-mm/20260901180704.168106-1-ehab.ababneh@intel.com/ [2]
-Fixes: 6cbdd9726fb5 ("mm/mglru: use folio_mark_accessed to replace folio_set_active")
-Signed-off-by: Barry Song (Xiaomi) <baohua@kernel.org>
+Link: https://lore.kernel.org/20261017231325.796986-1-nickolai@csail.mit.edu
+Fixes: 06c8994626d1 ("mm/vmalloc.c: allow vread() to read out vm_map_ram areas")
+Signed-off-by: Nickolai Zeldovich <nickolai@csail.mit.edu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Cc: Ehab Ababneh <ehab.ababneh@intel.com>
-Cc: Axel Rasmussen <axelrasmussen@google.com>
-Cc: Kairui Song <kasong@tencent.com>
-Cc: Lance Yang <lance.yang@linux.dev>
-Cc: Qi Zheng <qi.zheng@linux.dev>
-Cc: Shakeel Butt <shakeel.butt@linux.dev>
-Cc: Wei Xu <weixugc@google.com>
-Cc: Yuanchu Xie <yuanchu@google.com>
-Cc: Yu Zhao <yuzhao@google.com>
+Assisted-by: LLM
+Cc: Uladzislau Rezki (Sony) <urezki@gmail.com>
 Cc: Baoquan He <baoquan.he@linux.dev>
-Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: <stable@vger.kernel.org>
+Cc: Lorenzo Stoakes <ljs@kernel.org>
 ---
 
- include/linux/mm_inline.h |    5 +++--
- mm/folio.c                |   16 +++-------------
- mm/vmscan.c               |    9 ++-------
- mm/workingset.c           |   10 ++++------
- 4 files changed, 12 insertions(+), 28 deletions(-)
+ mm/vmalloc.c |   10 +++++++---
+ 1 file changed, 7 insertions(+), 3 deletions(-)
 
---- a/include/linux/mm_inline.h~mm-mglru-fix-using-folio_mark_accessed-to-replace-folio_set_active
-+++ a/include/linux/mm_inline.h
-@@ -319,7 +319,8 @@ static inline unsigned long lru_gen_foli
- 	 * |<---------------------------- MAX_NR_GENS ---------------------------->|
- 	 */
- 	if (folio_test_active(folio))
--		gen = MIN_NR_GENS - folio_test_workingset(folio);
-+		gen = MIN_NR_GENS - folio_test_workingset(folio) +
-+		      (type ? !folio_test_workingset(folio) : 0);
- 	else if (reclaiming)
- 		gen = MAX_NR_GENS;
- 	else if ((!folio_is_file_lru(folio) && !folio_test_swapcache(folio)) ||
-@@ -327,7 +328,7 @@ static inline unsigned long lru_gen_foli
- 		  (folio_test_dirty(folio) || folio_test_writeback(folio))))
- 		gen = MIN_NR_GENS;
- 	else
--		gen = MAX_NR_GENS - (folio_test_workingset(folio) || folio_test_referenced(folio));
-+		gen = MAX_NR_GENS - folio_test_workingset(folio);
+--- a/mm/vmalloc.c~mm-vmalloc-read-vm_map_ram-block-regions-from-the-requested-offset
++++ a/mm/vmalloc.c
+@@ -4649,7 +4649,7 @@ static size_t vmap_ram_vread_iter(struct
+ 	struct xarray *xa;
+ 	unsigned long offset;
+ 	unsigned int rs, re;
+-	size_t remains, n;
++	size_t remains, n, size;
  
- 	return max(READ_ONCE(lrugen->max_seq) - gen + 1, READ_ONCE(lrugen->min_seq[type]));
- }
---- a/mm/folio.c~mm-mglru-fix-using-folio_mark_accessed-to-replace-folio_set_active
-+++ a/mm/folio.c
-@@ -474,20 +474,10 @@ void folio_add_lru(struct folio *folio)
- 			folio_test_unevictable(folio), folio);
- 	VM_BUG_ON_FOLIO(folio_test_lru(folio), folio);
+ 	/*
+ 	 * If it's area created by vm_map_ram() interface directly, but
+@@ -4683,6 +4683,10 @@ static size_t vmap_ram_vread_iter(struct
+ 			goto finished;
  
--	/*
--	 * For refaulted workingset folios, set PG_active so they
--	 * can be added to active generations.
--	 * For prefaulted file folios, folio_mark_accessed() sets
--	 * PG_referenced so lru_gen_folio_seq() places them into
--	 * the second oldest generation.
--	 */
-+	/* see the comment in lru_gen_folio_seq() */
- 	if (lru_gen_enabled() && !folio_test_unevictable(folio) &&
--	    lru_gen_in_fault() && !(current->flags & PF_MEMALLOC)) {
--		if (folio_test_workingset(folio))
--			folio_set_active(folio);
--		else if (!folio_test_referenced(folio))
--			folio_mark_accessed(folio);
--	}
-+	    lru_gen_in_fault() && !(current->flags & PF_MEMALLOC))
-+		folio_set_active(folio);
- 
- 	folio_batch_add_and_move(folio, lru_add);
- }
---- a/mm/vmscan.c~mm-mglru-fix-using-folio_mark_accessed-to-replace-folio_set_active
-+++ a/mm/vmscan.c
-@@ -952,13 +952,8 @@ static bool lru_gen_set_refs(struct foli
- 		return false;
- 	}
- 
--	/* Promote on second access */
--	if (folio_lru_refs(folio) > 1) {
--		folio_set_workingset(folio);
--		folio_set_lru_refs(folio, 0);
--	} else {
--		folio_mark_accessed(folio);
--	}
-+	folio_set_workingset(folio);
-+	folio_set_lru_refs(folio, 0);
- 	return true;
- }
- #else
---- a/mm/workingset.c~mm-mglru-fix-using-folio_mark_accessed-to-replace-folio_set_active
-+++ a/mm/workingset.c
-@@ -319,13 +319,11 @@ static void lru_gen_refault(struct folio
- 
- 	atomic_long_add(delta, &lrugen->refaulted[hist][type][tier]);
- 
-+	/* see folio_add_lru() where folio_set_active() will be called */
-+	if (lru_gen_in_fault())
-+		mod_lruvec_state(lruvec, WORKINGSET_ACTIVATE_BASE + type, delta);
+ 		start = vmap_block_vaddr(vb->va->va_start, rs);
++		size = (re - rs) << PAGE_SHIFT;
 +
- 	if (workingset) {
--		/*
--		 * see folio_add_lru(), where folio_set_active() is
--		 * called for workingset folios
--		 */
--		if (lru_gen_in_fault())
--			mod_lruvec_state(lruvec, WORKINGSET_ACTIVATE_BASE + type, delta);
- 		folio_set_workingset(folio);
- 		mod_lruvec_state(lruvec, WORKINGSET_RESTORE_BASE + type, delta);
- 	} else
++		if (addr >= start + size)
++			continue;
+ 
+ 		if (addr < start) {
+ 			size_t to_zero = min_t(size_t, start - addr, remains);
+@@ -4696,8 +4700,8 @@ static size_t vmap_ram_vread_iter(struct
+ 		}
+ 
+ 		/*it could start reading from the middle of used region*/
+-		offset = offset_in_page(addr);
+-		n = ((re - rs + 1) << PAGE_SHIFT) - offset;
++		offset = addr - start;
++		n = size - offset;
+ 		if (n > remains)
+ 			n = remains;
+ 
 _
 
-Patches currently in -mm which might be from baohua@kernel.org are
+Patches currently in -mm which might be from nickolai@csail.mit.edu are
 
+mm-mlock-use-a-long-for-the-page-count-in-mlock_fixup.patch
+mm-truncate-fix-the-zeroing-end-of-pagecache_isize_extended.patch
+resource-report-a-devm_request_resource-conflict-under-the-lock.patch
+mm-vmalloc-read-vm_map_ram-block-regions-from-the-requested-offset.patch
+mm-bdi-reset-min_ratio-after-the-sysfs-attributes-are-gone.patch
 
