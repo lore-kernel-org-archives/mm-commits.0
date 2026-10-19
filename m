@@ -1,45 +1,55 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
-ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1792423540;
-	b=bXMS/p603SB1h5mt2p0CivLLW0J6fn19853b4eawe7z9ATVdIkjwMeCv0dFamzZ8+Ewu
-	 itmhc6Pa0yRSgy6AeXVNVhLpgU+uBZ+3ygJG77ThgEPFwuKcH+3xcZI+uqevIWBR+vB3A
-	 V2bZfXEimKa9Nh3XjrGdjK8/dQtTqkW8Xe1Zw3zbeXN3tbYV42JTbx7qxaT53/ItGUyD+
-	 X0Ffxn6sj5pDFPC+FxIaVDaa3AuZAd6iE4m6gzBZSIfpzmdf4B6fmOVZL0EHSQiGqwWqA
-	 baBNpm2jtILixDblBcouSyLSjDtSeCE6OVJ2XFvXth4QH8Mz8Q5a/UuCs7lPCoKkPxg==
-ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1792423540;
-	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=r3gDP6UoJvGMYtPEAY65jk12MBrqbeMHCnp/Y0+eON8=;
-	b=MSDbGmSpUH2dd5Y++mJE+8UAFDl52/gn/s3DesT2MVYfI/3Wb3OrL6H80l6huAuShkd8
-	 0kVimG0obpfu6n4UWCQfJWhFbNK9fFFXeecU0qTSAKLz3YxyGzw7lUsul3whb7jLnFpRj
-	 dPCFDoEaotygjQvaMetWYA6aFfzxcT9EHNoPTslCzJabZfx3bN2cNg0spaUtEw9B7SC3k
-	 xdlawCoLyU8d5ee77U1eDvt6/N1mHIhRrrfIha8CLbDmUHTH2vBEPwGtPjGZMqjQbgqlf
-	 0DXjdeE9kNy0kjRZpPh6H/FUMNq3jh5yH0ITxpQFI+cjjJFs+PCnE0FECyXMqK5wMNA==
-ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=IBnuk2tm;
-	arc=none smtp.remote-ip=100.103.45.18
-Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1))
-	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D42E860B09A2;
-	Mon, 19 Oct 2026 15:25:39 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=pass header.oldest-pass=0 smtp.remote-ip=10.30.226.211
+ARC-Seal: i=2; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=pass;
+	t=1792421679;
+	b=I3A1NZgbcAezhkJc+8qyeb1N96LxF5kZ8MhXjkgePHZD1ouM8ceODCgxP2pCcf9yaaBB
+	 bR9gl0+ZjQEiOksX0neB2xJr86CnhlrKbRY0Xvx6cAJLqq126i85VyIPK14BT+5J3l9HQ
+	 VcS0j3GiOs837+z6V7+csHqbPJYL+s1tAhbblUZRGnyHtFjgFsY4vgmGsnW2V9tAg85td
+	 frqUH846HjTQd72r4eZaon933jDq4eEbstrEKljYGk0qhyeTTFI9GtlkvMpTwXc33yxn1
+	 QOC2w+AKJAO6XpIxU6Jme67uZwmvWA6m3X8zRA0Wbyq4lIa5olWBww3mCD+nGzyT9dQ==
+ARC-Message-Signature: i=2; d=subspace.kernel.org; s=arc20261015;
+	a=rsa-sha256; c=relaxed/relaxed; t=1792421679;
+	h=Received:Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
+	bh=hiZ+spqKOKcEuooyExBLkXKRa4fB5mZdNzxFooT/rfY=;
+	b=cTBI0/D5MAIQq6QEQmQbcg0jJHalg1nth+yHE891oef+zwyQfKKAPx17dYuuYw4sLBH/
+	 6p2fpJBG/AwWSir+rC5AyvpUdH9YEIsLi1iYGTqSuSDnFFBoUO8D4YFdphe9rCW5zK5jf
+	 0quJCQyFJL7lB11gJpGr2JTUQVnl3qLpFB/kAcJzLQdUkjgsONKavg87bOaPkdQgVPYPb
+	 QUipb2z4/pSITNlwHpWFBV6jD/y6APDUw94W+4UvTO92naoCLLM287rUy55fZBSPktia8
+	 /uZL4m7KY5yMKZgctCaKmGln89i7KKim4Hmrp7YC9XMY4kO6trjbkkY2Cqke9/Obq1A==
+ARC-Authentication-Results: i=2; smtp.subspace.kernel.org; 
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=SrK2DecL;
+	arc=pass header.oldest-pass=0 smtp.remote-ip=10.30.226.211
+Received: from aws-us-west-2-korg-listserv-1.web.codeaurora.org (ip-10-30-226-211.us-west-2.compute.internal [10.30.226.211])
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 88649606DA79
+	for <mm-commits.vger.kernel.org@localhost.mlmmj>; Mon, 19 Oct 2026 14:54:39 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=IBnuk2tm
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5B15E1F000C4;
-	Mon, 19 Oct 2026 15:25:39 +0000 (UTC)
+	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=SrK2DecL
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	(No client certificate requested)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DD7456513C1
+	for <mm-commits@vger.kernel.org>; Mon, 19 Oct 2026 14:54:37 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
+ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1792421679; cv=none; b=oezYN06wokdPH15KV393N4NIm7gbzGyPQoNza8SbAzqbnMkzkJxKnHuh+UvxZ/4c7pXoCV2ZcPoVYx8dUvNZlQxTHQ7cOCc8PTWi+gcPrIz7sVfQxffqawj6zjveQQQXxSaQhqbq9rpvuJ0LyCh3SzAa6TL96yIkTHDTT2ye3Yk=
+ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1792421679; c=relaxed/simple;
+	bh=rMzGim4HPQyf07lu6YiaKjR6Uaq5JP7uTex0qda684E=;
+	h=Date:To:From:Subject:Message-Id; b=Cv5lsHgpkyFtVa7MWkz66Kb2hLJ77RcNlaBju7yWrpa+gMtnEZqdK3EI7uxFZZ/0R/9m9bKvduI6GqaT6F83Tcuzxd5IUQ1n2bofZ/ShMWV3+i7XNGr1qnTbSRvplXqv3gve5P69wifkedwG9WfxdmQQ8tyuH9Lp0FsFO326FEs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=SrK2DecL; arc=none smtp.client-ip=100.103.45.18
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 523A71F000C6;
+	Mon, 19 Oct 2026 14:54:37 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1792423539;
-	bh=r3gDP6UoJvGMYtPEAY65jk12MBrqbeMHCnp/Y0+eON8=;
+	d=linux-foundation.org; s=korg; t=1792421677;
+	bh=hiZ+spqKOKcEuooyExBLkXKRa4fB5mZdNzxFooT/rfY=;
 	h=Date:To:From:Subject;
-	b=IBnuk2tm/ELE1EOtXW6bIcshlqm5AOIuEPxIPvla5yeP1KkhlIZnSpSW0rDJ2Y6a9
-	 cmuL41v8qw5oXU1XuY5M9h7KqX4qxkBiwlGOh3AYNuBhb0hwWCASBWbWVjOwWyQXNJ
-	 4qFq6zuGBYKAdPTfa+yGC20mTTCV8x0dmE3wmS1I=
-Date: Mon, 19 Oct 2026 08:25:38 -0700
-To: mm-commits@vger.kernel.org,vbabka@kernel.org,stable@vger.kernel.org,pfalcato@suse.de,nickolai@csail.mit.edu,liam@infradead.org,jannh@google.com,ljs@kernel.org,akpm@linux-foundation.org
+	b=SrK2DecLhGTfTlpK73yQgQUfqRX9RcodljJ5Uo3w/1IfvDgnR61EmbKA35QQf43kJ
+	 Gfzm4tHaQEZ0JaaRBWTsx7xRTYIaTDBfbr7mA5xUgkqx5SZAOeHPWT72oOu3pmAQZA
+	 UlnflK7mNbm5elxKEkzE7jmA8LWk+SJ1OAzbGfzE=
+Date: Mon, 19 Oct 2026 07:54:36 -0700
+To: mm-commits@vger.kernel.org,muchun.song@linux.dev,harry@kernel.org,david@kernel.org,rppt@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-mremap-populate-calculated-fields-in-vrm-state-correctly.patch added to mm-unstable branch
-Message-Id: <20261019152539.5B15E1F000C4@smtp.kernel.org>
+Subject: + maintainers-add-an-entry-for-memory-management-memory-map.patch added to mm-unstable branch
+Message-Id: <20261019145437.523A71F000C6@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -51,12 +61,12 @@ Precedence: list
 
 
 The patch titled
-     Subject: mm/mremap: populate calculated fields in vrm state correctly
+     Subject: MAINTAINERS: add an entry for MEMORY MANAGEMENT - MEMORY MAP
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-mremap-populate-calculated-fields-in-vrm-state-correctly.patch
+     maintainers-add-an-entry-for-memory-management-memory-map.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mremap-populate-calculated-fields-in-vrm-state-correctly.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/maintainers-add-an-entry-for-memory-management-memory-map.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -74,148 +84,80 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: "Lorenzo Stoakes (ARM)" <ljs@kernel.org>
-Subject: mm/mremap: populate calculated fields in vrm state correctly
-Date: Mon, 19 Oct 2026 15:28:27 +0100
+From: "Mike Rapoport (Microsoft)" <rppt@kernel.org>
+Subject: MAINTAINERS: add an entry for MEMORY MANAGEMENT - MEMORY MAP
+Date: Mon, 19 Oct 2026 14:34:26 +0300
 
-Commit d5c8aec0542e ("mm/mremap: initial refactor of move_vma()")
-introduced the vma_remap_struct helper to pass state sanely through
-mremap() logic.
+Split out files related to SPARSE and SPARSE_VMEMMAP management from
+MEMORY MANAGEMENT - CORE into a dedicated entry.
 
-Part of this state is vrm->delta - equal to the absolute difference between
-vrm->old_len and vrm->new_len (the old and new lengths of the VMA,
-respectively).
+Also include architecture specific sparsemem.h headers, pfn_to_page() and
+page_to_pfn() conversions and Documentation/mm/memory-model.rst.
 
-This value is used to correctly charge accounted VMAs.
+Muchun, who did a lot of work cleaning up SPARSE_VMEMMAP and extending
+vmemmap optimization, volunteered to help with the maintenance.
 
-When shrinking a VMA, mremap_to() sets vrm->old_len equal to vrm->new_len
-having performed the shrink of the VMA first, prior to any potential move
-(e.g.  MREMAP_FIXED | MREMAP_MAYMOVE specified).
+David and I will continue to look after that part of the mm subsystem.
 
-However it does not recalculate vrm->delta, which results in incorrectly
-overcharging the VMA when both moving and shrinking a VMA.
-
-The charge leaks to Committed_AS globally, meaning a mischievous user can
-cause allocations to fail across the system in strict overcommit mode.
-
-Resolve the issue by abstracting the update of vrm->delta to
-vrm_populate_calculated() and invoking this from mremap_to() when
-vrm->old_len is changed.
-
-Additionally, update vrm->remap_type whose value depends on vrm->delta. 
-The field is not read again after the shrink, but it is the logically
-correct thing to do and protects against future changes which break this.
-
-Link: https://lore.kernel.org/20261019-mremap-fix-shrink-charge-v1-1-a3ce209e5360@kernel.org
-Fixes: d5c8aec0542e ("mm/mremap: initial refactor of move_vma()")
-Signed-off-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
+Link: https://lore.kernel.org/20261019-memmap-maint-v1-1-80850871d0cc@kernel.org
+Signed-off-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Reported-by: Nickolai Zeldovich <nickolai@csail.mit.edu>
-Closes: https://lore.kernel.org/all/20261017233527.797191-1-nickolai@csail.mit.edu/
-Cc: Liam R. Howlett <liam@infradead.org>
-Cc: Vlastimil Babka <vbabka@kernel.org>
-Cc: Jann Horn <jannh@google.com>
-Cc: Pedro Falcato <pfalcato@suse.de>
-Cc: <stable@vger.kernel.org>
+Acked-by: David Hildenbrand (Arm) <david@kernel.org>
+Acked-by: Harry Yoo (Meta) <harry@kernel.org>
+Acked-by: Muchun Song <muchun.song@linux.dev>
 ---
 
- mm/mremap.c |   17 +++++++++--------
- 1 file changed, 9 insertions(+), 8 deletions(-)
+ MAINTAINERS |   18 +++++++++++++++---
+ 1 file changed, 15 insertions(+), 3 deletions(-)
 
---- a/mm/mremap.c~mm-mremap-populate-calculated-fields-in-vrm-state-correctly
-+++ a/mm/mremap.c
-@@ -887,12 +887,6 @@ again:
- 	return pmc_progress(pmc);
- }
+--- a/MAINTAINERS~maintainers-add-an-entry-for-memory-management-memory-map
++++ a/MAINTAINERS
+@@ -17162,9 +17162,6 @@ F:	mm/mmzone.c
+ F:	mm/pagewalk.c
+ F:	mm/pgtable-generic.c
+ F:	mm/ptdump.c
+-F:	mm/sparse-vmemmap.c
+-F:	mm/sparse.c
+-F:	mm/sparse.h
+ F:	mm/util.c
+ F:	mm/vmpressure.c
+ F:	mm/vmstat.c
+@@ -17212,6 +17209,21 @@ F:	include/trace/events/ksm.h
+ F:	mm/ksm.c
+ F:	mm/mm_slot.h
  
--/* Set vrm->delta to the difference in VMA size specified by user. */
--static void vrm_set_delta(struct vma_remap_struct *vrm)
--{
--	vrm->delta = abs_diff(vrm->old_len, vrm->new_len);
--}
--
- /* Determine what kind of remap this is - shrink, expand or no resize at all. */
- static enum mremap_type vrm_remap_type(struct vma_remap_struct *vrm)
- {
-@@ -905,6 +899,13 @@ static enum mremap_type vrm_remap_type(s
- 	return MREMAP_EXPAND;
- }
- 
-+/* Populate calculated fields. */
-+static void vrm_populate_calculated(struct vma_remap_struct *vrm)
-+{
-+	vrm->delta = abs_diff(vrm->old_len, vrm->new_len);
-+	vrm->remap_type = vrm_remap_type(vrm);
-+}
++MEMORY MANAGEMENT - MEMORY MAP
++M:	Muchun Song <muchun.song@linux.dev>
++M:	Mike Rapoport <rppt@kernel.org>
++M:	David Hildenbrand <david@kernel.org>
++L:	linux-mm@kvack.org
++S:	Maintained
++T:	git git://git.kernel.org/pub/scm/linux/kernel/git/mm/core.git memmap
++F:	Documentation/mm/memory-model.rst
++F:	arch/*/include/asm/sparsemem.h
++F:	include/asm-generic/memory_model.h
++F:	mm/sparse-vmemmap.c
++F:	mm/sparse.c
++F:	mm/sparse.h
++K:	(?i:vmemmap)
 +
- /*
-  * When moving a VMA to vrm->new_adr, does this result in the new and old VMAs
-  * overlapping?
-@@ -1523,6 +1524,7 @@ static unsigned long mremap_to(struct vm
- 
- 		/* Set up for the move now shrink has been executed. */
- 		vrm->old_len = vrm->new_len;
-+		vrm_populate_calculated(vrm);
- 	}
- 
- 	/* MREMAP_DONTUNMAP expands by old_len since old_len == new_len */
-@@ -1795,8 +1797,7 @@ static int check_prep_vma(struct vma_rem
- 	if (vma_is_hugetlb(vma) && !align_hugetlb(vrm))
- 		return -EINVAL;
- 
--	vrm_set_delta(vrm);
--	vrm->remap_type = vrm_remap_type(vrm);
-+	vrm_populate_calculated(vrm);
- 	/* For convenience, we set new_addr even if VMA won't move. */
- 	if (!vrm_implies_new_addr(vrm))
- 		vrm->new_addr = addr;
+ MEMORY MANAGEMENT - MGLRU (MULTI-GEN LRU)
+ M:	Andrew Morton <akpm@linux-foundation.org>
+ R:	Kairui Song <kasong@tencent.com>
 _
 
-Patches currently in -mm which might be from ljs@kernel.org are
+Patches currently in -mm which might be from rppt@kernel.org are
 
-mm-vma-fix-mmap_prepare-file-handling-remove-file_doesnt_need_get.patch
-mm-vma-introduce-and-use-vma_can_merge.patch
-mm-consistently-validate-vma-state-after-mmap-hooks.patch
-mm-vma-ensure-mmap_prepare-doesnt-set-actions-on-a-mergeable-vma.patch
-mm-make-map_kernel_pages_-internal-and-unexported.patch
-mm-vma-tidy-up-map-kernel-pages-enum-values.patch
-mm-assert-mmap-lock-held-use-new-flags-api-in-vm_insert_page.patch
-mm-add-mmap-action-for-discontiguous-kernel-page-mapping.patch
-docs-filesystems-update-mmap_prepare-docs-for-discontig-kernel-pgs.patch
-drivers-usb-mon-update-to-use-mmap_prepare-map-kernel-pages.patch
-infiniband-update-hfi1-to-use-remap_vmalloc_range.patch
-selinux-reject-writable-opens-of-policy-file-drop-mmap-shared-write-check.patch
-alsa-pcm-use-vm_insert_page-to-map-pcm-status-page.patch
-bpf-arena-mark-arena_map_mmap-mappings-vm_mixedmap.patch
-mm-vma-add-vma_is_mm_managed-predicates.patch
-mm-vma-only-allow-mmap-to-clear-vma_maywrite_bit-if-not-mm-managed.patch
-mm-vma-add-and-use-vma__is_fixed_mapping.patch
-scsi-sg-convert-mmap-hook-to-mmap_prepare-and-rework.patch
-fbdev-defio-assert-fbinfo_virtfb-drop-vm_io-add-vm_mixedmap.patch
-hsi-cmt_speech-convert-mmap-hook-to-mmap_prepare-refactor.patch
-mm-gup-error-out-early-on-vma_mayread_bit-vmas.patch
-uprobes-remove-vm_io-set-vm_mixedmap-for-mapped-kernel-pages.patch
-mm-mlock-clear-vma_locked_mask-over-mmap-callback.patch
-mm-mlock-eliminate-weird-vma_io_bit-abuse-and-simplify.patch
-mm-vma-enforce-that-mm-managed-mappings-may-not-set-vma_io_bit.patch
-mm-remove-vma_io_bit-check-in-vma_is_mm_managed.patch
-mm-remove-hugetlb_inlineh.patch
-mm-rename-is_vm_hugetlb_page-to-vma_is_hugetlb.patch
-mm-drop-some-redundant-checks-around-hugetlb-vmas.patch
-mm-vma-introduce-vma_is_mm_backed.patch
-mm-madvise-update-is_valid_guard_vma-to-use-vma_is_mm_backed.patch
-mm-uffd-use-predicates-for-userfaultfd-checks.patch
-mm-madvise-use-predicates-for-madvise-madv_dofork.patch
-mm-eliminate-vma_special_flags-usage-when-hugetlb-explicitly-tested.patch
-mm-eliminate-vma_special_flags-check-in-lru_gen_look_around.patch
-mm-avoid-use-of-vma_special_flags-in-migrate_vma_setup.patch
-mm-eliminate-vm_special-vma_special_flags.patch
-fuse-dax-do-not-set-vm_mixedmap.patch
-mm-huge_memory-remove-vma_is_special_huge.patch
-mm-vma-const-ify-vma_assert_stabilised-and-associated-functions.patch
-mm-implement-and-use-vma_has_anon_rmap-silence-kcsan.patch
-mm-update-comments-to-refer-to-anon-rmap-rather-than-anon_vma.patch
-mm-vma-dont-remove-vma-from-rmap-if-pgoff-unchanged.patch
-mm-vma-avoid-spurious-write-locks-when-mm-mm_lock_seq-overflows.patch
-mm-mremap-populate-calculated-fields-in-vrm-state-correctly.patch
+arch-mm-promote-debug_wx-to-check_wx.patch
+sh-remove-config_numa-and-realted-configuration-options.patch
+sh-mm-remove-numac.patch
+sh-mm-drop-allocate_pgdat.patch
+sh-remove-setup_bootmem_node-and-plat_mem_setup.patch
+sh-drop-dead-code-guarded-by-ifdef-config_numa.patch
+sh-drop-include-asm-mmzoneh.patch
+init-kconfig-drop-arch_want_numa_variable_locality.patch
+sh-init-remove-call-the-memblock_set_node.patch
+sh-remove-sparsemem-related-entries-from-kconfig.patch
+sh-drop-include-asm-sparsememh.patch
+maintainers-add-an-entry-for-memory-management-memory-map.patch
 
