@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 584952DEA6B;
-	Mon, 19 Oct 2026 01:38:55 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6E1464CF468;
+	Mon, 19 Oct 2026 02:02:21 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1792373936; cv=none; b=I+YBg7N48+yt6LmJIO7Ti3T+4G0zOd6XYBDgKJ+NN4rZXv70bCHrJdGHOigh+gkSwmTPaPwFtjGPKKXDEJpbD6gzN7AxdLUnkQR+t+8cLXAAgAFnTG2kwCRVrDtGldEGcMncTBzmSpqloVnXZ8W9w7JBRXo1X0QZ9LfeZXTIBWM=
+	t=1792375342; cv=none; b=H9B5vxX8UFSLIapKqaO3Dop0EFfITO2f584s7pm8qQgPTrNKEa2gE/HY7kfY1MfgB5tJHv464rAFAQ4xU2wJyV6+6APCxOct4TlTas82GN11Pi2cztheHN46SwLgyvZbAyVYEDYCQPBIhAsuvNc0wJ8pqN90Vpd+FC5MRh/ZUrM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1792373936; c=relaxed/simple;
-	bh=e1A+S82QDWTAONRPnjLEEPItojIP/m4xIXWYdR+ClCM=;
-	h=Date:To:From:Subject:Message-Id; b=ouFVV6HUNUZqhEPQj7D4T7eexhRghV12Cz8SuKtDRjaqYfvXr3k3DXSd9h1SK/EA7GMCCexx1B2yy4iqvnLQq9I73WBpsaTyz4stZ/BFVb9CNGtj3Jbn2b04KMEWbrpUqTawnd0sNJVjDEClg3d9LaXVjgzArdZ0Iew/jxawU3I=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=IzkLSvDB; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1792375342; c=relaxed/simple;
+	bh=xzmMhe3En0iGGgxIu2uTvisgSE+J/bIqyfT4Fw5hiZo=;
+	h=Date:To:From:Subject:Message-Id; b=JfO+BTjHKe9qUZei4x4nUZNUp3HJF3EO/SHRmPsJbx0Mut8Y4RxXkY+mMfgDYB05slSAKy724KfBy1WfD2J/tIKK0qDGy06WyzWpq4XdL/mGcst46KY3pjLtz1A2Ec8NGe/94Ug31IVmRezHKigGuWG2xk++c6Xqzzrn1x/pLTo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=NcDnyJuc; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="IzkLSvDB"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id EA8B41F000C4;
-	Mon, 19 Oct 2026 01:38:54 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="NcDnyJuc"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id DA0641F000C4;
+	Mon, 19 Oct 2026 02:02:20 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1792373935;
-	bh=ENtIP8oiro/3pxgYH2xp772XXdBOuCHVL14pAG7wNC4=;
+	d=linux-foundation.org; s=korg; t=1792375341;
+	bh=HSeUaHD6sYX6iqPLtlZQJ8/f1YTO2AmTdAcejzoWHaU=;
 	h=Date:To:From:Subject;
-	b=IzkLSvDB/p6eul17qhzHqDZeBW9M5WnjWygyRa3buCG+HEKyjAiet3MQhzk14jUG+
-	 j9hKDu/ABgQtVhPA8O12t21IhczhGZtT8yPKnDpU3sPV4RTbHfr8wBbxlQoq+cgHL4
-	 JJq2uoVGzaodO3Y5xSdOtjFSn0JYod1suyErnLbI=
-Date: Sun, 18 Oct 2026 18:38:54 -0700
+	b=NcDnyJuc4QSCy7N7t0A+bUCkyqqGCZG3fvnmJ8Gq8jQdIUGGb0NRMcERsSLcha00l
+	 /GCYZmqGG1V26GopHai97uVkfn2GxXT5NhbMKjX4x5d//BY272dUsnWC16SgVZFwUQ
+	 6hJtE6E75PLEmfnq8hGytPjRZ/TGTKd219hdx9pw=
+Date: Sun, 18 Oct 2026 19:02:20 -0700
 To: mm-commits@vger.kernel.org,tz2294@columbia.edu,stable@vger.kernel.org,l1za0.sec@gmail.com,kbusch@kernel.org,hch@lst.de,axboe@kernel.dk,4ncienth@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
 Subject: + bio-iov-iter-rollback.patch added to mm-hotfixes-unstable branch
-Message-Id: <20261019013854.EA8B41F000C4@smtp.kernel.org>
+Message-Id: <20261019020220.DA0641F000C4@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -104,8 +104,6 @@ Testing on x86-64 QEMU/KVM with generic KASAN:
 Tal Zussman's pending atomic-write changes introduce another rejected-bio
 cleanup path. If both patches are combined, restore the iterator there too.
 
-
----
 
  block/bio.c |    3 +++
  1 file changed, 3 insertions(+)
