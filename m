@@ -1,45 +1,45 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1792468913;
-	b=br50xpyDtNS9SqZLM5+P3+MzlEQM3UxXhuBCYuMnQsqkcculgpNy1aj8qTQa3HtfFlkM
-	 JDgn2up+J/MspTCaQJ68V5VuDADZcrSNs+gEtXUkpaiIO/25VK+v7AfxEwpwFNmTTFB5j
-	 lahctHgXRq1hKTJgZ8AMWYyitmSMHCNIA8BLmN+ndpmwucdJx5jMaxAjGgpzjmiu0NeDg
-	 w2/5TaQnYL0ACe/Y7Gvgy25L+ISz4i0kJ5aSx6MJi8K3ZhbddFNvMfjSlaOZt/jbvx+L8
-	 oYiVd76Ykd0YEzdkNZHgY4e1OR4bWRcCEr3642GjJpjUFZ97qJPsIuPUVTUpODC2G3A==
+	t=1792469132;
+	b=iAqmopxfcM1ftjvofqFfSjVeIzRGFM/arejm+WvG2n4NBYZPbIIus5fgbMU0YvSZfWlM
+	 gELLh1ZrHzO0xz6nA1ezSBSJMyS0NTA/a+hhplwwq2J+/lscyULwxaRndPtF6Dgbz0w3S
+	 +r0J+2oe2GBMd7Krj5YG3x2k1UpIRBWcFJXhP08UQ0jgIDLK2ser8CNz7M92jGNS1tPzd
+	 lRV7lPlNKPOTK9ZdS+INMWfnSJBNmxzeAmhdWgl/6SYGaG97RXR/LETky3DrpkU3IfYa1
+	 ssU1JTOKKBOxtpAMVtf2fjBRzrZ2KK+K7zqDcAGipDZOgRu5bPSj9dC3ghkrP6LkmGA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1792468913;
+	a=rsa-sha256; c=relaxed/relaxed; t=1792469132;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=Bt7XsJIgW4Lu6Mhb+nkalyGmIkyhNEANpu9bya4kirI=;
-	b=0Qazj9eh6R8gcLsJ3Fwt7gXaP3bceK2tpWh1wGY1xJJFYIceofp3es/97urUtwOMpSsT
-	 HoQXQyqfAW/RgftiGzfzygS6PN5JcjNMIhLHB/XYBmEsAynQ3VDS/GhgLZV0l3JJ81rup
-	 QfpMtEDhKgde6K/YvZXEgimv9nGbzGSJsyJU8ez0ixWF8TTElbvPL6SKKB0UXiaUXyn5o
-	 P12gOqCenr2nfhTcAxwAXuKZzW54FEAOdyrnE2bJAXoYbCBhl2oQxNTXqWZi544nl5TDq
-	 zkcDh3IUgy86m78LRvqRgBvDCZHKf974p9ceh/+30uFIg1nUXqbHCjwO7DDqytpOxCw==
+	bh=AokNy0c6SqCsGKqDBWyeN8gQImpc+qeya8HWaDRr81w=;
+	b=1wQFGtSLwwaubM5j3lHaYrGdcZHBNFAxSU8osfE2dQv7OL9Cxi+ILo1ZBwzgKwo5TCGp
+	 1kHGx58wBFXMCJG6tClRXUorC4tw7hhKiIFEJMLpjHglkeIkzTvbIKDgsB1BdFeXdmwCQ
+	 0cTZSeGEhpiZDVz8bsmq73VsLZaOASCjsQH28jhmZ9BH7rG3T1CzBh9NluIhthZDM9xK/
+	 bmm3UN7+Wf1qX1qHpam1zJ4dCv6X5dxIVs1tQzK/uXVZNwBxdDYCVZtBvOy8J7i+KwZot
+	 Mss4CDr9eASkA1YdBWCGcAY2CyXeDkBbK67lqJwUZRO5ZDrDs3RYfH0BbIg0C0u3nyQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b="0D/GUNTu";
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=eOpYn2if;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DFE64606A319;
-	Tue, 20 Oct 2026 04:01:52 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7B87D606A319
+	for <mm-commits@vger.kernel.org>; Tue, 20 Oct 2026 04:05:32 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=0D/GUNTu
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5ECB11F000C5;
-	Tue, 20 Oct 2026 04:01:52 +0000 (UTC)
+	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=eOpYn2if
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id CE8761F000C4;
+	Tue, 20 Oct 2026 04:05:31 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1792468912;
-	bh=Bt7XsJIgW4Lu6Mhb+nkalyGmIkyhNEANpu9bya4kirI=;
+	d=linux-foundation.org; s=korg; t=1792469131;
+	bh=AokNy0c6SqCsGKqDBWyeN8gQImpc+qeya8HWaDRr81w=;
 	h=Date:To:From:Subject;
-	b=0D/GUNTuMXWbuAW4NhmM9vZ6tX8zV4DJ6bbfeHfeyt9ZLOmW3K2V756KRxaKIpYvq
-	 FQGj+MWVz2nWSMrWbk9JGtOTHljYn7FRAip8wuYx2uxXzOnlkQGwpCyy2jJDdv0M8/
-	 PuCiLZITSh1+HBDPGCAthNRkfjBsFtOVxsaC6+SU=
-Date: Mon, 19 Oct 2026 21:01:51 -0700
-To: mm-commits@vger.kernel.org,stable@vger.kernel.org,sj@kernel.org,akpm@linux-foundation.org
+	b=eOpYn2ifIhWGwHUAXxmq3jMtqUuSaBGWGfYeMZbMUH3hqR56+SSF0qCpOqTbTD+vD
+	 5cCRoQZyPhyCSgvliQ+k6YSrZ2KPPrHZ5wtQj+Xoyo8lQ+nQ1a+bTu1C9BBY7tbGJs
+	 z4HKqfYKwIR4W0fRO3mN9vZ+4SB/NHJtikg650H0=
+Date: Mon, 19 Oct 2026 21:05:31 -0700
+To: mm-commits@vger.kernel.org,willy@infradead.org,vbabka@kernel.org,ljs@kernel.org,akpm@linux-foundation.org,liam@infradead.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-damon-core-remove-unreachable-damos-charge_targetaddr_from.patch added to mm-unstable branch
-Message-Id: <20261020040152.5ECB11F000C5@smtp.kernel.org>
+Subject: + tools-testing-shared-catch-a-failed-posix_memalign.patch added to mm-unstable branch
+Message-Id: <20261020040531.CE8761F000C4@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -51,12 +51,12 @@ Precedence: list
 
 
 The patch titled
-     Subject: mm/damon/core: remove unreachable damos charge_{target,addr}_from
+     Subject: tools/testing/shared: catch a failed posix_memalign()
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-damon-core-remove-unreachable-damos-charge_targetaddr_from.patch
+     tools-testing-shared-catch-a-failed-posix_memalign.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-core-remove-unreachable-damos-charge_targetaddr_from.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/tools-testing-shared-catch-a-failed-posix_memalign.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -74,93 +74,52 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: SJ Park <sj@kernel.org>
-Subject: mm/damon/core: remove unreachable damos charge_{target,addr}_from
-Date: Mon, 19 Oct 2026 19:39:56 -0700
+From: "Liam R. Howlett (Google)" <liam@infradead.org>
+Subject: tools/testing/shared: catch a failed posix_memalign()
+Date: Mon, 19 Oct 2026 23:31:28 -0400
 
-damos_quota->charge_{target,addr}_from saves the target and region the
-scheme's quota limit is reached.  damos_skip_charged_region() skips the
-target and regions before the point.  The target that was assigned to
-charge_target_from could be dynamically removed from the context by the
-runtime parameters update (aka commit) feature.  In this case,
-damos_skip_charged_region() cannot find if the point is passed or not,
-so the scheme is effectively disabled.
+posix_memalign() returns zero or a positive error number and never sets
+errno, so the checks for a negative return in kmem_cache_alloc_lru() and
+kmem_cache_alloc_bulk() is not possible.  A failed aligned allocation
+carries on with the pointer unset, into the constructor or the memset().
 
-Similarly, the user could also remove all the regions of the target
-using the runtime parameters update feature.  It would be uncommon to do
-that, but it is a supported feature.  Because the skip pointer detection
-logic (damos_skip_charged_region()) works for each region of targets,
-this result in the logic is entirely skipped and the scheme is
-effectively disabled again.
+Test for any non-zero return.
 
-The user impact is that the DAMOS scheme could suddenly stop working
-under certain uses of the runtime parameters update feature.  It could
-surprise users. No crash or leak happens though.  Users could also
-simply work around by re-installing the scheme.
-
-Catch the corner cases in damos_adjust_quota() and reset the pointers.
-
-Link: https://lore.kernel.org/20261020023958.108276-1-sj@kernel.org
-Fixes: da87878010e5 ("mm/damon/sysfs: support online inputs update")
-Signed-off-by: SJ Park <sj@kernel.org>
+Link: https://lore.kernel.org/20261020033128.1934349-1-liam@infradead.org
+Signed-off-by: Liam R. Howlett (Google) <liam@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Closes: https://sashiko.dev/#/bug/linux-cd0c55fc-0cc8-45d8-9637-3334811c49b8
-Cc: <stable@vger.kernel.org> # 5.19.x
+Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
+Cc: Lorenzo Stoakes <ljs@kernel.org>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Vlastimil Babka <vbabka@kernel.org>
 ---
 
- mm/damon/core.c |   22 ++++++++++++++++++++++
- 1 file changed, 22 insertions(+)
+ tools/testing/shared/linux.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/mm/damon/core.c~mm-damon-core-remove-unreachable-damos-charge_targetaddr_from
-+++ a/mm/damon/core.c
-@@ -3383,6 +3383,26 @@ static void damos_trace_esz(struct damon
- 	trace_damos_esz(cidx, sidx, quota->esz);
- }
+--- a/tools/testing/shared/linux.c~tools-testing-shared-catch-a-failed-posix_memalign
++++ a/tools/testing/shared/linux.c
+@@ -83,7 +83,7 @@ void *kmem_cache_alloc_lru(struct kmem_c
+ 	} else {
+ 		pthread_mutex_unlock(&cachep->lock);
+ 		if (cachep->align) {
+-			if (posix_memalign(&p, cachep->align, cachep->size) < 0)
++			if (posix_memalign(&p, cachep->align, cachep->size))
+ 				return NULL;
+ 		} else {
+ 			p = malloc(cachep->size);
+@@ -191,7 +191,7 @@ bool kmem_cache_alloc_bulk(struct kmem_c
  
-+static void damos_fix_stale_charge_pointers(struct damon_ctx *c,
-+		struct damos *s)
-+{
-+	struct damos_quota *quota;
-+	struct damon_target *t;
-+
-+	quota = &s->quota;
-+	if (!quota->charge_target_from)
-+		return;
-+	damon_for_each_target(t, c) {
-+		if (t == quota->charge_target_from) {
-+			if (damon_nr_regions(t) > 0)
-+				return;
-+			break;
-+		}
-+	}
-+	quota->charge_target_from = NULL;
-+	quota->charge_addr_from = 0;
-+}
-+
- static void damos_adjust_quota(struct damon_ctx *c, struct damos *s)
- {
- 	struct damos_quota *quota = &s->quota;
-@@ -3418,6 +3438,8 @@ static void damos_adjust_quota(struct da
- 			damos_trace_esz(c, s, quota);
- 	}
- 
-+	damos_fix_stale_charge_pointers(c, s);
-+
- 	if (damos_quota_is_full(quota, c->min_region_sz))
- 		return;
- 	if (!c->ops.get_scheme_score)
+ 			if (cachep->align) {
+ 				if (posix_memalign(&p[i], cachep->align,
+-					       cachep->size) < 0)
++					       cachep->size))
+ 					break;
+ 			} else {
+ 				p[i] = malloc(cachep->size);
 _
 
-Patches currently in -mm which might be from sj@kernel.org are
+Patches currently in -mm which might be from liam@infradead.org are
 
-mm-damon-core-introduce-damos_quota_goal-complement.patch
-mm-damon-core-add-complement-argument-to-damos_new_quota_goal.patch
-mm-damon-sysfs-schemes-support-quota-goal-complement-flag.patch
-mm-damon-tests-core-kunit-test-quota_goal-complement-commit.patch
-selftests-damon-sysfssh-test-quota-goal-complement-flag-file.patch
-docs-mm-damon-design-document-damos-quota-goal-complement-flag.patch
-docs-admin-guide-mm-damon-usage-update-for-quota-goal-complement-file.patch
-docs-abi-damon-update-for-quota-goal-metric-complement-sysfs-file.patch
-mm-damon-core-filter-out-damos-address-filter-split-failed-region.patch
-mm-damon-core-remove-unreachable-damos-charge_targetaddr_from.patch
+tools-testing-shared-catch-a-failed-posix_memalign.patch
 
