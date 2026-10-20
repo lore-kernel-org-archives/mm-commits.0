@@ -1,45 +1,45 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1792518121;
-	b=hr7pBcQFSSJvvPKmT3cTW26HO1vNmYQ0KueZAUySCEWI2Z5YUEzpQH4yTSCllyhNRXSO
-	 22CT4OArPQvN4iMAXVdyAcUHd5TVRXBOquMJNpxX/OOTRXVH0YKuMtdYrAt2ga9KjdL4c
-	 8dcEbaE+C3JqX2A5IP2BD2N9Vo4smneXThiAobv8/gvW++8EG0VtUd6W4w5U3e1VR9qta
-	 Q9uEnVqW8NtDwFsTsf60p3Je1LHirEUil1uJNoWkOMfIAQseYR+APAdhQiBMhzADOjiQF
-	 nMZL9Xt/2FzYBxDWKDusct9bwD5cDmGZ+5pNvOC6ideNxMgcBxExPconKyo8p7sv0Rw==
+	t=1792532209;
+	b=i3u7KPmyEO3cBSIch8gjNr3PGDRuqzOarP2v0C+zNoiRX7Z5Hu4sicKDv8EjWfT9DlZ/
+	 K08G7MwM7dGWxlC6QP5xyy1iaYGMfKfrYeCcnivTVfZAmzNkAfgEoWbIK6RXqtkmtG56p
+	 KbUJyeMb2vhq+DEt9w9n7nafXHbeb9/seMNnwdOtrGzcufbP0jbcDZEzIVrZa3jHmto2Y
+	 HBvda3mOnrdL/D0GmmVk2blD6JUoGVjiESYSf6RHr6Lm8daEsn2k0cyc8E7YqDMmM3kew
+	 SQXkPKKNFcngOeIwNZjFeUntA4HHL9hoaNRP50FGYKKCAoRx8zid3bmlXkA8MbehsMQ==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1792518121;
+	a=rsa-sha256; c=relaxed/relaxed; t=1792532209;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=y9x1TIOy5neS+EZYUM0L8BjZDwzUbz3frkQwuPq8w8s=;
-	b=KlhLBOHuqvHJjtzWprXXm/ZOw7z+oGwU51kAJ9Rab60wHj1V/eXF9CFbjUbdU4rt7WBF
-	 hFVUDZq0bN4WRDw51d+bPmxdXG9ncd1W2OfpkuMnP5k/AF2KmJxcTTx6FtIXJu5iKpHyO
-	 7C33osecCtgF1sm1PPZAndHjANjQUMcTlvJO6xyPzxsQdxtdn00YKbkp4Q3jx1zZCSORK
-	 uUKCx3MnEMh3BpIZ+jdcaBDDejCTLYUSTvOr7WPfckCQ//eF6xnqEBclTIBBJpc0ySNOj
-	 sob35m2BAMECvUjJqv4bbItUT/z6XHBPF7V5ABDvBhuotjZoSP/jutkR/xoEArrDmUA==
+	bh=Vh11N3uQTXgEOuV6/jbsee5+owt5Eb/8drsv7AKClOg=;
+	b=MVAfFiYR4023Q2LEBWs9wRjPX95aEUBkjGLvW8sMdKr3dugEG+chCMnnz+L4WEE19VZw
+	 kdiLFzMpqbUJaxErpeT0HJCWiSVMKud4hyCJbbW4w5/sSzCh162+UKo1KiBvmp5eUbT9T
+	 xRMPO5/AlFHnSJe1AFTAOeGPUgVcUV6rT3jUDiDNlgZg6hbt6VFuSyZjmJuHPg5aev3KP
+	 2lrs8ueQm/EWvd5WaD1ZdNbA3f92O5znG/FcXC4ao2WdcKdQ0BR7VQbFW0+gprkXqycFp
+	 Bp9XzyORo/uHRb2NFdnSfzVptvJmzWO4rAKHHnlzyXbuzh/apVZ6+zqea7gDxQiY/RA==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=vSBOsi27;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=CS8PDVUy;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id ED9DF606A324;
-	Tue, 20 Oct 2026 17:42:00 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 70066606A31A;
+	Tue, 20 Oct 2026 21:36:49 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=vSBOsi27
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5B8201F000C9;
-	Tue, 20 Oct 2026 17:42:00 +0000 (UTC)
+	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=CS8PDVUy
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2C5FD1F000C9;
+	Tue, 20 Oct 2026 21:36:49 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1792518120;
-	bh=y9x1TIOy5neS+EZYUM0L8BjZDwzUbz3frkQwuPq8w8s=;
+	d=linux-foundation.org; s=korg; t=1792532209;
+	bh=Vh11N3uQTXgEOuV6/jbsee5+owt5Eb/8drsv7AKClOg=;
 	h=Date:To:From:Subject;
-	b=vSBOsi27e2yhBmzJBFsI+9Sy5J7Z9qqiNHZEq+hV1eHiwC31/cXqwmXSQJClJcrhv
-	 HV1n6IJRFxj+XyFXfgutLQb8YDcqTH4878nzYhD+t88lMG2I1zvDApH+T5sgAQ8Y98
-	 dRJKKRcIyhIq4FKkAgbOxvBovV4OygSftqd/mEF4=
-Date: Tue, 20 Oct 2026 10:41:30 -0700
-To: mm-commits@vger.kernel.org,vbabka@kernel.org,stable@vger.kernel.org,shawnq1@163.com,rppt@linux.vnet.ibm.com,pfalcato@suse.de,peterx@redhat.com,liam@infradead.org,kas@kernel.org,jannh@google.com,gourry@gourry.net,david@kernel.org,ljs@kernel.org,akpm@linux-foundation.org
+	b=CS8PDVUyFuR5OTfF1G0b0h6JeLoxF7w1wwxjDeqc18ze1BDDzzfmsvXaOTeQCPkdX
+	 Mq+04CUDrIYdHR+dmPJ6C2gKOFGtJMxnz09kJVbnig6D/oIyJzAeS6oLVafiUwR3vo
+	 6sDG1x8feMAR8qy0b03TkCms46f6mUtPhWH2Zbwc=
+Date: Tue, 20 Oct 2026 14:36:48 -0700
+To: mm-commits@vger.kernel.org,tglx@kernel.org,stable@vger.kernel.org,arnd@arndb.de,akpm@linux-foundation.org,dennylin0707@gmail.com
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-vma-avoid-broken-uffd-merge-on-mremap.patch added to mm-unstable branch
-Message-Id: <20261020174200.5B8201F000C9@smtp.kernel.org>
+Subject: + compat-avoid-double-rounding-in-times.patch added to mm-nonmm-unstable branch
+Message-Id: <20261020213649.2C5FD1F000C9@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -51,14 +51,14 @@ Precedence: list
 
 
 The patch titled
-     Subject: mm/vma: avoid broken uffd merge on mremap
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-vma-avoid-broken-uffd-merge-on-mremap.patch
+     Subject: compat: avoid double rounding in times()
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     compat-avoid-double-rounding-in-times.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vma-avoid-broken-uffd-merge-on-mremap.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/compat-avoid-double-rounding-in-times.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -74,137 +74,51 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: "Lorenzo Stoakes (ARM)" <ljs@kernel.org>
-Subject: mm/vma: avoid broken uffd merge on mremap
-Date: Tue, 20 Oct 2026 15:55:30 +0100
+From: Hungyu Lin <dennylin0707@gmail.com>
+Subject: compat: avoid double rounding in times()
+Date: Tue, 20 Oct 2026 21:01:57 +0000
 
-Userfaultfd often causes unexpected interactions within mm, and does so at
-the intersection of uffd, mremap() and VMA merging.
+do_sys_times() already converts CPU time to USER_HZ ticks.  The compat
+path converts each value back to jiffies before converting it to
+COMPAT_USER_HZ.  This round trip can lose precision even when the two
+userspace rates match.
 
-When an mremap of a VMA occurs, copy_vma_and_data() calls
-mremap_userfaultfd_prep() to notify uffd of this.
+With HZ=250 and USER_HZ=COMPAT_USER_HZ=100, one user tick becomes two
+jiffies and then zero compat ticks.  Every odd tick count loses one tick,
+so any of the four tms fields can underreport CPU time by an additional 10
+ms.
 
-However, mremap_userfaultfd_prep() simply drops the UFFD context for the
-VMA if the user did not register it for remap, i.e. didn't specify the
-UFFD_FEATURE_EVENT_REMAP flag.
+Return the value directly when the native and compat units match.  Keep
+the existing conversion for differing rates.
 
-This is OK for the VMA itself, as upon page table move, move_ptes() clears
-UFFD page table flags, using vma_has_uffd_without_event_remap() to
-determine whether to do so.
-
-However, this doesn't account for merging with adjacent VMAs, whose page
-tables won't have received this treatment, and thus latent UFFD markers
-will be left around.
-
-Worse, it'll break UFFD for any VMAs it is merged with. This is very
-surprising behaviour for a user, who will then simply not receive UFFD
-events for VMAs they ought to.
-
-Resolve the issue by explicitly checking for this case via
-vma_has_uffd_without_event_remap() in vma_merge_copied_range(), the merge
-function explicitly designated for mremap() operations.
-
-Also update the userland VMA tests accordingly.
-
-Link: https://lore.kernel.org/20261020-uffd-remap-fix-v1-1-0f34fc181f0a@kernel.org
-Fixes: 3cfd22be0ad6 ("userfaultfd: clear flag if remap event not enabled")
-Signed-off-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
+Link: https://lore.kernel.org/20261020210157.52057-1-dennylin0707@gmail.com
+Fixes: f06febc96ba8 ("timers: fix itimer/many thread hang")
+Signed-off-by: Hungyu Lin <dennylin0707@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Reported-by: shaos <shawnq1@163.com>
-Closes: https://lore.kernel.org/all/20261020110748.959870-1-shawnq1@163.com/
-Reviewed-by: Kiryl Shutsemau (Meta) <kas@kernel.org>
-Reviewed-by: Gregory Price (Meta) <gourry@gourry.net>
-Cc: Liam R. Howlett <liam@infradead.org>
-Cc: Vlastimil Babka <vbabka@kernel.org>
-Cc: Jann Horn <jannh@google.com>
-Cc: Pedro Falcato <pfalcato@suse.de>
-Cc: Mike Rapoport <rppt@linux.vnet.ibm.com>
-Cc: Peter Xu <peterx@redhat.com>
-Cc: David Hildenbrand <david@kernel.org>
+Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
+Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: Thomas Gleixner <tglx@kernel.org>
 Cc: <stable@vger.kernel.org>
 ---
 
- mm/vma.c                          |    5 +++++
- tools/testing/vma/include/stubs.h |    5 +++++
- 2 files changed, 10 insertions(+)
+ kernel/sys.c |    3 +++
+ 1 file changed, 3 insertions(+)
 
---- a/mm/vma.c~mm-vma-avoid-broken-uffd-merge-on-mremap
-+++ a/mm/vma.c
-@@ -1211,6 +1211,11 @@ static struct vm_area_struct *vma_merge_
- 
- 	vmg->copied_from = vmg->middle;
- 	vmg->middle = NULL;
-+
-+	/* If not registered for remap, uffd context will be cleared. */
-+	if (vma_has_uffd_without_event_remap(vmg->copied_from))
-+		return NULL;
-+
- 	return vma_merge_new_range(vmg);
- }
- 
---- a/tools/testing/vma/include/stubs.h~mm-vma-avoid-broken-uffd-merge-on-mremap
-+++ a/tools/testing/vma/include/stubs.h
-@@ -386,6 +386,11 @@ static inline bool is_mergeable_vm_userf
- 	return true;
- }
- 
-+static inline bool vma_has_uffd_without_event_remap(struct vm_area_struct *vma)
-+{
-+	return false;
-+}
-+
- static inline bool anon_vma_name_eq(struct anon_vma_name *anon_name1,
- 				    struct anon_vma_name *anon_name2)
+--- a/kernel/sys.c~compat-avoid-double-rounding-in-times
++++ a/kernel/sys.c
+@@ -1077,6 +1077,9 @@ SYSCALL_DEFINE1(times, struct tms __user
+ #ifdef CONFIG_COMPAT
+ static compat_clock_t clock_t_to_compat_clock_t(clock_t x)
  {
++	if (USER_HZ == COMPAT_USER_HZ)
++		return x;
++
+ 	return compat_jiffies_to_clock_t(clock_t_to_jiffies(x));
+ }
+ 
 _
 
-Patches currently in -mm which might be from ljs@kernel.org are
+Patches currently in -mm which might be from dennylin0707@gmail.com are
 
-mm-vma-fix-mmap_prepare-file-handling-remove-file_doesnt_need_get.patch
-mm-vma-introduce-and-use-vma_can_merge.patch
-mm-consistently-validate-vma-state-after-mmap-hooks.patch
-mm-vma-ensure-mmap_prepare-doesnt-set-actions-on-a-mergeable-vma.patch
-mm-make-map_kernel_pages_-internal-and-unexported.patch
-mm-vma-tidy-up-map-kernel-pages-enum-values.patch
-mm-assert-mmap-lock-held-use-new-flags-api-in-vm_insert_page.patch
-mm-add-mmap-action-for-discontiguous-kernel-page-mapping.patch
-docs-filesystems-update-mmap_prepare-docs-for-discontig-kernel-pgs.patch
-drivers-usb-mon-update-to-use-mmap_prepare-map-kernel-pages.patch
-infiniband-update-hfi1-to-use-remap_vmalloc_range.patch
-selinux-reject-writable-opens-of-policy-file-drop-mmap-shared-write-check.patch
-alsa-pcm-use-vm_insert_page-to-map-pcm-status-page.patch
-bpf-arena-mark-arena_map_mmap-mappings-vm_mixedmap.patch
-mm-vma-add-vma_is_mm_managed-predicates.patch
-mm-vma-only-allow-mmap-to-clear-vma_maywrite_bit-if-not-mm-managed.patch
-mm-vma-add-and-use-vma__is_fixed_mapping.patch
-scsi-sg-convert-mmap-hook-to-mmap_prepare-and-rework.patch
-fbdev-defio-assert-fbinfo_virtfb-drop-vm_io-add-vm_mixedmap.patch
-hsi-cmt_speech-convert-mmap-hook-to-mmap_prepare-refactor.patch
-mm-gup-error-out-early-on-vma_mayread_bit-vmas.patch
-uprobes-remove-vm_io-set-vm_mixedmap-for-mapped-kernel-pages.patch
-mm-mlock-clear-vma_locked_mask-over-mmap-callback.patch
-mm-mlock-eliminate-weird-vma_io_bit-abuse-and-simplify.patch
-mm-vma-enforce-that-mm-managed-mappings-may-not-set-vma_io_bit.patch
-mm-remove-vma_io_bit-check-in-vma_is_mm_managed.patch
-mm-remove-hugetlb_inlineh.patch
-mm-rename-is_vm_hugetlb_page-to-vma_is_hugetlb.patch
-mm-drop-some-redundant-checks-around-hugetlb-vmas.patch
-mm-vma-introduce-vma_is_mm_backed.patch
-mm-madvise-update-is_valid_guard_vma-to-use-vma_is_mm_backed.patch
-mm-uffd-use-predicates-for-userfaultfd-checks.patch
-mm-madvise-use-predicates-for-madvise-madv_dofork.patch
-mm-eliminate-vma_special_flags-usage-when-hugetlb-explicitly-tested.patch
-mm-eliminate-vma_special_flags-check-in-lru_gen_look_around.patch
-mm-avoid-use-of-vma_special_flags-in-migrate_vma_setup.patch
-mm-eliminate-vm_special-vma_special_flags.patch
-fuse-dax-do-not-set-vm_mixedmap.patch
-mm-huge_memory-remove-vma_is_special_huge.patch
-mm-vma-const-ify-vma_assert_stabilised-and-associated-functions.patch
-mm-implement-and-use-vma_has_anon_rmap-silence-kcsan.patch
-mm-update-comments-to-refer-to-anon-rmap-rather-than-anon_vma.patch
-mm-vma-dont-remove-vma-from-rmap-if-pgoff-unchanged.patch
-mm-vma-avoid-spurious-write-locks-when-mm-mm_lock_seq-overflows.patch
-mm-mremap-populate-calculated-fields-in-vrm-state-correctly.patch
-mm-mremap-correctly-uncharge-accountable-vmas-in-error-path.patch
-mm-vma-avoid-broken-uffd-merge-on-mremap.patch
+compat-avoid-double-rounding-in-times.patch
 
