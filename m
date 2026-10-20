@@ -1,45 +1,45 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1792448502;
-	b=jOK9Rlo6tKqL836mEADpvTidxJCQMWAXN4I0oAR7bBm06ZhG0oQr1A87gbqLZXt/aq4C
-	 I6vfadMqv8fkYE+g1RRJNhYWD25DFjGOBPtNCtBRVo3e3hFTC9CDottfvGyj+3kJxfRsn
-	 Ih4VF5juwCi7w8yO67s0FiS9hlmt26Xh6JfwtWbwduBAwebRnWlDv0VJyBpFvs1c4KyHP
-	 zLFqEBTxNiKh5FCx7goOUA1shfey0RYns12ba+IvBbHRrziYPh6R/l9abQO7osqy7lTh/
-	 6MEqEpzsPc64+03y8ATMWcDrqxrXkEbI4lT8YCaPw/fMopR5Gyktg/0bas/dgvDOO1Q==
+	t=1792458160;
+	b=eIXK0ZGrgIjRV0lJ+WndAfwswgGiof89ZcOVOXmwZlaj0vLrG5TXlCE+z9eIrNH7+JHx
+	 y4nEL9iEFCZ8I30mumxVeKbZPxfkwURPSS85I29aapwbhb3y0awrPbxeiVmKjWFcwdphk
+	 X8TKZA/u8NiHAEy6hikn/W1S/Ke0SGNMoZEI3fM2XPoQo+8jx/lIR/NjScYKTcJ59EeXa
+	 53p6IJzm3YwtUJkr97pNfDBEyaiDiMDiOnHjz4Pk2s5ClJw9g4s8aek3z8E9MrwhJx/TQ
+	 9EsJNik+y2ra3G6V0cM1GQoz83u/TrwSfcOMJAzYEwW0cp59cAEf39VBRkRV/06G/+Q==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1792448502;
+	a=rsa-sha256; c=relaxed/relaxed; t=1792458160;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=IrmFStrxWye7dcbeoq2RKF2LiXBI37hi5qUe8gclDG0=;
-	b=3Em4rI7HzAA0Avu74wAqfHqljxAWaLMZCYQtV2NU+Sl9G2kWhV4UPvee6OGAL6thOYVJ
-	 SHzHdggghuC0rer2jQjnXAtwu8sKZbkA3GGIZSXb0+7QJUxCZg65wnt80M+UsDFYpaXL7
-	 9vmB+BMyk/RyuukZuER9a4qClEJ6LVIDg59ei8+xmGtK0R2cvOdik5gAFgHLvbDbXanPt
-	 jZIwCbd485w1iYOJvYLGyjixzr7ZEvcW+TJmxNfINsnq07dHSore7JNTpE+zxysMaadaI
-	 FbKYRU54vcwcTF12GpM7UChnUzvpKl1vx+0fGGlQ/sobIFSu0osGd425AbgqfVNc7BA==
+	bh=vA9HrIlYy80oAx3dOJ8vBQKkZAANJTZdkbS+jz0zzy8=;
+	b=EDwgk031yOZkrnhB3Ll9o/D0yr/+R1VkvniApikcosoAL9Q/NIyxjqeg5Z4aul4b2BGS
+	 aH7UjiuWGAxWGfGh3To51coLtO7wjRaNUed05THVD7V7nImW8sHaCvw9WkL2SDcDa4W2G
+	 DXasv1TdKnEvZ72AWKtgSqQXIeE6q+OGmU4j+m7bKTpWDSA2X8/koZG4fuS3h74KiW0Ga
+	 +55gtnVK6USP/hDJW4uyORR9/7hbU2lrvnPNhyAe/Vky2lUKI845vGRhshPiPvRQrbT9O
+	 hawC21KYg9NgOdrCWn71x+0SkT2WIQ5eXUHRiJ+LwcIg1SA7L5riFH+qj7WCC2Wa5qA==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=d5eaRcOe;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=0L61nKTj;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6F5D0606A31A;
-	Mon, 19 Oct 2026 22:21:42 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6F278606A319;
+	Tue, 20 Oct 2026 01:02:40 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=d5eaRcOe
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id BF5BC1F000C4;
-	Mon, 19 Oct 2026 22:21:41 +0000 (UTC)
+	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=0L61nKTj
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id DD95F1F000C4;
+	Tue, 20 Oct 2026 01:02:39 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1792448501;
-	bh=IrmFStrxWye7dcbeoq2RKF2LiXBI37hi5qUe8gclDG0=;
+	d=linux-foundation.org; s=korg; t=1792458160;
+	bh=vA9HrIlYy80oAx3dOJ8vBQKkZAANJTZdkbS+jz0zzy8=;
 	h=Date:To:From:Subject;
-	b=d5eaRcOeve5HCzQE/b0AH7cwJd2uTUz84M4uUU9DG5C7/aAluGvERbn+D76mjJcRH
-	 4CnNiRE8OH2LRkLUTp8yZMyLsMNoPjSHPcyF809WRIMiavglf7+z5BB1lVlgNd9+oL
-	 RGDh672TXXM70Kp5iaKs8WG0fDwp8FFjGgyexgKk=
-Date: Mon, 19 Oct 2026 15:21:41 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,ying.huang@linux.alibaba.com,stable@vger.kernel.org,rakie.kim@sk.com,pasha.tatashin@soleen.com,mhocko@suse.com,joshua.hahnjy@gmail.com,david@kernel.org,gourry@gourry.net,akpm@linux-foundation.org
+	b=0L61nKTjNSD51NYbC4ZAvFU59Bb0uvxTAy+ixT1vtInrXGNBtXpMhozmziHiOFaef
+	 5eoFymapiMHm9kiExfuUyD9BFeVWb5RZSh0o05dmSduJe2YNdl52FYpH/dwylpPqRq
+	 BoWVe6r3KOJ1GXAVNOphdl5qqyVMzPB0Aq3furWg=
+Date: Mon, 19 Oct 2026 18:02:39 -0700
+To: mm-commits@vger.kernel.org,stable@vger.kernel.org,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-mempolicy-apply-bind-policies-against-the-scoped-allocation-zone.patch added to mm-unstable branch
-Message-Id: <20261019222141.BF5BC1F000C4@smtp.kernel.org>
+Subject: + mm-damon-core-filter-out-damos-address-filter-split-failed-region.patch added to mm-unstable branch
+Message-Id: <20261020010239.DD95F1F000C4@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -51,12 +51,12 @@ Precedence: list
 
 
 The patch titled
-     Subject: mm/mempolicy: apply bind policies against the scoped allocation zone
+     Subject: mm/damon/core: filter out damos address filter-split failed region
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-mempolicy-apply-bind-policies-against-the-scoped-allocation-zone.patch
+     mm-damon-core-filter-out-damos-address-filter-split-failed-region.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mempolicy-apply-bind-policies-against-the-scoped-allocation-zone.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-core-filter-out-damos-address-filter-split-failed-region.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -74,91 +74,155 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: "Gregory Price (Meta)" <gourry@gourry.net>
-Subject: mm/mempolicy: apply bind policies against the scoped allocation zone
-Date: Sat, 17 Oct 2026 22:33:49 -0400
+From: SJ Park <sj@kernel.org>
+Subject: mm/damon/core: filter out damos address filter-split failed region
+Date: Mon, 19 Oct 2026 17:41:18 -0700
 
-QEMU fails to start a guest with a VFIO device when guest RAM comes
-from a memory backend bound to a movable-only node:
+When an address type DAMOS filter is configured, DAMOS tries to split the
+region for the filter range, and apply DAMOS action to the filter-in
+region.  The split operation (damon_split_region_at()) could fail from
+allocation failure under extreme memory pressure.  In the case, DAMOS
+action could be applied more or less than expected, ignoring the address
+filter.
 
-  vfio_container_dma_map(0x55b1b1317800, 0x0, 0x10000000,
-                         0x7f39a2200000)
-    = -12 (Cannot allocate memory)
+The issue only rarely happens under extreme memory pressure.  No crash or
+leak happens.  Occasionally not applying the action to a few regions
+shouldn't be a real problem.  But applying the action to a region that the
+user has excluded via address filter could be a surprise depending on the
+use case.  It is only theoretical.  No such real case is found yet.
 
-VFIO pins guest RAM when the device is realized, and the pin faults
-the pages in. io_uring fixed buffers fail the same way. Faulting the
-range in before pinning lets the same pin succeed, since resident
-pages are migrated off the node instead.
+Filter out the entire region if the split is failed.  Update
+damos_filter_match() signature to receive the error from split.  Also
+update kunit tests for the updated signature.
 
-A long-term pin faults under memalloc_pin_save(). PF_MEMALLOC_PIN makes
-current_gfp_context() clear __GFP_MOVABLE, but policy_nodemask() tests
-apply_policy_zone() against the caller's gfp.
+The issue was discovered [1] by sashiko.
 
-The bind keeps its movable-only nodemask, and the allocation finds no
-usable zone:
-
-  page allocation failure:
-      order:0,
-      mode:0x140dc2(GFP_HIGHUSER|__GFP_ZERO|__GFP_COMP),
-      nodemask=1,cpuset=/,mems_allowed=0-1
-
-  Call Trace:
-   warn_alloc+0x136/0x150
-   __alloc_frozen_pages_noprof+0xed8/0x1720
-   alloc_pages_mpol+0xaa/0x170
-   vma_alloc_folio_noprof+0x65/0xd0
-   __handle_mm_fault+0x137b/0x1ac0
-   handle_mm_fault+0xa0/0x270
-   __get_user_pages+0x250/0xfd0
-   __gup_longterm_locked+0x116/0x870
-   gup_fast_fallback+0xcfc/0xdf0
-   pin_user_pages_fast+0x47/0x60
-   io_pin_pages+0x9a/0x110
-
-Base page faults fail with -ENOMEM.
-hugetlb faults fail with -EFAULT.
-
-Check the policy zone against current_gfp_context(gfp), so a pin-scoped
-fault falls back off the movable-only nodemask, like any other
-non-movable allocation under the same bind.
-
-Tested in qemu with a dax/kmem movable-only node 1. io_uring and VFIO
-pins of unfaulted base pages and 2MB hugetlb pages now succeed and land
-on node 0 (correct). QEMU now starts with the same backend binding.
-
-Link: https://lore.kernel.org/20261018023349.1697434-1-gourry@gourry.net
-Fixes: 8e3560d963d2 ("mm: honor PF_MEMALLOC_PIN for all movable pages")
-Signed-off-by: Gregory Price (Meta) <gourry@gourry.net>
+Link: https://lore.kernel.org/20261020004119.106690-1-sj@kernel.org
+Link: https://lore.kernel.org/20260801203121.117449-1-sj@kernel.org [1]
+Fixes: ab9bda001b68 ("mm/damon/core: introduce address range type damos filter")
+Signed-off-by: SJ Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Reviewed-by: Joshua Hahn <joshua.hahnjy@gmail.com>
-Cc: David Hildenbrand <david@kernel.org>
-Cc: Zi Yan <ziy@nvidia.com>
-Cc: Rakie Kim <rakie.kim@sk.com>
-Cc: Ying Huang <ying.huang@linux.alibaba.com>
-Cc: Pasha Tatashin <pasha.tatashin@soleen.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: <stable@vger.kernel.org>
+Cc: <stable@vger.kernel.org> # 6.6.x
 ---
 
- mm/mempolicy.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/damon/core.c             |   16 ++++++++++++----
+ mm/damon/tests/core-kunit.h |   11 ++++++-----
+ 2 files changed, 18 insertions(+), 9 deletions(-)
 
---- a/mm/mempolicy.c~mm-mempolicy-apply-bind-policies-against-the-scoped-allocation-zone
-+++ a/mm/mempolicy.c
-@@ -2302,7 +2302,7 @@ static nodemask_t *policy_nodemask(gfp_t
+--- a/mm/damon/core.c~mm-damon-core-filter-out-damos-address-filter-split-failed-region
++++ a/mm/damon/core.c
+@@ -2551,13 +2551,14 @@ static void damos_update_stat(struct dam
+ 
+ static bool damos_filter_match(struct damon_ctx *ctx, struct damon_target *t,
+ 		struct damon_region *r, struct damos_filter *filter,
+-		unsigned long min_region_sz)
++		unsigned long min_region_sz, int *err)
+ {
+ 	bool matched = false;
+ 	struct damon_target *ti;
+ 	int target_idx = 0;
+ 	unsigned long start, end, wsum;
+ 
++	*err = 0;
+ 	switch (filter->type) {
+ 	case DAMOS_FILTER_TYPE_TARGET:
+ 		damon_for_each_target(ti, ctx) {
+@@ -2583,12 +2584,13 @@ static bool damos_filter_match(struct da
+ 		}
+ 		/* start before the range and overlap */
+ 		if (r->ar.start < start) {
+-			damon_split_region_at(t, r, start - r->ar.start);
++			*err = damon_split_region_at(t, r,
++					start - r->ar.start);
+ 			matched = false;
+ 			break;
+ 		}
+ 		/* start inside the range */
+-		damon_split_region_at(t, r, end - r->ar.start);
++		*err = damon_split_region_at(t, r, end - r->ar.start);
+ 		matched = true;
  		break;
- 	case MPOL_BIND:
- 		/* Restrict to nodemask (but not on lower zones) */
--		if (apply_policy_zone(pol, gfp_zone(gfp)) &&
-+		if (apply_policy_zone(pol, gfp_zone(current_gfp_context(gfp))) &&
- 		    cpuset_nodemask_valid_mems_allowed(&pol->nodes))
- 			nodemask = &pol->nodes;
- 		if (pol->home_node != NUMA_NO_NODE)
+ 	case DAMOS_FILTER_TYPE_PROBE_HITS_WSUM:
+@@ -2607,10 +2609,16 @@ static bool damos_core_filter_out(struct
+ 		struct damon_region *r, struct damos *s)
+ {
+ 	struct damos_filter *filter;
++	bool matching;
++	int err;
+ 
+ 	s->core_filters_allowed = false;
+ 	damos_for_each_core_filter(filter, s) {
+-		if (damos_filter_match(ctx, t, r, filter, ctx->min_region_sz)) {
++		matching = damos_filter_match(ctx, t, r, filter,
++				ctx->min_region_sz, &err);
++		if (err)
++			return true;
++		if (matching) {
+ 			if (filter->allow)
+ 				s->core_filters_allowed = true;
+ 			return !filter->allow;
+--- a/mm/damon/tests/core-kunit.h~mm-damon-core-filter-out-damos-address-filter-split-failed-region
++++ a/mm/damon/tests/core-kunit.h
+@@ -1783,6 +1783,7 @@ static void damos_test_filter_out(struct
+ 	struct damon_target *t;
+ 	struct damon_region *r, *r2;
+ 	struct damos_filter *f;
++	int err;
+ 
+ 	f = damos_new_filter(DAMOS_FILTER_TYPE_ADDR, true, false);
+ 	if (!f)
+@@ -1803,27 +1804,27 @@ static void damos_test_filter_out(struct
+ 	damon_add_region(r, t);
+ 
+ 	/* region in the range */
+-	KUNIT_EXPECT_TRUE(test, damos_filter_match(NULL, t, r, f, 1));
++	KUNIT_EXPECT_TRUE(test, damos_filter_match(NULL, t, r, f, 1, &err));
+ 	KUNIT_EXPECT_EQ(test, damon_nr_regions(t), 1);
+ 
+ 	/* region before the range */
+ 	r->ar.start = 1;
+ 	r->ar.end = 2;
+ 	KUNIT_EXPECT_FALSE(test,
+-			damos_filter_match(NULL, t, r, f, 1));
++			damos_filter_match(NULL, t, r, f, 1, &err));
+ 	KUNIT_EXPECT_EQ(test, damon_nr_regions(t), 1);
+ 
+ 	/* region after the range */
+ 	r->ar.start = 6;
+ 	r->ar.end = 8;
+ 	KUNIT_EXPECT_FALSE(test,
+-			damos_filter_match(NULL, t, r, f, 1));
++			damos_filter_match(NULL, t, r, f, 1, &err));
+ 	KUNIT_EXPECT_EQ(test, damon_nr_regions(t), 1);
+ 
+ 	/* region started before the range */
+ 	r->ar.start = 1;
+ 	r->ar.end = 4;
+-	KUNIT_EXPECT_FALSE(test, damos_filter_match(NULL, t, r, f, 1));
++	KUNIT_EXPECT_FALSE(test, damos_filter_match(NULL, t, r, f, 1, &err));
+ 	/* filter should have split the region */
+ 	KUNIT_EXPECT_EQ(test, r->ar.start, 1);
+ 	KUNIT_EXPECT_EQ(test, r->ar.end, 2);
+@@ -1839,7 +1840,7 @@ static void damos_test_filter_out(struct
+ 	r->ar.start = 2;
+ 	r->ar.end = 8;
+ 	KUNIT_EXPECT_TRUE(test,
+-			damos_filter_match(NULL, t, r, f, 1));
++			damos_filter_match(NULL, t, r, f, 1, &err));
+ 	/* filter should have split the region */
+ 	KUNIT_EXPECT_EQ(test, r->ar.start, 2);
+ 	KUNIT_EXPECT_EQ(test, r->ar.end, 6);
 _
 
-Patches currently in -mm which might be from gourry@gourry.net are
+Patches currently in -mm which might be from sj@kernel.org are
 
-mm-damon-use-damon_get_monitor_folio-for-hugetlb-entries.patch
-mm-vmscan-reclaim-every-zone-in-per-node-proactive-reclaim.patch
-mm-mempolicy-apply-bind-policies-against-the-scoped-allocation-zone.patch
+mm-damon-core-introduce-damos_quota_goal-complement.patch
+mm-damon-core-add-complement-argument-to-damos_new_quota_goal.patch
+mm-damon-sysfs-schemes-support-quota-goal-complement-flag.patch
+mm-damon-tests-core-kunit-test-quota_goal-complement-commit.patch
+selftests-damon-sysfssh-test-quota-goal-complement-flag-file.patch
+docs-mm-damon-design-document-damos-quota-goal-complement-flag.patch
+docs-admin-guide-mm-damon-usage-update-for-quota-goal-complement-file.patch
+docs-abi-damon-update-for-quota-goal-metric-complement-sysfs-file.patch
+mm-damon-core-filter-out-damos-address-filter-split-failed-region.patch
 
