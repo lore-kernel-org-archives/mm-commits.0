@@ -1,45 +1,45 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1792468798;
-	b=X1X1UyApC91ij89PawU8nelNFU+zA3ky8nHcuMsLvYyVphiPeu3ZoPd1j4FhEr/GRO9D
-	 4IgLNZu8OzMKdrFCuJtvWT+Nqy+pzmH+tr72zdeksoRx8MECTcNzvVC1s/0KViv7j7YJc
-	 EInGx7YlV+jYlOvS4Tmw/YOEYsjLWFPB4DG8rxb2CdfRtshJVOma1fKtVnCqrA3bSDXrc
-	 IEVErmnQWc7xEh3jln2PlBcnyMNnx7Vdl0mHaCZWmHeItCio1RN1fxmpbs56fXZMydtoK
-	 VX0yogK+oNAnB1F8/Y/e3dds47LvoaP6ZfiWbiseEsSXCLdqZucz0mBUVH19X5LTdsA==
+	t=1792468913;
+	b=br50xpyDtNS9SqZLM5+P3+MzlEQM3UxXhuBCYuMnQsqkcculgpNy1aj8qTQa3HtfFlkM
+	 JDgn2up+J/MspTCaQJ68V5VuDADZcrSNs+gEtXUkpaiIO/25VK+v7AfxEwpwFNmTTFB5j
+	 lahctHgXRq1hKTJgZ8AMWYyitmSMHCNIA8BLmN+ndpmwucdJx5jMaxAjGgpzjmiu0NeDg
+	 w2/5TaQnYL0ACe/Y7Gvgy25L+ISz4i0kJ5aSx6MJi8K3ZhbddFNvMfjSlaOZt/jbvx+L8
+	 oYiVd76Ykd0YEzdkNZHgY4e1OR4bWRcCEr3642GjJpjUFZ97qJPsIuPUVTUpODC2G3A==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1792468798;
+	a=rsa-sha256; c=relaxed/relaxed; t=1792468913;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=AfHaj+8dQUnNrsK9DsOJBAg4EwTdzh6LAgCXiu28LxM=;
-	b=Bkru6fRVhNdrk/MVNouCnRPOW3c9YOrZEK8xrlQvWrsIna08amNcvcaXTO/0LEQ3D+X1
-	 iSbYNIQ/fAoPEMABzVVsTsYtsOwk0WYIUZbhdHLxmpTgBPxCZk1b806OxytwxKMNtCe7T
-	 fxbNvIlQBD3inhvqDfGO8pOlCgDM3n667uPwODbM7dDsaLc7i7csc7FT7rmshISHDaf3E
-	 Jw6peNFmm1frNikQq7Gb4ObMqIeFoth84FgWKnqo/gtodsYjKfWhqsHMZ25cWNuaF/KMq
-	 4plwWABeidKR2T9u1spD3kaG+IoGdysHZDSZE37WI6QgaN+gaSmWceocL2Sx3mEUzuA==
+	bh=Bt7XsJIgW4Lu6Mhb+nkalyGmIkyhNEANpu9bya4kirI=;
+	b=0Qazj9eh6R8gcLsJ3Fwt7gXaP3bceK2tpWh1wGY1xJJFYIceofp3es/97urUtwOMpSsT
+	 HoQXQyqfAW/RgftiGzfzygS6PN5JcjNMIhLHB/XYBmEsAynQ3VDS/GhgLZV0l3JJ81rup
+	 QfpMtEDhKgde6K/YvZXEgimv9nGbzGSJsyJU8ez0ixWF8TTElbvPL6SKKB0UXiaUXyn5o
+	 P12gOqCenr2nfhTcAxwAXuKZzW54FEAOdyrnE2bJAXoYbCBhl2oQxNTXqWZi544nl5TDq
+	 zkcDh3IUgy86m78LRvqRgBvDCZHKf974p9ceh/+30uFIg1nUXqbHCjwO7DDqytpOxCw==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=qeh3W2gG;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b="0D/GUNTu";
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 81037606A319
-	for <mm-commits@vger.kernel.org>; Tue, 20 Oct 2026 03:59:57 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DFE64606A319;
+	Tue, 20 Oct 2026 04:01:52 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=qeh3W2gG
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E5D661F000C4;
-	Tue, 20 Oct 2026 03:59:56 +0000 (UTC)
+	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=0D/GUNTu
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5ECB11F000C5;
+	Tue, 20 Oct 2026 04:01:52 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1792468797;
-	bh=AfHaj+8dQUnNrsK9DsOJBAg4EwTdzh6LAgCXiu28LxM=;
+	d=linux-foundation.org; s=korg; t=1792468912;
+	bh=Bt7XsJIgW4Lu6Mhb+nkalyGmIkyhNEANpu9bya4kirI=;
 	h=Date:To:From:Subject;
-	b=qeh3W2gG+jlI9XRGZkcrCqITSGiXPsNq3VYKd8KBust8dA/0q9he26L1P1Azhqxen
-	 cxzy/N2HsGfdopT6WkLqd1GgdVO0+WztEOyxtgBZLzim9oI6+P998bqNNpsyzDjTjU
-	 EUPOOIHAS21NcJAiyLCdjMmmcRAG45hdRf26URgs=
-Date: Mon, 19 Oct 2026 20:59:56 -0700
-To: mm-commits@vger.kernel.org,shakeel.butt@linux.dev,roman.gushchin@linux.dev,qi.zheng@linux.dev,muchun.song@linux.dev,mhocko@kernel.org,harry@kernel.org,hannes@cmpxchg.org,david@fromorbit.com,akpm@linux-foundation.org,khorenko@virtuozzo.com
+	b=0D/GUNTuMXWbuAW4NhmM9vZ6tX8zV4DJ6bbfeHfeyt9ZLOmW3K2V756KRxaKIpYvq
+	 FQGj+MWVz2nWSMrWbk9JGtOTHljYn7FRAip8wuYx2uxXzOnlkQGwpCyy2jJDdv0M8/
+	 PuCiLZITSh1+HBDPGCAthNRkfjBsFtOVxsaC6+SU=
+Date: Mon, 19 Oct 2026 21:01:51 -0700
+To: mm-commits@vger.kernel.org,stable@vger.kernel.org,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-shrinker-allocate-shrinker_info_unit-from-a-dedicated-kmem_cache.patch added to mm-unstable branch
-Message-Id: <20261020035956.E5D661F000C4@smtp.kernel.org>
+Subject: + mm-damon-core-remove-unreachable-damos-charge_targetaddr_from.patch added to mm-unstable branch
+Message-Id: <20261020040152.5ECB11F000C5@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -51,12 +51,12 @@ Precedence: list
 
 
 The patch titled
-     Subject: mm/shrinker: allocate shrinker_info_unit from a dedicated kmem_cache
+     Subject: mm/damon/core: remove unreachable damos charge_{target,addr}_from
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-shrinker-allocate-shrinker_info_unit-from-a-dedicated-kmem_cache.patch
+     mm-damon-core-remove-unreachable-damos-charge_targetaddr_from.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-shrinker-allocate-shrinker_info_unit-from-a-dedicated-kmem_cache.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-core-remove-unreachable-damos-charge_targetaddr_from.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -74,98 +74,93 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Konstantin Khorenko <khorenko@virtuozzo.com>
-Subject: mm/shrinker: allocate shrinker_info_unit from a dedicated kmem_cache
-Date: Mon, 19 Oct 2026 18:11:44 +0200
+From: SJ Park <sj@kernel.org>
+Subject: mm/damon/core: remove unreachable damos charge_{target,addr}_from
+Date: Mon, 19 Oct 2026 19:39:56 -0700
 
-shrinker_info_unit holds BITS_PER_LONG atomic_long_t of deferred work plus
-a one-word bitmap, 520 bytes on 64-bit.  kzalloc_node() takes it from
-kmalloc-1k, so almost half of every unit is padding.
+damos_quota->charge_{target,addr}_from saves the target and region the
+scheme's quota limit is reached.  damos_skip_charged_region() skips the
+target and regions before the point.  The target that was assigned to
+charge_target_from could be dynamically removed from the context by the
+runtime parameters update (aka commit) feature.  In this case,
+damos_skip_charged_region() cannot find if the point is passed or not,
+so the scheme is effectively disabled.
 
-Allocate the units from a cache of their own, sized to the unit.  The
-cache is not cache-line aligned: the counters of a unit already share
-cache lines between shrinkers, and aligning the unit would only keep
-neighbouring units off each other's boundary line, at the cost of part of
-the saving.
+Similarly, the user could also remove all the regions of the target
+using the runtime parameters update feature.  It would be uncommon to do
+that, but it is a supported feature.  Because the skip pointer detection
+logic (damos_skip_charged_region()) works for each region of targets,
+this result in the logic is entirely skipped and the scheme is
+effectively disabled again.
 
-Link: https://lore.kernel.org/20261019-vstor-144715-shrinker_info_unit-kmem_cache-v3-1-0fb061e09bf4@virtuozzo.com
-Signed-off-by: Konstantin Khorenko <khorenko@virtuozzo.com>
+The user impact is that the DAMOS scheme could suddenly stop working
+under certain uses of the runtime parameters update feature.  It could
+surprise users. No crash or leak happens though.  Users could also
+simply work around by re-installing the scheme.
+
+Catch the corner cases in damos_adjust_quota() and reset the pointers.
+
+Link: https://lore.kernel.org/20261020023958.108276-1-sj@kernel.org
+Fixes: da87878010e5 ("mm/damon/sysfs: support online inputs update")
+Signed-off-by: SJ Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Suggested-by: Andrew Morton <akpm@linux-foundation.org>
-Reviewed-by: Harry Yoo (Meta) <harry@kernel.org>
-Reviewed-by: Qi Zheng <qi.zheng@linux.dev>
-Acked-by: Muchun Song <muchun.song@linux.dev>
-Assisted-by: LLM
-Cc: Dave Chinner <david@fromorbit.com>
-Cc: Roman Gushchin <roman.gushchin@linux.dev>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Shakeel Butt <shakeel.butt@linux.dev>
+Closes: https://sashiko.dev/#/bug/linux-cd0c55fc-0cc8-45d8-9637-3334811c49b8
+Cc: <stable@vger.kernel.org> # 5.19.x
 ---
 
- include/linux/memcontrol.h |    1 +
- mm/memcontrol.c            |    2 ++
- mm/shrinker.c              |   11 +++++++++--
- 3 files changed, 12 insertions(+), 2 deletions(-)
+ mm/damon/core.c |   22 ++++++++++++++++++++++
+ 1 file changed, 22 insertions(+)
 
---- a/include/linux/memcontrol.h~mm-shrinker-allocate-shrinker_info_unit-from-a-dedicated-kmem_cache
-+++ a/include/linux/memcontrol.h
-@@ -1717,6 +1717,7 @@ static inline u64 mem_cgroup_get_socket_
- }
- #endif
- 
-+void shrinker_unit_cache_init(void);
- int alloc_shrinker_info(struct mem_cgroup *memcg);
- void free_shrinker_info(struct mem_cgroup *memcg);
- void set_shrinker_bit(struct mem_cgroup *memcg, int nid, int shrinker_id);
---- a/mm/memcontrol.c~mm-shrinker-allocate-shrinker_info_unit-from-a-dedicated-kmem_cache
-+++ a/mm/memcontrol.c
-@@ -5984,6 +5984,8 @@ int __init mem_cgroup_init(void)
- 	memcg_pn_cachep = KMEM_CACHE(mem_cgroup_per_node,
- 				     SLAB_PANIC | SLAB_HWCACHE_ALIGN);
- 
-+	shrinker_unit_cache_init();
-+
- 	return 0;
+--- a/mm/damon/core.c~mm-damon-core-remove-unreachable-damos-charge_targetaddr_from
++++ a/mm/damon/core.c
+@@ -3383,6 +3383,26 @@ static void damos_trace_esz(struct damon
+ 	trace_damos_esz(cidx, sidx, quota->esz);
  }
  
---- a/mm/shrinker.c~mm-shrinker-allocate-shrinker_info_unit-from-a-dedicated-kmem_cache
-+++ a/mm/shrinker.c
-@@ -12,6 +12,12 @@ DEFINE_MUTEX(shrinker_mutex);
- 
- #ifdef CONFIG_MEMCG
- static int shrinker_nr_max;
-+static struct kmem_cache *shrinker_unit_cachep;
-+
-+void __init shrinker_unit_cache_init(void)
++static void damos_fix_stale_charge_pointers(struct damon_ctx *c,
++		struct damos *s)
 +{
-+	shrinker_unit_cachep = KMEM_CACHE(shrinker_info_unit, SLAB_PANIC);
++	struct damos_quota *quota;
++	struct damon_target *t;
++
++	quota = &s->quota;
++	if (!quota->charge_target_from)
++		return;
++	damon_for_each_target(t, c) {
++		if (t == quota->charge_target_from) {
++			if (damon_nr_regions(t) > 0)
++				return;
++			break;
++		}
++	}
++	quota->charge_target_from = NULL;
++	quota->charge_addr_from = 0;
 +}
- 
- static inline int shrinker_unit_size(int nr_items)
++
+ static void damos_adjust_quota(struct damon_ctx *c, struct damos *s)
  {
-@@ -33,7 +39,7 @@ static inline void shrinker_unit_free(st
- 		if (!unit[i])
- 			break;
- 
--		kfree(unit[i]);
-+		kmem_cache_free(shrinker_unit_cachep, unit[i]);
- 		unit[i] = NULL;
+ 	struct damos_quota *quota = &s->quota;
+@@ -3418,6 +3438,8 @@ static void damos_adjust_quota(struct da
+ 			damos_trace_esz(c, s, quota);
  	}
- }
-@@ -47,7 +53,8 @@ static inline int shrinker_unit_alloc(st
- 	int i;
  
- 	for (i = start; i < nr; i++) {
--		unit = kzalloc_node(sizeof(*unit), GFP_KERNEL, nid);
-+		unit = kmem_cache_alloc_node(shrinker_unit_cachep,
-+					     GFP_KERNEL | __GFP_ZERO, nid);
- 		if (!unit) {
- 			shrinker_unit_free(new, start);
- 			return -ENOMEM;
++	damos_fix_stale_charge_pointers(c, s);
++
+ 	if (damos_quota_is_full(quota, c->min_region_sz))
+ 		return;
+ 	if (!c->ops.get_scheme_score)
 _
 
-Patches currently in -mm which might be from khorenko@virtuozzo.com are
+Patches currently in -mm which might be from sj@kernel.org are
 
-mm-shrinker-allocate-shrinker_info_unit-from-a-dedicated-kmem_cache.patch
+mm-damon-core-introduce-damos_quota_goal-complement.patch
+mm-damon-core-add-complement-argument-to-damos_new_quota_goal.patch
+mm-damon-sysfs-schemes-support-quota-goal-complement-flag.patch
+mm-damon-tests-core-kunit-test-quota_goal-complement-commit.patch
+selftests-damon-sysfssh-test-quota-goal-complement-flag-file.patch
+docs-mm-damon-design-document-damos-quota-goal-complement-flag.patch
+docs-admin-guide-mm-damon-usage-update-for-quota-goal-complement-file.patch
+docs-abi-damon-update-for-quota-goal-metric-complement-sysfs-file.patch
+mm-damon-core-filter-out-damos-address-filter-split-failed-region.patch
+mm-damon-core-remove-unreachable-damos-charge_targetaddr_from.patch
 
