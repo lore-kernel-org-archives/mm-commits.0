@@ -1,45 +1,45 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1792458305;
-	b=OYGOYDPVad0IEA+NgAZMR7yy0wIj3LB7cPyXTqI3mqZDeoG3dxKYUnS5PUODsos1W3Kq
-	 PdlBnmSWuB53QUg/Er4wCbEUO54PVvjcGclVmpoVzkDmfIqJcDo95LC4Wxu5mUDPcEkKT
-	 H9St1AEwLNZ4vr/nyEGvWNgxd0rMa5TNXCwlDxJfZAjMDdjJCs8Rx8g63XbBuYddcEkVC
-	 rAz6V0VDW7xxU11supDJEzBme6r3hJgUDpeLGEXyToYWq8qLjgFQUBA6OAuvy2fVNpQSk
-	 iMnIF2Fi9KqcyKjYCkPPtE2Xi43ib1FvI9pb+GhhboKpS5dNE0ZZbY9osE/gQKqI2ag==
+	t=1792458306;
+	b=r2oTQHRUsICoOswWdjfFtNtd7F1l+UyhCu/uzZ9GZzcKfzIbKIiXOO0AzYQwycDuOWV+
+	 4L4f62HD1WdN+HVXZ4tRxjuLA9o5mvKdfX8txEZx/cLGfMzCMsmjSGO7/Ay9KPnl6TgFe
+	 yAAOzR80d6bMvzo4dlgmECYh370AYigV1nDRhbRBnKaZ1F2KOM/S3Q69zL2yWavdg5jHF
+	 pNf4/mGlfDZOQlRrfrZh4JJQvoLkelFKiHG8jOdlZLD9I8LlnWLZVhhwZBdq1gxdXRWGt
+	 b4dZJdbC2h6KuWalz4QXujuGmeDuPBYOOFVOpD/7LJBor/jgaI9FiaOvFu/pJphPD3A==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1792458305;
+	a=rsa-sha256; c=relaxed/relaxed; t=1792458306;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=2Cp761GZx7EN8uZcWBFhe53Fn0HcZV08pSFIe6ffJa8=;
-	b=KXiOOv6PRm+pETfYLlwT1+D85QIhb4WrfJ2yDYglpJ8tQPo+842Uu/amiTjFdjFJHOCB
-	 MHparluWmgYc8GY/txw9Wzv5sxTE+ivR2seJbcOi2LHoJdGIJuQWL8Mj8a5sPnavyxT7J
-	 f+Ke760pILntLGt3wuaHsrEAanuIYyY/XAfAYZoJe5ZDU/xGaU3ukp97dk23sE4QxPQHs
-	 Gkxg30lkxoehQeFQ22uMlhfsr8mBhvMf0zC8GX/oz8EWALcXP21SQ7ET0PJ0e+NEqZHWS
-	 eoBEV12wsPUIGnRS1MfQP+62IzMfhiTRSYRzYLS6hkwDJVeYdPovWLt0FXqNEtC5sug==
+	bh=qz/REZQcau3HLxA1z4gxI8jW645xfcr06F21XNGw7GE=;
+	b=3xJLPkcN/EO1qOFQFnqm06Hp377PCqMX5UDMx7TRtKvNkcf5bcrnMoGQjP6npv5JX69u
+	 x5nXrdnmrEggjUsI56sOqfyA+kqG68j8t4wzHDonYISuupVauN4csHg7uNCqnF6AjcYjQ
+	 krl/Hww0zeFaXJhxJjg818VYBL8PpWBboQb6MzPibAB89IU69NjuJtb8uGFhpPIxjNqhX
+	 x4lG9Hb6XH5PSVMrxPj36QRITUNVUJzgcj13683ZRuIX/7wluDZsHrFOpw06krVyVs2DB
+	 1LnAKbt0foiwQXaofVnDjqQVNhro04O96Q+JhVy7ZFy8510O7gH8GHGCv8Tcb0BtVXg==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=mGvf29vk;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=OGT+dFpQ;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A606B606A321;
-	Tue, 20 Oct 2026 01:05:04 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7C6D1606A323
+	for <mm-commits@vger.kernel.org>; Tue, 20 Oct 2026 01:05:06 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=mGvf29vk
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 23DBD1F000C4;
-	Tue, 20 Oct 2026 01:05:04 +0000 (UTC)
+	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=OGT+dFpQ
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 073ED1F000C8;
+	Tue, 20 Oct 2026 01:05:06 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1792458304;
-	bh=2Cp761GZx7EN8uZcWBFhe53Fn0HcZV08pSFIe6ffJa8=;
+	d=linux-foundation.org; s=korg; t=1792458306;
+	bh=qz/REZQcau3HLxA1z4gxI8jW645xfcr06F21XNGw7GE=;
 	h=Date:To:From:Subject;
-	b=mGvf29vk8uMxWvIySpsapNsJM/xznDiMhXcYgSk/qyv88rAZ8R1XTK2Cwe1sZD2PF
-	 tuU4s8TxH6AUeN/iV+VNQLZUkDrEIyUpknhXWbJiJUQAn/K5OitAMlMH/BTsdOD0S1
-	 4E4DeBPrUREYO5Z4Eri4HXNXj+yM6vSM6wVblwBE=
-Date: Mon, 19 Oct 2026 18:05:03 -0700
-To: mm-commits@vger.kernel.org,vbabka@kernel.org,usama.anjum@arm.com,stable@vger.kernel.org,pfalcato@suse.de,ljs@kernel.org,liam@infradead.org,jannh@google.com,ngocquy0700@gmail.com,akpm@linux-foundation.org
+	b=OGT+dFpQiKfWSM4UXU2X7SFDxy3cvSsA4eE03MiOdx+y0Zr/u9paviZgXU1EbTLov
+	 vs3m7CpeblOMgsIbbXgiWcLlVaPb8QWe+byUidgs7Ck03ffIiV4UWs2AHFo3/2uMvF
+	 7UhRwdMEiRWC8XpZjpYN838u0pqIYv+hXW3klhyU=
+Date: Mon, 19 Oct 2026 18:05:05 -0700
+To: mm-commits@vger.kernel.org,vbabka@kernel.org,usama.anjum@arm.com,pfalcato@suse.de,ngocquy0700@gmail.com,ljs@kernel.org,liam@infradead.org,jannh@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + fs-proc-task_mmu-pin-mm_users-in-do_pagemap_scan.patch added to mm-unstable branch
-Message-Id: <20261020010504.23DBD1F000C4@smtp.kernel.org>
+Subject: + fs-proc-task_mmu-pin-mm_users-in-do_pagemap_scan-fix.patch added to mm-unstable branch
+Message-Id: <20261020010506.073ED1F000C8@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -51,12 +51,12 @@ Precedence: list
 
 
 The patch titled
-     Subject: fs/proc/task_mmu: pin mm_users in do_pagemap_scan()
+     Subject: fs-proc-task_mmu-pin-mm_users-in-do_pagemap_scan-fix
 has been added to the -mm mm-unstable branch.  Its filename is
-     fs-proc-task_mmu-pin-mm_users-in-do_pagemap_scan.patch
+     fs-proc-task_mmu-pin-mm_users-in-do_pagemap_scan-fix.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/fs-proc-task_mmu-pin-mm_users-in-do_pagemap_scan.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/fs-proc-task_mmu-pin-mm_users-in-do_pagemap_scan-fix.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -74,88 +74,44 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Ngoc Quy <ngocquy0700@gmail.com>
-Subject: fs/proc/task_mmu: pin mm_users in do_pagemap_scan()
-Date: Wed, 14 Oct 2026 16:55:40 +0700
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: fs-proc-task_mmu-pin-mm_users-in-do_pagemap_scan-fix
+Date: Mon Oct 19 06:04:17 PM PDT 2026
 
-The PAGEMAP_SCAN ioctl takes mmap_read_lock() on an mm obtained from
-/proc/<pid>/pagemap without holding a reference to mm_users.
+remove unneeded & undesirable test for !mm
 
-proc_mem_open() deliberately grabs only mm_count, so a consumer that
-touches the address space has to call mmget_not_zero() first.  Every other
-consumer in this file does -- m_start(), do_procmap_query(),
-show_smaps_rollup() and pagemap_read() -- but do_pagemap_scan() does not.
-
-Without that reference the target can reach exit_mmap() concurrently, and
-exit_mmap() calls unmap_vmas() while holding mmap_lock only for reading,
-which does not exclude the scanner.  For ordinary VMAs this is harmless,
-as free_pgtables() and remove_vma() run afterwards under mmap_write_lock. 
-A shared hugetlb VMA is different: __hugetlb_zap_end() frees the VMA's
-hugetlb_vma_lock inside the read-locked phase.
-
-walk_hugetlb_range() can therefore load vma->vm_private_data, have the
-lock freed underneath it, and then down_read() a freed rw_semaphore.  The
-load happens before the freeing side clears the pointer, so this is a
-use-after-free and not a NULL dereference.  Any unprivileged user can
-reach it with no huge pages configured, as hugetlb_reserve_pages()
-allocates the lock before the VM_NORESERVE early return.
-
-Pin mm_users across the scan, the way the other consumers do.  mmput()
-from the exiting task can then no longer reach exit_mmap() while a walk is
-in progress.
-
-Link: https://lore.kernel.org/20261014095540.3261469-1-ngocquy0700@gmail.com
-Fixes: 52526ca7fdb9 ("fs/proc/task_mmu: implement IOCTL to get and optionally clear info about PTEs")
-Signed-off-by: Ngoc Quy <ngocquy0700@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Assisted-by: Claude:claude-opus-5
+Cc: Jann Horn <jannh@google.com>
 Cc: Liam R. Howlett <liam@infradead.org>
 Cc: Lorenzo Stoakes <ljs@kernel.org>
-Cc: Vlastimil Babka <vbabka@kernel.org>
-Cc: Jann Horn <jannh@google.com>
-Cc: Pedro Falcato <pfalcato@suse.de>
 Cc: Muhammad Usama Anjum <usama.anjum@arm.com>
-Cc: <stable@vger.kernel.org>
+Cc: Ngoc Quy <ngocquy0700@gmail.com>
+Cc: Pedro Falcato <pfalcato@suse.de>
+Cc: Vlastimil Babka <vbabka@kernel.org>
 ---
 
- fs/proc/task_mmu.c |    9 +++++++--
- 1 file changed, 7 insertions(+), 2 deletions(-)
+ fs/proc/task_mmu.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/fs/proc/task_mmu.c~fs-proc-task_mmu-pin-mm_users-in-do_pagemap_scan
+--- a/fs/proc/task_mmu.c~fs-proc-task_mmu-pin-mm_users-in-do_pagemap_scan-fix
 +++ a/fs/proc/task_mmu.c
-@@ -3125,15 +3125,18 @@ static long do_pagemap_scan(struct mm_st
+@@ -3125,7 +3125,7 @@ static long do_pagemap_scan(struct mm_st
  	size_t n_ranges_out = 0;
  	int ret;
  
-+	if (!mm || !mmget_not_zero(mm))
-+		return -ESRCH;
-+
+-	if (!mm || !mmget_not_zero(mm))
++	if (!mmget_not_zero(mm))
+ 		return -ESRCH;
+ 
  	ret = pagemap_scan_get_args(&p.arg, uarg);
- 	if (ret)
--		return ret;
-+		goto out_mmput;
- 
- 	p.masks_of_interest = p.arg.category_mask | p.arg.category_anyof_mask |
- 			      p.arg.return_mask;
- 	ret = pagemap_scan_init_bounce_buffer(&p);
- 	if (ret)
--		return ret;
-+		goto out_mmput;
- 
- 	for (walk_start = p.arg.start; walk_start < p.arg.end;
- 			walk_start = p.arg.walk_end) {
-@@ -3188,6 +3191,8 @@ static long do_pagemap_scan(struct mm_st
- 		ret = -EFAULT;
- 
- 	kfree(p.vec_buf);
-+out_mmput:
-+	mmput(mm);
- 	return ret;
- }
- 
 _
 
-Patches currently in -mm which might be from ngocquy0700@gmail.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-fs-proc-task_mmu-pin-mm_users-in-do_pagemap_scan.patch
+bio-iov-iter-rollback.patch
+mm-damon-core-introduce-damos_quota_goal-complement-fix.patch
+fs-proc-task_mmu-pin-mm_users-in-do_pagemap_scan-fix.patch
+lib-cmdline-fix-get_options-count-and-overflow-with-large-ranges-fix.patch
+drivers-media-v4l2-core-v4l2-vp9c-reduce-inlining.patch
+fat-roll-back-the-new-entry-when-create-mkdir-fails-to-build-the-inode-fix.patch
 
