@@ -1,45 +1,45 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1792560646;
-	b=HLJEi/eNM2DClxVNR63RXkiBuObFzcPccCCai4JeoGwM5uYrerlrbp10uzpUhbjUdQyf
-	 t8nnG3H8LF937NkM2kPVkyrX8cvDDC5/FvoP4YMKJX0grojppz0txr4A6W465Fl9PzhTr
-	 rcMrX7XhytNZFYh7Ik2W9vSHp/gGpllgBwD2pBRPEr4slC4M/J3+GbHid8uhunpi/B7Lv
-	 N74OG96qHHi+EQMQmytMFaqetLCoa03rj6oxJhzRkHP15unKN8Eq/+86bSZC4iasHAFNc
-	 3OlgEWoVm3Nm2GRzianFjgupwJSvBomml/09xqZ9D1tNTVC1PGILoraWP4fF6lC2jIw==
+	t=1792560647;
+	b=aK3x7Q1pRIVRIxo9hmfuTsNFEx5ivUvzmM9K7j3AD30R0ePsqHZnRXMiqRZ5Up1sb1JN
+	 X4UUO2TuXO7KIFRHxj1oKLMIpC6Vb6UOEw7QuqXgAYgFyvgoAWsfvzF4hmTqvdy8iV0s3
+	 8nMA5QhtdNVsSI/PdVj4tS2TUxHWI3esjTfE4GNRhaNBSwQGVRpUMXcPqZATMFVfw4/mQ
+	 s/czbUUeLuFtUSsUeO1N/q9p1BLi0bgmkgmwMdBJF6NLZH5d1hSb4lPpl7cT6RFdHBSN5
+	 02g/JIndkS0x6RV7lNP0ty2KjRcp61NFjfA1DC9XxcmZHVikCYvUxw1lmXLj67ril8g==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1792560646;
+	a=rsa-sha256; c=relaxed/relaxed; t=1792560647;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=3xBVr1FOE5hKeHyUHrZ08RwKD3jyKef5n/j0WpDDFM0=;
-	b=V5JhsdKgcp4AYx38kSFbL48hTf2POLnVITTVf1cUk8TarrINQ9S3KQBk8bw+ncjhuIbJ
-	 auTuzFD9Glx2ZP5vWerRoLdwqvGeq/ueK6kcbWfkDB3ZXAAbHTRksYP4snSQ3phlh/WFt
-	 arzs+D55hIvvIoKO/qe31t1rs5rikgey0yy7rpx77eDSEgwJ1Hdlg2NqUnAtsP5PB3DJ/
-	 ZX7rT2v7bPkM03fErhqQPUDf1qZLBrdwmDRWMD7V6InexdK4VkpSzwvVgbUls2TlXIP96
-	 hpm7YpmwOhx8CkP7efHQijlI8su/0lAgZuPS8hRWMgCICXW2Ll8g9t7qopKMWs8vGpw==
+	bh=ZE6EPqWN8yPElzxKL0sraq82mWjmev5IkuCCKxJHYfA=;
+	b=RKOeHj3DHMpZaDtbFkH6yAOPeOOYB9SKQROml8hF0OonIR0CnMO0rqN6+36Fhd1UCGrC
+	 G7jC9a+d5joaHlSz6lSbtGRIJ7V1O3I+l6zItK8+HJhaJndgzWq/6MLIB00p99B2NbZCH
+	 kGqQOJPuy/7b6uVZ4smZ+SIhVRp96wZXAKFUaDzqtKudQMwQ+SrcvFkC6Q8Zata6o5MN9
+	 iRZcsBY0BxslK+iSqPYytQnVGtd0P3piRKgcAvna9k4ea0ieUF701Pd2L3rZh2/krYL9h
+	 yGfjFLqwYgm3Bu5iy4NcCZi2FsA5Zk7jruuL/f6jI4gNW6jcSDo7YfVCk4C1jaDU27g==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=GEiAETPF;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b="ey00qbA/";
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 88D4D606A31C
-	for <mm-commits@vger.kernel.org>; Wed, 21 Oct 2026 05:30:46 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9C2F1606A31C
+	for <mm-commits@vger.kernel.org>; Wed, 21 Oct 2026 05:30:47 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=GEiAETPF
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 195201F000C9;
-	Wed, 21 Oct 2026 05:30:46 +0000 (UTC)
+	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=ey00qbA/
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 259C11F000C9;
+	Wed, 21 Oct 2026 05:30:47 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1792560646;
-	bh=3xBVr1FOE5hKeHyUHrZ08RwKD3jyKef5n/j0WpDDFM0=;
+	d=linux-foundation.org; s=korg; t=1792560647;
+	bh=ZE6EPqWN8yPElzxKL0sraq82mWjmev5IkuCCKxJHYfA=;
 	h=Date:To:From:Subject;
-	b=GEiAETPFw7biMJMDj9WCVtElAiRvn64hdOsjFyuvTJgsv6begX0pRAfsrL+vaj6sI
-	 DLx5LqLy93IBfkoCKov82ghcPCkMD9kkw5sVyVCBZO2UhnyVLDoITmRPm5cEZXpkhT
-	 9fxizQ3R4blzrWmRNY/2ZOQcLRkkdoUehesDWBrk=
-Date: Tue, 20 Oct 2026 22:30:45 -0700
+	b=ey00qbA/dJ5lIhl7nwpoulk58nADlsEji6hsk/COywiA+UV3Gda/ER2kbIXO8JqZ2
+	 +LLUVtBdZmo8Rlpi2/m8Xw2IRyQlwxjKsxNHs/yltYEAiMtS5qeZek2e8grdWGY8jk
+	 MtxqSz2/p1X4QpOw4fsrkRat8v10HX+tAvmekN6Y=
+Date: Tue, 20 Oct 2026 22:30:46 -0700
 To: mm-commits@vger.kernel.org,hirofumi@mail.parknet.co.jp,matheus.aalmeida@inf.ufrgs.br,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] fat-remove-cluster-allocation-size-limit.patch removed from -mm tree
-Message-Id: <20261021053046.195201F000C9@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] fat-support-adding-multiple-clusters.patch removed from -mm tree
+Message-Id: <20261021053047.259C11F000C9@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -51,128 +51,140 @@ Precedence: list
 
 
 The quilt patch titled
-     Subject: fat: remove cluster allocation size limit
+     Subject: fat: support adding multiple clusters
 has been removed from the -mm tree.  Its filename was
-     fat-remove-cluster-allocation-size-limit.patch
+     fat-support-adding-multiple-clusters.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Matheus Alves de Almeida <matheus.aalmeida@inf.ufrgs.br>
-Subject: fat: remove cluster allocation size limit
-Date: Mon, 12 Oct 2026 14:11:04 -0300
+Subject: fat: support adding multiple clusters
+Date: Mon, 12 Oct 2026 14:11:05 -0300
 
-Patch series "fat: allocate multiple clusters in fallocate", v2.
+fat_add_cluster() currently adds only one cluster to a file's chain,
+requiring multiple calls when adding more clusters.
 
-This series adds support for allocating multiple clusters in a single
-fat_add_clusters() call in fat_fallocate().
+Add a fat_alloc_chain() helper that allocates a cluster chain
+but only returns the first cluster. Extend fat_add_cluster()
+to add multiple clusters in a single call and rename it to
+fat_add_clusters() to reflect the new behavior.
 
-The multi-cluster TODO in inode.c is not implemented, as doing so would
-require speculative preallocation or an iomap conversion.
-
-
-This patch (of 3):
-
-fat_alloc_clusters() currently BUG()s when asked to allocate more than
-MAX_BUF_PER_PAGE / 2 clusters. This limit comes from the buffer_head
-array used to defer syncing and mirroring.
-
-Remove the allocation size limit by doing buffer_head batching like
-fat_free_clusters() does.
-
-Link: https://lore.kernel.org/20261012171106.146243-1-matheus.aalmeida@inf.ufrgs.br
-Link: https://lore.kernel.org/20261012171106.146243-2-matheus.aalmeida@inf.ufrgs.br
+Link: https://lore.kernel.org/20261012171106.146243-3-matheus.aalmeida@inf.ufrgs.br
 Signed-off-by: Matheus Alves de Almeida <matheus.aalmeida@inf.ufrgs.br>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 Acked-by: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
 ---
 
- fs/fat/fatent.c |   44 +++++++++++++++++++++++++++++++-------------
- 1 file changed, 31 insertions(+), 13 deletions(-)
+ fs/fat/fat.h    |    3 ++-
+ fs/fat/fatent.c |   18 ++++++++++++++++--
+ fs/fat/file.c   |    2 +-
+ fs/fat/inode.c  |    8 ++++----
+ 4 files changed, 23 insertions(+), 8 deletions(-)
 
---- a/fs/fat/fatent.c~fat-remove-cluster-allocation-size-limit
+--- a/fs/fat/fatent.c~fat-support-adding-multiple-clusters
 +++ a/fs/fat/fatent.c
-@@ -483,6 +483,26 @@ static void fat_collect_bhs(struct buffe
- 	}
+@@ -503,7 +503,8 @@ static int fat_flush_bhs(struct super_bl
+ 	return 0;
  }
  
-+static int fat_flush_bhs(struct super_block *sb, struct buffer_head **bhs,
-+			 int *nr_bhs, bool sync)
-+{
-+	int err, i;
-+
-+	if (sync) {
-+		err = fat_sync_bhs(bhs, *nr_bhs);
-+		if (err)
-+			return err;
-+	}
-+	err = fat_mirror_bhs(sb, bhs, *nr_bhs);
-+	if (err)
-+		return err;
-+	for (i = 0; i < *nr_bhs; i++)
-+		brelse(bhs[i]);
-+	*nr_bhs = 0;
-+
-+	return 0;
-+}
-+
- int fat_alloc_clusters(struct inode *inode, int *cluster, int nr_cluster)
+-int fat_alloc_clusters(struct inode *inode, int *cluster, int nr_cluster)
++static int __fat_alloc_clusters(struct inode *inode, int *cluster, int nr_cluster,
++				bool return_all)
  {
  	struct super_block *sb = inode->i_sb;
-@@ -492,8 +512,6 @@ int fat_alloc_clusters(struct inode *ino
- 	struct buffer_head *bhs[MAX_BUF_PER_PAGE];
- 	int i, count, err, nr_bhs, idx_clus;
- 
--	BUG_ON(nr_cluster > (MAX_BUF_PER_PAGE / 2));	/* fixed limit */
--
- 	lock_fat(sbi);
- 	if (sbi->free_clusters != -1 && sbi->free_clus_valid &&
- 	    sbi->free_clusters < nr_cluster) {
-@@ -524,14 +542,21 @@ int fat_alloc_clusters(struct inode *ino
- 				if (prev_ent.nr_bhs)
- 					ops->ent_put(&prev_ent, entry);
- 
--				fat_collect_bhs(bhs, &nr_bhs, &fatent);
--
- 				sbi->prev_free = entry;
+ 	struct msdos_sb_info *sbi = MSDOS_SB(sb);
+@@ -546,7 +547,10 @@ int fat_alloc_clusters(struct inode *ino
  				if (sbi->free_clusters != -1)
  					sbi->free_clusters--;
  
- 				cluster[idx_clus] = entry;
+-				cluster[idx_clus] = entry;
++				if (return_all)
++					cluster[idx_clus] = entry;
++				else if (!idx_clus)
++					*cluster = entry;
  				idx_clus++;
-+
-+				if (nr_bhs + fatent.nr_bhs > MAX_BUF_PER_PAGE) {
-+					err = fat_flush_bhs(sb, bhs, &nr_bhs,
-+							    inode_needs_sync(inode));
-+					if (err)
-+						goto out;
-+				}
-+				fat_collect_bhs(bhs, &nr_bhs, &fatent);
-+
- 				if (idx_clus == nr_cluster)
- 					goto out;
  
-@@ -621,17 +646,10 @@ int fat_free_clusters(struct inode *inod
- 		}
+ 				if (nr_bhs + fatent.nr_bhs > MAX_BUF_PER_PAGE) {
+@@ -596,6 +600,16 @@ out:
+ 	return err;
+ }
  
- 		if (nr_bhs + fatent.nr_bhs > MAX_BUF_PER_PAGE) {
--			if (sb->s_flags & SB_SYNCHRONOUS) {
--				err = fat_sync_bhs(bhs, nr_bhs);
--				if (err)
--					goto error;
--			}
--			err = fat_mirror_bhs(sb, bhs, nr_bhs);
-+			err = fat_flush_bhs(sb, bhs, &nr_bhs,
-+					    sb->s_flags & SB_SYNCHRONOUS);
++int fat_alloc_clusters(struct inode *inode, int *cluster, int nr_cluster)
++{
++	return __fat_alloc_clusters(inode, cluster, nr_cluster, true);
++}
++
++int fat_alloc_chain(struct inode *inode, int *cluster, int nr_cluster)
++{
++	return __fat_alloc_clusters(inode, cluster, nr_cluster, false);
++}
++
+ int fat_free_clusters(struct inode *inode, int cluster)
+ {
+ 	struct super_block *sb = inode->i_sb;
+--- a/fs/fat/fat.h~fat-support-adding-multiple-clusters
++++ a/fs/fat/fat.h
+@@ -395,6 +395,7 @@ extern int fat_ent_write(struct inode *i
+ 			 int new, int old, int wait);
+ extern int fat_alloc_clusters(struct inode *inode, int *cluster,
+ 			      int nr_cluster);
++int fat_alloc_chain(struct inode *inode, int *cluster, int nr_cluster);
+ extern int fat_free_clusters(struct inode *inode, int cluster);
+ extern int fat_count_free_clusters(struct super_block *sb);
+ extern int fat_trim_fs(struct inode *inode, struct fstrim_range *range);
+@@ -440,7 +441,7 @@ static inline unsigned long fat_dir_hash
+ {
+ 	return hash_32(logstart, FAT_HASH_BITS);
+ }
+-extern int fat_add_cluster(struct inode *inode);
++extern int fat_add_clusters(struct inode *inode, int nr_cluster);
+ 
+ /* fat/misc.c */
+ extern __printf(3, 4) __cold
+--- a/fs/fat/file.c~fat-support-adding-multiple-clusters
++++ a/fs/fat/file.c
+@@ -292,7 +292,7 @@ static long fat_fallocate(struct file *f
+ 
+ 		/* Start the allocation.We are not zeroing out the clusters */
+ 		while (nr_cluster-- > 0) {
+-			err = fat_add_cluster(inode);
++			err = fat_add_clusters(inode, 1);
  			if (err)
  				goto error;
--			for (i = 0; i < nr_bhs; i++)
--				brelse(bhs[i]);
--			nr_bhs = 0;
  		}
- 		fat_collect_bhs(bhs, &nr_bhs, &fatent);
- 	} while (cluster != FAT_ENT_EOF);
+--- a/fs/fat/inode.c~fat-support-adding-multiple-clusters
++++ a/fs/fat/inode.c
+@@ -102,16 +102,16 @@ static struct fat_floppy_defaults {
+ },
+ };
+ 
+-int fat_add_cluster(struct inode *inode)
++int fat_add_clusters(struct inode *inode, int nr_cluster)
+ {
+ 	int err, cluster;
+ 
+-	err = fat_alloc_clusters(inode, &cluster, 1);
++	err = fat_alloc_chain(inode, &cluster, nr_cluster);
+ 	if (err)
+ 		return err;
+ 	/* FIXME: this cluster should be added after data of this
+ 	 * cluster is writed */
+-	err = fat_chain_add(inode, cluster, 1);
++	err = fat_chain_add(inode, cluster, nr_cluster);
+ 	if (err)
+ 		fat_free_clusters(inode, cluster);
+ 	return err;
+@@ -153,7 +153,7 @@ static inline int __fat_get_block(struct
+ 	 */
+ 	if (!offset && !(iblock < last_block)) {
+ 		/* TODO: multiple cluster allocation would be desirable. */
+-		err = fat_add_cluster(inode);
++		err = fat_add_clusters(inode, 1);
+ 		if (err)
+ 			return err;
+ 	}
 _
 
 Patches currently in -mm which might be from matheus.aalmeida@inf.ufrgs.br are
