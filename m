@@ -1,45 +1,45 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1792607984;
-	b=wAKkrMHiEpXjgHnXRNXnwlYyIy8x2iwWPfOBigKs3z+hEBbSo2dfG8fzDpZnv7uRt/Ip
-	 3m2xbOzG4zE4RsqXG4+xp33wjdgHmkbw34umujgDvrhVeDivJH/yDTCmYwEnlv937viE/
-	 0eyYvx4Tj0ye9lc8cBQSt3HRjM/xBz+Gg38KWUmubmgYdKtt+2655aUtDdo0cI5k5rULv
-	 nv2cEr/gK2Q1Gi4V2eNrNqA07gUY1v0feCmmlHH4p+p+EreHypsmTvEv7+q4G0sk7O6jD
-	 GZkwfNkXPt9omPjZ3Hq2LG+TxK/r1QQPS84u/57jlH0U+Q36L9x3xs3aZ6dMlSnMpYA==
+	t=1792620097;
+	b=vN7S3+h72PY8kDq8I27Vc+ULYteaMnLAoHINS+7TK/FbDoTXPexqHsk3h4JHnQqdLa36
+	 kt2Xx4GYakLNsF4zwKTOE9tujaw8zZn++cFlEPNXVwR9fxfPZDOMUQHyt3ZJ/4NWhdY9L
+	 gnmFBxV8me9Xs4AtFMFxHN41jGDObRvxwJOF5aupN4JtsBRzZ2bJchkINt2CoEZJfKsxp
+	 tCHRMYdyG+rJDop2O7SdoV/fo3hsfvcMAL3JzMVXcBcZ32WtlMVMdX9QHmbsKoDsZ1LCQ
+	 Y6EqTnmgg8TvIi2uGxgUh8+yQcgikpi7DscUV2f1Oc+2kDHnKRpqKe3Towp1WJO/Bwg==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1792607984;
+	a=rsa-sha256; c=relaxed/relaxed; t=1792620097;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=R/cyaRzWC9pd6KDI+55QfQUjuj9Ehis3S52PJ74iJxE=;
-	b=iD3xE4xUNpm5WgPbqjcb5cMKD6AIllt8hDdey1AO0SscDQBs0ewRWw+iIO4RgBUnlUfP
-	 l+J4Be3Znk1LC4jGvSp5pYzoRNz211J0JMoWOQRQi4Q0ob5BQL8UTVYItEeDdPi1AqfrD
-	 VpN4fySTer7Bhj9JezhFV/wKbHJa9la1CJBMfhOvHePt0yQm5LPZ1TO/LQBB5+s4tMmZ8
-	 /z74TMrV5Hxdv9DFE7zXZ4iiHq6AMrRy6t5w+NosDUumEnoYxK37yRmvDcK6lUjrwnfqk
-	 rTnkwziqU2vLbUPNbTO7K2349u3T4/vaLPOJAqvav8rn8NIQWgOhCijCGXbxHhc6olQ==
+	bh=XG4FKOAiiJxa5Wcqv+KgE34SYtrHx/TMDjTuMQvFXlE=;
+	b=cteBPd5oiVZZZRMomZ7pkBbpXEpI8ekcBGyOSELsrWaVzgDkhs7/XciOBWKdhtbd7BYq
+	 ohBSy6sDE5jUQ1gCj91W6m0B0cNkYOn6KeCT3tKLLcMoJS7/QX46BH15Q51yZcXKmsyzH
+	 8Em1NB2dgvxpcGgoGVz1eYQHlslug3gRrHmizA4Fp5Yv5QJwqqZAJTcMtU61PJ3z/elrh
+	 3Ha+4Gmw3ivXp7c5YHQXx0qr+gei3wzHmVlywG7xmpaodooWHZyxqvlvvwNPyMiNhBLK7
+	 eVELxpihaMQ4CLs7oMFKOzMdcQDEPGh9bKklNjQkKn//J06CTq2hadA2VxA+X2EwOqQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=JL6HFLwr;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=2p6eRC8R;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 99F5C606A319;
-	Wed, 21 Oct 2026 18:39:43 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 45A88606A323
+	for <mm-commits@vger.kernel.org>; Wed, 21 Oct 2026 22:01:36 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=JL6HFLwr
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 15E801F000C1;
-	Wed, 21 Oct 2026 18:39:43 +0000 (UTC)
+	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=2p6eRC8R
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A41F11F000C1;
+	Wed, 21 Oct 2026 22:01:36 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1792607983;
-	bh=R/cyaRzWC9pd6KDI+55QfQUjuj9Ehis3S52PJ74iJxE=;
+	d=linux-foundation.org; s=korg; t=1792620096;
+	bh=XG4FKOAiiJxa5Wcqv+KgE34SYtrHx/TMDjTuMQvFXlE=;
 	h=Date:To:From:Subject;
-	b=JL6HFLwrzsr6RLCbi06ldmbRTHHbx4/TWyX7KbvvebYj+rl1ofAcdMB2Y2U1JhKuC
-	 BN3yd4l61GMj36waQTg4v+YPebj9PDHosc8aLXJWo+EdbUYgWLX7rII7c+sSHV8Ib2
-	 QeGyJDFNLCqI5kKkrbUE3q6jakcdCBVOsLet26w8=
-Date: Wed, 21 Oct 2026 11:39:42 -0700
-To: mm-commits@vger.kernel.org,stable@vger.kernel.org,mark@fasheh.com,joseph.qi@linux.alibaba.com,jlbec@evilplan.org,jjzuming@gmail.com,heming.zhao@suse.com,baijiaju1990@gmail.com,zzzccc427@gmail.com,akpm@linux-foundation.org
+	b=2p6eRC8RAiHlNlOXBEeINgy9t8f/o8kzeVsWY1HqmDH5oJHOoaLs5P5hTHnwYF4YH
+	 Y+4U/zO1A/2X/FbVN8ROu5/Kt7N4Puxpqit32xTIrr8KcJ27mWSNxfACLIVJUYe0wU
+	 JdvvAIrtz9P/uWFPZfiXHGtf0nAsgmB4grIWK+Us=
+Date: Wed, 21 Oct 2026 15:01:36 -0700
+To: mm-commits@vger.kernel.org,sashiko-bot@kernel.org,roman.gushchin@linux.dev,muchun.song@linux.dev,mhocko@kernel.org,hannes@cmpxchg.org,gourry@gourry.net,chris@chrisdown.name,shakeel.butt@linux.dev,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + ocfs2-drain-quorum-work-before-removing-the-cluster.patch added to mm-nonmm-unstable branch
-Message-Id: <20261021183943.15E801F000C1@smtp.kernel.org>
+Subject: + mm-page_counter-use-write_once-for-emin-elow-when-parent-is-the-root.patch added to mm-unstable branch
+Message-Id: <20261021220136.A41F11F000C1@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -51,14 +51,14 @@ Precedence: list
 
 
 The patch titled
-     Subject: ocfs2: drain quorum work before removing the cluster
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     ocfs2-drain-quorum-work-before-removing-the-cluster.patch
+     Subject: mm/page_counter: use WRITE_ONCE() for emin/elow when parent is the root
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-page_counter-use-write_once-for-emin-elow-when-parent-is-the-root.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/ocfs2-drain-quorum-work-before-removing-the-cluster.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-page_counter-use-write_once-for-emin-elow-when-parent-is-the-root.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -74,156 +74,80 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Cen Zhang <zzzccc427@gmail.com>
-Subject: ocfs2: drain quorum work before removing the cluster
-Date: Tue, 20 Oct 2026 11:45:04 +0800
+From: Shakeel Butt <shakeel.butt@linux.dev>
+Subject: mm/page_counter: use WRITE_ONCE() for emin/elow when parent is the root
+Date: Wed, 21 Oct 2026 13:48:18 -0700
 
-The configured cluster must remain available until an in-flight quorum
-decision has finished using its fencing method.  o2quo_make_decision()
-drops qs_lock before calling o2quo_fence_self(), which marks heartbeat
-regions for unclean stop and then reads
-o2nm_single_cluster->cl_fence_method.  Cluster removal clears the
-singleton without waiting for this independent system-workqueue item.
+page_counter_calculate_protection() runs without locks.  Several
+reclaimers can update the same counter's emin and elow at the same time,
+and readers such as mem_cgroup_below_min(), mem_cgroup_protection() and
+the dmem eviction code load them with READ_ONCE().
 
-When a failed-quorum decision overlaps removal of the heartbeat regions,
-nodes and cluster through configfs, the worker can be preempted after
-marking the regions and resume after the singleton has been cleared:
+Commit b3a7822e5e75 ("mm, memcg: prevent mem_cgroup_protected store
+tearing") made the main path store emin and elow with WRITE_ONCE(), but it
+missed the early return for a counter whose parent is the reclaim root. 
+Those two stores are the only plain accesses to emin and elow left.
 
-  Quorum worker                     Configfs removal
-  select fence; drop qs_lock
-  o2hb_stop_all_regions()
-                                    remove regions; join heartbeat threads
-                                    remove nodes; stop o2net
-                                    clear singleton; release cluster
-  read cl_fence_method
+With CONFIG_KCSAN_STRICT=y, a few tasks writing to the same cgroup's
+memory.reclaim trigger reports like this within seconds:
 
-The resumed read dereferences NULL instead of applying the configured
-fencing method. The heartbeat thread's dependency protects the local
-node only until the thread exits, and draining o2net does not wait for
-qs_work.
+  BUG: KCSAN: data-race in page_counter_calculate_protection / shrink_node
 
-Add o2quo_flush_work() to drain pending or running quorum decisions
-before clearing the singleton in o2nm_cluster_group_drop_item(). By
-this point the heartbeat regions and nodes have been removed, so their
-work publishers are stopped. The worker can finish while the cluster
-and its configured fencing method remain available. It does not acquire
-the configfs mutex held by the removal path.
+  read (marked) to 0xff1f91b146d40e40 of 8 bytes by task 163 on cpu 4:
+   shrink_node+0x57a/0x1210
+   do_try_to_free_pages+0x194/0x930
+   try_to_free_mem_cgroup_pages+0x204/0x3f0
+   user_proactive_reclaim+0x28a/0x4d0
+   memory_reclaim+0x35/0x50
+   ...
 
-Keep o2quo_exit() as the counterpart of o2quo_init() for module teardown
-and initialization failure, and have it call the same drain helper.
-Cluster removal uses only the explicitly named drain operation.
+  write to 0xff1f91b146d40e40 of 8 bytes by task 167 on cpu 6:
+   page_counter_calculate_protection+0x1fa/0x360
+   mem_cgroup_calculate_protection+0x4e/0x70
+   shrink_node+0x53e/0x1210
+   ...
 
-KASAN report as below:
+The default KCSAN config does not report it, because it treats aligned
+word-sized plain writes as atomic.
 
-    Oops: general protection fault, probably for non-canonical address 0xdffffc000000011b: 0000 [#1] SMP KASAN NOPTI
-    KASAN: null-ptr-deref in range [0x00000000000008d8-0x00000000000008df]
-    CPU: 0 UID: 0 PID: 72 Comm: kworker/0:2 Not tainted 7.3.0-rc4-next-20260921-pmb-ocfs2-functional-v1+ #1 PREEMPT(lazy)
-    Hardware name: QEMU Ubuntu 24.04 PC v2 (i440FX + PIIX, arch_caps fix, 1996), BIOS 1.16.3-debian-1.16.3-2 04/01/2014
-    Workqueue: events o2quo_make_decision
-    RIP: 0010:o2quo_fence_self+0x65/0x200
+Use WRITE_ONCE() for these two stores as well.
 
-Register dump omitted.
+There is no functional change.  Readers already accept stale values, and
+compilers emit a single word-sized store either way: with GCC 14 the
+x86-64 object code is the same before and after this change.
 
-    Call Trace:
-     <TASK>
-     o2quo_make_decision+0x345/0x3a0
-     ? __pfx_o2quo_make_decision+0x10/0x10
-     ? process_one_work+0x834/0x1b40
-     ? srso_alias_return_thunk+0x5/0xfbef5
-     ? lock_release+0xc8/0x290
-     ? srso_alias_return_thunk+0x5/0xfbef5
-     process_one_work+0x9a8/0x1b40
-     ? __pfx_process_one_work+0x10/0x10
-     ? lock_acquire+0x190/0x300
-     ? lock_is_held_type+0x8f/0x100
-     ? srso_alias_return_thunk+0x5/0xfbef5
-     worker_thread+0x65c/0xe40
-     ? srso_alias_return_thunk+0x5/0xfbef5
-     ? __kthread_parkme+0x177/0x220
-     ? srso_alias_return_thunk+0x5/0xfbef5
-     ? __pfx_worker_thread+0x10/0x10
-     kthread+0x351/0x460
-     ? srso_alias_return_thunk+0x5/0xfbef5
-     ? __pfx_kthread+0x10/0x10
-     ret_from_fork+0x659/0x940
-     ? __pfx_ret_from_fork+0x10/0x10
-     ? srso_alias_return_thunk+0x5/0xfbef5
-     ? __switch_to+0x74f/0xf70
-     ? __pfx_kthread+0x10/0x10
-     ret_from_fork_asm+0x1a/0x30
-     </TASK>
-    Modules linked in:
-    ---[ end trace 0000000000000000 ]---
-
-Link: https://lore.kernel.org/pm-ocfs2-objects-candidate-0064-v5-e3870bf6571b80b07b52@gmail.com
-Fixes: f6656d26d17b ("ocfs2/cluster: Make fence method configurable - v2")
-Signed-off-by: Cen Zhang <zzzccc427@gmail.com>
+Link: https://lore.kernel.org/20261021204818.3431099-1-shakeel.butt@linux.dev
+Fixes: b3a7822e5e75 ("mm, memcg: prevent mem_cgroup_protected store tearing")
+Signed-off-by: Shakeel Butt <shakeel.butt@linux.dev>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Reviewed-by: Joseph Qi <joseph.qi@linux.alibaba.com>
-Assisted-by: LLM
-Cc: Mark Fasheh <mark@fasheh.com>
-Cc: Joel Becker <jlbec@evilplan.org>
-Cc: Heming Zhao <heming.zhao@suse.com>
-Cc: Jia-Ju Bai <baijiaju1990@gmail.com>
-Cc: <jjzuming@gmail.com>
-Cc: <stable@vger.kernel.org>
+Reported-by: Sashiko <sashiko-bot@kernel.org>
+Reviewed-by: Gregory Price (Meta) <gourry@gourry.net>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Roman Gushchin <roman.gushchin@linux.dev>
+Cc: Muchun Song <muchun.song@linux.dev>
+Cc: Chris Down <chris@chrisdown.name>
 ---
 
- fs/ocfs2/cluster/nodemanager.c |    3 +++
- fs/ocfs2/cluster/quorum.c      |    7 ++++++-
- fs/ocfs2/cluster/quorum.h      |    1 +
- 3 files changed, 10 insertions(+), 1 deletion(-)
+ mm/page_counter.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/fs/ocfs2/cluster/nodemanager.c~ocfs2-drain-quorum-work-before-removing-the-cluster
-+++ a/fs/ocfs2/cluster/nodemanager.c
-@@ -12,6 +12,7 @@
- #include "tcp.h"
- #include "nodemanager.h"
- #include "heartbeat.h"
-+#include "quorum.h"
- #include "masklog.h"
- #include "sys.h"
+--- a/mm/page_counter.c~mm-page_counter-use-write_once-for-emin-elow-when-parent-is-the-root
++++ a/mm/page_counter.c
+@@ -472,8 +472,8 @@ void page_counter_calculate_protection(s
+ 		return;
  
-@@ -740,6 +741,8 @@ static void o2nm_cluster_group_drop_item
- 	struct o2nm_cluster *cluster = to_o2nm_cluster(item);
+ 	if (parent == root) {
+-		counter->emin = READ_ONCE(counter->min);
+-		counter->elow = READ_ONCE(counter->low);
++		WRITE_ONCE(counter->emin, READ_ONCE(counter->min));
++		WRITE_ONCE(counter->elow, READ_ONCE(counter->low));
+ 		return;
+ 	}
  
- 	BUG_ON(o2nm_single_cluster != cluster);
-+	/* Drain quorum work before it loses access to the cluster. */
-+	o2quo_flush_work();
- 	o2nm_single_cluster = NULL;
- 
- 	configfs_remove_default_groups(&cluster->cl_group);
---- a/fs/ocfs2/cluster/quorum.c~ocfs2-drain-quorum-work-before-removing-the-cluster
-+++ a/fs/ocfs2/cluster/quorum.c
-@@ -318,9 +318,14 @@ void o2quo_init(void)
- 	INIT_WORK(&qs->qs_work, o2quo_make_decision);
- }
- 
--void o2quo_exit(void)
-+void o2quo_flush_work(void)
- {
- 	struct o2quo_state *qs = &o2quo_state;
- 
- 	flush_work(&qs->qs_work);
- }
-+
-+void o2quo_exit(void)
-+{
-+	o2quo_flush_work();
-+}
---- a/fs/ocfs2/cluster/quorum.h~ocfs2-drain-quorum-work-before-removing-the-cluster
-+++ a/fs/ocfs2/cluster/quorum.h
-@@ -8,6 +8,7 @@
- 
- void o2quo_init(void);
- void o2quo_exit(void);
-+void o2quo_flush_work(void);
- 
- void o2quo_hb_up(u8 node);
- void o2quo_hb_down(u8 node);
 _
 
-Patches currently in -mm which might be from zzzccc427@gmail.com are
+Patches currently in -mm which might be from shakeel.butt@linux.dev are
 
-ocfs2-drain-quorum-work-before-removing-the-cluster.patch
+mm-page_counter-use-write_once-for-emin-elow-when-parent-is-the-root.patch
 
