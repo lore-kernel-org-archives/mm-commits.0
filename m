@@ -1,45 +1,45 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
 	t=1792560652;
-	b=jJ2qIM1rA18dY7HCipeiSXiIejKlQCMamO5zaVtJvztyIhxABqSXHwY0P8Cz2FiYIt2p
-	 fVO0V1tfNOnpbg9ZSfpJC5v5sDVtg3qe7JfLYlHLnXVV11WEVj8F4hb2JOPtZ2wxB9VIt
-	 5cQG85ZdSqaBfdwe9SgG0poDxJKhvEVUZZs7GvUNrGzJge1PNmTuOCZAzPc2N6fz1bsjy
-	 LNvGt2L0kOqlS5/zv6iH2IRrQfPTO+9oSg1mmuQjtOaYh2WG4tvJgP27Ql+xCbGnvsD3R
-	 /C08AUCa+MolDHzxOsIowQ45O20H1rUqOZABSvCnfDi74nFu+9OSSyMQqZKZtwY3osg==
+	b=4xGc6ysYg7ZP8BpGEFkpARidFB3wXUEWxAU5bK3mqCPyx4T5WqYz+Ll26A5DU4ibfpHY
+	 1I3Pe77MSERbGDLqwmnvwAv67zoStHoUmZajo4hJ+3BUPBeEz1L7Jsy2Eu5/WQuFAE+Uz
+	 N/8RPRfbI9mOFcwakpq3Kl9bx/ojFxB67MK68xkcMXX1uZL9VSHLuVUfPKQsNv5ghCy0u
+	 UvTzO9gtGYmj2yyrY5x2nSVAMUncwixSCrs9Df9yRWAL5WbPlOmu8ytmZLMPNOac9msYb
+	 8xfU171uJVfLBrVelvQ1hTzHI9f12m8b0MpdtxD4sIKottkmN2O00ZSbTbvwCgkqbHw==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
 	a=rsa-sha256; c=relaxed/relaxed; t=1792560652;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=YZNjB5VGFo4iZL68bmrUnIPbFrjDvBKs3bcK2oVRkDU=;
-	b=QxoatcWecOcr4dMVsJCq21aSke3N01wYfPXWf9nZOvyNh/P3tD4ZnBLYenGSleGnufbU
-	 cxl3pQk+NCC9V6Svyy/bG3eUV6/DZMN1kKy3FtQSNmlmwlilaanHAu2uFB5K2kkQgtjf0
-	 8QSaZm2/g2Jr2sbKsuJsxedVVnLlkCfdOI9oY7K3rIUzUYfOUYOFw0d0gWuGicwMpTKJJ
-	 vC/xARqAGCk1MijxfP8ZZZ6O6QCbCcXBkQJb01yJu2wrAi86za5jekSlSYDSppqhQYNt/
-	 8FT7QBD6yZd9A0m8FpKXGTVSsTnBcUSqln/wgWlBpVG8OwzI89p+SzWzqvzDuEn6Gnw==
+	bh=wPGCxAMe2LoEOeYTxGyLLssxMUrRyLfeIhP7vNsshp4=;
+	b=SWhH4QaW/BE6F2FLWYq4xV8VBAXwGcqpwFoMMAWA73RC3/PPGJVS9CsHBvzztrKQRHm0
+	 5PVnZW0U249swk809zq7/pIupkm+y/jLIA4AVMODomsY3jc3r9GYYMolvf+aWKxOn4WiD
+	 GZ3i7whr2y4gWxe3ZvlrtnLl3WUtM5a2piGsYfcIvNujz8IltAhEIEbNmx6T/acbEUoJK
+	 rrhOyhhLka2c+UtFW5cOaJCfjnoHSsIlAJ+ThPtexoz8Knm6EAa6BbxVAPHPVzhEZalWZ
+	 Kjc9NqIJCwBm7f4XPprFWgDsztskEOGEU/0A580Yeb1AXIRIzCm3tK9odQnt6QgLnqw==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=QcH1D7kV;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b="Gp0HxDl/";
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BE88B606A31E;
-	Wed, 21 Oct 2026 05:30:51 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 93EA7606A330
+	for <mm-commits@vger.kernel.org>; Wed, 21 Oct 2026 05:30:52 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=QcH1D7kV
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4F38F1F000C9;
-	Wed, 21 Oct 2026 05:30:51 +0000 (UTC)
+	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=Gp0HxDl/
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5F1941F000C9;
+	Wed, 21 Oct 2026 05:30:52 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1792560651;
-	bh=YZNjB5VGFo4iZL68bmrUnIPbFrjDvBKs3bcK2oVRkDU=;
+	d=linux-foundation.org; s=korg; t=1792560652;
+	bh=wPGCxAMe2LoEOeYTxGyLLssxMUrRyLfeIhP7vNsshp4=;
 	h=Date:To:From:Subject;
-	b=QcH1D7kVU5YwWUnBQCqYwUYVLJHe1jJVrY2eSqzm4aA8UH+7VcfdVQfU3w/xGxaWr
-	 OjHQa+VPXOwuc6PcPYAquPW6pIRhSKzo+9M5CMumff+gkrlFXwXKlm+C4H/NPFLykS
-	 IBrpotz60G/xwCXPgwdEvUyDC8uLwAx3py1M0yE4=
-Date: Tue, 20 Oct 2026 22:30:50 -0700
-To: mm-commits@vger.kernel.org,stable@vger.kernel.org,mark@fasheh.com,jlbec@evilplan.org,heming.zhao@suse.com,joseph.qi@linux.alibaba.com,akpm@linux-foundation.org
+	b=Gp0HxDl/oqnnYw9maQEzzJWneVRCvD8L74hSzq9rtcfXhhVeo22sqyRgoXkKiYTVA
+	 QLI8po+s7lRd6i7qmNrOa9wN4oYY9ESyRLSlY/QpuiH7QmH4zhLXgTH3DjYvqHruUF
+	 /9Ch3TfQ969sxqA4SKIcVIEwXJtlxivaWYGwkN+o=
+Date: Tue, 20 Oct 2026 22:30:51 -0700
+To: mm-commits@vger.kernel.org,mark@fasheh.com,jlbec@evilplan.org,heming.zhao@suse.com,joseph.qi@linux.alibaba.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] ocfs2-dlm-hold-the-lookup-reference-across-convert-ast-enqueue.patch removed from -mm tree
-Message-Id: <20261021053051.4F38F1F000C9@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] ocfs2-validate-the-xattr-tree-root-of-an-indexed-xattr-block.patch removed from -mm tree
+Message-Id: <20261021053052.5F1941F000C9@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -51,113 +51,94 @@ Precedence: list
 
 
 The quilt patch titled
-     Subject: ocfs2/dlm: hold the lookup reference across convert AST enqueue
+     Subject: ocfs2: validate the xattr tree root of an indexed xattr block
 has been removed from the -mm tree.  Its filename was
-     ocfs2-dlm-hold-the-lookup-reference-across-convert-ast-enqueue.patch
+     ocfs2-validate-the-xattr-tree-root-of-an-indexed-xattr-block.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Joseph Qi <joseph.qi@linux.alibaba.com>
-Subject: ocfs2/dlm: hold the lookup reference across convert AST enqueue
-Date: Wed, 14 Oct 2026 19:23:21 +0800
+Subject: ocfs2: validate the xattr tree root of an indexed xattr block
+Date: Wed, 14 Oct 2026 18:58:56 +0800
 
-dlm_convert_lock_handler() drops the reference it took when it found the
-lock on res->granted at its leave label, one statement before it calls
-dlm_queue_ast().  dlm_free_dead_locks() takes res->spinlock and drops the
-list and base references, so a peer death landing in that gap leaves the
-handler's own put as the one that frees the lock, and __dlm_queue_ast()
-then reads lock->lockres from freed memory.
+ocfs2_validate_xattr_block() checks an xattr block's signature, blkno,
+generation and suballocator fields, and for a non-indexed block the entry
+array it carries.  An indexed block is passed straight through, so the
+extent list in its xattr tree root is never looked at.
 
-The handler is registered next to dlm_create_lock_handler(), so a convert
-message buffered on a dying peer's socket arrives on the same o2net
-receive work that o2net_disconnect_node() does not wait for.  The two can
-interleave as follows, with the reference counts as they are before this
-fix:
+Both fields that describe the list are bounded.  The two places that
+create a root set l_count from ocfs2_xattr_recs_per_xb() and nothing
+rewrites it, and the insert path asserts in ocfs2_rotate_leaf() that
+l_next_free_rec stays within l_count.  Check both when the block is
+first read, so a root that disagrees with the block size, or claims more
+records than it has room for, is caught before anything indexes into
+l_recs[].
 
-  Socket data-ready       Node-down thread      Receive worker
-  -----------------       ----------------      --------------
-  o2net_data_ready()
-    select sc under
-    callback read lock
-                          o2net_disconnect_node()
-                            queue shutdown
-                            begin flush; new color
-    queue sc_rx_work
-    in the new color
-    release callback lock
-                            shutdown socket
-                            flush returns
-                                                read buffered convert_lock
-                                                dlm_convert_lock_handler()
-                                                  find lock on res->granted
-                                                  dlm_lock_get()  refs = 3
-                                                  lock res->spinlock
-                                                  __dlmconvert_master()
-                                                    call_ast = 1
-                                                  unlock res->spinlock
-                          DLM node-down cleanup
-                            lock res->spinlock
-                            dlm_free_dead_locks()
-                              unlink lock
-                              put list ref  refs = 2
-                              put base ref  refs = 1
-                            unlock res->spinlock
-                                                dlm_lock_put()  refs = 0
-                                                  free lock
-                                                dlm_queue_ast()
-                                                  __dlm_queue_ast()
-                                                  read lock->lockres
-                                                  (use-after-free)
+An empty root is deliberately not rejected.  Emptying the tree leaves it
+that way: ocfs2_rm_xattr_cluster() removes one extent per transaction,
+and the last one ends in ocfs2_truncate_rec(), whose closing
+ocfs2_rotate_tree_left() reaches ocfs2_remove_empty_extent() on the
+depth-zero root and takes l_next_free_rec to zero.  That transaction
+commits before ocfs2_xattr_free_block() frees the block, and before
+ocfs2_xattr_remove() clears i_xattr_loc, in two later transactions, so a
+crash in between leaves an orphan inode pointing at an xattr block whose
+root has no extents.  Both readers already cope with it:
+__ocfs2_xattr_index_block_find() answers -ENODATA, and
+ocfs2_iterate_xattr_index_block() returns without iterating.
 
-__dlmconvert_master() only moves the lock between lists, so the count
-entering the gap is base, list and lookup.  Drop the lookup reference
-after the AST is queued instead of before it and the race ends with the
-one __dlm_queue_ast() took, which dlm_flush_asts() releases later with
-ast_pending cleared and ast_list unlinked.  No extra get is needed, and
-the normal case ends with the same count as before.
-
-dlmconvert_master() has the same shape but is only reached from dlmlock()
-for a lock this node owns, which dlm_free_dead_locks() never matches.
-
-Link: https://lore.kernel.org/20261014112321.2955584-1-joseph.qi@linux.alibaba.com
-Fixes: 2c5c54aca9d0 ("ocfs2/dlm: Add missing dlm_lock_put()s")
+Link: https://lore.kernel.org/20261014105856.2909777-1-joseph.qi@linux.alibaba.com
 Signed-off-by: Joseph Qi <joseph.qi@linux.alibaba.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 Reviewed-by: Heming Zhao <heming.zhao@suse.com>
 Cc: Mark Fasheh <mark@fasheh.com>
 Cc: Joel Becker <jlbec@evilplan.org>
-Cc: <stable@vger.kernel.org>
 ---
 
- fs/ocfs2/dlm/dlmconvert.c |   10 +++++++---
- 1 file changed, 7 insertions(+), 3 deletions(-)
+ fs/ocfs2/xattr.c |   25 +++++++++++++++++++++++++
+ 1 file changed, 25 insertions(+)
 
---- a/fs/ocfs2/dlm/dlmconvert.c~ocfs2-dlm-hold-the-lookup-reference-across-convert-ast-enqueue
-+++ a/fs/ocfs2/dlm/dlmconvert.c
-@@ -534,15 +534,19 @@ int dlm_convert_lock_handler(struct o2ne
+--- a/fs/ocfs2/xattr.c~ocfs2-validate-the-xattr-tree-root-of-an-indexed-xattr-block
++++ a/fs/ocfs2/xattr.c
+@@ -491,6 +491,7 @@ static int ocfs2_validate_xattr_block(st
+ 				      struct buffer_head *bh)
+ {
+ 	int rc;
++	struct ocfs2_extent_list *el;
+ 	struct ocfs2_xattr_block *xb =
+ 		(struct ocfs2_xattr_block *)bh->b_data;
+ 
+@@ -573,6 +574,30 @@ static int ocfs2_validate_xattr_block(st
+ 							 region_offset);
  	}
  
- leave:
--	if (lock)
--		dlm_lock_put(lock);
--
- 	/* either queue the ast or release it, if reserved */
- 	if (call_ast)
- 		dlm_queue_ast(dlm, lock);
- 	else if (ast_reserved)
- 		dlm_lockres_release_ast(dlm, res);
- 
 +	/*
-+	 * Keep the lock alive through AST enqueue: a concurrent
-+	 * dlm_free_dead_locks() drops the list and base references.
++	 * An indexed xattr block carries the root of the xattr tree.  Its
++	 * record count is fixed by the block size and l_next_free_rec never
++	 * exceeds it.  A zero l_next_free_rec is valid: emptying the tree on
++	 * the inode deletion path leaves the root with no extents.
 +	 */
-+	if (lock)
-+		dlm_lock_put(lock);
++	el = &xb->xb_attrs.xb_root.xt_list;
 +
- 	if (kick_thread)
- 		dlm_kick_thread(dlm, res);
++	if (le16_to_cpu(el->l_count) != ocfs2_xattr_recs_per_xb(sb)) {
++		return ocfs2_error(sb,
++				   "Xattr tree root #%llu has invalid l_count %u (expected %u)\n",
++				   (unsigned long long)bh->b_blocknr,
++				   le16_to_cpu(el->l_count),
++				   ocfs2_xattr_recs_per_xb(sb));
++	}
++
++	if (le16_to_cpu(el->l_next_free_rec) > le16_to_cpu(el->l_count)) {
++		return ocfs2_error(sb,
++				   "Xattr tree root #%llu has l_next_free_rec %u past the end of its list (l_count %u)\n",
++				   (unsigned long long)bh->b_blocknr,
++				   le16_to_cpu(el->l_next_free_rec),
++				   le16_to_cpu(el->l_count));
++	}
++
+ 	return 0;
+ }
  
 _
 
