@@ -1,45 +1,45 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1792560636;
-	b=VX9wzXmU7ZVb+1DmlI6Tzc7v7ipkeg/TdgX6pW7gSnLt7Ff8+10oWmAC+ac7XDuI0DH9
-	 N+IzLb5fznBT4n2aSNLmWQsuDzojIQ6PxSyLBbIJpbHc9e/NP/qV0n8WOnH0Hx2Hn170+
-	 NUXri/zNYzV3cJbojWv4Ntpv5WiTRFY64C+cu4FMpTAljrkwETMpnfrUCXBPN4FAovgti
-	 sR40NCIwmrzEr7O91QV0USPh2xOv+JpmmVuFLCaKe2b2bf1Nez+k9n0DuH34SiTI56gpW
-	 WoXr0RNEtrRLPA6ibKP9qmALbsmherzPMKQfALirkPmaXbVlDRcgcfEu78m+Mv5F+5A==
+	t=1792560641;
+	b=hsgjgh+Lx1d9/TPMeIa3rFR1Sjw54sLUpMznk07bQGnVR/6Wa9sD8GfRyfmCpWmUdSpv
+	 cfhdgSmiCpgGtksB8D4175j+xvX6JGpJGl6Jf6g2FDdP0rxLYtn1TJh1o+PDBXFzc7tmP
+	 aOrctXjru9hkADahqFnHP1OGzPaKprDY0uv34Cg5xMygcS8TNne1ZF7Vklaub5ChqpWfb
+	 DDDDRljhR1mmolvXMDnVYFkR7tSwRnuXsNXCddztUyMHAZUV8Z23Qk7Y4nFFdDvINkk7m
+	 vKNiYYD7Fx4QtmV3nO6lN3DuzDPPcdwLFE2w6gRbmp7W9bOTe5xGkhbjMZYBbfOfTlQ==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1792560636;
+	a=rsa-sha256; c=relaxed/relaxed; t=1792560641;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=h0AL68Vnruo1lClEYSepc1KFjD3vx3fqrkqej6K2RA4=;
-	b=DyVRM2Duy01kg7Eev29tbgAlLq5fonTUgYmLm7JiRjgGFROMKcboY2SzW/Imx1WsOhWg
-	 Lzy/pVx/r6yDuK3Cek9BMxK0Ae+6PuPjQWxT5gjMf11127CWoC2x8sghLBRFVR2tgn4Hp
-	 Jhgmvj5RHsOS3zCwEhMxQZYpS2X+gdqusMW+pQYyCt5DP7zAGB7bJac/9eMq7pBgha8El
-	 C8afw9jr3Okhylab5aaBHZ1COKTgNfuPLlIEqiTNOFcaaXQGRritp0IEgCJUr5Bv+B4Wk
-	 J45BrTqjYbwKKfDEcKpgq71HIbmsV+sQWXajCwSOK9JjXOsVQqABQI1Wg74W/Xezngg==
+	bh=80FvHmMbPRLEmyrSZ41Ja1iGExaS3SKkHuWyPEjxT6I=;
+	b=X88MMKo7t9SwmIuPaMjuUJlKnaYrpNwOfJI1F9RJezB+6uDzOBvfGeIfaxNdRltVEuwt
+	 mj1bRw1tcGr2SFl+VQ1k5UzVIZg9R+64M2EcEcBBjq8jadsSMVnrvx7W+MNXXJxz1mk/o
+	 f7Fcug8/K9Fh/7Rse6/VXh0Qid+l9EKzWVxqzxpWYNxggjBFRO/gDSBW9IDiMSZgbg4ph
+	 sURw5ac6HfJv7KQNkNcVHmaLkg4z5Cz31HLHqKNYfX0jYuw+mkHqTZGMUexo67fg6oYzS
+	 KyvE1Lp2LQ9taIW/6p54vWVsdnldkjdg2mEovPy5SEAkDLu84+tczHSYHJQIX/oXPAg==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=O+JSmT6g;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=rAFHgEDs;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E448D606A322;
-	Wed, 21 Oct 2026 05:30:35 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 812DF606A32A
+	for <mm-commits@vger.kernel.org>; Wed, 21 Oct 2026 05:30:41 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=O+JSmT6g
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9E6A31F000C9;
-	Wed, 21 Oct 2026 05:30:35 +0000 (UTC)
+	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=rAFHgEDs
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4D8391F000CA;
+	Wed, 21 Oct 2026 05:30:41 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1792560635;
-	bh=h0AL68Vnruo1lClEYSepc1KFjD3vx3fqrkqej6K2RA4=;
+	d=linux-foundation.org; s=korg; t=1792560641;
+	bh=80FvHmMbPRLEmyrSZ41Ja1iGExaS3SKkHuWyPEjxT6I=;
 	h=Date:To:From:Subject;
-	b=O+JSmT6gzPO4myNlPBuXHw2wtjbGKCJMYhyFnX7LQWlg4bVHJaPqGoc9na7mQXNga
-	 GCWO6ep9wdNziJv7FO5RYfWHhGgSYBc6q31ese2y++ynImDAYiqTeOTj0i0no0qMb0
-	 w6VqOqiESSpj1ReBc0Fjb9keslHEuYphe1MgCUnA=
-Date: Tue, 20 Oct 2026 22:30:35 -0700
-To: mm-commits@vger.kernel.org,stable@vger.kernel.org,mark@fasheh.com,jlbec@evilplan.org,heming.zhao@suse.com,anderson.ferneda@braza.com.br,joseph.qi@linux.alibaba.com,akpm@linux-foundation.org
+	b=rAFHgEDsb4Ft2w+dBPJN/sn/Nd8LIYEJUNFPh0gcTBDEtPApoCSK2oZXWX3i21DM8
+	 TaJysY4S0Y/Xv/DTRwZUd8N8u4MC8IPATRV4lfvP3Xs9cuWghAA45mP2HoasxnWcJ9
+	 1Zjtu1W9+E5Xxj3ci3NsqkWgHZ24OArKn70GWWNg=
+Date: Tue, 20 Oct 2026 22:30:40 -0700
+To: mm-commits@vger.kernel.org,hirofumi@mail.parknet.co.jp,teczm@foxmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] ocfs2-use-the-stored-hash-when-checking-xattr-bucket-collision.patch removed from -mm tree
-Message-Id: <20261021053035.9E6A31F000C9@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] fat-roll-back-the-new-entry-when-create-mkdir-fails-to-build-the-inode.patch removed from -mm tree
+Message-Id: <20261021053041.4D8391F000CA@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -51,131 +51,140 @@ Precedence: list
 
 
 The quilt patch titled
-     Subject: ocfs2: use the stored hash when checking xattr bucket collision
+     Subject: fat: roll back the new entry when create/mkdir fails to build the inode
 has been removed from the -mm tree.  Its filename was
-     ocfs2-use-the-stored-hash-when-checking-xattr-bucket-collision.patch
+     fat-roll-back-the-new-entry-when-create-mkdir-fails-to-build-the-inode.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Joseph Qi <joseph.qi@linux.alibaba.com>
-Subject: ocfs2: use the stored hash when checking xattr bucket collision
-Date: Fri, 09 Oct 2026 16:30:01 +0800
+From: zhoumin <teczm@foxmail.com>
+Subject: fat: roll back the new entry when create/mkdir fails to build the inode
+Date: Mon, 12 Oct 2026 21:20:06 +0800
 
-ocfs2_check_xattr_bucket_collision() decides whether splitting a full
-bucket can make room for the entry being set by recomputing the hash of
-the name:
+vfat_create(), vfat_mkdir(), msdos_create() and msdos_mkdir() add the
+on-disk entry before calling fat_build_inode() to set up the VFS inode. 
+If fat_build_inode() fails, the error is returned but the entry stays on
+disk and the file or directory shows up after remount.
 
-	u32 name_hash = ocfs2_xattr_name_hash(inode, name, strlen(name));
+Remove the entry in that case.  For mkdir, also free the directory cluster
+and decrement the parent's link count.
 
-	if (name_hash != le32_to_cpu(xh->xh_entries[0].xe_name_hash))
-		return 0;
-
-For a new entry that is the hash it will be stored under, so comparing it
-is correct.  An existing entry keeps the hash it already has: an update
-never rewrites xe_name_hash, since ocfs2_xa_add_entry() is the only
-writer of that field for a real entry and ocfs2_xa_prepare_entry() calls
-it only when loc->xl_entry is NULL.
-
-An entry stored by a kernel that sign-extended the name bytes when
-hashing can still be updated, because ocfs2_xattr_find_entry() searches
-a non-indexed xattr block by memcmp on the name and never looks at
-xe_name_hash.  Growing it past the space left in the block converts the
-block into a tree, ocfs2_cp_xattr_block_to_bucket() fills the bucket in
-stored hash order, and the update runs out of room in the bucket too.
-The collision check then compares the unsigned hash against the legacy
-hashes in the bucket and reports no collision.
-
-ocfs2_xattr_set_entry_index_block() goes on to allocate a bucket that
-ocfs2_divide_xattr_bucket() cannot fill: a bucket whose entries all share
-one hash has no divide position, so all it does is append an empty bucket
-with a sentinel hash one above the last entry's.
-
-The re-search that follows depends on where the unsigned hash sorts.
-Below the legacy ones, it comes back to the full bucket and the set fails
-with -ENOSPC, having grown the tree for nothing.  Above them, it lands on
-the new empty bucket, which ocfs2_xattr_bucket_find() handles explicitly
-and ocfs2_find_xe_in_bucket() scans zero times, so the set stores a second
-copy of the entry under the unsigned hash and returns success.  The
-original stays in the full bucket, listxattr reports the name twice and
-getxattr returns the new copy.
-
-Pass the hash the entry is stored under instead: the stored one for an
-existing entry, the unsigned one for a new entry.  A tree whose entries
-are all stored under the unsigned hash sees no change, since there the
-two are the same value.
-
-Link: https://lore.kernel.org/20261009083002.2621201-3-joseph.qi@linux.alibaba.com
-Fixes: 3bc753c06dd0 ("kbuild: treat char as always unsigned")
-Signed-off-by: Joseph Qi <joseph.qi@linux.alibaba.com>
+[akpm@linux-foundation.org" export _fat_msg() to modules]
+Link: https://lore.kernel.org/tencent_4EDD66523CED299DB0C99498B4D8C939A009@qq.com
+Signed-off-by: zhoumin <teczm@foxmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Reviewed-by: Heming Zhao <heming.zhao@suse.com>
-Cc: Anderson Ferneda <anderson.ferneda@braza.com.br>
-Cc: Mark Fasheh <mark@fasheh.com>
-Cc: Joel Becker <jlbec@evilplan.org>
-Cc: <stable@vger.kernel.org> # 6.2+
+Acked-by: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
 ---
 
- fs/ocfs2/xattr.c |   27 +++++++++++++++++----------
- 1 file changed, 17 insertions(+), 10 deletions(-)
+ fs/fat/misc.c        |    1 +
+ fs/fat/namei_msdos.c |   22 ++++++++++++++++++----
+ fs/fat/namei_vfat.c  |   22 ++++++++++++++++++----
+ 3 files changed, 37 insertions(+), 8 deletions(-)
 
---- a/fs/ocfs2/xattr.c~ocfs2-use-the-stored-hash-when-checking-xattr-bucket-collision
-+++ a/fs/ocfs2/xattr.c
-@@ -5923,16 +5923,14 @@ out:
+--- a/fs/fat/misc.c~fat-roll-back-the-new-entry-when-create-mkdir-fails-to-build-the-inode
++++ a/fs/fat/misc.c
+@@ -62,6 +62,7 @@ void _fat_msg(struct super_block *sb, co
+ 	_printk(FAT_PRINTK_PREFIX "%pV\n", level, sb->s_id, &vaf);
+ 	va_end(args);
+ }
++EXPORT_SYMBOL_GPL(_fat_msg);
  
- /*
-  * check whether the xattr bucket is filled up with the same hash value.
-- * If we want to insert the xattr with the same hash, return -ENOSPC.
-- * If we want to insert a xattr with different hash value, go ahead
-- * and ocfs2_divide_xattr_bucket will handle this.
-+ * If the entry being set carries that same hash, return -ENOSPC, since
-+ * ocfs2_divide_xattr_bucket() has no divide position to work with.
-+ * Otherwise go ahead and ocfs2_divide_xattr_bucket() will handle this.
-  */
--static int ocfs2_check_xattr_bucket_collision(struct inode *inode,
--					      struct ocfs2_xattr_bucket *bucket,
--					      const char *name)
-+static int ocfs2_check_xattr_bucket_collision(struct ocfs2_xattr_bucket *bucket,
-+					      u32 name_hash)
- {
- 	struct ocfs2_xattr_header *xh = bucket_xh(bucket);
--	u32 name_hash = ocfs2_xattr_name_hash(inode, name, strlen(name));
- 
- 	if (name_hash != le32_to_cpu(xh->xh_entries[0].xe_name_hash))
- 		return 0;
-@@ -6001,6 +5999,7 @@ static int ocfs2_xattr_set_entry_index_b
- 					     struct ocfs2_xattr_search *xs,
- 					     struct ocfs2_xattr_set_ctxt *ctxt)
- {
-+	u32 name_hash;
- 	int ret;
- 
- 	trace_ocfs2_xattr_set_entry_index_block(xi->xi_name);
-@@ -6020,10 +6019,18 @@ static int ocfs2_xattr_set_entry_index_b
- 	 * the maximum number of collisions we will allow for then is
- 	 * one bucket's worth, so check it here whether we need to
- 	 * add a new bucket for the insert.
-+	 *
-+	 * An existing entry keeps the hash it was stored under, and that is
-+	 * the hash a split has to work with.  A new entry is stored under the
-+	 * unsigned one, which is what ocfs2_xa_add_entry() will write.
- 	 */
--	ret = ocfs2_check_xattr_bucket_collision(inode,
--						 xs->bucket,
--						 xi->xi_name);
-+	if (xs->not_found)
-+		name_hash = ocfs2_xattr_name_hash(inode, xi->xi_name,
-+						  xi->xi_name_len);
-+	else
-+		name_hash = le32_to_cpu(xs->here->xe_name_hash);
-+
-+	ret = ocfs2_check_xattr_bucket_collision(xs->bucket, name_hash);
- 	if (ret) {
- 		mlog_errno(ret);
+ /* Flushes the number of free clusters on FAT32 */
+ /* XXX: Need to write one per FSINFO block.  Currently only writes 1 */
+--- a/fs/fat/namei_msdos.c~fat-roll-back-the-new-entry-when-create-mkdir-fails-to-build-the-inode
++++ a/fs/fat/namei_msdos.c
+@@ -292,11 +292,17 @@ static int msdos_create(struct mnt_idmap
+ 	if (err)
  		goto out;
+ 	inode = fat_build_inode(sb, sinfo.de, sinfo.i_pos);
+-	brelse(sinfo.bh);
+ 	if (IS_ERR(inode)) {
++		int err2;
++
+ 		err = PTR_ERR(inode);
++		err2 = fat_remove_entries(dir, &sinfo);
++		if (err2)
++			fat_msg(sb, KERN_WARNING,
++				"failed to roll back new entry (%d)", err2);
+ 		goto out;
+ 	}
++	brelse(sinfo.bh);
+ 	fat_truncate_time(inode, &ts, FAT_UPDATE_ATIME | FAT_UPDATE_CMTIME);
+ 	/* timestamp is already written, so mark_inode_dirty() is unneeded. */
+ 
+@@ -381,12 +387,20 @@ static struct dentry *msdos_mkdir(struct
+ 	inc_nlink(dir);
+ 
+ 	inode = fat_build_inode(sb, sinfo.de, sinfo.i_pos);
+-	brelse(sinfo.bh);
+ 	if (IS_ERR(inode)) {
++		int err2;
++
+ 		err = PTR_ERR(inode);
+-		/* the directory was completed, just return a error */
+-		goto out;
++		err2 = fat_remove_entries(dir, &sinfo);
++		if (err2) {
++			fat_msg(sb, KERN_WARNING,
++				"failed to roll back new entry (%d)", err2);
++			goto out;
++		}
++		drop_nlink(dir);
++		goto out_free;
+ 	}
++	brelse(sinfo.bh);
+ 	set_nlink(inode, 2);
+ 	fat_truncate_time(inode, &ts, FAT_UPDATE_ATIME | FAT_UPDATE_CMTIME);
+ 	/* timestamp is already written, so mark_inode_dirty() is unneeded. */
+--- a/fs/fat/namei_vfat.c~fat-roll-back-the-new-entry-when-create-mkdir-fails-to-build-the-inode
++++ a/fs/fat/namei_vfat.c
+@@ -771,11 +771,17 @@ static int vfat_create(struct mnt_idmap
+ 	inode_inc_iversion(dir);
+ 
+ 	inode = fat_build_inode(sb, sinfo.de, sinfo.i_pos);
+-	brelse(sinfo.bh);
+ 	if (IS_ERR(inode)) {
++		int err2;
++
+ 		err = PTR_ERR(inode);
++		err2 = fat_remove_entries(dir, &sinfo);
++		if (err2)
++			fat_msg(sb, KERN_WARNING,
++				"failed to roll back new entry (%d)", err2);
+ 		goto out;
+ 	}
++	brelse(sinfo.bh);
+ 	inode_inc_iversion(inode);
+ 
+ 	d_instantiate(dentry, inode);
+@@ -870,12 +876,20 @@ static struct dentry *vfat_mkdir(struct
+ 	inc_nlink(dir);
+ 
+ 	inode = fat_build_inode(sb, sinfo.de, sinfo.i_pos);
+-	brelse(sinfo.bh);
+ 	if (IS_ERR(inode)) {
++		int err2;
++
+ 		err = PTR_ERR(inode);
+-		/* the directory was completed, just return a error */
+-		goto out;
++		err2 = fat_remove_entries(dir, &sinfo);
++		if (err2) {
++			fat_msg(sb, KERN_WARNING,
++				"failed to roll back new entry (%d)", err2);
++			goto out;
++		}
++		drop_nlink(dir);
++		goto out_free;
+ 	}
++	brelse(sinfo.bh);
+ 	inode_inc_iversion(inode);
+ 	set_nlink(inode, 2);
+ 
 _
 
-Patches currently in -mm which might be from joseph.qi@linux.alibaba.com are
+Patches currently in -mm which might be from teczm@foxmail.com are
 
 
