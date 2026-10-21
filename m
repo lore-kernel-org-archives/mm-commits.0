@@ -1,45 +1,45 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1792560389;
-	b=n+3HsdcRnmRzZ3iKN3/VY6Ol8y36hp63h5pUm0/KU8gXQiIJOxj6qHVIg23/oUTykKSW
-	 mIR1U0DVVjQoVe0tgjq1xUMOPiy4wwID4dblmpLKmR2OIgLZjUVoibTSfRNivKoBfIn0y
-	 0j/Zbx780tiZV+P48W8IxABIoF4dGipyHMhtsqPQNGOE1KT5SHHFSmQNA8cbwZyxJ+p8i
-	 NYU35fD6AO0S63rnoZhAkRCq8/SGRQnjXxQxf+Dn72JOqxj+kW67Py8veLsx4lujkcqUK
-	 BJt39pcJsBjGMxribh1ekKVXo8UHGw9KGlBNAEX3b9cOM4zIq4ixwXpplKrl4Xj8wTg==
+	t=1792560419;
+	b=Q4oK1dWtpt2uWdKjndRg0N/PaE9jwhSAi46FGaRkupDyz1Yaz3Wz5N1PLC3oHKiHQ7RU
+	 USBo0vYkKGLrHR32CsZw/SMcJJFzWfOMoBPCPXdkRGphT1h0US2XjPcLyp81aBsuNABsx
+	 gkbuF49dIUvUxI/zqjaBhRyCDlC090u6oyZogCWzvJv7nfp17rfu4HTAYCaDh56HhDPZL
+	 nbNo0GYKNbEgaFjVID5+R+ckBKGs+XB83/GwmikbAzCit+0ul25Xh+uOnijL/70mywXl0
+	 p2b6yaI7pbhfzlNWyqG+bOF4Zo6mFqUa4EsJt+s1pu+d8bef9Xy6t+fBOKiGO0qT8bA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1792560389;
+	a=rsa-sha256; c=relaxed/relaxed; t=1792560419;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=wbloUxnFa9tlQ0gsksjg6/v8k3iA7heB5SiEBIrl2Ts=;
-	b=LDCOR/V9UxjDZXHAoNzyv2EJrmQf34Uz2RI0dKgHtpXIC/YBOFyV+4aWR14QmT6YS+Re
-	 Nx4/gWqks4GgDRSbbYPFHAn5QEsI4JZSS4eE2wWC9m5ZZzvYWjvlVfd6raq7SBbSswipN
-	 b7Uk3uJlwkwHqRSx4dMl57piHmifOSjTXXFAJyQymoXzlJ2V7pwp1gcc+8wb5HtLFtpm3
-	 RERIavbOobCdVkjS22ReLaY3N+bGizuVXx0DIwwqxuvjEnX94RSygv634nIzmCO1T21PR
-	 y+LabFCHKURJxaZ3FxwsEMgm49dvxpsSQQ4ZHoJB6Ln2rUefcLiJDB3EURorfaWcCNg==
+	bh=giSWaroOQg/fozNuNH/GD/+HVWhmXsj3/Qu5YwUMiKc=;
+	b=jMvbkdpp7Hr1EBjvSd87bPBQF6rODBATqocuYr2C6Yyzfc8Gm6N1o03++3aVOfYJxyD1
+	 aVgab5gVfMU5hUXKeSTI5gVgFoMnIEtGuS24lfopYZUlG1EK0n0SJpljvLgLMfGc23tLW
+	 RABCaOyE29YOwRBm8nTdx8wxc5y4brW79tUp31H9ggHd/R1KflYl13oqi6niCf8uaM56T
+	 qfP48EWhniHHx1nEimLEvg/p/0McPW3qY2/spPSwzMY9u+BwhZrOC0roXqZBlGb30kp5o
+	 sjuCkzdP8f+7s2qs/2Ic4Ho1k8Z9fP9pczlf3QAY2WhvDuu2dK2AOf71jCKQq99vwOA==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=Ax7es1L2;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=Vyacd+5y;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 24593606A319
-	for <mm-commits@vger.kernel.org>; Wed, 21 Oct 2026 05:26:28 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3DCB6606A32F
+	for <mm-commits@vger.kernel.org>; Wed, 21 Oct 2026 05:26:58 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=Ax7es1L2
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7DAA81F000C9;
-	Wed, 21 Oct 2026 05:26:28 +0000 (UTC)
+	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=Vyacd+5y
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B9B3E1F000CB;
+	Wed, 21 Oct 2026 05:26:58 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1792560388;
-	bh=wbloUxnFa9tlQ0gsksjg6/v8k3iA7heB5SiEBIrl2Ts=;
+	d=linux-foundation.org; s=korg; t=1792560418;
+	bh=giSWaroOQg/fozNuNH/GD/+HVWhmXsj3/Qu5YwUMiKc=;
 	h=Date:To:From:Subject;
-	b=Ax7es1L2dNu1p0kgyvpbgrjrpK+GVK7iM363f6yujjeFSPkE6NcS5d8FQ4XnsmIUq
-	 M7qMk8VYlpwmsUDIzXTPQZcdI9uQfzmyOVNb3Dv1PxPru+oU2uXoR2CuRP5rmhHa7O
-	 m4kg/uFH3oxxAfYvgZ6OkUnQ/msb1I/Oi6kOriAQ=
-Date: Tue, 20 Oct 2026 22:26:26 -0700
-To: mm-commits@vger.kernel.org,lzsx618@gmail.com,armaan.sandhu0504@gmail.com,andriy.shevchenko@intel.com,akpm@linux-foundation.org
+	b=Vyacd+5yl4Ceg4+SZIa2iylLT4mVEDMcrtUwCsVj6NxEyU7UV/YygsZPfbIHVYaKw
+	 puTegojKg73tDnZqr0axakqSMSkvvHQJy0IpXryPlmzcdvl3pbrzHR4r1ulyKhHUmd
+	 u/wFTVjKq7jbFYZRt6zXknA/lIrPh720NQOxOEJs=
+Date: Tue, 20 Oct 2026 22:26:58 -0700
+To: mm-commits@vger.kernel.org,teczm@foxmail.com,hirofumi@mail.parknet.co.jp,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [folded-merged] lib-cmdline-fix-get_options-count-and-overflow-with-large-ranges-fix.patch removed from -mm tree
-Message-Id: <20261021052628.7DAA81F000C9@smtp.kernel.org>
+Subject: [folded-merged] fat-roll-back-the-new-entry-when-create-mkdir-fails-to-build-the-inode-fix.patch removed from -mm tree
+Message-Id: <20261021052658.B9B3E1F000CB@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -51,46 +51,42 @@ Precedence: list
 
 
 The quilt patch titled
-     Subject: lib-cmdline-fix-get_options-count-and-overflow-with-large-ranges-fix
+     Subject: fat-roll-back-the-new-entry-when-create-mkdir-fails-to-build-the-inode-fix
 has been removed from the -mm tree.  Its filename was
-     lib-cmdline-fix-get_options-count-and-overflow-with-large-ranges-fix.patch
+     fat-roll-back-the-new-entry-when-create-mkdir-fails-to-build-the-inode-fix.patch
 
-This patch was dropped because it was folded into lib-cmdline-fix-get_options-count-and-overflow-with-large-ranges.patch
+This patch was dropped because it was folded into fat-roll-back-the-new-entry-when-create-mkdir-fails-to-build-the-inode.patch
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: lib-cmdline-fix-get_options-count-and-overflow-with-large-ranges-fix
-Date: Wed Oct 7 05:06:09 PM PDT 2026
-
-add additional test case from Leizhen
+Subject: fat-roll-back-the-new-entry-when-create-mkdir-fails-to-build-the-inode-fix
+Date: Tue Oct 13 03:50:35 PM PDT 2026
 
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Cc: Andy Shevchenko <andriy.shevchenko@intel.com>
-Cc: Armaan Sandhu <armaan.sandhu0504@gmail.com>
-Cc: Leizhen Zhang <lzsx618@gmail.com>
+Cc: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
+Cc: zhoumin <teczm@foxmail.com>
 ---
 
- lib/tests/cmdline_kunit.c |    1 +
+ fs/fat/misc.c |    1 +
  1 file changed, 1 insertion(+)
 
---- a/lib/tests/cmdline_kunit.c~lib-cmdline-fix-get_options-count-and-overflow-with-large-ranges-fix
-+++ a/lib/tests/cmdline_kunit.c
-@@ -151,6 +151,7 @@ static const struct {
- 	{ "0-2147483647",  { 3, 0, 1, 2, },    0,          },
- 	{ "-5-2147483647", { 3, -5, -4, -3, }, 0,          },
- 	{ "2147483647--5", { 0, 2147483647, }, 0,          },
-+	{ "1,0-2147483647", { 3, 1, 0, 1, },   1, },
- };
+--- a/fs/fat/misc.c~fat-roll-back-the-new-entry-when-create-mkdir-fails-to-build-the-inode-fix
++++ a/fs/fat/misc.c
+@@ -62,6 +62,7 @@ void _fat_msg(struct super_block *sb, co
+ 	_printk(FAT_PRINTK_PREFIX "%pV\n", level, sb->s_id, &vaf);
+ 	va_end(args);
+ }
++EXPORT_SYMBOL_GPL(_fat_msg);
  
- static void cmdline_test_range_overflow(struct kunit *test)
+ /* Flushes the number of free clusters on FAT32 */
+ /* XXX: Need to write one per FSINFO block.  Currently only writes 1 */
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 mm-damon-core-introduce-damos_quota_goal-complement-fix.patch
 fs-proc-task_mmu-pin-mm_users-in-do_pagemap_scan-fix.patch
-lib-cmdline-fix-get_options-count-and-overflow-with-large-ranges.patch
-fat-roll-back-the-new-entry-when-create-mkdir-fails-to-build-the-inode-fix.patch
+fat-roll-back-the-new-entry-when-create-mkdir-fails-to-build-the-inode.patch
 drivers-media-v4l2-core-v4l2-vp9c-reduce-inlining.patch
 profile-account-for-partial-proc-profile-reads.patch
 profile-simplify-proc-profile-read-layout.patch
