@@ -1,45 +1,42 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1792560653;
-	b=ksLsx66qfsGj/C8zzWu/0KOQ4LXG99GOC7QQnGJaLHRr3ajGDbDQc9qSwP7XlrpPlGwo
-	 jwNnmK7xSyk+CbWNPBZskKV4ILARRheL3WPN6Sce6glfOWqBkk1fytAC9F1EjCZJji2mn
-	 z4LudRvTU7oh2dZKAmzVIrNIxyjOBAIwkG6UOmcgnwwMfgMckPl+wO3WwchGJAXJ4UzdT
-	 34T89LSc/k977MV5uL2brGyPY6TfV0en6gNPSEKXzFtbrUPnf6GdmSpe0v9n84SNksuCp
-	 pewfalz7YrC0jKXza9pf2aFr5chmnw/Cxlv3B+JN+XBliOoRIsy7GoCR6TFkJBcwndA==
+	t=1792560656;
+	b=3n6gvWc1E+/Z9xpKiw3pq8n7ng2lVMZDM0hD4Qq36nAHYaH3zamWIWOTrYluhEW419t4
+	 CTP16i56vbxzwk2PvTm4OAPKP78EX2dr5jCdcq9lEwqPm/cGScLEyGDGXX+YbTq+Et7po
+	 uVW4erJk+EyAv98GJvkgutomLK38gNSatvRQwrhr4us6fMWXq1XLTu1Poae1dty18JK3F
+	 Y4V883wCYjnaO/d/LrAzeCUcZjKIVu9yA9aBIqq7Qnf/m/lv1N+kQf8Gz0vL34dHbySrp
+	 KmO3jvNpu3qIBZgNwUbPixsJgqQPmsSiiot38Wf85FsjLUC3BBox6x4250F/qYAnOaA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1792560653;
+	a=rsa-sha256; c=relaxed/relaxed; t=1792560656;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=4/WO178zW5a0OEKRuEb2FG/k359HZ8gtqgs89Jfq4BI=;
-	b=rGzL5WwvmErf3c6JGL3mziGuDOCoJTwrzI74kJwgAwdIAgrFfoSyxbJ3W0MROpPoOiKP
-	 1Y1sIQj3v81ULveANIHfwdy3JuniCZM9B4ehFSUgiDDpbCh3WPjP4qRPXNov4dk0wjJJK
-	 Rf6erDQHCAjE9X15THD/bEErx05lJ/0niERJwe6As4qhrdHxADOHlZlli/M3hUgC424WA
-	 0ERBtGNz32ZZJDZhMRmElnrVWdjB7awt3i6EXADjvHi8zA/sL7B4GJG68UYo0NzOsQ+H4
-	 rQkNRrX3/LEfzbumIZ8g5LkRNl/nk0synMU2Aq3AH5TweFhaR79q2dsgT1xxZ+1MqKQ==
+	bh=KXLm7ZQUWYLCTQJc82SGWFe4PxTH5P1rluzMEaNrz+Y=;
+	b=M2jRxbTOf7lC66wiY729X1uhQGJQ5fn7DUueUw6WHKqk6M3SomyLwHR/ChZk4RdR7BT/
+	 KEO7qKQX9DBOYOLgedyPNeEXE11pqGOXb2tfJP5yro2J0P7abdPSTp/Z5qqWF5ib5AvaG
+	 bUDB/ldUwPRpQJ0yglz4jV5/ocyUjwbB7ptvWq2zG4i/I/MisQkUP8BrjOR6CiB+tILuA
+	 MAqYXerP3XX9eU6B5+B0NHq4JWuB9rEvd1tgM/fLyC2TOX5eHExE6ANSj4ClWCjFDoJhV
+	 j7ALN+AX0LgSKyM8avPu1qyHIMIp99Uaq7W1Jt1ggdwoAwpGHN6CHF/ivRpep2LL6uA==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=1luPfLfe;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 973F3606A322;
-	Wed, 21 Oct 2026 05:30:53 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=1luPfLfe
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6D9641F000C9;
-	Wed, 21 Oct 2026 05:30:53 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9EB6A606A31F;
+	Wed, 21 Oct 2026 05:30:50 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 43A921F000CA;
+	Wed, 21 Oct 2026 05:30:50 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1792560653;
-	bh=4/WO178zW5a0OEKRuEb2FG/k359HZ8gtqgs89Jfq4BI=;
+	d=linux-foundation.org; s=korg; t=1792560650;
+	bh=KXLm7ZQUWYLCTQJc82SGWFe4PxTH5P1rluzMEaNrz+Y=;
 	h=Date:To:From:Subject;
-	b=1luPfLfeQ2gPsNjXjHR5TjaFJdYavsTrCHcAQvYGCQWgaY3WX1o2nqIQ4J72dZtdN
-	 hU8SugyIbVCiiJhTtGmfeHY+CyY+LO1R0AmH74TAFGP4snk7GkZm6fbYR1sITK9lRe
-	 0s8Rv6hBKlyvTN3yANZQ4xnOpZZwdvSOn64iUCbA=
-Date: Tue, 20 Oct 2026 22:30:53 -0700
-To: mm-commits@vger.kernel.org,tao.ma@oracle.com,stable@vger.kernel.org,mark@fasheh.com,joseph.qi@linux.alibaba.com,jlbec@evilplan.org,jjzuming@gmail.com,heming.zhao@suse.com,baijiaju1990@gmail.com,zzzccc427@gmail.com,akpm@linux-foundation.org
+	b=hjpNhdNwzbfmLfIKRY0oNJkAUgq/gtYYckPYuChpQsIEsOQ61ewfAumClCeBGdoRT
+	 4KvPnUCxdTD4G4520TotM/FZWDxG6TPnh/0C7qB5gbRyzDu1+k/Xv41yExwAqWZq1e
+	 4Tq+Bz84UIXZwyh/FLbIFHmlY+00w8wrOFhG/96s=
+Date: Tue, 20 Oct 2026 22:30:49 -0700
+To: mm-commits@vger.kernel.org,stable@vger.kernel.org,mark@fasheh.com,joseph.qi@linux.alibaba.com,jlbec@evilplan.org,jjzuming@gmail.com,jack@suse.cz,heming.zhao@suse.com,chao@kernel.org,baijiaju1990@gmail.com,zzzccc427@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] ocfs2-pin-refcount-trees-before-dropping-the-lookup-lock.patch removed from -mm tree
-Message-Id: <20261021053053.6D9641F000C9@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] ocfs2-cancel-quota-sync-work-before-freeing-quota-info.patch removed from -mm tree
+Message-Id: <20261021053050.43A921F000CA@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -51,237 +48,194 @@ Precedence: list
 
 
 The quilt patch titled
-     Subject: ocfs2: pin refcount trees before dropping the lookup lock
+     Subject: ocfs2: cancel quota sync work before freeing quota info
 has been removed from the -mm tree.  Its filename was
-     ocfs2-pin-refcount-trees-before-dropping-the-lookup-lock.patch
+     ocfs2-cancel-quota-sync-work-before-freeing-quota-info.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Cen Zhang <zzzccc427@gmail.com>
-Subject: ocfs2: pin refcount trees before dropping the lookup lock
-Date: Wed, 14 Oct 2026 11:47:15 +0800
+Subject: ocfs2: cancel quota sync work before freeing quota info
+Date: Wed, 14 Oct 2026 11:43:40 +0800
 
-A refcount tree returned to ocfs2_lock_refcount_tree() must stay alive
-until that caller releases its operation reference. However,
-ocfs2_get_refcount_tree() returns the cached pointer after dropping
-osb_lock, and the caller only takes its kref afterwards. The registry
-reference does not protect this gap from concurrent removal.
+OCFS2 quota info owns dqi_sync_work and must outlive both its timer and
+qsync_work_fn().  ocfs2_local_free_info() frees that owner without
+cancelling the work, relying on the quota suspend/disable wrappers.
 
-This can happen when another node frees a refcount root and reuses its
-block with a different generation while this mount retains the old
-cached tree. Two local operations on different inodes sharing the new
-root, such as data CoW and an external xattr update, can then look up
-the same stale tree. Their inode locks are independent, and both the
-REFCOUNT DLM lock and rf_sem are acquired after the first operation
-reference.
+Loading quotas on a read-only to read-write remount can successfully queue
+the work in ocfs2_global_read_info() and then fail while attaching a dquot
+to an existing inode in add_dquot_ref().  The quota core unwinds that
+failure directly through dquot_disable(), bypassing the OCFS2 wrapper:
 
-The following ordering is possible, with no other operation references:
+  Remount task (s_umount write)        Timer/workqueue
+  ocfs2_global_read_info()
+    schedules dqi_sync_work
+  add_dquot_ref() returns an error
+  dquot_disable()
+    ocfs2_local_free_info()
+      frees oinfo
+                                     delayed-work timer expires
+                                     qsync_work_fn() reads oinfo
 
-  Data CoW                         Xattr update
-  --------                         ------------
-  Look up the old tree under
-    osb_lock, then drop osb_lock
-                                   Look up the same tree and take a kref
-                                   Acquire the tree locks and read the
-                                     new on-disk generation
-                                   Erase the old tree under osb_lock
-                                   Unlock and drop the operation kref
-                                   Drop the registry kref, freeing tree
-  Take a kref through the
-    freed tree pointer
+The timer core can then write to the freed embedded timer, or
+qsync_work_fn() can read oinfo->dqi_gqinode before its s_umount trylock.
+The outer ocfs2_disable_quotas() cleanup skips the failed type because
+dquot_disable() has already cleared its loaded state.
 
-The final kref_get() accesses freed rf_getcnt storage, and subsequent
-accesses in ocfs2_lock_refcount_tree() also use the freed allocation.
-
-Take the operation reference in ocfs2_get_refcount_tree() before
-releasing osb_lock, including when an insertion loses to another lookup.
-Removal must acquire the same lock, so it cannot drop the registry
-reference before the lookup has pinned the tree. Keep the existing
-unlock and error path puts. The two callers that already hold the
-refcount tree lock keep their borrowed lookup behavior and do not
-acquire an extra reference.
+Cancel dqi_sync_work synchronously at the start of
+ocfs2_local_free_info(), before dropping the global inode or freeing any
+owner state. The work is initialized whenever read_file_info() succeeds.
+dquot_disable() holds s_umount for write, so the callback skips its quota
+scan via down_read_trylock() and can finish without waiting for teardown.
+The synchronous cancel also handles its self-rearm.
 
 KASAN report as below:
 
-    BUG: KASAN: slab-use-after-free in ocfs2_lock_refcount_tree+0x94a/0x9b0
-    Read of size 4 at addr ffff888117212820 by task python3/497
-
-[Kernel and hardware identification omitted.]
+    BUG: KASAN: slab-use-after-free in __run_timers+0x9e9/0xa10
+    Write of size 8 at addr ffff888111b0aad0 by task swapper/3/0
 
     Call Trace:
-     <TASK>
+     <IRQ>
      dump_stack_lvl+0x93/0xd0
      print_report+0xce/0x630
-     ? ocfs2_lock_refcount_tree+0x94a/0x9b0
+     ? __run_timers+0x9e9/0xa10
      ? srso_alias_return_thunk+0x5/0xfbef5
      ? __virt_addr_valid+0x20e/0x420
-     ? ocfs2_lock_refcount_tree+0x94a/0x9b0
+     ? __run_timers+0x9e9/0xa10
      kasan_report+0xe0/0x110
-     ? ocfs2_lock_refcount_tree+0x94a/0x9b0
-     ocfs2_lock_refcount_tree+0x94a/0x9b0
-     ? __pfx_ocfs2_lock_refcount_tree+0x10/0x10
+     ? __run_timers+0x9e9/0xa10
+     __run_timers+0x9e9/0xa10
+     ? __pfx___run_timers+0x10/0x10
+     ? __lock_acquire+0x5a3/0x2140
+     ? __pfx_do_raw_spin_lock+0x10/0x10
      ? srso_alias_return_thunk+0x5/0xfbef5
-     ? ocfs2_refcount_cow+0x3b6/0xd90
+     timer_expire_remote+0xfa/0x160
+     ? __pfx_timer_expire_remote+0x10/0x10
      ? srso_alias_return_thunk+0x5/0xfbef5
-     ? __kmalloc_cache_noprof+0x28d/0x610
-     ? ocfs2_refcount_cow+0x3b6/0xd90
-     ocfs2_refcount_cow+0x410/0xd90
-     ? __pfx_ocfs2_refcount_cow+0x10/0x10
-     ? __pfx___might_resched+0x10/0x10
-     ? down_write+0x11a/0x1f0
-     ? __pfx_down_write+0x10/0x10
-     ? ocfs2_inode_unlock+0x1a9/0x260
-     ? __pfx_ocfs2_inode_unlock+0x10/0x10
-     ? ocfs2_file_write_iter+0x1413/0x1d30
-     ocfs2_file_write_iter+0x157b/0x1d30
-     ? __pfx_ocfs2_file_write_iter+0x10/0x10
+     ? srso_alias_return_thunk+0x5/0xfbef5
+     ? trace_hardirqs_on+0x18/0x160
+     tmigr_handle_remote_up+0x4ba/0x9d0
+     ? __pfx_tmigr_handle_remote_up+0x10/0x10
+     ? tmigr_handle_remote+0x21a/0x340
+     ? srso_alias_return_thunk+0x5/0xfbef5
+     ? lock_release+0xc8/0x290
+     ? __pfx_tmigr_handle_remote_up+0x10/0x10
+     __walk_groups_from+0x5a/0x160
+     tmigr_handle_remote+0x24f/0x340
+     ? __pfx_tmigr_handle_remote+0x10/0x10
      ? lock_acquire+0x190/0x300
-     ? __x64_sys_pwrite64+0x1b7/0x220
-     ? __pfx___might_resched+0x10/0x10
      ? srso_alias_return_thunk+0x5/0xfbef5
-     ? security_file_permission+0x26/0x80
+     ? lock_release+0xc8/0x290
+     run_timer_softirq+0x222/0x270
+     ? __pfx_run_timer_softirq+0x10/0x10
      ? srso_alias_return_thunk+0x5/0xfbef5
-     ? lock_is_held_type+0x8f/0x100
-     vfs_write+0x639/0x1010
-     ? __pfx_ocfs2_file_write_iter+0x10/0x10
-     ? lock_vma_under_rcu+0x154/0x4a0
-     ? __pfx_vfs_write+0x10/0x10
-     ? lock_release+0x121/0x290
      ? srso_alias_return_thunk+0x5/0xfbef5
-     __x64_sys_pwrite64+0x1b7/0x220
-     ? __pfx___x64_sys_pwrite64+0x10/0x10
-     ? irqentry_exit+0xbe/0x820
+     ? lockdep_hardirqs_on_prepare+0xb8/0x1a0
      ? srso_alias_return_thunk+0x5/0xfbef5
-     ? trace_hardirqs_on_prepare+0x11d/0x150
+     handle_softirqs+0x1fa/0x8d0
+     ? __pfx_handle_softirqs+0x10/0x10
      ? srso_alias_return_thunk+0x5/0xfbef5
-     do_syscall_64+0x114/0x620
-     entry_SYSCALL_64_after_hwframe+0x77/0x7f
-
-[Register dump omitted.]
-
+     ? _raw_spin_unlock+0x23/0x40
+     ? srso_alias_return_thunk+0x5/0xfbef5
+     ? __hrtimer_rearm_deferred+0x1fb/0x5d0
+     __irq_exit_rcu+0x113/0x1e0
+     irq_exit_rcu+0xe/0x20
+     sysvec_apic_timer_interrupt+0x6c/0x80
+     </IRQ>
+     <TASK>
+     asm_sysvec_apic_timer_interrupt+0x1a/0x20
+     ? ct_kernel_exit.constprop.0+0xc5/0xf0
+     ? do_idle+0x3ae/0x650
+     default_idle+0x9/0x10
+     default_idle_call+0x6c/0xb0
+     do_idle+0x3ae/0x650
+     ? cpuhp_online_idle+0x9c/0xb0
+     ? __pfx_do_idle+0x10/0x10
+     ? __entry_text_end+0x1020f6/0x1020f9
+     ? lockdep_hardirqs_on_prepare+0xeb/0x1a0
+     ? srso_alias_return_thunk+0x5/0xfbef5
+     ? trace_hardirqs_on+0x18/0x160
+     ? srso_alias_return_thunk+0x5/0xfbef5
+     cpu_startup_entry+0x54/0x60
+     start_secondary+0x223/0x2d0
+     ? __pfx_start_secondary+0x10/0x10
+     common_startup_64+0x13e/0x158
      </TASK>
 
-    Allocated by task 491:
+    Allocated by task 523:
      kasan_save_stack+0x33/0x60
      kasan_save_track+0x14/0x30
      __kasan_kmalloc+0xaa/0xb0
      __kmalloc_cache_noprof+0x28d/0x610
-     ocfs2_allocate_refcount_tree+0x49/0x1a0
-     ocfs2_create_refcount_tree+0x5d7/0x1630
-     ocfs2_attach_refcount_tree+0x57d/0x1100
-     __ocfs2_reflink.isra.0+0x1c4/0x1940
-     ocfs2_reflink+0x501/0x9b0
-     ocfs2_reflink_ioctl+0x6b2/0x920
-     ocfs2_ioctl+0x538/0x640
-     __x64_sys_ioctl+0x163/0x1d0
+     ocfs2_local_read_info+0x181/0x1580
+     dquot_load_quota_sb+0x69e/0x11c0
+     dquot_load_quota_inode+0x227/0x3e0
+     ocfs2_enable_quotas+0x27c/0x520
+     ocfs2_reconfigure+0x964/0xd00
+     reconfigure_super+0x3ca/0xa70
+     path_mount+0x141e/0x1e80
+     __x64_sys_mount+0x24b/0x2d0
      do_syscall_64+0x114/0x620
      entry_SYSCALL_64_after_hwframe+0x77/0x7f
 
-    Freed by task 498:
+    Freed by task 523:
      kasan_save_stack+0x33/0x60
      kasan_save_track+0x14/0x30
      kasan_save_free_info+0x3b/0x60
      __kasan_slab_free+0x5f/0x80
      kfree+0x308/0x580
-     ocfs2_lock_refcount_tree+0x672/0x9b0
-     ocfs2_xattr_set+0x72c/0x2530
-     ocfs2_xattr_user_set+0xaf/0xf0
-     __vfs_setxattr+0x143/0x1b0
-     __vfs_setxattr_noperm+0x112/0x5b0
-     __vfs_setxattr_locked+0xfe/0x2b0
-     vfs_setxattr+0x13c/0x370
-     do_setxattr+0x128/0x170
-     filename_setxattr+0x147/0x190
-     path_setxattrat+0x1ac/0x260
-     __x64_sys_setxattr+0xcb/0x140
+     ocfs2_local_free_info+0x47b/0x800
+     dquot_disable+0x5d9/0x17a0
+     dquot_load_quota_sb+0xd3c/0x11c0
+     dquot_load_quota_inode+0x227/0x3e0
+     ocfs2_enable_quotas+0x27c/0x520
+     ocfs2_reconfigure+0x964/0xd00
+     reconfigure_super+0x3ca/0xa70
+     path_mount+0x141e/0x1e80
+     __x64_sys_mount+0x24b/0x2d0
      do_syscall_64+0x114/0x620
      entry_SYSCALL_64_after_hwframe+0x77/0x7f
 
-    The buggy address belongs to the object at ffff888117212800
+    The buggy address belongs to the object at ffff888111b0a800
      which belongs to the cache kmalloc-1k of size 1024
-    The buggy address is located 32 bytes inside of
-     freed 1024-byte region [ffff888117212800, ffff888117212c00)
+    The buggy address is located 720 bytes inside of
+     freed 1024-byte region [ffff888111b0a800, ffff888111b0ac00)
 
-[Page and memory dumps omitted.]
+Host details, register and page dumps omitted.
 
-Link: https://lore.kernel.org/pm-ocfs2-objects-candidate-0037-v4-9f1a261dfbc341721689@gmail.com
-Fixes: 374a263e790c ("ocfs2: Add refcount tree lock mechanism.")
+Link: https://lore.kernel.org/pm-ocfs2-objects-candidate-0052-v3-b4904bd6c85daf033adf@gmail.com
+Fixes: 1a6152d36dee ("quota: propagate error from __dquot_initialize")
 Signed-off-by: Cen Zhang <zzzccc427@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 Reviewed-by: Joseph Qi <joseph.qi@linux.alibaba.com>
+Reviewed-by: Jan Kara <jack@suse.cz>
 Assisted-by: LLM
 Cc: Mark Fasheh <mark@fasheh.com>
 Cc: Joel Becker <jlbec@evilplan.org>
 Cc: Heming Zhao <heming.zhao@suse.com>
-Cc: Tao Ma <tao.ma@oracle.com>
+Cc: Chao Yu <chao@kernel.org>
 Cc: Jia-Ju Bai <baijiaju1990@gmail.com>
 Cc: <jjzuming@gmail.com>
 Cc: <stable@vger.kernel.org>
 ---
 
- fs/ocfs2/refcounttree.c |   15 +++++++++------
- 1 file changed, 9 insertions(+), 6 deletions(-)
+ fs/ocfs2/quota_local.c |    3 +++
+ 1 file changed, 3 insertions(+)
 
---- a/fs/ocfs2/refcounttree.c~ocfs2-pin-refcount-trees-before-dropping-the-lookup-lock
-+++ a/fs/ocfs2/refcounttree.c
-@@ -375,8 +375,10 @@ ocfs2_allocate_refcount_tree(struct ocfs
- 	return new;
- }
+--- a/fs/ocfs2/quota_local.c~ocfs2-cancel-quota-sync-work-before-freeing-quota-info
++++ a/fs/ocfs2/quota_local.c
+@@ -840,6 +840,9 @@ static int ocfs2_local_free_info(struct
+ 	int mark_clean = 1, len;
+ 	int status = 0;
  
-+/* Callers without the refcount tree lock must request a reference. */
- static int ocfs2_get_refcount_tree(struct ocfs2_super *osb, u64 rf_blkno,
--				   struct ocfs2_refcount_tree **ret_tree)
-+				   struct ocfs2_refcount_tree **ret_tree,
-+				   bool get_ref)
- {
- 	int ret = 0;
- 	struct ocfs2_refcount_tree *tree, *new = NULL;
-@@ -433,6 +435,8 @@ static int ocfs2_get_refcount_tree(struc
- 	new = NULL;
- 
- out:
-+	if (get_ref)
-+		ocfs2_refcount_tree_get(tree);
- 	*ret_tree = tree;
- 
- 	osb->osb_ref_tree_lru = tree;
-@@ -506,14 +510,12 @@ int ocfs2_lock_refcount_tree(struct ocfs
- 	struct ocfs2_refcount_block *rb;
- 
- again:
--	ret = ocfs2_get_refcount_tree(osb, ref_blkno, &tree);
-+	ret = ocfs2_get_refcount_tree(osb, ref_blkno, &tree, true);
- 	if (ret) {
- 		mlog_errno(ret);
- 		return ret;
- 	}
- 
--	ocfs2_refcount_tree_get(tree);
--
- 	ret = __ocfs2_lock_refcount_tree(osb, tree, rw);
- 	if (ret) {
- 		mlog_errno(ret);
-@@ -2355,7 +2357,8 @@ int ocfs2_decrease_refcount(struct inode
- 		goto out;
- 	}
- 
--	ret = ocfs2_get_refcount_tree(OCFS2_SB(inode->i_sb), ref_blkno, &tree);
-+	ret = ocfs2_get_refcount_tree(OCFS2_SB(inode->i_sb), ref_blkno,
-+				      &tree, false);
- 	if (ret) {
- 		mlog_errno(ret);
- 		goto out;
-@@ -2590,7 +2593,7 @@ int ocfs2_prepare_refcount_change_for_de
- 	BUG_ON(!ocfs2_is_refcount_inode(inode));
- 
- 	ret = ocfs2_get_refcount_tree(OCFS2_SB(inode->i_sb),
--				      refcount_loc, &tree);
-+				      refcount_loc, &tree, false);
- 	if (ret) {
- 		mlog_errno(ret);
- 		goto out;
++	/* Quota-core error paths can bypass ocfs2_disable_quotas(). */
++	cancel_delayed_work_sync(&oinfo->dqi_sync_work);
++
+ 	iput(oinfo->dqi_gqinode);
+ 	ocfs2_simple_drop_lockres(OCFS2_SB(sb), &oinfo->dqi_gqlock);
+ 	ocfs2_lock_res_free(&oinfo->dqi_gqlock);
 _
 
 Patches currently in -mm which might be from zzzccc427@gmail.com are
