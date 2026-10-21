@@ -1,45 +1,45 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1792543679;
-	b=s0a270bD7NzjLgsY6b7O3b1I6iW0cLonaxHHcx23cXimqSyqrXY3mV0N0s0hak7wZ4S/
-	 b41pqXPcFD6Wj1oLOhCXcyZQS2HuFuiRq6ZTjUSPutFEiPBZl7yL0KM5d6lmdD9PWIdq1
-	 P2U6X1k5V5G743mR/bgwhz1Hep7czLUu6E3gS3sIuneSt0OKwiz5yRFhgYyeWxUC9RgUq
-	 24Bup8qy8V3A98S8jh6W4u8dzLTCJw5qUR1/QvVYs++Tseyly0P5LO4r8NDDAkOSox0ms
-	 waif7Cc1n3MZy5OIsnURQP/rwl6hvuLJUlHJEEqGqNlofMyy4Bhavd/lTnfUau3Ht+w==
+	t=1792555759;
+	b=FXB+RaX10bjUFQuofRcVEyIWshQtQ7e2JsgQ8hG93HUeisiDzKKLCYEaVLnJsQsSP111
+	 oCbtbFvcAGDZBrQCyuhOGwT4Aa0p+ZmrS1jc46zun45ABnUDPKBoUw7vTxvqXaOLNtpHm
+	 dvWRrKvgD2mW7SOa/333igkYNdExtfGV8kOhQu/wqJ52fO5uHJDj3CKuDTOO5GhwppHPC
+	 1g8amXLHHzj8QBimyNSlnYNbycTw79p7YOtRsX4X40Jkv6/TufgErCVsSYcE87cHPJHFw
+	 fPK0DEjDfulZeIYlZPCt13j03PlFcGDfzWahdBzSElm/g5VBFa2Pz0XVySeAIFfxoWQ==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1792543679;
+	a=rsa-sha256; c=relaxed/relaxed; t=1792555759;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=nxDTFurcrqMz3fEcsclIhXohiRZ80WiOyVW6r6/9dcc=;
-	b=3JvB101mNcxqgERIrtGXRxewUTlvQX63kw1fYEoh14Ae1dx3WMRvHSDR3lBi6woWkTFp
-	 VCExHT9t2c+80UroJbTx3Yp5V7KCMCCFmP760IqapTdxdLHV/8rUnzAWkPaJu/5s4YSjv
-	 wd2rnhRrLVGxifR9PPssh7/TpKhUyvUiVayy8Pg5LEHXRxigvxGBHRqBtkaj6OgQilLKO
-	 2lO3cnemcfN0JcajLEtDBrAQtUbWwVqGbW5F9aUxAxDY59ej0YDGBSuiAXE5SgcL5ZQwA
-	 q+zbZWtZu/kkHqpgxK6lfRVDSE0o+Quyy5zidWCrNvvve+cdqgs2huPg2Qf8d/V0RiQ==
+	bh=73sIXLKTwtG8bQRdXGMaGOTBn3Y0qk223b3F6B2LH9k=;
+	b=NtqwEneZ1SLZlwHcfO3kiY1aYE/Y8/spO+NRWKW7n0QcgLi7VmNGZFBsNo0am6RnNJ3+
+	 E/x+aGKFzPeVwP7KdES71/SNoMlPwiZ6R9vVd4EroJF4GCUmP8u95WJweHeAVN8cySvYh
+	 wIdi86QM2znzT1vFBhZFRfFRBf1uy8FjU8wjiyNCspOAilQtktEu3ukwwJVJZV7HvrpF1
+	 sBcptjm6EKRQ8Hj7eX3Wmy0yAo6MmiHNgVSgkrIeC1oPtpgrTdvtAQ7sLwSD/QuaHOUDk
+	 1EoB51JUKRRJSyb7Pr3osVdPrkQdHb4f2DcwgfRqUIcHKaDdOvi5ENBV61ZiP7s8O3w==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=nER3mWvB;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=pthUGAIx;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1))
+	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 12373606A319
-	for <mm-commits@vger.kernel.org>; Wed, 21 Oct 2026 00:47:58 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A868A606A319
+	for <mm-commits@vger.kernel.org>; Wed, 21 Oct 2026 04:09:18 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=nER3mWvB
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9C5201F000C9;
-	Wed, 21 Oct 2026 00:47:58 +0000 (UTC)
+	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=pthUGAIx
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 288A21F000C9;
+	Wed, 21 Oct 2026 04:09:18 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1792543678;
-	bh=nxDTFurcrqMz3fEcsclIhXohiRZ80WiOyVW6r6/9dcc=;
+	d=linux-foundation.org; s=korg; t=1792555758;
+	bh=73sIXLKTwtG8bQRdXGMaGOTBn3Y0qk223b3F6B2LH9k=;
 	h=Date:To:From:Subject;
-	b=nER3mWvBRsXWI8ShQdy5lOneUG7KIMkiuiuy/LQFl1puCDAFoJTGcKxmR9JG6xuGV
-	 4skRWqoSPOOsVim3fcKvH02I9X4bomTanz1zXkoeeH8jTyW/M/iOVHgWuSRpfXZBMJ
-	 yf8OKSI89Hx9KtT9Lxb0u5XQ3rie8pfLVqWF1FJE=
-Date: Tue, 20 Oct 2026 17:47:58 -0700
-To: mm-commits@vger.kernel.org,thnkslprpt@gmail.com,brads@mainlining.org,akpm@linux-foundation.org
+	b=pthUGAIxE5caxUUzReNAe8PDl5o4/sAvXPba0+E59YJyJdol7DPC4ChmXqaAficwl
+	 SG2/W5I31XYpd6hZyc9W0cl/4sr8RYtdK4VYivoatwogUEzXX1o3C4Fb59TXb66zsx
+	 NcF33LjguOryKN8UjNkgOH0kcq+a+WGFMCQich+I=
+Date: Tue, 20 Oct 2026 21:09:17 -0700
+To: mm-commits@vger.kernel.org,tfiga@chromium.org,senozhatsky@chromium.org,pmladek@suse.com,dianders@chromium.org,brads@mainlining.org,tzungbi@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + profile-simplify-proc-profile-read-layout.patch added to mm-nonmm-unstable branch
-Message-Id: <20261021004758.9C5201F000C9@smtp.kernel.org>
+Subject: + watchdog-force-console-verbose-when-reporting-lockups.patch added to mm-nonmm-unstable branch
+Message-Id: <20261021040918.288A21F000C9@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -51,12 +51,12 @@ Precedence: list
 
 
 The patch titled
-     Subject: profile: simplify /proc/profile read layout
+     Subject: watchdog: force console verbose when reporting lockups
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     profile-simplify-proc-profile-read-layout.patch
+     watchdog-force-console-verbose-when-reporting-lockups.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/profile-simplify-proc-profile-read-layout.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/watchdog-force-console-verbose-when-reporting-lockups.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -74,128 +74,78 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: profile: simplify /proc/profile read layout
-Date: Tue, 20 Oct 2026 23:58:33 +0000
+From: Tzung-Bi Shih <tzungbi@kernel.org>
+Subject: watchdog: force console verbose when reporting lockups
+Date: Wed, 07 Oct 2026 05:17:26 +0000
 
-read_profile() is needlessly difficult to understand.  It copies the
-four-byte sampling-step header one byte at a time, then manufactures
-a pointer before prof_buffer so a file offset can be used as a
-counter-array offset.  Its signed byte counter, unsigned long file
-offset and repeated size calculations further obscure where each
-read starts and how many bytes it transfers.
+When a hard or soft lockup is detected, the watchdog prints a header at
+KERN_EMERG (<0>), followed by diagnostic details (modules, registers, and
+backtraces) at KERN_WARNING/KERN_DEFAULT (<4>) and KERN_INFO (<6>).  If
+console_loglevel is quiet (<= 4), the console skips those <4>/<6>
+diagnostic messages before vpanic() has a chance to call
+console_verbose().  With the buddy detector, this leaves only the detector
+CPU's panic stack on the console and nothing about the locked CPU:
 
-Treat the file as two consecutive regions: a four-byte header and
-the profiling counters.  Use size_t for byte positions and lengths,
-copy the bounded header in one operation, and address the counters
-relative to the start of prof_buffer.  Brief comments explain each
-region.
+  <0>[ 1535.991833][    C6] watchdog: Watchdog detected hard LOCKUP on cpu 7
+  <0>[ 1535.995960][    C6] Kernel panic - not syncing: Hard LOCKUP
+  <4>[ 1535.995970][    C6] CPU: 6 UID: 0 PID: 0 Comm: swapper/6 ...
+  <4>[ 1535.995997][    C6] Call trace:
+  ...
+  <4>[ 1535.996063][    C6]  watchdog_hardlockup_check+0x1e0/0x288
+  <4>[ 1535.996075][    C6]  watchdog_buddy_check_hardlockup+0xb4/0xc0
 
-Keep the word-sized shift and explicit narrowing required by Avi
-Weiss's "profiling: fix sampling step on 64-bit big-endian systems".
-Assign the header value separately and explain why the 32-bit ABI
-requires a narrowing conversion.
+Similar to commit 168e06f7937d ("kernel/hung_task.c: force console verbose
+before panic"), call console_verbose() before printing the lockup report
+so the diagnostic output is not suppressed.
 
-Preserve the partial-read and fault semantics established by [1/2],
-including short copies within either region.  No userspace-visible
-behavior change is intended.
+Link: https://lore.kernel.org/20261007051726.4154849-1-tzungbi@kernel.org
+Signed-off-by: Tzung-Bi Shih <tzungbi@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Cc: Avi Weiss <thnkslprpt@gmail.com>
-Cc: Bradley Morgan <brads@mainlining.org>
+Reviewed-by: Sergey Senozhatsky <senozhatsky@chromium.org>
+Reviewed-by: Bradley Morgan <brads@mainlining.org>
+Tested-by: Bradley Morgan <brads@mainlining.org> # Power10 / ARM64
+Reviewed-by: Douglas Anderson <dianders@chromium.org>
+Cc: Petr Mladek <pmladek@suse.com>
+Cc: Tomasz Figa <tfiga@chromium.org>
 ---
-Tested the combined three-patch series on x86-64 QEMU/KVM, with
-CONFIG_PROFILING=y, CONFIG_PROC_FS=y and profile=12.
-profile-read-test.c: PASS (0 failures). Covered header decoding,
-short/unaligned and boundary reads, EOF, partial copy faults,
-return values and file-position updates.
-The 64-bit big-endian case was not tested. No per-patch or
-unpatched-versus-patched runtime comparison was reported.
 
- kernel/profile.c |   57 +++++++++++++++++++++++++++------------------
- 1 file changed, 35 insertions(+), 22 deletions(-)
+ kernel/watchdog.c |    8 +++++++-
+ 1 file changed, 7 insertions(+), 1 deletion(-)
 
---- a/kernel/profile.c~profile-simplify-proc-profile-read-layout
-+++ a/kernel/profile.c
-@@ -153,35 +153,48 @@ void profile_tick(int type)
- static ssize_t
- read_profile(struct file *file, char __user *buf, size_t count, loff_t *ppos)
- {
--	unsigned long p = *ppos;
--	ssize_t read;
--	char *pnt;
--	unsigned int sample_step = (unsigned int)(1UL << prof_shift);
--	size_t not_copied;
-+	const size_t header_size = sizeof(unsigned int);
-+	const size_t file_size = (prof_len + 1) * sizeof(unsigned int);
-+	unsigned int sample_step;
-+	size_t pos = *ppos;
-+	size_t done = 0;
-+	size_t n, not_copied;
- 
--	if (p >= (prof_len+1)*sizeof(unsigned int))
-+	/* Keep the shift word-sized before narrowing to the 32-bit ABI. */
-+	sample_step = (unsigned int)(1UL << prof_shift);
-+
-+	if (pos >= file_size)
- 		return 0;
--	if (count > (prof_len+1)*sizeof(unsigned int) - p)
--		count = (prof_len+1)*sizeof(unsigned int) - p;
--	read = 0;
-+	count = min(count, file_size - pos);
- 
--	while (p < sizeof(unsigned int) && count > 0) {
--		if (put_user(*((char *)(&sample_step)+p), buf))
--			goto out;
--		buf++; p++; count--; read++;
-+	/* Copy the four-byte sampling resolution. */
-+	if (pos < header_size) {
-+		n = min(count, header_size - pos);
-+		not_copied = copy_to_user(buf, (u8 *)&sample_step + pos, n);
-+		done += n - not_copied;
-+		if (not_copied)
-+			goto fault;
-+		buf += n;
-+		pos += n;
-+		count -= n;
+--- a/kernel/watchdog.c~watchdog-force-console-verbose-when-reporting-lockups
++++ a/kernel/watchdog.c
+@@ -255,6 +255,9 @@ void watchdog_hardlockup_check(unsigned
+ 			return;
  	}
-+
-+	/* Copy raw counters using offsets relative to the counter array. */
- 	if (count) {
--		pnt = (char *)prof_buffer + p - sizeof(atomic_t);
--		not_copied = copy_to_user(buf, pnt, count);
--		read += count - not_copied;
-+		not_copied = copy_to_user(buf,
-+					(u8 *)prof_buffer + pos - header_size,
-+					count);
-+		done += count - not_copied;
- 		if (not_copied)
--			goto out;
-+			goto fault;
- 	}
--	*ppos += read;
--	return read;
--out:
--	*ppos += read;
--	return read ? read : -EFAULT;
-+	*ppos += done;
-+	return done;
-+fault:
-+	*ppos += done;
-+	if (!done)
-+		return -EFAULT;
-+	return done;
- }
  
- /* default is to not implement this call */
++	if (hardlockup_panic)
++		console_verbose();
++
+ 	/*
+ 	 * NOTE: we call printk_cpu_sync_get_irqsave() after printing
+ 	 * the lockup message. While it would be nice to serialize
+@@ -880,6 +883,10 @@ static enum hrtimer_restart watchdog_tim
+ 		/* Start period for the next softlockup warning. */
+ 		update_report_ts();
+ 
++		thresh_count = duration / get_softlockup_thresh();
++		if (softlockup_panic && thresh_count >= softlockup_panic)
++			console_verbose();
++
+ 		printk_cpu_sync_get_irqsave(flags);
+ 		pr_emerg("BUG: soft lockup - CPU#%d stuck for %us! [%s:%d]\n",
+ 			smp_processor_id(), duration,
+@@ -901,7 +908,6 @@ static enum hrtimer_restart watchdog_tim
+ 
+ 		add_taint(TAINT_SOFTLOCKUP, LOCKDEP_STILL_OK);
+ 		sys_info(softlockup_si_mask & ~SYS_INFO_ALL_BT);
+-		thresh_count = duration / get_softlockup_thresh();
+ 
+ 		if (softlockup_panic && thresh_count >= softlockup_panic)
+ 			panic("softlockup: hung tasks");
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from tzungbi@kernel.org are
 
-mm-damon-core-introduce-damos_quota_goal-complement-fix.patch
-fs-proc-task_mmu-pin-mm_users-in-do_pagemap_scan-fix.patch
-lib-cmdline-fix-get_options-count-and-overflow-with-large-ranges-fix.patch
-fat-roll-back-the-new-entry-when-create-mkdir-fails-to-build-the-inode-fix.patch
-drivers-media-v4l2-core-v4l2-vp9c-reduce-inlining.patch
-profile-account-for-partial-proc-profile-reads.patch
-profile-simplify-proc-profile-read-layout.patch
+watchdog-force-console-verbose-when-reporting-lockups.patch
 
