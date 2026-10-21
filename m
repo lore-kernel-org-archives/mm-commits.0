@@ -1,45 +1,45 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1792560657;
-	b=UM5r5GWOJ9swJg6jqjF7DEdKCbjx5l/Xc008kcA5ZpDis7Mo1KQvQ1AWrXWyRCR695o6
-	 Dglp+LJrtQGCCjZuiV3UhpoMW3QWXDw8uzfHqMHArpWiD2WmAdGd115VfpsfH0ChUiZGn
-	 qIlRTiI3WqXLxeCVMuI2T5Ck0W6tvQHXsLVu397P/SFAANHFlY4AEm+eHPf0o/m5DrEzT
-	 biyhF31gLc7fbHUWXNXcBZdzMNj3cMH41V/puRz5OB4TIP8PTO/aS3YifZH+NpHdXrDoD
-	 J/ShMtCJj1xpnuvOwEbr9ohcVNKxVvSqiCgw6p0gc5+hWE4VVaH++vslCr7L54cwmEQ==
+	t=1792607984;
+	b=wAKkrMHiEpXjgHnXRNXnwlYyIy8x2iwWPfOBigKs3z+hEBbSo2dfG8fzDpZnv7uRt/Ip
+	 3m2xbOzG4zE4RsqXG4+xp33wjdgHmkbw34umujgDvrhVeDivJH/yDTCmYwEnlv937viE/
+	 0eyYvx4Tj0ye9lc8cBQSt3HRjM/xBz+Gg38KWUmubmgYdKtt+2655aUtDdo0cI5k5rULv
+	 nv2cEr/gK2Q1Gi4V2eNrNqA07gUY1v0feCmmlHH4p+p+EreHypsmTvEv7+q4G0sk7O6jD
+	 GZkwfNkXPt9omPjZ3Hq2LG+TxK/r1QQPS84u/57jlH0U+Q36L9x3xs3aZ6dMlSnMpYA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1792560657;
+	a=rsa-sha256; c=relaxed/relaxed; t=1792607984;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=ublMZcLIbcCEZ/1y8FrhU9TIh2gmLO9pPwLHb2PR2Lg=;
-	b=nnLe4kPeXAUB9WnuY0EmfDgNiK4lCVEwAmx+rt55d1iV4JyrUbYAWl7+4xFjn9v2CuF+
-	 VQBSq/rbOcSYc4SiL0MvH8umi5IZR/aptZX/yC9d3Alv6NlH5S7BDn+CzOz1xXsNw8nzr
-	 aIX3T0QuQhntj6yyfOCSuwjmA/5VBwJ3AZykoeSGRpMYuhQ7kLVYlD0PZ0Nd5XZKAi0mj
-	 xK9uTls7x1Mr6wd33DyvetdfwUiQbltIjhtHsZMiitFOZkbUHPKBRszMmzcYB2FCG2y0O
-	 NFKyp4JdZHkxwzOmw+/cFfoOhtZasGZ41biB0rTgAEZ9Nixije05lsggcrlDNvqKIFQ==
+	bh=R/cyaRzWC9pd6KDI+55QfQUjuj9Ehis3S52PJ74iJxE=;
+	b=iD3xE4xUNpm5WgPbqjcb5cMKD6AIllt8hDdey1AO0SscDQBs0ewRWw+iIO4RgBUnlUfP
+	 l+J4Be3Znk1LC4jGvSp5pYzoRNz211J0JMoWOQRQi4Q0ob5BQL8UTVYItEeDdPi1AqfrD
+	 VpN4fySTer7Bhj9JezhFV/wKbHJa9la1CJBMfhOvHePt0yQm5LPZ1TO/LQBB5+s4tMmZ8
+	 /z74TMrV5Hxdv9DFE7zXZ4iiHq6AMrRy6t5w+NosDUumEnoYxK37yRmvDcK6lUjrwnfqk
+	 rTnkwziqU2vLbUPNbTO7K2349u3T4/vaLPOJAqvav8rn8NIQWgOhCijCGXbxHhc6olQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=Lmnzs7fR;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=JL6HFLwr;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CEDA4606A333;
-	Wed, 21 Oct 2026 05:30:56 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 99F5C606A319;
+	Wed, 21 Oct 2026 18:39:43 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=Lmnzs7fR
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9FAD41F000CA;
-	Wed, 21 Oct 2026 05:30:56 +0000 (UTC)
+	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=JL6HFLwr
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 15E801F000C1;
+	Wed, 21 Oct 2026 18:39:43 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1792560656;
-	bh=ublMZcLIbcCEZ/1y8FrhU9TIh2gmLO9pPwLHb2PR2Lg=;
+	d=linux-foundation.org; s=korg; t=1792607983;
+	bh=R/cyaRzWC9pd6KDI+55QfQUjuj9Ehis3S52PJ74iJxE=;
 	h=Date:To:From:Subject;
-	b=Lmnzs7fRtyRRSkemhQ1FbLu3KR8DOPWNu7XPqCkNfC0cHpLkZzDftq64960qiQjMb
-	 F+gf3kaA9ZN8PYAs7p1EexKLbAJkmVSQLHGZZNfjr0nigYHveURBvxabkM3Fhz4533
-	 JTvHqmEk2PVSXBolTbSHxptbZXtAxFcJHzxWNmNA=
-Date: Tue, 20 Oct 2026 22:30:56 -0700
-To: mm-commits@vger.kernel.org,sunil.mushran@oracle.com,stable@vger.kernel.org,rppt@kernel.org,rollkingzzc@gmail.com,mark@fasheh.com,kurt.hackel@oracle.com,kmehltretter@gmail.com,kees@kernel.org,joseph.qi@linux.alibaba.com,jlbec@evilplan.org,jjzuming@gmail.com,jack@suse.cz,heming.zhao@suse.com,ericterminal@gmail.com,christophe.jaillet@wanadoo.fr,brauner@kernel.org,baijiaju1990@gmail.com,zzzccc427@gmail.com,akpm@linux-foundation.org
+	b=JL6HFLwrzsr6RLCbi06ldmbRTHHbx4/TWyX7KbvvebYj+rl1ofAcdMB2Y2U1JhKuC
+	 BN3yd4l61GMj36waQTg4v+YPebj9PDHosc8aLXJWo+EdbUYgWLX7rII7c+sSHV8Ib2
+	 QeGyJDFNLCqI5kKkrbUE3q6jakcdCBVOsLet26w8=
+Date: Wed, 21 Oct 2026 11:39:42 -0700
+To: mm-commits@vger.kernel.org,stable@vger.kernel.org,mark@fasheh.com,joseph.qi@linux.alibaba.com,jlbec@evilplan.org,jjzuming@gmail.com,heming.zhao@suse.com,baijiaju1990@gmail.com,zzzccc427@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] ocfs2-pin-owning-modules-for-open-debugfs-files.patch removed from -mm tree
-Message-Id: <20261021053056.9FAD41F000CA@smtp.kernel.org>
+Subject: + ocfs2-drain-quorum-work-before-removing-the-cluster.patch added to mm-nonmm-unstable branch
+Message-Id: <20261021183943.15E801F000C1@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -50,211 +50,180 @@ List-Owner: <mailto:mm-commits+owner@vger.kernel.org>
 Precedence: list
 
 
-The quilt patch titled
-     Subject: ocfs2: pin owning modules for open debugfs files
-has been removed from the -mm tree.  Its filename was
-     ocfs2-pin-owning-modules-for-open-debugfs-files.patch
+The patch titled
+     Subject: ocfs2: drain quorum work before removing the cluster
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     ocfs2-drain-quorum-work-before-removing-the-cluster.patch
 
-This patch was dropped because it was merged into the mm-nonmm-stable branch
-of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/ocfs2-drain-quorum-work-before-removing-the-cluster.patch
+
+This patch will later appear in the mm-nonmm-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via various
+branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there most days
 
 ------------------------------------------------------
 From: Cen Zhang <zzzccc427@gmail.com>
-Subject: ocfs2: pin owning modules for open debugfs files
-Date: Fri, 16 Oct 2026 09:17:13 +0800
+Subject: ocfs2: drain quorum work before removing the cluster
+Date: Tue, 20 Oct 2026 11:45:04 +0800
 
-The OCFS2 debugfs file operation tables do not set owner. The
-full debugfs proxy obtains real_fops with fops_get() at open and
-keeps it until final release. Without an owner, this does not acquire
-a reference to the module containing the table and its callbacks.
-Removing the debugfs entries does not drain retained open files.
+The configured cluster must remain available until an in-flight quorum
+decision has finished using its fencing method.  o2quo_make_decision()
+drops qs_lock before calling o2quo_fence_self(), which marks heartbeat
+regions for unclean stop and then reads
+o2nm_single_cluster->cl_fence_method.  Cluster removal clears the
+singleton without waiting for this independent system-workqueue item.
 
-An open connected_nodes file can therefore outlive ocfs2_nodemanager
-and make full_proxy_release() read real_fops->release from freed
-module memory. Heming also reproduced the issue with fs_state and
-asked for the other OCFS2 debugfs operation tables to be checked.
+When a failed-quorum decision overlaps removal of the heartbeat regions,
+nodes and cluster through configfs, the worker can be preempted after
+marking the regions and resume after the singleton has been cleared:
 
-Set owner to THIS_MODULE in all eleven explicit debugfs operation
-tables: five in ocfs2_nodemanager, four in ocfs2_dlm, and two in
-ocfs2. The existing debugfs get/put pair then holds the appropriate
-module until final release. Leave the open, read and release callbacks
-unchanged. The blockcheck table already sets owner through
-DEFINE_DEBUGFS_ATTRIBUTE(), so it needs no change.
+  Quorum worker                     Configfs removal
+  select fence; drop qs_lock
+  o2hb_stop_all_regions()
+                                    remove regions; join heartbeat threads
+                                    remove nodes; stop o2net
+                                    clear singleton; release cluster
+  read cl_fence_method
 
-The original controlled test used an unloadable OCFS2 module and
-case-local probe filters without changing the candidate open, unload
-or release logic. Closing a retained connected_nodes file after
-normal unload produced:
+The resumed read dereferences NULL instead of applying the configured
+fencing method. The heartbeat thread's dependency protects the local
+node only until the thread exits, and draining o2net does not wait for
+qs_work.
 
-  BUG: unable to handle page fault for address: fffffbfff804cfef
-  Oops: Oops: 0000 [#1] SMP KASAN NOPTI
-  RIP: 0010:full_proxy_release+0xbf/0x190
-  Call Trace:
-   <TASK>
-   __fput+0x39a/0xa60
-   fput_close_sync+0xff/0x200
-   __x64_sys_close+0x8c/0xf0
-   do_syscall_64+0x114/0x620
-   entry_SYSCALL_64_after_hwframe+0x77/0x7f
-   </TASK>
-  Modules linked in: [last unloaded: ocfs2_nodemanager]
+Add o2quo_flush_work() to drain pending or running quorum decisions
+before clearing the singleton in o2nm_cluster_group_drop_item(). By
+this point the heartbeat regions and nodes have been removed, so their
+work publishers are stopped. The worker can finish while the cluster
+and its configured fencing method remain available. It does not acquire
+the configfs mutex held by the removal path.
 
-Link: https://lore.kernel.org/pm-ocfs2-objects-candidate-0089-v6-f7fda843f80887488145@gmail.com
-Fixes: 2309e9e040fe ("ocfs2/net: Add debug interface to o2net")
-Fixes: 87d3d3f3931f ("ocfs2/hb: Expose the list of heartbeating nodes via debugfs")
-Fixes: 3ba169ccec1c ("ocfs2/cluster: Add new function o2net_fill_node_map()")
-Fixes: 50397507e856 ("ocfs2: Expose the file system state via debugfs")
-Fixes: ccd979bdbce9 ("[PATCH] OCFS2: The Second Oracle Cluster Filesystem")
-Fixes: 7209300a9b98 ("ocfs2/dlm: Dumps the purgelist into a debugfs file")
-Fixes: d0129aceaecc ("ocfs2/dlm: Dumps the mles into a debugfs file")
-Fixes: 4e3d24ed1a12 ("ocfs2/dlm: Dumps the lockres' into a debugfs file")
-Fixes: 007dce53a29c ("ocfs2/dlm: Dump the dlm state in a debugfs file")
-Fixes: db02754c8a12 ("ocfs2/cluster: Show o2net timing statistics")
+Keep o2quo_exit() as the counterpart of o2quo_init() for module teardown
+and initialization failure, and have it call the same drain helper.
+Cluster removal uses only the explicitly named drain operation.
+
+KASAN report as below:
+
+    Oops: general protection fault, probably for non-canonical address 0xdffffc000000011b: 0000 [#1] SMP KASAN NOPTI
+    KASAN: null-ptr-deref in range [0x00000000000008d8-0x00000000000008df]
+    CPU: 0 UID: 0 PID: 72 Comm: kworker/0:2 Not tainted 7.3.0-rc4-next-20260921-pmb-ocfs2-functional-v1+ #1 PREEMPT(lazy)
+    Hardware name: QEMU Ubuntu 24.04 PC v2 (i440FX + PIIX, arch_caps fix, 1996), BIOS 1.16.3-debian-1.16.3-2 04/01/2014
+    Workqueue: events o2quo_make_decision
+    RIP: 0010:o2quo_fence_self+0x65/0x200
+
+Register dump omitted.
+
+    Call Trace:
+     <TASK>
+     o2quo_make_decision+0x345/0x3a0
+     ? __pfx_o2quo_make_decision+0x10/0x10
+     ? process_one_work+0x834/0x1b40
+     ? srso_alias_return_thunk+0x5/0xfbef5
+     ? lock_release+0xc8/0x290
+     ? srso_alias_return_thunk+0x5/0xfbef5
+     process_one_work+0x9a8/0x1b40
+     ? __pfx_process_one_work+0x10/0x10
+     ? lock_acquire+0x190/0x300
+     ? lock_is_held_type+0x8f/0x100
+     ? srso_alias_return_thunk+0x5/0xfbef5
+     worker_thread+0x65c/0xe40
+     ? srso_alias_return_thunk+0x5/0xfbef5
+     ? __kthread_parkme+0x177/0x220
+     ? srso_alias_return_thunk+0x5/0xfbef5
+     ? __pfx_worker_thread+0x10/0x10
+     kthread+0x351/0x460
+     ? srso_alias_return_thunk+0x5/0xfbef5
+     ? __pfx_kthread+0x10/0x10
+     ret_from_fork+0x659/0x940
+     ? __pfx_ret_from_fork+0x10/0x10
+     ? srso_alias_return_thunk+0x5/0xfbef5
+     ? __switch_to+0x74f/0xf70
+     ? __pfx_kthread+0x10/0x10
+     ret_from_fork_asm+0x1a/0x30
+     </TASK>
+    Modules linked in:
+    ---[ end trace 0000000000000000 ]---
+
+Link: https://lore.kernel.org/pm-ocfs2-objects-candidate-0064-v5-e3870bf6571b80b07b52@gmail.com
+Fixes: f6656d26d17b ("ocfs2/cluster: Make fence method configurable - v2")
 Signed-off-by: Cen Zhang <zzzccc427@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Suggested-by: Heming Zhao <heming.zhao@suse.com>
 Reviewed-by: Joseph Qi <joseph.qi@linux.alibaba.com>
 Assisted-by: LLM
 Cc: Mark Fasheh <mark@fasheh.com>
 Cc: Joel Becker <jlbec@evilplan.org>
-Cc: Kees Cook <kees@kernel.org>
-Cc: Karl Mehltretter <kmehltretter@gmail.com>
-Cc: Christophe JAILLET <christophe.jaillet@wanadoo.fr>
-Cc: Yufan Chen <ericterminal@gmail.com>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Zhang Cen <rollkingzzc@gmail.com>
-Cc: Christian Brauner <brauner@kernel.org>
-Cc: Sunil Mushran <sunil.mushran@oracle.com>
-Cc: Kurt Hackel <kurt.hackel@oracle.com>
-Cc: Jan Kara <jack@suse.cz>
+Cc: Heming Zhao <heming.zhao@suse.com>
 Cc: Jia-Ju Bai <baijiaju1990@gmail.com>
 Cc: <jjzuming@gmail.com>
 Cc: <stable@vger.kernel.org>
 ---
 
- fs/ocfs2/cluster/heartbeat.c |    1 +
- fs/ocfs2/cluster/netdebug.c  |    4 ++++
- fs/ocfs2/dlm/dlmdebug.c      |    5 +++++
- fs/ocfs2/dlmglue.c           |    2 ++
- fs/ocfs2/super.c             |    1 +
- 5 files changed, 13 insertions(+)
+ fs/ocfs2/cluster/nodemanager.c |    3 +++
+ fs/ocfs2/cluster/quorum.c      |    7 ++++++-
+ fs/ocfs2/cluster/quorum.h      |    1 +
+ 3 files changed, 10 insertions(+), 1 deletion(-)
 
---- a/fs/ocfs2/cluster/heartbeat.c~ocfs2-pin-owning-modules-for-open-debugfs-files
-+++ a/fs/ocfs2/cluster/heartbeat.c
-@@ -1447,6 +1447,7 @@ static ssize_t o2hb_debug_read(struct fi
- #endif  /* CONFIG_DEBUG_FS */
+--- a/fs/ocfs2/cluster/nodemanager.c~ocfs2-drain-quorum-work-before-removing-the-cluster
++++ a/fs/ocfs2/cluster/nodemanager.c
+@@ -12,6 +12,7 @@
+ #include "tcp.h"
+ #include "nodemanager.h"
+ #include "heartbeat.h"
++#include "quorum.h"
+ #include "masklog.h"
+ #include "sys.h"
  
- static const struct file_operations o2hb_debug_fops = {
-+	.owner =	THIS_MODULE,
- 	.open =		o2hb_debug_open,
- 	.release =	o2hb_debug_release,
- 	.read =		o2hb_debug_read,
---- a/fs/ocfs2/cluster/netdebug.c~ocfs2-pin-owning-modules-for-open-debugfs-files
-+++ a/fs/ocfs2/cluster/netdebug.c
-@@ -183,6 +183,7 @@ static int nst_fop_release(struct inode
+@@ -740,6 +741,8 @@ static void o2nm_cluster_group_drop_item
+ 	struct o2nm_cluster *cluster = to_o2nm_cluster(item);
+ 
+ 	BUG_ON(o2nm_single_cluster != cluster);
++	/* Drain quorum work before it loses access to the cluster. */
++	o2quo_flush_work();
+ 	o2nm_single_cluster = NULL;
+ 
+ 	configfs_remove_default_groups(&cluster->cl_group);
+--- a/fs/ocfs2/cluster/quorum.c~ocfs2-drain-quorum-work-before-removing-the-cluster
++++ a/fs/ocfs2/cluster/quorum.c
+@@ -318,9 +318,14 @@ void o2quo_init(void)
+ 	INIT_WORK(&qs->qs_work, o2quo_make_decision);
  }
  
- static const struct file_operations nst_seq_fops = {
-+	.owner = THIS_MODULE,
- 	.open = nst_fop_open,
- 	.read = seq_read,
- 	.llseek = seq_lseek,
-@@ -415,6 +416,7 @@ static int stats_fop_open(struct inode *
+-void o2quo_exit(void)
++void o2quo_flush_work(void)
+ {
+ 	struct o2quo_state *qs = &o2quo_state;
+ 
+ 	flush_work(&qs->qs_work);
  }
++
++void o2quo_exit(void)
++{
++	o2quo_flush_work();
++}
+--- a/fs/ocfs2/cluster/quorum.h~ocfs2-drain-quorum-work-before-removing-the-cluster
++++ a/fs/ocfs2/cluster/quorum.h
+@@ -8,6 +8,7 @@
  
- static const struct file_operations stats_seq_fops = {
-+	.owner = THIS_MODULE,
- 	.open = stats_fop_open,
- 	.read = seq_read,
- 	.llseek = seq_lseek,
-@@ -427,6 +429,7 @@ static int sc_fop_open(struct inode *ino
- }
+ void o2quo_init(void);
+ void o2quo_exit(void);
++void o2quo_flush_work(void);
  
- static const struct file_operations sc_seq_fops = {
-+	.owner = THIS_MODULE,
- 	.open = sc_fop_open,
- 	.read = seq_read,
- 	.llseek = seq_lseek,
-@@ -476,6 +479,7 @@ static ssize_t o2net_debug_read(struct f
- }
- 
- static const struct file_operations nodes_fops = {
-+	.owner		= THIS_MODULE,
- 	.open		= nodes_fop_open,
- 	.release	= o2net_debug_release,
- 	.read		= o2net_debug_read,
---- a/fs/ocfs2/dlm/dlmdebug.c~ocfs2-pin-owning-modules-for-open-debugfs-files
-+++ a/fs/ocfs2/dlm/dlmdebug.c
-@@ -7,6 +7,7 @@
-  * Copyright (C) 2004, 2008 Oracle.  All rights reserved.
-  */
- 
-+#include <linux/module.h>
- #include <linux/types.h>
- #include <linux/slab.h>
- #include <linux/highmem.h>
-@@ -339,6 +340,7 @@ static int debug_purgelist_open(struct i
- }
- 
- static const struct file_operations debug_purgelist_fops = {
-+	.owner =	THIS_MODULE,
- 	.open =		debug_purgelist_open,
- 	.release =	debug_release,
- 	.read =		debug_read,
-@@ -394,6 +396,7 @@ static int debug_mle_open(struct inode *
- }
- 
- static const struct file_operations debug_mle_fops = {
-+	.owner =	THIS_MODULE,
- 	.open =		debug_mle_open,
- 	.release =	debug_release,
- 	.read =		debug_read,
-@@ -601,6 +604,7 @@ static int debug_lockres_release(struct
- }
- 
- static const struct file_operations debug_lockres_fops = {
-+	.owner =	THIS_MODULE,
- 	.open =		debug_lockres_open,
- 	.release =	debug_lockres_release,
- 	.read =		seq_read,
-@@ -791,6 +795,7 @@ static int debug_state_open(struct inode
- }
- 
- static const struct file_operations debug_state_fops = {
-+	.owner =	THIS_MODULE,
- 	.open =		debug_state_open,
- 	.release =	debug_release,
- 	.read =		debug_read,
---- a/fs/ocfs2/dlmglue.c~ocfs2-pin-owning-modules-for-open-debugfs-files
-+++ a/fs/ocfs2/dlmglue.c
-@@ -7,6 +7,7 @@
-  * Copyright (C) 2003, 2004 Oracle.  All rights reserved.
-  */
- 
-+#include <linux/module.h>
- #include <linux/types.h>
- #include <linux/slab.h>
- #include <linux/highmem.h>
-@@ -3332,6 +3333,7 @@ static int ocfs2_dlm_debug_open(struct i
- }
- 
- static const struct file_operations ocfs2_dlm_debug_fops = {
-+	.owner =	THIS_MODULE,
- 	.open =		ocfs2_dlm_debug_open,
- 	.release =	ocfs2_dlm_debug_release,
- 	.read =		seq_read,
---- a/fs/ocfs2/super.c~ocfs2-pin-owning-modules-for-open-debugfs-files
-+++ a/fs/ocfs2/super.c
-@@ -387,6 +387,7 @@ static ssize_t ocfs2_debug_read(struct f
- #endif	/* CONFIG_DEBUG_FS */
- 
- static const struct file_operations ocfs2_osb_debug_fops = {
-+	.owner =	THIS_MODULE,
- 	.open =		ocfs2_osb_debug_open,
- 	.release =	ocfs2_debug_release,
- 	.read =		ocfs2_debug_read,
+ void o2quo_hb_up(u8 node);
+ void o2quo_hb_down(u8 node);
 _
 
 Patches currently in -mm which might be from zzzccc427@gmail.com are
 
+ocfs2-drain-quorum-work-before-removing-the-cluster.patch
 
