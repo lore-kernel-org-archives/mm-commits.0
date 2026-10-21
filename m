@@ -1,45 +1,45 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1792560652;
-	b=4xGc6ysYg7ZP8BpGEFkpARidFB3wXUEWxAU5bK3mqCPyx4T5WqYz+Ll26A5DU4ibfpHY
-	 1I3Pe77MSERbGDLqwmnvwAv67zoStHoUmZajo4hJ+3BUPBeEz1L7Jsy2Eu5/WQuFAE+Uz
-	 N/8RPRfbI9mOFcwakpq3Kl9bx/ojFxB67MK68xkcMXX1uZL9VSHLuVUfPKQsNv5ghCy0u
-	 UvTzO9gtGYmj2yyrY5x2nSVAMUncwixSCrs9Df9yRWAL5WbPlOmu8ytmZLMPNOac9msYb
-	 8xfU171uJVfLBrVelvQ1hTzHI9f12m8b0MpdtxD4sIKottkmN2O00ZSbTbvwCgkqbHw==
+	t=1792560653;
+	b=ksLsx66qfsGj/C8zzWu/0KOQ4LXG99GOC7QQnGJaLHRr3ajGDbDQc9qSwP7XlrpPlGwo
+	 jwNnmK7xSyk+CbWNPBZskKV4ILARRheL3WPN6Sce6glfOWqBkk1fytAC9F1EjCZJji2mn
+	 z4LudRvTU7oh2dZKAmzVIrNIxyjOBAIwkG6UOmcgnwwMfgMckPl+wO3WwchGJAXJ4UzdT
+	 34T89LSc/k977MV5uL2brGyPY6TfV0en6gNPSEKXzFtbrUPnf6GdmSpe0v9n84SNksuCp
+	 pewfalz7YrC0jKXza9pf2aFr5chmnw/Cxlv3B+JN+XBliOoRIsy7GoCR6TFkJBcwndA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1792560652;
+	a=rsa-sha256; c=relaxed/relaxed; t=1792560653;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=wPGCxAMe2LoEOeYTxGyLLssxMUrRyLfeIhP7vNsshp4=;
-	b=SWhH4QaW/BE6F2FLWYq4xV8VBAXwGcqpwFoMMAWA73RC3/PPGJVS9CsHBvzztrKQRHm0
-	 5PVnZW0U249swk809zq7/pIupkm+y/jLIA4AVMODomsY3jc3r9GYYMolvf+aWKxOn4WiD
-	 GZ3i7whr2y4gWxe3ZvlrtnLl3WUtM5a2piGsYfcIvNujz8IltAhEIEbNmx6T/acbEUoJK
-	 rrhOyhhLka2c+UtFW5cOaJCfjnoHSsIlAJ+ThPtexoz8Knm6EAa6BbxVAPHPVzhEZalWZ
-	 Kjc9NqIJCwBm7f4XPprFWgDsztskEOGEU/0A580Yeb1AXIRIzCm3tK9odQnt6QgLnqw==
+	bh=4/WO178zW5a0OEKRuEb2FG/k359HZ8gtqgs89Jfq4BI=;
+	b=rGzL5WwvmErf3c6JGL3mziGuDOCoJTwrzI74kJwgAwdIAgrFfoSyxbJ3W0MROpPoOiKP
+	 1Y1sIQj3v81ULveANIHfwdy3JuniCZM9B4ehFSUgiDDpbCh3WPjP4qRPXNov4dk0wjJJK
+	 Rf6erDQHCAjE9X15THD/bEErx05lJ/0niERJwe6As4qhrdHxADOHlZlli/M3hUgC424WA
+	 0ERBtGNz32ZZJDZhMRmElnrVWdjB7awt3i6EXADjvHi8zA/sL7B4GJG68UYo0NzOsQ+H4
+	 rQkNRrX3/LEfzbumIZ8g5LkRNl/nk0synMU2Aq3AH5TweFhaR79q2dsgT1xxZ+1MqKQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b="Gp0HxDl/";
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=1luPfLfe;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 93EA7606A330
-	for <mm-commits@vger.kernel.org>; Wed, 21 Oct 2026 05:30:52 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 973F3606A322;
+	Wed, 21 Oct 2026 05:30:53 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=Gp0HxDl/
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5F1941F000C9;
-	Wed, 21 Oct 2026 05:30:52 +0000 (UTC)
+	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=1luPfLfe
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6D9641F000C9;
+	Wed, 21 Oct 2026 05:30:53 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1792560652;
-	bh=wPGCxAMe2LoEOeYTxGyLLssxMUrRyLfeIhP7vNsshp4=;
+	d=linux-foundation.org; s=korg; t=1792560653;
+	bh=4/WO178zW5a0OEKRuEb2FG/k359HZ8gtqgs89Jfq4BI=;
 	h=Date:To:From:Subject;
-	b=Gp0HxDl/oqnnYw9maQEzzJWneVRCvD8L74hSzq9rtcfXhhVeo22sqyRgoXkKiYTVA
-	 QLI8po+s7lRd6i7qmNrOa9wN4oYY9ESyRLSlY/QpuiH7QmH4zhLXgTH3DjYvqHruUF
-	 /9Ch3TfQ969sxqA4SKIcVIEwXJtlxivaWYGwkN+o=
-Date: Tue, 20 Oct 2026 22:30:51 -0700
-To: mm-commits@vger.kernel.org,mark@fasheh.com,jlbec@evilplan.org,heming.zhao@suse.com,joseph.qi@linux.alibaba.com,akpm@linux-foundation.org
+	b=1luPfLfeQ2gPsNjXjHR5TjaFJdYavsTrCHcAQvYGCQWgaY3WX1o2nqIQ4J72dZtdN
+	 hU8SugyIbVCiiJhTtGmfeHY+CyY+LO1R0AmH74TAFGP4snk7GkZm6fbYR1sITK9lRe
+	 0s8Rv6hBKlyvTN3yANZQ4xnOpZZwdvSOn64iUCbA=
+Date: Tue, 20 Oct 2026 22:30:53 -0700
+To: mm-commits@vger.kernel.org,tao.ma@oracle.com,stable@vger.kernel.org,mark@fasheh.com,joseph.qi@linux.alibaba.com,jlbec@evilplan.org,jjzuming@gmail.com,heming.zhao@suse.com,baijiaju1990@gmail.com,zzzccc427@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] ocfs2-validate-the-xattr-tree-root-of-an-indexed-xattr-block.patch removed from -mm tree
-Message-Id: <20261021053052.5F1941F000C9@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] ocfs2-pin-refcount-trees-before-dropping-the-lookup-lock.patch removed from -mm tree
+Message-Id: <20261021053053.6D9641F000C9@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -51,97 +51,239 @@ Precedence: list
 
 
 The quilt patch titled
-     Subject: ocfs2: validate the xattr tree root of an indexed xattr block
+     Subject: ocfs2: pin refcount trees before dropping the lookup lock
 has been removed from the -mm tree.  Its filename was
-     ocfs2-validate-the-xattr-tree-root-of-an-indexed-xattr-block.patch
+     ocfs2-pin-refcount-trees-before-dropping-the-lookup-lock.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Joseph Qi <joseph.qi@linux.alibaba.com>
-Subject: ocfs2: validate the xattr tree root of an indexed xattr block
-Date: Wed, 14 Oct 2026 18:58:56 +0800
+From: Cen Zhang <zzzccc427@gmail.com>
+Subject: ocfs2: pin refcount trees before dropping the lookup lock
+Date: Wed, 14 Oct 2026 11:47:15 +0800
 
-ocfs2_validate_xattr_block() checks an xattr block's signature, blkno,
-generation and suballocator fields, and for a non-indexed block the entry
-array it carries.  An indexed block is passed straight through, so the
-extent list in its xattr tree root is never looked at.
+A refcount tree returned to ocfs2_lock_refcount_tree() must stay alive
+until that caller releases its operation reference. However,
+ocfs2_get_refcount_tree() returns the cached pointer after dropping
+osb_lock, and the caller only takes its kref afterwards. The registry
+reference does not protect this gap from concurrent removal.
 
-Both fields that describe the list are bounded.  The two places that
-create a root set l_count from ocfs2_xattr_recs_per_xb() and nothing
-rewrites it, and the insert path asserts in ocfs2_rotate_leaf() that
-l_next_free_rec stays within l_count.  Check both when the block is
-first read, so a root that disagrees with the block size, or claims more
-records than it has room for, is caught before anything indexes into
-l_recs[].
+This can happen when another node frees a refcount root and reuses its
+block with a different generation while this mount retains the old
+cached tree. Two local operations on different inodes sharing the new
+root, such as data CoW and an external xattr update, can then look up
+the same stale tree. Their inode locks are independent, and both the
+REFCOUNT DLM lock and rf_sem are acquired after the first operation
+reference.
 
-An empty root is deliberately not rejected.  Emptying the tree leaves it
-that way: ocfs2_rm_xattr_cluster() removes one extent per transaction,
-and the last one ends in ocfs2_truncate_rec(), whose closing
-ocfs2_rotate_tree_left() reaches ocfs2_remove_empty_extent() on the
-depth-zero root and takes l_next_free_rec to zero.  That transaction
-commits before ocfs2_xattr_free_block() frees the block, and before
-ocfs2_xattr_remove() clears i_xattr_loc, in two later transactions, so a
-crash in between leaves an orphan inode pointing at an xattr block whose
-root has no extents.  Both readers already cope with it:
-__ocfs2_xattr_index_block_find() answers -ENODATA, and
-ocfs2_iterate_xattr_index_block() returns without iterating.
+The following ordering is possible, with no other operation references:
 
-Link: https://lore.kernel.org/20261014105856.2909777-1-joseph.qi@linux.alibaba.com
-Signed-off-by: Joseph Qi <joseph.qi@linux.alibaba.com>
+  Data CoW                         Xattr update
+  --------                         ------------
+  Look up the old tree under
+    osb_lock, then drop osb_lock
+                                   Look up the same tree and take a kref
+                                   Acquire the tree locks and read the
+                                     new on-disk generation
+                                   Erase the old tree under osb_lock
+                                   Unlock and drop the operation kref
+                                   Drop the registry kref, freeing tree
+  Take a kref through the
+    freed tree pointer
+
+The final kref_get() accesses freed rf_getcnt storage, and subsequent
+accesses in ocfs2_lock_refcount_tree() also use the freed allocation.
+
+Take the operation reference in ocfs2_get_refcount_tree() before
+releasing osb_lock, including when an insertion loses to another lookup.
+Removal must acquire the same lock, so it cannot drop the registry
+reference before the lookup has pinned the tree. Keep the existing
+unlock and error path puts. The two callers that already hold the
+refcount tree lock keep their borrowed lookup behavior and do not
+acquire an extra reference.
+
+KASAN report as below:
+
+    BUG: KASAN: slab-use-after-free in ocfs2_lock_refcount_tree+0x94a/0x9b0
+    Read of size 4 at addr ffff888117212820 by task python3/497
+
+[Kernel and hardware identification omitted.]
+
+    Call Trace:
+     <TASK>
+     dump_stack_lvl+0x93/0xd0
+     print_report+0xce/0x630
+     ? ocfs2_lock_refcount_tree+0x94a/0x9b0
+     ? srso_alias_return_thunk+0x5/0xfbef5
+     ? __virt_addr_valid+0x20e/0x420
+     ? ocfs2_lock_refcount_tree+0x94a/0x9b0
+     kasan_report+0xe0/0x110
+     ? ocfs2_lock_refcount_tree+0x94a/0x9b0
+     ocfs2_lock_refcount_tree+0x94a/0x9b0
+     ? __pfx_ocfs2_lock_refcount_tree+0x10/0x10
+     ? srso_alias_return_thunk+0x5/0xfbef5
+     ? ocfs2_refcount_cow+0x3b6/0xd90
+     ? srso_alias_return_thunk+0x5/0xfbef5
+     ? __kmalloc_cache_noprof+0x28d/0x610
+     ? ocfs2_refcount_cow+0x3b6/0xd90
+     ocfs2_refcount_cow+0x410/0xd90
+     ? __pfx_ocfs2_refcount_cow+0x10/0x10
+     ? __pfx___might_resched+0x10/0x10
+     ? down_write+0x11a/0x1f0
+     ? __pfx_down_write+0x10/0x10
+     ? ocfs2_inode_unlock+0x1a9/0x260
+     ? __pfx_ocfs2_inode_unlock+0x10/0x10
+     ? ocfs2_file_write_iter+0x1413/0x1d30
+     ocfs2_file_write_iter+0x157b/0x1d30
+     ? __pfx_ocfs2_file_write_iter+0x10/0x10
+     ? lock_acquire+0x190/0x300
+     ? __x64_sys_pwrite64+0x1b7/0x220
+     ? __pfx___might_resched+0x10/0x10
+     ? srso_alias_return_thunk+0x5/0xfbef5
+     ? security_file_permission+0x26/0x80
+     ? srso_alias_return_thunk+0x5/0xfbef5
+     ? lock_is_held_type+0x8f/0x100
+     vfs_write+0x639/0x1010
+     ? __pfx_ocfs2_file_write_iter+0x10/0x10
+     ? lock_vma_under_rcu+0x154/0x4a0
+     ? __pfx_vfs_write+0x10/0x10
+     ? lock_release+0x121/0x290
+     ? srso_alias_return_thunk+0x5/0xfbef5
+     __x64_sys_pwrite64+0x1b7/0x220
+     ? __pfx___x64_sys_pwrite64+0x10/0x10
+     ? irqentry_exit+0xbe/0x820
+     ? srso_alias_return_thunk+0x5/0xfbef5
+     ? trace_hardirqs_on_prepare+0x11d/0x150
+     ? srso_alias_return_thunk+0x5/0xfbef5
+     do_syscall_64+0x114/0x620
+     entry_SYSCALL_64_after_hwframe+0x77/0x7f
+
+[Register dump omitted.]
+
+     </TASK>
+
+    Allocated by task 491:
+     kasan_save_stack+0x33/0x60
+     kasan_save_track+0x14/0x30
+     __kasan_kmalloc+0xaa/0xb0
+     __kmalloc_cache_noprof+0x28d/0x610
+     ocfs2_allocate_refcount_tree+0x49/0x1a0
+     ocfs2_create_refcount_tree+0x5d7/0x1630
+     ocfs2_attach_refcount_tree+0x57d/0x1100
+     __ocfs2_reflink.isra.0+0x1c4/0x1940
+     ocfs2_reflink+0x501/0x9b0
+     ocfs2_reflink_ioctl+0x6b2/0x920
+     ocfs2_ioctl+0x538/0x640
+     __x64_sys_ioctl+0x163/0x1d0
+     do_syscall_64+0x114/0x620
+     entry_SYSCALL_64_after_hwframe+0x77/0x7f
+
+    Freed by task 498:
+     kasan_save_stack+0x33/0x60
+     kasan_save_track+0x14/0x30
+     kasan_save_free_info+0x3b/0x60
+     __kasan_slab_free+0x5f/0x80
+     kfree+0x308/0x580
+     ocfs2_lock_refcount_tree+0x672/0x9b0
+     ocfs2_xattr_set+0x72c/0x2530
+     ocfs2_xattr_user_set+0xaf/0xf0
+     __vfs_setxattr+0x143/0x1b0
+     __vfs_setxattr_noperm+0x112/0x5b0
+     __vfs_setxattr_locked+0xfe/0x2b0
+     vfs_setxattr+0x13c/0x370
+     do_setxattr+0x128/0x170
+     filename_setxattr+0x147/0x190
+     path_setxattrat+0x1ac/0x260
+     __x64_sys_setxattr+0xcb/0x140
+     do_syscall_64+0x114/0x620
+     entry_SYSCALL_64_after_hwframe+0x77/0x7f
+
+    The buggy address belongs to the object at ffff888117212800
+     which belongs to the cache kmalloc-1k of size 1024
+    The buggy address is located 32 bytes inside of
+     freed 1024-byte region [ffff888117212800, ffff888117212c00)
+
+[Page and memory dumps omitted.]
+
+Link: https://lore.kernel.org/pm-ocfs2-objects-candidate-0037-v4-9f1a261dfbc341721689@gmail.com
+Fixes: 374a263e790c ("ocfs2: Add refcount tree lock mechanism.")
+Signed-off-by: Cen Zhang <zzzccc427@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Reviewed-by: Heming Zhao <heming.zhao@suse.com>
+Reviewed-by: Joseph Qi <joseph.qi@linux.alibaba.com>
+Assisted-by: LLM
 Cc: Mark Fasheh <mark@fasheh.com>
 Cc: Joel Becker <jlbec@evilplan.org>
+Cc: Heming Zhao <heming.zhao@suse.com>
+Cc: Tao Ma <tao.ma@oracle.com>
+Cc: Jia-Ju Bai <baijiaju1990@gmail.com>
+Cc: <jjzuming@gmail.com>
+Cc: <stable@vger.kernel.org>
 ---
 
- fs/ocfs2/xattr.c |   25 +++++++++++++++++++++++++
- 1 file changed, 25 insertions(+)
+ fs/ocfs2/refcounttree.c |   15 +++++++++------
+ 1 file changed, 9 insertions(+), 6 deletions(-)
 
---- a/fs/ocfs2/xattr.c~ocfs2-validate-the-xattr-tree-root-of-an-indexed-xattr-block
-+++ a/fs/ocfs2/xattr.c
-@@ -491,6 +491,7 @@ static int ocfs2_validate_xattr_block(st
- 				      struct buffer_head *bh)
- {
- 	int rc;
-+	struct ocfs2_extent_list *el;
- 	struct ocfs2_xattr_block *xb =
- 		(struct ocfs2_xattr_block *)bh->b_data;
- 
-@@ -573,6 +574,30 @@ static int ocfs2_validate_xattr_block(st
- 							 region_offset);
- 	}
- 
-+	/*
-+	 * An indexed xattr block carries the root of the xattr tree.  Its
-+	 * record count is fixed by the block size and l_next_free_rec never
-+	 * exceeds it.  A zero l_next_free_rec is valid: emptying the tree on
-+	 * the inode deletion path leaves the root with no extents.
-+	 */
-+	el = &xb->xb_attrs.xb_root.xt_list;
-+
-+	if (le16_to_cpu(el->l_count) != ocfs2_xattr_recs_per_xb(sb)) {
-+		return ocfs2_error(sb,
-+				   "Xattr tree root #%llu has invalid l_count %u (expected %u)\n",
-+				   (unsigned long long)bh->b_blocknr,
-+				   le16_to_cpu(el->l_count),
-+				   ocfs2_xattr_recs_per_xb(sb));
-+	}
-+
-+	if (le16_to_cpu(el->l_next_free_rec) > le16_to_cpu(el->l_count)) {
-+		return ocfs2_error(sb,
-+				   "Xattr tree root #%llu has l_next_free_rec %u past the end of its list (l_count %u)\n",
-+				   (unsigned long long)bh->b_blocknr,
-+				   le16_to_cpu(el->l_next_free_rec),
-+				   le16_to_cpu(el->l_count));
-+	}
-+
- 	return 0;
+--- a/fs/ocfs2/refcounttree.c~ocfs2-pin-refcount-trees-before-dropping-the-lookup-lock
++++ a/fs/ocfs2/refcounttree.c
+@@ -375,8 +375,10 @@ ocfs2_allocate_refcount_tree(struct ocfs
+ 	return new;
  }
  
++/* Callers without the refcount tree lock must request a reference. */
+ static int ocfs2_get_refcount_tree(struct ocfs2_super *osb, u64 rf_blkno,
+-				   struct ocfs2_refcount_tree **ret_tree)
++				   struct ocfs2_refcount_tree **ret_tree,
++				   bool get_ref)
+ {
+ 	int ret = 0;
+ 	struct ocfs2_refcount_tree *tree, *new = NULL;
+@@ -433,6 +435,8 @@ static int ocfs2_get_refcount_tree(struc
+ 	new = NULL;
+ 
+ out:
++	if (get_ref)
++		ocfs2_refcount_tree_get(tree);
+ 	*ret_tree = tree;
+ 
+ 	osb->osb_ref_tree_lru = tree;
+@@ -506,14 +510,12 @@ int ocfs2_lock_refcount_tree(struct ocfs
+ 	struct ocfs2_refcount_block *rb;
+ 
+ again:
+-	ret = ocfs2_get_refcount_tree(osb, ref_blkno, &tree);
++	ret = ocfs2_get_refcount_tree(osb, ref_blkno, &tree, true);
+ 	if (ret) {
+ 		mlog_errno(ret);
+ 		return ret;
+ 	}
+ 
+-	ocfs2_refcount_tree_get(tree);
+-
+ 	ret = __ocfs2_lock_refcount_tree(osb, tree, rw);
+ 	if (ret) {
+ 		mlog_errno(ret);
+@@ -2355,7 +2357,8 @@ int ocfs2_decrease_refcount(struct inode
+ 		goto out;
+ 	}
+ 
+-	ret = ocfs2_get_refcount_tree(OCFS2_SB(inode->i_sb), ref_blkno, &tree);
++	ret = ocfs2_get_refcount_tree(OCFS2_SB(inode->i_sb), ref_blkno,
++				      &tree, false);
+ 	if (ret) {
+ 		mlog_errno(ret);
+ 		goto out;
+@@ -2590,7 +2593,7 @@ int ocfs2_prepare_refcount_change_for_de
+ 	BUG_ON(!ocfs2_is_refcount_inode(inode));
+ 
+ 	ret = ocfs2_get_refcount_tree(OCFS2_SB(inode->i_sb),
+-				      refcount_loc, &tree);
++				      refcount_loc, &tree, false);
+ 	if (ret) {
+ 		mlog_errno(ret);
+ 		goto out;
 _
 
-Patches currently in -mm which might be from joseph.qi@linux.alibaba.com are
+Patches currently in -mm which might be from zzzccc427@gmail.com are
 
 
