@@ -1,45 +1,45 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1792555759;
-	b=FXB+RaX10bjUFQuofRcVEyIWshQtQ7e2JsgQ8hG93HUeisiDzKKLCYEaVLnJsQsSP111
-	 oCbtbFvcAGDZBrQCyuhOGwT4Aa0p+ZmrS1jc46zun45ABnUDPKBoUw7vTxvqXaOLNtpHm
-	 dvWRrKvgD2mW7SOa/333igkYNdExtfGV8kOhQu/wqJ52fO5uHJDj3CKuDTOO5GhwppHPC
-	 1g8amXLHHzj8QBimyNSlnYNbycTw79p7YOtRsX4X40Jkv6/TufgErCVsSYcE87cHPJHFw
-	 fPK0DEjDfulZeIYlZPCt13j03PlFcGDfzWahdBzSElm/g5VBFa2Pz0XVySeAIFfxoWQ==
+	t=1792555875;
+	b=i1bb6uX+hYdgA7FfufZqDAaDCw6ubYOsY/BJf7DgHrJHGGB4Pm9VoP8MzeO/6h5DNe9F
+	 ikIYxKYRwWWN7Rj4aOc7ldgshp3p2I2G7oZg2stTmB/0QIdNfjJ2LhH/oGFpBIcDo9l4a
+	 1r44cYMUloYNVaDq5me/ltub4JQITDA8Qn4UvNoZ/B3UCkIl6GoCHF6+4tZzlLWApl7IW
+	 5Wq2/7UxtQPUEsXvDpJwEM83LejFxbuj6gQGxpev7OhPiJ7EOe2QEd0BGysRVS/MKMQgF
+	 ovYNv872SBudMHIALICS/gFe6gLHKKIXBJ5QedBkkS5TNQN9lzDcHubSKe77SqW52hg==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1792555759;
+	a=rsa-sha256; c=relaxed/relaxed; t=1792555875;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=73sIXLKTwtG8bQRdXGMaGOTBn3Y0qk223b3F6B2LH9k=;
-	b=NtqwEneZ1SLZlwHcfO3kiY1aYE/Y8/spO+NRWKW7n0QcgLi7VmNGZFBsNo0am6RnNJ3+
-	 E/x+aGKFzPeVwP7KdES71/SNoMlPwiZ6R9vVd4EroJF4GCUmP8u95WJweHeAVN8cySvYh
-	 wIdi86QM2znzT1vFBhZFRfFRBf1uy8FjU8wjiyNCspOAilQtktEu3ukwwJVJZV7HvrpF1
-	 sBcptjm6EKRQ8Hj7eX3Wmy0yAo6MmiHNgVSgkrIeC1oPtpgrTdvtAQ7sLwSD/QuaHOUDk
-	 1EoB51JUKRRJSyb7Pr3osVdPrkQdHb4f2DcwgfRqUIcHKaDdOvi5ENBV61ZiP7s8O3w==
+	bh=jp//GHMPiUj8paYMb1M4ZEg5KxKFiI5zoCO40UVeYF4=;
+	b=UPaB5GPszOAW4E65bb/dw3/QXlGjiYmarvV/69VxSuTaTh7gFyHbw32LKmiQrE5j0DXs
+	 687zjzlEEhbTCPbLQMTq9j09/3M2wHnL1Sfiw0Hv3noIIFuWxTaVj+pU6tttUSMpNqsLm
+	 jS640f3HfWLW/JaC/sbGs05w4VUb6LSTy9Ed5/OQ/UTjhySf1iOSWJ+ghDn1vwqw1R83m
+	 XsUk+iSk/+mTjAdQs/+D86yd1Ik+jZ2v80NuFNrV3Jjo3b15nthDk9uUXcScZmqnV6Shc
+	 rYQ7FYAclAGkBA3H3527GXrGoMoJZ1WypKExZJKfeVcdyzLd5lfcQ+2XnBxeVPIb0Ng==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=pthUGAIx;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=jRh8VWQy;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
+	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A868A606A319
-	for <mm-commits@vger.kernel.org>; Wed, 21 Oct 2026 04:09:18 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0AFFB60A2607
+	for <mm-commits@vger.kernel.org>; Wed, 21 Oct 2026 04:11:14 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=pthUGAIx
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 288A21F000C9;
-	Wed, 21 Oct 2026 04:09:18 +0000 (UTC)
+	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=jRh8VWQy
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7EDD91F01579;
+	Wed, 21 Oct 2026 04:11:14 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1792555758;
-	bh=73sIXLKTwtG8bQRdXGMaGOTBn3Y0qk223b3F6B2LH9k=;
+	d=linux-foundation.org; s=korg; t=1792555874;
+	bh=jp//GHMPiUj8paYMb1M4ZEg5KxKFiI5zoCO40UVeYF4=;
 	h=Date:To:From:Subject;
-	b=pthUGAIxE5caxUUzReNAe8PDl5o4/sAvXPba0+E59YJyJdol7DPC4ChmXqaAficwl
-	 SG2/W5I31XYpd6hZyc9W0cl/4sr8RYtdK4VYivoatwogUEzXX1o3C4Fb59TXb66zsx
-	 NcF33LjguOryKN8UjNkgOH0kcq+a+WGFMCQich+I=
-Date: Tue, 20 Oct 2026 21:09:17 -0700
-To: mm-commits@vger.kernel.org,tfiga@chromium.org,senozhatsky@chromium.org,pmladek@suse.com,dianders@chromium.org,brads@mainlining.org,tzungbi@kernel.org,akpm@linux-foundation.org
+	b=jRh8VWQytIZXpCWZWYzFyRvgXf9h1AUNYD9OsSokrP5DATq3Cf/Xg/kqMxRqxN2dC
+	 pAQubayeApdgHLKyQTn1P8W7raWY5tdDJyZjZoAxhrBFeFiC4DJAgf+qIavqGIAJ1z
+	 Jck1eIkMY465tFUJyOHDw697bQ8tS7aBX0bMd1BY=
+Date: Tue, 20 Oct 2026 21:11:13 -0700
+To: mm-commits@vger.kernel.org,shakeel.butt@linux.dev,roman.gushchin@linux.dev,muchun.song@linux.dev,mhocko@kernel.org,hannes@cmpxchg.org,joshua.hahnjy@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + watchdog-force-console-verbose-when-reporting-lockups.patch added to mm-nonmm-unstable branch
-Message-Id: <20261021040918.288A21F000C9@smtp.kernel.org>
+Subject: + mm-memcontrol-publish-null-pointer-before-dropping-css-reference.patch added to mm-unstable branch
+Message-Id: <20261021041114.7EDD91F01579@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -51,14 +51,14 @@ Precedence: list
 
 
 The patch titled
-     Subject: watchdog: force console verbose when reporting lockups
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     watchdog-force-console-verbose-when-reporting-lockups.patch
+     Subject: mm/memcontrol: publish null pointer before dropping css reference
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-memcontrol-publish-null-pointer-before-dropping-css-reference.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/watchdog-force-console-verbose-when-reporting-lockups.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memcontrol-publish-null-pointer-before-dropping-css-reference.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -74,78 +74,100 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Tzung-Bi Shih <tzungbi@kernel.org>
-Subject: watchdog: force console verbose when reporting lockups
-Date: Wed, 07 Oct 2026 05:17:26 +0000
+From: Joshua Hahn <joshua.hahnjy@gmail.com>
+Subject: mm/memcontrol: publish null pointer before dropping css reference
+Date: Tue, 20 Oct 2026 18:00:50 -0700
 
-When a hard or soft lockup is detected, the watchdog prints a header at
-KERN_EMERG (<0>), followed by diagnostic details (modules, registers, and
-backtraces) at KERN_WARNING/KERN_DEFAULT (<4>) and KERN_INFO (<6>).  If
-console_loglevel is quiet (<= 4), the console skips those <4>/<6>
-diagnostic messages before vpanic() has a chance to call
-console_verbose().  With the buddy detector, this leaves only the detector
-CPU's panic stack on the console and nothing about the locked CPU:
+struct memcg_stock_pcp hold references to cgroups that it tracks to make
+sure that the memcg never gets freed with unaccounted charges still
+living in the stock. When the cached stock goes to 0 for a memcg, its
+reference is dropped and the cached memcg pointer is set to NULL.
 
-  <0>[ 1535.991833][    C6] watchdog: Watchdog detected hard LOCKUP on cpu 7
-  <0>[ 1535.995960][    C6] Kernel panic - not syncing: Hard LOCKUP
-  <4>[ 1535.995970][    C6] CPU: 6 UID: 0 PID: 0 Comm: swapper/6 ...
-  <4>[ 1535.995997][    C6] Call trace:
-  ...
-  <4>[ 1535.996063][    C6]  watchdog_hardlockup_check+0x1e0/0x288
-  <4>[ 1535.996075][    C6]  watchdog_buddy_check_hardlockup+0xb4/0xc0
+If that was the last reference, the css_put would free the associated
+cgroup before publishing the NULL pointer, which can be racy on 
+PREEMPT_RT. To summarize Shakeel Butt's analysis in [2],
 
-Similar to commit 168e06f7937d ("kernel/hung_task.c: force console verbose
-before panic"), call console_verbose() before printing the lockup report
-so the diagnostic output is not suppressed.
+CPU 1					CPU 2
+local_trylock() takes a per-CPU
+spinlock, which is an rcu read
+lock along with migrate_disable
 
-Link: https://lore.kernel.org/20261007051726.4154849-1-tzungbi@kernel.org
-Signed-off-by: Tzung-Bi Shih <tzungbi@kernel.org>
+drain_stock
+css_put drops the last reference
+release work is queued
+
+kworker runs css_release_work_fn()
+call_rcu() starts grace period G
+which waits for the refill task.
+
+<preempt>
+					drain_all_stock
+					is_memcg_drain_needed()
+					enters rcu_read_lock(), but
+					 grace period G does not wait
+					since it started after G did
+
+					<prempt>
+
+stock->cached[i] is cleared and
+unlocks. Grace period G ends,
+old is freed
+
+					mem_cgroup_is_descendant() reads
+					old->css.cgroup which has just
+					been freed.
+
+To close this gap on PREEMPT_RT, switch the order of the referene drop
+and the publishing so that we publish the NULL pointer before dropping
+the reference. Note that this can only happen from drain_stock who can
+hold the last reference, but not on consume_stock since another
+reference will always be held. But fix this in both sites to maintain
+consistency. 
+
+This is based on a report from Sashiko, who found this pre-existing
+issue in my page_counter_stock series [1].
+
+Link: https://lore.kernel.org/20261021010051.1529261-1-joshua.hahnjy@gmail.com
+Link: https://sashiko.dev/#/patchset/20260928192349.3432886-1-joshua.hahnjy%40gmail.com [1]
+Link: https://lore.kernel.org/all/atfMngq7nyZpt4u-@linux.dev/ [2]
+Fixes: e1a366be5cb4 ("mm: memcontrol: switch to rcu protection in drain_all_stock()")
+Signed-off-by: Joshua Hahn <joshua.hahnjy@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Reviewed-by: Sergey Senozhatsky <senozhatsky@chromium.org>
-Reviewed-by: Bradley Morgan <brads@mainlining.org>
-Tested-by: Bradley Morgan <brads@mainlining.org> # Power10 / ARM64
-Reviewed-by: Douglas Anderson <dianders@chromium.org>
-Cc: Petr Mladek <pmladek@suse.com>
-Cc: Tomasz Figa <tfiga@chromium.org>
+Acked-by: Shakeel Butt <shakeel.butt@linux.dev>
+Acked-by: Muchun Song <muchun.song@linux.dev>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Roman Gushchin <roman.gushchin@linux.dev>
 ---
 
- kernel/watchdog.c |    8 +++++++-
- 1 file changed, 7 insertions(+), 1 deletion(-)
+ mm/memcontrol.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/kernel/watchdog.c~watchdog-force-console-verbose-when-reporting-lockups
-+++ a/kernel/watchdog.c
-@@ -255,6 +255,9 @@ void watchdog_hardlockup_check(unsigned
- 			return;
+--- a/mm/memcontrol.c~mm-memcontrol-publish-null-pointer-before-dropping-css-reference
++++ a/mm/memcontrol.c
+@@ -2172,8 +2172,8 @@ static bool consume_stock(struct mem_cgr
+ 			stock_pages -= nr_pages;
+ 			WRITE_ONCE(stock->nr_pages[i], stock_pages);
+ 			if (!stock_pages) {
+-				css_put(&memcg->css);
+ 				WRITE_ONCE(stock->cached[i], NULL);
++				css_put(&memcg->css);
+ 			}
+ 			ret = true;
+ 		}
+@@ -2209,8 +2209,8 @@ static void drain_stock(struct memcg_sto
+ 		WRITE_ONCE(stock->nr_pages[i], 0);
  	}
  
-+	if (hardlockup_panic)
-+		console_verbose();
-+
- 	/*
- 	 * NOTE: we call printk_cpu_sync_get_irqsave() after printing
- 	 * the lockup message. While it would be nice to serialize
-@@ -880,6 +883,10 @@ static enum hrtimer_restart watchdog_tim
- 		/* Start period for the next softlockup warning. */
- 		update_report_ts();
+-	css_put(&old->css);
+ 	WRITE_ONCE(stock->cached[i], NULL);
++	css_put(&old->css);
+ }
  
-+		thresh_count = duration / get_softlockup_thresh();
-+		if (softlockup_panic && thresh_count >= softlockup_panic)
-+			console_verbose();
-+
- 		printk_cpu_sync_get_irqsave(flags);
- 		pr_emerg("BUG: soft lockup - CPU#%d stuck for %us! [%s:%d]\n",
- 			smp_processor_id(), duration,
-@@ -901,7 +908,6 @@ static enum hrtimer_restart watchdog_tim
- 
- 		add_taint(TAINT_SOFTLOCKUP, LOCKDEP_STILL_OK);
- 		sys_info(softlockup_si_mask & ~SYS_INFO_ALL_BT);
--		thresh_count = duration / get_softlockup_thresh();
- 
- 		if (softlockup_panic && thresh_count >= softlockup_panic)
- 			panic("softlockup: hung tasks");
+ static void drain_stock_fully(struct memcg_stock_pcp *stock)
 _
 
-Patches currently in -mm which might be from tzungbi@kernel.org are
+Patches currently in -mm which might be from joshua.hahnjy@gmail.com are
 
-watchdog-force-console-verbose-when-reporting-lockups.patch
+mm-memcontrol-publish-null-pointer-before-dropping-css-reference.patch
 
