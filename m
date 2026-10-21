@@ -1,45 +1,45 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1792560637;
-	b=fUOAf35FUjDGo7w8MNQRS5e67qk9UJtZLWDmLhEYbHSUC4M0KsyfLpFW6dgLLa3DNC7Y
-	 pxUNKuDDQ4NXBSgosRWdUwEI8tx6bufpMUcJQ6Fqplzypadk37OBE7K3/ji6TJ+C1iOiM
-	 mQXoBNm4fje/REuJjzK1bKZ61sx4vWVbq5pUPBkp6IFbvSdEJRQJ9zaiKGe+I0tufpTuW
-	 7NsHoSxKJ/MIVlW/5+KCVwcHuB3XYZQNlUxfQr80qbO/hkp0ffQorg7G2R3yDlUSwNwPL
-	 /+x3adVfVHMElUGkP+IQHXPiLdC6cYaYQNhrsryRPr/xplUILSnggpB35+G1+qGSR+g==
+	t=1792560646;
+	b=HLJEi/eNM2DClxVNR63RXkiBuObFzcPccCCai4JeoGwM5uYrerlrbp10uzpUhbjUdQyf
+	 t8nnG3H8LF937NkM2kPVkyrX8cvDDC5/FvoP4YMKJX0grojppz0txr4A6W465Fl9PzhTr
+	 rcMrX7XhytNZFYh7Ik2W9vSHp/gGpllgBwD2pBRPEr4slC4M/J3+GbHid8uhunpi/B7Lv
+	 N74OG96qHHi+EQMQmytMFaqetLCoa03rj6oxJhzRkHP15unKN8Eq/+86bSZC4iasHAFNc
+	 3OlgEWoVm3Nm2GRzianFjgupwJSvBomml/09xqZ9D1tNTVC1PGILoraWP4fF6lC2jIw==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1792560637;
+	a=rsa-sha256; c=relaxed/relaxed; t=1792560646;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=8ROjgui+11qW/Bew8qIpy0A+SXcxt65fEwy0DC08lPM=;
-	b=4fWfMBS6JPGw3hkJREFSDgOgUY21mlq4KWA5dzPy6XR25OrCWuGn36xeR6wSHlo4ytRV
-	 tikPsR4nRDDvQ6gaxjLQGJZJnCjsz7voqbyO6kT4gBhe2XwtNEKKr+mgGjXlcgFepntE6
-	 cgyGe31X64P/djuE1ZoUnW//Pt/0Hpbx/F17W6iShja0YQJgAjCe2XeSvaImNgo6gpkQh
-	 rQch3FKu2bw27awCM7a/69Vh74gi6zI9tjZBeR/q5n3hnKAn/vK9wrxIcftJUYGh+gNq8
-	 Bvvi3QuMS6zLe/GJye7KZnzh3gcYCHH9tEaPjiTBSGLpgM4athdPCVDSPFSEhGAQBUA==
+	bh=3xBVr1FOE5hKeHyUHrZ08RwKD3jyKef5n/j0WpDDFM0=;
+	b=V5JhsdKgcp4AYx38kSFbL48hTf2POLnVITTVf1cUk8TarrINQ9S3KQBk8bw+ncjhuIbJ
+	 auTuzFD9Glx2ZP5vWerRoLdwqvGeq/ueK6kcbWfkDB3ZXAAbHTRksYP4snSQ3phlh/WFt
+	 arzs+D55hIvvIoKO/qe31t1rs5rikgey0yy7rpx77eDSEgwJ1Hdlg2NqUnAtsP5PB3DJ/
+	 ZX7rT2v7bPkM03fErhqQPUDf1qZLBrdwmDRWMD7V6InexdK4VkpSzwvVgbUls2TlXIP96
+	 hpm7YpmwOhx8CkP7efHQijlI8su/0lAgZuPS8hRWMgCICXW2Ll8g9t7qopKMWs8vGpw==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=QlFKN9tx;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=GEiAETPF;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 29CC2606A31E;
-	Wed, 21 Oct 2026 05:30:36 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 88D4D606A31C
+	for <mm-commits@vger.kernel.org>; Wed, 21 Oct 2026 05:30:46 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=QlFKN9tx
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A897F1F000C9;
-	Wed, 21 Oct 2026 05:30:36 +0000 (UTC)
+	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=GEiAETPF
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 195201F000C9;
+	Wed, 21 Oct 2026 05:30:46 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1792560636;
-	bh=8ROjgui+11qW/Bew8qIpy0A+SXcxt65fEwy0DC08lPM=;
+	d=linux-foundation.org; s=korg; t=1792560646;
+	bh=3xBVr1FOE5hKeHyUHrZ08RwKD3jyKef5n/j0WpDDFM0=;
 	h=Date:To:From:Subject;
-	b=QlFKN9tx+Rv+U2z+WKbgoXHeQrueQTH6YA3rTFns8xCouJLux71yzlxh0mwSZG1wS
-	 KJKcXZPrb2iS61/4gycFaUqHxC8i8ps3SPNIg6BoVaNJAtC0E5Y85NYuDU6Acy9n7O
-	 OUOMYxN3R7+KK97a/xA3n1Jg7fnzgz5Z81Xu3ft4=
-Date: Tue, 20 Oct 2026 22:30:36 -0700
-To: mm-commits@vger.kernel.org,stable@vger.kernel.org,mark@fasheh.com,jlbec@evilplan.org,heming.zhao@suse.com,anderson.ferneda@braza.com.br,joseph.qi@linux.alibaba.com,akpm@linux-foundation.org
+	b=GEiAETPFw7biMJMDj9WCVtElAiRvn64hdOsjFyuvTJgsv6begX0pRAfsrL+vaj6sI
+	 DLx5LqLy93IBfkoCKov82ghcPCkMD9kkw5sVyVCBZO2UhnyVLDoITmRPm5cEZXpkhT
+	 9fxizQ3R4blzrWmRNY/2ZOQcLRkkdoUehesDWBrk=
+Date: Tue, 20 Oct 2026 22:30:45 -0700
+To: mm-commits@vger.kernel.org,hirofumi@mail.parknet.co.jp,matheus.aalmeida@inf.ufrgs.br,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] ocfs2-deal-with-legacy-signed-xattr-name-hash-values.patch removed from -mm tree
-Message-Id: <20261021053036.A897F1F000C9@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] fat-remove-cluster-allocation-size-limit.patch removed from -mm tree
+Message-Id: <20261021053046.195201F000C9@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -51,205 +51,130 @@ Precedence: list
 
 
 The quilt patch titled
-     Subject: ocfs2: deal with legacy signed xattr name hash values
+     Subject: fat: remove cluster allocation size limit
 has been removed from the -mm tree.  Its filename was
-     ocfs2-deal-with-legacy-signed-xattr-name-hash-values.patch
+     fat-remove-cluster-allocation-size-limit.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Joseph Qi <joseph.qi@linux.alibaba.com>
-Subject: ocfs2: deal with legacy signed xattr name hash values
-Date: Fri, 09 Oct 2026 16:30:02 +0800
+From: Matheus Alves de Almeida <matheus.aalmeida@inf.ufrgs.br>
+Subject: fat: remove cluster allocation size limit
+Date: Mon, 12 Oct 2026 14:11:04 -0300
 
-Commit 3bc753c06dd0 ("kbuild: treat char as always unsigned") set
--funsigned-char globally, which changed the result of the naked 'char'
-load in ocfs2_xattr_name_hash():
+Patch series "fat: allocate multiple clusters in fallocate", v2.
 
-	hash = (hash << OCFS2_HASH_SHIFT) ^
-	       (hash >> (8*sizeof(hash) - OCFS2_HASH_SHIFT)) ^
-	       *name++;
+This series adds support for allocating multiple clusters in a single
+fat_add_clusters() call in fat_fallocate().
 
-A name byte >= 0x80 used to sign-extend and now zero-extends, so the
-hash no longer matches the xe_name_hash an older kernel stored.  An
-indexed xattr tree is searched by that hash alone, and both the bucket
-binary search and the entry scan within it stop as soon as the wanted
-hash falls below an entry's, so the entry is never reached: getxattr,
-setxattr and removexattr return -ENODATA for a name that listxattr
-still lists.
+The multi-cluster TODO in inode.c is not implemented, as doing so would
+require speculative preallocation or an iomap conversion.
 
-Search with the current unsigned hash and, on a miss, retry with the
-legacy signed one, as ext4 does in commit f3bbac32475b2 ("ext4: deal
-with legacy signed xattr name hash values").  New entries are always
-stored under the unsigned hash.  Skip the retry when the two hashes are
-equal, so that a miss on an ASCII name does not walk the tree twice.
 
-A miss is not empty handed: ocfs2_xattr_bucket_find() leaves xs->bucket
-holding the bucket a new entry would go into.  So after a double miss
-drop it and search once more with the unsigned hash, otherwise a new
-entry would be placed by its legacy hash and stored under its unsigned
-one, breaking the ordering the search relies on.
+This patch (of 3):
 
-Only indexed trees are affected; inline xattrs and non-indexed xattr
-blocks compare names with memcmp and never look at the hash.
+fat_alloc_clusters() currently BUG()s when asked to allocate more than
+MAX_BUF_PER_PAGE / 2 clusters. This limit comes from the buffer_head
+array used to defer syncing and mirroring.
 
-Also spell out the signedness instead of leaving the current hash to
--funsigned-char, as commit 854f0912f813 ("ext4: make xattr char
-unsignedness in hash explicit") did, so that both variants stay correct
-if this is backported to a kernel without the flag.
+Remove the allocation size limit by doing buffer_head batching like
+fat_free_clusters() does.
 
-Link: https://lore.kernel.org/20261009083002.2621201-4-joseph.qi@linux.alibaba.com
-Fixes: 3bc753c06dd0 ("kbuild: treat char as always unsigned")
-Signed-off-by: Joseph Qi <joseph.qi@linux.alibaba.com>
+Link: https://lore.kernel.org/20261012171106.146243-1-matheus.aalmeida@inf.ufrgs.br
+Link: https://lore.kernel.org/20261012171106.146243-2-matheus.aalmeida@inf.ufrgs.br
+Signed-off-by: Matheus Alves de Almeida <matheus.aalmeida@inf.ufrgs.br>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Reviewed-by: Heming Zhao <heming.zhao@suse.com>
-Cc: Anderson Ferneda <anderson.ferneda@braza.com.br>
-Cc: Mark Fasheh <mark@fasheh.com>
-Cc: Joel Becker <jlbec@evilplan.org>
-Cc: <stable@vger.kernel.org> # 6.2+
+Acked-by: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
 ---
 
- fs/ocfs2/xattr.c |   93 +++++++++++++++++++++++++++++++++++++++------
- 1 file changed, 82 insertions(+), 11 deletions(-)
+ fs/fat/fatent.c |   44 +++++++++++++++++++++++++++++++-------------
+ 1 file changed, 31 insertions(+), 13 deletions(-)
 
---- a/fs/ocfs2/xattr.c~ocfs2-deal-with-legacy-signed-xattr-name-hash-values
-+++ a/fs/ocfs2/xattr.c
-@@ -601,9 +601,10 @@ static inline const char *ocfs2_xattr_pr
- 	return handler ? xattr_prefix(handler) : NULL;
- }
- 
--static u32 ocfs2_xattr_name_hash(struct inode *inode,
--				 const char *name,
--				 int name_len)
-+static u32 __ocfs2_xattr_name_hash(struct inode *inode,
-+				   const char *name,
-+				   int name_len,
-+				   bool legacy_signed)
- {
- 	/* Get hash value of uuid from super block */
- 	u32 hash = OCFS2_SB(inode->i_sb)->uuid_hash;
-@@ -612,13 +613,30 @@ static u32 ocfs2_xattr_name_hash(struct
- 	/* hash extended attribute name */
- 	for (i = 0; i < name_len; i++) {
- 		hash = (hash << OCFS2_HASH_SHIFT) ^
--		       (hash >> (8*sizeof(hash) - OCFS2_HASH_SHIFT)) ^
--		       *name++;
-+		       (hash >> (8*sizeof(hash) - OCFS2_HASH_SHIFT));
-+		if (legacy_signed)
-+			hash ^= (signed char)name[i];
-+		else
-+			hash ^= (unsigned char)name[i];
+--- a/fs/fat/fatent.c~fat-remove-cluster-allocation-size-limit
++++ a/fs/fat/fatent.c
+@@ -483,6 +483,26 @@ static void fat_collect_bhs(struct buffe
  	}
- 
- 	return hash;
  }
  
-+static u32 ocfs2_xattr_name_hash(struct inode *inode,
-+				 const char *name,
-+				 int name_len)
++static int fat_flush_bhs(struct super_block *sb, struct buffer_head **bhs,
++			 int *nr_bhs, bool sync)
 +{
-+	return __ocfs2_xattr_name_hash(inode, name, name_len, false);
-+}
++	int err, i;
 +
-+static u32 ocfs2_xattr_name_hash_signed(struct inode *inode,
-+					const char *name,
-+					int name_len)
-+{
-+	return __ocfs2_xattr_name_hash(inode, name, name_len, true);
-+}
-+
- static int ocfs2_xattr_entry_real_size(int name_len, size_t value_len)
- {
- 	return namevalue_size(name_len, value_len) +
-@@ -4331,11 +4349,12 @@ out:
- 	return ret;
- }
- 
--static int ocfs2_xattr_index_block_find(struct inode *inode,
--					struct buffer_head *root_bh,
--					int name_index,
--					const char *name,
--					struct ocfs2_xattr_search *xs)
-+static int __ocfs2_xattr_index_block_find(struct inode *inode,
-+					  struct buffer_head *root_bh,
-+					  int name_index,
-+					  const char *name,
-+					  u32 name_hash,
-+					  struct ocfs2_xattr_search *xs)
- {
- 	int ret;
- 	struct ocfs2_xattr_block *xb =
-@@ -4344,7 +4363,6 @@ static int ocfs2_xattr_index_block_find(
- 	struct ocfs2_extent_list *el = &xb_root->xt_list;
- 	u64 p_blkno = 0;
- 	u32 first_hash, num_clusters = 0;
--	u32 name_hash = ocfs2_xattr_name_hash(inode, name, strlen(name));
- 
- 	if (le16_to_cpu(el->l_next_free_rec) == 0)
- 		return -ENODATA;
-@@ -4375,6 +4393,59 @@ out:
- 	return ret;
- }
- 
-+static int ocfs2_xattr_index_block_find(struct inode *inode,
-+					struct buffer_head *root_bh,
-+					int name_index,
-+					const char *name,
-+					struct ocfs2_xattr_search *xs)
-+{
-+	u32 name_hash, legacy_hash;
-+	int name_len = strlen(name);
-+	int ret;
-+
-+	name_hash = ocfs2_xattr_name_hash(inode, name, name_len);
-+
-+	ret = __ocfs2_xattr_index_block_find(inode, root_bh, name_index, name,
-+					     name_hash, xs);
-+	if (ret != -ENODATA)
-+		return ret;
-+
-+	/*
-+	 * Nothing under the current hash.  The entry may have been stored by
-+	 * an older kernel, which sign-extended the name bytes when hashing.
-+	 * Skip the retry when the two hashes are equal, so that a name made
-+	 * only of ASCII does not have to walk the tree twice.
-+	 */
-+	legacy_hash = ocfs2_xattr_name_hash_signed(inode, name, name_len);
-+	if (legacy_hash == name_hash)
-+		return ret;
-+
-+	/*
-+	 * A miss still leaves xs->bucket holding the bucket a new entry would
-+	 * be inserted into, so drop it before searching again.
-+	 */
-+	ocfs2_xattr_bucket_relse(xs->bucket);
-+
-+	ret = __ocfs2_xattr_index_block_find(inode, root_bh, name_index, name,
-+					     legacy_hash, xs);
-+	if (!ret) {
-+		pr_warn_once("ocfs2: xattr tree with signed name hash\n");
-+		return ret;
++	if (sync) {
++		err = fat_sync_bhs(bhs, *nr_bhs);
++		if (err)
++			return err;
 +	}
-+	if (ret != -ENODATA)
-+		return ret;
++	err = fat_mirror_bhs(sb, bhs, *nr_bhs);
++	if (err)
++		return err;
++	for (i = 0; i < *nr_bhs; i++)
++		brelse(bhs[i]);
++	*nr_bhs = 0;
 +
-+	/*
-+	 * Not under either hash.  Restore the unsigned placement, since that
-+	 * is where a new entry is stored: leaving the bucket where the legacy
-+	 * hash put it would break the ordering the search relies on.
-+	 */
-+	ocfs2_xattr_bucket_relse(xs->bucket);
-+
-+	return __ocfs2_xattr_index_block_find(inode, root_bh, name_index, name,
-+					      name_hash, xs);
++	return 0;
 +}
 +
- static int ocfs2_iterate_xattr_buckets(struct inode *inode,
- 				       u64 blkno,
- 				       u32 clusters,
+ int fat_alloc_clusters(struct inode *inode, int *cluster, int nr_cluster)
+ {
+ 	struct super_block *sb = inode->i_sb;
+@@ -492,8 +512,6 @@ int fat_alloc_clusters(struct inode *ino
+ 	struct buffer_head *bhs[MAX_BUF_PER_PAGE];
+ 	int i, count, err, nr_bhs, idx_clus;
+ 
+-	BUG_ON(nr_cluster > (MAX_BUF_PER_PAGE / 2));	/* fixed limit */
+-
+ 	lock_fat(sbi);
+ 	if (sbi->free_clusters != -1 && sbi->free_clus_valid &&
+ 	    sbi->free_clusters < nr_cluster) {
+@@ -524,14 +542,21 @@ int fat_alloc_clusters(struct inode *ino
+ 				if (prev_ent.nr_bhs)
+ 					ops->ent_put(&prev_ent, entry);
+ 
+-				fat_collect_bhs(bhs, &nr_bhs, &fatent);
+-
+ 				sbi->prev_free = entry;
+ 				if (sbi->free_clusters != -1)
+ 					sbi->free_clusters--;
+ 
+ 				cluster[idx_clus] = entry;
+ 				idx_clus++;
++
++				if (nr_bhs + fatent.nr_bhs > MAX_BUF_PER_PAGE) {
++					err = fat_flush_bhs(sb, bhs, &nr_bhs,
++							    inode_needs_sync(inode));
++					if (err)
++						goto out;
++				}
++				fat_collect_bhs(bhs, &nr_bhs, &fatent);
++
+ 				if (idx_clus == nr_cluster)
+ 					goto out;
+ 
+@@ -621,17 +646,10 @@ int fat_free_clusters(struct inode *inod
+ 		}
+ 
+ 		if (nr_bhs + fatent.nr_bhs > MAX_BUF_PER_PAGE) {
+-			if (sb->s_flags & SB_SYNCHRONOUS) {
+-				err = fat_sync_bhs(bhs, nr_bhs);
+-				if (err)
+-					goto error;
+-			}
+-			err = fat_mirror_bhs(sb, bhs, nr_bhs);
++			err = fat_flush_bhs(sb, bhs, &nr_bhs,
++					    sb->s_flags & SB_SYNCHRONOUS);
+ 			if (err)
+ 				goto error;
+-			for (i = 0; i < nr_bhs; i++)
+-				brelse(bhs[i]);
+-			nr_bhs = 0;
+ 		}
+ 		fat_collect_bhs(bhs, &nr_bhs, &fatent);
+ 	} while (cluster != FAT_ENT_EOF);
 _
 
-Patches currently in -mm which might be from joseph.qi@linux.alibaba.com are
+Patches currently in -mm which might be from matheus.aalmeida@inf.ufrgs.br are
 
 
