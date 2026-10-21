@@ -1,42 +1,45 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1792560656;
-	b=3n6gvWc1E+/Z9xpKiw3pq8n7ng2lVMZDM0hD4Qq36nAHYaH3zamWIWOTrYluhEW419t4
-	 CTP16i56vbxzwk2PvTm4OAPKP78EX2dr5jCdcq9lEwqPm/cGScLEyGDGXX+YbTq+Et7po
-	 uVW4erJk+EyAv98GJvkgutomLK38gNSatvRQwrhr4us6fMWXq1XLTu1Poae1dty18JK3F
-	 Y4V883wCYjnaO/d/LrAzeCUcZjKIVu9yA9aBIqq7Qnf/m/lv1N+kQf8Gz0vL34dHbySrp
-	 KmO3jvNpu3qIBZgNwUbPixsJgqQPmsSiiot38Wf85FsjLUC3BBox6x4250F/qYAnOaA==
+	t=1792560654;
+	b=Dl1lz91Et/k5GT42riQfDhlRTkD1U+aiOCjooyfIWJyUo7UZiXnq9i7rL7CyAmQMnfBg
+	 ra2K/2slnTaQhi51uW6XNg6fW2wohlyf0Uthy2TLmMC9x0P3auirsZaXcLeC5LaK0ROyq
+	 TWc13pA3OQHHXIBxPjGpngvNs89BDiO6I4kzMipaCOtzFRk3EUTeoRD29CS5+8seNnhwH
+	 BSprFIiOghI8GBYxi4sCuh21bQ9JHX+Q0eMC2Q4PMh+Jiq9zYW0KzauehDWuD1CsRZN4F
+	 aVzLC/WV+Wa+jpX5JS4HZEFRFRFpDcJza7PmEoweyu/jQAVmpRshCj/DN8spmjGaBIA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1792560656;
+	a=rsa-sha256; c=relaxed/relaxed; t=1792560654;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=KXLm7ZQUWYLCTQJc82SGWFe4PxTH5P1rluzMEaNrz+Y=;
-	b=M2jRxbTOf7lC66wiY729X1uhQGJQ5fn7DUueUw6WHKqk6M3SomyLwHR/ChZk4RdR7BT/
-	 KEO7qKQX9DBOYOLgedyPNeEXE11pqGOXb2tfJP5yro2J0P7abdPSTp/Z5qqWF5ib5AvaG
-	 bUDB/ldUwPRpQJ0yglz4jV5/ocyUjwbB7ptvWq2zG4i/I/MisQkUP8BrjOR6CiB+tILuA
-	 MAqYXerP3XX9eU6B5+B0NHq4JWuB9rEvd1tgM/fLyC2TOX5eHExE6ANSj4ClWCjFDoJhV
-	 j7ALN+AX0LgSKyM8avPu1qyHIMIp99Uaq7W1Jt1ggdwoAwpGHN6CHF/ivRpep2LL6uA==
+	bh=x9nI9vQ5CvpZvXT6Qx4FfhefS+6E0pVhTaYNpzn8SV0=;
+	b=0ld8pIS6leXQi5AfG2UaHLGqRNBqBMuNHCPccyHXmh4G2oIuBTvgbutoSNVhB+HFSEVf
+	 98Cv/AzS10Zr2/KDLrCW+awTI5TaR7cCO12CMidMtKQPAkxFtZtxlAehUGP7Pfhmlsa18
+	 Xf6nTd0r3/U23xhRcAsR+nAHz3M7F1ai+T+QImCXbfQUv0YeyNWi8o9Wu8DLNg21m0YOp
+	 GUw43P52m0Np9kUAN3EBRzVpEe9ta6845iUq3InVwqxGoem5+yJn/3geIt4OwoQtm7++L
+	 CJMGHPwNi3VXjDGtynXeDLGQkBh7WAlNC/PSAtjTxGXhzZEKse3Jfd6Xx5p4StbnMmw==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=rxcVKEIZ;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9EB6A606A31F;
-	Wed, 21 Oct 2026 05:30:50 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 43A921F000CA;
-	Wed, 21 Oct 2026 05:30:50 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A2820606A31C
+	for <mm-commits@vger.kernel.org>; Wed, 21 Oct 2026 05:30:54 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=rxcVKEIZ
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 794581F000CC;
+	Wed, 21 Oct 2026 05:30:54 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1792560650;
-	bh=KXLm7ZQUWYLCTQJc82SGWFe4PxTH5P1rluzMEaNrz+Y=;
+	d=linux-foundation.org; s=korg; t=1792560654;
+	bh=x9nI9vQ5CvpZvXT6Qx4FfhefS+6E0pVhTaYNpzn8SV0=;
 	h=Date:To:From:Subject;
-	b=hjpNhdNwzbfmLfIKRY0oNJkAUgq/gtYYckPYuChpQsIEsOQ61ewfAumClCeBGdoRT
-	 4KvPnUCxdTD4G4520TotM/FZWDxG6TPnh/0C7qB5gbRyzDu1+k/Xv41yExwAqWZq1e
-	 4Tq+Bz84UIXZwyh/FLbIFHmlY+00w8wrOFhG/96s=
-Date: Tue, 20 Oct 2026 22:30:49 -0700
-To: mm-commits@vger.kernel.org,stable@vger.kernel.org,mark@fasheh.com,joseph.qi@linux.alibaba.com,jlbec@evilplan.org,jjzuming@gmail.com,jack@suse.cz,heming.zhao@suse.com,chao@kernel.org,baijiaju1990@gmail.com,zzzccc427@gmail.com,akpm@linux-foundation.org
+	b=rxcVKEIZHd+FQZQz4ahyuJVIxMclzLJTlwMAU+fgWtciM508BT1FdKrx+8yJ1e+o0
+	 tvDDvjDImd/6195YGUZyVTXiQfCX9wmzCRIwsToGBUTnK6DYlei4KabEXTBu88GEIn
+	 rLDXupCUp4g4E987efIaDzyS1e7I+W9OoNQWOiNg=
+Date: Tue, 20 Oct 2026 22:30:54 -0700
+To: mm-commits@vger.kernel.org,shuah@kernel.org,akpm@linux-foundation.org,adobriyan@gmail.com,sashal@kernel.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] ocfs2-cancel-quota-sync-work-before-freeing-quota-info.patch removed from -mm tree
-Message-Id: <20261021053050.43A921F000CA@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] selftests-proc-proc-pid-vm-fix-unused-variable-warning-on-non-x86.patch removed from -mm tree
+Message-Id: <20261021053054.794581F000CC@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -48,196 +51,85 @@ Precedence: list
 
 
 The quilt patch titled
-     Subject: ocfs2: cancel quota sync work before freeing quota info
+     Subject: selftests/proc: proc-pid-vm: fix unused variable warning on non-x86
 has been removed from the -mm tree.  Its filename was
-     ocfs2-cancel-quota-sync-work-before-freeing-quota-info.patch
+     selftests-proc-proc-pid-vm-fix-unused-variable-warning-on-non-x86.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Cen Zhang <zzzccc427@gmail.com>
-Subject: ocfs2: cancel quota sync work before freeing quota info
-Date: Wed, 14 Oct 2026 11:43:40 +0800
+From: Sasha Levin <sashal@kernel.org>
+Subject: selftests/proc: proc-pid-vm: fix unused variable warning on non-x86
+Date: Mon, 12 Oct 2026 07:53:29 -0400
 
-OCFS2 quota info owns dqi_sync_work and must outlive both its timer and
-qsync_work_fn().  ocfs2_local_free_info() frees that owner without
-cancelling the work, relying on the quota suspend/disable wrappers.
+g_vsyscall is only used by the x86_64 test, so clang builds for other
+architectures get:
 
-Loading quotas on a read-only to read-write remount can successfully queue
-the work in ocfs2_global_read_info() and then fail while attaching a dquot
-to an existing inode in add_dquot_ref().  The quota core unwinds that
-failure directly through dquot_disable(), bypassing the OCFS2 wrapper:
+  proc-pid-vm.c:224:21: warning: unused variable 'g_vsyscall' [-Wunused-variable]
 
-  Remount task (s_umount write)        Timer/workqueue
-  ocfs2_global_read_info()
-    schedules dqi_sync_work
-  add_dquot_ref() returns an error
-  dquot_disable()
-    ocfs2_local_free_info()
-      frees oinfo
-                                     delayed-work timer expires
-                                     qsync_work_fn() reads oinfo
+The vsyscall strings next to it had the same problem and were marked
+__maybe_unused for it. Move all of the vsyscall variables into the
+__x86_64__ block that uses them instead, and drop those annotations
+along with the local __maybe_unused fallback that was added for them.
 
-The timer core can then write to the freed embedded timer, or
-qsync_work_fn() can read oinfo->dqi_gqinode before its s_umount trylock.
-The outer ocfs2_disable_quotas() cleanup skips the failed type because
-dquot_disable() has already cleared its loaded state.
-
-Cancel dqi_sync_work synchronously at the start of
-ocfs2_local_free_info(), before dropping the global inode or freeing any
-owner state. The work is initialized whenever read_file_info() succeeds.
-dquot_disable() holds s_umount for write, so the callback skips its quota
-scan via down_read_trylock() and can finish without waiting for teardown.
-The synchronous cancel also handles its self-rearm.
-
-KASAN report as below:
-
-    BUG: KASAN: slab-use-after-free in __run_timers+0x9e9/0xa10
-    Write of size 8 at addr ffff888111b0aad0 by task swapper/3/0
-
-    Call Trace:
-     <IRQ>
-     dump_stack_lvl+0x93/0xd0
-     print_report+0xce/0x630
-     ? __run_timers+0x9e9/0xa10
-     ? srso_alias_return_thunk+0x5/0xfbef5
-     ? __virt_addr_valid+0x20e/0x420
-     ? __run_timers+0x9e9/0xa10
-     kasan_report+0xe0/0x110
-     ? __run_timers+0x9e9/0xa10
-     __run_timers+0x9e9/0xa10
-     ? __pfx___run_timers+0x10/0x10
-     ? __lock_acquire+0x5a3/0x2140
-     ? __pfx_do_raw_spin_lock+0x10/0x10
-     ? srso_alias_return_thunk+0x5/0xfbef5
-     timer_expire_remote+0xfa/0x160
-     ? __pfx_timer_expire_remote+0x10/0x10
-     ? srso_alias_return_thunk+0x5/0xfbef5
-     ? srso_alias_return_thunk+0x5/0xfbef5
-     ? trace_hardirqs_on+0x18/0x160
-     tmigr_handle_remote_up+0x4ba/0x9d0
-     ? __pfx_tmigr_handle_remote_up+0x10/0x10
-     ? tmigr_handle_remote+0x21a/0x340
-     ? srso_alias_return_thunk+0x5/0xfbef5
-     ? lock_release+0xc8/0x290
-     ? __pfx_tmigr_handle_remote_up+0x10/0x10
-     __walk_groups_from+0x5a/0x160
-     tmigr_handle_remote+0x24f/0x340
-     ? __pfx_tmigr_handle_remote+0x10/0x10
-     ? lock_acquire+0x190/0x300
-     ? srso_alias_return_thunk+0x5/0xfbef5
-     ? lock_release+0xc8/0x290
-     run_timer_softirq+0x222/0x270
-     ? __pfx_run_timer_softirq+0x10/0x10
-     ? srso_alias_return_thunk+0x5/0xfbef5
-     ? srso_alias_return_thunk+0x5/0xfbef5
-     ? lockdep_hardirqs_on_prepare+0xb8/0x1a0
-     ? srso_alias_return_thunk+0x5/0xfbef5
-     handle_softirqs+0x1fa/0x8d0
-     ? __pfx_handle_softirqs+0x10/0x10
-     ? srso_alias_return_thunk+0x5/0xfbef5
-     ? _raw_spin_unlock+0x23/0x40
-     ? srso_alias_return_thunk+0x5/0xfbef5
-     ? __hrtimer_rearm_deferred+0x1fb/0x5d0
-     __irq_exit_rcu+0x113/0x1e0
-     irq_exit_rcu+0xe/0x20
-     sysvec_apic_timer_interrupt+0x6c/0x80
-     </IRQ>
-     <TASK>
-     asm_sysvec_apic_timer_interrupt+0x1a/0x20
-     ? ct_kernel_exit.constprop.0+0xc5/0xf0
-     ? do_idle+0x3ae/0x650
-     default_idle+0x9/0x10
-     default_idle_call+0x6c/0xb0
-     do_idle+0x3ae/0x650
-     ? cpuhp_online_idle+0x9c/0xb0
-     ? __pfx_do_idle+0x10/0x10
-     ? __entry_text_end+0x1020f6/0x1020f9
-     ? lockdep_hardirqs_on_prepare+0xeb/0x1a0
-     ? srso_alias_return_thunk+0x5/0xfbef5
-     ? trace_hardirqs_on+0x18/0x160
-     ? srso_alias_return_thunk+0x5/0xfbef5
-     cpu_startup_entry+0x54/0x60
-     start_secondary+0x223/0x2d0
-     ? __pfx_start_secondary+0x10/0x10
-     common_startup_64+0x13e/0x158
-     </TASK>
-
-    Allocated by task 523:
-     kasan_save_stack+0x33/0x60
-     kasan_save_track+0x14/0x30
-     __kasan_kmalloc+0xaa/0xb0
-     __kmalloc_cache_noprof+0x28d/0x610
-     ocfs2_local_read_info+0x181/0x1580
-     dquot_load_quota_sb+0x69e/0x11c0
-     dquot_load_quota_inode+0x227/0x3e0
-     ocfs2_enable_quotas+0x27c/0x520
-     ocfs2_reconfigure+0x964/0xd00
-     reconfigure_super+0x3ca/0xa70
-     path_mount+0x141e/0x1e80
-     __x64_sys_mount+0x24b/0x2d0
-     do_syscall_64+0x114/0x620
-     entry_SYSCALL_64_after_hwframe+0x77/0x7f
-
-    Freed by task 523:
-     kasan_save_stack+0x33/0x60
-     kasan_save_track+0x14/0x30
-     kasan_save_free_info+0x3b/0x60
-     __kasan_slab_free+0x5f/0x80
-     kfree+0x308/0x580
-     ocfs2_local_free_info+0x47b/0x800
-     dquot_disable+0x5d9/0x17a0
-     dquot_load_quota_sb+0xd3c/0x11c0
-     dquot_load_quota_inode+0x227/0x3e0
-     ocfs2_enable_quotas+0x27c/0x520
-     ocfs2_reconfigure+0x964/0xd00
-     reconfigure_super+0x3ca/0xa70
-     path_mount+0x141e/0x1e80
-     __x64_sys_mount+0x24b/0x2d0
-     do_syscall_64+0x114/0x620
-     entry_SYSCALL_64_after_hwframe+0x77/0x7f
-
-    The buggy address belongs to the object at ffff888111b0a800
-     which belongs to the cache kmalloc-1k of size 1024
-    The buggy address is located 720 bytes inside of
-     freed 1024-byte region [ffff888111b0a800, ffff888111b0ac00)
-
-Host details, register and page dumps omitted.
-
-Link: https://lore.kernel.org/pm-ocfs2-objects-candidate-0052-v3-b4904bd6c85daf033adf@gmail.com
-Fixes: 1a6152d36dee ("quota: propagate error from __dquot_initialize")
-Signed-off-by: Cen Zhang <zzzccc427@gmail.com>
+Link: https://lore.kernel.org/20261012115330.3777115-1-sashal@kernel.org
+Fixes: 17415606f9d8 ("tools/testing/selftests/proc/proc-pid-vm.c: test with vsyscall in mind")
+Signed-off-by: Sasha Levin <sashal@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Reviewed-by: Joseph Qi <joseph.qi@linux.alibaba.com>
-Reviewed-by: Jan Kara <jack@suse.cz>
+Suggested-by: Andrew Morton <akpm@linux-foundation.org>
 Assisted-by: LLM
-Cc: Mark Fasheh <mark@fasheh.com>
-Cc: Joel Becker <jlbec@evilplan.org>
-Cc: Heming Zhao <heming.zhao@suse.com>
-Cc: Chao Yu <chao@kernel.org>
-Cc: Jia-Ju Bai <baijiaju1990@gmail.com>
-Cc: <jjzuming@gmail.com>
-Cc: <stable@vger.kernel.org>
+Cc: Shuah Khan <shuah@kernel.org>
+Cc: Alexey Dobriyan <adobriyan@gmail.com>
 ---
 
- fs/ocfs2/quota_local.c |    3 +++
- 1 file changed, 3 insertions(+)
+ tools/testing/selftests/proc/proc-pid-vm.c |   14 ++++----------
+ 1 file changed, 4 insertions(+), 10 deletions(-)
 
---- a/fs/ocfs2/quota_local.c~ocfs2-cancel-quota-sync-work-before-freeing-quota-info
-+++ a/fs/ocfs2/quota_local.c
-@@ -840,6 +840,9 @@ static int ocfs2_local_free_info(struct
- 	int mark_clean = 1, len;
- 	int status = 0;
+--- a/tools/testing/selftests/proc/proc-pid-vm.c~selftests-proc-proc-pid-vm-fix-unused-variable-warning-on-non-x86
++++ a/tools/testing/selftests/proc/proc-pid-vm.c
+@@ -47,10 +47,6 @@
+ #include <sys/resource.h>
+ #include <linux/fs.h>
  
-+	/* Quota-core error paths can bypass ocfs2_disable_quotas(). */
-+	cancel_delayed_work_sync(&oinfo->dqi_sync_work);
-+
- 	iput(oinfo->dqi_gqinode);
- 	ocfs2_simple_drop_lockres(OCFS2_SB(sb), &oinfo->dqi_gqlock);
- 	ocfs2_lock_res_free(&oinfo->dqi_gqlock);
+-#ifndef __maybe_unused
+-#define __maybe_unused __attribute__((__unused__))
+-#endif
+-
+ #include "kselftest.h"
+ 
+ static inline long sys_execveat(int dirfd, const char *pathname, char **argv, char **envp, int flags)
+@@ -214,7 +210,6 @@ static int make_exe(const uint8_t *paylo
+ 
+ 	return fd1;
+ }
+-#endif
+ 
+ /*
+  * 0: vsyscall VMA doesn't exist	vsyscall=none
+@@ -222,15 +217,14 @@ static int make_exe(const uint8_t *paylo
+  * 2: vsyscall VMA is r-xp		vsyscall=emulate
+  */
+ static volatile int g_vsyscall;
+-static const char *str_vsyscall __maybe_unused;
++static const char *str_vsyscall;
+ 
+-static const char str_vsyscall_0[] __maybe_unused = "";
+-static const char str_vsyscall_1[] __maybe_unused =
++static const char str_vsyscall_0[] = "";
++static const char str_vsyscall_1[] =
+ "ffffffffff600000-ffffffffff601000 --xp 00000000 00:00 0                  [vsyscall]\n";
+-static const char str_vsyscall_2[] __maybe_unused =
++static const char str_vsyscall_2[] =
+ "ffffffffff600000-ffffffffff601000 r-xp 00000000 00:00 0                  [vsyscall]\n";
+ 
+-#ifdef __x86_64__
+ static void sigaction_SIGSEGV(int _, siginfo_t *__, void *___)
+ {
+ 	_exit(g_vsyscall);
 _
 
-Patches currently in -mm which might be from zzzccc427@gmail.com are
+Patches currently in -mm which might be from sashal@kernel.org are
 
+selftests-mm-report-the-configuration-check-on-stderr.patch
 
