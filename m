@@ -1,45 +1,45 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1792686813;
-	b=efDa+Gudy64qBRW3baDJckKMjcCOkYkbvSGTbkrBJYY9YPms/BLCErnAtvpEQSqxYxT3
-	 SpI6FMJ9FTCl+njLeBgSsSmiR7MEQhZK6iUaHN1AQ4kQ96hjIUizegioKBrg8mxAUtdlU
-	 SlFQT6W2mK2tkocwnt9mIrAm/pVmCJNVcsb7PAjXgeNZkYrISvXDYSzgbYcl4rgriKUNX
-	 fRa2dzmnoBXm+lrlWN7zR9zxQOdofmVQubx1RhBs156ArD54wpQxjGzSeyqndfsK2pvQZ
-	 Ru0sel9WFnwW+4GG2ko7TD59J+wirDwDBKDaKEOlnx0Hw6lXqsPVgMUVRm3ge5r7A6A==
+	t=1792692967;
+	b=OOeBF/X0w1HJE0wVktl1t6auSZmpipoQcNjacXtDfdDkgOIDnuM2kQ048kJtN5IlKQMI
+	 zS+vpB9ar9OE79J+zfPzonIN7nRQuzmT3mXpbRpuO2YefHhFTL2vPnyZwz7wKO66H0HiX
+	 6bcMECD2aiKXXNQOHgthfh2Y11V7/xpAMIhWJ8OpODjC9us6Or0aeFS4c/fcMM4NND51D
+	 8QVVk2O6byIXE00MLkvHiUN8kok0dbi6DhQ3QXMNidUMBbPnmWu6AKSCLJb1qojJelcC6
+	 t88mH8BvzqBjVFSGgYYZUVGmhZrFTlnhF87JcgxoF5Gj9bJ505++WBrTeG8s4ipW4KA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1792686813;
+	a=rsa-sha256; c=relaxed/relaxed; t=1792692967;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=Jra6vwfFJoJgBBbvOxpVOEvGYDp9HxQqbq5v4awEj3U=;
-	b=nbp7e/9GwWmAh9V+JCJQMXVHXfpQRcXMEAoaCV7h6N8x68bMzXflWXgliTdabuwdjPCA
-	 CQKuq8j81iJc++OyQB1n7OqVJ6L7FWSNb/Of81vCTColPQ1hpOscR/dBSDMjXoiq+BKXu
-	 jl4yA7tmKLzKuedzChY0wnpDPbv+4y/OMwv0KMe9QAB4EzLbXjErZYiCQsYJabP+XfQia
-	 FtBlx51KTXmgaN5UIE5wHzaVe6z0kDzpVzklEClrwfvZ7lUHgfMXCA8aQDeWJLeoWQ3ym
-	 szTKB6rEhJ9at1m+vzoC8eFIM+3MMj0Mf7bri+/xpxTxIIJZEQ6QRE9vzKiThuLuxtg==
+	bh=8OEw3h1+OIAQfp7oEkz5fkn1ZDsZaUVZJP4+1eALmW4=;
+	b=Gg186YnxJB95uWY6LxR/2tS9+5GW1aiTjGEbYoKPhuzk4H4oQEkUeZs0pDmH0WeBjDco
+	 pwrqNrwpPpzVYQ/0MHU3j1Fi07CUDvsJRYd+DVDqpBl4eIsGJdEl7TBpwVU8wjLAsvm++
+	 mP7Ex6/hHqRqfZvbDyDjzXkXVAUVSMKq/nhP+oblouNS/K3Gy00iEwWq4zrmUtl42xcpW
+	 3yH0XIN/yjT49CpLIsXkcFp3/Uc4p0VGQdY5D23umz8tr8pOhg4RIUf17un/Qi2554Mro
+	 8t0MjoziKV0JKQuHJ+85z5JiP5KkRB4o2VEQTyg17U8WI7jqSffBuyyYw6kyz1BUEFQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=ShbDaLcL;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=nf7rzrhY;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 16A3D606A319;
-	Thu, 22 Oct 2026 16:33:32 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9FFFB606A320
+	for <mm-commits@vger.kernel.org>; Thu, 22 Oct 2026 18:16:06 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=ShbDaLcL
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 990531F01829;
-	Thu, 22 Oct 2026 16:33:32 +0000 (UTC)
+	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=nf7rzrhY
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1A5D41F01825;
+	Thu, 22 Oct 2026 18:16:06 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1792686812;
-	bh=Jra6vwfFJoJgBBbvOxpVOEvGYDp9HxQqbq5v4awEj3U=;
+	d=linux-foundation.org; s=korg; t=1792692966;
+	bh=8OEw3h1+OIAQfp7oEkz5fkn1ZDsZaUVZJP4+1eALmW4=;
 	h=Date:To:From:Subject;
-	b=ShbDaLcLH9rcANzm5H2Aub48M0JyeW3++jgZn0vvxUUWCzhNjOWOdRX9Q5LBJBuh0
-	 q6cd/N7yDvEyI5uWWG6/A9TncVkXKLWz9iGdNt3YslzDHIQoS+5VnyKmIxNTh1grG1
-	 uRAt6VAla1ngEfO3oFiQgloDfQcXaIUOAkQc46CA=
-Date: Thu, 22 Oct 2026 09:33:32 -0700
-To: mm-commits@vger.kernel.org,stable@vger.kernel.org,rppt@kernel.org,peterx@redhat.com,osalvador@suse.de,muchun.song@linux.dev,david@kernel.org,azpijr@gmail.com,lizhe.67@bytedance.com,akpm@linux-foundation.org
+	b=nf7rzrhYqyHUbwORn1hfSI8ZQ55bHM7W7Hu7ub3P7ztmWzAKH5J7ekuZlbmRf9H+v
+	 vobCM57k8G5qE1r0XyhuDuk54my0+CBFgkwMV4WoktHtoYaIp9ldrzNn0jcjgwvvRt
+	 x2h4qGH2edodZiNoYXdyJUMOhXn/1VmUKDA2x9fs=
+Date: Thu, 22 Oct 2026 11:16:05 -0700
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,vbabka@kernel.org,surenb@google.com,rppt@kernel.org,mhocko@suse.com,hannes@cmpxchg.org,brendan.jackman@linux.dev,zenghui.yu@linux.dev,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-hugetlb-fix-mremap-deadlock-when-pmd-sharing-is-possible.patch added to mm-unstable branch
-Message-Id: <20261022163332.990531F01829@smtp.kernel.org>
+Subject: + mm-page_alloc-mark-pages-freed-by-__free_pages_core-as-not-tagged.patch added to mm-unstable branch
+Message-Id: <20261022181606.1A5D41F01825@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -51,12 +51,12 @@ Precedence: list
 
 
 The patch titled
-     Subject: mm/hugetlb: fix mremap deadlock when PMD sharing is possible
+     Subject: mm/page_alloc: mark pages freed by __free_pages_core() as not tagged
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-hugetlb-fix-mremap-deadlock-when-pmd-sharing-is-possible.patch
+     mm-page_alloc-mark-pages-freed-by-__free_pages_core-as-not-tagged.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-hugetlb-fix-mremap-deadlock-when-pmd-sharing-is-possible.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-page_alloc-mark-pages-freed-by-__free_pages_core-as-not-tagged.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -74,144 +74,84 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Li Zhe <lizhe.67@bytedance.com>
-Subject: mm/hugetlb: fix mremap deadlock when PMD sharing is possible
-Date: Thu, 22 Oct 2026 11:45:43 +0800
+From: "Zenghui Yu (Huawei)" <zenghui.yu@linux.dev>
+Subject: mm/page_alloc: mark pages freed by __free_pages_core() as not tagged
+Date: Thu, 22 Oct 2026 20:27:52 +0800
 
-move_hugetlb_page_tables() holds the mapping's i_mmap_rwsem for
-write while moving hugetlb PTEs. This prevents races with truncation
-and protects huge_pmd_unshare(), but the move loop must not call
-helpers that can acquire the same rwsem for read.
+Onlining hotplugged memory (e.g., a dev_dax device bound to kmem) with
+CONFIG_MEM_ALLOC_PROFILING_DEBUG triggers:
 
-huge_pte_alloc() can do that when the destination can use PMD
-sharing: it may call huge_pmd_share(), which takes i_mmap_rwsem for
-read while searching for a shareable PMD table. Calling it while the
-move path already holds i_mmap_rwsem for write can deadlock.
+  alloc_tag was not set
+  WARNING: ./include/linux/alloc_tag.h:166 at __pgalloc_tag_sub+0x1fc/0x254
+  Call trace:
+   __pgalloc_tag_sub+0x1fc/0x254 (P)
+   __free_pages_ok+0x14c/0x6ac
+   __free_pages_core+0xa8/0x188
+   generic_online_page+0x14/0x20
+   online_pages+0x220/0x3b0
+   memory_subsys_online+0xfc/0x198
+   device_online+0x58/0xe0
+   state_store+0xf0/0xf8
 
-Avoid that path for PMD-sized hugetlb mappings that can use PMD
-sharing. Instead of allocating or sharing the destination page table
-while moving, zap the source range and let the destination fault path
-populate or share the PMD lazily.
+Pages entering the buddy through __free_pages_core() have never been
+allocated, so their allocation tag references are NULL.  The free path,
+__free_pages_prepare() -> pgalloc_tag_sub(), expects a valid tag or a
+CODETAG_EMPTY mark and warns otherwise.  Paths feeding never-allocated
+pages into the buddy are therefore expected to mark them with
+clear_page_tag_ref() first, like init_cma_reserved_pageblock() and
+free_reserved_pages() do; of __free_pages_core()'s callers only
+memblock_free_pages() clears the tag ref itself, and the hotplug
+onlining path was missed.
 
-Reuse the hugetlb unmap logic for the source-side zap by splitting
-the core loop out of __unmap_hugepage_range(). The wrapper keeps the
-existing tlb_start_vma(), tlb_end_vma() and huge_pmd_unshare_flush()
-behavior, while move_hugetlb_page_tables() can reuse the unmap loop
-with its existing mmu_gather.
+Since all __free_pages_core() callers free never-allocated pages, mark the
+head page as not tagged in __free_pages_core() itself instead of relying on
+each caller, and drop the now-redundant clearing from
+memblock_free_pages().
 
-Link: https://lore.kernel.org/20261022034543.51226-4-lizhe.67@bytedance.com
-Fixes: 550a7d60bd5e ("mm, hugepages: add mremap() support for hugepage backed vma")
-Signed-off-by: David Hildenbrand (Arm) <david@kernel.org>
-Signed-off-by: Li Zhe <lizhe.67@bytedance.com>
+Link: https://lore.kernel.org/20261022122752.74774-1-zenghui.yu@linux.dev
+Signed-off-by: Zenghui Yu (Huawei) <zenghui.yu@linux.dev>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Co-developed-by: David Hildenbrand (Arm) <david@kernel.org>
-Cc: Muchun Song <muchun.song@linux.dev>
-Cc: Oscar Salvador <osalvador@suse.de>
-Cc: Peter Xu <peterx@redhat.com>
+Reviewed-by: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Jose A. Perez de Azpillaga <azpijr@gmail.com>
-Cc: <stable@vger.kernel.org>
+Cc: Vlastimil Babka <vbabka@kernel.org>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Brendan Jackman <brendan.jackman@linux.dev>
+Cc: Zi Yan <ziy@nvidia.com>
 ---
 
- mm/hugetlb.c |   47 +++++++++++++++++++++++++++++++++++++----------
- 1 file changed, 37 insertions(+), 10 deletions(-)
+ mm/mm_init.c    |    2 --
+ mm/page_alloc.c |    3 +++
+ 2 files changed, 3 insertions(+), 2 deletions(-)
 
---- a/mm/hugetlb.c~mm-hugetlb-fix-mremap-deadlock-when-pmd-sharing-is-possible
-+++ a/mm/hugetlb.c
-@@ -137,6 +137,10 @@ static int __huge_pmd_unshare(struct mmu
- 		bool check_locks);
- static void hugetlb_unshare_pmds(struct vm_area_struct *vma,
- 		unsigned long start, unsigned long end, bool take_locks);
-+static void hugetlb_unmap_range(struct mmu_gather *tlb,
-+				struct vm_area_struct *vma, unsigned long start,
-+				unsigned long end, struct folio *folio,
-+				zap_flags_t zap_flags);
- static struct resv_map *vma_resv_map(struct vm_area_struct *vma);
+--- a/mm/mm_init.c~mm-page_alloc-mark-pages-freed-by-__free_pages_core-as-not-tagged
++++ a/mm/mm_init.c
+@@ -2486,8 +2486,6 @@ void __init memblock_free_pages(unsigned
+ 		return;
+ 	}
  
- static inline bool subpool_is_free(struct hugepage_subpool *spool)
-@@ -5238,6 +5242,8 @@ unsigned long move_hugetlb_page_tables(s
- 	for (; old_addr < old_end; old_addr += sz, new_addr += sz) {
- 		const unsigned long offset_to_last_entry =
- 			(old_addr | last_addr_mask) - old_addr;
-+		const unsigned long offset_to_last_dst_entry =
-+			(new_addr | last_addr_mask) - new_addr;
- 
- 		src_pte = hugetlb_walk(vma, old_addr, sz);
- 		if (!src_pte) {
-@@ -5254,6 +5260,24 @@ unsigned long move_hugetlb_page_tables(s
- 			continue;
- 		}
- 
-+		/*
-+		 * Avoid entering the destination PMD sharing path while holding
-+		 * i_mmap_rwsem for write. Leave destination page table
-+		 * population to the fault path, which can share the PMD lazily.
-+		 */
-+		if (sz == PMD_SIZE && want_pmd_share(new_vma, new_addr)) {
-+			const unsigned long unmap_size =
-+				min(old_end - old_addr,
-+				    offset_to_last_dst_entry + sz);
-+
-+			hugetlb_unmap_range(&tlb, vma, old_addr,
-+					    old_addr + unmap_size, NULL,
-+					    ZAP_FLAG_DROP_MARKER);
-+			old_addr += unmap_size - sz;
-+			new_addr += unmap_size - sz;
-+			continue;
-+		}
-+
- 		dst_pte = huge_pte_alloc(mm, new_vma, new_addr, sz);
- 		if (!dst_pte)
- 			break;
-@@ -5273,9 +5297,10 @@ unsigned long move_hugetlb_page_tables(s
- 	return len + old_addr - old_end;
+-	/* pages were reserved and not allocated */
+-	clear_page_tag_ref(page);
+ 	__free_pages_core(page, order, MEMINIT_EARLY);
  }
  
--void __unmap_hugepage_range(struct mmu_gather *tlb, struct vm_area_struct *vma,
--			    unsigned long start, unsigned long end,
--			    struct folio *folio, zap_flags_t zap_flags)
-+static void hugetlb_unmap_range(struct mmu_gather *tlb,
-+				struct vm_area_struct *vma, unsigned long start,
-+				unsigned long end, struct folio *folio,
-+				zap_flags_t zap_flags)
- {
- 	struct mm_struct *mm = vma->vm_mm;
- 	const bool folio_provided = !!folio;
-@@ -5293,13 +5318,6 @@ void __unmap_hugepage_range(struct mmu_g
- 	BUG_ON(start & ~huge_page_mask(h));
- 	BUG_ON(end & ~huge_page_mask(h));
- 
--	/*
--	 * This is a hugetlb vma, all the pte entries should point
--	 * to huge page.
--	 */
--	tlb_change_page_size(tlb, sz);
--	tlb_start_vma(tlb, vma);
--
- 	last_addr_mask = hugetlb_mask_last_page(h);
- 	address = start;
- 	for (; address < end; address += sz) {
-@@ -5428,6 +5446,15 @@ void __unmap_hugepage_range(struct mmu_g
- 		if (folio_provided)
- 			break;
+--- a/mm/page_alloc.c~mm-page_alloc-mark-pages-freed-by-__free_pages_core-as-not-tagged
++++ a/mm/page_alloc.c
+@@ -1616,6 +1616,9 @@ void __meminit __free_pages_core(struct
+ 		atomic_long_add(nr_pages, &page_zone(page)->managed_pages);
  	}
-+}
-+
-+void __unmap_hugepage_range(struct mmu_gather *tlb, struct vm_area_struct *vma,
-+			    unsigned long start, unsigned long end,
-+			    struct folio *folio, zap_flags_t zap_flags)
-+{
-+	tlb_change_page_size(tlb, huge_page_size(hstate_vma(vma)));
-+	tlb_start_vma(tlb, vma);
-+	hugetlb_unmap_range(tlb, vma, start, end, folio, zap_flags);
- 	tlb_end_vma(tlb, vma);
  
- 	huge_pmd_unshare_flush(tlb, vma);
++	/* pages were never allocated */
++	clear_page_tag_ref(page);
++
+ 	if (page_contains_unaccepted(page, order)) {
+ 		if (order == MAX_PAGE_ORDER && __free_unaccepted(page))
+ 			return;
 _
 
-Patches currently in -mm which might be from lizhe.67@bytedance.com are
+Patches currently in -mm which might be from zenghui.yu@linux.dev are
 
-mm-hugetlb-fix-overbroad-mmu-notifiers-for-unshared-pmds.patch
-mm-hugetlb-fix-mremap-move-length-truncation.patch
-mm-hugetlb-fix-mremap-deadlock-when-pmd-sharing-is-possible.patch
+mm-damon-api-remove-unused-nr_damos_-enumerators.patch
+selftests-mm-fix-uffd-move-pmd-test-crash-on-64k-base-page-systems.patch
+mm-page_alloc-mark-pages-freed-by-__free_pages_core-as-not-tagged.patch
 
