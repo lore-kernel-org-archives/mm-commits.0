@@ -1,42 +1,45 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1792702089;
-	b=i06Mw25AIT4N+LGWtPtdb+XYTg63ocdk6ZZ/BCQBdlagR/KT/ozfcuIPkpZNSHnm4EP4
-	 aBM5XCzN64z3la47pF/ul20ksfT13o3AxFB9wdqWXqsAc3jri5y8zfggiKDyvL0tfTJV8
-	 sIl7ByAyFEsM869iMgQiGVRUmWQCQNhw6+qlzFL/yMSWquzVpNY6sbjVEljL+OkjRwLFx
-	 I5d3lfb2p2dxVemWgX2BhvXcb6hIo+SPke5/xS+7FvJApvTKeX8UnHa4NEG+j5Gaer8g5
-	 aiX3PtF9gUho6oAgdCDlrBqCUfkWCme8j2dujhLqMSRBgChLr/Odf36F3qE16AVaixg==
+	t=1792704471;
+	b=0MLj1D0+rsHbvhH3uSTASdXvfAUlrbo2IynUs8zw039gBhioZjpGIdFDc4S/WmAbciEd
+	 uxl/h9f3gh/cpOxKXqOk1CI3x/MeZXW+wz1T5kdzVU619qpQLQcGirTw2psNJbst+i8+c
+	 CTBMkFnctUOWSMjgYfZrmfJ3p+MmaPbIeEzdG+u7Gn2S5FXl8oTwJRaNxYkx7byiVNXrZ
+	 5OZjRVNWRtjBsiYN1JKJoImePK/nsbzxC1pFH2C+mXY3Bb4iY4bHx+l+ODtlb/9mNv+dc
+	 /xpsKA4XZ5gG+Rw99rXWbUDdRGbvDHke9nl+Dv/flGCV6SKGMu1IM8AzLi7rxlPTyPg==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1792702089;
+	a=rsa-sha256; c=relaxed/relaxed; t=1792704471;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=hstwqGu09N6A0xBwbO1VBrRPmy17n6yOesepkVhHXUI=;
-	b=b1N6/cOU1Op0PSga2chM09Q1DBsUtP0p7gft3MTfRS+q6Jq6cKYwTnwMCa828l5mI2mV
-	 IZ8fwCTT71Xw8fRBBD8vKGNpJzyLWMJvibDZqLoMrkvAffu4u1msAoh4WPW63Z7ajhxUv
-	 RWIzEjxotQwcPifwL0WkCEsEwJ6Ul/mrRd1NvLj0nTvQUmstu5cAnWxmQpMg31b9UOFPk
-	 BVwpmzIiuJG4rEKEn7FSXTEv3eWUa6eYUSihLPDCAqezoI3jC/oZ63mQioODnDcQAKpZ4
-	 rE5nMV2S6mkRQsnsEAxfJCwao9l5vod5K4BDuVY+KcqQjZ/HZYUyOQWGPioT7fLCG7A==
+	bh=QgwaE9S83cJ41QeWG4WzKbMomBMJok9C3O3RKbKlpQY=;
+	b=k9djXjhvEkHmlDuQVgoaUAE5hyeW7Dk/OBWx76tkrQtaH7DV473AGlVV8fQWtw0O3snl
+	 9nPK9QDPN+SamUAy9Q8pnGLn95LCRRUe7EaakU7f1dhlKBvcZfPbirNFCEKw68lsuiDuI
+	 cUgbfY+KTm1rvvBq9T0Us2Fue6frpoOIThZDMgPM9crhpuFEpF5QinqOcWU9IkrvGrvvB
+	 Xn3hbq+SIMkBTYJ1+7NZebqHpygrS+nmm28U72ZI3ImX6bHp9GYxo15AT5ZbhhG2fEkiQ
+	 BIzN08KwlNg/9pmzrjkW0segNjWnbAycWT5K0+kqKzbcDKoWDSfaOlRlOeoAFiHHL7g==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=ZeGo8lSF;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6B909606A325
-	for <mm-commits@vger.kernel.org>; Thu, 22 Oct 2026 20:48:08 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0D6C11F01825;
-	Thu, 22 Oct 2026 20:48:08 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7AD9F606A31A
+	for <mm-commits@vger.kernel.org>; Thu, 22 Oct 2026 21:27:51 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=ZeGo8lSF
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E1F931F01825;
+	Thu, 22 Oct 2026 21:27:50 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1792702088;
-	bh=hstwqGu09N6A0xBwbO1VBrRPmy17n6yOesepkVhHXUI=;
+	d=linux-foundation.org; s=korg; t=1792704471;
+	bh=QgwaE9S83cJ41QeWG4WzKbMomBMJok9C3O3RKbKlpQY=;
 	h=Date:To:From:Subject;
-	b=VjRSN2RDE09axN8OL10SHY8e/fUFVHUfZsMwv7ZvFgWd7LCw4NTUoaTgS/DhFe/ld
-	 +y45NKeRgHjoImgxs6gG/0KJ11wSkFJTuEUp63nDicS5mlp8d5lnhNjP/antgWzHXE
-	 7Uh7l+t31WgL3rXGoOUHYj0kI9NEfrCcigM2w8bU=
-Date: Thu, 22 Oct 2026 13:48:07 -0700
-To: mm-commits@vger.kernel.org,vbabka@kernel.org,surenb@google.com,shuah@kernel.org,rppt@kernel.org,mhocko@suse.com,ljs@kernel.org,liam@infradead.org,leitao@debian.org,guillaume@morinfr.org,david@kernel.org,jaeyeon.lee.dev@gmail.com,akpm@linux-foundation.org
+	b=ZeGo8lSFIUNc4XfdQ6no5m+W47hDESG5RLgLkNTOUR5cqU00YRHGBGmt5MGOi3uw/
+	 TFgheeusjn2EZQQQo2nEZ9er/eL5RVtSTelUBp75w9xftEO1YT7hJyfn65U+Mbz5/Q
+	 2nkYBE//W2p44tC/168lmED92lWYsQfzd1N6YtY8=
+Date: Thu, 22 Oct 2026 14:27:50 -0700
+To: mm-commits@vger.kernel.org,martink@posteo.de,kuba@kernel.org,cel@kernel.org,alex@sverdlin.org,markus.mayer@broadcom.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [to-be-updated] selftests-mm-hugetlb_madv_vs_map-fix-tap-plan-mismatches.patch removed from -mm tree
-Message-Id: <20261022204808.0D6C11F01825@smtp.kernel.org>
+Subject: + maintainers-update-my-e-mail-address.patch added to mm-nonmm-unstable branch
+Message-Id: <20261022212750.E1F931F01825@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -47,85 +50,106 @@ List-Owner: <mailto:mm-commits+owner@vger.kernel.org>
 Precedence: list
 
 
-The quilt patch titled
-     Subject: selftests/mm: hugetlb_madv_vs_map: fix TAP plan mismatches
-has been removed from the -mm tree.  Its filename was
-     selftests-mm-hugetlb_madv_vs_map-fix-tap-plan-mismatches.patch
+The patch titled
+     Subject: MAINTAINERS: update Markus's e-mail address
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     maintainers-update-my-e-mail-address.patch
 
-This patch was dropped because an updated version will be issued
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/maintainers-update-my-e-mail-address.patch
+
+This patch will later appear in the mm-nonmm-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via various
+branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there most days
 
 ------------------------------------------------------
-From: Jaeyeon Lee <jaeyeon.lee.dev@gmail.com>
-Subject: selftests/mm: hugetlb_madv_vs_map: fix TAP plan mismatches
-Date: Mon,  5 Oct 2026 01:00:18 +0200
+From: Markus Mayer <markus.mayer@broadcom.com>
+Subject: MAINTAINERS: update Markus's e-mail address
+Date: Thu, 22 Oct 2026 14:19:48 -0700
 
-The plan was raised from 1 to 3, but the HugeTLB setup check that may call
-ksft_exit_skip() still runs after ksft_set_plan(), so a setup failure
-reports one result against a plan of 3.  Move ksft_set_plan() below the
-setup check.
+Classic Broadcom e-mail addresses were recently phased out.  Update
+MAINTAINERS to the new format.  Also add an entry to .mailmap for said
+address.
 
-Also, when the underflow check fails, or munmap() fails, test_underflow()
-jumps to err_cleanup and exits without reporting the remaining results. 
-Report the munmap() failure as a test result and skip the final
-HugePages_Rsvd check in err_cleanup, so the output always contains the
-planned 3 results.
+Finally, since I am already touching .mailmap, I may as well map an
+ancient Linaro address, as well.
 
-Link: https://lore.kernel.org/20261004230018.190880-1-jaeyeon.lee.dev@gmail.com
-Fixes: 827149aad495 ("selftests/mm: hugetlb_madv_vs_map: add underflow test")
-Signed-off-by: Jaeyeon Lee <jaeyeon.lee.dev@gmail.com>
+Link: https://lore.kernel.org/20261022211949.42939-1-markus.mayer@broadcom.com
+Signed-off-by: Markus Mayer <markus.mayer@broadcom.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Acked-by: David Hildenbrand (Arm) <david@kernel.org>
-Assisted-by: LLM
-Cc: Guillaume Morin <guillaume@morinfr.org>
-Cc: Lorenzo Stoakes <ljs@kernel.org>
-Cc: Liam R. Howlett <liam@infradead.org>
-Cc: Vlastimil Babka <vbabka@kernel.org>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Shuah Khan <shuah@kernel.org>
-Cc: Breno Leitao <leitao@debian.org>
+Cc: Jakub Kicinski <kuba@kernel.org>
+Cc: Alexander Sverdlin <alex@sverdlin.org>
+Cc: Chuck Lever <cel@kernel.org>
+Cc: Martin Kepplinger <martink@posteo.de>
 ---
 
- tools/testing/selftests/mm/hugetlb_madv_vs_map.c |    5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+ .mailmap    |    2 ++
+ MAINTAINERS |    8 ++++----
+ 2 files changed, 6 insertions(+), 4 deletions(-)
 
---- a/tools/testing/selftests/mm/hugetlb_madv_vs_map.c~selftests-mm-hugetlb_madv_vs_map-fix-tap-plan-mismatches
-+++ a/tools/testing/selftests/mm/hugetlb_madv_vs_map.c
-@@ -169,6 +169,7 @@ void test_underflow(void)
- 	/* First unmap, this will close the vma */
- 	if (munmap(huge_ptr, mmap_size) != 0) {
- 		ksft_perror("munmap failed");
-+		ksft_test_result_fail("munmap failed\n");
- 		goto err_cleanup;
- 	}
+--- a/.mailmap~maintainers-update-my-e-mail-address
++++ a/.mailmap
+@@ -599,6 +599,8 @@ Marek Lindner <marek.lindner@mailbox.org
+ Marek Lindner <marek.lindner@mailbox.org> <mareklindner@neomailbox.ch>
+ Mark Brown <broonie@sirena.org.uk>
+ Mark Starovoytov <mstarovo@pm.me> <mstarovoitov@marvell.com>
++Markus Mayer <markus.mayer@broadcom.com> <mmayer@broadcom.com>
++Markus Mayer <markus.mayer@broadcom.com> <markus.mayer@linaro.org>
+ Markus Schneider-Pargmann <msp@baylibre.com> <mpa@pengutronix.de>
+ Mark Yao <markyao0591@gmail.com> <mark.yao@rock-chips.com>
+ Martin K. Petersen <mkp@kernel.org> <martin.petersen@oracle.com>
+--- a/MAINTAINERS~maintainers-update-my-e-mail-address
++++ a/MAINTAINERS
+@@ -5296,7 +5296,7 @@ F:	Documentation/devicetree/bindings/usb
+ F:	drivers/usb/gadget/udc/bdc/
  
-@@ -203,18 +204,20 @@ err_cleanup:
- 	if (waitpid(pid, NULL, 0) <= 0)
- 		ksft_exit_fail_perror("waitpid failed");
+ BROADCOM BMIPS CPUFREQ DRIVER
+-M:	Markus Mayer <mmayer@broadcom.com>
++M:	Markus Mayer <markus.mayer@broadcom.com>
+ R:	Broadcom internal kernel review list <bcm-kernel-feedback-list@broadcom.com>
+ L:	linux-pm@vger.kernel.org
+ S:	Maintained
+@@ -5571,7 +5571,7 @@ F:	drivers/spi/spi-brcmstb-qspi.c
+ F:	drivers/spi/spi-iproc-qspi.c
  
-+	ksft_test_result_skip("HugePages_Rsvd check after child exit\n");
- 	ksft_exit_fail();
- }
+ BROADCOM STB AVS CPUFREQ DRIVER
+-M:	Markus Mayer <mmayer@broadcom.com>
++M:	Markus Mayer <markus.mayer@broadcom.com>
+ R:	Broadcom internal kernel review list <bcm-kernel-feedback-list@broadcom.com>
+ L:	linux-pm@vger.kernel.org
+ S:	Maintained
+@@ -5579,7 +5579,7 @@ F:	Documentation/devicetree/bindings/cpu
+ F:	drivers/cpufreq/brcmstb*
  
- int main(void)
- {
- 	ksft_print_header();
--	ksft_set_plan(3);
+ BROADCOM STB AVS TMON DRIVER
+-M:	Markus Mayer <mmayer@broadcom.com>
++M:	Markus Mayer <markus.mayer@broadcom.com>
+ R:	Broadcom internal kernel review list <bcm-kernel-feedback-list@broadcom.com>
+ L:	linux-pm@vger.kernel.org
+ S:	Maintained
+@@ -5587,7 +5587,7 @@ F:	Documentation/devicetree/bindings/the
+ F:	drivers/thermal/broadcom/brcmstb*
  
- 	if (!hugetlb_setup_default_exact(1))
- 		ksft_exit_skip("This test needs one and only one page to execute. Got %lu\n",
- 			       hugetlb_free_default_pages());
- 
-+	ksft_set_plan(3);
-+
- 	test_madv_vs_map();
- 	test_underflow();
- 
+ BROADCOM STB DPFE DRIVER
+-M:	Markus Mayer <mmayer@broadcom.com>
++M:	Markus Mayer <markus.mayer@broadcom.com>
+ R:	Broadcom internal kernel review list <bcm-kernel-feedback-list@broadcom.com>
+ L:	linux-arm-kernel@lists.infradead.org (moderated for non-subscribers)
+ S:	Maintained
 _
 
-Patches currently in -mm which might be from jaeyeon.lee.dev@gmail.com are
+Patches currently in -mm which might be from markus.mayer@broadcom.com are
 
-selftests-mm-hugetlb-read-hwpoison-add-setup-of-hugetlb-pages.patch
-mm-damon-ops-common-fix-age_in_sec-overflow-on-32-bit.patch
+maintainers-update-my-e-mail-address.patch
 
