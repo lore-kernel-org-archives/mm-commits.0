@@ -1,45 +1,42 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1792692967;
-	b=OOeBF/X0w1HJE0wVktl1t6auSZmpipoQcNjacXtDfdDkgOIDnuM2kQ048kJtN5IlKQMI
-	 zS+vpB9ar9OE79J+zfPzonIN7nRQuzmT3mXpbRpuO2YefHhFTL2vPnyZwz7wKO66H0HiX
-	 6bcMECD2aiKXXNQOHgthfh2Y11V7/xpAMIhWJ8OpODjC9us6Or0aeFS4c/fcMM4NND51D
-	 8QVVk2O6byIXE00MLkvHiUN8kok0dbi6DhQ3QXMNidUMBbPnmWu6AKSCLJb1qojJelcC6
-	 t88mH8BvzqBjVFSGgYYZUVGmhZrFTlnhF87JcgxoF5Gj9bJ505++WBrTeG8s4ipW4KA==
+	t=1792702089;
+	b=i06Mw25AIT4N+LGWtPtdb+XYTg63ocdk6ZZ/BCQBdlagR/KT/ozfcuIPkpZNSHnm4EP4
+	 aBM5XCzN64z3la47pF/ul20ksfT13o3AxFB9wdqWXqsAc3jri5y8zfggiKDyvL0tfTJV8
+	 sIl7ByAyFEsM869iMgQiGVRUmWQCQNhw6+qlzFL/yMSWquzVpNY6sbjVEljL+OkjRwLFx
+	 I5d3lfb2p2dxVemWgX2BhvXcb6hIo+SPke5/xS+7FvJApvTKeX8UnHa4NEG+j5Gaer8g5
+	 aiX3PtF9gUho6oAgdCDlrBqCUfkWCme8j2dujhLqMSRBgChLr/Odf36F3qE16AVaixg==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1792692967;
+	a=rsa-sha256; c=relaxed/relaxed; t=1792702089;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=8OEw3h1+OIAQfp7oEkz5fkn1ZDsZaUVZJP4+1eALmW4=;
-	b=Gg186YnxJB95uWY6LxR/2tS9+5GW1aiTjGEbYoKPhuzk4H4oQEkUeZs0pDmH0WeBjDco
-	 pwrqNrwpPpzVYQ/0MHU3j1Fi07CUDvsJRYd+DVDqpBl4eIsGJdEl7TBpwVU8wjLAsvm++
-	 mP7Ex6/hHqRqfZvbDyDjzXkXVAUVSMKq/nhP+oblouNS/K3Gy00iEwWq4zrmUtl42xcpW
-	 3yH0XIN/yjT49CpLIsXkcFp3/Uc4p0VGQdY5D23umz8tr8pOhg4RIUf17un/Qi2554Mro
-	 8t0MjoziKV0JKQuHJ+85z5JiP5KkRB4o2VEQTyg17U8WI7jqSffBuyyYw6kyz1BUEFQ==
+	bh=hstwqGu09N6A0xBwbO1VBrRPmy17n6yOesepkVhHXUI=;
+	b=b1N6/cOU1Op0PSga2chM09Q1DBsUtP0p7gft3MTfRS+q6Jq6cKYwTnwMCa828l5mI2mV
+	 IZ8fwCTT71Xw8fRBBD8vKGNpJzyLWMJvibDZqLoMrkvAffu4u1msAoh4WPW63Z7ajhxUv
+	 RWIzEjxotQwcPifwL0WkCEsEwJ6Ul/mrRd1NvLj0nTvQUmstu5cAnWxmQpMg31b9UOFPk
+	 BVwpmzIiuJG4rEKEn7FSXTEv3eWUa6eYUSihLPDCAqezoI3jC/oZ63mQioODnDcQAKpZ4
+	 rE5nMV2S6mkRQsnsEAxfJCwao9l5vod5K4BDuVY+KcqQjZ/HZYUyOQWGPioT7fLCG7A==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=nf7rzrhY;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9FFFB606A320
-	for <mm-commits@vger.kernel.org>; Thu, 22 Oct 2026 18:16:06 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=nf7rzrhY
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1A5D41F01825;
-	Thu, 22 Oct 2026 18:16:06 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6B909606A325
+	for <mm-commits@vger.kernel.org>; Thu, 22 Oct 2026 20:48:08 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0D6C11F01825;
+	Thu, 22 Oct 2026 20:48:08 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1792692966;
-	bh=8OEw3h1+OIAQfp7oEkz5fkn1ZDsZaUVZJP4+1eALmW4=;
+	d=linux-foundation.org; s=korg; t=1792702088;
+	bh=hstwqGu09N6A0xBwbO1VBrRPmy17n6yOesepkVhHXUI=;
 	h=Date:To:From:Subject;
-	b=nf7rzrhYqyHUbwORn1hfSI8ZQ55bHM7W7Hu7ub3P7ztmWzAKH5J7ekuZlbmRf9H+v
-	 vobCM57k8G5qE1r0XyhuDuk54my0+CBFgkwMV4WoktHtoYaIp9ldrzNn0jcjgwvvRt
-	 x2h4qGH2edodZiNoYXdyJUMOhXn/1VmUKDA2x9fs=
-Date: Thu, 22 Oct 2026 11:16:05 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,vbabka@kernel.org,surenb@google.com,rppt@kernel.org,mhocko@suse.com,hannes@cmpxchg.org,brendan.jackman@linux.dev,zenghui.yu@linux.dev,akpm@linux-foundation.org
+	b=VjRSN2RDE09axN8OL10SHY8e/fUFVHUfZsMwv7ZvFgWd7LCw4NTUoaTgS/DhFe/ld
+	 +y45NKeRgHjoImgxs6gG/0KJ11wSkFJTuEUp63nDicS5mlp8d5lnhNjP/antgWzHXE
+	 7Uh7l+t31WgL3rXGoOUHYj0kI9NEfrCcigM2w8bU=
+Date: Thu, 22 Oct 2026 13:48:07 -0700
+To: mm-commits@vger.kernel.org,vbabka@kernel.org,surenb@google.com,shuah@kernel.org,rppt@kernel.org,mhocko@suse.com,ljs@kernel.org,liam@infradead.org,leitao@debian.org,guillaume@morinfr.org,david@kernel.org,jaeyeon.lee.dev@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-page_alloc-mark-pages-freed-by-__free_pages_core-as-not-tagged.patch added to mm-unstable branch
-Message-Id: <20261022181606.1A5D41F01825@smtp.kernel.org>
+Subject: [to-be-updated] selftests-mm-hugetlb_madv_vs_map-fix-tap-plan-mismatches.patch removed from -mm tree
+Message-Id: <20261022204808.0D6C11F01825@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -50,108 +47,85 @@ List-Owner: <mailto:mm-commits+owner@vger.kernel.org>
 Precedence: list
 
 
-The patch titled
-     Subject: mm/page_alloc: mark pages freed by __free_pages_core() as not tagged
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-page_alloc-mark-pages-freed-by-__free_pages_core-as-not-tagged.patch
+The quilt patch titled
+     Subject: selftests/mm: hugetlb_madv_vs_map: fix TAP plan mismatches
+has been removed from the -mm tree.  Its filename was
+     selftests-mm-hugetlb_madv_vs_map-fix-tap-plan-mismatches.patch
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-page_alloc-mark-pages-freed-by-__free_pages_core-as-not-tagged.patch
-
-This patch will later appear in the mm-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via various
-branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there most days
+This patch was dropped because an updated version will be issued
 
 ------------------------------------------------------
-From: "Zenghui Yu (Huawei)" <zenghui.yu@linux.dev>
-Subject: mm/page_alloc: mark pages freed by __free_pages_core() as not tagged
-Date: Thu, 22 Oct 2026 20:27:52 +0800
+From: Jaeyeon Lee <jaeyeon.lee.dev@gmail.com>
+Subject: selftests/mm: hugetlb_madv_vs_map: fix TAP plan mismatches
+Date: Mon,  5 Oct 2026 01:00:18 +0200
 
-Onlining hotplugged memory (e.g., a dev_dax device bound to kmem) with
-CONFIG_MEM_ALLOC_PROFILING_DEBUG triggers:
+The plan was raised from 1 to 3, but the HugeTLB setup check that may call
+ksft_exit_skip() still runs after ksft_set_plan(), so a setup failure
+reports one result against a plan of 3.  Move ksft_set_plan() below the
+setup check.
 
-  alloc_tag was not set
-  WARNING: ./include/linux/alloc_tag.h:166 at __pgalloc_tag_sub+0x1fc/0x254
-  Call trace:
-   __pgalloc_tag_sub+0x1fc/0x254 (P)
-   __free_pages_ok+0x14c/0x6ac
-   __free_pages_core+0xa8/0x188
-   generic_online_page+0x14/0x20
-   online_pages+0x220/0x3b0
-   memory_subsys_online+0xfc/0x198
-   device_online+0x58/0xe0
-   state_store+0xf0/0xf8
+Also, when the underflow check fails, or munmap() fails, test_underflow()
+jumps to err_cleanup and exits without reporting the remaining results. 
+Report the munmap() failure as a test result and skip the final
+HugePages_Rsvd check in err_cleanup, so the output always contains the
+planned 3 results.
 
-Pages entering the buddy through __free_pages_core() have never been
-allocated, so their allocation tag references are NULL.  The free path,
-__free_pages_prepare() -> pgalloc_tag_sub(), expects a valid tag or a
-CODETAG_EMPTY mark and warns otherwise.  Paths feeding never-allocated
-pages into the buddy are therefore expected to mark them with
-clear_page_tag_ref() first, like init_cma_reserved_pageblock() and
-free_reserved_pages() do; of __free_pages_core()'s callers only
-memblock_free_pages() clears the tag ref itself, and the hotplug
-onlining path was missed.
-
-Since all __free_pages_core() callers free never-allocated pages, mark the
-head page as not tagged in __free_pages_core() itself instead of relying on
-each caller, and drop the now-redundant clearing from
-memblock_free_pages().
-
-Link: https://lore.kernel.org/20261022122752.74774-1-zenghui.yu@linux.dev
-Signed-off-by: Zenghui Yu (Huawei) <zenghui.yu@linux.dev>
+Link: https://lore.kernel.org/20261004230018.190880-1-jaeyeon.lee.dev@gmail.com
+Fixes: 827149aad495 ("selftests/mm: hugetlb_madv_vs_map: add underflow test")
+Signed-off-by: Jaeyeon Lee <jaeyeon.lee.dev@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Reviewed-by: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Mike Rapoport <rppt@kernel.org>
+Acked-by: David Hildenbrand (Arm) <david@kernel.org>
+Assisted-by: LLM
+Cc: Guillaume Morin <guillaume@morinfr.org>
+Cc: Lorenzo Stoakes <ljs@kernel.org>
+Cc: Liam R. Howlett <liam@infradead.org>
 Cc: Vlastimil Babka <vbabka@kernel.org>
+Cc: Mike Rapoport <rppt@kernel.org>
 Cc: Suren Baghdasaryan <surenb@google.com>
 Cc: Michal Hocko <mhocko@suse.com>
-Cc: Brendan Jackman <brendan.jackman@linux.dev>
-Cc: Zi Yan <ziy@nvidia.com>
+Cc: Shuah Khan <shuah@kernel.org>
+Cc: Breno Leitao <leitao@debian.org>
 ---
 
- mm/mm_init.c    |    2 --
- mm/page_alloc.c |    3 +++
- 2 files changed, 3 insertions(+), 2 deletions(-)
+ tools/testing/selftests/mm/hugetlb_madv_vs_map.c |    5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
---- a/mm/mm_init.c~mm-page_alloc-mark-pages-freed-by-__free_pages_core-as-not-tagged
-+++ a/mm/mm_init.c
-@@ -2486,8 +2486,6 @@ void __init memblock_free_pages(unsigned
- 		return;
+--- a/tools/testing/selftests/mm/hugetlb_madv_vs_map.c~selftests-mm-hugetlb_madv_vs_map-fix-tap-plan-mismatches
++++ a/tools/testing/selftests/mm/hugetlb_madv_vs_map.c
+@@ -169,6 +169,7 @@ void test_underflow(void)
+ 	/* First unmap, this will close the vma */
+ 	if (munmap(huge_ptr, mmap_size) != 0) {
+ 		ksft_perror("munmap failed");
++		ksft_test_result_fail("munmap failed\n");
+ 		goto err_cleanup;
  	}
  
--	/* pages were reserved and not allocated */
--	clear_page_tag_ref(page);
- 	__free_pages_core(page, order, MEMINIT_EARLY);
+@@ -203,18 +204,20 @@ err_cleanup:
+ 	if (waitpid(pid, NULL, 0) <= 0)
+ 		ksft_exit_fail_perror("waitpid failed");
+ 
++	ksft_test_result_skip("HugePages_Rsvd check after child exit\n");
+ 	ksft_exit_fail();
  }
  
---- a/mm/page_alloc.c~mm-page_alloc-mark-pages-freed-by-__free_pages_core-as-not-tagged
-+++ a/mm/page_alloc.c
-@@ -1616,6 +1616,9 @@ void __meminit __free_pages_core(struct
- 		atomic_long_add(nr_pages, &page_zone(page)->managed_pages);
- 	}
+ int main(void)
+ {
+ 	ksft_print_header();
+-	ksft_set_plan(3);
  
-+	/* pages were never allocated */
-+	clear_page_tag_ref(page);
+ 	if (!hugetlb_setup_default_exact(1))
+ 		ksft_exit_skip("This test needs one and only one page to execute. Got %lu\n",
+ 			       hugetlb_free_default_pages());
+ 
++	ksft_set_plan(3);
 +
- 	if (page_contains_unaccepted(page, order)) {
- 		if (order == MAX_PAGE_ORDER && __free_unaccepted(page))
- 			return;
+ 	test_madv_vs_map();
+ 	test_underflow();
+ 
 _
 
-Patches currently in -mm which might be from zenghui.yu@linux.dev are
+Patches currently in -mm which might be from jaeyeon.lee.dev@gmail.com are
 
-mm-damon-api-remove-unused-nr_damos_-enumerators.patch
-selftests-mm-fix-uffd-move-pmd-test-crash-on-64k-base-page-systems.patch
-mm-page_alloc-mark-pages-freed-by-__free_pages_core-as-not-tagged.patch
+selftests-mm-hugetlb-read-hwpoison-add-setup-of-hugetlb-pages.patch
+mm-damon-ops-common-fix-age_in_sec-overflow-on-32-bit.patch
 
