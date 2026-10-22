@@ -1,42 +1,45 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1792684098;
-	b=cS35Q18qULYTyaciCRYpTnkkAzmUgFa+xAmI4TkOc0s4KbOC4OJDqBV+0vJTxmOZC0PS
-	 71bzHFhLtRzoXGnMl5C6AORyw+scvPorQIDuVyHL1dh1n6etFrMakgJnq4Jh9KCOUxMLu
-	 4w8gubkPio9Nt7GxV8L7RkT9n15PtasPdAqgsSl+xdCUyQaG4MImTJgx1NkhihWtkGgwf
-	 lvOpyzMF+bSe+jbB0uvk5p7yck+nhEELFPZBP8LwYey34ecD0epU0KaFCFSf9NLtFHywt
-	 P9+0VUShzaOHo4RxrVjoGfhntu3SFuYRuHpUNB0KKkjEQA365eMVDOpcZ+m6hL/PoJw==
+	t=1792684407;
+	b=u6T4ZNepHoyTbQTmjTSiT4ADIjxtjgQ41a3II7wnZBX1NXW1c68dwohgL3y5UbHXMUA0
+	 3JC4po+obPLnA54PYKgvGfUYRkOFewxcJY8lnHAmjyZbntATMe49e7C0SwXOSSlL6c8dO
+	 zLFxadrToRrNQT+ll0qGSm2YdElplRdoWJZMTppKhBegx2nB8PWnyka9RI6nwh+xwfs9x
+	 WVh/KyOzG4UtVkzgjmYeQEjrWI22Sa986OmHfNsty2SAKoqRnPPLhRN/xig03EmO6P90/
+	 7UM/G8ikby1S6E3Z8LwBaASTZ9zSt1TGZStWxH0bU0MRU30wTXwLqNRHm09h3Y3htnQ==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1792684098;
+	a=rsa-sha256; c=relaxed/relaxed; t=1792684407;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=DJHu0ZqSeQG53m4MCCOO/gTd2CumbIeF9AY98lmFF5A=;
-	b=BfiKhtCoougGlS/d+MACh00dpCZaOQGzAqoB2FB0nojh/8jEkCqimCcEYNAF88fXNVOY
-	 gTmvivpqRKx0jNI9wCf/MeXt0amU3bUNaIpo/wdZjzAMW9mzmCt/lfrq5yp87WRJPmSNF
-	 +zkeUzfF27hYz9DJRhc6T3jT1ji8nxmTKeyzvLrBj2N/8ltwcmOpy7IzH/f/N1WYbMuwP
-	 A9GC4f26MoEJavxnBXl+zDn5cKnGsYlYB3qG1Gf1/77xgjO20rAqpCR2G6s2YgOfqFZCM
-	 wJrWaD1GcyJ/SE7q2GvFjKE+f4jyBzLaY1w3MbcFVshs7UxBGMI+x/bAeLvdZbk8+Ww==
+	bh=kqe4E840nsjZnF3PdgG+7CXqMaNXD62CX4sVtmKazx4=;
+	b=U740OnXJZ/JeXi/SKcrkNFPt7DP3a0aMzxZ40+zkpb/KTvl1sALq3CylIjikJFaINtoV
+	 lkVMqUuZnKNgqaF4rgYVnZaong+7c3LFSKCJ7nyst8RjjURusgSeiglNZh6kclVA2CvYt
+	 qzFyArfqrGvz1l20Tm9IWtGa4i4vNCXZTSoggOPruttIXKg+JumLr3f3QnTCK4KZAt1bc
+	 zWzJt8od47LulGaF64K/y69mpnZANcdmAYzd9CVJl8pOiOmvVKA2pymsYzQntGc/un90L
+	 BtdUNgv55nTs6QG3TQCTB1ILMMn55x53XDe/tRBxXm8FK0SsdtKgnUAdnJV8eVIJ3mw==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=E4w2bwbA;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A266D606A326;
-	Thu, 22 Oct 2026 15:48:17 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 407161F01825;
-	Thu, 22 Oct 2026 15:48:17 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 15D6B606A319
+	for <mm-commits@vger.kernel.org>; Thu, 22 Oct 2026 15:53:26 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=E4w2bwbA
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 760D71F01825;
+	Thu, 22 Oct 2026 15:53:26 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1792684097;
-	bh=DJHu0ZqSeQG53m4MCCOO/gTd2CumbIeF9AY98lmFF5A=;
+	d=linux-foundation.org; s=korg; t=1792684406;
+	bh=kqe4E840nsjZnF3PdgG+7CXqMaNXD62CX4sVtmKazx4=;
 	h=Date:To:From:Subject;
-	b=i1u6oPOpKnXWIue+BZCJKdVQPa0AIzc4em+PfgcbI1eIEhNeg65a4C7ElVCxU22vi
-	 QsJHP99Y2Pn29z7r9SbAQu3l2hiCG29kIhs3p0wo9OuZ41Tx9zWnii3WouE1shGHBf
-	 PFiGkGPAKBhrdJaM1zrgV8+ReLjocaWt878LP5A4=
-Date: Thu, 22 Oct 2026 08:48:16 -0700
-To: mm-commits@vger.kernel.org,vbabka@kernel.org,stable@vger.kernel.org,mikhail.v.gavrilov@gmail.com,mfleming@cloudflare.com,glider@google.com,elver@google.com,dvyukov@google.com,calebkan1106@gmail.com,andreyknvl@gmail.com,ckan@cloudflare.com,akpm@linux-foundation.org
+	b=E4w2bwbAt7Judi72vMUwG5gwSSvJC1LwPCDKLK27YfpRM1jKnavF+yf3p5lP4CANB
+	 58Zb1M0xKJD1bUheuyDNKmSc5RP6+TubopdcChajFkXFxa1D4UTQNB9zFLIVWPkqj6
+	 ufzREToapBxb6pExIx7PLBguogUOc3zriP0Ru2z4=
+Date: Thu, 22 Oct 2026 08:53:25 -0700
+To: mm-commits@vger.kernel.org,vbabka@kernel.org,surenb@google.com,shuah@kernel.org,rppt@kernel.org,pfalcato@suse.de,mhocko@suse.com,ljs@kernel.org,liam@infradead.org,jannh@google.com,gourry@gourry.net,david@kernel.org,danishkhateeb03@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + stackdepot-stop-preallocating-after-the-final-pool.patch added to mm-nonmm-unstable branch
-Message-Id: <20261022154817.407161F01825@smtp.kernel.org>
+Subject: + selftests-mm-merge-keep-the-far-mremap-targets-in-the-carveout.patch added to mm-unstable branch
+Message-Id: <20261022155326.760D71F01825@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -48,14 +51,14 @@ Precedence: list
 
 
 The patch titled
-     Subject: stackdepot: stop preallocating after the final pool
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     stackdepot-stop-preallocating-after-the-final-pool.patch
+     Subject: selftests/mm: merge: keep the far mremap() targets in the carveout
+has been added to the -mm mm-unstable branch.  Its filename is
+     selftests-mm-merge-keep-the-far-mremap-targets-in-the-carveout.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/stackdepot-stop-preallocating-after-the-final-pool.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-merge-keep-the-far-mremap-targets-in-the-carveout.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -71,59 +74,188 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Caleb Kan <ckan@cloudflare.com>
-Subject: stackdepot: stop preallocating after the final pool
-Date: Thu, 22 Oct 2026 09:33:30 +0100
+From: Danish Khateeb <danishkhateeb03@gmail.com>
+Subject: selftests/mm: merge: keep the far mremap() targets in the carveout
+Date: Thu, 22 Oct 2026 07:18:37 -0500
 
-depot_init_pool() decides whether another pool is needed before it
-increments pools_num. When it registers the last allowed pool, pools_num
-is still one below stack_max_pools, so the existing comparison clears
-new_pool.
+The merge tests map their areas at fixed addresses within a 30-page
+PROT_NONE carveout. Several mremap() tests move an area 1000 or 2000
+pages away to separate it from the others, but those targets are outside
+the carveout, and MREMAP_FIXED unmaps whatever is mapped there.
 
-With new_pool cleared, stack_depot_save_flags() can allocate another
-order-2 pool after a lookup miss. depot_keep_new_pool() retains its pointer
-in the global new_pool, so the allocation is not lost. However, pools_num
-has already reached stack_max_pools, and depot_init_pool() rejects every
-attempt to register the pool. It remains allocated and unusable until
-reboot. The non-NULL pointer prevents later saves from allocating more
-spare pools.
+Under virtme-ng, the shared libraries are packed right above the
+carveout and the dynamic linker starts about 4 MiB above it. The moves
+then replace part of its text with an anonymous mapping, and the test
+crashes in its next lazily bound call:
 
-Account for the pool being registered in the limit check so registering
-the final pool installs STACK_DEPOT_POISON and prevents the extra
-allocation.
+  merge[6980]: segfault at 7f7ebb3c1e60 ip 00007f7ebb3c1e60 sp 00007ffd35fbaec8 error 14
 
-Link: https://lore.kernel.org/20261022083330.3159793-1-matt@readmodwrite.com
-Fixes: 31639fd6cebd ("stackdepot: use variable size records for non-evictable entries")
-Signed-off-by: Caleb Kan <ckan@cloudflare.com>
-Signed-off-by: Matt Fleming <mfleming@cloudflare.com>
+Two to four of the mremap() tests then fail with "Test terminated
+unexpectedly by signal 11", depending on the exact layout. On a host
+where libc is mapped at a 2 MiB aligned address, the targets happen to
+land above the dynamic linker and the tests pass.
+
+Since the areas are all within the first 30 pages, moving one by 30
+pages is enough to keep it apart from the others. Add FAR_PAGES for
+that distance, move areas by FAR_PAGES or 2 * FAR_PAGES pages, and make
+the carveout 3 * FAR_PAGES pages so that it covers every target.
+
+Link: https://lore.kernel.org/20261022121837.28723-1-danishkhateeb03@gmail.com
+Fixes: 4e25f85b9f85 ("tools/testing/selftests: add mremap() unfaulted/faulted test cases")
+Signed-off-by: Danish Khateeb <danishkhateeb03@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Reviewed-by: Marco Elver <elver@google.com>
-Cc: Andrey Konovalov <andreyknvl@gmail.com>
-Cc: Mikhail Gavrilov <mikhail.v.gavrilov@gmail.com>
-Cc: Caleb Kan <calebkan1106@gmail.com>
-Cc: Alexander Potapenko <glider@google.com>
-Cc: Dmitry Vyukov <dvyukov@google.com>
+Reviewed-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
+Cc: Gregory Price <gourry@gourry.net>
+Cc: Liam R. Howlett <liam@infradead.org>
 Cc: Vlastimil Babka <vbabka@kernel.org>
-Cc: <stable@vger.kernel.org>
+Cc: Jann Horn <jannh@google.com>
+Cc: Pedro Falcato <pfalcato@suse.de>
+Cc: David Hildenbrand <david@kernel.org>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Shuah Khan <shuah@kernel.org>
 ---
 
- lib/stackdepot.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ tools/testing/selftests/mm/merge.c |   33 ++++++++++++++-------------
+ 1 file changed, 18 insertions(+), 15 deletions(-)
 
---- a/lib/stackdepot.c~stackdepot-stop-preallocating-after-the-final-pool
-+++ a/lib/stackdepot.c
-@@ -323,7 +323,7 @@ static bool depot_init_pool(void **preal
- 	 * NULL; do not reset to NULL if we have reached the maximum number of
- 	 * pools.
+--- a/tools/testing/selftests/mm/merge.c~selftests-mm-merge-keep-the-far-mremap-targets-in-the-carveout
++++ a/tools/testing/selftests/mm/merge.c
+@@ -22,9 +22,12 @@ FIXTURE(merge)
+ 	struct procmap_fd procmap;
+ };
+ 
++#define FAR_PAGES	30
++#define CARVEOUT_PAGES	(3 * FAR_PAGES)
++
+ static char *map_carveout(unsigned int page_size)
+ {
+-	return mmap(NULL, 30 * page_size, PROT_NONE,
++	return mmap(NULL, CARVEOUT_PAGES * page_size, PROT_NONE,
+ 		    MAP_ANON | MAP_PRIVATE, -1, 0);
+ }
+ 
+@@ -73,7 +76,7 @@ FIXTURE_SETUP(merge)
+ 
+ FIXTURE_TEARDOWN(merge)
+ {
+-	ASSERT_EQ(munmap(self->carveout, 30 * self->page_size), 0);
++	ASSERT_EQ(munmap(self->carveout, CARVEOUT_PAGES * self->page_size), 0);
+ 	/* May fail for parent of forked process. */
+ 	close_procmap(&self->procmap);
+ 	/*
+@@ -115,7 +118,7 @@ FIXTURE_SETUP(merge_with_fork)
+ 
+ FIXTURE_TEARDOWN(merge_with_fork)
+ {
+-	ASSERT_EQ(munmap(self->carveout, 30 * self->page_size), 0);
++	ASSERT_EQ(munmap(self->carveout, CARVEOUT_PAGES * self->page_size), 0);
+ 	ASSERT_EQ(close_procmap(&self->procmap), 0);
+ 	/* See above. */
+ 	prctl(PR_SET_MEMORY_MERGE, 0, 0, 0, 0);
+@@ -660,7 +663,7 @@ TEST_F(merge, mremap_unfaulted_to_faulte
+ 
+ 	/* Offset ptr2 further away. */
+ 	ptr2 = sys_mremap(ptr2, 5 * page_size, 5 * page_size,
+-			  MREMAP_MAYMOVE | MREMAP_FIXED, ptr2 + page_size * 1000);
++			  MREMAP_MAYMOVE | MREMAP_FIXED, ptr2 + FAR_PAGES * page_size);
+ 	ASSERT_NE(ptr2, MAP_FAILED);
+ 
+ 	/*
+@@ -721,7 +724,7 @@ TEST_F(merge, mremap_unfaulted_behind_fa
+ 
+ 	/* Offset ptr2 further away. */
+ 	ptr2 = sys_mremap(ptr2, 5 * page_size, 5 * page_size,
+-			  MREMAP_MAYMOVE | MREMAP_FIXED, ptr2 + page_size * 1000);
++			  MREMAP_MAYMOVE | MREMAP_FIXED, ptr2 + FAR_PAGES * page_size);
+ 	ASSERT_NE(ptr2, MAP_FAILED);
+ 
+ 	/*
+@@ -785,12 +788,12 @@ TEST_F(merge, mremap_unfaulted_between_f
+ 
+ 	/* Offset ptr3 further away. */
+ 	ptr3 = sys_mremap(ptr3, 5 * page_size, 5 * page_size,
+-			  MREMAP_MAYMOVE | MREMAP_FIXED, ptr3 + page_size * 2000);
++			  MREMAP_MAYMOVE | MREMAP_FIXED, ptr3 + 2 * FAR_PAGES * page_size);
+ 	ASSERT_NE(ptr3, MAP_FAILED);
+ 
+ 	/* Offset ptr2 further away. */
+ 	ptr2 = sys_mremap(ptr2, 5 * page_size, 5 * page_size,
+-			  MREMAP_MAYMOVE | MREMAP_FIXED, ptr2 + page_size * 1000);
++			  MREMAP_MAYMOVE | MREMAP_FIXED, ptr2 + FAR_PAGES * page_size);
+ 	ASSERT_NE(ptr2, MAP_FAILED);
+ 
+ 	/*
+@@ -870,13 +873,13 @@ TEST_F(merge, mremap_unfaulted_between_f
+ 
+ 	/* Offset ptr3 further away. */
+ 	ptr3 = sys_mremap(ptr3, 5 * page_size, 5 * page_size,
+-			  MREMAP_MAYMOVE | MREMAP_FIXED, ptr3 + page_size * 2000);
++			  MREMAP_MAYMOVE | MREMAP_FIXED, ptr3 + 2 * FAR_PAGES * page_size);
+ 	ASSERT_NE(ptr3, MAP_FAILED);
+ 
+ 
+ 	/* Offset ptr2 further away. */
+ 	ptr2 = sys_mremap(ptr2, 5 * page_size, 5 * page_size,
+-			  MREMAP_MAYMOVE | MREMAP_FIXED, ptr2 + page_size * 1000);
++			  MREMAP_MAYMOVE | MREMAP_FIXED, ptr2 + FAR_PAGES * page_size);
+ 	ASSERT_NE(ptr2, MAP_FAILED);
+ 
+ 	/*
+@@ -1035,11 +1038,11 @@ TEST_F(merge, mremap_correct_placed_faul
  	 */
--	if (pools_num < stack_max_pools)
-+	if (pools_num + 1 < stack_max_pools)
- 		WRITE_ONCE(new_pool, NULL);
- 	else
- 		WRITE_ONCE(new_pool, STACK_DEPOT_POISON);
+ 	ptr3 = &ptr[10 * page_size];
+ 	ptr3 = sys_mremap(ptr3, 5 * page_size, 5 * page_size,
+-			  MREMAP_MAYMOVE | MREMAP_FIXED, ptr3 + page_size * 2000);
++			  MREMAP_MAYMOVE | MREMAP_FIXED, ptr3 + 2 * FAR_PAGES * page_size);
+ 	ASSERT_NE(ptr3, MAP_FAILED);
+ 	ptr2 = &ptr[5 * page_size];
+ 	ptr2 = sys_mremap(ptr2, 5 * page_size, 5 * page_size,
+-			  MREMAP_MAYMOVE | MREMAP_FIXED, ptr2 + page_size * 1000);
++			  MREMAP_MAYMOVE | MREMAP_FIXED, ptr2 + FAR_PAGES * page_size);
+ 	ASSERT_NE(ptr2, MAP_FAILED);
+ 
+ 	/*
+@@ -1075,7 +1078,7 @@ TEST_F(merge, mremap_correct_placed_faul
+ 	 *                  ptr2      \       ptr       \       ptr3
+ 	 */
+ 	ptr = sys_mremap(ptr, 5 * page_size, 5 * page_size,
+-			 MREMAP_MAYMOVE | MREMAP_FIXED, ptr + page_size * 1000);
++			 MREMAP_MAYMOVE | MREMAP_FIXED, ptr + FAR_PAGES * page_size);
+ 	ASSERT_NE(ptr, MAP_FAILED);
+ 
+ 	/*
+@@ -1110,7 +1113,7 @@ TEST_F(merge, mremap_correct_placed_faul
+ 	 *                  ptr2      \       ptr       \       ptr3
+ 	 */
+ 	ptr = sys_mremap(ptr, 5 * page_size, 5 * page_size,
+-			 MREMAP_MAYMOVE | MREMAP_FIXED, ptr + page_size * 1000);
++			 MREMAP_MAYMOVE | MREMAP_FIXED, ptr + FAR_PAGES * page_size);
+ 	ASSERT_NE(ptr, MAP_FAILED);
+ 
+ 	/*
+@@ -1168,7 +1171,7 @@ TEST_F(merge, mremap_correct_placed_faul
+ 	 *      ptr                     ptr3      \       ptr2
+ 	 */
+ 	ptr2 = sys_mremap(ptr2, 5 * page_size, 5 * page_size,
+-			  MREMAP_MAYMOVE | MREMAP_FIXED, ptr2 + page_size * 1000);
++			  MREMAP_MAYMOVE | MREMAP_FIXED, ptr2 + FAR_PAGES * page_size);
+ 	ASSERT_NE(ptr2, MAP_FAILED);
+ 
+ 	/*
+@@ -1203,7 +1206,7 @@ TEST_F(merge, mremap_correct_placed_faul
+ 	 *            ptr                         \       ptr3
+ 	 */
+ 	ptr3 = sys_mremap(ptr3, 5 * page_size, 5 * page_size,
+-			  MREMAP_MAYMOVE | MREMAP_FIXED, ptr3 + page_size * 1000);
++			  MREMAP_MAYMOVE | MREMAP_FIXED, ptr3 + FAR_PAGES * page_size);
+ 	ASSERT_NE(ptr3, MAP_FAILED);
+ 
+ 	/*
 _
 
-Patches currently in -mm which might be from ckan@cloudflare.com are
+Patches currently in -mm which might be from danishkhateeb03@gmail.com are
 
-stackdepot-stop-preallocating-after-the-final-pool.patch
+selftests-mm-merge-keep-the-far-mremap-targets-in-the-carveout.patch
 
