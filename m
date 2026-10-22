@@ -1,45 +1,45 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1792684407;
-	b=u6T4ZNepHoyTbQTmjTSiT4ADIjxtjgQ41a3II7wnZBX1NXW1c68dwohgL3y5UbHXMUA0
-	 3JC4po+obPLnA54PYKgvGfUYRkOFewxcJY8lnHAmjyZbntATMe49e7C0SwXOSSlL6c8dO
-	 zLFxadrToRrNQT+ll0qGSm2YdElplRdoWJZMTppKhBegx2nB8PWnyka9RI6nwh+xwfs9x
-	 WVh/KyOzG4UtVkzgjmYeQEjrWI22Sa986OmHfNsty2SAKoqRnPPLhRN/xig03EmO6P90/
-	 7UM/G8ikby1S6E3Z8LwBaASTZ9zSt1TGZStWxH0bU0MRU30wTXwLqNRHm09h3Y3htnQ==
+	t=1792684865;
+	b=wWoxLYOjHi2a6n0Np/elwYAg5dHZqVfM/+7GFY+jdVIr+WROfUbr6ouiQawDdmPb3BEs
+	 UXmFoGtSCorClEJC7OgUlDsHlqO+UNFBsTIR/PggNulAJ3uuU2YRde5tTxtn+lWgepxId
+	 Um39svrvBOIJ76LzV4d00Ohwg1y4PX1mC7lQZewTe9Dwg4inzjij6H71a8pwFxMxlDyiE
+	 5F71i4PBDSp2BOQ1rVNb5SRUknvnmFCTFdLa09rf3NW57Zv1pZI52xMywXMCzpY3VQNoz
+	 xZOedWEV0ztw6nwaigU6pNWpc3Kec2s0C4wiw4g3emq4kS/15wtUxMG2eZn5G0AMTLA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1792684407;
+	a=rsa-sha256; c=relaxed/relaxed; t=1792684865;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=kqe4E840nsjZnF3PdgG+7CXqMaNXD62CX4sVtmKazx4=;
-	b=U740OnXJZ/JeXi/SKcrkNFPt7DP3a0aMzxZ40+zkpb/KTvl1sALq3CylIjikJFaINtoV
-	 lkVMqUuZnKNgqaF4rgYVnZaong+7c3LFSKCJ7nyst8RjjURusgSeiglNZh6kclVA2CvYt
-	 qzFyArfqrGvz1l20Tm9IWtGa4i4vNCXZTSoggOPruttIXKg+JumLr3f3QnTCK4KZAt1bc
-	 zWzJt8od47LulGaF64K/y69mpnZANcdmAYzd9CVJl8pOiOmvVKA2pymsYzQntGc/un90L
-	 BtdUNgv55nTs6QG3TQCTB1ILMMn55x53XDe/tRBxXm8FK0SsdtKgnUAdnJV8eVIJ3mw==
+	bh=zKxKlxjhfhmM01Z2JB3lIBQC+QXnoAqNjVysDcA/4Ac=;
+	b=l6RMGT3PoPEanDSO/B/Og4Yptlp2kRHfYv2PgUjdopkhZtb1Mjntkzo/RQ8iZMf8n0+d
+	 3yyZqV1f1+97+d/EkXACWkQjoRz1dI+ZnSwdcfDnpEigzBYxwQm8tP7++clz2kNCarmAE
+	 mqtn8jxSmR9LaMn9zOkDs6xnFLBraWTNurX2RMHeqvHFxsBlS4Qf2GaeXNgzY3WTQUZH+
+	 A0886pM7Pk/C8w6bt7Hp7uZwJyLkeRDj/rQfQMAj7JTkHGIMtO4egsKcIl+71e6YmZZQT
+	 sCup2nWb+lLev/X4Ps5fR2L+NMIoEUSq/3sES2neZ6uzRLknVk2pR0CX3vzThBgjdUA==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=E4w2bwbA;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=Wwuh6phb;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 15D6B606A319
-	for <mm-commits@vger.kernel.org>; Thu, 22 Oct 2026 15:53:26 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B3734606A319
+	for <mm-commits@vger.kernel.org>; Thu, 22 Oct 2026 16:01:04 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=E4w2bwbA
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 760D71F01825;
-	Thu, 22 Oct 2026 15:53:26 +0000 (UTC)
+	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=Wwuh6phb
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 31EEB1F01825;
+	Thu, 22 Oct 2026 16:01:04 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1792684406;
-	bh=kqe4E840nsjZnF3PdgG+7CXqMaNXD62CX4sVtmKazx4=;
+	d=linux-foundation.org; s=korg; t=1792684864;
+	bh=zKxKlxjhfhmM01Z2JB3lIBQC+QXnoAqNjVysDcA/4Ac=;
 	h=Date:To:From:Subject;
-	b=E4w2bwbAt7Judi72vMUwG5gwSSvJC1LwPCDKLK27YfpRM1jKnavF+yf3p5lP4CANB
-	 58Zb1M0xKJD1bUheuyDNKmSc5RP6+TubopdcChajFkXFxa1D4UTQNB9zFLIVWPkqj6
-	 ufzREToapBxb6pExIx7PLBguogUOc3zriP0Ru2z4=
-Date: Thu, 22 Oct 2026 08:53:25 -0700
-To: mm-commits@vger.kernel.org,vbabka@kernel.org,surenb@google.com,shuah@kernel.org,rppt@kernel.org,pfalcato@suse.de,mhocko@suse.com,ljs@kernel.org,liam@infradead.org,jannh@google.com,gourry@gourry.net,david@kernel.org,danishkhateeb03@gmail.com,akpm@linux-foundation.org
+	b=Wwuh6phbCaCgWUaNS4no5PpwTV1jCou2Y4I4SHOXLxt7YSOS22cW5GyyoXUdfTlay
+	 ij0nKiEMq87ahJ0cNOFhtewZOZjofs17+vXp8HuLJepTlpyuNp2RjzVSJSBZvbV263
+	 tJScSq/H9w8kAsD0n+8etaHJjUFd9e39z/72rzJ0=
+Date: Thu, 22 Oct 2026 09:01:03 -0700
+To: mm-commits@vger.kernel.org,andrew.jones@linux.dev,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-mm-merge-keep-the-far-mremap-targets-in-the-carveout.patch added to mm-unstable branch
-Message-Id: <20261022155326.760D71F01825@smtp.kernel.org>
+Subject: + mailmap-add-entries-for-andrew-jones.patch added to mm-nonmm-unstable branch
+Message-Id: <20261022160104.31EEB1F01825@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -51,14 +51,14 @@ Precedence: list
 
 
 The patch titled
-     Subject: selftests/mm: merge: keep the far mremap() targets in the carveout
-has been added to the -mm mm-unstable branch.  Its filename is
-     selftests-mm-merge-keep-the-far-mremap-targets-in-the-carveout.patch
+     Subject: mailmap: add entries for Andrew Jones
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     mailmap-add-entries-for-andrew-jones.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-merge-keep-the-far-mremap-targets-in-the-carveout.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mailmap-add-entries-for-andrew-jones.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -74,188 +74,37 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Danish Khateeb <danishkhateeb03@gmail.com>
-Subject: selftests/mm: merge: keep the far mremap() targets in the carveout
-Date: Thu, 22 Oct 2026 07:18:37 -0500
+From: Andrew Jones <andrew.jones@linux.dev>
+Subject: mailmap: add entries for Andrew Jones
+Date: Thu, 22 Oct 2026 17:45:32 +0200
 
-The merge tests map their areas at fixed addresses within a 30-page
-PROT_NONE carveout. Several mremap() tests move an area 1000 or 2000
-pages away to separate it from the others, but those targets are outside
-the carveout, and MREMAP_FIXED unmaps whatever is mapped there.
+Use my linux.dev address for kernel correspondence, including for
+contributions made with my other email addresses.
 
-Under virtme-ng, the shared libraries are packed right above the
-carveout and the dynamic linker starts about 4 MiB above it. The moves
-then replace part of its text with an anonymous mapping, and the test
-crashes in its next lazily bound call:
-
-  merge[6980]: segfault at 7f7ebb3c1e60 ip 00007f7ebb3c1e60 sp 00007ffd35fbaec8 error 14
-
-Two to four of the mremap() tests then fail with "Test terminated
-unexpectedly by signal 11", depending on the exact layout. On a host
-where libc is mapped at a 2 MiB aligned address, the targets happen to
-land above the dynamic linker and the tests pass.
-
-Since the areas are all within the first 30 pages, moving one by 30
-pages is enough to keep it apart from the others. Add FAR_PAGES for
-that distance, move areas by FAR_PAGES or 2 * FAR_PAGES pages, and make
-the carveout 3 * FAR_PAGES pages so that it covers every target.
-
-Link: https://lore.kernel.org/20261022121837.28723-1-danishkhateeb03@gmail.com
-Fixes: 4e25f85b9f85 ("tools/testing/selftests: add mremap() unfaulted/faulted test cases")
-Signed-off-by: Danish Khateeb <danishkhateeb03@gmail.com>
+Link: https://lore.kernel.org/20261022154532.1374661-1-andrew.jones@linux.dev
+Signed-off-by: Andrew Jones <andrew.jones@linux.dev>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Reviewed-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
-Cc: Gregory Price <gourry@gourry.net>
-Cc: Liam R. Howlett <liam@infradead.org>
-Cc: Vlastimil Babka <vbabka@kernel.org>
-Cc: Jann Horn <jannh@google.com>
-Cc: Pedro Falcato <pfalcato@suse.de>
-Cc: David Hildenbrand <david@kernel.org>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Shuah Khan <shuah@kernel.org>
 ---
 
- tools/testing/selftests/mm/merge.c |   33 ++++++++++++++-------------
- 1 file changed, 18 insertions(+), 15 deletions(-)
+ .mailmap |    4 ++++
+ 1 file changed, 4 insertions(+)
 
---- a/tools/testing/selftests/mm/merge.c~selftests-mm-merge-keep-the-far-mremap-targets-in-the-carveout
-+++ a/tools/testing/selftests/mm/merge.c
-@@ -22,9 +22,12 @@ FIXTURE(merge)
- 	struct procmap_fd procmap;
- };
- 
-+#define FAR_PAGES	30
-+#define CARVEOUT_PAGES	(3 * FAR_PAGES)
-+
- static char *map_carveout(unsigned int page_size)
- {
--	return mmap(NULL, 30 * page_size, PROT_NONE,
-+	return mmap(NULL, CARVEOUT_PAGES * page_size, PROT_NONE,
- 		    MAP_ANON | MAP_PRIVATE, -1, 0);
- }
- 
-@@ -73,7 +76,7 @@ FIXTURE_SETUP(merge)
- 
- FIXTURE_TEARDOWN(merge)
- {
--	ASSERT_EQ(munmap(self->carveout, 30 * self->page_size), 0);
-+	ASSERT_EQ(munmap(self->carveout, CARVEOUT_PAGES * self->page_size), 0);
- 	/* May fail for parent of forked process. */
- 	close_procmap(&self->procmap);
- 	/*
-@@ -115,7 +118,7 @@ FIXTURE_SETUP(merge_with_fork)
- 
- FIXTURE_TEARDOWN(merge_with_fork)
- {
--	ASSERT_EQ(munmap(self->carveout, 30 * self->page_size), 0);
-+	ASSERT_EQ(munmap(self->carveout, CARVEOUT_PAGES * self->page_size), 0);
- 	ASSERT_EQ(close_procmap(&self->procmap), 0);
- 	/* See above. */
- 	prctl(PR_SET_MEMORY_MERGE, 0, 0, 0, 0);
-@@ -660,7 +663,7 @@ TEST_F(merge, mremap_unfaulted_to_faulte
- 
- 	/* Offset ptr2 further away. */
- 	ptr2 = sys_mremap(ptr2, 5 * page_size, 5 * page_size,
--			  MREMAP_MAYMOVE | MREMAP_FIXED, ptr2 + page_size * 1000);
-+			  MREMAP_MAYMOVE | MREMAP_FIXED, ptr2 + FAR_PAGES * page_size);
- 	ASSERT_NE(ptr2, MAP_FAILED);
- 
- 	/*
-@@ -721,7 +724,7 @@ TEST_F(merge, mremap_unfaulted_behind_fa
- 
- 	/* Offset ptr2 further away. */
- 	ptr2 = sys_mremap(ptr2, 5 * page_size, 5 * page_size,
--			  MREMAP_MAYMOVE | MREMAP_FIXED, ptr2 + page_size * 1000);
-+			  MREMAP_MAYMOVE | MREMAP_FIXED, ptr2 + FAR_PAGES * page_size);
- 	ASSERT_NE(ptr2, MAP_FAILED);
- 
- 	/*
-@@ -785,12 +788,12 @@ TEST_F(merge, mremap_unfaulted_between_f
- 
- 	/* Offset ptr3 further away. */
- 	ptr3 = sys_mremap(ptr3, 5 * page_size, 5 * page_size,
--			  MREMAP_MAYMOVE | MREMAP_FIXED, ptr3 + page_size * 2000);
-+			  MREMAP_MAYMOVE | MREMAP_FIXED, ptr3 + 2 * FAR_PAGES * page_size);
- 	ASSERT_NE(ptr3, MAP_FAILED);
- 
- 	/* Offset ptr2 further away. */
- 	ptr2 = sys_mremap(ptr2, 5 * page_size, 5 * page_size,
--			  MREMAP_MAYMOVE | MREMAP_FIXED, ptr2 + page_size * 1000);
-+			  MREMAP_MAYMOVE | MREMAP_FIXED, ptr2 + FAR_PAGES * page_size);
- 	ASSERT_NE(ptr2, MAP_FAILED);
- 
- 	/*
-@@ -870,13 +873,13 @@ TEST_F(merge, mremap_unfaulted_between_f
- 
- 	/* Offset ptr3 further away. */
- 	ptr3 = sys_mremap(ptr3, 5 * page_size, 5 * page_size,
--			  MREMAP_MAYMOVE | MREMAP_FIXED, ptr3 + page_size * 2000);
-+			  MREMAP_MAYMOVE | MREMAP_FIXED, ptr3 + 2 * FAR_PAGES * page_size);
- 	ASSERT_NE(ptr3, MAP_FAILED);
- 
- 
- 	/* Offset ptr2 further away. */
- 	ptr2 = sys_mremap(ptr2, 5 * page_size, 5 * page_size,
--			  MREMAP_MAYMOVE | MREMAP_FIXED, ptr2 + page_size * 1000);
-+			  MREMAP_MAYMOVE | MREMAP_FIXED, ptr2 + FAR_PAGES * page_size);
- 	ASSERT_NE(ptr2, MAP_FAILED);
- 
- 	/*
-@@ -1035,11 +1038,11 @@ TEST_F(merge, mremap_correct_placed_faul
- 	 */
- 	ptr3 = &ptr[10 * page_size];
- 	ptr3 = sys_mremap(ptr3, 5 * page_size, 5 * page_size,
--			  MREMAP_MAYMOVE | MREMAP_FIXED, ptr3 + page_size * 2000);
-+			  MREMAP_MAYMOVE | MREMAP_FIXED, ptr3 + 2 * FAR_PAGES * page_size);
- 	ASSERT_NE(ptr3, MAP_FAILED);
- 	ptr2 = &ptr[5 * page_size];
- 	ptr2 = sys_mremap(ptr2, 5 * page_size, 5 * page_size,
--			  MREMAP_MAYMOVE | MREMAP_FIXED, ptr2 + page_size * 1000);
-+			  MREMAP_MAYMOVE | MREMAP_FIXED, ptr2 + FAR_PAGES * page_size);
- 	ASSERT_NE(ptr2, MAP_FAILED);
- 
- 	/*
-@@ -1075,7 +1078,7 @@ TEST_F(merge, mremap_correct_placed_faul
- 	 *                  ptr2      \       ptr       \       ptr3
- 	 */
- 	ptr = sys_mremap(ptr, 5 * page_size, 5 * page_size,
--			 MREMAP_MAYMOVE | MREMAP_FIXED, ptr + page_size * 1000);
-+			 MREMAP_MAYMOVE | MREMAP_FIXED, ptr + FAR_PAGES * page_size);
- 	ASSERT_NE(ptr, MAP_FAILED);
- 
- 	/*
-@@ -1110,7 +1113,7 @@ TEST_F(merge, mremap_correct_placed_faul
- 	 *                  ptr2      \       ptr       \       ptr3
- 	 */
- 	ptr = sys_mremap(ptr, 5 * page_size, 5 * page_size,
--			 MREMAP_MAYMOVE | MREMAP_FIXED, ptr + page_size * 1000);
-+			 MREMAP_MAYMOVE | MREMAP_FIXED, ptr + FAR_PAGES * page_size);
- 	ASSERT_NE(ptr, MAP_FAILED);
- 
- 	/*
-@@ -1168,7 +1171,7 @@ TEST_F(merge, mremap_correct_placed_faul
- 	 *      ptr                     ptr3      \       ptr2
- 	 */
- 	ptr2 = sys_mremap(ptr2, 5 * page_size, 5 * page_size,
--			  MREMAP_MAYMOVE | MREMAP_FIXED, ptr2 + page_size * 1000);
-+			  MREMAP_MAYMOVE | MREMAP_FIXED, ptr2 + FAR_PAGES * page_size);
- 	ASSERT_NE(ptr2, MAP_FAILED);
- 
- 	/*
-@@ -1203,7 +1206,7 @@ TEST_F(merge, mremap_correct_placed_faul
- 	 *            ptr                         \       ptr3
- 	 */
- 	ptr3 = sys_mremap(ptr3, 5 * page_size, 5 * page_size,
--			  MREMAP_MAYMOVE | MREMAP_FIXED, ptr3 + page_size * 1000);
-+			  MREMAP_MAYMOVE | MREMAP_FIXED, ptr3 + FAR_PAGES * page_size);
- 	ASSERT_NE(ptr3, MAP_FAILED);
- 
- 	/*
+--- a/.mailmap~mailmap-add-entries-for-andrew-jones
++++ a/.mailmap
+@@ -88,6 +88,10 @@ Andrej Shadura <andrew@shadura.me> <andr
+ Andrew Donnellan <andrew+kernel@donnellan.id.au> <andrew@donnellan.id.au>
+ Andrew Donnellan <andrew+kernel@donnellan.id.au> <ajd@linux.ibm.com>
+ Andrew Donnellan <andrew+kernel@donnellan.id.au> <andrew.donnellan@au1.ibm.com>
++Andrew Jones <andrew.jones@linux.dev> <ajones@ventanamicro.com>
++Andrew Jones <andrew.jones@linux.dev> <andrew.jones@oss.qualcomm.com>
++Andrew Jones <andrew.jones@linux.dev> <anjones@nvidia.com>
++Andrew Jones <andrew.jones@linux.dev> <drjones@redhat.com>
+ Andrew Morton <akpm@linux-foundation.org>
+ Andrew Murray <amurray@thegoodpenguin.co.uk> <amurray@embedded-bits.co.uk>
+ Andrew Murray <amurray@thegoodpenguin.co.uk> <andrew.murray@arm.com>
 _
 
-Patches currently in -mm which might be from danishkhateeb03@gmail.com are
+Patches currently in -mm which might be from andrew.jones@linux.dev are
 
-selftests-mm-merge-keep-the-far-mremap-targets-in-the-carveout.patch
+mailmap-add-entries-for-andrew-jones.patch
 
