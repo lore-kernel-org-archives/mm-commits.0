@@ -1,45 +1,45 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1792772494;
-	b=QvCt68U/3yzKWCQFfRUMICKTiP9jJy2UBrH0F1mf63Wvcy96cpnCoc6fz/D8QCxyxhRd
-	 MlakFwhGM8crQEKtuasHIGAJXXbZkuEkFZlBEYSyVIWrTiekpmrzBQ+13AtJsqIT6jI7y
-	 KL4Kb9ar4GS3j6hcffEVMfjiLOU/2m5UAKVGa5s32DdhxlpR8mNYPvgAlroUT98j6tzt7
-	 0AjvxPHRpxoAZSHwXwkoQlQ5lLBK7ONkeGXLx9u9nE9ATsR+8zLHBzqIg2wMR/ntIc2O/
-	 dVeeU5XTQ+U8su0XkdHPEX5i0Ee/B3VB1/yfW4VlhcBDfW33hnkiLdwOcI6u1pGJiUA==
+	t=1792776250;
+	b=hoXJHnNETxSGPAEU+K30MRtyrEV5rO07jMkJcgyYh8/pmaixLtw0vFW89EUJnEarkRL4
+	 8FPipqDslD3j9zfL+8iLOkKkRMe9ybtrSpAMN8TYj8GNX8r88ZqN4p2PdzZHsX/rm6fqc
+	 6ciElQNzNIDOzRk3pQ5xHY2dhQTkg0Rm6TcVDxxUB0swdkgmBOMvC1h2Rzs+Tjc9OI3tb
+	 lxxv06NdJWXvb09OtTFHPtbHrhS0RknCKSMX9/djFqYP9L/nr0eZh89dA0aXOVV0Dy94c
+	 iodzu4oFtP8gABlO3zdJo9kONDKT0gaCF5AQdeSRNT0e/3CYvxTbzjy87LG6VpsDVSQ==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1792772494;
+	a=rsa-sha256; c=relaxed/relaxed; t=1792776250;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=gf/7iou61FmGymvRsPLyDqQnM2BemOpHHtmTu2Du/nM=;
-	b=ggmT/ztV/N+t7+FWnQVon90zR1CGTOQUty5mxR15Ck1274HlX9XXqqtU8+Y0zL1pKJKC
-	 aBECoZM1rakfo/AvGzxV1fdk+tAf5v0sidiT+KLs9DmEoCWU/5sV0wnINbdORTBliGgEQ
-	 LrKergG2rBbAnzrqZlJdg35RfXWYRUGMjSVEe62gMH+H8/x4wCG5iVtxd3KqgizQqWtcO
-	 rM0qEbqR7GTg4Ip2rn9LE3ZYTJAoKQkodRceUNbndAPXkDrt/XlmHzRBorf/gVoL+hr9w
-	 zLq4dpclyr83FGDrxmalE7O8S/InpTw4cSUoZAP6u7Kw/uDvToAPKoCkbeVBJulS2uQ==
+	bh=CSTcT4VtkmtV1V2TDvj/wN9qE4yR0q2BZxq4dLtp+xI=;
+	b=2a4MpJjjFW/yAnXGuVCubARGsXYxSlQ6IsIUXbWEDhO6x0Jyx0hCfqOc/2qavzFA5iRd
+	 pg94CPigvAQBDNuJBS1ZoTiRWNu4CkiMyUiSlb2vTAqg42SV06Qhzla1EKHX1zZ7Aw282
+	 gHuPRSeCSTtArtLIMZV26CijFYDCGiw9xIPO0gvDxPaZwCJx/pcOgz+gnqaTull9dY26t
+	 /JnrxM9NQ+DwMEaJwZ+nMFjDYy2XDPryNPjQs0UR3QVqcj5wqcvslKFt2otH7uTN613v6
+	 qsUnhCgbIujZKBlkeN3mboik144kRujb8aeQtOhHPJuKOFtUL3VRDLVUQCw5mbYGIWw==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=Yp6miC9m;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b="v/Fet2bv";
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9D72F606A31E;
-	Fri, 23 Oct 2026 16:21:33 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5D9C0606A31A;
+	Fri, 23 Oct 2026 17:24:10 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=Yp6miC9m
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 028C01F01825;
-	Fri, 23 Oct 2026 16:21:32 +0000 (UTC)
+	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=v/Fet2bv
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D40F81F01825;
+	Fri, 23 Oct 2026 17:24:09 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1792772493;
-	bh=gf/7iou61FmGymvRsPLyDqQnM2BemOpHHtmTu2Du/nM=;
+	d=linux-foundation.org; s=korg; t=1792776249;
+	bh=CSTcT4VtkmtV1V2TDvj/wN9qE4yR0q2BZxq4dLtp+xI=;
 	h=Date:To:From:Subject;
-	b=Yp6miC9m4FJ5BYQFPP12hM6kjaH3O72cI7yCZjC9yQbEiLlQ75NIfzhg+TpJuH/mH
-	 uMxDL9rROmKJCdfIh8um0fLc52tmOTmrqkiy+OoYFLGzHZv+1z3JWNqHP1CkKwj5lh
-	 XPufAw+hfxaw7uxTz6kwhwBKQs4z40MrT+42MTpw=
-Date: Fri, 23 Oct 2026 09:21:32 -0700
-To: mm-commits@vger.kernel.org,stable@vger.kernel.org,mark@fasheh.com,joseph.qi@linux.alibaba.com,jlbec@evilplan.org,jjzuming@gmail.com,heming.zhao@suse.com,baijiaju1990@gmail.com,zzzccc427@gmail.com,akpm@linux-foundation.org
+	b=v/Fet2bvbfP/FiN+HTz74yw2H3dsTKEsgM+LjVP8w+Lx1bCTnjzc+7VO+QdraYsoc
+	 0m//iBoYqHEHGeOmYD1OGXsDWmfapZ1QIroj7P309x+bsHlOXmlLyZlfaDLCKZuRzu
+	 ZBbYj53Gxb9rOh3hBhk18VQ4bT5AAxXaxKJHSvCo=
+Date: Fri, 23 Oct 2026 10:24:09 -0700
+To: mm-commits@vger.kernel.org,vbabka@kernel.org,stable@vger.kernel.org,pfalcato@suse.de,matenajakub@gmail.com,luizcap@redhat.com,liam@infradead.org,jannh@google.com,ljs@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + ocfs2-cluster-remove-zero-address-nodes-from-ip-tree-on-teardown.patch added to mm-nonmm-unstable branch
-Message-Id: <20261023162133.028C01F01825@smtp.kernel.org>
+Subject: + mm-vma-fix-expansion-of-vma_mixedmap_bit-vmas.patch added to mm-unstable branch
+Message-Id: <20261023172409.D40F81F01825@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -51,14 +51,14 @@ Precedence: list
 
 
 The patch titled
-     Subject: ocfs2/cluster: remove zero-address nodes from IP tree on teardown
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     ocfs2-cluster-remove-zero-address-nodes-from-ip-tree-on-teardown.patch
+     Subject: mm/vma: fix expansion of VMA_MIXEDMAP_BIT VMAs
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-vma-fix-expansion-of-vma_mixedmap_bit-vmas.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/ocfs2-cluster-remove-zero-address-nodes-from-ip-tree-on-teardown.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vma-fix-expansion-of-vma_mixedmap_bit-vmas.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -74,66 +74,149 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Cen Zhang <zzzccc427@gmail.com>
-Subject: ocfs2/cluster: remove zero-address nodes from IP tree on teardown
-Date: Tue, 20 Oct 2026 21:12:50 +0800
+From: "Lorenzo Stoakes (ARM)" <ljs@kernel.org>
+Subject: mm/vma: fix expansion of VMA_MIXEDMAP_BIT VMAs
+Date: Fri, 23 Oct 2026 16:17:31 +0100
 
-o2nm_node_ipv4_address_store() accepts 0.0.0.0. It sets
-O2NM_NODE_ATTR_ADDRESS and links nd_ip_node into cl_node_ip_tree under
-cl_nodes_lock, but o2nm_node_group_drop_item() uses nd_ipv4_address as a
-membership test. A zero address therefore leaves the rbtree node linked
-when config_item_put() releases and frees struct o2nm_node. A later
-address store or IP lookup can then walk the stale node and dereference
-freed memory.
+Commit ca3d76b0aa80 ("mm: add merging after mremap resize") combined
+merging with expansion of mremap()'d VMAs, however it also unintentionally
+disallowed the expansion of unmergeable VMAs.
 
-During teardown, drop_item takes cl_nodes_lock, skips rb_erase()
-for the zero key, and then calls config_item_put(). A later
-o2nm_node_ipv4_address_store() duplicate check or o2nm_get_node_by_ip()
-lookup takes the same lock and walks the stale cl_node_ip_tree entry. Use
-O2NM_NODE_ATTR_ADDRESS for teardown so every published nd_ip_node is
-erased before configfs can release the node, without rejecting 0.0.0.0
-or changing lookup semantics.
+Previously it was possible to expand a mixed mapping which mremap() had
+already ensured was a legal expansion.
 
-Link: https://lore.kernel.org/pm-ocfs2-node-ip-rbtree-zero-address-uaf-v5-e7f64be16b7c3b0988d1@gmail.com
-Fixes: 0c83ed8eeb28 ("[PATCH] OCFS2: The Second Oracle Cluster Filesystem")
-Signed-off-by: Cen Zhang <zzzccc427@gmail.com>
+This is clearly seen in the mremap() logic, as it checks
+vma_is_fixed_mapping() to determine legality of an expansion rather than
+vma_can_merge().
+
+Additionally, copy_vma() allows for a failed merge to result in a new VMA
+being instantiated if MREMAP_MAYMOVE is specified.
+
+However, this is not attempted, as a failure in vma_merge_extend() is
+assumed to be an -ENOMEM failure.
+
+Since vma_merge_extend() is used exclusively by mremap() to perform a merge
+and/or expansion, resolve the issue by invoking vma_expand() for
+unmergeable VMAs there.
+
+Explicitly assert that the VMA is both non-fixed and a mixed mapping.
+This provides double insurance against broken changes in future.
+
+Note that khugepaged_enter_vma() (which vma_merge_new_range() runs) is
+redundant in this case, as a mixed mapping is not subject to khugepaged.
+
+Also update the VMA userland tests to add a required predicate.
+
+Link: https://lore.kernel.org/20261023-vma-expansion-fix-v1-1-6142baf1f46b@kernel.org
+Fixes: ca3d76b0aa80 ("mm: add merging after mremap resize")
+Signed-off-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Reviewed-by: Joseph Qi <joseph.qi@linux.alibaba.com>
-Assisted-by: LLM
-Cc: Mark Fasheh <mark@fasheh.com>
-Cc: Joel Becker <jlbec@evilplan.org>
-Cc: Heming Zhao <heming.zhao@suse.com>
-Cc: Jia-Ju Bai <baijiaju1990@gmail.com>
-Cc: <jjzuming@gmail.com>
+Reported-by: Luiz Capitulino <luizcap@redhat.com>
+Closes: https://lore.kernel.org/all/20261023023106.515365-1-luizcap@redhat.com/
+Cc: Liam R. Howlett <liam@infradead.org>
+Cc: Vlastimil Babka <vbabka@kernel.org>
+Cc: Jann Horn <jannh@google.com>
+Cc: Pedro Falcato <pfalcato@suse.de>
+Cc: Jakub Matěna <matenajakub@gmail.com>
 Cc: <stable@vger.kernel.org>
 ---
 
- fs/ocfs2/cluster/nodemanager.c |    7 +++++--
- 1 file changed, 5 insertions(+), 2 deletions(-)
+ mm/vma.c                        |   19 ++++++++++++++++---
+ tools/testing/vma/include/dup.h |    5 +++++
+ 2 files changed, 21 insertions(+), 3 deletions(-)
 
---- a/fs/ocfs2/cluster/nodemanager.c~ocfs2-cluster-remove-zero-address-nodes-from-ip-tree-on-teardown
-+++ a/fs/ocfs2/cluster/nodemanager.c
-@@ -627,8 +627,11 @@ static void o2nm_node_group_drop_item(st
+--- a/mm/vma.c~mm-vma-fix-expansion-of-vma_mixedmap_bit-vmas
++++ a/mm/vma.c
+@@ -1851,12 +1851,25 @@ struct vm_area_struct *vma_merge_extend(
+ 					struct vm_area_struct *vma,
+ 					unsigned long delta)
+ {
+-	VMG_VMA_STATE(vmg, vmi, vma, vma, vma->vm_end, vma->vm_end + delta);
++	const unsigned long start =
++		vma_can_merge(vma) ? vma->vm_end : vma->vm_start;
++	VMG_VMA_STATE(vmg, vmi, vma, vma, start, vma->vm_end + delta);
  
- 	write_lock(&cluster->cl_nodes_lock);
+-	vmg.next = vma_iter_next_rewind(vmi, NULL);
+ 	vmg.middle = NULL; /* We use the VMA to populate VMG fields only. */
  
--	/* XXX sloppy */
--	if (node->nd_ipv4_address)
-+	/*
-+	 * 0.0.0.0 is a valid configured address, so nd_ipv4_address does
-+	 * not tell us whether nd_ip_node was published in the IP tree.
-+	 */
-+	if (test_bit(O2NM_NODE_ATTR_ADDRESS, &node->nd_set_attributes))
- 		rb_erase(&node->nd_ip_node, &cluster->cl_node_ip_tree);
+-	return vma_merge_new_range(&vmg);
++	if (vma_can_merge(vma)) {
++		vmg.next = vma_iter_next_rewind(vmi, NULL);
++		return vma_merge_new_range(&vmg);
++	}
++
++	/* Mixed mappings are permitted to be expanded, not merged. */
++	VM_WARN_ON_ONCE(vma_is_fixed_mapping(vma));
++	VM_WARN_ON_ONCE(!vma_test(vma, VMA_MIXEDMAP_BIT));
++	vma_prev(vmi); /* Reposition to start of VMA. */
++	vmg.target = vma;
++	if (vma_expand(&vmg))
++		return NULL;
++	return vma;
+ }
  
- 	/* nd_num might be 0 if the node number hasn't been set.. */
+ void unlink_file_vma_batch_init(struct unlink_vma_file_batch *vb)
+--- a/tools/testing/vma/include/dup.h~mm-vma-fix-expansion-of-vma_mixedmap_bit-vmas
++++ a/tools/testing/vma/include/dup.h
+@@ -1727,3 +1727,8 @@ static inline bool vma_flags_can_merge(c
+ 	 */
+ 	return !vma_flags_is_hugetlb(flags);
+ }
++
++static inline bool vma_can_merge(const struct vm_area_struct *vma)
++{
++	return vma_flags_can_merge(&vma->flags);
++}
 _
 
-Patches currently in -mm which might be from zzzccc427@gmail.com are
+Patches currently in -mm which might be from ljs@kernel.org are
 
-ocfs2-drain-quorum-work-before-removing-the-cluster.patch
-ocfs2-dlm-drain-join-handlers-before-releasing-module-text.patch
-ocfs2-snapshot-dentry-names-in-file-and-setattr-traces.patch
-ocfs2-snapshot-the-dentry-name-while-tracing-file-release.patch
-ocfs2-cluster-remove-zero-address-nodes-from-ip-tree-on-teardown.patch
+mm-vma-fix-mmap_prepare-file-handling-remove-file_doesnt_need_get.patch
+mm-vma-introduce-and-use-vma_can_merge.patch
+mm-consistently-validate-vma-state-after-mmap-hooks.patch
+mm-vma-ensure-mmap_prepare-doesnt-set-actions-on-a-mergeable-vma.patch
+mm-make-map_kernel_pages_-internal-and-unexported.patch
+mm-vma-tidy-up-map-kernel-pages-enum-values.patch
+mm-assert-mmap-lock-held-use-new-flags-api-in-vm_insert_page.patch
+mm-add-mmap-action-for-discontiguous-kernel-page-mapping.patch
+docs-filesystems-update-mmap_prepare-docs-for-discontig-kernel-pgs.patch
+drivers-usb-mon-update-to-use-mmap_prepare-map-kernel-pages.patch
+infiniband-update-hfi1-to-use-remap_vmalloc_range.patch
+selinux-reject-writable-opens-of-policy-file-drop-mmap-shared-write-check.patch
+alsa-pcm-use-vm_insert_page-to-map-pcm-status-page.patch
+bpf-arena-mark-arena_map_mmap-mappings-vm_mixedmap.patch
+mm-vma-add-vma_is_mm_managed-predicates.patch
+mm-vma-only-allow-mmap-to-clear-vma_maywrite_bit-if-not-mm-managed.patch
+mm-vma-add-and-use-vma__is_fixed_mapping.patch
+scsi-sg-convert-mmap-hook-to-mmap_prepare-and-rework.patch
+fbdev-defio-assert-fbinfo_virtfb-drop-vm_io-add-vm_mixedmap.patch
+hsi-cmt_speech-convert-mmap-hook-to-mmap_prepare-refactor.patch
+mm-gup-error-out-early-on-vma_mayread_bit-vmas.patch
+uprobes-remove-vm_io-set-vm_mixedmap-for-mapped-kernel-pages.patch
+mm-mlock-clear-vma_locked_mask-over-mmap-callback.patch
+mm-mlock-eliminate-weird-vma_io_bit-abuse-and-simplify.patch
+mm-vma-enforce-that-mm-managed-mappings-may-not-set-vma_io_bit.patch
+mm-remove-vma_io_bit-check-in-vma_is_mm_managed.patch
+mm-remove-hugetlb_inlineh.patch
+mm-rename-is_vm_hugetlb_page-to-vma_is_hugetlb.patch
+mm-drop-some-redundant-checks-around-hugetlb-vmas.patch
+mm-vma-introduce-vma_is_mm_backed.patch
+mm-madvise-update-is_valid_guard_vma-to-use-vma_is_mm_backed.patch
+mm-uffd-use-predicates-for-userfaultfd-checks.patch
+mm-madvise-use-predicates-for-madvise-madv_dofork.patch
+mm-eliminate-vma_special_flags-usage-when-hugetlb-explicitly-tested.patch
+mm-eliminate-vma_special_flags-check-in-lru_gen_look_around.patch
+mm-avoid-use-of-vma_special_flags-in-migrate_vma_setup.patch
+mm-eliminate-vm_special-vma_special_flags.patch
+fuse-dax-do-not-set-vm_mixedmap.patch
+mm-huge_memory-remove-vma_is_special_huge.patch
+mm-vma-const-ify-vma_assert_stabilised-and-associated-functions.patch
+mm-implement-and-use-vma_has_anon_rmap-silence-kcsan.patch
+mm-update-comments-to-refer-to-anon-rmap-rather-than-anon_vma.patch
+mm-vma-dont-remove-vma-from-rmap-if-pgoff-unchanged.patch
+mm-vma-avoid-spurious-write-locks-when-mm-mm_lock_seq-overflows.patch
+mm-mremap-populate-calculated-fields-in-vrm-state-correctly.patch
+mm-mremap-correctly-uncharge-accountable-vmas-in-error-path.patch
+mm-vma-avoid-broken-uffd-merge-on-mremap.patch
+mm-vma-fix-expansion-of-vma_mixedmap_bit-vmas.patch
 
