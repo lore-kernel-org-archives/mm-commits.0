@@ -1,45 +1,45 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1792704471;
-	b=0MLj1D0+rsHbvhH3uSTASdXvfAUlrbo2IynUs8zw039gBhioZjpGIdFDc4S/WmAbciEd
-	 uxl/h9f3gh/cpOxKXqOk1CI3x/MeZXW+wz1T5kdzVU619qpQLQcGirTw2psNJbst+i8+c
-	 CTBMkFnctUOWSMjgYfZrmfJ3p+MmaPbIeEzdG+u7Gn2S5FXl8oTwJRaNxYkx7byiVNXrZ
-	 5OZjRVNWRtjBsiYN1JKJoImePK/nsbzxC1pFH2C+mXY3Bb4iY4bHx+l+ODtlb/9mNv+dc
-	 /xpsKA4XZ5gG+Rw99rXWbUDdRGbvDHke9nl+Dv/flGCV6SKGMu1IM8AzLi7rxlPTyPg==
+	t=1792728882;
+	b=my3k58ABrHO8+t/MgngB2RemXAv3r095qT6S2tUpRgeRQ25MCL5d+zTQ1D5WRWDs05DF
+	 MixSVApljnIU9FKVP2xkCrlvTJlYOMWqLmzuPMFlC/RVRqIXOpQ3m0mhmtPYVjxqwMxRN
+	 9iSfWJayJJFwjMip8MWH88LNuPX7Uo2ZBcniSuzpYAOBk0L646KoSBcOzI3i+jBKJtBnS
+	 Zgi8DcdMXoCYwq7I4yPacPdAvb/ZUbbaCLpIZcxUe5KWkpXgcehiVS1He2mki4DSSlMex
+	 smJ6Y0msvaCEMwyyhije9HhpIogZaeyCmfPdTbG0jwVorWGHU7Z3nKNI4fsJoixrt4w==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1792704471;
+	a=rsa-sha256; c=relaxed/relaxed; t=1792728882;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=QgwaE9S83cJ41QeWG4WzKbMomBMJok9C3O3RKbKlpQY=;
-	b=k9djXjhvEkHmlDuQVgoaUAE5hyeW7Dk/OBWx76tkrQtaH7DV473AGlVV8fQWtw0O3snl
-	 9nPK9QDPN+SamUAy9Q8pnGLn95LCRRUe7EaakU7f1dhlKBvcZfPbirNFCEKw68lsuiDuI
-	 cUgbfY+KTm1rvvBq9T0Us2Fue6frpoOIThZDMgPM9crhpuFEpF5QinqOcWU9IkrvGrvvB
-	 Xn3hbq+SIMkBTYJ1+7NZebqHpygrS+nmm28U72ZI3ImX6bHp9GYxo15AT5ZbhhG2fEkiQ
-	 BIzN08KwlNg/9pmzrjkW0segNjWnbAycWT5K0+kqKzbcDKoWDSfaOlRlOeoAFiHHL7g==
+	bh=3PyPgn5NkwrXAaxwoXohez47LYAKkhIep1C9vV+ZOWo=;
+	b=mX1DtGcS6gLwnYaXYYfG070yNPSh5tIqJdFG7E8lJO9w5Etv0EFrQl2GSg1AFDQgu+vL
+	 TgeM9/4oF2eX6qL571m4epfQ/u9SjuYNC8rsOa6NwYC2K/aJb3FkzrkekBEdlszynxEYR
+	 67MFbrdBNwD1VCR74cJe9uQ4sCQllxj61d4KQ7oBusdm1JldSHYK5Z/EckTdbmIn/5tHs
+	 sZf0H3JyKLCP5VglG5spCD5A9Mh18L5QLlvFb33hNsQaFjA19WJtahy9UuL7bc4yRcXob
+	 3D9qjzk/LNDOfFvQqTks8QwH7LBJFnaQWPVPrxdnkI9C4qNuSs/agh2rPqOnhs8e+DA==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=ZeGo8lSF;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b="Fz4Tw/mR";
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7AD9F606A31A
-	for <mm-commits@vger.kernel.org>; Thu, 22 Oct 2026 21:27:51 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 87D86606A319;
+	Fri, 23 Oct 2026 04:14:42 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=ZeGo8lSF
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E1F931F01825;
-	Thu, 22 Oct 2026 21:27:50 +0000 (UTC)
+	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=Fz4Tw/mR
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E4CEE1F01825;
+	Fri, 23 Oct 2026 04:14:41 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1792704471;
-	bh=QgwaE9S83cJ41QeWG4WzKbMomBMJok9C3O3RKbKlpQY=;
+	d=linux-foundation.org; s=korg; t=1792728882;
+	bh=3PyPgn5NkwrXAaxwoXohez47LYAKkhIep1C9vV+ZOWo=;
 	h=Date:To:From:Subject;
-	b=ZeGo8lSFIUNc4XfdQ6no5m+W47hDESG5RLgLkNTOUR5cqU00YRHGBGmt5MGOi3uw/
-	 TFgheeusjn2EZQQQo2nEZ9er/eL5RVtSTelUBp75w9xftEO1YT7hJyfn65U+Mbz5/Q
-	 2nkYBE//W2p44tC/168lmED92lWYsQfzd1N6YtY8=
-Date: Thu, 22 Oct 2026 14:27:50 -0700
-To: mm-commits@vger.kernel.org,martink@posteo.de,kuba@kernel.org,cel@kernel.org,alex@sverdlin.org,markus.mayer@broadcom.com,akpm@linux-foundation.org
+	b=Fz4Tw/mRR8OPd6YC0lL9l5Css9IJiwbZZ3SlgsGBPLhAbMVDSu4qa8vOFetY417t6
+	 KHbAsqinX3WIYNsTnqyMZM32J/uPSObSVx6KT6qHyzV2a1JGAWu45QXsj//kBj+KeF
+	 lFsppgIRw3QnlIudORXoktudzUj0VuMPTSiL2chw=
+Date: Thu, 22 Oct 2026 21:14:41 -0700
+To: mm-commits@vger.kernel.org,stable@vger.kernel.org,mark@fasheh.com,joseph.qi@linux.alibaba.com,jlbec@evilplan.org,jjzuming@gmail.com,heming.zhao@suse.com,baijiaju1990@gmail.com,zzzccc427@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + maintainers-update-my-e-mail-address.patch added to mm-nonmm-unstable branch
-Message-Id: <20261022212750.E1F931F01825@smtp.kernel.org>
+Subject: + ocfs2-dlm-drain-join-handlers-before-releasing-module-text.patch added to mm-nonmm-unstable branch
+Message-Id: <20261023041441.E4CEE1F01825@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -51,12 +51,12 @@ Precedence: list
 
 
 The patch titled
-     Subject: MAINTAINERS: update Markus's e-mail address
+     Subject: ocfs2/dlm: drain join handlers before releasing module text
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     maintainers-update-my-e-mail-address.patch
+     ocfs2-dlm-drain-join-handlers-before-releasing-module-text.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/maintainers-update-my-e-mail-address.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/ocfs2-dlm-drain-join-handlers-before-releasing-module-text.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -74,82 +74,128 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Markus Mayer <markus.mayer@broadcom.com>
-Subject: MAINTAINERS: update Markus's e-mail address
-Date: Thu, 22 Oct 2026 14:19:48 -0700
+From: Cen Zhang <zzzccc427@gmail.com>
+Subject: ocfs2/dlm: drain join handlers before releasing module text
+Date: Thu, 22 Oct 2026 17:09:10 +0800
 
-Classic Broadcom e-mail addresses were recently phased out.  Update
-MAINTAINERS to the new format.  Also add an entry to .mailmap for said
-address.
+The code for a registered DLM handler must remain resident until its
+last invocation finishes. dlm_unregister_net_handlers() only removes
+dlm_join_handlers from the o2net registry. o2net_handler_get() takes a
+kref on the wrapper, but that reference does not pin ocfs2_dlm text.
+o2net_process_message() calls nh_func after dropping o2net_handler_lock.
 
-Finally, since I am already touching .mailmap, I may as well map an
-ancient Linaro address, as well.
+With CONFIG_OCFS2_FS_O2CB=m, ocfs2_dlm can be loaded independently of
+ocfs2_stack_o2cb while nodemanager continues handling messages from a
+configured, heartbeating peer. If no dependent module or module reference
+prevents normal unload, the following ordering is possible:
 
-Link: https://lore.kernel.org/20261022211949.42939-1-markus.mayer@broadcom.com
-Signed-off-by: Markus Mayer <markus.mayer@broadcom.com>
+  Receive worker                       Module unload
+  --------------                       -------------
+  o2net_handler_get()
+    take wrapper kref
+    drop handler lock
+  <preempted>
+                                       dlm_exit()
+                                         unregister handlers
+                                       release DLM module text
+  call saved nh_func
+    in released module text
+
+Use o2net_unregister_and_flush_handler_list() in the shared DLM
+unregister helper. It first prevents new lookups, then waits for the
+ordered o2net workqueue to drain, including a concurrent destruction of
+that queue. The acquired invocation therefore finishes before dlm_exit()
+returns and the loader releases the callback code. The same helper
+covers partial registration and dlm_init() error unwind before module
+memory is released.
+
+Skip the drain when the private join-handler list is empty. Early
+dlm_init() failures can reach this helper before any handler has been
+published. Partial-registration failure also reaches it a second time
+after the first call has already unregistered and drained the list.
+Neither case needs to take o2net_wq_mutex or drain unrelated work.
+The list is changed only by serialized module init/exit paths; a
+nonempty list still uses the full unregister-and-flush helper.
+
+Oops report as below:
+
+    Oops: int3: 0000 [#1] SMP KASAN NOPTI
+    CPU: 2 UID: 0 PID: 54 Comm: kworker/u16:3 Not tainted 7.3.0-rc4-next-20260921-pmb-ocfs2-functional-v1+ #1 PREEMPT(lazy)
+
+Hardware identification omitted.
+
+    Workqueue: o2net o2net_rx_until_empty [ocfs2_nodemanager]
+    RIP: 0010:0xffffffffc0423871
+    [Instruction byte dump omitted.]
+
+Register dump omitted.
+
+    Call Trace:
+     <TASK>
+     ? o2net_rx_until_empty+0x19b1/0x3300 [ocfs2_nodemanager]
+     ? __pfx_o2net_rx_until_empty+0x10/0x10 [ocfs2_nodemanager]
+     ? lock_acquire+0x190/0x300
+     ? process_one_work+0x935/0x1b40
+     ? process_one_work+0x834/0x1b40
+     ? srso_alias_return_thunk+0x5/0xfbef5
+     ? lock_release+0xc8/0x290
+     ? srso_alias_return_thunk+0x5/0xfbef5
+     ? process_one_work+0x9a8/0x1b40
+     ? __pfx_process_one_work+0x10/0x10
+     ? lock_acquire+0x190/0x300
+     ? lock_is_held_type+0x8f/0x100
+     ? srso_alias_return_thunk+0x5/0xfbef5
+     ? worker_thread+0x65c/0xe40
+     ? srso_alias_return_thunk+0x5/0xfbef5
+     ? __kthread_parkme+0x177/0x220
+     ? srso_alias_return_thunk+0x5/0xfbef5
+     ? __pfx_worker_thread+0x10/0x10
+     ? kthread+0x351/0x460
+     ? srso_alias_return_thunk+0x5/0xfbef5
+     ? __pfx_kthread+0x10/0x10
+     ? ret_from_fork+0x659/0x940
+     ? __pfx_ret_from_fork+0x10/0x10
+     ? srso_alias_return_thunk+0x5/0xfbef5
+     ? __switch_to+0x74f/0xf70
+     ? __pfx_kthread+0x10/0x10
+     ? ret_from_fork_asm+0x1a/0x30
+     </TASK>
+    Modules linked in: ocfs2_nodemanager [last unloaded: ocfs2_dlm]
+    ---[ end trace 0000000000000000 ]---
+
+Link: https://lore.kernel.org/pm-ocfs2-objects-candidate-0076-v6-12de5f4628f57fba3be3@gmail.com
+Fixes: 6714d8e86bf4 ("[PATCH] OCFS2: The Second Oracle Cluster Filesystem")
+Signed-off-by: Cen Zhang <zzzccc427@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Cc: Jakub Kicinski <kuba@kernel.org>
-Cc: Alexander Sverdlin <alex@sverdlin.org>
-Cc: Chuck Lever <cel@kernel.org>
-Cc: Martin Kepplinger <martink@posteo.de>
+Reviewed-by: Joseph Qi <joseph.qi@linux.alibaba.com>
+Assisted-by: LLM
+Cc: Mark Fasheh <mark@fasheh.com>
+Cc: Joel Becker <jlbec@evilplan.org>
+Cc: Heming Zhao <heming.zhao@suse.com>
+Cc: Jia-Ju Bai <baijiaju1990@gmail.com>
+Cc: <jjzuming@gmail.com>
+Cc: <stable@vger.kernel.org>
 ---
 
- .mailmap    |    2 ++
- MAINTAINERS |    8 ++++----
- 2 files changed, 6 insertions(+), 4 deletions(-)
+ fs/ocfs2/dlm/dlmdomain.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
---- a/.mailmap~maintainers-update-my-e-mail-address
-+++ a/.mailmap
-@@ -599,6 +599,8 @@ Marek Lindner <marek.lindner@mailbox.org
- Marek Lindner <marek.lindner@mailbox.org> <mareklindner@neomailbox.ch>
- Mark Brown <broonie@sirena.org.uk>
- Mark Starovoytov <mstarovo@pm.me> <mstarovoitov@marvell.com>
-+Markus Mayer <markus.mayer@broadcom.com> <mmayer@broadcom.com>
-+Markus Mayer <markus.mayer@broadcom.com> <markus.mayer@linaro.org>
- Markus Schneider-Pargmann <msp@baylibre.com> <mpa@pengutronix.de>
- Mark Yao <markyao0591@gmail.com> <mark.yao@rock-chips.com>
- Martin K. Petersen <mkp@kernel.org> <martin.petersen@oracle.com>
---- a/MAINTAINERS~maintainers-update-my-e-mail-address
-+++ a/MAINTAINERS
-@@ -5296,7 +5296,7 @@ F:	Documentation/devicetree/bindings/usb
- F:	drivers/usb/gadget/udc/bdc/
+--- a/fs/ocfs2/dlm/dlmdomain.c~ocfs2-dlm-drain-join-handlers-before-releasing-module-text
++++ a/fs/ocfs2/dlm/dlmdomain.c
+@@ -2215,7 +2215,8 @@ static LIST_HEAD(dlm_join_handlers);
  
- BROADCOM BMIPS CPUFREQ DRIVER
--M:	Markus Mayer <mmayer@broadcom.com>
-+M:	Markus Mayer <markus.mayer@broadcom.com>
- R:	Broadcom internal kernel review list <bcm-kernel-feedback-list@broadcom.com>
- L:	linux-pm@vger.kernel.org
- S:	Maintained
-@@ -5571,7 +5571,7 @@ F:	drivers/spi/spi-brcmstb-qspi.c
- F:	drivers/spi/spi-iproc-qspi.c
+ static void dlm_unregister_net_handlers(void)
+ {
+-	o2net_unregister_handler_list(&dlm_join_handlers);
++	if (!list_empty(&dlm_join_handlers))
++		o2net_unregister_and_flush_handler_list(&dlm_join_handlers);
+ }
  
- BROADCOM STB AVS CPUFREQ DRIVER
--M:	Markus Mayer <mmayer@broadcom.com>
-+M:	Markus Mayer <markus.mayer@broadcom.com>
- R:	Broadcom internal kernel review list <bcm-kernel-feedback-list@broadcom.com>
- L:	linux-pm@vger.kernel.org
- S:	Maintained
-@@ -5579,7 +5579,7 @@ F:	Documentation/devicetree/bindings/cpu
- F:	drivers/cpufreq/brcmstb*
- 
- BROADCOM STB AVS TMON DRIVER
--M:	Markus Mayer <mmayer@broadcom.com>
-+M:	Markus Mayer <markus.mayer@broadcom.com>
- R:	Broadcom internal kernel review list <bcm-kernel-feedback-list@broadcom.com>
- L:	linux-pm@vger.kernel.org
- S:	Maintained
-@@ -5587,7 +5587,7 @@ F:	Documentation/devicetree/bindings/the
- F:	drivers/thermal/broadcom/brcmstb*
- 
- BROADCOM STB DPFE DRIVER
--M:	Markus Mayer <mmayer@broadcom.com>
-+M:	Markus Mayer <markus.mayer@broadcom.com>
- R:	Broadcom internal kernel review list <bcm-kernel-feedback-list@broadcom.com>
- L:	linux-arm-kernel@lists.infradead.org (moderated for non-subscribers)
- S:	Maintained
+ static int dlm_register_net_handlers(void)
 _
 
-Patches currently in -mm which might be from markus.mayer@broadcom.com are
+Patches currently in -mm which might be from zzzccc427@gmail.com are
 
-maintainers-update-my-e-mail-address.patch
+ocfs2-drain-quorum-work-before-removing-the-cluster.patch
+ocfs2-dlm-drain-join-handlers-before-releasing-module-text.patch
 
