@@ -1,45 +1,45 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1792776250;
-	b=hoXJHnNETxSGPAEU+K30MRtyrEV5rO07jMkJcgyYh8/pmaixLtw0vFW89EUJnEarkRL4
-	 8FPipqDslD3j9zfL+8iLOkKkRMe9ybtrSpAMN8TYj8GNX8r88ZqN4p2PdzZHsX/rm6fqc
-	 6ciElQNzNIDOzRk3pQ5xHY2dhQTkg0Rm6TcVDxxUB0swdkgmBOMvC1h2Rzs+Tjc9OI3tb
-	 lxxv06NdJWXvb09OtTFHPtbHrhS0RknCKSMX9/djFqYP9L/nr0eZh89dA0aXOVV0Dy94c
-	 iodzu4oFtP8gABlO3zdJo9kONDKT0gaCF5AQdeSRNT0e/3CYvxTbzjy87LG6VpsDVSQ==
+	t=1792779121;
+	b=M9JB86a+fGTMx4McnhWxU4BeuWIKGcoINiyJwxo8D3/Elx50XTw0fWfFVNAscRt9FknZ
+	 RbwxQ1+SEwi1ngxbXynFhstZYlG/R56Zqna/zd15Y/z2UrcNpVFw1siNT8jYnx2ognIGR
+	 2HAY2tT9Dw/Ivj/+TV0iuzjeJo9qzrSnb1cizRAD96JiAoa3kp/NP99RIxhdTZZqR4Hdd
+	 IncLiWUQ5vFd3kTK3g64gTd/tZu8J6QBOwDlBFcOw0wBpIGqSJU9d+KLy/k9m+HrzMVOw
+	 C0X8NI3uqGxMTknL+ZDU1DpGw7NXTOS9SKCHdgKdM3JFE6MJqVujlLuDrKG1gbF5Ijw==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1792776250;
+	a=rsa-sha256; c=relaxed/relaxed; t=1792779121;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=CSTcT4VtkmtV1V2TDvj/wN9qE4yR0q2BZxq4dLtp+xI=;
-	b=2a4MpJjjFW/yAnXGuVCubARGsXYxSlQ6IsIUXbWEDhO6x0Jyx0hCfqOc/2qavzFA5iRd
-	 pg94CPigvAQBDNuJBS1ZoTiRWNu4CkiMyUiSlb2vTAqg42SV06Qhzla1EKHX1zZ7Aw282
-	 gHuPRSeCSTtArtLIMZV26CijFYDCGiw9xIPO0gvDxPaZwCJx/pcOgz+gnqaTull9dY26t
-	 /JnrxM9NQ+DwMEaJwZ+nMFjDYy2XDPryNPjQs0UR3QVqcj5wqcvslKFt2otH7uTN613v6
-	 qsUnhCgbIujZKBlkeN3mboik144kRujb8aeQtOhHPJuKOFtUL3VRDLVUQCw5mbYGIWw==
+	bh=16dZcNdh7QONw1+vUrSXHQNdhjQfVZGRCP0q/s8GOfU=;
+	b=TFrzdBMQdRa/sk/ZJqD09RFIjAVpzqM5Xssd3/ti7ajXzEJTKrrpks3wW0nmK9UtmyUk
+	 n29olw7+MaBd5UTsPrpx1aoeXB2T5wiZZ6c2z6H3mTnvZsG/3OsKfwn1vXrKsqrvENYxl
+	 U4TI+c4wDY4h52cIYs6CBRF+X6VIzTFJOJJadcIpdYAxl6L5rQ4iac6sVoWDI7n5/T+A+
+	 b53KFdDrw4Z+HkhLUgl6wbJzgwWhBAupLACtxCCSuncmrCUXxu51vJ7O0cHfgqsSeakJx
+	 bRO4g+4rKpM9ofBWz37iTeHJLpXfyZUxbJdZksrXT1DWLhT8HeSLswxXdr7B3gYIYqg==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b="v/Fet2bv";
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=txTCnn3+;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5D9C0606A31A;
-	Fri, 23 Oct 2026 17:24:10 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DCA91606A31A;
+	Fri, 23 Oct 2026 18:12:00 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=v/Fet2bv
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D40F81F01825;
-	Fri, 23 Oct 2026 17:24:09 +0000 (UTC)
+	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=txTCnn3+
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 53AF01F01825;
+	Fri, 23 Oct 2026 18:12:00 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1792776249;
-	bh=CSTcT4VtkmtV1V2TDvj/wN9qE4yR0q2BZxq4dLtp+xI=;
+	d=linux-foundation.org; s=korg; t=1792779120;
+	bh=16dZcNdh7QONw1+vUrSXHQNdhjQfVZGRCP0q/s8GOfU=;
 	h=Date:To:From:Subject;
-	b=v/Fet2bvbfP/FiN+HTz74yw2H3dsTKEsgM+LjVP8w+Lx1bCTnjzc+7VO+QdraYsoc
-	 0m//iBoYqHEHGeOmYD1OGXsDWmfapZ1QIroj7P309x+bsHlOXmlLyZlfaDLCKZuRzu
-	 ZBbYj53Gxb9rOh3hBhk18VQ4bT5AAxXaxKJHSvCo=
-Date: Fri, 23 Oct 2026 10:24:09 -0700
-To: mm-commits@vger.kernel.org,vbabka@kernel.org,stable@vger.kernel.org,pfalcato@suse.de,matenajakub@gmail.com,luizcap@redhat.com,liam@infradead.org,jannh@google.com,ljs@kernel.org,akpm@linux-foundation.org
+	b=txTCnn3+8SSA1wHrccPfyOU9aKmIgJhFjcaBFJgL7M0NqC97nxkHB87Ys4ZoYMpdv
+	 RFSLmHrxJQCDXVbGOgv6TWp24fPTMwBzxbSeXCtGCoy9YFaTlfByRIsxWK9dMHNb+w
+	 5ZDp7IOtAJ6rtHdbNWeaxUrXm4E1tM+bf50rmN44=
+Date: Fri, 23 Oct 2026 11:11:59 -0700
+To: mm-commits@vger.kernel.org,willy@infradead.org,stable@vger.kernel.org,nickolai@csail.mit.edu,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-vma-fix-expansion-of-vma_mixedmap_bit-vmas.patch added to mm-unstable branch
-Message-Id: <20261023172409.D40F81F01825@smtp.kernel.org>
+Subject: + xarray-clear-the-new-heads-parent-before-freeing-the-old-head.patch added to mm-unstable branch
+Message-Id: <20261023181200.53AF01F01825@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -51,12 +51,12 @@ Precedence: list
 
 
 The patch titled
-     Subject: mm/vma: fix expansion of VMA_MIXEDMAP_BIT VMAs
+     Subject: xarray: clear the new head's parent before freeing the old head
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-vma-fix-expansion-of-vma_mixedmap_bit-vmas.patch
+     xarray-clear-the-new-heads-parent-before-freeing-the-old-head.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vma-fix-expansion-of-vma_mixedmap_bit-vmas.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/xarray-clear-the-new-heads-parent-before-freeing-the-old-head.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -74,149 +74,134 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: "Lorenzo Stoakes (ARM)" <ljs@kernel.org>
-Subject: mm/vma: fix expansion of VMA_MIXEDMAP_BIT VMAs
-Date: Fri, 23 Oct 2026 16:17:31 +0100
+From: Nickolai Zeldovich <nickolai@csail.mit.edu>
+Subject: xarray: clear the new head's parent before freeing the old head
+Date: Mon, 12 Oct 2026 16:25:49 -0400
 
-Commit ca3d76b0aa80 ("mm: add merging after mremap resize") combined
-merging with expansion of mremap()'d VMAs, however it also unintentionally
-disallowed the expansion of unmergeable VMAs.
+When xas_shrink() replaces the head node of an array with the node in its
+slot 0, it stores the child in xa_head, passes the old head to
+xa_node_free(), which queues it with call_rcu(), and only then clears the
+child's ->parent pointer.  In between, a lockless walker can still reach
+the old head, not from xa_head but upwards from the new head: xas_find(),
+xas_find_marked(), xas_next() and xas_prev() climb through xa_parent()
+when they step past the end of a node.  RCU does not protect a walker that
+gets there: call_rcu() waits only for the read-side critical sections that
+were running when the callback's grace period started, and that grace
+period can start before the parent pointer is cleared.
 
-Previously it was possible to expand a mixed mapping which mremap() had
-already ensured was a legal expansion.
+  CPU 0: xa_erase(), xa_lock held   CPU 1: RCU walker, e.g. xa_find()
 
-This is clearly seen in the mremap() logic, as it checks
-vma_is_fixed_mapping() to determine legality of an expansion rather than
-vma_can_merge().
+  xas_shrink()
+    xa->xa_head = child
+    xa_node_free(old head)
+      call_rcu()
+                    <grace period starts>
+                                     passes a quiescent state
+                                     rcu_read_lock()
+                                     xas_find(): loads xa_head (child),
+                                     steps past its last slot,
+                                     child->parent is still old head
+    child->parent = NULL
+  xa_unlock()
+  quiescent state
+                    <grace period ends>
+  radix_tree_node_rcu_free(old head)
+                                     reads old head's slots[], shift,
+                                     offset and parent
 
-Additionally, copy_vma() allows for a failed merge to result in a new VMA
-being instantiated if MREMAP_MAYMOVE is specified.
+The grace period does not wait for CPU 1, which reported its quiescent
+state before its critical section began; holding xa_lock delays the end of
+the grace period, not its start.  The start can fall inside the window
+when an interrupt arrives in it (interrupts are enabled under xa_lock(),
+and RCU core processing may run on interrupt exit), when callbacks are
+offloaded (rcu_nocbs=) and the rcuog kthread on another CPU handles the
+callback, when many callbacks are queued, or while the writer is preempted
+under PREEMPT_RT.  Interrupts, and in a guest a preempted vCPU, also
+stretch the window.
 
-However, this is not attempted, as a failure in vma_merge_extend() is
-assumed to be an -ENOMEM failure.
+After the climb, xas_find(), xas_find_marked() and xas_next() resume in
+the old head at the slot after the child and read its slots[] and shift
+(xas_find_marked() also its mark bitmaps); xas_prev(), for which the child
+is the first slot, steps past the old head at once and reads its offset
+and parent, as the others do when they reach its end.  Nothing in the walk
+notices that the node is gone.  The climb takes ->parent as it is, no
+lockless path looks at node->array (XA_RCU_FREE), and xas_shrink() stores
+XA_RETRY_ENTRY in slot 0 of the old head only when the head shrinks to a
+single entry, not to a node; the walker does not look at slot 0 anyway. 
+radix_tree_node_cachep is not SLAB_TYPESAFE_BY_RCU, so the walker reads
+freed memory.  Once the object is reused for a node of another array, the
+walker returns that array's entries or descends and climbs into its nodes.
 
-Since vma_merge_extend() is used exclusively by mremap() to perform a merge
-and/or expansion, resolve the issue by invoking vma_expand() for
-unmergeable VMAs there.
+The order dates from the introduction of xas_shrink() in the commit below,
+which reimplemented radix_tree_shrink().  radix_tree_shrink() clears the
+child's parent pointer before it replaces the head and frees the old node,
+and still does in lib/radix-tree.c.  The commit gives no reason for the
+different order and nothing depends on it: xas_update() and xa_node_free()
+only touch the old head.
 
-Explicitly assert that the VMA is both non-fixed and a mixed mapping.
-This provides double insurance against broken changes in future.
+Clear the child's parent pointer before freeing the old head, as
+radix_tree_shrink() does.  The stores are the same, the tree and the
+xa_state the caller sees are the same, and a walker that starts after the
+callback's grace period has begun sees the cleared pointer, like every
+store before call_rcu(), and ends its walk at the new head, which covers
+every index that the old head had an entry for.
 
-Note that khugepaged_enter_vma() (which vma_merge_new_range() runs) is
-redundant in this case, as a mixed mapping is not subject to khugepaged.
+A check in the radix-tree test harness that no node passed to
+xa_node_free() is still the parent of a node reachable from xa_head fails
+in xas_shrink() 4731 times in the XArray tests without this patch and
+never with it.  No test is added: the race is not deterministic and the
+check needs a hook on xa_node_free().  A harness race test (readers
+walking the whole array with the four climbing walkers while a writer
+stores and erases an entry that adds three levels above the leaf) did not
+hit the window in 20 runs of 200000 erases; with a 1 ms sleep injected
+after xa_node_free() in xas_shrink(), every one of 20 runs reported a
+heap-use-after-free in __xas_next() or __xas_prev() under
+AddressSanitizer, and none did with this patch and the same sleep.  On a
+kernel (x86_64 defconfig + KASAN, QEMU), with a 100 ms delay injected at
+the same place, a walk that starts on another CPU 20 ms into the window
+climbs to the old head in each of 20 rounds, and KASAN reports a
+slab-use-after-free of the radix_tree_node freed from rcu_core() when the
+walk takes its next step; with this patch, the walk ends at the new head. 
+The XArray and IDA self-tests pass on x86_64 and riscv64.
 
-Also update the VMA userland tests to add a required predicate.
+Found while formally verifying xas_store() against the kernel binary.
 
-Link: https://lore.kernel.org/20261023-vma-expansion-fix-v1-1-6142baf1f46b@kernel.org
-Fixes: ca3d76b0aa80 ("mm: add merging after mremap resize")
-Signed-off-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
+Link: https://lore.kernel.org/20261012202549.772887-1-nickolai@csail.mit.edu
+Fixes: 58d6ea3085f2 ("xarray: Add XArray unconditional store operations")
+Signed-off-by: Nickolai Zeldovich <nickolai@csail.mit.edu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Reported-by: Luiz Capitulino <luizcap@redhat.com>
-Closes: https://lore.kernel.org/all/20261023023106.515365-1-luizcap@redhat.com/
-Cc: Liam R. Howlett <liam@infradead.org>
-Cc: Vlastimil Babka <vbabka@kernel.org>
-Cc: Jann Horn <jannh@google.com>
-Cc: Pedro Falcato <pfalcato@suse.de>
-Cc: Jakub Matěna <matenajakub@gmail.com>
+Assisted-by: LLM
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
 Cc: <stable@vger.kernel.org>
 ---
 
- mm/vma.c                        |   19 ++++++++++++++++---
- tools/testing/vma/include/dup.h |    5 +++++
- 2 files changed, 21 insertions(+), 3 deletions(-)
+ lib/xarray.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
---- a/mm/vma.c~mm-vma-fix-expansion-of-vma_mixedmap_bit-vmas
-+++ a/mm/vma.c
-@@ -1851,12 +1851,25 @@ struct vm_area_struct *vma_merge_extend(
- 					struct vm_area_struct *vma,
- 					unsigned long delta)
- {
--	VMG_VMA_STATE(vmg, vmi, vma, vma, vma->vm_end, vma->vm_end + delta);
-+	const unsigned long start =
-+		vma_can_merge(vma) ? vma->vm_end : vma->vm_start;
-+	VMG_VMA_STATE(vmg, vmi, vma, vma, start, vma->vm_end + delta);
- 
--	vmg.next = vma_iter_next_rewind(vmi, NULL);
- 	vmg.middle = NULL; /* We use the VMA to populate VMG fields only. */
- 
--	return vma_merge_new_range(&vmg);
-+	if (vma_can_merge(vma)) {
-+		vmg.next = vma_iter_next_rewind(vmi, NULL);
-+		return vma_merge_new_range(&vmg);
-+	}
-+
-+	/* Mixed mappings are permitted to be expanded, not merged. */
-+	VM_WARN_ON_ONCE(vma_is_fixed_mapping(vma));
-+	VM_WARN_ON_ONCE(!vma_test(vma, VMA_MIXEDMAP_BIT));
-+	vma_prev(vmi); /* Reposition to start of VMA. */
-+	vmg.target = vma;
-+	if (vma_expand(&vmg))
-+		return NULL;
-+	return vma;
+--- a/lib/xarray.c~xarray-clear-the-new-heads-parent-before-freeing-the-old-head
++++ a/lib/xarray.c
+@@ -471,11 +471,12 @@ static void xas_shrink(struct xa_state *
+ 		if (!xa_is_node(entry))
+ 			RCU_INIT_POINTER(node->slots[0], XA_RETRY_ENTRY);
+ 		xas_update(xas, node);
++		if (xa_is_node(entry))
++			xa_to_node(entry)->parent = NULL;
+ 		xa_node_free(node);
+ 		if (!xa_is_node(entry))
+ 			break;
+ 		node = xa_to_node(entry);
+-		node->parent = NULL;
+ 	}
  }
  
- void unlink_file_vma_batch_init(struct unlink_vma_file_batch *vb)
---- a/tools/testing/vma/include/dup.h~mm-vma-fix-expansion-of-vma_mixedmap_bit-vmas
-+++ a/tools/testing/vma/include/dup.h
-@@ -1727,3 +1727,8 @@ static inline bool vma_flags_can_merge(c
- 	 */
- 	return !vma_flags_is_hugetlb(flags);
- }
-+
-+static inline bool vma_can_merge(const struct vm_area_struct *vma)
-+{
-+	return vma_flags_can_merge(&vma->flags);
-+}
 _
 
-Patches currently in -mm which might be from ljs@kernel.org are
+Patches currently in -mm which might be from nickolai@csail.mit.edu are
 
-mm-vma-fix-mmap_prepare-file-handling-remove-file_doesnt_need_get.patch
-mm-vma-introduce-and-use-vma_can_merge.patch
-mm-consistently-validate-vma-state-after-mmap-hooks.patch
-mm-vma-ensure-mmap_prepare-doesnt-set-actions-on-a-mergeable-vma.patch
-mm-make-map_kernel_pages_-internal-and-unexported.patch
-mm-vma-tidy-up-map-kernel-pages-enum-values.patch
-mm-assert-mmap-lock-held-use-new-flags-api-in-vm_insert_page.patch
-mm-add-mmap-action-for-discontiguous-kernel-page-mapping.patch
-docs-filesystems-update-mmap_prepare-docs-for-discontig-kernel-pgs.patch
-drivers-usb-mon-update-to-use-mmap_prepare-map-kernel-pages.patch
-infiniband-update-hfi1-to-use-remap_vmalloc_range.patch
-selinux-reject-writable-opens-of-policy-file-drop-mmap-shared-write-check.patch
-alsa-pcm-use-vm_insert_page-to-map-pcm-status-page.patch
-bpf-arena-mark-arena_map_mmap-mappings-vm_mixedmap.patch
-mm-vma-add-vma_is_mm_managed-predicates.patch
-mm-vma-only-allow-mmap-to-clear-vma_maywrite_bit-if-not-mm-managed.patch
-mm-vma-add-and-use-vma__is_fixed_mapping.patch
-scsi-sg-convert-mmap-hook-to-mmap_prepare-and-rework.patch
-fbdev-defio-assert-fbinfo_virtfb-drop-vm_io-add-vm_mixedmap.patch
-hsi-cmt_speech-convert-mmap-hook-to-mmap_prepare-refactor.patch
-mm-gup-error-out-early-on-vma_mayread_bit-vmas.patch
-uprobes-remove-vm_io-set-vm_mixedmap-for-mapped-kernel-pages.patch
-mm-mlock-clear-vma_locked_mask-over-mmap-callback.patch
-mm-mlock-eliminate-weird-vma_io_bit-abuse-and-simplify.patch
-mm-vma-enforce-that-mm-managed-mappings-may-not-set-vma_io_bit.patch
-mm-remove-vma_io_bit-check-in-vma_is_mm_managed.patch
-mm-remove-hugetlb_inlineh.patch
-mm-rename-is_vm_hugetlb_page-to-vma_is_hugetlb.patch
-mm-drop-some-redundant-checks-around-hugetlb-vmas.patch
-mm-vma-introduce-vma_is_mm_backed.patch
-mm-madvise-update-is_valid_guard_vma-to-use-vma_is_mm_backed.patch
-mm-uffd-use-predicates-for-userfaultfd-checks.patch
-mm-madvise-use-predicates-for-madvise-madv_dofork.patch
-mm-eliminate-vma_special_flags-usage-when-hugetlb-explicitly-tested.patch
-mm-eliminate-vma_special_flags-check-in-lru_gen_look_around.patch
-mm-avoid-use-of-vma_special_flags-in-migrate_vma_setup.patch
-mm-eliminate-vm_special-vma_special_flags.patch
-fuse-dax-do-not-set-vm_mixedmap.patch
-mm-huge_memory-remove-vma_is_special_huge.patch
-mm-vma-const-ify-vma_assert_stabilised-and-associated-functions.patch
-mm-implement-and-use-vma_has_anon_rmap-silence-kcsan.patch
-mm-update-comments-to-refer-to-anon-rmap-rather-than-anon_vma.patch
-mm-vma-dont-remove-vma-from-rmap-if-pgoff-unchanged.patch
-mm-vma-avoid-spurious-write-locks-when-mm-mm_lock_seq-overflows.patch
-mm-mremap-populate-calculated-fields-in-vrm-state-correctly.patch
-mm-mremap-correctly-uncharge-accountable-vmas-in-error-path.patch
-mm-vma-avoid-broken-uffd-merge-on-mremap.patch
-mm-vma-fix-expansion-of-vma_mixedmap_bit-vmas.patch
+mm-mlock-use-a-long-for-the-page-count-in-mlock_fixup.patch
+mm-truncate-fix-the-zeroing-end-of-pagecache_isize_extended.patch
+resource-report-a-devm_request_resource-conflict-under-the-lock.patch
+mm-bdi-reset-min_ratio-after-the-sysfs-attributes-are-gone.patch
+xarray-clear-the-new-heads-parent-before-freeing-the-old-head.patch
+mm-vmalloc-read-vm_map_ram-block-regions-from-the-requested-offset.patch
 
