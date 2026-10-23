@@ -1,45 +1,45 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1792781045;
-	b=dieaLxxt95PeoZf3Ch4AmnU2lci4k2tB8YoLE3fVvCESQFQBYZUr5JInAR6U2QoeW4h3
-	 TX4mM/HKlt+3hwIBJ1jqusxSGOmq1iKuPwXU34Esqy6rcICNoewdXrUF54ItG5In2f228
-	 pi7zY2K1Ov9lUi/dqHHG1QScGzo/6uFL8SVoHh8og5J5z/GaUZ2sdC8H+YZPbezpuYmBk
-	 eFgavxT/ytTfOSPxVyitA2Fd7A/kmn2/cfP/spM6ReyizpmIdMHAWv/Z2oI/nPjndpPXc
-	 d37Lpx3ft0yEONP2StK1eNDQEF33rNzJx+nNmGYYh5vo/GT8ka2w9myRSFfetL1OhcQ==
+	t=1792781043;
+	b=4PQvR9IMVaSbjUcT3YHY70Tt/Y3fP5mjGhBk8T9hjmgJz1HKOuyy1Fp3eBLy9V6Oo18I
+	 cP9YD33u+JuMjIPOJC+Jz+FQRuFOL8LbmUfk2yrWaQyMTNKY8HP7Dk2bhZ1TlEazFuMa/
+	 PIW+zwhFjIidTH/uanc8SRS+JHU6ymhcH9xvDPwyw8MV6/r58GZLzvDQLzZdMSJMTQg9i
+	 2A7x8ZTE7ILVigoiZ6ylWGg0NL6/gh/5skeVDJsF0WvOFE62833i8PloHG8jI5E+0bU/u
+	 WpONGxwOQY2m1z9wblSr3dAru0umx3N/v/LEvR85RuLzg5EdL4KoDmHYeYXMQ/tx1ZQ==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1792781045;
+	a=rsa-sha256; c=relaxed/relaxed; t=1792781043;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=g5A1ri2GF8L9E68ZWCDKheCuHTXXyMzXD+47Nx1Mk0s=;
-	b=dW0SHjzLA0sGsN3UO+bIv8Blof2U2O3h0qpWh2LFK2cl8MgTdPLaacy0DRPB/6RtYl5/
-	 eZqKweO23gHk67ZCiQT7hmneSV5105d3ZszHsdQLUkUghiu6PM02Dv0iFLqQ8M4XIomDG
-	 WHFvdkZ/qGdq16Xv2WG3delZJmD1NiJ86sQFxeIfK1e2nqPc7QDi2vUr1Nmgs9YEBYx52
-	 LPrRztSfEUIYzgcXZ78vc6ABtMVtk87ekG/vAbF9KurPAR2N8+ZXE6jk9XRIQhWD0bxNC
-	 RbH19xQpJeWp8lgiPrK0xy4SDviMpbQ0Ln//gLHpX7T7Lz4PTE24qBxDLu7n98H+UWw==
+	bh=f7SIdAcSMRweSpYrexIMtsWHLMDj3RGiMR9uTp07++g=;
+	b=Ly/sVwPwsbBbZwtuBf3d9sX9skFYog5d6GtLRoBjQKvjMP3GMg9xE/5Eo5y6gmH1DFdZ
+	 NXjpMcSu1bG2ZYhnO7W6cyUCguqeUaTgLQbjqNBgutEwm/iTfNF81NTVQFceqKFRC3akx
+	 wUn/6Kq0thRNuWS5MyoOIPgUSS1ViHK7hrHb2Mc8HPeDcHcWUtyrKL1PP2PSfWarbDS7E
+	 WkF3ouTp+eb2httRU9Afxry+9qLv1IPDLH8OFVa1nUQT/0FYch6wnGWBcRXXJMbsPJCdB
+	 0z4yxJE+KyAXiwBXqPW4SswAqGWVbbVP0bjt60B+Loa137UVTUZddRPMt7TwnfzmO4g==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b="X+/iGQYy";
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=vDpD2Pd2;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 30AFC606A325;
-	Fri, 23 Oct 2026 18:44:05 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 054E9606A320;
+	Fri, 23 Oct 2026 18:44:02 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=X+/iGQYy
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id CAA381F01825;
-	Fri, 23 Oct 2026 18:44:04 +0000 (UTC)
+	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=vDpD2Pd2
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 826B41F01825;
+	Fri, 23 Oct 2026 18:44:02 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1792781044;
-	bh=g5A1ri2GF8L9E68ZWCDKheCuHTXXyMzXD+47Nx1Mk0s=;
+	d=linux-foundation.org; s=korg; t=1792781042;
+	bh=f7SIdAcSMRweSpYrexIMtsWHLMDj3RGiMR9uTp07++g=;
 	h=Date:To:From:Subject;
-	b=X+/iGQYyjOKoeFfE/tnGYUTonb5qKY5Lu94XURyjejnCreuIR6tuQp3berqM+iwQX
-	 WySzh/wLUYA9NNtNo20HVql4OCe8IzsM6ZvikbEVXoBWlrtCMbt5AXv6KkjM7EfFbP
-	 yOLO+v4oasoXLShxNbw3Y5bBP0c5cjOs7JlL8XPA=
-Date: Fri, 23 Oct 2026 11:44:04 -0700
+	b=vDpD2Pd20U9uweogw/D4z1VFU3aCX9s3ceWML5Kjf60rxFWR4yf5H+oCJSbp9Ecy9
+	 KlJeozv6Zu6zMUU9CART2Xta02lc3GqTGUrzuaCVcnuf+H9uf/aRl6LzAPAHkWo53o
+	 cYClQD7rThU6LDhmbe2/0zdfF1ZWQjn75xfmC1Pc=
+Date: Fri, 23 Oct 2026 11:44:02 -0700
 To: mm-commits@vger.kernel.org,vbabka@kernel.org,surenb@google.com,stable@vger.kernel.org,sj@kernel.org,rppt@kernel.org,pfalcato@suse.de,mhocko@suse.com,ljs@kernel.org,liam@infradead.org,kees@kernel.org,jannh@google.com,dave@stgolabs.net,ccross@google.com,david@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-madvise-preserve-vma_softdirty_bit-when-changing-anonymous-names.patch added to mm-unstable branch
-Message-Id: <20261023184404.CAA381F01825@smtp.kernel.org>
+Subject: + mm-vma-write-lock-source-vma-before-duplicating-it-in-__split_vma.patch added to mm-unstable branch
+Message-Id: <20261023184402.826B41F01825@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -51,12 +51,12 @@ Precedence: list
 
 
 The patch titled
-     Subject: mm/madvise: preserve VMA_SOFTDIRTY_BIT when changing anonymous names
+     Subject: mm/vma: write lock source VMA before duplicating it in __split_vma()
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-madvise-preserve-vma_softdirty_bit-when-changing-anonymous-names.patch
+     mm-vma-write-lock-source-vma-before-duplicating-it-in-__split_vma.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-madvise-preserve-vma_softdirty_bit-when-changing-anonymous-names.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vma-write-lock-source-vma-before-duplicating-it-in-__split_vma.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -75,24 +75,23 @@ and is updated there most days
 
 ------------------------------------------------------
 From: "David Hildenbrand (Arm)" <david@kernel.org>
-Subject: mm/madvise: preserve VMA_SOFTDIRTY_BIT when changing anonymous names
-Date: Fri, 23 Oct 2026 14:47:29 +0100
+Subject: mm/vma: write lock source VMA before duplicating it in __split_vma()
+Date: Fri, 23 Oct 2026 14:47:28 +0100
 
-When changing the anonymous VMA name, madvise_update_vma() calls
-vma_modify_name() to possibly merge with adjacent VMAs. We don't call
-vma_modify_flags() and consequently don't obtain the new VMA flags.
+__split_vma() duplicates the source VMA before taking its VMA write lock,
+and until the VMA is write-locked, a concurrent thread might set
+VMA_MAYBE_GUARD_BIT, resulting in the duplication missing the flag.
 
-Later in the function we update the VMA flags to the stale new_vma_flags
-we obtained before. This can result in us losing the VMA_SOFTDIRTY_BIT
-flag set on a VMA we just merged with.
+If this happens, then fork may fail to duplicate guard markers and, if a
+file-backed mapping, THP collapse may also discard the markers.
 
-There is no need to update the VMA flags at all, so just exit early. This
-skips calling khugepaged_enter_vma(), but since the flags didn't change
-this is fine.
+Resolve this by taking the VMA write lock before vm_area_dup() and, since
+all callers of vm_area_dup() now hold the VMA write lock, assert that this
+is the case there, and add a comment to explain why it's needed.
 
-[ljs@kernel.org: minor edit of commit message, rebased]
-Link: https://lore.kernel.org/20261023-fix-vma-atomic-v1-3-8ff4fae1fc85@kernel.org
-Fixes: 9a10064f5625 ("mm: add a field to store names for private anonymous memory")
+[ljs@kernel.org: add VMA write assert in vm_area_dup(), commit message touchup]
+Link: https://lore.kernel.org/20261023-fix-vma-atomic-v1-2-8ff4fae1fc85@kernel.org
+Fixes: 2ab7f1bbafc9 ("mm/madvise: allow guard page install/remove under VMA lock")
 Signed-off-by: David Hildenbrand (Arm) <david@kernel.org>
 Signed-off-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
@@ -111,30 +110,39 @@ Cc: Colin Cross <ccross@google.com>
 Cc: <stable@vger.kernel.org>
 ---
 
- mm/madvise.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ mm/vma.c      |    2 +-
+ mm/vma_init.c |    3 +++
+ 2 files changed, 4 insertions(+), 1 deletion(-)
 
---- a/mm/madvise.c~mm-madvise-preserve-vma_softdirty_bit-when-changing-anonymous-names
-+++ a/mm/madvise.c
-@@ -177,6 +177,9 @@ static int madvise_update_vma(vm_flags_t
+--- a/mm/vma.c~mm-vma-write-lock-source-vma-before-duplicating-it-in-__split_vma
++++ a/mm/vma.c
+@@ -538,6 +538,7 @@ __split_vma(struct vma_iterator *vmi, st
+ 			return err;
+ 	}
  
- 	/* vm_flags is protected by the mmap_lock held in write mode. */
- 	vma_start_write(vma);
-+	if (set_new_anon_name)
-+		return replace_anon_vma_name(vma, anon_name);
++	vma_start_write(vma);
+ 	new = vm_area_dup(vma);
+ 	if (!new)
+ 		return -ENOMEM;
+@@ -568,7 +569,6 @@ __split_vma(struct vma_iterator *vmi, st
+ 	if (new->vm_ops && new->vm_ops->open)
+ 		new->vm_ops->open(new);
+ 
+-	vma_start_write(vma);
+ 	vma_start_write(new);
+ 
+ 	init_vma_prep(&vp, vma);
+--- a/mm/vma_init.c~mm-vma-write-lock-source-vma-before-duplicating-it-in-__split_vma
++++ a/mm/vma_init.c
+@@ -127,6 +127,9 @@ struct vm_area_struct *vm_area_dup(struc
+ {
+ 	struct vm_area_struct *new = kmem_cache_alloc(vm_area_cachep, GFP_KERNEL);
+ 
++	/* Must hold a write lock to stabilise atomic VMA flags. */
++	vma_assert_write_locked(orig);
 +
- 	vma_overwrite_flags(vma, new_vma_flags);
- 	/*
- 	 * If the vma become good for khugepaged to scan,
-@@ -186,9 +189,6 @@ static int madvise_update_vma(vm_flags_t
- 	if (vma_flags_test(&new_vma_flags, VMA_HUGEPAGE_BIT))
- 		khugepaged_enter_vma(vma, vma_flags_to_legacy(new_vma_flags));
- 
--	if (set_new_anon_name)
--		return replace_anon_vma_name(vma, anon_name);
--
- 	return 0;
- }
+ 	if (!new)
+ 		return NULL;
  
 _
 
