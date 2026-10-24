@@ -1,47 +1,47 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1792832385;
-	b=ax3kcKcY4TqZVTnqhEzwYXeSyqVUkz5pt4bk9kceyfEGdnwrFkqBkdScWHUMpaPLCeEE
-	 2M7EGIiKe4x+pY5c/AhSxsdQjY5fBB1DFC6Eg2nA+6uyOLWESmLNZY4ZihhE3/iVQxBqX
-	 A26pyybxvKT6kMXkrnQjVmNf3/1cF03q9pgF9fadnDiIsEYJFCDq54K2r6Yl2cbcSam7P
-	 Dzs15VTBO984zIiWODXvba9sFjYLNkb7UWBjMlK98Fzd2MyWuKCUqKGHaiGjH1E5JjQVs
-	 7+5L5kKiJUqEYca2O5u5Do8PLUZCoqHouHmNc58QvCSIGYJ4rRmUyfo0yKt8o0R8xQg==
+	t=1792832387;
+	b=4ZBiSIcNnkJcFkXsl0Z1jjLG8opsLu6qu5oYMoH8mXKu1ZW1GaqIUWmzCd/WnBKnIT2s
+	 OpQ9i1aHgCfufgl1Nv42EqB+nZ4n8uWw6gMCcEu+cAhIvh3pkVo+2BCst9pihGbEtJh5h
+	 QQVkXh5Rsm0v7ByOVITFyI35qnqnX+JSGPATiCvk4i6WjVILAbdjvLw19sfafoQdAeXKp
+	 t/ZGPMl8oMHRcgTP9dSS2frOlIoiOHTOH4lJPWF6i1YGtTdkN9X1yKI7e/aQxn1D5E8Ik
+	 6kQF/96r8KwrYten7HF7xtL9PE6JrshAJstYVyeQgulSjurFiMNVMZao4yrQN1ZM1Ag==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1792832385;
+	a=rsa-sha256; c=relaxed/relaxed; t=1792832387;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=BWjvE9qqcCI75WuvbwQM8QtJiH/zkmPE53CFbDFgCA0=;
-	b=uztRg1qwMj8p4zJv265c/fVOfFqP9LIXoKR2tpBHwhDkLU8NZiBaM2ZuHmo+Gr0wdC9V
-	 qQeU81qxea3C4FZfsiI9kOQgFem5iqoY+3fNqLG/AGJgvyIC+xBcd5HRZaDtapPffpRal
-	 PVvK5ZlcZYuBmTlxiqJBu6+pcc0FupOFBxhAuIktYbzM0/Mi+Zk3cKGYF7qr4qGiBU0O3
-	 NShs6F8vNT1OlSMGHEg8bRUKoS6qqvdlKvBTSvRBWabQ0XumtmdBHFfwZt038llDqObI2
-	 OWSKi1R1YQtyI7cJ1ohT9Sp+d1p2n4cR1Z149/ULLUPEhMdxAylQwxVAos/1K1zO6qQ==
+	bh=lcbQTUB82qQ6N3cuBsf3s40CPAN/zyzHnVJA6r2FvWk=;
+	b=zDlTFLc/abGW4RWwowZGM9WpfDkimLQy0wxUlwVC5paZgGsMmPglocVLquF1l18vTDCN
+	 xf1xWfKoKcg3mMPbTbpY+2l0C7ndwfnBEbcFWEfMlq+Ozgie1/11KRMJyt+GXz4u4eaV1
+	 YLp0ANqqTMfPdBgTZ7ILkU0f1HM+RJJfHH9NJaI+rh0aYZ8Fw7fV0A6KGm4+gkEUJQjk2
+	 bcY7UUU4eT+yZ88gb+fKkjxH4vPPP9UQ5BQ7yXVjJA38wO/KCSpbNGs27t9d/d5iR9E0l
+	 QbmomHGFBvVexcH5jvcMz+3+60wqfAc5csIOEtUL/KJWU5VOKnF+3Qb8yYtMZONwj6w==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=fail reason="signature verification failed" header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=tcJWFATO;
+	dkim=fail reason="signature verification failed" header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=pOAo4Rdb;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E3CE0606A31A
-	for <mm-commits@vger.kernel.org>; Sat, 24 Oct 2026 08:59:44 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8FDA0606A31A
+	for <mm-commits@vger.kernel.org>; Sat, 24 Oct 2026 08:59:46 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=fail reason="signature verification failed" (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=tcJWFATO
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 80E011F01825;
-	Sat, 24 Oct 2026 08:59:44 +0000 (UTC)
+	dkim=fail reason="signature verification failed" (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=pOAo4Rdb
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2F3591F01825;
+	Sat, 24 Oct 2026 08:59:46 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1792832384;
-	bh=BWjvE9qqcCI75WuvbwQM8QtJiH/zkmPE53CFbDFgCA0=;
+	d=linux-foundation.org; s=korg; t=1792832386;
+	bh=lcbQTUB82qQ6N3cuBsf3s40CPAN/zyzHnVJA6r2FvWk=;
 	h=Date:To:From:Subject;
-	b=tcJWFATOh8aQzXKfyWttwJlI4e7H+2i02RfmRQeM6u11k+KDw3PGybWooPcQMBLmM
-	 7/i4i9WjYVVhNx3YrddBEjqMESa9T+SnlxnXcqulRtba/ydpxZFgHrZz+eb2BFGYGe
-	 Dj4zOvKp+ary5vshV/16DcC5/6+s2uIzaDG+OwFs=
-Date: Sat, 24 Oct 2026 01:59:44 -0700
+	b=pOAo4RdbK7h+DfSA9XZijT8fCoyDnIgok4jp61xbUyBKI2ItQApXxV7qsixpsqTOT
+	 7ezT5X/gnb5sjh7zxIq7/ALAIQ1V1BAn/KBDL2uWTGv+Ebg9ffXCC+E0tkiDT7RaR6
+	 4T/Bo8wv+7j8QNvtI2jJSNmhkIFUxW9kz83WjRr4=
+Date: Sat, 24 Oct 2026 01:59:45 -0700
 To: mm-commits@vger.kernel.org,ziy@nvidia.com,yuanchu@google.com,youngjun.park@lge.com,ying.huang@linux.alibaba.com,xu.xin@linux.dev,willy@infradead.org,will@kernel.org,weixugc@google.com,viro@zeniv.linux.org.uk,vincent.guittot@linaro.org,vbabka@kernel.org,usama.arif@linux.dev,tzimmermann@suse.de,tiwai@suse.com,tglx@kernel.org,surenb@google.com,stephen.smalley.work@gmail.com,sre@kernel.org,spasswolf@web.de,simona@ffwll.ch,shikemeng@huaweicloud.com,shakeel.butt@linux.dev,ryan.roberts@arm.com,rppt@kernel.org,riel@surriel.com,rakie.kim@sk.com,qi.zheng@linux.dev,pjw@kernel.org,pfalcato@suse.de,peterz@infradead.org,peterx@redhat.com,perex@perex.cz,paul@paul-moore.com,palmer@dabbelt.com,oupton@kernel.org,osalvador@suse.de,oleg@redhat.com,npiggin@gmail.com,nphamcs@gmail.com,nico.pache@linux.dev,namhyung@kernel.org,muchun.song@linux.dev,mripard@kernel.org,mkp@kernel.org,mingo@redhat.com,miklos@szeredi.hu,mhocko@suse.com,mhocko@kernel.org,mhiramat@kernel.org,memxor@gmail.com,maz@kernel.org,ma
  tthew.brost@intel.com,mark.rutland@arm.com,maddy@linux.ibm.com,maarten.lankhorst@linux.intel.com,liam@infradead.org,leon@kernel.org,lance.yang@linux.dev,kasong@tencent.com,kas@kernel.org,juri.lelli@redhat.com,joshua.hahnjy@gmail.com,jhubbard@nvidia.com,jgg@ziepe.ca,jannh@google.com,james.bottomley@hansenpartnership.com,jack@suse.cz,imbrenda@linux.ibm.com,ihor.solodrai@linux.dev,hca@linux.ibm.com,harry@kernel.org,hannes@cmpxchg.org,gregkh@linuxfoundation.org,gourry@gourry.net,gor@linux.ibm.com,gerald.schaefer@linux.ibm.com,frankja@linux.ibm.com,eddyz87@gmail.com,dgilbert@interlog.com,dev.jain@arm.com,dennis.dalessandro@cornelisnetworks.com,deller@gmx.de,david@kernel.org,davem@davemloft.net,dave.hansen@linux.intel.com,daniel@iogearbox.net,corbet@lwn.net,chrisl@kernel.org,chengming.zhou@linux.dev,catalin.marinas@arm.com,byungchul@sk.com,brauner@kernel.org,bp@alien8.de,borntraeger@linux.ibm.com,baoquan.he@linux.dev,baolin.wang@linux.alibaba.com,baohua@kernel.org,axelrasmussen@google.com
  ,ast@kernel.org,arnd@arndb.de,apopple@nvidia.com,aou@eecs.berkeley.edu,anup@brainfault.org,aneesh.kumar@kernel.org,andrii@kernel.org,andreas@gaisler.com,airlied@gmail.com,agordeev@linux.ibm.com,acme@kernel.org,ljs@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-vma-add-and-use-vma__is_fixed_mapping.patch removed from -mm tree
-Message-Id: <20261024085944.80E011F01825@smtp.kernel.org>
+Subject: [merged mm-stable] scsi-sg-convert-mmap-hook-to-mmap_prepare-and-rework.patch removed from -mm tree
+Message-Id: <20261024085946.2F3591F01825@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -53,54 +53,55 @@ Precedence: list
 
 
 The quilt patch titled
-     Subject: mm/vma: add and use vma_[flags]_is_fixed_mapping
+     Subject: scsi: sg: convert mmap hook to mmap_prepare and rework
 has been removed from the -mm tree.  Its filename was
-     mm-vma-add-and-use-vma__is_fixed_mapping.patch
+     scsi-sg-convert-mmap-hook-to-mmap_prepare-and-rework.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: "Lorenzo Stoakes (ARM)" <ljs@kernel.org>
-Subject: mm/vma: add and use vma_[flags]_is_fixed_mapping
-Date: Tue, 13 Oct 2026 16:04:57 +0100
+Subject: scsi: sg: convert mmap hook to mmap_prepare and rework
+Date: Tue, 13 Oct 2026 16:04:58 +0100
 
-This determines whether a VMA cannot be expanded or merged because what
-they mapped was determined to be a set size at mmap time.
+Move from the deprecated mmap hook to the new mmap_prepare hook.
 
-This typically refers to mappings not managed by core mm, however
-VMA_DONTEXPAND_BIT
-is not reliably set alongside VMA_PFNMAP_BIT or VMA_MIXEDMAP_BIT, so we
-must explicitly test for this for now.
+We are mapping kernel pages here, so use the discontiguous kernel mapping
+mmap action to do so.
 
-We also explicitly test for VMA_PFNMAP_BIT as VMA_DONTEXPAND_BIT may not be
-set for VMA_PFNMAP_BIT's despite the one implying the other.
+Unwind the rather confusing loop and instead map as many pages as we can at
+one time.
 
-Use this predicate in vma_flags_can_merge() and in check_prep_vma() in the
-mremap logic testing to see if mremap() can expand the VMA. The criteria
-for khugepaged and MADV_COLLAPSE eligibility in
-__thp_vma_allowable_orders() are precisely those for mergeability, so use
-vma_can_merge() there (with an expanded comment).
+Note that we do not need to pay attention to rsv_schp->k_use_sg here, as
+the pages are populated for the length of the buffer at
+rsv_schp->page_order granularity as compound pages.
 
-This obviates the need for the VM_NO_KHUGEPAGED mask, so remove it.
+The discontiguous kernel page mapping logic handles the compound pages for
+us.
 
-Hugetlb VMAs remain excluded from khugepaged as hugetlbfs always sets
-VMA_DONTEXPAND_BIT.
+sfp->mmap_called keeps the buffer stable for us. As before it is never
+cleared, so a failed mmap also leaves it set.
 
-Also update the userland VMA tests to reflect the change.
+We also remove some useless vma, vma->vm_file NULL checks - these will
+always be non-NULL if you reached the mmap hook logic.
 
-No functional change intended.
+We retain log output for consistency, but change what's output on page
+mapping to indicate that sg_discontig_get() does the work now.
 
-Link: https://lore.kernel.org/20261013-b4-mmap-prepare-vma-flag-sanify-v6-17-1aa3c9b139f9@kernel.org
+Note that we drop the VMA_IO_BIT flag for the VMA here. It was never
+necessary as we invoke alloc_pages() which gives us refcounted folios that
+are fine for GUP to access (VMA_IO_BIT would prevent that).
+
+Link: https://lore.kernel.org/20261013-b4-mmap-prepare-vma-flag-sanify-v6-18-1aa3c9b139f9@kernel.org
 Signed-off-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Reviewed-by: Zi Yan <ziy@nvidia.com>
 Reviewed-by: Suren Baghdasaryan <surenb@google.com>
-Acked-by: David Hildenbrand (Arm) <david@kernel.org>
 Cc: Liam R. Howlett <liam@infradead.org>
 Cc: Vlastimil Babka <vbabka@kernel.org>
 Cc: Jann Horn <jannh@google.com>
 Cc: Pedro Falcato <pfalcato@suse.de>
+Cc: David Hildenbrand <david@kernel.org>
 Cc: Mike Rapoport <rppt@kernel.org>
 Cc: Michal Hocko <mhocko@suse.com>
 Cc: Jonathan Corbet <corbet@lwn.net>
@@ -117,6 +118,7 @@ Cc: Daniel Borkmann <daniel@iogearbox.net>
 Cc: Andrii Nakryiko <andrii@kernel.org>
 Cc: Eduard Zingerman <eddyz87@gmail.com>
 Cc: Kumar Kartikeya Dwivedi <memxor@gmail.com>
+Cc: Zi Yan <ziy@nvidia.com>
 Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
 Cc: Nico Pache <nico.pache@linux.dev>
 Cc: Ryan Roberts <ryan.roberts@arm.com>
@@ -205,148 +207,156 @@ Cc: Ihor Solodrai <ihor.solodrai@linux.dev>
 Cc: Bert Karwatzki <spasswolf@web.de>
 ---
 
- include/linux/mm.h              |   39 ++++++++++++++++++++++++++----
- mm/huge_memory.c                |   11 +++++---
- mm/mremap.c                     |    5 +--
- tools/testing/vma/include/dup.h |   16 +++++++++++-
- 4 files changed, 59 insertions(+), 12 deletions(-)
+ drivers/scsi/sg.c |  115 +++++++++++++++++++-------------------------
+ 1 file changed, 51 insertions(+), 64 deletions(-)
 
---- a/include/linux/mm.h~mm-vma-add-and-use-vma__is_fixed_mapping
-+++ a/include/linux/mm.h
-@@ -601,9 +601,6 @@ enum {
- #define VMA_REMAP_FLAGS mk_vma_flags(VMA_IO_BIT, VMA_PFNMAP_BIT,	\
- 				     VMA_DONTEXPAND_BIT, VMA_DONTDUMP_BIT)
- 
--/* This mask prevents VMA from being scanned with khugepaged */
--#define VM_NO_KHUGEPAGED (VM_SPECIAL | VM_HUGETLB)
--
- /* This mask defines which mm->def_flags a process can inherit its parent */
- #define VM_INIT_DEF_MASK	VM_NOHUGEPAGE
- 
-@@ -1649,6 +1646,40 @@ static inline bool vma_is_mm_managed(con
+--- a/drivers/scsi/sg.c~scsi-sg-convert-mmap-hook-to-mmap_prepare-and-rework
++++ a/drivers/scsi/sg.c
+@@ -1212,85 +1212,72 @@ sg_fasync(int fd, struct file *filp, int
+ 	return fasync_helper(fd, filp, mode, &sfp->async_qp);
  }
  
- /**
-+ * vma_flags_is_fixed_mapping() - Do the specified VMA flags indicate that this
-+ * is a fixed mapping that cannot be expanded or merged?
-+ * @flags: The VMA flags to test.
-+ *
-+ * Fixed mappings are those whose size is set at the point of mmap (for
-+ * instance, a mapping of a fixed range of memory established by a driver),
-+ * and thus cannot be expanded or merged.
-+ *
-+ * Returns: true if the flags indicate a fixed mapping.
-+ */
-+static inline bool vma_flags_is_fixed_mapping(const vma_flags_t *flags)
-+{
-+	/*
-+	 * VMA_PFNMAP_BIT should imply VMA_DONTEXPAND_BIT, but some callers set
-+	 * only the former.
-+	 */
-+	return vma_flags_test_any(flags, VMA_PFNMAP_BIT, VMA_DONTEXPAND_BIT);
+-static vm_fault_t
+-sg_vma_fault(struct vm_fault *vmf)
++static int sg_discontig_init(void *vm_private_data, void **private)
+ {
+-	struct vm_area_struct *vma = vmf->vma;
+-	Sg_fd *sfp;
+-	unsigned long offset, len, sa;
+-	Sg_scatter_hold *rsv_schp;
+-	int k, length;
+-
+-	if ((NULL == vma) || (!(sfp = (Sg_fd *) vma->vm_private_data)))
+-		return VM_FAULT_SIGBUS;
+-	rsv_schp = &sfp->reserve;
+-	offset = vmf->pgoff << PAGE_SHIFT;
+-	if (offset >= rsv_schp->bufflen)
+-		return VM_FAULT_SIGBUS;
+-	SCSI_LOG_TIMEOUT(3, sg_printk(KERN_INFO, sfp->parentdp,
+-				      "sg_vma_fault: offset=%lu, scatg=%d\n",
+-				      offset, rsv_schp->k_use_sg));
+-	sa = vma->vm_start;
+-	length = 1 << (PAGE_SHIFT + rsv_schp->page_order);
+-	for (k = 0; k < rsv_schp->k_use_sg && sa < vma->vm_end; k++) {
+-		len = vma->vm_end - sa;
+-		len = (len < length) ? len : length;
+-		if (offset < len) {
+-			struct page *page = rsv_schp->pages[k] + (offset >> PAGE_SHIFT);
+-			get_page(page);	/* increment page count */
+-			vmf->page = page;
+-			return 0; /* success */
+-		}
+-		sa += len;
+-		offset -= len;
++	const unsigned long req_sz = (unsigned long)*private;
++	Sg_fd *sfp = vm_private_data;
++	Sg_scatter_hold *rsv_schp = &sfp->reserve;
++	int err = 0;
++
++	mutex_lock(&sfp->f_mutex);
++	if (req_sz > rsv_schp->bufflen) {
++		err = -ENOMEM;	/* cannot map more than reserved buffer */
++		goto out;
++	}
++	sfp->mmap_called = 1; /* Prevents changes to buffer size. */
++out:
++	mutex_unlock(&sfp->f_mutex);
++	return err;
 +}
 +
-+/**
-+ * vma_is_fixed_mapping() - Is this VMA a fixed mapping that cannot be
-+ * expanded or merged?
-+ * @vma: The VMA to test.
-+ *
-+ * See vma_flags_is_fixed_mapping() for a description of this property.
-+ *
-+ * Returns: true if the VMA maps a fixed mapping.
-+ */
-+static inline bool vma_is_fixed_mapping(const struct vm_area_struct *vma)
++static int
++sg_discontig_get(struct discontig_kernel_page_state *state)
 +{
-+	return vma_flags_is_fixed_mapping(&vma->flags);
-+}
++	Sg_fd *sfp = state->vm_private_data;
++	Sg_scatter_hold *rsv_schp = &sfp->reserve;
++	const unsigned int order = rsv_schp->page_order;
++	const pgoff_t nr_pages = state->nr_pages_mapped;
 +
-+/**
-  * vma_flags_can_merge() - Do the specified VMA flags permit the VMA to be
-  * merged with another?
-  * @flags: The VMA flags to test.
-@@ -1669,7 +1700,7 @@ static inline bool vma_flags_can_merge(c
- 	if (!vma_flags_is_mm_managed(flags))
- 		return false;
- 	/* VMA explicitly marked as being unmergeable. */
--	if (vma_flags_test(flags, VMA_DONTEXPAND_BIT))
-+	if (vma_flags_is_fixed_mapping(flags))
- 		return false;
- 
- 	return true;
---- a/mm/huge_memory.c~mm-vma-add-and-use-vma__is_fixed_mapping
-+++ a/mm/huge_memory.c
-@@ -212,11 +212,14 @@ unsigned long __thp_vma_allowable_orders
- 		return in_pf ? orders : 0;
- 
- 	/*
--	 * khugepaged special VMA and hugetlb VMA.
--	 * Must be checked after dax since some dax mappings may have
--	 * VM_MIXEDMAP set.
-+	 * khugepaged moves data from VMAs once collapsed, after they have been
-+	 * faulted in, relying on refaulting for file-backed memory.
-+	 *
-+	 * Mappings not managed by core mm cannot be reliably reconstructed from
-+	 * page faults, and fixed mappings (including hugetlb) may well be
-+	 * mm-managed - precisely the mappings which cannot be merged.
- 	 */
--	if (!in_pf && !smaps && (vm_flags & VM_NO_KHUGEPAGED))
-+	if (!in_pf && !smaps && !vma_can_merge(vma))
- 		return 0;
- 
- 	/*
---- a/mm/mremap.c~mm-vma-add-and-use-vma__is_fixed_mapping
-+++ a/mm/mremap.c
-@@ -1822,8 +1822,7 @@ static int check_prep_vma(struct vma_rem
- 		return -EINVAL;
++	if (nr_pages >= (rsv_schp->bufflen >> PAGE_SHIFT)) {
++		discontig_kernel_map_abort(state);
++		return 0;
  	}
  
--	if ((vrm->flags & MREMAP_DONTUNMAP) &&
--	    vma_test_any(vma, VMA_DONTEXPAND_BIT, VMA_PFNMAP_BIT))
-+	if ((vrm->flags & MREMAP_DONTUNMAP) && vma_is_fixed_mapping(vma))
- 		return -EINVAL;
- 
- 	/*
-@@ -1861,7 +1860,7 @@ static int check_prep_vma(struct vma_rem
- 	if (pgoff + (new_len >> PAGE_SHIFT) < pgoff)
- 		return -EINVAL;
- 
--	if (vma_test_any(vma, VMA_DONTEXPAND_BIT, VMA_PFNMAP_BIT))
-+	if (vma_is_fixed_mapping(vma))
- 		return -EFAULT;
- 
- 	if (!mlock_future_ok(mm, vma_test(vma, VMA_LOCKED_BIT), vrm->delta))
---- a/tools/testing/vma/include/dup.h~mm-vma-add-and-use-vma__is_fixed_mapping
-+++ a/tools/testing/vma/include/dup.h
-@@ -1676,6 +1676,20 @@ static inline bool vma_is_mm_managed(con
- 	return vma_flags_is_mm_managed(&vma->flags);
+-	return VM_FAULT_SIGBUS;
++	SCSI_LOG_TIMEOUT(3, sg_printk(KERN_INFO, sfp->parentdp,
++				      "%s: offset=%lu, scatg=%d\n", __func__,
++				      nr_pages << PAGE_SHIFT, rsv_schp->k_use_sg));
++
++	discontig_kernel_map_page(state, rsv_schp->pages[nr_pages >> order]);
++	return 0;
  }
  
-+static inline bool vma_flags_is_fixed_mapping(const vma_flags_t *flags)
-+{
-+	/*
-+	 * VMA_PFNMAP_BIT should imply VMA_DONTEXPAND_BIT, but some callers set
-+	 * only the former.
-+	 */
-+	return vma_flags_test_any(flags, VMA_PFNMAP_BIT, VMA_DONTEXPAND_BIT);
-+}
-+
-+static inline bool vma_is_fixed_mapping(const struct vm_area_struct *vma)
-+{
-+	return vma_flags_is_fixed_mapping(&vma->flags);
-+}
-+
- static inline bool vma_flags_can_merge(const vma_flags_t *flags)
- {
- 	/*
-@@ -1691,7 +1705,7 @@ static inline bool vma_flags_can_merge(c
- 	if (!vma_flags_is_mm_managed(flags))
- 		return false;
- 	/* VMA explicitly marked as being unmergeable. */
--	if (vma_flags_test(flags, VMA_DONTEXPAND_BIT))
-+	if (vma_flags_is_fixed_mapping(flags))
- 		return false;
+-static const struct vm_operations_struct sg_mmap_vm_ops = {
+-	.fault = sg_vma_fault,
++static const struct discontig_kernel_page_ops sg_discontig_ops = {
++	.init = sg_discontig_init,
++	.get = sg_discontig_get,
+ };
  
- 	return true;
+ static int
+-sg_mmap(struct file *filp, struct vm_area_struct *vma)
++sg_mmap_prepare(struct vm_area_desc *desc)
+ {
+-	Sg_fd *sfp;
+-	unsigned long req_sz, len, sa;
+-	Sg_scatter_hold *rsv_schp;
+-	int k, length;
+-	int ret = 0;
++	Sg_fd *sfp = desc->file->private_data;
++	const unsigned long req_sz = vma_desc_size(desc);
+ 
+-	if ((!filp) || (!vma) || (!(sfp = (Sg_fd *) filp->private_data)))
++	if (!sfp)
+ 		return -ENXIO;
+-	req_sz = vma->vm_end - vma->vm_start;
++
+ 	SCSI_LOG_TIMEOUT(3, sg_printk(KERN_INFO, sfp->parentdp,
+ 				      "sg_mmap starting, vm_start=%p, len=%d\n",
+-				      (void *) vma->vm_start, (int) req_sz));
+-	if (vma->vm_pgoff)
++				      (void *) desc->start, (int) req_sz));
++
++	if (desc->pgoff)
+ 		return -EINVAL;	/* want no offset */
+-	rsv_schp = &sfp->reserve;
+-	mutex_lock(&sfp->f_mutex);
+-	if (req_sz > rsv_schp->bufflen) {
+-		ret = -ENOMEM;	/* cannot map more than reserved buffer */
+-		goto out;
+-	}
+ 
+-	sa = vma->vm_start;
+-	length = 1 << (PAGE_SHIFT + rsv_schp->page_order);
+-	for (k = 0; k < rsv_schp->k_use_sg && sa < vma->vm_end; k++) {
+-		len = vma->vm_end - sa;
+-		len = (len < length) ? len : length;
+-		sa += len;
+-	}
++	vma_desc_set_flags(desc, VMA_DONTEXPAND_BIT, VMA_DONTDUMP_BIT);
++	desc->private_data = sfp;
+ 
+-	sfp->mmap_called = 1;
+-	vm_flags_set(vma, VM_IO | VM_DONTEXPAND | VM_DONTDUMP);
+-	vma->vm_private_data = sfp;
+-	vma->vm_ops = &sg_mmap_vm_ops;
+-out:
+-	mutex_unlock(&sfp->f_mutex);
+-	return ret;
++	mmap_action_map_discontig_kernel_pages(desc, (void *)req_sz,
++					       &sg_discontig_ops);
++	return 0;
+ }
+ 
+ static void
+@@ -1415,7 +1402,7 @@ static const struct file_operations sg_f
+ 	.unlocked_ioctl = sg_ioctl,
+ 	.compat_ioctl = compat_ptr_ioctl,
+ 	.open = sg_open,
+-	.mmap = sg_mmap,
++	.mmap_prepare = sg_mmap_prepare,
+ 	.release = sg_release,
+ 	.fasync = sg_fasync,
+ };
 _
 
 Patches currently in -mm which might be from ljs@kernel.org are
