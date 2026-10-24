@@ -1,47 +1,47 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1792832426;
-	b=q+ACAlndHa+O44AS28mZo4zLjk17kxERoqrAtdQrQsRLjIN0aKipkeoYNH5SYggMSIix
-	 9xqnPSa2272QqX2kYJ0Adi7PD4ym5E2RVaaI3ytZclTwYTvd6wQtuevUUlr1EOO4GieIp
-	 rzmaEDbmsji+WZswb7HehY8VEB7X+r0thm/2eVBxleYiBWzSqLCf2GzdQKv/HUnZfysS+
-	 X3+xORNhVB/VA2C/lBOSqsZlPHILfS5p50GURKAb0/Juiri/iSczEcqWzaUHWkl6FKH//
-	 jT/7EMFqXN8Rmr799clSg+D3zvSEgnwgYiAkfRLWau6pNZ/K6ko8q1i/6XL8Cq+uONQ==
+	t=1792832427;
+	b=GwhkcbxXemKrIrSiuqcA/qyYDp4jSpA9oN9GiG9acdQ7sldPk8JpTFLiJQqRTDvVzpIY
+	 rE8jZDTPhqt+rtf96wR74fGQlpyngvJ5sn+FS6BHiHjEQcPY2hmN6iRDwdWH81QmtE+t/
+	 0/HreQbB0ZxAZ4lVceEiJWhyLQOXDLHgkJm49ao7DwMl8IpfcqnDPfpMjt3zMY+iD7Ft3
+	 0jO9Ch62YnNpHeJOYdpWrwaUGmFE24sf7lNZGqVttk3v9Op31vRJrMhCNyIxpjvG8XvPm
+	 axiub9Mgm2nWb6Njl0WIBi+FdELyw0Ou60srA9BhcfRjfw7zadhwVeZYHDdjY0RSKDQ==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1792832426;
+	a=rsa-sha256; c=relaxed/relaxed; t=1792832427;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=pwLCMwEdMCXxIrLEI3y0lq+pJveR9Vh4nlfQGu3ibKM=;
-	b=qqGPsdstHwvPcF7msVWsrmaN8yJ4yvP6PCn/cB2SlqjOGDSV1so+Ss6YnsM0EArgd8/D
-	 G2q75SRj1f0NgVWX2AdB0kHHMqBmxUqNwQXMMUT/lWV0WehQ0j09sajEhF1Rbc/JTGgqH
-	 gK9LZxniDx6Lu+HIuFR3sqiZmWoLJ5TCu1RUt75pzjx2mqZr5dzr3JX8gPP3N+ozaeViE
-	 Ts1W7lv/2iAixJb1cd3Ok6A4Txc9U0zCbq4piX4PVqJtmJbQxbOyYdtG+z4e9cawilVW+
-	 D24lcSFQNIQNiz8W38TKDOfHLVYRXROIZeHUwBmDfKzRb2LDrqQxgi8UnAjzTZnyluQ==
+	bh=SCBF4Wrf/ot/4bm8xFUam156uNVEaAFJDO/vuXK/N44=;
+	b=sNYB8mCwVRSEj75YYk5YofrJVRe8/lfgp2cPXGoZoozgA3poVeajn31GK2Ry4ZLhcLD7
+	 rIKVQ9y5FbEglRBIMHqB5IU/xHocqtwmyuid9vFb/6tqk9A5Nb5Pfw0eSEs8E8LHjDSvy
+	 gZLbCuQ9jEnHmwWDDaerQUctie6PTm9csa4iUsAPEVJVZgGoZYIf1jn3NSYpd/oksQfme
+	 AbK400iPvMQb3pd3BmS61qBjfzKjWYrWV9oN+9+AJ5QLrYhwuN9sf3g1ZB+i/uj/yPiLe
+	 IkZvX/WbvZ9obhOuH3rLaGsMY+16WAXhxRYDUr0oAJ5o+vVsCnOAw4zTLMS2VTITKDQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=fail reason="signature verification failed" header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b="km8c4/5l";
+	dkim=fail reason="signature verification failed" header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=l3ZoNUZH;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 14660606A31B
-	for <mm-commits@vger.kernel.org>; Sat, 24 Oct 2026 09:00:25 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 85960606A31E
+	for <mm-commits@vger.kernel.org>; Sat, 24 Oct 2026 09:00:27 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=fail reason="signature verification failed" (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=km8c4/5l
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7222F1F01825;
-	Sat, 24 Oct 2026 09:00:25 +0000 (UTC)
+	dkim=fail reason="signature verification failed" (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=l3ZoNUZH
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1FFDC1F01825;
+	Sat, 24 Oct 2026 09:00:27 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1792832425;
-	bh=pwLCMwEdMCXxIrLEI3y0lq+pJveR9Vh4nlfQGu3ibKM=;
+	d=linux-foundation.org; s=korg; t=1792832427;
+	bh=SCBF4Wrf/ot/4bm8xFUam156uNVEaAFJDO/vuXK/N44=;
 	h=Date:To:From:Subject;
-	b=km8c4/5lEbLBQGUqnM32+H/kgKi2Jadrp4BytjrbzK6GXADSNbHUheBLzSMpDE4Sk
-	 HoSPydw++ukEGP/RsehAuF07vsakzA9iVsJOffQxZf1uVOt+Bf0BpQRG5+To7YhmTJ
-	 mC84okhJZa2uruuZFOx+dPHobcCBCdfb95XcCDRU=
-Date: Sat, 24 Oct 2026 02:00:25 -0700
+	b=l3ZoNUZHEpnNb2lhUdecaSrKYBA0qEubB8vPVn+6niAN1E4dKcjo4zsZBjFF5pI16
+	 XIU4a2p30lfXgBql/PTxLgT7jZbtVdZUX1DkNe/zZbsxX76WgZ+voN8G/ynn/0P2Zd
+	 Gprz87hpMYiRtgnBeAbCHyiZyNDDmB380feXaFcg=
+Date: Sat, 24 Oct 2026 02:00:26 -0700
 To: mm-commits@vger.kernel.org,ziy@nvidia.com,yuanchu@google.com,youngjun.park@lge.com,ying.huang@linux.alibaba.com,xu.xin@linux.dev,willy@infradead.org,will@kernel.org,weixugc@google.com,viro@zeniv.linux.org.uk,vincent.guittot@linaro.org,vbabka@kernel.org,usama.arif@linux.dev,tzimmermann@suse.de,tiwai@suse.com,tglx@kernel.org,surenb@google.com,stephen.smalley.work@gmail.com,sre@kernel.org,spasswolf@web.de,simona@ffwll.ch,shikemeng@huaweicloud.com,shakeel.butt@linux.dev,ryan.roberts@arm.com,rppt@kernel.org,riel@surriel.com,rakie.kim@sk.com,qi.zheng@linux.dev,pjw@kernel.org,pfalcato@suse.de,peterz@infradead.org,peterx@redhat.com,perex@perex.cz,paul@paul-moore.com,palmer@dabbelt.com,oupton@kernel.org,osalvador@suse.de,oleg@redhat.com,npiggin@gmail.com,nphamcs@gmail.com,nico.pache@linux.dev,namhyung@kernel.org,muchun.song@linux.dev,mripard@kernel.org,mkp@kernel.org,mingo@redhat.com,miklos@szeredi.hu,mhocko@suse.com,mhocko@kernel.org,mhiramat@kernel.org,memxor@gmail.com,maz@kernel.org,ma
  tthew.brost@intel.com,mark.rutland@arm.com,maddy@linux.ibm.com,maarten.lankhorst@linux.intel.com,liam@infradead.org,leon@kernel.org,lance.yang@linux.dev,kasong@tencent.com,kas@kernel.org,juri.lelli@redhat.com,joshua.hahnjy@gmail.com,jhubbard@nvidia.com,jgg@ziepe.ca,jannh@google.com,james.bottomley@hansenpartnership.com,jack@suse.cz,imbrenda@linux.ibm.com,ihor.solodrai@linux.dev,hca@linux.ibm.com,harry@kernel.org,hannes@cmpxchg.org,gregkh@linuxfoundation.org,gourry@gourry.net,gor@linux.ibm.com,gerald.schaefer@linux.ibm.com,frankja@linux.ibm.com,eddyz87@gmail.com,dgilbert@interlog.com,dev.jain@arm.com,dennis.dalessandro@cornelisnetworks.com,deller@gmx.de,david@kernel.org,davem@davemloft.net,dave.hansen@linux.intel.com,daniel@iogearbox.net,corbet@lwn.net,chrisl@kernel.org,chengming.zhou@linux.dev,catalin.marinas@arm.com,byungchul@sk.com,brauner@kernel.org,bp@alien8.de,borntraeger@linux.ibm.com,baoquan.he@linux.dev,baolin.wang@linux.alibaba.com,baohua@kernel.org,axelrasmussen@google.com
  ,ast@kernel.org,arnd@arndb.de,apopple@nvidia.com,aou@eecs.berkeley.edu,anup@brainfault.org,aneesh.kumar@kernel.org,andrii@kernel.org,andreas@gaisler.com,airlied@gmail.com,agordeev@linux.ibm.com,acme@kernel.org,ljs@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-eliminate-vma_special_flags-check-in-lru_gen_look_around.patch removed from -mm tree
-Message-Id: <20261024090025.7222F1F01825@smtp.kernel.org>
+Subject: [merged mm-stable] mm-avoid-use-of-vma_special_flags-in-migrate_vma_setup.patch removed from -mm tree
+Message-Id: <20261024090027.1FFDC1F01825@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -53,36 +53,28 @@ Precedence: list
 
 
 The quilt patch titled
-     Subject: mm: eliminate VMA_SPECIAL_FLAGS check in lru_gen_look_around()
+     Subject: mm: avoid use of VMA_SPECIAL_FLAGS in migrate_vma_setup()
 has been removed from the -mm tree.  Its filename was
-     mm-eliminate-vma_special_flags-check-in-lru_gen_look_around.patch
+     mm-avoid-use-of-vma_special_flags-in-migrate_vma_setup.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: "Lorenzo Stoakes (ARM)" <ljs@kernel.org>
-Subject: mm: eliminate VMA_SPECIAL_FLAGS check in lru_gen_look_around()
-Date: Tue, 13 Oct 2026 16:05:15 +0100
+Subject: mm: avoid use of VMA_SPECIAL_FLAGS in migrate_vma_setup()
+Date: Tue, 13 Oct 2026 16:05:16 +0100
 
-A fixed or non-mm-managed mapping is one which sets VMA_PFNMAP_BIT,
-VMA_MIXEDMAP_BIT or VMA_DONTEXPAND_BIT, which is precisely what
-VMA_SPECIAL_FLAGS tests for other than VMA_IO_BIT, which is safe to drop as
-mm-managed mappings may not set it.
+Now we have the expressive vma_is_mm_backed() predicate, use it to
+determine whether to proceed with migration. This drops the VMA_IO_BIT
+test, which is safe as mm-managed mappings may not set it.
 
-This is equivalent to testing for an mm-backed mapping, except for hugetlb.
-
-However, hugetlb folios are never placed on the LRU and
-lru_gen_look_around() is only called from LRU shrinkers on reclaim so this
-is fine.
-
-Using vma_is_mm_backed() rather than checking VMA_SPECIAL_FLAGS makes the
-check self-documenting and helps eliminate confusion around 'special
-flags'.
+hugetlb mappings are mm-backed but remain explicitly excluded, as the
+migrate_vma page walk has no hugetlb support.
 
 No functional change intended.
 
-Link: https://lore.kernel.org/20261013-b4-mmap-prepare-vma-flag-sanify-v6-35-1aa3c9b139f9@kernel.org
+Link: https://lore.kernel.org/20261013-b4-mmap-prepare-vma-flag-sanify-v6-36-1aa3c9b139f9@kernel.org
 Signed-off-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 Reviewed-by: Zi Yan <ziy@nvidia.com>
@@ -196,22 +188,38 @@ Cc: Ihor Solodrai <ihor.solodrai@linux.dev>
 Cc: Bert Karwatzki <spasswolf@web.de>
 ---
 
- mm/vmscan.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ mm/migrate_device.c |   12 +++++++-----
+ 1 file changed, 7 insertions(+), 5 deletions(-)
 
---- a/mm/vmscan.c~mm-eliminate-vma_special_flags-check-in-lru_gen_look_around
-+++ a/mm/vmscan.c
-@@ -4461,8 +4461,8 @@ bool lru_gen_look_around(struct page_vma
- 	if (spin_is_contended(pvmw->ptl))
- 		return true;
+--- a/mm/migrate_device.c~mm-avoid-use-of-vma_special_flags-in-migrate_vma_setup
++++ a/mm/migrate_device.c
+@@ -739,19 +739,21 @@ static void migrate_vma_unmap(struct mig
+  */
+ int migrate_vma_setup(struct migrate_vma *args)
+ {
++	const struct vm_area_struct *vma = args->vma;
+ 	long nr_pages = (args->end - args->start) >> PAGE_SHIFT;
  
--	/* exclude special VMAs containing anon pages from COW */
--	if (vma->vm_flags & VM_SPECIAL)
-+	/* exclude non-mm-backed VMAs containing anon pages from COW */
-+	if (!vma_is_mm_backed(vma))
- 		return true;
- 
- 	/* avoid taking the LRU lock under the PTL when possible */
+ 	args->start &= PAGE_MASK;
+ 	args->end &= PAGE_MASK;
+-	if (!args->vma || vma_test_any_mask(args->vma, VMA_SPECIAL_FLAGS) ||
+-	    vma_is_dax(args->vma))
++	if (!vma)
++		return -EINVAL;
++	/* The migrate_vma page walk has no hugetlb support. */
++	if (!vma_is_mm_backed(vma) || vma_is_hugetlb(vma) || vma_is_dax(vma))
+ 		return -EINVAL;
+ 	if (nr_pages <= 0)
+ 		return -EINVAL;
+-	if (args->start < args->vma->vm_start ||
+-	    args->start >= args->vma->vm_end)
++	if (args->start < vma->vm_start || args->start >= vma->vm_end)
+ 		return -EINVAL;
+-	if (args->end <= args->vma->vm_start || args->end > args->vma->vm_end)
++	if (args->end <= vma->vm_start || args->end > vma->vm_end)
+ 		return -EINVAL;
+ 	if (!args->src || !args->dst)
+ 		return -EINVAL;
 _
 
 Patches currently in -mm which might be from ljs@kernel.org are
