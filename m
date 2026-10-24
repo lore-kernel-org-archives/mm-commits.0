@@ -1,47 +1,47 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1792832364;
-	b=CuibCbHh1F6aYHt0PgjQA/m0uX9vnv1Hel46sHurqqIi1jYvVbWTxvHw2ez5FX75bOht
-	 28qZRJZoUHeX6g06za/nW7dCJctmudGnIAxcBAybCDsC8d2ZY/FgZHfCZVR9ggYfHVUa2
-	 ndJNb1T9uyGF8oMJNhPMLL9Djix8lY8A3oZ6ugkK+24+7jlnDCHD9aNi6D9A5mP/bCIK8
-	 hGtmr/tr5V0bohSiW87MZ2DgViIQKHU3EDcvpap/TihXRV9bZA8H8bEctFDFESXQ+4xrs
-	 8e4o/9PUsyHPAtjfqNN7K4+e8EYXP30OkcQb0wbMO2/c+K++pqLN988AO8qSsD55jTw==
+	t=1792832365;
+	b=m3xjdWc+6h36NRMSAqRjdV0SAqrXEWnA91ClxmttrOeXgykJdClBTpmpie4S4PRTY3gu
+	 c2QMhrCgyqe0/mlDI/+ov7J+kIdvx1qs6aYQpxeK9zC6ehR+f8M1yXSRy+HPi0K7kP95P
+	 IMhYSCFLcUqGUaz6ZzH7GfDR4xhE7OO5xzrmrTayJEooqfheqwprY6NZoKcdSTkDCmveq
+	 uYCovAs2o9Pg8Ln5utM0sKozZa+XYijkQXpvaeJPvCBo/Cg/qhXN0t3ad314JeM4DVje3
+	 ll0vZQLoc1NJ66KGa2y5C/91x/wLr/hykHFOvq90/4DK60LYADoA6/SaSBR0wakXZ/g==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1792832364;
+	a=rsa-sha256; c=relaxed/relaxed; t=1792832365;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=wGyF/4Ukd/Gnqejc4Tf6f+g9X5l7SE/TGFyoJMahrts=;
-	b=sZypa/fz2qWE+/xseIP6+K4vxzwBAqs7nAxkqh6NYRVI9AG2SDGpBHNAn9zaUsOL1n1E
-	 KuUruUTmpHPWut2ZqI8ALJ/37ijdUjdJit9fnXLAo6ochhX/ivDtSk2eXWv8dBgyyuPSD
-	 VHMueIw3AwldzlrfaaIBQchd+/QKrqdyR7YoOHOyICgRYpzha8T22ECXYLlyDCLL27lBf
-	 bnimttT3tmDp7zBAgJflSuX9L2WFPHq/NvTy0MafRVds+06FGotA1DrTJGkk/zUESN/mU
-	 YjNMHHdwdVn76u2eglTacXAdc4PLyB9zKaNoXdX2VN8lrXpaIH7efeA2lE/kAE7Ho4Q==
+	bh=xGZecKGamjeK5AWzZpBA3/EokaVURG4bNhqpfG5n0Do=;
+	b=ww9GKiZy32UfXb6Q3KvNbecT1aLX7+HDOqd4fhnuJfHOpU2vIHeUU4EnIqCVXLClDWbn
+	 kTsJ7ahUuXy1jgjFmkZR/cW2sHWtDQZQqqioa9dXtUa3U4jnFqUS5TnynH/saG9OglLHs
+	 r1wM2M8gJenrSPGMkLug4o1MC9SWq+Cfk3J6xdylEujJXQBWW8k5KE9j2T6XyEGHpH6fd
+	 DHqCQGrqp0kvX23k5IHCpCYlLUQd1vEIW20y0EXCaOhAtcY2bTeTabS0eO/dSmc++Ni1R
+	 3vHr8J/C5lI4MCJgiq4G/EGxxO/ENysN1uDRprjCEq7yG/Ts559gFwRkTohb/hA+MVg==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=fail reason="signature verification failed" header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=QkWpgPDX;
+	dkim=fail reason="signature verification failed" header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=tNqugzrO;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C6ABE606A31A
-	for <mm-commits@vger.kernel.org>; Sat, 24 Oct 2026 08:59:23 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 77A6C606A31A
+	for <mm-commits@vger.kernel.org>; Sat, 24 Oct 2026 08:59:25 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=fail reason="signature verification failed" (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=QkWpgPDX
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 60B1A1F01825;
-	Sat, 24 Oct 2026 08:59:23 +0000 (UTC)
+	dkim=fail reason="signature verification failed" (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=tNqugzrO
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 14B8C1F01825;
+	Sat, 24 Oct 2026 08:59:25 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1792832363;
-	bh=wGyF/4Ukd/Gnqejc4Tf6f+g9X5l7SE/TGFyoJMahrts=;
+	d=linux-foundation.org; s=korg; t=1792832365;
+	bh=xGZecKGamjeK5AWzZpBA3/EokaVURG4bNhqpfG5n0Do=;
 	h=Date:To:From:Subject;
-	b=QkWpgPDX9SrL59qvtIGpeVx6VB0cnOda7oLDu+FZIOKGorsvzhuL3JlnHyPwj0a5j
-	 aX3TotpRK5yDdDqQSVBRBOaDlkrlcOGEnf4Q7KFtTxTQMghLFzZETXG7CVYkrmwaDQ
-	 kpPA/vZJOpmUvedMCKPj9VoA9SDNgb/l0YKuzoU0=
-Date: Sat, 24 Oct 2026 01:59:23 -0700
+	b=tNqugzrOVqdDME4EMBJIEiG8xePTTcUhJTCg9Rm3aNRESK3r36VnBn+TiDwD0iUB9
+	 d/NyYQqZZYm/jjxrP50lIQt5d+MEjIOk8OBhkLQOKTVgfdHhSV1dCS1XiB9sO184hW
+	 wwNo2oHXrlxMAdsxCDk+PZW+LiwuzaJDxIjmimbI=
+Date: Sat, 24 Oct 2026 01:59:24 -0700
 To: mm-commits@vger.kernel.org,ziy@nvidia.com,yuanchu@google.com,youngjun.park@lge.com,ying.huang@linux.alibaba.com,xu.xin@linux.dev,willy@infradead.org,will@kernel.org,weixugc@google.com,viro@zeniv.linux.org.uk,vincent.guittot@linaro.org,vbabka@kernel.org,usama.arif@linux.dev,tzimmermann@suse.de,tiwai@suse.com,tglx@kernel.org,surenb@google.com,stephen.smalley.work@gmail.com,sre@kernel.org,spasswolf@web.de,simona@ffwll.ch,shikemeng@huaweicloud.com,shakeel.butt@linux.dev,ryan.roberts@arm.com,rppt@kernel.org,riel@surriel.com,rakie.kim@sk.com,qi.zheng@linux.dev,pjw@kernel.org,pfalcato@suse.de,peterz@infradead.org,peterx@redhat.com,perex@perex.cz,paul@paul-moore.com,palmer@dabbelt.com,oupton@kernel.org,osalvador@suse.de,oleg@redhat.com,npiggin@gmail.com,nphamcs@gmail.com,nico.pache@linux.dev,namhyung@kernel.org,muchun.song@linux.dev,mripard@kernel.org,mkp@kernel.org,mingo@redhat.com,miklos@szeredi.hu,mhocko@suse.com,mhocko@kernel.org,mhiramat@kernel.org,memxor@gmail.com,maz@kernel.org,ma
  tthew.brost@intel.com,mark.rutland@arm.com,maddy@linux.ibm.com,maarten.lankhorst@linux.intel.com,liam@infradead.org,leon@kernel.org,lance.yang@linux.dev,kasong@tencent.com,kas@kernel.org,juri.lelli@redhat.com,joshua.hahnjy@gmail.com,jhubbard@nvidia.com,jgg@ziepe.ca,jannh@google.com,james.bottomley@hansenpartnership.com,jack@suse.cz,imbrenda@linux.ibm.com,ihor.solodrai@linux.dev,hca@linux.ibm.com,harry@kernel.org,hannes@cmpxchg.org,gregkh@linuxfoundation.org,gourry@gourry.net,gor@linux.ibm.com,gerald.schaefer@linux.ibm.com,frankja@linux.ibm.com,eddyz87@gmail.com,dgilbert@interlog.com,dev.jain@arm.com,dennis.dalessandro@cornelisnetworks.com,deller@gmx.de,david@kernel.org,davem@davemloft.net,dave.hansen@linux.intel.com,daniel@iogearbox.net,corbet@lwn.net,chrisl@kernel.org,chengming.zhou@linux.dev,catalin.marinas@arm.com,byungchul@sk.com,brauner@kernel.org,bp@alien8.de,borntraeger@linux.ibm.com,baoquan.he@linux.dev,baolin.wang@linux.alibaba.com,baohua@kernel.org,axelrasmussen@google.com
  ,ast@kernel.org,arnd@arndb.de,apopple@nvidia.com,aou@eecs.berkeley.edu,anup@brainfault.org,aneesh.kumar@kernel.org,andrii@kernel.org,andreas@gaisler.com,airlied@gmail.com,agordeev@linux.ibm.com,acme@kernel.org,ljs@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-vma-tidy-up-map-kernel-pages-enum-values.patch removed from -mm tree
-Message-Id: <20261024085923.60B1A1F01825@smtp.kernel.org>
+Subject: [merged mm-stable] mm-assert-mmap-lock-held-use-new-flags-api-in-vm_insert_page.patch removed from -mm tree
+Message-Id: <20261024085925.14B8C1F01825@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -53,40 +53,38 @@ Precedence: list
 
 
 The quilt patch titled
-     Subject: mm/vma: tidy up map kernel pages enum values
+     Subject: mm: assert mmap lock held, use new flags API in vm_insert_page[s]
 has been removed from the -mm tree.  Its filename was
-     mm-vma-tidy-up-map-kernel-pages-enum-values.patch
+     mm-assert-mmap-lock-held-use-new-flags-api-in-vm_insert_page.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: "Lorenzo Stoakes (ARM)" <ljs@kernel.org>
-Subject: mm/vma: tidy up map kernel pages enum values
-Date: Tue, 13 Oct 2026 16:04:46 +0100
+Subject: mm: assert mmap lock held, use new flags API in vm_insert_page[s]
+Date: Tue, 13 Oct 2026 16:04:47 +0100
 
-MMAP_MAP_KERNEL_PAGES is a mouthful, discard the MAP_ as that's implied by
-MMAP.
+The existing logic asserts that an mmap write lock is held, bizarrely, by
+asserting that an mmap_read_trylock() fails (which is not the same thing).
 
-Also while we're here delete useless comments for mmap actions whose names
-clearly indicate what they are for.
+Assert the mmap write lock here and switch to using the new VMA flags API
+while here.
 
-Also update the userland VMA tests to reflect this change.
+Note that the vma_start_write() is explicitly broken out from
+vm_flags_set() here in order to use vma_set_flags() safely.
 
-No functional change intended.
-
-Link: https://lore.kernel.org/20261013-b4-mmap-prepare-vma-flag-sanify-v6-6-1aa3c9b139f9@kernel.org
+Link: https://lore.kernel.org/20261013-b4-mmap-prepare-vma-flag-sanify-v6-7-1aa3c9b139f9@kernel.org
 Signed-off-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Reviewed-by: Suren Baghdasaryan <surenb@google.com>
-Reviewed-by: Zi Yan <ziy@nvidia.com>
-Reviewed-by: Gregory Price (Meta) <gourry@gourry.net>
 Acked-by: David Hildenbrand (Arm) <david@kernel.org>
+Reviewed-by: Gregory Price (Meta) <gourry@gourry.net>
 Cc: Liam R. Howlett <liam@infradead.org>
 Cc: Vlastimil Babka <vbabka@kernel.org>
 Cc: Jann Horn <jannh@google.com>
 Cc: Pedro Falcato <pfalcato@suse.de>
 Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Suren Baghdasaryan <surenb@google.com>
 Cc: Michal Hocko <mhocko@suse.com>
 Cc: Jonathan Corbet <corbet@lwn.net>
 Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
@@ -102,6 +100,7 @@ Cc: Daniel Borkmann <daniel@iogearbox.net>
 Cc: Andrii Nakryiko <andrii@kernel.org>
 Cc: Eduard Zingerman <eddyz87@gmail.com>
 Cc: Kumar Kartikeya Dwivedi <memxor@gmail.com>
+Cc: Zi Yan <ziy@nvidia.com>
 Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
 Cc: Nico Pache <nico.pache@linux.dev>
 Cc: Ryan Roberts <ryan.roberts@arm.com>
@@ -189,97 +188,43 @@ Cc: Ihor Solodrai <ihor.solodrai@linux.dev>
 Cc: Bert Karwatzki <spasswolf@web.de>
 ---
 
- include/linux/mm.h              |    2 +-
- include/linux/mm_types.h        |    8 ++++----
- mm/util.c                       |    8 ++++----
- tools/testing/vma/include/dup.h |    8 ++++----
- 4 files changed, 13 insertions(+), 13 deletions(-)
+ mm/memory.c |   18 ++++++++++--------
+ 1 file changed, 10 insertions(+), 8 deletions(-)
 
---- a/include/linux/mm.h~mm-vma-tidy-up-map-kernel-pages-enum-values
-+++ a/include/linux/mm.h
-@@ -4630,7 +4630,7 @@ static inline void mmap_action_map_kerne
+--- a/mm/memory.c~mm-assert-mmap-lock-held-use-new-flags-api-in-vm_insert_page
++++ a/mm/memory.c
+@@ -2599,10 +2599,11 @@ int vm_insert_pages(struct vm_area_struc
+ 
+ 	if (!range_in_vma(vma, addr, end))
+ 		return -EFAULT;
+-	if (!(vma->vm_flags & VM_MIXEDMAP)) {
+-		VM_WARN_ON_ONCE(mmap_read_trylock(vma->vm_mm));
+-		VM_WARN_ON_ONCE(vma->vm_flags & VM_PFNMAP);
+-		vm_flags_set(vma, VM_MIXEDMAP);
++	if (!vma_test(vma, VMA_MIXEDMAP_BIT)) {
++		mmap_assert_write_locked(vma->vm_mm);
++		VM_WARN_ON_ONCE(vma_test(vma, VMA_PFNMAP_BIT));
++		vma_start_write(vma);
++		vma_set_flags(vma, VMA_MIXEDMAP_BIT);
+ 	}
+ 	/* Defer page refcount checking till we're about to map that page. */
+ 	return insert_pages(vma, addr, pages, num, vma->vm_page_prot);
+@@ -2675,10 +2676,11 @@ int vm_insert_page(struct vm_area_struct
  {
- 	struct mmap_action *action = &desc->action;
- 
--	action->type = MMAP_MAP_KERNEL_PAGES;
-+	action->type = MMAP_KERNEL_PAGES;
- 	action->map_kernel.start = start;
- 	action->map_kernel.pages = pages;
- 	action->map_kernel.nr_pages = nr_pages;
---- a/include/linux/mm_types.h~mm-vma-tidy-up-map-kernel-pages-enum-values
-+++ a/include/linux/mm_types.h
-@@ -815,11 +815,11 @@ struct pfnmap_track_ctx {
- 
- /* What action should be taken after an .mmap_prepare call is complete? */
- enum mmap_action_type {
--	MMAP_NOTHING,		/* Mapping is complete, no further action. */
--	MMAP_REMAP_PFN,		/* Remap PFN range. */
--	MMAP_IO_REMAP_PFN,	/* I/O remap PFN range. */
-+	MMAP_NOTHING,
-+	MMAP_REMAP_PFN,
-+	MMAP_IO_REMAP_PFN,
- 	MMAP_SIMPLE_IO_REMAP,	/* I/O remap with guardrails. */
--	MMAP_MAP_KERNEL_PAGES,	/* Map kernel page range from array. */
-+	MMAP_KERNEL_PAGES,	/* Map kernel page range from array. */
- };
- 
- /*
---- a/mm/util.c~mm-vma-tidy-up-map-kernel-pages-enum-values
-+++ a/mm/util.c
-@@ -1467,7 +1467,7 @@ int mmap_action_prepare(struct vm_area_d
- 		return io_remap_pfn_range_prepare(desc);
- 	case MMAP_SIMPLE_IO_REMAP:
- 		return simple_ioremap_prepare(desc);
--	case MMAP_MAP_KERNEL_PAGES:
-+	case MMAP_KERNEL_PAGES:
- 		return map_kernel_pages_prepare(desc);
+ 	if (addr < vma->vm_start || addr >= vma->vm_end)
+ 		return -EFAULT;
+-	if (!(vma->vm_flags & VM_MIXEDMAP)) {
+-		BUG_ON(mmap_read_trylock(vma->vm_mm));
+-		BUG_ON(vma->vm_flags & VM_PFNMAP);
+-		vm_flags_set(vma, VM_MIXEDMAP);
++	if (!vma_test(vma, VMA_MIXEDMAP_BIT)) {
++		mmap_assert_write_locked(vma->vm_mm);
++		VM_WARN_ON_ONCE(vma_test(vma, VMA_PFNMAP_BIT));
++		vma_start_write(vma);
++		vma_set_flags(vma, VMA_MIXEDMAP_BIT);
  	}
- 
-@@ -1498,7 +1498,7 @@ int mmap_action_complete(struct vm_area_
- 	case MMAP_REMAP_PFN:
- 		err = remap_pfn_range_complete(vma, action);
- 		break;
--	case MMAP_MAP_KERNEL_PAGES:
-+	case MMAP_KERNEL_PAGES:
- 		err = map_kernel_pages_complete(vma, action);
- 		break;
- 	case MMAP_IO_REMAP_PFN:
-@@ -1521,7 +1521,7 @@ int mmap_action_prepare(struct vm_area_d
- 	case MMAP_REMAP_PFN:
- 	case MMAP_IO_REMAP_PFN:
- 	case MMAP_SIMPLE_IO_REMAP:
--	case MMAP_MAP_KERNEL_PAGES:
-+	case MMAP_KERNEL_PAGES:
- 		WARN_ON_ONCE(1); /* nommu cannot handle these. */
- 		break;
- 	}
-@@ -1542,7 +1542,7 @@ int mmap_action_complete(struct vm_area_
- 	case MMAP_REMAP_PFN:
- 	case MMAP_IO_REMAP_PFN:
- 	case MMAP_SIMPLE_IO_REMAP:
--	case MMAP_MAP_KERNEL_PAGES:
-+	case MMAP_KERNEL_PAGES:
- 		WARN_ON_ONCE(1); /* nommu cannot handle this. */
- 
- 		err = -EINVAL;
---- a/tools/testing/vma/include/dup.h~mm-vma-tidy-up-map-kernel-pages-enum-values
-+++ a/tools/testing/vma/include/dup.h
-@@ -454,11 +454,11 @@ static __always_inline bool vma_flags_em
- 
- /* What action should be taken after an .mmap_prepare call is complete? */
- enum mmap_action_type {
--	MMAP_NOTHING,		/* Mapping is complete, no further action. */
--	MMAP_REMAP_PFN,		/* Remap PFN range. */
--	MMAP_IO_REMAP_PFN,	/* I/O remap PFN range. */
-+	MMAP_NOTHING,
-+	MMAP_REMAP_PFN,
-+	MMAP_IO_REMAP_PFN,
- 	MMAP_SIMPLE_IO_REMAP,	/* I/O remap with guardrails. */
--	MMAP_MAP_KERNEL_PAGES,	/* Map kernel page range from an array. */
-+	MMAP_KERNEL_PAGES,	/* Map kernel page range from array. */
- };
- 
- /*
+ 	return insert_page(vma, addr, page, vma->vm_page_prot, false);
+ }
 _
 
 Patches currently in -mm which might be from ljs@kernel.org are
