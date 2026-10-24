@@ -1,45 +1,45 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1792832295;
-	b=C+dfD2FJa/BEsjf9ZYpadXxJ+lE8r1rFt3wnhzVK/eqOAP6DfABcm8iJLS2+VBH7VL3j
-	 j71aOkFIJqbg7HhDQSasD88dcJu4Q0NnnaqXjIuUlbtB/dibs74mDMifXEhPtjbk4CUp1
-	 dNKlo0wySVoE493zW12nCl+g4hMbD1lIdutIIln67qXTdGyRulbKW8OJLDIftNBDQhveD
-	 6bBpPcR3Yv4RpBpo4cN3/BwicVwyS6bRFJlkfyFVqCyhrpbCErgI2RJcTPO2oeRhOBzSJ
-	 PACVF4R/XRHyslRYJSm1LkFgMzhkLfRJzoWl9c7UEEhuBpolfbpR1DipXI3HDjazPTw==
+	t=1792832296;
+	b=Sc6Uy9bNqnmXCfUKH/mNi/E9ZxKDsj/j5DPz5Nl+IExWiOyD+Ymscw8qowuPat794XM+
+	 LutqCI3Pi+ialM4TWtfu4ee+zGQYcn39fIQJjza/wGMo8orJX3FyXsGQaKr9O0grOekKF
+	 mMtL0xLmvKv6EvSt/gzmkCFOxMlif5fPRwO3ZbYHGiBrfa1wU8+KBY0u48LgUXnJX9OrN
+	 bAPY9T7jfsk9/gBe8nyZJiLKoUwZZmTw2sjFscL8bmOHLF53e6gNSufFnei39waDH3xuJ
+	 W5hqBAuhH1kW5tI+2CWmZTyWCyvOv1g4vuQt7ZiypQyreLb5Z4xFoqRiTqRaXkpsooA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1792832295;
+	a=rsa-sha256; c=relaxed/relaxed; t=1792832296;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=Wo/DMeKubXo7l+8oEnRMzuSOVoV/x1+EMkQ2/fto2VA=;
-	b=H7HyS2iJ1d3mkJ2x7P+zLQafdB5MgDlkgtR3OkE9QZucxbaQ4eRBrhJ3ljYWidQLwRMc
-	 6ME08YZpTJo3nRrQK3Q+F64vjiOXSVBfQFPSptzkYkXCF5U21SgAT/Y+q6kywUR6GkTjE
-	 1RO+8aK2Be5oFyBLuSUWyewUrXLxhylYVWlBpJ5t9IMKXr7T2fu6VWAFj/oclzZV3XIoO
-	 GmlU9zu2quemPFI22QVx9hNXTVrsJn3M0nFJBdDTPxvAtuJbB51bPc30G/f6uw45nUNsi
-	 T+b+DC7hEPPNNnpDus8OMCEAxgXoaH2GJ66aSHe3D5RNalFMkur0XbeAauvL5O82/8w==
+	bh=YdMY538IelBtVnHgIbJ21YlpQr3ES6J5aZLPfKA2zwI=;
+	b=YHNmNIzp8r4q6A+Ut9RYHiZe/MDAlniM5O8ZXF9yCaIjBZ2q3viBPztknybkVulhayXJ
+	 EU5JLQxW06zUx6Wf5aJj+7/2c6lYv3KijNxngj75KoWncxi1YMPCczWWGmR7GlUgiWLGM
+	 fXyhxhxAg3CKiUPeNw5iJj21UWAEKllDkNwpM9R8eBMm8BP1KQRTOdkVCiZP+xweMkqEi
+	 SG9dXsvAx2aFZPfb83zI2IEy6vdklMDFseqG5QUMbKISzP00q0gMqz7+dC8zmPoYySrY+
+	 Asm98lLNJGz465hrfu28fnlYHqSBcyTdunle443DJtqL7N6I1s9t81DvLQSzrQEADjg==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=C81v0lF2;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b="Trj/4o4k";
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 24F43606A31D
-	for <mm-commits@vger.kernel.org>; Sat, 24 Oct 2026 08:58:15 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2E1A5606A31F
+	for <mm-commits@vger.kernel.org>; Sat, 24 Oct 2026 08:58:16 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=C81v0lF2
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E37021F01825;
-	Sat, 24 Oct 2026 08:58:14 +0000 (UTC)
+	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=Trj/4o4k
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id ED3541F01828;
+	Sat, 24 Oct 2026 08:58:15 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1792832295;
-	bh=Wo/DMeKubXo7l+8oEnRMzuSOVoV/x1+EMkQ2/fto2VA=;
+	d=linux-foundation.org; s=korg; t=1792832296;
+	bh=YdMY538IelBtVnHgIbJ21YlpQr3ES6J5aZLPfKA2zwI=;
 	h=Date:To:From:Subject;
-	b=C81v0lF2UNw5NB4ae+PPzwiGHYhTZw56eRYHqVATn/9bs8dpdAJhNBFGzEArY8plx
-	 tyOa4VrhX1EIQkIODlU4ECbDjCOFEuxc/pxOYXZHU6k64nQsdzhXVvQu0TvQwonYnP
-	 IVGJohgVWq2U7n0f8i4yEmHhA0eqitqZzJSM54TM=
-Date: Sat, 24 Oct 2026 01:58:14 -0700
-To: mm-commits@vger.kernel.org,sj@kernel.org,zenghui.yu@linux.dev,akpm@linux-foundation.org
+	b=Trj/4o4kiWH+ufUoCPQ7cUSo2r3t79pNIAuwd236F5Opd9c2/NMKsi9CTHtmVrY+8
+	 ei4E3vhG/yLxj8sOVXiC8e8pL7gUKjh58RJkNgiYEWRGextqOe4UbHpmaELHOEEqGG
+	 xShbQWiYBdc1Gg1OBiaie3vAPNtHfzIfhnhImBT4=
+Date: Sat, 24 Oct 2026 01:58:15 -0700
+To: mm-commits@vger.kernel.org,sj@kernel.org,ravis.opensrc@gmail.com,ndesaulniers@google.com,nathan@kernel.org,morbo@google.com,justinstitt@google.com,arnd@arndb.de,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-damon-api-remove-unused-nr_damos_-enumerators.patch removed from -mm tree
-Message-Id: <20261024085814.E37021F01825@smtp.kernel.org>
+Subject: [merged mm-stable] mm-damon-core-reduce-stack-usage-further.patch removed from -mm tree
+Message-Id: <20261024085815.ED3541F01828@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -51,97 +51,87 @@ Precedence: list
 
 
 The quilt patch titled
-     Subject: mm/damon/api: remove unused NR_DAMOS_* enumerators
+     Subject: mm/damon/core: reduce stack usage further
 has been removed from the -mm tree.  Its filename was
-     mm-damon-api-remove-unused-nr_damos_-enumerators.patch
+     mm-damon-core-reduce-stack-usage-further.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: "Zenghui Yu (Huawei)" <zenghui.yu@linux.dev>
-Subject: mm/damon/api: remove unused NR_DAMOS_* enumerators
-Date: Mon, 28 Sep 2026 01:39:55 -0700
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: mm/damon/core: reduce stack usage further
+Date: Mon, 28 Sep 2026 01:39:56 -0700
 
-Patch series "mm/damon/core: cleanup code, reduce stack usage, and add
-kunit".
+In a previous patch, I had annotated kdamond_tune_intervals() as
+noinline_for_stack in order to not exceed the stack frame warning limit. 
+Unfortunately, my current linux-next randconfig builds show a similar
+problem again with clang-21:
 
-Three various improvements.  Patch 1 from Zenghui Yu (Huawei) cleans up
-unused enums.  Patch 2 from Arnd Bergmann reduces kdamond's stack usage. 
-Patch 3 from Karl Mehltretter adds a kunit test for uninitialized PSI
-quota goal stage logic.
+mm/damon/core.c:3953:12: error: stack frame size (1288) exceeds limit (1280) in 'kdamond_fn' [-Werror,-Wframe-larger-than]
+ 3953 | static int kdamond_fn(void *data)
 
+Do the same thing with kdamond_apply_schemes(), kdamond_merge_regions(),
+and kdamond_split_regions(), which also have individually large stacks. 
+This should work to keep the deepest total stack depth down much more as
+well as avoid the warning.
 
-This patch (of 3):
+I also tried to reduce the complexity of kdamond_fn() itself by splitting
+out the while() loop into a separate function.  While this arguably led to
+slightly more readable code, it had no effect on the total stack usage and
+just made the new function the largest stack user and had a nonzero risk
+of me getting the conversion wrong.
 
-NR_DAMOS_ACTIONS, NR_DAMOS_QUOTA_GOAL_METRICS, and NR_DAMOS_WMARK_METRICS
-are not referenced by any code.  Remove them.
-
-They can be reintroduced if a real user comes up.
-
-Link: https://lore.kernel.org/20260928083959.4030-1-sj@kernel.org
-Link: https://lore.kernel.org/20260928083959.4030-2-sj@kernel.org
-Signed-off-by: Zenghui Yu (Huawei) <zenghui.yu@linux.dev>
+Link: https://lore.kernel.org/20260928083959.4030-3-sj@kernel.org
+Fixes: 5a00cae64de1 ("mm/damon/core: reduce kernel stack usage")
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
 Signed-off-by: SJ Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 Reviewed-by: SJ Park <sj@kernel.org>
+Cc: Nick Desaulniers <ndesaulniers@google.com>
+Cc: Bill Wendling <morbo@google.com>
+Cc: Justin Stitt <justinstitt@google.com>
+Cc: Ravi Jonnalagadda <ravis.opensrc@gmail.com>
+Cc: Nathan Chancellor <nathan@kernel.org>
 ---
 
- include/linux/damon.h |    8 --------
- 1 file changed, 8 deletions(-)
+ mm/damon/core.c |    9 +++++----
+ 1 file changed, 5 insertions(+), 4 deletions(-)
 
---- a/include/linux/damon.h~mm-damon-api-remove-unused-nr_damos_-enumerators
-+++ a/include/linux/damon.h
-@@ -117,7 +117,6 @@ struct damon_target {
-  * @DAMOS_MIGRATE_HOT:  Migrate the regions prioritizing warmer regions.
-  * @DAMOS_MIGRATE_COLD:	Migrate the regions prioritizing colder regions.
-  * @DAMOS_STAT:		Do nothing but count the stat.
-- * @NR_DAMOS_ACTIONS:	Total number of DAMOS actions
-  *
-  * The support of each action is up to running &struct damon_operations.
-  * Refer to 'Operation Action' section of Documentation/mm/damon/design.rst for
-@@ -137,7 +136,6 @@ enum damos_action {
- 	DAMOS_MIGRATE_HOT,
- 	DAMOS_MIGRATE_COLD,
- 	DAMOS_STAT,		/* Do nothing but only record the stat */
--	NR_DAMOS_ACTIONS,
- };
+--- a/mm/damon/core.c~mm-damon-core-reduce-stack-usage-further
++++ a/mm/damon/core.c
+@@ -3433,7 +3433,7 @@ static void damos_trace_stat(struct damo
+ 	trace_call__damos_stat_after_apply_interval(cidx, sidx, &s->stat);
+ }
  
- /**
-@@ -154,9 +152,6 @@ enum damos_action {
-  * @DAMOS_QUOTA_NODE_ELIGIBLE_MEM_BP:	Scheme-eligible memory ratio of a
-  *					node in basis points (0-10000).
-  * @DAMOS_QUOTA_HUGEPAGE_MEM_BP:	Huge page to total used memory ratio.
-- * @NR_DAMOS_QUOTA_GOAL_METRICS:	Number of DAMOS quota goal metrics.
-- *
-- * Metrics equal to larger than @NR_DAMOS_QUOTA_GOAL_METRICS are unsupported.
+-static void kdamond_apply_schemes(struct damon_ctx *c)
++static noinline_for_stack void kdamond_apply_schemes(struct damon_ctx *c)
+ {
+ 	struct damon_target *t;
+ 	struct damos *s;
+@@ -3589,8 +3589,9 @@ set_prev_continue:
+  * while DAMON is running.  For such a case, repeat merging until the limit is
+  * met while increasing @threshold up to possible maximum level.
   */
- enum damos_quota_goal_metric {
- 	DAMOS_QUOTA_USER_INPUT,
-@@ -169,7 +164,6 @@ enum damos_quota_goal_metric {
- 	DAMOS_QUOTA_INACTIVE_MEM_BP,
- 	DAMOS_QUOTA_NODE_ELIGIBLE_MEM_BP,
- 	DAMOS_QUOTA_HUGEPAGE_MEM_BP,
--	NR_DAMOS_QUOTA_GOAL_METRICS,
- };
- 
- /**
-@@ -313,12 +307,10 @@ struct damos_quota {
-  *
-  * @DAMOS_WMARK_NONE:		Ignore the watermarks of the given scheme.
-  * @DAMOS_WMARK_FREE_MEM_RATE:	Free memory rate of the system in [0,1000].
-- * @NR_DAMOS_WMARK_METRICS:	Total number of DAMOS watermark metrics
+-static void kdamond_merge_regions(struct damon_ctx *c, unsigned int threshold,
+-				  unsigned long sz_limit)
++static noinline_for_stack void kdamond_merge_regions(struct damon_ctx *c,
++						     unsigned int threshold,
++						     unsigned long sz_limit)
+ {
+ 	struct damon_target *t;
+ 	unsigned int nr_regions;
+@@ -3734,7 +3735,7 @@ static void damon_split_some_regions(str
+  * split was unnecessarily made, later 'kdamond_merge_regions()' will revert
+  * it.
   */
- enum damos_wmark_metric {
- 	DAMOS_WMARK_NONE,
- 	DAMOS_WMARK_FREE_MEM_RATE,
--	NR_DAMOS_WMARK_METRICS,
- };
- 
- /**
+-static void kdamond_split_regions(struct damon_ctx *ctx)
++static noinline_for_stack void kdamond_split_regions(struct damon_ctx *ctx)
+ {
+ 	struct damon_target *t;
+ 	unsigned long nr_regions = 0;
 _
 
-Patches currently in -mm which might be from zenghui.yu@linux.dev are
+Patches currently in -mm which might be from arnd@arndb.de are
 
-mm-page_alloc-mark-pages-freed-by-__free_pages_core-as-not-tagged.patch
 
