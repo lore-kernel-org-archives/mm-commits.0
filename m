@@ -1,45 +1,45 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1792832524;
-	b=kJ/Btm0YpPivWJsEQw3/qhGKTWvTzQKHswbwUCEYZhGrSigP9vU90f9002Jlj/9Y+V60
-	 LkIK51kY9GkaEJGra6buDTGSdCNKjpraagOQqzvgF4gmVIOxNzeM4cVtVmMoHdVl4u2zg
-	 8Tk2AexdcKe5kwRIlNe5qYGZcNblLQhsP+j1XmOt5XtIBa3AbvlcHC2ykDJpgA0tZ5RVG
-	 d7sKUErQqKjFzrZsiRoWMAIFgEcShcz4EdJritwMKpRIa2a61wKBDOKnewgrDSpbA+Lnn
-	 lknViPCXebb0d+OLPUbp4EPQy78zv8syzxetZY58vi3i4E0QfzTI7KdUhqDzS4sZqzw==
+	t=1792832525;
+	b=2QC10bxdb5VuoDnGtidaqSrUhnW1XFDMBRrJEqgcasQAFsQS0lBApVmNo3gdO3Qx9FUU
+	 6Cp4CgKPtA+QcFde4ipM41Py6Fk7IXrR4tAaph50UBm/9kAOmiz/gtIyR5/8+w+m95chO
+	 UvhznxJm5wcROAmLFYnCxpxVto+CYVBioeAtlpfe1BcHhEcu9JxQ33eNsw5L4EOWiTjk1
+	 oFbSZDIC86F7FY3mS/w+ka/cRSFD49ottpA19ZnRLML1Kg0HJqwLNJofmG6cqoweF5vJe
+	 8W3WzmFx4kYVg7XL8NRtOb4J1Q3p8/tEUWIhkkZyaPRK7OieDY7GJNq1fvXbvK3lgYA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1792832524;
+	a=rsa-sha256; c=relaxed/relaxed; t=1792832525;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=SFvAXxcSF1Q85gFAmHMLpIMTLkpfJVjn6yHq4hs+cms=;
-	b=D9v1/Ncj3YTgKUx4e0BcgRJ+qq3KLpgK2qVhG9g6EozYJ+GZF2yXBd36JT1Shkg6KZeM
-	 I1K9zWDbvrqNVlwO1RBg1KN77vnyzkhnTBzy98I9nCZ998QCjuK2KietcYehf5eXtIO+9
-	 nx6cxVdfMPINllReU+Sz2T8gnWPKU6nal6EwHfrZZ+vtGSr0BuUBbdI7EDXAahikuMvMS
-	 wW+ABac4nB2r65X1mzY/GEvif99BW3j8thZcodYfixdyf642Rv6pE9dVOEb/pjqlGW2X1
-	 irrh6TclIS27QhBqWsvoibPt7g/PZFlbXOa6F9LO8J5p0Fb0LsBojcZvDGHbiM1BG4w==
+	bh=l2u8mGopkPdQ+jQDqoLo+GPHsLxMcppQlKQwsUr8oKQ=;
+	b=3VabakvLuRu05+JJBrhhThOlLOFIPtIGx1MRZAVXJTSmR7dJ1aGvqMjxC1LNGCU986U+
+	 MkTbtMyu5+jBchwIVRubpsiITeNMFvBP0BMCI/sPxUVVWzN/qdYOooU165nlouGBeYFf2
+	 CB97u3+d1ZzLCMYdUGx4F7cd/mE7yzq+B6kp0nfDCmzxETu9zsYJDl3NxM6zOzmJU57wy
+	 gcVAznpbNHW9cAm00Y08I2IJqiOSyRHnxIpScvCRdRBK+5lAomiHsHkDCNAd61udjOYv3
+	 apXGI+FB1wYRoIA4qvANsqiL6CARAGBMoGkhxcwKQNlP3FPw45MocFeb+3P3Go3IbOQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=URI5CbAl;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=nhsh3zFN;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E1A73606A31A
-	for <mm-commits@vger.kernel.org>; Sat, 24 Oct 2026 09:02:03 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8FFC3606A31A;
+	Sat, 24 Oct 2026 09:02:05 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=URI5CbAl
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id AEACB1F01825;
-	Sat, 24 Oct 2026 09:02:03 +0000 (UTC)
+	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=nhsh3zFN
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 25A6B1F01825;
+	Sat, 24 Oct 2026 09:02:05 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1792832523;
-	bh=SFvAXxcSF1Q85gFAmHMLpIMTLkpfJVjn6yHq4hs+cms=;
+	d=linux-foundation.org; s=korg; t=1792832525;
+	bh=l2u8mGopkPdQ+jQDqoLo+GPHsLxMcppQlKQwsUr8oKQ=;
 	h=Date:To:From:Subject;
-	b=URI5CbAlkEHkdYEgHoq8YPfFNfSZ40q23JHxoXpeaxPnCN/rSqUarUibAPnSiPWB3
-	 rKjOZf7ofz456CrqGheIWGa1rWq708DkJVWnZcNHsGRXZV4LBIZBGJ+q3eCdwFX5Fk
-	 /AcmudLL2IerIplJ8Z/SuJkAn/fODt9gsvz5myKk=
-Date: Sat, 24 Oct 2026 02:02:03 -0700
-To: mm-commits@vger.kernel.org,vbabka@kernel.org,surenb@google.com,sshegde@linux.ibm.com,rppt@kernel.org,ritesh.list@gmail.com,qi.zheng@linux.dev,npiggin@gmail.com,mpe@ellerman.id.au,mhocko@suse.com,maddy@linux.ibm.com,ljs@kernel.org,liam@infradead.org,lance.yang@linux.dev,david@kernel.org,chleroy@kernel.org,muchun.song@linux.dev,akpm@linux-foundation.org
+	b=nhsh3zFNsRjSYuXPDWN5PpTech+Nr0hdUCzhL0BpjrLQI3uF+ytDZ7vnJNS2WNbcB
+	 vDGZFk/ySNFMxlkFZrKGfnI3bsWKlQ7c4eJC4yk98SwHdOpzB55U10uykHVyrjjdWq
+	 r0uiTnYEFTrSQBn3sWCNcVKWtytkDiIhLM5CBeyo=
+Date: Sat, 24 Oct 2026 02:02:04 -0700
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,vbabka@kernel.org,surenb@google.com,stable@vger.kernel.org,shakeel.butt@linux.dev,qi.zheng@linux.dev,mhocko@suse.com,ljs@kernel.org,kasong@tencent.com,hannes@cmpxchg.org,fvdl@google.com,dev.jain@arm.com,david@kernel.org,brendan.jackman@linux.dev,baoquan.he@linux.dev,riel@surriel.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-mm_init-add-zone-mismatch-warning-during-page-init.patch removed from -mm tree
-Message-Id: <20261024090203.AEACB1F01825@smtp.kernel.org>
+Subject: [merged mm-stable] mm-page_alloc-count-guard-pages-as-free-again-when-their-buddy-merges.patch removed from -mm tree
+Message-Id: <20261024090205.25A6B1F01825@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -51,84 +51,95 @@ Precedence: list
 
 
 The quilt patch titled
-     Subject: mm/mm_init: add zone mismatch warning during page init
+     Subject: mm/page_alloc: count guard pages as free again when their buddy merges
 has been removed from the -mm tree.  Its filename was
-     mm-mm_init-add-zone-mismatch-warning-during-page-init.patch
+     mm-page_alloc-count-guard-pages-as-free-again-when-their-buddy-merges.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Muchun Song <muchun.song@linux.dev>
-Subject: mm/mm_init: add zone mismatch warning during page init
-Date: Sat, 10 Oct 2026 15:57:55 +0800
+From: Rik van Riel <riel@surriel.com>
+Subject: mm/page_alloc: count guard pages as free again when their buddy merges
+Date: Fri, 16 Oct 2026 12:23:04 -0400
 
-For vmemmap-optimized sections, tail struct pages may be backed by shared
-vmemmap pages.  Those shared pages must carry the same page zone ID as the
-struct pages initialized for the section.
+With debug_guardpage_minorder set, expand() turns the unused halves of a
+split into guard pages, which page_del_and_expand() leaves out of the free
+counts.  Freeing the allocated half credits only that half, and
+__free_one_page() then merges the guard buddy with clear_page_guard(),
+which no longer touches the counters.
 
-Warn in __init_single_page() if the shared tail page has a different
-page_zone_id(), which would indicate inconsistent initialization.
+The merged block goes on a free list with the guard pages never counted,
+so NR_FREE_PAGES falls behind the free lists by every guard that merges. 
+Before commit e0932b6c1f94 ("mm: page_alloc: consolidate free page
+accounting"), __set_page_guard() and __clear_page_guard() adjusted the
+counts themselves; that commit dropped both adjustments but kept the
+subtraction implicit in expand().
 
-[muchun.song@linux.dev: document ordering of shared and retained struct page initialization]
-  Link: https://lore.kernel.org/20261010115523.4005071-1-songmuchun@bytedance.com
-Link: https://lore.kernel.org/20261010075755.83339-7-songmuchun@bytedance.com
-Signed-off-by: Muchun Song <muchun.song@linux.dev>
+Count the guard pages under the merged block's migratetype when the buddy
+is cleared.  account_freepages() skips an isolated block as it does for
+every other free page, and moving the block off the isolated list counts
+it then.
+
+Booting a 16GB VM with debug_pagealloc=on debug_guardpage_minorder=1,
+check the difference in free pages reported between /proc/vmstat and
+/proc/buddyinfo.
+
+At three points (idle, after a read and file-creation load, after a second
+load), check the difference between nr_free_pages and the buddyinfo
+numbers in the normal zone, as a number of pages:
+
+                idle   after load   after second load
+    unpatched   -130        79205               99121
+    patched      -16           45                   0
+
+The small remaining difference seems to be due to the numbers not being
+read at exactly the same time, and is also seen without guard pages.
+
+Link: https://lore.kernel.org/20261016122304.5b1eba8e@fangorn
+Fixes: e0932b6c1f94 ("mm: page_alloc: consolidate free page accounting")
+Signed-off-by: Rik van Riel <riel@surriel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Reviewed-by: Lance Yang <lance.yang@linux.dev>
-Acked-by: Qi Zheng <qi.zheng@linux.dev>
-Cc: Madhavan Srinivasan <maddy@linux.ibm.com>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: David Hildenbrand <david@kernel.org>
-Cc: Michael Ellerman <mpe@ellerman.id.au>
-Cc: Nicholas Piggin <npiggin@gmail.com>
-Cc: Christophe Leroy <chleroy@kernel.org>
-Cc: Ritesh Harjani (IBM) <ritesh.list@gmail.com>
-Cc: Shrikanth Hegde <sshegde@linux.ibm.com>
-Cc: Lorenzo Stoakes <ljs@kernel.org>
-Cc: Liam R. Howlett <liam@infradead.org>
-Cc: Vlastimil Babka <vbabka@kernel.org>
+Reviewed-by: Zi Yan <ziy@nvidia.com>
+Reviewed-by: Johannes Weiner <hannes@cmpxchg.org>
+Reviewed-by: Dev Jain <dev.jain@arm.com>
+Reviewed-by: Vlastimil Babka (SUSE) <vbabka@kernel.org>
+Assisted-by: LLM
 Cc: Suren Baghdasaryan <surenb@google.com>
 Cc: Michal Hocko <mhocko@suse.com>
+Cc: Brendan Jackman <brendan.jackman@linux.dev>
+Cc: Kairui Song <kasong@tencent.com>
+Cc: Qi Zheng <qi.zheng@linux.dev>
+Cc: Shakeel Butt <shakeel.butt@linux.dev>
+Cc: Baoquan He <baoquan.he@linux.dev>
+Cc: David Hildenbrand <david@kernel.org>
+Cc: Lorenzo Stoakes <ljs@kernel.org>
+Cc: Frank van der Linden <fvdl@google.com>
+Cc: <stable@vger.kernel.org>
 ---
 
- mm/mm_init.c |   14 ++++++++++++++
- 1 file changed, 14 insertions(+)
+ mm/page_alloc.c |    6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
---- a/mm/mm_init.c~mm-mm_init-add-zone-mismatch-warning-during-page-init
-+++ a/mm/mm_init.c
-@@ -593,6 +593,15 @@ out:
- 	node_states[N_MEMORY] = saved_node_state;
- }
+--- a/mm/page_alloc.c~mm-page_alloc-count-guard-pages-as-free-again-when-their-buddy-merges
++++ a/mm/page_alloc.c
+@@ -971,10 +971,12 @@ static inline void __free_one_page(struc
+ 		 * Our buddy is free or it is CONFIG_DEBUG_PAGEALLOC guard page,
+ 		 * merge with it and move up one order.
+ 		 */
+-		if (page_is_guard(buddy))
++		if (page_is_guard(buddy)) {
+ 			clear_page_guard(zone, buddy, order);
+-		else
++			account_freepages(zone, 1 << order, migratetype);
++		} else {
+ 			__del_page_from_free_list(buddy, zone, order, buddy_mt);
++		}
  
-+static inline void vmemmap_optimization_verify_zone(struct page *page)
-+{
-+	const unsigned int order = pfn_to_section_compound_order(page_to_pfn(page));
-+
-+	VM_WARN_ON_ONCE(vmemmap_optimizable_order(order) &&
-+			page_zone_id(page + VMEMMAP_OPTIMIZATION_NR_STRUCT_PAGES) !=
-+			page_zone_id(page));
-+}
-+
- void __meminit __init_single_page(struct page *page, unsigned long pfn,
- 				unsigned long zone, int nid)
- {
-@@ -609,6 +618,11 @@ void __meminit __init_single_page(struct
- 	if (!is_highmem_idx(zone))
- 		set_page_address(page, __va(pfn << PAGE_SHIFT));
- #endif
-+	/*
-+	 * Shared tail struct pages are initialized during vmemmap population,
-+	 * before retained struct pages reach here.
-+	 */
-+	vmemmap_optimization_verify_zone(page);
- }
- 
- #ifdef CONFIG_NUMA
+ 		if (unlikely(buddy_mt != migratetype)) {
+ 			/*
 _
 
-Patches currently in -mm which might be from muchun.song@linux.dev are
+Patches currently in -mm which might be from riel@surriel.com are
 
-mm-fix-missing-page-table-destructor-in-pagetable_free.patch
-arm64-mm-fix-destructor-for-unconstructed-hotplug-page-tables.patch
 
