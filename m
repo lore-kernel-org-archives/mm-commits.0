@@ -1,45 +1,45 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1792832546;
-	b=SoRKT7Dd9cr6I8cWEjZMYUwmozN/duIiPRA9NITEcRe8ty1Q7PDUG1pzXXgYI/wWAmzP
-	 57XZT08ALoLgktWe1DJ5R3uoNLtunkzoGLvpeAKMgtJJspmkmZHkurkKMm6s6oThEnNJb
-	 Q978+nfP/P5je1VZ9wer9md/7I12RgcuNImWRNJSx7tkkEUg4orwwJUsHn16EMdZHIaot
-	 3KNM85lGTaRhOl9tyVO08VC34rAuuh050DDjrmyh9slkp5RXTw389DInPqEpJOmMpjJlI
-	 WLdTt5xAKRY5HOQTRc7lDmWgBjyKWFUYLL837qojdUri9TjFYENXevWwL3kEtf/5WXw==
+	t=1792832547;
+	b=ntqpHAfKeaz1aCBqjpR6GEKgc8BcKPH8JdrOMM0jnq0bP3jfavOX04KKDWKkB0dXGD/y
+	 3AiyaNyAuj6PXIEZBBiYjtm1BZIR3C+1+91k1p//h3r2iYPtlNzz0sxk75TUsHqmIrgtH
+	 3bx/cJ3waL7X5IywNRDp7a0BWtl54CykVTqUKevQlXyF8lH6ge3CAuvWvk/PLLCdgQq7H
+	 oCPe9EroBxifvhrHZTiqbicG35V7fJvK6CHziogIc5DVSD2/kXl3BOJ5PxA+FJ6l0USN/
+	 aFBn2BvA+zXIGDoXxcUF8+TMQjPO+5z9xYPoVbEumykbixtxaO+b8vrLKqpX2n+QBLQ==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1792832546;
+	a=rsa-sha256; c=relaxed/relaxed; t=1792832547;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=6FVWlHKcb3besqV5jSe/ua12u0jjZBFyPw/5MStChEk=;
-	b=wlew4QDjo31fOa+X2IJ8ts9IOGPEdKeXzNnmUBRRL8j74jKK9JwJMsEBBhtUbF2L1go7
-	 8iL71MHJbRIFyMghDS6LK3zPpBlDTB+8g/FmMzAdeoKt4V1ezkCHlMv2M2F5ZuJkEpllT
-	 SLwPwPBOS3FOei9j/WEzFDPk77xTh18ZTiajS+Y6F2512rVdRJI91YT9tKimEBgZ948r3
-	 7yAwhyjNxvM7MoaAfdURJ0J3hmoh86+HuV0MmBr6kSyZ5Q5Hv+oI/JR+4THW8tEbEZ1Aa
-	 SdWitDL+jjNnJCwczUanHPuXPCH/2ucqLsKCrFXfowNg3ta+w9/a92tiIN0sgL7St/A==
+	bh=iUo6ymcKEQ9FU4/7EjDqrNF8XEJe3qAm0et8Q7TSmVM=;
+	b=RKnMAd8JSPa2/kzfEjTZPp1QcC50N6ZOKrA10n7mcO9W+QMQofkE0OIQXV2J4DK9SyAG
+	 kik9o2dnostJKAsy73Io9VIb0jjpJdExT0yY6JN8GOqqiiCIKhCwObDOwkbK3SJ14hv2l
+	 Kp1mH7TT7S+pAxvfwZK4ysESj5/mNKFobrBolTKJZOHA+5OEjfYZpQUshcTmm2PRSwmHf
+	 xigF9MXi48JeG1kyyT1kNg/yn/F5/QO97Ofr90yiG3n8nnQaRThhTxgh/hTZeZ15BQfd7
+	 oM1hrKcQLt+CwnfNRawsdhuTnaJiu3wWulcAGX6rDl6KDL3uMIAYRmnzNHq7HgS6mBw==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=yIrWU788;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=Ej5UqQVr;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6D8D6606A31F
-	for <mm-commits@vger.kernel.org>; Sat, 24 Oct 2026 09:02:26 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 77ACA606A31F
+	for <mm-commits@vger.kernel.org>; Sat, 24 Oct 2026 09:02:27 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=yIrWU788
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 352911F01828;
-	Sat, 24 Oct 2026 09:02:26 +0000 (UTC)
+	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=Ej5UqQVr
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 41A641F01828;
+	Sat, 24 Oct 2026 09:02:27 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1792832546;
-	bh=6FVWlHKcb3besqV5jSe/ua12u0jjZBFyPw/5MStChEk=;
+	d=linux-foundation.org; s=korg; t=1792832547;
+	bh=iUo6ymcKEQ9FU4/7EjDqrNF8XEJe3qAm0et8Q7TSmVM=;
 	h=Date:To:From:Subject;
-	b=yIrWU788kYgGGT5+GKeijZ/ksH9hM+EHESXRpHLroghGQcUb2dgk4CyiEGFjwCPLT
-	 TtjnLZLfLX7+bnEf4nQFIX2p0fyQYNUJ+edt0TTH0k8pqotLUsmTtCMaIFpqVpt+r/
-	 OeIPJoDyCPFoSvo05j3lrOxYvDoNGrPCWmDEMKHY=
-Date: Sat, 24 Oct 2026 02:02:25 -0700
-To: mm-commits@vger.kernel.org,willy@infradead.org,surenb@google.com,liam@infradead.org,florian.schmaus@codasip.com,andrewjballance@gmail.com,aliceryhl@google.com,dchar@cslab.ece.ntua.gr,akpm@linux-foundation.org
+	b=Ej5UqQVr+JRDKd7TPuySbIVXhMaTmghICkdG/aSVABnDLUOnPFOUNA0Nh5N044nmW
+	 lmbdZ6Bc8sWvvuFAOnOpbLr0cldflfjyyTpMpWXTtVIWP2GVgalesnm9RRYBXRpfa6
+	 4invfjQh9qY4WZODCJH9Pn3I4U6UjudVLHd6DNzM=
+Date: Sat, 24 Oct 2026 02:02:26 -0700
+To: mm-commits@vger.kernel.org,shakeel.butt@linux.dev,roman.gushchin@linux.dev,muchun.song@linux.dev,mhocko@kernel.org,hannes@cmpxchg.org,joshua.hahnjy@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] test_maple_tree-test-maple_range_64-node-in-rcu-mode.patch removed from -mm tree
-Message-Id: <20261024090226.352911F01828@smtp.kernel.org>
+Subject: [merged mm-stable] mm-memcontrol-publish-null-pointer-before-dropping-css-reference.patch removed from -mm tree
+Message-Id: <20261024090227.41A641F01828@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -51,92 +51,107 @@ Precedence: list
 
 
 The quilt patch titled
-     Subject: test_maple_tree: test maple_range_64 node in RCU mode
+     Subject: mm/memcontrol: publish null pointer before dropping css reference
 has been removed from the -mm tree.  Its filename was
-     test_maple_tree-test-maple_range_64-node-in-rcu-mode.patch
+     mm-memcontrol-publish-null-pointer-before-dropping-css-reference.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Dimitris Charisis <dchar@cslab.ece.ntua.gr>
-Subject: test_maple_tree: test maple_range_64 node in RCU mode
-Date: Mon, 05 Oct 2026 12:47:28 +0000
+From: Joshua Hahn <joshua.hahnjy@gmail.com>
+Subject: mm/memcontrol: publish null pointer before dropping css reference
+Date: Tue, 20 Oct 2026 18:00:50 -0700
 
-This commit adds a test that builds two maple_range_64 trees in RCU
-mode.  The first tree has a root that is a full maple_range_64 node and
-ensures that the destruction under RCU does not misinterpret the last
-slot as metadata. 226 insertions produce such a root on a 64-bit build.
+struct memcg_stock_pcp hold references to cgroups that it tracks to make
+sure that the memcg never gets freed with unaccounted charges still
+living in the stock. When the cached stock goes to 0 for a memcg, its
+reference is dropped and the cached memcg pointer is set to NULL.
 
-The second tree is a height 3 tree whose root holds 15 child pointers
-and metadata in its last slot, so every slot is non-zero and ensures
-that the destruction under RCU does not descend into the metadata slot.
-3166 insertions produce such a tree on a 64-bit build.
+If that was the last reference, the css_put would free the associated
+cgroup before publishing the NULL pointer, which can be racy on 
+PREEMPT_RT. To summarize Shakeel Butt's analysis in [2],
 
-Link: https://lore.kernel.org/20261005-fix-maple-tree-range64-rcu-v3-2-ebe7fb278e20@cslab.ece.ntua.gr
-Signed-off-by: Dimitris Charisis <dchar@cslab.ece.ntua.gr>
+CPU 1					CPU 2
+local_trylock() takes a per-CPU
+spinlock, which is an rcu read
+lock along with migrate_disable
+
+drain_stock
+css_put drops the last reference
+release work is queued
+
+kworker runs css_release_work_fn()
+call_rcu() starts grace period G
+which waits for the refill task.
+
+<preempt>
+					drain_all_stock
+					is_memcg_drain_needed()
+					enters rcu_read_lock(), but
+					 grace period G does not wait
+					since it started after G did
+
+					<prempt>
+
+stock->cached[i] is cleared and
+unlocks. Grace period G ends,
+old is freed
+
+					mem_cgroup_is_descendant() reads
+					old->css.cgroup which has just
+					been freed.
+
+To close this gap on PREEMPT_RT, switch the order of the referene drop
+and the publishing so that we publish the NULL pointer before dropping
+the reference. Note that this can only happen from drain_stock who can
+hold the last reference, but not on consume_stock since another
+reference will always be held. But fix this in both sites to maintain
+consistency. 
+
+This is based on a report from Sashiko, who found this pre-existing
+issue in my page_counter_stock series [1].
+
+Link: https://lore.kernel.org/20261021010051.1529261-1-joshua.hahnjy@gmail.com
+Link: https://sashiko.dev/#/patchset/20260928192349.3432886-1-joshua.hahnjy%40gmail.com [1]
+Link: https://lore.kernel.org/all/atfMngq7nyZpt4u-@linux.dev/ [2]
+Fixes: e1a366be5cb4 ("mm: memcontrol: switch to rcu protection in drain_all_stock()")
+Signed-off-by: Joshua Hahn <joshua.hahnjy@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Reviewed-by: Liam R. Howlett (Google) <liam@infradead.org>
-Cc: Alice Ryhl <aliceryhl@google.com>
-Cc: Andrew Ballance <andrewjballance@gmail.com>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Florian Schmaus <florian.schmaus@codasip.com>
+Acked-by: Shakeel Butt <shakeel.butt@linux.dev>
+Acked-by: Muchun Song <muchun.song@linux.dev>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Roman Gushchin <roman.gushchin@linux.dev>
 ---
 
- lib/test_maple_tree.c |   32 ++++++++++++++++++++++++++++++++
- 1 file changed, 32 insertions(+)
+ mm/memcontrol.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/lib/test_maple_tree.c~test_maple_tree-test-maple_range_64-node-in-rcu-mode
-+++ a/lib/test_maple_tree.c
-@@ -3710,6 +3710,36 @@ static noinline void __init alloc_cyclic
- 	MT_BUG_ON(mt, ret != 1);
+--- a/mm/memcontrol.c~mm-memcontrol-publish-null-pointer-before-dropping-css-reference
++++ a/mm/memcontrol.c
+@@ -2172,8 +2172,8 @@ static bool consume_stock(struct mem_cgr
+ 			stock_pages -= nr_pages;
+ 			WRITE_ONCE(stock->nr_pages[i], stock_pages);
+ 			if (!stock_pages) {
+-				css_put(&memcg->css);
+ 				WRITE_ONCE(stock->cached[i], NULL);
++				css_put(&memcg->css);
+ 			}
+ 			ret = true;
+ 		}
+@@ -2209,8 +2209,8 @@ static void drain_stock(struct memcg_sto
+ 		WRITE_ONCE(stock->nr_pages[i], 0);
+ 	}
+ 
+-	css_put(&old->css);
+ 	WRITE_ONCE(stock->cached[i], NULL);
++	css_put(&old->css);
  }
  
-+static noinline void __init check_range64_in_rcu(struct maple_tree *mt)
-+{
-+	unsigned long i;
-+	unsigned long nr_entries = 226; /* Build a full maple_range_64 root node */
-+
-+	MT_BUG_ON(mt, !mtree_empty(mt));
-+	mt_init_flags(mt, MT_FLAGS_USE_RCU);
-+
-+	for (i = 0; i < nr_entries; i++) {
-+		MT_BUG_ON(mt, mtree_test_insert_range(mt, i*10, i*10 + 9,
-+						      xa_mk_value(i)));
-+	}
-+
-+	mtree_destroy(mt);
-+	rcu_barrier();
-+
-+	nr_entries = 3166; /* Height 3. Root has 15 children + metadata */
-+
-+	MT_BUG_ON(mt, !mtree_empty(mt));
-+	mt_init_flags(mt, MT_FLAGS_USE_RCU);
-+
-+	for (i = 0; i < nr_entries; i++) {
-+		MT_BUG_ON(mt, mtree_test_insert_range(mt, i*10, i*10 + 9,
-+						      xa_mk_value(i)));
-+	}
-+
-+	mtree_destroy(mt);
-+	rcu_barrier();
-+}
-+
- static DEFINE_MTREE(tree);
- static int __init maple_tree_seed(void)
- {
-@@ -3999,6 +4029,8 @@ static int __init maple_tree_seed(void)
- 	alloc_cyclic_testing(&tree);
- 	mtree_destroy(&tree);
- 
-+	check_range64_in_rcu(&tree);
-+
- 
- #if defined(BENCH)
- skip:
+ static void drain_stock_fully(struct memcg_stock_pcp *stock)
 _
 
-Patches currently in -mm which might be from dchar@cslab.ece.ntua.gr are
+Patches currently in -mm which might be from joshua.hahnjy@gmail.com are
 
 
