@@ -1,45 +1,45 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1792820110;
-	b=StR5tQTdlj8IkBMcpdbmOUoQf/e/xiMnGIRz+YnXF5MTNVvlH7CDNAauJHpCqhT6nDzi
-	 KEJQPM52fP3LhY7qrOKH0kVu+dyOiZRUxnAGa8e8yegP36OAMhNLZhSu0OhHTztc2q/XJ
-	 1HXrnvftaKyjzPfzzqMweI7tOZcGxCTREHNP0y2tx/fZkD8oMMMWLGEoHYS0xg5ft15mv
-	 3NLa7qNIhaUG5u9391TZiUoeS07NTLHz7UE7pU6aJ/Szu7HgeJgte/ei08lN9DsDaHina
-	 3avre12gCoSm0Uqvg+zjJvBAEj5H80VakphP2uEytxA2rwrOjtZvozfYk4Qh6aQsiFA==
+	t=1792828031;
+	b=ToJe8xpCbMu7M5nWry8hZ2MDbLe3nJKW2U7Xi9V+Zp0dqWOuU9ZgcijZyqu2+ojtUjfE
+	 SOdt60rwT+R9YFGPoJelUjCxyrLDXt0Alis+T3trqu4/BcXrIk/48hVzDuSQOSXWve5tf
+	 lACaJrERiAAbMSBTCeBKvWgB+N+Dl4rgfTRcqicQQhdsimcOPyYMH+8E+Vzx6d6Mdqkrk
+	 Pj31SlIVj5k2qw4A1e1cpMm1sjHnJ1bhbKwvycHyhR/BV2/7lFqvPFI7V6jVTW5ExZWyT
+	 V7eL6LmYxrH5E0pYryMDX10IEXpN7O+S28taNi3GBENXYwjXzBrn50clTw+wyHQhCXw==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1792820110;
+	a=rsa-sha256; c=relaxed/relaxed; t=1792828031;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=qgbzmH5BLez84vXWBuY4DmS0hOrRqlGiPhvAlG/Z/C8=;
-	b=vsYqLT/AW+TyuGpHRAXRj6vGWxAm+Lz0QmaZFVR/+o68gkKhYEHGSynwE1nx9TUhMA59
-	 Kn01el659vW1kC/5PgGH/coGEweZPuHXopnoBe4uc2CR7ZwH20k/oBvlDiz+1VNmhpypu
-	 aLImArVIY0VePYXaowNSjfSEhge89FXSu+8MRjswTaGbigtGpPGeoZz5dBOhNyfUEHwDf
-	 crTTurY5lXDpbqqywJkiEp4J+dNpxPVUjf+2u9vO3yPjWDzNaeCh0rUOsJEhFJlCHjZoe
-	 DDOaYX0eaXep+312S/QzkBT8mQkJsYAcQZtcv4oBLjKduoUqpRV7w7t/F3ihGiRwzFA==
+	bh=YT+9CIc5XmEzt2UcFzVq0qnvpdZSTmtQqwD19QZ4ts4=;
+	b=vL5YHaafndcQUIXSPupj8Mhi++/99fSqV4C02ni7hyLbp8VaXGXE05ZSJOqfZJWGnO0P
+	 XFtzsu7sJI+GT7MJN1AXY8KnXErZrmNSq3JLO9yY7lJr4EIpCH0pYsg8bi62WcITiGZvk
+	 7ru/PL/D8vC68E/8W6KC7sTljSGWSV0Cds7dPeR+IWBj4OdhjFLyZ5d/noK4SFmFIqU1p
+	 /AWWoAF/cZo1/LolyrVWG8kN4uJB6HpemoBF+tPtslxIa3UccvSGJKXySTi9hqwviiCv7
+	 gIC3g34Bva2qD7Km3A6/59yhb3aM9O8g8d7MIH6qxLZ6EyHspavNyf1cMS1SeP9+ldQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=HvrvEHRe;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=g3dl4Kgn;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6E7DF60A2611;
-	Sat, 24 Oct 2026 05:35:10 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D0B1D606A31E
+	for <mm-commits@vger.kernel.org>; Sat, 24 Oct 2026 07:47:10 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=HvrvEHRe
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 25B991F01828;
-	Sat, 24 Oct 2026 05:35:10 +0000 (UTC)
+	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=g3dl4Kgn
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 485821F01828;
+	Sat, 24 Oct 2026 07:47:10 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1792820110;
-	bh=qgbzmH5BLez84vXWBuY4DmS0hOrRqlGiPhvAlG/Z/C8=;
+	d=linux-foundation.org; s=korg; t=1792828030;
+	bh=YT+9CIc5XmEzt2UcFzVq0qnvpdZSTmtQqwD19QZ4ts4=;
 	h=Date:To:From:Subject;
-	b=HvrvEHRe5DnD6pfBrWQNDkM+Xekwq4Mqwq2iHitBGm0zUly3UgtCWE+BGzhjGAsEb
-	 fYf19eEIm0nLHb43HpptWV+1TJ3TDQCuzOs+NziI1FCIo+8TjIZTnbTIdCqumszI8r
-	 wCpxtiGA9d7n3a0/ywoU0uheDTV0t0wvTeymKzy0=
-Date: Fri, 23 Oct 2026 22:35:09 -0700
-To: mm-commits@vger.kernel.org,xu.xin@linux.dev,stable@vger.kernel.org,rppt@kernel.org,peterx@redhat.com,lance.yang@linux.dev,kas@kernel.org,david@kernel.org,chengming.zhou@linux.dev,samarth.colleges@gmail.com,akpm@linux-foundation.org
+	b=g3dl4KgnEI0fQqD3Jsv6nX1Hggo2Vq0ZyI3ehBx11DEtZaJc4EOpHSNAEKYS0jY48
+	 Dbe0cf0Ai1nJvxL19/k4v+hbQox1IVRVc8foB28U9QucOKzaT1wJ/d0UmCK5sallX8
+	 ENg58zD09u1w3cMSatS3uuXcGJdz41+0HfAKakWQ=
+Date: Sat, 24 Oct 2026 00:47:09 -0700
+To: mm-commits@vger.kernel.org,syzbot+1f0fbc2561b3e5d51b91@syzkaller.appspotmail.com,rafael@kernel.org,kernelfans@gmail.com,brads@mainlining.org,eadavis@sina.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-ksm-keep-soft-dirty-when-merging-a-page.patch added to mm-unstable branch
-Message-Id: <20261024053510.25B991F01828@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] kernel-reboot-avoid-potential-deadlocks-during-suspension.patch removed from -mm tree
+Message-Id: <20261024074710.485821F01828@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -50,75 +50,87 @@ List-Owner: <mailto:mm-commits+owner@vger.kernel.org>
 Precedence: list
 
 
-The patch titled
-     Subject: mm/ksm: keep soft-dirty when merging a page
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-ksm-keep-soft-dirty-when-merging-a-page.patch
+The quilt patch titled
+     Subject: kernel/reboot: avoid potential deadlocks during suspension
+has been removed from the -mm tree.  Its filename was
+     kernel-reboot-avoid-potential-deadlocks-during-suspension.patch
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-ksm-keep-soft-dirty-when-merging-a-page.patch
-
-This patch will later appear in the mm-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via various
-branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there most days
+This patch was dropped because it was merged into the mm-nonmm-stable branch
+of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Samarth Narang <samarth.colleges@gmail.com>
-Subject: mm/ksm: keep soft-dirty when merging a page
-Date: Wed, 21 Oct 2026 11:21:57 -0700
+From: Edward Adam Davis <eadavis@sina.com>
+Subject: kernel/reboot: avoid potential deadlocks during suspension
+Date: Tue, 20 Oct 2026 09:05:59 +0800
 
-replace_page() maps the KSM page with a PTE built from scratch, so the
-soft-dirty bit of the PTE it replaces is lost.  A page written since
-"clear_refs 4" then no longer shows as soft-dirty once it is merged, and a
-soft-dirty based dumper treats it as unchanged.
+Invoking reboot with LINUX_REBOOT_CMD_SW_SUSPEND causes kernel/reboot.c
+to acquire system_transition_mutex and invoke hibernate(). hibernate()
+calls lock_system_sleep(), which sets PF_NOFREEZE on current and attempts
+to acquire system_transition_mutex again, potentially hitting:
 
-Copy the soft-dirty bit from the original PTE to the new PTE.
+WARNING: possible recursive locking detected
+--------------------------------------------
+syz.3.5755/5950 is trying to acquire lock:
+ffffffff8fc04760 (system_transition_mutex){+.+.}-{4:4}, at: lock_system_sleep+0x49/0x70 kernel/power/main.c:71
 
-Link: https://lore.kernel.org/20261021182157.1873726-1-samarth.colleges@gmail.com
-Fixes: 0f8975ec4db2 ("mm: soft-dirty bits for user memory changes tracking")
-Signed-off-by: Samarth Narang <samarth.colleges@gmail.com>
+but task is already holding lock:
+ffffffff8fc04760 (system_transition_mutex){+.+.}-{4:4}, at: __do_sys_reboot kernel/reboot.c:774 [inline]
+ffffffff8fc04760 (system_transition_mutex){+.+.}-{4:4}, at: __se_sys_reboot+0x223/0x460 kernel/reboot.c:738
+
+other info that might help us debug this:
+ Possible unsafe locking scenario:
+
+       CPU0
+       ----
+  lock(system_transition_mutex);
+  lock(system_transition_mutex);
+
+ *** DEADLOCK ***
+
+ May be due to missing lock nesting notation
+
+locks held by syz.3.5755/5950: 1, last CPU#0:
+ #0: ffffffff8fc04760 (system_transition_mutex){+.+.}-{4:4}, at: __do_sys_reboot kernel/reboot.c:774 [inline]
+ #0: ffffffff8fc04760 (system_transition_mutex){+.+.}-{4:4}, at: __se_sys_reboot+0x223/0x460 kernel/reboot.c:738
+
+Call Trace:
+ lock_system_sleep+0x49/0x70 kernel/power/main.c:71
+ hibernate+0x162/0x680 kernel/power/hibernate.c:784
+ __do_sys_reboot kernel/reboot.c:816 [inline]
+
+Move the suspension operation outside the scope protected by lock
+system_transition_mutex.
+
+Link: https://lore.kernel.org/20261020010559.23031-1-eadavis@sina.com
+Fixes: 55f2503c3b69 ("PM / reboot: Eliminate race between reboot and suspend")
+Signed-off-by: Edward Adam Davis <eadavis@sina.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Reviewed-by: Lance Yang <lance.yang@linux.dev>
-Assisted-by: LLM
-Cc: David Hildenbrand <david@kernel.org>
-Cc: Xu Xin <xu.xin@linux.dev>
-Cc: Chengming Zhou <chengming.zhou@linux.dev>
-Cc: Peter Xu <peterx@redhat.com>
-Cc: Kiryl Shutsemau <kas@kernel.org>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: <stable@vger.kernel.org>
+Reported-by: <syzbot+1f0fbc2561b3e5d51b91@syzkaller.appspotmail.com>
+Closes: https://syzkaller.appspot.com/bug?extid=1f0fbc2561b3e5d51b91
+Tested-by: <syzbot+1f0fbc2561b3e5d51b91@syzkaller.appspotmail.com>
+Reviewed-by: Bradley Morgan <brads@mainlining.org>
+Cc: Pingfan Liu <kernelfans@gmail.com>
+Cc: "Rafael J. Wysocki" <rafael@kernel.org>
 ---
 
- mm/ksm.c |    4 ++++
- 1 file changed, 4 insertions(+)
+ kernel/reboot.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/mm/ksm.c~mm-ksm-keep-soft-dirty-when-merging-a-page
-+++ a/mm/ksm.c
-@@ -1463,6 +1463,10 @@ static int replace_page(struct vm_area_s
- 		dec_mm_counter(mm, MM_ANONPAGES);
- 	}
+--- a/kernel/reboot.c~kernel-reboot-avoid-potential-deadlocks-during-suspension
++++ a/kernel/reboot.c
+@@ -804,8 +804,8 @@ SYSCALL_DEFINE4(reboot, int, magic1, int
  
-+	/* Preserve soft-dirty when replacing the page. */
-+	if (pte_soft_dirty(orig_pte))
-+		newpte = pte_mksoft_dirty(newpte);
-+
- 	flush_cache_page(vma, addr, pte_pfn(ptep_get(ptep)));
- 	/*
- 	 * No need to notify as we are replacing a read only page with another
+ #ifdef CONFIG_HIBERNATION
+ 	case LINUX_REBOOT_CMD_SW_SUSPEND:
+-		ret = hibernate();
+-		break;
++		mutex_unlock(&system_transition_mutex);
++		return hibernate();
+ #endif
+ 
+ 	default:
 _
 
-Patches currently in -mm which might be from samarth.colleges@gmail.com are
+Patches currently in -mm which might be from eadavis@sina.com are
 
-mm-ksm-keep-soft-dirty-when-merging-a-page.patch
 
