@@ -1,45 +1,45 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1792832541;
-	b=TLeHPjZaaCmIF7JIjec+Rn4kTPoswOejc9Iu/IWs61M9K6A7RvLQXrRRR3+B02Cqiz/V
-	 SA0uadZgwye5DrPRtff/vEP2H/WWKVCiHKjervHMeQHTysOTjjybq9F7E+HaxkbbvKvj4
-	 h2dDL13mm88D8ouCE3fjEag46DKQVnn/r8JKPxHKu50l5EcyR6K6k5gOgtJDIXZCAwThL
-	 LPc/B2hI7Syp7o3QuaL54eNRrqbdSzHoSvVldllj5y4Ni6JAnWKVQDmxx/9PM3Gs2qGDR
-	 YcgugubwqbAl0PtPk+4qiygPqCUk33CzPu0/XPFaXVGGWzF47JUMlFbMfmwCzgkP/4Q==
+	t=1792832537;
+	b=b0oTcz6bvvQ9IfuXuamrWrlLXh/7abN9vq9Q7BkLRlhzp1rbEFpIW+v0sJIhmM97PSRv
+	 uOy35aCH9oAMnsAy7ZXTKRbZ20UIniUO70GaRu+bAI2fpJ9fIoquX4IsL0zwuQpA5Azrd
+	 Ib1Tb/jcyHYpKg1bVNotOp2gqz65wf4w3abaxwUhIFVC7EJm+dPr4fP7h5RE4+B7CGU8D
+	 fIzlySDF1fUZ4TaRcVxFmmKQxowWTVMcFD2eLifPZ4cyR9l6aqSK6jG9urp1oQNo97nzu
+	 Qgd/ySsHYIdguvWwUG7FBb6+OA2htWt7H07Wg98W5tSDtzCYOskrdzY7rHA/8BeK6TA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1792832541;
+	a=rsa-sha256; c=relaxed/relaxed; t=1792832537;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=GVCfXSeVZmIyXsQvIvtFHjuV1QlKCPbAry5HsxR7ngs=;
-	b=f7idAHVZ26HUMiwxfqgsUxyFSm3JjcY/Zs+pL2VILtNq8zFaHh5nU33nN1knodrqIk/R
-	 2d/UGTYL1KCNJMyW6uOgSNRc1VrrunyEFtnRNDJ7Hu2xrhKNDqaeur9KHOfzN2g0u3aVz
-	 wDGkj2P7qAul+EpvHQo4JowSxmP8NrCSkbx5BJUVTNNF+KbhDpJ+uO7Y9fO52sPbMt/+J
-	 90DJ4lmH50VopF7UI9qVKEjlPspM2DZujZ+tr8ISQX4hV576UIMBjHGmR3uQPVyL4kcKR
-	 KBFAAozed1q7HmhmArcoRCCg2lj6PDbcoVyVwrnlvKnVRgDKEzhl3elCX4UKJc14DMg==
+	bh=fnox/UIkNZ2fC0EmGbuWcRP61deS2PrR1/WAByO+bEA=;
+	b=4aPw4LX2y6WkYhMGPIy+3JXT0/0z2Nrt9auzy2QoheNPhrl6yBHAUwq8KPz2VdEVgnXg
+	 fG6zg1FwLJSlTkv5GFD65Xjj4NeMrFra8qYhJ03/WsbG98Dw0P91RseXWvE+QQvEwDax6
+	 YPfctH/eHmR1D/oC1o+l85okHg8sA+BhmFopY27nByL63lWV5P3K9LQNqW5qREQg81ba1
+	 RJysnwY7HfUUOEPiLRmKMFwhxSzcZ7tjVhELozKAsCFZKY45RtgFftfKOeHlKu/NzLMIj
+	 uJM8IBMvZNpjQ/hvWc64ygAZdzDcBfpckOesECp2GZSfRp6r+96NtMD2B2Wbk1KU1Dg==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=nbmsCN9V;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b="kzjh7I/j";
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 35B24606A31A
-	for <mm-commits@vger.kernel.org>; Sat, 24 Oct 2026 09:02:21 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E9673606A329;
+	Sat, 24 Oct 2026 09:02:16 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=nbmsCN9V
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id F3C431F01825;
-	Sat, 24 Oct 2026 09:02:20 +0000 (UTC)
+	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=kzjh7I/j
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B30411F01825;
+	Sat, 24 Oct 2026 09:02:16 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1792832541;
-	bh=GVCfXSeVZmIyXsQvIvtFHjuV1QlKCPbAry5HsxR7ngs=;
+	d=linux-foundation.org; s=korg; t=1792832536;
+	bh=fnox/UIkNZ2fC0EmGbuWcRP61deS2PrR1/WAByO+bEA=;
 	h=Date:To:From:Subject;
-	b=nbmsCN9Vjf1Mg/rrNSf1/c9NZAspx5/drvybAwF8TQdJ2fojnEIgwjzNgvWWZersv
-	 N+0QTH6uZvVa2NR/gyMHSqWRzLFawTF8R8L2VeQoJtrwQ8I5fDAoM6OFU46FGXmg7f
-	 zJmjZES6FtsZvl9AlHOtOdtOZlqbJiN1wjBUSRpY=
-Date: Sat, 24 Oct 2026 02:02:20 -0700
-To: mm-commits@vger.kernel.org,shakeel.butt@linux.dev,roman.gushchin@linux.dev,qi.zheng@linux.dev,muchun.song@linux.dev,mhocko@kernel.org,harry@kernel.org,hannes@cmpxchg.org,david@fromorbit.com,akpm@linux-foundation.org,khorenko@virtuozzo.com
+	b=kzjh7I/jwS0tDGoPbDc1CSLfkk9JNZ0EvzWxleMehGNoVq5Gw1Q/y1o3ayf9jqS42
+	 ozx/aClHhSuTPLGeI+xDwv06feOD3s/Puk8UU7mQfFPP0DJf136F1ccDh52PyODGzF
+	 tLSlTQ+MygIC1uwEkDqPcWRruQpprHuYXWgKfPM4=
+Date: Sat, 24 Oct 2026 02:02:16 -0700
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,ying.huang@linux.alibaba.com,stable@vger.kernel.org,rakie.kim@sk.com,pasha.tatashin@soleen.com,mhocko@suse.com,joshua.hahnjy@gmail.com,david@kernel.org,gourry@gourry.net,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-shrinker-allocate-shrinker_info_unit-from-a-dedicated-kmem_cache.patch removed from -mm tree
-Message-Id: <20261024090220.F3C431F01825@smtp.kernel.org>
+Subject: [merged mm-stable] mm-mempolicy-apply-bind-policies-against-the-scoped-allocation-zone.patch removed from -mm tree
+Message-Id: <20261024090216.B30411F01825@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -51,105 +51,97 @@ Precedence: list
 
 
 The quilt patch titled
-     Subject: mm/shrinker: allocate shrinker_info_unit from a dedicated kmem_cache
+     Subject: mm/mempolicy: apply bind policies against the scoped allocation zone
 has been removed from the -mm tree.  Its filename was
-     mm-shrinker-allocate-shrinker_info_unit-from-a-dedicated-kmem_cache.patch
+     mm-mempolicy-apply-bind-policies-against-the-scoped-allocation-zone.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Konstantin Khorenko <khorenko@virtuozzo.com>
-Subject: mm/shrinker: allocate shrinker_info_unit from a dedicated kmem_cache
-Date: Mon, 19 Oct 2026 18:11:44 +0200
+From: "Gregory Price (Meta)" <gourry@gourry.net>
+Subject: mm/mempolicy: apply bind policies against the scoped allocation zone
+Date: Sat, 17 Oct 2026 22:33:49 -0400
 
-shrinker_info_unit holds BITS_PER_LONG atomic_long_t of deferred work plus
-a one-word bitmap, 520 bytes on 64-bit.  kzalloc_node() takes it from
-kmalloc-1k, so almost half of every unit is padding.
+QEMU fails to start a guest with a VFIO device when guest RAM comes
+from a memory backend bound to a movable-only node:
 
-Allocate the units from a cache of their own, sized to the unit.  The
-cache is not cache-line aligned: the counters of a unit already share
-cache lines between shrinkers, and aligning the unit would only keep
-neighbouring units off each other's boundary line, at the cost of part of
-the saving.
+  vfio_container_dma_map(0x55b1b1317800, 0x0, 0x10000000,
+                         0x7f39a2200000)
+    = -12 (Cannot allocate memory)
 
-Link: https://lore.kernel.org/20261019-vstor-144715-shrinker_info_unit-kmem_cache-v3-1-0fb061e09bf4@virtuozzo.com
-Signed-off-by: Konstantin Khorenko <khorenko@virtuozzo.com>
+VFIO pins guest RAM when the device is realized, and the pin faults
+the pages in. io_uring fixed buffers fail the same way. Faulting the
+range in before pinning lets the same pin succeed, since resident
+pages are migrated off the node instead.
+
+A long-term pin faults under memalloc_pin_save(). PF_MEMALLOC_PIN makes
+current_gfp_context() clear __GFP_MOVABLE, but policy_nodemask() tests
+apply_policy_zone() against the caller's gfp.
+
+The bind keeps its movable-only nodemask, and the allocation finds no
+usable zone:
+
+  page allocation failure:
+      order:0,
+      mode:0x140dc2(GFP_HIGHUSER|__GFP_ZERO|__GFP_COMP),
+      nodemask=1,cpuset=/,mems_allowed=0-1
+
+  Call Trace:
+   warn_alloc+0x136/0x150
+   __alloc_frozen_pages_noprof+0xed8/0x1720
+   alloc_pages_mpol+0xaa/0x170
+   vma_alloc_folio_noprof+0x65/0xd0
+   __handle_mm_fault+0x137b/0x1ac0
+   handle_mm_fault+0xa0/0x270
+   __get_user_pages+0x250/0xfd0
+   __gup_longterm_locked+0x116/0x870
+   gup_fast_fallback+0xcfc/0xdf0
+   pin_user_pages_fast+0x47/0x60
+   io_pin_pages+0x9a/0x110
+
+Base page faults fail with -ENOMEM.
+hugetlb faults fail with -EFAULT.
+
+Check the policy zone against current_gfp_context(gfp), so a pin-scoped
+fault falls back off the movable-only nodemask, like any other
+non-movable allocation under the same bind.
+
+Tested in qemu with a dax/kmem movable-only node 1. io_uring and VFIO
+pins of unfaulted base pages and 2MB hugetlb pages now succeed and land
+on node 0 (correct). QEMU now starts with the same backend binding.
+
+Link: https://lore.kernel.org/20261018023349.1697434-1-gourry@gourry.net
+Fixes: 8e3560d963d2 ("mm: honor PF_MEMALLOC_PIN for all movable pages")
+Signed-off-by: Gregory Price (Meta) <gourry@gourry.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Suggested-by: Andrew Morton <akpm@linux-foundation.org>
-Reviewed-by: Harry Yoo (Meta) <harry@kernel.org>
-Reviewed-by: Qi Zheng <qi.zheng@linux.dev>
-Acked-by: Muchun Song <muchun.song@linux.dev>
-Assisted-by: LLM
-Cc: Dave Chinner <david@fromorbit.com>
-Cc: Roman Gushchin <roman.gushchin@linux.dev>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Shakeel Butt <shakeel.butt@linux.dev>
+Reviewed-by: Joshua Hahn <joshua.hahnjy@gmail.com>
+Cc: David Hildenbrand <david@kernel.org>
+Cc: Zi Yan <ziy@nvidia.com>
+Cc: Rakie Kim <rakie.kim@sk.com>
+Cc: Ying Huang <ying.huang@linux.alibaba.com>
+Cc: Pasha Tatashin <pasha.tatashin@soleen.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: <stable@vger.kernel.org>
 ---
 
- include/linux/memcontrol.h |    1 +
- mm/memcontrol.c            |    2 ++
- mm/shrinker.c              |   11 +++++++++--
- 3 files changed, 12 insertions(+), 2 deletions(-)
+ mm/mempolicy.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/include/linux/memcontrol.h~mm-shrinker-allocate-shrinker_info_unit-from-a-dedicated-kmem_cache
-+++ a/include/linux/memcontrol.h
-@@ -1717,6 +1717,7 @@ static inline u64 mem_cgroup_get_socket_
- }
- #endif
- 
-+void shrinker_unit_cache_init(void);
- int alloc_shrinker_info(struct mem_cgroup *memcg);
- void free_shrinker_info(struct mem_cgroup *memcg);
- void set_shrinker_bit(struct mem_cgroup *memcg, int nid, int shrinker_id);
---- a/mm/memcontrol.c~mm-shrinker-allocate-shrinker_info_unit-from-a-dedicated-kmem_cache
-+++ a/mm/memcontrol.c
-@@ -5984,6 +5984,8 @@ int __init mem_cgroup_init(void)
- 	memcg_pn_cachep = KMEM_CACHE(mem_cgroup_per_node,
- 				     SLAB_PANIC | SLAB_HWCACHE_ALIGN);
- 
-+	shrinker_unit_cache_init();
-+
- 	return 0;
- }
- 
---- a/mm/shrinker.c~mm-shrinker-allocate-shrinker_info_unit-from-a-dedicated-kmem_cache
-+++ a/mm/shrinker.c
-@@ -12,6 +12,12 @@ DEFINE_MUTEX(shrinker_mutex);
- 
- #ifdef CONFIG_MEMCG
- static int shrinker_nr_max;
-+static struct kmem_cache *shrinker_unit_cachep;
-+
-+void __init shrinker_unit_cache_init(void)
-+{
-+	shrinker_unit_cachep = KMEM_CACHE(shrinker_info_unit, SLAB_PANIC);
-+}
- 
- static inline int shrinker_unit_size(int nr_items)
- {
-@@ -33,7 +39,7 @@ static inline void shrinker_unit_free(st
- 		if (!unit[i])
- 			break;
- 
--		kfree(unit[i]);
-+		kmem_cache_free(shrinker_unit_cachep, unit[i]);
- 		unit[i] = NULL;
- 	}
- }
-@@ -47,7 +53,8 @@ static inline int shrinker_unit_alloc(st
- 	int i;
- 
- 	for (i = start; i < nr; i++) {
--		unit = kzalloc_node(sizeof(*unit), GFP_KERNEL, nid);
-+		unit = kmem_cache_alloc_node(shrinker_unit_cachep,
-+					     GFP_KERNEL | __GFP_ZERO, nid);
- 		if (!unit) {
- 			shrinker_unit_free(new, start);
- 			return -ENOMEM;
+--- a/mm/mempolicy.c~mm-mempolicy-apply-bind-policies-against-the-scoped-allocation-zone
++++ a/mm/mempolicy.c
+@@ -2302,7 +2302,7 @@ static nodemask_t *policy_nodemask(gfp_t
+ 		break;
+ 	case MPOL_BIND:
+ 		/* Restrict to nodemask (but not on lower zones) */
+-		if (apply_policy_zone(pol, gfp_zone(gfp)) &&
++		if (apply_policy_zone(pol, gfp_zone(current_gfp_context(gfp))) &&
+ 		    cpuset_nodemask_valid_mems_allowed(&pol->nodes))
+ 			nodemask = &pol->nodes;
+ 		if (pol->home_node != NUMA_NO_NODE)
 _
 
-Patches currently in -mm which might be from khorenko@virtuozzo.com are
+Patches currently in -mm which might be from gourry@gourry.net are
 
+mm-page_alloc-let-the-highest-memory-node-recover-from-hopeless-state.patch
 
