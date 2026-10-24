@@ -1,45 +1,45 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1792832447;
-	b=jonBILb7d3D3gpE/bOJXMaFnEF7J3HvQZkb9BgE2vqnABu7uaRfPwszXx5SzVWjYzi/s
-	 fYeylh5wZI7xK+7JLY6P+jo9x1uj4E9QX7ZZtQ8QAmCv0jfEK6ShdeNvLltMmdYqFCvQ9
-	 9CWms6/wt2ywI7NqQJU53YcNbReXjm+VM6HPHmBXNFDmP42JB+afhQ4GIOIC4RNZzZ9wT
-	 l29jeyznpCop7rE9+aor6ls62FCBdaAB5IJzX8k3U95TR6d8UuKcJfREosAvIOwZ5Rnqw
-	 77PThoLffI/C/XEnvNBKJ0Xpt6YXUFCxAA3xTAkRrORczE1hBbFAlNYu7t+Cxt8bhiw==
+	t=1792832448;
+	b=FDaZjb7WiDxuJdLzGY3TSvUfHNMKOMdOVauo9pyBwpq5UaOlcNx2akeyxgxkLZOYXT2t
+	 mc9dqXPYZj4Po+kdXjzBIXED/410fnkaqkmw1IeYCNcGIm/FtNWvAWkep9AF5drAgxVKb
+	 mFtm4ZTdrD2MuZCu/8WCcnJT2hCpa2YTqZ0lBRtau1WUheeed6SGi/5ee18ebp6NnFLmo
+	 pq/FW8liRzNXqW80yPzwIMNz8HpjmXtCgn/H7Xf5JYE31lVqpQU9+1rBSd12AAFt2TRrG
+	 DEaAHv1ibJEkIjjOyeG+Vu+MM11pF43ZvSnpeOcS8jB4MRyTQqHJtkrNtMKftLBi77w==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1792832447;
+	a=rsa-sha256; c=relaxed/relaxed; t=1792832448;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=qHO6mT/29LSy7wgcjzcNYw2gB12xuRroycGmQdtOlQE=;
-	b=t/G5ysE0n/qTLn1n5GCe8Wcl5ql2MmvXEt0Lzv0p8/H9Zq/7IAYX6I0sijZxiPr02qQn
-	 stwSDiw7ncSIM8tv63yk6m/i+X5+waOnJIHZWfvVGmgU9vpdP/zF6YpepR+rRTwXzOqP1
-	 zUygAcZ9dLeqnMz262Zqd4EtgqOyzWmywq9MOH5ZqjJpTI5mnR5R2bgb9ix6KAyN1IGYv
-	 SEHXqYWMlukmKyD56vgLvylmWnYBZT21pXQ3EfWGXIgscxpwS9GXs+5oVzVLOlc5W0+KT
-	 EfXxErwfvF4Y3MBaG6nIyfTjyAcFqTsB2YtohQnWjrE8KYGLZ7MiQAvzs+xAuiDCFbA==
+	bh=C6RixL9e4bfeR8kcip9AVZOsb2OfiDaEpz2hEsLF8Tg=;
+	b=p2/IO0ut+RvIYC9jRl8aJfHYBQkLMCGOb7qehSzwFTR+MxXAGxw1akrVGaR4MQDpf9dm
+	 GT8xKP305rOjhjo3eh9UE93f3kMHBA6iGMd3NtF7bYRicGhKsPQLJ06B4IXKiGbZi5onW
+	 3m7fgR8iu+yk8QL8Hj14NvjwQKdbAe2XGSVv3XK47zfruK08vhCT1DTjBmqCybAbzH3M7
+	 Db4KEr0/YV5nSy03X+sIwHTG810dGev3xK7nd6cKADOc7OEd6m0ubUKpBYJNWDoneWp44
+	 lh9ZmPbquCZGDEYnqeeJl2CqzBuqg8l3BD8k+HK3xABlT+oZsVxgyzzZ/DrpGyHbR2w==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=Rs7x6whu;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=veLD1fQU;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 04D36606A31A
-	for <mm-commits@vger.kernel.org>; Sat, 24 Oct 2026 09:00:47 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0BE4D606A31A
+	for <mm-commits@vger.kernel.org>; Sat, 24 Oct 2026 09:00:48 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=Rs7x6whu
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C28AF1F01828;
-	Sat, 24 Oct 2026 09:00:46 +0000 (UTC)
+	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=veLD1fQU
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id CC2681F01828;
+	Sat, 24 Oct 2026 09:00:47 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1792832446;
-	bh=qHO6mT/29LSy7wgcjzcNYw2gB12xuRroycGmQdtOlQE=;
+	d=linux-foundation.org; s=korg; t=1792832447;
+	bh=C6RixL9e4bfeR8kcip9AVZOsb2OfiDaEpz2hEsLF8Tg=;
 	h=Date:To:From:Subject;
-	b=Rs7x6whu9FxRxjp/5kRcWP7onf6yVZKkFlXXpPiMNlOnDDxb0zY2URESzcRlgmUsH
-	 YfJ4ypYAoBrVO17aTTIdUjCrjGvW3wdKwzWMSZet4Mg8dTDtTdSYzsocF/RJwh07Im
-	 hW4GKNNrr6dTFP1IOl4CYCBO6WedFK6yD/PxfSRk=
-Date: Sat, 24 Oct 2026 02:00:46 -0700
-To: mm-commits@vger.kernel.org,vbabka@kernel.org,usama.anjum@arm.com,surenb@google.com,sj@kernel.org,shuah@kernel.org,rppt@kernel.org,mhocko@suse.com,ljs@kernel.org,liam@infradead.org,david@kernel.org,brauner@kernel.org,jm5905938@gmail.com,akpm@linux-foundation.org
+	b=veLD1fQU/ov2eLUwtZEAfPV2MCD7rANhnPPc3l+bopWDWBOcptEQx5X2WqkXSXIRm
+	 LbaF+YAqFe03HX7YP45+ZjSRwEUm87Ii5k4N1jvq7qX6G/AiNdIrD7xOksoItZI/hC
+	 NaZa6+IcY8xludEEkKbU3EmCkWMC+KdoEV5cUk18=
+Date: Sat, 24 Oct 2026 02:00:47 -0700
+To: mm-commits@vger.kernel.org,urezki@gmail.com,glider@google.com,elver@google.com,dvyukov@google.com,dmytrokoziuk68@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] selftests-mm-mrelease_test-fix-retry-limit.patch removed from -mm tree
-Message-Id: <20261024090046.C28AF1F01828@smtp.kernel.org>
+Subject: [merged mm-stable] mm-kmsan-fix-iounmap-metadata-teardown.patch removed from -mm tree
+Message-Id: <20261024090047.CC2681F01828@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -51,63 +51,211 @@ Precedence: list
 
 
 The quilt patch titled
-     Subject: selftests/mm: mrelease_test: fix retry limit
+     Subject: mm: kmsan: fix iounmap metadata teardown
 has been removed from the -mm tree.  Its filename was
-     selftests-mm-mrelease_test-fix-retry-limit.patch
+     mm-kmsan-fix-iounmap-metadata-teardown.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Aveline Noir <jm5905938@gmail.com>
-Subject: selftests/mm: mrelease_test: fix retry limit
-Date: Wed, 30 Sep 2026 23:00:27 -0700
+From: Dima Koziuk <dmytrokoziuk68@gmail.com>
+Subject: mm: kmsan: fix iounmap metadata teardown
+Date: Fri,  2 Oct 2026 23:05:07 +0300
 
-mrelease_test doubles the child allocation when process_mrelease() returns
-ESRCH.
+kmsan_vmalloc_to_page_or_null() rejects addresses outside the regular
+vmalloc and module ranges, including the shadow and origin addresses
+passed by its callers.  As a result, iounmap does not free the metadata
+backing pages.  Also, the first iteration of the teardown loop unmaps the
+entire metadata range, preventing subsequent iterations from finding their
+pages even if the address lookup is fixed.
 
-When size is already MAX_SIZE_MB, the current <= check still allows
-another retry, causing the allocation to grow from 1024 MB to 2048 MB.
+Factor the page-table walk out of vmalloc_to_page() into
+__vmalloc_to_page(), keeping the address check in the public wrapper.  Use
+the unchecked helper in kmsan_vmalloc_to_page_or_null() and check for NULL
+before converting the returned page to a PFN.  Mark __vmalloc_to_page() as
+__always_inline to avoid an additional function call in vmalloc_to_page().
 
-Use < instead of <= so the largest allocation attempted remains
-MAX_SIZE_MB.
+Move metadata teardown into kmsan_iounmap_pages().  Free the backing
+blocks while their mappings are still available, then unmap each metadata
+range once and flush its TLB entries.
 
-LLM used in discovering bug. Changes were made and reviewed manually.
-
-Link: https://lore.kernel.org/CANOyQmFzsssM_BXHUDrV+UuVD5SZMBmSkg3UQnmw9Ns1PV7GCQ@mail.gmail.com
-Fixes: 33776141b812 ("selftests: vm: add process_mrelease tests")
-Signed-off-by: Aveline Noir <jm5905938@gmail.com>
+Link: https://lore.kernel.org/20261002200508.546-1-dmytrokoziuk68@gmail.com
+Fixes: b073d7f8aee4 ("mm: kmsan: maintain KMSAN metadata for page operations")
+Signed-off-by: Dima Koziuk <dmytrokoziuk68@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Acked-by: David Hildenbrand (Arm) <david@kernel.org>
-Acked-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
-Reviewed-by: SJ Park <sj@kernel.org>
-Assisted-by: LLM
-Cc: Shuah Khan <shuah@kernel.org>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Liam R. Howlett <liam@infradead.org>
-Cc: Vlastimil Babka <vbabka@kernel.org>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Christian Brauner <brauner@kernel.org>
-Cc: Muhammad Usama Anjum <usama.anjum@arm.com>
+Suggested-by: Alexander Potapenko <glider@google.com>
+Link: https://lkml.iu.edu/2609.3/12748.html
+Cc: Marco Elver <elver@google.com>
+Cc: Dmitry Vyukov <dvyukov@google.com>
+Cc: Uladzislau Rezki (Sony) <urezki@gmail.com>
 ---
 
- tools/testing/selftests/mm/mrelease_test.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/kmsan/core.c  |    8 ++-----
+ mm/kmsan/hooks.c |   51 +++++++++++++++++++++++++++++----------------
+ mm/vmalloc.c     |   21 +++++++++++-------
+ mm/vmalloc.h     |    1 
+ 4 files changed, 50 insertions(+), 31 deletions(-)
 
---- a/tools/testing/selftests/mm/mrelease_test.c~selftests-mm-mrelease_test-fix-retry-limit
-+++ a/tools/testing/selftests/mm/mrelease_test.c
-@@ -157,7 +157,7 @@ retry:
- 		 * Retry until we succeed or reach MAX_SIZE_MB.
- 		 */
- 		if (errno == ESRCH) {
--			retry = (size <= MAX_SIZE_MB);
-+			retry = (size < MAX_SIZE_MB);
- 		} else {
- 			waitpid(pid, NULL, 0);
- 			ksft_exit_fail_msg("process_mrelease: %s\n", strerror(errno));
+--- a/mm/kmsan/core.c~mm-kmsan-fix-iounmap-metadata-teardown
++++ a/mm/kmsan/core.c
+@@ -27,6 +27,7 @@
+ #include <linux/vmalloc.h>
+ 
+ #include "../slab.h"
++#include "../vmalloc.h"
+ #include "kmsan.h"
+ 
+ bool kmsan_enabled __read_mostly;
+@@ -240,11 +241,8 @@ struct page *kmsan_vmalloc_to_page_or_nu
+ {
+ 	struct page *page;
+ 
+-	if (!kmsan_internal_is_vmalloc_addr(vaddr) &&
+-	    !kmsan_internal_is_module_addr(vaddr))
+-		return NULL;
+-	page = vmalloc_to_page(vaddr);
+-	if (pfn_valid(page_to_pfn(page)))
++	page = __vmalloc_to_page(vaddr);
++	if (page && pfn_valid(page_to_pfn(page)))
+ 		return page;
+ 	else
+ 		return NULL;
+--- a/mm/kmsan/hooks.c~mm-kmsan-fix-iounmap-metadata-teardown
++++ a/mm/kmsan/hooks.c
+@@ -20,6 +20,8 @@
+ #include <linux/uaccess.h>
+ #include <linux/usb.h>
+ 
++#include <asm/tlbflush.h>
++
+ #include "../internal.h"
+ #include "../vmalloc.h"
+ #include "../slab.h"
+@@ -142,6 +144,36 @@ void kmsan_vunmap_range_noflush(unsigned
+ 	flush_cache_vmap(vmalloc_origin(start), vmalloc_origin(end));
+ }
+ 
++#define KMSAN_IOREMAP_META_ORDER 1
++
++static void kmsan_iounmap_pages(unsigned long start, unsigned long end)
++{
++	unsigned long shadow_start = vmalloc_shadow(start),
++		      shadow_end = vmalloc_shadow(end);
++	unsigned long origin_start = vmalloc_origin(start),
++		      origin_end = vmalloc_origin(end);
++	unsigned long v_shadow, v_origin;
++	struct page *shadow, *origin;
++	int nr;
++
++	nr = (end - start) / PAGE_SIZE;
++	v_shadow = shadow_start;
++	v_origin = origin_start;
++	for (int i = 0; i < nr;
++	     i++, v_shadow += PAGE_SIZE, v_origin += PAGE_SIZE) {
++		shadow = kmsan_vmalloc_to_page_or_null((void *)v_shadow);
++		origin = kmsan_vmalloc_to_page_or_null((void *)v_origin);
++		if (shadow)
++			__free_pages(shadow, KMSAN_IOREMAP_META_ORDER);
++		if (origin)
++			__free_pages(origin, KMSAN_IOREMAP_META_ORDER);
++	}
++	__vunmap_range_noflush(shadow_start, shadow_end);
++	__vunmap_range_noflush(origin_start, origin_end);
++	flush_tlb_kernel_range(shadow_start, shadow_end);
++	flush_tlb_kernel_range(origin_start, origin_end);
++}
++
+ /*
+  * This function creates new shadow/origin pages for the physical pages mapped
+  * into the virtual memory. If those physical pages already had shadow/origin,
+@@ -219,28 +251,11 @@ ret:
+ 
+ void kmsan_iounmap_page_range(unsigned long start, unsigned long end)
+ {
+-	unsigned long v_shadow, v_origin;
+-	struct page *shadow, *origin;
+-	int nr;
+-
+ 	if (!kmsan_enabled || kmsan_in_runtime())
+ 		return;
+ 
+-	nr = (end - start) / PAGE_SIZE;
+ 	kmsan_enter_runtime();
+-	v_shadow = (unsigned long)vmalloc_shadow(start);
+-	v_origin = (unsigned long)vmalloc_origin(start);
+-	for (int i = 0; i < nr;
+-	     i++, v_shadow += PAGE_SIZE, v_origin += PAGE_SIZE) {
+-		shadow = kmsan_vmalloc_to_page_or_null((void *)v_shadow);
+-		origin = kmsan_vmalloc_to_page_or_null((void *)v_origin);
+-		__vunmap_range_noflush(v_shadow, vmalloc_shadow(end));
+-		__vunmap_range_noflush(v_origin, vmalloc_origin(end));
+-		if (shadow)
+-			__free_pages(shadow, 1);
+-		if (origin)
+-			__free_pages(origin, 1);
+-	}
++	kmsan_iounmap_pages(start, end);
+ 	flush_cache_vmap(vmalloc_shadow(start), vmalloc_shadow(end));
+ 	flush_cache_vmap(vmalloc_origin(start), vmalloc_origin(end));
+ 	kmsan_leave_runtime();
+--- a/mm/vmalloc.c~mm-kmsan-fix-iounmap-metadata-teardown
++++ a/mm/vmalloc.c
+@@ -817,9 +817,10 @@ EXPORT_SYMBOL_GPL(is_vmalloc_or_module_a
+ /*
+  * Walk a vmap address to the struct page it maps. Huge vmap mappings will
+  * return the tail page that corresponds to the base page address, which
+- * matches small vmap mappings.
++ * matches small vmap mappings. Unlike vmalloc_to_page(), this also accepts
++ * addresses outside the vmalloc and module ranges, such as KMSAN metadata.
+  */
+-struct page *vmalloc_to_page(const void *vmalloc_addr)
++__always_inline struct page *__vmalloc_to_page(const void *vmalloc_addr)
+ {
+ 	unsigned long addr = (unsigned long) vmalloc_addr;
+ 	struct page *page = NULL;
+@@ -829,12 +830,6 @@ struct page *vmalloc_to_page(const void
+ 	pmd_t *pmd;
+ 	pte_t *ptep, pte;
+ 
+-	/*
+-	 * XXX we might need to change this if we add VIRTUAL_BUG_ON for
+-	 * architectures that do not vmalloc module space
+-	 */
+-	VIRTUAL_BUG_ON(!is_vmalloc_or_module_addr(vmalloc_addr));
+-
+ 	if (pgd_none(*pgd))
+ 		return NULL;
+ 	if (WARN_ON_ONCE(pgd_leaf(*pgd)))
+@@ -873,6 +868,16 @@ struct page *vmalloc_to_page(const void
+ 
+ 	return page;
+ }
++
++struct page *vmalloc_to_page(const void *vmalloc_addr)
++{
++	/*
++	 * XXX we might need to change this if we add VIRTUAL_BUG_ON for
++	 * architectures that do not vmalloc module space
++	 */
++	VIRTUAL_BUG_ON(!is_vmalloc_or_module_addr(vmalloc_addr));
++	return __vmalloc_to_page(vmalloc_addr);
++}
+ EXPORT_SYMBOL(vmalloc_to_page);
+ 
+ /*
+--- a/mm/vmalloc.h~mm-kmsan-fix-iounmap-metadata-teardown
++++ a/mm/vmalloc.h
+@@ -8,6 +8,7 @@
+ #include <linux/vmalloc.h>
+ 
+ #ifdef CONFIG_MMU
++struct page *__vmalloc_to_page(const void *vmalloc_addr);
+ void __init vmalloc_init(void);
+ int __must_check vmap_pages_range_noflush(unsigned long addr, unsigned long end,
+ 		pgprot_t prot, struct page **pages,
 _
 
-Patches currently in -mm which might be from jm5905938@gmail.com are
+Patches currently in -mm which might be from dmytrokoziuk68@gmail.com are
 
 
