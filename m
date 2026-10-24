@@ -1,45 +1,45 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1792828035;
-	b=IqzTjnO3Bh8NgkulXXdWK+Ristig3AfDMxv2jrixl8sYgXn9u8zD5gCWJRQGqHLu4Xt2
-	 /0FBembCxONDey1ltALG2ExRfi4irv4LCqaDVZs8IQMtMOE6lnnJNATfmbhzTTRyVgEsF
-	 jKG1yiK+t5ZLwqX6nLeCd5z4T377iabCGFDaKLUNMM6gPKA0Jp+V4095kJ3pgZUjxZ9+n
-	 6Ycnuoqa6z11K1gfowCT492UtrkfzUS8iXKUF4va1bZA1dVIPqGdDlNMAcVQGhHa1v40o
-	 AGsVLRbBwZA3tCoBljnsj8MI4oIzCFFSnoQvpam9GD7YhebAt+3jnlMric+GfERLQnw==
+	t=1792828042;
+	b=BW0rImqaaCWyM87QW9UxNwiODrEtLtffGLySI1+oSQyFQBSRBpk7dxlYsg+7HsQlkbHF
+	 WErxBeyVkhofBBo0pJdWBSvx494zO3NTcT41kMDapND7QgnXUN2H4mwK3fh9M+wRq8VZi
+	 GUEwAQsgzz/DxHzWu/UcvWmou+FEm3oWOmH6xKiSDmJUbX4ULp9LpXmnQT+FGZ901oWFP
+	 9+PWfzCp7paflIbrogD1OnvOaBs99RnM5WGok9vm4rve6U2A+r1PMTAefcVF+h28WEmiN
+	 xNshdz2uZ4UR/mc12eTUT2wAY/mOycnh0hTst+vCAI2NrkD6TxVpL7P6L8QOeTLh71g==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1792828035;
+	a=rsa-sha256; c=relaxed/relaxed; t=1792828042;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=JSQWoU+FaOvRC0Ltx/x/TGxxtUa2qsVC/JmcNBe3uwc=;
-	b=g3d1I0FHuECmOQaolmokgzGLI6aCHEHsJd0dLluHb2gLeeQ7rUdYPygbcfIq4yUQ1xzC
-	 JwdGg6iTXoEoCRBVriV5DgMTyJ1qNvxTVgGfQ8/zAIMsPCFNtv+gbHuZlLxKFp4jSF7Up
-	 SGnnB7UvaDKDG2m+osmuAL19dtEai7LAIaxKVM6/Ogcmvthb8++agOnTL5J8Sv5Gsw+Wm
-	 90O8DoJeFJDP0+48KoQrQCn94C1xBpINGJdVrqVKu2aCtpFdOttcAD5nUE2Ckpv0Nr6Sn
-	 eDShpuvUAYATP5ye82rA+Kk8KimCCMtKVQN/sPNNYNjw4jrHn2Bpv5Zy4hpX5L73TuA==
+	bh=mn1BEchkJGdoCaKOLA4w6fiYmN3/C8fFfsm6HF47veY=;
+	b=TMVjf2SWikeWmiMx61lhRBIa55fcOl1rCG85SfQYNJWnsHtvz+0NKPeQ7ku4nLEafcZm
+	 pKsTeR1+oewuSs3MwXKm3PVN+ZVJ8dUkoib1Ojbmu2SLwRt24+CBYg/nH6/PvQa/3TPXU
+	 ILoEMXZFFHg2w/TuXcc3mfkyUHAV1rAuale/ewY0k9B0Py+dzrPhV2ueqj0bOkoRCzauc
+	 z0q8NHes08PjvyqzxYsynvfGE/HbeZeuCRM/c6J/cwMPEBGMFvxG/FzpMpPKMcCSZ8hQu
+	 V3ZZkzoqamwBJ7tyqL0UJ8MbvsYCC59Dt35vPYenOFXytXyqotmGkwefopzSsHmtDZQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=sUrftLMV;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=OVFiBFFX;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5B4CA606A322;
-	Sat, 24 Oct 2026 07:47:15 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3E993606A321;
+	Sat, 24 Oct 2026 07:47:22 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=sUrftLMV
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D78B01F01828;
-	Sat, 24 Oct 2026 07:47:14 +0000 (UTC)
+	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=OVFiBFFX
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id BEBD01F01825;
+	Sat, 24 Oct 2026 07:47:21 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1792828035;
-	bh=JSQWoU+FaOvRC0Ltx/x/TGxxtUa2qsVC/JmcNBe3uwc=;
+	d=linux-foundation.org; s=korg; t=1792828041;
+	bh=mn1BEchkJGdoCaKOLA4w6fiYmN3/C8fFfsm6HF47veY=;
 	h=Date:To:From:Subject;
-	b=sUrftLMVwYdvnSkf1TtSPu4ZDbbJKSWEu6bc30OoDWU5mOIxvrfakoxPhqUHlTCHa
-	 SDwfz+i0kszIQ3EQVrFQFd1/xJ5+UG2u0GxBzPMfyEF5IL674L/owsmAy/BgQMlAGt
-	 maes+SS9lDYeBIqvJs6fnBXOU+EG+GUcM69Sn7kY=
-Date: Sat, 24 Oct 2026 00:47:14 -0700
-To: mm-commits@vger.kernel.org,vbabka@kernel.org,stable@vger.kernel.org,mikhail.v.gavrilov@gmail.com,mfleming@cloudflare.com,glider@google.com,elver@google.com,dvyukov@google.com,calebkan1106@gmail.com,andreyknvl@gmail.com,ckan@cloudflare.com,akpm@linux-foundation.org
+	b=OVFiBFFXB1G9qKWFcPlmVZsAGF9WBrOcWQdSAQRXcN2FulBMGWdGp2EkdjeVHQEur
+	 YNtMMvi4R8PdZfWiKBwm2A7m8xlh9T1Qb+m6puKu0A2eih9N7I6I2FRW1aenUAKipP
+	 53k/GoVSUmlyGEDk31f3YzDnWo6t/kFgS7lgxkvo=
+Date: Sat, 24 Oct 2026 00:47:21 -0700
+To: mm-commits@vger.kernel.org,stable@vger.kernel.org,mark@fasheh.com,joseph.qi@linux.alibaba.com,jlbec@evilplan.org,jjzuming@gmail.com,heming.zhao@suse.com,baijiaju1990@gmail.com,zzzccc427@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] stackdepot-stop-preallocating-after-the-final-pool.patch removed from -mm tree
-Message-Id: <20261024074714.D78B01F01828@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] ocfs2-cluster-remove-zero-address-nodes-from-ip-tree-on-teardown.patch removed from -mm tree
+Message-Id: <20261024074721.BEBD01F01825@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -51,66 +51,69 @@ Precedence: list
 
 
 The quilt patch titled
-     Subject: stackdepot: stop preallocating after the final pool
+     Subject: ocfs2/cluster: remove zero-address nodes from IP tree on teardown
 has been removed from the -mm tree.  Its filename was
-     stackdepot-stop-preallocating-after-the-final-pool.patch
+     ocfs2-cluster-remove-zero-address-nodes-from-ip-tree-on-teardown.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Caleb Kan <ckan@cloudflare.com>
-Subject: stackdepot: stop preallocating after the final pool
-Date: Thu, 22 Oct 2026 09:33:30 +0100
+From: Cen Zhang <zzzccc427@gmail.com>
+Subject: ocfs2/cluster: remove zero-address nodes from IP tree on teardown
+Date: Tue, 20 Oct 2026 21:12:50 +0800
 
-depot_init_pool() decides whether another pool is needed before it
-increments pools_num. When it registers the last allowed pool, pools_num
-is still one below stack_max_pools, so the existing comparison clears
-new_pool.
+o2nm_node_ipv4_address_store() accepts 0.0.0.0. It sets
+O2NM_NODE_ATTR_ADDRESS and links nd_ip_node into cl_node_ip_tree under
+cl_nodes_lock, but o2nm_node_group_drop_item() uses nd_ipv4_address as a
+membership test. A zero address therefore leaves the rbtree node linked
+when config_item_put() releases and frees struct o2nm_node. A later
+address store or IP lookup can then walk the stale node and dereference
+freed memory.
 
-With new_pool cleared, stack_depot_save_flags() can allocate another
-order-2 pool after a lookup miss. depot_keep_new_pool() retains its pointer
-in the global new_pool, so the allocation is not lost. However, pools_num
-has already reached stack_max_pools, and depot_init_pool() rejects every
-attempt to register the pool. It remains allocated and unusable until
-reboot. The non-NULL pointer prevents later saves from allocating more
-spare pools.
+During teardown, drop_item takes cl_nodes_lock, skips rb_erase()
+for the zero key, and then calls config_item_put(). A later
+o2nm_node_ipv4_address_store() duplicate check or o2nm_get_node_by_ip()
+lookup takes the same lock and walks the stale cl_node_ip_tree entry. Use
+O2NM_NODE_ATTR_ADDRESS for teardown so every published nd_ip_node is
+erased before configfs can release the node, without rejecting 0.0.0.0
+or changing lookup semantics.
 
-Account for the pool being registered in the limit check so registering
-the final pool installs STACK_DEPOT_POISON and prevents the extra
-allocation.
-
-Link: https://lore.kernel.org/20261022083330.3159793-1-matt@readmodwrite.com
-Fixes: 31639fd6cebd ("stackdepot: use variable size records for non-evictable entries")
-Signed-off-by: Caleb Kan <ckan@cloudflare.com>
-Signed-off-by: Matt Fleming <mfleming@cloudflare.com>
+Link: https://lore.kernel.org/pm-ocfs2-node-ip-rbtree-zero-address-uaf-v5-e7f64be16b7c3b0988d1@gmail.com
+Fixes: 0c83ed8eeb28 ("[PATCH] OCFS2: The Second Oracle Cluster Filesystem")
+Signed-off-by: Cen Zhang <zzzccc427@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Reviewed-by: Marco Elver <elver@google.com>
-Cc: Andrey Konovalov <andreyknvl@gmail.com>
-Cc: Mikhail Gavrilov <mikhail.v.gavrilov@gmail.com>
-Cc: Caleb Kan <calebkan1106@gmail.com>
-Cc: Alexander Potapenko <glider@google.com>
-Cc: Dmitry Vyukov <dvyukov@google.com>
-Cc: Vlastimil Babka <vbabka@kernel.org>
+Reviewed-by: Joseph Qi <joseph.qi@linux.alibaba.com>
+Assisted-by: LLM
+Cc: Mark Fasheh <mark@fasheh.com>
+Cc: Joel Becker <jlbec@evilplan.org>
+Cc: Heming Zhao <heming.zhao@suse.com>
+Cc: Jia-Ju Bai <baijiaju1990@gmail.com>
+Cc: <jjzuming@gmail.com>
 Cc: <stable@vger.kernel.org>
 ---
 
- lib/stackdepot.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/ocfs2/cluster/nodemanager.c |    7 +++++--
+ 1 file changed, 5 insertions(+), 2 deletions(-)
 
---- a/lib/stackdepot.c~stackdepot-stop-preallocating-after-the-final-pool
-+++ a/lib/stackdepot.c
-@@ -323,7 +323,7 @@ static bool depot_init_pool(void **preal
- 	 * NULL; do not reset to NULL if we have reached the maximum number of
- 	 * pools.
- 	 */
--	if (pools_num < stack_max_pools)
-+	if (pools_num + 1 < stack_max_pools)
- 		WRITE_ONCE(new_pool, NULL);
- 	else
- 		WRITE_ONCE(new_pool, STACK_DEPOT_POISON);
+--- a/fs/ocfs2/cluster/nodemanager.c~ocfs2-cluster-remove-zero-address-nodes-from-ip-tree-on-teardown
++++ a/fs/ocfs2/cluster/nodemanager.c
+@@ -627,8 +627,11 @@ static void o2nm_node_group_drop_item(st
+ 
+ 	write_lock(&cluster->cl_nodes_lock);
+ 
+-	/* XXX sloppy */
+-	if (node->nd_ipv4_address)
++	/*
++	 * 0.0.0.0 is a valid configured address, so nd_ipv4_address does
++	 * not tell us whether nd_ip_node was published in the IP tree.
++	 */
++	if (test_bit(O2NM_NODE_ATTR_ADDRESS, &node->nd_set_attributes))
+ 		rb_erase(&node->nd_ip_node, &cluster->cl_node_ip_tree);
+ 
+ 	/* nd_num might be 0 if the node number hasn't been set.. */
 _
 
-Patches currently in -mm which might be from ckan@cloudflare.com are
+Patches currently in -mm which might be from zzzccc427@gmail.com are
 
 
