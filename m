@@ -1,45 +1,45 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1792832463;
-	b=Wk7ueM2LF1wgshdmA6XjdSjvyQlV91Qt3oreLWsjZ6nIA9DXDDsWmd60XLksj3WwOVEd
-	 M0Fiz1rSEk7tReH9CVuoO4eRHjFUtCQ3mNax4umWffUv2ph3FPapuTBPSdFok9gZTe5R3
-	 H9CAA23FEza6PGSHS/XSqrO9KqNQ7oyBZGU8fRc66a8A9QIeZa+6XuqLbTtc+XUTC5puU
-	 iSETe3JVzEuJ107CPrG/30CO9vREnowbKd2Xn85v6wQBTH01J7E1DxXar/cIPFV0sRapa
-	 iGrG9gN3YIoKYfA13UvnOE3Rbx57RF7redobHuvxN4fNZDuXl6Q33d/9S/2Ar8jTTxg==
+	t=1792832469;
+	b=cs+or7fO8L4uljRYcLSMQApMjCxB7EbrOlm8rAtMUQlvR+o83su8iLYxJs36xcZE/Z5L
+	 DNoNXV2lH7pkHN/BnxXT99oX2J5/ginHiPVlqPpkDRxC5aS7NUhykQ9/RGtmvIfCLNuUW
+	 hBSsb+mjk4KY86h3BnQ1GsLzcoGibFaE7xdA+hfR8xIBsPRbw9kQ1sliDnzLMPS1i3jKQ
+	 q2pVwHBY2TbAk7RMmYmUolmhzAcIhbMMOeNLtdb2d+zFvf82Auc97gz0Bxyuj3UGYbgsE
+	 N1NwI63+KvcWL1bg8btdgyZVwuPy1/B1zIg7IVCdxR3ykd62oUFaLKzuPhk5vQxtnyQ==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1792832463;
+	a=rsa-sha256; c=relaxed/relaxed; t=1792832469;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=9GbKf9k0WCjSnT+Q7MlXZUpFkRavdv7voUOBssGTNgk=;
-	b=oyXvDLwAiXwIKBTjQR3PxP/vbNQ/oJDMctb18dekY9BklbZnAtf/bXvRu3wUQ5pZx6sj
-	 zTdLiJQ/8mS6yJWPMXF99e4FZy8zSnkIDXyXsQuWphj3g7OLQUWoddpdkoctHtBvXeJiT
-	 ND3BgbepEealvN+QDkfzzp+pLPcS+thzkVnxxVQHf+P16bKTgSoGtBbwnsbGfSpO/SFhE
-	 Ha8/f3Ai4WhA00xSecaO4lBt+IfpFbtxKWXhMaGByKKchw6mppxebD41IDu6n19QRJiyj
-	 dNYdto+T8iJcspw+bsnRz2IicqGV+jZM+G5fvjAKS/2Uo+iRvqb3uKcFjuewPHVIUnA==
+	bh=dF8lCnCGn1DmLJGz1M5IW40Px4NCQRjLmzqt2Av5Wgo=;
+	b=oF8V7N43WrTvkwIrHJVBPztu9OihAOC0PYmBsl8R4cYGarp0+5QwIImq0HeacQmTw8XR
+	 HXPGZnZEguNH5oofAst3WR48F1u5S7AZFZZR40fkSrSCUwL9K/86BYj8H74tVzf/Fs9CW
+	 ljm86/4L1cq4dDA/R8I6UMaij719b2MYD0p6efxSGbgz9UYY2U4AO7iTTsOUuJIhy5t0v
+	 NBLgdz22PpHZpmXWwuqQUhtcFQzN193psef5X4IaQ4TLqddfm2fsPowTgdtmSUBUUQuHg
+	 +wJuzzcelCmfFH94+90Q5vksPNKIsdfUroRr3PTbPZkvktZXTEK42CPDcGo1LWGZESw==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=vX+xmxyi;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=T5NyN95Y;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 39399606A31D
-	for <mm-commits@vger.kernel.org>; Sat, 24 Oct 2026 09:01:02 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0FCCA606A320
+	for <mm-commits@vger.kernel.org>; Sat, 24 Oct 2026 09:01:09 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=vX+xmxyi
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B281E1F01825;
-	Sat, 24 Oct 2026 09:01:02 +0000 (UTC)
+	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=T5NyN95Y
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id CDE141F01825;
+	Sat, 24 Oct 2026 09:01:08 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1792832462;
-	bh=9GbKf9k0WCjSnT+Q7MlXZUpFkRavdv7voUOBssGTNgk=;
+	d=linux-foundation.org; s=korg; t=1792832468;
+	bh=dF8lCnCGn1DmLJGz1M5IW40Px4NCQRjLmzqt2Av5Wgo=;
 	h=Date:To:From:Subject;
-	b=vX+xmxyi3FT/jYgttI/kXjQjDQAD5KtqP6ogqwlAWMGWPVZHAP4mEYLxY+iY2ysb2
-	 VCvVttyylqzAxPiWkrrePUCUfxn2IWP8U2v3Gye7jHOHR9fzbvYhHYA7Bum9bSxszQ
-	 J15nim7lcvwmrnX33YQcu08E49NmufIye1uaoGrI=
-Date: Sat, 24 Oct 2026 02:01:02 -0700
-To: mm-commits@vger.kernel.org,youngjun.park@lge.com,shikemeng@huaweicloud.com,rafael@kernel.org,nphamcs@gmail.com,lenb@kernel.org,kasong@tencent.com,chrisl@kernel.org,charsyam@gmail.com,bhe@redhat.com,baohua@kernel.org,devnexen@gmail.com,akpm@linux-foundation.org
+	b=T5NyN95Y4MQNTVHZtIibWPqAOpfYilGqsCktRZ8EZjt4/JeNiiT/Oa5LEvY8q7wHG
+	 jEVFvj9ropuQpMvgo4Oa+upnqh7guOtEYy99tFqX8kn1PNoNHqJzxXwEgp+lCTZ9Wk
+	 sqBOgK+HE9Lh3JMbVH02jicOYGo8Z+iDWteVdpRk=
+Date: Sat, 24 Oct 2026 02:01:08 -0700
+To: mm-commits@vger.kernel.org,vbabka@kernel.org,surenb@google.com,shuah@kernel.org,rppt@kernel.org,mhocko@suse.com,ljs@kernel.org,liam@infradead.org,david@kernel.org,azpijr@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-swap-pm-hibernate-atomically-replace-hibernation-pin.patch removed from -mm tree
-Message-Id: <20261024090102.B281E1F01825@smtp.kernel.org>
+Subject: [merged mm-stable] selftests-mm-check-mremap_dontunmap-mlock-accounting.patch removed from -mm tree
+Message-Id: <20261024090108.CDE141F01825@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -51,181 +51,156 @@ Precedence: list
 
 
 The quilt patch titled
-     Subject: mm/swap, PM: hibernate: atomically replace hibernation pin
+     Subject: selftests/mm: check MREMAP_DONTUNMAP mlock accounting
 has been removed from the -mm tree.  Its filename was
-     mm-swap-pm-hibernate-atomically-replace-hibernation-pin.patch
+     selftests-mm-check-mremap_dontunmap-mlock-accounting.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: David Carlier <devnexen@gmail.com>
-Subject: mm/swap, PM: hibernate: atomically replace hibernation pin
-Date: Thu, 30 Apr 2026 20:56:51 +0100
+From: "Jose A. Perez de Azpillaga" <azpijr@gmail.com>
+Subject: selftests/mm: check MREMAP_DONTUNMAP mlock accounting
+Date: Tue,  6 Oct 2026 08:39:01 +0200
 
-snapshot_set_swap_area() unpins the previously selected swap device and
-pins the new one in two separate swap_lock critical sections.  In the gap
-between them, swapoff() observes SWP_HIBERNATION cleared, bypasses the
-guard, and tears down the device, reopening the race the SWP_HIBERNATION
-pin was meant to close.  The window is reachable on any
-SNAPSHOT_SET_SWAP_AREA call after the snapshot device is opened for
-hibernation, and on any retry after the resume path's first selection.
+MREMAP_DONTUNMAP keeps the source VMA in place, but clears its mlock flags
+while setting them on the destination VMA.  The "mm/mremap: fix two issues
+with MREMAP_DONTUNMAP" series fixed two cases where this leaked
+mm->locked_vm:
 
-Add repin_hibernation_swap_type(), which looks up the new device, clears
-the old SWP_HIBERNATION flag and sets the new one under a single swap_lock
-acquisition.  The same-device case is short- circuited so userspace can
-re-select the same swap area without tripping WARN_ON_ONCE and -EBUSY. 
-Switch snapshot_set_swap_area() to the new helper.
+ - an unfaulted mlock-on-fault VMA moved behind itself self-merges, so the
+   single resulting VMA loses the flags without the accounting being
+   dropped;
 
-A failed lookup now preserves the previous pin instead of dropping it, so
-a bad SNAPSHOT_SET_SWAP_AREA leaves the prior selection intact.  The open
-and release paths keep using pin_hibernation_swap_type() and
-unpin_hibernation_swap_type().
+ - a partial mremap() moves only part of the range, leaving the pages which
+   are not moved accounted as locked in a VMA whose flags were cleared.
 
-The race was identified during AI-assisted review of the SWP_HIBERNATION
-pinning series.
+Add a test which mlock2()s a source mapping, moves all or part of it with
+MREMAP_DONTUNMAP, unmaps everything and checks that VmLck is back to its
+value from before, and run it for the self-merge case and for a partial
+move with and without MLOCK_ONFAULT.
 
-[akpm@linux-foundation.org: coding-style cleanups]
-Link: https://lore.kernel.org/20260430195651.287659-1-devnexen@gmail.com
-Fixes: 8e6e0d845823 ("mm/swap, PM: hibernate: fix swapoff race in uswsusp by pinning swap device")
-Signed-off-by: David Carlier <devnexen@gmail.com>
+Verified on x86_64: the three cases fail on mm-unstable with the two fixes
+reverted and pass with them applied.
+
+Link: https://lore.kernel.org/20261006064120.6796-1-azpijr@gmail.com
+Signed-off-by: Jose A. Perez de Azpillaga <azpijr@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Assisted-by: Codex (gpt-5-codex)
-Cc: Baoquan He <bhe@redhat.com>
-Cc: Barry Song <baohua@kernel.org>
-Cc: Chris Li <chrisl@kernel.org>
-Cc: Kairui Song <kasong@tencent.com>
-Cc: Kemeng Shi <shikemeng@huaweicloud.com>
-Cc: Len Brown <lenb@kernel.org>
-Cc: Nhat Pham <nphamcs@gmail.com>
-Cc: "Rafael J. Wysocki" <rafael@kernel.org>
-Cc: DaeMyung Kang <charsyam@gmail.com>
-Cc: Youngjun Park <youngjun.park@lge.com>
+Acked-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
+Cc: David Hildenbrand <david@kernel.org>
+Cc: Shuah Khan <shuah@kernel.org>
+Cc: Liam R. Howlett <liam@infradead.org>
+Cc: Vlastimil Babka <vbabka@kernel.org>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Michal Hocko <mhocko@suse.com>
 ---
 
- include/linux/swap.h |    2 +
- kernel/power/user.c  |   19 ++++--------
- mm/swapfile.c        |   61 +++++++++++++++++++++++++++++++++++++++++
- 3 files changed, 69 insertions(+), 13 deletions(-)
+ tools/testing/selftests/mm/mremap_dontunmap.c |   63 +++++++++++++++-
+ 1 file changed, 62 insertions(+), 1 deletion(-)
 
---- a/include/linux/swap.h~mm-swap-pm-hibernate-atomically-replace-hibernation-pin
-+++ a/include/linux/swap.h
-@@ -395,6 +395,8 @@ static inline long get_nr_swap_pages(voi
- extern void si_swapinfo(struct sysinfo *);
- extern int pin_hibernation_swap_type(dev_t device, sector_t offset);
- extern void unpin_hibernation_swap_type(int type);
-+extern int repin_hibernation_swap_type(int old_type, dev_t device,
-+				       sector_t offset);
- extern int find_hibernation_swap_type(dev_t device, sector_t offset);
- int find_first_swap(dev_t *device);
- extern unsigned int count_swap_pages(int, int);
---- a/kernel/power/user.c~mm-swap-pm-hibernate-atomically-replace-hibernation-pin
-+++ a/kernel/power/user.c
-@@ -218,6 +218,7 @@ static int snapshot_set_swap_area(struct
- {
- 	sector_t offset;
- 	dev_t swdev;
-+	int new_type;
+--- a/tools/testing/selftests/mm/mremap_dontunmap.c~selftests-mm-check-mremap_dontunmap-mlock-accounting
++++ a/tools/testing/selftests/mm/mremap_dontunmap.c
+@@ -7,6 +7,7 @@
+  */
+ #define _GNU_SOURCE
+ #include <sys/mman.h>
++#include <sys/syscall.h>
+ #include <linux/mman.h>
+ #include <errno.h>
+ #include <stdio.h>
+@@ -15,6 +16,7 @@
+ #include <unistd.h>
  
- 	if (swsusp_swap_in_use())
- 		return -EPERM;
-@@ -238,19 +239,11 @@ static int snapshot_set_swap_area(struct
- 		offset = swap_area.offset;
- 	}
+ #include "kselftest.h"
++#include "vm_util.h"
  
--	/*
--	 * Unpin the swap device if a swap area was already
--	 * set by SNAPSHOT_SET_SWAP_AREA.
--	 */
--	unpin_hibernation_swap_type(data->swap);
--
--	/*
--	 * User space encodes device types as two-byte values,
--	 * so we need to recode them
--	 */
--	data->swap = pin_hibernation_swap_type(swdev, offset);
--	if (data->swap < 0)
--		return swdev ? -ENODEV : -EINVAL;
-+	new_type = repin_hibernation_swap_type(data->swap, swdev, offset);
-+	if (new_type < 0)
-+		return new_type;
-+
-+	data->swap = new_type;
- 	data->dev = swdev;
- 	return 0;
- }
---- a/mm/swapfile.c~mm-swap-pm-hibernate-atomically-replace-hibernation-pin
-+++ a/mm/swapfile.c
-@@ -2313,6 +2313,67 @@ int pin_hibernation_swap_type(dev_t devi
+ unsigned long page_size;
+ char *page_buffer;
+@@ -335,6 +337,62 @@ static void mremap_dontunmap_partial_map
+ 	ksft_test_result_pass("%s\n", __func__);
  }
  
- /**
-+ * repin_hibernation_swap_type - Atomically replace the hibernation pin
-+ * @old_type: Swap type currently pinned (or < 0 if none).
-+ * @device:   Block device of the new resume image.
-+ * @offset:   Offset identifying the new swap area.
-+ *
-+ * Look up the swap device for @device/@offset and atomically transfer
-+ * the SWP_HIBERNATION pin from @old_type (if valid) to the new device,
-+ * all under a single swap_lock critical section. This closes the
-+ * swapoff() window that exists when callers unpin and re-pin in two
-+ * separate operations.
-+ *
-+ * If the new device cannot be located, the existing pin on @old_type
-+ * is preserved and an error is returned. If @old_type already refers
-+ * to the same swap_info_struct as the new lookup, no flag changes are
-+ * made and @old_type is returned.
-+ *
-+ * Return:
-+ * >= 0 on success (new swap type).
-+ * -EINVAL if @device is invalid.
-+ * -ENODEV if the swap device is not found.
-+ * -EBUSY  if the new device is already pinned by another context.
-+ */
-+int repin_hibernation_swap_type(int old_type, dev_t device, sector_t offset)
++/* VmLck from /proc/self/status, which is mm->locked_vm in kB. */
++static unsigned long locked_vm_kb(void)
 +{
-+	struct swap_info_struct *old_si, *new_si;
-+	int new_type;
++	unsigned long kb;
++	char buf[256];
++	FILE *fp;
 +
-+	spin_lock(&swap_lock);
++	fp = fopen("/proc/self/status", "r");
++	BUG_ON(!fp, "unable to open /proc/self/status");
++	BUG_ON(!check_for_pattern(fp, "VmLck:", buf, sizeof(buf)) ||
++	       sscanf(buf, "VmLck: %lu kB", &kb) != 1, "unable to read VmLck");
++	fclose(fp);
 +
-+	new_type = __find_hibernation_swap_type(device, offset);
-+	if (new_type < 0) {
-+		spin_unlock(&swap_lock);
-+		return new_type;
-+	}
-+
-+	new_si = swap_type_to_info(new_type);
-+	if (WARN_ON_ONCE(!new_si)) {
-+		spin_unlock(&swap_lock);
-+		return -ENODEV;
-+	}
-+
-+	old_si = swap_type_to_info(old_type);
-+	if (new_si == old_si) {
-+		spin_unlock(&swap_lock);
-+		return new_type;
-+	}
-+
-+	if (WARN_ON_ONCE(new_si->flags & SWP_HIBERNATION)) {
-+		spin_unlock(&swap_lock);
-+		return -EBUSY;
-+	}
-+
-+	if (old_si)
-+		old_si->flags &= ~SWP_HIBERNATION;
-+	new_si->flags |= SWP_HIBERNATION;
-+
-+	spin_unlock(&swap_lock);
-+	return new_type;
++	return kb;
 +}
 +
-+/**
-  * unpin_hibernation_swap_type - Unpin the swap device for hibernation
-  * @type: Swap type previously returned by pin_hibernation_swap_type()
-  *
++/*
++ * MREMAP_DONTUNMAP clears the mlock flags of the source VMA and sets them on
++ * the destination, and mm->locked_vm has to follow.  mlock2() a source of
++ * num_pages and move its first move_pages to gap pages past its end:
++ *
++ *  |------ source ------|... gap ...|-- dest --|
++ *
++ * then unmap everything and check that VmLck is back where it started.  With
++ * no gap the destination is adjacent to the source and could merge with it,
++ * otherwise the gap is left PROT_NONE so that it cannot.
++ */
++static void mremap_dontunmap_mlock(const char *desc, unsigned long num_pages,
++				   unsigned long move_pages, unsigned long gap,
++				   int mlock_flags)
++{
++	unsigned long size = (num_pages + gap + move_pages) * page_size;
++	unsigned long locked = locked_vm_kb();
++	void *source, *dest;
++
++	source = mmap(NULL, size, PROT_NONE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
++	BUG_ON(source == MAP_FAILED, "mmap");
++	BUG_ON(mprotect(source, num_pages * page_size,
++			PROT_READ | PROT_WRITE) == -1, "mprotect");
++	dest = source + (num_pages + gap) * page_size;
++
++	if (syscall(__NR_mlock2, source, num_pages * page_size, mlock_flags)) {
++		ksft_test_result_skip("%s: %s: mlock2: %s\n", __func__, desc,
++				      strerror(errno));
++		BUG_ON(munmap(source, size) == -1, "unable to unmap mappings");
++		return;
++	}
++
++	BUG_ON(mremap(source, move_pages * page_size, move_pages * page_size,
++		      MREMAP_DONTUNMAP | MREMAP_MAYMOVE | MREMAP_FIXED,
++		      dest) != dest, "mremap");
++
++	BUG_ON(munmap(source, size) == -1, "unable to unmap mappings");
++	ksft_test_result(locked_vm_kb() == locked, "%s: %s\n", __func__, desc);
++}
++
+ int main(void)
+ {
+ 	ksft_print_header();
+@@ -348,7 +406,7 @@ int main(void)
+ 		ksft_finished();
+ 	}
+ 
+-	ksft_set_plan(5);
++	ksft_set_plan(8);
+ 
+ 	// Keep a page sized buffer around for when we need it.
+ 	page_buffer =
+@@ -361,6 +419,9 @@ int main(void)
+ 	mremap_dontunmap_simple_fixed();
+ 	mremap_dontunmap_partial_mapping();
+ 	mremap_dontunmap_partial_mapping_overwrite();
++	mremap_dontunmap_mlock("onfault self-merge", 1, 1, 0, MLOCK_ONFAULT);
++	mremap_dontunmap_mlock("partial", 3, 2, 1, 0);
++	mremap_dontunmap_mlock("onfault partial", 3, 2, 1, MLOCK_ONFAULT);
+ 
+ 	BUG_ON(munmap(page_buffer, page_size) == -1,
+ 	       "unable to unmap page buffer");
 _
 
-Patches currently in -mm which might be from devnexen@gmail.com are
+Patches currently in -mm which might be from azpijr@gmail.com are
 
 
