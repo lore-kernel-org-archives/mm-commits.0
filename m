@@ -1,45 +1,45 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1792832255;
-	b=qlAJa3m1NZOOb0AY3XnUtXq7bd8waRJQbvcPDrZbsSGTGtrDCqN0OAY8He1i8Cy+kh9g
-	 3npMzqy1N1K9FdRXNnx0ns1TSlkQ+4WpM3+updOl06O3QiTDO05UUU2qxvzv0OE+y2DDS
-	 1CEcJoFZOwGiwDLqYJVd89DKXB82hD2W7WQK0dyjNqrNg8Nh2YU7sMMHqlWjPyQR9US5w
-	 dG+gTjxDSYgR3DcdvJyJN6pYIgvkg+cDwv8oLkKSgRgAUBGd2o7POaWD5zaFaZHFuYZat
-	 FBLcpklSb/UQgc9fajLU+w3WJTqTiKLL67hNDZxNDQNNXKsu29nT/LtJE4k1I9H4t1Q==
+	t=1792832258;
+	b=GcXRk9TFGdNeqoFolRm4lETjaTW+9ybEUVrWOLUlwmvVHf2se2d5rNNhhfLlOC16EUtM
+	 zsSI/ZujkSwpQiaxWlGvvnIysZA09nxL/xLb14VXsFgQfknlJR/azPq/RJtwRXHihboU7
+	 ha0cBytgAMhkHQjciz9bJE2LJSdEE5oexG9eD88VVnwnX1YIR8y2NzJapiGnuKi6DLNjD
+	 YkmFczBRo6CCAN+GGwwAAKd/ymobLGewbDNj8iufe4YIJW9DRM1PwoEW/GItfOvTB1W5k
+	 DJj8HHWQuGUuJOYpuJI0RN0LaFrFJ6eQoe0XX9uLdRx/Y75dbb76oR0rdMvCWOispkQ==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1792832255;
+	a=rsa-sha256; c=relaxed/relaxed; t=1792832258;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=NZuv4/OTNpEOHYy6SxrI2wWMhpUhlu5gxzWTCn874rI=;
-	b=BTMFHWymlhegG/8OEnlMzqqUFpauHbPhnSB3sdkzUYXpV34+nv9egLsFNkn5CUpHZy7b
-	 JckKvG5sdK1ZSKEgIDhkxENOHVeT++/OeC5EDM1PdHgDh4cN2eci0TYTzRaF7Y0AWFW72
-	 BdO/Y4jZ4RvvxA/OXFjN0Zuni7viePXJy8UWC8pZe7JczMz0cgL8u7zPCk1eJAOT+oNno
-	 GYRtLF6TeozpTdVw/tInAQdWtRjRHxa4nioKLf1A8Kmhl7UwAjFkB8HWr3O8B/5yAVXsK
-	 29W7TZCzq7HGcaVC65bmuZSBLm2XXQwj7b/FVL+NrQDfmV2aDXcKLmRuKPx7MAIxBsA==
+	bh=7FF7ut+g2bzGoIAQSyAHpjtvKeZal/aOPMZvIqR5SMM=;
+	b=S+acAcwVw0apzcdhefQAFv6ni297PXpoJgpEtsHLWlzVx5+60rsLvotJBEdN/Ec6VjdH
+	 3BZK43z5OAWYFKphWxM4GLttz5xY9k2WN3NV1dFQIO9n3z8HrRG7KTig58I+Avn9WrERC
+	 9/1icbkCWGipU2eYBHTUQF8unxNFmiwzqWxNkECp+YyENUIETKq8O7zEbvE6eGUUL6Iuy
+	 hkTyd4eTayLHFN5bb4egZsB49wvRoD1Oxn/nSoeM07Au+zvg5n3zZSYuVPRSD5uS7JPq+
+	 FCdvtYyDUElSWnjfobc6EKSq9Zcd6NV6iCyNfl8fERtf7+EutEmp4lvz2hwnpbqQVSg==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=GGgOod4c;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=WOiXiwGF;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7E3A3606A320;
-	Sat, 24 Oct 2026 08:57:35 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 12843606A31E;
+	Sat, 24 Oct 2026 08:57:37 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=GGgOod4c
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1C8051F01825;
-	Sat, 24 Oct 2026 08:57:35 +0000 (UTC)
+	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=WOiXiwGF
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 889631F01825;
+	Sat, 24 Oct 2026 08:57:37 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1792832255;
-	bh=NZuv4/OTNpEOHYy6SxrI2wWMhpUhlu5gxzWTCn874rI=;
+	d=linux-foundation.org; s=korg; t=1792832257;
+	bh=7FF7ut+g2bzGoIAQSyAHpjtvKeZal/aOPMZvIqR5SMM=;
 	h=Date:To:From:Subject;
-	b=GGgOod4cWI9ZBJqcYD3mRC+buugjfQe2k0k1xmUQLgARc8A4Yg6dE4/TQaidV3tu7
-	 R+Pv6riMyOAwTWA0FefRkbRNFAKnL/n27CCV70Xqb0HYJMNJMoItyvli12NckLO/nw
-	 6wcvTeBVzusJoK58AfZ8Y2GKiXbBKt2cFHag7FZo=
-Date: Sat, 24 Oct 2026 01:57:34 -0700
-To: mm-commits@vger.kernel.org,vbabka@kernel.org,stable@vger.kernel.org,rppt@kernel.org,riel@surriel.com,pfalcato@suse.de,peterx@redhat.com,osalvador@suse.de,nao.horiguchi@gmail.com,muchun.song@linux.dev,mgorman@techsingularity.net,ljs@kernel.org,linmiaohe@huawei.com,liam@infradead.org,lance.yang@linux.dev,kas@kernel.org,josef@toxicpanda.com,jannh@google.com,agl@us.ibm.com,david@kernel.org,akpm@linux-foundation.org
+	b=WOiXiwGFCYl8M0GYIATm5Xfj6zXPYwPLqqdce0jBHEsA2/p/x1E2hHFPs3jCLK3WV
+	 XwCoQm/w9AGL0zjtp5o7uH7MBhazn4JurpHBpxhY4r6XZ8UqJ+M6N7B8FPHrDwpZiv
+	 se6MyiHsVWcZr3QtDJZqVtpZMmva1KYBB9PPznxk=
+Date: Sat, 24 Oct 2026 01:57:37 -0700
+To: mm-commits@vger.kernel.org,stable@vger.kernel.org,shakeel.butt@linux.dev,roman.gushchin@linux.dev,osalvador@suse.de,nphamcs@gmail.com,muchun.song@linux.dev,mhocko@suse.com,mhocko@kernel.org,joshua.hahnjy@gmail.com,hannes@cmpxchg.org,david@kernel.org,chris@chrisdown.name,lihongfu@kylinos.cn,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-mremap-fix-calling-fixup_hugetlb_reservations-on-the-wrong-vma.patch removed from -mm tree
-Message-Id: <20261024085735.1C8051F01825@smtp.kernel.org>
+Subject: [merged mm-stable] mm-memcg-migrate-per-node-hugetlb-lruvec-stat-together-with-hugetlb-folio.patch removed from -mm tree
+Message-Id: <20261024085737.889631F01825@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -51,73 +51,146 @@ Precedence: list
 
 
 The quilt patch titled
-     Subject: mm/mremap: fix calling fixup_hugetlb_reservations() on the wrong VMA
+     Subject: mm/memcg: migrate per-node hugetlb lruvec stat together with hugetlb folio
 has been removed from the -mm tree.  Its filename was
-     mm-mremap-fix-calling-fixup_hugetlb_reservations-on-the-wrong-vma.patch
+     mm-memcg-migrate-per-node-hugetlb-lruvec-stat-together-with-hugetlb-folio.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: "David Hildenbrand (Arm)" <david@kernel.org>
-Subject: mm/mremap: fix calling fixup_hugetlb_reservations() on the wrong VMA
-Date: Thu, 15 Oct 2026 18:07:16 +0200
+From: Hongfu Li <lihongfu@kylinos.cn>
+Subject: mm/memcg: migrate per-node hugetlb lruvec stat together with hugetlb folio
+Date: Wed, 23 Sep 2026 10:05:16 +0800
 
-In case we fail to move the page tables, for example, because we fail
-to allocate a page table, we actually keep the old VMA.
+memory.numa_stat exposes per-node hugetlb counters from per-node lruvec
+stats.  These stats are accounted against folio_nid(): incremented on the
+folio's node when handed to a user, decremented when the folio is returned
+to the pool.
 
-Calling fixup_hugetlb_reservations() on the old VMA is wrong. Fix it
-by just calling it on the VMA that will be removed.
+During hugetlb folio migration, mem_cgroup_migrate() moves the charge to
+the new folio and drops the memcg data of the old one, so the free of the
+old folio right after the migration skips the memcg per-node lruvec
+decrement.  The hugetlb count stays attributed to the old node for the
+rest of the life of the charge, while the target folio gets no increment
+on the new node; its later free decrements a counter that was never
+incremented.
 
-The user-visible impact is that the VMA loses its reservations, meaning
-that the existing reservations get stranded (leaked) and new hugetlb folios
-that are getting allocated in the VMA cannot make use of the
-reservations, failing these allocations.
+Migrate the per-node lruvec accounting alongside migration.  Global memcg
+totals remain balanced because they track resource consumption, not node
+placement.
 
-Link: https://lore.kernel.org/20261015-urgent_fixes-v1-10-42796911043b@kernel.org
-Fixes: b714ccb02a76 ("mm/mremap: complete refactor of move_vma()")
-Signed-off-by: David Hildenbrand (Arm) <david@kernel.org>
+Link: https://lore.kernel.org/20260923-for-hugetlb_state3-v2-2-e8a36245bfab@kylinos.cn
+Fixes: 05d4532b60e3 ("memcg/hugetlb: add hugeTLB counters to memcg")
+Signed-off-by: Hongfu Li <lihongfu@kylinos.cn>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Reviewed-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
+Tested-by: Joshua Hahn <joshua.hahnjy@gmail.com>
+Reviewed-by: Joshua Hahn <joshua.hahnjy@gmail.com>
+Reviewed-by: Oscar Salvador <osalvador@suse.de>
 Acked-by: Muchun Song <muchun.song@linux.dev>
-Reviewed-by: Lance Yang <lance.yang@linux.dev>
-Cc: Liam R. Howlett <liam@infradead.org>
-Cc: Vlastimil Babka <vbabka@kernel.org>
-Cc: Jann Horn <jannh@google.com>
-Cc: Pedro Falcato <pfalcato@suse.de>
-Cc: Oscar Salvador <osalvador@suse.de>
-Cc: Miaohe Lin <linmiaohe@huawei.com>
-Cc: Naoya Horiguchi <nao.horiguchi@gmail.com>
-Cc: Adam Litke <agl@us.ibm.com>
-Cc: Mel Gorman <mgorman@techsingularity.net>
-Cc: Rik van Riel <riel@surriel.com>
-Cc: Peter Xu <peterx@redhat.com>
-Cc: Kiryl Shutsemau <kas@kernel.org>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Josef Bacik <josef@toxicpanda.com>
+Cc: David Hildenbrand <david@kernel.org>
+Cc: Shakeel Butt <shakeel.butt@linux.dev>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Nhat Pham <nphamcs@gmail.com>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Roman Gushchin <roman.gushchin@linux.dev>
+Cc: Chris Down <chris@chrisdown.name>
 Cc: <stable@vger.kernel.org>
 ---
 
- mm/mremap.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/memcontrol.h |    8 ++++++++
+ mm/hugetlb.c               |   25 +++++++++++++++++++++++++
+ mm/memcontrol.c            |    5 ++---
+ 3 files changed, 35 insertions(+), 3 deletions(-)
 
---- a/mm/mremap.c~mm-mremap-fix-calling-fixup_hugetlb_reservations-on-the-wrong-vma
-+++ a/mm/mremap.c
-@@ -1345,7 +1345,7 @@ static int copy_vma_and_data(struct vma_
- 		mremap_userfaultfd_prep(new_vma, vrm->uf);
- 	}
+--- a/include/linux/memcontrol.h~mm-memcg-migrate-per-node-hugetlb-lruvec-stat-together-with-hugetlb-folio
++++ a/include/linux/memcontrol.h
+@@ -983,6 +983,9 @@ unsigned long lruvec_page_state_monotoni
+ unsigned long lruvec_page_state_local(const struct lruvec *lruvec,
+ 				      enum node_stat_item idx);
  
--	fixup_hugetlb_reservations(vma);
-+	fixup_hugetlb_reservations(vrm->vma);
++void mod_memcg_lruvec_state(struct lruvec *lruvec,
++			    enum node_stat_item idx, int val);
++
+ void mem_cgroup_flush_stats(struct mem_cgroup *memcg);
+ void mem_cgroup_flush_stats_ratelimited(struct mem_cgroup *memcg);
  
- 	*new_vma_ptr = new_vma;
- 	return err;
+@@ -1451,6 +1454,11 @@ static inline unsigned long lruvec_page_
+ 	return node_page_state(lruvec_pgdat(lruvec), idx);
+ }
+ 
++static inline void mod_memcg_lruvec_state(struct lruvec *lruvec,
++					  enum node_stat_item idx, int val)
++{
++}
++
+ static inline void mem_cgroup_flush_stats(struct mem_cgroup *memcg)
+ {
+ }
+--- a/mm/hugetlb.c~mm-memcg-migrate-per-node-hugetlb-lruvec-stat-together-with-hugetlb-folio
++++ a/mm/hugetlb.c
+@@ -23,6 +23,7 @@
+ #include <linux/mmdebug.h>
+ #include <linux/sched/signal.h>
+ #include <linux/rmap.h>
++#include <linux/rcupdate.h>
+ #include <linux/string_choices.h>
+ #include <linux/string_helpers.h>
+ #include <linux/swap.h>
+@@ -7396,12 +7397,36 @@ void folio_putback_hugetlb(struct folio
+ 	folio_put(folio);
+ }
+ 
++static void move_hugetlb_lruvec_stat(struct folio *old_folio,
++				     struct folio *new_folio)
++{
++	struct mem_cgroup *memcg;
++	long nr_pages = folio_nr_pages(old_folio);
++	int old_nid = folio_nid(old_folio);
++	int new_nid = folio_nid(new_folio);
++
++	if (old_nid == new_nid)
++		return;
++
++	guard(rcu)();
++
++	memcg = folio_memcg(new_folio);
++	if (!memcg)
++		return;
++
++	mod_memcg_lruvec_state(mem_cgroup_lruvec(memcg, NODE_DATA(old_nid)),
++			       NR_HUGETLB, -nr_pages);
++	mod_memcg_lruvec_state(mem_cgroup_lruvec(memcg, NODE_DATA(new_nid)),
++			       NR_HUGETLB, nr_pages);
++}
++
+ void move_hugetlb_state(struct folio *old_folio, struct folio *new_folio,
+ 			enum migrate_reason reason)
+ {
+ 	struct hstate *h = folio_hstate(old_folio);
+ 
+ 	hugetlb_cgroup_migrate(old_folio, new_folio);
++	move_hugetlb_lruvec_stat(old_folio, new_folio);
+ 	folio_set_owner_migrate_reason(new_folio, reason);
+ 
+ 	/*
+--- a/mm/memcontrol.c~mm-memcg-migrate-per-node-hugetlb-lruvec-stat-together-with-hugetlb-folio
++++ a/mm/memcontrol.c
+@@ -1015,9 +1015,8 @@ static void __mod_memcg_lruvec_state(str
+ 	put_cpu();
+ }
+ 
+-static void mod_memcg_lruvec_state(struct lruvec *lruvec,
+-				     enum node_stat_item idx,
+-				     int val)
++void mod_memcg_lruvec_state(struct lruvec *lruvec,
++			    enum node_stat_item idx, int val)
+ {
+ 	struct pglist_data *pgdat = lruvec_pgdat(lruvec);
+ 	struct mem_cgroup_per_node *pn;
 _
 
-Patches currently in -mm which might be from david@kernel.org are
+Patches currently in -mm which might be from lihongfu@kylinos.cn are
 
-mm-fix-address-wraparound-when-scanning-large-folio-ptes.patch
-mm-hugetlb-disable-pmd-sharing-for-uffd-missing-mode.patch
-mm-vma-write-lock-source-vma-before-duplicating-it-in-__split_vma.patch
-mm-madvise-preserve-vma_softdirty_bit-when-changing-anonymous-names.patch
 
