@@ -1,45 +1,45 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1792832466;
-	b=HhjDchZopezOASdM2bMOOYbAZYtKizfzm4E/gX5U7Ah38NdJidzxB9iAWCydfhvSAcAu
-	 0lv13h7bEKadwVL8p/XaqNkMIvKLHm1gSFjkt+UMA0xugMgcSAimxiWFoLfHcXgOMJSpr
-	 Lfe5Ym7RVVxEzSwhQjfoylYC6Aaq2z4FcE8utn08uqJtOpOyf86w0g/sgR4dGy87ziPSa
-	 cgBP/bSZ1Din1Z5y7JVV+IxguBDW6P0s11uiKiPBBC46PEASJV29OTxrKFPalfFwaPAc3
-	 FYHVOmm1rtd8Ypv7gihHDBV2dgKwoo3AP1C/Q/oF9MyoigpcZ2/y7r3Sm1X0uLeQWaA==
+	t=1792832467;
+	b=JZ77WbP11E+NI+0/pQWS8WMKPQL+C0bQjZgE0Ekhl5AGCW0ChrVAvY70jnZu/VN0Tx48
+	 HLN+HW65wi4+TNOfllf8AMjpaZMzbBM50AUXdpjqWH11TV4ebMBdgiJaDQfSVi07ZzFSi
+	 Bi7O9vtZNpipxVl/aUiPBugxa/Tvrm4MtDlktsUj/ucpJkVhOpDh3IzIpHNIzsGJyEyX0
+	 499HoUT8WmA5IK05P5np0rHVV3nmQw2/IcWLCUlurZopgfwzyBRBRZl5E6vNbrZrQdHAk
+	 r8J2Cx9Cq1nHVq6QWdquktXUNONXrBkAtkJXlXzlSWH3lVW4xTFT/823AQ9zBF2UEzw==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1792832466;
+	a=rsa-sha256; c=relaxed/relaxed; t=1792832467;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=v8VWpmw1REewQrK4m7O20CtxeZUyMb11EvGkbxDzTn0=;
-	b=IZx/2vm7UDfUdUbm8gw8YKQFQKmjiYbnR8eNN+aN91YQxxXJP1fObLcIrZgdiH9rwlhU
-	 UJsmpwTu+7j5sPVPrsfXPmd/XPDpkfkbfHwTjViKovDgHXvs4OACnbUor4Za24x4I/Pjt
-	 KHNnNw5PTD5cJl/nLbGJ8+8x8EWMHO6ySdW1RDxEhDphpdTctgl7EYke4VOVti/ZqtehQ
-	 Z51GV9QOiUcisnRQLu58EO8iTjMrnJoAYoNCtrTFfHbifj7ndErwl5S7+IW4ttCo825zK
-	 cNWfHxHlpGc41BQj49J8XgRMVpP9w5xd0SydFaMdjVQ7jfyFp/EBqrR5hxrGsnF1BAg==
+	bh=337xbWffVZGKdi/djWAmhdNf/sZVVOmRIgfvaCqBBK4=;
+	b=KhjAMMvtoOJpRanNFLYZwz+JQTq2Z6W6Z21NMongU/whdBsPwgbSEbcZ+I5m+T05rOoE
+	 o4qLLyvR6Dx5g0q7s/oAY8g2SygKN9NU7++Cb+hDOkUCBlSPXZtZAkmd4I2U5a3lyTfmt
+	 RmpnsWiNAPc+ih5W8dSQuVCuvGdh7DIgYhdsPidDhGNAXABXVeq4CL76+K7mLb3Hd3+Kk
+	 qysNVLP/w9A1Qpo3gLjzHmSQIr2Yj8lSyJIRBNeFXRnTANeTZMyLFFW5jDPSeJbiJMcvt
+	 ESucOhtVRxLX4jT3DIrBZPCi/L675YHgxpqPI3pcrtEj+SvXzdwaNq0wwApSPeQtaXA==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b="Tstqx/O1";
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b="rhj8rK/t";
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 93D9D606A31A;
-	Sat, 24 Oct 2026 09:01:06 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9CE59606A322;
+	Sat, 24 Oct 2026 09:01:07 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=Tstqx/O1
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5DDAE1F01825;
-	Sat, 24 Oct 2026 09:01:06 +0000 (UTC)
+	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=rhj8rK/t
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 676E11F01828;
+	Sat, 24 Oct 2026 09:01:07 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1792832466;
-	bh=v8VWpmw1REewQrK4m7O20CtxeZUyMb11EvGkbxDzTn0=;
+	d=linux-foundation.org; s=korg; t=1792832467;
+	bh=337xbWffVZGKdi/djWAmhdNf/sZVVOmRIgfvaCqBBK4=;
 	h=Date:To:From:Subject;
-	b=Tstqx/O1GwwtV9PYhmwJhyjE0PhX/Vl2WxT/JPO+H4KqkQ+qdiWVFBB61jP5xhrzM
-	 eh2DzlULzUPeInYTpnpvBloiGXFR54lAKQRLMzc9MxHU6BkyIS1/I3DkOINuLuORl4
-	 ALGEkVJauH/U5JeCAQScqduU2BU26xdmlzYmKofM=
-Date: Sat, 24 Oct 2026 02:01:05 -0700
-To: mm-commits@vger.kernel.org,vbabka@kernel.org,stable@vger.kernel.org,ljs@kernel.org,liam@infradead.org,jannh@google.com,gourry@gourry.net,david@kernel.org,albinwyang@tencent.com,akpm@linux-foundation.org
+	b=rhj8rK/tZ9kqKmDNFYUkQdA4FY5KNCqsqpGizvonodHSHl8uL331u5ojJiN4v79PL
+	 kPg6mr9zwmlMctZ7THOob1eYV2LWUAX/xzydTnmXvihBomMHIIh3n4fTpM4AFGLPX2
+	 ByEYuN4AZC0J9uv8p2MRnCxMoauBeku8NmoaKh8A=
+Date: Sat, 24 Oct 2026 02:01:07 -0700
+To: mm-commits@vger.kernel.org,vbabka@kernel.org,stable@vger.kernel.org,riel@surriel.com,malhyuk97@gmail.com,ljs@kernel.org,liam@infradead.org,lance.yang@linux.dev,kylebot@openai.com,jannh@google.com,harry@kernel.org,david@kernel.org,ziy@nvidia.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-madvise-add-cond_resched-in-thp-branch-of-madvise_cold_or_pageout_pte_range.patch removed from -mm tree
-Message-Id: <20261024090106.5DDAE1F01825@smtp.kernel.org>
+Subject: [merged mm-stable] mm-rmap-dont-discard-lazyfree-thps-at-pmd-level.patch removed from -mm tree
+Message-Id: <20261024090107.676E11F01828@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -51,90 +51,106 @@ Precedence: list
 
 
 The quilt patch titled
-     Subject: mm/madvise: add cond_resched() in THP branch of madvise_cold_or_pageout_pte_range()
+     Subject: mm/rmap: don't discard lazyfree THPs at PMD level
 has been removed from the -mm tree.  Its filename was
-     mm-madvise-add-cond_resched-in-thp-branch-of-madvise_cold_or_pageout_pte_range.patch
+     mm-rmap-dont-discard-lazyfree-thps-at-pmd-level.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Wei Yang <albinwyang@tencent.com>
-Subject: mm/madvise: add cond_resched() in THP branch of madvise_cold_or_pageout_pte_range()
-Date: Sat, 10 Oct 2026 10:40:42 +0800
+From: Zi Yan <ziy@nvidia.com>
+Subject: mm/rmap: don't discard lazyfree THPs at PMD level
+Date: Mon, 12 Oct 2026 22:20:16 -0400
 
-During stress testing with stress-ng on a 256-CPU system, a softlockup was
-observed when madvise(MADV_COLD) was called on a 31GB memory region backed
-by transparent hugepages.  The region contains 15935 THP PMD entries, and
-the softlockup was triggered after 14485 of them had been processed.
+__discard_anon_folio_pmd_locked() clears a lazyfree THP's PMD before it
+determines whether the folio can be discarded, and restores it if the
+folio is dirty or has extra references.  It is done under only the PMD
+lock and the anon_vma read lock inside try_to_unmap_one() and no mmap lock
+is held.  The temporarily none PMD causes UAF.
 
-The THP branch of madvise_cold_or_pageout_pte_range() has no scheduling
-point.  walk_pmd_range() invokes it once per 2MB PMD entry with no
-cond_resched() anywhere in the loop.  Each iteration calls
-pmdp_invalidate() which issues a synchronous TLB shootdown (dsb ish)
-waiting for all CPUs to acknowledge.  This operation can be time-consuming
-under heavy system load, causing the accumulated time across all PMD
-entries to exceed the softlockup threshold (20s) and panic when
-softlockup_panic=1.  On a CONFIG_PREEMPT_NONE=y kernel, there is no other
-opportunity to reschedule during this entire traversal.
+A parallel munmap() or mremap() is supposed to serialize with it on the
+PMD lock, but zap_pmd_range() (called by munmap()) and move_page_tables()
+(called by mremap()) do not take the lock when they see the temporarily
+none PMD and skip the PMD.  There is no more page table walk after the
+none PMD is restored:
 
-The regular PTE path already has an unconditional cond_resched() at the
-function tail (introduced by commit 9c276cc65a58 ("mm: introduce
-MADV_COLD") and commit 1a4e58cce84e ("mm: introduce MADV_PAGEOUT") when
-MADV_COLD and MADV_PAGEOUT were first introduced) and a conditional one
-inside the loop (commit b2f557a21bc8 ("mm/madvise: add cond_resched() in
-madvise_cold_or_pageout_pte_range()")).  The THP branch never received
-equivalent treatment.
+- munmap(): free_pgtables() waits in unlink_anon_vmas() for the anon_vma
+  lock, then free_pmd_range() drops the restored PMD as bad without
+  removing the rmap, so the folio keeps a stale mapcount.
 
-Fix by adding cond_resched() at the huge_unlock exit path after
-spin_unlock(ptl) and reclaim_pages(), which is the single exit point for
-all goto paths in the THP branch.
+- whole-VMA MREMAP_DONTUNMAP: dontunmap_complete() unlinks the source VMA
+  from its anon_vma while the restored PMD still maps the folio.
 
-Crash log:
-  watchdog: BUG: soft lockup - CPU#63 stuck for 23s! [stress-ng-vm:1665914]
-  ...
-  Call trace:
-  pmdp_invalidate+0x48/0x68
-  madvise_cold_or_pageout_pte_range+0x84c/0xb00
-  walk_pmd_range.isra.0+0x1ac/0x3b0
-  walk_pud_range+0x120/0x190
-  walk_pgd_range+0x170/0x1b8
-  __walk_page_range+0x184/0x198
-  walk_page_range_vma+0x94/0x128
-  madvise_cold+0xd8/0x198
-  madvise_vma_behavior+0x234/0x638
-  madvise_walk_vmas.constprop.0+0xdc/0x210
-  madvise_do_behavior+0xa8/0x328
-  do_madvise+0xd8/0x140
-  __arm64_sys_madvise+0x2c/0xe0
+- plain mremap(): the THP is not moved but unmapped, so the THP's data is
+  lost.
 
-Link: https://lore.kernel.org/20261010024042.4070048-1-albin_yang@163.com
-Signed-off-by: Wei Yang <albinwyang@tencent.com>
+In the first two cases, the folio stays mapped, but no VMA that maps it is
+linked to its anon_vma.  When the anon_vma is freed, it is still reachable
+when one rmap walks the folio.  Racing lazyfree reclaim against
+MREMAP_DONTUNMAP as an unprivileged user reproduces a KASAN use-after-free
+in folio_lock_anon_vma_read() as reported in the Closes link.
+
+One solution is to use an invalidated PMD instead of a cleared one until
+the discard is committed, but it needs arch fixes first.
+1. GUP-fast still follows an invalidated PMD on riscv, LoongArch and s390.
+2. sparc64 miscounts thp_pte_count when an invalidated PMD is set again or
+   cleared.
+
+To keep the fix simple for backport, stop discarding lazyfree THPs at PMD
+level instead. try_to_unmap_one() splits the PMD and discards the folio at
+PTE level.
+
+unmap_huge_pmd_locked() and __discard_anon_folio_pmd_locked() are left in
+place, unused, to minimize this fix for backport and the invalidated PMD
+approach is planned as a follow-up series to use them again.
+
+Link: https://lore.kernel.org/20261012-lazyfree-stable-fix-v2-1-6387d6e30063@nvidia.com
+Fixes: 735ecdfaf4e8 ("mm/vmscan: avoid split lazyfree THP during shrink_folio_list()")
+Signed-off-by: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Reviewed-by: Gregory Price (Meta) <gourry@gourry.net>
+Reported-by: Kyle Zeng <kylebot@openai.com>
+Closes: https://lore.kernel.org/r/20261009165214.40212-2-kylebot@openai.com
+Reviewed-by: Kyle Zeng <kylebot@openai.com>
+Reviewed-by: Lance Yang <lance.yang@linux.dev>
 Acked-by: David Hildenbrand (Arm) <david@kernel.org>
-Acked-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
+Reviewed-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
+Tested-by: JongHyuk Kim(MalHyuk) <malhyuk97@gmail.com>
+  Link: https://lore.kernel.org/CADQRuqvXQ=YE=7T3oR66vTxE33pi=ygEeZKPTOU=cALZL0Figw@mail.gmail.com
+Assisted-by: LLM
+Cc: Rik van Riel <riel@surriel.com>
 Cc: Liam R. Howlett <liam@infradead.org>
 Cc: Vlastimil Babka <vbabka@kernel.org>
+Cc: Harry Yoo <harry@kernel.org>
 Cc: Jann Horn <jannh@google.com>
 Cc: <stable@vger.kernel.org>
 ---
 
- mm/madvise.c |    1 +
- 1 file changed, 1 insertion(+)
+ mm/rmap.c |   11 -----------
+ 1 file changed, 11 deletions(-)
 
---- a/mm/madvise.c~mm-madvise-add-cond_resched-in-thp-branch-of-madvise_cold_or_pageout_pte_range
-+++ a/mm/madvise.c
-@@ -454,6 +454,7 @@ huge_unlock:
- 		spin_unlock(ptl);
- 		if (pageout)
- 			reclaim_pages(&folio_list);
-+		cond_resched();
- 		return 0;
- 	}
+--- a/mm/rmap.c~mm-rmap-dont-discard-lazyfree-thps-at-pmd-level
++++ a/mm/rmap.c
+@@ -2275,17 +2275,6 @@ static bool try_to_unmap_one(struct foli
+ 		}
  
+ 		if (!pvmw.pte) {
+-			if (folio_test_lazyfree(folio)) {
+-				if (unmap_huge_pmd_locked(vma, pvmw.address, pvmw.pmd, folio))
+-					goto walk_done;
+-				/*
+-				 * unmap_huge_pmd_locked has either already marked
+-				 * the folio as swap-backed or decided to retain it
+-				 * due to GUP or speculative references.
+-				 */
+-				goto walk_abort;
+-			}
+-
+ 			if (flags & TTU_SPLIT_HUGE_PMD) {
+ 				/*
+ 				 * We temporarily have to drop the PTL and
 _
 
-Patches currently in -mm which might be from albinwyang@tencent.com are
+Patches currently in -mm which might be from ziy@nvidia.com are
 
 
