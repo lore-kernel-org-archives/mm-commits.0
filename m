@@ -1,45 +1,45 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1792832512;
-	b=t4FxHPW8Jb9/kl0GT0VAKAeSzMLqkBI3tlzlzizZprRa05opFF3ZlhcsKZeCR+/7q5la
-	 OHdt1TosNTAG+cqUHW6Tz1wQCP5uvJUdXIzIUa96zHPWEue8kPM8LfFrXugXvF47CPwar
-	 l2IWomeK9A2CCQuc1hRzDM+dLX6CVTMQr9+ehvl+bje8PYEkPYwsRr0DVYy9346oeJ5kc
-	 6auVLacpGHocdrgG0mHCiIQzfyURzhbQr6X5yBedk0ftYkJXfnEySYN3UTq5G4M3jtxYz
-	 PV4JTCbknW2GlIxh7ciq/GbDdPW7jpPzoPKrZYBT73W5oP0L/1mK+y5Bv1GhOI7F/MQ==
+	t=1792832513;
+	b=IDk2XjYq23wTX0mDlJ6hWkZ712i+PWMaCa+2ANmvLYvHlbhWDmoNXcqzjVCp0pMjFtTy
+	 ai5bN35+z/AB9YShGcb7JB8dt5GPDD1yCgzqi6S1AkaLjazsW3uJMOhh3gNRZ0ZNa8ZN9
+	 TwuWUBur+k3f1xFHyKfCB8p/0UpJReAEqd7ccKTs2V2rVPGDd43Qwk+3BrYRYsqCcWn4A
+	 jTQtHTfdEVqujT1hyouFIg0NAAzquTDJdJUsyGDGCzRuAZFzhigYMZO4MorcvbMwgyU4Z
+	 vkn253U7I0Q3plzAcbOS1Sfun8T4u3UvS22K6k63oKKsyQS3ZoQkougC+UH+BYCdIYQ==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1792832512;
+	a=rsa-sha256; c=relaxed/relaxed; t=1792832513;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=ulGofgGIGrYuVNb99KPkSRmgcL+KWybmYUNPrXmM8wo=;
-	b=PEU33lWsS2DyDUmMNUerDRA88ya5dsk4q5GplS2i3wt9AMS887JVmBL92fi3V0qpIZj9
-	 ObvDVInbujq3YoMqrwsZV/f8We5iHri+yyg63yZBzeVHQsS/4Ic6GEcqUQxrq92ojfc3e
-	 y/0OZ18XlnPk/gcpmMMzzhX4eGx539PbcTWpV1knEx8gBSTfZc+ktZoKJBbGQqplLcGQA
-	 CV1S64Q/5h0Ebzy/7Su8yRua5PWAylX60VGiAJXD8hO6bwkTdEwXE8VT+NPJN++t02psQ
-	 kTmI1NPgGI5PqVBW77q0QsItnPOIVs/JKZY5x1Jh8U91Pts4NnQgTsk0BGbKO7f/A3w==
+	bh=kcrG8SEYP/9oj8BXL6EXPxBbuFrdUZpdkHO+sid3PuE=;
+	b=rv/P4X1LC6nflVlW2pb1ohWctzOsCB74Fe/5DxsScaX4IvJIhkQt2AiU5GV7HhoeF7mf
+	 NBeGW/EdZlIzXko0koOLreSaiXFhEvCzYgQD0cjEkqaWvSn1tTZ+Skk3qH9NkvnK89gI3
+	 OKiCr6+WRH+4aY/c2yh6n3oFw6twhP5rtGNAQdunELH5p5F1ZGdj1GmkSSEMkyUG7ugTu
+	 d5QzFJ4uz8wQIQGBQimcphCRRSBJixNgrm4WvLfhVb0KfU67zMxCiknnISsZDHgZHKY62
+	 DkD3rrqAdqgeRyblJXxUvLHLL2mufitlaAMATEw+YcF4VE2+flUtW3hstQLS1wK6izg==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=FKJa9tWW;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=t7vMSTpV;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A358A606A32F;
-	Sat, 24 Oct 2026 09:01:51 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 106C7606A31A
+	for <mm-commits@vger.kernel.org>; Sat, 24 Oct 2026 09:01:53 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=FKJa9tWW
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6A50D1F01828;
-	Sat, 24 Oct 2026 09:01:51 +0000 (UTC)
+	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=t7vMSTpV
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D378D1F01825;
+	Sat, 24 Oct 2026 09:01:52 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1792832511;
-	bh=ulGofgGIGrYuVNb99KPkSRmgcL+KWybmYUNPrXmM8wo=;
+	d=linux-foundation.org; s=korg; t=1792832512;
+	bh=kcrG8SEYP/9oj8BXL6EXPxBbuFrdUZpdkHO+sid3PuE=;
 	h=Date:To:From:Subject;
-	b=FKJa9tWWzX5SBpYuEljglukSCIyMwYQfEJRmBSYXnTz7EoAy3dkMtE7JsbGEePren
-	 zCQFHrxlaDAY/AJnHizBhLPSaNrPc6wRfdsx5cVX8A0lTYM0K20OHJdrIMODKNtJQe
-	 LCe5UOmJlL1WWz55kFxOKzmxZ5DG7UHPEpaBmDLs=
-Date: Sat, 24 Oct 2026 02:01:51 -0700
-To: mm-commits@vger.kernel.org,vbabka@kernel.org,surenb@google.com,stable@vger.kernel.org,shakeel.butt@linux.dev,rppt@kernel.org,rdunlap@infradead.org,pfalcato@suse.de,mhocko@suse.com,liam@infradead.org,jannh@google.com,david@kernel.org,corbet@lwn.net,azpijr@gmail.com,4ncienth@gmail.com,ljs@kernel.org,akpm@linux-foundation.org
+	b=t7vMSTpV/bC74YIcDwo8kmtp/ir9cJEJcr5yC74ajuxMxVBrHDzgOg2KUNvlhANnu
+	 zfQLlpFm4bsW8pAeB8Nl6+GtxcBTHl15OGa0nhc1wp6mtUm/J62xYeWT1jDcneSUJL
+	 qTPPGHUzJ9EtkXjmvUnL8kLVZIEuGvkAc5IE6uaA=
+Date: Sat, 24 Oct 2026 02:01:52 -0700
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,vbabka@kernel.org,usama.arif@linux.dev,surenb@google.com,skhan@linuxfoundation.org,ryan.roberts@arm.com,rppt@kernel.org,rdunlap@infradead.org,nico.pache@linux.dev,mhocko@suse.com,ljs@kernel.org,liam@infradead.org,lance.yang@linux.dev,kas@kernel.org,hannes@cmpxchg.org,dev.jain@arm.com,david.laight.linux@gmail.com,david@kernel.org,corbet@lwn.net,brendan.jackman@linux.dev,baolin.wang@linux.alibaba.com,baohua@kernel.org,noren@nvidia.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-vma-avoid-spurious-write-locks-when-mm-mm_lock_seq-overflows.patch removed from -mm tree
-Message-Id: <20261024090151.6A50D1F01828@smtp.kernel.org>
+Subject: [merged mm-stable] mm-stop-recalculating-min_free_kbytes-once-set-by-userspace.patch removed from -mm tree
+Message-Id: <20261024090152.D378D1F01825@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -51,400 +51,123 @@ Precedence: list
 
 
 The quilt patch titled
-     Subject: mm/vma: avoid spurious write locks when mm->mm_lock_seq overflows
+     Subject: mm: stop recalculating min_free_kbytes once set by userspace
 has been removed from the -mm tree.  Its filename was
-     mm-vma-avoid-spurious-write-locks-when-mm-mm_lock_seq-overflows.patch
+     mm-stop-recalculating-min_free_kbytes-once-set-by-userspace.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: "Lorenzo Stoakes (ARM)" <ljs@kernel.org>
-Subject: mm/vma: avoid spurious write locks when mm->mm_lock_seq overflows
-Date: Fri, 16 Oct 2026 12:34:33 +0100
+From: Nimrod Oren <noren@nvidia.com>
+Subject: mm: stop recalculating min_free_kbytes once set by userspace
+Date: Wed, 14 Oct 2026 17:08:59 +0300
 
-So far the assumption has been that mm->mm_lock_seq overflow is benign,
-resulting only in readers spuriously falling back to the mmap lock, however
-it turns out that this was an unsafe assumption.
+min_free_kbytes is recalculated on memory hotplug and on THP sysfs writes.
+The new value comes from calculate_min_free_kbytes() or, while THP is
+enabled, from set_recommended_min_free_kbytes().  A value written to the
+vm.min_free_kbytes sysctl is replaced whenever the new value is higher, so
+a lower value does not stick.  This matters most when THP is enabled on
+configurations with large pageblocks, where the new value can be excessive
+[1].
 
-If a VMA can be spuriously considered write locked that means read lock
-exclusion does not take place, and thus a VMA can end up write-locked with
-concurrent readers.
+For example, with default arm64 pageblock sizes, the THP recommendation
+can reach 5.5 GiB per eligible zone with 64 KiB pages vs 22 MiB with 4 KiB
+pages.  This keeps a significant amount of memory free, reducing what
+applications can use and triggering reclaim much earlier.  Users can lower
+vm.min_free_kbytes to avoid this, but the lower value only sticks until
+the next recalculation.
 
-Since overflow only occurs every 2^31 write lock/unlock cycles, resolve the
-issue by resetting every VMA's vma->vm_lock_seq each time such an overflow
-occurs.
+Stop recalculating min_free_kbytes once a value has been written to the
+sysctl.  Systems where the sysctl is never written keep the current
+behavior.
 
-This is done in vma_end_write_all(), which is called when the mmap write
-lock is released, i.e. in mmap_write_unlock() and mmap_write_downgrade().
-
-Care must be taken, as resetting the sequence count at overflow means
-changing the seqcount of VMAs which are already attached and observable.
-
-The mm's seqcount is guaranteed to be odd when a write lock is held, and
-thus any write locked VMA will have an odd seqcount assigned.
-
-Therefore resetting to an even value prevents spurious write locks, since
-these can only occur with the mmap write lock held, at which point the mmap
-seqcount will be odd.
-
-However, vma_start_read() also checks vma->vm_lock_seq == mm->mm_lock_seq,
-bailing if so (indicating a write lock).
-
-This would cause any even reset value chosen to prevent VMA read locks from
-being taken - avoid this by also checking whether the VMA seqcount is odd
-before bailing on the read lock.
-
-So far, vma->vm_lock_seq has defaulted to UINT_MAX, but this has been
-unnecessary since commit e5e7fb278e59 ("mm: convert mm_lock_seq to a proper
-seqcount"), since this is assigned when the VMA is still detached, and
-cannot be observed.
-
-Therefore perform both reset and initialisation of vma->vm_lock_seq by
-simply setting vma->vm_lock_seq to zero.
-
-The reset, performed in __mm_reset_vma_seqcounts(), only needs to
-WRITE_ONCE() the value.
-
-However the read of vma->vm_lock_seq in vma_start_read() needs to have
-acquire semantics to pair with the smp_wmb() in do_raw_write_seqcount_end()
-so a reader reading a reset value also observes VMA modifications made
-under the write lock.
-
-Since all VMA write locks were just released and the mmap write lock is
-still held, there are no concurrent VMA writers.
-
-Concurrent VMA readers are unaffected. New VMA readers observe either zero,
-never a write lock, or the prior seqcount, behaving as before the reset.
-
-Since this only occurs every 2^31 write lock/unlock cycles, the time taken
-to update all VMAs is considered to be acceptable.
-
-Also update comments, documentation and VMA userland tests to reflect the
-change.
-
-User facing effects are - dangerous races that could cause memory
-corruption or NULL pointer derefences (especially on page table traversal)
-are avoided.
-
-Link: https://lore.kernel.org/20261016-fix-vma-lock-overflow-v2-1-9eb778b79b58@kernel.org
-Fixes: 5e31275cc997 ("mm: add per-VMA lock and helper functions to control it")
-Signed-off-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
+Link: https://lore.kernel.org/20261014140859.1006967-1-noren@nvidia.com
+Link: https://lore.kernel.org/r/20260716173504.760369-1-noren@nvidia.com/ [1]
+Signed-off-by: Nimrod Oren <noren@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Reported-by: Daehyeon Ko <4ncienth@gmail.com>
-Closes: https://lore.kernel.org/all/20261015143735.1630957-1-4ncienth@gmail.com/
-Reviewed-by: Jose A. Perez de Azpillaga <azpijr@gmail.com>
-Tested-by: Jose A. Perez de Azpillaga <azpijr@gmail.com>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Liam R. Howlett <liam@infradead.org>
-Cc: Vlastimil Babka <vbabka@kernel.org>
-Cc: Shakeel Butt <shakeel.butt@linux.dev>
+Suggested-by: Vlastimil Babka (SUSE) <vbabka@kernel.org>
+Link: https://lore.kernel.org/r/d202dcc3-d7d7-4e98-a9a5-3137cfbfd041@kernel.org/
+Reviewed-by: Vlastimil Babka (SUSE) <vbabka@kernel.org>
+Reviewed-by: Johannes Weiner <hannes@cmpxchg.org>
+Acked-by: Zi Yan <ziy@nvidia.com>
+Reviewed-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
 Cc: David Hildenbrand <david@kernel.org>
+Cc: Liam R. Howlett <liam@infradead.org>
 Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Suren Baghdasaryan <surenb@google.com>
 Cc: Michal Hocko <mhocko@suse.com>
 Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: Shuah Khan <skhan@linuxfoundation.org>
 Cc: Randy Dunlap <rdunlap@infradead.org>
-Cc: Jann Horn <jannh@google.com>
-Cc: Pedro Falcato <pfalcato@suse.de>
-Cc: <stable@vger.kernel.org> # 7.3.x
+Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
+Cc: Nico Pache <nico.pache@linux.dev>
+Cc: Ryan Roberts <ryan.roberts@arm.com>
+Cc: Dev Jain <dev.jain@arm.com>
+Cc: Barry Song <baohua@kernel.org>
+Cc: Lance Yang <lance.yang@linux.dev>
+Cc: Usama Arif <usama.arif@linux.dev>
+Cc: Kiryl Shutsemau <kas@kernel.org>
+Cc: Brendan Jackman <brendan.jackman@linux.dev>
+Cc: David Laight <david.laight.linux@gmail.com>
 ---
 
- Documentation/mm/process_addrs.rst |   14 +++-
- include/linux/mm_types.h           |   12 ++-
- include/linux/mmap_lock.h          |   24 +++++--
- mm/mmap_lock.c                     |   89 +++++++++++++++++++++++----
- tools/testing/vma/include/dup.h    |    2 
- tools/testing/vma/shared.c         |    8 +-
- 6 files changed, 120 insertions(+), 29 deletions(-)
+ Documentation/admin-guide/sysctl/vm.rst |    7 +++++++
+ mm/khugepaged.c                         |    7 +------
+ mm/page_alloc.c                         |    6 +-----
+ 3 files changed, 9 insertions(+), 11 deletions(-)
 
---- a/Documentation/mm/process_addrs.rst~mm-vma-avoid-spurious-write-locks-when-mm-mm_lock_seq-overflows
-+++ a/Documentation/mm/process_addrs.rst
-@@ -819,9 +819,17 @@ All this is achieved by the use of per-m
- used in order to reduce complexity, especially for operations which write-lock
- multiple VMAs at once.
+--- a/Documentation/admin-guide/sysctl/vm.rst~mm-stop-recalculating-min_free_kbytes-once-set-by-userspace
++++ a/Documentation/admin-guide/sysctl/vm.rst
+@@ -539,6 +539,13 @@ watermark[WMARK_MIN] value for each lowm
+ Each lowmem zone gets a number of reserved free pages based
+ proportionally on its size.
  
--If the mm sequence count, :c:member:`!mm->mm_lock_seq` is equal to the VMA
--sequence count :c:member:`!vma->vm_lock_seq` then the VMA is write-locked. If
--they differ, then it is not.
-+The mm sequence count :c:member:`!mm->mm_lock_seq` is incremented on both mmap
-+write lock and unlock, so it is odd while the mmap write lock is held. If it is
-+equal to the VMA sequence count :c:member:`!vma->vm_lock_seq`, and that value
-+is odd, then the VMA is write-locked. If they differ, then it is not.
++By default, the kernel sets this value based on the amount of lowmem
++and recalculates it on memory hotplug.  When Transparent Hugepage (THP)
++support is enabled through global or per-size controls, the kernel may
++also raise it to help keep pageblocks free and reduce fragmentation for
++THP allocations.  Once a value is written to this file, the kernel no
++longer adjusts it automatically.
 +
-+A VMA's sequence count is not updated on unlock, so after 2^31 write lock/unlock
-+cycles the mm sequence count would wrap and match stale VMA values again. To
-+prevent this, when the mm sequence count wraps to zero,
-+:c:func:`!vma_end_write_all` invokes :c:func:`!__mm_reset_vma_seqcounts` to
-+reset every VMA's sequence count to zero, an even value which can never
-+indicate a write lock.
+ Some minimal amount of memory is needed to satisfy PF_MEMALLOC
+ allocations; if you set this to lower than 1024KB, your system will
+ become subtly broken, and prone to deadlock under high loads.
+--- a/mm/khugepaged.c~mm-stop-recalculating-min_free_kbytes-once-set-by-userspace
++++ a/mm/khugepaged.c
+@@ -3144,13 +3144,8 @@ void set_recommended_min_free_kbytes(voi
+ 			      (unsigned long) nr_free_buffer_pages() / 20);
+ 	recommended_min <<= (PAGE_SHIFT-10);
  
- Each time the mmap write lock is released in :c:func:`!mmap_write_unlock` or
- :c:func:`!mmap_write_downgrade`, :c:func:`!vma_end_write_all` is invoked which
---- a/include/linux/mmap_lock.h~mm-vma-avoid-spurious-write-locks-when-mm-mm_lock_seq-overflows
-+++ a/include/linux/mmap_lock.h
-@@ -154,7 +154,7 @@ static inline void vma_lock_init(struct
- #endif
- 	if (reset_refcnt)
- 		refcount_set(&vma->vm_refcnt, 0);
--	vma->vm_lock_seq = UINT_MAX;
-+	vma->vm_lock_seq = 0;
+-	if (recommended_min > min_free_kbytes) {
+-		if (user_min_free_kbytes >= 0)
+-			pr_info_ratelimited("raising min_free_kbytes from %d to %lu to help transparent hugepage allocations\n",
+-					    min_free_kbytes, recommended_min);
+-
++	if (user_min_free_kbytes < 0 && recommended_min > min_free_kbytes)
+ 		min_free_kbytes = recommended_min;
+-	}
+ 
+ update_wmarks:
+ 	setup_per_zone_wmarks();
+--- a/mm/page_alloc.c~mm-stop-recalculating-min_free_kbytes-once-set-by-userspace
++++ a/mm/page_alloc.c
+@@ -6722,12 +6722,8 @@ void calculate_min_free_kbytes(void)
+ 	lowmem_kbytes = nr_free_buffer_pages() * (PAGE_SIZE >> 10);
+ 	new_min_free_kbytes = int_sqrt(lowmem_kbytes * 16);
+ 
+-	if (new_min_free_kbytes > user_min_free_kbytes)
++	if (user_min_free_kbytes < 0)
+ 		min_free_kbytes = clamp(new_min_free_kbytes, 128, 262144);
+-	else
+-		pr_warn_ratelimited("min_free_kbytes is not updated to %d because user defined value %d is preferred\n",
+-				    new_min_free_kbytes, user_min_free_kbytes);
+-
  }
  
- /*
-@@ -229,8 +229,9 @@ static inline void vma_refcount_put(stru
- 
- /*
-  * Use only while holding mmap read lock which guarantees that vma lock is not
-- * contended (nobody can concurrently write-lock the vma). vma_start_read() should
-- * not be used in such cases because it might fail due to mm_lock_seq overflow.
-+ * contended (nobody can concurrently write-lock the vma). vma_start_read() need
-+ * not be used in such cases, as the mmap lock already excludes VMA writers so
-+ * its sequence number checks are redundant.
-  * This functionality is used to obtain vma read lock and drop the mmap read lock.
-  *
-  * VMA can't be detached while we are holding mmap lock, therefore in practice this
-@@ -252,8 +253,9 @@ static inline bool vma_start_read_locked
- 
- /*
-  * Use only while holding mmap read lock which guarantees that vma lock is not
-- * contended (nobody can concurrently write-lock the vma). vma_start_read() should
-- * not be used in such cases because it might fail due to mm_lock_seq overflow.
-+ * contended (nobody can concurrently write-lock the vma). vma_start_read() need
-+ * not be used in such cases, as the mmap lock already excludes VMA writers so
-+ * its sequence number checks are redundant.
-  * This functionality is used to obtain vma read lock and drop the mmap read lock.
-  *
-  * VMA can't be detached while we are holding mmap lock, therefore in practice this
-@@ -552,6 +554,8 @@ static inline int __must_check mmap_writ
- 	return ret;
- }
- 
-+void __mm_reset_vma_seqcounts(struct mm_struct *mm);
-+
- /*
-  * Drop all currently-held per-VMA locks.
-  * This is called from the mmap_lock implementation directly before releasing
-@@ -564,6 +568,16 @@ static inline void vma_end_write_all(str
- {
- 	mmap_assert_write_locked(mm);
- 	mm_lock_seqcount_end(mm);
-+
-+	/*
-+	 * VMA seqcounts are not updated on unlock, so once the mm seqcount has
-+	 * wrapped, any VMA still carrying a sequence number from before the
-+	 * wrap would satisfy __is_vma_write_locked() when that number comes
-+	 * round again, and readers would not be excluded. Reset every VMA's
-+	 * seqcount so that no stale value survives the wrap.
-+	 */
-+	if (unlikely(!mm->mm_lock_seq.sequence))
-+		__mm_reset_vma_seqcounts(mm);
- }
- 
- static inline void mmap_write_unlock(struct mm_struct *mm)
---- a/include/linux/mm_types.h~mm-vma-avoid-spurious-write-locks-when-mm-mm_lock_seq-overflows
-+++ a/include/linux/mm_types.h
-@@ -992,15 +992,19 @@ struct vm_area_struct {
- 	 * Can only be written (using WRITE_ONCE()) while holding both:
- 	 *  - mmap_lock (in write mode)
- 	 *  - vm_refcnt bit at VM_REFCNT_EXCLUDE_READERS_FLAG is set
-+	 * The one exception is __mm_reset_vma_seqcounts(), which stores zero
-+	 * (an even value, which can never indicate a write lock) under the
-+	 * mmap write lock alone once the mm seqcount has wrapped, so a reader
-+	 * holding only vm_refcnt may observe the value change from odd to zero.
- 	 * Can be read reliably while holding one of:
- 	 *  - mmap_lock (in read or write mode)
--	 *  - vm_refcnt bit at VM_REFCNT_EXCLUDE_READERS_BIT is set or vm_refcnt > 1
-+	 *  - vm_refcnt bit at VM_REFCNT_EXCLUDE_READERS_BIT is set
- 	 * Can be read unreliably (using READ_ONCE()) for pessimistic bailout
- 	 * while holding nothing (except RCU to keep the VMA struct allocated).
- 	 *
--	 * This sequence counter is explicitly allowed to overflow; sequence
--	 * counter reuse can only lead to occasional unnecessary use of the
--	 * slowpath.
-+	 * Assigned the (odd) mm seqcount on write lock and not updated on
-+	 * unlock, so a stale value would alias the mm seqcount again 2^31 write
-+	 * lock/unlock cycles later. The reset described above prevents this.
- 	 */
- 	unsigned int vm_lock_seq;
- 
---- a/mm/mmap_lock.c~mm-vma-avoid-spurious-write-locks-when-mm-mm_lock_seq-overflows
-+++ a/mm/mmap_lock.c
-@@ -194,21 +194,38 @@ void __vma_exclude_readers_for_detach(st
- 	WARN_ON_ONCE(!ves.detached);
- }
- 
-+/* Do the VMA, mm seqcounts indicate the VMA is write locked? */
-+static bool vma_seqcount_is_write_locked(unsigned int vma_seq, unsigned int mm_seq)
-+{
-+	/* VMA and mm sequence numbers must match for a write lock. */
-+	if (vma_seq != mm_seq)
-+		return false;
-+
-+	/*
-+	 * The VMA seqcount is always odd if locked. For an attached VMA an even
-+	 * value can only be the zero stored by __mm_reset_vma_seqcounts(),
-+	 * never a write lock.
-+	 */
-+	return vma_seq & 1;
-+}
-+
- /*
-  * Try to read-lock a vma. The function is allowed to occasionally yield false
-  * locked result to avoid performance overhead, in which case we fall back to
-  * using mmap_lock. The function should never yield false unlocked result.
-- * False locked result is possible if mm_lock_seq overflows or if vma gets
-- * reused and attached to a different mm before we lock it.
-+ * False locked result is possible if vma gets reused and attached to a
-+ * different mm before we lock it.
-  * Returns the vma on success, NULL on failure to lock and EAGAIN if vma got
-  * detached.
-  *
-  * IMPORTANT: RCU lock must be held upon entering the function, but upon error
-  *            IT IS RELEASED. The caller must handle this correctly.
-  */
--static inline struct vm_area_struct *vma_start_read(struct mm_struct *mm,
--						    struct vm_area_struct *vma)
-+static struct vm_area_struct *vma_start_read(struct mm_struct *mm,
-+					     struct vm_area_struct *vma)
- {
-+	unsigned int vma_seq;
-+	unsigned int mm_seq;
- 	struct mm_struct *other_mm;
- 	int oldcnt;
- 
-@@ -220,7 +237,9 @@ static inline struct vm_area_struct *vma
- 	 * we don't rely on for anything - the mm_lock_seq read against which we
- 	 * need ordering is below.
- 	 */
--	if (READ_ONCE(vma->vm_lock_seq) == READ_ONCE(mm->mm_lock_seq.sequence)) {
-+	vma_seq = READ_ONCE(vma->vm_lock_seq);
-+	mm_seq = READ_ONCE(mm->mm_lock_seq.sequence);
-+	if (vma_seqcount_is_write_locked(vma_seq, mm_seq)) {
- 		vma = NULL;
- 		goto err;
- 	}
-@@ -246,17 +265,26 @@ static inline struct vm_area_struct *vma
- 		goto err_unstable;
- 
- 	/*
--	 * Overflow of vm_lock_seq/mm_lock_seq might produce false locked result.
--	 * False unlocked result is impossible because we modify and check
-+	 * False unlocked result is impossible because a write lock sets
- 	 * vma->vm_lock_seq under vma->vm_refcnt protection and mm->mm_lock_seq
- 	 * modification invalidates all existing locks.
- 	 *
--	 * We must use ACQUIRE semantics for the mm_lock_seq so that if we are
--	 * racing with vma_end_write_all(), we only start reading from the VMA
--	 * after it has been unlocked.
--	 * This pairs with RELEASE semantics in vma_end_write_all().
-+	 * ACQUIRE semantics are required for both reads.
-+	 *
-+	 * __mm_reset_vma_seqcounts() might reset vma->vm_lock_seq to zero
-+	 * after an overflow. A reader observing that zero must also observe
-+	 * the VMA modifications made under the write lock which just ended, so
-+	 * the ACQUIRE pairs with the smp_wmb() in do_raw_write_seqcount_end()
-+	 * that precedes the reset stores.
-+	 *
-+	 * The ACQUIRE semantics for the mm_lock_seq read is required so that,
-+	 * if we are racing with vma_end_write_all(), we only start reading from
-+	 * the VMA after it has been unlocked. This pairs with the RELEASE
-+	 * semantics in vma_end_write_all().
- 	 */
--	if (unlikely(vma->vm_lock_seq == raw_read_seqcount(&mm->mm_lock_seq))) {
-+	vma_seq = smp_load_acquire(&vma->vm_lock_seq);
-+	mm_seq = raw_read_seqcount(&mm->mm_lock_seq);
-+	if (unlikely(vma_seqcount_is_write_locked(vma_seq, mm_seq))) {
- 		vma_refcount_put(vma);
- 		vma = NULL;
- 		goto err;
-@@ -466,6 +494,43 @@ fallback:
- 	return vma;
- }
- 
-+/*
-+ * Called with mmap write lock held after mm->mm_lock_seq just overflowed (and
-+ * therefore zero), with all VMA write locks now released.
-+ *
-+ * The stores below follow the smp_wmb() in do_raw_write_seqcount_end(), so
-+ * a reader that observes a reset value also observes this cycle's VMA
-+ * modifications (ordered by the ACQUIRE on vma->vm_lock_seq in
-+ * vma_start_read()).
-+ */
-+void __mm_reset_vma_seqcounts(struct mm_struct *mm)
-+{
-+	struct vm_area_struct *vma;
-+	VMA_ITERATOR(vmi, mm, 0);
-+
-+	mmap_assert_write_locked(mm);
-+	VM_WARN_ON_ONCE(mm->mm_lock_seq.sequence);
-+
-+	/*
-+	 * Failing to reset means stale vma->vm_lock_seq values could result in
-+	 * those VMAs becoming spuriously write locked when mm->mm_lock_seq
-+	 * happens to match their values.
-+	 *
-+	 * This is problematic, as it causes the VMA write lock to not exclude
-+	 * readers, which can result in concurrent readers while a VMA write
-+	 * lock is held.
-+	 *
-+	 * Avoid this by resetting to an even value (indicates no write lock
-+	 * held).
-+	 *
-+	 * Readers will either observe zero (not write locked) or the previous
-+	 * value, so this is safe.
-+	 */
-+	for_each_vma(vmi, vma)
-+		WRITE_ONCE(vma->vm_lock_seq, 0);
-+}
-+EXPORT_SYMBOL(__mm_reset_vma_seqcounts);
-+
- #ifdef CONFIG_LOCK_MM_AND_FIND_VMA
- #include <linux/extable.h>
- 
---- a/tools/testing/vma/include/dup.h~mm-vma-avoid-spurious-write-locks-when-mm-mm_lock_seq-overflows
-+++ a/tools/testing/vma/include/dup.h
-@@ -1225,7 +1225,7 @@ static inline void vma_init(struct vm_ar
- 	vma->vm_mm = mm;
- 	vma->vm_ops = &vma_dummy_vm_ops;
- 	INIT_LIST_HEAD(&vma->anon_vma_chain);
--	vma->vm_lock_seq = UINT_MAX;
-+	vma->vm_lock_seq = 0;
- }
- 
- /*
---- a/tools/testing/vma/shared.c~mm-vma-avoid-spurious-write-locks-when-mm-mm_lock_seq-overflows
-+++ a/tools/testing/vma/shared.c
-@@ -65,7 +65,7 @@ struct vm_area_struct *alloc_and_link_vm
- 	 * begun. Linking to the tree will have caused this to be incremented,
- 	 * which means we will get a false positive otherwise.
- 	 */
--	vma->vm_lock_seq = UINT_MAX;
-+	vma->vm_lock_seq = 0;
- 
- 	return vma;
- }
-@@ -97,13 +97,13 @@ int cleanup_mm(struct mm_struct *mm, str
- 
- bool vma_write_started(struct vm_area_struct *vma)
- {
--	int seq = vma->vm_lock_seq;
-+	unsigned int seq = vma->vm_lock_seq;
- 
- 	/* We reset after each check. */
--	vma->vm_lock_seq = UINT_MAX;
-+	vma->vm_lock_seq = 0;
- 
- 	/* The vma_start_write() stub simply increments this value. */
--	return seq > -1;
-+	return seq > 0;
- }
- 
- void __vma_set_dummy_anon_vma(struct vm_area_struct *vma,
+ int __meminit init_per_zone_wmark_min(void)
 _
 
-Patches currently in -mm which might be from ljs@kernel.org are
+Patches currently in -mm which might be from noren@nvidia.com are
 
-mm-vma-fix-expansion-of-vma_mixedmap_bit-vmas.patch
-mm-do-not-unintentionally-overwrite-atomic-vma-flags.patch
-mm-vma-avoid-losing-atomic-vma-flags-when-setting-sticky-vma-flags.patch
 
