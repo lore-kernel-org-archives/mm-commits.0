@@ -1,45 +1,45 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1792832318;
-	b=nDgDhegOTt/CuNpnJHIL36lvGanlIzfkQUJ5SvyPrGUFJVldhCnWeyWHpXb0VQSf435f
-	 1JIx4oACewwX76d9SrDb58/hAD3RJUPBsozoCeuWJ2YYzhiNgC4eihXj+6EzWvjzyPPNa
-	 Xz3RTjYqa4evDeMmHkDnVl3nXMzs0nE7qfAd2IOOe7RvPTGn8/iQiP977K75dv11CPO0A
-	 s3SGiryseNbAWhOsy5rgCgJfksib39OiITHF6Y8Mm/Fpm3YrOkgVPzjTJVCIXa3yCFxY0
-	 pxpVHOWJKZkagJ6KchXycx+2fvQc/MRjygQ5I6SD202CMDOiSQ6B/zUFzUkZTpAAN/w==
+	t=1792832319;
+	b=TqnASE3/zNiaRDwiG94tqw2G9i/cDOVULPztK2/DPw1Y3whhunq4JvZpt0kJM8asllty
+	 RdeusZzvM0ly6C5vmlH9TgE0qNMPN6Ny2vJvu3GBCqvSjpd95/3+pBOWsoekaA8pNidKG
+	 w+h4x6QR1XAAA+7PhvkzpczSZaOJjXIU0AA26EMugq34lVJakewndOZN7DzvpUCBcLirL
+	 063Y6+a862VmwoFFKUnsH4js8EVGOORrd+6WUg2oB7NP+GoPF+j6YoyHyiNcIvAmpJfPW
+	 jxKnkGGgqDwo7eQa7TLsjyXjS2FGz82ujqD+Ogf0+F5lDUnEdt/7Ynp2aqPylTiwRyA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1792832318;
+	a=rsa-sha256; c=relaxed/relaxed; t=1792832319;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=PFkg/HOCCRmN1k3frkD59b5mg5kirOM4hd3nw/uekn4=;
-	b=Z+9YyohZwknqXQVbilh6QRuS7jpomRBtmlZ4qZWaqLYw4I9Gip2//lMvaE27zmsCF8/u
-	 siP+ip6eO6Wa9uP/LTbQQX4Hj79kjAKZN0w+hRLDDPSliFAGM74TawNR5pu1cgljWM7Wf
-	 THs4Cyge0P+GSwUEN+vt3/FremHTlgBOPAbDSDilRlzTF+Lskql5NrX+Zxu4AYqOamgaW
-	 mM9HHUKHFeei3TOKg7a+mlwIn9YxPvJ6E/t/VNFY8y6e5zTLd3TvOWbZFhz0wqryRLVso
-	 vcbvhxAVUPPFa9e8GSeNjbOHo/qFpn2UTdxFl1E1tkfz/ZQLKWfP23W/7VzaJlJlS3A==
+	bh=1odf5lfQgfiL0tZz4hvhGSGBeWhxv/gLOHziCInL3os=;
+	b=QjpSLQvKFOoobNM7CKGtUhv+xHDZtzLsHt0pnNnKp7RQTMhZFfOAASiIkxnL8acrtSnl
+	 SoVF2ouA9B76LbGIuw0lOEfS5xbc5j80BMXnDk4xhVGn8OQybJMOCFtSGnSwZGxAtUf/L
+	 yPqNZGZN1bgU/ksfU3XjZGo41zsyWssxVDSLAv/doCL/cJFGx1WwNnN2Sdvq1OunJtEZ6
+	 R7P9tDfBWC1iaEB3ddo47jDXUVxapkxDXZcdLU9xKJ6Q6NOrEUgq2PzbtS5COqQtStbH4
+	 xcL6yMYg1eC2P5s54YfCBJ8W+O7xZ4QLMnuq4kPzrKRKaYMCo8wW3FkqiHsWYMbmfYg==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=RfPh8cgg;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=Sr9NeeXO;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C9043606A31D
-	for <mm-commits@vger.kernel.org>; Sat, 24 Oct 2026 08:58:37 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BA514606A31D
+	for <mm-commits@vger.kernel.org>; Sat, 24 Oct 2026 08:58:38 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=RfPh8cgg
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7D2D91F01825;
-	Sat, 24 Oct 2026 08:58:37 +0000 (UTC)
+	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=Sr9NeeXO
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 84B171F01825;
+	Sat, 24 Oct 2026 08:58:38 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1792832317;
-	bh=PFkg/HOCCRmN1k3frkD59b5mg5kirOM4hd3nw/uekn4=;
+	d=linux-foundation.org; s=korg; t=1792832318;
+	bh=1odf5lfQgfiL0tZz4hvhGSGBeWhxv/gLOHziCInL3os=;
 	h=Date:To:From:Subject;
-	b=RfPh8cggnIC2sdgOhaAThoNtND4Tws/y0w/M5CQAzXO4whqLDGHJ5bXF9E85aOkp8
-	 PQDebPkNcRieTSUsEqz6VaUf4Dyv6SefN/4jcQJ3ErsuRze4/LtjR1FDzDwMNByV/3
-	 DiYIMJhVSpBj2M99+R/wapnXpgkuki3viZ7EMMhM=
-Date: Sat, 24 Oct 2026 01:58:37 -0700
-To: mm-commits@vger.kernel.org,sj@kernel.org,akpm@linux-foundation.org
+	b=Sr9NeeXOb/z6TqbOSWVLDc0ZYxUv5BgLjn5Abit5w/77vAAyy5SETrl5nWKqSufXj
+	 wyBesOfNNfqNZoVe1lLJ3Dybf2+N2WmRCiSG4D1QpNKdtkmp7rZnQgZGT136RmZJUm
+	 KiwnYGIQ2oCKuDmoL4YExesashnuDtiKy3YrHxGQ=
+Date: Sat, 24 Oct 2026 01:58:38 -0700
+To: mm-commits@vger.kernel.org,davidgow@davidgow.net,brendan.higgins@linux.dev,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-damon-sysfs-schemes-support-quota-goal-complement-flag.patch removed from -mm tree
-Message-Id: <20261024085837.7D2D91F01825@smtp.kernel.org>
+Subject: [merged mm-stable] mm-damon-tests-core-kunit-test-quota_goal-complement-commit.patch removed from -mm tree
+Message-Id: <20261024085838.84B171F01825@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -51,99 +51,50 @@ Precedence: list
 
 
 The quilt patch titled
-     Subject: mm/damon/sysfs-schemes: support quota goal complement flag
+     Subject: mm/damon/tests/core-kunit: test quota_goal->complement commit
 has been removed from the -mm tree.  Its filename was
-     mm-damon-sysfs-schemes-support-quota-goal-complement-flag.patch
+     mm-damon-tests-core-kunit-test-quota_goal-complement-commit.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: SJ Park <sj@kernel.org>
-Subject: mm/damon/sysfs-schemes: support quota goal complement flag
-Date: Tue, 29 Sep 2026 01:01:06 -0700
+Subject: mm/damon/tests/core-kunit: test quota_goal->complement commit
+Date: Tue, 29 Sep 2026 01:01:07 -0700
 
-Add a new sysfs file, complement, under the quota goal directory.  It
-works for setting and getting the quota goal metric complement flag
-value.
+Extend existing DAMOS quota goal commit unit test to test the complement
+flag.  Set the source complement flag and confirm the destination is
+updated to the given input.
 
-Link: https://lore.kernel.org/20260929080113.41708-4-sj@kernel.org
+Link: https://lore.kernel.org/20260929080113.41708-5-sj@kernel.org
 Signed-off-by: SJ Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+Cc: Brendan Higgins <brendan.higgins@linux.dev>
+Cc: David Gow <davidgow@davidgow.net>
 ---
 
- mm/damon/sysfs-schemes.c |   32 +++++++++++++++++++++++++++++++-
- 1 file changed, 31 insertions(+), 1 deletion(-)
+ mm/damon/tests/core-kunit.h |    2 ++
+ 1 file changed, 2 insertions(+)
 
---- a/mm/damon/sysfs-schemes.c~mm-damon-sysfs-schemes-support-quota-goal-complement-flag
-+++ a/mm/damon/sysfs-schemes.c
-@@ -1220,6 +1220,7 @@ static const struct kobj_type damon_sysf
- struct damos_sysfs_quota_goal {
- 	struct kobject kobj;
- 	enum damos_quota_goal_metric metric;
-+	bool complement;
- 	unsigned long target_value;
- 	unsigned long current_value;
- 	int nid;
-@@ -1316,6 +1317,30 @@ static ssize_t target_metric_store(struc
- 	return -EINVAL;
- }
+--- a/mm/damon/tests/core-kunit.h~mm-damon-tests-core-kunit-test-quota_goal-complement-commit
++++ a/mm/damon/tests/core-kunit.h
+@@ -861,6 +861,7 @@ static void damos_test_commit_quota_goal
+ 	damos_commit_quota_goal(dst, src);
  
-+static ssize_t complement_show(struct kobject *kobj,
-+		struct kobj_attribute *attr, char *buf)
-+{
-+	struct damos_sysfs_quota_goal *goal = container_of(kobj,
-+			struct damos_sysfs_quota_goal, kobj);
-+
-+	return sysfs_emit(buf, "%c\n", goal->complement ? 'Y' : 'N');
-+}
-+
-+static ssize_t complement_store(struct kobject *kobj,
-+		struct kobj_attribute *attr, const char *buf, size_t count)
-+{
-+	struct damos_sysfs_quota_goal *goal = container_of(kobj,
-+			struct damos_sysfs_quota_goal, kobj);
-+	bool complement;
-+	int err = kstrtobool(buf, &complement);
-+
-+	if (err)
-+		return err;
-+
-+	goal->complement = complement;
-+	return count;
-+}
-+
- static ssize_t target_value_show(struct kobject *kobj,
- 		struct kobj_attribute *attr, char *buf)
- {
-@@ -1424,6 +1449,9 @@ static void damos_sysfs_quota_goal_relea
- static struct kobj_attribute damos_sysfs_quota_goal_target_metric_attr =
- 		__ATTR_RW_MODE(target_metric, 0600);
- 
-+static struct kobj_attribute damos_sysfs_quota_goal_complement_attr =
-+		__ATTR_RW_MODE(complement, 0600);
-+
- static struct kobj_attribute damos_sysfs_quota_goal_target_value_attr =
- 		__ATTR_RW_MODE(target_value, 0600);
- 
-@@ -1438,6 +1466,7 @@ static struct kobj_attribute damos_sysfs
- 
- static struct attribute *damos_sysfs_quota_goal_attrs[] = {
- 	&damos_sysfs_quota_goal_target_metric_attr.attr,
-+	&damos_sysfs_quota_goal_complement_attr.attr,
- 	&damos_sysfs_quota_goal_target_value_attr.attr,
- 	&damos_sysfs_quota_goal_current_value_attr.attr,
- 	&damos_sysfs_quota_goal_nid_attr.attr,
-@@ -2869,7 +2898,8 @@ static int damos_sysfs_add_quota_score(
- 		if (!sysfs_goal->target_value)
- 			continue;
- 
--		goal = damos_new_quota_goal(sysfs_goal->metric, false,
-+		goal = damos_new_quota_goal(sysfs_goal->metric,
-+				sysfs_goal->complement,
- 				sysfs_goal->target_value);
- 		if (!goal)
- 			return -ENOMEM;
+ 	KUNIT_EXPECT_EQ(test, dst->metric, src->metric);
++	KUNIT_EXPECT_EQ(test, dst->complement, src->complement);
+ 	KUNIT_EXPECT_EQ(test, dst->target_value, src->target_value);
+ 	if (src->metric == DAMOS_QUOTA_USER_INPUT)
+ 		KUNIT_EXPECT_EQ(test, dst->current_value, src->current_value);
+@@ -904,6 +905,7 @@ static void damos_test_commit_quota_goal
+ 	damos_test_commit_quota_goal_for(test, &dst,
+ 			&(struct damos_quota_goal){
+ 			.metric = DAMOS_QUOTA_USER_INPUT,
++			.complement = true,
+ 			.target_value = 789,
+ 			.current_value = 12});
+ 	damos_test_commit_quota_goal_for(test, &dst,
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
