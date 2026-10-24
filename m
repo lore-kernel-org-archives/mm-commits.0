@@ -1,45 +1,45 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1792832532;
-	b=aBDqIqHcQO/SOCDVWclmTPsUb8CjssYKo/s2pU9TwhKqLlsgh9NTM6nkTijYhqqOqSSP
-	 6+hQ6N5CovBNVnKwMgNPonazg8QCtmsDX6W+HgiMCwIhpgM7AWdjKODHiRnUWLSOCV/SF
-	 dLEDZSNyv9dIZpRCD9A9zo8juqNEdP6wVU/45r2tINKG+Z1d05vLnWhjTMsB+7ppCULYp
-	 MaWB2+PA/Taovz12F0FTuI0EYdm73INRkIi7j5ECqsJ2VAGECxk9XTI+sR8ToqVWfdcnu
-	 GcxjDpJdZFqBmjoeWsWSmjUcUAc0tmyyo1mL0KTwEXbWeN7yzj2BLAJ8K1z1m2lDaxw==
+	t=1792832533;
+	b=0mH6Dc6l2Xyy2wnBp21y6gaIV/ZWZuOQ8AN+wQ/TURiA63eLcEpTjBHZovmHPcTlkhlt
+	 KOMMNCbuLaQFItqCxLXH5LYopJL1soq68WZ39tg1Rdqa2ehTqjW0mMK3zWBiEEgULSfjv
+	 Eq2bOyq9evvvBXDhrztYqOL1H2xgbDRNxIIm6oI4YkbNf3/zGvLvc2Jj/1ZUWCDkms80m
+	 AU2f14Akhi3E8+Owu/ReV2MnYwpZTm6Qu/Q6osLfRnK5BHR5VjW7N+ZbNxPi4Lt5HjbfO
+	 mGkWCsPJqQwXTmuqHRnRXvcvabqffJ+yWP5DMhrfuVg1QZ8eVymAoMRtbCM7EwQl2Ug==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1792832532;
+	a=rsa-sha256; c=relaxed/relaxed; t=1792832533;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=T6klcvmgP9sRTV5pY3hh0G0OuU29QLHZIFXmykc2zJ8=;
-	b=EdYW7bUMmSF5XPFdhjbRLliCoZnb5m+nVKs7hDR2pvXj+421A8hQbYU2JJ5FQNnq73IM
-	 UDBDKdjPOd5yq2jKDORPHCbZu3Pg2VvZgyLAc7LYzVw3qLmU/hUP2OtiOYMrAnOUSZEHM
-	 l7xGtwAZz6wsJqV9G+8NlyyBOxOhbgm3A9X7jviNEVSoA8+zoGGXYXo1+ss1vhYJCjaZu
-	 H5qn5WL/8DuLOsYc90y7SXoN7VyJgEicFcvaB1AgkJpZ4CyItLYXmdf+vNpt4g+D1zTXx
-	 QN8bAsp3fDh7lSW3Hsa1xGWRNRn7/9ibAk47vR3b0+QIGaYggcIRpaLQMepgXACt/Sg==
+	bh=mO6mJY/qAixbrVuWJzACZTGyMp2wQ1ioCA0uX9BIYCg=;
+	b=5A7s3WV7WQ/lB+mTuvh/kNbd6idJwKbgLEoYklLkvS4TXkSyaD0kH5RjSINxjY/pZRdB
+	 uw/F2A5KbvRhKS2dsIP7N+A3INoSJa0BPCAMmQQp3Ww5np9PHvpZXI6o4ra3VNZFeUpdi
+	 GCGmKpzSJQb0j8tzrIDbAv14dCH+rxXrWGjnPAbWfJeU11cTkg1Dgc8T0yCeCkmG3EiJj
+	 vcGGsHKqaLzefZm6vUlZ/PMdCB1zHPOpB4AOwFYqEz5l5Hy44FJ3t3H6fQ3UYuUFrqRc9
+	 qnUXQ3SKFZ9SYRmUkG/lUu1jEtOvDXH2poiIZ9n3V/X2J1vk0FWcYGXWMVKaJpGLSPg==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=eCC0oJnw;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=AJTN0Q8K;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EB477606A31A
-	for <mm-commits@vger.kernel.org>; Sat, 24 Oct 2026 09:02:11 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BFF72606A31F
+	for <mm-commits@vger.kernel.org>; Sat, 24 Oct 2026 09:02:12 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=eCC0oJnw
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7B00F1F01828;
-	Sat, 24 Oct 2026 09:02:11 +0000 (UTC)
+	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=AJTN0Q8K
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 89A891F01825;
+	Sat, 24 Oct 2026 09:02:12 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1792832531;
-	bh=T6klcvmgP9sRTV5pY3hh0G0OuU29QLHZIFXmykc2zJ8=;
+	d=linux-foundation.org; s=korg; t=1792832532;
+	bh=mO6mJY/qAixbrVuWJzACZTGyMp2wQ1ioCA0uX9BIYCg=;
 	h=Date:To:From:Subject;
-	b=eCC0oJnw/qnM7Z+1n/+/YOzkSs8cCNEBj96cCcFrdQkJh2kIBuygx3xbAEm92gDsK
-	 tfY2LCe5wLFKhj5XYot7YpX6wJI/zTz3pI+RMmcCRYzymCvJE3JauaWc958WSFu1iX
-	 s1NRBLAgqQROWkYcEHmks7Vl/EKJSOFVGxSndqpg=
-Date: Sat, 24 Oct 2026 02:02:11 -0700
-To: mm-commits@vger.kernel.org,vbabka@kernel.org,surenb@google.com,rppt@kernel.org,peterz@infradead.org,mj0123.lee@samsung.com,mhocko@suse.com,ljs@kernel.org,liam@infradead.org,jack@suse.cz,david@kernel.org,nickolai@csail.mit.edu,akpm@linux-foundation.org
+	b=AJTN0Q8K4hbe97oAZbkIAmDs7QikjtbWu0juh0bYueoRnrkAN22tZ6Yw4U+D3sFDw
+	 DNPnTs5Q+97qbpZHd0Q4gik1XGtudSFuT9H7Vy8DDj7FhjBiBtXeA7iVqgnvo60iwv
+	 2RJstG0QiAsYVzMkmeBzh7Iup4S4vnrth+YuQgOk=
+Date: Sat, 24 Oct 2026 02:02:12 -0700
+To: mm-commits@vger.kernel.org,sj@kernel.org,muchun.song@linux.dev,harry@kernel.org,david@kernel.org,rppt@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-bdi-reset-min_ratio-after-the-sysfs-attributes-are-gone.patch removed from -mm tree
-Message-Id: <20261024090211.7B00F1F01828@smtp.kernel.org>
+Subject: [merged mm-stable] maintainers-add-an-entry-for-memory-management-memory-map.patch removed from -mm tree
+Message-Id: <20261024090212.89A891F01825@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -51,101 +51,77 @@ Precedence: list
 
 
 The quilt patch titled
-     Subject: mm: bdi: reset min_ratio after the sysfs attributes are gone
+     Subject: MAINTAINERS: add an entry for MEMORY MANAGEMENT - MEMORY MAP
 has been removed from the -mm tree.  Its filename was
-     mm-bdi-reset-min_ratio-after-the-sysfs-attributes-are-gone.patch
+     maintainers-add-an-entry-for-memory-management-memory-map.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Nickolai Zeldovich <nickolai@csail.mit.edu>
-Subject: mm: bdi: reset min_ratio after the sysfs attributes are gone
-Date: Fri, 16 Oct 2026 23:06:20 -0400
+From: "Mike Rapoport (Microsoft)" <rppt@kernel.org>
+Subject: MAINTAINERS: add an entry for MEMORY MANAGEMENT - MEMORY MAP
+Date: Mon, 19 Oct 2026 14:34:26 +0300
 
-A write to /sys/class/bdi/<dev>/min_ratio (or min_ratio_fine or min_bytes)
-that races with the removal of the device leaves the global sum of minimum
-dirty shares charged for a bdi that no longer exists.  Until the next
-reboot, that share of the dirty threshold is withheld from every other bdi
-(__wb_calc_thresh() scales by 100 % minus the sum), and a later min_ratio
-store on any bdi that would push the sum to 100 % fails with EINVAL
-although every bdi reads 0.  Root privilege is needed for the store; the
-removal is any del_gendisk() (a disk or loop device going away) or the
-unmount of a filesystem with its own bdi.  On an x86_64 defconfig kernel
-(v7.3-rc7), 2000 rounds of LOOP_CTL_ADD/LOOP_CTL_REMOVE on one loop device
-with a second thread writing 50 to its min_ratio leak the share on the
-first round the store lands in the window; afterwards `echo 99 >
-min_ratio` on another loop device fails with EINVAL.  With the fix the
-same run keeps the sum at 0 and the store succeeds.  Affected since v5.16,
-when the reset in bdi_unregister() was added.
+Split out files related to SPARSE and SPARSE_VMEMMAP management from
+MEMORY MANAGEMENT - CORE into a dedicated entry.
 
-bdi_unregister() gives the bdi's share back with bdi_set_min_ratio(bdi, 0)
-and only then calls device_unregister(), which removes the sysfs
-attributes.  A min_ratio_store() that gets its kernfs active reference
-before the removal runs to completion after the reset:
-__bdi_set_min_ratio() takes bdi_lock, sees bdi->min_ratio == 0, adds the
-new value to bdi_min_ratio and stores it in the bdi, which bdi_put() then
-frees.  Nothing gives that share back.
+Also include architecture specific sparsemem.h headers, pfn_to_page() and
+page_to_pfn() conversions and Documentation/mm/memory-model.rst.
 
-Move the reset after device_unregister(): once the attributes are gone no
-store can run, and bdi_set_min_ratio() needs nothing from the device.
+Muchun, who did a lot of work cleaning up SPARSE_VMEMMAP and extending
+vmemmap optimization, volunteered to help with the maintenance.
 
-Found while formally verifying bdi_unregister() against the kernel binary.
+David and I will continue to look after that part of the mm subsystem.
 
-Link: https://lore.kernel.org/20261017030620.793108-1-nickolai@csail.mit.edu
-Fixes: 3c376dfafbf7 ("mm: bdi: initialize bdi_min_ratio when bdi is unregistered")
-Signed-off-by: Nickolai Zeldovich <nickolai@csail.mit.edu>
+Link: https://lore.kernel.org/20261019-memmap-maint-v1-1-80850871d0cc@kernel.org
+Signed-off-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Reviewed-by: Jan Kara <jack@suse.cz>
-Assisted-by: LLM
-Cc: David Hildenbrand <david@kernel.org>
-Cc: Lorenzo Stoakes <ljs@kernel.org>
-Cc: Liam R. Howlett <liam@infradead.org>
-Cc: Vlastimil Babka <vbabka@kernel.org>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Manjong Lee <mj0123.lee@samsung.com>
+Acked-by: David Hildenbrand (Arm) <david@kernel.org>
+Acked-by: Harry Yoo (Meta) <harry@kernel.org>
+Acked-by: Muchun Song <muchun.song@linux.dev>
+Acked-by: SJ Park <sj@kernel.org>
 ---
 
- mm/backing-dev.c |   15 ++++++++-------
- 1 file changed, 8 insertions(+), 7 deletions(-)
+ MAINTAINERS |   18 +++++++++++++++---
+ 1 file changed, 15 insertions(+), 3 deletions(-)
 
---- a/mm/backing-dev.c~mm-bdi-reset-min_ratio-after-the-sysfs-attributes-are-gone
-+++ a/mm/backing-dev.c
-@@ -1162,19 +1162,20 @@ void bdi_unregister(struct backing_dev_i
- 	wb_shutdown(&bdi->wb);
- 	cgwb_bdi_unregister(bdi);
+--- a/MAINTAINERS~maintainers-add-an-entry-for-memory-management-memory-map
++++ a/MAINTAINERS
+@@ -17162,9 +17162,6 @@ F:	mm/mmzone.c
+ F:	mm/pagewalk.c
+ F:	mm/pgtable-generic.c
+ F:	mm/ptdump.c
+-F:	mm/sparse-vmemmap.c
+-F:	mm/sparse.c
+-F:	mm/sparse.h
+ F:	mm/util.c
+ F:	mm/vmpressure.c
+ F:	mm/vmstat.c
+@@ -17212,6 +17209,21 @@ F:	include/trace/events/ksm.h
+ F:	mm/ksm.c
+ F:	mm/mm_slot.h
  
--	/*
--	 * If this BDI's min ratio has been set, use bdi_set_min_ratio() to
--	 * update the global bdi_min_ratio.
--	 */
--	if (bdi->min_ratio)
--		bdi_set_min_ratio(bdi, 0);
--
- 	if (bdi->dev) {
- 		bdi_debug_unregister(bdi);
- 		device_unregister(bdi->dev);
- 		bdi->dev = NULL;
- 	}
- 
-+	/*
-+	 * If this BDI's min ratio has been set, use bdi_set_min_ratio() to
-+	 * update the global bdi_min_ratio. After device_unregister(): the
-+	 * sysfs min_ratio stores can no longer run and set it again.
-+	 */
-+	if (bdi->min_ratio)
-+		bdi_set_min_ratio(bdi, 0);
++MEMORY MANAGEMENT - MEMORY MAP
++M:	Muchun Song <muchun.song@linux.dev>
++M:	Mike Rapoport <rppt@kernel.org>
++M:	David Hildenbrand <david@kernel.org>
++L:	linux-mm@kvack.org
++S:	Maintained
++T:	git git://git.kernel.org/pub/scm/linux/kernel/git/mm/core.git memmap
++F:	Documentation/mm/memory-model.rst
++F:	arch/*/include/asm/sparsemem.h
++F:	include/asm-generic/memory_model.h
++F:	mm/sparse-vmemmap.c
++F:	mm/sparse.c
++F:	mm/sparse.h
++K:	(?i:vmemmap)
 +
- 	if (bdi->owner) {
- 		put_device(bdi->owner);
- 		bdi->owner = NULL;
+ MEMORY MANAGEMENT - MGLRU (MULTI-GEN LRU)
+ M:	Andrew Morton <akpm@linux-foundation.org>
+ R:	Kairui Song <kasong@tencent.com>
 _
 
-Patches currently in -mm which might be from nickolai@csail.mit.edu are
+Patches currently in -mm which might be from rppt@kernel.org are
 
-xarray-clear-the-new-heads-parent-before-freeing-the-old-head.patch
-mm-vmalloc-read-vm_map_ram-block-regions-from-the-requested-offset.patch
 
