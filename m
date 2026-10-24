@@ -1,45 +1,45 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1792832288;
-	b=QxRWULmap2A39F5TlMGrOYzHGr7pXUZOb6Nx8HG7hQ+pp9IUKrteTYkJWNo6aIVzdVux
-	 oHj+e+h0sXmx0VwPV9G6gcw5FdwgEZsnXLzOfS9l6nzsM70nopJZYTqcdXtMw9eNLLF2A
-	 Ms0c/4JUjydM8fJcyp2eJembhkPTms+YXlOXUHpMg5CsLaV+iEo2ilQmS3JVyyjHpeGYW
-	 fHPM2tPXh+ml3kISoqbEGj71SlJOpLI9UxP+TjpR+GpElA3po8c38Xu0B4QsmIwpWmgPt
-	 Eh8e5yK9RwlXLzI+4LQckpRFZeb1xEjlqbeRHLd/E2iHAYpPFp0EizRv/To5yw+laJg==
+	t=1792832293;
+	b=xWX/IfgoGWOLaSucY4BQcAAjdO2D6mzI+Wbfx480pBGGrAHZjow2AtNq4fAS1VDtAlpk
+	 S6izdPusIam4upT/gsAaL/iVdtID4rpJe0byIFe4CPIMv1qfSmyZBiXeeUp9x51Je9FPw
+	 Yg161OfLcjO6sVEyyE0foi9MI0v1FpnWrYywm8yKQ60LbEcIlSATZeniv+iy76zpmu4LO
+	 wIg4gnDlt4tBIthDkcN5T2Mw3X+2P2KfPD14iItZtzLeNWC8XXNoWKQ2qsNaVzPlnrZ3L
+	 qYtVVy/nqpRaqvgZTdElfA6jt2VQoSjy/0+KKaBnfOemihGunA75LGJB9I0GiIiosFg==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1792832288;
+	a=rsa-sha256; c=relaxed/relaxed; t=1792832293;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=9q7JDr/Ky2xx202132/BseqSgeEG4cYUr1dE/mKBGyw=;
-	b=hVR6J7DBYSistfM3HR0HCrm/en2X/CAkYQ8EWpaBC0aU7FQZRlmhUy0D0A3MtnpTT8lU
-	 k999fNRes88wofyyIry8OjiZR2ZRei3QNPlamqnda0qo2Mq6Hm9cbMMsyEM/0geboTA3F
-	 PCy//r8zjbaJW05KB1EokyREaitpDTAPL6JoEpcmKLY3c8xCegKmRjIQKpSpwJhD8Celo
-	 aQKgg4r6ecyRr3EcoCwlKM/OIEitjOErgu+jhZyyWxj1fVQJ3YR4Go4X8lLA6RrPwh9yN
-	 4rPJsTZQ+PS48H9/mFtiQ3McIuke2SJr5h8wpuj5vS2zRTXfT3eoLn0dAMthuUzTigw==
+	bh=v9zU+KnHC0W6Wln2UZOFx35AXOA7ocWVy25y+SkOQPI=;
+	b=rFbzj2DykGyh74XxjI0kker+SWzB2Gv1CE2JlBkAQnXfXYMTVwmeY7qsxgkDolZOmDPH
+	 KCHdjV+0vI0ZqBVxD5ZEXmxFjIDUIjaD4TuofhaHg/4isFbtDm9GUsAe2RRhs3VtkkPtu
+	 t563AN4sZ6ftjnNZIZRbHbz2+PF5gpco1meBDb+E6zksYG1vFW3ofAly/CmZFIkUMjxqa
+	 6GYzCe1CmoAB4tPD9Py5hl4KT2W44GMk9ct15Lauopdo88xtzcesYZi6OW/6ucRqXZFI3
+	 Z3nWybKlJz2JhpX+ViS6a4DuaAPF8ZFBD3pvOi9zNJThOImkZEQI9NBljUL7S3raegQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=esQdc+Bi;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=L2pfV2jq;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B86AD606A31E
-	for <mm-commits@vger.kernel.org>; Sat, 24 Oct 2026 08:58:07 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1891F606A320;
+	Sat, 24 Oct 2026 08:58:13 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=esQdc+Bi
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3E8AA1F01825;
-	Sat, 24 Oct 2026 08:58:07 +0000 (UTC)
+	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=L2pfV2jq
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D6B521F01825;
+	Sat, 24 Oct 2026 08:58:12 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1792832287;
-	bh=9q7JDr/Ky2xx202132/BseqSgeEG4cYUr1dE/mKBGyw=;
+	d=linux-foundation.org; s=korg; t=1792832293;
+	bh=v9zU+KnHC0W6Wln2UZOFx35AXOA7ocWVy25y+SkOQPI=;
 	h=Date:To:From:Subject;
-	b=esQdc+BiWPxtr4sAeOuQywVIHUnJm8wrQNFx/vOMROkMC9Q8czgoU8LYeVUQtMAuq
-	 sqewOc2Zl9PbgjAFA5b7Ch+Z6u/WEyHPRhNz5PEfEHGfYPv/dTWS1lSzPIExxhZUMq
-	 xYrt3070w7DhGwa0gr4Z5cGpbH9tAHG8c1NWOt3c=
-Date: Sat, 24 Oct 2026 01:58:06 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,yukuai@fnnas.com,yizhang089@gmail.com,yangerkun@huawei.com,willy@infradead.org,wangkefeng.wang@huawei.com,vbabka@kernel.org,surenb@google.com,rppt@kernel.org,mhocko@suse.com,ljs@kernel.org,liam@infradead.org,joannelkoong@gmail.com,jack@suse.cz,hughd@google.com,djwong@kernel.org,david@kernel.org,chengzhihao1@huawei.com,bfoster@redhat.com,baolin.wang@linux.alibaba.com,yi.zhang@huawei.com,akpm@linux-foundation.org
+	b=L2pfV2jqWM+hOfHXF80bwcS5ILvhYxfCe8nJhM73K99OpjdbRc3Eh2xWF3DRR7Arb
+	 Ch0yOb9j6CZ6Fy8UA3QVgrYn3r2EvrFP30P1//BbNsjfEmsaOyG5yqUuliAU7Nhm95
+	 oLdn8u4zcIIbjGHZJOKeuUi4xZGWVn0DRfj75wZQ=
+Date: Sat, 24 Oct 2026 01:58:12 -0700
+To: mm-commits@vger.kernel.org,stable@vger.kernel.org,sj@kernel.org,donggeunyoo.kernel@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-truncate-fix-data-loss-when-splitting-straddling-large-folios-fails.patch removed from -mm tree
-Message-Id: <20261024085807.3E8AA1F01825@smtp.kernel.org>
+Subject: [merged mm-stable] mm-damon-core-prevent-size-quota-overflow-in-the-temporal-goal-tuner.patch removed from -mm tree
+Message-Id: <20261024085812.D6B521F01825@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -51,330 +51,87 @@ Precedence: list
 
 
 The quilt patch titled
-     Subject: mm/truncate: fix data loss when splitting straddling large folios fails
+     Subject: mm/damon/core: prevent size quota overflow in the temporal goal tuner
 has been removed from the -mm tree.  Its filename was
-     mm-truncate-fix-data-loss-when-splitting-straddling-large-folios-fails.patch
+     mm-damon-core-prevent-size-quota-overflow-in-the-temporal-goal-tuner.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Zhang Yi <yi.zhang@huawei.com>
-Subject: mm/truncate: fix data loss when splitting straddling large folios fails
-Date: Mon, 28 Sep 2026 20:08:32 +0800
+From: Donggeun Yoo <donggeunyoo.kernel@gmail.com>
+Subject: mm/damon/core: prevent size quota overflow in the temporal goal tuner
+Date: Mon, 28 Sep 2026 01:48:14 -0700
 
-truncate_inode_partial_folio() splits a large folio so that the caller's
-truncate loop can drop the in-range sub-folios while keeping the
-out-of-range tail.  The first split at the punch start edge is
-non-uniform, which leaves the sub-folio at the truncation end edge as
-large as possible, this means it may still straddle the range, holding
-both zeroed in-range and valid out-of-range data.  The function then
-attempts a second split at offset + length to isolate that tail.
+Patch series "mm/damon: fix the temporal goal tuner's size quota
+conversion", v5.
 
-If the second split fails the straddling sub-folio stays merged.  The
-function returned true unconditionally on all exit paths of the success
-block, telling the caller it was fully handled.  The caller kept its
-default end and the truncate loop truncated every sub-folio below it,
-including the merged straddler, discarding the valid out-of-range tail.
+damos_goal_tune_esz_bp_temporal() hands the size quota to
+damos_set_effective_quota() through quota->esz_bp in basis points, and the
+multiply that gets it there is unchecked.  On 32-bit it wraps above 429496
+bytes, and a wrapped product below 10000 divides to a zero effective
+quota.  damos_quota_is_full() is then true on the first test of every
+charge window, so the scheme makes no progress for as long as the goal is
+unachieved.
 
-For example, a 4-page order-2 folio punched from offset 0 to the middle
-of the last page:
+Patch 1 bounds the conversion.  Patch 2 pins the boundary in the core
+kunit suite, where the new test would fail without patch 1 on any word
+size.
 
-  truncate_inode_pages_range()
-    truncate_inode_partial_folio()      # same_folio == true
-      1st split at page0 -> [p0, p1, p2-3]   # non-uniform, success
-      folio2 = p2-3 # straddles: p2 zeroed, p3 tail valid
-      2nd split of folio2 fails / cannot lock
-      return true                       # BUG: caller keeps default end
-    end = 3
-    loop truncates p0, p1, p2-3        # p3's valid tail is lost
 
-This became reachable after commit 7460b470a131 ("mm/truncate: use
-folio_split() in truncate operation") replaced the atomic split_folio()
-with folio_split(), whose non-uniform split can partially split a folio
-and leave the end edge merged.
+This patch (of 2):
 
-It has gone unnoticed because a dirty large folio normally carries the
-filesystem's private data, for example buffer_head, so
-filemap_release_folio() fails on a dirty folio and folio_split() aborts
-with -EBUSY before any split, leaving the straddler safely unsplit.  The
-bug is only reachable on paths that produce dirty large folios without
-filesystem private data, and it was caught on the upcoming ext4 iomap
-buffered I/O path when no ifs is attached.
+damos_goal_tune_esz_bp_temporal() converts the scheme's size quota into
+basis points with "quota->esz_bp = quota->sz * 10000", both unsigned long,
+and damos_set_effective_quota() divides the result back by 10000. 
+quotas/bytes is unbounded; bytes_store() hands it to kstrtoul() as is.
 
-Rework the contract so the caller is told the folio range to discard:
+On 32-bit the product wraps for any size quota above ULONG_MAX / 10000,
+that is 429496 bytes.  A wrapped product below 10000 divides to a zero
+effective quota: 429497 gives 0.  damos_quota_is_full() is then true on
+the first test of every charge window.  Other wrapped values are wrong
+without being zero: 500000 gives 70503.
 
-  - Add pgoff_t *pstart and *pend out-parameters that receive the folio
-    range fully covered by [lstart, lend] after any split (or none),
-    aligned inwards to min_order, i.e. the folios wholly within the
-    range and safe to discard.
+Triggering this needs a scheme with a quota goal, the temporal goal tuner,
+and a size quota above ULONG_MAX / 10000 -- 429496 bytes on 32-bit,
+1844674407370955 on 64-bit.  The scheme then makes no progress for as long
+as the goal is unachieved, which is easy to notice, and writing a smaller
+size quota restores it.  Nothing is corrupted and nothing leaks.  This is
+unlikely to be hit on a tested setup.
 
-  - Report a reliable end position to the caller. The straddler is
-    looked up at an index aligned inwards to the mapping minimum folio
-    order, and *pend is set to that boundary on success. If nothing
-    covers the boundary, discarding up to it stays safe. If the
-    straddler is locked by someone else, fall back to folio->index.
-    This best-effort fallback may leave the in-range sub-folios to a
-    later pass but never discards the out-of-range tail. If the
-    straddler cannot be split, fall back to folio2->index so the caller
-    keeps the out-of-range tail.
+addr_unit does not cover this.  It only scales the numbers a paddr context
+writes to quotas/bytes, so a large enough scaled value wraps just the
+same, and vaddr and fvaddr contexts take raw byte values.
 
-  - Rename the byte-range parameters start/end to lstart/lend to better
-    express their semantics.
+Bound the multiply.
 
-Callers in truncate_inode_pages_range() and shmem_undo_range() pass
-&pstart for the folio at the start edge and &pend for the folio at the end
-edge, so the truncate loop drops exactly the fully covered pages and never
-touches a straddling folio that still holds valid out-of-range data.
-
-Link: https://lore.kernel.org/20260928120833.3440834-4-yi.zhang@huaweicloud.com
-Fixes: 7460b470a131 ("mm/truncate: use folio_split() in truncate operation")
-Signed-off-by: Zhang Yi <yi.zhang@huawei.com>
+Link: https://lore.kernel.org/20260928084816.5575-1-sj@kernel.org
+Link: https://lore.kernel.org/20260928084816.5575-2-sj@kernel.org
+Fixes: af738a6a00c1 ("mm/damon/core: introduce DAMOS_QUOTA_GOAL_TUNER_TEMPORAL")
+Signed-off-by: Donggeun Yoo <donggeunyoo.kernel@gmail.com>
+Signed-off-by: SJ Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Suggested-by: Brian Foster <bfoster@redhat.com>
-Link: https://lore.kernel.org/linux-fsdevel/anH-WKA1coW6wtfG@bfoster/
-Reviewed-by: Jan Kara <jack@suse.cz>
-Reviewed-by: Brian Foster <bfoster@redhat.com>
-Acked-by: Zi Yan <ziy@nvidia.com>
-Cc: David Hildenbrand <david@kernel.org>
-Cc: Lorenzo Stoakes <ljs@kernel.org>
-Cc: Liam R. Howlett <liam@infradead.org>
-Cc: Vlastimil Babka <vbabka@kernel.org>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Joanne Koong <joannelkoong@gmail.com>
-Cc: Darrick J. Wong <djwong@kernel.org>
-Cc: <yizhang089@gmail.com>
-Cc: Yang Erkun <yangerkun@huawei.com>
-Cc: Zhihao Cheng <chengzhihao1@huawei.com>
-Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
-Cc: <yukuai@fnnas.com>
+Reviewed-by: SJ Park <sj@kernel.org>
+Cc: <stable@vger.kernel.org> # 7.1.x
 ---
 
- mm/internal.h |    4 +-
- mm/shmem.c    |   13 ++----
- mm/truncate.c |   93 +++++++++++++++++++++++++++++++++---------------
- 3 files changed, 71 insertions(+), 39 deletions(-)
+ mm/damon/core.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/internal.h~mm-truncate-fix-data-loss-when-splitting-straddling-large-folios-fails
-+++ a/mm/internal.h
-@@ -611,8 +611,8 @@ unsigned find_lock_entries(struct addres
- unsigned find_get_entries(struct address_space *mapping, pgoff_t *start,
- 		pgoff_t end, struct folio_batch *fbatch, pgoff_t *indices);
- int truncate_inode_folio(struct address_space *mapping, struct folio *folio);
--bool truncate_inode_partial_folio(struct folio *folio, loff_t start,
--		loff_t end);
-+bool truncate_inode_partial_folio(struct folio *folio, loff_t lstart,
-+		loff_t lend, pgoff_t *pstart, pgoff_t *pend);
- long mapping_evict_folio(struct address_space *mapping, struct folio *folio);
- unsigned long mapping_try_invalidate(struct address_space *mapping,
- 		pgoff_t start, pgoff_t end, unsigned long *nr_failed);
---- a/mm/shmem.c~mm-truncate-fix-data-loss-when-splitting-straddling-large-folios-fails
-+++ a/mm/shmem.c
-@@ -1386,11 +1386,8 @@ static void shmem_undo_range(struct inod
- 	if (folio) {
- 		same_folio = lend < folio_next_pos(folio);
- 		folio_mark_dirty(folio);
--		if (!truncate_inode_partial_folio(folio, lstart, lend)) {
--			start = folio_next_index(folio);
--			if (same_folio)
--				end = folio->index;
--		}
-+		truncate_inode_partial_folio(folio, lstart, lend, &start,
-+					     same_folio ? &end : NULL);
- 		folio_unlock(folio);
- 		folio_put(folio);
- 		folio = NULL;
-@@ -1400,8 +1397,7 @@ static void shmem_undo_range(struct inod
- 		folio = shmem_get_partial_folio(inode, lend >> PAGE_SHIFT);
- 	if (folio) {
- 		folio_mark_dirty(folio);
--		if (!truncate_inode_partial_folio(folio, lstart, lend))
--			end = folio->index;
-+		truncate_inode_partial_folio(folio, lstart, lend, NULL, &end);
- 		folio_unlock(folio);
- 		folio_put(folio);
- 	}
-@@ -1469,7 +1465,8 @@ whole_folios:
+--- a/mm/damon/core.c~mm-damon-core-prevent-size-quota-overflow-in-the-temporal-goal-tuner
++++ a/mm/damon/core.c
+@@ -3291,7 +3291,7 @@ static void damos_goal_tune_esz_bp_tempo
  
- 				if (!folio_test_large(folio)) {
- 					truncate_inode_folio(mapping, folio);
--				} else if (truncate_inode_partial_folio(folio, lstart, lend)) {
-+				} else if (truncate_inode_partial_folio(folio,
-+						lstart, lend, NULL, NULL)) {
- 					/*
- 					 * If we split a page, reset the loop so
- 					 * that we pick up the new sub pages.
---- a/mm/truncate.c~mm-truncate-fix-data-loss-when-splitting-straddling-large-folios-fails
-+++ a/mm/truncate.c
-@@ -206,30 +206,43 @@ static int folio_split_or_unmap(struct f
- /*
-  * Handle partial folios.  The folio may be entirely within the
-  * range if a split has raced with us.  If not, we zero the part of the
-- * folio that's within the [start, end] range, and then split the folio if
-+ * folio that's within the [lstart, lend] range, and then split the folio if
-  * it's large.  split_page_range() will discard pages which now lie beyond
-  * i_size, and we rely on the caller to discard pages which lie within a
-  * newly created hole.
-  *
-+ * When @pstart and/or @pend are non-NULL they receive the indexes of the
-+ * folio range fully covered by [lstart, lend] after any split (or none),
-+ * aligned inwards to min_order, i.e. the range of folios wholly within
-+ * [lstart, lend] and so safe to discard.
-+ *
-  * Returns false if splitting failed so the caller can avoid
-  * discarding the entire folio which is stubbornly unsplit.
-  */
--bool truncate_inode_partial_folio(struct folio *folio, loff_t start, loff_t end)
-+bool truncate_inode_partial_folio(struct folio *folio, loff_t lstart,
-+				  loff_t lend, pgoff_t *pstart, pgoff_t *pend)
- {
- 	loff_t pos = folio_pos(folio);
- 	size_t size = folio_size(folio);
- 	unsigned int offset, length;
- 	struct page *split_at, *split_at2;
-+	unsigned long min_nrbytes;
- 	unsigned int min_order;
- 
--	if (pos < start)
--		offset = start - pos;
-+	if (pos < lstart)
-+		offset = lstart - pos;
+ 	if (score >= 10000)
+ 		quota->esz_bp = 0;
+-	else if (quota->sz)
++	else if (quota->sz && quota->sz <= ULONG_MAX / 10000)
+ 		quota->esz_bp = quota->sz * 10000;
  	else
- 		offset = 0;
--	if (pos + size <= (u64)end)
-+	if (pos + size <= (u64)lend)
- 		length = size - offset;
- 	else
--		length = end + 1 - pos - offset;
-+		length = lend + 1 - pos - offset;
-+
-+	if (pstart)
-+		*pstart = offset ? folio_next_index(folio) : folio->index;
-+	if (pend)
-+		*pend = (pos + size > (u64)lend) ? folio->index :
-+						   folio_next_index(folio);
- 
- 	folio_wait_writeback(folio);
- 	if (length == size) {
-@@ -247,10 +260,12 @@ bool truncate_inode_partial_folio(struct
- 
- 	if (folio_needs_release(folio))
- 		folio_invalidate(folio, offset, length);
--	if (!folio_test_large(folio))
--		return true;
- 
- 	min_order = mapping_min_folio_order(folio->mapping);
-+	min_nrbytes = mapping_min_folio_nrbytes(folio->mapping);
-+	if (folio_order(folio) == min_order)
-+		return true;
-+
- 	split_at = folio_page(folio, PAGE_ALIGN_DOWN(offset) / PAGE_SIZE);
- 	if (!folio_split_or_unmap(folio, split_at, min_order)) {
- 		/*
-@@ -259,34 +274,57 @@ bool truncate_inode_partial_folio(struct
- 		 * for shmem truncate
- 		 */
- 		struct folio *folio2;
--		pgoff_t end_idx;
-+		pgoff_t end, aligned_end = round_down(pos + offset + length,
-+						min_nrbytes) >> PAGE_SHIFT;
- 
-+		if (pstart)
-+			*pstart = round_up(pos + offset,
-+					   min_nrbytes) >> PAGE_SHIFT;
-+
-+		end = aligned_end;
- 		if (offset + length == size)
--			goto no_split;
-+			goto out;
- 
- 		/*
- 		 * After the first split at the start edge, the folio at the
- 		 * end edge may be freed and reused concurrently.
--		 * __filemap_get_folio() looks up the straddler at end_idx
-+		 * __filemap_get_folio() looks up the straddler at aligned_end
- 		 * and returns it locked and ref'd with the mapping
- 		 * validated.
- 		 */
--		end_idx = (pos + offset + length) >> PAGE_SHIFT;
--		folio2 = __filemap_get_folio(folio->mapping, end_idx,
-+		folio2 = __filemap_get_folio(folio->mapping, aligned_end,
- 					     FGP_LOCK | FGP_NOWAIT, 0);
--		if (IS_ERR(folio2))
--			goto no_split;
--
--		/* make sure folio2 is large */
--		if (!folio_test_large(folio2))
-+		if (IS_ERR(folio2)) {
-+			/*
-+			 * No sub-folio straddles the boundary when
-+			 * aligned_end is empty, so discarding up to it is
-+			 * safe.  Otherwise the straddler is locked by
-+			 * someone else and we cannot obtain a reliable end
-+			 * position, so we fall back to folio->index, which
-+			 * is safe but leaves the sub-folios split off at
-+			 * the offset edge in the page cache.
-+			 */
-+			if (PTR_ERR(folio2) != -ENOENT)
-+				end = folio->index;
- 			goto out;
-+		}
- 
--		split_at2 = folio_page(folio2, (end_idx - folio2->index));
--		folio_split_or_unmap(folio2, split_at2, min_order);
--out:
-+		/* Already at the minimum order, nothing to split */
-+		if (folio_order(folio2) == min_order)
-+			goto out_put;
-+
-+		split_at2 = folio_page(folio2, (aligned_end - folio2->index));
-+
-+		/* Split failed, keep the straddler intact */
-+		if (folio_split_or_unmap(folio2, split_at2, min_order))
-+			end = folio2->index;
-+
-+out_put:
- 		folio_unlock(folio2);
- 		folio_put(folio2);
--no_split:
-+out:
-+		if (pend)
-+			*pend = end;
- 		return true;
- 	}
- 	if (folio_test_dirty(folio))
-@@ -421,11 +459,8 @@ void truncate_inode_pages_range(struct a
- 	folio = __filemap_get_folio(mapping, lstart >> PAGE_SHIFT, FGP_LOCK, 0);
- 	if (!IS_ERR(folio)) {
- 		same_folio = lend < folio_next_pos(folio);
--		if (!truncate_inode_partial_folio(folio, lstart, lend)) {
--			start = folio_next_index(folio);
--			if (same_folio)
--				end = folio->index;
--		}
-+		truncate_inode_partial_folio(folio, lstart, lend, &start,
-+					     same_folio ? &end : NULL);
- 		folio_unlock(folio);
- 		folio_put(folio);
- 		folio = NULL;
-@@ -435,8 +470,8 @@ void truncate_inode_pages_range(struct a
- 		folio = __filemap_get_folio(mapping, lend >> PAGE_SHIFT,
- 						FGP_LOCK, 0);
- 		if (!IS_ERR(folio)) {
--			if (!truncate_inode_partial_folio(folio, lstart, lend))
--				end = folio->index;
-+			truncate_inode_partial_folio(folio, lstart, lend,
-+						     NULL, &end);
- 			folio_unlock(folio);
- 			folio_put(folio);
- 		}
+ 		quota->esz_bp = ULONG_MAX;
 _
 
-Patches currently in -mm which might be from yi.zhang@huawei.com are
+Patches currently in -mm which might be from donggeunyoo.kernel@gmail.com are
 
+userfaultfd-clear-the-inherited-uffd-bit-in-move_swap_pte.patch
 
