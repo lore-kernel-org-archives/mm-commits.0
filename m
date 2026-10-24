@@ -1,45 +1,45 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1792832519;
-	b=F/xLPiv2CRDJyYQ69N/2CKxX5skDpINoO0ysbi1WJ7lzumK45BaOjeTKT0l505zdaoRs
-	 ZyIfS4rJ8xYHC4Pl/0gb46kIc7mbIb7RuR9c9iwBcbSpak/p6n9/iJvkubW0dUtqkWlhR
-	 TchpWjYtPNJbDNkfHp77aDlxqx6XKNx8DuM2AKoVo1hWuftxAYOlHg4+rr9pa+58+n4m3
-	 WUWMOMzFS0V/qM+6R5kF5ZjQcn6mRnVImU0c3k1XLkurDiyzeHblANdJqhVw3cIADcsq1
-	 PTHrUkAqN8XyZgXhdUkm7i1yi9lv2nqZykDerrJX5lhP0b0bVdY3BHkebm8ixsHkehA==
+	t=1792832516;
+	b=ZYuBEmDVtff5/7ZpZxOh8IEQLmbP0vauCLZ7vsKJP4z5AeIXMOXoQx270OQz8tXKQo/m
+	 WCbBj5lH6phX+jaQlETzxkYEuMcuoehmpfFRH0KWWoywwMM664AcV85gWB1OaNS+7CckT
+	 FP8GgwGFwVgRVth/IF6Ck9mRimmKrX8oiw4ijL8FQvvhe06ZPNEzSaMtExjMGQtGAGzOI
+	 RDIsvgCzU1afA8oSqBJnCOAAM009xQ/zFL7qXiygAurYqoI5wckOsCd7BBEH+w3zj22Yu
+	 BHKyeInzKoS7aSAfQr1nvv2wSyh25jc6FtKNwnnd3qPopN2SZmWZr08J1K9uqlBQPjg==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1792832519;
+	a=rsa-sha256; c=relaxed/relaxed; t=1792832516;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=O1QZkei0Ityifl+LUX9ibbcFwxVb9g/VIXpmyz/Zzt0=;
-	b=S8Rfxjx4I+sX4YUHeC4zaWfOa99FT8o6fjEhogwodjSE2GoeIi+/zvvDfYj/B+9MoJ8T
-	 zKD3tazFD4Q2CnsozDP9ORe4RztHEkU+xNz3WJHVscN2wDxlLckAzeHUmBi4m2kiANLV6
-	 RZrlhOmedBBkmVu4UVkrkqnZI6EhzJn8zGuCBmqKhRfelCDoEzW4vR7zKe8RbbdQHs+1Y
-	 rInGLWDWJDIXOHJHqupoYL48JEsYgDQJnpX+xhsAtQwDOhnQ3H20xpPad8S+c9NBbAA2Y
-	 zyuFFfsVMWsyyydXHVfRyZSjYvxRUa9yeJzCqTs3S6rQ+He5zsSaSVitNAjOQI2rWfQ==
+	bh=Mrp1dJ6e6JrUCQ0H1eTS7Q/C9Z04h2Mj7aab/tXMUoA=;
+	b=pYe5+RL6Ft4/0A1tgztuJWlKruj0aCV222xrppwIBovR1kO7ME/lQfWsg+KB8WqMNaxf
+	 9PxXJ4IedqDpLMz6wJX/LK2w7OFH8PVo6wMptTMRNEccdDnDtb8yboLobh8xEQfvr8M1n
+	 kW7ddgo7pJ+1i80UXLsMaKy/YCG1U4h0wKNpLKNXOEtF/1MiVbVvbYpSR/oO0/jr5Tm18
+	 FDW1xl+MpfXq7u9WqLgPJE5ZE2rUhbBRwjaOP9utHv5/UtlQYYrG3NL+8ds1NN1Aj2OfK
+	 ajTGTlCJLQM0mn2sxfTZKXqo0EgBqR3K3MRlNNqtBGFcMZqrp6w2U2KNbXaeVi6dZIQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=jJBY47Am;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b="NlcZFSY/";
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 93672606A31B
-	for <mm-commits@vger.kernel.org>; Sat, 24 Oct 2026 09:01:59 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B3345606A31F;
+	Sat, 24 Oct 2026 09:01:55 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=jJBY47Am
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 618E01F01825;
-	Sat, 24 Oct 2026 09:01:59 +0000 (UTC)
+	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=NlcZFSY/
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7D5811F01825;
+	Sat, 24 Oct 2026 09:01:55 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1792832519;
-	bh=O1QZkei0Ityifl+LUX9ibbcFwxVb9g/VIXpmyz/Zzt0=;
+	d=linux-foundation.org; s=korg; t=1792832515;
+	bh=Mrp1dJ6e6JrUCQ0H1eTS7Q/C9Z04h2Mj7aab/tXMUoA=;
 	h=Date:To:From:Subject;
-	b=jJBY47AmwwaVpwod7OBgYCeouJB0yZSRSdn773jKS26T/yb5GZMwlYfYpmtlRxKOT
-	 Q21KlNLQ4sL7Rgk8s7J8cW2cA4SsmPuu2c2LWDSfVAKKY1yp1flrZGr6NeoKUAMDfi
-	 K1O1pyMP2EAE1tHiA+XCn96kX4Ce01ZfJdFBgLD0=
-Date: Sat, 24 Oct 2026 02:01:58 -0700
-To: mm-commits@vger.kernel.org,vbabka@kernel.org,surenb@google.com,sshegde@linux.ibm.com,rppt@kernel.org,ritesh.list@gmail.com,qi.zheng@linux.dev,npiggin@gmail.com,mpe@ellerman.id.au,mhocko@suse.com,maddy@linux.ibm.com,ljs@kernel.org,liam@infradead.org,lance.yang@linux.dev,david@kernel.org,chleroy@kernel.org,muchun.song@linux.dev,akpm@linux-foundation.org
+	b=NlcZFSY/VbOge5yPzybGhtd/8xd479had4nF1O2eIOio1BZhIChhkSa6xY6fJQEMq
+	 etHaTeyRuMe24AVJ8j5orz8mQdeaHP9Iqxi6pv01QTnixXSEIRkRKlOxVKMaK/tuz3
+	 iYcXNw60kQd+sl/Na5sIMEwuw3VL/MYPsnaZD3gc=
+Date: Sat, 24 Oct 2026 02:01:55 -0700
+To: mm-commits@vger.kernel.org,youngjun.park@lge.com,stable@vger.kernel.org,shikemeng@huaweicloud.com,nphamcs@gmail.com,kasong@tencent.com,chrisl@kernel.org,baoquan.he@linux.dev,baohua@kernel.org,jiayuan.chen@shopee.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-sparse-vmemmap-drop-device-dax-specific-population-path.patch removed from -mm tree
-Message-Id: <20261024090159.618E01F01825@smtp.kernel.org>
+Subject: [merged mm-stable] mm-swap-fix-swap_cache_get_folio-returning-a-folio-that-left-the-swap-cache.patch removed from -mm tree
+Message-Id: <20261024090155.7D5811F01825@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -51,168 +51,123 @@ Precedence: list
 
 
 The quilt patch titled
-     Subject: mm/sparse-vmemmap: drop Device DAX-specific population path
+     Subject: mm/swap: fix swap_cache_get_folio() returning a folio that left the swap cache
 has been removed from the -mm tree.  Its filename was
-     mm-sparse-vmemmap-drop-device-dax-specific-population-path.patch
+     mm-swap-fix-swap_cache_get_folio-returning-a-folio-that-left-the-swap-cache.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Muchun Song <muchun.song@linux.dev>
-Subject: mm/sparse-vmemmap: drop Device DAX-specific population path
-Date: Sat, 10 Oct 2026 15:57:52 +0800
+From: Jiayuan Chen <jiayuan.chen@shopee.com>
+Subject: mm/swap: fix swap_cache_get_folio() returning a folio that left the swap cache
+Date: Thu, 15 Oct 2026 14:05:27 +0800
 
-The common vmemmap path selects the shared page for optimized mappings
-itself, so Device DAX no longer needs vmemmap_populate_compound_pages() to
-find a shared tail page and pass its backing PFN through the generic
-population helpers.
+swap_cache_get_folio() reads the folio from the swap table and takes a
+reference with folio_try_get(), without any lock.  If the folio is removed
+from the swap cache and freed in between, and its memory gets reused,
+folio_try_get() still succeeds and we return a page that has nothing to do
+with the swap entry:
 
-Remove the Device DAX-specific population path and let section memmap
-population always use vmemmap_populate().  The powerpc retains an
-architecture-specific compound-page implementation, so select it directly
-from radix__vmemmap_populate() for optimizable sections.
+  CPU 0                                  CPU 1
+  do_swap_page()
+    swap_cache_get_folio()
+      swp_tb = swap_table_get()
+      folio = swp_tb_to_folio(swp_tb)
+                                         madvise(MADV_DONTNEED)
+                                           zap_nonpresent_ptes()
+                                             swap_put_entries_direct()
+                                               swap_put_entries_cluster()
+                                                 __try_to_reclaim_swap()
+                                                   swap_cache_del_folio()
+                                                   folio_put()   <- freed
+                                         page reused, e.g. as an anon
+                                         folio of another task
+      folio_try_get(folio)               <- succeeds
+      return folio
+    swap_update_readahead()              <- may clear PG_readahead on it
+    folio_lock_or_retry()                <- locks it
+    folio_matches_swap_entry() fails, unlock and put
 
-Link: https://lore.kernel.org/20261010075755.83339-4-songmuchun@bytedance.com
-Signed-off-by: Muchun Song <muchun.song@linux.dev>
+filemap_get_entry() does the same lockless lookup for the page cache, and
+after folio_try_get() it rechecks the xarray, because the folio may have
+been freed and reused in between.  swap_cache_get_folio() lost that
+recheck when the swap cache moved to the swap table.
+
+So CPU 0 writes to a folio it doesn't own: it may clear PG_readahead and
+takes the folio lock of someone else's page, before
+folio_matches_swap_entry() finds out the folio is not ours.
+
+When the race occurs, a swap fault can acquire a reference to a
+physical page that has been freed and reused for an unrelated purpose,
+potentially by another process.  The fault handler may then clear that
+page's PG_readahead/PG_reclaim flag, wait on or acquire its folio lock,
+and potentially attempt to remove it from an unrelated swap cache.
+
+These operations can interfere with unrelated workloads and may cause
+unexpected stalls and impaired reclaim.  The subsequent swap-entry
+validation normally prevents the wrong folio from being mapped into the
+faulting process.
+
+It's documented that caller always double checks the folio so this part
+is harmless from the aspect of data corruption or crash.
+
+Recheck the slot after folio_try_get() and retry if it no longer holds
+this folio.
+
+[akpm@linux-foundation.org: add LLM-generated description of userspace impact]
+Link: https://lore.kernel.org/20261015060528.302634-1-jiayuan.chen@linux.dev
+Fixes: 8578e0c00dcf ("mm, swap: use the swap table for the swap cache and switch API")
+Signed-off-by: Jiayuan Chen <jiayuan.chen@shopee.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Reviewed-by: Lance Yang <lance.yang@linux.dev>
-Acked-by: Qi Zheng <qi.zheng@linux.dev>
-Cc: Madhavan Srinivasan <maddy@linux.ibm.com>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: David Hildenbrand <david@kernel.org>
-Cc: Michael Ellerman <mpe@ellerman.id.au>
-Cc: Nicholas Piggin <npiggin@gmail.com>
-Cc: Christophe Leroy <chleroy@kernel.org>
-Cc: Ritesh Harjani (IBM) <ritesh.list@gmail.com>
-Cc: Shrikanth Hegde <sshegde@linux.ibm.com>
-Cc: Lorenzo Stoakes <ljs@kernel.org>
-Cc: Liam R. Howlett <liam@infradead.org>
-Cc: Vlastimil Babka <vbabka@kernel.org>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Michal Hocko <mhocko@suse.com>
+Reviewed-by: Kairui Song <kasong@tencent.com>
+Cc: Chris Li <chrisl@kernel.org>
+Cc: Kemeng Shi <shikemeng@huaweicloud.com>
+Cc: Nhat Pham <nphamcs@gmail.com>
+Cc: Baoquan He <baoquan.he@linux.dev>
+Cc: Barry Song <baohua@kernel.org>
+Cc: Youngjun Park <youngjun.park@lge.com>
+Cc: <stable@vger.kernel.org>
 ---
 
- arch/powerpc/mm/book3s64/radix_pgtable.c |    3 
- mm/mm_init.c                             |    2 
- mm/sparse-vmemmap.c                      |   71 ---------------------
- 3 files changed, 5 insertions(+), 71 deletions(-)
+ mm/swap_state.c |   16 +++++++++++++---
+ 1 file changed, 13 insertions(+), 3 deletions(-)
 
---- a/arch/powerpc/mm/book3s64/radix_pgtable.c~mm-sparse-vmemmap-drop-device-dax-specific-population-path
-+++ a/arch/powerpc/mm/book3s64/radix_pgtable.c
-@@ -1126,7 +1126,10 @@ int __meminit radix__vmemmap_populate(un
- 	pud_t *pud;
- 	pmd_t *pmd;
- 	pte_t *pte;
-+	unsigned long pfn = page_to_pfn((struct page *)start);
- 
-+	if (vmemmap_optimizable_order(pfn_to_section_compound_order(pfn)))
-+		return vmemmap_populate_compound_pages(pfn, start, end, node, NULL);
- 	/*
- 	 * If altmap is present, Make sure we align the start vmemmap addr
- 	 * to PAGE_SIZE so that we calculate the correct start_pfn in
---- a/mm/mm_init.c~mm-sparse-vmemmap-drop-device-dax-specific-population-path
-+++ a/mm/mm_init.c
-@@ -1046,7 +1046,7 @@ static void zone_device_page_init_from_t
-  * initialize is a lot smaller that the total amount of struct pages being
-  * mapped. This is a paired / mild layering violation with explicit knowledge
-  * of how the sparse_vmemmap internals handle compound pages in the lack
-- * of an altmap. See vmemmap_populate_compound_pages().
-+ * of an altmap.
+--- a/mm/swap_state.c~mm-swap-fix-swap_cache_get_folio-returning-a-folio-that-left-the-swap-cache
++++ a/mm/swap_state.c
+@@ -92,17 +92,27 @@ void show_swap_cache_info(void)
   */
- static inline unsigned long compound_nr_pages(unsigned long pfn,
- 					      struct dev_pagemap *pgmap)
---- a/mm/sparse-vmemmap.c~mm-sparse-vmemmap-drop-device-dax-specific-population-path
-+++ a/mm/sparse-vmemmap.c
-@@ -503,71 +503,6 @@ int __meminit vmemmap_populate_hugepages
- 	return 0;
- }
+ struct folio *swap_cache_get_folio(swp_entry_t entry)
+ {
++	struct swap_cluster_info *ci = __swap_entry_to_cluster(entry);
++	unsigned int ci_off = swp_cluster_offset(entry);
+ 	unsigned long swp_tb;
+ 	struct folio *folio;
  
--#ifndef vmemmap_populate_compound_pages
--/*
-- * For compound pages bigger than section size (e.g. x86 1G compound
-- * pages with 2M subsection size) fill the rest of sections as tail
-- * pages.
-- *
-- * Note that memremap_pages() resets @nr_range value and will increment
-- * it after each range successful onlining. Thus the value or @nr_range
-- * at section memmap populate corresponds to the in-progress range
-- * being onlined here.
-- */
--static bool __meminit reuse_compound_section(unsigned long start_pfn,
--					     struct dev_pagemap *pgmap)
--{
--	unsigned long nr_pages = pgmap_vmemmap_nr(pgmap);
--	unsigned long offset = start_pfn -
--		PHYS_PFN(pgmap->ranges[pgmap->nr_range].start);
--
--	return !IS_ALIGNED(offset, nr_pages) && nr_pages > PAGES_PER_SUBSECTION;
--}
--
--static int __meminit vmemmap_populate_compound_pages(unsigned long start_pfn,
--						     unsigned long start,
--						     unsigned long end, int node,
--						     struct dev_pagemap *pgmap)
--{
--	const unsigned int order = pfn_to_section_compound_order(start_pfn);
--	unsigned long size, addr;
--	pte_t *pte;
--	struct page *page;
--	int rc;
--
--	page = vmemmap_shared_tail_page(order, device_zone(node));
--	if (!page)
--		return -ENOMEM;
--
--	if (reuse_compound_section(start_pfn, pgmap))
--		return vmemmap_populate_range(start, end, node, NULL,
--					      page_to_pfn(page));
--
--	size = min(end - start, (1UL << order) * sizeof(struct page));
--	for (addr = start; addr < end; addr += size) {
--		unsigned long next, last = addr + size;
--
--		/* Populate the head page vmemmap page */
--		pte = vmemmap_populate_address(addr, node, NULL, -1);
--		if (!pte)
--			return -ENOMEM;
--
--		/*
--		 * Reuse the shared page for the rest of tail pages
--		 * See layout diagram in Documentation/mm/vmemmap_dedup.rst
--		 */
--		next = addr + PAGE_SIZE;
--		rc = vmemmap_populate_range(next, last, node, NULL,
--					    page_to_pfn(page));
--		if (rc)
--			return -ENOMEM;
--	}
--
--	return 0;
--}
--
--#endif
--
- struct page * __meminit __populate_section_memmap(unsigned long pfn,
- 		unsigned long nr_pages, int nid, struct vmem_altmap *altmap,
- 		struct dev_pagemap *pgmap)
-@@ -580,11 +515,7 @@ struct page * __meminit __populate_secti
- 		!IS_ALIGNED(nr_pages, PAGES_PER_SUBSECTION)))
- 		return NULL;
+ 	for (;;) {
+-		swp_tb = swap_table_get(__swap_entry_to_cluster(entry),
+-					swp_cluster_offset(entry));
++		swp_tb = swap_table_get(ci, ci_off);
+ 		if (!swp_tb_is_folio(swp_tb))
+ 			return NULL;
+ 		folio = swp_tb_to_folio(swp_tb);
+-		if (likely(folio_try_get(folio)))
++		if (!folio_try_get(folio))
++			continue;
++		/*
++		 * The folio may have been freed and its memory reused before
++		 * we got the reference. Make sure it is still in the slot.
++		 */
++		swp_tb = swap_table_get(ci, ci_off);
++		if (likely(swp_tb_is_folio(swp_tb) &&
++			   swp_tb_to_folio(swp_tb) == folio))
+ 			return folio;
++		folio_put(folio);
+ 	}
  
--	if (pgmap && section_vmemmap_optimizable(__pfn_to_section(pfn)))
--		r = vmemmap_populate_compound_pages(pfn, start, end, nid, pgmap);
--	else
--		r = vmemmap_populate(start, end, nid, altmap);
--
-+	r = vmemmap_populate(start, end, nid, altmap);
- 	if (r < 0)
- 		return NULL;
- 
+ 	return NULL;
 _
 
-Patches currently in -mm which might be from muchun.song@linux.dev are
+Patches currently in -mm which might be from jiayuan.chen@shopee.com are
 
-mm-fix-missing-page-table-destructor-in-pagetable_free.patch
-arm64-mm-fix-destructor-for-unconstructed-hotplug-page-tables.patch
 
