@@ -1,45 +1,45 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1792832451;
-	b=XbnGOEzUnQxa/oJIVD5i1SXwB+FPX8uDlU21UVmUgOjDOUZsuYQLHIOjOELbuo72YY+8
-	 hQqa+vnfvqbLWHgPrgHdqQ0y3GISbXqzEx7YJhCKzG3ORbuqw/O1zJd3U3tOVVWLVvtgs
-	 fOEY1ywrgPMl2/CFmRDZZXJXD1jZMKgMzILB+/wqsYa/ddfQ+WjlZID1jbWn4CKo8PyPW
-	 5rwVBGKxF7GbIc0IkNed64WfUNenkFG1XNMRYmtAf4BrTxD+AY+Btq0J05lYxVTHppd6h
-	 ynXkaNFoviFmdtlrWQpEpZ1B98/0aHeiUcIMkJ5Xlk0hDPGhmLLimwuumy5djgHAHXQ==
+	t=1792832452;
+	b=E3NRXUxW5a/GsXRLwzSHpAai341jJNb/nefPBbu7sjr6CRe+bbnJXQVsNvvGZEBWEO93
+	 h5aDZrx4WQS/PegXtPQrpGyUgrNGekPSY0/JNSjzGUsF41y9LIqkGmzQJb8r37Yv2flEe
+	 RX4dtl3oOP2gLz8smsDa3qpgjjnDe2fDYlWkp/dpHgC1O87W+AFtYmfAWFME63GmyKQ4N
+	 k1H167Zty/0EciqGK2OLSQQYYffLCvy4svVvc/vtTzuechamQDy0eOXgykQfHROSykHrT
+	 ZP3G8PYM3wDbgHWbr/Xw1d91GEXMQ5tWF8dSyF6p6bHVY4hELBsGd9taG5Q1NXA70gw==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1792832451;
+	a=rsa-sha256; c=relaxed/relaxed; t=1792832452;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=6N0xOeAOM0mEHBx3rVsmZbrs+8VNa66n7eVKMlafq/8=;
-	b=XTRl35TnvIvLHLzCEoz1KB36+c5IwLpk6ZZBp7cv1f8l5/47paYNKViE1zUtgrcEtOdl
-	 h4P6Gu1meGqgDG/S+HhbwNEobQoVgw4KN7A44BkDR0KqjK1L0iBTdpqe0BX4CDq0wW3Dx
-	 Q/u+IiZ1rG5jtEuPmEkGZRbocsvatnlxC97pLovWHoNAxC/9bR1occxTQy8VwDBfwC+PA
-	 rNF24L83TQGNEh7pmE208BDJfh9j6jWkStZ8iiyghXZGbmcgoVPiT/Hq6DV7ahilj4MmK
-	 BEAiKIpJ+Nx4PGnPrqiZoIb/0tHnX6EF+TSWwAg326WtL10iHYT0JFFNJxfSMWJrxaQ==
+	bh=X3CunDO5p+OxSu8p4QnpIISf24Mlp46j9aYhuUOcPsI=;
+	b=VuE7tBYmWIYgY7Hyl6EH6DGuJvsVBMGGW8Q+pFNOVKCq8Mab9+K3NAZHMWSJY9YITlPn
+	 8bLToZKb0o+eE8FJHGuWk3uc4woaoYyNzFSHAVw3XipYTnHSUFYWamenFdRzQoNubjkxS
+	 p1OT6roIcsWhlIrxeLOHAUj9/LBPVn214w7iSofd9gKbKevN36Ke5ZxGBzPRNzE5FbRex
+	 8hFUnPCSJo8CB8DhC3fuu4smSASMXgX6YQndl6F2AaaQYhCSXsg86x7IeIfrHzIGR6V8p
+	 h4MmFVnsrQe9Otw5IJXVXlNo6cu4UcPg6e7P+N3kiBEP+NvlqhigpFseSrSRBC6QIjw==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b="RfhCx/u4";
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=qdIWc4Tv;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 52A8A606A320
-	for <mm-commits@vger.kernel.org>; Sat, 24 Oct 2026 09:00:51 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 32B36606A31F
+	for <mm-commits@vger.kernel.org>; Sat, 24 Oct 2026 09:00:52 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=RfhCx/u4
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E5B351F01825;
-	Sat, 24 Oct 2026 09:00:50 +0000 (UTC)
+	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=qdIWc4Tv
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id F096E1F01825;
+	Sat, 24 Oct 2026 09:00:51 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1792832451;
-	bh=6N0xOeAOM0mEHBx3rVsmZbrs+8VNa66n7eVKMlafq/8=;
+	d=linux-foundation.org; s=korg; t=1792832452;
+	bh=X3CunDO5p+OxSu8p4QnpIISf24Mlp46j9aYhuUOcPsI=;
 	h=Date:To:From:Subject;
-	b=RfhCx/u4WJg0ga2rc00nFihHYSqXKRRL8jiE/UXSY+n8wJ3JEZJyFKC60TY4yg0xW
-	 re2ZtyNf5JnEm/RsTHYZ0XP5/w2a8ifc09COdPbfmFbh+yBa+XpCxJYqApzyH7R138
-	 gS4vH81xumTlW31D6znEXVnrGGmZhIDHKl4qh0QU=
-Date: Sat, 24 Oct 2026 02:00:50 -0700
-To: mm-commits@vger.kernel.org,osalvador@suse.de,muchun.song@linux.dev,david@kernel.org,corbet@lwn.net,lienze@kylinos.cn,akpm@linux-foundation.org
+	b=qdIWc4TvR4naPaCa7/nBTnhidIkozfxh3lw6yEd/bp4jFMMvz3vM5MtkzSArEFaL3
+	 buR0D1rKEvq0FkyOFWsEphI7qr/6uPm/zkMmNOA8hzW0ndK14NCmxKX8MRvy5JaezX
+	 Sb4HiiZiykQKqFJAXKR+9FEXjE0KlCLMXEJJqVhE=
+Date: Sat, 24 Oct 2026 02:00:51 -0700
+To: mm-commits@vger.kernel.org,vbabka@kernel.org,surenb@google.com,shuah@kernel.org,sarthak.sharma@arm.com,rppt@kernel.org,mhocko@suse.com,ljs@kernel.org,liam@infradead.org,david@kernel.org,jaeyeon.lee.dev@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] docs-hugetlbpagerst-fix-typo-in-per-node-attribute-description.patch removed from -mm tree
-Message-Id: <20261024090050.E5B351F01825@smtp.kernel.org>
+Subject: [merged mm-stable] selftests-mm-hugetlb-read-hwpoison-add-setup-of-hugetlb-pages.patch removed from -mm tree
+Message-Id: <20261024090051.F096E1F01825@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -51,51 +51,76 @@ Precedence: list
 
 
 The quilt patch titled
-     Subject: docs: hugetlbpage.rst: fix typo in per-node attribute description
+     Subject: selftests/mm: hugetlb-read-hwpoison: add setup of HugeTLB pages
 has been removed from the -mm tree.  Its filename was
-     docs-hugetlbpagerst-fix-typo-in-per-node-attribute-description.patch
+     selftests-mm-hugetlb-read-hwpoison-add-setup-of-hugetlb-pages.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Enze Li <lienze@kylinos.cn>
-Subject: docs: hugetlbpage.rst: fix typo in per-node attribute description
-Date: Sun,  4 Oct 2026 00:11:25 +0800
+From: Jaeyeon Lee <jaeyeon.lee.dev@gmail.com>
+Subject: selftests/mm: hugetlb-read-hwpoison: add setup of HugeTLB pages
+Date: Sun,  4 Oct 2026 22:54:58 +0200
 
-The per-node hugepages section writes the free_hugepages and
-surplus_hugepages file names with stray trailing quotes.  Quote the real
-names as inline literals instead.
+Every test is expected to reserve the HugeTLB pages it needs. 
+hugetlb-read-hwpoison was not converted, so on a system without
+pre-reserved huge pages the MAP_POPULATE mmap() fails with ENOMEM and
+every test case is skipped.
 
-Link: https://lore.kernel.org/20261003161125.40485-1-lienze@kylinos.cn
-Signed-off-by: Enze Li <lienze@kylinos.cn>
+Reserve the pages with hugetlb_setup_default().  Each chunk size runs two
+HWPOISON tests and a poisoned huge page can't be reused, so reserve two
+pages per chunk size.  The pool size is restored on exit.  The poisoned
+pages remain allocated until reboot.
+
+With the patch, all 12 cases pass on a system with no huge pages
+reserved (tested on Fedora, x86_64, CONFIG_MEMORY_FAILURE=y).
+
+Link: https://lore.kernel.org/20261004205458.119608-1-jaeyeon.lee.dev@gmail.com
+Signed-off-by: Jaeyeon Lee <jaeyeon.lee.dev@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Acked-by: Muchun Song <muchun.song@linux.dev>
-Cc: Oscar Salvador <osalvador@suse.de>
+Tested-by: Sarthak Sharma <sarthak.sharma@arm.com>
+Reviewed-by: Sarthak Sharma <sarthak.sharma@arm.com>
+Assisted-by: LLM
 Cc: David Hildenbrand <david@kernel.org>
-Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: Shuah Khan <shuah@kernel.org>
+Cc: Lorenzo Stoakes <ljs@kernel.org>
+Cc: Liam R. Howlett <liam@infradead.org>
+Cc: Vlastimil Babka <vbabka@kernel.org>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Michal Hocko <mhocko@suse.com>
 ---
 
- Documentation/admin-guide/mm/hugetlbpage.rst |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ tools/testing/selftests/mm/hugetlb-read-hwpoison.c |    8 ++++++++
+ 1 file changed, 8 insertions(+)
 
---- a/Documentation/admin-guide/mm/hugetlbpage.rst~docs-hugetlbpagerst-fix-typo-in-per-node-attribute-description
-+++ a/Documentation/admin-guide/mm/hugetlbpage.rst
-@@ -373,9 +373,9 @@ contains the following attribute files::
- 	free_hugepages
- 	surplus_hugepages
+--- a/tools/testing/selftests/mm/hugetlb-read-hwpoison.c~selftests-mm-hugetlb-read-hwpoison-add-setup-of-hugetlb-pages
++++ a/tools/testing/selftests/mm/hugetlb-read-hwpoison.c
+@@ -13,6 +13,7 @@
+ #include <signal.h>
  
--The free\_' and surplus\_' attribute files are read-only.  They return the number
--of free and surplus [overcommitted] huge pages, respectively, on the parent
--node.
-+The ``free_hugepages`` and ``surplus_hugepages`` attribute files are read-only.
-+They return the number of free and surplus [overcommitted] huge pages,
-+respectively, on the parent node.
+ #include "kselftest.h"
++#include "vm_util.h"
  
- The ``nr_hugepages`` attribute returns the total number of huge pages on the
- specified node.  When this attribute is written, the number of persistent huge
+ #define MAX_WRITE_READ_CHUNK_SIZE (getpagesize() * 16)
+ #define MAX(a, b) (((a) > (b)) ? (a) : (b))
+@@ -281,6 +282,13 @@ int main(void)
+ 	size_t i;
+ 
+ 	ksft_print_header();
++
++	if (!hugetlb_available())
++		ksft_exit_skip("HugeTLB is not available\n");
++
++	if (!hugetlb_setup_default(ARRAY_SIZE(wr_chunk_sizes) * 2))
++		ksft_exit_skip("Not enough free huge pages\n");
++
+ 	ksft_set_plan(ARRAY_SIZE(wr_chunk_sizes) * 3);
+ 
+ 	signal(SIGBUS, sigbus_handler);
 _
 
-Patches currently in -mm which might be from lienze@kylinos.cn are
+Patches currently in -mm which might be from jaeyeon.lee.dev@gmail.com are
 
 
