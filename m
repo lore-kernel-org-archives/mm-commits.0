@@ -1,45 +1,45 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1792832305;
-	b=Go1ms3hC3Hepy5ThlaiyNRPB3ZjcKHtKmdVJHHSPjmC7iqTHHaD4rBTZiJMxaSKPT+zG
-	 IbWCVgAZaYKcIPYsdhAEhD2qFOxbAvswpDtGEJVX90bjVXZIM/RNWpZNHeSFXDdM5xZGO
-	 KRrekMUSoisZeww8W5leqPO3UrXSJKqs50Yv1/SN8mIgK7QAQUFMFkYS5h/nfH55D5dWK
-	 HL1gqsZxTpUa8aellum7c8bvqFmUnO6IsIcOmP9BIhI++dNbq8ZHyJz3I6jxezq5h6PVX
-	 rnuwtBVYOLkhEIrEst5dTVVBm7WBqOIgRN59CCRmrMjtMHzYrvyzWKUqCjFKcSXtR9A==
+	t=1792832306;
+	b=q0oFXcRjrrgYT382WyqOFsFC31P1Vvan9HxEPC935XPsUzMgm14eScrpiRmPvfWfsmEO
+	 GQTtzZayyX/AApJx836uZ6/YT1fFkiV8eegvlhaXxDcEAHnJ5IVU8w/FC1KajAqj3Igrj
+	 PeTPNSJKxN8P1N/ajLCgAs3+KXmCKSgCaJxRf0sSS47NS31NYS16vBzrSwvCzVpn51CEr
+	 4xP8cGo211mXKR4I6RMPleQzrSz+avoLOnsED//jS6rfsWzRxw9cUC/Bu5LAGW27h68Zr
+	 mdCo0D+ePM/qFUnFc09PAGGAQCznbjORUP7JwHtaA88qJV9UfbWSFRsyeh/TgsdBEjw==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1792832305;
+	a=rsa-sha256; c=relaxed/relaxed; t=1792832306;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=7hDmgxj+IsrHU0hBpHfCGG7jYLoxxkaRZd6Ll01sNFc=;
-	b=PQqzbKay/7BUhkTkUy/OMj9s58D13UyWVMiVejWIAM9iCof1ADJlHwkWmLAl+wrycoc4
-	 W2HPRE7JpFq3/tfGxqICIGjAI1W2CTuVzN9p+9GcbWhauZyFSsx3vvscYwsTl6ccp7MEr
-	 fByOTTJfIg2r7FdieX+AiNUyO/mXnNCliKtJOyQskAsNhGVLy2Labu5Pf2uXru9rpjKyi
-	 Kl4AobB8fjVxcr+Tqh59m6hls1lrPLn2QkAzdmfc7kkbwPfhsHb8mR0onyVT7sE/Vl8PO
-	 I1LHZqZAX2fuOF28VdI3Et64AK7mXmcssmYhxnLR5VlgDABpkQi0q6Jl4f/F6d1+neA==
+	bh=qZfvqlhHukquvkkEaQrdRw1/weuJZFWhOqZ2kSUhqt0=;
+	b=aOO+Lg51Pv4CHd+cqebubhGPs1ZtVcZcJ+Aly1LrDSZhZgOYoNPfW8zIS5zQTV2aigI/
+	 +lmLm8y2/Ui+aI1l1qc8vhJkRLhMWbJHU0VzbzhfM/enHpBT3o0PE4txelDE8+XVwSm4e
+	 Lx9N0v9PARs21rYoF6z7nwe/0ocGNUTCKBXjkgs0HE5s9GhXpBoDhRtRPrOI87Z3OKSnE
+	 UKcIyZmIrZATUBEbUQpULyXfBVQXPp7n7ClSJak6nc5/n05ValdFLIbUaVqOwc4JD4K4b
+	 2naJSmTPm/tLNXsE84NftJP8604uGkz6Gwjwl1lMhCLoUYH5+jMETE+f4A/UK0Iro3Q==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b="oe/rgKcE";
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=X6seR5zK;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 609B1606A32C
-	for <mm-commits@vger.kernel.org>; Sat, 24 Oct 2026 08:58:25 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 64D06606A31B
+	for <mm-commits@vger.kernel.org>; Sat, 24 Oct 2026 08:58:26 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=oe/rgKcE
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2BF9C1F01828;
-	Sat, 24 Oct 2026 08:58:25 +0000 (UTC)
+	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=X6seR5zK
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2FD4D1F01828;
+	Sat, 24 Oct 2026 08:58:26 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1792832305;
-	bh=7hDmgxj+IsrHU0hBpHfCGG7jYLoxxkaRZd6Ll01sNFc=;
+	d=linux-foundation.org; s=korg; t=1792832306;
+	bh=qZfvqlhHukquvkkEaQrdRw1/weuJZFWhOqZ2kSUhqt0=;
 	h=Date:To:From:Subject;
-	b=oe/rgKcE0rposf6s/YcA15VW29yriXhJWhbTwE4NyUxJlktNiLhthVgMHs9djMTnk
-	 uw+1DR9PXnXG3JbEOpLjkgjgFQC9BAecaQG/E6sGz6Rkr6cmFiZhdzKYnIzedhH/Dn
-	 zK3J4o0qgcDVS+jWjUMpPysJM2eBVzDFz+PdcdIo=
-Date: Sat, 24 Oct 2026 01:58:24 -0700
+	b=X6seR5zKMUl2vIMwmzGwXoBNx8XtmGV97WhjL/w8F+MQaZhww6AIf77hiMJsP4mEv
+	 8xK3/c/Zj/COdgxj9HCp++mWIAQRQH22mMonLQ34ACghUNr+9904wldkG93QByBqsZ
+	 AkV5jvn13wOA6PMYLXtOu9vQJHzayQuPZMIZmjqY=
+Date: Sat, 24 Oct 2026 01:58:25 -0700
 To: mm-commits@vger.kernel.org,hch@lst.de,harry@kernel.org,hebaoquan@kylinos.cn,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] spi-spi-ti-qspi-dont-use-gfp_dma-when-calling-dma_alloc_coherent.patch removed from -mm tree
-Message-Id: <20261024085825.2BF9C1F01828@smtp.kernel.org>
+Subject: [merged mm-stable] fbdev-fsl-diu-fb-dont-use-gfp_dma-when-calling-dmam_alloc_coherent.patch removed from -mm tree
+Message-Id: <20261024085826.2FD4D1F01828@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -51,44 +51,44 @@ Precedence: list
 
 
 The quilt patch titled
-     Subject: spi: spi-ti-qspi: don't use GFP_DMA when calling dma_alloc_coherent()
+     Subject: fbdev: fsl-diu-fb: don't use GFP_DMA when calling dmam_alloc_coherent()
 has been removed from the -mm tree.  Its filename was
-     spi-spi-ti-qspi-dont-use-gfp_dma-when-calling-dma_alloc_coherent.patch
+     fbdev-fsl-diu-fb-dont-use-gfp_dma-when-calling-dmam_alloc_coherent.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Baoquan He <hebaoquan@kylinos.cn>
-Subject: spi: spi-ti-qspi: don't use GFP_DMA when calling dma_alloc_coherent()
-Date: Thu,  3 Sep 2026 19:18:27 +0800
+Subject: fbdev: fsl-diu-fb: don't use GFP_DMA when calling dmam_alloc_coherent()
+Date: Thu,  3 Sep 2026 19:18:28 +0800
 
-dma_alloc_coherent() allocates the DMA buffer with the device's addressing
-limitation in mind; the DMA core picks the zone from the device's coherent
-DMA mask and ignores GFP_DMA passed by the caller.  Remove the redundant
-GFP_DMA flag.
+dmam_alloc_coherent() allocates the DMA buffer with the device's
+addressing limitation in mind; the DMA core picks the zone from the
+device's coherent DMA mask and ignores GFP_DMA passed by the caller. 
+Remove the redundant GFP_DMA flag.
 
-Link: https://lore.kernel.org/20260903111836.1777265-5-hebaoquan@kylinos.cn
+Link: https://lore.kernel.org/20260903111836.1777265-6-hebaoquan@kylinos.cn
 Signed-off-by: Baoquan He <hebaoquan@kylinos.cn>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 Cc: Christoph Hellwig <hch@lst.de>
 Cc: Harry Yoo <harry@kernel.org>
 ---
 
- drivers/spi/spi-ti-qspi.c |    2 +-
+ drivers/video/fbdev/fsl-diu-fb.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/drivers/spi/spi-ti-qspi.c~spi-spi-ti-qspi-dont-use-gfp_dma-when-calling-dma_alloc_coherent
-+++ a/drivers/spi/spi-ti-qspi.c
-@@ -855,7 +855,7 @@ static int ti_qspi_probe(struct platform
- 	qspi->rx_bb_addr = dma_alloc_coherent(qspi->dev,
- 					      QSPI_DMA_BUFFER_SIZE,
- 					      &qspi->rx_bb_dma_addr,
--					      GFP_KERNEL | GFP_DMA);
-+					      GFP_KERNEL);
- 	if (!qspi->rx_bb_addr) {
- 		dev_err(qspi->dev,
- 			"dma_alloc_coherent failed, using PIO mode\n");
+--- a/drivers/video/fbdev/fsl-diu-fb.c~fbdev-fsl-diu-fb-dont-use-gfp_dma-when-calling-dmam_alloc_coherent
++++ a/drivers/video/fbdev/fsl-diu-fb.c
+@@ -1690,7 +1690,7 @@ static int fsl_diu_probe(struct platform
+ 	int ret;
+ 
+ 	data = dmam_alloc_coherent(&pdev->dev, sizeof(struct fsl_diu_data),
+-				   &dma_addr, GFP_DMA | __GFP_ZERO);
++				   &dma_addr, __GFP_ZERO);
+ 	if (!data)
+ 		return -ENOMEM;
+ 	data->dma_addr = dma_addr;
 _
 
 Patches currently in -mm which might be from hebaoquan@kylinos.cn are
