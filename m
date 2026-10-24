@@ -1,45 +1,45 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1792832347;
-	b=Quc5F+eNViKcVoih6IMqWboBBzb6u34SACuOYQQsAT6nphq0Jcs2ymhkhJ9Qtbrexh7Q
-	 Wwt4sadK2uHoNqcyeTRhmu9ltMNjduaqn8HyDFnNt4xaHiFCeVwsSrWPJGA//CxqKjIQ5
-	 CnBhQ1M8Jb9I2WkOLRKehoXwiO/bvBVoBJ/f1/BXhM6OZ+yWZziKPbaX8ybKKemWXOIsF
-	 mJ4vYST009w1SgTW2wzjtFmIXphh1irtJ7fTiBrTpkhUrhYOX9IHBqugVh9qt/1fj9Y8h
-	 5LwB0V2hofESQixT2RQAeNhmmuHuNYi1f4I7J6KxCUFI63xt2QS7CzK/0mrelwas1xw==
+	t=1792832348;
+	b=qcIO4LW87LENZHOaleDoVwmGl4/FZCpsgqGUCbGtrFp+R8nPvm2ZTY5Invos0S9Z9Egt
+	 EfJXUnQJuOtpCSQXiRX47ESFONw66sMlJllitYRo0dvyDrpGXT8AbPQwDDKwVAnuUEeJB
+	 ivb1s0AAWBTkKLVkFw0r8+3myI/5UP9VpOvJVqJmnNiqoK1poTHRiVkOMkwWW6Y1QNl95
+	 p4UP9x5DJJKasuevG3Fiw8IK7DN/bSDVm/miLvarpY+1kD4l9+OmNEfXVY5hr/mJBpA8p
+	 w694qlXQd/yLV1jeHdno0HFwuKRNK+Zf6h8C3mymOGYH30o4rYeiIteBIFWhSN11sVg==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1792832347;
+	a=rsa-sha256; c=relaxed/relaxed; t=1792832348;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=iwVswukaXdFZpyS1VGec5x5i14nc3gLCsnkFyzAM2CQ=;
-	b=HZ5smIVFzWrpDZczOviOOGNgUCk3YtSnUEnPO+gz8S9IyQeyEPBe6BwzJn6mSBAd4g/S
-	 7cJDppNqwWjX8NHgPG+9qFFF6jtgEK7g1bySstjqPWF8OnCDS592n7ZZ5zOIdTXIH4suD
-	 p+i1g4vI98P9YLf9GHZ7LbxhVj/hHaQSGbDpoUYgn1GWTtzh+E5d5HrecYwqhv3cMtJAG
-	 wxiGvLQ0aa3Ymn9o0+8Go8mrBV+dYzi5WginvzgQCLothBiVlai+Ah52MuSja307f5jAz
-	 BeXBXEfOfcM4DsH977okZL3zpTF4wc9Fy3Z799JwzCr2Z+mp9KyXyGJ3vPRZaXTAwyQ==
+	bh=pNNbwIfuqprDawX9E1FmH8otNsQImZL3gQhwxFDA/8U=;
+	b=c0H7m7hmIRCsWvH1OWxDqcerDobG4FQci8OzECDc5z/E8VJOe81oDhOAiNnGk9dJ+iY3
+	 aqr3ysbQAQQ0IAenypnOwHIBOuQriQk3Pe4hQyAu98r21LsJ71YpJPfvx+gI2ojXeiK+q
+	 pB+nDXPmDn1HOwjkgo4ccEPGjjtWMwRcbw5TVe0V3f4HaY/ACorGT1YD+68lw1Zb4LN7p
+	 V4oOYf4KpO7Y535EoxTCHmnYdhf6WomOug0cG0ekPS40nUxzKuc5D8xY0hclBpWAcl/t0
+	 5G6IPci5xtzCg6LOFA9LkwqkcYAjzyLNVgGpC4svz1FDd37nDTCnN35NiLI9+4AnwDA==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=dBI1BheR;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b="NLyx/roa";
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DAC05606A31A
-	for <mm-commits@vger.kernel.org>; Sat, 24 Oct 2026 08:59:06 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E2B2B606A31A
+	for <mm-commits@vger.kernel.org>; Sat, 24 Oct 2026 08:59:07 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=dBI1BheR
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9FFA91F01828;
-	Sat, 24 Oct 2026 08:59:06 +0000 (UTC)
+	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=NLyx/roa
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A8C081F01828;
+	Sat, 24 Oct 2026 08:59:07 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1792832346;
-	bh=iwVswukaXdFZpyS1VGec5x5i14nc3gLCsnkFyzAM2CQ=;
+	d=linux-foundation.org; s=korg; t=1792832347;
+	bh=pNNbwIfuqprDawX9E1FmH8otNsQImZL3gQhwxFDA/8U=;
 	h=Date:To:From:Subject;
-	b=dBI1BheRyZSg76jekK4y/Yf+ufd831CxtsC1Vsn67W952FIGMbvl3vehQsXJRsvFv
-	 4IWe2+GWpPrHlDgWyx2Irsr99BYG4R32pS5ot8eDmLlP6Qjx6uEKYAKIbnj8WIatCB
-	 a2yb/6U2yu01jr758ucyMGMci7Y/mq36Tmhu42T0=
-Date: Sat, 24 Oct 2026 01:59:06 -0700
+	b=NLyx/roayZup5mVBhsIp9kjPJQ6VWUgx3KwvDk+Sd46eoLkYA3/G/wESedy2SFZBr
+	 p60hmJLNheMtt+f8FBZ7poW9xSkpQz/7T/EKIKWTkUS/Fx60pX4084EqTJq70pULa5
+	 jQQptZZM37b/PORMwE67OZcgLkAs7NJ2UNA3Xz9Y=
+Date: Sat, 24 Oct 2026 01:59:07 -0700
 To: mm-commits@vger.kernel.org,ziy@nvidia.com,yuanchu@google.com,weixugc@google.com,vbabka@kernel.org,surenb@google.com,shakeel.butt@linux.dev,rppt@kernel.org,rafael@kernel.org,qi.zheng@linux.dev,osalvador@suse.de,mhocko@suse.com,ljs@kernel.org,liam@infradead.org,kbingham@kernel.org,kasong@tencent.com,jan.kiszka@siemens.com,hannes@cmpxchg.org,gregkh@linuxfoundation.org,dakr@kernel.org,brendan.jackman@linux.dev,baoquan.he@linux.dev,baolin.wang@linux.alibaba.com,baohua@kernel.org,axelrasmussen@google.com,david@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] fs-proc-page-clarify-comment-in-get_max_dump_pfn.patch removed from -mm tree
-Message-Id: <20261024085906.9FFA91F01828@smtp.kernel.org>
+Subject: [merged mm-stable] mm-memory_hotplug-drop-config_have_arch_pfn_valid-handling-from-pfn_to_online_page.patch removed from -mm tree
+Message-Id: <20261024085907.A8C081F01828@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -51,29 +51,28 @@ Precedence: list
 
 
 The quilt patch titled
-     Subject: fs/proc/page: clarify comment in get_max_dump_pfn()
+     Subject: mm/memory_hotplug: drop CONFIG_HAVE_ARCH_PFN_VALID handling from pfn_to_online_page()
 has been removed from the -mm tree.  Its filename was
-     fs-proc-page-clarify-comment-in-get_max_dump_pfn.patch
+     mm-memory_hotplug-drop-config_have_arch_pfn_valid-handling-from-pfn_to_online_page.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: "David Hildenbrand (Arm)" <david@kernel.org>
-Subject: fs/proc/page: clarify comment in get_max_dump_pfn()
-Date: Mon, 21 Sep 2026 21:59:04 +0200
+Subject: mm/memory_hotplug: drop CONFIG_HAVE_ARCH_PFN_VALID handling from pfn_to_online_page()
+Date: Mon, 21 Sep 2026 21:59:05 +0200
 
-pfn_to_online_page() will only succeed on some PFNs within the same
-section, not necessarily all.  Let's make that clearer.
+Drop CONFIG_HAVE_ARCH_PFN_VALID handling, as CONFIG_HAVE_ARCH_PFN_VALID is
+never used with CONFIG_MEMORY_HOTPLUG, as the latter depends on
+CONFIG_SPARSEMEM_VMEMMAP.  Make sure it stays that way.
 
-While at it, rephrase it to "Allow inspection of".
-
-Link: https://lore.kernel.org/20260921-b4-sparsemem_cleanups-v2-12-54d81d65e125@kernel.org
+Link: https://lore.kernel.org/20260921-b4-sparsemem_cleanups-v2-13-54d81d65e125@kernel.org
 Signed-off-by: David Hildenbrand (Arm) <david@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Acked-by: Oscar Salvador <osalvador@suse.de>
-Acked-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
+Reviewed-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
 Reviewed-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
+Acked-by: Oscar Salvador <osalvador@suse.de>
 Cc: Liam R. Howlett <liam@infradead.org>
 Cc: Vlastimil Babka <vbabka@kernel.org>
 Cc: Suren Baghdasaryan <surenb@google.com>
@@ -97,25 +96,34 @@ Cc: Rafael J. Wysocki <rafael@kernel.org>
 Cc: Danilo Krummrich <dakr@kernel.org>
 ---
 
- fs/proc/page.c |    7 +++----
- 1 file changed, 3 insertions(+), 4 deletions(-)
+ mm/memory_hotplug.c |    9 ++-------
+ 1 file changed, 2 insertions(+), 7 deletions(-)
 
---- a/fs/proc/page.c~fs-proc-page-clarify-comment-in-get_max_dump_pfn
-+++ a/fs/proc/page.c
-@@ -31,10 +31,9 @@ static inline unsigned long get_max_dump
- {
- #ifdef CONFIG_SPARSEMEM
- 	/*
--	 * The memmap of early sections is completely populated and marked
--	 * online even if max_pfn does not fall on a section boundary -
--	 * pfn_to_online_page() will succeed on all pages. Allow inspecting
--	 * these memmaps.
-+	 * If max_pfn does not fall on a section boundary, pfn_to_online_page()
-+	 * can succeed on PFNs beyond max_pfn within the same section. Allow
-+	 * inspection of these memmaps.
- 	 */
- 	return round_up(max_pfn, PAGES_PER_SECTION);
- #else
+--- a/mm/memory_hotplug.c~mm-memory_hotplug-drop-config_have_arch_pfn_valid-handling-from-pfn_to_online_page
++++ a/mm/memory_hotplug.c
+@@ -345,6 +345,8 @@ struct page *pfn_to_online_page(unsigned
+ 	struct dev_pagemap *pgmap;
+ 	struct mem_section *ms;
+ 
++	BUILD_BUG_ON(IS_ENABLED(CONFIG_HAVE_ARCH_PFN_VALID));
++
+ 	if (nr >= NR_MEM_SECTIONS)
+ 		return NULL;
+ 
+@@ -352,13 +354,6 @@ struct page *pfn_to_online_page(unsigned
+ 	if (!online_section(ms))
+ 		return NULL;
+ 
+-	/*
+-	 * Save some code text when online_section() +
+-	 * pfn_section_valid() are sufficient.
+-	 */
+-	if (IS_ENABLED(CONFIG_HAVE_ARCH_PFN_VALID) && !pfn_valid(pfn))
+-		return NULL;
+-
+ 	if (!pfn_section_valid(ms, pfn))
+ 		return NULL;
+ 
 _
 
 Patches currently in -mm which might be from david@kernel.org are
