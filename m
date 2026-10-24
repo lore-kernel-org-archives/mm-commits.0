@@ -1,49 +1,46 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1792862691;
-	b=kzlW7NRikV0vaph5Qh5i+Fo8hQm/skp/xwIE0/RLUTtjj8Auy1sdeRqY8j57taDSlHyY
-	 GZN1bPugVi/1t/YE4ofVr8N61anYiL6g844i1T2cs1H4p4VFkkS8fRt+v+SqBJYJufA6O
-	 f0OhKx+TEjbeWLg2PNypp/J18NVG++89ThE3HkuPXOj94zxwxaX5h+YE5QX81E1xodLYt
-	 fCMv3gCLrrT5fdT1NeHr0MpEHue9pjc1wK1fjgV6QW7GTO55xXGj3Aw52vNmPatxPP0HX
-	 1iE07BNE7bEKLtdZo1jUccK8g+FoEZewX2Jg/GW/WQgS/qrLekaD3iayB2gBJrkpwrw==
+	t=1792863566;
+	b=aRr8dRLLaUIY1PEjY75uXqC4AheZRnV9Hg96GIYlio8E6OrogrpHhLnbI/TqiRXHBeu/
+	 uTjK2t0YpHl28tt439G+HWrYs02zRt7OnH9642tbIHvm5vNWJtf570Ac/XeCXHKsnV6V7
+	 X/w+88rmHpWlWTe3RGerhWb3jWC8M/fQC8C67S3ZywA1rFwY2u12FpNk+BxmbgzdEz55b
+	 TlzSoBZ3k2hSYmtqz6SySp3yhruJ8l3YiabtZCTbNG3NyM5CLZOP4OFudmyFsaziYRXH7
+	 o1oyxL+hYkt6RXrkPqwQXli3JRfendj+waw4ue+lmG3kbD9Dle85DkOK2KOMe3Ag03g==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1792862691;
+	a=rsa-sha256; c=relaxed/relaxed; t=1792863566;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=Nx2Z0xhq704i0xpgzn1CCJZTCQQtkIFfSMDswotsH8U=;
-	b=0HaZD8GVyBzZ0VnkGPkvLz4BHLcDkIhQvTwo9Kl2IRL9GYZztcRWEv/riFxEvorB+KVE
-	 8nMRiGtXGaXp9pb8rYXzM9EEnZOsQAJngYQLtMV5RLaSQUJZ+umwR8hqeCeplG1Lx95zP
-	 fo7MPpkmiMrLScQm7lYLbGlkWg0x5h7qoE1+7PLZVlWLvxrcnJ50OdWmGMsVlGH3JiqkP
-	 /I/Rp8LQW2M8zLAQCXcrM9z97GIhyrNHHRF4tZT1RB6Zua8y5VzqKQJiy9/kO5zfvGMcW
-	 AgTM232cFUZHcZ/58RClJmZgmInFeZFMjv73gqovc1cBTdInJrfvlpWfT3a27b3wACQ==
+	bh=iyBdgaTXDdpR/5dbtV8pKAOSnT8u/TBILVwnlUhvdAY=;
+	b=u7M8lttSJeZBfyO/u3jWhxoJS3G0QbsWkxU9PB9Gr/+18/FV6NKa4DKQHKNfiKVTau+h
+	 yKjFhdP8z0sc/prrk/uKPHJ1yzR69h33LSjGLZMICs+1mM/0J/70OtM3pmNCbFi997VlQ
+	 x51fk2U+ikDgJqJD23Sa9KIoMfSKWWiWt1b8mqV7ImJbyzUyrO7rbiJ26dAs0xu7qkwDa
+	 Hwhiy3V0GR9yQ06rZTxfKaR6CzGELR4Jx2XyzGmL4VZkZpthMKl50/HxoZZROX8moDGv0
+	 KS4CtXo0HOmm11HGGfQKFmtIqyC0dako6RAy9N2ClrbiiXTPXB9LOEgM+psnV9gOxjg==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=A8le0I4W;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=s2IcfYhR;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7185D606A31D;
-	Sat, 24 Oct 2026 17:24:50 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C39AB606A31A
+	for <mm-commits@vger.kernel.org>; Sat, 24 Oct 2026 17:39:25 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=A8le0I4W
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id CDB681F031E5;
-	Sat, 24 Oct 2026 17:24:49 +0000 (UTC)
+	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=s2IcfYhR
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2F6671F01825;
+	Sat, 24 Oct 2026 17:39:25 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1792862689;
-	bh=Nx2Z0xhq704i0xpgzn1CCJZTCQQtkIFfSMDswotsH8U=;
+	d=linux-foundation.org; s=korg; t=1792863565;
+	bh=iyBdgaTXDdpR/5dbtV8pKAOSnT8u/TBILVwnlUhvdAY=;
 	h=Date:To:From:Subject;
-	b=A8le0I4Wm7Qz6lmPQ8CeRQIGKBIOTRUa+A2t8ulOjinWG4NdJhIA/400VcEfNmMG9
-	 v651aegXJSkBoCFsb9VrCbrgLmz4qKE7dpyGxbMBxy33vabaIo6EynmuuYlpnjZtSD
-	 DfibsidxyGSfc0NTiobOZy/LpBrwmcHcodu2I3Ow=
-Date: Sat, 24 Oct 2026 10:24:49 -0700
-To: mm-commits@vger.kernel.org,zzzccc427@gmail.com,
-	syzbot+5d4e96acd0febccb5e87@syzkaller.appspotmail.com,stable@vger.kernel.org,
-	mark@fasheh.com,kartikey406@gmail.com,joseph.qi@linux.alibaba.com,
-	jlbec@evilplan.org,heming.zhao@suse.com,eklavyasingh2106@gmail.com,
-	akpm@linux-foundation.org
+	b=s2IcfYhR+Tb2zudO3fPBlRtDPdE/v5N707dHwVKPzX4Fo5o3UoOGA4Tran6p54DbJ
+	 nDcVuOaz41/GxdW4QTop4zLKqwWskys2RVHNKRlffGGz3xngjzkZJ/f7weW8YbLoPj
+	 iBfWhd2oaWQT2eKK+8pX2nL657VT2Yz/re8vMO0g=
+Date: Sat, 24 Oct 2026 10:39:24 -0700
+To: mm-commits@vger.kernel.org,mark@fasheh.com,jlbec@evilplan.org,
+	heming.zhao@suse.com,joseph.qi@linux.alibaba.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + ocfs2-heartbeat-serialize-concurrent-writes-to-a-regions-dev-attribute.patch added to mm-nonmm-unstable branch
-Message-Id: <20261024172449.CDB681F031E5@smtp.kernel.org>
+Subject: + ocfs2-read-the-xattr-entry-hash-before-defragmenting-the-bucket.patch added to mm-nonmm-unstable branch
+Message-Id: <20261024173925.2F6671F01825@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -55,12 +52,12 @@ Precedence: list
 
 
 The patch titled
-     Subject: ocfs2/heartbeat: serialize concurrent writes to a region's dev attribute
+     Subject: ocfs2: read the xattr entry hash before defragmenting the bucket
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     ocfs2-heartbeat-serialize-concurrent-writes-to-a-regions-dev-attribute.patch
+     ocfs2-read-the-xattr-entry-hash-before-defragmenting-the-bucket.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/ocfs2-heartbeat-serialize-concurrent-writes-to-a-regions-dev-attribute.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/ocfs2-read-the-xattr-entry-hash-before-defragmenting-the-bucket.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -78,184 +75,127 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Eklavya Singh <eklavyasingh2106@gmail.com>
-Subject: ocfs2/heartbeat: serialize concurrent writes to a region's dev attribute
-Date: Wed, 21 Oct 2026 02:53:39 +0530
+From: Joseph Qi <joseph.qi@linux.alibaba.com>
+Subject: ocfs2: read the xattr entry hash before defragmenting the bucket
+Date: Sat, 24 Oct 2026 23:10:07 +0800
 
-o2hb_region_dev_store() checks reg->hr_bdev_file to see if the region
-is already started, but nothing stops two writers from doing that at
-the same time. configfs only serializes writes through the same open
-file, so two processes that each open the dev attribute can both get
-past the check:
+Patch series "ocfs2: fix stale xattr entry pointers and empty header
+reads", v1.
 
-  A: hr_bdev_file is NULL, opens file A, sets hr_bdev_file = A
-  B: hr_bdev_file is NULL, opens file B, sets hr_bdev_file = B
-  A: start fails, fput(hr_bdev_file) drops B, sets it to NULL
-  B: start fails, fput(NULL)
+Five defects in the ocfs2 extended attribute code, plus one robustness
+measure that belongs with them, all on the paths that move entries
+between a block, a bucket and an index tree.  They fall into two groups.
 
-Both calls also use the same hr_slots, hr_slot_data and hr_tmp_block,
-so the error paths can free the slot data twice.
+Stale entry pointers (patches 1 to 3)
 
-syzbot hit the fput(NULL) with an unbound loop device, where every
-start fails with -EIO. With four threads doing the same thing on a
-KASAN kernel I get both crashes within a second:
+ocfs2_xa_set() writes through a pointer into xh_entries[] that two of
+its callers invalidate first.  Defragmenting a bucket ends in a sort()
+on xe_name_hash, and lib/sort.c is an unstable heapsort, so entries that
+share a hash can trade slots.  Copying a block into a bucket changes the
+order outright, since a block holds its entries in insertion order while
+a bucket holds them by hash, yet ocfs2_xattr_update_xattr_search()
+relocates the search by the index the entry had in the block.  Neither
+path compares the entry's name with the one being set, so setxattr() can
+replace a neighbouring attribute's value and still report success, or
+trip ocfs2_xa_reuse_entry()'s BUG_ON.  Patch 1 takes the hash before the
+sort; patches 2 and 3 look the entry up again afterwards.
 
-  BUG: KASAN: double-free in o2hb_unmap_slot_data+0x14d/0x2f0
-  BUG: kernel NULL pointer dereference, address: 0000000000000158
+Reads of an empty entry array (patches 4 to 6)
 
-Add a mutex to the region and hold it in dev_store(), in the
-block_bytes, start_block and blocks stores, and in dev_show(), since
-they all look at hr_bdev_file. dev_store() cleans up with goto, so it
-takes the mutex in a small wrapper rather than with guard(). The mutex
-is dropped while dev_store() waits for the heartbeat to become steady,
-which takes seconds, so a read of dev doesn't stall behind a start.
-hr_bdev_file is already set at that point, so other writers still get
--EINVAL, and the cleanup after the wait retakes the mutex.
+A block and a bucket may both hold no entries: ocfs2_xa_remove_entry()
+keeps the last slot when it removes the only one, so an empty bucket
+still carries the hash it is keyed by.  Three sites index xh_entries[]
+without checking xh_count and so read xh_entries[-1], which lands on the
+header and comes back as xh_count | xh_free_start << 16.  Nothing
+faults, but the value is acted on: the collision check reports no
+collision for an empty bucket, the divide commits a sentinel hash that
+hides part of the key space from ocfs2_xattr_bucket_find(), and the
+block to bucket copy claims storage the bucket does not hold.  Patches 4
+to 6 guard each site and keep the one read of xh_entries[0] that
+ocfs2_xa_remove_entry() documents as intentional.
 
-With the patch the same test ran for 10 minutes with lockdep on and
-nothing was reported. So did a second one, with a working loop device,
-that interrupts starts during the wait while other threads read and
-write the attributes.
 
-Link: https://lore.kernel.org/20261020212339.46591-1-eklavyasingh2106@gmail.com
-Fixes: a7f6a5fb4bde ("[PATCH] OCFS2: The Second Oracle Cluster Filesystem")
-Signed-off-by: Eklavya Singh <eklavyasingh2106@gmail.com>
+This patch (of 6):
+
+ocfs2_xattr_set_entry_index_block() takes the hash a bucket split has to
+work with out of xs->here, but only after ocfs2_xattr_set_entry_bucket()
+has tried and failed to fit the entry.  That call defragments the bucket
+when it runs out of room, and ocfs2_defrag_xattr_bucket() finishes by
+sorting the entry array by name hash.  lib/sort.c is not stable, so two
+entries sharing a hash may trade slots and xs->here is left naming an
+entry other than the one the search found.
+
+The hash value itself survives the permutation -- the array is already
+sorted, so a slot can only exchange with an equal-hash neighbour -- but
+there is no reason to depend on that.  Pick the hash up before the set,
+where xs->here is unambiguously the entry the search landed on.
+
+No functional change intended.
+
+Link: https://lore.kernel.org/20261024151012.1059683-1-joseph.qi@linux.alibaba.com
+Link: https://lore.kernel.org/20261024151012.1059683-2-joseph.qi@linux.alibaba.com
+Fixes: e39baff18b85 ("ocfs2: use the stored hash when checking xattr bucket collision")
+Signed-off-by: Joseph Qi <joseph.qi@linux.alibaba.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Reported-by: <syzbot+5d4e96acd0febccb5e87@syzkaller.appspotmail.com>
-Closes: https://syzkaller.appspot.com/bug?extid=5d4e96acd0febccb5e87
-Reviewed-by: Joseph Qi <joseph.qi@linux.alibaba.com>
+Cc: Heming Zhao <heming.zhao@suse.com>
 Cc: Mark Fasheh <mark@fasheh.com>
 Cc: Joel Becker <jlbec@evilplan.org>
-Cc: Heming Zhao <heming.zhao@suse.com>
-Cc: Deepanshu Kartikey <kartikey406@gmail.com>
-Cc: Cen Zhang <zzzccc427@gmail.com>
-Cc: <stable@vger.kernel.org>
 ---
 
- fs/ocfs2/cluster/heartbeat.c |   40 ++++++++++++++++++++++++++++-----
- 1 file changed, 34 insertions(+), 6 deletions(-)
+ fs/ocfs2/xattr.c |   26 ++++++++++++++++----------
+ 1 file changed, 16 insertions(+), 10 deletions(-)
 
---- a/fs/ocfs2/cluster/heartbeat.c~ocfs2-heartbeat-serialize-concurrent-writes-to-a-regions-dev-attribute
-+++ a/fs/ocfs2/cluster/heartbeat.c
-@@ -269,6 +269,8 @@ struct o2hb_region {
- 	struct list_head	hr_handler_list;
- 	/* Serializes timeout arming against failed-start and teardown. */
- 	struct mutex		hr_arming_mutex;
-+	/* Serializes the dev, block_bytes, start_block and blocks attributes. */
-+	struct mutex		hr_dev_mutex;
- 	bool			hr_stopping;
+--- a/fs/ocfs2/xattr.c~ocfs2-read-the-xattr-entry-hash-before-defragmenting-the-bucket
++++ a/fs/ocfs2/xattr.c
+@@ -6100,6 +6100,22 @@ static int ocfs2_xattr_set_entry_index_b
  
- 	/* last hb status, 0 for success, other value for error. */
-@@ -1681,6 +1683,7 @@ static ssize_t o2hb_region_block_bytes_s
- 	unsigned long block_bytes;
- 	unsigned int block_bits;
- 
-+	guard(mutex)(&reg->hr_dev_mutex);
- 	if (reg->hr_bdev_file)
- 		return -EINVAL;
- 
-@@ -1710,6 +1713,7 @@ static ssize_t o2hb_region_start_block_s
- 	char *p = (char *)page;
- 	ssize_t ret;
- 
-+	guard(mutex)(&reg->hr_dev_mutex);
- 	if (reg->hr_bdev_file)
- 		return -EINVAL;
- 
-@@ -1736,6 +1740,7 @@ static ssize_t o2hb_region_blocks_store(
- 	char *p = (char *)page;
- 	int ret;
- 
-+	guard(mutex)(&reg->hr_dev_mutex);
- 	if (reg->hr_bdev_file)
- 		return -EINVAL;
- 
-@@ -1753,10 +1758,12 @@ static ssize_t o2hb_region_blocks_store(
- 
- static ssize_t o2hb_region_dev_show(struct config_item *item, char *page)
- {
-+	struct o2hb_region *reg = to_o2hb_region(item);
- 	unsigned int ret = 0;
- 
--	if (to_o2hb_region(item)->hr_bdev_file)
--		ret = sprintf(page, "%pg\n", reg_bdev(to_o2hb_region(item)));
-+	guard(mutex)(&reg->hr_dev_mutex);
-+	if (reg->hr_bdev_file)
-+		ret = sprintf(page, "%pg\n", reg_bdev(reg));
- 
- 	return ret;
- }
-@@ -1872,11 +1879,9 @@ out:
-  * this is acting as commit; we set up all of hr_bdev_file and hr_task or
-  * nothing
-  */
--static ssize_t o2hb_region_dev_store(struct config_item *item,
--				     const char *page,
--				     size_t count)
-+static ssize_t __o2hb_region_dev_store(struct o2hb_region *reg,
-+				       const char *page, size_t count)
- {
--	struct o2hb_region *reg = to_o2hb_region(item);
- 	struct task_struct *hb_task;
- 	long fd;
- 	int sectsize;
-@@ -1884,6 +1889,8 @@ static ssize_t o2hb_region_dev_store(str
- 	ssize_t ret = -EINVAL;
- 	int live_threshold;
- 
-+	lockdep_assert_held(&reg->hr_dev_mutex);
-+
- 	if (reg->hr_bdev_file)
- 		return -EINVAL;
- 
-@@ -1987,9 +1994,15 @@ static ssize_t o2hb_region_dev_store(str
- 
- 	wake_up_process(hb_task);
+ 	trace_ocfs2_xattr_set_entry_index_block(xi->xi_name);
  
 +	/*
-+	 * Don't hold hr_dev_mutex across the wait, which can take seconds.
-+	 * hr_bdev_file is already set, so other writers still get -EINVAL.
++	 * An existing entry keeps the hash it was stored under, and that is
++	 * the hash a split has to work with.  A new entry is stored under the
++	 * unsigned one, which is what ocfs2_xa_add_entry() will write.
++	 *
++	 * Read it before the set below.  Filling the bucket may defragment it,
++	 * and ocfs2_defrag_xattr_bucket() re-sorts the entry array, so
++	 * afterwards xs->here only denotes whichever entry the sort left in
++	 * that slot.
 +	 */
-+	mutex_unlock(&reg->hr_dev_mutex);
- 	ret = wait_event_interruptible(o2hb_steady_queue,
- 				atomic_read(&reg->hr_steady_iterations) == 0 ||
- 				reg->hr_node_deleted);
-+	mutex_lock(&reg->hr_dev_mutex);
++	if (xs->not_found)
++		name_hash = ocfs2_xattr_name_hash(inode, xi->xi_name,
++						  xi->xi_name_len);
++	else
++		name_hash = le32_to_cpu(xs->here->xe_name_hash);
++
+ 	ret = ocfs2_xattr_set_entry_bucket(inode, xi, xs, ctxt);
+ 	if (!ret)
+ 		goto out;
+@@ -6115,17 +6131,7 @@ static int ocfs2_xattr_set_entry_index_b
+ 	 * the maximum number of collisions we will allow for then is
+ 	 * one bucket's worth, so check it here whether we need to
+ 	 * add a new bucket for the insert.
+-	 *
+-	 * An existing entry keeps the hash it was stored under, and that is
+-	 * the hash a split has to work with.  A new entry is stored under the
+-	 * unsigned one, which is what ocfs2_xa_add_entry() will write.
+ 	 */
+-	if (xs->not_found)
+-		name_hash = ocfs2_xattr_name_hash(inode, xi->xi_name,
+-						  xi->xi_name_len);
+-	else
+-		name_hash = le32_to_cpu(xs->here->xe_name_hash);
+-
+ 	ret = ocfs2_check_xattr_bucket_collision(xs->bucket, name_hash);
  	if (ret) {
- 		atomic_set(&reg->hr_steady_iterations, 0);
- 		reg->hr_aborted_start = 1;
-@@ -2041,6 +2054,20 @@ out:
- 	return ret;
- }
- 
-+static ssize_t o2hb_region_dev_store(struct config_item *item,
-+				     const char *page,
-+				     size_t count)
-+{
-+	struct o2hb_region *reg = to_o2hb_region(item);
-+	ssize_t ret;
-+
-+	mutex_lock(&reg->hr_dev_mutex);
-+	ret = __o2hb_region_dev_store(reg, page, count);
-+	mutex_unlock(&reg->hr_dev_mutex);
-+
-+	return ret;
-+}
-+
- static ssize_t o2hb_region_pid_show(struct config_item *item, char *page)
- {
- 	struct o2hb_region *reg = to_o2hb_region(item);
-@@ -2143,6 +2170,7 @@ static struct config_item *o2hb_heartbea
- 
- 	INIT_LIST_HEAD(&reg->hr_all_item);
- 	mutex_init(&reg->hr_arming_mutex);
-+	mutex_init(&reg->hr_dev_mutex);
- 	reg->hr_stopping = true;
- 	INIT_DELAYED_WORK(&reg->hr_write_timeout_work, o2hb_write_timeout);
- 	INIT_DELAYED_WORK(&reg->hr_nego_timeout_work, o2hb_nego_timeout);
+ 		mlog_errno(ret);
 _
 
-Patches currently in -mm which might be from eklavyasingh2106@gmail.com are
+Patches currently in -mm which might be from joseph.qi@linux.alibaba.com are
 
-ocfs2-heartbeat-serialize-concurrent-writes-to-a-regions-dev-attribute.patch
+ocfs2-read-the-xattr-entry-hash-before-defragmenting-the-bucket.patch
+ocfs2-find-the-xattr-entry-again-after-defragmenting-a-bucket.patch
+ocfs2-find-the-xattr-entry-again-after-converting-a-block-to-a-bucket.patch
+ocfs2-do-not-read-the-entry-array-of-an-empty-xattr-bucket.patch
+ocfs2-do-not-index-before-the-entry-array-when-dividing-an-empty-bucket.patch
+ocfs2-do-not-read-the-entry-array-of-an-empty-xattr-block.patch
 
