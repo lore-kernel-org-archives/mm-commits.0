@@ -1,45 +1,45 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1792832462;
-	b=JASpINpIzR1EQij27sBdd0YXUwA6iJSJu8/CjDvhUO+hP4wnlImqCMVHwWF50LsckVCC
-	 zhM5Aa4QKFRTZ8pCF1Uqq1MqUXf0eIdhNmBj+qysC2imWf33lCcLMJxhqXSOYEISLyjKs
-	 xpv8kc2fACXbV2hRPAkWzi1V2tKP13gwSzzQX4Cwt1kY0V07oZTwdRjEQySBe1VI9TIaD
-	 4qMalTz5YgK7QAFTyDn4gJJj5OHiLaHfN4nTR4RPy6ey7QfHh4m2wahv4NNOp7UZztHTz
-	 qdN7MZ9ZPj8JdYoB2grYgc+9NgiClMTZgU8sdys+7bQtFzK8FswoytxSPrEjSIqmgpg==
+	t=1792832464;
+	b=xfRo4Lpa8yvA7Vphns/GgfO5OA1cIwiCI4KyKvMqc/z3W7HrGF1XkwoxVe4xP81MAWt3
+	 n7QE0suyjF6JtwakpvLCwVmiiKAm2/K1u02aCjziHUIF1pek9FNjCDmlBImFHU+JtLXMW
+	 o4ul13/LZQXiVRosDrDJvrUybk1Fz4FPET6+Y2LBjMgw1TZ0VoMg6SplFBCE0Z+EbvZ6z
+	 DwxXvgWFab+sITxz543d5TUI2TmepADUPXEdS4Nrx17Us2J6VdCDhbL4XLY28wSm34P06
+	 gIC/bgFK+fzaKTMAxDzisJsRWX+h7BQkCDE0f4pdRP9h1+EdWIdRr71FnP2vVnHWS1A==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1792832462;
+	a=rsa-sha256; c=relaxed/relaxed; t=1792832464;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=Capku4Z+t0oRzQxYnwD7223dAUoKEKRrLcaiPdofoVE=;
-	b=EOqg2Kj78c68jvqjGb1co/+3s2Efe3y6GjrpulWgTZCez/duZsTOajprdl1nPIbTqWKC
-	 O2Q4PZrTZVOjcvYn4GqJUydCAOiFJ4Y81xa+pz17xoDu3YLfjd+g4wUKJaCWL3ryNrEUo
-	 Swa+mH8qEbPAYSIOUHxaTeYYsdIXMP95xprfvCWLaQAO9lN0O3xPTM1SJFf/gm8QsU0S6
-	 atslabFdO8IEwfeoJt2boKUIv1Q09gzKfuF6d2wDBlM9GayYgC9igV6BN0hlRJ2FY0cse
-	 h6G+o2hugi61fpzfAr2sLittmHyoEhKOL6Yw3eYyLdwxVzLcvoU1kqYWj/X4yqerjVg==
+	bh=6ZqocgRXf2kgSbY7BFSA4xPspt6xzux9rhYMtb7GMn8=;
+	b=h7v0U4kViSkxaokRkGGelVSsqtvOidmx37ZLDy4qFl1b0xZnrMfJYk4Hvz6JOOaSta2w
+	 HZ1Jw04R2GgWYkbJqq3+OuB1t4FOZAQK0G2NPoZAN1+EmzmrM5FIGR5uX8OWEdZlMWf9g
+	 qnWKZnW01iDxb3Kk13ngeXPWfBQ7Hu+AmyX6tUj5m2s/dFhCeed5pg/UPoKZp0up9jVFb
+	 7+nJ1nr+8nAHK41Mb17LG34kbYrw3CsshOC/Gbinzbvs/DU8KoPZzYnusFK9QRs1b0A2L
+	 UQm333wsy39fyPvVwrXSeMEHTSYDtOrZOOwJBFFICqE6gqOvlpjPzh8tLgMh4xNA2oQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=1KWW5BdO;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=hKhK5v+f;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D94AE606A31B;
-	Sat, 24 Oct 2026 09:01:01 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 21F80606A31B
+	for <mm-commits@vger.kernel.org>; Sat, 24 Oct 2026 09:01:03 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=1KWW5BdO
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A3E251F01825;
-	Sat, 24 Oct 2026 09:01:01 +0000 (UTC)
+	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=hKhK5v+f
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id BCD871F01825;
+	Sat, 24 Oct 2026 09:01:03 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1792832461;
-	bh=Capku4Z+t0oRzQxYnwD7223dAUoKEKRrLcaiPdofoVE=;
+	d=linux-foundation.org; s=korg; t=1792832463;
+	bh=6ZqocgRXf2kgSbY7BFSA4xPspt6xzux9rhYMtb7GMn8=;
 	h=Date:To:From:Subject;
-	b=1KWW5BdO8YJ3FRwqfLZfx8WO5CvumvKKehublOkKOVIOvjK/xI7D+AOutC7gdJ/66
-	 23+dGFw7ZQKJTeMEPQUcfOPFjW+Vz1bIyYUYDNxvjKY0PAKVmZiI6g9/yBc6y1zWMF
-	 aGgBaeVXm0iwQub86BKlQ7XvJnv3T2Ag4tfAxCRs=
-Date: Sat, 24 Oct 2026 02:01:01 -0700
-To: mm-commits@vger.kernel.org,vivek.kasireddy@intel.com,stable@vger.kernel.org,osalvador@suse.de,muchun.song@linux.dev,hughd@google.com,david@kernel.org,baolin.wang@linux.alibaba.com,lihongfu@kylinos.cn,akpm@linux-foundation.org
+	b=hKhK5v+f0p6rYNzxyRaiOh6vYd1l+Z4uvkDEWgRBmbFvIvL0RCg1tVNoumfmSuGk/
+	 h5xrE7qQLSKp9nYzmP+7x1S9LvQc1Y8IDWdkAtEDnHi7XrnqU7VwxRQrND9iNvVwVt
+	 J4910KI+ndnAaIino1HFw+gT5jfxkbFCnYuGLWKY=
+Date: Sat, 24 Oct 2026 02:01:03 -0700
+To: mm-commits@vger.kernel.org,osalvador@suse.de,muchun.song@linux.dev,enze.li@gmx.com,david@kernel.org,lienze@kylinos.cn,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-memfd-fix-hugetlb-reservation-accounting-in-error-paths.patch removed from -mm tree
-Message-Id: <20261024090101.A3E251F01825@smtp.kernel.org>
+Subject: [merged mm-stable] mm-hugetlb-prefix-log-messages-via-pr_fmt.patch removed from -mm tree
+Message-Id: <20261024090103.BCD871F01825@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -51,135 +51,261 @@ Precedence: list
 
 
 The quilt patch titled
-     Subject: mm/memfd: fix hugetlb reservation accounting in error paths
+     Subject: mm/hugetlb: prefix log messages via pr_fmt
 has been removed from the -mm tree.  Its filename was
-     mm-memfd-fix-hugetlb-reservation-accounting-in-error-paths.patch
+     mm-hugetlb-prefix-log-messages-via-pr_fmt.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Hongfu Li <lihongfu@kylinos.cn>
-Subject: mm/memfd: fix hugetlb reservation accounting in error paths
-Date: Thu, 3 Sep 2026 11:01:34 +0800
+From: Enze Li <lienze@kylinos.cn>
+Subject: mm/hugetlb: prefix log messages via pr_fmt
+Date: Sat, 10 Oct 2026 17:23:33 +0800
 
-If hugetlb_add_to_page_cache() in memfd_alloc_folio() fails with -EEXIST,
-a concurrent fault has already instantiated the folio in the page cache,
-and the reservation now belongs to that folio.  Calling
-hugetlb_unreserve_pages() in that case incorrectly removes the region
-backing the cached folio and releases one reservation more than it should,
-leaving that folio in the page cache with no region recording it.
+Pretty much every pr_* message in this file starts with "HugeTLB: ", typed
+out by hand, and one of them even drifted to lowercase ("hugetlb:"). 
+hugetlb_vmemmap.c already handles this with pr_fmt, so let's do the same
+here instead of repeating the prefix over and over.
 
-That leaves resv_huge_pages one page short until that folio is removed
-from the page cache, so available_huge_pages() reports a page that is not
-actually free and the pool can grant one reservation more than it can
-back.  Applications using hugetlb memfds can then fail to allocate or
-fault in a page they already reserved.  They see -ENOMEM or -ENOSPC from
-the allocation or fault path even though the reservation and
-HugePages_Free still look healthy.
+The output stays the same for almost everything; the only tweaks are that
+the lowercase message now matches the others, and the ratelimited "killed
+due to inadequate hugepage pool" warning picks up the prefix like
+everything else.
 
-So hold the hugetlb fault mutex from hugetlb_reserve_pages() until the
-error-path unreserve completes to make the reserve, allocate and
-instantiate steps atomic against concurrent faults.  With the mutex held
-from the start, a concurrent fault can no longer consume the reservation
-between reserve and allocate/instantiate.  If a fault completed before the
-mutex was taken, it has already added the region for that index, so
-hugetlb_reserve_pages() returns 0 and the error path leaves the region in
-place.
-
-Link: https://lore.kernel.org/20260927094757.31665-1-hongfu.li@linux.dev
-Link: https://lore.kernel.org/20260903030134.7407-1-hongfu.li@linux.dev
-Fixes: 717cf9357325 ("mm/memfd: reserve hugetlb folios before allocation")
-Signed-off-by: Hongfu Li <lihongfu@kylinos.cn>
+Link: https://lore.kernel.org/20261010092333.137126-1-lienze@kylinos.cn
+Signed-off-by: Enze Li <lienze@kylinos.cn>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Acked-by: David Hildenbrand (Arm) <david@kernel.org>
-Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Muchun Song <muchun.song@linux.dev>
+Acked-by: Muchun Song <muchun.song@linux.dev>
 Cc: Oscar Salvador <osalvador@suse.de>
-Cc: Vivek Kasireddy <vivek.kasireddy@intel.com>
-Cc: <stable@vger.kernel.org>
+Cc: David Hildenbrand <david@kernel.org>
+Cc: Enze Li <enze.li@gmx.com>
 ---
 
- mm/memfd.c |   31 ++++++++++++++++---------------
- 1 file changed, 16 insertions(+), 15 deletions(-)
+ mm/hugetlb.c |   52 +++++++++++++++++++++++++------------------------
+ 1 file changed, 27 insertions(+), 25 deletions(-)
 
---- a/mm/memfd.c~mm-memfd-fix-hugetlb-reservation-accounting-in-error-paths
-+++ a/mm/memfd.c
-@@ -82,22 +82,31 @@ struct folio *memfd_alloc_folio(struct f
- 		struct hstate *h = hstate_file(memfd);
- 		int err = -ENOMEM;
- 		long nr_resv;
-+		u32 hash;
- 
- 		gfp_mask = htlb_alloc_mask(h);
- 		gfp_mask &= ~(__GFP_HIGHMEM | __GFP_MOVABLE);
- 		idx >>= huge_page_order(h);
- 
-+		/*
-+		 * Serialize hugepage allocation and instantiation to prevent
-+		 * races with concurrent allocations, as required by all other
-+		 * callers of hugetlb_add_to_page_cache().
-+		 */
-+		hash = hugetlb_fault_mutex_hash(memfd->f_mapping, idx);
-+		mutex_lock(&hugetlb_fault_mutex_table[hash]);
+--- a/mm/hugetlb.c~mm-hugetlb-prefix-log-messages-via-pr_fmt
++++ a/mm/hugetlb.c
+@@ -3,6 +3,8 @@
+  * Generic hugetlb support.
+  * (C) Nadia Yvette Chambers, April 2004
+  */
++#define pr_fmt(fmt)	"HugeTLB: " fmt
 +
- 		nr_resv = hugetlb_reserve_pages(inode, idx, idx + 1, NULL, EMPTY_VMA_FLAGS);
--		if (nr_resv < 0)
--			return ERR_PTR(nr_resv);
-+		if (nr_resv < 0) {
-+			err = nr_resv;
-+			goto out_unlock;
-+		}
- 
- 		folio = alloc_hugetlb_folio_reserve(h,
- 						    numa_node_id(),
- 						    NULL,
- 						    gfp_mask);
- 		if (folio) {
--			u32 hash;
--
- 			/*
- 			 * Zero the folio to prevent information leaks to userspace.
- 			 * Use folio_zero_user() which is optimized for huge/gigantic
-@@ -112,20 +121,9 @@ struct folio *memfd_alloc_folio(struct f
- 			 */
- 			__folio_mark_uptodate(folio);
- 
--			/*
--			 * Serialize hugepage allocation and instantiation to prevent
--			 * races with concurrent allocations, as required by all other
--			 * callers of hugetlb_add_to_page_cache().
--			 */
--			hash = hugetlb_fault_mutex_hash(memfd->f_mapping, idx);
--			mutex_lock(&hugetlb_fault_mutex_table[hash]);
--
- 			err = hugetlb_add_to_page_cache(folio,
- 							memfd->f_mapping,
- 							idx);
--
--			mutex_unlock(&hugetlb_fault_mutex_table[hash]);
--
- 			if (err) {
- 				folio_put(folio);
- 				goto err_unresv;
-@@ -133,11 +131,14 @@ struct folio *memfd_alloc_folio(struct f
- 
- 			hugetlb_set_folio_subpool(folio, subpool_inode(inode));
- 			folio_unlock(folio);
-+			mutex_unlock(&hugetlb_fault_mutex_table[hash]);
- 			return folio;
- 		}
- err_unresv:
- 		if (nr_resv > 0)
- 			hugetlb_unreserve_pages(inode, idx, idx + 1, 0);
-+out_unlock:
-+		mutex_unlock(&hugetlb_fault_mutex_table[hash]);
- 		return ERR_PTR(err);
+ #include <linux/list.h>
+ #include <linux/init.h>
+ #include <linux/mm.h>
+@@ -458,7 +460,7 @@ static void hugetlb_vma_lock_alloc(struc
+ 		 * until the file is removed.  Warn in the unlikely case of
+ 		 * allocation failure.
+ 		 */
+-		pr_warn_once("HugeTLB: unable to allocate vma specific lock\n");
++		pr_warn_once("unable to allocate vma specific lock\n");
+ 		return;
  	}
- #endif
+ 
+@@ -987,7 +989,7 @@ void hugetlb_fix_reserve_counts(struct i
+ 	}
+ 
+ 	if (!reserved)
+-		pr_warn("hugetlb: Huge Page Reserved count may go negative.\n");
++		pr_warn("Huge Page Reserved count may go negative.\n");
+ }
+ 
+ /*
+@@ -3408,7 +3410,7 @@ static unsigned long __init hugetlb_free
+ 		char buf[32];
+ 
+ 		string_get_size(huge_page_size(h), 1, STRING_UNITS_2, buf, sizeof(buf));
+-		pr_warn("HugeTLB: freed %lu cross-zone hugepages of size %s on node %d.\n",
++		pr_warn("freed %lu cross-zone hugepages of size %s on node %d.\n",
+ 			freed, buf, nid);
+ 	}
+ 
+@@ -3454,7 +3456,7 @@ static void __init hugetlb_hstate_alloc_
+ 		return;
+ 
+ 	string_get_size(huge_page_size(h), 1, STRING_UNITS_2, buf, 32);
+-	pr_warn("HugeTLB: allocating %u of page size %s failed node%d.  Only allocated %lu hugepages.\n",
++	pr_warn("allocating %u of page size %s failed node%d.  Only allocated %lu hugepages.\n",
+ 		h->max_huge_pages_node[nid], buf, nid, i);
+ 	h->max_huge_pages -= (h->max_huge_pages_node[nid] - i);
+ 	h->max_huge_pages_node[nid] = i;
+@@ -3481,7 +3483,7 @@ static void __init hugetlb_hstate_alloc_
+ 		char buf[32];
+ 
+ 		string_get_size(huge_page_size(h), 1, STRING_UNITS_2, buf, 32);
+-		pr_warn("HugeTLB: allocating %lu of page size %s failed.  Only allocated %lu hugepages.\n",
++		pr_warn("allocating %lu of page size %s failed.  Only allocated %lu hugepages.\n",
+ 			h->max_huge_pages, buf, allocated);
+ 		h->max_huge_pages = allocated;
+ 	}
+@@ -3596,7 +3598,7 @@ static unsigned long __init hugetlb_page
+ 
+ 	jiffies_end = jiffies;
+ 
+-	pr_info("HugeTLB: allocation took %dms with hugepage_allocation_threads=%ld\n",
++	pr_info("allocation took %dms with hugepage_allocation_threads=%ld\n",
+ 		jiffies_to_msecs(jiffies_end - jiffies_start),
+ 		hugepage_allocation_threads);
+ 
+@@ -3624,7 +3626,7 @@ static void __init hugetlb_hstate_alloc_
+ 	 */
+ 	if (hstate_is_gigantic(h) && hugetlb_cma_total_size() &&
+ 	    !hugetlb_early_cma(h)) {
+-		pr_warn_once("HugeTLB: hugetlb_cma is enabled, skip boot time allocation\n");
++		pr_warn_once("hugetlb_cma is enabled, skip boot time allocation\n");
+ 		return;
+ 	}
+ 
+@@ -3692,9 +3694,9 @@ static void __init report_hugepages(void
+ 		char buf[32];
+ 
+ 		string_get_size(huge_page_size(h), 1, STRING_UNITS_2, buf, 32);
+-		pr_info("HugeTLB: registered %s page size, pre-allocated %ld pages\n",
++		pr_info("registered %s page size, pre-allocated %ld pages\n",
+ 			buf, h->nr_huge_pages);
+-		pr_info("HugeTLB: %d KiB vmemmap can be freed for a %s page\n",
++		pr_info("%d KiB vmemmap can be freed for a %s page\n",
+ 			hugetlb_vmemmap_optimizable_size(h) / SZ_1K, buf);
+ 	}
+ }
+@@ -4034,7 +4036,7 @@ long demote_pool_huge_page(struct hstate
+ 
+ 	/* We should never get here if no demote order */
+ 	if (!src->demote_order) {
+-		pr_warn("HugeTLB: NULL demote order passed to demote_pool_huge_page.\n");
++		pr_warn("NULL demote order passed to demote_pool_huge_page.\n");
+ 		return -EINVAL;		/* internal error */
+ 	}
+ 	dst = size_to_hstate(PAGE_SIZE << src->demote_order);
+@@ -4179,7 +4181,7 @@ static int __init hugetlb_init(void)
+ 
+ 	if (!hugepages_supported()) {
+ 		if (hugetlb_max_hstate || default_hstate_max_huge_pages)
+-			pr_warn("HugeTLB: huge pages not supported, ignoring associated command-line parameters\n");
++			pr_warn("huge pages not supported, ignoring associated command-line parameters\n");
+ 		return 0;
+ 	}
+ 
+@@ -4204,9 +4206,9 @@ static int __init hugetlb_init(void)
+ 
+ 				string_get_size(huge_page_size(&default_hstate),
+ 					1, STRING_UNITS_2, buf, 32);
+-				pr_warn("HugeTLB: Ignoring hugepages=%lu associated with %s page size\n",
++				pr_warn("Ignoring hugepages=%lu associated with %s page size\n",
+ 					default_hstate.max_huge_pages, buf);
+-				pr_warn("HugeTLB: Using hugepages=%lu for number of default huge pages\n",
++				pr_warn("Using hugepages=%lu for number of default huge pages\n",
+ 					default_hstate_max_huge_pages);
+ 			}
+ 			default_hstate.max_huge_pages =
+@@ -4346,12 +4348,12 @@ static int __init hugepages_setup(char *
+ 	char *p = s;
+ 
+ 	if (!hugepages_supported()) {
+-		pr_warn("HugeTLB: hugepages unsupported, ignoring hugepages=%s cmdline\n", s);
++		pr_warn("hugepages unsupported, ignoring hugepages=%s cmdline\n", s);
+ 		return 0;
+ 	}
+ 
+ 	if (!parsed_valid_hugepagesz) {
+-		pr_warn("HugeTLB: hugepages=%s does not follow a valid hugepagesz, ignoring\n", s);
++		pr_warn("hugepages=%s does not follow a valid hugepagesz, ignoring\n", s);
+ 		parsed_valid_hugepagesz = true;
+ 		return -EINVAL;
+ 	}
+@@ -4368,7 +4370,7 @@ static int __init hugepages_setup(char *
+ 		mhp = &parsed_hstate->max_huge_pages;
+ 
+ 	if (mhp == last_mhp) {
+-		pr_warn("HugeTLB: hugepages= specified twice without interleaving hugepagesz=, ignoring hugepages=%s\n", s);
++		pr_warn("hugepages= specified twice without interleaving hugepagesz=, ignoring hugepages=%s\n", s);
+ 		return 1;
+ 	}
+ 
+@@ -4379,7 +4381,7 @@ static int __init hugepages_setup(char *
+ 		/* Parameter is node format */
+ 		if (p[count] == ':') {
+ 			if (!hugetlb_node_alloc_supported()) {
+-				pr_warn("HugeTLB: architecture can't support node specific alloc, ignoring!\n");
++				pr_warn("architecture can't support node specific alloc, ignoring!\n");
+ 				return 1;
+ 			}
+ 			if (tmp >= MAX_NUMNODES || !node_online(tmp))
+@@ -4412,7 +4414,7 @@ static int __init hugepages_setup(char *
+ 	return 0;
+ 
+ invalid:
+-	pr_warn("HugeTLB: Invalid hugepages parameter %s\n", p);
++	pr_warn("Invalid hugepages parameter %s\n", p);
+ 	hugepages_clear_pages_in_node();
+ 	return -EINVAL;
+ }
+@@ -4431,7 +4433,7 @@ static int __init hugepagesz_setup(char
+ 	struct hstate *h;
+ 
+ 	if (!hugepages_supported()) {
+-		pr_warn("HugeTLB: hugepages unsupported, ignoring hugepagesz=%s cmdline\n", s);
++		pr_warn("hugepages unsupported, ignoring hugepagesz=%s cmdline\n", s);
+ 		return 0;
+ 	}
+ 
+@@ -4439,7 +4441,7 @@ static int __init hugepagesz_setup(char
+ 	size = (unsigned long)memparse(s, NULL);
+ 
+ 	if (!arch_hugetlb_valid_size(size)) {
+-		pr_err("HugeTLB: unsupported hugepagesz=%s\n", s);
++		pr_err("unsupported hugepagesz=%s\n", s);
+ 		return -EINVAL;
+ 	}
+ 
+@@ -4454,7 +4456,7 @@ static int __init hugepagesz_setup(char
+ 		 */
+ 		if (!parsed_default_hugepagesz ||  h != &default_hstate ||
+ 		    default_hstate.max_huge_pages) {
+-			pr_warn("HugeTLB: hugepagesz=%s specified twice, ignoring\n", s);
++			pr_warn("hugepagesz=%s specified twice, ignoring\n", s);
+ 			return -EINVAL;
+ 		}
+ 
+@@ -4484,21 +4486,21 @@ static int __init default_hugepagesz_set
+ 	int i;
+ 
+ 	if (!hugepages_supported()) {
+-		pr_warn("HugeTLB: hugepages unsupported, ignoring default_hugepagesz=%s cmdline\n",
++		pr_warn("hugepages unsupported, ignoring default_hugepagesz=%s cmdline\n",
+ 			s);
+ 		return 0;
+ 	}
+ 
+ 	parsed_valid_hugepagesz = false;
+ 	if (parsed_default_hugepagesz) {
+-		pr_err("HugeTLB: default_hugepagesz previously specified, ignoring %s\n", s);
++		pr_err("default_hugepagesz previously specified, ignoring %s\n", s);
+ 		return -EINVAL;
+ 	}
+ 
+ 	size = (unsigned long)memparse(s, NULL);
+ 
+ 	if (!arch_hugetlb_valid_size(size)) {
+-		pr_err("HugeTLB: unsupported default_hugepagesz=%s\n", s);
++		pr_err("unsupported default_hugepagesz=%s\n", s);
+ 		return -EINVAL;
+ 	}
+ 
+@@ -4763,7 +4765,7 @@ static void hugetlb_vm_op_open(struct vm
+ 				vma->vm_private_data = NULL;
+ 				hugetlb_vma_lock_alloc(vma);
+ 			} else {
+-				pr_warn("HugeTLB: vma_lock already exists in %s.\n", __func__);
++				pr_warn("vma_lock already exists in %s.\n", __func__);
+ 			}
+ 		} else {
+ 			hugetlb_vma_lock_alloc(vma);
 _
 
-Patches currently in -mm which might be from lihongfu@kylinos.cn are
+Patches currently in -mm which might be from lienze@kylinos.cn are
 
 
