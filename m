@@ -1,45 +1,45 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1792832501;
-	b=ZUWqYjTrY5SugttCmaQzJ6u9bFQe87RR2T+P5c2ubnJmgM3tGaeHjOC1zDEYnRQRmrko
-	 IFLa5R24Iw/4myxsdGlsw7PDaxralRXbWfxefVSQ4dz7wGRxZnbLYs692ixxLxIEkwJLW
-	 a41Xz9J5eoi0bHfRND7MCE8OMDZc+w8t2LcmNTLOO6gUOEacJJFl8QfoB7rSenRgyNzlV
-	 +pWTd/ijVunFM0hdoGVVmt8Skxrok9Km9LrBIiWArp6hLeLutX1yDo5lzyRLtJpbqwLZF
-	 4CAvPobUy/F+etZsgMwGPUkHeCS8LHzOjYduJbhR73TjnLa2BO/QoYZKHZycbvnJOKw==
+	t=1792832508;
+	b=Y0Ps29hfpU/w2YphGV5NhsynsuvgIl0UXVa3XuCAW8i2Wi8SfxiO1h50j8ijXROs6wPG
+	 4OqE407nsM/2mHrpt4LMtnBbHUUZNd6oMZtJBR+WBSr3Wrc8gYPtKS63yYJgRWRhHjmBk
+	 TIiJuAS2/A2nwEuN03L3UxHLWMXQjkMAfhAFyheakjju2Lxv4rK8nIFMuBaQj4n+dTyDO
+	 DystlBojj7TuvqT9hLWC9ulu3f5SA2GOC4iijsAkVTkodaQJGorr37R0QuRI+IV9yh4dV
+	 XUM5rckAfbnrGGs61MqmDu/gG4eun4sBKy1epMCa8k5gGY34FSngmJPAmv3Vo0yHKjQ==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1792832501;
+	a=rsa-sha256; c=relaxed/relaxed; t=1792832508;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=4sWD1vyIwN3tAxumMIbAH0g2DWGSfisa4PVHqIiMTiU=;
-	b=HrVW+ulAoNRGLAPg9P0kagibD7b4QV+tXJcb1takAK4IkoeJaWmWfiXVpWGZYsbRuerk
-	 ir+s1OcCBxIp8XkaEuldp09wqTbSrKu+uPEzwldqPhyDgVV1GA180/pji5CLPnFkN1lQV
-	 NuSU1r2/9e7YLsCmTaSyYzZQmujLMzgAjaJcwI82rqlNe8zvNIt+slKUAeEtR9IOeYGUm
-	 oxvoBLydkBC5+3cHY3DIz218xF2OEugP51fZCktcj4MBENG9tYSIcufrB2/V0Dg0A8IfT
-	 eRyzXwlzfaaDzHlsqblm/2z7hHiOuprGjLrjCcN3C81i9C8xvgy0OrRQhaF66XhQdIw==
+	bh=b4OzQxfboMwoM+2ifrlzUcYryUPZdXgp4GOMQ0i/tUg=;
+	b=Ie6vPKnIES4LtNTzx5Z8G7NfhglosbFzYJHp76myVKoXIeXwIiFJxnQYf/CkWXuakszH
+	 V1UKd4SjBjOXTCWDapHobPmE+mHFIq9D1MfrGT4clpEmc9DOu3n3uDfVWFEv0YE7DiIF2
+	 Cf4oiZFsPu7pXZEk3WDbmECh3oONmapiGA/zB+Yv045CGjIdOAFFYgsj6Y2d147HocILf
+	 qqGVEWgcYgRVUh/bcN/iq4sahfzxOQMVR8mYlWAL5bp+p6W2GBR/f40pEPUWVXYBgU2CF
+	 RCjKIACo/qUG2AbKoJp4hvAG3k08aBadXGccA9bTOyo4Dbir/bDr/aS7SnNf1WeG73Q==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=2FjfArkf;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=F9TF3WHo;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A0ABB606A31A;
-	Sat, 24 Oct 2026 09:01:41 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7EDAC606A31D;
+	Sat, 24 Oct 2026 09:01:48 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=2FjfArkf
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6BB1D1F01828;
-	Sat, 24 Oct 2026 09:01:41 +0000 (UTC)
+	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=F9TF3WHo
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 490861F031E0;
+	Sat, 24 Oct 2026 09:01:48 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1792832501;
-	bh=4sWD1vyIwN3tAxumMIbAH0g2DWGSfisa4PVHqIiMTiU=;
+	d=linux-foundation.org; s=korg; t=1792832508;
+	bh=b4OzQxfboMwoM+2ifrlzUcYryUPZdXgp4GOMQ0i/tUg=;
 	h=Date:To:From:Subject;
-	b=2FjfArkf3GIvjDv+klO8pgNMPQVStlx2E2ERM/bV9pnG2Abmq34K11WvbRxHIsOd7
-	 NvDd1pxCnqO7FaIn8facEPm3J3yyCyNM8eTdCeUnU71hRSSD5IsEiRf41JHJVPvmoJ
-	 j4RlYEUhq1tK5UaHjx0Tweq50iTpD4WMDFvten1c=
-Date: Sat, 24 Oct 2026 02:01:41 -0700
-To: mm-commits@vger.kernel.org,vbabka@kernel.org,stable@vger.kernel.org,pfalcato@suse.de,ljs@kernel.org,liam@infradead.org,jannh@google.com,nickolai@csail.mit.edu,akpm@linux-foundation.org
+	b=F9TF3WHoIQsVeEcFB1Bujr5xZuPWzh8YOzCu/VEnh5ZELZqZd2a0EBK2fFcARpZ1J
+	 xOWozv7n/tkSqLD2bXuTwRc3PvucBasmMSE6fxXEOQgs0Kswu526pZSUPGXukZUL6D
+	 Xrop7BhbOkeXSCpau3GAv/jemlqLBa4iJrKOnJ+A=
+Date: Sat, 24 Oct 2026 02:01:47 -0700
+To: mm-commits@vger.kernel.org,stable@vger.kernel.org,sidhartha.kumar@oracle.com,osalvador@suse.de,muchun.song@linux.dev,ljs@kernel.org,error27@gmail.com,david@kernel.org,baolin.wang@linux.alibaba.com,tongweilin@linux.alibaba.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-mlock-use-a-long-for-the-page-count-in-mlock_fixup.patch removed from -mm tree
-Message-Id: <20261024090141.6BB1D1F01828@smtp.kernel.org>
+Subject: [merged mm-stable] ipc-shm-fix-rss-accounting-for-hugetlb-shared-memory.patch removed from -mm tree
+Message-Id: <20261024090148.490861F031E0@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -51,96 +51,82 @@ Precedence: list
 
 
 The quilt patch titled
-     Subject: mm/mlock: use a long for the page count in mlock_fixup()
+     Subject: ipc/shm: fix RSS accounting for hugetlb shared memory
 has been removed from the -mm tree.  Its filename was
-     mm-mlock-use-a-long-for-the-page-count-in-mlock_fixup.patch
+     ipc-shm-fix-rss-accounting-for-hugetlb-shared-memory.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Nickolai Zeldovich <nickolai@csail.mit.edu>
-Subject: mm/mlock: use a long for the page count in mlock_fixup()
-Date: Wed, 14 Oct 2026 09:13:58 -0400
+From: Weilin Tong <tongweilin@linux.alibaba.com>
+Subject: ipc/shm: fix RSS accounting for hugetlb shared memory
+Date: Wed, 14 Oct 2026 16:22:18 +0800
 
-mlock_fixup() adjusts mm->locked_vm, an unsigned long, by the number of
-pages whose VM_LOCKED state it changes, but computes that number in an
-int:
+Commit a08c7193e4f1 ("mm/filemap: remove hugetlb special casing in
+filemap.c") changed mapping->nrpages to count base pages for hugetlb
+folios.  However, shm_add_rss_swap() still multiplies it by
+pages_per_huge_page(), overcounting RSS in both SHM_INFO and
+/proc/sysvipc/shm.
 
-	int nr_pages;
-	...
-	nr_pages = (end - start) >> PAGE_SHIFT;
-	...
-	mm->locked_vm += nr_pages;
+Use mapping->nrpages for RSS accounting across all backing types, and
+account swap only for non-hugetlb shmem.  Use READ_ONCE() for both
+counters instead of info->lock, which does not protect nrpages and cannot
+provide a consistent snapshot.
 
-When a single VMA range of 2^31 pages (8 TiB with 4 KiB pages) or more
-is locked or unlocked, the count is truncated to 32 bits and then
-sign-extended, so locked_vm is changed by the wrong amount, while
-munmap(), mremap() and the other paths that maintain locked_vm use the
-full unsigned long page count.
-
-Such a range is reachable on 64-bit architectures with a 47-bit or
-larger user address space (x86_64, arm64 with 48-bit VA, riscv64 Sv48)
-by a task with CAP_IPC_LOCK or a raised RLIMIT_MEMLOCK, which do_mlock()
-checks against the full untruncated length.  It costs nothing with
-MAP_NORESERVE and MLOCK_ONFAULT/MCL_ONFAULT, since then no page is
-populated.  On x86_64, after
-
-	p = mmap(NULL, 8UL << 40, PROT_READ | PROT_WRITE,
-		 MAP_PRIVATE | MAP_ANONYMOUS | MAP_NORESERVE, -1, 0);
-	mlock2(p, 8UL << 40, MLOCK_ONFAULT);
-
-VmLck in /proc/self/status reads 18446744065119617024 kB instead of
-8589934592 kB; munmap() of the region then subtracts the true size and
-leaves VmLck at 18446744056529682432 kB instead of 0.  With 16 TiB,
-locked_vm is not changed at all, VmLck stays 0 kB, and after the task
-drops CAP_IPC_LOCK or lowers RLIMIT_MEMLOCK, mlock(), mmap(MAP_LOCKED)
-and the other mlock_future_ok() and account_locked_vm() users enforce
-RLIMIT_MEMLOCK against that count, so they let the task lock memory
-beyond its limit (or, in the 8 TiB case, refuse every further lock).
-The error persists for the life of the mm; unlocking the range in pieces
-skews it further.  The wrong count is per-mm accounting only: it does
-not change which pages are locked.
-
-The int has been there since before git history (the variable was named
-"pages" until it was renamed in 2.6.28); every other updater of
-locked_vm uses an unsigned long or long count.  Make nr_pages a long,
-which holds the page count of any user range and its negation, so the
-existing sign handling is unchanged.
-
-Found by formal verification of mm/mlock.c against the kernel binary.
-
-Link: https://lore.kernel.org/20261014131358.780240-1-nickolai@csail.mit.edu
-Fixes: 1da177e4c3f4 ("Linux-2.6.12-rc2")
-Signed-off-by: Nickolai Zeldovich <nickolai@csail.mit.edu>
+Link: https://lore.kernel.org/20261014082218.2236088-1-tongweilin@linux.alibaba.com
+Fixes: a08c7193e4f1 ("mm/filemap: remove hugetlb special casing in filemap.c")
+Signed-off-by: Weilin Tong <tongweilin@linux.alibaba.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Reviewed-by: Pedro Falcato <pfalcato@suse.de>
-Assisted-by: LLM
-Cc: Liam R. Howlett <liam@infradead.org>
+Suggested-by: Muchun Song <muchun.song@linux.dev>
+Acked-by: Muchun Song <muchun.song@linux.dev>
+Cc: Oscar Salvador <osalvador@suse.de>
+Cc: David Hildenbrand <david@kernel.org>
+Cc: Sidhartha Kumar <sidhartha.kumar@oracle.com>
 Cc: Lorenzo Stoakes <ljs@kernel.org>
-Cc: Vlastimil Babka <vbabka@kernel.org>
-Cc: Jann Horn <jannh@google.com>
+Cc: Dan Carpenter <error27@gmail.com>
+Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
 Cc: <stable@vger.kernel.org>
 ---
 
- mm/mlock.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ ipc/shm.c |   23 ++++-------------------
+ 1 file changed, 4 insertions(+), 19 deletions(-)
 
---- a/mm/mlock.c~mm-mlock-use-a-long-for-the-page-count-in-mlock_fixup
-+++ a/mm/mlock.c
-@@ -457,7 +457,7 @@ static int mlock_fixup(struct vma_iterat
+--- a/ipc/shm.c~ipc-shm-fix-rss-accounting-for-hugetlb-shared-memory
++++ a/ipc/shm.c
+@@ -936,26 +936,11 @@ static inline unsigned long copy_shminfo
+ static void shm_add_rss_swap(struct shmid_kernel *shp,
+ 	unsigned long *rss_add, unsigned long *swp_add)
  {
- 	const vma_flags_t old_vma_flags = vma->flags;
- 	struct mm_struct *mm = vma->vm_mm;
--	int nr_pages;
-+	long nr_pages;
- 	int ret = 0;
+-	struct inode *inode;
++	struct inode *inode = file_inode(shp->shm_file);
  
- 	if (vma_flags_same_pair(&old_vma_flags, new_vma_flags) ||
+-	inode = file_inode(shp->shm_file);
+-
+-	if (is_file_hugepages(shp->shm_file)) {
+-		struct address_space *mapping = inode->i_mapping;
+-		struct hstate *h = hstate_file(shp->shm_file);
+-		*rss_add += pages_per_huge_page(h) * mapping->nrpages;
+-	} else {
+-#ifdef CONFIG_SHMEM
+-		struct shmem_inode_info *info = SHMEM_I(inode);
+-
+-		spin_lock_irq(&info->lock);
+-		*rss_add += inode->i_mapping->nrpages;
+-		*swp_add += info->swapped;
+-		spin_unlock_irq(&info->lock);
+-#else
+-		*rss_add += inode->i_mapping->nrpages;
+-#endif
+-	}
++	*rss_add += READ_ONCE(inode->i_mapping->nrpages);
++	if (IS_ENABLED(CONFIG_SHMEM) && !is_file_hugepages(shp->shm_file))
++		*swp_add += READ_ONCE(SHMEM_I(inode)->swapped);
+ }
+ 
+ /*
 _
 
-Patches currently in -mm which might be from nickolai@csail.mit.edu are
+Patches currently in -mm which might be from tongweilin@linux.alibaba.com are
 
-xarray-clear-the-new-heads-parent-before-freeing-the-old-head.patch
-mm-vmalloc-read-vm_map_ram-block-regions-from-the-requested-offset.patch
 
