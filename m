@@ -1,45 +1,45 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1792832294;
-	b=1aw0Qt860tlZ7L5mxRGK/KKw91uJVXNEcM+HWTxC9K7dQLinNe+SBYw8gDB/qbRxU4ZW
-	 TSyhN0/Y/WLUWT7McWHp/ny0w2hN61stIWk3WWvYMr54G2iW00yYh9XoAv2xqItczOKAA
-	 F8SCbYUnEhHfphY2AZmEje0aaZV6By/9GlZO9DIEfblRLzOCxGbrTInVDBZd4aADRZRU4
-	 e6IJMbPo04BnVdtOcrho4HonRbWY9Aoh9fEx/1VqXMoN5qH/n0bn/inBdiRuOPBuia4XD
-	 nXp8CQ20wBTANY4HsC/z3ctCLben04qyX0aMRj8dlLw8/KeQHTCG0D91cG6TNSwP3Fg==
+	t=1792832295;
+	b=C+dfD2FJa/BEsjf9ZYpadXxJ+lE8r1rFt3wnhzVK/eqOAP6DfABcm8iJLS2+VBH7VL3j
+	 j71aOkFIJqbg7HhDQSasD88dcJu4Q0NnnaqXjIuUlbtB/dibs74mDMifXEhPtjbk4CUp1
+	 dNKlo0wySVoE493zW12nCl+g4hMbD1lIdutIIln67qXTdGyRulbKW8OJLDIftNBDQhveD
+	 6bBpPcR3Yv4RpBpo4cN3/BwicVwyS6bRFJlkfyFVqCyhrpbCErgI2RJcTPO2oeRhOBzSJ
+	 PACVF4R/XRHyslRYJSm1LkFgMzhkLfRJzoWl9c7UEEhuBpolfbpR1DipXI3HDjazPTw==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1792832294;
+	a=rsa-sha256; c=relaxed/relaxed; t=1792832295;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=bBLUSh0GvmYx+FQIR9OxKP9yaQ+AuN71p5E3AMLpo/M=;
-	b=QlSykRh/1oTcb5NTpQmwi8Fb8ZD6WCeu5BqQwKRND+EuFgwVZlANipZk3t34fsZaM5td
-	 1gOf5qDV1QxmxBH3xuRTH/9VUZ4zbeCaQSYet32dVH7BN5OQXvEK1AMEyv+u+5Y8/BXey
-	 MfPjJ38j384khQtnLXOUAuFmcWzZISOp0EZ5NGEjfpzbA2lvLkLs/PdIpLXz45pDuegQe
-	 HgfImsJ6cVEZVEOyuvwk64vP3kbcGWhZgP89p7FQoY9mA3tGxUZp+sqO6CE2gBLdrbKmB
-	 ZXcs4bMxNf7yhf41tu8whQ86Hdfp12y5/sYAjrqXrmIE8ULVlyj7DdxfCJbZkYGLOEQ==
+	bh=Wo/DMeKubXo7l+8oEnRMzuSOVoV/x1+EMkQ2/fto2VA=;
+	b=H7HyS2iJ1d3mkJ2x7P+zLQafdB5MgDlkgtR3OkE9QZucxbaQ4eRBrhJ3ljYWidQLwRMc
+	 6ME08YZpTJo3nRrQK3Q+F64vjiOXSVBfQFPSptzkYkXCF5U21SgAT/Y+q6kywUR6GkTjE
+	 1RO+8aK2Be5oFyBLuSUWyewUrXLxhylYVWlBpJ5t9IMKXr7T2fu6VWAFj/oclzZV3XIoO
+	 GmlU9zu2quemPFI22QVx9hNXTVrsJn3M0nFJBdDTPxvAtuJbB51bPc30G/f6uw45nUNsi
+	 T+b+DC7hEPPNNnpDus8OMCEAxgXoaH2GJ66aSHe3D5RNalFMkur0XbeAauvL5O82/8w==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=nKVLo7t0;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=C81v0lF2;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1AA06606A326
-	for <mm-commits@vger.kernel.org>; Sat, 24 Oct 2026 08:58:14 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 24F43606A31D
+	for <mm-commits@vger.kernel.org>; Sat, 24 Oct 2026 08:58:15 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=nKVLo7t0
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id DA50F1F01828;
-	Sat, 24 Oct 2026 08:58:13 +0000 (UTC)
+	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=C81v0lF2
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E37021F01825;
+	Sat, 24 Oct 2026 08:58:14 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1792832294;
-	bh=bBLUSh0GvmYx+FQIR9OxKP9yaQ+AuN71p5E3AMLpo/M=;
+	d=linux-foundation.org; s=korg; t=1792832295;
+	bh=Wo/DMeKubXo7l+8oEnRMzuSOVoV/x1+EMkQ2/fto2VA=;
 	h=Date:To:From:Subject;
-	b=nKVLo7t0A4VgXGhQETlfG+EPhHxruJXN2XAlFNT9ZZLgNieLuJIqkatWqZ7dOXVvj
-	 TcxEhN4Fc234Ebga//2uem5I8zoQCkgXTttMy+9QTKtYRj3ASQQrR+1ROfSpEdGK9j
-	 t48ldQ5Aa8QSxp5j+p1/75iYM3fPSQKJk2MgnOaU=
-Date: Sat, 24 Oct 2026 01:58:13 -0700
-To: mm-commits@vger.kernel.org,sj@kernel.org,davidgow@davidgow.net,brendan.higgins@linux.dev,donggeunyoo.kernel@gmail.com,akpm@linux-foundation.org
+	b=C81v0lF2UNw5NB4ae+PPzwiGHYhTZw56eRYHqVATn/9bs8dpdAJhNBFGzEArY8plx
+	 tyOa4VrhX1EIQkIODlU4ECbDjCOFEuxc/pxOYXZHU6k64nQsdzhXVvQu0TvQwonYnP
+	 IVGJohgVWq2U7n0f8i4yEmHhA0eqitqZzJSM54TM=
+Date: Sat, 24 Oct 2026 01:58:14 -0700
+To: mm-commits@vger.kernel.org,sj@kernel.org,zenghui.yu@linux.dev,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-damon-tests-core-kunit-test-the-temporal-tuners-size-quota-conversion.patch removed from -mm tree
-Message-Id: <20261024085813.DA50F1F01828@smtp.kernel.org>
+Subject: [merged mm-stable] mm-damon-api-remove-unused-nr_damos_-enumerators.patch removed from -mm tree
+Message-Id: <20261024085814.E37021F01825@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -51,102 +51,97 @@ Precedence: list
 
 
 The quilt patch titled
-     Subject: mm/damon/tests/core-kunit: test the temporal tuner's size quota conversion
+     Subject: mm/damon/api: remove unused NR_DAMOS_* enumerators
 has been removed from the -mm tree.  Its filename was
-     mm-damon-tests-core-kunit-test-the-temporal-tuners-size-quota-conversion.patch
+     mm-damon-api-remove-unused-nr_damos_-enumerators.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Donggeun Yoo <donggeunyoo.kernel@gmail.com>
-Subject: mm/damon/tests/core-kunit: test the temporal tuner's size quota conversion
-Date: Mon, 28 Sep 2026 01:48:15 -0700
+From: "Zenghui Yu (Huawei)" <zenghui.yu@linux.dev>
+Subject: mm/damon/api: remove unused NR_DAMOS_* enumerators
+Date: Mon, 28 Sep 2026 01:39:55 -0700
 
-damos_goal_tune_esz_bp_temporal() encodes the size quota in basis points,
-so the conversion is exact only up to ULONG_MAX / 10000.  Pin the three
-sizes around that boundary: the largest one that fits, the first one that
-does not, and ULONG_MAX.
+Patch series "mm/damon/core: cleanup code, reduce stack usage, and add
+kunit".
 
-Link: https://lore.kernel.org/20260928084816.5575-3-sj@kernel.org
-Signed-off-by: Donggeun Yoo <donggeunyoo.kernel@gmail.com>
+Three various improvements.  Patch 1 from Zenghui Yu (Huawei) cleans up
+unused enums.  Patch 2 from Arnd Bergmann reduces kdamond's stack usage. 
+Patch 3 from Karl Mehltretter adds a kunit test for uninitialized PSI
+quota goal stage logic.
+
+
+This patch (of 3):
+
+NR_DAMOS_ACTIONS, NR_DAMOS_QUOTA_GOAL_METRICS, and NR_DAMOS_WMARK_METRICS
+are not referenced by any code.  Remove them.
+
+They can be reintroduced if a real user comes up.
+
+Link: https://lore.kernel.org/20260928083959.4030-1-sj@kernel.org
+Link: https://lore.kernel.org/20260928083959.4030-2-sj@kernel.org
+Signed-off-by: Zenghui Yu (Huawei) <zenghui.yu@linux.dev>
 Signed-off-by: SJ Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 Reviewed-by: SJ Park <sj@kernel.org>
-Cc: Brendan Higgins <brendan.higgins@linux.dev>
-Cc: David Gow <davidgow@davidgow.net>
 ---
 
- mm/damon/tests/core-kunit.h |   48 ++++++++++++++++++++++++++++++++++
- 1 file changed, 48 insertions(+)
+ include/linux/damon.h |    8 --------
+ 1 file changed, 8 deletions(-)
 
---- a/mm/damon/tests/core-kunit.h~mm-damon-tests-core-kunit-test-the-temporal-tuners-size-quota-conversion
-+++ a/mm/damon/tests/core-kunit.h
-@@ -2347,6 +2347,53 @@ static void damon_test_rand(struct kunit
- 	}
- }
- 
-+static void damos_test_esz_goal_temporal(struct kunit *test)
-+{
-+	struct damos_access_pattern pattern = {};
-+	struct damos_watermarks wmarks = {};
-+	struct damos_quota quota = {
-+		.goal_tuner = DAMOS_QUOTA_GOAL_TUNER_TEMPORAL,
-+	};
-+	struct damos_quota_goal *goal;
-+	struct damon_ctx *ctx;
-+	struct damos *s;
-+
-+	ctx = damon_new_ctx();
-+	KUNIT_ASSERT_NOT_NULL(test, ctx);
-+
-+	s = damon_new_scheme(&pattern, DAMOS_STAT, 0, &quota, &wmarks,
-+			NUMA_NO_NODE);
-+	if (!s) {
-+		damon_destroy_ctx(ctx);
-+		kunit_skip(test, "scheme alloc fail");
-+	}
-+	damon_add_scheme(ctx, s);
-+
-+	goal = damos_new_quota_goal(DAMOS_QUOTA_USER_INPUT, 10000);
-+	if (!goal) {
-+		damon_destroy_ctx(ctx);
-+		kunit_skip(test, "quota goal alloc fail");
-+	}
-+	goal->current_value = 0;
-+	damos_add_quota_goal(&s->quota, goal);
-+
-+	/* The largest size quota the basis-point conversion can hold. */
-+	s->quota.sz = ULONG_MAX / 10000;
-+	damos_set_effective_quota(ctx, s);
-+	KUNIT_EXPECT_EQ(test, s->quota.esz, ULONG_MAX / 10000);
-+
-+	/* Any larger one saturates instead of wrapping. */
-+	s->quota.sz = ULONG_MAX / 10000 + 1;
-+	damos_set_effective_quota(ctx, s);
-+	KUNIT_EXPECT_EQ(test, s->quota.esz, ULONG_MAX / 10000);
-+
-+	s->quota.sz = ULONG_MAX;
-+	damos_set_effective_quota(ctx, s);
-+	KUNIT_EXPECT_EQ(test, s->quota.esz, ULONG_MAX / 10000);
-+
-+	damon_destroy_ctx(ctx);
-+}
-+
- static struct kunit_case damon_test_cases[] = {
- 	KUNIT_CASE(damon_test_target),
- 	KUNIT_CASE(damon_test_regions),
-@@ -2388,6 +2435,7 @@ static struct kunit_case damon_test_case
- 	KUNIT_CASE(damon_test_is_last_region),
- 	KUNIT_CASE(damon_test_walk_control_obsolete),
- 	KUNIT_CASE(damon_test_rand),
-+	KUNIT_CASE(damos_test_esz_goal_temporal),
- 	{},
+--- a/include/linux/damon.h~mm-damon-api-remove-unused-nr_damos_-enumerators
++++ a/include/linux/damon.h
+@@ -117,7 +117,6 @@ struct damon_target {
+  * @DAMOS_MIGRATE_HOT:  Migrate the regions prioritizing warmer regions.
+  * @DAMOS_MIGRATE_COLD:	Migrate the regions prioritizing colder regions.
+  * @DAMOS_STAT:		Do nothing but count the stat.
+- * @NR_DAMOS_ACTIONS:	Total number of DAMOS actions
+  *
+  * The support of each action is up to running &struct damon_operations.
+  * Refer to 'Operation Action' section of Documentation/mm/damon/design.rst for
+@@ -137,7 +136,6 @@ enum damos_action {
+ 	DAMOS_MIGRATE_HOT,
+ 	DAMOS_MIGRATE_COLD,
+ 	DAMOS_STAT,		/* Do nothing but only record the stat */
+-	NR_DAMOS_ACTIONS,
  };
  
+ /**
+@@ -154,9 +152,6 @@ enum damos_action {
+  * @DAMOS_QUOTA_NODE_ELIGIBLE_MEM_BP:	Scheme-eligible memory ratio of a
+  *					node in basis points (0-10000).
+  * @DAMOS_QUOTA_HUGEPAGE_MEM_BP:	Huge page to total used memory ratio.
+- * @NR_DAMOS_QUOTA_GOAL_METRICS:	Number of DAMOS quota goal metrics.
+- *
+- * Metrics equal to larger than @NR_DAMOS_QUOTA_GOAL_METRICS are unsupported.
+  */
+ enum damos_quota_goal_metric {
+ 	DAMOS_QUOTA_USER_INPUT,
+@@ -169,7 +164,6 @@ enum damos_quota_goal_metric {
+ 	DAMOS_QUOTA_INACTIVE_MEM_BP,
+ 	DAMOS_QUOTA_NODE_ELIGIBLE_MEM_BP,
+ 	DAMOS_QUOTA_HUGEPAGE_MEM_BP,
+-	NR_DAMOS_QUOTA_GOAL_METRICS,
+ };
+ 
+ /**
+@@ -313,12 +307,10 @@ struct damos_quota {
+  *
+  * @DAMOS_WMARK_NONE:		Ignore the watermarks of the given scheme.
+  * @DAMOS_WMARK_FREE_MEM_RATE:	Free memory rate of the system in [0,1000].
+- * @NR_DAMOS_WMARK_METRICS:	Total number of DAMOS watermark metrics
+  */
+ enum damos_wmark_metric {
+ 	DAMOS_WMARK_NONE,
+ 	DAMOS_WMARK_FREE_MEM_RATE,
+-	NR_DAMOS_WMARK_METRICS,
+ };
+ 
+ /**
 _
 
-Patches currently in -mm which might be from donggeunyoo.kernel@gmail.com are
+Patches currently in -mm which might be from zenghui.yu@linux.dev are
 
-userfaultfd-clear-the-inherited-uffd-bit-in-move_swap_pte.patch
+mm-page_alloc-mark-pages-freed-by-__free_pages_core-as-not-tagged.patch
 
