@@ -1,47 +1,47 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1792832378;
-	b=hphmwc/zKH87Rqenu4lu3oCtV08wWcaFo6LrWj0XDsCPcnaE3gjhS1/lTj6T4ea1p37S
-	 nD3AumxHY5lFGgeRlN7m6qtW79sui/qVzVYoEbw/G6iTb4wwpmKUi9BT/AAZNXPTP79UW
-	 Jbe2HlsBWANCNTEqS18R9sU0fN9fKBPB9gCsGtmura5kZmWLAQWLKSFX8q/x57w4rIS+R
-	 QqxQ0oD24D4udVsM5gY604+IMykt+IMZLNkhdfsrNosy/3/R8CbN8xlgTDL7s/vhP1W2W
-	 Ja6x5h+Q8OBdsai6+rwuNzDUquBdloVSniXGXLhq+iLIiDOOUIGay8bW4FOM6tfD5Xg==
+	t=1792832380;
+	b=lniUSW5TqVDyn12X1ooNVJPZmhmQjPtLltT+FuxKN1b9IN5I+M19j59IbBEqGRgoUBgp
+	 GgCYDbC9onWlxK1CbDxgJ05Euaq84GnpSWXn/g+fUQoXpNSQRPJsGMKB6jGNbXZuYFEdW
+	 XgIl117iDjYAUTJIUvuCQew00dHiBtcSoBxBgvbL6/87V5hLuYD8MDAkSz4BpIBLBGEC3
+	 GFb8T4VCOvIiYFCYEvuQm3ps3wIv40QBWNHXFMd0ob3WeVLT26WrV1Vkm2TxL8kU9zc/7
+	 mw9Tkp4VVCyMN1Rfm+MpBRa79ibbWmKWKoHL2cSxYi+PASkvv0rITOz7g00jSo+fHWQ==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1792832378;
+	a=rsa-sha256; c=relaxed/relaxed; t=1792832380;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=cNmDvmTDOJ2nkeKDe37BXjbmIBxbIJdDG1ZBSxSvw10=;
-	b=CWoW7VC2UwaUHshdXAC7W6h8DQuKYOHPCa77U9GIsk7DY2nO94omX2PGyCe34lZeHqK2
-	 jBS+fWQqJlheLTmulRaR5LiZGvqs2vymZnIoTDI08vdGfcefcr7A+MzpbB+8LQzTHn4ce
-	 2AwE3kijyVAl8ZHy07eFyEFVofX0Bs9ugBwD03w/3cjwojw0GCLS9FegOWxyTjucSNa/p
-	 Y2ik5IUxiLyprPWA+Q+tNGOBzNbTttLEP4rvo4RHbHuOHDc0YPwHLEpdZNIMMvEbIGUWB
-	 KwlN0Ha4HpAQ5gy4zLyyr5NDIUBHUCAKoAXF/WwZY0ih8d5RG5bfuASC4ccUD5MBRQQ==
+	bh=/lTWF8xSxdGEKhcz8ur9c2L4EL02KL8+PXeGGHtObQs=;
+	b=lSQSsEKVRlVMommaSJRZovQvfRaqOfhaWCo+oUNTEgB6lMwSd+tJalfQ1guN1lSd4O9D
+	 68sh7Io/5e6AJgPuVhGg24qg+LBOG35pX+i+Hbcfk2bHM8nfgnyobnpB/guKtK14+ndBE
+	 HyGICetnxx2sg5fNMBIPsT91agnJH34QpxVX1pv1WLA8OjYm7AvLXV+oU79A0QW97QI8X
+	 gu686DKzknk0KPIzskHKaqM8NRyz8+0Op41DTmcfTFPHonYYkmUNBIKqG2H4kupLZqxhR
+	 2iGGpi2N6MWXMxjCHfFjQN5xhN74vICmAHXl9x9HFa5aewNQFrCBc8mL1WS5UUue1sw==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=fail reason="signature verification failed" header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=04AGREJP;
+	dkim=fail reason="signature verification failed" header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=QH2MR4O0;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 56C32606A31A
-	for <mm-commits@vger.kernel.org>; Sat, 24 Oct 2026 08:59:38 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3AE6F606A31A
+	for <mm-commits@vger.kernel.org>; Sat, 24 Oct 2026 08:59:40 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=fail reason="signature verification failed" (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=04AGREJP
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id DFD441F01829;
-	Sat, 24 Oct 2026 08:59:37 +0000 (UTC)
+	dkim=fail reason="signature verification failed" (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=QH2MR4O0
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 94E1D1F01825;
+	Sat, 24 Oct 2026 08:59:39 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1792832378;
-	bh=cNmDvmTDOJ2nkeKDe37BXjbmIBxbIJdDG1ZBSxSvw10=;
+	d=linux-foundation.org; s=korg; t=1792832379;
+	bh=/lTWF8xSxdGEKhcz8ur9c2L4EL02KL8+PXeGGHtObQs=;
 	h=Date:To:From:Subject;
-	b=04AGREJPxhKEc+RwkBbKl5f0LcwDGKk3lIiyCzcL/azel9/geDi6XDYL+uftz/1io
-	 qH9dFCiaWOmXATnWn+MruxBRrhllvkgYujFxGIYyllqgJi/GInKx+F78NJca+trUKe
-	 Vh5xVimSm1hSRgC3HjekPgXjsL5w6kQHhusMahiM=
-Date: Sat, 24 Oct 2026 01:59:37 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,yuanchu@google.com,youngjun.park@lge.com,ying.huang@linux.alibaba.com,xu.xin@linux.dev,willy@infradead.org,will@kernel.org,weixugc@google.com,viro@zeniv.linux.org.uk,vincent.guittot@linaro.org,vbabka@kernel.org,usama.arif@linux.dev,tzimmermann@suse.de,tiwai@suse.de,tiwai@suse.com,tglx@kernel.org,surenb@google.com,stephen.smalley.work@gmail.com,sre@kernel.org,spasswolf@web.de,simona@ffwll.ch,shikemeng@huaweicloud.com,shakeel.butt@linux.dev,ryan.roberts@arm.com,rppt@kernel.org,riel@surriel.com,rakie.kim@sk.com,qi.zheng@linux.dev,pjw@kernel.org,pfalcato@suse.de,peterz@infradead.org,peterx@redhat.com,perex@perex.cz,paul@paul-moore.com,palmer@dabbelt.com,oupton@kernel.org,osalvador@suse.de,oleg@redhat.com,npiggin@gmail.com,nphamcs@gmail.com,nico.pache@linux.dev,namhyung@kernel.org,muchun.song@linux.dev,mripard@kernel.org,mkp@kernel.org,mingo@redhat.com,miklos@szeredi.hu,mhocko@suse.com,mhocko@kernel.org,mhiramat@kernel.org,memxor@gmail.com,maz
- @kernel.org,matthew.brost@intel.com,mark.rutland@arm.com,maddy@linux.ibm.com,maarten.lankhorst@linux.intel.com,liam@infradead.org,leon@kernel.org,lance.yang@linux.dev,kasong@tencent.com,kas@kernel.org,juri.lelli@redhat.com,joshua.hahnjy@gmail.com,jhubbard@nvidia.com,jgg@ziepe.ca,jannh@google.com,james.bottomley@hansenpartnership.com,jack@suse.cz,imbrenda@linux.ibm.com,ihor.solodrai@linux.dev,hca@linux.ibm.com,harry@kernel.org,hannes@cmpxchg.org,gregkh@linuxfoundation.org,gourry@gourry.net,gor@linux.ibm.com,gerald.schaefer@linux.ibm.com,frankja@linux.ibm.com,eddyz87@gmail.com,dgilbert@interlog.com,dev.jain@arm.com,dennis.dalessandro@cornelisnetworks.com,deller@gmx.de,david@kernel.org,davem@davemloft.net,dave.hansen@linux.intel.com,daniel@iogearbox.net,corbet@lwn.net,chrisl@kernel.org,chengming.zhou@linux.dev,catalin.marinas@arm.com,byungchul@sk.com,brauner@kernel.org,bp@alien8.de,borntraeger@linux.ibm.com,baoquan.he@linux.dev,baolin.wang@linux.alibaba.com,baohua@kernel.org,axelrasmus
- sen@google.com,ast@kernel.org,arnd@arndb.de,apopple@nvidia.com,aou@eecs.berkeley.edu,anup@brainfault.org,aneesh.kumar@kernel.org,andrii@kernel.org,andreas@gaisler.com,airlied@gmail.com,agordeev@linux.ibm.com,acme@kernel.org,ljs@kernel.org,akpm@linux-foundation.org
+	b=QH2MR4O044RSW1juVsBnbUz+xnTwRO8GaGYNPCOkSR9VHFIdgXZmNPHExBiy1LEd1
+	 3ckr2R+Jco+N95o1XJotFT/yzywZEIDngZxYwmTAoGOzzmtXZPkY16fy40qAWTz9tq
+	 gx7GU44sIFDGGVUcpMVbYEjG5EBB8ZkGhXKUsv0s=
+Date: Sat, 24 Oct 2026 01:59:39 -0700
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,yuanchu@google.com,youngjun.park@lge.com,ying.huang@linux.alibaba.com,xu.xin@linux.dev,willy@infradead.org,will@kernel.org,weixugc@google.com,viro@zeniv.linux.org.uk,vincent.guittot@linaro.org,vbabka@kernel.org,usama.arif@linux.dev,tzimmermann@suse.de,tiwai@suse.com,tglx@kernel.org,surenb@google.com,stephen.smalley.work@gmail.com,sre@kernel.org,spasswolf@web.de,simona@ffwll.ch,shikemeng@huaweicloud.com,shakeel.butt@linux.dev,ryan.roberts@arm.com,rppt@kernel.org,riel@surriel.com,rakie.kim@sk.com,qi.zheng@linux.dev,pjw@kernel.org,pfalcato@suse.de,peterz@infradead.org,peterx@redhat.com,perex@perex.cz,paul@paul-moore.com,palmer@dabbelt.com,oupton@kernel.org,osalvador@suse.de,oleg@redhat.com,npiggin@gmail.com,nphamcs@gmail.com,nico.pache@linux.dev,namhyung@kernel.org,muchun.song@linux.dev,mripard@kernel.org,mkp@kernel.org,mingo@redhat.com,miklos@szeredi.hu,mhocko@suse.com,mhocko@kernel.org,mhiramat@kernel.org,memxor@gmail.com,maz@kernel.org,ma
+ tthew.brost@intel.com,mark.rutland@arm.com,maddy@linux.ibm.com,maarten.lankhorst@linux.intel.com,liam@infradead.org,leon@kernel.org,lance.yang@linux.dev,kasong@tencent.com,kas@kernel.org,juri.lelli@redhat.com,joshua.hahnjy@gmail.com,jhubbard@nvidia.com,jgg@ziepe.ca,jannh@google.com,james.bottomley@hansenpartnership.com,jack@suse.cz,imbrenda@linux.ibm.com,ihor.solodrai@linux.dev,hca@linux.ibm.com,harry@kernel.org,hannes@cmpxchg.org,gregkh@linuxfoundation.org,gourry@gourry.net,gor@linux.ibm.com,gerald.schaefer@linux.ibm.com,frankja@linux.ibm.com,emil@etsalapatis.com,eddyz87@gmail.com,dgilbert@interlog.com,dev.jain@arm.com,dennis.dalessandro@cornelisnetworks.com,deller@gmx.de,david@kernel.org,davem@davemloft.net,dave.hansen@linux.intel.com,daniel@iogearbox.net,corbet@lwn.net,chrisl@kernel.org,chengming.zhou@linux.dev,catalin.marinas@arm.com,byungchul@sk.com,brauner@kernel.org,bp@alien8.de,borntraeger@linux.ibm.com,baoquan.he@linux.dev,baolin.wang@linux.alibaba.com,baohua@kernel.org,axe
+ lrasmussen@google.com,ast@kernel.org,arnd@arndb.de,apopple@nvidia.com,aou@eecs.berkeley.edu,anup@brainfault.org,aneesh.kumar@kernel.org,andrii@kernel.org,andreas@gaisler.com,airlied@gmail.com,agordeev@linux.ibm.com,acme@kernel.org,ljs@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] alsa-pcm-use-vm_insert_page-to-map-pcm-status-page.patch removed from -mm tree
-Message-Id: <20261024085937.DFD441F01829@smtp.kernel.org>
+Subject: [merged mm-stable] bpf-arena-mark-arena_map_mmap-mappings-vm_mixedmap.patch removed from -mm tree
+Message-Id: <20261024085939.94E1D1F01825@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -53,45 +53,56 @@ Precedence: list
 
 
 The quilt patch titled
-     Subject: ALSA: pcm: use vm_insert_page() to map PCM status page
+     Subject: bpf: arena: mark arena_map_mmap() mappings VM_MIXEDMAP
 has been removed from the -mm tree.  Its filename was
-     alsa-pcm-use-vm_insert_page-to-map-pcm-status-page.patch
+     bpf-arena-mark-arena_map_mmap-mappings-vm_mixedmap.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: "Lorenzo Stoakes (ARM)" <ljs@kernel.org>
-Subject: ALSA: pcm: use vm_insert_page() to map PCM status page
-Date: Tue, 13 Oct 2026 16:04:53 +0100
+Subject: bpf: arena: mark arena_map_mmap() mappings VM_MIXEDMAP
+Date: Tue, 13 Oct 2026 16:04:54 +0100
 
-There's no need to keep a fault handler around for this, instead map on
-mmap.
+The bpf_map->ops->map_mmap callback invoked by bpf_map_mmap() can be set to
+one of ringbuf_map_mmap_kern(), ringbuf_map_mmap_user(), array_map_mmap()
+or arena_map_mmap().
 
-While we're here, rename area to vma to be consistent.
+It is convention in mm to mark mappings whose pages the kernel manages
+itself with VM_MIXEDMAP, so core mm knows not to treat them as ordinary
+page cache or anonymous memory.
 
-This correctly makes the mapping a mixed map mapping.
+The map_mmap callbacks ringbuf_map_mmap_kern() and ringbuf_map_mmap_user()
+use remap_vmalloc_range(), which ultimately invokes vm_insert_page() and so
+marks the ranges VM_MIXEDMAP, and array_map_mmap() sets VM_MIXEDMAP
+explicitly.
 
-This works towards establishing the invariant that only PFN mapped or mixed
-map mappings may clear the VM_MAYWRITE flag. The status page mapping clears
-VM_MAYWRITE, so it must not be mm-managed; the control page mapping remains
-writable and is left fault-based.
+However, the exception to this is arena_map_mmap(), which doesn't set the
+flag.
 
-The assumption is made that the struct pcm_mmap_status structure is at most
-a page in size, which is asserted as a build bug.
+This patch corrects this and updates the comment to reflect it.
 
-This is safe to assume, as the size of the structure is 56 bytes at most.
+The pages are refcounted and vm_normal_page() finds them regardless of the
+flag, and VM_DONTEXPAND remains set (marking the memory as VM_SPECIAL and
+thus unmergeable). The one effect is that NUMA balancing now skips these
+VMAs, as it already does for the other bpf map mappings, which is the
+reason array_map_mmap() gives for setting the flag.
 
-Link: https://lore.kernel.org/20261013-b4-mmap-prepare-vma-flag-sanify-v6-13-1aa3c9b139f9@kernel.org
+The intent of this patch is to be able to establish the invariant that only
+PFN-mapped or mixed map ranges may clear the VM_MAYWRITE flag, as is done
+in bpf_map_mmap().
+
+Link: https://lore.kernel.org/20261013-b4-mmap-prepare-vma-flag-sanify-v6-14-1aa3c9b139f9@kernel.org
 Signed-off-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Acked-by: Takashi Iwai <tiwai@suse.de>
+Reviewed-by: Emil Tsalapatis <emil@etsalapatis.com>
 Reviewed-by: Suren Baghdasaryan <surenb@google.com>
+Acked-by: David Hildenbrand (Arm) <david@kernel.org>
 Cc: Liam R. Howlett <liam@infradead.org>
 Cc: Vlastimil Babka <vbabka@kernel.org>
 Cc: Jann Horn <jannh@google.com>
 Cc: Pedro Falcato <pfalcato@suse.de>
-Cc: David Hildenbrand <david@kernel.org>
 Cc: Mike Rapoport <rppt@kernel.org>
 Cc: Michal Hocko <mhocko@suse.com>
 Cc: Jonathan Corbet <corbet@lwn.net>
@@ -197,64 +208,22 @@ Cc: Ihor Solodrai <ihor.solodrai@linux.dev>
 Cc: Bert Karwatzki <spasswolf@web.de>
 ---
 
- sound/core/pcm_native.c |   38 +++++++++++++-------------------------
- 1 file changed, 13 insertions(+), 25 deletions(-)
+ kernel/bpf/arena.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
---- a/sound/core/pcm_native.c~alsa-pcm-use-vm_insert_page-to-map-pcm-status-page
-+++ a/sound/core/pcm_native.c
-@@ -3760,39 +3760,27 @@ static __poll_t snd_pcm_poll(struct file
- /*
-  * mmap status record
-  */
--static vm_fault_t snd_pcm_mmap_status_fault(struct vm_fault *vmf)
-+static int snd_pcm_mmap_status(struct snd_pcm_substream *substream, struct file *file,
-+			       struct vm_area_struct *vma)
- {
--	struct snd_pcm_substream *substream = vmf->vma->vm_private_data;
-+	const unsigned long size = vma->vm_end - vma->vm_start;
- 	struct snd_pcm_runtime *runtime;
--	
--	if (substream == NULL)
--		return VM_FAULT_SIGBUS;
--	runtime = substream->runtime;
--	vmf->page = virt_to_page(runtime->status);
--	get_page(vmf->page);
--	return 0;
--}
-+	struct page *page;
- 
--static const struct vm_operations_struct snd_pcm_vm_ops_status =
--{
--	.fault =	snd_pcm_mmap_status_fault,
--};
-+	BUILD_BUG_ON(sizeof(struct snd_pcm_mmap_status) > PAGE_SIZE);
- 
--static int snd_pcm_mmap_status(struct snd_pcm_substream *substream, struct file *file,
--			       struct vm_area_struct *area)
--{
--	long size;
--	if (!(area->vm_flags & VM_READ))
-+	if (!(vma->vm_flags & VM_READ))
- 		return -EINVAL;
--	size = area->vm_end - area->vm_start;
--	if (size != PAGE_ALIGN(sizeof(struct snd_pcm_mmap_status)))
-+	if (size != PAGE_SIZE)
- 		return -EINVAL;
--	area->vm_ops = &snd_pcm_vm_ops_status;
--	area->vm_private_data = substream;
--	vm_flags_mod(area, VM_DONTEXPAND | VM_DONTDUMP,
-+
-+	vm_flags_mod(vma, VM_DONTEXPAND | VM_DONTDUMP,
- 		     VM_WRITE | VM_MAYWRITE);
-+	vma->vm_page_prot = vm_get_page_prot(vma->vm_flags);
- 
--	return 0;
-+	runtime = substream->runtime;
-+	page = virt_to_page(runtime->status);
-+	return vm_insert_page(vma, vma->vm_start, page);
+--- a/kernel/bpf/arena.c~bpf-arena-mark-arena_map_mmap-mappings-vm_mixedmap
++++ a/kernel/bpf/arena.c
+@@ -620,8 +620,9 @@ static int arena_map_mmap(struct bpf_map
+ 	 * clears VM_MAYEXEC. Set VM_DONTEXPAND to avoid potential change
+ 	 * of user_vm_start. Set VM_DONTCOPY to prevent arena VMA from
+ 	 * being copied into the child process on fork.
++	 * This is a kernel page so set VM_MIXEDMAP.
+ 	 */
+-	vm_flags_set(vma, VM_DONTEXPAND | VM_DONTCOPY);
++	vm_flags_set(vma, VM_MIXEDMAP | VM_DONTEXPAND | VM_DONTCOPY);
+ 	vma->vm_ops = &arena_vm_ops;
+ 	return 0;
  }
- 
- /*
 _
 
 Patches currently in -mm which might be from ljs@kernel.org are
