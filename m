@@ -1,47 +1,47 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1792832380;
-	b=lniUSW5TqVDyn12X1ooNVJPZmhmQjPtLltT+FuxKN1b9IN5I+M19j59IbBEqGRgoUBgp
-	 GgCYDbC9onWlxK1CbDxgJ05Euaq84GnpSWXn/g+fUQoXpNSQRPJsGMKB6jGNbXZuYFEdW
-	 XgIl117iDjYAUTJIUvuCQew00dHiBtcSoBxBgvbL6/87V5hLuYD8MDAkSz4BpIBLBGEC3
-	 GFb8T4VCOvIiYFCYEvuQm3ps3wIv40QBWNHXFMd0ob3WeVLT26WrV1Vkm2TxL8kU9zc/7
-	 mw9Tkp4VVCyMN1Rfm+MpBRa79ibbWmKWKoHL2cSxYi+PASkvv0rITOz7g00jSo+fHWQ==
+	t=1792832382;
+	b=Y+1Agx9na3ndaYQQgAklU5KriSoQIEztWO/1FDis7QvEnosqdtWK6mBkX0NO3rZaTgO5
+	 TBYsH3gzpVpx0vb7wzGw1eU2Mxou1TZ14oc3c6EEd7EdEVOIpnwUC8H/u/+QKIHlVrzay
+	 9H7VJopifalSpnHqlgs/IiAwsDJaLf6c6OMmuc02GdNnzFDvBAioJsR+X5zWQ/Rc4MBiv
+	 pMBQY2OLQ0DFrYT3ax/CjJw+7VGBFUb9xOLGfawBU++AmwNJKceGP6d/kNBFED0Y47P2P
+	 ywSMIb7nFv6NXvhyE+hZWfDWG1kce1pe8TXrwSujtRps8ZYj5vjYp80Nn7qlLV5woVA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1792832380;
+	a=rsa-sha256; c=relaxed/relaxed; t=1792832382;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=/lTWF8xSxdGEKhcz8ur9c2L4EL02KL8+PXeGGHtObQs=;
-	b=lSQSsEKVRlVMommaSJRZovQvfRaqOfhaWCo+oUNTEgB6lMwSd+tJalfQ1guN1lSd4O9D
-	 68sh7Io/5e6AJgPuVhGg24qg+LBOG35pX+i+Hbcfk2bHM8nfgnyobnpB/guKtK14+ndBE
-	 HyGICetnxx2sg5fNMBIPsT91agnJH34QpxVX1pv1WLA8OjYm7AvLXV+oU79A0QW97QI8X
-	 gu686DKzknk0KPIzskHKaqM8NRyz8+0Op41DTmcfTFPHonYYkmUNBIKqG2H4kupLZqxhR
-	 2iGGpi2N6MWXMxjCHfFjQN5xhN74vICmAHXl9x9HFa5aewNQFrCBc8mL1WS5UUue1sw==
+	bh=cwyyCvNBAvSESB6gxrAyUZ2osTcbtaPeNZjnT2ioC2s=;
+	b=fmb8MZ+VlrSBtGgrmmLc6CZtcuxZT3zccVEMvmUW4xE7zR4wwOSyU9iIIvWyO5iFQlaf
+	 3pcZWIzRU4biBMn/6nOSsFapkxYBmyCsCsHc5sjP76yTcKIsjKthLqIBwS/4+Csks5U9l
+	 kpwiEABQos3ORZTbTy+AyKjmiFGWy2jxobbyIfGoNk1MrVWEIy5fJPeRtImHoF9kSpMXn
+	 vT19b66NNsU9SIOhXPRtxzyNXhixDe4Av3kIEiF86rYSt/G+7Dv9IhAWmMCW7/XtVj8rx
+	 ub6s4gURHmsXezS5W4y/gw4ev4D/oxMfGzLlG8z22x60/wzCXZ9A4C/sQCopROqPq8Q==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=fail reason="signature verification failed" header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=QH2MR4O0;
+	dkim=fail reason="signature verification failed" header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=A0FJJ49U;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3AE6F606A31A
-	for <mm-commits@vger.kernel.org>; Sat, 24 Oct 2026 08:59:40 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 98590606A31D
+	for <mm-commits@vger.kernel.org>; Sat, 24 Oct 2026 08:59:41 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=fail reason="signature verification failed" (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=QH2MR4O0
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 94E1D1F01825;
-	Sat, 24 Oct 2026 08:59:39 +0000 (UTC)
+	dkim=fail reason="signature verification failed" (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=A0FJJ49U
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 366451F01825;
+	Sat, 24 Oct 2026 08:59:41 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1792832379;
-	bh=/lTWF8xSxdGEKhcz8ur9c2L4EL02KL8+PXeGGHtObQs=;
+	d=linux-foundation.org; s=korg; t=1792832381;
+	bh=cwyyCvNBAvSESB6gxrAyUZ2osTcbtaPeNZjnT2ioC2s=;
 	h=Date:To:From:Subject;
-	b=QH2MR4O044RSW1juVsBnbUz+xnTwRO8GaGYNPCOkSR9VHFIdgXZmNPHExBiy1LEd1
-	 3ckr2R+Jco+N95o1XJotFT/yzywZEIDngZxYwmTAoGOzzmtXZPkY16fy40qAWTz9tq
-	 gx7GU44sIFDGGVUcpMVbYEjG5EBB8ZkGhXKUsv0s=
-Date: Sat, 24 Oct 2026 01:59:39 -0700
+	b=A0FJJ49ULYZzI7C8jSLw4QhRl7ypkaUjB2EcSq+sHWsG/i81d5IY41TgP01YQ1e2N
+	 WlqSayh8Bfs7dWK6f26UmER/bQf2nx1/mytZA7orFBfiO42cswI2Is7e22zfwolzPc
+	 URYBSy7QrrSM9zKZobaGSUKE1Yo0H/zvOErjALkE=
+Date: Sat, 24 Oct 2026 01:59:40 -0700
 To: mm-commits@vger.kernel.org,ziy@nvidia.com,yuanchu@google.com,youngjun.park@lge.com,ying.huang@linux.alibaba.com,xu.xin@linux.dev,willy@infradead.org,will@kernel.org,weixugc@google.com,viro@zeniv.linux.org.uk,vincent.guittot@linaro.org,vbabka@kernel.org,usama.arif@linux.dev,tzimmermann@suse.de,tiwai@suse.com,tglx@kernel.org,surenb@google.com,stephen.smalley.work@gmail.com,sre@kernel.org,spasswolf@web.de,simona@ffwll.ch,shikemeng@huaweicloud.com,shakeel.butt@linux.dev,ryan.roberts@arm.com,rppt@kernel.org,riel@surriel.com,rakie.kim@sk.com,qi.zheng@linux.dev,pjw@kernel.org,pfalcato@suse.de,peterz@infradead.org,peterx@redhat.com,perex@perex.cz,paul@paul-moore.com,palmer@dabbelt.com,oupton@kernel.org,osalvador@suse.de,oleg@redhat.com,npiggin@gmail.com,nphamcs@gmail.com,nico.pache@linux.dev,namhyung@kernel.org,muchun.song@linux.dev,mripard@kernel.org,mkp@kernel.org,mingo@redhat.com,miklos@szeredi.hu,mhocko@suse.com,mhocko@kernel.org,mhiramat@kernel.org,memxor@gmail.com,maz@kernel.org,ma
- tthew.brost@intel.com,mark.rutland@arm.com,maddy@linux.ibm.com,maarten.lankhorst@linux.intel.com,liam@infradead.org,leon@kernel.org,lance.yang@linux.dev,kasong@tencent.com,kas@kernel.org,juri.lelli@redhat.com,joshua.hahnjy@gmail.com,jhubbard@nvidia.com,jgg@ziepe.ca,jannh@google.com,james.bottomley@hansenpartnership.com,jack@suse.cz,imbrenda@linux.ibm.com,ihor.solodrai@linux.dev,hca@linux.ibm.com,harry@kernel.org,hannes@cmpxchg.org,gregkh@linuxfoundation.org,gourry@gourry.net,gor@linux.ibm.com,gerald.schaefer@linux.ibm.com,frankja@linux.ibm.com,emil@etsalapatis.com,eddyz87@gmail.com,dgilbert@interlog.com,dev.jain@arm.com,dennis.dalessandro@cornelisnetworks.com,deller@gmx.de,david@kernel.org,davem@davemloft.net,dave.hansen@linux.intel.com,daniel@iogearbox.net,corbet@lwn.net,chrisl@kernel.org,chengming.zhou@linux.dev,catalin.marinas@arm.com,byungchul@sk.com,brauner@kernel.org,bp@alien8.de,borntraeger@linux.ibm.com,baoquan.he@linux.dev,baolin.wang@linux.alibaba.com,baohua@kernel.org,axe
- lrasmussen@google.com,ast@kernel.org,arnd@arndb.de,apopple@nvidia.com,aou@eecs.berkeley.edu,anup@brainfault.org,aneesh.kumar@kernel.org,andrii@kernel.org,andreas@gaisler.com,airlied@gmail.com,agordeev@linux.ibm.com,acme@kernel.org,ljs@kernel.org,akpm@linux-foundation.org
+ tthew.brost@intel.com,mark.rutland@arm.com,maddy@linux.ibm.com,maarten.lankhorst@linux.intel.com,liam@infradead.org,leon@kernel.org,lance.yang@linux.dev,kasong@tencent.com,kas@kernel.org,juri.lelli@redhat.com,joshua.hahnjy@gmail.com,jhubbard@nvidia.com,jgg@ziepe.ca,jannh@google.com,james.bottomley@hansenpartnership.com,jack@suse.cz,imbrenda@linux.ibm.com,ihor.solodrai@linux.dev,hca@linux.ibm.com,harry@kernel.org,hannes@cmpxchg.org,gregkh@linuxfoundation.org,gourry@gourry.net,gor@linux.ibm.com,gerald.schaefer@linux.ibm.com,frankja@linux.ibm.com,eddyz87@gmail.com,dgilbert@interlog.com,dev.jain@arm.com,dennis.dalessandro@cornelisnetworks.com,deller@gmx.de,david@kernel.org,davem@davemloft.net,dave.hansen@linux.intel.com,daniel@iogearbox.net,corbet@lwn.net,chrisl@kernel.org,chengming.zhou@linux.dev,catalin.marinas@arm.com,byungchul@sk.com,brauner@kernel.org,bp@alien8.de,borntraeger@linux.ibm.com,baoquan.he@linux.dev,baolin.wang@linux.alibaba.com,baohua@kernel.org,axelrasmussen@google.com
+ ,ast@kernel.org,arnd@arndb.de,apopple@nvidia.com,aou@eecs.berkeley.edu,anup@brainfault.org,aneesh.kumar@kernel.org,andrii@kernel.org,andreas@gaisler.com,airlied@gmail.com,agordeev@linux.ibm.com,acme@kernel.org,ljs@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] bpf-arena-mark-arena_map_mmap-mappings-vm_mixedmap.patch removed from -mm tree
-Message-Id: <20261024085939.94E1D1F01825@smtp.kernel.org>
+Subject: [merged mm-stable] mm-vma-add-vma_is_mm_managed-predicates.patch removed from -mm tree
+Message-Id: <20261024085941.366451F01825@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -53,50 +53,50 @@ Precedence: list
 
 
 The quilt patch titled
-     Subject: bpf: arena: mark arena_map_mmap() mappings VM_MIXEDMAP
+     Subject: mm/vma: add vma[_flags]_is_mm_managed() predicates
 has been removed from the -mm tree.  Its filename was
-     bpf-arena-mark-arena_map_mmap-mappings-vm_mixedmap.patch
+     mm-vma-add-vma_is_mm_managed-predicates.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: "Lorenzo Stoakes (ARM)" <ljs@kernel.org>
-Subject: bpf: arena: mark arena_map_mmap() mappings VM_MIXEDMAP
-Date: Tue, 13 Oct 2026 16:04:54 +0100
+Subject: mm/vma: add vma[_flags]_is_mm_managed() predicates
+Date: Tue, 13 Oct 2026 16:04:55 +0100
 
-The bpf_map->ops->map_mmap callback invoked by bpf_map_mmap() can be set to
-one of ringbuf_map_mmap_kern(), ringbuf_map_mmap_user(), array_map_mmap()
-or arena_map_mmap().
+Rather than referring to VMA flags with uncertain meaning, add a new
+predicate that explicitly describes what absence of the VMA_PFNMAP_BIT and
+VMA_MIXEDMAP_BIT flags means, and then refer to that function for
+determining VMA mergeability.
 
-It is convention in mm to mark mappings whose pages the kernel manages
-itself with VM_MIXEDMAP, so core mm knows not to treat them as ordinary
-page cache or anonymous memory.
+If neither of these flags are set, that means the contents of the mapping
+are managed by core mm.
 
-The map_mmap callbacks ringbuf_map_mmap_kern() and ringbuf_map_mmap_user()
-use remap_vmalloc_range(), which ultimately invokes vm_insert_page() and so
-marks the ranges VM_MIXEDMAP, and array_map_mmap() sets VM_MIXEDMAP
-explicitly.
+Otherwise they are instead owned by some other kernel component, usually a
+driver: the memory may be MMIO, kernel-allocated pages or even ordinary
+pages the driver maps itself, but core mm must not populate, reclaim,
+migrate, copy-on-write or merge the range itself.
 
-However, the exception to this is arena_map_mmap(), which doesn't set the
-flag.
+We initially also treat VMA_IO_BIT as implying a mapping is not mm-managed,
+as by implication it cannot be. (mlock() also sets VMA_IO_BIT transiently
+on ordinary VMAs while locking them, which is addressed later in this
+series.)
 
-This patch corrects this and updates the comment to reflect it.
+However the intent is to in future remove this, as no mapping should be
+marked as an I/O mapping without also being marked with VMA_PFNMAP_BIT.
 
-The pages are refcounted and vm_normal_page() finds them regardless of the
-flag, and VM_DONTEXPAND remains set (marking the memory as VM_SPECIAL and
-thus unmergeable). The one effect is that NUMA balancing now skips these
-VMAs, as it already does for the other bpf map mappings, which is the
-reason array_map_mmap() gives for setting the flag.
+This forms the basis of further work intended to improve how we express VMA
+properties such as this.
 
-The intent of this patch is to be able to establish the invariant that only
-PFN-mapped or mixed map ranges may clear the VM_MAYWRITE flag, as is done
-in bpf_map_mmap().
+Also update the VMA userland tests to reflect the change.
 
-Link: https://lore.kernel.org/20261013-b4-mmap-prepare-vma-flag-sanify-v6-14-1aa3c9b139f9@kernel.org
+No functional change intended.
+
+Link: https://lore.kernel.org/20261013-b4-mmap-prepare-vma-flag-sanify-v6-15-1aa3c9b139f9@kernel.org
 Signed-off-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Reviewed-by: Emil Tsalapatis <emil@etsalapatis.com>
+Reviewed-by: Zi Yan <ziy@nvidia.com>
 Reviewed-by: Suren Baghdasaryan <surenb@google.com>
 Acked-by: David Hildenbrand (Arm) <david@kernel.org>
 Cc: Liam R. Howlett <liam@infradead.org>
@@ -119,7 +119,6 @@ Cc: Daniel Borkmann <daniel@iogearbox.net>
 Cc: Andrii Nakryiko <andrii@kernel.org>
 Cc: Eduard Zingerman <eddyz87@gmail.com>
 Cc: Kumar Kartikeya Dwivedi <memxor@gmail.com>
-Cc: Zi Yan <ziy@nvidia.com>
 Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
 Cc: Nico Pache <nico.pache@linux.dev>
 Cc: Ryan Roberts <ryan.roberts@arm.com>
@@ -208,21 +207,116 @@ Cc: Ihor Solodrai <ihor.solodrai@linux.dev>
 Cc: Bert Karwatzki <spasswolf@web.de>
 ---
 
- kernel/bpf/arena.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ include/linux/mm.h              |   53 +++++++++++++++++++++++++++++-
+ tools/testing/vma/include/dup.h |   29 +++++++++++++++-
+ 2 files changed, 80 insertions(+), 2 deletions(-)
 
---- a/kernel/bpf/arena.c~bpf-arena-mark-arena_map_mmap-mappings-vm_mixedmap
-+++ a/kernel/bpf/arena.c
-@@ -620,8 +620,9 @@ static int arena_map_mmap(struct bpf_map
- 	 * clears VM_MAYEXEC. Set VM_DONTEXPAND to avoid potential change
- 	 * of user_vm_start. Set VM_DONTCOPY to prevent arena VMA from
- 	 * being copied into the child process on fork.
-+	 * This is a kernel page so set VM_MIXEDMAP.
- 	 */
--	vm_flags_set(vma, VM_DONTEXPAND | VM_DONTCOPY);
-+	vm_flags_set(vma, VM_MIXEDMAP | VM_DONTEXPAND | VM_DONTCOPY);
- 	vma->vm_ops = &arena_vm_ops;
- 	return 0;
+--- a/include/linux/mm.h~mm-vma-add-vma_is_mm_managed-predicates
++++ a/include/linux/mm.h
+@@ -1614,6 +1614,41 @@ static inline bool vma_is_shared_maywrit
+ }
+ 
+ /**
++ * vma_flags_is_mm_managed() - Do the specified VMA flags indicate that the
++ * contents of the VMA are managed by core mm?
++ * @flags: The VMA flags to test.
++ *
++ * Such a mapping is one established by a simple mmap() or brk() with no driver
++ * or other kernel component involved.
++ *
++ * They are rmappable, and core mm services rmap operations including reclaim,
++ * as well as population, CoW and merge/split (if eligible).
++ *
++ * Mappings which fail this test are those where this is not the case -
++ * e.g. MMIO, user-mapped kernel pages, udmabuf (pfnmap shmem), etc.
++ *
++ * Returns: true if the flags indicate an mm-managed mapping.
++ */
++static inline bool vma_flags_is_mm_managed(const vma_flags_t *flags)
++{
++	return !vma_flags_test_any(flags, VMA_PFNMAP_BIT, VMA_MIXEDMAP_BIT,
++				   VMA_IO_BIT);
++}
++
++/**
++ * vma_is_mm_managed() - Are the contents of @vma managed by core mm?
++ * @vma: The VMA to test.
++ *
++ * See vma_flags_is_mm_managed() for a description of this property.
++ *
++ * Returns: true if the VMA is mm-managed.
++ */
++static inline bool vma_is_mm_managed(const struct vm_area_struct *vma)
++{
++	return vma_flags_is_mm_managed(&vma->flags);
++}
++
++/**
+  * vma_flags_can_merge() - Do the specified VMA flags permit the VMA to be
+  * merged with another?
+  * @flags: The VMA flags to test.
+@@ -1621,7 +1656,23 @@ static inline bool vma_is_shared_maywrit
+  */
+ static inline bool vma_flags_can_merge(const vma_flags_t *flags)
+ {
+-	return !vma_flags_test_any_mask(flags, VMA_SPECIAL_FLAGS);
++	/*
++	 * VMA merging assumes that a VMA's flags and fields completely describe
++	 * its state.
++	 *
++	 * However, mappings which are not mm-managed may have established state
++	 * upon mapping not embodied in any attribute of the VMA.
++	 *
++	 * Additionally, private (CoW) PFN maps encode the source PFN of the
++	 * range in vma->vm_pgoff, which may otherwise cause spurious merges.
++	 */
++	if (!vma_flags_is_mm_managed(flags))
++		return false;
++	/* VMA explicitly marked as being unmergeable. */
++	if (vma_flags_test(flags, VMA_DONTEXPAND_BIT))
++		return false;
++
++	return true;
+ }
+ 
+ /**
+--- a/tools/testing/vma/include/dup.h~mm-vma-add-vma_is_mm_managed-predicates
++++ a/tools/testing/vma/include/dup.h
+@@ -1665,7 +1665,34 @@ static inline bool file_is_dev_zero(cons
+ 	return file && file->f_op == &zero_fops;
+ }
+ 
++static inline bool vma_flags_is_mm_managed(const vma_flags_t *flags)
++{
++	return !vma_flags_test_any(flags, VMA_PFNMAP_BIT, VMA_MIXEDMAP_BIT,
++				   VMA_IO_BIT);
++}
++
++static inline bool vma_is_mm_managed(const struct vm_area_struct *vma)
++{
++	return vma_flags_is_mm_managed(&vma->flags);
++}
++
+ static inline bool vma_flags_can_merge(const vma_flags_t *flags)
+ {
+-	return !vma_flags_test_any_mask(flags, VMA_SPECIAL_FLAGS);
++	/*
++	 * VMA merging assumes that a VMA's flags and fields completely describe
++	 * its state.
++	 *
++	 * However, mappings which are not mm-managed may have established state
++	 * upon mapping not embodied in any attribute of the VMA.
++	 *
++	 * Additionally, private (CoW) PFN maps encode the source PFN of the
++	 * range in vma->vm_pgoff, which may otherwise cause spurious merges.
++	 */
++	if (!vma_flags_is_mm_managed(flags))
++		return false;
++	/* VMA explicitly marked as being unmergeable. */
++	if (vma_flags_test(flags, VMA_DONTEXPAND_BIT))
++		return false;
++
++	return true;
  }
 _
 
