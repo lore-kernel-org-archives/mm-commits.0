@@ -1,45 +1,45 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1792832460;
-	b=n1eCxfBSvtivh21bGj8IYGMvcEmVBSdhD3AGK64+Q6qEYC2waGamk8y96Wlg3zSNiTAj
-	 4Qqw3CXhjzbwvL0Zl4dN9Y52eWRrZsVQkI20vi5J34mDdOVVDK2CXVx6/+3rj2wcF6GKS
-	 Q7G95M+uweWFjLemzs4ITrs0IHAG/EHIZ/afuHNuQ3blBZ4nFOtFwTgY+D43rGlGIYjJb
-	 x7AOsvr69u9nIHCjjBTv3l4RG4ZSqsbgx5Ja858PqACxx/kfy5UwVXd6veNHTBo79WvId
-	 hdeawbFgn10kQ/MoMlKoMX7tUHGsLlozt5PXNyu7Sfr2HYLSCX0mjEdGLq8qU4yfkfw==
+	t=1792832461;
+	b=hmNJrP+jIkdZr2xV3or7jDtpNY5fJRur7yFlI9uDpKIcQ1dVHDfvm9ItCp9aYt2AtRmb
+	 QdxbeaYqSK0MZtt/8M5uSHst7eaTNePLtu+/LpQNuy0tMxaWUg4sLlCzNTz0luYPhfEbF
+	 tZzR6m0zgb+j/RdTgP9Ib7sR+SpRUmx5k5rndCcspcPFPvwlaHc7yMf2DJfL8yHLATGzz
+	 kwj3S3vNQxCBVtGRkK9najjfhw0P8a15mpXt3W3wH6UV5lDRc9Guauosl3xYSn7AS0Oid
+	 mHUoPxM+1CITSEKuOeoOc03Ktfm+kZNihD3Mx10cPHSFFkbzQU8u3dAHCcDaJImiwQg==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1792832460;
+	a=rsa-sha256; c=relaxed/relaxed; t=1792832461;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=iCH2h0+xrXcDEgiAF8jxq8uMPmqKTz6UduxHaxCecfE=;
-	b=dIEeM5lqDKBWdKX0+HH7Jdf4njyn+KPo5qeq66p3Rk0FbkltkKTJ6SiGQBo8BvlVe/is
-	 pwm2txJq7YB0YYaDbx3SfOYXctQiFqTiqxXXHHtZkt7kr9Y7fsRY8+B8MqZmcp06sPiZe
-	 Ll7pWhGKnbUwDgNOhDX0fOyi0XdT6KNFqmP4ugddyPNH8uhW5RWmpur/IVLwmLGU7W9PW
-	 Rh25k4z9qlfb1tQstzZOg8M813FUOX5iMbIJPfnqxc87oMVllDbxMiI/H4SD2HNbDnDwX
-	 kmhKkSd3Tc+Mgxb1MerHcl/Z2m/NH/8bCDCSjh3sL5OEqLII1aEi1pL2RYKRwb8KPKA==
+	bh=NcurkatZ3jTN1gcIyHKqLzjbBc//XBkP9bl/OuhYr34=;
+	b=oHbSdKZAMOf8u5WN5lIDvvD5YdRsZ4fJsPb7XJnNh8UvAeaxqqI0huR+FPLaBXMnQz9a
+	 IQq88YpFv2Ycc+8DJeL/ADid/fe+zzR+tQ72drsuZ2/ScGZwLDd0DQ1ZQHlwAhipOD6Uz
+	 9EL1x0jglSEAfYFJSXvTH1lta0xfMP1corXpZ98R4qSkX77VOVpkUiZpuUU22O508WckU
+	 PeMsWLfOebDAjNKuehYz/kclVol1eJ7ROLbyfVj/oVAj97eL9DLD3GXKYgiXV8gQ/z+bW
+	 cVjK4bPytaVw/AWSGZ4Ba4WJiRAFI1T8i4cxV9srXuSR4mMBoiuuiZJLUEHZegbdJfA==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=PzboaTx1;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=P26km9L+;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EC3E3606A31B
-	for <mm-commits@vger.kernel.org>; Sat, 24 Oct 2026 09:00:59 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 00CF2606A31B
+	for <mm-commits@vger.kernel.org>; Sat, 24 Oct 2026 09:01:00 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=PzboaTx1
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 868E21F01825;
-	Sat, 24 Oct 2026 09:00:59 +0000 (UTC)
+	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=P26km9L+
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 964711F01825;
+	Sat, 24 Oct 2026 09:01:00 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1792832459;
-	bh=iCH2h0+xrXcDEgiAF8jxq8uMPmqKTz6UduxHaxCecfE=;
+	d=linux-foundation.org; s=korg; t=1792832460;
+	bh=NcurkatZ3jTN1gcIyHKqLzjbBc//XBkP9bl/OuhYr34=;
 	h=Date:To:From:Subject;
-	b=PzboaTx1V5OjZikCQYW6en/VHcLVOHkZsSp7DHDZ1WGd1sYtB3powoqqNiOobJlPw
-	 RoI/3QFSx05tk6LFGP6I+7ARA0Cya5ERNQxEwDKikPRTaV5j+qwbv3PKINmtBjX3LP
-	 lRRXJ6J/giYSQosM+t017IzzMiHvEqhwZFR0vXKo=
-Date: Sat, 24 Oct 2026 02:00:59 -0700
-To: mm-commits@vger.kernel.org,sj@kernel.org,gourry@gourry.net,akpm@linux-foundation.org
+	b=P26km9L+5nctKqh/NazlypBNpdjXRSl0qtPd8bnwN5Mnt0Akc70PjqcVbWRno628g
+	 NwD4rOdKYWm0dmzPOYeXqz/bFsXxIc1vX+nckTl4oSar0TpmT4Dk47SBe8QA+06NqJ
+	 41hfN/phi1vzuDUmwotddUfrjVxTi3QPawNr8auE=
+Date: Sat, 24 Oct 2026 02:01:00 -0700
+To: mm-commits@vger.kernel.org,sj@kernel.org,davidgow@davidgow.net,brendan.higgins@linux.dev,aethernet65535@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-damon-use-damon_get_monitor_folio-for-hugetlb-entries.patch removed from -mm tree
-Message-Id: <20261024090059.868E21F01825@smtp.kernel.org>
+Subject: [merged mm-stable] mm-damon-tests-core-kunit-add-test-for-unconditionally-skipping-the-last-region.patch removed from -mm tree
+Message-Id: <20261024090100.964711F01825@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -51,90 +51,96 @@ Precedence: list
 
 
 The quilt patch titled
-     Subject: mm/damon: use damon_get_monitor_folio() for hugetlb entries
+     Subject: mm/damon/tests/core-kunit: add test for unconditionally skipping the last region
 has been removed from the -mm tree.  Its filename was
-     mm-damon-use-damon_get_monitor_folio-for-hugetlb-entries.patch
+     mm-damon-tests-core-kunit-add-test-for-unconditionally-skipping-the-last-region.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Gregory Price <gourry@gourry.net>
-Subject: mm/damon: use damon_get_monitor_folio() for hugetlb entries
-Date: Mon,  5 Oct 2026 23:52:06 -0700
+From: Liew Rui Yan <aethernet65535@gmail.com>
+Subject: mm/damon/tests/core-kunit: add test for unconditionally skipping the last region
+Date: Mon,  5 Oct 2026 23:52:07 -0700
 
-Hugetlb folio acquisition is open-coded in three places:
-  - damon_hugetlb_mkold()
-  - damon_young_hugetlb_entry()
-  - damon_va_probe_hugetlb_entry()
+Commit b3723b596b54 ("mm/damon/core: fix unconditionally skip last
+region") fixed a minor bug.
 
-DAMON already has damon_get_monitor_folio(), which paddr uses to get
-monitored LRU and hugetlb folios and to filter them through
-damon_folio_acceptable().  These paths bypass that check.
+Add a KUnit test case to cover this behavior and prevent regressions in
+the future.
 
-Use that helper in these paths too, so that DAMON acquires hugetlb folios
-and applies its acceptance policy in one place.
-
-No functional change intended.  All callers reach these paths with a
-present hugetlb PTE under the page table lock, so the folio is always a
-mapped hugetlb folio and the helper always returns it.
-
-Link: https://lore.kernel.org/20261006065209.41507-3-sj@kernel.org
-Signed-off-by: Gregory Price (Meta) <gourry@gourry.net>
+Link: https://lore.kernel.org/20261006065209.41507-4-sj@kernel.org
+Signed-off-by: Liew Rui Yan <aethernet65535@gmail.com>
 Signed-off-by: SJ Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 Reviewed-by: SJ Park <sj@kernel.org>
+Cc: Brendan Higgins <brendan.higgins@linux.dev>
+Cc: David Gow <davidgow@davidgow.net>
 ---
 
- mm/damon/ops-common.c |    6 ++++--
- mm/damon/vaddr.c      |   10 ++++++----
- 2 files changed, 10 insertions(+), 6 deletions(-)
+ mm/damon/tests/core-kunit.h |   42 ++++++++++++++++++++++++++++++++++
+ 1 file changed, 42 insertions(+)
 
---- a/mm/damon/ops-common.c~mm-damon-use-damon_get_monitor_folio-for-hugetlb-entries
-+++ a/mm/damon/ops-common.c
-@@ -140,9 +140,11 @@ void damon_hugetlb_mkold(pte_t *pte, str
- {
- 	bool referenced = false;
- 	pte_t entry = huge_ptep_get(mm, addr, pte);
--	struct folio *folio = pfn_folio(pte_pfn(entry));
-+	struct folio *folio;
+--- a/mm/damon/tests/core-kunit.h~mm-damon-tests-core-kunit-add-test-for-unconditionally-skipping-the-last-region
++++ a/mm/damon/tests/core-kunit.h
+@@ -2439,6 +2439,47 @@ static void damos_test_esz_goal_temporal
+ 	damon_destroy_ctx(ctx);
+ }
  
--	folio_get(folio);
-+	folio = damon_get_monitor_folio(pte_pfn(entry));
-+	if (!folio)
-+		return;
++static void damon_test_last_region_quota_reset(struct kunit *test)
++{
++	struct damos s = {0};
++	struct damon_target *t;
++	struct damon_region *r1, *r2;
++	unsigned long min_region_sz = 1;
++	bool skipped;
++
++	t = damon_new_target();
++	if (!t)
++		kunit_skip(test, "target alloc fail");
++
++	r1 = damon_new_region(0, 100);
++	if (!r1) {
++		damon_free_target(t);
++		kunit_skip(test, "region 1 alloc fail");
++	}
++	damon_add_region(r1, t);
++
++	r2 = damon_new_region(100, 200);
++	if (!r2) {
++		damon_free_target(t);
++		kunit_skip(test, "region 2 alloc fail");
++	}
++	damon_add_region(r2, t);
++
++	s.quota.charge_target_from = t;
++	s.quota.charge_addr_from = r1->ar.end;
++
++	skipped = damos_skip_charged_region(t, r2, &s, min_region_sz);
++
++	/* 'r2' is not processed, it should not skip */
++	KUNIT_EXPECT_EQ(test, skipped, false);
++
++	/* 'r2' is last region, it should reset charge_{target,addr}_from */
++	KUNIT_EXPECT_PTR_EQ(test, s.quota.charge_target_from, NULL);
++	KUNIT_EXPECT_EQ(test, s.quota.charge_addr_from, 0);
++
++	damon_free_target(t);
++}
++
+ static struct kunit_case damon_test_cases[] = {
+ 	KUNIT_CASE(damon_test_target),
+ 	KUNIT_CASE(damon_test_regions),
+@@ -2482,6 +2523,7 @@ static struct kunit_case damon_test_case
+ 	KUNIT_CASE(damon_test_walk_control_obsolete),
+ 	KUNIT_CASE(damon_test_rand),
+ 	KUNIT_CASE(damos_test_esz_goal_temporal),
++	KUNIT_CASE(damon_test_last_region_quota_reset),
+ 	{},
+ };
  
- 	referenced = damon_hugetlb_ptep_mkold(pte, mm, vma, addr, &entry);
- 	if (mmu_notifier_clear_young(mm, addr,
---- a/mm/damon/vaddr.c~mm-damon-use-damon_get_monitor_folio-for-hugetlb-entries
-+++ a/mm/damon/vaddr.c
-@@ -411,8 +411,9 @@ static int damon_young_hugetlb_entry(pte
- 	if (!pte_present(entry))
- 		goto out;
- 
--	folio = pfn_folio(pte_pfn(entry));
--	folio_get(folio);
-+	folio = damon_get_monitor_folio(pte_pfn(entry));
-+	if (!folio)
-+		goto out;
- 
- 	if (pte_young(entry) || !folio_test_idle(folio) ||
- 	    mmu_notifier_test_young(walk->mm, addr))
-@@ -660,8 +661,9 @@ static int damon_va_probe_hugetlb_entry(
- 	if (!pte_present(entry))
- 		goto out;
- 
--	folio = pfn_folio(pte_pfn(entry));
--	folio_get(folio);
-+	folio = damon_get_monitor_folio(pte_pfn(entry));
-+	if (!folio)
-+		goto out;
- 	damon_va_probe_folio(priv->ctx, priv->r, folio, &entry, NULL,
- 			walk->vma->vm_mm);
- 	folio_put(folio);
 _
 
-Patches currently in -mm which might be from gourry@gourry.net are
+Patches currently in -mm which might be from aethernet65535@gmail.com are
 
-mm-page_alloc-let-the-highest-memory-node-recover-from-hopeless-state.patch
 
