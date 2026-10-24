@@ -1,45 +1,45 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1792832467;
-	b=JZ77WbP11E+NI+0/pQWS8WMKPQL+C0bQjZgE0Ekhl5AGCW0ChrVAvY70jnZu/VN0Tx48
-	 HLN+HW65wi4+TNOfllf8AMjpaZMzbBM50AUXdpjqWH11TV4ebMBdgiJaDQfSVi07ZzFSi
-	 Bi7O9vtZNpipxVl/aUiPBugxa/Tvrm4MtDlktsUj/ucpJkVhOpDh3IzIpHNIzsGJyEyX0
-	 499HoUT8WmA5IK05P5np0rHVV3nmQw2/IcWLCUlurZopgfwzyBRBRZl5E6vNbrZrQdHAk
-	 r8J2Cx9Cq1nHVq6QWdquktXUNONXrBkAtkJXlXzlSWH3lVW4xTFT/823AQ9zBF2UEzw==
+	t=1792832463;
+	b=Wk7ueM2LF1wgshdmA6XjdSjvyQlV91Qt3oreLWsjZ6nIA9DXDDsWmd60XLksj3WwOVEd
+	 M0Fiz1rSEk7tReH9CVuoO4eRHjFUtCQ3mNax4umWffUv2ph3FPapuTBPSdFok9gZTe5R3
+	 H9CAA23FEza6PGSHS/XSqrO9KqNQ7oyBZGU8fRc66a8A9QIeZa+6XuqLbTtc+XUTC5puU
+	 iSETe3JVzEuJ107CPrG/30CO9vREnowbKd2Xn85v6wQBTH01J7E1DxXar/cIPFV0sRapa
+	 iGrG9gN3YIoKYfA13UvnOE3Rbx57RF7redobHuvxN4fNZDuXl6Q33d/9S/2Ar8jTTxg==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1792832467;
+	a=rsa-sha256; c=relaxed/relaxed; t=1792832463;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=337xbWffVZGKdi/djWAmhdNf/sZVVOmRIgfvaCqBBK4=;
-	b=KhjAMMvtoOJpRanNFLYZwz+JQTq2Z6W6Z21NMongU/whdBsPwgbSEbcZ+I5m+T05rOoE
-	 o4qLLyvR6Dx5g0q7s/oAY8g2SygKN9NU7++Cb+hDOkUCBlSPXZtZAkmd4I2U5a3lyTfmt
-	 RmpnsWiNAPc+ih5W8dSQuVCuvGdh7DIgYhdsPidDhGNAXABXVeq4CL76+K7mLb3Hd3+Kk
-	 qysNVLP/w9A1Qpo3gLjzHmSQIr2Yj8lSyJIRBNeFXRnTANeTZMyLFFW5jDPSeJbiJMcvt
-	 ESucOhtVRxLX4jT3DIrBZPCi/L675YHgxpqPI3pcrtEj+SvXzdwaNq0wwApSPeQtaXA==
+	bh=9GbKf9k0WCjSnT+Q7MlXZUpFkRavdv7voUOBssGTNgk=;
+	b=oyXvDLwAiXwIKBTjQR3PxP/vbNQ/oJDMctb18dekY9BklbZnAtf/bXvRu3wUQ5pZx6sj
+	 zTdLiJQ/8mS6yJWPMXF99e4FZy8zSnkIDXyXsQuWphj3g7OLQUWoddpdkoctHtBvXeJiT
+	 ND3BgbepEealvN+QDkfzzp+pLPcS+thzkVnxxVQHf+P16bKTgSoGtBbwnsbGfSpO/SFhE
+	 Ha8/f3Ai4WhA00xSecaO4lBt+IfpFbtxKWXhMaGByKKchw6mppxebD41IDu6n19QRJiyj
+	 dNYdto+T8iJcspw+bsnRz2IicqGV+jZM+G5fvjAKS/2Uo+iRvqb3uKcFjuewPHVIUnA==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b="rhj8rK/t";
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=vX+xmxyi;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9CE59606A322;
-	Sat, 24 Oct 2026 09:01:07 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 39399606A31D
+	for <mm-commits@vger.kernel.org>; Sat, 24 Oct 2026 09:01:02 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=rhj8rK/t
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 676E11F01828;
-	Sat, 24 Oct 2026 09:01:07 +0000 (UTC)
+	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=vX+xmxyi
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B281E1F01825;
+	Sat, 24 Oct 2026 09:01:02 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1792832467;
-	bh=337xbWffVZGKdi/djWAmhdNf/sZVVOmRIgfvaCqBBK4=;
+	d=linux-foundation.org; s=korg; t=1792832462;
+	bh=9GbKf9k0WCjSnT+Q7MlXZUpFkRavdv7voUOBssGTNgk=;
 	h=Date:To:From:Subject;
-	b=rhj8rK/tZ9kqKmDNFYUkQdA4FY5KNCqsqpGizvonodHSHl8uL331u5ojJiN4v79PL
-	 kPg6mr9zwmlMctZ7THOob1eYV2LWUAX/xzydTnmXvihBomMHIIh3n4fTpM4AFGLPX2
-	 ByEYuN4AZC0J9uv8p2MRnCxMoauBeku8NmoaKh8A=
-Date: Sat, 24 Oct 2026 02:01:07 -0700
-To: mm-commits@vger.kernel.org,vbabka@kernel.org,stable@vger.kernel.org,riel@surriel.com,malhyuk97@gmail.com,ljs@kernel.org,liam@infradead.org,lance.yang@linux.dev,kylebot@openai.com,jannh@google.com,harry@kernel.org,david@kernel.org,ziy@nvidia.com,akpm@linux-foundation.org
+	b=vX+xmxyi3FT/jYgttI/kXjQjDQAD5KtqP6ogqwlAWMGWPVZHAP4mEYLxY+iY2ysb2
+	 VCvVttyylqzAxPiWkrrePUCUfxn2IWP8U2v3Gye7jHOHR9fzbvYhHYA7Bum9bSxszQ
+	 J15nim7lcvwmrnX33YQcu08E49NmufIye1uaoGrI=
+Date: Sat, 24 Oct 2026 02:01:02 -0700
+To: mm-commits@vger.kernel.org,youngjun.park@lge.com,shikemeng@huaweicloud.com,rafael@kernel.org,nphamcs@gmail.com,lenb@kernel.org,kasong@tencent.com,chrisl@kernel.org,charsyam@gmail.com,bhe@redhat.com,baohua@kernel.org,devnexen@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-rmap-dont-discard-lazyfree-thps-at-pmd-level.patch removed from -mm tree
-Message-Id: <20261024090107.676E11F01828@smtp.kernel.org>
+Subject: [merged mm-stable] mm-swap-pm-hibernate-atomically-replace-hibernation-pin.patch removed from -mm tree
+Message-Id: <20261024090102.B281E1F01825@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -51,106 +51,181 @@ Precedence: list
 
 
 The quilt patch titled
-     Subject: mm/rmap: don't discard lazyfree THPs at PMD level
+     Subject: mm/swap, PM: hibernate: atomically replace hibernation pin
 has been removed from the -mm tree.  Its filename was
-     mm-rmap-dont-discard-lazyfree-thps-at-pmd-level.patch
+     mm-swap-pm-hibernate-atomically-replace-hibernation-pin.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Zi Yan <ziy@nvidia.com>
-Subject: mm/rmap: don't discard lazyfree THPs at PMD level
-Date: Mon, 12 Oct 2026 22:20:16 -0400
+From: David Carlier <devnexen@gmail.com>
+Subject: mm/swap, PM: hibernate: atomically replace hibernation pin
+Date: Thu, 30 Apr 2026 20:56:51 +0100
 
-__discard_anon_folio_pmd_locked() clears a lazyfree THP's PMD before it
-determines whether the folio can be discarded, and restores it if the
-folio is dirty or has extra references.  It is done under only the PMD
-lock and the anon_vma read lock inside try_to_unmap_one() and no mmap lock
-is held.  The temporarily none PMD causes UAF.
+snapshot_set_swap_area() unpins the previously selected swap device and
+pins the new one in two separate swap_lock critical sections.  In the gap
+between them, swapoff() observes SWP_HIBERNATION cleared, bypasses the
+guard, and tears down the device, reopening the race the SWP_HIBERNATION
+pin was meant to close.  The window is reachable on any
+SNAPSHOT_SET_SWAP_AREA call after the snapshot device is opened for
+hibernation, and on any retry after the resume path's first selection.
 
-A parallel munmap() or mremap() is supposed to serialize with it on the
-PMD lock, but zap_pmd_range() (called by munmap()) and move_page_tables()
-(called by mremap()) do not take the lock when they see the temporarily
-none PMD and skip the PMD.  There is no more page table walk after the
-none PMD is restored:
+Add repin_hibernation_swap_type(), which looks up the new device, clears
+the old SWP_HIBERNATION flag and sets the new one under a single swap_lock
+acquisition.  The same-device case is short- circuited so userspace can
+re-select the same swap area without tripping WARN_ON_ONCE and -EBUSY. 
+Switch snapshot_set_swap_area() to the new helper.
 
-- munmap(): free_pgtables() waits in unlink_anon_vmas() for the anon_vma
-  lock, then free_pmd_range() drops the restored PMD as bad without
-  removing the rmap, so the folio keeps a stale mapcount.
+A failed lookup now preserves the previous pin instead of dropping it, so
+a bad SNAPSHOT_SET_SWAP_AREA leaves the prior selection intact.  The open
+and release paths keep using pin_hibernation_swap_type() and
+unpin_hibernation_swap_type().
 
-- whole-VMA MREMAP_DONTUNMAP: dontunmap_complete() unlinks the source VMA
-  from its anon_vma while the restored PMD still maps the folio.
+The race was identified during AI-assisted review of the SWP_HIBERNATION
+pinning series.
 
-- plain mremap(): the THP is not moved but unmapped, so the THP's data is
-  lost.
-
-In the first two cases, the folio stays mapped, but no VMA that maps it is
-linked to its anon_vma.  When the anon_vma is freed, it is still reachable
-when one rmap walks the folio.  Racing lazyfree reclaim against
-MREMAP_DONTUNMAP as an unprivileged user reproduces a KASAN use-after-free
-in folio_lock_anon_vma_read() as reported in the Closes link.
-
-One solution is to use an invalidated PMD instead of a cleared one until
-the discard is committed, but it needs arch fixes first.
-1. GUP-fast still follows an invalidated PMD on riscv, LoongArch and s390.
-2. sparc64 miscounts thp_pte_count when an invalidated PMD is set again or
-   cleared.
-
-To keep the fix simple for backport, stop discarding lazyfree THPs at PMD
-level instead. try_to_unmap_one() splits the PMD and discards the folio at
-PTE level.
-
-unmap_huge_pmd_locked() and __discard_anon_folio_pmd_locked() are left in
-place, unused, to minimize this fix for backport and the invalidated PMD
-approach is planned as a follow-up series to use them again.
-
-Link: https://lore.kernel.org/20261012-lazyfree-stable-fix-v2-1-6387d6e30063@nvidia.com
-Fixes: 735ecdfaf4e8 ("mm/vmscan: avoid split lazyfree THP during shrink_folio_list()")
-Signed-off-by: Zi Yan <ziy@nvidia.com>
+[akpm@linux-foundation.org: coding-style cleanups]
+Link: https://lore.kernel.org/20260430195651.287659-1-devnexen@gmail.com
+Fixes: 8e6e0d845823 ("mm/swap, PM: hibernate: fix swapoff race in uswsusp by pinning swap device")
+Signed-off-by: David Carlier <devnexen@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Reported-by: Kyle Zeng <kylebot@openai.com>
-Closes: https://lore.kernel.org/r/20261009165214.40212-2-kylebot@openai.com
-Reviewed-by: Kyle Zeng <kylebot@openai.com>
-Reviewed-by: Lance Yang <lance.yang@linux.dev>
-Acked-by: David Hildenbrand (Arm) <david@kernel.org>
-Reviewed-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
-Tested-by: JongHyuk Kim(MalHyuk) <malhyuk97@gmail.com>
-  Link: https://lore.kernel.org/CADQRuqvXQ=YE=7T3oR66vTxE33pi=ygEeZKPTOU=cALZL0Figw@mail.gmail.com
-Assisted-by: LLM
-Cc: Rik van Riel <riel@surriel.com>
-Cc: Liam R. Howlett <liam@infradead.org>
-Cc: Vlastimil Babka <vbabka@kernel.org>
-Cc: Harry Yoo <harry@kernel.org>
-Cc: Jann Horn <jannh@google.com>
-Cc: <stable@vger.kernel.org>
+Assisted-by: Codex (gpt-5-codex)
+Cc: Baoquan He <bhe@redhat.com>
+Cc: Barry Song <baohua@kernel.org>
+Cc: Chris Li <chrisl@kernel.org>
+Cc: Kairui Song <kasong@tencent.com>
+Cc: Kemeng Shi <shikemeng@huaweicloud.com>
+Cc: Len Brown <lenb@kernel.org>
+Cc: Nhat Pham <nphamcs@gmail.com>
+Cc: "Rafael J. Wysocki" <rafael@kernel.org>
+Cc: DaeMyung Kang <charsyam@gmail.com>
+Cc: Youngjun Park <youngjun.park@lge.com>
 ---
 
- mm/rmap.c |   11 -----------
- 1 file changed, 11 deletions(-)
+ include/linux/swap.h |    2 +
+ kernel/power/user.c  |   19 ++++--------
+ mm/swapfile.c        |   61 +++++++++++++++++++++++++++++++++++++++++
+ 3 files changed, 69 insertions(+), 13 deletions(-)
 
---- a/mm/rmap.c~mm-rmap-dont-discard-lazyfree-thps-at-pmd-level
-+++ a/mm/rmap.c
-@@ -2275,17 +2275,6 @@ static bool try_to_unmap_one(struct foli
- 		}
+--- a/include/linux/swap.h~mm-swap-pm-hibernate-atomically-replace-hibernation-pin
++++ a/include/linux/swap.h
+@@ -395,6 +395,8 @@ static inline long get_nr_swap_pages(voi
+ extern void si_swapinfo(struct sysinfo *);
+ extern int pin_hibernation_swap_type(dev_t device, sector_t offset);
+ extern void unpin_hibernation_swap_type(int type);
++extern int repin_hibernation_swap_type(int old_type, dev_t device,
++				       sector_t offset);
+ extern int find_hibernation_swap_type(dev_t device, sector_t offset);
+ int find_first_swap(dev_t *device);
+ extern unsigned int count_swap_pages(int, int);
+--- a/kernel/power/user.c~mm-swap-pm-hibernate-atomically-replace-hibernation-pin
++++ a/kernel/power/user.c
+@@ -218,6 +218,7 @@ static int snapshot_set_swap_area(struct
+ {
+ 	sector_t offset;
+ 	dev_t swdev;
++	int new_type;
  
- 		if (!pvmw.pte) {
--			if (folio_test_lazyfree(folio)) {
--				if (unmap_huge_pmd_locked(vma, pvmw.address, pvmw.pmd, folio))
--					goto walk_done;
--				/*
--				 * unmap_huge_pmd_locked has either already marked
--				 * the folio as swap-backed or decided to retain it
--				 * due to GUP or speculative references.
--				 */
--				goto walk_abort;
--			}
+ 	if (swsusp_swap_in_use())
+ 		return -EPERM;
+@@ -238,19 +239,11 @@ static int snapshot_set_swap_area(struct
+ 		offset = swap_area.offset;
+ 	}
+ 
+-	/*
+-	 * Unpin the swap device if a swap area was already
+-	 * set by SNAPSHOT_SET_SWAP_AREA.
+-	 */
+-	unpin_hibernation_swap_type(data->swap);
 -
- 			if (flags & TTU_SPLIT_HUGE_PMD) {
- 				/*
- 				 * We temporarily have to drop the PTL and
+-	/*
+-	 * User space encodes device types as two-byte values,
+-	 * so we need to recode them
+-	 */
+-	data->swap = pin_hibernation_swap_type(swdev, offset);
+-	if (data->swap < 0)
+-		return swdev ? -ENODEV : -EINVAL;
++	new_type = repin_hibernation_swap_type(data->swap, swdev, offset);
++	if (new_type < 0)
++		return new_type;
++
++	data->swap = new_type;
+ 	data->dev = swdev;
+ 	return 0;
+ }
+--- a/mm/swapfile.c~mm-swap-pm-hibernate-atomically-replace-hibernation-pin
++++ a/mm/swapfile.c
+@@ -2313,6 +2313,67 @@ int pin_hibernation_swap_type(dev_t devi
+ }
+ 
+ /**
++ * repin_hibernation_swap_type - Atomically replace the hibernation pin
++ * @old_type: Swap type currently pinned (or < 0 if none).
++ * @device:   Block device of the new resume image.
++ * @offset:   Offset identifying the new swap area.
++ *
++ * Look up the swap device for @device/@offset and atomically transfer
++ * the SWP_HIBERNATION pin from @old_type (if valid) to the new device,
++ * all under a single swap_lock critical section. This closes the
++ * swapoff() window that exists when callers unpin and re-pin in two
++ * separate operations.
++ *
++ * If the new device cannot be located, the existing pin on @old_type
++ * is preserved and an error is returned. If @old_type already refers
++ * to the same swap_info_struct as the new lookup, no flag changes are
++ * made and @old_type is returned.
++ *
++ * Return:
++ * >= 0 on success (new swap type).
++ * -EINVAL if @device is invalid.
++ * -ENODEV if the swap device is not found.
++ * -EBUSY  if the new device is already pinned by another context.
++ */
++int repin_hibernation_swap_type(int old_type, dev_t device, sector_t offset)
++{
++	struct swap_info_struct *old_si, *new_si;
++	int new_type;
++
++	spin_lock(&swap_lock);
++
++	new_type = __find_hibernation_swap_type(device, offset);
++	if (new_type < 0) {
++		spin_unlock(&swap_lock);
++		return new_type;
++	}
++
++	new_si = swap_type_to_info(new_type);
++	if (WARN_ON_ONCE(!new_si)) {
++		spin_unlock(&swap_lock);
++		return -ENODEV;
++	}
++
++	old_si = swap_type_to_info(old_type);
++	if (new_si == old_si) {
++		spin_unlock(&swap_lock);
++		return new_type;
++	}
++
++	if (WARN_ON_ONCE(new_si->flags & SWP_HIBERNATION)) {
++		spin_unlock(&swap_lock);
++		return -EBUSY;
++	}
++
++	if (old_si)
++		old_si->flags &= ~SWP_HIBERNATION;
++	new_si->flags |= SWP_HIBERNATION;
++
++	spin_unlock(&swap_lock);
++	return new_type;
++}
++
++/**
+  * unpin_hibernation_swap_type - Unpin the swap device for hibernation
+  * @type: Swap type previously returned by pin_hibernation_swap_type()
+  *
 _
 
-Patches currently in -mm which might be from ziy@nvidia.com are
+Patches currently in -mm which might be from devnexen@gmail.com are
 
 
