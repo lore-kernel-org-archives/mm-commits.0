@@ -1,45 +1,45 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1792828036;
-	b=kWe63M6AZ8ftOhrpkH69ewsnTgbQk3DqpoE/2/SIlUw5Rfj4LhJeChg7Q+790rdzRp6R
-	 DZQ8esfQm6QSN8zoBArLwZY4T9hwcLpS+9tend8GRvLr7TayCQYSmpbPl9BKvDVKTvDto
-	 cGKBaMA2wW8Ish2eT4GYCrkgsCL1DmuTubJjJoLkAX1JtKlN2OeGMfxz3JBLlHJKfrK25
-	 z/Goc2EFrIe9euuRUnSjWMgFbb4rOZCda4aRDPMIdZeMyklYkzfrbJxbMNKE0Rb59E4G2
-	 A29Ul3sXR8ZwNS9YL70MFznEo9oTBpXHUyonFBtM7l+JddSXoqVSwF1HnPoMRVElx3w==
+	t=1792828037;
+	b=EXCPD9ld4N7Goo1qH67ftx3wyt6hhPKJGPfcgceeyCF4/DYLRvKyJj8YfaSRs90mYLfN
+	 2vYKXZZWrNLHVlD50HWzHasEqMP1LT8fm8BJO3rOx8N8H6+B05qm3p0tZ/l6mvJ7pz9I0
+	 7l2BnZ2R8pWfQq1ZqudsMGQinjSwVYcgmRJmx2NygDTMBZHY+cQHwj5DltLBjZh0Bz+uA
+	 SXQ3ns6DnaWzwI/H0GkmxK6j8mdnmn4yhkWDQLeaiWPzxR3cNJqNoGAFPFqAG4pfb5pQy
+	 2xS2tUD/5KefR4VxwgEWmIaHHp/ukNsg8tutZuh4LPaD3FHK3bdIfr2LmNj/+iKOaBg==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1792828036;
+	a=rsa-sha256; c=relaxed/relaxed; t=1792828037;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=Wx4647d42IxCaot/LyL08DhLbLmNWyNEkyvk2hDA4Cc=;
-	b=OXjytiEbNd2w1zCbsb9VanvGb+u4W5HElCTYGnRJALNHw9nt5GpBVpIndXajHcyrRVSr
-	 cITT/zWy14fLRt6jO5CIZ/3VYjC6HTG1XiVHoiyhA5pwMz7OO60L1tb1qWrrjnTHrmWUH
-	 tR46MhAKcstFYKD7LjqGBSgnDH2noW9SOt7uawSSlQd1zjZdMDYVedrsuVlwiRlA1kc4o
-	 qL8j4Ge5u9LN5cDLFsZs8+0TsFNLrMlGg8XUmXcK4HP5NNqej2oSLs8FpbkQ6izxO1MjW
-	 F3Mmaj18cOIRF+0bbh4XjxpSD/n01bal0KRTbi6ykYjTUxndY137UkW+gmfUL02FJ1Q==
+	bh=Lnkgwz4trgVqQULm4yNCShUCh1VH69J0jhfcrdupSRw=;
+	b=EIyPIw/B5MkLEDEArmPT/cf6gOw/33cEwyZ9aQTlBHzV1gUVKU8FOIKtyEBfQLqoM/V6
+	 fN3xZSEaRt18lWueAgFC5cavNlTXEXUS6IfjOJZmwECfwGRopeEqxdq5DjjQRUV3bkP89
+	 9s2Ng6hg0/3+WzwQeqElJL0tBZtYnOe9L4rV60+2SiaQGWq7X5XrfPqXRP/UngHvHf4El
+	 eoWWIBlPcRjG3Cdgu2iXu0HPEGB9Dqa03k4oq+EJ/O4lBsOAnK7cPzScf3IvbrJKusgXs
+	 ALo8e1DLAMZf7z16dhmGwlsRPmThqi2KT2EUub7C2lKN/qjgpWwat1MoUj8wjK1JoVA==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=GjlAc9nO;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=WGBsSLYi;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3B53E606A31B
-	for <mm-commits@vger.kernel.org>; Sat, 24 Oct 2026 07:47:16 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6BC63606A327
+	for <mm-commits@vger.kernel.org>; Sat, 24 Oct 2026 07:47:17 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=GjlAc9nO
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0703B1F01829;
-	Sat, 24 Oct 2026 07:47:16 +0000 (UTC)
+	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=WGBsSLYi
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2A7BA1F01825;
+	Sat, 24 Oct 2026 07:47:17 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1792828036;
-	bh=Wx4647d42IxCaot/LyL08DhLbLmNWyNEkyvk2hDA4Cc=;
+	d=linux-foundation.org; s=korg; t=1792828037;
+	bh=Lnkgwz4trgVqQULm4yNCShUCh1VH69J0jhfcrdupSRw=;
 	h=Date:To:From:Subject;
-	b=GjlAc9nOm6j9JGUqNiK73E1EeClGf99smZsIabrjocNHfMTjTuC6Mo4fAZaB6+kK8
-	 /jLR98cifrCenOSlZ7QHl2u/TNnNayNbC7IEA0eIJZp2a2xn6GjvO/d9Mo1ufLU0iW
-	 1n+xK+bRcCv+YZxfJfpI9WkCMjItO2K8l8aWcsoI=
-Date: Sat, 24 Oct 2026 00:47:15 -0700
-To: mm-commits@vger.kernel.org,andrew.jones@linux.dev,akpm@linux-foundation.org
+	b=WGBsSLYiYDsquxXsKDM6nNg/1JzoX3XR5Gqq15k6lbPyXaX142RdrKmK5nH+zTjSg
+	 oTpcAr2JoYN2ECgPNsDhtkPkzMxGgw0DLut7VKkUFStFqR/+iS1fuYCrNGlLDXS6ut
+	 Tw/TJM0BTIUPLkFmGf1AKhHk0Psjt9VYvEjWXp4k=
+Date: Sat, 24 Oct 2026 00:47:16 -0700
+To: mm-commits@vger.kernel.org,martink@posteo.de,kuba@kernel.org,cel@kernel.org,alex@sverdlin.org,markus.mayer@broadcom.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] mailmap-add-entries-for-andrew-jones.patch removed from -mm tree
-Message-Id: <20261024074716.0703B1F01829@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] maintainers-update-my-e-mail-address.patch removed from -mm tree
+Message-Id: <20261024074717.2A7BA1F01825@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -51,44 +51,89 @@ Precedence: list
 
 
 The quilt patch titled
-     Subject: mailmap: add entries for Andrew Jones
+     Subject: MAINTAINERS: update Markus's e-mail address
 has been removed from the -mm tree.  Its filename was
-     mailmap-add-entries-for-andrew-jones.patch
+     maintainers-update-my-e-mail-address.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Andrew Jones <andrew.jones@linux.dev>
-Subject: mailmap: add entries for Andrew Jones
-Date: Thu, 22 Oct 2026 17:45:32 +0200
+From: Markus Mayer <markus.mayer@broadcom.com>
+Subject: MAINTAINERS: update Markus's e-mail address
+Date: Thu, 22 Oct 2026 14:19:48 -0700
 
-Use my linux.dev address for kernel correspondence, including for
-contributions made with my other email addresses.
+Classic Broadcom e-mail addresses were recently phased out.  Update
+MAINTAINERS to the new format.  Also add an entry to .mailmap for said
+address.
 
-Link: https://lore.kernel.org/20261022154532.1374661-1-andrew.jones@linux.dev
-Signed-off-by: Andrew Jones <andrew.jones@linux.dev>
+Finally, since I am already touching .mailmap, I may as well map an
+ancient Linaro address, as well.
+
+Link: https://lore.kernel.org/20261022211949.42939-1-markus.mayer@broadcom.com
+Signed-off-by: Markus Mayer <markus.mayer@broadcom.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+Cc: Jakub Kicinski <kuba@kernel.org>
+Cc: Alexander Sverdlin <alex@sverdlin.org>
+Cc: Chuck Lever <cel@kernel.org>
+Cc: Martin Kepplinger <martink@posteo.de>
 ---
 
- .mailmap |    4 ++++
- 1 file changed, 4 insertions(+)
+ .mailmap    |    2 ++
+ MAINTAINERS |    8 ++++----
+ 2 files changed, 6 insertions(+), 4 deletions(-)
 
---- a/.mailmap~mailmap-add-entries-for-andrew-jones
+--- a/.mailmap~maintainers-update-my-e-mail-address
 +++ a/.mailmap
-@@ -88,6 +88,10 @@ Andrej Shadura <andrew@shadura.me> <andr
- Andrew Donnellan <andrew+kernel@donnellan.id.au> <andrew@donnellan.id.au>
- Andrew Donnellan <andrew+kernel@donnellan.id.au> <ajd@linux.ibm.com>
- Andrew Donnellan <andrew+kernel@donnellan.id.au> <andrew.donnellan@au1.ibm.com>
-+Andrew Jones <andrew.jones@linux.dev> <ajones@ventanamicro.com>
-+Andrew Jones <andrew.jones@linux.dev> <andrew.jones@oss.qualcomm.com>
-+Andrew Jones <andrew.jones@linux.dev> <anjones@nvidia.com>
-+Andrew Jones <andrew.jones@linux.dev> <drjones@redhat.com>
- Andrew Morton <akpm@linux-foundation.org>
- Andrew Murray <amurray@thegoodpenguin.co.uk> <amurray@embedded-bits.co.uk>
- Andrew Murray <amurray@thegoodpenguin.co.uk> <andrew.murray@arm.com>
+@@ -597,6 +597,8 @@ Marek Lindner <marek.lindner@mailbox.org
+ Marek Lindner <marek.lindner@mailbox.org> <mareklindner@neomailbox.ch>
+ Mark Brown <broonie@sirena.org.uk>
+ Mark Starovoytov <mstarovo@pm.me> <mstarovoitov@marvell.com>
++Markus Mayer <markus.mayer@broadcom.com> <mmayer@broadcom.com>
++Markus Mayer <markus.mayer@broadcom.com> <markus.mayer@linaro.org>
+ Markus Schneider-Pargmann <msp@baylibre.com> <mpa@pengutronix.de>
+ Mark Yao <markyao0591@gmail.com> <mark.yao@rock-chips.com>
+ Martin K. Petersen <mkp@kernel.org> <martin.petersen@oracle.com>
+--- a/MAINTAINERS~maintainers-update-my-e-mail-address
++++ a/MAINTAINERS
+@@ -5296,7 +5296,7 @@ F:	Documentation/devicetree/bindings/usb
+ F:	drivers/usb/gadget/udc/bdc/
+ 
+ BROADCOM BMIPS CPUFREQ DRIVER
+-M:	Markus Mayer <mmayer@broadcom.com>
++M:	Markus Mayer <markus.mayer@broadcom.com>
+ R:	Broadcom internal kernel review list <bcm-kernel-feedback-list@broadcom.com>
+ L:	linux-pm@vger.kernel.org
+ S:	Maintained
+@@ -5571,7 +5571,7 @@ F:	drivers/spi/spi-brcmstb-qspi.c
+ F:	drivers/spi/spi-iproc-qspi.c
+ 
+ BROADCOM STB AVS CPUFREQ DRIVER
+-M:	Markus Mayer <mmayer@broadcom.com>
++M:	Markus Mayer <markus.mayer@broadcom.com>
+ R:	Broadcom internal kernel review list <bcm-kernel-feedback-list@broadcom.com>
+ L:	linux-pm@vger.kernel.org
+ S:	Maintained
+@@ -5579,7 +5579,7 @@ F:	Documentation/devicetree/bindings/cpu
+ F:	drivers/cpufreq/brcmstb*
+ 
+ BROADCOM STB AVS TMON DRIVER
+-M:	Markus Mayer <mmayer@broadcom.com>
++M:	Markus Mayer <markus.mayer@broadcom.com>
+ R:	Broadcom internal kernel review list <bcm-kernel-feedback-list@broadcom.com>
+ L:	linux-pm@vger.kernel.org
+ S:	Maintained
+@@ -5587,7 +5587,7 @@ F:	Documentation/devicetree/bindings/the
+ F:	drivers/thermal/broadcom/brcmstb*
+ 
+ BROADCOM STB DPFE DRIVER
+-M:	Markus Mayer <mmayer@broadcom.com>
++M:	Markus Mayer <markus.mayer@broadcom.com>
+ R:	Broadcom internal kernel review list <bcm-kernel-feedback-list@broadcom.com>
+ L:	linux-arm-kernel@lists.infradead.org (moderated for non-subscribers)
+ S:	Maintained
 _
 
-Patches currently in -mm which might be from andrew.jones@linux.dev are
+Patches currently in -mm which might be from markus.mayer@broadcom.com are
 
 
