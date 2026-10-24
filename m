@@ -1,45 +1,45 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
 	t=1792832272;
-	b=2QS/CckLKOpCtixEJZODan2YuOrJsfPWEWSnIasB4n/xHw2lXSg0CSXp4Tha//sv2mQy
-	 F83iSGE7iuWJs+d0xP3VAfnKKZoWs0ESDO+b0JH6rRgJ6y/2BRCebPwZffAHQrr+RAaAZ
-	 GwzLIYxOXKzh9B69OSmoAy4rDYIxmbYuxyC0vBqiSSHz7RbWa2co0iQmOxu7GJhuri5PR
-	 SjxeVtiH7X/cFlxFNvMPnY5Ga0viqiUtZOt4tM2G/7FWT4epklAUbv6sPs59fRSvz10S8
-	 6zxKZ9dxyGu2Z8+BQW4/uTfPYNZVNsrX4seZCOiigjyLFe//pzGdecNZ1ywstGZB6zg==
+	b=DiD3zmEfT2PEY4DbmZkE3NGTujA7zRJeq6nyHxyD0EFeGVk9nBByzxatqQe1EUqNF2WV
+	 5lTmElrWtTwxO4vhVUinS78YvoHlBFAFHFAiL1Oqlvl5sOeZ0RsaHAvERH+9FMz+/iEgH
+	 yZZA8ouvg1xKYPCh0D4h5dyrOKCfQ3187yQJEnhAnJYt+jcNxrttrYSoeAa2Yb3cLZEOb
+	 YdftI9xSBmpalILwjgCKq22kkoIzg5qLSbxww+w1tqNFy7FFctsqMz5oOyKGbZbIRuTuh
+	 dZMLGenR1P9KrAWe+MSLexTrT4cuyP7d4LYKCxjieszQI/0kNXCHF3SKNGY6Knc9h6A==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
 	a=rsa-sha256; c=relaxed/relaxed; t=1792832272;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=iyiVgTtQwPQVjnhUmhPtBpxiC2kJK4/RPFoMK3Jg3og=;
-	b=YWr2nHiu8E9hXop7GrA5g1IY8XJHc1RKrMA0UVCznDf/mYryL/KWPaR3AY4ooLW2+LyM
-	 Kva69cYjV07kCwNzGOpkSqe5LG+t9mODme0+yE8uCC7hcc0kqEEdMCLEA8in/NIbJBlw6
-	 1Hv0nsNwbOuQ86/bRTC+zMC67XNfLTDj3Jcph8q1lPmA+W39NNxkBBfKJyg5uUiJJRCQr
-	 x8cQU2LUyEgDDh5UmGlGE61SWaHqxHInz6QwCnKfF1f7VNyVZXxOcwUrgVvJ8lCQwb/pC
-	 X6jUAk6wj7rYuUctetkVwNHJ3RW21Oc7aJ+j9c93ocP2ac4qk0mpAEQswdomZl9aDkA==
+	bh=xiYE3ZQzTiKeSpB1A3K12KLx+TOYvYzTAF2oha6oiRM=;
+	b=G/jLUy7z57lh3D6I1+POfpGhRdiYrU+/rOHDB/gxISG9Utl64PJI6cjn1XY69ZJF4Yhe
+	 OfFEoayQGwW19EK67be0QVuhb0gLDFvBBdbm5EBQLXeJiJrWPx/iwiXYBP32DkGFh3RM9
+	 j4Ha64fRNGdYgJ+ypfQ9ppQxdz9CdtAVTaDW/FkBK2NqfkNdNtdRb/IqzDchHYPwR6HCu
+	 /WrD3TNBgZsLtRIg3uTtSvGT02t6ZFimsZm3UWaQ4aQazlPvTxJhh+uReGwGCu/D2zsdM
+	 H32LLJAb9YfnHfzakzXZs4olbCRx6wBwv6e7gQsi4GBJHsfrwBv10ZEuhwI/EOeZvIg==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=siigPbTq;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=P492Ipxg;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B2750606A31A
-	for <mm-commits@vger.kernel.org>; Sat, 24 Oct 2026 08:57:51 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7EDF6606A320
+	for <mm-commits@vger.kernel.org>; Sat, 24 Oct 2026 08:57:52 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=siigPbTq
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3F77E1F01825;
-	Sat, 24 Oct 2026 08:57:51 +0000 (UTC)
+	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=P492Ipxg
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4E3A41F01825;
+	Sat, 24 Oct 2026 08:57:52 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1792832271;
-	bh=iyiVgTtQwPQVjnhUmhPtBpxiC2kJK4/RPFoMK3Jg3og=;
+	d=linux-foundation.org; s=korg; t=1792832272;
+	bh=xiYE3ZQzTiKeSpB1A3K12KLx+TOYvYzTAF2oha6oiRM=;
 	h=Date:To:From:Subject;
-	b=siigPbTqpkzLIp5IXe9oLQXRs9pe4BVlnqE83ZhTNopFiIPfIvnqePs43wfhyQGuF
-	 JxDQudJYfYkpxUq0xsLNXCZADZat+GusyuVlnvSrTqvTRALtCZOoH9VE7fplspKcAq
-	 HBKc3TAOYvvTH8p55KIWhEyMbrx8e3PmhXzze2RA=
-Date: Sat, 24 Oct 2026 01:57:50 -0700
-To: mm-commits@vger.kernel.org,vbabka@kernel.org,usama.anjum@arm.com,surenb@google.com,shuah@kernel.org,rppt@kernel.org,mhocko@suse.com,ljs@kernel.org,liam@infradead.org,gourry@gourry.net,david@kernel.org,brendan.jackman@linux.dev,ts930@dgu.ac.kr,akpm@linux-foundation.org
+	b=P492IpxgMg+zTuWD7GnOpNnyiqB/OeEGmo7P3vN57U3RcRYDS1L2GuTdsVk0agec0
+	 xCz40QPsj/A2OVAzFbsz0PEw0UNO/PUQaff26O2yXp7fP0eX/Ryjh7NKH87rc/72RY
+	 i+cVkg3jCSTh0kn8UXPS39LKEhpPBZ9h7jNxyZK4=
+Date: Sat, 24 Oct 2026 01:57:51 -0700
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,vbabka@kernel.org,usama.arif@linux.dev,surenb@google.com,shuah@kernel.org,sarthak.sharma@arm.com,ryan.roberts@arm.com,rppt@kernel.org,nico.pache@linux.dev,mhocko@suse.com,ljs@kernel.org,liam@infradead.org,lance.yang@linux.dev,kevin.brodsky@arm.com,dev.jain@arm.com,david@kernel.org,baolin.wang@linux.alibaba.com,baohua@kernel.org,yeoreum.yun@arm.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] selftests-mm-fix-mlock2-errno-handling-and-false-pass-on-enosys.patch removed from -mm tree
-Message-Id: <20261024085751.3F77E1F01825@smtp.kernel.org>
+Subject: [merged mm-stable] kselftest-mm-prevent-random-failure-of-huge-page-split-for-khugepaged.patch removed from -mm tree
+Message-Id: <20261024085752.4E3A41F01825@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -51,141 +51,152 @@ Precedence: list
 
 
 The quilt patch titled
-     Subject: selftests/mm: fix mlock2 errno handling and false PASS on ENOSYS
+     Subject: kselftest: mm: prevent random failure of huge page split for khugepaged
 has been removed from the -mm tree.  Its filename was
-     selftests-mm-fix-mlock2-errno-handling-and-false-pass-on-enosys.patch
+     kselftest-mm-prevent-random-failure-of-huge-page-split-for-khugepaged.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Park Tae-sun <ts930@dgu.ac.kr>
-Subject: selftests/mm: fix mlock2 errno handling and false PASS on ENOSYS
-Date: Wed, 23 Sep 2026 18:26:48 +0900
+From: Yeoreum Yun <yeoreum.yun@arm.com>
+Subject: kselftest: mm: prevent random failure of huge page split for khugepaged
+Date: Thu, 01 Oct 2026 22:17:51 +0100
 
-While inspecting selftests/mm syscall wrappers, I noticed that mlock2_()
-in mlock2.h handles the syscall return value differently from other
-wrappers:
+Patch series "kselftest: mm: fix some failure of split_huge_page_test",
+v9.
 
-    int ret = syscall(__NR_mlock2, start, len, flags);
-    if (ret) {
-        errno = ret;
-        return -1;
-    }
+split_huge_page_test can fail for the following reasons:
 
-Commit 1ddae9d67ee1 ("selftests/mm/mlock: print error on failure")
-introduced this intending to make mlock2_() behave like libc by setting
-errno and returning -1.  However, glibc syscall(2) already returns -1 on
-failure and sets positive errno.  Assigning "errno = ret;" overwrites
-errno with -1.
+  1. During the test, khugepaged may collapse previously split pages again,
+     causing intermittent failures.
 
-To verify this, mlock2 was disabled in the kernel (via sys_ni_syscall) to
-return -ENOSYS. Testing revealed two interrelated defects:
+  2. Since glibc commit 321e1fc73f (“malloc: Enable 2MB THP by default on AArch64”),
+     glibc may call madvise(MADV_HUGEPAGE) for sufficiently large allocations
+     made by memalign(). The underlying VMA may start at a different address
+     from the aligned address returned by memalign(). Moreover, a subsequent
+     madvise(MADV_HUGEPAGE) call does not split the VMA because it already
+     has the same advice.
 
-1. In the unmodified test, mlock2_() clobbered errno to -1. The check
-   "if (ret && errno == ENOSYS)" in main() was bypassed, resulting in an
-   immediate crash in the first test:
+     This causes the test to fail because the check_huge_xxx() helpers
+     incorrectly require the address returned by memalign() to match the
+     VMA start address reported in /proc/self/smaps.
 
-       ~ # ./mlock2-tests
-       TAP version 13
-       1..15
-       Bail out! mlock2(0): Unknown error -1
-       # Planned tests != run tests (15 != 0)
-       # Totals: pass:0 fail:0 xfail:0 xpass:0 skip:0 error:0
-       (exit code: 1 - FAIL)
+Address these issues by applying MADV_NOHUGEPAGE after faulting in the
+huge page, preventing khugepaged from collapsing it again, and instead of
+relying on /proc/self/smaps, use /proc/self/pagemap and
+/proc/kpageflags to detect huge-page mappings and large folios:
 
-2. After restoring mlock2_() to directly return syscall(), errno correctly
-   retained ENOSYS (38), entering the ENOSYS check in main(). However, it
-   then called ksft_finished():
+  1. If hpage_size == pmd_pagesize, check PAGE_IS_HUGE instead of
+     using check_large_folios(), since only the mapping type matters.
+     This identifies PMD-mapped huge pages.
+  2. Otherwise, use check_large_folios() to detect large folios. This
+     covers mTHP cases.
+  3. Check the folio flags according to the type of huge page.
 
-       ~ # ./mlock2-tests
-       TAP version 13
-       # Totals: pass:0 fail:0 xfail:0 xpass:0 skip:0 error:0
-       ~ # echo $?
-       0
+Since check_huge_shmem() was required to distinguish shmem huge pages
+because /proc/self/smaps reports them using a dedicated “ShmemPmdMapped”
+entry, as opposed to “FilePmdMapped” for file-backed huge pages.
 
-   Because ksft_set_plan() had not been called yet (ksft_plan == 0) and
-   zero tests ran (ksft_pass == 0), ksft_finished() evaluated 0 == 0 as
-   success and exited with KSFT_PASS (code 0) without any TAP skip header.
+Now that /proc/self/smaps is no longer used to detect huge pages and
+/proc/kpageflags is used instead, it is sufficient to distinguish
+ between file-backed and anonymous pages since the ShmemPmdMapped is also
+kind of file-backed.
 
-Fix both issues by:
-1. Returning the syscall() result directly in mlock2_() so that errno is
-   preserved.
-2. Calling ksft_exit_skip() on ENOSYS so unsupported kernels report a TAP
-   skip ("1..0 # SKIP ...") and exit with KSFT_SKIP (code 4).
+Therefore, remove check_huge_shmem() and use check_huge_file() instead.
 
-Verification on the mlock2-disabled kernel:
 
-    ~ # ./mlock2-tests
-    TAP version 13
-    1..0 # SKIP mlock2() syscall is not supported
-    ~ # echo $?
-    4
+This patch (of 4):
 
-Re-enabling mlock2 in the kernel confirmed all 15 tests pass cleanly:
+There're some random failure for split_huge_page_test when khugepaged
+collapses pages into pmd again which had split by the test.
 
-    ~ # ./mlock2-tests
-    TAP version 13
-    1..15
-    ok 1 test_mlock_lock: Locked
-    ...
-    ok 15 test_mlockall_future_droppable: droppable memory not locked
-    # Totals: pass:15 fail:0 xfail:0 xpass:0 skip:0 error:0
-    ~ # echo $?
-    0
+Prevent the khugepaged's collapses for split page by setting the
+mapped pmd-huge-page with MADV_NOHUGEPAGE before split.
 
-Link: https://lore.kernel.org/20260923-selftests-mm-mlock2-fix-v1-1-750b627854c6@dgu.ac.kr
-Fixes: 1ddae9d67ee1 ("selftests/mm/mlock: print error on failure")
-Fixes: 65c89684896d ("selftests/mm: mlock2-tests: conform test to TAP format output")
-Signed-off-by: Park Tae-sun <ts930@dgu.ac.kr>
+Link: https://lore.kernel.org/20261001-fix_split-v9-0-0f4ba8bbdbdf@arm.com
+Link: https://lore.kernel.org/20261001-fix_split-v9-1-0f4ba8bbdbdf@arm.com
+Signed-off-by: Yeoreum Yun <yeoreum.yun@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Reviewed-by: Gregory Price <gourry@gourry.net>
+Suggested-by: Kevin Brodsky <kevin.brodsky@arm.com>
+Suggested-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
+Reviewed-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
+Reviewed-by: Zi Yan <ziy@nvidia.com>
+Reviewed-by: Sarthak Sharma <sarthak.sharma@arm.com>
 Acked-by: David Hildenbrand (Arm) <david@kernel.org>
-Reviewed-by: Muhammad Usama Anjum <usama.anjum@arm.com>
-Cc: Lorenzo Stoakes <ljs@kernel.org>
+Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
 Cc: Liam R. Howlett <liam@infradead.org>
+Cc: Nico Pache <nico.pache@linux.dev>
+Cc: Ryan Roberts <ryan.roberts@arm.com>
+Cc: Dev Jain <dev.jain@arm.com>
+Cc: Barry Song <baohua@kernel.org>
+Cc: Lance Yang <lance.yang@linux.dev>
+Cc: Usama Arif <usama.arif@linux.dev>
 Cc: Vlastimil Babka <vbabka@kernel.org>
 Cc: Mike Rapoport <rppt@kernel.org>
 Cc: Suren Baghdasaryan <surenb@google.com>
 Cc: Michal Hocko <mhocko@suse.com>
 Cc: Shuah Khan <shuah@kernel.org>
-Cc: Brendan Jackman <brendan.jackman@linux.dev>
 ---
 
- tools/testing/selftests/mm/mlock2-tests.c |    2 +-
- tools/testing/selftests/mm/mlock2.h       |    8 +-------
- 2 files changed, 2 insertions(+), 8 deletions(-)
+ tools/testing/selftests/mm/split_huge_page_test.c |   16 ++++++++++++
+ 1 file changed, 16 insertions(+)
 
---- a/tools/testing/selftests/mm/mlock2.h~selftests-mm-fix-mlock2-errno-handling-and-false-pass-on-enosys
-+++ a/tools/testing/selftests/mm/mlock2.h
-@@ -6,13 +6,7 @@
- 
- static int mlock2_(void *start, size_t len, int flags)
- {
--	int ret = syscall(__NR_mlock2, start, len, flags);
--
--	if (ret) {
--		errno = ret;
--		return -1;
--	}
--	return 0;
-+	return syscall(__NR_mlock2, start, len, flags);
+--- a/tools/testing/selftests/mm/split_huge_page_test.c~kselftest-mm-prevent-random-failure-of-huge-page-split-for-khugepaged
++++ a/tools/testing/selftests/mm/split_huge_page_test.c
+@@ -108,6 +108,15 @@ static char *allocate_zero_filled_hugepa
+ 	return result;
  }
  
- static FILE *seek_to_smaps_entry(unsigned long addr)
---- a/tools/testing/selftests/mm/mlock2-tests.c~selftests-mm-fix-mlock2-errno-handling-and-false-pass-on-enosys
-+++ a/tools/testing/selftests/mm/mlock2-tests.c
-@@ -502,7 +502,7 @@ int main(int argc, char **argv)
++static void disable_khugepaged(void *addr, size_t len)
++{
++	/* Disables khugepaged from collapsing pages in range into THPs */
++	if (!madvise(addr, len, MADV_NOHUGEPAGE))
++		return;
++
++	ksft_exit_fail_perror("MADV_NOHUGEPAGE failed");
++}
++
+ static void verify_rss_anon_split_huge_page_all_zeroes(char *one_page, int nr_hpages, size_t len)
+ {
+ 	unsigned long rss_anon_before, rss_anon_after;
+@@ -120,6 +129,8 @@ static void verify_rss_anon_split_huge_p
+ 	if (!rss_anon_before)
+ 		ksft_exit_fail_msg("No RssAnon is allocated before split\n");
  
- 	ret = mlock2_(map, size, MLOCK_ONFAULT);
- 	if (ret && errno == ENOSYS)
--		ksft_finished();
-+		ksft_exit_skip("mlock2() syscall is not supported\n");
++	disable_khugepaged(one_page, len);
++
+ 	/* split all THPs */
+ 	write_debugfs(PID_FMT, getpid(), (uint64_t)one_page,
+ 		      (uint64_t)one_page + len, 0);
+@@ -167,6 +178,8 @@ static void split_pmd_thp_to_order(int o
+ 	if (!check_huge_anon(one_page, 4 * pmd_pagesize, 4, pmd_pagesize))
+ 		ksft_exit_fail_msg("No THP is allocated\n");
  
- 	munmap(map, size);
++	disable_khugepaged(one_page, len);
++
+ 	/* split all THPs */
+ 	write_debugfs(PID_FMT, getpid(), (uint64_t)one_page,
+ 		(uint64_t)one_page + len, order);
+@@ -215,6 +228,8 @@ static void split_pte_mapped_thp(void)
+ 		goto out;
+ 	}
  
++	disable_khugepaged(thp_area, thp_area_size);
++
+ 	/*
+ 	 * To challenge spitting code, we will mremap a single page of each
+ 	 * THP (page[i] of thp[i]) in the thp_area into page_area. This will
+@@ -482,6 +497,7 @@ static int create_pagecache_thp_and_fd(c
+ 		ksft_test_result_skip("Pagecache folio split skipped\n");
+ 		return -2;
+ 	}
++	disable_khugepaged(*addr, fd_size);
+ 	return 0;
+ err_out_close:
+ 	close(*fd);
 _
 
-Patches currently in -mm which might be from ts930@dgu.ac.kr are
+Patches currently in -mm which might be from yeoreum.yun@arm.com are
 
 
