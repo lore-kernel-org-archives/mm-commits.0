@@ -1,45 +1,45 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1792828030;
-	b=oVDPDm8fTXNmUduH7F60M6o00vjvan7mbFb5fMnpVpKWtZBB3WWxG/M8vu2d3etR+YSv
-	 kPfOYepGRESaRvKtDTDvr6FmRcpnAoSPo3m8blGiuUp0xfHtZFCsloQZCZ+dltEKIiRk8
-	 C0/MK/RwhWGn3kmI7X+8pW1pPcsOpVB7COwbPvUsrjfVT7yl/RadvHa9BJaYppqhDv0SV
-	 8LwQhbtjI3e/E/OQsgp1vERasY64j8tk1vzJrB4lUxH3ytBrRFh6W5kKvFMesuM3XyVv7
-	 PU2HiRV5by2zR/PjJcwJl50dWFMU2UkjEDwqlm2rZ3UGBj23uJ3oFKCt8OCNwF62s1A==
+	t=1792828036;
+	b=kWe63M6AZ8ftOhrpkH69ewsnTgbQk3DqpoE/2/SIlUw5Rfj4LhJeChg7Q+790rdzRp6R
+	 DZQ8esfQm6QSN8zoBArLwZY4T9hwcLpS+9tend8GRvLr7TayCQYSmpbPl9BKvDVKTvDto
+	 cGKBaMA2wW8Ish2eT4GYCrkgsCL1DmuTubJjJoLkAX1JtKlN2OeGMfxz3JBLlHJKfrK25
+	 z/Goc2EFrIe9euuRUnSjWMgFbb4rOZCda4aRDPMIdZeMyklYkzfrbJxbMNKE0Rb59E4G2
+	 A29Ul3sXR8ZwNS9YL70MFznEo9oTBpXHUyonFBtM7l+JddSXoqVSwF1HnPoMRVElx3w==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1792828030;
+	a=rsa-sha256; c=relaxed/relaxed; t=1792828036;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=fL+a58gqeouvc3xspPK6t4p3ebW6hFwJACi90no5Gpk=;
-	b=dafWimxTjE6SS+aS2MPW7AbCpXVhY3mQ6QStpDAf1Ab0+cXRaH79svI5lBZIJYV8YP1O
-	 1vM6iRbocv2CtjJCyrZpkTW3SwMVQelHueFt+ZqcijBrGFclf25mImj7D2Hk55sGAQWAC
-	 P19kpTZP04fGtXgLDFu73oivazzkf1cB1PwkA8UNUqoZu0+PxTgPf7jYBa5WWUvq5oBz8
-	 JVym+/vyzPfjutC2G8hq8Z3kE2THvM3blI7Bb5Z8FuDV9xieMNRA8Dn2O2NODpoKC7Fb3
-	 nISo2CJdCDcyYZMNCakgYjbcti9PnKKayEj9evZOHW5mm1kAPTvTEywkFTq42L548BQ==
+	bh=Wx4647d42IxCaot/LyL08DhLbLmNWyNEkyvk2hDA4Cc=;
+	b=OXjytiEbNd2w1zCbsb9VanvGb+u4W5HElCTYGnRJALNHw9nt5GpBVpIndXajHcyrRVSr
+	 cITT/zWy14fLRt6jO5CIZ/3VYjC6HTG1XiVHoiyhA5pwMz7OO60L1tb1qWrrjnTHrmWUH
+	 tR46MhAKcstFYKD7LjqGBSgnDH2noW9SOt7uawSSlQd1zjZdMDYVedrsuVlwiRlA1kc4o
+	 qL8j4Ge5u9LN5cDLFsZs8+0TsFNLrMlGg8XUmXcK4HP5NNqej2oSLs8FpbkQ6izxO1MjW
+	 F3Mmaj18cOIRF+0bbh4XjxpSD/n01bal0KRTbi6ykYjTUxndY137UkW+gmfUL02FJ1Q==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=XTQLUmks;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=GjlAc9nO;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
+	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CCFC6606A31A;
-	Sat, 24 Oct 2026 07:47:09 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3B53E606A31B
+	for <mm-commits@vger.kernel.org>; Sat, 24 Oct 2026 07:47:16 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=XTQLUmks
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 36BBE1F01825;
-	Sat, 24 Oct 2026 07:47:09 +0000 (UTC)
+	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=GjlAc9nO
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0703B1F01829;
+	Sat, 24 Oct 2026 07:47:16 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1792828029;
-	bh=fL+a58gqeouvc3xspPK6t4p3ebW6hFwJACi90no5Gpk=;
+	d=linux-foundation.org; s=korg; t=1792828036;
+	bh=Wx4647d42IxCaot/LyL08DhLbLmNWyNEkyvk2hDA4Cc=;
 	h=Date:To:From:Subject;
-	b=XTQLUmksdepERDKTcdN/7MnH9pHE3LVYlOiUJe83r4UpD/S+DVV24aM2l8PhqYboX
-	 qoCipMs5Uw0vNm4RW3uL45S+BDa5vTIOAQuilmNJ4tyOicGDeKzq0ighOVwSw+TUW+
-	 4uhsckpbfmYQcDvDlF9zSXb/bst1Sc/05SOMfPKk=
-Date: Sat, 24 Oct 2026 00:47:08 -0700
-To: mm-commits@vger.kernel.org,tglx@kernel.org,stable@vger.kernel.org,arnd@arndb.de,akpm@linux-foundation.org,dennylin0707@gmail.com
+	b=GjlAc9nOm6j9JGUqNiK73E1EeClGf99smZsIabrjocNHfMTjTuC6Mo4fAZaB6+kK8
+	 /jLR98cifrCenOSlZ7QHl2u/TNnNayNbC7IEA0eIJZp2a2xn6GjvO/d9Mo1ufLU0iW
+	 1n+xK+bRcCv+YZxfJfpI9WkCMjItO2K8l8aWcsoI=
+Date: Sat, 24 Oct 2026 00:47:15 -0700
+To: mm-commits@vger.kernel.org,andrew.jones@linux.dev,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] compat-avoid-double-rounding-in-times.patch removed from -mm tree
-Message-Id: <20261024074709.36BBE1F01825@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] mailmap-add-entries-for-andrew-jones.patch removed from -mm tree
+Message-Id: <20261024074716.0703B1F01829@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -51,59 +51,44 @@ Precedence: list
 
 
 The quilt patch titled
-     Subject: compat: avoid double rounding in times()
+     Subject: mailmap: add entries for Andrew Jones
 has been removed from the -mm tree.  Its filename was
-     compat-avoid-double-rounding-in-times.patch
+     mailmap-add-entries-for-andrew-jones.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Hungyu Lin <dennylin0707@gmail.com>
-Subject: compat: avoid double rounding in times()
-Date: Tue, 20 Oct 2026 21:01:57 +0000
+From: Andrew Jones <andrew.jones@linux.dev>
+Subject: mailmap: add entries for Andrew Jones
+Date: Thu, 22 Oct 2026 17:45:32 +0200
 
-do_sys_times() already converts CPU time to USER_HZ ticks.  The compat
-path converts each value back to jiffies before converting it to
-COMPAT_USER_HZ.  This round trip can lose precision even when the two
-userspace rates match.
+Use my linux.dev address for kernel correspondence, including for
+contributions made with my other email addresses.
 
-With HZ=250 and USER_HZ=COMPAT_USER_HZ=100, one user tick becomes two
-jiffies and then zero compat ticks.  Every odd tick count loses one tick,
-so any of the four tms fields can underreport CPU time by an additional 10
-ms.
-
-Return the value directly when the native and compat units match.  Keep
-the existing conversion for differing rates.
-
-Link: https://lore.kernel.org/20261020210157.52057-1-dennylin0707@gmail.com
-Fixes: f06febc96ba8 ("timers: fix itimer/many thread hang")
-Signed-off-by: Hungyu Lin <dennylin0707@gmail.com>
+Link: https://lore.kernel.org/20261022154532.1374661-1-andrew.jones@linux.dev
+Signed-off-by: Andrew Jones <andrew.jones@linux.dev>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: Thomas Gleixner <tglx@kernel.org>
-Cc: <stable@vger.kernel.org>
 ---
 
- kernel/sys.c |    3 +++
- 1 file changed, 3 insertions(+)
+ .mailmap |    4 ++++
+ 1 file changed, 4 insertions(+)
 
---- a/kernel/sys.c~compat-avoid-double-rounding-in-times
-+++ a/kernel/sys.c
-@@ -1077,6 +1077,9 @@ SYSCALL_DEFINE1(times, struct tms __user
- #ifdef CONFIG_COMPAT
- static compat_clock_t clock_t_to_compat_clock_t(clock_t x)
- {
-+	if (USER_HZ == COMPAT_USER_HZ)
-+		return x;
-+
- 	return compat_jiffies_to_clock_t(clock_t_to_jiffies(x));
- }
- 
+--- a/.mailmap~mailmap-add-entries-for-andrew-jones
++++ a/.mailmap
+@@ -88,6 +88,10 @@ Andrej Shadura <andrew@shadura.me> <andr
+ Andrew Donnellan <andrew+kernel@donnellan.id.au> <andrew@donnellan.id.au>
+ Andrew Donnellan <andrew+kernel@donnellan.id.au> <ajd@linux.ibm.com>
+ Andrew Donnellan <andrew+kernel@donnellan.id.au> <andrew.donnellan@au1.ibm.com>
++Andrew Jones <andrew.jones@linux.dev> <ajones@ventanamicro.com>
++Andrew Jones <andrew.jones@linux.dev> <andrew.jones@oss.qualcomm.com>
++Andrew Jones <andrew.jones@linux.dev> <anjones@nvidia.com>
++Andrew Jones <andrew.jones@linux.dev> <drjones@redhat.com>
+ Andrew Morton <akpm@linux-foundation.org>
+ Andrew Murray <amurray@thegoodpenguin.co.uk> <amurray@embedded-bits.co.uk>
+ Andrew Murray <amurray@thegoodpenguin.co.uk> <andrew.murray@arm.com>
 _
 
-Patches currently in -mm which might be from dennylin0707@gmail.com are
+Patches currently in -mm which might be from andrew.jones@linux.dev are
 
-mm-page-writeback-avoid-32-bit-overflow-in-dirty-threshold-shares.patch
 
