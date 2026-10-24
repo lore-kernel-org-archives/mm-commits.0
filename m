@@ -1,45 +1,45 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1792832269;
-	b=BCxItJvbRarybGiPDAZXAXq2YhJg1hJ+riF0stqfzSJobD/lcRduG6VOlLcx+4ZHn/+Q
-	 uhpbgjCUVvkmdS88uZKK80nWywFWXLGQLsVWzVSu8e6WvEEJXZ4bJurFEHJURaRAAkKDL
-	 RKlRgnLdHYMQv3jE+ARs0dKZatqnmNG3MZ1uddQhVaWhn15Lzgva1XyJzqq6GE9sO3t3K
-	 Y9eaMR36o3XiHyYkHX9MJOV3V3SMpvtk7om2b4bGVi4c/oyLSfPDCv+56XysxmHuNJZa3
-	 ibTXeVLJxg82ipy8QdqHb7GwKwXASVPCY9Fi1+ggg1kFDCBUJeSQ0b6fOx82CM8HYFQ==
+	t=1792832272;
+	b=2QS/CckLKOpCtixEJZODan2YuOrJsfPWEWSnIasB4n/xHw2lXSg0CSXp4Tha//sv2mQy
+	 F83iSGE7iuWJs+d0xP3VAfnKKZoWs0ESDO+b0JH6rRgJ6y/2BRCebPwZffAHQrr+RAaAZ
+	 GwzLIYxOXKzh9B69OSmoAy4rDYIxmbYuxyC0vBqiSSHz7RbWa2co0iQmOxu7GJhuri5PR
+	 SjxeVtiH7X/cFlxFNvMPnY5Ga0viqiUtZOt4tM2G/7FWT4epklAUbv6sPs59fRSvz10S8
+	 6zxKZ9dxyGu2Z8+BQW4/uTfPYNZVNsrX4seZCOiigjyLFe//pzGdecNZ1ywstGZB6zg==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1792832269;
+	a=rsa-sha256; c=relaxed/relaxed; t=1792832272;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=wmJSNhu0dDY7Ak17D0NxY3aUCXS0y0OxBb9xni3cNy4=;
-	b=x/F358NbGRwJxzO7MJf35Qy23hzEGEcV6/MfwaWP26x7iCWAhl4pzRJIgVXLRcYC22v5
-	 9ivGXI9E79tshsJpVqcSJWwvyUl1Fnr5diXEecd6ha41lixG49k2whXSN9O7ov8o9b/Si
-	 VcuVk/mW/Zdfd0irt99EOYMb254mnk9olnM6eXo17FzfKdRrPPoYtrbV1Aqsw0EHymPfa
-	 Lh6SFEFle2uoqOCuGsLqLFwpPQhBNEa0dEMMy6NboW99wQi7gZ5mrRqFEK9TYhs7ZOiis
-	 Qns4uyb8HW4A+S45NXZnG185wYA/rvbXQr57GmbbDK1cVE7bIe5uen+wRQk4/2XT92Q==
+	bh=iyiVgTtQwPQVjnhUmhPtBpxiC2kJK4/RPFoMK3Jg3og=;
+	b=YWr2nHiu8E9hXop7GrA5g1IY8XJHc1RKrMA0UVCznDf/mYryL/KWPaR3AY4ooLW2+LyM
+	 Kva69cYjV07kCwNzGOpkSqe5LG+t9mODme0+yE8uCC7hcc0kqEEdMCLEA8in/NIbJBlw6
+	 1Hv0nsNwbOuQ86/bRTC+zMC67XNfLTDj3Jcph8q1lPmA+W39NNxkBBfKJyg5uUiJJRCQr
+	 x8cQU2LUyEgDDh5UmGlGE61SWaHqxHInz6QwCnKfF1f7VNyVZXxOcwUrgVvJ8lCQwb/pC
+	 X6jUAk6wj7rYuUctetkVwNHJ3RW21Oc7aJ+j9c93ocP2ac4qk0mpAEQswdomZl9aDkA==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b="pNZD/W1k";
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=siigPbTq;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 46F10606A31A
-	for <mm-commits@vger.kernel.org>; Sat, 24 Oct 2026 08:57:49 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B2750606A31A
+	for <mm-commits@vger.kernel.org>; Sat, 24 Oct 2026 08:57:51 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=pNZD/W1k
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C98451F01825;
-	Sat, 24 Oct 2026 08:57:48 +0000 (UTC)
+	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=siigPbTq
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3F77E1F01825;
+	Sat, 24 Oct 2026 08:57:51 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1792832268;
-	bh=wmJSNhu0dDY7Ak17D0NxY3aUCXS0y0OxBb9xni3cNy4=;
+	d=linux-foundation.org; s=korg; t=1792832271;
+	bh=iyiVgTtQwPQVjnhUmhPtBpxiC2kJK4/RPFoMK3Jg3og=;
 	h=Date:To:From:Subject;
-	b=pNZD/W1kveLbItr0j6xchafiNrA6o0xSi4b3ILtlrMtGGOm2DZ7LCfqbkPR0z71Ws
-	 AfKiqghcKiJPog24wGjSftMVTQefPNR8WOs8/H/ZDJK4UPZrAZxSgrRoN6t4trkT/x
-	 85E3BBDQxDfchV1121bECJrVusFnP9vQMXh7e0yQ=
-Date: Sat, 24 Oct 2026 01:57:48 -0700
-To: mm-commits@vger.kernel.org,osalvador@suse.de,muchun.song@linux.dev,david@kernel.org,aiqi.i7@bytedance.com,lizhe.67@bytedance.com,akpm@linux-foundation.org
+	b=siigPbTqpkzLIp5IXe9oLQXRs9pe4BVlnqE83ZhTNopFiIPfIvnqePs43wfhyQGuF
+	 JxDQudJYfYkpxUq0xsLNXCZADZat+GusyuVlnvSrTqvTRALtCZOoH9VE7fplspKcAq
+	 HBKc3TAOYvvTH8p55KIWhEyMbrx8e3PmhXzze2RA=
+Date: Sat, 24 Oct 2026 01:57:50 -0700
+To: mm-commits@vger.kernel.org,vbabka@kernel.org,usama.anjum@arm.com,surenb@google.com,shuah@kernel.org,rppt@kernel.org,mhocko@suse.com,ljs@kernel.org,liam@infradead.org,gourry@gourry.net,david@kernel.org,brendan.jackman@linux.dev,ts930@dgu.ac.kr,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-hugetlb-fix-overbroad-mmu-notifiers-for-unshared-pmds.patch removed from -mm tree
-Message-Id: <20261024085748.C98451F01825@smtp.kernel.org>
+Subject: [merged mm-stable] selftests-mm-fix-mlock2-errno-handling-and-false-pass-on-enosys.patch removed from -mm tree
+Message-Id: <20261024085751.3F77E1F01825@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -51,175 +51,141 @@ Precedence: list
 
 
 The quilt patch titled
-     Subject: mm/hugetlb: fix overbroad MMU notifiers for unshared PMDs
+     Subject: selftests/mm: fix mlock2 errno handling and false PASS on ENOSYS
 has been removed from the -mm tree.  Its filename was
-     mm-hugetlb-fix-overbroad-mmu-notifiers-for-unshared-pmds.patch
+     selftests-mm-fix-mlock2-errno-handling-and-false-pass-on-enosys.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: "Li Zhe" <lizhe.67@bytedance.com>
-Subject: mm/hugetlb: fix overbroad MMU notifiers for unshared PMDs
-Date: Mon, 28 Sep 2026 10:47:23 +0800
+From: Park Tae-sun <ts930@dgu.ac.kr>
+Subject: selftests/mm: fix mlock2 errno handling and false PASS on ENOSYS
+Date: Wed, 23 Sep 2026 18:26:48 +0900
 
-Hugetlb currently expands MMU notifier ranges to PUD boundaries whenever
-PMD sharing is possible.  That is only needed when huge_pmd_unshare()
-actually detaches a shared PMD page table, because clearing the PUD
-invalidates the whole PUD-sized virtual address range.
+While inspecting selftests/mm syscall wrappers, I noticed that mlock2_()
+in mlock2.h handles the syscall return value differently from other
+wrappers:
 
-For hugetlbfs hole punch, and similarly for other hugetlb unmap paths, a
-shared mapping can pass the "PMD sharing is possible" range test in
-adjust_range_if_pmd_sharing_possible() even when the hugetlbfs file does
-not currently have any shared PMD page tables.  KVM then receives a 1G
-invalidation for a 2M operation and zaps unrelated secondary mappings, so
-the guest has to fault them back in.
+    int ret = syscall(__NR_mlock2, start, len, flags);
+    if (ret) {
+        errno = ret;
+        return -1;
+    }
 
-Avoid this by tracking active PMD-sharing attachments per hugetlbfs inode.
-The count is incremented only after huge_pmd_share() successfully
-installs a shared PMD table, and decremented when __huge_pmd_unshare()
-actually detaches one.  Since huge_pmd_share() can run concurrently under
-i_mmap_lock_read(), use a 64-bit atomic counter.  A zero count is used to
-skip the conservative notifier range expansion only after excluding
-concurrent PMD sharing with the mapping write lock.
+Commit 1ddae9d67ee1 ("selftests/mm/mlock: print error on failure")
+introduced this intending to make mlock2_() behave like libc by setting
+errno and returning -1.  However, glibc syscall(2) already returns -1 on
+failure and sets positive errno.  Assigning "errno = ret;" overwrites
+errno with -1.
 
-On a Redis-in-VM workload that punches cold 2M hugetlb pages, this patch
-improves P99 QPS stability while punching pages, reducing the QPS
-degradation ratio from 7.09% to 1.45%.
+To verify this, mlock2 was disabled in the kernel (via sys_ni_syscall) to
+return -ENOSYS. Testing revealed two interrelated defects:
 
-Link: https://lore.kernel.org/20260928024723.87708-1-lizhe.67@bytedance.com
-Signed-off-by: Li Zhe <lizhe.67@bytedance.com>
+1. In the unmodified test, mlock2_() clobbered errno to -1. The check
+   "if (ret && errno == ENOSYS)" in main() was bypassed, resulting in an
+   immediate crash in the first test:
+
+       ~ # ./mlock2-tests
+       TAP version 13
+       1..15
+       Bail out! mlock2(0): Unknown error -1
+       # Planned tests != run tests (15 != 0)
+       # Totals: pass:0 fail:0 xfail:0 xpass:0 skip:0 error:0
+       (exit code: 1 - FAIL)
+
+2. After restoring mlock2_() to directly return syscall(), errno correctly
+   retained ENOSYS (38), entering the ENOSYS check in main(). However, it
+   then called ksft_finished():
+
+       ~ # ./mlock2-tests
+       TAP version 13
+       # Totals: pass:0 fail:0 xfail:0 xpass:0 skip:0 error:0
+       ~ # echo $?
+       0
+
+   Because ksft_set_plan() had not been called yet (ksft_plan == 0) and
+   zero tests ran (ksft_pass == 0), ksft_finished() evaluated 0 == 0 as
+   success and exited with KSFT_PASS (code 0) without any TAP skip header.
+
+Fix both issues by:
+1. Returning the syscall() result directly in mlock2_() so that errno is
+   preserved.
+2. Calling ksft_exit_skip() on ENOSYS so unsupported kernels report a TAP
+   skip ("1..0 # SKIP ...") and exit with KSFT_SKIP (code 4).
+
+Verification on the mlock2-disabled kernel:
+
+    ~ # ./mlock2-tests
+    TAP version 13
+    1..0 # SKIP mlock2() syscall is not supported
+    ~ # echo $?
+    4
+
+Re-enabling mlock2 in the kernel confirmed all 15 tests pass cleanly:
+
+    ~ # ./mlock2-tests
+    TAP version 13
+    1..15
+    ok 1 test_mlock_lock: Locked
+    ...
+    ok 15 test_mlockall_future_droppable: droppable memory not locked
+    # Totals: pass:15 fail:0 xfail:0 xpass:0 skip:0 error:0
+    ~ # echo $?
+    0
+
+Link: https://lore.kernel.org/20260923-selftests-mm-mlock2-fix-v1-1-750b627854c6@dgu.ac.kr
+Fixes: 1ddae9d67ee1 ("selftests/mm/mlock: print error on failure")
+Fixes: 65c89684896d ("selftests/mm: mlock2-tests: conform test to TAP format output")
+Signed-off-by: Park Tae-sun <ts930@dgu.ac.kr>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Reported-by: aiqi.i7 <aiqi.i7@bytedance.com>
-Acked-by: Muchun Song <muchun.song@linux.dev>
-Cc: David Hildenbrand <david@kernel.org>
-Cc: Oscar Salvador <osalvador@suse.de>
+Reviewed-by: Gregory Price <gourry@gourry.net>
+Acked-by: David Hildenbrand (Arm) <david@kernel.org>
+Reviewed-by: Muhammad Usama Anjum <usama.anjum@arm.com>
+Cc: Lorenzo Stoakes <ljs@kernel.org>
+Cc: Liam R. Howlett <liam@infradead.org>
+Cc: Vlastimil Babka <vbabka@kernel.org>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Shuah Khan <shuah@kernel.org>
+Cc: Brendan Jackman <brendan.jackman@linux.dev>
 ---
 
- fs/hugetlbfs/inode.c    |    1 +
- include/linux/hugetlb.h |   37 +++++++++++++++++++++++++++++++++++++
- mm/hugetlb.c            |   13 ++++++++++---
- 3 files changed, 48 insertions(+), 3 deletions(-)
+ tools/testing/selftests/mm/mlock2-tests.c |    2 +-
+ tools/testing/selftests/mm/mlock2.h       |    8 +-------
+ 2 files changed, 2 insertions(+), 8 deletions(-)
 
---- a/fs/hugetlbfs/inode.c~mm-hugetlb-fix-overbroad-mmu-notifiers-for-unshared-pmds
-+++ a/fs/hugetlbfs/inode.c
-@@ -921,6 +921,7 @@ static struct inode *hugetlbfs_get_inode
- 		simple_inode_init_ts(inode);
- 		info->resv_map = resv_map;
- 		info->seals = F_SEAL_SEAL;
-+		hugetlbfs_pmd_sharing_init(inode);
- 		switch (mode & S_IFMT) {
- 		default:
- 			init_special_inode(inode, mode, dev);
---- a/include/linux/hugetlb.h~mm-hugetlb-fix-overbroad-mmu-notifiers-for-unshared-pmds
-+++ a/include/linux/hugetlb.h
-@@ -12,6 +12,7 @@
- #include <linux/page_ref.h>
- #include <linux/list.h>
- #include <linux/kref.h>
-+#include <linux/atomic.h>
- #include <linux/pgtable.h>
- #include <linux/gfp.h>
- #include <linux/userfaultfd_k.h>
-@@ -508,6 +509,9 @@ struct hugetlbfs_inode_info {
- 	struct inode vfs_inode;
- 	struct resv_map *resv_map;
- 	unsigned int seals;
-+#ifdef CONFIG_HUGETLB_PMD_PAGE_TABLE_SHARING
-+	atomic64_t pmd_sharing_count;
-+#endif
- };
+--- a/tools/testing/selftests/mm/mlock2.h~selftests-mm-fix-mlock2-errno-handling-and-false-pass-on-enosys
++++ a/tools/testing/selftests/mm/mlock2.h
+@@ -6,13 +6,7 @@
  
- static inline struct hugetlbfs_inode_info *HUGETLBFS_I(struct inode *inode)
-@@ -515,6 +519,39 @@ static inline struct hugetlbfs_inode_inf
- 	return container_of(inode, struct hugetlbfs_inode_info, vfs_inode);
+ static int mlock2_(void *start, size_t len, int flags)
+ {
+-	int ret = syscall(__NR_mlock2, start, len, flags);
+-
+-	if (ret) {
+-		errno = ret;
+-		return -1;
+-	}
+-	return 0;
++	return syscall(__NR_mlock2, start, len, flags);
  }
  
-+#ifdef CONFIG_HUGETLB_PMD_PAGE_TABLE_SHARING
-+static inline void hugetlbfs_pmd_sharing_init(struct inode *inode)
-+{
-+	atomic64_set(&HUGETLBFS_I(inode)->pmd_sharing_count, 0);
-+}
-+
-+static inline void hugetlbfs_pmd_sharing_inc(struct inode *inode)
-+{
-+	atomic64_inc(&HUGETLBFS_I(inode)->pmd_sharing_count);
-+}
-+
-+static inline void hugetlbfs_pmd_sharing_dec(struct inode *inode)
-+{
-+	atomic64_dec(&HUGETLBFS_I(inode)->pmd_sharing_count);
-+}
-+
-+static inline bool hugetlbfs_pmd_sharing_active(struct inode *inode)
-+{
-+	return atomic64_read(&HUGETLBFS_I(inode)->pmd_sharing_count) != 0;
-+}
-+#else
-+static inline void hugetlbfs_pmd_sharing_init(struct inode *inode) {}
-+
-+static inline void hugetlbfs_pmd_sharing_inc(struct inode *inode) {}
-+
-+static inline void hugetlbfs_pmd_sharing_dec(struct inode *inode) {}
-+
-+static inline bool hugetlbfs_pmd_sharing_active(struct inode *inode)
-+{
-+	return false;
-+}
-+#endif
-+
- extern const struct vm_operations_struct hugetlb_vm_ops;
- struct file *hugetlb_file_setup(const char *name, size_t size, vma_flags_t acct,
- 				int creat_flags, int page_size_log);
---- a/mm/hugetlb.c~mm-hugetlb-fix-overbroad-mmu-notifiers-for-unshared-pmds
-+++ a/mm/hugetlb.c
-@@ -5427,10 +5427,12 @@ void __hugetlb_zap_begin(struct vm_area_
- 	if (!vma->vm_file)	/* hugetlbfs_file_mmap error */
- 		return;
+ static FILE *seek_to_smaps_entry(unsigned long addr)
+--- a/tools/testing/selftests/mm/mlock2-tests.c~selftests-mm-fix-mlock2-errno-handling-and-false-pass-on-enosys
++++ a/tools/testing/selftests/mm/mlock2-tests.c
+@@ -502,7 +502,7 @@ int main(int argc, char **argv)
  
--	adjust_range_if_pmd_sharing_possible(vma, start, end);
- 	hugetlb_vma_lock_write(vma);
--	if (vma->vm_file)
-+	if (vma->vm_file) {
- 		i_mmap_lock_write(vma->vm_file->f_mapping);
-+		if (hugetlbfs_pmd_sharing_active(file_inode(vma->vm_file)))
-+			adjust_range_if_pmd_sharing_possible(vma, start, end);
-+	}
- }
+ 	ret = mlock2_(map, size, MLOCK_ONFAULT);
+ 	if (ret && errno == ENOSYS)
+-		ksft_finished();
++		ksft_exit_skip("mlock2() syscall is not supported\n");
  
- void __hugetlb_zap_end(struct vm_area_struct *vma,
-@@ -5469,7 +5471,10 @@ void unmap_hugepage_range(struct vm_area
+ 	munmap(map, size);
  
- 	mmu_notifier_range_init(&range, MMU_NOTIFY_CLEAR, 0, vma->vm_mm,
- 				start, end);
--	adjust_range_if_pmd_sharing_possible(vma, &range.start, &range.end);
-+	i_mmap_assert_write_locked(vma->vm_file->f_mapping);
-+	if (hugetlbfs_pmd_sharing_active(file_inode(vma->vm_file)))
-+		adjust_range_if_pmd_sharing_possible(vma, &range.start,
-+						     &range.end);
- 	mmu_notifier_invalidate_range_start(&range);
- 	tlb_gather_mmu(&tlb, vma->vm_mm);
- 
-@@ -7101,6 +7106,7 @@ pte_t *huge_pmd_share(struct mm_struct *
- 	if (pud_none(*pud)) {
- 		pud_populate(mm, pud,
- 				(pmd_t *)((unsigned long)spte & PAGE_MASK));
-+		hugetlbfs_pmd_sharing_inc(file_inode(vma->vm_file));
- 		mm_inc_nr_pmds(mm);
- 	} else {
- 		ptdesc_pmd_pts_dec(virt_to_ptdesc(spte));
-@@ -7132,6 +7138,7 @@ static int __huge_pmd_unshare(struct mmu
- 	pud_clear(pud);
- 
- 	tlb_unshare_pmd_ptdesc(tlb, virt_to_ptdesc(ptep), addr);
-+	hugetlbfs_pmd_sharing_dec(file_inode(vma->vm_file));
- 
- 	mm_dec_nr_pmds(mm);
- 	return 1;
 _
 
-Patches currently in -mm which might be from lizhe.67@bytedance.com are
+Patches currently in -mm which might be from ts930@dgu.ac.kr are
 
-mm-hugetlb-fix-mremap-move-length-truncation.patch
-mm-hugetlb-fix-mremap-deadlock-when-pmd-sharing-is-possible.patch
 
