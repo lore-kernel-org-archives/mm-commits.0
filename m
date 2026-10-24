@@ -1,45 +1,45 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1792828042;
-	b=BW0rImqaaCWyM87QW9UxNwiODrEtLtffGLySI1+oSQyFQBSRBpk7dxlYsg+7HsQlkbHF
-	 WErxBeyVkhofBBo0pJdWBSvx494zO3NTcT41kMDapND7QgnXUN2H4mwK3fh9M+wRq8VZi
-	 GUEwAQsgzz/DxHzWu/UcvWmou+FEm3oWOmH6xKiSDmJUbX4ULp9LpXmnQT+FGZ901oWFP
-	 9+PWfzCp7paflIbrogD1OnvOaBs99RnM5WGok9vm4rve6U2A+r1PMTAefcVF+h28WEmiN
-	 xNshdz2uZ4UR/mc12eTUT2wAY/mOycnh0hTst+vCAI2NrkD6TxVpL7P6L8QOeTLh71g==
+	t=1792828043;
+	b=bKxNGX9+Eu8dcM28OMqyLkWpCRvrFrh5ggxtRrSRMKwfpXUCtWcZ4Aj6uGL2fpTCUOKo
+	 d+bzKLqfMu/s1Yp0TovtoV4sQ6sGcvYuT5AQ4gOekKHlH2Uog3WdQSC4JgToICkvFf50v
+	 x5Ty2Tw2tHFPXSnCNCJdftW7oAzOgq66Kehpt4V4PfapsB76f/hWfxzPqeFA39msMVmLQ
+	 YXjuvAZLo9ZEeXhzV8AxCsQTEE2gi7+Yaw5kr3q2zS+6n0JXmZWygWG3Yhio0FWCDilKL
+	 VDfPCQNyfILcn2gKG/u8HZ6kgtUgDHR3ybW+tFRd0KwziCVrCtSJzs4injXTO4e4P0A==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1792828042;
+	a=rsa-sha256; c=relaxed/relaxed; t=1792828043;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=mn1BEchkJGdoCaKOLA4w6fiYmN3/C8fFfsm6HF47veY=;
-	b=TMVjf2SWikeWmiMx61lhRBIa55fcOl1rCG85SfQYNJWnsHtvz+0NKPeQ7ku4nLEafcZm
-	 pKsTeR1+oewuSs3MwXKm3PVN+ZVJ8dUkoib1Ojbmu2SLwRt24+CBYg/nH6/PvQa/3TPXU
-	 ILoEMXZFFHg2w/TuXcc3mfkyUHAV1rAuale/ewY0k9B0Py+dzrPhV2ueqj0bOkoRCzauc
-	 z0q8NHes08PjvyqzxYsynvfGE/HbeZeuCRM/c6J/cwMPEBGMFvxG/FzpMpPKMcCSZ8hQu
-	 V3ZZkzoqamwBJ7tyqL0UJ8MbvsYCC59Dt35vPYenOFXytXyqotmGkwefopzSsHmtDZQ==
+	bh=TixrSsr7XAv+7yfqTIR+qacZrhX8MDBC4j9eFs8DAMk=;
+	b=tNEloiYeua1JU0zg1sIft4xFM7g8C7ZisYV4p/WWwbCszlOuo7g8ADztHSoJbIR4RtUU
+	 vTFIncrjuCQr0kUDJE8Xuptexvlipqlx8dihQSdiKfie5s8Nhp1WEONMH5YZa56EV2a/j
+	 BYq2z6kQa9pR7hiXZ9JJgPRMn4k2RxYDzlSnKbRNkC20g6XA7+59vzWWCg+wOPiY9f9J1
+	 nzDx/fmPRgU+sHJuoTZD5JD3Yim3L2lDL+c7roya5XvMi5rQuATPvkTYrXrKsvx+r4MyE
+	 0yzA3pHOINZXMTg8+L0aKVwb/bWQ8yZi5fB2d7epZWj6z2KOOGbz0U6k8aW3/n1M6iw==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=OVFiBFFX;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=eSHayHn2;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3E993606A321;
-	Sat, 24 Oct 2026 07:47:22 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 25244606A321
+	for <mm-commits@vger.kernel.org>; Sat, 24 Oct 2026 07:47:23 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=OVFiBFFX
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id BEBD01F01825;
-	Sat, 24 Oct 2026 07:47:21 +0000 (UTC)
+	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=eSHayHn2
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E4EB71F01829;
+	Sat, 24 Oct 2026 07:47:22 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1792828041;
-	bh=mn1BEchkJGdoCaKOLA4w6fiYmN3/C8fFfsm6HF47veY=;
+	d=linux-foundation.org; s=korg; t=1792828043;
+	bh=TixrSsr7XAv+7yfqTIR+qacZrhX8MDBC4j9eFs8DAMk=;
 	h=Date:To:From:Subject;
-	b=OVFiBFFXB1G9qKWFcPlmVZsAGF9WBrOcWQdSAQRXcN2FulBMGWdGp2EkdjeVHQEur
-	 YNtMMvi4R8PdZfWiKBwm2A7m8xlh9T1Qb+m6puKu0A2eih9N7I6I2FRW1aenUAKipP
-	 53k/GoVSUmlyGEDk31f3YzDnWo6t/kFgS7lgxkvo=
-Date: Sat, 24 Oct 2026 00:47:21 -0700
-To: mm-commits@vger.kernel.org,stable@vger.kernel.org,mark@fasheh.com,joseph.qi@linux.alibaba.com,jlbec@evilplan.org,jjzuming@gmail.com,heming.zhao@suse.com,baijiaju1990@gmail.com,zzzccc427@gmail.com,akpm@linux-foundation.org
+	b=eSHayHn2OEvTcI5WDzYProA9z8cOO1RSxEkVpX0qwtBLG6Tg/gZ9eQpGG2MY/4tuT
+	 WQp2DWzTHkiSL4NqDtA7YaRjg4OZadmC3H5NdBPc+77OdNZKje6qfrK2w/Ie4PETiZ
+	 YXuQqEeoWLelO6Vn4c5UH5rvua5l/rVd8vs21huU=
+Date: Sat, 24 Oct 2026 00:47:22 -0700
+To: mm-commits@vger.kernel.org,kuan-ying.lee@canonical.com,kbingham@kernel.org,jan.kiszka@siemens.com,ue081723@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] ocfs2-cluster-remove-zero-address-nodes-from-ip-tree-on-teardown.patch removed from -mm tree
-Message-Id: <20261024074721.BEBD01F01825@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] scripts-gdb-fix-radix-tree-lookup-pointer-handling.patch removed from -mm tree
+Message-Id: <20261024074722.E4EB71F01829@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -51,69 +51,166 @@ Precedence: list
 
 
 The quilt patch titled
-     Subject: ocfs2/cluster: remove zero-address nodes from IP tree on teardown
+     Subject: scripts/gdb: fix radix tree lookup pointer handling
 has been removed from the -mm tree.  Its filename was
-     ocfs2-cluster-remove-zero-address-nodes-from-ip-tree-on-teardown.patch
+     scripts-gdb-fix-radix-tree-lookup-pointer-handling.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Cen Zhang <zzzccc427@gmail.com>
-Subject: ocfs2/cluster: remove zero-address nodes from IP tree on teardown
-Date: Tue, 20 Oct 2026 21:12:50 +0800
+From: Ting-Han Hou <ue081723@gmail.com>
+Subject: scripts/gdb: fix radix tree lookup pointer handling
+Date: Sun, 11 Oct 2026 10:30:43 +0800
 
-o2nm_node_ipv4_address_store() accepts 0.0.0.0. It sets
-O2NM_NODE_ATTR_ADDRESS and links nd_ip_node into cl_node_ip_tree under
-cl_nodes_lock, but o2nm_node_group_drop_item() uses nd_ipv4_address as a
-membership test. A zero address therefore leaves the rbtree node linked
-when config_item_put() releases and frees struct o2nm_node. A later
-address store or IP lookup can then walk the stale node and dereference
-freed memory.
+Patch series "scripts/gdb: fix radix tree lookup and stack depot
+diagnostic", v2.
 
-During teardown, drop_item takes cl_nodes_lock, skips rb_erase()
-for the zero key, and then calls config_item_put(). A later
-o2nm_node_ipv4_address_store() duplicate check or o2nm_get_node_by_ip()
-lookup takes the same lock and walks the stale cl_node_ip_tree entry. Use
-O2NM_NODE_ATTR_ADDRESS for teardown so every published nd_ip_node is
-erased before configfs can release the node, without rejecting 0.0.0.0
-or changing lookup semantics.
+Two scripts/gdb fixes.
 
-Link: https://lore.kernel.org/pm-ocfs2-node-ip-rbtree-zero-address-uaf-v5-e7f64be16b7c3b0988d1@gmail.com
-Fixes: 0c83ed8eeb28 ("[PATCH] OCFS2: The Second Oracle Cluster Filesystem")
-Signed-off-by: Cen Zhang <zzzccc427@gmail.com>
+Patch 1 fixes $lx_radix_tree_lookup(), which dereferenced slot contents
+as if they were node pointers. v2 also handles the XArray sibling,
+retry and zero entries that Sashiko pointed out: they carry the
+internal tag but are not node pointers, and the v1 patch raised a GDB
+MemoryError on them. Large folios in the page cache make sibling
+entries common, so this was worth fixing rather than documenting.
+
+Patch 2 is unchanged from v1 apart from being resent with git
+send-email, since the earlier copy was word-wrapped by the mail
+client. Sorry about that.
+
+Both patches are tested against standalone GCC-built fixtures that use
+the kernel struct layouts (details below the --- line of each patch),
+not against a running kernel.
+
+
+This patch (of 2):
+
+lookup() casts each slot to a pointer to a node pointer and then
+dereferences it. Since the slot already contains an entry pointer,
+this reads the entry's contents as another pointer instead of
+returning the entry itself. Internal entries also keep their tag
+bits when descending, so multi-level trees are read from the wrong
+address and $lx_radix_tree_lookup() fails with a memory error.
+
+Sibling, retry and zero entries carry the same internal tag but are
+small integers rather than node pointers, so the tag alone must not
+decide whether to descend. A page cache populated with large folios
+has a sibling entry in every slot but the first of each folio.
+
+Walk the tree the way xas_load() does: descend only through entries
+that xa_is_node() would accept, follow sibling entries to the
+canonical slot of a multi-index entry, and treat retry and zero
+entries like empty slots since they hold no data. Remove the explicit
+shift counter, as traversal now follows the entry type.
+
+Link: https://lore.kernel.org/20261011023044.1722-1-ue081723@gmail.com
+Link: https://lore.kernel.org/20261011023044.1722-2-ue081723@gmail.com
+Fixes: b7235d6bb516 ("scripts/gdb: add a Radix Tree Parser")
+Signed-off-by: Ting-Han Hou <ue081723@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Reviewed-by: Joseph Qi <joseph.qi@linux.alibaba.com>
 Assisted-by: LLM
-Cc: Mark Fasheh <mark@fasheh.com>
-Cc: Joel Becker <jlbec@evilplan.org>
-Cc: Heming Zhao <heming.zhao@suse.com>
-Cc: Jia-Ju Bai <baijiaju1990@gmail.com>
-Cc: <jjzuming@gmail.com>
-Cc: <stable@vger.kernel.org>
+Cc: Jan Kiszka <jan.kiszka@siemens.com>
+Cc: Kieran Bingham <kbingham@kernel.org>
+Cc: Kuan-Ying Lee <kuan-ying.lee@canonical.com>
 ---
 
- fs/ocfs2/cluster/nodemanager.c |    7 +++++--
- 1 file changed, 5 insertions(+), 2 deletions(-)
+ scripts/gdb/linux/radixtree.py |   68 ++++++++++++++++++-------------
+ 1 file changed, 41 insertions(+), 27 deletions(-)
 
---- a/fs/ocfs2/cluster/nodemanager.c~ocfs2-cluster-remove-zero-address-nodes-from-ip-tree-on-teardown
-+++ a/fs/ocfs2/cluster/nodemanager.c
-@@ -627,8 +627,11 @@ static void o2nm_node_group_drop_item(st
+--- a/scripts/gdb/linux/radixtree.py~scripts-gdb-fix-radix-tree-lookup-pointer-handling
++++ a/scripts/gdb/linux/radixtree.py
+@@ -27,6 +27,24 @@ def entry_to_node(node):
+     indirect_ptr = node.cast(long_type) & ~constants.LX_RADIX_TREE_INTERNAL_NODE
+     return indirect_ptr.cast(radix_tree_node_type.get_type().pointer())
  
- 	write_lock(&cluster->cl_nodes_lock);
++def is_node(entry):
++    # Like xa_is_node(): internal entries below 4096 are sibling, retry
++    # or zero entries rather than pointers to a struct xa_node.
++    ulong_type = utils.get_ulong_type()
++    return is_internal_node(entry) and entry.cast(ulong_type) > 4096
++
++def is_sibling(entry):
++    # Like xa_is_sibling(): a multi-index entry occupies several slots,
++    # and all but the first hold a sibling entry that encodes the offset
++    # of the first one.
++    ulong_type = utils.get_ulong_type()
++    return is_internal_node(entry) and entry.cast(ulong_type) < \
++        xa_mk_internal(constants.LX_RADIX_TREE_MAP_SIZE - 1)
++
++def sibling_offset(entry):
++    ulong_type = utils.get_ulong_type()
++    return int(entry.cast(ulong_type)) >> 2
++
+ def node_maxindex(node):
+     return (constants.LX_RADIX_TREE_MAP_SIZE << node['shift']) - 1
  
--	/* XXX sloppy */
--	if (node->nd_ipv4_address)
-+	/*
-+	 * 0.0.0.0 is a valid configured address, so nd_ipv4_address does
-+	 * not tell us whether nd_ip_node was published in the IP tree.
-+	 */
-+	if (test_bit(O2NM_NODE_ATTR_ADDRESS, &node->nd_set_attributes))
- 		rb_erase(&node->nd_ip_node, &cluster->cl_node_ip_tree);
+@@ -40,39 +58,35 @@ def resolve_root(root):
  
- 	/* nd_num might be 0 if the node number hasn't been set.. */
+ def lookup(root, index):
+     root = resolve_root(root)
+-    node = root['xa_head']
+-    if node == 0:
+-        return None
++    entry = root['xa_head']
+ 
+-    if not (is_internal_node(node)):
+-        if (index > 0):
++    if is_node(entry):
++        node = entry_to_node(entry)
++        if index > node_maxindex(node):
+             return None
+-        return node
+-
+-    node = entry_to_node(node)
+-    maxindex = node_maxindex(node)
+ 
+-    if (index > maxindex):
++        # Walk down the tree like xas_load() does.
++        while True:
++            offset = (index >> node['shift']) & constants.LX_RADIX_TREE_MAP_MASK
++            entry = node['slots'][offset]
++
++            while is_sibling(entry):
++                entry = node['slots'][sibling_offset(entry)]
++                if node['shift'] and is_node(entry):
++                    # xas_descend() turns this into a retry entry.
++                    return None
++
++            if not is_node(entry) or node['shift'] == 0:
++                break
++            node = entry_to_node(entry)
++    elif index > 0:
+         return None
+ 
+-    shift = node['shift'] + constants.LX_RADIX_TREE_MAP_SHIFT
+-
+-    while True:
+-        offset = (index >> node['shift']) & constants.LX_RADIX_TREE_MAP_MASK
+-        slot = node['slots'][offset]
+-
+-        if slot == 0:
+-            return None
+-
+-        node = slot.cast(node.type.pointer()).dereference()
+-        if node == 0:
+-            return None
+-
+-        shift -= constants.LX_RADIX_TREE_MAP_SHIFT
+-        if (shift <= 0):
+-            break
++    # Empty slots and retry or zero entries hold no data.
++    if entry == 0 or is_internal_node(entry):
++        return None
+ 
+-    return node
++    return entry
+ 
+ def descend(parent, index):
+     offset = (index >> int(parent["shift"])) & constants.LX_RADIX_TREE_MAP_MASK
 _
 
-Patches currently in -mm which might be from zzzccc427@gmail.com are
+Patches currently in -mm which might be from ue081723@gmail.com are
 
+scripts-gdb-fix-stack-depot-out-of-bounds-diagnostic.patch
 
