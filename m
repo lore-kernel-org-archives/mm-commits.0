@@ -1,45 +1,45 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1792832266;
-	b=XC/Bbmg+R6SNDH4Li+ZROdbxBK5jiWAEiY4P6mofXqUnbL2YpvwqQ3HOUHUo2kJ058u5
-	 J1lKt8rjoMdGt+FeogkfRYWzid3znv22MFLGBZyX8hkS3tIXtPJgNZczZDsY6u6AGF5wJ
-	 S0H8+RrAMTBJpa+heDvlpb/d+2v/CeRpHy1IPV1iUdYmACFo6E2sjYJM5bErmQp96rCH4
-	 K45XBxvgLYQf6HBPvKU0+YUvF6c/JGOhKTYL9rUwOnwqFbYe10AJ4Uj1MA39OFy8Uu16H
-	 kD2aGtWfGGDffho5OgMrXrrjjJoUa16EWFysiQDsQfDpif1GIh50duTcwY25nwb8oXw==
+	t=1792832267;
+	b=aLg9Up5XTiTNG+wprs36BHvCjAbxSWcFL0GRC9DTuL+UR/BpjLM57hOJCdbMHcC/TAQ5
+	 GTvudY4DzLHRb3zlZu7ZDesifqwb0wPNj8D6LYrVPokzOs/CKL3OnLImo0CMpI1L6Gua9
+	 FV/9YqP8sA34lnjN4L/vZjq7fH/yaNHmDPTa0tR7rXSq+R0rUSiDEuGtr+HIoi3chmNbX
+	 btxz29Ca0nRLMBTixGor97xGacbyiTY2Ja1xElXBUKxAwc+HVRNmmlapW8wxFiET1Pm+8
+	 SuCF0q0lg3DA/bAt1cPqIUzzGvtPfQZ1xKddib0lpAH8nKnIahXGd/XVY3eYtzAaqAQ==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1792832266;
+	a=rsa-sha256; c=relaxed/relaxed; t=1792832267;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=ctagBqooCi6B1M+jthZL4ZzlPxj4vqjV7oSdkDn01K8=;
-	b=LzY2YG3KZz0qDHakREaaTLRTDLbbH68KeMOn8R9cl0fMIcfMEucjXLxPsUYV7fi4NNRl
-	 cGANqP+GN5pq1k9jG+bK4Q75GN1OeDvVrysbyBnQDn5yafwk79cHlgJY6XBnXxX9X9LRw
-	 8Wr+CQFpDCna5AlN+xK/iaNKicfZWkaeWVh66nKIXN229mqWy1F3oHGLW2qMTImst77NI
-	 0BUks9tlXwvCY7Z+dTUNRBmQEN1wkb3zP8PTDCCX5RLjHLjYzeVDGpCpDcONaXKA7juev
-	 ywsz0ikZwi6VLPkm7mJ8wI8AkAvqFOUyEi5G8ewiDYiPXPD+2TryP5zZo0IYupF3Qbg==
+	bh=hS3oX9QYcrwoKruIlzS8BfU0Q0Rf3s8UpYO03fZoEf8=;
+	b=UNdBqIfJRSPcn8EhTrg1FAyF0NPAJT3xIt7Po1fisLUBYA7ZuH5itd8atHUNrQI+LDoB
+	 TxHDqTYNPGWYm50NqgdusxP3X1FkvQDA65dV7EYiVIAEaVF/9yTHE0ro8vdJt8xB5ISMi
+	 lj7FIb2VI8z7IFpmn0GTvdBWwuiSpcLgftm/azzEaftvy65cSdE9s/I9/BlaWnF6gQRj4
+	 JjCNt1HCFYllhD+UZK+5c4TFMbz5F4L4XwvW1o9DRN88bErpb4FEbQ9NWeWNXRLA7cMbv
+	 n81AwRFeU/T4TEVWdC5fMMoougxNBx0coUInwrpGCZUlNk5VUARzX1FRX1kEXqhsI1w==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=v7x6+4gw;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=wUu5RmlQ;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1DF05606A31A
-	for <mm-commits@vger.kernel.org>; Sat, 24 Oct 2026 08:57:45 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EEF23606A31A
+	for <mm-commits@vger.kernel.org>; Sat, 24 Oct 2026 08:57:46 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=v7x6+4gw
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B2FA81F01829;
-	Sat, 24 Oct 2026 08:57:45 +0000 (UTC)
+	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=wUu5RmlQ
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B93841F01825;
+	Sat, 24 Oct 2026 08:57:46 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1792832265;
-	bh=ctagBqooCi6B1M+jthZL4ZzlPxj4vqjV7oSdkDn01K8=;
+	d=linux-foundation.org; s=korg; t=1792832266;
+	bh=hS3oX9QYcrwoKruIlzS8BfU0Q0Rf3s8UpYO03fZoEf8=;
 	h=Date:To:From:Subject;
-	b=v7x6+4gwtvYpH57b90FDUdy28448j7ZOAx4QXQnRlbF9JLpxD/dnzQ9LbdK3/f/i0
-	 dkIP0ivijwS2ID4tSSbpMzBupAU3vXzdL2P2knXRoTqDG/+q3S5BUdQTR3d+x1YXgh
-	 qLjzZrP914Loa7BwrVsXghF+Awc24G1mi+/CzPz8=
-Date: Sat, 24 Oct 2026 01:57:45 -0700
-To: mm-commits@vger.kernel.org,yuanchu@google.com,weixugc@google.com,shakeel.butt@linux.dev,roman.gushchin@linux.dev,qi.zheng@linux.dev,muchun.song@linux.dev,mhocko@kernel.org,ljs@kernel.org,kasong@tencent.com,hannes@cmpxchg.org,david@kernel.org,david@fromorbit.com,bfguo@icloud.com,baohua@kernel.org,axelrasmussen@google.com,bingfangguo@tencent.com,akpm@linux-foundation.org
+	b=wUu5RmlQ+rOfNHGOKBKaajEBJmJ7SjV51XcOyllUyaLCYwL+uaBlmjlqQ0ywTDknL
+	 s4ZxiW4c7ZcR5uIHpoVB+EmQGDdfzZA2/MMY6IbjvD7Z4eRFuBt752jcyTqAtffmq2
+	 nkutmMP2XpzHo2HoRh4PV3JUV/MW/OLCzfqgNgHw=
+Date: Sat, 24 Oct 2026 01:57:46 -0700
+To: mm-commits@vger.kernel.org,hanzhijian1991@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] memcg-move-memcg-private-id-refcount-to-objcg.patch removed from -mm tree
-Message-Id: <20261024085745.B2FA81F01829@smtp.kernel.org>
+Subject: [merged mm-stable] mm-fix-typos-in-various-comments.patch removed from -mm tree
+Message-Id: <20261024085746.B93841F01825@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -51,290 +51,221 @@ Precedence: list
 
 
 The quilt patch titled
-     Subject: memcg: move memcg private ID refcount to objcg
+     Subject: mm: fix typos in various comments
 has been removed from the -mm tree.  Its filename was
-     memcg-move-memcg-private-id-refcount-to-objcg.patch
+     mm-fix-typos-in-various-comments.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Bingfang Guo <bingfangguo@tencent.com>
-Subject: memcg: move memcg private ID refcount to objcg
-Date: Mon, 21 Sep 2026 14:16:27 +0800
+From: Zhijian Han <hanzhijian1991@gmail.com>
+Subject: mm: fix typos in various comments
+Date: Tue, 22 Sep 2026 11:18:43 +0800
 
-The memcg private ID is used by objects that can't afford storing a whole
-pointer and can outlive memcgs to track the memcg (notably swap entries). 
-The current design holds a refcount to the css, preventing the memcg from
-being freed.
+Fix spelling errors found by codespell in several mm source files:
 
-This patch unbinds the lifetime of memcgid from the memcg so it can be
-freed.  The idea is to move the refcount of memcgid to one of the memcg's
-objcg.  The objcg is stored in the global memcgid xarray instead and used
-for retrieving the online memcg from it.  So swapped out pages no longer
-pin the dying memcg.
+- "aray" -> "array" in include/linux/mm.h
+- "indiciate" -> "indicate" in include/linux/mm_types.h
+- "aggresive" -> "aggressive" in include/linux/mm_types.h
+- "progated" -> "propagated" in mm/huge_memory.c
+- "Pressumably" -> "Presumably" in mm/hugetlb.c
+- "fime" -> "time" in mm/hugetlb.c
+- "farest" -> "farthest" in mm/list_lru.c
+- "trivally" -> "trivially" in mm/madvise.c
+- "atmost" -> "at most" in mm/memcontrol.c
+- "splited" -> "split" in mm/memory-failure.c
+- "appliable" -> "applicable" in mm/memory.c
+- "incase" -> "in case" in mm/page_io.c
+- "contigous" -> "contiguous" in mm/vmalloc.c
+- "probablity" -> "probability" in mm/kfence/core.c
+- "possesss" -> "possesses" in mm/util.c
 
-After the change, a memcgid can refer to a non present memcg.  To handle
-this situation, when trying to get the original memcg from the id, compare
-the memcgid passed in with that of the memcg, and return NULL to indicate
-its death if they differ.  NULL checks are added for list_lru_walk_node(),
-workingset_test_recent() to skip dead memcgs.  For MGLRU recency test,
-mem_cgroup_lruvec() will substitute NULL with root_mem_cgroup.
+No functional changes.
 
-In the earlier patch, an extra xarray lookup was introduced in swap
-uncharging path.  Now that we have the objcg pointer in the function, the
-extra overhead can be removed by using it for putting directly.
-
-Link: https://lore.kernel.org/20260921-bingfangguo-memcgid-rework-v2-4-6c0637dc0edb@tencent.com
-Signed-off-by: Bingfang Guo <bingfangguo@tencent.com>
+Link: https://lore.kernel.org/20260922031843.2857104-1-hanzhijian1991@gmail.com
+Signed-off-by: Zhijian Han <hanzhijian1991@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Acked-by: Muchun Song <muchun.song@linux.dev>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Roman Gushchin <roman.gushchin@linux.dev>
-Cc: Shakeel Butt <shakeel.butt@linux.dev>
-Cc: Dave Chinner <david@fromorbit.com>
-Cc: Qi Zheng <qi.zheng@linux.dev>
-Cc: Kairui Song <kasong@tencent.com>
-Cc: Barry Song <baohua@kernel.org>
-Cc: Axel Rasmussen <axelrasmussen@google.com>
-Cc: Yuanchu Xie <yuanchu@google.com>
-Cc: Wei Xu <weixugc@google.com>
-Cc: David Hildenbrand <david@kernel.org>
-Cc: Lorenzo Stoakes <ljs@kernel.org>
-Cc: Bingfang Guo <bfguo@icloud.com>
 ---
 
- include/linux/memcontrol.h |    7 +--
- mm/list_lru.c              |    2 
- mm/memcontrol.c            |   73 +++++++++++++++++++++++++----------
- mm/workingset.c            |    2 
- 4 files changed, 60 insertions(+), 24 deletions(-)
+ include/linux/mm.h       |    2 +-
+ include/linux/mm_types.h |    4 ++--
+ mm/huge_memory.c         |    2 +-
+ mm/hugetlb.c             |    4 ++--
+ mm/kfence/core.c         |    2 +-
+ mm/list_lru.c            |    2 +-
+ mm/madvise.c             |    2 +-
+ mm/memcontrol.c          |    2 +-
+ mm/memory-failure.c      |    2 +-
+ mm/memory.c              |    2 +-
+ mm/page_io.c             |    2 +-
+ mm/util.c                |    2 +-
+ mm/vmalloc.c             |    2 +-
+ 13 files changed, 15 insertions(+), 15 deletions(-)
 
---- a/include/linux/memcontrol.h~memcg-move-memcg-private-id-refcount-to-objcg
-+++ a/include/linux/memcontrol.h
-@@ -180,6 +180,7 @@ struct obj_cgroup {
- 	struct percpu_ref refcnt;
- 	struct mem_cgroup *memcg;
- 	atomic_t nr_charged_bytes;
-+	refcount_t private_id_ref;
- 	union {
- 		struct list_head list; /* protected by objcg_lock */
- 		struct rcu_head rcu;
-@@ -225,9 +226,6 @@ struct mem_cgroup {
- 	/* vmpressure notifications. Written on every reclaim iteration. */
- 	struct vmpressure vmpressure;
- 
--	/* Written on every swap charge and uncharge. */
--	refcount_t private_id_ref;
--
- #ifdef CONFIG_MEMCG_NMI_SAFETY_REQUIRES_ATOMIC
- 	/* MEMCG_KMEM for nmi context */
- 	atomic_t		kmem_stat;
-@@ -324,6 +322,9 @@ struct mem_cgroup {
- 	unsigned long zswap_max;
- #endif
- 
-+	/* The objcg holding private memcg ID. */
-+	struct obj_cgroup *private_id_objcg;
-+
- 	/* Private memcg ID. Used to ID objects that outlive the cgroup */
- 	int private_id;
- 
---- a/mm/list_lru.c~memcg-move-memcg-private-id-refcount-to-objcg
-+++ a/mm/list_lru.c
-@@ -428,7 +428,7 @@ unsigned long list_lru_walk_node(struct
- 		xa_for_each(&lru->xa, index, mlru) {
- 			rcu_read_lock();
- 			memcg = mem_cgroup_from_private_id(index);
--			if (!mem_cgroup_tryget(memcg)) {
-+			if (!memcg || !mem_cgroup_tryget(memcg)) {
- 				rcu_read_unlock();
- 				continue;
- 			}
---- a/mm/memcontrol.c~memcg-move-memcg-private-id-refcount-to-objcg
-+++ a/mm/memcontrol.c
-@@ -4074,6 +4074,13 @@ static void memcg_wb_domain_size_changed
- #define MEM_CGROUP_ID_MAX	((1UL << MEM_CGROUP_ID_SHIFT) - 1)
- static DEFINE_XARRAY_ALLOC1(mem_cgroup_private_ids);
- 
-+static inline struct obj_cgroup *obj_cgroup_from_private_id(unsigned short id)
-+{
-+	lockdep_assert_once(rcu_read_lock_held());
-+
-+	return xa_load(&mem_cgroup_private_ids, id);
-+}
-+
- static void mem_cgroup_private_id_remove(struct mem_cgroup *memcg)
- {
- 	if (memcg->private_id > 0) {
-@@ -4082,34 +4089,44 @@ static void mem_cgroup_private_id_remove
- 	}
- }
- 
--static void __mem_cgroup_private_id_put(struct mem_cgroup *memcg, unsigned int n)
-+static void __mem_cgroup_private_id_put(struct obj_cgroup *objcg,
-+		unsigned short id, unsigned int n)
- {
--	if (refcount_sub_and_test(n, &memcg->private_id_ref)) {
--		mem_cgroup_private_id_remove(memcg);
-+	struct obj_cgroup *objcg_free;
- 
--		/* Memcg ID pins CSS */
--		css_put(&memcg->css);
-+	if (refcount_sub_and_test(n, &objcg->private_id_ref)) {
-+		objcg_free = xa_erase(&mem_cgroup_private_ids, id);
-+		VM_WARN_ON(objcg_free != objcg);
-+
-+		/* Memcg ID pins the objcg */
-+		obj_cgroup_put(objcg);
- 	}
- }
- 
- static inline void mem_cgroup_private_id_put(unsigned short id, unsigned int n)
- {
--	struct mem_cgroup *memcg;
-+	struct obj_cgroup *objcg;
- 
- 	lockdep_assert_in_rcu_read_lock();
- 
--	memcg = mem_cgroup_from_private_id(id);
--	__mem_cgroup_private_id_put(memcg, n);
-+	objcg = obj_cgroup_from_private_id(id);
-+	__mem_cgroup_private_id_put(objcg, id, n);
- }
- 
- static void mem_cgroup_private_id_kill(struct mem_cgroup *memcg)
- {
--	__mem_cgroup_private_id_put(memcg, 1);
-+	__mem_cgroup_private_id_put(memcg->private_id_objcg, memcg->private_id, 1);
- }
- 
- unsigned short mem_cgroup_private_id_get(struct mem_cgroup *memcg, unsigned int n)
- {
--	while (!refcount_add_not_zero(n, &memcg->private_id_ref)) {
-+	struct obj_cgroup *objcg;
-+
-+	lockdep_assert_once(rcu_read_lock_held());
-+
-+	objcg = memcg->private_id_objcg;
-+
-+	while (!refcount_add_not_zero(n, &objcg->private_id_ref)) {
- 		/*
- 		 * The root cgroup cannot be destroyed, so it's refcount must
- 		 * always be >= 1.
-@@ -4119,6 +4136,7 @@ unsigned short mem_cgroup_private_id_get
- 			break;
- 		}
- 		memcg = parent_mem_cgroup(memcg);
-+		objcg = memcg->private_id_objcg;
- 	}
- 
- 	return mem_cgroup_private_id(memcg);
-@@ -4129,11 +4147,25 @@ unsigned short mem_cgroup_private_id_get
-  * @id: the memcg id to look up
+--- a/include/linux/mm.h~mm-fix-typos-in-various-comments
++++ a/include/linux/mm.h
+@@ -4601,7 +4601,7 @@ static inline void mmap_action_simple_io
+  * @desc: The VMA descriptor for the VMA requiring kernel pags to be mapped.
+  * @start: The virtual address from which to map them.
+  * @pages: An array of struct page pointers describing the memory to map.
+- * @nr_pages: The number of entries in the @pages aray.
++ * @nr_pages: The number of entries in the @pages array.
+  */
+ static inline void mmap_action_map_kernel_pages(struct vm_area_desc *desc,
+ 		unsigned long start, struct page **pages,
+--- a/include/linux/mm_types.h~mm-fix-typos-in-various-comments
++++ a/include/linux/mm_types.h
+@@ -759,7 +759,7 @@ static inline struct anon_vma_name *anon
+ /*
+  * While __vma_enter_locked() is working to ensure are no read-locks held on a
+  * VMA (either while acquiring a VMA write lock or marking a VMA detached) we
+- * set the VM_REFCNT_EXCLUDE_READERS_FLAG in vma->vm_refcnt to indiciate to
++ * set the VM_REFCNT_EXCLUDE_READERS_FLAG in vma->vm_refcnt to indicate to
+  * vma_start_read() that the reference count should be left alone.
   *
-  * Caller must hold rcu_read_lock().
-+ *
-+ * @return: the memcg, or NULL if the memcg referred to is already dead.
+  * See the comment describing vm_refcnt in vm_area_struct for details as to
+@@ -1971,7 +1971,7 @@ enum {
+ /*
+  * MMF_HAS_PINNED: Whether this mm has pinned any pages.  This can be either
+  * replaced in the future by mm.pinned_vm when it becomes stable, or grow into
+- * a counter on its own. We're aggresive on this bit for now: even if the
++ * a counter on its own. We're aggressive on this bit for now: even if the
+  * pinned pages were unpinned later on, we'll still keep this bit set for the
+  * lifecycle of this mm, just for simplicity.
   */
- struct mem_cgroup *mem_cgroup_from_private_id(unsigned short id)
- {
-+	struct obj_cgroup *objcg;
-+	struct mem_cgroup *memcg;
-+
- 	WARN_ON_ONCE(!rcu_read_lock_held());
--	return xa_load(&mem_cgroup_private_ids, id);
-+
-+	objcg = obj_cgroup_from_private_id(id);
-+	if (!objcg)
-+		return NULL;
-+
-+	memcg = obj_cgroup_memcg(objcg);
-+	if (mem_cgroup_private_id(memcg) != id)
-+		return NULL;
-+
-+	return memcg;
- }
+--- a/mm/huge_memory.c~mm-fix-typos-in-various-comments
++++ a/mm/huge_memory.c
+@@ -3420,7 +3420,7 @@ static void __split_huge_pmd_locked(stru
+ 				swp_entry = make_readable_device_private_entry(
+ 							page_to_pfn(page + i));
+ 			/*
+-			 * Young and dirty bits are not progated via swp_entry
++			 * Young and dirty bits are not propagated via swp_entry
+ 			 */
+ 			entry = swp_entry_to_pte(swp_entry);
+ 			if (soft_dirty)
+--- a/mm/hugetlb.c~mm-fix-typos-in-various-comments
++++ a/mm/hugetlb.c
+@@ -5397,7 +5397,7 @@ void __unmap_hugepage_range(struct mmu_g
+ 			int rc = vma_needs_reservation(h, vma, address);
  
- struct mem_cgroup *mem_cgroup_get_from_id(u64 id)
-@@ -4380,9 +4412,10 @@ static int mem_cgroup_css_online(struct
- 				   FLUSH_TIME);
- 	lru_gen_online_memcg(memcg);
- 
--	/* Online state pins memcg ID, memcg ID pins CSS */
--	refcount_set(&memcg->private_id_ref, 1);
--	css_get(css);
-+	/* CSS pins memcg ID, memcg ID pins obj cgroup */
-+	memcg->private_id_objcg = objcg;
-+	refcount_set(&memcg->private_id_objcg->private_id_ref, 1);
-+	obj_cgroup_get(memcg->private_id_objcg);
- 
+ 			if (rc < 0)
+-				/* Pressumably allocate_file_region_entries failed
++				/* Presumably allocate_file_region_entries failed
+ 				 * to allocate a file_region struct. Clear
+ 				 * hugetlb_restore_reserve so that global reserve
+ 				 * count will not be incremented by free_huge_folio.
+@@ -5619,7 +5619,7 @@ retry_avoidcopy:
+ 	 * In order to determine where this is a COW on a MAP_PRIVATE mapping it
+ 	 * is enough to check whether the old_folio is anonymous. This means that
+ 	 * the reserve for this address was consumed. If reserves were used, a
+-	 * partial faulted mapping at the fime of fork() could consume its reserves
++	 * partial faulted mapping at the time of fork() could consume its reserves
+ 	 * on COW instead of the full address range.
+ 	 */
+ 	if (is_vma_resv_set(vma, HPAGE_RESV_OWNER) &&
+--- a/mm/kfence/core.c~mm-fix-typos-in-various-comments
++++ a/mm/kfence/core.c
+@@ -156,7 +156,7 @@ atomic_t kfence_allocation_gate = ATOMIC
+  * allocations of the same source filling up the pool.
+  *
+  * Assuming a range of 15%-85% unique allocations in the pool at any point in
+- * time, the below parameters provide a probablity of 0.02-0.33 for false
++ * time, the below parameters provide a probability of 0.02-0.33 for false
+  * positive hits respectively:
+  *
+  *	P(alloc_traces) = (1 - e^(-HNUM * (alloc_traces / SIZE)) ^ HNUM
+--- a/mm/list_lru.c~mm-fix-typos-in-various-comments
++++ a/mm/list_lru.c
+@@ -587,7 +587,7 @@ static int __memcg_list_lru_alloc(struct
+ 	 */
+ 	do {
+ 		/*
+-		 * Keep finding the farest parent that wasn't populated
++		 * Keep finding the farthest parent that wasn't populated
+ 		 * until found memcg itself.
+ 		 */
+ 		pos = memcg;
+--- a/mm/madvise.c~mm-fix-typos-in-various-comments
++++ a/mm/madvise.c
+@@ -1298,7 +1298,7 @@ static bool is_discard(int behavior)
+  * We are restricted from madvise()'ing mseal()'d VMAs only in very particular
+  * circumstances - discarding of data from read-only anonymous SEALED mappings.
+  *
+- * This is because users cannot trivally discard data from these VMAs, and may
++ * This is because users cannot trivially discard data from these VMAs, and may
+  * only do so via an appropriate madvise() call.
+  */
+ static bool can_madvise_modify(struct madvise_behavior *madv_behavior)
+--- a/mm/memcontrol.c~mm-fix-typos-in-various-comments
++++ a/mm/memcontrol.c
+@@ -741,7 +741,7 @@ static unsigned long *memcg_events_local
+  *
+  * 2) Flush the stats synchronously on reader side only when there are more than
+  *    (MEMCG_CHARGE_BATCH * nr_cpus) update events. Though this optimization
+- *    will let stats be out of sync by atmost (MEMCG_CHARGE_BATCH * nr_cpus) but
++ *    will let stats be out of sync by at most (MEMCG_CHARGE_BATCH * nr_cpus) but
+  *    only for 2 seconds due to (1).
+  */
+ static void flush_memcg_stats_dwork(struct work_struct *w);
+--- a/mm/memory.c~mm-fix-typos-in-various-comments
++++ a/mm/memory.c
+@@ -5069,7 +5069,7 @@ check_folio:
+ 	 * have changed, so sub pages might got charged to the wrong cgroup,
+ 	 * or even should be shmem. So we have to free it and fallback.
+ 	 * Nothing should have touched it, both anon and shmem checks if a
+-	 * large folio is fully appliable before use.
++	 * large folio is fully applicable before use.
+ 	 *
+ 	 * This will be removed once we unify folio allocation in the swap cache
+ 	 * layer, where allocation of a folio stabilizes the swap entries.
+--- a/mm/memory-failure.c~mm-fix-typos-in-various-comments
++++ a/mm/memory-failure.c
+@@ -2560,7 +2560,7 @@ try_again:
  	/*
- 	 * Ensure mem_cgroup_from_private_id() works once we're fully online.
-@@ -4394,7 +4427,7 @@ static int mem_cgroup_css_online(struct
- 	 * publish it here at the end of onlining. This matches the
- 	 * regular ID destruction during offlining.
+ 	 * We're only intended to deal with the non-Compound page here.
+ 	 * The page cannot become compound pages again as folio has been
+-	 * splited and extra refcnt is held.
++	 * split and extra refcnt is held.
  	 */
--	xa_store(&mem_cgroup_private_ids, memcg->private_id, memcg, GFP_KERNEL);
-+	xa_store(&mem_cgroup_private_ids, memcg->private_id, memcg->private_id_objcg, GFP_KERNEL);
+ 	WARN_ON(folio_test_large(folio));
  
- 	return 0;
- free_objcg:
-@@ -5832,8 +5865,6 @@ static void __init memcg_struct_check(vo
- 				      memory_events_local);
- 	CACHELINE_ASSERT_GROUP_MEMBER(struct mem_cgroup, memcg_write_hot,
- 				      vmpressure);
--	CACHELINE_ASSERT_GROUP_MEMBER(struct mem_cgroup, memcg_write_hot,
--				      private_id_ref);
- #ifdef CONFIG_MEMCG_NMI_SAFETY_REQUIRES_ATOMIC
- 	CACHELINE_ASSERT_GROUP_MEMBER(struct mem_cgroup, memcg_write_hot,
- 				      kmem_stat);
-@@ -5879,6 +5910,8 @@ static void __init memcg_struct_check(vo
- 				      zswap_writeback);
- #endif
- 	CACHELINE_ASSERT_GROUP_MEMBER(struct mem_cgroup, memcg_read_mostly,
-+				      private_id_objcg);
-+	CACHELINE_ASSERT_GROUP_MEMBER(struct mem_cgroup, memcg_read_mostly,
- 				      private_id);
- 	CACHELINE_ASSERT_GROUP_MEMBER(struct mem_cgroup, memcg_read_mostly,
- 				      kmemcg_id);
-@@ -6013,10 +6046,12 @@ int __mem_cgroup_try_charge_swap(struct
-  */
- void __mem_cgroup_uncharge_swap(unsigned short id, unsigned int nr_pages)
- {
-+	struct obj_cgroup *objcg;
- 	struct mem_cgroup *memcg;
- 
- 	rcu_read_lock();
--	memcg = mem_cgroup_from_private_id(id);
-+	objcg = obj_cgroup_from_private_id(id);
-+	memcg = obj_cgroup_memcg(objcg);
- 	if (memcg) {
- 		if (!mem_cgroup_private_id_is_root(id)) {
- 			if (do_memsw_account())
-@@ -6025,7 +6060,7 @@ void __mem_cgroup_uncharge_swap(unsigned
- 				page_counter_uncharge(&memcg->swap, nr_pages);
- 		}
- 		mod_memcg_state(memcg, MEMCG_SWAP, -nr_pages);
--		mem_cgroup_private_id_put(id, nr_pages);
-+		__mem_cgroup_private_id_put(objcg, id, nr_pages);
- 	}
- 	rcu_read_unlock();
- }
---- a/mm/workingset.c~memcg-move-memcg-private-id-refcount-to-objcg
-+++ a/mm/workingset.c
-@@ -470,7 +470,7 @@ bool workingset_test_recent(void *shadow
- 	 * configurations instead.
+--- a/mm/page_io.c~mm-fix-typos-in-various-comments
++++ a/mm/page_io.c
+@@ -135,7 +135,7 @@ static bool is_folio_zero_filled(struct
+ 	for (i = 0; i < folio_nr_pages(folio); i++) {
+ 		data = kmap_local_folio(folio, i * PAGE_SIZE);
+ 		/*
+-		 * Check last word first, incase the page is zero-filled at
++		 * Check last word first, in case the page is zero-filled at
+ 		 * the start and has non-zero data at the end, which is common
+ 		 * in real-world workloads.
+ 		 */
+--- a/mm/util.c~mm-fix-typos-in-various-comments
++++ a/mm/util.c
+@@ -1240,7 +1240,7 @@ EXPORT_SYMBOL(__compat_vma_mmap);
+ /**
+  * compat_vma_mmap() - Apply the file's .mmap_prepare() hook to an
+  * existing VMA and execute any requested actions.
+- * @file: The file which possesss an f_op->mmap_prepare() hook.
++ * @file: The file which possesses an f_op->mmap_prepare() hook.
+  * @vma: The VMA to apply the .mmap_prepare() hook to.
+  *
+  * Ordinarily, .mmap_prepare() is invoked directly upon mmap(). However, certain
+--- a/mm/vmalloc.c~mm-fix-typos-in-various-comments
++++ a/mm/vmalloc.c
+@@ -3685,7 +3685,7 @@ vm_area_alloc_pages(gfp_t gfp, int nid,
+ 	/*
+ 	 * Initially, attempt to have the page allocator give us large order
+ 	 * pages. Do not attempt allocating smaller than order chunks since
+-	 * __vmap_pages_range() expects physically contigous pages of exactly
++	 * __vmap_pages_range() expects physically contiguous pages of exactly
+ 	 * order long chunks.
  	 */
- 	eviction_memcg = mem_cgroup_from_private_id(memcgid);
--	if (!mem_cgroup_tryget(eviction_memcg))
-+	if (eviction_memcg && !mem_cgroup_tryget(eviction_memcg))
- 		eviction_memcg = NULL;
- 	rcu_read_unlock();
- 
+ 	while (large_order > order && nr_remaining) {
 _
 
-Patches currently in -mm which might be from bingfangguo@tencent.com are
+Patches currently in -mm which might be from hanzhijian1991@gmail.com are
 
 
