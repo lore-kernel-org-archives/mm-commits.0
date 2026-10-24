@@ -1,47 +1,47 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1792863567;
-	b=nThFV/6l2WTKtTFsFeiK/f+M5GZHq9/NSID40Rg2Hb8/Yq9879deKHsjHHolh1nukD1O
-	 tIsfzF9sf6LHsf03k+1ljYFviEdxfKIeor8wwJNw0BUuD+lSssCHzbljqgWKx9aP3uqHM
-	 pR+SRgCwVr4SeJP6WSBJj1DaO7I6nX8Gl4Bu09iB1Ykw7j9KPePL1ICQAtfNcjE7peWPF
-	 bZsaG21Bn54rU388H3IOczalxNriUgI8i43TBlA0SYDLiQY1SvioGkS8XQaDYcXGjOSFP
-	 B+bmM5+mJwYqc7uyzNPcGRtuTZiplhgD1GnX6F6b/hwlqEdZ1tvo1rEh3kqk4xBbblQ==
+	t=1792863571;
+	b=Ecz8eRT5y5wk+0L1rkoXu0puasTiH+VccAgULsnmi1BZ/NHOIY1Kkr28CxwAYgA0Sd32
+	 X5wF3SzHi7oD3AufCON9vnHNkzMMFLk0vlLGGj249S6puFcBzm0aWyJgN81AVcY6Vqc0+
+	 vUICGGxgfUEFdZuY1LhmjHOmJWKOoHLM4ubqxZs9vEoaK6mX4sOEerGCARyx/L4jJ2tp3
+	 Fy3MdQ9+H7byaJqSKLt/bSp8/mle6M7gf7fFrdps/cfV/7u7ltf/Sp2vMaZxAFpa66mhV
+	 9CJztGNpdqRbQ+8Rt/0Pjhs0s3FvwcYS4uXHdbQGnbJNcgUCgvAq/RPkMqvaJiRr8kA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1792863567;
+	a=rsa-sha256; c=relaxed/relaxed; t=1792863571;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=24VTtpU7Dzzd34erVhqVjh/Bp+5rAfJG7FTQknYCtpk=;
-	b=Y6FIWtd1NQUhOMsBUr3hxY35QcH0T4avQRcSrGWHWMxg3wrxC4+l/elHYBJhF0bIBxze
-	 eOleIfXag1Ar65hZkYAYLt4SEcA/7Zg9QrRcwsL0zilyk4iu4u4jIgSspWhmDjOn9goWE
-	 ZSNt7XnthcY5fpqjOxpTT0JrMQbNWXdR1aQQxmZAZYuWxi9LfUe0aBV3t+1cE0gBW6d3/
-	 X1+izOqkOL5LidGkZMm0uNSo3MNFEWfU4+4h7JV8xmRXZepklclCznjfWCCtFaeCAxx+6
-	 cq6sZq3c0MK/LxtIqhnENA9tp0zLA61wiRJ2cm9uens2EDm+k03G14yXO9gL6qy9Axw==
+	bh=rhJCZn+DiKdmnzDaQVMc9AOS84gxSKvW59YBsF7oblc=;
+	b=CoMCJABBTIS8tJ34HnE3G3KQUOydhhGuUTtZkEXrml++Wsx8TRRKa1rUIm+PMfPhrTr7
+	 JojzRZFr9AgrzNMWv3ABZwpxJ0ol30yUGRkkum8xEf9XnG9oCGwt13eqOR0T+rYwZAFgv
+	 KlFUr9yC+8N7duZ6YrUYb83swGQvsfZxeojJ2s3P1lsSQYoCv8B2dyfmVJ5rLANthk2uB
+	 2CUbfufbWvxH8UX5QIEHq/vi9FsELF0oQAY9IjygvaowsauVf2DMLUlL6Vs9G6WZod9Hu
+	 ta6buVAkh0qFUoH6L+ID7gCYXF6h7TuFcW3sKsGNIE9V7GSboCTVEs3QuHvfbkg62mg==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=ZRuvTnqr;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=JZRfxh+K;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9E5D6606A31A;
-	Sat, 24 Oct 2026 17:39:27 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 516D7606A31B;
+	Sat, 24 Oct 2026 17:39:31 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=ZRuvTnqr
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 16A201F01825;
-	Sat, 24 Oct 2026 17:39:27 +0000 (UTC)
+	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=JZRfxh+K
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E39791F01825;
+	Sat, 24 Oct 2026 17:39:30 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1792863567;
-	bh=24VTtpU7Dzzd34erVhqVjh/Bp+5rAfJG7FTQknYCtpk=;
+	d=linux-foundation.org; s=korg; t=1792863571;
+	bh=rhJCZn+DiKdmnzDaQVMc9AOS84gxSKvW59YBsF7oblc=;
 	h=Date:To:From:Subject;
-	b=ZRuvTnqrl1a8ACjOdeBnuaB4+VtJv9XIYoZxLVTO0uhzx6rzK8ERRZ+M/2a4efJUu
-	 N5fjX+frOgsJjMLW+v7nbie0yEbYMFsi7JKplffRHcHnxbEhewpzy0NtQP9Y9uatjG
-	 +TOSqCM/83LvU04KeKdDf0q3x5GQLFLZB/7RHTY0=
-Date: Sat, 24 Oct 2026 10:39:26 -0700
+	b=JZRfxh+KAAsIdy6TN0H2WRWh4EUSs1WWBn+Lv/hloOzNP2LZR1Qwf7SagTs9Z8HsT
+	 pf5pnrUuQohrTFObz5FCmkePN0IE6FbemfFtjUSITEIGIV0AcoweemtqwESDgG/9Oz
+	 J7rPmjqKBMsgdV78K4urEDAUDNWSzucmhkawLtdE=
+Date: Sat, 24 Oct 2026 10:39:30 -0700
 To: mm-commits@vger.kernel.org,stable@vger.kernel.org,mark@fasheh.com,
 	jlbec@evilplan.org,heming.zhao@suse.com,joseph.qi@linux.alibaba.com,
 	akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + ocfs2-find-the-xattr-entry-again-after-defragmenting-a-bucket.patch added to mm-nonmm-unstable branch
-Message-Id: <20261024173927.16A201F01825@smtp.kernel.org>
+Subject: + ocfs2-do-not-read-the-entry-array-of-an-empty-xattr-bucket.patch added to mm-nonmm-unstable branch
+Message-Id: <20261024173930.E39791F01825@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -53,12 +53,12 @@ Precedence: list
 
 
 The patch titled
-     Subject: ocfs2: find the xattr entry again after defragmenting a bucket
+     Subject: ocfs2: do not read the entry array of an empty xattr bucket
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     ocfs2-find-the-xattr-entry-again-after-defragmenting-a-bucket.patch
+     ocfs2-do-not-read-the-entry-array-of-an-empty-xattr-bucket.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/ocfs2-find-the-xattr-entry-again-after-defragmenting-a-bucket.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/ocfs2-do-not-read-the-entry-array-of-an-empty-xattr-bucket.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -77,33 +77,45 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Joseph Qi <joseph.qi@linux.alibaba.com>
-Subject: ocfs2: find the xattr entry again after defragmenting a bucket
-Date: Sat, 24 Oct 2026 23:10:08 +0800
+Subject: ocfs2: do not read the entry array of an empty xattr bucket
+Date: Sat, 24 Oct 2026 23:10:10 +0800
 
-ocfs2_xattr_set_entry_bucket() hands loc.xl_entry to ocfs2_xa_set() twice:
-once for the bucket as it stands, and, if that reports -ENOSPC, once more
-after ocfs2_defrag_xattr_bucket() has packed the name/value pairs down.
+ocfs2_check_xattr_bucket_collision() decides whether splitting a bucket
+can make room by comparing the hash being inserted against the first and
+the last entry.  xh_count comes off disk and is never checked, and a
+bucket is allowed to hold no entries: ocfs2_xa_remove_entry() keeps the
+last slot when it removes the only one, so that an empty bucket still
+carries the hash it is keyed by.  xh_count then reads back as 0 while
+xh_entries[0] is still meaningful, and the second comparison indexes
+xh_entries[-1].
 
-Defragmenting ends by sorting the entry array on xe_name_hash.  Buckets
-are kept sorted, so the sort only permutes entries that share a hash, but
-lib/sort.c is an unstable heapsort and it does permute them.  loc.xl_entry
-is an address inside xh_entries[], so afterwards it denotes whichever
-entry landed in that slot rather than the one the search found.
+That is outside the __counted_by_le(xh_count) bounds of xh_entries[] and
+lands on the header.  An entry is 16 bytes and xe_name_hash is its first
+field, so the value read is xh_count | xh_free_start << 16.  It stays
+inside the block, but the answer is arbitrary, and for an empty bucket
+it says there is no collision, so a new bucket gets added on the
+strength of it.
 
-The second ocfs2_xa_set() then works on the wrong entry.  Nothing on that
-path compares the entry's name with xi->xi_name, so what happens depends
-on how the two entries compare in size: ocfs2_xa_reuse_entry() trips its
-BUG_ON() when the padded name sizes differ, and otherwise the new value is
-written into the neighbouring attribute's value slot while the attribute
-being set is left untouched.  setxattr() reports success either way.
+An empty bucket holds no entries to collide with.  Return before reading
+the array.
 
-Remember the entry's hash before defragmenting and look the entry up
-again afterwards, the way ocfs2_xattr_bucket_find() does.  An entry that
-cannot be found again means the bucket no longer holds what the search
-found, so fail with -EFSCORRUPTED rather than writing through the stale
-pointer.
+One way to reach the test with an empty bucket is a set that removes the
+bucket's only entry during cleanup and then fails for space again, since
+it is that second -ENOSPC which calls this.  Growing a value past
+OCFS2_XATTR_INLINE_SIZE is the easy route: the cluster allocation fails,
+the "!orig_clusters" arm of ocfs2_xa_cleanup_value_truncate() removes
+the entry, and although the "growing" caller does set ctxt->set_abort,
+only ocfs2_xattr_block_set() and __ocfs2_xattr_set_handle() look at it,
+so ocfs2_xattr_set_entry_index_block() goes straight on to the collision
+check.
 
-Link: https://lore.kernel.org/20261024151012.1059683-3-joseph.qi@linux.alibaba.com
+This sits on commit a9ea8b397864 ("ocfs2: use the stored hash when
+checking xattr bucket collision"), which gave the collision check its two
+argument form and is marked for 6.2 and later.  The read fixed here is
+present in the three argument version too, but a tree without that
+commit needs the hunk adapted by hand.
+
+Link: https://lore.kernel.org/20261024151012.1059683-5-joseph.qi@linux.alibaba.com
 Fixes: 012255961c9e ("ocfs2: Enable xattr set in index btree")
 Signed-off-by: Joseph Qi <joseph.qi@linux.alibaba.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
@@ -113,61 +125,33 @@ Cc: Joel Becker <jlbec@evilplan.org>
 Cc: <stable@vger.kernel.org>
 ---
 
- fs/ocfs2/xattr.c |   30 +++++++++++++++++++++++++++++-
- 1 file changed, 29 insertions(+), 1 deletion(-)
+ fs/ocfs2/xattr.c |   11 ++++++++++-
+ 1 file changed, 10 insertions(+), 1 deletion(-)
 
---- a/fs/ocfs2/xattr.c~ocfs2-find-the-xattr-entry-again-after-defragmenting-a-bucket
+--- a/fs/ocfs2/xattr.c~ocfs2-do-not-read-the-entry-array-of-an-empty-xattr-bucket
 +++ a/fs/ocfs2/xattr.c
-@@ -6052,13 +6052,18 @@ static int ocfs2_xattr_set_entry_bucket(
- 					struct ocfs2_xattr_search *xs,
- 					struct ocfs2_xattr_set_ctxt *ctxt)
+@@ -6061,11 +6061,20 @@ static int ocfs2_check_xattr_bucket_coll
+ 					      u32 name_hash)
  {
--	int ret;
-+	int ret, found = 0;
-+	u16 xe_index;
-+	u32 name_hash;
- 	struct ocfs2_xa_loc loc;
- 
- 	trace_ocfs2_xattr_set_entry_bucket(xi->xi_name);
- 
- 	ocfs2_init_xattr_bucket_xa_loc(&loc, xs->bucket,
- 				       xs->not_found ? NULL : xs->here);
-+	/* Defragmenting below may move this entry, so remember its hash. */
-+	name_hash = loc.xl_entry ? le32_to_cpu(loc.xl_entry->xe_name_hash) : 0;
+ 	struct ocfs2_xattr_header *xh = bucket_xh(bucket);
++	u16 count = le16_to_cpu(xh->xh_count);
 +
- 	ret = ocfs2_xa_set(&loc, xi, ctxt);
- 	if (!ret) {
- 		xs->here = loc.xl_entry;
-@@ -6077,6 +6082,29 @@ static int ocfs2_xattr_set_entry_bucket(
- 		goto out;
- 	}
- 
 +	/*
-+	 * ocfs2_defrag_xattr_bucket() sorts the entries by name hash and
-+	 * lib/sort.c is not stable, so entries sharing a hash may have traded
-+	 * slots.  Look the entry up again before writing through it.
++	 * An empty bucket keeps the hash of the entry that was removed in
++	 * xh_entries[0] so that it can still be found, but it holds no
++	 * entries to collide with.
 +	 */
-+	if (loc.xl_entry) {
-+		ret = ocfs2_find_xe_in_bucket(inode, xs->bucket,
-+					      xi->xi_name_index, xi->xi_name,
-+					      name_hash, &xe_index, &found);
-+		if (ret) {
-+			mlog_errno(ret);
-+			goto out;
-+		}
-+		if (!found) {
-+			mlog(ML_ERROR, "xattr entry not found in bucket %llu after defrag\n",
-+			     (unsigned long long)bucket_blkno(xs->bucket));
-+			ret = -EFSCORRUPTED;
-+			goto out;
-+		}
-+		loc.xl_entry = &bucket_xh(xs->bucket)->xh_entries[xe_index];
-+		xs->here = loc.xl_entry;
-+	}
-+
- 	ret = ocfs2_xa_set(&loc, xi, ctxt);
- 	if (!ret) {
- 		xs->here = loc.xl_entry;
++	if (!count)
++		return 0;
+ 
+ 	if (name_hash != le32_to_cpu(xh->xh_entries[0].xe_name_hash))
+ 		return 0;
+ 
+-	if (xh->xh_entries[le16_to_cpu(xh->xh_count) - 1].xe_name_hash ==
++	if (xh->xh_entries[count - 1].xe_name_hash ==
+ 	    xh->xh_entries[0].xe_name_hash) {
+ 		mlog(ML_ERROR, "Too much hash collision in xattr bucket %llu, "
+ 		     "hash = %u\n",
 _
 
 Patches currently in -mm which might be from joseph.qi@linux.alibaba.com are
