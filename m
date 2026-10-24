@@ -1,45 +1,45 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1792832446;
-	b=LfshXJfsgmRvhGXuCxO6aj8DOqyxleTsnQXGwJjHyrViUTgL4idudQVDt46jhysiN8Kx
-	 4QpWKUyx33PcBFgfaAvi8CzcwahJ1ztjfTeXUn2JsPRqF2uJZx1K2LQSAs0q7owCsFZfU
-	 r5J7RkKCROFATF1bQZMdYL72Gk3Of4lbVlQkvYTbVfnR5HtQhSFLu7Y87I/mN9sYVHH9z
-	 8ZYzuIiz0g5iYuTEiQLfvcypjsAFv54omItlJ9+4rPw627CZJxEXxMQMLkZBNtp7H5pKo
-	 d87jweWpjkHZw889TWwu1bm1ZLKgQupEWRiLdIseH/3mmDV91ykJvfdnLdX/AFqBKIA==
+	t=1792832447;
+	b=jonBILb7d3D3gpE/bOJXMaFnEF7J3HvQZkb9BgE2vqnABu7uaRfPwszXx5SzVWjYzi/s
+	 fYeylh5wZI7xK+7JLY6P+jo9x1uj4E9QX7ZZtQ8QAmCv0jfEK6ShdeNvLltMmdYqFCvQ9
+	 9CWms6/wt2ywI7NqQJU53YcNbReXjm+VM6HPHmBXNFDmP42JB+afhQ4GIOIC4RNZzZ9wT
+	 l29jeyznpCop7rE9+aor6ls62FCBdaAB5IJzX8k3U95TR6d8UuKcJfREosAvIOwZ5Rnqw
+	 77PThoLffI/C/XEnvNBKJ0Xpt6YXUFCxAA3xTAkRrORczE1hBbFAlNYu7t+Cxt8bhiw==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1792832446;
+	a=rsa-sha256; c=relaxed/relaxed; t=1792832447;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=DMBC0JTio5EbmEg1Oyrw6h9AFbVGLRJcGzUqGncZ2ck=;
-	b=B0vDPyCkNwGW316pR7vKvhSvFQ7dchmkVUxhsCJaKr20luB6wsw/ypW6YCFPZUIwHUno
-	 7gfQhWrx1Lc2CrOcZyjbJhQFAZ24E1pPSfPmAEJeqJ79qnn0FjqRjaQCoGqOvmcYZP13Q
-	 wNWW8lDcUKssUGIfm2r1EoV5oNnHBzQZMI21sNRolLfW5lVQn8y7kDmyCvOcqmRl5d+5V
-	 YKCvuETwwmo95MBE61Xrko2AAi+M0PagO3mC0ENAJyCAQscPh+NzdrcH6VxCjzQOsiZQi
-	 B5fSQjNpJdC8xjh4VGaq0pRgz//oe/rJ+DvMqY0zzKMk4w4GMliSn393NuS/TC3RGCA==
+	bh=qHO6mT/29LSy7wgcjzcNYw2gB12xuRroycGmQdtOlQE=;
+	b=t/G5ysE0n/qTLn1n5GCe8Wcl5ql2MmvXEt0Lzv0p8/H9Zq/7IAYX6I0sijZxiPr02qQn
+	 stwSDiw7ncSIM8tv63yk6m/i+X5+waOnJIHZWfvVGmgU9vpdP/zF6YpepR+rRTwXzOqP1
+	 zUygAcZ9dLeqnMz262Zqd4EtgqOyzWmywq9MOH5ZqjJpTI5mnR5R2bgb9ix6KAyN1IGYv
+	 SEHXqYWMlukmKyD56vgLvylmWnYBZT21pXQ3EfWGXIgscxpwS9GXs+5oVzVLOlc5W0+KT
+	 EfXxErwfvF4Y3MBaG6nIyfTjyAcFqTsB2YtohQnWjrE8KYGLZ7MiQAvzs+xAuiDCFbA==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b="f7/oExNi";
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=Rs7x6whu;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EA96E606A31A
-	for <mm-commits@vger.kernel.org>; Sat, 24 Oct 2026 09:00:45 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 04D36606A31A
+	for <mm-commits@vger.kernel.org>; Sat, 24 Oct 2026 09:00:47 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=f7/oExNi
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B59341F01825;
-	Sat, 24 Oct 2026 09:00:45 +0000 (UTC)
+	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=Rs7x6whu
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C28AF1F01828;
+	Sat, 24 Oct 2026 09:00:46 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1792832445;
-	bh=DMBC0JTio5EbmEg1Oyrw6h9AFbVGLRJcGzUqGncZ2ck=;
+	d=linux-foundation.org; s=korg; t=1792832446;
+	bh=qHO6mT/29LSy7wgcjzcNYw2gB12xuRroycGmQdtOlQE=;
 	h=Date:To:From:Subject;
-	b=f7/oExNiLi3BqSl4NJUJgVJ8x5zuMfy4hZdTCmXA4oAYfIc1H7c1J+H8cGAiC8DvI
-	 mColvlvVWUmKiSuyylG7PDsOFuCo3vVRnXIKWadYfF7/apGLAzyiaazjLL40kIfabZ
-	 IAsR3fi5Sciek+9mLvSDHWq3DUXVlt1ZOpW9qDmE=
-Date: Sat, 24 Oct 2026 02:00:45 -0700
-To: mm-commits@vger.kernel.org,sj@kernel.org,osalvador@suse.de,muchun.song@linux.dev,david@kernel.org,lienze@kylinos.cn,akpm@linux-foundation.org
+	b=Rs7x6whu9FxRxjp/5kRcWP7onf6yVZKkFlXXpPiMNlOnDDxb0zY2URESzcRlgmUsH
+	 YfJ4ypYAoBrVO17aTTIdUjCrjGvW3wdKwzWMSZet4Mg8dTDtTdSYzsocF/RJwh07Im
+	 hW4GKNNrr6dTFP1IOl4CYCBO6WedFK6yD/PxfSRk=
+Date: Sat, 24 Oct 2026 02:00:46 -0700
+To: mm-commits@vger.kernel.org,vbabka@kernel.org,usama.anjum@arm.com,surenb@google.com,sj@kernel.org,shuah@kernel.org,rppt@kernel.org,mhocko@suse.com,ljs@kernel.org,liam@infradead.org,david@kernel.org,brauner@kernel.org,jm5905938@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-hugetlb_cgroup-add-trailing-endif-comment-for-include-guard.patch removed from -mm tree
-Message-Id: <20261024090045.B59341F01825@smtp.kernel.org>
+Subject: [merged mm-stable] selftests-mm-mrelease_test-fix-retry-limit.patch removed from -mm tree
+Message-Id: <20261024090046.C28AF1F01828@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -51,44 +51,63 @@ Precedence: list
 
 
 The quilt patch titled
-     Subject: mm/hugetlb_cgroup: add trailing #endif comment for include guard
+     Subject: selftests/mm: mrelease_test: fix retry limit
 has been removed from the -mm tree.  Its filename was
-     mm-hugetlb_cgroup-add-trailing-endif-comment-for-include-guard.patch
+     selftests-mm-mrelease_test-fix-retry-limit.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Enze Li <lienze@kylinos.cn>
-Subject: mm/hugetlb_cgroup: add trailing #endif comment for include guard
-Date: Sat,  3 Oct 2026 14:00:29 +0800
+From: Aveline Noir <jm5905938@gmail.com>
+Subject: selftests/mm: mrelease_test: fix retry limit
+Date: Wed, 30 Sep 2026 23:00:27 -0700
 
-The final #endif that closes the _LINUX_HUGETLB_CGROUP_H include guard
-is left without a comment.  Add the macro name to the comment for
-consistency and easier navigation.
+mrelease_test doubles the child allocation when process_mrelease() returns
+ESRCH.
 
-Link: https://lore.kernel.org/20261003060029.2152489-2-lienze@kylinos.cn
-Signed-off-by: Enze Li <lienze@kylinos.cn>
+When size is already MAX_SIZE_MB, the current <= check still allows
+another retry, causing the allocation to grow from 1024 MB to 2048 MB.
+
+Use < instead of <= so the largest allocation attempted remains
+MAX_SIZE_MB.
+
+LLM used in discovering bug. Changes were made and reviewed manually.
+
+Link: https://lore.kernel.org/CANOyQmFzsssM_BXHUDrV+UuVD5SZMBmSkg3UQnmw9Ns1PV7GCQ@mail.gmail.com
+Fixes: 33776141b812 ("selftests: vm: add process_mrelease tests")
+Signed-off-by: Aveline Noir <jm5905938@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 Acked-by: David Hildenbrand (Arm) <david@kernel.org>
-Acked-by: Muchun Song <muchun.song@linux.dev>
+Acked-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
 Reviewed-by: SJ Park <sj@kernel.org>
-Cc: Oscar Salvador <osalvador@suse.de>
+Assisted-by: LLM
+Cc: Shuah Khan <shuah@kernel.org>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Liam R. Howlett <liam@infradead.org>
+Cc: Vlastimil Babka <vbabka@kernel.org>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Christian Brauner <brauner@kernel.org>
+Cc: Muhammad Usama Anjum <usama.anjum@arm.com>
 ---
 
- include/linux/hugetlb_cgroup.h |    2 +-
+ tools/testing/selftests/mm/mrelease_test.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/include/linux/hugetlb_cgroup.h~mm-hugetlb_cgroup-add-trailing-endif-comment-for-include-guard
-+++ a/include/linux/hugetlb_cgroup.h
-@@ -268,4 +268,4 @@ static inline void hugetlb_cgroup_migrat
- }
- 
- #endif  /* CONFIG_CGROUP_HUGETLB */
--#endif
-+#endif /* _LINUX_HUGETLB_CGROUP_H */
+--- a/tools/testing/selftests/mm/mrelease_test.c~selftests-mm-mrelease_test-fix-retry-limit
++++ a/tools/testing/selftests/mm/mrelease_test.c
+@@ -157,7 +157,7 @@ retry:
+ 		 * Retry until we succeed or reach MAX_SIZE_MB.
+ 		 */
+ 		if (errno == ESRCH) {
+-			retry = (size <= MAX_SIZE_MB);
++			retry = (size < MAX_SIZE_MB);
+ 		} else {
+ 			waitpid(pid, NULL, 0);
+ 			ksft_exit_fail_msg("process_mrelease: %s\n", strerror(errno));
 _
 
-Patches currently in -mm which might be from lienze@kylinos.cn are
+Patches currently in -mm which might be from jm5905938@gmail.com are
 
 
