@@ -1,47 +1,47 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1792832431;
-	b=v2AAUacP5Ml3SeZhopcpbcrbjw/7NLyTV/SdUg1gwbQGAwbwF2AiAXVwCVs2KrptT/IG
-	 FigVS3vJ/2zipgRQ+IhUkImnKN4jm43aCejJRUKEchXmHSTTjl0EeAyOBio4P+/FKgEXw
-	 LeTtdcUSa7hOBfX1KZJLq2HuhtddEqkTLfi7baN891JxK7b01nqn9zHgo+07jYuUKHDMo
-	 ApuvWBqN64FnJupf0ocyjCCEhr3YYiVUgAUUuv473SwhIz+NJgjKzbLqxej5OMyOWglTJ
-	 vxIJWQKRd+Se1AvpHM9wLb+iVAxJfhXNZTLT6YoB/9fVdcC2DRTIIerqQUkVcv5DubA==
+	t=1792832432;
+	b=pVpR7rcHIPuTrwWIt+Pu4nkjTWdhyL0MOJtAS1rk+qtqbPUz20yPRrKJyyd6pfkPVfY9
+	 mI7lVaKj4S/l7k0W1t0IgOfKxKI48Sybc5Tbv+vBE+N0FiBvTZVkORGv7d3IJD6ypfiHm
+	 P9+7cbx0W6xYKk/dZD7u2vh6GoszD/OrJqaiu7BKye1QdR/3wKxriUGPETPL9o8LJ3zD9
+	 eYh/XvXSACT6+VgggPoTdtdurWD87IJBXoS08oKa94YOUqm5fID1AFC2JwXBtZnD8UaUE
+	 1dZYnHcwWxGNxTblfxfKppgmrbP9+JJ5HDi+XLlM3VogZ+x9yvyjfAnf89vdGl0YD9A==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1792832431;
+	a=rsa-sha256; c=relaxed/relaxed; t=1792832432;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=m/C2yWVYkP6c6UgM74Dsma7fS2sbmxX8C6sPwGWxExQ=;
-	b=mcZvZ/4QbBJlIL5nTEeraAif4WRIJlJcHNGOCjuak/fFzRXu1Bm2pxY43pOEIwftZeFr
-	 s/fRcV0O3XiNeomADe9EfnkNqMG0EGi8uwLnetBv3YGyB6x4bmhJO6MN3kIhvFica9tJl
-	 +HbXOWADy2nZaNRxYXzlFdV/OZJL/N7tpOz02Q0bZpGN1SDhd27M25UrTRz2kAc0JKcKv
-	 NK9UHmFs2mnCpIzVGVlCD45vDvjVKQIr7pNcdsgr+Ppo1Jtu1X1iIm4be81mrQMQWyYMY
-	 YYjVskWlarCGIPS1JD4HOgdbloVLwAX6KlinvU1Zovqsw8bWj2TiTxOzSF4AGlD7ZnQ==
+	bh=cH2zRTFuBuocf4oya8pX0e/GSWTfP1JTUH1D16mGlhU=;
+	b=sp3aZ6kZiA7f7KxMsGO9D4Tc/fsRtfWFznznEumgJxBFEV2h0vYQ8+RseolDgJ8i/pHX
+	 Xg5XfmvKgqsg6cH/sNOn718RBUOZuseY41btUIgMZgcNqBXDunCQ1bcW+D7XM57j5r3gt
+	 UX3FxBXp251+TWrgIX/q421rem09vnVjxNdTH8qqUSnjoSJVLABXrDXfA2A2CYqnYJIw8
+	 nin+7rAQ6bP1ZkokFWPJDXj1Jgw+LBmVrg049MrdctF4Ss1ZxLtAEpr8iXLBAU/JEZJuE
+	 Rc8kC90AZiCEY53IlGddcvR6+JpFn/eSaUbnN6oDE7uPa2G5lLBMM1/HhJ7AkJhAXAQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=fail reason="signature verification failed" header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=tkszP7Xd;
+	dkim=fail reason="signature verification failed" header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=W0ylE0+U;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D7509606A31B
-	for <mm-commits@vger.kernel.org>; Sat, 24 Oct 2026 09:00:30 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 85D39606A31A
+	for <mm-commits@vger.kernel.org>; Sat, 24 Oct 2026 09:00:32 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=fail reason="signature verification failed" (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=tkszP7Xd
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 711551F01825;
-	Sat, 24 Oct 2026 09:00:30 +0000 (UTC)
+	dkim=fail reason="signature verification failed" (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=W0ylE0+U
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 205B31F01825;
+	Sat, 24 Oct 2026 09:00:32 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1792832430;
-	bh=m/C2yWVYkP6c6UgM74Dsma7fS2sbmxX8C6sPwGWxExQ=;
+	d=linux-foundation.org; s=korg; t=1792832432;
+	bh=cH2zRTFuBuocf4oya8pX0e/GSWTfP1JTUH1D16mGlhU=;
 	h=Date:To:From:Subject;
-	b=tkszP7Xd5ZVKvAF2XHMf1Aj0AK6a9KzIjevIKknxT65U7ybCQW6I54aEBfVF51tX9
-	 39Hn7Os68wRDcPdhoJkWifuhLWVimtaOuV/Pvnt03lmgkaROKSfpnBz5VhKfBscMFv
-	 ISpwjXdOWqoLRb656CRvfehkiOe0qcbA+Q6us7dU=
-Date: Sat, 24 Oct 2026 02:00:30 -0700
+	b=W0ylE0+UquxR0w7/Zn4aqMOfBZJDFF1zBJprwC6PDlyke8PJYNtrJIVYcD6sxNwID
+	 YE8I0UNF7U0MEaZAc/9qFzXLp+4pK0iec8/DOXuuSXEIaxk0rwkVlWRn+qDX6D8Ztv
+	 YWkpIw9OkGl/SoHLaTUy5RIXZuM5jrX8wwS7o2Zg=
+Date: Sat, 24 Oct 2026 02:00:31 -0700
 To: mm-commits@vger.kernel.org,ziy@nvidia.com,yuanchu@google.com,youngjun.park@lge.com,ying.huang@linux.alibaba.com,xu.xin@linux.dev,willy@infradead.org,will@kernel.org,weixugc@google.com,viro@zeniv.linux.org.uk,vincent.guittot@linaro.org,vbabka@kernel.org,usama.arif@linux.dev,tzimmermann@suse.de,tiwai@suse.com,tglx@kernel.org,surenb@google.com,stephen.smalley.work@gmail.com,sre@kernel.org,spasswolf@web.de,simona@ffwll.ch,shikemeng@huaweicloud.com,shakeel.butt@linux.dev,ryan.roberts@arm.com,rppt@kernel.org,riel@surriel.com,rakie.kim@sk.com,qi.zheng@linux.dev,pjw@kernel.org,pfalcato@suse.de,peterz@infradead.org,peterx@redhat.com,perex@perex.cz,paul@paul-moore.com,palmer@dabbelt.com,oupton@kernel.org,osalvador@suse.de,oleg@redhat.com,npiggin@gmail.com,nphamcs@gmail.com,nico.pache@linux.dev,namhyung@kernel.org,muchun.song@linux.dev,mripard@kernel.org,mkp@kernel.org,mingo@redhat.com,miklos@szeredi.hu,mhocko@suse.com,mhocko@kernel.org,mhiramat@kernel.org,memxor@gmail.com,maz@kernel.org,ma
  tthew.brost@intel.com,mark.rutland@arm.com,maddy@linux.ibm.com,maarten.lankhorst@linux.intel.com,liam@infradead.org,leon@kernel.org,lance.yang@linux.dev,kasong@tencent.com,kas@kernel.org,juri.lelli@redhat.com,joshua.hahnjy@gmail.com,jhubbard@nvidia.com,jgg@ziepe.ca,jannh@google.com,james.bottomley@hansenpartnership.com,jack@suse.cz,imbrenda@linux.ibm.com,ihor.solodrai@linux.dev,hca@linux.ibm.com,harry@kernel.org,hannes@cmpxchg.org,gregkh@linuxfoundation.org,gourry@gourry.net,gor@linux.ibm.com,gerald.schaefer@linux.ibm.com,frankja@linux.ibm.com,eddyz87@gmail.com,dgilbert@interlog.com,dev.jain@arm.com,dennis.dalessandro@cornelisnetworks.com,deller@gmx.de,david@kernel.org,davem@davemloft.net,dave.hansen@linux.intel.com,daniel@iogearbox.net,corbet@lwn.net,chrisl@kernel.org,chengming.zhou@linux.dev,catalin.marinas@arm.com,byungchul@sk.com,brauner@kernel.org,bp@alien8.de,borntraeger@linux.ibm.com,baoquan.he@linux.dev,baolin.wang@linux.alibaba.com,baohua@kernel.org,axelrasmussen@google.com
  ,ast@kernel.org,arnd@arndb.de,apopple@nvidia.com,aou@eecs.berkeley.edu,anup@brainfault.org,aneesh.kumar@kernel.org,andrii@kernel.org,andreas@gaisler.com,airlied@gmail.com,agordeev@linux.ibm.com,acme@kernel.org,ljs@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] fuse-dax-do-not-set-vm_mixedmap.patch removed from -mm tree
-Message-Id: <20261024090030.711551F01825@smtp.kernel.org>
+Subject: [merged mm-stable] mm-huge_memory-remove-vma_is_special_huge.patch removed from -mm tree
+Message-Id: <20261024090032.205B31F01825@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -53,42 +53,37 @@ Precedence: list
 
 
 The quilt patch titled
-     Subject: fuse: dax: do not set VM_MIXEDMAP
+     Subject: mm/huge_memory: remove vma_is_special_huge()
 has been removed from the -mm tree.  Its filename was
-     fuse-dax-do-not-set-vm_mixedmap.patch
+     mm-huge_memory-remove-vma_is_special_huge.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: "Lorenzo Stoakes (ARM)" <ljs@kernel.org>
-Subject: fuse: dax: do not set VM_MIXEDMAP
-Date: Tue, 13 Oct 2026 16:05:18 +0100
+Subject: mm/huge_memory: remove vma_is_special_huge()
+Date: Tue, 13 Oct 2026 16:05:19 +0100
 
-Commit e1fb4a086495 ("dax: remove VM_MIXEDMAP for fsdax and device dax")
-prevented fsdax and device-dax from setting VM_MIXEDMAP, as DAX no longer
-relies on it to direct core mm paths.
+vma_is_special_huge() tests whether either the VMA_PFNMAP_BIT or
+VMA_MIXEDMAP_BIT is set (i.e. whether the VMA is not mm-managed),
+but with a DAX carve-out.
 
-The fuse DAX implementation, added later, copied the old pattern and still
-sets it.
+DAX however no longer sets VMA_MIXEDMAP_BIT, so this carve-out is no longer
+required.
 
-Fuse DAX maps pages the same way fsdax does, via dax_iomap_fault() and
-ultimately vmf_insert_page_mkwrite() and vmf_insert_folio_pmd(), which
-insert ordinary refcounted pages and so do not require VM_MIXEDMAP.
+Therefore test for !vma_is_mm_managed() instead and also drop the
+VMA_IO_BIT check, as it is now redundant since it is enforced that
+mm-managed mappings may not set VMA_IO_BIT.
 
-Setting it only serves to mark the mapping as not mm-managed, making fuse
-DAX the sole DAX implementation whose mappings are unmergeable, cannot be
-mlock()'d, eagerly copy page tables on fork and reject MADV_DOFORK and
-MADV_DODUMP.
+This also eliminates another overloaded use of 'special' within mm.
 
-It also requires vma_is_special_huge() in mm/huge_memory.c to carve DAX out
-of its check for mappings not managed by core mm explicitly.
+No functional change intended.
 
-There is no reason for fuse DAX to keep on using this flag so drop it.
-
-Link: https://lore.kernel.org/20261013-b4-mmap-prepare-vma-flag-sanify-v6-38-1aa3c9b139f9@kernel.org
+Link: https://lore.kernel.org/20261013-b4-mmap-prepare-vma-flag-sanify-v6-39-1aa3c9b139f9@kernel.org
 Signed-off-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+Acked-by: Zi Yan <ziy@nvidia.com>
 Acked-by: David Hildenbrand (Arm) <david@kernel.org>
 Cc: Liam R. Howlett <liam@infradead.org>
 Cc: Vlastimil Babka <vbabka@kernel.org>
@@ -111,7 +106,6 @@ Cc: Daniel Borkmann <daniel@iogearbox.net>
 Cc: Andrii Nakryiko <andrii@kernel.org>
 Cc: Eduard Zingerman <eddyz87@gmail.com>
 Cc: Kumar Kartikeya Dwivedi <memxor@gmail.com>
-Cc: Zi Yan <ziy@nvidia.com>
 Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
 Cc: Nico Pache <nico.pache@linux.dev>
 Cc: Ryan Roberts <ryan.roberts@arm.com>
@@ -200,20 +194,64 @@ Cc: Ihor Solodrai <ihor.solodrai@linux.dev>
 Cc: Bert Karwatzki <spasswolf@web.de>
 ---
 
- fs/fuse/dax.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/huge_memory.c |   18 ++++--------------
+ 1 file changed, 4 insertions(+), 14 deletions(-)
 
---- a/fs/fuse/dax.c~fuse-dax-do-not-set-vm_mixedmap
-+++ a/fs/fuse/dax.c
-@@ -826,7 +826,7 @@ int fuse_dax_mmap(struct file *file, str
- {
- 	file_accessed(file);
- 	vma->vm_ops = &fuse_dax_vm_ops;
--	vm_flags_set(vma, VM_MIXEDMAP | VM_HUGEPAGE);
-+	vma_set_flags(vma, VMA_HUGEPAGE_BIT);
- 	return 0;
+--- a/mm/huge_memory.c~mm-huge_memory-remove-vma_is_special_huge
++++ a/mm/huge_memory.c
+@@ -110,14 +110,6 @@ static inline bool file_thp_enabled(cons
+ 	return S_ISREG(inode->i_mode);
  }
  
+-/* If returns true, we are unable to access the VMA's folios. */
+-static bool vma_is_special_huge(const struct vm_area_struct *vma)
+-{
+-	if (vma_is_dax(vma))
+-		return false;
+-	return vma_test_any(vma, VMA_PFNMAP_BIT, VMA_MIXEDMAP_BIT);
+-}
+-
+ static bool vma_file_bypass_thp_tuneables(const struct vm_area_struct *vma,
+ 		enum tva_type type)
+ {
+@@ -192,7 +184,7 @@ unsigned long __thp_vma_allowable_orders
+ 	/* Check the intersection of requested and supported orders. */
+ 	if (vma_is_anonymous(vma))
+ 		supported_orders = THP_ORDERS_ALL_ANON;
+-	else if (vma_is_dax(vma) || vma_is_special_huge(vma))
++	else if (vma_is_dax(vma) || !vma_is_mm_managed(vma))
+ 		supported_orders = THP_ORDERS_ALL_SPECIAL_DAX;
+ 	else
+ 		supported_orders = THP_ORDERS_ALL_FILE_DEFAULT;
+@@ -3055,7 +3047,7 @@ int zap_huge_pud(struct mmu_gather *tlb,
+ 	orig_pud = pudp_huge_get_and_clear_full(vma, addr, pud, tlb->fullmm);
+ 	arch_check_zapped_pud(vma, orig_pud);
+ 	tlb_remove_pud_tlb_entry(tlb, pud, addr);
+-	if (vma_is_special_huge(vma)) {
++	if (!vma_is_mm_managed(vma)) {
+ 		spin_unlock(ptl);
+ 		/* No zero page support yet */
+ 	} else {
+@@ -3211,7 +3203,7 @@ static void __split_huge_pmd_locked(stru
+ 		 */
+ 		if (arch_needs_pgtable_deposit())
+ 			zap_deposited_table(mm, pmd);
+-		if (vma_is_special_huge(vma))
++		if (!vma_is_mm_managed(vma))
+ 			return;
+ 		if (unlikely(pmd_is_migration_entry(old_pmd))) {
+ 			const softleaf_t old_entry = softleaf_from_pmd(old_pmd);
+@@ -4778,9 +4770,7 @@ static inline bool vma_not_suitable_for_
+ {
+ 	if (vma_is_dax(vma))
+ 		return true;
+-	if (vma_is_special_huge(vma))
+-		return true;
+-	if (vma_test(vma, VMA_IO_BIT))
++	if (!vma_is_mm_managed(vma))
+ 		return true;
+ 	if (vma_is_hugetlb(vma))
+ 		return true;
 _
 
 Patches currently in -mm which might be from ljs@kernel.org are
