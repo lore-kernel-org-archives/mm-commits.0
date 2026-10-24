@@ -1,45 +1,45 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1792832312;
-	b=nfLLwzuZy0yz3wbKhti3S3ogEKGfEXVtV8TZaw/LfLsKfgye/WsU5i2FnNgigZ6rtWwx
-	 dKEUx8JyqpyaXThfv1+0WZw8i4J13gV9+pAmH9E+5w7NIq0nKaiPJLQ43zmvdk9ZmrVQK
-	 1rOaDIhXUQZvQp+TCPlt202cV9jTPBaiwHW5g9M9+t0EQpDvOgHqr4moK/FVAjANrme5W
-	 usTDQnIPFU4Z6DtlJbInVL09pZsTElYPxM449COh4QTgGu2ijhbycKSiajPQ6O1aax1RQ
-	 wBJZpuiZAa5O6NWmEUbyYZXDJlDGTjjB1xUFa/fL/EAA4WdfgK0hsWh62eAt7V1Leyw==
+	t=1792832313;
+	b=0/I8a4PCeuC4SQFdtFaOPXAlaTLuB2g3BaKlPBqaTeeZG3NMBVVJe1OOF/IYq3VMVbFS
+	 YZCLk7O/qxgDMszdGg/a4UhV4r2qZhXy/4+RQoqgjLSy92EOio3ky7aQP6olJXRZZmfuN
+	 uiR0jp1CprES/sBMlUsJ2UAp3chacvVZiB6LTZQVRcks5GcCt82NO/fFn/4QOpqElxh26
+	 2T4wd2srZ4AzTA2sMD91s0nIEh79AMhHu6Iwhg1vcSQQXh7otpGHfuy5bAeiir7IO8epG
+	 LRJpb65abnilbogbtSmt5lKdyolOI80btDzm/P782PElR2A2sqDrnnZ6gvdGITnlsow==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1792832312;
+	a=rsa-sha256; c=relaxed/relaxed; t=1792832313;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=DaptToiAuasm+CdBZ+Ng1NbE8W2z9eHaLjBRXwQhLk4=;
-	b=Sza8CHmQmPYYn32WKnyVRuzTVdHLm4OJ5NkBUehdgUa20O3s3ujvsBGlCl7l7KRBCW/B
-	 fmhk1B4RkfLJXR2uzgyPAxiT5CH/sYn3j+zPS2SgpynXLkEFxegERFba6VMq5V+cVrc1f
-	 I6Fi6yyxz1333Luc7WrGL4k6uTn99U/qfznuD4WgT6PGols0r67QeYvp7+6H7VuFrd2nE
-	 vkorRKnZ7odHYR5O5KmXriKqSBUy2zl8OzJsaTPxPCf7oGKdQ3O0P302LeblSthngcgdR
-	 O2bZU9LtNySBa0gwPn4dtaCDlGIeirig7WyDLBY7Bjw1WxckfCyyr/mIAFmSbN5yzEw==
+	bh=7QI9qtMKvla7SPSh1Xri09CFVqv1yvVfMm5dYI3Ao5Q=;
+	b=3DCAn0oBBwLHFhsQzrYdaO0ur1zawHHK09nmB89H0or4EpI+0xChpLZ22CPF0jdLrvaD
+	 8FwDFuiSIHYArBACmyjjDI6Ug432PoYMGxSA2y/+0CZQ7dwSBVCj7ARnQnHDCTn2RjZvX
+	 cmIXt7PgPcPZwwZs4QaMrmoSVcRytv00CWxlQvTwItwaoyJVgKnTPcJo00hrrGb8jcCrK
+	 W8AgbhKT+pYoB2uyUV1xl2GzmixMp3k1PTkb6S0qaW5o+noZvtO3wbICzaHj7abv/ki4c
+	 UpX4fxTiu618wbPRme0Rh5opOov4wvsR936LJEfNkLyucsWRbxLyjA2miPv5rd+OjaQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=pVK88LIT;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b="kt/3cEf6";
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8FE56606A322
-	for <mm-commits@vger.kernel.org>; Sat, 24 Oct 2026 08:58:32 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9A266606A325
+	for <mm-commits@vger.kernel.org>; Sat, 24 Oct 2026 08:58:33 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=pVK88LIT
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 58E1D1F031E3;
-	Sat, 24 Oct 2026 08:58:32 +0000 (UTC)
+	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=kt/3cEf6
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 64DFA1F031E6;
+	Sat, 24 Oct 2026 08:58:33 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1792832312;
-	bh=DaptToiAuasm+CdBZ+Ng1NbE8W2z9eHaLjBRXwQhLk4=;
+	d=linux-foundation.org; s=korg; t=1792832313;
+	bh=7QI9qtMKvla7SPSh1Xri09CFVqv1yvVfMm5dYI3Ao5Q=;
 	h=Date:To:From:Subject;
-	b=pVK88LITQWyvO4kNMQw+uh0gqJsb462sVHC9a3v7oXIW4EHpvktaXPuwOyW6p4wTn
-	 +km6HggMA8XzaYQ4LfDVNtkEWbkZJZP/Uc6TcL7J8AyPa71XifJHnU/sqYf4lU5WHT
-	 RI77jXK7970qiIXzVcDjRvoHzfaRMjuDd3yBteEI=
-Date: Sat, 24 Oct 2026 01:58:31 -0700
-To: mm-commits@vger.kernel.org,hch@lst.de,harry@kernel.org,Frank.Li@nxp.com,hebaoquan@kylinos.cn,akpm@linux-foundation.org
+	b=kt/3cEf6Exig8rWEvujG8TNi/UWhxDZAhFSedKsBGS8squwsiKFfLPIu+0ibonwN2
+	 LMSFRIHrEa3cMAvEhnKGhR+hIYYgW6cyqLVREm7oZia8dxjcmsFLD2Vs7T0j7WLYr3
+	 IrPSkmj/1371TvMMg46q6LjsV1yM837xswP9yQvA=
+Date: Sat, 24 Oct 2026 01:58:33 -0700
+To: mm-commits@vger.kernel.org,hch@lst.de,harry@kernel.org,hebaoquan@kylinos.cn,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] media-nxp-imx8-isi-dont-use-gfp_dma-when-calling-dma_alloc_coherent.patch removed from -mm tree
-Message-Id: <20261024085832.58E1D1F031E3@smtp.kernel.org>
+Subject: [merged mm-stable] mtd-rawnand-gpmi-dont-use-gfp_dma-when-calling-dma_alloc_coherent.patch removed from -mm tree
+Message-Id: <20261024085833.64DFA1F031E6@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -51,45 +51,44 @@ Precedence: list
 
 
 The quilt patch titled
-     Subject: media: nxp: imx8-isi: don't use GFP_DMA when calling dma_alloc_coherent()
+     Subject: mtd: rawnand: gpmi: don't use GFP_DMA when calling dma_alloc_coherent()
 has been removed from the -mm tree.  Its filename was
-     media-nxp-imx8-isi-dont-use-gfp_dma-when-calling-dma_alloc_coherent.patch
+     mtd-rawnand-gpmi-dont-use-gfp_dma-when-calling-dma_alloc_coherent.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Baoquan He <hebaoquan@kylinos.cn>
-Subject: media: nxp: imx8-isi: don't use GFP_DMA when calling dma_alloc_coherent()
-Date: Thu,  3 Sep 2026 19:18:34 +0800
+Subject: mtd: rawnand: gpmi: don't use GFP_DMA when calling dma_alloc_coherent()
+Date: Thu,  3 Sep 2026 19:18:35 +0800
 
 dma_alloc_coherent() allocates the DMA buffer with the device's addressing
 limitation in mind; the DMA core picks the zone from the device's coherent
-DMA mask and ignores GFP_DMA passed by the caller.  Remove the redundant
-GFP_DMA flag.
+DMA mask and ignores GFP_DMA passed by the caller.  Use GFP_KERNEL instead
+so the allocation may reclaim as usual for probe-time allocations.
 
-Link: https://lore.kernel.org/20260903111836.1777265-12-hebaoquan@kylinos.cn
+Link: https://lore.kernel.org/20260903111836.1777265-13-hebaoquan@kylinos.cn
 Signed-off-by: Baoquan He <hebaoquan@kylinos.cn>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Reviewed-by: Frank Li <Frank.Li@nxp.com>
 Cc: Christoph Hellwig <hch@lst.de>
 Cc: Harry Yoo <harry@kernel.org>
 ---
 
- drivers/media/platform/nxp/imx8-isi/imx8-isi-video.c |    2 +-
+ drivers/mtd/nand/raw/gpmi-nand/gpmi-nand.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/drivers/media/platform/nxp/imx8-isi/imx8-isi-video.c~media-nxp-imx8-isi-dont-use-gfp_dma-when-calling-dma_alloc_coherent
-+++ a/drivers/media/platform/nxp/imx8-isi/imx8-isi-video.c
-@@ -773,7 +773,7 @@ static int mxc_isi_video_alloc_discard_b
+--- a/drivers/mtd/nand/raw/gpmi-nand/gpmi-nand.c~mtd-rawnand-gpmi-dont-use-gfp_dma-when-calling-dma_alloc_coherent
++++ a/drivers/mtd/nand/raw/gpmi-nand/gpmi-nand.c
+@@ -1387,7 +1387,7 @@ static int gpmi_alloc_dma_buffer(struct
+ 		goto error_alloc;
  
- 		buf->size = PAGE_ALIGN(video->pix.plane_fmt[i].sizeimage);
- 		buf->addr = dma_alloc_coherent(video->pipe->isi->dev, buf->size,
--					       &buf->dma, GFP_DMA | GFP_KERNEL);
-+					       &buf->dma, GFP_KERNEL);
- 		if (!buf->addr) {
- 			mxc_isi_video_free_discard_buffers(video);
- 			return -ENOMEM;
+ 	this->auxiliary_virt = dma_alloc_coherent(dev, geo->auxiliary_size,
+-					&this->auxiliary_phys, GFP_DMA);
++					&this->auxiliary_phys, GFP_KERNEL);
+ 	if (!this->auxiliary_virt)
+ 		goto error_alloc;
+ 
 _
 
 Patches currently in -mm which might be from hebaoquan@kylinos.cn are
