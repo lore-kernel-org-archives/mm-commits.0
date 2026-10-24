@@ -1,45 +1,45 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1792832513;
-	b=IDk2XjYq23wTX0mDlJ6hWkZ712i+PWMaCa+2ANmvLYvHlbhWDmoNXcqzjVCp0pMjFtTy
-	 ai5bN35+z/AB9YShGcb7JB8dt5GPDD1yCgzqi6S1AkaLjazsW3uJMOhh3gNRZ0ZNa8ZN9
-	 TwuWUBur+k3f1xFHyKfCB8p/0UpJReAEqd7ccKTs2V2rVPGDd43Qwk+3BrYRYsqCcWn4A
-	 jTQtHTfdEVqujT1hyouFIg0NAAzquTDJdJUsyGDGCzRuAZFzhigYMZO4MorcvbMwgyU4Z
-	 vkn253U7I0Q3plzAcbOS1Sfun8T4u3UvS22K6k63oKKsyQS3ZoQkougC+UH+BYCdIYQ==
+	t=1792832517;
+	b=1JCX499OroVgl6iDi9A0wXKi53IZaVlxuXp7d9PEzv5l9oKYZAbMhJfO0MFV9o7fMXy/
+	 9VNhDEERQvGBhiOBMd/wY6ASwRDiDNKe82nyCFQ96+Rn84mYgHYWjq3xY8+MwZfH/H53D
+	 E3HefQcfLWHSg1VkXz3zy/9SSAixK/yLeJ0o//QrARk933qsQYCctccfDWoU6hzrLfi5Z
+	 alnT3gtbgiFtKwyfcl3ugs9aeqmvbL0Ju4H/n7JGxXdVYsnc0zuA/ay9G1MMYIMvCTyFj
+	 pmPyKSjOdkREzG2SUTHGtLZxjmvg8cqAsfvQiWNcS3/ExpgZ/iBXXLc1KSEsndbFCbQ==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1792832513;
+	a=rsa-sha256; c=relaxed/relaxed; t=1792832517;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=kcrG8SEYP/9oj8BXL6EXPxBbuFrdUZpdkHO+sid3PuE=;
-	b=rv/P4X1LC6nflVlW2pb1ohWctzOsCB74Fe/5DxsScaX4IvJIhkQt2AiU5GV7HhoeF7mf
-	 NBeGW/EdZlIzXko0koOLreSaiXFhEvCzYgQD0cjEkqaWvSn1tTZ+Skk3qH9NkvnK89gI3
-	 OKiCr6+WRH+4aY/c2yh6n3oFw6twhP5rtGNAQdunELH5p5F1ZGdj1GmkSSEMkyUG7ugTu
-	 d5QzFJ4uz8wQIQGBQimcphCRRSBJixNgrm4WvLfhVb0KfU67zMxCiknnISsZDHgZHKY62
-	 DkD3rrqAdqgeRyblJXxUvLHLL2mufitlaAMATEw+YcF4VE2+flUtW3hstQLS1wK6izg==
+	bh=zpgCnLdo3o5WI7sB0BS97ME58t7euey5S7Nq+cny1/M=;
+	b=DOCKy6G5ovBETp7ptaiR44J2JHgLH6gQBDsZ8RVTzxZvcdyUR6Va/0ItHcbXMWDDFNUJ
+	 cYY6IoMpVAnPHwEa1U3ocYwRiwz2gEFHn+1UZNjmJ9lzbS2nn6P2tvPdgQ+RwSDz0CXLz
+	 eeSFq8ccrhiSNFXyioEyshyvkhdnxw7C0VDw6lPSxQIgvLDiEE/BhA2hJl3eM9dH1aoYN
+	 uZIwBkcfRyiBi82fGDt9VXLNJP3FyySBReYchS9lJJ/RHrGEV84YGP6I86yadEAr0pAtT
+	 H6X/JE8EYaqlonGezxVX9WCt+QubjMOEKZHa6Jl7tuV0YL0PtRpqdOsnvotv+n5CmeA==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=t7vMSTpV;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=pNzFj0uN;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 106C7606A31A
-	for <mm-commits@vger.kernel.org>; Sat, 24 Oct 2026 09:01:53 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0387D606A323
+	for <mm-commits@vger.kernel.org>; Sat, 24 Oct 2026 09:01:56 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=t7vMSTpV
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D378D1F01825;
-	Sat, 24 Oct 2026 09:01:52 +0000 (UTC)
+	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=pNzFj0uN
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8A14E1F01825;
+	Sat, 24 Oct 2026 09:01:56 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1792832512;
-	bh=kcrG8SEYP/9oj8BXL6EXPxBbuFrdUZpdkHO+sid3PuE=;
+	d=linux-foundation.org; s=korg; t=1792832516;
+	bh=zpgCnLdo3o5WI7sB0BS97ME58t7euey5S7Nq+cny1/M=;
 	h=Date:To:From:Subject;
-	b=t7vMSTpV/bC74YIcDwo8kmtp/ir9cJEJcr5yC74ajuxMxVBrHDzgOg2KUNvlhANnu
-	 zfQLlpFm4bsW8pAeB8Nl6+GtxcBTHl15OGa0nhc1wp6mtUm/J62xYeWT1jDcneSUJL
-	 qTPPGHUzJ9EtkXjmvUnL8kLVZIEuGvkAc5IE6uaA=
-Date: Sat, 24 Oct 2026 02:01:52 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,vbabka@kernel.org,usama.arif@linux.dev,surenb@google.com,skhan@linuxfoundation.org,ryan.roberts@arm.com,rppt@kernel.org,rdunlap@infradead.org,nico.pache@linux.dev,mhocko@suse.com,ljs@kernel.org,liam@infradead.org,lance.yang@linux.dev,kas@kernel.org,hannes@cmpxchg.org,dev.jain@arm.com,david.laight.linux@gmail.com,david@kernel.org,corbet@lwn.net,brendan.jackman@linux.dev,baolin.wang@linux.alibaba.com,baohua@kernel.org,noren@nvidia.com,akpm@linux-foundation.org
+	b=pNzFj0uNyZViURbrTUhwr11gREByRqV/dNxrDlzKJ/gbIpS+ke9I+NG/q9FjzsHdg
+	 VREfpgAQNRcv2ntC1BCM/EU+JO3vQooZTaK7xoMKIZ9vbIJBW/rNC3Oy3NuS2XIOzn
+	 ipdfR2Yozze8tYUqFeCFqzCWWCsPjPaZjjqbV5ew=
+Date: Sat, 24 Oct 2026 02:01:56 -0700
+To: mm-commits@vger.kernel.org,vbabka@kernel.org,surenb@google.com,sshegde@linux.ibm.com,rppt@kernel.org,ritesh.list@gmail.com,qi.zheng@linux.dev,npiggin@gmail.com,mpe@ellerman.id.au,mhocko@suse.com,maddy@linux.ibm.com,ljs@kernel.org,liam@infradead.org,lance.yang@linux.dev,david@kernel.org,chleroy@kernel.org,muchun.song@linux.dev,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-stop-recalculating-min_free_kbytes-once-set-by-userspace.patch removed from -mm tree
-Message-Id: <20261024090152.D378D1F01825@smtp.kernel.org>
+Subject: [merged mm-stable] mm-sparse-vmemmap-drop-vmemmap_populate_dax.patch removed from -mm tree
+Message-Id: <20261024090156.8A14E1F01825@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -51,123 +51,244 @@ Precedence: list
 
 
 The quilt patch titled
-     Subject: mm: stop recalculating min_free_kbytes once set by userspace
+     Subject: mm/sparse-vmemmap: drop VMEMMAP_POPULATE_DAX
 has been removed from the -mm tree.  Its filename was
-     mm-stop-recalculating-min_free_kbytes-once-set-by-userspace.patch
+     mm-sparse-vmemmap-drop-vmemmap_populate_dax.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Nimrod Oren <noren@nvidia.com>
-Subject: mm: stop recalculating min_free_kbytes once set by userspace
-Date: Wed, 14 Oct 2026 17:08:59 +0300
+From: Muchun Song <muchun.song@linux.dev>
+Subject: mm/sparse-vmemmap: drop VMEMMAP_POPULATE_DAX
+Date: Sat, 10 Oct 2026 15:57:50 +0800
 
-min_free_kbytes is recalculated on memory hotplug and on THP sysfs writes.
-The new value comes from calculate_min_free_kbytes() or, while THP is
-enabled, from set_recommended_min_free_kbytes().  A value written to the
-vm.min_free_kbytes sysctl is replaced whenever the new value is higher, so
-a lower value does not stick.  This matters most when THP is enabled on
-configurations with large pageblocks, where the new value can be excessive
-[1].
+Patch series "mm: Unify device DAX and HugeTLB vmemmap population paths",
+v4.
 
-For example, with default arm64 pageblock sizes, the THP recommendation
-can reach 5.5 GiB per eligible zone with 64 KiB pages vs 22 MiB with 4 KiB
-pages.  This keeps a significant amount of memory free, reducing what
-applications can use and triggering reclaim much earlier.  Users can lower
-vm.min_free_kbytes to avoid this, but the lower value only sticks until
-the next recalculation.
+This series is split out from the earlier, larger series "mm: Generalize
+HVO for HugeTLB and device DAX" [2].  While the parent series generalizes
+vmemmap optimization across HugeTLB and device DAX, this subset addresses
+a single, self-contained step: unifying their vmemmap population paths.
 
-Stop recalculating min_free_kbytes once a value has been written to the
-sysctl.  Systems where the sysctl is never written keep the current
-behavior.
+After the preceding Device DAX conversion, both HugeTLB and Device DAX
+describe optimized vmemmap mappings through memory-section metadata and
+use per-zone shared tail vmemmap pages.  The generic code, however, still
+carries a Device DAX-specific population flag and compound-page population
+path, along with arguments and helpers needed only by that path.
 
-Link: https://lore.kernel.org/20261014140859.1006967-1-noren@nvidia.com
-Link: https://lore.kernel.org/r/20260716173504.760369-1-noren@nvidia.com/ [1]
-Signed-off-by: Nimrod Oren <noren@nvidia.com>
+This series first removes VMEMMAP_POPULATE_DAX and moves selection and
+reference handling for the shared tail page into the common vmemmap
+population path.  It then removes the generic Device DAX-specific
+compound-page population path and routes section vmemmap population
+through vmemmap_populate().  The powerpc radix path continues to use its
+architecture-specific compound-page population implementation for
+optimizable sections.
+
+The remaining patches remove the unused ptpfn argument, open-code
+vmemmap_populate_address() now that no caller needs its returned PTE, and
+add a warning for inconsistent zone initialization of shared tail vmemmap
+pages.
+
+This is the fourth smaller step toward the broader HVO generalization. 
+After this series, HugeTLB and Device DAX use the same population model
+instead of parallel generic paths, while powerpc keeps its
+architecture-specific implementation.
+
+
+This patch (of 6):
+
+VMEMMAP_POPULATE_DAX currently distinguishes DAX vmemmap population in two
+places: it keeps allocations on the normal path and takes a reference when
+a backing page is supplied for reuse.
+
+After Device DAX switched to the common per-zone shared tail page, both
+conditions can be determined locally.  DAX supplies ptpfn for every shared
+tail mapping and requests an allocation only for compound head mappings,
+whose PFNs are not optimizable.  Therefore, vmemmap_optimizable_pfn()
+alone selects the correct allocation path.
+
+When ptpfn is supplied, the caller is reusing an existing backing page. 
+Once the slab allocator is available, take a reference for each reused
+mapping to balance the release performed by vmemmap_free().  Although the
+buddy allocator is available before slab, no vmemmap population occurs in
+that interval.  Earlier mappings are backed by memblock/reserved memory
+and do not need page reference accounting.
+
+Remove VMEMMAP_POPULATE_DAX and the flags argument from the vmemmap
+population helpers.
+
+Link: https://lore.kernel.org/20261010075755.83339-1-songmuchun@bytedance.com
+Link: https://lore.kernel.org/20261010075755.83339-2-songmuchun@bytedance.com
+Link: https://lore.kernel.org/20260930140627.57431-1-songmuchun@bytedance.com/ [1]
+Link: https://lore.kernel.org/20260513130542.35604-1-songmuchun@bytedance.com/ [2]
+Signed-off-by: Muchun Song <muchun.song@linux.dev>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Suggested-by: Vlastimil Babka (SUSE) <vbabka@kernel.org>
-Link: https://lore.kernel.org/r/d202dcc3-d7d7-4e98-a9a5-3137cfbfd041@kernel.org/
-Reviewed-by: Vlastimil Babka (SUSE) <vbabka@kernel.org>
-Reviewed-by: Johannes Weiner <hannes@cmpxchg.org>
-Acked-by: Zi Yan <ziy@nvidia.com>
-Reviewed-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
-Cc: David Hildenbrand <david@kernel.org>
-Cc: Liam R. Howlett <liam@infradead.org>
+Reviewed-by: Lance Yang <lance.yang@linux.dev>
+Acked-by: Qi Zheng <qi.zheng@linux.dev>
+Cc: Madhavan Srinivasan <maddy@linux.ibm.com>
 Cc: Mike Rapoport <rppt@kernel.org>
+Cc: David Hildenbrand <david@kernel.org>
+Cc: Michael Ellerman <mpe@ellerman.id.au>
+Cc: Nicholas Piggin <npiggin@gmail.com>
+Cc: Christophe Leroy <chleroy@kernel.org>
+Cc: Ritesh Harjani (IBM) <ritesh.list@gmail.com>
+Cc: Shrikanth Hegde <sshegde@linux.ibm.com>
+Cc: Lorenzo Stoakes <ljs@kernel.org>
+Cc: Liam R. Howlett <liam@infradead.org>
+Cc: Vlastimil Babka <vbabka@kernel.org>
 Cc: Suren Baghdasaryan <surenb@google.com>
 Cc: Michal Hocko <mhocko@suse.com>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Shuah Khan <skhan@linuxfoundation.org>
-Cc: Randy Dunlap <rdunlap@infradead.org>
-Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: Nico Pache <nico.pache@linux.dev>
-Cc: Ryan Roberts <ryan.roberts@arm.com>
-Cc: Dev Jain <dev.jain@arm.com>
-Cc: Barry Song <baohua@kernel.org>
-Cc: Lance Yang <lance.yang@linux.dev>
-Cc: Usama Arif <usama.arif@linux.dev>
-Cc: Kiryl Shutsemau <kas@kernel.org>
-Cc: Brendan Jackman <brendan.jackman@linux.dev>
-Cc: David Laight <david.laight.linux@gmail.com>
 ---
 
- Documentation/admin-guide/sysctl/vm.rst |    7 +++++++
- mm/khugepaged.c                         |    7 +------
- mm/page_alloc.c                         |    6 +-----
- 3 files changed, 9 insertions(+), 11 deletions(-)
+ mm/sparse-vmemmap.c |   36 +++++++++++++-----------------------
+ 1 file changed, 13 insertions(+), 23 deletions(-)
 
---- a/Documentation/admin-guide/sysctl/vm.rst~mm-stop-recalculating-min_free_kbytes-once-set-by-userspace
-+++ a/Documentation/admin-guide/sysctl/vm.rst
-@@ -539,6 +539,13 @@ watermark[WMARK_MIN] value for each lowm
- Each lowmem zone gets a number of reserved free pages based
- proportionally on its size.
+--- a/mm/sparse-vmemmap.c~mm-sparse-vmemmap-drop-vmemmap_populate_dax
++++ a/mm/sparse-vmemmap.c
+@@ -32,12 +32,6 @@
+ #include <asm/dma.h>
+ #include <asm/tlbflush.h>
  
-+By default, the kernel sets this value based on the amount of lowmem
-+and recalculates it on memory hotplug.  When Transparent Hugepage (THP)
-+support is enabled through global or per-size controls, the kernel may
-+also raise it to help keep pageblocks free and reduce fragmentation for
-+THP allocations.  Once a value is written to this file, the kernel no
-+longer adjusts it automatically.
-+
- Some minimal amount of memory is needed to satisfy PF_MEMALLOC
- allocations; if you set this to lower than 1024KB, your system will
- become subtly broken, and prone to deadlock under high loads.
---- a/mm/khugepaged.c~mm-stop-recalculating-min_free_kbytes-once-set-by-userspace
-+++ a/mm/khugepaged.c
-@@ -3144,13 +3144,8 @@ void set_recommended_min_free_kbytes(voi
- 			      (unsigned long) nr_free_buffer_pages() / 20);
- 	recommended_min <<= (PAGE_SHIFT-10);
- 
--	if (recommended_min > min_free_kbytes) {
--		if (user_min_free_kbytes >= 0)
--			pr_info_ratelimited("raising min_free_kbytes from %d to %lu to help transparent hugepage allocations\n",
--					    min_free_kbytes, recommended_min);
+-/*
+- * Flags for vmemmap_populate_range and friends.
+- */
+-/* Vmemmap population for ZONE_DEVICE compound pages */
+-#define VMEMMAP_POPULATE_DAX		0x0001
 -
-+	if (user_min_free_kbytes < 0 && recommended_min > min_free_kbytes)
- 		min_free_kbytes = recommended_min;
--	}
+ #include "internal.h"
+ #include "mm_init.h"
+ #include "sparse.h"
+@@ -241,7 +235,7 @@ struct page __ref *vmemmap_shared_tail_p
+ #endif
  
- update_wmarks:
- 	setup_per_zone_wmarks();
---- a/mm/page_alloc.c~mm-stop-recalculating-min_free_kbytes-once-set-by-userspace
-+++ a/mm/page_alloc.c
-@@ -6722,12 +6722,8 @@ void calculate_min_free_kbytes(void)
- 	lowmem_kbytes = nr_free_buffer_pages() * (PAGE_SIZE >> 10);
- 	new_min_free_kbytes = int_sqrt(lowmem_kbytes * 16);
+ static __meminit void *vmemmap_alloc_pte(unsigned long pfn, int node,
+-		struct vmem_altmap *altmap, unsigned long flags)
++		struct vmem_altmap *altmap)
+ {
+ 	struct zone *zone;
+ 	struct page *page;
+@@ -251,7 +245,7 @@ static __meminit void *vmemmap_alloc_pte
+ 	 * Device DAX still relies on vmemmap_populate_compound_pages() for
+ 	 * head/first-tail allocation and tail-page reuse.
+ 	 */
+-	if (!vmemmap_optimizable_pfn(pfn) || flags & VMEMMAP_POPULATE_DAX)
++	if (!vmemmap_optimizable_pfn(pfn))
+ 		return vmemmap_alloc_block_buf(PAGE_SIZE, node, altmap);
  
--	if (new_min_free_kbytes > user_min_free_kbytes)
-+	if (user_min_free_kbytes < 0)
- 		min_free_kbytes = clamp(new_min_free_kbytes, 128, 262144);
--	else
--		pr_warn_ratelimited("min_free_kbytes is not updated to %d because user defined value %d is preferred\n",
--				    new_min_free_kbytes, user_min_free_kbytes);
--
+ 	zone = pfn_to_zone(pfn, node);
+@@ -263,8 +257,7 @@ static __meminit void *vmemmap_alloc_pte
  }
  
- int __meminit init_per_zone_wmark_min(void)
+ static pte_t * __meminit vmemmap_pte_populate(pmd_t *pmd, unsigned long addr, int node,
+-				       struct vmem_altmap *altmap,
+-				       unsigned long ptpfn, unsigned long flags)
++		struct vmem_altmap *altmap, unsigned long ptpfn)
+ {
+ 	pte_t *pte = pte_offset_kernel(pmd, addr);
+ 	unsigned long pfn = page_to_pfn((struct page *)addr);
+@@ -273,7 +266,7 @@ static pte_t * __meminit vmemmap_pte_pop
+ 		pte_t entry;
+ 
+ 		if (ptpfn == (unsigned long)-1) {
+-			void *p = vmemmap_alloc_pte(pfn, node, altmap, flags);
++			void *p = vmemmap_alloc_pte(pfn, node, altmap);
+ 
+ 			if (!p)
+ 				return NULL;
+@@ -291,7 +284,7 @@ static pte_t * __meminit vmemmap_pte_pop
+ 			 * Use try_get_page() to prevent the shared page refcount
+ 			 * from overflowing.
+ 			 */
+-			if ((flags & VMEMMAP_POPULATE_DAX) &&
++			if (slab_is_available() &&
+ 			    !try_get_page(pfn_to_page(ptpfn)))
+ 				return NULL;
+ 		}
+@@ -355,8 +348,7 @@ static pgd_t * __meminit vmemmap_pgd_pop
+ 
+ static pte_t * __meminit vmemmap_populate_address(unsigned long addr, int node,
+ 					      struct vmem_altmap *altmap,
+-					      unsigned long ptpfn,
+-					      unsigned long flags)
++					      unsigned long ptpfn)
+ {
+ 	pgd_t *pgd;
+ 	p4d_t *p4d;
+@@ -376,7 +368,7 @@ static pte_t * __meminit vmemmap_populat
+ 	pmd = vmemmap_pmd_populate(pud, addr, node);
+ 	if (!pmd)
+ 		return NULL;
+-	pte = vmemmap_pte_populate(pmd, addr, node, altmap, ptpfn, flags);
++	pte = vmemmap_pte_populate(pmd, addr, node, altmap, ptpfn);
+ 	if (!pte)
+ 		return NULL;
+ 	vmemmap_verify(pte, node, addr, addr + PAGE_SIZE);
+@@ -387,15 +379,14 @@ static pte_t * __meminit vmemmap_populat
+ static int __meminit vmemmap_populate_range(unsigned long start,
+ 					    unsigned long end, int node,
+ 					    struct vmem_altmap *altmap,
+-					    unsigned long ptpfn,
+-					    unsigned long flags)
++					    unsigned long ptpfn)
+ {
+ 	unsigned long addr = start;
+ 	pte_t *pte;
+ 
+ 	for (; addr < end; addr += PAGE_SIZE) {
+ 		pte = vmemmap_populate_address(addr, node, altmap,
+-					       ptpfn, flags);
++					       ptpfn);
+ 		if (!pte)
+ 			return -ENOMEM;
+ 	}
+@@ -406,7 +397,7 @@ static int __meminit vmemmap_populate_ra
+ int __meminit vmemmap_populate_basepages(unsigned long start, unsigned long end,
+ 					 int node, struct vmem_altmap *altmap)
+ {
+-	return vmemmap_populate_range(start, end, node, altmap, -1, 0);
++	return vmemmap_populate_range(start, end, node, altmap, -1);
+ }
+ 
+ /*
+@@ -532,7 +523,6 @@ static int __meminit vmemmap_populate_co
+ 						     unsigned long end, int node,
+ 						     struct dev_pagemap *pgmap)
+ {
+-	const unsigned long flags = VMEMMAP_POPULATE_DAX;
+ 	const unsigned int order = pfn_to_section_compound_order(start_pfn);
+ 	unsigned long size, addr;
+ 	pte_t *pte;
+@@ -545,14 +535,14 @@ static int __meminit vmemmap_populate_co
+ 
+ 	if (reuse_compound_section(start_pfn, pgmap))
+ 		return vmemmap_populate_range(start, end, node, NULL,
+-					      page_to_pfn(page), flags);
++					      page_to_pfn(page));
+ 
+ 	size = min(end - start, (1UL << order) * sizeof(struct page));
+ 	for (addr = start; addr < end; addr += size) {
+ 		unsigned long next, last = addr + size;
+ 
+ 		/* Populate the head page vmemmap page */
+-		pte = vmemmap_populate_address(addr, node, NULL, -1, flags);
++		pte = vmemmap_populate_address(addr, node, NULL, -1);
+ 		if (!pte)
+ 			return -ENOMEM;
+ 
+@@ -562,7 +552,7 @@ static int __meminit vmemmap_populate_co
+ 		 */
+ 		next = addr + PAGE_SIZE;
+ 		rc = vmemmap_populate_range(next, last, node, NULL,
+-					    page_to_pfn(page), flags);
++					    page_to_pfn(page));
+ 		if (rc)
+ 			return -ENOMEM;
+ 	}
 _
 
-Patches currently in -mm which might be from noren@nvidia.com are
+Patches currently in -mm which might be from muchun.song@linux.dev are
 
+mm-fix-missing-page-table-destructor-in-pagetable_free.patch
+arm64-mm-fix-destructor-for-unconstructed-hotplug-page-tables.patch
 
