@@ -1,45 +1,45 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1792832258;
-	b=GcXRk9TFGdNeqoFolRm4lETjaTW+9ybEUVrWOLUlwmvVHf2se2d5rNNhhfLlOC16EUtM
-	 zsSI/ZujkSwpQiaxWlGvvnIysZA09nxL/xLb14VXsFgQfknlJR/azPq/RJtwRXHihboU7
-	 ha0cBytgAMhkHQjciz9bJE2LJSdEE5oexG9eD88VVnwnX1YIR8y2NzJapiGnuKi6DLNjD
-	 YkmFczBRo6CCAN+GGwwAAKd/ymobLGewbDNj8iufe4YIJW9DRM1PwoEW/GItfOvTB1W5k
-	 DJj8HHWQuGUuJOYpuJI0RN0LaFrFJ6eQoe0XX9uLdRx/Y75dbb76oR0rdMvCWOispkQ==
+	t=1792832252;
+	b=XN+LyyimAUIa0NTwkrO5G8xc8yAKbh70kHJQIo4eEcE954bCgVGJxw1piNnHIA2WdrNZ
+	 5V+Cn35YuhXOfdH+GIke9ZT4aNmRLw5AyROkZs+5fSjdF9Fs+KzSvlpAk7viyzYf8CFSQ
+	 opqBVnooVv5rdp7gXXtBO7KL7ZWX6dIYLsUyrZztGu6gxQHnTqGiaYJR8QpP6dk+ukOOX
+	 +Hg5yJE9KmjC0nlivCzuY7uU91JhA57dVOSM+ZrEj46Za1zelMfBgSfHedO+OrvuldYJm
+	 lyS1mdB674Ryf+jO+7ovfvjG+/SxgLMuPfcWi0toUeNahfpGHecVLXoKz58opsnAu2A==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1792832258;
+	a=rsa-sha256; c=relaxed/relaxed; t=1792832252;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=7FF7ut+g2bzGoIAQSyAHpjtvKeZal/aOPMZvIqR5SMM=;
-	b=S+acAcwVw0apzcdhefQAFv6ni297PXpoJgpEtsHLWlzVx5+60rsLvotJBEdN/Ec6VjdH
-	 3BZK43z5OAWYFKphWxM4GLttz5xY9k2WN3NV1dFQIO9n3z8HrRG7KTig58I+Avn9WrERC
-	 9/1icbkCWGipU2eYBHTUQF8unxNFmiwzqWxNkECp+YyENUIETKq8O7zEbvE6eGUUL6Iuy
-	 hkTyd4eTayLHFN5bb4egZsB49wvRoD1Oxn/nSoeM07Au+zvg5n3zZSYuVPRSD5uS7JPq+
-	 FCdvtYyDUElSWnjfobc6EKSq9Zcd6NV6iCyNfl8fERtf7+EutEmp4lvz2hwnpbqQVSg==
+	bh=N4P1wRsPk6z03CGu1uFIKWHcd8WO6NAOx2OypwL4Z1A=;
+	b=2uHxWws61zQ/imxQiBURfAC4HclbUhsEbaJ+xr34QGZKyA3DVmuHGmDrbfV9HHmRlsoe
+	 XSc9MQGi9hHaD4LrRYGJIMBaHE7biKVR9qi/qeEbSvvhH22dlVOszDv2mP5YhYedf5Ofc
+	 3nnqkkteLLpQvmi4Ea9U6GZwnQRUzc/zxqKxI7NFeSCpAifJnsPa5vCsUsqJ4mWzrU5B5
+	 02DQv6we+/Tqt6tBrEUkWspHR/fe0a120pCF8NfMraN7rSq9gthrnlr1agD8eDrJpTe13
+	 Un7ZaxPryC/+GnuM0ff2YGbwHIWJM0JnZLWOOk2zLxAeZerKS8MdFG4pSgvSsT51Kgg==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=WOiXiwGF;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b="fXVa2Q4/";
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 12843606A31E;
-	Sat, 24 Oct 2026 08:57:37 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4AB40606A324;
+	Sat, 24 Oct 2026 08:57:31 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=WOiXiwGF
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 889631F01825;
-	Sat, 24 Oct 2026 08:57:37 +0000 (UTC)
+	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=fXVa2Q4/
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8AC801F01825;
+	Sat, 24 Oct 2026 08:57:31 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1792832257;
-	bh=7FF7ut+g2bzGoIAQSyAHpjtvKeZal/aOPMZvIqR5SMM=;
+	d=linux-foundation.org; s=korg; t=1792832251;
+	bh=N4P1wRsPk6z03CGu1uFIKWHcd8WO6NAOx2OypwL4Z1A=;
 	h=Date:To:From:Subject;
-	b=WOiXiwGFCYl8M0GYIATm5Xfj6zXPYwPLqqdce0jBHEsA2/p/x1E2hHFPs3jCLK3WV
-	 XwCoQm/w9AGL0zjtp5o7uH7MBhazn4JurpHBpxhY4r6XZ8UqJ+M6N7B8FPHrDwpZiv
-	 se6MyiHsVWcZr3QtDJZqVtpZMmva1KYBB9PPznxk=
-Date: Sat, 24 Oct 2026 01:57:37 -0700
-To: mm-commits@vger.kernel.org,stable@vger.kernel.org,shakeel.butt@linux.dev,roman.gushchin@linux.dev,osalvador@suse.de,nphamcs@gmail.com,muchun.song@linux.dev,mhocko@suse.com,mhocko@kernel.org,joshua.hahnjy@gmail.com,hannes@cmpxchg.org,david@kernel.org,chris@chrisdown.name,lihongfu@kylinos.cn,akpm@linux-foundation.org
+	b=fXVa2Q4/my5jd+yXF1i9t8x7PrSW3TxxKenRk7Dndj0exomMDPLUPpZsTqrET2Yxg
+	 xtq5+ByWx2ZU82lI7Zwo10YWbQQPE1lOxY8A5zZlqSRx7Qp0UURtzHywOuGoP4VOPA
+	 c1BPiivDbHoAPvuD7tDeEIoZPWMUyc4GvakD46+4=
+Date: Sat, 24 Oct 2026 01:57:31 -0700
+To: mm-commits@vger.kernel.org,vbabka@kernel.org,stable@vger.kernel.org,rppt@kernel.org,riel@surriel.com,pfalcato@suse.de,peterx@redhat.com,osalvador@suse.de,nao.horiguchi@gmail.com,muchun.song@linux.dev,mgorman@techsingularity.net,ljs@kernel.org,linmiaohe@huawei.com,liam@infradead.org,lance.yang@linux.dev,kas@kernel.org,josef@toxicpanda.com,jannh@google.com,agl@us.ibm.com,david@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-memcg-migrate-per-node-hugetlb-lruvec-stat-together-with-hugetlb-folio.patch removed from -mm tree
-Message-Id: <20261024085737.889631F01825@smtp.kernel.org>
+Subject: [merged mm-stable] mm-hugetlb-tolerate-uffd_wp-markers-outside-uffd-wp-vmas.patch removed from -mm tree
+Message-Id: <20261024085731.8AC801F01825@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -51,146 +51,74 @@ Precedence: list
 
 
 The quilt patch titled
-     Subject: mm/memcg: migrate per-node hugetlb lruvec stat together with hugetlb folio
+     Subject: mm/hugetlb: tolerate UFFD_WP markers outside uffd-wp VMAs
 has been removed from the -mm tree.  Its filename was
-     mm-memcg-migrate-per-node-hugetlb-lruvec-stat-together-with-hugetlb-folio.patch
+     mm-hugetlb-tolerate-uffd_wp-markers-outside-uffd-wp-vmas.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Hongfu Li <lihongfu@kylinos.cn>
-Subject: mm/memcg: migrate per-node hugetlb lruvec stat together with hugetlb folio
-Date: Wed, 23 Sep 2026 10:05:16 +0800
+From: "David Hildenbrand (Arm)" <david@kernel.org>
+Subject: mm/hugetlb: tolerate UFFD_WP markers outside uffd-wp VMAs
+Date: Thu, 15 Oct 2026 18:07:14 +0200
 
-memory.numa_stat exposes per-node hugetlb counters from per-node lruvec
-stats.  These stats are accounted against folio_nid(): incremented on the
-folio's node when handed to a user, decremented when the folio is returned
-to the pool.
+UFFD PTE bit handling is a bit like swiss cheese, in particular with
+recently added RWP mode. Having uffd-wp markers outside uffd-wp VMAs
+already confused this code in the past and resulted in uffd-pte bits
+confusing other code later.
 
-During hugetlb folio migration, mem_cgroup_migrate() moves the charge to
-the new folio and drops the memcg data of the old one, so the free of the
-old folio right after the migration skips the memcg per-node lruvec
-decrement.  The hugetlb count stays attributed to the old node for the
-rest of the life of the charge, while the target folio gets no increment
-on the new node; its later free decrements a counter that was never
-incremented.
+Let's play safe and just ignore these markers in hugetlb_no_page(), not
+silently propagating the uffd-wp PTE bit.
 
-Migrate the per-node lruvec accounting alongside migration.  Global memcg
-totals remain balanced because they track resource consumption, not node
-placement.
-
-Link: https://lore.kernel.org/20260923-for-hugetlb_state3-v2-2-e8a36245bfab@kylinos.cn
-Fixes: 05d4532b60e3 ("memcg/hugetlb: add hugeTLB counters to memcg")
-Signed-off-by: Hongfu Li <lihongfu@kylinos.cn>
+Link: https://lore.kernel.org/20261015-urgent_fixes-v1-8-42796911043b@kernel.org
+Fixes: 2d427bb01639 ("mm/userfaultfd: add RWP fault delivery and expose UFFDIO_REGISTER_MODE_RWP")
+Signed-off-by: David Hildenbrand (Arm) <david@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Tested-by: Joshua Hahn <joshua.hahnjy@gmail.com>
-Reviewed-by: Joshua Hahn <joshua.hahnjy@gmail.com>
-Reviewed-by: Oscar Salvador <osalvador@suse.de>
-Acked-by: Muchun Song <muchun.song@linux.dev>
-Cc: David Hildenbrand <david@kernel.org>
-Cc: Shakeel Butt <shakeel.butt@linux.dev>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Nhat Pham <nphamcs@gmail.com>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Roman Gushchin <roman.gushchin@linux.dev>
-Cc: Chris Down <chris@chrisdown.name>
+Acked-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
+Reviewed-by: Lance Yang <lance.yang@linux.dev>
+Cc: Liam R. Howlett <liam@infradead.org>
+Cc: Vlastimil Babka <vbabka@kernel.org>
+Cc: Jann Horn <jannh@google.com>
+Cc: Pedro Falcato <pfalcato@suse.de>
+Cc: Muchun Song <muchun.song@linux.dev>
+Cc: Oscar Salvador <osalvador@suse.de>
+Cc: Miaohe Lin <linmiaohe@huawei.com>
+Cc: Naoya Horiguchi <nao.horiguchi@gmail.com>
+Cc: Adam Litke <agl@us.ibm.com>
+Cc: Mel Gorman <mgorman@techsingularity.net>
+Cc: Rik van Riel <riel@surriel.com>
+Cc: Peter Xu <peterx@redhat.com>
+Cc: Kiryl Shutsemau <kas@kernel.org>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Josef Bacik <josef@toxicpanda.com>
 Cc: <stable@vger.kernel.org>
 ---
 
- include/linux/memcontrol.h |    8 ++++++++
- mm/hugetlb.c               |   25 +++++++++++++++++++++++++
- mm/memcontrol.c            |    5 ++---
- 3 files changed, 35 insertions(+), 3 deletions(-)
+ mm/hugetlb.c |    5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
---- a/include/linux/memcontrol.h~mm-memcg-migrate-per-node-hugetlb-lruvec-stat-together-with-hugetlb-folio
-+++ a/include/linux/memcontrol.h
-@@ -983,6 +983,9 @@ unsigned long lruvec_page_state_monotoni
- unsigned long lruvec_page_state_local(const struct lruvec *lruvec,
- 				      enum node_stat_item idx);
- 
-+void mod_memcg_lruvec_state(struct lruvec *lruvec,
-+			    enum node_stat_item idx, int val);
-+
- void mem_cgroup_flush_stats(struct mem_cgroup *memcg);
- void mem_cgroup_flush_stats_ratelimited(struct mem_cgroup *memcg);
- 
-@@ -1451,6 +1454,11 @@ static inline unsigned long lruvec_page_
- 	return node_page_state(lruvec_pgdat(lruvec), idx);
- }
- 
-+static inline void mod_memcg_lruvec_state(struct lruvec *lruvec,
-+					  enum node_stat_item idx, int val)
-+{
-+}
-+
- static inline void mem_cgroup_flush_stats(struct mem_cgroup *memcg)
- {
- }
---- a/mm/hugetlb.c~mm-memcg-migrate-per-node-hugetlb-lruvec-stat-together-with-hugetlb-folio
+--- a/mm/hugetlb.c~mm-hugetlb-tolerate-uffd_wp-markers-outside-uffd-wp-vmas
 +++ a/mm/hugetlb.c
-@@ -23,6 +23,7 @@
- #include <linux/mmdebug.h>
- #include <linux/sched/signal.h>
- #include <linux/rmap.h>
-+#include <linux/rcupdate.h>
- #include <linux/string_choices.h>
- #include <linux/string_helpers.h>
- #include <linux/swap.h>
-@@ -7396,12 +7397,36 @@ void folio_putback_hugetlb(struct folio
- 	folio_put(folio);
- }
- 
-+static void move_hugetlb_lruvec_stat(struct folio *old_folio,
-+				     struct folio *new_folio)
-+{
-+	struct mem_cgroup *memcg;
-+	long nr_pages = folio_nr_pages(old_folio);
-+	int old_nid = folio_nid(old_folio);
-+	int new_nid = folio_nid(new_folio);
-+
-+	if (old_nid == new_nid)
-+		return;
-+
-+	guard(rcu)();
-+
-+	memcg = folio_memcg(new_folio);
-+	if (!memcg)
-+		return;
-+
-+	mod_memcg_lruvec_state(mem_cgroup_lruvec(memcg, NODE_DATA(old_nid)),
-+			       NR_HUGETLB, -nr_pages);
-+	mod_memcg_lruvec_state(mem_cgroup_lruvec(memcg, NODE_DATA(new_nid)),
-+			       NR_HUGETLB, nr_pages);
-+}
-+
- void move_hugetlb_state(struct folio *old_folio, struct folio *new_folio,
- 			enum migrate_reason reason)
- {
- 	struct hstate *h = folio_hstate(old_folio);
- 
- 	hugetlb_cgroup_migrate(old_folio, new_folio);
-+	move_hugetlb_lruvec_stat(old_folio, new_folio);
- 	folio_set_owner_migrate_reason(new_folio, reason);
- 
+@@ -5981,8 +5981,11 @@ static vm_fault_t hugetlb_no_page(struct
  	/*
---- a/mm/memcontrol.c~mm-memcg-migrate-per-node-hugetlb-lruvec-stat-together-with-hugetlb-folio
-+++ a/mm/memcontrol.c
-@@ -1015,9 +1015,8 @@ static void __mod_memcg_lruvec_state(str
- 	put_cpu();
- }
+ 	 * If this pte was previously wr-protected, keep it wr-protected even
+ 	 * if populated.
++	 *
++	 * TODO: fix all cases where uffd-wp markers remain in VMAs that are no
++	 * longer registered with uffd.
+ 	 */
+-	if (unlikely(pte_is_uffd_wp_marker(vmf->orig_pte)))
++	if (unlikely(userfaultfd_wp(vma) && pte_is_uffd_wp_marker(vmf->orig_pte)))
+ 		new_pte = huge_pte_mkuffd(new_pte);
+ 	set_huge_pte_at(mm, vmf->address, vmf->pte, new_pte, huge_page_size(h));
  
--static void mod_memcg_lruvec_state(struct lruvec *lruvec,
--				     enum node_stat_item idx,
--				     int val)
-+void mod_memcg_lruvec_state(struct lruvec *lruvec,
-+			    enum node_stat_item idx, int val)
- {
- 	struct pglist_data *pgdat = lruvec_pgdat(lruvec);
- 	struct mem_cgroup_per_node *pn;
 _
 
-Patches currently in -mm which might be from lihongfu@kylinos.cn are
+Patches currently in -mm which might be from david@kernel.org are
 
+mm-fix-address-wraparound-when-scanning-large-folio-ptes.patch
+mm-hugetlb-disable-pmd-sharing-for-uffd-missing-mode.patch
+mm-vma-write-lock-source-vma-before-duplicating-it-in-__split_vma.patch
+mm-madvise-preserve-vma_softdirty_bit-when-changing-anonymous-names.patch
 
