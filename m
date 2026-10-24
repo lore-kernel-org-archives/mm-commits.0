@@ -1,45 +1,45 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1792832291;
-	b=ebeK38wUlW1aqM2knvBbmePSWhZonUdzQjfaXOHkz7yqEsrYdJpJ9CXgZrCOOHQXcUsR
-	 P06c6b/7lB3/5WYzfEi43+DNRqBSfMuNOOXUL8Jh8af1cIc0rac1gC25SBWKovAW8E9Jh
-	 2B7iIOSqzqOL0EveOKmXAOCpceNYjdlxkGzkoHefWg6Sl5BG1dfbYNsEP5OfXFpSpaZFn
-	 xCeElbyWDFFu4pCaeg2alG84aktZVC8WqmKjXzQIOVpo1fomzcydid1YBswEVXOblrVtb
-	 qByxBA4VYFVz4I4KyM+l8mHBQQDpMFbof0hZRhGyju62QtFgmGnshViYWF2HBXD95Vw==
+	t=1792832292;
+	b=FS8WxP5ACAOWjqHGvBWdhlySUHLCDjTYjphCSeOq0UbP6nX1GYx1PqhCaAfipiTG6xv+
+	 L7HiABPai6XP1SBqGxNEQ2lryoQUEJY3mJ4MLAJwFeKTMcmy1lbLojAtKvuO+GvcCGxmA
+	 aJ3z8RYplIIkc2JPpmy706ovxiCHpDn+TCz1YRblPwkcJeIqTbvAUn88+WEZbqTnkAITM
+	 MslRHyZxLnRsyhE5IvbvzU9C9RGeKCS8sK55Uydq0je17Rf8/gdH6jZ60ldNebNmcaJYG
+	 bAOVo8+4W7w0AQTNWKolBmbh80ws3o8Wqu9Ye1fuzGC8Ch95ua0ycp7OxTlcJZwdeSw==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1792832291;
+	a=rsa-sha256; c=relaxed/relaxed; t=1792832292;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=m/JJvVuotEWVIbVHKe86yc1j5+ARZhhkSmjJgCU9n28=;
-	b=ocF+7h2ScJ4trzxmyDFAPoslV12rtP7SdnjjirZ+w9IskbnmWG3MOVlfkqqK4zngygh7
-	 jtR3fFUIeAovkZlXupeECwJOewa3oyD/NC5eFomuBCa36BDlStrtjZ4hRSsPlQcWJd8o7
-	 6Qja1xdVWPWR7Z017S2dNjLsVJWsC5VnVGyYDOgtFwrK4xisyRgMTZ6hS3POCD1QF9PXH
-	 vtnuB9vJA1yu7D6/rT4zRyLWlLSy0tSDT0YYYP+b3FkagtugdWzeyq/3YFamEZoCs9bUr
-	 BuJ1lQ4AKx8sAePGdR0le/6uUpQsw5X51wCde3vYlCAC2AHZffMl2UJNdM1sNIH7fbA==
+	bh=ouCr6jtoooOoKP3rrWCv37M39YNb6iljXmrXFao+FlA=;
+	b=l8+APuKRAmgDYgmugV1rbPjb9C7cV4dHoQPMhv2nLg9XeG80j6HKVas+MmUHyH0swJ+P
+	 sNncD+26uEbCUe1ygDBELaNaIjNDmmdh4zM43h2wJtJ0X+VrNj3MVcLcLWB8zb6E7vClp
+	 GxIuak8mXyDD9CUFm3mvxEwus6R+ZovhulvosjIqScHRVPEO4rhXe0LNl36jHaAypoc6M
+	 WaaRsEEi/XG7lqL7MJ6qLoQrd3EN4rriFZa71PjTMuhEZUUaG5spB35owFQ4AxQEUCce1
+	 pFaN0aPHvwc/xQO6+0sVkDNEPeDn3CRzATtGZhAlhy/fMNb/ZtgVYo6a3DzM8Pt7w1g==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b="Ye/2Fskm";
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=rN82aSyW;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F32CE606A31B;
-	Sat, 24 Oct 2026 08:58:10 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0F76E606A323
+	for <mm-commits@vger.kernel.org>; Sat, 24 Oct 2026 08:58:12 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=Ye/2Fskm
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id BF6831F01828;
-	Sat, 24 Oct 2026 08:58:10 +0000 (UTC)
+	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=rN82aSyW
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id CC15D1F01825;
+	Sat, 24 Oct 2026 08:58:11 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1792832290;
-	bh=m/JJvVuotEWVIbVHKe86yc1j5+ARZhhkSmjJgCU9n28=;
+	d=linux-foundation.org; s=korg; t=1792832291;
+	bh=ouCr6jtoooOoKP3rrWCv37M39YNb6iljXmrXFao+FlA=;
 	h=Date:To:From:Subject;
-	b=Ye/2Fskm+8sN6Vb+3H7ft+cO9+tdeeSN8j1hmd3uKXaRskj2XTZhf0pFUsYClG2GY
-	 rkScbaTnfi1zCQ80Sqx0yBDEr90dhCRaVB3IHyNU6AV9nKgF1Unmp0yxTgmGTNxs06
-	 +pyOn9UFNsErmizTKruXlnExjC/Y9zrFY1YFRz18=
-Date: Sat, 24 Oct 2026 01:58:10 -0700
-To: mm-commits@vger.kernel.org,stable@vger.kernel.org,sj@kernel.org,bijan311@gmail.com,kmehltretter@gmail.com,akpm@linux-foundation.org
+	b=rN82aSyWJXO0sS2V9xdyMehbogfsQPTR3sIoJ3KHDWAsD0tZUD2hrQpOliB2QSHiV
+	 fX22CflT5dmdPMNOi0fXko4dTDC+tmVcdMazDCSDluwzNw5yMdCAPqj4mpPpRVU0SP
+	 +UoE2T4xOMIVo1kl3bA0WvRGTGIjilVlnRwQODGk=
+Date: Sat, 24 Oct 2026 01:58:11 -0700
+To: mm-commits@vger.kernel.org,sj@kernel.org,davidgow@davidgow.net,brendan.higgins@linux.dev,bijan311@gmail.com,kmehltretter@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-damon-core-preserve-the-quota-passed-to-damon_new_scheme.patch removed from -mm tree
-Message-Id: <20261024085810.BF6831F01828@smtp.kernel.org>
+Subject: [merged mm-stable] mm-damon-tests-core-kunit-test-preservation-of-quota-state.patch removed from -mm tree
+Message-Id: <20261024085811.CC15D1F01825@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -51,133 +51,181 @@ Precedence: list
 
 
 The quilt patch titled
-     Subject: mm/damon/core: preserve the quota passed to damon_new_scheme()
+     Subject: mm/damon/tests/core-kunit: test preservation of quota state
 has been removed from the -mm tree.  Its filename was
-     mm-damon-core-preserve-the-quota-passed-to-damon_new_scheme.patch
+     mm-damon-tests-core-kunit-test-preservation-of-quota-state.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Karl Mehltretter <kmehltretter@gmail.com>
-Subject: mm/damon/core: preserve the quota passed to damon_new_scheme()
-Date: Mon, 28 Sep 2026 01:58:33 -0700
+Subject: mm/damon/tests/core-kunit: test preservation of quota state
+Date: Mon, 28 Sep 2026 01:58:34 -0700
 
-Patch series "mm/damon/core: preserve quota state when constructing
-schemes", v3.
+Check that damon_new_scheme() initializes the new scheme's quota without
+changing the quota passed as a parameter.  Cover all eight fields
+initialized by damos_quota_init().
 
-damon_commit_ctx() first commits the running context's parameters to a
-temporary context for validating proposed updates.  Constructing the
-temporary schemes clears the running schemes' quota state because
-damon_new_scheme() initializes the quota passed as a parameter before
-copying it to the new scheme.  Even an update later rejected with -EINVAL
-loses the running quota state.
+Also check that damon_commit_ctx() preserves those fields in the
+destination scheme for both accepted and rejected parameter updates.  Use
+an invalid min_region_sz for the rejected update and confirm that
+returning -EINVAL leaves the running quota state unchanged.
 
-Initialize the new scheme's copy instead, and add KUnit tests for the
-constructor and for accepted and rejected context updates.
+Without the preceding fix, all eight fields are cleared in the constructor
+test and in both context update cases.
 
-Note: below are test results and changelogs that could be removed from the
-final commit log.
-
-In the v1 live test with damo, a scheme with a plain 64 KiB size quota and
-a 60-second reset interval uses its quota, and a full "damo tune" with
-unchanged parameters then lets it try another 64 KiB within the same
-window.  With the fix, sz_tried stays at 64 KiB.
-
-KUnit was rerun after the rebase on x86-64 and i386. With only patch 2
-applied, the two new tests fail. With the fix, all 46 DAMON KUnit tests
-pass on both architectures.
-
-The v1 DAMON selftests showed no new failures (QEMU TCG guest; the
-wss_estimation test missed its accuracy bounds with and without the fix).
-
-
-This patch (of 2):
-
-damon_commit_ctx() first commits the running context's parameters to a
-temporary context for validating proposed updates.  When
-damon_commit_schemes() creates the temporary schemes, it passes the
-running scheme's quota as the quota parameter of damon_new_scheme().
-
-damon_new_scheme() calls damos_quota_init() on that quota before copying
-it to the new scheme.  This clears the running scheme's effective quota,
-feedback input and charging state.  Even an update rejected with -EINVAL
-loses the running quota state.
-
-For a size quota, this discards the bytes already charged and allows the
-scheme to use a fresh quota before the reset interval has elapsed.  For a
-goal-driven quota, the consist tuner loses its accumulated input and
-restarts from its minimum input.  A time quota loses its throughput
-estimate and falls back to the initial estimate.
-
-The end users will show DAMOS works more or less aggressively than
-expected for online-commit updates of quotas.  DAMON provides best efforts
-by default.  DAMON parameters online commit is supposed to be executed
-only occasionally.  Hence, the issue wouldn't be critical on sane setups. 
-For user_input type quota goals, online commit of the user input score is
-expected to be frequent.  But, for the case commit_schemes_quota_goals
-command is recommended for optimal execution, and it doesn't have this
-bug.
-
-Commit 60bd24f272d0 ("mm/damon/sysfs: test commit input against realistic
-destination") introduced this problem in v6.19 when sysfs validation began
-committing the running context's parameters to a temporary context. 
-Commit b90408ef1163 ("mm/damon/core: safely validate src on
-damon_commit_ctx()") later moved that validation into the core API,
-exposing other callers including DAMON_RECLAIM and DAMON_LRU_SORT.
-
-Sashiko reported the same side effect [1] on the RFC of the core API
-change.
-
-Copy the quota to the new scheme first, then initialize that copy.  Make
-damos_quota_init() return void, since its return value is no longer
-needed.
-
-Link: https://lore.kernel.org/20260928085835.7675-1-sj@kernel.org
-Link: https://lore.kernel.org/20260928085835.7675-2-sj@kernel.org
-Link: https://lore.kernel.org/r/20260702212143.0CB6D1F00A3D@smtp.kernel.org/ [1]
-Fixes: 60bd24f272d0 ("mm/damon/sysfs: test commit input against realistic destination")
+Link: https://lore.kernel.org/20260928085835.7675-3-sj@kernel.org
 Signed-off-by: Karl Mehltretter <kmehltretter@gmail.com>
 Signed-off-by: SJ Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 Reviewed-by: SJ Park <sj@kernel.org>
 Assisted-by: LLM
 Cc: Bijan Tabatabai <bijan311@gmail.com>
-Cc: <stable@vger.kernel.org>
+Cc: Brendan Higgins <brendan.higgins@linux.dev>
+Cc: David Gow <davidgow@davidgow.net>
 ---
 
- mm/damon/core.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ mm/damon/tests/core-kunit.h |  107 ++++++++++++++++++++++++++++++++++
+ 1 file changed, 107 insertions(+)
 
---- a/mm/damon/core.c~mm-damon-core-preserve-the-quota-passed-to-damon_new_scheme
-+++ a/mm/damon/core.c
-@@ -734,7 +734,7 @@ static bool damos_quota_goals_empty(stru
+--- a/mm/damon/tests/core-kunit.h~mm-damon-tests-core-kunit-test-preservation-of-quota-state
++++ a/mm/damon/tests/core-kunit.h
+@@ -812,6 +812,48 @@ static void damos_test_new_filter(struct
+ 	damos_destroy_filter(filter);
  }
  
- /* initialize fields of @quota that normally API users wouldn't set */
--static struct damos_quota *damos_quota_init(struct damos_quota *quota)
-+static void damos_quota_init(struct damos_quota *quota)
++static void damos_test_new_scheme_keeps_src_quota(struct kunit *test)
++{
++	struct damos_access_pattern pattern = {};
++	struct damon_target target = {};
++	struct damos_quota quota = {
++		.sz = SZ_64K,
++		.esz = 123,
++		.esz_bp = 456,
++		.total_charged_sz = 789,
++		.total_charged_ns = 1011,
++		.charged_sz = 12,
++		.charged_from = 13,
++		.charge_target_from = &target,
++		.charge_addr_from = 14,
++	};
++	struct damos_watermarks wmarks = {};
++	struct damos *s;
++
++	s = damon_new_scheme(&pattern, DAMOS_STAT, 0, &quota, &wmarks,
++			NUMA_NO_NODE);
++	if (!s)
++		kunit_skip(test, "scheme alloc fail");
++	KUNIT_EXPECT_EQ(test, s->quota.sz, (unsigned long)SZ_64K);
++	KUNIT_EXPECT_EQ(test, s->quota.esz, 0ul);
++	KUNIT_EXPECT_EQ(test, s->quota.esz_bp, 0ul);
++	KUNIT_EXPECT_EQ(test, s->quota.total_charged_sz, 0ul);
++	KUNIT_EXPECT_EQ(test, s->quota.total_charged_ns, 0ul);
++	KUNIT_EXPECT_EQ(test, s->quota.charged_sz, 0ul);
++	KUNIT_EXPECT_EQ(test, s->quota.charged_from, 0ul);
++	KUNIT_EXPECT_PTR_EQ(test, s->quota.charge_target_from, NULL);
++	KUNIT_EXPECT_EQ(test, s->quota.charge_addr_from, 0ul);
++	KUNIT_EXPECT_EQ(test, quota.esz, 123ul);
++	KUNIT_EXPECT_EQ(test, quota.esz_bp, 456ul);
++	KUNIT_EXPECT_EQ(test, quota.total_charged_sz, 789ul);
++	KUNIT_EXPECT_EQ(test, quota.total_charged_ns, 1011ul);
++	KUNIT_EXPECT_EQ(test, quota.charged_sz, 12ul);
++	KUNIT_EXPECT_EQ(test, quota.charged_from, 13ul);
++	KUNIT_EXPECT_PTR_EQ(test, quota.charge_target_from, &target);
++	KUNIT_EXPECT_EQ(test, quota.charge_addr_from, 14ul);
++	damon_destroy_scheme(s);
++}
++
+ static void damos_test_commit_quota_goal_for(struct kunit *test,
+ 		struct damos_quota_goal *dst,
+ 		struct damos_quota_goal *src)
+@@ -1572,6 +1614,69 @@ static void damon_test_commit_ctx(struct
+ 	damon_destroy_ctx(dst);
+ }
+ 
++static void damon_test_commit_ctx_keeps_quota_for(struct kunit *test,
++		unsigned long min_region_sz, int expected_err)
++{
++	struct damos_access_pattern pattern = {};
++	struct damos_quota quota = {.sz = SZ_64K};
++	struct damos_watermarks wmarks = {};
++	struct damon_ctx *src, *dst;
++	struct damon_target *target;
++	struct damos *s;
++
++	dst = damon_new_ctx();
++	if (!dst)
++		kunit_skip(test, "dst alloc fail");
++	target = damon_new_target();
++	if (!target) {
++		damon_destroy_ctx(dst);
++		kunit_skip(test, "target alloc fail");
++	}
++	damon_add_target(dst, target);
++	s = damon_new_scheme(&pattern, DAMOS_STAT, 0, &quota, &wmarks,
++			NUMA_NO_NODE);
++	if (!s) {
++		damon_destroy_ctx(dst);
++		kunit_skip(test, "scheme alloc fail");
++	}
++	damon_add_scheme(dst, s);
++
++	/* Copy the parameters before populating dst's runtime quota state. */
++	src = damon_new_test_ctx(dst);
++	if (!src) {
++		damon_destroy_ctx(dst);
++		kunit_skip(test, "src alloc fail");
++	}
++	src->min_region_sz = min_region_sz;
++	s->quota.esz = 123;
++	s->quota.esz_bp = 456;
++	s->quota.total_charged_sz = 789;
++	s->quota.total_charged_ns = 1011;
++	s->quota.charged_sz = 12;
++	s->quota.charged_from = 13;
++	s->quota.charge_target_from = target;
++	s->quota.charge_addr_from = 14;
++
++	KUNIT_EXPECT_EQ(test, damon_commit_ctx(dst, src), expected_err);
++	KUNIT_EXPECT_EQ(test, s->quota.esz, 123ul);
++	KUNIT_EXPECT_EQ(test, s->quota.esz_bp, 456ul);
++	KUNIT_EXPECT_EQ(test, s->quota.total_charged_sz, 789ul);
++	KUNIT_EXPECT_EQ(test, s->quota.total_charged_ns, 1011ul);
++	KUNIT_EXPECT_EQ(test, s->quota.charged_sz, 12ul);
++	KUNIT_EXPECT_EQ(test, s->quota.charged_from, 13ul);
++	KUNIT_EXPECT_PTR_EQ(test, s->quota.charge_target_from, target);
++	KUNIT_EXPECT_EQ(test, s->quota.charge_addr_from, 14ul);
++	damon_destroy_ctx(src);
++	damon_destroy_ctx(dst);
++}
++
++static void damon_test_commit_ctx_keeps_quota(struct kunit *test)
++{
++	/* Only power of two min_region_sz is allowed. */
++	damon_test_commit_ctx_keeps_quota_for(test, 4096, 0);
++	damon_test_commit_ctx_keeps_quota_for(test, 4095, -EINVAL);
++}
++
+ static void damon_test_valid_probe_params(struct kunit *test)
  {
- 	quota->esz = 0;
- 	quota->total_charged_sz = 0;
-@@ -744,7 +744,6 @@ static struct damos_quota *damos_quota_i
- 	quota->charge_target_from = NULL;
- 	quota->charge_addr_from = 0;
- 	quota->esz_bp = 0;
--	return quota;
- }
- 
- struct damos *damon_new_scheme(struct damos_access_pattern *pattern,
-@@ -776,7 +775,8 @@ struct damos *damon_new_scheme(struct da
- 	scheme->last_applied = NULL;
- 	INIT_LIST_HEAD(&scheme->list);
- 
--	scheme->quota = *(damos_quota_init(quota));
-+	scheme->quota = *quota;
-+	damos_quota_init(&scheme->quota);
- 	/* quota.goals should be separately set by caller */
- 	INIT_LIST_HEAD(&scheme->quota.goals);
- 
+ 	struct damon_ctx *ctx;
+@@ -2259,6 +2364,7 @@ static struct kunit_case damon_test_case
+ 	KUNIT_CASE(damon_test_mvsum),
+ 	KUNIT_CASE(damon_test_nr_accesses_mvsum),
+ 	KUNIT_CASE(damos_test_new_filter),
++	KUNIT_CASE(damos_test_new_scheme_keeps_src_quota),
+ 	KUNIT_CASE(damos_test_commit_quota_goal),
+ 	KUNIT_CASE(damos_test_commit_quota_goals),
+ 	KUNIT_CASE(damos_test_commit_quota),
+@@ -2270,6 +2376,7 @@ static struct kunit_case damon_test_case
+ 	KUNIT_CASE(damon_test_commit_filter),
+ 	KUNIT_CASE(damon_test_commit_probes),
+ 	KUNIT_CASE(damon_test_commit_ctx),
++	KUNIT_CASE(damon_test_commit_ctx_keeps_quota),
+ 	KUNIT_CASE(damon_test_valid_probe_params),
+ 	KUNIT_CASE(damos_test_filter_out),
+ 	KUNIT_CASE(damos_test_apply_scheme_filtered_sz),
 _
 
 Patches currently in -mm which might be from kmehltretter@gmail.com are
