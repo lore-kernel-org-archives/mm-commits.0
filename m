@@ -1,45 +1,45 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1792832316;
-	b=XzTh9IZfVnV3lIaOpxnBKrOt2fR0YJtIN8Rv0QpsUraeSdnaUfcq4ETlAUExoplAwl/r
-	 wziMEUbPVLofvK6UdoysbO3DiY1eb7fcJZ5mz/g/jBvckJBcLJpQpYcFDXoet2JaKRbLy
-	 K5nAq7VgVmzVpug1iuQDX5AFGwLR1l5AWPebzw9vFcAafMG2MW8r/b7NoD6IhSKt7Jfsz
-	 QbvZr/DCVZjle5hhVAS9GyOamwS6npl8dId2/7+BhQPWX6JB6Wv5XYxClbpDV4dgcucA0
-	 HRG1so/Tj/JeFvO8gzrVVoY6hm3MY3guRyBR11HTaF4ExSh1+6oFTJ+oep9wbFwn2gQ==
+	t=1792832317;
+	b=zMRybGr18liJs8r69v50ajDViamUa5KUHXMak+neQZShA1JOgh3NQCg9OZfWa14CIOAe
+	 QlcrAknMzyrc/ihWgVKMU8DSwZbxnHfaSRn2hjDkvh1UAAvejhTtDnpjtI+fVc5/gb71J
+	 UXkA9C0X8+nFCUcrYoWp7VrBGrnbO48zzYcR0Bk5MW6FS2JKmhHu7taje/mUFl/z/fM1s
+	 lm1+a7wZmzvRoE5iPY4z6F2agbEF3TnLWcfSsHU6Si10dP+fzEkiQ/YrSifTzuayQZgBF
+	 xEDdRUS7RtR8HiOsDxUX9Gx9ljr5E2oiDwrJfU98h5asztAHNhUVd9KKuYCcHtaQEuQ==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1792832316;
+	a=rsa-sha256; c=relaxed/relaxed; t=1792832317;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=b/fCudylhNG2X03gi/OdDh6oAFQmob1QlVJ8Rdk9N3s=;
-	b=VHwaBn/F9/CpeV0iiN3Ul+0rz7UEc9WzGfw7aTAKyjd0vB/egvcdF1AITN2F06wnpJnK
-	 qCDGhPoznvuRydKAmFrfJKR9kbpiShxs3z4G3gARB3LFmd8aZs9TeKL5HQw6v4SNF70qZ
-	 /+f5QPCt+Fn4KKVbloVWN9gBbme64HpsAEoo19UQcjGM8aq1XQsQfMhHiDVltmD8qmmGd
-	 RUFHzF5GgsHS4CfjXGFIc6y+TIBHqi34EHAQShIzZSTnF+D3UUDPCOz+/W5/kkCe9CN4K
-	 Myu8MqkjH1mQRNPxlp1EACucXGpRv1dmaNBAG38n0cb6ap1R7plasGUjgit0Of9CzAw==
+	bh=GbLKFaFjXrU3oWI8v7zMCAQ1cIjXH9z+89lJYXzpK2s=;
+	b=se0dqfOoeAuphSddVNzejJtqIrnzm5QrlwleJO72kix1odUEDJ4fa4BJtwPUiiGhaMWC
+	 2KZFfHkmaos42Tgv7IN/mygRu8EEOpChxCfRJV4FcRnki0+3bNpZCcIDMUWckpIK0n3Ag
+	 8ibC2Z7dPJceQ93dQPXu7m63wDMVJetrc0N0aR3osAfy3+5fiGB0+XLZfocKS9s5JYAGy
+	 z9mXY6OQyp/wmYH6pw+M+U8pwLzpPQ3kU6WHg8KwLp+SHruzAwLaGdjYuAhE7KzffpMWp
+	 9leHQlm1cGBOmg25FfxYoxGSAOGxY/Kojgt946fM5jyPe/OEJQutowQUkAHrURNn7jA==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b="urd/cxwA";
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b="w+Z/++HP";
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A88C2606A31F
-	for <mm-commits@vger.kernel.org>; Sat, 24 Oct 2026 08:58:35 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EE1E2606A31D
+	for <mm-commits@vger.kernel.org>; Sat, 24 Oct 2026 08:58:36 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=urd/cxwA
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7364C1F031E4;
-	Sat, 24 Oct 2026 08:58:35 +0000 (UTC)
+	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=w+Z/++HP
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 78E151F01828;
+	Sat, 24 Oct 2026 08:58:36 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1792832315;
-	bh=b/fCudylhNG2X03gi/OdDh6oAFQmob1QlVJ8Rdk9N3s=;
+	d=linux-foundation.org; s=korg; t=1792832316;
+	bh=GbLKFaFjXrU3oWI8v7zMCAQ1cIjXH9z+89lJYXzpK2s=;
 	h=Date:To:From:Subject;
-	b=urd/cxwAoPnxkd1amoTcs7Pjoy6+WFhevjyG3MJS0kB++D0UmQzzZtNlc/lO3ywX8
-	 UKe6w5Vbtjc4+d4bqyOkv8kKbY6kHo+jynE7P5lhI2o64BKYN1YWlO33X747YSPrvC
-	 FGJJOeiix6hCwNiqW7Qm7RPUVDMoz4LnPEs1tmfo=
-Date: Sat, 24 Oct 2026 01:58:35 -0700
+	b=w+Z/++HP4Jz0LK911LuQQXyIu2PTlH1Pijm2OtaykuGcLV8LLxAhhd60NLDkNvSSX
+	 7PdfOrAFHdJNgoVKTbH9FXqf4/PgNp6mBcxvUe9EixdYEo23wZ1/twNxOHMZJ3zGDy
+	 uE6OC8+XbbEikqlQq3VFW0ADQgHMFh4fn2y4j7WY=
+Date: Sat, 24 Oct 2026 01:58:36 -0700
 To: mm-commits@vger.kernel.org,gutierrez.asier@huawei-partners.com,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-damon-core-introduce-damos_quota_goal-complement.patch removed from -mm tree
-Message-Id: <20261024085835.7364C1F031E4@smtp.kernel.org>
+Subject: [merged mm-stable] mm-damon-core-add-complement-argument-to-damos_new_quota_goal.patch removed from -mm tree
+Message-Id: <20261024085836.78E151F01828@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -51,146 +51,159 @@ Precedence: list
 
 
 The quilt patch titled
-     Subject: mm/damon/core: introduce damos_quota_goal->complement
+     Subject: mm/damon/core: add complement argument to damos_new_quota_goal()
 has been removed from the -mm tree.  Its filename was
-     mm-damon-core-introduce-damos_quota_goal-complement.patch
+     mm-damon-core-add-complement-argument-to-damos_new_quota_goal.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: SJ Park <sj@kernel.org>
-Subject: mm/damon/core: introduce damos_quota_goal->complement
-Date: Tue, 29 Sep 2026 01:01:04 -0700
+Subject: mm/damon/core: add complement argument to damos_new_quota_goal()
+Date: Tue, 29 Sep 2026 01:01:05 -0700
 
-Patch series "mm/damon: introduce damos quota goal target metric
-complement flag".
+damos_quota_goal->complement needs to be manually set by each API
+callers.  It is easy to make mistakes.  Extend the quota goal
+constructor, damos_new_quota_goal() to receive and set the complement
+flag value. Also update all callers to use the new signature.
 
-Aim-oriented DAMOS quota auto-tuning assumes the aggressiveness of the
-scheme (quota) and the quota goal metric are directly proportional. 
-Depending on the scheme setup and usage, keeping the relationship can be
-challenging.
-
-For example, let's suppose a memory tiering approach for higher upper tier
-utilization.  One common idea for that (TPP) is utilizing two schemes, one
-for promotion and the other one for demotion.  The promotion scheme
-migrates hot pages from lower tier to upper tier, aiming for high
-utilization of the upper tier.  The demotion scheme migrates cold pages
-from upper tier to lower tier, aiming for head room free memory of the
-upper tier.  Both schemes and their goals are in direct proportion. 
-However, for this kind of use case, we need to implement two different
-goal metrics (per-node memory utilization and free memory ratio) while
-essentially the free memory ratio is just a complemented value of the
-utilization.
-
-To avoid adding too many new metrics, we are adding metrics that turn out
-to be really needed for each found use case.  For example,
-some_mem_psi_us, node_eligible_mem_bp and hugepage_mem_bp don't have their
-complemented value version.  But it is not really difficult to expect use
-cases that their complemented version can be useful.  For example,
-hugepage_mem_bp use case may need a way to reduce the hugepage ratio. 
-That would require a complemented version of hugepage_mem_bp.  Adding a
-new metric for each of such use cases could make the number of metrics
-unnecessarily high, and discourage flexible usages of DAMOS.
-
-Add a new flag, quota goal complement, to allow flexible tuning goal setup
-without unnecessarily increasing the number of metrics.  The flag
-specifies whether to use the complemented value of the given goal metric
-for the tuning.  For example, if the complement flag is set, the upper
-tier memory utilization ratio metric works the same as the free memory
-ratio metric for the tier.
-
-
-This patch (of 8):
-
-Introduce damos_quota_goal->complement for specifying whether to use a
-complemented value of the given goal target metric.  Add the field to
-the data structure and implement essential core support.  Handle the
-flag in the quota goal commit and current quota goal metric value
-retrieval.
-
-[akpm@linux-foundation.org: fix comment tpyo, per Gutierrez]
-Link: https://lore.kernel.org/20260929080113.41708-1-sj@kernel.org
-Link: https://lore.kernel.org/20260929080113.41708-2-sj@kernel.org
+Link: https://lore.kernel.org/20260929080113.41708-3-sj@kernel.org
 Signed-off-by: SJ Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Cc: Gutierrez Asier <gutierrez.asier@huawei-partners.com>
+Reviewed-by: Asier Gutierrez <gutierrez.asier@huawei-partners.com>
 ---
 
- include/linux/damon.h |    2 ++
- mm/damon/core.c       |   26 +++++++++++++++++++++++++-
- 2 files changed, 27 insertions(+), 1 deletion(-)
+ include/linux/damon.h       |    2 +-
+ mm/damon/core.c             |    7 ++++---
+ mm/damon/lru_sort.c         |    5 +++--
+ mm/damon/reclaim.c          |    5 +++--
+ mm/damon/sysfs-schemes.c    |    2 +-
+ mm/damon/tests/core-kunit.h |    3 ++-
+ samples/damon/mtier.c       |    2 +-
+ 7 files changed, 15 insertions(+), 11 deletions(-)
 
---- a/include/linux/damon.h~mm-damon-core-introduce-damos_quota_goal-complement
+--- a/include/linux/damon.h~mm-damon-core-add-complement-argument-to-damos_new_quota_goal
 +++ a/include/linux/damon.h
-@@ -169,6 +169,7 @@ enum damos_quota_goal_metric {
- /**
-  * struct damos_quota_goal - DAMOS scheme quota auto-tuning goal.
-  * @metric:		Metric to be used for representing the goal.
-+ * @complement:		Use the complement of the metric.
-  * @target_value:	Target value of @metric to achieve with the tuning.
-  * @current_value:	Current value of @metric.
-  * @nid:		Node id.
-@@ -191,6 +192,7 @@ enum damos_quota_goal_metric {
-  */
- struct damos_quota_goal {
- 	enum damos_quota_goal_metric metric;
-+	bool complement;
- 	unsigned long target_value;
- 	unsigned long current_value;
- 	/* metric-dependent fields */
---- a/mm/damon/core.c~mm-damon-core-introduce-damos_quota_goal-complement
-+++ a/mm/damon/core.c
-@@ -1224,6 +1224,7 @@ static int damos_commit_quota_goal(
- 	if (!src->target_value)
- 		return  -EINVAL;
- 	dst->metric = src->metric;
-+	dst->complement = src->complement;
- 	dst->target_value = src->target_value;
- 	if (dst->metric == DAMOS_QUOTA_USER_INPUT)
- 		dst->current_value = src->current_value;
-@@ -2960,10 +2961,18 @@ static void damos_set_psi_current_val(u6
- 		struct damos_quota_goal *goal, struct damos *s)
- {
- 	u64 last_psi_total = goal->last_psi_total;
-+	unsigned long val;
+@@ -1090,7 +1090,7 @@ bool damos_filter_for_ops(enum damos_fil
+ void damos_destroy_filter(struct damos_filter *f);
  
- 	goal->last_psi_total = now_psi_total;
- 	if (last_psi_total != U64_MAX) {
--		goal->current_value = now_psi_total - last_psi_total;
-+		val = now_psi_total - last_psi_total;
-+		if (goal->complement) {
-+			if (val < s->quota.reset_interval * 1000)
-+				val = s->quota.reset_interval * 1000 - val;
-+			else
-+				val = 0;
-+		}
-+		goal->current_value = val;
- 		return;
- 	}
- 	/* uninitialized last_psi_total; make no effect this round */
-@@ -3255,6 +3264,21 @@ static void damos_set_quota_goal_current
- 	default:
- 		break;
- 	}
-+	if (!goal->complement)
-+		return;
-+
-+	/* update current_value to complemented value */
-+
-+	/* for user_input, users set complemented value on their own */
-+	if (goal->metric == DAMOS_QUOTA_USER_INPUT)
-+		return;
-+	/* damos_set_psi_current_val() handles complement flag itself */
-+	if (goal->metric == DAMOS_QUOTA_SOME_MEM_PSI_US)
-+		return;
-+	if (goal->current_value < 10000)
-+		goal->current_value = 10000 - goal->current_value;
-+	else
-+		goal->current_value = 0;
+ struct damos_quota_goal *damos_new_quota_goal(
+-		enum damos_quota_goal_metric metric,
++		enum damos_quota_goal_metric metric, bool complement,
+ 		unsigned long target_value);
+ void damos_add_quota_goal(struct damos_quota *q, struct damos_quota_goal *g);
+ void damos_destroy_quota_goal(struct damos_quota_goal *goal);
+--- a/mm/damon/core.c~mm-damon-core-add-complement-argument-to-damos_new_quota_goal
++++ a/mm/damon/core.c
+@@ -691,7 +691,7 @@ void damos_destroy_filter(struct damos_f
  }
  
- /* Return the highest score since it makes schemes least aggressive */
+ struct damos_quota_goal *damos_new_quota_goal(
+-		enum damos_quota_goal_metric metric,
++		enum damos_quota_goal_metric metric, bool complement,
+ 		unsigned long target_value)
+ {
+ 	struct damos_quota_goal *goal;
+@@ -700,6 +700,7 @@ struct damos_quota_goal *damos_new_quota
+ 	if (!goal)
+ 		return NULL;
+ 	goal->metric = metric;
++	goal->complement = complement;
+ 	goal->target_value = target_value;
+ 	if (metric == DAMOS_QUOTA_SOME_MEM_PSI_US)
+ 		goal->last_psi_total = U64_MAX;
+@@ -1262,8 +1263,8 @@ int damos_commit_quota_goals(struct damo
+ 	damos_for_each_quota_goal_safe(src_goal, next, src) {
+ 		if (j++ < i)
+ 			continue;
+-		new_goal = damos_new_quota_goal(
+-				src_goal->metric, src_goal->target_value);
++		new_goal = damos_new_quota_goal(src_goal->metric,
++				src_goal->complement, src_goal->target_value);
+ 		if (!new_goal)
+ 			return -ENOMEM;
+ 		err = damos_commit_quota_goal(new_goal, src_goal);
+--- a/mm/damon/lru_sort.c~mm-damon-core-add-complement-argument-to-damos_new_quota_goal
++++ a/mm/damon/lru_sort.c
+@@ -233,12 +233,13 @@ static int damon_lru_sort_add_quota_goal
+ 
+ 	if (!active_mem_bp)
+ 		return 0;
+-	goal = damos_new_quota_goal(DAMOS_QUOTA_ACTIVE_MEM_BP, active_mem_bp);
++	goal = damos_new_quota_goal(DAMOS_QUOTA_ACTIVE_MEM_BP, false,
++			active_mem_bp);
+ 	if (!goal)
+ 		return -ENOMEM;
+ 	damos_add_quota_goal(&hot_scheme->quota, goal);
+ 	/* aim 0.2 % goal conflict, to keep little ping pong */
+-	goal = damos_new_quota_goal(DAMOS_QUOTA_INACTIVE_MEM_BP,
++	goal = damos_new_quota_goal(DAMOS_QUOTA_INACTIVE_MEM_BP, false,
+ 			10000 - active_mem_bp + 2);
+ 	if (!goal)
+ 		return -ENOMEM;
+--- a/mm/damon/reclaim.c~mm-damon-core-add-complement-argument-to-damos_new_quota_goal
++++ a/mm/damon/reclaim.c
+@@ -233,7 +233,7 @@ static int damon_reclaim_apply_parameter
+ 	damon_set_schemes(param_ctx, &scheme, 1);
+ 
+ 	if (quota_mem_pressure_us) {
+-		goal = damos_new_quota_goal(DAMOS_QUOTA_SOME_MEM_PSI_US,
++		goal = damos_new_quota_goal(DAMOS_QUOTA_SOME_MEM_PSI_US, false,
+ 				quota_mem_pressure_us);
+ 		if (!goal)
+ 			goto out;
+@@ -241,7 +241,8 @@ static int damon_reclaim_apply_parameter
+ 	}
+ 
+ 	if (quota_autotune_feedback) {
+-		goal = damos_new_quota_goal(DAMOS_QUOTA_USER_INPUT, 10000);
++		goal = damos_new_quota_goal(DAMOS_QUOTA_USER_INPUT, false,
++				10000);
+ 		if (!goal)
+ 			goto out;
+ 		goal->current_value = quota_autotune_feedback;
+--- a/mm/damon/sysfs-schemes.c~mm-damon-core-add-complement-argument-to-damos_new_quota_goal
++++ a/mm/damon/sysfs-schemes.c
+@@ -2869,7 +2869,7 @@ static int damos_sysfs_add_quota_score(
+ 		if (!sysfs_goal->target_value)
+ 			continue;
+ 
+-		goal = damos_new_quota_goal(sysfs_goal->metric,
++		goal = damos_new_quota_goal(sysfs_goal->metric, false,
+ 				sysfs_goal->target_value);
+ 		if (!goal)
+ 			return -ENOMEM;
+--- a/mm/damon/tests/core-kunit.h~mm-damon-core-add-complement-argument-to-damos_new_quota_goal
++++ a/mm/damon/tests/core-kunit.h
+@@ -1014,6 +1014,7 @@ static void damos_test_commit_quota_goal
+ 		 * Make it kfree()-able.
+ 		 */
+ 		goal = damos_new_quota_goal(dst_goals[i].metric,
++				dst_goals[i].complement,
+ 				dst_goals[i].target_value);
+ 		if (!goal)
+ 			goto out;
+@@ -2411,7 +2412,7 @@ static void damos_test_esz_goal_temporal
+ 	}
+ 	damon_add_scheme(ctx, s);
+ 
+-	goal = damos_new_quota_goal(DAMOS_QUOTA_USER_INPUT, 10000);
++	goal = damos_new_quota_goal(DAMOS_QUOTA_USER_INPUT, false, 10000);
+ 	if (!goal) {
+ 		damon_destroy_ctx(ctx);
+ 		kunit_skip(test, "quota goal alloc fail");
+--- a/samples/damon/mtier.c~mm-damon-core-add-complement-argument-to-damos_new_quota_goal
++++ a/samples/damon/mtier.c
+@@ -163,7 +163,7 @@ static struct damon_ctx *damon_sample_mt
+ 	damon_set_schemes(ctx, &scheme, 1);
+ 	quota_goal = damos_new_quota_goal(
+ 			promote ? DAMOS_QUOTA_NODE_MEM_USED_BP :
+-			DAMOS_QUOTA_NODE_MEM_FREE_BP,
++			DAMOS_QUOTA_NODE_MEM_FREE_BP, false,
+ 			promote ? node0_mem_used_bp : node0_mem_free_bp);
+ 	if (!quota_goal)
+ 		goto free_out;
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
