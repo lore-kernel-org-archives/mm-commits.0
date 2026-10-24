@@ -1,45 +1,45 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1792832296;
-	b=Sc6Uy9bNqnmXCfUKH/mNi/E9ZxKDsj/j5DPz5Nl+IExWiOyD+Ymscw8qowuPat794XM+
-	 LutqCI3Pi+ialM4TWtfu4ee+zGQYcn39fIQJjza/wGMo8orJX3FyXsGQaKr9O0grOekKF
-	 mMtL0xLmvKv6EvSt/gzmkCFOxMlif5fPRwO3ZbYHGiBrfa1wU8+KBY0u48LgUXnJX9OrN
-	 bAPY9T7jfsk9/gBe8nyZJiLKoUwZZmTw2sjFscL8bmOHLF53e6gNSufFnei39waDH3xuJ
-	 W5hqBAuhH1kW5tI+2CWmZTyWCyvOv1g4vuQt7ZiypQyreLb5Z4xFoqRiTqRaXkpsooA==
+	t=1792832291;
+	b=ebeK38wUlW1aqM2knvBbmePSWhZonUdzQjfaXOHkz7yqEsrYdJpJ9CXgZrCOOHQXcUsR
+	 P06c6b/7lB3/5WYzfEi43+DNRqBSfMuNOOXUL8Jh8af1cIc0rac1gC25SBWKovAW8E9Jh
+	 2B7iIOSqzqOL0EveOKmXAOCpceNYjdlxkGzkoHefWg6Sl5BG1dfbYNsEP5OfXFpSpaZFn
+	 xCeElbyWDFFu4pCaeg2alG84aktZVC8WqmKjXzQIOVpo1fomzcydid1YBswEVXOblrVtb
+	 qByxBA4VYFVz4I4KyM+l8mHBQQDpMFbof0hZRhGyju62QtFgmGnshViYWF2HBXD95Vw==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1792832296;
+	a=rsa-sha256; c=relaxed/relaxed; t=1792832291;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=YdMY538IelBtVnHgIbJ21YlpQr3ES6J5aZLPfKA2zwI=;
-	b=YHNmNIzp8r4q6A+Ut9RYHiZe/MDAlniM5O8ZXF9yCaIjBZ2q3viBPztknybkVulhayXJ
-	 EU5JLQxW06zUx6Wf5aJj+7/2c6lYv3KijNxngj75KoWncxi1YMPCczWWGmR7GlUgiWLGM
-	 fXyhxhxAg3CKiUPeNw5iJj21UWAEKllDkNwpM9R8eBMm8BP1KQRTOdkVCiZP+xweMkqEi
-	 SG9dXsvAx2aFZPfb83zI2IEy6vdklMDFseqG5QUMbKISzP00q0gMqz7+dC8zmPoYySrY+
-	 Asm98lLNJGz465hrfu28fnlYHqSBcyTdunle443DJtqL7N6I1s9t81DvLQSzrQEADjg==
+	bh=m/JJvVuotEWVIbVHKe86yc1j5+ARZhhkSmjJgCU9n28=;
+	b=ocF+7h2ScJ4trzxmyDFAPoslV12rtP7SdnjjirZ+w9IskbnmWG3MOVlfkqqK4zngygh7
+	 jtR3fFUIeAovkZlXupeECwJOewa3oyD/NC5eFomuBCa36BDlStrtjZ4hRSsPlQcWJd8o7
+	 6Qja1xdVWPWR7Z017S2dNjLsVJWsC5VnVGyYDOgtFwrK4xisyRgMTZ6hS3POCD1QF9PXH
+	 vtnuB9vJA1yu7D6/rT4zRyLWlLSy0tSDT0YYYP+b3FkagtugdWzeyq/3YFamEZoCs9bUr
+	 BuJ1lQ4AKx8sAePGdR0le/6uUpQsw5X51wCde3vYlCAC2AHZffMl2UJNdM1sNIH7fbA==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b="Trj/4o4k";
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b="Ye/2Fskm";
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2E1A5606A31F
-	for <mm-commits@vger.kernel.org>; Sat, 24 Oct 2026 08:58:16 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F32CE606A31B;
+	Sat, 24 Oct 2026 08:58:10 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=Trj/4o4k
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id ED3541F01828;
-	Sat, 24 Oct 2026 08:58:15 +0000 (UTC)
+	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=Ye/2Fskm
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id BF6831F01828;
+	Sat, 24 Oct 2026 08:58:10 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1792832296;
-	bh=YdMY538IelBtVnHgIbJ21YlpQr3ES6J5aZLPfKA2zwI=;
+	d=linux-foundation.org; s=korg; t=1792832290;
+	bh=m/JJvVuotEWVIbVHKe86yc1j5+ARZhhkSmjJgCU9n28=;
 	h=Date:To:From:Subject;
-	b=Trj/4o4kiWH+ufUoCPQ7cUSo2r3t79pNIAuwd236F5Opd9c2/NMKsi9CTHtmVrY+8
-	 ei4E3vhG/yLxj8sOVXiC8e8pL7gUKjh58RJkNgiYEWRGextqOe4UbHpmaELHOEEqGG
-	 xShbQWiYBdc1Gg1OBiaie3vAPNtHfzIfhnhImBT4=
-Date: Sat, 24 Oct 2026 01:58:15 -0700
-To: mm-commits@vger.kernel.org,sj@kernel.org,ravis.opensrc@gmail.com,ndesaulniers@google.com,nathan@kernel.org,morbo@google.com,justinstitt@google.com,arnd@arndb.de,akpm@linux-foundation.org
+	b=Ye/2Fskm+8sN6Vb+3H7ft+cO9+tdeeSN8j1hmd3uKXaRskj2XTZhf0pFUsYClG2GY
+	 rkScbaTnfi1zCQ80Sqx0yBDEr90dhCRaVB3IHyNU6AV9nKgF1Unmp0yxTgmGTNxs06
+	 +pyOn9UFNsErmizTKruXlnExjC/Y9zrFY1YFRz18=
+Date: Sat, 24 Oct 2026 01:58:10 -0700
+To: mm-commits@vger.kernel.org,stable@vger.kernel.org,sj@kernel.org,bijan311@gmail.com,kmehltretter@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-damon-core-reduce-stack-usage-further.patch removed from -mm tree
-Message-Id: <20261024085815.ED3541F01828@smtp.kernel.org>
+Subject: [merged mm-stable] mm-damon-core-preserve-the-quota-passed-to-damon_new_scheme.patch removed from -mm tree
+Message-Id: <20261024085810.BF6831F01828@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -51,87 +51,137 @@ Precedence: list
 
 
 The quilt patch titled
-     Subject: mm/damon/core: reduce stack usage further
+     Subject: mm/damon/core: preserve the quota passed to damon_new_scheme()
 has been removed from the -mm tree.  Its filename was
-     mm-damon-core-reduce-stack-usage-further.patch
+     mm-damon-core-preserve-the-quota-passed-to-damon_new_scheme.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: mm/damon/core: reduce stack usage further
-Date: Mon, 28 Sep 2026 01:39:56 -0700
+From: Karl Mehltretter <kmehltretter@gmail.com>
+Subject: mm/damon/core: preserve the quota passed to damon_new_scheme()
+Date: Mon, 28 Sep 2026 01:58:33 -0700
 
-In a previous patch, I had annotated kdamond_tune_intervals() as
-noinline_for_stack in order to not exceed the stack frame warning limit. 
-Unfortunately, my current linux-next randconfig builds show a similar
-problem again with clang-21:
+Patch series "mm/damon/core: preserve quota state when constructing
+schemes", v3.
 
-mm/damon/core.c:3953:12: error: stack frame size (1288) exceeds limit (1280) in 'kdamond_fn' [-Werror,-Wframe-larger-than]
- 3953 | static int kdamond_fn(void *data)
+damon_commit_ctx() first commits the running context's parameters to a
+temporary context for validating proposed updates.  Constructing the
+temporary schemes clears the running schemes' quota state because
+damon_new_scheme() initializes the quota passed as a parameter before
+copying it to the new scheme.  Even an update later rejected with -EINVAL
+loses the running quota state.
 
-Do the same thing with kdamond_apply_schemes(), kdamond_merge_regions(),
-and kdamond_split_regions(), which also have individually large stacks. 
-This should work to keep the deepest total stack depth down much more as
-well as avoid the warning.
+Initialize the new scheme's copy instead, and add KUnit tests for the
+constructor and for accepted and rejected context updates.
 
-I also tried to reduce the complexity of kdamond_fn() itself by splitting
-out the while() loop into a separate function.  While this arguably led to
-slightly more readable code, it had no effect on the total stack usage and
-just made the new function the largest stack user and had a nonzero risk
-of me getting the conversion wrong.
+Note: below are test results and changelogs that could be removed from the
+final commit log.
 
-Link: https://lore.kernel.org/20260928083959.4030-3-sj@kernel.org
-Fixes: 5a00cae64de1 ("mm/damon/core: reduce kernel stack usage")
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+In the v1 live test with damo, a scheme with a plain 64 KiB size quota and
+a 60-second reset interval uses its quota, and a full "damo tune" with
+unchanged parameters then lets it try another 64 KiB within the same
+window.  With the fix, sz_tried stays at 64 KiB.
+
+KUnit was rerun after the rebase on x86-64 and i386. With only patch 2
+applied, the two new tests fail. With the fix, all 46 DAMON KUnit tests
+pass on both architectures.
+
+The v1 DAMON selftests showed no new failures (QEMU TCG guest; the
+wss_estimation test missed its accuracy bounds with and without the fix).
+
+
+This patch (of 2):
+
+damon_commit_ctx() first commits the running context's parameters to a
+temporary context for validating proposed updates.  When
+damon_commit_schemes() creates the temporary schemes, it passes the
+running scheme's quota as the quota parameter of damon_new_scheme().
+
+damon_new_scheme() calls damos_quota_init() on that quota before copying
+it to the new scheme.  This clears the running scheme's effective quota,
+feedback input and charging state.  Even an update rejected with -EINVAL
+loses the running quota state.
+
+For a size quota, this discards the bytes already charged and allows the
+scheme to use a fresh quota before the reset interval has elapsed.  For a
+goal-driven quota, the consist tuner loses its accumulated input and
+restarts from its minimum input.  A time quota loses its throughput
+estimate and falls back to the initial estimate.
+
+The end users will show DAMOS works more or less aggressively than
+expected for online-commit updates of quotas.  DAMON provides best efforts
+by default.  DAMON parameters online commit is supposed to be executed
+only occasionally.  Hence, the issue wouldn't be critical on sane setups. 
+For user_input type quota goals, online commit of the user input score is
+expected to be frequent.  But, for the case commit_schemes_quota_goals
+command is recommended for optimal execution, and it doesn't have this
+bug.
+
+Commit 60bd24f272d0 ("mm/damon/sysfs: test commit input against realistic
+destination") introduced this problem in v6.19 when sysfs validation began
+committing the running context's parameters to a temporary context. 
+Commit b90408ef1163 ("mm/damon/core: safely validate src on
+damon_commit_ctx()") later moved that validation into the core API,
+exposing other callers including DAMON_RECLAIM and DAMON_LRU_SORT.
+
+Sashiko reported the same side effect [1] on the RFC of the core API
+change.
+
+Copy the quota to the new scheme first, then initialize that copy.  Make
+damos_quota_init() return void, since its return value is no longer
+needed.
+
+Link: https://lore.kernel.org/20260928085835.7675-1-sj@kernel.org
+Link: https://lore.kernel.org/20260928085835.7675-2-sj@kernel.org
+Link: https://lore.kernel.org/r/20260702212143.0CB6D1F00A3D@smtp.kernel.org/ [1]
+Fixes: 60bd24f272d0 ("mm/damon/sysfs: test commit input against realistic destination")
+Signed-off-by: Karl Mehltretter <kmehltretter@gmail.com>
 Signed-off-by: SJ Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 Reviewed-by: SJ Park <sj@kernel.org>
-Cc: Nick Desaulniers <ndesaulniers@google.com>
-Cc: Bill Wendling <morbo@google.com>
-Cc: Justin Stitt <justinstitt@google.com>
-Cc: Ravi Jonnalagadda <ravis.opensrc@gmail.com>
-Cc: Nathan Chancellor <nathan@kernel.org>
+Assisted-by: LLM
+Cc: Bijan Tabatabai <bijan311@gmail.com>
+Cc: <stable@vger.kernel.org>
 ---
 
- mm/damon/core.c |    9 +++++----
- 1 file changed, 5 insertions(+), 4 deletions(-)
+ mm/damon/core.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
---- a/mm/damon/core.c~mm-damon-core-reduce-stack-usage-further
+--- a/mm/damon/core.c~mm-damon-core-preserve-the-quota-passed-to-damon_new_scheme
 +++ a/mm/damon/core.c
-@@ -3433,7 +3433,7 @@ static void damos_trace_stat(struct damo
- 	trace_call__damos_stat_after_apply_interval(cidx, sidx, &s->stat);
+@@ -734,7 +734,7 @@ static bool damos_quota_goals_empty(stru
  }
  
--static void kdamond_apply_schemes(struct damon_ctx *c)
-+static noinline_for_stack void kdamond_apply_schemes(struct damon_ctx *c)
+ /* initialize fields of @quota that normally API users wouldn't set */
+-static struct damos_quota *damos_quota_init(struct damos_quota *quota)
++static void damos_quota_init(struct damos_quota *quota)
  {
- 	struct damon_target *t;
- 	struct damos *s;
-@@ -3589,8 +3589,9 @@ set_prev_continue:
-  * while DAMON is running.  For such a case, repeat merging until the limit is
-  * met while increasing @threshold up to possible maximum level.
-  */
--static void kdamond_merge_regions(struct damon_ctx *c, unsigned int threshold,
--				  unsigned long sz_limit)
-+static noinline_for_stack void kdamond_merge_regions(struct damon_ctx *c,
-+						     unsigned int threshold,
-+						     unsigned long sz_limit)
- {
- 	struct damon_target *t;
- 	unsigned int nr_regions;
-@@ -3734,7 +3735,7 @@ static void damon_split_some_regions(str
-  * split was unnecessarily made, later 'kdamond_merge_regions()' will revert
-  * it.
-  */
--static void kdamond_split_regions(struct damon_ctx *ctx)
-+static noinline_for_stack void kdamond_split_regions(struct damon_ctx *ctx)
- {
- 	struct damon_target *t;
- 	unsigned long nr_regions = 0;
+ 	quota->esz = 0;
+ 	quota->total_charged_sz = 0;
+@@ -744,7 +744,6 @@ static struct damos_quota *damos_quota_i
+ 	quota->charge_target_from = NULL;
+ 	quota->charge_addr_from = 0;
+ 	quota->esz_bp = 0;
+-	return quota;
+ }
+ 
+ struct damos *damon_new_scheme(struct damos_access_pattern *pattern,
+@@ -776,7 +775,8 @@ struct damos *damon_new_scheme(struct da
+ 	scheme->last_applied = NULL;
+ 	INIT_LIST_HEAD(&scheme->list);
+ 
+-	scheme->quota = *(damos_quota_init(quota));
++	scheme->quota = *quota;
++	damos_quota_init(&scheme->quota);
+ 	/* quota.goals should be separately set by caller */
+ 	INIT_LIST_HEAD(&scheme->quota.goals);
+ 
 _
 
-Patches currently in -mm which might be from arnd@arndb.de are
+Patches currently in -mm which might be from kmehltretter@gmail.com are
 
+squashfs-fix-fragment-index-table-sizing-overflow-on-32-bit.patch
+squashfs-make-the-fragment-index-table-bounds-check-overflow-safe.patch
 
