@@ -1,47 +1,47 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1792832421;
-	b=FKARecYDXnR28O3QkzhGA/InLWWXwB5GE/s97wYq+R5aABrVyTeDO9Adtv9Xo4NxpIal
-	 4oGqfg5mcr2awcFmkFyUUlsN69Y1p9J6sj9/iF0GP8oO/X1zSa1CQ55RY8usFknWHqRBd
-	 SX3jPQGyt+2eUm7VZcd/xVgpg9bSinX91u0o+uFIEv9q+d/MnAuoVn8GbF91wC27JKHhb
-	 LvetNlwSwW2JaQYishn4/KtMG4zndovHVQ3PcW31JR+7jUcCJMeYr9jtl0Hgsd7j2TJ6+
-	 99ZgEcsyGdOnrnWypyHvG6VPhVJxmT3ng1WrgxE3gbHrLkr9FTvNnQOh2KqNOeiYbvQ==
+	t=1792832423;
+	b=4gqGvGVvsPIkjoBrtDZY6QXAn3fDl7wLaoBmkCEybpMTiVlncWpZJqu83F8iq9+4HZxg
+	 1Ib7t7igjohCFFnUlksJ4oeaT93VbjPfANx/hTFR0PEB1jSNw90pq7wHPcbwJ3hXYC/R9
+	 qidqoeswrjWP6b7Sge0FvndnCVvp9AW13/1NmaaF7/7+xoGU9SGtiOTY4AveyLnXa93+x
+	 AoEI3VxQXuDkimbrzGEau3CEBNJ6uA+KB65cooXRXI/aFxifraylPqBSv15zXLgt7sdQp
+	 EZrx0yLRXozKK9vP1MD/k8NPJl0Uo+Q0hBYEmdJvG/KP8xbAGYQUMj3PgAw1W6UJPMw==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1792832421;
+	a=rsa-sha256; c=relaxed/relaxed; t=1792832423;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=cpbFq3b9jku/qAWJol/AMksSIe3p6E4/TfUvs6M/r0k=;
-	b=OwZe4XLiJVO6ovAjQYUgi2MlVPDZQ1u4TP3WgQo4NQBqgTXy8IdE2LV4oBMmkGrM7R4L
-	 Jszos6u7iSnv9iqkbY6TlLhqsPhwg8o3EGg62nYNJop3kR2wsSBOdUw9iNNiAoZn4mkZ/
-	 xmLvsxXk0m7+hhXCVodbs0nhQjWnCSpqA8tTCal0R5znD7zAIMb/P75F/uGbmg+iJ+9s6
-	 oKK0mig9AKTAOmd42yXNqPZv/thlEuW5VeIcokWxCQluq6mn+oNdJEsbdTGaKoYqi+/U4
-	 w1xwHN2HFzhotFTtVR0/6bDt3Kwc/hv6+tWmIy0fCkhcy03XdqSI7ogsZjE+oKAiCcw==
+	bh=YprbtryxoZWLJM5wglkbEm6RW8arqae2iQeXD8Kq+0s=;
+	b=EPIJdSdYo2Jc148Tx6aE+raYDnqoyqTFj2D2f5dOTK5LVbHWGon2u2B0TApMBOEdyD21
+	 fOsQHvu/Zui8DDLRYB17sduYeEj+2OMxZfMpRn3dIWeEippxjd+J4Awn2m/uZ9nfKcJsy
+	 Thqu8xh5VHVZPFANpTuvHxulGEsoDSW1QdJZ1D7zZFY8IraNA9GCD8SJ0r51xEeXMVM4m
+	 OcLpziDRQCqPVLAB1ow+tQSxOmuLa99AIUIV1xuZ64EUfGcncgp+lwHifJLGDqPZ04O+t
+	 +I6rxojoS5NRM4bVicwck2sF1hHq3tb68OS8fQCZqgiy8CZxu4hfG3YJ+2R7Rh/3lIg==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=fail reason="signature verification failed" header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=FwaxG6tj;
+	dkim=fail reason="signature verification failed" header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b="XJhD/juI";
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F0C51606A320
-	for <mm-commits@vger.kernel.org>; Sat, 24 Oct 2026 09:00:20 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9EF52606A322
+	for <mm-commits@vger.kernel.org>; Sat, 24 Oct 2026 09:00:22 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=fail reason="signature verification failed" (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=FwaxG6tj
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8078C1F01825;
-	Sat, 24 Oct 2026 09:00:20 +0000 (UTC)
+	dkim=fail reason="signature verification failed" (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=XJhD/juI
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3A96D1F01825;
+	Sat, 24 Oct 2026 09:00:22 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1792832420;
-	bh=cpbFq3b9jku/qAWJol/AMksSIe3p6E4/TfUvs6M/r0k=;
+	d=linux-foundation.org; s=korg; t=1792832422;
+	bh=YprbtryxoZWLJM5wglkbEm6RW8arqae2iQeXD8Kq+0s=;
 	h=Date:To:From:Subject;
-	b=FwaxG6tj/q5YrcPeACipzMigWXuIyYuiXS4FsXh7DRMcst6M/UnZW1JbJFr9O0voO
-	 07sTnWj9VdVfQm4YLzBZeQv/269+RE52V2Dm2fdyCIMGBRm2HTtaLRDJV6luKPEFfR
-	 kltzVnXAhufGfU8e0sGEoqSn7rXvh3tOwjJFPoSQ=
-Date: Sat, 24 Oct 2026 02:00:20 -0700
+	b=XJhD/juIvQXA0Sm8VgxS8t4wfE1/fXVDPe8XlLdTW5aoyA/3zw1MAiKQi3QnTy5a/
+	 r2C240ueRhrqBcSsyBBnBZg1jyqknTBTnJ2GyfUOUIW2Fk5tt8LgfyYeFYu/sbCT8G
+	 vlL0VMxrjjJa4sWs2ExTLRC983HR1lawfmK7fl4M=
+Date: Sat, 24 Oct 2026 02:00:21 -0700
 To: mm-commits@vger.kernel.org,ziy@nvidia.com,yuanchu@google.com,youngjun.park@lge.com,ying.huang@linux.alibaba.com,xu.xin@linux.dev,willy@infradead.org,will@kernel.org,weixugc@google.com,viro@zeniv.linux.org.uk,vincent.guittot@linaro.org,vbabka@kernel.org,usama.arif@linux.dev,tzimmermann@suse.de,tiwai@suse.com,tglx@kernel.org,surenb@google.com,stephen.smalley.work@gmail.com,sre@kernel.org,spasswolf@web.de,simona@ffwll.ch,shikemeng@huaweicloud.com,shakeel.butt@linux.dev,ryan.roberts@arm.com,rppt@kernel.org,riel@surriel.com,rakie.kim@sk.com,qi.zheng@linux.dev,pjw@kernel.org,pfalcato@suse.de,peterz@infradead.org,peterx@redhat.com,perex@perex.cz,paul@paul-moore.com,palmer@dabbelt.com,oupton@kernel.org,osalvador@suse.de,oleg@redhat.com,npiggin@gmail.com,nphamcs@gmail.com,nico.pache@linux.dev,namhyung@kernel.org,muchun.song@linux.dev,mripard@kernel.org,mkp@kernel.org,mingo@redhat.com,miklos@szeredi.hu,mhocko@suse.com,mhocko@kernel.org,mhiramat@kernel.org,memxor@gmail.com,maz@kernel.org,ma
  tthew.brost@intel.com,mark.rutland@arm.com,maddy@linux.ibm.com,maarten.lankhorst@linux.intel.com,liam@infradead.org,leon@kernel.org,lance.yang@linux.dev,kasong@tencent.com,kas@kernel.org,juri.lelli@redhat.com,joshua.hahnjy@gmail.com,jhubbard@nvidia.com,jgg@ziepe.ca,jannh@google.com,james.bottomley@hansenpartnership.com,jack@suse.cz,imbrenda@linux.ibm.com,ihor.solodrai@linux.dev,hca@linux.ibm.com,harry@kernel.org,hannes@cmpxchg.org,gregkh@linuxfoundation.org,gourry@gourry.net,gor@linux.ibm.com,gerald.schaefer@linux.ibm.com,frankja@linux.ibm.com,eddyz87@gmail.com,dgilbert@interlog.com,dev.jain@arm.com,dennis.dalessandro@cornelisnetworks.com,deller@gmx.de,david@kernel.org,davem@davemloft.net,dave.hansen@linux.intel.com,daniel@iogearbox.net,corbet@lwn.net,chrisl@kernel.org,chengming.zhou@linux.dev,catalin.marinas@arm.com,byungchul@sk.com,brauner@kernel.org,bp@alien8.de,borntraeger@linux.ibm.com,baoquan.he@linux.dev,baolin.wang@linux.alibaba.com,baohua@kernel.org,axelrasmussen@google.com
  ,ast@kernel.org,arnd@arndb.de,apopple@nvidia.com,aou@eecs.berkeley.edu,anup@brainfault.org,aneesh.kumar@kernel.org,andrii@kernel.org,andreas@gaisler.com,airlied@gmail.com,agordeev@linux.ibm.com,acme@kernel.org,ljs@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-madvise-use-predicates-for-madvise-madv_dofork.patch removed from -mm tree
-Message-Id: <20261024090020.8078C1F01825@smtp.kernel.org>
+Subject: [merged mm-stable] mm-eliminate-vma_special_flags-usage-when-hugetlb-explicitly-tested.patch removed from -mm tree
+Message-Id: <20261024090022.3A96D1F01825@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -53,43 +53,40 @@ Precedence: list
 
 
 The quilt patch titled
-     Subject: mm/madvise: use predicates for madvise(..., MADV_DOFORK)
+     Subject: mm: eliminate VMA_SPECIAL_FLAGS usage when hugetlb explicitly tested
 has been removed from the -mm tree.  Its filename was
-     mm-madvise-use-predicates-for-madvise-madv_dofork.patch
+     mm-eliminate-vma_special_flags-usage-when-hugetlb-explicitly-tested.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: "Lorenzo Stoakes (ARM)" <ljs@kernel.org>
-Subject: mm/madvise: use predicates for madvise(..., MADV_DOFORK)
-Date: Tue, 13 Oct 2026 16:05:13 +0100
+Subject: mm: eliminate VMA_SPECIAL_FLAGS usage when hugetlb explicitly tested
+Date: Tue, 13 Oct 2026 16:05:14 +0100
 
-Make it clear what we're blocking in MADV_DOFORK. Previously we simply
-disallowed VM_SPECIAL i.e. mappings not managed by core mm, fixed mappings
-and VMA_IO_BIT.
+It is now an invariant that VMA_IO_BIT is not set by mm-managed mappings,
+so each existing VMA_SPECIAL_FLAGS test need only test for
+VMA_DONTEXPAND_BIT, VMA_PFNMAP_BIT and VMA_MIXEDMAP_BIT.
 
-Now the invariant is established that mm-managed mappings may not set
-VMA_IO_BIT, the VMA_IO_BIT check is redundant.
+This is precisely a test for a fixed or non-mm-managed mapping.
 
-The rest is equivalent to testing for a fixed or non-mm-managed mapping,
-i.e. a mapping which is not mm-backed, or hugetlb, which is specifically
-excluded.
+Update a number of callsites which already explicitly handle hugetlb
+mappings.
 
-This was established by commit 0b2758f48f22 ("Require (reasonably) normal
-mappings for MADV_DOFORK") containing my hands-down favourite call out of
-all time.
+vma_supports_mlock(), ksm_compatible() and should_skip_vma() explicitly
+check for non-mm-managed or fixed mappings, i.e. for !vma_is_mm_backed(),
+with hugetlb having already been excluded separately.
 
-Express the same thing using the predicates - only mm-backed mappings may
-have their copy-on-fork behaviour changed, retaining the eternal exception
-to all rules, hugetlb.
+So update those to check for mm-backed (and add comments for the retained
+droppable checks).
 
 No functional change intended.
 
-Link: https://lore.kernel.org/20261013-b4-mmap-prepare-vma-flag-sanify-v6-33-1aa3c9b139f9@kernel.org
+Link: https://lore.kernel.org/20261013-b4-mmap-prepare-vma-flag-sanify-v6-34-1aa3c9b139f9@kernel.org
 Signed-off-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Acked-by: Zi Yan <ziy@nvidia.com>
+Reviewed-by: Zi Yan <ziy@nvidia.com>
 Acked-by: David Hildenbrand (Arm) <david@kernel.org>
 Cc: Liam R. Howlett <liam@infradead.org>
 Cc: Vlastimil Babka <vbabka@kernel.org>
@@ -200,20 +197,50 @@ Cc: Ihor Solodrai <ihor.solodrai@linux.dev>
 Cc: Bert Karwatzki <spasswolf@web.de>
 ---
 
- mm/madvise.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/internal.h |    3 ++-
+ mm/ksm.c      |    5 +++--
+ mm/vmscan.c   |    2 +-
+ 3 files changed, 6 insertions(+), 4 deletions(-)
 
---- a/mm/madvise.c~mm-madvise-use-predicates-for-madvise-madv_dofork
-+++ a/mm/madvise.c
-@@ -1402,7 +1402,7 @@ static int madvise_vma_behavior(struct m
- 		new_flags |= VM_DONTCOPY;
- 		break;
- 	case MADV_DOFORK:
--		if (new_flags & VM_SPECIAL)
-+		if (!vma_is_mm_backed(vma) || vma_is_hugetlb(vma))
- 			return -EINVAL;
- 		new_flags &= ~VM_DONTCOPY;
- 		break;
+--- a/mm/internal.h~mm-eliminate-vma_special_flags-usage-when-hugetlb-explicitly-tested
++++ a/mm/internal.h
+@@ -1112,8 +1112,9 @@ static inline struct file *maybe_unlock_
+ 
+ static inline bool vma_supports_mlock(const struct vm_area_struct *vma)
+ {
+-	if (vma_test_any_mask(vma, VMA_SPECIAL_FLAGS))
++	if (!vma_is_mm_backed(vma))
+ 		return false;
++	/* Core mm may discard droppable memory at any time. */
+ 	if (vma_test_single_mask(vma, VMA_DROPPABLE))
+ 		return false;
+ 	if (vma_is_dax(vma) || vma_is_hugetlb(vma))
+--- a/mm/ksm.c~mm-eliminate-vma_special_flags-usage-when-hugetlb-explicitly-tested
++++ a/mm/ksm.c
+@@ -747,9 +747,10 @@ static bool ksm_compatible(const struct
+ 	if (vma_flags_test_any(&vma_flags, VMA_SHARED_BIT, VMA_MAYSHARE_BIT,
+ 			       VMA_HUGETLB_BIT))
+ 		return false;
+-	if (vma_flags_test_single_mask(&vma_flags, VMA_DROPPABLE))
++	if (!vma_flags_is_mm_backed(&vma_flags))
+ 		return false;
+-	if (vma_flags_test_any_mask(&vma_flags, VMA_SPECIAL_FLAGS))
++	/* Core mm may discard droppable memory at any time. */
++	if (vma_flags_test_single_mask(&vma_flags, VMA_DROPPABLE))
+ 		return false;
+ 	if (file_is_dax(file))
+ 		return false;
+--- a/mm/vmscan.c~mm-eliminate-vma_special_flags-usage-when-hugetlb-explicitly-tested
++++ a/mm/vmscan.c
+@@ -3521,7 +3521,7 @@ static int should_skip_vma(unsigned long
+ 	if (!vma_has_recency(vma))
+ 		return true;
+ 
+-	if (vma->vm_flags & (VM_LOCKED | VM_SPECIAL))
++	if (vma_test(vma, VMA_LOCKED_BIT) || !vma_is_mm_backed(vma))
+ 		return true;
+ 
+ 	if (vma == get_gate_vma(vma->vm_mm))
 _
 
 Patches currently in -mm which might be from ljs@kernel.org are
