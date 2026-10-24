@@ -1,45 +1,45 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1792832535;
-	b=W8HUNqRfqwnOPRmChS54YhjxQe6Y0VrCfXO7NqG013QMoX9ejA8gwzpvhP65rsMs9uoj
-	 rU9T9TbFvaKGcLVb6tJ5MipR+WS3TSK1vjbu+oV7SkpmimOGGCnGu3qbBEBfN5HJ9eh5w
-	 q+yKQnpLY31HKAbhAeeAOr0ZCh7GKmDdEVH+deEQOQqb8CZ7qmjKXfYr1jMDxJ4r/ES01
-	 5MVwN3ytM/oNpdaiS0Ul+IKOFUqH+IOfhbJmQpvO2l76gWyC4J2jD7Go/hi6b9Dt1Jkkn
-	 ZXJJ3H9ntm+Igw3OaTYpACBK2Sd6TZQR4vjOfmTsUdFzySmbl8q9pndh1IiEWnbsgww==
+	t=1792832540;
+	b=d+et/KjNYijWdL/tSPUHtb8j5GiW7pJum8FD6RNUVyHeFwNdjYjUYnp2+UVRkPUw/d03
+	 VvC0XMX+EmyC+Fdd0SqWPPPOJ0eAiMr0N6kG3sxeQS1k//EzZ6zCLv9DL19UREfbNbNJa
+	 9sJ95neDeFH7UXj4eFo+EdeOx8RGHii26oQED/FRPk34WW7ca4Lmoi3U/2P68TNsLSm2S
+	 OVyNKhxR0XUGQiXBfXtK4N8M7GR2T6bqVxLZlALjE3eqELyweBYVQaV+4zwZG6KmLye7J
+	 aHLpRad/JVIq2q92j+zGVyH6JVEsdHTU5g7RjwRAh3ZA4c3Jcc5BYlS0lH5ADwhphIA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1792832535;
+	a=rsa-sha256; c=relaxed/relaxed; t=1792832540;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=1LtA8pr93j8P7KqKsav2OQgRY6SqlXaOOB05KK0ZYjA=;
-	b=22pdcyk3mj7rv6+SP37uGwpju+ME/l8HY12QARToRAN2hszgqu5ZfRkrB/JbAcXFlcN3
-	 d50/QFZP56e0lTtP3vaHaUp9CKNWXoErfA+jBIg+BoQPDSAxuJOY3uu4aG3R4s8LtL6eQ
-	 Y8dty5LV00WP1HdxZx7glvNh2eLM55K93qao6JdQBFla8vPa7r55E7j5tuD8iGTEMjsro
-	 kLI8HlCPwhNLPnBlSG0euYkGdHJ6oybvQDm54N9r2uptMQmgt/3vJIVdh6g1Vi/opSSkp
-	 qhMCPiwUt0e8xBxd8oeE1waGxznpYkwUoL7KYbBesFX+GVWXg0o+GM5eTD2xIJLqA/g==
+	bh=nTfx94I1o9vkdnJ7Y3U90PChafj4BQd0BrAfcL5K4xI=;
+	b=0xG94t/W7+ZsQ9OUvlb8O6ruvOe++IyHfLJ8gVb9bqJzFnwJ42J2pjANHR96cc5JY4BO
+	 krz+uCJqRnih1TQX+VX/K6zVMJwTzxF5Y8q3IcPPy2FI2ApOgnnOSEFkEE/2YxjnzniWI
+	 y26EXa1MieJIy/g8JfNBgrq7SddM45tRFlsc5eowEK6txOQVRk6ykVRWSB2Q6OoObS/eN
+	 z7QuWugpDV+wa3lKutzjHRpDoxBpOrUV50dqSnBhKKujZiynABlwTTiRzqcrbTkmIAAq8
+	 /JrBbOdCS8J6zIjpYixlZcm0vaKLgAOd3dpV9Tca6Tyk5sjH2gKBWugxww+yjPLCnjg==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=n++8zO9T;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=ySMdYjsr;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D6877606A31A;
-	Sat, 24 Oct 2026 09:02:14 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1EAFF606A31F;
+	Sat, 24 Oct 2026 09:02:20 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=n++8zO9T
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A08B01F01828;
-	Sat, 24 Oct 2026 09:02:14 +0000 (UTC)
+	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=ySMdYjsr
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id DCE8E1F01825;
+	Sat, 24 Oct 2026 09:02:19 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1792832534;
-	bh=1LtA8pr93j8P7KqKsav2OQgRY6SqlXaOOB05KK0ZYjA=;
+	d=linux-foundation.org; s=korg; t=1792832540;
+	bh=nTfx94I1o9vkdnJ7Y3U90PChafj4BQd0BrAfcL5K4xI=;
 	h=Date:To:From:Subject;
-	b=n++8zO9TWHsUiBgPeNt4YFmbH+KiXPOXa20Zp6Xzf3+kALPxiYONa2pck8poPWDMn
-	 8il/Y4qULJD4jMpR657Ms0ZvLq3pP3wNibXuarMILhxwDSrKG/sYSJvYmskXGc6oDh
-	 xkFAWH7cNuzEHufj4VGQIlSrHaEZoIvpOq68bNwg=
-Date: Sat, 24 Oct 2026 02:02:14 -0700
-To: mm-commits@vger.kernel.org,vbabka@kernel.org,stable@vger.kernel.org,pfalcato@suse.de,liam@infradead.org,jannh@google.com,bgeffon@google.com,0x7f454c46@gmail.com,ljs@kernel.org,akpm@linux-foundation.org
+	b=ySMdYjsrLrW6p83xrwxREJmVeMXr2m+3oIQ9qO/pAGvVLTvz3ly5+XA8PJP+tAYsE
+	 MZNfEnwa+6S/qvQ6sDncmogtcsV8fuMYkhpRKkBIntwmvU8mYLBiyCamp5XwMoRsgu
+	 FQPAUUEY7/ms0LoERgIoCUoVUZTJFuGRFFRPtJbs=
+Date: Sat, 24 Oct 2026 02:02:19 -0700
+To: mm-commits@vger.kernel.org,wangruikang@iscas.ac.cn,tongtiangen@huawei.com,stable@vger.kernel.org,paul.walmsley@sifive.com,pasha.tatashin@soleen.com,palmer@dabbelt.com,guoyaxing@bosc.ac.cn,david@kernel.org,aou@eecs.berkeley.edu,alex@ghiti.fr,cuiyunhui@bytedance.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-mremap-correctly-uncharge-accountable-vmas-in-error-path.patch removed from -mm tree
-Message-Id: <20261024090214.A08B01F01828@smtp.kernel.org>
+Subject: [merged mm-stable] riscv-mm-exclude-invalid-thp-pmds-from-page-table-check.patch removed from -mm tree
+Message-Id: <20261024090219.DCE8E1F01825@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -51,80 +51,84 @@ Precedence: list
 
 
 The quilt patch titled
-     Subject: mm/mremap: correctly uncharge accountable VMAs in error path
+     Subject: riscv: mm: exclude invalid THP PMDs from page table check
 has been removed from the -mm tree.  Its filename was
-     mm-mremap-correctly-uncharge-accountable-vmas-in-error-path.patch
+     riscv-mm-exclude-invalid-thp-pmds-from-page-table-check.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: "Lorenzo Stoakes (ARM)" <ljs@kernel.org>
-Subject: mm/mremap: correctly uncharge accountable VMAs in error path
-Date: Mon, 19 Oct 2026 16:57:48 +0100
+From: Yunhui Cui <cuiyunhui@bytedance.com>
+Subject: riscv: mm: exclude invalid THP PMDs from page table check
+Date: Sat, 23 May 2026 12:20:52 +0800
 
-The mremap error path is a fragile and unwieldy beast - it reverses the
-page table move then updates vma_remap_struct state to swap VMA, length and
-address between old and new VMAs in copy_vma_and_data().
+RISC-V THP splitting uses a temporary invalid PMD state where
+pmd_mkinvalid() clears _PAGE_PRESENT and _PAGE_PROT_NONE but leaves
+_PAGE_LEAF set so the MM code can still recognize the PMD as a THP split
+in-progress entry.
 
-If the mremap() operation didn't specify MREMAP_DONTUNMAP then its caller,
-move_vma(), invokes unmap_source_vma(), which unmaps the new VMA rather
-than the old one.
+That temporary state no longer describes a user-accessible mapping, but
+page_table_check currently treats it as one because the RISC-V PMD
+user-accessibility test only checks whether the PMD is a leaf and has user
+permissions.
 
-For accountable VMAs when MREMAP_DONTUNMAP is not specified,
-unmap_source_vma() unsets VMA_ACCOUNT_BIT during this unmap in order that
-only the delta of a VMA expansion is charged (performed by
-vrm_calc_charge() earlier).
+As a result, when a PMD-sized anonymous THP is split during a COW fault,
+page_table_check can account the invalid intermediate PMD as a live PMD
+mapping, and then account the replacement PTE mappings again when the
+split installs the PTE table.  This leaves stale PMD accounting behind and
+later triggers page_table_check failures such as a non-zero anon_map_count
+when the folio is freed.
 
-Therefore nothing uncharges the expanded VMA size, and there is a permanent
-leak in global Committed_AS.
+Fix this by tightening pmd_user_accessible_page() so PMD page-table-check
+accounting only considers leaf PMDs that still carry either _PAGE_PRESENT
+or _PAGE_PROT_NONE.  This preserves the THP split semantics required by
+the MM code while preventing page_table_check from treating invalid split
+PMDs as live user mappings.
 
-Resolve the issue by uncharging when MREMAP_DONTUNMAP is not specified.
+With CONFIG_PAGE_TABLE_CHECK=y and CONFIG_PAGE_TABLE_CHECK_ENFORCED=y,
+tools/testing/selftests/mm/cow completes successfully on RISC-V after this
+change.
 
-Link: https://lore.kernel.org/20261019-other-mremap-charge-leak-v1-1-d94477fe6545@kernel.org
-Fixes: fdbef6149135 ("mm/mremap: don't account pages in vma_to_resize()")
-Signed-off-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
+Link: https://lore.kernel.org/20260523042052.35476-1-cuiyunhui@bytedance.com
+Fixes: 3fee229a8eb9 ("riscv/mm: enable ARCH_SUPPORTS_PAGE_TABLE_CHECK")
+Signed-off-by: Yunhui Cui <cuiyunhui@bytedance.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Cc: Liam R. Howlett <liam@infradead.org>
-Cc: Vlastimil Babka <vbabka@kernel.org>
-Cc: Jann Horn <jannh@google.com>
-Cc: Pedro Falcato <pfalcato@suse.de>
-Cc: Brian Geffon <bgeffon@google.com>
-Cc: Dmitry Safonov <0x7f454c46@gmail.com>
+Cc: Albert Ou <aou@eecs.berkeley.edu>
+Cc: Palmer Dabbelt <palmer@dabbelt.com>
+Cc: Pasha Tatashin <pasha.tatashin@soleen.com>
+Cc: Paul Walmsley <paul.walmsley@sifive.com>
+Cc: tongtiangen <tongtiangen@huawei.com>
+Cc: Alexandre Ghiti <alex@ghiti.fr>
+Cc: David Hildenbrand (Arm) <david@kernel.org>
+Cc: Vivian Wang <wangruikang@iscas.ac.cn>
+Cc: Yaxing Guo <guoyaxing@bosc.ac.cn>
 Cc: <stable@vger.kernel.org>
 ---
 
- mm/mremap.c |   14 ++++++++++++++
- 1 file changed, 14 insertions(+)
+ arch/riscv/include/asm/pgtable.h |    9 ++++++++-
+ 1 file changed, 8 insertions(+), 1 deletion(-)
 
---- a/mm/mremap.c~mm-mremap-correctly-uncharge-accountable-vmas-in-error-path
-+++ a/mm/mremap.c
-@@ -1339,6 +1339,20 @@ static int copy_vma_and_data(struct vma_
- 		pmc_revert.need_rmap_locks = true;
- 		move_page_tables(&pmc_revert);
+--- a/arch/riscv/include/asm/pgtable.h~riscv-mm-exclude-invalid-thp-pmds-from-page-table-check
++++ a/arch/riscv/include/asm/pgtable.h
+@@ -989,7 +989,14 @@ static inline bool pte_user_accessible_p
  
-+		/*
-+		 * When copy_vma_and_data() returns, the new VMA will be
-+		 * unmapped rather than the old one.
-+		 *
-+		 * When an accountable move is being performed, this unmapping
-+		 * will not uncharge any expansion, so do that now.
-+		 *
-+		 * A move is accountable if the VMA is accountable and
-+		 * MREMAP_DONTUNMAP is not specified, so only do so if the
-+		 * latter is true.
-+		 */
-+		if (!(vrm->flags & MREMAP_DONTUNMAP))
-+			vrm_uncharge(vrm);
-+
- 		vrm->vma = new_vma;
- 		vrm->old_len = vrm->new_len;
- 		vrm->addr = vrm->new_addr;
+ static inline bool pmd_user_accessible_page(struct mm_struct *mm, unsigned long addr, pmd_t pmd)
+ {
+-	return pmd_leaf(pmd) && pmd_user(pmd);
++	/*
++	 * page_table_check() must ignore THP split invalidation entries created by
++	 * pmd_mkinvalid(). These retain _PAGE_LEAF so pmd_present()/pmd_leaf() stay
++	 * true during the split, but they no longer describe a user-accessible
++	 * mapping once both _PAGE_PRESENT and _PAGE_PROT_NONE are cleared.
++	 */
++	return (pmd_val(pmd) & (_PAGE_PRESENT | _PAGE_PROT_NONE)) &&
++		(pmd_val(pmd) & _PAGE_LEAF) && pmd_user(pmd);
+ }
+ 
+ static inline bool pud_user_accessible_page(struct mm_struct *mm, unsigned long addr, pud_t pud)
 _
 
-Patches currently in -mm which might be from ljs@kernel.org are
+Patches currently in -mm which might be from cuiyunhui@bytedance.com are
 
-mm-vma-fix-expansion-of-vma_mixedmap_bit-vmas.patch
-mm-do-not-unintentionally-overwrite-atomic-vma-flags.patch
-mm-vma-avoid-losing-atomic-vma-flags-when-setting-sticky-vma-flags.patch
 
