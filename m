@@ -1,45 +1,45 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1792832243;
-	b=qjIyKqlOg3Co93YeQt3kopEx7p8v/hnmgERmOW7YUcJMM0+DXmcvpkONkWtwbPr8gRlP
-	 AglmWpodiwNHgrdP2c8KSN2s/a89CH79tCDQAqcoy7Z1oZ5RvHqFaX1TfuOMyU4TSwxKZ
-	 +C1g5jCLUixIsWp9rfU6jOrDPLIW2ImzivQ4GrxccY68IQNm+CFuMo70NAiSbi/3m74/q
-	 z9XmRs8r8pORVzbMeOuz0RRmSYLIMfhGgxdwHSqQdkEoVRfCLK3q2jiAYJoAS881feJ0D
-	 FHPI0s8x+NBvDecq4A3Zu8yT1R76PMH8bo1oRMnyJdTgIYJidg2+BtSCOjiyfttUZiA==
+	t=1792832247;
+	b=ltuYJEMBjQQNJN7DwHqcE/eaWk1PoRftxgTax9E97kzzCe2d4vou8Ftm8aRmk6oL0WV8
+	 F22JeRUdPfsw7GdgiqIS6echpyKHZV69enZFpGIBWvh0djrgvTJgmeEquTeSDhgmG4gT6
+	 R1L+OIbxAocShrrzEzVSeSX2zAbvuZBbyBPMFBB3mOt4r3kgG+oexzeraY24mEd26nyUf
+	 6y7Wugz/qeT/8PbMawl16pmyo+JdvSylD8tBNwvEO3f2D+PLneCZl3TId8VrlruuR14CP
+	 N1OU22dPAQ1au/9eFGgHFJb27/Oy4Gmdaml0E7QuVP5uJHjIMoHjlAFdsEZwbcDXS/A==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1792832243;
+	a=rsa-sha256; c=relaxed/relaxed; t=1792832247;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=C7cAm1Lw6ANPQZaqPPZBrYmTu2y2HMuQFhXKFMLw2tk=;
-	b=d+UmAYjmHFDQZaheFvRaajK2oNnLQZshbHJ0wqEqfDb5GgEqdu1ZGFfZQQc9XXd0czky
-	 Eug5x3yKWP9g9YI62OzdcAguYfvzkaDz5UIt4EzhI8pd7efXPlz1S6ui2FxZI9QS40LH1
-	 uyRLEhxz5iJ2sqbp6m3yC8XnLotRtHfvr+p1NIv69I+ZgFHEhUKBbQfxAw0rz+xeOxbGS
-	 Hlc+7k9z13bYcb3IOpEvomc3tsNd5CqpEOrPrO8kyz0cX/nxWDet8fTGdrqDIbwFNjNAA
-	 eCi2UzEARclOfpgcxzBaEvoR9/MfnH15Si6xvNSegfCwVcqsVdJ+PUWVEodPtHzQBOA==
+	bh=Um2KKvbljwjEOAZVFAqto1mGXJ4IjHHgwnM4+WkjivM=;
+	b=Aj9sy7qn6HFdk0aSW0hOiSWil2v8dAaFglJnCKe7fNfj07RVLXvRoN0vAvZCsbxiHPKM
+	 c2rUFlJNs3UAQM02E/cScGdwTqu+MDSxl4wotACSzxIms0ahAhU8OUi4w5SNxd3kWLUCD
+	 j9FsAow2LBOvmX2AV7AkWJjY845W3FchFCNKEHOxpLgkm+Ki0VWFYLxUhoI3dFYER5JGu
+	 Z//zpwb+Lzd71/dkkiDNmYzAEgDSC9bXY120KLPAl4p8sOyJsc/XQhAsKa/XH/FnjOdfD
+	 A/vrM6uSJ7YIX7bFiH8PEYMD5xEUn+sA8rVtRkqPuK4kheQACiRFyoR82qQqVs/KdVA==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=ohnqDKq4;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b="kwZ/0wla";
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 37A9E606A321;
-	Sat, 24 Oct 2026 08:57:22 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B4D21606A31F;
+	Sat, 24 Oct 2026 08:57:26 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=ohnqDKq4
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id ABD3C1F01825;
-	Sat, 24 Oct 2026 08:57:22 +0000 (UTC)
+	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=kwZ/0wla
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4008B1F01825;
+	Sat, 24 Oct 2026 08:57:26 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1792832242;
-	bh=C7cAm1Lw6ANPQZaqPPZBrYmTu2y2HMuQFhXKFMLw2tk=;
+	d=linux-foundation.org; s=korg; t=1792832246;
+	bh=Um2KKvbljwjEOAZVFAqto1mGXJ4IjHHgwnM4+WkjivM=;
 	h=Date:To:From:Subject;
-	b=ohnqDKq4zx/yLIRp/kYacLm3FRJxuYw0qd9ZFlbFJHvu0+7MimeHk7gGOfD1wIHuf
-	 I0duRaYWcaYHyxvbIW/Rhi7QECGk0C6iOLcx84gwboxyv4ycJcMv6KbDGqDdP8s3TP
-	 rJBu92id/s7MImHB9QPIA2rUixuqqFLWG6gBt7a8=
-Date: Sat, 24 Oct 2026 01:57:22 -0700
-To: mm-commits@vger.kernel.org,vbabka@kernel.org,stable@vger.kernel.org,rppt@kernel.org,riel@surriel.com,pfalcato@suse.de,peterx@redhat.com,osalvador@suse.de,nao.horiguchi@gmail.com,muchun.song@linux.dev,mgorman@techsingularity.net,ljs@kernel.org,linmiaohe@huawei.com,liam@infradead.org,lance.yang@linux.dev,kas@kernel.org,josef@toxicpanda.com,jannh@google.com,agl@us.ibm.com,david@kernel.org,akpm@linux-foundation.org
+	b=kwZ/0wlaWOI0wftotompOdHUGj9Z6p4LKQ8kRT2H64aQL8nVGCME3Jdz8fThpRXK6
+	 r9eqVGvqbQfEzfsKCp84loYzajolHf+T5lAsUdKssE37WVjQt8OHdEX+Sk6/Y0XSeR
+	 0DZNgpexVI7Q4aPbXcgd6lQC2UIOBqnjnvlGNtDk=
+Date: Sat, 24 Oct 2026 01:57:25 -0700
+To: mm-commits@vger.kernel.org,vbabka@kernel.org,stable@vger.kernel.org,rppt@kernel.org,riel@surriel.com,pfalcato@suse.de,peterx@redhat.com,osalvador@suse.de,nao.horiguchi@gmail.com,muchun.song@linux.dev,mgorman@techsingularity.net,mason@kernel.org,ljs@kernel.org,linmiaohe@huawei.com,liam@infradead.org,lance.yang@linux.dev,kas@kernel.org,jannh@google.com,david@kernel.org,agl@us.ibm.com,josef@toxicpanda.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-hugetlb-fix-use-after-free-in-hugetlb_mfill_atomic_pte.patch removed from -mm tree
-Message-Id: <20261024085722.ABD3C1F01825@smtp.kernel.org>
+Subject: [merged mm-stable] mm-hugetlb-dont-clear-the-resv_map-of-a-vma-whose-lock-is-held.patch removed from -mm tree
+Message-Id: <20261024085726.4008B1F01825@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -51,28 +51,64 @@ Precedence: list
 
 
 The quilt patch titled
-     Subject: mm/hugetlb: fix use-after-free in hugetlb_mfill_atomic_pte()
+     Subject: mm/hugetlb: don't clear the resv_map of a VMA whose lock is held
 has been removed from the -mm tree.  Its filename was
-     mm-hugetlb-fix-use-after-free-in-hugetlb_mfill_atomic_pte.patch
+     mm-hugetlb-dont-clear-the-resv_map-of-a-vma-whose-lock-is-held.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: "David Hildenbrand (Arm)" <david@kernel.org>
-Subject: mm/hugetlb: fix use-after-free in hugetlb_mfill_atomic_pte()
-Date: Thu, 15 Oct 2026 18:07:09 +0200
+From: Josef Bacik <josef@toxicpanda.com>
+Subject: mm/hugetlb: don't clear the resv_map of a VMA whose lock is held
+Date: Thu, 15 Oct 2026 18:07:11 +0200
 
-Let's fix another instance where we use a folio after dropping the PTL,
-where someone else could e.g., MADV_DONTNEED it once we drop the PTL,
-making us trigger a use-after-free on the folio.
+Since commit bf4916922c60 ("hugetlbfs: extend hugetlb_vma_lock to private
+VMAs") the lock of a private hugetlb VMA that owns a reservation is the
+rw_sema of its resv_map.  The hugetlb_vma_*lock*() helpers find it through
+vma->vm_private_data, anew for every lock and every unlock.
 
-Link: https://lore.kernel.org/20261015-urgent_fixes-v1-3-42796911043b@kernel.org
-Fixes: cb6acd01e2e4 ("hugetlbfs: fix races and page leaks during migration")
-Fixes: 1c9e8def43a3 ("userfaultfd: hugetlbfs: add UFFDIO_COPY support for shared mappings")
+At the end of mremap() the old VMA has to let go of the resv_map, which
+now belongs to the new VMA: clear_vma_resv_huge_pages() stores NULL into
+vm_private_data.  mremap() holds mmap_lock for writing and has write
+locked the VMA, which keeps away everybody who comes through the mm.  It
+does not keep away those who find the VMA through the file.  For hole
+punch and truncation hugetlb_vmdelete_list() does
+
+	hugetlb_vma_trylock_write(vma);		locks resv_map->rw_sema
+	unmap_hugepage_range(vma, ...);
+						vm_private_data = NULL
+	hugetlb_vma_unlock_write(vma);		no resv_map: does nothing
+
+and the rw_sema stays write locked for ever:
+
+  WARNING: lock held when returning to user space!
+  mremap_punch/116 is leaving the kernel with locks still held!
+  locks held by mremap_punch/116: 1, last CPU#1:
+   #0: (&resv_map->rw_sema){+.+.}-{4:4}, at:
+                                       hugetlb_vmdelete_list+0x46/0x160
+
+The next fault in the new VMA sleeps in hugetlb_vma_lock_read(),
+uninterruptibly, and it holds its entry of hugetlb_fault_mutex_table[].
+That table is global, so a fault of any other process on a page that
+hashes to the same entry sleeps uninterruptibly as well.
+
+All those who take the lock of a private VMA without taking the mmap/vma
+lock are affected: rmap walks. So hold i_mmap_rwsem around the clearing
+of the resv_map.
+
+No change of behaviour, other than that mremap() of a hugetlb VMA takes
+i_mmap_rwsem once more.
+
+Original fix generated by an LLM and sent in private by Josef.
+
+[david: avoid local variable, move and refine comment, description cleanups+simplifications]
+Link: https://lore.kernel.org/20261015-urgent_fixes-v1-5-42796911043b@kernel.org
+Fixes: bf4916922c60 ("hugetlbfs: extend hugetlb_vma_lock to private VMAs")
+Signed-off-by: Josef Bacik <josef@toxicpanda.com>
 Signed-off-by: David Hildenbrand (Arm) <david@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Reported-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
+Reported-by: Chris Mason <mason@kernel.org>
 Reviewed-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
 Acked-by: Muchun Song <muchun.song@linux.dev>
 Reviewed-by: Lance Yang <lance.yang@linux.dev>
@@ -89,39 +125,34 @@ Cc: Rik van Riel <riel@surriel.com>
 Cc: Peter Xu <peterx@redhat.com>
 Cc: Kiryl Shutsemau <kas@kernel.org>
 Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Josef Bacik <josef@toxicpanda.com>
 Cc: <stable@vger.kernel.org>
 ---
 
- mm/hugetlb.c |    7 ++++++-
- 1 file changed, 6 insertions(+), 1 deletion(-)
+ mm/hugetlb.c |   13 +++++++++++--
+ 1 file changed, 11 insertions(+), 2 deletions(-)
 
---- a/mm/hugetlb.c~mm-hugetlb-fix-use-after-free-in-hugetlb_mfill_atomic_pte
+--- a/mm/hugetlb.c~mm-hugetlb-dont-clear-the-resv_map-of-a-vma-whose-lock-is-held
 +++ a/mm/hugetlb.c
-@@ -6520,11 +6520,16 @@ int hugetlb_mfill_atomic_pte(pte_t *dst_
- 	/* No need to invalidate - it was non-present before */
- 	update_mmu_cache(dst_vma, dst_addr, dst_pte);
- 
--	spin_unlock(ptl);
- 	if (!is_continue)
- 		folio_set_hugetlb_migratable(folio);
- 	if (vm_shared || is_continue)
- 		folio_unlock(folio);
+@@ -7509,6 +7509,15 @@ void hugetlb_unshare_all_pmds(struct vm_
+  */
+ void fixup_hugetlb_reservations(struct vm_area_struct *vma)
+ {
+-	if (is_vm_hugetlb_page(vma))
+-		clear_vma_resv_huge_pages(vma);
++	if (!is_vm_hugetlb_page(vma))
++		return;
 +
 +	/*
-+	 * Hold the PTL until we're done with the folio: the page table owns the
-+	 * folio reference now.
++	 * Rmap walks might still find this VMA and take the lock
++	 * inside the reservation map for __vma_private_lock(). Don't clear
++	 * the reservation map while that is possible.
 +	 */
-+	spin_unlock(ptl);
- 	ret = 0;
- out:
- 	return ret;
++	i_mmap_lock_write(vma->vm_file->f_mapping);
++	clear_vma_resv_huge_pages(vma);
++	i_mmap_unlock_write(vma->vm_file->f_mapping);
+ }
 _
 
-Patches currently in -mm which might be from david@kernel.org are
+Patches currently in -mm which might be from josef@toxicpanda.com are
 
-mm-fix-address-wraparound-when-scanning-large-folio-ptes.patch
-mm-hugetlb-disable-pmd-sharing-for-uffd-missing-mode.patch
-mm-vma-write-lock-source-vma-before-duplicating-it-in-__split_vma.patch
-mm-madvise-preserve-vma_softdirty_bit-when-changing-anonymous-names.patch
 
