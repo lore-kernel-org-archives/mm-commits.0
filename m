@@ -1,47 +1,47 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1792832416;
-	b=II9H2PQUhgdRlzexiH6D2rCUCsN9HR3GQGyUiUxUjMpE9rNjuug0XkU+h/8EV1WTT1BA
-	 BESxzpNr/HEQa7nKtrtmmZEtwUTkEyLfOQn0L0jieV4u+hZhW3eb2sYUJAsds12AQHSMq
-	 qRztf4unj6ci4mJQzNoXXHz181B9L6eWxL6jkWa/2izCiFCNp+uuzH5UAdakHUhZwwtpI
-	 kOnw9pFT9fvbLwRY5dCyZH54lvl1Rn31JkTV+IkouN6XrjZMshEn0U426R6xbG5l2VW1C
-	 OkLHMEyOf7PnzskeDhjz5LvolEVKV60dVhUkRRzfaQyZfUUz4+eDnoMhDl8qXffuWug==
+	t=1792832418;
+	b=Sl4EBlD7BMogsLsynG/nLgQ9dJHMiyS7CeaNtOsb9FUvH6djqQFxTEnUuh1nZqYrEErx
+	 qM78OF7NRL56+DEG8fLz934Niu0eLZBl0RaPDOE8jm1OlaG6kZP/8a3CT/AOfhxU/Mt3w
+	 VtukGR49b59eYpQ9y+uFDgoFTFSLHsDHOhPoPm6iySSsceQZdetYad1y+uP1B/O4+OohV
+	 Vwi6B85utvcbOJOsVwdLJySctoIJY8Ek36ra40B1F+QsaIUpKhW4PXO44SWX6CA8iGyBx
+	 uDQHgrEjJuNTqIEdhQnZL7BHyo5WtXRIcrd9MLMG5Z0Yq47Cn9XXb1YbLitl/bcWB5g==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1792832416;
+	a=rsa-sha256; c=relaxed/relaxed; t=1792832418;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=a+D9gXh0F6nzazsIjL+t3KKIMfQZuouUyEletwRwjM4=;
-	b=XKm/WDV2T4K/e6FNm+TDY4wjk0WFUA6D1SU0hdUqvHYDX0lOcjqU9HWDmbywtTviSvqR
-	 QLoLwg/7cf9AnxH6P6koOb3X4soqx8VtlQg6f38xXrq16tfobkboSB1vtD+gVXuxQlkuX
-	 zu37F3Iyo/LzwyLdGYcPXL2k8G/ibiyzq29HQwhiBF2f06JKQMazESGiri2IqF03KdaVx
-	 LtescrY4qjJXyQHWJjOKumDBqNPuHNqWbC4HjP3HnOA5JE998n5X51mZQcEC5Lgr7MJn+
-	 5D7sC55n7Ozhmbgze3sN4rUY2nR25JBRSuIACtrNPn61VgNL4+i+CU7kTzbvcdQzHOw==
+	bh=QTS6d04VcApGUxv6NBWkOOJa9XiUGq2VRNRz1vmdhjA=;
+	b=U1Axk0AAVVCBkBUnA1esxUsd8y4oKgYq+zdT7KkqKUShhWcIdRxj04vAyRjw8+MpTqCE
+	 9tQwxgWLJphbJcMgXRCMP3EdpHGz6RXuP1DJ/mrZbP9qcgs/zW0ZVSkStYxB2e5MGRJfM
+	 lBaOjUWjqRMSstSedHp1NSq512s977FO7LZqq7AIiULPtaxeUPUvte1xi5ZgATc4UL2Yg
+	 d3ifxoJL8M+4cRbjBWC8wTJvoiki5PGmu7IazHAf1orUomjLKEN9weDak1PvmDmjjJupT
+	 5tWxg7z8m5/nUVsJk4pyjj9N3KcgGd/DkCKV/axen3zg7obffuvR2qw9hehYXwD/PHA==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=fail reason="signature verification failed" header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=03lm4nNT;
+	dkim=fail reason="signature verification failed" header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=g0dEDYtP;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 55C0E606A31D
-	for <mm-commits@vger.kernel.org>; Sat, 24 Oct 2026 09:00:16 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DC30B606A321
+	for <mm-commits@vger.kernel.org>; Sat, 24 Oct 2026 09:00:17 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=fail reason="signature verification failed" (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=03lm4nNT
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E57941F01825;
-	Sat, 24 Oct 2026 09:00:15 +0000 (UTC)
+	dkim=fail reason="signature verification failed" (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=g0dEDYtP
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3997E1F01828;
+	Sat, 24 Oct 2026 09:00:17 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1792832416;
-	bh=a+D9gXh0F6nzazsIjL+t3KKIMfQZuouUyEletwRwjM4=;
+	d=linux-foundation.org; s=korg; t=1792832417;
+	bh=QTS6d04VcApGUxv6NBWkOOJa9XiUGq2VRNRz1vmdhjA=;
 	h=Date:To:From:Subject;
-	b=03lm4nNT+kAxkQQ5kCw108L6k1WeAOYD3p7yUthkmGiOaTTtqtv6V5ZneK1M1eVKb
-	 EFTH88lca4siOD/glgUGWOcr7kUPuBbCdyyGRGtrp4cPYgq53v6RPRecykX4vn8+/1
-	 FXGVnaQxUdzSXX8Q6CK/PqmaBKS0ZdYoA6XW9w8M=
-Date: Sat, 24 Oct 2026 02:00:15 -0700
+	b=g0dEDYtPhU6QXsz5oXlmotcIreNKJv6hPEmhKBIKmCVritz2LMr136i7OtugOLN+e
+	 U1gJcIwDtJ73jMIH64geAPiToU0dp60zrbI8MpkLJUNhsgApHJ0QdXbL2DJUoFHlV5
+	 RbSSdk31NnDjzn+eTX5XYxsJOjnU5jxDe/fyT3Fg=
+Date: Sat, 24 Oct 2026 02:00:16 -0700
 To: mm-commits@vger.kernel.org,ziy@nvidia.com,yuanchu@google.com,youngjun.park@lge.com,ying.huang@linux.alibaba.com,xu.xin@linux.dev,willy@infradead.org,will@kernel.org,weixugc@google.com,viro@zeniv.linux.org.uk,vincent.guittot@linaro.org,vbabka@kernel.org,usama.arif@linux.dev,tzimmermann@suse.de,tiwai@suse.com,tglx@kernel.org,surenb@google.com,stephen.smalley.work@gmail.com,sre@kernel.org,spasswolf@web.de,simona@ffwll.ch,shikemeng@huaweicloud.com,shakeel.butt@linux.dev,ryan.roberts@arm.com,rppt@kernel.org,riel@surriel.com,rakie.kim@sk.com,qi.zheng@linux.dev,pjw@kernel.org,pfalcato@suse.de,peterz@infradead.org,peterx@redhat.com,perex@perex.cz,paul@paul-moore.com,palmer@dabbelt.com,oupton@kernel.org,osalvador@suse.de,oleg@redhat.com,npiggin@gmail.com,nphamcs@gmail.com,nico.pache@linux.dev,namhyung@kernel.org,muchun.song@linux.dev,mripard@kernel.org,mkp@kernel.org,mingo@redhat.com,miklos@szeredi.hu,mhocko@suse.com,mhocko@kernel.org,mhiramat@kernel.org,memxor@gmail.com,maz@kernel.org,ma
  tthew.brost@intel.com,mark.rutland@arm.com,maddy@linux.ibm.com,maarten.lankhorst@linux.intel.com,liam@infradead.org,leon@kernel.org,lance.yang@linux.dev,kasong@tencent.com,kas@kernel.org,juri.lelli@redhat.com,joshua.hahnjy@gmail.com,jhubbard@nvidia.com,jgg@ziepe.ca,jannh@google.com,james.bottomley@hansenpartnership.com,jack@suse.cz,imbrenda@linux.ibm.com,ihor.solodrai@linux.dev,hca@linux.ibm.com,harry@kernel.org,hannes@cmpxchg.org,gregkh@linuxfoundation.org,gourry@gourry.net,gor@linux.ibm.com,gerald.schaefer@linux.ibm.com,frankja@linux.ibm.com,eddyz87@gmail.com,dgilbert@interlog.com,dev.jain@arm.com,dennis.dalessandro@cornelisnetworks.com,deller@gmx.de,david@kernel.org,davem@davemloft.net,dave.hansen@linux.intel.com,daniel@iogearbox.net,corbet@lwn.net,chrisl@kernel.org,chengming.zhou@linux.dev,catalin.marinas@arm.com,byungchul@sk.com,brauner@kernel.org,bp@alien8.de,borntraeger@linux.ibm.com,baoquan.he@linux.dev,baolin.wang@linux.alibaba.com,baohua@kernel.org,axelrasmussen@google.com
  ,ast@kernel.org,arnd@arndb.de,apopple@nvidia.com,aou@eecs.berkeley.edu,anup@brainfault.org,aneesh.kumar@kernel.org,andrii@kernel.org,andreas@gaisler.com,airlied@gmail.com,agordeev@linux.ibm.com,acme@kernel.org,ljs@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-madvise-update-is_valid_guard_vma-to-use-vma_is_mm_backed.patch removed from -mm tree
-Message-Id: <20261024090015.E57941F01825@smtp.kernel.org>
+Subject: [merged mm-stable] mm-uffd-use-predicates-for-userfaultfd-checks.patch removed from -mm tree
+Message-Id: <20261024090017.3997E1F01828@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -53,35 +53,36 @@ Precedence: list
 
 
 The quilt patch titled
-     Subject: mm/madvise: update is_valid_guard_vma() to use vma_is_mm_backed()
+     Subject: mm/uffd: use predicates for userfaultfd checks
 has been removed from the -mm tree.  Its filename was
-     mm-madvise-update-is_valid_guard_vma-to-use-vma_is_mm_backed.patch
+     mm-uffd-use-predicates-for-userfaultfd-checks.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: "Lorenzo Stoakes (ARM)" <ljs@kernel.org>
-Subject: mm/madvise: update is_valid_guard_vma() to use vma_is_mm_backed()
-Date: Tue, 13 Oct 2026 16:05:11 +0100
+Subject: mm/uffd: use predicates for userfaultfd checks
+Date: Tue, 13 Oct 2026 16:05:12 +0100
 
-We currently disallow the installation of lightweight guard regions in VMAs
-whose flags intersect VMA_SPECIAL_FLAGS or VMA_HUGETLB_BIT, or
-VMA_LOCKED_BIT unless allow_locked is set.
+Rather than directly checking VMA flags, use the newly introduced
+vma_is_mm_managed() and vma_is_mm_backed() helpers in userfaultfd
+when assessing VMA suitability for userfaultfd and UFFDIO_MOVE.
 
-hugetlb VMAs set VMA_DONTEXPAND_BIT so this was already redundant,
-VMA_SPECIAL_FLAGS already sufficed.
+The droppable check is kept explicit, as userfaultfd cannot function
+correctly with droppable mappings.
 
-However, now that VMA_IO_BIT is only set if VMA_PFNMAP or VMA_MIXEDMAP_BIT
-is set, this check collapses to being the equivalent of
-!vma_is_mm_backed(), excluding hugetlb mappings in which guard markers
-cannot be installed.
+Update vma_move_compatible() so it's expressed in terms of VMA
+characteristics rather than arbitrary flags.
 
-Update is_valid_guard_vma() to reflect this.
+Additionally, update the use of the deprecated VMA flag API when checking
+VMA_SHADOW_STACK_BIT.
 
-No functional change intended.
+A VMA_IO_BIT check is no longer required but that is fine as a hard
+invariant has been established that mm-managed mappings may not set
+VMA_IO_BIT so the check is now redundant.
 
-Link: https://lore.kernel.org/20261013-b4-mmap-prepare-vma-flag-sanify-v6-31-1aa3c9b139f9@kernel.org
+Link: https://lore.kernel.org/20261013-b4-mmap-prepare-vma-flag-sanify-v6-32-1aa3c9b139f9@kernel.org
 Signed-off-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 Acked-by: Zi Yan <ziy@nvidia.com>
@@ -195,44 +196,49 @@ Cc: Ihor Solodrai <ihor.solodrai@linux.dev>
 Cc: Bert Karwatzki <spasswolf@web.de>
 ---
 
- mm/madvise.c |   20 +++++++++++++-------
- 1 file changed, 13 insertions(+), 7 deletions(-)
+ mm/userfaultfd.c |   22 ++++++++++++++++------
+ 1 file changed, 16 insertions(+), 6 deletions(-)
 
---- a/mm/madvise.c~mm-madvise-update-is_valid_guard_vma-to-use-vma_is_mm_backed
-+++ a/mm/madvise.c
-@@ -1057,19 +1057,25 @@ static long madvise_remove(struct madvis
- 	return error;
+--- a/mm/userfaultfd.c~mm-uffd-use-predicates-for-userfaultfd-checks
++++ a/mm/userfaultfd.c
+@@ -1754,10 +1754,16 @@ static inline bool move_splits_huge_pmd(
  }
+ #endif
  
--static bool is_valid_guard_vma(struct vm_area_struct *vma, bool allow_locked)
-+static bool is_valid_guard_vma(const struct vm_area_struct *vma,
-+			       bool allow_locked)
+-static inline bool vma_move_compatible(struct vm_area_struct *vma)
++static inline bool vma_move_compatible(const struct vm_area_struct *vma)
  {
--	vm_flags_t disallowed = VM_SPECIAL | VM_HUGETLB;
--
- 	/*
--	 * A user could lock after setting a guard range but that's fine, as
-+	 * A user could lock after setting a guard range but that's fine as
- 	 * they'd not be able to fault in. The issue arises when we try to zap
- 	 * existing locked VMAs. We don't want to do that.
- 	 */
--	if (!allow_locked)
--		disallowed |= VM_LOCKED;
-+	if (!allow_locked && vma_test(vma, VMA_LOCKED_BIT))
+-	return !(vma->vm_flags & (VM_PFNMAP | VM_IO |  VM_HUGETLB |
+-				  VM_MIXEDMAP | VM_SHADOW_STACK));
++	/* uffd is generally incompatible with mappings not managed by core mm. */
++	if (!vma_is_mm_managed(vma))
 +		return false;
-+	/*
-+	 * Guard regions require a VMA whose page tables are managed solely by
-+	 * core mm, so the VMA must be mm-backed (excluding hugetlb, in which
-+	 * guard markers cannot be installed).
-+	 */
-+	if (!vma_is_mm_backed(vma) || vma_is_hugetlb(vma))
++	/* The shadow stack should not be written to by userspace. */
++	if (vma_test_single_mask(vma, VMA_SHADOW_STACK))
 +		return false;
- 
--	return !(vma->vm_flags & disallowed);
-+	return true;
++	/* hugetlb mappings cannot be safely moved. */
++	return !vma_is_hugetlb(vma);
  }
  
- static bool is_guard_pte_marker(pte_t ptent)
+ static int validate_move_areas(struct userfaultfd_ctx *ctx,
+@@ -2146,10 +2152,14 @@ static bool vma_can_userfault(struct vm_
+ {
+ 	const struct vm_uffd_ops *ops = vma_uffd_ops(vma);
+ 
+-	if (vma->vm_flags & (VM_DROPPABLE | VM_SHADOW_STACK))
++	/* Only mm-backed memory can have its faults handled by userspace. */
++	if (!vma_is_mm_backed(vma))
+ 		return false;
+-
+-	if (!vma_is_hugetlb(vma) && (vma->vm_flags & VM_SPECIAL))
++	/* Core mm may discard droppable memory at any time. */
++	if (vma_test_single_mask(vma, VMA_DROPPABLE))
++		return false;
++	/* The shadow stack should not be written to by userspace. */
++	if (vma_test_single_mask(vma, VMA_SHADOW_STACK))
+ 		return false;
+ 
+ 	vm_flags &= __VM_UFFD_FLAGS;
 _
 
 Patches currently in -mm which might be from ljs@kernel.org are
