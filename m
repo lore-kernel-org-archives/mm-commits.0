@@ -1,45 +1,45 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1792832548;
-	b=aHk4PuM2D50u0ge3z4Q5NjO7uTUACoa16dF1dRpTs0qhbGWSG0ofPIKEtSvhC/M4Ef9H
-	 rCsRL4hgPcMfwvn4+mtJ9ongBcAHVom/yDCobesq0m7SY1VZSIQxUYtKOv2HyBkKdaByK
-	 gHyCgEjojQIoZtdA2mIF0ICG0A+QRkrgi+N1SJ6Rcwun3AnOinSvnvtTmbR7rt0lDxCD/
-	 FGP/FcIyC/aaGg9h/VtgSd/FtHWpPArt4BIHbm9cKP4Ts9rF6fS/db9Rg21u2xD8/U5tJ
-	 6l3RkvaO7AwdbFlETYXBJ7+yBm00QbxPjxB6KSeVuXXeWjw+qDdqUX6cTHZOnV/kIyQ==
+	t=1792832539;
+	b=2MNIxwBT0Stjsp7+GfEy93eCU21WzmUa9yCToFk5O6TPrXgKfhVo/zLHAMvtQLBjyLja
+	 P+N7V+0sX54EbXI64KwncDQREkCBedCxq4bhSpgYZ1z85JsOkCv2EszVKFRUB32hHfa0V
+	 YdReLFq8591tfXujMdY39iAWC5OTgRWGtFbBxPRFdSLexja6Uzf7RBg16YQl0oZCvQ0iK
+	 ynmH/rhHlMidOsBlF5Bdpuaj0tS0rNGQERbfYXhiO/tlVORT5CeqAwpWTyntk6fhD3AnN
+	 tF49XIF4wm4H+7QTJcZMI66QyzsZOLTla2J39BOUqFg2WFLpqAp5+JmixaD9X24KHiA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1792832548;
+	a=rsa-sha256; c=relaxed/relaxed; t=1792832539;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=gN9b7xkUfPpMiOsH5eB2g9TFXCpp2/w7OuDz8CZMAgg=;
-	b=lvKd+0glmGnc42d0rZ+J8isZCADtI8eCli6bEs4s1HNvLHLyaUwWWJAl2QlcRvp+uJjj
-	 1XLvEIKMEnEIWtpMg1wMn2UYiaHQHrBCiT50KITKh6WIJgeRjEMITpZvV3ZlrwrVzdjVe
-	 qIW29GP8huQ8Wjnp69vSUgUjxWWVbyOBZP2xw36Yagr7BeWv0Nh3FFQL036VF6Qelt24S
-	 lC8KKk0S5HPuW1dngOrm++s1t4xhNxywZOIr2rWXWrHXigpVOivWfBhHGZDS1T2xoHTj8
-	 GyG8Y8x/xWoelZ4Cd5vq3F97RQmzldM9otUFkn9eUYjR2I53vIR/1BvkiKPSU8m0Ocw==
+	bh=68M4FMENKnpLDuXzMIWRSsZ5vWP+TYWCgvIOLu60dtk=;
+	b=3zvmzNjRI5H4W26GdnY8TEHULu5rUXGzfnMfFs0GnBem7gNYrr6SFDELOVwON9tKFjw2
+	 Spd7oPAKn+ehiGFFTis/EnMTFMC8npaWbKZ3///Lj2xFoDZ3ZypzA9PMdW2z7r2dSGRJq
+	 U0r8xDmN3aD1CbjwDEiAQuwM2zAdN8/76o1ZWvf4cabfmfm122B0x7rTq/QXk28CNncs6
+	 F92n5IgNka/fGK9yOLAkNrG1o3sOW1O2w4AhXdtf2DAPQOpwNGLWUBINbRYUDQcWXLYXX
+	 UTPYM5s+pTygYvwKR0lV6BnrF4UI7bJOrmT8KV02aFroISrTipLqBDZjqutRNg0DzQA==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b="XYmcW1/g";
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=pXksDHxz;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 84324606A31A
-	for <mm-commits@vger.kernel.org>; Sat, 24 Oct 2026 09:02:28 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0FA4C606A323;
+	Sat, 24 Oct 2026 09:02:19 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=XYmcW1/g
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4CE8B1F01828;
-	Sat, 24 Oct 2026 09:02:28 +0000 (UTC)
+	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=pXksDHxz
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id CC9B51F031E2;
+	Sat, 24 Oct 2026 09:02:18 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1792832548;
-	bh=gN9b7xkUfPpMiOsH5eB2g9TFXCpp2/w7OuDz8CZMAgg=;
+	d=linux-foundation.org; s=korg; t=1792832538;
+	bh=68M4FMENKnpLDuXzMIWRSsZ5vWP+TYWCgvIOLu60dtk=;
 	h=Date:To:From:Subject;
-	b=XYmcW1/geQRppm3npWtGKBUBxTOmH0bhjYBgyFNjq1lt7BqutuoiuWUN2oWaQgfxO
-	 +8qrFJjDyqY84Kgrz2q6nv6DKT1zGJZjgjcij5CgNhMRSoKVYWvXWjazF5EzxQeYnw
-	 xcsLlAoRwpBluDtHjQ8sjzO2RooKWjiEDuQ3pB2c=
-Date: Sat, 24 Oct 2026 02:02:27 -0700
-To: mm-commits@vger.kernel.org,sj@kernel.org,sashiko-bot@kernel.org,roman.gushchin@linux.dev,muchun.song@linux.dev,mhocko@kernel.org,hannes@cmpxchg.org,gourry@gourry.net,chris@chrisdown.name,anshuman.khandual@arm.com,shakeel.butt@linux.dev,akpm@linux-foundation.org
+	b=pXksDHxzvPQoImDkHg0ShqONsAepCPz2VAjsTPYrqMh8nc+ViYkTXUL5Wg+XME6sT
+	 jowUny+6yqwDVFj3C53zizP9xCLw3OD36zc4PmQJOBJN9QxIm2ekkvLKhqxkUS85Xs
+	 hsEk6bZDRRTmTy8a/ed7u4JA7Yum7xIeQuRXrFpU=
+Date: Sat, 24 Oct 2026 02:02:18 -0700
+To: mm-commits@vger.kernel.org,stable@vger.kernel.org,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-page_counter-use-write_once-for-emin-elow-when-parent-is-the-root.patch removed from -mm tree
-Message-Id: <20261024090228.4CE8B1F01828@smtp.kernel.org>
+Subject: [merged mm-stable] mm-damon-core-filter-out-damos-address-filter-split-failed-region.patch removed from -mm tree
+Message-Id: <20261024090218.CC9B51F031E2@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -51,89 +51,154 @@ Precedence: list
 
 
 The quilt patch titled
-     Subject: mm/page_counter: use WRITE_ONCE() for emin/elow when parent is the root
+     Subject: mm/damon/core: filter out damos address filter-split failed region
 has been removed from the -mm tree.  Its filename was
-     mm-page_counter-use-write_once-for-emin-elow-when-parent-is-the-root.patch
+     mm-damon-core-filter-out-damos-address-filter-split-failed-region.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Shakeel Butt <shakeel.butt@linux.dev>
-Subject: mm/page_counter: use WRITE_ONCE() for emin/elow when parent is the root
-Date: Wed, 21 Oct 2026 13:48:18 -0700
+From: SJ Park <sj@kernel.org>
+Subject: mm/damon/core: filter out damos address filter-split failed region
+Date: Mon, 19 Oct 2026 17:41:18 -0700
 
-page_counter_calculate_protection() runs without locks.  Several
-reclaimers can update the same counter's emin and elow at the same time,
-and readers such as mem_cgroup_below_min(), mem_cgroup_protection() and
-the dmem eviction code load them with READ_ONCE().
+When an address type DAMOS filter is configured, DAMOS tries to split the
+region for the filter range, and apply DAMOS action to the filter-in
+region.  The split operation (damon_split_region_at()) could fail from
+allocation failure under extreme memory pressure.  In the case, DAMOS
+action could be applied more or less than expected, ignoring the address
+filter.
 
-Commit b3a7822e5e75 ("mm, memcg: prevent mem_cgroup_protected store
-tearing") made the main path store emin and elow with WRITE_ONCE(), but it
-missed the early return for a counter whose parent is the reclaim root. 
-Those two stores are the only plain accesses to emin and elow left.
+The issue only rarely happens under extreme memory pressure.  No crash or
+leak happens.  Occasionally not applying the action to a few regions
+shouldn't be a real problem.  But applying the action to a region that the
+user has excluded via address filter could be a surprise depending on the
+use case.  It is only theoretical.  No such real case is found yet.
 
-With CONFIG_KCSAN_STRICT=y, a few tasks writing to the same cgroup's
-memory.reclaim trigger reports like this within seconds:
+Filter out the entire region if the split is failed.  Update
+damos_filter_match() signature to receive the error from split.  Also
+update kunit tests for the updated signature.
 
-  BUG: KCSAN: data-race in page_counter_calculate_protection / shrink_node
+The issue was discovered [1] by sashiko.
 
-  read (marked) to 0xff1f91b146d40e40 of 8 bytes by task 163 on cpu 4:
-   shrink_node+0x57a/0x1210
-   do_try_to_free_pages+0x194/0x930
-   try_to_free_mem_cgroup_pages+0x204/0x3f0
-   user_proactive_reclaim+0x28a/0x4d0
-   memory_reclaim+0x35/0x50
-   ...
-
-  write to 0xff1f91b146d40e40 of 8 bytes by task 167 on cpu 6:
-   page_counter_calculate_protection+0x1fa/0x360
-   mem_cgroup_calculate_protection+0x4e/0x70
-   shrink_node+0x53e/0x1210
-   ...
-
-The default KCSAN config does not report it, because it treats aligned
-word-sized plain writes as atomic.
-
-Use WRITE_ONCE() for these two stores as well.
-
-There is no functional change.  Readers already accept stale values, and
-compilers emit a single word-sized store either way: with GCC 14 the
-x86-64 object code is the same before and after this change.
-
-Link: https://lore.kernel.org/20261021204818.3431099-1-shakeel.butt@linux.dev
-Fixes: b3a7822e5e75 ("mm, memcg: prevent mem_cgroup_protected store tearing")
-Signed-off-by: Shakeel Butt <shakeel.butt@linux.dev>
+Link: https://lore.kernel.org/20261020004119.106690-1-sj@kernel.org
+Link: https://lore.kernel.org/20260801203121.117449-1-sj@kernel.org [1]
+Fixes: ab9bda001b68 ("mm/damon/core: introduce address range type damos filter")
+Signed-off-by: SJ Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Reported-by: Sashiko <sashiko-bot@kernel.org>
-Reviewed-by: Gregory Price (Meta) <gourry@gourry.net>
-Reviewed-by: SJ Park <sj@kernel.org>
-Acked-by: Muchun Song <muchun.song@linux.dev>
-Reviewed-by: Anshuman Khandual <anshuman.khandual@arm.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Roman Gushchin <roman.gushchin@linux.dev>
-Cc: Chris Down <chris@chrisdown.name>
+Cc: <stable@vger.kernel.org> # 6.6.x
 ---
 
- mm/page_counter.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ mm/damon/core.c             |   16 ++++++++++++----
+ mm/damon/tests/core-kunit.h |   11 ++++++-----
+ 2 files changed, 18 insertions(+), 9 deletions(-)
 
---- a/mm/page_counter.c~mm-page_counter-use-write_once-for-emin-elow-when-parent-is-the-root
-+++ a/mm/page_counter.c
-@@ -472,8 +472,8 @@ void page_counter_calculate_protection(s
- 		return;
+--- a/mm/damon/core.c~mm-damon-core-filter-out-damos-address-filter-split-failed-region
++++ a/mm/damon/core.c
+@@ -2551,13 +2551,14 @@ static void damos_update_stat(struct dam
  
- 	if (parent == root) {
--		counter->emin = READ_ONCE(counter->min);
--		counter->elow = READ_ONCE(counter->low);
-+		WRITE_ONCE(counter->emin, READ_ONCE(counter->min));
-+		WRITE_ONCE(counter->elow, READ_ONCE(counter->low));
- 		return;
- 	}
+ static bool damos_filter_match(struct damon_ctx *ctx, struct damon_target *t,
+ 		struct damon_region *r, struct damos_filter *filter,
+-		unsigned long min_region_sz)
++		unsigned long min_region_sz, int *err)
+ {
+ 	bool matched = false;
+ 	struct damon_target *ti;
+ 	int target_idx = 0;
+ 	unsigned long start, end, wsum;
  
++	*err = 0;
+ 	switch (filter->type) {
+ 	case DAMOS_FILTER_TYPE_TARGET:
+ 		damon_for_each_target(ti, ctx) {
+@@ -2583,12 +2584,13 @@ static bool damos_filter_match(struct da
+ 		}
+ 		/* start before the range and overlap */
+ 		if (r->ar.start < start) {
+-			damon_split_region_at(t, r, start - r->ar.start);
++			*err = damon_split_region_at(t, r,
++					start - r->ar.start);
+ 			matched = false;
+ 			break;
+ 		}
+ 		/* start inside the range */
+-		damon_split_region_at(t, r, end - r->ar.start);
++		*err = damon_split_region_at(t, r, end - r->ar.start);
+ 		matched = true;
+ 		break;
+ 	case DAMOS_FILTER_TYPE_PROBE_HITS_WSUM:
+@@ -2607,10 +2609,16 @@ static bool damos_core_filter_out(struct
+ 		struct damon_region *r, struct damos *s)
+ {
+ 	struct damos_filter *filter;
++	bool matching;
++	int err;
+ 
+ 	s->core_filters_allowed = false;
+ 	damos_for_each_core_filter(filter, s) {
+-		if (damos_filter_match(ctx, t, r, filter, ctx->min_region_sz)) {
++		matching = damos_filter_match(ctx, t, r, filter,
++				ctx->min_region_sz, &err);
++		if (err)
++			return true;
++		if (matching) {
+ 			if (filter->allow)
+ 				s->core_filters_allowed = true;
+ 			return !filter->allow;
+--- a/mm/damon/tests/core-kunit.h~mm-damon-core-filter-out-damos-address-filter-split-failed-region
++++ a/mm/damon/tests/core-kunit.h
+@@ -1783,6 +1783,7 @@ static void damos_test_filter_out(struct
+ 	struct damon_target *t;
+ 	struct damon_region *r, *r2;
+ 	struct damos_filter *f;
++	int err;
+ 
+ 	f = damos_new_filter(DAMOS_FILTER_TYPE_ADDR, true, false);
+ 	if (!f)
+@@ -1803,27 +1804,27 @@ static void damos_test_filter_out(struct
+ 	damon_add_region(r, t);
+ 
+ 	/* region in the range */
+-	KUNIT_EXPECT_TRUE(test, damos_filter_match(NULL, t, r, f, 1));
++	KUNIT_EXPECT_TRUE(test, damos_filter_match(NULL, t, r, f, 1, &err));
+ 	KUNIT_EXPECT_EQ(test, damon_nr_regions(t), 1);
+ 
+ 	/* region before the range */
+ 	r->ar.start = 1;
+ 	r->ar.end = 2;
+ 	KUNIT_EXPECT_FALSE(test,
+-			damos_filter_match(NULL, t, r, f, 1));
++			damos_filter_match(NULL, t, r, f, 1, &err));
+ 	KUNIT_EXPECT_EQ(test, damon_nr_regions(t), 1);
+ 
+ 	/* region after the range */
+ 	r->ar.start = 6;
+ 	r->ar.end = 8;
+ 	KUNIT_EXPECT_FALSE(test,
+-			damos_filter_match(NULL, t, r, f, 1));
++			damos_filter_match(NULL, t, r, f, 1, &err));
+ 	KUNIT_EXPECT_EQ(test, damon_nr_regions(t), 1);
+ 
+ 	/* region started before the range */
+ 	r->ar.start = 1;
+ 	r->ar.end = 4;
+-	KUNIT_EXPECT_FALSE(test, damos_filter_match(NULL, t, r, f, 1));
++	KUNIT_EXPECT_FALSE(test, damos_filter_match(NULL, t, r, f, 1, &err));
+ 	/* filter should have split the region */
+ 	KUNIT_EXPECT_EQ(test, r->ar.start, 1);
+ 	KUNIT_EXPECT_EQ(test, r->ar.end, 2);
+@@ -1839,7 +1840,7 @@ static void damos_test_filter_out(struct
+ 	r->ar.start = 2;
+ 	r->ar.end = 8;
+ 	KUNIT_EXPECT_TRUE(test,
+-			damos_filter_match(NULL, t, r, f, 1));
++			damos_filter_match(NULL, t, r, f, 1, &err));
+ 	/* filter should have split the region */
+ 	KUNIT_EXPECT_EQ(test, r->ar.start, 2);
+ 	KUNIT_EXPECT_EQ(test, r->ar.end, 6);
 _
 
-Patches currently in -mm which might be from shakeel.butt@linux.dev are
+Patches currently in -mm which might be from sj@kernel.org are
 
 
