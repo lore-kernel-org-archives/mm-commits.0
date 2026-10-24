@@ -1,45 +1,45 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1792832539;
-	b=2MNIxwBT0Stjsp7+GfEy93eCU21WzmUa9yCToFk5O6TPrXgKfhVo/zLHAMvtQLBjyLja
-	 P+N7V+0sX54EbXI64KwncDQREkCBedCxq4bhSpgYZ1z85JsOkCv2EszVKFRUB32hHfa0V
-	 YdReLFq8591tfXujMdY39iAWC5OTgRWGtFbBxPRFdSLexja6Uzf7RBg16YQl0oZCvQ0iK
-	 ynmH/rhHlMidOsBlF5Bdpuaj0tS0rNGQERbfYXhiO/tlVORT5CeqAwpWTyntk6fhD3AnN
-	 tF49XIF4wm4H+7QTJcZMI66QyzsZOLTla2J39BOUqFg2WFLpqAp5+JmixaD9X24KHiA==
+	t=1792832549;
+	b=pRzBgZshSSzXvQnlymSh8HwuXmbdQTmpovhquD3Bby5zTs3E0UfEaMCbYv98gly1mBsM
+	 W/2dgQU4l6xKv4EfQIZoYn9NUGuAMSrFnxSf7C8C+Ogy/tO/Ljd+cOZROi9WD1aM02BNb
+	 z8R/joJZi7Xl3MW0IMfGTqyM7vpOlVAsCYN6JY6JY+OrqgxmuOFhEMlKZqO6KO7z91evH
+	 u2nMdSW7zpU286Hki+3flc+GIEIVli5R0EjFIyfljdGjPZO5SzjkyHuljXLxplZKNS5c4
+	 aAzWCcI2Fp/a8VgSrtIcZRmfDO8EMZ8tH5k+BKPE9ZchMqAEB3FFl/EgR3/4UEIH6/g==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1792832539;
+	a=rsa-sha256; c=relaxed/relaxed; t=1792832549;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=68M4FMENKnpLDuXzMIWRSsZ5vWP+TYWCgvIOLu60dtk=;
-	b=3zvmzNjRI5H4W26GdnY8TEHULu5rUXGzfnMfFs0GnBem7gNYrr6SFDELOVwON9tKFjw2
-	 Spd7oPAKn+ehiGFFTis/EnMTFMC8npaWbKZ3///Lj2xFoDZ3ZypzA9PMdW2z7r2dSGRJq
-	 U0r8xDmN3aD1CbjwDEiAQuwM2zAdN8/76o1ZWvf4cabfmfm122B0x7rTq/QXk28CNncs6
-	 F92n5IgNka/fGK9yOLAkNrG1o3sOW1O2w4AhXdtf2DAPQOpwNGLWUBINbRYUDQcWXLYXX
-	 UTPYM5s+pTygYvwKR0lV6BnrF4UI7bJOrmT8KV02aFroISrTipLqBDZjqutRNg0DzQA==
+	bh=sWz2nDFUmKXTZmGcYHOnNJ1G2kATAILCMR9ej/9hQ50=;
+	b=TyPWrY8CpkEyTrGfjrElqWCq7YAlxNiW5/gbR2up88y9gRJ1+ON1wggztOqgWU6D+pUK
+	 D8S9U96aWBTedBbfK0EJVp9ZCdm8c1fz+d+fN0KVotKOsXp4Zl8xPYqGTxIQ1v/Eaijgj
+	 zViGIqUQYrXAdv39vCQPgdnguze2Vh7KHjfI0Rrl+Yy6crhbV0KUmgWSe9IOy2a2Gw+PZ
+	 oL5ToInhMvdO1jKZPE1sl1fZXlRyuZgoypf14Ocf2GRnX9BjbgNmap2kKXKqTywimbGM1
+	 qfHdr1mFJjguZP0t9uM5WluqYiCRm0VHooIfCWcxX3LFXkNPOf5flqKXplEVndiAl4Q==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=pXksDHxz;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=HfJmlLS2;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0FA4C606A323;
-	Sat, 24 Oct 2026 09:02:19 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 83A20606A31A;
+	Sat, 24 Oct 2026 09:02:29 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=pXksDHxz
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id CC9B51F031E2;
-	Sat, 24 Oct 2026 09:02:18 +0000 (UTC)
+	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=HfJmlLS2
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 50BA51F01828;
+	Sat, 24 Oct 2026 09:02:29 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1792832538;
-	bh=68M4FMENKnpLDuXzMIWRSsZ5vWP+TYWCgvIOLu60dtk=;
+	d=linux-foundation.org; s=korg; t=1792832549;
+	bh=sWz2nDFUmKXTZmGcYHOnNJ1G2kATAILCMR9ej/9hQ50=;
 	h=Date:To:From:Subject;
-	b=pXksDHxzvPQoImDkHg0ShqONsAepCPz2VAjsTPYrqMh8nc+ViYkTXUL5Wg+XME6sT
-	 jowUny+6yqwDVFj3C53zizP9xCLw3OD36zc4PmQJOBJN9QxIm2ekkvLKhqxkUS85Xs
-	 hsEk6bZDRRTmTy8a/ed7u4JA7Yum7xIeQuRXrFpU=
-Date: Sat, 24 Oct 2026 02:02:18 -0700
-To: mm-commits@vger.kernel.org,stable@vger.kernel.org,sj@kernel.org,akpm@linux-foundation.org
+	b=HfJmlLS20xatDHEbpKu15feaytn/gl5JyadqFD3xBb1bLi/iEklZYMOWfQ65ifk0c
+	 qCXjx6ow9ydbT1ix5XqP9vJvTjl+slCysjNRFwbMa0zdf4S9SCqgpVKll+POKujNBu
+	 5dc5iSyuCqy52R0NgzzGv7CjAJDcKoqXZcqehh4k=
+Date: Sat, 24 Oct 2026 02:02:28 -0700
+To: mm-commits@vger.kernel.org,yuzhao@google.com,yuanchu@google.com,weixugc@google.com,stable@vger.kernel.org,shakeel.butt@linux.dev,rlmenge@gmail.com,qi.zheng@linux.dev,mhocko@kernel.org,ljs@kernel.org,kasong@tencent.com,hargar@linux.microsoft.com,hannes@cmpxchg.org,david@kernel.org,baoquan.he@linux.dev,baolin.wang@linux.alibaba.com,baohua@kernel.org,axelrasmussen@google.com,apais@microsoft.com,sidchintamaneni@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-damon-core-filter-out-damos-address-filter-split-failed-region.patch removed from -mm tree
-Message-Id: <20261024090218.CC9B51F031E2@smtp.kernel.org>
+Subject: [merged mm-stable] mm-multi-gen-lru-fix-null-lruvec-pgdat-deref-with-memcg-disabled-on-cmdline.patch removed from -mm tree
+Message-Id: <20261024090229.50BA51F01828@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -51,154 +51,125 @@ Precedence: list
 
 
 The quilt patch titled
-     Subject: mm/damon/core: filter out damos address filter-split failed region
+     Subject: mm: multi-gen LRU: fix NULL lruvec->pgdat deref with memcg disabled on cmdline
 has been removed from the -mm tree.  Its filename was
-     mm-damon-core-filter-out-damos-address-filter-split-failed-region.patch
+     mm-multi-gen-lru-fix-null-lruvec-pgdat-deref-with-memcg-disabled-on-cmdline.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: SJ Park <sj@kernel.org>
-Subject: mm/damon/core: filter out damos address filter-split failed region
-Date: Mon, 19 Oct 2026 17:41:18 -0700
+From: Siddharth Chintamaneni <sidchintamaneni@gmail.com>
+Subject: mm: multi-gen LRU: fix NULL lruvec->pgdat deref with memcg disabled on cmdline
+Date: Sat, 17 Oct 2026 05:09:27 +0000
 
-When an address type DAMOS filter is configured, DAMOS tries to split the
-region for the filter range, and apply DAMOS action to the filter-in
-region.  The split operation (damon_split_region_at()) could fail from
-allocation failure under extreme memory pressure.  In the case, DAMOS
-action could be applied more or less than expected, ignoring the address
-filter.
+When CONFIG_MEMCG=y, lruvec_pgdat() returns lruvec->pgdat, which for the
+per-node pgdat->__lruvec is left NULL by lruvec_init() and only filled in
+lazily by mem_cgroup_lruvec(). Normally that happens early, e.g. on the
+first folio_add_lru().
 
-The issue only rarely happens under extreme memory pressure.  No crash or
-leak happens.  Occasionally not applying the action to a few regions
-shouldn't be a real problem.  But applying the action to a region that the
-user has excluded via address filter could be a surprise depending on the
-use case.  It is only theoretical.  No such real case is found yet.
+With cgroup_disable=memory, lru_gen_shrink_node() passes &pgdat->__lruvec
+directly to shrink_one(). If direct reclaim runs before anything has
+called mem_cgroup_lruvec() for the node, which can happen during early
+boot under memory pressure (e.g. a kdump kernel), get_swappiness() ends
+up dereferencing a NULL pgdat:
 
-Filter out the entire region if the split is failed.  Update
-damos_filter_match() signature to receive the error from split.  Also
-update kunit tests for the updated signature.
+  Unable to handle kernel NULL pointer dereference at virtual address 0000000000005040
+  pc : get_swappiness+0x68/0xb0
+  lr : try_to_shrink_lruvec+0x54/0x2c0
+  Call trace:
+   get_swappiness+0x68/0xb0 (P)
+   try_to_shrink_lruvec+0x54/0x2c0
+   shrink_one+0x8c/0x240
+   shrink_node+0xc6c/0xe08
+   do_try_to_free_pages+0xdc/0x570
+   try_to_free_pages+0x124/0x278
+   __alloc_frozen_pages_noprof+0x6e8/0xf78
+   alloc_pages_mpol+0xc4/0x1c0
+   alloc_frozen_pages_noprof+0x54/0xe8
+   alloc_pages_noprof+0x1c/0x40
+   atomic_pool_expand+0x98/0x300
+   __dma_atomic_pool_init+0x58/0xd8
+   dma_atomic_pool_init+0x154/0x170
+   do_one_initcall+0x64/0x350
+   kernel_init_freeable+0x214/0x430
+   kernel_init+0x2c/0x208
+   ret_from_fork+0x10/0x20
 
-The issue was discovered [1] by sashiko.
+The classic LRU path and MGLRU before per-node lru_gen_folio lists
+obtained the lruvec through mem_cgroup_lruvec(), which sets
+lruvec->pgdat.
 
-Link: https://lore.kernel.org/20261020004119.106690-1-sj@kernel.org
-Link: https://lore.kernel.org/20260801203121.117449-1-sj@kernel.org [1]
-Fixes: ab9bda001b68 ("mm/damon/core: introduce address range type damos filter")
-Signed-off-by: SJ Park <sj@kernel.org>
+The above was hit on an arm64 kdump kernel (6.18-based) booted with
+cgroup_disable=memory nr_cpus=4. It also reproduces on mainline on an
+arm64 VM with CONFIG_ARM64_64K_PAGES=y, CONFIG_MEMCG=y,
+CONFIG_LRU_GEN_ENABLED=y and:
+
+  mem=160M nr_cpus=4 coherent_pool=512M cgroup_disable=memory
+
+These options only serve to force direct reclaim early in boot; with
+160M the boot eventually ends in OOM regardless. On mainline the first
+LRU reclaim happens while unpacking the initramfs, and faults the same
+way:
+
+  Unable to handle kernel NULL pointer dereference at virtual address 0000000000005040
+  pc : get_swappiness+0xd4/0x150
+  Call trace:
+   get_swappiness+0xd4/0x150 (P)
+   try_to_shrink_lruvec+0x44/0x2b8
+   shrink_one+0x80/0x1a0
+   shrink_node+0xd98/0xea8
+   do_try_to_free_pages+0xf4/0x4b0
+   try_to_free_pages+0x110/0x360
+   __alloc_frozen_pages_noprof+0x8b0/0x1718
+   ...
+   __filemap_get_folio_mpol+0x2ac/0x548
+   simple_write_begin+0x44/0xf8
+   page_symlink+0x178/0x198
+   ...
+   do_populate_rootfs+0x13c/0x200
+
+Link: https://lore.kernel.org/20261017050928.128582-1-sidchintamaneni@gmail.com
+Fixes: e4dde56cd208 ("mm: multi-gen LRU: per-node lru_gen_folio lists")
+Signed-off-by: Siddharth Chintamaneni <sidchintamaneni@gmail.com>
+Signed-off-by: Hardik Garg <hargar@linux.microsoft.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Cc: <stable@vger.kernel.org> # 6.6.x
+Reviewed-by: Barry Song <baohua@kernel.org>
+Reviewed-by: Baolin Wang <baolin.wang@linux.alibaba.com>
+Assisted-by: LLM
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: David Hildenbrand <david@kernel.org>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Qi Zheng <qi.zheng@linux.dev>
+Cc: Shakeel Butt <shakeel.butt@linux.dev>
+Cc: Lorenzo Stoakes <ljs@kernel.org>
+Cc: Kairui Song <kasong@tencent.com>
+Cc: Axel Rasmussen <axelrasmussen@google.com>
+Cc: Yuanchu Xie <yuanchu@google.com>
+Cc: Wei Xu <weixugc@google.com>
+Cc: Baoquan He <baoquan.he@linux.dev>
+Cc: Yu Zhao <yuzhao@google.com>
+Cc: <apais@microsoft.com>
+Cc: <rlmenge@gmail.com>
+Cc: <stable@vger.kernel.org> # 6.3+
 ---
 
- mm/damon/core.c             |   16 ++++++++++++----
- mm/damon/tests/core-kunit.h |   11 ++++++-----
- 2 files changed, 18 insertions(+), 9 deletions(-)
+ mm/vmscan.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/damon/core.c~mm-damon-core-filter-out-damos-address-filter-split-failed-region
-+++ a/mm/damon/core.c
-@@ -2551,13 +2551,14 @@ static void damos_update_stat(struct dam
+--- a/mm/vmscan.c~mm-multi-gen-lru-fix-null-lruvec-pgdat-deref-with-memcg-disabled-on-cmdline
++++ a/mm/vmscan.c
+@@ -5454,7 +5454,7 @@ static void lru_gen_shrink_node(struct p
+ 		sc->nr_reclaimed = 0;
  
- static bool damos_filter_match(struct damon_ctx *ctx, struct damon_target *t,
- 		struct damon_region *r, struct damos_filter *filter,
--		unsigned long min_region_sz)
-+		unsigned long min_region_sz, int *err)
- {
- 	bool matched = false;
- 	struct damon_target *ti;
- 	int target_idx = 0;
- 	unsigned long start, end, wsum;
+ 	if (mem_cgroup_disabled())
+-		shrink_one(&pgdat->__lruvec, sc);
++		shrink_one(mem_cgroup_lruvec(NULL, pgdat), sc);
+ 	else
+ 		shrink_many(pgdat, sc);
  
-+	*err = 0;
- 	switch (filter->type) {
- 	case DAMOS_FILTER_TYPE_TARGET:
- 		damon_for_each_target(ti, ctx) {
-@@ -2583,12 +2584,13 @@ static bool damos_filter_match(struct da
- 		}
- 		/* start before the range and overlap */
- 		if (r->ar.start < start) {
--			damon_split_region_at(t, r, start - r->ar.start);
-+			*err = damon_split_region_at(t, r,
-+					start - r->ar.start);
- 			matched = false;
- 			break;
- 		}
- 		/* start inside the range */
--		damon_split_region_at(t, r, end - r->ar.start);
-+		*err = damon_split_region_at(t, r, end - r->ar.start);
- 		matched = true;
- 		break;
- 	case DAMOS_FILTER_TYPE_PROBE_HITS_WSUM:
-@@ -2607,10 +2609,16 @@ static bool damos_core_filter_out(struct
- 		struct damon_region *r, struct damos *s)
- {
- 	struct damos_filter *filter;
-+	bool matching;
-+	int err;
- 
- 	s->core_filters_allowed = false;
- 	damos_for_each_core_filter(filter, s) {
--		if (damos_filter_match(ctx, t, r, filter, ctx->min_region_sz)) {
-+		matching = damos_filter_match(ctx, t, r, filter,
-+				ctx->min_region_sz, &err);
-+		if (err)
-+			return true;
-+		if (matching) {
- 			if (filter->allow)
- 				s->core_filters_allowed = true;
- 			return !filter->allow;
---- a/mm/damon/tests/core-kunit.h~mm-damon-core-filter-out-damos-address-filter-split-failed-region
-+++ a/mm/damon/tests/core-kunit.h
-@@ -1783,6 +1783,7 @@ static void damos_test_filter_out(struct
- 	struct damon_target *t;
- 	struct damon_region *r, *r2;
- 	struct damos_filter *f;
-+	int err;
- 
- 	f = damos_new_filter(DAMOS_FILTER_TYPE_ADDR, true, false);
- 	if (!f)
-@@ -1803,27 +1804,27 @@ static void damos_test_filter_out(struct
- 	damon_add_region(r, t);
- 
- 	/* region in the range */
--	KUNIT_EXPECT_TRUE(test, damos_filter_match(NULL, t, r, f, 1));
-+	KUNIT_EXPECT_TRUE(test, damos_filter_match(NULL, t, r, f, 1, &err));
- 	KUNIT_EXPECT_EQ(test, damon_nr_regions(t), 1);
- 
- 	/* region before the range */
- 	r->ar.start = 1;
- 	r->ar.end = 2;
- 	KUNIT_EXPECT_FALSE(test,
--			damos_filter_match(NULL, t, r, f, 1));
-+			damos_filter_match(NULL, t, r, f, 1, &err));
- 	KUNIT_EXPECT_EQ(test, damon_nr_regions(t), 1);
- 
- 	/* region after the range */
- 	r->ar.start = 6;
- 	r->ar.end = 8;
- 	KUNIT_EXPECT_FALSE(test,
--			damos_filter_match(NULL, t, r, f, 1));
-+			damos_filter_match(NULL, t, r, f, 1, &err));
- 	KUNIT_EXPECT_EQ(test, damon_nr_regions(t), 1);
- 
- 	/* region started before the range */
- 	r->ar.start = 1;
- 	r->ar.end = 4;
--	KUNIT_EXPECT_FALSE(test, damos_filter_match(NULL, t, r, f, 1));
-+	KUNIT_EXPECT_FALSE(test, damos_filter_match(NULL, t, r, f, 1, &err));
- 	/* filter should have split the region */
- 	KUNIT_EXPECT_EQ(test, r->ar.start, 1);
- 	KUNIT_EXPECT_EQ(test, r->ar.end, 2);
-@@ -1839,7 +1840,7 @@ static void damos_test_filter_out(struct
- 	r->ar.start = 2;
- 	r->ar.end = 8;
- 	KUNIT_EXPECT_TRUE(test,
--			damos_filter_match(NULL, t, r, f, 1));
-+			damos_filter_match(NULL, t, r, f, 1, &err));
- 	/* filter should have split the region */
- 	KUNIT_EXPECT_EQ(test, r->ar.start, 2);
- 	KUNIT_EXPECT_EQ(test, r->ar.end, 6);
 _
 
-Patches currently in -mm which might be from sj@kernel.org are
+Patches currently in -mm which might be from sidchintamaneni@gmail.com are
 
 
