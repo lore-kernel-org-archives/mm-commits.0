@@ -1,45 +1,45 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1792832445;
-	b=dV7/DmlDbsR0Wa7uJx7/kgh1H+4vYkPhbSHtrsq8/InH+vepegYlq3KCijZh4IqSiqTE
-	 j5EiKkgysJhyK/gPa9ipCg/nixFqoTh9muDeIEq0LA2vdQL2UrC47Sm1UWNZ5wt2ToFmI
-	 Gmla3wM58C+8SdLzA3pY+GKlhm/JpaY1sNpDUysgRCCSbrBL1+fMTzpSEm3XbltDcjZH/
-	 4BanT+0Us9WHOPGfEQ9ZJ/oyrHVrqja17hrwkJ4mTLRtt+vgRmFbqkHWgts5pOjLUq4NE
-	 VYw2c7bkJmYCnhhc84Gum4lHcw84mcVihw1WciODDmH7zjZsIJ10pMRTexz3lcsZzTA==
+	t=1792832446;
+	b=LfshXJfsgmRvhGXuCxO6aj8DOqyxleTsnQXGwJjHyrViUTgL4idudQVDt46jhysiN8Kx
+	 4QpWKUyx33PcBFgfaAvi8CzcwahJ1ztjfTeXUn2JsPRqF2uJZx1K2LQSAs0q7owCsFZfU
+	 r5J7RkKCROFATF1bQZMdYL72Gk3Of4lbVlQkvYTbVfnR5HtQhSFLu7Y87I/mN9sYVHH9z
+	 8ZYzuIiz0g5iYuTEiQLfvcypjsAFv54omItlJ9+4rPw627CZJxEXxMQMLkZBNtp7H5pKo
+	 d87jweWpjkHZw889TWwu1bm1ZLKgQupEWRiLdIseH/3mmDV91ykJvfdnLdX/AFqBKIA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1792832445;
+	a=rsa-sha256; c=relaxed/relaxed; t=1792832446;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=p6tr4ecEFNQjuk/Ql4z1cf77auYsWGogLSm7EA8zy20=;
-	b=SEbVd/ZA/JXXCnbggXkonqXIeiD9SrJjF2L+ib+0ReGTwakuxhn0g0B7k1o7hbjVK4SF
-	 0YoS7yCrTCBCx0uz5b5AAtIH2t3rB3JpsaJs60DFlWIMmgP2AyrfurdK95q3ehBfdKyJe
-	 IpGKU9Y6hC20zLeaOlX+SK9NWqB/GWqrufJvqelURDffXOpKRPerhqAyDvVHQoCl6vanM
-	 a0JlfaJfRVXb/FDCmVESCBCIIsMRqHLtku9g4GmmAl3f0eyWshFOG/z7gTQptmXu8bcGT
-	 DwIxzN/+se+j7D4WulYiyAktG285YIosW2FAYD6Yg51DestGJm/dzXwC/Y6Dcu6bRRA==
+	bh=DMBC0JTio5EbmEg1Oyrw6h9AFbVGLRJcGzUqGncZ2ck=;
+	b=B0vDPyCkNwGW316pR7vKvhSvFQ7dchmkVUxhsCJaKr20luB6wsw/ypW6YCFPZUIwHUno
+	 7gfQhWrx1Lc2CrOcZyjbJhQFAZ24E1pPSfPmAEJeqJ79qnn0FjqRjaQCoGqOvmcYZP13Q
+	 wNWW8lDcUKssUGIfm2r1EoV5oNnHBzQZMI21sNRolLfW5lVQn8y7kDmyCvOcqmRl5d+5V
+	 YKCvuETwwmo95MBE61Xrko2AAi+M0PagO3mC0ENAJyCAQscPh+NzdrcH6VxCjzQOsiZQi
+	 B5fSQjNpJdC8xjh4VGaq0pRgz//oe/rJ+DvMqY0zzKMk4w4GMliSn393NuS/TC3RGCA==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=aMs8ELpW;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b="f7/oExNi";
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E2C92606A31A
-	for <mm-commits@vger.kernel.org>; Sat, 24 Oct 2026 09:00:44 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EA96E606A31A
+	for <mm-commits@vger.kernel.org>; Sat, 24 Oct 2026 09:00:45 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=aMs8ELpW
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id AB6DD1F01829;
-	Sat, 24 Oct 2026 09:00:44 +0000 (UTC)
+	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=f7/oExNi
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B59341F01825;
+	Sat, 24 Oct 2026 09:00:45 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1792832444;
-	bh=p6tr4ecEFNQjuk/Ql4z1cf77auYsWGogLSm7EA8zy20=;
+	d=linux-foundation.org; s=korg; t=1792832445;
+	bh=DMBC0JTio5EbmEg1Oyrw6h9AFbVGLRJcGzUqGncZ2ck=;
 	h=Date:To:From:Subject;
-	b=aMs8ELpWKzjE7k6wgb5K9GS1yO87YX44QO1wg7FchcW0tuEF7EWwKhTvDgtK/xlTJ
-	 expndfMTGRsFdboaKq5Au6KJ7Kow8YeUfN9lzj0j6nRvIKy0zvPV91Zb0mGj0mmbLi
-	 Yr7ItT0COlMldAfnC4Oy1bHX/2oUYRoA4LQQf2+k=
-Date: Sat, 24 Oct 2026 02:00:44 -0700
-To: mm-commits@vger.kernel.org,sj@kernel.org,osalvador@suse.de,muchun.song@linux.dev,joe@perches.com,david@kernel.org,lienze@kylinos.cn,akpm@linux-foundation.org
+	b=f7/oExNiLi3BqSl4NJUJgVJ8x5zuMfy4hZdTCmXA4oAYfIc1H7c1J+H8cGAiC8DvI
+	 mColvlvVWUmKiSuyylG7PDsOFuCo3vVRnXIKWadYfF7/apGLAzyiaazjLL40kIfabZ
+	 IAsR3fi5Sciek+9mLvSDHWq3DUXVlt1ZOpW9qDmE=
+Date: Sat, 24 Oct 2026 02:00:45 -0700
+To: mm-commits@vger.kernel.org,sj@kernel.org,osalvador@suse.de,muchun.song@linux.dev,david@kernel.org,lienze@kylinos.cn,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] maintainers-cover-all-hugetlb-headers-under-hugetlb-subsystem.patch removed from -mm tree
-Message-Id: <20261024090044.AB6DD1F01829@smtp.kernel.org>
+Subject: [merged mm-stable] mm-hugetlb_cgroup-add-trailing-endif-comment-for-include-guard.patch removed from -mm tree
+Message-Id: <20261024090045.B59341F01825@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -51,51 +51,42 @@ Precedence: list
 
 
 The quilt patch titled
-     Subject: MAINTAINERS: cover all hugetlb headers under HUGETLB SUBSYSTEM
+     Subject: mm/hugetlb_cgroup: add trailing #endif comment for include guard
 has been removed from the -mm tree.  Its filename was
-     maintainers-cover-all-hugetlb-headers-under-hugetlb-subsystem.patch
+     mm-hugetlb_cgroup-add-trailing-endif-comment-for-include-guard.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Enze Li <lienze@kylinos.cn>
-Subject: MAINTAINERS: cover all hugetlb headers under HUGETLB SUBSYSTEM
-Date: Sat,  3 Oct 2026 14:00:28 +0800
+Subject: mm/hugetlb_cgroup: add trailing #endif comment for include guard
+Date: Sat,  3 Oct 2026 14:00:29 +0800
 
-The HUGETLB SUBSYSTEM F: entries list include/linux/hugetlb.h explicitly,
-but other hugetlb headers are not covered, so get_maintainer.pl does not
-attribute them to the hugetlb maintainers.
+The final #endif that closes the _LINUX_HUGETLB_CGROUP_H include guard
+is left without a comment.  Add the macro name to the comment for
+consistency and easier navigation.
 
-Enumerating headers by hand is also fragile: any header not listed (such
-as hugetlb_cgroup.h) falls outside the subsystem.  Joe Perches suggested
-using a glob F: entry, which covers all current and future hugetlb headers
-in one line and avoids the gap.
-
-Link: https://lore.kernel.org/20261003060029.2152489-1-lienze@kylinos.cn
+Link: https://lore.kernel.org/20261003060029.2152489-2-lienze@kylinos.cn
 Signed-off-by: Enze Li <lienze@kylinos.cn>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Suggested-by: Joe Perches <joe@perches.com>
 Acked-by: David Hildenbrand (Arm) <david@kernel.org>
-Reviewed-by: SJ Park <sj@kernel.org>
 Acked-by: Muchun Song <muchun.song@linux.dev>
+Reviewed-by: SJ Park <sj@kernel.org>
 Cc: Oscar Salvador <osalvador@suse.de>
 ---
 
- MAINTAINERS |    2 +-
+ include/linux/hugetlb_cgroup.h |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/MAINTAINERS~maintainers-cover-all-hugetlb-headers-under-hugetlb-subsystem
-+++ a/MAINTAINERS
-@@ -12097,7 +12097,7 @@ F:	Documentation/admin-guide/mm/hugetlbp
- F:	Documentation/mm/hugetlbfs_reserv.rst
- F:	Documentation/mm/vmemmap_dedup.rst
- F:	fs/hugetlbfs/
--F:	include/linux/hugetlb.h
-+F:	include/linux/hugetlb*
- F:	include/linux/vmemmap-optimization.h
- F:	include/trace/events/hugetlbfs.h
- F:	mm/hugetlb.c
+--- a/include/linux/hugetlb_cgroup.h~mm-hugetlb_cgroup-add-trailing-endif-comment-for-include-guard
++++ a/include/linux/hugetlb_cgroup.h
+@@ -268,4 +268,4 @@ static inline void hugetlb_cgroup_migrat
+ }
+ 
+ #endif  /* CONFIG_CGROUP_HUGETLB */
+-#endif
++#endif /* _LINUX_HUGETLB_CGROUP_H */
 _
 
 Patches currently in -mm which might be from lienze@kylinos.cn are
