@@ -1,45 +1,45 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1792832547;
-	b=ntqpHAfKeaz1aCBqjpR6GEKgc8BcKPH8JdrOMM0jnq0bP3jfavOX04KKDWKkB0dXGD/y
-	 3AiyaNyAuj6PXIEZBBiYjtm1BZIR3C+1+91k1p//h3r2iYPtlNzz0sxk75TUsHqmIrgtH
-	 3bx/cJ3waL7X5IywNRDp7a0BWtl54CykVTqUKevQlXyF8lH6ge3CAuvWvk/PLLCdgQq7H
-	 oCPe9EroBxifvhrHZTiqbicG35V7fJvK6CHziogIc5DVSD2/kXl3BOJ5PxA+FJ6l0USN/
-	 aFBn2BvA+zXIGDoXxcUF8+TMQjPO+5z9xYPoVbEumykbixtxaO+b8vrLKqpX2n+QBLQ==
+	t=1792832548;
+	b=aHk4PuM2D50u0ge3z4Q5NjO7uTUACoa16dF1dRpTs0qhbGWSG0ofPIKEtSvhC/M4Ef9H
+	 rCsRL4hgPcMfwvn4+mtJ9ongBcAHVom/yDCobesq0m7SY1VZSIQxUYtKOv2HyBkKdaByK
+	 gHyCgEjojQIoZtdA2mIF0ICG0A+QRkrgi+N1SJ6Rcwun3AnOinSvnvtTmbR7rt0lDxCD/
+	 FGP/FcIyC/aaGg9h/VtgSd/FtHWpPArt4BIHbm9cKP4Ts9rF6fS/db9Rg21u2xD8/U5tJ
+	 6l3RkvaO7AwdbFlETYXBJ7+yBm00QbxPjxB6KSeVuXXeWjw+qDdqUX6cTHZOnV/kIyQ==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1792832547;
+	a=rsa-sha256; c=relaxed/relaxed; t=1792832548;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=iUo6ymcKEQ9FU4/7EjDqrNF8XEJe3qAm0et8Q7TSmVM=;
-	b=RKnMAd8JSPa2/kzfEjTZPp1QcC50N6ZOKrA10n7mcO9W+QMQofkE0OIQXV2J4DK9SyAG
-	 kik9o2dnostJKAsy73Io9VIb0jjpJdExT0yY6JN8GOqqiiCIKhCwObDOwkbK3SJ14hv2l
-	 Kp1mH7TT7S+pAxvfwZK4ysESj5/mNKFobrBolTKJZOHA+5OEjfYZpQUshcTmm2PRSwmHf
-	 xigF9MXi48JeG1kyyT1kNg/yn/F5/QO97Ofr90yiG3n8nnQaRThhTxgh/hTZeZ15BQfd7
-	 oM1hrKcQLt+CwnfNRawsdhuTnaJiu3wWulcAGX6rDl6KDL3uMIAYRmnzNHq7HgS6mBw==
+	bh=gN9b7xkUfPpMiOsH5eB2g9TFXCpp2/w7OuDz8CZMAgg=;
+	b=lvKd+0glmGnc42d0rZ+J8isZCADtI8eCli6bEs4s1HNvLHLyaUwWWJAl2QlcRvp+uJjj
+	 1XLvEIKMEnEIWtpMg1wMn2UYiaHQHrBCiT50KITKh6WIJgeRjEMITpZvV3ZlrwrVzdjVe
+	 qIW29GP8huQ8Wjnp69vSUgUjxWWVbyOBZP2xw36Yagr7BeWv0Nh3FFQL036VF6Qelt24S
+	 lC8KKk0S5HPuW1dngOrm++s1t4xhNxywZOIr2rWXWrHXigpVOivWfBhHGZDS1T2xoHTj8
+	 GyG8Y8x/xWoelZ4Cd5vq3F97RQmzldM9otUFkn9eUYjR2I53vIR/1BvkiKPSU8m0Ocw==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=Ej5UqQVr;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b="XYmcW1/g";
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 77ACA606A31F
-	for <mm-commits@vger.kernel.org>; Sat, 24 Oct 2026 09:02:27 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 84324606A31A
+	for <mm-commits@vger.kernel.org>; Sat, 24 Oct 2026 09:02:28 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=Ej5UqQVr
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 41A641F01828;
-	Sat, 24 Oct 2026 09:02:27 +0000 (UTC)
+	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=XYmcW1/g
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4CE8B1F01828;
+	Sat, 24 Oct 2026 09:02:28 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1792832547;
-	bh=iUo6ymcKEQ9FU4/7EjDqrNF8XEJe3qAm0et8Q7TSmVM=;
+	d=linux-foundation.org; s=korg; t=1792832548;
+	bh=gN9b7xkUfPpMiOsH5eB2g9TFXCpp2/w7OuDz8CZMAgg=;
 	h=Date:To:From:Subject;
-	b=Ej5UqQVr+JRDKd7TPuySbIVXhMaTmghICkdG/aSVABnDLUOnPFOUNA0Nh5N044nmW
-	 lmbdZ6Bc8sWvvuFAOnOpbLr0cldflfjyyTpMpWXTtVIWP2GVgalesnm9RRYBXRpfa6
-	 4invfjQh9qY4WZODCJH9Pn3I4U6UjudVLHd6DNzM=
-Date: Sat, 24 Oct 2026 02:02:26 -0700
-To: mm-commits@vger.kernel.org,shakeel.butt@linux.dev,roman.gushchin@linux.dev,muchun.song@linux.dev,mhocko@kernel.org,hannes@cmpxchg.org,joshua.hahnjy@gmail.com,akpm@linux-foundation.org
+	b=XYmcW1/geQRppm3npWtGKBUBxTOmH0bhjYBgyFNjq1lt7BqutuoiuWUN2oWaQgfxO
+	 +8qrFJjDyqY84Kgrz2q6nv6DKT1zGJZjgjcij5CgNhMRSoKVYWvXWjazF5EzxQeYnw
+	 xcsLlAoRwpBluDtHjQ8sjzO2RooKWjiEDuQ3pB2c=
+Date: Sat, 24 Oct 2026 02:02:27 -0700
+To: mm-commits@vger.kernel.org,sj@kernel.org,sashiko-bot@kernel.org,roman.gushchin@linux.dev,muchun.song@linux.dev,mhocko@kernel.org,hannes@cmpxchg.org,gourry@gourry.net,chris@chrisdown.name,anshuman.khandual@arm.com,shakeel.butt@linux.dev,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-memcontrol-publish-null-pointer-before-dropping-css-reference.patch removed from -mm tree
-Message-Id: <20261024090227.41A641F01828@smtp.kernel.org>
+Subject: [merged mm-stable] mm-page_counter-use-write_once-for-emin-elow-when-parent-is-the-root.patch removed from -mm tree
+Message-Id: <20261024090228.4CE8B1F01828@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -51,107 +51,89 @@ Precedence: list
 
 
 The quilt patch titled
-     Subject: mm/memcontrol: publish null pointer before dropping css reference
+     Subject: mm/page_counter: use WRITE_ONCE() for emin/elow when parent is the root
 has been removed from the -mm tree.  Its filename was
-     mm-memcontrol-publish-null-pointer-before-dropping-css-reference.patch
+     mm-page_counter-use-write_once-for-emin-elow-when-parent-is-the-root.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Joshua Hahn <joshua.hahnjy@gmail.com>
-Subject: mm/memcontrol: publish null pointer before dropping css reference
-Date: Tue, 20 Oct 2026 18:00:50 -0700
+From: Shakeel Butt <shakeel.butt@linux.dev>
+Subject: mm/page_counter: use WRITE_ONCE() for emin/elow when parent is the root
+Date: Wed, 21 Oct 2026 13:48:18 -0700
 
-struct memcg_stock_pcp hold references to cgroups that it tracks to make
-sure that the memcg never gets freed with unaccounted charges still
-living in the stock. When the cached stock goes to 0 for a memcg, its
-reference is dropped and the cached memcg pointer is set to NULL.
+page_counter_calculate_protection() runs without locks.  Several
+reclaimers can update the same counter's emin and elow at the same time,
+and readers such as mem_cgroup_below_min(), mem_cgroup_protection() and
+the dmem eviction code load them with READ_ONCE().
 
-If that was the last reference, the css_put would free the associated
-cgroup before publishing the NULL pointer, which can be racy on 
-PREEMPT_RT. To summarize Shakeel Butt's analysis in [2],
+Commit b3a7822e5e75 ("mm, memcg: prevent mem_cgroup_protected store
+tearing") made the main path store emin and elow with WRITE_ONCE(), but it
+missed the early return for a counter whose parent is the reclaim root. 
+Those two stores are the only plain accesses to emin and elow left.
 
-CPU 1					CPU 2
-local_trylock() takes a per-CPU
-spinlock, which is an rcu read
-lock along with migrate_disable
+With CONFIG_KCSAN_STRICT=y, a few tasks writing to the same cgroup's
+memory.reclaim trigger reports like this within seconds:
 
-drain_stock
-css_put drops the last reference
-release work is queued
+  BUG: KCSAN: data-race in page_counter_calculate_protection / shrink_node
 
-kworker runs css_release_work_fn()
-call_rcu() starts grace period G
-which waits for the refill task.
+  read (marked) to 0xff1f91b146d40e40 of 8 bytes by task 163 on cpu 4:
+   shrink_node+0x57a/0x1210
+   do_try_to_free_pages+0x194/0x930
+   try_to_free_mem_cgroup_pages+0x204/0x3f0
+   user_proactive_reclaim+0x28a/0x4d0
+   memory_reclaim+0x35/0x50
+   ...
 
-<preempt>
-					drain_all_stock
-					is_memcg_drain_needed()
-					enters rcu_read_lock(), but
-					 grace period G does not wait
-					since it started after G did
+  write to 0xff1f91b146d40e40 of 8 bytes by task 167 on cpu 6:
+   page_counter_calculate_protection+0x1fa/0x360
+   mem_cgroup_calculate_protection+0x4e/0x70
+   shrink_node+0x53e/0x1210
+   ...
 
-					<prempt>
+The default KCSAN config does not report it, because it treats aligned
+word-sized plain writes as atomic.
 
-stock->cached[i] is cleared and
-unlocks. Grace period G ends,
-old is freed
+Use WRITE_ONCE() for these two stores as well.
 
-					mem_cgroup_is_descendant() reads
-					old->css.cgroup which has just
-					been freed.
+There is no functional change.  Readers already accept stale values, and
+compilers emit a single word-sized store either way: with GCC 14 the
+x86-64 object code is the same before and after this change.
 
-To close this gap on PREEMPT_RT, switch the order of the referene drop
-and the publishing so that we publish the NULL pointer before dropping
-the reference. Note that this can only happen from drain_stock who can
-hold the last reference, but not on consume_stock since another
-reference will always be held. But fix this in both sites to maintain
-consistency. 
-
-This is based on a report from Sashiko, who found this pre-existing
-issue in my page_counter_stock series [1].
-
-Link: https://lore.kernel.org/20261021010051.1529261-1-joshua.hahnjy@gmail.com
-Link: https://sashiko.dev/#/patchset/20260928192349.3432886-1-joshua.hahnjy%40gmail.com [1]
-Link: https://lore.kernel.org/all/atfMngq7nyZpt4u-@linux.dev/ [2]
-Fixes: e1a366be5cb4 ("mm: memcontrol: switch to rcu protection in drain_all_stock()")
-Signed-off-by: Joshua Hahn <joshua.hahnjy@gmail.com>
+Link: https://lore.kernel.org/20261021204818.3431099-1-shakeel.butt@linux.dev
+Fixes: b3a7822e5e75 ("mm, memcg: prevent mem_cgroup_protected store tearing")
+Signed-off-by: Shakeel Butt <shakeel.butt@linux.dev>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Acked-by: Shakeel Butt <shakeel.butt@linux.dev>
+Reported-by: Sashiko <sashiko-bot@kernel.org>
+Reviewed-by: Gregory Price (Meta) <gourry@gourry.net>
+Reviewed-by: SJ Park <sj@kernel.org>
 Acked-by: Muchun Song <muchun.song@linux.dev>
+Reviewed-by: Anshuman Khandual <anshuman.khandual@arm.com>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Michal Hocko <mhocko@kernel.org>
 Cc: Roman Gushchin <roman.gushchin@linux.dev>
+Cc: Chris Down <chris@chrisdown.name>
 ---
 
- mm/memcontrol.c |    4 ++--
+ mm/page_counter.c |    4 ++--
  1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/mm/memcontrol.c~mm-memcontrol-publish-null-pointer-before-dropping-css-reference
-+++ a/mm/memcontrol.c
-@@ -2172,8 +2172,8 @@ static bool consume_stock(struct mem_cgr
- 			stock_pages -= nr_pages;
- 			WRITE_ONCE(stock->nr_pages[i], stock_pages);
- 			if (!stock_pages) {
--				css_put(&memcg->css);
- 				WRITE_ONCE(stock->cached[i], NULL);
-+				css_put(&memcg->css);
- 			}
- 			ret = true;
- 		}
-@@ -2209,8 +2209,8 @@ static void drain_stock(struct memcg_sto
- 		WRITE_ONCE(stock->nr_pages[i], 0);
+--- a/mm/page_counter.c~mm-page_counter-use-write_once-for-emin-elow-when-parent-is-the-root
++++ a/mm/page_counter.c
+@@ -472,8 +472,8 @@ void page_counter_calculate_protection(s
+ 		return;
+ 
+ 	if (parent == root) {
+-		counter->emin = READ_ONCE(counter->min);
+-		counter->elow = READ_ONCE(counter->low);
++		WRITE_ONCE(counter->emin, READ_ONCE(counter->min));
++		WRITE_ONCE(counter->elow, READ_ONCE(counter->low));
+ 		return;
  	}
  
--	css_put(&old->css);
- 	WRITE_ONCE(stock->cached[i], NULL);
-+	css_put(&old->css);
- }
- 
- static void drain_stock_fully(struct memcg_stock_pcp *stock)
 _
 
-Patches currently in -mm which might be from joshua.hahnjy@gmail.com are
+Patches currently in -mm which might be from shakeel.butt@linux.dev are
 
 
