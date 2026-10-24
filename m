@@ -1,45 +1,45 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1792832256;
-	b=ODgzq7QfOnrRd6QTH6h9uD/c1D5vwVb5bFQpwCRUL/KPLeIFpNjz+Q+/PEGFoljIT54K
-	 85vmm1IP978+hS/liD9lJY3D/yfT2QiZR8S2/rUVnqrJ+5LX6mIWm/pMCU4KhuRY0nAVT
-	 spOv/CC618z08q/mlyufAMOdYrk8NfC8q1tqtwzvpfVzviz3jFhMmc6RD7y0Ckg8FqecS
-	 88JrE1bNVZNQ6fnbB/XZrIon1yxQSd82RXNlSK1IHUdm9Nt/fLQ7aZvbUjs+7CioerDDx
-	 BoxgLM1NLvLn25Emv3jQDSx27OTD8GrxGqw+TkAut5zF+agKDL0IWM3mBAhtTLM8tZw==
+	t=1792832263;
+	b=Q1+xCHVwEVcsnyYLTmRRJvp6uV2nen4nn02px3GaqDpyOlk7JMc+Gd6Lj5hQWRvZfVul
+	 9SfyjwkK2q8zl/G7su2q8xyXPlf2RJX/AFoz68k4xGQnUN7iKYW6UKUJ0Ykgo7LvZms/V
+	 UESPOI9nKh4rFsUJcUk3jf+gcJkfKwse0tMk4ZNoljvI2Mt52KryCe3Bhp92zWMZn/Xpb
+	 xw0i2gvBHVR4QBMrKxWTIDCe8fsZoBW3dnEi0QXbo01r9pAUdf3K5kMterRou9IGmzUzm
+	 BVmNQatvqPeDcIeB73S1QtiwFSdbGqeBL0ihT64PyioZtWUc97iC+GaMiDDSmxGlY0w==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1792832256;
+	a=rsa-sha256; c=relaxed/relaxed; t=1792832263;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=wyHOOXNsQIpoAGcd5xEBpHK2bl1HlwN1EcZL2h5w9aU=;
-	b=ieJB6uC6Lol8M8lZvQ7EM4FsoTRmUKVhN1WrtZD87HMbb7JWEG8tRT+3/BjeLlhZVphA
-	 OQSoUQ9uySo8/UOf3D1guIc9/OiVImvMSM1N2RZdJof4BYG0c300pwTD7+0ThtSxH6ajl
-	 wx9JwS5SUZBPGDmiWfKJWhXFybwth/Av5L+cQ7p7iGrqAAqDveOCWZA3hSXNzjVUo2Ery
-	 zg66I1+njOruWF8LYZuNaT2yaEAvo5fzGaI3ZsCZSOxS/ogHrECTyIampbLU3jTfVVc5G
-	 NPzKC8l86W4vLVSng6mTIKKzxth/ZXxK0+LMYZzlHJ879kd7RDX0hxx5c/Jn5Az9+Sg==
+	bh=rwa4v2d3UiyIi2NyD2tYeZr1C4XqHjBzqDzM5Q6zy34=;
+	b=gBhBJdVnQgYFhEdq+e30dxhKGQ+iL7VNVSKhEIrcOCiPiirtbTcsTwqgkhSmZyrhTgBk
+	 JBKSOYNrYkgzfLXEQGpF7z2hGqkBE9BDyiqOm9zm9qrvXHF4rkQrLKXSLWsR+hIZdhfrL
+	 hK1PQpfRw1lqVDnmM8RkFOkpDRHKDRM6KbhjET0BV1D6oD+ZE70PpvEOWQpYSq6S/TEKP
+	 7P4gQ3POoqGlY2LWgB4OLXfyGuSTOLUQ1U7+m6XalvtkX6vRYXWV0LstBGfpsQ+U9HXRR
+	 i5mZ2Sps9QE6GjUQk37rDhibNtdQwg9kPwnz5QjFS0z1s90k/lS9XK4tKbYWGGpHg9Q==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=S4Kw+QA6;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=gQdjWciE;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 891D8606A31D;
-	Sat, 24 Oct 2026 08:57:36 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C5BFA606A31A
+	for <mm-commits@vger.kernel.org>; Sat, 24 Oct 2026 08:57:42 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=S4Kw+QA6
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 22AF41F01825;
-	Sat, 24 Oct 2026 08:57:36 +0000 (UTC)
+	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=gQdjWciE
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 93E9A1F01829;
+	Sat, 24 Oct 2026 08:57:42 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1792832256;
-	bh=wyHOOXNsQIpoAGcd5xEBpHK2bl1HlwN1EcZL2h5w9aU=;
+	d=linux-foundation.org; s=korg; t=1792832262;
+	bh=rwa4v2d3UiyIi2NyD2tYeZr1C4XqHjBzqDzM5Q6zy34=;
 	h=Date:To:From:Subject;
-	b=S4Kw+QA6bZmPARUE2hsXUMewvbvt29tYz6KRrSYyNC2yIXFnkAhDHr9nQyICdBKXL
-	 rOC49vBm63cNxhSMMrS70hQZxrsRXR9rnnYDvhXnJfPwdZEthvz2nPY+1ZJ92Eoolw
-	 FjNhk5kKG3+bSYADWdVCbGvYTST0po6TuDfzl0XU=
-Date: Sat, 24 Oct 2026 01:57:35 -0700
-To: mm-commits@vger.kernel.org,stable@vger.kernel.org,shakeel.butt@linux.dev,roman.gushchin@linux.dev,osalvador@suse.de,nphamcs@gmail.com,muchun.song@linux.dev,mhocko@suse.com,mhocko@kernel.org,joshua.hahnjy@gmail.com,hannes@cmpxchg.org,david@kernel.org,chris@chrisdown.name,lihongfu@kylinos.cn,akpm@linux-foundation.org
+	b=gQdjWciESYAGe94TGiYnlfcrsg/8XGsX6rOXEE0rYJz2A5xElvsun2viUffV51pkA
+	 ugieDdWd2Bo8gBgtrdiwKZdHUU0LTxnCG/iy3HAkMkNJVfzNQMsVqtTvIbrc9J1wOG
+	 PmNNCeQ3puNIL/O7Uosca3mmiqaIwisIvcmPJykk=
+Date: Sat, 24 Oct 2026 01:57:42 -0700
+To: mm-commits@vger.kernel.org,yuanchu@google.com,weixugc@google.com,shakeel.butt@linux.dev,roman.gushchin@linux.dev,qi.zheng@linux.dev,muchun.song@linux.dev,mhocko@kernel.org,ljs@kernel.org,kasong@tencent.com,hannes@cmpxchg.org,david@kernel.org,david@fromorbit.com,bfguo@icloud.com,baohua@kernel.org,axelrasmussen@google.com,bingfangguo@tencent.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-hugetlb-account-migration-target-folio-in-per-node-nr_hugetlb-vmstat.patch removed from -mm tree
-Message-Id: <20261024085736.22AF41F01825@smtp.kernel.org>
+Subject: [merged mm-stable] memcg-keep-swap-charging-under-rcu-protection.patch removed from -mm tree
+Message-Id: <20261024085742.93E9A1F01829@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -51,155 +51,178 @@ Precedence: list
 
 
 The quilt patch titled
-     Subject: mm/hugetlb: account migration target folio in per-node NR_HUGETLB vmstat
+     Subject: memcg: keep swap charging under RCU protection
 has been removed from the -mm tree.  Its filename was
-     mm-hugetlb-account-migration-target-folio-in-per-node-nr_hugetlb-vmstat.patch
+     memcg-keep-swap-charging-under-rcu-protection.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Hongfu Li <lihongfu@kylinos.cn>
-Subject: mm/hugetlb: account migration target folio in per-node NR_HUGETLB vmstat
-Date: Wed, 23 Sep 2026 10:05:15 +0800
+From: Bingfang Guo <bingfangguo@tencent.com>
+Subject: memcg: keep swap charging under RCU protection
+Date: Mon, 21 Sep 2026 14:16:24 +0800
 
-Patch series "mm: fix hugetlb NR_HUGETLB accounting on folio migration", v2.
+Patch series "memcg: move memcgid refcount to objcg to unpin dying
+memcgs", v2.
 
-The hugeTLB counters added by 05d4532b60e3 ("memcg/hugetlb: add hugeTLB
-counters to memcg") are maintained in two per-node places:
-  - the per-node vmstat counter NR_HUGETLB, exposed as nr_hugetlb in
-    /proc/vmstat;
-  - the per-node memcg lruvec stat, exposed via memory.numa_stat.
+Although the dying memcg problem caused by LRU pages is fixed, I can still
+see many dying memcgs on some workloads that use shmem and those pages are
+swapped out.  For example, programs populating logs to tmpfs or containers
+sharing data using shmem.  This series binds the memcgid refcount to
+objcgs so dying memcgs can be freed normally in this case.
 
-Both are accounted against the folio's node, and both drift when a hugetlb
-folio is migrated, though in different ways.
+The memcg private ID identifies memcgs for objects that can outlive the
+cgroup itself: swap entries and workingset shadows.  Today the ID's
+refcount is embedded in the css, and every outstanding ID reference
+(mostly swap entries) pins the css, keeping the entire memcg alive.  This
+causes a problem: A swapped-out page holds a memcgid reference that pins
+the css, so the memcg cannot be freed until the page is swapped back in
+and charged back to its online parent.
 
-A migration target folio is allocated by alloc_hugetlb_folio_nodemask()
-and inherits the old folio's state without ever being accounted, while the
-old folio is freed right after and its free is accounted.  That alone
-loses vmstat accounting: the target node has no matching increment for the
-decrement on the old node, so /proc/vmstat's nr_hugetlb shrinks by
-nr_pages per migration.  Patch 1 accounts the folio where it is obtained,
-so the increment pairs with the free in free_huge_folio() on the
-successful as well as the failed migration path.  The memfd page cache
-preallocation helper has the same asymmetry and is fixed in the same
-patch.
+The work done by Muchun Song and Qi Zheng already charges folios to the
+objcg, which is reparented to its parent when the memcg offlines.  This
+series applies similar idea to the memcg private ID: the ID's refcount
+moves from the css into the objcg, and the memcgid xarray holds a
+reference to an objcg instead of pinning the css.  When the memcg
+offlines, the objcg is reparented and any remaining memcgid references
+resolve to the ancestor, so swapped-out pages no longer pin the dying
+memcg and get the online parent naturally on swapin.
 
-The per-node lruvec stat breaks differently.  mem_cgroup_migrate() moves
-the charge to the new folio and drops the old folio's memcg data, so the
-old folio's free right after migration skips the memcg per-node decrement;
-the count stays attributed to the old node for the rest of the charge's
-life, and the target folio never gets an increment on its new node.  Patch
-2 moves that per-node accounting along with the charge, in
-move_hugetlb_state().
+Unbinding the ID from the memcg has three consequences the series has to
+deal with:
+
+  1. The ID stops pinning the memcg, so the paths that relied on the ID
+     reference to keep the memcg alive have to hold the RCU read lock
+     instead.  (Patch 1)
+
+  2. Charge and uncharge no longer necessarily happen on the same memcg:
+     swapout charges the folio's memcg, while the slot free resolves the
+     nearest live ancestor.  The counters are hierarchical, and the
+     MEMCG_SWAP stat is either reparented at offline (v1) or not visible
+     (v2), so nothing leaks.  But "does this entry carry a counter
+     charge at all" can no longer be answered from the resolved memcg:
+     root is skipped only because root's swap is not accounted, and a
+     non-root ID whose memcg was reparented into root still carries a
+     charge that must be released.  Patch 2 adds
+     mem_cgroup_private_id_is_root() and makes all three swap paths
+     decide on the ID's root status.
+
+  3. An ID can now outlive the memcg it was allocated to, so the memcg
+     resolved from an ID is not necessarily the memcg the ID was handed
+     out for.  Callers that need exactly that memcg (list_lru, the
+     workingset and MGLRU shadow tests) now get NULL and skip the entry,
+     while the swap paths, which only need something to account to, get
+     the nearest live ancestor.  (Patch 4)
+
+The series is four patches.  The first three are preparation that keeps
+today's semantics while the ID is still bound to the css.  Only the last
+patch changes behavior.
 
 
-This patch (of 2):
+This patch (of 4):
 
-The NR_HUGETLB vmstat counter is maintained per folio's node: incremented
-when a huge page is handed to a user via hugetlb_alloc_folio() and
-decremented when it is returned to the pool via free_huge_folio().
+This is a preparatory work for unbinding memcgid from memcg.  No
+functional change.
 
-A folio obtained by alloc_hugetlb_folio_nodemask() never goes through
-hugetlb_alloc_folio(), so it is never accounted, while its free always is.
-For a migration target this means the target node gets no matching
-increment for the decrement on the old node, so the global nr_hugetlb in
-/proc/vmstat drops by nr_pages for each migration.  The same asymmetry
-affects the failed migration path, which frees the target again right
-away, and the temporary folio hugetlb_mfill_atomic_pte() takes from the
-same helper.
+The swap charging path currently drops its RCU read lock after acquiring a
+private ID reference.  This is safe because the ID reference pins the
+memcg's CSS.  After ID references are moved to pin objcgs, that lifetime
+guarantee will no longer hold.
 
-alloc_hugetlb_folio_reserve(), used to preallocate the memfd page cache
-folios, has the same asymmetry: the folio is handed to a user without
-being accounted, while its free is accounted through free_huge_folio().
+Keep the RCU read lock held while accessing the memcg for counter
+charging, statistics and failure handling.  (This matches what
+__memcg1_swapout() already does).  Save the private ID for swap memcg
+recording before dropping the RCU read lock.  So the swap cluster locking
+remains outside the RCU read-side critical section.
 
-Account the folio where it is obtained, in alloc_hugetlb_folio_nodemask()
-and alloc_hugetlb_folio_reserve(), so that the increment pairs with the
-decrement in free_huge_folio(): a successful migration hands the folio to
-a user, a failed one frees it again.
-
-Link: https://lore.kernel.org/20260923-for-hugetlb_state3-v2-0-e8a36245bfab@kylinos.cn
-Link: https://lore.kernel.org/20260923-for-hugetlb_state3-v2-1-e8a36245bfab@kylinos.cn
-Fixes: 05d4532b60e3 ("memcg/hugetlb: add hugeTLB counters to memcg")
-Signed-off-by: Hongfu Li <lihongfu@kylinos.cn>
+Link: https://lore.kernel.org/20260921-bingfangguo-memcgid-rework-v2-0-6c0637dc0edb@tencent.com
+Link: https://lore.kernel.org/20260921-bingfangguo-memcgid-rework-v2-1-6c0637dc0edb@tencent.com
+Signed-off-by: Bingfang Guo <bingfangguo@tencent.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Tested-by: Joshua Hahn <joshua.hahnjy@gmail.com>
-Reviewed-by: Joshua Hahn <joshua.hahnjy@gmail.com>
 Acked-by: Muchun Song <muchun.song@linux.dev>
-Acked-by: Oscar Salvador <osalvador@suse.de>
-Cc: David Hildenbrand <david@kernel.org>
-Cc: Shakeel Butt <shakeel.butt@linux.dev>
-Cc: Michal Hocko <mhocko@suse.com>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Nhat Pham <nphamcs@gmail.com>
 Cc: Michal Hocko <mhocko@kernel.org>
 Cc: Roman Gushchin <roman.gushchin@linux.dev>
-Cc: Chris Down <chris@chrisdown.name>
-Cc: <stable@vger.kernel.org>
+Cc: Shakeel Butt <shakeel.butt@linux.dev>
+Cc: Dave Chinner <david@fromorbit.com>
+Cc: Qi Zheng <qi.zheng@linux.dev>
+Cc: Kairui Song <kasong@tencent.com>
+Cc: Barry Song <baohua@kernel.org>
+Cc: Axel Rasmussen <axelrasmussen@google.com>
+Cc: Yuanchu Xie <yuanchu@google.com>
+Cc: Wei Xu <weixugc@google.com>
+Cc: David Hildenbrand <david@kernel.org>
+Cc: Lorenzo Stoakes <ljs@kernel.org>
+Cc: Bingfang Guo <bfguo@icloud.com>
 ---
 
- mm/hugetlb.c |   35 +++++++++++++++++++++++------------
- 1 file changed, 23 insertions(+), 12 deletions(-)
+ mm/memcontrol.c |   42 +++++++++++++++++++++---------------------
+ 1 file changed, 21 insertions(+), 21 deletions(-)
 
---- a/mm/hugetlb.c~mm-hugetlb-account-migration-target-folio-in-per-node-nr_hugetlb-vmstat
-+++ a/mm/hugetlb.c
-@@ -2206,6 +2206,11 @@ struct folio *alloc_hugetlb_folio_reserv
- 	}
+--- a/mm/memcontrol.c~memcg-keep-swap-charging-under-rcu-protection
++++ a/mm/memcontrol.c
+@@ -5954,6 +5954,7 @@ int __mem_cgroup_try_charge_swap(struct
+ 	struct page_counter *counter;
+ 	struct mem_cgroup *memcg;
+ 	struct obj_cgroup *objcg;
++	unsigned short private_id;
  
- 	spin_unlock_irq(&hugetlb_lock);
-+
-+	if (folio)
-+		lruvec_stat_mod_folio(folio, NR_HUGETLB,
-+				      folio_nr_pages(folio));
-+
- 	return folio;
- }
+ 	if (do_memsw_account())
+ 		return 0;
+@@ -5963,30 +5964,29 @@ int __mem_cgroup_try_charge_swap(struct
+ 	if (!objcg)
+ 		return 0;
  
-@@ -2213,24 +2218,30 @@ struct folio *alloc_hugetlb_folio_reserv
- struct folio *alloc_hugetlb_folio_nodemask(struct hstate *h, int preferred_nid,
- 		nodemask_t *nmask, gfp_t gfp_mask, bool allow_alloc_fallback)
- {
--	spin_lock_irq(&hugetlb_lock);
--	if (available_huge_pages(h)) {
--		struct folio *folio;
-+	struct folio *folio = NULL;
- 
-+	spin_lock_irq(&hugetlb_lock);
-+	if (available_huge_pages(h))
- 		folio = dequeue_hugetlb_folio_nodemask(h, gfp_mask,
- 						preferred_nid, nmask);
--		if (folio) {
--			spin_unlock_irq(&hugetlb_lock);
--			return folio;
--		}
+-	rcu_read_lock();
+-	memcg = obj_cgroup_memcg(objcg);
+-	if (!folio_test_swapcache(folio)) {
+-		memcg_memory_event(memcg, MEMCG_SWAP_FAIL);
+-		rcu_read_unlock();
+-		return 0;
 -	}
- 	spin_unlock_irq(&hugetlb_lock);
- 
--	/* We cannot fallback to other nodes, as we could break the per-node pool. */
--	if (!allow_alloc_fallback)
--		gfp_mask |= __GFP_THISNODE;
-+	if (!folio) {
-+		/*
-+		 * We cannot fallback to other nodes, as we could break the
-+		 * per-node pool.
-+		 */
-+		if (!allow_alloc_fallback)
-+			gfp_mask |= __GFP_THISNODE;
- 
--	return alloc_migrate_hugetlb_folio(h, gfp_mask, preferred_nid, nmask);
-+		folio = alloc_migrate_hugetlb_folio(h, gfp_mask, preferred_nid,
-+						    nmask);
-+	}
+-
+-	memcg = mem_cgroup_private_id_get_online(memcg, nr_pages);
+-	/* memcg is pined by memcg ID. */
+-	rcu_read_unlock();
+-
+-	if (!mem_cgroup_is_root(memcg) &&
+-	    !page_counter_try_charge(&memcg->swap, nr_pages, &counter)) {
+-		memcg_memory_event(memcg, MEMCG_SWAP_MAX);
+-		memcg_memory_event(memcg, MEMCG_SWAP_FAIL);
+-		mem_cgroup_private_id_put(memcg, nr_pages);
+-		return -ENOMEM;
++	scoped_guard(rcu) {
++		memcg = obj_cgroup_memcg(objcg);
++		if (!folio_test_swapcache(folio)) {
++			memcg_memory_event(memcg, MEMCG_SWAP_FAIL);
++			return 0;
++		}
 +
-+	if (folio)
-+		lruvec_stat_mod_folio(folio, NR_HUGETLB, folio_nr_pages(folio));
++		memcg = mem_cgroup_private_id_get_online(memcg, nr_pages);
++		/* memcg is pined by memcg ID. */
++		private_id = mem_cgroup_private_id(memcg);
 +
-+	return folio;
- }
++		if (!mem_cgroup_is_root(memcg) &&
++		    !page_counter_try_charge(&memcg->swap, nr_pages, &counter)) {
++			memcg_memory_event(memcg, MEMCG_SWAP_MAX);
++			memcg_memory_event(memcg, MEMCG_SWAP_FAIL);
++			mem_cgroup_private_id_put(memcg, nr_pages);
++			return -ENOMEM;
++		}
++		mod_memcg_state(memcg, MEMCG_SWAP, nr_pages);
+ 	}
+-	mod_memcg_state(memcg, MEMCG_SWAP, nr_pages);
  
- static nodemask_t *policy_mbind_nodemask(gfp_t gfp)
+ 	ci = swap_cluster_get_and_lock(folio);
+-	__swap_cgroup_set(ci, swp_cluster_offset(folio->swap), nr_pages,
+-			  mem_cgroup_private_id(memcg));
++	__swap_cgroup_set(ci, swp_cluster_offset(folio->swap), nr_pages, private_id);
+ 	swap_cluster_unlock(ci);
+ 
+ 	return 0;
 _
 
-Patches currently in -mm which might be from lihongfu@kylinos.cn are
+Patches currently in -mm which might be from bingfangguo@tencent.com are
 
 
