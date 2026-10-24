@@ -1,45 +1,45 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1792832549;
-	b=pRzBgZshSSzXvQnlymSh8HwuXmbdQTmpovhquD3Bby5zTs3E0UfEaMCbYv98gly1mBsM
-	 W/2dgQU4l6xKv4EfQIZoYn9NUGuAMSrFnxSf7C8C+Ogy/tO/Ljd+cOZROi9WD1aM02BNb
-	 z8R/joJZi7Xl3MW0IMfGTqyM7vpOlVAsCYN6JY6JY+OrqgxmuOFhEMlKZqO6KO7z91evH
-	 u2nMdSW7zpU286Hki+3flc+GIEIVli5R0EjFIyfljdGjPZO5SzjkyHuljXLxplZKNS5c4
-	 aAzWCcI2Fp/a8VgSrtIcZRmfDO8EMZ8tH5k+BKPE9ZchMqAEB3FFl/EgR3/4UEIH6/g==
+	t=1792832544;
+	b=1Y6sOthOpaaHTJRGum252nlwJGeFEz+cD01NlIwryBPgkT7Sz9TPdS500zSpdfHyUA2q
+	 AUjdfW7fW8X0hGvlrUPX86YRN99RYaKi5SKM16DCJMaqkGWGRiX+eE5uNhWX2ESNRDrP+
+	 LQud9ByqBTN21eQvOzmXn7I9rzcfx7hhEp41iQIEHZOHGFMBBO6u5edHP0l2PnyRD1iQ+
+	 U7prDtMAToHeI2b+BcZAsx6IEhCcPjxEOa5RioBkrIPKxfPmzJe8wWFEMewx56H0KYesG
+	 dXKRCvM2Hwcuo/qoyNxrJLROFnK6AhKrK//C9dAR4BYVkwNun4aiENtI/JgYeq9uwZw==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1792832549;
+	a=rsa-sha256; c=relaxed/relaxed; t=1792832544;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=sWz2nDFUmKXTZmGcYHOnNJ1G2kATAILCMR9ej/9hQ50=;
-	b=TyPWrY8CpkEyTrGfjrElqWCq7YAlxNiW5/gbR2up88y9gRJ1+ON1wggztOqgWU6D+pUK
-	 D8S9U96aWBTedBbfK0EJVp9ZCdm8c1fz+d+fN0KVotKOsXp4Zl8xPYqGTxIQ1v/Eaijgj
-	 zViGIqUQYrXAdv39vCQPgdnguze2Vh7KHjfI0Rrl+Yy6crhbV0KUmgWSe9IOy2a2Gw+PZ
-	 oL5ToInhMvdO1jKZPE1sl1fZXlRyuZgoypf14Ocf2GRnX9BjbgNmap2kKXKqTywimbGM1
-	 qfHdr1mFJjguZP0t9uM5WluqYiCRm0VHooIfCWcxX3LFXkNPOf5flqKXplEVndiAl4Q==
+	bh=tUbg7rPno+XQEM3V3xKUPqT+HmamzB82mvf0uLnEtGs=;
+	b=m+7/OHl/X7Y1Xds1VEAIOn0pcgRYIOaNUZT1Xz38AOhKSJh4ZyN5O0djocQCNMhiH7Lk
+	 T9T5kGpkxT0hTh45CMIXTBVmypjm42wM6+h7PDQDf7y9lOt0WMU9WaTAEWyJgQ8jfhIdQ
+	 MSojedB4vUUGrX2yyqIgRVXhMrIXOEPPdZ4x0N3S3TTYjN4KsbH6ah9Mk5qXNIXxF3F7o
+	 /f1enZfCud62dqx/3k/UKZfbGf4ugcmeYNrq/PcGMOX4cEhNSr/SZTokBED7iQBwnDz3c
+	 JqSdJrsL38UMD8jAxVuDPEM2Sr7o5Rqrq78A70iGwH8sJz7MZlY48KjnKAvr+mZxDeg==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=HfJmlLS2;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b="u7AV/3eK";
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 83A20606A31A;
-	Sat, 24 Oct 2026 09:02:29 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 50200606A320;
+	Sat, 24 Oct 2026 09:02:24 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=HfJmlLS2
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 50BA51F01828;
-	Sat, 24 Oct 2026 09:02:29 +0000 (UTC)
+	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=u7AV/3eK
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1C7441F01828;
+	Sat, 24 Oct 2026 09:02:24 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1792832549;
-	bh=sWz2nDFUmKXTZmGcYHOnNJ1G2kATAILCMR9ej/9hQ50=;
+	d=linux-foundation.org; s=korg; t=1792832544;
+	bh=tUbg7rPno+XQEM3V3xKUPqT+HmamzB82mvf0uLnEtGs=;
 	h=Date:To:From:Subject;
-	b=HfJmlLS20xatDHEbpKu15feaytn/gl5JyadqFD3xBb1bLi/iEklZYMOWfQ65ifk0c
-	 qCXjx6ow9ydbT1ix5XqP9vJvTjl+slCysjNRFwbMa0zdf4S9SCqgpVKll+POKujNBu
-	 5dc5iSyuCqy52R0NgzzGv7CjAJDcKoqXZcqehh4k=
-Date: Sat, 24 Oct 2026 02:02:28 -0700
-To: mm-commits@vger.kernel.org,yuzhao@google.com,yuanchu@google.com,weixugc@google.com,stable@vger.kernel.org,shakeel.butt@linux.dev,rlmenge@gmail.com,qi.zheng@linux.dev,mhocko@kernel.org,ljs@kernel.org,kasong@tencent.com,hargar@linux.microsoft.com,hannes@cmpxchg.org,david@kernel.org,baoquan.he@linux.dev,baolin.wang@linux.alibaba.com,baohua@kernel.org,axelrasmussen@google.com,apais@microsoft.com,sidchintamaneni@gmail.com,akpm@linux-foundation.org
+	b=u7AV/3eK9WVBNg0/axKJhsSiFhuNb32ZfeR/KY+1dbZlEcen3n7GNI5xDx7s6CoJh
+	 Oac9vZwCQ4C6iO5X8sDlLa/e55PzVO5AgOkSpdjsD+HFj6omY6/e5SK4c+EQDrTVBQ
+	 HQBVLgj7jauz9O7ctnkKb9NPn1vUi9kFY41GpQjo=
+Date: Sat, 24 Oct 2026 02:02:23 -0700
+To: mm-commits@vger.kernel.org,xueyuan.chen21@gmail.com,vbabka@kernel.org,stable@vger.kernel.org,shawnq1@163.com,rppt@linux.vnet.ibm.com,pfalcato@suse.de,peterx@redhat.com,liam@infradead.org,kas@kernel.org,jannh@google.com,gourry@gourry.net,david@kernel.org,ljs@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-multi-gen-lru-fix-null-lruvec-pgdat-deref-with-memcg-disabled-on-cmdline.patch removed from -mm tree
-Message-Id: <20261024090229.50BA51F01828@smtp.kernel.org>
+Subject: [merged mm-stable] mm-vma-avoid-broken-uffd-merge-on-mremap.patch removed from -mm tree
+Message-Id: <20261024090224.1C7441F01828@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -51,125 +51,102 @@ Precedence: list
 
 
 The quilt patch titled
-     Subject: mm: multi-gen LRU: fix NULL lruvec->pgdat deref with memcg disabled on cmdline
+     Subject: mm/vma: avoid broken uffd merge on mremap
 has been removed from the -mm tree.  Its filename was
-     mm-multi-gen-lru-fix-null-lruvec-pgdat-deref-with-memcg-disabled-on-cmdline.patch
+     mm-vma-avoid-broken-uffd-merge-on-mremap.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Siddharth Chintamaneni <sidchintamaneni@gmail.com>
-Subject: mm: multi-gen LRU: fix NULL lruvec->pgdat deref with memcg disabled on cmdline
-Date: Sat, 17 Oct 2026 05:09:27 +0000
+From: "Lorenzo Stoakes (ARM)" <ljs@kernel.org>
+Subject: mm/vma: avoid broken uffd merge on mremap
+Date: Tue, 20 Oct 2026 15:55:30 +0100
 
-When CONFIG_MEMCG=y, lruvec_pgdat() returns lruvec->pgdat, which for the
-per-node pgdat->__lruvec is left NULL by lruvec_init() and only filled in
-lazily by mem_cgroup_lruvec(). Normally that happens early, e.g. on the
-first folio_add_lru().
+Userfaultfd often causes unexpected interactions within mm, and does so at
+the intersection of uffd, mremap() and VMA merging.
 
-With cgroup_disable=memory, lru_gen_shrink_node() passes &pgdat->__lruvec
-directly to shrink_one(). If direct reclaim runs before anything has
-called mem_cgroup_lruvec() for the node, which can happen during early
-boot under memory pressure (e.g. a kdump kernel), get_swappiness() ends
-up dereferencing a NULL pgdat:
+When an mremap of a VMA occurs, copy_vma_and_data() calls
+mremap_userfaultfd_prep() to notify uffd of this.
 
-  Unable to handle kernel NULL pointer dereference at virtual address 0000000000005040
-  pc : get_swappiness+0x68/0xb0
-  lr : try_to_shrink_lruvec+0x54/0x2c0
-  Call trace:
-   get_swappiness+0x68/0xb0 (P)
-   try_to_shrink_lruvec+0x54/0x2c0
-   shrink_one+0x8c/0x240
-   shrink_node+0xc6c/0xe08
-   do_try_to_free_pages+0xdc/0x570
-   try_to_free_pages+0x124/0x278
-   __alloc_frozen_pages_noprof+0x6e8/0xf78
-   alloc_pages_mpol+0xc4/0x1c0
-   alloc_frozen_pages_noprof+0x54/0xe8
-   alloc_pages_noprof+0x1c/0x40
-   atomic_pool_expand+0x98/0x300
-   __dma_atomic_pool_init+0x58/0xd8
-   dma_atomic_pool_init+0x154/0x170
-   do_one_initcall+0x64/0x350
-   kernel_init_freeable+0x214/0x430
-   kernel_init+0x2c/0x208
-   ret_from_fork+0x10/0x20
+However, mremap_userfaultfd_prep() simply drops the UFFD context for the
+VMA if the user did not register it for remap, i.e. didn't specify the
+UFFD_FEATURE_EVENT_REMAP flag.
 
-The classic LRU path and MGLRU before per-node lru_gen_folio lists
-obtained the lruvec through mem_cgroup_lruvec(), which sets
-lruvec->pgdat.
+This is OK for the VMA itself, as upon page table move, move_ptes() clears
+UFFD page table flags, using vma_has_uffd_without_event_remap() to
+determine whether to do so.
 
-The above was hit on an arm64 kdump kernel (6.18-based) booted with
-cgroup_disable=memory nr_cpus=4. It also reproduces on mainline on an
-arm64 VM with CONFIG_ARM64_64K_PAGES=y, CONFIG_MEMCG=y,
-CONFIG_LRU_GEN_ENABLED=y and:
+However, this doesn't account for merging with adjacent VMAs, whose page
+tables won't have received this treatment, and thus latent UFFD markers
+will be left around.
 
-  mem=160M nr_cpus=4 coherent_pool=512M cgroup_disable=memory
+Worse, it'll break UFFD for any VMAs it is merged with. This is very
+surprising behaviour for a user, who will then simply not receive UFFD
+events for VMAs they ought to.
 
-These options only serve to force direct reclaim early in boot; with
-160M the boot eventually ends in OOM regardless. On mainline the first
-LRU reclaim happens while unpacking the initramfs, and faults the same
-way:
+Resolve the issue by explicitly checking for this case via
+vma_has_uffd_without_event_remap() in vma_merge_copied_range(), the merge
+function explicitly designated for mremap() operations.
 
-  Unable to handle kernel NULL pointer dereference at virtual address 0000000000005040
-  pc : get_swappiness+0xd4/0x150
-  Call trace:
-   get_swappiness+0xd4/0x150 (P)
-   try_to_shrink_lruvec+0x44/0x2b8
-   shrink_one+0x80/0x1a0
-   shrink_node+0xd98/0xea8
-   do_try_to_free_pages+0xf4/0x4b0
-   try_to_free_pages+0x110/0x360
-   __alloc_frozen_pages_noprof+0x8b0/0x1718
-   ...
-   __filemap_get_folio_mpol+0x2ac/0x548
-   simple_write_begin+0x44/0xf8
-   page_symlink+0x178/0x198
-   ...
-   do_populate_rootfs+0x13c/0x200
+Also update the userland VMA tests accordingly.
 
-Link: https://lore.kernel.org/20261017050928.128582-1-sidchintamaneni@gmail.com
-Fixes: e4dde56cd208 ("mm: multi-gen LRU: per-node lru_gen_folio lists")
-Signed-off-by: Siddharth Chintamaneni <sidchintamaneni@gmail.com>
-Signed-off-by: Hardik Garg <hargar@linux.microsoft.com>
+Link: https://lore.kernel.org/20261020-uffd-remap-fix-v1-1-0f34fc181f0a@kernel.org
+Fixes: 3cfd22be0ad6 ("userfaultfd: clear flag if remap event not enabled")
+Signed-off-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Reviewed-by: Barry Song <baohua@kernel.org>
-Reviewed-by: Baolin Wang <baolin.wang@linux.alibaba.com>
-Assisted-by: LLM
-Cc: Johannes Weiner <hannes@cmpxchg.org>
+Reported-by: shaos <shawnq1@163.com>
+Closes: https://lore.kernel.org/all/20261020110748.959870-1-shawnq1@163.com/
+Reviewed-by: Kiryl Shutsemau (Meta) <kas@kernel.org>
+Reviewed-by: Gregory Price (Meta) <gourry@gourry.net>
+Reviewed-by: Xueyuan Chen <xueyuan.chen21@gmail.com>
+Cc: Liam R. Howlett <liam@infradead.org>
+Cc: Vlastimil Babka <vbabka@kernel.org>
+Cc: Jann Horn <jannh@google.com>
+Cc: Pedro Falcato <pfalcato@suse.de>
+Cc: Mike Rapoport <rppt@linux.vnet.ibm.com>
+Cc: Peter Xu <peterx@redhat.com>
 Cc: David Hildenbrand <david@kernel.org>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Qi Zheng <qi.zheng@linux.dev>
-Cc: Shakeel Butt <shakeel.butt@linux.dev>
-Cc: Lorenzo Stoakes <ljs@kernel.org>
-Cc: Kairui Song <kasong@tencent.com>
-Cc: Axel Rasmussen <axelrasmussen@google.com>
-Cc: Yuanchu Xie <yuanchu@google.com>
-Cc: Wei Xu <weixugc@google.com>
-Cc: Baoquan He <baoquan.he@linux.dev>
-Cc: Yu Zhao <yuzhao@google.com>
-Cc: <apais@microsoft.com>
-Cc: <rlmenge@gmail.com>
-Cc: <stable@vger.kernel.org> # 6.3+
+Cc: <stable@vger.kernel.org>
 ---
 
- mm/vmscan.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/vma.c                          |    5 +++++
+ tools/testing/vma/include/stubs.h |    5 +++++
+ 2 files changed, 10 insertions(+)
 
---- a/mm/vmscan.c~mm-multi-gen-lru-fix-null-lruvec-pgdat-deref-with-memcg-disabled-on-cmdline
-+++ a/mm/vmscan.c
-@@ -5454,7 +5454,7 @@ static void lru_gen_shrink_node(struct p
- 		sc->nr_reclaimed = 0;
+--- a/mm/vma.c~mm-vma-avoid-broken-uffd-merge-on-mremap
++++ a/mm/vma.c
+@@ -1211,6 +1211,11 @@ static struct vm_area_struct *vma_merge_
  
- 	if (mem_cgroup_disabled())
--		shrink_one(&pgdat->__lruvec, sc);
-+		shrink_one(mem_cgroup_lruvec(NULL, pgdat), sc);
- 	else
- 		shrink_many(pgdat, sc);
+ 	vmg->copied_from = vmg->middle;
+ 	vmg->middle = NULL;
++
++	/* If not registered for remap, uffd context will be cleared. */
++	if (vma_has_uffd_without_event_remap(vmg->copied_from))
++		return NULL;
++
+ 	return vma_merge_new_range(vmg);
+ }
  
+--- a/tools/testing/vma/include/stubs.h~mm-vma-avoid-broken-uffd-merge-on-mremap
++++ a/tools/testing/vma/include/stubs.h
+@@ -386,6 +386,11 @@ static inline bool is_mergeable_vm_userf
+ 	return true;
+ }
+ 
++static inline bool vma_has_uffd_without_event_remap(struct vm_area_struct *vma)
++{
++	return false;
++}
++
+ static inline bool anon_vma_name_eq(struct anon_vma_name *anon_name1,
+ 				    struct anon_vma_name *anon_name2)
+ {
 _
 
-Patches currently in -mm which might be from sidchintamaneni@gmail.com are
+Patches currently in -mm which might be from ljs@kernel.org are
 
+mm-vma-fix-expansion-of-vma_mixedmap_bit-vmas.patch
+mm-do-not-unintentionally-overwrite-atomic-vma-flags.patch
+mm-vma-avoid-losing-atomic-vma-flags-when-setting-sticky-vma-flags.patch
 
