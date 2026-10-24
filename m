@@ -1,45 +1,45 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1792832529;
-	b=hZKB9Bw+xeUOZWxjFsTokev1LhnigIFC3K8voOXyJhifOCj+2x9owxXgLPr7GcxUNmfG
-	 AGsU/o61UOpfLO/D1Yd94liZhtczyvuXC2aB/74DSGrdlFOoJ2d0C+noryRi+JsL5Dkts
-	 NYtGstYuq/TPMUMtvUH1T+16Tvjs9cdO6LF/W3vbL9MG0FxU2DGpDwl7TDEgAu//dzXx6
-	 /h6teUqOm4VPsyRlu1PfRQ5NJxoN1Qf9iOOCZ7qE18a3t+PBLQZ6QkdQvFlpOst2MfL4y
-	 ZLU0exeCk1MtnhyOXbwJ0EDivTTHktk/+/HSGn1RwkgxsghLYutXRFxJsKvd9Sq8JSg==
+	t=1792832536;
+	b=QV2nkHNTrZg1Wi2SKmdCJsSMeBf/14RUrnbyPO2qrCqCrdgQwa9maereE+IKIzPpZ1PT
+	 yBheEHUBJWFiHvBzuURZ/lSqHCwEvYdC6H+FBprazNJcOfkUfIdQvo2UIULe8HMxb8Et1
+	 gW7wzWnsB5VtNWm4Ekj5UJbR1tLEGaA2qoSZ79EqBT0/M0LZ8sWCbcsDue7maG8LuFlBe
+	 9WLjBU8RVDYISEXVxoAptXXdIfGVo/qCS5dXgGVG1a/TicmmLYSSZmTd/boaItTckDYr+
+	 s14JzQTFPMEalehtQ1yYMOJGKSST9qEunaImDgG7r/VkMNPK35gfVPkBoBf7EGTdQdg==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1792832529;
+	a=rsa-sha256; c=relaxed/relaxed; t=1792832536;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=ByCJCyakaE2T/pMrLWZ8v+xgm9FXw17XYRabj6QopSg=;
-	b=YXkEILGLK3yhgiHnbLB4rEOHcfwR5X9Z2Me8j/1yu8VQ+xFHVL5zVaiOrBH6ag7Czrj/
-	 /eRmkC48Nk6MDfBAnyRdwxx+7UvG2sSILd7YKekVO650WzgEig5v8lab+nkfoeQRtVixv
-	 WCa/ePIoV8XaQ4lK4Sj8H7j/x9QqtVRJ+JkSF0o44DJHkJPNqqsrN5NJ71q/jlfJbebPe
-	 D19keOFOYtvpYf5RNLQZq/6bftzSdo3TPi3OJLgEK+SAv3bUtiLWFKIIV6CnlzY8OA32i
-	 0Kdu27M/4kx/TIMD5XliDdlpZPig9d9RMnVgkGQmEe407JLEp4itQxovgYVTr+2yfhQ==
+	bh=t1ZF/cMTKV8qZUMFwsn2fVP6Iwax8aFWWy75lCTv0HY=;
+	b=irCHx+pWIEnIRoAEyR4pOaHyacCg6fiACwO7E9esbeS2XwUwKeN4Dl/219pxvHzkIv+6
+	 2Q7bmPbGVuvDMKjIgdLB6u8dFAPS2lq243xLx6JjVyxdQr5szz5bZR0T8Nhd7JgG7wi5f
+	 UX9vvnvQwXpJFiIRB69uUJ68yFW5OhcjzEcvtoNswdC2OpIitP1/ZiIq4qm4+0FOV1GYd
+	 wvMTEI4mKXispB5IvcvzvRjh5BqQ6qVhpDECA+SBMtf+nj+640GXwOhrotkjgHOLUe5w9
+	 xcYR0+Csohxf3EgrNUq5iynNmOjxEn6gNyPpSYUFH3SEE02hBcVxvfidJIA/n+03xag==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=WVn0HWMp;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b="Jxiv/hGv";
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8E8DA606A320
-	for <mm-commits@vger.kernel.org>; Sat, 24 Oct 2026 09:02:09 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E4AB9606A320;
+	Sat, 24 Oct 2026 09:02:15 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=WVn0HWMp
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 580521F01825;
-	Sat, 24 Oct 2026 09:02:09 +0000 (UTC)
+	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=Jxiv/hGv
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id AD4381F01825;
+	Sat, 24 Oct 2026 09:02:15 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1792832529;
-	bh=ByCJCyakaE2T/pMrLWZ8v+xgm9FXw17XYRabj6QopSg=;
+	d=linux-foundation.org; s=korg; t=1792832535;
+	bh=t1ZF/cMTKV8qZUMFwsn2fVP6Iwax8aFWWy75lCTv0HY=;
 	h=Date:To:From:Subject;
-	b=WVn0HWMpvbcrzY3ByiEe14e3Tiym0jBHIH7TLS3DoBuExoaHlzNtFKg+RqaY2dx/4
-	 Kd+2x0xruvXruqod6tcDiPko/ir7Ny2dYVjcLZlSS+kJQiRjrpbX5/DM0T2kzJ1SuH
-	 j288e8DR1Vk81bb8pEjlzUEsJcxogsu/MRwiHZLE=
-Date: Sat, 24 Oct 2026 02:02:08 -0700
-To: mm-commits@vger.kernel.org,vbabka@kernel.org,surenb@google.com,shuah@kernel.org,rppt@kernel.org,osalvador@suse.de,muchun.song@linux.dev,mhocko@suse.com,ljs@kernel.org,liam@infradead.org,joshua.hahnjy@gmail.com,david@kernel.org,almasrymina@google.com,odys.yuan@gmail.com,akpm@linux-foundation.org
+	b=Jxiv/hGvovj4gCFOJzeJNEAQsJim8WEUikSY5fmldcHH2/9o0dsJpb6jMmwpCb8bp
+	 BElH8gEQkfuGmNottQFPQNDtOWG3og2ZElmzg6gqR+1w23TsnGpJtfqmLlMzF3324A
+	 3N/d2MYbVlMhn4Bv6d6It2Kj9HURKxgKuaJ5h+LI=
+Date: Sat, 24 Oct 2026 02:02:15 -0700
+To: mm-commits@vger.kernel.org,yuanchu@google.com,yosry@kernel.org,xueyuan.chen21@gmail.com,weixugc@google.com,vishal.moola@gmail.com,stable@vger.kernel.org,sj@kernel.org,shakeel.butt@linux.dev,roman.gushchin@linux.dev,qi.zheng@linux.dev,mhocko@suse.com,mhocko@kernel.org,ljs@kernel.org,kasong@tencent.com,harry@kernel.org,hannes@cmpxchg.org,david@kernel.org,dave@stgolabs.net,baoquan.he@linux.dev,baolin.wang@linux.alibaba.com,baohua@kernel.org,balbirs@nvidia.com,axelrasmussen@google.com,gourry@gourry.net,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] selftests-mm-skip-hugetlb-cgroup-v2-tests-without-the-needed-controllers.patch removed from -mm tree
-Message-Id: <20261024090209.580521F01825@smtp.kernel.org>
+Subject: [merged mm-stable] mm-vmscan-reclaim-every-zone-in-per-node-proactive-reclaim.patch removed from -mm tree
+Message-Id: <20261024090215.AD4381F01825@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -51,99 +51,78 @@ Precedence: list
 
 
 The quilt patch titled
-     Subject: selftests/mm: skip hugetlb cgroup v2 tests without the needed controllers
+     Subject: mm/vmscan: reclaim every zone in per-node proactive reclaim
 has been removed from the -mm tree.  Its filename was
-     selftests-mm-skip-hugetlb-cgroup-v2-tests-without-the-needed-controllers.patch
+     mm-vmscan-reclaim-every-zone-in-per-node-proactive-reclaim.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Qiliang Yuan <odys.yuan@gmail.com>
-Subject: selftests/mm: skip hugetlb cgroup v2 tests without the needed controllers
-Date: Fri, 16 Oct 2026 20:54:48 +0800
+From: "Gregory Price (Meta)" <gourry@gourry.net>
+Subject: mm/vmscan: reclaim every zone in per-node proactive reclaim
+Date: Mon, 19 Oct 2026 14:50:02 -0400
 
-With -cgroup-v2, charge_reserved_hugetlb.sh and
-hugetlb_reparenting_test.sh mount a cgroup2 hierarchy on a temporary
-directory when none is mounted and enable the hugetlb controller
-(hugetlb_reparenting_test.sh also enables memory) in its
-cgroup.subtree_control.
+user_proactive_reclaim() limits per-node reclaim to
+gfp_zone(GFP_KERNEL), which is ZONE_NORMAL. Proactive reclaim serves no
+allocation, but that limit makes shrink_node() skip every ZONE_MOVABLE
+folio, so writing to /sys/devices/system/node/nodeN/reclaim never
+reclaims a node's movable memory. A movable-only node, such as dax/kmem
+or hotplugged memory onlined movable, reclaims nothing and fails with
+-EAGAIN.
 
-On a system that still binds these controllers to cgroup v1, they are not
-available in the new hierarchy.  Writing to cgroup.subtree_control fails
-with ENOENT, "set -e" aborts the script, the test is reported as failed,
-and the temporary cgroup2 mount is left behind.
+To reproduce, fill a movable-only node with clean page cache and write
+200M to its nodeN/reclaim: the write fails with -EAGAIN and the page
+cache stays. The same write to a ZONE_NORMAL node frees 200MB.
 
-Check cgroup.controllers first, and skip the test when a controller is
-missing, after unmounting the hierarchy and removing the directory the
-script created.
+Scan every zone, as memory.reclaim does.
 
-With hugetlb and memory bound to cgroup v1, per script:
-
-                                before      after
-  result                        fail        skip
-  cgroup2 mounts left behind       1           0
-
-Link: https://lore.kernel.org/20261016-bug-selftests-mm-hugetlb-cgroup2-skip-v1-1-7c78883a67b4@gmail.com
-Fixes: 29750f71a9b4 ("hugetlb_cgroup: add hugetlb_cgroup reservation tests")
-Signed-off-by: Qiliang Yuan <odys.yuan@gmail.com>
+Link: https://lore.kernel.org/20261019185002.3428594-1-gourry@gourry.net
+Fixes: b980077899ea ("mm: introduce per-node proactive reclaim interface")
+Signed-off-by: Gregory Price (Meta) <gourry@gourry.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Reviewed-by: Joshua Hahn <joshua.hahnjy@gmail.com>
+Reviewed-by: Barry Song <baohua@kernel.org>
+Reviewed-by: Johannes Weiner <hannes@cmpxchg.org>
+Reviewed-by: Harry Yoo (Meta) <harry@kernel.org>
+Acked-by: Shakeel Butt <shakeel.butt@linux.dev>
+Reviewed-by: Yosry Ahmed <yosry@kernel.org>
+Reviewed-by: SJ Park <sj@kernel.org>
+Reviewed-by: Balbir Singh <balbirs@nvidia.com>
+Acked-by: Davidlohr Bueso <dave@stgolabs.net>
+Acked-by: Michal Hocko <mhocko@suse.com>
+Reviewed-by: Xueyuan Chen <xueyuan.chen21@gmail.com>
+Acked-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
+Acked-by: Vishal Moola (Fractile) <vishal.moola@gmail.com>
+Cc: Kairui Song <kasong@tencent.com>
+Cc: Qi Zheng <qi.zheng@linux.dev>
+Cc: Axel Rasmussen <axelrasmussen@google.com>
+Cc: Yuanchu Xie <yuanchu@google.com>
+Cc: Wei Xu <weixugc@google.com>
+Cc: Baoquan He <baoquan.he@linux.dev>
+Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
 Cc: David Hildenbrand <david@kernel.org>
-Cc: Lorenzo Stoakes <ljs@kernel.org>
-Cc: Liam R. Howlett <liam@infradead.org>
-Cc: Vlastimil Babka <vbabka@kernel.org>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Shuah Khan <shuah@kernel.org>
-Cc: Mina Almasry <almasrymina@google.com>
-Cc: Muchun Song <muchun.song@linux.dev>
-Cc: Oscar Salvador <osalvador@suse.de>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Roman Gushchin <roman.gushchin@linux.dev>
+Cc: <stable@vger.kernel.org>
 ---
 
- tools/testing/selftests/mm/charge_reserved_hugetlb.sh  |    8 ++++++++
- tools/testing/selftests/mm/hugetlb_reparenting_test.sh |   10 ++++++++++
- 2 files changed, 18 insertions(+)
+ mm/vmscan.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/tools/testing/selftests/mm/charge_reserved_hugetlb.sh~selftests-mm-skip-hugetlb-cgroup-v2-tests-without-the-needed-controllers
-+++ a/tools/testing/selftests/mm/charge_reserved_hugetlb.sh
-@@ -39,6 +39,14 @@ if [[ $cgroup2 ]]; then
-     mount -t cgroup2 none $cgroup_path
-     do_umount=1
-   fi
-+  if ! grep -qw hugetlb $cgroup_path/cgroup.controllers; then
-+    echo "hugetlb controller not available in cgroup v2. Skipping..."
-+    if [[ $do_umount ]]; then
-+      umount $cgroup_path
-+      rmdir $cgroup_path
-+    fi
-+    exit $ksft_skip
-+  fi
-   echo "+hugetlb" >$cgroup_path/cgroup.subtree_control
- else
-   cgroup_path=$(mount -t cgroup | grep ",hugetlb" | awk '{print $3}')
---- a/tools/testing/selftests/mm/hugetlb_reparenting_test.sh~selftests-mm-skip-hugetlb-cgroup-v2-tests-without-the-needed-controllers
-+++ a/tools/testing/selftests/mm/hugetlb_reparenting_test.sh
-@@ -29,6 +29,16 @@ if [[ $cgroup2 ]]; then
-     mount -t cgroup2 none $CGROUP_ROOT
-     do_umount=1
-   fi
-+  for ctrl in hugetlb memory; do
-+    if ! grep -qw $ctrl $CGROUP_ROOT/cgroup.controllers; then
-+      echo "$ctrl controller not available in cgroup v2. Skipping..."
-+      if [[ $do_umount ]]; then
-+        umount $CGROUP_ROOT
-+        rmdir $CGROUP_ROOT
-+      fi
-+      exit $ksft_skip
-+    fi
-+  done
-   echo "+hugetlb +memory" >$CGROUP_ROOT/cgroup.subtree_control
- else
-   CGROUP_ROOT=$(mount -t cgroup | grep ",hugetlb" | awk '{print $3}')
+--- a/mm/vmscan.c~mm-vmscan-reclaim-every-zone-in-per-node-proactive-reclaim
++++ a/mm/vmscan.c
+@@ -8185,7 +8185,7 @@ int user_proactive_reclaim(char *buf,
+ 		} else {
+ 			struct scan_control sc = {
+ 				.gfp_mask = current_gfp_context(gfp_mask),
+-				.reclaim_idx = gfp_zone(gfp_mask),
++				.reclaim_idx = MAX_NR_ZONES - 1,
+ 				.proactive_swappiness = swappiness == -1 ? NULL : &swappiness,
+ 				.priority = DEF_PRIORITY,
+ 				.may_writepage = 1,
 _
 
-Patches currently in -mm which might be from odys.yuan@gmail.com are
+Patches currently in -mm which might be from gourry@gourry.net are
 
+mm-page_alloc-let-the-highest-memory-node-recover-from-hopeless-state.patch
 
