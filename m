@@ -1,45 +1,45 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1792832517;
-	b=1JCX499OroVgl6iDi9A0wXKi53IZaVlxuXp7d9PEzv5l9oKYZAbMhJfO0MFV9o7fMXy/
-	 9VNhDEERQvGBhiOBMd/wY6ASwRDiDNKe82nyCFQ96+Rn84mYgHYWjq3xY8+MwZfH/H53D
-	 E3HefQcfLWHSg1VkXz3zy/9SSAixK/yLeJ0o//QrARk933qsQYCctccfDWoU6hzrLfi5Z
-	 alnT3gtbgiFtKwyfcl3ugs9aeqmvbL0Ju4H/n7JGxXdVYsnc0zuA/ay9G1MMYIMvCTyFj
-	 pmPyKSjOdkREzG2SUTHGtLZxjmvg8cqAsfvQiWNcS3/ExpgZ/iBXXLc1KSEsndbFCbQ==
+	t=1792832518;
+	b=DmJDwJ7t1JhILdH3d0xLH4MD4P96QZhl3/1+qpgL2rqRKFY6/EA0hBrzC7bpMnvpLPFn
+	 17Mg+gkZFkBpdfILQwgIkFr1zZBNUO9wCAFSYt97ZuNBE0b9pSXf2c/67NmxcTkq5yW0P
+	 cELXj6e8ivAQi7e2Af0X5CGMDloVe4ydszrclP+qUxFcnWWXSct0hwy8NVKlzi/+jn+Ni
+	 HnRfD2bdu8hadq5uQgvGOFfwhP4IQmy22uHjwcPHPI9MI28H1lXpXZ2QRDu5Rsgfs58Qq
+	 CXGg4tqlVzg69GUFd5QIO36v2SM5ffQnBzt6vJ+ZboeybxQFusCwrQF0nuQjqLTj4yw==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1792832517;
+	a=rsa-sha256; c=relaxed/relaxed; t=1792832518;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=zpgCnLdo3o5WI7sB0BS97ME58t7euey5S7Nq+cny1/M=;
-	b=DOCKy6G5ovBETp7ptaiR44J2JHgLH6gQBDsZ8RVTzxZvcdyUR6Va/0ItHcbXMWDDFNUJ
-	 cYY6IoMpVAnPHwEa1U3ocYwRiwz2gEFHn+1UZNjmJ9lzbS2nn6P2tvPdgQ+RwSDz0CXLz
-	 eeSFq8ccrhiSNFXyioEyshyvkhdnxw7C0VDw6lPSxQIgvLDiEE/BhA2hJl3eM9dH1aoYN
-	 uZIwBkcfRyiBi82fGDt9VXLNJP3FyySBReYchS9lJJ/RHrGEV84YGP6I86yadEAr0pAtT
-	 H6X/JE8EYaqlonGezxVX9WCt+QubjMOEKZHa6Jl7tuV0YL0PtRpqdOsnvotv+n5CmeA==
+	bh=87OhphG2UA0/Abnk5L1ucwtX/f56N29q5gKruW3QA+w=;
+	b=4I3eT1wcrA1aBVABfFkmPNKuEwRQdy57kpon0blNcTIPmi48YAYzl96+5q7HvVJQ8qur
+	 MvHP06+IqG107viNEyT8THsdeYVHjLp1LABL+VEq1nieyMPHwy3JM6KR+fPZpXFFCD2HA
+	 r047Em0LHm/66eDUNd+UC+jQbqZ7rin+kh6sD9yqXBNZTgoPITwGhPu2NoZrBvPKCMbVs
+	 IN7TebWGumLECLMSIPq2TrygvrDHzoS/EyOxKoaxw/UYNGjwf+WAoF6ITv4UJdAsdwlbv
+	 5g6INjeXCC5ZRyMe49A0ZQUls0ktZhRJgFEdO5RJs4Rl8MiUNCkMQzT45/xSCqJGXcA==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=pNzFj0uN;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=VMaeDH0Z;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0387D606A323
-	for <mm-commits@vger.kernel.org>; Sat, 24 Oct 2026 09:01:56 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2D39C606A321
+	for <mm-commits@vger.kernel.org>; Sat, 24 Oct 2026 09:01:58 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=pNzFj0uN
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8A14E1F01825;
-	Sat, 24 Oct 2026 09:01:56 +0000 (UTC)
+	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=VMaeDH0Z
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id EE56D1F01825;
+	Sat, 24 Oct 2026 09:01:57 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1792832516;
-	bh=zpgCnLdo3o5WI7sB0BS97ME58t7euey5S7Nq+cny1/M=;
+	d=linux-foundation.org; s=korg; t=1792832518;
+	bh=87OhphG2UA0/Abnk5L1ucwtX/f56N29q5gKruW3QA+w=;
 	h=Date:To:From:Subject;
-	b=pNzFj0uNyZViURbrTUhwr11gREByRqV/dNxrDlzKJ/gbIpS+ke9I+NG/q9FjzsHdg
-	 VREfpgAQNRcv2ntC1BCM/EU+JO3vQooZTaK7xoMKIZ9vbIJBW/rNC3Oy3NuS2XIOzn
-	 ipdfR2Yozze8tYUqFeCFqzCWWCsPjPaZjjqbV5ew=
-Date: Sat, 24 Oct 2026 02:01:56 -0700
+	b=VMaeDH0ZQoixHTGCyloZJ3Q6bA3Sryo50vcToDTYO3lPabzHftua58VI3GsSXKRjJ
+	 zBAafawErGRzydigA/GegLLWFVKdtlHztVkPKIb5ffux/OiOdF2i4WDp0OGwaGvel5
+	 JnC2dqUj5/Jwl3cvVhNABthrV1eA+6HOFPESq1/Q=
+Date: Sat, 24 Oct 2026 02:01:57 -0700
 To: mm-commits@vger.kernel.org,vbabka@kernel.org,surenb@google.com,sshegde@linux.ibm.com,rppt@kernel.org,ritesh.list@gmail.com,qi.zheng@linux.dev,npiggin@gmail.com,mpe@ellerman.id.au,mhocko@suse.com,maddy@linux.ibm.com,ljs@kernel.org,liam@infradead.org,lance.yang@linux.dev,david@kernel.org,chleroy@kernel.org,muchun.song@linux.dev,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-sparse-vmemmap-drop-vmemmap_populate_dax.patch removed from -mm tree
-Message-Id: <20261024090156.8A14E1F01825@smtp.kernel.org>
+Subject: [merged mm-stable] mm-sparse-vmemmap-support-device-dax-in-common-vmemmap-path.patch removed from -mm tree
+Message-Id: <20261024090157.EE56D1F01825@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -51,77 +51,32 @@ Precedence: list
 
 
 The quilt patch titled
-     Subject: mm/sparse-vmemmap: drop VMEMMAP_POPULATE_DAX
+     Subject: mm/sparse-vmemmap: support device DAX in common vmemmap path
 has been removed from the -mm tree.  Its filename was
-     mm-sparse-vmemmap-drop-vmemmap_populate_dax.patch
+     mm-sparse-vmemmap-support-device-dax-in-common-vmemmap-path.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Muchun Song <muchun.song@linux.dev>
-Subject: mm/sparse-vmemmap: drop VMEMMAP_POPULATE_DAX
-Date: Sat, 10 Oct 2026 15:57:50 +0800
+Subject: mm/sparse-vmemmap: support device DAX in common vmemmap path
+Date: Sat, 10 Oct 2026 15:57:51 +0800
 
-Patch series "mm: Unify device DAX and HugeTLB vmemmap population paths",
-v4.
+The common vmemmap population path cannot yet handle optimized Device DAX
+mappings on its own.  It uses pfn_to_zone() to find the shared tail page,
+but Device DAX populates its vmemmap at runtime before the ZONE_DEVICE
+span is initialized.
 
-This series is split out from the earlier, larger series "mm: Generalize
-HVO for HugeTLB and device DAX" [2].  While the parent series generalizes
-vmemmap optimization across HugeTLB and device DAX, this subset addresses
-a single, self-contained step: unifying their vmemmap population paths.
+Teach the common path to use device_zone() for runtime optimized vmemmap
+population while retaining pfn_to_zone() for early boot.  This allows the
+same path to support both early boot mappings and Device DAX.
 
-After the preceding Device DAX conversion, both HugeTLB and Device DAX
-describe optimized vmemmap mappings through memory-section metadata and
-use per-zone shared tail vmemmap pages.  The generic code, however, still
-carries a Device DAX-specific population flag and compound-page population
-path, along with arguments and helpers needed only by that path.
+The backing PFN supplied by the Device DAX-specific population path is no
+longer used, allowing the redundant lookup and population code to be
+removed later.
 
-This series first removes VMEMMAP_POPULATE_DAX and moves selection and
-reference handling for the shared tail page into the common vmemmap
-population path.  It then removes the generic Device DAX-specific
-compound-page population path and routes section vmemmap population
-through vmemmap_populate().  The powerpc radix path continues to use its
-architecture-specific compound-page population implementation for
-optimizable sections.
-
-The remaining patches remove the unused ptpfn argument, open-code
-vmemmap_populate_address() now that no caller needs its returned PTE, and
-add a warning for inconsistent zone initialization of shared tail vmemmap
-pages.
-
-This is the fourth smaller step toward the broader HVO generalization. 
-After this series, HugeTLB and Device DAX use the same population model
-instead of parallel generic paths, while powerpc keeps its
-architecture-specific implementation.
-
-
-This patch (of 6):
-
-VMEMMAP_POPULATE_DAX currently distinguishes DAX vmemmap population in two
-places: it keeps allocations on the normal path and takes a reference when
-a backing page is supplied for reuse.
-
-After Device DAX switched to the common per-zone shared tail page, both
-conditions can be determined locally.  DAX supplies ptpfn for every shared
-tail mapping and requests an allocation only for compound head mappings,
-whose PFNs are not optimizable.  Therefore, vmemmap_optimizable_pfn()
-alone selects the correct allocation path.
-
-When ptpfn is supplied, the caller is reusing an existing backing page. 
-Once the slab allocator is available, take a reference for each reused
-mapping to balance the release performed by vmemmap_free().  Although the
-buddy allocator is available before slab, no vmemmap population occurs in
-that interval.  Earlier mappings are backed by memblock/reserved memory
-and do not need page reference accounting.
-
-Remove VMEMMAP_POPULATE_DAX and the flags argument from the vmemmap
-population helpers.
-
-Link: https://lore.kernel.org/20261010075755.83339-1-songmuchun@bytedance.com
-Link: https://lore.kernel.org/20261010075755.83339-2-songmuchun@bytedance.com
-Link: https://lore.kernel.org/20260930140627.57431-1-songmuchun@bytedance.com/ [1]
-Link: https://lore.kernel.org/20260513130542.35604-1-songmuchun@bytedance.com/ [2]
+Link: https://lore.kernel.org/20261010075755.83339-3-songmuchun@bytedance.com
 Signed-off-by: Muchun Song <muchun.song@linux.dev>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 Reviewed-by: Lance Yang <lance.yang@linux.dev>
@@ -141,150 +96,96 @@ Cc: Suren Baghdasaryan <surenb@google.com>
 Cc: Michal Hocko <mhocko@suse.com>
 ---
 
- mm/sparse-vmemmap.c |   36 +++++++++++++-----------------------
- 1 file changed, 13 insertions(+), 23 deletions(-)
+ mm/sparse-vmemmap.c |   62 +++++++++++++++++++++++-------------------
+ 1 file changed, 34 insertions(+), 28 deletions(-)
 
---- a/mm/sparse-vmemmap.c~mm-sparse-vmemmap-drop-vmemmap_populate_dax
+--- a/mm/sparse-vmemmap.c~mm-sparse-vmemmap-support-device-dax-in-common-vmemmap-path
 +++ a/mm/sparse-vmemmap.c
-@@ -32,12 +32,6 @@
- #include <asm/dma.h>
- #include <asm/tlbflush.h>
- 
--/*
-- * Flags for vmemmap_populate_range and friends.
-- */
--/* Vmemmap population for ZONE_DEVICE compound pages */
--#define VMEMMAP_POPULATE_DAX		0x0001
--
- #include "internal.h"
- #include "mm_init.h"
- #include "sparse.h"
-@@ -241,7 +235,7 @@ struct page __ref *vmemmap_shared_tail_p
- #endif
- 
- static __meminit void *vmemmap_alloc_pte(unsigned long pfn, int node,
--		struct vmem_altmap *altmap, unsigned long flags)
-+		struct vmem_altmap *altmap)
- {
- 	struct zone *zone;
+@@ -241,18 +241,43 @@ static __meminit void *vmemmap_alloc_pte
  	struct page *page;
-@@ -251,7 +245,7 @@ static __meminit void *vmemmap_alloc_pte
- 	 * Device DAX still relies on vmemmap_populate_compound_pages() for
- 	 * head/first-tail allocation and tail-page reuse.
- 	 */
--	if (!vmemmap_optimizable_pfn(pfn) || flags & VMEMMAP_POPULATE_DAX)
-+	if (!vmemmap_optimizable_pfn(pfn))
+ 	const unsigned int order = pfn_to_section_compound_order(pfn);
+ 
+-	/*
+-	 * Device DAX still relies on vmemmap_populate_compound_pages() for
+-	 * head/first-tail allocation and tail-page reuse.
+-	 */
+ 	if (!vmemmap_optimizable_pfn(pfn))
  		return vmemmap_alloc_block_buf(PAGE_SIZE, node, altmap);
  
- 	zone = pfn_to_zone(pfn, node);
-@@ -263,8 +257,7 @@ static __meminit void *vmemmap_alloc_pte
+-	zone = pfn_to_zone(pfn, node);
++	/*
++	 * Before slab is available, vmemmap optimization is used for early
++	 * system RAM, whose zone can be determined from the PFN.
++	 *
++	 * Once slab is available, only ZONE_DEVICE memory reaches this
++	 * optimized population path. Its zone span has not been initialized
++	 * while its vmemmap is being populated, so pfn_to_zone() cannot be
++	 * used. Obtain ZONE_DEVICE directly from the node instead.
++	 */
++	zone = slab_is_available() ? device_zone(node) : pfn_to_zone(pfn, node);
+ 	page = vmemmap_shared_tail_page(order, zone);
+ 	if (!page)
+ 		return NULL;
+ 
++	/*
++	 * During early vmemmap population, the shared tail vmemmap backing
++	 * page is allocated from memblock before its struct page can safely
++	 * participate in page refcounting. Therefore, no reference can be
++	 * held for each shared PTE mapping, and the mappings must be unshared
++	 * before the vmemmap is depopulated.
++	 *
++	 * Once slab is available, the shared backing page is allocated from
++	 * the buddy allocator and can be refcounted. Hold one reference for
++	 * each shared PTE mapping. The architecture vmemmap teardown drops
++	 * the reference through __free_pages() when removing the mapping,
++	 * preventing the backing page from being freed while it is shared.
++	 *
++	 * The backing page may be shared by enough PTE mappings to exhaust
++	 * the positive range of its reference count. Stop populating the
++	 * vmemmap if another reference cannot be acquired.
++	 */
++	if (slab_is_available() && !try_get_page(page))
++		return NULL;
++
+ 	return page_address(page);
  }
  
- static pte_t * __meminit vmemmap_pte_populate(pmd_t *pmd, unsigned long addr, int node,
--				       struct vmem_altmap *altmap,
--				       unsigned long ptpfn, unsigned long flags)
-+		struct vmem_altmap *altmap, unsigned long ptpfn)
- {
- 	pte_t *pte = pte_offset_kernel(pmd, addr);
- 	unsigned long pfn = page_to_pfn((struct page *)addr);
-@@ -273,7 +266,7 @@ static pte_t * __meminit vmemmap_pte_pop
+@@ -264,31 +289,12 @@ static pte_t * __meminit vmemmap_pte_pop
+ 
+ 	if (pte_none(ptep_get(pte))) {
  		pte_t entry;
++		void *p = vmemmap_alloc_pte(pfn, node, altmap);
  
- 		if (ptpfn == (unsigned long)-1) {
--			void *p = vmemmap_alloc_pte(pfn, node, altmap, flags);
-+			void *p = vmemmap_alloc_pte(pfn, node, altmap);
+-		if (ptpfn == (unsigned long)-1) {
+-			void *p = vmemmap_alloc_pte(pfn, node, altmap);
++		if (!p)
++			return NULL;
  
- 			if (!p)
- 				return NULL;
-@@ -291,7 +284,7 @@ static pte_t * __meminit vmemmap_pte_pop
- 			 * Use try_get_page() to prevent the shared page refcount
- 			 * from overflowing.
- 			 */
--			if ((flags & VMEMMAP_POPULATE_DAX) &&
-+			if (slab_is_available() &&
- 			    !try_get_page(pfn_to_page(ptpfn)))
- 				return NULL;
- 		}
-@@ -355,8 +348,7 @@ static pgd_t * __meminit vmemmap_pgd_pop
- 
- static pte_t * __meminit vmemmap_populate_address(unsigned long addr, int node,
- 					      struct vmem_altmap *altmap,
--					      unsigned long ptpfn,
--					      unsigned long flags)
-+					      unsigned long ptpfn)
- {
- 	pgd_t *pgd;
- 	p4d_t *p4d;
-@@ -376,7 +368,7 @@ static pte_t * __meminit vmemmap_populat
- 	pmd = vmemmap_pmd_populate(pud, addr, node);
- 	if (!pmd)
+-			if (!p)
+-				return NULL;
+-			ptpfn = PHYS_PFN(__pa(p));
+-		} else {
+-			/*
+-			 * When a PTE/PMD entry is freed from the init_mm
+-			 * there's a free_pages() call to this page allocated
+-			 * above. Thus this try_get_page() is paired with the
+-			 * put_page_testzero() on the freeing path.
+-			 * This can only called by certain ZONE_DEVICE path,
+-			 * and through vmemmap_populate_compound_pages() when
+-			 * slab is available.
+-			 *
+-			 * Use try_get_page() to prevent the shared page refcount
+-			 * from overflowing.
+-			 */
+-			if (slab_is_available() &&
+-			    !try_get_page(pfn_to_page(ptpfn)))
+-				return NULL;
+-		}
+-		entry = pfn_pte(ptpfn, PAGE_KERNEL);
++		entry = pfn_pte(PHYS_PFN(__pa(p)), PAGE_KERNEL);
+ 		set_pte_at(&init_mm, addr, pte, entry);
+ 	} else if (WARN_ON_ONCE(vmemmap_optimizable_pfn(pfn)))
  		return NULL;
--	pte = vmemmap_pte_populate(pmd, addr, node, altmap, ptpfn, flags);
-+	pte = vmemmap_pte_populate(pmd, addr, node, altmap, ptpfn);
- 	if (!pte)
- 		return NULL;
- 	vmemmap_verify(pte, node, addr, addr + PAGE_SIZE);
-@@ -387,15 +379,14 @@ static pte_t * __meminit vmemmap_populat
- static int __meminit vmemmap_populate_range(unsigned long start,
- 					    unsigned long end, int node,
- 					    struct vmem_altmap *altmap,
--					    unsigned long ptpfn,
--					    unsigned long flags)
-+					    unsigned long ptpfn)
- {
- 	unsigned long addr = start;
- 	pte_t *pte;
- 
- 	for (; addr < end; addr += PAGE_SIZE) {
- 		pte = vmemmap_populate_address(addr, node, altmap,
--					       ptpfn, flags);
-+					       ptpfn);
- 		if (!pte)
- 			return -ENOMEM;
- 	}
-@@ -406,7 +397,7 @@ static int __meminit vmemmap_populate_ra
- int __meminit vmemmap_populate_basepages(unsigned long start, unsigned long end,
- 					 int node, struct vmem_altmap *altmap)
- {
--	return vmemmap_populate_range(start, end, node, altmap, -1, 0);
-+	return vmemmap_populate_range(start, end, node, altmap, -1);
- }
- 
- /*
-@@ -532,7 +523,6 @@ static int __meminit vmemmap_populate_co
- 						     unsigned long end, int node,
- 						     struct dev_pagemap *pgmap)
- {
--	const unsigned long flags = VMEMMAP_POPULATE_DAX;
- 	const unsigned int order = pfn_to_section_compound_order(start_pfn);
- 	unsigned long size, addr;
- 	pte_t *pte;
-@@ -545,14 +535,14 @@ static int __meminit vmemmap_populate_co
- 
- 	if (reuse_compound_section(start_pfn, pgmap))
- 		return vmemmap_populate_range(start, end, node, NULL,
--					      page_to_pfn(page), flags);
-+					      page_to_pfn(page));
- 
- 	size = min(end - start, (1UL << order) * sizeof(struct page));
- 	for (addr = start; addr < end; addr += size) {
- 		unsigned long next, last = addr + size;
- 
- 		/* Populate the head page vmemmap page */
--		pte = vmemmap_populate_address(addr, node, NULL, -1, flags);
-+		pte = vmemmap_populate_address(addr, node, NULL, -1);
- 		if (!pte)
- 			return -ENOMEM;
- 
-@@ -562,7 +552,7 @@ static int __meminit vmemmap_populate_co
- 		 */
- 		next = addr + PAGE_SIZE;
- 		rc = vmemmap_populate_range(next, last, node, NULL,
--					    page_to_pfn(page), flags);
-+					    page_to_pfn(page));
- 		if (rc)
- 			return -ENOMEM;
- 	}
 _
 
 Patches currently in -mm which might be from muchun.song@linux.dev are
