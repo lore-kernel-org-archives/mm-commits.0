@@ -1,48 +1,46 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1792947065;
-	b=ckcJgVHGIkh2VsHQ+E5WT3rRkzx+gGIBYnDdzpBGsTgKeh0aGH8vgIlViG9MbYLheXbr
-	 Z56oojkezs8nvXXr1Fp1J3iWl0nR9V6Rs3uk1lcnd85D8Cmdkcq5uz0+cSjMrHcQQeLkt
-	 rfjuXXrvOfkmg80GabfMuOL4JHY9mfVFDMqiB1yXDWvoS2mDQgFV0KUVXRMSDKAp00KIe
-	 TdnzW/AF95vpgJTZdpPyYNLJVazprewzHEaH6AvQKO8fDQthMOBDpk/tf0388uQS8D5dR
-	 K2LEwA5BcYXup6DRhNsBCRP0iyO50ibLnlKLLB9QTA9uF7R62gSVES/iZqmNDOeyIDg==
+	t=1792947248;
+	b=mTeIvr+0Vg2weBEXH8wHD9k4AAlGTdughXd4VAI6pbZcWYaWtUeeGMNXfCgTwMbN44Pc
+	 omWDmDIuDrBImpK2rtPrvl3jg3MSrCdMvnah6h7OmggsEUnb3X96ZWg8JCt1HU6e6JgU/
+	 eSnaqxqhKts6+YZ2T69cM+DS6tbVfTmrg3tamlsoyrGYmxjTijGyD8LwJ7cc14fYZ0CzM
+	 jlLh9xr/0Zk4kWvUwJBvbzEoGtk+eEIYdxbOAgfNL0U+khWwnujj0QpF+OxscNu1fMa/k
+	 qb4kEw4hxF122kyO30d+w2k0Uf2VE8kaYtrMCHMtGJmmGvfkTdOzuEqcDXogCD624Qg==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1792947065;
+	a=rsa-sha256; c=relaxed/relaxed; t=1792947248;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=HlZHFNqJbLC1eut+8JSvmoBgVQ05gmdawrrxeQ3Xrxg=;
-	b=OAgRyx2geyp4/bdJiD4TwB/c1E6ToeHk0rc4SnGAmrwPg+2Npc7U4tShT4YzOqZDCYsb
-	 dtCLGhdFwvd4jvzOtIvfvAItUD/gBCcp6THEoyei4OuPwkkaK4Q681bHOpC6FY3L3O+nv
-	 upkLTxqWzLqluO0wqvNQu5Za+FV6PuyrAq8cbxjIDs4D2rOueUkkb8PKnttCvQMxEv/2d
-	 prEKaOz01d/qAP1p4Bw0vfKit+351To4L55J609gtZ0rdZILYxE7+XnRQn1BQ5AEzRu6w
-	 MGCHCMGO+qqozOIQLoBkR3DaInR2Gzl0qfdVGueFnWBfJ7DntWdtOqfUsUh/hpCKMFg==
+	bh=7o5Zb9mXHZt3WsgFCTaiwTu3eVbUeCOA9n40KPT6Lwc=;
+	b=y8q8/SnoB795RynGVSl+5DJqBHB7rI15uZDWOhiXXcyare9Wp5g8n2Xd1A+7zW+k1xs5
+	 rRHizDu4VkJTp3mYKMa+voM3t4L6OFclF9KATG5a5wQclDq8M37ABQ8NmbJxxYroA6419
+	 P1w5cMaxF0nA1k2j2piGKMjHpcCzggOcfwO4IOlq9ey9N2hxscky+uV1diEtXidoVAt3m
+	 uwBemdiAftwrZlXSBQkwGniZUEq0inhkdjZeJO/GUHNlm5UcF7ZQ1Bo5Ig0UlmN3NPa8X
+	 G9ss8SyzfzgpCOskXlnHtMcPs5joafUHgXpSSJisQe4RrjjJVtmgMdjRFrToGUX1+1A==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=SqWNSinM;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b="c/2aiiFE";
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2F194606A325;
-	Sun, 25 Oct 2026 16:51:04 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3FF8A606A31E;
+	Sun, 25 Oct 2026 16:54:07 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=SqWNSinM
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A12691F01825;
-	Sun, 25 Oct 2026 16:51:04 +0000 (UTC)
+	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=c/2aiiFE
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B9AB01F01825;
+	Sun, 25 Oct 2026 16:54:07 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1792947064;
-	bh=HlZHFNqJbLC1eut+8JSvmoBgVQ05gmdawrrxeQ3Xrxg=;
+	d=linux-foundation.org; s=korg; t=1792947247;
+	bh=7o5Zb9mXHZt3WsgFCTaiwTu3eVbUeCOA9n40KPT6Lwc=;
 	h=Date:To:From:Subject;
-	b=SqWNSinMgp7nUB+7uxY6EUBDRELopaFSS6l0IUIzgif2vxqlQq3y7/l2jIdx32jgz
-	 jPObStwVKqeqdNeVKQb+oF5qzArmX0iReXmnRQsZZEcg3VO6LYoLvV+cRpfVUh++q5
-	 7uQwreA1LTGvTL2rwoIIgrefPAnlRQvtuoIOspz0=
-Date: Sun, 25 Oct 2026 09:51:04 -0700
-To: mm-commits@vger.kernel.org,vbabka@kernel.org,surenb@google.com,
-	stable@vger.kernel.org,shakeel.butt@linux.dev,pfalcato@suse.de,
-	ljs@kernel.org,liam@infradead.org,jannh@google.com,david@kernel.org,
-	akpm@linux-foundation.org
+	b=c/2aiiFEDq7C074KU3ZFL02b/XMEQExF/tx28HbgnH1sHYOd3dJcC7BCaLwOaU5HO
+	 kEJqncOr65YtFujMsqswSbmM2EVz7KdR9xMPpnMoI+hLatAYiNsae5KGXzCsQpctSO
+	 0LuTZgp34bSm7cKNVJHkiZY4y57icoTOKlFY749c=
+Date: Sun, 25 Oct 2026 09:54:07 -0700
+To: mm-commits@vger.kernel.org,stable@vger.kernel.org,sjpark@amazon.de,
+	sieberf@amazon.com,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + fs-proc-task_mmu-fix-missed-vmas-when-reading-proc-pid-maps-and-friends.patch added to mm-unstable branch
-Message-Id: <20261025165104.A12691F01825@smtp.kernel.org>
+Subject: + mm-damon-core-move-static-variable-last_nr_regions-to-damon_ctx.patch added to mm-unstable branch
+Message-Id: <20261025165407.B9AB01F01825@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -54,12 +52,12 @@ Precedence: list
 
 
 The patch titled
-     Subject: fs/proc/task_mmu: fix missed VMAs when reading /proc/PID/maps and friends
+     Subject: mm/damon/core: move static variable last_nr_regions to damon_ctx
 has been added to the -mm mm-unstable branch.  Its filename is
-     fs-proc-task_mmu-fix-missed-vmas-when-reading-proc-pid-maps-and-friends.patch
+     mm-damon-core-move-static-variable-last_nr_regions-to-damon_ctx.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/fs-proc-task_mmu-fix-missed-vmas-when-reading-proc-pid-maps-and-friends.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-core-move-static-variable-last_nr_regions-to-damon_ctx.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -77,240 +75,85 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: "David Hildenbrand (Arm)" <david@kernel.org>
-Subject: fs/proc/task_mmu: fix missed VMAs when reading /proc/PID/maps and friends
-Date: Sun, 25 Oct 2026 11:43:15 +0100
+From: SJ Park <sj@kernel.org>
+Subject: mm/damon/core: move static variable last_nr_regions to damon_ctx
+Date: Sun, 25 Oct 2026 09:48:05 -0700
 
-Reading /proc/PID/maps under per-VMA locks can skip continuously mapped
-address ranges during concurrent VMA splits or merges. This violates the
-guarantee in Documentation/filesystems/proc.rst:
+kdamond_split_regions() uses a static variable last_nr_regions, to infer
+if the region boundaries are too stable.  If it looks too stable, it
+does a more aggressive region split because it might be a fake stability
+coming from non-aggressive split.  Because the variable is static, the
+inference can be racy and wrong when multiple kdamonds are running in
+parallel.
 
-  "If there is something at a given vaddr during the entirety of the
-   life of the smaps/maps walk, there will be some output for it."
+The user impact is not critical.  No crash, no leak.  DAMON's
+best-effort monitoring accuracy can be degraded when multiple kdamonds
+are used in parallel and the workload has certain access patterns. Still
+it is a bug that is better to fix.
 
-lock_next_vma() reuses a tree iterator across calls under RCU. The iterator
-remembers the range of its last entry. When its node is replaced,
-mas_next_slot() walks the tree again at the last index of that range, then
-advances past the entry containing that index. If VMA boundaries changed,
-this can skip a range that has not been reported:
+Move the variable into the damon_ctx struct to fix the problem.
 
- - A lookup finds [A, C), then mprotect() splits it into [A, B) and [B, C)
-   before vma_start_read() locks the first VMA. The reader reports [A, B),
-   but the iterator still covers [A, C). The next call starts from B yet
-   advances past C, omitting [B, C).
-
- - The reader reports [A, B) and unlocks it. A concurrent mprotect() then
-   merges it with [B, C). On the next call, the iterator resumes at B - 1,
-   which now belongs to [A, C), and advances past C. Again, [B, C) is lost.
-
-Checking the mmap_lock sequence only within the next call misses writers
-that completed before that call began. Also, a NULL result is currently
-accepted without validation, so a race can terminate the walk early.
-
-Even a fresh lookup can skip a mapping. Suppose it finds a gap before
-[B, C). A writer inserts an adjacent VMA at the end of that gap, then
-merges it into [B, C), replacing the node. The lookup resumes at the old
-gap's last index, now inside the merged VMA, and steps past it. The
-original [B, C) remains mapped throughout. Repeating the forward lookup
-is insufficient: another merge can make it skip the same mapping again,
-returning the same later VMA or NULL.
-
-The fresh-lookup race also affects /proc/PID/smaps, numa_maps and
-smaps_rollup. Resetting the iterator after gathering each VMA's statistics
-does not prevent a merge during the next lookup. Fixing lock_next_vma()
-also prevents omitted entries and incomplete rollup statistics.
-
-Keep a saved sequence in the proc maps locking context and validate it
-before each lookup with mmap_lock_speculate_retry(). If it is even (no
-pending writer) and still matches, reuse both the iterator and the saved
-sequence. Otherwise, restart at from_addr and sample the current sequence
-before looking up the VMA. Only refresh the sample when resetting the
-iterator, so a writer between validation and the lookup cannot go
-undetected.
-
-The smp_rmb() in mmap_lock_speculate_retry() orders the previous lookup
-before rereading the sequence. It pairs with smp_wmb() in
-do_raw_write_seqcount_begin(), which separates the sequence increment in
-mmap_write_lock() from subsequent tree updates.
-
-Validate detected gaps (from_addr < vma->vm_start) and NULL from
-vma_next() against the sequence. If there were concurrent writes, use
-mas_walk() to check if the writer could have interfered with the range
-of interest. If the range is not empty, something interfered concurrently
-so we retry under mmap_lock. Checking for empty ranges avoids taking the
-mmap_lock just because an unrelated writer changed the sequence.
-
-Original fix generated by an LLM and sent by Josef Bacik in private.
-
-Link: https://lore.kernel.org/20261025-per_vma_maps-v1-1-c4eec45b9387@kernel.org
-Fixes: 5631da56c9a8 ("fs/proc/task_mmu: read proc/pid/maps under per-vma lock")
-Fixes: ea3085dd7a4e ("fs/proc/task_mmu: read proc/pid/{smaps|numa_maps} under per-vma lock")
-Fixes: 0e985559d72a ("proc/task_mmu: read proc/pid/smaps_rollup under per-vma lock")
-Signed-off-by: David Hildenbrand (Arm) <david@kernel.org>
+Link: https://lore.kernel.org/20261025164808.152048-3-sj@kernel.org
+Fixes: 75c1c2b53c78 ("mm/damon/dbgfs: support multiple contexts")
+Signed-off-by: SJ Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Cc: Liam R. Howlett <liam@infradead.org>
-Cc: Lorenzo Stoakes <ljs@kernel.org>
-Cc: Vlastimil Babka <vbabka@kernel.org>
-Cc: Jann Horn <jannh@google.com>
-Cc: Pedro Falcato <pfalcato@suse.de>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Shakeel Butt <shakeel.butt@linux.dev>
-Cc: <stable@vger.kernel.org>
+Closes: https://sashiko.dev/#/bug/linux-eebfcdde-2881-48ef-8df1-e2019d2a47f2
+Cc: Fernand Sieber <sieberf@amazon.com>
+Cc: SeongJae Park <sjpark@amazon.de>
+Cc: <stable@vger.kernel.org> # 5.15.x
 ---
 
- fs/proc/internal.h        |    1 
- fs/proc/task_mmu.c        |    6 ++-
- include/linux/mmap_lock.h |    5 +--
- mm/mmap_lock.c            |   58 ++++++++++++++++++++++++++----------
- 4 files changed, 51 insertions(+), 19 deletions(-)
+ include/linux/damon.h |    5 +++++
+ mm/damon/core.c       |    5 ++---
+ 2 files changed, 7 insertions(+), 3 deletions(-)
 
---- a/fs/proc/internal.h~fs-proc-task_mmu-fix-missed-vmas-when-reading-proc-pid-maps-and-friends
-+++ a/fs/proc/internal.h
-@@ -386,6 +386,7 @@ struct mem_size_stats;
- struct proc_maps_locking_ctx {
- 	struct mm_struct *mm;
- 	bool mmap_locked;
-+	unsigned int mm_wr_seq;
- 	struct vm_area_struct *locked_vma;
+--- a/include/linux/damon.h~mm-damon-core-move-static-variable-last_nr_regions-to-damon_ctx
++++ a/include/linux/damon.h
+@@ -958,6 +958,11 @@ struct damon_ctx {
+ 
+ 	/* @rnd_state:	Per-ctx PRNG state for damon_rand(). */
+ 	struct rnd_state rnd_state;
++	/*
++	 * number of regions after last merge.  Read kdamond_split_regions()
++	 * for more details.
++	 */
++	unsigned long last_nr_regions;
  };
  
---- a/fs/proc/task_mmu.c~fs-proc-task_mmu-fix-missed-vmas-when-reading-proc-pid-maps-and-friends
-+++ a/fs/proc/task_mmu.c
-@@ -148,6 +148,7 @@ static void reset_lock_ctx(struct proc_m
- {
- 	lock_ctx->locked_vma = NULL;
- 	lock_ctx->mmap_locked = false;
-+	lock_ctx->mm_wr_seq = UINT_MAX;
+ /* Get a random number in [@l, @r) using @ctx's lockless PRNG. */
+--- a/mm/damon/core.c~mm-damon-core-move-static-variable-last_nr_regions-to-damon_ctx
++++ a/mm/damon/core.c
+@@ -3795,7 +3795,6 @@ static noinline_for_stack void kdamond_s
+ 	struct damon_target *t;
+ 	unsigned long nr_regions = 0;
+ 	unsigned long max_nr_regions = ctx->attrs.max_nr_regions;
+-	static unsigned long last_nr_regions;
+ 	int nr_subregions = 2;
+ 
+ 	damon_for_each_target(t, ctx)
+@@ -3811,7 +3810,7 @@ static noinline_for_stack void kdamond_s
+ 	}
+ 
+ 	/* Maybe the middle of the region has different access frequency */
+-	if (last_nr_regions == nr_regions &&
++	if (ctx->last_nr_regions == nr_regions &&
+ 			nr_regions < max_nr_regions / 3)
+ 		nr_subregions = 3;
+ 
+@@ -3820,7 +3819,7 @@ static noinline_for_stack void kdamond_s
+ 				       ctx->min_region_sz);
+ 
+ done:
+-	last_nr_regions = nr_regions;
++	ctx->last_nr_regions = nr_regions;
  }
  
- static struct vm_area_struct *get_next_vma(struct proc_maps_private *priv,
-@@ -160,7 +161,8 @@ static struct vm_area_struct *get_next_v
- 		return vma_next(&priv->iter);
- 
- 	unlock_ctx_vma(lock_ctx);
--	vma = lock_next_vma(lock_ctx->mm, &priv->iter, last_pos);
-+	vma = lock_next_vma(lock_ctx->mm, &priv->iter, last_pos,
-+			    &lock_ctx->mm_wr_seq);
- 	if (!IS_ERR_OR_NULL(vma))
- 		lock_ctx->locked_vma = vma;
- 
-@@ -523,7 +525,7 @@ static struct vm_area_struct *query_vma_
- 	unlock_ctx_vma(lock_ctx);
- 	rcu_read_lock();
- 	vma_iter_init(&vmi, mm, addr);
--	vma = lock_next_vma(mm, &vmi, addr);
-+	vma = lock_next_vma(mm, &vmi, addr, &lock_ctx->mm_wr_seq);
- 	rcu_read_unlock();
- 
- 	if (!vma)
---- a/include/linux/mmap_lock.h~fs-proc-task_mmu-fix-missed-vmas-when-reading-proc-pid-maps-and-friends
-+++ a/include/linux/mmap_lock.h
-@@ -513,12 +513,13 @@ struct vm_area_struct *lock_vma_under_rc
-  * Locks next vma pointed by the iterator. Confirms the locked vma has not
-  * been modified and will retry under mmap_lock protection if modification
-  * was detected. Should be called from read RCU section.
-+ * *last_seq must initially be odd and is kept across calls.
-  * Returns either a valid locked VMA, NULL if no more VMAs or -EINTR if the
-  * process was interrupted.
-  */
- struct vm_area_struct *lock_next_vma(struct mm_struct *mm,
--				     struct vma_iterator *iter,
--				     unsigned long address);
-+		struct vma_iterator *vmi, unsigned long from_addr,
-+		unsigned int *last_seq);
- 
- static inline void vma_assert_can_modify(struct vm_area_struct *vma)
- {
---- a/mm/mmap_lock.c~fs-proc-task_mmu-fix-missed-vmas-when-reading-proc-pid-maps-and-friends
-+++ a/mm/mmap_lock.c
-@@ -428,21 +428,50 @@ static struct vm_area_struct *lock_next_
- 	return vma;
- }
- 
-+static bool vma_range_is_empty(struct mm_struct *mm, unsigned long start,
-+		unsigned long last)
-+{
-+	MA_STATE(mas, &mm->mm_mt, start, start);
-+
-+	return !mas_walk(&mas) && mas.last >= last;
-+}
-+
- struct vm_area_struct *lock_next_vma(struct mm_struct *mm,
--				     struct vma_iterator *vmi,
--				     unsigned long from_addr)
-+		struct vma_iterator *vmi, unsigned long from_addr,
-+		unsigned int *last_seq)
- {
- 	struct vm_area_struct *vma;
--	unsigned int mm_wr_seq;
- 	bool mmap_unlocked;
- 
- 	RCU_LOCKDEP_WARN(!rcu_read_lock_held(), "no rcu read lock held");
- retry:
--	/* Start mmap_lock speculation in case we need to verify the vma later */
--	mmap_unlocked = mmap_lock_speculate_try_begin(mm, &mm_wr_seq);
-+	/*
-+	 * Restart by address if a writer could have changed the cached range.
-+	 * The retry check's smp_rmb() orders the previous lookup before reading
-+	 * the sequence and pairs with smp_wmb() in do_raw_write_seqcount_begin().
-+	 *
-+	 * The vma_range_is_empty() checks below avoid unnecessary mmap_lock
-+	 * fallbacks.
-+	 */
-+	mmap_unlocked = !(*last_seq & 1);
-+	if (!mmap_unlocked || mmap_lock_speculate_retry(mm, *last_seq)) {
-+		vma_iter_set(vmi, from_addr);
-+		mmap_unlocked = mmap_lock_speculate_try_begin(mm, last_seq);
-+	}
-+
- 	vma = vma_next(vmi);
--	if (!vma)
--		return NULL;
-+	if (!vma) {
-+		/*
-+		 * There is no reason to fallback if there really isn't anything
-+		 * in the remaining range.
-+		 */
-+		if ((mmap_unlocked && !mmap_lock_speculate_retry(mm, *last_seq)) ||
-+		    vma_range_is_empty(mm, from_addr, ULONG_MAX))
-+			return NULL;
-+
-+		rcu_read_unlock();
-+		goto fallback;
-+	}
- 
- 	vma = vma_start_read(mm, vma);
- 	if (IS_ERR_OR_NULL(vma)) {
-@@ -470,15 +499,14 @@ retry:
- 	 * it was not shrunk after we found it and another vma has not been
- 	 * installed ahead of it. Otherwise we might observe a gap that should
- 	 * not be there.
-+	 *
-+	 * If speculation fails, avoid taking the mmap_lock when a direct lookup
-+	 * confirms that the gap is empty.
- 	 */
--	if (from_addr < vma->vm_start) {
--		/* Verify only if the address space might have changed since vma lookup. */
--		if (!mmap_unlocked || mmap_lock_speculate_retry(mm, mm_wr_seq)) {
--			vma_iter_set(vmi, from_addr);
--			if (vma != vma_next(vmi))
--				goto fallback_unlock;
--		}
--	}
-+	if (from_addr < vma->vm_start &&
-+	    (!mmap_unlocked || mmap_lock_speculate_retry(mm, *last_seq)) &&
-+	    !vma_range_is_empty(mm, from_addr, vma->vm_start - 1))
-+		goto fallback_unlock;
- 
- 	return vma;
- 
+ /*
 _
 
-Patches currently in -mm which might be from david@kernel.org are
+Patches currently in -mm which might be from sj@kernel.org are
 
-mm-fix-address-wraparound-when-scanning-large-folio-ptes.patch
-mm-hugetlb-disable-pmd-sharing-for-uffd-missing-mode.patch
-mm-vma-write-lock-source-vma-before-duplicating-it-in-__split_vma.patch
-mm-madvise-preserve-vma_softdirty_bit-when-changing-anonymous-names.patch
-fs-proc-task_mmu-fix-missed-vmas-when-reading-proc-pid-maps-and-friends.patch
+mm-damon-sysfs-schemes-hold-damon_sysfs_lock-in-target_metric_store.patch
+mm-damon-core-move-static-variable-last_nr_regions-to-damon_ctx.patch
+mm-damon-core-move-static-variable-rotation-to-damon_ctx.patch
 
