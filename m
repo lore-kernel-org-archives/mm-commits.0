@@ -1,45 +1,50 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793032395;
-	b=BMHim4o7i+MM4aiNKS33rmqfK12XbLplUkKZhn5fEmbtkJyu4F11DwEvoS8CDMIuAqF/
-	 f9xDNh8dofMli3eS54X9j1JNbv5vsxwzsjGVDXgN0BDc/kY+5Eq+4xLQm8lG6xCMklAZ/
-	 mAonpo8rUUDati/SH9Orzl6plcQ5KTbUBj3Vi0aoQtcpUCHwHLRncQHZGt6TkzNaJTwya
-	 7MSsp7faPb7lpcBVn9rkkJ5HZkiVokZxRgWOeF4oxg8gDzjhyHNwPuwdpMOnofq9OgsuH
-	 oA9byY1tkzwyQGmRRXbKrRjIqz0mvNVzW/NVANiHPonnVv+m52u1WrMcAO7xKdiWnZA==
+	t=1793032455;
+	b=PFnQi+A1rdfOEGj+Az/Y0ar62eQqStnnukonVpQKbZXHVCQCuRRMjAy+M3AyH8xx9p+Y
+	 a1pLhayqzp9zLzkImF0DM7kyJRFRxFsezAVuHxXpJ33H6fZ4cUVEnamr5Ut1YE1dpYkD7
+	 FqsDd05YpeM9Vh1yy7+TgNkTPGQHCxZ7Ud/Q6B644tkokFP7KHZMqbHdV2qyCsP70wmtP
+	 /GTR9sO7bUPYNXJikeCkXmFsWNzpJ3BZeubQ+Ljtk+F3bulAxAa9NTXZ+o6kc7bGYVUrs
+	 v66KA5Lq9aPXJhNtIALyttXSc17wPXWd2PQH3+gPzh8Zu9YmZ2blJq2CXsD4jbghDrg==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793032395;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793032455;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=1VCZwIPwamlvsTk1sP/k2i2Si0s/9A++E/qyvuavR3w=;
-	b=yOuv204c71o8IMLdh8a5LDWEAPiGIu3WdhPwJw4cygtg5WWYTY3QGL3KIDJtKUMqLMCS
-	 qqnx7WvghBDfy5rPadTYgSp4Xi3m1Zlaw3ewmmRVZXVSVxJwFE9Artw8p1NL6M9lParhw
-	 93VDyEREn9cLNaFZrTRgNxD4dFTyx1rjp1weonYOgY4/8C6m3DN7nHriDJcTWk6MBkQAP
-	 VlNkbw41bb6cGIG1FGdYss4hei3gAmCGpHWPCBCP5WXbms7n+K25vO20MHFRT3BVeele7
-	 H4P3d9FrwLFlDmb+tpWdu9V8QVYl+UkgcRxYZKwRQvrAnea0GUz5FhF2FtxAv0EhF1g==
+	bh=eWt0zO4FIEpNCxPbARY7hsSEE/JUtBJIPu6Hlw0RxH0=;
+	b=pOdsn2OITpBbdh3LG+dr4Ups9F+xHqc9bXgPZks7NAFWK2r8FEePCJ7tWqjVS0TVQMl9
+	 2RtJ38AI+lqOv893lSJj5zuNdvzgb+F2wzkfOSgoXCyq7gA0/cYOi/QSk4cBQXr0A3ZXD
+	 hk85/uWT5DnEO9LAt0xyNY3mtUxJd0TYwEUh5RdGe3iavCzy5u1LMbeFLHM0whUhInsdC
+	 vkP2vEXcbJi746FDUGb3d4iSRGaWi3CG/ttNtO3ecHwpQy6Swpk3uF69F7fojQRK4x108
+	 zm2v8Ia4X5r+Nj7NaPzAmeZn5BQ9V7BZTXv9cfE78qG1a1Gz7qu9Pc1onfERVQksT2A==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=NIfB1+5f;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b="qMBbmr/t";
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 110FD606A31D
-	for <mm-commits@vger.kernel.org>; Mon, 26 Oct 2026 16:33:14 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4819E606A31A;
+	Mon, 26 Oct 2026 16:34:15 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=NIfB1+5f
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id AAA561F031E3;
-	Mon, 26 Oct 2026 16:33:14 +0000 (UTC)
+	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=qMBbmr/t
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C352F1F031E0;
+	Mon, 26 Oct 2026 16:34:14 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1793032394;
-	bh=1VCZwIPwamlvsTk1sP/k2i2Si0s/9A++E/qyvuavR3w=;
+	d=linux-foundation.org; s=korg; t=1793032454;
+	bh=eWt0zO4FIEpNCxPbARY7hsSEE/JUtBJIPu6Hlw0RxH0=;
 	h=Date:To:From:Subject;
-	b=NIfB1+5fTXo/SLbzBn5rI0bt8a/0iUTlfcoTmRQrYSNE0uH37URTWW4MTpA2onebx
-	 4khCJz3XtNz6yuxy2916spamJym6UjxDtPcnEuzFCB5D46xX9knRQaY/PyAal9Y/UR
-	 LtFlFQnT5WIcRoypU+RqAXdIXyi6BwYxKYubns9Q=
-Date: Mon, 26 Oct 2026 09:33:14 -0700
-To: mm-commits@vger.kernel.org,chris@chrisdown.name,akpm@linux-foundation.org
+	b=qMBbmr/tV8T2nwO2jSQKmH372uEnA//Xjg62B6PYZ6u2Cun0GljONYbv5PaQFl0yP
+	 mGDnD79DYI4oBDMinixFIKq/94PTDs6TO0UCYgweaLs9uqvrPHnk8g2al8soAG1VMD
+	 qzdHK+vYXZXW3jdscIQErepT9Gak8gAyEvIF6E5w=
+Date: Mon, 26 Oct 2026 09:34:14 -0700
+To: mm-commits@vger.kernel.org,youngjun.park@lge.com,vineeth@bitbyteword.org,
+	stable@vger.kernel.org,rafael.j.wysocki@intel.com,nphamcs@gmail.com,
+	kelleynnn@gmail.com,kasong@tencent.com,hughd@google.com,
+	huang.ying.caritas@gmail.com,chrisl@kernel.org,baoquan.he@linux.dev,
+	baolin.wang@linux.alibaba.com,baohua@kernel.org,chris@chrisdown.name,
+	akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [to-be-updated] mm-make-swapoff-interruptible-when-unusing-mms-shmem.patch removed from -mm tree
-Message-Id: <20261026163314.AAA561F031E3@smtp.kernel.org>
+Subject: + mm-make-swapoff-interruptible-when-unusing-mms-shmem.patch added to mm-unstable branch
+Message-Id: <20261026163414.C352F1F031E0@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -50,17 +55,33 @@ List-Owner: <mailto:mm-commits+owner@vger.kernel.org>
 Precedence: list
 
 
-The quilt patch titled
+The patch titled
      Subject: mm: make swapoff interruptible when unusing mms/shmem
-has been removed from the -mm tree.  Its filename was
+has been added to the -mm mm-unstable branch.  Its filename is
      mm-make-swapoff-interruptible-when-unusing-mms-shmem.patch
 
-This patch was dropped because an updated version will be issued
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-make-swapoff-interruptible-when-unusing-mms-shmem.patch
+
+This patch will later appear in the mm-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via various
+branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there most days
 
 ------------------------------------------------------
 From: Chris Down <chris@chrisdown.name>
 Subject: mm: make swapoff interruptible when unusing mms/shmem
-Date: Thu, 1 Oct 2026 01:17:40 +0200
+Date: Mon, 26 Oct 2026 22:31:03 +0800
 
 try_to_unuse() only checks for a pending signal between mms, and
 shmem_unuse() doesn't check at all.  That means that once swapoff gets to
@@ -106,28 +127,28 @@ in the same test while swapoff is happening on my computer:
     400MiB shmem      1.639s                  0.003s
     2GiB anon         failed after 20.003s    0.011s
 
-Link: https://lore.kernel.org/ar2YlFYjYUZ49ZA5@chrisdown.name
+Link: https://lore.kernel.org/at9kJwdGkHPsWwgG@chrisdown.name
 Fixes: b56a2d8af914 ("mm: rid swapoff of quadratic complexity")
 Signed-off-by: Chris Down <chris@chrisdown.name>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 Acked-by: Vineeth Pillai (Google) <vineeth@bitbyteword.org>
-Cc: Hugh Dickins <hughd@google.com>
 Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
+Cc: Hugh Dickins <hughd@google.com>
 Cc: Chris Li <chrisl@kernel.org>
 Cc: Kairui Song <kasong@tencent.com>
-Cc: Kemeng Shi <shikemeng@huaweicloud.com>
 Cc: Nhat Pham <nphamcs@gmail.com>
 Cc: Baoquan He <baoquan.he@linux.dev>
 Cc: Barry Song <baohua@kernel.org>
 Cc: Youngjun Park <youngjun.park@lge.com>
 Cc: Ying Huang <huang.ying.caritas@gmail.com>
 Cc: Kelley Nielsen <kelleynnn@gmail.com>
-Cc: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
+Cc: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+Cc: <stable@vger.kernel.org>
 ---
 
  mm/shmem.c    |    4 ++++
- mm/swapfile.c |    2 ++
- 2 files changed, 6 insertions(+)
+ mm/swapfile.c |    4 +++-
+ 2 files changed, 7 insertions(+), 1 deletion(-)
 
 --- a/mm/shmem.c~mm-make-swapoff-interruptible-when-unusing-mms-shmem
 +++ a/mm/shmem.c
@@ -136,7 +157,7 @@ Cc: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
  			break;
  
 +		if (signal_pending(current)) {
-+			ret = -EINTR;
++			ret = -ERESTARTSYS;
 +			break;
 +		}
  		start = indices[folio_batch_count(&fbatch) - 1];
@@ -149,12 +170,22 @@ Cc: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
  	do {
  		cond_resched();
 +		if (signal_pending(current))
-+			return -EINTR;
++			return -ERESTARTSYS;
  		next = pmd_addr_end(addr, end);
  		ret = unuse_pte_range(vma, pmd, addr, next, type);
  		if (ret)
+@@ -2922,7 +2924,7 @@ retry:
+ 	if (swap_usage_in_pages(si)) {
+ 		if (!signal_pending(current))
+ 			goto retry;
+-		return -EINTR;
++		return -ERESTARTSYS;
+ 	}
+ 
+ success:
 _
 
 Patches currently in -mm which might be from chris@chrisdown.name are
 
+mm-make-swapoff-interruptible-when-unusing-mms-shmem.patch
 
