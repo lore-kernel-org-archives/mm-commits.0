@@ -1,46 +1,50 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793042276;
-	b=vSjZcCvU1JTAoX4UXsZtzWM+TkOxmdXwhRuTK7YXZx3oFpE7+k+bRBEfo5L9xx771zNh
-	 QNSF07TKugg1QaXXt9+6fBkHLtt4IcSBo1IXQ97cHlz8OskfmR3AHO0HOjJXYQoMYwfET
-	 YOvOY8X/RQusAWjP7LWOxNj2sI475Psi4EkxyftEccdT2G79BPVKpCim6Jn5I18MFJLrZ
-	 +WuvW0nswuz+UKBL3wooqx13PxAg6Gbc5vCZUYekOYvOKN54Hd85X1JWi9tasiGH9trRL
-	 m8qcSekuKaBUZ6a1sZBvFZTDFq7IU7lsmsP6ex9hceUZUW+sFq8XLAJsOsWdy/XtvGQ==
+	t=1793045727;
+	b=LPgUqvT57P/byYXSfTn0WlNRItQfebGPcHQaLexNH2n6MM4ps7DWISbsX1W40d9SF7iv
+	 ghOAUrOeX9ABdlSmD1MHjskoga25WopNuCFVF79qY8dMQg33nzBNnrw/gIsYY/V4ZrRbN
+	 s+j2xs0uqDPqgRDmomwFoZ2UWiosk3KiUQ7nqE89HxBV0rTjkUgUAmG3JFEWZWjLDSv61
+	 ODP3HhxPBe4A/PSYu59KLUbZOx9RRHBZJbuuvOUL2/oP1dNqxq54o+Rb92kTl1vaFI75a
+	 uj5k1qLswILKneGjYXVi7nSml8QLcUViVpSiLnlCtw7BxY3Tll2yPreA9Zv4Q9hIoWw==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793042276;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793045727;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=pRsxTXG+8KZrmLlOADf2tt4AyiIufgQmGCN8aJn6Rs8=;
-	b=MR03eSnEZMbBB87NN9imDBZ5CpIJQdIPtotMERzR4ba9oTgEEjdlaTyc8+FSYW+UdzgW
-	 uoa1FSKpCtzcI+Zratqrjics9d4JEzKFMnjLQCw+OhvqGtNg3P/qimUJ/a9arUM0CneSr
-	 4mHJfhcoqCcQUAGAgu0jj1OmVSDWhP+6i1v8JFkfujV6jO4uRfDsarOkkP+5ZL0xzEUIA
-	 YrfebPeI6R5xduyUn8Sda3ar7sHB58FfDRqjGNALHiEfRGJPSzyOkpPZpGWvefzRWIZMR
-	 vbiOtRfQ5rF6pAyRmq+y39iS8Lc9T38qWjbdCS92sOTeUoHuarkooHB+zZfJZiM7QuQ==
+	bh=kg1FEEWYbGq7lJBC1/J4dnRb81NaIwEkbUwrQ5UXHxo=;
+	b=DMQ1qtRJIYu4dJkHa+U4KMMeFkax38jwVndluYRxotD+mnz9SQzq0E1wJ5BSLH77ns5B
+	 wtZK48B362U0JfG3AYX8TupOzIT/JR9JQPv1rinwpNZe3GK2A8Q2bKxZDkGFuSn9jCMXG
+	 G7GOPlwNDn3OlhvmgAF280AC/39nUZF27RqeVg+pAVo7b8t8VeE1610Y2X/YXiQjiPk2o
+	 qkOeyqPDtULMQBYDUaH0d5l8mM1TWmmQrlQUktTuHjkEP2xLuxDBweColEZEiZOptLWjP
+	 BNJxDcKuGd3uZtTjmxiRY0PjWAxMxJLx0PV4nwlvLuZLVFzQpcbcU6z/prXyIhp6FSQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=kthoTBfZ;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=hRIo4sys;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A8335606A321
-	for <mm-commits@vger.kernel.org>; Mon, 26 Oct 2026 19:17:55 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E2C32606A31D;
+	Mon, 26 Oct 2026 20:15:26 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=kthoTBfZ
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1078A1F01825;
-	Mon, 26 Oct 2026 19:17:55 +0000 (UTC)
+	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=hRIo4sys
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7B8E11F01825;
+	Mon, 26 Oct 2026 20:15:26 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1793042275;
-	bh=pRsxTXG+8KZrmLlOADf2tt4AyiIufgQmGCN8aJn6Rs8=;
+	d=linux-foundation.org; s=korg; t=1793045726;
+	bh=kg1FEEWYbGq7lJBC1/J4dnRb81NaIwEkbUwrQ5UXHxo=;
 	h=Date:To:From:Subject;
-	b=kthoTBfZiASunFoUPdg56l1seXNstPjzmnscZNp1izA4UP1hKvO2rjvSUWUfGlSlc
-	 5KKZu579OesbAR9WXCYd2VZsqBeaK0ga5nxce+1IuZ8t1cd6J0ChIBSDtr2Xdkmgby
-	 D7X8dM5wwa4rHGYqg+EixLSVaQUcRzvH39z4joS0=
-Date: Mon, 26 Oct 2026 12:17:54 -0700
-To: mm-commits@vger.kernel.org,viro@zeniv.linux.org.uk,jack@suse.cz,
-	brauner@kernel.org,parri.andrea@gmail.com,akpm@linux-foundation.org
+	b=hRIo4sys0jPnFdg4rN/f6DzsmY7/+ROHmKZ+inFao8sbtomcAik3jnQI7qgVqzVBa
+	 LJ3wr4XxF5M2N9l8sS2E/8Du5CYmCA5yZn+MqXrLo88QtUhiEnvtP8Mn7RK5FBKbfi
+	 Gr5vwSt7JIfYTJLe+m7FHAPYAxJiwzEdUEVraWgo=
+Date: Mon, 26 Oct 2026 13:15:25 -0700
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,ying.huang@linux.alibaba.com,
+	vincenzo.frascino@arm.com,stable@vger.kernel.org,sashiko-bot@kernel.org,
+	odys.yuan@gmail.com,matthew.brost@intel.com,joshua.hahnjy@gmail.com,
+	gourry@gourry.net,david@kernel.org,catalin.marinas@arm.com,byungchul@sk.com,
+	apopple@nvidia.com,andreyknvl@gmail.com,dennylin0707@gmail.com,
+	akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + iov_iter-take-an-unsigned-long-segment-count-in-import_iovec.patch added to mm-nonmm-unstable branch
-Message-Id: <20261026191755.1078A1F01825@smtp.kernel.org>
+Subject: + mm-migrate-untag-addresses-when-querying-page-nodes.patch added to mm-unstable branch
+Message-Id: <20261026201526.7B8E11F01825@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -52,14 +56,14 @@ Precedence: list
 
 
 The patch titled
-     Subject: iov_iter: take an unsigned long segment count in import_iovec()
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     iov_iter-take-an-unsigned-long-segment-count-in-import_iovec.patch
+     Subject: mm/migrate: untag addresses when querying page nodes
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-migrate-untag-addresses-when-querying-page-nodes.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/iov_iter-take-an-unsigned-long-segment-count-in-import_iovec.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-migrate-untag-addresses-when-querying-page-nodes.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -75,89 +79,58 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Andrea Parri <parri.andrea@gmail.com>
-Subject: iov_iter: take an unsigned long segment count in import_iovec()
-Date: Mon, 26 Oct 2026 19:06:18 +0100
+From: Hungyu Lin <dennylin0707@gmail.com>
+Subject: mm/migrate: untag addresses when querying page nodes
+Date: Mon, 26 Oct 2026 19:53:29 +0000
 
-readv(), writev() and their positional variants, process_vm_readv(),
-process_vm_writev(), vmsplice(), process_madvise(), vectored aio and the
-btrfs encoded I/O ioctls all take a full-width segment count, and all of
-them hand it to import_iovec() or __import_iovec().  Those take an
-unsigned int count, so on 64-bit kernels the upper 32 bits are dropped
-before iovec_from_user() checks the count against UIO_MAXIOV.
+When move_pages() is used with nodes == NULL, do_pages_stat_array() passes
+each page address directly to vma_lookup().  A valid tagged address
+therefore fails the VMA lookup and gets -EFAULT in its status entry,
+instead of the node reported for the corresponding untagged address.
 
-A count of 0x100000001 is therefore imported as one segment: writev() on a
-pipe writes a byte and readv() reads it back, instead of both failing with
-EINVAL.  A count of 0x100000000 returns 0 as an empty vector.
+The tagged address ABI permits these pointers, and the migration path
+already removes their tags.  Apply the target mm's untagging rules to the
+query path as well, while holding its mmap read lock.
 
-import_iovec() was added with an unsigned int count, but the helper it
-wrapped, rw_copy_check_uvector(), took an unsigned long, as does
-iovec_from_user() today.  Until v4.1, readv(), writev(), preadv(),
-pwritev(), process_vm_readv(), process_vm_writev() and vectored aio
-therefore failed these counts with EINVAL, as did vmsplice() until v4.18.
-
-Widen nr_segs in both import helpers so the UIO_MAXIOV check sees the
-count the caller passed.  Callers with 32-bit counts are unaffected.
-
-AI assistance was used to find the bug, develop the fix, and run the
-reproducers.
-
-Link: https://lore.kernel.org/20261026180619.4147910-1-parri.andrea@gmail.com
-Fixes: bc917be81059 ("saner iov_iter initialization primitives")
-Signed-off-by: Andrea Parri <parri.andrea@gmail.com>
+Link: https://lore.kernel.org/20261026195330.46757-1-dennylin0707@gmail.com
+Fixes: 057d3389108e ("mm: untag user pointers passed to memory syscalls")
+Signed-off-by: Hungyu Lin <dennylin0707@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Christian Brauner <brauner@kernel.org>
-Cc: Jan Kara <jack@suse.cz>
+Reported-by: Sashiko <sashiko-bot@kernel.org>
+Closes: https://lore.kernel.org/r/20260721183257.706661F000E9@smtp.kernel.org
+Acked-by: Zi Yan <ziy@nvidia.com>
+Acked-by: David Hildenbrand (Arm) <david@kernel.org>
+Cc: Matthew Brost <matthew.brost@intel.com>
+Cc: Joshua Hahn <joshua.hahnjy@gmail.com>
+Cc: Byungchul Park <byungchul@sk.com>
+Cc: Gregory Price <gourry@gourry.net>
+Cc: Ying Huang <ying.huang@linux.alibaba.com>
+Cc: Alistair Popple <apopple@nvidia.com>
+Cc: Andrey Konovalov <andreyknvl@gmail.com>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Vincenzo Frascino <vincenzo.frascino@arm.com>
+Cc: <odys.yuan@gmail.com>
+Cc: <stable@vger.kernel.org>
 ---
 
- include/linux/uio.h |    8 ++++----
- lib/iov_iter.c      |    6 +++---
- 2 files changed, 7 insertions(+), 7 deletions(-)
+ mm/migrate.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/include/linux/uio.h~iov_iter-take-an-unsigned-long-segment-count-in-import_iovec
-+++ a/include/linux/uio.h
-@@ -362,11 +362,11 @@ struct iovec *iovec_from_user(const stru
- 		unsigned long nr_segs, unsigned long fast_segs,
- 		struct iovec *fast_iov, bool compat);
- ssize_t import_iovec(int type, const struct iovec __user *uvec,
--		 unsigned nr_segs, unsigned fast_segs, struct iovec **iovp,
--		 struct iov_iter *i);
-+		 unsigned long nr_segs, unsigned int fast_segs,
-+		 struct iovec **iovp, struct iov_iter *i);
- ssize_t __import_iovec(int type, const struct iovec __user *uvec,
--		 unsigned nr_segs, unsigned fast_segs, struct iovec **iovp,
--		 struct iov_iter *i, bool compat);
-+		 unsigned long nr_segs, unsigned int fast_segs,
-+		 struct iovec **iovp, struct iov_iter *i, bool compat);
- int import_ubuf(int type, void __user *buf, size_t len, struct iov_iter *i);
+--- a/mm/migrate.c~mm-migrate-untag-addresses-when-querying-page-nodes
++++ a/mm/migrate.c
+@@ -2461,7 +2461,7 @@ static void do_pages_stat_array(struct m
+ 	mmap_read_lock(mm);
  
- static inline void iov_iter_ubuf(struct iov_iter *i, unsigned int direction,
---- a/lib/iov_iter.c~iov_iter-take-an-unsigned-long-segment-count-in-import_iovec
-+++ a/lib/iov_iter.c
-@@ -1362,8 +1362,8 @@ static ssize_t __import_iovec_ubuf(int t
- }
- 
- ssize_t __import_iovec(int type, const struct iovec __user *uvec,
--		 unsigned nr_segs, unsigned fast_segs, struct iovec **iovp,
--		 struct iov_iter *i, bool compat)
-+		 unsigned long nr_segs, unsigned int fast_segs,
-+		 struct iovec **iovp, struct iov_iter *i, bool compat)
- {
- 	ssize_t total_len = 0;
- 	unsigned long seg;
-@@ -1434,7 +1434,7 @@ ssize_t __import_iovec(int type, const s
-  * Return: Negative error code on error, bytes imported on success
-  */
- ssize_t import_iovec(int type, const struct iovec __user *uvec,
--		 unsigned nr_segs, unsigned fast_segs,
-+		 unsigned long nr_segs, unsigned int fast_segs,
- 		 struct iovec **iovp, struct iov_iter *i)
- {
- 	return __import_iovec(type, uvec, nr_segs, fast_segs, iovp, i,
+ 	for (i = 0; i < nr_pages; i++) {
+-		unsigned long addr = (unsigned long)(*pages);
++		unsigned long addr = (unsigned long)untagged_addr_remote(mm, *pages);
+ 		struct vm_area_struct *vma;
+ 		struct folio_walk fw;
+ 		struct folio *folio;
 _
 
-Patches currently in -mm which might be from parri.andrea@gmail.com are
+Patches currently in -mm which might be from dennylin0707@gmail.com are
 
-iov_iter-take-an-unsigned-long-segment-count-in-import_iovec.patch
+mm-page-writeback-avoid-32-bit-overflow-in-dirty-threshold-shares.patch
+mm-migrate-untag-addresses-when-querying-page-nodes.patch
 
