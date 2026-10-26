@@ -1,46 +1,48 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1792981233;
-	b=huCo8mZkujQAKRi6QZjdfcvACSSYpc3/jc3xuJHEajwx1HgjD3tFSYHo4NweHiFKfse0
-	 tIuKcMPpiBteWWjYWXeTOAQfCtik/VelrbCLJX0LqKuOV7hiYD3icNr/wVKksR+UWyBuG
-	 TPUg0JDFRcTS2h1qJRAzU4YXm3atULTUd6aqd+x/3+3pXyGxr4MVDo2arL6Z2O8wOukJd
-	 avvd+zwRwF21vUe266w9bHRdQ04+V5afTfesI170gC7A05sdXDM5f6qs7wPPptYA0TccH
-	 XtlD8U/RBWBdTIWAUhMdkwRDog/MHFJifC9JvVt1HWvaZTJ1p7FR0wiNYEx4JeJlXJg==
+	t=1792981279;
+	b=t58v5zT8EAu76pCFRApbKgas0DhZ5vQNpOxAo6oKHuqKYizcD5mf4nFpfZjMuti1Uv12
+	 Q7j7nBgWZCsTLvxCArB3j05Vfmz1WL4TcjYl81kXHnk464ASEVhDuDBspnxdfUhfKK7Vx
+	 htkxx6gcbp5X4kCW7XNal8On9mV/RNYNT+FHHxlsrDcM/zW0Y5/G4eFeuRx5U3ibv/iSK
+	 REEkZM8iaFpNtc1pVkJOY9npfWHLO927sgzrk7cO18+nTFQtsiYagViE4ra3rhUAv2xRf
+	 OfRUIdh3p4mbZOVVogozZKJNRrb3zSKCAFuidJVV08bB6demvyUsuJwm5HF3LZsq2UQ==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1792981233;
+	a=rsa-sha256; c=relaxed/relaxed; t=1792981279;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=ZPPzxSgXQ/fi9l/jxDxUXcakc3zoPIJYhpuUR/bm03w=;
-	b=lEgB9R77gF6DSMCwEXGtfA0XnC41vCcqazzHdw4n3uOTFfD0gmec9CMW1UuW6QBelHXP
-	 jCmq2JQT4am0yIDAcajQ8ydaw311yyj3ydcSCKb4OAzBrsPsVF8hRfRXyuGsgk8/zdQB4
-	 FLvRu+K9tzsTTbZz8BNVauEo/2tBfjn4BMDdNEclJuH1lUVlnwvoZL3Kupj/VBp76mVQ1
-	 +MPg5cXFAeFFn8QInVXTfwVqQkFULKR/+lAbh50Mi02IrV/VGd/5QnCuzC7mCl7FeZRaZ
-	 ukNy4btzK/Y52abmu5OCHlwscNwvSd8f5B7BfVpqBgkagtD7NWe0hHiMdIIxgb8qe6g==
+	bh=MgLC4qV+kIEISJ7mHdfNI8RTnqxuVF/IeNtX0lf/eO4=;
+	b=fWY8TOuZT4oBNe685D8LjooLDCnMbE1hZqRNJ1PlXSe/Qxkxzvo5b+meX2/u2gUBEcNX
+	 yCrw3EZE2coi1s7qCgMYjpj4H/ZPFqWtMsXNv+6pvCf+sozhvqu8hvZIHEgUgBWU57Ipr
+	 l3Z6CO4zsr5ukpiTCqOUuCrvPd6GDdFX8gxWmw/zjLpX8WAeaw1QBUdjuF5CnatNqKkn/
+	 jdG6optV/8FHZ55dZ2TJCFAg+yEvO9sIUK+3unNrPHFF/nmzskJHCkiuEsUwq58OIraYx
+	 n9Jq3jg2kgPjqcA9ppi0RjwkP67ou6O4ek58tCilsIiy7INed9uitnG80uD1+YlXunw==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b="HtjhM/Ce";
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b="t/bHcGSX";
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 57DFA606A31E
-	for <mm-commits@vger.kernel.org>; Mon, 26 Oct 2026 02:20:27 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 14ED1606A31A
+	for <mm-commits@vger.kernel.org>; Mon, 26 Oct 2026 02:21:19 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=HtjhM/Ce
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B79241F01825;
-	Mon, 26 Oct 2026 02:20:27 +0000 (UTC)
+	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=t/bHcGSX
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C13381F01825;
+	Mon, 26 Oct 2026 02:21:18 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1792981227;
-	bh=ZPPzxSgXQ/fi9l/jxDxUXcakc3zoPIJYhpuUR/bm03w=;
+	d=linux-foundation.org; s=korg; t=1792981278;
+	bh=MgLC4qV+kIEISJ7mHdfNI8RTnqxuVF/IeNtX0lf/eO4=;
 	h=Date:To:From:Subject;
-	b=HtjhM/CeAUY9RiHkXOSBA7Z6QXfKQ2wsB8HI1Icd2I7MeKAkGpjmE/4qu4j+f2L4r
-	 AFz++SeICkZ35/wsAEDESvZsPyKTxwoTI6MuTl1EXHGX2aHGRJmrOoqbb4uCQWlh/2
-	 IaDSx5KPt83wyTizbqo/16d7yTmj/LZN7CF97qp0=
-Date: Sun, 25 Oct 2026 19:20:27 -0700
-To: mm-commits@vger.kernel.org,baolin.wang@linux.alibaba.com,
-	akpm@linux-foundation.org
+	b=t/bHcGSXMyHeWt0C1u5zlm/m92+DkFK2poxTuGR9zEE0LhH1bdZb4e/VsvLSFD1qV
+	 zMx/6jVOfBc8s0P1s+JotMv1wQJvtelfl+ftxfhQNAuDTqsoTLzHJHbF4a0lVSGpdo
+	 RBseeQCtWr9Q9ehTbgaAEAjvBxyTg9pjV5n+IzIE=
+Date: Sun, 25 Oct 2026 19:21:18 -0700
+To: mm-commits@vger.kernel.org,vbabka@kernel.org,surenb@google.com,
+	rppt@kernel.org,qi.zheng@linux.dev,pfalcato@suse.de,mhocko@suse.com,
+	ljs@kernel.org,liam@infradead.org,jack@suse.cz,david@kernel.org,
+	ayushr@modal.com,baolin.wang@linux.alibaba.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [to-be-updated] mm-memory-fix-truncation-removing-mapped-folios.patch removed from -mm tree
-Message-Id: <20261026022027.B79241F01825@smtp.kernel.org>
+Subject: + mm-memory-fix-truncation-removing-mapped-folios.patch added to mm-hotfixes-unstable branch
+Message-Id: <20261026022118.C13381F01825@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -51,17 +53,33 @@ List-Owner: <mailto:mm-commits+owner@vger.kernel.org>
 Precedence: list
 
 
-The quilt patch titled
+The patch titled
      Subject: mm: memory: fix truncation removing mapped folios
-has been removed from the -mm tree.  Its filename was
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
      mm-memory-fix-truncation-removing-mapped-folios.patch
 
-This patch was dropped because an updated version will be issued
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memory-fix-truncation-removing-mapped-folios.patch
+
+This patch will later appear in the mm-hotfixes-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via various
+branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there most days
 
 ------------------------------------------------------
 From: Baolin Wang <baolin.wang@linux.alibaba.com>
 Subject: mm: memory: fix truncation removing mapped folios
-Date: Fri, 16 Oct 2026 09:48:08 +0800
+Date: Mon, 26 Oct 2026 10:05:06 +0800
 
 Ayush reported an issue that shmem/tmpfs folios are still mapped when
 truncating them on production:
@@ -103,12 +121,12 @@ workingset|swapbacked|node=0|zone=2|lastcpupid=0x3ffff)
 [  189.187078]  el0t_64_sync+0x184/0x188
 "
 
-After analysis, I believe the race exists between truncation and
-MADV_DONTNEED, and shmem's ->map_pages() merely makes the issue easier to
-reproduce.  Since MADV_DONTNEED synchronously releases the pagetable page
-before calling tlb_flush_rmaps(), this could cause another thread's
-truncation to skip zap_pte_range() (due to pmd is none) but still observe
-the folio's mapcount as non-zero.  A possible race scenario is as follows:
+After analysis, I believe the race exists between truncation and MADV_DONTNEED,
+and shmem's ->map_pages() merely makes the issue easier to reproduce. Since
+MADV_DONTNEED synchronously releases the pagetable page before calling
+tlb_flush_rmaps(), this could cause another thread's truncation to skip
+zap_pte_range() (due to pmd is none) but still observe the folio's mapcount
+as non-zero. A possible race scenario is as follows:
 
 CPU 0                           CPU 1
 shmem_fallocate                 madvise_dontneed_single_vma
@@ -132,7 +150,7 @@ find a pmd_none() while unmapping a folio without holding the PTL, the
 folio's mappings are guaranteed to have been removed via
 tlb_flush_rmaps().
 
-Link: https://lore.kernel.org/e2f76ed117b0c22a26b7688fd46a38c9d035336e.1792114445.git.baolin.wang@linux.alibaba.com
+Link: https://lore.kernel.org/4cc521a118564b4145edf0324066ab532fb41181.1792979870.git.baolin.wang@linux.alibaba.com
 Link: https://lore.kernel.org/all/20260925065013.3682431-1-ayushr@modal.com/ [1]
 Fixes: 6375e95f381e ("mm: pgtable: reclaim empty PTE page in madvise(MADV_DONTNEED)")
 Signed-off-by: Baolin Wang <baolin.wang@linux.alibaba.com>
@@ -140,8 +158,8 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 Reported-by: Ayush Ranjan <ayushr@modal.com>
 Closes: https://lore.kernel.org/all/20260924061708.1645968-1-ayushr@modal.com/
 Acked-by: Qi Zheng <qi.zheng@linux.dev>
-Reviewed-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
 Reviewed-by: Pedro Falcato <pfalcato@suse.de>
+Reviewed-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
 Cc: David Hildenbrand <david@kernel.org>
 Cc: Liam R. Howlett <liam@infradead.org>
 Cc: Vlastimil Babka <vbabka@kernel.org>
@@ -151,13 +169,13 @@ Cc: Michal Hocko <mhocko@suse.com>
 Cc: Jan Kara <jack@suse.cz>
 ---
 
- mm/internal.h |    9 +++++----
- mm/memory.c   |   25 ++++++++++++-------------
- 2 files changed, 17 insertions(+), 17 deletions(-)
+ mm/internal.h |   10 ++++++----
+ mm/memory.c   |   28 +++++++++++++++-------------
+ 2 files changed, 21 insertions(+), 17 deletions(-)
 
 --- a/mm/internal.h~mm-memory-fix-truncation-removing-mapped-folios
 +++ a/mm/internal.h
-@@ -584,14 +584,15 @@ void free_pgtables(struct mmu_gather *tl
+@@ -584,14 +584,16 @@ void free_pgtables(struct mmu_gather *tl
  void pmd_install(struct mm_struct *mm, pmd_t *pmd, pgtable_t *pte);
  
  /**
@@ -170,10 +188,11 @@ Cc: Jan Kara <jack@suse.cz>
 - * zap_huge_pmd() may have cleared the PMD but not yet modified the folio to
 - * indicate that it's unmapped. Skipping the PMD without synchronization could
 - * make folio unmapping code assume that unmapping failed.
-+ * zap_huge_pmd() or zap_empty_pte_table() may have cleared the PMD but not
-+ * yet modified the mapped folios to indicate they are unmapped. Skipping the
-+ * PMD without synchronization could make folio unmapping code assume that
-+ * unmapping failed.
++ * zap_huge_pmd() may have cleared the PMD but not yet updated the folio
++ * mapcount, and zap_empty_pte_table() clears the PMD only after the rmaps
++ * for the table have been removed, but nothing orders the pmd_none() read
++ * against later mapcount reads. Skipping the PMD without synchronization
++ * could make folio unmapping code assume that unmapping failed.
   *
   * Wait for concurrent zapping to complete by grabbing the PTL.
   */
@@ -195,7 +214,13 @@ Cc: Jan Kara <jack@suse.cz>
  	/*
  	 * Fast path: try to hold the pmd lock and unmap the PTE page.
  	 *
-@@ -2083,15 +2092,6 @@ retry:
+@@ -2080,18 +2089,12 @@ retry:
+ 	 * to hold the pmd lock failed, then we need to recheck all pte entries
+ 	 * to ensure they are still none, thereby preventing the pte entries
+ 	 * from being repopulated by another thread.
++	 *
++	 * Clear the PMD after the rmaps for the table have been removed, in case
++	 * an incorrect mapcount is observed after unmapping the folio.
  	 */
  	if (can_reclaim_pt && direct_reclaim && addr == end)
  		direct_reclaim = zap_empty_pte_table(mm, pmd, ptl, &pmdval);
@@ -211,7 +236,7 @@ Cc: Jan Kara <jack@suse.cz>
  	pte_unmap_unlock(start_pte, ptl);
  
  	/*
-@@ -2139,12 +2139,11 @@ static inline unsigned long zap_pmd_rang
+@@ -2139,12 +2142,11 @@ static inline unsigned long zap_pmd_rang
  				continue;
  			}
  			/* fall through */
@@ -231,4 +256,5 @@ _
 
 Patches currently in -mm which might be from baolin.wang@linux.alibaba.com are
 
+mm-memory-fix-truncation-removing-mapped-folios.patch
 
