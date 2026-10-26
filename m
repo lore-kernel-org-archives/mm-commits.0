@@ -1,46 +1,48 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793052189;
-	b=mIcAc2Jr1detka/hH/On4iuV0/+PmppCjICGrknLw5eoksfkXSTxz9Tsn48HwGPMb4ft
-	 WG4Rwn/PLD6Kb2A/fi+X3KyaczshOCX/x/kZnotOZ9yuOstaUfcWvNyIH3MXQ4rafm098
-	 tT342gclByO1cwap06EZoUD+xlzR5nK+m4kOyBWEFkpnZxrQvPkxxSv6RRlULxMdJmSM9
-	 eOQ/VTwONjChl2w19Sqoa1CZMxLCAGp1mBAx5+d8IV1aoqQYRmnV+jmxGez6NXREWAaPO
-	 BqdtVLbOrPwztoNj5eN2l7psb/FkthW2Pj5Z0lbUVfKn/irFDSsf7DO779B+jBhmcbg==
+	t=1793052238;
+	b=wwfYAL2UrDdOc9gSWn7js5bII+YY0kMymaTFGqrX8hLhVslHvBZ3/9QOmda0dXJj3a2c
+	 qy3JgpUhOfC0DMUm+v5UFVyLIIBjk0iwHzU7jq0oeF4HaZ45lpvuOoPgSXqkNg/z4cR6X
+	 Izx2VVN5HEmxOcUmmmSFWCNZVh2kKaqOPt/fMa/mWh2pPJsf02wfDAJcEBLmJ9Z5BTDOV
+	 oFw4VXfTBsmKv47wvg4aihRm6D6Y2/SCRl+/OzTHZfNoFiY44XRW/FRXcGyecwgnqM/r3
+	 sSSrQJNy+o84/rYC7W4HYZ17L2zd7HUxYPnBdxEdQrbWoDjftsKCz+HEtkZkBqy9Fdg==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793052189;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793052238;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=rJHcJmm9OdDy/GkqN7nf1CjjXNAuKOUsenQLN+/pyFU=;
-	b=ZFihmoJdEXnNu9wYwt+umCxQTsYZuDtWYAtUNH3rY97yNLk9vryJo+SytiSIOvakCi8B
-	 yDEUTj7lnK1ULasxdIcRyiUwKavLZcrG6DjHQiTNRYAlEjrzIPcSqiZLE5zhsknuVutB6
-	 GkYCPY45V7jSl/laBk20Lg5FbItmcYnln8Nn9Pc/lSAoZAoJY4c85bBFiixTuDLUsLgg7
-	 u66rUCGWUXGkPd6It6h1cDpKOt8XOG03UL12WpDUDTTYl1XsP+7om/dWfPxqq5mzNaOKk
-	 aUcK2DOJvQSSLyITIW7epgoFBXji7XJlYhiKwzZM7/fD4KLs/SuO8P4jePMFhsin5zQ==
+	bh=nwbMRIuhuoU4SZ0N03v/qde2wX5cEPltDS+cWEqP7o8=;
+	b=KXm32jf4fHct/cV1KBRjxbSzOuEpIPOA6ahokVRgLFou4mIZh2Fh2W6HvEsSuUe4ES74
+	 3GGwBIhPM8WqbY0UcxP0NTEz0QZNguI3KIPLx+xWgICv1MHxQ5PuK3ofmx7B4mn28YhUL
+	 JUGRY2wn0b2WWP8I/2sGxw/O7yCDIbkfs48xjv5nZS4TmKzvzgiCKkQZgNlp7fVx6PsNG
+	 L0GIcRqUmrXHOdwCCSGosvZucdrqpLDUrCxy6ofpsHIUQvOrB64bA2kebnK+/9CqCpHZX
+	 aFTyafREe8Pqlrl5AGWZn64jwod/FRvi6p42SdMv6SCBuiWohI9KoYipI1t00jIy/1g==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=01efuKfx;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=aXCqUJkC;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 95171606A31A;
-	Mon, 26 Oct 2026 22:03:09 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 19EFB606A31A;
+	Mon, 26 Oct 2026 22:03:57 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=01efuKfx
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 03F621F01825;
-	Mon, 26 Oct 2026 22:03:08 +0000 (UTC)
+	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=aXCqUJkC
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 94CF21F01825;
+	Mon, 26 Oct 2026 22:03:57 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1793052189;
-	bh=rJHcJmm9OdDy/GkqN7nf1CjjXNAuKOUsenQLN+/pyFU=;
+	d=linux-foundation.org; s=korg; t=1793052237;
+	bh=nwbMRIuhuoU4SZ0N03v/qde2wX5cEPltDS+cWEqP7o8=;
 	h=Date:To:From:Subject;
-	b=01efuKfx7tJUZrjdIgqv+bBJX7BF7YnOnYLCmvQCIJ9PL/BtNk9Ur4HH5fwiCJdhL
-	 yxW/IHVACTkaKK7RKorsc7t8jRi6vlBjqbyfv2AS4xLTUvjdA1es+OCyA/BmAH0ofY
-	 0tPEbIi6hOffPtIjfAtOZLOLo5kni+YnOFCZq3gQ=
-Date: Mon, 26 Oct 2026 15:03:08 -0700
-To: mm-commits@vger.kernel.org,stable@vger.kernel.org,david@kernel.org,
-	baoquan.he@linux.dev,urezki@gmail.com,akpm@linux-foundation.org
+	b=aXCqUJkCFsB+kfeWFObQXI3IDWYjU3iZIoABXIFurUXTttoxS6q2g+ilNdp8plnV6
+	 TMlsPH5QZibDtAl807NigufBA2DF8o5bY1tmF3yjLqHRAGNMTLjjQJA1TBqIvQT58/
+	 +F/NrjpyCNejUPcTeq06Sm2ehJVsGy0aqFyIoJeo=
+Date: Mon, 26 Oct 2026 15:03:57 -0700
+To: mm-commits@vger.kernel.org,stable@vger.kernel.org,mark@fasheh.com,
+	joseph.qi@linux.alibaba.com,jlbec@evilplan.org,jjzuming@gmail.com,
+	heming.zhao@suse.com,baijiaju1990@gmail.com,zzzccc427@gmail.com,
+	akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-vmalloc-bail-out-if-in-softirq-context.patch added to mm-unstable branch
-Message-Id: <20261026220309.03F621F01825@smtp.kernel.org>
+Subject: + ocfs2-wait-for-filecheck-kobject-release-after-a-failed-add.patch added to mm-nonmm-unstable branch
+Message-Id: <20261026220357.94CF21F01825@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -52,14 +54,14 @@ Precedence: list
 
 
 The patch titled
-     Subject: mm/vmalloc: bail out if in softirq context
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-vmalloc-bail-out-if-in-softirq-context.patch
+     Subject: ocfs2: wait for filecheck kobject release after a failed add
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     ocfs2-wait-for-filecheck-kobject-release-after-a-failed-add.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vmalloc-bail-out-if-in-softirq-context.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/ocfs2-wait-for-filecheck-kobject-release-after-a-failed-add.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -75,71 +77,226 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: "Uladzislau Rezki (Sony)" <urezki@gmail.com>
-Subject: mm/vmalloc: bail out if in softirq context
-Date: Mon, 26 Oct 2026 11:25:03 +0100
+From: Cen Zhang <zzzccc427@gmail.com>
+Subject: ocfs2: wait for filecheck kobject release after a failed add
+Date: Sun, 25 Oct 2026 00:18:52 +0800
 
-vmalloc() is not allowed to be invoked from the NMI, hard-irq and softirq
-contexts because doing so may deadlock on internal locks.
+The filecheck kobject and its release completion are embedded in
+ocfs2_super, so the osb must outlive the kobject. On a failed
+kobject_init_and_add(), creation clears fs_fcheck and calls
+kobject_put(), but returns without waiting for the release callback.
 
-Commit 04aa71da5f35 ("mm/vmalloc: do not trigger BUG() on BH disabled
-context") replaced the deprecated in_interrupt() macro with explicit
-in_nmi() and in_hardirq() checks, but unintentionally dropped the softirq
-context check.
+With CONFIG_DEBUG_KOBJECT_RELEASE, the last put queues delayed cleanup.
+Mount failure can then free the containing osb before the embedded
+release timer expires:
 
-Example:
+  Mount failure                     Delayed cleanup
+  -------------                     ---------------
+  ocfs2_filecheck_create_sysfs()
+    kobject_init_and_add() fails
+    fs_fcheck = NULL
+    kobject_put()
+      queue delayed release
+  return to mount error cleanup
+  ocfs2_dismount_volume()
+    remove_sysfs() skips the wait
+    kfree(osb)
+                                    expire embedded release timer
+                                      access freed osb
 
-<snip>
-vzalloc() in a task
- spin_lock(&vn->busy.lock)
-  <------ Hard irq
-   irq_exit()
-    process softirq on the same CPU
-     vmalloc()
-      spin_lock(&vn->busy.lock)
-       spins forever
-<snip>
+The normal removal path waits for fs_kobj_unregister, but it returns
+early when fs_fcheck is NULL. The failed-add path therefore leaves the
+delayed work and its completion in freed storage.
 
-Restore the check by checking the caller's context with the
-in_serving_softirq() helper.  Note that, it is still allowed to invoke
-vmalloc() with disabled bottom halves.
+Wait for the existing release completion after the failed-add
+kobject_put(), before returning to mount error cleanup. This keeps the
+enclosing osb alive until the kobject has finished releasing, matching
+the normal teardown path.
 
-Replace BUG_ON() with WARN_ON_ONCE() for in_nmi() and
-in_hardirq() case.
+KASAN report as below:
 
-Link: https://lore.kernel.org/20261026102503.30860-1-urezki@gmail.com
-Fixes: 04aa71da5f35 ("mm/vmalloc: do not trigger BUG() on BH disabled context")
-Signed-off-by: Uladzislau Rezki (Sony) <urezki@gmail.com>
+    BUG: KASAN: slab-use-after-free in __run_timers+0xa6d/0xa90
+    Write of size 8 at addr ffff8881178a5658 by task swapper/0/0
+    
+    CPU: 0 UID: 0 PID: 0 Comm: swapper/0 Not tainted 7.3.0-rc4-next-20260921-pmb-ocfs2-functional-v1+ #1 PREEMPT(lazy) 
+    Hardware name: QEMU Ubuntu 24.04 PC v2 (i440FX + PIIX, arch_caps fix, 1996), BIOS 1.16.3-debian-1.16.3-2 04/01/2014
+    Call Trace:
+     <IRQ>
+     dump_stack_lvl+0x93/0xd0
+     print_report+0xce/0x630
+     ? __run_timers+0xa6d/0xa90
+     ? srso_alias_return_thunk+0x5/0xfbef5
+     ? __virt_addr_valid+0x20e/0x420
+     ? __run_timers+0xa6d/0xa90
+     kasan_report+0xe0/0x110
+     ? __run_timers+0xa6d/0xa90
+     __run_timers+0xa6d/0xa90
+     ? srso_alias_return_thunk+0x5/0xfbef5
+     ? __pfx___run_timers+0x10/0x10
+     ? __lock_acquire+0x5a3/0x2140
+     ? __pfx_do_raw_spin_lock+0x10/0x10
+     ? srso_alias_return_thunk+0x5/0xfbef5
+     timer_expire_remote+0xfa/0x160
+     ? __pfx_timer_expire_remote+0x10/0x10
+     ? srso_alias_return_thunk+0x5/0xfbef5
+     ? srso_alias_return_thunk+0x5/0xfbef5
+     ? trace_hardirqs_on+0x18/0x160
+     tmigr_handle_remote_up+0x4ba/0x9d0
+     ? __pfx_tmigr_handle_remote_up+0x10/0x10
+     ? tmigr_handle_remote+0x21a/0x340
+     ? srso_alias_return_thunk+0x5/0xfbef5
+     ? lock_release+0xc8/0x290
+     ? __pfx_tmigr_handle_remote_up+0x10/0x10
+     __walk_groups_from+0x5a/0x160
+     tmigr_handle_remote+0x24f/0x340
+     ? __pfx_tmigr_handle_remote+0x10/0x10
+     ? lock_acquire+0x190/0x300
+     ? srso_alias_return_thunk+0x5/0xfbef5
+     ? lock_release+0xc8/0x290
+     run_timer_softirq+0x222/0x270
+     ? __pfx_run_timer_softirq+0x10/0x10
+     ? srso_alias_return_thunk+0x5/0xfbef5
+     ? srso_alias_return_thunk+0x5/0xfbef5
+     ? lockdep_hardirqs_on_prepare+0xb8/0x1a0
+     ? srso_alias_return_thunk+0x5/0xfbef5
+     handle_softirqs+0x1fa/0x8d0
+     ? __pfx_handle_softirqs+0x10/0x10
+     ? srso_alias_return_thunk+0x5/0xfbef5
+     ? _raw_spin_unlock+0x23/0x40
+     ? srso_alias_return_thunk+0x5/0xfbef5
+     ? __hrtimer_rearm_deferred+0x1fb/0x5d0
+     __irq_exit_rcu+0x113/0x1e0
+     irq_exit_rcu+0xe/0x20
+     sysvec_apic_timer_interrupt+0x6c/0x80
+     </IRQ>
+     <TASK>
+     asm_sysvec_apic_timer_interrupt+0x1a/0x20
+    RIP: 0010:pv_native_safe_halt+0xf/0x20
+    Code: fa 18 01 e9 ee 37 ff fa 0f 1f 00 90 90 90 90 90 90 90 90 90 90 90 90 90 90 90 90 f3 0f 1e fa eb 07 0f 00 2d 23 c7 14 00 fb f4 <e9> c7 37 ff fa 66 2e 0f 1f 84 00 00 00 00 00 66 90 90 90 90 90 90
+    RSP: 0018:ffffffff87c07cf8 EFLAGS: 00000206
+    RAX: 0000000000045d0f RBX: ffffffff87c2d4c0 RCX: ffffffff86111e95
+    RDX: 0000000000000000 RSI: 0000000000000000 RDI: ffffffff815b508e
+    RBP: fffffbfff0f85a98 R08: 0000000000000001 R09: ffffed10310c68ba
+    R10: ffff8881886345d3 R11: 0000000000000000 R12: 0000000000000001
+    R13: 0000000000000000 R14: 1ffffffff0f80fa4 R15: dffffc0000000000
+     ? ct_kernel_exit.constprop.0+0xc5/0xf0
+     ? do_idle+0x3ae/0x650
+     default_idle+0x9/0x10
+     default_idle_call+0x6c/0xb0
+     do_idle+0x3ae/0x650
+     ? __pfx___schedule+0x10/0x10
+     ? __pfx_do_idle+0x10/0x10
+     ? rest_init+0x1cd/0x330
+     ? srso_alias_return_thunk+0x5/0xfbef5
+     cpu_startup_entry+0x54/0x60
+     rest_init+0x1e1/0x330
+     ? __pfx_acpi_read_bit_register+0x10/0x10
+     ? __pfx_rest_init+0x10/0x10
+     ? acpi_os_write_port+0x23/0xb0
+     ? __pfx_kernel_init+0x10/0x10
+     ? srso_alias_return_thunk+0x5/0xfbef5
+     ? acpi_ut_status_exit+0xd6/0x180
+     ? srso_alias_return_thunk+0x5/0xfbef5
+     ? acpi_ut_status_exit+0xd6/0x180
+     ? srso_alias_return_thunk+0x5/0xfbef5
+     ? acpi_enable_subsystem+0x2b0/0x4e0
+     ? __pfx_x86_late_time_init+0x10/0x10
+     start_kernel+0x417/0x4b0
+     x86_64_start_reservations+0x18/0x30
+     x86_64_start_kernel+0x111/0x120
+     common_startup_64+0x13e/0x158
+     </TASK>
+    
+    Allocated by task 494:
+     kasan_save_stack+0x33/0x60
+     kasan_save_track+0x14/0x30
+     __kasan_kmalloc+0xaa/0xb0
+     __kmalloc_cache_noprof+0x28d/0x610
+     ocfs2_initialize_super.isra.0+0xab/0x3070
+     ocfs2_fill_super+0x801/0x3920
+     get_tree_bdev_flags+0x35d/0x5f0
+     vfs_get_tree+0x93/0x320
+     fc_mount+0x1d/0x200
+     path_mount+0x592/0x1e00
+     __x64_sys_mount+0x24b/0x2d0
+     do_syscall_64+0x114/0x620
+     entry_SYSCALL_64_after_hwframe+0x77/0x7f
+    
+    Freed by task 494:
+     kasan_save_stack+0x33/0x60
+     kasan_save_track+0x14/0x30
+     kasan_save_free_info+0x3b/0x60
+     __kasan_slab_free+0x5f/0x80
+     kfree+0x308/0x580
+     ocfs2_dismount_volume+0x43c/0x9b0
+     ocfs2_fill_super+0x258f/0x3920
+     get_tree_bdev_flags+0x35d/0x5f0
+     vfs_get_tree+0x93/0x320
+     fc_mount+0x1d/0x200
+     path_mount+0x592/0x1e00
+     __x64_sys_mount+0x24b/0x2d0
+     do_syscall_64+0x114/0x620
+     entry_SYSCALL_64_after_hwframe+0x77/0x7f
+    
+    The buggy address belongs to the object at ffff8881178a4000
+     which belongs to the cache kmalloc-8k of size 8192
+    The buggy address is located 5720 bytes inside of
+     freed 8192-byte region [ffff8881178a4000, ffff8881178a6000)
+    
+    The buggy address belongs to the physical page:
+    page: refcount:0 mapcount:0 mapping:0000000000000000 index:0x0 pfn:0x1178a0
+    head: order:3 mapcount:0 entire_mapcount:0 nr_pages_mapped:0 pincount:0
+    flags: 0x200000000000040(head|node=0|zone=2)
+    page_type: f5(slab)
+    raw: 0200000000000040 ffff888100043880 dead000000000122 0000000000000000
+    raw: 0000000000000000 0000000000020002 00000000f5000000 0000000000000000
+    head: 0200000000000040 ffff888100043880 dead000000000122 0000000000000000
+    head: 0000000000000000 0000000000020002 00000000f5000000 0000000000000000
+    head: 0200000000000003 fffffffffffffe01 00000000ffffffff 00000000ffffffff
+    head: 0000000000000000 0000000000000000 00000000ffffffff 0000000000000000
+    page dumped because: kasan: bad access detected
+    
+    Memory state around the buggy address:
+     ffff8881178a5500: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+     ffff8881178a5580: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+    >ffff8881178a5600: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+                                                        ^
+     ffff8881178a5680: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+     ffff8881178a5700: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+    ==================================================================
+
+Link: https://lore.kernel.org/pm-ocfs2-objects-candidate-0087-v6-78f3c3d6d70887d6e0cc@gmail.com
+Fixes: b9fba67b3806 ("ocfs2: fix error path kobject memory leak")
+Signed-off-by: Cen Zhang <zzzccc427@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Cc: David Hildenbrand (Arm) <david@kernel.org>
-Cc: Baoquan He <baoquan.he@linux.dev>
+Reviewed-by: Joseph Qi <joseph.qi@linux.alibaba.com>
+Assisted-by: LLM
+Cc: Mark Fasheh <mark@fasheh.com>
+Cc: Joel Becker <jlbec@evilplan.org>
+Cc: Heming Zhao <heming.zhao@suse.com>
+Cc: Jia-Ju Bai <baijiaju1990@gmail.com>
+Cc: <jjzuming@gmail.com>
 Cc: <stable@vger.kernel.org>
 ---
 
- mm/vmalloc.c |    8 +++++++-
- 1 file changed, 7 insertions(+), 1 deletion(-)
+ fs/ocfs2/filecheck.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
---- a/mm/vmalloc.c~mm-vmalloc-bail-out-if-in-softirq-context
-+++ a/mm/vmalloc.c
-@@ -3271,7 +3271,13 @@ struct vm_struct *__get_vm_area_node(uns
- 	struct vm_struct *area;
- 	unsigned long requested_size = size;
- 
--	BUG_ON(in_nmi() || in_hardirq());
-+	/* IRQ re-entrancy -> irq_exit() -> process softirq. */
-+	if (in_serving_softirq())
-+		return NULL;
-+
-+	if (WARN_ON_ONCE(in_nmi() || in_hardirq()))
-+		return NULL;
-+
- 	size = ALIGN(size, 1ul << shift);
- 	if (unlikely(!size))
- 		return NULL;
+--- a/fs/ocfs2/filecheck.c~ocfs2-wait-for-filecheck-kobject-release-after-a-failed-add
++++ a/fs/ocfs2/filecheck.c
+@@ -189,6 +189,8 @@ int ocfs2_filecheck_create_sysfs(struct
+ 		/* Mount failure still calls ocfs2_filecheck_remove_sysfs(). */
+ 		entry->fs_fcheck = NULL;
+ 		kobject_put(&entry->fs_kobj);
++		/* Keep ocfs2_super alive until the kobject is released. */
++		wait_for_completion(&entry->fs_kobj_unregister);
+ 		kfree(fcheck);
+ 		return ret;
+ 	}
 _
 
-Patches currently in -mm which might be from urezki@gmail.com are
+Patches currently in -mm which might be from zzzccc427@gmail.com are
 
-mm-vmalloc-use-dedicated-unbound-workqueues-for-vmap-drain.patch
-mm-vmalloc-bail-out-if-in-softirq-context.patch
+ocfs2-validate-move-extents-against-a-stable-eof.patch
+ocfs2-wait-for-filecheck-kobject-release-after-a-failed-add.patch
 
