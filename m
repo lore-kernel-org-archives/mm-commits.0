@@ -1,46 +1,46 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1792947246;
-	b=WNL1bdHSaQmxs0xNN81OK9yb/SlPo/1fWXOUWJH+oVVYLWEnDvwM3YhZWQRXFfPonxWd
-	 SwsU9G1bPDIJKCg996KvYSigLa+76TFGXnhY+p+XtzFA0tbOiEZ8Bk1PA3jV6G+YGsjI1
-	 bcufClH58lQXUGIhXC14gQ9jAk8pagI+9+GsUAhUMkIA1W8B/rDm5xkn+B6tIjT/GvstI
-	 /Fy4I5EjRU2YRsRWKxbJI23Eu7ogqBuqGjv4owjrTU0surgNi6SRpNxpNTfszWnc3UDQc
-	 RrClPhpZQt0wvA99Jr1IN7X/vjqoTnzVwGYxTsuhNpR76pCz7e/jq6pt9TTIvsUjnfA==
+	t=1792981233;
+	b=huCo8mZkujQAKRi6QZjdfcvACSSYpc3/jc3xuJHEajwx1HgjD3tFSYHo4NweHiFKfse0
+	 tIuKcMPpiBteWWjYWXeTOAQfCtik/VelrbCLJX0LqKuOV7hiYD3icNr/wVKksR+UWyBuG
+	 TPUg0JDFRcTS2h1qJRAzU4YXm3atULTUd6aqd+x/3+3pXyGxr4MVDo2arL6Z2O8wOukJd
+	 avvd+zwRwF21vUe266w9bHRdQ04+V5afTfesI170gC7A05sdXDM5f6qs7wPPptYA0TccH
+	 XtlD8U/RBWBdTIWAUhMdkwRDog/MHFJifC9JvVt1HWvaZTJ1p7FR0wiNYEx4JeJlXJg==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1792947246;
+	a=rsa-sha256; c=relaxed/relaxed; t=1792981233;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=gmkWe9/DTLOraKZ8CTlcaXUmsoz4oBuFv050yDQdCEs=;
-	b=20Prcwc6Zy5zphMEyRsv70y30YJ7fXadn9bOkwJ8NIfKWjAXmBKqRibxJ4Orf5axsm1F
-	 UEpHSUA8ZynNr3MUPHgprEPPsxaivNecLfw2761PEVcoknPpbxakVHlyQXk2RHp9S6kwd
-	 kP/hjXZX8p3G47uCPw6BofCyvlfhyqIlVO0bg87n3rYwaIF8lVvyQdQQw838yeoGPgngM
-	 2EvOMFh9AuQiCdDVsW6bzUu/Vp//C0Nqf/CtftlEX19jN0czOHLNHXjPpm08TYa4gd16I
-	 Hd9YyWqXfv8ht5PFdsARsyPR4y5zLcn677pmGE0o6ryj4ICNYsfj497cvxHaoGtQzqw==
+	bh=ZPPzxSgXQ/fi9l/jxDxUXcakc3zoPIJYhpuUR/bm03w=;
+	b=lEgB9R77gF6DSMCwEXGtfA0XnC41vCcqazzHdw4n3uOTFfD0gmec9CMW1UuW6QBelHXP
+	 jCmq2JQT4am0yIDAcajQ8ydaw311yyj3ydcSCKb4OAzBrsPsVF8hRfRXyuGsgk8/zdQB4
+	 FLvRu+K9tzsTTbZz8BNVauEo/2tBfjn4BMDdNEclJuH1lUVlnwvoZL3Kupj/VBp76mVQ1
+	 +MPg5cXFAeFFn8QInVXTfwVqQkFULKR/+lAbh50Mi02IrV/VGd/5QnCuzC7mCl7FeZRaZ
+	 ukNy4btzK/Y52abmu5OCHlwscNwvSd8f5B7BfVpqBgkagtD7NWe0hHiMdIIxgb8qe6g==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=v2iXxWff;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b="HtjhM/Ce";
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 73868606A31A;
-	Sun, 25 Oct 2026 16:54:06 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 57DFA606A31E
+	for <mm-commits@vger.kernel.org>; Mon, 26 Oct 2026 02:20:27 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=v2iXxWff
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D912B1F01825;
-	Sun, 25 Oct 2026 16:54:05 +0000 (UTC)
+	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=HtjhM/Ce
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B79241F01825;
+	Mon, 26 Oct 2026 02:20:27 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1792947246;
-	bh=gmkWe9/DTLOraKZ8CTlcaXUmsoz4oBuFv050yDQdCEs=;
+	d=linux-foundation.org; s=korg; t=1792981227;
+	bh=ZPPzxSgXQ/fi9l/jxDxUXcakc3zoPIJYhpuUR/bm03w=;
 	h=Date:To:From:Subject;
-	b=v2iXxWffEUapOi9WEg6FBVaADUr91wAFdkz8/G7EMNZ18Etjiw69gqoJp34tIIOXx
-	 6wKqBbXsfahoVjdsJpNOtXGDZxttTN6Am7su5GikLZmz64EO4TbifnU4wLoCbFnEkX
-	 1fBUMU0+TBtJ6TdlaJ/IvljG6u/TbBMJVJy8w7gE=
-Date: Sun, 25 Oct 2026 09:54:05 -0700
-To: mm-commits@vger.kernel.org,stable@vger.kernel.org,sj@kernel.org,
+	b=HtjhM/CeAUY9RiHkXOSBA7Z6QXfKQ2wsB8HI1Icd2I7MeKAkGpjmE/4qu4j+f2L4r
+	 AFz++SeICkZ35/wsAEDESvZsPyKTxwoTI6MuTl1EXHGX2aHGRJmrOoqbb4uCQWlh/2
+	 IaDSx5KPt83wyTizbqo/16d7yTmj/LZN7CF97qp0=
+Date: Sun, 25 Oct 2026 19:20:27 -0700
+To: mm-commits@vger.kernel.org,baolin.wang@linux.alibaba.com,
 	akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-damon-sysfs-schemes-hold-damon_sysfs_lock-in-target_metric_store.patch added to mm-unstable branch
-Message-Id: <20261025165405.D912B1F01825@smtp.kernel.org>
+Subject: [to-be-updated] mm-memory-fix-truncation-removing-mapped-folios.patch removed from -mm tree
+Message-Id: <20261026022027.B79241F01825@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -51,116 +51,184 @@ List-Owner: <mailto:mm-commits+owner@vger.kernel.org>
 Precedence: list
 
 
-The patch titled
-     Subject: mm/damon/sysfs-schemes: hold damon_sysfs_lock in target_metric_store()
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-damon-sysfs-schemes-hold-damon_sysfs_lock-in-target_metric_store.patch
+The quilt patch titled
+     Subject: mm: memory: fix truncation removing mapped folios
+has been removed from the -mm tree.  Its filename was
+     mm-memory-fix-truncation-removing-mapped-folios.patch
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-sysfs-schemes-hold-damon_sysfs_lock-in-target_metric_store.patch
-
-This patch will later appear in the mm-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via various
-branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there most days
+This patch was dropped because an updated version will be issued
 
 ------------------------------------------------------
-From: SJ Park <sj@kernel.org>
-Subject: mm/damon/sysfs-schemes: hold damon_sysfs_lock in target_metric_store()
-Date: Sun, 25 Oct 2026 09:48:04 -0700
+From: Baolin Wang <baolin.wang@linux.alibaba.com>
+Subject: mm: memory: fix truncation removing mapped folios
+Date: Fri, 16 Oct 2026 09:48:08 +0800
 
-Patch series "mm/damon: fix three race bugs in sysfs and core", v1.
+Ayush reported an issue that shmem/tmpfs folios are still mapped when
+truncating them on production:
+"
+BUG: Bad page cache in process ...  pfn:...
+page dumped because: still mapped when deleted
+"
 
-There are three race condition bugs in DAMON sysfs interface and the
-core layer.  User impacts are not critical but better to fix sooner than
-later.
+I reproduced the issue with Ayush's reproducer [1] with the latest
+mm-unstable branch, and I got the following crash info.  From the dump
+message, we can see that truncate_inode_folio() is really trying to remove
+mapped folios, which is incorrect.
 
-Patch 1 fixes a toctou bug in DAMON sysfs interface that can mess up
-DAMOS auto-tuning.  Patches 2 and 3 move static variables that can be
-wrongly shared with multiple kdamonds and therefore make DAMON
-monitoring results be a little more indeterministic.
+"
+[  189.171977] page: refcount:3 mapcount:1 mapping:00000000fe168ee1
+index:0x3880 pfn:0x191647
+[  189.171995] memcg:ffff0000cc073d40
+[  189.171997] aops:shmem_aops ino:3c01 dentry name(?):"memfd:runsc-memory"
+[  189.172006] flags: 0x17fffef0002022d(locked|referenced|uptodate|lru|
+workingset|swapbacked|node=0|zone=2|lastcpupid=0x3ffff)
+.......
+[  189.172017] page dumped because: VM_BUG_ON_FOLIO(folio_mapped(folio))
+[  189.172026] ------------[ cut here ]------------
+[  189.172027] kernel BUG at mm/filemap.c:155!
+[  189.172057] Internal error: Oops - BUG: 00000000f2000800 [#1]  SMP
+.......
+[  189.177721] CPU: 3 UID: 0 PID: 5521 Comm: repro Kdump: loaded Tainted:
+7.3.0-rc4+ #277 PREEMPT(lazy)
+.......
+[  189.183986] Call trace:
+[  189.184124]  filemap_unaccount_folio+0xf0/0x1e8 (P)
+[  189.184391]  __filemap_remove_folio+0x34/0x160
+[  189.184633]  filemap_remove_folio+0x4c/0xb0
+[  189.184859]  truncate_inode_folio+0x34/0x58
+[  189.185087]  shmem_undo_range+0x220/0x658
+[  189.185308]  shmem_fallocate+0x2f0/0x470
+[  189.185527]  vfs_fallocate+0x128/0x328
+......
+[  189.187078]  el0t_64_sync+0x184/0x188
+"
 
-Note for Andrew.  These are not urgent but better to take the hotfix
-track in my humble opinion.
+After analysis, I believe the race exists between truncation and
+MADV_DONTNEED, and shmem's ->map_pages() merely makes the issue easier to
+reproduce.  Since MADV_DONTNEED synchronously releases the pagetable page
+before calling tlb_flush_rmaps(), this could cause another thread's
+truncation to skip zap_pte_range() (due to pmd is none) but still observe
+the folio's mapcount as non-zero.  A possible race scenario is as follows:
 
+CPU 0                           CPU 1
+shmem_fallocate                 madvise_dontneed_single_vma
+  unmap_mapping_range            .......
+  ......
+  (filemap_map_pages() remap folios)
+				  zap_pte_range
+  truncate_inode_folio		    zap_empty_pte_table(pmd clear)
+    unmap_mapping_folio
+    ......
+      zap_pmd_range (saw pmd none, skip)
 
-This patch (of 3):
+  filemap_remove_folio
+    BUG_ON(folio_mapped)
+                                    tlb_flush_rmaps(remove rmaps)
 
-damon_sysfs_add_quota_score() reads damos_sysfs_quota_goal->metric
-twice, once to set damos_quota_goal->metric to the value, and once again
-to set the metric-dependent damos_quota_goal unions based on the value.
+To fix this issue, we should move the pmd clear operation (via
+zap_empty_pte_table()) to after tlb_flush_rmaps() and use
+sync_with_folio_pmd_zap() to sync with concurrent zapping, so that when we
+find a pmd_none() while unmapping a folio without holding the PTL, the
+folio's mappings are guaranteed to have been removed via
+tlb_flush_rmaps().
 
-target_metrics_score() can update damos_sysfs_quota_goal->metric between
-the two reads.  This time-of-check to time-of-use (toctou) race can make
-the union fields incorrectly set.  The incorrect damos_quota_goal will
-be passed to the core layer and make DAMOS incorrectly behave.
-
-Users could reproduce the race by writing a new value to the
-target_metric sysfs file while DAMON is starting, or online parameters
-update is ongoing.  The issue will only rarely happen in the real use
-cases.  It requires sysfs write permission.  The race window is short.
-Sane users wouldn't do such writes while DAMON enablement and/or online
-parameters update is ongoing.
-
-The user impact is not very critical.  The race is not easy to
-unintentionally trigger.  No leak or crash happens.  Nonetheless, DAMOS
-could be unexpectedly more or less aggressive and does not achieve the
-auto-tune goal.  Because of the nature of races, investigating will be
-difficult.  Users can control the impact from unexpected aggressiveness
-using additional quotas and resolve the issue in runtime by
-re-installing the quota goal, though.
-
-Avoid the race by protecting damos_sysfs_quota_goal->metric write in
-target_metric_store() with damon_sysfs_lock.  Because
-damon_sysfs_add_quota_score() is called while holding the same lock, the
-race is removed.
-
-The issue was discovered as a part of a bug report [1] from Sashiko,
-which is partially outdated.  In more detail, the Sashiko report [1] was
-mainly for an outdated bug [2].  But it was also mentioning the issue of
-this patch as a similar class bug.
-
-Link: https://lore.kernel.org/20261025164808.152048-1-sj@kernel.org
-Link: https://lore.kernel.org/20261025164808.152048-2-sj@kernel.org
-Link: https://sashiko.dev/#/bug/linux-7f814c9a-986f-4103-a55a-ef9537dcf62b [1]
-Link: https://lore.kernel.org/20261021005234.94107-1-sj@kernel.org [2]
-Fixes: 85fcf0ffc460 ("mm/damon/sysfs-schemes: connect damos_quota_goal nid with core layer")
-Signed-off-by: SJ Park <sj@kernel.org>
+Link: https://lore.kernel.org/e2f76ed117b0c22a26b7688fd46a38c9d035336e.1792114445.git.baolin.wang@linux.alibaba.com
+Link: https://lore.kernel.org/all/20260925065013.3682431-1-ayushr@modal.com/ [1]
+Fixes: 6375e95f381e ("mm: pgtable: reclaim empty PTE page in madvise(MADV_DONTNEED)")
+Signed-off-by: Baolin Wang <baolin.wang@linux.alibaba.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Cc: <stable@vger.kernel.org> # 6.16.x
+Reported-by: Ayush Ranjan <ayushr@modal.com>
+Closes: https://lore.kernel.org/all/20260924061708.1645968-1-ayushr@modal.com/
+Acked-by: Qi Zheng <qi.zheng@linux.dev>
+Reviewed-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
+Reviewed-by: Pedro Falcato <pfalcato@suse.de>
+Cc: David Hildenbrand <david@kernel.org>
+Cc: Liam R. Howlett <liam@infradead.org>
+Cc: Vlastimil Babka <vbabka@kernel.org>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Jan Kara <jack@suse.cz>
 ---
 
- mm/damon/sysfs-schemes.c |    3 +++
- 1 file changed, 3 insertions(+)
+ mm/internal.h |    9 +++++----
+ mm/memory.c   |   25 ++++++++++++-------------
+ 2 files changed, 17 insertions(+), 17 deletions(-)
 
---- a/mm/damon/sysfs-schemes.c~mm-damon-sysfs-schemes-hold-damon_sysfs_lock-in-target_metric_store
-+++ a/mm/damon/sysfs-schemes.c
-@@ -1310,7 +1310,10 @@ static ssize_t target_metric_store(struc
+--- a/mm/internal.h~mm-memory-fix-truncation-removing-mapped-folios
++++ a/mm/internal.h
+@@ -584,14 +584,15 @@ void free_pgtables(struct mmu_gather *tl
+ void pmd_install(struct mm_struct *mm, pmd_t *pmd, pgtable_t *pte);
  
- 		metric_name = &damos_sysfs_qgoal_metric_names[i];
- 		if (sysfs_streq(buf, metric_name->name)) {
-+			if (!mutex_trylock(&damon_sysfs_lock))
-+				return -EBUSY;
- 			goal->metric = metric_name->metric;
-+			mutex_unlock(&damon_sysfs_lock);
- 			return count;
+ /**
+- * sync_with_folio_pmd_zap - sync with concurrent zapping of a folio PMD
++ * sync_with_folio_pmd_zap - sync with concurrent zapping of folios
+  * @mm: The mm_struct.
+  * @pmdp: Pointer to the pmd that was found to be pmd_none().
+  *
+  * When we find a pmd_none() while unmapping a folio without holding the PTL,
+- * zap_huge_pmd() may have cleared the PMD but not yet modified the folio to
+- * indicate that it's unmapped. Skipping the PMD without synchronization could
+- * make folio unmapping code assume that unmapping failed.
++ * zap_huge_pmd() or zap_empty_pte_table() may have cleared the PMD but not
++ * yet modified the mapped folios to indicate they are unmapped. Skipping the
++ * PMD without synchronization could make folio unmapping code assume that
++ * unmapping failed.
+  *
+  * Wait for concurrent zapping to complete by grabbing the PTL.
+  */
+--- a/mm/memory.c~mm-memory-fix-truncation-removing-mapped-folios
++++ a/mm/memory.c
+@@ -2073,6 +2073,15 @@ retry:
  		}
- 	}
+ 	} while (pte += nr, addr += PAGE_SIZE * nr, addr != end);
+ 
++	add_mm_rss_vec(mm, rss);
++	lazy_mmu_mode_disable();
++
++	/* Do the actual TLB flush before dropping ptl */
++	if (force_flush) {
++		tlb_flush_mmu_tlbonly(tlb);
++		tlb_flush_rmaps(tlb, vma);
++	}
++
+ 	/*
+ 	 * Fast path: try to hold the pmd lock and unmap the PTE page.
+ 	 *
+@@ -2083,15 +2092,6 @@ retry:
+ 	 */
+ 	if (can_reclaim_pt && direct_reclaim && addr == end)
+ 		direct_reclaim = zap_empty_pte_table(mm, pmd, ptl, &pmdval);
+-
+-	add_mm_rss_vec(mm, rss);
+-	lazy_mmu_mode_disable();
+-
+-	/* Do the actual TLB flush before dropping ptl */
+-	if (force_flush) {
+-		tlb_flush_mmu_tlbonly(tlb);
+-		tlb_flush_rmaps(tlb, vma);
+-	}
+ 	pte_unmap_unlock(start_pte, ptl);
+ 
+ 	/*
+@@ -2139,12 +2139,11 @@ static inline unsigned long zap_pmd_rang
+ 				continue;
+ 			}
+ 			/* fall through */
+-		} else if (details && details->single_folio &&
+-			   folio_test_pmd_mappable(details->single_folio) &&
+-			   next - addr == HPAGE_PMD_SIZE && pmd_none(*pmd)) {
+-			sync_with_folio_pmd_zap(tlb->mm, pmd);
+ 		}
++
+ 		if (pmd_none(*pmd)) {
++			if (details && details->single_folio)
++				sync_with_folio_pmd_zap(tlb->mm, pmd);
+ 			addr = next;
+ 			continue;
+ 		}
 _
 
-Patches currently in -mm which might be from sj@kernel.org are
+Patches currently in -mm which might be from baolin.wang@linux.alibaba.com are
 
-mm-damon-sysfs-schemes-hold-damon_sysfs_lock-in-target_metric_store.patch
-mm-damon-core-move-static-variable-last_nr_regions-to-damon_ctx.patch
-mm-damon-core-move-static-variable-rotation-to-damon_ctx.patch
 
