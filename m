@@ -1,50 +1,46 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793045727;
-	b=LPgUqvT57P/byYXSfTn0WlNRItQfebGPcHQaLexNH2n6MM4ps7DWISbsX1W40d9SF7iv
-	 ghOAUrOeX9ABdlSmD1MHjskoga25WopNuCFVF79qY8dMQg33nzBNnrw/gIsYY/V4ZrRbN
-	 s+j2xs0uqDPqgRDmomwFoZ2UWiosk3KiUQ7nqE89HxBV0rTjkUgUAmG3JFEWZWjLDSv61
-	 ODP3HhxPBe4A/PSYu59KLUbZOx9RRHBZJbuuvOUL2/oP1dNqxq54o+Rb92kTl1vaFI75a
-	 uj5k1qLswILKneGjYXVi7nSml8QLcUViVpSiLnlCtw7BxY3Tll2yPreA9Zv4Q9hIoWw==
+	t=1793050505;
+	b=5pbxGRq3JL2sahyqHkV2+bOMwb2UQILuSBVX4rtw2HJzeuYkSDLkNNybnVWfREJ1YLML
+	 MKWRz2RooYBlaNMTHtzBb0iN9DCPBH1UiV8rbDfUUwiurfch4aTR2xfzGzk78ZYj/nE90
+	 LrZZO4WpoosEbhPZeEvBskPGCWH9sfQaPtkZSbo+FQuuaP4Jrxx9Wd39pRIbTVoCqprgK
+	 eBt4NxMWU3uVAzuXpyKmkZk5fpwUheu9NP23Bb4xRFv/milZaKjhdZLVTb4jHD/jzCqpV
+	 RswyXbPDhET5umFhiytjWk57Yl40gqI+5bJr643LcNUCenNJu8vDxYfEnBSOCkD/tgQ==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793045727;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793050505;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=kg1FEEWYbGq7lJBC1/J4dnRb81NaIwEkbUwrQ5UXHxo=;
-	b=DMQ1qtRJIYu4dJkHa+U4KMMeFkax38jwVndluYRxotD+mnz9SQzq0E1wJ5BSLH77ns5B
-	 wtZK48B362U0JfG3AYX8TupOzIT/JR9JQPv1rinwpNZe3GK2A8Q2bKxZDkGFuSn9jCMXG
-	 G7GOPlwNDn3OlhvmgAF280AC/39nUZF27RqeVg+pAVo7b8t8VeE1610Y2X/YXiQjiPk2o
-	 qkOeyqPDtULMQBYDUaH0d5l8mM1TWmmQrlQUktTuHjkEP2xLuxDBweColEZEiZOptLWjP
-	 BNJxDcKuGd3uZtTjmxiRY0PjWAxMxJLx0PV4nwlvLuZLVFzQpcbcU6z/prXyIhp6FSQ==
+	bh=4iMANfw/5u304rrv/1udOYkSKJejLDSvu5rBcME4v3g=;
+	b=4h9dc9REcRrc4u0+5wq49UBcHSYQgmpf9QAQeuAghTGd8ZQyrpGJzfn3ftXJEooRkgya
+	 sbAZ64LwMBr25V1jh2J1YjZM/FLSwXjCCs0gA6terpKtsKROjYWN2YdhPlQv0XA6F/NkN
+	 HeK/uodtS5Fe6W+rJweUZsgDYPuUEDE2QI2Nl+LnTi3+oUZZniEnVX9HMJjBWGZTkl18n
+	 IbmWnKidrxYxYKe7a3F82Lr+fIZR9JuY5G3sLC1qIb7FulN0MekLAa7oZrF+ZPLalNgHE
+	 opHqbtgYhxBqnh8lSwaFwOACYO0aobwG1VPDZhXVqdgw/y5aBTY9osFb+wczhS+OxnQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=hRIo4sys;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=TU5mZcjk;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E2C32606A31D;
-	Mon, 26 Oct 2026 20:15:26 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E3750606A31A
+	for <mm-commits@vger.kernel.org>; Mon, 26 Oct 2026 21:35:04 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=hRIo4sys
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7B8E11F01825;
-	Mon, 26 Oct 2026 20:15:26 +0000 (UTC)
+	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=TU5mZcjk
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6CE481F01825;
+	Mon, 26 Oct 2026 21:35:04 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1793045726;
-	bh=kg1FEEWYbGq7lJBC1/J4dnRb81NaIwEkbUwrQ5UXHxo=;
+	d=linux-foundation.org; s=korg; t=1793050504;
+	bh=4iMANfw/5u304rrv/1udOYkSKJejLDSvu5rBcME4v3g=;
 	h=Date:To:From:Subject;
-	b=hRIo4sys0jPnFdg4rN/f6DzsmY7/+ROHmKZ+inFao8sbtomcAik3jnQI7qgVqzVBa
-	 LJ3wr4XxF5M2N9l8sS2E/8Du5CYmCA5yZn+MqXrLo88QtUhiEnvtP8Mn7RK5FBKbfi
-	 Gr5vwSt7JIfYTJLe+m7FHAPYAxJiwzEdUEVraWgo=
-Date: Mon, 26 Oct 2026 13:15:25 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,ying.huang@linux.alibaba.com,
-	vincenzo.frascino@arm.com,stable@vger.kernel.org,sashiko-bot@kernel.org,
-	odys.yuan@gmail.com,matthew.brost@intel.com,joshua.hahnjy@gmail.com,
-	gourry@gourry.net,david@kernel.org,catalin.marinas@arm.com,byungchul@sk.com,
-	apopple@nvidia.com,andreyknvl@gmail.com,dennylin0707@gmail.com,
-	akpm@linux-foundation.org
+	b=TU5mZcjk4J0rxLKSISb2QAb3AQST3pEVMkwlN9z4nicABVq7UptTpVmezUAqzywI0
+	 l4EUUscJZ455MIee1sjQf9rzGcNPRj4iRY9f05ijpohJthYLU+z1IoNNhLW1oVrTXG
+	 Q6fbwbi7bD09BCqxKe4F8CPxwasGlk/vVRYrB95Y=
+Date: Mon, 26 Oct 2026 14:35:03 -0700
+To: mm-commits@vger.kernel.org,rioo.tsukatsukii@gmail.com,pmladek@suse.com,
+	brads@mainlining.org,nickolai@csail.mit.edu,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-migrate-untag-addresses-when-querying-page-nodes.patch added to mm-unstable branch
-Message-Id: <20261026201526.7B8E11F01825@smtp.kernel.org>
+Subject: + panic-zero-the-dynamically-allocated-taint-buffer.patch added to mm-nonmm-unstable branch
+Message-Id: <20261026213504.6CE481F01825@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -56,14 +52,14 @@ Precedence: list
 
 
 The patch titled
-     Subject: mm/migrate: untag addresses when querying page nodes
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-migrate-untag-addresses-when-querying-page-nodes.patch
+     Subject: panic: zero the dynamically allocated taint buffer
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     panic-zero-the-dynamically-allocated-taint-buffer.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-migrate-untag-addresses-when-querying-page-nodes.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/panic-zero-the-dynamically-allocated-taint-buffer.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -79,58 +75,62 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Hungyu Lin <dennylin0707@gmail.com>
-Subject: mm/migrate: untag addresses when querying page nodes
-Date: Mon, 26 Oct 2026 19:53:29 +0000
+From: Nickolai Zeldovich <nickolai@csail.mit.edu>
+Subject: panic: zero the dynamically allocated taint buffer
+Date: Fri, 23 Oct 2026 22:01:52 -0400
 
-When move_pages() is used with nodes == NULL, do_pages_stat_array() passes
-each page address directly to vma_lookup().  A valid tagged address
-therefore fails the VMA lookup and gets -EFAULT in its status entry,
-instead of the node reported for the corresponding untagged address.
+A %s read of print_tainted()'s string can run past the end of the taint
+buffer while another CPU rebuilds a longer string in it, reading slab
+memory out of bounds into the kernel log (a KASAN slab-out-of-bounds
+report at taint_buf + size).  A warning or an unhandled-signal dump on
+another CPU reaches print_tainted() through dump_stack_print_info().
 
-The tagged address ABI permits these pointers, and the migration path
-already removes their tags.  Apply the target mm's untagging rules to the
-query path as well, while holding its mmap read lock.
+alloc_taint_buf() sizes the buffer for the longest taint string and
+allocates it with kmalloc(), so the bytes past that string are never
+written and the object holds no permanent NUL terminator. 
+_print_tainted() rebuilds the string in place without locking and writes
+the terminator last, so a reader that overtakes a writer extending the
+string past the previous high-water mark finds no terminator inside the
+object and walks off its end.  print_tainted()'s kernel-doc promises the
+string is "always NULL terminated", a guarantee the previous zero-filled
+static buffer kept.
 
-Link: https://lore.kernel.org/20261026195330.46757-1-dennylin0707@gmail.com
-Fixes: 057d3389108e ("mm: untag user pointers passed to memory syscalls")
-Signed-off-by: Hungyu Lin <dennylin0707@gmail.com>
+Allocate the buffer with kzalloc() so its trailing bytes stay NUL and
+every reader stops inside the object.
+
+Reproduced on QEMU riscv64 under KASAN by growing the taint set while
+processes took unhandled-signal dumps on several CPUs: the unpatched
+kernel reports a slab-out-of-bounds read at taint_buf + size, the patched
+one is clean.
+
+Link: https://lore.kernel.org/20261024020153.830459-1-nickolai@csail.mit.edu
+Fixes: a9dff0d0d11c ("kernel/panic: allocate taint string buffer dynamically")
+Signed-off-by: Nickolai Zeldovich <nickolai@csail.mit.edu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Reported-by: Sashiko <sashiko-bot@kernel.org>
-Closes: https://lore.kernel.org/r/20260721183257.706661F000E9@smtp.kernel.org
-Acked-by: Zi Yan <ziy@nvidia.com>
-Acked-by: David Hildenbrand (Arm) <david@kernel.org>
-Cc: Matthew Brost <matthew.brost@intel.com>
-Cc: Joshua Hahn <joshua.hahnjy@gmail.com>
-Cc: Byungchul Park <byungchul@sk.com>
-Cc: Gregory Price <gourry@gourry.net>
-Cc: Ying Huang <ying.huang@linux.alibaba.com>
-Cc: Alistair Popple <apopple@nvidia.com>
-Cc: Andrey Konovalov <andreyknvl@gmail.com>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Vincenzo Frascino <vincenzo.frascino@arm.com>
-Cc: <odys.yuan@gmail.com>
-Cc: <stable@vger.kernel.org>
+Reviewed-by: Bradley Morgan <brads@mainlining.org>
+Reviewed-by: Petr Mladek <pmladek@suse.com>
+Cc: Rio <rioo.tsukatsukii@gmail.com>
 ---
 
- mm/migrate.c |    2 +-
+ kernel/panic.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/migrate.c~mm-migrate-untag-addresses-when-querying-page-nodes
-+++ a/mm/migrate.c
-@@ -2461,7 +2461,7 @@ static void do_pages_stat_array(struct m
- 	mmap_read_lock(mm);
+--- a/kernel/panic.c~panic-zero-the-dynamically-allocated-taint-buffer
++++ a/kernel/panic.c
+@@ -884,7 +884,7 @@ static __init int alloc_taint_buf(void)
  
- 	for (i = 0; i < nr_pages; i++) {
--		unsigned long addr = (unsigned long)(*pages);
-+		unsigned long addr = (unsigned long)untagged_addr_remote(mm, *pages);
- 		struct vm_area_struct *vma;
- 		struct folio_walk fw;
- 		struct folio *folio;
+ 	size += 1; /* For NULL terminator */
+ 
+-	buf = kmalloc(size, GFP_KERNEL);
++	buf = kzalloc(size, GFP_KERNEL);
+ 
+ 	if (!buf) {
+ 		panic("Failed to allocate taint string buffer");
 _
 
-Patches currently in -mm which might be from dennylin0707@gmail.com are
+Patches currently in -mm which might be from nickolai@csail.mit.edu are
 
-mm-page-writeback-avoid-32-bit-overflow-in-dirty-threshold-shares.patch
-mm-migrate-untag-addresses-when-querying-page-nodes.patch
+xarray-clear-the-new-heads-parent-before-freeing-the-old-head.patch
+mm-vmalloc-read-vm_map_ram-block-regions-from-the-requested-offset.patch
+panic-zero-the-dynamically-allocated-taint-buffer.patch
 
