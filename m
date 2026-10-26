@@ -1,55 +1,48 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793051152;
-	b=tGjXGMmQjsDeWLYjzfsSkSOysJMB/pNGjg4wmlX7sixTDZ/139wGooCANW97ur196D2l
-	 XOCfRNMzb/kD9hD9MfDRY6AwYo4S0AZ4+cwqbNr/VHvn43/TU+8Vp1YhtXUKHEKF8BLIa
-	 gI+AeWinISrCiYG1FC83Q3WXyZJVlXHos+8yz7xW37+ldai3y6XIU4vy34nXxQmSs+IyW
-	 PCK/O6/thtMqlyncZugX0X+PYOGnTLXvzjlGvlpYavo7MJfYgOMvoptu2ic2gLt4OZ2j2
-	 YRZqpFMQJcpUFGyxLloiYmJMg//IvzN5k438p3YMR+cXY205tuhOdAC39eDZtz1lc9w==
+	t=1793051770;
+	b=2nRxjqNvVOu7RWKrDw7MR75AoOrRnWxNYXL0IfiGJhI/SRy3ecE25fJjXkySXfI86a6t
+	 maLVtGFie6YlHmMo0oC5mt5DOEwt7slwIwuO2snmkWGKAcN1UldmIXMPPBLvE9D/31Iq8
+	 OrB7dFQPDksZcwRpZUSU4i+LKQJKF9L4Aqt9Z+YXUoCNXBd/804kaQECzWQc/AAK4uDSh
+	 s9KhTslc+StY6jZYcNYZ5S4uQIa9T9OpZSm8B9AqzcBp42TfHfsBGQB9vPTs8dM0v+Mx0
+	 MpiaUbxWiheovWHh11X2RmQVq7qYtHYbhJp1rKkN5NLBwH3UNmDkwwIBHVVAIbjJoZw==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793051152;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793051770;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=LIxn8dmLwdRcxbqau0966HmEjpdstbqbz/jOXmMb9Yo=;
-	b=TZvrkadaDCqynBwQKgUZQ9IZy7108SQTZ3/5FP9MOW77vTeQ5EEzS3mb7FGSxnupmsty
-	 d2tWe1BLOia0uuO12MCqs4qVCgLWvwzdD+ittq0XssbdvKkonZ2roqe4cDHJGrIG0JIPB
-	 tY7taYPu2vaZXcz9QfoNlHD8jCLzUyjTFhp0rF2qh9uUgeWn8z5R65rOfJArwHjbRo/Wo
-	 Iw2qxK9Ogqh/LNpyzkGHVALSVzgBLEY8fslJ/MJGw/2M50ZBgymuHNdYUv5v6a5JLFcr9
-	 TH58wAjgcC8aqZ2gZyezVJRA4ViphA6IC1NKQJvUH+LBPFf46rEPex6D8cuOENDWRgg==
+	bh=MdDVPM16hrarczTaXjisnBzLIMM4O1xzyqeyQ7HLrFk=;
+	b=U0HHUbgseZ2iwN25jmZoGbfDK8G9lStjVHde25tf6IR+j7CYEu+Pj/J5OFoT9zvtNz6j
+	 ogpaycApJXJBQobhoG8cdfPXG9zzS5EhvJPI3mfAdkoGfni+zd93q4hoTikdKrcwm++Tx
+	 7VGMCPjyYbSQMSrk5qOi6mZBz8VKdmvQ8nahZRM9+aSW5iMQrZtOYOgN8ywMweACXgkQT
+	 RVeY0vUdM4i8mAGKGeoBryZUlZ24a6hXI9daV/1XQ/5t5SjV0/d/B8TTOl92Lmj0jpw9W
+	 4gjCDuq2MEUjpLGmOHVc5FS1Jmoa5uIC1Tek93t6lAgQ1yuiIT0VzVtW6ykcuaA8L5Q==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=dqVeQbC4;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=W1vWFAHp;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 221A3606A31A;
-	Mon, 26 Oct 2026 21:45:51 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EC30A606A31E;
+	Mon, 26 Oct 2026 21:56:09 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=dqVeQbC4
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8F3311F0128D;
-	Mon, 26 Oct 2026 21:45:51 +0000 (UTC)
+	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=W1vWFAHp
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 91D451F01828;
+	Mon, 26 Oct 2026 21:56:09 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1793051151;
-	bh=LIxn8dmLwdRcxbqau0966HmEjpdstbqbz/jOXmMb9Yo=;
+	d=linux-foundation.org; s=korg; t=1793051769;
+	bh=MdDVPM16hrarczTaXjisnBzLIMM4O1xzyqeyQ7HLrFk=;
 	h=Date:To:From:Subject;
-	b=dqVeQbC4qIr0XKEoTYc0sRzMppaWWsQ4lfslmU5vODkfafafBD35bSExBo8m45lOr
-	 5E48nR7u228pWNG0GB7+sukWVHH5gmfZeyMDdWY5Kpg3qrBWRT4zXiBWNbJG7Kx8DT
-	 MPrg57Pejb/WNwATi+tCF0PMkKozDok0saxZRrTs=
-Date: Mon, 26 Oct 2026 14:45:51 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,xu.xin@linux.dev,
-	xemul@openvz.org,vbabka@kernel.org,surenb@google.com,stable@vger.kernel.org,
-	sj@kernel.org,shli@fb.com,seanjc@google.com,samarth.colleges@gmail.com,
-	rppt@kernel.org,riel@surriel.com,peterx@redhat.com,pbonzini@redhat.com,
-	mike.kravetz@oracle.com,mhocko@suse.com,mgorman@techsingularity.net,
-	med08elkadiri@gmail.com,mcfadden8@llnl.gov,ljs@kernel.org,liam@infradead.org,
-	kas@kernel.org,jthoughton@google.com,jglisse@redhat.com,hughd@google.com,
-	hannes@cmpxchg.org,gokhale2@llnl.gov,dplotnikov@virtuozzo.com,
-	dgilbert@interlog.com,david@kernel.org,cracauer@cons.org,corbet@lwn.net,
-	chengming.zhou@linux.dev,bobbypowers@gmail.com,bgeffon@google.com,
-	aarcange@redhat.com,lance.yang@linux.dev,akpm@linux-foundation.org
+	b=W1vWFAHp7cUDYSL4eVPb4cA2sl+1RBrvmvcZvpHP8PNBR+Qx4SOZWDoMZQZkNuR6C
+	 Z188SmUVh8wGjFDydEXq5jwI5UFG3Q9uaPg0Mub72HLR/r2eqRqX3Cq3FBOERO4SuU
+	 akcb5hMbObiKiksQev+Sy51elGs2RCynvh0tVf4M=
+Date: Mon, 26 Oct 2026 14:56:09 -0700
+To: mm-commits@vger.kernel.org,stable@vger.kernel.org,mark@fasheh.com,
+	joseph.qi@linux.alibaba.com,jlbec@evilplan.org,jjzuming@gmail.com,
+	heming.zhao@suse.com,baijiaju1990@gmail.com,zzzccc427@gmail.com,
+	akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-ksm-fix-userfaultfd-protection-during-merge-and-unmerge.patch added to mm-unstable branch
-Message-Id: <20261026214551.8F3311F0128D@smtp.kernel.org>
+Subject: + ocfs2-validate-move-extents-against-a-stable-eof.patch added to mm-nonmm-unstable branch
+Message-Id: <20261026215609.91D451F01828@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -61,14 +54,14 @@ Precedence: list
 
 
 The patch titled
-     Subject: mm/ksm: fix userfaultfd protection during merge and unmerge
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-ksm-fix-userfaultfd-protection-during-merge-and-unmerge.patch
+     Subject: ocfs2: validate move extents against a stable EOF
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     ocfs2-validate-move-extents-against-a-stable-eof.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-ksm-fix-userfaultfd-protection-during-merge-and-unmerge.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/ocfs2-validate-move-extents-against-a-stable-eof.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -84,145 +77,180 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Lance Yang <lance.yang@linux.dev>
-Subject: mm/ksm: fix userfaultfd protection during merge and unmerge
-Date: Mon, 26 Oct 2026 21:00:54 +0800
+From: Cen Zhang <zzzccc427@gmail.com>
+Subject: ocfs2: validate move extents against a stable EOF
+Date: Mon, 26 Oct 2026 19:04:00 +0800
 
-KSM loses userfaultfd protection when replace_page() builds a new PTE from
-vma->vm_page_prot.  Dropping its uffd bit lets a subsequent write go
-through ordinary COW instead of userfaultfd write protection handling. 
-For RWP, a merged page also becomes readable without faulting.
+The move-extents range must be bounded by the inode size used for extent
+movement.  ocfs2_ioctl_move_extents() checks and clamps the request before
+taking the local inode and cluster locks in ocfs2_move_extents().  It also
+uses separate i_size_read() calls for the range check and subtraction.
 
-Keeping the uffd bit and restoring PAGE_NONE fixes merging, but we also
-have to handle unmerging.  An existing KSM page can be protected with RWP
-before MADV_UNMERGEABLE, so unmerging already needs fixing independently
-of preserving RWP during merging.
+A concurrent truncate can invalidate the first check and make the later
+unsigned subtraction underflow:
 
-Unsharing replaces a shared page with a private one and should leave
-userfaultfd protection in place, as do_wp_page() already does for write
-protection.  Currently, an unshare fault reaches do_uffd_rwp() before it
-can proceed to do_wp_page().
+  Move-extents ioctl                  Truncate
+  ------------------                  --------
+  check me_start <= i_size
+                                      take inode and cluster locks
+                                      shrink EOF below me_start
+                                      release locks
+  compare me_start + me_len with EOF
+  set me_len = EOF - me_start
+    [unsigned underflow]
+  acquire inode and cluster locks
+  select extents using the bad range
 
-- With synchronous RWP, handle_userfault() returns VM_FAULT_SIGBUS.
-  break_ksm() then reports success with a KSM page still merged.
+A truncate after clamping can also leave the range extending beyond EOF. 
+Conversely, the cached size may be smaller than the size refreshed when
+the cluster inode lock is acquired.  Early validation can then reject a
+valid start or permanently shorten the requested length and threshold. 
+The me_start + me_len comparison can also wrap for a large input length.
 
-- With asynchronous RWP, protection is cleared before unsharing.
+Validate and adjust the original request once, after inode_lock(), the
+exclusive rw lock and ocfs2_inode_lock() have stabilized and refreshed the
+size.  Read EOF once, reject a start beyond it, and bound the length by
+EOF minus start.  Normalize the threshold using the same EOF snapshot. 
+This keeps zero as the default-threshold sentinel until validation uses
+the size that will govern extent movement.
 
-Preserve the uffd bit when merging, and restore PAGE_NONE for RWP.  Let
-FAULT_FLAG_UNSHARE skip RWP fault handling and keep PAGE_NONE on each
-private copy as well.  Unsharing can then complete with RWP still armed
-for a subsequent access.
+Move goal validation after range adjustment as well.  Its allocation-group
+capacity check uses me_len and must see the EOF-clamped length.  Both
+validation failures use the existing inode-lock unwind path before any
+extent movement or transaction starts.
 
-Link: https://lore.kernel.org/20261026130054.91461-1-lance.yang@linux.dev
-Link: https://lore.kernel.org/all/20261019010934.697895-1-samarth.colleges@gmail.com/
-Link: https://lore.kernel.org/all/20261020055518.36087-1-lance.yang@linux.dev/
-Fixes: 63b2d4174c4a ("userfaultfd: wp: add the writeprotect API to userfaultfd ioctl")
-Fixes: 2d427bb01639 ("mm/userfaultfd: add RWP fault delivery and expose UFFDIO_REGISTER_MODE_RWP")
-Signed-off-by: Samarth Narang <samarth.colleges@gmail.com>
-Signed-off-by: Lance Yang <lance.yang@linux.dev>
+Range errors now reach the ioctl's normal copyout path, as goal errors
+already did.  Unlike the old early rejection, a failed copyout can
+therefore override -EINVAL with -EFAULT.
+
+Link: https://lore.kernel.org/pm-ocfs2-move-extents-isize-rrw-v6-395bdee84ea81149068e@gmail.com
+Fixes: 53069d4e7695 ("Ocfs2/move_extents: move/defrag extents within a certain range.")
+Signed-off-by: Cen Zhang <zzzccc427@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Co-developed-by: Samarth Narang <samarth.colleges@gmail.com>
-Acked-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
-Cc: David Hildenbrand <david@kernel.org>
-Cc: Mel Gorman <mgorman@techsingularity.net>
-Cc: Xu Xin <xu.xin@linux.dev>"
-Cc: Chengming Zhou <chengming.zhou@linux.dev>
-Cc: Liam R. Howlett <liam@infradead.org>
-Cc: Vlastimil Babka <vbabka@kernel.org>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Jérôme Glisse <jglisse@redhat.com>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Peter Xu <peterx@redhat.com>
-Cc: Kiryl Shutsemau <kas@kernel.org>
-Cc: Bobby Powers <bobbypowers@gmail.com>
-Cc: Brian Geffon <bgeffon@google.com>
-Cc: Denis Plotnikov <dplotnikov@virtuozzo.com>
-Cc: Doug Gilbert <dgilbert@interlog.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Martin Cracauer <cracauer@cons.org>
-Cc: Marty McFadden <mcfadden8@llnl.gov>
-Cc: Maya Gokhale <gokhale2@llnl.gov>
-Cc: Mike Kravetz <mike.kravetz@oracle.com>
-Cc: Pavel Emelyanov <xemul@openvz.org>
-Cc: Rik van Riel <riel@surriel.com>
-Cc: Shaohua Li <shli@fb.com>
-Cc: James Houghton <jthoughton@google.com>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Paolo Bonzini <pbonzini@redhat.com>
-Cc: Sean Christopherson <seanjc@google.com>
-Cc: SJ Park <sj@kernel.org>
-Cc: Zi Yan <ziy@nvidia.com>
-Cc: Mohammed EL Kadiri <med08elkadiri@gmail.com>
+Suggested-by: Joseph Qi <joseph.qi@linux.alibaba.com>
+Reviewed-by: Joseph Qi <joseph.qi@linux.alibaba.com>
+Assisted-by: LLM
+Cc: Mark Fasheh <mark@fasheh.com>
+Cc: Joel Becker <jlbec@evilplan.org>
+Cc: Heming Zhao <heming.zhao@suse.com>
+Cc: Jia-Ju Bai <baijiaju1990@gmail.com>
+Cc: <jjzuming@gmail.com>
 Cc: <stable@vger.kernel.org>
 ---
 
- mm/ksm.c    |    8 +++++++-
- mm/memory.c |   14 ++++++++++----
- 2 files changed, 17 insertions(+), 5 deletions(-)
+ fs/ocfs2/move_extents.c |   70 +++++++++++++++++++++-----------------
+ 1 file changed, 39 insertions(+), 31 deletions(-)
 
---- a/mm/ksm.c~mm-ksm-fix-userfaultfd-protection-during-merge-and-unmerge
-+++ a/mm/ksm.c
-@@ -34,6 +34,7 @@
- #include <linux/memory.h>
- #include <linux/mmu_notifier.h>
- #include <linux/swap.h>
-+#include <linux/userfaultfd_k.h>
- #include <linux/ksm.h>
- #include <linux/hashtable.h>
- #include <linux/freezer.h>
-@@ -1463,9 +1464,14 @@ static int replace_page(struct vm_area_s
- 		dec_mm_counter(mm, MM_ANONPAGES);
+--- a/fs/ocfs2/move_extents.c~ocfs2-validate-move-extents-against-a-stable-eof
++++ a/fs/ocfs2/move_extents.c
+@@ -907,6 +907,30 @@ out:
+ 	return ret;
+ }
+ 
++static int ocfs2_validate_and_adjust_move_range(struct inode *inode,
++						struct ocfs2_move_extents *range)
++{
++	u64 i_size = i_size_read(inode);
++
++	if (range->me_start > i_size)
++		return -EINVAL;
++
++	if (range->me_len > i_size - range->me_start)
++		range->me_len = i_size - range->me_start;
++
++	/*
++	 * The default threshold for defragmentation is 1 MiB, which
++	 * matches the maximum OCFS2 cluster size.
++	 */
++	if (!range->me_threshold)
++		range->me_threshold = 1024 * 1024;
++
++	if (range->me_threshold > i_size)
++		range->me_threshold = i_size;
++
++	return 0;
++}
++
+ static int ocfs2_move_extents(struct ocfs2_move_extents_context *context)
+ {
+ 	int status;
+@@ -936,6 +960,21 @@ static int ocfs2_move_extents(struct ocf
+ 		goto out_rw_unlock;
  	}
  
--	/* Preserve soft-dirty when replacing the page. */
-+	/* Preserve soft-dirty and uffd protection when replacing the page. */
- 	if (pte_soft_dirty(orig_pte))
- 		newpte = pte_mksoft_dirty(newpte);
-+	if (pte_uffd(orig_pte)) {
-+		newpte = pte_mkuffd(newpte);
-+		if (userfaultfd_rwp(vma))
-+			newpte = pte_modify(newpte, PAGE_NONE);
++	status = ocfs2_validate_and_adjust_move_range(inode, context->range);
++	if (status) {
++		mlog_errno(status);
++		goto out_inode_unlock;
 +	}
- 
- 	flush_cache_page(vma, addr, pte_pfn(ptep_get(ptep)));
- 	/*
---- a/mm/memory.c~mm-ksm-fix-userfaultfd-protection-during-merge-and-unmerge
-+++ a/mm/memory.c
-@@ -4122,8 +4122,11 @@ static vm_fault_t wp_page_copy(struct vm
- 		if (unlikely(unshare)) {
- 			if (pte_soft_dirty(vmf->orig_pte))
- 				entry = pte_mksoft_dirty(entry);
--			if (pte_uffd(vmf->orig_pte))
-+			if (pte_uffd(vmf->orig_pte)) {
- 				entry = pte_mkuffd(entry);
-+				if (userfaultfd_rwp(vma))
-+					entry = pte_modify(entry, PAGE_NONE);
-+			}
- 		} else {
- 			entry = maybe_mkwrite(pte_mkdirty(entry), vma);
- 		}
-@@ -6659,9 +6662,12 @@ static vm_fault_t handle_pte_fault(struc
- 		 * VM_UFFD_RWP VMA, a protnone PTE without the uffd bit is
- 		 * NUMA hinting and must still fall through to do_numa_page().
- 		 */
--		if (userfaultfd_pte_rwp(vmf->vma, vmf->orig_pte))
--			return do_uffd_rwp(vmf);
--		return do_numa_page(vmf);
-+		if (userfaultfd_pte_rwp(vmf->vma, vmf->orig_pte)) {
-+			if (!(vmf->flags & FAULT_FLAG_UNSHARE))
-+				return do_uffd_rwp(vmf);
-+		} else {
-+			return do_numa_page(vmf);
++
++	/* The goal check depends on the adjusted range length. */
++	if (!context->auto_defrag) {
++		status = ocfs2_validate_and_adjust_move_goal(inode, context->range);
++		if (status) {
++			mlog_errno(status);
++			goto out_inode_unlock;
 +		}
++	}
++
+ 	/*
+ 	 * remember ip_xattr_sem also needs to be held if necessary
+ 	 */
+@@ -1028,27 +1067,8 @@ int ocfs2_ioctl_move_extents(struct file
+ 		goto out_free;
  	}
  
- 	spin_lock(vmf->ptl);
+-	if (range.me_start > i_size_read(inode)) {
+-		status = -EINVAL;
+-		goto out_free;
+-	}
+-
+-	if (range.me_start + range.me_len > i_size_read(inode))
+-			range.me_len = i_size_read(inode) - range.me_start;
+-
+ 	context->range = &range;
+ 
+-	/*
+-	 * ok, the default threshold for the defragmentation
+-	 * is 1M, since our maximum clustersize was 1M also.
+-	 * any thought?
+-	 */
+-	if (!range.me_threshold)
+-		range.me_threshold = 1024 * 1024;
+-
+-	if (range.me_threshold > i_size_read(inode))
+-		range.me_threshold = i_size_read(inode);
+-
+ 	if (range.me_flags & ~(OCFS2_MOVE_EXT_FL_AUTO_DEFRAG |
+ 			       OCFS2_MOVE_EXT_FL_PART_DEFRAG)) {
+ 		status = -EINVAL;
+@@ -1060,23 +1080,11 @@ int ocfs2_ioctl_move_extents(struct file
+ 
+ 		if (range.me_flags & OCFS2_MOVE_EXT_FL_PART_DEFRAG)
+ 			context->partial = 1;
+-	} else {
+-		/*
+-		 * first best-effort attempt to validate and adjust the goal
+-		 * (physical address in block), while it can't guarantee later
+-		 * operation can succeed all the time since global_bitmap may
+-		 * change a bit over time.
+-		 */
+-
+-		status = ocfs2_validate_and_adjust_move_goal(inode, &range);
+-		if (status)
+-			goto out_copy;
+ 	}
+ 
+ 	status = ocfs2_move_extents(context);
+ 	if (status)
+ 		mlog_errno(status);
+-out_copy:
+ 	/*
+ 	 * movement/defragmentation may end up being partially completed,
+ 	 * that's the reason why we need to return userspace the finished
 _
 
-Patches currently in -mm which might be from lance.yang@linux.dev are
+Patches currently in -mm which might be from zzzccc427@gmail.com are
 
-mm-ksm-fix-userfaultfd-protection-during-merge-and-unmerge.patch
+ocfs2-validate-move-extents-against-a-stable-eof.patch
 
