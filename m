@@ -1,47 +1,47 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793057101;
-	b=O4evOAbO96WNC9Dlru0gFxKptmrZwEndw7UT2ZEhy02obdIUrjmljfV1xazwm1j0Wo53
-	 78CwMV6wPZZTnbjtdvjaliBFCtZthLpdSUNEcuTVYUDCYG/fRNjacrIc6wJRWvv2RrvIG
-	 swlsMQ501NntOYBJ5KsFJarSxnTyP8hA0sEa0H8CjbnkfzJ54BsZCpad3QeoG0EXLgxQG
-	 d2EMDQxbZnNLDTn0wvRGaBBgotMEX6Z+57GljQYVBuC46Jt6wDQEj+qND/rm137fxJzyY
-	 4CbOFoC+RY5MUND1qvgj+U1A+8VV/qW9u1vygggsIenV7QvqFf7t3quM7I068y1uDZg==
+	t=1793057196;
+	b=CK6Hp7SqM/R1Q5xSbIORkr2DPtwr4QJ3vCC4OcILhXmPtrVe/kvNzEzgsq9XuCI2rLkY
+	 dIQN8V5XU2GKvlsPVToOEQqtGqgcfk+lleCLL3f5/89pidy5ahu/6xhODuh+fqz7smrya
+	 Go80qnZ2vmsJTR4MF8VKBGppJeRdsd5S80ossZ6h0mJyb8FNr37C3X7OSNLTR/LgHUe8i
+	 48GXhykToaZGcLlMykmqQji8N07I0JN3fyUtyyNWYIgKZOqW46Hwzk+0VLGUu7DBujUd+
+	 SGOWA7acNsNch39K1fycLlstBcgOLgSVrkpivJ13qvVobNqVLbZeZM15hdGtJxkfZSw==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793057101;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793057196;
 	h=Received:DKIM-Signature:Message-ID:Date:MIME-Version:User-Agent:
-	 Subject:To:References:From:Content-Language:Autocrypt:In-Reply-To:
+	 Subject:From:To:References:Content-Language:Autocrypt:In-Reply-To:
 	 Content-Type:Content-Transfer-Encoding;
-	bh=FB032E/RRIlbqQY9vpCcgf1CjIl9InCPYHT858vBxbM=;
-	b=QbdruP4zlJ+Ob4ChREMGF2IGyrSDkU/6UJDRvpERJVD/q4YT5FL4CTtf3vnjBp6L9oT9
-	 Gn+jFSteo4tcU9Y1i0O5xmkkHr5nAqQg6kt7/uDM3KZlPGAkcsGSpP2ucP+lv3KkC+Jkw
-	 ZNg4IupK7L600U7aZnNqYwZyamz2JobOcFkK4IWQvJ+DAhNfWRbC5S8KzXlsuu+x1V2Vr
-	 hwrBkvJdfLmj3olTCKmh5n7YO6zQQ0VGT+/zg4oNH3SO4dzca05lZ+/dLAQdwkcMxIyed
-	 N2bW+4ORfZYgd3sK3zK4YjX9DNWefygsATyPzfv1sW38Kba3UJeYIopGl32hoUpin2Q==
+	bh=cGqMlMVla5/cz3DOLEBjj0wDB6elRMzLIYmWsqwedfY=;
+	b=UUSQZ50s7KZPq8J/KCW1v+YxEh5xnVsN9vai2Lr4bLzsbXVvVg5dmyFsSQLcfp2fX8F2
+	 NjUWwLE9u8EgrxwwuzZGZkpLrPlkaCAf8WtwtwINBa3CtBqqv65cEo+W6UgW1QONviG3n
+	 TMST5qayFBx5SrEgEayGWntWpTs3zxxvwI4lgVOjn/aeRJjbfI+EVOYbrQl+JGu4OtEWe
+	 CxEiyfycj5nO5M95BfNsqv/3Axd/v796mjWPuH+wHDYGMfaBFisoTTNtyvlcnS6ateeLY
+	 q/H5SrkWjRK6XRT2a/M/IcNDpBpeeR4TF90pjNmYgOn3C9XBsUr9tk/PyvSE1EWgWlg==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=fHJEJ4LB;
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=lLgpXxfH;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 203E9606A324
-	for <mm-commits@vger.kernel.org>; Mon, 26 Oct 2026 23:25:01 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9D7C4606A31A
+	for <mm-commits@vger.kernel.org>; Mon, 26 Oct 2026 23:26:36 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=fHJEJ4LB
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 085321F031E0;
-	Mon, 26 Oct 2026 23:24:55 +0000 (UTC)
+	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=lLgpXxfH
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 37C391F01829;
+	Mon, 26 Oct 2026 23:26:30 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1793057101;
-	bh=FB032E/RRIlbqQY9vpCcgf1CjIl9InCPYHT858vBxbM=;
-	h=Date:Subject:To:References:From:In-Reply-To;
-	b=fHJEJ4LB4PuPGJX+BzEMtj9tESinyISRZfbXH5u/FH8nUwZhl4SoPqxOaK97qf8nC
-	 N88Y2bRiN/vifjRilJNZJQEm/w78uk/9kS2/+SATJ+iVhxnKdW37Dmp8EcTID3ot01
-	 BqhTQZg4U55P43qQu4D0mJA4oc0p4oOxKAzKe79GNquyFan9X/8PHOf3iSxrfvVF4K
-	 Pf2hl7N250d141qyVNhDq0M1Sb9dG9svYrimjcHyf+VPVeYSaIlOGlRg0OYLMWV0rE
-	 na6yioM9T7cWT+iC0+s7D+alafsXlMNM+tKG6BcSsNEp4ZkHBp9N8yNUYO57c9oHLX
-	 8KyTMPtrM/p1g==
-Message-ID: <64c9b5df-7164-4f08-a0ef-cc2c7bcea26a@kernel.org>
-Date: Mon, 26 Oct 2026 23:52:55 +0100
+	s=k20260515; t=1793057196;
+	bh=cGqMlMVla5/cz3DOLEBjj0wDB6elRMzLIYmWsqwedfY=;
+	h=Date:Subject:From:To:References:In-Reply-To;
+	b=lLgpXxfHisuC2SWqEgdEPsH4TKovLBcX0HXnLa6JaGUFv0ga0lfeZ3srNGraoqb5A
+	 xFXT21ZTzT9XjlAIdydQCh6wKZoygTn0Z28VQRppLentkFWCXJXO/x2SyES1KeTQ3B
+	 rL3KSj261+Cybmcl2MpgcXvc2kS2npJq/qHCUD/o9W0whQvnKbhSJ9JWFWJIgVuiIs
+	 PbPrrOiG6W7P4QePY8eiBkflWhxt6ooHVrwURs4oj+5CXH8by4EquUAhtxhfovfaG/
+	 fpMyys3jP7gDzfo6K2m2bTMBwXLtQLOJneiPxerhee9TD9kXUigQrGSTSiwaGUhD+4
+	 0EWBuNBGb+hig==
+Message-ID: <47838157-139f-4863-8524-147102194c6c@kernel.org>
+Date: Tue, 27 Oct 2026 00:26:27 +0100
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -55,6 +55,7 @@ User-Agent: Mozilla Thunderbird
 Subject: Re: [merged mm-stable]
  mm-truncate-fix-data-loss-when-splitting-straddling-large-folios-fails.patch
  removed from -mm tree
+From: "David Hildenbrand (Arm)" <david@kernel.org>
 To: Andrew Morton <akpm@linux-foundation.org>, mm-commits@vger.kernel.org,
  ziy@nvidia.com, yukuai@fnnas.com, yizhang089@gmail.com,
  yangerkun@huawei.com, willy@infradead.org, wangkefeng.wang@huawei.com,
@@ -63,7 +64,7 @@ To: Andrew Morton <akpm@linux-foundation.org>, mm-commits@vger.kernel.org,
  hughd@google.com, djwong@kernel.org, chengzhihao1@huawei.com,
  bfoster@redhat.com, baolin.wang@linux.alibaba.com, yi.zhang@huawei.com
 References: <20261024085807.3E8AA1F01825@smtp.kernel.org>
-From: "David Hildenbrand (Arm)" <david@kernel.org>
+ <64c9b5df-7164-4f08-a0ef-cc2c7bcea26a@kernel.org>
 Content-Language: en-US
 Autocrypt: addr=david@kernel.org; keydata=
  xsFNBFXLn5EBEAC+zYvAFJxCBY9Tr1xZgcESmxVNI/0ffzE/ZQOiHJl6mGkmA1R7/uUpiCjJ
@@ -109,26 +110,32 @@ Autocrypt: addr=david@kernel.org; keydata=
  3iyY2Nsd7JxfKu1PRhCGwXzRw5TlfEsoRI7V9A8isUCoqE2Dzh3FvYHVeX4Us+bRL/oqareJ
  CIFqgYMyvHj7Q06kTKmauOe4Nf0l0qEkIuIzfoLJ3qr5UyXc2hLtWyT9Ir+lYlX9efqh7mOY
  qIws/H2t
-In-Reply-To: <20261024085807.3E8AA1F01825@smtp.kernel.org>
+In-Reply-To: <64c9b5df-7164-4f08-a0ef-cc2c7bcea26a@kernel.org>
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
 
-On 10/24/26 10:58, Andrew Morton wrote:
-> The quilt patch titled
->      Subject: mm/truncate: fix data loss when splitting straddling large folios fails
-> has been removed from the -mm tree.  Its filename was
->      mm-truncate-fix-data-loss-when-splitting-straddling-large-folios-fails.patch
+On 10/26/26 23:52, David Hildenbrand (Arm) wrote:
+> On 10/24/26 10:58, Andrew Morton wrote:
+>> The quilt patch titled
+>>      Subject: mm/truncate: fix data loss when splitting straddling large folios fails
+>> has been removed from the -mm tree.  Its filename was
+>>      mm-truncate-fix-data-loss-when-splitting-straddling-large-folios-fails.patch
+>>
+>> This patch was dropped because it was merged into the mm-stable branch
+>> of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+>>
 > 
-> This patch was dropped because it was merged into the mm-stable branch
-> of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+> Andrew, can we hold off sending these for a couple more days.
+> 
+> It's unclear how they related to the other shmem fixes I sent which fix stuff
+> older than that.
+> 
+> (Zi just mentioned that it might become a mess)
 > 
 
-Andrew, can we hold off sending these for a couple more days.
+Ah, nevermind. We'll figure it out.
 
-It's unclear how they related to the other shmem fixes I sent which fix stuff
-older than that.
-
-(Zi just mentioned that it might become a mess)
+It's all a mess already. An utter mess.
 
 -- 
 Cheers,
