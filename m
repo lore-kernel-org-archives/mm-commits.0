@@ -1,46 +1,48 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793072507;
-	b=4i0Vzd3ES1szenTmI6Lcq1WGb+fNhYTJjLYRBwts/tXYVgEngFy3U9hGGTf7FmjBW0Jf
-	 Ccn2EJ84kU6bgS1W6AEoOm5LdscRt6dGYqnBGGuVdsfFtV/UJj38GSIr2J0G7HxTe6bpj
-	 p4KsfJ1oPD/A6cJrTrQ/mwNzIeY8PUGvOfRDQgzo6Up0zORc26Qrec5QiEsGctkwS2heO
-	 WvU4xpWWqGXhPE3TwVS+N4mPGYkCKZ7ibd6MvN8WshyBL7MeiFjMFZMzVkvRIQR22RmRV
-	 7kpY4sB/vPDS8d48VY6gZ/sA6m6Gf5lWDwa/85nyMPGgEt5t9RU+flsGU0q1yArnqpg==
+	t=1793115449;
+	b=NXoNjGs4B1cVTH+mVYMmnObnPGFv3iOLzrt8FiOeOsNgyK5xZWj5hMuLH5gMp8qnl9pS
+	 p/rExb1cz5Ih3b7S2Cd3HoUhAKvSRAB+GUYH5IYcVogEabrIZL2uSHzbyQdb0EfxgU72A
+	 SaLtyGXIU+A9Q+FyamRGTTZW2Ddd08tbClsRbuzsjm3gerPp6AuzdVoAnoryQ1bMyGSoy
+	 Jvs2Z9X015B8o9w9SMPjvOUVYNChS2r8Gc4M1HybOkUxD9BnkjX+C6bNia4HO1HaVgCTs
+	 C3xQH4qy8HPGVpCLsXShOPLGD9WA7au2FRUiopqpsQbimQQOldfx5JPZNMlZGZRVA0Q==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793072507;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793115449;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=qX+JJYwLqT//VHqhTmW+OaWZiZe+lEM9Z1u64riIEgs=;
-	b=Ltz67gaGfn3Jhp/ubobfX0kyRAbrvwlymvdB+NBONBmgG8syyGT+dsDBsLrdC3BGwkkz
-	 2hYA6cKFk//9IS3ccMT8f+Vl372G4PM/IqpBtnOcpG36+lbihA6abzVWafM6ygx90WjpO
-	 gtCZrViBxmEZq31D2pR1JvjxlL7al7GpX/6Hju3GGF60DWRCBhpajJqX5zCdP55uERVZr
-	 eIaLLI9aVvY7VJxPOktf3UhvNbjpxxz5emc2+NI0lm7xFOftVA353kvTW6ghcF7gBMRag
-	 v5xgAqHFvoGtn7U5hsEMWuFhyrf+4wduIEG9EiLaTFlswOnLAqb69zdIBoSHoPeczdQ==
+	bh=vaAhT2JOYCr9kbrHlVAbzMWbcRUa5E2UWb6Rda9CcvE=;
+	b=zH1WkBVDxuagEmA8rui1LDwDuSwLB7fXscs5KE5Qh+zPoIL/u1ZG52po8HwhwP36cqKf
+	 7pdP7CEPk3LSuhSUFOEsBNGtkNMqD0rQp1GpfB3UYVJ4Yer9OZjKGOYPX/gg4YjKiaApN
+	 csPpwCDiHP1Nrt4az5kZU4IY2nfBTzFEJCMnJmX4SoRLiJSXaQ2R2BcIFN5d1nxcgqQQ3
+	 FRUWZV6+Zx4XzsT0Xad7A7RY9R79xYLqvOueYAzCmEcJgIVUgTPZ7EGCapm3onus3wUNo
+	 BRIqB3T+o7clkby4XccyJTq5ykf0PjGY1ZZY0U/sUBAMYFfbKTmWSogngCDTaTn4Axw==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b="Ng1QRs/p";
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=KSou9c9s;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5AACF606A31B
-	for <mm-commits@vger.kernel.org>; Tue, 27 Oct 2026 03:41:47 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1C63C606D926;
+	Tue, 27 Oct 2026 15:37:28 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=Ng1QRs/p
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0F66E1F01825;
-	Tue, 27 Oct 2026 03:41:47 +0000 (UTC)
+	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=KSou9c9s
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id AF3E71F01181;
+	Tue, 27 Oct 2026 15:37:28 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1793072507;
-	bh=qX+JJYwLqT//VHqhTmW+OaWZiZe+lEM9Z1u64riIEgs=;
+	d=linux-foundation.org; s=korg; t=1793115448;
+	bh=vaAhT2JOYCr9kbrHlVAbzMWbcRUa5E2UWb6Rda9CcvE=;
 	h=Date:To:From:Subject;
-	b=Ng1QRs/pAjbC7WbUvmNUg9Wk4Jp4bU9ugYv2rz6sSoyxPfWhDPHx17LOLeGlClKBc
-	 TztZu+Vjq9kjVfnyrzn/cS9gXpkz6UVWynm/ujKVaPUAiKfbuoQH/hn5qvGPVYPk7v
-	 wn0wROIs8Ol+hrV9DGNNOr+SS8HP/33JGf2FpoUc=
-Date: Mon, 26 Oct 2026 20:41:46 -0700
-To: mm-commits@vger.kernel.org,hirofumi@mail.parknet.co.jp,
-	matheus.aalmeida@inf.ufrgs.br,akpm@linux-foundation.org
+	b=KSou9c9s+uiziP9MHhoOwQb48TgIRzFshU3X2MbRa0zcVNvSq6jxboCTr8A1fPbVs
+	 F8ZtvFqUpPMIU+6WKlP3FY2BMElUDx99pzFmfkOIGAK9yvxo9KbiShpc/o1M1KkXSt
+	 Fc8C/s+yjyqKhY92Wp/ALqsyjNAC9ujIZDtcGzAw=
+Date: Tue, 27 Oct 2026 08:37:28 -0700
+To: mm-commits@vger.kernel.org,wangyang.guo@intel.com,
+	tim.c.chen@linux.intel.com,tianyou.li@intel.com,tglx@kernel.org,
+	stable@vger.kernel.org,radu@rendec.net,dan.liang@intel.com,bp@alien8.de,
+	Vishal.Badole@amd.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + fat-improve-fat_sync_bhs-write-submission.patch added to mm-nonmm-unstable branch
-Message-Id: <20261027034147.0F66E1F01825@smtp.kernel.org>
+Subject: [to-be-updated] lib-group_cpus-snapshot-cluster-masks-to-keep-grouping-hotplug-invariant.patch removed from -mm tree
+Message-Id: <20261027153728.AF3E71F01181@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -51,96 +53,206 @@ List-Owner: <mailto:mm-commits+owner@vger.kernel.org>
 Precedence: list
 
 
-The patch titled
-     Subject: fat: improve fat_sync_bhs() write submission
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     fat-improve-fat_sync_bhs-write-submission.patch
+The quilt patch titled
+     Subject: lib/group_cpus: snapshot cluster masks to keep grouping hotplug invariant
+has been removed from the -mm tree.  Its filename was
+     lib-group_cpus-snapshot-cluster-masks-to-keep-grouping-hotplug-invariant.patch
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/fat-improve-fat_sync_bhs-write-submission.patch
-
-This patch will later appear in the mm-nonmm-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via various
-branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there most days
+This patch was dropped because an updated version will be issued
 
 ------------------------------------------------------
-From: Matheus Alves de Almeida <matheus.aalmeida@inf.ufrgs.br>
-Subject: fat: improve fat_sync_bhs() write submission
-Date: Mon, 26 Oct 2026 13:39:41 -0300
+From: Vishal Badole <Vishal.Badole@amd.com>
+Subject: lib/group_cpus: snapshot cluster masks to keep grouping hotplug invariant
+Date: Wed, 26 Aug 2026 22:45:37 +0530
 
-fat_sync_bhs() does many individual write_dirty_buffer() calls without
-plugging, making batching in the block layer more difficult.  It also does
-not pass the REQ_SYNC hint for these synchronous writes.
+group_cpus_evenly() builds the managed-IRQ affinity spread used by
+multi-queue devices such as NVMe.  That spread is meant to be a property
+of the static CPU topology: it walks cpu_present_mask and then
+cpu_possible_mask so every hardware queue owns a fixed set of CPUs,
+including CPUs that are offline at the time.  A driver depends on that
+partition staying stable across re-computation - the CPUs a queue is given
+at probe must still describe the same queue after the device is later
+reset and its affinity recomputed.
 
-Use a plug around the writes so the block layer can more easily batch
-them.  Pass the REQ_SYNC hint to write_dirty_buffer().
+On an AMD system that stability breaks across an s2idle cycle.  With CPUs
+3-11 offlined and only CPUs 0-2 left online, the machine is suspended to
+s2idle and resumed.  The NVMe controller uses the simple-suspend quirk, so
+resume fully re-initialises it and recomputes the affinity spread.  The
+system then hangs for roughly two minutes and stays sluggish afterwards,
+the controller only making progress through its command-timeout poll:
 
-Benchmarking was done under QEMU/KVM with a virtio-blk device using
-cache=directsync.  Each result is the arithmetic mean of 10 samples.
+  nvme nvme0: I/O tag 898 (3382) QID 9 timeout, completion polled
+  nvme nvme0: I/O tag 398 (618e) QID 11 timeout, completion polled
 
-start = now_ns();
-for (unsigned i = 0; i < count; i++) {
-    fallocate(fds[i], FALLOC_FL_KEEP_SIZE, 0, bytes);
-}
-elapsed = now_ns() - start;
+QID 9 and QID 11 are the queues whose CPUs were offline when the spread
+was recomputed.  "completion polled" means the commands did finish in
+hardware, but their interrupts were never delivered to a CPU that was
+watching the queue, so nothing reaped them until the timeout fired.
 
-Sync-mounted FAT32 using count=16 files:
-File size    Cluster size    Before    After    Improvement
-256MiB       512B            13.11s    11.87s   1.10x
-256MiB       4096B           1.657s    1.469s   1.13x
+It happens because commit 89802ca36c96 ("lib/group_cpus: make group CPU
+cluster aware") derives the cluster groups from
+topology_cluster_cpumask(), which lists only the cluster siblings that are
+online when it is called.  The resulting partition therefore depends on
+the transient online mask rather than on the topology alone.  Recomputed
+on resume while the non-boot CPUs are still offline, it no longer matches
+the boot-time partition, and a queue is left with an affinity that does
+not cover the CPU it is meant to serve once that CPU comes back online. 
+The dependence is on the online mask, not on any AMD-specific behaviour,
+so the same stall is reproducible on Intel platforms as well.
 
-Link: https://lore.kernel.org/20261026163941.495833-3-matheus.aalmeida@inf.ufrgs.br
-Signed-off-by: Matheus Alves de Almeida <matheus.aalmeida@inf.ufrgs.br>
+Make the cluster grouping depend on the complete cluster topology rather
+than on whichever CPUs happen to be online.  Snapshot the cluster masks
+once while every present CPU is online and reuse that view for every later
+spread.  Every spread then groups from the same masks, so the partition
+computed when the controller is reset matches the one computed at probe
+and each queue's IRQ still covers the CPUs it serves.  If the snapshot was
+never taken, the cluster path is skipped and the plain present/possible
+spread is used.
+
+Link: https://lore.kernel.org/20260826171537.4167367-1-Vishal.Badole@amd.com
+Fixes: 89802ca36c96 ("lib/group_cpus: make group CPU cluster aware")
+Signed-off-by: Vishal Badole <Vishal.Badole@amd.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Acked-by: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
+Reviewed-by: Wangyang Guo <wangyang.guo@intel.com>
+Tested-by: Wangyang Guo <wangyang.guo@intel.com>
+Cc: "Borislav Petkov (AMD)" <bp@alien8.de>
+Cc: Radu Rendec <radu@rendec.net>
+Cc: Thomas Gleixner <tglx@kernel.org>
+Cc: Tim Chen <tim.c.chen@linux.intel.com>
+Cc: Tianyou Li <tianyou.li@intel.com>
+Cc: Dan Liang <dan.liang@intel.com>
+Cc: <stable@vger.kernel.org>
 ---
 
- fs/fat/misc.c |    8 +++++++-
- 1 file changed, 7 insertions(+), 1 deletion(-)
+ lib/group_cpus.c |   87 +++++++++++++++++++++++++++++++++++++++++++--
+ 1 file changed, 85 insertions(+), 2 deletions(-)
 
---- a/fs/fat/misc.c~fat-improve-fat_sync_bhs-write-submission
-+++ a/fs/fat/misc.c
-@@ -9,6 +9,7 @@
+--- a/lib/group_cpus.c~lib-group_cpus-snapshot-cluster-masks-to-keep-grouping-hotplug-invariant
++++ a/lib/group_cpus.c
+@@ -6,6 +6,7 @@
+ #include <linux/kernel.h>
+ #include <linux/slab.h>
+ #include <linux/cpu.h>
++#include <linux/mutex.h>
+ #include <linux/sort.h>
+ #include <linux/group_cpus.h>
  
- #include "fat.h"
- #include <linux/iversion.h>
-+#include <linux/blk_plug.h>
+@@ -286,6 +287,77 @@ static void assign_cpus_to_groups(unsign
+ 	}
+ }
  
- /*
-  * fat_fs_error reports a file system problem that might indicate fa data
-@@ -353,9 +354,14 @@ EXPORT_SYMBOL_GPL(fat_update_time);
- int fat_sync_bhs(struct buffer_head **bhs, int nr_bhs)
- {
- 	int i, err = 0;
-+	struct blk_plug plug;
++/*
++ * topology_cluster_cpumask() only lists the cluster siblings that are online,
++ * so group_cpus_evenly() would compute a different managed-IRQ partition when
++ * recomputed with CPUs offline (e.g. an NVMe reset across s2idle), steering a
++ * queue's IRQ away from the CPU it serves.
++ *
++ * Snapshot the cluster masks once, on the first spread seen with every
++ * present CPU online, and reuse it so the grouping stays stable. If no
++ * snapshot exists (partial boot via maxcpus=/nosmp, or allocation failure)
++ * the cluster path is skipped and the plain present/possible spread is
++ * used. Only the cluster path is stabilised; grp_spread_init_one()'s
++ * sibling mask is unchanged. The snapshot lives for the system lifetime
++ * and is not refreshed for CPUs hot-added after boot.
++ */
++static cpumask_var_t *cluster_snapshot;
++static bool cluster_snapshot_ready;
++static DEFINE_MUTEX(cluster_snapshot_lock);
 +
-+	blk_start_plug(&plug);
- 
- 	for (i = 0; i < nr_bhs; i++)
--		write_dirty_buffer(bhs[i], 0);
-+		write_dirty_buffer(bhs[i], REQ_SYNC);
++static void capture_cluster_snapshot(void)
++{
++	cpumask_var_t *snapshot;
++	unsigned int cpu;
 +
-+	blk_finish_plug(&plug);
++	/* Pairs with the smp_store_release() below. */
++	if (smp_load_acquire(&cluster_snapshot_ready))
++		return;
++
++	/* Only capture when all present CPUs are online. */
++	if (!data_race(cpumask_equal(cpu_present_mask, cpu_online_mask)))
++		return;
++
++	mutex_lock(&cluster_snapshot_lock);
++	if (cluster_snapshot_ready)
++		goto out;
++
++	snapshot = kcalloc(nr_cpu_ids, sizeof(*snapshot), GFP_KERNEL);
++	if (!snapshot)
++		goto out;
++
++	for_each_possible_cpu(cpu)
++		if (!zalloc_cpumask_var(&snapshot[cpu], GFP_KERNEL))
++			goto free_snapshot;
++
++	/* Trylock: a caller may hold a lock the hotplug writer needs. */
++	if (!cpus_read_trylock())
++		goto free_snapshot;
++
++	/* Recheck under the lock, which also pins the cluster masks. */
++	if (!data_race(cpumask_equal(cpu_present_mask, cpu_online_mask))) {
++		cpus_read_unlock();
++		goto free_snapshot;
++	}
++
++	for_each_possible_cpu(cpu)
++		cpumask_copy(snapshot[cpu], topology_cluster_cpumask(cpu));
++	cpus_read_unlock();
++
++	cluster_snapshot = snapshot;
++	/* Publish the filled snapshot before the ready flag. */
++	smp_store_release(&cluster_snapshot_ready, true);
++	goto out;
++
++free_snapshot:
++	/* Unallocated entries are NULL, which free_cpumask_var() ignores. */
++	for_each_possible_cpu(cpu)
++		free_cpumask_var(snapshot[cpu]);
++	kfree(snapshot);
++out:
++	mutex_unlock(&cluster_snapshot_lock);
++}
++
+ static int alloc_cluster_groups(unsigned int ncpus,
+ 				unsigned int ngroups,
+ 				struct cpumask *node_cpumask,
+@@ -299,6 +371,17 @@ static int alloc_cluster_groups(unsigned
+ 	const struct cpumask **clusters;
+ 	struct node_groups *cluster_groups;
  
- 	for (i = 0; i < nr_bhs; i++) {
- 		wait_on_buffer(bhs[i]);
++	/*
++	 * Capture on the first spread with every present CPU online (normally
++	 * the first device probe); later spreads reuse it. Sample the ready
++	 * flag once so both loops below use one consistent source.
++	 */
++	capture_cluster_snapshot();
++
++	/* Pairs with the smp_store_release() in capture_cluster_snapshot(). */
++	if (!smp_load_acquire(&cluster_snapshot_ready))
++		goto no_cluster;
++
+ 	cpumask_copy(msk, node_cpumask);
+ 
+ 	/* Probe how many clusters in this node. */
+@@ -307,7 +390,7 @@ static int alloc_cluster_groups(unsigned
+ 		if (cpu >= nr_cpu_ids)
+ 			break;
+ 
+-		cluster_mask = topology_cluster_cpumask(cpu);
++		cluster_mask = cluster_snapshot[cpu];
+ 		if (!cpumask_weight(cluster_mask))
+ 			goto no_cluster;
+ 		/* Clean out CPUs on the same cluster. */
+@@ -331,7 +414,7 @@ static int alloc_cluster_groups(unsigned
+ 	cpumask_copy(msk, node_cpumask);
+ 	for (n = 0; n < ncluster; n++) {
+ 		cpu = cpumask_first(msk);
+-		cluster_mask = topology_cluster_cpumask(cpu);
++		cluster_mask = cluster_snapshot[cpu];
+ 		nc = cpumask_weight_and(cluster_mask, node_cpumask);
+ 		clusters[n] = cluster_mask;
+ 		cluster_groups[n].id = n;
 _
 
-Patches currently in -mm which might be from matheus.aalmeida@inf.ufrgs.br are
+Patches currently in -mm which might be from Vishal.Badole@amd.com are
 
-fat-preallocate-space-before-expanding-in-fat_cont_expand.patch
-fat-hold-truncate_lock-in-fat_write_failed.patch
-fat-batch-synchronous-mirror-writes.patch
-fat-improve-fat_sync_bhs-write-submission.patch
 
