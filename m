@@ -1,49 +1,49 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793131537;
-	b=xelY7dO+cS6sZoiY3WXT2NhYcg5cSzMCkBojn0vYKd1ww6abmcJFjw0Ty3TG9I99weo7
-	 WNys7z6LClLqaJTDcTwsBwJpvqZdXhRbWw9HXusI1IlUX2sbeN8DFgTR6a6XkZvXLzLov
-	 4xJPqmqnx4/PJTL41bw0bTimuaUuvEqqoaQ9t8Hll2EKXI36zQwdHQ74ZNTDSXP/Qg5yj
-	 hJqpYkJG2tYnyXBu7PNxdge8C6Mgj81HyfbrjnRNh2Zon35V5tMXoaUapXRVpGo4f9bfs
-	 NBKuZxjeVnwvgU3fVk3adwqUrAwLoasc6DD9qf6omzihKUFuoBGY5xjZ0PjKXGslc9A==
+	t=1793131533;
+	b=0fRC8Z7Tn0lJfZzXcU/nkpu8OG5Xfi2Pkxy6AHprmutR+VL3GRkQrPqAd2WmyOWQvQLc
+	 Rxrl8VMlEU+vYCGwqUsEO/ETjuG6iJEpKslekAaWoPqXz4FRMIslLeQ86tkdygTMJNb1z
+	 JUsDQ0bFqmIxF0YGv621m7y/s4D5fRiDuEKfJhId0QdavIQSWpdO8z+c2dr02euRgDbNr
+	 WGQP55XoeKa8l+Eju4gar6XkqlwMph1GebD/JMcyqcYQr6AaRSbJLenb35lr8Jxb1c4Wf
+	 MnGmURzhEspwspKbcmvzn3P7jqbO9KsE1M3CJTB/DziU1B/NXsOz9Rua7tXUuiBd4EQ==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793131537;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793131533;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=smZHxwQLMO0VfGs7DNHVio37eG+DNgsUwaA5kyPFTXo=;
-	b=uqmilfNYGDMEZ5F/hLTw15EqHUnoPckjIa7+UMTnZt0ikOabDtOWT+/HCXjWLCq9o4gc
-	 z+nFPF5coM1zTgLhuNquGu6Nkxz2bdDlLUascyDalyNQtRbQyqogn3Rn2WhuoGv3njG9Y
-	 QlL2iM/LeEY4Q/mTkF5XhV6M1w4GU69WLv7AGlRD5C/DUAamquIcRYkrNqZ2MBP396hdg
-	 0rcLbZtWHvFwJRgPs31U64IF8fJwVidPxW8jJZw+BBOMbYm7tfYjgPc4pmID83SPph2vH
-	 YVVBUjaEHP60Xoe1tpCZpRHb0ZEJcsyaAXMLzwfV7mubOrcAP9xFXyH7F2BhAZtpARA==
+	bh=cIBn8b0DAmTROSiZ+moLia/YE9Eetg9fBdYvl5sNg5Y=;
+	b=yie/uz8Es397rjkJVst+OjYFdYL9cSlkedeLQaGtwSAb9bXV3ubFTCaHxC52xTBNbQLu
+	 DgjyNEZKquYdVhmT4aalLQjSUU7/ZByCBJ6VFq57d/kX+gSeXKaZYYO2WZBy+MkRBVH7C
+	 Jcz/6AdUSrgYkEMX37I7H43hwhWBp568M8hdKFNs52FxQH8aGkkLjyDVuxdjShpceB+EY
+	 aWFdw7SmJhPIgDfcLUstsLHWRIdF6tly8WOzcRZtTOAp9KWJkv8jXe/14nK+nYe7N/j5c
+	 4H5zApnAfjRYiyzrgTqA8m8WwnLcApXQ3/BZwcNz+rcfjmpCKStWSnZ7xpyFNhoqVuA==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=cI7RFzuA;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=0QxYDINi;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A97B2606A31E;
-	Tue, 27 Oct 2026 20:05:36 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CA208606A31A;
+	Tue, 27 Oct 2026 20:05:32 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=cI7RFzuA
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 25C661F01825;
-	Tue, 27 Oct 2026 20:05:36 +0000 (UTC)
+	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=0QxYDINi
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 42DB11F01828;
+	Tue, 27 Oct 2026 20:05:32 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1793131536;
-	bh=smZHxwQLMO0VfGs7DNHVio37eG+DNgsUwaA5kyPFTXo=;
+	d=linux-foundation.org; s=korg; t=1793131532;
+	bh=cIBn8b0DAmTROSiZ+moLia/YE9Eetg9fBdYvl5sNg5Y=;
 	h=Date:To:From:Subject;
-	b=cI7RFzuA1NbsdOxXoEGpTclkewRa+E60lE4V45nS3FZklGyNMw7KACnLkAM/IZsFm
-	 NysGxFj0smbgTReQnb47KFZ7qy1cEPPSRW+f0aWXdKnQZ/J7bz+uHQnfZ7B3ulIgb9
-	 BudS8G/Mdy2OuRgzo+U9GeoC/j/gp/aO+hHvs2ao=
-Date: Tue, 27 Oct 2026 13:05:35 -0700
+	b=0QxYDINiXF1zjS+h7KHyZaYaAmc1jyz33bNJDzvVPgqD7EQho9LXBOlt0Iph2A30l
+	 Hu6QFcx+p5Vjd1IM0mw2plAsKr3w2xITTRIYyddFSHm9we6ZqXTbL/TZWkrthkHN+T
+	 DZXe4L2dBQZffgkzyWSpvYHLbMcVDmH86+w9R5WY=
+Date: Tue, 27 Oct 2026 13:05:31 -0700
 To: mm-commits@vger.kernel.org,ziy@nvidia.com,willy@infradead.org,
 	vbabka@kernel.org,surenb@google.com,stable@vger.kernel.org,
 	shakeel.butt@linux.dev,rppt@kernel.org,osalvador@suse.de,mhocko@suse.com,
 	hannes@cmpxchg.org,gourry@gourry.net,david@kernel.org,
 	brendan.jackman@linux.dev,josef@toxicpanda.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-page_alloc-pass-zone-pointer-to-trace_reclaim_retry_zone.patch added to mm-unstable branch
-Message-Id: <20261027200536.25C661F01825@smtp.kernel.org>
+Subject: + mm-page_frag-refill-the-cache-for-large-fragments.patch added to mm-unstable branch
+Message-Id: <20261027200532.42DB11F01828@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -55,12 +55,12 @@ Precedence: list
 
 
 The patch titled
-     Subject: mm, page_alloc: pass zone pointer to trace_reclaim_retry_zone
+     Subject: mm: page_frag: refill the cache for large fragments
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-page_alloc-pass-zone-pointer-to-trace_reclaim_retry_zone.patch
+     mm-page_frag-refill-the-cache-for-large-fragments.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-page_alloc-pass-zone-pointer-to-trace_reclaim_retry_zone.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-page_frag-refill-the-cache-for-large-fragments.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -79,32 +79,40 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Josef Bacik <josef@toxicpanda.com>
-Subject: mm, page_alloc: pass zone pointer to trace_reclaim_retry_zone
-Date: Tue, 27 Oct 2026 16:46:31 +0100
+Subject: mm: page_frag: refill the cache for large fragments
+Date: Tue, 27 Oct 2026 16:46:29 +0100
 
-should_reclaim_retry() walks a zonelist and passes the zoneref pointer
-to the reclaim_retry_zone tracepoint, which loads the zone from the
-entry again to find the node.
+A fragment which is larger than PAGE_SIZE can only be served from the
+32K page of a page_frag_cache. If memory is low and the cache had to fall
+back to a single page, __page_frag_alloc_align() returns NULL and keeps
+that page.
 
-Memory hotplug rebuilds the zonelists in place while allocations are
-under way. When a zone in front of the zoneref entry has become empty,
-the entries move up, and this one can be the end marker by the time the
-tracepoint looks at it. zonelist_node_idx() then dereferences a NULL
-zone. Short of that, the event can name another zone than the one its
-numbers belong to.
+Since the offset counts up, this check comes first and is made whenever
+the fragment does not fit behind nc->offset, no matter how big the page
+of the cache is. So the cache is never refilled on behalf of a large
+fragment: with fragsz = 10000 the first three allocations succeed, the
+fourth one and all the following ones fail although memory is plentiful.
+nc->offset does not move either, so this lasts until smaller fragments
+have used up the rest of the page, which never happens if the cache has
+no other user.
 
-Pass the zone pointer instead of the zoneref pointer.
+The nfp driver allocates its receive buffers with napi_alloc_frag() and
+netdev_alloc_frag(). They are larger than a page with a jumbo MTU.
 
-Link: https://lore.kernel.org/20261027-pgalloc-ai-hotfixes-v1-5-9c7d1aca801e@kernel.org
-Fixes: d379f01de095 ("oom, trace: add oom detection tracepoints")
+Only give up if the fragment does not fit into the page at all, which is
+what the comment describes. The fourth allocation in the scenario above
+with a 32k page will thus now proceed to refill the cache.
+
+[vbabka@kernel.org: make the comment more obvious]
+Link: https://lore.kernel.org/20261027-pgalloc-ai-hotfixes-v1-3-9c7d1aca801e@kernel.org
+Fixes: 8218f62c9c9b ("mm: page_frag: use initial zero offset for page_frag_alloc_align()")
 Signed-off-by: Josef Bacik <josef@toxicpanda.com>
 Signed-off-by: Vlastimil Babka (SUSE) <vbabka@kernel.org>
 Signed-off-by: David Hildenbrand (Arm) <david@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Reviewed-by: Gregory Price (Meta) <gourry@gourry.net>
-Tested-by: Gregory Price (Meta) <gourry@gourry.net>
-Acked-by: Zi Yan <ziy@nvidia.com>
+Reviewed-by: Johannes Weiner <hannes@cmpxchg.org>
 Assisted-by: LLM
+Cc: Zi Yan <ziy@nvidia.com>
 Cc: Shakeel Butt <shakeel.butt@linux.dev>
 Cc: Mike Rapoport <rppt@kernel.org>
 Cc: Oscar Salvador <osalvador@suse.de>
@@ -112,56 +120,44 @@ Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
 Cc: Suren Baghdasaryan <surenb@google.com>
 Cc: Michal Hocko <mhocko@suse.com>
 Cc: Brendan Jackman <brendan.jackman@linux.dev>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: "Gregory Price (Meta)" <gourry@gourry.net>
 Cc: <stable@vger.kernel.org>
 ---
 
- include/trace/events/oom.h |    8 ++++----
- mm/page_alloc.c            |    2 +-
- 2 files changed, 5 insertions(+), 5 deletions(-)
+ mm/page_frag_cache.c |   21 +++++++++++++--------
+ 1 file changed, 13 insertions(+), 8 deletions(-)
 
---- a/include/trace/events/oom.h~mm-page_alloc-pass-zone-pointer-to-trace_reclaim_retry_zone
-+++ a/include/trace/events/oom.h
-@@ -33,7 +33,7 @@ TRACE_EVENT(oom_score_adj_update,
- 
- TRACE_EVENT(reclaim_retry_zone,
- 
--	TP_PROTO(struct zoneref *zoneref,
-+	TP_PROTO(struct zone *zone,
- 		int order,
- 		unsigned long reclaimable,
- 		unsigned long available,
-@@ -41,7 +41,7 @@ TRACE_EVENT(reclaim_retry_zone,
- 		int no_progress_loops,
- 		bool wmark_check),
- 
--	TP_ARGS(zoneref, order, reclaimable, available, min_wmark, no_progress_loops, wmark_check),
-+	TP_ARGS(zone, order, reclaimable, available, min_wmark, no_progress_loops, wmark_check),
- 
- 	TP_STRUCT__entry(
- 		__field(	int, node)
-@@ -55,8 +55,8 @@ TRACE_EVENT(reclaim_retry_zone,
- 	),
- 
- 	TP_fast_assign(
--		__entry->node = zonelist_node_idx(zoneref);
--		__entry->zone_idx = zonelist_zone_idx(zoneref);
-+		__entry->node = zone_to_nid(zone);
-+		__entry->zone_idx = zone_idx(zone);
- 		__entry->order = order;
- 		__entry->reclaimable = reclaimable;
- 		__entry->available = available;
---- a/mm/page_alloc.c~mm-page_alloc-pass-zone-pointer-to-trace_reclaim_retry_zone
-+++ a/mm/page_alloc.c
-@@ -4675,7 +4675,7 @@ should_reclaim_retry(gfp_t gfp_mask, uns
- 		 */
- 		wmark = __zone_watermark_ok(zone, order, min_wmark,
- 				ac->highest_zoneidx, alloc_flags, available);
--		trace_reclaim_retry_zone(z, order, reclaimable,
-+		trace_reclaim_retry_zone(zone, order, reclaimable,
- 				available, min_wmark, *no_progress_loops, wmark);
- 		if (wmark) {
- 			ret = true;
+--- a/mm/page_frag_cache.c~mm-page_frag-refill-the-cache-for-large-fragments
++++ a/mm/page_frag_cache.c
+@@ -119,15 +119,20 @@ refill:
+ 	size = PAGE_SIZE << encoded_page_decode_order(encoded_page);
+ 	offset = __ALIGN_KERNEL_MASK(nc->offset, ~align_mask);
+ 	if (unlikely(offset + fragsz > size)) {
+-		if (unlikely(fragsz > PAGE_SIZE)) {
++		if (unlikely(fragsz > size)) {
+ 			/*
+-			 * The caller is trying to allocate a fragment
+-			 * with fragsz > PAGE_SIZE but the cache isn't big
+-			 * enough to satisfy the request, this may
+-			 * happen in low memory conditions.
+-			 * We don't release the cache page because
+-			 * it could make memory pressure worse
+-			 * so we simply return NULL here.
++			 * The caller is trying to allocate a fragment that's
++			 * larger than the whole cache page.
++			 *
++			 * Either fragsz is larger than PAGE_FRAG_CACHE_MAX_SIZE
++			 * so this cannot ever succeed.
++			 *
++			 * Or the refill has fallen back to order-0 due to a low
++			 * memory condition. Then we don't want to release the
++			 * cache page to attempt a new large-size refill because
++			 * it could make memory pressure worse.
++			 *
++			 * So in both cases we simply return NULL here.
+ 			 */
+ 			return NULL;
+ 		}
 _
 
 Patches currently in -mm which might be from josef@toxicpanda.com are
