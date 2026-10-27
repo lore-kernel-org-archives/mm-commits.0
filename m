@@ -1,62 +1,62 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793140261;
-	b=KrI0QAQJmsRGZtvl1V8C5JqyAabR1xcPoQ5rjf6B44/cl0xuGkEdnt9yMEakH2wXmNKc
-	 uixH41Ip65u2nycsPkEywB5yUtr+LNyjQGr/JGW2ZYTD4J7ZmtlE6bhvYhO8JrNbb/A1p
-	 Pq9Pbd3wRm0IKMKSpAwf2t785Zq33VcPsXFvadbttqSP8MXg8wXpPQUi2QtiveXmClkZJ
-	 XRRGsTWZxsvjX/ThmoQ0YGtTtxbatQeHu4g3LaP3NRpzuaQf6VVge/UHZQDpmYRhgcfvU
-	 OU7/NAyx1Nn1s2OasN9JOcB1rJHPUjfV1AVx3JXtKy7WQ15/QEPGs2eOhUz+kxma63Q==
+	t=1793140263;
+	b=rdDrVNlxlrscf+X457NdEYo72ZkxbJ+ABAh7+1BGsOvzmBPw6jz/4nRe1vH4yWEexEV1
+	 JnCDdPhxRirCWvsUrLOopNdFQmqun/DRR8goPoGmATGy3hdyA3g5kuLZMvCJ+/mdURhrO
+	 lqRZEtGIGUyVf6u+jAK7tj4ORke72T6x9gbAuKCcDYZCU+ZZOi6nqVDDxcqobC+punef8
+	 i+LbHkCqWXh+kieNnDgD9HNchAnon1S7Oh2c5JXnTXvv/11R+0Nsnsnn9GQ2Y2XV3+RBQ
+	 udXKOeueTNEsGjew4Gbgq4OOJQgUQnhthYHGN5ha+R6oSJ9RFg7AboOJSHrsnQyE2Ng==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793140261;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793140263;
 	h=Received:DKIM-Signature:Received:Subject:From:In-Reply-To:References:
 	 X-PR-Tracked-List-Id:X-PR-Tracked-Message-Id:X-PR-Tracked-Remote:
 	 X-PR-Tracked-Commit-Id:X-PR-Merge-Tree:X-PR-Merge-Refname:
 	 X-PR-Merge-Commit-Id:Message-Id:Date:To:Cc;
-	bh=j2aaTu/ejA+h6yETxrpfv6ILgHiEOxegmW4KZtHlbN8=;
-	b=IRmF7BkSC8/xalfafOr+5q22dnPdxWKyAvRkc/qUKupyszYTwTCuU8phb32HghsRJOJp
-	 AH5T8ZZWHfxtmf3cKuNXZypl8O661p30VbBG6EHmx0eYKCDPWELPC1xWjzUGEmRwSo85D
-	 rTUS71teuoVJhqm0012aLuS4+a0X5ENJNG9JLIk8UyVDWqTCXdZM7vT+PnuUjzGgnxAZU
-	 fsLdYxfWcOK0f+pOedYoH9OhkSperOlu4mNgL8pZZOVblLHuy/hM0En7Nqdfyazo/SUWF
-	 0EQGhfmmSGV8utEIP8uICPG/d0wMBypqn8QHfkIGbgMZfL/6p4wcg1aH1bqO6IXFA7Q==
+	bh=C91okvUL0Y06ewCeQiKP8nerc+m3RbY290lx+tzKN94=;
+	b=qx+pjgee5lJ1SYZXM3MJ8cHjMQ1ct+ALJhJZU4R3OTwGaYQDnhCBBhQfm77FbsoQAUiQ
+	 8FTqQRGpeLerhhGgKFG2ue258PBIRAv1Fh3hUQkMwpCItbLjOaZB3nGss6C9JmD4Sa8Mk
+	 lwScAXiwvYRZsDxj5dughxvmU7mxNXzZSx2tGBzX19hRIvQ7xKl+EA3eZEL0luNV9XBKs
+	 SkxIHTKseNDFVschgDC9hloFOhlhKwehKsUjgFbbhQCCzNMJMfcnqJUqvaSJxGZoD/lLG
+	 4ytrTgkDvUp4zHMD1nmOudngxNwYyRod3rgYwMy8fdMINJDXun8RjG8sz9q6WihcdeA==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b="W31G7A/z";
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=NBlHJW5e;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C91D9606A324;
-	Tue, 27 Oct 2026 22:31:00 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AD767606A32A;
+	Tue, 27 Oct 2026 22:31:02 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=W31G7A/z
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A73C31F01825;
-	Tue, 27 Oct 2026 22:31:00 +0000 (UTC)
+	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=NBlHJW5e
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8B7411F01828;
+	Tue, 27 Oct 2026 22:31:02 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1793140260;
-	bh=j2aaTu/ejA+h6yETxrpfv6ILgHiEOxegmW4KZtHlbN8=;
+	s=k20260515; t=1793140262;
+	bh=C91okvUL0Y06ewCeQiKP8nerc+m3RbY290lx+tzKN94=;
 	h=Subject:From:In-Reply-To:References:Date:To:Cc;
-	b=W31G7A/ze4tUfIqB3Kiq31CY7BH4DPbWKb77AiVJXJ/wMVQsqIhGOzMScObhWa8VS
-	 M9AsbOs63a8DZYhmjTQbLAR+YzoFfNYM8UmbbRQ/iyX75PrP3Gj/dKsVXK+m7wrBwm
-	 7ey7yFbZlO91ZZ9nYmotT33/RuXd0dEDZkfjjTh/i/jJBw0jIuv1jaNpyR6OfXz9n/
-	 BZ+1VEQKDcU0Ejo1iMLjQQNn2zYdb/IJ38HEJXiTA1S/sBM6li2uT9/dfxAYEttuN/
-	 VqdFqreYAyVvcrJASNK1ElYd1Rj/buvwhn19xH4eR8g2L1Sz2CLlVlJPu2vKIi5RUO
-	 LMMPDDGNSrurA==
+	b=NBlHJW5elIhSS+OhmSVFuesAqDMhnRwcfbeccaaZ76VeYGKFAYlwaHD+IdcU1Vzrp
+	 c1B3o3w8cBXRjcCRZ1iy2jTau3PCMATXurhVgq57pKFm3jxKa2ahv7dh9d0ROWjHjM
+	 eHgROE52H2NpPOiAvikLp2wsDSZNAJiNpISpsNZ83pP46tT9HRXoyJTLvGWoH2IvgK
+	 o5Xa9pSCPddkB182ho8BcW1JlM8tqsrY27H9N3IncHs6ISr16SjRLczSuijunf5d3m
+	 apdk1qTpPYnYjHrI+e05PKKgNNoilQWSU8g4JizxsdUJ+S12SMfo22ok0MopOwrhHh
+	 6wxeHtP9cXiFA==
 Received: from [10.30.226.235] (localhost [IPv6:::1])
-	by aws-us-west-2-korg-oddjob-rhel9-1.codeaurora.org (Postfix) with ESMTP id 9592D3AA940C;
-	Tue, 27 Oct 2026 22:31:00 +0000 (UTC)
-Subject: Re: [GIT PULL] non-MM updates for 7.4-rc1
+	by aws-us-west-2-korg-oddjob-rhel9-1.codeaurora.org (Postfix) with ESMTP id 8140C3AA940B;
+	Tue, 27 Oct 2026 22:31:02 +0000 (UTC)
+Subject: Re: [GIT PULL] Additional MM updates for 7.4-rc1
 From: pr-tracker-bot@kernel.org
-In-Reply-To: <20261025202725.34c617497b6d9a2be352cf4f@linux-foundation.org>
-References: <20261025202725.34c617497b6d9a2be352cf4f@linux-foundation.org>
+In-Reply-To: <20261026152120.c6ed2222b64943914563232f@linux-foundation.org>
+References: <20261026152120.c6ed2222b64943914563232f@linux-foundation.org>
 X-PR-Tracked-List-Id: <linux-mm.kvack.org>
-X-PR-Tracked-Message-Id: <20261025202725.34c617497b6d9a2be352cf4f@linux-foundation.org>
-X-PR-Tracked-Remote: https://lore.kernel.org/as93Q-hDP5cW6gaj@sirena.org.uk Thanks.
-X-PR-Tracked-Commit-Id: b6232ca8d194c60ee603586e42b5ea584d4b7be9
+X-PR-Tracked-Message-Id: <20261026152120.c6ed2222b64943914563232f@linux-foundation.org>
+X-PR-Tracked-Remote: https://lore.kernel.org/akzo2N-H1mm4U7kw@sirena.org.uk mm/hugetlb.c
+X-PR-Tracked-Commit-Id: 183895979c441e52dbd651b388553b09eaa35cfa
 X-PR-Merge-Tree: torvalds/linux.git
 X-PR-Merge-Refname: refs/heads/master
-X-PR-Merge-Commit-Id: 7d1f84f1b94e79cb95d974ab3ec54cb3a4d64f5b
-Message-Id: <179314025939.360848.2970216075715902545.pr-tracker-bot@kernel.org>
-Date: Tue, 27 Oct 2026 22:30:59 +0000
+X-PR-Merge-Commit-Id: 8a36f53fd5ec3eff01f1b637d42cbdc3821d0493
+Message-Id: <179314026135.360848.9768940194637210306.pr-tracker-bot@kernel.org>
+Date: Tue, 27 Oct 2026 22:31:01 +0000
 To: Andrew Morton <akpm@linux-foundation.org>
 Cc: Linus Torvalds <torvalds@linux-foundation.org>, linux-mm@kvack.org, mm-commits@vger.kernel.org, linux-kernel@vger.kernel.org
 X-Mailing-List: mm-commits@vger.kernel.org
@@ -68,12 +68,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:mm-commits+owner@vger.kernel.org>
 Precedence: list
 
-The pull request you sent on Sun, 25 Oct 2026 20:27:25 -0700:
+The pull request you sent on Mon, 26 Oct 2026 15:21:20 -0700:
 
-> https://lore.kernel.org/as93Q-hDP5cW6gaj@sirena.org.uk Thanks.
+> https://lore.kernel.org/akzo2N-H1mm4U7kw@sirena.org.uk mm/hugetlb.c
 
 has been merged into torvalds/linux.git:
-https://git.kernel.org/torvalds/c/7d1f84f1b94e79cb95d974ab3ec54cb3a4d64f5b
+https://git.kernel.org/torvalds/c/8a36f53fd5ec3eff01f1b637d42cbdc3821d0493
 
 Thank you!
 
