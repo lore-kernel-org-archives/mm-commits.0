@@ -1,78 +1,51 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=192.198.163.17
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793119319;
-	b=zaqucxBPJBeVyivWSG7qJ5zE6TO1ek6utNoTvWEJuEC7n61e5iNPW0EZmIpgPNqhiqb1
-	 elQUJZvK9PFNeArKoIsLDaKTqia6RtH8EFj1cnD+Xr353ckP7hUlh/YTGQ1+zrb12c9Yc
-	 +J+1zcorSFpw6R0usQ3FwuaWvXCnA7gKf/dLKbET2eJ3PKhom9Uw8hQBRgwkC0xUV4UGU
-	 aIhUvN0ExPrzSzpdRtaBDWlLU+ZfCecbPN+eq8FmoSSxE2enX8RQykB1kp96q+47yDv65
-	 kzzv1NCnLcHLPrHfwVUJYb4geZnZ70tf6GGCqorRVd1/7I0vGMPkTYTGbCuO6gFP5Wg==
+	t=1793119403;
+	b=XHmcwj0hRiap9HROpmemBdyz7phtAN+shF4l5+7Qiyl3NOqg8t2UsmiolrP5P1CCqOYI
+	 VhItUlzftmKEd+SqRTeTUdrBBxY/sNviT2pU9UjdqANefLSnsQKl/H4JOgWCPTlbxEDBM
+	 QtwZTu4aYFCwAGahxa1oCWnHepD9BPUIDO1xwn0gjPbx5aBhyf4whBmse2r0QRuCVtYqj
+	 Ehz14JclW7y11fY0QK+/ex+cca929cnkVtkLyDrmNzKdlyLU/2AKbeCPbJAJWZsMtRyVC
+	 6ZmtjxU7FezJWgxYSVa8sKE2N/81WMloZnKGh4rpSWBnfkwiOzH9gX7LGk3Pft90www==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793119319;
-	h=DMARC-Filter:DKIM-Signature:X-CSE-ConnectionGUID:X-CSE-MsgGUID:
-	 X-IronPort-AV:X-IronPort-AV:Received:X-CSE-ConnectionGUID:
-	 X-CSE-MsgGUID:X-ExtLoop1:X-IronPort-AV:Received:Received:Date:From:To:
-	 Cc:Subject:Message-ID:User-Agent;
-	bh=U2+NgVVulxRc8ahHRVCwgPRTd6JNZHZQ/ltArk8SrNU=;
-	b=uL0tn9WpEXkiQkhBbTzF3qiiFQggDtKYn7QnA/pTzbNev0ySWMD+wdYYniMrPBBGoqFu
-	 rwFSOireo98FLYf/OeneIM/iIt6EkZdXInM1aC8vIgjCXvS1B6Db0tfiRq6XpPmzuqMcF
-	 UlMLZ15+A2HxVfocPIZvAMmw1f2qJQ3MpeGIYb7KHb7rnbdK5O19EA2ImRxq90awrIGx0
-	 yyU/hitAgpiK+eqdgqqXH2dyqVv8sh/gS9jDozEQwPcxFIiRlwscWAUqcPwnyAsVTaEN+
-	 SOIOu5MxWD60M4DCzjgCXQPx/iSBUtmwySwB5rR6BC6I5n+3zOuFgdNyuL4vulyYBBw==
+	a=rsa-sha256; c=relaxed/relaxed; t=1793119403;
+	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
+	bh=xAOQCyF38fJM7aanwEqx9cjLL1gMKj1DU/+zMdsqQYw=;
+	b=BXhfrm7lESLA3xcXJ/skRnI8bA2BlYea7w6R9rnLhHuVCU8ihQRQi8aI8zyl6+/ycIEu
+	 hgTjZtMRsyvGVW7GUE6wQcL6E27nqgki4htRFrNPg++qpF8WvXfMONZVv4DYd1uHS4tRx
+	 32Vtz6p3iG1c99tC/DNrY5HSGW9Ov6F84i2cvOAGFMP5RRUCPMCm8dtADV1fjjx07+540
+	 16fGJLV83mLZRr3aPRHL4vsa4tbkdokkZD/vqOjvo5/lfA0kDA5D+1NjDA0vWdeckaZS+
+	 AV51eBvFSeJBxtwBdgE1wmcpXpvhyPZ+cmVL0DO0eMZdkl6tCY44dzs8i4MnGRSfC9Q==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=intel.com;
-	spf=pass smtp.mailfrom=intel.com;
-	dkim=pass header.d=intel.com header.i=@intel.com header.a=rsa-sha256 header.s=Intel header.b=EPl36iuO;
-	arc=none smtp.remote-ip=192.198.163.17
-Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.17])
-	(using TLSv1.2 with cipher ECDHE-ECDSA-AES256-GCM-SHA384 (256/256 bits))
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=jCHflx1G;
+	arc=none smtp.remote-ip=100.103.45.18
+Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3DA6A606A31A
-	for <mm-commits@vger.kernel.org>; Tue, 27 Oct 2026 16:41:58 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 3DA6A606A31A
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8D56F606A31D;
+	Tue, 27 Oct 2026 16:43:22 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=intel.com header.i=@intel.com header.a=rsa-sha256 header.s=Intel header.b=EPl36iuO
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1793119318; x=1824655318;
-  h=date:from:to:cc:subject:message-id;
-  bh=dFfn4QXTGS2lBVup7ty5eBIeHER8pfxxsVUC3O+sdRc=;
-  b=EPl36iuOrHKRShUE/iVet0SVFCxCHXibq45jI/CySZWvpnOufDNvhHnv
-   Up3/38y32y0ymcN0cC+Wkpe4ErOx/vdjpynOeDr6PD3MOMLZZFWVwVk6v
-   n6AQuYgwGpsXA/maByc5pyGDNHrbD+075Yhdh32ynYffUwfncA97K1+rX
-   2vRxYv9KwOVhyORn1beFqm5BYZjtsZYkINW4R8I3U72ZTkZFERXNtjbde
-   VhO/0O8WuZ813l1QpruM/jD0actwonbrTiZSFXX9F29FBTcCsyDkbsi70
-   L8OtYTH0T7gRXz0euUS0t1MYL8Ple7sSe3YtMGLvMsnhmq7zEjl97UR8y
-   Q==;
-X-CSE-ConnectionGUID: in3kel8yTpGm6IXATg3JMw==
-X-CSE-MsgGUID: sVvVMi2zRo692nn0sn2tmw==
-X-IronPort-AV: E=McAfee;i="6800,10657,11948"; a="1839929"
-X-IronPort-AV: E=Sophos;i="6.27,181,1787036400"; 
-   d="scan'208";a="1839929"
-Received: from fmviesa001.fm.intel.com ([10.60.135.141])
-  by fmvoesa111.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 27 Oct 2026 09:41:57 -0700
-X-CSE-ConnectionGUID: 2RfWKlaxRdy4e0fCjvk7pA==
-X-CSE-MsgGUID: MnMWm26dTyK9r5CwQ84gHw==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="6.27,181,1787036400"; 
-   d="scan'208";a="4931352"
-Received: from lkp-server01.sh.intel.com (HELO 0caa9d2d175c) ([10.239.97.150])
-  by fmviesa001.fm.intel.com with ESMTP; 27 Oct 2026 09:41:56 -0700
-Received: from kbuild by 0caa9d2d175c with local (Exim 4.98.2)
-	(envelope-from <lkp@intel.com>)
-	id 1xLkFF-00000000XVU-0Ft5;
-	Tue, 27 Oct 2026 16:41:53 +0000
-Date: Wed, 28 Oct 2026 00:41:16 +0800
-From: kernel test robot <lkp@intel.com>
-To: David Hildenbrand <david@kernel.org>
-Cc: Andrew Morton <akpm@linux-foundation.org>,
- Linux Memory Management List <linux-mm@kvack.org>,
- mm-commits@vger.kernel.org
-Subject: [akpm-mm:mm-new] BUILD SUCCESS
- 7bf01f16a4d05028fbeff4d90bab40df25142a24
-Message-ID: <202610280012.QUR2Xaq7-lkp@intel.com>
-User-Agent: s-nail v14.9.25
+	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=jCHflx1G
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0C6DD1F01825;
+	Tue, 27 Oct 2026 16:43:22 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+	d=linux-foundation.org; s=korg; t=1793119402;
+	bh=xAOQCyF38fJM7aanwEqx9cjLL1gMKj1DU/+zMdsqQYw=;
+	h=Date:To:From:Subject;
+	b=jCHflx1GlTu3tqHzl5oeMqwOE97vTWwtNe06LxfxeG8GLhr8K5j0eehyjwez2jJ8W
+	 MdDldcbtR8gnG/pBHDKdomoTB9Nbn82G0969o8QTmYYmume7GYEyq3URi/tVVSlKEJ
+	 U9a9UsBIAlnrhrf6bTyaUXJnZdh6IiWJfOBmlYAc=
+Date: Tue, 27 Oct 2026 09:43:21 -0700
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,usama.arif@linux.dev,
+	syzbot+16bf7cd0ebeb1de93aa5@syzkaller.appspotmail.com,stable@vger.kernel.org,
+	ryan.roberts@arm.com,pfalcato@suse.de,nico.pache@linux.dev,
+	ngocthang2710.1999@gmail.com,liam@infradead.org,kas@kernel.org,jack@suse.cz,
+	hch@lst.de,djwong@kernel.org,dev.jain@arm.com,david@kernel.org,
+	baolin.wang@linux.alibaba.com,baohua@kernel.org,lance.yang@linux.dev,
+	akpm@linux-foundation.org
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: + khugepaged-fix-readahead-lock-inversion-in-collapse_file.patch added to mm-unstable branch
+Message-Id: <20261027164322.0C6DD1F01825@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -82,178 +55,158 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:mm-commits+owner@vger.kernel.org>
 Precedence: list
 
-tree/branch: https://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm.git mm-new
-branch HEAD: 7bf01f16a4d05028fbeff4d90bab40df25142a24  riscv: mm: fix concurrency in mark_new_valid_map()
 
-elapsed time: 1139m
+The patch titled
+     Subject: khugepaged: fix readahead lock inversion in collapse_file()
+has been added to the -mm mm-unstable branch.  Its filename is
+     khugepaged-fix-readahead-lock-inversion-in-collapse_file.patch
 
-configs tested: 159
-configs skipped: 11
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/khugepaged-fix-readahead-lock-inversion-in-collapse_file.patch
 
-The following configs have been built successfully.
-More configs may be tested in the coming days.
+This patch will later appear in the mm-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
-tested configs:
-alpha                              allnoconfig    gcc-16.2.0
-alpha                             allyesconfig    gcc-16.2.0
-alpha                                defconfig    gcc-16.2.0
-arc                               allmodconfig    gcc-16.2.0
-arc                                allnoconfig    gcc-16.2.0
-arc                                  defconfig    gcc-16.2.0
-arc                   randconfig-1000-20261027    gcc-10.5.0
-arc                   randconfig-1001-20261027    gcc-16.2.0
-arm                                allnoconfig    clang-17
-arm                                  defconfig    clang-24
-arm                   randconfig-1000-20261027    clang-24
-arm                   randconfig-1001-20261027    gcc-10.5.0
-arm                   randconfig-1002-20261027    gcc-8.5.0
-arm                   randconfig-1003-20261027    gcc-10.5.0
-arm64                              allnoconfig    gcc-16.2.0
-arm64                                defconfig    gcc-16.2.0
-arm64                 randconfig-1000-20261027    gcc-13.5.0
-arm64                 randconfig-1001-20261027    clang-17
-arm64                 randconfig-1002-20261027    gcc-8.5.0
-arm64                 randconfig-1003-20261027    gcc-8.5.0
-csky                              allmodconfig    gcc-16.2.0
-csky                               allnoconfig    gcc-16.2.0
-csky                                 defconfig    gcc-16.2.0
-csky                  randconfig-1000-20261027    gcc-16.2.0
-csky                  randconfig-1001-20261027    gcc-16.2.0
-hexagon                           allmodconfig    clang-24
-hexagon                            allnoconfig    clang-24
-hexagon                              defconfig    clang-24
-hexagon               randconfig-1000-20261027    clang-24
-hexagon               randconfig-1001-20261027    clang-24
-i386                              allmodconfig    gcc-14
-i386                               allnoconfig    gcc-14
-i386        buildonly-randconfig-1000-20261027    gcc-14
-i386        buildonly-randconfig-1001-20261027    gcc-14
-i386        buildonly-randconfig-1002-20261027    clang-22
-i386        buildonly-randconfig-1003-20261027    gcc-14
-i386        buildonly-randconfig-1004-20261027    clang-22
-i386        buildonly-randconfig-1005-20261027    clang-22
-i386                                 defconfig    clang-22
-i386                  randconfig-1000-20261027    gcc-12
-i386                  randconfig-1001-20261027    clang-22
-i386                  randconfig-1002-20261027    gcc-14
-i386                  randconfig-1003-20261027    gcc-14
-i386                  randconfig-1004-20261027    gcc-14
-i386                  randconfig-1005-20261027    gcc-12
-i386                  randconfig-1006-20261027    clang-22
-i386                  randconfig-1007-20261027    gcc-14
-i386                  randconfig-1008-20261027    gcc-14
-i386                  randconfig-1009-20261027    gcc-14
-i386                  randconfig-1010-20261027    clang-22
-i386                  randconfig-1011-20261027    gcc-14
-i386                  randconfig-1012-20261027    clang-22
-i386                  randconfig-1013-20261027    clang-22
-loongarch                          allnoconfig    clang-20
-loongarch                            defconfig    clang-24
-loongarch             randconfig-1000-20261027    gcc-13.5.0
-loongarch             randconfig-1001-20261027    gcc-15.3.0
-m68k                              allmodconfig    gcc-16.2.0
-m68k                               allnoconfig    gcc-16.2.0
-m68k                              allyesconfig    gcc-16.2.0
-m68k                                 defconfig    gcc-16.2.0
-microblaze                         allnoconfig    gcc-16.2.0
-microblaze                        allyesconfig    gcc-16.2.0
-microblaze                           defconfig    gcc-16.2.0
-mips                              allmodconfig    gcc-16.2.0
-mips                               allnoconfig    gcc-16.2.0
-mips                              allyesconfig    gcc-16.2.0
-mips                  decstation_r4k_defconfig    gcc-16.2.0
-mips                        rbtx49xx_defconfig    gcc-16.2.0
-nios2                             allmodconfig    gcc-11.5.0
-nios2                              allnoconfig    gcc-11.5.0
-nios2                                defconfig    gcc-11.5.0
-nios2                 randconfig-1000-20261027    gcc-8.5.0
-nios2                 randconfig-1001-20261027    gcc-8.5.0
-openrisc                          allmodconfig    gcc-16.2.0
-openrisc                           allnoconfig    gcc-16.2.0
-openrisc                             defconfig    gcc-16.2.0
-parisc                            allmodconfig    gcc-16.2.0
-parisc                             allnoconfig    gcc-16.2.0
-parisc                            allyesconfig    gcc-16.2.0
-parisc                               defconfig    gcc-16.2.0
-parisc                randconfig-1000-20261027    gcc-12.5.0
-parisc                randconfig-1001-20261027    gcc-10.5.0
-parisc64                             defconfig    gcc-16.2.0
-powerpc                      akebono_defconfig    clang-24
-powerpc                           allmodconfig    gcc-16.2.0
-powerpc                            allnoconfig    gcc-16.2.0
-powerpc                  mpc8313_rdb_defconfig    gcc-16.2.0
-powerpc               randconfig-1000-20261027    gcc-15.3.0
-powerpc               randconfig-1001-20261027    gcc-8.5.0
-powerpc                      redwood_defconfig    clang-24
-powerpc64             randconfig-1000-20261027    gcc-10.5.0
-powerpc64             randconfig-1001-20261027    clang-22
-riscv                              allnoconfig    gcc-16.2.0
-riscv                                defconfig    clang-24
-riscv                 randconfig-1000-20261027    gcc-15.3.0
-riscv                 randconfig-1001-20261027    clang-20
-s390                              alldefconfig    gcc-16.2.0
-s390                              allmodconfig    clang-24
-s390                               allnoconfig    clang-24
-s390                              allyesconfig    gcc-16.2.0
-s390                                 defconfig    clang-18
-s390                  randconfig-1000-20261027    gcc-8.5.0
-s390                  randconfig-1001-20261027    gcc-9.5.0
-sh                                allmodconfig    gcc-16.2.0
-sh                                 allnoconfig    gcc-16.2.0
-sh                                allyesconfig    gcc-16.2.0
-sh                         apsh4ad0a_defconfig    gcc-16.2.0
-sh                                   defconfig    gcc-16.2.0
-sh                    randconfig-1000-20261027    gcc-16.2.0
-sh                    randconfig-1001-20261027    gcc-16.2.0
-sh                           sdk7786_defconfig    gcc-16.2.0
-sparc                              allnoconfig    gcc-16.2.0
-sparc                                defconfig    gcc-16.2.0
-sparc                 randconfig-1000-20261027    gcc-14.4.0
-sparc                 randconfig-1001-20261027    gcc-16.2.0
-sparc64                           allmodconfig    clang-20
-sparc64                              defconfig    clang-24
-sparc64               randconfig-1000-20261027    clang-20
-sparc64               randconfig-1001-20261027    clang-20
-um                                allmodconfig    clang-17
-um                                 allnoconfig    clang-17
-um                                allyesconfig    gcc-14
-um                                   defconfig    clang-24
-um                              i386_defconfig    gcc-14
-um                    randconfig-1000-20261027    clang-24
-um                    randconfig-1001-20261027    clang-20
-um                            x86_64_defconfig    clang-24
-x86_64                             allnoconfig    clang-22
-x86_64      buildonly-randconfig-1000-20261027    clang-22
-x86_64      buildonly-randconfig-1001-20261027    gcc-14
-x86_64      buildonly-randconfig-1002-20261027    clang-22
-x86_64      buildonly-randconfig-1003-20261027    gcc-12
-x86_64      buildonly-randconfig-1004-20261027    gcc-14
-x86_64      buildonly-randconfig-1005-20261027    clang-22
-x86_64                               defconfig    gcc-14
-x86_64                randconfig-1000-20261027    gcc-14
-x86_64                randconfig-1001-20261027    gcc-14
-x86_64                randconfig-1002-20261027    gcc-14
-x86_64                randconfig-1003-20261027    gcc-14
-x86_64                randconfig-1004-20261027    clang-22
-x86_64                randconfig-1005-20261027    clang-22
-x86_64                randconfig-1006-20261027    gcc-14
-x86_64                randconfig-1007-20261027    clang-22
-x86_64                randconfig-1008-20261027    clang-22
-x86_64                randconfig-1009-20261027    gcc-14
-x86_64                randconfig-1010-20261027    clang-22
-x86_64                randconfig-1011-20261027    gcc-14
-x86_64                randconfig-1012-20261027    clang-22
-x86_64                randconfig-1013-20261027    clang-22
-x86_64                randconfig-1014-20261027    clang-22
-x86_64                randconfig-1015-20261027    clang-22
-x86_64                randconfig-1016-20261027    clang-22
-x86_64                randconfig-1017-20261027    clang-22
-x86_64                           rhel-9.4-rust    clang-22
-xtensa                             allnoconfig    gcc-16.2.0
-xtensa                            allyesconfig    gcc-16.2.0
-xtensa                randconfig-1000-20261027    gcc-8.5.0
-xtensa                randconfig-1001-20261027    gcc-10.5.0
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
 
---
-0-DAY CI Kernel Test Service
-https://github.com/intel/lkp-tests/wiki
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via various
+branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there most days
+
+------------------------------------------------------
+From: Lance Yang <lance.yang@linux.dev>
+Subject: khugepaged: fix readahead lock inversion in collapse_file()
+Date: Mon, 26 Oct 2026 23:20:13 +0800
+
+collapse_file() can call page_cache_sync_readahead() while still holding
+source folios locked. If truncate holds mapping->invalidate_lock
+exclusively and waits for one of those folios, readahead waits for
+invalidate_lock and neither side can make progress.
+
+We need to release those folio locks before starting readahead. On a page
+cache miss, roll back first, populate the collapse range, and retry once.
+Doing readahead after rollback avoids an extra pass when all folios are
+already present. If another miss occurs on retry, give up rather than keep
+retrying while truncate or reclaim removes folios.
+
+Keep page_cache_sync_readahead() and wait for read I/O with
+filemap_lock_folio(), releasing each folio before moving to the next. The
+existing uptodate check during collapse still handles read errors.
+
+Shmem uses shmem_get_folio() for swapin and fallocated folios without
+taking mapping->invalidate_lock, so it is unaffected.
+
+Link: https://lore.kernel.org/20261026152013.10511-1-lance.yang@linux.dev
+Fixes: 730633f0b7f9 ("mm: Protect operations adding pages to page cache with invalidate_lock")
+Signed-off-by: Lance Yang <lance.yang@linux.dev>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+Reported-by: <syzbot+16bf7cd0ebeb1de93aa5@syzkaller.appspotmail.com>
+Closes: https://syzkaller.appspot.com/bug?extid=16bf7cd0ebeb1de93aa5
+Reviewed-by: Pedro Falcato <pfalcato@suse.de>
+Cc: David Hildenbrand <david@kernel.org>
+Cc: Zi Yan <ziy@nvidia.com>
+Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
+Cc: Liam R. Howlett <liam@infradead.org>
+Cc: Nico Pache <nico.pache@linux.dev>
+Cc: Ryan Roberts <ryan.roberts@arm.com>
+Cc: Dev Jain <dev.jain@arm.com>
+Cc: Barry Song <baohua@kernel.org>
+Cc: Usama Arif <usama.arif@linux.dev>
+Cc: Kiryl Shutsemau <kas@kernel.org>
+Cc: Jan Kara <jack@suse.cz>
+Cc: Darrick J. Wong <djwong@kernel.org>
+Cc: Christoph Hellwig <hch@lst.de>
+Cc: Nguyen Ngoc Thang <ngocthang2710.1999@gmail.com>
+Cc: <stable@vger.kernel.org>
+---
+
+ mm/khugepaged.c |   44 +++++++++++++++++++++++++++++++++-----------
+ 1 file changed, 33 insertions(+), 11 deletions(-)
+
+--- a/mm/khugepaged.c~khugepaged-fix-readahead-lock-inversion-in-collapse_file
++++ a/mm/khugepaged.c
+@@ -2239,6 +2239,8 @@ static enum scan_result collapse_file(st
+ 	enum scan_result result = SCAN_SUCCEED;
+ 	int nr_none = 0;
+ 	bool is_shmem = shmem_file(file);
++	bool do_readahead = false;
++	bool readahead_done = false;
+ 
+ 	/*
+ 	 * MADV_COLLAPSE ignores shmem huge config, so do not check shmem
+@@ -2256,6 +2258,10 @@ static enum scan_result collapse_file(st
+ 
+ 	mapping_set_update(&xas, mapping);
+ 
++retry:
++	result = SCAN_SUCCEED;
++	do_readahead = false;
++	xas_set_order(&xas, start, HPAGE_PMD_ORDER);
+ 	__folio_set_locked(new_folio);
+ 	if (is_shmem)
+ 		__folio_set_swapbacked(new_folio);
+@@ -2320,17 +2326,9 @@ static enum scan_result collapse_file(st
+ 			}
+ 		} else {	/* !is_shmem */
+ 			if (!folio || xa_is_value(folio)) {
+-				xas_unlock_irq(&xas);
+-				page_cache_sync_readahead(mapping, &file->f_ra,
+-							  file, index,
+-							  end - index);
+-				/* drain lru cache to help folio_isolate_lru() */
+-				lru_add_drain();
+-				folio = filemap_lock_folio(mapping, index);
+-				if (IS_ERR(folio)) {
+-					result = SCAN_FAIL;
+-					goto xa_unlocked;
+-				}
++				do_readahead = !readahead_done;
++				result = SCAN_FAIL;
++				goto xa_locked;
+ 			} else if (folio_test_dirty(folio)) {
+ 				/*
+ 				 * This page is dirty because it hasn't
+@@ -2657,6 +2655,30 @@ rollback:
+ 	new_folio->mapping = NULL;
+ 
+ 	folio_unlock(new_folio);
++
++	/* Readahead may take invalidate_lock; source folios are unlocked. */
++	if (do_readahead) {
++		for (index = start; index < end;) {
++			folio = filemap_lock_folio(mapping, index);
++			if (IS_ERR(folio)) {
++				page_cache_sync_readahead(mapping, &file->f_ra,
++							  file, index, end - index);
++				folio = filemap_lock_folio(mapping, index);
++				if (IS_ERR(folio)) {
++					result = SCAN_FAIL;
++					goto out_put;
++				}
++			}
++			index = folio_next_index(folio);
++			folio_unlock(folio);
++			folio_put(folio);
++		}
++		/* Drain the local LRU batch before retrying isolation. */
++		lru_add_drain();
++		readahead_done = true;
++		goto retry;
++	}
++out_put:
+ 	folio_put(new_folio);
+ out:
+ 	VM_BUG_ON(!list_empty(&pagelist));
+_
+
+Patches currently in -mm which might be from lance.yang@linux.dev are
+
+mm-ksm-fix-userfaultfd-protection-during-merge-and-unmerge.patch
+khugepaged-fix-readahead-lock-inversion-in-collapse_file.patch
+
