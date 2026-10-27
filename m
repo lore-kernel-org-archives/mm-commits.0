@@ -1,45 +1,55 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793124586;
-	b=171goFAOdmeJ99QGJpqbfifmtU/gYOK5/CFq+j924cCLxejpCpcGyti+tLJlImjmfDum
-	 DDdX4rGgxeRbjWhUOqG9I+/C4lupLhMe1yH4GDpMhB7M8UOrUxGcFEv1cDrcuDhpPJ/It
-	 9hw4/ew1DiO/2nDHBmR6qv2ZRV5+6IQBcwJ5lGxT0s7gYuIe1E820aLgWQ6nYJEOiXXAp
-	 Qf0fxr6HzLZc0/vNDQ4s6zfMESElIaQDwkxns0OSgKOMGhtRMt80aPAlC+qDR6baR/4e1
-	 OdZReu7zl12bJfBp9U2Bl5bLoN+yD0HgwB6HwxRXr/vpi7HmssF178tgnNa9dcN3SpA==
+	t=1793124821;
+	b=kcDyd9zoZyjQEgP5vhcSb6n6cINwBbCqk+IW9dZWf8RcdryxnuJ3frkJoX5TQhevr2TH
+	 SqZNvNwKc6U4svd3wAibMfkhbH7gQoWtzBppaDL3lrnZTWzofbiImEZUgwtPyF9oQuPW5
+	 mr8vGA7PDn+AvBsCdXpIHz4LGdYlvlO/wKyeGJoEm7e0aHTcN8xi2MuiA/ZY7VvZl7TeZ
+	 vnzpeaA1DJOGlHgcGutnaKqakkoXV7GfFaJiwILYm7NHkSqQMghkX96MpKOImWvZ6LzPq
+	 8X5/jemSR6FWMPb6fX3505wKUvzy0eVqMJKWuJhlCihBiKFXP5e90yZQ8SdNiqg76dA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793124586;
-	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=fbDhdyg81cuY7Li0tj4DkTA8ktSGiwg5xp3CLd0gkUQ=;
-	b=MzK0L72kve1eF0rgLIdeFgJlRrRnImEAP2Wj9Zbt1zW4ZELJ1NM+vdt7dvu3ryoInBVH
-	 CuesZvvFY0XKCClnjYQUkmhYr9mD2cteA1Hpiz7m6NovFB9haOa7H90PaMRh4xLsuxWaP
-	 gPRNqdjjd6YNT944uUvS9cKdwot+NHVxB1RJAw3pooSnTLWTbq9s2jP02EtxM7/FL0mCE
-	 LckVBYRdfG0zV0RsM62fWPsz3mlz6AReN6I8Yj/TTxd8MGeL6Z5ZEAIV7kQ1iRv3qv/I8
-	 BEfsvJHjAt1SZKn0pNXKpmzz2uFHflgCflmgwPTUspW7wKgTySsTIPKXS7A5mqJCwVg==
+	a=rsa-sha256; c=relaxed/relaxed; t=1793124821;
+	h=Received:DKIM-Signature:Date:From:To:Cc:Subject:Message-Id:
+	 In-Reply-To:References:X-Mailer:Mime-Version:Content-Type:
+	 Content-Transfer-Encoding;
+	bh=RAZ/iVl/fsmrBPqbCB4Psd2pgLF4V2Sco/QGegU0DJ0=;
+	b=f12KG7ZvompN2ire7lKM49R3YhwSVHyxn9H/QSl40KLYo1CT1fXChyCPfAWoI2bRtd3n
+	 bxZuruXR0zwdbNXIZhjnYBbhtkVP0NC1HHx0xybXzjo0hF3snQ1sSQj7qp0bjSB1IUpvs
+	 Ieu0FdL8izduC9/NhhmjmSKB1H4qtyScw99Nzzjt2YlesdAT0PFNBNyniAnt0jMiVZvlP
+	 86etaDJoDZ12pUJywlNRPIOpYtxyHc2VwiC2+zNdDU0AG9/eJ2+FFGa3WxAJsLEzeKktn
+	 TuS8r6Rz6B3wTjFhT4T3MAkfllcSuQPaeE5mM+HBKb9oSu1LW+YjE9h+Z61OkcZ5pBQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=xQ+fUmir;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=SMNavOoT;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 93B5B606A324
-	for <mm-commits@vger.kernel.org>; Tue, 27 Oct 2026 18:09:41 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5CE3B606A31A;
+	Tue, 27 Oct 2026 18:13:41 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=xQ+fUmir
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3B43F1F01828;
-	Tue, 27 Oct 2026 18:09:41 +0000 (UTC)
+	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=SMNavOoT
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A67931F01825;
+	Tue, 27 Oct 2026 18:13:40 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1793124581;
-	bh=fbDhdyg81cuY7Li0tj4DkTA8ktSGiwg5xp3CLd0gkUQ=;
-	h=Date:To:From:Subject;
-	b=xQ+fUmir24sdK2mtXmwJRekGEGWDb74IV4QBICaOCSLE8u6Iqt+jUyWJizg7TW5s4
-	 JrcpAS3YQHmi3ZemFcZnWd2T9pfBtfx2hOf+s+WA+OlmNRpRlbcmbopiyiLPXutV8+
-	 9PRakxfKIXPMSk5H3Axvvy85dZW5JGtKG9/B5bEw=
-Date: Tue, 27 Oct 2026 11:09:40 -0700
-To: mm-commits@vger.kernel.org,josef@toxicpanda.com,akpm@linux-foundation.org
+	d=linux-foundation.org; s=korg; t=1793124820;
+	bh=RAZ/iVl/fsmrBPqbCB4Psd2pgLF4V2Sco/QGegU0DJ0=;
+	h=Date:From:To:Cc:Subject:In-Reply-To:References;
+	b=SMNavOoTSyfbu8F5d5cSsawUeeQbX/GqsxpDqs1QFj47SFM+YzKty83KB4TCdUtEY
+	 q0UN97F1tB2GTpN4F83h3SWR4Jy1ai3F9dUxu8MQS4CHNU/1zcu5JA7SHlXSGxPvTL
+	 Jmnum7zBI0QWGLryCUPp3DlRZ00GHqBEefbwQ+iQ=
+Date: Tue, 27 Oct 2026 11:13:40 -0700
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [to-be-updated] tmpfs-keep-the-quota-soft-limits-of-an-unused-id.patch removed from -mm tree
-Message-Id: <20261027180941.3B43F1F01828@smtp.kernel.org>
+To: Matthew Wilcox <willy@infradead.org>
+Cc: mm-commits@vger.kernel.org, stable@vger.kernel.org,
+ nickolai@csail.mit.edu
+Subject: Re: +
+ xarray-clear-the-new-heads-parent-before-freeing-the-old-head.patch added
+ to mm-unstable branch
+Message-Id: <20261027111340.b33f2ae190f4cdbf215b9193@linux-foundation.org>
+In-Reply-To: <auDiZyUI490v5Pgm@casper.infradead.org>
+References: <20261023181200.53AF01F01825@smtp.kernel.org>
+	<auDiZyUI490v5Pgm@casper.infradead.org>
+X-Mailer: Sylpheed 3.8.0beta1 (GTK+ 2.24.33; x86_64-pc-linux-gnu)
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -48,95 +58,20 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:mm-commits+owner@vger.kernel.org>
 Precedence: list
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 
+On Tue, 27 Oct 2026 17:41:59 +0000 Matthew Wilcox <willy@infradead.org> wrote:
 
-The quilt patch titled
-     Subject: tmpfs: keep the quota soft limits of an unused id
-has been removed from the -mm tree.  Its filename was
-     tmpfs-keep-the-quota-soft-limits-of-an-unused-id.patch
+> 
+> i said this patch wasn't acceptable with the commit message the way it
+> was, and the very next mail i get is you taking it into your tree.
+> please stop doing this, it really makes me wonder if i have any value
+> left.
 
-This patch was dropped because an updated version will be issued
+You said the code change itself was OK so I grabbed it for testing and
+added a note "TBU (changelog)".
 
-------------------------------------------------------
-From: Josef Bacik <josef@toxicpanda.com>
-Subject: tmpfs: keep the quota soft limits of an unused id
-Date: Mon, 26 Oct 2026 10:40:35 +0100
-
-When the last reference to a dquot goes away, shmem_release_dquot()
-stores its limits in the rb tree of the mount, unless
-shmem_is_empty_dquot() says that there is nothing worth storing. That
-function looks at the usage and at the two hard limits only.
-
-So if the administrator sets nothing but soft limits for an id that owns
-no file yet, the entry is thrown away as soon as the dquot that
-Q_SETQUOTA used is released, and the id never gets to see a limit.
-
-To fix it, compare the soft limits as well: an entry can be empty only if
-both soft limits are zero as well, which is exactly what
-shmem_acquire_dquot() sets for a new entry.
-
-Fix generated by an LLM and sent by Josef Bacik in private.
-
-[david@kernel.org: slightly adjusted description]
-Link: https://lore.kernel.org/20261026-fixes_shmem-v1-2-703206d5fa0c@kernel.org
-Fixes: de4c0e7ca8b5 ("shmem: Add default quota limit mount options")
-Signed-off-by: Josef Bacik <josef@toxicpanda.com>
-Signed-off-by: David Hildenbrand (Arm) <david@kernel.org>
-Reviewed-by: Jan Kara <jack@suse.cz>
-Tested-by: Gregory Price (Meta) <gourry@gourry.net>
-Cc: Zi Yan <ziy@nvidia.com>
-Cc: Joshua Hahn <joshua.hahnjy@gmail.com>
-Cc: Rakie Kim <rakie.kim@sk.com>
-Cc: Ying Huang <ying.huang@linux.alibaba.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Vladimir Davydov <vdavydov.dev@gmail.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: Lukas Czerner <lczerner@redhat.com>
-Cc: Carlos Maiolino <cmaiolino@redhat.com>
-Cc: Christian Brauner <brauner@kernel.org>
-Cc: Daniel Verkamp <dverkamp@chromium.org>
-Cc: Jeff Xu <jeffxu@google.com>
-Cc: Muchun Song <muchun.song@linux.dev>
-Cc: Oscar Salvador <osalvador@suse.de>
-Cc: David Stevens <stevensd@chromium.org>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: William Kucharski <william.kucharski@oracle.com>
-Cc: Chris Li <chrisl@kernel.org>
-Cc: Kairui Song <kasong@tencent.com>
-Cc: Nhat Pham <nphamcs@gmail.com>
-Cc: Miaohe Lin <linmiaohe@huawei.com>
-Cc: Naoya Horiguchi <nao.horiguchi@gmail.com>
-Cc: Chris Mason <mason@kernel.org>
-Cc: Eva Kurchatova <eva.kurchatova@virtuozzo.com>
-Cc: Kairui Song <ryncsn@gmail.com>
-Cc: Pedro Falcato <pfalcato@suse.de>
-Cc: "Kiryl Shutsemau (Meta)" <kas@kernel.org>
-Cc: <sashiko-bot@kernel.org>
-Cc: <stable@vger.kernel.org>
----
-
- mm/shmem_quota.c | 2 ++
- 1 file changed, 2 insertions(+)
-
-diff --git a/mm/shmem_quota.c b/mm/shmem_quota.c
-index a3fa4bd93e753..43d3b4fd6cb1b 100644
---- a/mm/shmem_quota.c
-+++ b/mm/shmem_quota.c
-@@ -256,6 +256,8 @@ static bool shmem_is_empty_dquot(struct dquot *dquot)
- 	if (test_bit(DQ_FAKE_B, &dquot->dq_flags) ||
- 		(dquot->dq_dqb.dqb_curspace == 0 &&
- 		 dquot->dq_dqb.dqb_curinodes == 0 &&
-+		 dquot->dq_dqb.dqb_bsoftlimit == 0 &&
-+		 dquot->dq_dqb.dqb_isoftlimit == 0 &&
- 		 dquot->dq_dqb.dqb_bhardlimit == bhardlimit &&
- 		 dquot->dq_dqb.dqb_ihardlimit == ihardlimit))
- 		return true;
-
-
-Patches currently in -mm which might be from josef@toxicpanda.com are
-
-tmpfs-preserve-explicitly-disabled-quota-limits.patch
-mm-shmem-hold-off-eviction-in-shmem_writeout.patch
+So it won't be going any further until that open issue is resolved.
 
