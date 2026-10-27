@@ -1,45 +1,45 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793124585;
-	b=updlhdOhj/J0dmErLthSNFHOVJ7tShUPXA4aYWJxeOsd81LouWvcVyCF6pJ1nPAMq2Ma
-	 D1A2QJX75wehdTKdK8eETo9Aa8O1Dv6U//cNYqqMaiJ72YVx7RdOS4Ofn+74+xmYI2u11
-	 IXYpC9lxUiCMeHOjT/rSbq0xcsXzmxB08cNPGIgwZC56SDxtgYokd5u7jKM1DsKKttWsW
-	 r+RPW4kH5a9S8QOLUjJ2iCa0sWZDpLvRUUB75cfI31CrgwzXOkopgurrjaFmvIwEViTUI
-	 omSnbgfs/EIfgcmwVnldtwxX4G0C3Kp5Yzm45TOkob+pvWgRBuCOX9FPh9pa7XNRPQw==
+	t=1793124586;
+	b=171goFAOdmeJ99QGJpqbfifmtU/gYOK5/CFq+j924cCLxejpCpcGyti+tLJlImjmfDum
+	 DDdX4rGgxeRbjWhUOqG9I+/C4lupLhMe1yH4GDpMhB7M8UOrUxGcFEv1cDrcuDhpPJ/It
+	 9hw4/ew1DiO/2nDHBmR6qv2ZRV5+6IQBcwJ5lGxT0s7gYuIe1E820aLgWQ6nYJEOiXXAp
+	 Qf0fxr6HzLZc0/vNDQ4s6zfMESElIaQDwkxns0OSgKOMGhtRMt80aPAlC+qDR6baR/4e1
+	 OdZReu7zl12bJfBp9U2Bl5bLoN+yD0HgwB6HwxRXr/vpi7HmssF178tgnNa9dcN3SpA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793124585;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793124586;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=iRXt+t47pY6tEljgawtwjZ36tVxSSvf0+0HKLRykrGA=;
-	b=FinQAS6qxNKjiLmSL/ntVeztoRqIFlwVQeHjeP8NXYa+nzhuReuXqeqBf524/MGcfAhC
-	 4J61Qf/3a2KIlteIDwVkdZi6nKQsAjIOtnY+pHZN8WTE0gcRNpcXUQ3etTIfIL9p++nGz
-	 u7/sQ4hbn4OptTBej6ORw+zWR9GXcb9g01rzPeozin2M5JaNdhh2oQGnrHd7KxdjBEFep
-	 N4q+R2gBuhxaLDC2O7JuQapESGn8X6MlL01Ka6OThky3g23tgH7b7Id6v/ICCbU048xEJ
-	 osdfB4DuVY5X1+Vd0vKlTsD7pu4Aw/1cZxmYx4VV5+tupmGiw2GIdjh/EH3YtiBU0rw==
+	bh=fbDhdyg81cuY7Li0tj4DkTA8ktSGiwg5xp3CLd0gkUQ=;
+	b=MzK0L72kve1eF0rgLIdeFgJlRrRnImEAP2Wj9Zbt1zW4ZELJ1NM+vdt7dvu3ryoInBVH
+	 CuesZvvFY0XKCClnjYQUkmhYr9mD2cteA1Hpiz7m6NovFB9haOa7H90PaMRh4xLsuxWaP
+	 gPRNqdjjd6YNT944uUvS9cKdwot+NHVxB1RJAw3pooSnTLWTbq9s2jP02EtxM7/FL0mCE
+	 LckVBYRdfG0zV0RsM62fWPsz3mlz6AReN6I8Yj/TTxd8MGeL6Z5ZEAIV7kQ1iRv3qv/I8
+	 BEfsvJHjAt1SZKn0pNXKpmzz2uFHflgCflmgwPTUspW7wKgTySsTIPKXS7A5mqJCwVg==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=15yRU+hp;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=xQ+fUmir;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 58C1C606A322
-	for <mm-commits@vger.kernel.org>; Tue, 27 Oct 2026 18:09:45 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 93B5B606A324
+	for <mm-commits@vger.kernel.org>; Tue, 27 Oct 2026 18:09:41 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=15yRU+hp
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2ED711F01825;
-	Tue, 27 Oct 2026 18:09:45 +0000 (UTC)
+	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=xQ+fUmir
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3B43F1F01828;
+	Tue, 27 Oct 2026 18:09:41 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1793124585;
-	bh=iRXt+t47pY6tEljgawtwjZ36tVxSSvf0+0HKLRykrGA=;
+	d=linux-foundation.org; s=korg; t=1793124581;
+	bh=fbDhdyg81cuY7Li0tj4DkTA8ktSGiwg5xp3CLd0gkUQ=;
 	h=Date:To:From:Subject;
-	b=15yRU+hpu1kvJv/wiS8dxRtRfXQh8DmkaQFeqwQk4BvLa8LqNFCUwfkrevjbv1tYy
-	 2qJSd2lZp/lLS98FJ9NA/5ingt8BsEWd/Kyog3N/3leOakU4FkVkkqBwz8Sb8nbuGQ
-	 ZB6uhNLsLqqynSOEnpXZl3rahelVUxvGqQycMqZM=
-Date: Tue, 27 Oct 2026 11:09:44 -0700
-To: mm-commits@vger.kernel.org,mason@kernel.org,akpm@linux-foundation.org
+	b=xQ+fUmir24sdK2mtXmwJRekGEGWDb74IV4QBICaOCSLE8u6Iqt+jUyWJizg7TW5s4
+	 JrcpAS3YQHmi3ZemFcZnWd2T9pfBtfx2hOf+s+WA+OlmNRpRlbcmbopiyiLPXutV8+
+	 9PRakxfKIXPMSk5H3Axvvy85dZW5JGtKG9/B5bEw=
+Date: Tue, 27 Oct 2026 11:09:40 -0700
+To: mm-commits@vger.kernel.org,josef@toxicpanda.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [to-be-updated] mm-shmem-avoid-moving-the-truncation-start-backwards.patch removed from -mm tree
-Message-Id: <20261027180945.2ED711F01825@smtp.kernel.org>
+Subject: [to-be-updated] tmpfs-keep-the-quota-soft-limits-of-an-unused-id.patch removed from -mm tree
+Message-Id: <20261027180941.3B43F1F01828@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -51,36 +51,38 @@ Precedence: list
 
 
 The quilt patch titled
-     Subject: mm/shmem: avoid moving the truncation start backwards
+     Subject: tmpfs: keep the quota soft limits of an unused id
 has been removed from the -mm tree.  Its filename was
-     mm-shmem-avoid-moving-the-truncation-start-backwards.patch
+     tmpfs-keep-the-quota-soft-limits-of-an-unused-id.patch
 
 This patch was dropped because an updated version will be issued
 
 ------------------------------------------------------
-From: Chris Mason <mason@kernel.org>
-Subject: mm/shmem: avoid moving the truncation start backwards
-Date: Mon, 26 Oct 2026 10:40:40 +0100
+From: Josef Bacik <josef@toxicpanda.com>
+Subject: tmpfs: keep the quota soft limits of an unused id
+Date: Mon, 26 Oct 2026 10:40:35 +0100
 
-A nonuniform folio split can fail with -ENOMEM after splitting off some
-smaller folios. shmem_undo_range() then sets start to the end of the
-original folio, which may now lie before the truncation boundary.
+When the last reference to a dquot goes away, shmem_release_dquot()
+stores its limits in the rb tree of the mount, unless
+shmem_is_empty_dquot() says that there is nothing worth storing. That
+function looks at the usage and at the two hard limits only.
 
-The final scan can consequently discard data below the new EOF, or
-keep retrying a large folio whose split point lies outside it.
+So if the administrator sets nothing but soft limits for an id that owns
+no file yet, the entry is thrown away as soon as the dquot that
+Q_SETQUOTA used is released, and the id never gets to see a limit.
 
-Keep start at least at its original value when skipping a folio after
-a failed split. The part in the truncated range has already been zeroed.
+To fix it, compare the soft limits as well: an entry can be empty only if
+both soft limits are zero as well, which is exactly what
+shmem_acquire_dquot() sets for a new entry.
 
-Fix generated by an LLM and sent by Chris Mason in private.
+Fix generated by an LLM and sent by Josef Bacik in private.
 
-[david@kernel.org: split fixes, simplify descriptions, adjust comments]
-Link: https://lore.kernel.org/20261026-fixes_shmem-v1-7-703206d5fa0c@kernel.org
-Fixes: 7460b470a131 ("mm/truncate: use folio_split() in truncate operation")
-Signed-off-by: Chris Mason <mason@kernel.org>
+[david@kernel.org: slightly adjusted description]
+Link: https://lore.kernel.org/20261026-fixes_shmem-v1-2-703206d5fa0c@kernel.org
+Fixes: de4c0e7ca8b5 ("shmem: Add default quota limit mount options")
+Signed-off-by: Josef Bacik <josef@toxicpanda.com>
 Signed-off-by: David Hildenbrand (Arm) <david@kernel.org>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Acked-by: Kiryl Shutsemau (Meta) <kas@kernel.org>
+Reviewed-by: Jan Kara <jack@suse.cz>
 Tested-by: Gregory Price (Meta) <gourry@gourry.net>
 Cc: Zi Yan <ziy@nvidia.com>
 Cc: Joshua Hahn <joshua.hahnjy@gmail.com>
@@ -94,7 +96,6 @@ Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
 Cc: Lukas Czerner <lczerner@redhat.com>
 Cc: Carlos Maiolino <cmaiolino@redhat.com>
 Cc: Christian Brauner <brauner@kernel.org>
-Cc: Jan Kara <jack@suse.cz>
 Cc: Daniel Verkamp <dverkamp@chromium.org>
 Cc: Jeff Xu <jeffxu@google.com>
 Cc: Muchun Song <muchun.song@linux.dev>
@@ -107,27 +108,35 @@ Cc: Kairui Song <kasong@tencent.com>
 Cc: Nhat Pham <nphamcs@gmail.com>
 Cc: Miaohe Lin <linmiaohe@huawei.com>
 Cc: Naoya Horiguchi <nao.horiguchi@gmail.com>
-Cc: Josef Bacik <josef@toxicpanda.com>
+Cc: Chris Mason <mason@kernel.org>
 Cc: Eva Kurchatova <eva.kurchatova@virtuozzo.com>
 Cc: Kairui Song <ryncsn@gmail.com>
 Cc: Pedro Falcato <pfalcato@suse.de>
+Cc: "Kiryl Shutsemau (Meta)" <kas@kernel.org>
 Cc: <sashiko-bot@kernel.org>
-Cc: "Garg, Shivank" <shivankg@amd.com>
 Cc: <stable@vger.kernel.org>
 ---
 
- mm/shmem.c |    1 +
- 1 file changed, 1 insertion(+)
+ mm/shmem_quota.c | 2 ++
+ 1 file changed, 2 insertions(+)
 
---- a/mm/shmem.c~mm-shmem-avoid-moving-the-truncation-start-backwards
-+++ a/mm/shmem.c
-@@ -6260,3 +6260,4 @@ struct page *shmem_read_mapping_page_gfp
- 	return page;
- }
- EXPORT_SYMBOL_GPL(shmem_read_mapping_page_gfp);
-+Tue Oct 27 11:08:43 AM PDT 2026
-_
+diff --git a/mm/shmem_quota.c b/mm/shmem_quota.c
+index a3fa4bd93e753..43d3b4fd6cb1b 100644
+--- a/mm/shmem_quota.c
++++ b/mm/shmem_quota.c
+@@ -256,6 +256,8 @@ static bool shmem_is_empty_dquot(struct dquot *dquot)
+ 	if (test_bit(DQ_FAKE_B, &dquot->dq_flags) ||
+ 		(dquot->dq_dqb.dqb_curspace == 0 &&
+ 		 dquot->dq_dqb.dqb_curinodes == 0 &&
++		 dquot->dq_dqb.dqb_bsoftlimit == 0 &&
++		 dquot->dq_dqb.dqb_isoftlimit == 0 &&
+ 		 dquot->dq_dqb.dqb_bhardlimit == bhardlimit &&
+ 		 dquot->dq_dqb.dqb_ihardlimit == ihardlimit))
+ 		return true;
 
-Patches currently in -mm which might be from mason@kernel.org are
 
+Patches currently in -mm which might be from josef@toxicpanda.com are
+
+tmpfs-preserve-explicitly-disabled-quota-limits.patch
+mm-shmem-hold-off-eviction-in-shmem_writeout.patch
 
