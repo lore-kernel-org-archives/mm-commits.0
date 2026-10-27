@@ -1,49 +1,64 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793131546;
-	b=AV+L/OW3qmhqg3yveovzGRrlwq//nqChf94sUshSyxa8UO0Fj20C5xQBTSKB3VMGnZhp
-	 HGT/tMfBrkau0UhZB7mOsGkCFcoT3s3Y5b3QN6rddjSY2M6pamx+ygum+jx+fO3+fp+sr
-	 rApGs/u7trN9uGMMzYJuitxaxwayq5X2hFButvsLnfuhtxTBbUjPmx1253rfDcwLlwyBD
-	 IBe2rUsmM3s5OZ0wR8+b8qibhLguKxZ2CkydNoeFVLObAczljw07LH0wnKg1iob6j70ei
-	 RfmUrVsbDR9diH5X54dZojov8wFQzKs3QKF4IaGFf/0OHK4sWbsXtSZ0SIBTjrzWVUw==
+	t=1793140261;
+	b=KrI0QAQJmsRGZtvl1V8C5JqyAabR1xcPoQ5rjf6B44/cl0xuGkEdnt9yMEakH2wXmNKc
+	 uixH41Ip65u2nycsPkEywB5yUtr+LNyjQGr/JGW2ZYTD4J7ZmtlE6bhvYhO8JrNbb/A1p
+	 Pq9Pbd3wRm0IKMKSpAwf2t785Zq33VcPsXFvadbttqSP8MXg8wXpPQUi2QtiveXmClkZJ
+	 XRRGsTWZxsvjX/ThmoQ0YGtTtxbatQeHu4g3LaP3NRpzuaQf6VVge/UHZQDpmYRhgcfvU
+	 OU7/NAyx1Nn1s2OasN9JOcB1rJHPUjfV1AVx3JXtKy7WQ15/QEPGs2eOhUz+kxma63Q==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793131546;
-	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=SQrr+3GcCP/uSlxHJZWcnPLmSJdwfVnzUGYb/DSm8v8=;
-	b=zRjKHnUgcFKg7tXlT0AgctIN1YWZC3ARsTECLylGytC+7aQLEToMMCs4KaXYox8zdNAK
-	 VjMT15Fl4SiqSmJ5kpCsGf7USGixpDC54Qjrr7T6G2VIfYqe6PH2nR41W2gyOV2ubzhQT
-	 UWwR08B55rADg7BYVUdnx1f/7+UKCRTDOLdHMebPzYTA7EnSh8pXNA6hbW693+ZXofRx3
-	 trAYFYOpgmaJmthm6ni3G0SNb6i9XoDOUnRP1ROz0PLG++UJCqoQj1+Mi1/rLf6TPMl0/
-	 oGNWXRT7drLKZxneILulSPXIGR9mvextW8wMvkTn5iMNemHEFbQwuSW4TjVwgI34IMA==
+	a=rsa-sha256; c=relaxed/relaxed; t=1793140261;
+	h=Received:DKIM-Signature:Received:Subject:From:In-Reply-To:References:
+	 X-PR-Tracked-List-Id:X-PR-Tracked-Message-Id:X-PR-Tracked-Remote:
+	 X-PR-Tracked-Commit-Id:X-PR-Merge-Tree:X-PR-Merge-Refname:
+	 X-PR-Merge-Commit-Id:Message-Id:Date:To:Cc;
+	bh=j2aaTu/ejA+h6yETxrpfv6ILgHiEOxegmW4KZtHlbN8=;
+	b=IRmF7BkSC8/xalfafOr+5q22dnPdxWKyAvRkc/qUKupyszYTwTCuU8phb32HghsRJOJp
+	 AH5T8ZZWHfxtmf3cKuNXZypl8O661p30VbBG6EHmx0eYKCDPWELPC1xWjzUGEmRwSo85D
+	 rTUS71teuoVJhqm0012aLuS4+a0X5ENJNG9JLIk8UyVDWqTCXdZM7vT+PnuUjzGgnxAZU
+	 fsLdYxfWcOK0f+pOedYoH9OhkSperOlu4mNgL8pZZOVblLHuy/hM0En7Nqdfyazo/SUWF
+	 0EQGhfmmSGV8utEIP8uICPG/d0wMBypqn8QHfkIGbgMZfL/6p4wcg1aH1bqO6IXFA7Q==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=Ng0M+B41;
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b="W31G7A/z";
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AA1A2606A320;
-	Tue, 27 Oct 2026 20:05:45 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C91D9606A324;
+	Tue, 27 Oct 2026 22:31:00 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=Ng0M+B41
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 321851F01825;
-	Tue, 27 Oct 2026 20:05:45 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1793131545;
-	bh=SQrr+3GcCP/uSlxHJZWcnPLmSJdwfVnzUGYb/DSm8v8=;
-	h=Date:To:From:Subject;
-	b=Ng0M+B41LSCOTLvmeSrzpLh4sWZIKbW1rKbB6U8DjAHI7pOpLmyO0xoOgN70daCln
-	 MXIq1Nj9tVlxDWSdfBXr42EBflvQLiGLbELwy2xGyscchm7BEi0jvokGsyhe6QWOCY
-	 XusjJrdtlL4apr5m4at6hOPGgLah6/JTG4ZjCJyU=
-Date: Tue, 27 Oct 2026 13:05:44 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,willy@infradead.org,
-	vbabka@kernel.org,surenb@google.com,stable@vger.kernel.org,
-	shakeel.butt@linux.dev,rppt@kernel.org,osalvador@suse.de,mhocko@suse.com,
-	hannes@cmpxchg.org,gourry@gourry.net,david@kernel.org,
-	brendan.jackman@linux.dev,josef@toxicpanda.com,akpm@linux-foundation.org
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-page_alloc-check-pageblock-pfns-under-span-seqlock.patch added to mm-unstable branch
-Message-Id: <20261027200545.321851F01825@smtp.kernel.org>
+	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=W31G7A/z
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A73C31F01825;
+	Tue, 27 Oct 2026 22:31:00 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1793140260;
+	bh=j2aaTu/ejA+h6yETxrpfv6ILgHiEOxegmW4KZtHlbN8=;
+	h=Subject:From:In-Reply-To:References:Date:To:Cc;
+	b=W31G7A/ze4tUfIqB3Kiq31CY7BH4DPbWKb77AiVJXJ/wMVQsqIhGOzMScObhWa8VS
+	 M9AsbOs63a8DZYhmjTQbLAR+YzoFfNYM8UmbbRQ/iyX75PrP3Gj/dKsVXK+m7wrBwm
+	 7ey7yFbZlO91ZZ9nYmotT33/RuXd0dEDZkfjjTh/i/jJBw0jIuv1jaNpyR6OfXz9n/
+	 BZ+1VEQKDcU0Ejo1iMLjQQNn2zYdb/IJ38HEJXiTA1S/sBM6li2uT9/dfxAYEttuN/
+	 VqdFqreYAyVvcrJASNK1ElYd1Rj/buvwhn19xH4eR8g2L1Sz2CLlVlJPu2vKIi5RUO
+	 LMMPDDGNSrurA==
+Received: from [10.30.226.235] (localhost [IPv6:::1])
+	by aws-us-west-2-korg-oddjob-rhel9-1.codeaurora.org (Postfix) with ESMTP id 9592D3AA940C;
+	Tue, 27 Oct 2026 22:31:00 +0000 (UTC)
+Subject: Re: [GIT PULL] non-MM updates for 7.4-rc1
+From: pr-tracker-bot@kernel.org
+In-Reply-To: <20261025202725.34c617497b6d9a2be352cf4f@linux-foundation.org>
+References: <20261025202725.34c617497b6d9a2be352cf4f@linux-foundation.org>
+X-PR-Tracked-List-Id: <linux-mm.kvack.org>
+X-PR-Tracked-Message-Id: <20261025202725.34c617497b6d9a2be352cf4f@linux-foundation.org>
+X-PR-Tracked-Remote: https://lore.kernel.org/as93Q-hDP5cW6gaj@sirena.org.uk Thanks.
+X-PR-Tracked-Commit-Id: b6232ca8d194c60ee603586e42b5ea584d4b7be9
+X-PR-Merge-Tree: torvalds/linux.git
+X-PR-Merge-Refname: refs/heads/master
+X-PR-Merge-Commit-Id: 7d1f84f1b94e79cb95d974ab3ec54cb3a4d64f5b
+Message-Id: <179314025939.360848.2970216075715902545.pr-tracker-bot@kernel.org>
+Date: Tue, 27 Oct 2026 22:30:59 +0000
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>, linux-mm@kvack.org, mm-commits@vger.kernel.org, linux-kernel@vger.kernel.org
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -53,119 +68,15 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:mm-commits+owner@vger.kernel.org>
 Precedence: list
 
+The pull request you sent on Sun, 25 Oct 2026 20:27:25 -0700:
 
-The patch titled
-     Subject: mm/page_alloc: check pageblock pfns under span seqlock
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-page_alloc-check-pageblock-pfns-under-span-seqlock.patch
+> https://lore.kernel.org/as93Q-hDP5cW6gaj@sirena.org.uk Thanks.
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-page_alloc-check-pageblock-pfns-under-span-seqlock.patch
+has been merged into torvalds/linux.git:
+https://git.kernel.org/torvalds/c/7d1f84f1b94e79cb95d974ab3ec54cb3a4d64f5b
 
-This patch will later appear in the mm-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+Thank you!
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via various
-branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there most days
-
-------------------------------------------------------
-From: Josef Bacik <josef@toxicpanda.com>
-Subject: mm/page_alloc: check pageblock pfns under span seqlock
-Date: Tue, 27 Oct 2026 16:46:35 +0100
-
-Whenever the flags of a pageblock are read or written, a kernel with
-CONFIG_DEBUG_VM makes sure that the pfn lies within the zone of the page.
-Unlike bad_range(), that check reads zone->zone_start_pfn and
-zone->spanned_pages without zone->span_seqlock.
-
-Memory hotplug changes the two fields one after the other. If the lower
-end of a zone moves, the zone seems to end before its last pages in
-between. A page of that part which is freed at that moment, on another
-CPU, ends in
-
-  page dumped because: VM_BUG_ON_PAGE(!zone_spans_pfn(page_zone(page), pfn))
-  kernel BUG at mm/page_alloc.c:372!
-   free_unref_folios+0x55e/0xed0
-   folios_put_refs+0x2b5/0x530
-
-Read the span in a read section of the seqlock.
-
-Link: https://lore.kernel.org/20261027-pgalloc-ai-hotfixes-v1-9-9c7d1aca801e@kernel.org
-Fixes: 86051ca5eaf5 ("mm: fix usemap initialization")
-Signed-off-by: Josef Bacik <josef@toxicpanda.com>
-Signed-off-by: Vlastimil Babka (SUSE) <vbabka@kernel.org>
-Signed-off-by: David Hildenbrand (Arm) <david@kernel.org>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Assisted-by: LLM
-Cc: Zi Yan <ziy@nvidia.com>
-Cc: Shakeel Butt <shakeel.butt@linux.dev>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Oscar Salvador <osalvador@suse.de>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Brendan Jackman <brendan.jackman@linux.dev>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: "Gregory Price (Meta)" <gourry@gourry.net>
-Cc: <stable@vger.kernel.org>
----
-
- mm/page_alloc.c |   17 ++++++++++++++++-
- 1 file changed, 16 insertions(+), 1 deletion(-)
-
---- a/mm/page_alloc.c~mm-page_alloc-check-pageblock-pfns-under-span-seqlock
-+++ a/mm/page_alloc.c
-@@ -357,6 +357,21 @@ static __always_inline bool is_standalon
- 	return pb_bit >= PB_compact_skip && pb_bit < __NR_PAGEBLOCK_BITS;
- }
- 
-+/* Memory hotplug can resize the zone while we look at its span */
-+static bool __maybe_unused zone_spans_pfn_stable(struct zone *zone,
-+						 unsigned long pfn)
-+{
-+	unsigned int seq;
-+	bool ret;
-+
-+	do {
-+		seq = zone_span_seqbegin(zone);
-+		ret = zone_spans_pfn(zone, pfn);
-+	} while (zone_span_seqretry(zone, seq));
-+
-+	return ret;
-+}
-+
- static __always_inline void
- get_pfnblock_bitmap_bitidx(const struct page *page, unsigned long pfn,
- 			   unsigned long **bitmap_word, unsigned long *bitidx)
-@@ -370,7 +385,7 @@ get_pfnblock_bitmap_bitidx(const struct
- 	BUILD_BUG_ON(NR_PAGEBLOCK_BITS != 4);
- #endif
- 	BUILD_BUG_ON(__MIGRATE_TYPE_END > PAGEBLOCK_MIGRATETYPE_MASK);
--	VM_BUG_ON_PAGE(!zone_spans_pfn(page_zone(page), pfn), page);
-+	VM_BUG_ON_PAGE(!zone_spans_pfn_stable(page_zone(page), pfn), page);
- 
- 	bitmap = get_pageblock_bitmap(page, pfn);
- 	*bitidx = pfn_to_bitidx(page, pfn);
-_
-
-Patches currently in -mm which might be from josef@toxicpanda.com are
-
-mm-page_alloc-dont-undo-a-racing-start_isolate_page_range.patch
-mm-page_alloc-clear-private-of-deferred-free-pages.patch
-mm-page_frag-refill-the-cache-for-large-fragments.patch
-mm-page_alloc-keep-the-pagesets-of-an-empty-zone.patch
-mm-page_alloc-pass-zone-pointer-to-trace_reclaim_retry_zone.patch
-mm-compaction-trust-zone-contiguous-only-in-the-span.patch
-mm-page_isolation-do-not-take-slab-pages-for-free.patch
-mm-memory_hotplug-resize-zones-under-their-seqlock.patch
-mm-page_alloc-check-pageblock-pfns-under-span-seqlock.patch
-
+-- 
+Deet-doot-dot, I am a bot.
+https://korg.docs.kernel.org/prtracker.html
