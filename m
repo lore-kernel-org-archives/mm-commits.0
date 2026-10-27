@@ -1,46 +1,49 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793070762;
-	b=tjlyBGYG1oNf3fxo13UR3Jf/6DWC7biWqm/TGhiyoOhmVcMAtwcfzKnzEFpxSCyGuBBG
-	 BtOyKfiU7MvCn/0B9Wk3Vg1LBzFEAUedJUjg11unWMrSFp7kFueZSkTKS/0CjLV/4sw1E
-	 B0/SHpXBnx4r5tHWZtqIc0SMTiM9Y87yQ8/I0cT8RkHxkygdIVXUeKyXMylxfLGUxmihs
-	 qzFr6Wwd++Xfv/DIViZG3j6D0ChslCC6VEWDp5dI3YpiCDH+uTT9NZwcyWVakTJV+QX22
-	 Yf2PD/UL5ZxKDlSQwR+Yph0spmMCWeJhbcSmSsNb6Y5eEoV/Bc6ePzvfyJOmB7Dz3XA==
+	t=1793070874;
+	b=hBm4w9lRK33MQN1lUAzw38CjyAcHxYrvKPGFqxFkG3XAnR2ub1RCtgCC3/eQDGG1M8/z
+	 GG2MX/Jb+YTwKoMdJ0nD9nmKFyplHvoV/3wfNLfxcoTy/dqGN18dQRgVa6IqJ9W3FlgsY
+	 CuVjF+jF76pe7zioYDlDYbieqGAOFQKfV/lMWHVGlHdt91vNe/24y1CXb1JjuwipuxUyO
+	 6MDJfTdq9szc+98GmgEGD03J+YGF7QXMUPHBwY520tLvRkt/zqY5jDruohtgl0NjpQYLo
+	 FxMDtIDHYzTBncC8/TjSxDXLtDNDYikrLyOeNYg9ZF5fq6ZrckO76jdCLGED1GmbGvw==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793070762;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793070874;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=1H55sXRl8fBNx4ZcP0zjSnu9yMIGqAGD9i4GTFf9CNg=;
-	b=Kd4DxYIL5BTZPVWg6vIQ5KUdXEWBs382snvr72HJIjQQ3VBbKREht8QT5Bxlxp9qh6eA
-	 HShYndxzNBTxEFaDI9ZpEeK6ce+ibHIdIvYdtghtKWmSEk7sdPizWpq/62WMLQlbzKonN
-	 9dVzbUVS74/hdToAW2EMcUI86L1Hb2E0i64OPXulrS012xx4LuFRsmcE7LM5jMT1iQ1Yy
-	 HX2M6O7RsfRVUyX9nynDGq4YwOlI+N7/b7VriVHn/qT0OHBOgJ7gtWdki5jiouJf1mT12
-	 DB+SyhUec4AerP696zEe9obvZbQ9ldEyH3NmOLqA3304HE7kZap/3oCVAgqyZaQ/83w==
+	bh=4iUhOsMtYZqyoy383Nq9ZumsgU2FDeni2SDa+RtJWZc=;
+	b=FZ32nGv2c5g/WnqREHwuyxidigxW3Zz3xTjcAJepf+s+JU+lOxY9pB+pUrPb0N5cVZkU
+	 sFSddChIyWU4hBvN0dwU5L6nn3AGJ1PFpwbeAB2UpnrZKBtTEaXjU4+IDkJojuj14e09b
+	 rM8w9npPAIOPjBAS5zWEWrJvLbbQE2E1vU276XG4B1vKxZgLeKeZM3S5xwnEBt3OCbNAv
+	 xmXuo5s+XBEPZXagny5KqJAlc6BAm5iVLfOl/7h/oST2zto/upVty0nFjtqV0peR8aSZf
+	 Zf8XPtoN9OVkpsjWPQFlLo3T8cGX4QmfjOjyeovKNCFqMw2I2/f/in/KHi7a6tT3O/g==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=WCNGmpTl;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b="UEusca/2";
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 47CAF606A31A
-	for <mm-commits@vger.kernel.org>; Tue, 27 Oct 2026 03:12:42 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AA937606A31A;
+	Tue, 27 Oct 2026 03:14:33 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=WCNGmpTl
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B5EE51F01825;
-	Tue, 27 Oct 2026 03:12:41 +0000 (UTC)
+	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=UEusca/2
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1D9211F01825;
+	Tue, 27 Oct 2026 03:14:33 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1793070761;
-	bh=1H55sXRl8fBNx4ZcP0zjSnu9yMIGqAGD9i4GTFf9CNg=;
+	d=linux-foundation.org; s=korg; t=1793070873;
+	bh=4iUhOsMtYZqyoy383Nq9ZumsgU2FDeni2SDa+RtJWZc=;
 	h=Date:To:From:Subject;
-	b=WCNGmpTlrzp1Z81zXIfASeWq+6l/JD2yOqysOwpaKz1B8Bq5V/k1YfaJL2CEtHSqD
-	 FDLE4OpgBDcslvigkotMLWx2zr9Rfp/lmLjja7fN/FIP2ugE8sEsGAq401/Rrn5jYX
-	 EvVPTFAb+1A7XUqRCgx2K9v+ioRvke4hx+JexOU4=
-Date: Mon, 26 Oct 2026 20:12:41 -0700
-To: mm-commits@vger.kernel.org,baolin.wang@linux.alibaba.com,
+	b=UEusca/2/rdABrzzxCMbB+KDKqfo+dW7+B9/Moe6+WNJ8gxpfEQ1yhFezIBaeICqd
+	 SLxatyXORllNDvnW3SnBNnI/dkdpuNTakMxuDy7WNGlt8JFBV4yh0RjfQmVI0+su5D
+	 OArN7zh80+fMs1yOPQEhkmawP2/eSyR2Bmh/00iU=
+Date: Mon, 26 Oct 2026 20:14:32 -0700
+To: mm-commits@vger.kernel.org,vbabka@kernel.org,surenb@google.com,
+	stable@vger.kernel.org,rppt@kernel.org,qi.zheng@linux.dev,pfalcato@suse.de,
+	mhocko@suse.com,ljs@kernel.org,liam@infradead.org,jack@suse.cz,
+	david@kernel.org,ayushr@modal.com,baolin.wang@linux.alibaba.com,
 	akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [to-be-updated] mm-memory-fix-truncation-removing-mapped-folios.patch removed from -mm tree
-Message-Id: <20261027031241.B5EE51F01825@smtp.kernel.org>
+Subject: + mm-memory-fix-truncation-removing-mapped-folios.patch added to mm-hotfixes-unstable branch
+Message-Id: <20261027031433.1D9211F01825@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -51,17 +54,33 @@ List-Owner: <mailto:mm-commits+owner@vger.kernel.org>
 Precedence: list
 
 
-The quilt patch titled
+The patch titled
      Subject: mm: memory: fix truncation removing mapped folios
-has been removed from the -mm tree.  Its filename was
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
      mm-memory-fix-truncation-removing-mapped-folios.patch
 
-This patch was dropped because an updated version will be issued
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memory-fix-truncation-removing-mapped-folios.patch
+
+This patch will later appear in the mm-hotfixes-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via various
+branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there most days
 
 ------------------------------------------------------
 From: Baolin Wang <baolin.wang@linux.alibaba.com>
 Subject: mm: memory: fix truncation removing mapped folios
-Date: Mon, 26 Oct 2026 10:05:06 +0800
+Date: Tue, 27 Oct 2026 10:19:19 +0800
 
 Ayush reported an issue that shmem/tmpfs folios are still mapped when
 truncating them on production:
@@ -70,10 +89,10 @@ BUG: Bad page cache in process ...  pfn:...
 page dumped because: still mapped when deleted
 "
 
-I reproduced the issue with Ayush's reproducer [1] with the latest
-mm-unstable branch, and I got the following crash info.  From the dump
-message, we can see that truncate_inode_folio() is really trying to remove
-mapped folios, which is incorrect.
+I reproduced the issue with Ayush's reproducer [1] with the latest mm-unstable
+branch, and I got the following crash info. From the dump message, we can
+see that truncate_inode_folio() is really trying to remove mapped folios,
+which is incorrect.
 
 "
 [  189.171977] page: refcount:3 mapcount:1 mapping:00000000fe168ee1
@@ -125,14 +144,13 @@ shmem_fallocate                 madvise_dontneed_single_vma
     BUG_ON(folio_mapped)
                                     tlb_flush_rmaps(remove rmaps)
 
-To fix this issue, we should move the pmd clear operation (via
-zap_empty_pte_table()) to after tlb_flush_rmaps() and use
-sync_with_folio_pmd_zap() to sync with concurrent zapping, so that when we
-find a pmd_none() while unmapping a folio without holding the PTL, the
-folio's mappings are guaranteed to have been removed via
-tlb_flush_rmaps().
+To fix this issue, we should move the pmd clear operation (via zap_empty_pte_table())
+to after tlb_flush_rmaps() and use sync_with_folio_pmd_zap() to sync with
+concurrent zapping, so that when we find a pmd_none() while unmapping a folio
+without holding the PTL, the folio's mappings are guaranteed to have been
+removed via tlb_flush_rmaps().
 
-Link: https://lore.kernel.org/4cc521a118564b4145edf0324066ab532fb41181.1792979870.git.baolin.wang@linux.alibaba.com
+Link: https://lore.kernel.org/d7f009c90b11ded86654885b5ebcb8c9308fa31a.1793067441.git.baolin.wang@linux.alibaba.com
 Link: https://lore.kernel.org/all/20260925065013.3682431-1-ayushr@modal.com/ [1]
 Fixes: 6375e95f381e ("mm: pgtable: reclaim empty PTE page in madvise(MADV_DONTNEED)")
 Signed-off-by: Baolin Wang <baolin.wang@linux.alibaba.com>
@@ -149,11 +167,12 @@ Cc: Mike Rapoport <rppt@kernel.org>
 Cc: Suren Baghdasaryan <surenb@google.com>
 Cc: Michal Hocko <mhocko@suse.com>
 Cc: Jan Kara <jack@suse.cz>
+Cc: <stable@vger.kernel.org>
 ---
 
  mm/internal.h |   10 ++++++----
- mm/memory.c   |   28 +++++++++++++++-------------
- 2 files changed, 21 insertions(+), 17 deletions(-)
+ mm/memory.c   |   30 +++++++++++++++---------------
+ 2 files changed, 21 insertions(+), 19 deletions(-)
 
 --- a/mm/internal.h~mm-memory-fix-truncation-removing-mapped-folios
 +++ a/mm/internal.h
@@ -218,7 +237,7 @@ Cc: Jan Kara <jack@suse.cz>
  	pte_unmap_unlock(start_pte, ptl);
  
  	/*
-@@ -2139,12 +2142,11 @@ static inline unsigned long zap_pmd_rang
+@@ -2139,12 +2142,9 @@ static inline unsigned long zap_pmd_rang
  				continue;
  			}
  			/* fall through */
@@ -226,9 +245,9 @@ Cc: Jan Kara <jack@suse.cz>
 -			   folio_test_pmd_mappable(details->single_folio) &&
 -			   next - addr == HPAGE_PMD_SIZE && pmd_none(*pmd)) {
 -			sync_with_folio_pmd_zap(tlb->mm, pmd);
- 		}
-+
- 		if (pmd_none(*pmd)) {
+-		}
+-		if (pmd_none(*pmd)) {
++		} else if (pmd_none(*pmd)) {
 +			if (details && details->single_folio)
 +				sync_with_folio_pmd_zap(tlb->mm, pmd);
  			addr = next;
@@ -238,4 +257,5 @@ _
 
 Patches currently in -mm which might be from baolin.wang@linux.alibaba.com are
 
+mm-memory-fix-truncation-removing-mapped-folios.patch
 
