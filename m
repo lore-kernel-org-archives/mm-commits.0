@@ -1,45 +1,45 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793124581;
-	b=3KFiwNAmGoL35peotbo+0+wRCd2MTRt69gp38F0sCxpbJinYXCwxsWXvk9tiQpOcFMan
-	 4jRLkOzSzLto/896j/POK0yatVdh398UqIvLhQaq0wSMJxeOKlFMOcn65Ya2H5bXQRkKT
-	 bEk186Zs+EkqEEs0cBHE3hFbONu2iDruSlaH7U2hmxUaXxiyGMX7fHN9gQfFEgIuKW/PW
-	 CltfQsER5SkQ/dBSnaQRzs4/Ixqq7Hh0MeCnf4pUnoLk8cGZze9tVRkHYZCMJ8U/qLX4h
-	 ZuxW6G6yCVzlipB/u4Gwd+yBUmTFh006BEOaoFi1ppot6/qCIrW1FSzdur3Em3XpE+A==
+	t=1793124582;
+	b=VX2CTAAxqCVlZBX/gB38LwH7EBpm9PCaqso6CisyV1yxK938FrrFOATJoRSEuvG0Rno1
+	 rA3sHXsiOHH/wjIG3lILMj0jT4Xw17GaL4oAera2vf8ESbgXDaW0z9IQlDlr3ySuRX95u
+	 +8Uvl5zUYFsLpFFMLQjOEV9QKIzIYE4lTW/9SaYQfCv7BCngMQ7b48prpfaLUA1Mlk1zO
+	 h5CMyive4q9slmY2WNj7PrPHmHRQugeL4hBUExlTEilOSx+rPUHut+osTK7mcOw+rYe6R
+	 kItv1Qyx2oyAIsuDNKeha4ThzHoPPjcgQ3JjBIXIPnalxrswpTeXQR1BTW/ygoUzENA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793124581;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793124582;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=bkjXxs2a5BIYOp/8br1KRpXcrMk8B2EiRquuReW6yeM=;
-	b=EA30zFDfM8inHOW3IXVTCfYpXhHL7BEwozeazYOh4y/CZ2aKQbn1YoKYQRQdd23RGYKM
-	 pSbZM+ydM8jC3BLtO13W/jPj9ZtkysIMb/R1TBBhZ1XIA9XanJLBnpcR+kxks3t/gzm5g
-	 k0jzqOGJm5QodjGtv4zWDBtlvUY0Kde9IOpgDAryVw4i6j4BntjCRyFGKiJ65iVuBQsYt
-	 VK7RFSYsNOmWFwGHRGgXjyjyfTkXbXgcs+W1sgWAUW2FTFuXxr4upMpIK9UFnf02lPYrw
-	 4+UZhPifu3hHfcn/G/cGH5auqeU8qUx9sT41sYvtbebPbfECqcT6g1fSrvwxeNf9Y+g==
+	bh=OucgfQLtUbW6S6JCw/gVXycG1f7KNsTeeVyKPwNs89k=;
+	b=Aph/iAEaGZoyHrzJJNq9f0vhL3qFr0rPBJFR2VoKyZZEIdrBMdITkLmgBlC1uATd5X6I
+	 PPZdjZAESlxXjD+P02X9DKpy7Ri7+VPGKmyObRAL/3jQNpiJHSr8frflca8OBSw8XZPoA
+	 PLq34EURc2qpOLcM7Jr3G0axaLeqnsLeqYLPzys0rtGx68zGyKmkScEmnsQqPgK4XHn3M
+	 rvxb9OphADWbLDvBhdp8Z+K+w6SKUJrU/qJ7FH7RiyIt6VAkKFAI/BaPfXvaFjW45cvlX
+	 7+T4wjUJgH7UTSELrEf5ihSiSVZpr4iF0PALPYO/FwKFIbHJQouHMhYkZ4sjuohP5lw==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=gOlIip3E;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=jL6ufu9s;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 03A73606A31E
-	for <mm-commits@vger.kernel.org>; Tue, 27 Oct 2026 18:09:40 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 846EE606A32A
+	for <mm-commits@vger.kernel.org>; Tue, 27 Oct 2026 18:09:42 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=gOlIip3E
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 708DB1F01825;
-	Tue, 27 Oct 2026 18:09:40 +0000 (UTC)
+	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=jL6ufu9s
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0504C1F01829;
+	Tue, 27 Oct 2026 18:09:41 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1793124580;
-	bh=bkjXxs2a5BIYOp/8br1KRpXcrMk8B2EiRquuReW6yeM=;
+	d=linux-foundation.org; s=korg; t=1793124582;
+	bh=OucgfQLtUbW6S6JCw/gVXycG1f7KNsTeeVyKPwNs89k=;
 	h=Date:To:From:Subject;
-	b=gOlIip3EsckamBqed9h1j2i5EvloRptlXFYpqnAPnOoyRQJ6HY1yIhlmxvYnyO4O4
-	 G2x+mriDE6v7lIyAVCg+RpfuDyojl62hSaSrW5nEl+yB0B95IYZ8/5UZXah+3WrdWf
-	 JADfmK1r8Yd/ah9omEasrGBY6B1Ay7BM8qeJ4JDs=
-Date: Tue, 27 Oct 2026 11:09:40 -0700
-To: mm-commits@vger.kernel.org,mason@kernel.org,akpm@linux-foundation.org
+	b=jL6ufu9s3FAA20v8KgHs0MwMxDdstCefO7U2lYx43IQBXBr2BR7CeU6gQgYp7/Ton
+	 VS6lPrAOwHj6+4y8jIIgMt/7jKQ/pCQJ6Gg2Oq+lyteVaJbujKRyi0PW4k4u6SdUUb
+	 X0dNrrbF+vzrYI9o1aPyq9uMhqHWcU7sRvrZw/5U=
+Date: Tue, 27 Oct 2026 11:09:41 -0700
+To: mm-commits@vger.kernel.org,josef@toxicpanda.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [to-be-updated] mm-mempolicy-charge-shared-policy-nodes.patch removed from -mm tree
-Message-Id: <20261027180940.708DB1F01825@smtp.kernel.org>
+Subject: [to-be-updated] tmpfs-preserve-explicitly-disabled-quota-limits.patch removed from -mm tree
+Message-Id: <20261027180942.0504C1F01829@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -51,132 +51,55 @@ Precedence: list
 
 
 The quilt patch titled
-     Subject: mm/mempolicy: charge shared policy nodes
+     Subject: tmpfs: preserve explicitly disabled quota limits
 has been removed from the -mm tree.  Its filename was
-     mm-mempolicy-charge-shared-policy-nodes.patch
+     tmpfs-preserve-explicitly-disabled-quota-limits.patch
 
 This patch was dropped because an updated version will be issued
 
 ------------------------------------------------------
-From: Chris Mason <mason@kernel.org>
-Subject: mm/mempolicy: charge shared policy nodes
-Date: Mon, 26 Oct 2026 10:40:34 +0100
+From: Josef Bacik <josef@toxicpanda.com>
+Subject: tmpfs: preserve explicitly disabled quota limits
+Date: Mon, 26 Oct 2026 10:40:36 +0100
 
-Patch series "mm/shmem: various (urgent?) fixes", v1.
+An administrator's decision to disable a user's or group's quota
+limits can be silently lost when tmpfs restores the mount defaults
+after releasing and reacquiring the quota record. This can cause
+later file creation or writes to fail with EDQUOT, even though the
+administrator has explicitly disabled quota limits for the user or
+group.
 
-Hi,
+do_set_dqblk() sets DQ_FAKE_B when all block and inode limits are zero.
+This means quota enforcement is disabled for that user or group.
+shmem_is_empty_dquot() treats the flag as a reason to discard the entry
+from the mount's quota tree. The next shmem_acquire_dquot() finds no
+saved entry and recreates it with the mount's default hard limits.
 
-the fixing fun continues.
+If the cached dquot is reused, DQ_FAKE_B remains set: Q_GETQUOTA reports
+the restored defaults, but enforcement is still disabled. Once that
+dquot has been reclaimed, a new dquot enforces the restored defaults.
 
-This is a handful of fixes for shmem/tmpfs. I sneaked in a related
-hugetlb fix that stalled upstream.
+Remove the DQ_FAKE_B test. Only discard entries with zero usage, zero
+soft limits and hard limits equal to the mount defaults. Explicitly
+disabled limits are then preserved whenever the mount defaults are
+nonzero.
 
-Some of the stuff is more urgent (patch #1, F_SEAL_EXEC, truncation
-hangs), others are less urgent but still rather unpleasant.
+Explicitly disabled limits now retain a quota-tree entry, just like other
+limits that differ from the mount defaults.
 
-The majority are fixes from Anthropic that I cleaned up or reworked.
-While doing that, I found a bunch of other issues and tried to fix them
-somewhat cleanly.
+Rename shmem_is_empty_dquot() to shmem_is_default_dquot() to describe
+the check for default values.
 
-In general, shmem + swap handling is a nightmare. shmem_undo_range() is
-such utter garbage it makes me want to cry. I mean, really, WTF did we
-end up creating there. Does any expert here have time to clean that up and
-make it *actually* maintainable.
+Fix generated by an LLM and sent by Josef Bacik in private.
 
-The following things are still broken in shmem_undo_range():
-
-(1) Truncate/punch of a single page of a large swap-error marker
-
-We don't split. Consequently, read access afterwards will still fail
-instead of returning 0s.
-
-I have a fix to try to split (which can fail), but I don't consider it
-that urgent, really. So I'm not including it. Might send it later
-separately.
-
-Truncate/punch of a partial page can obviously never do the right thing,
-as we cannot poison parts of pages ...
-
-(2) Truncate/punch whole pages within part of a large swap entry
-
-We try to read the entry, but if we are out of memory that might fail.
-Consequently, we will not free up swap space and a re-read will not give
-us 0s but the previous content.
-
-AI proposed a nasty NOFAIL patch which has too many nasty side effects
-IMHO (allowing users to force-read pages and retain them afterwards even
-though memory.max would disallow it). This needs a proper thought. Likely,
-support for splitting large swap entries (and large folios in the
-swapcache, which I recall is under development  by Kairui). But splitting
-can fail ...
-
-(3) Truncate/punch of a part of a base-page swap entry
-
-We obviously have to read the page in, in order to 0-out the parts to
-discard. That might obviously fail.
-
-Maybe we should install swapin-error markers if swapping during
-truncate/punchhole fails, to at least tell user space on later access
-that something went wrong? We might affect unrelated data, outside the
-requested range, though. Anyhow, these are long standing issues and
-I don't consider them urgent.
-
-They need a proper solution.
-
-I did my best trying to test these fixes. I was able to reproduce some
-of the things (including unkillable truncation hangs), and the fixes seemed
-to help.
-
-But again, shmem_undo_range() is just an absolute mess.
-
-Please prioritize review of these fixes, I want to get fixes for the
-issues in a timely manner upstream.
-
-
-This patch (of 16):
-
-Any local user can bypass memory.max with mbind() on a tmpfs file, and
-allocate unbounded kernel memory.
-
-mbind() sets a NUMA memory policy for a range of a mapping. If the
-mapping is of a shmem and friends, the kernel also stores the policy on
-the inode, in a tree with one entry per range of the file.
-
-Each mbind() on a single page of a mapping can add one shared policy node
-(struct sp_node) and one struct mempolicy to that tree. They outlive the
-mapping and stay around until the inode is destroyed. The tree is not
-bounded by the file size, so the file can be empty.
-
-Memory that user space can allocate must be charged to a memory cgroup. A
-slab cache does that for all of its objects if it is created with
-SLAB_ACCOUNT. numa_policy_init() creates the slab caches for both
-structs without SLAB_ACCOUNT, so they are not charged to any cgroup.
-
-Reproduced with mbind() on single pages of an empty tmpfs file, from a
-cgroup with memory.max=8M: the global OOM killer killed tasks owned by
-root, and the machine panicked.
-
-Fix this by creating both caches with SLAB_ACCOUNT. This change implies
-that mbind() can now fail when running into memcg limits. Further,
-the policy_cache also serves task and VMA policies, so they are
-similarly accounted now.
-
-Note that per-file limits are not really helpful, as the user could
-simply use many files; having limits per user is tricky as well.
-
-Fix generated by an LLM and submitted by Chris Mason in private.
-
-[david@kernel.org: smaller description tweaks]
-Link: https://lore.kernel.org/20261026-fixes_shmem-v1-0-703206d5fa0c@kernel.org
-Link: https://lore.kernel.org/20261026-fixes_shmem-v1-1-703206d5fa0c@kernel.org
-Fixes: 5d097056c9a0 ("kmemcg: account certain kmem allocations to memcg")
-Signed-off-by: Chris Mason <mason@kernel.org>
+[david@kernel.org: code cleanups; rewrite description]
+Link: https://lore.kernel.org/20261026-fixes_shmem-v1-3-703206d5fa0c@kernel.org
+Fixes: de4c0e7ca8b5 ("shmem: Add default quota limit mount options")
+Signed-off-by: Josef Bacik <josef@toxicpanda.com>
 Signed-off-by: David Hildenbrand (Arm) <david@kernel.org>
-Acked-by: Pedro Falcato <pfalcato@suse.de>
-Acked-by: Kiryl Shutsemau (Meta) <kas@kernel.org>
-Acked-by: Zi Yan <ziy@nvidia.com>
+Reviewed-by: Jan Kara <jack@suse.cz>
 Tested-by: Gregory Price (Meta) <gourry@gourry.net>
-Reviewed-by: Baolin Wang <baolin.wang@linux.alibaba.com>
+Cc: Zi Yan <ziy@nvidia.com>
 Cc: Joshua Hahn <joshua.hahnjy@gmail.com>
 Cc: Rakie Kim <rakie.kim@sk.com>
 Cc: Ying Huang <ying.huang@linux.alibaba.com>
@@ -184,10 +107,10 @@ Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Vladimir Davydov <vdavydov.dev@gmail.com>
 Cc: Michal Hocko <mhocko@suse.com>
 Cc: Hugh Dickins <hughd@google.com>
+Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
 Cc: Lukas Czerner <lczerner@redhat.com>
 Cc: Carlos Maiolino <cmaiolino@redhat.com>
 Cc: Christian Brauner <brauner@kernel.org>
-Cc: Jan Kara <jack@suse.cz>
 Cc: Daniel Verkamp <dverkamp@chromium.org>
 Cc: Jeff Xu <jeffxu@google.com>
 Cc: Muchun Song <muchun.song@linux.dev>
@@ -200,38 +123,78 @@ Cc: Kairui Song <kasong@tencent.com>
 Cc: Nhat Pham <nphamcs@gmail.com>
 Cc: Miaohe Lin <linmiaohe@huawei.com>
 Cc: Naoya Horiguchi <nao.horiguchi@gmail.com>
-Cc: Josef Bacik <josef@toxicpanda.com>
+Cc: Chris Mason <mason@kernel.org>
 Cc: Eva Kurchatova <eva.kurchatova@virtuozzo.com>
 Cc: Kairui Song <ryncsn@gmail.com>
+Cc: Pedro Falcato <pfalcato@suse.de>
+Cc: "Kiryl Shutsemau (Meta)" <kas@kernel.org>
 Cc: <sashiko-bot@kernel.org>
 Cc: <stable@vger.kernel.org>
 ---
 
- mm/mempolicy.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ mm/shmem_quota.c | 30 +++++++++++++++---------------
+ 1 file changed, 15 insertions(+), 15 deletions(-)
 
-diff --git a/mm/mempolicy.c b/mm/mempolicy.c
-index e9860fb9f73f8..ad49b7524064a 100644
---- a/mm/mempolicy.c
-+++ b/mm/mempolicy.c
-@@ -3372,11 +3372,11 @@ void __init numa_policy_init(void)
+diff --git a/mm/shmem_quota.c b/mm/shmem_quota.c
+index 43d3b4fd6cb1b..d191ebda3f00e 100644
+--- a/mm/shmem_quota.c
++++ b/mm/shmem_quota.c
+@@ -239,7 +239,7 @@ static int shmem_acquire_dquot(struct dquot *dquot)
+ 	return ret;
+ }
  
- 	policy_cache = kmem_cache_create("numa_policy",
- 					 sizeof(struct mempolicy),
--					 0, SLAB_PANIC, NULL);
-+					 0, SLAB_PANIC | SLAB_ACCOUNT, NULL);
+-static bool shmem_is_empty_dquot(struct dquot *dquot)
++static bool shmem_is_default_dquot(struct dquot *dquot)
+ {
+ 	struct shmem_sb_info *sbinfo = dquot->dq_sb->s_fs_info;
+ 	qsize_t bhardlimit;
+@@ -253,21 +253,21 @@ static bool shmem_is_empty_dquot(struct dquot *dquot)
+ 		ihardlimit = sbinfo->qlimits.grpquota_ihardlimit;
+ 	}
  
- 	sn_cache = kmem_cache_create("shared_policy_node",
- 				     sizeof(struct sp_node),
--				     0, SLAB_PANIC, NULL);
-+				     0, SLAB_PANIC | SLAB_ACCOUNT, NULL);
+-	if (test_bit(DQ_FAKE_B, &dquot->dq_flags) ||
+-		(dquot->dq_dqb.dqb_curspace == 0 &&
+-		 dquot->dq_dqb.dqb_curinodes == 0 &&
+-		 dquot->dq_dqb.dqb_bsoftlimit == 0 &&
+-		 dquot->dq_dqb.dqb_isoftlimit == 0 &&
+-		 dquot->dq_dqb.dqb_bhardlimit == bhardlimit &&
+-		 dquot->dq_dqb.dqb_ihardlimit == ihardlimit))
+-		return true;
+-
+-	return false;
++	/*
++	 * Defaults are zero usage and soft limits, and the mount's hard limits.
++	 * DQ_FAKE_B only means that *all* limits are zero, which need not match
++	 * the mount defaults.
++	 */
++	return dquot->dq_dqb.dqb_curspace == 0 &&
++	       dquot->dq_dqb.dqb_curinodes == 0 &&
++	       dquot->dq_dqb.dqb_bsoftlimit == 0 &&
++	       dquot->dq_dqb.dqb_isoftlimit == 0 &&
++	       dquot->dq_dqb.dqb_bhardlimit == bhardlimit &&
++	       dquot->dq_dqb.dqb_ihardlimit == ihardlimit;
+ }
+ /*
+- * Store limits from dquot in the tree unless it's fake. If it is fake
+- * remove the id from the tree since there is no useful information in
+- * there.
++ * Remove the ID from the tree if it has no usage and its limits match
++ * the mount defaults. Otherwise, save its limits for the next acquire.
+  */
+ static int shmem_release_dquot(struct dquot *dquot)
+ {
+@@ -302,7 +302,7 @@ static int shmem_release_dquot(struct dquot *dquot)
+ 	return -ENOENT;
  
- 	for_each_node(nid) {
- 		preferred_node_policy[nid] = (struct mempolicy) {
+ found:
+-	if (shmem_is_empty_dquot(dquot)) {
++	if (shmem_is_default_dquot(dquot)) {
+ 		/* Remove entry from the tree */
+ 		rb_erase(&entry->node, info->dqi_priv);
+ 		kfree(entry);
 
 
-Patches currently in -mm which might be from mason@kernel.org are
+Patches currently in -mm which might be from josef@toxicpanda.com are
 
-mm-shmem-honour-f_seal_exec-when-an-acl-is-set.patch
-mm-shmem-avoid-moving-the-truncation-start-backwards.patch
+mm-shmem-hold-off-eviction-in-shmem_writeout.patch
 
