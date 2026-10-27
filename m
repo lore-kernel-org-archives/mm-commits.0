@@ -1,49 +1,49 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793131543;
-	b=MsfvHX4voQwoz8vjJ6ZpNdiAQX7MC/E1tDtlLb+OO7A+i33F7Rv1hbhrpRaYJF6ce1J9
-	 elRC6s0H7+qEhD0Cm4CR5po/uEfUa0Gys0PHc9HYIrqZ7/K2llP79A1KOSWIlnommbOdM
-	 B7bJuRLALFzfhZeH1jGJevbLOuWCt27gJ+AVIDXr9KfFLleNIizM3MeFUwBw0ZW1OlJT4
-	 EUrbXSg8ieu1wKOfkIGXqi2O8PHzFNGSWEVCo2TcY/RVsn1QN03RXuLTYTGaiDMOUFH8j
-	 QexyKyI9ut3nUvinAsbYgPkcSdPjDYtHG6SoMGfnBfzfhrdD8C9W7af2mhHCOc7GeqA==
+	t=1793131546;
+	b=AV+L/OW3qmhqg3yveovzGRrlwq//nqChf94sUshSyxa8UO0Fj20C5xQBTSKB3VMGnZhp
+	 HGT/tMfBrkau0UhZB7mOsGkCFcoT3s3Y5b3QN6rddjSY2M6pamx+ygum+jx+fO3+fp+sr
+	 rApGs/u7trN9uGMMzYJuitxaxwayq5X2hFButvsLnfuhtxTBbUjPmx1253rfDcwLlwyBD
+	 IBe2rUsmM3s5OZ0wR8+b8qibhLguKxZ2CkydNoeFVLObAczljw07LH0wnKg1iob6j70ei
+	 RfmUrVsbDR9diH5X54dZojov8wFQzKs3QKF4IaGFf/0OHK4sWbsXtSZ0SIBTjrzWVUw==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793131543;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793131546;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=3yZbLKl+lK8pTnLJ8/ysaxlpLv1CxJpbhJHDq/znmvE=;
-	b=Nx7Zlcq/mhFOe1KOZRGR+KMVc5BbwiPGzde5+4JXTxZ04q3h25jH9K1BHFC6e6hfUJo9
-	 o+mTOVNPsARI+RS+ayAva8OLEQ6hr3SqnAKOGXZaEg7zWy8XSVdAy9XN1YpDozMxkYWbt
-	 qIAOtzzfxqG2oyTzeSMbRs4pSPfHmNxfzQDUEd4BRPC/c7ulAXfSp41JOgX4A2KfFG8eo
-	 k0zov8NjbSsDJt5F7bmE2kmTKbMoa+H9wqBKItJF6uhOhmDHpGLXwOdkguoXAcw4A47/6
-	 iCuolKyMRRixKy9I9otLghTHcgSdwNFqq0mAWVAZUO4iHq0ZwLEGhI7nQYluhEfWKTA==
+	bh=SQrr+3GcCP/uSlxHJZWcnPLmSJdwfVnzUGYb/DSm8v8=;
+	b=zRjKHnUgcFKg7tXlT0AgctIN1YWZC3ARsTECLylGytC+7aQLEToMMCs4KaXYox8zdNAK
+	 VjMT15Fl4SiqSmJ5kpCsGf7USGixpDC54Qjrr7T6G2VIfYqe6PH2nR41W2gyOV2ubzhQT
+	 UWwR08B55rADg7BYVUdnx1f/7+UKCRTDOLdHMebPzYTA7EnSh8pXNA6hbW693+ZXofRx3
+	 trAYFYOpgmaJmthm6ni3G0SNb6i9XoDOUnRP1ROz0PLG++UJCqoQj1+Mi1/rLf6TPMl0/
+	 oGNWXRT7drLKZxneILulSPXIGR9mvextW8wMvkTn5iMNemHEFbQwuSW4TjVwgI34IMA==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=s80zaUZK;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=Ng0M+B41;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 772D0606A31A;
-	Tue, 27 Oct 2026 20:05:43 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AA1A2606A320;
+	Tue, 27 Oct 2026 20:05:45 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=s80zaUZK
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 41B471F01825;
-	Tue, 27 Oct 2026 20:05:43 +0000 (UTC)
+	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=Ng0M+B41
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 321851F01825;
+	Tue, 27 Oct 2026 20:05:45 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1793131543;
-	bh=3yZbLKl+lK8pTnLJ8/ysaxlpLv1CxJpbhJHDq/znmvE=;
+	d=linux-foundation.org; s=korg; t=1793131545;
+	bh=SQrr+3GcCP/uSlxHJZWcnPLmSJdwfVnzUGYb/DSm8v8=;
 	h=Date:To:From:Subject;
-	b=s80zaUZKCBlhmk6YS1+wx8jGo0tnFhvpBQppzcoD4SlIahiHErZ7LpwI6X2miI8iX
-	 L6kgnjAw21KbmFC6OvxBFTi7Fw+NtftLAT9fNgUrDP8XhUGSjal2E+bhsglzHPll9n
-	 +kBVl0ByrZCMBX9xOixpsy/nisZvY11wcwOAEGg8=
-Date: Tue, 27 Oct 2026 13:05:42 -0700
+	b=Ng0M+B41LSCOTLvmeSrzpLh4sWZIKbW1rKbB6U8DjAHI7pOpLmyO0xoOgN70daCln
+	 MXIq1Nj9tVlxDWSdfBXr42EBflvQLiGLbELwy2xGyscchm7BEi0jvokGsyhe6QWOCY
+	 XusjJrdtlL4apr5m4at6hOPGgLah6/JTG4ZjCJyU=
+Date: Tue, 27 Oct 2026 13:05:44 -0700
 To: mm-commits@vger.kernel.org,ziy@nvidia.com,willy@infradead.org,
 	vbabka@kernel.org,surenb@google.com,stable@vger.kernel.org,
 	shakeel.butt@linux.dev,rppt@kernel.org,osalvador@suse.de,mhocko@suse.com,
 	hannes@cmpxchg.org,gourry@gourry.net,david@kernel.org,
 	brendan.jackman@linux.dev,josef@toxicpanda.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-memory_hotplug-resize-zones-under-their-seqlock.patch added to mm-unstable branch
-Message-Id: <20261027200543.41B471F01825@smtp.kernel.org>
+Subject: + mm-page_alloc-check-pageblock-pfns-under-span-seqlock.patch added to mm-unstable branch
+Message-Id: <20261027200545.321851F01825@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -55,12 +55,12 @@ Precedence: list
 
 
 The patch titled
-     Subject: mm/memory_hotplug: resize zones under their seqlock
+     Subject: mm/page_alloc: check pageblock pfns under span seqlock
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-memory_hotplug-resize-zones-under-their-seqlock.patch
+     mm-page_alloc-check-pageblock-pfns-under-span-seqlock.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memory_hotplug-resize-zones-under-their-seqlock.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-page_alloc-check-pageblock-pfns-under-span-seqlock.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -79,29 +79,28 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Josef Bacik <josef@toxicpanda.com>
-Subject: mm/memory_hotplug: resize zones under their seqlock
-Date: Tue, 27 Oct 2026 16:46:34 +0100
+Subject: mm/page_alloc: check pageblock pfns under span seqlock
+Date: Tue, 27 Oct 2026 16:46:35 +0100
 
-With CONFIG_DEBUG_VM the page allocator checks that a page which is
-freed, split or allocated lies within its zone. The check reads
-zone->zone_start_pfn and zone->spanned_pages under zone->span_seqlock, as
-memory hotplug can change the two at any time.
+Whenever the flags of a pageblock are read or written, a kernel with
+CONFIG_DEBUG_VM makes sure that the pfn lies within the zone of the page.
+Unlike bad_range(), that check reads zone->zone_start_pfn and
+zone->spanned_pages without zone->span_seqlock.
 
-Commit 27cacaad16c5 ("mm,memory_hotplug: drop unneeded locking") removed
-the write side, since all resizing is serialized by the hotplug lock. That
-leaves the reader without protection. When memory below the start of a
-zone goes online, the start is lowered first and the size is raised
-afterwards. When the lowest memory of a zone goes offline, the size is
-reduced first. In between, the zone seems to end before its last pages. If
-one of them goes through the allocator at that moment, it is reported as
-being outside of the zone and VM_BUG_ON_PAGE() kills the kernel.
+Memory hotplug changes the two fields one after the other. If the lower
+end of a zone moves, the zone seems to end before its last pages in
+between. A page of that part which is freed at that moment, on another
+CPU, ends in
 
-Write the two fields in a write section of the seqlock. Interrupts are
-disabled as pages are freed from interrupts, too, and the reader would
-wait for the writer which it has interrupted.
+  page dumped because: VM_BUG_ON_PAGE(!zone_spans_pfn(page_zone(page), pfn))
+  kernel BUG at mm/page_alloc.c:372!
+   free_unref_folios+0x55e/0xed0
+   folios_put_refs+0x2b5/0x530
 
-Link: https://lore.kernel.org/20261027-pgalloc-ai-hotfixes-v1-8-9c7d1aca801e@kernel.org
-Fixes: 27cacaad16c5 ("mm,memory_hotplug: drop unneeded locking")
+Read the span in a read section of the seqlock.
+
+Link: https://lore.kernel.org/20261027-pgalloc-ai-hotfixes-v1-9-9c7d1aca801e@kernel.org
+Fixes: 86051ca5eaf5 ("mm: fix usemap initialization")
 Signed-off-by: Josef Bacik <josef@toxicpanda.com>
 Signed-off-by: Vlastimil Babka (SUSE) <vbabka@kernel.org>
 Signed-off-by: David Hildenbrand (Arm) <david@kernel.org>
@@ -120,85 +119,42 @@ Cc: "Gregory Price (Meta)" <gourry@gourry.net>
 Cc: <stable@vger.kernel.org>
 ---
 
- mm/memory_hotplug.c |   44 ++++++++++++++++++++++++++----------------
- 1 file changed, 28 insertions(+), 16 deletions(-)
+ mm/page_alloc.c |   17 ++++++++++++++++-
+ 1 file changed, 16 insertions(+), 1 deletion(-)
 
---- a/mm/memory_hotplug.c~mm-memory_hotplug-resize-zones-under-their-seqlock
-+++ a/mm/memory_hotplug.c
-@@ -467,6 +467,22 @@ static unsigned long find_biggest_sectio
- 	return 0;
+--- a/mm/page_alloc.c~mm-page_alloc-check-pageblock-pfns-under-span-seqlock
++++ a/mm/page_alloc.c
+@@ -357,6 +357,21 @@ static __always_inline bool is_standalon
+ 	return pb_bit >= PB_compact_skip && pb_bit < __NR_PAGEBLOCK_BITS;
  }
  
-+/*
-+ * The page allocator checks pages against the span of their zone while the
-+ * zone is resized, see page_outside_zone_boundaries(). It must not see the
-+ * new value of one field together with the old value of the other one.
-+ */
-+static void zone_set_span(struct zone *zone, unsigned long start_pfn,
-+			  unsigned long spanned_pages)
++/* Memory hotplug can resize the zone while we look at its span */
++static bool __maybe_unused zone_spans_pfn_stable(struct zone *zone,
++						 unsigned long pfn)
 +{
-+	unsigned long flags;
++	unsigned int seq;
++	bool ret;
 +
-+	write_seqlock_irqsave(&zone->span_seqlock, flags);
-+	zone->zone_start_pfn = start_pfn;
-+	zone->spanned_pages = spanned_pages;
-+	write_sequnlock_irqrestore(&zone->span_seqlock, flags);
++	do {
++		seq = zone_span_seqbegin(zone);
++		ret = zone_spans_pfn(zone, pfn);
++	} while (zone_span_seqretry(zone, seq));
++
++	return ret;
 +}
 +
- static void shrink_zone_span(struct zone *zone, unsigned long start_pfn,
- 			     unsigned long end_pfn)
- {
-@@ -482,13 +498,10 @@ static void shrink_zone_span(struct zone
- 		 */
- 		pfn = find_smallest_section_pfn(nid, zone, end_pfn,
- 						zone_end_pfn(zone));
--		if (pfn) {
--			zone->spanned_pages = zone_end_pfn(zone) - pfn;
--			zone->zone_start_pfn = pfn;
--		} else {
--			zone->zone_start_pfn = 0;
--			zone->spanned_pages = 0;
--		}
-+		if (pfn)
-+			zone_set_span(zone, pfn, zone_end_pfn(zone) - pfn);
-+		else
-+			zone_set_span(zone, 0, 0);
- 	} else if (zone_end_pfn(zone) == end_pfn) {
- 		/*
- 		 * If the section is biggest section in the zone, it need
-@@ -499,11 +512,10 @@ static void shrink_zone_span(struct zone
- 		pfn = find_biggest_section_pfn(nid, zone, zone->zone_start_pfn,
- 					       start_pfn);
- 		if (pfn)
--			zone->spanned_pages = pfn - zone->zone_start_pfn + 1;
--		else {
--			zone->zone_start_pfn = 0;
--			zone->spanned_pages = 0;
--		}
-+			zone_set_span(zone, zone->zone_start_pfn,
-+				      pfn - zone->zone_start_pfn + 1);
-+		else
-+			zone_set_span(zone, 0, 0);
- 	}
- }
+ static __always_inline void
+ get_pfnblock_bitmap_bitidx(const struct page *page, unsigned long pfn,
+ 			   unsigned long **bitmap_word, unsigned long *bitidx)
+@@ -370,7 +385,7 @@ get_pfnblock_bitmap_bitidx(const struct
+ 	BUILD_BUG_ON(NR_PAGEBLOCK_BITS != 4);
+ #endif
+ 	BUILD_BUG_ON(__MIGRATE_TYPE_END > PAGEBLOCK_MIGRATETYPE_MASK);
+-	VM_BUG_ON_PAGE(!zone_spans_pfn(page_zone(page), pfn), page);
++	VM_BUG_ON_PAGE(!zone_spans_pfn_stable(page_zone(page), pfn), page);
  
-@@ -696,12 +708,12 @@ static void online_pages_range(unsigned
- static void __meminit resize_zone_range(struct zone *zone, unsigned long start_pfn,
- 		unsigned long nr_pages)
- {
--	unsigned long old_end_pfn = zone_end_pfn(zone);
-+	unsigned long end_pfn = max(start_pfn + nr_pages, zone_end_pfn(zone));
- 
--	if (zone_is_empty(zone) || start_pfn < zone->zone_start_pfn)
--		zone->zone_start_pfn = start_pfn;
-+	if (!zone_is_empty(zone) && start_pfn > zone->zone_start_pfn)
-+		start_pfn = zone->zone_start_pfn;
- 
--	zone->spanned_pages = max(start_pfn + nr_pages, old_end_pfn) - zone->zone_start_pfn;
-+	zone_set_span(zone, start_pfn, end_pfn - start_pfn);
- }
- 
- static void __meminit resize_pgdat_range(struct pglist_data *pgdat, unsigned long start_pfn,
+ 	bitmap = get_pageblock_bitmap(page, pfn);
+ 	*bitidx = pfn_to_bitidx(page, pfn);
 _
 
 Patches currently in -mm which might be from josef@toxicpanda.com are
