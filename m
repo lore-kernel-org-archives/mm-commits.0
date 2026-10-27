@@ -1,46 +1,46 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793072505;
-	b=t6yUhoPMIcBGUNXvXgkZZ5hno4WwOx0j5HmF+CFl/e/8Hg7mWuPM46wy6JnkohKcYPlh
-	 4jkgnlJPm4avkmxYJrW1fYkJbf9Gd15/xNuj0LHRcDni4e1RuG39/R9zkgBZoOr4cHC6n
-	 0GHmLdZ8rOArLv4SyrZDxerkvBZgX5in38+ywLVhguQ881wgettqXBj1pmRAiHvusfcTv
-	 wAHPwHqXuJpOdMT1FuEth2rCfuxomLDqxG6EJdxdjbL+iyMRAs1xuirsZUhOtl9vtBbhN
-	 gwEszp15h8Yca+AgkMilCJkwF2JDQiCugKMjjcJipI+xxV9rE3Dl2JStjot2H+g51ZQ==
+	t=1793072507;
+	b=4i0Vzd3ES1szenTmI6Lcq1WGb+fNhYTJjLYRBwts/tXYVgEngFy3U9hGGTf7FmjBW0Jf
+	 Ccn2EJ84kU6bgS1W6AEoOm5LdscRt6dGYqnBGGuVdsfFtV/UJj38GSIr2J0G7HxTe6bpj
+	 p4KsfJ1oPD/A6cJrTrQ/mwNzIeY8PUGvOfRDQgzo6Up0zORc26Qrec5QiEsGctkwS2heO
+	 WvU4xpWWqGXhPE3TwVS+N4mPGYkCKZ7ibd6MvN8WshyBL7MeiFjMFZMzVkvRIQR22RmRV
+	 7kpY4sB/vPDS8d48VY6gZ/sA6m6Gf5lWDwa/85nyMPGgEt5t9RU+flsGU0q1yArnqpg==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793072505;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793072507;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=BS5spvRNFnV3RUcnWcXUntXLpnlVo9fisLdbQdT+nRg=;
-	b=DyS4hIOf04uI7nrUDlIZnbRUX/KDKXMufPhlHyLyQAMiddhgLE2Qoy9aTgcadzgYSIhb
-	 DmFrDadLvQM4jbDgh/sB2IVOVH+Mzuansmko+VbY9PFNB4Su4XZ7JnGWy4VpoxS1gigfs
-	 JrAGImpY2RdOm7ICdEek6vGq06QKonOyz79ZxcDiR4fa//+7KjxmU3rC5ZGpnkH8G480S
-	 KWrgq4mN3F9OQE1K9uL0h7EWoGecraDZXUaEmZS1FwUChcXiZfXAo5FEJ0wtKowztrchl
-	 vQwHvPCDN4QU25bBt6m7PcD+TZFM0zYFzzJlbfyur/dzzvPGboxruEXuEt39Yu9q+vA==
+	bh=qX+JJYwLqT//VHqhTmW+OaWZiZe+lEM9Z1u64riIEgs=;
+	b=Ltz67gaGfn3Jhp/ubobfX0kyRAbrvwlymvdB+NBONBmgG8syyGT+dsDBsLrdC3BGwkkz
+	 2hYA6cKFk//9IS3ccMT8f+Vl372G4PM/IqpBtnOcpG36+lbihA6abzVWafM6ygx90WjpO
+	 gtCZrViBxmEZq31D2pR1JvjxlL7al7GpX/6Hju3GGF60DWRCBhpajJqX5zCdP55uERVZr
+	 eIaLLI9aVvY7VJxPOktf3UhvNbjpxxz5emc2+NI0lm7xFOftVA353kvTW6ghcF7gBMRag
+	 v5xgAqHFvoGtn7U5hsEMWuFhyrf+4wduIEG9EiLaTFlswOnLAqb69zdIBoSHoPeczdQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b="SYQDVKB/";
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b="Ng1QRs/p";
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BD7A0606A31A
-	for <mm-commits@vger.kernel.org>; Tue, 27 Oct 2026 03:41:44 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5AACF606A31B
+	for <mm-commits@vger.kernel.org>; Tue, 27 Oct 2026 03:41:47 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=SYQDVKB/
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2CAE71F01825;
-	Tue, 27 Oct 2026 03:41:44 +0000 (UTC)
+	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=Ng1QRs/p
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0F66E1F01825;
+	Tue, 27 Oct 2026 03:41:47 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1793072504;
-	bh=BS5spvRNFnV3RUcnWcXUntXLpnlVo9fisLdbQdT+nRg=;
+	d=linux-foundation.org; s=korg; t=1793072507;
+	bh=qX+JJYwLqT//VHqhTmW+OaWZiZe+lEM9Z1u64riIEgs=;
 	h=Date:To:From:Subject;
-	b=SYQDVKB/btfNFx1uC/FgHIDX0blm1+jmlMnnaD1w47CS2NVhv/3r0VbN/YA7Z7BGw
-	 8giuNpru5/nYWLPeDIeEalHEA9r2VoTX8fjA5ckMtV8iV1yaFrxnNQ88zvaVWjxpo7
-	 T3u5tmLRvhIX6bi2X2EW31ej8rBdN6fJEcxIZDjY=
-Date: Mon, 26 Oct 2026 20:41:43 -0700
+	b=Ng1QRs/pAjbC7WbUvmNUg9Wk4Jp4bU9ugYv2rz6sSoyxPfWhDPHx17LOLeGlClKBc
+	 TztZu+Vjq9kjVfnyrzn/cS9gXpkz6UVWynm/ujKVaPUAiKfbuoQH/hn5qvGPVYPk7v
+	 wn0wROIs8Ol+hrV9DGNNOr+SS8HP/33JGf2FpoUc=
+Date: Mon, 26 Oct 2026 20:41:46 -0700
 To: mm-commits@vger.kernel.org,hirofumi@mail.parknet.co.jp,
 	matheus.aalmeida@inf.ufrgs.br,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + fat-batch-synchronous-mirror-writes.patch added to mm-nonmm-unstable branch
-Message-Id: <20261027034144.2CAE71F01825@smtp.kernel.org>
+Subject: + fat-improve-fat_sync_bhs-write-submission.patch added to mm-nonmm-unstable branch
+Message-Id: <20261027034147.0F66E1F01825@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -52,12 +52,12 @@ Precedence: list
 
 
 The patch titled
-     Subject: fat: batch synchronous mirror writes
+     Subject: fat: improve fat_sync_bhs() write submission
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     fat-batch-synchronous-mirror-writes.patch
+     fat-improve-fat_sync_bhs-write-submission.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/fat-batch-synchronous-mirror-writes.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/fat-improve-fat_sync_bhs-write-submission.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -76,182 +76,65 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Matheus Alves de Almeida <matheus.aalmeida@inf.ufrgs.br>
-Subject: fat: batch synchronous mirror writes
-Date: Mon, 26 Oct 2026 13:39:40 -0300
+Subject: fat: improve fat_sync_bhs() write submission
+Date: Mon, 26 Oct 2026 13:39:41 -0300
 
-Patch series "fat: improve synchronous mount performance", v2.
+fat_sync_bhs() does many individual write_dirty_buffer() calls without
+plugging, making batching in the block layer more difficult.  It also does
+not pass the REQ_SYNC hint for these synchronous writes.
 
-This series improves performance on synchronous mounts by batching FAT
-mirror writes and improving fat_sync_bhs() submission.
-
-The benchmarks were run on top of my other FAT allocation batching changes
-currently in linux-next.
-
-
-This patch (of 2):
-
-fat_mirror_bhs() currently synchronizes buffer-by-buffer on synchronous
-mounts, serializing I/O and degrading performance.
-
-Make fat_mirror_bhs() batch dirty buffer heads and use fat_sync_bhs() to
-sync several at once.  Add a fat_brelse_array() helper that releases
-buffer heads in an array.
+Use a plug around the writes so the block layer can more easily batch
+them.  Pass the REQ_SYNC hint to write_dirty_buffer().
 
 Benchmarking was done under QEMU/KVM with a virtio-blk device using
 cache=directsync.  Each result is the arithmetic mean of 10 samples.
 
 start = now_ns();
 for (unsigned i = 0; i < count; i++) {
-	fallocate(fds[i], FALLOC_FL_KEEP_SIZE, 0, bytes);
+    fallocate(fds[i], FALLOC_FL_KEEP_SIZE, 0, bytes);
 }
 elapsed = now_ns() - start;
 
 Sync-mounted FAT32 using count=16 files:
 File size    Cluster size    Before    After    Improvement
-256MiB       512B            49.81s    12.26s   4.06x
-1MiB         512B            0.198s    0.057s   3.50x
-256MiB       4096B           7.060s    1.640s   4.31x
-1MiB         4096B           0.073s    0.028s   2.60x
+256MiB       512B            13.11s    11.87s   1.10x
+256MiB       4096B           1.657s    1.469s   1.13x
 
-Asynchronous mounts were also benchmarked with no noticeable performance
-change.
-
-Link: https://lore.kernel.org/20261026163941.495833-1-matheus.aalmeida@inf.ufrgs.br
-Link: https://lore.kernel.org/20261026163941.495833-2-matheus.aalmeida@inf.ufrgs.br
+Link: https://lore.kernel.org/20261026163941.495833-3-matheus.aalmeida@inf.ufrgs.br
 Signed-off-by: Matheus Alves de Almeida <matheus.aalmeida@inf.ufrgs.br>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 Acked-by: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
 ---
 
- fs/fat/fat.h    |    1 
- fs/fat/fatent.c |   80 ++++++++++++++++++++++++++++++++--------------
- fs/fat/misc.c   |    6 +++
- 3 files changed, 64 insertions(+), 23 deletions(-)
+ fs/fat/misc.c |    8 +++++++-
+ 1 file changed, 7 insertions(+), 1 deletion(-)
 
---- a/fs/fat/fatent.c~fat-batch-synchronous-mirror-writes
-+++ a/fs/fat/fatent.c
-@@ -376,42 +376,76 @@ int fat_ent_read(struct inode *inode, st
- 	return ops->ent_get(fatent);
- }
- 
--/* FIXME: We can write the blocks as more big chunk. */
--static int fat_mirror_bhs(struct super_block *sb, struct buffer_head **bhs,
--			  int nr_bhs)
-+static int fat_mirror_one(struct super_block *sb, struct buffer_head **bhs,
-+			  int nr_bhs, int target)
- {
- 	struct msdos_sb_info *sbi = MSDOS_SB(sb);
-+	sector_t backup_fat = sbi->fat_length * target;
-+	/*
-+	 * Use the value of MAX_BUF_PER_PAGE for 4K pages. This reduces stack
-+	 * usage on large-page architectures as callers may already have a
-+	 * MAX_BUF_PER_PAGE-sized array in their stack.
-+	 */
-+	struct buffer_head *dirty[8];
- 	struct buffer_head *c_bh;
--	int err, n, copy;
-+	int err, n, nr_dirty;
- 
-+	nr_dirty = 0;
- 	err = 0;
--	for (copy = 1; copy < sbi->fats; copy++) {
--		sector_t backup_fat = sbi->fat_length * copy;
--
--		for (n = 0; n < nr_bhs; n++) {
--			c_bh = sb_getblk(sb, backup_fat + bhs[n]->b_blocknr);
--			if (!c_bh) {
--				err = -ENOMEM;
--				goto error;
-+	for (n = 0; n < nr_bhs; n++) {
-+		c_bh = sb_getblk(sb, backup_fat + bhs[n]->b_blocknr);
-+		if (!c_bh) {
-+			err = -ENOMEM;
-+			goto error;
-+		}
-+		/* Avoid race with userspace read via bdev */
-+		lock_buffer(c_bh);
-+		memcpy(c_bh->b_data, bhs[n]->b_data, sb->s_blocksize);
-+		set_buffer_uptodate(c_bh);
-+		unlock_buffer(c_bh);
-+		mmb_mark_buffer_dirty(c_bh,
-+			&MSDOS_I(sbi->fat_inode)->i_metadata_bhs);
-+		if (sb->s_flags & SB_SYNCHRONOUS) {
-+			dirty[nr_dirty] = c_bh;
-+			++nr_dirty;
-+			if (nr_dirty == ARRAY_SIZE(dirty)) {
-+				err = fat_sync_bhs(dirty, nr_dirty);
-+				fat_brelse_array(dirty, nr_dirty);
-+				nr_dirty = 0;
-+				if (err)
-+					goto error;
- 			}
--			/* Avoid race with userspace read via bdev */
--			lock_buffer(c_bh);
--			memcpy(c_bh->b_data, bhs[n]->b_data, sb->s_blocksize);
--			set_buffer_uptodate(c_bh);
--			unlock_buffer(c_bh);
--			mmb_mark_buffer_dirty(c_bh,
--				&MSDOS_I(sbi->fat_inode)->i_metadata_bhs);
--			if (sb->s_flags & SB_SYNCHRONOUS)
--				err = sync_dirty_buffer(c_bh);
-+		} else {
- 			brelse(c_bh);
--			if (err)
--				goto error;
- 		}
- 	}
-+
- error:
-+	if (nr_dirty) {
-+		int err2 = fat_sync_bhs(dirty, nr_dirty);
-+		if (!err)
-+			err = err2;
-+		fat_brelse_array(dirty, nr_dirty);
-+	}
-+
- 	return err;
- }
- 
-+static int fat_mirror_bhs(struct super_block *sb, struct buffer_head **bhs,
-+			  int nr_bhs)
-+{
-+	struct msdos_sb_info *sbi = MSDOS_SB(sb);
-+	int copy;
-+
-+	for (copy = 1; copy < sbi->fats; copy++) {
-+		int err = fat_mirror_one(sb, bhs, nr_bhs, copy);
-+		if (err)
-+			return err;
-+	}
-+
-+	return 0;
-+}
-+
- int fat_ent_write(struct inode *inode, struct fat_entry *fatent,
- 		  int new, int old, int wait)
- {
---- a/fs/fat/fat.h~fat-batch-synchronous-mirror-writes
-+++ a/fs/fat/fat.h
-@@ -479,6 +479,7 @@ void fat_truncate_time(struct inode *ino
- int fat_update_time(struct inode *inode, enum fs_update_time type,
- 		unsigned int flags);
- extern int fat_sync_bhs(struct buffer_head **bhs, int nr_bhs);
-+void fat_brelse_array(struct buffer_head *bhs[], int n);
- 
- int fat_cache_init(void);
- void fat_cache_destroy(void);
---- a/fs/fat/misc.c~fat-batch-synchronous-mirror-writes
+--- a/fs/fat/misc.c~fat-improve-fat_sync_bhs-write-submission
 +++ a/fs/fat/misc.c
-@@ -364,3 +364,9 @@ int fat_sync_bhs(struct buffer_head **bh
- 	}
- 	return err;
- }
+@@ -9,6 +9,7 @@
+ 
+ #include "fat.h"
+ #include <linux/iversion.h>
++#include <linux/blk_plug.h>
+ 
+ /*
+  * fat_fs_error reports a file system problem that might indicate fa data
+@@ -353,9 +354,14 @@ EXPORT_SYMBOL_GPL(fat_update_time);
+ int fat_sync_bhs(struct buffer_head **bhs, int nr_bhs)
+ {
+ 	int i, err = 0;
++	struct blk_plug plug;
 +
-+void fat_brelse_array(struct buffer_head *bhs[], int n)
-+{
-+	while (--n >= 0)
-+		brelse(bhs[n]);
-+}
++	blk_start_plug(&plug);
+ 
+ 	for (i = 0; i < nr_bhs; i++)
+-		write_dirty_buffer(bhs[i], 0);
++		write_dirty_buffer(bhs[i], REQ_SYNC);
++
++	blk_finish_plug(&plug);
+ 
+ 	for (i = 0; i < nr_bhs; i++) {
+ 		wait_on_buffer(bhs[i]);
 _
 
 Patches currently in -mm which might be from matheus.aalmeida@inf.ufrgs.br are
