@@ -1,45 +1,45 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793124582;
-	b=VX2CTAAxqCVlZBX/gB38LwH7EBpm9PCaqso6CisyV1yxK938FrrFOATJoRSEuvG0Rno1
-	 rA3sHXsiOHH/wjIG3lILMj0jT4Xw17GaL4oAera2vf8ESbgXDaW0z9IQlDlr3ySuRX95u
-	 +8Uvl5zUYFsLpFFMLQjOEV9QKIzIYE4lTW/9SaYQfCv7BCngMQ7b48prpfaLUA1Mlk1zO
-	 h5CMyive4q9slmY2WNj7PrPHmHRQugeL4hBUExlTEilOSx+rPUHut+osTK7mcOw+rYe6R
-	 kItv1Qyx2oyAIsuDNKeha4ThzHoPPjcgQ3JjBIXIPnalxrswpTeXQR1BTW/ygoUzENA==
+	t=1793124583;
+	b=Y+Hx7TdtejwQbWspyXijevK5fgySfXXQSedFKq86SZBi12vJIMkAUDGOSli+bAhyiQ7s
+	 D+XhNZ1sh7CEdvPiwsNAxmYEHf5LlAkBi1so62aDFcaTNxnvg2OdIQrqHoX1q/+3tx49Q
+	 ujAh9pcSQr5Vc3Y4CvfVpTO3uKkHa+hOceQ7hsTNkuux51J8+bh5alLPsF6HuNVmgFnPn
+	 DYwanRH8BMjlhBZMdJ+qy4vJP2ORwPSihzNF80yCUAHNH8Ra695kIzXcPMMuJsgpbnLO3
+	 qS9qZXVh/HDLHPa4V2x0E1sChxf3LJjtXT9k2XX7Ni7ga8QlBcvbEzN8JGUAMWqAcuw==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793124582;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793124583;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=OucgfQLtUbW6S6JCw/gVXycG1f7KNsTeeVyKPwNs89k=;
-	b=Aph/iAEaGZoyHrzJJNq9f0vhL3qFr0rPBJFR2VoKyZZEIdrBMdITkLmgBlC1uATd5X6I
-	 PPZdjZAESlxXjD+P02X9DKpy7Ri7+VPGKmyObRAL/3jQNpiJHSr8frflca8OBSw8XZPoA
-	 PLq34EURc2qpOLcM7Jr3G0axaLeqnsLeqYLPzys0rtGx68zGyKmkScEmnsQqPgK4XHn3M
-	 rvxb9OphADWbLDvBhdp8Z+K+w6SKUJrU/qJ7FH7RiyIt6VAkKFAI/BaPfXvaFjW45cvlX
-	 7+T4wjUJgH7UTSELrEf5ihSiSVZpr4iF0PALPYO/FwKFIbHJQouHMhYkZ4sjuohP5lw==
+	bh=+BRH51+aE6jShfTIZ5E6tPeSREMMVnaZJO89iPmsKMA=;
+	b=ee3VgydsYQXasI5jigJnTL2ICTbXYyjlBWAlbkplRPwkWl8XTSlC+Z5MM1Q4Zj7PGED/
+	 mwXHcbrvL0GjKc3b9FTbcn1rEUillyj4Ir/vPTcGJ4sY/y4QTZD3jaNKov3xHN7B2a1Uj
+	 rwHMk2n/PmmdBFJ+gdL+pP7t0sIhVWaTj9OGmsAwvIJbfILDmUAq2j22PUJeMll7trgL4
+	 AE14xC1ToyaA5KPYBdZb8WfHbsJCOlmHlZXJP1SxMF1Y+i8Hh9Vst8YNdNEkz9a5Pe5Ec
+	 RtMttwWTfu8GwTNHP+JgXlH4RkeSMgqUpZHtXst5BnEaJpw3a6IJq1ZDcGmgLdlOPBw==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=jL6ufu9s;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=vVuATR10;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 846EE606A32A
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id ED2AB606A31F
 	for <mm-commits@vger.kernel.org>; Tue, 27 Oct 2026 18:09:42 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=jL6ufu9s
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0504C1F01829;
-	Tue, 27 Oct 2026 18:09:41 +0000 (UTC)
+	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=vVuATR10
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C43681F01825;
+	Tue, 27 Oct 2026 18:09:42 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
 	d=linux-foundation.org; s=korg; t=1793124582;
-	bh=OucgfQLtUbW6S6JCw/gVXycG1f7KNsTeeVyKPwNs89k=;
+	bh=+BRH51+aE6jShfTIZ5E6tPeSREMMVnaZJO89iPmsKMA=;
 	h=Date:To:From:Subject;
-	b=jL6ufu9s3FAA20v8KgHs0MwMxDdstCefO7U2lYx43IQBXBr2BR7CeU6gQgYp7/Ton
-	 VS6lPrAOwHj6+4y8jIIgMt/7jKQ/pCQJ6Gg2Oq+lyteVaJbujKRyi0PW4k4u6SdUUb
-	 X0dNrrbF+vzrYI9o1aPyq9uMhqHWcU7sRvrZw/5U=
-Date: Tue, 27 Oct 2026 11:09:41 -0700
-To: mm-commits@vger.kernel.org,josef@toxicpanda.com,akpm@linux-foundation.org
+	b=vVuATR10KTkiZ8nhqMNTX2s84uQfega/JdWU53lRhmGa6gh3u/JJjGweuiWXgj24j
+	 /wiQ3V9dmeXmQzFoV3nGLKs8myZZw2pJVuLKtJyJ4OgROCOtrhsdA3sMjJzffadhx2
+	 FYUJ4fZ8mI3H48nuy1qmGlKBJovQ18t2pywTTcTQ=
+Date: Tue, 27 Oct 2026 11:09:42 -0700
+To: mm-commits@vger.kernel.org,mason@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [to-be-updated] tmpfs-preserve-explicitly-disabled-quota-limits.patch removed from -mm tree
-Message-Id: <20261027180942.0504C1F01829@smtp.kernel.org>
+Subject: [to-be-updated] mm-shmem-honour-f_seal_exec-when-an-acl-is-set.patch removed from -mm tree
+Message-Id: <20261027180942.C43681F01825@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -51,55 +51,38 @@ Precedence: list
 
 
 The quilt patch titled
-     Subject: tmpfs: preserve explicitly disabled quota limits
+     Subject: mm/shmem: honour F_SEAL_EXEC when an ACL is set
 has been removed from the -mm tree.  Its filename was
-     tmpfs-preserve-explicitly-disabled-quota-limits.patch
+     mm-shmem-honour-f_seal_exec-when-an-acl-is-set.patch
 
 This patch was dropped because an updated version will be issued
 
 ------------------------------------------------------
-From: Josef Bacik <josef@toxicpanda.com>
-Subject: tmpfs: preserve explicitly disabled quota limits
-Date: Mon, 26 Oct 2026 10:40:36 +0100
+From: Chris Mason <mason@kernel.org>
+Subject: mm/shmem: honour F_SEAL_EXEC when an ACL is set
+Date: Mon, 26 Oct 2026 10:40:37 +0100
 
-An administrator's decision to disable a user's or group's quota
-limits can be silently lost when tmpfs restores the mount defaults
-after releasing and reacquiring the quota record. This can cause
-later file creation or writes to fail with EDQUOT, even though the
-administrator has explicitly disabled quota limits for the user or
-group.
+The owner of a memfd sealed with F_SEAL_EXEC can still change its
+execute bits by setting a POSIX access ACL. With CONFIG_TMPFS_POSIX_ACL,
+this lets an unprivileged owner make a non-executable memfd executable,
+bypassing vm.memfd_noexec=2.
 
-do_set_dqblk() sets DQ_FAKE_B when all block and inode limits are zero.
-This means quota enforcement is disabled for that user or group.
-shmem_is_empty_dquot() treats the flag as a reason to discard the entry
-from the mount's quota tree. The next shmem_acquire_dquot() finds no
-saved entry and recreates it with the mount's default hard limits.
+simple_set_acl() updates i_mode directly, bypassing the seal check in
+shmem_setattr(). Add shmem_set_acl() to check the resulting mode. Share
+the F_SEAL_EXEC check with shmem_setattr() using memfd_check_seals_mode()
+in include/linux/memfd.h.
 
-If the cached dquot is reused, DQ_FAKE_B remains set: Q_GETQUOTA reports
-the restored defaults, but enforcement is still disabled. Once that
-dquot has been reclaimed, a new dquot enforces the restored defaults.
+Fix generated by an LLM and sent by Chris Mason in private.
 
-Remove the DQ_FAKE_B test. Only discard entries with zero usage, zero
-soft limits and hard limits equal to the mount defaults. Explicitly
-disabled limits are then preserved whenever the mount defaults are
-nonzero.
-
-Explicitly disabled limits now retain a quota-tree entry, just like other
-limits that differ from the mount defaults.
-
-Rename shmem_is_empty_dquot() to shmem_is_default_dquot() to describe
-the check for default values.
-
-Fix generated by an LLM and sent by Josef Bacik in private.
-
-[david@kernel.org: code cleanups; rewrite description]
-Link: https://lore.kernel.org/20261026-fixes_shmem-v1-3-703206d5fa0c@kernel.org
-Fixes: de4c0e7ca8b5 ("shmem: Add default quota limit mount options")
-Signed-off-by: Josef Bacik <josef@toxicpanda.com>
+[david@kernel.org: use common helper; simplify description]
+Link: https://lore.kernel.org/20261026-fixes_shmem-v1-4-703206d5fa0c@kernel.org
+Fixes: 6fd7353829ca ("mm/memfd: add F_SEAL_EXEC")
+Signed-off-by: Chris Mason <mason@kernel.org>
 Signed-off-by: David Hildenbrand (Arm) <david@kernel.org>
-Reviewed-by: Jan Kara <jack@suse.cz>
+Acked-by: Pedro Falcato <pfalcato@suse.de>
+Acked-by: Kiryl Shutsemau (Meta) <kas@kernel.org>
+Acked-by: Zi Yan <ziy@nvidia.com>
 Tested-by: Gregory Price (Meta) <gourry@gourry.net>
-Cc: Zi Yan <ziy@nvidia.com>
 Cc: Joshua Hahn <joshua.hahnjy@gmail.com>
 Cc: Rakie Kim <rakie.kim@sk.com>
 Cc: Ying Huang <ying.huang@linux.alibaba.com>
@@ -111,6 +94,7 @@ Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
 Cc: Lukas Czerner <lczerner@redhat.com>
 Cc: Carlos Maiolino <cmaiolino@redhat.com>
 Cc: Christian Brauner <brauner@kernel.org>
+Cc: Jan Kara <jack@suse.cz>
 Cc: Daniel Verkamp <dverkamp@chromium.org>
 Cc: Jeff Xu <jeffxu@google.com>
 Cc: Muchun Song <muchun.song@linux.dev>
@@ -123,78 +107,109 @@ Cc: Kairui Song <kasong@tencent.com>
 Cc: Nhat Pham <nphamcs@gmail.com>
 Cc: Miaohe Lin <linmiaohe@huawei.com>
 Cc: Naoya Horiguchi <nao.horiguchi@gmail.com>
-Cc: Chris Mason <mason@kernel.org>
+Cc: Josef Bacik <josef@toxicpanda.com>
 Cc: Eva Kurchatova <eva.kurchatova@virtuozzo.com>
 Cc: Kairui Song <ryncsn@gmail.com>
-Cc: Pedro Falcato <pfalcato@suse.de>
-Cc: "Kiryl Shutsemau (Meta)" <kas@kernel.org>
 Cc: <sashiko-bot@kernel.org>
 Cc: <stable@vger.kernel.org>
 ---
 
- mm/shmem_quota.c | 30 +++++++++++++++---------------
- 1 file changed, 15 insertions(+), 15 deletions(-)
+ include/linux/memfd.h |  9 +++++++++
+ mm/shmem.c            | 35 ++++++++++++++++++++++++++++++-----
+ 2 files changed, 39 insertions(+), 5 deletions(-)
 
-diff --git a/mm/shmem_quota.c b/mm/shmem_quota.c
-index 43d3b4fd6cb1b..d191ebda3f00e 100644
---- a/mm/shmem_quota.c
-+++ b/mm/shmem_quota.c
-@@ -239,7 +239,7 @@ static int shmem_acquire_dquot(struct dquot *dquot)
- 	return ret;
- }
+diff --git a/include/linux/memfd.h b/include/linux/memfd.h
+index c159e40e3f34a..272479317cf10 100644
+--- a/include/linux/memfd.h
++++ b/include/linux/memfd.h
+@@ -2,10 +2,19 @@
+ #ifndef __LINUX_MEMFD_H
+ #define __LINUX_MEMFD_H
  
--static bool shmem_is_empty_dquot(struct dquot *dquot)
-+static bool shmem_is_default_dquot(struct dquot *dquot)
- {
- 	struct shmem_sb_info *sbinfo = dquot->dq_sb->s_fs_info;
- 	qsize_t bhardlimit;
-@@ -253,21 +253,21 @@ static bool shmem_is_empty_dquot(struct dquot *dquot)
- 		ihardlimit = sbinfo->qlimits.grpquota_ihardlimit;
++#include <linux/fcntl.h>
+ #include <linux/file.h>
+ 
+ #define MEMFD_ANON_NAME "[memfd]"
+ 
++static inline int memfd_check_seals_mode(unsigned int seals, umode_t old_mode,
++		umode_t new_mode)
++{
++	if ((seals & F_SEAL_EXEC) && ((old_mode ^ new_mode) & 0111))
++		return -EPERM;
++	return 0;
++}
++
+ #ifdef CONFIG_MEMFD_CREATE
+ extern long memfd_fcntl(struct file *file, unsigned int cmd, unsigned int arg);
+ struct folio *memfd_alloc_folio(struct file *memfd, pgoff_t idx);
+diff --git a/mm/shmem.c b/mm/shmem.c
+index d97fc32e7c942..86b9d19f26c7e 100644
+--- a/mm/shmem.c
++++ b/mm/shmem.c
+@@ -77,6 +77,7 @@ static struct vfsmount *shm_mnt __ro_after_init;
+ #include <linux/magic.h>
+ #include <linux/syscalls.h>
+ #include <linux/fcntl.h>
++#include <linux/memfd.h>
+ #include <uapi/linux/memfd.h>
+ #include <linux/rmap.h>
+ #include <linux/uuid.h>
+@@ -1549,10 +1550,11 @@ static int shmem_setattr(const struct mnt_idmap *idmap,
+ 	if (error)
+ 		return error;
+ 
+-	if ((info->seals & F_SEAL_EXEC) && (attr->ia_valid & ATTR_MODE)) {
+-		if ((inode->i_mode ^ attr->ia_mode) & 0111) {
+-			return -EPERM;
+-		}
++	if (attr->ia_valid & ATTR_MODE) {
++		error = memfd_check_seals_mode(info->seals, inode->i_mode,
++					       attr->ia_mode);
++		if (error)
++			return error;
  	}
  
--	if (test_bit(DQ_FAKE_B, &dquot->dq_flags) ||
--		(dquot->dq_dqb.dqb_curspace == 0 &&
--		 dquot->dq_dqb.dqb_curinodes == 0 &&
--		 dquot->dq_dqb.dqb_bsoftlimit == 0 &&
--		 dquot->dq_dqb.dqb_isoftlimit == 0 &&
--		 dquot->dq_dqb.dqb_bhardlimit == bhardlimit &&
--		 dquot->dq_dqb.dqb_ihardlimit == ihardlimit))
--		return true;
--
--	return false;
-+	/*
-+	 * Defaults are zero usage and soft limits, and the mount's hard limits.
-+	 * DQ_FAKE_B only means that *all* limits are zero, which need not match
-+	 * the mount defaults.
-+	 */
-+	return dquot->dq_dqb.dqb_curspace == 0 &&
-+	       dquot->dq_dqb.dqb_curinodes == 0 &&
-+	       dquot->dq_dqb.dqb_bsoftlimit == 0 &&
-+	       dquot->dq_dqb.dqb_isoftlimit == 0 &&
-+	       dquot->dq_dqb.dqb_bhardlimit == bhardlimit &&
-+	       dquot->dq_dqb.dqb_ihardlimit == ihardlimit;
- }
- /*
-- * Store limits from dquot in the tree unless it's fake. If it is fake
-- * remove the id from the tree since there is no useful information in
-- * there.
-+ * Remove the ID from the tree if it has no usage and its limits match
-+ * the mount defaults. Otherwise, save its limits for the next acquire.
-  */
- static int shmem_release_dquot(struct dquot *dquot)
- {
-@@ -302,7 +302,7 @@ static int shmem_release_dquot(struct dquot *dquot)
- 	return -ENOENT;
+ 	if (S_ISREG(inode->i_mode) && (attr->ia_valid & ATTR_SIZE)) {
+@@ -5400,12 +5402,35 @@ static const struct file_operations shmem_file_operations = {
+ #endif
+ };
  
- found:
--	if (shmem_is_empty_dquot(dquot)) {
-+	if (shmem_is_default_dquot(dquot)) {
- 		/* Remove entry from the tree */
- 		rb_erase(&entry->node, info->dqi_priv);
- 		kfree(entry);
++#ifdef CONFIG_TMPFS_POSIX_ACL
++static int shmem_set_acl(const struct mnt_idmap *idmap, struct dentry *dentry,
++		struct posix_acl *acl, int type)
++{
++	struct inode *inode = d_inode(dentry);
++	umode_t mode = inode->i_mode;
++	int error;
++
++	if (type == ACL_TYPE_ACCESS) {
++		error = posix_acl_equiv_mode(acl, &mode);
++		if (error < 0)
++			return error;
++		error = memfd_check_seals_mode(SHMEM_I(inode)->seals,
++					       inode->i_mode, mode);
++		if (error)
++			return error;
++	}
++	return simple_set_acl(idmap, dentry, acl, type);
++}
++#else
++#define shmem_set_acl NULL
++#endif
++
+ static const struct inode_operations shmem_inode_operations = {
+ 	.getattr	= shmem_getattr,
+ 	.setattr	= shmem_setattr,
+ #ifdef CONFIG_TMPFS_XATTR
+ 	.listxattr	= shmem_listxattr,
+-	.set_acl	= simple_set_acl,
++	.set_acl	= shmem_set_acl,
+ 	.fileattr_get	= shmem_fileattr_get,
+ 	.fileattr_set	= shmem_fileattr_set,
+ #endif
 
 
-Patches currently in -mm which might be from josef@toxicpanda.com are
+Patches currently in -mm which might be from mason@kernel.org are
 
-mm-shmem-hold-off-eviction-in-shmem_writeout.patch
+mm-shmem-avoid-moving-the-truncation-start-backwards.patch
 
