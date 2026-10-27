@@ -1,61 +1,45 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=90.155.50.34
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793122923;
-	b=aigCdMpsqUF4BNkUq17tlcr81F4/nxrOpYraQTkwDCpQqJomDGzrFFJaQvYJgplgyl6j
-	 Oz5eKf3mfwJdpE7KEdIAFJqGxaN3B0iKBf/XDQmyYCXb3dOdRUQmuZgGg37jDRWU2hIZf
-	 WfLJyqW5YyhmBDNcFnwHkctH9bTK1pDP4bt3cuhvln/YgzJLL4Ci1oymBOCq2tuYNIMru
-	 pkrLm5oitwJqi8gIbQyiDhCK1jYTn7dGxHEK5yZ62Go2CezCCQizf+/SYM7CtFmgMLs2y
-	 0z3d51UDx1gj1bt/qJrgXJ1T7ji2D41E6g1zOWNZRNjFqV3oWpAPXGWbBZRyvccyZGA==
+	t=1793124581;
+	b=3KFiwNAmGoL35peotbo+0+wRCd2MTRt69gp38F0sCxpbJinYXCwxsWXvk9tiQpOcFMan
+	 4jRLkOzSzLto/896j/POK0yatVdh398UqIvLhQaq0wSMJxeOKlFMOcn65Ya2H5bXQRkKT
+	 bEk186Zs+EkqEEs0cBHE3hFbONu2iDruSlaH7U2hmxUaXxiyGMX7fHN9gQfFEgIuKW/PW
+	 CltfQsER5SkQ/dBSnaQRzs4/Ixqq7Hh0MeCnf4pUnoLk8cGZze9tVRkHYZCMJ8U/qLX4h
+	 ZuxW6G6yCVzlipB/u4Gwd+yBUmTFh006BEOaoFi1ppot6/qCIrW1FSzdur3Em3XpE+A==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793122923;
-	h=DMARC-Filter:DKIM-Signature:Received:Date:From:To:Cc:Subject:
-	 Message-ID:References:MIME-Version:Content-Type:Content-Disposition:
-	 In-Reply-To;
-	bh=z3iAtCbmLUk/E3t+9/rOg5G6mlHHR35SW4OVmGcBTKs=;
-	b=Ui21QFEtaB21xkCwhUs3qHHSUTNZQcXgz3dbune4WdyJ27v9uJHSm3NCeTm1BJCnve+a
-	 I9DCl3fJIqJ/0wnIyPwLcvNw8COfpi/qylzBt310HFqeclfZaNYlDYA1phkO0Q6yxOjZy
-	 LZphwNzvbLd2F9p3uLTNQ8hi4N3OC/OyEKRavnKUUQ/6/frl4bcodj1c/66dNCECpbxfQ
-	 xkuh0y359hW4798vJAhaDk3Njr3pIOi7qcBlQV/5/W2YuNu0XqCRkXMRw8uUMPX/Bo3GT
-	 0Vfj+pGt/k07wtArMQ9+3Xj9jdRuVaI1ftf5QG8z+d2gzKTJAYl/UjvPykf2IZtrKKw==
+	a=rsa-sha256; c=relaxed/relaxed; t=1793124581;
+	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
+	bh=bkjXxs2a5BIYOp/8br1KRpXcrMk8B2EiRquuReW6yeM=;
+	b=EA30zFDfM8inHOW3IXVTCfYpXhHL7BEwozeazYOh4y/CZ2aKQbn1YoKYQRQdd23RGYKM
+	 pSbZM+ydM8jC3BLtO13W/jPj9ZtkysIMb/R1TBBhZ1XIA9XanJLBnpcR+kxks3t/gzm5g
+	 k0jzqOGJm5QodjGtv4zWDBtlvUY0Kde9IOpgDAryVw4i6j4BntjCRyFGKiJ65iVuBQsYt
+	 VK7RFSYsNOmWFwGHRGgXjyjyfTkXbXgcs+W1sgWAUW2FTFuXxr4upMpIK9UFnf02lPYrw
+	 4+UZhPifu3hHfcn/G/cGH5auqeU8qUx9sT41sYvtbebPbfECqcT6g1fSrvwxeNf9Y+g==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=infradead.org;
-	spf=pass smtp.mailfrom=infradead.org;
-	dkim=pass header.d=infradead.org header.i=@infradead.org header.a=rsa-sha256 header.s=casper.20170209 header.b=ExYHbSH2;
-	arc=none smtp.remote-ip=90.155.50.34
-Received: from casper.infradead.org (casper.infradead.org [90.155.50.34])
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=gOlIip3E;
+	arc=none smtp.remote-ip=100.103.45.18
+Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
+	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7F1B6606A31A;
-	Tue, 27 Oct 2026 17:42:02 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 7F1B6606A31A
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=infradead.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=infradead.org
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 03A73606A31E
+	for <mm-commits@vger.kernel.org>; Tue, 27 Oct 2026 18:09:40 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=infradead.org header.i=@infradead.org header.a=rsa-sha256 header.s=casper.20170209 header.b=ExYHbSH2
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-	d=infradead.org; s=casper.20170209; h=In-Reply-To:Content-Type:MIME-Version:
-	References:Message-ID:Subject:Cc:To:From:Date:Sender:Reply-To:
-	Content-Transfer-Encoding:Content-ID:Content-Description;
-	bh=z3iAtCbmLUk/E3t+9/rOg5G6mlHHR35SW4OVmGcBTKs=; b=ExYHbSH2utsdn/f8lny59vG1Ni
-	gcCOx99xrz1qJ2U4gkUsrgdIXnNQjVgDgYJn+Qyp1fD7DQ6cKJt6HU5pGGVv8rtyH1Q2cgBkbnxPr
-	KiSTGMw8n5custdkSFtsndnBEBEAndXGtZOV+hZ1DPvMNe8tjpwA6ss4kvLRyWVXZjY+M4bky3+dQ
-	mURFbEaqwrxuJ8OZykkNmiGxZCB3MPznpKxPvASuPynxcqSM8UABPKnknqryrva3OofwtIsuJj5Lw
-	LBvqkacFuStE4IB4cAOPVibXteCEwETjytqImpXCrPbl8qzBpI9vnlCbRXEUeVnUTLB+CtN+chbbO
-	Pql6008g==;
-Received: from willy by casper.infradead.org with local (Exim 4.100.1 #2 (Red Hat Linux))
-	id 1xLlBP-0000000EzyB-2YWZ;
-	Tue, 27 Oct 2026 17:41:59 +0000
-Date: Tue, 27 Oct 2026 17:41:59 +0000
-From: Matthew Wilcox <willy@infradead.org>
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: mm-commits@vger.kernel.org, stable@vger.kernel.org,
-	nickolai@csail.mit.edu
-Subject: Re: +
- xarray-clear-the-new-heads-parent-before-freeing-the-old-head.patch added to
- mm-unstable branch
-Message-ID: <auDiZyUI490v5Pgm@casper.infradead.org>
-References: <20261023181200.53AF01F01825@smtp.kernel.org>
+	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=gOlIip3E
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 708DB1F01825;
+	Tue, 27 Oct 2026 18:09:40 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+	d=linux-foundation.org; s=korg; t=1793124580;
+	bh=bkjXxs2a5BIYOp/8br1KRpXcrMk8B2EiRquuReW6yeM=;
+	h=Date:To:From:Subject;
+	b=gOlIip3EsckamBqed9h1j2i5EvloRptlXFYpqnAPnOoyRQJ6HY1yIhlmxvYnyO4O4
+	 G2x+mriDE6v7lIyAVCg+RpfuDyojl62hSaSrW5nEl+yB0B95IYZ8/5UZXah+3WrdWf
+	 JADfmK1r8Yd/ah9omEasrGBY6B1Ay7BM8qeJ4JDs=
+Date: Tue, 27 Oct 2026 11:09:40 -0700
+To: mm-commits@vger.kernel.org,mason@kernel.org,akpm@linux-foundation.org
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: [to-be-updated] mm-mempolicy-charge-shared-policy-nodes.patch removed from -mm tree
+Message-Id: <20261027180940.708DB1F01825@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -64,171 +48,190 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:mm-commits+owner@vger.kernel.org>
 Precedence: list
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20261023181200.53AF01F01825@smtp.kernel.org>
 
 
-i said this patch wasn't acceptable with the commit message the way it
-was, and the very next mail i get is you taking it into your tree.
-please stop doing this, it really makes me wonder if i have any value
-left.
+The quilt patch titled
+     Subject: mm/mempolicy: charge shared policy nodes
+has been removed from the -mm tree.  Its filename was
+     mm-mempolicy-charge-shared-policy-nodes.patch
 
-On Fri, Oct 23, 2026 at 11:11:59AM -0700, Andrew Morton wrote:
-> 
-> The patch titled
->      Subject: xarray: clear the new head's parent before freeing the old head
-> has been added to the -mm mm-unstable branch.  Its filename is
->      xarray-clear-the-new-heads-parent-before-freeing-the-old-head.patch
-> 
-> This patch will shortly appear at
->      https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/xarray-clear-the-new-heads-parent-before-freeing-the-old-head.patch
-> 
-> This patch will later appear in the mm-unstable branch at
->     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-> 
-> Before you just go and hit "reply", please:
->    a) Consider who else should be cc'ed
->    b) Prefer to cc a suitable mailing list as well
->    c) Ideally: find the original patch on the mailing list and do a
->       reply-to-all to that, adding suitable additional cc's
-> 
-> *** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-> 
-> The -mm tree is included into linux-next via various
-> branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-> and is updated there most days
-> 
-> ------------------------------------------------------
-> From: Nickolai Zeldovich <nickolai@csail.mit.edu>
-> Subject: xarray: clear the new head's parent before freeing the old head
-> Date: Mon, 12 Oct 2026 16:25:49 -0400
-> 
-> When xas_shrink() replaces the head node of an array with the node in its
-> slot 0, it stores the child in xa_head, passes the old head to
-> xa_node_free(), which queues it with call_rcu(), and only then clears the
-> child's ->parent pointer.  In between, a lockless walker can still reach
-> the old head, not from xa_head but upwards from the new head: xas_find(),
-> xas_find_marked(), xas_next() and xas_prev() climb through xa_parent()
-> when they step past the end of a node.  RCU does not protect a walker that
-> gets there: call_rcu() waits only for the read-side critical sections that
-> were running when the callback's grace period started, and that grace
-> period can start before the parent pointer is cleared.
-> 
->   CPU 0: xa_erase(), xa_lock held   CPU 1: RCU walker, e.g. xa_find()
-> 
->   xas_shrink()
->     xa->xa_head = child
->     xa_node_free(old head)
->       call_rcu()
->                     <grace period starts>
->                                      passes a quiescent state
->                                      rcu_read_lock()
->                                      xas_find(): loads xa_head (child),
->                                      steps past its last slot,
->                                      child->parent is still old head
->     child->parent = NULL
->   xa_unlock()
->   quiescent state
->                     <grace period ends>
->   radix_tree_node_rcu_free(old head)
->                                      reads old head's slots[], shift,
->                                      offset and parent
-> 
-> The grace period does not wait for CPU 1, which reported its quiescent
-> state before its critical section began; holding xa_lock delays the end of
-> the grace period, not its start.  The start can fall inside the window
-> when an interrupt arrives in it (interrupts are enabled under xa_lock(),
-> and RCU core processing may run on interrupt exit), when callbacks are
-> offloaded (rcu_nocbs=) and the rcuog kthread on another CPU handles the
-> callback, when many callbacks are queued, or while the writer is preempted
-> under PREEMPT_RT.  Interrupts, and in a guest a preempted vCPU, also
-> stretch the window.
-> 
-> After the climb, xas_find(), xas_find_marked() and xas_next() resume in
-> the old head at the slot after the child and read its slots[] and shift
-> (xas_find_marked() also its mark bitmaps); xas_prev(), for which the child
-> is the first slot, steps past the old head at once and reads its offset
-> and parent, as the others do when they reach its end.  Nothing in the walk
-> notices that the node is gone.  The climb takes ->parent as it is, no
-> lockless path looks at node->array (XA_RCU_FREE), and xas_shrink() stores
-> XA_RETRY_ENTRY in slot 0 of the old head only when the head shrinks to a
-> single entry, not to a node; the walker does not look at slot 0 anyway. 
-> radix_tree_node_cachep is not SLAB_TYPESAFE_BY_RCU, so the walker reads
-> freed memory.  Once the object is reused for a node of another array, the
-> walker returns that array's entries or descends and climbs into its nodes.
-> 
-> The order dates from the introduction of xas_shrink() in the commit below,
-> which reimplemented radix_tree_shrink().  radix_tree_shrink() clears the
-> child's parent pointer before it replaces the head and frees the old node,
-> and still does in lib/radix-tree.c.  The commit gives no reason for the
-> different order and nothing depends on it: xas_update() and xa_node_free()
-> only touch the old head.
-> 
-> Clear the child's parent pointer before freeing the old head, as
-> radix_tree_shrink() does.  The stores are the same, the tree and the
-> xa_state the caller sees are the same, and a walker that starts after the
-> callback's grace period has begun sees the cleared pointer, like every
-> store before call_rcu(), and ends its walk at the new head, which covers
-> every index that the old head had an entry for.
-> 
-> A check in the radix-tree test harness that no node passed to
-> xa_node_free() is still the parent of a node reachable from xa_head fails
-> in xas_shrink() 4731 times in the XArray tests without this patch and
-> never with it.  No test is added: the race is not deterministic and the
-> check needs a hook on xa_node_free().  A harness race test (readers
-> walking the whole array with the four climbing walkers while a writer
-> stores and erases an entry that adds three levels above the leaf) did not
-> hit the window in 20 runs of 200000 erases; with a 1 ms sleep injected
-> after xa_node_free() in xas_shrink(), every one of 20 runs reported a
-> heap-use-after-free in __xas_next() or __xas_prev() under
-> AddressSanitizer, and none did with this patch and the same sleep.  On a
-> kernel (x86_64 defconfig + KASAN, QEMU), with a 100 ms delay injected at
-> the same place, a walk that starts on another CPU 20 ms into the window
-> climbs to the old head in each of 20 rounds, and KASAN reports a
-> slab-use-after-free of the radix_tree_node freed from rcu_core() when the
-> walk takes its next step; with this patch, the walk ends at the new head. 
-> The XArray and IDA self-tests pass on x86_64 and riscv64.
-> 
-> Found while formally verifying xas_store() against the kernel binary.
-> 
-> Link: https://lore.kernel.org/20261012202549.772887-1-nickolai@csail.mit.edu
-> Fixes: 58d6ea3085f2 ("xarray: Add XArray unconditional store operations")
-> Signed-off-by: Nickolai Zeldovich <nickolai@csail.mit.edu>
-> Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-> Assisted-by: LLM
-> Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-> Cc: <stable@vger.kernel.org>
-> ---
-> 
->  lib/xarray.c |    3 ++-
->  1 file changed, 2 insertions(+), 1 deletion(-)
-> 
-> --- a/lib/xarray.c~xarray-clear-the-new-heads-parent-before-freeing-the-old-head
-> +++ a/lib/xarray.c
-> @@ -471,11 +471,12 @@ static void xas_shrink(struct xa_state *
->  		if (!xa_is_node(entry))
->  			RCU_INIT_POINTER(node->slots[0], XA_RETRY_ENTRY);
->  		xas_update(xas, node);
-> +		if (xa_is_node(entry))
-> +			xa_to_node(entry)->parent = NULL;
->  		xa_node_free(node);
->  		if (!xa_is_node(entry))
->  			break;
->  		node = xa_to_node(entry);
-> -		node->parent = NULL;
->  	}
->  }
->  
-> _
-> 
-> Patches currently in -mm which might be from nickolai@csail.mit.edu are
-> 
-> mm-mlock-use-a-long-for-the-page-count-in-mlock_fixup.patch
-> mm-truncate-fix-the-zeroing-end-of-pagecache_isize_extended.patch
-> resource-report-a-devm_request_resource-conflict-under-the-lock.patch
-> mm-bdi-reset-min_ratio-after-the-sysfs-attributes-are-gone.patch
-> xarray-clear-the-new-heads-parent-before-freeing-the-old-head.patch
-> mm-vmalloc-read-vm_map_ram-block-regions-from-the-requested-offset.patch
-> 
+This patch was dropped because an updated version will be issued
+
+------------------------------------------------------
+From: Chris Mason <mason@kernel.org>
+Subject: mm/mempolicy: charge shared policy nodes
+Date: Mon, 26 Oct 2026 10:40:34 +0100
+
+Patch series "mm/shmem: various (urgent?) fixes", v1.
+
+Hi,
+
+the fixing fun continues.
+
+This is a handful of fixes for shmem/tmpfs. I sneaked in a related
+hugetlb fix that stalled upstream.
+
+Some of the stuff is more urgent (patch #1, F_SEAL_EXEC, truncation
+hangs), others are less urgent but still rather unpleasant.
+
+The majority are fixes from Anthropic that I cleaned up or reworked.
+While doing that, I found a bunch of other issues and tried to fix them
+somewhat cleanly.
+
+In general, shmem + swap handling is a nightmare. shmem_undo_range() is
+such utter garbage it makes me want to cry. I mean, really, WTF did we
+end up creating there. Does any expert here have time to clean that up and
+make it *actually* maintainable.
+
+The following things are still broken in shmem_undo_range():
+
+(1) Truncate/punch of a single page of a large swap-error marker
+
+We don't split. Consequently, read access afterwards will still fail
+instead of returning 0s.
+
+I have a fix to try to split (which can fail), but I don't consider it
+that urgent, really. So I'm not including it. Might send it later
+separately.
+
+Truncate/punch of a partial page can obviously never do the right thing,
+as we cannot poison parts of pages ...
+
+(2) Truncate/punch whole pages within part of a large swap entry
+
+We try to read the entry, but if we are out of memory that might fail.
+Consequently, we will not free up swap space and a re-read will not give
+us 0s but the previous content.
+
+AI proposed a nasty NOFAIL patch which has too many nasty side effects
+IMHO (allowing users to force-read pages and retain them afterwards even
+though memory.max would disallow it). This needs a proper thought. Likely,
+support for splitting large swap entries (and large folios in the
+swapcache, which I recall is under development  by Kairui). But splitting
+can fail ...
+
+(3) Truncate/punch of a part of a base-page swap entry
+
+We obviously have to read the page in, in order to 0-out the parts to
+discard. That might obviously fail.
+
+Maybe we should install swapin-error markers if swapping during
+truncate/punchhole fails, to at least tell user space on later access
+that something went wrong? We might affect unrelated data, outside the
+requested range, though. Anyhow, these are long standing issues and
+I don't consider them urgent.
+
+They need a proper solution.
+
+I did my best trying to test these fixes. I was able to reproduce some
+of the things (including unkillable truncation hangs), and the fixes seemed
+to help.
+
+But again, shmem_undo_range() is just an absolute mess.
+
+Please prioritize review of these fixes, I want to get fixes for the
+issues in a timely manner upstream.
+
+
+This patch (of 16):
+
+Any local user can bypass memory.max with mbind() on a tmpfs file, and
+allocate unbounded kernel memory.
+
+mbind() sets a NUMA memory policy for a range of a mapping. If the
+mapping is of a shmem and friends, the kernel also stores the policy on
+the inode, in a tree with one entry per range of the file.
+
+Each mbind() on a single page of a mapping can add one shared policy node
+(struct sp_node) and one struct mempolicy to that tree. They outlive the
+mapping and stay around until the inode is destroyed. The tree is not
+bounded by the file size, so the file can be empty.
+
+Memory that user space can allocate must be charged to a memory cgroup. A
+slab cache does that for all of its objects if it is created with
+SLAB_ACCOUNT. numa_policy_init() creates the slab caches for both
+structs without SLAB_ACCOUNT, so they are not charged to any cgroup.
+
+Reproduced with mbind() on single pages of an empty tmpfs file, from a
+cgroup with memory.max=8M: the global OOM killer killed tasks owned by
+root, and the machine panicked.
+
+Fix this by creating both caches with SLAB_ACCOUNT. This change implies
+that mbind() can now fail when running into memcg limits. Further,
+the policy_cache also serves task and VMA policies, so they are
+similarly accounted now.
+
+Note that per-file limits are not really helpful, as the user could
+simply use many files; having limits per user is tricky as well.
+
+Fix generated by an LLM and submitted by Chris Mason in private.
+
+[david@kernel.org: smaller description tweaks]
+Link: https://lore.kernel.org/20261026-fixes_shmem-v1-0-703206d5fa0c@kernel.org
+Link: https://lore.kernel.org/20261026-fixes_shmem-v1-1-703206d5fa0c@kernel.org
+Fixes: 5d097056c9a0 ("kmemcg: account certain kmem allocations to memcg")
+Signed-off-by: Chris Mason <mason@kernel.org>
+Signed-off-by: David Hildenbrand (Arm) <david@kernel.org>
+Acked-by: Pedro Falcato <pfalcato@suse.de>
+Acked-by: Kiryl Shutsemau (Meta) <kas@kernel.org>
+Acked-by: Zi Yan <ziy@nvidia.com>
+Tested-by: Gregory Price (Meta) <gourry@gourry.net>
+Reviewed-by: Baolin Wang <baolin.wang@linux.alibaba.com>
+Cc: Joshua Hahn <joshua.hahnjy@gmail.com>
+Cc: Rakie Kim <rakie.kim@sk.com>
+Cc: Ying Huang <ying.huang@linux.alibaba.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Vladimir Davydov <vdavydov.dev@gmail.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Lukas Czerner <lczerner@redhat.com>
+Cc: Carlos Maiolino <cmaiolino@redhat.com>
+Cc: Christian Brauner <brauner@kernel.org>
+Cc: Jan Kara <jack@suse.cz>
+Cc: Daniel Verkamp <dverkamp@chromium.org>
+Cc: Jeff Xu <jeffxu@google.com>
+Cc: Muchun Song <muchun.song@linux.dev>
+Cc: Oscar Salvador <osalvador@suse.de>
+Cc: David Stevens <stevensd@chromium.org>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: William Kucharski <william.kucharski@oracle.com>
+Cc: Chris Li <chrisl@kernel.org>
+Cc: Kairui Song <kasong@tencent.com>
+Cc: Nhat Pham <nphamcs@gmail.com>
+Cc: Miaohe Lin <linmiaohe@huawei.com>
+Cc: Naoya Horiguchi <nao.horiguchi@gmail.com>
+Cc: Josef Bacik <josef@toxicpanda.com>
+Cc: Eva Kurchatova <eva.kurchatova@virtuozzo.com>
+Cc: Kairui Song <ryncsn@gmail.com>
+Cc: <sashiko-bot@kernel.org>
+Cc: <stable@vger.kernel.org>
+---
+
+ mm/mempolicy.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/mm/mempolicy.c b/mm/mempolicy.c
+index e9860fb9f73f8..ad49b7524064a 100644
+--- a/mm/mempolicy.c
++++ b/mm/mempolicy.c
+@@ -3372,11 +3372,11 @@ void __init numa_policy_init(void)
+ 
+ 	policy_cache = kmem_cache_create("numa_policy",
+ 					 sizeof(struct mempolicy),
+-					 0, SLAB_PANIC, NULL);
++					 0, SLAB_PANIC | SLAB_ACCOUNT, NULL);
+ 
+ 	sn_cache = kmem_cache_create("shared_policy_node",
+ 				     sizeof(struct sp_node),
+-				     0, SLAB_PANIC, NULL);
++				     0, SLAB_PANIC | SLAB_ACCOUNT, NULL);
+ 
+ 	for_each_node(nid) {
+ 		preferred_node_policy[nid] = (struct mempolicy) {
+
+
+Patches currently in -mm which might be from mason@kernel.org are
+
+mm-shmem-honour-f_seal_exec-when-an-acl-is-set.patch
+mm-shmem-avoid-moving-the-truncation-start-backwards.patch
+
