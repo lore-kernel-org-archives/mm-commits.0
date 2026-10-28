@@ -1,45 +1,45 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793156801;
-	b=lTyzZJpktJ4PpgzszaikdwAHk+TrqoM0SUxbJY5fW1yPFEB9feDA23/E29jD7/3aJSjd
-	 IiDtA2x1HsHpiJ8pOarQrFLqTOfZjc1xrvO7mPasYHOT/yvptAyehiKBi45gYzcG7jrN3
-	 wYN7sLF5KonToebffL661skfHvrcRDlYBjM0orPir0XG6KnWMWbdjwiMYmkdud+HFTemH
-	 4zf7X+LAf8QS8wRusfK/AESUknDn2nojqCVUjGHXXALW3uHzWee5WIWFiKG8e/l50Miuo
-	 O0TID6SkLa7+WmBokYdT/8t6q1LAoIxN6EZr4E0zrfnT0WTuzeEEl+fZc0DVzq/ylEQ==
+	t=1793156802;
+	b=IjW65jqQaGUzYcMHfElKEpeRyF+7NgYm7qiJ7Ao806TQ4ycvkgJMUaKt1N1V5ryBRyK8
+	 sfr/ZuDq/nkk6KZFju67raTRlADG+W1cCD5rbf39yJSzenaJC1C4eBiuT5HK9IG9KwY6X
+	 TJjb8NvRxCVHfPkWw3Pvkxuk/TBDifMlcpfs1Gwbj3PHLNvS5LbOPmQY4cIsxWwKevXES
+	 aULbO3I9lOYGqJPzC26GxJXMf+Bsw7Od9lFRekQ2u2WQfY96Ode2Jn7aGcegusYqFw0aO
+	 Qnx42x/XSkHtLW9iwyZKB4vNp0bnjI8dm2mlDwZOdqLaGJHfSHbhK7qmF6ERx3cmw3g==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793156801;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793156802;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=NPxA8D35gsi+TXbBZTdTw7/lOHNMeWtBxSA4SjXAVPY=;
-	b=QBYiLrzQEzExEkzuoqfKeaWxyBpDRm/gBCUCUmpHF0MwekdHiRtVqaGAeNy7LwKJldlH
-	 iY7WOL/BkZBBH3rhfKZEPhIInA7pn2uOEujWzy35T31jcGzbs+BNzFpns6XJhJcCMGha0
-	 okFkc3kwnsbvFxxK+Utb2KT+z6hyF1K7C6cHu3XebmcOjAgY+hDLdSRY2TgYIho0v6eeE
-	 LLUJDpQRrHLReAdVNUvBAy3bgS40qt5rE10lv/FfMam9RYwx/KKk5PwEYQL+4WFnv7p75
-	 VBkWb3WF2LudJiNuu8Xk6pWbysQuZNIr6lhtwU7icd4IuoskVpWdyb1cl8QDUTCPXbw==
+	bh=11lcN6RE1tbNLJZFeXECRXq4SIB89GmBk7LD4PWNOyY=;
+	b=qeDrgSpfy0nT282gISFJMgCXcCc23HUarWSbUfcY+cfkRue7fg/ua/KbjK9f42gjBwWT
+	 QT3OaWpf/9+cHQoJTDKVRJ/l1pxyhCRD7p1quQxBAUiNaO3Af54IGhyl987c957AbPjCJ
+	 +kD7YcwjVjYg9dOvuCJkvoYqcFlVSi8za9dIYkQxhoG7Cp7caqh2vBTAQLhVnO4egz7OS
+	 Xnr8DCW1IfEs8FLfBLUKRwhvRA7uqyZ8HPddZ22skLTiv5knIx5rF88tU8v89m23efOlC
+	 xhN5ULpy7Byp6fNaozsFaP6whxm2PxX0GQVcqP6Yltlawwi9HW7WpYWPr7sTswf/H3Q==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=GByaLtpm;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=qiLePsCA;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F4004606A321
-	for <mm-commits@vger.kernel.org>; Wed, 28 Oct 2026 03:06:40 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EFD39606A31A
+	for <mm-commits@vger.kernel.org>; Wed, 28 Oct 2026 03:06:41 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=GByaLtpm
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9B47D1F01828;
-	Wed, 28 Oct 2026 03:06:40 +0000 (UTC)
+	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=qiLePsCA
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A5E701F01828;
+	Wed, 28 Oct 2026 03:06:41 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1793156800;
-	bh=NPxA8D35gsi+TXbBZTdTw7/lOHNMeWtBxSA4SjXAVPY=;
+	d=linux-foundation.org; s=korg; t=1793156801;
+	bh=11lcN6RE1tbNLJZFeXECRXq4SIB89GmBk7LD4PWNOyY=;
 	h=Date:To:From:Subject;
-	b=GByaLtpmprE5xNa21b6pJAcwPoTfNA6M2WACqprQNQ/YquWbqjcem3GsX+DLVMOYe
-	 t5Bix/DrkE8+pXdYQqNceoZbK+SZeNA5cmCk36M0rGYzqtuu76938lEEw7AhA29/lO
-	 ajlDlSl+eGKFEiqeIbxDZnDx2HMYW5c+h95IEttk=
-Date: Tue, 27 Oct 2026 20:06:40 -0700
+	b=qiLePsCAdto2DuXpwsIByNTfC5uzAEK8j7tbyTRuu8l9QZirLhMGihOHG+PeATKdg
+	 VEM3itbT4F1EDWd29wE6TnCZThsp2OQSbB3eYDX47fz8SvPdoCy8uNo8aUAzq4ZpQB
+	 +lQTQg4RWKu3sn2w9+2h+aCgWO126HXObXww7dcQ=
+Date: Tue, 27 Oct 2026 20:06:41 -0700
 To: mm-commits@vger.kernel.org,josef@toxicpanda.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [to-be-updated] mm-page_alloc-keep-the-pagesets-of-an-empty-zone.patch removed from -mm tree
-Message-Id: <20261028030640.9B47D1F01828@smtp.kernel.org>
+Subject: [to-be-updated] mm-page_alloc-pass-zone-pointer-to-trace_reclaim_retry_zone.patch removed from -mm tree
+Message-Id: <20261028030641.A5E701F01828@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -51,56 +51,40 @@ Precedence: list
 
 
 The quilt patch titled
-     Subject: mm/page_alloc: keep the pagesets of an empty zone
+     Subject: mm, page_alloc: pass zone pointer to trace_reclaim_retry_zone
 has been removed from the -mm tree.  Its filename was
-     mm-page_alloc-keep-the-pagesets-of-an-empty-zone.patch
+     mm-page_alloc-pass-zone-pointer-to-trace_reclaim_retry_zone.patch
 
 This patch was dropped because an updated version will be issued
 
 ------------------------------------------------------
 From: Josef Bacik <josef@toxicpanda.com>
-Subject: mm/page_alloc: keep the pagesets of an empty zone
-Date: Tue, 27 Oct 2026 16:46:30 +0100
+Subject: mm, page_alloc: pass zone pointer to trace_reclaim_retry_zone
+Date: Tue, 27 Oct 2026 16:46:31 +0100
 
-When the last memory of a zone goes offline, zone_pcp_reset() frees
-zone->per_cpu_pageset and zone->per_cpu_zonestats. Nothing waits for those
-who found the zone populated and still use the two pointers. They take
-neither the memory hotplug lock nor any other lock which offline_pages()
-holds, and some of them can sleep:
+should_reclaim_retry() walks a zonelist and passes the zoneref pointer
+to the reclaim_retry_zone tracepoint, which loads the zone from the
+entry again to find the node.
 
-  CPU0 vmstat_update()                CPU1 offline_pages()
-  refresh_cpu_vm_stats()
-    for_each_populated_zone(zone)
-      pcp = zone->per_cpu_pageset
-      cond_resched()
-                                      adjust_present_page_count()
-                                      zone_pcp_reset(zone)
-                                        free_percpu(zone->per_cpu_pageset)
-      decay_pcp_high(zone, pcp)
-      __this_cpu_write(pcp->expire, 0)
+Memory hotplug rebuilds the zonelists in place while allocations are
+under way. When a zone in front of the zoneref entry has become empty,
+the entries move up, and this one can be the end marker by the time the
+tracepoint looks at it. zonelist_node_idx() then dereferences a NULL
+zone. Short of that, the event can name another zone than the one its
+numbers belong to.
 
-The same goes for drain_all_pages(NULL), which takes pcp->lock, for
-zone_pcp_update(), show_free_areas() and the readers and writers of the
-zonestats. If the per-cpu memory has got a new owner in the meantime, it
-is corrupted.
+Pass the zone pointer instead of the zoneref pointer.
 
-The pagesets are only freed because setup_zone_pageset() would otherwise
-leak them when the zone gets memory again. Keep them instead and let
-setup_zone_pageset() and zone_pcp_init() use them again, like it is done
-with pgdat->per_cpu_nodestats. Their lists are empty, and their limits
-have been calculated for a zone without memory by the
-init_per_zone_wmark_min() of offline_pages(), which is what
-setup_zone_pageset() would come up with as well.
-
-Link: https://lore.kernel.org/20261027-pgalloc-ai-hotfixes-v1-4-9c7d1aca801e@kernel.org
-Fixes: 340175b7d14d ("mm/hotplug: free zone->pageset when a zone becomes empty")
+Link: https://lore.kernel.org/20261027-pgalloc-ai-hotfixes-v1-5-9c7d1aca801e@kernel.org
+Fixes: d379f01de095 ("oom, trace: add oom detection tracepoints")
 Signed-off-by: Josef Bacik <josef@toxicpanda.com>
 Signed-off-by: Vlastimil Babka (SUSE) <vbabka@kernel.org>
 Signed-off-by: David Hildenbrand (Arm) <david@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Reviewed-by: Johannes Weiner <hannes@cmpxchg.org>
+Reviewed-by: Gregory Price (Meta) <gourry@gourry.net>
+Tested-by: Gregory Price (Meta) <gourry@gourry.net>
+Acked-by: Zi Yan <ziy@nvidia.com>
 Assisted-by: LLM
-Cc: Zi Yan <ziy@nvidia.com>
 Cc: Shakeel Butt <shakeel.butt@linux.dev>
 Cc: Mike Rapoport <rppt@kernel.org>
 Cc: Oscar Salvador <osalvador@suse.de>
@@ -108,68 +92,60 @@ Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
 Cc: Suren Baghdasaryan <surenb@google.com>
 Cc: Michal Hocko <mhocko@suse.com>
 Cc: Brendan Jackman <brendan.jackman@linux.dev>
-Cc: "Gregory Price (Meta)" <gourry@gourry.net>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: <stable@vger.kernel.org>
 ---
 
- mm/page_alloc.c |   20 ++++++++++++++------
- 1 file changed, 14 insertions(+), 6 deletions(-)
+ include/trace/events/oom.h |    8 ++++----
+ mm/page_alloc.c            |    2 +-
+ 2 files changed, 5 insertions(+), 5 deletions(-)
 
---- a/mm/page_alloc.c~mm-page_alloc-keep-the-pagesets-of-an-empty-zone
+--- a/include/trace/events/oom.h~mm-page_alloc-pass-zone-pointer-to-trace_reclaim_retry_zone
++++ a/include/trace/events/oom.h
+@@ -33,7 +33,7 @@ TRACE_EVENT(oom_score_adj_update,
+ 
+ TRACE_EVENT(reclaim_retry_zone,
+ 
+-	TP_PROTO(struct zoneref *zoneref,
++	TP_PROTO(struct zone *zone,
+ 		int order,
+ 		unsigned long reclaimable,
+ 		unsigned long available,
+@@ -41,7 +41,7 @@ TRACE_EVENT(reclaim_retry_zone,
+ 		int no_progress_loops,
+ 		bool wmark_check),
+ 
+-	TP_ARGS(zoneref, order, reclaimable, available, min_wmark, no_progress_loops, wmark_check),
++	TP_ARGS(zone, order, reclaimable, available, min_wmark, no_progress_loops, wmark_check),
+ 
+ 	TP_STRUCT__entry(
+ 		__field(	int, node)
+@@ -55,8 +55,8 @@ TRACE_EVENT(reclaim_retry_zone,
+ 	),
+ 
+ 	TP_fast_assign(
+-		__entry->node = zonelist_node_idx(zoneref);
+-		__entry->zone_idx = zonelist_zone_idx(zoneref);
++		__entry->node = zone_to_nid(zone);
++		__entry->zone_idx = zone_idx(zone);
+ 		__entry->order = order;
+ 		__entry->reclaimable = reclaimable;
+ 		__entry->available = available;
+--- a/mm/page_alloc.c~mm-page_alloc-pass-zone-pointer-to-trace_reclaim_retry_zone
 +++ a/mm/page_alloc.c
-@@ -6312,6 +6312,10 @@ void __meminit setup_zone_pageset(struct
- {
- 	int cpu;
- 
-+	/* The zone has been populated before, see zone_pcp_reset(). */
-+	if (zone->per_cpu_pageset != &boot_pageset)
-+		return;
-+
- 	/* Size may be 0 on !SMP && !NUMA */
- 	if (sizeof(struct per_cpu_zonestat) > 0)
- 		zone->per_cpu_zonestats = alloc_percpu(struct per_cpu_zonestat);
-@@ -6404,6 +6408,10 @@ void __init setup_per_cpu_pageset(void)
- 
- __meminit void zone_pcp_init(struct zone *zone)
- {
-+	/* A node which is added again, see zone_pcp_reset(). */
-+	if (zone->per_cpu_pageset && zone->per_cpu_pageset != &boot_pageset)
-+		return;
-+
- 	/*
- 	 * per cpu subsystem is not up at this point. The following code
- 	 * relies on the ability of the linker to provide the
-@@ -7684,6 +7692,12 @@ void zone_pcp_enable(struct zone *zone)
- 	mutex_unlock(&pcp_batch_high_lock);
- }
- 
-+/*
-+ * The zone has become empty. Its pagesets and zonestats are not freed: nothing
-+ * keeps somebody who found the zone populated, such as refresh_cpu_vm_stats()
-+ * or drain_all_pages(), from still using them. They are used again when the
-+ * zone gets memory again.
-+ */
- void zone_pcp_reset(struct zone *zone)
- {
- 	int cpu;
-@@ -7694,12 +7708,6 @@ void zone_pcp_reset(struct zone *zone)
- 			pzstats = per_cpu_ptr(zone->per_cpu_zonestats, cpu);
- 			drain_zonestat(zone, pzstats);
- 		}
--		free_percpu(zone->per_cpu_pageset);
--		zone->per_cpu_pageset = &boot_pageset;
--		if (zone->per_cpu_zonestats != &boot_zonestats) {
--			free_percpu(zone->per_cpu_zonestats);
--			zone->per_cpu_zonestats = &boot_zonestats;
--		}
- 	}
- }
- 
+@@ -4675,7 +4675,7 @@ should_reclaim_retry(gfp_t gfp_mask, uns
+ 		 */
+ 		wmark = __zone_watermark_ok(zone, order, min_wmark,
+ 				ac->highest_zoneidx, alloc_flags, available);
+-		trace_reclaim_retry_zone(z, order, reclaimable,
++		trace_reclaim_retry_zone(zone, order, reclaimable,
+ 				available, min_wmark, *no_progress_loops, wmark);
+ 		if (wmark) {
+ 			ret = true;
 _
 
 Patches currently in -mm which might be from josef@toxicpanda.com are
 
-mm-page_alloc-pass-zone-pointer-to-trace_reclaim_retry_zone.patch
 mm-compaction-trust-zone-contiguous-only-in-the-span.patch
 mm-page_isolation-do-not-take-slab-pages-for-free.patch
 mm-memory_hotplug-resize-zones-under-their-seqlock.patch
