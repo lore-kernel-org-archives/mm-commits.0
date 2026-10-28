@@ -1,45 +1,45 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793156662;
-	b=cTTjlzbv3x9KM2N34fPb6eyB6qoz53J6p25GvV0op4hPPM+F0p5dXlcCGEcpcNeaaIic
-	 twN9p5wfM5HctLseF47ur0Ve+edvGR0OdeZB05oMo50gDGbr85a7BGChI6np+S6F7AomW
-	 PaGQY1ftXeRHjgMNLkr/WNnuyAWtHFxG+/4LypoLJnVRhDq04OJqtV4y7LeZYTbU42tL9
-	 6WEx/15C4PpKuAPnEE4XKMyyCrQeEoa24NgiYAB+mlBc7AAPadynfh6q+Ud2wBHf52k0V
-	 mRD6PVBjw3Hp4+brGiF0uv+PwdGRCxOQFH+Vzwvg9AydbALNVAP/9ox9PNON/4xT6Qg==
+	t=1793156721;
+	b=beYVAaPr611rURh17BwiH8mG+aawpK/fw1udTUeV2w3VjxXEJkjsfxyLKAUpkO2yYwu+
+	 /LGfqBqcvcwNI/xGdb6+3iYI5RTQXPxUs/IjxC2q9NIzbTf2v2W5VElCBwKw5lLBtSwPI
+	 6uckXxkP5erXfvpu+vAS4cEV92lJ6KrVphoFClwQJQeTbXcRftW/O1owpJKpBqxca4ho2
+	 Ji1OddjLRepqwwsKEcLDBBQAS2lzgmpplq3UJL5Ahbx1wE5/dsI+i1KkMpiifL88KWInv
+	 CRFSfkCKpD6wCStzht4V/rNpm79BEDoHOVujPv3+2uwvVFoOiwFeayLUZQMENHbSe1g==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793156662;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793156721;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=qTFb5M8F+jgplCIm0MKd/a0MPXCqVG8sSdq8fyvGQF8=;
-	b=eyl04788QwUhSFyJI/vHRupKSCWKOIGCSBhaj6FWPbEgN+ANLf5oFRv46FnRh94tif9f
-	 TOuduIOew2rd/n+RMEbwmSewkcUlzIXAWTKneyA4LcTyMJM5QIKKtJTfwKr9gS5Mes7DM
-	 hmrC2INdpR5u1ECz2834RN28rL9rKIyFlZgybsEkpM5ifE0ONPQwAiUlZYs8BNAibgreh
-	 IFbfZOWijE9JfP3I6B04EH6jYMMziOso9JORp2m/Gfd3a2bh8uKK2dBYLUhvcJIruJU9S
-	 kWD0/Bl4e8w1dqixu9glBvz4AJMnPjIwV4McxhdaWcVBGVFEr9nVeKa5CBYqwGySSMQ==
+	bh=Pe4LEuRORn0wOuSUWpNXTJL+z+B4lRAhZrFOKkTCyso=;
+	b=FSXes1qAbZ7VBjt/Bka9E6opkzA3J949TFTs+hSfinMuc4nbd0qXitAyCuDSbRftHEc0
+	 HtsQc8d8xwbutZ3K6LfZAwuZv+M0MbEsn7oQlUk9xiDrEFhxjJ52W7jXoxPb1vuqddAJd
+	 ya/kzwMshV4nfMYtmwkqVr+jm2rjd8ED76f4lf7jHe1J+gbtLadBk4vA5OEfEBI11kmTh
+	 hZz61t1jGxDM1PnAf1RZvoyi7dnu54CIcycmo8ai66RCo0GwDaQ00phNWahcPS3YGVFoe
+	 Bj1GwcOPWofNNhr+5bp9p1sZD92177dy5kYYrDhK8M6xJ1D5I2mPKZrYL1LuE8Un2iw==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=Dq9lmTCG;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=ghnFFvGH;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 64FE8606A31A
-	for <mm-commits@vger.kernel.org>; Wed, 28 Oct 2026 03:04:22 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 67FF7606A323
+	for <mm-commits@vger.kernel.org>; Wed, 28 Oct 2026 03:05:21 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=Dq9lmTCG
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id CD6811F01828;
-	Wed, 28 Oct 2026 03:04:21 +0000 (UTC)
+	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=ghnFFvGH
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id F3EAA1F01828;
+	Wed, 28 Oct 2026 03:05:20 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1793156661;
-	bh=qTFb5M8F+jgplCIm0MKd/a0MPXCqVG8sSdq8fyvGQF8=;
+	d=linux-foundation.org; s=korg; t=1793156721;
+	bh=Pe4LEuRORn0wOuSUWpNXTJL+z+B4lRAhZrFOKkTCyso=;
 	h=Date:To:From:Subject;
-	b=Dq9lmTCGyCrff8O8MUotOUu84jyUMcmrvwY2Ysj7C3U6abpidS3eXm+naIovcIsrQ
-	 EBmlk7cclrqMBWPGMEZIAV9ng/gTFkD9z1aLQkDqZlCPrpeug3/2ZOFmqz3oTnXjQN
-	 cpFw5yfux6VappPgA+3SsvzYjhuM3sBiLEytJolU=
-Date: Tue, 27 Oct 2026 20:04:21 -0700
+	b=ghnFFvGHoPXFDoJjZnaO4ImoOSx9i9gofCkJK73zy8e9+e2etHFkqJtoSKMZldGOJ
+	 h5j34ra9//HcqdpZgsZazYq9bMioogWbPRbDl8JiwBWJKF1HImwBZ1xM4ADj4pwI9P
+	 iwjT3z4RTBb8cjQEhvOnhG5oqbhax62bsShpKznU=
+Date: Tue, 27 Oct 2026 20:05:20 -0700
 To: mm-commits@vger.kernel.org,hengyul@cs.unc.edu,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [to-be-updated] fs-proc-task_mmu-return-enotty-for-unknown-pagemap-ioctls.patch removed from -mm tree
-Message-Id: <20261028030421.CD6811F01828@smtp.kernel.org>
+Subject: + fs-proc-task_mmu-return-enotty-for-unknown-pagemap-ioctls.patch added to mm-unstable branch
+Message-Id: <20261028030520.F3EAA1F01828@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -50,12 +50,28 @@ List-Owner: <mailto:mm-commits+owner@vger.kernel.org>
 Precedence: list
 
 
-The quilt patch titled
+The patch titled
      Subject: fs/proc/task_mmu: return -ENOTTY for unknown pagemap ioctls
-has been removed from the -mm tree.  Its filename was
+has been added to the -mm mm-unstable branch.  Its filename is
      fs-proc-task_mmu-return-enotty-for-unknown-pagemap-ioctls.patch
 
-This patch was dropped because an updated version will be issued
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/fs-proc-task_mmu-return-enotty-for-unknown-pagemap-ioctls.patch
+
+This patch will later appear in the mm-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via various
+branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there most days
 
 ------------------------------------------------------
 From: Hengyu Liang <hengyul@cs.unc.edu>
@@ -135,4 +151,5 @@ _
 
 Patches currently in -mm which might be from hengyul@cs.unc.edu are
 
+fs-proc-task_mmu-return-enotty-for-unknown-pagemap-ioctls.patch
 
