@@ -1,45 +1,45 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793156743;
-	b=h0PmTGKJ2vF2d1RdIRK3PO5VQb6EPQPGeFvfhi2HN0bTqhK0Tslnet1ZK4WITWOmep0E
-	 wQjVLLL9kgXCssSM7alZkkvbXD/Na4CU6KrxiVaxthvkilO5gdmozhzgsKwKfIOA1aijF
-	 khBL0t+dfpfJMLUbq+a2MscF/xEinTjQhE2XJujbQYWvKbM79z9ndcsHX4DSw8+Qtqz5s
-	 X0aY7BDQr2ZXWpBajUFBN/gcyW9PzNAEWsqyphTHlq1GQeEulaSPGw2hJtEv8iSpl5pFd
-	 JGtxuHQyvR3uZJ4FFxpPyU3+zMTLz5cUn4tLE2BjHoVeQTXTaCTHIKoB+gCOVb7LQaw==
+	t=1793156799;
+	b=wWp3BtyS9qy2YXInqv77QlDmGY+UnM/C1Cg9VUnm2l25dfNAxn0bENREmvUex3AqGnbP
+	 rjm/XuZVQG3o//QwUzFkE05dk6JOKFGe0oStVYvwdkIDxMxWCS8TXsyPFMTdeqR371MtF
+	 UgkLYtRb/I4l0DvpuYGoyMXHxOGm2WeGWD7Qq1vpk3lChf/Q6NSXenln5CwPimBt/1p3y
+	 6MVbQQqULOz8sgLZHEbHCOtBdg5oYq3KRjwuNHdEJ8m2Qb7xGKkAjzhnyeEyPuEP7nwtN
+	 ZWXnpqfXqwuNcl3c8oOrsmypfZ1Lkyk7NsRsArlFpOF1Bjfh0TChQ6FydVZDPzARFLA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793156743;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793156799;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=JadP4HY50wz7wPlg8O7+4o+lR2bLoXozNifXIVLIKh4=;
-	b=1V37+hbmv/XbW08BFvDLojwS7ibPDK5iNY/UKcPhresiZ04hhpnotjowQZ/2ds+z2KjL
-	 swAgjJDWrhNfUou6a7NGGzTeJJd8nsQuyNKBQiiJj2P3ahhz/ImduG3R5EjPEx9eG2rbQ
-	 zVLu4VoCxwfIhH2Oa7JsusSDpITOuEBn2HHfn7A0ecAIMJ+lf63lZHvBfT4divTpQQI4C
-	 aD6YX3lF/Spcq2Z94Qzy2wj0Y2GPOO2438W4UAgaBngSNwvxAT1cvbfuGlA7DEIs16ilv
-	 leHbpTHNHyn/H8QK5U/lPji29298hCBHQizD4iQIXDlELJtXB5ALFg4AzgZbiXX9Y4w==
+	bh=kVnaC10tv9ehFowLPicIfzdH7RwM8XZZuteDnD3VJJY=;
+	b=vk5JkgDUMippD1SqWSHHqACYjiDAND/gIiB5hoU13Dsp5Nl/C9KCsDbdFNeLuV9Y7cct
+	 XhcLoK24VE5WQ0iKGoppQF2h7nbTUZdIEgaBMU6u4ZFKX3S6+JI98vNI0AfmpkP4fw9Mu
+	 ZGPRi8EQeeKwoyuysJNrLAhJw2gTeXCbK/P42mdo411MmuJo5MAzPSAq2+f/M2GkRXYaN
+	 RLuSqXMgvMSoIrTiRrj/6u56RfT6YTO/5QE0s3brojueEGk+r4iVHduShGyhAM7STnZdW
+	 GLI9R8UwDP6emqWMgtXsIp4eK/hZU8y3LB852JhSlxfOSRmnjJJq5P/Gv4ANPfZLHZA==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=svFAnjQN;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=tywmEMBf;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 68F17606A335
-	for <mm-commits@vger.kernel.org>; Wed, 28 Oct 2026 03:05:43 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 24BE0606A31A
+	for <mm-commits@vger.kernel.org>; Wed, 28 Oct 2026 03:06:38 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=svFAnjQN
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id F21641F031E0;
-	Wed, 28 Oct 2026 03:05:42 +0000 (UTC)
+	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=tywmEMBf
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9AA8B1F01828;
+	Wed, 28 Oct 2026 03:06:38 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1793156743;
-	bh=JadP4HY50wz7wPlg8O7+4o+lR2bLoXozNifXIVLIKh4=;
+	d=linux-foundation.org; s=korg; t=1793156798;
+	bh=kVnaC10tv9ehFowLPicIfzdH7RwM8XZZuteDnD3VJJY=;
 	h=Date:To:From:Subject;
-	b=svFAnjQN2VEkw9acalybBRgDGFtdQLRtdDm/oHxs6GZmXr0GEXtesEdR08QLZFxOn
-	 1+vQISW9VAnE1b6nAzWUEtyipQiQvKMuxdCCq6e03nrLX1yyPwryMqTUCbtKQaakxC
-	 Ys6iwrp6jXj2ZWxi7C5OohV3c4jFc3QDwOzsVpAU=
-Date: Tue, 27 Oct 2026 20:05:42 -0700
+	b=tywmEMBfKKZQvFhhEH/bhC3pL8g86XedSLPpf5UQSf36wpbtTaPWW++pzxinqZ0uf
+	 0GitjRG4WMdlmp7tjciVHAKX4HHM47IBaHFOdumhPAe74/7I8FYIcMKEL458Dt+4HH
+	 5NYYw2xlXbJ5Jd/EF1eon+LP9iQGMOGkrD1yzXzs=
+Date: Tue, 27 Oct 2026 20:06:38 -0700
 To: mm-commits@vger.kernel.org,josef@toxicpanda.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [to-be-updated] mm-page_alloc-dont-undo-a-racing-start_isolate_page_range.patch removed from -mm tree
-Message-Id: <20261028030542.F21641F031E0@smtp.kernel.org>
+Subject: [to-be-updated] mm-page_alloc-clear-private-of-deferred-free-pages.patch removed from -mm tree
+Message-Id: <20261028030638.9AA8B1F01828@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -51,79 +51,50 @@ Precedence: list
 
 
 The quilt patch titled
-     Subject: mm/page_alloc: don't undo a racing start_isolate_page_range()
+     Subject: mm/page_alloc: clear ->private of deferred free pages
 has been removed from the -mm tree.  Its filename was
-     mm-page_alloc-dont-undo-a-racing-start_isolate_page_range.patch
+     mm-page_alloc-clear-private-of-deferred-free-pages.patch
 
 This patch was dropped because an updated version will be issued
 
 ------------------------------------------------------
 From: Josef Bacik <josef@toxicpanda.com>
-Subject: mm/page_alloc: don't undo a racing start_isolate_page_range()
-Date: Tue, 27 Oct 2026 16:46:27 +0100
+Subject: mm/page_alloc: clear ->private of deferred free pages
+Date: Tue, 27 Oct 2026 16:46:28 +0100
 
-Patch series "mm, page_alloc: several stable fixes", v1.
+free_pages_nolock() and free_frozen_pages_nolock() put the page on
+zone->trylock_free_pages if they get neither the pcp lock nor zone->lock.
+add_page_to_zone_llist() keeps the order of the page in page->private.
+The next free_one_page() which does get zone->lock passes these pages to
+split_large_buddy() with ->private still set.
 
-A bunch of fixes from Josef, filtered for page allocator by David.
+__free_one_page() writes ->private of the head of the resulting free page
+only. If the deferred page is merged with its lower buddy, it becomes a
+tail of that free page and keeps the order in ->private.
 
-They seem worthy of Cc: stable to me, but IMHO don't need to be sent
-urgently as the issues mostly need root actions (memory offline) to
-trigger and/or CONFIG_DEBUG_VM to result in a denial of service.
+All other free pages which are not the head of a buddy have a ->private
+of zero, and since commit 819bfbd47e49 ("mm/page_alloc: remove
+set_page_private() in prep_compound_tail()") the allocator relies on it.
+When the stale page is allocated again as a tail of a larger page:
 
-I have tweaked some commit logs and a comment in one case.
+ - prep_compound_tail() hits VM_WARN_ON_ONCE(tail->private);
+ - with the page checks enabled, __free_pages_prepare() reports
+   "BUG: Bad page state", "nonzero private", and leaks the whole page;
+ - without them the value is seen by whoever uses that page next, e.g. as
+   folio->private of a folio which is split off a large folio.
 
+Only pages of an order above zero are affected. Those can be freed
+through _nolock() by the stack depot (order 2) and by SLUB (a new slab
+which cannot be added to the partial list by kmalloc_nolock()).
 
-This patch (of 9):
+Clear ->private when the page is taken off the list.
 
-start_isolate_page_range() fails with -EBUSY if one of the pageblocks is
-already isolated, i.e. if somebody else is working on it. It restores
-the pageblocks which it has isolated itself before it returns, as its
-kernel-doc says:
-
-  We then clean up by restoring the migration type on pageblocks we may
-  have modified and return -EBUSY to caller. This prevents two threads
-  from simultaneously working on overlapping ranges.
-
-alloc_contig_frozen_range() nevertheless calls undo_isolate_page_range()
-for the whole range in this case, which clears every isolated pageblock
-it finds. The only ones left at this point belong to the other user of
-the range:
-
-  CPU0 offline_pages()                CPU1 alloc_contig_frozen_range()
-  start_isolate_page_range(A)
-    pageblock X: isolated
-  migrate ...
-                                      start_isolate_page_range(B)
-                                        X is isolated: -EBUSY
-                                        (own pageblocks restored)
-                                      undo_isolate_page_range(B)
-                                        X: not isolated any more
-  test_pages_isolated(A): -EBUSY
-  (again and again)
-
-offline_pages() repeats the migration and test_pages_isolated() until the
-latter succeeds, which is now impossible and the task spins until it gets
-a signal, while the free pages of X are handed out by the allocator again.
-
-If X is released after the last test_pages_isolated(),
-__offline_isolated_pages() takes pages which are accounted as free off
-the free lists as MIGRATE_ISOLATE. Thus NR_FREE_PAGES stays too high, or
-hits BUG_ON(!PageBuddy(page)) if one of them has been allocated.
-
-For another alloc_contig_frozen_range() or cma_alloc() the result is a
-spurious -EBUSY.
-
-Return the error, like the function did until it was reworked.
-
-Link: https://lore.kernel.org/20261027-pgalloc-ai-hotfixes-v1-0-9c7d1aca801e@kernel.org
-Link: https://lore.kernel.org/20261027-pgalloc-ai-hotfixes-v1-1-9c7d1aca801e@kernel.org
-Fixes: b2c9e2fbba32 ("mm: make alloc_contig_range work at pageblock granularity")
+Link: https://lore.kernel.org/20261027-pgalloc-ai-hotfixes-v1-2-9c7d1aca801e@kernel.org
+Fixes: 8c57b687e833 ("mm, bpf: Introduce free_pages_nolock()")
 Signed-off-by: Josef Bacik <josef@toxicpanda.com>
 Signed-off-by: Vlastimil Babka (SUSE) <vbabka@kernel.org>
 Signed-off-by: David Hildenbrand (Arm) <david@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Reviewed-by: Gregory Price (Meta) <gourry@gourry.net>
-Tested-by: Gregory Price (Meta) <gourry@gourry.net>
 Reviewed-by: Zi Yan <ziy@nvidia.com>
 Assisted-by: LLM
 Cc: Shakeel Butt <shakeel.butt@linux.dev>
@@ -134,28 +105,28 @@ Cc: Suren Baghdasaryan <surenb@google.com>
 Cc: Michal Hocko <mhocko@suse.com>
 Cc: Brendan Jackman <brendan.jackman@linux.dev>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: "Gregory Price (Meta)" <gourry@gourry.net>
 Cc: <stable@vger.kernel.org>
 ---
 
- mm/page_alloc.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/page_alloc.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
---- a/mm/page_alloc.c~mm-page_alloc-dont-undo-a-racing-start_isolate_page_range
+--- a/mm/page_alloc.c~mm-page_alloc-clear-private-of-deferred-free-pages
 +++ a/mm/page_alloc.c
-@@ -7329,7 +7329,7 @@ int alloc_contig_frozen_range_noprof(uns
+@@ -1562,6 +1562,8 @@ static void free_one_page(struct zone *z
+ 		llist_for_each_entry_safe(p, tmp, llnode, pcp_llist) {
+ 			unsigned int p_order = p->private;
  
- 	ret = start_isolate_page_range(start, end, mode);
- 	if (ret)
--		goto done;
-+		return ret;
- 
- 	drain_all_pages(cc.zone);
- 
++			/* It may end up as a tail of the merged free page. */
++			p->private = 0;
+ 			split_large_buddy(zone, p, page_to_pfn(p), p_order, fpi_flags);
+ 			__count_vm_events(PGFREE, 1 << p_order);
+ 		}
 _
 
 Patches currently in -mm which might be from josef@toxicpanda.com are
 
-mm-page_alloc-clear-private-of-deferred-free-pages.patch
 mm-page_frag-refill-the-cache-for-large-fragments.patch
 mm-page_alloc-keep-the-pagesets-of-an-empty-zone.patch
 mm-page_alloc-pass-zone-pointer-to-trace_reclaim_retry_zone.patch
