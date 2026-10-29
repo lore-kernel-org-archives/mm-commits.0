@@ -1,41 +1,41 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793254755;
-	b=zIId2XNWJGKoHhME/uVxMT2/XDXCcCJrky4SRG+OAllXAMSpuSGldeuP4NAH0PQRe2Nd
-	 XzBkKRn2NXyAzdiWr1gjhF5Czse1Tt198w2Rg1x33fhkP4gAn7NfqQM6ODL2uKECNNf3S
-	 ZAzpwOZ8I8Wd1mBqgytHC2VggD/hwMjXdYQuyyCb9hTIRFC8OFeIzs/hEviZTDGeuNN01
-	 yQDOiTK7p9XlsHbuQC1JD4GaAaMWepe+hmmoXgUNNVLBvEVSDg4prCBQUGjshCKpZQKOY
-	 yAN6KCjHX0qgLRudu8EU6RPbtS72CoLOCLRriW1ZjJYTXLCQutvrKRW4ki0CZn364qA==
+	t=1793254757;
+	b=w+aXqgxNIuplfvqTa3B2x/JgelPcWaBBLA7P30rxj8P0d03DGyCF6tRFlkPkMWUcYE04
+	 JGyxVMlEMyL/Ysu7ZqMUbaLU54+nKZm2HHSqOruXAhD7D2p9iBi+ooqOG76RONvufUyTD
+	 U48lDKb8iK/3x9CHS9kJbro84CfRe3+fYeQZ7cibRUlj0I5zxZLTgZZMC2pzcYFGcow5F
+	 2OIKmXVOet1pOoglh273ppOpHc5de3BgO8nikiY326lo0r3o0HV7o707z5RD0mkb3TXcQ
+	 gJRzLjYy+o+N0BK+o4yHsGkVHamMXNHECQrdvl92Nz9w4Dm1+yFHQRAuTacN8FI4L0Q==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793254755;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793254757;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=mle/wzSABEp2eykZUXDopMAb/bI26B0W46Gah3FGYV0=;
-	b=huSsgWyimi5Ryx0C5L3fTEOZ0g2g0xPH4AaHbHjvbWa6TP+Jdy0P9d9vTmobGrzAIoWk
-	 A0NkmKm1iXQwYAx2x3vWSt67ZYfrVTLeSfr7IiQQSPwEX2Sr3Y8JvqgbjfobpdLVHiNww
-	 RorVmKG/TFiYN+Z1+ZhdXLMlHvdFdpmPE9GlirRsShV7ThMwi+NuhLu3Udzqttbx+wVIl
-	 jmsTSOek28JjbWQFCeAsCVpBYoQrh4vz91HT1KWCX1KJes7CILTZ8TrDbWKG5FyOCAbgt
-	 0oIK9ucIbhhQYXasQnvfDTH8wTMGDrEtkSRMlDnqQnx3xAH1ISlV05KRYgFpk0LC0dQ==
+	bh=QmET5fOgbdzZTJ5k2o633/yJknoLX/lwC0z1ETd/DOc=;
+	b=ZOQy0hAdSEwGF/A9YIe2a6G19ZDou64nQmfs1RVhRpcHxXoukX6XHTcLt6B/Thj4TVIu
+	 BWSA4NGCMH9e+4l2vr7Eg/9y6aCNHgxzV9IWNWtnd5VYIV+j/gU5jwuKlTHa47Eyqfwyg
+	 kexEak9FGdoteKMNi2wx768Xsc/+8YIiYy1ucF6WwKHFtQio8aWvOakOBAtG2EzFat6iB
+	 UzIrmVvxMBS5mkiP6Q12hmfkf/9d8NqidV9J23pEcl5V9XkATV+f/PpYdNIznUwLrdpa8
+	 zcOqw3eCP2mzZ9XU666eaAX/30nRwqepT3JqhxvKI/iYKDl3TjAY5JCyuF56hyRnC8g==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=Ig5U3Ai5;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=f5Ux9USq;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1361F606A31E
-	for <mm-commits@vger.kernel.org>; Thu, 29 Oct 2026 06:19:14 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C0C35606A31C
+	for <mm-commits@vger.kernel.org>; Thu, 29 Oct 2026 06:19:16 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=Ig5U3Ai5
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 87AF11F01825;
-	Thu, 29 Oct 2026 06:19:14 +0000 (UTC)
+	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=f5Ux9USq
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 68DDE1F01825;
+	Thu, 29 Oct 2026 06:19:16 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1793254754;
-	bh=mle/wzSABEp2eykZUXDopMAb/bI26B0W46Gah3FGYV0=;
+	d=linux-foundation.org; s=korg; t=1793254756;
+	bh=QmET5fOgbdzZTJ5k2o633/yJknoLX/lwC0z1ETd/DOc=;
 	h=Date:To:From:Subject;
-	b=Ig5U3Ai5svkA1/fMZK3Jm5u27xYFtadw+iWMRg5C+RHCFjXd7YjNJT/a+ofvH8YC4
-	 zP5HJP+Hc8HzTzttWZckXUVq2Mxh2+RZom5sYjw8fGDeK941qtV1cMlgumOykwjDUo
-	 m6Dpr95LHdyySXZXvA+QhYwi1/UuSs6G/44cJNjE=
-Date: Wed, 28 Oct 2026 23:19:14 -0700
+	b=f5Ux9USqI/ARbGnFPeNHggxfyNWaK2ga8iPJexxeeWETJLUFYp4ftbekwemDb0Z3a
+	 LRSEyw+6jSugZ3BRRaTgpIffagUHXSLlM5PmrjHPgWijy8yx0GBRbB4ZWueHIrxM5y
+	 v5dBSJst6RX8Rk7qrRIbzEYy7v7a49mjHTLF2RJ8=
+Date: Wed, 28 Oct 2026 23:19:15 -0700
 To: mm-commits@vger.kernel.org,willy@infradead.org,tzimmermann@suse.de,
 	tursulin@ursulin.net,skhan@linuxfoundation.org,simona@ffwll.ch,
 	ryan_chen@aspeedtech.com,rodrigo.vivi@intel.com,rdunlap@infradead.org,
@@ -48,8 +48,8 @@ To: mm-commits@vger.kernel.org,willy@infradead.org,tzimmermann@suse.de,
 	andi.shyti@linux.intel.com,andi.shyti@kernel.org,alexander.deucher@amd.com,
 	airlied@gmail.com,d@ilvokhin.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + string-switch-to-__nonnull_args-macro.patch added to mm-nonmm-unstable branch
-Message-Id: <20261029061914.87AF11F01825@smtp.kernel.org>
+Subject: + lib-list_sort-switch-to-__nonnull_args-macro.patch added to mm-nonmm-unstable branch
+Message-Id: <20261029061916.68DDE1F01825@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -61,12 +61,12 @@ Precedence: list
 
 
 The patch titled
-     Subject: string: switch to __nonnull_args() macro
+     Subject: lib/list_sort: switch to __nonnull_args() macro
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     string-switch-to-__nonnull_args-macro.patch
+     lib-list_sort-switch-to-__nonnull_args-macro.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/string-switch-to-__nonnull_args-macro.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/lib-list_sort-switch-to-__nonnull_args-macro.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -85,8 +85,8 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Dmitry Ilvokhin <d@ilvokhin.com>
-Subject: string: switch to __nonnull_args() macro
-Date: Wed, 28 Oct 2026 08:19:41 +0000
+Subject: lib/list_sort: switch to __nonnull_args() macro
+Date: Wed, 28 Oct 2026 08:19:42 +0000
 
 Commit 22302af28d3f ("cleanup: Annotate guard constructors with
 nonnull") added the macro __nonnull_args() to wrap raw compiler
@@ -97,7 +97,10 @@ standardize nonnull attribute usage across the tree and keep the
 attribute's quirks in one place rather than open-coded at every call
 site.
 
-Link: https://lore.kernel.org/f0d7b2f0dce916f4cde3dd466a5b51a4b88fbdd8.1793027261.git.d@ilvokhin.com
+Add spaces after the commas in the __nonnull_args() argument list to
+follow the usual coding style (according to checkpatch).
+
+Link: https://lore.kernel.org/580fdfbe2eb6694438cbd8f5337bd2f1edac564b.1793027261.git.d@ilvokhin.com
 Signed-off-by: Dmitry Ilvokhin <d@ilvokhin.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 Suggested-by: Miguel Ojeda <ojeda@kernel.org>
@@ -132,20 +135,53 @@ Cc: Andi Shyti <andi.shyti@kernel.org>
 Cc: Andi Shyti <andi.shyti@linux.intel.com>
 ---
 
- include/linux/string.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/list_sort.h |    4 ++--
+ lib/list_sort.c           |    6 +++---
+ 2 files changed, 5 insertions(+), 5 deletions(-)
 
---- a/include/linux/string.h~string-switch-to-__nonnull_args-macro
-+++ a/include/linux/string.h
-@@ -587,7 +587,7 @@ static inline bool strstarts(const char
-  * Returns:
-  * True if @str ends with @suffix. False in all other cases.
+--- a/include/linux/list_sort.h~lib-list_sort-switch-to-__nonnull_args-macro
++++ a/include/linux/list_sort.h
+@@ -6,9 +6,9 @@
+ 
+ struct list_head;
+ 
+-typedef int __attribute__((nonnull(2,3))) (*list_cmp_func_t)(void *,
++typedef int __nonnull_args(2, 3) (*list_cmp_func_t)(void *,
+ 		const struct list_head *, const struct list_head *);
+ 
+-__attribute__((nonnull(2,3)))
++__nonnull_args(2, 3)
+ void list_sort(void *priv, struct list_head *head, list_cmp_func_t cmp);
+ #endif
+--- a/lib/list_sort.c~lib-list_sort-switch-to-__nonnull_args-macro
++++ a/lib/list_sort.c
+@@ -9,7 +9,7 @@
+  * to chaining of merge() calls: null-terminated, no reserved or
+  * sentinel head node, "prev" links not maintained.
   */
--static inline bool __attribute__((nonnull(1, 2)))
-+static inline bool __nonnull_args(1, 2)
- strends(const char *str, const char *suffix)
+-__attribute__((nonnull(2,3,4)))
++__nonnull_args(2, 3, 4)
+ static struct list_head *merge(void *priv, list_cmp_func_t cmp,
+ 				struct list_head *a, struct list_head *b)
  {
- 	unsigned int str_len = strlen(str), suffix_len = strlen(suffix);
+@@ -45,7 +45,7 @@ static struct list_head *merge(void *pri
+  * prev-link restoration pass, or maintaining the prev links
+  * throughout.
+  */
+-__attribute__((nonnull(2,3,4,5)))
++__nonnull_args(2, 3, 4, 5)
+ static void merge_final(void *priv, list_cmp_func_t cmp, struct list_head *head,
+ 			struct list_head *a, struct list_head *b)
+ {
+@@ -175,7 +175,7 @@ static void merge_final(void *priv, list
+  * of size 2^k varies from 2^(k-1) (cases 3 and 5 when x == 0) to
+  * 2^(k+1) - 1 (second merge of case 5 when x == 2^(k-1) - 1).
+  */
+-__attribute__((nonnull(2,3)))
++__nonnull_args(2, 3)
+ void list_sort(void *priv, struct list_head *head, list_cmp_func_t cmp)
+ {
+ 	struct list_head *list = head->next, *pending = NULL;
 _
 
 Patches currently in -mm which might be from d@ilvokhin.com are
