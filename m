@@ -1,41 +1,41 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793254761;
-	b=XYhPDFiSxIezkDArPLw4EQIFFDs0sc9ism+nLMNxjgp+CJ+0pNYKhP+KkMwMUeg0avDQ
-	 GOEX1MfKfmdaLC4FL6Ut5/mb5pxo5WTc1dkmOuyZHeMVAf2ZTuoY+Ikgs/zFtbI7WsG0a
-	 15pkHex/eK4idCy0weC379AR2HAEPw25OxRgfrlGNhz6WZfJ6EVCWxabQGl3hholg9Tpg
-	 qM60wYr0JYsVd8lZD7VN02fP7fF+8JjXOQeJ3r/yEJnu890kYxappgA+iyHPh0uAJ35TX
-	 LS7OvI0tOYBio3/XRUh9Ca2shiu9YFQayzydA047wEITH5rKKQO47cbvUSvRxX/lzgA==
+	t=1793254764;
+	b=Dp2fLodIMH0SiMGYbvXH7lhzQsE3MIYlCYFAbX6QUdjjyrdEBEKxu7pBR2xdcHhJaeFL
+	 BY/5ANAuFhwP6gbPqZnkpX7CNy84U6bye1IYHOe52UEFodwMUwacQ1uZZVXIpLWSP5cw8
+	 odZKCiaRBvc12Ad2+ZFc6FUeb8wPjl8f2kceSvE5+W6rrrTiEsXbZc13WuY4ZgsckG7qP
+	 A1TvcCP1do8QdlPos22/Ekk00KweBn9WJC2scnLOl4W4SZf5nlwmN8bfVpIYU5S4uX/hT
+	 8svUQQH3hJ/XEjJgz4uD3vp9onP5rJujqlOsWNzORyEqZh8bwCIELe2PJZjlpmi3LCg==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793254761;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793254764;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=/TnDNWydWfRqOTP2Al4gAT0oaELEGTrZU8OeE7Wmaus=;
-	b=JkTsj2O3/E0oz3+SoG2AChA7ivHjcaRFhqmkyUorUqrZPxhufPhfffgM7rdz83FBPhQW
-	 7VMd0vMiLO8NURzTfiupjdzWuhCGg66CnmUDf9uxO9YBxnMeO8TmY/pt/VJzjZsBzhJlO
-	 gdh6+9LxbrRZmDbNXwO73LPQn/YpNmPYl9euSDXCHcTv5okW+xoe890MtSpjUuLw5fPv/
-	 nGJQU62rOnqyirp0rcCMOmUFNYaPkfbu2VNY8qvlJWidBI4NQdltOlL0fE+aimWakPiy0
-	 lWAHjXJd6mqtQL9VNjRmNsGEwP6c74nlRb6M1yVBXDaMNo5i5SxOXO47zrpsEX2+2Kw==
+	bh=3Fc9uv+iksRnKIJXoxoj0ujWd9bvWIL0zA4pZkIlb4s=;
+	b=RFAJTURMl/Q0oNYPcchRzRWKeyldmWXQCszDjhMOpQ2D9PBvHKPGO4KvVy3SI/DebhAv
+	 TovBVL/6Vaev4YhuJ1QJDqkk6SnIqXimXyWIz4lGN1XomjLPtrV1wuisQQbrwC2MKfw2B
+	 xXPvGPLcRSfJpCA2XhvgomCaA+ywN/R7HLplNAhh13scDekBc0R8UcD9e6TFXsu9B4/g1
+	 oCWsoTfe9h3wx/cNEgDOQx4ak4cbpiUwYgDnr6s7DOdCl8G2baLDhH6Za9H4ogjknkyz+
+	 QFqA06g0ceKrgOuR8m/j/UPNWxq7gWI8LWyFtL2JsfTHQ2VZU1wcg2zaHIEbSRY+N3w==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=G0ixjnhV;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=O8o6Tsh6;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 70D54606A31F
-	for <mm-commits@vger.kernel.org>; Thu, 29 Oct 2026 06:19:21 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E6A2F606A322
+	for <mm-commits@vger.kernel.org>; Thu, 29 Oct 2026 06:19:23 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=G0ixjnhV
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 242CC1F01828;
-	Thu, 29 Oct 2026 06:19:21 +0000 (UTC)
+	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=O8o6Tsh6
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7CA301F01825;
+	Thu, 29 Oct 2026 06:19:23 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1793254761;
-	bh=/TnDNWydWfRqOTP2Al4gAT0oaELEGTrZU8OeE7Wmaus=;
+	d=linux-foundation.org; s=korg; t=1793254763;
+	bh=3Fc9uv+iksRnKIJXoxoj0ujWd9bvWIL0zA4pZkIlb4s=;
 	h=Date:To:From:Subject;
-	b=G0ixjnhVoRdEJsvOGK88CXJ/5sU0nY0ftef3ZSTNLmjTVe0MmSoXMdruhsGCeS3a9
-	 CWGVRYIC5H/68p6kPygYDrgP/y+DhNNroWLs7DbphZAZ61F2UGn2oizq8McXRp/tcA
-	 Iq9m+MG3jY8/1TxiraXOnZDwzSveaK4c3+xvg9nU=
-Date: Wed, 28 Oct 2026 23:19:20 -0700
+	b=O8o6Tsh6u1jipoKrRfgr7Rvjz+aSVI4dZCBWQ2W/gNeSRswFSvL5Ps7OAP0gsMH/h
+	 Pkko7ocS9I7xSTmzfwScJGBhBX9N0by68q//3pQ8O2L4V6B9Glj5BXvma1QNco1S+/
+	 jqwP/JKlQqmRG0q6qU6zIibTn5jj9t7CcZcqSqtI=
+Date: Wed, 28 Oct 2026 23:19:23 -0700
 To: mm-commits@vger.kernel.org,willy@infradead.org,tzimmermann@suse.de,
 	tursulin@ursulin.net,skhan@linuxfoundation.org,simona@ffwll.ch,
 	ryan_chen@aspeedtech.com,rodrigo.vivi@intel.com,rdunlap@infradead.org,
@@ -48,8 +48,8 @@ To: mm-commits@vger.kernel.org,willy@infradead.org,tzimmermann@suse.de,
 	andi.shyti@linux.intel.com,andi.shyti@kernel.org,alexander.deucher@amd.com,
 	airlied@gmail.com,d@ilvokhin.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + drm-i915-switch-to-__nonnull_args-macro.patch added to mm-nonmm-unstable branch
-Message-Id: <20261029061921.242CC1F01828@smtp.kernel.org>
+Subject: + drm-amdgpu-switch-to-__nonnull_args-macro.patch added to mm-nonmm-unstable branch
+Message-Id: <20261029061923.7CA301F01825@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -61,12 +61,12 @@ Precedence: list
 
 
 The patch titled
-     Subject: drm/i915: switch to __nonnull_args() macro
+     Subject: drm/amdgpu: switch to __nonnull_args() macro
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     drm-i915-switch-to-__nonnull_args-macro.patch
+     drm-amdgpu-switch-to-__nonnull_args-macro.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/drm-i915-switch-to-__nonnull_args-macro.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/drm-amdgpu-switch-to-__nonnull_args-macro.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -85,8 +85,8 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Dmitry Ilvokhin <d@ilvokhin.com>
-Subject: drm/i915: switch to __nonnull_args() macro
-Date: Wed, 28 Oct 2026 08:19:44 +0000
+Subject: drm/amdgpu: switch to __nonnull_args() macro
+Date: Wed, 28 Oct 2026 08:19:45 +0000
 
 Commit 22302af28d3f ("cleanup: Annotate guard constructors with
 nonnull") added the macro __nonnull_args() to wrap raw compiler
@@ -96,13 +96,10 @@ Replace __attribute__((nonnull)) with __nonnull_args() to standardize
 nonnull attribute usage across the tree and keep the attribute's quirks
 in one place rather than open-coded at every call site.
 
-Link: https://lore.kernel.org/33ec8080594f9f4ef1d50e36497339c9a6897393.1793027261.git.d@ilvokhin.com
+Link: https://lore.kernel.org/d57489b8bec240794a7a8aaac6e1e3e0d78ea331.1793027261.git.d@ilvokhin.com
 Signed-off-by: Dmitry Ilvokhin <d@ilvokhin.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 Suggested-by: Miguel Ojeda <ojeda@kernel.org>
-Reviewed-by: Andy Shevchenko <andy@kernel.org>
-Acked-by: Jani Nikula <jani.nikula@intel.com>
-Reviewed-by: Andi Shyti <andi.shyti@linux.intel.com>
 Cc: Alex Deucher <alexander.deucher@amd.com>
 Cc: Christian König <christian.koenig@amd.com>
 Cc: David Airlie <airlied@gmail.com>
@@ -121,6 +118,7 @@ Cc: Maarten Lankhorst <maarten.lankhorst@linux.intel.com>
 Cc: Maxime Ripard <mripard@kernel.org>
 Cc: Thomas Zimmermann <tzimmermann@suse.de>
 Cc: Kees Cook <kees@kernel.org>
+Cc: Andy Shevchenko <andy@kernel.org>
 Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
 Cc: Andy Whitcroft <apw@canonical.com>
 Cc: Joe Perches <joe@perches.com>
@@ -128,50 +126,25 @@ Cc: Jonathan Corbet <corbet@lwn.net>
 Cc: Shuah Khan <skhan@linuxfoundation.org>
 Cc: Randy Dunlap <rdunlap@infradead.org>
 Cc: Andy Shevchenko <andy.shevchenko@gmail.com>
+Cc: Jani Nikula <jani.nikula@intel.com>
 Cc: Andi Shyti <andi.shyti@kernel.org>
+Cc: Andi Shyti <andi.shyti@linux.intel.com>
 ---
 
- drivers/gpu/drm/i915/gem/i915_gem_object.h |    4 ++--
- drivers/gpu/drm/i915/i915_request.h        |    4 ++--
- 2 files changed, 4 insertions(+), 4 deletions(-)
+ drivers/gpu/drm/amd/amdgpu/amdgpu_ttm.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/drivers/gpu/drm/i915/gem/i915_gem_object.h~drm-i915-switch-to-__nonnull_args-macro
-+++ a/drivers/gpu/drm/i915/gem/i915_gem_object.h
-@@ -127,7 +127,7 @@ __deprecated
- struct drm_gem_object *
- drm_gem_object_lookup(struct drm_file *file, u32 handle);
- 
+--- a/drivers/gpu/drm/amd/amdgpu/amdgpu_ttm.c~drm-amdgpu-switch-to-__nonnull_args-macro
++++ a/drivers/gpu/drm/amd/amdgpu/amdgpu_ttm.c
+@@ -307,7 +307,7 @@ static int amdgpu_ttm_map_buffer(struct
+  * move and different for a BO to BO copy.
+  *
+  */
 -__attribute__((nonnull))
 +__nonnull_args()
- static inline struct drm_i915_gem_object *
- i915_gem_object_get(struct drm_i915_gem_object *obj)
- {
-@@ -135,7 +135,7 @@ i915_gem_object_get(struct drm_i915_gem_
- 	return obj;
- }
- 
--__attribute__((nonnull))
-+__nonnull_args()
- static inline void
- i915_gem_object_put(struct drm_i915_gem_object *obj)
- {
---- a/drivers/gpu/drm/i915/i915_request.h~drm-i915-switch-to-__nonnull_args-macro
-+++ a/drivers/gpu/drm/i915/i915_request.h
-@@ -437,12 +437,12 @@ void i915_request_cancel(struct i915_req
- long i915_request_wait_timeout(struct i915_request *rq,
- 			       unsigned int flags,
- 			       long timeout)
--	__attribute__((nonnull(1)));
-+	__nonnull_args(1);
- 
- long i915_request_wait(struct i915_request *rq,
- 		       unsigned int flags,
- 		       long timeout)
--	__attribute__((nonnull(1)));
-+	__nonnull_args(1);
- #define I915_WAIT_INTERRUPTIBLE	BIT(0)
- #define I915_WAIT_PRIORITY	BIT(1) /* small priority bump for the request */
- #define I915_WAIT_ALL		BIT(2) /* used by i915_gem_object_wait() */
+ static int amdgpu_ttm_copy_mem_to_mem(struct amdgpu_device *adev,
+ 				      struct amdgpu_ttm_buffer_entity *entity,
+ 				      const struct amdgpu_copy_mem *src,
 _
 
 Patches currently in -mm which might be from d@ilvokhin.com are
