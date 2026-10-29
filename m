@@ -1,48 +1,48 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793300941;
-	b=D3hAcPtaGmP69VU9I1xzIh2BODdc04VPxVLFZYbimN/J9lZ6LsFghCykUiYoL8vDfBRl
-	 Fu5e8BkbLcg6to+gHilJbzjIcPHkSO+nQWu81IGoMX/BUu0bgkAV202D2XUIUAQQ6MWpH
-	 8vuVVKU6IXC+L8UC0/hDrClEa76pC/9Tl/DgZ5W2fb/TBqUM+ia1bqg0HGSUyElez9Tfx
-	 Ivs6g2lHW1D0VTgOUl2KLRZd/XLbr9cvDj28OfFesY6kyprNLSXkaui52QZaNcmZltrYF
-	 bxAgqt1nuYE9vbFfZh8BBZKpPSMEC+dYfpLFqUKGy0XwN7IXqPkjSbYTjyql4Eu4nBQ==
+	t=1793301234;
+	b=mxypMv5XUCOPFNvf49sA4FEF+SfPfDZkiPrXYRZysgm7NN9A4cu1oeL2/p1YJVv52rAX
+	 YigHBhZ51ZphBuJf4bcOLs6KE/6o9S8sK+rCAKIL3istBFkbHA3TVddtGymnDLwDkuLV+
+	 H85bTo0mfigxVpgeKh0llt7vv8HB8bYldkBFqnbLk2GMY9R//AFClAx80ug7aQ8ZQGtYU
+	 JEiLkFDf6LubgDP7aaHDtWQrfwK6A1fdlIKJ3ro6ntJpF0oDnCn3fq92wO9JIVOQ+Uon3
+	 uByNT1IszUaWwWdVh4a6/n/CC/xWYDShlIwqt+fF+9KOVpK5oXnCVEsE1sriwGL7kjA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793300941;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793301234;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=yb2trCfuX/TGOotvnGvabuZ75AmDMsZHqtVO48FHxgY=;
-	b=TcsFGJMnKy8U3YW+OOg8n0HghaVf7GzId3UkqZ0V5hAb8il/P+UgXulyG9mRAVDNxN7G
-	 Udib/qyeI6U7dWG7kSbXHr8Xm0mz3rwYl106BVNlpKfBD8bsB4VAQrCv6PocbZHlVvsJh
-	 V3vyhp7Qupl1cia04JlwTdeGUFT5nAlDO0G+N5mZ+9+hmTOv7q7HuBugz9NRkkk96SXR2
-	 7LWDkVTGIBMePx2NXWWqzkEHEmc8F2SiBzV88Kw086dyh1K0OeqTv35tGKnfGbUY6bMuF
-	 s2Rk5uGHYwt/rBdvlCy+cPDMNB7DyA2zpfLtLXqvFBZSfBWKbjZxtuMOMkhS1etXQDQ==
+	bh=2MGMyIg1qXUEqxfKy2C47xzQFj9yzlBNV/lcmrxbsQk=;
+	b=2s4UI/6rNMTgRF9PkgTMWYFpBeEHbmQLaf0/nxu7BzCps1WSmjrJ8RinR4KZab1nI7yp
+	 Al22K4ZPRevNtOcGaO7T97RCdoZ1olRF0HfiBgpRP2AxaHcLZ8RBUhWiA7JaJABfP8QJB
+	 7oNhy0sZLs+Wm1OWOh1uBxpA9SCvJqc9/152BKmEx6hcnrpWqKgwENTkGjm2yBZoToEyj
+	 EpG2twhRcL3UYy4a+WMGF/vIVq6eWxDF3HZnCKjNFi7tQOxm25Yce9sxJ8Vhq3JByRVlA
+	 ag/+Yw9QFzzEdPnSjegT23504qgH5Zd9i/JiyZpl14qamGtFjNszcBvM1+MEPBnlowQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=muT0hZXM;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=uwyapzsh;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CDFBF606A31A
-	for <mm-commits@vger.kernel.org>; Thu, 29 Oct 2026 19:09:00 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9C077606A31A;
+	Thu, 29 Oct 2026 19:13:53 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=muT0hZXM
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6EA271F01824;
-	Thu, 29 Oct 2026 19:09:00 +0000 (UTC)
+	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=uwyapzsh
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 443E11F01816;
+	Thu, 29 Oct 2026 19:13:53 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1793300940;
-	bh=yb2trCfuX/TGOotvnGvabuZ75AmDMsZHqtVO48FHxgY=;
+	d=linux-foundation.org; s=korg; t=1793301233;
+	bh=2MGMyIg1qXUEqxfKy2C47xzQFj9yzlBNV/lcmrxbsQk=;
 	h=Date:To:From:Subject;
-	b=muT0hZXMXyWR5W06qyF5sTc7gsiRxTYLZaAwEmVSLzflyTAghX3G346jvFDL5Q3M2
-	 GeBk74Nah7iIGrcWoW54b47k00TV+ST7n6/aebwVC8SHhdAyDoipPwe2QDc15O1Hgx
-	 lyvQMl1cn+GDrXFu51hDQWwH2Hd+IpRtzIFqBohg=
-Date: Thu, 29 Oct 2026 12:09:00 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,vbabka@kernel.org,
-	surenb@google.com,shuah@kernel.org,rppt@kernel.org,mhocko@suse.com,
-	ljs@kernel.org,liam@infradead.org,david@kernel.org,azpijr@gmail.com,
-	odys.yuan@gmail.com,akpm@linux-foundation.org
+	b=uwyapzshJbWk6MagV1A7kt1LXPVaVCEEMiBTr9RWLxTUyatUODIx+Aa6n8rulc2ks
+	 udv2Ign5OfIzaX5lt61utP/GV3tR3+obYhAdZUbRZFgiPByVeBguVll011bgKBGg/v
+	 6QT0Sfyh2j5lvvAfafrexCAclZT5R9VX5EUx7Z2U=
+Date: Thu, 29 Oct 2026 12:13:52 -0700
+To: mm-commits@vger.kernel.org,stable@vger.kernel.org,mark@fasheh.com,
+	joseph.qi@linux.alibaba.com,jlbec@evilplan.org,jjzuming@gmail.com,
+	heming.zhao@suse.com,baijiaju1990@gmail.com,zzzccc427@gmail.com,
+	akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-mm-load-xfs-before-checking-for-it-in-run_vmtestssh.patch added to mm-new branch
-Message-Id: <20261029190900.6EA271F01824@smtp.kernel.org>
+Subject: + ocfs2-keep-locking_state-within-the-cluster-connection-lifetime.patch added to mm-nonmm-hotfixes-unstable branch
+Message-Id: <20261029191353.443E11F01816@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -54,26 +54,15 @@ Precedence: list
 
 
 The patch titled
-     Subject: selftests/mm: load xfs before checking for it in run_vmtests.sh
-has been added to the -mm mm-new branch.  Its filename is
-     selftests-mm-load-xfs-before-checking-for-it-in-run_vmtestssh.patch
+     Subject: ocfs2: keep locking_state within the cluster connection lifetime
+has been added to the -mm mm-nonmm-hotfixes-unstable branch.  Its filename is
+     ocfs2-keep-locking_state-within-the-cluster-connection-lifetime.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-load-xfs-before-checking-for-it-in-run_vmtestssh.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/ocfs2-keep-locking_state-within-the-cluster-connection-lifetime.patch
 
-This patch will later appear in the mm-new branch at
+This patch will later appear in the mm-nonmm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Note, mm-new is a provisional staging ground for work-in-progress
-patches, and acceptance into mm-new is a notification for others take
-notice and to finish up reviews.  Please do not hesitate to respond to
-review feedback and post updated versions to replace or incrementally
-fixup patches in mm-new.
-
-The mm-new branch of mm.git is not included in linux-next
-
-If a few days of testing in mm-new is successful, the patch will me moved
-into mm.git's mm-unstable branch, which is included in linux-next
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -88,69 +77,134 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Qiliang Yuan <odys.yuan@gmail.com>
-Subject: selftests/mm: load xfs before checking for it in run_vmtests.sh
-Date: Thu, 29 Oct 2026 02:24:36 -0400
+From: Cen Zhang <zzzccc427@gmail.com>
+Subject: ocfs2: keep locking_state within the cluster connection lifetime
+Date: Tue, 27 Oct 2026 12:31:44 +0800
 
-run_vmtests.sh creates a loop-mounted XFS for "khugepaged all:file" and
-for the pagecache folio split cases of split_huge_page_test, since
-tmpfs does not give them large pagecache folios.
+The locking_state reader calls ocfs2_dlm_lvb() through the selected
+cluster stack.  Its debug-object reference keeps the tracking list alive,
+but does not keep that stack selected without a cluster connection.
 
-It only does so when xfs already shows up in /proc/filesystems. When
-xfs is built as a module that is not loaded yet, the check fails, no
-XFS is created, "khugepaged all:file" is reported as skipped and every
-pagecache folio split case of split_huge_page_test is skipped with "No
-large pagecache folio generated".
+DLM initialization publishes the file before establishing its connection,
+and DLM shutdown drops the connection while the file still exists.  Both
+the mount error unwind in ocfs2_mount_volume() and ocfs2_dismount_volume()
+remove the debugfs subtree only after ocfs2_dlm_shutdown() has returned. 
+Whenever the disconnect releases the last stack reference, which is the
+case for a failed mount and for any unmount without a pending hangup, a
+concurrent reader dereferences a NULL active_stack:
 
-Load xfs with load_module() when it is not registered yet, so that it
-is unloaded again once the script is done. Match xfs as a whole word,
-as "selinuxfs" contains it too, as does "vxfs" on kernels before 7.3,
-and would otherwise skip the load and leave xfs to be loaded by
-mount(). "run_vmtests.sh -t thp" with xfs built as a module and not
-loaded:
+  Mount error unwind                  Debugfs reader
+  ------------------                  --------------
+  ocfs2_mount_volume(): out_dlm
+    ocfs2_dlm_shutdown()
+      disconnect last cluster
+        clear active_stack
+                                      read locking_state
+                                        ocfs2_dlm_seq_show()
+                                          ocfs2_dlm_lvb()
+                                            dereference active_stack
+  fill_super(): out_debugfs
+    remove debugfs subtree
 
-                                        before    after
-  khugepaged all:file                  skipped      run
-  skipped split_huge_page_test cases        43        0
-  xfs loaded after the run                  no       no
-  xfs loaded after the run, with
-  selinuxfs or vxfs registered             yes       no
+Publish the debug files only after the connection and the mount lock
+resources are initialized, so a failed DLM initialization has no debug
+reference to drop.  Remove them again in the common DLM shutdown helper
+before the connection is dropped: debugfs removal waits for readers that
+are inside the file operations, and the parent directory is still present
+at that point in every caller.  This covers the mount error unwind, the
+ocfs2_fill_super() failures after a successful mount that dismount with
+mnt_err set, and unmounts whose disconnect releases the stack directly.
 
-Link: https://lore.kernel.org/20261029-bug-selftests-mm-run-vmtests-xfs-modprobe-v3-2-16ad772850ee@gmail.com
-Fixes: fc4d182316bd ("mm: huge_memory: enable debugfs to split huge pages to any order")
-Signed-off-by: Qiliang Yuan <odys.yuan@gmail.com>
+Only the relevant frames of the report are kept:
+
+Oops: general protection fault, probably for non-canonical address 0xdffffc0000000001: 0000 [#1] SMP KASAN NOPTI
+KASAN: null-ptr-deref in range [0x0000000000000008-0x000000000000000f]
+RIP: 0010:ocfs2_dlm_lvb+0x38/0xf0
+Call Trace:
+ <TASK>
+ ocfs2_dlm_seq_show+0x36a/0xb70
+ seq_read_iter+0x480/0x1110
+ seq_read+0x362/0x5a0
+ full_proxy_read+0x11f/0x180
+ vfs_read+0x1a0/0xc20
+ ksys_read+0x111/0x200
+ </TASK>
+
+Link: https://lore.kernel.org/pm-ocfs2-objects-candidate-0011-v7-61e3ef8b1ad44ac2e817@gmail.com
+Fixes: 286eaa95c5c5 ("ocfs2: Break out stackglue into modules.")
+Signed-off-by: Cen Zhang <zzzccc427@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Reviewed-by: Jose A. Perez de Azpillaga <azpijr@gmail.com>
-Tested-by: Jose A. Perez de Azpillaga <azpijr@gmail.com>
-Cc: David Hildenbrand <david@kernel.org>
-Cc: Lorenzo Stoakes <ljs@kernel.org>
-Cc: Liam R. Howlett <liam@infradead.org>
-Cc: Vlastimil Babka <vbabka@kernel.org>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Shuah Khan <shuah@kernel.org>
-Cc: Zi Yan <ziy@nvidia.com>
+Reviewed-by: Joseph Qi <joseph.qi@linux.alibaba.com>
+Assisted-by: LLM
+Cc: Mark Fasheh <mark@fasheh.com>
+Cc: Joel Becker <jlbec@evilplan.org>
+Cc: Heming Zhao <heming.zhao@suse.com>
+Cc: Jia-Ju Bai <baijiaju1990@gmail.com>
+Cc: <jjzuming@gmail.com>
+Cc: <stable@vger.kernel.org>
 ---
 
- tools/testing/selftests/mm/run_vmtests.sh |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/ocfs2/dlmglue.c |   18 +++++++++++++-----
+ 1 file changed, 13 insertions(+), 5 deletions(-)
 
---- a/tools/testing/selftests/mm/run_vmtests.sh~selftests-mm-load-xfs-before-checking-for-it-in-run_vmtestssh
-+++ a/tools/testing/selftests/mm/run_vmtests.sh
-@@ -412,7 +412,7 @@ CATEGORY="thp" run_test ./khugepaged -s
- # Try to create XFS if not provided
- if [ -z "${SPLIT_HUGE_PAGE_TEST_XFS_PATH}" ]; then
-     if test_selected "thp"; then
--	if grep xfs /proc/filesystems &>/dev/null; then
-+	if grep -qw xfs /proc/filesystems || load_module xfs; then
- 	    XFS_IMG=$(mktemp /tmp/xfs_img_XXXXXX)
- 	    XFS_DIR=$(mktemp -d /tmp/xfs_dir_XXXXXX)
- 	    truncate -s 314572800 ${XFS_IMG}
+--- a/fs/ocfs2/dlmglue.c~ocfs2-keep-locking_state-within-the-cluster-connection-lifetime
++++ a/fs/ocfs2/dlmglue.c
+@@ -3356,6 +3356,14 @@ static void ocfs2_dlm_shutdown_debug(str
+ {
+ 	struct ocfs2_dlm_debug *dlm_debug = osb->osb_dlm_debug;
+ 
++	/*
++	 * Drain the readers before the cluster stack goes away: the
++	 * locking_state reader resolves ocfs2_dlm_lvb() through the
++	 * stack. Every caller removes the parent directory later.
++	 */
++	debugfs_lookup_and_remove("locking_state", osb->osb_debug_root);
++	debugfs_lookup_and_remove("locking_filter", osb->osb_debug_root);
++
+ 	if (dlm_debug)
+ 		ocfs2_put_dlm_debug(dlm_debug);
+ }
+@@ -3370,8 +3378,6 @@ int ocfs2_dlm_init(struct ocfs2_super *o
+ 		goto local;
+ 	}
+ 
+-	ocfs2_dlm_init_debug(osb);
+-
+ 	/* launch downconvert thread */
+ 	osb->dc_task = kthread_run(ocfs2_downconvert_thread, osb, "ocfs2dc-%s",
+ 			osb->uuid_str);
+@@ -3411,9 +3417,10 @@ local:
+ 	ocfs2_orphan_scan_lock_res_init(&osb->osb_orphan_scan.os_lockres, osb);
+ 
+ 	osb->cconn = conn;
++	if (conn)
++		ocfs2_dlm_init_debug(osb);
+ bail:
+ 	if (status < 0) {
+-		ocfs2_dlm_shutdown_debug(osb);
+ 		if (osb->dc_task)
+ 			kthread_stop(osb->dc_task);
+ 	}
+@@ -3443,10 +3450,11 @@ void ocfs2_dlm_shutdown(struct ocfs2_sup
+ 	ocfs2_lock_res_free(&osb->osb_orphan_scan.os_lockres);
+ 
+ 	if (osb->cconn) {
++		/* The disconnect below may release the selected stack. */
++		ocfs2_dlm_shutdown_debug(osb);
++
+ 		ocfs2_cluster_disconnect(osb->cconn, hangup_pending);
+ 		osb->cconn = NULL;
+-
+-		ocfs2_dlm_shutdown_debug(osb);
+ 	}
+ }
+ 
 _
 
-Patches currently in -mm which might be from odys.yuan@gmail.com are
+Patches currently in -mm which might be from zzzccc427@gmail.com are
 
-selftests-mm-track-the-modules-run_vmtestssh-loads.patch
-selftests-mm-load-xfs-before-checking-for-it-in-run_vmtestssh.patch
+ocfs2-validate-move-extents-against-a-stable-eof.patch
+ocfs2-keep-locking_state-within-the-cluster-connection-lifetime.patch
+ocfs2-wait-for-filecheck-kobject-release-after-a-failed-add.patch
+ocfs2-cache-the-mount-context-for-dentry-lock-callbacks.patch
 
