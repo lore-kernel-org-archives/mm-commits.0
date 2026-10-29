@@ -1,47 +1,47 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793236510;
-	b=ISVKM9W95gnIlJQff4XM15wQ4vVfqQdAFeVo7vbs+hH8i4zNsEe3S0k1XjOXzwLjuhw0
-	 +vXz7P9fANeWX8YyqnWIAnw1av+hYRFu7shbmViUb4be8/PB4YkME74tVRX8caxdD0HAx
-	 uRW54NEONZAhFzuQnOA0NHarSRi9HknRZ0MBDXNtHYK3kJfdfN5DYpKk3zAlDGCmQ1leD
-	 ANd52l24x7R0ZtM3R7mkU9L7YMPKp/aXodkgNsQ6AwUGyuw6y51/+UHvKvmAUOss8OTyE
-	 jNwKlLB2A071LGkbwfZGhj84YHDugxTFUhyQ5uQer9lU945zE3qIGv2yy05W0Z4KF4A==
+	t=1793246699;
+	b=UqS0QqWva2/mCTP5W5wP1loS3p5ZHfRwtr1qZ8LJRLDdsThSq3HoWun9sIbegow1r6of
+	 QJ209YVkPeGRKtS21Z1xhWKRH+o74ydgDRQXcGy5WZ3ijSnlji5yRwOtZWxMiUJs5xMvd
+	 qF08G/MDsdL6fo75uatA4Q8Wrs8inPD57KGwVZJ65g+puuTraKPVpfVLPeaK96TTQe7eb
+	 QDneEW/+rhfMsVJe1biAW//fppzBeZwUVK3u8Qv9Ac4CGoiYwch8zOuFROII0FbtssUJ1
+	 UVt3KlRC4h6j3ILwAx2pFwanOY2aSzf63qHEGbwDzsJiuKe0ByJCiaNz/QsJGLzuuwA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793236510;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793246699;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=fWZs2a0p8OxZhg0dWtEVAe6ZdhWNBF0uqVrm/x0mUdk=;
-	b=vD6S73exZ9/uHd6JTF2Rr5AXqBtrZUKkSQCcedjAojfwgcgSkCcW6KpTIU3Ba5R9dRxi
-	 LuGSYPrNoygw04oG2LDYWPkpssTUqJaS0/HFgS5SZCIrgVJl7ZvECrF5i+JuelNHCJbKL
-	 qwn5W9bmtU6wFIgqBhq2VDBKMjBjqlsBhEMdToDr8J0xzHNQ/I48OGSWfHevudd0NJStd
-	 c2RyFyEEh17X4vV/QiDA575kW9fVRhubaB5OMfQE1R/RevMk20Mzns35cLp6ujnZo+sf6
-	 EVA1+0QSmvlN71t2cvb4+emblPA8ycp3EsEkLYRSYKKYYRAxtEDvebSW8B6ReCzZwjA==
+	bh=joqwICKBL6wS2+bEKwhEhDo73YfQ8GskCkdNCEnQxRA=;
+	b=SERlrzJx1hXRi3DL3KvJZXkKa0uCqUl44iL+QJ3xa/gozb2ZU/g3pIChJxJOc5cQu+Ps
+	 3DWtG4mTd8eiRA0u4Etw8KAAjDdIcZW+ls1z9CsWI6v5mBShmzEoRTEoAv+8lLMaubOkk
+	 niJRRi0ngLSiR6Cad+sv0uvlu3QKzEl96MwIdrca4kx3xtI8vjm0KBinlLgWn8/QMRpec
+	 TsncYvYHYho7OgMpvm5eHvYSWicqRh0Y0FjNdcgkKeRhjBykHfS9NV1eEaT9LLVN08oB7
+	 U5MgbIXq8mVIKkH/Tv7FUDepw23E+WG027tgFt4AKP9zaVwKMXA/Pm/eNvvLa+7u+nQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=XPFvycbc;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=RhqtHiOu;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EBB22606A322;
-	Thu, 29 Oct 2026 01:15:09 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3BE10606A330;
+	Thu, 29 Oct 2026 04:04:58 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=XPFvycbc
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6005D1F01825;
-	Thu, 29 Oct 2026 01:15:09 +0000 (UTC)
+	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=RhqtHiOu
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id BD16C1F01828;
+	Thu, 29 Oct 2026 04:04:58 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1793236509;
-	bh=fWZs2a0p8OxZhg0dWtEVAe6ZdhWNBF0uqVrm/x0mUdk=;
+	d=linux-foundation.org; s=korg; t=1793246698;
+	bh=joqwICKBL6wS2+bEKwhEhDo73YfQ8GskCkdNCEnQxRA=;
 	h=Date:To:From:Subject;
-	b=XPFvycbcEtnfRaJiYjYmxPx67JC8WviwLMaN5c7OaxeuFStd3SuKA2p2/RUkoe9ni
-	 sXFkTaUnewitiKZhoHXZbNWLsP7edutbYNFfwXh8vFgAjy08Gv221QNQGr9teOJ4p8
-	 cf0JmcYvcc/dV6LGkk+zfsUvwLdCC0v0bBuX0ado=
-Date: Wed, 28 Oct 2026 18:15:08 -0700
+	b=RhqtHiOuJkRkHmHTvAW+SnPQVs1axpM7SNeWJoLoV05j2fe9XwsZfg7H6UJtA8vX+
+	 gFk2LLlMfkScP1Cr+Zh1r1m5Dod5SUCCC+QKVlx2XNIyl4BFcP2w8a+S6AneMOlpZT
+	 vSVu3b4rkxpe7uG0DwPFgtutVLGT1NKJXOq8E9bw=
+Date: Wed, 28 Oct 2026 21:04:58 -0700
 To: mm-commits@vger.kernel.org,stable@vger.kernel.org,
-	manfred@colorfullife.com,dave@stgolabs.net,david.laight.linux@gmail.com,
+	manfred@colorfullife.com,david.laight.linux@gmail.com,dave@stgolabs.net,
 	akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + ipc-msg-fix-saturation-of-percpu-counts-in-msgctl_info.patch added to mm-nonmm-unstable branch
-Message-Id: <20261029011509.6005D1F01825@smtp.kernel.org>
+Subject: + ipc-msg-clamp-negative-statistics.patch added to mm-nonmm-unstable branch
+Message-Id: <20261029040458.BD16C1F01828@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -53,12 +53,12 @@ Precedence: list
 
 
 The patch titled
-     Subject: ipc/msg: fix saturation of percpu counts in msgctl_info()
+     Subject: ipc/msg: clamp negative MSG_INFO usage counts
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     ipc-msg-fix-saturation-of-percpu-counts-in-msgctl_info.patch
+     ipc-msg-clamp-negative-statistics.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/ipc-msg-fix-saturation-of-percpu-counts-in-msgctl_info.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/ipc-msg-clamp-negative-statistics.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -76,57 +76,79 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: David Laight <david.laight.linux@gmail.com>
-Subject: ipc/msg: fix saturation of percpu counts in msgctl_info()
-Date: Wed, 19 Nov 2025 22:41:01 +0000
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: ipc/msg: clamp negative MSG_INFO usage counts
+Date: Thu, 29 Oct 2026 01:43:24 +0000
 
-While the percpu_counter_sum() values are unlikely to be large the code
-tries to saturate them using min_t(int, percpu_counter_sum(), INT_MAX)
-This just doesn't work since the high bits are all masked and then the
-(possibly negative) value assigned.
+MSG_INFO can report negative message and byte counts during ordinary queue
+traffic.  For example, ipcs -q -u prints a negative header count and can
+convert a negative byte count into an enormous unsigned used-space value.
 
-When aggregate System V message queue usage exceeds INT_MAX, MSG_INFO
-returns wrapped statistics instead of saturating them.  At 2 GiB of queued
-data the byte count becomes negative, and at 4 GiB it becomes zero. 
-Consequently, ipcs -q -u can display an enormous used-space value or
-report no queued data despite substantial usage.  Monitoring programs
-using this interface can therefore substantially underreport or overreport
-resource consumption.  The bug affects statistics; it does not corrupt
-queued messages or alter queue-limit enforcement.
+percpu_counter_sum() does not take an atomic snapshot of all CPUs.  While
+a third CPU sums the counters, it can read the sending CPU's local count
+before an enqueue and the receiving CPU's local count after the matching
+dequeue.  The sampled total is then negative, even if the queue was
+initially empty and is empty again.  The sum's lock serializes folding
+into the global count, but not ordinary local counter updates.  Queue
+locking does not serialize these updates with the statistics reader.
 
-Replace the min_t() with a plain min().
+Use percpu_counter_sum_positive() for both usage counters before applying
+the upper clamp.  Keep the comparison in s64 so the result is not narrowed
+before saturation.
 
-Link: https://lore.kernel.org/20251119224140.8616-6-david.laight.linux@gmail.com
+This bounds the reported usage without making the statistics an atomic
+snapshot.  Message delivery and queue-limit enforcement are unchanged.
+
+This is a follow-up to David Laight's "ipc/msg: Fix saturation of percpu
+counts in msgctl_info()".
+
+Validated with a source-extraction regression harness, including a forced
+three-CPU sampling trace and failing old-code controls.  No running-kernel
+reproduction or kernel build was performed.
+
+Backporting: kernels such as v6.1 and v6.6 require matching min() operand
+types.  Use min_t(s64, ...) instead of min() on those kernels.  For trees
+still using min_t(int, ...), also retain the s64 upper clamp; the separate
+standalone variant includes both adjustments.
+
 Fixes: 72d1e611082e ("ipc/msg: mitigate the lock contention with percpu counter")
-Signed-off-by: David Laight <david.laight.linux@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+Cc: David Laight <david.laight.linux@gmail.com>
 Cc: Davidlohr Bueso <dave@stgolabs.net>
 Cc: Manfred Spraul <manfred@colorfullife.com>
 Cc: <stable@vger.kernel.org>
 ---
 
- ipc/msg.c |    6 ++----
- 1 file changed, 2 insertions(+), 4 deletions(-)
+ ipc/msg.c |   10 ++++++----
+ 1 file changed, 6 insertions(+), 4 deletions(-)
 
---- a/ipc/msg.c~ipc-msg-fix-saturation-of-percpu-counts-in-msgctl_info
+--- a/ipc/msg.c~ipc-msg-clamp-negative-statistics
 +++ a/ipc/msg.c
-@@ -501,11 +501,9 @@ static int msgctl_info(struct ipc_namesp
+@@ -501,10 +501,12 @@ static int msgctl_info(struct ipc_namesp
  	max_idx = ipc_get_maxidx(&msg_ids(ns));
  	up_read(&msg_ids(ns).rwsem);
  	if (cmd == MSG_INFO) {
--		msginfo->msgmap = min_t(int,
--				     percpu_counter_sum(&ns->percpu_msg_hdrs),
-+		msginfo->msgmap = min(percpu_counter_sum(&ns->percpu_msg_hdrs),
- 				     INT_MAX);
--		msginfo->msgtql = min_t(int,
--		                     percpu_counter_sum(&ns->percpu_msg_bytes),
-+		msginfo->msgtql = min(percpu_counter_sum(&ns->percpu_msg_bytes),
- 				     INT_MAX);
+-		msginfo->msgmap = min(percpu_counter_sum(&ns->percpu_msg_hdrs),
+-				     INT_MAX);
+-		msginfo->msgtql = min(percpu_counter_sum(&ns->percpu_msg_bytes),
+-				     INT_MAX);
++		msginfo->msgmap = min(
++			percpu_counter_sum_positive(&ns->percpu_msg_hdrs),
++			INT_MAX);
++		msginfo->msgtql = min(
++			percpu_counter_sum_positive(&ns->percpu_msg_bytes),
++			INT_MAX);
  	} else {
  		msginfo->msgmap = MSGMAP;
+ 		msginfo->msgpool = MSGPOOL;
 _
 
-Patches currently in -mm which might be from david.laight.linux@gmail.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-ipc-msg-fix-saturation-of-percpu-counts-in-msgctl_info.patch
+openrisc-export-mulsi3.patch
+maintainers-add-ipc-maintainers.patch
+profile-account-for-partial-proc-profile-reads.patch
+profile-simplify-proc-profile-read-layout.patch
+ipc-msg-clamp-negative-statistics.patch
+drivers-media-v4l2-core-v4l2-vp9c-reduce-inlining.patch
 
