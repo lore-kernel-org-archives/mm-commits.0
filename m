@@ -1,46 +1,46 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793312171;
-	b=WB+bEThnNyJ986RBP1gtt30stzF/VonRTNWqmHLgMgKAOxHzv2fwgsnducTC4j+psJaL
-	 rHyflPeRc2dBtIXvkdvvCX71zu/7Y9/wPWcU56kMjfHkX0p+/P4aPi2AGmfASipSXkCYj
-	 1Mle65trJHYAwFu6mNcfzrsC5h2NwfXiCfglcU+REphW/N0G7a+lLK3jk0ENSFQx1uVw5
-	 xIsBXfSCptSXFncfJIF9sWJFDt/zTG9HkKLAxaubojc3vQo3BQa0csvdtf+tvnx4z8fO+
-	 L+1rCPhKgHDdHFOuAvQ2MPnpA2cvS1DoFa/wVhISSnoF0VBu/LAmMjkKNy31UAznrLQ==
+	t=1793312191;
+	b=jLUCGToPywZePVj9V5fEkoaYEfycNGdIpR6H0b74lZVe2wRoJXtBqX6SUelIfIFwvslJ
+	 efBeXGACyMyCrAZQq2aGH5n2EK+z2lFReNaIFJyzYrrWsLxTJG5FZTdyBg8HzsUjSgXUT
+	 0kpRuRofv0wyA8nDGxj9NbGZ77mkwuuSQFExVQqYQ8RwRqf5n0IsNAEVnCl2g14CxHOhJ
+	 7O8gKJuOMVq/VqPKtCi7nQFsFvpy5mMDpnLBeX1frdxB3Ltn/CR3j/X7/ShyXL13UNrJ2
+	 LpxQs2zTxOQ2157QbalB8UQNpV+qpdmyFOd+MUQ7LRvuwoTJt2lWQfXWj5DjK3cS4/Q==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793312171;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793312191;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=xDZQNAfKTO7XbJ/+QmMm3qCBBFVv1E36vsoVJ/Otzqg=;
-	b=xTEf37t7ckr0aDxWuL+DXoaDZWitEAwNKbWTF/04FQByadp6Y0VXfEAmqFuymeVHbt2W
-	 NpAVLe2sKQVCSvu0y6QrDcFdtXyFKdKIh3ip8SkWw1ZU120GfjO9YPRdKWiHRzQ+KDsa4
-	 AmrpM4U5G6msGuIFW4CAtK5GP50v3TgizAkELcfdosyHjjjoF0uAfgK3BgFJK6mUnDp0C
-	 4noWcZOAMwFSdV3NhkPI48Scan9Ig/lDcIlZsdxKVLbf7D3QVKdtvjais1iKR7V1vM92j
-	 X7qlFhwE9wFBHJnJp1t/vgw9SmUF9ezOSK+BowTgPtRu4WPaZncZCg8HtGl8h8PkITQ==
+	bh=Qjhy7wAlm7HLIhon9TeUbKAxaVHpkybb2oS0ncQ6mwg=;
+	b=wDpF0sNNrZRxxyLOHYRp2qLh30FlrX5I6PdEb5+w0rjA6P8CtYCR/tND+xDPOS3ZMN50
+	 Psf6ieZGbflBC5oWF+PsFRFPHGWmHWZbIIJmakeOdOWUPei49UmZnZspeiSDBr32WJKN2
+	 FgRDY3aLTiyPSop+9xDtxYCXID+YCL7RFg7gyd6PhCMKlCUB8Wj+h+CMwR27Chd7tkPaa
+	 MONUcW1u6YFRql+ibIryO3VB3ANUK1WrCNpMVcJrbGPjgtElW8Nuo+dt9o7Aw9h7McgI8
+	 V2sWxFCAoTLRIN7fkvcSvyB8ZAgR/pFC61G6Z1xYOiLiVw0QcJm6F+xu9u4DcIGYBQA==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b="U/U0Lm6k";
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=gxvvnrCc;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E26E4606A31A
-	for <mm-commits@vger.kernel.org>; Thu, 29 Oct 2026 22:16:10 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 955AB606A31C
+	for <mm-commits@vger.kernel.org>; Thu, 29 Oct 2026 22:16:31 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=U/U0Lm6k
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A460D1F01816;
-	Thu, 29 Oct 2026 22:16:10 +0000 (UTC)
+	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=gxvvnrCc
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2C4D61F01816;
+	Thu, 29 Oct 2026 22:16:31 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1793312170;
-	bh=xDZQNAfKTO7XbJ/+QmMm3qCBBFVv1E36vsoVJ/Otzqg=;
+	d=linux-foundation.org; s=korg; t=1793312191;
+	bh=Qjhy7wAlm7HLIhon9TeUbKAxaVHpkybb2oS0ncQ6mwg=;
 	h=Date:To:From:Subject;
-	b=U/U0Lm6kXKlnIGp0djiHGsKU7gfBqtbGvN/tR0QpDYtHk1/gL5m8wa7VWrVHx809B
-	 jOcdJNwiv4Er8D3ZE3OaHiPmVC+H08bmAZwodzFz0NLaSP5k9k+H36maChDsVfvcht
-	 vEwqoKD7xrbYC5AA63sLvssM2jJIJgIsZm0ZicEg=
-Date: Thu, 29 Oct 2026 15:16:10 -0700
+	b=gxvvnrCca7pvSC507u56RsJ+FnzQoguiZR60PRHaMSfW9pRCBOLaZg+nlKp1TEGkU
+	 BeU1I43NDqY2fkLQkSxz/adIWs/J73Pqu/r6ttZFxxWcMO0uUNeJ7lFPpEBa/Bj0PO
+	 JRgquddWW8n/ZAdwlCXj2LXnSv00Ddt/cSjhkF7w=
+Date: Thu, 29 Oct 2026 15:16:30 -0700
 To: mm-commits@vger.kernel.org,hirofumi@mail.parknet.co.jp,brauner@kernel.org,
 	dennylin0707@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + fat-fix-parent-link-count-when-replacing-a-sibling-directory.patch added to mm-nonmm-unstable branch
-Message-Id: <20261029221610.A460D1F01816@smtp.kernel.org>
+Subject: [to-be-updated] fat-fix-parent-link-count-when-replacing-a-sibling-directory.patch removed from -mm tree
+Message-Id: <20261029221631.2C4D61F01816@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -51,28 +51,12 @@ List-Owner: <mailto:mm-commits+owner@vger.kernel.org>
 Precedence: list
 
 
-The patch titled
+The quilt patch titled
      Subject: fat: fix parent link count when replacing a sibling directory
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+has been removed from the -mm tree.  Its filename was
      fat-fix-parent-link-count-when-replacing-a-sibling-directory.patch
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/fat-fix-parent-link-count-when-replacing-a-sibling-directory.patch
-
-This patch will later appear in the mm-nonmm-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via various
-branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there most days
+This patch was dropped because an updated version will be issued
 
 ------------------------------------------------------
 From: Hungyu Lin <dennylin0707@gmail.com>
@@ -131,5 +115,4 @@ Patches currently in -mm which might be from dennylin0707@gmail.com are
 
 mm-page-writeback-avoid-32-bit-overflow-in-dirty-threshold-shares.patch
 mm-migrate-untag-addresses-when-querying-page-nodes.patch
-fat-fix-parent-link-count-when-replacing-a-sibling-directory.patch
 
