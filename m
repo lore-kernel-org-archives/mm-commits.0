@@ -1,41 +1,41 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793254764;
-	b=Dp2fLodIMH0SiMGYbvXH7lhzQsE3MIYlCYFAbX6QUdjjyrdEBEKxu7pBR2xdcHhJaeFL
-	 BY/5ANAuFhwP6gbPqZnkpX7CNy84U6bye1IYHOe52UEFodwMUwacQ1uZZVXIpLWSP5cw8
-	 odZKCiaRBvc12Ad2+ZFc6FUeb8wPjl8f2kceSvE5+W6rrrTiEsXbZc13WuY4ZgsckG7qP
-	 A1TvcCP1do8QdlPos22/Ekk00KweBn9WJC2scnLOl4W4SZf5nlwmN8bfVpIYU5S4uX/hT
-	 8svUQQH3hJ/XEjJgz4uD3vp9onP5rJujqlOsWNzORyEqZh8bwCIELe2PJZjlpmi3LCg==
+	t=1793254765;
+	b=gKAEYJNweW29EFsGEzCukQNx5YSNa7KUZeR3oNebdvz6aa/uXQUa+GkhcLcIx5PKwLX1
+	 Bb7NHoZGC9PHwF2oxiACnrn4gAENvi6e83apO0u0tdleksAdv+gDjg/nEpOtn+ptrs37h
+	 W1dToX5YT67s46nrlLUSiVsPlAxJoLeG6NVmaxuJv+KRbG4d3yzVNRLK4PVCxetuu6qC1
+	 j7OGBwIsJDYEQVuhL52+6eVZ766E6jAPdhAF8BxFK6w0NzXoSBHqN8KePKXksZwvD+bZq
+	 y4W+hXWP/P/fZ9KbMvGLTl+GoWiZGd+2B5z85zIfco6KhBmk+jEIk8uOePGoU1Mlp6A==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793254764;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793254765;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=3Fc9uv+iksRnKIJXoxoj0ujWd9bvWIL0zA4pZkIlb4s=;
-	b=RFAJTURMl/Q0oNYPcchRzRWKeyldmWXQCszDjhMOpQ2D9PBvHKPGO4KvVy3SI/DebhAv
-	 TovBVL/6Vaev4YhuJ1QJDqkk6SnIqXimXyWIz4lGN1XomjLPtrV1wuisQQbrwC2MKfw2B
-	 xXPvGPLcRSfJpCA2XhvgomCaA+ywN/R7HLplNAhh13scDekBc0R8UcD9e6TFXsu9B4/g1
-	 oCWsoTfe9h3wx/cNEgDOQx4ak4cbpiUwYgDnr6s7DOdCl8G2baLDhH6Za9H4ogjknkyz+
-	 QFqA06g0ceKrgOuR8m/j/UPNWxq7gWI8LWyFtL2JsfTHQ2VZU1wcg2zaHIEbSRY+N3w==
+	bh=PtwGjg0iVho9apmc0xSKrGloO1B/7UUygKrvrBx8r3E=;
+	b=rOxr2Wuch4Nv7W5B0eEbIq/G4h1Lyalnt/bM+u5H68jIZuEOt7fR7Kb0vtwZX5lG0B5M
+	 nYJ1pgEkYuBfxwHOyMjx2xFfelKMFGHlQmN6DCgL4xxVb+FP5lk2suZ+kQUzrITZOYX4T
+	 RrrnbY1SClV61AoR6q84MT1fJLw9HTIoLyWP1o7A+wwA6IZnI7nbPEd7R5cLCh7eyJp5p
+	 czqztCebP9nee2GK1Er9k6Cuzpm3jWsYk4KitBycaP/ai1lb1NgTTwe9KvbB76AOPplfv
+	 eul+CtT2m1ElQRoMi+BPMi4szURqFRSrpzFP+uvJLGgYGAX9KDGCm/Qwd5GiNdBkWPw==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=O8o6Tsh6;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=Zmh1rd29;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E6A2F606A322
-	for <mm-commits@vger.kernel.org>; Thu, 29 Oct 2026 06:19:23 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9FD9E606A327
+	for <mm-commits@vger.kernel.org>; Thu, 29 Oct 2026 06:19:25 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=O8o6Tsh6
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7CA301F01825;
-	Thu, 29 Oct 2026 06:19:23 +0000 (UTC)
+	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=Zmh1rd29
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 657061F01825;
+	Thu, 29 Oct 2026 06:19:25 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1793254763;
-	bh=3Fc9uv+iksRnKIJXoxoj0ujWd9bvWIL0zA4pZkIlb4s=;
+	d=linux-foundation.org; s=korg; t=1793254765;
+	bh=PtwGjg0iVho9apmc0xSKrGloO1B/7UUygKrvrBx8r3E=;
 	h=Date:To:From:Subject;
-	b=O8o6Tsh6u1jipoKrRfgr7Rvjz+aSVI4dZCBWQ2W/gNeSRswFSvL5Ps7OAP0gsMH/h
-	 Pkko7ocS9I7xSTmzfwScJGBhBX9N0by68q//3pQ8O2L4V6B9Glj5BXvma1QNco1S+/
-	 jqwP/JKlQqmRG0q6qU6zIibTn5jj9t7CcZcqSqtI=
-Date: Wed, 28 Oct 2026 23:19:23 -0700
+	b=Zmh1rd29Rv8487CpKxhcrD4w3fopKOxnEuaxzoxtM1qQFC+/LMVYGyDb3diS24OrJ
+	 bR9yr5xwuyqRjVZ19oMwCj10aKE1xCOfK7g/q8uhOa6vW+iysbCrbz1n6Nw/vPkPT1
+	 FNO8vLCzV1SK+Nyca2VlFHM3L1imrwzVAV37bH7g=
+Date: Wed, 28 Oct 2026 23:19:24 -0700
 To: mm-commits@vger.kernel.org,willy@infradead.org,tzimmermann@suse.de,
 	tursulin@ursulin.net,skhan@linuxfoundation.org,simona@ffwll.ch,
 	ryan_chen@aspeedtech.com,rodrigo.vivi@intel.com,rdunlap@infradead.org,
@@ -48,8 +48,8 @@ To: mm-commits@vger.kernel.org,willy@infradead.org,tzimmermann@suse.de,
 	andi.shyti@linux.intel.com,andi.shyti@kernel.org,alexander.deucher@amd.com,
 	airlied@gmail.com,d@ilvokhin.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + drm-amdgpu-switch-to-__nonnull_args-macro.patch added to mm-nonmm-unstable branch
-Message-Id: <20261029061923.7CA301F01825@smtp.kernel.org>
+Subject: + drm-gem-switch-to-__nonnull_args-macro.patch added to mm-nonmm-unstable branch
+Message-Id: <20261029061925.657061F01825@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -61,12 +61,12 @@ Precedence: list
 
 
 The patch titled
-     Subject: drm/amdgpu: switch to __nonnull_args() macro
+     Subject: drm/gem: awitch to __nonnull_args() macro
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     drm-amdgpu-switch-to-__nonnull_args-macro.patch
+     drm-gem-switch-to-__nonnull_args-macro.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/drm-amdgpu-switch-to-__nonnull_args-macro.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/drm-gem-switch-to-__nonnull_args-macro.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -85,8 +85,8 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Dmitry Ilvokhin <d@ilvokhin.com>
-Subject: drm/amdgpu: switch to __nonnull_args() macro
-Date: Wed, 28 Oct 2026 08:19:45 +0000
+Subject: drm/gem: awitch to __nonnull_args() macro
+Date: Wed, 28 Oct 2026 08:19:46 +0000
 
 Commit 22302af28d3f ("cleanup: Annotate guard constructors with
 nonnull") added the macro __nonnull_args() to wrap raw compiler
@@ -96,10 +96,11 @@ Replace __attribute__((nonnull)) with __nonnull_args() to standardize
 nonnull attribute usage across the tree and keep the attribute's quirks
 in one place rather than open-coded at every call site.
 
-Link: https://lore.kernel.org/d57489b8bec240794a7a8aaac6e1e3e0d78ea331.1793027261.git.d@ilvokhin.com
+Link: https://lore.kernel.org/5bfdc1491d297b5e98cf42322c790f06481c28c7.1793027261.git.d@ilvokhin.com
 Signed-off-by: Dmitry Ilvokhin <d@ilvokhin.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 Suggested-by: Miguel Ojeda <ojeda@kernel.org>
+Reviewed-by: Andi Shyti <andi.shyti@linux.intel.com>
 Cc: Alex Deucher <alexander.deucher@amd.com>
 Cc: Christian König <christian.koenig@amd.com>
 Cc: David Airlie <airlied@gmail.com>
@@ -128,23 +129,22 @@ Cc: Randy Dunlap <rdunlap@infradead.org>
 Cc: Andy Shevchenko <andy.shevchenko@gmail.com>
 Cc: Jani Nikula <jani.nikula@intel.com>
 Cc: Andi Shyti <andi.shyti@kernel.org>
-Cc: Andi Shyti <andi.shyti@linux.intel.com>
 ---
 
- drivers/gpu/drm/amd/amdgpu/amdgpu_ttm.c |    2 +-
+ include/drm/drm_gem.h |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/drivers/gpu/drm/amd/amdgpu/amdgpu_ttm.c~drm-amdgpu-switch-to-__nonnull_args-macro
-+++ a/drivers/gpu/drm/amd/amdgpu/amdgpu_ttm.c
-@@ -307,7 +307,7 @@ static int amdgpu_ttm_map_buffer(struct
-  * move and different for a BO to BO copy.
-  *
-  */
+--- a/include/drm/drm_gem.h~drm-gem-switch-to-__nonnull_args-macro
++++ a/include/drm/drm_gem.h
+@@ -566,7 +566,7 @@ static inline void drm_gem_object_get(st
+ 	kref_get(&obj->refcount);
+ }
+ 
 -__attribute__((nonnull))
 +__nonnull_args()
- static int amdgpu_ttm_copy_mem_to_mem(struct amdgpu_device *adev,
- 				      struct amdgpu_ttm_buffer_entity *entity,
- 				      const struct amdgpu_copy_mem *src,
+ static inline void
+ __drm_gem_object_put(struct drm_gem_object *obj)
+ {
 _
 
 Patches currently in -mm which might be from d@ilvokhin.com are
