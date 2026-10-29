@@ -1,47 +1,48 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793246699;
-	b=UqS0QqWva2/mCTP5W5wP1loS3p5ZHfRwtr1qZ8LJRLDdsThSq3HoWun9sIbegow1r6of
-	 QJ209YVkPeGRKtS21Z1xhWKRH+o74ydgDRQXcGy5WZ3ijSnlji5yRwOtZWxMiUJs5xMvd
-	 qF08G/MDsdL6fo75uatA4Q8Wrs8inPD57KGwVZJ65g+puuTraKPVpfVLPeaK96TTQe7eb
-	 QDneEW/+rhfMsVJe1biAW//fppzBeZwUVK3u8Qv9Ac4CGoiYwch8zOuFROII0FbtssUJ1
-	 UVt3KlRC4h6j3ILwAx2pFwanOY2aSzf63qHEGbwDzsJiuKe0ByJCiaNz/QsJGLzuuwA==
+	t=1793246795;
+	b=3WSMa4y3rm0GUuapLbxPsiVJzBIsxzy0peHUfhkMn/LzBv1yLnfnAz9XBAT+5I8qvIf0
+	 /jh/WBpsJ3Z/RQL14WO8QsEIWaVsNxHhu8H3PyGOviLSJbTqqCYr+ueyEMQ9wB/ypN7A5
+	 2Q+UQAeZGDb4j6843B+8WqZUEimDawK5qFXAXSwBayO3kIyPXRGow1TyWyAfdGhtBPQQP
+	 Nry5HSVwTgwmG+JCllYoLT8+fouLlmO8YUkGH6NQsRr95/C5HT/oXQRrl6QT9A9voFLcr
+	 RAcC3GWCSluePNgeytw3mk8yHyojHVK13zfA5vAM78uievwxStYHWTCUmTZzjWknh3w==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793246699;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793246795;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=joqwICKBL6wS2+bEKwhEhDo73YfQ8GskCkdNCEnQxRA=;
-	b=SERlrzJx1hXRi3DL3KvJZXkKa0uCqUl44iL+QJ3xa/gozb2ZU/g3pIChJxJOc5cQu+Ps
-	 3DWtG4mTd8eiRA0u4Etw8KAAjDdIcZW+ls1z9CsWI6v5mBShmzEoRTEoAv+8lLMaubOkk
-	 niJRRi0ngLSiR6Cad+sv0uvlu3QKzEl96MwIdrca4kx3xtI8vjm0KBinlLgWn8/QMRpec
-	 TsncYvYHYho7OgMpvm5eHvYSWicqRh0Y0FjNdcgkKeRhjBykHfS9NV1eEaT9LLVN08oB7
-	 U5MgbIXq8mVIKkH/Tv7FUDepw23E+WG027tgFt4AKP9zaVwKMXA/Pm/eNvvLa+7u+nQ==
+	bh=cNRt4xYmTinvA7xQrkCJU2NU5j/s5L4rhC6iQxwd4RI=;
+	b=Z13daSxq7gra37Y6XArnsQblRo9fEHopMBltIwCSMaJklBTx4O/3q+qEkmG1ta6Joys8
+	 k3nQAFjEkw4FyNX1/nl4ziIy5uOoTcjtcH6Wlcv7Erk3Kkzho5hkUPqKRXNEhK7FUSZXr
+	 QGyMmKAQ+cIH9QE48OC7v572ugNpROholYSEqPERt9PWobrNVBJ82zRguyaiUBIAthsfY
+	 AQ1qc+FgNn5qdADGTQFdpqhCGc8YH0VvEbHpeai1cglY4pQqDuC4DOtUpJ1HdmQ7r1iDF
+	 tZzak2bXSERAVTfcMGCoHOi1mHIBntenJdoJqtQtPdwhX5i6Db9LLkaJj++3HhM8jfA==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=RhqtHiOu;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=HcmFIFob;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3BE10606A330;
-	Thu, 29 Oct 2026 04:04:58 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BDAB3606A31A;
+	Thu, 29 Oct 2026 04:06:34 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=RhqtHiOu
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id BD16C1F01828;
-	Thu, 29 Oct 2026 04:04:58 +0000 (UTC)
+	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=HcmFIFob
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1F4701F01825;
+	Thu, 29 Oct 2026 04:06:34 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1793246698;
-	bh=joqwICKBL6wS2+bEKwhEhDo73YfQ8GskCkdNCEnQxRA=;
+	d=linux-foundation.org; s=korg; t=1793246794;
+	bh=cNRt4xYmTinvA7xQrkCJU2NU5j/s5L4rhC6iQxwd4RI=;
 	h=Date:To:From:Subject;
-	b=RhqtHiOuJkRkHmHTvAW+SnPQVs1axpM7SNeWJoLoV05j2fe9XwsZfg7H6UJtA8vX+
-	 gFk2LLlMfkScP1Cr+Zh1r1m5Dod5SUCCC+QKVlx2XNIyl4BFcP2w8a+S6AneMOlpZT
-	 vSVu3b4rkxpe7uG0DwPFgtutVLGT1NKJXOq8E9bw=
-Date: Wed, 28 Oct 2026 21:04:58 -0700
-To: mm-commits@vger.kernel.org,stable@vger.kernel.org,
-	manfred@colorfullife.com,david.laight.linux@gmail.com,dave@stgolabs.net,
+	b=HcmFIFobNdXbRCc1Bw1vokIuM5bOeyQYeSvgSHFgD7wVT/wX2CCIEa7oTz+GK47GH
+	 iu5lV8ThXGwx/5Th8fG2RvvMX9kXuVJ+aaj9eNBZzANU5x6qx0SxEXh2lYVxkLlJvo
+	 amtJqRqNuSm7ufg3bGeMUb9xSpVjSolwdx45jGdo=
+Date: Wed, 28 Oct 2026 21:06:33 -0700
+To: mm-commits@vger.kernel.org,stefan.kristiansson@saunalahti.fi,
+	stable@vger.kernel.org,shorne@gmail.com,lkp@intel.com,kmehltretter@gmail.com,
+	jonas@southpole.se,brads@mainlining.org,arnd@arndb.de,
 	akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + ipc-msg-clamp-negative-statistics.patch added to mm-nonmm-unstable branch
-Message-Id: <20261029040458.BD16C1F01828@smtp.kernel.org>
+Subject: + openrisc-export-mulsi3.patch added to mm-hotfixes-unstable branch
+Message-Id: <20261029040634.1F4701F01825@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -53,14 +54,14 @@ Precedence: list
 
 
 The patch titled
-     Subject: ipc/msg: clamp negative MSG_INFO usage counts
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     ipc-msg-clamp-negative-statistics.patch
+     Subject: openrisc: export __mulsi3 for modules
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     openrisc-export-mulsi3.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/ipc-msg-clamp-negative-statistics.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/openrisc-export-mulsi3.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -77,70 +78,53 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: ipc/msg: clamp negative MSG_INFO usage counts
-Date: Thu, 29 Oct 2026 01:43:24 +0000
+Subject: openrisc: export __mulsi3 for modules
+Date: Wed Oct 28 06:24:22 PM PDT 2026
 
-MSG_INFO can report negative message and byte counts during ordinary queue
-traffic.  For example, ipcs -q -u prints a negative header count and can
-convert a negative byte count into an enormous unsigned used-space value.
+OpenRISC configurations without hardware multiplication fail to build
+modules which contain compiler-generated calls to __mulsi3.  The failure
+is widespread, affecting filesystems, drivers and KUnit tests at modpost.
 
-percpu_counter_sum() does not take an atomic snapshot of all CPUs.  While
-a third CPU sums the counters, it can read the sending CPU's local count
-before an enqueue and the receiving CPU's local count after the matching
-dequeue.  The sampled total is then negative, even if the queue was
-initially empty and is empty again.  The sum's lock serializes folding
-into the global count, but not ordinary local counter updates.  Queue
-locking does not serialize these updates with the statistics reader.
+When CONFIG_OPENRISC_HAVE_INST_MUL is disabled, the architecture Makefile
+passes -msoft-mul to GCC.  The multiplication helper is supplied by the
+libgcc archive linked into vmlinux, but or32_ksyms.c does not export it. 
+Built-in callers can therefore link while module callers cannot resolve
+the symbol.
 
-Use percpu_counter_sum_positive() for both usage counters before applying
-the upper clamp.  Keep the comparison in s64 so the result is not narrowed
-before saturation.
+Export __mulsi3 alongside the other compiler-generated helpers.
 
-This bounds the reported usage without making the statistics an atomic
-snapshot.  Message delivery and queue-limit enforcement are unchanged.
+The omission predates 7c3f4d699f34 ("resource, kunit: stop selecting
+GET_FREE_REGION"), which the robot identified when reporting an additional
+failing module.  It was already present in the initial OpenRISC export
+list.
 
-This is a follow-up to David Laight's "ipc/msg: Fix saturation of percpu
-counts in msgctl_info()".
-
-Validated with a source-extraction regression harness, including a forced
-three-CPU sampling trace and failing old-code controls.  No running-kernel
-reproduction or kernel build was performed.
-
-Backporting: kernels such as v6.1 and v6.6 require matching min() operand
-types.  Use min_t(s64, ...) instead of min() on those kernels.  For trees
-still using min_t(int, ...), also retain the s64 upper clamp; the separate
-standalone variant includes both adjustments.
-
-Fixes: 72d1e611082e ("ipc/msg: mitigate the lock contention with percpu counter")
+Fixes: 616257669e1a ("OpenRISC: Miscellaneous")
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Cc: David Laight <david.laight.linux@gmail.com>
-Cc: Davidlohr Bueso <dave@stgolabs.net>
-Cc: Manfred Spraul <manfred@colorfullife.com>
+Reported-by: kernel test robot <lkp@intel.com>
+Closes: https://lore.kernel.org/oe-kbuild-all/202610290106.o8Fs3NvO-lkp@intel.com/
+Assisted-by: LLM
+Reviewed-by: Bradley Morgan <brads@mainlining.org>
+Cc: Jonas Bonn <jonas@southpole.se>
+Cc: Stefan Kristiansson <stefan.kristiansson@saunalahti.fi>
+Cc: Stafford Horne <shorne@gmail.com>
+Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: Karl Mehltretter <kmehltretter@gmail.com>
 Cc: <stable@vger.kernel.org>
 ---
 
- ipc/msg.c |   10 ++++++----
- 1 file changed, 6 insertions(+), 4 deletions(-)
+ arch/openrisc/kernel/or32_ksyms.c |    1 +
+ 1 file changed, 1 insertion(+)
 
---- a/ipc/msg.c~ipc-msg-clamp-negative-statistics
-+++ a/ipc/msg.c
-@@ -501,10 +501,12 @@ static int msgctl_info(struct ipc_namesp
- 	max_idx = ipc_get_maxidx(&msg_ids(ns));
- 	up_read(&msg_ids(ns).rwsem);
- 	if (cmd == MSG_INFO) {
--		msginfo->msgmap = min(percpu_counter_sum(&ns->percpu_msg_hdrs),
--				     INT_MAX);
--		msginfo->msgtql = min(percpu_counter_sum(&ns->percpu_msg_bytes),
--				     INT_MAX);
-+		msginfo->msgmap = min(
-+			percpu_counter_sum_positive(&ns->percpu_msg_hdrs),
-+			INT_MAX);
-+		msginfo->msgtql = min(
-+			percpu_counter_sum_positive(&ns->percpu_msg_bytes),
-+			INT_MAX);
- 	} else {
- 		msginfo->msgmap = MSGMAP;
- 		msginfo->msgpool = MSGPOOL;
+--- a/arch/openrisc/kernel/or32_ksyms.c~openrisc-export-mulsi3
++++ a/arch/openrisc/kernel/or32_ksyms.c
+@@ -35,6 +35,7 @@ DECLARE_EXPORT(__divsi3);
+ DECLARE_EXPORT(__umodsi3);
+ DECLARE_EXPORT(__modsi3);
+ DECLARE_EXPORT(__muldi3);
++DECLARE_EXPORT(__mulsi3);
+ DECLARE_EXPORT(__ashrdi3);
+ DECLARE_EXPORT(__ashldi3);
+ DECLARE_EXPORT(__lshrdi3);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
