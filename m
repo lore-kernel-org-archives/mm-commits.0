@@ -1,49 +1,48 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793250805;
-	b=26JUaM4OKsXEkL/MPh+K1uttIThT6YdEbOxrMYwBt2Ja0K50+MVhvapM8Nm/7pGAt3dl
-	 wKC8+urgMTeai2tITuKefD3Hz5d1QBadv3Kb/IkauV5V0LEUS/uXt2Lo4ukvAXr8baIXQ
-	 aCIwp98ic/DY36ya+6kx38Lg3fsfCem3l0N9K6feIBG5ves1ICE1J8YoOJcC35B2Mc8YE
-	 gb+ZHyBBDY6IHeboGhN5oNS1WXMFxMmjdUCHngJeo7E0qpJ0r+dPueR5jj2JhtKYCdNY5
-	 dcOrtL2D3TSUc6EUPi1yCgOmv6wRMkYGIVjayL6fAkBYQd1eIzQCql2xxCL1CDoekVg==
+	t=1793251740;
+	b=hz1n2yz3ibCIY5Bc0SQGuwOGHQv5VUmCAY6r9XrLzOPEz6LVQ220mvpPUC3qet+zwAEJ
+	 ogb8egHiuvNTkywbq/0pd3/QukKOGY61Z507GSYzzLx5WbbHwCZ2Z1CNb81c8cz9JsKlo
+	 Hmh73KloYQce7HO5v7/j9WWtWG4O3BNFQVVvWrvj9OUd04b7U4d6SgsUmsPX2f/aIOdr8
+	 TOJ5gBDvfooOixMlKA67+hCuJVi8asxU03dmpS+tA+1alPQg/NxBx4bwXh8/ZH1trhcpY
+	 An+RvY2tucBIM8XoKGdWIMMAruJOB/evKBIQa9tazDVgYsnUe8OqnDKZsZHTmwahwHg==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793250805;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793251740;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=Foe1vq+NqkuZvbUjaHVfnSKmFDlcFkBCvADLFYwmu70=;
-	b=N1sZFK44q/VRNjeHRI158KJjcjYvXmJG9iqB1BnSJOIzhdy6cusRmR9MKjRCRe6MYsSw
-	 3fQIGtooqbS0pIVngQGFJDpvSTqSNkpzcus5SsvoYtbsD9DH6pPmgk9g11V2xLJBGK0+D
-	 JKxSdHIL3uc2w/JWBcTuqELs5nLrdjAjFt5jJ7WXSihUxdga3nFekfaI7TJkTN98vn0rt
-	 XJ6fRvcCeLzGcsBTr0PzTqJgs8+wUFOxcl8ylyurzOIdyX35ClrQJI8G1FwjejUIx077c
-	 SZdvxlgm0jfftrR9DbbzGMLuXSGer9xOGMOPm0osKkcySkaFYf9PHBsBL+vDPsOgYRw==
+	bh=iUGbBhgVuegGEwbJwljheDN/HF6FIDtwgtvq8E6IK30=;
+	b=ydUXFV0Bfb6pVlaQ/J6uLT334pSB9CVBf4cyUTZOKsbupFMhGZcw84PptTi488lceClu
+	 W9g33ogBKNXOJ0cE6D2dOAETUKL4C8i3FaDxCcXPKZKiFlHdsGvUmk/h3oymNoyRCZC3b
+	 zo+ja8RPqBF4s81hgfT3cOiG2H0qrDlByfpiqoKE1zYw8VKzfmG/B4cdPnnuDuxBtmhfd
+	 mKVgCD6seUBER7F7m6fduuKflpkKEVmUtA87hiPhxFcTJPEIgbhwybIy5SuTViWa0Tja8
+	 GEaWwIA0lEaNWXja305173B9A6uwgPPs/pgYSMc5eBGhUTgl+r8mJtZo9gYDK48Yqhg==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=y+4pAkcq;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=EPkBbjYu;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D7240606A31E;
-	Thu, 29 Oct 2026 05:13:24 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BED96606A31A;
+	Thu, 29 Oct 2026 05:28:59 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=y+4pAkcq
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 597401F01825;
-	Thu, 29 Oct 2026 05:13:24 +0000 (UTC)
+	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=EPkBbjYu
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 538981F01825;
+	Thu, 29 Oct 2026 05:28:59 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1793250804;
-	bh=Foe1vq+NqkuZvbUjaHVfnSKmFDlcFkBCvADLFYwmu70=;
+	d=linux-foundation.org; s=korg; t=1793251739;
+	bh=iUGbBhgVuegGEwbJwljheDN/HF6FIDtwgtvq8E6IK30=;
 	h=Date:To:From:Subject;
-	b=y+4pAkcqT2clpGANyYQFoG7op1jAwECUHY0eE/g434RZu3SsWRyBJ82PzrRgc0IwJ
-	 zhiL97C0x/4RP7gnyrvmI4BiOO1bOCmE2zg0b3uN1iGosUmu7lbuWWe70SdcVZHRmL
-	 oLGOk29KnyVnqKPSbCz4xRF5rLChVKWnEXshxBa4=
-Date: Wed, 28 Oct 2026 22:13:23 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,willy@infradead.org,
-	vbabka@kernel.org,surenb@google.com,stable@vger.kernel.org,mhocko@suse.com,
-	mgorman@techsingularity.net,matt@readmodwrite.com,hch@lst.de,
-	dipiets@amazon.it,dgc@kernel.org,brendan.jackman@linux.dev,
-	hannes@cmpxchg.org,akpm@linux-foundation.org
+	b=EPkBbjYuutoajV49M+qFHeRh/il6RQG42yIKMbtHeU1mOUweMHIm+RV4jd9cZ+h7e
+	 uPXB2dhEwHE/YKQo2SPPZEvsStF9ggzFJ81PDPeOjnyIJnhbB8NmQrlqROKD69eTmj
+	 xj0FAguPlM/jYP1U4r8meOZ8BiFZt/JtsNdCOVDo=
+Date: Wed, 28 Oct 2026 22:28:58 -0700
+To: mm-commits@vger.kernel.org,stable@vger.kernel.org,osalvador@suse.de,
+	muchun.song@linux.dev,mawupeng1@huawei.com,kmehltretter@gmail.com,
+	david@kernel.org,ackerleytng@google.com,enderaoelyther@gmail.com,
+	akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-page_alloc-remove-alloc_non_block-from-alloc_reserves.patch added to mm-hotfixes-unstable branch
-Message-Id: <20261029051324.597401F01825@smtp.kernel.org>
+Subject: [to-be-updated] mm-hugetlb-fix-max-only-subpool-accounting-on-alloc_hugetlb_folio-failure.patch removed from -mm tree
+Message-Id: <20261029052859.538981F01825@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -54,134 +53,105 @@ List-Owner: <mailto:mm-commits+owner@vger.kernel.org>
 Precedence: list
 
 
-The patch titled
-     Subject: mm: page_alloc: remove ALLOC_NON_BLOCK from ALLOC_RESERVES
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mm-page_alloc-remove-alloc_non_block-from-alloc_reserves.patch
+The quilt patch titled
+     Subject: mm/hugetlb: fix max-only subpool accounting on alloc_hugetlb_folio failure
+has been removed from the -mm tree.  Its filename was
+     mm-hugetlb-fix-max-only-subpool-accounting-on-alloc_hugetlb_folio-failure.patch
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-page_alloc-remove-alloc_non_block-from-alloc_reserves.patch
-
-This patch will later appear in the mm-hotfixes-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via various
-branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there most days
+This patch was dropped because an updated version will be issued
 
 ------------------------------------------------------
-From: Johannes Weiner <hannes@cmpxchg.org>
-Subject: mm: page_alloc: remove ALLOC_NON_BLOCK from ALLOC_RESERVES
-Date: Wed, 28 Oct 2026 13:15:54 -0400
+From: Zhao Li <enderaoelyther@gmail.com>
+Subject: mm/hugetlb: fix max-only subpool accounting on alloc_hugetlb_folio failure
+Date: Tue, 28 Apr 2026 19:30:38 +0800
 
-1ebbb21811b7 ("mm/page_alloc: explicitly define how __GFP_HIGH
-non-blocking allocations accesses reserves") stopped handing out reserve
-access for ALLOC_NON_BLOCK on its own: the extra 25% below the min
-watermark is now only granted on top of ALLOC_MIN_RESERVE.  But the flag
-was left in ALLOC_RESERVES, which produces something odd:
+Failed hugetlbfs page allocations can permanently consume the mount's
+size= quota without allocating a huge page.  Repeated failures can make
+the filesystem appear full and cause later huge-page faults or allocations
+to fail with SIGBUS/allocation failure despite available huge pages and
+unused real filesystem capacity.
 
-With the ALLOC_RESERVES match, __zone_watermark_unusable_free() doesn't
-subtract the free highatomic pages for them.  So in the slowpath, they get
-to consume regular blocks below the min watermark by the number of free
-highatomic pages.  The highatomic reserve is capped at 1% of the zone,
-which on any decently sized machine is a multiple of the min watermark:
-GFP_NOWAIT can drain regular memory to zero.
+alloc_hugetlb_folio() calls hugepage_subpool_get_pages() when map_chg is
+set.  For a subpool with max_hpages != -1, that bumps used_hpages
+regardless of whether it returns gbl_chg = 0 (rsv slot consumed) or
+gbl_chg > 0 (used_hpages slot only).  If the allocation later fails before
+a folio is returned, the unwind must undo the used_hpages bump.  The old
+cleanup only ran for !gbl_chg, leaking used_hpages on the gbl_chg > 0
+path.
 
-The user-visible result is brutal hiccups during bursts of GFP_NOWAIT
-allocations under memory pressure.  This was found in review and
-reproduced with a synthetic burst, not observed in production, but the
-sequence of events is a realistic one: On a 32G box with an anonymous
-working set, swap, and a filled 290M highatomic reserve, a GFP_NOWAIT
-burst drove regular free memory in the 28G Normal zone (min=60M) to 28M,
-0.8M and 0.6M in three runs.  Swapout failed to allocate its swap table,
-reclaim scanned 13M pages to reclaim 200k, page faults stalled for tens to
-hundreds of milliseconds.  The machine survives it, but not by design:
-direct reclaimers eventually fail and start unreserving highatomic blocks,
-until the allocation succeeds or the reserve is gone and the OOM killer
-runs.  That reserve exists for high-order atomic allocations; here it is
-destroyed to bail out a GFP_NOWAIT consumer that was never entitled to the
-memory.
+For gbl_chg > 0 on max-only subpools (max_hpages != -1, min_hpages == -1),
+hugepage_subpool_get_pages() took only a speculative used_hpages slot. 
+Drop that slot directly under spool->lock.  In that configuration
+hugepage_subpool_put_pages() cannot restore rsv_hpages, so the direct
+decrement is the exact inverse and is race-free against concurrent puts. 
+This matches the used_hpages-only part of hugetlb_reserve_pages()'s
+out_put_pages cleanup, but restricts it to the max-only case where no
+rsv_hpages restoration is possible.
 
-Remove ALLOC_NON_BLOCK from ALLOC_RESERVES.  With that, the GFP_NOWAIT
-burst is stopped short at the min watermark.  No direct reclaim, no
-stalls, no failed allocations, and the highatomic reserve stays intact for
-the requests it exists for.
+Mounts with min_hpages != -1 are left unchanged for now.  v2's approach
+(hugepage_subpool_put_pages() + h->resv_huge_pages++ to back a restored
+rsv_hpages slot) double-counts global backing under concurrent
+free_huge_folio() and creates phantom reservations under concurrent
+hugetlb_unreserve_pages().  Safe cleanup of that quadrant needs a
+coordinated fix across multiple call sites.
 
-__zone_watermark_ok() is unaffected, since everything it keys on
-ALLOC_NON_BLOCK is already nested under ALLOC_MIN_RESERVE.  Update the
-flag comments accordingly: ALLOC_NON_BLOCK just means the caller can't
-block; the reserve math belongs with ALLOC_MIN_RESERVE.
+Reproduced on size=20M hugetlbfs with the faulting task in a hugetlb
+cgroup whose limit is exceeded.  Vanilla leaks 6/8 hugepages of subpool
+quota; this patch leaks 0/8.  Verified under QEMU.
 
-GFP_ATOMIC order-0 requests have a milder version of the same problem. 
-Through ALLOC_MIN_RESERVE they also count the free highatomic pages in
-their watermark check, but rmqueue_buddy() serves them regular pages first
-and only falls back to the reserve once those are gone.  They can still
-push regular free memory to 37.5% of min minus the free highatomic pages
-before the reserve is touched.  Unlike GFP_NOWAIT they are entitled to the
-reserve, so this needs the watermark check and the freelist order reworked
-together, and is left to a separate patch.
-
-Link: https://lore.kernel.org/20261028171719.2043421-3-hannes@cmpxchg.org
-Fixes: 1ebbb21811b7 ("mm/page_alloc: explicitly define how __GFP_HIGH non-blocking allocations accesses reserves")
-Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
+Link: https://lore.kernel.org/20260428113037.88766-2-enderaoelyther@gmail.com
+Fixes: a833a693a490 ("mm: hugetlb: fix incorrect fallback for subpool")
+Signed-off-by: Zhao Li <enderaoelyther@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Cc: Vlastimil Babka <vbabka@kernel.org>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Salvatore Dipietro <dipiets@amazon.it>
-Cc: Christoph Hellwig <hch@lst.de>
-Cc: Dave Chinner <dgc@kernel.org>
-Cc: Matt Fleming <matt@readmodwrite.com>
-Cc: Mel Gorman <mgorman@techsingularity.net>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Brendan Jackman <brendan.jackman@linux.dev>
-Cc: Zi Yan <ziy@nvidia.com>
-Cc: <stable@vger.kernel.org>
+Tested-by: Ackerley Tng <ackerleytng@google.com>
+Tested-by: Karl Mehltretter <kmehltretter@gmail.com>
+  Link: https://lore.kernel.org/20260923065714.20781-1-kmehltretter@gmail.com
+Cc: David Hildenbrand <david@kernel.org>
+Cc: Ma Wupeng <mawupeng1@huawei.com>
+Cc: Muchun Song <muchun.song@linux.dev>
+Cc: Oscar Salvador <osalvador@suse.de>
+Cc: <stable@vger.kernel.org> # v6.15+
 ---
 
- mm/page_alloc.h |   11 +++++------
- 1 file changed, 5 insertions(+), 6 deletions(-)
+ mm/hugetlb.c |   25 ++++++++++++++++++-------
+ 1 file changed, 18 insertions(+), 7 deletions(-)
 
---- a/mm/page_alloc.h~mm-page_alloc-remove-alloc_non_block-from-alloc_reserves
-+++ a/mm/page_alloc.h
-@@ -32,12 +32,11 @@
- #define ALLOC_OOM		ALLOC_NO_WATERMARKS
- #endif
+--- a/mm/hugetlb.c~mm-hugetlb-fix-max-only-subpool-accounting-on-alloc_hugetlb_folio-failure
++++ a/mm/hugetlb.c
+@@ -3121,13 +3121,24 @@ struct folio *alloc_hugetlb_folio(struct
+ 	return folio;
  
--#define ALLOC_NON_BLOCK		 0x10 /* Caller cannot block. Allow access
--				       * to 25% of the min watermark or
--				       * 62.5% if __GFP_HIGH is set.
--				       */
-+#define ALLOC_NON_BLOCK		 0x10 /* Caller cannot block. */
- #define ALLOC_MIN_RESERVE	 0x20 /* __GFP_HIGH set. Allow access to 50%
--				       * of the min watermark.
-+				       * of the min watermark, or 62.5% if
-+				       * the caller cannot block either
-+				       * (ALLOC_NON_BLOCK).
- 				       */
- #define ALLOC_CPUSET		 0x40 /* check for correct cpuset */
- #define ALLOC_CMA		 0x80 /* allow allocations from CMA areas */
-@@ -58,7 +57,7 @@
- #define ALLOC_NO_CODETAG       0x1000
+ out_subpool_put:
+-	/*
+-	 * put page to subpool iff the quota of subpool's rsv_hpages is used
+-	 * during hugepage_subpool_get_pages.
+-	 */
+-	if (map_chg && !gbl_chg) {
+-		gbl_reserve = hugepage_subpool_put_pages(spool, 1);
+-		hugetlb_acct_memory(h, -gbl_reserve);
++	if (map_chg) {
++		if (!gbl_chg) {
++			/* Full inverse when subpool_get_pages() consumed rsv_hpages. */
++			gbl_reserve = hugepage_subpool_put_pages(spool, 1);
++			hugetlb_acct_memory(h, -gbl_reserve);
++		} else if (gbl_chg > 0 && spool && spool->min_hpages == -1 &&
++			   spool->max_hpages != -1) {
++			unsigned long flags;
++
++			/*
++			 * For max-only subpools, subpool_get_pages() took only a
++			 * speculative used_hpages slot. Drop that slot directly.
++			 */
++			spin_lock_irqsave(&spool->lock, flags);
++			if (spool->used_hpages > 0)
++				spool->used_hpages--;
++			unlock_or_release_subpool(spool, flags);
++		}
+ 	}
  
- /* Flags that allow allocations below the min watermark. */
--#define ALLOC_RESERVES (ALLOC_NON_BLOCK|ALLOC_MIN_RESERVE|ALLOC_HIGHATOMIC|ALLOC_OOM)
-+#define ALLOC_RESERVES (ALLOC_MIN_RESERVE|ALLOC_HIGHATOMIC|ALLOC_OOM)
- 
- /* Flags that mean GFP_ATOMIC */
- #define ALLOC_MASK_ATOMIC (ALLOC_NON_BLOCK|ALLOC_MIN_RESERVE)
+ out_end_reservation:
 _
 
-Patches currently in -mm which might be from hannes@cmpxchg.org are
+Patches currently in -mm which might be from enderaoelyther@gmail.com are
 
-mm-page_alloc-do-not-give-all-non-blocking-requests-reserve-access.patch
-mm-page_alloc-remove-alloc_non_block-from-alloc_reserves.patch
 
