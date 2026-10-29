@@ -1,47 +1,47 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793312085;
-	b=dC44kWE/Nk3DI6Z/xikpeg+JMsGBgAmXPDfbE4Qq+sd3tWg+XGGZbEdbZeuwWwiP1StE
-	 evU0xZTMTaOkaz/Qs3EH2uT7g8zoelniXodjvnv0TJbq8u1ZWJv/j2YCvkpggvWfD/Vdt
-	 JqxfZZJ60MtMcMF/bQrd852RXCmlhfoj3/EP3GG/OSdii+yUpaXU6XWfW6tui2zbm1XwF
-	 /uSeyqbc/szjdcE8v5cdxXjorn6NTX58ATMUbXN/UYvTHiLRiDmRBa1GQGeXAl8az2UCP
-	 AWGen9ZaLT14XmtSMMnfhxSrIOpldLKwpxnZD9WJgs0grG7LsgXbsWyUyOYEZrLFM0w==
+	t=1793312087;
+	b=ozeZSsAs/GGOH2bNe1Pz0mq65Yoh1p/u+tl+byjxr6qzpbYCH3zDt3+A5oHME+D4dUkC
+	 U0JGdz4vEAUDmDC8w3kxmrIGtcbUcCTNBcadTSAV3kmOQ7OTsJyc2zBLPAeLlBX3ewKHE
+	 XJ9OL/ScpZDZg/ySeQpJoyClbJ7ZXppRjSICg8EF0WhR5zf64AN54khPbQuvAoMPhFSM9
+	 0eSkqngvUBwHmdIBXRIl5DGkjzRGesLRilicV4esw5Zdj1Y0mShRraOwv4Uz+fCrjpFAT
+	 CsKgH/KolV838GCZa1co7bisDGnR47GMHr1vmz3+sr+hHjlKG67Yx3kGiDGVesDXRbQ==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793312085;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793312087;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=jgsNiyGVA6BKWsOLraiGovXKLDg2PCXLMv7OZVWZLc0=;
-	b=U6lbXiziCOP0r89lbPtnSzXKEhugk1+hW7TrdjukqHkT3KOfRQCyQOW7PJRRNH53qhKK
-	 abJ8R0JOvtBpmnHQOQqo0nQ5DggQG4fOlWxyRS7qrgiqIJy+vTSOit5HkF0Cf4teL7RBN
-	 IFOVavSUAzhgXONAYm5H5mj6ddOc6VlDuD87RHo0iT/M9VkdfRbcIfqH/S5abXyb2JJcL
-	 R0qQKiCj+F1QFyl/v996ICkdXlyrCfc7KdEG6V9xMKKKRklJ+xCm+UojkE9e9okevqYLY
-	 n3uSzGo/k9+6U6rKNqxug8Fcv0JR8eOLjwmKAFKdvd979+OW3MaUAm+hl/Do4u1VF4g==
+	bh=tmyCnl1qvRQ7dIcOzGQPMNziIbKKzNRsJXJzafXsiEg=;
+	b=23ghHLP8jrKXXIBqNWxiE/UX3AmQeqGAvcdb50ePW/S9z4Jwtxk6nrAdYX6DMI1BVVvV
+	 6iGHETKfWGzqg7lpKHmB14IVxt0Fa5Hb5Pa3IJAIySQ3kC305i01C/S3uXZDHt8HWT/Wn
+	 Q3vf8zNIEFUQ5R5X06/YkURqXvgAp92qShdMslW0rJlhSlmrhtjjuJbxffQ7fM6RHAQhZ
+	 NQMcM2xbnG7RxIV1hlRMvZRcobHjBbbAa4gsajSkftVUPxXZCPwPsZGBrxJwi6iIGPPRm
+	 hv9XFfiNHdU49cezsRnyKp0UCbYN2UqOqwmezLsgnNzlo5zvh3YNgk414YI/rWRqALQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b="rXtb/UjH";
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=cu8qut59;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EA7EA606A31A
-	for <mm-commits@vger.kernel.org>; Thu, 29 Oct 2026 22:14:44 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AD97A606A31A
+	for <mm-commits@vger.kernel.org>; Thu, 29 Oct 2026 22:14:46 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=rXtb/UjH
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5C6241F01816;
-	Thu, 29 Oct 2026 22:14:44 +0000 (UTC)
+	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=cu8qut59
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4853F1F01816;
+	Thu, 29 Oct 2026 22:14:46 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1793312084;
-	bh=jgsNiyGVA6BKWsOLraiGovXKLDg2PCXLMv7OZVWZLc0=;
+	d=linux-foundation.org; s=korg; t=1793312086;
+	bh=tmyCnl1qvRQ7dIcOzGQPMNziIbKKzNRsJXJzafXsiEg=;
 	h=Date:To:From:Subject;
-	b=rXtb/UjHoVwI2POXqU0a/lXHAmPa1hHyFSdlObhTOQpYX1fTTiyH84c+EF7+H0sUH
-	 cJ99hYI/aDN4fSa6A4VWhe6AwRckRnSN9Si1FPEF1po7IVp55QCZJrSmSDl/fNf7A3
-	 6wxKoMfA2yMjr9Gf6EZBOvUG9vuE+BC21VEGK/eg=
-Date: Thu, 29 Oct 2026 15:14:43 -0700
+	b=cu8qut59MNfS3y4HSRrZGb+jxfWHlK7oJfQZfvQcJU1UjQayxZytQtAemBAu6gv1s
+	 neI8gr1WtX5dUgofVWJhg5XbA+hw3b5kdGCAdjWvxQwk9bMP5CUUZMadsW1V3GW5wP
+	 Qv/WB3ITB1Ue3F4i7e7Hnue87L5GhxLCSjIChKnE=
+Date: Thu, 29 Oct 2026 15:14:45 -0700
 To: mm-commits@vger.kernel.org,shakeel.butt@linux.dev,
 	roman.gushchin@linux.dev,muchun.song@linux.dev,mhocko@kernel.org,
 	hannes@cmpxchg.org,kuniyu@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + memcg-remove-unnecessary-read_once-under-memcg_stocklock.patch added to mm-new branch
-Message-Id: <20261029221444.5C6241F01816@smtp.kernel.org>
+Subject: + memcg-reduce-nesting-in-consume_stock-and-refill_stock.patch added to mm-new branch
+Message-Id: <20261029221446.4853F1F01816@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -53,12 +53,12 @@ Precedence: list
 
 
 The patch titled
-     Subject: memcg: remove unnecessary READ_ONCE() under memcg_stock.lock.
+     Subject: memcg: reduce nesting in consume_stock() and refill_stock().
 has been added to the -mm mm-new branch.  Its filename is
-     memcg-remove-unnecessary-read_once-under-memcg_stocklock.patch
+     memcg-reduce-nesting-in-consume_stock-and-refill_stock.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/memcg-remove-unnecessary-read_once-under-memcg_stocklock.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/memcg-reduce-nesting-in-consume_stock-and-refill_stock.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -88,70 +88,15 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Kuniyuki Iwashima <kuniyu@google.com>
-Subject: memcg: remove unnecessary READ_ONCE() under memcg_stock.lock.
-Date: Thu, 29 Oct 2026 19:44:12 +0000
+Subject: memcg: reduce nesting in consume_stock() and refill_stock().
+Date: Thu, 29 Oct 2026 19:44:13 +0000
 
-Patch series "memcg: Misc cleanup and perf improvement for TCP.", v3.
+A later patch adds more code to the most nested block in
+consume_stock() and refill_stock().
 
-On host w/ AMD EPYC 9B45 128-Core Processor (Zen 5 Turin,
-2 sockets, 512 vCPUs), tcp_rr w/ 20000 flows throughput often
-degrades by ~50%, 32M -> 17M~27M.
+Let's reduce the nesting to make the later change cleaner.
 
-In the bad case, the number of involuntary context switches
-was extremely high by 12x (241733 -> 3093367).
-
-The root cause was that refill_stock() calls memcg_uncharge()
-or drain_stock() while holding memcg_stock.lock.
-
-Patch 1~3 are misc cleanup for better asm output and patch 4
-moves heavy operations to out of local_lock(&memcg_stock.lock).
-
-This series removes the flakiness and gives ~3% gain on the
-512 vCPU platform.
-
-In addition, on machine w/ AMD EPYC 7B12 64-Core Processor
-(Zen 2 Rome, 2 sockets, 256 vCPU), tcp_rr w/ 10000 flows achieves
-36% more throughput with lower latency.
-
-  tcp_rr (10000 flows, 128 threads, 60s, average of 3 runs):
-
-  Metric                     |       Baseline |    Patched |    Diff
-  ---------------------------+----------------+------------+--------
-
-
-This patch (of 4):
-
-this_cpu_ptr(&memcg_stock)->{cached[],nr_pages[]} are always
-modified under local_lock(&memcg_stock.lock).
-
-Unlike is_memcg_drain_needed() under RCU, consume_stock(),
-drain_stock(), and refill_stock() do not need READ_ONCE().
-
-Especially, in refill_stock(), READ_ONCE() is used twice for
-stock->cached[i], which forces the compiler to emit two volatile
-loads from stock->cached[i].
-
-Let's remove the unnecessary READ_ONCE() and eliminate the
-redundant loads in refill_stock():
-
-Before:
-
-  cached = READ_ONCE(stock->cached[i]);
-   4c 8b 80 88 d7 bd 84 	movq	-0x7b422878(%rax), %r8
-  if (memcg == READ_ONCE(stock->cached[i])) {
-   48 3b 98 88 d7 bd 84 	cmpq	-0x7b422878(%rax), %rbx
-   0f 84 86 01 00 00    	je	0xffffffff817d01e0 <refill_stock+0x210>
-
-After:
-
-  cached = stock->cached[i];
-   4c 8b 88 88 d7 bd 84 	movq	-0x7b422878(%rax), %r9
-  if (memcg == stock->cached[i]) {
-   4c 39 cb             	cmpq	%r9, %rbx
-   0f 84 7a 01 00 00    	je	0xffffffff817d01d0 <refill_stock+0x200>
-
-Link: https://lore.kernel.org/20261029194452.3189365-1-kuniyu@google.com
-Link: https://lore.kernel.org/20261029194452.3189365-2-kuniyu@google.com
+Link: https://lore.kernel.org/20261029194452.3189365-3-kuniyu@google.com
 Signed-off-by: Kuniyuki Iwashima <kuniyu@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 Acked-by: Shakeel Butt <shakeel.butt@linux.dev>
@@ -161,55 +106,102 @@ Cc: Roman Gushchin <roman.gushchin@linux.dev>
 Cc: Muchun Song <muchun.song@linux.dev>
 ---
 
- mm/memcontrol.c |   14 +++++++-------
- 1 file changed, 7 insertions(+), 7 deletions(-)
+ mm/memcontrol.c |   64 ++++++++++++++++++++++++----------------------
+ 1 file changed, 34 insertions(+), 30 deletions(-)
 
---- a/mm/memcontrol.c~memcg-remove-unnecessary-read_once-under-memcg_stocklock
+--- a/mm/memcontrol.c~memcg-reduce-nesting-in-consume_stock-and-refill_stock
 +++ a/mm/memcontrol.c
-@@ -2164,10 +2164,10 @@ static bool consume_stock(struct mem_cgr
- 	stock = this_cpu_ptr(&memcg_stock);
- 
- 	for (i = 0; i < NR_MEMCG_STOCK; ++i) {
--		if (memcg != READ_ONCE(stock->cached[i]))
-+		if (memcg != stock->cached[i])
+@@ -2168,15 +2168,17 @@ static bool consume_stock(struct mem_cgr
  			continue;
  
--		stock_pages = READ_ONCE(stock->nr_pages[i]);
-+		stock_pages = stock->nr_pages[i];
- 		if (stock_pages >= nr_pages) {
- 			stock_pages -= nr_pages;
- 			WRITE_ONCE(stock->nr_pages[i], stock_pages);
-@@ -2197,13 +2197,13 @@ static void memcg_uncharge(struct mem_cg
-  */
- static void drain_stock(struct memcg_stock_pcp *stock, int i)
- {
--	struct mem_cgroup *old = READ_ONCE(stock->cached[i]);
-+	struct mem_cgroup *old = stock->cached[i];
- 	uint8_t stock_pages;
+ 		stock_pages = stock->nr_pages[i];
+-		if (stock_pages >= nr_pages) {
+-			stock_pages -= nr_pages;
+-			WRITE_ONCE(stock->nr_pages[i], stock_pages);
+-			if (!stock_pages) {
+-				WRITE_ONCE(stock->cached[i], NULL);
+-				css_put(&memcg->css);
+-			}
+-			ret = true;
++		if (stock_pages < nr_pages)
++			break;
++
++		stock_pages -= nr_pages;
++		WRITE_ONCE(stock->nr_pages[i], stock_pages);
++		if (!stock_pages) {
++			WRITE_ONCE(stock->cached[i], NULL);
++			css_put(&memcg->css);
+ 		}
++
++		ret = true;
+ 		break;
+ 	}
  
- 	if (!old)
- 		return;
+@@ -2258,7 +2260,6 @@ static void refill_stock(struct mem_cgro
+ 	struct memcg_stock_pcp *stock;
+ 	struct mem_cgroup *cached;
+ 	unsigned int stock_pages;
+-	bool success = false;
+ 	int empty_slot = -1;
+ 	int i;
  
--	stock_pages = READ_ONCE(stock->nr_pages[i]);
-+	stock_pages = stock->nr_pages[i];
- 	if (stock_pages) {
- 		memcg_uncharge(old, stock_pages);
- 		WRITE_ONCE(stock->nr_pages[i], 0);
-@@ -2284,11 +2284,11 @@ static void refill_stock(struct mem_cgro
- 
- 	stock = this_cpu_ptr(&memcg_stock);
- 	for (i = 0; i < NR_MEMCG_STOCK; ++i) {
--		cached = READ_ONCE(stock->cached[i]);
-+		cached = stock->cached[i];
+@@ -2287,32 +2288,35 @@ static void refill_stock(struct mem_cgro
+ 		cached = stock->cached[i];
  		if (!cached && empty_slot == -1)
  			empty_slot = i;
--		if (memcg == READ_ONCE(stock->cached[i])) {
--			stock_pages = READ_ONCE(stock->nr_pages[i]) + nr_pages;
-+		if (memcg == stock->cached[i]) {
-+			stock_pages = stock->nr_pages[i] + nr_pages;
- 			if (stock_pages > MEMCG_STOCK_HIGH) {
- 				memcg_uncharge(memcg,
- 					       stock_pages - MEMCG_STOCK_LOW);
+-		if (memcg == stock->cached[i]) {
+-			stock_pages = stock->nr_pages[i] + nr_pages;
+-			if (stock_pages > MEMCG_STOCK_HIGH) {
+-				memcg_uncharge(memcg,
+-					       stock_pages - MEMCG_STOCK_LOW);
+-				stock_pages = MEMCG_STOCK_LOW;
+-			}
+-			WRITE_ONCE(stock->nr_pages[i], stock_pages);
+-			success = true;
+-			break;
++
++		if (memcg != cached)
++			continue;
++
++		stock_pages = stock->nr_pages[i] + nr_pages;
++		if (stock_pages > MEMCG_STOCK_HIGH) {
++			memcg_uncharge(memcg,
++				       stock_pages - MEMCG_STOCK_LOW);
++			stock_pages = MEMCG_STOCK_LOW;
+ 		}
++
++		WRITE_ONCE(stock->nr_pages[i], stock_pages);
++
++		local_unlock(&memcg_stock.lock);
++		return;
+ 	}
+ 
+-	if (!success) {
+-		i = empty_slot;
+-		if (i == -1) {
+-			i = stock->drain_idx++;
+-			if (stock->drain_idx == NR_MEMCG_STOCK)
+-				stock->drain_idx = 0;
+-			drain_stock(stock, i);
+-		}
+-		css_get(&memcg->css);
+-		WRITE_ONCE(stock->cached[i], memcg);
+-		WRITE_ONCE(stock->nr_pages[i], nr_pages);
++	i = empty_slot;
++	if (i == -1) {
++		i = stock->drain_idx++;
++		if (stock->drain_idx == NR_MEMCG_STOCK)
++			stock->drain_idx = 0;
++		drain_stock(stock, i);
+ 	}
+ 
++	css_get(&memcg->css);
++	WRITE_ONCE(stock->cached[i], memcg);
++	WRITE_ONCE(stock->nr_pages[i], nr_pages);
++
+ 	local_unlock(&memcg_stock.lock);
+ }
+ 
 _
 
 Patches currently in -mm which might be from kuniyu@google.com are
