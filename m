@@ -1,41 +1,41 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793254753;
-	b=idjLRy/WeTFoFvVMrsvl5PYeZlK0/51iRmuLH5r2bv2pnDOLUUOnasxDVXW/tZeYpkzj
-	 6zeyMYyYtew5Wnr9p6I6k3tBp87wcLc4dg4d8dVTyGeootvj1KzlHuMCCbeoCozN6hJL1
-	 FmzPHWZEOvgcC6nvWIyvNvHp7amaxCrdVRIezzG5Z73vdyw4LV9nRGgS4w/aALlimm8V7
-	 tLU2QuJOrjfgQRm2nUh+IOga18saEBey4DUQt2NmJ7T2Z3WDO3UmUSjC1iyXN7q+tmHfC
-	 LR2xaCGskb77kJZcX1oVlPnNuO9LIRdzr3vzQhISV6AQx2eH7KBF5Qk2J5g3Yp3f1bA==
+	t=1793254755;
+	b=zIId2XNWJGKoHhME/uVxMT2/XDXCcCJrky4SRG+OAllXAMSpuSGldeuP4NAH0PQRe2Nd
+	 XzBkKRn2NXyAzdiWr1gjhF5Czse1Tt198w2Rg1x33fhkP4gAn7NfqQM6ODL2uKECNNf3S
+	 ZAzpwOZ8I8Wd1mBqgytHC2VggD/hwMjXdYQuyyCb9hTIRFC8OFeIzs/hEviZTDGeuNN01
+	 yQDOiTK7p9XlsHbuQC1JD4GaAaMWepe+hmmoXgUNNVLBvEVSDg4prCBQUGjshCKpZQKOY
+	 yAN6KCjHX0qgLRudu8EU6RPbtS72CoLOCLRriW1ZjJYTXLCQutvrKRW4ki0CZn364qA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793254753;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793254755;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=I6W/buR4sfdXM4rmK9rU/ss7zO0xLBcY23L78rJa86s=;
-	b=4jcVABzXUc6QyZ1oBj36QxmvSXU0m0efo3544KT5AoxINhBSCgFA0/tr7a3EOsrbQavC
-	 Eikl44KKjWMSNCHad/idANqVHDa/NOkZuwxDgcz2un7PY+aPfwk8M9ee9ap94XLCBCWYp
-	 /SjSE/wiQD41c2+hOZ8wcbYzgG6s6gs6r6zST09XpzcmiAN1z6hsqS8RF/MttLcpWi0Za
-	 IEuNPCVZ7fDe5y9jLI7DHd3+ll+G+/mTzZzYPGCCDQZ5La3IunJJu7yTU1MwOzDQwByOY
-	 o4Wf4moDzDRKM8/mgO2nJzyPjN8PABfWFpORTpOztLI6gSqE5Ux1S6+StpNUey8Cafg==
+	bh=mle/wzSABEp2eykZUXDopMAb/bI26B0W46Gah3FGYV0=;
+	b=huSsgWyimi5Ryx0C5L3fTEOZ0g2g0xPH4AaHbHjvbWa6TP+Jdy0P9d9vTmobGrzAIoWk
+	 A0NkmKm1iXQwYAx2x3vWSt67ZYfrVTLeSfr7IiQQSPwEX2Sr3Y8JvqgbjfobpdLVHiNww
+	 RorVmKG/TFiYN+Z1+ZhdXLMlHvdFdpmPE9GlirRsShV7ThMwi+NuhLu3Udzqttbx+wVIl
+	 jmsTSOek28JjbWQFCeAsCVpBYoQrh4vz91HT1KWCX1KJes7CILTZ8TrDbWKG5FyOCAbgt
+	 0oIK9ucIbhhQYXasQnvfDTH8wTMGDrEtkSRMlDnqQnx3xAH1ISlV05KRYgFpk0LC0dQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=HQPPqoqN;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=Ig5U3Ai5;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 15377606A31A
-	for <mm-commits@vger.kernel.org>; Thu, 29 Oct 2026 06:19:12 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1361F606A31E
+	for <mm-commits@vger.kernel.org>; Thu, 29 Oct 2026 06:19:14 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=HQPPqoqN
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B747B1F01825;
-	Thu, 29 Oct 2026 06:19:12 +0000 (UTC)
+	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=Ig5U3Ai5
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 87AF11F01825;
+	Thu, 29 Oct 2026 06:19:14 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1793254752;
-	bh=I6W/buR4sfdXM4rmK9rU/ss7zO0xLBcY23L78rJa86s=;
+	d=linux-foundation.org; s=korg; t=1793254754;
+	bh=mle/wzSABEp2eykZUXDopMAb/bI26B0W46Gah3FGYV0=;
 	h=Date:To:From:Subject;
-	b=HQPPqoqNnVj3DzC7oV7mKBQ9Tq/n/3IW8z+PrfeCc3zvuHj5XWX472Z9Gf3Q8CKzP
-	 si+E2nG9s0hopditVmyy6SneSThvh7NNeO2HrIIjW2OohGQdimrONMzJ1ZCnQUwaRI
-	 YbCZ/Fu82pjP/7oJV+O9ykuJMENkwmjMYUOMrgRc=
-Date: Wed, 28 Oct 2026 23:19:12 -0700
+	b=Ig5U3Ai5svkA1/fMZK3Jm5u27xYFtadw+iWMRg5C+RHCFjXd7YjNJT/a+ofvH8YC4
+	 zP5HJP+Hc8HzTzttWZckXUVq2Mxh2+RZom5sYjw8fGDeK941qtV1cMlgumOykwjDUo
+	 m6Dpr95LHdyySXZXvA+QhYwi1/UuSs6G/44cJNjE=
+Date: Wed, 28 Oct 2026 23:19:14 -0700
 To: mm-commits@vger.kernel.org,willy@infradead.org,tzimmermann@suse.de,
 	tursulin@ursulin.net,skhan@linuxfoundation.org,simona@ffwll.ch,
 	ryan_chen@aspeedtech.com,rodrigo.vivi@intel.com,rdunlap@infradead.org,
@@ -48,8 +48,8 @@ To: mm-commits@vger.kernel.org,willy@infradead.org,tzimmermann@suse.de,
 	andi.shyti@linux.intel.com,andi.shyti@kernel.org,alexander.deucher@amd.com,
 	airlied@gmail.com,d@ilvokhin.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + docs-xforms_lists-support-__nonnull_args.patch added to mm-nonmm-unstable branch
-Message-Id: <20261029061912.B747B1F01825@smtp.kernel.org>
+Subject: + string-switch-to-__nonnull_args-macro.patch added to mm-nonmm-unstable branch
+Message-Id: <20261029061914.87AF11F01825@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -61,12 +61,12 @@ Precedence: list
 
 
 The patch titled
-     Subject: docs: xforms_lists: support __nonnull_args()
+     Subject: string: switch to __nonnull_args() macro
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     docs-xforms_lists-support-__nonnull_args.patch
+     string-switch-to-__nonnull_args-macro.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/docs-xforms_lists-support-__nonnull_args.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/string-switch-to-__nonnull_args-macro.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -85,51 +85,23 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Dmitry Ilvokhin <d@ilvokhin.com>
-Subject: docs: xforms_lists: support __nonnull_args()
-Date: Wed, 28 Oct 2026 08:19:40 +0000
-
-Patch series "treewide: switch to __nonnull_args() macro", v1.
+Subject: string: switch to __nonnull_args() macro
+Date: Wed, 28 Oct 2026 08:19:41 +0000
 
 Commit 22302af28d3f ("cleanup: Annotate guard constructors with
-nonnull") added the __nonnull_args() macro to wrap the raw compiler
-attribute, keeping the attribute's quirks in one place rather than
-open-coded at every call site.
+nonnull") added the macro __nonnull_args() to wrap raw compiler
+attribute.
 
-This series replaces the remaining open-coded __attribute__((nonnull))
-users with __nonnull_args() to standardize nonnull attribute usage
-across the tree.
+Replace __attribute__((nonnull)) with __nonnull_args() to
+standardize nonnull attribute usage across the tree and keep the
+attribute's quirks in one place rather than open-coded at every call
+site.
 
-Each patch can be applied separately by the respective maintainers. The
-only dependency is kernel-doc: the string and lib/list_sort patches need
-patch 1 ("docs: xforms_lists: support __nonnull_args()") in the same
-release, otherwise strends() and list_sort() drop out of the generated
-documentation.
-
-Latest Sparse release could not properly parse __nonnull_args() without
-arguments. Fix was proposed [1] and merged, but until updated version of
-Sparse will reach wide masses it might trip on __nonnull_args() without
-arguments.
-
-There are few more instances of __attribute__((nonnull)) usages left in
-the tools subdirectory, they are perf related copied files and can
-(should?) be updated separately after this patchset lands.
-
-Build-tested allmodconfig with GCC 11.5.0 and clang 22.1.8.
-
-
-This patch (of 10):
-
-Avoid kernel-doc warnings by supporting __nonnull_args()
-as a function transform.
-
-This is a preparatory change for the treewide migration from
-__attribute__((nonnull)) to __nonnull_args() macro.
-
-Link: https://lore.kernel.org/cover.1793027261.git.d@ilvokhin.com
-Link: https://lore.kernel.org/fd33c32bb1f1cf80721887b6e9bfa49749e03d20.1793027261.git.d@ilvokhin.com
-Link: https://lore.kernel.org/all/20261019175633.415493-19-bvanassche@acm.org/ [1]
+Link: https://lore.kernel.org/f0d7b2f0dce916f4cde3dd466a5b51a4b88fbdd8.1793027261.git.d@ilvokhin.com
 Signed-off-by: Dmitry Ilvokhin <d@ilvokhin.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+Suggested-by: Miguel Ojeda <ojeda@kernel.org>
+Reviewed-by: Andy Shevchenko <andy@kernel.org>
 Cc: Alex Deucher <alexander.deucher@amd.com>
 Cc: Christian König <christian.koenig@amd.com>
 Cc: David Airlie <airlied@gmail.com>
@@ -148,33 +120,32 @@ Cc: Maarten Lankhorst <maarten.lankhorst@linux.intel.com>
 Cc: Maxime Ripard <mripard@kernel.org>
 Cc: Thomas Zimmermann <tzimmermann@suse.de>
 Cc: Kees Cook <kees@kernel.org>
-Cc: Andy Shevchenko <andy@kernel.org>
 Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
 Cc: Andy Whitcroft <apw@canonical.com>
 Cc: Joe Perches <joe@perches.com>
 Cc: Jonathan Corbet <corbet@lwn.net>
 Cc: Shuah Khan <skhan@linuxfoundation.org>
 Cc: Randy Dunlap <rdunlap@infradead.org>
-Cc: Miguel Ojeda <ojeda@kernel.org>
 Cc: Andy Shevchenko <andy.shevchenko@gmail.com>
 Cc: Jani Nikula <jani.nikula@intel.com>
 Cc: Andi Shyti <andi.shyti@kernel.org>
 Cc: Andi Shyti <andi.shyti@linux.intel.com>
 ---
 
- tools/lib/python/kdoc/xforms_lists.py |    1 +
- 1 file changed, 1 insertion(+)
+ include/linux/string.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/tools/lib/python/kdoc/xforms_lists.py~docs-xforms_lists-support-__nonnull_args
-+++ a/tools/lib/python/kdoc/xforms_lists.py
-@@ -108,6 +108,7 @@ class CTransforms:
-         (CMatch("__attribute__"), ""),
-         (CMatch("STATIC_IFN_KUNIT"), ""),
-         (CMatch("INLINE_IFN_KUNIT"), ""),
-+        (CMatch("__nonnull_args"), ""),
- 
-         #
-         # HACK: this is similar to process_export() hack. It is meant to
+--- a/include/linux/string.h~string-switch-to-__nonnull_args-macro
++++ a/include/linux/string.h
+@@ -587,7 +587,7 @@ static inline bool strstarts(const char
+  * Returns:
+  * True if @str ends with @suffix. False in all other cases.
+  */
+-static inline bool __attribute__((nonnull(1, 2)))
++static inline bool __nonnull_args(1, 2)
+ strends(const char *str, const char *suffix)
+ {
+ 	unsigned int str_len = strlen(str), suffix_len = strlen(suffix);
 _
 
 Patches currently in -mm which might be from d@ilvokhin.com are
