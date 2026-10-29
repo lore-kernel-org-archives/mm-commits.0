@@ -1,41 +1,41 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793254765;
-	b=gKAEYJNweW29EFsGEzCukQNx5YSNa7KUZeR3oNebdvz6aa/uXQUa+GkhcLcIx5PKwLX1
-	 Bb7NHoZGC9PHwF2oxiACnrn4gAENvi6e83apO0u0tdleksAdv+gDjg/nEpOtn+ptrs37h
-	 W1dToX5YT67s46nrlLUSiVsPlAxJoLeG6NVmaxuJv+KRbG4d3yzVNRLK4PVCxetuu6qC1
-	 j7OGBwIsJDYEQVuhL52+6eVZ766E6jAPdhAF8BxFK6w0NzXoSBHqN8KePKXksZwvD+bZq
-	 y4W+hXWP/P/fZ9KbMvGLTl+GoWiZGd+2B5z85zIfco6KhBmk+jEIk8uOePGoU1Mlp6A==
+	t=1793254768;
+	b=dYrycoydBMu4xfuT1lWOVMjmTfF/3jWNpgUMyYMP5aS2HRYR5bSmfh9dVo3n4tL7ROPz
+	 92dcgkxfc0twhLkMZqFOMufeR1QgMMTH0SUgzY8AZz0GdDQrs4CTL8HFLk/whxEeYRg88
+	 izTEojghS3KX/TtF6wrb6JEtRjjHwOjxedkXztJX0AWxhpmPA60vNTPPb5CiSaTXxbp80
+	 swktUa+XQm80lvMe/KrFOqHVPy57q5kWEEJjqvBPpknSg5yXakIiWYm6cLYANMYiYq3bJ
+	 4LLLYehS8FqQWYkibbm3qi+xqruCJOzUkgbvCis86g25cLadNQgfg6FbFnKZlApRqdQ==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793254765;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793254768;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=PtwGjg0iVho9apmc0xSKrGloO1B/7UUygKrvrBx8r3E=;
-	b=rOxr2Wuch4Nv7W5B0eEbIq/G4h1Lyalnt/bM+u5H68jIZuEOt7fR7Kb0vtwZX5lG0B5M
-	 nYJ1pgEkYuBfxwHOyMjx2xFfelKMFGHlQmN6DCgL4xxVb+FP5lk2suZ+kQUzrITZOYX4T
-	 RrrnbY1SClV61AoR6q84MT1fJLw9HTIoLyWP1o7A+wwA6IZnI7nbPEd7R5cLCh7eyJp5p
-	 czqztCebP9nee2GK1Er9k6Cuzpm3jWsYk4KitBycaP/ai1lb1NgTTwe9KvbB76AOPplfv
-	 eul+CtT2m1ElQRoMi+BPMi4szURqFRSrpzFP+uvJLGgYGAX9KDGCm/Qwd5GiNdBkWPw==
+	bh=B7rciy+Bf5Z42Ui9nUG0KZzxGKEAR6t9j7OfjgBx+YA=;
+	b=kA3qkLe5XwHxbQ2t7+FhmMlOdECUTK1V7gouc9ScrAtLg3ScOhwV686OLG1YcIIKgEaD
+	 MDEefbTcgSwCQNE++dnH/wRQty4RC3W7pdEJ+V8WZujU+nA3d3LWjvx8Hoe+9b5+Oytyg
+	 skdJNDN+vWNpDfooC+e0xj26f7Kb1Pby9O7NA6kxOOLVBn/A9+PNx4LvMsJ3qWAnVobL/
+	 K1JuH+bclswyp61tWgURx9VEERSizuEAguczJ8KwDkPDmtCZBeL3cB9YVDwC0lQuIoVCP
+	 TZI0nNtz2ONo4LiEGUcYpY6S5vNVGjQYwZZva+T3Yb9Uow4TyAckRJ4U/TnsHUW7aGw==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=Zmh1rd29;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b="aL5PD/nm";
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9FD9E606A327
-	for <mm-commits@vger.kernel.org>; Thu, 29 Oct 2026 06:19:25 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BEC7A606A31D
+	for <mm-commits@vger.kernel.org>; Thu, 29 Oct 2026 06:19:27 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=Zmh1rd29
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 657061F01825;
-	Thu, 29 Oct 2026 06:19:25 +0000 (UTC)
+	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=aL5PD/nm
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4BD3B1F01825;
+	Thu, 29 Oct 2026 06:19:27 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1793254765;
-	bh=PtwGjg0iVho9apmc0xSKrGloO1B/7UUygKrvrBx8r3E=;
+	d=linux-foundation.org; s=korg; t=1793254767;
+	bh=B7rciy+Bf5Z42Ui9nUG0KZzxGKEAR6t9j7OfjgBx+YA=;
 	h=Date:To:From:Subject;
-	b=Zmh1rd29Rv8487CpKxhcrD4w3fopKOxnEuaxzoxtM1qQFC+/LMVYGyDb3diS24OrJ
-	 bR9yr5xwuyqRjVZ19oMwCj10aKE1xCOfK7g/q8uhOa6vW+iysbCrbz1n6Nw/vPkPT1
-	 FNO8vLCzV1SK+Nyca2VlFHM3L1imrwzVAV37bH7g=
-Date: Wed, 28 Oct 2026 23:19:24 -0700
+	b=aL5PD/nmRgkS0WyBl7Djh7CysX30IZ715ZXZ+gKvEC67uLsSH1Xz2UrjwdKnPQPHA
+	 mJfe/zf2scm0Zh48tUdrQ6YwwIyOL+7DlR4Jn8SJ/G5rcQRyKWzcsr9+8pz52DLe5I
+	 MZq1FQ2WfNg7U0sDWzy77ODzLR89klRjJG04VGqQ=
+Date: Wed, 28 Oct 2026 23:19:26 -0700
 To: mm-commits@vger.kernel.org,willy@infradead.org,tzimmermann@suse.de,
 	tursulin@ursulin.net,skhan@linuxfoundation.org,simona@ffwll.ch,
 	ryan_chen@aspeedtech.com,rodrigo.vivi@intel.com,rdunlap@infradead.org,
@@ -48,8 +48,8 @@ To: mm-commits@vger.kernel.org,willy@infradead.org,tzimmermann@suse.de,
 	andi.shyti@linux.intel.com,andi.shyti@kernel.org,alexander.deucher@amd.com,
 	airlied@gmail.com,d@ilvokhin.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + drm-gem-switch-to-__nonnull_args-macro.patch added to mm-nonmm-unstable branch
-Message-Id: <20261029061925.657061F01825@smtp.kernel.org>
+Subject: + leds-pwm-switch-to-__nonnull_args-macro.patch added to mm-nonmm-unstable branch
+Message-Id: <20261029061927.4BD3B1F01825@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -61,12 +61,12 @@ Precedence: list
 
 
 The patch titled
-     Subject: drm/gem: awitch to __nonnull_args() macro
+     Subject: leds: pwm: switch to __nonnull_args() macro
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     drm-gem-switch-to-__nonnull_args-macro.patch
+     leds-pwm-switch-to-__nonnull_args-macro.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/drm-gem-switch-to-__nonnull_args-macro.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/leds-pwm-switch-to-__nonnull_args-macro.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -85,8 +85,8 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Dmitry Ilvokhin <d@ilvokhin.com>
-Subject: drm/gem: awitch to __nonnull_args() macro
-Date: Wed, 28 Oct 2026 08:19:46 +0000
+Subject: leds: pwm: switch to __nonnull_args() macro
+Date: Wed, 28 Oct 2026 08:19:47 +0000
 
 Commit 22302af28d3f ("cleanup: Annotate guard constructors with
 nonnull") added the macro __nonnull_args() to wrap raw compiler
@@ -96,11 +96,11 @@ Replace __attribute__((nonnull)) with __nonnull_args() to standardize
 nonnull attribute usage across the tree and keep the attribute's quirks
 in one place rather than open-coded at every call site.
 
-Link: https://lore.kernel.org/5bfdc1491d297b5e98cf42322c790f06481c28c7.1793027261.git.d@ilvokhin.com
+Link: https://lore.kernel.org/ed2b0b67c306bb458ba389f16dc92904203a104b.1793027261.git.d@ilvokhin.com
 Signed-off-by: Dmitry Ilvokhin <d@ilvokhin.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 Suggested-by: Miguel Ojeda <ojeda@kernel.org>
-Reviewed-by: Andi Shyti <andi.shyti@linux.intel.com>
+Reviewed-by: Andy Shevchenko <andy@kernel.org>
 Cc: Alex Deucher <alexander.deucher@amd.com>
 Cc: Christian König <christian.koenig@amd.com>
 Cc: David Airlie <airlied@gmail.com>
@@ -119,7 +119,6 @@ Cc: Maarten Lankhorst <maarten.lankhorst@linux.intel.com>
 Cc: Maxime Ripard <mripard@kernel.org>
 Cc: Thomas Zimmermann <tzimmermann@suse.de>
 Cc: Kees Cook <kees@kernel.org>
-Cc: Andy Shevchenko <andy@kernel.org>
 Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
 Cc: Andy Whitcroft <apw@canonical.com>
 Cc: Joe Perches <joe@perches.com>
@@ -129,21 +128,22 @@ Cc: Randy Dunlap <rdunlap@infradead.org>
 Cc: Andy Shevchenko <andy.shevchenko@gmail.com>
 Cc: Jani Nikula <jani.nikula@intel.com>
 Cc: Andi Shyti <andi.shyti@kernel.org>
+Cc: Andi Shyti <andi.shyti@linux.intel.com>
 ---
 
- include/drm/drm_gem.h |    2 +-
+ drivers/leds/leds-pwm.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/include/drm/drm_gem.h~drm-gem-switch-to-__nonnull_args-macro
-+++ a/include/drm/drm_gem.h
-@@ -566,7 +566,7 @@ static inline void drm_gem_object_get(st
- 	kref_get(&obj->refcount);
+--- a/drivers/leds/leds-pwm.c~leds-pwm-switch-to-__nonnull_args-macro
++++ a/drivers/leds/leds-pwm.c
+@@ -80,7 +80,7 @@ static int led_pwm_default_brightness_ge
+ 	return default_brightness;
  }
  
 -__attribute__((nonnull))
 +__nonnull_args()
- static inline void
- __drm_gem_object_put(struct drm_gem_object *obj)
+ static int led_pwm_add(struct device *dev, struct led_pwm_priv *priv,
+ 		       struct led_pwm *led, struct fwnode_handle *fwnode)
  {
 _
 
