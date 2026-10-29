@@ -1,41 +1,41 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793254768;
-	b=dYrycoydBMu4xfuT1lWOVMjmTfF/3jWNpgUMyYMP5aS2HRYR5bSmfh9dVo3n4tL7ROPz
-	 92dcgkxfc0twhLkMZqFOMufeR1QgMMTH0SUgzY8AZz0GdDQrs4CTL8HFLk/whxEeYRg88
-	 izTEojghS3KX/TtF6wrb6JEtRjjHwOjxedkXztJX0AWxhpmPA60vNTPPb5CiSaTXxbp80
-	 swktUa+XQm80lvMe/KrFOqHVPy57q5kWEEJjqvBPpknSg5yXakIiWYm6cLYANMYiYq3bJ
-	 4LLLYehS8FqQWYkibbm3qi+xqruCJOzUkgbvCis86g25cLadNQgfg6FbFnKZlApRqdQ==
+	t=1793254769;
+	b=xsZSj++lgFkPdUsOhvEDspP+DyKocLZnKmsd/iCjiHP1UYiccUDFLRLkU6TgmA/N51fF
+	 VL+8ZVrUt+WnwR9BXCQoPfqWK1jM2iHxXdmiuRqflQKzIuYZ5EPy+/WaG3reGvdzZ61TR
+	 6XOaB0NITrMA5AxlOqn5jh//UqgDg5O2W7vfISmPJOJM3ZfxpWvsbYOVa0jcVtzlg8B4K
+	 w461z5IK7PWsx93oElRrEW7CS5qlJPtJSgZUeTtFX/1gTkh9pzFSr53XhqxFK4U+5ROus
+	 oZrRDF8HG1GQVwSL0P69CyFlIFDOsbLOuRlTkFevnxbv0em30p013VU21RK7lL+v4Fw==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793254768;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793254769;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=B7rciy+Bf5Z42Ui9nUG0KZzxGKEAR6t9j7OfjgBx+YA=;
-	b=kA3qkLe5XwHxbQ2t7+FhmMlOdECUTK1V7gouc9ScrAtLg3ScOhwV686OLG1YcIIKgEaD
-	 MDEefbTcgSwCQNE++dnH/wRQty4RC3W7pdEJ+V8WZujU+nA3d3LWjvx8Hoe+9b5+Oytyg
-	 skdJNDN+vWNpDfooC+e0xj26f7Kb1Pby9O7NA6kxOOLVBn/A9+PNx4LvMsJ3qWAnVobL/
-	 K1JuH+bclswyp61tWgURx9VEERSizuEAguczJ8KwDkPDmtCZBeL3cB9YVDwC0lQuIoVCP
-	 TZI0nNtz2ONo4LiEGUcYpY6S5vNVGjQYwZZva+T3Yb9Uow4TyAckRJ4U/TnsHUW7aGw==
+	bh=ipy3R0c1I7cJkMwcLc0Rc8usinkU5A/flTQyiAsC0ZM=;
+	b=EgKZUE7FhsCc+SvDuItc6L/6MFWbldUi2TA1FwHsB5o5/W9ySRGM1NP/dRsEE/n2sGAy
+	 Gj73P+I6/MqoXaxMdyg7uixF6S2pvt7s/JH21Eqz1CpHeS6gX5vFgrEQcdfXnCOcVnihD
+	 dzwk07Q5K/iBKhv9eweZiVHBNaTkiKKirjbHi/T1lNo/hGjYA/d5tWdzG8iGDwsVySTlQ
+	 tjcsoZuEjg6/XXWqkIr6/FMWKyG1g6hifsQNY/f2FKzrylRJNlb4kp4APUeOG8z/s0VCH
+	 zdMh4vyLeSlBEKEfwnrBOLQiFUGoj16BaF/Lw0b21aoLOaXbkikN8mXDCpmJxWFFp8A==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b="aL5PD/nm";
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b="ndO/IaVv";
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BEC7A606A31D
-	for <mm-commits@vger.kernel.org>; Thu, 29 Oct 2026 06:19:27 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6680C606A324
+	for <mm-commits@vger.kernel.org>; Thu, 29 Oct 2026 06:19:29 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=aL5PD/nm
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4BD3B1F01825;
-	Thu, 29 Oct 2026 06:19:27 +0000 (UTC)
+	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=ndO/IaVv
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2C08A1F01825;
+	Thu, 29 Oct 2026 06:19:29 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1793254767;
-	bh=B7rciy+Bf5Z42Ui9nUG0KZzxGKEAR6t9j7OfjgBx+YA=;
+	d=linux-foundation.org; s=korg; t=1793254769;
+	bh=ipy3R0c1I7cJkMwcLc0Rc8usinkU5A/flTQyiAsC0ZM=;
 	h=Date:To:From:Subject;
-	b=aL5PD/nmRgkS0WyBl7Djh7CysX30IZ715ZXZ+gKvEC67uLsSH1Xz2UrjwdKnPQPHA
-	 mJfe/zf2scm0Zh48tUdrQ6YwwIyOL+7DlR4Jn8SJ/G5rcQRyKWzcsr9+8pz52DLe5I
-	 MZq1FQ2WfNg7U0sDWzy77ODzLR89klRjJG04VGqQ=
-Date: Wed, 28 Oct 2026 23:19:26 -0700
+	b=ndO/IaVvUnITS1AJqJks6fSg8UswbwHRsYRW4gqWi84PM25lp4tsQNVYSUX90IDkP
+	 WIe2b6obmzf5R2GrYK290UoYro5xYO+IErhrl8y2i1AGbsjzHZZ91kE8ARqlw85oWL
+	 XzNOAAyIZeHRCefdUR/IEO9qrT2YOIxhnM+TxiWY=
+Date: Wed, 28 Oct 2026 23:19:28 -0700
 To: mm-commits@vger.kernel.org,willy@infradead.org,tzimmermann@suse.de,
 	tursulin@ursulin.net,skhan@linuxfoundation.org,simona@ffwll.ch,
 	ryan_chen@aspeedtech.com,rodrigo.vivi@intel.com,rdunlap@infradead.org,
@@ -48,8 +48,8 @@ To: mm-commits@vger.kernel.org,willy@infradead.org,tzimmermann@suse.de,
 	andi.shyti@linux.intel.com,andi.shyti@kernel.org,alexander.deucher@amd.com,
 	airlied@gmail.com,d@ilvokhin.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + leds-pwm-switch-to-__nonnull_args-macro.patch added to mm-nonmm-unstable branch
-Message-Id: <20261029061927.4BD3B1F01825@smtp.kernel.org>
+Subject: + soc-aspeed-lpc-snoop-switch-to-__nonnull_args-macro.patch added to mm-nonmm-unstable branch
+Message-Id: <20261029061929.2C08A1F01825@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -61,12 +61,12 @@ Precedence: list
 
 
 The patch titled
-     Subject: leds: pwm: switch to __nonnull_args() macro
+     Subject: soc: aspeed: lpc-snoop: switch to __nonnull_args() macro
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     leds-pwm-switch-to-__nonnull_args-macro.patch
+     soc-aspeed-lpc-snoop-switch-to-__nonnull_args-macro.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/leds-pwm-switch-to-__nonnull_args-macro.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/soc-aspeed-lpc-snoop-switch-to-__nonnull_args-macro.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -85,8 +85,8 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Dmitry Ilvokhin <d@ilvokhin.com>
-Subject: leds: pwm: switch to __nonnull_args() macro
-Date: Wed, 28 Oct 2026 08:19:47 +0000
+Subject: soc: aspeed: lpc-snoop: switch to __nonnull_args() macro
+Date: Wed, 28 Oct 2026 08:19:48 +0000
 
 Commit 22302af28d3f ("cleanup: Annotate guard constructors with
 nonnull") added the macro __nonnull_args() to wrap raw compiler
@@ -96,11 +96,10 @@ Replace __attribute__((nonnull)) with __nonnull_args() to standardize
 nonnull attribute usage across the tree and keep the attribute's quirks
 in one place rather than open-coded at every call site.
 
-Link: https://lore.kernel.org/ed2b0b67c306bb458ba389f16dc92904203a104b.1793027261.git.d@ilvokhin.com
+Link: https://lore.kernel.org/6b82201d601c23bf8545f8d581fd6632c36cd208.1793027261.git.d@ilvokhin.com
 Signed-off-by: Dmitry Ilvokhin <d@ilvokhin.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 Suggested-by: Miguel Ojeda <ojeda@kernel.org>
-Reviewed-by: Andy Shevchenko <andy@kernel.org>
 Cc: Alex Deucher <alexander.deucher@amd.com>
 Cc: Christian König <christian.koenig@amd.com>
 Cc: David Airlie <airlied@gmail.com>
@@ -119,6 +118,7 @@ Cc: Maarten Lankhorst <maarten.lankhorst@linux.intel.com>
 Cc: Maxime Ripard <mripard@kernel.org>
 Cc: Thomas Zimmermann <tzimmermann@suse.de>
 Cc: Kees Cook <kees@kernel.org>
+Cc: Andy Shevchenko <andy@kernel.org>
 Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
 Cc: Andy Whitcroft <apw@canonical.com>
 Cc: Joe Perches <joe@perches.com>
@@ -131,19 +131,28 @@ Cc: Andi Shyti <andi.shyti@kernel.org>
 Cc: Andi Shyti <andi.shyti@linux.intel.com>
 ---
 
- drivers/leds/leds-pwm.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/soc/aspeed/aspeed-lpc-snoop.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/drivers/leds/leds-pwm.c~leds-pwm-switch-to-__nonnull_args-macro
-+++ a/drivers/leds/leds-pwm.c
-@@ -80,7 +80,7 @@ static int led_pwm_default_brightness_ge
- 	return default_brightness;
+--- a/drivers/soc/aspeed/aspeed-lpc-snoop.c~soc-aspeed-lpc-snoop-switch-to-__nonnull_args-macro
++++ a/drivers/soc/aspeed/aspeed-lpc-snoop.c
+@@ -226,7 +226,7 @@ static int aspeed_lpc_snoop_config_irq(s
+ 	return 0;
  }
  
 -__attribute__((nonnull))
 +__nonnull_args()
- static int led_pwm_add(struct device *dev, struct led_pwm_priv *priv,
- 		       struct led_pwm *led, struct fwnode_handle *fwnode)
+ static int aspeed_lpc_enable_snoop(struct device *dev,
+ 				    struct aspeed_lpc_snoop *lpc_snoop,
+ 				    struct aspeed_lpc_snoop_channel *channel,
+@@ -279,7 +279,7 @@ err_free_fifo:
+ 	return rc;
+ }
+ 
+-__attribute__((nonnull))
++__nonnull_args()
+ static void aspeed_lpc_disable_snoop(struct aspeed_lpc_snoop *lpc_snoop,
+ 				     struct aspeed_lpc_snoop_channel *channel)
  {
 _
 
