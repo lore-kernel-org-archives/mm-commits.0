@@ -1,49 +1,51 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793322241;
-	b=R+tpd8cs0SHKEuA+PmBKJt6jQLVLQe0MRDQzW6TFvbCBECbQsL1jQqwvQLgvxip63s0X
-	 557Fl/soRIAzho6XsKmoFpyILzJ4skl2xBDCBJ497VhWQXcVQMLMzSRIHBFhJfdVZ2R7Q
-	 7Rqqe9kyfHIK+t3nLlKPPV9j0UGx1mbGD0oSMSqVjaB6ZPEYWcSgtmLrhCOm3sSp5N3Qp
-	 JNqy1a8QIYYOQTjncSBTAx3txV+EM9bsamR3RznSmKvibX7ISHwzka9pxZpnJH79tw5MF
-	 canCXbaQyGuZFEF9Ff/kNsw6UOakGuuMrCBdfh2bFzO7qnqeK6+73W/tcE56uCe17uw==
+	t=1793322872;
+	b=CBK8Y6DCui4eKm7NBC3KJAjf+Cr1vaNmGIyo0dFYrhJZoGLYftPY261bQEXz+0LVs9kK
+	 St4QYnIj4qPnG64XpTSZqW7yyFPcU8okxvZE/1xMbyS3T5R5ilDb560zLsJQYpV2YFUl2
+	 fBkQ7d2AJe56+auQ2K2do6uE2vG/LjH4OPHO0PK0OVHO2JC6lpBsR9RxB2fSlDvdimIxJ
+	 QO/GMrAgcBd4gt7mcqsoPxrHhvXfbciuZI/WgcPP2op5BDjdo5glVwTN13ZfIoVkHBMeU
+	 3N6hWxrnuNInKnJi2OeUWCQKrkgnjULaU5WfTqJibKBN61A/dSMx/htBFxlpAdZ+kyw==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793322241;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793322872;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=WDb1sxnjkMHfYiPKrBV13efmxBKnMQp6SqHhp8mXO+g=;
-	b=v7vvkYXbnUWk+VTxpa3ESWGPbXWqPPGoXVchf1rkCn5OlpgBrV2hYODP55PQInUq38ro
-	 kXKdCtkVMpthNLJGpFyMwlKbTUkMMZ0TtVmA+XEeaNBxadSFC62rMLxxCSWdrV+bF/9o6
-	 dpsQSpjMyO5hYP2c9bEc2qci+4ZR3Kbl++iN6MUlNYnSzCjF18BUyYAcxukHYvh1RYYcJ
-	 hQjxMQIlp77ixRRD4o25JNuWGvqgxwHBoV7Qxg+dSiI5spGdWvP+xFk0Y6odNzP+/JxEL
-	 5hJdCA3GiHPSrhuj1zn/Hl4GrxoS4ku4oa1gZgW2K2dBHUZrzYHz9vNpEKgnPtBunYg==
+	bh=phUBY2B4eivGF21ooteg2cYGYfSO7b7dhpKP2MuA2pk=;
+	b=sS9EN+hGOy6QLTYcTmWOgMK3BEoXY56Zg64wz3Iu0lLOGSDapS+ZIwMaE5GDyvJJbnOu
+	 pC764hJs5WRs9Txi90YNVQ1BrMQHSlQAcayETW8I2XA1pTFxWLvdi9JXuR7aQIh/lZ0sQ
+	 78ko1+2P1RwcxrF20x8JHm2OXjKz5XRolXYVuA3PDUApdtx3SjDUYGMbrqGXDAjcPtIEW
+	 Ssh1YSuk7VtygsRCCBAbKykWJVxrd8nmzQWpjzZwD7thUPLeGM9DZTA1muAtxilgLNffT
+	 uLPjtRCEGnqE7o1mKnGPzQmRj7/bGBA8zS00YEmh/fhhNdf7pTqpdG9YRaEc69MDycQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=tTOO1RjF;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=VvuVAPah;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 536BA606A31A
-	for <mm-commits@vger.kernel.org>; Fri, 30 Oct 2026 01:04:01 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 41745606A31A
+	for <mm-commits@vger.kernel.org>; Fri, 30 Oct 2026 01:14:31 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=tTOO1RjF
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C67901F000C1;
-	Fri, 30 Oct 2026 01:04:00 +0000 (UTC)
+	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=VvuVAPah
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 988C01F000C1;
+	Fri, 30 Oct 2026 01:14:31 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1793322240;
-	bh=WDb1sxnjkMHfYiPKrBV13efmxBKnMQp6SqHhp8mXO+g=;
+	d=linux-foundation.org; s=korg; t=1793322871;
+	bh=phUBY2B4eivGF21ooteg2cYGYfSO7b7dhpKP2MuA2pk=;
 	h=Date:To:From:Subject;
-	b=tTOO1RjFpr235IrOk4dS/JARRPgDRa/sph6qlTNkolEjX8pynJTfrtFpBEa5F+bxl
-	 yMSGOUcKfaSMujucpgPbHBGMt0uTGTD41OpcdvGff+bdbqsm3oTS8/EMD4Q7yHnKkt
-	 oMKAVj14FbMwCv2T8mZBswPnJqCM9lDULgakUx+s=
-Date: Thu, 29 Oct 2026 18:04:00 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,ying.huang@linux.alibaba.com,
-	shivankg@amd.com,shakeel.butt@linux.dev,matthew.brost@intel.com,
-	joshua.hahnjy@gmail.com,gourry@gourry.net,david@kernel.org,byungchul@sk.com,
-	boris@bur.io,apopple@nvidia.com,chenridong@xiaomi.com,
+	b=VvuVAPahz/VkpjQCBnySt7Qy4pihzV23InH0lh6MnQL6QTz63NGGyGW9vY4SkeDh4
+	 Ia+gq79lQa1ruUQlm9Uyc57G5Eo9gjtFU3dCN06YBa9oMY2JRO6SG0aO/aGdt2NAIZ
+	 9TmV6Sm51PuOZWacLJgRlm/SM7FmcRoSX2Mex+BU=
+Date: Thu, 29 Oct 2026 18:14:31 -0700
+To: mm-commits@vger.kernel.org,yuzhao@google.com,yuanchu@google.com,
+	weixugc@google.com,shakeel.butt@linux.dev,rlmenge@gmail.com,
+	qi.zheng@linux.dev,mhocko@kernel.org,ljs@kernel.org,kasong@tencent.com,
+	hargar@linux.microsoft.com,hannes@cmpxchg.org,david@kernel.org,
+	baoquan.he@linux.dev,baolin.wang@linux.alibaba.com,baohua@kernel.org,
+	axelrasmussen@google.com,apais@microsoft.com,sidchintamaneni@gmail.com,
 	akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-migrate-move-nr_kernel_file_pages-on-cross-node-migration.patch added to mm-new branch
-Message-Id: <20261030010400.C67901F000C1@smtp.kernel.org>
+Subject: + mm-multi-gen-lru-use-mem_cgroup_lruvec-in-get_lruvec.patch added to mm-new branch
+Message-Id: <20261030011431.988C01F000C1@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -55,12 +57,12 @@ Precedence: list
 
 
 The patch titled
-     Subject: mm/migrate: move NR_KERNEL_FILE_PAGES on cross-node migration
+     Subject: mm: multi-gen LRU: use mem_cgroup_lruvec() in get_lruvec()
 has been added to the -mm mm-new branch.  Its filename is
-     mm-migrate-move-nr_kernel_file_pages-on-cross-node-migration.patch
+     mm-multi-gen-lru-use-mem_cgroup_lruvec-in-get_lruvec.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-migrate-move-nr_kernel_file_pages-on-cross-node-migration.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-multi-gen-lru-use-mem_cgroup_lruvec-in-get_lruvec.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -89,95 +91,90 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Ridong Chen <chenridong@xiaomi.com>
-Subject: mm/migrate: move NR_KERNEL_FILE_PAGES on cross-node migration
-Date: Tue, 27 Oct 2026 12:32:14 +0800
+From: Siddharth Chintamaneni <sidchintamaneni@gmail.com>
+Subject: mm: multi-gen LRU: use mem_cgroup_lruvec() in get_lruvec()
+Date: Mon, 26 Oct 2026 20:23:12 +0000
 
-NR_KERNEL_FILE_PAGES counts page cache folios of mappings flagged
-AS_KERNEL_FILE (currently the btrfs btree inode).  It is a per-node
-counter: filemap_add_folio() adds to folio_pgdat() of the new folio and
-filemap_unaccount_folio() subtracts from folio_pgdat() of the folio
-being removed.
+Patch series "mm: multi-gen LRU: replace get_lruvec() with
+mem_cgroup_lruvec()", v2.
 
-__folio_migrate_mapping() does not move it when such a folio is
-migrated to another node, so the source node keeps the count forever
-and the destination node underflows once the folio is freed.  btree
-folios are migratable through btree_migrate_folio(), so demotion,
-DAMON-based migration (DAMOS_MIGRATE_{HOT,COLD}) or memory offlining
-all hit this.
+This series cleans up MGLRU's get_lruvec() helper in mm/vmscan.c.
 
-Reproducer, on a QEMU guest with two memory tiers (node0 is DRAM with
-all CPUs, node1 is a CPU-less slower node described via HMAT) and
-/sys/kernel/mm/numa/demotion_enabled set:
+Patch 1 updates get_lruvec() to delegate to mem_cgroup_lruvec() rather
+than returning &pgdat->__lruvec directly when memcg is disabled on the
+kernel command line.
 
-  1. mount a btrfs and create 20000 empty files, so that btree folios
-     are cached on node0;
-  2. echo 2G > /sys/devices/system/node/node0/reclaim, which demotes
-     them to node1;
-  3. umount and drop caches.
+Patch 2 removes get_lruvec() completely and replaces all 15 call sites
+with mem_cgroup_lruvec().
 
-nr_kernel_file_pages in /sys/devices/system/node/nodeN/vmstat after
-each step:
 
-                  without this patch     with this patch
-                   node0     node1       node0     node1
-  1. cached         1868         0        1868         0
-  2. demoted        1868         0          36      1832
-  3. dropped        1832         0 (*)       0         0
+This patch (of 2):
 
-  (*) the counter has underflowed to -1832; negative values read as 0.
+Andrew Morton noted that get_lruvec() has the same pattern as
+lru_gen_shrink_node(): when memcg is disabled on the command line
+(cgroup_disable=memory), it returns &pgdat->__lruvec directly instead of
+going through mem_cgroup_lruvec(), which initializes lruvec->pgdat.
 
-The global value in /proc/vmstat is 0 after step 3 in both cases.
+In practice all callers of get_lruvec() run after kswapd_init() has
+already initialized pgdat->__lruvec.pgdat on every N_MEMORY node, so
+this is not a runtime bug. Have get_lruvec() delegate to
+mem_cgroup_lruvec() directly.
 
-Move it together with the other node-keyed page cache counters.  It is
-a node-only counter, so use the node accessor, matching how it is
-accounted elsewhere.  Interrupts are disabled here, as for the zone
-counters below.
-
-This was pointed out by Shivank while reviewing the NR_FILE_THPS fix
-for the same function.
-
-Link: https://lore.kernel.org/20261027043214.2248986-1-ridong.chen@linux.dev
-Fixes: e3a9ac4e866e ("mm: add vmstat for kernel_file pages")
-Signed-off-by: Ridong Chen <chenridong@xiaomi.com>
+Link: https://lore.kernel.org/20261026202313.63122-1-sidchintamaneni@gmail.com
+Link: https://lore.kernel.org/20261026202313.63122-2-sidchintamaneni@gmail.com
+Signed-off-by: Siddharth Chintamaneni <sidchintamaneni@gmail.com>
+Signed-off-by: Hardik Garg <hargar@linux.microsoft.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Suggested-by: Shivank Garg <shivankg@amd.com>
-Acked-by: David Hildenbrand (Arm) <david@kernel.org>
-Reviewed-by: Shivank Garg <shivankg@amd.com>
-Acked-by: Zi Yan <ziy@nvidia.com>
-Assisted-by: LLM
-Cc: Matthew Brost <matthew.brost@intel.com>
-Cc: Joshua Hahn <joshua.hahnjy@gmail.com>
-Cc: Byungchul Park <byungchul@sk.com>
-Cc: Gregory Price <gourry@gourry.net>
-Cc: Ying Huang <ying.huang@linux.alibaba.com>
-Cc: Alistair Popple <apopple@nvidia.com>
-Cc: Boris Burkov <boris@bur.io>
+Reviewed-by: Baolin Wang <baolin.wang@linux.alibaba.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: David Hildenbrand <david@kernel.org>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Qi Zheng <qi.zheng@linux.dev>
 Cc: Shakeel Butt <shakeel.butt@linux.dev>
+Cc: Lorenzo Stoakes <ljs@kernel.org>
+Cc: Kairui Song <kasong@tencent.com>
+Cc: Barry Song <baohua@kernel.org>
+Cc: Axel Rasmussen <axelrasmussen@google.com>
+Cc: Yuanchu Xie <yuanchu@google.com>
+Cc: Wei Xu <weixugc@google.com>
+Cc: Baoquan He <baoquan.he@linux.dev>
+Cc: Yu Zhao <yuzhao@google.com>
+Cc: <apais@microsoft.com>
+Cc: <rlmenge@gmail.com>
 ---
 
- mm/migrate.c |    6 ++++++
- 1 file changed, 6 insertions(+)
+ mm/vmscan.c |   15 ++-------------
+ 1 file changed, 2 insertions(+), 13 deletions(-)
 
---- a/mm/migrate.c~mm-migrate-move-nr_kernel_file_pages-on-cross-node-migration
-+++ a/mm/migrate.c
-@@ -705,6 +705,12 @@ static int __folio_migrate_mapping(struc
- 			mod_lruvec_state(old_lruvec, NR_FILE_THPS, -nr);
- 			mod_lruvec_state(new_lruvec, NR_FILE_THPS, nr);
- 		}
-+		if (test_bit(AS_KERNEL_FILE, &mapping->flags)) {
-+			__mod_node_page_state(oldzone->zone_pgdat,
-+					      NR_KERNEL_FILE_PAGES, -nr);
-+			__mod_node_page_state(newzone->zone_pgdat,
-+					      NR_KERNEL_FILE_PAGES, nr);
-+		}
- #ifdef CONFIG_SWAP
- 		if (folio_test_swapcache(folio)) {
- 			mod_lruvec_state(old_lruvec, NR_SWAPCACHE, -nr);
+--- a/mm/vmscan.c~mm-multi-gen-lru-use-mem_cgroup_lruvec-in-get_lruvec
++++ a/mm/vmscan.c
+@@ -2866,20 +2866,9 @@ static struct lruvec *get_lruvec(struct
+ {
+ 	struct pglist_data *pgdat = NODE_DATA(nid);
+ 
+-#ifdef CONFIG_MEMCG
+-	if (memcg) {
+-		struct lruvec *lruvec = &memcg->nodeinfo[nid]->lruvec;
++	VM_WARN_ON_ONCE(!memcg && !mem_cgroup_disabled());
+ 
+-		/* see the comment in mem_cgroup_lruvec() */
+-		if (!lruvec->pgdat)
+-			lruvec->pgdat = pgdat;
+-
+-		return lruvec;
+-	}
+-#endif
+-	VM_WARN_ON_ONCE(!mem_cgroup_disabled());
+-
+-	return &pgdat->__lruvec;
++	return mem_cgroup_lruvec(memcg, pgdat);
+ }
+ 
+ static int get_swappiness(struct lruvec *lruvec, struct scan_control *sc)
 _
 
-Patches currently in -mm which might be from chenridong@xiaomi.com are
+Patches currently in -mm which might be from sidchintamaneni@gmail.com are
 
-mm-migrate-move-nr_file_thps-on-cross-node-migration.patch
-mm-migrate-move-nr_kernel_file_pages-on-cross-node-migration.patch
+mm-multi-gen-lru-use-mem_cgroup_lruvec-in-get_lruvec.patch
+mm-multi-gen-lru-remove-get_lruvec.patch
 
