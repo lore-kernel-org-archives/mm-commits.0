@@ -1,47 +1,47 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793329343;
-	b=We4WHFHQctBzwFPo/44cTqeb8hUX38lt9sBeLJ1BvGiwobXmkOFMHYHBcwbMNkYv8yTf
-	 5ynYFL1deFvdxwr+sD4A8DceYFh+cpLSJh0NXupd/w+H7CdtIesyVl7pwS8Q+n0ZON/s+
-	 dJQs80ie2PLnkYoxgpGhK0WuOBNXODqY+qN6edhpsoyQR8TGw2RdXnCZkBNm2sv9hMIGC
-	 qAJSCJbe/0ja+houl7HaX9UUsSDd6b716/JY/VnHcyXdTWrgybtOFAvjEHsz9rSRamk5z
-	 F2YFUhs+djz8MFbAzxzyPUnRwzC4Yacdf8AIv0rkc8ZORx1XEjJ5OODwCrLLJ250cqw==
+	t=1793329348;
+	b=1kwl+0+d/o89ytStu9OzXxYZcZexdr7/3LbK8NGiFrqWDv7Cl2OuOg/oCBNSLw+HFbD3
+	 GFMaJa1uex3MMnQOj8fRGjRbYkAr3/PQo9f/1zEWg2KhEnSiyfo2tqOhycksGSRK6zvp+
+	 TjXsceLP+iRWpiE+fxO0QGN4xi54McqJgxOGrusO3MXaE0UnN9cntNRNXAac7UhWaTjJ4
+	 sjrBJcU+Z+TdxyBBx5jDq9YFh7ckI/2VBuNPFQcxM1gk87JI4k8G81kBjotpdZkzuPlyZ
+	 1NUBooMUnOKkgyhqTH4YCK+8XiQ45PY57ncJl2ahOBjwQKGPlYm5psg7lw/7RD1Rvaw==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793329343;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793329348;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=a1BMpS1pJUWv/fL2IMAiUq2YWrD2P/rvA28DqlMrHnQ=;
-	b=1XUihmaL5EY91gOic/b6TLFYdY9CN+lq+h7HN+oE9VOcjEaNxZxTne4/9GhgVIdS/3f+
-	 aMj14ZxyAhWEhHN/beGL4SbPD+oBTBFoDnlphKcWuh9tgbwphwKDVPGyRwqiswywSPgri
-	 jHJd/4SyhimZql7A0TL8o0yEy4FXAHSiMQ2umIjp5UQEpScN6kBjrKkKP03NzUS+fD0rB
-	 FPME1sGT2hlmj1Ty5v2Wtu+zmLev4uIA70gRaH5DqV1+W2d0w9Qnhm1c23F/M2qQlkZgv
-	 28zGfxo8sVMeFEeUB6UCW3oVK1NbvL8MsmoeMPnMjpt0+XSFIEOVvISm4ob1IFtZnJg==
+	bh=7bZQwG3uBfbsLZDO2RCS6Z3UbVAUC+8vQpjij+D57xs=;
+	b=n3MtIcDgAGexLUGpwzPT+kb0w3sf98uYUSA7m9J4h+Pb+BXxvFU/gbcePuPwB2LIhbvj
+	 r+q9QmsxGt9raVFKbn/Q8zwKC/UOAe9ZDowLpm3ektEr9iCFJYrmvJwATPtJKhagNXtEd
+	 Uwe4HE2xRQckTOJ/NJBcnuytH5L5EPDG9daztZJl3S0ZQeOKgErH/BHJvKywoi3WPl9ip
+	 z3fz517d3xbYNM5lXJVrrvneFgeyjCOBITiTDahDcttPUuAusXOVTkoIpW9n9na2u9cHj
+	 PczpKY5u9GhdZOPfagkbP0HS/k42i9HNGLspXeaGruUmj+MMlcBIMthE5ViuXLLdmUQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=bBXR743+;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=V8Yaf0ZY;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 06B8F606A31A
-	for <mm-commits@vger.kernel.org>; Fri, 30 Oct 2026 03:02:22 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 55553606A325
+	for <mm-commits@vger.kernel.org>; Fri, 30 Oct 2026 03:02:28 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=bBXR743+
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 21B531F000C1;
-	Fri, 30 Oct 2026 03:02:22 +0000 (UTC)
+	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=V8Yaf0ZY
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C8B971F00A02;
+	Fri, 30 Oct 2026 03:02:27 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1793329342;
-	bh=a1BMpS1pJUWv/fL2IMAiUq2YWrD2P/rvA28DqlMrHnQ=;
+	d=linux-foundation.org; s=korg; t=1793329347;
+	bh=7bZQwG3uBfbsLZDO2RCS6Z3UbVAUC+8vQpjij+D57xs=;
 	h=Date:To:From:Subject;
-	b=bBXR743+5ZHshLP4PxWRIxU3TaOC6dip22Mtn5lIwtq2ukuknl5zW7YiBkku34Qex
-	 TsZlvE1N0FwlTbPWhkEgGrYsmc5ZAW7LyFIuSHOUzU1oqUBrXcX2hYO3bHdi11k2vx
-	 5+L5EQsMa5JuA255H/PExNkebVfzl+pgTIaCxbyo=
-Date: Thu, 29 Oct 2026 20:02:21 -0700
+	b=V8Yaf0ZYenxqz0j5H/166RSoh6TazvD1kq5nNECwAlfMujm10FoI9BlzLoLg/wKP5
+	 aerzGmIlQaQKZq7hIGK6YTXbUH7mBhFUgQAtZEjhACqL6dW487uM3YdxdPEYnXMTvw
+	 lrQW5o4pb6KHa44oXxM/VMofmbDqKxerIqGTlLuk=
+Date: Thu, 29 Oct 2026 20:02:27 -0700
 To: mm-commits@vger.kernel.org,zhangbo56@xiaomi.com,zhangbo0325@gmail.com,
 	richardycc@google.com,minchan@kernel.org,hdanton@sina.com,bgeffon@google.com,
 	baohua@kernel.org,senozhatsky@chromium.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + zram-remove-debugfs-entry-on-init-failure.patch added to mm-nonmm-unstable branch
-Message-Id: <20261030030222.21B531F000C1@smtp.kernel.org>
+Subject: + zram-remove-stale-warn_on-from-zram_read_page.patch added to mm-nonmm-unstable branch
+Message-Id: <20261030030227.C8B971F00A02@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -53,12 +53,12 @@ Precedence: list
 
 
 The patch titled
-     Subject: zram: remove debugfs entry on init failure
+     Subject: zram: remove stale WARN_ON() from zram_read_page()
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     zram-remove-debugfs-entry-on-init-failure.patch
+     zram-remove-stale-warn_on-from-zram_read_page.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/zram-remove-debugfs-entry-on-init-failure.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/zram-remove-stale-warn_on-from-zram_read_page.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -77,17 +77,18 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Sergey Senozhatsky <senozhatsky@chromium.org>
-Subject: zram: remove debugfs entry on init failure
-Date: Sun, 25 Oct 2026 11:18:18 +0900
+Subject: zram: remove stale WARN_ON() from zram_read_page()
+Date: Sun, 25 Oct 2026 11:18:21 +0900
 
-Do not leak the debugfs entry when zram_init() fails to register
-the block device.
+The zram_read_page() WARN_ON() is not accurate anymore, because, in
+theory, async read from bdev can return -EIO or -ENOMEM.  We report
+errors to upper layers via bi_status, so upper layers printk errors.
 
-Link: https://lore.kernel.org/20261025021839.1542805-3-senozhatsky@chromium.org
+Link: https://lore.kernel.org/20261025021839.1542805-6-senozhatsky@chromium.org
 Signed-off-by: Sergey Senozhatsky <senozhatsky@chromium.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Reviewed-by: Barry Song <baohua@kernel.org>
 Cc: Brian Geffon <bgeffon@google.com>
+Cc: Barry Song <baohua@kernel.org>
 Cc: Bo Zhang <zhangbo0325@gmail.com>
 Cc: Minchan Kim <minchan@kernel.org>
 Cc: Richard Chang <richardycc@google.com>
@@ -95,19 +96,22 @@ Cc: Bo Zhang <zhangbo56@xiaomi.com>
 Cc: Hillf Danton <hdanton@sina.com>
 ---
 
- drivers/block/zram/zram_drv.c |    1 +
- 1 file changed, 1 insertion(+)
+ drivers/block/zram/zram_drv.c |    4 ----
+ 1 file changed, 4 deletions(-)
 
---- a/drivers/block/zram/zram_drv.c~zram-remove-debugfs-entry-on-init-failure
+--- a/drivers/block/zram/zram_drv.c~zram-remove-stale-warn_on-from-zram_read_page
 +++ a/drivers/block/zram/zram_drv.c
-@@ -3297,6 +3297,7 @@ static int __init zram_init(void)
- 	if (zram_major <= 0) {
- 		pr_err("Unable to get major number\n");
- 		class_unregister(&zram_control_class);
-+		zram_debugfs_destroy();
- 		cpuhp_remove_multi_state(CPUHP_ZCOMP_PREPARE);
- 		return -EBUSY;
+@@ -2204,10 +2204,6 @@ static int zram_read_page(struct zram *z
+ 		ret = read_from_bdev(zram, page, index, blk_idx, parent);
  	}
+ 
+-	/* Should NEVER happen. Return bio error if it does. */
+-	if (WARN_ON(ret < 0))
+-		pr_err("Decompression failed! err=%d, page=%lu\n", ret, index);
+-
+ 	return ret;
+ }
+ 
 _
 
 Patches currently in -mm which might be from senozhatsky@chromium.org are
