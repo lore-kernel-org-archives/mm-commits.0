@@ -1,48 +1,46 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793372268;
-	b=cNSpal+O1xwHt8hJrDQsHIPXPm+gnrkmdSqeonWudvHMCpFzr/7Xsa7d4nTS353Qoj0F
-	 lfPyKrRn5TmrIiwExPP+dyaQBk5jkDg2K8osTOtgnETRfKRxbPfnoiIos4nkhzg+8DRCJ
-	 MjbHyEllFEKdnpvt9U1j9/7sT5fjbvojWYnXwA29xMngnT2EGOqKko/jLEVk0Q2RDi/b9
-	 lb19LadqSiSYKLiPgXtFekCcCW2VILF7Ll3NcDGCp+4Aiq8O1/YXZrzp+uXzyFBeS3opi
-	 tEl3KcQOAuRKd+uXLnqOsoczXrZO+JvaIHWaRPk9UUtqapu4syV4GQtGtoF4R1SgmtQ==
+	t=1793375134;
+	b=XW6Xr7sqtvnsvf4rjy5gpcM/iM8kxPFUjAXrSvibhQ53Bb2AO+JxAr4LnxUalNGQzwCf
+	 vQHzkPd1vRabCwS2sAEcUGtu7AA6V4tJnTbH2RcZrsCJYFDWiy9vdbd9XS83nlE0ZHhh9
+	 8olZiicM/dju+bC0R7rPtzmSBagf97GRRm+fqes4B0xL1QLQhwx5jYYuXf7sDwmoNABaG
+	 9Bx9LuiNDSM36nO8e9USTchWxflcW9jEBPTBwry3zWvVR7b+Ul+f0W3sqIHYNtstBD4Ck
+	 NuVUmZsQ2ifNQCvRihGYi7oQk8ZLREN0PdSVsQlsz3GqLNEW5ypuUNPMxjEDD4bSXKw==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793372268;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793375134;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=SEy1cxS6s4BlEoGBfkoNM57kpq+z3xY5MG3+/v6RUc0=;
-	b=aonyCcGUOPcl0Z3ZOV6hSslSdfgRnMQ0HOwBDQkZ+NfBaKfBDmx0bU8yIWCSufGfBYzp
-	 qrgyiD8OGOXdaiHubK8Bz5ANQ7uvedjQfyf49l9VuX5oNAuDVNXkQ1/5SPTbYW6r+RrB/
-	 LPAKPDuqlqtM/J1gLwZfIexG0x6rf9bRAYZANJRE6/vv1J7fj7M4k3Aeab7upyaC7ZEtJ
-	 koZSG6j9y2NXyTKWI7STu5nXrk5LiCvVRdiRAyvwF+kn6QH/Z57gbLudVlTs//wxWZ1xo
-	 TXaPGA8Imuf+HHPgF1udfUpgGAuTjqO/Ew+16d3YT5cNtBJEjsep8z0RphAYuOopTEw==
+	bh=WoonPTDxmI27DT4NSRQ351lwYs7JeMBe8dSHSnt9xRg=;
+	b=embSx6iex9W2qC1ZruV37UlaM+lSi4NcIyXB/jmTGWXDuT4K7lKTQ88xH3Bj8QW190on
+	 S2UJk3duAywtQcg20uGiZFsAoYTJ9sfWa+bUIHRl1pPsbMTOIZXD8howgf0SIhx+ze58g
+	 W7nW3qXE2zmxzb7FSdTS7yxyEY9HD+qHr24e3MnDCG49G5Auz+Kl7yRZMevAl/6XHpGui
+	 43NfKjQ0LFE0NMlJ6mtjUMGECZw+a9gfz8jTcz5DKRqrspePyLjg7q2bEMkk6KxJqatzg
+	 4kX01XOszgPp5eDKZKbq+IUbUbQfjqbhYY5mCc2yaBW+tToQt4cKqlh/KwgPCdzaiHw==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=tIfc6OJ5;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=vvTZ4ZQ2;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 28B95606A31A
-	for <mm-commits@vger.kernel.org>; Fri, 30 Oct 2026 14:57:48 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 90F05606A31C;
+	Fri, 30 Oct 2026 15:45:33 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=tIfc6OJ5
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D03981F000C1;
-	Fri, 30 Oct 2026 14:57:47 +0000 (UTC)
+	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=vvTZ4ZQ2
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1B1531F000C1;
+	Fri, 30 Oct 2026 15:45:33 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1793372267;
-	bh=SEy1cxS6s4BlEoGBfkoNM57kpq+z3xY5MG3+/v6RUc0=;
+	d=linux-foundation.org; s=korg; t=1793375133;
+	bh=WoonPTDxmI27DT4NSRQ351lwYs7JeMBe8dSHSnt9xRg=;
 	h=Date:To:From:Subject;
-	b=tIfc6OJ5lLKgfTeNpUdzVlWeuMQvthgBe74LIPXbb6J9Qq54I5bP2SYxPx82rHbVH
-	 F+daRkUJzxtdZEz2Jmhh6Lv5GRfhAcexDeBvxpxQW22va+9OXJPyC2kkjGmcyQ0OfV
-	 HYzTzoRSYhhgjiqln+QbNT2iF23RFC3l0Ee7jVwo=
-Date: Fri, 30 Oct 2026 07:57:47 -0700
-To: mm-commits@vger.kernel.org,vbabka@kernel.org,surenb@google.com,
-	shuah@kernel.org,sarthak.sharma@arm.com,rppt@kernel.org,mhocko@suse.com,
-	ljs@kernel.org,liam@infradead.org,david@kernel.org,gourry@gourry.net,
-	akpm@linux-foundation.org
+	b=vvTZ4ZQ2fUCizZGzI3hLdlr/ZGYqGY1NFYxazlJ8hUxeXGHUSK/LPktjXiPn1p9m9
+	 SNsn2mmEYSENH5B7DF7xUucvwtTfal1WHBBgwT5ZiJkAZhpG9JszWtlXIRGRP9noUX
+	 fHKmMDIHP8CNDgGUrsthSSMTZll2SRzRwNQ5waPM=
+Date: Fri, 30 Oct 2026 08:45:32 -0700
+To: mm-commits@vger.kernel.org,willy@infradead.org,stable@vger.kernel.org,
+	nickolai@csail.mit.edu,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-mm-check-that-unauthorized-madv_pageout-skips-large-file-folios.patch added to mm-new branch
-Message-Id: <20261030145747.D03981F000C1@smtp.kernel.org>
+Subject: [to-be-updated] xarray-clear-the-new-heads-parent-before-freeing-the-old-head.patch removed from -mm tree
+Message-Id: <20261030154533.1B1531F000C1@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -53,218 +51,137 @@ List-Owner: <mailto:mm-commits+owner@vger.kernel.org>
 Precedence: list
 
 
-The patch titled
-     Subject: selftests/mm: check that unauthorized MADV_PAGEOUT skips large file folios
-has been added to the -mm mm-new branch.  Its filename is
-     selftests-mm-check-that-unauthorized-madv_pageout-skips-large-file-folios.patch
+The quilt patch titled
+     Subject: xarray: clear the new head's parent before freeing the old head
+has been removed from the -mm tree.  Its filename was
+     xarray-clear-the-new-heads-parent-before-freeing-the-old-head.patch
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-check-that-unauthorized-madv_pageout-skips-large-file-folios.patch
-
-This patch will later appear in the mm-new branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Note, mm-new is a provisional staging ground for work-in-progress
-patches, and acceptance into mm-new is a notification for others take
-notice and to finish up reviews.  Please do not hesitate to respond to
-review feedback and post updated versions to replace or incrementally
-fixup patches in mm-new.
-
-The mm-new branch of mm.git is not included in linux-next
-
-If a few days of testing in mm-new is successful, the patch will me moved
-into mm.git's mm-unstable branch, which is included in linux-next
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via various
-branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there most days
+This patch was dropped because an updated version will be issued
 
 ------------------------------------------------------
-From: "Gregory Price (Meta)" <gourry@gourry.net>
-Subject: selftests/mm: check that unauthorized MADV_PAGEOUT skips large file folios
-Date: Mon, 19 Oct 2026 13:12:06 -0400
+From: Nickolai Zeldovich <nickolai@csail.mit.edu>
+Subject: xarray: clear the new head's parent before freeing the old head
+Date: Mon, 12 Oct 2026 16:25:49 -0400
 
-A caller that neither owns nor may write a file may page out the COW
-pages of a private mapping of it, but not its file pages. When the
-advised range only partly covers a large file folio, the folio must be
-filtered out before it is split, on separate paths for PMD- and
-PTE-mapped folios.
+When xas_shrink() replaces the head node of an array with the node in its
+slot 0, it stores the child in xa_head, passes the old head to
+xa_node_free(), which queues it with call_rcu(), and only then clears the
+child's ->parent pointer.  In between, a lockless walker can still reach
+the old head, not from xa_head but upwards from the new head: xas_find(),
+xas_find_marked(), xas_next() and xas_prev() climb through xa_parent()
+when they step past the end of a node.  RCU does not protect a walker that
+gets there: call_rcu() waits only for the read-side critical sections that
+were running when the callback's grace period started, and that grace
+period can start before the parent pointer is cleared.
 
-Splitting a file folio unmaps all of it, and a partly covered folio can
-only be reclaimed after a split, so a split is the failure to look for.
+  CPU 0: xa_erase(), xa_lock held   CPU 1: RCU walker, e.g. xa_find()
 
-Check that partial MADV_PAGEOUT by such a caller leaves every mapped page
-of a PMD-sized shmem folio mapped, both when a PMD maps it and when a
-mapping of half of it maps it with PTEs. Since this checks for a split
-rather than for reclaim, it needs no swap.
+  xas_shrink()
+    xa->xa_head = child
+    xa_node_free(old head)
+      call_rcu()
+                    <grace period starts>
+                                     passes a quiescent state
+                                     rcu_read_lock()
+                                     xas_find(): loads xa_head (child),
+                                     steps past its last slot,
+                                     child->parent is still old head
+    child->parent = NULL
+  xa_unlock()
+  quiescent state
+                    <grace period ends>
+  radix_tree_node_rcu_free(old head)
+                                     reads old head's slots[], shift,
+                                     offset and parent
 
-Link: https://lore.kernel.org/20261019171206.3331374-8-gourry@gourry.net
-Signed-off-by: Gregory Price (Meta) <gourry@gourry.net>
+The grace period does not wait for CPU 1, which reported its quiescent
+state before its critical section began; holding xa_lock delays the end of
+the grace period, not its start.  The start can fall inside the window
+when an interrupt arrives in it (interrupts are enabled under xa_lock(),
+and RCU core processing may run on interrupt exit), when callbacks are
+offloaded (rcu_nocbs=) and the rcuog kthread on another CPU handles the
+callback, when many callbacks are queued, or while the writer is preempted
+under PREEMPT_RT.  Interrupts, and in a guest a preempted vCPU, also
+stretch the window.
+
+After the climb, xas_find(), xas_find_marked() and xas_next() resume in
+the old head at the slot after the child and read its slots[] and shift
+(xas_find_marked() also its mark bitmaps); xas_prev(), for which the child
+is the first slot, steps past the old head at once and reads its offset
+and parent, as the others do when they reach its end.  Nothing in the walk
+notices that the node is gone.  The climb takes ->parent as it is, no
+lockless path looks at node->array (XA_RCU_FREE), and xas_shrink() stores
+XA_RETRY_ENTRY in slot 0 of the old head only when the head shrinks to a
+single entry, not to a node; the walker does not look at slot 0 anyway. 
+radix_tree_node_cachep is not SLAB_TYPESAFE_BY_RCU, so the walker reads
+freed memory.  Once the object is reused for a node of another array, the
+walker returns that array's entries or descends and climbs into its nodes.
+
+The order dates from the introduction of xas_shrink() in the commit below,
+which reimplemented radix_tree_shrink().  radix_tree_shrink() clears the
+child's parent pointer before it replaces the head and frees the old node,
+and still does in lib/radix-tree.c.  The commit gives no reason for the
+different order and nothing depends on it: xas_update() and xa_node_free()
+only touch the old head.
+
+Clear the child's parent pointer before freeing the old head, as
+radix_tree_shrink() does.  The stores are the same, the tree and the
+xa_state the caller sees are the same, and a walker that starts after the
+callback's grace period has begun sees the cleared pointer, like every
+store before call_rcu(), and ends its walk at the new head, which covers
+every index that the old head had an entry for.
+
+A check in the radix-tree test harness that no node passed to
+xa_node_free() is still the parent of a node reachable from xa_head fails
+in xas_shrink() 4731 times in the XArray tests without this patch and
+never with it.  No test is added: the race is not deterministic and the
+check needs a hook on xa_node_free().  A harness race test (readers
+walking the whole array with the four climbing walkers while a writer
+stores and erases an entry that adds three levels above the leaf) did not
+hit the window in 20 runs of 200000 erases; with a 1 ms sleep injected
+after xa_node_free() in xas_shrink(), every one of 20 runs reported a
+heap-use-after-free in __xas_next() or __xas_prev() under
+AddressSanitizer, and none did with this patch and the same sleep.  On a
+kernel (x86_64 defconfig + KASAN, QEMU), with a 100 ms delay injected at
+the same place, a walk that starts on another CPU 20 ms into the window
+climbs to the old head in each of 20 rounds, and KASAN reports a
+slab-use-after-free of the radix_tree_node freed from rcu_core() when the
+walk takes its next step; with this patch, the walk ends at the new head. 
+The XArray and IDA self-tests pass on x86_64 and riscv64.
+
+Found while formally verifying xas_store() against the kernel binary.
+
+Link: https://lore.kernel.org/20261012202549.772887-1-nickolai@csail.mit.edu
+Fixes: 58d6ea3085f2 ("xarray: Add XArray unconditional store operations")
+Signed-off-by: Nickolai Zeldovich <nickolai@csail.mit.edu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Reviewed-by: Sarthak Sharma <sarthak.sharma@arm.com>
-Cc: David Hildenbrand <david@kernel.org>
-Cc: Lorenzo Stoakes <ljs@kernel.org>
-Cc: Liam R. Howlett <liam@infradead.org>
-Cc: Vlastimil Babka <vbabka@kernel.org>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Shuah Khan <shuah@kernel.org>
+Assisted-by: LLM
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: <stable@vger.kernel.org>
 ---
 
- tools/testing/selftests/mm/madv_cold_pageout.c |  114 +++++++++++++++
- 1 file changed, 114 insertions(+)
+ lib/xarray.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
---- a/tools/testing/selftests/mm/madv_cold_pageout.c~selftests-mm-check-that-unauthorized-madv_pageout-skips-large-file-folios
-+++ a/tools/testing/selftests/mm/madv_cold_pageout.c
-@@ -195,6 +195,33 @@ static void pte_map_thp(struct __test_me
- 	ASSERT_TRUE(flags & KPF_COMPOUND_HEAD);
+--- a/lib/xarray.c~xarray-clear-the-new-heads-parent-before-freeing-the-old-head
++++ a/lib/xarray.c
+@@ -471,11 +471,12 @@ static void xas_shrink(struct xa_state *
+ 		if (!xa_is_node(entry))
+ 			RCU_INIT_POINTER(node->slots[0], XA_RETRY_ENTRY);
+ 		xas_update(xas, node);
++		if (xa_is_node(entry))
++			xa_to_node(entry)->parent = NULL;
+ 		xa_node_free(node);
+ 		if (!xa_is_node(entry))
+ 			break;
+ 		node = xa_to_node(entry);
+-		node->parent = NULL;
+ 	}
  }
  
-+static char *map_aligned_file(struct __test_metadata *_metadata, int fd,
-+			      size_t size, int flags)
-+{
-+	char *mapping = reserve_aligned(_metadata, size);
-+
-+	ASSERT_EQ(mmap(mapping, size, PROT_READ | PROT_WRITE, flags | MAP_FIXED,
-+		       fd, 0), mapping);
-+
-+	return mapping;
-+}
-+
-+/* Create a PMD-sized shmem file filled with 1s. */
-+static int create_shmem_file(struct __test_metadata *_metadata)
-+{
-+	char *shared;
-+	int fd;
-+
-+	fd = memfd_create("madv_cold_pageout", 0);
-+	ASSERT_GE(fd, 0);
-+	ASSERT_EQ(ftruncate(fd, pmd_size), 0);
-+	shared = map_aligned_file(_metadata, fd, pmd_size, MAP_SHARED);
-+	memset(shared, 1, pmd_size);
-+	ASSERT_EQ(munmap(shared, pmd_size), 0);
-+
-+	return fd;
-+}
-+
- static void assert_filled(struct __test_metadata *_metadata,
- 			  const char *mapping, size_t size)
- {
-@@ -792,6 +819,93 @@ TEST_F(madv_cold_pageout, pageout_privat
- 	ASSERT_EQ(munmap(mapping, 2 * page_size), 0);
- }
- 
-+/*
-+ * An unauthorized caller must leave a large file folio of a private mapping
-+ * alone, even when the advised range only partly covers it. Splitting the
-+ * folio would unmap all of it, so every page must stay mapped, which needs
-+ * no swap to check. See pageout_stays_within_range about other unmapping.
-+ */
-+TEST_F(madv_cold_pageout, pageout_private_file_skips_large_file_folio)
-+{
-+	char *mapping;
-+	size_t offset;
-+	int fd;
-+
-+	if (!pmd_size)
-+		SKIP(return, "PMD-sized THPs are not supported");
-+	if (geteuid())
-+		SKIP(return, "requires root to change credentials");
-+	fd = create_shmem_file(_metadata);
-+	mapping = map_aligned_file(_metadata, fd, pmd_size, MAP_PRIVATE);
-+	if (!collapse(mapping, pmd_size, check_huge_file))
-+		SKIP(return, "could not allocate a PMD-sized shmem THP");
-+	ASSERT_EQ(fchmod(fd, 0400), 0);
-+	if (!drop_privileges())
-+		SKIP(return, "could not drop privileges");
-+
-+	ASSERT_EQ(madvise(mapping, pmd_size / 2, MADV_PAGEOUT), 0);
-+	for (offset = 0; offset < pmd_size; offset += page_size) {
-+		ASSERT_TRUE(page_is_present(self->pagemap_fd,
-+					    mapping + offset))
-+			TH_LOG("page at offset %zu was unmapped", offset);
-+	}
-+	assert_filled(_metadata, mapping, pmd_size);
-+
-+	ASSERT_EQ(munmap(mapping, pmd_size), 0);
-+	close(fd);
-+}
-+
-+/*
-+ * The same holds for a large file folio that a private mapping maps with
-+ * PTEs: every page the mapping maps must stay mapped. See
-+ * pageout_stays_within_range about other unmapping.
-+ */
-+TEST_F(madv_cold_pageout, pageout_private_file_skips_pte_mapped_file_folio)
-+{
-+	const size_t size = pmd_size / 2;
-+	char *mapping, *shared;
-+	unsigned long pfn;
-+	uint64_t flags;
-+	size_t offset;
-+	int fd;
-+
-+	if (!pmd_size)
-+		SKIP(return, "PMD-sized THPs are not supported");
-+	if (geteuid())
-+		SKIP(return, "requires root to change credentials");
-+	if (self->kpageflags_fd < 0)
-+		SKIP(return, "cannot read page flags");
-+	fd = create_shmem_file(_metadata);
-+	shared = map_aligned_file(_metadata, fd, pmd_size, MAP_SHARED);
-+	if (!collapse(shared, pmd_size, check_huge_file))
-+		SKIP(return, "could not allocate a PMD-sized shmem THP");
-+	ASSERT_EQ(munmap(shared, pmd_size), 0);
-+
-+	/* Mapping half of the folio leaves it mapped by PTEs. */
-+	mapping = mmap(NULL, size, PROT_READ | PROT_WRITE, MAP_PRIVATE, fd, 0);
-+	ASSERT_NE(mapping, MAP_FAILED);
-+	assert_filled(_metadata, mapping, size);
-+	pfn = pagemap_get_pfn(self->pagemap_fd, mapping);
-+	ASSERT_NE(pfn, -1UL);
-+	ASSERT_EQ(pageflags_get(pfn, self->kpageflags_fd, &flags), 0);
-+	if (!(flags & KPF_COMPOUND_HEAD))
-+		SKIP(return, "the shmem THP was split");
-+	ASSERT_EQ(fchmod(fd, 0400), 0);
-+	if (!drop_privileges())
-+		SKIP(return, "could not drop privileges");
-+
-+	ASSERT_EQ(madvise(mapping, size / 2, MADV_PAGEOUT), 0);
-+	for (offset = 0; offset < size; offset += page_size) {
-+		ASSERT_TRUE(page_is_present(self->pagemap_fd,
-+					    mapping + offset))
-+			TH_LOG("page at offset %zu was unmapped", offset);
-+	}
-+	assert_filled(_metadata, mapping, size);
-+
-+	ASSERT_EQ(munmap(mapping, size), 0);
-+	close(fd);
-+}
-+
- /* Swap out an anonymous page, to see whether swap works at all. */
- static bool probe_swap(int pagemap_fd)
- {
 _
 
-Patches currently in -mm which might be from gourry@gourry.net are
+Patches currently in -mm which might be from nickolai@csail.mit.edu are
 
-mm-page_alloc-let-the-highest-memory-node-recover-from-hopeless-state.patch
-mm-memory-tiers-reset-demotion-targets-of-nodes-without-memory.patch
-mm-mempolicy-convert-mempolicy-refcnt-to-refcount_t.patch
-selftests-mm-add-madv_cold-and-madv_pageout-contract-tests.patch
-selftests-mm-check-madv_cold-and-madv_pageout-range-handling.patch
-selftests-mm-check-that-madv_cold-and-madv_pageout-reject-hugetlb.patch
-selftests-mm-check-that-madv_cold-and-madv_pageout-preserve-shared-memory.patch
-selftests-mm-check-madv_cold-and-madv_pageout-on-partly-advised-thps.patch
-selftests-mm-check-madv_pageout-file-permissions.patch
-selftests-mm-check-that-unauthorized-madv_pageout-skips-large-file-folios.patch
+panic-zero-the-dynamically-allocated-taint-buffer.patch
 
