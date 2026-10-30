@@ -1,48 +1,49 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793342066;
-	b=RSkJrzbE9N1HxSLRlqKK4/OJrMr5kNql8rBDtAb8VcE4pWUg07JZurjbZaGKCsY4HmVi
-	 yqxAya37K+XYYol8+nsN/w/vWGeaWfLRxQFI3ukItPQWodWSrSkBjV8IQmkwDvLyihYID
-	 YlZ4kdtcdBKfaZ6HiDoZgacGd2iGbeaBqSVjcAbUATVt6u88v1bIsxstELl5WmZGrrcRi
-	 CdDl0chsZ9LTQHS1tFx7UDvJLJ48I54VPjBxtUzc0+4N+b375AXMp2q7A5setW+md6K+H
-	 rm/gDz3R1ce38Z6JlicYrSB+cH1NmjHN6i/MgsamuHGzGJ1qqTUOShk6Bo1XKlishjA==
+	t=1793342308;
+	b=l6HOfRLtQsTMhDAxj2FfFd1Kwv6VO4VUwqT38n0u9nS2IkjeLXENvhTiAzctbx0iuuqS
+	 8UAcOsMFTxpH+yjTuoaxE65r86TNQ5K8di/H4+DGZCO51JjbSuX2ewoiYwzLjF0U97h+S
+	 R0TwtZYlpv8N2yO/dsn6A0PWK5moltPu22O0SFDriwBzcyDaycKGxNyF/KyRi0Y+9NO/w
+	 FlPlhjjV+FlfgkYLQ9rb9FK0Ze4e4pLRb8i+b7CLs1PRSR/m8KaeLq3xDoCuOhBh3t0fT
+	 xauG1rvdAwddS4Bg2Bxys5rR7jjkLl7eYBiHbPbWXj2dvgbWTQILUy/+R5Y8PL2F6YQ==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793342066;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793342308;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=lD1P7SCwJM7JPeIoG6ay6nkGlYPc++pmjQ7vdWv2J1I=;
-	b=G5f9F2MwfnLNYccjiXN+hSz/hic5pPb6i+o7wBJYwYbuXOWq50pWVAkaT/zD/SQdjfmP
-	 NYJYAeI01DacfdnztBwcirYk5Jgb1MwkXX+ejFK880URrDj7FoCHZkPEjwqOV6E9NS6WH
-	 T6h113FXhpWFzdCdVa3CkcY2RZwAY9IA1NiZYkB+IFCEwmgBFUQWuW+1Vv4ypdScWFZqg
-	 Kp2li68+vTHx8yHu+NorDVXBQ+EtviUz6D/RcyTJfX6RgoZLPlBX+cZjZKB703Ry+KQgA
-	 ZDGq8iuyJONxiyCyDtWyzyp8HuM0DPUIGT2lPfZKgNlhNxnWrKeZSYBM4nB83NXZwjg==
+	bh=dEIhOBrdjRaN4SymHNFrzFpPir2led2H84wobob8dvc=;
+	b=hmymg9iwWff3pBvWRVoL8aAYNEfqkEz3qs/hqrNvA2ZmA79pXYTJAn3wzezxjMMDXu6R
+	 pQaa184pJesBJXmpu5tENoJoQviGTuq3K0leUchkm36poNtzxXnYtvZLP2URQYQZk5j+u
+	 Iig1Gu0yQF4Ub7aCPvYRYTMR4pR01MeHKehkLyFIlOMTdwBe6Us9vJT4E4JaZDuLMfzFT
+	 sY0LfBMnxUFsBq7AhTqyOxhJowdyGjfpu7XKmGIpBdzYS4A10ias4zkMouB9GEEbDtYTX
+	 cDl/N8X0mc8IFB06vzumaCeacN0Mq421EaxjolC7zZ/GGyPDw8Kjo9fBcLIoR+HT2vw==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=2qVL75A6;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=ejcObEZg;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EDBFC606A31C
-	for <mm-commits@vger.kernel.org>; Fri, 30 Oct 2026 06:34:25 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 48D56606A31D;
+	Fri, 30 Oct 2026 06:38:27 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=2qVL75A6
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4E6911F000C1;
-	Fri, 30 Oct 2026 06:34:25 +0000 (UTC)
+	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=ejcObEZg
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A05DD1F0093A;
+	Fri, 30 Oct 2026 06:38:27 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1793342065;
-	bh=lD1P7SCwJM7JPeIoG6ay6nkGlYPc++pmjQ7vdWv2J1I=;
+	d=linux-foundation.org; s=korg; t=1793342307;
+	bh=dEIhOBrdjRaN4SymHNFrzFpPir2led2H84wobob8dvc=;
 	h=Date:To:From:Subject;
-	b=2qVL75A6InSZ/RvzTU/PvpVNxgbPqd0CkiNL4OUOeaQwuk600hmo6RHaqP5KbbkuP
-	 EIBPP2owDvFE1JZBbr1CjZWccKilamzXi9GljoljW2ON1IurVjTKBwqn9Dp41j0KEC
-	 2gX7RMR8RiWXOafae5Li3la0DS9T71nC0YGpCPLY=
-Date: Thu, 29 Oct 2026 23:34:24 -0700
-To: mm-commits@vger.kernel.org,tsbogend@alpha.franken.de,rppt@kernel.org,
-	kernel@xen0n.name,james.bottomley@hansenpartnership.com,deller@gmx.de,
-	david@kernel.org,chenhuacai@kernel.org,arnd@arndb.de,muchun.song@linux.dev,
+	b=ejcObEZgbfB4A6gmGdtqrQxDbGPQ605gDJqpOPuz21RL93UTHxRTmWrrh1DJz95Mj
+	 TjijUoGbbdz8c/op38b1Xu9tVLtRsSZJx78ioHAa6iTb0jPLUsFudzKwYJ1hr6PkYg
+	 a+meJa6shsuxUfEWP2ruhCbah/zF5NgQZenjdOl8=
+Date: Thu, 29 Oct 2026 23:38:27 -0700
+To: mm-commits@vger.kernel.org,sunil.mushran@oracle.com,
+	stable@vger.kernel.org,mark@fasheh.com,kuba@kernel.org,kees@kernel.org,
+	joseph.qi@linux.alibaba.com,jlbec@evilplan.org,jjzuming@gmail.com,
+	heming.zhao@suse.com,baijiaju1990@gmail.com,zzzccc427@gmail.com,
 	akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-generalize-pud-page-table-allocation.patch added to mm-new branch
-Message-Id: <20261030063425.4E6911F000C1@smtp.kernel.org>
+Subject: + ocfs2-cluster-unlink-socket-containers-before-releasing-resources.patch added to mm-nonmm-hotfixes-unstable branch
+Message-Id: <20261030063827.A05DD1F0093A@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -54,26 +55,15 @@ Precedence: list
 
 
 The patch titled
-     Subject: mm: generalize PUD page table allocation
-has been added to the -mm mm-new branch.  Its filename is
-     mm-generalize-pud-page-table-allocation.patch
+     Subject: ocfs2/cluster: unlink socket containers before releasing resources
+has been added to the -mm mm-nonmm-hotfixes-unstable branch.  Its filename is
+     ocfs2-cluster-unlink-socket-containers-before-releasing-resources.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-generalize-pud-page-table-allocation.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/ocfs2-cluster-unlink-socket-containers-before-releasing-resources.patch
 
-This patch will later appear in the mm-new branch at
+This patch will later appear in the mm-nonmm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Note, mm-new is a provisional staging ground for work-in-progress
-patches, and acceptance into mm-new is a notification for others take
-notice and to finish up reviews.  Please do not hesitate to respond to
-review feedback and post updated versions to replace or incrementally
-fixup patches in mm-new.
-
-The mm-new branch of mm.git is not included in linux-next
-
-If a few days of testing in mm-new is successful, the patch will me moved
-into mm.git's mm-unstable branch, which is included in linux-next
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -88,153 +78,173 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Muchun Song <muchun.song@linux.dev>
-Subject: mm: generalize PUD page table allocation
-Date: Wed, 14 Oct 2026 11:59:10 +0800
+From: Cen Zhang <zzzccc427@gmail.com>
+Subject: ocfs2/cluster: unlink socket containers before releasing resources
+Date: Tue, 13 Oct 2026 23:34:46 +0800
 
-The generic PUD allocator assumes order-0 page tables and zero-valued empty
-entries. MIPS and LoongArch need pud_init() to install their invalid
-entries. MIPS also uses PUD_TABLE_ORDER to describe the allocation size.
+A socket container's node and socket must remain alive while the
+container is on sock_containers. The debugfs formatter reads sc_node
+and sc_sock under o2net_debug_lock without taking their references, but
+sc_kref_release() releases both before taking that lock to unlink the
+container.
 
-Default PUD_TABLE_ORDER to zero, honor architecture overrides, and invoke
-pud_init() from the generic allocator. MIPS and LoongArch can then drop
-their duplicate helpers and use the generic constructor handling and kernel
-ptdesc marking.
+With CONFIG_DEBUG_FS enabled, a synchronous sender can retain its last
+socket-container reference after o2net_disconnect_node() has detached
+the connection and flushed o2net_wq. The caller runs outside that
+workqueue. After the sender removes its configfs dependency, node
+removal can proceed without waiting for the sender's final sc_put():
 
-This also switches their user PUD allocations from GFP_KERNEL to
-GFP_PGTABLE_USER, so they are accounted to the active memory cgroup
-context. Allocations for init_mm continue to use GFP_PGTABLE_KERNEL.
+  Sender (final sc_put)    Configfs rmdir        Debugfs reader
+  --------------------    --------------        --------------
+  o2nm_undepend_item()
+                          Drop node item refs
+  o2nm_node_put()
+    [node can be freed]
+                                               sc_seq_show()
+                                                 Lock debug lock
+                                                 Read sc_node->nd_name
+                                                 Unlock debug lock
+  sc_node = NULL
+  o2net_debug_del_sc()
 
-Link: https://lore.kernel.org/20261014035910.687847-4-songmuchun@bytedance.com
-Signed-off-by: Muchun Song <muchun.song@linux.dev>
+The earlier socket release has a similar window. The container is
+still selectable while its socket has been released and sc_sock has
+not yet been cleared:
+
+  Sender (final sc_put)                       Debugfs reader
+  --------------------                       --------------
+  sock_release(sc->sc_sock)
+    [socket can be freed]
+                                             sc_seq_show()
+                                               Lock debug lock
+                                               Read sc_sock->sk fields
+                                               Unlock debug lock
+  sc_sock = NULL
+  ...
+  o2net_debug_del_sc()
+
+Move o2net_debug_del_sc() before releasing either resource. Unlinking
+under the existing debug lock waits for an active formatter to finish
+and prevents later readers from selecting the container. This covers
+both socket fields and node fields, including nd_num in the stats
+formatter.
+
+KASAN report as below:
+
+    BUG: KASAN: slab-use-after-free in string+0x42b/0x470
+    Read of size 1 at addr ffff88810f56fc90 by task python3/506
+
+    CPU: 0 UID: 0 PID: 506 Comm: python3 Not tainted 7.3.0-rc4-next-20260921-pmb-ocfs2-functional-v1+ #1 PREEMPT(lazy)
+    Hardware name: QEMU Ubuntu 24.04 PC v2 (i440FX + PIIX, arch_caps fix, 1996), BIOS 1.16.3-debian-1.16.3-2 04/01/2014
+    Call Trace:
+     <TASK>
+     dump_stack_lvl+0x93/0xd0
+     print_report+0xce/0x630
+     kasan_report+0xe0/0x110
+     string+0x42b/0x470
+     vsnprintf+0x330/0x1110
+     seq_printf+0x1a8/0x260
+     sc_seq_show+0x604/0x9f0
+     seq_read_iter+0x480/0x1110
+     seq_read+0x362/0x5a0
+     full_proxy_read+0x11f/0x180
+     vfs_read+0x1a0/0xc20
+     ksys_read+0x111/0x200
+     do_syscall_64+0x114/0x620
+     entry_SYSCALL_64_after_hwframe+0x77/0x7f
+
+(User register dump omitted.)
+
+     </TASK>
+
+    Allocated by task 497:
+     kasan_save_stack+0x33/0x60
+     kasan_save_track+0x14/0x30
+     __kasan_kmalloc+0xaa/0xb0
+     __kmalloc_cache_noprof+0x28d/0x610
+     o2nm_node_group_make_item+0xea/0x1a0
+     configfs_mkdir+0x762/0xca0
+     vfs_mkdir+0x399/0x7e0
+     filename_mkdirat+0x129/0x450
+     __x64_sys_mkdir+0x70/0xa0
+     do_syscall_64+0x114/0x620
+     entry_SYSCALL_64_after_hwframe+0x77/0x7f
+
+    Freed by task 505:
+     kasan_save_stack+0x33/0x60
+     kasan_save_track+0x14/0x30
+     kasan_save_free_info+0x3b/0x60
+     __kasan_slab_free+0x5f/0x80
+     kfree+0x308/0x580
+     config_item_cleanup+0x14b/0x230
+     config_item_put+0x79/0x90
+     sc_put+0x454/0x6e0
+     o2net_send_message_vec+0x63d/0x1560
+     o2net_send_message+0xa6/0xe0
+     validation_send_write+0x17f/0x1d0
+     full_proxy_write+0x11f/0x180
+     vfs_write+0x25a/0x1010
+     ksys_write+0x111/0x200
+     do_syscall_64+0x114/0x620
+     entry_SYSCALL_64_after_hwframe+0x77/0x7f
+
+    The buggy address belongs to the object at ffff88810f56fc00
+     which belongs to the cache kmalloc-512 of size 512
+    The buggy address is located 144 bytes inside of
+     freed 512-byte region [ffff88810f56fc00, ffff88810f56fe00)
+
+(Page and shadow-memory dumps omitted.)
+
+Link: https://lore.kernel.org/pm-ocfs2-objects-candidate-0065-v6-3090153fd7cacb810214@gmail.com
+Fixes: 2309e9e040fe ("ocfs2/net: Add debug interface to o2net")
+Signed-off-by: Cen Zhang <zzzccc427@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Reviewed-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
-Acked-by: David Hildenbrand (Arm) <david@kernel.org>
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: Huacai Chen <chenhuacai@kernel.org>
-Cc: WANG Xuerui <kernel@xen0n.name>
-Cc: Thomas Bogendoerfer <tsbogend@alpha.franken.de>
-Cc: James Bottomley <james.bottomley@hansenpartnership.com>
-Cc: Helge Deller <deller@gmx.de>
+Reviewed-by: Joseph Qi <joseph.qi@linux.alibaba.com>
+Assisted-by: LLM
+Cc: Mark Fasheh <mark@fasheh.com>
+Cc: Joel Becker <jlbec@evilplan.org>
+Cc: Heming Zhao <heming.zhao@suse.com>
+Cc: Kees Cook <kees@kernel.org>
+Cc: Jakub Kicinski <kuba@kernel.org>
+Cc: Sunil Mushran <sunil.mushran@oracle.com>
+Cc: Jia-Ju Bai <baijiaju1990@gmail.com>
+Cc: <jjzuming@gmail.com>
+Cc: <stable@vger.kernel.org>
 ---
 
- arch/loongarch/include/asm/pgalloc.h |   16 ----------------
- arch/mips/include/asm/pgalloc.h      |   15 ---------------
- include/asm-generic/pgalloc.h        |   11 +++++++++--
- 3 files changed, 9 insertions(+), 33 deletions(-)
+ fs/ocfs2/cluster/tcp.c |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
---- a/arch/loongarch/include/asm/pgalloc.h~mm-generalize-pud-page-table-allocation
-+++ a/arch/loongarch/include/asm/pgalloc.h
-@@ -8,7 +8,6 @@
- #include <linux/mm.h>
- #include <linux/sched.h>
+--- a/fs/ocfs2/cluster/tcp.c~ocfs2-cluster-unlink-socket-containers-before-releasing-resources
++++ a/fs/ocfs2/cluster/tcp.c
+@@ -393,6 +393,9 @@ static void sc_kref_release(struct kref
  
--#define __HAVE_ARCH_PUD_ALLOC_ONE
- #include <asm-generic/pgalloc.h>
+ 	sclog(sc, "releasing\n");
  
- static inline void pmd_populate_kernel(struct mm_struct *mm,
-@@ -51,21 +50,6 @@ extern pgd_t *pgd_alloc(struct mm_struct
- #endif
- 
- #ifndef __PAGETABLE_PUD_FOLDED
--
--static inline pud_t *pud_alloc_one(struct mm_struct *mm, unsigned long address)
--{
--	pud_t *pud;
--	struct ptdesc *ptdesc = pagetable_alloc(GFP_KERNEL, 0);
--
--	if (!ptdesc)
--		return NULL;
--	pagetable_pud_ctor(ptdesc);
--	pud = ptdesc_address(ptdesc);
--
--	pud_init(pud);
--	return pud;
--}
--
- #define __pud_free_tlb(tlb, x, addr)	tlb_remove_ptdesc((tlb), virt_to_ptdesc(x))
- 
- #endif /* __PAGETABLE_PUD_FOLDED */
---- a/arch/mips/include/asm/pgalloc.h~mm-generalize-pud-page-table-allocation
-+++ a/arch/mips/include/asm/pgalloc.h
-@@ -13,7 +13,6 @@
- #include <linux/mm.h>
- #include <linux/sched.h>
- 
--#define __HAVE_ARCH_PUD_ALLOC_ONE
- #include <asm-generic/pgalloc.h>
- 
- static inline void pmd_populate_kernel(struct mm_struct *mm, pmd_t *pmd,
-@@ -52,20 +51,6 @@ extern pgd_t *pgd_alloc(struct mm_struct
- 
- #ifndef __PAGETABLE_PUD_FOLDED
- 
--static inline pud_t *pud_alloc_one(struct mm_struct *mm, unsigned long address)
--{
--	pud_t *pud;
--	struct ptdesc *ptdesc = pagetable_alloc(GFP_KERNEL, PUD_TABLE_ORDER);
--
--	if (!ptdesc)
--		return NULL;
--	pagetable_pud_ctor(ptdesc);
--	pud = ptdesc_address(ptdesc);
--
--	pud_init(pud);
--	return pud;
--}
--
- static inline void p4d_populate(struct mm_struct *mm, p4d_t *p4d, pud_t *pud)
- {
- 	set_p4d(p4d, __p4d((unsigned long)pud));
---- a/include/asm-generic/pgalloc.h~mm-generalize-pud-page-table-allocation
-+++ a/include/asm-generic/pgalloc.h
-@@ -182,24 +182,31 @@ static inline void pmd_free(struct mm_st
- 
- #if CONFIG_PGTABLE_LEVELS > 3
- 
-+#ifndef PUD_TABLE_ORDER
-+#define PUD_TABLE_ORDER	0
-+#endif
++	/* Unlink before freeing anything the debugfs readers dereference. */
++	o2net_debug_del_sc(sc);
 +
- static inline pud_t *__pud_alloc_one_noprof(struct mm_struct *mm, unsigned long addr)
- {
- 	gfp_t gfp = GFP_PGTABLE_USER;
- 	struct ptdesc *ptdesc;
-+	pud_t *pud;
+ 	if (sc->sc_sock) {
+ 		sock_release(sc->sc_sock);
+ 		sc->sc_sock = NULL;
+@@ -402,8 +405,6 @@ static void sc_kref_release(struct kref
+ 	o2nm_node_put(sc->sc_node);
+ 	sc->sc_node = NULL;
  
- 	if (mm == &init_mm)
- 		gfp = GFP_PGTABLE_KERNEL;
- 
--	ptdesc = pagetable_alloc_noprof(gfp, 0);
-+	ptdesc = pagetable_alloc_noprof(gfp, PUD_TABLE_ORDER);
- 	if (!ptdesc)
- 		return NULL;
- 
- 	pagetable_pud_ctor(ptdesc);
-+	pud = ptdesc_address(ptdesc);
-+	pud_init(pud);
- 
- 	if (mm == &init_mm)
- 		ptdesc_set_kernel(ptdesc);
- 
--	return ptdesc_address(ptdesc);
-+	return pud;
- }
- #define __pud_alloc_one(...)	alloc_hooks(__pud_alloc_one_noprof(__VA_ARGS__))
- 
+-	o2net_debug_del_sc(sc);
+-
+ 	if (sc->sc_page)
+ 		__free_page(sc->sc_page);
+ 	kfree(sc);
 _
 
-Patches currently in -mm which might be from muchun.song@linux.dev are
+Patches currently in -mm which might be from zzzccc427@gmail.com are
 
-riscv-mm-fix-hotplug-page-table-destructor-handling.patch
-riscv-mm-fix-missing-destructor-for-hotplug-pud-tables.patch
-mm-fix-missing-page-table-destructor-in-pagetable_free.patch
-arm64-mm-fix-destructor-for-unconstructed-hotplug-page-tables.patch
-mm-sparse-vmemmap-map-shared-vmemmap-tail-pages-as-read-only.patch
-powerpc-mm-map-shared-vmemmap-tail-pages-as-read-only.patch
-mm-hugetlb_vmemmap-remove-vmemmap_wrprotect_hvo.patch
-mm-hugetlb_vmemmap-remove-hugetlb_vmemmap_optimize_bootmem_folios.patch
-mm-generalize-kernel-pte-table-allocation.patch
-mm-generalize-pmd-page-table-allocation.patch
-mm-generalize-pud-page-table-allocation.patch
+ocfs2-validate-move-extents-against-a-stable-eof.patch
+ocfs2-keep-locking_state-within-the-cluster-connection-lifetime.patch
+ocfs2-dlm-serialize-migration-mle-cleanup-on-failure.patch
+ocfs2-stop-recovery-before-shutting-down-local-allocators.patch
+ocfs2-cluster-unlink-socket-containers-before-releasing-resources.patch
+ocfs2-wait-for-filecheck-kobject-release-after-a-failed-add.patch
+ocfs2-cache-the-mount-context-for-dentry-lock-callbacks.patch
 
