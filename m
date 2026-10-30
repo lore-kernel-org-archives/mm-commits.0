@@ -1,78 +1,46 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=192.198.163.18
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793381082;
-	b=xLsnOn9p4GwhSWTNMLmilNR8znnHE/ZgcWoDbdoYM7HRgfnNJx+mzotPKVxLdblAo2n5
-	 2sPUA64ONcTLesTmRT9vbWTYMmD/ZBdAXEKymFmLuUp2ygAgYI8bZmdDxe01BSYma1tNS
-	 wccMhMEhCL2oPoTZt2Eqd8Po0b4AR2nQmAGNK4yDNXN2Z7tqRNWxxkRihEUqScHFeRReb
-	 i/LVsW2RL7bVVRGQLP03JpXPUljY6mROBKIjVcg5ETEH2tS1/oGCigJorP02rNNsY4ijO
-	 NYj8D1MxY8oY4F71JhfdHjvZKigE7/aTPjBY+ZBd13IewmCoI9zHvLsQNw9tT/x2IlQ==
+	t=1793387252;
+	b=LO09FRitG0uVEB2fbvN03j+ZNFRM8qp9H5ZxlhAxRIjzsAJ41cRb024LEyQUNc0OQ89d
+	 wni4MlhgNZBQG28PSt/DUcVwd2DuBPkJl87XrAgacZAtHQ44wrYuTUyg66s/ex78/+BDF
+	 7pDBuD6YsZhtR+B6VtjiUKBP3SROVEoTX2g5IQMpoDhCQv6D3m54qLPb9E0sll6N/tOKH
+	 Mk2ioo1YQ2SprGNaF/RX5jNR2ZifNGrvIqzmTtuMgR1Xwi81VNOmbMUPqGHkpHCXLGbYT
+	 W7om9qO0eg/4Dju6UC2TaJGMcN5XyxwnO/tSqscSfCvvdJHmRrwAQ2KgQl65uwao0zQ==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793381082;
-	h=DMARC-Filter:DKIM-Signature:X-CSE-ConnectionGUID:X-CSE-MsgGUID:
-	 X-IronPort-AV:X-IronPort-AV:Received:X-CSE-ConnectionGUID:
-	 X-CSE-MsgGUID:X-ExtLoop1:X-IronPort-AV:Received:Received:Date:From:To:
-	 Cc:Subject:Message-ID:User-Agent;
-	bh=cjvzieB2xfmCXn6g+QLg66M3I+bYxfDfj3rVMKyJmB4=;
-	b=KLZj3RC38mrt6a4svZwJDP4qrrlwRxrwTzRw5ds/fYwry/XtWkcXEgJMyPEawkKMgRQR
-	 zJW/jT4zh7GE3jEFzIuD1wpwfWyRbJrsRW2XEWfdtSqsLzD81rTGgwEJIM4PUtQTn0Wjg
-	 3w+BdKuZ6NrGVtTZ7V83tcIOpozNcHTclR2tnxbQoiNHARsdkbV1trt5Rfm2+K3YoPd9I
-	 znSYMH4cvabYL/kcbD/Z2EH1dYxJEAn/5la0Ht+6SHc0ErCPuJua3VXAuqh37wglrrPRh
-	 88Eb7tHU1eomyfFNCByNiXqIehfH/sqI/DGUg74B0oivZ0hkYF0EXbd4yZbldei7uHA==
+	a=rsa-sha256; c=relaxed/relaxed; t=1793387252;
+	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
+	bh=2MEbwpwmVEb5ZNBZ4RlzH+TGeY3SrFEDe0lsquxxhuE=;
+	b=ytpo6n5dh6wR1e9Ea7ev5uOeSntSHj8JHc175S+Zqmjc+TIewywUGYMNNQjRQoJZsouZ
+	 S4HGSyxZI8h8D1rpnxcGQUr/frX4oySwKIAb7OwfDYJ6t7+iAydJu8USeaa7IB6X2w6Z6
+	 YdnKWNr6wjS9s4gnZssPydXBjk1s+J2qIb5oXiydttDE9wbCHV+hAMKpTvOjK1NYDof0k
+	 P2NNBaTGfxLX78AL/xWKkItpZ/LBK4e/y82qFpMH7PTPDP6Be5WKZNrJleBWPZaqnTQVH
+	 ClX85vWlw/2GieGvA/uu32GDKtQx6BttyMWigu751uPmxq+k/XlPoUaGA0EtVeHjCGQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=intel.com;
-	spf=pass smtp.mailfrom=intel.com;
-	dkim=pass header.d=intel.com header.i=@intel.com header.a=rsa-sha256 header.s=Intel header.b=JzPh9nGm;
-	arc=none smtp.remote-ip=192.198.163.18
-Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.18])
-	(using TLSv1.2 with cipher ECDHE-ECDSA-AES256-GCM-SHA384 (256/256 bits))
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=uyuDaxq2;
+	arc=none smtp.remote-ip=100.103.45.18
+Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8B26B606A31C
-	for <mm-commits@vger.kernel.org>; Fri, 30 Oct 2026 17:24:41 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 8B26B606A31C
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F349E606A331;
+	Fri, 30 Oct 2026 19:07:31 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=intel.com header.i=@intel.com header.a=rsa-sha256 header.s=Intel header.b=JzPh9nGm
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1793381081; x=1824917081;
-  h=date:from:to:cc:subject:message-id;
-  bh=XmjgKkiq8T6KWlXFBZuxUsxwhzykkYonEf3QZviu7js=;
-  b=JzPh9nGmeu9lOZNAkFKHrpYapQiyNvATZmbXwo0xaZvdg5F0Ri+gAQhp
-   qWnfJr67kJK8gny4VaKZ1TgGy8DtY4ptsXorSXnowlmLw83vSMx/PLF/5
-   wzNpO0NBK2XQU1lBLkm5OgE7AZV+yWQC+UddbI2wW/ZYUaHk/GdN9u361
-   uAoHoBNlbbk8cL+PMFrjdFYu0/ncNoy4qwbHIhK+ZYgvzkYD5Wvy6w6lW
-   c66VW56YVVRF0ovP402VXym6ZD2GNRAyDf+mooCkr+zZTkB6ztn9OKuVE
-   qAirTAqnPflbiLgb2qzdbrEFWSdGH8SfyEpuS9CrQr32tHbNDjA1szl6/
-   w==;
-X-CSE-ConnectionGUID: cj8O0E+SQg+ml2Fk/vE0Pg==
-X-CSE-MsgGUID: u4cUbHWITyCi7E8DO+kNFA==
-X-IronPort-AV: E=McAfee;i="6800,10657,11951"; a="2185136"
-X-IronPort-AV: E=Sophos;i="6.27,186,1787036400"; 
-   d="scan'208";a="2185136"
-Received: from fmviesa007.fm.intel.com ([10.60.135.147])
-  by fmvoesa112.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 30 Oct 2026 10:24:40 -0700
-X-CSE-ConnectionGUID: m5cmepwQR+aJRfHdSWkKNg==
-X-CSE-MsgGUID: eQh22w8HSEWmxGnQPOyxUw==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="6.27,186,1787036400"; 
-   d="scan'208";a="5893783"
-Received: from lkp-server01.sh.intel.com (HELO 0caa9d2d175c) ([10.239.97.150])
-  by fmviesa007.fm.intel.com with ESMTP; 30 Oct 2026 10:24:39 -0700
-Received: from kbuild by 0caa9d2d175c with local (Exim 4.98.2)
-	(envelope-from <lkp@intel.com>)
-	id 1xMqLE-00000000c2W-2pDC;
-	Fri, 30 Oct 2026 17:24:36 +0000
-Date: Sat, 31 Oct 2026 01:24:28 +0800
-From: kernel test robot <lkp@intel.com>
-To: David Hildenbrand <david@kernel.org>
-Cc: Andrew Morton <akpm@linux-foundation.org>,
- Linux Memory Management List <linux-mm@kvack.org>,
- mm-commits@vger.kernel.org
-Subject: [akpm-mm:mm-new] BUILD SUCCESS
- 9c449f885765cf8d80b2c60b1971e774bba51a3f
-Message-ID: <202610310125.u2fTWy6p-lkp@intel.com>
-User-Agent: s-nail v14.9.25
+	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=uyuDaxq2
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 859691F00A15;
+	Fri, 30 Oct 2026 19:07:31 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+	d=linux-foundation.org; s=korg; t=1793387251;
+	bh=2MEbwpwmVEb5ZNBZ4RlzH+TGeY3SrFEDe0lsquxxhuE=;
+	h=Date:To:From:Subject;
+	b=uyuDaxq2dKFURP0SqM307yRpC6yD2zfjwdiYWAN53/AX8lv5nD2EOrqP8gqOUh/0G
+	 fIN0p6MB6Nxnj2gBeZrFzeXR+lrHUXvkESCHumQLTQKCKzL2mhZ2IP4O00+w8nyRkh
+	 5Mne5PMCCZx5JJ6LT8QrioWNyZTuEJ5wR4zFOS0w=
+Date: Fri, 30 Oct 2026 12:07:31 -0700
+To: mm-commits@vger.kernel.org,stable@vger.kernel.org,david@kernel.org,
+	catalin.marinas@arm.com,leitao@debian.org,akpm@linux-foundation.org
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: + mm-kmemleak-scan-modified-objects-as-soon-as-they-are-grayed.patch added to mm-new branch
+Message-Id: <20261030190731.859691F00A15@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -82,173 +50,180 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:mm-commits+owner@vger.kernel.org>
 Precedence: list
 
-tree/branch: https://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm.git mm-new
-branch HEAD: 9c449f885765cf8d80b2c60b1971e774bba51a3f  riscv: mm: fix concurrency in mark_new_valid_map()
 
-elapsed time: 929m
+The patch titled
+     Subject: mm: kmemleak: scan modified objects as soon as they are grayed
+has been added to the -mm mm-new branch.  Its filename is
+     mm-kmemleak-scan-modified-objects-as-soon-as-they-are-grayed.patch
 
-configs tested: 154
-configs skipped: 5
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-kmemleak-scan-modified-objects-as-soon-as-they-are-grayed.patch
 
-The following configs have been built successfully.
-More configs may be tested in the coming days.
+This patch will later appear in the mm-new branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
-tested configs:
-alpha                              allnoconfig    gcc-16.2.0
-alpha                             allyesconfig    gcc-16.2.0
-alpha                                defconfig    gcc-16.2.0
-arc                               allmodconfig    gcc-16.2.0
-arc                                allnoconfig    gcc-16.2.0
-arc                               allyesconfig    gcc-16.2.0
-arc                                  defconfig    gcc-16.2.0
-arc                   randconfig-1000-20261030    gcc-12.5.0
-arc                   randconfig-1001-20261030    gcc-10.5.0
-arm                                allnoconfig    clang-17
-arm                               allyesconfig    gcc-16.2.0
-arm                                  defconfig    clang-24
-arm                   randconfig-1000-20261030    clang-19
-arm                   randconfig-1001-20261030    gcc-8.5.0
-arm                   randconfig-1002-20261030    clang-24
-arm                   randconfig-1003-20261030    gcc-16.2.0
-arm64                             allmodconfig    clang-24
-arm64                              allnoconfig    gcc-16.2.0
-arm64                                defconfig    gcc-16.2.0
-arm64                 randconfig-1000-20261030    clang-24
-arm64                 randconfig-1001-20261030    gcc-13.5.0
-arm64                 randconfig-1002-20261030    gcc-8.5.0
-arm64                 randconfig-1003-20261030    clang-24
-csky                              allmodconfig    gcc-16.2.0
-csky                               allnoconfig    gcc-16.2.0
-csky                                 defconfig    gcc-16.2.0
-csky                  randconfig-1000-20261030    gcc-16.2.0
-csky                  randconfig-1001-20261030    gcc-14.4.0
-hexagon                           allmodconfig    clang-24
-hexagon                            allnoconfig    clang-24
-hexagon                              defconfig    clang-24
-i386                              alldefconfig    gcc-14
-i386                              allmodconfig    gcc-14
-i386                               allnoconfig    gcc-14
-i386                              allyesconfig    gcc-14
-i386        buildonly-randconfig-1000-20261030    gcc-14
-i386        buildonly-randconfig-1001-20261030    gcc-14
-i386        buildonly-randconfig-1002-20261030    clang-22
-i386        buildonly-randconfig-1003-20261030    gcc-14
-i386        buildonly-randconfig-1004-20261030    gcc-14
-i386        buildonly-randconfig-1005-20261030    clang-22
-i386                                 defconfig    clang-22
-i386                  randconfig-1000-20261030    clang-22
-i386                  randconfig-1001-20261030    clang-22
-i386                  randconfig-1002-20261030    gcc-14
-i386                  randconfig-1003-20261030    clang-22
-i386                  randconfig-1004-20261030    clang-22
-i386                  randconfig-1005-20261030    gcc-14
-i386                  randconfig-1006-20261030    gcc-14
-i386                  randconfig-1008-20261030    gcc-14
-i386                  randconfig-1010-20261030    gcc-14
-loongarch                         allmodconfig    clang-19
-loongarch                          allnoconfig    clang-20
-loongarch                            defconfig    clang-24
-m68k                              allmodconfig    gcc-16.2.0
-m68k                               allnoconfig    gcc-16.2.0
-m68k                              allyesconfig    gcc-16.2.0
-m68k                                 defconfig    gcc-16.2.0
-m68k                        m5275evb_defconfig    gcc-16.2.0
-microblaze                         allnoconfig    gcc-16.2.0
-microblaze                        allyesconfig    gcc-16.2.0
-microblaze                           defconfig    gcc-16.2.0
-mips                              allmodconfig    gcc-16.2.0
-mips                               allnoconfig    gcc-16.2.0
-mips                              allyesconfig    gcc-16.2.0
-nios2                             allmodconfig    gcc-11.5.0
-nios2                              allnoconfig    gcc-11.5.0
-nios2                                defconfig    gcc-11.5.0
-openrisc                          allmodconfig    gcc-16.2.0
-openrisc                           allnoconfig    gcc-16.2.0
-openrisc                             defconfig    gcc-16.2.0
-parisc                            allmodconfig    gcc-16.2.0
-parisc                             allnoconfig    gcc-16.2.0
-parisc                            allyesconfig    gcc-16.2.0
-parisc                               defconfig    gcc-16.2.0
-parisc                randconfig-1000-20261030    gcc-10.5.0
-parisc                randconfig-1001-20261030    gcc-16.2.0
-parisc64                             defconfig    gcc-16.2.0
-powerpc                           allmodconfig    gcc-16.2.0
-powerpc                            allnoconfig    gcc-16.2.0
-powerpc                    currituck_defconfig    clang-24
-powerpc                    microwatt_defconfig    gcc-16.2.0
-powerpc                  mpc837x_rdb_defconfig    gcc-16.2.0
-powerpc                   mpc866_ads_defconfig    clang-17
-powerpc               randconfig-1000-20261030    clang-24
-powerpc               randconfig-1001-20261030    gcc-11.5.0
-powerpc                     socrates_defconfig    gcc-16.2.0
-powerpc64             randconfig-1000-20261030    clang-24
-powerpc64             randconfig-1001-20261030    gcc-10.5.0
-riscv                             allmodconfig    clang-24
-riscv                              allnoconfig    gcc-16.2.0
-riscv                                defconfig    clang-24
-riscv              nommu_k210_sdcard_defconfig    gcc-16.2.0
-riscv                 randconfig-1000-20261030    gcc-13.5.0
-riscv                 randconfig-1001-20261030    gcc-15.3.0
-s390                              allmodconfig    clang-24
-s390                               allnoconfig    clang-24
-s390                              allyesconfig    gcc-16.2.0
-s390                                 defconfig    clang-18
-s390                  randconfig-1000-20261030    gcc-9.5.0
-s390                  randconfig-1001-20261030    gcc-11.5.0
-sh                                allmodconfig    gcc-16.2.0
-sh                                 allnoconfig    gcc-16.2.0
-sh                                allyesconfig    gcc-16.2.0
-sh                                   defconfig    gcc-16.2.0
-sh                    randconfig-1000-20261030    gcc-12.5.0
-sh                    randconfig-1001-20261030    gcc-10.5.0
-sparc                              allnoconfig    gcc-16.2.0
-sparc                                defconfig    gcc-16.2.0
-sparc                 randconfig-1000-20261030    gcc-8.5.0
-sparc                 randconfig-1001-20261030    gcc-14.4.0
-sparc64                           allmodconfig    clang-20
-sparc64                              defconfig    clang-24
-sparc64               randconfig-1000-20261030    gcc-13.5.0
-sparc64               randconfig-1001-20261030    gcc-11.5.0
-um                                allmodconfig    clang-17
-um                                 allnoconfig    clang-17
-um                                allyesconfig    gcc-14
-um                                   defconfig    clang-24
-um                              i386_defconfig    gcc-14
-um                    randconfig-1000-20261030    clang-17
-um                    randconfig-1001-20261030    clang-24
-um                            x86_64_defconfig    clang-24
-x86_64                             allnoconfig    clang-22
-x86_64      buildonly-randconfig-1000-20261030    gcc-14
-x86_64      buildonly-randconfig-1001-20261030    clang-22
-x86_64      buildonly-randconfig-1002-20261030    clang-22
-x86_64      buildonly-randconfig-1003-20261030    gcc-14
-x86_64      buildonly-randconfig-1004-20261030    gcc-14
-x86_64      buildonly-randconfig-1005-20261030    gcc-14
-x86_64                               defconfig    gcc-14
-x86_64                randconfig-1000-20261030    clang-22
-x86_64                randconfig-1001-20261030    gcc-14
-x86_64                randconfig-1002-20261030    clang-22
-x86_64                randconfig-1003-20261030    gcc-14
-x86_64                randconfig-1004-20261030    gcc-14
-x86_64                randconfig-1005-20261030    gcc-14
-x86_64                randconfig-1006-20261030    gcc-14
-x86_64                randconfig-1007-20261030    clang-22
-x86_64                randconfig-1008-20261030    gcc-14
-x86_64                randconfig-1009-20261030    gcc-14
-x86_64                randconfig-1010-20261030    gcc-14
-x86_64                randconfig-1011-20261030    clang-22
-x86_64                randconfig-1012-20261030    gcc-14
-x86_64                randconfig-1013-20261030    clang-22
-x86_64                randconfig-1014-20261030    clang-22
-x86_64                randconfig-1015-20261030    clang-22
-x86_64                randconfig-1016-20261030    clang-22
-x86_64                randconfig-1017-20261030    clang-22
-x86_64                           rhel-9.4-rust    clang-22
-xtensa                             allnoconfig    gcc-16.2.0
-xtensa                            allyesconfig    gcc-16.2.0
-xtensa                randconfig-1000-20261030    gcc-10.5.0
-xtensa                randconfig-1001-20261030    gcc-16.2.0
+Note, mm-new is a provisional staging ground for work-in-progress
+patches, and acceptance into mm-new is a notification for others take
+notice and to finish up reviews.  Please do not hesitate to respond to
+review feedback and post updated versions to replace or incrementally
+fixup patches in mm-new.
 
---
-0-DAY CI Kernel Test Service
-https://github.com/intel/lkp-tests/wiki
+The mm-new branch of mm.git is not included in linux-next
+
+If a few days of testing in mm-new is successful, the patch will me moved
+into mm.git's mm-unstable branch, which is included in linux-next
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via various
+branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there most days
+
+------------------------------------------------------
+From: Breno Leitao <leitao@debian.org>
+Subject: mm: kmemleak: scan modified objects as soon as they are grayed
+Date: Fri, 30 Oct 2026 11:31:10 -0700
+
+kmemleak keeps reporting the guard page of a systemd-journald thread stack
+on Meta's debug kernels, even with min_unref_scans set:
+
+  unreferenced object 0xffff88829a30ae40 (size 256):
+    comm "systemd-journal", pid 961, jiffies 4294814590
+    backtrace (crc 49b3881c):
+      kmem_cache_alloc_noprof+0x2ee/0x630
+      vm_area_dup+0x36/0x750
+      __split_vma+0xef/0x7d0
+      vma_modify+0x11c3/0x18a0
+      vma_modify_flags+0x1ea/0x2a0
+      mprotect_fixup+0x249/0x630
+      do_mprotect_pkey+0x531/0x820
+      __x64_sys_mprotect+0x7c/0x90
+
+The VMA is still mapped.  It was never faulted in, so it has no anon_vma
+and no file, and the only pointer to it is a slot in a maple tree leaf. 
+The mm tree runs in RCU mode: every write replaces the leaf with a copy
+and frees the old one after a grace period.  journald rewrites its tree
+every couple of seconds, while a scan on a large debug host takes many
+minutes, so the leaf kmemleak queued is freed before its turn, and the
+copy that replaced it was linked after its parent had been scanned.
+
+The pass over modified objects is meant to catch such moved references,
+and the new leaf, being a new white object, does get grayed there.
+
+But the gray list is only scanned after the whole object_list walk, and by
+then that copy has been replaced and freed as well.  The confirmation scan
+has no such pass, so the miss repeats round after round no matter how many
+consecutive scans are required.
+
+Scan the gray list during the walk instead, within a jiffy of an object
+being grayed.  Do it from a variant of kmemleak_cond_resched(), which
+already pins the current object while the RCU read lock is dropped.  The
+live leaf is then read shortly after the walk reaches it, before it can be
+freed.
+
+Scanning the gray list after every grayed object made a full scan 41%
+slower (1.72s -> 2.42s, arm64 guest with lockdep) when the pass grays a
+million objects that do not point to each other.  Scanning it at most once
+a jiffy keeps that at the baseline, leaves idle, file storm and mmap churn
+workloads unchanged, and still removes the false positives at HZ=100.
+
+I was able to come up with a reproducer that reproduces these false
+positives most of the time:
+
+https://github.com/leitao/linux/commit/1291579c487303c5ffbea2cf532649d26329c8a9
+
+Link: https://lore.kernel.org/20261030-kmemleak-gray-drain-v2-1-3ec29a96668e@debian.org
+Fixes: 04609ccc40c4 ("kmemleak: Reduce the false positives by checking for modified objects")
+Signed-off-by: Breno Leitao <leitao@debian.org>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+Reviewed-by: Catalin Marinas <catalin.marinas@arm.com>
+Cc: David Hildenbrand <david@kernel.org>
+Cc: <stable@vger.kernel.org>
+---
+
+ mm/kmemleak.c |   31 ++++++++++++++++++++++++++++---
+ 1 file changed, 28 insertions(+), 3 deletions(-)
+
+--- a/mm/kmemleak.c~mm-kmemleak-scan-modified-objects-as-soon-as-they-are-grayed
++++ a/mm/kmemleak.c
+@@ -1696,8 +1696,10 @@ static void scan_gray_list(void)
+  * Conditionally call resched() in an object iteration loop while making sure
+  * that the given object won't go away without RCU read lock by performing a
+  * get_object() if necessaary.
++ * If @scan_gray is set, also scan the gray list while the RCU lock is dropped.
+  */
+-static void kmemleak_cond_resched(struct kmemleak_object *object)
++static void __kmemleak_cond_resched(struct kmemleak_object *object,
++				    bool scan_gray)
+ {
+ 	if (!get_object(object))
+ 		return;	/* Try next object */
+@@ -1709,6 +1711,8 @@ static void kmemleak_cond_resched(struct
+ 	raw_spin_unlock_irq(&kmemleak_lock);
+ 
+ 	rcu_read_unlock();
++	if (scan_gray)
++		scan_gray_list();
+ 	cond_resched_tasks_rcu_qs();
+ 	rcu_read_lock();
+ 
+@@ -1721,6 +1725,26 @@ unlock_put:
+ 	put_object(object);
+ }
+ 
++static void kmemleak_cond_resched(struct kmemleak_object *object)
++{
++	__kmemleak_cond_resched(object, false);
++}
++
++/*
++ * Scan newly grayed objects within a jiffy, not after the object_list walk:
++ * one may hold the only reference to another and be freed by then, like a
++ * maple tree node being replaced.
++ */
++static void kmemleak_resched_drain(struct kmemleak_object *object,
++				   unsigned long *last_drain)
++{
++	if (need_resched() ||
++	    (!list_empty(&gray_list) && time_after(jiffies, *last_drain))) {
++		__kmemleak_cond_resched(object, true);
++		*last_drain = jiffies;
++	}
++}
++
+ /*
+  * Scan all task kernel stacks, rescheduling between tasks. Each task is looked
+  * up and pinned within its own RCU read-side section, so no lock is held across
+@@ -1909,6 +1933,7 @@ static int scan_zone_pages(struct zone *
+ static int __kmemleak_scan(bool full)
+ {
+ 	struct kmemleak_object *object;
++	unsigned long last_drain;
+ 	struct zone *zone;
+ 	int __maybe_unused i;
+ 	int stop = 0;
+@@ -2003,10 +2028,10 @@ scan_gray:
+ 	 * Check for new or unreferenced objects modified since the previous
+ 	 * scan and color them gray until the next scan.
+ 	 */
++	last_drain = jiffies;
+ 	rcu_read_lock();
+ 	list_for_each_entry_rcu(object, &object_list, object_list) {
+-		if (need_resched())
+-			kmemleak_cond_resched(object);
++		kmemleak_resched_drain(object, &last_drain);
+ 
+ 		/*
+ 		 * This is racy but we can save the overhead of lock/unlock
+_
+
+Patches currently in -mm which might be from leitao@debian.org are
+
+mm-kmemleak-scan-modified-objects-as-soon-as-they-are-grayed.patch
+
