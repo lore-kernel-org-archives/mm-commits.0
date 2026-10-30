@@ -1,48 +1,47 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793398212;
-	b=XTwUTqNaPlTojiEuIA3eyYn9HIi6ANXHGVwZTowCLaXn712rqeDY04KmyE43dcHnNvcx
-	 P7YbTsYBV/JaejQAGT9ueUwSilGoZZjtuTWzpPRlKvZ+A5kvjHOkBuxcQA9Nm2EX7TaVk
-	 lcAuLwTQiFLB1oc8vDDP7jYbpt5sZNX3XJAaeOGUGpU8B8S/9k7R6nehQGmhQzoixTwKT
-	 te31S5MuWJt5/Re8EfUeDi2Yme0HRbW3AWpOuooMCM0ILUO42VIKMg0u6jghB0L83Bwk0
-	 g7JClhgQi/1bsSkTqio6QbjBlyq+IQOz9UBAP84DPHpu6lVmXUfwvvfjRRPr5gdJ/pg==
+	t=1793399178;
+	b=oWiAfGTneA3RXCC+YPF3Fch7u5vaw3Lzv0lhq1mzaXdJ0BCW942EwOqxH/+MY4styXK+
+	 qtug0t0ItlbG20mVTWQPrW9gU2HnhzTqTUwpAySUPYIYZ5zgocm2gwlC0QBAVU4p4CfO1
+	 3R8tWzQhfb/GVNHYKkc0m5k0s009HsAys67IbJYpKBLjHCFmRY31TDWidHeqiloQ4rZ8f
+	 HCCmm54zhF6WabTjaiVXGIlC0t3Z3SYS9ivWX00zsJOkv9sK0oeBLm1qeT/Ds28YnSTbY
+	 GC5Vv+C7oj4dLi6lk2ns4KZQ6AKsZaS9dgETGp44VVRG2nKpZychflSZQs8pyW5cFew==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793398212;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793399178;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=5zy/dBrXrbgHyyBs0J9Fzl5iD21hrozvcdWfsYCabU4=;
-	b=K2AnPczhtbFdMXUM525qqq5+FVQ+qixVW2Zd5vtEZGMpI7onAqDqXKoXD0k61wRQJsiH
-	 ww75MJL3oMMi/fydz7ZtfkgLAFmUz+7axRHToQwcQMoAFQjrdI/mCb7ihZmyJxZug55rK
-	 6n9sW0PGSRwvT1PvL9giiiVxIcEPuwX6gqBc5T4XtlRA4b9mZJhFMfIipD4IpvvJ6tXP2
-	 reg2zmVBvsKaokiEhhk33VvKxNgrc/Htgai5Hj8WklgIBWV/chwoOeLwbgzvvUn8Lf346
-	 m1YN7hmbSLCef7AfU6Z8rufegmbz2PNGMAMGjaTDrIYQoXlzgzPN2VhpS1GLaLnFtCw==
+	bh=NyCnztSFRVJPPe2xugAIV9P48Ypt2f5tkeiLr+tmcHk=;
+	b=ZcpfmhlWI11R2bVfw3sMlN9nVYGbv4BgJ1/nODRwi0H1g72lAk09XQfDKV3rTGMfdjLV
+	 Vf9IXWBJ1HakQXEjptI9YBqA2fYI32CdmpkvDydnDK/YZ5iJmFitVIgCpyUH1WZY4MUb6
+	 5MhcgKMSFYjiWmjwsZns8ThseW/EXhn0gDr1uMGl6md4Ak/5FpPjalyLHlYfWAU0+/oF6
+	 00NHNPE94AE9yuOvCmhAsSBPmUPY4qp/r6JFqLiuBaIg7EzcB4fal5n6b0KeZayPoomUW
+	 5+objvVRzisgUXuP0X86ffJdTP+nesu5cwMGC0DS0MVTROnSO+vjSq8HOgeepW4dVvQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=jBIfz4Hy;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=vmstbP89;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BC2E0606A31D;
-	Fri, 30 Oct 2026 22:10:11 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 061C0606A31A
+	for <mm-commits@vger.kernel.org>; Fri, 30 Oct 2026 22:26:17 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=jBIfz4Hy
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1DE691F000C1;
-	Fri, 30 Oct 2026 22:10:11 +0000 (UTC)
+	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=vmstbP89
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 694331F000C1;
+	Fri, 30 Oct 2026 22:26:17 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1793398211;
-	bh=5zy/dBrXrbgHyyBs0J9Fzl5iD21hrozvcdWfsYCabU4=;
+	d=linux-foundation.org; s=korg; t=1793399177;
+	bh=NyCnztSFRVJPPe2xugAIV9P48Ypt2f5tkeiLr+tmcHk=;
 	h=Date:To:From:Subject;
-	b=jBIfz4HybzWTwLQGNdWDba9wBynrSHUDOXw+Bhr0EHJ98lmS6ozFdyq/46EwCyQxy
-	 2wkN7YUnuqWI0uAFttSDGg4yP/ByQjg9myERSt2t2QisziRjkeJ+G2AxffU41O5K+E
-	 nLUt6WFjcIQ/lz5fFp3mFj5szo9hZLAwxJH6Ruuo=
-Date: Fri, 30 Oct 2026 15:10:10 -0700
-To: mm-commits@vger.kernel.org,stable@vger.kernel.org,
-	shubhang@os.amperecomputing.com,shuaibinglu@126.com,shuah@kernel.org,
-	manfred@colorfullife.com,jan.koester@tuxist.de,dave@stgolabs.net,
-	cl@gentwo.org,sh@gentwo.org,akpm@linux-foundation.org
+	b=vmstbP89kQwYZ9khrzkf733uUY4gUY7FnisTdxufWWM58Yd//o688j2QsGAdHmQtY
+	 PlnRLybxYI498LNlzZGwDDgytRcfYmKd7b71wgsIL5CiwhJXXb6mhjn+a29f3Bf9O6
+	 xY8VXClMV+gOzYRWM7uaBblE6v3VfWk+HJ9LI5Lw=
+Date: Fri, 30 Oct 2026 15:26:16 -0700
+To: mm-commits@vger.kernel.org,rppt@kernel.org,peterx@redhat.com,
+	david@kernel.org,corbet@lwn.net,akpm@linux-foundation.org,
+	kmehltretter@gmail.com
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + ipc-msg-fix-msg_qbytes-truncation-in-ipc_set.patch added to mm-nonmm-unstable branch
-Message-Id: <20261030221011.1DE691F000C1@smtp.kernel.org>
+Subject: + userfaultfd-docs-fix-an-error-code-two-names-and-the-pollerr-cause.patch added to mm-new branch
+Message-Id: <20261030222617.694331F000C1@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -54,15 +53,26 @@ Precedence: list
 
 
 The patch titled
-     Subject: ipc/msg: fix msg_qbytes truncation in IPC_SET
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     ipc-msg-fix-msg_qbytes-truncation-in-ipc_set.patch
+     Subject: userfaultfd: docs: fix an error code, two names and the POLLERR cause
+has been added to the -mm mm-new branch.  Its filename is
+     userfaultfd-docs-fix-an-error-code-two-names-and-the-pollerr-cause.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/ipc-msg-fix-msg_qbytes-truncation-in-ipc_set.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/userfaultfd-docs-fix-an-error-code-two-names-and-the-pollerr-cause.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Note, mm-new is a provisional staging ground for work-in-progress
+patches, and acceptance into mm-new is a notification for others take
+notice and to finish up reviews.  Please do not hesitate to respond to
+review feedback and post updated versions to replace or incrementally
+fixup patches in mm-new.
+
+The mm-new branch of mm.git is not included in linux-next
+
+If a few days of testing in mm-new is successful, the patch will me moved
+into mm.git's mm-unstable branch, which is included in linux-next
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -77,193 +87,94 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: "Shubhang Kaushik (Ampere)" <sh@gentwo.org>
-Subject: ipc/msg: fix msg_qbytes truncation in IPC_SET
-Date: Thu, 29 Oct 2026 12:35:50 -0700
+From: Karl Mehltretter <kmehltretter@gmail.com>
+Subject: userfaultfd: docs: fix an error code, two names and the POLLERR cause
+Date: Sat,  3 Oct 2026 13:01:37 +0200
 
-The msg_qbytes field in the struct msqid64_ds userspace ABI is an unsigned
-long.  Commit 889b331724c82 ("ipc/msg.c: consolidate all xxxctl_down()
-functions") passes that value to msgctl_down() as an int.
+Four statements in userfaultfd.rst do not match the code:
 
-On ABIs where unsigned long is wider than unsigned int, this narrows
-msg_qbytes before validation and assignment.  For example, an unprivileged
-queue owner can request msg_qbytes = 0x100000000.  The conversion to int
-changes this value to zero, which passes the msg_ctlmnb check.  IPC_SET
-then succeeds and sets q_qbytes to zero instead of rejecting the requested
-value with EPERM.
+- UFFDIO_COPY is said to return -ENOSPC when the monitored process
+  exits at the time of the copy. That error is -ESRCH since
+  commit e86b298bebf7 ("userfaultfd: replace ENOSPC with ESRCH in case
+  mm has gone during copy/zeropage"), and userfaultfd_copy() still
+  returns -ESRCH when mmget_not_zero() fails.
+- the postcopy example says that UFFDIO_ZEROCOPY is used for zero pages.
+  The ioctl is UFFDIO_ZEROPAGE, as the same sentence says a line
+  earlier.
+- the write protect section says to clear UFFDIO_WRITEPROTECT_MODE_WP in
+  pagefault.mode. struct uffd_msg's pagefault has no mode field. The
+  flag goes in the mode field of struct uffdio_writeprotect, as the
+  paragraph says when it sets the flag.
+- poll() is said to report POLLERR "when ranges supplied were
+  incorrect". userfaultfd_poll() never looks at ranges, and an ioctl
+  with a bad range fails on its own. It returns EPOLLERR when the
+  UFFDIO_API handshake has not been done yet and when the file does not
+  have O_NONBLOCK set, and it did so when the sentence was written.
 
-For callers with CAP_SYS_RESOURCE, values with bit 31 set are also
-incorrectly sign-extended when assigned to q_qbytes.  In particular,
-UINT_MAX becomes ULONG_MAX rather than the requested UINT_MAX.
+Say -ESRCH, UFFDIO_ZEROPAGE and mode, and name the two POLLERR cases.
 
-Keep msg_qbytes as unsigned long through validation and assignment.  Also
-preserve its type in ipcctl_obtain_check(), which passes it to the
-unsigned-long audit field.
-
-Add a regression test which drops CAP_SYS_RESOURCE and verifies that
-IPC_SET with a value above UINT_MAX fails with EPERM where unsigned long
-is wider than unsigned int.  Skip the test when it is not, capabilities
-are unavailable, or System V message queues are unavailable.
-
-Link: https://lore.kernel.org/20261029-ipc-msg-qbytes-v3-1-fc3f4307c85b@gentwo.org
-Fixes: 889b331724c8 ("ipc/msg.c: consolidate all xxxctl_down() functions")
-Signed-off-by: Shubhang Kaushik (Ampere) <sh@gentwo.org>
+Link: https://lore.kernel.org/20261003110137.88619-1-kmehltretter@gmail.com
+Fixes: e86b298bebf7 ("userfaultfd: replace ENOSPC with ESRCH in case mm has gone during copy/zeropage")
+Fixes: 25edd8bffd0f ("userfaultfd: linux/Documentation/vm/userfaultfd.txt")
+Fixes: 57e5d4f278b9 ("userfaultfd: wp: UFFDIO_REGISTER_MODE_WP documentation update")
+Signed-off-by: Karl Mehltretter <kmehltretter@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Cc: Shuah Khan <shuah@kernel.org>
-Cc: Lu Shuaibing <shuaibinglu@126.com>
-Cc: Shubhang Kaushik <shubhang@os.amperecomputing.com>
-Cc: Christopher Lameter (Ampere) <cl@gentwo.org>
-Cc: Davidlohr Bueso <dave@stgolabs.net>
-Cc: Manfred Spraul <manfred@colorfullife.com>
-Cc: Jan Koester <jan.koester@tuxist.de>
-Cc: <stable@vger.kernel.org>
+Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Peter Xu <peterx@redhat.com>
+Cc: David Hildenbrand <david@kernel.org>
+Cc: Jonathan Corbet <corbet@lwn.net>
 ---
 
- ipc/msg.c                                   |    2 
- ipc/util.c                                  |    3 
- ipc/util.h                                  |    3 
- tools/testing/selftests/ipc/Makefile        |    2 
- tools/testing/selftests/ipc/msgctl_qbytes.c |   84 ++++++++++++++++++
- 5 files changed, 90 insertions(+), 4 deletions(-)
+ Documentation/admin-guide/mm/userfaultfd.rst |   11 ++++++-----
+ 1 file changed, 6 insertions(+), 5 deletions(-)
 
---- a/ipc/msg.c~ipc-msg-fix-msg_qbytes-truncation-in-ipc_set
-+++ a/ipc/msg.c
-@@ -399,7 +399,7 @@ copy_msqid_from_user(struct msqid64_ds *
-  * NOTE: no locks must be held, the rwsem is taken inside this function.
-  */
- static int msgctl_down(struct ipc_namespace *ns, int msqid, int cmd,
--			struct ipc64_perm *perm, int msg_qbytes)
-+			struct ipc64_perm *perm, unsigned long msg_qbytes)
- {
- 	struct kern_ipc_perm *ipcp;
- 	struct msg_queue *msq;
---- a/ipc/util.c~ipc-msg-fix-msg_qbytes-truncation-in-ipc_set
-+++ a/ipc/util.c
-@@ -718,7 +718,8 @@ int ipc_update_perm(struct ipc64_perm *i
-  */
- struct kern_ipc_perm *ipcctl_obtain_check(struct ipc_namespace *ns,
- 					struct ipc_ids *ids, int id, int cmd,
--					struct ipc64_perm *perm, int extra_perm)
-+					struct ipc64_perm *perm,
-+					unsigned long extra_perm)
- {
- 	kuid_t euid;
- 	int err = -EPERM;
---- a/ipc/util.h~ipc-msg-fix-msg_qbytes-truncation-in-ipc_set
-+++ a/ipc/util.h
-@@ -180,7 +180,8 @@ void ipc64_perm_to_ipc_perm(struct ipc64
- int ipc_update_perm(struct ipc64_perm *in, struct kern_ipc_perm *out);
- struct kern_ipc_perm *ipcctl_obtain_check(struct ipc_namespace *ns,
- 					     struct ipc_ids *ids, int id, int cmd,
--					     struct ipc64_perm *perm, int extra_perm);
-+					     struct ipc64_perm *perm,
-+					     unsigned long extra_perm);
+--- a/Documentation/admin-guide/mm/userfaultfd.rst~userfaultfd-docs-fix-an-error-code-two-names-and-the-pollerr-cause
++++ a/Documentation/admin-guide/mm/userfaultfd.rst
+@@ -199,8 +199,9 @@ Notes:
+   those IOCTLs wakes up the faulting thread.
  
- static inline void ipc_update_pid(struct pid **pos, struct pid *pid)
- {
---- a/tools/testing/selftests/ipc/Makefile~ipc-msg-fix-msg_qbytes-truncation-in-ipc_set
-+++ a/tools/testing/selftests/ipc/Makefile
-@@ -12,7 +12,7 @@ endif
+ - Be sure to test for all errors including
+-  (``pollfd[0].revents & POLLERR``).  This can happen, e.g. when ranges
+-  supplied were incorrect.
++  (``pollfd[0].revents & POLLERR``).  This happens if the userfaultfd
++  does not have ``O_NONBLOCK`` set, or if it is polled before the
++  ``UFFDIO_API`` handshake.
  
- CFLAGS += $(KHDR_INCLUDES)
+ Write Protect Notifications
+ ---------------------------
+@@ -218,7 +219,7 @@ protect as many ranges as you like (insi
+ Then, in the thread reading from uffd the struct will have
+ ``msg.arg.pagefault.flags & UFFD_PAGEFAULT_FLAG_WP`` set. Now you send
+ ``ioctl(uffd, UFFDIO_WRITEPROTECT, struct *uffdio_writeprotect)``
+-again while ``pagefault.mode`` does not have ``UFFDIO_WRITEPROTECT_MODE_WP``
++again while ``mode`` does not have ``UFFDIO_WRITEPROTECT_MODE_WP``
+ set. This wakes up the thread which will continue to run with writes. This
+ allows you to do the bookkeeping about the write in the uffd reading
+ thread before the ioctl.
+@@ -584,7 +585,7 @@ The QEMU in the source node writes all p
+ in the destination node, into the socket, and the migration thread of
+ the QEMU running in the destination node runs ``UFFDIO_COPY|ZEROPAGE``
+ ioctls on the ``userfaultfd`` in order to map the received pages into the
+-guest (``UFFDIO_ZEROCOPY`` is used if the source page was a zero page).
++guest (``UFFDIO_ZEROPAGE`` is used if the source page was a zero page).
  
--TEST_GEN_PROGS := msgque
-+TEST_GEN_PROGS := msgctl_qbytes msgque
- 
- include ../lib.mk
- 
-diff --git a/tools/testing/selftests/ipc/msgctl_qbytes.c a/tools/testing/selftests/ipc/msgctl_qbytes.c
-new file mode 100644
---- /dev/null
-+++ a/tools/testing/selftests/ipc/msgctl_qbytes.c
-@@ -0,0 +1,84 @@
-+// SPDX-License-Identifier: GPL-2.0
-+#include <errno.h>
-+#include <limits.h>
-+#include <linux/capability.h>
-+#include <stdio.h>
-+#include <sys/msg.h>
-+#include <sys/syscall.h>
-+#include <unistd.h>
-+
-+#include "kselftest.h"
-+
-+static int drop_cap_sys_resource(void)
-+{
-+	struct __user_cap_header_struct hdr = {
-+		.version = _LINUX_CAPABILITY_VERSION_3,
-+	};
-+	struct __user_cap_data_struct data[_LINUX_CAPABILITY_U32S_3];
-+	unsigned int index = CAP_SYS_RESOURCE / 32;
-+	__u32 mask = 1U << (CAP_SYS_RESOURCE % 32);
-+
-+	if (syscall(SYS_capget, &hdr, data))
-+		return -1;
-+
-+	data[index].effective &= ~mask;
-+	data[index].permitted &= ~mask;
-+
-+	return syscall(SYS_capset, &hdr, data);
-+}
-+
-+int main(void)
-+{
-+	struct msqid_ds ds;
-+	int msqid;
-+	int ret;
-+
-+	ksft_print_header();
-+	ksft_set_plan(1);
-+
-+#if ULONG_MAX <= UINT_MAX
-+	ksft_exit_skip("requires unsigned long wider than unsigned int\n");
-+#endif
-+
-+	if (drop_cap_sys_resource()) {
-+		if (errno == ENOSYS)
-+			ksft_exit_skip("capabilities are unavailable\n");
-+		ksft_exit_fail_perror("drop CAP_SYS_RESOURCE");
-+	}
-+
-+	msqid = msgget(IPC_PRIVATE, 0600);
-+	if (msqid == -1) {
-+		if (errno == ENOSYS)
-+			ksft_exit_skip("System V message queues are unavailable\n");
-+		ksft_exit_fail_perror("msgget");
-+	}
-+
-+	ret = msgctl(msqid, IPC_STAT, &ds);
-+	if (ret == -1) {
-+		ksft_perror("msgctl(IPC_STAT)");
-+		goto out_fail;
-+	}
-+
-+	/*
-+	 * Without CAP_SYS_RESOURCE, a value above UINT_MAX must be rejected
-+	 * rather than truncated to zero.
-+	 */
-+	ds.msg_qbytes = (unsigned long)UINT_MAX + 1;
-+	errno = 0;
-+	ret = msgctl(msqid, IPC_SET, &ds);
-+	if (ret == -1 && errno == EPERM) {
-+		ksft_test_result_pass("IPC_SET rejects oversized msg_qbytes\n");
-+		msgctl(msqid, IPC_RMID, NULL);
-+		ksft_exit_pass();
-+	}
-+
-+	if (ret == -1)
-+		ksft_perror("msgctl(IPC_SET)");
-+	else
-+		ksft_print_msg("msgctl(IPC_SET) unexpectedly succeeded\n");
-+
-+out_fail:
-+	msgctl(msqid, IPC_RMID, NULL);
-+	ksft_test_result_fail("IPC_SET accepted oversized msg_qbytes\n");
-+	ksft_exit_fail();
-+}
+ A different postcopy thread in the destination node listens with
+ poll() to the ``userfaultfd`` in parallel. When a ``POLLIN`` event is
+@@ -672,7 +673,7 @@ asynchronously and the non-cooperative p
+ soon as manager executes read(). The ``userfaultfd`` manager should
+ carefully synchronize calls to ``UFFDIO_COPY`` with the events
+ processing. To aid the synchronization, the ``UFFDIO_COPY`` ioctl will
+-return ``-ENOSPC`` when the monitored process exits at the time of
++return ``-ESRCH`` when the monitored process exits at the time of
+ ``UFFDIO_COPY``, and ``-ENOENT``, when the non-cooperative process has changed
+ its virtual memory layout simultaneously with outstanding ``UFFDIO_COPY``
+ operation.
 _
 
-Patches currently in -mm which might be from sh@gentwo.org are
+Patches currently in -mm which might be from kmehltretter@gmail.com are
 
-ipc-msg-fix-msg_qbytes-truncation-in-ipc_set.patch
+userfaultfd-docs-fix-an-error-code-two-names-and-the-pollerr-cause.patch
+squashfs-fix-fragment-index-table-sizing-overflow-on-32-bit.patch
+squashfs-make-the-fragment-index-table-bounds-check-overflow-safe.patch
 
