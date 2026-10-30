@@ -1,46 +1,46 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793375177;
-	b=4oETXDIv6SbRpReHfMNQesYdbsKgrLU7C6XZU4Sz5uV5LZpXU2ZGJBDPqkHsLyjd6be0
-	 vLf6locXwe44fqgFAGmxjY90yb2B2xvtuok1d8LyLa7G+g931QZQmyuC96MTkB/Emil0h
-	 V+eU9MZaTQLJmjHywvLbPDPNgaLnGylSh+7sRNb9POAFhRVS4HjMlhE/G2pKTOiUmUAMB
-	 l/lm7iCImw4VQeaN73FsiaDlE5C7UDjrRwWBfYKh7kSpdRmsM+FNZeE5iEyb2TSjCE6hW
-	 Nb0IQ8FuN4CKqKSB1gLNOTzG+YTkgvdeVktHJUY0Vsqn0qotsIDyzoNhcu/dcDxgNdA==
+	t=1793375899;
+	b=sqBFYGdHHZRPGF0XKClpi+QA8fxeff9Y+JxplcYLzCmECbI5ul+3uvhiKOwiq3yuaRR2
+	 eDNTco48P1bsacBbkgFSHqIZmDv5cJI9UhK4pG/l/0AhBLdlUOqkV0j6qGV4YF/mPGfiI
+	 VIOAzNiZu8pHTMSqoy6+iDECLX6bO8VVICwGUv9yI+EyJ+is4t1BUzMPhGM1+GNxr6VEm
+	 dLXPJebrix+LMhhBTo/X8vPB2VZnbNHBca+AORpzt04RNzFgSUQQdY24CH2lI9TFQvTpi
+	 43R0gPqr8fg/7yQNXa2jjdtEA6FltsB3mhCKzJFO0ta8uxnYcNXXt7K/0QAvhVlwe4g==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793375177;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793375899;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=HYc8kA1Dj7hEjokGvwIC8AqPAr4TIaJOHfnb1TjnPgQ=;
-	b=k20ZNiPygLXt0mkLdGZf/jkZBcGNOPbTM8fEM42wO9xMtG06gjZXjBYRId6MhwNfZnD8
-	 3Mj54tTxhFN8iT4p0Ex4uI58tuW2BIL59u5bBB8X97GYPahOTIaAh8uSW6Ti6PtRyMlb7
-	 Osq5ljvPFHyeFKvplzUSacXPfcBxBw3I2ctQuVbIRkJL6IOssoafwOJhzm0h6V1ehJ2TV
-	 nR+C+zMyGmbwWNJacdoEhEZvM1GxI9eqWppozwNDHCohOsEfCPnhm9tVNspmtWzrlr1ix
-	 EKXNKDHjpbvfB5cuXK0YlohN3absb7L1qchWMpNH1jGhWdk/ootle9PararxPT4DBwA==
+	bh=IDAM2ZkpLDVsarpG9eiDh88MXkTRZEShe7sztPAAF4k=;
+	b=i7f0RZwXk7HlRIAz09tf7BRKjbiMgLi8KRtZnlfHXYvTyDRSgYWpMdRzGgOnirzzKczw
+	 G0lJbx/lFXHpC4PZPReD8dHBTx8wiLuJUDQ+tK/LW4P6kJ6ah3wEvMn/E15qi7mL5yz/K
+	 UyC9esOVLXed9MCqo9ME4HWpJQB/3x7JkFwt7U+qv2REdZo+VmxnGLmSmUsDUoAOGp7Fc
+	 irxPrXy8RiWNo4uEXehUBNOhJZzPXvL52N7Mg/919qWFgFCpfVOlVog5k1rWvORj7c01a
+	 gxbPWfhTbWKLTpdpjJ0hXC7GelIF36xs1Cd+Ec+8dDcwATRFs6L+j1Gvni+qyqA6SjA==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=NnIsw0t5;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=hX8il7IE;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9991F606A31D
-	for <mm-commits@vger.kernel.org>; Fri, 30 Oct 2026 15:46:17 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 94042606A31A;
+	Fri, 30 Oct 2026 15:58:19 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=NnIsw0t5
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2441A1F0093A;
-	Fri, 30 Oct 2026 15:46:17 +0000 (UTC)
+	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=hX8il7IE
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 12F2D1F000C1;
+	Fri, 30 Oct 2026 15:58:19 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1793375177;
-	bh=HYc8kA1Dj7hEjokGvwIC8AqPAr4TIaJOHfnb1TjnPgQ=;
+	d=linux-foundation.org; s=korg; t=1793375899;
+	bh=IDAM2ZkpLDVsarpG9eiDh88MXkTRZEShe7sztPAAF4k=;
 	h=Date:To:From:Subject;
-	b=NnIsw0t5PnnJgCQ949u1zjIFMQxwH9NmezBJdS/Ci8SUDwomefD36AfFWYdiUG6jB
-	 P/IT74yy+BmBL0tfGLOorAqcc3vaXCE6MWrTWjVVf+KOYWzwuPyYbZYU3lyH9iLH6n
-	 sepMA3i5Kx34Qg8Lh4KQ/nWEtS/BQ9fzeNnaUn5c=
-Date: Fri, 30 Oct 2026 08:46:16 -0700
-To: mm-commits@vger.kernel.org,willy@infradead.org,nickolai@csail.mit.edu,
-	akpm@linux-foundation.org
+	b=hX8il7IEuSEkOmU1JKR4lp5ap1Wl27E2xIYMNQImtEAbRlSO63gBWX9BEQo1hr3p+
+	 7+GsDoNdes5B2dAYTKwHoQNGXrFVBkTBLmJn7QowEtIa1DJmbVyQ3O+ee6nzJ1MbGu
+	 GsQlAioB/+SE39kbGQicRN/j0mZtkoBY6xhlNwdU=
+Date: Fri, 30 Oct 2026 08:58:18 -0700
+To: mm-commits@vger.kernel.org,stable@vger.kernel.org,sashal@kernel.org,
+	joe@perches.com,oleg@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + xarray-clear-the-new-heads-parent-before-freeing-the-old-head.patch added to mm-hotfixes-unstable branch
-Message-Id: <20261030154617.2441A1F0093A@smtp.kernel.org>
+Subject: + get_maintainer-lazy-load-json-pp-only-when-json-is-used.patch added to mm-nonmm-hotfixes-unstable branch
+Message-Id: <20261030155819.12F2D1F000C1@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -52,14 +52,14 @@ Precedence: list
 
 
 The patch titled
-     Subject: xarray: clear the new head's parent before freeing the old head
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     xarray-clear-the-new-heads-parent-before-freeing-the-old-head.patch
+     Subject: get_maintainer: lazy load JSON::PP only when --json is used
+has been added to the -mm mm-nonmm-hotfixes-unstable branch.  Its filename is
+     get_maintainer-lazy-load-json-pp-only-when-json-is-used.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/xarray-clear-the-new-heads-parent-before-freeing-the-old-head.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/get_maintainer-lazy-load-json-pp-only-when-json-is-used.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-nonmm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -75,52 +75,50 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Nickolai Zeldovich <nickolai@csail.mit.edu>
-Subject: xarray: clear the new head's parent before freeing the old head
-Date: Tue, 27 Oct 2026 15:20:14 -0400
+From: Oleg Nesterov <oleg@redhat.com>
+Subject: get_maintainer: lazy load JSON::PP only when --json is used
+Date: Fri, 30 Oct 2026 16:43:48 +0100
 
-xas_shrink() passes the old head to xa_node_free(), which queues it with
-call_rcu(), before it clears the new head's parent pointer.  A lockless
-walker that loads the new head after the grace period has started can
-still climb from it into the old head through xa_parent(), as xas_find(),
-xas_find_marked(), xas_next() and xas_prev() do when they step past the
-end of a node, and read the old head after it is freed.
+After commit 09d8b39563e8 ("get_maintainer: add --json output mode"),
+I can no longer use get_maintainer.pl; it fails at compile time if
+JSON::PP is not installed even when --json is not requested.
 
-Clear the parent pointer before freeing the old head, as
-radix_tree_shrink() does.
+This module is only needed with the --json option. Use "require" to
+load this module dynamically inside the "if ($json)" block instead.
 
-With a delay injected after xa_node_free() in xas_shrink(), KASAN reports
-a slab-use-after-free in the walker; with this patch it does not.
-
-Link: https://lore.kernel.org/20261027192014.844878-1-nickolai@csail.mit.edu
-Fixes: 58d6ea3085f2 ("xarray: Add XArray unconditional store operations")
+Link: https://lore.kernel.org/auS7NOsyw7pJ7rbF@redhat.com
+Signed-off-by: Oleg Nesterov <oleg@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Joe Perches <joe@perches.com>
+Cc: Sasha Levin <sashal@kernel.org>
+Cc: <stable@vger.kernel.org>
 ---
 
- lib/xarray.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ scripts/get_maintainer.pl |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/lib/xarray.c~xarray-clear-the-new-heads-parent-before-freeing-the-old-head
-+++ a/lib/xarray.c
-@@ -471,11 +471,12 @@ static void xas_shrink(struct xa_state *
- 		if (!xa_is_node(entry))
- 			RCU_INIT_POINTER(node->slots[0], XA_RETRY_ENTRY);
- 		xas_update(xas, node);
-+		if (xa_is_node(entry))
-+			xa_to_node(entry)->parent = NULL;
- 		xa_node_free(node);
- 		if (!xa_is_node(entry))
- 			break;
- 		node = xa_to_node(entry);
--		node->parent = NULL;
- 	}
- }
+--- a/scripts/get_maintainer.pl~get_maintainer-lazy-load-json-pp-only-when-json-is-used
++++ a/scripts/get_maintainer.pl
+@@ -21,7 +21,6 @@ use Cwd;
+ use File::Find;
+ use File::Spec::Functions;
+ use open qw(:std :encoding(UTF-8));
+-use JSON::PP;
  
+ my $cur_path = fastgetcwd() . '/';
+ my $lk_path = "./";
+@@ -685,6 +684,7 @@ if ($json) {
+     $result{web} = \@web if ($web);
+     $result{bug} = \@bug if ($bug);
+ 
++    require JSON::PP;
+     my $json_encoder = JSON::PP->new->canonical->utf8;
+     print($json_encoder->encode(\%result) . "\n");
+ } else {
 _
 
-Patches currently in -mm which might be from nickolai@csail.mit.edu are
+Patches currently in -mm which might be from oleg@redhat.com are
 
-xarray-clear-the-new-heads-parent-before-freeing-the-old-head.patch
-panic-zero-the-dynamically-allocated-taint-buffer.patch
+get_maintainer-lazy-load-json-pp-only-when-json-is-used.patch
+proc-use-pid_has_task-in-proc_inode_is_dead.patch
 
