@@ -1,49 +1,51 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793342308;
-	b=l6HOfRLtQsTMhDAxj2FfFd1Kwv6VO4VUwqT38n0u9nS2IkjeLXENvhTiAzctbx0iuuqS
-	 8UAcOsMFTxpH+yjTuoaxE65r86TNQ5K8di/H4+DGZCO51JjbSuX2ewoiYwzLjF0U97h+S
-	 R0TwtZYlpv8N2yO/dsn6A0PWK5moltPu22O0SFDriwBzcyDaycKGxNyF/KyRi0Y+9NO/w
-	 FlPlhjjV+FlfgkYLQ9rb9FK0Ze4e4pLRb8i+b7CLs1PRSR/m8KaeLq3xDoCuOhBh3t0fT
-	 xauG1rvdAwddS4Bg2Bxys5rR7jjkLl7eYBiHbPbWXj2dvgbWTQILUy/+R5Y8PL2F6YQ==
+	t=1793343110;
+	b=X8ZQHcD+xvn1HkExfpa2bMYhvgwbT9VOajyKnf7FMkz20Ssm5YXeqpcchjWIin+2jGFL
+	 0NKjEl9IZtjq2gn9s2SuOAuSNsfHkIGh3hlfqt6ZSDRPkpL91UgvYNJKuqRPXIP+oTdjk
+	 AYbmGK6493uiPUfzhcHS/+zHG20n8UnT7phd9sY9g2OtwLvckeSI8LlIMPvpJpxQVFCLD
+	 W+2RGg2ItcqNPJbgEBwollh7+iwzBHFmGiMsmKJeN95qllrixmNJyg6AbP6LJtOX0hhV7
+	 3573acTvo2caHQ/utq08wSGpWyFYfTYNUhXH0Kk1zgFoAkxmsyvWFy2J7P6/KnpnIYg==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793342308;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793343110;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=dEIhOBrdjRaN4SymHNFrzFpPir2led2H84wobob8dvc=;
-	b=hmymg9iwWff3pBvWRVoL8aAYNEfqkEz3qs/hqrNvA2ZmA79pXYTJAn3wzezxjMMDXu6R
-	 pQaa184pJesBJXmpu5tENoJoQviGTuq3K0leUchkm36poNtzxXnYtvZLP2URQYQZk5j+u
-	 Iig1Gu0yQF4Ub7aCPvYRYTMR4pR01MeHKehkLyFIlOMTdwBe6Us9vJT4E4JaZDuLMfzFT
-	 sY0LfBMnxUFsBq7AhTqyOxhJowdyGjfpu7XKmGIpBdzYS4A10ias4zkMouB9GEEbDtYTX
-	 cDl/N8X0mc8IFB06vzumaCeacN0Mq421EaxjolC7zZ/GGyPDw8Kjo9fBcLIoR+HT2vw==
+	bh=iiVeMMnc97meUUSjyGj/pqy8juVFZAGC+v5ZDHOr4Fk=;
+	b=JrNNvi1377+2CvyjAnHUfIJjktBn5UIEperVirqyTzIYpkFOpr0VbFw6fe2Q4ZYauF1e
+	 hU3wK6lBwwAFhd+bLeqemId7JEGPS6tZ5z5FEBW4ZzCH/WofMriAjAb7VwKh6G6Al1nmo
+	 Ekpkgon2Trh1KnEgovBkNK3V3vf7/Vj5ZFZgLoxkteoEfo4/uQ5XtWGd0p1zY4QE2SFx6
+	 /FjQU8XzGScV1PtQ+kII3EGHRkoNcLIMBxXxnoYRNHCIIjDn0A7g/UkVk0u5wzfc31IrB
+	 80oqTBz4ZW3/dROA9DAYHwOpruBJkKp2NvtNso6xsn9uafOgmUFv3CAI5VDk/GTfaWA==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=ejcObEZg;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=Xaha+RGU;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 48D56606A31D;
-	Fri, 30 Oct 2026 06:38:27 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 99DDA606A31E
+	for <mm-commits@vger.kernel.org>; Fri, 30 Oct 2026 06:51:49 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=ejcObEZg
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A05DD1F0093A;
-	Fri, 30 Oct 2026 06:38:27 +0000 (UTC)
+	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=Xaha+RGU
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 30BDE1F000C1;
+	Fri, 30 Oct 2026 06:51:49 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1793342307;
-	bh=dEIhOBrdjRaN4SymHNFrzFpPir2led2H84wobob8dvc=;
+	d=linux-foundation.org; s=korg; t=1793343109;
+	bh=iiVeMMnc97meUUSjyGj/pqy8juVFZAGC+v5ZDHOr4Fk=;
 	h=Date:To:From:Subject;
-	b=ejcObEZgbfB4A6gmGdtqrQxDbGPQ605gDJqpOPuz21RL93UTHxRTmWrrh1DJz95Mj
-	 TjijUoGbbdz8c/op38b1Xu9tVLtRsSZJx78ioHAa6iTb0jPLUsFudzKwYJ1hr6PkYg
-	 a+meJa6shsuxUfEWP2ruhCbah/zF5NgQZenjdOl8=
-Date: Thu, 29 Oct 2026 23:38:27 -0700
-To: mm-commits@vger.kernel.org,sunil.mushran@oracle.com,
-	stable@vger.kernel.org,mark@fasheh.com,kuba@kernel.org,kees@kernel.org,
-	joseph.qi@linux.alibaba.com,jlbec@evilplan.org,jjzuming@gmail.com,
-	heming.zhao@suse.com,baijiaju1990@gmail.com,zzzccc427@gmail.com,
-	akpm@linux-foundation.org
+	b=Xaha+RGUfvFGBCeoEIcgXB/xQjVugm4+rckVxdAEUl1N5qLtEYTWTXORb7PUa3klQ
+	 c4xPr2hPuYokJ3HPt97cBs/AknFmuKlseh5jaSPRW84jkJMdjlePjoUrCI72/43qnc
+	 4JF+3Xf52zLfR6DurzHoYr7qePcqC4jcAp5q0IDw=
+Date: Thu, 29 Oct 2026 23:51:48 -0700
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,vbabka@kernel.org,
+	usama.arif@linux.dev,surenb@google.com,shuah@kernel.org,
+	sarthak.sharma@arm.com,ryan.roberts@arm.com,rppt@kernel.org,
+	peterx@redhat.com,nico.pache@linux.dev,mhocko@suse.com,ljs@kernel.org,
+	liam@infradead.org,leon@kernel.org,lance.yang@linux.dev,kas@kernel.org,
+	jgg@ziepe.ca,dev.jain@arm.com,david@kernel.org,baolin.wang@linux.alibaba.com,
+	baohua@kernel.org,yeoreum.yun@arm.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + ocfs2-cluster-unlink-socket-containers-before-releasing-resources.patch added to mm-nonmm-hotfixes-unstable branch
-Message-Id: <20261030063827.A05DD1F0093A@smtp.kernel.org>
+Subject: + kselftest-mm-rename-read_pmd_pagesize-to-pmd_psize.patch added to mm-new branch
+Message-Id: <20261030065149.30BDE1F000C1@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -55,15 +57,26 @@ Precedence: list
 
 
 The patch titled
-     Subject: ocfs2/cluster: unlink socket containers before releasing resources
-has been added to the -mm mm-nonmm-hotfixes-unstable branch.  Its filename is
-     ocfs2-cluster-unlink-socket-containers-before-releasing-resources.patch
+     Subject: kselftest: mm: rename read_pmd_pagesize() to pmd_psize()
+has been added to the -mm mm-new branch.  Its filename is
+     kselftest-mm-rename-read_pmd_pagesize-to-pmd_psize.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/ocfs2-cluster-unlink-socket-containers-before-releasing-resources.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kselftest-mm-rename-read_pmd_pagesize-to-pmd_psize.patch
 
-This patch will later appear in the mm-nonmm-hotfixes-unstable branch at
+This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Note, mm-new is a provisional staging ground for work-in-progress
+patches, and acceptance into mm-new is a notification for others take
+notice and to finish up reviews.  Please do not hesitate to respond to
+review feedback and post updated versions to replace or incrementally
+fixup patches in mm-new.
+
+The mm-new branch of mm.git is not included in linux-next
+
+If a few days of testing in mm-new is successful, the patch will me moved
+into mm.git's mm-unstable branch, which is included in linux-next
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -78,173 +91,478 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Cen Zhang <zzzccc427@gmail.com>
-Subject: ocfs2/cluster: unlink socket containers before releasing resources
-Date: Tue, 13 Oct 2026 23:34:46 +0800
+From: Yeoreum Yun <yeoreum.yun@arm.com>
+Subject: kselftest: mm: rename read_pmd_pagesize() to pmd_psize()
+Date: Tue, 13 Oct 2026 11:37:03 +0100
 
-A socket container's node and socket must remain alive while the
-container is on sock_containers. The debugfs formatter reads sc_node
-and sc_sock under o2net_debug_lock without taking their references, but
-sc_kref_release() releases both before taking that lock to unlink the
-container.
+Patch series "kselftest: mm: remove HPAGE_SIZE and HPAGE_SHIFT macro", v7.
 
-With CONFIG_DEBUG_FS enabled, a synchronous sender can retain its last
-socket-container reference after o2net_disconnect_node() has detached
-the connection and flushed o2net_wq. The caller runs outside that
-workqueue. After the sender removes its configfs dependency, node
-removal can proceed without waiting for the sender's final sc_put():
+HPAGE_SIZE and HPAGE_SHIFT macro is written based on the 4KB PAGE_SIZE.
+When this macro is used in some test, test result would be strange in
+the system where PAGE_SIZE is more then 4KB.
 
-  Sender (final sc_put)    Configfs rmdir        Debugfs reader
-  --------------------    --------------        --------------
-  o2nm_undepend_item()
-                          Drop node item refs
-  o2nm_node_put()
-    [node can be freed]
-                                               sc_seq_show()
-                                                 Lock debug lock
-                                                 Read sc_node->nd_name
-                                                 Unlock debug lock
-  sc_node = NULL
-  o2net_debug_del_sc()
+Here is the example with transhuge-stress test with 16KB PAGE_SIZE:
 
-The earlier socket release has a similar window. The container is
-still selectable while its socket has been released and sc_sock has
-not yet been cleared:
+  transhuge-stress: allocate 61073 transhuge pages, using 122146 MiB virtual memory and 1908 MiB of ram
+    3.292 s/loop, 0.054 ms/page,  37106.002 MiB/s       2566 succeed, 58507 failed, 2566 different pages
+    0.591 s/loop, 0.010 ms/page, 206850.792 MiB/s          0 succeed, 61073 failed,    0 different pages
+    0.527 s/loop, 0.009 ms/page, 231895.107 MiB/s          0 succeed, 61073 failed,    0 different pages
+    3.292 s/loop, 0.054 ms/page,  37106.002 MiB/s       2566 succeed, 58507 failed, 2566 different pages
+    0.591 s/loop, 0.010 ms/page, 206850.792 MiB/s          0 succeed, 61073 failed,    0 different pages
+    0.527 s/loop, 0.009 ms/page, 231895.107 MiB/s          0 succeed, 61073 failed,    0 different pages
+    0.527 s/loop, 0.009 ms/page, 231839.704 MiB/s          0 succeed, 61073 failed,    0 different pages
+    0.528 s/loop, 0.009 ms/page, 231544.782 MiB/s          0 succeed, 61073 failed,    0 different pages
+    0.528 s/loop, 0.009 ms/page, 231462.074 MiB/s          0 succeed, 61073 failed,    0 different pages
+    0.527 s/loop, 0.009 ms/page, 231770.300 MiB/s          0 succeed, 61073 failed,    0 different pages
+    ...
+  ok 1 Completed
 
-  Sender (final sc_put)                       Debugfs reader
-  --------------------                       --------------
-  sock_release(sc->sc_sock)
-    [socket can be freed]
-                                             sc_seq_show()
-                                               Lock debug lock
-                                               Read sc_sock->sk fields
-                                               Unlock debug lock
-  sc_sock = NULL
-  ...
-  o2net_debug_del_sc()
+To address this, remove the HPAGE_SIZE and HPAGE_SHIFT macro,
+introduce pmd_pshift() and rename read_pmd_pagesize() to pmd_psize()
+to keep consistency with psize() and pshift().
 
-Move o2net_debug_del_sc() before releasing either resource. Unlinking
-under the existing debug lock waits for an active formatter to finish
-and prevents later readers from selecting the container. This covers
-both socket fields and node fields, including nd_num in the stats
-formatter.
+Also, run the KSM_MERGE_TIME_HUGE_PAGES test with a size of 512 MiB,
+which is the least common multiple of the PMD sizes for 4 KiB, 16 KiB,
+and 64 KiB base pages. Since allocate_transhuge() allocates mappings in
+PMD-sized units, the test may fail with the previous size of 100 MiB,
+which is not a multiple of the PMD size when the base page size is
+16 KiB or 64 KiB.
 
-KASAN report as below:
+After this patch, output of transhuge-stress:
 
-    BUG: KASAN: slab-use-after-free in string+0x42b/0x470
-    Read of size 1 at addr ffff88810f56fc90 by task python3/506
+  transhuge-stress: allocate 3817 transhuge pages, using 122146 MiB virtual memory and 119 MiB of ram
+    2.558 s/loop, 0.670 ms/page,  47755.759 MiB/s       2585 succeed, 1232 failed, 2585 different pages
+    2.640 s/loop, 0.692 ms/page,  46268.432 MiB/s       2585 succeed, 1232 failed, 2585 different pages
+    2.635 s/loop, 0.690 ms/page,  46360.298 MiB/s       2585 succeed, 1232 failed, 2585 different pages
+    2.782 s/loop, 0.729 ms/page,  43899.795 MiB/s       2616 succeed, 1201 failed, 2616 different pages
+    2.692 s/loop, 0.705 ms/page,  45380.876 MiB/s       2627 succeed, 1190 failed, 2627 different pages
+    2.612 s/loop, 0.684 ms/page,  46765.812 MiB/s       2628 succeed, 1189 failed, 2628 different pages
+    2.683 s/loop, 0.703 ms/page,  45520.990 MiB/s       2630 succeed, 1187 failed, 2630 different pages
+    2.727 s/loop, 0.714 ms/page,  44789.321 MiB/s       2631 succeed, 1186 failed, 2631 different pages
+    ...
+  ok 1 Completed
 
-    CPU: 0 UID: 0 PID: 506 Comm: python3 Not tainted 7.3.0-rc4-next-20260921-pmb-ocfs2-functional-v1+ #1 PREEMPT(lazy)
-    Hardware name: QEMU Ubuntu 24.04 PC v2 (i440FX + PIIX, arch_caps fix, 1996), BIOS 1.16.3-debian-1.16.3-2 04/01/2014
-    Call Trace:
-     <TASK>
-     dump_stack_lvl+0x93/0xd0
-     print_report+0xce/0x630
-     kasan_report+0xe0/0x110
-     string+0x42b/0x470
-     vsnprintf+0x330/0x1110
-     seq_printf+0x1a8/0x260
-     sc_seq_show+0x604/0x9f0
-     seq_read_iter+0x480/0x1110
-     seq_read+0x362/0x5a0
-     full_proxy_read+0x11f/0x180
-     vfs_read+0x1a0/0xc20
-     ksys_read+0x111/0x200
-     do_syscall_64+0x114/0x620
-     entry_SYSCALL_64_after_hwframe+0x77/0x7f
+Additionally, introduce size_to_shift() for future users that need to
+obtain shift of a huge-page which is other than pmd_psize().
 
-(User register dump omitted.)
+Patch History
+=============
 
-     </TASK>
 
-    Allocated by task 497:
-     kasan_save_stack+0x33/0x60
-     kasan_save_track+0x14/0x30
-     __kasan_kmalloc+0xaa/0xb0
-     __kmalloc_cache_noprof+0x28d/0x610
-     o2nm_node_group_make_item+0xea/0x1a0
-     configfs_mkdir+0x762/0xca0
-     vfs_mkdir+0x399/0x7e0
-     filename_mkdirat+0x129/0x450
-     __x64_sys_mkdir+0x70/0xa0
-     do_syscall_64+0x114/0x620
-     entry_SYSCALL_64_after_hwframe+0x77/0x7f
+This patch (of 3):
 
-    Freed by task 505:
-     kasan_save_stack+0x33/0x60
-     kasan_save_track+0x14/0x30
-     kasan_save_free_info+0x3b/0x60
-     __kasan_slab_free+0x5f/0x80
-     kfree+0x308/0x580
-     config_item_cleanup+0x14b/0x230
-     config_item_put+0x79/0x90
-     sc_put+0x454/0x6e0
-     o2net_send_message_vec+0x63d/0x1560
-     o2net_send_message+0xa6/0xe0
-     validation_send_write+0x17f/0x1d0
-     full_proxy_write+0x11f/0x180
-     vfs_write+0x25a/0x1010
-     ksys_write+0x111/0x200
-     do_syscall_64+0x114/0x620
-     entry_SYSCALL_64_after_hwframe+0x77/0x7f
+For consistency with psize(), rename read_pmd_pagesize() to
+pmd_psize(). There is no functional change.
 
-    The buggy address belongs to the object at ffff88810f56fc00
-     which belongs to the cache kmalloc-512 of size 512
-    The buggy address is located 144 bytes inside of
-     freed 512-byte region [ffff88810f56fc00, ffff88810f56fe00)
-
-(Page and shadow-memory dumps omitted.)
-
-Link: https://lore.kernel.org/pm-ocfs2-objects-candidate-0065-v6-3090153fd7cacb810214@gmail.com
-Fixes: 2309e9e040fe ("ocfs2/net: Add debug interface to o2net")
-Signed-off-by: Cen Zhang <zzzccc427@gmail.com>
+Link: https://lore.kernel.org/20261013-fix_hpage_macro-v7-0-3d77129e0557@arm.com
+Link: https://lore.kernel.org/20261013-fix_hpage_macro-v7-1-3d77129e0557@arm.com
+Signed-off-by: Yeoreum Yun <yeoreum.yun@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Reviewed-by: Joseph Qi <joseph.qi@linux.alibaba.com>
-Assisted-by: LLM
-Cc: Mark Fasheh <mark@fasheh.com>
-Cc: Joel Becker <jlbec@evilplan.org>
-Cc: Heming Zhao <heming.zhao@suse.com>
-Cc: Kees Cook <kees@kernel.org>
-Cc: Jakub Kicinski <kuba@kernel.org>
-Cc: Sunil Mushran <sunil.mushran@oracle.com>
-Cc: Jia-Ju Bai <baijiaju1990@gmail.com>
-Cc: <jjzuming@gmail.com>
-Cc: <stable@vger.kernel.org>
+Suggested-by: David Hildenbrand (Arm) <david@kernel.org>
+Tested-by: Sarthak Sharma <sarthak.sharma@arm.com>
+Reviewed-by: Zi Yan <ziy@nvidia.com>
+Reviewed-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
+Reviewed-by: Sarthak Sharma <sarthak.sharma@arm.com>
+Acked-by: David Hildenbrand (Arm) <david@kernel.org>
+Acked-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
+Cc: Liam R. Howlett <liam@infradead.org>
+Cc: Vlastimil Babka <vbabka@kernel.org>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
+Cc: Nico Pache <nico.pache@linux.dev>
+Cc: Ryan Roberts <ryan.roberts@arm.com>
+Cc: Dev Jain <dev.jain@arm.com>
+Cc: Barry Song <baohua@kernel.org>
+Cc: Lance Yang <lance.yang@linux.dev>
+Cc: Usama Arif <usama.arif@linux.dev>
+Cc: Kiryl Shutsemau <kas@kernel.org>
+Cc: Peter Xu <peterx@redhat.com>
+Cc: Shuah Khan <shuah@kernel.org>
+Cc: Jason Gunthorpe <jgg@ziepe.ca>
+Cc: Leon Romanovsky <leon@kernel.org>
 ---
 
- fs/ocfs2/cluster/tcp.c |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ tools/testing/selftests/mm/cow.c                   |    2 -
+ tools/testing/selftests/mm/folio_split_race_test.c |    2 -
+ tools/testing/selftests/mm/hmm-tests.c             |   22 +++++------
+ tools/testing/selftests/mm/khugepaged.c            |    2 -
+ tools/testing/selftests/mm/khugepaged_race.c       |    2 -
+ tools/testing/selftests/mm/khugepaged_sync_check.c |    2 -
+ tools/testing/selftests/mm/migration.c             |    4 +-
+ tools/testing/selftests/mm/mkdirty.c               |    2 -
+ tools/testing/selftests/mm/pagemap_ioctl.c         |    2 -
+ tools/testing/selftests/mm/prctl_thp_disable.c     |    4 +-
+ tools/testing/selftests/mm/process_madv.c          |    2 -
+ tools/testing/selftests/mm/soft-dirty.c            |    2 -
+ tools/testing/selftests/mm/split_huge_page_test.c  |    2 -
+ tools/testing/selftests/mm/uffd-common.c           |    6 +--
+ tools/testing/selftests/mm/uffd-unit-tests.c       |    8 ++--
+ tools/testing/selftests/mm/uffd-wp-mremap.c        |    2 -
+ tools/testing/selftests/mm/vm_util.c               |    4 +-
+ tools/testing/selftests/mm/vm_util.h               |    2 -
+ 18 files changed, 36 insertions(+), 36 deletions(-)
 
---- a/fs/ocfs2/cluster/tcp.c~ocfs2-cluster-unlink-socket-containers-before-releasing-resources
-+++ a/fs/ocfs2/cluster/tcp.c
-@@ -393,6 +393,9 @@ static void sc_kref_release(struct kref
+--- a/tools/testing/selftests/mm/cow.c~kselftest-mm-rename-read_pmd_pagesize-to-pmd_psize
++++ a/tools/testing/selftests/mm/cow.c
+@@ -1888,7 +1888,7 @@ int main(int argc, char **argv)
+ 	thp_save_settings();
  
- 	sclog(sc, "releasing\n");
+ 	pagesize = getpagesize();
+-	pmdsize = read_pmd_pagesize();
++	pmdsize = pmd_psize();
+ 	if (pmdsize) {
+ 		/* Only if THP is supported. */
+ 		thp_read_settings(&default_settings);
+--- a/tools/testing/selftests/mm/folio_split_race_test.c~kselftest-mm-rename-read_pmd_pagesize-to-pmd_psize
++++ a/tools/testing/selftests/mm/folio_split_race_test.c
+@@ -234,7 +234,7 @@ int main(void)
+ 	ksft_print_header();
  
-+	/* Unlink before freeing anything the debugfs readers dereference. */
-+	o2net_debug_del_sc(sc);
-+
- 	if (sc->sc_sock) {
- 		sock_release(sc->sc_sock);
- 		sc->sc_sock = NULL;
-@@ -402,8 +405,6 @@ static void sc_kref_release(struct kref
- 	o2nm_node_put(sc->sc_node);
- 	sc->sc_node = NULL;
+ 	page_size = getpagesize();
+-	pmd_pagesize = read_pmd_pagesize();
++	pmd_pagesize = pmd_psize();
  
--	o2net_debug_del_sc(sc);
--
- 	if (sc->sc_page)
- 		__free_page(sc->sc_page);
- 	kfree(sc);
+ 	if (!thp_available() || !pmd_pagesize)
+ 		ksft_exit_skip("Transparent Hugepages not available\n");
+--- a/tools/testing/selftests/mm/hmm-tests.c~kselftest-mm-rename-read_pmd_pagesize-to-pmd_psize
++++ a/tools/testing/selftests/mm/hmm-tests.c
+@@ -568,7 +568,7 @@ TEST_F(hmm, anon_write_child)
+ 
+ 	for (migrate = 0; migrate < 2; ++migrate) {
+ 		for (use_thp = 0; use_thp < 2; ++use_thp) {
+-			npages = ALIGN(use_thp ? read_pmd_pagesize() : HMM_BUFFER_SIZE,
++			npages = ALIGN(use_thp ? pmd_psize() : HMM_BUFFER_SIZE,
+ 				       self->page_size) >> self->page_shift;
+ 			ASSERT_NE(npages, 0);
+ 			size = npages << self->page_shift;
+@@ -729,7 +729,7 @@ TEST_F(hmm, anon_write_huge)
+ 	int *ptr;
+ 	int ret;
+ 
+-	size = 2 * read_pmd_pagesize();
++	size = 2 * pmd_psize();
+ 
+ 	buffer = hmm_buffer_alloc(size, size,
+ 				  PROT_READ | PROT_WRITE,
+@@ -1940,7 +1940,7 @@ TEST_F(hmm, migrate_anon_huge_empty)
+ 	int *ptr;
+ 	int ret;
+ 
+-	size = read_pmd_pagesize();
++	size = pmd_psize();
+ 
+ 	buffer = hmm_buffer_alloc(2 * size, size,
+ 				  PROT_READ,
+@@ -1983,7 +1983,7 @@ TEST_F(hmm, migrate_anon_huge_zero)
+ 	int ret;
+ 	int val;
+ 
+-	size = read_pmd_pagesize();
++	size = pmd_psize();
+ 
+ 	buffer = hmm_buffer_alloc(2 * size, size,
+ 				  PROT_READ,
+@@ -2037,7 +2037,7 @@ TEST_F(hmm, migrate_anon_huge_free)
+ 	int *ptr;
+ 	int ret;
+ 
+-	size = read_pmd_pagesize();
++	size = pmd_psize();
+ 
+ 	buffer = hmm_buffer_alloc(2 * size, size,
+ 				  PROT_READ | PROT_WRITE,
+@@ -2090,7 +2090,7 @@ TEST_F(hmm, migrate_anon_huge_fault)
+ 	int *ptr;
+ 	int ret;
+ 
+-	size = read_pmd_pagesize();
++	size = pmd_psize();
+ 
+ 	buffer = hmm_buffer_alloc(2 * size, size,
+ 				  PROT_READ | PROT_WRITE,
+@@ -2160,7 +2160,7 @@ TEST_F(hmm, migrate_partial_unmap_fault)
+ {
+ 	struct hmm_buffer *buffer;
+ 	unsigned long npages;
+-	unsigned long size = read_pmd_pagesize();
++	unsigned long size = pmd_psize();
+ 	unsigned long unmap_size;
+ 	unsigned long offsets[3];
+ 	unsigned long i;
+@@ -2225,7 +2225,7 @@ TEST_F(hmm, migrate_remap_fault)
+ {
+ 	struct hmm_buffer *buffer;
+ 	unsigned long npages;
+-	unsigned long size = read_pmd_pagesize();
++	unsigned long size = pmd_psize();
+ 	unsigned long offsets[3];
+ 	unsigned long i;
+ 	void *old_ptr, *new_ptr = NULL;
+@@ -2322,7 +2322,7 @@ TEST_F(hmm, migrate_anon_huge_err)
+ 	int *ptr;
+ 	int ret;
+ 
+-	size = read_pmd_pagesize();
++	size = pmd_psize();
+ 
+ 	buffer = hmm_buffer_alloc(2 * size, 2 * size,
+ 				  PROT_READ | PROT_WRITE,
+@@ -2412,7 +2412,7 @@ TEST_F(hmm, migrate_anon_huge_zero_err)
+ 	int *ptr;
+ 	int ret;
+ 
+-	size = read_pmd_pagesize();
++	size = pmd_psize();
+ 
+ 	buffer = hmm_buffer_alloc(2 * size, 2 * size,
+ 				  PROT_READ,
+@@ -2608,7 +2608,7 @@ cleanup:
+ TEST_F_TIMEOUT(hmm, benchmark_thp_migration, 120)
+ {
+ 	struct benchmark_results thp_results, regular_results;
+-	size_t thp_size = read_pmd_pagesize();
++	size_t thp_size = pmd_psize();
+ 	int iterations = 5;
+ 
+ 	if (!thp_size)
+--- a/tools/testing/selftests/mm/khugepaged.c~kselftest-mm-rename-read_pmd_pagesize-to-pmd_psize
++++ a/tools/testing/selftests/mm/khugepaged.c
+@@ -1686,7 +1686,7 @@ int main(int argc, char **argv)
+ 		ksft_exit_skip("Transparent Hugepages not available\n");
+ 
+ 	page_size = getpagesize();
+-	hpage_pmd_size = read_pmd_pagesize();
++	hpage_pmd_size = pmd_psize();
+ 	if (!hpage_pmd_size)
+ 		ksft_exit_fail_msg("Reading PMD pagesize failed\n");
+ 	hpage_pmd_nr = hpage_pmd_size / page_size;
+--- a/tools/testing/selftests/mm/khugepaged_race.c~kselftest-mm-rename-read_pmd_pagesize-to-pmd_psize
++++ a/tools/testing/selftests/mm/khugepaged_race.c
+@@ -372,7 +372,7 @@ int main(int argc, char **argv)
+ 		ksft_exit_skip("Transparent Hugepages not available\n");
+ 
+ 	page_size = getpagesize();
+-	hpage_pmd_size = read_pmd_pagesize();
++	hpage_pmd_size = pmd_psize();
+ 	if (!hpage_pmd_size)
+ 		ksft_exit_fail_msg("Reading PMD pagesize failed\n");
+ 
+--- a/tools/testing/selftests/mm/khugepaged_sync_check.c~kselftest-mm-rename-read_pmd_pagesize-to-pmd_psize
++++ a/tools/testing/selftests/mm/khugepaged_sync_check.c
+@@ -140,7 +140,7 @@ int main(void)
+ 		ksft_exit_skip("Order %d is not a supported anon THP order\n",
+ 			       TARGET_ORDER);
+ 
+-	hpage_pmd_size = read_pmd_pagesize();
++	hpage_pmd_size = pmd_psize();
+ 	if (!hpage_pmd_size)
+ 		ksft_exit_fail_msg("Reading PMD pagesize failed\n");
+ 	pagemap_fd = open("/proc/self/pagemap", O_RDONLY);
+--- a/tools/testing/selftests/mm/migration.c~kselftest-mm-rename-read_pmd_pagesize-to-pmd_psize
++++ a/tools/testing/selftests/mm/migration.c
+@@ -228,7 +228,7 @@ TEST_F_TIMEOUT(migration, private_anon_t
+ 	if (!thp_is_enabled())
+ 		SKIP(return, "Transparent Hugepages not available");
+ 
+-	pmdsize = read_pmd_pagesize();
++	pmdsize = pmd_psize();
+ 	if (!pmdsize)
+ 		SKIP(return, "Reading PMD pagesize failed");
+ 
+@@ -262,7 +262,7 @@ TEST_F_TIMEOUT(migration, shared_anon_th
+ 	if (!thp_is_enabled())
+ 		SKIP(return, "Transparent Hugepages not available");
+ 
+-	pmdsize = read_pmd_pagesize();
++	pmdsize = pmd_psize();
+ 	if (!pmdsize)
+ 		SKIP(return, "Reading PMD pagesize failed");
+ 
+--- a/tools/testing/selftests/mm/mkdirty.c~kselftest-mm-rename-read_pmd_pagesize-to-pmd_psize
++++ a/tools/testing/selftests/mm/mkdirty.c
+@@ -330,7 +330,7 @@ int main(void)
+ 	int err, tests = 2;
+ 
+ 	pagesize = getpagesize();
+-	thpsize = read_pmd_pagesize();
++	thpsize = pmd_psize();
+ 	if (thpsize) {
+ 		ksft_print_msg("[INFO] detected THP size: %zu KiB\n",
+ 			       thpsize / 1024);
+--- a/tools/testing/selftests/mm/pagemap_ioctl.c~kselftest-mm-rename-read_pmd_pagesize-to-pmd_psize
++++ a/tools/testing/selftests/mm/pagemap_ioctl.c
+@@ -1653,7 +1653,7 @@ int main(int __attribute__((unused)) arg
+ 	ksft_print_header();
+ 
+ 	page_size = getpagesize();
+-	hpage_size = read_pmd_pagesize();
++	hpage_size = pmd_psize();
+ 
+ 	if (init_uffd())
+ 		ksft_exit_skip("Failed to initialize userfaultfd\n");
+--- a/tools/testing/selftests/mm/prctl_thp_disable.c~kselftest-mm-rename-read_pmd_pagesize-to-pmd_psize
++++ a/tools/testing/selftests/mm/prctl_thp_disable.c
+@@ -132,7 +132,7 @@ FIXTURE_SETUP(prctl_thp_disable_complete
+ 	if (!thp_available())
+ 		SKIP(return, "Transparent Hugepages not available\n");
+ 
+-	self->pmdsize = read_pmd_pagesize();
++	self->pmdsize = pmd_psize();
+ 	if (!self->pmdsize)
+ 		SKIP(return, "Unable to read PMD size\n");
+ 
+@@ -240,7 +240,7 @@ FIXTURE_SETUP(prctl_thp_disable_except_m
+ 	if (!thp_available())
+ 		SKIP(return, "Transparent Hugepages not available\n");
+ 
+-	self->pmdsize = read_pmd_pagesize();
++	self->pmdsize = pmd_psize();
+ 	if (!self->pmdsize)
+ 		SKIP(return, "Unable to read PMD size\n");
+ 
+--- a/tools/testing/selftests/mm/process_madv.c~kselftest-mm-rename-read_pmd_pagesize-to-pmd_psize
++++ a/tools/testing/selftests/mm/process_madv.c
+@@ -141,7 +141,7 @@ TEST_F(process_madvise, remote_collapse)
+ 		void *map_addr;
+ 	} info;
+ 
+-	huge_page_size = read_pmd_pagesize();
++	huge_page_size = pmd_psize();
+ 	if (huge_page_size <= 0)
+ 		SKIP(return, "Could not determine a valid huge page size.\n");
+ 
+--- a/tools/testing/selftests/mm/soft-dirty.c~kselftest-mm-rename-read_pmd_pagesize-to-pmd_psize
++++ a/tools/testing/selftests/mm/soft-dirty.c
+@@ -87,7 +87,7 @@ static void test_hugepage(int pagemap_fd
+ 		return;
+ 	}
+ 
+-	size_t hpage_len = read_pmd_pagesize();
++	size_t hpage_len = pmd_psize();
+ 	if (!hpage_len)
+ 		ksft_exit_fail_msg("Reading PMD pagesize failed");
+ 
+--- a/tools/testing/selftests/mm/split_huge_page_test.c~kselftest-mm-rename-read_pmd_pagesize-to-pmd_psize
++++ a/tools/testing/selftests/mm/split_huge_page_test.c
+@@ -615,7 +615,7 @@ int main(int argc, char **argv)
+ 
+ 	pagesize = getpagesize();
+ 	pageshift = ffs(pagesize) - 1;
+-	pmd_pagesize = read_pmd_pagesize();
++	pmd_pagesize = pmd_psize();
+ 	if (!pmd_pagesize)
+ 		ksft_exit_fail_msg("Reading PMD pagesize failed\n");
+ 
+--- a/tools/testing/selftests/mm/uffd-common.c~kselftest-mm-rename-read_pmd_pagesize-to-pmd_psize
++++ a/tools/testing/selftests/mm/uffd-common.c
+@@ -137,7 +137,7 @@ static void shmem_release_pages(uffd_glo
+ static int shmem_allocate_area(uffd_global_test_opts_t *gopts, void **alloc_area, bool is_src)
+ {
+ 	void *area_alias = NULL;
+-	size_t bytes = gopts->nr_pages * gopts->page_size, hpage_size = read_pmd_pagesize();
++	size_t bytes = gopts->nr_pages * gopts->page_size, hpage_size = pmd_psize();
+ 	unsigned long offset = is_src ? 0 : bytes;
+ 	char *p = NULL, *p_alias = NULL;
+ 	int mem_fd = uffd_mem_fd_create(bytes * 2, false);
+@@ -194,10 +194,10 @@ static void shmem_alias_mapping(uffd_glo
+ 
+ static void shmem_check_pmd_mapping(uffd_global_test_opts_t *gopts, void *p, int expect_nr_hpages)
+ {
+-	size_t len = expect_nr_hpages * read_pmd_pagesize();
++	size_t len = expect_nr_hpages * pmd_psize();
+ 
+ 	if (!check_huge_file(gopts->area_dst_alias, len, expect_nr_hpages,
+-			     read_pmd_pagesize()))
++			     pmd_psize()))
+ 		err("Did not find expected %d number of hugepages",
+ 		    expect_nr_hpages);
+ }
+--- a/tools/testing/selftests/mm/uffd-unit-tests.c~kselftest-mm-rename-read_pmd_pagesize-to-pmd_psize
++++ a/tools/testing/selftests/mm/uffd-unit-tests.c
+@@ -588,7 +588,7 @@ static void uffd_minor_test_common(uffd_
+ 		uffd_test_ops->check_pmd_mapping(gopts,
+ 						 gopts->area_dst,
+ 						 gopts->nr_pages * gopts->page_size /
+-						 read_pmd_pagesize());
++						 pmd_psize());
+ 		/*
+ 		 * This won't cause uffd-fault - it purely just makes sure there
+ 		 * was no corruption.
+@@ -1914,7 +1914,7 @@ static void uffd_move_handle_fault(uffd_
+ static void uffd_move_pmd_handle_fault(uffd_global_test_opts_t *gopts, struct uffd_msg *msg,
+ 				       struct uffd_args *args)
+ {
+-	uffd_move_handle_fault_common(gopts, msg, args, read_pmd_pagesize());
++	uffd_move_handle_fault_common(gopts, msg, args, pmd_psize());
+ }
+ 
+ static void
+@@ -2030,7 +2030,7 @@ static void uffd_move_pmd_test(uffd_glob
+ {
+ 	if (madvise(gopts->area_dst, gopts->nr_pages * gopts->page_size, MADV_HUGEPAGE))
+ 		err("madvise(MADV_HUGEPAGE) failure");
+-	uffd_move_test_common(gopts, targs, read_pmd_pagesize(),
++	uffd_move_test_common(gopts, targs, pmd_psize(),
+ 			      uffd_move_pmd_handle_fault);
+ }
+ 
+@@ -2038,7 +2038,7 @@ static void uffd_move_pmd_split_test(uff
+ {
+ 	if (madvise(gopts->area_dst, gopts->nr_pages * gopts->page_size, MADV_NOHUGEPAGE))
+ 		err("madvise(MADV_NOHUGEPAGE) failure");
+-	uffd_move_test_common(gopts, targs, read_pmd_pagesize(),
++	uffd_move_test_common(gopts, targs, pmd_psize(),
+ 			      uffd_move_pmd_handle_fault);
+ }
+ 
+--- a/tools/testing/selftests/mm/uffd-wp-mremap.c~kselftest-mm-rename-read_pmd_pagesize-to-pmd_psize
++++ a/tools/testing/selftests/mm/uffd-wp-mremap.c
+@@ -38,7 +38,7 @@ static int detect_thp_sizes(size_t sizes
+ 	int i;
+ 
+ 	/* thp not supported at all. */
+-	if (!read_pmd_pagesize())
++	if (!pmd_psize())
+ 		return 0;
+ 
+ 	orders = thp_supported_orders();
+--- a/tools/testing/selftests/mm/vm_util.c~kselftest-mm-rename-read_pmd_pagesize-to-pmd_psize
++++ a/tools/testing/selftests/mm/vm_util.c
+@@ -155,7 +155,7 @@ bool check_for_pattern(FILE *fp, const c
+ 	return false;
+ }
+ 
+-uint64_t read_pmd_pagesize(void)
++uint64_t pmd_psize(void)
+ {
+ 	int fd;
+ 	char buf[20];
+@@ -437,7 +437,7 @@ static bool __check_huge(void *addr, siz
+ 	char *start = addr;
+ 	char *end = start + len;
+ 
+-	pmd_pagesize = read_pmd_pagesize();
++	pmd_pagesize = pmd_psize();
+ 	if (!pmd_pagesize)
+ 		ksft_exit_fail_msg("reading PMD pagesize failed\n");
+ 
+--- a/tools/testing/selftests/mm/vm_util.h~kselftest-mm-rename-read_pmd_pagesize-to-pmd_psize
++++ a/tools/testing/selftests/mm/vm_util.h
+@@ -92,7 +92,7 @@ bool pagemap_is_populated(int fd, char *
+ unsigned long pagemap_get_pfn(int fd, char *start);
+ void clear_softdirty(void);
+ bool check_for_pattern(FILE *fp, const char *pattern, char *buf, size_t len);
+-uint64_t read_pmd_pagesize(void);
++uint64_t pmd_psize(void);
+ unsigned long rss_anon(void);
+ bool check_huge_anon(void *addr, size_t len, int nr_hpages, uint64_t hpage_size);
+ bool check_huge_file(void *addr, size_t len, int nr_hpages, uint64_t hpage_size);
 _
 
-Patches currently in -mm which might be from zzzccc427@gmail.com are
+Patches currently in -mm which might be from yeoreum.yun@arm.com are
 
-ocfs2-validate-move-extents-against-a-stable-eof.patch
-ocfs2-keep-locking_state-within-the-cluster-connection-lifetime.patch
-ocfs2-dlm-serialize-migration-mle-cleanup-on-failure.patch
-ocfs2-stop-recovery-before-shutting-down-local-allocators.patch
-ocfs2-cluster-unlink-socket-containers-before-releasing-resources.patch
-ocfs2-wait-for-filecheck-kobject-release-after-a-failed-add.patch
-ocfs2-cache-the-mount-context-for-dentry-lock-callbacks.patch
+kselftest-mm-rename-read_pmd_pagesize-to-pmd_psize.patch
+kselftest-mm-remove-hpage_size-and-hpage_shift-macro.patch
+kselftest-mm-introduce-size_to_shift-helper.patch
 
