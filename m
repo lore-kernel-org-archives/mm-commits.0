@@ -1,46 +1,48 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793343257;
-	b=hMUjXfB/JnSd9JWnddPFwwRdctFlvn34hxpoywvEYkXuKKpYnBqIe4BUe0Xe8bg9Gt6e
-	 bqiUYUUXtcEz2hKQSVciwdEwLWrzCW7kMIINRUQ2MDc7SzkDZsAWGZIfvIms4oulmwW+r
-	 ZuaZdEwB2Gaa7CBFwmN+oijYCxi6gw+zVs1pTV4H8cHhyGKNUt7XrQbkJF7AFXcnF8hV8
-	 G5Fz7xMC1lTI2Zq2YqCHyQnPfza1LvbtFNbRn9usmBS/rVtbd+7JsbFOBKQM7egcK3EnC
-	 HMFMUkhnAPm6IG0AzZ6avEEyojVvfV+C1yDjAIy2KCXwi2jZjI87i8KcSrR5oLOf8pw==
+	t=1793343383;
+	b=WA15HUC2snCb6AY6JH5mYqDY/KfIn/SJfmXMibbPuO0uvmFUOZs0eq8mHva0VP+sq+1j
+	 qVSkAv8mvLuZElfiswenCpEnStO5sFU7dX7/EUWLo8JrflbrmCTnsHwIcKVolOQ/NTnv4
+	 MSgFgRBDw5DbICRSD4CQV/nINy1oMGFGN4FL0SaDUkdbnPTHTwv53V2mdRS0rn77ZXaLJ
+	 1lWMyRxiRq2UOUa9hl5XUh3hBcpu9VpemhcBXP0fPTKYNRzjx+9Q6yVzy0K2ecFnNXCZC
+	 93S01hMRn0RR0P4nmlHMyqcFuhvLPbIk05RCVvtHMMMCTuzsmIxZi6J+OhnktaumGcA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793343257;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793343383;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=8phRENUDOKFTUWrCmSjhJvpCL/tM+YHGXeL6GRyoSsY=;
-	b=WJ/ZofX0Ou5aZn6XMy5ZkhD/Si9uPKLSPuuPmMb6E3zMFgs6UgMMIrB2FwMvq9lBR+x9
-	 H+I/9jkGgJLhwAbhXxtrQCY0ZFh7vJUW9IqNrlHxHfZqDxVUp1qCQA+iF86GYyn6myOuA
-	 3IWWCh/dbO9svt422ZRVR+ldwqQxRbkvSlbBeDU6oGC6L0Mi0uyXw6NNTNt8UxQDQrO05
-	 Lg/u8FDUvV46H6Yye5K3ukfTJrQz0V0XvQuhz4uPMKo2aEZPovVItUNapu9mfP75/3HvZ
-	 joTPCCSQgBT85U15QM9kRYQvFim0YBE0MJ5ZtC3jiWXyP3rxxP2Nt/GGyO700OT5IaQ==
+	bh=8rSfKDpNGP1keA4MNCrxJnsJP8eKl3cl3n+3Y3olPj4=;
+	b=1UkLQh2X31a1f25qbuQsDce67/UoiKU/3nti7ixthl2C0x3OWNh39yfzMBnS4C08iHyR
+	 Xkj0mUISN7t9WlxjVNDLFozwv22xyINcblTOAnjmLFhISmHps671zULtUKoWyFDhleqoK
+	 Ic496EJF3GF55YWqOl7nmkuuNy3WluRqP5wV5ABL4Vy4Kyjg9cwKUI4msNdmgPrEhQjJt
+	 KqPyHJ985j+mmKS60MSHM/0qJwMjoqGmD4Lokk9sj9fGORHlDqGogVatyZRPkUOeQtTdz
+	 aoYmUKBToW8FWWsopErAoQ3KxfbrrKTKdaRi/Cpg0UKkcbzj9EDD3Ceu8V12QNwhV1g==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=ApMtVrKh;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=JTpn5rdc;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 82DC8606A31C
-	for <mm-commits@vger.kernel.org>; Fri, 30 Oct 2026 06:54:17 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 77FC9606A32D;
+	Fri, 30 Oct 2026 06:56:23 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=ApMtVrKh
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4D9A91F000C1;
-	Fri, 30 Oct 2026 06:54:17 +0000 (UTC)
+	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=JTpn5rdc
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2E96F1F00A18;
+	Fri, 30 Oct 2026 06:56:23 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1793343257;
-	bh=8phRENUDOKFTUWrCmSjhJvpCL/tM+YHGXeL6GRyoSsY=;
+	d=linux-foundation.org; s=korg; t=1793343383;
+	bh=8rSfKDpNGP1keA4MNCrxJnsJP8eKl3cl3n+3Y3olPj4=;
 	h=Date:To:From:Subject;
-	b=ApMtVrKhKozd3eq/eBKHdJnsQwjbPZNxlooQP05OdehfSzMT1Cg2nNoERruZZuTH9
-	 n9MoBBhMS+oisW7j0XKjXpNODrYqXy0pXtVg7Qjm5HJ2lYxp8mZNRtAgwLjfeZ1ssb
-	 uEIQseWzQyAEtFExZLYYPtW1XaHQMHVno/cywty8=
-Date: Thu, 29 Oct 2026 23:54:16 -0700
-To: mm-commits@vger.kernel.org,hirofumi@mail.parknet.co.jp,brauner@kernel.org,
-	dennylin0707@gmail.com,akpm@linux-foundation.org
+	b=JTpn5rdciwy5gvUNKpfZx9Jvm9Ono67GVqUThSRHYH8UBX5VfcV4Mpa5Tk/SutWkg
+	 7j2XHWKC1yxrxj0UZIrKgrx/rZEUsuatMXR5yQ5o9eevLScjJu2HjWdNv3l5Nf7UQf
+	 RWn5lYj3R+Xump4u1Ey4f4XJ6sQwD6nbajwWd0s4=
+Date: Thu, 29 Oct 2026 23:56:22 -0700
+To: mm-commits@vger.kernel.org,stable@vger.kernel.org,pjw@kernel.org,
+	muchun.song@linux.dev,lkp@intel.com,glider@google.com,elver@google.com,
+	dvyukov@google.com,aou@eecs.berkeley.edu,alex@ghiti.fr,liuyun01@kylinos.cn,
+	akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + fat-fix-parent-link-count-when-replacing-a-sibling-directory.patch added to mm-nonmm-hotfixes-unstable branch
-Message-Id: <20261030065417.4D9A91F000C1@smtp.kernel.org>
+Subject: [to-be-updated] riscv-keep-booting-if-kfence-pool-reservation-fails.patch removed from -mm tree
+Message-Id: <20261030065623.2E96F1F00A18@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -51,150 +53,106 @@ List-Owner: <mailto:mm-commits+owner@vger.kernel.org>
 Precedence: list
 
 
-The patch titled
-     Subject: fat: fix parent link count when replacing a sibling directory
-has been added to the -mm mm-nonmm-hotfixes-unstable branch.  Its filename is
-     fat-fix-parent-link-count-when-replacing-a-sibling-directory.patch
+The quilt patch titled
+     Subject: riscv: keep booting if KFENCE pool reservation fails
+has been removed from the -mm tree.  Its filename was
+     riscv-keep-booting-if-kfence-pool-reservation-fails.patch
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/fat-fix-parent-link-count-when-replacing-a-sibling-directory.patch
-
-This patch will later appear in the mm-nonmm-hotfixes-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via various
-branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there most days
+This patch was dropped because an updated version will be issued
 
 ------------------------------------------------------
-From: Hungyu Lin <dennylin0707@gmail.com>
-Subject: fat: fix parent link count when replacing a sibling directory
-Date: Fri, 30 Oct 2026 06:00:11 +0000
+From: Jackie Liu <liuyun01@kylinos.cn>
+Subject: riscv: keep booting if KFENCE pool reservation fails
+Date: Thu, 29 Oct 2026 10:57:43 +0800
 
-vfat_rename() and do_msdos_rename() adjust parent link counts only when
-updating the dotdot entry for a move between different parents.  Replacing
-an existing empty directory in the same parent also removes a
-subdirectory, but leaves the parent's link count unchanged.
+A failed KFENCE pool reservation hits BUG_ON() and stops boot. Continue
+building the linear map and disable KFENCE if the reservation fails.
 
-For example, renaming one of two sibling directories over the other leaves
-the parent with four links instead of three.  stat and ls report the stale
-count, and find -links 3 does not match the parent.
+Reject later pool initialization as well, since a replacement pool may
+have huge-page mappings that kfence_protect_page() cannot handle.
 
-Drop the parent's link count for this case after the source entry has been
-removed successfully.  Leave cross-parent renames, regular files and the
-existing error paths unchanged.
-
-Share the parent link count check with rmdir through fat_dir_drop_nlink().
-Only decrement counts of at least three and report a filesystem error
-otherwise, rather than reducing a corrupted directory's count below two. 
-Export the helper for the VFAT and MSDOS modules.
-
-Link: https://lore.kernel.org/20261030060011.70237-1-dennylin0707@gmail.com
-Signed-off-by: Hungyu Lin <dennylin0707@gmail.com>
+Link: https://lore.kernel.org/44fbd039a5cd78bfe7355ccbafb197775dede29c.1793242457.git.liuyun01@kylinos.cn
+Fixes: 25abe0db9243 ("riscv: Fix kfence now that the linear mapping can be backed by PUD/P4D/PGD")
+Signed-off-by: Jackie Liu <liuyun01@kylinos.cn>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Acked-by: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
-Cc: Christian Brauner <brauner@kernel.org>
+Reported-by: Sashiko <sashiko-bot@kernel.org>
+Closes: https://sashiko.dev/#/patchset/cover.1793017073.git.liuyun01@kylinos.cn?part=3
+Reported-by: kernel test robot <lkp@intel.com>
+Closes: https://lore.kernel.org/oe-kbuild-all/202610290904.wbrEL97y-lkp@intel.com/
+Cc: Alexander Potapenko <glider@google.com>
+Cc: Dmitry Vyukov <dvyukov@google.com>
+Cc: Marco Elver <elver@google.com>
+Cc: Paul Walmsley <pjw@kernel.org>
+Cc: AlexandreGhiti <alex@ghiti.fr>
+Cc: Albert Ou <aou@eecs.berkeley.edu>
+Cc: Muchun Song <muchun.song@linux.dev>
+Cc: <stable@vger.kernel.org>
 ---
 
- fs/fat/dir.c         |   10 ++++++++++
- fs/fat/fat.h         |    1 +
- fs/fat/namei_msdos.c |    9 +++------
- fs/fat/namei_vfat.c  |    9 +++------
- 4 files changed, 17 insertions(+), 12 deletions(-)
+ arch/riscv/include/asm/kfence.h |    4 +++-
+ arch/riscv/mm/init.c            |   18 ++++++++++++++----
+ 2 files changed, 17 insertions(+), 5 deletions(-)
 
---- a/fs/fat/dir.c~fat-fix-parent-link-count-when-replacing-a-sibling-directory
-+++ a/fs/fat/dir.c
-@@ -963,6 +963,16 @@ int fat_dir_empty(struct inode *dir)
- }
- EXPORT_SYMBOL_GPL(fat_dir_empty);
+--- a/arch/riscv/include/asm/kfence.h~riscv-keep-booting-if-kfence-pool-reservation-fails
++++ a/arch/riscv/include/asm/kfence.h
+@@ -9,9 +9,11 @@
+ #include <asm/cacheflush.h>
+ #include <asm/pgtable.h>
  
-+void fat_dir_drop_nlink(struct inode *dir)
-+{
-+	if (dir->i_nlink >= 3)
-+		drop_nlink(dir);
-+	else
-+		fat_fs_error(dir->i_sb, "parent dir link count too low (%u)",
-+			     dir->i_nlink);
-+}
-+EXPORT_SYMBOL_GPL(fat_dir_drop_nlink);
++extern bool kfence_disabled;
 +
- /*
-  * fat_subdirs counts the number of sub-directories of dir. It can be run
-  * on directories being created.
---- a/fs/fat/fat.h~fat-fix-parent-link-count-when-replacing-a-sibling-directory
-+++ a/fs/fat/fat.h
-@@ -332,6 +332,7 @@ extern const struct file_operations fat_
- extern int fat_search_long(struct inode *inode, const unsigned char *name,
- 			   int name_len, struct fat_slot_info *sinfo);
- extern int fat_dir_empty(struct inode *dir);
-+void fat_dir_drop_nlink(struct inode *dir);
- extern int fat_subdirs(struct inode *dir);
- extern int fat_scan(struct inode *dir, const unsigned char *name,
- 		    struct fat_slot_info *sinfo);
---- a/fs/fat/namei_msdos.c~fat-fix-parent-link-count-when-replacing-a-sibling-directory
-+++ a/fs/fat/namei_msdos.c
-@@ -333,12 +333,7 @@ static int msdos_rmdir(struct inode *dir
- 	err = fat_remove_entries(dir, &sinfo);	/* and releases bh */
- 	if (err)
- 		goto out;
--	if (dir->i_nlink >= 3)
--		drop_nlink(dir);
--	else {
--		fat_fs_error(sb, "parent dir link count too low (%u)",
--			dir->i_nlink);
--	}
-+	fat_dir_drop_nlink(dir);
+ static inline bool arch_kfence_init_pool(void)
+ {
+-	return true;
++	return !kfence_disabled;
+ }
  
- 	clear_nlink(inode);
- 	fat_detach(inode);
-@@ -565,6 +560,8 @@ static int do_msdos_rename(struct inode
- 		(void)sync_inode_metadata(old_dir, 1);
+ static inline bool kfence_protect_page(unsigned long addr, bool protect)
+--- a/arch/riscv/mm/init.c~riscv-keep-booting-if-kfence-pool-reservation-fails
++++ a/arch/riscv/mm/init.c
+@@ -45,6 +45,10 @@ DECLARE_BITMAP(new_valid_map_cpus, NR_CP
+ struct kernel_mapping kernel_map __ro_after_init;
+ EXPORT_SYMBOL(kernel_map);
  
- 	if (new_inode) {
-+		if (is_dir && old_dir == new_dir)
-+			fat_dir_drop_nlink(old_dir);
- 		drop_nlink(new_inode);
- 		if (is_dir)
- 			drop_nlink(new_inode);
---- a/fs/fat/namei_vfat.c~fat-fix-parent-link-count-when-replacing-a-sibling-directory
-+++ a/fs/fat/namei_vfat.c
-@@ -809,12 +809,7 @@ static int vfat_rmdir(struct inode *dir,
- 	err = fat_remove_entries(dir, &sinfo);	/* and releases bh */
- 	if (err)
- 		goto out;
--	if (dir->i_nlink >= 3)
--		drop_nlink(dir);
--	else {
--		fat_fs_error(sb, "parent dir link count too low (%u)",
--			dir->i_nlink);
--	}
-+	fat_dir_drop_nlink(dir);
++#ifdef CONFIG_KFENCE
++bool kfence_disabled __ro_after_init;
++#endif
++
+ #ifdef CONFIG_64BIT
+ u64 satp_mode __ro_after_init = SATP_MODE_57;
+ #else
+@@ -1230,10 +1234,13 @@ static void __init create_linear_mapping
+ 	 *  for this region.
+ 	 */
+ 	kfence_pool = memblock_phys_alloc(KFENCE_POOL_SIZE, PAGE_SIZE);
+-	BUG_ON(!kfence_pool);
+-
+-	memblock_mark_nomap(kfence_pool, KFENCE_POOL_SIZE);
+-	__kfence_pool = __va(kfence_pool);
++	if (kfence_pool) {
++		memblock_mark_nomap(kfence_pool, KFENCE_POOL_SIZE);
++		__kfence_pool = __va(kfence_pool);
++	} else {
++		pr_err("failed to allocate kfence pool\n");
++		kfence_disabled = true;
++	}
+ #endif
  
- 	clear_nlink(inode);
- 	fat_truncate_time(inode, NULL, FAT_UPDATE_ATIME | FAT_UPDATE_CMTIME);
-@@ -1011,6 +1006,8 @@ static int vfat_rename(struct inode *old
- 	vfat_update_dir_metadata(old_dir, &ts);
+ 	/* Map all memory banks in the linear mapping */
+@@ -1254,6 +1261,9 @@ static void __init create_linear_mapping
+ #endif
  
- 	if (new_inode) {
-+		if (is_dir && old_dir == new_dir)
-+			fat_dir_drop_nlink(old_dir);
- 		drop_nlink(new_inode);
- 		if (is_dir)
- 			drop_nlink(new_inode);
+ #ifdef CONFIG_KFENCE
++	if (!kfence_pool)
++		return;
++
+ 	create_linear_mapping_range(kfence_pool, kfence_pool + KFENCE_POOL_SIZE, PAGE_SIZE, NULL);
+ 
+ 	memblock_clear_nomap(kfence_pool, KFENCE_POOL_SIZE);
 _
 
-Patches currently in -mm which might be from dennylin0707@gmail.com are
+Patches currently in -mm which might be from liuyun01@kylinos.cn are
 
-mm-page-writeback-avoid-32-bit-overflow-in-dirty-threshold-shares.patch
-mm-migrate-untag-addresses-when-querying-page-nodes.patch
-fat-fix-parent-link-count-when-replacing-a-sibling-directory.patch
-delayacct-preserve-delay-extrema-when-aggregating-taskstats.patch
+kfence-fix-pool-cleanup-on-metadata-allocation-failure.patch
+kfence-clear-the-pool-pointer-before-freeing-pages.patch
 
