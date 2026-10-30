@@ -1,47 +1,47 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793329369;
-	b=PMDZmyNYC7xUGrqAi3usDq0nL9IAyfeIbZvKS8UGeWb5/UpqRrz358smNQ9bzbeUGJaV
-	 4wr3M8g+QshzpHY78c0MbwlTU+RXZ7dq5MLf/LrknHT7yqSq2ocJtcmm/E3p5as7kc8j9
-	 FRVGodSj+jjbIF1l2MnEOhC9djc4Y07gTow5HvsQwc7gfccspIsBhyTFLBcCFtSI/Q9Zq
-	 igwWEkiVaD2UiRNCN9VOmxyI89BikbAzBB2VWrppinOb8WzZlTdkaq+qqufYzTXrWDDV7
-	 V+vsOkWm+B3DElUPK7kZDkXQl1cRzINk7BXlGH+lG0l0x40wmg2ps2ohvVRbZpYAg4A==
+	t=1793329372;
+	b=1X3Sq5adV6vfpNE3eusHXbQxOwuK3NJCygmgBnWv0sdemGQUi0KzeF28tu160u5I4V1d
+	 kjgUW2M2giyrxJg4hoL9O1O83SPR6okxKF8K/5RfzkqvK3s6s4KvZl2IhwHgx2G4FYU/y
+	 qwK91gUsuEcpaHdotfmkZ8V13DZDzPjofHGBlSZ/2VBihr25YJBmwFIci0C2cXbkJgaD0
+	 S0MwAUeAbt4BLBhbzf9qnse9f2S4Zh25Mahvi3v9oXNH28eYQN0Jfj2NsRAM+N0SMQhO3
+	 IjrWhlCLDA7mlKePeof3orxEFpvSqNO3N0YTRL69XoMHCtn13c/n8QV3HYkNWxyaiJw==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793329369;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793329372;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=zAZxnLsBGGVCRMUlQybhG7ATue+jA+AQSYE5YAavTY8=;
-	b=MeQIseC2WPAHgnX9wR3D5Em/iyoqHymZqT+Vc/j8HETjaLxLhyL5CiSlRtlSNvCPcYuU
-	 AxjeaZE+7gUiFZ7HgQKJSBafw/zGeo4505rM+zmd72+2A5NlZ2S7RshjaNVtAS23+5Km8
-	 uKdnMOf8GKHORmqW2nFzyXT9ZRTlDDLGkBemmfADRMgHHJz3jGUbg9UMFaiHCVYvapl2P
-	 E0VWwpMyTOwyn7oeaW2eRdle0zRhrn/3e4NxyF2z0HmCMmD0r0u5iOW4JFUYOThPz75wn
-	 jV6A2fPFEopHw64mO9XRsk6uhNMUzUuwvLke9jFoJ2PVP0fwmaY0peikWTu9fUVXnkQ==
+	bh=zcRzJEqQm0TcWzYKUnAM1JFIHfqWS3cNRCSJJHUVQ7E=;
+	b=YJF7q8QSzpIr/W8lOpKklMNPpjKVWVZ1PA2Wj27wwy+9og6HleHKkx7IDbnfCr6kNthL
+	 i57TR8ntvUy7k7sUlzA8eHNT5xeKt9trCMLL2aWTNeowA+JuNL4niJMA33eAfxBDxBPBO
+	 /hc2lspSe++cubDjxTfZDKeVkdIJ2wbzb9rnZTYU3N5jh64YSo04kUSQv+LImpPmp+lRO
+	 jozhH90W3XprzCRt4Lorh+1nYp72yQwbnoj6p+XiITlKp0NYQDD8Khd2vnTaueT+X3Rtj
+	 UvU3efI1pRo8RbhlpgAW6STzdPJg0YV5aFiy2CaRPQHB1fUWWmgS88A7qOwabmreRGw==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=B2cOvPz3;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=A++SS4b1;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4AC20606A31E
-	for <mm-commits@vger.kernel.org>; Fri, 30 Oct 2026 03:02:48 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3A22F606A31C
+	for <mm-commits@vger.kernel.org>; Fri, 30 Oct 2026 03:02:51 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=B2cOvPz3
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id BD5AC1F000C1;
-	Fri, 30 Oct 2026 03:02:48 +0000 (UTC)
+	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=A++SS4b1
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id AC35A1F000C1;
+	Fri, 30 Oct 2026 03:02:51 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1793329368;
-	bh=zAZxnLsBGGVCRMUlQybhG7ATue+jA+AQSYE5YAavTY8=;
+	d=linux-foundation.org; s=korg; t=1793329371;
+	bh=zcRzJEqQm0TcWzYKUnAM1JFIHfqWS3cNRCSJJHUVQ7E=;
 	h=Date:To:From:Subject;
-	b=B2cOvPz3dwuwoJVF5PUQic5yxQdUv9E8vcWShaDEDM0nbSe56/hJsdTNYWjrpb41Q
-	 pfd42+Qs+MTTaCitDPFQ+W1hwADfXkfWzM96YARiRn8le7Q6a1gUTuwmxiJbTauBon
-	 smosodAqDIKBBCXf4ndmvirCU/zNVwbRQDrciv6U=
-Date: Thu, 29 Oct 2026 20:02:48 -0700
+	b=A++SS4b1a5YV07Ubw+4FX3cWcZD9TijQtMZtOnEd1/T61sTDKq3obnlmCkYYD55ls
+	 JXYSORwun1FzBkMB1VmgynnCpYWjwKdgZUwZL9ohrAbo2vdic1qWatnUlulVYwnvOH
+	 CBZnC9H5+PT7sV+LZsByTKAr+ViOlRVvYUMRyCCc=
+Date: Thu, 29 Oct 2026 20:02:51 -0700
 To: mm-commits@vger.kernel.org,zhangbo56@xiaomi.com,zhangbo0325@gmail.com,
 	richardycc@google.com,minchan@kernel.org,hdanton@sina.com,bgeffon@google.com,
 	baohua@kernel.org,senozhatsky@chromium.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + zram-allocate-bounce-buffer-for-spanning-objects.patch added to mm-nonmm-unstable branch
-Message-Id: <20261030030248.BD5AC1F000C1@smtp.kernel.org>
+Subject: + zram-borrow-idle-decompression-streams-in-exclusive-mode.patch added to mm-nonmm-unstable branch
+Message-Id: <20261030030251.AC35A1F000C1@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -53,12 +53,12 @@ Precedence: list
 
 
 The patch titled
-     Subject: zram: allocate bounce buffer for spanning objects
+     Subject: zram: borrow idle decompression streams in exclusive mode
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     zram-allocate-bounce-buffer-for-spanning-objects.patch
+     zram-borrow-idle-decompression-streams-in-exclusive-mode.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/zram-allocate-bounce-buffer-for-spanning-objects.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/zram-borrow-idle-decompression-streams-in-exclusive-mode.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -77,47 +77,71 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Sergey Senozhatsky <senozhatsky@chromium.org>
-Subject: zram: allocate bounce buffer for spanning objects
-Date: Sun, 25 Oct 2026 11:18:29 +0900
+Subject: zram: borrow idle decompression streams in exclusive mode
+Date: Sun, 25 Oct 2026 11:18:30 +0900
 
-zsmalloc objects that span two physical pages need to be linearized
-before decompression, which zcomp does using stream's ->local_copy
-buffer.  That buffer cannot be used concurrently, so such reads take
-the stream in exclusive mode, even when the backend has stateless
-decompression.  And spanning objects are not rare: Bo Zhang measured
-23.3% of reads on lzo-rle going through the exclusive path, causing
-contention on ->excl_lock of up to 72-96 ms [1].
+Shared decompression streams eliminate Reader vs Reader priority
+inversion for backends with stateless decompression.  However,
+backends with stateful decompression contexts (zstd, deflate)
+still require exclusive access to the stream [1].
 
-Allocate a temporary bounce buffer for spanning objects instead, so
-that backends with stateless decompression can always use shared mode.
-If the allocation fails we fall back to ->local_copy under ->excl_lock.
+Instead of unconditionally blocking on the local CPU's ->excl_lock,
+we can scan online CPUs starting from the current one and try to
+borrow the first free stream.  Only when all online streams are
+busy, sleep on a per-zcomp waitqueue until any CPU releases an
+exclusive stream, which significantly drops contention and wait
+time, per Bo Zhang's measurements [2]:
 
-Per-request bounce buffer fixes the remaining tail latency, as was
-measured by Bo Zhang [2]:
-
-  Metric          Base      kmalloc bounce
-  ----------------------------------------
-  read contended  ~1,959    0
-  shared          76.7%     100%
+  Metric              Base      cross-CPU borrow
+  ----------------------------------------------
+  dexcl_contended     15,919    1,447
+  dexcl_wait_ns_total 109.6 s   3.66 s
+  dexcl_wait_ns_max   145 ms    26.6 ms
+  dexcl_avg_wait      6.88 ms   2.53 ms
+  dexcl_acquire       2.21M     2.94M
 
 A quick synthetic fio test for Reader vs Reader inversion on 24 CPUs
-(lz4, 48 low priority (nice 19) readers, 24 normal priority CPU hogs
-and 24 high priority readers), average of 3 runs.  Base is the
-previous patch (shared streams without bounce buffer):
+(preempt=full, zstd, 48 low priority (nice 19) bg readers, 24 normal
+priority (nice 0) CPU hogs and 24 high priority (nice -19) fg readers),
+fg reader results (average of 3 runs):
 
   Metric           Base               Patched
   ----------------------------------------------------------
-  Read IOPS        1,452k             1,466k        (+1.0%)
-  Read clat avg    3.46 us            3.30 us       (-4.9%)
-  Read clat stdev  165 us             15.69 us      (-10.5x)
-  Read clat max    306,679 us         7,060 us      (-43.4x)
+  Read IOPS        396k               1,064k        (+2.7x)
+  Read clat avg    48.32 us           9.66 us       (-5.0x)
+  Read clat p50    7.58 us            8.85 us       (+17%)
+  Read clat p99    14.27 us           31.02 us      (+2.2x)
+  Read clat stdev  7,571 us           31.92 us      (-237x)
+  Read clat max    3,555,300 us       6,288 us      (-565x)
 
-An alternative approach is to vm_map_ram() scattered objects
-(two pages), which fixes the tail latency in the same way,
-but deferred TLB flushes add more cost, so it was rejected.
+Reader vs Reader with CONFIG_SCHED_PROXY_EXEC=y in both kernels,
+21 runs each:
 
-Link: https://lore.kernel.org/20261025021839.1542805-14-senozhatsky@chromium.org
-Link: https://lore.kernel.org/linux-kernel/20261014153603.1365617-1-zhangbo56@xiaomi.com [1]
+                          Base                    Patched
+  ------------------------------------------------------------------
+  zstd-3   Read IOPS      1,055k (+-160k)         1,045k (+-50k)
+           Read clat max  113 ms - 2.35 s         2.8 - 6.3 ms
+  zstd-12  Read IOPS      973k (+-175k)           1,045k (+-17k)
+           Read clat max  135 ms - 2.34 s         2.9 - 7.5 ms
+
+  Welch's t-test on IOPS, 21 runs each (patched vs base):
+                          diff        95% CI              p
+  ------------------------------------------------------------------
+  zstd-3                  -1.0%       [-76k, +63k]        0.78
+  zstd-12                 +7.4%       [+2k, +149k]        0.073
+
+  Runs with max read latency over 100 ms / over 1 s:
+                          Base                    Patched
+  ------------------------------------------------------------------
+  zstd-3                  21 of 21 / 9 of 21      0 / 0
+  zstd-12                 21 of 21 / 14 of 21     0 / 0
+
+With proxy execution base is about as fast as patched at both levels
+(no significant difference, p = 0.78 and p = 0.073).  Base is noisy
+though, and its worst case is still 0.1-2.3 s in every run.
+
+Link: https://lore.kernel.org/20261025021839.1542805-15-senozhatsky@chromium.org
+Link: https://lore.kernel.org/linux-kernel/20261015112440.1491168-1-zhangbo56@xiaomi.com [1]
 Link: https://lore.kernel.org/linux-kernel/20261016134847.1620103-1-zhangbo0325@gmail.com [2]
 Signed-off-by: Sergey Senozhatsky <senozhatsky@chromium.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
@@ -130,119 +154,168 @@ Cc: Bo Zhang <zhangbo56@xiaomi.com>
 Cc: Hillf Danton <hdanton@sina.com>
 ---
 
- drivers/block/zram/zcomp.c    |   47 +++++++++++++++++++++++---------
- drivers/block/zram/zcomp.h    |    2 -
- drivers/block/zram/zram_drv.c |    2 -
- 3 files changed, 36 insertions(+), 15 deletions(-)
+ drivers/block/zram/zcomp.c    |   75 +++++++++++++++++++++++---------
+ drivers/block/zram/zcomp.h    |    5 +-
+ drivers/block/zram/zram_drv.c |    4 -
+ 3 files changed, 60 insertions(+), 24 deletions(-)
 
---- a/drivers/block/zram/zcomp.c~zram-allocate-bounce-buffer-for-spanning-objects
+--- a/drivers/block/zram/zcomp.c~zram-borrow-idle-decompression-streams-in-exclusive-mode
 +++ a/drivers/block/zram/zcomp.c
-@@ -176,14 +176,13 @@ void zcomp_cstrm_put(struct zcomp_cstrm
- 	mutex_unlock(&zstrm->lock);
+@@ -185,38 +185,67 @@ bool zcomp_shared_decomp(struct zcomp *c
+ 	return !comp->ops->create_dctx;
  }
  
--bool zcomp_shared_decomp(struct zcomp *comp, struct scatterlist *sg)
-+bool zcomp_shared_decomp(struct zcomp *comp)
- {
- 	/*
- 	 * Shared decompression is only safe when the backend has no
--	 * mutable per-stream decompression context and the object is
--	 * contained within a single page (no ->local_copy bounce needed).
-+	 * mutable per-stream decompression context.
- 	 */
--	return !comp->ops->create_dctx && sg_is_last(sg);
-+	return !comp->ops->create_dctx;
- }
- 
- struct zcomp_dstrm *zcomp_dstrm_get(struct zcomp *comp,
-@@ -239,6 +238,15 @@ int zcomp_compress(struct zcomp *comp, s
- 	return ret;
- }
- 
-+static int zcomp_decompress_buf(struct zcomp *comp, struct zcomp_dstrm *zstrm,
-+				struct scatterlist *sg, void *buf,
-+				struct zcomp_req *req)
++static bool zcomp_dstrm_excl_trylock(struct zcomp_dstrm *zstrm)
 +{
-+	sg_copy_to_buffer(sg, 2, buf, req->src_len);
-+	req->src = buf;
-+	return comp->ops->decompress(comp->params, &zstrm->ctx, req);
++	/* Cheap pre-check: don't touch a busy stream's cachelines */
++	if (mutex_is_locked(&zstrm->excl_lock))
++		return false;
++	/*
++	 * Pin the stream.  The write side of ->lock is only taken by
++	 * zcomp_cpu_dead(), which also sets ->local_copy to NULL.
++	 */
++	if (!down_read_trylock(&zstrm->lock))
++		return false;
++	if (zstrm->local_copy && mutex_trylock(&zstrm->excl_lock))
++		return true;
++	up_read(&zstrm->lock);
++	return false;
 +}
 +
- int zcomp_decompress(struct zcomp *comp, struct zcomp_dstrm *zstrm,
- 		     struct scatterlist *sg, unsigned int src_len, void *dst)
- {
-@@ -247,27 +255,40 @@ int zcomp_decompress(struct zcomp *comp,
- 		.src_len = src_len,
- 		.dst_len = PAGE_SIZE,
- 	};
--	void *src = NULL;
-+	void *src;
- 	int ret;
- 
- 	might_sleep();
- 	lockdep_assert_held(&zstrm->lock);
--	if (!zcomp_shared_decomp(comp, sg))
-+	if (!zcomp_shared_decomp(comp))
- 		lockdep_assert_held(&zstrm->excl_lock);
- 
- 	if (sg_is_last(sg)) {
- 		/* the object is contained within one page, read it in-place */
- 		src = kmap_local_page(sg_page(sg));
- 		req.src = src + sg->offset;
--	} else {
--		/* the object spans two pages, linearize it into local copy */
--		sg_copy_to_buffer(sg, 2, zstrm->local_copy, src_len);
--		req.src = zstrm->local_copy;
-+		ret = comp->ops->decompress(comp->params, &zstrm->ctx, &req);
-+		kunmap_local(src);
-+		return ret;
- 	}
- 
--	ret = comp->ops->decompress(comp->params, &zstrm->ctx, &req);
--	if (src)
--		kunmap_local(src);
-+	/* exclusive mode already holds ->excl_lock */
-+	if (!zcomp_shared_decomp(comp))
-+		return zcomp_decompress_buf(comp, zstrm, sg, zstrm->local_copy,
-+					    &req);
++static struct zcomp_dstrm *zcomp_dstrm_excl_tryget(struct zcomp *comp)
++{
++	unsigned int cpu, start = raw_smp_processor_id();
++	struct zcomp_dstrm *zstrm;
 +
-+	/* shared mode: try a per-request bounce buffer first */
-+	src = kmalloc(src_len, GFP_NOWAIT | __GFP_NOWARN);
-+	if (src) {
-+		ret = zcomp_decompress_buf(comp, zstrm, sg, src, &req);
-+		kfree(src);
-+		return ret;
++	/* Best-effort start CPU hint; migration during the scan is fine */
++	for_each_online_cpu_wrap(cpu, start) {
++		zstrm = per_cpu_ptr(comp->dstream, cpu);
++		if (zcomp_dstrm_excl_trylock(zstrm))
++			return zstrm;
 +	}
++	return NULL;
++}
 +
-+	/* fall back to ->local_copy serialized by ->excl_lock */
-+	mutex_lock(&zstrm->excl_lock);
-+	ret = zcomp_decompress_buf(comp, zstrm, sg, zstrm->local_copy, &req);
-+	mutex_unlock(&zstrm->excl_lock);
+ struct zcomp_dstrm *zcomp_dstrm_get(struct zcomp *comp,
+ 				    enum zcomp_dstrm_mode mode)
+ {
+-	for (;;) {
+-		struct zcomp_dstrm *zstrm = raw_cpu_ptr(comp->dstream);
++	struct zcomp_dstrm *zstrm;
+ 
+-		/*
+-		 * Pin the stream.  The write side of ->lock is only taken
+-		 * by zcomp_cpu_dead(), so this never contends with other
+-		 * decompression requests, regardless of their mode.
+-		 */
+-		down_read(&zstrm->lock);
+-		if (!zstrm->local_copy) {
+-			/* The stream has been destroyed, re-try */
++	if (mode == ZCOMP_DSTRM_SHARED) {
++		for (;;) {
++			zstrm = raw_cpu_ptr(comp->dstream);
++			down_read(&zstrm->lock);
++			if (zstrm->local_copy)
++				return zstrm;
+ 			up_read(&zstrm->lock);
+-			continue;
+ 		}
+-
+-		/*
+-		 * Exclusive requests additionally own ->local_copy and
+-		 * ->ctx and hence can only wait for each other.
+-		 */
+-		if (mode == ZCOMP_DSTRM_EXCLUSIVE)
+-			mutex_lock(&zstrm->excl_lock);
+-		return zstrm;
+ 	}
++
++	/* Checks zcomp_dstrm_excl_tryget() before touching the waitq */
++	wait_event(comp->dstrm_waitq, (zstrm = zcomp_dstrm_excl_tryget(comp)));
++	return zstrm;
+ }
+ 
+-void zcomp_dstrm_put(struct zcomp_dstrm *zstrm, enum zcomp_dstrm_mode mode)
++void zcomp_dstrm_put(struct zcomp *comp, struct zcomp_dstrm *zstrm,
++		     enum zcomp_dstrm_mode mode)
+ {
+-	if (mode == ZCOMP_DSTRM_EXCLUSIVE)
++	if (mode == ZCOMP_DSTRM_EXCLUSIVE) {
+ 		mutex_unlock(&zstrm->excl_lock);
++		up_read(&zstrm->lock);
++		if (wq_has_sleeper(&comp->dstrm_waitq))
++			wake_up(&comp->dstrm_waitq);
++		return;
++	}
+ 	up_read(&zstrm->lock);
+ }
+ 
+@@ -289,6 +318,8 @@ int zcomp_decompress(struct zcomp *comp,
+ 	mutex_lock(&zstrm->excl_lock);
+ 	ret = zcomp_decompress_buf(comp, zstrm, sg, zstrm->local_copy, &req);
+ 	mutex_unlock(&zstrm->excl_lock);
++	if (wq_has_sleeper(&comp->dstrm_waitq))
++		wake_up(&comp->dstrm_waitq);
  	return ret;
  }
  
---- a/drivers/block/zram/zcomp.h~zram-allocate-bounce-buffer-for-spanning-objects
-+++ a/drivers/block/zram/zcomp.h
-@@ -112,7 +112,7 @@ void zcomp_destroy(struct zcomp *comp);
- struct zcomp_cstrm *zcomp_cstrm_get(struct zcomp *comp);
- void zcomp_cstrm_put(struct zcomp_cstrm *zstrm);
+@@ -357,6 +388,8 @@ static int zcomp_init(struct zcomp *comp
+ 		goto cleanup;
+ 	}
  
--bool zcomp_shared_decomp(struct zcomp *comp, struct scatterlist *sg);
-+bool zcomp_shared_decomp(struct zcomp *comp);
++	init_waitqueue_head(&comp->dstrm_waitq);
++
+ 	for_each_possible_cpu(cpu) {
+ 		struct zcomp_dstrm *zstrm = per_cpu_ptr(comp->dstream, cpu);
+ 
+--- a/drivers/block/zram/zcomp.h~zram-borrow-idle-decompression-streams-in-exclusive-mode
++++ a/drivers/block/zram/zcomp.h
+@@ -5,6 +5,7 @@
+ 
+ #include <linux/mutex.h>
+ #include <linux/rwsem.h>
++#include <linux/wait.h>
+ 
+ struct scatterlist;
+ 
+@@ -96,6 +97,7 @@ struct zcomp_ops {
+ struct zcomp {
+ 	struct zcomp_cstrm __percpu *cstream;
+ 	struct zcomp_dstrm __percpu *dstream;
++	wait_queue_head_t dstrm_waitq;
+ 	const struct zcomp_ops *ops;
+ 	struct zcomp_params *params;
+ 	struct hlist_node node;
+@@ -115,7 +117,8 @@ void zcomp_cstrm_put(struct zcomp_cstrm
+ bool zcomp_shared_decomp(struct zcomp *comp);
  struct zcomp_dstrm *zcomp_dstrm_get(struct zcomp *comp,
  				    enum zcomp_dstrm_mode mode);
- void zcomp_dstrm_put(struct zcomp_dstrm *zstrm, enum zcomp_dstrm_mode mode);
---- a/drivers/block/zram/zram_drv.c~zram-allocate-bounce-buffer-for-spanning-objects
+-void zcomp_dstrm_put(struct zcomp_dstrm *zstrm, enum zcomp_dstrm_mode mode);
++void zcomp_dstrm_put(struct zcomp *comp, struct zcomp_dstrm *zstrm,
++		     enum zcomp_dstrm_mode mode);
+ 
+ int zcomp_compress(struct zcomp *comp, struct zcomp_cstrm *zstrm,
+ 		   const void *src, unsigned int *dst_len);
+--- a/drivers/block/zram/zram_drv.c~zram-borrow-idle-decompression-streams-in-exclusive-mode
 +++ a/drivers/block/zram/zram_drv.c
-@@ -2128,7 +2128,7 @@ static int read_compressed_page(struct z
- 	prio = get_slot_comp_priority(zram, index);
+@@ -1382,7 +1382,7 @@ static int decompress_bdev_page(struct z
+ 		copy_page(dst, zstrm->local_copy);
+ 		kunmap_local(dst);
+ 	}
+-	zcomp_dstrm_put(zstrm, ZCOMP_DSTRM_EXCLUSIVE);
++	zcomp_dstrm_put(zram->comps[prio], zstrm, ZCOMP_DSTRM_EXCLUSIVE);
+ 	slot_unlock(zram, index);
  
- 	zs_obj_read_sg_begin(zram->mem_pool, handle, sg, size);
--	if (zcomp_shared_decomp(zram->comps[prio], sg))
-+	if (zcomp_shared_decomp(zram->comps[prio]))
- 		mode = ZCOMP_DSTRM_SHARED;
+ 	return ret;
+@@ -2135,7 +2135,7 @@ static int read_compressed_page(struct z
+ 	dst = kmap_local_page(page);
+ 	ret = zcomp_decompress(zram->comps[prio], zstrm, sg, size, dst);
+ 	kunmap_local(dst);
+-	zcomp_dstrm_put(zstrm, mode);
++	zcomp_dstrm_put(zram->comps[prio], zstrm, mode);
+ 	zs_obj_read_sg_end(zram->mem_pool, handle);
  
- 	zstrm = zcomp_dstrm_get(zram->comps[prio], mode);
+ 	return ret;
 _
 
 Patches currently in -mm which might be from senozhatsky@chromium.org are
