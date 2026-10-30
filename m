@@ -1,48 +1,47 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793335042;
-	b=bBKyf5cSyWD0JeT9vzL0/AJIwrVPmS6zoili9NdTYFm8tcf5PJis6NrWsNLsVrnIOgmM
-	 dffgIM9lLCtLSBG4ghyJjzAsGPMwkD6qyWU2mzGnhsOpawPjBUVGhqUculUB9vfHbhkN3
-	 7hQy+JQz9tso3nZr4sxuBQh1nEZ4LOvBA+w04n/e1jJ5eFy5nOXwvhdkcaF0OWZnfGJAO
-	 RfX/mzVC/fCeUVfrQXDDJ87XAtUhKRszRSLNFxdK5HbteiJkdmY9ICVVFDVsDhJDlLL34
-	 3u1ojl5Lfe1PLTtC2xBeq5IYxApVGt3M5dJx+GAA1M6z9uJJ8R2IVb5wbIH1tHrE2VQ==
+	t=1793335798;
+	b=qy/TjFOztbhXqjKSJWrg9jvnsz4Mx+SAN+dK2qwS8cdw18bPAfiVmvlh27oHb0XohRuE
+	 /eT8cFFg6ICbDhxUgwBkAI7IkdU7+F5jxtdwWTxC+S0/dnNQI+0ToZjQ15+5sU7bC02n0
+	 5SJVQK1B1zeSpp9zf2/Gzs4pLrzvXyevI6nCABR2TLFQbNC/uuVr63xXwPy8wqqQPcVx+
+	 JV1UKRApdyMm71qxEsWP/gxRLrQskjMrroZcR0UtSc0g4XcsE0ZUyLMaU76zIK37iHKtx
+	 ZMSvP4EMETLfFXs6T9D3SCDzO1mOgd9bOFLRsBRfvu6DMtrvqu6Zwx1b0wMnYEz7vlA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793335042;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793335798;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=H3K6+CS1MyK0hJhX6tP4Q6AfeYAzfMdUUlr3BQWX21c=;
-	b=wtDBu6m4GaYHssSdOujy2TlXe3NkeyXby6H8hSdvce7NPl6h0wtxIUt6ZiqZz2RkwbQk
-	 ItaT2OpKVn4ExOTNeroNCS7LA0j0CxWCC59umuuM/UELLL6HRVoOK9F8k4IUcuo4m2mPg
-	 ckbCYH1aCjP8x4D3frWU405rCB017auR8V/2VRa+T8HtOCzJzkfWIJh6VkVwDU02K7Z6K
-	 zVbAZJlSj4qj1qW+TRleKSOtYNx+tr8uHR8mrjvuWMTKQrufh3mT+X9GECCfGd5YkAm3w
-	 V5s/5vPwUCI1BEUqkUXcYHj6Bplq0y6WWyxOP5CncjyA6avf7TgpIqs/JrKxNfxu1/w==
+	bh=boRLXJIyEDnKZBtbYe+tmBju0roqJbd1qi7sXtwFnaY=;
+	b=oS1A+wK/mjTk4GM265aXOyDNBmeAxi8D3BcaeqDhp1qoe6+lOXbyH5twoWQt0lomtE0D
+	 OVZweu6EEzVSngmcddIUUveQC0A1DMkNZ+ev4ddPIIfkL+LIhLm8L0Vlqj291A3uXhK+/
+	 idfCQQ9jOOFKoBL2LFJyUYIrRVe6d1Srz/Cp0oLVHa7WAZv0grP1BboamOZDmJcB/FP2Y
+	 mwN41scy/LPawv9JzWGRLE0qo/UOgaxqvmsDofp3uns2GZ0nOvCJhFx2fWLet6L7ryouw
+	 5cRdPLICHQ5r1TVBqJauBMTeDDAgWmSWZJxkKa2cjNHHLdb3IMA4iguuDVJUopsjRaw==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=BRNCmU73;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=Em964XxN;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A2D96606A31A
-	for <mm-commits@vger.kernel.org>; Fri, 30 Oct 2026 04:37:21 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8490F606A31A
+	for <mm-commits@vger.kernel.org>; Fri, 30 Oct 2026 04:49:58 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=BRNCmU73
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1BC001F000C1;
-	Fri, 30 Oct 2026 04:37:21 +0000 (UTC)
+	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=Em964XxN
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0B1AD1F000C1;
+	Fri, 30 Oct 2026 04:49:58 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1793335041;
-	bh=H3K6+CS1MyK0hJhX6tP4Q6AfeYAzfMdUUlr3BQWX21c=;
+	d=linux-foundation.org; s=korg; t=1793335798;
+	bh=boRLXJIyEDnKZBtbYe+tmBju0roqJbd1qi7sXtwFnaY=;
 	h=Date:To:From:Subject;
-	b=BRNCmU73P6rFQreplAN1omr0yLt4ZI2uR1hgHAy4CjqSGxyL+AGlxWSeeSmoeaTne
-	 1ccx8PU5DhW5xGVeCQRpAprphm8upsGgdeg029vU9VsP0qiJj9XngKl8vdscdLxKrW
-	 jonjnAFfdectKRAzbgRh5QAfUIzST9h9kgFouHEY=
-Date: Thu, 29 Oct 2026 21:37:20 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,vbabka@kernel.org,
-	surenb@google.com,stable+noautosel@kernel.org,mhocko@suse.com,
-	hui.zhu@linux.dev,hannes@cmpxchg.org,dev.jain@arm.com,
-	brendan.jackman@linux.dev,zhuhui@kylinos.cn,akpm@linux-foundation.org
+	b=Em964XxNWo8Wq1XGauyDfptxAI4VOE+I25A77wWdGcJi6Ri/GDGleLV0O9Y/gxJKg
+	 H2lQZUhxMwpJj2NyRIT81/RMEe63XPhaPurbS7o3IFAiHcCSISmONwO4qvJyJS5mOB
+	 vNjrKnFI+4xtawTeZqH1OOn1Zc5X3XaGFa8Kdaf0=
+Date: Thu, 29 Oct 2026 21:49:57 -0700
+To: mm-commits@vger.kernel.org,vishal.moola@gmail.com,osalvador@suse.de,
+	muchun.song@linux.dev,gourry@gourry.net,david@kernel.org,lienze@kylinos.cn,
+	akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-compaction-annotate-data-race-for-zone-free_areanr_free.patch added to mm-new branch
-Message-Id: <20261030043721.1BC001F000C1@smtp.kernel.org>
+Subject: + mm-hugetlb-drop-unused-mm-parameter-from-unmap_ref_private.patch added to mm-new branch
+Message-Id: <20261030044958.0B1AD1F000C1@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -54,12 +53,12 @@ Precedence: list
 
 
 The patch titled
-     Subject: mm/compaction: annotate data race for zone->free_area[order].nr_free
+     Subject: mm/hugetlb: drop unused mm parameter from unmap_ref_private()
 has been added to the -mm mm-new branch.  Its filename is
-     mm-compaction-annotate-data-race-for-zone-free_areanr_free.patch
+     mm-hugetlb-drop-unused-mm-parameter-from-unmap_ref_private.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-compaction-annotate-data-race-for-zone-free_areanr_free.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-hugetlb-drop-unused-mm-parameter-from-unmap_ref_private.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -88,109 +87,54 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Hui Zhu <zhuhui@kylinos.cn>
-Subject: mm/compaction: annotate data race for zone->free_area[order].nr_free
-Date: Fri, 30 Oct 2026 10:55:07 +0800
+From: Enze Li <lienze@kylinos.cn>
+Subject: mm/hugetlb: drop unused mm parameter from unmap_ref_private()
+Date: Wed, 21 Oct 2026 14:19:01 +0800
 
-KCSAN reports a data-race on nr_free which also exists on mainline:
+The mm parameter has never been used since the helper was introduced in
+commit 04f2cbe35699 ("hugetlb: guarantee that COW faults for a process
+that called mmap(MAP_PRIVATE) on hugetlbfs will succeed").  Remove it and
+drop it at the sole call site.
 
-  BUG: KCSAN: data-race in fast_isolate_freepages+0x284/0x1550 mm/compaction.c:1589
-
-  race at unknown origin, with read to 0xffff9894ff3dcb60 of 8 bytes by task 179078 on cpu 12:
-   fast_isolate_freepages+0x284/0x1550 mm/compaction.c:1589
-   isolate_freepages+0x52/0x650 mm/compaction.c:1722
-   compaction_alloc_noprof+0x36e/0x3e0 mm/compaction.c:1850
-   compaction_alloc+0x21/0x30 mm/compaction.c:1880
-   migrate_folio_unmap+0x7f/0x820 mm/migrate.c:1177
-   migrate_pages_batch+0x37e/0x1200 mm/migrate.c:1762
-   migrate_pages_sync+0xce/0x560 mm/migrate.c:1928
-   migrate_pages+0x8c6/0xc20 mm/migrate.c:2037
-   compact_zone+0x539/0x10b0 mm/compaction.c:2660
-   compact_zone_order+0x1b8/0x230 mm/compaction.c:2795
-   try_to_compact_pages+0x20b/0x630 mm/compaction.c:2851
-   __alloc_pages_direct_compact+0x98/0x2b0 mm/page_alloc.c:3722
-   __alloc_pages_slowpath.constprop.0+0x452/0xdf0 mm/page_alloc.c:4401
-   __alloc_pages_noprof+0x28a/0x2d0 mm/page_alloc.c:4794
-   alloc_pages_mpol_noprof+0x1b1/0x470 mm/mempolicy.c:2270
-   alloc_pages_noprof+0x7a/0xe0 mm/mempolicy.c:2347
-   io_mem_alloc_compound io_uring/io_uring.c:2848 [inline]
-   io_pages_map+0xb9/0x330 io_uring/io_uring.c:2892
-   io_allocate_scq_urings+0x231/0x300 io_uring/io_uring.c:3933
-   io_uring_create+0x29c/0x9c0 io_uring/io_uring.c:4091
-   io_uring_setup+0xb6/0x100 io_uring/io_uring.c:4203
-   __do_sys_io_uring_setup io_uring/io_uring.c:4230 [inline]
-   __se_sys_io_uring_setup io_uring/io_uring.c:4224 [inline]
-   __x64_sys_io_uring_setup+0x66/0xe0 io_uring/io_uring.c:4224
-   x64_sys_call+0x1816/0x1d90 arch/x86/include/generated/asm/syscalls_64.h:426
-   do_syscall_x64 arch/x86/entry/common.c:51 [inline]
-   do_syscall_64+0x70/0x2a0 arch/x86/entry/common.c:81
-   entry_SYSCALL_64_after_hwframe+0x76/0xe0
-
-  value changed: 0x00000000000002f4 -> 0x00000000000002f5
-
-nr_free is only updated with zone->lock held, but fast_isolate_freepages()
-and fast_find_migrateblock() read it locklessly to skip an order that has
-no free pages.  page_alloc.o is excluded from KCSAN, so the writer is not
-instrumented and the report is of unknown origin.
-
-The race is benign: a stale zero only skips the order for this round, and
-a stale non-zero just finds an empty MIGRATE_MOVABLE freelist under the
-lock.  Annotate both reads with data_race(), following commit
-af1c31acc853 ("mm/vmstat: annotate data race for zone->free_area[order].nr_free").
-
-No functional change intended.
-
-Link: https://lore.kernel.org/20261030025507.115248-1-hui.zhu@linux.dev
-Fixes: 70b44595eafe ("mm, compaction: use free lists to quickly locate a migration source")
-Fixes: 5a811889de10 ("mm, compaction: use free lists to quickly locate a migration target")
-Signed-off-by: Hui Zhu <zhuhui@kylinos.cn>
+Link: https://lore.kernel.org/20261021061901.376104-1-lienze@kylinos.cn
+Signed-off-by: Enze Li <lienze@kylinos.cn>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Reviewed-by: Dev Jain <dev.jain@arm.com>
-Acked-by: Zi Yan <ziy@nvidia.com>
-Cc: <stable+noautosel@kernel.org> # KCSAN annotation only, no functional change
-Cc: Vlastimil Babka <vbabka@kernel.org>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Brendan Jackman <brendan.jackman@linux.dev>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Hui Zhu <hui.zhu@linux.dev>
+Reviewed-by: Muchun Song <muchun.song@linux.dev>
+Reviewed-by: Vishal Moola (Fractile) <vishal.moola@gmail.com>
+Reviewed-by: Gregory Price (Meta) <gourry@gourry.net>
+Cc: Oscar Salvador <osalvador@suse.de>
+Cc: David Hildenbrand <david@kernel.org>
 ---
 
- mm/compaction.c |   12 ++++++++++--
- 1 file changed, 10 insertions(+), 2 deletions(-)
+ mm/hugetlb.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
---- a/mm/compaction.c~mm-compaction-annotate-data-race-for-zone-free_areanr_free
-+++ a/mm/compaction.c
-@@ -1601,7 +1601,11 @@ static void fast_isolate_freepages(struc
- 		unsigned int order_scanned = 0;
- 		unsigned long high_pfn = 0;
+--- a/mm/hugetlb.c~mm-hugetlb-drop-unused-mm-parameter-from-unmap_ref_private
++++ a/mm/hugetlb.c
+@@ -5519,8 +5519,8 @@ void unmap_hugepage_range(struct vm_area
+  * from other VMAs and let the children be SIGKILLed if they are faulting the
+  * same region.
+  */
+-static void unmap_ref_private(struct mm_struct *mm, struct vm_area_struct *vma,
+-			      struct folio *folio, unsigned long address)
++static void unmap_ref_private(struct vm_area_struct *vma, struct folio *folio,
++			      unsigned long address)
+ {
+ 	struct hstate *h = hstate_vma(vma);
+ 	struct vm_area_struct *iter_vma;
+@@ -5696,7 +5696,7 @@ retry_avoidcopy:
+ 			hugetlb_vma_unlock_read(vma);
+ 			mutex_unlock(&hugetlb_fault_mutex_table[hash]);
  
--		if (!area->nr_free)
-+		/*
-+		 * Access to nr_free is lockless as it is only a hint; a stale
-+		 * value is harmless. Use data_race to avoid KCSAN warning.
-+		 */
-+		if (!data_race(area->nr_free))
- 			continue;
+-			unmap_ref_private(mm, vma, old_folio, vmf->address);
++			unmap_ref_private(vma, old_folio, vmf->address);
  
- 		spin_lock_irqsave(&cc->zone->lock, flags);
-@@ -2031,7 +2035,11 @@ static unsigned long fast_find_migratebl
- 		unsigned long flags;
- 		struct page *freepage;
- 
--		if (!area->nr_free)
-+		/*
-+		 * Access to nr_free is lockless as it is only a hint; a stale
-+		 * value is harmless. Use data_race to avoid KCSAN warning.
-+		 */
-+		if (!data_race(area->nr_free))
- 			continue;
- 
- 		spin_lock_irqsave(&cc->zone->lock, flags);
+ 			mutex_lock(&hugetlb_fault_mutex_table[hash]);
+ 			hugetlb_vma_lock_read(vma);
 _
 
-Patches currently in -mm which might be from zhuhui@kylinos.cn are
+Patches currently in -mm which might be from lienze@kylinos.cn are
 
-mm-vmstat-annotate-data-race-in-zone_page_state_snapshot.patch
-mm-compaction-annotate-data-race-for-zone-free_areanr_free.patch
+docs-hugetlbpagerst-clarify-hugepages_total-in-hugetlbpagerst.patch
+mm-hugetlb-drop-unused-mm-parameter-from-unmap_ref_private.patch
 
