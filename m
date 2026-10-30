@@ -1,51 +1,48 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793322874;
-	b=lxWboiAh4t26PepzwJtlvPKfimUNCTKTCA2R9ObF3bmNDSwoVtH6K1yQO2iFtsyQ4Mcu
-	 2J1hz5+LshzhzXbqOknU6a28Cg3kTX0GrnhRlsf3/cKqf0kiAKvhW8lQieSiIIBpVLoVb
-	 YONr0nnPU1uXQ2JneoDMEUVPZpF5Kh1vJi8KSriS3Du/cI2XUqFD/irtAs8S7DDIpAzL8
-	 mZmEYKjWmD5ZNbyWQiwrESA9P9GL557ZUxVeMqpbkoHkSs7RN8dLzzDGccNbABv5ci5F/
-	 06lnmnNXlzVi9IO063LOKD033ZmLQvv7a2Y6lq92IyxwePpvlceG3APW7+WortK7n0w==
+	t=1793322953;
+	b=5i6esp0gFO5Vj6jjFgrG6nXCrMaltd6rR2dtfLuV3RkrZy+ZcU0J5geZj5DhCf4nlQqO
+	 aD96HhAGlrymJSpXXoFvd+ZWQJ+nqGKs6YXTlh3Dd9R6z3zUxg3FabOn8xvk/rbu54uUi
+	 tY1ohCFUP+Aye2Ea9WGE7BQRV4QDyANahrIIMN/e5LDjXtbkorOBQnXweVSqzCL5OsHrT
+	 5n2omhFeJoLglghySQVH7eJbhERwVgHqs8H3q8zAmKLOLvdc5VVlBMIi64+4rzHIO4TIB
+	 WE4+s+fS8WLymrHWiQzEw6xJFIDJOEf88dG87STepQdlikM8z9c78R24QIOLA+kqApw==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793322874;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793322953;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=ZDW//XwdaF5+iMIwM2kIPz4R6fTA3ESlvGS1bWgy8hQ=;
-	b=KLkWE2WZjVFT7I0XmUlFLQNSd5ytk/OEMjMvzlfSPTlZqQftHhNV0YQda56kFSpykMHn
-	 0g4GgAGZ7TLOL5gNCtMpryC8/u/dM/tKhtB5HmnwhvzNWRCWQPBgzanwpKAccViJBP6Vv
-	 IINBbzcKa/QuKBJrOfNlwwu1LRqJa+sdTspLDMBfwL3cUl2oyuVvPS/5evU0tTIf5GSpF
-	 wTZCmx1pjMCGWwxN68KOrOqKla/viNDr9QE/d+Fm6JQATiZe6HuhC4dCopDom9/yEiPhH
-	 JJpkRg+s0dZCzXgIOpl09Hds9fTr2iJrOQVgEuXIhb1YA+OKr/CT1yVRvh8NVg/5xTQ==
+	bh=HRHzK34BRXV7rBKOPEgJ6hE2eKk3q4OrZtvOz+9Ps9o=;
+	b=XgfOIyH2lZ09QfOPkthEmQdLhuh/pC5WKDFKStvW5tr5de5WuqOmX3dayvKiUKsO0+2g
+	 SO6JQ1SBT63C4A57hD/JKbOeGyixiOVEGQxcIrOW7w+UN2Pbl6b3snv0dy+9HwfvlFZ8O
+	 L5HmQbdnQiGzB5ZsfSi20pACjAhsBmgy3CW8C77/fSNkx+w/8hya57yPjviFQloLZv9SI
+	 zNRWr+5/jK7J9X1TUvWKzFkYZ8vk1KhUTAecWiUb2g8cSQMDTLyrQnVgovEoNvsJICovY
+	 IY0LzbBC9XMzWKHsUTfkty1aPpw+7Z2dWbRrpojaizQP9sNWUncQ+Z+sFminQCX6SyQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=Y3xliqXb;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=TxY85s89;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EDF62606A31A
-	for <mm-commits@vger.kernel.org>; Fri, 30 Oct 2026 01:14:33 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3CB62606A31A;
+	Fri, 30 Oct 2026 01:15:52 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=Y3xliqXb
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6D09C1F000C1;
-	Fri, 30 Oct 2026 01:14:33 +0000 (UTC)
+	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=TxY85s89
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id AF2B11F000C1;
+	Fri, 30 Oct 2026 01:15:52 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1793322873;
-	bh=ZDW//XwdaF5+iMIwM2kIPz4R6fTA3ESlvGS1bWgy8hQ=;
+	d=linux-foundation.org; s=korg; t=1793322952;
+	bh=HRHzK34BRXV7rBKOPEgJ6hE2eKk3q4OrZtvOz+9Ps9o=;
 	h=Date:To:From:Subject;
-	b=Y3xliqXb6qciVNBGzI6IJy6M5qUkPhuJJGrljj43RjUPlboHDOWkXK2XBC3ejVMQX
-	 +iA3gR6qFuQSQkWgXxSpZ32ySRuGdt2Gc4BSPW9FGoSCe+NwNT802joPAW6ShsD+Lu
-	 c9qYTDtcpZBWwgKsO/bX9I01RpJC1ddPbmegvv1c=
-Date: Thu, 29 Oct 2026 18:14:33 -0700
-To: mm-commits@vger.kernel.org,yuzhao@google.com,yuanchu@google.com,
-	weixugc@google.com,shakeel.butt@linux.dev,rlmenge@gmail.com,
-	qi.zheng@linux.dev,mhocko@kernel.org,ljs@kernel.org,kasong@tencent.com,
-	hargar@linux.microsoft.com,hannes@cmpxchg.org,david@kernel.org,
-	baoquan.he@linux.dev,baolin.wang@linux.alibaba.com,baohua@kernel.org,
-	axelrasmussen@google.com,apais@microsoft.com,sidchintamaneni@gmail.com,
-	akpm@linux-foundation.org
+	b=TxY85s89DMRZpjRn+kkgqvNEBXIoyRt3V6wtEZCCMLfxOI4BrCbw4rET7enx/uDGi
+	 rvY+wb6+neIv0UB3GnMsQ+g8UwLV5KjbpTG1suYtjgO6W6CTTKENFtT+4gIqMn5zq5
+	 HG9rAxhfeeERF8fL/iflwilkut6CGB+UkN2n1fJs=
+Date: Thu, 29 Oct 2026 18:15:52 -0700
+To: mm-commits@vger.kernel.org,youngjun.park@lge.com,tz2294@columbia.edu,
+	stable@vger.kernel.org,shikemeng@huaweicloud.com,ryncsn@gmail.com,
+	nphamcs@gmail.com,kasong@tencent.com,chrisl@kernel.org,baoquan.he@linux.dev,
+	baohua@kernel.org,mt4022@columbia.edu,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-multi-gen-lru-remove-get_lruvec.patch added to mm-new branch
-Message-Id: <20261030011433.6D09C1F000C1@smtp.kernel.org>
+Subject: + mm-swap-stop-cluster-list-scans-once-swapoff-clears-swp_writeok.patch added to mm-hotfixes-unstable branch
+Message-Id: <20261030011552.AF2B11F000C1@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -57,26 +54,15 @@ Precedence: list
 
 
 The patch titled
-     Subject: mm: multi-gen LRU: remove get_lruvec()
-has been added to the -mm mm-new branch.  Its filename is
-     mm-multi-gen-lru-remove-get_lruvec.patch
+     Subject: mm, swap: stop cluster list scans once swapoff clears SWP_WRITEOK
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     mm-swap-stop-cluster-list-scans-once-swapoff-clears-swp_writeok.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-multi-gen-lru-remove-get_lruvec.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-swap-stop-cluster-list-scans-once-swapoff-clears-swp_writeok.patch
 
-This patch will later appear in the mm-new branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Note, mm-new is a provisional staging ground for work-in-progress
-patches, and acceptance into mm-new is a notification for others take
-notice and to finish up reviews.  Please do not hesitate to respond to
-review feedback and post updated versions to replace or incrementally
-fixup patches in mm-new.
-
-The mm-new branch of mm.git is not included in linux-next
-
-If a few days of testing in mm-new is successful, the patch will me moved
-into mm.git's mm-unstable branch, which is included in linux-next
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -91,187 +77,109 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Siddharth Chintamaneni <sidchintamaneni@gmail.com>
-Subject: mm: multi-gen LRU: remove get_lruvec()
-Date: Mon, 26 Oct 2026 20:23:13 +0000
+From: Mani Tofigh <mt4022@columbia.edu>
+Subject: mm, swap: stop cluster list scans once swapoff clears SWP_WRITEOK
+Date: Mon, 26 Oct 2026 11:19:22 -0400
 
-get_lruvec() was originally introduced in commit ec1c86b25f4b ("mm:
-multi-gen LRU: groundwork") to guard against NULL NODE_DATA(nid) on
-uninitialized NUMA nodes (`return pgdat ? &pgdat->__lruvec : NULL;`).
-After commit 09f49dca570a ("mm: handle uninitialized numa nodes
-gracefully") and commit 931b6a8b36a2 ("mm: multi-gen LRU: remove NULL
-checks on NODE_DATA()"), that NULL check was removed, leaving
-get_lruvec() as a thin wrapper around mem_cgroup_lruvec().
+SWP_WRITEOK is cleared under si->lock when swapoff starts so that no
+new swap entries are allocated from the device, and try_to_unuse()
+then waits for writeback of the folios that still use the device.
 
-Remove get_lruvec() and call mem_cgroup_lruvec() directly at all call
-sites.
+However, an order-0 allocation that chose the device can race with
+swapoff clearing the flag and then loop forever.  It takes a cluster
+from the fragment cluster list of a higher order with
+isolate_lock_cluster(), the allocation from that cluster fails because
+SWP_WRITEOK is clear, and relocate_cluster() puts the cluster back on
+the same list, so the loop keeps finding clusters on it.
 
-Link: https://lore.kernel.org/20261026202313.63122-3-sidchintamaneni@gmail.com
-Signed-off-by: Siddharth Chintamaneni <sidchintamaneni@gmail.com>
-Signed-off-by: Hardik Garg <hargar@linux.microsoft.com>
+The looping task is in reclaim, and it may have set writeback on a
+folio whose write has been queued but not yet submitted.  swapoff then
+waits for that folio, while the reclaiming task, stuck in the loop,
+never reaches the point where it submits the write:
+
+  CPU0 (reclaim)                          CPU1 (swapoff)
+  --------------                          --------------
+  shrink_folio_list()
+    pageout(F)
+      /* F under writeback,
+         write not submitted */
+    folio_alloc_swap(G)  /* order 0 */
+      swap_alloc_slow()
+                                          del_from_avail_list(si, true)
+                                            si->flags &= ~SWP_WRITEOK
+                                          try_to_unuse()
+                                            folio_wait_writeback(F)
+        cluster_alloc_swap_entry()
+          isolate_lock_cluster()
+          /* allocation fails:
+             !SWP_WRITEOK */
+          relocate_cluster()
+          /* repeats forever */
+    swap_write_submit()
+    /* never reached */
+
+This results in a soft lockup on CPU0 and a swapoff that never returns.
+
+isolate_lock_cluster() used to check SWP_WRITEOK under si->lock until
+commit 07adc4cf1ecd ("mm, swap: implement dynamic allocation of swap
+table") removed that check.  Restore the check.  Since swapoff clears
+the flag under the same lock, isolate_lock_cluster() then returns NULL,
+which ends the scan; the swap slot allocation for G fails, and reclaim
+goes on to submit the write of F.
+
+Given that this is a race, its reproducibility is non-deterministic.
+We reproduce it by using a non-rotational swap device that is not
+synchronous, with 64K mTHP enabled, where one CPU repeatedly pages out
+two 64K folios and a 4K page with madvise(MADV_PAGEOUT), while other
+CPUs run swapoff and swapon on the same device.  In my tests it
+triggers within 20s in each run, and with the fix applied, it runs for
+300s without any hang/kernel report.  This bug was found and
+reproduced deterministically using a deterministic hypervisor that is
+currently under development.
+
+Link: https://lore.kernel.org/20261026-swapoff-writeok-v1-1-4f4cd420aa33@columbia.edu
+Fixes: 07adc4cf1ecd ("mm, swap: implement dynamic allocation of swap table")
+Signed-off-by: Mani Tofigh <mt4022@columbia.edu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Suggested-by: Barry Song <baohua@kernel.org>
-Reviewed-by: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: David Hildenbrand <david@kernel.org>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Qi Zheng <qi.zheng@linux.dev>
-Cc: Shakeel Butt <shakeel.butt@linux.dev>
-Cc: Lorenzo Stoakes <ljs@kernel.org>
-Cc: Kairui Song <kasong@tencent.com>
-Cc: Axel Rasmussen <axelrasmussen@google.com>
-Cc: Yuanchu Xie <yuanchu@google.com>
-Cc: Wei Xu <weixugc@google.com>
+Acked-by: Kairui Song <kasong@tencent.com>
+Cc: Chris Li <chrisl@kernel.org>
+Cc: Kemeng Shi <shikemeng@huaweicloud.com>
+Cc: Nhat Pham <nphamcs@gmail.com>
 Cc: Baoquan He <baoquan.he@linux.dev>
-Cc: Yu Zhao <yuzhao@google.com>
-Cc: <apais@microsoft.com>
-Cc: <rlmenge@gmail.com>
+Cc: Barry Song <baohua@kernel.org>
+Cc: Youngjun Park <youngjun.park@lge.com>
+Cc: Tal Zussman <tz2294@columbia.edu>
+Cc: Kairui Song <ryncsn@gmail.com>
+Cc: <stable@vger.kernel.org>
 ---
 
- mm/vmscan.c |   37 ++++++++++++++-----------------------
- 1 file changed, 14 insertions(+), 23 deletions(-)
+ mm/swapfile.c |    5 +++++
+ 1 file changed, 5 insertions(+)
 
---- a/mm/vmscan.c~mm-multi-gen-lru-remove-get_lruvec
-+++ a/mm/vmscan.c
-@@ -2862,15 +2862,6 @@ static bool should_clear_pmd_young(void)
- #define get_memcg_gen(seq)	((seq) % MEMCG_NR_GENS)
- #define get_memcg_bin(bin)	((bin) % MEMCG_NR_BINS)
+--- a/mm/swapfile.c~mm-swap-stop-cluster-list-scans-once-swapoff-clears-swp_writeok
++++ a/mm/swapfile.c
+@@ -635,6 +635,10 @@ static struct swap_cluster_info *isolate
+ 	u8 flags = CLUSTER_FLAG_NONE;
  
--static struct lruvec *get_lruvec(struct mem_cgroup *memcg, int nid)
--{
--	struct pglist_data *pgdat = NODE_DATA(nid);
--
--	VM_WARN_ON_ONCE(!memcg && !mem_cgroup_disabled());
--
--	return mem_cgroup_lruvec(memcg, pgdat);
--}
--
- static int get_swappiness(struct lruvec *lruvec, struct scan_control *sc)
- {
- 	struct mem_cgroup *memcg = lruvec_memcg(lruvec);
-@@ -3063,7 +3054,7 @@ void lru_gen_add_mm(struct mm_struct *mm
- 	spin_lock(&mm_list->lock);
- 
- 	for_each_node_state(nid, N_MEMORY) {
--		struct lruvec *lruvec = get_lruvec(memcg, nid);
-+		struct lruvec *lruvec = mem_cgroup_lruvec(memcg, NODE_DATA(nid));
- 		struct lru_gen_mm_state *mm_state = get_mm_state(lruvec);
- 
- 		/* the first addition since the last iteration */
-@@ -3093,7 +3084,7 @@ void lru_gen_del_mm(struct mm_struct *mm
- 	spin_lock(&mm_list->lock);
- 
- 	for_each_node(nid) {
--		struct lruvec *lruvec = get_lruvec(memcg, nid);
-+		struct lruvec *lruvec = mem_cgroup_lruvec(memcg, NODE_DATA(nid));
- 		struct lru_gen_mm_state *mm_state = get_mm_state(lruvec);
- 
- 		/* where the current iteration continues after */
-@@ -4600,7 +4591,7 @@ void lru_gen_online_memcg(struct mem_cgr
- 
- 	for_each_node(nid) {
- 		struct pglist_data *pgdat = NODE_DATA(nid);
--		struct lruvec *lruvec = get_lruvec(memcg, nid);
-+		struct lruvec *lruvec = mem_cgroup_lruvec(memcg, pgdat);
- 
- 		spin_lock_irq(&pgdat->memcg_lru.lock);
- 
-@@ -4622,7 +4613,7 @@ void lru_gen_offline_memcg(struct mem_cg
- 	int nid;
- 
- 	for_each_node(nid) {
--		struct lruvec *lruvec = get_lruvec(memcg, nid);
-+		struct lruvec *lruvec = mem_cgroup_lruvec(memcg, NODE_DATA(nid));
- 
- 		lru_gen_rotate_memcg(lruvec, MEMCG_LRU_OLD);
+ 	spin_lock(&si->lock);
++
++	if (unlikely(!(si->flags & SWP_WRITEOK)))
++		goto out;
++
+ 	list_for_each_entry(ci, list, list) {
+ 		if (!spin_trylock(&ci->lock))
+ 			continue;
+@@ -650,6 +654,7 @@ static struct swap_cluster_info *isolate
+ 		found = ci;
+ 		break;
  	}
-@@ -4635,7 +4626,7 @@ void lru_gen_release_memcg(struct mem_cg
++out:
+ 	spin_unlock(&si->lock);
  
- 	for_each_node(nid) {
- 		struct pglist_data *pgdat = NODE_DATA(nid);
--		struct lruvec *lruvec = get_lruvec(memcg, nid);
-+		struct lruvec *lruvec = mem_cgroup_lruvec(memcg, pgdat);
- 
- 		spin_lock_irq(&pgdat->memcg_lru.lock);
- 
-@@ -4656,7 +4647,7 @@ unlock:
- 
- bool recheck_lru_gen_max_memcg(struct mem_cgroup *memcg, int nid)
- {
--	struct lruvec *lruvec = get_lruvec(memcg, nid);
-+	struct lruvec *lruvec = mem_cgroup_lruvec(memcg, NODE_DATA(nid));
- 	int type;
- 
- 	for (type = 0; type < ANON_AND_FILE; type++) {
-@@ -4703,7 +4694,7 @@ static void try_to_inc_max_seq_nowalk(st
-  */
- void max_lru_gen_memcg(struct mem_cgroup *memcg, int nid)
- {
--	struct lruvec *lruvec = get_lruvec(memcg, nid);
-+	struct lruvec *lruvec = mem_cgroup_lruvec(memcg, NODE_DATA(nid));
- 	int type;
- 
- 	for (type = 0; type < ANON_AND_FILE; type++) {
-@@ -4780,8 +4771,8 @@ void lru_gen_reparent_memcg(struct mem_c
- 	struct zone *zone;
- 	enum lru_list lru;
- 
--	child_lruvec = get_lruvec(memcg, nid);
--	parent_lruvec = get_lruvec(parent, nid);
-+	child_lruvec = mem_cgroup_lruvec(memcg, NODE_DATA(nid));
-+	parent_lruvec = mem_cgroup_lruvec(parent, NODE_DATA(nid));
- 
- 	for_each_managed_zone_pgdat(zone, NODE_DATA(nid), zid, MAX_NR_ZONES - 1)
- 		for (type = 0; type < ANON_AND_FILE; type++)
-@@ -5586,7 +5577,7 @@ static void lru_gen_change_state(bool en
- 		int nid;
- 
- 		for_each_node(nid) {
--			struct lruvec *lruvec = get_lruvec(memcg, nid);
-+			struct lruvec *lruvec = mem_cgroup_lruvec(memcg, NODE_DATA(nid));
- 
- 			lruvec_lock_irq(lruvec);
- 
-@@ -5717,7 +5708,7 @@ static void *lru_gen_seq_start(struct se
- 
- 		for_each_node_state(nid, N_MEMORY) {
- 			if (!nr_to_skip--)
--				return get_lruvec(memcg, nid);
-+				return mem_cgroup_lruvec(memcg, NODE_DATA(nid));
- 		}
- 	} while ((memcg = mem_cgroup_iter(NULL, memcg, NULL)));
- 
-@@ -5749,7 +5740,7 @@ static void *lru_gen_seq_next(struct seq
- 		nid = first_memory_node;
- 	}
- 
--	return get_lruvec(memcg, nid);
-+	return mem_cgroup_lruvec(memcg, NODE_DATA(nid));
- }
- 
- static void lru_gen_seq_show_full(struct seq_file *m, struct lruvec *lruvec,
-@@ -5934,7 +5925,7 @@ static int run_cmd(char cmd, u64 memcg_i
- 		goto done;
- 
- 	sc->target_mem_cgroup = memcg;
--	lruvec = get_lruvec(memcg, nid);
-+	lruvec = mem_cgroup_lruvec(memcg, NODE_DATA(nid));
- 
- 	if (swappiness < MIN_SWAPPINESS)
- 		swappiness = get_swappiness(lruvec, sc);
-@@ -6118,7 +6109,7 @@ void lru_gen_exit_memcg(struct mem_cgrou
- 	VM_WARN_ON_ONCE(mm_list && !list_empty(&mm_list->fifo));
- 
- 	for_each_node(nid) {
--		struct lruvec *lruvec = get_lruvec(memcg, nid);
-+		struct lruvec *lruvec = mem_cgroup_lruvec(memcg, NODE_DATA(nid));
- 		struct lru_gen_mm_state *mm_state = get_mm_state(lruvec);
- 
- 		VM_WARN_ON_ONCE(memchr_inv(lruvec->lrugen.nr_pages, 0,
+ 	/* Cluster's table is freed when and only when it's on the free list. */
 _
 
-Patches currently in -mm which might be from sidchintamaneni@gmail.com are
+Patches currently in -mm which might be from mt4022@columbia.edu are
 
-mm-multi-gen-lru-use-mem_cgroup_lruvec-in-get_lruvec.patch
-mm-multi-gen-lru-remove-get_lruvec.patch
+mm-swap-stop-cluster-list-scans-once-swapoff-clears-swp_writeok.patch
 
