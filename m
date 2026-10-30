@@ -1,41 +1,41 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793321553;
-	b=bEF9OO8wtu+gFsr/Mg7b/59t/8xDRDdYvm6B2Mp2E9rrCiTey7eGLu8fp9XZOyHxPdnS
-	 oM5kYcfwrmAIBHKyja4bvS3cdUHTimAET7jC+K91mjDIEBr/Cw9SwvUADZ7SQrWPplqnE
-	 +xCGux4eQnBUUZyjvWkqW1wm2CHXJgNgIFa39zTGprJg6rBOC1OHM46vhMFPMwUXXlWPG
-	 GEgsB91iFLtH755Z/1suU2nujZNG0WNoMsOqlA94cvZBakWYkib0HRrliXMB7OOv8Xz7/
-	 v6Dkkb1GOrb0wK/z1PwcJS+EgM2qMyfqHCda1frXXVXF4kqvhyu2s8SsxK+A7VHMh/Q==
+	t=1793321556;
+	b=QQ1ubUQiVSp50PTwlGB6UKYrRReTYGogcfvPgROjdadv90g7ZkdFpw+TK/0IgfyfvElb
+	 b5gpZGH27eWmBb+QP7Oxpu/pG3ow19Xy/H7spx+gjrQio3Taf8kY6okL/ABETTiPkpljr
+	 FGgF0hLcKK+OGRZ+Lh3XllXaJgb/f0j79LGfadmKX+WczaXFllLfpp5PQFJll1PZTMmfH
+	 MhyYTluZ8HbPXk8L5JNsG4sPaaYDbUyv1NvRkDCHe9oMu7x99O0z+8ER5AE1kz9WcKap9
+	 k85jw9A09guIBf0s1Spwn0rsp//uBGSgi/u19oFByxzXyzesvTv6J5H1/0lZ3C+Mvcw==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793321553;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793321556;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=QzpJVH5efsWddVJg1ls+u7459Hzmdm65CNNYgrQE6jg=;
-	b=Dww6dmKVG7ZjHSdXkNEAdYUXBs7vq8fCHxJkJpYulBKOI2+J2tV6rr8LWc/WQowZWWXL
-	 vrAWsAL5R24lVFmuMdwSp4e3InVK4qEEEepPdN19as+YZUn+ycIJLQKRdIsBtVXjIzLxE
-	 ICCNT/O/K+CqYPzob4FFaa2goWqPfwGpcQPAF5ZbSn+JBs3qxxLnaqxw8bYtvTjBqLbE5
-	 p4oIPwwrDBGGTVzaK8psLNmSN9VMBvIBuJLNsqZuipE4vv/LPx2HQDr1NRX/tidUOJ6Ib
-	 yGvtMFSJ7j/VdhRS5t6JEgascGOnDEkXzz11ogF9pnpYXHkvHqtSeJB/OWE6Fl/gZGA==
+	bh=o5JIL7TSMUa/zrnOoI4rDx588PbOTUBxMNuXq1pyiLw=;
+	b=b/IlAGmpSFTPgI1IZNbCING1HZImYG5WNySmmyf3PUj6Imyk4myxMGDlLsR10Y++/KjQ
+	 hhj/LUQsNlzVloavzzk4IWfOXSRYf8gfniwyHDS7QwSBr0Vwcj/5+/TegCGShuQ5/Ak+6
+	 MO8ns5kOaqAqUnfbj/G5hLeqy6/LI0LBFBuU65/sD9VM/hxkWfBkAzA6apks2FDuMs1Kz
+	 1aLihyO2/IrgG63quckArNNSxNXC5WGnI56KSvlJ4IgwJMWlBlZnoqJhRTvpTtOarqxQo
+	 eo8bLwLeqReyedMXejvYElooWfjC7wQMWKo/ZuAPBWX3Yjkx6JPhJt1tYPq1bNIXhLQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=GXpmYN2w;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=AoMqYWaf;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D51BB606A31A
-	for <mm-commits@vger.kernel.org>; Fri, 30 Oct 2026 00:52:32 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C2C93606A31A
+	for <mm-commits@vger.kernel.org>; Fri, 30 Oct 2026 00:52:35 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=GXpmYN2w
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7224F1F000C1;
-	Fri, 30 Oct 2026 00:52:32 +0000 (UTC)
+	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=AoMqYWaf
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4918B1F000C1;
+	Fri, 30 Oct 2026 00:52:35 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1793321552;
-	bh=QzpJVH5efsWddVJg1ls+u7459Hzmdm65CNNYgrQE6jg=;
+	d=linux-foundation.org; s=korg; t=1793321555;
+	bh=o5JIL7TSMUa/zrnOoI4rDx588PbOTUBxMNuXq1pyiLw=;
 	h=Date:To:From:Subject;
-	b=GXpmYN2wmr3LpveaFMOYPoUo9he+X1tOvo8YaBv8EQo06RmqEBx/PCkgxkXZCT7uq
-	 QFb/4McgiHz/Fwbmr2ZahSoct31Z9wN6fvjThst766Bcp/XxVw+Y6lxqojbKA3Rf/R
-	 ZE4pYQKFydGg73L9TauiAU2q3UPcKnGkzNWCyJ7I=
-Date: Thu, 29 Oct 2026 17:52:32 -0700
+	b=AoMqYWaflZpAh3bMM3bj8Bp2h6aO6L/w78UBUgiIrBSrBiIzESDz6cwL6X4P27sUg
+	 dH7JGOXX8iN2fB5NUn8jiiZOUZXGWp5OhNetsUsk9n+TjSqW8Y5bf8fe00OR76xbxw
+	 rCgeIG/3O68vrAEriPAW2SrRxO1oFdGs88qlFNPs=
+Date: Thu, 29 Oct 2026 17:52:34 -0700
 To: mm-commits@vger.kernel.org,vbabka@kernel.org,surenb@google.com,
 	sshegde@linux.ibm.com,skhan@linuxfoundation.org,rppt@kernel.org,
 	ritesh.list@gmail.com,rdunlap@infradead.org,qi.zheng@linux.dev,
@@ -44,8 +44,8 @@ To: mm-commits@vger.kernel.org,vbabka@kernel.org,surenb@google.com,
 	david@kernel.org,corbet@lwn.net,chleroy@kernel.org,muchun.song@linux.dev,
 	akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-hugetlb_vmemmap-remove-vmemmap_wrprotect_hvo.patch added to mm-new branch
-Message-Id: <20261030005232.7224F1F000C1@smtp.kernel.org>
+Subject: + mm-hugetlb_vmemmap-remove-hugetlb_vmemmap_optimize_bootmem_folios.patch added to mm-new branch
+Message-Id: <20261030005235.4918B1F000C1@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -57,12 +57,12 @@ Precedence: list
 
 
 The patch titled
-     Subject: mm/hugetlb_vmemmap: remove vmemmap_wrprotect_hvo()
+     Subject: mm/hugetlb_vmemmap: remove hugetlb_vmemmap_optimize_bootmem_folios()
 has been added to the -mm mm-new branch.  Its filename is
-     mm-hugetlb_vmemmap-remove-vmemmap_wrprotect_hvo.patch
+     mm-hugetlb_vmemmap-remove-hugetlb_vmemmap_optimize_bootmem_folios.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-hugetlb_vmemmap-remove-vmemmap_wrprotect_hvo.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-hugetlb_vmemmap-remove-hugetlb_vmemmap_optimize_bootmem_folios.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -92,17 +92,16 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Muchun Song <muchun.song@linux.dev>
-Subject: mm/hugetlb_vmemmap: remove vmemmap_wrprotect_hvo()
-Date: Mon, 19 Oct 2026 17:08:29 +0800
+Subject: mm/hugetlb_vmemmap: remove hugetlb_vmemmap_optimize_bootmem_folios()
+Date: Mon, 19 Oct 2026 17:08:30 +0800
 
-Shared vmemmap tail pages are now mapped read-only during initial
-population, so already optimized HugeTLB bootmem folios no longer need a
-separate write-protection pass.
+With vmemmap_wrprotect_hvo() removed, the bootmem wrapper no longer
+performs any bootmem-specific work.
 
-Remove vmemmap_wrprotect_hvo() and skip these folios during boot-time
-optimization.
+Call hugetlb_vmemmap_optimize_folios() directly for bootmem folios and
+remove the redundant wrapper.
 
-Link: https://lore.kernel.org/20261019090830.1917657-4-songmuchun@bytedance.com
+Link: https://lore.kernel.org/20261019090830.1917657-5-songmuchun@bytedance.com
 Signed-off-by: Muchun Song <muchun.song@linux.dev>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 Reviewed-by: Lance Yang <lance.yang@linux.dev>
@@ -126,81 +125,115 @@ Cc: Randy Dunlap <rdunlap@infradead.org>
 Cc: Qi Zheng <qi.zheng@linux.dev>
 ---
 
- include/linux/mm.h   |    2 --
- mm/hugetlb_vmemmap.c |   16 +++++-----------
- mm/sparse-vmemmap.c  |   23 -----------------------
- 3 files changed, 5 insertions(+), 36 deletions(-)
+ mm/hugetlb.c         |    2 +-
+ mm/hugetlb_vmemmap.c |   29 ++++-------------------------
+ mm/hugetlb_vmemmap.h |    6 ------
+ 3 files changed, 5 insertions(+), 32 deletions(-)
 
---- a/include/linux/mm.h~mm-hugetlb_vmemmap-remove-vmemmap_wrprotect_hvo
-+++ a/include/linux/mm.h
-@@ -5363,8 +5363,6 @@ int vmemmap_populate_hugepages(unsigned
- 			       int node, struct vmem_altmap *altmap);
- int vmemmap_populate(unsigned long start, unsigned long end, int node,
- 		struct vmem_altmap *altmap);
--void vmemmap_wrprotect_hvo(unsigned long start, unsigned long end, int node,
--			  unsigned long headsize);
- void vmemmap_populate_print_last(void);
- #ifdef CONFIG_MEMORY_HOTPLUG
- void vmemmap_free(unsigned long start, unsigned long end,
---- a/mm/hugetlb_vmemmap.c~mm-hugetlb_vmemmap-remove-vmemmap_wrprotect_hvo
+--- a/mm/hugetlb.c~mm-hugetlb_vmemmap-remove-hugetlb_vmemmap_optimize_bootmem_folios
++++ a/mm/hugetlb.c
+@@ -3290,7 +3290,7 @@ static void __init prep_and_add_bootmem_
+ 	struct folio *folio, *tmp_f;
+ 
+ 	/* Send list for bulk vmemmap optimization processing */
+-	hugetlb_vmemmap_optimize_bootmem_folios(h, folio_list);
++	hugetlb_vmemmap_optimize_folios(h, folio_list);
+ 
+ 	list_for_each_entry_safe(folio, tmp_f, folio_list, lru) {
+ 		if (!folio_test_hugetlb_vmemmap_optimized(folio)) {
+--- a/mm/hugetlb_vmemmap.c~mm-hugetlb_vmemmap-remove-hugetlb_vmemmap_optimize_bootmem_folios
 +++ a/mm/hugetlb_vmemmap.c
-@@ -605,19 +605,13 @@ static void __hugetlb_vmemmap_optimize_f
- 	nr_to_optimize = 0;
- 	list_for_each_entry(folio, folio_list, lru) {
- 		int ret;
--		unsigned long spfn, epfn;
- 
--		if (boot && folio_test_hugetlb_vmemmap_optimized(folio)) {
--			/*
--			 * Already optimized by pre-HVO, just map the
--			 * mirrored tail page structs RO.
--			 */
--			spfn = (unsigned long)&folio->page;
--			epfn = spfn + hugetlb_vmemmap_size(h);
--			vmemmap_wrprotect_hvo(spfn, epfn, folio_nid(folio),
--					HUGETLB_VMEMMAP_RESERVE_SIZE);
-+		/*
-+		 * Bootmem gigantic folios may already be marked optimized when
-+		 * their vmemmap layout was prepared earlier, so skip them here.
-+		 */
-+		if (boot && folio_test_hugetlb_vmemmap_optimized(folio))
- 			continue;
--		}
- 
- 		nr_to_optimize++;
- 
---- a/mm/sparse-vmemmap.c~mm-hugetlb_vmemmap-remove-vmemmap_wrprotect_hvo
-+++ a/mm/sparse-vmemmap.c
-@@ -386,29 +386,6 @@ int __meminit vmemmap_populate_basepages
- 	return 0;
+@@ -590,19 +590,16 @@ static int hugetlb_vmemmap_split_folio(c
+ 	return vmemmap_remap_split(vmemmap_start, vmemmap_end);
  }
  
--/*
-- * Write protect the mirrored tail page structs for HVO. This will be
-- * called from the hugetlb code when gathering and initializing the
-- * memblock allocated gigantic pages. The write protect can't be
-- * done earlier, since it can't be guaranteed that the reserved
-- * page structures will not be written to during initialization,
-- * even if CONFIG_DEFERRED_STRUCT_PAGE_INIT is enabled.
-- *
-- * The PTEs are known to exist, and nothing else should be touching
-- * these pages. The caller is responsible for any TLB flushing.
-- */
--void vmemmap_wrprotect_hvo(unsigned long addr, unsigned long end,
--				    int node, unsigned long headsize)
+-static void __hugetlb_vmemmap_optimize_folios(struct hstate *h,
+-					      struct list_head *folio_list,
+-					      bool boot)
++void hugetlb_vmemmap_optimize_folios(struct hstate *h, struct list_head *folio_list)
+ {
+ 	struct folio *folio;
+-	int nr_to_optimize;
++	unsigned long nr_to_optimize = 0;
+ 	LIST_HEAD(vmemmap_pages);
+ 	unsigned long flags = VMEMMAP_REMAP_NO_TLB_FLUSH;
+ 
+ 	if (list_empty(folio_list))
+ 		return;
+ 
+-	nr_to_optimize = 0;
+ 	list_for_each_entry(folio, folio_list, lru) {
+ 		int ret;
+ 
+@@ -610,7 +607,7 @@ static void __hugetlb_vmemmap_optimize_f
+ 		 * Bootmem gigantic folios may already be marked optimized when
+ 		 * their vmemmap layout was prepared earlier, so skip them here.
+ 		 */
+-		if (boot && folio_test_hugetlb_vmemmap_optimized(folio))
++		if (folio_test_hugetlb_vmemmap_optimized(folio))
+ 			continue;
+ 
+ 		nr_to_optimize++;
+@@ -628,14 +625,7 @@ static void __hugetlb_vmemmap_optimize_f
+ 	}
+ 
+ 	if (!nr_to_optimize)
+-		/*
+-		 * All pre-HVO folios, nothing left to do. It's ok if
+-		 * there is a mix of pre-HVO and not yet HVO-ed folios
+-		 * here, as __hugetlb_vmemmap_optimize_folio() will
+-		 * skip any folios that already have the optimized flag
+-		 * set, see vmemmap_should_optimize_folio().
+-		 */
+-		goto out;
++		return;
+ 
+ 	flush_tlb_all();
+ 
+@@ -660,21 +650,10 @@ static void __hugetlb_vmemmap_optimize_f
+ 		}
+ 	}
+ 
+-out:
+ 	flush_tlb_all();
+ 	free_vmemmap_page_list(&vmemmap_pages);
+ }
+ 
+-void hugetlb_vmemmap_optimize_folios(struct hstate *h, struct list_head *folio_list)
 -{
--	unsigned long maddr;
--	pte_t *pte;
--
--	for (maddr = addr + headsize; maddr < end; maddr += PAGE_SIZE) {
--		pte = virt_to_kpte(maddr);
--		ptep_set_wrprotect(&init_mm, maddr, pte);
--	}
+-	__hugetlb_vmemmap_optimize_folios(h, folio_list, false);
 -}
 -
- void __weak __meminit vmemmap_set_pmd(pmd_t *pmd, void *p, int node,
- 				      unsigned long addr, unsigned long next)
+-void hugetlb_vmemmap_optimize_bootmem_folios(struct hstate *h, struct list_head *folio_list)
+-{
+-	__hugetlb_vmemmap_optimize_folios(h, folio_list, true);
+-}
+-
+ void __init hugetlb_vmemmap_optimize_bootmem_page(unsigned long pfn, unsigned int order)
  {
+ 	if (!READ_ONCE(vmemmap_optimize_enabled))
+--- a/mm/hugetlb_vmemmap.h~mm-hugetlb_vmemmap-remove-hugetlb_vmemmap_optimize_bootmem_folios
++++ a/mm/hugetlb_vmemmap.h
+@@ -24,7 +24,6 @@ long hugetlb_vmemmap_restore_folios(cons
+ 					struct list_head *non_hvo_folios);
+ void hugetlb_vmemmap_optimize_folio(const struct hstate *h, struct folio *folio);
+ void hugetlb_vmemmap_optimize_folios(struct hstate *h, struct list_head *folio_list);
+-void hugetlb_vmemmap_optimize_bootmem_folios(struct hstate *h, struct list_head *folio_list);
+ void hugetlb_vmemmap_optimize_bootmem_page(unsigned long pfn, unsigned int order);
+ 
+ static inline unsigned int hugetlb_vmemmap_size(const struct hstate *h)
+@@ -66,11 +65,6 @@ static inline void hugetlb_vmemmap_optim
+ {
+ }
+ 
+-static inline void hugetlb_vmemmap_optimize_bootmem_folios(struct hstate *h,
+-						struct list_head *folio_list)
+-{
+-}
+-
+ static inline unsigned int hugetlb_vmemmap_optimizable_size(const struct hstate *h)
+ {
+ 	return 0;
 _
 
 Patches currently in -mm which might be from muchun.song@linux.dev are
