@@ -1,47 +1,45 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793377158;
-	b=sy1Uc9CcNujjPI1paYK8hSN/bSCGPRPaLozuI4RmnlDZoJwhTEqTSwu3GEEDx8JZHVS5
-	 FlPrF3COb8lH7t/DqrCtb33E987cuUcLvssmcJAECJ00vhxqivtV0Gxu5At+LJFM1VKZ5
-	 uVn0iExORWdSmcmxz6Z2F9Guo97NzXc0apyRxMCI5chsZexGRnENInyujnVnW//+zcPnx
-	 JZAEtEn1r7nb2CtkKPDXiiA+i5niQchQzhSDzQnWXxr98OWT2T5l8ll50/ELBa2JxAt9F
-	 Ut0Zy5mWsa0gUjgbWpMwJjVq+xfkthNS55FGe+3HBzB5oXIYMAY/IPzr6Tj3jDjya2g==
+	t=1793378178;
+	b=TqOrj6WsP7eP4GPbL/F22E5quZfjWO0++gzpqMqRgJ6amje/4sOnvZtWRhYQxUMO4w0Z
+	 vErOik/Uu9TpfgkTnbsriY4ibyaOQdmiOA8QZ86wUBYkIXwZVtlPYNW+5zxyO57o7rBhV
+	 zz/NKdsG5NVmkU3XZv+86LdHeh8vC2yuXhIJugezoIaKmrvtcl2HXAf7tw8zs0UNcDw8Q
+	 gPT6L95s+/h3vQ7lyZE2S9NRd78loXUA84Q8J4skYpfDbPi9WlmhfMRpzaaaPixds4ZP5
+	 RtvWiOYR8AEQWM40PSoWHSzW+NdM/bDrbE2rsk0FNiUaO9kTKzXSzesytsR/IHPMYQw==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793377158;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793378178;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=RxROFSyFWRH+6gE4hjBVL+rigwOtdEpYHMih5SK0RW8=;
-	b=nouAVCypIUqFqRuvz71m7VnuTN8311GEPlCi1cqyXm+Tr6xGj+SOFmwiYTO8psmL0SVA
-	 SxSUuEY53wPQQ6HgMcGyPngmk/ny2rZxV3VIMwBJ9bwXRxbzfZ+z9dzQOJ0VJGCKuTKq5
-	 dhAYr2LDPbyljoH32r9k/QQITUNas7bZLLWRxdfdUtNl2bEyvzF5csRalIjM7orJ/FylG
-	 TSDt3D8fq5rMHJLnQWN2tRCWZgziF3WGJo7pI58Mfk9WhVZ6EPSC/DKMV5Sypd2oRRXmj
-	 gHcD/eKG5WYZbjJtQUClAZrSTH/3TBsj8aOITUdkc6L4k29r2kp+SSwSWyO2OJHe2fw==
+	bh=abfwFJPZNcPaNkZM4oQoy8Rd677h3xU5K6s9od3K4gA=;
+	b=QGKKuVkL4f7qYfeApNHBWN4wiWdf77wRV8GPeb++I5H1M8KSyRmpMYEquu3yjnDTrC/V
+	 Odfo2J0DU/VONdh7mG5RI8rdRx7IxN0ZH/SLPPfqd9ZPEC9r/7i75G17cJqqWSTwna7AF
+	 dNwnobuhKFmcz2sDyEMHLkuO2Q22FJrdrzpydzFAq71F91fMkI+Ju133Tx2fokEuPJkRJ
+	 Oov9F3de9qwMPC5ALuaM1pNiLI3yYQf1MCsnFhZrBWOrU83JpSXPyvrGsEudXfHGEQuX0
+	 5KD7IiOACuD/UdR92bLB4zmsSKKWb8PF+EQqx7uPoQ9bL4eAX6bkJ0JFJZXzDrDOY2Q==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=fes0PrLT;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=xKnUNaKC;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7F7F3606A31A;
-	Fri, 30 Oct 2026 16:19:18 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D2C1A60A2601
+	for <mm-commits@vger.kernel.org>; Fri, 30 Oct 2026 16:36:04 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=fes0PrLT
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 36AAB1F000C1;
-	Fri, 30 Oct 2026 16:19:18 +0000 (UTC)
+	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=xKnUNaKC
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 43F321F00A18;
+	Fri, 30 Oct 2026 16:36:04 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1793377158;
-	bh=RxROFSyFWRH+6gE4hjBVL+rigwOtdEpYHMih5SK0RW8=;
+	d=linux-foundation.org; s=korg; t=1793378164;
+	bh=abfwFJPZNcPaNkZM4oQoy8Rd677h3xU5K6s9od3K4gA=;
 	h=Date:To:From:Subject;
-	b=fes0PrLT5rOWYCHMcsy7O50mp3X8UYDVMMpUXsZzLrMDlusv5JYbZ4Fm/fIV9KaPF
-	 /OyZ/UFVYs+mlXABMauOSDe/W7RR1hTvVM0NQVE2+effTiL5dS3/AdHyOJJ1k9Bxxm
-	 3YloRsrZIHj5sqLvKqMp5RgpSbT97tKi68g8vcLs=
-Date: Fri, 30 Oct 2026 09:19:17 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,ying.huang@linux.alibaba.com,
-	stable@vger.kernel.org,rakie.kim@sk.com,joshua.hahnjy@gmail.com,
-	harry@kernel.org,gourry@gourry.net,david@kernel.org,akpm@linux-foundation.org
+	b=xKnUNaKC/LmVkb90a2aKw+S6WyjN5F8y3tJ3Nc02scT5WYHrRxL56lbS4ta9Ssu/E
+	 LAtUDqW1h8aGKQ7KsIZXrUy7CjCL7nE3SFluto2DW1tN7ltpyRe1st38PnDFf+R87K
+	 fA/7+43PZRKGLRiOimOX88Go01EP553Jg+RCvxrg=
+Date: Fri, 30 Oct 2026 09:36:03 -0700
+To: mm-commits@vger.kernel.org,zhangcoder@yeah.net,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-mempolicy-use-one-node-set-for-interleave-weights.patch added to mm-hotfixes-unstable branch
-Message-Id: <20261030161918.36AAB1F000C1@smtp.kernel.org>
+Subject: + include-linux-jhashh-fix-kernel-doc-parameter-name.patch added to mm-nonmm-unstable branch
+Message-Id: <20261030163604.43F321F00A18@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -53,14 +51,14 @@ Precedence: list
 
 
 The patch titled
-     Subject: mm/mempolicy: use one node set for interleave weights
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mm-mempolicy-use-one-node-set-for-interleave-weights.patch
+     Subject: include/linux/jhash.h: fix kernel-doc parameter name
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     include-linux-jhashh-fix-kernel-doc-parameter-name.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mempolicy-use-one-node-set-for-interleave-weights.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/include-linux-jhashh-fix-kernel-doc-parameter-name.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -76,84 +74,39 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm/mempolicy: use one node set for interleave weights
-Date: Fri, 30 Oct 2026 12:10:46 -0400
+From: Ziran Zhang <zhangcoder@yeah.net>
+Subject: include/linux/jhash.h: fix kernel-doc parameter name
+Date: Fri, 30 Oct 2026 17:38:33 +0800
 
-Switching weighted interleave back to automatic mode while memory is being
-onlined can cause a kernel divide error on x86, and a panic if
-panic_on_oops is set.
+The kernel-doc comment for jhash() documents the first parameter as @k,
+but the function signature uses key.
 
-reduce_interleave_weights() scans N_MEMORY three times, but hotplug can
-cause N_MEMORY to change at runtime - and torn reads on that nodemask can
-cause a total sum of zero bandwidth.  A node that was hot-unplugged and
-then hotplugged back can then cause this loop to generate a div/0.
+Fix the parameter name in the comment to match the signature.
 
-Record the nodes visited while summing their bandwidth, then use that same
-set when scaling and reducing the weights.  This gives us a consistent
-state even if N_MEMORY changes.
+No functional changes.
 
-Link: https://lore.kernel.org/20261030161046.1497894-1-gourry@gourry.net
-Fixes: e341f9c3c841 ("mm/mempolicy: Weighted Interleave Auto-tuning")
+Link: https://lore.kernel.org/20261030093834.13043-1-zhangcoder@yeah.net
+Signed-off-by: Ziran Zhang <zhangcoder@yeah.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Signed-off-by: Gregory Price (Meta) <gourry@gourry.net>
-Cc: David Hildenbrand <david@kernel.org>
-Cc: Zi Yan <ziy@nvidia.com>
-Cc: Joshua Hahn <joshua.hahnjy@gmail.com>
-Cc: Rakie Kim <rakie.kim@sk.com>
-Cc: Ying Huang <ying.huang@linux.alibaba.com>
-Cc: Harry Yoo <harry@kernel.org>
-Cc: <stable@vger.kernel.org>
 ---
 
- mm/mempolicy.c |   13 ++++++++++---
- 1 file changed, 10 insertions(+), 3 deletions(-)
+ include/linux/jhash.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/mempolicy.c~mm-mempolicy-use-one-node-set-for-interleave-weights
-+++ a/mm/mempolicy.c
-@@ -207,15 +207,22 @@ static u8 get_il_weight(int node)
-  */
- static void reduce_interleave_weights(unsigned int *bw, u8 *new_iw)
- {
-+	nodemask_t nodes = NODE_MASK_NONE;
- 	u64 sum_bw = 0;
- 	unsigned int cast_sum_bw, scaling_factor = 1, iw_gcd = 0;
- 	int nid;
+--- a/include/linux/jhash.h~include-linux-jhashh-fix-kernel-doc-parameter-name
++++ a/include/linux/jhash.h
+@@ -58,7 +58,7 @@
+ #define JHASH_INITVAL		0xdeadbeef
  
--	for_each_node_state(nid, N_MEMORY)
-+	/*
-+	 * N_MEMORY can change while wi_state_lock is held. Remember the
-+	 * nodes contributing to sum_bw so all passes use the same set.
-+	 */
-+	for_each_node_state(nid, N_MEMORY) {
-+		node_set(nid, nodes);
- 		sum_bw += bw[nid];
-+	}
- 
- 	/* Scale bandwidths to whole numbers in the range [1, weightiness] */
--	for_each_node_state(nid, N_MEMORY) {
-+	for_each_node_mask(nid, nodes) {
- 		/*
- 		 * Try not to perform 64-bit division.
- 		 * If sum_bw < scaling_factor, then sum_bw < U32_MAX.
-@@ -234,7 +241,7 @@ static void reduce_interleave_weights(un
- 	}
- 
- 	/* 1:2 is strictly better than 16:32. Reduce by the weights' GCD. */
--	for_each_node_state(nid, N_MEMORY)
-+	for_each_node_mask(nid, nodes)
- 		new_iw[nid] /= iw_gcd;
- }
- 
+ /* jhash - hash an arbitrary key
+- * @k: sequence of bytes as key
++ * @key: sequence of bytes as key
+  * @length: the length of the key
+  * @initval: the previous hash, or an arbitrary value
+  *
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from zhangcoder@yeah.net are
 
-openrisc-export-mulsi3.patch
-mm-mempolicy-use-one-node-set-for-interleave-weights.patch
-maintainers-add-ipc-maintainers.patch
-profile-account-for-partial-proc-profile-reads.patch
-profile-simplify-proc-profile-read-layout.patch
-ipc-msg-clamp-negative-msg_info-usage-counts.patch
-drivers-media-v4l2-core-v4l2-vp9c-reduce-inlining.patch
+include-linux-jhashh-fix-kernel-doc-parameter-name.patch
 
