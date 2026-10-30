@@ -1,48 +1,48 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793322953;
-	b=5i6esp0gFO5Vj6jjFgrG6nXCrMaltd6rR2dtfLuV3RkrZy+ZcU0J5geZj5DhCf4nlQqO
-	 aD96HhAGlrymJSpXXoFvd+ZWQJ+nqGKs6YXTlh3Dd9R6z3zUxg3FabOn8xvk/rbu54uUi
-	 tY1ohCFUP+Aye2Ea9WGE7BQRV4QDyANahrIIMN/e5LDjXtbkorOBQnXweVSqzCL5OsHrT
-	 5n2omhFeJoLglghySQVH7eJbhERwVgHqs8H3q8zAmKLOLvdc5VVlBMIi64+4rzHIO4TIB
-	 WE4+s+fS8WLymrHWiQzEw6xJFIDJOEf88dG87STepQdlikM8z9c78R24QIOLA+kqApw==
+	t=1793323815;
+	b=lhPUP8bT8wqRIoG4Kszfio7RAnL8Nfp2LP9IF7+DzO5yW2llRl/eBGOnCge3UHGkPlkk
+	 b2gsdj/KAfKtcc9ubJ8QQmrSGnRlvxvVno3JxANCMgzfAg8OFD096k8ZImJtzFPBIqRTf
+	 6YSwbdiNl/Fzb+X24AyV7bGOjpXi4XMjobrE4kKiad4bY7JY1OskIcerhzntnmmUWvOJJ
+	 2/8/7eYmBvQJ0XYNra6dNlm/hXXahq4ZZ/QGfaWJg4Jkd3PQMJNn8h7HE4nmM2EAj3SQI
+	 hRq+xt5TpfbG4Durk53fuWo7aeS24tFsIXNbqfSaB6X8bj9ZE4jKi0g3D2Hpb0O61Kg==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793322953;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793323815;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=HRHzK34BRXV7rBKOPEgJ6hE2eKk3q4OrZtvOz+9Ps9o=;
-	b=XgfOIyH2lZ09QfOPkthEmQdLhuh/pC5WKDFKStvW5tr5de5WuqOmX3dayvKiUKsO0+2g
-	 SO6JQ1SBT63C4A57hD/JKbOeGyixiOVEGQxcIrOW7w+UN2Pbl6b3snv0dy+9HwfvlFZ8O
-	 L5HmQbdnQiGzB5ZsfSi20pACjAhsBmgy3CW8C77/fSNkx+w/8hya57yPjviFQloLZv9SI
-	 zNRWr+5/jK7J9X1TUvWKzFkYZ8vk1KhUTAecWiUb2g8cSQMDTLyrQnVgovEoNvsJICovY
-	 IY0LzbBC9XMzWKHsUTfkty1aPpw+7Z2dWbRrpojaizQP9sNWUncQ+Z+sFminQCX6SyQ==
+	bh=4woWJ7aYhq+t61jBwDDadTnJQTlBwuYZe5gbYG5JVsA=;
+	b=d17XchTLOEbUZF486aiNNpZQBPIzq7QquBw/Vhr0YBVsJI8PorVLjafU5VsgJbsgqxZN
+	 ddqvMKYlgfajrr8+EIOLHPSYMhLPkGAQKTgKE46Tf3iEN0uzfjRuVfaxhUH/HDgJy4toW
+	 VC6sY4uPLJ4njm8nvOWOI+Hs1lQgKaV0RdVrauovGAq3RxuetrjMT4FxFinnyqyu1X+32
+	 FGvWkjc4bPoxO6OQqcZkPNOIHHIliBaVL34tLouSYiMb8uyd8gSKJWPD1Lc3akeqnYPPA
+	 H/oCAXJf8/xF4X41q67IC1LrrghNsqNOc/qxvMSB2IiOJC0TTOr5shh+EL2fKuMbWUw==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=TxY85s89;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=Wen3kO5D;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3CB62606A31A;
-	Fri, 30 Oct 2026 01:15:52 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 12748606A31A;
+	Fri, 30 Oct 2026 01:30:14 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=TxY85s89
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id AF2B11F000C1;
-	Fri, 30 Oct 2026 01:15:52 +0000 (UTC)
+	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=Wen3kO5D
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 47AD41F000C1;
+	Fri, 30 Oct 2026 01:30:14 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1793322952;
-	bh=HRHzK34BRXV7rBKOPEgJ6hE2eKk3q4OrZtvOz+9Ps9o=;
+	d=linux-foundation.org; s=korg; t=1793323814;
+	bh=4woWJ7aYhq+t61jBwDDadTnJQTlBwuYZe5gbYG5JVsA=;
 	h=Date:To:From:Subject;
-	b=TxY85s89DMRZpjRn+kkgqvNEBXIoyRt3V6wtEZCCMLfxOI4BrCbw4rET7enx/uDGi
-	 rvY+wb6+neIv0UB3GnMsQ+g8UwLV5KjbpTG1suYtjgO6W6CTTKENFtT+4gIqMn5zq5
-	 HG9rAxhfeeERF8fL/iflwilkut6CGB+UkN2n1fJs=
-Date: Thu, 29 Oct 2026 18:15:52 -0700
-To: mm-commits@vger.kernel.org,youngjun.park@lge.com,tz2294@columbia.edu,
-	stable@vger.kernel.org,shikemeng@huaweicloud.com,ryncsn@gmail.com,
-	nphamcs@gmail.com,kasong@tencent.com,chrisl@kernel.org,baoquan.he@linux.dev,
-	baohua@kernel.org,mt4022@columbia.edu,akpm@linux-foundation.org
+	b=Wen3kO5DKfmaMiiw31dfWGavScxQiWHuhGFC24Q/8JGY/RPdgzcPTIn3ka5OVqBP9
+	 z8f70jDb/kT3lAvJ+L19+aYd17FLh9Lo3LdIHtw6RDT4Z3qfBaEhpXqAPR5jrsC3OI
+	 Qgk+kUTQUE+s8krmDHOuoNju00CBsUMWrDRjLdbw=
+Date: Thu, 29 Oct 2026 18:30:13 -0700
+To: mm-commits@vger.kernel.org,stable@vger.kernel.org,pjw@kernel.org,
+	muchun.song@linux.dev,glider@google.com,elver@google.com,dvyukov@google.com,
+	aou@eecs.berkeley.edu,alex@ghiti.fr,liuyun01@kylinos.cn,
+	akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-swap-stop-cluster-list-scans-once-swapoff-clears-swp_writeok.patch added to mm-hotfixes-unstable branch
-Message-Id: <20261030011552.AF2B11F000C1@smtp.kernel.org>
+Subject: + kfence-fix-pool-cleanup-on-metadata-allocation-failure.patch added to mm-new branch
+Message-Id: <20261030013014.47AD41F000C1@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -54,15 +54,26 @@ Precedence: list
 
 
 The patch titled
-     Subject: mm, swap: stop cluster list scans once swapoff clears SWP_WRITEOK
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mm-swap-stop-cluster-list-scans-once-swapoff-clears-swp_writeok.patch
+     Subject: kfence: fix pool cleanup on metadata allocation failure
+has been added to the -mm mm-new branch.  Its filename is
+     kfence-fix-pool-cleanup-on-metadata-allocation-failure.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-swap-stop-cluster-list-scans-once-swapoff-clears-swp_writeok.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kfence-fix-pool-cleanup-on-metadata-allocation-failure.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Note, mm-new is a provisional staging ground for work-in-progress
+patches, and acceptance into mm-new is a notification for others take
+notice and to finish up reviews.  Please do not hesitate to respond to
+review feedback and post updated versions to replace or incrementally
+fixup patches in mm-new.
+
+The mm-new branch of mm.git is not included in linux-next
+
+If a few days of testing in mm-new is successful, the patch will me moved
+into mm.git's mm-unstable branch, which is included in linux-next
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -77,109 +88,68 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Mani Tofigh <mt4022@columbia.edu>
-Subject: mm, swap: stop cluster list scans once swapoff clears SWP_WRITEOK
-Date: Mon, 26 Oct 2026 11:19:22 -0400
+From: Jackie Liu <liuyun01@kylinos.cn>
+Subject: kfence: fix pool cleanup on metadata allocation failure
+Date: Thu, 29 Oct 2026 10:57:41 +0800
 
-SWP_WRITEOK is cleared under si->lock when swapoff starts so that no
-new swap entries are allocated from the device, and try_to_unuse()
-then waits for writeback of the folios that still use the device.
+Patch series "kfence: fix pool allocation failure handling", v2.
 
-However, an order-0 allocation that chose the device can race with
-swapoff clearing the flag and then loop forever.  It takes a cluster
-from the fragment cluster list of a higher order with
-isolate_lock_cluster(), the allocation from that cluster fails because
-SWP_WRITEOK is clear, and relocate_cluster() puts the cluster back on
-the same list, so the loop keeps finding clusters on it.
+Fix the cleanup address and page reuse window in failed late KFENCE
+initialization. Also let RISC-V boot if the early pool reservation fails.
 
-The looping task is in reclaim, and it may have set writeback on a
-folio whose write has been queued but not yet submitted.  swapoff then
-waits for that folio, while the reclaiming task, stuck in the loop,
-never reaches the point where it submits the write:
+Patch 2 depends on patch 1. Patch 3 can be applied independently.
 
-  CPU0 (reclaim)                          CPU1 (swapoff)
-  --------------                          --------------
-  shrink_folio_list()
-    pageout(F)
-      /* F under writeback,
-         write not submitted */
-    folio_alloc_swap(G)  /* order 0 */
-      swap_alloc_slow()
-                                          del_from_avail_list(si, true)
-                                            si->flags &= ~SWP_WRITEOK
-                                          try_to_unuse()
-                                            folio_wait_writeback(F)
-        cluster_alloc_swap_entry()
-          isolate_lock_cluster()
-          /* allocation fails:
-             !SWP_WRITEOK */
-          relocate_cluster()
-          /* repeats forever */
-    swap_write_submit()
-    /* never reached */
 
-This results in a soft lockup on CPU0 and a swapoff that never returns.
+This patch (of 3):
 
-isolate_lock_cluster() used to check SWP_WRITEOK under si->lock until
-commit 07adc4cf1ecd ("mm, swap: implement dynamic allocation of swap
-table") removed that check.  Restore the check.  Since swapoff clears
-the flag under the same lock, isolate_lock_cluster() then returns NULL,
-which ends the scan; the swap slot allocation for G fails, and reclaim
-goes on to submit the write of F.
+kfence_init_late() saves __kfence_pool in addr before allocating the pool,
+so addr is still NULL if metadata allocation fails. The error path then
+tries to free pages using that address.
 
-Given that this is a race, its reproducibility is non-deterministic.
-We reproduce it by using a non-rotational swap device that is not
-synchronous, with 64K mTHP enabled, where one CPU repeatedly pages out
-two 64K folios and a 4K page with madvise(MADV_PAGEOUT), while other
-CPUs run swapoff and swapon on the same device.  In my tests it
-triggers within 20s in each run, and with the fix applied, it runs for
-300s without any hang/kernel report.  This bug was found and
-reproduced deterministically using a deterministic hypervisor that is
-currently under development.
+Set addr after pool allocation so cleanup frees the allocated pool.
 
-Link: https://lore.kernel.org/20261026-swapoff-writeok-v1-1-4f4cd420aa33@columbia.edu
-Fixes: 07adc4cf1ecd ("mm, swap: implement dynamic allocation of swap table")
-Signed-off-by: Mani Tofigh <mt4022@columbia.edu>
+Link: https://lore.kernel.org/cover.1793242457.git.liuyun01@kylinos.cn
+Link: https://lore.kernel.org/7e0fc28c73fbb594c296f6121ca506392511ba5e.1793242457.git.liuyun01@kylinos.cn
+Fixes: cabdf74e6b31 ("mm: kfence: allocate kfence_metadata at runtime")
+Signed-off-by: Jackie Liu <liuyun01@kylinos.cn>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Acked-by: Kairui Song <kasong@tencent.com>
-Cc: Chris Li <chrisl@kernel.org>
-Cc: Kemeng Shi <shikemeng@huaweicloud.com>
-Cc: Nhat Pham <nphamcs@gmail.com>
-Cc: Baoquan He <baoquan.he@linux.dev>
-Cc: Barry Song <baohua@kernel.org>
-Cc: Youngjun Park <youngjun.park@lge.com>
-Cc: Tal Zussman <tz2294@columbia.edu>
-Cc: Kairui Song <ryncsn@gmail.com>
+Reviewed-by: Marco Elver <elver@google.com>
+Cc: Alexander Potapenko <glider@google.com>
+Cc: Dmitry Vyukov <dvyukov@google.com>
+Cc: Paul Walmsley <pjw@kernel.org>
+Cc: AlexandreGhiti <alex@ghiti.fr>
+Cc: Albert Ou <aou@eecs.berkeley.edu>
+Cc: Muchun Song <muchun.song@linux.dev>
 Cc: <stable@vger.kernel.org>
 ---
 
- mm/swapfile.c |    5 +++++
- 1 file changed, 5 insertions(+)
+ mm/kfence/core.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
---- a/mm/swapfile.c~mm-swap-stop-cluster-list-scans-once-swapoff-clears-swp_writeok
-+++ a/mm/swapfile.c
-@@ -635,6 +635,10 @@ static struct swap_cluster_info *isolate
- 	u8 flags = CLUSTER_FLAG_NONE;
+--- a/mm/kfence/core.c~kfence-fix-pool-cleanup-on-metadata-allocation-failure
++++ a/mm/kfence/core.c
+@@ -999,7 +999,7 @@ static int kfence_init_late(void)
+ {
+ 	const unsigned long nr_pages_pool = KFENCE_POOL_SIZE / PAGE_SIZE;
+ 	const unsigned long nr_pages_meta = KFENCE_METADATA_SIZE / PAGE_SIZE;
+-	unsigned long addr = (unsigned long)__kfence_pool;
++	unsigned long addr;
+ 	unsigned long free_size = KFENCE_POOL_SIZE;
+ 	int err = -ENOMEM;
  
- 	spin_lock(&si->lock);
-+
-+	if (unlikely(!(si->flags & SWP_WRITEOK)))
-+		goto out;
-+
- 	list_for_each_entry(ci, list, list) {
- 		if (!spin_trylock(&ci->lock))
- 			continue;
-@@ -650,6 +654,7 @@ static struct swap_cluster_info *isolate
- 		found = ci;
- 		break;
- 	}
-+out:
- 	spin_unlock(&si->lock);
+@@ -1032,6 +1032,7 @@ static int kfence_init_late(void)
+ 						 GFP_KERNEL | __GFP_SKIP_KASAN);
+ #endif
  
- 	/* Cluster's table is freed when and only when it's on the free list. */
++	addr = (unsigned long)__kfence_pool;
+ 	if (!kfence_metadata_init)
+ 		goto free_pool;
+ 
 _
 
-Patches currently in -mm which might be from mt4022@columbia.edu are
+Patches currently in -mm which might be from liuyun01@kylinos.cn are
 
-mm-swap-stop-cluster-list-scans-once-swapoff-clears-swp_writeok.patch
+kfence-fix-pool-cleanup-on-metadata-allocation-failure.patch
+kfence-clear-the-pool-pointer-before-freeing-pages.patch
+riscv-keep-booting-if-kfence-pool-reservation-fails.patch
 
