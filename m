@@ -1,51 +1,49 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793321556;
-	b=QQ1ubUQiVSp50PTwlGB6UKYrRReTYGogcfvPgROjdadv90g7ZkdFpw+TK/0IgfyfvElb
-	 b5gpZGH27eWmBb+QP7Oxpu/pG3ow19Xy/H7spx+gjrQio3Taf8kY6okL/ABETTiPkpljr
-	 FGgF0hLcKK+OGRZ+Lh3XllXaJgb/f0j79LGfadmKX+WczaXFllLfpp5PQFJll1PZTMmfH
-	 MhyYTluZ8HbPXk8L5JNsG4sPaaYDbUyv1NvRkDCHe9oMu7x99O0z+8ER5AE1kz9WcKap9
-	 k85jw9A09guIBf0s1Spwn0rsp//uBGSgi/u19oFByxzXyzesvTv6J5H1/0lZ3C+Mvcw==
+	t=1793322241;
+	b=R+tpd8cs0SHKEuA+PmBKJt6jQLVLQe0MRDQzW6TFvbCBECbQsL1jQqwvQLgvxip63s0X
+	 557Fl/soRIAzho6XsKmoFpyILzJ4skl2xBDCBJ497VhWQXcVQMLMzSRIHBFhJfdVZ2R7Q
+	 7Rqqe9kyfHIK+t3nLlKPPV9j0UGx1mbGD0oSMSqVjaB6ZPEYWcSgtmLrhCOm3sSp5N3Qp
+	 JNqy1a8QIYYOQTjncSBTAx3txV+EM9bsamR3RznSmKvibX7ISHwzka9pxZpnJH79tw5MF
+	 canCXbaQyGuZFEF9Ff/kNsw6UOakGuuMrCBdfh2bFzO7qnqeK6+73W/tcE56uCe17uw==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793321556;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793322241;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=o5JIL7TSMUa/zrnOoI4rDx588PbOTUBxMNuXq1pyiLw=;
-	b=b/IlAGmpSFTPgI1IZNbCING1HZImYG5WNySmmyf3PUj6Imyk4myxMGDlLsR10Y++/KjQ
-	 hhj/LUQsNlzVloavzzk4IWfOXSRYf8gfniwyHDS7QwSBr0Vwcj/5+/TegCGShuQ5/Ak+6
-	 MO8ns5kOaqAqUnfbj/G5hLeqy6/LI0LBFBuU65/sD9VM/hxkWfBkAzA6apks2FDuMs1Kz
-	 1aLihyO2/IrgG63quckArNNSxNXC5WGnI56KSvlJ4IgwJMWlBlZnoqJhRTvpTtOarqxQo
-	 eo8bLwLeqReyedMXejvYElooWfjC7wQMWKo/ZuAPBWX3Yjkx6JPhJt1tYPq1bNIXhLQ==
+	bh=WDb1sxnjkMHfYiPKrBV13efmxBKnMQp6SqHhp8mXO+g=;
+	b=v7vvkYXbnUWk+VTxpa3ESWGPbXWqPPGoXVchf1rkCn5OlpgBrV2hYODP55PQInUq38ro
+	 kXKdCtkVMpthNLJGpFyMwlKbTUkMMZ0TtVmA+XEeaNBxadSFC62rMLxxCSWdrV+bF/9o6
+	 dpsQSpjMyO5hYP2c9bEc2qci+4ZR3Kbl++iN6MUlNYnSzCjF18BUyYAcxukHYvh1RYYcJ
+	 hQjxMQIlp77ixRRD4o25JNuWGvqgxwHBoV7Qxg+dSiI5spGdWvP+xFk0Y6odNzP+/JxEL
+	 5hJdCA3GiHPSrhuj1zn/Hl4GrxoS4ku4oa1gZgW2K2dBHUZrzYHz9vNpEKgnPtBunYg==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=AoMqYWaf;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=tTOO1RjF;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C2C93606A31A
-	for <mm-commits@vger.kernel.org>; Fri, 30 Oct 2026 00:52:35 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 536BA606A31A
+	for <mm-commits@vger.kernel.org>; Fri, 30 Oct 2026 01:04:01 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=AoMqYWaf
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4918B1F000C1;
-	Fri, 30 Oct 2026 00:52:35 +0000 (UTC)
+	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=tTOO1RjF
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C67901F000C1;
+	Fri, 30 Oct 2026 01:04:00 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1793321555;
-	bh=o5JIL7TSMUa/zrnOoI4rDx588PbOTUBxMNuXq1pyiLw=;
+	d=linux-foundation.org; s=korg; t=1793322240;
+	bh=WDb1sxnjkMHfYiPKrBV13efmxBKnMQp6SqHhp8mXO+g=;
 	h=Date:To:From:Subject;
-	b=AoMqYWaflZpAh3bMM3bj8Bp2h6aO6L/w78UBUgiIrBSrBiIzESDz6cwL6X4P27sUg
-	 dH7JGOXX8iN2fB5NUn8jiiZOUZXGWp5OhNetsUsk9n+TjSqW8Y5bf8fe00OR76xbxw
-	 rCgeIG/3O68vrAEriPAW2SrRxO1oFdGs88qlFNPs=
-Date: Thu, 29 Oct 2026 17:52:34 -0700
-To: mm-commits@vger.kernel.org,vbabka@kernel.org,surenb@google.com,
-	sshegde@linux.ibm.com,skhan@linuxfoundation.org,rppt@kernel.org,
-	ritesh.list@gmail.com,rdunlap@infradead.org,qi.zheng@linux.dev,
-	osalvador@suse.de,npiggin@gmail.com,mpe@ellerman.id.au,mhocko@suse.com,
-	maddy@linux.ibm.com,ljs@kernel.org,liam@infradead.org,lance.yang@linux.dev,
-	david@kernel.org,corbet@lwn.net,chleroy@kernel.org,muchun.song@linux.dev,
+	b=tTOO1RjFpr235IrOk4dS/JARRPgDRa/sph6qlTNkolEjX8pynJTfrtFpBEa5F+bxl
+	 yMSGOUcKfaSMujucpgPbHBGMt0uTGTD41OpcdvGff+bdbqsm3oTS8/EMD4Q7yHnKkt
+	 oMKAVj14FbMwCv2T8mZBswPnJqCM9lDULgakUx+s=
+Date: Thu, 29 Oct 2026 18:04:00 -0700
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,ying.huang@linux.alibaba.com,
+	shivankg@amd.com,shakeel.butt@linux.dev,matthew.brost@intel.com,
+	joshua.hahnjy@gmail.com,gourry@gourry.net,david@kernel.org,byungchul@sk.com,
+	boris@bur.io,apopple@nvidia.com,chenridong@xiaomi.com,
 	akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-hugetlb_vmemmap-remove-hugetlb_vmemmap_optimize_bootmem_folios.patch added to mm-new branch
-Message-Id: <20261030005235.4918B1F000C1@smtp.kernel.org>
+Subject: + mm-migrate-move-nr_kernel_file_pages-on-cross-node-migration.patch added to mm-new branch
+Message-Id: <20261030010400.C67901F000C1@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -57,12 +55,12 @@ Precedence: list
 
 
 The patch titled
-     Subject: mm/hugetlb_vmemmap: remove hugetlb_vmemmap_optimize_bootmem_folios()
+     Subject: mm/migrate: move NR_KERNEL_FILE_PAGES on cross-node migration
 has been added to the -mm mm-new branch.  Its filename is
-     mm-hugetlb_vmemmap-remove-hugetlb_vmemmap_optimize_bootmem_folios.patch
+     mm-migrate-move-nr_kernel_file_pages-on-cross-node-migration.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-hugetlb_vmemmap-remove-hugetlb_vmemmap_optimize_bootmem_folios.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-migrate-move-nr_kernel_file_pages-on-cross-node-migration.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -91,159 +89,95 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Muchun Song <muchun.song@linux.dev>
-Subject: mm/hugetlb_vmemmap: remove hugetlb_vmemmap_optimize_bootmem_folios()
-Date: Mon, 19 Oct 2026 17:08:30 +0800
+From: Ridong Chen <chenridong@xiaomi.com>
+Subject: mm/migrate: move NR_KERNEL_FILE_PAGES on cross-node migration
+Date: Tue, 27 Oct 2026 12:32:14 +0800
 
-With vmemmap_wrprotect_hvo() removed, the bootmem wrapper no longer
-performs any bootmem-specific work.
+NR_KERNEL_FILE_PAGES counts page cache folios of mappings flagged
+AS_KERNEL_FILE (currently the btrfs btree inode).  It is a per-node
+counter: filemap_add_folio() adds to folio_pgdat() of the new folio and
+filemap_unaccount_folio() subtracts from folio_pgdat() of the folio
+being removed.
 
-Call hugetlb_vmemmap_optimize_folios() directly for bootmem folios and
-remove the redundant wrapper.
+__folio_migrate_mapping() does not move it when such a folio is
+migrated to another node, so the source node keeps the count forever
+and the destination node underflows once the folio is freed.  btree
+folios are migratable through btree_migrate_folio(), so demotion,
+DAMON-based migration (DAMOS_MIGRATE_{HOT,COLD}) or memory offlining
+all hit this.
 
-Link: https://lore.kernel.org/20261019090830.1917657-5-songmuchun@bytedance.com
-Signed-off-by: Muchun Song <muchun.song@linux.dev>
+Reproducer, on a QEMU guest with two memory tiers (node0 is DRAM with
+all CPUs, node1 is a CPU-less slower node described via HMAT) and
+/sys/kernel/mm/numa/demotion_enabled set:
+
+  1. mount a btrfs and create 20000 empty files, so that btree folios
+     are cached on node0;
+  2. echo 2G > /sys/devices/system/node/node0/reclaim, which demotes
+     them to node1;
+  3. umount and drop caches.
+
+nr_kernel_file_pages in /sys/devices/system/node/nodeN/vmstat after
+each step:
+
+                  without this patch     with this patch
+                   node0     node1       node0     node1
+  1. cached         1868         0        1868         0
+  2. demoted        1868         0          36      1832
+  3. dropped        1832         0 (*)       0         0
+
+  (*) the counter has underflowed to -1832; negative values read as 0.
+
+The global value in /proc/vmstat is 0 after step 3 in both cases.
+
+Move it together with the other node-keyed page cache counters.  It is
+a node-only counter, so use the node accessor, matching how it is
+accounted elsewhere.  Interrupts are disabled here, as for the zone
+counters below.
+
+This was pointed out by Shivank while reviewing the NR_FILE_THPS fix
+for the same function.
+
+Link: https://lore.kernel.org/20261027043214.2248986-1-ridong.chen@linux.dev
+Fixes: e3a9ac4e866e ("mm: add vmstat for kernel_file pages")
+Signed-off-by: Ridong Chen <chenridong@xiaomi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Reviewed-by: Lance Yang <lance.yang@linux.dev>
-Cc: David Hildenbrand <david@kernel.org>
-Cc: Oscar Salvador <osalvador@suse.de>
-Cc: Madhavan Srinivasan <maddy@linux.ibm.com>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Lorenzo Stoakes <ljs@kernel.org>
-Cc: Liam R. Howlett <liam@infradead.org>
-Cc: Vlastimil Babka <vbabka@kernel.org>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Michael Ellerman <mpe@ellerman.id.au>
-Cc: Nicholas Piggin <npiggin@gmail.com>
-Cc: Christophe Leroy <chleroy@kernel.org>
-Cc: Ritesh Harjani (IBM) <ritesh.list@gmail.com>
-Cc: Shrikanth Hegde <sshegde@linux.ibm.com>
-Cc: Shuah Khan <skhan@linuxfoundation.org>
-Cc: Randy Dunlap <rdunlap@infradead.org>
-Cc: Qi Zheng <qi.zheng@linux.dev>
+Suggested-by: Shivank Garg <shivankg@amd.com>
+Acked-by: David Hildenbrand (Arm) <david@kernel.org>
+Reviewed-by: Shivank Garg <shivankg@amd.com>
+Acked-by: Zi Yan <ziy@nvidia.com>
+Assisted-by: LLM
+Cc: Matthew Brost <matthew.brost@intel.com>
+Cc: Joshua Hahn <joshua.hahnjy@gmail.com>
+Cc: Byungchul Park <byungchul@sk.com>
+Cc: Gregory Price <gourry@gourry.net>
+Cc: Ying Huang <ying.huang@linux.alibaba.com>
+Cc: Alistair Popple <apopple@nvidia.com>
+Cc: Boris Burkov <boris@bur.io>
+Cc: Shakeel Butt <shakeel.butt@linux.dev>
 ---
 
- mm/hugetlb.c         |    2 +-
- mm/hugetlb_vmemmap.c |   29 ++++-------------------------
- mm/hugetlb_vmemmap.h |    6 ------
- 3 files changed, 5 insertions(+), 32 deletions(-)
+ mm/migrate.c |    6 ++++++
+ 1 file changed, 6 insertions(+)
 
---- a/mm/hugetlb.c~mm-hugetlb_vmemmap-remove-hugetlb_vmemmap_optimize_bootmem_folios
-+++ a/mm/hugetlb.c
-@@ -3290,7 +3290,7 @@ static void __init prep_and_add_bootmem_
- 	struct folio *folio, *tmp_f;
- 
- 	/* Send list for bulk vmemmap optimization processing */
--	hugetlb_vmemmap_optimize_bootmem_folios(h, folio_list);
-+	hugetlb_vmemmap_optimize_folios(h, folio_list);
- 
- 	list_for_each_entry_safe(folio, tmp_f, folio_list, lru) {
- 		if (!folio_test_hugetlb_vmemmap_optimized(folio)) {
---- a/mm/hugetlb_vmemmap.c~mm-hugetlb_vmemmap-remove-hugetlb_vmemmap_optimize_bootmem_folios
-+++ a/mm/hugetlb_vmemmap.c
-@@ -590,19 +590,16 @@ static int hugetlb_vmemmap_split_folio(c
- 	return vmemmap_remap_split(vmemmap_start, vmemmap_end);
- }
- 
--static void __hugetlb_vmemmap_optimize_folios(struct hstate *h,
--					      struct list_head *folio_list,
--					      bool boot)
-+void hugetlb_vmemmap_optimize_folios(struct hstate *h, struct list_head *folio_list)
- {
- 	struct folio *folio;
--	int nr_to_optimize;
-+	unsigned long nr_to_optimize = 0;
- 	LIST_HEAD(vmemmap_pages);
- 	unsigned long flags = VMEMMAP_REMAP_NO_TLB_FLUSH;
- 
- 	if (list_empty(folio_list))
- 		return;
- 
--	nr_to_optimize = 0;
- 	list_for_each_entry(folio, folio_list, lru) {
- 		int ret;
- 
-@@ -610,7 +607,7 @@ static void __hugetlb_vmemmap_optimize_f
- 		 * Bootmem gigantic folios may already be marked optimized when
- 		 * their vmemmap layout was prepared earlier, so skip them here.
- 		 */
--		if (boot && folio_test_hugetlb_vmemmap_optimized(folio))
-+		if (folio_test_hugetlb_vmemmap_optimized(folio))
- 			continue;
- 
- 		nr_to_optimize++;
-@@ -628,14 +625,7 @@ static void __hugetlb_vmemmap_optimize_f
- 	}
- 
- 	if (!nr_to_optimize)
--		/*
--		 * All pre-HVO folios, nothing left to do. It's ok if
--		 * there is a mix of pre-HVO and not yet HVO-ed folios
--		 * here, as __hugetlb_vmemmap_optimize_folio() will
--		 * skip any folios that already have the optimized flag
--		 * set, see vmemmap_should_optimize_folio().
--		 */
--		goto out;
-+		return;
- 
- 	flush_tlb_all();
- 
-@@ -660,21 +650,10 @@ static void __hugetlb_vmemmap_optimize_f
+--- a/mm/migrate.c~mm-migrate-move-nr_kernel_file_pages-on-cross-node-migration
++++ a/mm/migrate.c
+@@ -705,6 +705,12 @@ static int __folio_migrate_mapping(struc
+ 			mod_lruvec_state(old_lruvec, NR_FILE_THPS, -nr);
+ 			mod_lruvec_state(new_lruvec, NR_FILE_THPS, nr);
  		}
- 	}
- 
--out:
- 	flush_tlb_all();
- 	free_vmemmap_page_list(&vmemmap_pages);
- }
- 
--void hugetlb_vmemmap_optimize_folios(struct hstate *h, struct list_head *folio_list)
--{
--	__hugetlb_vmemmap_optimize_folios(h, folio_list, false);
--}
--
--void hugetlb_vmemmap_optimize_bootmem_folios(struct hstate *h, struct list_head *folio_list)
--{
--	__hugetlb_vmemmap_optimize_folios(h, folio_list, true);
--}
--
- void __init hugetlb_vmemmap_optimize_bootmem_page(unsigned long pfn, unsigned int order)
- {
- 	if (!READ_ONCE(vmemmap_optimize_enabled))
---- a/mm/hugetlb_vmemmap.h~mm-hugetlb_vmemmap-remove-hugetlb_vmemmap_optimize_bootmem_folios
-+++ a/mm/hugetlb_vmemmap.h
-@@ -24,7 +24,6 @@ long hugetlb_vmemmap_restore_folios(cons
- 					struct list_head *non_hvo_folios);
- void hugetlb_vmemmap_optimize_folio(const struct hstate *h, struct folio *folio);
- void hugetlb_vmemmap_optimize_folios(struct hstate *h, struct list_head *folio_list);
--void hugetlb_vmemmap_optimize_bootmem_folios(struct hstate *h, struct list_head *folio_list);
- void hugetlb_vmemmap_optimize_bootmem_page(unsigned long pfn, unsigned int order);
- 
- static inline unsigned int hugetlb_vmemmap_size(const struct hstate *h)
-@@ -66,11 +65,6 @@ static inline void hugetlb_vmemmap_optim
- {
- }
- 
--static inline void hugetlb_vmemmap_optimize_bootmem_folios(struct hstate *h,
--						struct list_head *folio_list)
--{
--}
--
- static inline unsigned int hugetlb_vmemmap_optimizable_size(const struct hstate *h)
- {
- 	return 0;
++		if (test_bit(AS_KERNEL_FILE, &mapping->flags)) {
++			__mod_node_page_state(oldzone->zone_pgdat,
++					      NR_KERNEL_FILE_PAGES, -nr);
++			__mod_node_page_state(newzone->zone_pgdat,
++					      NR_KERNEL_FILE_PAGES, nr);
++		}
+ #ifdef CONFIG_SWAP
+ 		if (folio_test_swapcache(folio)) {
+ 			mod_lruvec_state(old_lruvec, NR_SWAPCACHE, -nr);
 _
 
-Patches currently in -mm which might be from muchun.song@linux.dev are
+Patches currently in -mm which might be from chenridong@xiaomi.com are
 
-riscv-mm-fix-hotplug-page-table-destructor-handling.patch
-riscv-mm-fix-missing-destructor-for-hotplug-pud-tables.patch
-mm-fix-missing-page-table-destructor-in-pagetable_free.patch
-arm64-mm-fix-destructor-for-unconstructed-hotplug-page-tables.patch
-mm-sparse-vmemmap-map-shared-vmemmap-tail-pages-as-read-only.patch
-powerpc-mm-map-shared-vmemmap-tail-pages-as-read-only.patch
-mm-hugetlb_vmemmap-remove-vmemmap_wrprotect_hvo.patch
-mm-hugetlb_vmemmap-remove-hugetlb_vmemmap_optimize_bootmem_folios.patch
+mm-migrate-move-nr_file_thps-on-cross-node-migration.patch
+mm-migrate-move-nr_kernel_file_pages-on-cross-node-migration.patch
 
