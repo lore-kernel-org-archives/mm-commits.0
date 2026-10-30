@@ -1,48 +1,46 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793333375;
-	b=SSo5IeyyW5HUpc+77BCalos085MpATKdiaDE84Lr4+Z6IjzYbibb+m4rx9vbpKbz/dA5
-	 MssmDdukOgp14NlKP0JUFA8xID/S+tEwfVgSABWVdwOUHk9vrXj8MCSkDCum7OeRPUlWo
-	 fA3nCOmIlSMpngmdvJ/8fDu+//mLCkR27imHu1xsrWe7qnCjLoEjTMcfR21wfEdVucY7T
-	 lHAhWYuYlDVWsC88QO2gdLiagXYLLn/8VBnitTymcJ5ID9JlBh4TMeF1lv31npSV8Egw2
-	 NEOKXApANVp6j0xC1AIk1/6Kn86g84Q2E5sm9X9K/5hawRYUvTfuPnusYYUPAVJBruQ==
+	t=1793333704;
+	b=wGyIWeTtrR7rBXuc/VYim9vCaEaTwQZEs+VAIA64K5Efct4WRbbogtgtQldHZh+Alwpm
+	 sXWUgSVSket1iRTXSGJaS0UsWZ3cxxu+M8/0oGf5BfWzrYikbqY8KnlPjtuFl/tnWGzRk
+	 u1rKMYBe50wFKjpWAn0TdXuDkvanXt/LOxaClGLOyjpi2TGuvkfbR/HOCP6Y7LLJSe9gq
+	 iEyF9p47ALbMgcgyaIv3BvfzF9f/l3pDwOuiRPDyGpOmCsDmr8o1qJVt2ppnmf5Jk46ND
+	 iWVPoeG8oSXuIMw8QBjvxlneaOxeEUj4VQO8ySRagfFGJgP81W3ZKXyCD4kRVpu14Ow==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793333375;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793333704;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=/pbupnqIZz9JFuCLr4mVNEpiZa8t5y0ShmghoruShQk=;
-	b=4wDa8MZ9gSL1AbxztPkZhf8rSKZSBai2suuB2IiMxtTj1c553jUeqQXL5TlwaeFIW+ZP
-	 MvcuRRsHSIUQwfTVMxwPwVBkyVlPcp3vAVFSWE7DvD1MaqksIl4FfTSf5CHqgRiQWLwME
-	 Bja2aW0srexpDtf8GjkL+u5ShXTYBhqwmy3K5a8LS7ouJa4f/vKoXyDXdUFd1RpFPkURF
-	 YLIgatbZlwxb4PmqScKp2rDOrGLllRZMpmUWIvMf+GpSdz6kGBqM0nXJ1I0sQnYd2Io/x
-	 lgHpNA0AMQQ3Pd3pdOT82geGyoiwjBKNO7L8ss7q+S9xlrUF/kiObozfWUDrkXuNKZw==
+	bh=ilV/6Sa5MwaBh5BpAq2i6OgNJIrBGbxCCA5BQq9HuPE=;
+	b=ieKyBp1bAtyuhFKCZT2NH2nMyqmsPP71l/71ILh/T2naWcjZwTDqlDpJ8fk1gNeg0igR
+	 xxFUbQFPovGBhl6P+cvSkt4+sO07JTcG2E4stq1D8JCK/dwzFFAChXz9RWSZnhYxHZTlg
+	 vw0b0povPLdMc/olMvPQUgPTdC+ioty+q06SJPcDZbhubf7IloSpvdN8C32hyPqeY1RGg
+	 SeMIWaOi136Mx9qV36nw57GvbARrYDLrHNZxtxxoKbn5YgHgDBMJ1m0dOtpoSukPWUPfy
+	 BVJ6sQJbOyt0EbPJ7XSs0HnS1nYGAACHDwu+wVLoEY+ZHelscbvV0TrBCRv3AxCaMyw==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=I+ZIoOwu;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=DeIh9DKj;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 17A34606A31C
-	for <mm-commits@vger.kernel.org>; Fri, 30 Oct 2026 04:09:34 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 22B0A606A31E
+	for <mm-commits@vger.kernel.org>; Fri, 30 Oct 2026 04:15:03 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=I+ZIoOwu
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 93F311F000C1;
-	Fri, 30 Oct 2026 04:09:34 +0000 (UTC)
+	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=DeIh9DKj
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7D87F1F000C1;
+	Fri, 30 Oct 2026 04:15:03 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1793333374;
-	bh=/pbupnqIZz9JFuCLr4mVNEpiZa8t5y0ShmghoruShQk=;
+	d=linux-foundation.org; s=korg; t=1793333703;
+	bh=ilV/6Sa5MwaBh5BpAq2i6OgNJIrBGbxCCA5BQq9HuPE=;
 	h=Date:To:From:Subject;
-	b=I+ZIoOwuwCfEcDEZNRpsCp0M5TSYgdB0yTuZfw7RYJUMhVDebJyfR3eH576Z45Gor
-	 mIaS8K3/OfIj6LFPN/sk80tGhoqNUtocSMc+UExDIoseGvWh12czSchHmuMK9+yrgK
-	 v7k3/1fqYJ+U9B9SgWDfPsEmRwsPxJTPyGFuAenk=
-Date: Thu, 29 Oct 2026 21:09:34 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,vbabka@kernel.org,
-	surenb@google.com,mhocko@suse.com,hannes@cmpxchg.org,dev.jain@arm.com,
-	brendan.jackman@linux.dev,anshuman.khandual@arm.com,zenghui.yu@linux.dev,
-	akpm@linux-foundation.org
+	b=DeIh9DKjJ1RXj9JitpIlkZ6CJKjQi7Uhe5ecULq5PLAmcWy9qR2WjagL5hVRZJhqS
+	 ccMcdQiky9EvFfsegA5XpdOTtN8pbwLyAmQbpYV9P4pvDWByfyv40VqMaIzFUH1RIv
+	 7Pd1yNIXnD7TUu8oLrjj1+16PLOpFXrSS08yzCd8=
+Date: Thu, 29 Oct 2026 21:15:03 -0700
+To: mm-commits@vger.kernel.org,shuah@kernel.org,osalvador@suse.de,
+	david@kernel.org,chihsheng@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-page_alloc-remove-unneeded-forward-declaration-of-__free_pages_ok.patch added to mm-new branch
-Message-Id: <20261030040934.93F311F000C1@smtp.kernel.org>
+Subject: + selftests-cpu-hotplug-use-id-u-instead-of-uid-for-root-check.patch added to mm-new branch
+Message-Id: <20261030041503.7D87F1F000C1@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -54,12 +52,12 @@ Precedence: list
 
 
 The patch titled
-     Subject: mm/page_alloc: remove unneeded forward declaration of __free_pages_ok()
+     Subject: selftests/cpu-hotplug: use $(id -u) instead of $UID for root check
 has been added to the -mm mm-new branch.  Its filename is
-     mm-page_alloc-remove-unneeded-forward-declaration-of-__free_pages_ok.patch
+     selftests-cpu-hotplug-use-id-u-instead-of-uid-for-root-check.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-page_alloc-remove-unneeded-forward-declaration-of-__free_pages_ok.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-cpu-hotplug-use-id-u-instead-of-uid-for-root-check.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -88,47 +86,44 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: "Zenghui Yu (Huawei)" <zenghui.yu@linux.dev>
-Subject: mm/page_alloc: remove unneeded forward declaration of __free_pages_ok()
-Date: Thu, 22 Oct 2026 20:45:04 +0800
+From: Darren Chang <chihsheng@google.com>
+Subject: selftests/cpu-hotplug: use $(id -u) instead of $UID for root check
+Date: Thu, 22 Oct 2026 05:22:44 +0000
 
-All remaining callers of __free_pages_ok() appear after its definition, so
-the forward declaration near the top of mm/page_alloc.c is no longer
-needed.  Remove it.
+$UID is a bash-specific variable and is not defined in other shells such
+as Android's /system/bin/sh (mksh) or POSIX sh. When running this test
+on environments without bash (e.g. Android), $UID is unset and
+'[ $UID != 0 ]' expands to '[ != 0 ]', causing a syntax error.
 
-Link: https://lore.kernel.org/20261022124504.75642-1-zenghui.yu@linux.dev
-Signed-off-by: Zenghui Yu (Huawei) <zenghui.yu@linux.dev>
+Replace $UID with "$(id -u)" so the root privilege check works across
+different shells.
+
+Link: https://lore.kernel.org/20261022052245.1138709-1-chihsheng@google.com
+Signed-off-by: Darren Chang <chihsheng@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Reviewed-by: Dev Jain <dev.jain@arm.com>
-Reviewed-by: Anshuman Khandual <anshuman.khandual@arm.com>
-Reviewed-by: Zi Yan <ziy@nvidia.com>
-Reviewed-by: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Vlastimil Babka <vbabka@kernel.org>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Brendan Jackman <brendan.jackman@linux.dev>
+Cc: Shuah Khan <shuah@kernel.org>
+Cc: David Hildenbrand <david@kernel.org>
+Cc: Oscar Salvador <osalvador@suse.de>
 ---
 
- mm/page_alloc.c |    2 --
- 1 file changed, 2 deletions(-)
+ tools/testing/selftests/cpu-hotplug/cpu-on-off-test.sh |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/page_alloc.c~mm-page_alloc-remove-unneeded-forward-declaration-of-__free_pages_ok
-+++ a/mm/page_alloc.c
-@@ -213,8 +213,6 @@ gfp_t gfp_allowed_mask __read_mostly = G
- unsigned int pageblock_order __read_mostly;
- #endif
+--- a/tools/testing/selftests/cpu-hotplug/cpu-on-off-test.sh~selftests-cpu-hotplug-use-id-u-instead-of-uid-for-root-check
++++ a/tools/testing/selftests/cpu-hotplug/cpu-on-off-test.sh
+@@ -10,7 +10,7 @@ prerequisite()
+ {
+ 	msg="skip all tests:"
  
--static void __free_pages_ok(struct page *page, unsigned int order,
--			    fpi_t fpi_flags);
- static void reserve_highatomic_pageblock(struct page *page, int order,
- 					 struct zone *zone);
- 
+-	if [ $UID != 0 ]; then
++	if [ "$(id -u)" -ne 0 ]; then
+ 		echo $msg must be run as root >&2
+ 		exit $ksft_skip
+ 	fi
 _
 
-Patches currently in -mm which might be from zenghui.yu@linux.dev are
+Patches currently in -mm which might be from chihsheng@google.com are
 
-mm-page_alloc-mark-pages-freed-by-__free_pages_core-as-not-tagged.patch
-selftests-mm-fix-khugepaged_race-build-with-older-glibc.patch
-selftests-mm-skip-collapse_compound_extreme-on-thp-allocation-failure.patch
-mm-page_alloc-remove-unneeded-forward-declaration-of-__free_pages_ok.patch
+selftests-cpu-hotplug-use-id-u-instead-of-uid-for-root-check.patch
+selftests-memory-hotplug-use-id-u-instead-of-uid-for-root-check.patch
 
