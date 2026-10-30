@@ -1,47 +1,47 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793329346;
-	b=HFYNC0xZioBlFNgR1XSeY2sfrruozqztZfibu2YVEzFcOORNhsKinNqLnwiuxCg0Yf5P
-	 AMyXpzCm7FLjNTmvgEpKhwWlDvsNEjX8q9JY/ixzy75zh0w/e7QZ1orPgKcTtYJu4hr4a
-	 lkWg81lPaDWOrRf/GqNF5oz3KwmnYfAGaCLlQ16oB3EX4UWgah+7k1gTTWRhSknlWWMFk
-	 b7aMlMdMyrCBJT8waqyk+pD4IqObdKJjuE3uCjRWwzow/Rxc3uJA3pLqJTF84QaeMMuIv
-	 9Mq0dl5xtrmCfBRmlatmIgoT2gnL0aq/dKS6ltxSOlRuZqMTXl2HJWJta5+WCDeRzdA==
+	t=1793329343;
+	b=We4WHFHQctBzwFPo/44cTqeb8hUX38lt9sBeLJ1BvGiwobXmkOFMHYHBcwbMNkYv8yTf
+	 5ynYFL1deFvdxwr+sD4A8DceYFh+cpLSJh0NXupd/w+H7CdtIesyVl7pwS8Q+n0ZON/s+
+	 dJQs80ie2PLnkYoxgpGhK0WuOBNXODqY+qN6edhpsoyQR8TGw2RdXnCZkBNm2sv9hMIGC
+	 qAJSCJbe/0ja+houl7HaX9UUsSDd6b716/JY/VnHcyXdTWrgybtOFAvjEHsz9rSRamk5z
+	 F2YFUhs+djz8MFbAzxzyPUnRwzC4Yacdf8AIv0rkc8ZORx1XEjJ5OODwCrLLJ250cqw==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793329346;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793329343;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=gNl8IoLvaaFN0xGd2/CfNTe4EYt1gPL1PIrapnWXRDA=;
-	b=xxU1IEDWSmwA0yXA9uKFn2jVXmRcAGcIQBbWrnlG8SbcdiHXkhEVluWS53fPJcKIcKf5
-	 W1C4tp93gLYBvI1213Y6F0EGS7S5e7xoFq43zmfMlNtHdZ+OntQit5ZMb5miwco9lgXZY
-	 kYP5K737XEuYZY5Ifq2DkKL1n9vWM/5H3pfzEtH8OU/PESaFKT9MQ7qdtUUyJ+TuswJYm
-	 p3jjd5w2/TWMbX4gZ9Kdgqoowrxr+uRkpsKNUbMaMF0MV/MWi14B6x8FxX+6fge1Uf4J/
-	 oOu1NPDfpeiuOsI4CHtr6k4b/qVDkDPg8jYw/bQrtg4eNeXe1Ej9NaKPQG4xCGY7Taw==
+	bh=a1BMpS1pJUWv/fL2IMAiUq2YWrD2P/rvA28DqlMrHnQ=;
+	b=1XUihmaL5EY91gOic/b6TLFYdY9CN+lq+h7HN+oE9VOcjEaNxZxTne4/9GhgVIdS/3f+
+	 aMj14ZxyAhWEhHN/beGL4SbPD+oBTBFoDnlphKcWuh9tgbwphwKDVPGyRwqiswywSPgri
+	 jHJd/4SyhimZql7A0TL8o0yEy4FXAHSiMQ2umIjp5UQEpScN6kBjrKkKP03NzUS+fD0rB
+	 FPME1sGT2hlmj1Ty5v2Wtu+zmLev4uIA70gRaH5DqV1+W2d0w9Qnhm1c23F/M2qQlkZgv
+	 28zGfxo8sVMeFEeUB6UCW3oVK1NbvL8MsmoeMPnMjpt0+XSFIEOVvISm4ob1IFtZnJg==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=LkHVEh9d;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=bBXR743+;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 79043606A31C
-	for <mm-commits@vger.kernel.org>; Fri, 30 Oct 2026 03:02:26 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 06B8F606A31A
+	for <mm-commits@vger.kernel.org>; Fri, 30 Oct 2026 03:02:22 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=LkHVEh9d
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E4C311F000C1;
-	Fri, 30 Oct 2026 03:02:25 +0000 (UTC)
+	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=bBXR743+
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 21B531F000C1;
+	Fri, 30 Oct 2026 03:02:22 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1793329346;
-	bh=gNl8IoLvaaFN0xGd2/CfNTe4EYt1gPL1PIrapnWXRDA=;
+	d=linux-foundation.org; s=korg; t=1793329342;
+	bh=a1BMpS1pJUWv/fL2IMAiUq2YWrD2P/rvA28DqlMrHnQ=;
 	h=Date:To:From:Subject;
-	b=LkHVEh9dkbyIKa3m3uWh75R/xSZyqKlpVIAjDDZvFFP/OGwt1Sj+Uk2k89J7ACWwu
-	 OaNiTPhqfi/n43K3KGL9lqtYqO/Qti0PT5cYrnNVkjbDYVttjBOm85+HeAL7iMBcf9
-	 7Y9NoWrP2x9pFS/FPJT8/S/KhP9WsZ+t5vVkOK2c=
-Date: Thu, 29 Oct 2026 20:02:25 -0700
+	b=bBXR743+5ZHshLP4PxWRIxU3TaOC6dip22Mtn5lIwtq2ukuknl5zW7YiBkku34Qex
+	 TsZlvE1N0FwlTbPWhkEgGrYsmc5ZAW7LyFIuSHOUzU1oqUBrXcX2hYO3bHdi11k2vx
+	 5+L5EQsMa5JuA255H/PExNkebVfzl+pgTIaCxbyo=
+Date: Thu, 29 Oct 2026 20:02:21 -0700
 To: mm-commits@vger.kernel.org,zhangbo56@xiaomi.com,zhangbo0325@gmail.com,
 	richardycc@google.com,minchan@kernel.org,hdanton@sina.com,bgeffon@google.com,
 	baohua@kernel.org,senozhatsky@chromium.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + zram-move-mark_slot_accessed-under-existing-slot-lock-sections.patch added to mm-nonmm-unstable branch
-Message-Id: <20261030030225.E4C311F000C1@smtp.kernel.org>
+Subject: + zram-remove-debugfs-entry-on-init-failure.patch added to mm-nonmm-unstable branch
+Message-Id: <20261030030222.21B531F000C1@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -53,12 +53,12 @@ Precedence: list
 
 
 The patch titled
-     Subject: zram: move mark_slot_accessed() under existing slot lock sections
+     Subject: zram: remove debugfs entry on init failure
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     zram-move-mark_slot_accessed-under-existing-slot-lock-sections.patch
+     zram-remove-debugfs-entry-on-init-failure.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/zram-move-mark_slot_accessed-under-existing-slot-lock-sections.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/zram-remove-debugfs-entry-on-init-failure.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -77,20 +77,17 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Sergey Senozhatsky <senozhatsky@chromium.org>
-Subject: zram: move mark_slot_accessed() under existing slot lock sections
-Date: Sun, 25 Oct 2026 11:18:20 +0900
+Subject: zram: remove debugfs entry on init failure
+Date: Sun, 25 Oct 2026 11:18:18 +0900
 
-zram_bio_read() and zram_bio_write() take slot lock just to
-mark_slot_accessed(), right after zram_read_page() and
-zram_write_page() have already taken and released it.  Move
-mark_slot_accessed() into those existing slot lock read/write
-sections.
+Do not leak the debugfs entry when zram_init() fails to register
+the block device.
 
-Link: https://lore.kernel.org/20261025021839.1542805-5-senozhatsky@chromium.org
+Link: https://lore.kernel.org/20261025021839.1542805-3-senozhatsky@chromium.org
 Signed-off-by: Sergey Senozhatsky <senozhatsky@chromium.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+Reviewed-by: Barry Song <baohua@kernel.org>
 Cc: Brian Geffon <bgeffon@google.com>
-Cc: Barry Song <baohua@kernel.org>
 Cc: Bo Zhang <zhangbo0325@gmail.com>
 Cc: Minchan Kim <minchan@kernel.org>
 Cc: Richard Chang <richardycc@google.com>
@@ -98,65 +95,19 @@ Cc: Bo Zhang <zhangbo56@xiaomi.com>
 Cc: Hillf Danton <hdanton@sina.com>
 ---
 
- drivers/block/zram/zram_drv.c |   12 ++++--------
- 1 file changed, 4 insertions(+), 8 deletions(-)
+ drivers/block/zram/zram_drv.c |    1 +
+ 1 file changed, 1 insertion(+)
 
---- a/drivers/block/zram/zram_drv.c~zram-move-mark_slot_accessed-under-existing-slot-lock-sections
+--- a/drivers/block/zram/zram_drv.c~zram-remove-debugfs-entry-on-init-failure
 +++ a/drivers/block/zram/zram_drv.c
-@@ -2188,6 +2188,7 @@ static int zram_read_page(struct zram *z
- 	int ret;
- 
- 	slot_lock(zram, index);
-+	mark_slot_accessed(zram, index);
- 	if (!test_slot_flag(zram, index, ZRAM_WB)) {
- 		/* Slot should be locked through out the function call */
- 		ret = read_from_zspool(zram, page, index);
-@@ -2244,6 +2245,7 @@ static int write_same_filled_page(struct
- 	slot_free(zram, index);
- 	set_slot_flag(zram, index, ZRAM_SAME);
- 	set_slot_handle(zram, index, fill);
-+	mark_slot_accessed(zram, index);
- 	slot_unlock(zram, index);
- 
- 	atomic64_inc(&zram->stats.same_pages);
-@@ -2283,6 +2285,7 @@ static int write_incompressible_page(str
- 	set_slot_flag(zram, index, ZRAM_HUGE);
- 	set_slot_handle(zram, index, handle);
- 	set_slot_size(zram, index, PAGE_SIZE);
-+	mark_slot_accessed(zram, index);
- 	slot_unlock(zram, index);
- 
- 	atomic64_add(PAGE_SIZE, &zram->stats.compr_data_size);
-@@ -2348,6 +2351,7 @@ static int zram_write_page(struct zram *
- 	slot_free(zram, index);
- 	set_slot_handle(zram, index, handle);
- 	set_slot_size(zram, index, comp_len);
-+	mark_slot_accessed(zram, index);
- 	slot_unlock(zram, index);
- 
- 	/* Update stats */
-@@ -2756,10 +2760,6 @@ static void zram_bio_read(struct zram *z
- 		}
- 		flush_dcache_page(bv.bv_page);
- 
--		slot_lock(zram, index);
--		mark_slot_accessed(zram, index);
--		slot_unlock(zram, index);
--
- 		bio_advance_iter_single(bio, &iter, bv.bv_len);
- 	} while (iter.bi_size);
- 
-@@ -2786,10 +2786,6 @@ static void zram_bio_write(struct zram *
- 			break;
- 		}
- 
--		slot_lock(zram, index);
--		mark_slot_accessed(zram, index);
--		slot_unlock(zram, index);
--
- 		bio_advance_iter_single(bio, &iter, bv.bv_len);
- 	} while (iter.bi_size);
- 
+@@ -3297,6 +3297,7 @@ static int __init zram_init(void)
+ 	if (zram_major <= 0) {
+ 		pr_err("Unable to get major number\n");
+ 		class_unregister(&zram_control_class);
++		zram_debugfs_destroy();
+ 		cpuhp_remove_multi_state(CPUHP_ZCOMP_PREPARE);
+ 		return -EBUSY;
+ 	}
 _
 
 Patches currently in -mm which might be from senozhatsky@chromium.org are
