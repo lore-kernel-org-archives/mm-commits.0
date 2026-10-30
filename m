@@ -1,46 +1,51 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793387252;
-	b=LO09FRitG0uVEB2fbvN03j+ZNFRM8qp9H5ZxlhAxRIjzsAJ41cRb024LEyQUNc0OQ89d
-	 wni4MlhgNZBQG28PSt/DUcVwd2DuBPkJl87XrAgacZAtHQ44wrYuTUyg66s/ex78/+BDF
-	 7pDBuD6YsZhtR+B6VtjiUKBP3SROVEoTX2g5IQMpoDhCQv6D3m54qLPb9E0sll6N/tOKH
-	 Mk2ioo1YQ2SprGNaF/RX5jNR2ZifNGrvIqzmTtuMgR1Xwi81VNOmbMUPqGHkpHCXLGbYT
-	 W7om9qO0eg/4Dju6UC2TaJGMcN5XyxwnO/tSqscSfCvvdJHmRrwAQ2KgQl65uwao0zQ==
+	t=1793389147;
+	b=1Ho5mrdoGowxrG1chqCYpeBAfpPYBf4egCCgx1cq5m3SN3c8SGIFK/0EHMjvk42Hwa0J
+	 peWh2d596BjyBuPyHJZaatFYbM0qZ3um+f1kbZm0Cvc+1w4N8Rf5d46IAPEmKNOCKLdX8
+	 oCGz1gbfA/O2EH2I2c3R7pzFNwe/xiHvIT9TZWjKXXnlgTLVR+yUoQpWXc5TWG7ACzBPm
+	 rtKBbV1yDWE9qbtbt5aSHxzS2JX/zzFEXRSDFp84XLWP/52OQ4kphbb3g3aD1s4K2/s/4
+	 OY7GyVbjJfB41u6RUV3k0tP8dD2U0UD8oy51o7Xb4HGmLteALfIU9HUc+yrQWm9gmoQ==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793387252;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793389147;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=2MEbwpwmVEb5ZNBZ4RlzH+TGeY3SrFEDe0lsquxxhuE=;
-	b=ytpo6n5dh6wR1e9Ea7ev5uOeSntSHj8JHc175S+Zqmjc+TIewywUGYMNNQjRQoJZsouZ
-	 S4HGSyxZI8h8D1rpnxcGQUr/frX4oySwKIAb7OwfDYJ6t7+iAydJu8USeaa7IB6X2w6Z6
-	 YdnKWNr6wjS9s4gnZssPydXBjk1s+J2qIb5oXiydttDE9wbCHV+hAMKpTvOjK1NYDof0k
-	 P2NNBaTGfxLX78AL/xWKkItpZ/LBK4e/y82qFpMH7PTPDP6Be5WKZNrJleBWPZaqnTQVH
-	 ClX85vWlw/2GieGvA/uu32GDKtQx6BttyMWigu751uPmxq+k/XlPoUaGA0EtVeHjCGQ==
+	bh=0mbaFOrz7RZEJyzk/5Piliqa2jJGLoccqliVSaXqJTo=;
+	b=xH5762MD2q60tosQdQhF0p65Uwi4/UdqRHT+5lSbS7MbzB1Z0Elp0wZHmadW7VCGYjED
+	 wpJoE2EP3yeYGHer3XdDkVtkcSI3z2fERzaqhB2Gm0m6Nu/AiB97L4RtgYrVLKWafOVn7
+	 amFMn9pGmZM1taKfGzdzfwH/NHlMe7qZNXN1KndoKvJoPYCrENVsLfFsq7X/G3o4b/Q3l
+	 QVfg5twwDzdzCNSzGD6onWHAjEb6WvZj6Xh6VIZXr/66Mq3UR04qnp5B/s3D0b2VkZPvw
+	 vVo/j0L8c1xG2ZUZvNILF22+mT0oBtGbfTAujve1a9qXys6L/ylar22vWHC/feTaPXg==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=uyuDaxq2;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=1oEzB0zS;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F349E606A331;
-	Fri, 30 Oct 2026 19:07:31 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E0000606A31A
+	for <mm-commits@vger.kernel.org>; Fri, 30 Oct 2026 19:39:06 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=uyuDaxq2
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 859691F00A15;
-	Fri, 30 Oct 2026 19:07:31 +0000 (UTC)
+	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=1oEzB0zS
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 586181F0093A;
+	Fri, 30 Oct 2026 19:39:06 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1793387251;
-	bh=2MEbwpwmVEb5ZNBZ4RlzH+TGeY3SrFEDe0lsquxxhuE=;
+	d=linux-foundation.org; s=korg; t=1793389146;
+	bh=0mbaFOrz7RZEJyzk/5Piliqa2jJGLoccqliVSaXqJTo=;
 	h=Date:To:From:Subject;
-	b=uyuDaxq2dKFURP0SqM307yRpC6yD2zfjwdiYWAN53/AX8lv5nD2EOrqP8gqOUh/0G
-	 fIN0p6MB6Nxnj2gBeZrFzeXR+lrHUXvkESCHumQLTQKCKzL2mhZ2IP4O00+w8nyRkh
-	 5Mne5PMCCZx5JJ6LT8QrioWNyZTuEJ5wR4zFOS0w=
-Date: Fri, 30 Oct 2026 12:07:31 -0700
-To: mm-commits@vger.kernel.org,stable@vger.kernel.org,david@kernel.org,
-	catalin.marinas@arm.com,leitao@debian.org,akpm@linux-foundation.org
+	b=1oEzB0zS8ldp+Yxcteh3naiT2tROlkSN99j6ISvPVyOWwG0g1hdiV+QWgF2t4ZSsP
+	 T4GO5X8S/dySv/aAXWq5IdquBVmnh3nyC+/s9Oe5ig7yd3eyA0qOtnrgY5HGva1KAM
+	 I/JUMxotxUHjwugu69opIN4kgxWkHOW4d8KGZoKs=
+Date: Fri, 30 Oct 2026 12:39:05 -0700
+To: mm-commits@vger.kernel.org,ysato@users.sourceforge.jp,will@kernel.org,
+	vishal.moola@gmail.com,osalvador@suse.de,maddy@linux.ibm.com,
+	glaubitz@physik.fu-berlin.de,gerald.schaefer@linux.ibm.com,
+	geert@linux-m68k.org,david@kernel.org,davem@davemloft.net,
+	dave.hansen@linux.intel.com,dalias@libc.org,arnd@arndb.de,apopple@nvidia.com,
+	aneesh.kumar@kernel.org,andreas@gaisler.com,agordeev@linux.ibm.com,
+	muchun.song@linux.dev,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-kmemleak-scan-modified-objects-as-soon-as-they-are-grayed.patch added to mm-new branch
-Message-Id: <20261030190731.859691F00A15@smtp.kernel.org>
+Subject: + mm-remove-pagetable_dtor_free.patch added to mm-new branch
+Message-Id: <20261030193906.586181F0093A@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -52,12 +57,12 @@ Precedence: list
 
 
 The patch titled
-     Subject: mm: kmemleak: scan modified objects as soon as they are grayed
+     Subject: mm: remove pagetable_dtor_free()
 has been added to the -mm mm-new branch.  Its filename is
-     mm-kmemleak-scan-modified-objects-as-soon-as-they-are-grayed.patch
+     mm-remove-pagetable_dtor_free.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-kmemleak-scan-modified-objects-as-soon-as-they-are-grayed.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-remove-pagetable_dtor_free.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -86,144 +91,267 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Breno Leitao <leitao@debian.org>
-Subject: mm: kmemleak: scan modified objects as soon as they are grayed
-Date: Fri, 30 Oct 2026 11:31:10 -0700
+From: Muchun Song <muchun.song@linux.dev>
+Subject: mm: remove pagetable_dtor_free()
+Date: Fri, 30 Oct 2026 16:37:59 +0800
 
-kmemleak keeps reporting the guard page of a systemd-journald thread stack
-on Meta's debug kernels, even with min_unref_scans set:
+Patch series "mm: Remove pagetable_dtor_free()".
 
-  unreferenced object 0xffff88829a30ae40 (size 256):
-    comm "systemd-journal", pid 961, jiffies 4294814590
-    backtrace (crc 49b3881c):
-      kmem_cache_alloc_noprof+0x2ee/0x630
-      vm_area_dup+0x36/0x750
-      __split_vma+0xef/0x7d0
-      vma_modify+0x11c3/0x18a0
-      vma_modify_flags+0x1ea/0x2a0
-      mprotect_fixup+0x249/0x630
-      do_mprotect_pkey+0x531/0x820
-      __x64_sys_mprotect+0x7c/0x90
+This is a follow-up cleanup to the page-table teardown fixes [1].
 
-The VMA is still mapped.  It was never faulted in, so it has no anon_vma
-and no file, and the only pointer to it is a slot in a maple tree leaf. 
-The mm tree runs in RCU mode: every write replaces the leaf with a copy
-and frees the old one after a grace period.  journald rewrites its tree
-every couple of seconds, while a scan on a large debug host takes many
-minutes, so the leaf kmemleak queued is freed before its turn, and the
-copy that replaced it was linked after its parent had been scanned.
+pagetable_free() now invokes pagetable_dtor() for constructed page tables.
+This makes pagetable_dtor_free() redundant and leaves explicit destructor
+calls immediately before pagetable_free() duplicating lifecycle handling.
 
-The pass over modified objects is meant to catch such moved references,
-and the new leaf, being a new white object, does get grayed there.
+Remove pagetable_dtor_free() and convert its callers to pagetable_free(),
+then remove the remaining redundant pagetable_dtor() calls.  This keeps
+the destructor decision in the common free path.  No functional change is
+intended.
 
-But the gray list is only scanned after the whole object_list walk, and by
-then that copy has been replaced and freed as well.  The confirmation scan
-has no such pass, so the miss repeats round after round no matter how many
-consecutive scans are required.
 
-Scan the gray list during the walk instead, within a jiffy of an object
-being grayed.  Do it from a variant of kmemleak_cond_resched(), which
-already pins the current object while the RCU read lock is dropped.  The
-live leaf is then read shortly after the walk reaches it, before it can be
-freed.
+This patch (of 2):
 
-Scanning the gray list after every grayed object made a full scan 41%
-slower (1.72s -> 2.42s, arm64 guest with lockdep) when the pass grays a
-million objects that do not point to each other.  Scanning it at most once
-a jiffy keeps that at the baseline, leaves idle, file storm and mmap churn
-workloads unchanged, and still removes the false positives at HZ=100.
+pagetable_free() now runs pagetable_dtor() for pages that have gone
+through a page-table constructor, so pagetable_dtor_free() no longer
+provides distinct behavior.
 
-I was able to come up with a reproducer that reproduces these false
-positives most of the time:
+Use pagetable_free() directly at the remaining call sites and remove the
+redundant helper.  This keeps the decision to run the destructor in the
+common free path.
 
-https://github.com/leitao/linux/commit/1291579c487303c5ffbea2cf532649d26329c8a9
-
-Link: https://lore.kernel.org/20261030-kmemleak-gray-drain-v2-1-3ec29a96668e@debian.org
-Fixes: 04609ccc40c4 ("kmemleak: Reduce the false positives by checking for modified objects")
-Signed-off-by: Breno Leitao <leitao@debian.org>
+Link: https://lore.kernel.org/20261030083800.599152-1-songmuchun@bytedance.com
+Link: https://lore.kernel.org/20261030083800.599152-2-songmuchun@bytedance.com
+Link: https://lore.kernel.org/r/20261023063428.3658761-1-songmuchun@bytedance.com [1]
+Signed-off-by: Muchun Song <muchun.song@linux.dev>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Reviewed-by: Catalin Marinas <catalin.marinas@arm.com>
+Acked-by: Vishal Moola (Fractile) <vishal.moola@gmail.com>
+Acked-by: Geert Uytterhoeven <geert@linux-m68k.org> # m68k
 Cc: David Hildenbrand <david@kernel.org>
-Cc: <stable@vger.kernel.org>
+Cc: Oscar Salvador <osalvador@suse.de>
+Cc: Alistair Popple <apopple@nvidia.com>
+Cc: Will Deacon <will@kernel.org>
+Cc: Aneesh Kumar K . V <aneesh.kumar@kernel.org>
+Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: Madhavan Srinivasan <maddy@linux.ibm.com>
+Cc: Alexander Gordeev <agordeev@linux.ibm.com>
+Cc: Gerald Schaefer <gerald.schaefer@linux.ibm.com>
+Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
+Cc: Rich Felker <dalias@libc.org>
+Cc: John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>
+Cc: David S. Miller <davem@davemloft.net>
+Cc: Andreas Larsson <andreas@gaisler.com>
+Cc: Dave Hansen <dave.hansen@linux.intel.com>
 ---
 
- mm/kmemleak.c |   31 ++++++++++++++++++++++++++++---
- 1 file changed, 28 insertions(+), 3 deletions(-)
+ arch/m68k/include/asm/mcf_pgalloc.h |    4 ++--
+ arch/m68k/mm/motorola.c             |    2 +-
+ arch/s390/mm/pgalloc.c              |    4 ++--
+ arch/sh/mm/pgtable.c                |    2 +-
+ arch/x86/mm/pat/set_memory.c        |   10 +---------
+ arch/x86/mm/pgtable.c               |    4 ++--
+ include/asm-generic/pgalloc.h       |   12 ++++++------
+ include/asm-generic/tlb.h           |    2 +-
+ include/linux/mm.h                  |    6 ------
+ 9 files changed, 16 insertions(+), 30 deletions(-)
 
---- a/mm/kmemleak.c~mm-kmemleak-scan-modified-objects-as-soon-as-they-are-grayed
-+++ a/mm/kmemleak.c
-@@ -1696,8 +1696,10 @@ static void scan_gray_list(void)
-  * Conditionally call resched() in an object iteration loop while making sure
-  * that the given object won't go away without RCU read lock by performing a
-  * get_object() if necessaary.
-+ * If @scan_gray is set, also scan the gray list while the RCU lock is dropped.
-  */
--static void kmemleak_cond_resched(struct kmemleak_object *object)
-+static void __kmemleak_cond_resched(struct kmemleak_object *object,
-+				    bool scan_gray)
+--- a/arch/m68k/include/asm/mcf_pgalloc.h~mm-remove-pagetable_dtor_free
++++ a/arch/m68k/include/asm/mcf_pgalloc.h
+@@ -7,7 +7,7 @@
+ 
+ static inline void pte_free_kernel(struct mm_struct *mm, pte_t *pte)
  {
- 	if (!get_object(object))
- 		return;	/* Try next object */
-@@ -1709,6 +1711,8 @@ static void kmemleak_cond_resched(struct
- 	raw_spin_unlock_irq(&kmemleak_lock);
- 
- 	rcu_read_unlock();
-+	if (scan_gray)
-+		scan_gray_list();
- 	cond_resched_tasks_rcu_qs();
- 	rcu_read_lock();
- 
-@@ -1721,6 +1725,26 @@ unlock_put:
- 	put_object(object);
+-	pagetable_dtor_free(virt_to_ptdesc(pte));
++	pagetable_free(virt_to_ptdesc(pte));
  }
  
-+static void kmemleak_cond_resched(struct kmemleak_object *object)
-+{
-+	__kmemleak_cond_resched(object, false);
-+}
-+
-+/*
-+ * Scan newly grayed objects within a jiffy, not after the object_list walk:
-+ * one may hold the only reference to another and be freed by then, like a
-+ * maple tree node being replaced.
-+ */
-+static void kmemleak_resched_drain(struct kmemleak_object *object,
-+				   unsigned long *last_drain)
-+{
-+	if (need_resched() ||
-+	    (!list_empty(&gray_list) && time_after(jiffies, *last_drain))) {
-+		__kmemleak_cond_resched(object, true);
-+		*last_drain = jiffies;
-+	}
-+}
-+
- /*
-  * Scan all task kernel stacks, rescheduling between tasks. Each task is looked
-  * up and pinned within its own RCU read-side section, so no lock is held across
-@@ -1909,6 +1933,7 @@ static int scan_zone_pages(struct zone *
- static int __kmemleak_scan(bool full)
- {
- 	struct kmemleak_object *object;
-+	unsigned long last_drain;
- 	struct zone *zone;
- 	int __maybe_unused i;
- 	int stop = 0;
-@@ -2003,10 +2028,10 @@ scan_gray:
- 	 * Check for new or unreferenced objects modified since the previous
- 	 * scan and color them gray until the next scan.
- 	 */
-+	last_drain = jiffies;
- 	rcu_read_lock();
- 	list_for_each_entry_rcu(object, &object_list, object_list) {
--		if (need_resched())
--			kmemleak_cond_resched(object);
-+		kmemleak_resched_drain(object, &last_drain);
+ extern const char bad_pmd_string[];
+@@ -74,7 +74,7 @@ static inline void pte_free(struct mm_st
  
+ static inline void pgd_free(struct mm_struct *mm, pgd_t *pgd)
+ {
+-	pagetable_dtor_free(virt_to_ptdesc(pgd));
++	pagetable_free(virt_to_ptdesc(pgd));
+ }
+ 
+ static inline pgd_t *pgd_alloc(struct mm_struct *mm)
+--- a/arch/m68k/mm/motorola.c~mm-remove-pagetable_dtor_free
++++ a/arch/m68k/mm/motorola.c
+@@ -237,7 +237,7 @@ int free_pointer_table(void *table, int
+ 		spin_unlock_bh(&ptable_lock);
+ 
+ 		mmu_page_dtor((void *)pt_addr);
+-		pagetable_dtor_free(virt_to_ptdesc((void *)pt_addr));
++		pagetable_free(virt_to_ptdesc((void *)pt_addr));
+ 		return 1;
+ 	} else if (ptable_list[type].next != dp) {
  		/*
- 		 * This is racy but we can save the overhead of lock/unlock
+--- a/arch/s390/mm/pgalloc.c~mm-remove-pagetable_dtor_free
++++ a/arch/s390/mm/pgalloc.c
+@@ -125,7 +125,7 @@ void page_table_free(struct mm_struct *m
+ 
+ 	if (pagetable_is_reserved(ptdesc))
+ 		return free_reserved_ptdesc(ptdesc);
+-	pagetable_dtor_free(ptdesc);
++	pagetable_free(ptdesc);
+ }
+ 
+ #ifdef CONFIG_TRANSPARENT_HUGEPAGE
+@@ -133,7 +133,7 @@ static void pte_free_now(struct rcu_head
+ {
+ 	struct ptdesc *ptdesc = container_of(head, struct ptdesc, pt_rcu_head);
+ 
+-	pagetable_dtor_free(ptdesc);
++	pagetable_free(ptdesc);
+ }
+ 
+ void pte_free_defer(struct mm_struct *mm, pgtable_t pgtable)
+--- a/arch/sh/mm/pgtable.c~mm-remove-pagetable_dtor_free
++++ a/arch/sh/mm/pgtable.c
+@@ -64,7 +64,7 @@ static void __tlb_remove_table_slab(void
+ 
+ static void __tlb_remove_table_pgtable(void *table)
+ {
+-	pagetable_dtor_free(table);
++	pagetable_free(table);
+ }
+ 
+ void __tlb_remove_table(void *table)
+--- a/arch/x86/mm/pat/set_memory.c~mm-remove-pagetable_dtor_free
++++ a/arch/x86/mm/pat/set_memory.c
+@@ -441,15 +441,7 @@ static void __cpa_collapse_large_pages(s
+ 
+ 	list_for_each_entry_safe(ptdesc, tmp, &pgtables, pt_list) {
+ 		list_del(&ptdesc->pt_list);
+-		/*
+-		 * Only early alloc'd direct map should not be flagged PG_table
+-		 * here and those shouldn't be collapsed. However be abundantly
+-		 * cautious and handle the !PG_table case too.
+-		 */
+-		if (PageTable((ptdesc_page(ptdesc))))
+-			pagetable_dtor_free(ptdesc);
+-		else
+-			pagetable_free(ptdesc);
++		pagetable_free(ptdesc);
+ 	}
+ }
+ 
+--- a/arch/x86/mm/pgtable.c~mm-remove-pagetable_dtor_free
++++ a/arch/x86/mm/pgtable.c
+@@ -732,7 +732,7 @@ int pud_free_pmd_page(pud_t *pud, unsign
+ 	for (i = 0; i < PTRS_PER_PMD; i++) {
+ 		if (!pmd_none(pmd[i])) {
+ 			pt = page_ptdesc(pmd_page(pmd[i]));
+-			pagetable_dtor_free(pt);
++			pagetable_free(pt);
+ 		}
+ 	}
+ 
+@@ -759,7 +759,7 @@ int pmd_free_pte_page(pmd_t *pmd, unsign
+ 	/* INVLPG to clear all paging-structure caches */
+ 	flush_tlb_kernel_range(addr, addr + PAGE_SIZE-1);
+ 
+-	pagetable_dtor_free(pt);
++	pagetable_free(pt);
+ 
+ 	return 1;
+ }
+--- a/include/asm-generic/pgalloc.h~mm-remove-pagetable_dtor_free
++++ a/include/asm-generic/pgalloc.h
+@@ -58,7 +58,7 @@ static inline pte_t *pte_alloc_one_kerne
+  */
+ static inline void pte_free_kernel(struct mm_struct *mm, pte_t *pte)
+ {
+-	pagetable_dtor_free(virt_to_ptdesc(pte));
++	pagetable_free(virt_to_ptdesc(pte));
+ }
+ 
+ /**
+@@ -119,7 +119,7 @@ static inline void pte_free(struct mm_st
+ {
+ 	struct ptdesc *ptdesc = page_ptdesc(pte_page);
+ 
+-	pagetable_dtor_free(ptdesc);
++	pagetable_free(ptdesc);
+ }
+ 
+ 
+@@ -174,7 +174,7 @@ static inline void pmd_free(struct mm_st
+ 	struct ptdesc *ptdesc = virt_to_ptdesc(pmd);
+ 
+ 	BUG_ON((unsigned long)pmd & (PAGE_SIZE-1));
+-	pagetable_dtor_free(ptdesc);
++	pagetable_free(ptdesc);
+ }
+ #endif
+ 
+@@ -232,7 +232,7 @@ static inline void __pud_free(struct mm_
+ 	struct ptdesc *ptdesc = virt_to_ptdesc(pud);
+ 
+ 	BUG_ON((unsigned long)pud & (PAGE_SIZE-1));
+-	pagetable_dtor_free(ptdesc);
++	pagetable_free(ptdesc);
+ }
+ 
+ #ifndef __HAVE_ARCH_PUD_FREE
+@@ -280,7 +280,7 @@ static inline void __p4d_free(struct mm_
+ 	struct ptdesc *ptdesc = virt_to_ptdesc(p4d);
+ 
+ 	BUG_ON((unsigned long)p4d & (PAGE_SIZE-1));
+-	pagetable_dtor_free(ptdesc);
++	pagetable_free(ptdesc);
+ }
+ 
+ #ifndef __HAVE_ARCH_P4D_FREE
+@@ -319,7 +319,7 @@ static inline void __pgd_free(struct mm_
+ 	struct ptdesc *ptdesc = virt_to_ptdesc(pgd);
+ 
+ 	BUG_ON((unsigned long)pgd & (PAGE_SIZE-1));
+-	pagetable_dtor_free(ptdesc);
++	pagetable_free(ptdesc);
+ }
+ 
+ #ifndef __HAVE_ARCH_PGD_FREE
+--- a/include/asm-generic/tlb.h~mm-remove-pagetable_dtor_free
++++ a/include/asm-generic/tlb.h
+@@ -202,7 +202,7 @@ static inline void __tlb_remove_table(vo
+ {
+ 	struct ptdesc *ptdesc = (struct ptdesc *)table;
+ 
+-	pagetable_dtor_free(ptdesc);
++	pagetable_free(ptdesc);
+ }
+ #endif
+ 
+--- a/include/linux/mm.h~mm-remove-pagetable_dtor_free
++++ a/include/linux/mm.h
+@@ -4083,12 +4083,6 @@ static inline void pagetable_free(struct
+ 	}
+ }
+ 
+-static inline void pagetable_dtor_free(struct ptdesc *ptdesc)
+-{
+-	pagetable_dtor(ptdesc);
+-	pagetable_free(ptdesc);
+-}
+-
+ static inline bool pagetable_pte_ctor(struct mm_struct *mm,
+ 				      struct ptdesc *ptdesc)
+ {
 _
 
-Patches currently in -mm which might be from leitao@debian.org are
+Patches currently in -mm which might be from muchun.song@linux.dev are
 
-mm-kmemleak-scan-modified-objects-as-soon-as-they-are-grayed.patch
+riscv-mm-fix-hotplug-page-table-destructor-handling.patch
+riscv-mm-fix-missing-destructor-for-hotplug-pud-tables.patch
+mm-fix-missing-page-table-destructor-in-pagetable_free.patch
+arm64-mm-fix-destructor-for-unconstructed-hotplug-page-tables.patch
+mm-sparse-vmemmap-map-shared-vmemmap-tail-pages-as-read-only.patch
+powerpc-mm-map-shared-vmemmap-tail-pages-as-read-only.patch
+mm-hugetlb_vmemmap-remove-vmemmap_wrprotect_hvo.patch
+mm-hugetlb_vmemmap-remove-hugetlb_vmemmap_optimize_bootmem_folios.patch
+mm-generalize-kernel-pte-table-allocation.patch
+mm-generalize-pmd-page-table-allocation.patch
+mm-generalize-pud-page-table-allocation.patch
+mm-remove-pagetable_dtor_free.patch
+mm-remove-redundant-pagetable_dtor-calls.patch
 
