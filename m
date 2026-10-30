@@ -1,47 +1,48 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793404126;
-	b=io0FjIbN1iDa+E2Jaeyc4Y0kVZ88da5j9i+2jOGCc0VT4WDOSy/Js7a/p0bbBi5xTxTA
-	 DYthdelv2x5diyAEGg6A6SrdaIjwf/S+b/bkzsDdEg623IKvHUvAfI6r+/YNeMffnGAHt
-	 kJ8GMic8HfZ7W5MTwHeUqgCILhtchWAKicvP71LFGZfX680slrzrjuVAXGsgqNDrjBshK
-	 0lsySkbz0nkouSx6IrrpkH/ptUHmB6JJUmNp/FFdFuy2r60HpI+9zBpUaWqJCuSstn9gB
-	 RxcIDZIFbHBfkN3zhbP0E6df+UJarEVWwzbbFyx7LDookMTUPezea1bSV3yYwwADSFg==
+	t=1793404293;
+	b=MSMR0HXcJw6+f1RAZs+f0+7+SSqLJiC2HpnJGcSrBJHxGGlQ6qIXzWpzCKudzyQDTlbJ
+	 ebYCCaIlCPJmDEcmmBuyE/+enYZeUOgssVjXDwkTV8iZXpjdTkNPTtBE5o1HI6bCA5P0D
+	 wLNArDF2s0X1WCLY0ePqky8DffwQm/795YlMxk/wZhP0MOI0143RPo6IHXNr50fAyvQKN
+	 CW1dq1YhDToIuhImZO63VQ44XyRJmfuVdITo7eakL2xEoeiZo969Qbdwhqh3dWf2iptCW
+	 Z4tIrHjHNYBUgF577G38lvGeZtdsDadk9ueCQDrmhjbistcBMj6IBPA/4p/tcLznTjg==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793404126;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793404293;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=o/fooE/mqiak5gzNPD+ZWchHbbKvelmKK6vguNaKGQM=;
-	b=P0OlY7b4bqJeAxXCvZfacFapA9+9Zy39GHcsqiOukmm7GAV/hJqZ3j8YcMr4T4qLf5wv
-	 8xKxfIbjvaGS+WYZ4EXOn/Ox25aHVExlpO3l9tOL8GfaWwRSxo2YOO1ZSjjZJ/GRjwqy3
-	 1NPG6jZzMGAju7EWeOkQv+4zQlLsKlyCSYQXe9vcS08hp4J4aNpRIgHLZ0lAGIQBxHwE3
-	 M9LxLClQtvcpRZEXt+wqYZUB/OnNTGYjQKvix/glXpkZxQ0kKYFKbpMajj25/q+Q5sAoO
-	 iU+jcOLY1igWK18Z25U0ZT7X/Xad81B18Ed3Mi1qkZwpN0uaSjun1Tu5CDNpgJrWBOQ==
+	bh=Ie3EhAu/K/l8qn/fPsVnzWB5UBSkKsb7gVpQMJduoaY=;
+	b=zLDKZblibE9Wuo+pKX4fDp23UzHugWHf5xczEJ5NG74Hok3GehXOOUuH5Uw4bsjMyc7l
+	 rk/n7LIneO24bzdXaUqZsVFIVlkYArg5m2yiaN1IM651AGdAHqSpitWKB0zpPG4+NQTLT
+	 bKcGFJ5BC7jGpIf7eZDSZO4WumMYib08i+MsqPSvaXxWJnJBYR0oRrT8YPqw8UKEDlVEZ
+	 M0o3enQsmCfuFjIhTVkJs6m7f959b9EhUjKr0VSN4/NJFjYKTcV+E/peXetQZJ8Fm04ml
+	 BlgVA0HPzDAqWPGN07jN/oK0tdDbRxt/ehAOcX1uRSfSajyG8tr5wL+0AkULHRVkxNg==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=sWyBjRwN;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=SRmPhLS8;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 09ABC606A31A
-	for <mm-commits@vger.kernel.org>; Fri, 30 Oct 2026 23:48:45 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5DBC9606A31A
+	for <mm-commits@vger.kernel.org>; Fri, 30 Oct 2026 23:51:33 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=sWyBjRwN
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id AE80F1F000C1;
-	Fri, 30 Oct 2026 23:48:45 +0000 (UTC)
+	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=SRmPhLS8
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 207121F000C1;
+	Fri, 30 Oct 2026 23:51:33 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1793404125;
-	bh=o/fooE/mqiak5gzNPD+ZWchHbbKvelmKK6vguNaKGQM=;
+	d=linux-foundation.org; s=korg; t=1793404293;
+	bh=Ie3EhAu/K/l8qn/fPsVnzWB5UBSkKsb7gVpQMJduoaY=;
 	h=Date:To:From:Subject;
-	b=sWyBjRwNqdIo4w1p9RrqSLyeGLc+HZzZ6QeHaKvDLP/UnYQNTFrWFwYa/nvg9oabX
-	 pLhAuVbvlM05rxKo43VaEafvYzhNnHQjw9j9fle9OBX6EeUMv3ogbplgbiG6LJ+Q3c
-	 UCMhIweVeFvtPn8SKHM7L0Fa3Uc10iiIiS0IyGC8=
-Date: Fri, 30 Oct 2026 16:48:45 -0700
-To: mm-commits@vger.kernel.org,tj@kernel.org,roman.gushchin@linux.dev,
-	muchun.song@linux.dev,mhocko@suse.com,mhocko@kernel.org,harry@kernel.org,
-	hannes@cmpxchg.org,shakeel.butt@linux.dev,akpm@linux-foundation.org
+	b=SRmPhLS8hdwertfZ00dUhCaLEF3VTgFZOc+BffyuBVKkafdqWNa4r8+W8fUKzs+3l
+	 k8zKk7H9H7z0TWLXycZmKLYO2XRWvGdUOZY49BBxACg4CC6DsAEsCfYsDtZnH1U5Fx
+	 TwQU+OYNs9GGBcKs7X8cfVSgPvPwVAut6e1cZNVA=
+Date: Fri, 30 Oct 2026 16:51:32 -0700
+To: mm-commits@vger.kernel.org,vbabka@kernel.org,surenb@google.com,
+	sj@kernel.org,rppt@kernel.org,mhocko@suse.com,ljs@kernel.org,
+	liam@infradead.org,david@kernel.org,azpijr@gmail.com,
+	anshuman.khandual@arm.com,ekffu200098@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + memcg-simplify-high-limit-handling-after-a-charge.patch added to mm-new branch
-Message-Id: <20261030234845.AE80F1F000C1@smtp.kernel.org>
+Subject: + mm-memory-remove-unused-vmf_insert_mixed_mkwrite.patch added to mm-new branch
+Message-Id: <20261030235133.207121F000C1@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -53,12 +54,12 @@ Precedence: list
 
 
 The patch titled
-     Subject: memcg: simplify high limit handling after a charge
+     Subject: mm/memory: remove unused vmf_insert_mixed_mkwrite()
 has been added to the -mm mm-new branch.  Its filename is
-     memcg-simplify-high-limit-handling-after-a-charge.patch
+     mm-memory-remove-unused-vmf_insert_mixed_mkwrite.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/memcg-simplify-high-limit-handling-after-a-charge.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memory-remove-unused-vmf_insert_mixed_mkwrite.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -87,177 +88,106 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Shakeel Butt <shakeel.butt@linux.dev>
-Subject: memcg: simplify high limit handling after a charge
-Date: Fri, 30 Oct 2026 13:54:16 -0700
+From: Sang-Heon Jeon <ekffu200098@gmail.com>
+Subject: mm/memory: remove unused vmf_insert_mixed_mkwrite()
+Date: Sat, 03 Oct 2026 01:05:32 +0900
 
-Separate the hierarchy scan from high-limit enforcement. Find the first
-cgroup over the applicable limit, then queue high_work or record the
-task's overage after the scan. Worker contexts check only memory.high;
-local charges also check memory.swap.high.
+Patch series "mm/memory: remove unused vmf_insert_mixed_mkwrite()", v2.
 
-Clarify the enforcement comments. Keep the synchronous pending-overage
-check independent of the scan result so a blocking charge still handles
-overage left by earlier charges.
+Since commit 38607c62b34b ("fs/dax: properly refcount fs dax pages"),
+vmf_insert_mixed_mkwrite() has no callers. This series removes it and
+the mkwrite handling that only it used.
 
-No functional change intended.
+Patch 1 removes the function.
 
-Link: https://lore.kernel.org/20261030205418.341214-6-shakeel.butt@linux.dev
-Signed-off-by: Shakeel Butt <shakeel.butt@linux.dev>
+Patch 2 removes the mkwrite argument, which is then always false. It
+also removes the unreachable code in insert_pfn().
+
+Patch 3 merges __vm_insert_mixed() into vmf_insert_mixed().
+
+No functional change.
+
+
+This patch (of 3):
+
+Since commit 38607c62b34b ("fs/dax: properly refcount fs dax pages"),
+vmf_insert_mixed_mkwrite() has no callers.
+
+So remove the function and its declaration.
+
+The comment above the function describes the -EBUSY handling in
+__vm_insert_mixed(). Move it above that check.
+
+No functional change.
+
+Link: https://lore.kernel.org/20261002160535.661399-1-ekffu200098@gmail.com
+Link: https://lore.kernel.org/20261002160535.661399-2-ekffu200098@gmail.com
+Signed-off-by: Sang-Heon Jeon <ekffu200098@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Acked-by: Michal Hocko <mhocko@suse.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Roman Gushchin <roman.gushchin@linux.dev>
-Cc: Muchun Song <muchun.song@linux.dev>
-Cc: Tejun Heo <tj@kernel.org>
-Cc: Harry Yoo <harry@kernel.org>
+Reviewed-by: Anshuman Khandual <anshuman.khandual@arm.com>
+Reviewed-by: SJ Park <sj@kernel.org>
+Reviewed-by: Jose A. Perez de Azpillaga <azpijr@gmail.com>
+Cc: David Hildenbrand <david@kernel.org>
+Cc: Liam R. Howlett <liam@infradead.org>
+Cc: Lorenzo Stoakes <ljs@kernel.org>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Vlastimil Babka <vbabka@kernel.org>
 ---
 
- mm/memcontrol.c |  102 ++++++++++++++++++++--------------------------
- 1 file changed, 45 insertions(+), 57 deletions(-)
+ include/linux/mm.h |    2 --
+ mm/memory.c        |   16 +++++-----------
+ 2 files changed, 5 insertions(+), 13 deletions(-)
 
---- a/mm/memcontrol.c~memcg-simplify-high-limit-handling-after-a-charge
-+++ a/mm/memcontrol.c
-@@ -2611,9 +2611,8 @@ static unsigned long calculate_high_dela
- }
+--- a/include/linux/mm.h~mm-memory-remove-unused-vmf_insert_mixed_mkwrite
++++ a/include/linux/mm.h
+@@ -4986,8 +4986,6 @@ vm_fault_t vmf_insert_pfn_prot(struct vm
+ 			unsigned long pfn, pgprot_t pgprot);
+ vm_fault_t vmf_insert_mixed(struct vm_area_struct *vma, unsigned long addr,
+ 			unsigned long pfn);
+-vm_fault_t vmf_insert_mixed_mkwrite(struct vm_area_struct *vma,
+-		unsigned long addr, unsigned long pfn);
+ int vm_iomap_memory(struct vm_area_struct *vma, phys_addr_t start, unsigned long len);
  
- /*
-- * Reclaims memory over the high limit. Called directly from
-- * try_charge() (context permitting), as well as from the userland
-- * return path where reclaim is always able to block.
-+ * Handle pending high overage during a blocking charge or on return
-+ * to userspace.
-  */
- void __mem_cgroup_handle_over_high(gfp_t gfp_mask)
- {
-@@ -2707,76 +2706,65 @@ out:
+ static inline vm_fault_t vmf_insert_page(struct vm_area_struct *vma,
+--- a/mm/memory.c~mm-memory-remove-unused-vmf_insert_mixed_mkwrite
++++ a/mm/memory.c
+@@ -3058,6 +3058,11 @@ static vm_fault_t __vm_insert_mixed(stru
  
- /*
-  * Called after @nr_pages were charged to @memcg. If @memcg or one of its
-- * ancestors is over memory.high or memory.swap.high, start reclaim or slow
-- * down the task.
-+ * ancestors is over its high limit, either queue high_work to reclaim from
-+ * that cgroup, or record the overage so the charging task reclaims later
-+ * and sleeps if reclaim can't keep up. high_work only handles memory.high;
-+ * memory.swap.high is only enforced on the charging task.
-  */
- static void memcg_enforce_high(struct mem_cgroup *memcg, unsigned int nr_pages,
- 			       gfp_t gfp_mask)
- {
-+	struct mem_cgroup *iter;
- 	bool allow_spinning = gfpflags_allow_spinning(gfp_mask);
--	bool use_worker = !in_task() || (current->flags & PF_KTHREAD) ||
-+	bool use_high_work = !in_task() || (current->flags & PF_KTHREAD) ||
- 		!current->mm || !mm_match_cgroup(current->mm, memcg);
- 
- 	/*
--	 * If the hierarchy is above the normal consumption range, schedule
--	 * reclaim on returning to userland.  We can perform reclaim here
--	 * if __GFP_RECLAIM but let's always punt for simplicity and so that
--	 * GFP_KERNEL can consistently be used during reclaim.  @memcg is
--	 * not recorded as it most likely matches current's and won't
--	 * change in the meantime.  As high limit is checked again before
--	 * reclaim, the cost of mismatch is negligible.
-+	 * Check the charged cgroup and its parents. Local charges normally defer
-+	 * reclaim until return to userspace so it can use GFP_KERNEL. Large
-+	 * pending overages may be handled synchronously below. The handler looks
-+	 * up current->mm and rechecks the limits. If the task moved to another
-+	 * cgroup in the meantime, the handler works on the new cgroup instead.
-+	 * That is rare and costs little.
- 	 */
--	do {
-+	for (iter = memcg; iter; iter = parent_mem_cgroup(iter)) {
- 		bool mem_high, swap_high;
- 
--		mem_high = page_counter_read(&memcg->memory) >
--			READ_ONCE(memcg->memory.high);
--		swap_high = page_counter_read(&memcg->swap) >
--			READ_ONCE(memcg->swap.high);
--
--		/*
--		 * Don't make an unrelated interrupted task handle this charge.
--		 * Kernel threads may be working for other tasks, so let a worker
--		 * reclaim instead.
--		 * Remote charges need reclaim from their charged hierarchy.
--		 */
--		if (use_worker) {
--			if (mem_high) {
--				if (allow_spinning)
--					schedule_work(&memcg->high_work);
--				else
--					irq_work_queue(&memcg->high_irq_work);
--				break;
--			}
--			continue;
--		}
--
--		if (mem_high || swap_high) {
--			/*
--			 * The allocating tasks in this cgroup will need to do
--			 * reclaim or be throttled to prevent further growth
--			 * of the memory or swap footprints.
--			 *
--			 * Target some best-effort fairness between the tasks,
--			 * and distribute reclaim work and delay penalties
--			 * based on how much each task is actually allocating.
--			 */
--			current->memcg_nr_pages_over_high += nr_pages;
--			set_notify_resume(current);
-+		mem_high = page_counter_read(&iter->memory) >
-+			READ_ONCE(iter->memory.high);
-+		swap_high = !use_high_work &&
-+			(page_counter_read(&iter->swap) > READ_ONCE(iter->swap.high));
-+		if (mem_high || swap_high)
- 			break;
--		}
--	} while ((memcg = parent_mem_cgroup(memcg)));
-+	}
- 
--	/* Interrupts, kernel threads, and remote chargers stop here. */
--	if (use_worker)
+ 	if (err == -ENOMEM)
+ 		return VM_FAULT_OOM;
 +	/*
-+	 * Use a worker for interrupts, kernel threads, and tasks whose mm
-+	 * does not match the charged hierarchy.
++	 *  If the insertion of PTE failed because someone else already added a
++	 *  different entry in the mean time, we treat that as success as we assume
++	 *  the same entry was actually inserted.
 +	 */
-+	if (use_high_work) {
-+		if (!iter)
-+			return;
-+		if (allow_spinning)
-+			schedule_work(&iter->high_work);
-+		else
-+			irq_work_queue(&iter->high_irq_work);
- 		return;
-+	}
-+
-+	if (iter) {
-+		/*
-+		 * Count the full batch so reclaim work and delay penalties scale
-+		 * with the pages charged by this task.
-+		 */
-+		current->memcg_nr_pages_over_high += nr_pages;
-+		set_notify_resume(current);
-+	}
+ 	if (err < 0 && err != -EBUSY)
+ 		return VM_FAULT_SIGBUS;
  
- 	/*
--	 * Reclaim is set up above to be called from the userland
--	 * return path. But also attempt synchronous reclaim to avoid
--	 * excessive overrun while the task is still inside the
--	 * kernel. If this is successful, the return path will see it
--	 * when it rechecks the overage and simply bail out.
-+	 * Earlier charges may have left high overage pending even if this charge
-+	 * found no new overage. Handle it now if this charge can block, to limit
-+	 * overrun while the task remains in the kernel.
- 	 */
- 	if (current->memcg_nr_pages_over_high > MEMCG_CHARGE_BATCH &&
- 	    gfpflags_allow_blocking(gfp_mask))
+@@ -3092,17 +3097,6 @@ vm_fault_t vmf_insert_mixed(struct vm_ar
+ EXPORT_SYMBOL(vmf_insert_mixed);
+ 
+ /*
+- *  If the insertion of PTE failed because someone else already added a
+- *  different entry in the mean time, we treat that as success as we assume
+- *  the same entry was actually inserted.
+- */
+-vm_fault_t vmf_insert_mixed_mkwrite(struct vm_area_struct *vma,
+-		unsigned long addr, unsigned long pfn)
+-{
+-	return __vm_insert_mixed(vma, addr, pfn, true);
+-}
+-
+-/*
+  * maps a range of physical memory into the requested pages. the old
+  * mappings are removed. any references to nonexistent pages results
+  * in null mappings (currently treated as "copy-on-access")
 _
 
-Patches currently in -mm which might be from shakeel.butt@linux.dev are
+Patches currently in -mm which might be from ekffu200098@gmail.com are
 
-memcg-move-memoryhigh-enforcement-out-of-try_charge_memcg.patch
-memcg-force-charges-from-reclaim-before-trying-the-limits.patch
-memcg-use-high_work-for-kernel-threads.patch
-memcg-use-high_work-for-remote-charges.patch
-memcg-simplify-high-limit-handling-after-a-charge.patch
+mm-memory-remove-unused-vmf_insert_mixed_mkwrite.patch
+mm-memory-remove-the-mkwrite-argument-from-__vm_insert_mixed.patch
+mm-memory-merge-__vm_insert_mixed-into-vmf_insert_mixed.patch
 
