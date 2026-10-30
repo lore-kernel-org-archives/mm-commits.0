@@ -1,51 +1,46 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793389153;
-	b=MkX7+25RL6ciIeQwfyctyfVvpb/GAWSnQJPtreRYK4WZi0xehnXa+LtCnshRWID6yosu
-	 aXmGjYQRBP0Sg8IfoNi2Ej8pAHfd11ec5ELRhsC4h60yLpZEg2ZssPXRXDTSLE00dLoWb
-	 CI6IEY6Lvw86QGwO820AINxiasCoOC1QNq+H8jWSQ0Uvim3w0IKZC6YmtsSeDMbU1tOe5
-	 yqayfTdhoRWJ6IIEu20NZqxIKIWQUwp32Tj0cQFbcSYX2XXxczouycbQ6EMsZKlZDyQsg
-	 66fWE6S2YWHUNmmH2WlWxTJEmRP33rz0NKLe9gQL7gSCy8GAJKP+btydg8mJBdMOOeQ==
+	t=1793392090;
+	b=pQebbq/nimVL0r8KDDhrI4Ifz1azoH8UMVGW5I2RGiFNu6QSpH8OuLwnBmWrJY8bhUPK
+	 X0560A8zERr6oDPyq1xc3U/WW+p7ywFh/rNhZAnxZEnkMBFV32Mm0xk0LzMghlmhG76mD
+	 MtwJyh1TXB8TRdHD1jOtpYA/NH/SOaFeFws9pktnlTT+nQP72lomnpjBMn6QP0dwYwcAM
+	 ij/D1JsBifbTgedO9cPOsSZnfUaneyYq48dahvyzk+TAOD2DP4zqiTQKqwWcnctQYfjmr
+	 +BdqtVAo1sBu+tAv9KWXXNIL+y+bqbc0m4t9LAx8ao2qQEBWaD1Fj75MYPSvTHY0t8w==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793389153;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793392090;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=8BJk9pc+P1NtbFXYvrTl+QgpTip90KOcBEjUGe+iYQ0=;
-	b=3cyEhL4N17xkKla8Qbm4ixn2qnvF15I+PDrFBoZO31TZqtnIOnVLBbpddLviWZ0hUWLI
-	 xm86qf9PcGq7PQKfhMvFwIASnVctdwkt93Og31aGvVIuA0rbv2jjOp9dk8DWicoVzTcJP
-	 +arB1yre4dfD/1nV7JV9oDnNRI1necSkrEqEOo2EdkoN2t+ETV4aPrNfAYG0VSEsj1k4j
-	 7gEPZj7/pOD3ELyJuMWFjZNsC9DQIHjGq4KFFaUHkxYuD9NLgV9R8yRMUO5uZQ6/Z6Ciq
-	 W6UxRkc5rXiZVIN/qh8mgy74GUgDwOF3HNBZuERTN+icVXzVQ4mngcyAwZI0Ib+ce0w==
+	bh=RW+A8KUkPUW8u4ItKZ+MDfriOpwChwBjtfOxkA6GnU0=;
+	b=QNXOAiSRDhv/bMkACcQSRLg2MJhO1owNLtWW/4BWN8QOa9JiFoxCg7sE9IYkbY1qaWCv
+	 c9pROuH/Byzq6wo784XBVMvhVAFQRlVcspoxTkfd/tZC2D3MYB0FH5LPM1M00kBG1Qt+q
+	 0mQYRLyFoi/uGf5crTPS2XKui5yFq/TLNTsRXF24xy91BzQrKNXd34l1Rr8ZODU/0wQYF
+	 KhqNr/XmJ+Etk3RxcdNYMqEPF2PtwrNdEIN+P6PPNXpTlHiv2nIhvDC8PJ3N9wfe2PeyP
+	 nZ/bXpX+aU0S0TMe7HHgajrmlX2XWYDop4/CDZqsyn6/uuSrTiZVi7DpI7g9W8fYWKg==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=FMfoMl6H;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=SZiS6f0G;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BFBA7606A329
-	for <mm-commits@vger.kernel.org>; Fri, 30 Oct 2026 19:39:12 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1E2E6606A31A
+	for <mm-commits@vger.kernel.org>; Fri, 30 Oct 2026 20:28:09 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=FMfoMl6H
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 364071F00A02;
-	Fri, 30 Oct 2026 19:39:12 +0000 (UTC)
+	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=SZiS6f0G
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 256341F0093A;
+	Fri, 30 Oct 2026 20:28:09 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1793389152;
-	bh=8BJk9pc+P1NtbFXYvrTl+QgpTip90KOcBEjUGe+iYQ0=;
+	d=linux-foundation.org; s=korg; t=1793392089;
+	bh=RW+A8KUkPUW8u4ItKZ+MDfriOpwChwBjtfOxkA6GnU0=;
 	h=Date:To:From:Subject;
-	b=FMfoMl6HjA85GpQZhHTphPFvEVgp1k8Y2JX+UwY/SQLBcz/xQm2qnkUKusmVBwaSe
-	 mtqhNfp1T6SwnPx3MPup6Gtm/WAQlxy4Qv9mU1iGrgSSSm2kE4Q7336UP5gXV7SOxQ
-	 l5QvIV919eVAtDqVN2IG6+TrVvIKbOkzTW1PE9eE=
-Date: Fri, 30 Oct 2026 12:39:11 -0700
-To: mm-commits@vger.kernel.org,ysato@users.sourceforge.jp,will@kernel.org,
-	vishal.moola@gmail.com,osalvador@suse.de,maddy@linux.ibm.com,
-	glaubitz@physik.fu-berlin.de,gerald.schaefer@linux.ibm.com,
-	geert@linux-m68k.org,david@kernel.org,davem@davemloft.net,
-	dave.hansen@linux.intel.com,dalias@libc.org,arnd@arndb.de,apopple@nvidia.com,
-	aneesh.kumar@kernel.org,andreas@gaisler.com,agordeev@linux.ibm.com,
-	muchun.song@linux.dev,akpm@linux-foundation.org
+	b=SZiS6f0G/XDy1cz7vBGEcduR4uclr32V7Q4IFBU5+IJmKOBnM9WyeuTnOprBw8+pE
+	 zqrXes9fIi80jAUqtAn6OkrXrk8/3oysBzbAri0Ai+NG1qxsp1RdfYTpFhGIpViLj5
+	 HwgnOBSSKzzaELKPjXyXg6XFAgZLE2i8THSewRkg=
+Date: Fri, 30 Oct 2026 13:28:08 -0700
+To: mm-commits@vger.kernel.org,richard120310@gmail.com,
+	handyhandyman.adam@gmail.com,nickolai@csail.mit.edu,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-remove-redundant-pagetable_dtor-calls.patch added to mm-new branch
-Message-Id: <20261030193912.364071F00A02@smtp.kernel.org>
+Subject: + lib-plist-add-a-plist_test-case-for-plist_requeue-on-the-last-priority-bucket.patch added to mm-nonmm-unstable branch
+Message-Id: <20261030202809.256341F0093A@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -57,26 +52,15 @@ Precedence: list
 
 
 The patch titled
-     Subject: mm: remove redundant pagetable_dtor() calls
-has been added to the -mm mm-new branch.  Its filename is
-     mm-remove-redundant-pagetable_dtor-calls.patch
+     Subject: lib/plist: add a plist_test case for plist_requeue() on the last priority bucket
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     lib-plist-add-a-plist_test-case-for-plist_requeue-on-the-last-priority-bucket.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-remove-redundant-pagetable_dtor-calls.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/lib-plist-add-a-plist_test-case-for-plist_requeue-on-the-last-priority-bucket.patch
 
-This patch will later appear in the mm-new branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Note, mm-new is a provisional staging ground for work-in-progress
-patches, and acceptance into mm-new is a notification for others take
-notice and to finish up reviews.  Please do not hesitate to respond to
-review feedback and post updated versions to replace or incrementally
-fixup patches in mm-new.
-
-The mm-new branch of mm.git is not included in linux-next
-
-If a few days of testing in mm-new is successful, the patch will me moved
-into mm.git's mm-unstable branch, which is included in linux-next
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -91,165 +75,86 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Muchun Song <muchun.song@linux.dev>
-Subject: mm: remove redundant pagetable_dtor() calls
-Date: Fri, 30 Oct 2026 16:38:00 +0800
+From: Nickolai Zeldovich <nickolai@csail.mit.edu>
+Subject: lib/plist: add a plist_test case for plist_requeue() on the last priority bucket
+Date: Sun, 11 Oct 2026 07:51:34 -0400
 
-pagetable_free() now runs pagetable_dtor() for constructed page tables. 
-Calling the destructor immediately before freeing the page table therefore
-duplicates the lifecycle handling at each caller.
+The plist_requeue() shortcut inserted the node at the head of the list
+when the node was the first of the last priority bucket and had a
+successor of the same priority, with an earlier bucket present (fixed by
+43c91b152243 "lib/plist: fix plist_requeue() corrupting order in the last
+bucket").
 
-Remove the redundant calls and let pagetable_free() handle the destructor.
-No functional change is intended.
+The CONFIG_DEBUG_PLIST self-test did not catch it: it only requeues nodes
+it has just added, which are always the last of their bucket, so
+plist_requeue() returned early every time.
 
-Link: https://lore.kernel.org/20261030083800.599152-3-songmuchun@bytedance.com
-Signed-off-by: Muchun Song <muchun.song@linux.dev>
+Add a deterministic case for the failing shape: A(1) B(2) C(2), requeue B.
+The expected result is A(1) C(2) B(2), with B at the end of the list; the
+broken shortcut produced B(2) A(1) C(2).  Check it with a WARN() rather
+than a BUG_ON(), and skip plist_test_check() when the warning fires, since
+its BUG_ON()s would stop the boot on the misordered list; the node_list
+and prio_list links of the result are still verified by plist_test_check()
+when the order is right.
+
+Boot-tested on QEMU virt with a riscv64 defconfig kernel plus
+CONFIG_DEBUG_PLIST=y, built with LLVM=1.  With the fix applied the test
+passes and the boot proceeds.  With the fix reverted the warning fires at
+boot and the boot proceeds:
+
+  [    0.864761] start plist test
+  [    0.871849] ------------[ cut here ]------------
+  [    0.871905] plist_requeue() put the node in front of the list
+  [    0.872921] WARNING: lib/plist.c:295 at plist_test+0x33a/0x342, CPU#0: swapper/0/1
+  ...
+  [    0.885968] ---[ end trace 0000000000000000 ]---
+  [    0.887060] end plist test
+
+Link: https://lore.kernel.org/20261011115136.767838-1-nickolai@csail.mit.edu
+Signed-off-by: Nickolai Zeldovich <nickolai@csail.mit.edu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Acked-by: Geert Uytterhoeven <geert@linux-m68k.org> # m68k
-Acked-by: Vishal Moola (Fractile) <vishal.moola@gmail.com>
-Cc: David Hildenbrand <david@kernel.org>
-Cc: Oscar Salvador <osalvador@suse.de>
-Cc: Alistair Popple <apopple@nvidia.com>
-Cc: Will Deacon <will@kernel.org>
-Cc: Aneesh Kumar K . V <aneesh.kumar@kernel.org>
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: Madhavan Srinivasan <maddy@linux.ibm.com>
-Cc: Alexander Gordeev <agordeev@linux.ibm.com>
-Cc: Gerald Schaefer <gerald.schaefer@linux.ibm.com>
-Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
-Cc: Rich Felker <dalias@libc.org>
-Cc: John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>
-Cc: David S. Miller <davem@davemloft.net>
-Cc: Andreas Larsson <andreas@gaisler.com>
-Cc: Dave Hansen <dave.hansen@linux.intel.com>
+Cc: Adam Harshbarger <handyhandyman.adam@gmail.com>
+Cc: I Hsin Cheng <richard120310@gmail.com>
 ---
 
- arch/m68k/include/asm/mcf_pgalloc.h    |    1 -
- arch/powerpc/mm/book3s64/mmu_context.c |    1 -
- arch/powerpc/mm/book3s64/pgtable.c     |    1 -
- arch/powerpc/mm/pgtable-frag.c         |    2 --
- arch/s390/include/asm/pgalloc.h        |    4 ----
- arch/sparc/mm/init_64.c                |    1 -
- arch/x86/mm/pgtable.c                  |    1 -
- 7 files changed, 11 deletions(-)
+ lib/plist.c |   21 +++++++++++++++++++++
+ 1 file changed, 21 insertions(+)
 
---- a/arch/m68k/include/asm/mcf_pgalloc.h~mm-remove-redundant-pagetable_dtor-calls
-+++ a/arch/m68k/include/asm/mcf_pgalloc.h
-@@ -62,7 +62,6 @@ static inline void pte_free(struct mm_st
- {
- 	struct ptdesc *ptdesc = virt_to_ptdesc(pgtable);
- 
--	pagetable_dtor(ptdesc);
- 	pagetable_free(ptdesc);
- }
- 
---- a/arch/powerpc/mm/book3s64/mmu_context.c~mm-remove-redundant-pagetable_dtor-calls
-+++ a/arch/powerpc/mm/book3s64/mmu_context.c
-@@ -249,7 +249,6 @@ static void pmd_frag_destroy(void *pmd_f
- 	count = ((unsigned long)pmd_frag & ~PAGE_MASK) >> PMD_FRAG_SIZE_SHIFT;
- 	/* We allow PTE_FRAG_NR fragments from a PTE page */
- 	if (atomic_sub_and_test(PMD_FRAG_NR - count, &ptdesc->pt_frag_refcount)) {
--		pagetable_dtor(ptdesc);
- 		pagetable_free(ptdesc);
+--- a/lib/plist.c~lib-plist-add-a-plist_test-case-for-plist_requeue-on-the-last-priority-bucket
++++ a/lib/plist.c
+@@ -283,6 +283,27 @@ static int  __init plist_test(void)
+ 		plist_test_check(nr_expect);
  	}
- }
---- a/arch/powerpc/mm/book3s64/pgtable.c~mm-remove-redundant-pagetable_dtor-calls
-+++ a/arch/powerpc/mm/book3s64/pgtable.c
-@@ -450,7 +450,6 @@ void pmd_fragment_free(unsigned long *pm
  
- 	BUG_ON(atomic_read(&ptdesc->pt_frag_refcount) <= 0);
- 	if (atomic_dec_and_test(&ptdesc->pt_frag_refcount)) {
--		pagetable_dtor(ptdesc);
- 		pagetable_free(ptdesc);
- 	}
- }
---- a/arch/powerpc/mm/pgtable-frag.c~mm-remove-redundant-pagetable_dtor-calls
-+++ a/arch/powerpc/mm/pgtable-frag.c
-@@ -26,7 +26,6 @@ void pte_frag_destroy(void *pte_frag)
- 	/* We allow PTE_FRAG_NR fragments from a PTE page */
- 	if (atomic_sub_and_test(PTE_FRAG_NR - count, &ptdesc->pt_frag_refcount)) {
- 		folio_clear_active(ptdesc_folio(ptdesc));
--		pagetable_dtor(ptdesc);
- 		pagetable_free(ptdesc);
- 	}
- }
-@@ -110,7 +109,6 @@ static void pte_free_now(struct rcu_head
- 	struct ptdesc *ptdesc;
++	/*
++	 * Requeue a node which is the first of the last priority run and has
++	 * a successor of the same priority, with an earlier run present: the
++	 * shortcut in plist_requeue() must append it at the end of the list,
++	 * not in front of the first run.  The random test above never
++	 * exercises this, since it only requeues nodes it has just added,
++	 * which are always the last of their run.  On failure warn and skip
++	 * plist_test_check(), which would BUG_ON() the misordered list.
++	 */
++	plist_head_init(&test_head);
++	for (i = 0; i < 3; i++) {
++		plist_node_init(test_node + i, i ? 2 : 1);
++		plist_add(test_node + i, &test_head);
++	}
++	plist_test_requeue(test_node + 1);
++	if (!WARN(plist_last(&test_head) != test_node + 1,
++		  "plist_requeue() put the node in front of the list\n"))
++		plist_test_check(3);
++	for (i = 0; i < 3; i++)
++		plist_del(test_node + i, &test_head);
++
+ 	printk(KERN_DEBUG "end plist test\n");
  
- 	ptdesc = container_of(head, struct ptdesc, pt_rcu_head);
--	pagetable_dtor(ptdesc);
- 	pagetable_free(ptdesc);
- }
- 
---- a/arch/s390/include/asm/pgalloc.h~mm-remove-redundant-pagetable_dtor-calls
-+++ a/arch/s390/include/asm/pgalloc.h
-@@ -66,7 +66,6 @@ static inline void p4d_free(struct mm_st
- 	if (mm_p4d_folded(mm))
- 		return;
- 
--	pagetable_dtor(virt_to_ptdesc(p4d));
- 	crst_table_free(mm, (unsigned long *) p4d);
- }
- 
-@@ -88,7 +87,6 @@ static inline void pud_free(struct mm_st
- 	if (mm_pud_folded(mm))
- 		return;
- 
--	pagetable_dtor(virt_to_ptdesc(pud));
- 	crst_table_free(mm, (unsigned long *) pud);
- }
- 
-@@ -111,7 +109,6 @@ static inline void pmd_free(struct mm_st
- {
- 	if (mm_pmd_folded(mm))
- 		return;
--	pagetable_dtor(virt_to_ptdesc(pmd));
- 	crst_table_free(mm, (unsigned long *) pmd);
- }
- 
-@@ -144,7 +141,6 @@ static inline pgd_t *pgd_alloc_noprof(st
- 
- static inline void pgd_free(struct mm_struct *mm, pgd_t *pgd)
- {
--	pagetable_dtor(virt_to_ptdesc(pgd));
- 	crst_table_free(mm, (unsigned long *) pgd);
- }
- 
---- a/arch/sparc/mm/init_64.c~mm-remove-redundant-pagetable_dtor-calls
-+++ a/arch/sparc/mm/init_64.c
-@@ -2840,7 +2840,6 @@ static void __pte_free(pgtable_t pte)
- {
- 	struct ptdesc *ptdesc = virt_to_ptdesc(pte);
- 
--	pagetable_dtor(ptdesc);
- 	pagetable_free(ptdesc);
- }
- 
---- a/arch/x86/mm/pgtable.c~mm-remove-redundant-pagetable_dtor-calls
-+++ a/arch/x86/mm/pgtable.c
-@@ -156,7 +156,6 @@ static void free_pmds(struct mm_struct *
- 		if (pmds[i]) {
- 			ptdesc = virt_to_ptdesc(pmds[i]);
- 
--			pagetable_dtor(ptdesc);
- 			pagetable_free(ptdesc);
- 			mm_dec_nr_pmds(mm);
- 		}
+ 	/* Worst case test for plist_add() */
 _
 
-Patches currently in -mm which might be from muchun.song@linux.dev are
+Patches currently in -mm which might be from nickolai@csail.mit.edu are
 
-riscv-mm-fix-hotplug-page-table-destructor-handling.patch
-riscv-mm-fix-missing-destructor-for-hotplug-pud-tables.patch
-mm-fix-missing-page-table-destructor-in-pagetable_free.patch
-arm64-mm-fix-destructor-for-unconstructed-hotplug-page-tables.patch
-mm-sparse-vmemmap-map-shared-vmemmap-tail-pages-as-read-only.patch
-powerpc-mm-map-shared-vmemmap-tail-pages-as-read-only.patch
-mm-hugetlb_vmemmap-remove-vmemmap_wrprotect_hvo.patch
-mm-hugetlb_vmemmap-remove-hugetlb_vmemmap_optimize_bootmem_folios.patch
-mm-generalize-kernel-pte-table-allocation.patch
-mm-generalize-pmd-page-table-allocation.patch
-mm-generalize-pud-page-table-allocation.patch
-mm-remove-pagetable_dtor_free.patch
-mm-remove-redundant-pagetable_dtor-calls.patch
+xarray-clear-the-new-heads-parent-before-freeing-the-old-head.patch
+panic-zero-the-dynamically-allocated-taint-buffer.patch
+lib-plist-add-a-plist_test-case-for-plist_requeue-on-the-last-priority-bucket.patch
 
