@@ -1,47 +1,47 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793329355;
-	b=hMAnCLGfsoOp5lFa+xY+02Y7PoegIvObTEI00DUH2kXcaXJxuDXyPgt2WwrrzzsbQG3I
-	 SA1tk1crqRK7SiwZi0T3HqggbQ4zVtaYKl1cvTl1CnwYI/dSGefvoeHKHtB1xhFUY/I9T
-	 6VlCPIR1WKofXzJVPQgifgZygpMigotIHbEBvci5TPEybkLwV3GzLt3xaNmfAOFmMOT5v
-	 N01T+NpPV06hKDvZ/COzSatO3qpOV3Causide1R+lqhgn/FITlHWYxUUcgzuMmqhGVhhl
-	 QafjXbwTL+54i+HOLUmKHuVXcopjn8STQHggo9EI5WbpnwSTfTsTDp0wDrTqU39QXpw==
+	t=1793329357;
+	b=UXfpWJTY+ubUyvx7AsG/NMpMJOqFhFQTq7oRSWfwe+TnahtRaKxf33C/LKNcNwQw/UcA
+	 m1JznF2ShXq4/X7/h59cOdmtIve817Xordker0HjroIiZsVCceNsBrWc1X3b2o/TRxmIe
+	 9GPRgLFt/5PPxj9+AKFrLah+j2yFnBfLF++/0jHUWjD8E4S3chdYsy22FWBKy/RS6g8kf
+	 KjAdngBSaVjSA29zhR6IX9bKml+fIglSrrkE21w+FbXHgQeKdz8ni+EL4H2VtdHzVPNmQ
+	 E+Fer9wxQHGf40sMxGVGfnIbp0Pt7ZhGEh7EnLpzJRCL/+qX59N4Q3fg+VRXeCpTCqA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793329355;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793329357;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=U+xuNtLj5SHoCFk0bBviHDBi0KSaW0HV6piGM7A36qk=;
-	b=AFdqigxrGUY4lG4RNrhblSnKTeiSfJaNunv9BIns/Dxxesgg2KkuuHp8YMU8xX2dbISR
-	 yzy1DqIjfwFmgeG2rSDU3MgIBkeBOSDNseQ9XORJ1gSnH9zNHHPg4HXKCmb/CLzm1sUgz
-	 qkGHsOfP/2qEbFRSAZrl5kfD/wnOx41IerL1Kkt103/w9Ra0n0RVigL74JC5hZhzsZJ4E
-	 8+TiRN8EpeyZYdCNeW8tAUoaBly7Xr8mNLCEmrDS3/SlH03QgpA3PmGVKrFbeVBFXjYoe
-	 u4p1tWrK8aUt8opFiwW544Vggq4MtBMGlfgRfg7mZMhXb1/gV+4tokJmxx8bmRdSQ/Q==
+	bh=/xoooYHKS9tTW5jNVNkKCIse1nuB6WPBkUfzp3ldH5Q=;
+	b=Usc84bi065Q+9Ya0tLNv7+U7U+sYVAW8b6UAIx3ROPigWDmBLCziDsnC7mGgiEREMnJ+
+	 nSVaOR/2Q0uFTWwz9vq+z0Dkw/c3Rek+FDUxJCPTYorI8/sUQvLkSVd8ivZOupTB0b7Gr
+	 nqRiclzYr5OmtLhGnp9Nuckd2egKxr6q8410oD6+bIMN5Bzybx6K6U7w0csPmgxuT1ThU
+	 imOJ8stYrMTwGpVU+C+7nkiK8gqubXBtiUs1AB+eitqkkbKZhXrNLymOTPDif8/07240h
+	 uLBFmOibhtJw/mznggf2ATcCSOZROG9uWb4mt9W3FzwRTUFo2ZmCMOlrkh2PLkTnBkg==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=iRZLTqcU;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=RWrlT1qi;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 76D95606A322
-	for <mm-commits@vger.kernel.org>; Fri, 30 Oct 2026 03:02:35 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5D303606A31C
+	for <mm-commits@vger.kernel.org>; Fri, 30 Oct 2026 03:02:37 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=iRZLTqcU
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 430641F00A15;
-	Fri, 30 Oct 2026 03:02:35 +0000 (UTC)
+	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=RWrlT1qi
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 28B0F1F000C1;
+	Fri, 30 Oct 2026 03:02:37 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1793329355;
-	bh=U+xuNtLj5SHoCFk0bBviHDBi0KSaW0HV6piGM7A36qk=;
+	d=linux-foundation.org; s=korg; t=1793329357;
+	bh=/xoooYHKS9tTW5jNVNkKCIse1nuB6WPBkUfzp3ldH5Q=;
 	h=Date:To:From:Subject;
-	b=iRZLTqcU+2A2trTCKzWSckKBanNws9oDgyNAFBj1K+b9LD3Mmd7AW+kd412aa/bIp
-	 J39QnINCI5wlsk0A5Pdnr2Vs4cyJ6rgXs+iAdgzvahOjUXVXWg48WLaLP6rDHpSZX0
-	 8uE7zuOJI12SkLAnTTeuyMcG1QDb9Qr2F//4PEQI=
-Date: Thu, 29 Oct 2026 20:02:34 -0700
+	b=RWrlT1qiWcL9RsGqtomluT7uY1UvXTWD+mhQSdbuTDrI64fOs4lKySu+S2+wPFTBX
+	 kv9JdHynp1UBHR6FzY0q0kfPDUNZPY/rU9kI5VbG26vWIILwM8PhWcD1V9ZluWlPdU
+	 8jtHF0QVcUw+XagSayzWkHYr82RrKX1NtJVnZmHc=
+Date: Thu, 29 Oct 2026 20:02:36 -0700
 To: mm-commits@vger.kernel.org,zhangbo56@xiaomi.com,zhangbo0325@gmail.com,
 	richardycc@google.com,minchan@kernel.org,hdanton@sina.com,bgeffon@google.com,
 	baohua@kernel.org,senozhatsky@chromium.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + zram-lz4hc-use-lz4_decompress_safe_usingdict.patch added to mm-nonmm-unstable branch
-Message-Id: <20261030030235.430641F00A15@smtp.kernel.org>
+Subject: + zram-zstd-do-not-use-kvzalloc-for-zstd-allocations.patch added to mm-nonmm-unstable branch
+Message-Id: <20261030030237.28B0F1F000C1@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -53,12 +53,12 @@ Precedence: list
 
 
 The patch titled
-     Subject: zram: lz4hc: use LZ4_decompress_safe_usingDict()
+     Subject: zram: zstd: do not use kvzalloc() for zstd allocations
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     zram-lz4hc-use-lz4_decompress_safe_usingdict.patch
+     zram-zstd-do-not-use-kvzalloc-for-zstd-allocations.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/zram-lz4hc-use-lz4_decompress_safe_usingdict.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/zram-zstd-do-not-use-kvzalloc-for-zstd-allocations.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -77,19 +77,29 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Sergey Senozhatsky <senozhatsky@chromium.org>
-Subject: zram: lz4hc: use LZ4_decompress_safe_usingDict()
-Date: Sun, 25 Oct 2026 11:18:25 +0900
+Subject: zram: zstd: do not use kvzalloc() for zstd allocations
+Date: Sun, 25 Oct 2026 11:18:26 +0900
 
-Use LZ4_decompress_safe_usingDict() in lz4hc_decompress() so we don't
-need per-CPU LZ4_streamDecode_t anymore.  This also lets us drop
-struct lz4hc_ctx and keep compression workspace in ctx->context, just
-like backend_lz4 does.
+When a dictionary is configured, zstd allocates all of its memory (C/D
+dictionaries, compression and decompression contexts and compression
+workspaces) via zstd_custom_alloc().  zstd_custom_alloc() uses
+kvzalloc(), which falls back to vmalloc() only when kmalloc() fails,
+and kmalloc() rounds such sizes up to a power-of-two number of pages.
 
-Using vmalloc(LZ4HC_MEM_COMPRESS) instead of kzalloc() for cstrm when a
-dictionary is configured also avoids power-of-2 page rounding (~256 KB
-rounded up to 512 KB), saving ~252 KB per CPU.
+For example, on x86_64 with a 110K dictionary, switching from
+kvzalloc() to __vmalloc() reduces allocations from:
+- CDict (level 3):            512 KB -> 400 KB
+- CDict (levels 12+):        2048 KB -> 1552 KB
+- DCtx (per-CPU):             128 KB -> 96 KB
+- CCtx workspace (level 3):   128 KB -> 84 KB (per-CPU)
+- CCtx workspace (level 14+): 1024 KB -> 764 KB (per-CPU)
 
-Link: https://lore.kernel.org/20261025021839.1542805-10-senozhatsky@chromium.org
+Use __vmalloc() for allocations larger than PAGE_SIZE (and kzalloc()
+for smaller ones), which is also how zram allocates zstd workspaces
+when no dictionary is configured.  zstd_custom_free() already uses
+kvfree(), which handles both.
+
+Link: https://lore.kernel.org/20261025021839.1542805-11-senozhatsky@chromium.org
 Signed-off-by: Sergey Senozhatsky <senozhatsky@chromium.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 Acked-by: Brian Geffon <bgeffon@google.com>
@@ -101,126 +111,30 @@ Cc: Bo Zhang <zhangbo56@xiaomi.com>
 Cc: Hillf Danton <hdanton@sina.com>
 ---
 
- drivers/block/zram/backend_lz4hc.c |   70 ++++-----------------------
- 1 file changed, 11 insertions(+), 59 deletions(-)
+ drivers/block/zram/backend_zstd.c |    9 ++++++++-
+ 1 file changed, 8 insertions(+), 1 deletion(-)
 
---- a/drivers/block/zram/backend_lz4hc.c~zram-lz4hc-use-lz4_decompress_safe_usingdict
-+++ a/drivers/block/zram/backend_lz4hc.c
-@@ -4,18 +4,10 @@
- 
- #include <linux/kernel.h>
- #include <linux/lz4.h>
--#include <linux/slab.h>
- #include <linux/vmalloc.h>
- 
- #include "backend_lz4hc.h"
- 
--struct lz4hc_ctx {
--	void *mem;
--
--	LZ4_streamDecode_t *dstrm;
--	LZ4_streamHC_t *cstrm;
--};
--
- static void lz4hc_release_params(struct zcomp_params *params)
+--- a/drivers/block/zram/backend_zstd.c~zram-zstd-do-not-use-kvzalloc-for-zstd-allocations
++++ a/drivers/block/zram/backend_zstd.c
+@@ -26,10 +26,17 @@ struct zstd_params {
+ /*
+  * For C/D dictionaries we need to provide zstd with zstd_custom_mem,
+  * which zstd uses internally to allocate/free memory when needed.
++ *
++ * zstd allocations (C/D dictionaries and contexts) are large and
++ * long-lived.  Don't use kvzalloc() for them: when enough physically
++ * contiguous memory is available it serves them from kmalloc(), which
++ * rounds them up to a power-of-two number of pages.
+  */
+ static void *zstd_custom_alloc(void *opaque, size_t size)
  {
- 	LZ4_streamHC_t *dict_stream = params->drv_data;
-@@ -65,61 +57,32 @@ static int lz4hc_setup_params(struct zco
- 
- static void lz4hc_destroy(struct zcomp_ctx *ctx)
- {
--	struct lz4hc_ctx *zctx = ctx->context;
--
--	if (!zctx)
--		return;
--
--	kfree(zctx->dstrm);
--	kfree(zctx->cstrm);
--	vfree(zctx->mem);
--	kfree(zctx);
-+	vfree(ctx->context);
+-	return kvzalloc(size, GFP_NOIO | __GFP_NOWARN);
++	if (size <= PAGE_SIZE)
++		return kzalloc(size, GFP_NOIO | __GFP_NOWARN);
++	return __vmalloc(size, GFP_NOIO | __GFP_NOWARN | __GFP_ZERO);
  }
  
- static int lz4hc_create(struct zcomp_params *params, struct zcomp_ctx *ctx)
- {
--	struct lz4hc_ctx *zctx;
-+	BUILD_BUG_ON(sizeof(LZ4_streamHC_t) != LZ4HC_MEM_COMPRESS);
- 
--	zctx = kzalloc_obj(*zctx);
--	if (!zctx)
-+	ctx->context = vmalloc(LZ4HC_MEM_COMPRESS);
-+	if (!ctx->context)
- 		return -ENOMEM;
--
--	ctx->context = zctx;
--	if (params->dict_sz == 0) {
--		zctx->mem = vmalloc(LZ4HC_MEM_COMPRESS);
--		if (!zctx->mem)
--			goto error;
--	} else {
--		zctx->dstrm = kzalloc_obj(*zctx->dstrm);
--		if (!zctx->dstrm)
--			goto error;
--
--		zctx->cstrm = kzalloc_obj(*zctx->cstrm);
--		if (!zctx->cstrm)
--			goto error;
--	}
--
- 	return 0;
--
--error:
--	lz4hc_destroy(ctx);
--	return -EINVAL;
- }
- 
- static int lz4hc_compress(struct zcomp_params *params, struct zcomp_ctx *ctx,
- 			  struct zcomp_req *req)
- {
--	struct lz4hc_ctx *zctx = ctx->context;
- 	int ret;
- 
--	if (!zctx->cstrm) {
-+	if (!params->drv_data) {
- 		ret = LZ4_compress_HC(req->src, req->dst, req->src_len,
- 				      req->dst_len, params->level,
--				      zctx->mem);
-+				      ctx->context);
- 	} else {
- 		/* Cstrm needs to be reset */
--		memcpy(zctx->cstrm, params->drv_data, sizeof(*zctx->cstrm));
--		ret = LZ4_compress_HC_continue(zctx->cstrm, req->src, req->dst,
-+		memcpy(ctx->context, params->drv_data, sizeof(LZ4_streamHC_t));
-+		ret = LZ4_compress_HC_continue(ctx->context, req->src, req->dst,
- 					       req->src_len, req->dst_len);
- 	}
- 	if (!ret)
-@@ -131,22 +94,11 @@ static int lz4hc_compress(struct zcomp_p
- static int lz4hc_decompress(struct zcomp_params *params, struct zcomp_ctx *ctx,
- 			    struct zcomp_req *req)
- {
--	struct lz4hc_ctx *zctx = ctx->context;
- 	int ret;
- 
--	if (!zctx->dstrm) {
--		ret = LZ4_decompress_safe(req->src, req->dst, req->src_len,
--					  req->dst_len);
--	} else {
--		/* Dstrm needs to be reset */
--		ret = LZ4_setStreamDecode(zctx->dstrm, params->dict,
--					  params->dict_sz);
--		if (!ret)
--			return -EINVAL;
--		ret = LZ4_decompress_safe_continue(zctx->dstrm, req->src,
--						   req->dst, req->src_len,
--						   req->dst_len);
--	}
-+	ret = LZ4_decompress_safe_usingDict(req->src, req->dst, req->src_len,
-+					    req->dst_len, params->dict,
-+					    params->dict_sz);
- 	if (ret < 0)
- 		return -EINVAL;
- 	return 0;
+ static void zstd_custom_free(void *opaque, void *address)
 _
 
 Patches currently in -mm which might be from senozhatsky@chromium.org are
