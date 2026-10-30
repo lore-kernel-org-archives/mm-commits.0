@@ -1,47 +1,48 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793329375;
-	b=E4Y/jDfXT6X1sLy5VQfsf8W5zvoEgsgZsp0h5HwmwM3HRVKKZavPorxlPaBxexThdVNG
-	 E5IQBblFw+yFBUV7DXRTUtYu2Ty7+9I9gtS4zc7JvB/8x/+3Nr9zNENTshpNgllyHjAsF
-	 HFIAdQIum1DQCCE7ZLP7mrKjrZzacZkEgpogvrXuhysAMt3q+zVY1WOmkrns2p5Bv3olt
-	 8K2bWyRy8mRyxwNb3EycL6w5H12DVMQWUYeP4s/0gwOtMKrlKAhXMJFeWE5q+et7bTqtJ
-	 JzTvNJheTeIXI4PehT443DJaOmXMwwZL3f8wibdS6aZSfE5h7uIEKmRJYDg728SX14w==
+	t=1793331990;
+	b=PsGJdU5ENwVyz+cZPXx6hhFZUnLhOsbVb4OzXb3KV2acD994n+RCGwKRg8+vsWemfhdT
+	 ZYg6XflSmY0bBJOLEM4PJTfN+epZJRwemJ/dciBe0XGLdnnlOjb+GSmx0CD1XsMWYNehA
+	 9DzmrSlxgtejc2LaLCpAc3O/9XXXaiCaAJUOZ61UqvE+j/afD++ncaV98X+OWs1VZKB0E
+	 LkqMwuZ5X2XvX4tC/euestPVMWjHk649hRfdgMhYuz5xiVsmiYgsJqKAGLJpfUJTFJ+N1
+	 7JGZEJxZZuk1TBCvReVEAsJyayA9sqhnVrAYKV1eLSe1+Wk5oYPXADG8/TM41Yo8eBw==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793329375;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793331990;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=9dRDoe1l9JKGOZU8Q9n9o2Mltlkq2f5MYRjSf2cNXMk=;
-	b=Hm74cxDb88+lCPwZ1PTF6wjEzciKmEO04FRxTo85EzBFAWmSNeXgHalcZHzv6CooFVcL
-	 nGenjmDzKxni93hSecBedIsAzMhaCLWOREphQJNVOLzRxbcM+1rZlDMj5WhWW/1Xeabi5
-	 UeYE58st/eXY2xHtsgBcdldVFKiGTSPDvflt63PZiTqYauqGE+msM5RUKiFxUMyJwHvpp
-	 A8t/kpg0dIqIgrJ/+bZK/eSN6U1pczyYAkQhN4I3fKq0s2zelgsZ9cjL7w0VjPh7ncmeC
-	 uuTX8D5SQeLpEuhspC2/IYOtlKZbxnpuQklFWfLNIbwXYBJrGvU4UhBYCyrAIYqge8Q==
+	bh=XGrD+yg6mnxsOK/dzhNkIDylpB+E2781oqrZCbSbBZU=;
+	b=bN/lNzGioe7dfHKhJiutBrE6tUolp4YWOwEfwD2B6ioDprdUiBcPLL0YA+BZRYGy8KYe
+	 QKpIMVqtppqyYswCW4fk/EH2b0B8dZ3yZe9uP6nhBTlhHAHmAoTnUVbSBghKt5o3ov0/Y
+	 a8f5g421BP0C5b2H0g4Qa9sbRSkeCeaOn7KIsv2+NKIt+qe7H4HOEPmCdouwm6DsWmESh
+	 D7y61bYTv3x4D2cylG7ZpHKux0LlyjdqZ4Rn1jQKOvipF7qUk2q79sfQPpT34zcKYZ5Nd
+	 jJXqB3ThxaYCJ1GmaPvAw2PJpu6ibNUMz1zCtJnlWNreYjA6VEmDrM1QOG6IwZfD5XQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=dc8FGT+R;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=cXSJJHpf;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2ED6A606A31C
-	for <mm-commits@vger.kernel.org>; Fri, 30 Oct 2026 03:02:54 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BF58B606A31A
+	for <mm-commits@vger.kernel.org>; Fri, 30 Oct 2026 03:46:29 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=dc8FGT+R
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A16FE1F000C1;
-	Fri, 30 Oct 2026 03:02:54 +0000 (UTC)
+	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=cXSJJHpf
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2F26E1F000C1;
+	Fri, 30 Oct 2026 03:46:29 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1793329374;
-	bh=9dRDoe1l9JKGOZU8Q9n9o2Mltlkq2f5MYRjSf2cNXMk=;
+	d=linux-foundation.org; s=korg; t=1793331989;
+	bh=XGrD+yg6mnxsOK/dzhNkIDylpB+E2781oqrZCbSbBZU=;
 	h=Date:To:From:Subject;
-	b=dc8FGT+RznnqEMMHGKxoQ+6+QA2D7IYVtXBcXa1O94udqDxXOOoSKitCcZjyLaVjZ
-	 i3tBjBYQsmhcxqOstkH8TDkVNdaMXHjpwWxFtEtW1/gM2oPRyO5bzObItpQ9jYaZl9
-	 OaSa6rQg9p/Kj6PTNi+xHipLQCRJpN66hpRZERos=
-Date: Thu, 29 Oct 2026 20:02:54 -0700
-To: mm-commits@vger.kernel.org,zhangbo56@xiaomi.com,zhangbo0325@gmail.com,
-	richardycc@google.com,minchan@kernel.org,hdanton@sina.com,bgeffon@google.com,
-	baohua@kernel.org,senozhatsky@chromium.org,akpm@linux-foundation.org
+	b=cXSJJHpfXSV3fDQvKUcdIWV/b5egVwIM82lqBbiaQHfutn+VOdgvT8o8Aj5iuN3TR
+	 J2m4/zlCP2dqGUuCncZju6k7r8bz79qt5npDvTbYSXo/YyYyy8vcTptDLkNtTdpRTA
+	 ZkCBkI38QrNxnVtJ02tedLi3vkeAbPaV4hyixs7M=
+Date: Thu, 29 Oct 2026 20:46:28 -0700
+To: mm-commits@vger.kernel.org,yosry@kernel.org,shakeel.butt@linux.dev,
+	roman.gushchin@linux.dev,muchun.song@linux.dev,mhocko@suse.com,
+	mhocko@kernel.org,hannes@cmpxchg.org,joannelkoong@gmail.com,
+	akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + zram-use-a-singleton-compression-context-for-recompression.patch added to mm-nonmm-unstable branch
-Message-Id: <20261030030254.A16FE1F000C1@smtp.kernel.org>
+Subject: + memcg-reduce-cacheline-contention-between-lruvec-stat-updates-and-lru-lists.patch added to mm-new branch
+Message-Id: <20261030034629.2F26E1F000C1@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -53,15 +54,26 @@ Precedence: list
 
 
 The patch titled
-     Subject: zram: use a singleton compression context for recompression
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     zram-use-a-singleton-compression-context-for-recompression.patch
+     Subject: memcg: reduce cacheline contention between lruvec stat updates and LRU lists
+has been added to the -mm mm-new branch.  Its filename is
+     memcg-reduce-cacheline-contention-between-lruvec-stat-updates-and-lru-lists.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/zram-use-a-singleton-compression-context-for-recompression.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/memcg-reduce-cacheline-contention-between-lruvec-stat-updates-and-lru-lists.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Note, mm-new is a provisional staging ground for work-in-progress
+patches, and acceptance into mm-new is a notification for others take
+notice and to finish up reviews.  Please do not hesitate to respond to
+review feedback and post updated versions to replace or incrementally
+fixup patches in mm-new.
+
+The mm-new branch of mm.git is not included in linux-next
+
+If a few days of testing in mm-new is successful, the patch will me moved
+into mm.git's mm-unstable branch, which is included in linux-next
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -76,273 +88,149 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Sergey Senozhatsky <senozhatsky@chromium.org>
-Subject: zram: use a singleton compression context for recompression
-Date: Sun, 25 Oct 2026 11:18:31 +0900
+From: Joanne Koong <joannelkoong@gmail.com>
+Subject: memcg: reduce cacheline contention between lruvec stat updates and LRU lists
+Date: Fri, 23 Oct 2026 12:54:16 -0700
 
-Secondary compressors are only used by recompress_store(), which is
-serialized under zram->dev_lock, so we only ever use one secondary
-compressor at a time, yet we still allocate them on each CPU, which is
-just a plain memory wastage.  However, we do need per-CPU decompressors
-in order to support concurrent reads.
+Patch series "memcg: reduce cacheline contention from lruvec stat", v3.
 
-Now that Read and Write contexts are split, we can allocate just a
-single compression stream (recomp_cstream) for secondary algorithms
-instead of per-CPU streams, avoiding unused per-CPU compression
-contexts and 2 * PAGE_SIZE buffers.
+Memcg lruvec stat updates read fields of struct mem_cgroup_per_node and struct
+lruvec that can share a 128-byte cacheline pair with lines the lru_lock holder
+writes constantly (the LRU list heads, lru_lock or lru_zone_size[]), depending
+on where struct mem_cgroup_per_node lands in its slab. On CPUs that do spatial
+prefetching (eg Intel CPUs), this makes the stat updates contend with the
+lru_lock holder.
 
-For example, on an 8-CPU x86_64 system (4K PAGE_SIZE), this saves:
-- zstd (level 3, default):        ~700 KB (~100 KB/CPU)
-- zstd (levels 12-22, no dict):   ~1.91 MB (~280 KB/CPU)
-- zstd (levels 14-22, 110K dict): ~5.33 MB (~780 KB/CPU, lazy)
-- deflate (winbits=-11, default): ~1.04 MB (~152 KB/CPU)
-- deflate (winbits=15):           ~1.86 MB (~272 KB/CPU)
-- lz4hc:                          ~1.84 MB (~269 KB/CPU)
+Patch 1 rearranges struct mem_cgroup_per_node so that its read-mostly line is
+paired with a cold line, and patch 2 makes the folio and kmem stat updates use
+the memcg and node they already know instead of going through the lruvec,
+whose pgdat field shares a cacheline pair with lru_lock or lru_zone_size[].
 
-Link: https://lore.kernel.org/20261025021839.1542805-16-senozhatsky@chromium.org
-Signed-off-by: Sergey Senozhatsky <senozhatsky@chromium.org>
+Results on a 2-socket Skylake (80 CPUs), average pages per second for
+threads faulting in and freeing memory in a single memcg:
+
+	   base     patch 1   patch 1+2
+shmem, 20 threads  4.74M    5.59M     5.77M
+shmem, 80 threads  7.94M    8.66M     8.82M
+anon,  20 threads  3.04M    3.08M     3.10M
+
+
+This patch (of 2):
+
+Every memcg lruvec (per-node) stat update reads the memcg and
+lruvec_stats_percpu pointers in the first 64 bytes of struct
+mem_cgroup_per_node. These updates are extremely frequent (eg these
+updates happen several times for every page that's faulted in, freed,
+dirtied, or written back).
+
+The memcg_pn_read_mostly cacheline group keeps those read-mostly fields
+on a different cacheline from the lruvec, but Intel CPUs do spatial
+prefetching [1] and fetch cachelines in 128-byte aligned pairs.
+Depending on where struct mem_cgroup_per_node lands in its slab, that
+cacheline can be paired with the cacheline holding the LRU list heads.
+
+When this happens, every stat update also pulls in a copy of the LRU
+list heads cacheline, which is written to constantly by other CPUs under
+the lru_lock. The stat update has to fetch it from another CPU, which is
+unnecessary overhead since the stat update doesn't use the LRU list
+heads at all. But even worse, the lru_lock holder then has to invalidate
+those copies and wait for the acknowledgements to come back before it
+can do its next write, which makes the lru_lock critical section longer
+for everyone waiting on the lock.
+
+This was found when analyzing the output of perf c2c for a benchmark
+where many threads fault in pages in one memcg. It showed the first 64
+bytes of mem_cgroup_per_node as the most contended cacheline (over a
+third of all HITMs and 5x more than the lru_lock cacheline) even though
+there are no writes to it. A quick experiment adding extra padding so
+that the cacheline no longer shared a pairing with the LRU list heads
+showed that this removed most of the contention, which confirmed the
+cause.
+
+Fix this by moving the memcg_pn_cold group, which is only touched when
+the memcg is reparented or freed, right after memcg_pn_read_mostly, so
+that the read-mostly cacheline is paired with the cold cacheline
+instead of the LRU list heads.
+
+Results from a multi-threaded fault/free benchmark in a single memcg,
+run on an Intel Skylake machine (80 threads, 2 NUMA nodes) with threads
+pinned to CPUs showed average pages faulted in (and freed) per second
+across all threads, over 7 freshly created memcgs per run:
+
+                     before    after
+  shmem, 20 threads  4.74M     5.59M   (+18%)
+  shmem, 80 threads  7.94M     8.66M   (+9%)
+  anon,  20 threads  3.04M     3.08M   (+1%)
+
+Link: https://lore.kernel.org/20261023195417.1391216-1-joannelkoong@gmail.com
+Link: https://lore.kernel.org/20261023195417.1391216-2-joannelkoong@gmail.com
+Link: https://www.intel.com/content/dam/doc/manual/64-ia-32-architectures-optimization-manual.pdf [1] (bottom of page 62/800)
+Link: https://lore.kernel.org/linux-fsdevel/CAJnrk1ZezmmzrYdf8KP6re_a76izMS=qGPeC8ZZXiteHyZZC-Q@mail.gmail.com/
+Signed-off-by: Joanne Koong <joannelkoong@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Cc: Brian Geffon <bgeffon@google.com>
-Cc: Barry Song <baohua@kernel.org>
-Cc: Bo Zhang <zhangbo0325@gmail.com>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: Richard Chang <richardycc@google.com>
-Cc: Bo Zhang <zhangbo56@xiaomi.com>
-Cc: Hillf Danton <hdanton@sina.com>
+Suggested-by: Shakeel Butt <shakeel.butt@linux.dev>
+Acked-by: Shakeel Butt <shakeel.butt@linux.dev>
+Acked-by: Michal Hocko <mhocko@suse.com>
+Cc: Yosry Ahmed <yosry@kernel.org>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Roman Gushchin <roman.gushchin@linux.dev>
+Cc: Muchun Song <muchun.song@linux.dev>
 ---
 
- drivers/block/zram/zcomp.c    |   75 +++++++++++++++++++++++---------
- drivers/block/zram/zcomp.h    |    9 ++-
- drivers/block/zram/zram_drv.c |    5 +-
- 3 files changed, 65 insertions(+), 24 deletions(-)
+ include/linux/memcontrol.h |   29 ++++++++++++++++++-----------
+ 1 file changed, 18 insertions(+), 11 deletions(-)
 
---- a/drivers/block/zram/zcomp.c~zram-use-a-singleton-compression-context-for-recompression
-+++ a/drivers/block/zram/zcomp.c
-@@ -151,6 +151,11 @@ ssize_t zcomp_available_show(const char
- 
- struct zcomp_cstrm *zcomp_cstrm_get(struct zcomp *comp)
- {
-+	if (comp->recomp_cstream) {
-+		mutex_lock(&comp->recomp_cstream->lock);
-+		return comp->recomp_cstream;
-+	}
-+
- 	for (;;) {
- 		struct zcomp_cstrm *zstrm = raw_cpu_ptr(comp->cstream);
- 
-@@ -326,22 +331,25 @@ int zcomp_decompress(struct zcomp *comp,
- int zcomp_cpu_up_prepare(unsigned int cpu, struct hlist_node *node)
- {
- 	struct zcomp *comp = hlist_entry(node, struct zcomp, node);
--	struct zcomp_cstrm *cstrm;
-+	struct zcomp_cstrm *cstrm = NULL;
- 	struct zcomp_dstrm *dstrm;
- 	int ret;
- 
--	cstrm = per_cpu_ptr(comp->cstream, cpu);
--	ret = zcomp_cstrm_init(comp, cstrm);
--	if (ret) {
--		pr_err("Can't allocate a compression stream\n");
--		return ret;
-+	if (comp->cstream) {
-+		cstrm = per_cpu_ptr(comp->cstream, cpu);
-+		ret = zcomp_cstrm_init(comp, cstrm);
-+		if (ret) {
-+			pr_err("Can't allocate a compression stream\n");
-+			return ret;
-+		}
- 	}
- 
- 	dstrm = per_cpu_ptr(comp->dstream, cpu);
- 	ret = zcomp_dstrm_init(comp, dstrm);
- 	if (ret) {
- 		pr_err("Can't allocate a decompression stream\n");
--		zcomp_cstrm_free(comp, cstrm);
-+		if (cstrm)
-+			zcomp_cstrm_free(comp, cstrm);
- 		return ret;
- 	}
- 
-@@ -354,10 +362,12 @@ int zcomp_cpu_dead(unsigned int cpu, str
- 	struct zcomp_cstrm *cstrm;
- 	struct zcomp_dstrm *dstrm;
- 
--	cstrm = per_cpu_ptr(comp->cstream, cpu);
--	mutex_lock(&cstrm->lock);
--	zcomp_cstrm_free(comp, cstrm);
--	mutex_unlock(&cstrm->lock);
-+	if (comp->cstream) {
-+		cstrm = per_cpu_ptr(comp->cstream, cpu);
-+		mutex_lock(&cstrm->lock);
-+		zcomp_cstrm_free(comp, cstrm);
-+		mutex_unlock(&cstrm->lock);
-+	}
- 
- 	dstrm = per_cpu_ptr(comp->dstream, cpu);
- 	down_write(&dstrm->lock);
-@@ -367,7 +377,8 @@ int zcomp_cpu_dead(unsigned int cpu, str
- 	return 0;
- }
- 
--static int zcomp_init(struct zcomp *comp, struct zcomp_params *params)
-+static int zcomp_init(struct zcomp *comp, struct zcomp_params *params,
-+		      bool recomp)
- {
- 	int ret, cpu;
- 
-@@ -376,10 +387,28 @@ static int zcomp_init(struct zcomp *comp
- 	if (ret)
- 		goto cleanup;
- 
--	comp->cstream = alloc_percpu(struct zcomp_cstrm);
--	if (!comp->cstream) {
--		ret = -ENOMEM;
--		goto cleanup;
-+	if (recomp) {
-+		comp->recomp_cstream = kzalloc_obj(*comp->recomp_cstream);
-+		if (!comp->recomp_cstream) {
-+			ret = -ENOMEM;
-+			goto cleanup;
-+		}
-+		mutex_init(&comp->recomp_cstream->lock);
-+		ret = zcomp_cstrm_init(comp, comp->recomp_cstream);
-+		if (ret) {
-+			/* zcomp_cstrm_init() cleans up after itself */
-+			kfree(comp->recomp_cstream);
-+			comp->recomp_cstream = NULL;
-+			goto cleanup;
-+		}
-+	} else {
-+		comp->cstream = alloc_percpu(struct zcomp_cstrm);
-+		if (!comp->cstream) {
-+			ret = -ENOMEM;
-+			goto cleanup;
-+		}
-+		for_each_possible_cpu(cpu)
-+			mutex_init(&per_cpu_ptr(comp->cstream, cpu)->lock);
- 	}
- 
- 	comp->dstream = alloc_percpu(struct zcomp_dstrm);
-@@ -393,7 +422,6 @@ static int zcomp_init(struct zcomp *comp
- 	for_each_possible_cpu(cpu) {
- 		struct zcomp_dstrm *zstrm = per_cpu_ptr(comp->dstream, cpu);
- 
--		mutex_init(&per_cpu_ptr(comp->cstream, cpu)->lock);
- 		init_rwsem(&zstrm->lock);
- 		mutex_init(&zstrm->excl_lock);
- 	}
-@@ -405,6 +433,10 @@ static int zcomp_init(struct zcomp *comp
- 	return 0;
- 
- cleanup:
-+	if (comp->recomp_cstream) {
-+		zcomp_cstrm_free(comp, comp->recomp_cstream);
-+		kfree(comp->recomp_cstream);
-+	}
- 	comp->ops->release_params(comp->params);
- 	free_percpu(comp->dstream);
- 	free_percpu(comp->cstream);
-@@ -414,13 +446,18 @@ cleanup:
- void zcomp_destroy(struct zcomp *comp)
- {
- 	cpuhp_state_remove_instance(CPUHP_ZCOMP_PREPARE, &comp->node);
-+	if (comp->recomp_cstream) {
-+		zcomp_cstrm_free(comp, comp->recomp_cstream);
-+		kfree(comp->recomp_cstream);
-+	}
- 	comp->ops->release_params(comp->params);
- 	free_percpu(comp->dstream);
- 	free_percpu(comp->cstream);
- 	kfree(comp);
- }
- 
--struct zcomp *zcomp_create(const char *alg, struct zcomp_params *params)
-+struct zcomp *zcomp_create(const char *alg, struct zcomp_params *params,
-+			   bool recomp)
- {
- 	struct zcomp *comp;
- 	int error;
-@@ -443,7 +480,7 @@ struct zcomp *zcomp_create(const char *a
- 		return ERR_PTR(-EINVAL);
- 	}
- 
--	error = zcomp_init(comp, params);
-+	error = zcomp_init(comp, params, recomp);
- 	if (error) {
- 		kfree(comp);
- 		return ERR_PTR(error);
---- a/drivers/block/zram/zcomp.h~zram-use-a-singleton-compression-context-for-recompression
-+++ a/drivers/block/zram/zcomp.h
-@@ -40,7 +40,8 @@ struct zcomp_params {
- /*
-  * Run-time driver context - scratch buffers, etc. It is modified during
-  * request execution (compression/decompression), cannot be shared, so
-- * it's in per-CPU area.
-+ * it's in per-CPU area (except for recompression, which uses a single
-+ * per-device compression stream).
-  */
- struct zcomp_ctx {
- 	void *context;
-@@ -95,9 +96,10 @@ struct zcomp_ops {
- 
- /* dynamic per-device compression frontend */
- struct zcomp {
--	struct zcomp_cstrm __percpu *cstream;
- 	struct zcomp_dstrm __percpu *dstream;
- 	wait_queue_head_t dstrm_waitq;
-+	struct zcomp_cstrm __percpu *cstream;
-+	struct zcomp_cstrm *recomp_cstream;
- 	const struct zcomp_ops *ops;
- 	struct zcomp_params *params;
- 	struct hlist_node node;
-@@ -108,7 +110,8 @@ int zcomp_cpu_dead(unsigned int cpu, str
- ssize_t zcomp_available_show(const char *comp, char *buf, ssize_t at);
- const char *zcomp_lookup_backend_name(const char *comp);
- 
--struct zcomp *zcomp_create(const char *alg, struct zcomp_params *params);
-+struct zcomp *zcomp_create(const char *alg, struct zcomp_params *params,
-+			   bool recomp);
- void zcomp_destroy(struct zcomp *comp);
- 
- struct zcomp_cstrm *zcomp_cstrm_get(struct zcomp *comp);
---- a/drivers/block/zram/zram_drv.c~zram-use-a-singleton-compression-context-for-recompression
-+++ a/drivers/block/zram/zram_drv.c
-@@ -2526,7 +2526,7 @@ static int recompress_slot(struct zram *
- 	}
+--- a/include/linux/memcontrol.h~memcg-reduce-cacheline-contention-between-lruvec-stat-updates-and-lru-lists
++++ a/include/linux/memcontrol.h
+@@ -96,6 +96,24 @@ struct mem_cgroup_per_node {
+ 	__cacheline_group_end_aligned(memcg_pn_read_mostly);
  
  	/*
--	 * We are holding per-CPU stream mutex and entry lock so better
-+	 * We are holding compression stream mutex and entry lock so better
- 	 * avoid direct reclaim.  Allocation error is not fatal since
- 	 * we still have the old object in the mem_pool.
- 	 *
-@@ -2920,7 +2920,8 @@ static ssize_t disksize_store(struct dev
- 			continue;
++	 * Touched only when the memcg is reparented or freed. Placed right
++	 * after memcg_pn_read_mostly because CPUs with spatial prefetching
++	 * (eg most Intel CPUs) fetch cachelines in 128-byte aligned pairs.
++	 * This keeps the read-mostly line, which every lruvec stat update
++	 * reads, from being paired with the LRU list heads, which are written
++	 * constantly under lru_lock.
++	 */
++	__cacheline_group_begin_aligned(memcg_pn_cold);
++	/*
++	 * orig_objcg preserves a pointer (and a reference) to the original
++	 * objcg until the end of life of memcg.
++	 */
++	struct obj_cgroup	*orig_objcg;
++	/* list of inherited objcgs, protected by objcg_lock */
++	struct list_head objcg_list;
++	__cacheline_group_end_aligned(memcg_pn_cold);
++
++	/*
+ 	 * Keep lruvec on its own lines. Sharing them with lru_zone_size[]
+ 	 * regressed, see commit f59adcf59332 ("mm: memcg: add cacheline
+ 	 * padding after lruvec in mem_cgroup_per_node").
+@@ -114,17 +132,6 @@ struct mem_cgroup_per_node {
+ 	atomic_t		slab_unreclaimable;
+ #endif
+ 	__cacheline_group_end_aligned(memcg_pn_write_hot);
+-
+-	/* Touched only when the memcg is reparented or freed. */
+-	__cacheline_group_begin_aligned(memcg_pn_cold);
+-	/*
+-	 * orig_objcg preserves a pointer (and a reference) to the original
+-	 * objcg until the end of life of memcg.
+-	 */
+-	struct obj_cgroup	*orig_objcg;
+-	/* list of inherited objcgs, protected by objcg_lock */
+-	struct list_head objcg_list;
+-	__cacheline_group_end_aligned(memcg_pn_cold);
+ };
  
- 		comp = zcomp_create(zram->comp_algs[prio],
--				    &zram->params[prio]);
-+				    &zram->params[prio],
-+				    prio != ZRAM_PRIMARY_COMP);
- 		if (IS_ERR(comp)) {
- 			pr_err("Cannot initialise %s compressing backend\n",
- 			       zram->comp_algs[prio]);
+ struct mem_cgroup_threshold {
 _
 
-Patches currently in -mm which might be from senozhatsky@chromium.org are
+Patches currently in -mm which might be from joannelkoong@gmail.com are
 
-zram-prefix-backends-printk-s.patch
-zram-remove-debugfs-entry-on-init-failure.patch
-zram-reset-writeback-state-in-zram_reset_device.patch
-zram-move-mark_slot_accessed-under-existing-slot-lock-sections.patch
-zram-remove-stale-warn_on-from-zram_read_page.patch
-zram-zstd-do-not-allocate-empty-c-d-dictionaries.patch
-zram-lz4hc-pre-initialize-dictionary-stream-in-setup_params.patch
-zram-lz4-use-lz4_decompress_safe_usingdict.patch
-zram-lz4hc-use-lz4_decompress_safe_usingdict.patch
-zram-zstd-do-not-use-kvzalloc-for-zstd-allocations.patch
-zram-split-zcomp-into-separate-r-w-streams.patch
-zram-introduce-shared-decompression-streams.patch
-zram-allocate-bounce-buffer-for-spanning-objects.patch
-zram-borrow-idle-decompression-streams-in-exclusive-mode.patch
-zram-use-a-singleton-compression-context-for-recompression.patch
+mm-unqueue-deferred-split-folios-outside-the-lruvec-lock.patch
+memcg-reduce-cacheline-contention-between-lruvec-stat-updates-and-lru-lists.patch
+memcg-dont-go-through-the-lruvec-for-folio-and-kmem-lruvec-stat-updates.patch
 
