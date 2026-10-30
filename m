@@ -1,48 +1,48 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793323815;
-	b=lhPUP8bT8wqRIoG4Kszfio7RAnL8Nfp2LP9IF7+DzO5yW2llRl/eBGOnCge3UHGkPlkk
-	 b2gsdj/KAfKtcc9ubJ8QQmrSGnRlvxvVno3JxANCMgzfAg8OFD096k8ZImJtzFPBIqRTf
-	 6YSwbdiNl/Fzb+X24AyV7bGOjpXi4XMjobrE4kKiad4bY7JY1OskIcerhzntnmmUWvOJJ
-	 2/8/7eYmBvQJ0XYNra6dNlm/hXXahq4ZZ/QGfaWJg4Jkd3PQMJNn8h7HE4nmM2EAj3SQI
-	 hRq+xt5TpfbG4Durk53fuWo7aeS24tFsIXNbqfSaB6X8bj9ZE4jKi0g3D2Hpb0O61Kg==
+	t=1793323819;
+	b=PF+XrRqgKBSsxQsB8TY2BMDfd1y9rG80+MydvW+Dlm+a/orzuqZk4mdM7jHxKIizhRhq
+	 GmAA18GZuwvJa+EodllTZXEb5IIp1gJBD+zrqbwvGXgQRCuyXKNDSzrBoB0z/GYj8nPF9
+	 7g5riw9U+E9MQVOphaSzIlvB3TzDex2RWSTyTbJE9t+K65u8nnIOT52T8724mn1nZVjXn
+	 jnSHt6CN2bVfg1ysg+dlAw0pvYF+YIx7ZuX+xKJ9gCVoAsFQ5q8qidnGLf5J4euWSIIO5
+	 Wz/e/oCc/Mvwl9G0Za8oKct4zKxdGCzhzyXzNZ73xK7fMVGAVFtWrE9kZLvdVBrdkaQ==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793323815;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793323819;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=4woWJ7aYhq+t61jBwDDadTnJQTlBwuYZe5gbYG5JVsA=;
-	b=d17XchTLOEbUZF486aiNNpZQBPIzq7QquBw/Vhr0YBVsJI8PorVLjafU5VsgJbsgqxZN
-	 ddqvMKYlgfajrr8+EIOLHPSYMhLPkGAQKTgKE46Tf3iEN0uzfjRuVfaxhUH/HDgJy4toW
-	 VC6sY4uPLJ4njm8nvOWOI+Hs1lQgKaV0RdVrauovGAq3RxuetrjMT4FxFinnyqyu1X+32
-	 FGvWkjc4bPoxO6OQqcZkPNOIHHIliBaVL34tLouSYiMb8uyd8gSKJWPD1Lc3akeqnYPPA
-	 H/oCAXJf8/xF4X41q67IC1LrrghNsqNOc/qxvMSB2IiOJC0TTOr5shh+EL2fKuMbWUw==
+	bh=lyVxOx4Cc690NR+JFoHWdijlJAiWdzd6CPYTAYfA9iU=;
+	b=jW05tWba14nhpiXidgEUhwPnwwlrKxvWUaBx5mZFsw80liwiDKdFnX3UYPI/NBGEeOQK
+	 PbiSkaGLCRfz6NCGOc4vYvpNvPHFWFOC0LNus/gOK31onzq6XjYRgm5nDm3LG4u0W3Sas
+	 JhEEO6dKz0s3fmsv/XuJ80IXo+1zV33Z47QCAMDz+jScoaMqotBFcnWXts9ETgMf+luje
+	 tKvDPz8FQG1xb+dE2i09+CwdXAjE4fULDR9J8t9A7x5wy17fBz+nVngKxYoq/REZ3RuoX
+	 RKpw70othuHsQb/rmKfDwU3FgWRaIBNIB8eQmn1cv3lbCPVWUwUnZaMQDunmfLsQ8mQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=Wen3kO5D;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=qO0f3sIS;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 12748606A31A;
-	Fri, 30 Oct 2026 01:30:14 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AE4F4606A320;
+	Fri, 30 Oct 2026 01:30:18 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=Wen3kO5D
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 47AD41F000C1;
-	Fri, 30 Oct 2026 01:30:14 +0000 (UTC)
+	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=qO0f3sIS
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1D0141F000C1;
+	Fri, 30 Oct 2026 01:30:18 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1793323814;
-	bh=4woWJ7aYhq+t61jBwDDadTnJQTlBwuYZe5gbYG5JVsA=;
+	d=linux-foundation.org; s=korg; t=1793323818;
+	bh=lyVxOx4Cc690NR+JFoHWdijlJAiWdzd6CPYTAYfA9iU=;
 	h=Date:To:From:Subject;
-	b=Wen3kO5DKfmaMiiw31dfWGavScxQiWHuhGFC24Q/8JGY/RPdgzcPTIn3ka5OVqBP9
-	 z8f70jDb/kT3lAvJ+L19+aYd17FLh9Lo3LdIHtw6RDT4Z3qfBaEhpXqAPR5jrsC3OI
-	 Qgk+kUTQUE+s8krmDHOuoNju00CBsUMWrDRjLdbw=
-Date: Thu, 29 Oct 2026 18:30:13 -0700
-To: mm-commits@vger.kernel.org,stable@vger.kernel.org,pjw@kernel.org,
-	muchun.song@linux.dev,glider@google.com,elver@google.com,dvyukov@google.com,
-	aou@eecs.berkeley.edu,alex@ghiti.fr,liuyun01@kylinos.cn,
-	akpm@linux-foundation.org
+	b=qO0f3sIS3MVkrGjI/v2lLF60G1fMXuesR3h7WNXVO9n6Wxz16BDP0jEjmYiH0VRom
+	 haZL7nkiGzsQff5EfnVwelk3CSYJpqQNEMp1m7p6fSbmYntnCtOdPOOILhyK1XbrZr
+	 o1ky89pTxpj0kfS/PplzQ2VVEDxD1r4C2xkpEeF8=
+Date: Thu, 29 Oct 2026 18:30:17 -0700
+To: mm-commits@vger.kernel.org,stable@vger.kernel.org,sashiko-bot@kernel.org,
+	pjw@kernel.org,muchun.song@linux.dev,lkp@intel.com,glider@google.com,
+	elver@google.com,dvyukov@google.com,aou@eecs.berkeley.edu,alex@ghiti.fr,
+	liuyun01@kylinos.cn,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + kfence-fix-pool-cleanup-on-metadata-allocation-failure.patch added to mm-new branch
-Message-Id: <20261030013014.47AD41F000C1@smtp.kernel.org>
+Subject: + riscv-keep-booting-if-kfence-pool-reservation-fails.patch added to mm-new branch
+Message-Id: <20261030013018.1D0141F000C1@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -54,12 +54,12 @@ Precedence: list
 
 
 The patch titled
-     Subject: kfence: fix pool cleanup on metadata allocation failure
+     Subject: riscv: keep booting if KFENCE pool reservation fails
 has been added to the -mm mm-new branch.  Its filename is
-     kfence-fix-pool-cleanup-on-metadata-allocation-failure.patch
+     riscv-keep-booting-if-kfence-pool-reservation-fails.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kfence-fix-pool-cleanup-on-metadata-allocation-failure.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/riscv-keep-booting-if-kfence-pool-reservation-fails.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -89,33 +89,26 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Jackie Liu <liuyun01@kylinos.cn>
-Subject: kfence: fix pool cleanup on metadata allocation failure
-Date: Thu, 29 Oct 2026 10:57:41 +0800
+Subject: riscv: keep booting if KFENCE pool reservation fails
+Date: Thu, 29 Oct 2026 10:57:43 +0800
 
-Patch series "kfence: fix pool allocation failure handling", v2.
+A failed KFENCE pool reservation hits BUG_ON() and stops boot. Continue
+building the linear map and disable KFENCE if the reservation fails.
 
-Fix the cleanup address and page reuse window in failed late KFENCE
-initialization. Also let RISC-V boot if the early pool reservation fails.
+Reject later pool initialization as well, since a replacement pool may
+have huge-page mappings that kfence_protect_page() cannot handle.
 
-Patch 2 depends on patch 1. Patch 3 can be applied independently.
-
-
-This patch (of 3):
-
-kfence_init_late() saves __kfence_pool in addr before allocating the pool,
-so addr is still NULL if metadata allocation fails. The error path then
-tries to free pages using that address.
-
-Set addr after pool allocation so cleanup frees the allocated pool.
-
-Link: https://lore.kernel.org/cover.1793242457.git.liuyun01@kylinos.cn
-Link: https://lore.kernel.org/7e0fc28c73fbb594c296f6121ca506392511ba5e.1793242457.git.liuyun01@kylinos.cn
-Fixes: cabdf74e6b31 ("mm: kfence: allocate kfence_metadata at runtime")
+Link: https://lore.kernel.org/44fbd039a5cd78bfe7355ccbafb197775dede29c.1793242457.git.liuyun01@kylinos.cn
+Fixes: 25abe0db9243 ("riscv: Fix kfence now that the linear mapping can be backed by PUD/P4D/PGD")
 Signed-off-by: Jackie Liu <liuyun01@kylinos.cn>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Reviewed-by: Marco Elver <elver@google.com>
+Reported-by: Sashiko <sashiko-bot@kernel.org>
+Closes: https://sashiko.dev/#/patchset/cover.1793017073.git.liuyun01@kylinos.cn?part=3
+Reported-by: kernel test robot <lkp@intel.com>
+Closes: https://lore.kernel.org/oe-kbuild-all/202610290904.wbrEL97y-lkp@intel.com/
 Cc: Alexander Potapenko <glider@google.com>
 Cc: Dmitry Vyukov <dvyukov@google.com>
+Cc: Marco Elver <elver@google.com>
 Cc: Paul Walmsley <pjw@kernel.org>
 Cc: AlexandreGhiti <alex@ghiti.fr>
 Cc: Albert Ou <aou@eecs.berkeley.edu>
@@ -123,28 +116,66 @@ Cc: Muchun Song <muchun.song@linux.dev>
 Cc: <stable@vger.kernel.org>
 ---
 
- mm/kfence/core.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ arch/riscv/include/asm/kfence.h |    4 +++-
+ arch/riscv/mm/init.c            |   18 ++++++++++++++----
+ 2 files changed, 17 insertions(+), 5 deletions(-)
 
---- a/mm/kfence/core.c~kfence-fix-pool-cleanup-on-metadata-allocation-failure
-+++ a/mm/kfence/core.c
-@@ -999,7 +999,7 @@ static int kfence_init_late(void)
- {
- 	const unsigned long nr_pages_pool = KFENCE_POOL_SIZE / PAGE_SIZE;
- 	const unsigned long nr_pages_meta = KFENCE_METADATA_SIZE / PAGE_SIZE;
--	unsigned long addr = (unsigned long)__kfence_pool;
-+	unsigned long addr;
- 	unsigned long free_size = KFENCE_POOL_SIZE;
- 	int err = -ENOMEM;
+--- a/arch/riscv/include/asm/kfence.h~riscv-keep-booting-if-kfence-pool-reservation-fails
++++ a/arch/riscv/include/asm/kfence.h
+@@ -9,9 +9,11 @@
+ #include <asm/cacheflush.h>
+ #include <asm/pgtable.h>
  
-@@ -1032,6 +1032,7 @@ static int kfence_init_late(void)
- 						 GFP_KERNEL | __GFP_SKIP_KASAN);
++extern bool kfence_disabled;
++
+ static inline bool arch_kfence_init_pool(void)
+ {
+-	return true;
++	return !kfence_disabled;
+ }
+ 
+ static inline bool kfence_protect_page(unsigned long addr, bool protect)
+--- a/arch/riscv/mm/init.c~riscv-keep-booting-if-kfence-pool-reservation-fails
++++ a/arch/riscv/mm/init.c
+@@ -45,6 +45,10 @@ DECLARE_BITMAP(new_valid_map_cpus, NR_CP
+ struct kernel_mapping kernel_map __ro_after_init;
+ EXPORT_SYMBOL(kernel_map);
+ 
++#ifdef CONFIG_KFENCE
++bool kfence_disabled __ro_after_init;
++#endif
++
+ #ifdef CONFIG_64BIT
+ u64 satp_mode __ro_after_init = SATP_MODE_57;
+ #else
+@@ -1230,10 +1234,13 @@ static void __init create_linear_mapping
+ 	 *  for this region.
+ 	 */
+ 	kfence_pool = memblock_phys_alloc(KFENCE_POOL_SIZE, PAGE_SIZE);
+-	BUG_ON(!kfence_pool);
+-
+-	memblock_mark_nomap(kfence_pool, KFENCE_POOL_SIZE);
+-	__kfence_pool = __va(kfence_pool);
++	if (kfence_pool) {
++		memblock_mark_nomap(kfence_pool, KFENCE_POOL_SIZE);
++		__kfence_pool = __va(kfence_pool);
++	} else {
++		pr_err("failed to allocate kfence pool\n");
++		kfence_disabled = true;
++	}
  #endif
  
-+	addr = (unsigned long)__kfence_pool;
- 	if (!kfence_metadata_init)
- 		goto free_pool;
+ 	/* Map all memory banks in the linear mapping */
+@@ -1254,6 +1261,9 @@ static void __init create_linear_mapping
+ #endif
  
+ #ifdef CONFIG_KFENCE
++	if (!kfence_pool)
++		return;
++
+ 	create_linear_mapping_range(kfence_pool, kfence_pool + KFENCE_POOL_SIZE, PAGE_SIZE, NULL);
+ 
+ 	memblock_clear_nomap(kfence_pool, KFENCE_POOL_SIZE);
 _
 
 Patches currently in -mm which might be from liuyun01@kylinos.cn are
