@@ -1,48 +1,48 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793372255;
-	b=5AGVzabTkX1ls6gKM0grVx3oBFWB1k1qxshc33B8AIl/lv8alQSwinrCodM3eqC2zfJI
-	 a45mtHR9umbzaoPDUq5KZrpTOznmE5VBv9/eInbkN5fX0h6O8Uk92W0mJeGfvh8ryno4q
-	 bCkVLiD6E7Xg2adHTXt3pQ7+aZ9nwV/HBYP3sW988EwEer12KR5JelNgTE+OYKFME06uS
-	 6j4k7zM+2remrbdTu2E9Hw3LTfVQ3SZluY4R5tx2W4UUmVG+cbHQr/6Qo8+pllfe3+1x4
-	 Gi7BeyBYQVXrGFbAuzAq4yFPRkiMHErqUqzuhPmYX1ExoLXc2KxI+Z1V9/BWlHItKEA==
+	t=1793372258;
+	b=lhr+wTtWPXA/3f7e5Jf05UfWq5IC4rS4qMy6RfXan0pzsbYHJ1OulyRMbj+OENPissOF
+	 Bc9XzJNaopZ6pzWTwk7FpFXq1MuUQrBAnUEeYoF0OQBqqxPX1b3FeFIjkb0a5ke5bdcdp
+	 nMQdhoCsqIOiTeMpWwl/2VsHL9NQeIE5c7I5bio6grK/OB6og0VFDbhSQeCmxW+HqfDsH
+	 SZc59YO8homlsG2FRXmP6jxLibC+iDVquWNFVVLQoTHKrxWOCP+AQHIaqEA4BgPKXjXbs
+	 a5Mo4+c6kZKINjBKEAqAdY8aMl9bua/sSegjZR98K7Rba2G9uHuoRMJp4LxueXVNCoA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793372255;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793372258;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=gTjNp66kGrik6rCR3tVXK9x7sfplXfz7cvIIMAXHjV0=;
-	b=juThl4ALCVjNdEGo44CC9eic3Lc6wJdwmILAIPP0EiaW2NHM/anuvkOx0qwPj8PGN0UX
-	 7cOKwxRfnMQn9mNvSYFiPYzheKmgbtDLejihSj37/STQ+rJXntvH0JrdUCq3ibNY1x4+P
-	 t/iXJkMVYcZUgbO+qCx1r1y+7VW9181GK2bWgd1mWgp4yIYeoaMjoaxZy9DoEkEb6Y4ZR
-	 yFY1+cMRwV8zEZjC8CbrV+EUQ+ebsQNo4IxqXEXLaoC658g5ZU5PvI/DTO+RSi5XMbHmD
-	 QNPNI589JLBUIM9syms4E2Mg74U6pGHMiOs5oYLJYbP7aGBmY8a25UMwjWm7EcXKPhQ==
+	bh=ifSk56r3aDHxgyfCHMJ1Soq63tdPG8mjV4Y3kk05qEQ=;
+	b=ACMrEG2wpPtmRxhPK32bjudRk5gOtGn/kz6qONQRBoTeVNyT6L3OfvRybv5AvBsuhYZK
+	 8XyPh2D3HmS650scthXwXEHVBM0+TDYTj2O1g8TjR0aF/KiXxuFriVx62ugiNgla7EOFF
+	 c7+9U3RnQeA01iUj3SRQ4v1P6YWcHiF4uwdvrm5XKYZKnBVX37ag8UtZmMD7JGMZXhu1e
+	 aZTsxqm5xOnDmjpImtzS0cZJCnqB8UcAAZAtY6skPeKq1SmXmj/Mw8EN4RTZA0H6zePYn
+	 WwYaZrxjfhrZEFJQHu8WcTv/ROwKzqyXwewbUid8HR4gjw/b8bmwdS0kRStEw/rlL2g==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=O3sE1RfY;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=A61Wbf5U;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 55608606A31A
-	for <mm-commits@vger.kernel.org>; Fri, 30 Oct 2026 14:57:34 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 55B37606A320
+	for <mm-commits@vger.kernel.org>; Fri, 30 Oct 2026 14:57:38 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=O3sE1RfY
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8B47F1F00A02;
-	Fri, 30 Oct 2026 14:57:34 +0000 (UTC)
+	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=A61Wbf5U
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 06C5E1F000C1;
+	Fri, 30 Oct 2026 14:57:38 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1793372254;
-	bh=gTjNp66kGrik6rCR3tVXK9x7sfplXfz7cvIIMAXHjV0=;
+	d=linux-foundation.org; s=korg; t=1793372258;
+	bh=ifSk56r3aDHxgyfCHMJ1Soq63tdPG8mjV4Y3kk05qEQ=;
 	h=Date:To:From:Subject;
-	b=O3sE1RfYSfEa0twz//ub8ksfjUmiAUmX9QyULxUPhEwsy1Z7GkupHFYQTOzB9oSu/
-	 FncXP3ugs/9qJFybyh2KU43hOHIFQ6l9j0KjaYiWzZ0/XoWkzr0FULd4qieSc8iqaW
-	 usIgPXfLxOq03QP5qedmRcNisoNS3zc/wBhRpWwo=
-Date: Fri, 30 Oct 2026 07:57:34 -0700
+	b=A61Wbf5UuFsaLZJCnKEV+z/toJfhFFe9Yc3q7/cA3ta4HGPRJkC1D8Mn2HViZRFMJ
+	 V+9cMrgXgW36e0klVIl65ug1fwa9LuaVWfn0Q2wEVwpegL02PbTFma6zjzn1sJ2jQB
+	 hEAj6eXUOzm9hCXFV5tv4TgCn/9sqzaSOzYGAKFE=
+Date: Fri, 30 Oct 2026 07:57:37 -0700
 To: mm-commits@vger.kernel.org,vbabka@kernel.org,surenb@google.com,
 	shuah@kernel.org,sarthak.sharma@arm.com,rppt@kernel.org,mhocko@suse.com,
 	ljs@kernel.org,liam@infradead.org,david@kernel.org,gourry@gourry.net,
 	akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-mm-add-madv_cold-and-madv_pageout-contract-tests.patch added to mm-new branch
-Message-Id: <20261030145734.8B47F1F00A02@smtp.kernel.org>
+Subject: + selftests-mm-check-madv_cold-and-madv_pageout-range-handling.patch added to mm-new branch
+Message-Id: <20261030145738.06C5E1F000C1@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -54,12 +54,12 @@ Precedence: list
 
 
 The patch titled
-     Subject: selftests/mm: add MADV_COLD and MADV_PAGEOUT contract tests
+     Subject: selftests/mm: check MADV_COLD and MADV_PAGEOUT range handling
 has been added to the -mm mm-new branch.  Its filename is
-     selftests-mm-add-madv_cold-and-madv_pageout-contract-tests.patch
+     selftests-mm-check-madv_cold-and-madv_pageout-range-handling.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-add-madv_cold-and-madv_pageout-contract-tests.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-check-madv_cold-and-madv_pageout-range-handling.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -89,78 +89,19 @@ and is updated there most days
 
 ------------------------------------------------------
 From: "Gregory Price (Meta)" <gourry@gourry.net>
-Subject: selftests/mm: add MADV_COLD and MADV_PAGEOUT contract tests
-Date: Mon, 19 Oct 2026 13:12:00 -0400
+Subject: selftests/mm: check MADV_COLD and MADV_PAGEOUT range handling
+Date: Mon, 19 Oct 2026 13:12:01 -0400
 
-Patch series "selftests/mm: add MADV_COLD and MADV_PAGEOUT contract tests",
-v3.
+madvise(2) accepts a zero-length range, rejects an unaligned start, and
+reports an unmapped gap in the range with ENOMEM while still applying the
+advice to the mapped pages on either side.
 
-MADV_COLD and MADV_PAGEOUT share a page-table walker in mm/madvise.c
-that handles ordinary PTEs, PTE-mapped large folios and huge PMDs.
-Existing selftests cover little of its range, folio and permission
-handling.
+Check each of these for both hints. Around the gap, only MADV_PAGEOUT has
+an effect the test can observe, so only MADV_PAGEOUT is checked for
+paging out both neighbors, and only if MADV_PAGEOUT can swap at all.
+Both hints' ENOMEM is checked first, so it is covered without swap.
 
-The walker has needed several fixes recently, and it's clear we need
-to refactor this walker to make it maintainable.  Ahead of that, let's
-add some selftests to at least cover contractual behaviors.
-
-This series adds tools/testing/selftests/mm/madv_cold_pageout.c to test
-only behaviors userspace can rely on, so that it stays valid across
-changes to the walker's implementation.
-
-Each patch adds one group of tests, simplest first:
-
-  1. neither hint populates a hole, faults a swapped page back in, or
-     accepts a locked VMA
-  2. a zero-length range succeeds, an unaligned start fails, and a gap
-     fails with ENOMEM after both sides are advised
-  3. neither hint accepts a hugetlb VMA
-  4. both hints preserve shared memory, and MADV_PAGEOUT leaves a
-     SHM_LOCK'd page mapped
-  5. paging out all or half of a THP reclaims only the advised pages,
-     and MADV_COLD on half a THP leaves it intact
-  6. only a caller that owns or can write a file may page out its pages;
-     anyone else only gets their private COW pages paged out
-  7. nor may anyone else split a large file folio, whether a PMD or PTEs
-     map it
-
-We check whether MADV_PAGEOUT can swap/evict pages at all and skip
-relevant tests that would fail if it can't.  We do expect that the
-swap/eviction will happen within 1 second with retries, but this has
-been reliable on a reasonably unloaded system. We may need to increase
-that timeout if it becomes an issue.
-
-Tests that need root, THP, or hugetlbs skip accordingly as well.
-
-All 24 tests pass over three consecutive runs, with no skips and no
-warnings in dmesg, as root in a virtme-ng guest with 4 CPUs, two NUMA
-nodes, a 2G swap disk, THP set to always, CONFIG_DEBUG_VM and
-CONFIG_PROVE_LOCKING.
-
-In the same guest:
-  - unprivileged: 18 pass, 6 skip (5 need root, 1 needs hugetlb pages)
-  - root without CAP_SYS_ADMIN: 22 pass, 2 skip (need page flags)
-  - no swap: 16 pass, 8 skip (need swap)
-
-
-This patch (of 7):
-
-MADV_COLD and MADV_PAGEOUT share a page-table walker covering ordinary
-PTEs, PTE-mapped large folios and huge PMDs. Existing selftests use
-MADV_PAGEOUT mostly to swap memory out for other tests, and check only
-special mappings (PFNMAP, guard regions, droppable memory), not the
-walker's range, folio and permission handling.
-
-Add a kselftest harness test for both hints, starting with the most basic
-behavior userspace relies on: neither hint populates a PTE hole or faults
-a swapped page back in, and neither may be applied to a locked VMA.
-
-Before running the tests, pin the process to the CPU it starts on,
-so that the LRU batch MADV_COLD and MADV_PAGEOUT drain holds the
-folios a test faulted in.
-
-Link: https://lore.kernel.org/20261019171206.3331374-1-gourry@gourry.net
-Link: https://lore.kernel.org/20261019171206.3331374-2-gourry@gourry.net
+Link: https://lore.kernel.org/20261019171206.3331374-3-gourry@gourry.net
 Signed-off-by: Gregory Price (Meta) <gourry@gourry.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 Reviewed-by: Sarthak Sharma <sarthak.sharma@arm.com>
@@ -174,274 +115,98 @@ Cc: Michal Hocko <mhocko@suse.com>
 Cc: Shuah Khan <shuah@kernel.org>
 ---
 
- tools/testing/selftests/mm/Makefile                  |    2 
- tools/testing/selftests/mm/ksft_madv_cold_pageout.sh |    4 
- tools/testing/selftests/mm/madv_cold_pageout.c       |  209 ++++++++++
- tools/testing/selftests/mm/run_vmtests.sh            |    5 
- 4 files changed, 220 insertions(+)
+ tools/testing/selftests/mm/madv_cold_pageout.c |   80 +++++++++++++++
+ 1 file changed, 80 insertions(+)
 
-diff --git a/tools/testing/selftests/mm/ksft_madv_cold_pageout.sh a/tools/testing/selftests/mm/ksft_madv_cold_pageout.sh
-new file mode 100755
---- /dev/null
-+++ a/tools/testing/selftests/mm/ksft_madv_cold_pageout.sh
-@@ -0,0 +1,4 @@
-+#!/bin/sh -e
-+# SPDX-License-Identifier: GPL-2.0
-+
-+./run_vmtests.sh -t madv_cold_pageout
-diff --git a/tools/testing/selftests/mm/madv_cold_pageout.c a/tools/testing/selftests/mm/madv_cold_pageout.c
-new file mode 100644
---- /dev/null
+--- a/tools/testing/selftests/mm/madv_cold_pageout.c~selftests-mm-check-madv_cold-and-madv_pageout-range-handling
 +++ a/tools/testing/selftests/mm/madv_cold_pageout.c
-@@ -0,0 +1,209 @@
-+// SPDX-License-Identifier: GPL-2.0
-+/*
-+ * MADV_COLD and MADV_PAGEOUT tests.
-+ */
-+#define _GNU_SOURCE
-+#include <errno.h>
-+#include <fcntl.h>
-+#include <sched.h>
-+#include <stdbool.h>
-+#include <sys/mman.h>
-+#include <unistd.h>
-+
-+#include "kselftest_harness.h"
-+#include "vm_util.h"
-+
-+/* Reclaim can fail transiently, so retry for up to a second. */
-+#define PAGEOUT_RETRIES 100
-+
-+static size_t page_size;
-+/* Whether MADV_PAGEOUT can swap out anonymous memory, see main(). */
-+static bool can_swap;
-+
-+/*
-+ * Keep this task on one CPU, so that draining that CPU's LRU batches drains
-+ * the folios this task faulted in.
-+ */
-+static void pin_to_current_cpu(void)
-+{
-+	int cpu = sched_getcpu();
-+	cpu_set_t *mask;
-+	size_t size;
-+
-+	if (cpu < 0)
-+		ksft_exit_fail_perror("sched_getcpu");
-+	/* CPU numbers can exceed CPU_SETSIZE, so size the mask to fit. */
-+	mask = CPU_ALLOC(cpu + 1);
-+	if (!mask)
-+		ksft_exit_fail_perror("CPU_ALLOC");
-+	size = CPU_ALLOC_SIZE(cpu + 1);
-+	CPU_ZERO_S(size, mask);
-+	CPU_SET_S(cpu, size, mask);
-+	if (sched_setaffinity(0, size, mask))
-+		ksft_exit_fail_perror("sched_setaffinity");
-+	CPU_FREE(mask);
-+}
-+
-+FIXTURE(madv_cold_pageout)
-+{
-+	int pagemap_fd;
-+};
-+
-+FIXTURE_SETUP(madv_cold_pageout)
-+{
-+	self->pagemap_fd = open("/proc/self/pagemap", O_RDONLY);
-+	ASSERT_GE(self->pagemap_fd, 0);
-+}
-+
-+FIXTURE_TEARDOWN(madv_cold_pageout)
-+{
-+	close(self->pagemap_fd);
-+}
-+
-+/* Page out the range until its first page is swapped, or madvise() fails. */
-+static bool pageout_until_swapped(char *mapping, size_t size, int pagemap_fd)
-+{
-+	int retry;
-+
-+	for (retry = 0; retry < PAGEOUT_RETRIES; retry++) {
-+		if (madvise(mapping, size, MADV_PAGEOUT))
-+			return false;
-+		if (pagemap_is_swapped(pagemap_fd, mapping))
-+			return true;
-+		usleep(10000);
-+	}
-+
-+	return false;
-+}
-+
-+/*
-+ * Both hints are best effort, so these tests check what userspace can rely
-+ * on: which mappings are accepted, which pages must never be reclaimed, and
-+ * that neither hint changes memory contents or populates the range. main()
-+ * checks once whether reclaim works at all. A test that needs a page to be
-+ * reclaimed skips if it does not, and fails if the page is then not reclaimed.
-+ */
-+
-+/* Neither hint may populate a hole between two populated pages. */
-+static void check_skips_pte_hole(struct __test_metadata *_metadata,
-+				 int pagemap_fd, int advice)
+@@ -141,6 +141,86 @@ TEST_F(madv_cold_pageout, locked_vma_is_
+ 	ASSERT_EQ(munmap(mapping, page_size), 0);
+ }
+ 
++/* A zero-length range is accepted. */
++TEST_F(madv_cold_pageout, zero_length_is_accepted)
 +{
 +	char *mapping;
++
++	mapping = mmap(NULL, page_size, PROT_READ | PROT_WRITE,
++		       MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
++	ASSERT_NE(mapping, MAP_FAILED);
++
++	ASSERT_EQ(madvise(mapping, 0, MADV_COLD), 0);
++	ASSERT_EQ(madvise(mapping, 0, MADV_PAGEOUT), 0);
++
++	ASSERT_EQ(munmap(mapping, page_size), 0);
++}
++
++/* The start of the range must be page-aligned. */
++TEST_F(madv_cold_pageout, unaligned_start_is_rejected)
++{
++	char *mapping;
++
++	mapping = mmap(NULL, 2 * page_size, PROT_READ | PROT_WRITE,
++		       MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
++	ASSERT_NE(mapping, MAP_FAILED);
++	mapping[0] = 1;
++
++	ASSERT_EQ(madvise(mapping + 1, page_size, MADV_COLD), -1);
++	ASSERT_EQ(errno, EINVAL);
++	ASSERT_EQ(madvise(mapping + 1, page_size, MADV_PAGEOUT), -1);
++	ASSERT_EQ(errno, EINVAL);
++	ASSERT_EQ(mapping[0], 1);
++
++	ASSERT_EQ(munmap(mapping, 2 * page_size), 0);
++}
++
++/*
++ * An unmapped gap in the range makes either hint fail with ENOMEM, after
++ * advising the mapped pages on both sides of the gap. Only MADV_PAGEOUT has
++ * an effect on those pages that the test can observe.
++ */
++TEST_F(madv_cold_pageout, unmapped_gap_fails_after_advising)
++{
++	bool swapped = false;
++	char *mapping;
++	int retry;
 +
 +	mapping = mmap(NULL, 3 * page_size, PROT_READ | PROT_WRITE,
 +		       MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
 +	ASSERT_NE(mapping, MAP_FAILED);
-+	/*
-+	 * Keep a large folio from covering the hole. Without THP there are no
-+	 * large anonymous folios, and this fails harmlessly.
-+	 */
-+	madvise(mapping, 3 * page_size, MADV_NOHUGEPAGE);
 +	mapping[0] = 1;
 +	mapping[2 * page_size] = 1;
-+	ASSERT_FALSE(pagemap_is_populated(pagemap_fd, mapping + page_size));
++	ASSERT_EQ(munmap(mapping + page_size, page_size), 0);
 +
-+	ASSERT_EQ(madvise(mapping, 3 * page_size, advice), 0);
-+	ASSERT_FALSE(pagemap_is_populated(pagemap_fd, mapping + page_size));
++	ASSERT_EQ(madvise(mapping, 3 * page_size, MADV_COLD), -1);
++	ASSERT_EQ(errno, ENOMEM);
++	ASSERT_EQ(madvise(mapping, 3 * page_size, MADV_PAGEOUT), -1);
++	ASSERT_EQ(errno, ENOMEM);
 +	ASSERT_EQ(mapping[0], 1);
 +	ASSERT_EQ(mapping[2 * page_size], 1);
 +
-+	ASSERT_EQ(munmap(mapping, 3 * page_size), 0);
-+}
-+
-+TEST_F(madv_cold_pageout, cold_skips_pte_hole)
-+{
-+	check_skips_pte_hole(_metadata, self->pagemap_fd, MADV_COLD);
-+}
-+
-+TEST_F(madv_cold_pageout, pageout_skips_pte_hole)
-+{
-+	check_skips_pte_hole(_metadata, self->pagemap_fd, MADV_PAGEOUT);
-+}
-+
-+/* Neither hint may be applied to locked memory. */
-+TEST_F(madv_cold_pageout, locked_vma_is_rejected)
-+{
-+	char *mapping;
-+
-+	mapping = mmap(NULL, page_size, PROT_READ | PROT_WRITE,
-+		       MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
-+	ASSERT_NE(mapping, MAP_FAILED);
-+	mapping[0] = 1;
-+	if (mlock(mapping, page_size))
-+		SKIP(return, "could not lock a page");
-+
-+	ASSERT_EQ(madvise(mapping, page_size, MADV_COLD), -1);
-+	ASSERT_EQ(errno, EINVAL);
-+	ASSERT_EQ(madvise(mapping, page_size, MADV_PAGEOUT), -1);
-+	ASSERT_EQ(errno, EINVAL);
-+	ASSERT_EQ(mapping[0], 1);
-+
-+	ASSERT_EQ(munmap(mapping, page_size), 0);
-+}
-+
-+/* Neither hint may fault a swapped page back in. */
-+static void check_skips_swapped_pte(struct __test_metadata *_metadata,
-+				    int pagemap_fd, int advice)
-+{
-+	char *mapping;
-+
 +	if (!can_swap)
 +		SKIP(return, "MADV_PAGEOUT cannot swap");
-+	mapping = mmap(NULL, page_size, PROT_READ | PROT_WRITE,
-+		       MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
-+	ASSERT_NE(mapping, MAP_FAILED);
-+	mapping[0] = 1;
-+	ASSERT_TRUE(pageout_until_swapped(mapping, page_size, pagemap_fd));
 +
-+	ASSERT_EQ(madvise(mapping, page_size, advice), 0);
-+	ASSERT_TRUE(pagemap_is_swapped(pagemap_fd, mapping));
++	for (retry = 0; retry < PAGEOUT_RETRIES && !swapped; retry++) {
++		ASSERT_EQ(madvise(mapping, 3 * page_size, MADV_PAGEOUT), -1);
++		ASSERT_EQ(errno, ENOMEM);
++		swapped = pagemap_is_swapped(self->pagemap_fd, mapping) &&
++			  pagemap_is_swapped(self->pagemap_fd,
++					     mapping + 2 * page_size);
++		if (!swapped)
++			usleep(10000);
++	}
++	ASSERT_TRUE(swapped)
++		TH_LOG("MADV_PAGEOUT did not page out both sides of the gap");
 +	ASSERT_EQ(mapping[0], 1);
++	ASSERT_EQ(mapping[2 * page_size], 1);
 +
 +	ASSERT_EQ(munmap(mapping, page_size), 0);
++	ASSERT_EQ(munmap(mapping + 2 * page_size, page_size), 0);
 +}
 +
-+TEST_F(madv_cold_pageout, cold_skips_swapped_pte)
-+{
-+	check_skips_swapped_pte(_metadata, self->pagemap_fd, MADV_COLD);
-+}
-+
-+TEST_F(madv_cold_pageout, pageout_skips_swapped_pte)
-+{
-+	check_skips_swapped_pte(_metadata, self->pagemap_fd, MADV_PAGEOUT);
-+}
-+
-+/* Swap out an anonymous page, to see whether swap works at all. */
-+static bool probe_swap(int pagemap_fd)
-+{
-+	bool swapped;
-+	char *page;
-+
-+	page = mmap(NULL, page_size, PROT_READ | PROT_WRITE,
-+		    MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
-+	if (page == MAP_FAILED)
-+		ksft_exit_fail_perror("mmap");
-+	page[0] = 1;
-+	swapped = pageout_until_swapped(page, page_size, pagemap_fd);
-+	munmap(page, page_size);
-+
-+	return swapped;
-+}
-+
-+int main(int argc, char **argv)
-+{
-+	int pagemap_fd;
-+
-+	page_size = getpagesize();
-+	/* The harness forks each test, which inherits this. */
-+	pin_to_current_cpu();
-+
-+	pagemap_fd = open("/proc/self/pagemap", O_RDONLY);
-+	if (pagemap_fd < 0)
-+		ksft_exit_fail_perror("open /proc/self/pagemap");
-+	can_swap = probe_swap(pagemap_fd);
-+	if (!can_swap)
-+		ksft_print_msg("MADV_PAGEOUT cannot swap\n");
-+	close(pagemap_fd);
-+
-+	return test_harness_run(argc, argv);
-+}
---- a/tools/testing/selftests/mm/Makefile~selftests-mm-add-madv_cold-and-madv_pageout-contract-tests
-+++ a/tools/testing/selftests/mm/Makefile
-@@ -68,6 +68,7 @@ TEST_GEN_FILES += hugetlb-read-hwpoison
- TEST_GEN_FILES += hugetlb-shm
- TEST_GEN_FILES += hugetlb-soft-offline
- TEST_GEN_FILES += khugepaged
-+TEST_GEN_FILES += madv_cold_pageout
- TEST_GEN_FILES += madv_populate
- TEST_GEN_FILES += map_fixed_noreplace
- TEST_GEN_FILES += map_populate
-@@ -154,6 +155,7 @@ TEST_PROGS += ksft_kmemleak_confirm.sh
- TEST_PROGS += ksft_kmemleak_dedup.sh
- TEST_PROGS += ksft_ksm.sh
- TEST_PROGS += ksft_ksm_numa.sh
-+TEST_PROGS += ksft_madv_cold_pageout.sh
- TEST_PROGS += ksft_madv_guard.sh
- TEST_PROGS += ksft_madv_populate.sh
- TEST_PROGS += ksft_memfd_secret.sh
---- a/tools/testing/selftests/mm/run_vmtests.sh~selftests-mm-add-madv_cold-and-madv_pageout-contract-tests
-+++ a/tools/testing/selftests/mm/run_vmtests.sh
-@@ -53,6 +53,8 @@ separated by spaces:
- 	test madvise(2) MADV_GUARD_INSTALL and MADV_GUARD_REMOVE options
- - madv_populate
- 	test memadvise(2) MADV_POPULATE_{READ,WRITE} options
-+- madv_cold_pageout
-+	test madvise(2) MADV_COLD and MADV_PAGEOUT
- - memfd_secret
- 	test memfd_secret(2)
- - process_mrelease
-@@ -343,6 +345,9 @@ CATEGORY="madv_guard" run_test ./guard-r
- # MADV_POPULATE_READ and MADV_POPULATE_WRITE tests
- CATEGORY="madv_populate" run_test ./madv_populate
- 
-+# MADV_COLD and MADV_PAGEOUT tests
-+CATEGORY="madv_cold_pageout" run_test ./madv_cold_pageout
-+
- # PROCESS_MADV test
- CATEGORY="process_madv" run_test ./process_madv
- 
+ /* Neither hint may fault a swapped page back in. */
+ static void check_skips_swapped_pte(struct __test_metadata *_metadata,
+ 				    int pagemap_fd, int advice)
 _
 
 Patches currently in -mm which might be from gourry@gourry.net are
