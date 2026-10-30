@@ -1,47 +1,47 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793329350;
-	b=4GEuoMIfTmJIt1uOJj/nkf+TTWSRu4Z/emjhynePqTclJhyMXhRA3DCzQfohiMsjAGK7
-	 tgfRUA4mtFCjbXglU+ubm6zMdFBoD7Fr3ZuXTRHsXIbQqaCYLF8ZYvDqT0LAIVDtAiWJx
-	 2T/xJ/9NXckmnMM0sljCjXks6WmRhzgwhdGholq1Kb+h9muwmckv4XMzN6B72cKCgPkS9
-	 DLqMUahbuQNsmxnOz75lwPH1NPvx89rSLkvp3QQ78wxXr4u1T7r8HE8PWh5hit6nS1Dp2
-	 aZWgA1dLUfp+rM2Cik05bOCY3qB1OjuArI48ga8MRJlfcdfrBzu84+QhdMFRC72xQtg==
+	t=1793329352;
+	b=CwRuhWsL1276dTpIHUVqOV7gdnabL/txhLJvSvasDhpdJH5tEJIR3hK2+w/s/aV7aLdw
+	 ms+eptstKNF3UWHnO48ZlNMQQ/ICyYOSNG3aQBRoyO8qwfmvrGuAh8OeP8vRg8VTloVN/
+	 NUSv4KX6B9DogZdvGcdC5U9q/WCkt3qpc+LCRergSruTtpTN7bekS1NpAlg6Df1SJ0brv
+	 sZcc/WcIWTjw0mjycUdLBo1GHsVtN6wWy0XJ2YdRKpg1bF4J52riPcAVlyRO//mhfv0ON
+	 /ItPruVu9fAaFtWbRTNNb8lgHddWZ8PjKe6B4E2Wi16/uHb0Iw10ebNPurBTgMUoYzQ==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793329350;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793329352;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=QUlxEwyRkGzFYkxGcMWcFTU0NG5XRtmeXLT8AY+6eLs=;
-	b=w3U2qIzeQKYtkxuLTzFmjZzJzaZkRpaMkCl8lkN5xv22xQjq5fNXE4HcazCsnuESCmb4
-	 6cq61t/XONrqJYevvCpM0OzzyB99dCRmaNnC7/GPQpzPDsMq05NF7E64OObo66qC3IGkI
-	 q8P5ZNChjPYPXZ6Qvw65gXL3YjbKyesWbB0lgU1R6+rekuhNmM4u5RZQbr298ZnfMaDh/
-	 jR3deL72shs4jKnjckYtuIpBJfyxtnGbOhVbQTXlZ+53rTE/ZrNwxOkGcL+miQgpmRaoC
-	 D6A/97fjGHLk3vR8eKR07h1dj3afVoqAOTRJbAQITjPf0VZu9eXsOnhp4aUPTUuR5Bg==
+	bh=+oeKKUp0iscolM+jrB9UEvEfVq514pIzo2BJoQClWKI=;
+	b=kpmYeo4Hzuwuhp6x0g/Rl1Y5J05EMnLpPe7vRodI/Wa+mpeHN/+eKoxY43SQbJ/xfmo4
+	 uOUzfMc5eBOu1chw2wP4LeX6blQr+vgGyG7dxtTaaXdwFbfFtCLieWc7QpsuwArd2PZkx
+	 U7Iz4WQ/N70WIYbPtXpX0Bmpn79uIiiZFq6noAusDwHNH7TvY6cIbGsSA78D6HdA7N66X
+	 kstuh14x/2/1BaBr9sNltAC1VNDga8Y1X/xm5PTRInSM75/8PmmOmIn7rQpT1AQsXIa7q
+	 +M/iBLQ0TpwmNcSi9DHKeXrGUiU2i7jb12nRbeQrwnkPkHW2el9FaPjkKCkY8nSzKng==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=QoQz8NdK;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=OgdOcte3;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DD848606A325
-	for <mm-commits@vger.kernel.org>; Fri, 30 Oct 2026 03:02:29 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AEA76606A31F
+	for <mm-commits@vger.kernel.org>; Fri, 30 Oct 2026 03:02:31 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=QoQz8NdK
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9A85B1F000C1;
-	Fri, 30 Oct 2026 03:02:29 +0000 (UTC)
+	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=OgdOcte3
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6DC021F000C1;
+	Fri, 30 Oct 2026 03:02:31 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1793329349;
-	bh=QUlxEwyRkGzFYkxGcMWcFTU0NG5XRtmeXLT8AY+6eLs=;
+	d=linux-foundation.org; s=korg; t=1793329351;
+	bh=+oeKKUp0iscolM+jrB9UEvEfVq514pIzo2BJoQClWKI=;
 	h=Date:To:From:Subject;
-	b=QoQz8NdKzgfVIKlxZrOxJ8G5jiCD4mrcg25rcHplyzTngqMuR1C+TfEBW5aDJv2SV
-	 hn1gNtr84tDXCKjkFlDPae5FF7SVvHhNgedrqUeqmO6lmOqQt4vHWTv1e0FRXqy4b6
-	 IW0yRffwjb5Vm8c+vizLE7Kz1zNUtIeZh7io1xHg=
-Date: Thu, 29 Oct 2026 20:02:29 -0700
+	b=OgdOcte3u3V0riTg8JQC6blSuWUZb/Sowg2iY2tp7oG6Q5dIQNDqtAYKBry2mKsKr
+	 kGSgF5JzbfI9vG14eB7pDuFrRMdhxsK7B4dACsov+Pmn6G+D6G6pwL/oUqJgVhe6tl
+	 KueEQdGh3kSiozzdPta/Ir6jPZT73NEXw9ZacnyQ=
+Date: Thu, 29 Oct 2026 20:02:31 -0700
 To: mm-commits@vger.kernel.org,zhangbo56@xiaomi.com,zhangbo0325@gmail.com,
 	richardycc@google.com,minchan@kernel.org,hdanton@sina.com,bgeffon@google.com,
 	baohua@kernel.org,senozhatsky@chromium.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + zram-zstd-do-not-allocate-empty-c-d-dictionaries.patch added to mm-nonmm-unstable branch
-Message-Id: <20261030030229.9A85B1F000C1@smtp.kernel.org>
+Subject: + zram-lz4hc-pre-initialize-dictionary-stream-in-setup_params.patch added to mm-nonmm-unstable branch
+Message-Id: <20261030030231.6DC021F000C1@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -53,12 +53,12 @@ Precedence: list
 
 
 The patch titled
-     Subject: zram: zstd: do not allocate empty C/D-dictionaries
+     Subject: zram: lz4hc: pre-initialize dictionary stream in setup_params
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     zram-zstd-do-not-allocate-empty-c-d-dictionaries.patch
+     zram-lz4hc-pre-initialize-dictionary-stream-in-setup_params.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/zram-zstd-do-not-allocate-empty-c-d-dictionaries.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/zram-lz4hc-pre-initialize-dictionary-stream-in-setup_params.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -77,15 +77,19 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Sergey Senozhatsky <senozhatsky@chromium.org>
-Subject: zram: zstd: do not allocate empty C/D-dictionaries
-Date: Sun, 25 Oct 2026 11:18:22 +0900
+Subject: zram: lz4hc: pre-initialize dictionary stream in setup_params
+Date: Sun, 25 Oct 2026 11:18:23 +0900
 
-Do not zstd_create_cdict_byreference() / zstd_create_ddict_byreference()
-C/D dictionaries when no dictionary was provided in the first place,
-because zstd still allocates internal memory for such calls (~96 KB at
-default level 3, and ~160 KB at levels 9+ on x86_64).
+Pre-initialize the dictionary stream once in lz4hc_setup_params(), store
+it in params->drv_data, and memcpy() it into the per-CPU stream before
+LZ4_compress_HC_continue(), matching backend_lz4.  This avoids resetting
+and hashing the dictionary on every page compression.
 
-Link: https://lore.kernel.org/20261025021839.1542805-7-senozhatsky@chromium.org
+This also rejects dictionaries larger than 64 KB at device init time
+(matching backend_lz4), instead of failing every page compression with
+-EINVAL.
+
+Link: https://lore.kernel.org/20261025021839.1542805-8-senozhatsky@chromium.org
 Signed-off-by: Sergey Senozhatsky <senozhatsky@chromium.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 Cc: Brian Geffon <bgeffon@google.com>
@@ -97,21 +101,67 @@ Cc: Bo Zhang <zhangbo56@xiaomi.com>
 Cc: Hillf Danton <hdanton@sina.com>
 ---
 
- drivers/block/zram/backend_zstd.c |    3 +++
- 1 file changed, 3 insertions(+)
+ drivers/block/zram/backend_lz4hc.c |   31 ++++++++++++++++++++++-----
+ 1 file changed, 26 insertions(+), 5 deletions(-)
 
---- a/drivers/block/zram/backend_zstd.c~zram-zstd-do-not-allocate-empty-c-d-dictionaries
-+++ a/drivers/block/zram/backend_zstd.c
-@@ -76,6 +76,9 @@ static int zstd_setup_params(struct zcom
- 	prm = zstd_get_cparams(params->level, PAGE_SIZE,
- 			       params->dict_sz);
+--- a/drivers/block/zram/backend_lz4hc.c~zram-lz4hc-pre-initialize-dictionary-stream-in-setup_params
++++ a/drivers/block/zram/backend_lz4hc.c
+@@ -18,10 +18,20 @@ struct lz4hc_ctx {
+ 
+ static void lz4hc_release_params(struct zcomp_params *params)
+ {
++	LZ4_streamHC_t *dict_stream = params->drv_data;
++
++	params->drv_data = NULL;
++	if (!dict_stream)
++		return;
++
++	vfree(dict_stream);
+ }
+ 
+ static int lz4hc_setup_params(struct zcomp_params *params)
+ {
++	LZ4_streamHC_t *dict_stream;
++	int ret;
++
+ 	if (params->level == ZCOMP_PARAM_NOT_SET) {
+ 		params->level = LZ4HC_DEFAULT_CLEVEL;
+ 	} else if (params->level < 1 || params->level > LZ4HC_MAX_CLEVEL) {
+@@ -35,6 +45,21 @@ static int lz4hc_setup_params(struct zco
+ 		return -EINVAL;
+ 	}
  
 +	if (!params->dict || !params->dict_sz)
 +		return 0;
 +
- 	zp->cdict = zstd_create_cdict_byreference(params->dict,
- 						  params->dict_sz,
- 						  prm,
++	dict_stream = vzalloc(sizeof(*dict_stream));
++	if (!dict_stream)
++		return -ENOMEM;
++
++	LZ4_resetStreamHC(dict_stream, params->level);
++	ret = LZ4_loadDictHC(dict_stream, params->dict, params->dict_sz);
++	if (ret != params->dict_sz) {
++		vfree(dict_stream);
++		return -EINVAL;
++	}
++	params->drv_data = dict_stream;
++
+ 	return 0;
+ }
+ 
+@@ -93,11 +118,7 @@ static int lz4hc_compress(struct zcomp_p
+ 				      zctx->mem);
+ 	} else {
+ 		/* Cstrm needs to be reset */
+-		LZ4_resetStreamHC(zctx->cstrm, params->level);
+-		ret = LZ4_loadDictHC(zctx->cstrm, params->dict,
+-				     params->dict_sz);
+-		if (ret != params->dict_sz)
+-			return -EINVAL;
++		memcpy(zctx->cstrm, params->drv_data, sizeof(*zctx->cstrm));
+ 		ret = LZ4_compress_HC_continue(zctx->cstrm, req->src, req->dst,
+ 					       req->src_len, req->dst_len);
+ 	}
 _
 
 Patches currently in -mm which might be from senozhatsky@chromium.org are
