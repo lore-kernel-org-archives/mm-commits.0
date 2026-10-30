@@ -1,47 +1,47 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793329348;
-	b=1kwl+0+d/o89ytStu9OzXxYZcZexdr7/3LbK8NGiFrqWDv7Cl2OuOg/oCBNSLw+HFbD3
-	 GFMaJa1uex3MMnQOj8fRGjRbYkAr3/PQo9f/1zEWg2KhEnSiyfo2tqOhycksGSRK6zvp+
-	 TjXsceLP+iRWpiE+fxO0QGN4xi54McqJgxOGrusO3MXaE0UnN9cntNRNXAac7UhWaTjJ4
-	 sjrBJcU+Z+TdxyBBx5jDq9YFh7ckI/2VBuNPFQcxM1gk87JI4k8G81kBjotpdZkzuPlyZ
-	 1NUBooMUnOKkgyhqTH4YCK+8XiQ45PY57ncJl2ahOBjwQKGPlYm5psg7lw/7RD1Rvaw==
+	t=1793329350;
+	b=4GEuoMIfTmJIt1uOJj/nkf+TTWSRu4Z/emjhynePqTclJhyMXhRA3DCzQfohiMsjAGK7
+	 tgfRUA4mtFCjbXglU+ubm6zMdFBoD7Fr3ZuXTRHsXIbQqaCYLF8ZYvDqT0LAIVDtAiWJx
+	 2T/xJ/9NXckmnMM0sljCjXks6WmRhzgwhdGholq1Kb+h9muwmckv4XMzN6B72cKCgPkS9
+	 DLqMUahbuQNsmxnOz75lwPH1NPvx89rSLkvp3QQ78wxXr4u1T7r8HE8PWh5hit6nS1Dp2
+	 aZWgA1dLUfp+rM2Cik05bOCY3qB1OjuArI48ga8MRJlfcdfrBzu84+QhdMFRC72xQtg==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793329348;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793329350;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=7bZQwG3uBfbsLZDO2RCS6Z3UbVAUC+8vQpjij+D57xs=;
-	b=n3MtIcDgAGexLUGpwzPT+kb0w3sf98uYUSA7m9J4h+Pb+BXxvFU/gbcePuPwB2LIhbvj
-	 r+q9QmsxGt9raVFKbn/Q8zwKC/UOAe9ZDowLpm3ektEr9iCFJYrmvJwATPtJKhagNXtEd
-	 Uwe4HE2xRQckTOJ/NJBcnuytH5L5EPDG9daztZJl3S0ZQeOKgErH/BHJvKywoi3WPl9ip
-	 z3fz517d3xbYNM5lXJVrrvneFgeyjCOBITiTDahDcttPUuAusXOVTkoIpW9n9na2u9cHj
-	 PczpKY5u9GhdZOPfagkbP0HS/k42i9HNGLspXeaGruUmj+MMlcBIMthE5ViuXLLdmUQ==
+	bh=QUlxEwyRkGzFYkxGcMWcFTU0NG5XRtmeXLT8AY+6eLs=;
+	b=w3U2qIzeQKYtkxuLTzFmjZzJzaZkRpaMkCl8lkN5xv22xQjq5fNXE4HcazCsnuESCmb4
+	 6cq61t/XONrqJYevvCpM0OzzyB99dCRmaNnC7/GPQpzPDsMq05NF7E64OObo66qC3IGkI
+	 q8P5ZNChjPYPXZ6Qvw65gXL3YjbKyesWbB0lgU1R6+rekuhNmM4u5RZQbr298ZnfMaDh/
+	 jR3deL72shs4jKnjckYtuIpBJfyxtnGbOhVbQTXlZ+53rTE/ZrNwxOkGcL+miQgpmRaoC
+	 D6A/97fjGHLk3vR8eKR07h1dj3afVoqAOTRJbAQITjPf0VZu9eXsOnhp4aUPTUuR5Bg==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=V8Yaf0ZY;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=QoQz8NdK;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 55553606A325
-	for <mm-commits@vger.kernel.org>; Fri, 30 Oct 2026 03:02:28 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DD848606A325
+	for <mm-commits@vger.kernel.org>; Fri, 30 Oct 2026 03:02:29 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=V8Yaf0ZY
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C8B971F00A02;
-	Fri, 30 Oct 2026 03:02:27 +0000 (UTC)
+	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=QoQz8NdK
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9A85B1F000C1;
+	Fri, 30 Oct 2026 03:02:29 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1793329347;
-	bh=7bZQwG3uBfbsLZDO2RCS6Z3UbVAUC+8vQpjij+D57xs=;
+	d=linux-foundation.org; s=korg; t=1793329349;
+	bh=QUlxEwyRkGzFYkxGcMWcFTU0NG5XRtmeXLT8AY+6eLs=;
 	h=Date:To:From:Subject;
-	b=V8Yaf0ZYenxqz0j5H/166RSoh6TazvD1kq5nNECwAlfMujm10FoI9BlzLoLg/wKP5
-	 aerzGmIlQaQKZq7hIGK6YTXbUH7mBhFUgQAtZEjhACqL6dW487uM3YdxdPEYnXMTvw
-	 lrQW5o4pb6KHa44oXxM/VMofmbDqKxerIqGTlLuk=
-Date: Thu, 29 Oct 2026 20:02:27 -0700
+	b=QoQz8NdKzgfVIKlxZrOxJ8G5jiCD4mrcg25rcHplyzTngqMuR1C+TfEBW5aDJv2SV
+	 hn1gNtr84tDXCKjkFlDPae5FF7SVvHhNgedrqUeqmO6lmOqQt4vHWTv1e0FRXqy4b6
+	 IW0yRffwjb5Vm8c+vizLE7Kz1zNUtIeZh7io1xHg=
+Date: Thu, 29 Oct 2026 20:02:29 -0700
 To: mm-commits@vger.kernel.org,zhangbo56@xiaomi.com,zhangbo0325@gmail.com,
 	richardycc@google.com,minchan@kernel.org,hdanton@sina.com,bgeffon@google.com,
 	baohua@kernel.org,senozhatsky@chromium.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + zram-remove-stale-warn_on-from-zram_read_page.patch added to mm-nonmm-unstable branch
-Message-Id: <20261030030227.C8B971F00A02@smtp.kernel.org>
+Subject: + zram-zstd-do-not-allocate-empty-c-d-dictionaries.patch added to mm-nonmm-unstable branch
+Message-Id: <20261030030229.9A85B1F000C1@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -53,12 +53,12 @@ Precedence: list
 
 
 The patch titled
-     Subject: zram: remove stale WARN_ON() from zram_read_page()
+     Subject: zram: zstd: do not allocate empty C/D-dictionaries
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     zram-remove-stale-warn_on-from-zram_read_page.patch
+     zram-zstd-do-not-allocate-empty-c-d-dictionaries.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/zram-remove-stale-warn_on-from-zram_read_page.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/zram-zstd-do-not-allocate-empty-c-d-dictionaries.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -77,14 +77,15 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Sergey Senozhatsky <senozhatsky@chromium.org>
-Subject: zram: remove stale WARN_ON() from zram_read_page()
-Date: Sun, 25 Oct 2026 11:18:21 +0900
+Subject: zram: zstd: do not allocate empty C/D-dictionaries
+Date: Sun, 25 Oct 2026 11:18:22 +0900
 
-The zram_read_page() WARN_ON() is not accurate anymore, because, in
-theory, async read from bdev can return -EIO or -ENOMEM.  We report
-errors to upper layers via bi_status, so upper layers printk errors.
+Do not zstd_create_cdict_byreference() / zstd_create_ddict_byreference()
+C/D dictionaries when no dictionary was provided in the first place,
+because zstd still allocates internal memory for such calls (~96 KB at
+default level 3, and ~160 KB at levels 9+ on x86_64).
 
-Link: https://lore.kernel.org/20261025021839.1542805-6-senozhatsky@chromium.org
+Link: https://lore.kernel.org/20261025021839.1542805-7-senozhatsky@chromium.org
 Signed-off-by: Sergey Senozhatsky <senozhatsky@chromium.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 Cc: Brian Geffon <bgeffon@google.com>
@@ -96,22 +97,21 @@ Cc: Bo Zhang <zhangbo56@xiaomi.com>
 Cc: Hillf Danton <hdanton@sina.com>
 ---
 
- drivers/block/zram/zram_drv.c |    4 ----
- 1 file changed, 4 deletions(-)
+ drivers/block/zram/backend_zstd.c |    3 +++
+ 1 file changed, 3 insertions(+)
 
---- a/drivers/block/zram/zram_drv.c~zram-remove-stale-warn_on-from-zram_read_page
-+++ a/drivers/block/zram/zram_drv.c
-@@ -2204,10 +2204,6 @@ static int zram_read_page(struct zram *z
- 		ret = read_from_bdev(zram, page, index, blk_idx, parent);
- 	}
+--- a/drivers/block/zram/backend_zstd.c~zram-zstd-do-not-allocate-empty-c-d-dictionaries
++++ a/drivers/block/zram/backend_zstd.c
+@@ -76,6 +76,9 @@ static int zstd_setup_params(struct zcom
+ 	prm = zstd_get_cparams(params->level, PAGE_SIZE,
+ 			       params->dict_sz);
  
--	/* Should NEVER happen. Return bio error if it does. */
--	if (WARN_ON(ret < 0))
--		pr_err("Decompression failed! err=%d, page=%lu\n", ret, index);
--
- 	return ret;
- }
- 
++	if (!params->dict || !params->dict_sz)
++		return 0;
++
+ 	zp->cdict = zstd_create_cdict_byreference(params->dict,
+ 						  params->dict_sz,
+ 						  prm,
 _
 
 Patches currently in -mm which might be from senozhatsky@chromium.org are
