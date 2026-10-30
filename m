@@ -1,47 +1,47 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793329352;
-	b=CwRuhWsL1276dTpIHUVqOV7gdnabL/txhLJvSvasDhpdJH5tEJIR3hK2+w/s/aV7aLdw
-	 ms+eptstKNF3UWHnO48ZlNMQQ/ICyYOSNG3aQBRoyO8qwfmvrGuAh8OeP8vRg8VTloVN/
-	 NUSv4KX6B9DogZdvGcdC5U9q/WCkt3qpc+LCRergSruTtpTN7bekS1NpAlg6Df1SJ0brv
-	 sZcc/WcIWTjw0mjycUdLBo1GHsVtN6wWy0XJ2YdRKpg1bF4J52riPcAVlyRO//mhfv0ON
-	 /ItPruVu9fAaFtWbRTNNb8lgHddWZ8PjKe6B4E2Wi16/uHb0Iw10ebNPurBTgMUoYzQ==
+	t=1793329353;
+	b=QJEY3ZIAa+tbORZRZa57XkK8oDJb1t4cr/D9N9KqE9ynoXebsTfla49KwsCK4BwKulK/
+	 BhRupq3rOEe6ePdtUXrVxmh728Se/bb21x+2HOPgJl/J/2CZ7wAUMaeEWh1ZLuFVzjz1c
+	 VMJVwYZcvPidtyhuOmgA/Hikldrmu57o74ENKvy98K8T/R/QGZTtMyfFv/f/ETbB93hee
+	 /ncsQOmGsAN4QxTvsgWWwySETUxq/SFwQG89gxeHM6aJZlMHPy7hW7NSThYnNmoEw1OT1
+	 np9Ns8IhZ/uGMPAbPmsdsu0OECeANqWUA6L9Lv5rlxMKKEZuWRWcWYHrKG1oOu1oUMQ==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793329352;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793329353;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=+oeKKUp0iscolM+jrB9UEvEfVq514pIzo2BJoQClWKI=;
-	b=kpmYeo4Hzuwuhp6x0g/Rl1Y5J05EMnLpPe7vRodI/Wa+mpeHN/+eKoxY43SQbJ/xfmo4
-	 uOUzfMc5eBOu1chw2wP4LeX6blQr+vgGyG7dxtTaaXdwFbfFtCLieWc7QpsuwArd2PZkx
-	 U7Iz4WQ/N70WIYbPtXpX0Bmpn79uIiiZFq6noAusDwHNH7TvY6cIbGsSA78D6HdA7N66X
-	 kstuh14x/2/1BaBr9sNltAC1VNDga8Y1X/xm5PTRInSM75/8PmmOmIn7rQpT1AQsXIa7q
-	 +M/iBLQ0TpwmNcSi9DHKeXrGUiU2i7jb12nRbeQrwnkPkHW2el9FaPjkKCkY8nSzKng==
+	bh=tX2Qj2rU8Jmmu+tveIUpwT2dzr5XCJARFKxmsyYafrg=;
+	b=n/t5QnPEiG+Q8PyYUYMp25hqhfHlD/HDB4JxOhIXTmRWOfU8d4N3D6T546TaNI+bGK8b
+	 SmFZ7V98NaDbpEJCyTGAyffoUeHNCssV6Ca2wjK9LWSbZyoooyPmVrFGqvUOknvXpH5nr
+	 OaUy90hDlk9E8GItdkHOXKid8mpSmg6Uw0Iw3ET61XErYlQbE+RhTmO4Lg/Eu6kuv1cgL
+	 mgv2h90DTkJM+LQQWRjK1lOsWO3UFCbPAOczB3f/ZY/+pZoy29dHlfEU0AFjhn4AIeW2R
+	 ja8azpugKpsyzef/DBdfd+IZsxCUY7jgphNOubOs79bd4ZrIOtlcjY5E3qgwm6lLcMA==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=OgdOcte3;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=X6eAv65k;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AEA76606A31F
-	for <mm-commits@vger.kernel.org>; Fri, 30 Oct 2026 03:02:31 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8ECCF606A31A
+	for <mm-commits@vger.kernel.org>; Fri, 30 Oct 2026 03:02:33 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=OgdOcte3
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6DC021F000C1;
-	Fri, 30 Oct 2026 03:02:31 +0000 (UTC)
+	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=X6eAv65k
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 59B971F000C1;
+	Fri, 30 Oct 2026 03:02:33 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1793329351;
-	bh=+oeKKUp0iscolM+jrB9UEvEfVq514pIzo2BJoQClWKI=;
+	d=linux-foundation.org; s=korg; t=1793329353;
+	bh=tX2Qj2rU8Jmmu+tveIUpwT2dzr5XCJARFKxmsyYafrg=;
 	h=Date:To:From:Subject;
-	b=OgdOcte3u3V0riTg8JQC6blSuWUZb/Sowg2iY2tp7oG6Q5dIQNDqtAYKBry2mKsKr
-	 kGSgF5JzbfI9vG14eB7pDuFrRMdhxsK7B4dACsov+Pmn6G+D6G6pwL/oUqJgVhe6tl
-	 KueEQdGh3kSiozzdPta/Ir6jPZT73NEXw9ZacnyQ=
-Date: Thu, 29 Oct 2026 20:02:31 -0700
+	b=X6eAv65kbw4tVXXOiaenxKMXwWAosD2c8iZEU+sp7c5hiZpx9jzS6q1Hga2oaPDHU
+	 83yV4cxWT0gvK7g00vDzz9mencnPoIOm5xm3xaM58qVYq0IGIc/k/00+F79TTlJlA8
+	 gJ7joacbHPafUD8L7eP8eK9ppuNSENT/mSvhBWIg=
+Date: Thu, 29 Oct 2026 20:02:32 -0700
 To: mm-commits@vger.kernel.org,zhangbo56@xiaomi.com,zhangbo0325@gmail.com,
 	richardycc@google.com,minchan@kernel.org,hdanton@sina.com,bgeffon@google.com,
 	baohua@kernel.org,senozhatsky@chromium.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + zram-lz4hc-pre-initialize-dictionary-stream-in-setup_params.patch added to mm-nonmm-unstable branch
-Message-Id: <20261030030231.6DC021F000C1@smtp.kernel.org>
+Subject: + zram-lz4-use-lz4_decompress_safe_usingdict.patch added to mm-nonmm-unstable branch
+Message-Id: <20261030030233.59B971F000C1@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -53,12 +53,12 @@ Precedence: list
 
 
 The patch titled
-     Subject: zram: lz4hc: pre-initialize dictionary stream in setup_params
+     Subject: zram: lz4: use LZ4_decompress_safe_usingDict()
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     zram-lz4hc-pre-initialize-dictionary-stream-in-setup_params.patch
+     zram-lz4-use-lz4_decompress_safe_usingdict.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/zram-lz4hc-pre-initialize-dictionary-stream-in-setup_params.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/zram-lz4-use-lz4_decompress_safe_usingdict.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -77,19 +77,18 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Sergey Senozhatsky <senozhatsky@chromium.org>
-Subject: zram: lz4hc: pre-initialize dictionary stream in setup_params
-Date: Sun, 25 Oct 2026 11:18:23 +0900
+Subject: zram: lz4: use LZ4_decompress_safe_usingDict()
+Date: Sun, 25 Oct 2026 11:18:24 +0900
 
-Pre-initialize the dictionary stream once in lz4hc_setup_params(), store
-it in params->drv_data, and memcpy() it into the per-CPU stream before
-LZ4_compress_HC_continue(), matching backend_lz4.  This avoids resetting
-and hashing the dictionary on every page compression.
+Use LZ4_decompress_safe_usingDict() in lz4_decompress() and drop the
+per-CPU dstrm allocation.  Store the compression workspace directly
+in ctx->context.
 
-This also rejects dictionaries larger than 64 KB at device init time
-(matching backend_lz4), instead of failing every page compression with
--EINVAL.
+Using vmalloc(LZ4_MEM_COMPRESS) instead of kzalloc() for cstrm and
+dict_stream when a dictionary is configured also avoids power-of-2
+page rounding (~16 KB rounded up to 32 KB), saving ~12 KB per stream.
 
-Link: https://lore.kernel.org/20261025021839.1542805-8-senozhatsky@chromium.org
+Link: https://lore.kernel.org/20261025021839.1542805-9-senozhatsky@chromium.org
 Signed-off-by: Sergey Senozhatsky <senozhatsky@chromium.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 Cc: Brian Geffon <bgeffon@google.com>
@@ -101,67 +100,152 @@ Cc: Bo Zhang <zhangbo56@xiaomi.com>
 Cc: Hillf Danton <hdanton@sina.com>
 ---
 
- drivers/block/zram/backend_lz4hc.c |   31 ++++++++++++++++++++++-----
- 1 file changed, 26 insertions(+), 5 deletions(-)
+ drivers/block/zram/backend_lz4.c |   76 +++++------------------------
+ 1 file changed, 14 insertions(+), 62 deletions(-)
 
---- a/drivers/block/zram/backend_lz4hc.c~zram-lz4hc-pre-initialize-dictionary-stream-in-setup_params
-+++ a/drivers/block/zram/backend_lz4hc.c
-@@ -18,10 +18,20 @@ struct lz4hc_ctx {
+--- a/drivers/block/zram/backend_lz4.c~zram-lz4-use-lz4_decompress_safe_usingdict
++++ a/drivers/block/zram/backend_lz4.c
+@@ -4,18 +4,10 @@
  
- static void lz4hc_release_params(struct zcomp_params *params)
+ #include <linux/kernel.h>
+ #include <linux/lz4.h>
+-#include <linux/slab.h>
+ #include <linux/vmalloc.h>
+ 
+ #include "backend_lz4.h"
+ 
+-struct lz4_ctx {
+-	void *mem;
+-
+-	LZ4_streamDecode_t *dstrm;
+-	LZ4_stream_t *cstrm;
+-};
+-
+ static void lz4_release_params(struct zcomp_params *params)
  {
-+	LZ4_streamHC_t *dict_stream = params->drv_data;
-+
-+	params->drv_data = NULL;
-+	if (!dict_stream)
-+		return;
-+
+ 	LZ4_stream_t *dict_stream = params->drv_data;
+@@ -24,7 +16,7 @@ static void lz4_release_params(struct zc
+ 	if (!dict_stream)
+ 		return;
+ 
+-	kfree(dict_stream);
 +	vfree(dict_stream);
  }
  
- static int lz4hc_setup_params(struct zcomp_params *params)
- {
-+	LZ4_streamHC_t *dict_stream;
-+	int ret;
-+
- 	if (params->level == ZCOMP_PARAM_NOT_SET) {
- 		params->level = LZ4HC_DEFAULT_CLEVEL;
- 	} else if (params->level < 1 || params->level > LZ4HC_MAX_CLEVEL) {
-@@ -35,6 +45,21 @@ static int lz4hc_setup_params(struct zco
+ static int lz4_setup_params(struct zcomp_params *params)
+@@ -42,14 +34,14 @@ static int lz4_setup_params(struct zcomp
+ 	if (!params->dict || !params->dict_sz)
+ 		return 0;
+ 
+-	dict_stream = kzalloc_obj(*dict_stream);
++	dict_stream = vzalloc(sizeof(*dict_stream));
+ 	if (!dict_stream)
+ 		return -ENOMEM;
+ 
+ 	ret = LZ4_loadDict(dict_stream,
+ 			   params->dict, params->dict_sz);
+ 	if (ret != params->dict_sz) {
+-		kfree(dict_stream);
++		vfree(dict_stream);
  		return -EINVAL;
  	}
+ 	params->drv_data = dict_stream;
+@@ -59,61 +51,32 @@ static int lz4_setup_params(struct zcomp
  
-+	if (!params->dict || !params->dict_sz)
-+		return 0;
-+
-+	dict_stream = vzalloc(sizeof(*dict_stream));
-+	if (!dict_stream)
-+		return -ENOMEM;
-+
-+	LZ4_resetStreamHC(dict_stream, params->level);
-+	ret = LZ4_loadDictHC(dict_stream, params->dict, params->dict_sz);
-+	if (ret != params->dict_sz) {
-+		vfree(dict_stream);
-+		return -EINVAL;
-+	}
-+	params->drv_data = dict_stream;
-+
- 	return 0;
+ static void lz4_destroy(struct zcomp_ctx *ctx)
+ {
+-	struct lz4_ctx *zctx = ctx->context;
+-
+-	if (!zctx)
+-		return;
+-
+-	vfree(zctx->mem);
+-	kfree(zctx->dstrm);
+-	kfree(zctx->cstrm);
+-	kfree(zctx);
++	vfree(ctx->context);
  }
  
-@@ -93,11 +118,7 @@ static int lz4hc_compress(struct zcomp_p
- 				      zctx->mem);
+ static int lz4_create(struct zcomp_params *params, struct zcomp_ctx *ctx)
+ {
+-	struct lz4_ctx *zctx;
++	BUILD_BUG_ON(sizeof(LZ4_stream_t) != LZ4_MEM_COMPRESS);
+ 
+-	zctx = kzalloc_obj(*zctx);
+-	if (!zctx)
++	ctx->context = vmalloc(LZ4_MEM_COMPRESS);
++	if (!ctx->context)
+ 		return -ENOMEM;
+-
+-	ctx->context = zctx;
+-	if (params->dict_sz == 0) {
+-		zctx->mem = vmalloc(LZ4_MEM_COMPRESS);
+-		if (!zctx->mem)
+-			goto error;
+-	} else {
+-		zctx->dstrm = kzalloc_obj(*zctx->dstrm);
+-		if (!zctx->dstrm)
+-			goto error;
+-
+-		zctx->cstrm = kzalloc_obj(*zctx->cstrm);
+-		if (!zctx->cstrm)
+-			goto error;
+-	}
+-
+ 	return 0;
+-
+-error:
+-	lz4_destroy(ctx);
+-	return -ENOMEM;
+ }
+ 
+ static int lz4_compress(struct zcomp_params *params, struct zcomp_ctx *ctx,
+ 			struct zcomp_req *req)
+ {
+-	struct lz4_ctx *zctx = ctx->context;
+ 	int ret;
+ 
+-	if (!zctx->cstrm) {
++	if (!params->drv_data) {
+ 		ret = LZ4_compress_fast(req->src, req->dst, req->src_len,
+ 					req->dst_len, params->level,
+-					zctx->mem);
++					ctx->context);
  	} else {
  		/* Cstrm needs to be reset */
--		LZ4_resetStreamHC(zctx->cstrm, params->level);
--		ret = LZ4_loadDictHC(zctx->cstrm, params->dict,
--				     params->dict_sz);
--		if (ret != params->dict_sz)
--			return -EINVAL;
-+		memcpy(zctx->cstrm, params->drv_data, sizeof(*zctx->cstrm));
- 		ret = LZ4_compress_HC_continue(zctx->cstrm, req->src, req->dst,
- 					       req->src_len, req->dst_len);
+-		memcpy(zctx->cstrm, params->drv_data, sizeof(*zctx->cstrm));
+-		ret = LZ4_compress_fast_continue(zctx->cstrm, req->src,
++		memcpy(ctx->context, params->drv_data, sizeof(LZ4_stream_t));
++		ret = LZ4_compress_fast_continue(ctx->context, req->src,
+ 						 req->dst, req->src_len,
+ 						 req->dst_len, params->level);
  	}
+@@ -126,22 +89,11 @@ static int lz4_compress(struct zcomp_par
+ static int lz4_decompress(struct zcomp_params *params, struct zcomp_ctx *ctx,
+ 			  struct zcomp_req *req)
+ {
+-	struct lz4_ctx *zctx = ctx->context;
+ 	int ret;
+ 
+-	if (!zctx->dstrm) {
+-		ret = LZ4_decompress_safe(req->src, req->dst, req->src_len,
+-					  req->dst_len);
+-	} else {
+-		/* Dstrm needs to be reset */
+-		ret = LZ4_setStreamDecode(zctx->dstrm, params->dict,
+-					  params->dict_sz);
+-		if (!ret)
+-			return -EINVAL;
+-		ret = LZ4_decompress_safe_continue(zctx->dstrm, req->src,
+-						   req->dst, req->src_len,
+-						   req->dst_len);
+-	}
++	ret = LZ4_decompress_safe_usingDict(req->src, req->dst, req->src_len,
++					    req->dst_len, params->dict,
++					    params->dict_sz);
+ 	if (ret < 0)
+ 		return -EINVAL;
+ 	return 0;
 _
 
 Patches currently in -mm which might be from senozhatsky@chromium.org are
