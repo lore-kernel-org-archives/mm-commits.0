@@ -1,48 +1,48 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793340956;
-	b=Om39b6ktrLOjjWQIb8RhmvJ8KadKlDNTuaSfoYfQpi0F7gSPhgscaAj2k6qpafCuL0VG
-	 not0Nn8Biz9aTafOLbscPh94F/nUnnLb3XaO/xyXHJKgNWmxPh51IODgRc1OVqMyNEY32
-	 F92iiQcWmE/3h0kX+m0GnvhuiiMaVsvQcTwms09wMAFHrOv9reeLmNGCn2KNfyeSRfOYL
-	 5NMmxSvhl5voVDAKxto7foeyD7KTDrXjKWPq8pIMHdRKEOx5GVLhtTbyeAbGeGI4mCFpL
-	 Q5iw6wMik0F/SNKVLjCPke0qRvXdlddq61Ty7/R9DIEW6L1T7elJm8XReFPCewJTvsA==
+	t=1793340958;
+	b=f3KpNMZm9M+GTH+jHaDlBX6N48vM7lgffzJdlj7ypMUJXjB/dRyLQ/u4Hq8uajCPRVPk
+	 wGZOUTAMfVQoDt0tXFtBR2TWJimkRQ0ZbGWCof8kATvd1eGLHVAL0S8p4S485T5Ov2Aqn
+	 4K1lIJkzp4cGsaNKgSHV2ESi/d8PB4dXZmAtz6jkbwB9WCdALR6IpU11hI8Dkmp4NCIZJ
+	 2nNfJOnJmdJdmmfMejjOqwdXRR7Srd2Nv37J8E7swzDCTc+PVekYHp3ljhzmEXXC6L3Bu
+	 Pf0GkIbwn7H+ILHbqvnK/akckC3boQs87BMWPcoDdkPcwYaW+xnxvp+R+AczWRdLEeQ==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793340956;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793340958;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=MzG+iNYRFDVSVrbRUvAmp2rfVQAA7Qobcn//meq11v4=;
-	b=P+Am2dHvIGwhUPSaLc8Ky4Yp46LyXaj8vyLzpkME8AXE5YGhKLybLKl3LEYZu3BC0d0e
-	 pHpNoHBDf+pfcZpOdPRyQsyfakR8rtFyZELZQ8LWtUFLsgdqRR0spLtz8MqnJMglWGE+g
-	 yqG7eEzy3rsCccIUoS5i4jdr5gg8TbszwYze4u5JHmiOf9fL+OGex5747GfIWiLdYRWXk
-	 Yenybxu4CvVanWo0wUgLis9d26nX5MFE063RMUry+D+QpexdgMI790ateNc5/GzC9jOCn
-	 ESd1o+JzCEFWaO4TSdn7ATXVUvL5F5gRwFd2rrQDXQpiVJTYAgzlIvr9ehfjpyJ21iQ==
+	bh=e06W+5no4L3/44mBD3RIxCs8/WQlIMc/TnHurte0obM=;
+	b=oa/cAaOFFYCQGnPJWBfreHZ2NAEB/YowcnZzXpHRZWvJE1OLvhpEcmFHcMOHR/Zat6QG
+	 378VPHOv8cgivY+ca0QNGb1f8hipu26hrhKC65HjTFhveZPRFPQTwfXWuT1kZIN4PSUv2
+	 izfod8czQrLBjhJU5rCuiY3OrTpkVbsT+nF25NMupOkg18m2OS1IqhMk0cIb69TuRJi/x
+	 tEOPl4dsPe7hiLtiPhdoFf+iVNkhIlRSKOQgN91U6Mw+uppD/MgoW7mRf74DYw6DvONlA
+	 tlw3+2mdMrbA3dQBWtL51snyaHk1btpc+xnqnpVgqR0VqvP3fdhB7IBRJj/u2dtEgDg==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=rtdOhgis;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b="ylRUJlO/";
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9368F606A31A
-	for <mm-commits@vger.kernel.org>; Fri, 30 Oct 2026 06:15:56 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 47CF8606A31A
+	for <mm-commits@vger.kernel.org>; Fri, 30 Oct 2026 06:15:58 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=rtdOhgis
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1A29E1F0093A;
-	Fri, 30 Oct 2026 06:15:56 +0000 (UTC)
+	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=ylRUJlO/
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E02611F000C1;
+	Fri, 30 Oct 2026 06:15:57 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1793340956;
-	bh=MzG+iNYRFDVSVrbRUvAmp2rfVQAA7Qobcn//meq11v4=;
+	d=linux-foundation.org; s=korg; t=1793340958;
+	bh=e06W+5no4L3/44mBD3RIxCs8/WQlIMc/TnHurte0obM=;
 	h=Date:To:From:Subject;
-	b=rtdOhgisf4WuYPsA7nCctW/Hjawon+EMMAMJuDkntkDc5I23528dWZHidzQJKfNjs
-	 BSNX8KP/dHgkBQR460ugNOZ17wKkWVuCbvTRUz1Zxk8yVsJoqtIGZI+NZZBrSBDTET
-	 AdKV9iBDx7r9BzHW/GR/jxKAS/AT7zaa8xPRwFgw=
-Date: Thu, 29 Oct 2026 23:15:55 -0700
+	b=ylRUJlO/bRyt1nhswXMAmHKsJjkqFpFErqlvqUPwiI9ngwPYRvqmOCnFFjktVjq/+
+	 NH0KGoz8QrHYuDox9B3E4/NBxlY+Uuqo0I6oa+WLbo435mHEahNIE7MgvyHjk3DFEA
+	 1VSJkghyA9/CiJUa406xEDwxIEwu9On7DnhoqMuE=
+Date: Thu, 29 Oct 2026 23:15:57 -0700
 To: mm-commits@vger.kernel.org,sj@kernel.org,shakeel.butt@linux.dev,
 	roman.gushchin@linux.dev,muchun.song@linux.dev,mhocko@kernel.org,
 	harry@kernel.org,hannes@cmpxchg.org,tz2294@columbia.edu,
 	akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-memcontrol-remove-mod_memcg_page_state.patch added to mm-new branch
-Message-Id: <20261030061556.1A29E1F0093A@smtp.kernel.org>
+Subject: + mm-memcontrol-remove-page_memcg_check.patch added to mm-new branch
+Message-Id: <20261030061557.E02611F000C1@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -54,12 +54,12 @@ Precedence: list
 
 
 The patch titled
-     Subject: mm: memcontrol: remove mod_memcg_page_state()
+     Subject: mm: memcontrol: remove page_memcg_check()
 has been added to the -mm mm-new branch.  Its filename is
-     mm-memcontrol-remove-mod_memcg_page_state.patch
+     mm-memcontrol-remove-page_memcg_check.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memcontrol-remove-mod_memcg_page_state.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memcontrol-remove-page_memcg_check.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -89,71 +89,56 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Tal Zussman <tz2294@columbia.edu>
-Subject: mm: memcontrol: remove mod_memcg_page_state()
-Date: Wed, 14 Oct 2026 13:08:20 -0400
+Subject: mm: memcontrol: remove page_memcg_check()
+Date: Wed, 14 Oct 2026 13:08:21 -0400
 
-Patch series "mm: memcontrol: remove two unused helpers", v1.
+The last caller was removed in commit 90f095b816e2 ("mm/page_owner: use
+memcg_data snapshot to avoid TOCTOU in print_page_owner_memcg()").
+Remove it.
 
-They were happily unused until I decided to disturb their peace.
-
-
-This patch (of 2):
-
-The last caller was removed in commit c466412c73c3 ("mm: memcontrol:
-switch to native NR_VMALLOC vmstat counter"). Remove it.
-
-Link: https://lore.kernel.org/20261014-memcg-unused-page-helpers-v1-0-240b37c53831@columbia.edu
-Link: https://lore.kernel.org/20261014-memcg-unused-page-helpers-v1-1-240b37c53831@columbia.edu
+Link: https://lore.kernel.org/20261014-memcg-unused-page-helpers-v1-2-240b37c53831@columbia.edu
 Signed-off-by: Tal Zussman <tz2294@columbia.edu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Acked-by: Shakeel Butt <shakeel.butt@linux.dev>
-Reviewed-by: Johannes Weiner <hannes@cmpxchg.org>
 Reviewed-by: Harry Yoo (Meta) <harry@kernel.org>
+Reviewed-by: Johannes Weiner <hannes@cmpxchg.org>
 Acked-by: Muchun Song <muchun.song@linux.dev>
 Reviewed-by: SJ Park <sj@kernel.org>
+Acked-by: Shakeel Butt <shakeel.butt@linux.dev>
 Cc: Michal Hocko <mhocko@kernel.org>
 Cc: Roman Gushchin <roman.gushchin@linux.dev>
 ---
 
- include/linux/memcontrol.h |   20 --------------------
- 1 file changed, 20 deletions(-)
+ include/linux/memcontrol.h |   12 ------------
+ 1 file changed, 12 deletions(-)
 
---- a/include/linux/memcontrol.h~mm-memcontrol-remove-mod_memcg_page_state
+--- a/include/linux/memcontrol.h~mm-memcontrol-remove-page_memcg_check
 +++ a/include/linux/memcontrol.h
-@@ -964,21 +964,6 @@ void mem_cgroup_print_oom_group(struct m
- void mod_memcg_state(struct mem_cgroup *memcg,
- 		     enum memcg_stat_item idx, int val);
- 
--static inline void mod_memcg_page_state(const struct page *page,
--					enum memcg_stat_item idx, int val)
--{
--	struct mem_cgroup *memcg;
--
--	if (mem_cgroup_disabled())
--		return;
--
--	rcu_read_lock();
--	memcg = folio_memcg(page_folio(page));
--	if (memcg)
--		mod_memcg_state(memcg, idx, val);
--	rcu_read_unlock();
--}
--
- unsigned long memcg_events(const struct mem_cgroup *memcg, int event);
- unsigned long memcg_page_state(const struct mem_cgroup *memcg, int idx);
- unsigned long memcg_page_state_output(const struct mem_cgroup *memcg, int item);
-@@ -1419,11 +1404,6 @@ static inline void mod_memcg_state(struc
- {
+@@ -506,13 +506,6 @@ static inline struct mem_cgroup *folio_m
+ 	return obj_cgroup_memcg(objcg);
  }
  
--static inline void mod_memcg_page_state(const struct page *page,
--					enum memcg_stat_item idx, int val)
+-static inline struct mem_cgroup *page_memcg_check(const struct page *page)
 -{
+-	if (PageTail(page))
+-		return NULL;
+-	return folio_memcg_check((const struct folio *)page);
 -}
 -
- static inline unsigned long memcg_page_state(const struct mem_cgroup *memcg, int idx)
+ static inline struct mem_cgroup *get_mem_cgroup_from_objcg(const struct obj_cgroup *objcg)
  {
- 	return 0;
+ 	struct mem_cgroup *memcg;
+@@ -1095,11 +1088,6 @@ static inline struct mem_cgroup *folio_m
+ {
+ 	return NULL;
+ }
+-
+-static inline struct mem_cgroup *page_memcg_check(const struct page *page)
+-{
+-	return NULL;
+-}
+ 
+ static inline struct mem_cgroup *get_mem_cgroup_from_objcg(const struct obj_cgroup *objcg)
+ {
 _
 
 Patches currently in -mm which might be from tz2294@columbia.edu are
