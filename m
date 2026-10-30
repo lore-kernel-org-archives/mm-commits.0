@@ -1,41 +1,41 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793389147;
-	b=1Ho5mrdoGowxrG1chqCYpeBAfpPYBf4egCCgx1cq5m3SN3c8SGIFK/0EHMjvk42Hwa0J
-	 peWh2d596BjyBuPyHJZaatFYbM0qZ3um+f1kbZm0Cvc+1w4N8Rf5d46IAPEmKNOCKLdX8
-	 oCGz1gbfA/O2EH2I2c3R7pzFNwe/xiHvIT9TZWjKXXnlgTLVR+yUoQpWXc5TWG7ACzBPm
-	 rtKBbV1yDWE9qbtbt5aSHxzS2JX/zzFEXRSDFp84XLWP/52OQ4kphbb3g3aD1s4K2/s/4
-	 OY7GyVbjJfB41u6RUV3k0tP8dD2U0UD8oy51o7Xb4HGmLteALfIU9HUc+yrQWm9gmoQ==
+	t=1793389153;
+	b=MkX7+25RL6ciIeQwfyctyfVvpb/GAWSnQJPtreRYK4WZi0xehnXa+LtCnshRWID6yosu
+	 aXmGjYQRBP0Sg8IfoNi2Ej8pAHfd11ec5ELRhsC4h60yLpZEg2ZssPXRXDTSLE00dLoWb
+	 CI6IEY6Lvw86QGwO820AINxiasCoOC1QNq+H8jWSQ0Uvim3w0IKZC6YmtsSeDMbU1tOe5
+	 yqayfTdhoRWJ6IIEu20NZqxIKIWQUwp32Tj0cQFbcSYX2XXxczouycbQ6EMsZKlZDyQsg
+	 66fWE6S2YWHUNmmH2WlWxTJEmRP33rz0NKLe9gQL7gSCy8GAJKP+btydg8mJBdMOOeQ==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793389147;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793389153;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=0mbaFOrz7RZEJyzk/5Piliqa2jJGLoccqliVSaXqJTo=;
-	b=xH5762MD2q60tosQdQhF0p65Uwi4/UdqRHT+5lSbS7MbzB1Z0Elp0wZHmadW7VCGYjED
-	 wpJoE2EP3yeYGHer3XdDkVtkcSI3z2fERzaqhB2Gm0m6Nu/AiB97L4RtgYrVLKWafOVn7
-	 amFMn9pGmZM1taKfGzdzfwH/NHlMe7qZNXN1KndoKvJoPYCrENVsLfFsq7X/G3o4b/Q3l
-	 QVfg5twwDzdzCNSzGD6onWHAjEb6WvZj6Xh6VIZXr/66Mq3UR04qnp5B/s3D0b2VkZPvw
-	 vVo/j0L8c1xG2ZUZvNILF22+mT0oBtGbfTAujve1a9qXys6L/ylar22vWHC/feTaPXg==
+	bh=8BJk9pc+P1NtbFXYvrTl+QgpTip90KOcBEjUGe+iYQ0=;
+	b=3cyEhL4N17xkKla8Qbm4ixn2qnvF15I+PDrFBoZO31TZqtnIOnVLBbpddLviWZ0hUWLI
+	 xm86qf9PcGq7PQKfhMvFwIASnVctdwkt93Og31aGvVIuA0rbv2jjOp9dk8DWicoVzTcJP
+	 +arB1yre4dfD/1nV7JV9oDnNRI1necSkrEqEOo2EdkoN2t+ETV4aPrNfAYG0VSEsj1k4j
+	 7gEPZj7/pOD3ELyJuMWFjZNsC9DQIHjGq4KFFaUHkxYuD9NLgV9R8yRMUO5uZQ6/Z6Ciq
+	 W6UxRkc5rXiZVIN/qh8mgy74GUgDwOF3HNBZuERTN+icVXzVQ4mngcyAwZI0Ib+ce0w==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=1oEzB0zS;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=FMfoMl6H;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E0000606A31A
-	for <mm-commits@vger.kernel.org>; Fri, 30 Oct 2026 19:39:06 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BFBA7606A329
+	for <mm-commits@vger.kernel.org>; Fri, 30 Oct 2026 19:39:12 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=1oEzB0zS
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 586181F0093A;
-	Fri, 30 Oct 2026 19:39:06 +0000 (UTC)
+	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=FMfoMl6H
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 364071F00A02;
+	Fri, 30 Oct 2026 19:39:12 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1793389146;
-	bh=0mbaFOrz7RZEJyzk/5Piliqa2jJGLoccqliVSaXqJTo=;
+	d=linux-foundation.org; s=korg; t=1793389152;
+	bh=8BJk9pc+P1NtbFXYvrTl+QgpTip90KOcBEjUGe+iYQ0=;
 	h=Date:To:From:Subject;
-	b=1oEzB0zS8ldp+Yxcteh3naiT2tROlkSN99j6ISvPVyOWwG0g1hdiV+QWgF2t4ZSsP
-	 T4GO5X8S/dySv/aAXWq5IdquBVmnh3nyC+/s9Oe5ig7yd3eyA0qOtnrgY5HGva1KAM
-	 I/JUMxotxUHjwugu69opIN4kgxWkHOW4d8KGZoKs=
-Date: Fri, 30 Oct 2026 12:39:05 -0700
+	b=FMfoMl6HjA85GpQZhHTphPFvEVgp1k8Y2JX+UwY/SQLBcz/xQm2qnkUKusmVBwaSe
+	 mtqhNfp1T6SwnPx3MPup6Gtm/WAQlxy4Qv9mU1iGrgSSSm2kE4Q7336UP5gXV7SOxQ
+	 l5QvIV919eVAtDqVN2IG6+TrVvIKbOkzTW1PE9eE=
+Date: Fri, 30 Oct 2026 12:39:11 -0700
 To: mm-commits@vger.kernel.org,ysato@users.sourceforge.jp,will@kernel.org,
 	vishal.moola@gmail.com,osalvador@suse.de,maddy@linux.ibm.com,
 	glaubitz@physik.fu-berlin.de,gerald.schaefer@linux.ibm.com,
@@ -44,8 +44,8 @@ To: mm-commits@vger.kernel.org,ysato@users.sourceforge.jp,will@kernel.org,
 	aneesh.kumar@kernel.org,andreas@gaisler.com,agordeev@linux.ibm.com,
 	muchun.song@linux.dev,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-remove-pagetable_dtor_free.patch added to mm-new branch
-Message-Id: <20261030193906.586181F0093A@smtp.kernel.org>
+Subject: + mm-remove-redundant-pagetable_dtor-calls.patch added to mm-new branch
+Message-Id: <20261030193912.364071F00A02@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -57,12 +57,12 @@ Precedence: list
 
 
 The patch titled
-     Subject: mm: remove pagetable_dtor_free()
+     Subject: mm: remove redundant pagetable_dtor() calls
 has been added to the -mm mm-new branch.  Its filename is
-     mm-remove-pagetable_dtor_free.patch
+     mm-remove-redundant-pagetable_dtor-calls.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-remove-pagetable_dtor_free.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-remove-redundant-pagetable_dtor-calls.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -92,40 +92,21 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Muchun Song <muchun.song@linux.dev>
-Subject: mm: remove pagetable_dtor_free()
-Date: Fri, 30 Oct 2026 16:37:59 +0800
+Subject: mm: remove redundant pagetable_dtor() calls
+Date: Fri, 30 Oct 2026 16:38:00 +0800
 
-Patch series "mm: Remove pagetable_dtor_free()".
+pagetable_free() now runs pagetable_dtor() for constructed page tables. 
+Calling the destructor immediately before freeing the page table therefore
+duplicates the lifecycle handling at each caller.
 
-This is a follow-up cleanup to the page-table teardown fixes [1].
+Remove the redundant calls and let pagetable_free() handle the destructor.
+No functional change is intended.
 
-pagetable_free() now invokes pagetable_dtor() for constructed page tables.
-This makes pagetable_dtor_free() redundant and leaves explicit destructor
-calls immediately before pagetable_free() duplicating lifecycle handling.
-
-Remove pagetable_dtor_free() and convert its callers to pagetable_free(),
-then remove the remaining redundant pagetable_dtor() calls.  This keeps
-the destructor decision in the common free path.  No functional change is
-intended.
-
-
-This patch (of 2):
-
-pagetable_free() now runs pagetable_dtor() for pages that have gone
-through a page-table constructor, so pagetable_dtor_free() no longer
-provides distinct behavior.
-
-Use pagetable_free() directly at the remaining call sites and remove the
-redundant helper.  This keeps the decision to run the destructor in the
-common free path.
-
-Link: https://lore.kernel.org/20261030083800.599152-1-songmuchun@bytedance.com
-Link: https://lore.kernel.org/20261030083800.599152-2-songmuchun@bytedance.com
-Link: https://lore.kernel.org/r/20261023063428.3658761-1-songmuchun@bytedance.com [1]
+Link: https://lore.kernel.org/20261030083800.599152-3-songmuchun@bytedance.com
 Signed-off-by: Muchun Song <muchun.song@linux.dev>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Acked-by: Vishal Moola (Fractile) <vishal.moola@gmail.com>
 Acked-by: Geert Uytterhoeven <geert@linux-m68k.org> # m68k
+Acked-by: Vishal Moola (Fractile) <vishal.moola@gmail.com>
 Cc: David Hildenbrand <david@kernel.org>
 Cc: Oscar Salvador <osalvador@suse.de>
 Cc: Alistair Popple <apopple@nvidia.com>
@@ -143,200 +124,117 @@ Cc: Andreas Larsson <andreas@gaisler.com>
 Cc: Dave Hansen <dave.hansen@linux.intel.com>
 ---
 
- arch/m68k/include/asm/mcf_pgalloc.h |    4 ++--
- arch/m68k/mm/motorola.c             |    2 +-
- arch/s390/mm/pgalloc.c              |    4 ++--
- arch/sh/mm/pgtable.c                |    2 +-
- arch/x86/mm/pat/set_memory.c        |   10 +---------
- arch/x86/mm/pgtable.c               |    4 ++--
- include/asm-generic/pgalloc.h       |   12 ++++++------
- include/asm-generic/tlb.h           |    2 +-
- include/linux/mm.h                  |    6 ------
- 9 files changed, 16 insertions(+), 30 deletions(-)
+ arch/m68k/include/asm/mcf_pgalloc.h    |    1 -
+ arch/powerpc/mm/book3s64/mmu_context.c |    1 -
+ arch/powerpc/mm/book3s64/pgtable.c     |    1 -
+ arch/powerpc/mm/pgtable-frag.c         |    2 --
+ arch/s390/include/asm/pgalloc.h        |    4 ----
+ arch/sparc/mm/init_64.c                |    1 -
+ arch/x86/mm/pgtable.c                  |    1 -
+ 7 files changed, 11 deletions(-)
 
---- a/arch/m68k/include/asm/mcf_pgalloc.h~mm-remove-pagetable_dtor_free
+--- a/arch/m68k/include/asm/mcf_pgalloc.h~mm-remove-redundant-pagetable_dtor-calls
 +++ a/arch/m68k/include/asm/mcf_pgalloc.h
-@@ -7,7 +7,7 @@
- 
- static inline void pte_free_kernel(struct mm_struct *mm, pte_t *pte)
+@@ -62,7 +62,6 @@ static inline void pte_free(struct mm_st
  {
--	pagetable_dtor_free(virt_to_ptdesc(pte));
-+	pagetable_free(virt_to_ptdesc(pte));
+ 	struct ptdesc *ptdesc = virt_to_ptdesc(pgtable);
+ 
+-	pagetable_dtor(ptdesc);
+ 	pagetable_free(ptdesc);
  }
  
- extern const char bad_pmd_string[];
-@@ -74,7 +74,7 @@ static inline void pte_free(struct mm_st
+--- a/arch/powerpc/mm/book3s64/mmu_context.c~mm-remove-redundant-pagetable_dtor-calls
++++ a/arch/powerpc/mm/book3s64/mmu_context.c
+@@ -249,7 +249,6 @@ static void pmd_frag_destroy(void *pmd_f
+ 	count = ((unsigned long)pmd_frag & ~PAGE_MASK) >> PMD_FRAG_SIZE_SHIFT;
+ 	/* We allow PTE_FRAG_NR fragments from a PTE page */
+ 	if (atomic_sub_and_test(PMD_FRAG_NR - count, &ptdesc->pt_frag_refcount)) {
+-		pagetable_dtor(ptdesc);
+ 		pagetable_free(ptdesc);
+ 	}
+ }
+--- a/arch/powerpc/mm/book3s64/pgtable.c~mm-remove-redundant-pagetable_dtor-calls
++++ a/arch/powerpc/mm/book3s64/pgtable.c
+@@ -450,7 +450,6 @@ void pmd_fragment_free(unsigned long *pm
+ 
+ 	BUG_ON(atomic_read(&ptdesc->pt_frag_refcount) <= 0);
+ 	if (atomic_dec_and_test(&ptdesc->pt_frag_refcount)) {
+-		pagetable_dtor(ptdesc);
+ 		pagetable_free(ptdesc);
+ 	}
+ }
+--- a/arch/powerpc/mm/pgtable-frag.c~mm-remove-redundant-pagetable_dtor-calls
++++ a/arch/powerpc/mm/pgtable-frag.c
+@@ -26,7 +26,6 @@ void pte_frag_destroy(void *pte_frag)
+ 	/* We allow PTE_FRAG_NR fragments from a PTE page */
+ 	if (atomic_sub_and_test(PTE_FRAG_NR - count, &ptdesc->pt_frag_refcount)) {
+ 		folio_clear_active(ptdesc_folio(ptdesc));
+-		pagetable_dtor(ptdesc);
+ 		pagetable_free(ptdesc);
+ 	}
+ }
+@@ -110,7 +109,6 @@ static void pte_free_now(struct rcu_head
+ 	struct ptdesc *ptdesc;
+ 
+ 	ptdesc = container_of(head, struct ptdesc, pt_rcu_head);
+-	pagetable_dtor(ptdesc);
+ 	pagetable_free(ptdesc);
+ }
+ 
+--- a/arch/s390/include/asm/pgalloc.h~mm-remove-redundant-pagetable_dtor-calls
++++ a/arch/s390/include/asm/pgalloc.h
+@@ -66,7 +66,6 @@ static inline void p4d_free(struct mm_st
+ 	if (mm_p4d_folded(mm))
+ 		return;
+ 
+-	pagetable_dtor(virt_to_ptdesc(p4d));
+ 	crst_table_free(mm, (unsigned long *) p4d);
+ }
+ 
+@@ -88,7 +87,6 @@ static inline void pud_free(struct mm_st
+ 	if (mm_pud_folded(mm))
+ 		return;
+ 
+-	pagetable_dtor(virt_to_ptdesc(pud));
+ 	crst_table_free(mm, (unsigned long *) pud);
+ }
+ 
+@@ -111,7 +109,6 @@ static inline void pmd_free(struct mm_st
+ {
+ 	if (mm_pmd_folded(mm))
+ 		return;
+-	pagetable_dtor(virt_to_ptdesc(pmd));
+ 	crst_table_free(mm, (unsigned long *) pmd);
+ }
+ 
+@@ -144,7 +141,6 @@ static inline pgd_t *pgd_alloc_noprof(st
  
  static inline void pgd_free(struct mm_struct *mm, pgd_t *pgd)
  {
--	pagetable_dtor_free(virt_to_ptdesc(pgd));
-+	pagetable_free(virt_to_ptdesc(pgd));
+-	pagetable_dtor(virt_to_ptdesc(pgd));
+ 	crst_table_free(mm, (unsigned long *) pgd);
  }
  
- static inline pgd_t *pgd_alloc(struct mm_struct *mm)
---- a/arch/m68k/mm/motorola.c~mm-remove-pagetable_dtor_free
-+++ a/arch/m68k/mm/motorola.c
-@@ -237,7 +237,7 @@ int free_pointer_table(void *table, int
- 		spin_unlock_bh(&ptable_lock);
- 
- 		mmu_page_dtor((void *)pt_addr);
--		pagetable_dtor_free(virt_to_ptdesc((void *)pt_addr));
-+		pagetable_free(virt_to_ptdesc((void *)pt_addr));
- 		return 1;
- 	} else if (ptable_list[type].next != dp) {
- 		/*
---- a/arch/s390/mm/pgalloc.c~mm-remove-pagetable_dtor_free
-+++ a/arch/s390/mm/pgalloc.c
-@@ -125,7 +125,7 @@ void page_table_free(struct mm_struct *m
- 
- 	if (pagetable_is_reserved(ptdesc))
- 		return free_reserved_ptdesc(ptdesc);
--	pagetable_dtor_free(ptdesc);
-+	pagetable_free(ptdesc);
- }
- 
- #ifdef CONFIG_TRANSPARENT_HUGEPAGE
-@@ -133,7 +133,7 @@ static void pte_free_now(struct rcu_head
+--- a/arch/sparc/mm/init_64.c~mm-remove-redundant-pagetable_dtor-calls
++++ a/arch/sparc/mm/init_64.c
+@@ -2840,7 +2840,6 @@ static void __pte_free(pgtable_t pte)
  {
- 	struct ptdesc *ptdesc = container_of(head, struct ptdesc, pt_rcu_head);
+ 	struct ptdesc *ptdesc = virt_to_ptdesc(pte);
  
--	pagetable_dtor_free(ptdesc);
-+	pagetable_free(ptdesc);
- }
- 
- void pte_free_defer(struct mm_struct *mm, pgtable_t pgtable)
---- a/arch/sh/mm/pgtable.c~mm-remove-pagetable_dtor_free
-+++ a/arch/sh/mm/pgtable.c
-@@ -64,7 +64,7 @@ static void __tlb_remove_table_slab(void
- 
- static void __tlb_remove_table_pgtable(void *table)
- {
--	pagetable_dtor_free(table);
-+	pagetable_free(table);
- }
- 
- void __tlb_remove_table(void *table)
---- a/arch/x86/mm/pat/set_memory.c~mm-remove-pagetable_dtor_free
-+++ a/arch/x86/mm/pat/set_memory.c
-@@ -441,15 +441,7 @@ static void __cpa_collapse_large_pages(s
- 
- 	list_for_each_entry_safe(ptdesc, tmp, &pgtables, pt_list) {
- 		list_del(&ptdesc->pt_list);
--		/*
--		 * Only early alloc'd direct map should not be flagged PG_table
--		 * here and those shouldn't be collapsed. However be abundantly
--		 * cautious and handle the !PG_table case too.
--		 */
--		if (PageTable((ptdesc_page(ptdesc))))
--			pagetable_dtor_free(ptdesc);
--		else
--			pagetable_free(ptdesc);
-+		pagetable_free(ptdesc);
- 	}
- }
- 
---- a/arch/x86/mm/pgtable.c~mm-remove-pagetable_dtor_free
-+++ a/arch/x86/mm/pgtable.c
-@@ -732,7 +732,7 @@ int pud_free_pmd_page(pud_t *pud, unsign
- 	for (i = 0; i < PTRS_PER_PMD; i++) {
- 		if (!pmd_none(pmd[i])) {
- 			pt = page_ptdesc(pmd_page(pmd[i]));
--			pagetable_dtor_free(pt);
-+			pagetable_free(pt);
- 		}
- 	}
- 
-@@ -759,7 +759,7 @@ int pmd_free_pte_page(pmd_t *pmd, unsign
- 	/* INVLPG to clear all paging-structure caches */
- 	flush_tlb_kernel_range(addr, addr + PAGE_SIZE-1);
- 
--	pagetable_dtor_free(pt);
-+	pagetable_free(pt);
- 
- 	return 1;
- }
---- a/include/asm-generic/pgalloc.h~mm-remove-pagetable_dtor_free
-+++ a/include/asm-generic/pgalloc.h
-@@ -58,7 +58,7 @@ static inline pte_t *pte_alloc_one_kerne
-  */
- static inline void pte_free_kernel(struct mm_struct *mm, pte_t *pte)
- {
--	pagetable_dtor_free(virt_to_ptdesc(pte));
-+	pagetable_free(virt_to_ptdesc(pte));
- }
- 
- /**
-@@ -119,7 +119,7 @@ static inline void pte_free(struct mm_st
- {
- 	struct ptdesc *ptdesc = page_ptdesc(pte_page);
- 
--	pagetable_dtor_free(ptdesc);
-+	pagetable_free(ptdesc);
- }
- 
- 
-@@ -174,7 +174,7 @@ static inline void pmd_free(struct mm_st
- 	struct ptdesc *ptdesc = virt_to_ptdesc(pmd);
- 
- 	BUG_ON((unsigned long)pmd & (PAGE_SIZE-1));
--	pagetable_dtor_free(ptdesc);
-+	pagetable_free(ptdesc);
- }
- #endif
- 
-@@ -232,7 +232,7 @@ static inline void __pud_free(struct mm_
- 	struct ptdesc *ptdesc = virt_to_ptdesc(pud);
- 
- 	BUG_ON((unsigned long)pud & (PAGE_SIZE-1));
--	pagetable_dtor_free(ptdesc);
-+	pagetable_free(ptdesc);
- }
- 
- #ifndef __HAVE_ARCH_PUD_FREE
-@@ -280,7 +280,7 @@ static inline void __p4d_free(struct mm_
- 	struct ptdesc *ptdesc = virt_to_ptdesc(p4d);
- 
- 	BUG_ON((unsigned long)p4d & (PAGE_SIZE-1));
--	pagetable_dtor_free(ptdesc);
-+	pagetable_free(ptdesc);
- }
- 
- #ifndef __HAVE_ARCH_P4D_FREE
-@@ -319,7 +319,7 @@ static inline void __pgd_free(struct mm_
- 	struct ptdesc *ptdesc = virt_to_ptdesc(pgd);
- 
- 	BUG_ON((unsigned long)pgd & (PAGE_SIZE-1));
--	pagetable_dtor_free(ptdesc);
-+	pagetable_free(ptdesc);
- }
- 
- #ifndef __HAVE_ARCH_PGD_FREE
---- a/include/asm-generic/tlb.h~mm-remove-pagetable_dtor_free
-+++ a/include/asm-generic/tlb.h
-@@ -202,7 +202,7 @@ static inline void __tlb_remove_table(vo
- {
- 	struct ptdesc *ptdesc = (struct ptdesc *)table;
- 
--	pagetable_dtor_free(ptdesc);
-+	pagetable_free(ptdesc);
- }
- #endif
- 
---- a/include/linux/mm.h~mm-remove-pagetable_dtor_free
-+++ a/include/linux/mm.h
-@@ -4083,12 +4083,6 @@ static inline void pagetable_free(struct
- 	}
- }
- 
--static inline void pagetable_dtor_free(struct ptdesc *ptdesc)
--{
 -	pagetable_dtor(ptdesc);
--	pagetable_free(ptdesc);
--}
--
- static inline bool pagetable_pte_ctor(struct mm_struct *mm,
- 				      struct ptdesc *ptdesc)
- {
+ 	pagetable_free(ptdesc);
+ }
+ 
+--- a/arch/x86/mm/pgtable.c~mm-remove-redundant-pagetable_dtor-calls
++++ a/arch/x86/mm/pgtable.c
+@@ -156,7 +156,6 @@ static void free_pmds(struct mm_struct *
+ 		if (pmds[i]) {
+ 			ptdesc = virt_to_ptdesc(pmds[i]);
+ 
+-			pagetable_dtor(ptdesc);
+ 			pagetable_free(ptdesc);
+ 			mm_dec_nr_pmds(mm);
+ 		}
 _
 
 Patches currently in -mm which might be from muchun.song@linux.dev are
