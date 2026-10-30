@@ -1,48 +1,48 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793333865;
-	b=AqnOt/sWNDYtGr//LPpEBWTskgnMPUu0BEJX+K6WLQLEJoV0IhUSlK/IsTEjEh2J5wc6
-	 AokhgoZ8IofOr0Nxl8dqec915lI/7f6rwhn6Z+kCLvNDpOyhY9l3hlgvS1jkr/nPt/KKX
-	 egAGrDQU1p2RjTeJQTSLny0Cy8RrR4HrKdNuYVltiqGdyB1k6J7c4+tbsotc1iJovK6iT
-	 rqviFHpNYda58Lqg057HN3D1WtAKZewrPDuQP6s9n2vYLp3vWrUTDPE89JzXMRhr0aBzu
-	 EW/vKtACTE3EdBbmBDr7Lc1KlFWW+t2LAHigNr5nYvQW628qiLn4Ku9srfq6vChNF0g==
+	t=1793335042;
+	b=bBKyf5cSyWD0JeT9vzL0/AJIwrVPmS6zoili9NdTYFm8tcf5PJis6NrWsNLsVrnIOgmM
+	 dffgIM9lLCtLSBG4ghyJjzAsGPMwkD6qyWU2mzGnhsOpawPjBUVGhqUculUB9vfHbhkN3
+	 7hQy+JQz9tso3nZr4sxuBQh1nEZ4LOvBA+w04n/e1jJ5eFy5nOXwvhdkcaF0OWZnfGJAO
+	 RfX/mzVC/fCeUVfrQXDDJ87XAtUhKRszRSLNFxdK5HbteiJkdmY9ICVVFDVsDhJDlLL34
+	 3u1ojl5Lfe1PLTtC2xBeq5IYxApVGt3M5dJx+GAA1M6z9uJJ8R2IVb5wbIH1tHrE2VQ==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793333865;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793335042;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=l6dgklAXvNJW7Bicp7o9SsNadCOymnW+JHw1c9oe1B8=;
-	b=bMwWAAMyaFdixsD51+L4Gkh/7dvNiQ9XNWv682UzlXrR1lsZdAmqnX6EWAmN9RBU5On/
-	 fstya9/B0pkzky6jKF/yG8eB4jH3ovNGCL3O365PUwXnTrAMC4yLRUPxRtk8SJKjRAGCM
-	 PIQ222yZbRjeGVFyV0NpYFGomdMmo4sZYPitINLIpemX7PLfQjlnt9asshkoFBSEGmEPU
-	 ScOuABJBA5V3Hpxi7t6jCjV11hIuae4zZgz8pEJ3U5vn6x2IEm4KEkBGFz6zQFwKlIsJH
-	 iM6y1S3cmQI7On9/uBAdeSxLoBeU45nMGfT7R46bSyEKCzY8TOcdj1ywJctw5wjsdkA==
+	bh=H3K6+CS1MyK0hJhX6tP4Q6AfeYAzfMdUUlr3BQWX21c=;
+	b=wtDBu6m4GaYHssSdOujy2TlXe3NkeyXby6H8hSdvce7NPl6h0wtxIUt6ZiqZz2RkwbQk
+	 ItaT2OpKVn4ExOTNeroNCS7LA0j0CxWCC59umuuM/UELLL6HRVoOK9F8k4IUcuo4m2mPg
+	 ckbCYH1aCjP8x4D3frWU405rCB017auR8V/2VRa+T8HtOCzJzkfWIJh6VkVwDU02K7Z6K
+	 zVbAZJlSj4qj1qW+TRleKSOtYNx+tr8uHR8mrjvuWMTKQrufh3mT+X9GECCfGd5YkAm3w
+	 V5s/5vPwUCI1BEUqkUXcYHj6Bplq0y6WWyxOP5CncjyA6avf7TgpIqs/JrKxNfxu1/w==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=GC+ssbcN;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=BRNCmU73;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CC823606A31A;
-	Fri, 30 Oct 2026 04:17:44 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A2D96606A31A
+	for <mm-commits@vger.kernel.org>; Fri, 30 Oct 2026 04:37:21 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=GC+ssbcN
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 494641F000C1;
-	Fri, 30 Oct 2026 04:17:44 +0000 (UTC)
+	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=BRNCmU73
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1BC001F000C1;
+	Fri, 30 Oct 2026 04:37:21 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1793333864;
-	bh=l6dgklAXvNJW7Bicp7o9SsNadCOymnW+JHw1c9oe1B8=;
+	d=linux-foundation.org; s=korg; t=1793335041;
+	bh=H3K6+CS1MyK0hJhX6tP4Q6AfeYAzfMdUUlr3BQWX21c=;
 	h=Date:To:From:Subject;
-	b=GC+ssbcNpFwfV4VzxoSGuvmfsYwgn5AM2S7pPq4pT0dmeEfnKj7fyhoryRoH8Yer+
-	 7XSi0kNWsm7yQk5TMi94AuO2KUexpFMqdnuPMX1DJPj14BlaszEUr0WOmpYxTjbhJ3
-	 DaMP7WwdcJFaMoxE3k3rzuKLbETsbR1nssp2wlac=
-Date: Thu, 29 Oct 2026 21:17:43 -0700
-To: mm-commits@vger.kernel.org,stable@vger.kernel.org,mark@fasheh.com,
-	joseph.qi@linux.alibaba.com,jlbec@evilplan.org,jjzuming@gmail.com,
-	heming.zhao@suse.com,baijiaju1990@gmail.com,zzzccc427@gmail.com,
-	akpm@linux-foundation.org
+	b=BRNCmU73P6rFQreplAN1omr0yLt4ZI2uR1hgHAy4CjqSGxyL+AGlxWSeeSmoeaTne
+	 1ccx8PU5DhW5xGVeCQRpAprphm8upsGgdeg029vU9VsP0qiJj9XngKl8vdscdLxKrW
+	 jonjnAFfdectKRAzbgRh5QAfUIzST9h9kgFouHEY=
+Date: Thu, 29 Oct 2026 21:37:20 -0700
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,vbabka@kernel.org,
+	surenb@google.com,stable+noautosel@kernel.org,mhocko@suse.com,
+	hui.zhu@linux.dev,hannes@cmpxchg.org,dev.jain@arm.com,
+	brendan.jackman@linux.dev,zhuhui@kylinos.cn,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + ocfs2-stop-recovery-before-shutting-down-local-allocators.patch added to mm-nonmm-hotfixes-unstable branch
-Message-Id: <20261030041744.494641F000C1@smtp.kernel.org>
+Subject: + mm-compaction-annotate-data-race-for-zone-free_areanr_free.patch added to mm-new branch
+Message-Id: <20261030043721.1BC001F000C1@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -54,15 +54,26 @@ Precedence: list
 
 
 The patch titled
-     Subject: ocfs2: stop recovery before shutting down local allocators
-has been added to the -mm mm-nonmm-hotfixes-unstable branch.  Its filename is
-     ocfs2-stop-recovery-before-shutting-down-local-allocators.patch
+     Subject: mm/compaction: annotate data race for zone->free_area[order].nr_free
+has been added to the -mm mm-new branch.  Its filename is
+     mm-compaction-annotate-data-race-for-zone-free_areanr_free.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/ocfs2-stop-recovery-before-shutting-down-local-allocators.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-compaction-annotate-data-race-for-zone-free_areanr_free.patch
 
-This patch will later appear in the mm-nonmm-hotfixes-unstable branch at
+This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Note, mm-new is a provisional staging ground for work-in-progress
+patches, and acceptance into mm-new is a notification for others take
+notice and to finish up reviews.  Please do not hesitate to respond to
+review feedback and post updated versions to replace or incrementally
+fixup patches in mm-new.
+
+The mm-new branch of mm.git is not included in linux-next
+
+If a few days of testing in mm-new is successful, the patch will me moved
+into mm.git's mm-unstable branch, which is included in linux-next
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -77,238 +88,109 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Cen Zhang <zzzccc427@gmail.com>
-Subject: ocfs2: stop recovery before shutting down local allocators
-Date: Thu, 29 Oct 2026 14:57:35 +0800
+From: Hui Zhu <zhuhui@kylinos.cn>
+Subject: mm/compaction: annotate data race for zone->free_area[order].nr_free
+Date: Fri, 30 Oct 2026 10:55:07 +0800
 
-Recovery completion needs the local allocators until it has finished
-reclaiming a failed node's allocation window and truncate log.  During
-unmount, quota recovery is stopped first, but that leaves recovery_state
-at OCFS2_REC_QUOTA_DISABLED.  New non-quota recovery can still start.
+KCSAN reports a data-race on nr_free which also exists on mainline:
 
-ocfs2_truncate_log_shutdown() drains existing completion work and releases
-osb_tl_bh before ocfs2_recovery_exit() closes that publication path:
+  BUG: KCSAN: data-race in fast_isolate_freepages+0x284/0x1550 mm/compaction.c:1589
 
-  Unmount                             Recovery
-  -------                             --------
-  stop quota recovery; disable quotas
-  truncate_log_shutdown()
-    flush existing completion work
-                                      recover another failed node
-                                        queue completion
-    flush local log; release buffer
-                                      complete_truncate_log_recovery()
-                                        use released osb_tl_bh
-  recovery_exit(): disable and drain
+  race at unknown origin, with read to 0xffff9894ff3dcb60 of 8 bytes by task 179078 on cpu 12:
+   fast_isolate_freepages+0x284/0x1550 mm/compaction.c:1589
+   isolate_freepages+0x52/0x650 mm/compaction.c:1722
+   compaction_alloc_noprof+0x36e/0x3e0 mm/compaction.c:1850
+   compaction_alloc+0x21/0x30 mm/compaction.c:1880
+   migrate_folio_unmap+0x7f/0x820 mm/migrate.c:1177
+   migrate_pages_batch+0x37e/0x1200 mm/migrate.c:1762
+   migrate_pages_sync+0xce/0x560 mm/migrate.c:1928
+   migrate_pages+0x8c6/0xc20 mm/migrate.c:2037
+   compact_zone+0x539/0x10b0 mm/compaction.c:2660
+   compact_zone_order+0x1b8/0x230 mm/compaction.c:2795
+   try_to_compact_pages+0x20b/0x630 mm/compaction.c:2851
+   __alloc_pages_direct_compact+0x98/0x2b0 mm/page_alloc.c:3722
+   __alloc_pages_slowpath.constprop.0+0x452/0xdf0 mm/page_alloc.c:4401
+   __alloc_pages_noprof+0x28a/0x2d0 mm/page_alloc.c:4794
+   alloc_pages_mpol_noprof+0x1b1/0x470 mm/mempolicy.c:2270
+   alloc_pages_noprof+0x7a/0xe0 mm/mempolicy.c:2347
+   io_mem_alloc_compound io_uring/io_uring.c:2848 [inline]
+   io_pages_map+0xb9/0x330 io_uring/io_uring.c:2892
+   io_allocate_scq_urings+0x231/0x300 io_uring/io_uring.c:3933
+   io_uring_create+0x29c/0x9c0 io_uring/io_uring.c:4091
+   io_uring_setup+0xb6/0x100 io_uring/io_uring.c:4203
+   __do_sys_io_uring_setup io_uring/io_uring.c:4230 [inline]
+   __se_sys_io_uring_setup io_uring/io_uring.c:4224 [inline]
+   __x64_sys_io_uring_setup+0x66/0xe0 io_uring/io_uring.c:4224
+   x64_sys_call+0x1816/0x1d90 arch/x86/include/generated/asm/syscalls_64.h:426
+   do_syscall_x64 arch/x86/entry/common.c:51 [inline]
+   do_syscall_64+0x70/0x2a0 arch/x86/entry/common.c:81
+   entry_SYSCALL_64_after_hwframe+0x76/0xe0
 
-An extra buffer reference alone would still let completion append new
-records after the final truncate-log flush.
+  value changed: 0x00000000000002f4 -> 0x00000000000002f5
 
-Split stopping and draining recovery from freeing its state. Stop all
-recovery producers and drain completion work before shutting down either
-local allocator. Keep recovery-state release at its existing later point,
-so its lifetime relative to other teardown users stays unchanged. The
-second stop at recovery_exit() is harmless once recovery is disabled.
+nr_free is only updated with zone->lock held, but fast_isolate_freepages()
+and fast_find_migrateblock() read it locklessly to skip an order that has
+no free pages.  page_alloc.o is excluded from KCSAN, so the writer is not
+instrumented and the report is of unknown origin.
 
-KASAN report as below:
+The race is benign: a stale zero only skips the order for this round, and
+a stale non-zero just finds an empty MIGRATE_MOVABLE freelist under the
+lock.  Annotate both reads with data_race(), following commit
+af1c31acc853 ("mm/vmstat: annotate data race for zone->free_area[order].nr_free").
 
-    BUG: KASAN: slab-use-after-free in ocfs2_truncate_log_needs_flush+0x23d/0x360
-    Read of size 8 at addr ffff8881093711e8 by task kworker/u16:3/53
-    
-    CPU: 0 UID: 0 PID: 53 Comm: kworker/u16:3 Not tainted 7.3.0-rc4-next-20260921-pmb-ocfs2-functional-v1+ #1 PREEMPT(lazy) 
-    Hardware name: QEMU Ubuntu 24.04 PC v2 (i440FX + PIIX, arch_caps fix, 1996), BIOS 1.16.3-debian-1.16.3-2 04/01/2014
-    Workqueue: ocfs2_wq ocfs2_complete_recovery
-    Call Trace:
-     <TASK>
-     dump_stack_lvl+0x93/0xd0
-     print_report+0xce/0x630
-     ? ocfs2_truncate_log_needs_flush+0x23d/0x360
-     ? srso_alias_return_thunk+0x5/0xfbef5
-     ? __virt_addr_valid+0x20e/0x420
-     ? ocfs2_truncate_log_needs_flush+0x23d/0x360
-     kasan_report+0xe0/0x110
-     ? ocfs2_truncate_log_needs_flush+0x23d/0x360
-     ocfs2_truncate_log_needs_flush+0x23d/0x360
-     ? __pfx_ocfs2_truncate_log_needs_flush+0x10/0x10
-     ? __pfx_down_write+0x10/0x10
-     ocfs2_complete_truncate_log_recovery+0x315/0x780
-     ? trace_hardirqs_on+0x18/0x160
-     ? __pfx_ocfs2_complete_truncate_log_recovery+0x10/0x10
-     ? ocfs2_complete_recovery+0x666/0x11b0
-     ? srso_alias_return_thunk+0x5/0xfbef5
-     ? kfree+0x308/0x580
-     ocfs2_complete_recovery+0x676/0x11b0
-     ? __pfx_ocfs2_complete_recovery+0x10/0x10
-     ? reacquire_held_locks+0xdd/0x200
-     ? process_one_work+0x7c8/0x1b40
-     ? srso_alias_return_thunk+0x5/0xfbef5
-     ? lock_acquire+0x190/0x300
-     ? __pfx_autoremove_wake_function+0x10/0x10
-     ? process_one_work+0x834/0x1b40
-     ? srso_alias_return_thunk+0x5/0xfbef5
-     ? lock_release+0xc8/0x290
-     ? srso_alias_return_thunk+0x5/0xfbef5
-     process_one_work+0x9a8/0x1b40
-     ? __pfx_process_one_work+0x10/0x10
-     ? lock_acquire+0x190/0x300
-     ? lock_is_held_type+0x8f/0x100
-     ? srso_alias_return_thunk+0x5/0xfbef5
-     worker_thread+0x65c/0xe40
-     ? srso_alias_return_thunk+0x5/0xfbef5
-     ? __kthread_parkme+0x177/0x220
-     ? srso_alias_return_thunk+0x5/0xfbef5
-     ? __pfx_worker_thread+0x10/0x10
-     kthread+0x351/0x460
-     ? srso_alias_return_thunk+0x5/0xfbef5
-     ? __pfx_kthread+0x10/0x10
-     ret_from_fork+0x659/0x940
-     ? __pfx_ret_from_fork+0x10/0x10
-     ? srso_alias_return_thunk+0x5/0xfbef5
-     ? __switch_to+0x74f/0xf70
-     ? __pfx_kthread+0x10/0x10
-     ret_from_fork_asm+0x1a/0x30
-     </TASK>
-    
-    Allocated by task 538:
-     kasan_save_stack+0x33/0x60
-     kasan_save_track+0x14/0x30
-     __kasan_slab_alloc+0x89/0x90
-     kmem_cache_alloc_noprof+0x20b/0x5c0
-     alloc_buffer_head+0x26/0x120
-     folio_alloc_buffers+0x122/0x1d0
-     bdev_getblk+0x299/0x4f0
-     ocfs2_read_blocks_sync+0x513/0xbc0
-     ocfs2_iget+0x9cd/0x1a00
-     ocfs2_get_system_file_inode+0x25e/0x7a0
-     ocfs2_fill_super+0x1b05/0x3930
-     get_tree_bdev_flags+0x35d/0x5f0
-     vfs_get_tree+0x93/0x320
-     fc_mount+0x1d/0x200
-     path_mount+0x592/0x1e00
-     __x64_sys_mount+0x24b/0x2d0
-     do_syscall_64+0x114/0x620
-     entry_SYSCALL_64_after_hwframe+0x77/0x7f
-    
-    Freed by task 553:
-     kasan_save_stack+0x33/0x60
-     kasan_save_track+0x14/0x30
-     kasan_save_free_info+0x3b/0x60
-     __kasan_slab_free+0x5f/0x80
-     kmem_cache_free+0x242/0x580
-     free_buffer_head+0x4b/0xc0
-     try_to_free_buffers+0x1dc/0x330
-     ocfs2_truncate_log_shutdown+0x789/0x1290
-     ocfs2_dismount_volume+0x1da/0x940
-     generic_shutdown_super+0x15f/0x490
-     kill_block_super+0x40/0xa0
-     deactivate_locked_super+0xae/0x120
-     deactivate_super+0xa2/0xc0
-     cleanup_mnt+0x217/0x450
-     task_work_run+0x144/0x230
-     exit_to_user_mode_loop+0x17d/0x570
-     do_syscall_64+0x4d1/0x620
-     entry_SYSCALL_64_after_hwframe+0x77/0x7f
-    
-    The buggy address belongs to the object at ffff8881093711c0
-     which belongs to the cache buffer_head of size 160
-    The buggy address is located 40 bytes inside of
-     freed 160-byte region [ffff8881093711c0, ffff888109371260)
-    
-    The buggy address belongs to the physical page:
-    page: refcount:0 mapcount:0 mapping:0000000000000000 index:0x0 pfn:0x109371
-    flags: 0x200000000000000(node=0|zone=2)
-    page_type: f5(slab)
-    raw: 0200000000000000 ffff8881008883c0 dead000000000100 dead000000000122
-    raw: 0000000000000000 0000000000120012 00000000f5000000 0000000000000000
-    page dumped because: kasan: bad access detected
-    
-    Memory state around the buggy address:
-     ffff888109371080: 00 00 00 00 fc fc fc fc fc fc fc fc 00 00 00 00
-     ffff888109371100: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-    >ffff888109371180: fc fc fc fc fc fc fc fc fa fb fb fb fb fb fb fb
-                                                              ^
-     ffff888109371200: fb fb fb fb fb fb fb fb fb fb fb fb fc fc fc fc
-     ffff888109371280: fc fc fc fc 00 00 00 00 00 00 00 00 00 00 00 00
-    ==================================================================
+No functional change intended.
 
-Link: https://lore.kernel.org/pm-ocfs2-objects-candidate-0019-v8-574dd69fd3f47f56348b@gmail.com
-Fixes: ccd979bdbce9 ("[PATCH] OCFS2: The Second Oracle Cluster Filesystem")
-Signed-off-by: Cen Zhang <zzzccc427@gmail.com>
+Link: https://lore.kernel.org/20261030025507.115248-1-hui.zhu@linux.dev
+Fixes: 70b44595eafe ("mm, compaction: use free lists to quickly locate a migration source")
+Fixes: 5a811889de10 ("mm, compaction: use free lists to quickly locate a migration target")
+Signed-off-by: Hui Zhu <zhuhui@kylinos.cn>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Suggested-by: Joseph Qi <joseph.qi@linux.alibaba.com>
-Reviewed-by: Joseph Qi <joseph.qi@linux.alibaba.com>
-Assisted-by: LLM
-Cc: Mark Fasheh <mark@fasheh.com>
-Cc: Joel Becker <jlbec@evilplan.org>
-Cc: Heming Zhao <heming.zhao@suse.com>
-Cc: Jia-Ju Bai <baijiaju1990@gmail.com>
-Cc: <jjzuming@gmail.com>
-Cc: <stable@vger.kernel.org>
+Reviewed-by: Dev Jain <dev.jain@arm.com>
+Acked-by: Zi Yan <ziy@nvidia.com>
+Cc: <stable+noautosel@kernel.org> # KCSAN annotation only, no functional change
+Cc: Vlastimil Babka <vbabka@kernel.org>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Brendan Jackman <brendan.jackman@linux.dev>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Hui Zhu <hui.zhu@linux.dev>
 ---
 
- fs/ocfs2/journal.c |   15 ++++++++++++---
- fs/ocfs2/journal.h |    1 +
- fs/ocfs2/super.c   |    3 +++
- 3 files changed, 16 insertions(+), 3 deletions(-)
+ mm/compaction.c |   12 ++++++++++--
+ 1 file changed, 10 insertions(+), 2 deletions(-)
 
---- a/fs/ocfs2/journal.c~ocfs2-stop-recovery-before-shutting-down-local-allocators
-+++ a/fs/ocfs2/journal.c
-@@ -227,13 +227,22 @@ void ocfs2_recovery_disable_quota(struct
- 	ocfs2_recovery_disable(osb, OCFS2_REC_QUOTA_WANT_DISABLE);
- }
+--- a/mm/compaction.c~mm-compaction-annotate-data-race-for-zone-free_areanr_free
++++ a/mm/compaction.c
+@@ -1601,7 +1601,11 @@ static void fast_isolate_freepages(struc
+ 		unsigned int order_scanned = 0;
+ 		unsigned long high_pfn = 0;
  
-+/* Stop producers and drain completion work without freeing recovery state. */
-+void ocfs2_recovery_stop(struct ocfs2_super *osb)
-+{
-+	ocfs2_recovery_disable(osb, OCFS2_REC_WANT_DISABLE);
-+}
-+
- void ocfs2_recovery_exit(struct ocfs2_super *osb)
- {
- 	struct ocfs2_recovery_map *rm;
+-		if (!area->nr_free)
++		/*
++		 * Access to nr_free is lockless as it is only a hint; a stale
++		 * value is harmless. Use data_race to avoid KCSAN warning.
++		 */
++		if (!data_race(area->nr_free))
+ 			continue;
  
--	/* disable any new recovery threads and wait for any currently
--	 * running ones to exit. Do this before setting the vol_state. */
--	ocfs2_recovery_disable(osb, OCFS2_REC_WANT_DISABLE);
-+	/*
-+	 * Disable producers and drain work before freeing recovery state.
-+	 * Do this before setting vol_state to VOLUME_DISMOUNTED: completion
-+	 * work may still be waiting in __ocfs2_wait_on_mount().
-+	 */
-+	ocfs2_recovery_stop(osb);
+ 		spin_lock_irqsave(&cc->zone->lock, flags);
+@@ -2031,7 +2035,11 @@ static unsigned long fast_find_migratebl
+ 		unsigned long flags;
+ 		struct page *freepage;
  
- 	/*
- 	 * Now that recovery is shut down, and the osb is about to be
---- a/fs/ocfs2/journal.h~ocfs2-stop-recovery-before-shutting-down-local-allocators
-+++ a/fs/ocfs2/journal.h
-@@ -147,6 +147,7 @@ void ocfs2_complete_recovery(struct work
- void ocfs2_wait_for_recovery(struct ocfs2_super *osb);
+-		if (!area->nr_free)
++		/*
++		 * Access to nr_free is lockless as it is only a hint; a stale
++		 * value is harmless. Use data_race to avoid KCSAN warning.
++		 */
++		if (!data_race(area->nr_free))
+ 			continue;
  
- int ocfs2_recovery_init(struct ocfs2_super *osb);
-+void ocfs2_recovery_stop(struct ocfs2_super *osb);
- void ocfs2_recovery_exit(struct ocfs2_super *osb);
- void ocfs2_recovery_disable_quota(struct ocfs2_super *osb);
- 
---- a/fs/ocfs2/super.c~ocfs2-stop-recovery-before-shutting-down-local-allocators
-+++ a/fs/ocfs2/super.c
-@@ -1831,6 +1831,9 @@ static void ocfs2_dismount_volume(struct
- 	/* Wait for worker to be done with the work structure in osb */
- 	cancel_work_sync(&osb->dquot_drop_work);
- 
-+	/* Stop recovery producers before releasing their local allocators. */
-+	ocfs2_recovery_stop(osb);
-+
- 	ocfs2_shutdown_local_alloc(osb);
- 
- 	ocfs2_truncate_log_shutdown(osb);
+ 		spin_lock_irqsave(&cc->zone->lock, flags);
 _
 
-Patches currently in -mm which might be from zzzccc427@gmail.com are
+Patches currently in -mm which might be from zhuhui@kylinos.cn are
 
-ocfs2-validate-move-extents-against-a-stable-eof.patch
-ocfs2-keep-locking_state-within-the-cluster-connection-lifetime.patch
-ocfs2-dlm-serialize-migration-mle-cleanup-on-failure.patch
-ocfs2-stop-recovery-before-shutting-down-local-allocators.patch
-ocfs2-wait-for-filecheck-kobject-release-after-a-failed-add.patch
-ocfs2-cache-the-mount-context-for-dentry-lock-callbacks.patch
+mm-vmstat-annotate-data-race-in-zone_page_state_snapshot.patch
+mm-compaction-annotate-data-race-for-zone-free_areanr_free.patch
 
