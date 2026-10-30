@@ -1,55 +1,48 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793332668;
-	b=3CwnVmnF41l6gJ4SyaM41wkW6l25tiTEfonzMrm0LZNMmEyCAi5Zv24D4w3klo+qTUIh
-	 I2CaC+2GDYbuPEHMtW5vVK/rTkaSbhk2MwkewLO2thVX/rrAGkTJstq7Y+JWNzsXZvPRb
-	 uOIiDtL2YdZAmpOPfQtwCnxcWhbgwSOMhbCW5f9dWfT3EgFIpKqHMLfjA3GZ64+zdzQk5
-	 7M7jZn2EeGade90gF+O7vGwGpzOstyZTPlR/6KI+mPebHSdhFBPTdbHeIHTgB6/LDKUKN
-	 xlzeHH9lBEotLYEdPCzAzMf7ZTzBIQjqm7Flr77u0ukf67D1Tr4Rc3GbJgUAvJ9cF+A==
+	t=1793333079;
+	b=gvdM1O+TOBA5suh4wCFD4y1UZjbimsMJ2CdMbrASQxp18YSJZifh+woNs0l5Beo+8kpE
+	 4B++xXJmSiUrFw3gD5mxvpPJpBQ+I2HPa7wNJ2VwxJOTMIo2IShMmHTY7YGXCE0OWfDB5
+	 NxsTvcUBf5JsddlSq6iG225B9eHjM+Nd2Y4VElzK2QUAufOyKcIXjLzghO9BflgFwEzEw
+	 FGY0g7wOwnFzAXYEhOgxUavy0R6FxqOi1V5XmPEqdKN4YltvpkXkPuhjl121F/bega3d5
+	 JHqAxczjWzb8sPbMa8LsgF8b3ZTo6OWblV54dfNs47XKYjgvc0ESE5J9Msp7ZHphhkw==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793332668;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793333079;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=gx9Vi0x1jfEm02KILwM0s8yqXpLK+K3xPrLrvjNau0M=;
-	b=nb4IRhAY6wCNaiyQJjH9Q154aavSrbtMotzSFyJPFx6zrdMuqvqzAALpCqsd/UHlN1lp
-	 ivUXuTd3ndGXez0ulFUJacErjA+H00te32FndOaSQRWC8jfeO8wwUxDXhJGXHl5dSHntU
-	 u2xCSVEfgNB1YjU1ZIwspiw8FPUXoSaVCxogYpPskQf1X03pYFDFyJUQ7cNtSJp0RJjnA
-	 KaDksVY73FQh2QKhcOFKbBVtsch+yRI/k0nnU29JFomjm76kqirx9RPBKwojFftVxxpea
-	 4m2GnJ2tnNBt3rYl9HMY1ywwqNPOcjBjXmje41kMZoySeXkA5Ec9Z6VbdD1srEuGmHA==
+	bh=yj9RWK76RXDw0crkcP65KWYauRrQYoOoyZQzp5bU2lc=;
+	b=l0/vrdqy0Sr31uiAaoeJ0UDq8qIArEjEV4Xdk6RQSH80Xq8ym9js/o3nbR3QtOtosGqK
+	 ejTZJy8cJI2UAX467AHxPHap/iaZ1QmNHXviGWqkv3AqveY7oiL6PEgv+84sd5quwrvhA
+	 UHAz33ku8w1GGVPDqWhS57xxyXlqLZPGlmcuL3/xvbnDCkvFWLuUpE7s5xZfP9UZdM+oT
+	 h1YTugRVd3tFX1+E8Xfx2PQaFE9aeEiQoQs2V2OqEakMFI8R8i3/ED9OWywNDzdgXX9OV
+	 OgDiWUBe9Wxhs6iq014gkLX/MlYfPcQ1YHlXqiDiv798uUYclsxLXryGiMcf3Ij/2mA==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b="Dbb/6KSW";
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=1b+C1rk6;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E8EAC606A31A
-	for <mm-commits@vger.kernel.org>; Fri, 30 Oct 2026 03:57:47 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2F44B606A31C;
+	Fri, 30 Oct 2026 04:04:38 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=Dbb/6KSW
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 999C51F000C1;
-	Fri, 30 Oct 2026 03:57:47 +0000 (UTC)
+	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=1b+C1rk6
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3E4951F000C1;
+	Fri, 30 Oct 2026 04:04:38 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1793332667;
-	bh=gx9Vi0x1jfEm02KILwM0s8yqXpLK+K3xPrLrvjNau0M=;
+	d=linux-foundation.org; s=korg; t=1793333078;
+	bh=yj9RWK76RXDw0crkcP65KWYauRrQYoOoyZQzp5bU2lc=;
 	h=Date:To:From:Subject;
-	b=Dbb/6KSW/+9xIHInLuPiBekO++SRQ0Db0GirSj6YCEsikHjA5ne80TrrfVO4d2xPq
-	 CmeKvT4TDUxxFke8OPTQlDMJPjRF2V3xdT5AJrvvp50C+BcES4k26xpy87ItYQP9ZY
-	 t4uKM9HhsN2kX/uPXP1oKcWD+WM0KP9vj1FqkFwc=
-Date: Thu, 29 Oct 2026 20:57:47 -0700
-To: mm-commits@vger.kernel.org,will@kernel.org,vincenzo.frascino@arm.com,
-	tglx@kernel.org,svens@linux.ibm.com,sshegde@linux.ibm.com,shuah@kernel.org,
-	ryabinin.a.a@gmail.com,ritesh.list@gmail.com,pjw@kernel.org,peter@pcc.me.uk,
-	palmer@dabbelt.com,npiggin@gmail.com,mpe@ellerman.id.au,mingo@redhat.com,
-	mark.rutland@arm.com,maddy@linux.ibm.com,linux@armlinux.org.uk,
-	kees@kernel.org,hpa@zytor.com,hca@linux.ibm.com,gor@linux.ibm.com,
-	glider@google.com,elver@google.com,dvyukov@google.com,
-	dave.hansen@linux.intel.com,chleroy@kernel.org,catalin.marinas@arm.com,
-	bp@alien8.de,borntraeger@linux.ibm.com,aou@eecs.berkeley.edu,
-	andreyknvl@gmail.com,alex@ghiti.fr,agordeev@linux.ibm.com,
-	odys.yuan@gmail.com,akpm@linux-foundation.org
+	b=1b+C1rk6Pjxzc2Sd0ETXxCQXg6+DllARqLB3w2RvZp5FgTok5gTsIhbUtmGUjp/TB
+	 QG7blNpaWjjTQnYpKtxjIL0xP8khgTbu90QrwEncLE5vglM0oB4ByO3wEyO6oIeTKo
+	 /5mGInvMYNfto/fU60cHPJACqjbjnvBu3Z2BtL/g=
+Date: Thu, 29 Oct 2026 21:04:37 -0700
+To: mm-commits@vger.kernel.org,yang.yang29@zte.com.cn,xu.xin@linux.dev,
+	wang.yong12@zte.com.cn,wang.yaxin@zte.com.cn,stable@vger.kernel.org,
+	jiang.kun2@zte.com.cn,bsingharora@gmail.com,brads@mainlining.org,
+	dennylin0707@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + kasan-test-cover-load_unaligned_zeropad.patch added to mm-new branch
-Message-Id: <20261030035747.999C51F000C1@smtp.kernel.org>
+Subject: + delayacct-preserve-delay-extrema-when-aggregating-taskstats.patch added to mm-nonmm-unstable branch
+Message-Id: <20261030040438.3E4951F000C1@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -61,26 +54,15 @@ Precedence: list
 
 
 The patch titled
-     Subject: kasan/test: cover load_unaligned_zeropad()
-has been added to the -mm mm-new branch.  Its filename is
-     kasan-test-cover-load_unaligned_zeropad.patch
+     Subject: delayacct: preserve delay extrema when aggregating taskstats
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     delayacct-preserve-delay-extrema-when-aggregating-taskstats.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kasan-test-cover-load_unaligned_zeropad.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/delayacct-preserve-delay-extrema-when-aggregating-taskstats.patch
 
-This patch will later appear in the mm-new branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Note, mm-new is a provisional staging ground for work-in-progress
-patches, and acceptance into mm-new is a notification for others take
-notice and to finish up reviews.  Please do not hesitate to respond to
-review feedback and post updated versions to replace or incrementally
-fixup patches in mm-new.
-
-The mm-new branch of mm.git is not included in linux-next
-
-If a few days of testing in mm-new is successful, the patch will me moved
-into mm.git's mm-unstable branch, which is included in linux-next
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -95,119 +77,106 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Qiliang Yuan <odys.yuan@gmail.com>
-Subject: kasan/test: cover load_unaligned_zeropad()
-Date: Fri, 23 Oct 2026 09:49:49 +0800
+From: Hungyu Lin <dennylin0707@gmail.com>
+Subject: delayacct: preserve delay extrema when aggregating taskstats
+Date: Thu, 22 Oct 2026 16:06:48 +0000
 
-On architectures with CONFIG_DCACHE_WORD_ACCESS, load_unaligned_zeropad()
-does the word loads of the dcache name compare and of path name hashing.
+delayacct_add_tsk() adds each task's statistics to the accumulated TGID
+statistics, but overwrites the delay maxima, minima and peak timestamps.
+Consequently, the last task determines these fields, and a task with no
+recorded delay can erase an earlier task's peak despite a nonzero total.
 
-None of the KASAN test cases reads memory through it, so nothing noticed
-that KASAN did not check these loads at all.
+For example, a four-thread process has a worker writing copy-on-write
+pages and a last-created thread with no WPCOPY events. With the group
+stopped, getdelays -d -t 49 reports the following before and after the
+fix (WPCOPY excerpt, spacing compacted and timestamp column omitted):
 
-Add a case that reads a freed object through load_unaligned_zeropad() and
-expects a report.  Skip it with hardware tag-based KASAN, since arm64
-turns tag checking off for this load:
+Before:
+  WPCOPY count delay total delay average  delay max  delay min
+          4103     5163661       0.001ms 0.000000ms 0.000000ms
 
-  kasan_load_unaligned_zeropad, x86_64, generic KASAN
-  without "word-at-a-time: check the first byte in
-  load_unaligned_zeropad()"                                 FAILED
-  with it                                                   PASSED
+After:
+  WPCOPY count delay total delay average  delay max  delay min
+          4101     4680983       0.001ms 0.049292ms 0.000208ms
 
-Link: https://lore.kernel.org/20261023-bug-word-at-a-time-zeropad-kasan-v2-2-be0ecfbae847@gmail.com
-Signed-off-by: Qiliang Yuan <odys.yuan@gmail.com>
+The timings vary between runs. Before the fix, the zero extrema disagree
+with the individual worker's nonzero values. After the fix, the group
+extrema match the largest maximum and smallest nonzero minimum across
+the individual threads.
+
+Keep the largest maximum and its associated timestamp, and combine the
+minima with min_not_zero() since zero denotes an unrecorded delay. Apply
+this to CPU delay and the seven delay types handled by UPDATE_DELAY().
+Single-task queries still start with zeroed statistics and retain the
+task's values.
+
+Link: https://lore.kernel.org/20261022160648.37411-1-dennylin0707@gmail.com
+Fixes: 658eb5ab916d ("delayacct: add delay max to record delay peak")
+Fixes: f65c64f311ee ("delayacct: add delay min to record delay peak")
+Signed-off-by: Hungyu Lin <dennylin0707@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Reviewed-by: Andrey Ryabinin <ryabinin.a.a@gmail.com>
-Cc: Russell King <linux@armlinux.org.uk>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Will Deacon <will@kernel.org>
-Cc: Mark Rutland <mark.rutland@arm.com>
-Cc: Madhavan Srinivasan <maddy@linux.ibm.com>
-Cc: Michael Ellerman <mpe@ellerman.id.au>
-Cc: Nicholas Piggin <npiggin@gmail.com>
-Cc: Christophe Leroy <chleroy@kernel.org>
-Cc: Ritesh Harjani (IBM) <ritesh.list@gmail.com>
-Cc: Shrikanth Hegde <sshegde@linux.ibm.com>
-Cc: Paul Walmsley <pjw@kernel.org>
-Cc: Palmer Dabbelt <palmer@dabbelt.com>
-Cc: Albert Ou <aou@eecs.berkeley.edu>
-Cc: AlexandreGhiti <alex@ghiti.fr>
-Cc: Heiko Carstens <hca@linux.ibm.com>
-Cc: Vasily Gorbik <gor@linux.ibm.com>
-Cc: Alexander Gordeev <agordeev@linux.ibm.com>
-Cc: Christian Borntraeger <borntraeger@linux.ibm.com>
-Cc: Sven Schnelle <svens@linux.ibm.com>
-Cc: Thomas Gleixner <tglx@kernel.org>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Borislav Petkov <bp@alien8.de>
-Cc: Dave Hansen <dave.hansen@linux.intel.com>
-Cc: H. Peter Anvin <hpa@zytor.com>
-Cc: Shuah Khan <shuah@kernel.org>
-Cc: Marco Elver <elver@google.com>
-Cc: Alexander Potapenko <glider@google.com>
-Cc: Andrey Konovalov <andreyknvl@gmail.com>
-Cc: Dmitry Vyukov <dvyukov@google.com>
-Cc: Vincenzo Frascino <vincenzo.frascino@arm.com>
-Cc: Kees Cook <kees@kernel.org>
-Cc: Peter Collingbourne <peter@pcc.me.uk>
+Reviewed-by: Bradley Morgan <brads@mainlining.org>
+Cc: <bsingharora@gmail.com>
+Cc: Yang Yang <yang.yang29@zte.com.cn>
+Cc: Wang Yaxin <wang.yaxin@zte.com.cn>
+Cc: <wang.yong12@zte.com.cn>
+Cc: Xu Xin <xu.xin@linux.dev>
+Cc: Jiang Kun <jiang.kun2@zte.com.cn>
+Cc: <stable@vger.kernel.org>
 ---
 
- mm/kasan/kasan_test_c.c |   24 ++++++++++++++++++++++++
- 1 file changed, 24 insertions(+)
+ kernel/delayacct.c |   23 +++++++++++++++--------
+ 1 file changed, 15 insertions(+), 8 deletions(-)
 
---- a/mm/kasan/kasan_test_c.c~kasan-test-cover-load_unaligned_zeropad
-+++ a/mm/kasan/kasan_test_c.c
-@@ -28,6 +28,9 @@
- #include <trace/events/printk.h>
+--- a/kernel/delayacct.c~delayacct-preserve-delay-extrema-when-aggregating-taskstats
++++ a/kernel/delayacct.c
+@@ -12,14 +12,18 @@
+ #include <linux/taskstats.h>
+ #include <linux/sysctl.h>
+ #include <linux/delayacct.h>
++#include <linux/minmax.h>
+ #include <linux/module.h>
  
- #include <asm/page.h>
-+#ifdef CONFIG_DCACHE_WORD_ACCESS
-+#include <asm/word-at-a-time.h>
-+#endif
+ #define UPDATE_DELAY(type) \
+ do { \
+-	d->type##_delay_max = tsk->delays->type##_delay_max; \
+-	d->type##_delay_min = tsk->delays->type##_delay_min; \
+-	d->type##_delay_max_ts.tv_sec = tsk->delays->type##_delay_max_ts.tv_sec; \
+-	d->type##_delay_max_ts.tv_nsec = tsk->delays->type##_delay_max_ts.tv_nsec; \
++	if (tsk->delays->type##_delay_max > d->type##_delay_max) { \
++		d->type##_delay_max = tsk->delays->type##_delay_max; \
++		d->type##_delay_max_ts.tv_sec = tsk->delays->type##_delay_max_ts.tv_sec; \
++		d->type##_delay_max_ts.tv_nsec = tsk->delays->type##_delay_max_ts.tv_nsec; \
++	} \
++	d->type##_delay_min = min_not_zero(d->type##_delay_min, \
++					 tsk->delays->type##_delay_min); \
+ 	tmp = d->type##_delay_total + tsk->delays->type##_delay; \
+ 	d->type##_delay_total = (tmp < d->type##_delay_total) ? 0 : tmp; \
+ 	d->type##_count += tsk->delays->type##_count; \
+@@ -174,10 +178,13 @@ int delayacct_add_tsk(struct taskstats *
  
- #include "kasan.h"
- #include "../slab.h"
-@@ -1807,6 +1810,26 @@ static void kasan_memcmp(struct kunit *t
- 	kfree(ptr);
- }
+ 	d->cpu_count += t1;
  
-+static void kasan_load_unaligned_zeropad(struct kunit *test)
-+{
-+#ifdef CONFIG_DCACHE_WORD_ACCESS
-+	char *ptr;
-+
-+	/* The tag check is turned off for this load on arm64 with MTE. */
-+	KASAN_TEST_NEEDS_CONFIG_OFF(test, CONFIG_KASAN_HW_TAGS);
-+
-+	ptr = kmalloc(64, GFP_KERNEL);
-+	KUNIT_ASSERT_NOT_ERR_OR_NULL(test, ptr);
-+	kfree(ptr);
-+
-+	OPTIMIZER_HIDE_VAR(ptr);
-+	KUNIT_EXPECT_KASAN_FAIL_READ(test,
-+		kasan_int_result = load_unaligned_zeropad(ptr));
-+#else
-+	kunit_skip(test, "Test requires CONFIG_DCACHE_WORD_ACCESS=y");
-+#endif
-+}
-+
- static void kasan_strings(struct kunit *test)
- {
- 	char *ptr;
-@@ -2403,6 +2426,7 @@ static struct kunit_case kasan_kunit_tes
- 	KUNIT_CASE(kasan_alloca_oob_right),
- 	KUNIT_CASE(kasan_memchr),
- 	KUNIT_CASE(kasan_memcmp),
-+	KUNIT_CASE(kasan_load_unaligned_zeropad),
- 	KUNIT_CASE(kasan_strings),
- 	KUNIT_CASE(kasan_bitops_generic),
- 	KUNIT_CASE(kasan_bitops_tags),
+-	d->cpu_delay_max = tsk->sched_info.max_run_delay;
+-	d->cpu_delay_min = tsk->sched_info.min_run_delay;
+-	d->cpu_delay_max_ts.tv_sec = tsk->sched_info.max_run_delay_ts.tv_sec;
+-	d->cpu_delay_max_ts.tv_nsec = tsk->sched_info.max_run_delay_ts.tv_nsec;
++	if (tsk->sched_info.max_run_delay > d->cpu_delay_max) {
++		d->cpu_delay_max = tsk->sched_info.max_run_delay;
++		d->cpu_delay_max_ts.tv_sec = tsk->sched_info.max_run_delay_ts.tv_sec;
++		d->cpu_delay_max_ts.tv_nsec = tsk->sched_info.max_run_delay_ts.tv_nsec;
++	}
++	d->cpu_delay_min = min_not_zero(d->cpu_delay_min,
++					tsk->sched_info.min_run_delay);
+ 	tmp = (s64)d->cpu_delay_total + t2;
+ 	d->cpu_delay_total = (tmp < (s64)d->cpu_delay_total) ? 0 : tmp;
+ 	tmp = (s64)d->cpu_run_virtual_total + t3;
 _
 
-Patches currently in -mm which might be from odys.yuan@gmail.com are
+Patches currently in -mm which might be from dennylin0707@gmail.com are
 
-selftests-mm-track-the-modules-run_vmtestssh-loads.patch
-selftests-mm-load-xfs-before-checking-for-it-in-run_vmtestssh.patch
-word-at-a-time-check-the-first-byte-in-load_unaligned_zeropad.patch
-kasan-test-cover-load_unaligned_zeropad.patch
+mm-page-writeback-avoid-32-bit-overflow-in-dirty-threshold-shares.patch
+mm-migrate-untag-addresses-when-querying-page-nodes.patch
+fat-fix-parent-link-count-when-replacing-a-sibling-directory.patch
+delayacct-preserve-delay-extrema-when-aggregating-taskstats.patch
 
