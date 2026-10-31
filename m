@@ -1,47 +1,52 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793408777;
-	b=tuQj+Vm8jf5+z1iRpDUF47S+6MX9eGedfvjk31WL5LDgWczkjbJxO47fCI0oijqNDGXB
-	 KVmLq6zl5AU74a0K3dnOrdAnfcvROXpZeTuyHKDsuvnLp5DYaT4d6pKz4Gt7+3IC6ZiDW
-	 +gUulExIhCe0jm99tZxmMPvx2J5poZ75/jCE26RDtmBKQ5gV+OUiEMWygHcJEYhGkx3ZH
-	 Y1CP7ObD3mKZuK6GX28+SmpqNu9IMu0NBOrXRiWcaenIs73D1ZMn4bVgN46+MzHMv14WJ
-	 MbqkrBYSYXabJtg9d75x2L1rVdanOOWqqZxxemBdOXi8xmKXLKBxWF4fhRre3Es7wBQ==
+	t=1793412739;
+	b=a/yIh/VF/sA/9h0c/WNltlrkxMhUgPAPAAurXCBAiV5d2gkTzyntypklUpq2rTMpvSrE
+	 B9+UcRdkJAI1UP4z/Igd7q3iShBu1DcV2X4d25u/78mzh2uwTU41dbjcp/X9IRPBtrEIQ
+	 AdRNnFSUWHDa8zPzYOdoVyJ/bEaJHHo4VmRAV3/O9sqbQH0D1mfHCvjgA+VdRuuDpEmgS
+	 3n94Vkb0eWsNhQ/kMQUdlWBlY8eL8/jsQaPxg4TO9zxMsuWTqYAge+wsctjpTga9AYHJx
+	 DVj5gh9HImZ3mNG2/rivudbmpHwcHKy6CC0klLQ7fKSNKE8VfcyIoP+Qa5nYpqs6x4Q==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793408777;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793412739;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=PBH/Lhkc65X9rFjrOpqJlubdkgjF1lt41OZDDmdh2m0=;
-	b=FRXINJU4POd82Oi/RzYHGjzbh1O6XsknqC5rGjarDM38TQVL+GvhNiRJNOuP+gAE1xC1
-	 OyYvH3j+yjUpw85XlBfrhlqvobo6Qr5JZtmoMMtc6fzD3PLiOel7dxenKxi+DxuhKOxrB
-	 yTtEAghIG9vgPF0fWZboht1831w2EzfXZzyrpECjlBMO0ydA8VwDEv1UgO16lLkQoWwnj
-	 3Lw/IRwrYQnxTCuzXxFlzCrO7eSqv4b3nZ7qJYxHi0jlTkZFDZPs62abyqGWCbkq2qyYQ
-	 aiUFoF9FSz6WS/h2oFJJnFdsK2KiKt6aNh08Fhj+GbDGPCEueGY1Rn3geSpZY3HVIbQ==
+	bh=z3HM1AW+ThIEsoWwKhYtVmBhzEJjgEKpAW1F5yOX8No=;
+	b=P0i3j8M9qVs/CyAr/63ocr3ePAZyvtkV7NhJbK2l1vrxDKVLKhKS0R9BO0BYhZGrqrar
+	 HVdfQ/zB90upKNAyNhtAeeNswgvxJi6+DFfFUzxxaj5FzzYpX5zTt5SE1ubGmd6DdcVkX
+	 Gu5diegzFxWmseH/suaBWC0pzJ2ez+Bq29r5A43cweFpmlNaOxsUWE2+ADXLRcMcmSzXt
+	 ctCNuPVXdMgq0afiPCaQT4KUHJWuyL10ZaY3gV9J3TwYL4+qZWehSVWKDf3lY5PhVIQPc
+	 DGM4NZ9gs2CgX3QLe5feaJ1w2ypO7Vfx67e2n9RNg0bcZHDem0yk9w5mPLjYYdN82Cg==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=D3E7SVlU;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=vOaAfJHg;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 46107606A31E
-	for <mm-commits@vger.kernel.org>; Sat, 31 Oct 2026 01:06:17 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6071E606A31C
+	for <mm-commits@vger.kernel.org>; Sat, 31 Oct 2026 02:12:19 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=D3E7SVlU
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 013521F000C1;
-	Sat, 31 Oct 2026 01:06:16 +0000 (UTC)
+	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=vOaAfJHg
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D274B1F000C1;
+	Sat, 31 Oct 2026 02:12:18 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1793408777;
-	bh=PBH/Lhkc65X9rFjrOpqJlubdkgjF1lt41OZDDmdh2m0=;
+	d=linux-foundation.org; s=korg; t=1793412738;
+	bh=z3HM1AW+ThIEsoWwKhYtVmBhzEJjgEKpAW1F5yOX8No=;
 	h=Date:To:From:Subject;
-	b=D3E7SVlU/gAojDkaHzOmCMprdKdXMzrqrgW5FWLDBRTGnhddmLF4Ocg2MY+Og71ok
-	 gDTjkqh4h384ayyiu8yLiZ2fsvFGpbYl2ogMT+Me89Th99NX2O/zZ0xAxoI2b/5RsQ
-	 8gN/rwEMzMbxQXSEdE3rL20ItgX0/p/3f+P3WAmg=
-Date: Fri, 30 Oct 2026 18:06:16 -0700
-To: mm-commits@vger.kernel.org,yang.yang29@zte.com.cn,xu.xin@linux.dev,
-	thomas.weissschuh@linutronix.de,fan.yu9@zte.com.cn,corbet@lwn.net,
-	wang.yaxin@zte.com.cn,akpm@linux-foundation.org
+	b=vOaAfJHgyDZdmWKb683OEWzWcZi9OhXPKjNbAbDhYr0NIvC0QHHebVT1O7kugIG8X
+	 sGvlg0e3LFIjBdaM2G8ozmQYjVJ2py1nZEdXcnsVvaG6DjatTKfPVPkr9az/Ywb0gB
+	 IXRmI+0O0Uv89uug8Vgsy0acpszTsjgMt3SeFGwE=
+Date: Fri, 30 Oct 2026 19:12:18 -0700
+To: mm-commits@vger.kernel.org,yonghong.song@linux.dev,song@kernel.org,
+	rostedt@goodmis.org,mhiramat@kernel.org,memxor@gmail.com,matt@bobrowski.net,
+	mathieu.desnoyers@efficios.com,martin.lau@linux.dev,marscheng@google.com,
+	kpsingh@kernel.org,jserv@ccns.ncku.edu.tw,jolsa@kernel.org,
+	ihor.solodrai@linux.dev,hch@infradead.org,emil@etsalapatis.com,
+	eleanor.lin@realtek.com,eddyz87@gmail.com,daniel@iogearbox.net,
+	ast@kernel.org,andrii@kernel.org,visitorckw@gmail.com,
+	akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + delaytop-sort-by-max-delay-to-highlight-top-latency-processes.patch added to mm-nonmm-unstable branch
-Message-Id: <20261031010617.013521F000C1@smtp.kernel.org>
+Subject: + bpf-replace-sort_r_nonatomic-with-sort_r-in-check_dup_ids.patch added to mm-nonmm-unstable branch
+Message-Id: <20261031021218.D274B1F000C1@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -53,12 +58,12 @@ Precedence: list
 
 
 The patch titled
-     Subject: delaytop: sort by max delay to highlight top latency processes
+     Subject: bpf: replace sort_r_nonatomic() with sort_r() in check_dup_ids()
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     delaytop-sort-by-max-delay-to-highlight-top-latency-processes.patch
+     bpf-replace-sort_r_nonatomic-with-sort_r-in-check_dup_ids.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/delaytop-sort-by-max-delay-to-highlight-top-latency-processes.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/bpf-replace-sort_r_nonatomic-with-sort_r-in-check_dup_ids.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -76,309 +81,76 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Wang Yaxin <wang.yaxin@zte.com.cn>
-Subject: delaytop: sort by max delay to highlight top latency processes
-Date: Wed, 23 Sep 2026 21:05:42 +0800
+From: Kuan-Wei Chiu <visitorckw@gmail.com>
+Subject: bpf: replace sort_r_nonatomic() with sort_r() in check_dup_ids()
+Date: Thu, 10 Sep 2026 16:52:20 +0000
 
-When using -t/--type option, sort tasks by the maximum delay value of
-the selected type in descending order (largest delay first).
+Patch series "lib/sort: Clean up sort_nonatomic() and sort_r_nonatomic()",
+v2.
 
-This enables quickly identifying the top N processes with the highest
-delay spikes, which is essential for diagnosing latency problems by
-pinpointing which processes contributed most to system delays.
+kernel/trace/bpf_trace.c is the sole remaining user of sort_r_nonatomic().
+Switch check_dup_ids() to sort_r() to match
+bpf_kprobe_multi_link_attach() in the same file, which has safely used
+sort_r() under the same limit (1U << 20) for 4 years.
 
-Link: https://lore.kernel.org/20260923210542517bP5gb_zEY1jsriLQHagUT@zte.com.cn
-Signed-off-by: Wang Yaxin <wang.yaxin@zte.com.cn>
+With no users left in the tree, remove the unused sort_nonatomic() and
+sort_r_nonatomic() APIs.  This drops the __sort_r() wrapper and eliminates
+the may_schedule branch and cond_resched() from the inner sorting loop.
+
+
+This patch (of 2):
+
+bpf_kprobe_multi_link_attach() in the same file has been using sort_r()
+under the exact same limit (1U << 20) for 4 years without issues.  Switch
+check_dup_ids() from sort_r_nonatomic() to sort_r() to match it.
+
+This removes the last in-tree user of sort_r_nonatomic(), allowing the
+unused _nonatomic() sort variants to be dropped from the core library.
+
+Link: https://lore.kernel.org/20260910165222.1186628-1-visitorckw@gmail.com
+Link: https://lore.kernel.org/20260910165222.1186628-2-visitorckw@gmail.com
+Signed-off-by: Kuan-Wei Chiu <visitorckw@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Cc: Fan Yu <fan.yu9@zte.com.cn>
-Cc: Yang Yang <yang.yang29@zte.com.cn>
-Cc: Thomas Weißschuh <thomas.weissschuh@linutronix.de>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Xu Xin <xu.xin@linux.dev>
+Acked-by: Jiri Olsa <jolsa@kernel.org>
+Cc: Song Liu <song@kernel.org>
+Cc: Alexei Starovoitov <ast@kernel.org>
+Cc: Daniel Borkmann <daniel@iogearbox.net>
+Cc: Andrii Nakryiko <andrii@kernel.org>
+Cc: Eduard Zingerman <eddyz87@gmail.com>
+Cc: Kumar Kartikeya Dwivedi <memxor@gmail.com>
+Cc: KP Singh <kpsingh@kernel.org>
+Cc: <matt@bobrowski.net>
+Cc: Steven Rostedt <rostedt@goodmis.org>
+Cc: Masami Hiramatsu <mhiramat@kernel.org>
+Cc: Ihor Solodrai <ihor.solodrai@linux.dev>
+Cc: <martin.lau@linux.dev>
+Cc: Yonghong Song <yonghong.song@linux.dev>
+Cc: Emil Tsalapatis <emil@etsalapatis.com>
+Cc: Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
+Cc: <hch@infradead.org>
+Cc: Ching-Chun (Jim) Huang <jserv@ccns.ncku.edu.tw>
+Cc: Yu-Chun Lin <eleanor.lin@realtek.com>
+Cc: <marscheng@google.com>
 ---
 
- Documentation/accounting/delay-accounting.rst |   87 +++++++++++-----
- tools/accounting/delaytop.c                   |   71 +++++++++++--
- tools/accounting/getdelays.c                  |    8 +
- 3 files changed, 133 insertions(+), 33 deletions(-)
+ kernel/trace/bpf_trace.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/Documentation/accounting/delay-accounting.rst~delaytop-sort-by-max-delay-to-highlight-top-latency-processes
-+++ a/Documentation/accounting/delay-accounting.rst
-@@ -152,28 +152,28 @@ Basic usage with default settings (sorts
- 	IRQ full:       0.0%/   0.0%/   0.0%/       0(ms)
- 	[o]sort [M]memverbose [q]quit
- 	Top 20 processes (sorted by cpu delay):
--		PID      TGID  COMMAND           CPU(ms)   IO(ms)  IRQ(ms)  MEM(ms)
-+	PID      TGID  COMMAND           CPU(ms)   IO(ms)  IRQ(ms)  MEM(ms)
- 	------------------------------------------------------------------------
--		110       110  kworker/15:0H-s   27.91     0.00     0.00     0.00
--		57        57  cpuhp/7            3.18     0.00     0.00     0.00
--		99        99  cpuhp/14           2.97     0.00     0.00     0.00
--		51        51  cpuhp/6            0.90     0.00     0.00     0.00
--		44        44  kworker/4:0H-sy    0.80     0.00     0.00     0.00
--		60        60  ksoftirqd/7        0.74     0.00     0.00     0.00
--		76        76  idle_inject/10     0.31     0.00     0.00     0.00
--		100       100  idle_inject/14     0.30     0.00     0.00     0.00
--		1309      1309  systemsettings     0.29     0.00     0.00     0.00
--		45        45  cpuhp/5            0.22     0.00     0.00     0.00
--		63        63  cpuhp/8            0.20     0.00     0.00     0.00
--		87        87  cpuhp/12           0.18     0.00     0.00     0.00
--		93        93  cpuhp/13           0.17     0.00     0.00     0.00
--		1265      1265  acpid              0.17     0.00     0.00     0.00
--		1552      1552  sshd               0.17     0.00     0.00     0.00
--		2584      2584  sddm-helper        0.16     0.00     0.00     0.00
--		1284      1284  rtkit-daemon       0.15     0.00     0.00     0.00
--		1326      1326  nde-netfilter      0.14     0.00     0.00     0.00
--		27        27  cpuhp/2            0.13     0.00     0.00     0.00
--		631       631  kworker/11:2-rc    0.11     0.00     0.00     0.00
-+	110       110  kworker/15:0H-s   27.91     0.00     0.00     0.00
-+	57        57  cpuhp/7            3.18     0.00     0.00     0.00
-+	99        99  cpuhp/14           2.97     0.00     0.00     0.00
-+	51        51  cpuhp/6            0.90     0.00     0.00     0.00
-+	44        44  kworker/4:0H-sy    0.80     0.00     0.00     0.00
-+	60        60  ksoftirqd/7        0.74     0.00     0.00     0.00
-+	76        76  idle_inject/10     0.31     0.00     0.00     0.00
-+	100       100  idle_inject/14     0.30     0.00     0.00     0.00
-+	1309      1309  systemsettings     0.29     0.00     0.00     0.00
-+	45        45  cpuhp/5            0.22     0.00     0.00     0.00
-+	63        63  cpuhp/8            0.20     0.00     0.00     0.00
-+	87        87  cpuhp/12           0.18     0.00     0.00     0.00
-+	93        93  cpuhp/13           0.17     0.00     0.00     0.00
-+	1265      1265  acpid              0.17     0.00     0.00     0.00
-+	1552      1552  sshd               0.17     0.00     0.00     0.00
-+	2584      2584  sddm-helper        0.16     0.00     0.00     0.00
-+	1284      1284  rtkit-daemon       0.15     0.00     0.00     0.00
-+	1326      1326  nde-netfilter      0.14     0.00     0.00     0.00
-+	27        27  cpuhp/2            0.13     0.00     0.00     0.00
-+	631       631  kworker/11:2-rc    0.11     0.00     0.00     0.00
+--- a/kernel/trace/bpf_trace.c~bpf-replace-sort_r_nonatomic-with-sort_r-in-check_dup_ids
++++ a/kernel/trace/bpf_trace.c
+@@ -3842,7 +3842,7 @@ static int check_dup_ids(u32 *ids, u64 *
+ 	 * and check it for duplicates. The ids and cookies arrays
+ 	 * are left sorted.
+ 	 */
+-	sort_r_nonatomic(ids, cnt, sizeof(ids[0]), ids_cmp_r, ids_swap_r, data);
++	sort_r(ids, cnt, sizeof(ids[0]), ids_cmp_r, ids_swap_r, data);
  
- Interactive keyboard controls during runtime::
- 
-@@ -181,7 +181,7 @@ Interactive keyboard controls during run
- 	M - Toggle display mode (Default/Memory Verbose)
- 	q - Quit
- 
--Available sort fields(use -s/--sort or interactive command)::
-+Available sort fields (use -s/--sort or interactive command)::
- 
- 	cpu(c)       - CPU delay
- 	blkio(i)     - I/O delay
-@@ -212,3 +212,46 @@ Advanced usage examples::
- 
- 	# ./delaytop -d secs
- 	Specify refresh interval as secs
-+
-+	# ./delaytop -t type
-+	Display only specified delay type with avg/max/timestamp
-+	(rows sorted by MAX for that type, largest first)
-+
-+
-+
-+delaytop add delay_max fields to track the maximum delay value for each delay
-+type (cpu, blkio, irq, swapin, freepages, thrashing, compact, wpcopy) per task::
-+
-+	bash# ./delaytop -t cpu
-+	System Pressure Information: (avg10/avg60/avg300/total)
-+	CPU some:       0.4%/   0.2%/   0.1%/     220(ms)
-+	CPU full:       0.0%/   0.0%/   0.0%/       0(ms)
-+	Memory full:    0.0%/   0.0%/   0.0%/       0(ms)
-+	Memory some:    0.0%/   0.0%/   0.0%/       0(ms)
-+	IO full:        0.0%/   0.0%/   0.0%/      12(ms)
-+	IO some:        0.0%/   0.0%/   0.0%/      13(ms)
-+	IRQ full:       0.0%/   0.0%/   0.0%/       0(ms)
-+	[q]quit
-+	Top 20 processes (sorted by cpu MAX delay, largest first):
-+	PID      TGID  COMMAND          AVG(ms)  MAX(ms)   MAX_TIMESTAMP
-+	------------------------------------------------------------------------
-+	9         9   kworker/0:0-eve    0.59   16.87  2026-05-27T13:32:39
-+	30        30  kworker/2:0H-kb   2.87   11.36  2026-05-27T13:32:36
-+	27        27  migration/2       1.05    9.51  2026-05-27T13:32:37
-+	50        50  kworker/2:1-eve   0.50    9.13  2026-05-27T13:32:37
-+	15        15  rcu_preempt       0.11    8.98  2026-05-27T13:32:37
-+	1         1   init              0.17    7.12  2026-05-27T13:32:38
-+	67        67  scsi_eh_0         1.20    4.23  2026-05-27T13:32:37
-+	23        23  ksoftirqd/1       1.12    3.77  2026-05-27T13:32:36
-+	3          3  pool_workqueue    0.72    3.55  2026-05-27T13:32:38
-+	62        62  kworker/u20:2-a   0.49    3.03  2026-05-27T13:32:37
-+	2          2  kthreadd          0.18    2.82  2026-05-27T13:32:37
-+	11        11  kworker/0:1       1.42    2.76  2026-05-27T13:32:36
-+	39        39  kworker/u20:0-a   0.10    2.71  2026-05-27T13:32:38
-+	17        17  rcu_exp_gp_kthr   0.25    2.65  2026-05-27T13:32:36
-+	66        66  kworker/u20:3-e   0.38    2.55  2026-05-27T13:32:37
-+	20        20  cpuhp/0           0.53    2.51  2026-05-27T13:32:38
-+	28        28  ksoftirqd/2       0.59    2.48  2026-05-27T13:32:36
-+	55        55  kworker/u19:1     0.88    2.42  2026-05-27T13:32:36
-+	13        13  kworker/R-mm_pe   1.18    2.35  2026-05-27T13:32:36
-+	54        54  kworker/3:1-eve   0.14    2.20  2026-05-27T13:32:38
---- a/tools/accounting/delaytop.c~delaytop-sort-by-max-delay-to-highlight-top-latency-processes
-+++ a/tools/accounting/delaytop.c
-@@ -295,6 +295,7 @@ static void usage(void)
- 	"  -C, --container=PATH     Monitor the container at specified cgroup path\n"
- 	"  -s, --sort=FIELD         Sort by delay field (default: cpu)\n"
- 	"  -t, --type=FIELD         Display only specified delay type with avg/max/timestamp\n"
-+	"                           (rows sorted by MAX for that type, largest first)\n"
- 	"  -M, --memverbose         Display memory detailed information\n");
- 	exit(0);
- }
-@@ -838,6 +839,15 @@ static void get_task_delays(void)
- 	closedir(dir);
- }
- 
-+static void field_delay_max_and_ts(const struct task_info *task,
-+				     const struct field_desc *field,
-+				     unsigned long long *max_ns,
-+				     struct __kernel_timespec *max_ts);
-+static void get_field_delay_values(const struct task_info *task,
-+				   const struct field_desc *field,
-+				   double *avg_ms, double *max_ms,
-+				   struct __kernel_timespec *max_ts);
-+
- /* Calculate average delay in milliseconds */
- static double average_ms(unsigned long long total, unsigned long long count)
- {
-@@ -850,7 +860,7 @@ static double average_ms(unsigned long l
-  * Format __kernel_timespec to human readable string (YYYY-MM-DDTHH:MM:SS)
-  * Returns formatted string or "N/A" if timestamp is zero
-  */
--static const char *format_timespec64(struct __kernel_timespec *ts)
-+static const char *format_kernel_timespec(struct __kernel_timespec *ts)
- {
- 	static char buffer[32];
- 	time_t time_sec;
-@@ -894,6 +904,16 @@ static int compare_tasks(const void *a,
- 	unsigned long long count1;
- 	unsigned long long count2;
- 	double avg1, avg2;
-+	unsigned long long max1, max2;
-+
-+	/* -t/--type: default sort by MAX column for the selected type (descending) */
-+	if (cfg.display_mode == MODE_TYPE && cfg.type_field) {
-+		field_delay_max_and_ts(t1, cfg.type_field, &max1, NULL);
-+		field_delay_max_and_ts(t2, cfg.type_field, &max2, NULL);
-+		if (max1 != max2)
-+			return max2 > max1 ? 1 : -1;
-+		return 0;
-+	}
- 
- 	total1 = *(unsigned long long *)((char *)t1 + cfg.sort_field->total_offset);
- 	total2 = *(unsigned long long *)((char *)t2 + cfg.sort_field->total_offset);
-@@ -908,6 +928,28 @@ static int compare_tasks(const void *a,
- 	return 0;
- }
- 
-+/* Max delay (ns) and timestamp for field (shared by display and sort) */
-+static void field_delay_max_and_ts(const struct task_info *task, const struct field_desc *field,
-+				     unsigned long long *max_ns, struct __kernel_timespec *max_ts)
-+{
-+	if (!field || !field->max_offset) {
-+		*max_ns = 0;
-+		if (max_ts)
-+			memset(max_ts, 0, sizeof(*max_ts));
-+		return;
-+	}
-+
-+	*max_ns = *(unsigned long long *)((char *)task + field->max_offset);
-+
-+	if (max_ts) {
-+		if (field->max_ts_offset)
-+			*max_ts = *(struct __kernel_timespec *)((char *)task +
-+							       field->max_ts_offset);
-+		else
-+			memset(max_ts, 0, sizeof(*max_ts));
-+	}
-+}
-+
- /* Get delay values for a specific field */
- static void get_field_delay_values(const struct task_info *task, const struct field_desc *field,
- 				   double *avg_ms, double *max_ms,
-@@ -926,13 +968,8 @@ static void get_field_delay_values(const
- 	count = *(unsigned long long *)((char *)task + field->count_offset);
- 	*avg_ms = average_ms(total, count);
- 
--	max = *(unsigned long long *)((char *)task + field->max_offset);
-+	field_delay_max_and_ts(task, field, &max, max_ts);
- 	*max_ms = (double)max / 1000000.0;  /* Convert nanoseconds to milliseconds */
--
--	if (field->max_ts_offset)
--		*max_ts = *(struct __kernel_timespec *)((char *)task + field->max_ts_offset);
--	else
--		memset(max_ts, 0, sizeof(*max_ts));
- }
- 
- /* Sort tasks by selected field */
-@@ -1082,7 +1119,10 @@ static void display_results(int psi_ret)
- 	}
- 
- 	/* Interacive command */
--	suc &= BOOL_FPRINT(out, "[o]sort [M]memverbose [q]quit\n");
-+	if (cfg.display_mode == MODE_TYPE && cfg.type_field)
-+		suc &= BOOL_FPRINT(out, "[q]quit\n");
-+	else
-+		suc &= BOOL_FPRINT(out, "[o]sort [M]memverbose [q]quit\n");
- 	if (sort_selected) {
- 		if (cfg.display_mode == MODE_MEMVERBOSE)
- 			suc &= BOOL_FPRINT(out,
-@@ -1093,8 +1133,13 @@ static void display_results(int psi_ret)
- 	}
- 
- 	/* Task delay output */
--	suc &= BOOL_FPRINT(out, "Top %d processes (sorted by %s delay):\n",
--			cfg.max_processes, get_name_by_field(cfg.sort_field));
-+	if (cfg.display_mode == MODE_TYPE && cfg.type_field)
-+		suc &= BOOL_FPRINT(out,
-+			"Top %d processes (sorted by %s MAX delay, largest first):\n",
-+			cfg.max_processes, get_name_by_field(cfg.type_field));
-+	else
-+		suc &= BOOL_FPRINT(out, "Top %d processes (sorted by %s delay):\n",
-+				cfg.max_processes, get_name_by_field(cfg.sort_field));
- 
- 	if (cfg.display_mode == MODE_TYPE && cfg.type_field) {
- 		/* Display mode for -t option: show only specified type with avg/max/timestamp */
-@@ -1135,7 +1180,7 @@ static void display_results(int psi_ret)
- 					&max_ms, &max_ts);
- 
- 			suc &= BOOL_FPRINT(out, " %12.2f %12.2f %20s\n",
--				avg_ms, max_ms, format_timespec64(&max_ts));
-+				avg_ms, max_ms, format_kernel_timespec(&max_ts));
- 		} else if (cfg.display_mode == MODE_MEMVERBOSE) {
- 			suc &= BOOL_FPRINT(out, DELAY_FMT_MEMVERBOSE,
- 				TASK_AVG(tasks[i], mem),
-@@ -1204,9 +1249,13 @@ static void handle_keypress(char ch, int
- 	} else {
- 		switch (ch) {
- 		case 'o':
-+			if (cfg.display_mode == MODE_TYPE)
-+				break;
- 			sort_selected = 1;
- 			break;
- 		case 'M':
-+			if (cfg.display_mode == MODE_TYPE)
-+				break;
- 			toggle_display_mode();
- 			for (field = sort_fields; field->name != NULL; field++) {
- 				if (field->supported_modes & cfg.display_mode) {
---- a/tools/accounting/getdelays.c~delaytop-sort-by-max-delay-to-highlight-top-latency-processes
-+++ a/tools/accounting/getdelays.c
-@@ -235,6 +235,14 @@ static const char *format_timespec(struc
- 	if (ts->tv_sec == 0 && ts->tv_nsec == 0)
- 		return "N/A";
- 
-+	/* Avoid Y2038 truncation on 32-bit platforms */
-+	if (sizeof(time_sec) < sizeof(ts->tv_sec)) {
-+		__s64 max = (__s64)((1ULL << (sizeof(time_sec) * 8 - 1)) - 1);
-+
-+		if (ts->tv_sec > max || ts->tv_sec < -max - 1)
-+			return "N/A";
-+	}
-+
- 	time_sec = ts->tv_sec;
- 
- 	/* Use thread-safe localtime_r */
+ 	for (int i = 1; i < cnt; i++) {
+ 		if (ids[i] == ids[i - 1]) {
 _
 
-Patches currently in -mm which might be from wang.yaxin@zte.com.cn are
+Patches currently in -mm which might be from visitorckw@gmail.com are
 
-delaytop-add-delay-max-for-delaytop.patch
-delaytop-add-timestamp-of-delay-max.patch
-delaytop-sort-by-max-delay-to-highlight-top-latency-processes.patch
+bpf-replace-sort_r_nonatomic-with-sort_r-in-check_dup_ids.patch
+revert-lib-sortc-add-_nonatomic-variants-with-cond_resched.patch
 
