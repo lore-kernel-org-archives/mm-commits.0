@@ -1,51 +1,47 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793408208;
-	b=cg/3i2cOA4gJPn2uGJHfUsg6NHyKkcHcKdCZDUluWRiVd2a902aXdHAEvtY6nLqapF3i
-	 hAW3spuTa8efCDnVCmqL9XhaCZ9yWLAN4fA+trC8Var2p3mC+OFR0I8OfCNbBi48ImLue
-	 YPOBrhkjzaQ5at9DRwq0KiOiNkNw9s3HeSUSOoEkPFYgiHJMp4rjmqhwSG9fgYr9Ni/R4
-	 1mWvnXbwI044Q49cpEE8e+78eh3wPv5OwoCjoN/lQTqE/MMEskKfbHR9c5zTGtnY7c7EF
-	 rZFRwjTTBdghd2jg7/i1wxuivbKB3h/Iiihbr0ylBZWwoemE36qxYClRp2qpF5YZfvw==
+	t=1793408773;
+	b=fK713hY2e9Z9JpqmfEIZi76xurAxWjSZ3aSIY6WGcWNCT7awSqBZFSWNP7B3AzS3OA5/
+	 0cc4S2qtGcJhKbBHBJheZQ5rhvrbZWgGUZoMMIPG9Uwm0MultCofBvbGwY6Zxm38q4RPO
+	 l69p9K3QV76ryxdee6nKvE/X8F/Dkv+3DxTxUgkYRcJc5jLgM25Ou/B2MADOUHQm9PRbA
+	 +pEWUMRmgicQ0nhn0icWBtWSQbVOI3Co1gGiSs18CDVufGuYmmVzIrvlVcbnf5Oh5Dq6s
+	 brkPyo2ZuvOt99HmGD3orfhxIJn3rPGPsptwcoC/UVADXQrOxd+ll2Qtf8ewiEjAS5g==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793408208;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793408773;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=NGNpSqdVFcqijpq8vghpRHt6n6KqyjJmatyCS27rYf8=;
-	b=ttg5V3bNNBh88ZP72RfvQaN/hbK2cNOJ7abHh/UajJeXuHCt4eHL+bNADSNdADGoDpE4
-	 m96y+jI5B279U6FyUxPb8ZZk9AR8Qt1lUtyHjIGznRIHLqyEZB3igT0M+vGqDtqhJnz7X
-	 1ZocXEokPisjT5+IemrFe+9fxeQZl99bmDEsCzWVL/J6L5lLJTP5ZMHALMyOiCfSe2Ohm
-	 5hUiIYLQ97NVCFrIJUDgwXJ8Iw703nu7cLuQIqfA6+TxSrNHPv3j600RIPi6A7yC240Nh
-	 MMAfP41BiYyoi3qTfAPu1pkFQta5c20wSXWRGeR5yg31p+6Y9EIXIDqPK16XffAgpoA==
+	bh=WOP+G0+5NkSGrJGWiAMNS5WfTZfHub3xewLIS+K8+MU=;
+	b=l6dtryiS7X/m4A+KKA0EJN1XUi3Llrqm2XLK8FAthi3+wjlEaneleD3EztKkBmSQiSts
+	 pU6H7O6DmFTeSJBoKbcDfq4EEG/vyxpXVaIHUNb+ScbJHex/9M6n3FVLbRNdmoQ0WvZrB
+	 4ZpzlSeP6HkyMcnyYctXWIuPLO6ypOGwQ3Qy6+7HRaYV5CH8seXkFnNKVEdntoyL1h1u9
+	 97YVyuCPeeFuVBI8AttdTzI0VLibHveSiw34YNegBDM6Q/6DASyqL5eQuZLBFUfzVZXVc
+	 XxOKdoc/dv5cQufd4MdrrhVuSQIDSLVCn0fpq1lC1+ytY2YeqzLqT5o6+QwN0fqf9qg==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=MfRPu7jr;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=iPq2X5gs;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D7C70606A31A;
-	Sat, 31 Oct 2026 00:56:47 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4363B606A31A
+	for <mm-commits@vger.kernel.org>; Sat, 31 Oct 2026 01:06:13 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=MfRPu7jr
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 391301F000C1;
-	Sat, 31 Oct 2026 00:56:47 +0000 (UTC)
+	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=iPq2X5gs
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C4C321F000C1;
+	Sat, 31 Oct 2026 01:06:12 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1793408207;
-	bh=NGNpSqdVFcqijpq8vghpRHt6n6KqyjJmatyCS27rYf8=;
+	d=linux-foundation.org; s=korg; t=1793408772;
+	bh=WOP+G0+5NkSGrJGWiAMNS5WfTZfHub3xewLIS+K8+MU=;
 	h=Date:To:From:Subject;
-	b=MfRPu7jrmKMtGWufc/sVnaNv2a7NXChNRDcRJjO4aO8/I0HRWKCd6UVdCvyiroMf5
-	 0SxOsbT8IwP4xUYhmmblC/ESoR5obaE407MoL56x/wt8xhXrIGteIltugsosuqK/Ep
-	 0+Aheeweat/1bNKTo+4g1/tgDxFdU8yKQQgtQR9g=
-Date: Fri, 30 Oct 2026 17:56:46 -0700
-To: mm-commits@vger.kernel.org,ye.liu@linux.dev,vbabka@kernel.org,
-	usama.arif@linux.dev,surenb@google.com,stable@vger.kernel.org,
-	ryan.roberts@arm.com,rppt@kernel.org,nico.pache@linux.dev,mhocko@suse.com,
-	ljs@kernel.org,liam@infradead.org,lance.yang@linux.dev,kas@kernel.org,
-	hannes@cmpxchg.org,dev.jain@arm.com,david@kernel.org,
-	brendan.jackman@linux.dev,baolin.wang@linux.alibaba.com,baohua@kernel.org,
-	ziy@nvidia.com,akpm@linux-foundation.org
+	b=iPq2X5gs+TdwMTGoFGBS9kQ+6obom3XX2CQzf4A4EZh4piTaVumQj6VP/WWdbqRa2
+	 pWg8fa4sDCuMqqfQujFFTATwYFcCd/GAfSKOr9oEA6PhAoQwjNaSQXsUraKs73rWNg
+	 7MOo/08ubmFUq9hLtJcfUNhdTU304Z8XFT7tvK08=
+Date: Fri, 30 Oct 2026 18:06:12 -0700
+To: mm-commits@vger.kernel.org,yang.yang29@zte.com.cn,xu.xin@linux.dev,
+	thomas.weissschuh@linutronix.de,fan.yu9@zte.com.cn,corbet@lwn.net,
+	wang.yaxin@zte.com.cn,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-huge_memory-prevent-losing-pg_waiters-in-__split_folio_to_order.patch added to mm-hotfixes-unstable branch
-Message-Id: <20261031005647.391301F000C1@smtp.kernel.org>
+Subject: + delaytop-add-delay-max-for-delaytop.patch added to mm-nonmm-unstable branch
+Message-Id: <20261031010612.C4C321F000C1@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -57,14 +53,14 @@ Precedence: list
 
 
 The patch titled
-     Subject: mm/huge_memory: prevent losing PG_waiters in __split_folio_to_order()
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mm-huge_memory-prevent-losing-pg_waiters-in-__split_folio_to_order.patch
+     Subject: delaytop: add delay max for delaytop
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     delaytop-add-delay-max-for-delaytop.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-huge_memory-prevent-losing-pg_waiters-in-__split_folio_to_order.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/delaytop-add-delay-max-for-delaytop.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -80,170 +76,433 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Zi Yan <ziy@nvidia.com>
-Subject: mm/huge_memory: prevent losing PG_waiters in __split_folio_to_order()
-Date: Thu, 29 Oct 2026 22:08:44 -0400
+From: Wang Yaxin <wang.yaxin@zte.com.cn>
+Subject: delaytop: add delay max for delaytop
+Date: Wed, 23 Sep 2026 21:03:17 +0800
 
-__split_folio_to_order() calls prep_compound_page() on each new head page
-to create a compound page after clear_compound_head(). 
-prep_compound_page() uses non atomic __SetPageHead().  It is mostly OK,
-since the folio is locked and frozen and no one else is supposed to modify
-the folio's flags.
+Patch series "delaytop: add delay max, timestamp and sorting for top
+latency analysis", v5.
 
-However, code calling migration_entry_wait() can reach the folio by PFN,
-then access its flags.  It is because softleaf_entry_wait_on_locked() used
-by migration_entry_wait() sets PG_waiters concurrently without taking a
-reference and the frozen refcount during split cannot block it. 
-Meanwhile, __SetPageHead() does a plain read and write, so PG_waiters
-atomically set by softleaf_entry_wait_on_locked() will be lost if the set
-happens after __SetPageHead()'s read and before its write.
+Add delay max, timestamp of delay max and max-delay sorting to delaytop,
+which can help quickly detect potential abnormal delays from a global
+perspective and locate the top-N processes with the highest latency
+spikes.
 
-One example code interleaving:
+Problem
+=======
+Delay accounting can track the average delay of processes to show
+system workload.  delaytop provides a global view of average delays
+across all tasks, which differs from getdelays's single-task
+perspective.  However, when a process experiences a significant delay,
+maybe a delay spike, which adversely affects performance, delaytop can
+only display the average delay over a period of time.  Yet, average
+delay is unhelpful for diagnosing delay peak.  A brief but severe
+latency spike is averaged out and hidden by the average-only metric,
+and the top-N list sorted by average cannot identify the processes that
+actually contributed most to the delay peak, nor provide any time
+context to correlate the spike with other system events.
 
-CPU0: __split_folio_to_order(new_order>0)  CPU1: do_swap_page()
+Solution
+========
+Extend delaytop with the delay max, timestamp and sorting ability:
 
-1. clear_compound_head(new_head)
-   new_head->compound_info = 0
-   (page_folio(new_head) == new_head now)
+1. delay_max fields track the maximum delay value for each delay type
+   (cpu, blkio, irq, swapin, freepages, thrashing, compact, wpcopy)
+   per task, recording every delay peak since task start.
 
-                                           2. migration_entry_wait()
-                                             softleaf_to_folio(entry)
-                                             page_folio() -> new_head
-                                             (not the old head any more)
+2. Record the timestamp when each maximum delay occurred, which is the
+   same capability as getdelays but provided from a global perspective.
 
-3. prep_compound_page(new_head, new_order)
-     __SetPageHead(new_head)
-       tmp = new_head->flags.f  <-- load; PG_waiters == 0 in tmp
+3. The -t/--type option displays only the specified delay type with
+   avg/max/timestamp side by side, and sorts tasks by the maximum delay
+   in descending order.  This highlights the top-N processes with the
+   highest delay spikes, so abnormal delays can be located from a
+   global perspective and root causes pinpointed by correlating the
+   timestamps with logs, traces or other metrics.
 
-                                           4. folio_set_waiters(new_head)
-                                             set_bit(PG_waiters, &flags.f)
-                                             enqueue on waitqueue, sleep
+Use case
+========
+bash# ./delaytop -t cpu
+System Pressure Information: (avg10/avg60/avg300/total)
+CPU some:       0.4%/   0.2%/   0.1%/     220(ms)
+CPU full:       0.0%/   0.0%/   0.0%/       0(ms)
+Memory full:    0.0%/   0.0%/   0.0%/       0(ms)
+Memory some:    0.0%/   0.0%/   0.0%/       0(ms)
+IO full:        0.0%/   0.0%/   0.0%/      12(ms)
+IO some:        0.0%/   0.0%/   0.0%/      13(ms)
+IRQ full:       0.0%/   0.0%/   0.0%/       0(ms)
+[q]quit
+Top 20 processes (sorted by cpu MAX delay, largest first):
+PID      TGID  COMMAND          AVG(ms)  MAX(ms)   MAX_TIMESTAMP
+ ----------------------------------------------------------------
+9         9   kworker/0:0-eve   0.59   16.87  2026-05-27T13:32:39
+30        30  kworker/2:0H-kb   2.87   11.36  2026-05-27T13:32:36
+27        27  migration/2       1.05    9.51  2026-05-27T13:32:37
+50        50  kworker/2:1-eve   0.50    9.13  2026-05-27T13:32:37
+15        15  rcu_preempt       0.11    8.98  2026-05-27T13:32:37
+1         1   init              0.17    7.12  2026-05-27T13:32:38
 
-5.     new_head->flags.f = tmp | (1UL << PG_head)
-       <-- store; overwrites step 4, PG_waiters == 0 again
 
-Later, folio_unlock(new_folio) sees no PG_waiters, skips folio_wake_bit(),
-and CPU1 can remain blocked indefinitely.
+This patch (of 3):
 
-Fix it by adding the atomic version SetPageHead() and
-prep_compound_page_atomic() using it.  __split_folio_to_order() uses
-prep_compound_page_atomic() to avoid the issue without adding an atomic
-ops to other prep_compound_page() users.
+Previously delaytop only showed average delays. Add delay_max fields to
+track the maximum delay value for each delay type (cpu, blkio, irq, swapin,
+freepages, thrashing, compact, wpcopy) per task.
 
-Link: https://lore.kernel.org/20261029-fix-split_folio_to_order-race-v1-1-a483c7451b0d@nvidia.com
-Fixes: c010d47f107f ("mm: thp: split huge page to any lower order pages")
-Signed-off-by: Zi Yan <ziy@nvidia.com>
+This provides a global view of all tasks' delay spikes, which is essential
+for identifying processes that experienced brief but significant latency
+events that would be hidden by average-only metrics.
+
+The -t/--type option displays only the specified delay type with avg/max
+values side by side, allowing focused analysis:
+  delaytop -t cpu    # Show only CPU delay with avg/max
+  delaytop -t wpcopy    # Show Copy-on-Write delay with avg/max
+
+Link: https://lore.kernel.org/20260923210149015t-X8AvGrXfHE4PDn9gZOM@zte.com.cn
+Link: https://lore.kernel.org/202609232103177521ISAibnqneYbXXYDwURYL@zte.com.cn
+Signed-off-by: Wang Yaxin <wang.yaxin@zte.com.cn>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Reported-by: David Hildenbrand <david@kernel.org>
-Closes: https://lore.kernel.org/all/DMHE8BEEER1H.2BIY52NXATPIA@nvidia.com/
-Cc: Lorenzo Stoakes <ljs@kernel.org>
-Cc: Liam R. Howlett <liam@infradead.org>
-Cc: Vlastimil Babka <vbabka@kernel.org>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: Nico Pache <nico.pache@linux.dev>
-Cc: Ryan Roberts <ryan.roberts@arm.com>
-Cc: Dev Jain <dev.jain@arm.com>
-Cc: Barry Song <baohua@kernel.org>
-Cc: Lance Yang <lance.yang@linux.dev>
-Cc: Usama Arif <usama.arif@linux.dev>
-Cc: Kiryl Shutsemau <kas@kernel.org>
-Cc: Brendan Jackman <brendan.jackman@linux.dev>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Ye Liu <ye.liu@linux.dev>
-Cc: <stable@vger.kernel.org>
+Cc: Fan Yu <fan.yu9@zte.com.cn>
+Cc: Yang Yang <yang.yang29@zte.com.cn>
+Cc: Thomas Weißschuh <thomas.weissschuh@linutronix.de>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: Xu Xin <xu.xin@linux.dev>
 ---
 
- include/linux/page-flags.h |    1 +
- mm/huge_memory.c           |   10 +++++++++-
- mm/internal.h              |    2 ++
- mm/page_alloc.c            |   20 ++++++++++++++++++--
- 4 files changed, 30 insertions(+), 3 deletions(-)
+ tools/accounting/delaytop.c |  165 ++++++++++++++++++++++++++--------
+ 1 file changed, 131 insertions(+), 34 deletions(-)
 
---- a/include/linux/page-flags.h~mm-huge_memory-prevent-losing-pg_waiters-in-__split_folio_to_order
-+++ a/include/linux/page-flags.h
-@@ -854,6 +854,7 @@ static __always_inline int PageHead(cons
- 	return test_bit(PG_head, &page->flags.f);
+--- a/tools/accounting/delaytop.c~delaytop-add-delay-max-for-delaytop
++++ a/tools/accounting/delaytop.c
+@@ -75,13 +75,21 @@
+ 	{#name, #cmd, \
+ 	offsetof(struct task_info, name##_delay_total), \
+ 	offsetof(struct task_info, name##_count), \
++	offsetof(struct task_info, name##_delay_max), \
+ 	modes}
+-#define END_FIELD {NULL, 0, 0}
++#define SORT_FIELD_NO_MAX(name, cmd, modes) \
++	{#name, #cmd, \
++	offsetof(struct task_info, name##_delay_total), \
++	offsetof(struct task_info, name##_count), \
++	0, \
++	modes}
++#define END_FIELD {NULL, 0, 0, 0, 0, 0}
+ 
+ /* Display mode types */
+ #define MODE_TYPE_ALL	(0xFFFFFFFF)
+ #define MODE_DEFAULT	(1 << 0)
+ #define MODE_MEMVERBOSE	(1 << 1)
++#define MODE_TYPE	(1 << 2)	/* Display specific type with avg/max */
+ 
+ /* PSI statistics structure */
+ struct psi_stats {
+@@ -108,20 +116,28 @@ struct task_info {
+ 	char command[TASK_COMM_LEN];
+ 	unsigned long long cpu_count;
+ 	unsigned long long cpu_delay_total;
++	unsigned long long cpu_delay_max;
+ 	unsigned long long blkio_count;
+ 	unsigned long long blkio_delay_total;
++	unsigned long long blkio_delay_max;
+ 	unsigned long long swapin_count;
+ 	unsigned long long swapin_delay_total;
++	unsigned long long swapin_delay_max;
+ 	unsigned long long freepages_count;
+ 	unsigned long long freepages_delay_total;
++	unsigned long long freepages_delay_max;
+ 	unsigned long long thrashing_count;
+ 	unsigned long long thrashing_delay_total;
++	unsigned long long thrashing_delay_max;
+ 	unsigned long long compact_count;
+ 	unsigned long long compact_delay_total;
++	unsigned long long compact_delay_max;
+ 	unsigned long long wpcopy_count;
+ 	unsigned long long wpcopy_delay_total;
++	unsigned long long wpcopy_delay_max;
+ 	unsigned long long irq_count;
+ 	unsigned long long irq_delay_total;
++	unsigned long long irq_delay_max;
+ 	unsigned long long mem_count;
+ 	unsigned long long mem_delay_total;
+ };
+@@ -141,6 +157,7 @@ struct field_desc {
+ 	const char *cmd_char;	/* Interactive command */
+ 	unsigned long total_offset; /* Offset of total delay in task_info */
+ 	unsigned long count_offset; /* Offset of count in task_info */
++	unsigned long max_offset;  /* Offset of max delay in task_info */
+ 	size_t supported_modes; /* Supported display modes */
+ };
+ 
+@@ -153,6 +170,7 @@ struct config {
+ 	int monitor_pid;		/* Monitor specific PID */
+ 	char *container_path;	/* Path to container cgroup */
+ 	const struct field_desc *sort_field;	/* Current sort field */
++	const struct field_desc *type_field;	/* Type field for -t option */
+ 	size_t display_mode;	/* Current display mode */
+ };
+ 
+@@ -164,15 +182,15 @@ static int task_count;
+ static int running = 1;
+ static struct container_stats container_stats;
+ static const struct field_desc sort_fields[] = {
+-	SORT_FIELD(cpu,		c,	MODE_DEFAULT),
+-	SORT_FIELD(blkio,	i,	MODE_DEFAULT),
+-	SORT_FIELD(irq,		q,	MODE_DEFAULT),
+-	SORT_FIELD(mem,		m,	MODE_DEFAULT | MODE_MEMVERBOSE),
+-	SORT_FIELD(swapin,	s,	MODE_MEMVERBOSE),
+-	SORT_FIELD(freepages,	r,	MODE_MEMVERBOSE),
+-	SORT_FIELD(thrashing,	t,	MODE_MEMVERBOSE),
+-	SORT_FIELD(compact,	p,	MODE_MEMVERBOSE),
+-	SORT_FIELD(wpcopy,	w,	MODE_MEMVERBOSE),
++	SORT_FIELD(cpu,		c,	MODE_DEFAULT | MODE_TYPE),
++	SORT_FIELD(blkio,	i,	MODE_DEFAULT | MODE_TYPE),
++	SORT_FIELD(irq,		q,	MODE_DEFAULT | MODE_TYPE),
++	SORT_FIELD_NO_MAX(mem,	m,	MODE_DEFAULT | MODE_MEMVERBOSE),
++	SORT_FIELD(swapin,	s,	MODE_MEMVERBOSE | MODE_TYPE),
++	SORT_FIELD(freepages,	r,	MODE_MEMVERBOSE | MODE_TYPE),
++	SORT_FIELD(thrashing,	t,	MODE_MEMVERBOSE | MODE_TYPE),
++	SORT_FIELD(compact,	p,	MODE_MEMVERBOSE | MODE_TYPE),
++	SORT_FIELD(wpcopy,	w,	MODE_MEMVERBOSE | MODE_TYPE),
+ 	END_FIELD
+ };
+ static int sort_selected;
+@@ -265,6 +283,7 @@ static void usage(void)
+ 	"  -p, --pid=PID            Monitor only the specified PID\n"
+ 	"  -C, --container=PATH     Monitor the container at specified cgroup path\n"
+ 	"  -s, --sort=FIELD         Sort by delay field (default: cpu)\n"
++	"  -t, --type=FIELD         Display only specified delay type with avg/max\n"
+ 	"  -M, --memverbose         Display memory detailed information\n");
+ 	exit(0);
  }
+@@ -283,6 +302,7 @@ static void parse_args(int argc, char **
+ 		{"processes", required_argument, 0, 'P'},
+ 		{"sort", required_argument, 0, 's'},
+ 		{"container", required_argument, 0, 'C'},
++		{"type", required_argument, 0, 't'},
+ 		{"memverbose", no_argument, 0, 'M'},
+ 		{0, 0, 0, 0}
+ 	};
+@@ -292,6 +312,7 @@ static void parse_args(int argc, char **
+ 	cfg.iterations = 0;
+ 	cfg.max_processes = 20;
+ 	cfg.sort_field = &sort_fields[0];	/* Default sorted by CPU delay */
++	cfg.type_field = NULL;				/* No type field by default */
+ 	cfg.output_one_time = 0;
+ 	cfg.monitor_pid = 0;	/* 0 means monitor all PIDs */
+ 	cfg.container_path = NULL;
+@@ -300,7 +321,7 @@ static void parse_args(int argc, char **
+ 	while (1) {
+ 		int option_index = 0;
  
-+SETPAGEFLAG(Head, head, PF_ANY)
- __SETPAGEFLAG(Head, head, PF_ANY)
- __CLEARPAGEFLAG(Head, head, PF_ANY)
- CLEARPAGEFLAG(Head, head, PF_ANY)
---- a/mm/huge_memory.c~mm-huge_memory-prevent-losing-pg_waiters-in-__split_folio_to_order
-+++ a/mm/huge_memory.c
-@@ -3781,7 +3781,15 @@ static void __split_folio_to_order(struc
- 		 */
- 		clear_compound_head(new_head);
- 		if (new_order) {
--			prep_compound_page(new_head, new_order);
-+			/*
-+			 * new_head is recognized as a folio after
-+			 * clear_compound_head().
-+			 * softleaf_entry_wait_on_locked() can set PG_waiters
-+			 * on it without taking a reference, so its frozen state
-+			 * cannot prevent it. Use the atomic version to avoid
-+			 * losing a concurrently set PG_waiters.
-+			 */
-+			prep_compound_page_atomic(new_head, new_order);
- 			folio_set_large_rmappable(new_folio);
- 		}
+-		c = getopt_long(argc, argv, "hd:n:p:oP:C:s:M", long_options, &option_index);
++		c = getopt_long(argc, argv, "hd:n:p:oP:C:s:t:M", long_options, &option_index);
+ 		if (c == -1)
+ 			break;
  
---- a/mm/internal.h~mm-huge_memory-prevent-losing-pg_waiters-in-__split_folio_to_order
-+++ a/mm/internal.h
-@@ -806,6 +806,8 @@ static inline void prep_compound_tail(st
- 	VM_WARN_ON_ONCE(tail->private);
- }
+@@ -363,9 +384,32 @@ static void parse_args(int argc, char **
  
-+void prep_compound_page_atomic(struct page *page, unsigned int order);
+ 			cfg.sort_field = field;
+ 			break;
++		case 't':
++			if (strlen(optarg) == 0) {
++				fprintf(stderr, "Error: empty type field\n");
++				exit(1);
++			}
 +
- #if defined CONFIG_COMPACTION || defined CONFIG_CMA
++			field = get_field_by_name(optarg);
++			/* Show available fields if invalid option provided */
++			if (!field || !(field->supported_modes & MODE_TYPE)) {
++				fprintf(stderr, "Error: invalid type field '%s'\n", optarg);
++				display_available_fields(MODE_TYPE);
++				exit(1);
++			}
++
++			cfg.type_field = field;
++			cfg.display_mode = MODE_TYPE;
++			break;
+ 		case 'M':
+ 			cfg.display_mode = MODE_MEMVERBOSE;
+-			cfg.sort_field = get_field_by_name("mem");
++			/* Find first field supporting MODE_MEMVERBOSE for sorting */
++			for (field = sort_fields; field->name != NULL; field++) {
++				if (field->supported_modes & MODE_MEMVERBOSE) {
++					cfg.sort_field = field;
++					break;
++				}
++			}
+ 			break;
+ 		default:
+ 			fprintf(stderr, "Try 'delaytop --help' for more information.\n");
+@@ -690,7 +734,12 @@ static void fetch_and_fill_task_info(int
+ 			nested_len = NLA_PAYLOAD(na->nla_len);
+ 			while (nested_len > 0) {
+ 				if (nested->nla_type == TASKSTATS_TYPE_STATS) {
+-					memcpy(&stats, NLA_DATA(nested), sizeof(stats));
++					size_t payload_len = NLA_PAYLOAD(nested->nla_len);
++
++					memset(&stats, 0, sizeof(stats));
++					if (payload_len > sizeof(stats))
++						payload_len = sizeof(stats);
++					memcpy(&stats, NLA_DATA(nested), payload_len);
+ 					if (task_count < MAX_TASKS) {
+ 						tasks[task_count].pid = pid;
+ 						tasks[task_count].tgid = pid;
+@@ -699,20 +748,28 @@ static void fetch_and_fill_task_info(int
+ 						tasks[task_count].command[TASK_COMM_LEN - 1] = '\0';
+ 						SET_TASK_STAT(task_count, cpu_count);
+ 						SET_TASK_STAT(task_count, cpu_delay_total);
++						SET_TASK_STAT(task_count, cpu_delay_max);
+ 						SET_TASK_STAT(task_count, blkio_count);
+ 						SET_TASK_STAT(task_count, blkio_delay_total);
++						SET_TASK_STAT(task_count, blkio_delay_max);
+ 						SET_TASK_STAT(task_count, swapin_count);
+ 						SET_TASK_STAT(task_count, swapin_delay_total);
++						SET_TASK_STAT(task_count, swapin_delay_max);
+ 						SET_TASK_STAT(task_count, freepages_count);
+ 						SET_TASK_STAT(task_count, freepages_delay_total);
++						SET_TASK_STAT(task_count, freepages_delay_max);
+ 						SET_TASK_STAT(task_count, thrashing_count);
+ 						SET_TASK_STAT(task_count, thrashing_delay_total);
++						SET_TASK_STAT(task_count, thrashing_delay_max);
+ 						SET_TASK_STAT(task_count, compact_count);
+ 						SET_TASK_STAT(task_count, compact_delay_total);
++						SET_TASK_STAT(task_count, compact_delay_max);
+ 						SET_TASK_STAT(task_count, wpcopy_count);
+ 						SET_TASK_STAT(task_count, wpcopy_delay_total);
++						SET_TASK_STAT(task_count, wpcopy_delay_max);
+ 						SET_TASK_STAT(task_count, irq_count);
+ 						SET_TASK_STAT(task_count, irq_delay_total);
++						SET_TASK_STAT(task_count, irq_delay_max);
+ 						set_mem_count(&tasks[task_count]);
+ 						set_mem_delay_total(&tasks[task_count]);
+ 						task_count++;
+@@ -777,14 +834,14 @@ static int compare_tasks(const void *a,
+ 	const struct task_info *t2 = (const struct task_info *)b;
+ 	unsigned long long total1;
+ 	unsigned long long total2;
+-	unsigned long count1;
+-	unsigned long count2;
++	unsigned long long count1;
++	unsigned long long count2;
+ 	double avg1, avg2;
  
- /*
---- a/mm/page_alloc.c~mm-huge_memory-prevent-losing-pg_waiters-in-__split_folio_to_order
-+++ a/mm/page_alloc.c
-@@ -682,18 +682,34 @@ static inline bool pcp_allowed_order(uns
-  * This usage means that zero-order pages may not be compound.
-  */
+ 	total1 = *(unsigned long long *)((char *)t1 + cfg.sort_field->total_offset);
+ 	total2 = *(unsigned long long *)((char *)t2 + cfg.sort_field->total_offset);
+-	count1 = *(unsigned long *)((char *)t1 + cfg.sort_field->count_offset);
+-	count2 = *(unsigned long *)((char *)t2 + cfg.sort_field->count_offset);
++	count1 = *(unsigned long long *)((char *)t1 + cfg.sort_field->count_offset);
++	count2 = *(unsigned long long *)((char *)t2 + cfg.sort_field->count_offset);
  
--void prep_compound_page(struct page *page, unsigned int order)
-+static void __prep_compound_head_and_tail(struct page *page, unsigned int order)
- {
- 	int i;
- 	int nr_pages = 1 << order;
- 
--	__SetPageHead(page);
- 	for (i = 1; i < nr_pages; i++)
- 		prep_compound_tail(page + i, page, order);
- 
- 	prep_compound_head(page, order);
+ 	avg1 = average_ms(total1, count1);
+ 	avg2 = average_ms(total2, count2);
+@@ -794,6 +851,26 @@ static int compare_tasks(const void *a,
+ 	return 0;
  }
  
-+void prep_compound_page(struct page *page, unsigned int order)
++/* Get delay values for a specific field */
++static void get_field_delay_values(const struct task_info *task, const struct field_desc *field,
++				   double *avg_ms, double *max_ms)
 +{
-+	__SetPageHead(page);
-+	__prep_compound_head_and_tail(page, order);
++	unsigned long long total, count, max;
++
++	if (!field || !field->max_offset) {
++		*avg_ms = 0;
++		*max_ms = 0;
++		return;
++	}
++
++	total = *(unsigned long long *)((char *)task + field->total_offset);
++	count = *(unsigned long long *)((char *)task + field->count_offset);
++	*avg_ms = average_ms(total, count);
++
++	max = *(unsigned long long *)((char *)task + field->max_offset);
++	*max_ms = (double)max / 1000000.0;  /* Convert nanoseconds to milliseconds */
 +}
 +
-+/*
-+ * PG_head is set atomically whereas the other metadata is set with plain stores.
-+ * It should be used when @page's flags can be modified concurrently,
-+ * e.g., in __split_folio_to_order().
-+ */
-+void prep_compound_page_atomic(struct page *page, unsigned int order)
-+{
-+	SetPageHead(page);
-+	__prep_compound_head_and_tail(page, order);
-+}
-+
- static inline void set_buddy_order(struct page *page, unsigned int order)
+ /* Sort tasks by selected field */
+ static void sort_tasks(void)
  {
- 	set_page_private(page, order);
+@@ -847,7 +924,12 @@ static void get_container_stats(void)
+ 	while (nl_len > 0) {
+ 		if (na->nla_type == CGROUPSTATS_TYPE_CGROUP_STATS) {
+ 			/* Get the cgroupstats structure */
+-			memcpy(&stats, NLA_DATA(na), sizeof(stats));
++			size_t payload_len = NLA_PAYLOAD(na->nla_len);
++
++			memset(&stats, 0, sizeof(stats));
++			if (payload_len > sizeof(stats))
++				payload_len = sizeof(stats);
++			memcpy(&stats, NLA_DATA(na), payload_len);
+ 
+ 			/* Fill container stats */
+ 			container_stats.nr_sleeping = stats.nr_sleeping;
+@@ -950,29 +1032,44 @@ static void display_results(int psi_ret)
+ 	suc &= BOOL_FPRINT(out, "Top %d processes (sorted by %s delay):\n",
+ 			cfg.max_processes, get_name_by_field(cfg.sort_field));
+ 
+-	suc &= BOOL_FPRINT(out, "%8s  %8s  %-17s", "PID", "TGID", "COMMAND");
+-	if (cfg.display_mode == MODE_MEMVERBOSE) {
+-		suc &= BOOL_FPRINT(out, "%8s %8s %8s %8s %8s %8s\n",
+-			"MEM(ms)", "SWAP(ms)", "RCL(ms)",
+-			"THR(ms)", "CMP(ms)", "WP(ms)");
+-		suc &= BOOL_FPRINT(out, "-----------------------");
+-		suc &= BOOL_FPRINT(out, "-----------------------");
+-		suc &= BOOL_FPRINT(out, "-----------------------");
+-		suc &= BOOL_FPRINT(out, "---------------------\n");
++	if (cfg.display_mode == MODE_TYPE && cfg.type_field) {
++		/* Display mode for -t option: show only specified type with avg/max */
++		suc &= BOOL_FPRINT(out, "%8s  %8s  %-17s %12s %12s\n",
++			"PID", "TGID", "COMMAND",
++			"AVG(ms)", "MAX(ms)");
++		suc &= BOOL_FPRINT(out, "----------------------------------------------------\n");
+ 	} else {
+-		suc &= BOOL_FPRINT(out, "%8s %8s %8s %8s\n",
+-			"CPU(ms)", "IO(ms)", "IRQ(ms)", "MEM(ms)");
+-		suc &= BOOL_FPRINT(out, "-----------------------");
+-		suc &= BOOL_FPRINT(out, "-----------------------");
+-		suc &= BOOL_FPRINT(out, "--------------------------\n");
++		suc &= BOOL_FPRINT(out, "%8s  %8s  %-17s", "PID", "TGID", "COMMAND");
++		if (cfg.display_mode == MODE_MEMVERBOSE) {
++			suc &= BOOL_FPRINT(out, "%8s %8s %8s %8s %8s %8s\n",
++				"MEM(ms)", "SWAP(ms)", "RCL(ms)",
++				"THR(ms)", "CMP(ms)", "WP(ms)");
++			suc &= BOOL_FPRINT(out, "-----------------------");
++			suc &= BOOL_FPRINT(out, "-----------------------");
++			suc &= BOOL_FPRINT(out, "-----------------------");
++			suc &= BOOL_FPRINT(out, "---------------------\n");
++		} else {
++			suc &= BOOL_FPRINT(out, "%8s %8s %8s %8s\n",
++				"CPU(ms)", "IO(ms)", "IRQ(ms)", "MEM(ms)");
++			suc &= BOOL_FPRINT(out, "-----------------------");
++			suc &= BOOL_FPRINT(out, "-----------------------");
++			suc &= BOOL_FPRINT(out, "--------------------------\n");
++		}
+ 	}
+ 
+ 	count = task_count < cfg.max_processes ? task_count : cfg.max_processes;
+ 
+ 	for (i = 0; i < count; i++) {
+-		suc &= BOOL_FPRINT(out, "%8d  %8d  %-15s",
++		suc &= BOOL_FPRINT(out, "%8d  %8d  %-17s",
+ 			tasks[i].pid, tasks[i].tgid, tasks[i].command);
+-		if (cfg.display_mode == MODE_MEMVERBOSE) {
++		if (cfg.display_mode == MODE_TYPE && cfg.type_field) {
++			double avg_ms, max_ms;
++
++			get_field_delay_values(&tasks[i], cfg.type_field, &avg_ms, &max_ms);
++
++			suc &= BOOL_FPRINT(out, " %12.2f %12.2f\n",
++				avg_ms, max_ms);
++		} else if (cfg.display_mode == MODE_MEMVERBOSE) {
+ 			suc &= BOOL_FPRINT(out, DELAY_FMT_MEMVERBOSE,
+ 				TASK_AVG(tasks[i], mem),
+ 				TASK_AVG(tasks[i], swapin),
 _
 
-Patches currently in -mm which might be from ziy@nvidia.com are
+Patches currently in -mm which might be from wang.yaxin@zte.com.cn are
 
-mm-huge_memory-prevent-losing-pg_waiters-in-__split_folio_to_order.patch
+delaytop-add-delay-max-for-delaytop.patch
+delaytop-add-timestamp-of-delay-max.patch
+delaytop-sort-by-max-delay-to-highlight-top-latency-processes.patch
 
