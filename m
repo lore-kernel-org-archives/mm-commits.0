@@ -1,52 +1,48 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793412741;
-	b=QZJ8hnBzjbagvYjXIbxGUUdGDFAkszU5Yqy03x5K9gRKsLMh++xTlQnAtdm3i+Vmj3R7
-	 FjcqM1BPdElQQpDqOwsyEooYSwmGfA8RXKbFdbBhDFvffAEB6vr82EVfsdpu8yKKsw2bU
-	 W555UfoB4c0ghKU++ORURl2ykvbUEse5PF1QgXqDQUg/GbmRI2kz0moOWnDewxd08XjDW
-	 H0ePxVizk0XiLvBWH3nCTTb8j1O0Et/LSR0uFut0kt0T1zis0WWECdX7SCr94Lt17umnN
-	 fA8Fn7zGeqX7Wg44YuT4K+EUyIFDkKY6pM/R7ZBU7X+CfAAlgv2kL59VV+x/N/oqP3w==
+	t=1793415181;
+	b=WH3fUQ4oTdVoXeO/tAIoNof+R/oUvqpg4f2gvovKAp2qTEKoxD9c7bdh+x4OKBrgoNax
+	 C6qRqMHkIFSsChFXS2zLEdFqXP58+dDm8yP9kmVcyMkQ5Hgt/8k+QQXIxeeU9WUAHdV6K
+	 CzD8qf9YZALt8xYczNgr9xkv1Tu2uTtm6TRBEIl45mVLrtQ8Q291m2ALC+6Bi+FUClJF/
+	 zfeRjC/dEK+CBgmDg1gzJo531DSI0YbyHKnE5YH4sPTwyyQDFelcYTLOJKszOSY51L/7R
+	 H6k48zcoj7kxTueNVQ8xBPQZeiYat8VVI7Ci2R1mvBbKNOXvZySZiA2HfV1+HFeZ7IA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793412741;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793415181;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=USSm+kEP3bXbYx4Pn9zoQZJa50qbTM8fIyIl+mNKkGc=;
-	b=oZvBFqhlcVHQhEhX+dWzx/T8PXdNObSp6190NzUFO/GCXuP9EjEAggaQ9BaUeiggF2IN
-	 sMR+WnI2UqGGhuusWL/UtaLHc0mlahl0KOIripakV2yS/1iYQNDOG/8RtHBiZVP8VfOdb
-	 beeHFWhmsiXaK0uD55PCibqctzt6M6KUjYw16LEyaM/Fi83KcE0s8vQJwkcUzyoWzxsSv
-	 xiiKpEBtaETAMzk2mR8Hgy2N7Wm60uXi7OEvM35IyjqLdD9mgkeROEF9sCp4gpERs4Y4S
-	 npxPPIjRXwevCNAI+ZKz21yYqUw2uZLvrV7NDSEmCY5LwupTieFPM85GCABQzXWfowQ==
+	bh=823plt3PyffP3ZYmuJF9wjGMDzFAngVy7Kwn93lFjSw=;
+	b=rWp33qt7RmIF75tzY8NCTQ+Qh5lsEK+PKJp7xidIjADW7Dye1erp1RnEZ7KO2EzMR5t9
+	 YNEAJ9Vt502X7IWQdfM6NV9GOq8X796DJfYwTFvrBizfeNkQqXpqti/BTNPk3aE2X3xbw
+	 A4nANzvL0W6KO091w4gR/HrU2Tn4OXUNWVs51cuWCA0kq58kzM4Vh9MQ49Xp3uXVzwqcL
+	 sdxnwX/OAT46MRI8C2qxSm0b5dGTrOX/y1f0t4LZ2HHVFaCIayL2Wb4K830It6UFO7Gg+
+	 2HiPMNAY8fMV8kL3kjAEyH2VI6TrIoD6o1Xm67eBSwIElhBb1dCLZbJDbrSAIa8v8XA==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b="tQ/yxqLx";
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=GMp8XZfr;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3F1AE606A31C
-	for <mm-commits@vger.kernel.org>; Sat, 31 Oct 2026 02:12:20 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 43FFA606A320;
+	Sat, 31 Oct 2026 02:53:01 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=tQ/yxqLx
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B33F61F000C1;
-	Sat, 31 Oct 2026 02:12:20 +0000 (UTC)
+	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=GMp8XZfr
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C46141F000C1;
+	Sat, 31 Oct 2026 02:53:00 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1793412740;
-	bh=USSm+kEP3bXbYx4Pn9zoQZJa50qbTM8fIyIl+mNKkGc=;
+	d=linux-foundation.org; s=korg; t=1793415180;
+	bh=823plt3PyffP3ZYmuJF9wjGMDzFAngVy7Kwn93lFjSw=;
 	h=Date:To:From:Subject;
-	b=tQ/yxqLxd47UScIzShlVLyiAIHVvfRwQrAScoGn/J5NVK97H4vKaIl0ly8yMwHNRA
-	 z+Nu6HT9PT9Son+HriT70+pCS10iLpO4QbhwbkJ4XPH1+rB0n5UIqz8JuesQ+COPFR
-	 wvdenQpY6k4P3hyUGeskl6EciWXVlt59J4YWWoNk=
-Date: Fri, 30 Oct 2026 19:12:20 -0700
-To: mm-commits@vger.kernel.org,yonghong.song@linux.dev,song@kernel.org,
-	rostedt@goodmis.org,mhiramat@kernel.org,memxor@gmail.com,matt@bobrowski.net,
-	mathieu.desnoyers@efficios.com,martin.lau@linux.dev,marscheng@google.com,
-	kpsingh@kernel.org,jserv@ccns.ncku.edu.tw,jolsa@kernel.org,
-	ihor.solodrai@linux.dev,hch@infradead.org,emil@etsalapatis.com,
-	eleanor.lin@realtek.com,eddyz87@gmail.com,daniel@iogearbox.net,
-	ast@kernel.org,andrii@kernel.org,visitorckw@gmail.com,
+	b=GMp8XZfrhhYQWmVTFCAaLiOzIu8knDAAUwOJNypI+znLXtwmc69XV3UgNSgJMseLW
+	 8H0CH6BnlnhdFYzUnUNZT6rT8UYk9BbQm9oMl74MmJG2YY5OQ3Fs/e0IW/1f7G4yY0
+	 lsnLX3qxye2QyqAIc30jP9q5tdtf8ui0hq9T2lmE=
+Date: Fri, 30 Oct 2026 19:53:00 -0700
+To: mm-commits@vger.kernel.org,stable@vger.kernel.org,
+	shyamsaini@linux.microsoft.com,samitolvanen@google.com,petr.pavlu@suse.com,
+	kees@kernel.org,gregkh@linuxfoundation.org,xujiakai24@mails.ucas.ac.cn,
 	akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + revert-lib-sortc-add-_nonatomic-variants-with-cond_resched.patch added to mm-nonmm-unstable branch
-Message-Id: <20261031021220.B33F61F000C1@smtp.kernel.org>
+Subject: + params-serialize-lookup_or_create_module_kobject.patch added to mm-nonmm-unstable branch
+Message-Id: <20261031025300.C46141F000C1@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -58,12 +54,12 @@ Precedence: list
 
 
 The patch titled
-     Subject: Revert "lib/sort.c: add _nonatomic() variants with cond_resched()"
+     Subject: params: serialize lookup_or_create_module_kobject()
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     revert-lib-sortc-add-_nonatomic-variants-with-cond_resched.patch
+     params-serialize-lookup_or_create_module_kobject.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/revert-lib-sortc-add-_nonatomic-variants-with-cond_resched.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/params-serialize-lookup_or_create_module_kobject.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -81,210 +77,106 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Kuan-Wei Chiu <visitorckw@gmail.com>
-Subject: Revert "lib/sort.c: add _nonatomic() variants with cond_resched()"
-Date: Thu, 10 Sep 2026 16:52:21 +0000
+From: Jiakai Xu <xujiakai24@mails.ucas.ac.cn>
+Subject: params: serialize lookup_or_create_module_kobject()
+Date: Fri, 18 Sep 2026 10:07:12 +0000
 
-This reverts commit e2a33a2a3258794891cdd6ca4b1318da6594d157.
+lookup_or_create_module_kobject() first looks up the module kobject with
+kset_find_obj() and, if not found, creates a new one with
+kobject_init_and_add().  The function is called at runtime from
+module_add_driver() since commit f95bbfe18512 ("drivers: base: handle
+module_kobject creation"), which means two concurrent driver
+registrations for the same built-in module name can both miss the
+lookup and race to create the same kobject.
 
-With no remaining users in the kernel tree, remove sort_nonatomic() and
-sort_r_nonatomic() to clean up dead code. This effectively drops the
-wrapper function __sort_r() and eliminates the may_schedule branch and
-cond_resched() call from the inner loop of the core sorting routine,
-slightly simplifying and optimizing the code.
+The loser of the race gets -EEXIST from kobject_init_and_add() and its
+kobject is removed from module_kset by kobject_add_internal() before
+the failure is reported.  The error path then calls kobject_put(),
+which invokes module_kobj_release(), but that only completes
+->kobj_completion and never frees the dynamically allocated
+module_kobject, leaking it (96 bytes) along with the object having been
+detached from the kset.
 
-Link: https://lore.kernel.org/20260910165222.1186628-3-visitorckw@gmail.com
-Signed-off-by: Kuan-Wei Chiu <visitorckw@gmail.com>
+This is triggerable by unprivileged users, e.g. by concurrently issuing
+the USB_RAW_IOCTL_RUN ioctl of the raw-gadget driver, which registers the
+"raw_gadget" driver on the gadget bus:
+
+  sysfs: cannot create duplicate filename '/module/raw_gadget'
+  ...
+  Adding module 'raw_gadget' to sysfs failed (-17), the system may be
+  unstable.
+  ...
+  unreferenced object 0xffff8880188dacc0 (size 96):
+    backtrace:
+      lookup_or_create_module_kobject+0x47/0x100
+      module_add_driver+0x73/0x1b0
+      bus_add_driver+0x1d9/0x340
+      driver_register+0xde/0x170
+
+Fix it by serializing the lookup and the creation with a mutex, so that
+the second caller finds the kobject created by the first one instead of
+racing with it.
+
+The patch fixes the module_kobject leak in this specific race condition,
+but not in cases when kobject_init_and_add() (or sysfs_create_file())
+fails for another reason.  
+
+Link: https://lore.kernel.org/20260918100712.3124994-1-xujiakai24@mails.ucas.ac.cn
+Fixes: f95bbfe18512 ("drivers: base: handle module_kobject creation")
+Fixes: 7c76c813cfc4 ("kernel: globalize lookup_or_create_module_kobject()")
+Signed-off-by: Jiakai Xu <xujiakai24@mails.ucas.ac.cn>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Cc: Song Liu <song@kernel.org>
-Cc: Alexei Starovoitov <ast@kernel.org>
-Cc: Daniel Borkmann <daniel@iogearbox.net>
-Cc: Andrii Nakryiko <andrii@kernel.org>
-Cc: Eduard Zingerman <eddyz87@gmail.com>
-Cc: Kumar Kartikeya Dwivedi <memxor@gmail.com>
-Cc: KP Singh <kpsingh@kernel.org>
-Cc: <matt@bobrowski.net>
-Cc: Steven Rostedt <rostedt@goodmis.org>
-Cc: Masami Hiramatsu <mhiramat@kernel.org>
-Cc: Jiri Olsa <jolsa@kernel.org>
-Cc: Ihor Solodrai <ihor.solodrai@linux.dev>
-Cc: <martin.lau@linux.dev>
-Cc: Yonghong Song <yonghong.song@linux.dev>
-Cc: Emil Tsalapatis <emil@etsalapatis.com>
-Cc: Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
-Cc: <hch@infradead.org>
-Cc: Ching-Chun (Jim) Huang <jserv@ccns.ncku.edu.tw>
-Cc: Yu-Chun Lin <eleanor.lin@realtek.com>
-Cc: <marscheng@google.com>
+Cc: Petr Pavlu <petr.pavlu@suse.com>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Shyam Saini <shyamsaini@linux.microsoft.com>
+Cc: Sami Tolvanen <samitolvanen@google.com>
+Cc: Kees Cook <kees@kernel.org>
+Cc: <stable@vger.kernel.org>
 ---
 
- include/linux/sort.h |   11 ----
- lib/sort.c           |  110 +++++++++++------------------------------
- 2 files changed, 31 insertions(+), 90 deletions(-)
+ kernel/params.c |   14 ++++++++++++++
+ 1 file changed, 14 insertions(+)
 
---- a/include/linux/sort.h~revert-lib-sortc-add-_nonatomic-variants-with-cond_resched
-+++ a/include/linux/sort.h
-@@ -23,15 +23,4 @@ void sort(void *base, size_t num, size_t
- 	  cmp_func_t cmp_func,
- 	  swap_func_t swap_func);
+--- a/kernel/params.c~params-serialize-lookup_or_create_module_kobject
++++ a/kernel/params.c
+@@ -3,6 +3,7 @@
+  * Helpers for initial module or kernel cmdline parsing
+  * Copyright (C) 2001 Rusty Russell.
+  */
++#include <linux/cleanup.h>
+ #include <linux/ctype.h>
+ #include <linux/device.h>
+ #include <linux/err.h>
+@@ -20,6 +21,12 @@
+ /* Protects all built-in parameters, modules use their own param_lock */
+ static DEFINE_MUTEX(param_lock);
  
--/* Versions that periodically call cond_resched(): */
--
--void sort_r_nonatomic(void *base, size_t num, size_t size,
--		      cmp_r_func_t cmp_func,
--		      swap_r_func_t swap_func,
--		      const void *priv);
--
--void sort_nonatomic(void *base, size_t num, size_t size,
--		    cmp_func_t cmp_func,
--		    swap_func_t swap_func);
--
- #endif
---- a/lib/sort.c~revert-lib-sortc-add-_nonatomic-variants-with-cond_resched
-+++ a/lib/sort.c
-@@ -186,13 +186,36 @@ static size_t parent(size_t i, unsigned
- 	return i / 2;
- }
- 
--#include <linux/sched.h>
--
--static void __sort_r(void *base, size_t num, size_t size,
--		     cmp_r_func_t cmp_func,
--		     swap_r_func_t swap_func,
--		     const void *priv,
--		     bool may_schedule)
-+/**
-+ * sort_r - sort an array of elements
-+ * @base: pointer to data to sort
-+ * @num: number of elements
-+ * @size: size of each element
-+ * @cmp_func: pointer to comparison function
-+ * @swap_func: pointer to swap function or NULL
-+ * @priv: third argument passed to comparison function
-+ *
-+ * This function does a heapsort on the given array.  You may provide
-+ * a swap_func function if you need to do something more than a memory
-+ * copy (e.g. fix up pointers or auxiliary data), but the built-in swap
-+ * avoids a slow retpoline and so is significantly faster.
-+ *
-+ * The comparison function must adhere to specific mathematical
-+ * properties to ensure correct and stable sorting:
-+ * - Antisymmetry: cmp_func(a, b) must return the opposite sign of
-+ * cmp_func(b, a).
-+ * - Transitivity: if cmp_func(a, b) <= 0 and cmp_func(b, c) <= 0, then
-+ * cmp_func(a, c) <= 0.
-+ *
-+ * Sorting time is O(n log n) both on average and worst-case. While
-+ * quicksort is slightly faster on average, it suffers from exploitable
-+ * O(n*n) worst-case behavior and extra memory requirements that make
-+ * it less suitable for kernel use.
++/*
++ * Serializes module kobject lookup and creation in
++ * lookup_or_create_module_kobject()
 + */
-+void sort_r(void *base, size_t num, size_t size,
-+	    cmp_r_func_t cmp_func,
-+	    swap_r_func_t swap_func,
-+	    const void *priv)
- {
- 	/* pre-scale counters for performance */
- 	size_t n = num * size, a = (num/2) * size;
-@@ -263,9 +286,6 @@ static void __sort_r(void *base, size_t
- 			b = parent(b, lsbit, size);
- 			do_swap(base + b, base + c, size, swap_func, priv);
- 		}
--
--		if (may_schedule)
--			cond_resched();
- 	}
++static DEFINE_MUTEX(mod_kobject_mutex);
++
+ /* Use the module's mutex, or if built-in use the built-in mutex */
+ #ifdef CONFIG_MODULES
+ #define KPARAM_MUTEX(mod)	((mod) ? &(mod)->param_lock : &param_lock)
+@@ -754,6 +761,13 @@ lookup_or_create_module_kobject(const ch
+ 	struct kobject *kobj;
+ 	int err;
  
- 	n -= size;
-@@ -273,63 +293,8 @@ static void __sort_r(void *base, size_t
- 	if (n == size * 2 && do_cmp(base, base + size, cmp_func, priv) > 0)
- 		do_swap(base, base + size, size, swap_func, priv);
- }
--
--/**
-- * sort_r - sort an array of elements
-- * @base: pointer to data to sort
-- * @num: number of elements
-- * @size: size of each element
-- * @cmp_func: pointer to comparison function
-- * @swap_func: pointer to swap function or NULL
-- * @priv: third argument passed to comparison function
-- *
-- * This function does a heapsort on the given array.  You may provide
-- * a swap_func function if you need to do something more than a memory
-- * copy (e.g. fix up pointers or auxiliary data), but the built-in swap
-- * avoids a slow retpoline and so is significantly faster.
-- *
-- * The comparison function must adhere to specific mathematical
-- * properties to ensure correct and stable sorting:
-- * - Antisymmetry: cmp_func(a, b) must return the opposite sign of
-- * cmp_func(b, a).
-- * - Transitivity: if cmp_func(a, b) <= 0 and cmp_func(b, c) <= 0, then
-- * cmp_func(a, c) <= 0.
-- *
-- * Sorting time is O(n log n) both on average and worst-case. While
-- * quicksort is slightly faster on average, it suffers from exploitable
-- * O(n*n) worst-case behavior and extra memory requirements that make
-- * it less suitable for kernel use.
-- */
--void sort_r(void *base, size_t num, size_t size,
--	    cmp_r_func_t cmp_func,
--	    swap_r_func_t swap_func,
--	    const void *priv)
--{
--	__sort_r(base, num, size, cmp_func, swap_func, priv, false);
--}
- EXPORT_SYMBOL(sort_r);
- 
--/**
-- * sort_r_nonatomic - sort an array of elements, with cond_resched
-- * @base: pointer to data to sort
-- * @num: number of elements
-- * @size: size of each element
-- * @cmp_func: pointer to comparison function
-- * @swap_func: pointer to swap function or NULL
-- * @priv: third argument passed to comparison function
-- *
-- * Same as sort_r, but preferred for larger arrays as it does a periodic
-- * cond_resched().
-- */
--void sort_r_nonatomic(void *base, size_t num, size_t size,
--		      cmp_r_func_t cmp_func,
--		      swap_r_func_t swap_func,
--		      const void *priv)
--{
--	__sort_r(base, num, size, cmp_func, swap_func, priv, true);
--}
--EXPORT_SYMBOL(sort_r_nonatomic);
--
- void sort(void *base, size_t num, size_t size,
- 	  cmp_func_t cmp_func,
- 	  swap_func_t swap_func)
-@@ -339,19 +304,6 @@ void sort(void *base, size_t num, size_t
- 		.swap = swap_func,
- 	};
- 
--	return __sort_r(base, num, size, _CMP_WRAPPER, SWAP_WRAPPER, &w, false);
-+	return sort_r(base, num, size, _CMP_WRAPPER, SWAP_WRAPPER, &w);
- }
- EXPORT_SYMBOL(sort);
--
--void sort_nonatomic(void *base, size_t num, size_t size,
--		    cmp_func_t cmp_func,
--		    swap_func_t swap_func)
--{
--	struct wrapper w = {
--		.cmp  = cmp_func,
--		.swap = swap_func,
--	};
--
--	return __sort_r(base, num, size, _CMP_WRAPPER, SWAP_WRAPPER, &w, true);
--}
--EXPORT_SYMBOL(sort_nonatomic);
++	/*
++	 * The lookup and the creation must be done atomically, otherwise
++	 * concurrent callers may race to create the same kobject, and the
++	 * loser of the race gets -EEXIST from kobject_init_and_add().
++	 */
++	guard(mutex)(&mod_kobject_mutex);
++
+ 	kobj = kset_find_obj(module_kset, name);
+ 	if (kobj)
+ 		return to_module_kobject(kobj);
 _
 
-Patches currently in -mm which might be from visitorckw@gmail.com are
+Patches currently in -mm which might be from xujiakai24@mails.ucas.ac.cn are
 
-bpf-replace-sort_r_nonatomic-with-sort_r-in-check_dup_ids.patch
-revert-lib-sortc-add-_nonatomic-variants-with-cond_resched.patch
+params-serialize-lookup_or_create_module_kobject.patch
 
