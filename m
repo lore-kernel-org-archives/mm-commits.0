@@ -1,47 +1,47 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793405974;
-	b=5dOhPJKaLeaH6cmIJCDpBdY5MMuhaW/xuJv57ihWotGYjIwMWmv/IM8sL2/6wHxP04Tv
-	 tUv8KKHRpb95+Z1O9j9WKJgFBhGcKMQP2sk5meUIyXvmVSmknsk7pPSOOEaEV3CA1nBnC
-	 EYDxbemv6ugzDcOqLuEg68pCH1BvFXf+HWq2GQX9Wi/BDMQtGPL/AsHmms9nxNH3gBmGX
-	 F9npd0h37zgBHHSNWFAFijXvBpxUyC0g5PxoQ19sOZ6G7Cnq9JmmVJQSG1j8OlUp0gNVb
-	 OD0mhwjyAGUaRCbwMNARxAhZ6vYPjNBgDtrJpd7tBZTQKYpW4OxPPvsx+ZbuIM8Wmig==
+	t=1793405976;
+	b=xdVMMZ7URTqEsSgV6oRN3feWzHDI4dybGbOkkHkEBXWXO7R/K0uQFiaJwQgW1RCbxRHC
+	 7GPvrTe+janVFhzTWSqY1TweLb6NehtoPUG3oJuy2XcuiemYqdQE0t1kD57i+BrSFqXQS
+	 rsmszQfWHlAbcm8UISLg4Zrf+tnrAWcBo/8GAQB2q4NazPLVdNlleAyZ3GWehLgKKNYIB
+	 D2R2UhX2AHxVt+5ciKPZwgJR73gkMeoZ1cBBiN0mK9z/QMX+rCYyitfYDZwY6IBZPSaP0
+	 slmjE8PaZTmJh9jlvtmnW871Murpx3BIL784Cl2iM2RY4+N750hGQi17sL8BQrQ7QcA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793405974;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793405976;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=DY7pKGPB2rP4TM0KOOTpZQEJvvWX2rLPGBRAt+IRmqU=;
-	b=IGBDz/exwCMm5VkjxK/UzoPAeFuKryW8RELW7CQuBwhLk5pVo6oDUYXgLzJRj2gandqt
-	 eWCxsEsGeLLcZxTyNo3BiazpIqR7RLiAc9jlFG/sKcCAmETeXFRzqZpLrlHt+ALBxrlho
-	 QCs9oozoIKN42GsQZAzy/5T1g1GBxeQvQ3R0bfacU5PPIkngROMHwkPEUwb/Tqf5SjjVr
-	 bN6OiHSUB+rqcHeh/+fa2IfXunE8+LJLLbj0lY3gTIGerfuEFPTVhnCRAfOFLg0sXqz8B
-	 wBXlMXyLePG5lMLsnbQyr+Xl1M/A9ArUYFv57PRqyPeCFBnckyneZVyNFnO9cUy6xEA==
+	bh=ptRoudGId+qTg/NGxtXAKGjQ+1l9ruwlQh9kAjAxoA8=;
+	b=V2alDN2nd1VJeHbsBeEzWkoZH4v7YZObOokwbxz/V5/1fCrOptBkiKysPaKo1YXVHoex
+	 RDeG5CGFpYFi5SnZ5ndxeQbCoMGaxwk9gwXKQW9Juakfbgbdc5SVjzU9KW4g8kAGP4X29
+	 AjjEvvncabT8/XiWemcEQGVong2DoDBPdQX3eL8wISvkFXKu55bf5atzHE9R/k2QxuKwC
+	 5H+axFRQOcsjR+o15sU1bhw9kW1kZ1rrx/YwPBFnYEVcFL16NWHuMNjhUBHDAMOcHfFxF
+	 abbJyfYuEfSgu4iedTXYScWw7pAxXTOLp9N26attv0yaG9Ga0tkyR9su0uIt/1ylYdg==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=QMU8QUOU;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=pWtG7seC;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 414D4606A31C
-	for <mm-commits@vger.kernel.org>; Sat, 31 Oct 2026 00:19:33 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 57099606A31C
+	for <mm-commits@vger.kernel.org>; Sat, 31 Oct 2026 00:19:36 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=QMU8QUOU
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B33971F000C1;
-	Sat, 31 Oct 2026 00:19:33 +0000 (UTC)
+	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=pWtG7seC
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C90E11F000C1;
+	Sat, 31 Oct 2026 00:19:35 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1793405973;
-	bh=DY7pKGPB2rP4TM0KOOTpZQEJvvWX2rLPGBRAt+IRmqU=;
+	d=linux-foundation.org; s=korg; t=1793405975;
+	bh=ptRoudGId+qTg/NGxtXAKGjQ+1l9ruwlQh9kAjAxoA8=;
 	h=Date:To:From:Subject;
-	b=QMU8QUOUoYDMEsXU6Y1eu8nYNmsAx3OWpqueD64OTLbPsoYhnidRBABIgItbxIEr8
-	 ZKOjwVO0fP34sMdO5Whj2JGvFfCLwS/oRjSVcMLGGXOBl3uZbOu3uiIGXakmdKCrw+
-	 JY6kksUjgtFoG5q/DF3WJfkpmGLrWO25eLKFs0jc=
-Date: Fri, 30 Oct 2026 17:19:33 -0700
+	b=pWtG7seCa+TNVXlUVyDxvOkkhAxL2cYH4sPTD7zESw6nygo1KMRLWWlcJxzn7ugMo
+	 sd9rZSunPcPyNlIvF8IsUXI5zvtBZwfyznVYbhwkVAgwK5hlPKRmMFuz6sCSZQxUpu
+	 pv/0EG6F03ocugJYOKQG2Sr904JoqKHYEMVkTO+o=
+Date: Fri, 30 Oct 2026 17:19:35 -0700
 To: mm-commits@vger.kernel.org,rafael@kernel.org,pavel@kernel.org,
 	lenb@kernel.org,glider@google.com,elver@google.com,dvyukov@google.com,
 	david@kernel.org,rppt@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + hibernate-handle-potential-errors-in-hibernate_mapunmap_page.patch added to mm-nonmm-unstable branch
-Message-Id: <20261031001933.B33971F000C1@smtp.kernel.org>
+Subject: + hibernation-kfence-explicitly-map-unmap-kfence-pages.patch added to mm-nonmm-unstable branch
+Message-Id: <20261031001935.C90E11F000C1@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -53,12 +53,12 @@ Precedence: list
 
 
 The patch titled
-     Subject: hibernate: handle potential errors in hibernate_{map,unmap}_page()
+     Subject: hibernation, KFENCE: explicitly map/unmap KFENCE pages
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     hibernate-handle-potential-errors-in-hibernate_mapunmap_page.patch
+     hibernation-kfence-explicitly-map-unmap-kfence-pages.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/hibernate-handle-potential-errors-in-hibernate_mapunmap_page.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/hibernation-kfence-explicitly-map-unmap-kfence-pages.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -77,23 +77,38 @@ and is updated there most days
 
 ------------------------------------------------------
 From: "Mike Rapoport (Microsoft)" <rppt@kernel.org>
-Subject: hibernate: handle potential errors in hibernate_{map,unmap}_page()
-Date: Sat, 26 Sep 2026 12:26:32 +0300
+Subject: hibernation, KFENCE: explicitly map/unmap KFENCE pages
+Date: Sat, 26 Sep 2026 12:26:33 +0300
 
-When safe_copy_page() had to map/unmap pages only because of
-debug_pagealloc() there could be no errors in the kernel page table
-updates.
+The pages protected by KFENCE are removed from the direct map.
 
-However, with the increasing desire to remove pages from the direct map
-this assumption becomes a real stretch.
+safe_copy_page() temporarily maps and unmaps them using set_direct_map
+APIs, or, when the stars align, even using debug_pagealloc_map_pages().
 
-Properly handle errors in hibernate_map_page() and hibernate_unmap_page()
-and propagate that error along the page copying path.
+Neither of these APIs cares whether it is a KFENCE page and both blindly
+perform the update of the kernel page table for any non-present page.
 
-Link: https://lore.kernel.org/20260926-hibernation-v2-3-235f69f3ab2a@kernel.org
+Ability to use debug_pagealloc_map_pages() to remap KFENCE pages when both
+KFENCE and debug_pagealloc are enabled is an amusing coincidence.
+
+But with increasing appetite for using set_direct_map for hardening
+purposes, it becomes too big of a hammer to enable saving any non-present
+page in the hibernation image.
+
+Another gotcha is that loongarch that does not have a direct map at all
+advertises ARCH_HAS_SET_DIRECT_MAP to allow coexistence of KFENCE and
+hibernation.
+
+Extend KFENCE with a bitmap that tracks which pages are protected and
+provide kfence_force_mapping() and kfence_reset_mapping() APIs that allow
+forced mapping and unmapping of KFENCE pages.
+
+Use these APIs in hibernate_{map,unmap}_pages() for KFENCE pages.
+
+Link: https://lore.kernel.org/20260926-hibernation-v2-4-235f69f3ab2a@kernel.org
 Signed-off-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Acked-by: David Hildenbrand (Arm) <david@kernel.org>
+Reviewed-by: David Hildenbrand (Arm) <david@kernel.org>
 Acked-by: Rafael J. Wysocki <rafael@kernel.org>
 Cc: Alexander Potapenko <glider@google.com>
 Cc: Marco Elver <elver@google.com>
@@ -102,230 +117,171 @@ Cc: Len Brown <lenb@kernel.org>
 Cc: Pavel Machek <pavel@kernel.org>
 ---
 
- kernel/power/snapshot.c |  102 +++++++++++++++++++++++---------------
- 1 file changed, 62 insertions(+), 40 deletions(-)
+ include/linux/kfence.h  |   29 +++++++++++++++++++++
+ kernel/power/snapshot.c |    7 +++++
+ mm/kfence/core.c        |   52 ++++++++++++++++++++++++++++++++++++--
+ 3 files changed, 86 insertions(+), 2 deletions(-)
 
---- a/kernel/power/snapshot.c~hibernate-handle-potential-errors-in-hibernate_mapunmap_page
-+++ a/kernel/power/snapshot.c
-@@ -79,37 +79,30 @@ static inline int hibernate_restore_unpr
- #endif /* CONFIG_STRICT_KERNEL_RWX  && CONFIG_ARCH_HAS_SET_MEMORY */
+--- a/include/linux/kfence.h~hibernation-kfence-explicitly-map-unmap-kfence-pages
++++ a/include/linux/kfence.h
+@@ -222,6 +222,32 @@ struct kmem_obj_info;
+ bool __kfence_obj_info(struct kmem_obj_info *kpp, void *object, struct slab *slab);
+ #endif
  
++/**
++ * kfence_force_mapping() - make sure a KFENCE page is mapped
++ * @page: page to map
++ *
++ * Check whether @page is protected and map it if needed.
++ *
++ * Requires: is_kfence_address(page_address(page))
++ *
++ * Return:
++ * * false - failed to map @page
++ * * true - @page is mapped
++ */
++bool kfence_force_mapping(struct page *page);
++
++/**
++ * kfence_reset_mapping() - reset a forced mapping of a KFENCE page
++ * @page: page to restore mapping
++ *
++ * Requires: is_kfence_address(page_address(page))
++ *
++ * Return:
++ * * false - failed to reset mapping of the @page
++ * * true - succeeded to reset mapping of the @page
++ */
++bool kfence_reset_mapping(struct page *page);
++
+ #else /* CONFIG_KFENCE */
  
--/*
-- * The calls to set_direct_map_*() should not fail because remapping a page
-- * here means that we only update protection bits in an existing PTE.
-- * It is still worth to have a warning here if something changes and this
-- * will no longer be the case.
-- */
--static inline void hibernate_map_page(struct page *page)
-+static inline int hibernate_map_page(struct page *page)
- {
- 	if (IS_ENABLED(CONFIG_ARCH_HAS_SET_DIRECT_MAP)) {
--		int ret = set_direct_map_default_noflush(page, 1);
--
--		if (ret)
--			pr_warn_once("Failed to remap page\n");
-+		return set_direct_map_default_noflush(page, 1);
- 	} else {
- 		debug_pagealloc_map_pages(page, 1);
-+		return 0;
- 	}
+ #define kfence_sample_interval	(0)
+@@ -241,6 +267,9 @@ static inline bool __must_check kfence_h
+ 	return false;
  }
  
--static inline void hibernate_unmap_page(struct page *page)
-+static inline int hibernate_unmap_page(struct page *page)
++static inline bool kfence_force_mapping(struct page *page) { return true; }
++static inline bool kfence_reset_mapping(struct page *page) { return true; }
++
+ #ifdef CONFIG_PRINTK
+ struct kmem_obj_info;
+ static inline bool __kfence_obj_info(struct kmem_obj_info *kpp, void *object, struct slab *slab)
+--- a/kernel/power/snapshot.c~hibernation-kfence-explicitly-map-unmap-kfence-pages
++++ a/kernel/power/snapshot.c
+@@ -31,6 +31,7 @@
+ #include <linux/compiler.h>
+ #include <linux/ktime.h>
+ #include <linux/set_memory.h>
++#include <linux/kfence.h>
+ 
+ #include <linux/uaccess.h>
+ #include <asm/mmu_context.h>
+@@ -81,6 +82,9 @@ static inline int hibernate_restore_unpr
+ 
+ static inline int hibernate_map_page(struct page *page)
  {
++	if (is_kfence_address(page_address(page)))
++		return kfence_force_mapping(page) ? 0 : -EFAULT;
++
+ 	if (IS_ENABLED(CONFIG_ARCH_HAS_SET_DIRECT_MAP)) {
+ 		return set_direct_map_default_noflush(page, 1);
+ 	} else {
+@@ -91,6 +95,9 @@ static inline int hibernate_map_page(str
+ 
+ static inline int hibernate_unmap_page(struct page *page)
+ {
++	if (is_kfence_address(page_address(page)))
++		return kfence_reset_mapping(page) ? 0 : -EFAULT;
++
  	if (IS_ENABLED(CONFIG_ARCH_HAS_SET_DIRECT_MAP)) {
  		unsigned long addr = (unsigned long)page_address(page);
  		int ret  = set_direct_map_invalid_noflush(page, 1);
+--- a/mm/kfence/core.c~hibernation-kfence-explicitly-map-unmap-kfence-pages
++++ a/mm/kfence/core.c
+@@ -8,6 +8,7 @@
+ #define pr_fmt(fmt) "kfence: " fmt
  
- 		if (ret)
--			pr_warn_once("Failed to remap page\n");
-+			return ret;
+ #include <linux/atomic.h>
++#include <linux/bitmap.h>
+ #include <linux/bug.h>
+ #include <linux/debugfs.h>
+ #include <linux/hash.h>
+@@ -123,6 +124,9 @@ module_param_named(check_on_panic, kfenc
+ char *__kfence_pool __read_mostly;
+ EXPORT_SYMBOL(__kfence_pool); /* Export for test modules. */
  
- 		flush_tlb_kernel_range(addr, addr + PAGE_SIZE);
- 	} else {
- 		debug_pagealloc_unmap_pages(page, 1);
- 	}
-+	return 0;
- }
- 
- static int swsusp_page_is_free(struct page *page);
-@@ -1449,21 +1442,25 @@ static inline bool do_copy_page(long *ds
-  * Check if the page we are going to copy is marked as present in the kernel
-  * page tables. This always is the case if CONFIG_DEBUG_PAGEALLOC or
-  * CONFIG_ARCH_HAS_SET_DIRECT_MAP is not set. In that case kernel_page_present()
-- * always returns 'true'. Returns true if the page was entirely composed of
-- * zeros, otherwise it will return false.
-+ * always returns 'true'.
-+ * Sets @zeros_only to true if the page was entirely composed of zeros.
-+ *
-+ * Returns 0 on success, a negative error code on failure.
-  */
--static bool safe_copy_page(void *dst, struct page *s_page)
-+static int safe_copy_page(void *dst, struct page *s_page, bool *zeros_only)
- {
--	bool zeros_only;
-+	int err;
- 
- 	if (kernel_page_present(s_page)) {
--		zeros_only = do_copy_page(dst, page_address(s_page));
--	} else {
--		hibernate_map_page(s_page);
--		zeros_only = do_copy_page(dst, page_address(s_page));
--		hibernate_unmap_page(s_page);
-+		*zeros_only = do_copy_page(dst, page_address(s_page));
-+		return 0;
- 	}
--	return zeros_only;
++/* keep track of protected pages */
++static DECLARE_BITMAP(kfence_protected_pages, KFENCE_POOL_SIZE / PAGE_SIZE);
 +
-+	err = hibernate_map_page(s_page);
-+	if (err)
-+		return err;
-+	*zeros_only = do_copy_page(dst, page_address(s_page));
-+	return hibernate_unmap_page(s_page);
+ /*
+  * Per-object metadata, with one-to-one mapping of object metadata to
+  * backing pages (in __kfence_pool).
+@@ -249,14 +253,36 @@ static bool alloc_covered_contains(u32 a
+ 	return true;
  }
  
- #ifdef CONFIG_HIGHMEM
-@@ -1473,18 +1470,19 @@ static inline struct page *page_is_savea
- 		saveable_highmem_page(zone, pfn) : saveable_page(zone, pfn);
- }
- 
--static bool copy_data_page(unsigned long dst_pfn, unsigned long src_pfn)
-+static int copy_data_page(unsigned long dst_pfn, unsigned long src_pfn,
-+			  bool *zeros_only)
- {
- 	struct page *s_page, *d_page;
- 	void *src, *dst;
--	bool zeros_only;
-+	int err = 0;
- 
- 	s_page = pfn_to_page(src_pfn);
- 	d_page = pfn_to_page(dst_pfn);
- 	if (PageHighMem(s_page)) {
- 		src = kmap_local_page(s_page);
- 		dst = kmap_local_page(d_page);
--		zeros_only = do_copy_page(dst, src);
-+		*zeros_only = do_copy_page(dst, src);
- 		kunmap_local(dst);
- 		kunmap_local(src);
- 	} else {
-@@ -1493,23 +1491,29 @@ static bool copy_data_page(unsigned long
- 			 * The page pointed to by src may contain some kernel
- 			 * data modified by kmap_atomic()
- 			 */
--			zeros_only = safe_copy_page(buffer, s_page);
-+			err = safe_copy_page(buffer, s_page, zeros_only);
-+			if (err)
-+				goto out;
- 			dst = kmap_local_page(d_page);
- 			copy_page(dst, buffer);
- 			kunmap_local(dst);
- 		} else {
--			zeros_only = safe_copy_page(page_address(d_page), s_page);
-+			err = safe_copy_page(page_address(d_page), s_page,
-+					     zeros_only);
- 		}
- 	}
--	return zeros_only;
-+out:
-+	return err;
++static bool __kfence_protect(unsigned long addr, bool protect)
++{
++	unsigned long page_addr = ALIGN_DOWN(addr, PAGE_SIZE);
++	unsigned long pool_addr = (unsigned long)__kfence_pool;
++	unsigned long index = (page_addr - pool_addr) >> PAGE_SHIFT;
++	bool state;
 +
- }
- #else
- #define page_is_saveable(zone, pfn)	saveable_page(zone, pfn)
- 
--static inline int copy_data_page(unsigned long dst_pfn, unsigned long src_pfn)
-+static inline int copy_data_page(unsigned long dst_pfn, unsigned long src_pfn,
-+				 bool *zeros_only)
- {
- 	return safe_copy_page(page_address(pfn_to_page(dst_pfn)),
--				pfn_to_page(src_pfn));
-+				pfn_to_page(src_pfn), zeros_only);
- }
- #endif /* CONFIG_HIGHMEM */
- 
-@@ -1517,15 +1521,20 @@ static inline int copy_data_page(unsigne
-  * Copy data pages will copy all pages into pages pulled from the copy_bm.
-  * If a page was entirely filled with zeros it will be marked in the zero_bm.
-  *
-- * Returns the number of pages copied.
-+ * Sets @copied_pages to the number of pages copied.
-+ *
-+ * Returns 0 on success, a negative error code on failure.
-  */
--static unsigned long copy_data_pages(struct memory_bitmap *copy_bm,
--			    struct memory_bitmap *orig_bm,
--			    struct memory_bitmap *zero_bm)
-+static int copy_data_pages(struct memory_bitmap *copy_bm,
-+			   struct memory_bitmap *orig_bm,
-+			   struct memory_bitmap *zero_bm,
-+			   unsigned int *copied_pages)
- {
--	unsigned long copied_pages = 0;
-+	unsigned long nr_pages = 0;
- 	struct zone *zone;
- 	unsigned long pfn, copy_pfn;
-+	bool zeros_only;
-+	int err;
- 
- 	for_each_populated_zone(zone) {
- 		unsigned long max_zone_pfn;
-@@ -1543,15 +1552,21 @@ static unsigned long copy_data_pages(str
- 		pfn = memory_bm_next_pfn(orig_bm);
- 		if (unlikely(pfn == BM_END_OF_MAP))
- 			break;
--		if (copy_data_page(copy_pfn, pfn)) {
-+		err = copy_data_page(copy_pfn, pfn, &zeros_only);
-+		if (err)
-+			return err;
++	assign_bit(index, kfence_protected_pages, protect);
 +
-+		if (zeros_only) {
- 			memory_bm_set_bit(zero_bm, pfn);
- 			/* Use this copy_pfn for a page that is not full of zeros */
- 			continue;
- 		}
--		copied_pages++;
-+		nr_pages++;
- 		copy_pfn = memory_bm_next_pfn(copy_bm);
- 	}
--	return copied_pages;
++	/*
++	 * Reapply protection if the desired state changed while updating
++	 * the page table.
++	 */
++	do {
++		state = test_bit(index, kfence_protected_pages);
++		if (!kfence_protect_page(page_addr, state))
++			return false;
++	} while (state != test_bit(index, kfence_protected_pages));
 +
-+	*copied_pages = nr_pages;
-+	return 0;
- }
- 
- /* Total number of image pages */
-@@ -2112,6 +2127,7 @@ static int swsusp_alloc(struct memory_bi
- asmlinkage __visible int swsusp_save(void)
++	return true;
++}
++
+ static bool kfence_protect(unsigned long addr)
  {
- 	unsigned int nr_pages, nr_highmem;
-+	int err;
- 
- 	pm_deferred_pr_dbg("Creating image\n");
- 
-@@ -2133,7 +2149,9 @@ asmlinkage __visible int swsusp_save(voi
- 	 * Kill them.
- 	 */
- 	drain_local_pages(NULL);
--	nr_copy_pages = copy_data_pages(&copy_bm, &orig_bm, &zero_bm);
-+	err = copy_data_pages(&copy_bm, &orig_bm, &zero_bm, &nr_copy_pages);
-+	if (err)
-+		goto err_swsusp_free;
- 
- 	/*
- 	 * End of critical section. From now on, we can write to memory,
-@@ -2149,6 +2167,10 @@ asmlinkage __visible int swsusp_save(voi
- 			   nr_copy_pages, nr_zero_pages);
- 
- 	return 0;
-+
-+err_swsusp_free:
-+	swsusp_free();
-+	return err;
+-	return !KFENCE_WARN_ON(!kfence_protect_page(ALIGN_DOWN(addr, PAGE_SIZE), true));
++	return !KFENCE_WARN_ON(!__kfence_protect(addr, true));
  }
  
- #ifndef CONFIG_ARCH_HIBERNATION_HEADER
+ static bool kfence_unprotect(unsigned long addr)
+ {
+-	return !KFENCE_WARN_ON(!kfence_protect_page(ALIGN_DOWN(addr, PAGE_SIZE), false));
++	return !KFENCE_WARN_ON(!__kfence_protect(addr, false));
+ }
+ 
+ static inline unsigned long metadata_to_pageaddr(const struct kfence_metadata *meta)
+@@ -1337,3 +1363,25 @@ out:
+ 
+ 	return kfence_unprotect(addr); /* Unprotect and let access proceed. */
+ }
++
++bool kfence_force_mapping(struct page *page)
++{
++	unsigned long addr = (unsigned long)page_address(page);
++	unsigned long index = (addr - (unsigned long)__kfence_pool) >> PAGE_SHIFT;
++
++	if (!test_bit(index, kfence_protected_pages))
++		return true;
++
++	return kfence_protect_page(addr, false);
++}
++
++bool kfence_reset_mapping(struct page *page)
++{
++	unsigned long addr = (unsigned long)page_address(page);
++	unsigned long index = (addr - (unsigned long)__kfence_pool) >> PAGE_SHIFT;
++
++	if (!test_bit(index, kfence_protected_pages))
++		return true;
++
++	return kfence_protect_page(addr, true);
++}
 _
 
 Patches currently in -mm which might be from rppt@kernel.org are
