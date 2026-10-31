@@ -1,47 +1,51 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793405979;
-	b=BiOmqQJ00Oz8rQFbNBdHc1ZqwD2B2+ido3i7KvxD5hJ0ArMKBy2DbZKbl+FuLtGaKiZ8
-	 oBpPJYLO/ezTEkiAtG8psUIupBQOXp5j4TpaDim/OI7vC0xLyz4X4l4sctoOdtTaqg7iM
-	 4hGdnZBNJxEmX2Ghw41qHb+Onj2jCW/K20LFSsUCeHuk61tz7zCGmBPdt9DpRCiIV37YO
-	 l0OuaoLR0I6rHjjwWzWoHilenraXu5vdM8GB3pTKd8tKPofPWp5z93bGzHr0+HjOEb8KI
-	 Lm5VJZo7uMVCKSNhxgPGXG3Ot8aahS+sIGUptp4/1xbGqyCC2rrVapAaPXY0N2D22Dg==
+	t=1793408208;
+	b=cg/3i2cOA4gJPn2uGJHfUsg6NHyKkcHcKdCZDUluWRiVd2a902aXdHAEvtY6nLqapF3i
+	 hAW3spuTa8efCDnVCmqL9XhaCZ9yWLAN4fA+trC8Var2p3mC+OFR0I8OfCNbBi48ImLue
+	 YPOBrhkjzaQ5at9DRwq0KiOiNkNw9s3HeSUSOoEkPFYgiHJMp4rjmqhwSG9fgYr9Ni/R4
+	 1mWvnXbwI044Q49cpEE8e+78eh3wPv5OwoCjoN/lQTqE/MMEskKfbHR9c5zTGtnY7c7EF
+	 rZFRwjTTBdghd2jg7/i1wxuivbKB3h/Iiihbr0ylBZWwoemE36qxYClRp2qpF5YZfvw==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793405979;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793408208;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=CoxRJCGgHAdWhtT+3yHf7zxhhnP4/DZnnHhAyVHTi3s=;
-	b=etiG1IvzlVKg0NbRzXy/7DhphkUt+Ebu6ONlMbO30mKe3D2Dgr4E0autiGwqfe7y34cv
-	 T7QDoG2QNqgY+5oTjY09iqtu0rGgERziH+oiN1ypul2CoWF/fcLqw/766vxytLZ1CP/fn
-	 s4MDCMyTZw0rjIantUW/j/EEbFc/qnjQpl0dYEK50rht5VXs4IRiex5ftBg1iAFXP1YDn
-	 znXb26Qig5Me2BR4aoFvCDcAElyHCrE1vSiaA6vQPAvWKGSHISURVm6wvKdb4hajy59nH
-	 eM3v1A6RVSp05gR3XdnPR7ioNGda1kQn/fSTwSW3GQL9NtnEqt4xOnlNO5UefqW8iHg==
+	bh=NGNpSqdVFcqijpq8vghpRHt6n6KqyjJmatyCS27rYf8=;
+	b=ttg5V3bNNBh88ZP72RfvQaN/hbK2cNOJ7abHh/UajJeXuHCt4eHL+bNADSNdADGoDpE4
+	 m96y+jI5B279U6FyUxPb8ZZk9AR8Qt1lUtyHjIGznRIHLqyEZB3igT0M+vGqDtqhJnz7X
+	 1ZocXEokPisjT5+IemrFe+9fxeQZl99bmDEsCzWVL/J6L5lLJTP5ZMHALMyOiCfSe2Ohm
+	 5hUiIYLQ97NVCFrIJUDgwXJ8Iw703nu7cLuQIqfA6+TxSrNHPv3j600RIPi6A7yC240Nh
+	 MMAfP41BiYyoi3qTfAPu1pkFQta5c20wSXWRGeR5yg31p+6Y9EIXIDqPK16XffAgpoA==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=FE0q87lV;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=MfRPu7jr;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4D58F606A31A
-	for <mm-commits@vger.kernel.org>; Sat, 31 Oct 2026 00:19:38 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D7C70606A31A;
+	Sat, 31 Oct 2026 00:56:47 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=FE0q87lV
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id BC98D1F000C1;
-	Sat, 31 Oct 2026 00:19:38 +0000 (UTC)
+	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=MfRPu7jr
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 391301F000C1;
+	Sat, 31 Oct 2026 00:56:47 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1793405978;
-	bh=CoxRJCGgHAdWhtT+3yHf7zxhhnP4/DZnnHhAyVHTi3s=;
+	d=linux-foundation.org; s=korg; t=1793408207;
+	bh=NGNpSqdVFcqijpq8vghpRHt6n6KqyjJmatyCS27rYf8=;
 	h=Date:To:From:Subject;
-	b=FE0q87lVj8/YQqj2CYNJgv2AINUue9QypOVqmTOrGl8MWKXDGZPL0LxLq0daaAu0U
-	 vCXe/9KzRbgs1ktjqoUz90RK1nt6g56tauVWCVRI7JtfLfNjGMuGtAYXsFNdZObxa9
-	 VQuwKF7gOzvaSVUJ6ydgpgzM5eCn9uGSMdP1s/Lg=
-Date: Fri, 30 Oct 2026 17:19:38 -0700
-To: mm-commits@vger.kernel.org,rafael@kernel.org,pavel@kernel.org,
-	lenb@kernel.org,glider@google.com,elver@google.com,dvyukov@google.com,
-	david@kernel.org,rppt@kernel.org,akpm@linux-foundation.org
+	b=MfRPu7jrmKMtGWufc/sVnaNv2a7NXChNRDcRJjO4aO8/I0HRWKCd6UVdCvyiroMf5
+	 0SxOsbT8IwP4xUYhmmblC/ESoR5obaE407MoL56x/wt8xhXrIGteIltugsosuqK/Ep
+	 0+Aheeweat/1bNKTo+4g1/tgDxFdU8yKQQgtQR9g=
+Date: Fri, 30 Oct 2026 17:56:46 -0700
+To: mm-commits@vger.kernel.org,ye.liu@linux.dev,vbabka@kernel.org,
+	usama.arif@linux.dev,surenb@google.com,stable@vger.kernel.org,
+	ryan.roberts@arm.com,rppt@kernel.org,nico.pache@linux.dev,mhocko@suse.com,
+	ljs@kernel.org,liam@infradead.org,lance.yang@linux.dev,kas@kernel.org,
+	hannes@cmpxchg.org,dev.jain@arm.com,david@kernel.org,
+	brendan.jackman@linux.dev,baolin.wang@linux.alibaba.com,baohua@kernel.org,
+	ziy@nvidia.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + hibernation-make-hibernation-unavailable-when-debug_pagealloc-is-on.patch added to mm-nonmm-unstable branch
-Message-Id: <20261031001938.BC98D1F000C1@smtp.kernel.org>
+Subject: + mm-huge_memory-prevent-losing-pg_waiters-in-__split_folio_to_order.patch added to mm-hotfixes-unstable branch
+Message-Id: <20261031005647.391301F000C1@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -53,14 +57,14 @@ Precedence: list
 
 
 The patch titled
-     Subject: hibernation: make hibernation unavailable when debug_pagealloc is on
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     hibernation-make-hibernation-unavailable-when-debug_pagealloc-is-on.patch
+     Subject: mm/huge_memory: prevent losing PG_waiters in __split_folio_to_order()
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     mm-huge_memory-prevent-losing-pg_waiters-in-__split_folio_to_order.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/hibernation-make-hibernation-unavailable-when-debug_pagealloc-is-on.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-huge_memory-prevent-losing-pg_waiters-in-__split_folio_to_order.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -76,179 +80,170 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: "Mike Rapoport (Microsoft)" <rppt@kernel.org>
-Subject: hibernation: make hibernation unavailable when debug_pagealloc is on
-Date: Sat, 26 Sep 2026 12:26:34 +0300
+From: Zi Yan <ziy@nvidia.com>
+Subject: mm/huge_memory: prevent losing PG_waiters in __split_folio_to_order()
+Date: Thu, 29 Oct 2026 22:08:44 -0400
 
-Back in 2008 when commit 8a235efad548a ("Hibernation: Handle
-DEBUG_PAGEALLOC on x86") enabled coexistence of hibernation and
-DEBUG_PAGEALLOC, the world was simpler, the combination was only supported
-on x86 and a non-present page in the direct map meant that the page was
-free and debug_pagealloc removed its mapping.
+__split_folio_to_order() calls prep_compound_page() on each new head page
+to create a compound page after clear_compound_head(). 
+prep_compound_page() uses non atomic __SetPageHead().  It is mostly OK,
+since the folio is locked and frozen and no one else is supposed to modify
+the folio's flags.
 
-Nowadays there are more architectures with inconsistent views of how the
-direct map should be managed, there are more debug mechanisms in MM that
-can either drop a page from the direct map (e.g. KFENCE) or require that a
-page must be mapped immediately after resume (e.g. init_on_free).
+However, code calling migration_entry_wait() can reach the folio by PFN,
+then access its flags.  It is because softleaf_entry_wait_on_locked() used
+by migration_entry_wait() sets PG_waiters concurrently without taking a
+reference and the frozen refcount during split cannot block it. 
+Meanwhile, __SetPageHead() does a plain read and write, so PG_waiters
+atomically set by softleaf_entry_wait_on_locked() will be lost if the set
+happens after __SetPageHead()'s read and before its write.
 
-The latter constraint is particularly nasty, because enabling
-debug_pagealloc and PAGE_POISON at the same time simply breaks resume:
+One example code interleaving:
 
-  BUG: unable to handle page fault for address: ffff888000100000
-  #PF: supervisor write access in kernel mode
-  #PF: error_code(0x0002) - not-present page
-  PGD 4f0c067 P4D 4f0c067 PUD 4f0d067 PMD 4f0e067 PTE 800fffffffeff020
-  Oops: Oops: 0002 [#1] SMP DEBUG_PAGEALLOC NOPTI
-  CPU: 0 UID: 0 PID: 477 Comm: bash Not tainted 7.3.0-rc3-00090-g4a613f1d9124 #1 PREEMPT(full)
-  Hardware name: QEMU Standard PC (Q35 + ICH9, 2009), BIOS 1.17.0-debian-1.17.0-1 04/01/2014
-  RIP: 0010:__kernel_poison_pages+0x45/0x70
-  Code: 89 fa 48 c1 e6 06 48 01 fe 48 89 d1 48 2b 0d 9a ed 87 01 48 83 c2 40 48 c1 f9 06 48 c1 e1 0c 48 03 0d 97 ed 87 01 48 8d 79 08 <48> 89 01 48 83 e7 f8 48 89 81 f8 0f 00 00 48 29 f9 81 c1 00 10 00
-  RSP: 0018:ffffc900017dfd78 EFLAGS: 00010086
-  RAX: aaaaaaaaaaaaaaaa RBX: 0000000000000000 RCX: ffff888000100000
-  RDX: ffffea0000004040 RSI: ffffea0000004040 RDI: ffff888000100008
-  RBP: 0000000000000000 R08: ffff888130fcada0 R09: 00000000723e0de4
-  R10: 0000000096ad9215 R11: 00000000db907bcf R12: 0000000000000005
-  R13: 0000000000000005 R14: 0000000000000000 R15: 0000000000000000
-  FS:  00007f8f2243e780(0000) GS:ffff8882e8e13000(0000) knlGS:0000000000000000
-  CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
-  CR2: ffff888000100000 CR3: 0000000140679000 CR4: 0000000000750ef0
-  PKRU: 55555554
-  Call Trace:
-   <TASK>
-   clear_or_poison_free_pages+0xd1/0xe0
-   hibernation_snapshot+0x548/0x5a0
-   hibernate.cold+0xcb/0x321
-   state_store+0xc3/0xd0
-   kernfs_fop_write_iter+0x163/0x240
-   vfs_write+0x21f/0x550
-   ksys_write+0x70/0xf0
-   do_syscall_64+0xb1/0x590
-   ? __irq_exit_rcu+0x40/0x110
-   entry_SYSCALL_64_after_hwframe+0x76/0x7e
-  RIP: 0033:0x7f8f224d0687
-  Code: 48 89 fa 4c 89 df e8 58 b3 00 00 8b 93 08 03 00 00 59 5e 48 83 f8 fc 74 1a 5b c3 0f 1f 84 00 00 00 00 00 48 8b 44 24 10 0f 05 <5b> c3 0f 1f 80 00 00 00 00 83 e2 39 83 fa 08 75 de e8 23 ff ff ff
-  RSP: 002b:00007ffe7bbe0910 EFLAGS: 00000202 ORIG_RAX: 0000000000000001
-  RAX: ffffffffffffffda RBX: 00007f8f2243e780 RCX: 00007f8f224d0687
-  RDX: 0000000000000005 RSI: 000055e3e53135d0 RDI: 0000000000000001
-  RBP: 000055e3e53135d0 R08: 0000000000000000 R09: 0000000000000000
-  R10: 0000000000000000 R11: 0000000000000202 R12: 0000000000000005
-  R13: 00007f8f226295c0 R14: 00007f8f22626e80 R15: 0000000000000000
-   </TASK>
-  Modules linked in:
-  CR2: ffff888000100000
+CPU0: __split_folio_to_order(new_order>0)  CPU1: do_swap_page()
 
-It's possible to build a complex infrastructure involving a new page flag
-and/or page_type to allow robust hibernation and restore with
-debug_pagealloc enabled.
+1. clear_compound_head(new_head)
+   new_head->compound_info = 0
+   (page_folio(new_head) == new_head now)
 
-This infrastructure requires a proper detection whether it is safe to
-temporarily remap a page to include it in the hibernation snapshot because
-relying on kernel_page_present() is too permissive and may include pages
-that were deliberately removed from the direct map for security reasons.
+                                           2. migration_entry_wait()
+                                             softleaf_to_folio(entry)
+                                             page_folio() -> new_head
+                                             (not the old head any more)
 
-This complexity does not seem justified to deal with an esoteric use case
-of hibernating a system that runs with debug_pagealloc enabled.
+3. prep_compound_page(new_head, new_order)
+     __SetPageHead(new_head)
+       tmp = new_head->flags.f  <-- load; PG_waiters == 0 in tmp
 
-Make hibernation unavailable when debug_pagealloc is enabled and simplify
-hibernate_{map,unmap}_page() that don't need to deal with debug_pagealloc
-anymore.
+                                           4. folio_set_waiters(new_head)
+                                             set_bit(PG_waiters, &flags.f)
+                                             enqueue on waitqueue, sleep
 
-Link: https://lore.kernel.org/20260926-hibernation-v2-5-235f69f3ab2a@kernel.org
-Signed-off-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
+5.     new_head->flags.f = tmp | (1UL << PG_head)
+       <-- store; overwrites step 4, PG_waiters == 0 again
+
+Later, folio_unlock(new_folio) sees no PG_waiters, skips folio_wake_bit(),
+and CPU1 can remain blocked indefinitely.
+
+Fix it by adding the atomic version SetPageHead() and
+prep_compound_page_atomic() using it.  __split_folio_to_order() uses
+prep_compound_page_atomic() to avoid the issue without adding an atomic
+ops to other prep_compound_page() users.
+
+Link: https://lore.kernel.org/20261029-fix-split_folio_to_order-race-v1-1-a483c7451b0d@nvidia.com
+Fixes: c010d47f107f ("mm: thp: split huge page to any lower order pages")
+Signed-off-by: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Acked-by: David Hildenbrand (Arm) <david@kernel.org>
-Acked-by: Rafael J. Wysocki <rafael@kernel.org>
-Cc: Alexander Potapenko <glider@google.com>
-Cc: Marco Elver <elver@google.com>
-Cc: Dmitry Vyukov <dvyukov@google.com>
-Cc: Len Brown <lenb@kernel.org>
-Cc: Pavel Machek <pavel@kernel.org>
+Reported-by: David Hildenbrand <david@kernel.org>
+Closes: https://lore.kernel.org/all/DMHE8BEEER1H.2BIY52NXATPIA@nvidia.com/
+Cc: Lorenzo Stoakes <ljs@kernel.org>
+Cc: Liam R. Howlett <liam@infradead.org>
+Cc: Vlastimil Babka <vbabka@kernel.org>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
+Cc: Nico Pache <nico.pache@linux.dev>
+Cc: Ryan Roberts <ryan.roberts@arm.com>
+Cc: Dev Jain <dev.jain@arm.com>
+Cc: Barry Song <baohua@kernel.org>
+Cc: Lance Yang <lance.yang@linux.dev>
+Cc: Usama Arif <usama.arif@linux.dev>
+Cc: Kiryl Shutsemau <kas@kernel.org>
+Cc: Brendan Jackman <brendan.jackman@linux.dev>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Ye Liu <ye.liu@linux.dev>
+Cc: <stable@vger.kernel.org>
 ---
 
- kernel/power/hibernate.c |    1 +
- kernel/power/snapshot.c  |   31 +++++--------------------------
- 2 files changed, 6 insertions(+), 26 deletions(-)
+ include/linux/page-flags.h |    1 +
+ mm/huge_memory.c           |   10 +++++++++-
+ mm/internal.h              |    2 ++
+ mm/page_alloc.c            |   20 ++++++++++++++++++--
+ 4 files changed, 30 insertions(+), 3 deletions(-)
 
---- a/kernel/power/hibernate.c~hibernation-make-hibernation-unavailable-when-debug_pagealloc-is-on
-+++ a/kernel/power/hibernate.c
-@@ -116,6 +116,7 @@ bool hibernation_available(void)
- 	return nohibernate == 0 &&
- 		!security_locked_down(LOCKDOWN_HIBERNATION) &&
- 		!secretmem_active() && !cxl_mem_active() &&
-+		!debug_pagealloc_enabled() &&
- 		arch_hibernation_available();
+--- a/include/linux/page-flags.h~mm-huge_memory-prevent-losing-pg_waiters-in-__split_folio_to_order
++++ a/include/linux/page-flags.h
+@@ -854,6 +854,7 @@ static __always_inline int PageHead(cons
+ 	return test_bit(PG_head, &page->flags.f);
  }
  
---- a/kernel/power/snapshot.c~hibernation-make-hibernation-unavailable-when-debug_pagealloc-is-on
-+++ a/kernel/power/snapshot.c
-@@ -85,12 +85,7 @@ static inline int hibernate_map_page(str
- 	if (is_kfence_address(page_address(page)))
- 		return kfence_force_mapping(page) ? 0 : -EFAULT;
++SETPAGEFLAG(Head, head, PF_ANY)
+ __SETPAGEFLAG(Head, head, PF_ANY)
+ __CLEARPAGEFLAG(Head, head, PF_ANY)
+ CLEARPAGEFLAG(Head, head, PF_ANY)
+--- a/mm/huge_memory.c~mm-huge_memory-prevent-losing-pg_waiters-in-__split_folio_to_order
++++ a/mm/huge_memory.c
+@@ -3781,7 +3781,15 @@ static void __split_folio_to_order(struc
+ 		 */
+ 		clear_compound_head(new_head);
+ 		if (new_order) {
+-			prep_compound_page(new_head, new_order);
++			/*
++			 * new_head is recognized as a folio after
++			 * clear_compound_head().
++			 * softleaf_entry_wait_on_locked() can set PG_waiters
++			 * on it without taking a reference, so its frozen state
++			 * cannot prevent it. Use the atomic version to avoid
++			 * losing a concurrently set PG_waiters.
++			 */
++			prep_compound_page_atomic(new_head, new_order);
+ 			folio_set_large_rmappable(new_folio);
+ 		}
  
--	if (IS_ENABLED(CONFIG_ARCH_HAS_SET_DIRECT_MAP)) {
--		return set_direct_map_default_noflush(page, 1);
--	} else {
--		debug_pagealloc_map_pages(page, 1);
--		return 0;
--	}
-+	return 0;
+--- a/mm/internal.h~mm-huge_memory-prevent-losing-pg_waiters-in-__split_folio_to_order
++++ a/mm/internal.h
+@@ -806,6 +806,8 @@ static inline void prep_compound_tail(st
+ 	VM_WARN_ON_ONCE(tail->private);
  }
  
- static inline int hibernate_unmap_page(struct page *page)
-@@ -98,17 +93,6 @@ static inline int hibernate_unmap_page(s
- 	if (is_kfence_address(page_address(page)))
- 		return kfence_reset_mapping(page) ? 0 : -EFAULT;
++void prep_compound_page_atomic(struct page *page, unsigned int order);
++
+ #if defined CONFIG_COMPACTION || defined CONFIG_CMA
  
--	if (IS_ENABLED(CONFIG_ARCH_HAS_SET_DIRECT_MAP)) {
--		unsigned long addr = (unsigned long)page_address(page);
--		int ret  = set_direct_map_invalid_noflush(page, 1);
--
--		if (ret)
--			return ret;
--
--		flush_tlb_kernel_range(addr, addr + PAGE_SIZE);
--	} else {
--		debug_pagealloc_unmap_pages(page, 1);
--	}
- 	return 0;
- }
- 
-@@ -1446,10 +1430,10 @@ static inline bool do_copy_page(long *ds
  /*
-  * safe_copy_page - Copy a page in a safe way.
-  *
-- * Check if the page we are going to copy is marked as present in the kernel
-- * page tables. This always is the case if CONFIG_DEBUG_PAGEALLOC or
-- * CONFIG_ARCH_HAS_SET_DIRECT_MAP is not set. In that case kernel_page_present()
-- * always returns 'true'.
-+ * Page could be not present in the kernel page tables. Try to map it before
-+ * copiyng and unmap back as needed.
-+ * If the kernel page table update fails, bail out with an error.
-+ *
-  * Sets @zeros_only to true if the page was entirely composed of zeros.
-  *
-  * Returns 0 on success, a negative error code on failure.
-@@ -1458,11 +1442,6 @@ static int safe_copy_page(void *dst, str
- {
- 	int err;
+--- a/mm/page_alloc.c~mm-huge_memory-prevent-losing-pg_waiters-in-__split_folio_to_order
++++ a/mm/page_alloc.c
+@@ -682,18 +682,34 @@ static inline bool pcp_allowed_order(uns
+  * This usage means that zero-order pages may not be compound.
+  */
  
--	if (kernel_page_present(s_page)) {
--		*zeros_only = do_copy_page(dst, page_address(s_page));
--		return 0;
--	}
--
- 	err = hibernate_map_page(s_page);
- 	if (err)
- 		return err;
+-void prep_compound_page(struct page *page, unsigned int order)
++static void __prep_compound_head_and_tail(struct page *page, unsigned int order)
+ {
+ 	int i;
+ 	int nr_pages = 1 << order;
+ 
+-	__SetPageHead(page);
+ 	for (i = 1; i < nr_pages; i++)
+ 		prep_compound_tail(page + i, page, order);
+ 
+ 	prep_compound_head(page, order);
+ }
+ 
++void prep_compound_page(struct page *page, unsigned int order)
++{
++	__SetPageHead(page);
++	__prep_compound_head_and_tail(page, order);
++}
++
++/*
++ * PG_head is set atomically whereas the other metadata is set with plain stores.
++ * It should be used when @page's flags can be modified concurrently,
++ * e.g., in __split_folio_to_order().
++ */
++void prep_compound_page_atomic(struct page *page, unsigned int order)
++{
++	SetPageHead(page);
++	__prep_compound_head_and_tail(page, order);
++}
++
+ static inline void set_buddy_order(struct page *page, unsigned int order)
+ {
+ 	set_page_private(page, order);
 _
 
-Patches currently in -mm which might be from rppt@kernel.org are
+Patches currently in -mm which might be from ziy@nvidia.com are
 
-mm-cma-accept-memory-of-multi-range-cma-areas.patch
-mm-cma-accept-memory-of-cma-areas-reserved-at-a-fixed-address.patch
-hibernation-make-swsusp_page-helpers-static.patch
-hibernation-ensure-secretmem-pages-dont-reach-a-snapshot.patch
-hibernate-handle-potential-errors-in-hibernate_mapunmap_page.patch
-hibernation-kfence-explicitly-map-unmap-kfence-pages.patch
-hibernation-make-hibernation-unavailable-when-debug_pagealloc-is-on.patch
+mm-huge_memory-prevent-losing-pg_waiters-in-__split_folio_to_order.patch
 
