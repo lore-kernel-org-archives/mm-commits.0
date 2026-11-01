@@ -1,46 +1,46 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793562275;
-	b=kkmbM0Ewv0Vw4CxCKzmVASD4uExVDB4UDhJQVRs302qAUSb3+GKN3ZHY/fJQmtlfEu83
-	 hGdJuLGtDnvGWx/LB9F/lgdXkpJ8XvtrDXfjZ5mtVi4REeYzP65KVIRRKbyiOBz24ktt8
-	 S7Qdx8cp39hWOja0/pYs8yBFEmTn8dKwDJSnIDLRRz2yml0X0J31ZzptXfoDhQUImjNCv
-	 iQFMLTzPPu07z938BvD5903D0CStCu5tAHzYMEYCTpOMka/jiiS0O1oVFMB9B8aIDWxOM
-	 fz6vXHlPy535AqVPrZGrgjwZ7B8AmPRYGKSOCsxXMemQpjhasZu4LdPQRYCu4u1Zpzg==
+	t=1793562276;
+	b=h/d3DJJ9a7BtHEjdUeYKBHT34LBqYv/y1CHWjrgAqFVNeFtIig5F/8ICsSkE1KXBipKb
+	 1l11NYbXmSe55xF8dKOxAWF+mPF23ELokG28V9x1zAOqEG+shc+MxkTSNNuWRHjFSgWC3
+	 UauzlxsQSpCYDARY12q5V11G/J0dStbVCvhTO2t65zJmMtcfoy0NIbNoZgcQKwCszQU61
+	 J8GtkISXEw479Y7erUI2yAbucVZFc3cwhWaxLeYSWZiGYTImhwcx79q9T3tKozthbPSlY
+	 iF6NaEJHSeozD69OvMWXIRtYEB9URWg8ITaQPOeeeMS0LC7tWHEZ1KwpvcBETEF5p3w==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793562275;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793562276;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=0xzPpztL6ZAPTWzkaOBD+xn/GGZArcM3a+nx+fwW+BM=;
-	b=TQvA5rmt2cOE8PrvjJmQkp9Z2rgJFUcG6taUxBzjvol8e2NKP1ohbF178jl4jkUGo1DA
-	 o7Nr8+9zvXOyLh+jS+ZZoo88tjOYfIWqTmiTztyAmY0tpZZ+3q+u7z5/jHQiMfMqHtFJn
-	 CltUk1e4sdntshh7gX4mHwZqYds9kXouYkO6GPNy/JCr4E/cgr0FTcSte/P4qmOZ03dZv
-	 tdMNb3WcQCTMCJIDtkoQELOkCufBgkUP5KUAK+9OTbR8V6OzNf5W4BmKdpwYjW/Jh3DJZ
-	 TKNdC8GiUWH6AnXYFECU4Rvu/GtSLS2cSRTjH4oPWejSgg9nreVFK9YqbRJACtILshQ==
+	bh=rmho93q5k5CGNQGrj7mwLl44PkdMtkDSQUVhTi2u6B0=;
+	b=VqakwIG+yHLLVlH8CiRlo9T44s6gmrYP0HrcEi+4YrTg/FLNELgHCHDwJtxHekPaRaXc
+	 /JRCaK15MG2VA/9cwmag31PIBa+20uXhKUr1y4yx08Jy3jA81PoenYJHXMq9WVQwnUP3g
+	 sR67BXW46FRmpoL0qJCGeWNQcd4WuMpWNCm7+JvnHhcSTce2k3LGAR8XAGrFbmJtXxn2g
+	 vO+Wjcu6Km+zbiEyDG0KYxSBE7Zfr7O5+LDxxFXb0vXAsSM23neKOHzFPeEqkgGXR59HR
+	 eA8YqhrxLnt+dS77dJXc+CbYFbLOEUse+a4PCYxMlcyxKyPgIfmidGK/POHDpW13fjg==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=CVM2Wik8;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=z4jR1KPD;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AC12B606A325
-	for <mm-commits@vger.kernel.org>; Sun,  1 Nov 2026 19:44:34 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8F4FE606A330
+	for <mm-commits@vger.kernel.org>; Sun,  1 Nov 2026 19:44:36 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=CVM2Wik8
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3C6B81F000C1;
-	Sun,  1 Nov 2026 19:44:34 +0000 (UTC)
+	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=z4jR1KPD
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 199341F000C1;
+	Sun,  1 Nov 2026 19:44:36 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1793562274;
-	bh=0xzPpztL6ZAPTWzkaOBD+xn/GGZArcM3a+nx+fwW+BM=;
+	d=linux-foundation.org; s=korg; t=1793562276;
+	bh=rmho93q5k5CGNQGrj7mwLl44PkdMtkDSQUVhTi2u6B0=;
 	h=Date:To:From:Subject;
-	b=CVM2Wik8a4Z4u18K+clh5/YCwMUnUzqVfhP2byF62rY+Mo5MsDhdB1JlVgxsl1WaW
-	 hy6qjIozWvzaxmg54aosDF8Fefd83T/8iiPdoYylOP/RGM9HF4jplc+sEss717USbD
-	 ngf/vcoL4IAkl0E0cyismzEEUpDcqNAwLLlFMzXo=
-Date: Sun, 01 Nov 2026 11:44:33 -0800
+	b=z4jR1KPDFTDNSiQRTgQJoo2uNH7gvEiX3RIO73AL39No+6PUulSPFWuLnXN1yqT3+
+	 gFKzx+ywisurp9dSe2ir83P6kgs7LMrRnGepMqdXZnuFCF4KCc7DMJ6GuIRgmCqw7W
+	 qlK6yt/a4YExzZitlL7CXuAwKJzLl1CIJwc1snBo=
+Date: Sun, 01 Nov 2026 11:44:35 -0800
 To: mm-commits@vger.kernel.org,balbirs@nvidia.com,brads@mainlining.org,
 	akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + taskstats-reuse-na-in-cgroupstats_user_cmd.patch added to mm-nonmm-unstable branch
-Message-Id: <20261101194434.3C6B81F000C1@smtp.kernel.org>
+Subject: + taskstats-use-div_u64-for-the-elapsed-time-in-tgid_stats_add_task.patch added to mm-nonmm-unstable branch
+Message-Id: <20261101194436.199341F000C1@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -52,12 +52,12 @@ Precedence: list
 
 
 The patch titled
-     Subject: taskstats: reuse na in cgroupstats_user_cmd()
+     Subject: taskstats: use div_u64() for the elapsed time in tgid_stats_add_task()
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     taskstats-reuse-na-in-cgroupstats_user_cmd.patch
+     taskstats-use-div_u64-for-the-elapsed-time-in-tgid_stats_add_task.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/taskstats-reuse-na-in-cgroupstats_user_cmd.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/taskstats-use-div_u64-for-the-elapsed-time-in-tgid_stats_add_task.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -76,35 +76,37 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Bradley Morgan <brads@mainlining.org>
-Subject: taskstats: reuse na in cgroupstats_user_cmd()
-Date: Sun, 01 Nov 2026 00:57:42 +0000
+Subject: taskstats: use div_u64() for the elapsed time in tgid_stats_add_task()
+Date: Sun, 01 Nov 2026 00:57:43 +0000
 
-cgroupstats_user_cmd() already pulled CGROUPSTATS_CMD_ATTR_FD into na to
-check that the user sent it, then indexes info->attrs[] a second time to
-read the value out of the very same attribute.  Read it from na.
+tgid_stats_add_task() converts utime and stime with div_u64() and the
+elapsed time with do_div(), two ways of doing the same 64-bit divide four
+lines apart.  do_div() clobbers its first argument, which is the only
+reason delta needs a statement of its own.  Both end up at a native
+divide on 64-bit and at __div64_32() on 32-bit, so this is only about
+picking one.
 
-No functional change.
-
-Link: https://lore.kernel.org/20261101005743.3022780-3-brads@mainlining.org
+Link: https://lore.kernel.org/20261101005743.3022780-4-brads@mainlining.org
 Signed-off-by: Bradley Morgan <brads@mainlining.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 Cc: Balbir Singh <balbirs@nvidia.com>
 ---
 
- kernel/taskstats.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ kernel/taskstats.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
---- a/kernel/taskstats.c~taskstats-reuse-na-in-cgroupstats_user_cmd
+--- a/kernel/taskstats.c~taskstats-use-div_u64-for-the-elapsed-time-in-tgid_stats_add_task
 +++ a/kernel/taskstats.c
-@@ -417,7 +417,7 @@ static int cgroupstats_user_cmd(struct s
- 	if (!na)
- 		return -EINVAL;
+@@ -226,8 +226,7 @@ static void tgid_stats_add_task(struct t
+ 	/* calculate task elapsed time in nsec */
+ 	delta = now_ns - tsk->start_time;
+ 	/* Convert to micro seconds */
+-	do_div(delta, NSEC_PER_USEC);
+-	stats->ac_etime += delta;
++	stats->ac_etime += div_u64(delta, NSEC_PER_USEC);
  
--	fd = nla_get_u32(info->attrs[CGROUPSTATS_CMD_ATTR_FD]);
-+	fd = nla_get_u32(na);
- 	CLASS(fd, f)(fd);
- 	if (fd_empty(f))
- 		return -EBADF;
+ 	task_cputime(tsk, &utime, &stime);
+ 	stats->ac_utime += div_u64(utime, NSEC_PER_USEC);
 _
 
 Patches currently in -mm which might be from brads@mainlining.org are
