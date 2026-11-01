@@ -1,47 +1,48 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793560753;
-	b=1TGSa++pyAJduIQ6e0eMKuP77neott5hwlzF5oKO7zPYEYWKraLE6XGypkhXQa4Suc3f
-	 Obs3NUGqE2tURp43YKnQgNyIg0Q5+7XHG3VzODBseP/AycmqJEU4y/tHw1IbonN2TJfYl
-	 SlNg9zFui4Rftfvb4YzG+b0XgvhqtNrR2vZ7mO4WJ1wasNF6sXPjMAHXbrCnsoiwU7df6
-	 nXxI+leB/EHMnTq1ZV8vLw4hbP3dIQTWjLKjb2lRwp//Ha/9OPlBbRKr3fhxiHw/t6q7Z
-	 dPJDlPEc4SgIiuk3Gbi/Y/WQ5eCOGWWcZd7qdNQUcPZhiAfDaCa9w/y2bguaWRklwmA==
+	t=1793560881;
+	b=P/UQQeSnfnM16zW26xazwrm3F2NjYM4L/lNIcxMTg6D+PS0xDoReXWsaU4TcxsS5TnID
+	 b960z76w4U3NpOPbomfp0+XyC5wEmM3xNghycbnsNs9WzTLUZU0/ValroukACXOFOXXEQ
+	 8dc2oFbpI2W5yNxPNxdoAC83pP7Yx3sz54Iuen2ZpO7dGEIqw0OB8Kbq7KeI/TwshWeqJ
+	 kuJ7nL4C446Y9jp7dF92YwBkMa2qsko4dG+Bi9e0sAcwomS7d8YXwi5RB64nolyyB2HJc
+	 tQsBfM1b3jrR7eryPpOj6xJ+zV/Nh/2BAMGzkVVRrLjVzpIDtjIa/CdE8MKbKKmPkFw==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793560753;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793560881;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=ENEUPGo4j+nP1jMjyko3qpUNpyXi/BHhbNkFDvONJdM=;
-	b=ikeiZWpr9Szb+6WFBQt+5EsNKReBI3tg6NSp6VG63SkkD2YHQp97jR3Qh89CaTXXJ7Da
-	 1xUmQg/UeaPyOJpxzkFWrgf2Kh9aDgJSqR3KXVx69VY99nngQGX5aOA3N7vsRBzXDaMFV
-	 lyUwZu5FcQGUPsZcN8CBvV7sFm0b0Nwup6gOy+kVdl1EvnSpMNotZ0pahu5uZnAVn9a6R
-	 OJd8WJcD2dGNGDrAbgquaNoEsx3d0xzN7GaEpWylmzuhn6u7LEqSZ/6UUcA5UU14yGKAD
-	 Gs9Yzt+0QLaHkqt+t+gmbC2qUBfsKAGKwf8gfyr/9lUTKRUVfYUI84ES/iDvUi2EPCA==
+	bh=yYaAoFUkrWmeT6eCLConZreHWb/cpAVtPZp2hRVWdKs=;
+	b=AvkEmmXdPqh23tpHIVcVN+GNeeKaMxsw4nUinnFmcEDBAo1JU0cIowflTya2d055manP
+	 SasH1I3Wpw8C1l3imy9oHD+CxyNODbutq1l106puB0Z7OQ2zr5YK/zA1WRW1X9JfcQ1dC
+	 VoK3UZDUoNeO4BEikiFyzTl9AYOlZbsXnEOHdFygRfcjvf6EXR85wzRXctu393Q9P3gjH
+	 sZ7Vd5YDptBNfv7nO0VkCcysuf0fZZ6VbPYbaTi08G3O0Os0hFuBJtv3edEiZHUcA2gP5
+	 1SCfLBFvAiNSndpkbnwxJ5QZrvX3bJ2SwfGKrFJnQ2UXOvCbWrnXMsnDwPAGo82f2iA==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=jgEbTCW6;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=2gEArb72;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B9059606A324;
-	Sun,  1 Nov 2026 19:19:12 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8D136606A325;
+	Sun,  1 Nov 2026 19:21:20 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=jgEbTCW6
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 413771F000C1;
-	Sun,  1 Nov 2026 19:19:12 +0000 (UTC)
+	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=2gEArb72
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 244A11F0093A;
+	Sun,  1 Nov 2026 19:21:20 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1793560752;
-	bh=ENEUPGo4j+nP1jMjyko3qpUNpyXi/BHhbNkFDvONJdM=;
+	d=linux-foundation.org; s=korg; t=1793560880;
+	bh=yYaAoFUkrWmeT6eCLConZreHWb/cpAVtPZp2hRVWdKs=;
 	h=Date:To:From:Subject;
-	b=jgEbTCW6C5AofkkW3BEE8CZH20/T2perJkpRVN6lxf3878SZMnYMbKRFsyFLGlkzc
-	 fTxG+90oZnwQsIDGKdZHjarHM7VQw3piH64MDSIIDKICg/aCuiALfKHtkiLTndXU3u
-	 cSeVC1sf/cjMqkHHctUVNNkx2z4m9D/+4eYs6cpc=
-Date: Sun, 01 Nov 2026 11:19:11 -0800
-To: mm-commits@vger.kernel.org,stable@vger.kernel.org,peterx@redhat.com,
-	mason@kernel.org,luto@amacapital.net,jhubbard@nvidia.com,jgg@ziepe.ca,
-	david@kernel.org,skhawaja@google.com,akpm@linux-foundation.org
+	b=2gEArb72NkIFwA8lPM9LRZ8NAZ7pF9wKUDiDutHlNTAWCk8gGgYGMfuv/QIdcQNyH
+	 BcXvkgrhu0nSb6EKbDHNSRbtOoeXMrJTqnRjDgyQ2+ilncaCbDedRwcfcShL35w2Nj
+	 yUZIOHv3OiB0u0+E9ucMS6TPgR3BBVIPcVNo90kM=
+Date: Sun, 01 Nov 2026 11:21:19 -0800
+To: mm-commits@vger.kernel.org,
+	syzbot+91e1fc35f51774c479b2@syzkaller.appspotmail.com,stable@vger.kernel.org,
+	osalvador@suse.de,muchun.song@linux.dev,lihongbo22@huawei.com,
+	david@kernel.org,joasantonio108@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [to-be-updated] mm-gup-check-folio-mapping-under-folio-lock-in-memfd_pin_folios.patch removed from -mm tree
-Message-Id: <20261101191912.413771F000C1@smtp.kernel.org>
+Subject: [to-be-updated] hugetlbfs-emit-hugetlbfs_free_inode-from-destroy_inode.patch removed from -mm tree
+Message-Id: <20261101192120.244A11F0093A@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -53,86 +54,85 @@ Precedence: list
 
 
 The quilt patch titled
-     Subject: mm/gup: check folio->mapping under folio lock in memfd_pin_folios()
+     Subject: hugetlbfs: emit hugetlbfs_free_inode from ->destroy_inode()
 has been removed from the -mm tree.  Its filename was
-     mm-gup-check-folio-mapping-under-folio-lock-in-memfd_pin_folios.patch
+     hugetlbfs-emit-hugetlbfs_free_inode-from-destroy_inode.patch
 
 This patch was dropped because an updated version will be issued
 
 ------------------------------------------------------
-From: Samiullah Khawaja <skhawaja@google.com>
-Subject: mm/gup: check folio->mapping under folio lock in memfd_pin_folios()
-Date: Sat, 31 Oct 2026 20:35:40 +0000
+From: Joas Antonio dos Santos <joasantonio108@gmail.com>
+Subject: hugetlbfs: emit hugetlbfs_free_inode from ->destroy_inode()
+Date: Sat, 31 Oct 2026 16:06:02 +0000
 
-memfd_pin_folios() pins folios from the page cache without taking the
-folio lock. So khugepaged or MADV_COLLAPSE can replace the folio after
-its refcount check while memfd_pin_folios() still pins the old folio,
-and the caller ends up with a folio that is no longer part of the memfd.
+hugetlbfs_free_inode() calls trace_hugetlbfs_free_inode(), and the
+hugetlbfs__inode event class records inode->i_sb->s_dev.  ->free_inode()
+runs from an RCU callback (destroy_inode() queues i_callback() with
+call_rcu()), and Documentation/filesystems/porting.rst says that this
+callback "is *NOT* ordered wrt superblock destruction; as the matter of
+fact, the superblock and all associated structures might be already gone".
+put_super() frees the superblock with call_rcu() followed by a workqueue
+item (destroy_super_rcu() -> destroy_super_work()).  syzbot hit this with
+the event enabled:
 
-Lock the folio and recheck folio->mapping before pinning it, like other
-page cache users do. If the folio was removed, retry the folio lookup
-from the index that was removed.
+  BUG: KASAN: slab-use-after-free in trace_event_raw_event_hugetlbfs__inode+0x45b/0x4c0 include/trace/events/hugetlbfs.h:36
+  Read of size 4 at addr ffff888038850010 by task syz-executor952/6134
+   hugetlbfs_free_inode+0x15e/0x1f0 fs/hugetlbfs/inode.c:1182
+   i_callback+0x46/0x80 fs/inode.c:317
+   rcu_do_batch kernel/rcu/tree.c:2650 [inline]
+   rcu_core+0x5f0/0x1220 kernel/rcu/tree.c:2919
+  Allocated by task 6134:
+   alloc_super fs/super.c:326 [inline]
+   sget_fc+0x1ba/0x1f60 fs/super.c:874
+   hugetlbfs_get_tree+0x1e7/0x2b0 fs/hugetlbfs/inode.c:1431
+  Freed by task 855:
+   kfree+0x22b/0x6d0 mm/slub.c:6923
+   process_one_work+0xac7/0x1b10 kernel/workqueue.c:3495
 
-Link: https://lore.kernel.org/20261031203540.2282507-1-skhawaja@google.com
-Fixes: 89c1905d9c14 ("mm/gup: introduce memfd_pin_folios() for pinning memfd folios")
-Signed-off-by: Samiullah Khawaja <skhawaja@google.com>
+Emit the event from hugetlbfs_destroy_inode() instead.  destroy_inode()
+calls ->destroy_inode() synchronously, before it queues the RCU callback,
+while the superblock is still alive; hugetlbfs_destroy_inode() already
+dereferences inode->i_sb there.  ->free_inode() is left with only the
+kmem_cache_free().
+
+Link: https://lore.kernel.org/20261031-b4-hugetlbfs-trace-v1-1-4ec8d02a30cc@gmail.com
+Fixes: 014ad7c42a69 ("hugetlbfs: use tracepoints in hugetlbfs functions.")
+Signed-off-by: Joas Antonio dos Santos <joasantonio108@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Reported-by: Andy Lutomirski <luto@amacapital.net>
-Closes: https://lore.kernel.org/all/CALCETrV5eqg6d9=+BQhCpRwBNe3aCQiut8vxPBs8b7PToqjaHg@mail.gmail.com/
+Reported-by: <syzbot+91e1fc35f51774c479b2@syzkaller.appspotmail.com>
+Closes: https://lore.kernel.org/all/6ae27525.5451848c.f7707.0001.GAE@google.com/
+Cc: Muchun Song <muchun.song@linux.dev>
+Cc: Oscar Salvador <osalvador@suse.de>
 Cc: David Hildenbrand <david@kernel.org>
-Cc: Jason Gunthorpe <jgg@ziepe.ca>
-Cc: John Hubbard <jhubbard@nvidia.com>
-Cc: Peter Xu <peterx@redhat.com>
-Cc: Chris Mason <mason@kernel.org>
+Cc: Hongbo Li <lihongbo22@huawei.com>
 Cc: <stable@vger.kernel.org>
 ---
 
- mm/gup.c |   17 ++++++++++++++++-
- 1 file changed, 16 insertions(+), 1 deletion(-)
+ fs/hugetlbfs/inode.c |    6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
 
---- a/mm/gup.c~mm-gup-check-folio-mapping-under-folio-lock-in-memfd_pin_folios
-+++ a/mm/gup.c
-@@ -3464,7 +3464,7 @@ long memfd_pin_folios(struct file *memfd
- {
- 	unsigned int flags, nr_folios, nr_found;
- 	unsigned int i, pgshift = PAGE_SHIFT;
--	pgoff_t start_idx, end_idx;
-+	pgoff_t start_idx, end_idx, retry_idx;
- 	struct folio *folio = NULL;
- 	struct folio_batch fbatch;
- 	struct hstate *h;
-@@ -3505,6 +3505,7 @@ long memfd_pin_folios(struct file *memfd
- 			 * reason, we try to allocate them and add them to the
- 			 * page cache.
- 			 */
-+			retry_idx = start_idx;
- 			nr_found = filemap_get_folios_contig(memfd->f_mapping,
- 							     &start_idx,
- 							     end_idx,
-@@ -3517,7 +3518,21 @@ long memfd_pin_folios(struct file *memfd
- 			for (i = 0; i < nr_found; i++) {
- 				folio = fbatch.folios[i];
+--- a/fs/hugetlbfs/inode.c~hugetlbfs-emit-hugetlbfs_free_inode-from-destroy_inode
++++ a/fs/hugetlbfs/inode.c
+@@ -1179,12 +1179,16 @@ static struct inode *hugetlbfs_alloc_ino
  
-+				/*
-+				 * The folio might have been removed from the
-+				 * page cache (e.g., truncated or collapsed)
-+				 * after the lookup. Recheck under the folio
-+				 * lock.
-+				 */
-+				folio_lock(folio);
-+				if (unlikely(folio->mapping != memfd->f_mapping)) {
-+					folio_unlock(folio);
-+					start_idx = retry_idx;
-+					break;
-+				}
-+
- 				if (try_grab_folio(folio, 1, FOLL_PIN)) {
-+					folio_unlock(folio);
- 					folio_batch_release(&fbatch);
- 					ret = -EINVAL;
- 					goto err;
+ static void hugetlbfs_free_inode(struct inode *inode)
+ {
+-	trace_hugetlbfs_free_inode(inode);
+ 	kmem_cache_free(hugetlbfs_inode_cachep, HUGETLBFS_I(inode));
+ }
+ 
+ static void hugetlbfs_destroy_inode(struct inode *inode)
+ {
++	/*
++	 * Not in ->free_inode(): that runs from an RCU callback, when the
++	 * superblock the event reads may already be freed.
++	 */
++	trace_hugetlbfs_free_inode(inode);
+ 	hugetlbfs_inc_free_inodes(HUGETLBFS_SB(inode->i_sb));
+ }
+ 
 _
 
-Patches currently in -mm which might be from skhawaja@google.com are
+Patches currently in -mm which might be from joasantonio108@gmail.com are
 
 
