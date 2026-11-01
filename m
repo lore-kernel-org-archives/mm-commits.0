@@ -1,47 +1,48 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793561086;
-	b=C4PDy07h6VHBYpLl5wrT5HVeB1mrBpYMjDkfAHaLdELTE8Khc/cefIAptibQnsI8iiz+
-	 um2Ruz1vJGlHZFBs6fA4sIoKQIB60MJdrNav5G6JEIeEkVVlVkpbqPx2634nV9U74axWF
-	 b0RKdpqCM6+7vrNFf+qPv5JYLdHSHaTBaRpDSC0tn89MoU4gN6G67+9kbNvIuZpQ+S5qS
-	 HZI9spp1xrGbHHSDdhGy8CegzL69TGQS4oVmK96Y5VxISIJaehdbKshQor3hKr8WGo19z
-	 CAc9sDRXdWEebmtSRzRekPz8HYX0wOVCBiZwxrYg7WnveI/u5P7V94Sa/Xtj42GU96Q==
+	t=1793561233;
+	b=vFiouIxrxUTn888FqGy0RTujrkUkaibbRaDasw4PW53HcIrxN3q0WI80e3O5S1sTgb7N
+	 FJj6fRavGMXp6uf+ffGfDSmYI3pFWWUWMYvyRcjOfnn7mBVVPLfSky1kDQ97U6oNY2grr
+	 6/JDqiIdw/2WqYjIutM1mSrvsjk2Vv1ISUAmMuXsk3xkf9C/TWuahu28To55jDyl0znB0
+	 Gs/pPd+4Pwl+U2qG2n+b9PxuZsfMzGDztoO9R2MsYBIEld4zahmbkL0yAYVYVe9s8ZlJ1
+	 pQZmfvhS+l727nEDMPmEFQOYNZc2Slra4mL3SA3+x0wG+VUkU2sO2aiZ9ot3hmUnzsA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793561086;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793561233;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=BFL31ghs5GTV7vHd2u128mIg2lN/GK7xiZdsXrn7X80=;
-	b=m2GEEscpOzysTLPCvM0gaBzNZW3eHPO+ekGXxUsfpesdHPChNbipO+2Xrga6NojY9y+Z
-	 22K1aXbXMLXONzRhC3PFfwsuIqGfr6zs1DZte0d3EsHeWiucCssowqcdBUVgIarMTnn7T
-	 Lao/oto7tp9Dt7P5wYzOp+QCvoSvtG8y7ZdGTXOi8fLiSX+OrUks9q6KixVrrHZQXJ4AS
-	 Ok4SfkOfhwnY1ebNxbddWk2O9LqwOmKU2st9mc86Udn/22WmHaK4Bt6eWwXwmytOvFTgr
-	 hRADOnn3nZxhgn5j9MVdMtXTs4mmrb5PZZ2P8jGGAcrjhbd9aPxNfl2GKZTJvAcV+2Q==
+	bh=b5pE2M/qGByB97SoTRFgvCbF+xkHvJYXn27Z9gvuRCU=;
+	b=uDEOeNgl9T6UWNyjEao2RTRsumBZXXS3mZsC0HETXBHtlgxJZEv3jkDEPBSVBbP1NWvH
+	 HlneVQD5yJ+Vwii5R+hJbtDSMvgpyEa8z9nBUYNePckP0//VYu9RxiIkdWvrMpzG161ad
+	 CeVnqZZF+MzlJI7skmx5NegYGpbFpfgfg3Z8I8YQQKc4X36jmHFwQACG75Zi7qEdqGpIE
+	 oDU+qhNbiK6y17tiYnH/PwjBTWXqPTBMDbpY0OURf2OdHJjPElao2BtX+HLqBTrlGHx7m
+	 /T5XwxzUnEqJ/8C3Jen5kZQbf2cfUN+CBmRHhMcPdS+ens59ZfnVKfjEzwrpImK3RhQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=PFUu9Mt2;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=L5rrJVMI;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 23C6C606A326
-	for <mm-commits@vger.kernel.org>; Sun,  1 Nov 2026 19:24:45 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D557D606A324;
+	Sun,  1 Nov 2026 19:27:12 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=PFUu9Mt2
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9CEE81F000C1;
-	Sun,  1 Nov 2026 19:24:45 +0000 (UTC)
+	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=L5rrJVMI
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5EBEE1F000C1;
+	Sun,  1 Nov 2026 19:27:12 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1793561085;
-	bh=BFL31ghs5GTV7vHd2u128mIg2lN/GK7xiZdsXrn7X80=;
+	d=linux-foundation.org; s=korg; t=1793561232;
+	bh=b5pE2M/qGByB97SoTRFgvCbF+xkHvJYXn27Z9gvuRCU=;
 	h=Date:To:From:Subject;
-	b=PFUu9Mt2Kd06DR0E+NZ3d0P9LcYbPGF7Ssm1eiZQYjtgwp6pIt98DedVVnK5LJXPL
-	 uI+cv/QFAlOShnTiAd3n4gj02LGxBDJTYgeUkg2rshaHfjbw1dVJKv3pK2+DiscGs7
-	 LgZmZTl64y+Rq7zFAx/ihpxN2FNjSYEPcxSlTPHQ=
-Date: Sun, 01 Nov 2026 11:24:45 -0800
-To: mm-commits@vger.kernel.org,shinichiro.kawasaki@wdc.com,
-	keithrteeple@gmail.com,david@davidgow.net,axboe@kernel.dk,szwyb123@gmail.com,
-	akpm@linux-foundation.org
+	b=L5rrJVMISfXavStXFOJLBKKhxNJ+vMKPAifb+kQ5VNONTpOKYChfL7OilcX+QbFRg
+	 J++TfGBajyxs04R7SbDU1yyHk/WEsa6UHL0CiErAiyfDNc1AtDkPyu5NZxvwPseowx
+	 q//y197TkgMKnTZPCy/duKONMI+3FRM7acGBlyOw=
+Date: Sun, 01 Nov 2026 11:27:11 -0800
+To: mm-commits@vger.kernel.org,vbabka@kernel.org,tz2294@columbia.edu,
+	stable@vger.kernel.org,pfalcato@suse.de,peterx@redhat.com,
+	NoahWeinberger2003@proton.me,ljs@kernel.org,liam@infradead.org,
+	jannh@google.com,david@kernel.org,rppt@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + lib-sbitmap-add-kunit-test-suite.patch added to mm-nonmm-unstable branch
-Message-Id: <20261101192445.9CEE81F000C1@smtp.kernel.org>
+Subject: + mm-vma-undo-userfaultfd-unmap-preparation-when-unmapping-fails.patch added to mm-hotfixes-unstable branch
+Message-Id: <20261101192712.5EBEE1F000C1@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -53,14 +54,14 @@ Precedence: list
 
 
 The patch titled
-     Subject: lib/sbitmap: add KUnit test suite
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     lib-sbitmap-add-kunit-test-suite.patch
+     Subject: mm/vma: undo userfaultfd unmap preparation when unmapping fails
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     mm-vma-undo-userfaultfd-unmap-preparation-when-unmapping-fails.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/lib-sbitmap-add-kunit-test-suite.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vma-undo-userfaultfd-unmap-preparation-when-unmapping-fails.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -76,394 +77,211 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Wang Yibo <szwyb123@gmail.com>
-Subject: lib/sbitmap: add KUnit test suite
-Date: Fri, 16 Oct 2026 15:32:53 +0800
+From: "Mike Rapoport (Microsoft)" <rppt@kernel.org>
+Subject: mm/vma: undo userfaultfd unmap preparation when unmapping fails
+Date: Sun, 01 Nov 2026 10:24:02 +0200
 
-sbitmap is the tag allocator used by blk-mq and the I/O schedulers built
-on top of it, but the plain, synchronous part of its API has no test
-coverage at all.
+vms_gather_munmap_vmas() collects VMAs to unmap and calls
+userfaultfd_unmap_prep() for each of these VMAs. This takes a reference
+to the userfaultfd context, raises ctx->mmap_changing and queues an
+UFFD_EVENT_UNMAP on the caller's list.
 
-Add a KUnit suite covering initialisation, allocation and exhaustion,
-deferred clears, round-robin ordering, resize, the bitmap helpers and
-sbitmap_for_each_set(), so that the behaviour is checked on every boot.
+If gathering fails half way, e.g. because one of the VMAs is sealed, or
+the operation fails after the VMAs were gathered, the original mappings
+stay intact but the queued events remain on the list.
 
-The new file is added to the BLOCK LAYER entry in MAINTAINERS, next to
-lib/sbitmap.c, so that it does not end up without a maintainer.
+Depending on the caller they are either delivered although nothing was
+unmapped (munmap(), mremap(), mmap(MAP_FIXED)), or silently dropped
+(brk()). In the latter case the userfaultfd context and the mm_struct it
+pins are leaked and mmap_changing is never lowered, so UFFDIO_COPY,
+UFFDIO_ZEROPAGE and all other ioctls that check mmap_changing fail with
+-EAGAIN forever.
 
-Link: https://lore.kernel.org/20261016073253.520971-1-szwyb123@gmail.com
-Signed-off-by: Wang Yibo <szwyb123@gmail.com>
+With mseal() this is trivially triggered by an unprivileged process.
+
+Collect the events in do_vmi_align_munmap() on a local list and splice
+it to the caller's list only when the unmap completes, because mremap()
+may already have events for earlier unmaps on that list.
+
+Drop the pending events with a new userfaultfd_unmap_abort() helper when
+do_vmi_align_munmap() or __mmap_setup() fail.
+
+Link: https://lore.kernel.org/20261101-uffd-unmap-abort-v1-1-1588d7a7c61a@kernel.org
+Fixes: 65ac132027a8 ("userfaultfd: fix regression in userfaultfd_unmap_prep()")
+Signed-off-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Reviewed-by: David Gow <david@davidgow.net>
-Tested-by: Keith Teeple <keithrteeple@gmail.com>
-Cc: Jens Axboe <axboe@kernel.dk>
-Cc: Shin'ichiro Kawasaki <shinichiro.kawasaki@wdc.com>
+Reported-by: Noah Weinberger <NoahWeinberger2003@proton.me>
+Reviewed-by: Tal Zussman <tz2294@columbia.edu>
+Tested-by: Tal Zussman <tz2294@columbia.edu>
+Cc: Liam R. Howlett <liam@infradead.org>
+Cc: Lorenzo Stoakes <ljs@kernel.org>
+Cc: David Hildenbrand <david@kernel.org>
+Cc: Jann Horn <jannh@google.com>
+Cc: Pedro Falcato <pfalcato@suse.de>
+Cc: Peter Xu <peterx@redhat.com>
+Cc: Vlastimil Babka <vbabka@kernel.org>
+Cc: <stable@vger.kernel.org>
 ---
 
- MAINTAINERS               |    1 
- lib/Kconfig.debug         |   13 +
- lib/tests/Makefile        |    1 
- lib/tests/sbitmap_kunit.c |  308 ++++++++++++++++++++++++++++++++++++
- 4 files changed, 323 insertions(+)
+ include/linux/userfaultfd_k.h     |    5 +++++
+ mm/userfaultfd.c                  |   19 +++++++++++++++++++
+ mm/vma.c                          |   28 +++++++++++++++++++++++-----
+ tools/testing/vma/include/stubs.h |    4 ++++
+ 4 files changed, 51 insertions(+), 5 deletions(-)
 
---- a/lib/Kconfig.debug~lib-sbitmap-add-kunit-test-suite
-+++ a/lib/Kconfig.debug
-@@ -2503,6 +2503,19 @@ config PRINTF_KUNIT_TEST
+--- a/include/linux/userfaultfd_k.h~mm-vma-undo-userfaultfd-unmap-preparation-when-unmapping-fails
++++ a/include/linux/userfaultfd_k.h
+@@ -279,6 +279,7 @@ extern int userfaultfd_unmap_prep(struct
+ 		unsigned long start, unsigned long end, struct list_head *uf);
+ extern void userfaultfd_unmap_complete(struct mm_struct *mm,
+ 				       struct list_head *uf);
++void userfaultfd_unmap_abort(struct list_head *uf);
+ extern bool userfaultfd_wp_unpopulated(struct vm_area_struct *vma);
+ extern bool userfaultfd_wp_async(struct vm_area_struct *vma);
+ extern bool userfaultfd_rwp_async(struct vm_area_struct *vma);
+@@ -445,6 +446,10 @@ static inline void userfaultfd_unmap_com
+ {
+ }
  
- 	  If unsure, say N.
++static inline void userfaultfd_unmap_abort(struct list_head *uf)
++{
++}
++
+ static inline bool uffd_disable_fault_around(struct vm_area_struct *vma)
+ {
+ 	return false;
+--- a/mm/userfaultfd.c~mm-vma-undo-userfaultfd-unmap-preparation-when-unmapping-fails
++++ a/mm/userfaultfd.c
+@@ -3307,6 +3307,25 @@ void userfaultfd_unmap_complete(struct m
+ 	}
+ }
  
-+config SBITMAP_KUNIT_TEST
-+	tristate "KUnit test for sbitmap" if !KUNIT_ALL_TESTS
-+	depends on KUNIT
-+	depends on SBITMAP
-+	default KUNIT_ALL_TESTS
-+	help
-+	  Enable to turn on sbitmap tests, running at boot or module load time.
-+
-+	  For more information on KUnit and unit tests in general, please refer
-+	  to the KUnit documentation in Documentation/dev-tools/kunit/.
-+
-+	  If unsure, say N.
-+
- config SCANF_KUNIT_TEST
- 	tristate "KUnit test scanf() family of functions at runtime" if !KUNIT_ALL_TESTS
- 	depends on KUNIT
---- a/lib/tests/Makefile~lib-sbitmap-add-kunit-test-suite
-+++ a/lib/tests/Makefile
-@@ -46,6 +46,7 @@ obj-$(CONFIG_OVERFLOW_KUNIT_TEST) += ove
- obj-$(CONFIG_PRANDOM_KUNIT_TEST) += random32_kunit.o
- obj-$(CONFIG_PRINTF_KUNIT_TEST) += printf_kunit.o
- obj-$(CONFIG_RANDSTRUCT_KUNIT_TEST) += randstruct_kunit.o
-+obj-$(CONFIG_SBITMAP_KUNIT_TEST) += sbitmap_kunit.o
- obj-$(CONFIG_SCANF_KUNIT_TEST) += scanf_kunit.o
- obj-$(CONFIG_SEQ_BUF_KUNIT_TEST) += seq_buf_kunit.o
- obj-$(CONFIG_SLUB_KUNIT_TEST) += slub_kunit.o
-diff --git a/lib/tests/sbitmap_kunit.c a/lib/tests/sbitmap_kunit.c
-new file mode 100644
---- /dev/null
-+++ a/lib/tests/sbitmap_kunit.c
-@@ -0,0 +1,308 @@
-+// SPDX-License-Identifier: GPL-2.0-only
-+/*
-+ * KUnit tests for the scalable bitmap (sbitmap) implementation.
-+ *
-+ * sbitmap is the tag allocator used by blk-mq and the I/O schedulers built on
-+ * top of it, but it has no tests.  These tests pin down the observable
-+ * behaviour of the plain, synchronous parts of the API.
-+ *
-+ * Copyright (C) 2026 Wang Yibo <szwyb123@gmail.com>
-+ */
-+
-+#include <linux/bitmap.h>
-+#include <linux/gfp.h>
-+#include <linux/sbitmap.h>
-+
-+#include <kunit/test.h>
-+
-+/*
-+ * Big enough to span several words for any plausible BITS_PER_LONG, and not a
-+ * power of two so that the last word is partially used.
-+ */
-+#define SBITMAP_TEST_DEPTH	(3 * BITS_PER_LONG + 5)
-+
-+static void sbitmap_test_init(struct kunit *test)
++void userfaultfd_unmap_abort(struct list_head *uf)
 +{
-+	const unsigned int depth = 97;
-+	struct sbitmap sb;
-+	int ret;
++	struct userfaultfd_unmap_ctx *unmap_ctx, *n;
 +
-+	ret = sbitmap_init_node(&sb, depth, -1, GFP_KERNEL, NUMA_NO_NODE,
-+				false, true);
-+	KUNIT_ASSERT_EQ(test, ret, 0);
-+	KUNIT_EXPECT_EQ(test, sb.depth, depth);
-+	KUNIT_EXPECT_EQ(test, sb.shift,
-+			(unsigned int)sbitmap_calculate_shift(depth));
-+	KUNIT_EXPECT_EQ(test, sb.map_nr, DIV_ROUND_UP(depth, 1U << sb.shift));
-+	KUNIT_EXPECT_FALSE(test, sb.round_robin);
-+	/*
-+	 * alloc_hint is a __percpu pointer, which the generic pointer
-+	 * assertions cannot take: on x86, where percpu data lives in
-+	 * __seg_gs, passing it through a const void * does not compile.
-+	 * Test it as a plain boolean instead.
-+	 */
-+	KUNIT_EXPECT_TRUE(test, sb.alloc_hint);
-+	KUNIT_EXPECT_FALSE(test, sbitmap_any_bit_set(&sb));
-+	KUNIT_EXPECT_EQ(test, sbitmap_weight(&sb), 0U);
-+	sbitmap_free(&sb);
++	if (!uf)
++		return;
 +
-+	/* An explicitly requested shift is honoured. */
-+	ret = sbitmap_init_node(&sb, depth, 3, GFP_KERNEL, NUMA_NO_NODE,
-+				false, true);
-+	KUNIT_ASSERT_EQ(test, ret, 0);
-+	KUNIT_EXPECT_EQ(test, sb.shift, 3U);
-+	KUNIT_EXPECT_EQ(test, sb.map_nr, DIV_ROUND_UP(depth, 1U << 3));
-+	sbitmap_free(&sb);
++	list_for_each_entry_safe(unmap_ctx, n, uf, list) {
++		struct userfaultfd_ctx *ctx = unmap_ctx->ctx;
 +
-+	/* BITS_PER_LONG bits per word is the largest representable granularity. */
-+	ret = sbitmap_init_node(&sb, depth, ilog2(BITS_PER_LONG), GFP_KERNEL,
-+				NUMA_NO_NODE, false, true);
-+	KUNIT_ASSERT_EQ(test, ret, 0);
-+	KUNIT_EXPECT_EQ(test, sb.shift, (unsigned int)ilog2(BITS_PER_LONG));
-+	KUNIT_EXPECT_EQ(test, sb.map_nr, DIV_ROUND_UP(depth, BITS_PER_LONG));
-+	sbitmap_free(&sb);
++		atomic_dec(&ctx->mmap_changing);
++		VM_WARN_ON_ONCE(atomic_read(&ctx->mmap_changing) < 0);
++		userfaultfd_ctx_put(ctx);
 +
-+	/* Anything above that cannot be represented and must be rejected. */
-+	ret = sbitmap_init_node(&sb, depth, ilog2(BITS_PER_LONG) + 1,
-+				GFP_KERNEL, NUMA_NO_NODE, false, true);
-+	KUNIT_EXPECT_EQ(test, ret, -EINVAL);
-+}
-+
-+static void sbitmap_test_calculate_shift(struct kunit *test)
-+{
-+	/* Maps too small to spread over several words keep the default. */
-+	KUNIT_EXPECT_EQ(test, sbitmap_calculate_shift(0), ilog2(BITS_PER_LONG));
-+	KUNIT_EXPECT_EQ(test, sbitmap_calculate_shift(1), ilog2(BITS_PER_LONG));
-+	KUNIT_EXPECT_EQ(test, sbitmap_calculate_shift(3), ilog2(BITS_PER_LONG));
-+
-+	/* Four bits map to one bit per word. */
-+	KUNIT_EXPECT_EQ(test, sbitmap_calculate_shift(4), 0);
-+
-+	/* The shift grows back as the depth increases. */
-+	KUNIT_EXPECT_EQ(test, sbitmap_calculate_shift(4 * BITS_PER_LONG - 1),
-+			ilog2(BITS_PER_LONG) - 1);
-+	KUNIT_EXPECT_EQ(test, sbitmap_calculate_shift(4 * BITS_PER_LONG),
-+			ilog2(BITS_PER_LONG));
-+}
-+
-+static void sbitmap_test_get_exhaust(struct kunit *test)
-+{
-+	DECLARE_BITMAP(seen, SBITMAP_TEST_DEPTH) = { 0 };
-+	struct sbitmap sb;
-+	unsigned int i;
-+	int bit;
-+
-+	KUNIT_ASSERT_EQ(test, sbitmap_init_node(&sb, SBITMAP_TEST_DEPTH, -1,
-+						GFP_KERNEL, NUMA_NO_NODE,
-+						false, true), 0);
-+
-+	/* Every bit is handed out exactly once, then the map is empty. */
-+	for (i = 0; i < SBITMAP_TEST_DEPTH; i++) {
-+		bit = sbitmap_get(&sb);
-+		KUNIT_ASSERT_GE(test, bit, 0);
-+		KUNIT_ASSERT_LT(test, bit, (int)SBITMAP_TEST_DEPTH);
-+		KUNIT_ASSERT_FALSE(test, test_bit(bit, seen));
-+		__set_bit(bit, seen);
++		list_del(&unmap_ctx->list);
++		kfree(unmap_ctx);
 +	}
-+
-+	KUNIT_EXPECT_TRUE(test, sbitmap_any_bit_set(&sb));
-+	KUNIT_EXPECT_EQ(test, sbitmap_weight(&sb),
-+			(unsigned int)SBITMAP_TEST_DEPTH);
-+	KUNIT_EXPECT_EQ(test, sbitmap_get(&sb), -1);
-+
-+	sbitmap_free(&sb);
 +}
 +
-+static void sbitmap_test_put_reuse(struct kunit *test)
-+{
-+	struct sbitmap sb;
-+	unsigned int i;
-+	int bit;
-+
-+	KUNIT_ASSERT_EQ(test, sbitmap_init_node(&sb, BITS_PER_LONG, -1,
-+						GFP_KERNEL, NUMA_NO_NODE,
-+						true, true), 0);
-+
-+	for (i = 0; i < BITS_PER_LONG; i++)
-+		KUNIT_ASSERT_GE(test, sbitmap_get(&sb), 0);
-+
-+	KUNIT_EXPECT_EQ(test, sbitmap_weight(&sb), (unsigned int)BITS_PER_LONG);
-+	KUNIT_EXPECT_EQ(test, sbitmap_get(&sb), -1);
-+
-+	/*
-+	 * Freeing a single bit must make exactly that bit available again, no
-+	 * matter which bit it was.
-+	 */
-+	for (i = 0; i < BITS_PER_LONG; i++) {
-+		sbitmap_put(&sb, i);
-+		KUNIT_EXPECT_EQ(test, sbitmap_weight(&sb),
-+				(unsigned int)BITS_PER_LONG - 1);
-+		bit = sbitmap_get(&sb);
-+		KUNIT_EXPECT_EQ(test, bit, (int)i);
-+		KUNIT_EXPECT_EQ(test, sbitmap_weight(&sb),
-+				(unsigned int)BITS_PER_LONG);
-+		KUNIT_EXPECT_EQ(test, sbitmap_get(&sb), -1);
-+	}
-+
-+	sbitmap_free(&sb);
-+}
-+
-+static void sbitmap_test_round_robin(struct kunit *test)
-+{
-+	struct sbitmap sb;
-+	unsigned int i;
-+	int bit, prev = -1;
-+
-+	KUNIT_ASSERT_EQ(test, sbitmap_init_node(&sb, SBITMAP_TEST_DEPTH, -1,
-+						GFP_KERNEL, NUMA_NO_NODE,
-+						true, true), 0);
-+
-+	/*
-+	 * round_robin must hand out strictly increasing bit numbers while the
-+	 * map fills up from empty.
-+	 */
-+	for (i = 0; i < SBITMAP_TEST_DEPTH; i++) {
-+		bit = sbitmap_get(&sb);
-+		KUNIT_ASSERT_GE(test, bit, 0);
-+		KUNIT_ASSERT_LT(test, bit, (int)SBITMAP_TEST_DEPTH);
-+		if (prev != -1)
-+			KUNIT_ASSERT_GT(test, bit, prev);
-+		prev = bit;
-+	}
-+
-+	KUNIT_EXPECT_EQ(test, sbitmap_weight(&sb),
-+			(unsigned int)SBITMAP_TEST_DEPTH);
-+	KUNIT_EXPECT_EQ(test, sbitmap_get(&sb), -1);
-+
-+	sbitmap_free(&sb);
-+}
-+
-+static void sbitmap_test_resize(struct kunit *test)
-+{
-+	const unsigned int depth = 4 * BITS_PER_LONG;
-+	struct sbitmap sb;
-+	unsigned int i;
-+
-+	KUNIT_ASSERT_EQ(test, sbitmap_init_node(&sb, depth, -1, GFP_KERNEL,
-+						NUMA_NO_NODE, true, true), 0);
-+
-+	for (i = 0; i < depth; i++)
-+		KUNIT_ASSERT_GE(test, sbitmap_get(&sb), 0);
-+	KUNIT_EXPECT_EQ(test, sbitmap_weight(&sb), depth);
-+
-+	/* Shrinking hides the bits past the new depth. */
-+	sbitmap_resize(&sb, depth / 2);
-+	KUNIT_EXPECT_EQ(test, sb.depth, depth / 2);
-+	KUNIT_EXPECT_EQ(test, sb.map_nr,
-+			DIV_ROUND_UP(depth / 2, 1U << sb.shift));
-+	KUNIT_EXPECT_EQ(test, sbitmap_weight(&sb), depth / 2);
-+	KUNIT_EXPECT_EQ(test, sbitmap_get(&sb), -1);
-+
-+	/* Growing makes them visible again; they are still allocated. */
-+	sbitmap_resize(&sb, depth);
-+	KUNIT_EXPECT_EQ(test, sb.depth, depth);
-+	KUNIT_EXPECT_EQ(test, sbitmap_weight(&sb), depth);
-+	KUNIT_EXPECT_EQ(test, sbitmap_get(&sb), -1);
-+
-+	sbitmap_free(&sb);
-+}
-+
-+static void sbitmap_test_set_clear_bit(struct kunit *test)
-+{
-+	static const unsigned int bits[] = {
-+		0, 1, BITS_PER_LONG - 1, BITS_PER_LONG,
-+		2 * BITS_PER_LONG + 3, SBITMAP_TEST_DEPTH - 1
-+	};
-+	struct sbitmap sb;
-+	unsigned int i;
-+
-+	KUNIT_ASSERT_EQ(test, sbitmap_init_node(&sb, SBITMAP_TEST_DEPTH, -1,
-+						GFP_KERNEL, NUMA_NO_NODE,
-+						false, true), 0);
-+
-+	KUNIT_EXPECT_FALSE(test, sbitmap_any_bit_set(&sb));
-+
-+	for (i = 0; i < ARRAY_SIZE(bits); i++) {
-+		sbitmap_set_bit(&sb, bits[i]);
-+		KUNIT_EXPECT_TRUE(test, sbitmap_test_bit(&sb, bits[i]));
-+	}
-+	KUNIT_EXPECT_TRUE(test, sbitmap_any_bit_set(&sb));
-+	KUNIT_EXPECT_EQ(test, sbitmap_weight(&sb), (unsigned int)ARRAY_SIZE(bits));
-+
-+	for (i = 0; i < ARRAY_SIZE(bits); i++) {
-+		sbitmap_clear_bit(&sb, bits[i]);
-+		KUNIT_EXPECT_FALSE(test, sbitmap_test_bit(&sb, bits[i]));
-+	}
-+	KUNIT_EXPECT_FALSE(test, sbitmap_any_bit_set(&sb));
-+	KUNIT_EXPECT_EQ(test, sbitmap_weight(&sb), 0U);
-+
-+	sbitmap_free(&sb);
-+}
-+
-+struct sbitmap_iter_ctx {
-+	struct kunit *test;
-+	DECLARE_BITMAP(visited, SBITMAP_TEST_DEPTH);
-+	unsigned int nr_visited;
-+};
-+
-+static bool sbitmap_iter_collect(struct sbitmap *sb, unsigned int bitnr,
-+				 void *data)
-+{
-+	struct sbitmap_iter_ctx *ctx = data;
-+
-+	KUNIT_ASSERT_LT(ctx->test, bitnr, SBITMAP_TEST_DEPTH);
-+	__set_bit(bitnr, ctx->visited);
-+	ctx->nr_visited++;
-+
-+	return true;
-+}
-+
-+static void sbitmap_test_iterate_set(struct kunit *test)
-+{
-+	static const unsigned int bits[] = {
-+		0, 5, BITS_PER_LONG - 1, BITS_PER_LONG, 2 * BITS_PER_LONG + 3,
-+		SBITMAP_TEST_DEPTH - 1
-+	};
-+	struct sbitmap_iter_ctx ctx = { .test = test };
-+	struct sbitmap sb;
-+	unsigned int i;
-+
-+	KUNIT_ASSERT_EQ(test, sbitmap_init_node(&sb, SBITMAP_TEST_DEPTH, -1,
-+						GFP_KERNEL, NUMA_NO_NODE,
-+						false, true), 0);
-+
-+	for (i = 0; i < ARRAY_SIZE(bits); i++) {
-+		KUNIT_ASSERT_LT(test, bits[i], SBITMAP_TEST_DEPTH);
-+		sbitmap_set_bit(&sb, bits[i]);
-+	}
-+
-+	sbitmap_for_each_set(&sb, sbitmap_iter_collect, &ctx);
-+
-+	KUNIT_EXPECT_EQ(test, ctx.nr_visited, (unsigned int)ARRAY_SIZE(bits));
-+	for (i = 0; i < ARRAY_SIZE(bits); i++)
-+		KUNIT_EXPECT_TRUE(test, test_bit(bits[i], ctx.visited));
-+
-+	sbitmap_free(&sb);
-+}
-+
-+static struct kunit_case sbitmap_test_cases[] = {
-+	KUNIT_CASE(sbitmap_test_init),
-+	KUNIT_CASE(sbitmap_test_calculate_shift),
-+	KUNIT_CASE(sbitmap_test_get_exhaust),
-+	KUNIT_CASE(sbitmap_test_put_reuse),
-+	KUNIT_CASE(sbitmap_test_round_robin),
-+	KUNIT_CASE(sbitmap_test_resize),
-+	KUNIT_CASE(sbitmap_test_set_clear_bit),
-+	KUNIT_CASE(sbitmap_test_iterate_set),
-+	{}
-+};
-+
-+static struct kunit_suite sbitmap_test_suite = {
-+	.name = "sbitmap",
-+	.test_cases = sbitmap_test_cases,
-+};
-+
-+kunit_test_suite(sbitmap_test_suite);
-+
-+MODULE_DESCRIPTION("KUnit test for sbitmap");
-+MODULE_LICENSE("GPL");
---- a/MAINTAINERS~lib-sbitmap-add-kunit-test-suite
-+++ a/MAINTAINERS
-@@ -4833,6 +4833,7 @@ F:	include/uapi/linux/blk*
- F:	include/uapi/linux/ioprio.h
- F:	kernel/trace/blktrace.c
- F:	lib/sbitmap.c
-+F:	lib/tests/sbitmap_kunit.c
+ static int userfaultfd_release(struct inode *inode, struct file *file)
+ {
+ 	struct userfaultfd_ctx *ctx = file->private_data;
+--- a/mm/vma.c~mm-vma-undo-userfaultfd-unmap-preparation-when-unmapping-fails
++++ a/mm/vma.c
+@@ -1675,9 +1675,18 @@ int do_vmi_align_munmap(struct vma_itera
+ 	mt_init_flags(&mt_detach, vmi->mas.tree->ma_flags & MT_FLAGS_LOCK_MASK);
+ 	mt_on_stack(mt_detach);
+ 	struct vma_munmap_struct vms;
++	struct list_head *uf_unmaps;
++	LIST_HEAD(uf_new_unmaps);
+ 	int error;
  
- BLOCK LAYER DEVICE DRIVER API [RUST]
- M:	Andreas Hindborg <a.hindborg@kernel.org>
+-	init_vma_munmap(&vms, vmi, vma, start, end, uf, unlock);
++	/*
++	 * @uf may already hold events of earlier successful unmaps, e.g. in
++	 * mremap().
++	 * Collect new events on a separate list so they can be dropped if this
++	 * unmap fails, and splice them into @uf on success.
++	 */
++	uf_unmaps = uf ? &uf_new_unmaps : NULL;
++	init_vma_munmap(&vms, vmi, vma, start, end, uf_unmaps, unlock);
+ 	error = vms_gather_munmap_vmas(&vms, &mas_detach);
+ 	if (error)
+ 		goto gather_failed;
+@@ -1687,12 +1696,15 @@ int do_vmi_align_munmap(struct vma_itera
+ 		goto clear_tree_failed;
+ 
+ 	/* Point of no return */
++	if (uf)
++		list_splice_tail(&uf_new_unmaps, uf);
+ 	vms_complete_munmap_vmas(&vms, &mas_detach);
+ 	return 0;
+ 
+ clear_tree_failed:
+ 	reattach_vmas(&mas_detach);
+ gather_failed:
++	userfaultfd_unmap_abort(&uf_new_unmaps);
+ 	validate_mm(mm);
+ 	return error;
+ }
+@@ -2581,7 +2593,7 @@ static int __mmap_setup(struct mmap_stat
+ 		if (error) {
+ 			/* On error VMAs will already have been reattached. */
+ 			vms->nr_pages = 0;
+-			return error;
++			goto abort_unmaps;
+ 		}
+ 
+ 		map->next = vms->next;
+@@ -2591,8 +2603,10 @@ static int __mmap_setup(struct mmap_stat
+ 	}
+ 
+ 	/* Check against address space limit. */
+-	if (!may_expand_vm(map->mm, &map->vma_flags, map->pglen - vms->nr_pages))
+-		return -ENOMEM;
++	if (!may_expand_vm(map->mm, &map->vma_flags, map->pglen - vms->nr_pages)) {
++		error = -ENOMEM;
++		goto abort_unmaps;
++	}
+ 
+ 	/* Private writable mapping: check memory availability. */
+ 	if (accountable_mapping(map)) {
+@@ -2602,7 +2616,7 @@ static int __mmap_setup(struct mmap_stat
+ 		if (uncharged) {
+ 			error = security_vm_enough_memory_mm(map->mm, uncharged);
+ 			if (error)
+-				return error;
++				goto abort_unmaps;
+ 		}
+ 
+ 		/* Our new mapping owns the entire charge now. */
+@@ -2621,6 +2635,10 @@ static int __mmap_setup(struct mmap_stat
+ 
+ 	set_desc_from_map(desc, map);
+ 	return 0;
++
++abort_unmaps:
++	userfaultfd_unmap_abort(uf);
++	return error;
+ }
+ 
+ static bool map_same_file(struct mmap_state *map)
+--- a/tools/testing/vma/include/stubs.h~mm-vma-undo-userfaultfd-unmap-preparation-when-unmapping-fails
++++ a/tools/testing/vma/include/stubs.h
+@@ -148,6 +148,10 @@ static inline int userfaultfd_unmap_prep
+ 	return 0;
+ }
+ 
++static inline void userfaultfd_unmap_abort(struct list_head *uf)
++{
++}
++
+ static inline void mmap_write_downgrade(struct mm_struct *mm)
+ {
+ }
 _
 
-Patches currently in -mm which might be from szwyb123@gmail.com are
+Patches currently in -mm which might be from rppt@kernel.org are
 
-lib-sbitmap-add-kunit-test-suite.patch
+mm-cma-accept-memory-of-multi-range-cma-areas.patch
+mm-cma-accept-memory-of-cma-areas-reserved-at-a-fixed-address.patch
+userfaultfd-clear-uffd-state-in-child-ptes-if-uffd-is-released-during-fork.patch
+mm-vma-undo-userfaultfd-unmap-preparation-when-unmapping-fails.patch
+hibernation-make-swsusp_page-helpers-static.patch
+hibernation-ensure-secretmem-pages-dont-reach-a-snapshot.patch
+hibernate-handle-potential-errors-in-hibernate_mapunmap_page.patch
+hibernation-kfence-explicitly-map-unmap-kfence-pages.patch
+hibernation-make-hibernation-unavailable-when-debug_pagealloc-is-on.patch
 
