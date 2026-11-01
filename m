@@ -1,41 +1,41 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793565167;
-	b=e59YiZG9kdSKUZ7GHU+ApBl+QzJDi5ymNtP/FuV9TV/YaNOT8ACjGb+g8wdq0LJfeF8j
-	 WFwF2WdbHsDs09f3O/LA7ZTw3EcfPvJhVrUTQ8TzRhUAOYy8RktxQI6AyWyVnIjjmZY2g
-	 3iA0iSlyTCgS6mc/0u70i6EZ9+ZgRQSSHgXvqxEy4Eh5cWP3+m3YWYCoffISc05LfB+EU
-	 mnVuIJ0423DfRfINC85QeE/L3I/sFpUnQm38i3moP0pQ7yOPaa8urNiE6tcqFhDgm9qXb
-	 QNn+7/MbTfcBzxkAX4SnnJeogYqlrsjrt5t79MSvHqohtZt9xtF8iCXpRguICoJfKLQ==
+	t=1793565169;
+	b=vLOrG3B9IvNg0hiVElTVJLalr1UrvtbDWcRJq2WybbIxSYBhesyC/USfcCGuQgHmjbRX
+	 Li1AEAF4rP9b7NMGO8P8xr4Q7jmyWa5L3g8/fFC2wPA1K+dXPUNODKqcCeOblBWWrU1e1
+	 ehtf+WFquxUuBmgY3dv4oPsn5V+TMIyFZ3Sl7pzMwUUMOGhgP2YpIPB6jBtHCP/F+hWSI
+	 G4o/QAMFIYLnTITnzGGQQ7c96f3h3Das+fTEeFHLyo2n+vJcGw2CGpLSaBNgC22l9YP0T
+	 qmK7abuW1xs8Devnf3qRujA04SldnqZjoycGBddGY123xaHw0A2SNHqlr2/d/o7KbsA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793565167;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793565169;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=AHA65QhVEQCtf9qUC1m7atbpQCoTpqU7oMaEhWVnEuM=;
-	b=1j6ylY/E5pdmtdNlL3x/ZA00wB4FqE14OK/ShQoEBqhFlqwFxt1NSlnU/jmj7u6FtoMa
-	 EUwz+HIeXpZAknXTfQNKJYRqZHpMxBLeojrp2+Pjklh6aPdd+qlaTB8MkECK/69noOjTv
-	 wqhh5VyMjghoVV+hVgmdtDUNc6yNh4WWB/dnbsUWD0BXMBO/89+cZIMceNnmdYNf4wday
-	 zDF+oW34F6B2c8PGerY6/OseNIuczgOgAJV5jYCvC5uYLKA2GhaouxaWxVWk9rtKnQZlk
-	 TXZ8gY4+2vMG4bDZ8g2ZMN/7hpnAttJ7DKdhpOdbX2FDPLnSJZaOqTllonXGvNKzWJw==
+	bh=IJ+WOqFYQ4qojCsmgwDpLprVtQfFRw4XnwCmL6TMoTs=;
+	b=SQAtrB+XxsL1MVc3qM9ItjJ6GEGXXnNURp2RK8bfGaXRIqoB/Ipvu01R6srMNG/LvslI
+	 4xm1/CyNPiFMLTbj3xks/m8/FLJyYMhH4hpBZS1+5AA45+Ft3EMif6KpDMrFnJNTvRu8O
+	 LVucPv+h0Z/j0zem7x3jWdijeNDWFclgLTycKvZLzLxVXxArx9JEgA16DTFjHoKnQ+11/
+	 cK/CTWwNVEPrC6pJAFqfRq66DURJADZIs05TL+HsUzH494geL9gikq00a2XeFuTp+M1VO
+	 nZf4QnoMfyjo83fCrE0P4U2yU0swBy5Ezd8sHv6wb7srKDsoPetR7wYCANpPma16dxQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=lVKoPcrj;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=TnqmpBgM;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4BAEF606A324
-	for <mm-commits@vger.kernel.org>; Sun,  1 Nov 2026 20:32:47 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 13E32606A324
+	for <mm-commits@vger.kernel.org>; Sun,  1 Nov 2026 20:32:48 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=lVKoPcrj
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id BFD401F000C1;
-	Sun,  1 Nov 2026 20:32:46 +0000 (UTC)
+	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=TnqmpBgM
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9B9651F000C1;
+	Sun,  1 Nov 2026 20:32:48 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1793565166;
-	bh=AHA65QhVEQCtf9qUC1m7atbpQCoTpqU7oMaEhWVnEuM=;
+	d=linux-foundation.org; s=korg; t=1793565168;
+	bh=IJ+WOqFYQ4qojCsmgwDpLprVtQfFRw4XnwCmL6TMoTs=;
 	h=Date:To:From:Subject;
-	b=lVKoPcrjtazVbCvmeEcRoNih3ZG9Ed7KI0rNbjM/3r5ckzIeTrignn+rq/cfPku0W
-	 2+ney9P2cuSO/b3UKqjt9482ROtIG8yQHHYEY+erZyCcJ0Yol5Qt5ife6vkaArBi7Y
-	 gGYOd6V9S2OaD02VOFnZs9saXbYTpgLtuqpahV8o=
-Date: Sun, 01 Nov 2026 12:32:46 -0800
+	b=TnqmpBgMjtvutOcxiOFUlXC25ES0khakyT4JpSxwcFXpBysiWToQ2cZ/izry24koM
+	 z2PWFxTI1ORVIl83rrSY9Kzl0o0kWRhj78KUeIPG6PgJVKISgPJQvBvsxeZxQIEFQP
+	 UvJTM11yXDW2rZ/W2PrMO7aeb5v8bpbJOwev+rZc=
+Date: Sun, 01 Nov 2026 12:32:48 -0800
 To: mm-commits@vger.kernel.org,ziy@nvidia.com,youngjun.park@lge.com,
 	ying.huang@linux.alibaba.com,xu.xin@linux.dev,will@kernel.org,
 	vbabka@kernel.org,usama.arif@linux.dev,urezki@gmail.com,tj@kernel.org,
@@ -56,8 +56,8 @@ To: mm-commits@vger.kernel.org,ziy@nvidia.com,youngjun.park@lge.com,
 	baohua@kernel.org,apopple@nvidia.com,aneesh.kumar@kernel.org,
 	david@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + maintainers-tmpfs-shmem-filesystem-updates.patch added to mm-hotfixes-unstable branch
-Message-Id: <20261101203246.BFD401F000C1@smtp.kernel.org>
+Subject: + maintainers-add-zi-yan-as-co-maintainer-for-memory-management-thp.patch added to mm-hotfixes-unstable branch
+Message-Id: <20261101203248.9B9651F000C1@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -69,12 +69,12 @@ Precedence: list
 
 
 The patch titled
-     Subject: MAINTAINERS: TMPFS (SHMEM FILESYSTEM) updates
+     Subject: MAINTAINERS: add Zi Yan as co-maintainer for MEMORY MANAGEMENT - THP
 has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     maintainers-tmpfs-shmem-filesystem-updates.patch
+     maintainers-add-zi-yan-as-co-maintainer-for-memory-management-thp.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/maintainers-tmpfs-shmem-filesystem-updates.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/maintainers-add-zi-yan-as-co-maintainer-for-memory-management-thp.patch
 
 This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -93,44 +93,38 @@ and is updated there most days
 
 ------------------------------------------------------
 From: "David Hildenbrand (Arm)" <david@kernel.org>
-Subject: MAINTAINERS: TMPFS (SHMEM FILESYSTEM) updates
-Date: Fri, 30 Oct 2026 22:34:26 +0100
+Subject: MAINTAINERS: add Zi Yan as co-maintainer for MEMORY MANAGEMENT - THP
+Date: Fri, 30 Oct 2026 22:34:27 +0100
 
-I am not really the best shmem/tmpfs/memfd expert around, but it should
-be good enough to judge when something is ready to be picked up, to then
-pick it up. I'll have to heavily rely on Hugh and Baolin on judgment
-for the more involved and more controversial bits.
+Zi has been contributing to THP consistently and reliably over many
+years and is considered one of our most valuable THP experts. As THP is
+an especially active area lately, having a single dedicated THP maintainer
+is not sustainable.
 
-Rename "TMPFS (SHMEM FILESYSTEM)" to "MEMORY MANAGEMENT - SHARED MEMORY
-(SHMEM/TMPFS/MEMFD)" and move it accordingly. Add myself as a MAINTAINER
-so people know whom to CC.
+Fortunately, Zi volunteered to take on more responsibility by stepping
+up as a THP co-maintainer. So let's do exactly that.
 
-Add mm/core.git as the target git tree. Once shmem becomes a high volume
-component we can dedicate it a separate tree and have dedicated people
-pick it up.
+His placement in the MAINTAINERS entry is very convenient to perform
+this change :)
 
-While at it, add some more shmem/tmpfs/memfd related files+directories
-we missed so far.
-
-There is also "kernel/pid_sysctl.h", which includes some of the pid
-namespaced sysctl vm.memfd_noexec. But that's really more of a proc/
-namespace thingy, so it's not a good fit here.
-
-Link: https://lore.kernel.org/20261030-maintainers-v1-2-97278f8a5f54@kernel.org
+Link: https://lore.kernel.org/20261030-maintainers-v1-3-97278f8a5f54@kernel.org
 Signed-off-by: David Hildenbrand (Arm) <david@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 Acked-by: Vlastimil Babka (SUSE) <vbabka@kernel.org>
 Acked-by: Qi Zheng <qi.zheng@linux.dev>
+Acked-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
+Acked-by: Harry Yoo (Meta) <harry@kernel.org>
+Acked-by: Muchun Song <muchun.song@linux.dev>
 Acked-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
 Acked-by: Zi Yan <ziy@nvidia.com>
 Acked-by: SJ Park <sj@kernel.org>
-Acked-by: Harry Yoo (Meta) <harry@kernel.org>
-Acked-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
+Acked-by: Barry Song <baohua@kernel.org>
+Acked-by: Lance Yang <lance.yang@linux.dev>
+Acked-by: Dev Jain <dev.jain@arm.com>
 Cc: Alistair Popple <apopple@nvidia.com>
 Cc: Aneesh Kumar K.V <aneesh.kumar@kernel.org>
 Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
 Cc: Baoquan He <baoquan.he@linux.dev>
-Cc: Barry Song <baohua@kernel.org>
 Cc: Brendan Jackman <brendan.jackman@linux.dev>
 Cc: Byungchul Park <byungchul@sk.com>
 Cc: Chengming Zhou <chengming.zhou@linux.dev>
@@ -139,7 +133,6 @@ Cc: Christoph Lameter <cl@gentwo.org>
 Cc: Dave Chinner <david@fromorbit.com>
 Cc: David Rientjes <rientjes@google.com>
 Cc: Dennis Zhou <dennis@kernel.org>
-Cc: Dev Jain <dev.jain@arm.com>
 Cc: Gregory Price <gourry@gourry.net>
 Cc: Hao Li <hao.li@linux.dev>
 Cc: Hugh Dickins <hughd@google.com>
@@ -150,12 +143,10 @@ Cc: Joshua Hahn <joshua.hahnjy@gmail.com>
 Cc: Kairui Song <kasong@tencent.com>
 Cc: Kemeng Shi <shikemeng@huaweicloud.com>
 Cc: Kiryl Shutsemau <kas@kernel.org>
-Cc: Lance Yang <lance.yang@linux.dev>
 Cc: Liam R. Howlett <liam@infradead.org>
 Cc: Matthew Brost <matthew.brost@intel.com>
 Cc: Miaohe Lin <linmiaohe@huawei.com>
 Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Muchun Song <muchun.song@linux.dev>
 Cc: Naoya Horiguchi <nao.horiguchi@gmail.com>
 Cc: Nhat Pham <nphamcs@gmail.com>
 Cc: Nicholas Piggin <npiggin@gmail.com>
@@ -180,55 +171,20 @@ Cc: Youngjun Park <youngjun.park@lge.com>
 Cc: Jason Gunthorpe <jgg@ziepe.ca>
 ---
 
- MAINTAINERS |   30 +++++++++++++++++++-----------
- 1 file changed, 19 insertions(+), 11 deletions(-)
+ MAINTAINERS |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/MAINTAINERS~maintainers-tmpfs-shmem-filesystem-updates
+--- a/MAINTAINERS~maintainers-add-zi-yan-as-co-maintainer-for-memory-management-thp
 +++ a/MAINTAINERS
-@@ -17755,6 +17755,25 @@ S:	Maintained
- F:	include/linux/secretmem.h
- F:	mm/secretmem.c
- 
-+MEMORY MANAGEMENT - SHARED MEMORY (SHMEM/TMPFS/MEMFD)
-+M:	Hugh Dickins <hughd@google.com>
-+M:	David Hildenbrand <david@kernel.org>
-+R:	Baolin Wang <baolin.wang@linux.alibaba.com>
-+L:	linux-mm@kvack.org
-+S:	Maintained
-+T:	git git://git.kernel.org/pub/scm/linux/kernel/git/mm/core.git for-next
-+F:	Documentation/filesystems/tmpfs.rst
-+F:	Documentation/mm/shmfs.rst
-+F:	Documentation/userspace-api/mfd_noexec.rst
-+F:	include/linux/memfd.h
-+F:	include/linux/shmem_fs.h
-+F:	include/uapi/linux/memfd.h
-+F:	mm/memfd.c
-+F:	mm/shmem.c
-+F:	mm/shmem_quota.c
-+F:	tools/testing/selftests/memfd/
-+F:	tools/testing/selftests/tmpfs/
-+
- MEMORY MANAGEMENT - SWAP
+@@ -17800,7 +17800,7 @@ F:	mm/swapfile.c
+ MEMORY MANAGEMENT - THP (TRANSPARENT HUGE PAGE)
  M:	Andrew Morton <akpm@linux-foundation.org>
- M:	Chris Li <chrisl@kernel.org>
-@@ -28166,17 +28185,6 @@ S:	Maintained
- F:	Documentation/hwmon/tmp513.rst
- F:	drivers/hwmon/tmp513.c
- 
--TMPFS (SHMEM FILESYSTEM)
--M:	Hugh Dickins <hughd@google.com>
--R:	Baolin Wang <baolin.wang@linux.alibaba.com>
--L:	linux-mm@kvack.org
--S:	Maintained
--F:	include/linux/memfd.h
--F:	include/linux/shmem_fs.h
--F:	mm/memfd.c
--F:	mm/shmem.c
--F:	mm/shmem_quota.c
--
- TOMOYO SECURITY MODULE
- M:	Kentaro Takeda <takedakn@nttdata.co.jp>
- M:	Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
+ M:	David Hildenbrand <david@kernel.org>
+-R:	Zi Yan <ziy@nvidia.com>
++M:	Zi Yan <ziy@nvidia.com>
+ R:	Baolin Wang <baolin.wang@linux.alibaba.com>
+ R:	Liam R. Howlett <liam@infradead.org>
+ R:	Nico Pache <nico.pache@linux.dev>
 _
 
 Patches currently in -mm which might be from david@kernel.org are
