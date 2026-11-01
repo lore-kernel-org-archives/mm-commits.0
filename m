@@ -1,46 +1,48 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793500985;
-	b=xkj0jwgdzFvUbsLeDSoKthotMpixCR1EAs79lHtGz1S0RF0PjxCwR8ilAzrjcqQZ20dE
-	 wGFM58eynuOmu7aBJ8zAmgfQ/KOhj0jxc3Ygf83ulrpynKsFZmpxkCGarC7OgayZEx1RX
-	 S6wOOBGMogkM7xyE1O6oQraGPsSReGHZwpAmsGL2xli59fMRcD2G9sNtpDFFOwup9KiDX
-	 Tma/ExiK0q876+I6XiFHiAqrrweaDMcd/c7W8f7+paORl1za8LB2UsOu5kD8Lr4NOD7TW
-	 wyj6AwDXVjKq/L9W2B8sTpvQoeBH1YcxTvGgNshCLF5QRjw0uQCDWe0cobkE6621yrQ==
+	t=1793501060;
+	b=rIZ9l8FrnHSNg5L+SxD46BRCrb25e0Wg73Bc0eHl4rGHmTN9R2MvQ5FrsZYoiR2D5rvS
+	 1XbDrejzE8b/mG/6d8kz/n3Ry0MgpEScWjTgFWcAxeZH/jaQGpKTYSM5YH4+Lw4Lg58pv
+	 EAUFKhvuVqyTgk47JmcFsp3R4eSENZkAzLzi70VOtRPiMQ1BlGzLk+7dkWVUEVawdOVhs
+	 9jiiyaK4jznEQ+eoynAn0ey1E0N6n+0cMUqcI2Qvr2CGCOUJbs2b9mqb87yaoJ1QKAZGE
+	 h21XbecA9XY7rdiG8pbGhxHvHFkye4cFKR1WqkYgbBJpBbW4pDwAY/eDfQj4VMU4pyg==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793500985;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793501060;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=td/iMtOuYstq/gC3+MS2yZ7PQiaQQwgkuy5p24lBfvA=;
-	b=Oxfdq+3GPPP30AcuYzbZGBNgTdy10q/3pTa2e/6NdkI2xTnMhhdwamfYOGfN7LisXKJJ
-	 BTq8d9p02YOyPoQL0SL65nWl97zhM8/t94TSm7G1FpaKrIjM3s5U5yzZRMLFTyHcS28wz
-	 bJ9ScvUdMS7BvSDTIFzi7WDBrSaBOtDg3aHLtLS+xKchn8YVFc46pUZaSTYWywNxLEhnQ
-	 mCOET2Q8eJOVRpWxrHbqgGeSTcjP+vgJqDuh3n/q4HAcnqezv2iU0inNZw7gmwQBTptfB
-	 mytE8x2v3q0HjZwKbGxUfclMOldC65HzvqYefXAn2cZl2Awej10k0M3yh00LZMGWBEA==
+	bh=AQhsTj6J4VeJju9a4m1xsG9CxzpJTmjRdR5MN+DRV58=;
+	b=VdTLIUmDEQAfwWOE4Cw0mn0CvMG1RHvNhtPvfpsVFLIFJhOtTbEcIA5I0RL8iEagUQ71
+	 Z3F7rrb4O+1yxFgeEzDai8CNSn05Q235qPQIvq1F8XyQU6SExjpgELRG7eQGzBKm+1Qi6
+	 Ayd3IQyVO4PyJRJbVu7Vn5mW4trOeuh/Hn84zcqL4Ang0OU1+8uWkxgZP9wSR19dYyyzR
+	 Lpu7qvIiOIWvh3LwMk4hVgx+kgYqYxRQJlnLZ7u3YLTYTS/9U8/YXbGGGm8WKE4Kq8Ma8
+	 e6iCzpLqmy53i4Bo6QyG4lIver/hpwPKoJJ8TUW3M8snYpytg2INOQ5wFsLqyk9WcBw==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=vGG+FTf0;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=DoOCw5Sf;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C0D73606A324;
-	Sun,  1 Nov 2026 02:43:04 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DEDF5606A324;
+	Sun,  1 Nov 2026 02:44:19 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=vGG+FTf0
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 32B8F1F000C1;
-	Sun,  1 Nov 2026 02:43:04 +0000 (UTC)
+	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=DoOCw5Sf
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 67A0D1F000C1;
+	Sun,  1 Nov 2026 02:44:19 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1793500984;
-	bh=td/iMtOuYstq/gC3+MS2yZ7PQiaQQwgkuy5p24lBfvA=;
+	d=linux-foundation.org; s=korg; t=1793501059;
+	bh=AQhsTj6J4VeJju9a4m1xsG9CxzpJTmjRdR5MN+DRV58=;
 	h=Date:To:From:Subject;
-	b=vGG+FTf0gYXA18QOsaTkzYndpxyn//5Rd1MGS8hNHBLvm7jgHvuf45oZym91LAe0/
-	 4LUKmWAgbKHcYJ9ZfWr5JDEURxbN/2SIENY0nFzqKe7ohGGklJIDkyQrCl4bN1IC6i
-	 ydH+hxt2i3SAW7REl2WZ16g8favYAt6AGOi7FFxg=
-Date: Sat, 31 Oct 2026 19:43:03 -0700
-To: mm-commits@vger.kernel.org,tz2294@columbia.edu,stable@vger.kernel.org,
-	peterx@redhat.com,azpijr@gmail.com,rppt@kernel.org,akpm@linux-foundation.org
+	b=DoOCw5SfDLN4qG/N5dQwMquZV0mw5+KxfqnAc45n6JNCRKj8mdF/gw80o3EBx2Yvn
+	 1yXYTGGZipFRWIx9Z8xuZGVjuTrCZHu/YkkItspTBFvGNaq6VemaQkj19BDmVyjk8S
+	 p7yfabWeUMqP1S/WI+tCwyrS+uPqCBNrCvU2U+78=
+Date: Sat, 31 Oct 2026 19:44:19 -0700
+To: mm-commits@vger.kernel.org,
+	syzbot+91e1fc35f51774c479b2@syzkaller.appspotmail.com,stable@vger.kernel.org,
+	osalvador@suse.de,muchun.song@linux.dev,lihongbo22@huawei.com,
+	david@kernel.org,joasantonio108@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + userfaultfd-clear-uffd-state-in-child-ptes-if-uffd-is-released-during-fork.patch added to mm-hotfixes-unstable branch
-Message-Id: <20261101024304.32B8F1F000C1@smtp.kernel.org>
+Subject: + hugetlbfs-emit-hugetlbfs_free_inode-from-destroy_inode.patch added to mm-hotfixes-unstable branch
+Message-Id: <20261101024419.67A0D1F000C1@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -52,12 +54,12 @@ Precedence: list
 
 
 The patch titled
-     Subject: userfaultfd: clear uffd state in child PTEs if uffd is released during fork
+     Subject: hugetlbfs: emit hugetlbfs_free_inode from ->destroy_inode()
 has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     userfaultfd-clear-uffd-state-in-child-ptes-if-uffd-is-released-during-fork.patch
+     hugetlbfs-emit-hugetlbfs_free_inode-from-destroy_inode.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/userfaultfd-clear-uffd-state-in-child-ptes-if-uffd-is-released-during-fork.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/hugetlbfs-emit-hugetlbfs_free_inode-from-destroy_inode.patch
 
 This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -75,127 +77,79 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: "Mike Rapoport (Microsoft)" <rppt@kernel.org>
-Subject: userfaultfd: clear uffd state in child PTEs if uffd is released during fork
-Date: Sat, 31 Oct 2026 20:14:03 +0200
+From: Joas Antonio dos Santos <joasantonio108@gmail.com>
+Subject: hugetlbfs: emit hugetlbfs_free_inode from ->destroy_inode()
+Date: Sat, 31 Oct 2026 16:06:02 +0000
 
-With UFFD_FEATURE_EVENT_FORK the userfaultfd context is duplicated for the
-child process, the child VMAs are registered with the new context, and
-uffd protection state from the parent PTEs is copied into the child.
+hugetlbfs_free_inode() calls trace_hugetlbfs_free_inode(), and the
+hugetlbfs__inode event class records inode->i_sb->s_dev.  ->free_inode()
+runs from an RCU callback (destroy_inode() queues i_callback() with
+call_rcu()), and Documentation/filesystems/porting.rst says that this
+callback "is *NOT* ordered wrt superblock destruction; as the matter of
+fact, the superblock and all associated structures might be already gone".
+put_super() frees the superblock with call_rcu() followed by a workqueue
+item (destroy_super_rcu() -> destroy_super_work()).  syzbot hit this with
+the event enabled:
 
-If the parent's userfaultfd is released before the fork event is read,
-userfaultfd_release_new() resets the VMA flags but keeps uffd state in the
-child PTEs.
+  BUG: KASAN: slab-use-after-free in trace_event_raw_event_hugetlbfs__inode+0x45b/0x4c0 include/trace/events/hugetlbfs.h:36
+  Read of size 4 at addr ffff888038850010 by task syz-executor952/6134
+   hugetlbfs_free_inode+0x15e/0x1f0 fs/hugetlbfs/inode.c:1182
+   i_callback+0x46/0x80 fs/inode.c:317
+   rcu_do_batch kernel/rcu/tree.c:2650 [inline]
+   rcu_core+0x5f0/0x1220 kernel/rcu/tree.c:2919
+  Allocated by task 6134:
+   alloc_super fs/super.c:326 [inline]
+   sget_fc+0x1ba/0x1f60 fs/super.c:874
+   hugetlbfs_get_tree+0x1e7/0x2b0 fs/hugetlbfs/inode.c:1431
+  Freed by task 855:
+   kfree+0x22b/0x6d0 mm/slub.c:6923
+   process_one_work+0xac7/0x1b10 kernel/workqueue.c:3495
 
-This leaves the child's VMAs in an inconsistent state: they are not
-registered with userfaultfd but their mappings carry uffd protection
-state.
+Emit the event from hugetlbfs_destroy_inode() instead.  destroy_inode()
+calls ->destroy_inode() synchronously, before it queues the RCU callback,
+while the superblock is still alive; hugetlbfs_destroy_inode() already
+dereferences inode->i_sb there.  ->free_inode() is left with only the
+kmem_cache_free().
 
-If the child registers the range with userfaultfd again, the stale state
-turns into protection the child never asked for.
-
-When a write fault makes such a PTE writable without copying the page, the
-uffd bit remains set and page_table_check_pte_flags() warns about it.
-
-Split resolving of the uffd PTE state out of userfaultfd_clear_vma() and
-call it from userfaultfd_release_new() before resetting the VMA.
-
-Link: https://lore.kernel.org/20261031-uffd-prot-bits-fork-event-v2-1-c448e57df417@kernel.org
-Fixes: f369b07c8614 ("mm/uffd: reset write protection when unregister with wp-mode")
-Signed-off-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
+Link: https://lore.kernel.org/20261031-b4-hugetlbfs-trace-v1-1-4ec8d02a30cc@gmail.com
+Fixes: 014ad7c42a69 ("hugetlbfs: use tracepoints in hugetlbfs functions.")
+Signed-off-by: Joas Antonio dos Santos <joasantonio108@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Reviewed-by: Jose A. Perez de Azpillaga <azpijr@gmail.com>
-Tested-by: Jose A. Perez de Azpillaga <azpijr@gmail.com>
-Reviewed-by: Tal Zussman <tz2294@columbia.edu>
-Tested-by: Tal Zussman <tz2294@columbia.edu>
-Cc: Peter Xu <peterx@redhat.com>
+Reported-by: <syzbot+91e1fc35f51774c479b2@syzkaller.appspotmail.com>
+Closes: https://lore.kernel.org/all/6ae27525.5451848c.f7707.0001.GAE@google.com/
+Cc: Muchun Song <muchun.song@linux.dev>
+Cc: Oscar Salvador <osalvador@suse.de>
+Cc: David Hildenbrand <david@kernel.org>
+Cc: Hongbo Li <lihongbo22@huawei.com>
 Cc: <stable@vger.kernel.org>
 ---
 
- mm/userfaultfd.c |   47 ++++++++++++++++++++++++++++-----------------
- 1 file changed, 30 insertions(+), 17 deletions(-)
+ fs/hugetlbfs/inode.c |    6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
 
---- a/mm/userfaultfd.c~userfaultfd-clear-uffd-state-in-child-ptes-if-uffd-is-released-during-fork
-+++ a/mm/userfaultfd.c
-@@ -2219,6 +2219,32 @@ static void userfaultfd_reset_ctx(struct
- 	userfaultfd_set_ctx(vma, NULL, 0);
+--- a/fs/hugetlbfs/inode.c~hugetlbfs-emit-hugetlbfs_free_inode-from-destroy_inode
++++ a/fs/hugetlbfs/inode.c
+@@ -1179,12 +1179,16 @@ static struct inode *hugetlbfs_alloc_ino
+ 
+ static void hugetlbfs_free_inode(struct inode *inode)
+ {
+-	trace_hugetlbfs_free_inode(inode);
+ 	kmem_cache_free(hugetlbfs_inode_cachep, HUGETLBFS_I(inode));
  }
  
-+/*
-+ * Clear uffd state from a WP or RWP range: the uffd bit, WP markers and
-+ * RWP PAGE_NONE entries. Call this before dropping the registration, as it
-+ * needs the VMA flags to know what to resolve.
-+ */
-+static void userfaultfd_clear_ptes(struct vm_area_struct *vma,
-+		unsigned long start, unsigned long end)
-+{
-+	unsigned int mm_cp_flags = 0;
-+	struct mmu_gather tlb;
-+
-+	if (!userfaultfd_protected(vma))
-+		return;
-+
-+	if (userfaultfd_wp(vma))
-+		mm_cp_flags |= MM_CP_UFFD_WP_RESOLVE;
-+	if (userfaultfd_rwp(vma))
-+		mm_cp_flags |= MM_CP_UFFD_RWP_RESOLVE;
-+	if (vma_wants_manual_pte_write_upgrade(vma))
-+		mm_cp_flags |= MM_CP_TRY_CHANGE_WRITABLE;
-+
-+	tlb_gather_mmu(&tlb, vma->vm_mm);
-+	change_protection(&tlb, vma, start, end, mm_cp_flags);
-+	tlb_finish_mmu(&tlb);
-+}
-+
- static struct vm_area_struct *userfaultfd_clear_vma(struct vma_iterator *vmi,
- 					     struct vm_area_struct *prev,
- 					     struct vm_area_struct *vma,
-@@ -2238,22 +2264,7 @@ static struct vm_area_struct *userfaultf
- 	if (start == vma->vm_start && end == vma->vm_end)
- 		give_up_on_oom = true;
- 
--	/* Clear the uffd bit and/or restore protnone PTEs */
--	if (userfaultfd_protected(vma)) {
--		unsigned int mm_cp_flags = 0;
--		struct mmu_gather tlb;
--
--		if (userfaultfd_wp(vma))
--			mm_cp_flags |= MM_CP_UFFD_WP_RESOLVE;
--		if (userfaultfd_rwp(vma))
--			mm_cp_flags |= MM_CP_UFFD_RWP_RESOLVE;
--		if (vma_wants_manual_pte_write_upgrade(vma))
--			mm_cp_flags |= MM_CP_TRY_CHANGE_WRITABLE;
--
--		tlb_gather_mmu(&tlb, vma->vm_mm);
--		change_protection(&tlb, vma, start, end, mm_cp_flags);
--		tlb_finish_mmu(&tlb);
--	}
-+	userfaultfd_clear_ptes(vma, start, end);
- 
- 	ret = vma_modify_flags_uffd(vmi, prev, vma, start, end,
- 				    &new_vma_flags, NULL_VM_UFFD_CTX,
-@@ -2352,8 +2363,10 @@ static void userfaultfd_release_new(stru
- 	/* the various vma->vm_userfaultfd_ctx still points to it */
- 	mmap_write_lock(mm);
- 	for_each_vma(vmi, vma) {
--		if (vma->vm_userfaultfd_ctx.ctx == ctx)
-+		if (vma->vm_userfaultfd_ctx.ctx == ctx) {
-+			userfaultfd_clear_ptes(vma, vma->vm_start, vma->vm_end);
- 			userfaultfd_reset_ctx(vma);
-+		}
- 	}
- 	mmap_write_unlock(mm);
+ static void hugetlbfs_destroy_inode(struct inode *inode)
+ {
++	/*
++	 * Not in ->free_inode(): that runs from an RCU callback, when the
++	 * superblock the event reads may already be freed.
++	 */
++	trace_hugetlbfs_free_inode(inode);
+ 	hugetlbfs_inc_free_inodes(HUGETLBFS_SB(inode->i_sb));
  }
+ 
 _
 
-Patches currently in -mm which might be from rppt@kernel.org are
+Patches currently in -mm which might be from joasantonio108@gmail.com are
 
-mm-cma-accept-memory-of-multi-range-cma-areas.patch
-mm-cma-accept-memory-of-cma-areas-reserved-at-a-fixed-address.patch
-userfaultfd-clear-uffd-state-in-child-ptes-if-uffd-is-released-during-fork.patch
-hibernation-make-swsusp_page-helpers-static.patch
-hibernation-ensure-secretmem-pages-dont-reach-a-snapshot.patch
-hibernate-handle-potential-errors-in-hibernate_mapunmap_page.patch
-hibernation-kfence-explicitly-map-unmap-kfence-pages.patch
-hibernation-make-hibernation-unavailable-when-debug_pagealloc-is-on.patch
+hugetlbfs-emit-hugetlbfs_free_inode-from-destroy_inode.patch
 
