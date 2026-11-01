@@ -1,41 +1,41 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793565175;
-	b=CUDpYOsXnOTp28ADcPlLsbFiortLM0D9Bog+wKn8YHfcms/E/aWX7bcDdlwPww2kV4ii
-	 K2LDL4KznE9kLFZM7a39rCqsvqKqx0B4NW+UIWo05Cq12LCb1Bu4OONrrkIqZiRYtS1ao
-	 UglIUMczjcty5gCNzvOvwfs2hQgQitxsOpmH+JId5LKby5+FxandsMI0MYUo2m3EPFhpS
-	 UJbhROkuxQUd0xAnFxVWjmGRAcCCsSCTWe1egvdjHxEpq7s08CZRRVpbz0hSGPXLBehcb
-	 CA1Id8fp/0P22Q7hjuxVQZo/Og7w9rKnNbLmUTMUUrsPXycwbbF5dtyvdoKIND4o52Q==
+	t=1793565177;
+	b=u2/VfBinDagxOAaLwlWfwpF5ZowNYT9uyK/QMBkzBb58gY18j1eRdOpCLbyy8ZP+EEPZ
+	 wWToewX91zyrHlVq+nLCOnTfnrPRG47MXJwAPEj4D4jsQUzcxUk7EVD+bxzsK7LzTNwyP
+	 pgYtudJDuyb+bDIWShbfM6V2Hi5X2UqYo8Wdh7Xv3vWjLWxcLkM1IQ5x9IaOTKZkwClUx
+	 6QREtDYt0fU3PX5aD4N1NfvqwzqI8A+7csuR4At6UO5yZwjSaT14BgG06mZVHsywAjuje
+	 +pJS1tSB3Y6Eni3LxZ3ApuGK6mi87LT4bR1Cjai4Tuq75D5zUryEe31sXZptokdsMdQ==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793565175;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793565177;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=CuYLRppN/+ziKcGxBUoOlq+/LPF+0M49rZloQNVruO0=;
-	b=EzUonDl00bDZaUj0lWxqqYSbXoHomJxPBihO7ShLb9YkKpVdWYf5f3/5i/CSYk1fjSf8
-	 54CILrwnhoE88vEqt/4bf7Awd7SukVvzhRSQI39sPU+OunftHgAs0D+leU3n4IDhwzpvr
-	 uBe2m4szaLmuOP85a9wSwZRpyulHbY9Mrzj7iRwoMlFJd6pHDfweA0euc6pb9t/9wWjym
-	 vAAXOKllOhJdhZg0pRskXzuCHMf7R7ylHY3Cm6OeGviXO2t7K2+Bk81iec321gEfluzJV
-	 L+1EKbZLjv3l3jiSZ0rLkSfufmMLM3LIP7pNkvQcHn5DtbTgCdtF+xuMUb5dfpG5EyQ==
+	bh=y5A/u/I6FVUY5DFhv7HTihz+k5IOmyaz0HfgYz+I8OE=;
+	b=PV0XgQIsBsMme5gjAYYa0a7ZMirfY7oggB/yZFE0PcmIZkz/gS7DkRRmS+l8rivoJESZ
+	 S6JzGbMaF+XIebN23k9te7G8/NA0xnKa0MD54Y604F0fDyj3jLvCh0qsne8x3MmVA4386
+	 9lS1ogcNOpjBah3E5zLdflP7YQOX9n5vIdTooCUYWFNi3DNVpTtXqbP1JDnEkIfm7Gx60
+	 MLL1QYllFCpHr8x9VrtYLvV2SkEisS6BQYOYdBP9VNJOh21hpXMAfuqBiOXWAo6ymvHuv
+	 Es7pVNWn6/sysH6aYEQZN3eNCFBoOBIMJ8nNWFiXzaDZWdJnCSEt0oWVIKCKjm49ftg==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=XQIMGoLn;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=mrLgy2FI;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F177D606A324
-	for <mm-commits@vger.kernel.org>; Sun,  1 Nov 2026 20:32:54 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A7E19606A324
+	for <mm-commits@vger.kernel.org>; Sun,  1 Nov 2026 20:32:56 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=XQIMGoLn
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 44DFF1F000C1;
-	Sun,  1 Nov 2026 20:32:54 +0000 (UTC)
+	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=mrLgy2FI
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 26B781F000C1;
+	Sun,  1 Nov 2026 20:32:56 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1793565174;
-	bh=CuYLRppN/+ziKcGxBUoOlq+/LPF+0M49rZloQNVruO0=;
+	d=linux-foundation.org; s=korg; t=1793565176;
+	bh=y5A/u/I6FVUY5DFhv7HTihz+k5IOmyaz0HfgYz+I8OE=;
 	h=Date:To:From:Subject;
-	b=XQIMGoLn49fHjEPEEq7CrY+8BlGrvYqHK0NxEYtiU3RVyO7qZ06NFQFGhlX9IGrTq
-	 xRhJY+e+WTXJmy/EJp2+LpL1d2MgrO2YdOJUrnNlG+ik1AJEKDbkeCa6SA/jAoiDvD
-	 d6T7uyu9jjJAuQBYA5J4VXDVN3ZaG+p4WXrSRyfA=
-Date: Sun, 01 Nov 2026 12:32:53 -0800
+	b=mrLgy2FI/nAPt2Qm/IYyn3Bfz60bM77NJg0dS919yEfmA2VbYOVHF0Orjk+MzL21w
+	 D0BTnAvH5HQLfzIgIv3iFRDtzGuKsj361YND/BwR7jq5e1xg5YyLnVSKzNuIxFiQp8
+	 Tc7u9SH1MlW2ZlqnLrv6HP+Y1JqhAPbBfaETkYQo=
+Date: Sun, 01 Nov 2026 12:32:55 -0800
 To: mm-commits@vger.kernel.org,ziy@nvidia.com,youngjun.park@lge.com,
 	ying.huang@linux.alibaba.com,xu.xin@linux.dev,will@kernel.org,
 	vbabka@kernel.org,usama.arif@linux.dev,urezki@gmail.com,tj@kernel.org,
@@ -56,8 +56,8 @@ To: mm-commits@vger.kernel.org,ziy@nvidia.com,youngjun.park@lge.com,
 	baohua@kernel.org,apopple@nvidia.com,aneesh.kumar@kernel.org,
 	david@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + maintainers-rename-and-move-memory-hotunplug.patch added to mm-hotfixes-unstable branch
-Message-Id: <20261101203254.44DFF1F000C1@smtp.kernel.org>
+Subject: + maintainers-route-more-mm-changes-through-mm-coregit.patch added to mm-hotfixes-unstable branch
+Message-Id: <20261101203256.26B781F000C1@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -69,12 +69,12 @@ Precedence: list
 
 
 The patch titled
-     Subject: MAINTAINERS: rename and move MEMORY HOT(UN)PLUG
+     Subject: MAINTAINERS: route more MM changes through mm/core.git
 has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     maintainers-rename-and-move-memory-hotunplug.patch
+     maintainers-route-more-mm-changes-through-mm-coregit.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/maintainers-rename-and-move-memory-hotunplug.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/maintainers-route-more-mm-changes-through-mm-coregit.patch
 
 This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -93,13 +93,42 @@ and is updated there most days
 
 ------------------------------------------------------
 From: "David Hildenbrand (Arm)" <david@kernel.org>
-Subject: MAINTAINERS: rename and move MEMORY HOT(UN)PLUG
-Date: Fri, 30 Oct 2026 22:34:30 +0100
+Subject: MAINTAINERS: route more MM changes through mm/core.git
+Date: Fri, 30 Oct 2026 22:34:31 +0100
 
-Prefix "MEMORY HOT(UN)PLUG" with "MEMORY MANAGEMENT" and put it into the
-right spot in the MM component section list.
+Let's start routing more components I (co)maintain through mm/core.git.
+Update the git trees by pointing them at the for-next branch:
 
-Link: https://lore.kernel.org/20261030-maintainers-v1-6-97278f8a5f54@kernel.org
+ - MEMORY MANAGEMENT - BALLOON
+ - MEMORY MANAGEMENT - CORE
+ - MEMORY MANAGEMENT - GUP (GET USER PAGES)
+ - MEMORY MANAGEMENT - KSM (Kernel Samepage Merging)
+ - MEMORY MANAGEMENT - MEMORY HOT(UN)PLUG
+ - MEMORY MANAGEMENT - MIGRATION
+ - MEMORY MANAGEMENT - NUMA PLACEMENT
+ - MEMORY MANAGEMENT - RMAP (REVERSE MAPPING)
+ - MEMORY MANAGEMENT - THP (TRANSPARENT HUGE PAGE)
+
+Leave out MISC for now.
+
+This change doesn't imply that all changes to these components will
+immediately be routed through that tree; in particular changes that cover
+other components, or severe conflicts will require coordination with
+Andrew's tree.
+
+So this marks merely the start of "mm/core.git will start picking
+relevant material for these components".
+
+Remove Andrew from these components to set the expectation that he won't be
+the primary person picking stuff for these components; he is listed as
+maintainer under the generic "MEMORY MANAGEMENT" and will get CCed on most
+changes, and can keep an eye on stuff that falls through the cracks
+(thanks!).
+
+While at it, drop the link to http://www.linux-mm.org: it's not
+particularly useful in 2026.
+
+Link: https://lore.kernel.org/20261030-maintainers-v1-7-97278f8a5f54@kernel.org
 Signed-off-by: David Hildenbrand (Arm) <david@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 Acked-by: Vlastimil Babka (SUSE) <vbabka@kernel.org>
@@ -107,7 +136,6 @@ Acked-by: Qi Zheng <qi.zheng@linux.dev>
 Acked-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
 Acked-by: Zi Yan <ziy@nvidia.com>
 Acked-by: SJ Park <sj@kernel.org>
-Acked-by: Muchun Song <muchun.song@linux.dev>
 Acked-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
 Cc: Alistair Popple <apopple@nvidia.com>
 Cc: Aneesh Kumar K.V <aneesh.kumar@kernel.org>
@@ -139,6 +167,7 @@ Cc: Liam R. Howlett <liam@infradead.org>
 Cc: Matthew Brost <matthew.brost@intel.com>
 Cc: Miaohe Lin <linmiaohe@huawei.com>
 Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Muchun Song <muchun.song@linux.dev>
 Cc: Naoya Horiguchi <nao.horiguchi@gmail.com>
 Cc: Nhat Pham <nphamcs@gmail.com>
 Cc: Nicholas Piggin <npiggin@gmail.com>
@@ -163,57 +192,152 @@ Cc: Youngjun Park <youngjun.park@lge.com>
 Cc: Jason Gunthorpe <jgg@ziepe.ca>
 ---
 
- MAINTAINERS |   32 ++++++++++++++++----------------
- 1 file changed, 16 insertions(+), 16 deletions(-)
+ MAINTAINERS |   31 +++++++++----------------------
+ 1 file changed, 9 insertions(+), 22 deletions(-)
 
---- a/MAINTAINERS~maintainers-rename-and-move-memory-hotunplug
+--- a/MAINTAINERS~maintainers-route-more-mm-changes-through-mm-coregit
 +++ a/MAINTAINERS
-@@ -17406,22 +17406,6 @@ S:	Maintained
- T:	git git://git.kernel.org/pub/scm/linux/kernel/git/chanwoo/linux.git
- F:	drivers/devfreq/tegra30-devfreq.c
+@@ -17429,18 +17429,15 @@ F:	mm/alloc_tag.c
+ F:	tools/testing/selftests/alloc_tag/
  
--MEMORY HOT(UN)PLUG
--M:	David Hildenbrand <david@kernel.org>
--M:	Oscar Salvador <osalvador@suse.de>
--L:	linux-mm@kvack.org
--L:	linux-cxl@vger.kernel.org
--S:	Maintained
--F:	Documentation/ABI/testing/sysfs-devices-memory
--F:	Documentation/admin-guide/mm/memory-hotplug.rst
--F:	Documentation/core-api/memory-hotplug.rst
--F:	drivers/base/memory.c
--F:	include/linux/memory_hotplug.h
--F:	include/linux/memremap.h
--F:	mm/memory_hotplug.c
--F:	mm/memremap.c
--F:	tools/testing/selftests/memory-hotplug/
--
- MEMORY MANAGEMENT
- M:	Andrew Morton <akpm@linux-foundation.org>
+ MEMORY MANAGEMENT - BALLOON
+-M:	Andrew Morton <akpm@linux-foundation.org>
+ M:	David Hildenbrand <david@kernel.org>
  L:	linux-mm@kvack.org
-@@ -17559,6 +17543,22 @@ F:	include/trace/events/ksm.h
- F:	mm/ksm.c
- F:	mm/mm_slot.h
+ L:	virtualization@lists.linux.dev
+ S:	Maintained
+-W:	http://www.linux-mm.org
+-T:	git git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
++T:	git git://git.kernel.org/pub/scm/linux/kernel/git/mm/core.git for-next
+ F:	include/linux/balloon.h
+ F:	mm/balloon.c
  
-+MEMORY MANAGEMENT - MEMORY HOT(UN)PLUG
-+M:	David Hildenbrand <david@kernel.org>
-+M:	Oscar Salvador <osalvador@suse.de>
-+L:	linux-mm@kvack.org
-+L:	linux-cxl@vger.kernel.org
-+S:	Maintained
-+F:	Documentation/ABI/testing/sysfs-devices-memory
-+F:	Documentation/admin-guide/mm/memory-hotplug.rst
-+F:	Documentation/core-api/memory-hotplug.rst
-+F:	drivers/base/memory.c
-+F:	include/linux/memory_hotplug.h
-+F:	include/linux/memremap.h
-+F:	mm/memory_hotplug.c
-+F:	mm/memremap.c
-+F:	tools/testing/selftests/memory-hotplug/
-+
- MEMORY MANAGEMENT - MEMORY MAP
- M:	Muchun Song <muchun.song@linux.dev>
- M:	Mike Rapoport <rppt@kernel.org>
+ MEMORY MANAGEMENT - CORE
+-M:	Andrew Morton <akpm@linux-foundation.org>
+ M:	David Hildenbrand <david@kernel.org>
+ R:	Lorenzo Stoakes <ljs@kernel.org>
+ R:	Liam R. Howlett <liam@infradead.org>
+@@ -17450,8 +17447,7 @@ R:	Suren Baghdasaryan <surenb@google.com
+ R:	Michal Hocko <mhocko@suse.com>
+ L:	linux-mm@kvack.org
+ S:	Maintained
+-W:	http://www.linux-mm.org
+-T:	git git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
++T:	git git://git.kernel.org/pub/scm/linux/kernel/git/mm/core.git for-next
+ F:	Documentation/admin-guide/sysctl/vm.rst
+ F:	Documentation/core-api/gfp_mask-from-fs-io.rst
+ F:	fs/proc/meminfo.c
+@@ -17509,15 +17505,13 @@ F:	include/linux/execmem.h
+ F:	mm/execmem.c
+ 
+ MEMORY MANAGEMENT - GUP (GET USER PAGES)
+-M:	Andrew Morton <akpm@linux-foundation.org>
+ M:	David Hildenbrand <david@kernel.org>
+ R:	Jason Gunthorpe <jgg@nvidia.com>
+ R:	John Hubbard <jhubbard@nvidia.com>
+ R:	Peter Xu <peterx@redhat.com>
+ L:	linux-mm@kvack.org
+ S:	Maintained
+-W:	http://www.linux-mm.org
+-T:	git git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
++T:	git git://git.kernel.org/pub/scm/linux/kernel/git/mm/core.git for-next
+ F:	Documentation/core-api/pin_user_pages.rst
+ F:	mm/gup.c
+ F:	mm/gup_test.c
+@@ -17527,14 +17521,12 @@ F:	tools/testing/selftests/mm/gup.c
+ F:	tools/testing/selftests/mm/gup_longterm.c
+ 
+ MEMORY MANAGEMENT - KSM (Kernel Samepage Merging)
+-M:	Andrew Morton <akpm@linux-foundation.org>
+ M:	David Hildenbrand <david@kernel.org>
+ R:	Xu Xin <xu.xin@linux.dev>
+ R:	Chengming Zhou <chengming.zhou@linux.dev>
+ L:	linux-mm@kvack.org
+ S:	Maintained
+-W:	http://www.linux-mm.org
+-T:	git git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
++T:	git git://git.kernel.org/pub/scm/linux/kernel/git/mm/core.git for-next
+ F:	Documentation/ABI/testing/sysfs-kernel-mm-ksm
+ F:	Documentation/admin-guide/mm/ksm.rst
+ F:	Documentation/mm/ksm.rst
+@@ -17549,6 +17541,7 @@ M:	Oscar Salvador <osalvador@suse.de>
+ L:	linux-mm@kvack.org
+ L:	linux-cxl@vger.kernel.org
+ S:	Maintained
++T:	git git://git.kernel.org/pub/scm/linux/kernel/git/mm/core.git for-next
+ F:	Documentation/ABI/testing/sysfs-devices-memory
+ F:	Documentation/admin-guide/mm/memory-hotplug.rst
+ F:	Documentation/core-api/memory-hotplug.rst
+@@ -17597,7 +17590,6 @@ F:	mm/vmscan.c
+ F:	mm/workingset.c
+ 
+ MEMORY MANAGEMENT - MIGRATION
+-M:	Andrew Morton <akpm@linux-foundation.org>
+ M:	David Hildenbrand <david@kernel.org>
+ R:	Zi Yan <ziy@nvidia.com>
+ R:	Matthew Brost <matthew.brost@intel.com>
+@@ -17608,8 +17600,7 @@ R:	Ying Huang <ying.huang@linux.alibaba.
+ R:	Alistair Popple <apopple@nvidia.com>
+ L:	linux-mm@kvack.org
+ S:	Maintained
+-W:	http://www.linux-mm.org
+-T:	git git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
++T:	git git://git.kernel.org/pub/scm/linux/kernel/git/mm/core.git for-next
+ F:	include/linux/migrate.h
+ F:	include/linux/migrate_mode.h
+ F:	include/trace/events/migrate.h
+@@ -17681,7 +17672,6 @@ F:	mm/numa_emulation.c
+ F:	mm/numa_memblks.c
+ 
+ MEMORY MANAGEMENT - NUMA PLACEMENT
+-M:	Andrew Morton <akpm@linux-foundation.org>
+ M:	David Hildenbrand <david@kernel.org>
+ M:	Gregory Price <gourry@gourry.net>
+ R:	Zi Yan <ziy@nvidia.com>
+@@ -17690,8 +17680,7 @@ R:	Rakie Kim <rakie.kim@sk.com>
+ R:	Ying Huang <ying.huang@linux.alibaba.com>
+ L:	linux-mm@kvack.org
+ S:	Maintained
+-W:	http://www.linux-mm.org
+-T:	git git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
++T:	git git://git.kernel.org/pub/scm/linux/kernel/git/mm/core.git for-next
+ F:	Documentation/ABI/testing/sysfs-kernel-mm-memory-tiers
+ F:	Documentation/ABI/testing/sysfs-kernel-mm-mempolicy
+ F:	Documentation/ABI/testing/sysfs-kernel-mm-mempolicy-weighted-interleave
+@@ -17765,7 +17754,6 @@ F:	mm/vmscan.c
+ F:	mm/workingset.c
+ 
+ MEMORY MANAGEMENT - RMAP (REVERSE MAPPING)
+-M:	Andrew Morton <akpm@linux-foundation.org>
+ M:	David Hildenbrand <david@kernel.org>
+ M:	Lorenzo Stoakes <ljs@kernel.org>
+ R:	Rik van Riel <riel@surriel.com>
+@@ -17776,6 +17764,7 @@ R:	Jann Horn <jannh@google.com>
+ R:	Lance Yang <lance.yang@linux.dev>
+ L:	linux-mm@kvack.org
+ S:	Maintained
++T:	git git://git.kernel.org/pub/scm/linux/kernel/git/mm/core.git for-next
+ F:	include/linux/rmap.h
+ F:	mm/interval_tree.c
+ F:	mm/page_vma_mapped.c
+@@ -17833,7 +17822,6 @@ F:	mm/swap_table.h
+ F:	mm/swapfile.c
+ 
+ MEMORY MANAGEMENT - THP (TRANSPARENT HUGE PAGE)
+-M:	Andrew Morton <akpm@linux-foundation.org>
+ M:	David Hildenbrand <david@kernel.org>
+ M:	Zi Yan <ziy@nvidia.com>
+ R:	Baolin Wang <baolin.wang@linux.alibaba.com>
+@@ -17847,8 +17835,7 @@ R:	Usama Arif <usama.arif@linux.dev>
+ R:	Kiryl Shutsemau <kas@kernel.org>
+ L:	linux-mm@kvack.org
+ S:	Maintained
+-W:	http://www.linux-mm.org
+-T:	git git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
++T:	git git://git.kernel.org/pub/scm/linux/kernel/git/mm/core.git for-next
+ F:	Documentation/ABI/testing/sysfs-kernel-mm-transparent-hugepage
+ F:	Documentation/admin-guide/mm/transhuge.rst
+ F:	include/linux/huge_mm.h
 _
 
 Patches currently in -mm which might be from david@kernel.org are
