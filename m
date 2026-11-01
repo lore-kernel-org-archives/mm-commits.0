@@ -1,46 +1,49 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793562273;
-	b=M9VNwic4hhQsT/trR5C4tUOZ+eJvRqnH7bAXq4U9XQBdNxdQLBFlIKyfABGtSrRrNAVZ
-	 jcY91RU0NKudZrbMMfuQl0VBLnbT5OVyRiqx8phRAqK+dQ0GHpV0/5I8wjVf07BN2JMyJ
-	 oei/qdL3hHNXUMLiR69NLMHBPBhFUmOatnB2bfzsl1Wk5nj30YTcy4ThwHqefO2qlVjyY
-	 OWOZwPq5PRLT3/3R41GM0ziegSOWMsxi/2UWAEigVT6kGNjnmPeT9F8pdlwhG0vJrrk2d
-	 dOjSsy+8i4U0tSclhwDdzgWnkR28XTbAXBvXNGc+0hiXqnLQ3imrac0qfEwY8j2lZ3Q==
+	t=1793562523;
+	b=Jt3pn5C9OKCh0Dp5wJ7CsVVm1Vo72tRYxVeu22lyZ3GbHk0cavjsm1SO5NWpKIuGeJo9
+	 G3AuKNgUq1D4NymBJFxo89k3IX+mbYIKpsVXPWnLktFfrWxI0CqKnQGf6ObLjoopMY5AB
+	 8c3JIn50BDtPjxFdwKM4cocJY+20IAvYj6hSXbl/2Q/GuhsAajUnQDlgZcW5qPvytrk+n
+	 8HxUMxnR5Y9uP0jArVT5aQVJAOlW9wVQhBnVtMtLJIGk+Ri6eD13NsRapnb6uH7tVUoLM
+	 PpUjVZSDau02Yf7gfzJi6whudVqBlyF4m+bn5ik/lCjrj2ho09AAeczNL9VqURVQ+Dg==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793562273;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793562523;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=jbUZOtL+bnqi0wsW78gKfbZAxL9DT+qPzhxoGSOrgeA=;
-	b=QJAY5edpGjUB4GHxwa4yuwc+yxqKUIA3dMMegEdMWuBevRV860Gj5XOHLwBX7Kw2NhT+
-	 tVxp+n1OlBeEcvEWNb8dYAQLgd8/ItslAi6LlGCDF/cS5ohMrGrArx7KqVEZ1NdOH1Nh2
-	 rSp1Ds1wkweIHxHF3qxBet7YjMzzN6/bwbXXEsTFejwQhsHKk2Rct8CI61Ib+nOeNhVFj
-	 eE7V8gQzOj3JJSQcPktpXbcU8CgKJ83pg2YaNT7SwisNauAh36vt9nxysz5xyegGf6Xlx
-	 ghFtjB3rwxIoF1rMcPs4LG1qWxNB+Ynd2tQSG+bB63CpMhaj+fKB3eb2iCuB3I0XYnQ==
+	bh=66rZVd8CJ+jfrNYYUx2TQzDqzwN7I1LLXe/ZBDbZBfs=;
+	b=WK+Ppr2N3Q9lDLLu3/awSqgbTZGyL8zDCjXvkhGXih9pYcPQZcEmMkOBCQPzlv2FkNG6
+	 /p5qQKXP+VP1QwxZkXvpkxOt1MM55uuBKQPVyj9VFcg89bKPdB0xuIUOJRW5rSblcfMrn
+	 1s9sLh6sUZgW7c5mYPwSywVCeUgo86QnIgj4KLLahCkx6r69r7PyIDOyeNXqQaIJv7RKS
+	 y+QVCc6OFa623wrCDz+hw+9qclaQS9xxpabeU40OMy/AbneCLfd4JVF5j6y3WlX1SZGDZ
+	 ZbBoCGCqRBv9+2cYq9sZukJLM5ELx6RfJZVS/1vRjiQSPFq6upYux+mIKG03f5uvnAw==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=WTVOMybf;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=2Q1HyxCz;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4AA0D606A326
-	for <mm-commits@vger.kernel.org>; Sun,  1 Nov 2026 19:44:32 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 08265606A324;
+	Sun,  1 Nov 2026 19:48:42 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=WTVOMybf
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5F87C1F000C1;
-	Sun,  1 Nov 2026 19:44:32 +0000 (UTC)
+	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=2Q1HyxCz
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7DF261F000C1;
+	Sun,  1 Nov 2026 19:48:42 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1793562272;
-	bh=jbUZOtL+bnqi0wsW78gKfbZAxL9DT+qPzhxoGSOrgeA=;
+	d=linux-foundation.org; s=korg; t=1793562522;
+	bh=66rZVd8CJ+jfrNYYUx2TQzDqzwN7I1LLXe/ZBDbZBfs=;
 	h=Date:To:From:Subject;
-	b=WTVOMybfwiErOYiAG/7KagMVrV8Zn1zYdRGeZ8o++Jwb6YBYBskq3Wba3EjGZvBdA
-	 aADy90o/cer29lKWhT8rarH6UsB616jsOIp3Dyv88ln4S0GzxK0O23xpL8exlmOyA2
-	 NBC2KV48J39NawpkVsfIx6W36S13pBB/OyeBf3HA=
-Date: Sun, 01 Nov 2026 11:44:31 -0800
-To: mm-commits@vger.kernel.org,balbirs@nvidia.com,brads@mainlining.org,
-	akpm@linux-foundation.org
+	b=2Q1HyxCzqyNKeaJKITrJVO/CxJlClwkV/4rR96y/AoMoECJFMggWuGWj8nugB7V6+
+	 tOuuI2YfMSAbPFNUUHaUhhG5+MoPZ5ihfPnbIuWn0Ou+kiYZSCgQWtBfRafFQxiWPb
+	 sOsDwI+H3V7f8qbG2zAOnVoEx6tLznZC0C5xF010=
+Date: Sun, 01 Nov 2026 11:48:42 -0800
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,ying.huang@linux.alibaba.com,
+	wangkefeng.wang@huawei.com,sunnanyong@huawei.com,stable@vger.kernel.org,
+	odys.yuan@gmail.com,matthew.brost@intel.com,joshua.hahnjy@gmail.com,
+	gourry@gourry.net,david@kernel.org,byungchul@sk.com,apopple@nvidia.com,
+	xiqi2@huawei.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + taskstats-take-the-inode-once-in-exe_add_tsk.patch added to mm-nonmm-unstable branch
-Message-Id: <20261101194432.5F87C1F000C1@smtp.kernel.org>
+Subject: + mm-migrate-fix-softlockup-in-do_pages_stat-with-huge-page-arrays.patch added to mm-new branch
+Message-Id: <20261101194842.7DF261F000C1@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -52,15 +55,26 @@ Precedence: list
 
 
 The patch titled
-     Subject: taskstats: take the inode once in exe_add_tsk()
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     taskstats-take-the-inode-once-in-exe_add_tsk.patch
+     Subject: mm/migrate: fix softlockup in do_pages_stat() with huge page arrays
+has been added to the -mm mm-new branch.  Its filename is
+     mm-migrate-fix-softlockup-in-do_pages_stat-with-huge-page-arrays.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/taskstats-take-the-inode-once-in-exe_add_tsk.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-migrate-fix-softlockup-in-do_pages_stat-with-huge-page-arrays.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Note, mm-new is a provisional staging ground for work-in-progress
+patches, and acceptance into mm-new is a notification for others take
+notice and to finish up reviews.  Please do not hesitate to respond to
+review feedback and post updated versions to replace or incrementally
+fixup patches in mm-new.
+
+The mm-new branch of mm.git is not included in linux-next
+
+If a few days of testing in mm-new is successful, the patch will me moved
+into mm.git's mm-unstable branch, which is included in linux-next
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -75,47 +89,53 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Bradley Morgan <brads@mainlining.org>
-Subject: taskstats: take the inode once in exe_add_tsk()
-Date: Sun, 01 Nov 2026 00:57:41 +0000
+From: Qi Xi <xiqi2@huawei.com>
+Subject: mm/migrate: fix softlockup in do_pages_stat() with huge page arrays
+Date: Sat, 31 Oct 2026 11:33:30 +0800
 
-exe_add_tsk() walks exe_file->f_inode twice, once for the superblock
-device and once for the inode number.  file_inode() is the accessor for
-that field, and hoisting the inode out of the two assignments also gets
-stats->ac_exe_dev onto one line instead of a split continuation.
+do_pages_stat() walks the user page array in 16-page chunks but never
+reschedules, so a huge nr_pages can hold a CPU past the watchdog threshold
+on non-preemptible kernels.  Add cond_resched() to the loop so long
+move_pages() node-query calls yield periodically.
 
-Link: https://lore.kernel.org/20261101005743.3022780-2-brads@mainlining.org
-Signed-off-by: Bradley Morgan <brads@mainlining.org>
+With KASAN and function tracing enabled, a move_pages() node query (nodes
+== NULL) over 10 million page entries (~40GB) can trigger the softlockup
+on a PREEMPT_NONE kernel.
+
+Link: https://lore.kernel.org/20261031033330.3416326-1-xiqi5703@163.com
+Fixes: 80bba1290ab5 ("mm: no get_user/put_user while holding mmap_sem in do_pages_stat?")
+Signed-off-by: Qi Xi <xiqi2@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Cc: Balbir Singh <balbirs@nvidia.com>
+Cc: David Hildenbrand <david@kernel.org>
+Cc: Zi Yan <ziy@nvidia.com>
+Cc: Matthew Brost <matthew.brost@intel.com>
+Cc: Joshua Hahn <joshua.hahnjy@gmail.com>
+Cc: Byungchul Park <byungchul@sk.com>
+Cc: Gregory Price <gourry@gourry.net>
+Cc: Ying Huang <ying.huang@linux.alibaba.com>
+Cc: Alistair Popple <apopple@nvidia.com>
+Cc: Qiliang Yuan <odys.yuan@gmail.com>
+Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
+Cc: Nanyong Sun <sunnanyong@huawei.com>
+Cc: <stable@vger.kernel.org>
 ---
 
- kernel/taskstats.c |    7 ++++---
- 1 file changed, 4 insertions(+), 3 deletions(-)
+ mm/migrate.c |    1 +
+ 1 file changed, 1 insertion(+)
 
---- a/kernel/taskstats.c~taskstats-take-the-inode-once-in-exe_add_tsk
-+++ a/kernel/taskstats.c
-@@ -159,10 +159,11 @@ static void exe_add_tsk(struct taskstats
- 	struct file *exe_file = get_task_exe_file(tsk);
+--- a/mm/migrate.c~mm-migrate-fix-softlockup-in-do_pages_stat-with-huge-page-arrays
++++ a/mm/migrate.c
+@@ -2555,6 +2555,7 @@ static int do_pages_stat(struct mm_struc
  
- 	if (exe_file) {
-+		struct inode *inode = file_inode(exe_file);
-+
- 		/* Following cp_new_stat64() in stat.c . */
--		stats->ac_exe_dev =
--			huge_encode_dev(exe_file->f_inode->i_sb->s_dev);
--		stats->ac_exe_inode = exe_file->f_inode->i_ino;
-+		stats->ac_exe_dev = huge_encode_dev(inode->i_sb->s_dev);
-+		stats->ac_exe_inode = inode->i_ino;
- 		fput(exe_file);
- 	} else {
- 		stats->ac_exe_dev = 0;
+ 		chunk_offset += chunk_nr;
+ 		nr_pages -= chunk_nr;
++		cond_resched();
+ 	}
+ 	return nr_pages ? -EFAULT : 0;
+ }
 _
 
-Patches currently in -mm which might be from brads@mainlining.org are
+Patches currently in -mm which might be from xiqi2@huawei.com are
 
-taskstats-use-nla_put_u32-in-mk_reply.patch
-taskstats-take-the-inode-once-in-exe_add_tsk.patch
-taskstats-reuse-na-in-cgroupstats_user_cmd.patch
-taskstats-use-div_u64-for-the-elapsed-time-in-tgid_stats_add_task.patch
+mm-migrate-fix-softlockup-in-do_pages_stat-with-huge-page-arrays.patch
 
