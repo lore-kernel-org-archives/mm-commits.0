@@ -1,41 +1,41 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793565169;
-	b=vLOrG3B9IvNg0hiVElTVJLalr1UrvtbDWcRJq2WybbIxSYBhesyC/USfcCGuQgHmjbRX
-	 Li1AEAF4rP9b7NMGO8P8xr4Q7jmyWa5L3g8/fFC2wPA1K+dXPUNODKqcCeOblBWWrU1e1
-	 ehtf+WFquxUuBmgY3dv4oPsn5V+TMIyFZ3Sl7pzMwUUMOGhgP2YpIPB6jBtHCP/F+hWSI
-	 G4o/QAMFIYLnTITnzGGQQ7c96f3h3Das+fTEeFHLyo2n+vJcGw2CGpLSaBNgC22l9YP0T
-	 qmK7abuW1xs8Devnf3qRujA04SldnqZjoycGBddGY123xaHw0A2SNHqlr2/d/o7KbsA==
+	t=1793565171;
+	b=yRpw1gxc14Fnr5N2+hxfV0/6HeLOKbB648Omd3qfEvAs0muivM8K9tjokiLmXqi9iabp
+	 fbPDf7i1X3NSD1MF5jfSTDEqOey9ErW/x95hXLCfRWGVTABIkr74dRGUrEGzuR9pIUcVB
+	 Ld9AWIJjTNCJk36dmZitls7evBFYDgc0J+1D8kbRhf8j6g0+FYB/XV9xLamMBeUkGtXQp
+	 4KfnapMuWqc0YRWzdZITRTDiV/uhVMgejptHixFfJuJ56VDRiqft8QYID70C/5Z8isoqq
+	 VEKf/CCk0+S1Gefdrvp6n1BaohYf/YyOUo3fmP5+LW6wYxj+skWdfTSJtyinXoJitig==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793565169;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793565171;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=IJ+WOqFYQ4qojCsmgwDpLprVtQfFRw4XnwCmL6TMoTs=;
-	b=SQAtrB+XxsL1MVc3qM9ItjJ6GEGXXnNURp2RK8bfGaXRIqoB/Ipvu01R6srMNG/LvslI
-	 4xm1/CyNPiFMLTbj3xks/m8/FLJyYMhH4hpBZS1+5AA45+Ft3EMif6KpDMrFnJNTvRu8O
-	 LVucPv+h0Z/j0zem7x3jWdijeNDWFclgLTycKvZLzLxVXxArx9JEgA16DTFjHoKnQ+11/
-	 cK/CTWwNVEPrC6pJAFqfRq66DURJADZIs05TL+HsUzH494geL9gikq00a2XeFuTp+M1VO
-	 nZf4QnoMfyjo83fCrE0P4U2yU0swBy5Ezd8sHv6wb7srKDsoPetR7wYCANpPma16dxQ==
+	bh=qfXahCopr8yiSjlQytILGn0+3UTkEpAV4Dm2C4UGGO4=;
+	b=q5sZURcZh5rwhVGmffOO78ILP5J8V2u4NOU6X5GYvomfvEpp5nMNra001W7mW6egRyNB
+	 /1LWQ9q4fUMLtQm2IkLdURx4H1h0sNH150wbPMQS2DRqHCsBFvxCEonoxJ8RFMVVpRZt3
+	 okHdutKh4MgdlN3dLy70S/i5hbo66jjBud7UUr/Q4OqqrCWhhpSSFtYylMsU7qTBfkjq3
+	 p/DtJnyWEtW+1b/XHgYnHG6AEs9jiXnb+19vvdZ55lZOSv62XFX9fshw+ImUaN63XdIWS
+	 72YauYAP0sYhEyhY5PO8hkRqdA7+Zj7RZ9NoxHeqpqkoUA2b5vvIqgl4cFsJXmrktfg==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=TnqmpBgM;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=PmBzXIV+;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 13E32606A324
-	for <mm-commits@vger.kernel.org>; Sun,  1 Nov 2026 20:32:48 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 12518606A324
+	for <mm-commits@vger.kernel.org>; Sun,  1 Nov 2026 20:32:50 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=TnqmpBgM
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9B9651F000C1;
-	Sun,  1 Nov 2026 20:32:48 +0000 (UTC)
+	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=PmBzXIV+
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 803E51F000C1;
+	Sun,  1 Nov 2026 20:32:50 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1793565168;
-	bh=IJ+WOqFYQ4qojCsmgwDpLprVtQfFRw4XnwCmL6TMoTs=;
+	d=linux-foundation.org; s=korg; t=1793565170;
+	bh=qfXahCopr8yiSjlQytILGn0+3UTkEpAV4Dm2C4UGGO4=;
 	h=Date:To:From:Subject;
-	b=TnqmpBgMjtvutOcxiOFUlXC25ES0khakyT4JpSxwcFXpBysiWToQ2cZ/izry24koM
-	 z2PWFxTI1ORVIl83rrSY9Kzl0o0kWRhj78KUeIPG6PgJVKISgPJQvBvsxeZxQIEFQP
-	 UvJTM11yXDW2rZ/W2PrMO7aeb5v8bpbJOwev+rZc=
-Date: Sun, 01 Nov 2026 12:32:48 -0800
+	b=PmBzXIV+Bqm+w2oERQQAryDIkBi2BR4LXpuc7JD8TgLvPy/p74nPdNax88xDVj9i3
+	 KXz2xvjKoRLzJMT9cqkhSyfo0/m7SpI3pNLmJ1iG8srEzASv6oCRif47DKZlvt0FKK
+	 /tVtrwmlq1PZXEwbmJq/ErKaPvn7d7c7HgI1fv4A=
+Date: Sun, 01 Nov 2026 12:32:50 -0800
 To: mm-commits@vger.kernel.org,ziy@nvidia.com,youngjun.park@lge.com,
 	ying.huang@linux.alibaba.com,xu.xin@linux.dev,will@kernel.org,
 	vbabka@kernel.org,usama.arif@linux.dev,urezki@gmail.com,tj@kernel.org,
@@ -56,8 +56,8 @@ To: mm-commits@vger.kernel.org,ziy@nvidia.com,youngjun.park@lge.com,
 	baohua@kernel.org,apopple@nvidia.com,aneesh.kumar@kernel.org,
 	david@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + maintainers-add-zi-yan-as-co-maintainer-for-memory-management-thp.patch added to mm-hotfixes-unstable branch
-Message-Id: <20261101203248.9B9651F000C1@smtp.kernel.org>
+Subject: + maintainers-sort-entries-in-mm-sections.patch added to mm-hotfixes-unstable branch
+Message-Id: <20261101203250.803E51F000C1@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -69,12 +69,12 @@ Precedence: list
 
 
 The patch titled
-     Subject: MAINTAINERS: add Zi Yan as co-maintainer for MEMORY MANAGEMENT - THP
+     Subject: MAINTAINERS: sort entries in MM sections
 has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     maintainers-add-zi-yan-as-co-maintainer-for-memory-management-thp.patch
+     maintainers-sort-entries-in-mm-sections.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/maintainers-add-zi-yan-as-co-maintainer-for-memory-management-thp.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/maintainers-sort-entries-in-mm-sections.patch
 
 This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -93,38 +93,26 @@ and is updated there most days
 
 ------------------------------------------------------
 From: "David Hildenbrand (Arm)" <david@kernel.org>
-Subject: MAINTAINERS: add Zi Yan as co-maintainer for MEMORY MANAGEMENT - THP
-Date: Fri, 30 Oct 2026 22:34:27 +0100
+Subject: MAINTAINERS: sort entries in MM sections
+Date: Fri, 30 Oct 2026 22:34:28 +0100
 
-Zi has been contributing to THP consistently and reliably over many
-years and is considered one of our most valuable THP experts. As THP is
-an especially active area lately, having a single dedicated THP maintainer
-is not sustainable.
+We try to keep these entries sorted; let's sort the MM related ones.
 
-Fortunately, Zi volunteered to take on more responsibility by stepping
-up as a THP co-maintainer. So let's do exactly that.
-
-His placement in the MAINTAINERS entry is very convenient to perform
-this change :)
-
-Link: https://lore.kernel.org/20261030-maintainers-v1-3-97278f8a5f54@kernel.org
+Link: https://lore.kernel.org/20261030-maintainers-v1-4-97278f8a5f54@kernel.org
 Signed-off-by: David Hildenbrand (Arm) <david@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 Acked-by: Vlastimil Babka (SUSE) <vbabka@kernel.org>
 Acked-by: Qi Zheng <qi.zheng@linux.dev>
-Acked-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
-Acked-by: Harry Yoo (Meta) <harry@kernel.org>
-Acked-by: Muchun Song <muchun.song@linux.dev>
 Acked-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
 Acked-by: Zi Yan <ziy@nvidia.com>
 Acked-by: SJ Park <sj@kernel.org>
-Acked-by: Barry Song <baohua@kernel.org>
-Acked-by: Lance Yang <lance.yang@linux.dev>
-Acked-by: Dev Jain <dev.jain@arm.com>
+Reviewed-by: Harry Yoo (Meta) <harry@kernel.org>
+Acked-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
 Cc: Alistair Popple <apopple@nvidia.com>
 Cc: Aneesh Kumar K.V <aneesh.kumar@kernel.org>
 Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
 Cc: Baoquan He <baoquan.he@linux.dev>
+Cc: Barry Song <baohua@kernel.org>
 Cc: Brendan Jackman <brendan.jackman@linux.dev>
 Cc: Byungchul Park <byungchul@sk.com>
 Cc: Chengming Zhou <chengming.zhou@linux.dev>
@@ -133,6 +121,7 @@ Cc: Christoph Lameter <cl@gentwo.org>
 Cc: Dave Chinner <david@fromorbit.com>
 Cc: David Rientjes <rientjes@google.com>
 Cc: Dennis Zhou <dennis@kernel.org>
+Cc: Dev Jain <dev.jain@arm.com>
 Cc: Gregory Price <gourry@gourry.net>
 Cc: Hao Li <hao.li@linux.dev>
 Cc: Hugh Dickins <hughd@google.com>
@@ -143,10 +132,12 @@ Cc: Joshua Hahn <joshua.hahnjy@gmail.com>
 Cc: Kairui Song <kasong@tencent.com>
 Cc: Kemeng Shi <shikemeng@huaweicloud.com>
 Cc: Kiryl Shutsemau <kas@kernel.org>
+Cc: Lance Yang <lance.yang@linux.dev>
 Cc: Liam R. Howlett <liam@infradead.org>
 Cc: Matthew Brost <matthew.brost@intel.com>
 Cc: Miaohe Lin <linmiaohe@huawei.com>
 Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Muchun Song <muchun.song@linux.dev>
 Cc: Naoya Horiguchi <nao.horiguchi@gmail.com>
 Cc: Nhat Pham <nphamcs@gmail.com>
 Cc: Nicholas Piggin <npiggin@gmail.com>
@@ -171,20 +162,117 @@ Cc: Youngjun Park <youngjun.park@lge.com>
 Cc: Jason Gunthorpe <jgg@ziepe.ca>
 ---
 
- MAINTAINERS |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ MAINTAINERS |   22 +++++++++++-----------
+ 1 file changed, 11 insertions(+), 11 deletions(-)
 
---- a/MAINTAINERS~maintainers-add-zi-yan-as-co-maintainer-for-memory-management-thp
+--- a/MAINTAINERS~maintainers-sort-entries-in-mm-sections
 +++ a/MAINTAINERS
-@@ -17800,7 +17800,7 @@ F:	mm/swapfile.c
- MEMORY MANAGEMENT - THP (TRANSPARENT HUGE PAGE)
+@@ -6827,9 +6827,9 @@ L:	linux-mm@kvack.org
+ S:	Maintained
+ F:	include/linux/memcontrol.h
+ F:	include/linux/page_counter.h
+-F:	mm/memcontrol.c
+ F:	mm/memcontrol-v1.c
+ F:	mm/memcontrol-v1.h
++F:	mm/memcontrol.c
+ F:	mm/page_counter.c
+ F:	samples/cgroup/*
+ F:	tools/testing/selftests/cgroup/memcg_protection.m
+@@ -17412,8 +17412,8 @@ F:	Documentation/core-api/memory-hotplug
+ F:	drivers/base/memory.c
+ F:	include/linux/memory_hotplug.h
+ F:	include/linux/memremap.h
+-F:	mm/memremap.c
+ F:	mm/memory_hotplug.c
++F:	mm/memremap.c
+ F:	tools/testing/selftests/memory-hotplug/
+ 
+ MEMORY MANAGEMENT
+@@ -17463,6 +17463,7 @@ S:	Maintained
+ W:	http://www.linux-mm.org
+ T:	git git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+ F:	Documentation/admin-guide/sysctl/vm.rst
++F:	fs/proc/meminfo.c
+ F:	include/linux/folio_batch.h
+ F:	include/linux/gfp.h
+ F:	include/linux/gfp_types.h
+@@ -17471,16 +17472,15 @@ F:	include/linux/leafops.h
+ F:	include/linux/memory.h
+ F:	include/linux/mm.h
+ F:	include/linux/mm_*.h
+-F:	include/linux/mmzone.h
+ F:	include/linux/mmdebug.h
+ F:	include/linux/mmu_notifier.h
++F:	include/linux/mmzone.h
+ F:	include/linux/pagewalk.h
+ F:	include/linux/pgalloc.h
+ F:	include/linux/pgtable.h
+ F:	include/linux/ptdump.h
+ F:	include/linux/vmpressure.h
+ F:	include/linux/vmstat.h
+-F:	fs/proc/meminfo.c
+ F:	kernel/fork.c
+ F:	mm/Kconfig
+ F:	mm/debug.c
+@@ -17619,14 +17619,12 @@ F:	Documentation/admin-guide/mm/
+ F:	Documentation/core-api/memory-allocation.rst
+ F:	Documentation/core-api/mm-api.rst
+ F:	Documentation/mm/
+-X:	Documentation/admin-guide/mm/damon/
+-X:	Documentation/mm/damon/
+-F:	mm/char-mem.c
+ F:	include/linux/cma.h
+ F:	include/linux/dmapool.h
+ F:	include/linux/ioremap.h
+ F:	include/linux/page_idle.h
+ F:	mm/backing-dev.c
++F:	mm/char-mem.c
+ F:	mm/cma.c
+ F:	mm/cma_debug.c
+ F:	mm/cma_sysfs.c
+@@ -17641,6 +17639,8 @@ F:	mm/pgalloc-track.h
+ F:	mm/process_vm_access.c
+ F:	tools/lib/mm/
+ F:	tools/testing/selftests/mm/
++X:	Documentation/admin-guide/mm/damon/
++X:	Documentation/mm/damon/
+ 
+ MEMORY MANAGEMENT - NUMA MEMBLOCKS AND NUMA EMULATION
  M:	Andrew Morton <akpm@linux-foundation.org>
- M:	David Hildenbrand <david@kernel.org>
--R:	Zi Yan <ziy@nvidia.com>
-+M:	Zi Yan <ziy@nvidia.com>
- R:	Baolin Wang <baolin.wang@linux.alibaba.com>
- R:	Liam R. Howlett <liam@infradead.org>
- R:	Nico Pache <nico.pache@linux.dev>
+@@ -17793,8 +17793,8 @@ F:	include/linux/swapfile.h
+ F:	include/linux/swapops.h
+ F:	mm/page_io.c
+ F:	mm/swap.h
+-F:	mm/swap_table.h
+ F:	mm/swap_state.c
++F:	mm/swap_table.h
+ F:	mm/swapfile.c
+ 
+ MEMORY MANAGEMENT - THP (TRANSPARENT HUGE PAGE)
+@@ -17866,10 +17866,10 @@ L:	linux-mm@kvack.org
+ S:	Maintained
+ W:	http://www.linux-mm.org
+ T:	git git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+-F:	mm/char-mem.c
+-F:	include/trace/events/mmap.h
+ F:	fs/proc/task_mmu.c
+ F:	fs/proc/task_nommu.c
++F:	include/trace/events/mmap.h
++F:	mm/char-mem.c
+ F:	mm/mincore.c
+ F:	mm/mlock.c
+ F:	mm/mmap.c
+@@ -29804,9 +29804,9 @@ S:	Maintained
+ W:	http://www.linux-mm.org
+ T:	git git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+ F:	include/linux/vmalloc.h
++F:	lib/test_vmalloc.c
+ F:	mm/vmalloc.c
+ F:	mm/vmalloc.h
+-F:	lib/test_vmalloc.c
+ 
+ VME SUBSYSTEM
+ L:	linux-kernel@vger.kernel.org
 _
 
 Patches currently in -mm which might be from david@kernel.org are
