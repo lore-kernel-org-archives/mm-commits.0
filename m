@@ -1,46 +1,50 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793501158;
-	b=DH+R2YJXBinHMPFLntZUIYZR0NEqK3S4lEEMHKH+T1kC3fHayni4qEfJWLfA7gNZNiz/
-	 WIqteoHsTVKTWIfTF/llnlq6yr10iotppoG/r9ulxxD6U6isqQxOAiQw1wIb5Ij6hfalw
-	 pHsICnaE3fX/UzJbRMbzzA2mgfOjCU0cA4hkEUs+9/i+sq5KyEF+x3Z57OOenbbFZe2BD
-	 /gJ3qKtwLsnuJZ+SWgTwuiYdGwatC68657MxC+wnIXQfHoYfsPUjr3eYPwBybJ4+q8KKU
-	 qE8Io30BpHhNmAO/b9gmrk2tCOJdNel1IUSd9q6YRgOhMfBl/mGbmGQGKUWW9ZR4DtA==
+	t=1793504342;
+	b=ZK7yzklPBB9VLDb9y6WyHhPp5fEypYd71/9SJtCCYpHiBY3kqJObEKQlJ9koJbB3OzrZ
+	 /dBfeYRyriW/qRT/NexG5V4XDr6eLI73y+U7vPpPOVA7q+g4bgW1LM5rLrXL0x87s4kjM
+	 zVhXKtqrc0wxbITTIHVdH9o+BkKNWF8sejURuba/AOfi3lxuLYMtN9w02+Hvwx/mb9F1G
+	 7WvhYtX5o2iUotIGcbu+Xgdg+P30e7/JqTSYuYpcm/uJ3qg5Sw58v2RwTUV0nzlToEz9p
+	 Fp6W918wtpMcNLzMKtJ9xsSc3m1Tang8Dskqnf4K7D8u1KB1YqRtUC98i2pCDU/E7yw==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793501158;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793504342;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=3lDOY3CTHhVLbbzrwcEwNfwqpWEHKNOQe6ZB8zpFVOI=;
-	b=4JBdM9YK+LjfvS4i/wRXk2vf7aN2Ypd+hwbHpw3S+zNC1OzoAEWpLqiWvs4NVoI2CAEa
-	 ZZgfnO/bngvlRQ/2vSFiDo9ikCw5+yqzBu78I/XrgI5lDb8d2HxG5ZSFz4xPdFU8sTBSo
-	 qO1nKLtgspVGTMXJinhgzKSW8jDZ7BwrbGAVOgMpkjeWl2q9jdN+8nuxbs+X9KvpXHjqy
-	 U9ffvZYlMBF/wwAuz6+5cUWGsPQxgumcWVRABLV9hR0W5l9tVULcSEwd/gTQ1R1r6jWyd
-	 l/+Eznh6nSmdutIOrJ5THQHObrHNBlZ6u6hthUH+jfgq+rbN6E0/Xf9UMfTMIBWKOgQ==
+	bh=8WvLBNywTRkBo6HPyt44/MH33Yh7FqpzZTb+4PBqLGM=;
+	b=Bw2iFHY7ZXhEYNdbExvxxWVN8yz7q9TosFmoeI2VbDuAPNQCFnsVjRainf7qsuOfyyqs
+	 fXgatm4pPWDFp24/tY4yvYPqFjYI1QUP0GkYTobF+GpCfzb3KQTpiDcd1/XKN2El1bk5R
+	 xlqbbc9h01HCnbm1L36RSQm1n/FelBZnw3ilhbkSaz660NHvKLteiCyK5nPDnHMtKZsLq
+	 umV2Ls2ou5Aqs/LIEZYafjBOco79zegsj/tlYL8voudMY0rFOY8duLv4rHaftYbiFXzrx
+	 XGo9Ho4z/jX7fOQBstkeWTLYcetyKhUl7NPecr8YDlk9eMpDJbDB7X+ywDL3MfJZOYA==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=0ycrfTV0;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=AJQTtPUy;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A7685606A324
-	for <mm-commits@vger.kernel.org>; Sun,  1 Nov 2026 02:45:57 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0E8C9606A324;
+	Sun,  1 Nov 2026 03:39:01 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=0ycrfTV0
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3C3DF1F000C1;
-	Sun,  1 Nov 2026 02:45:57 +0000 (UTC)
+	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=AJQTtPUy
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7DFB61F000C1;
+	Sun,  1 Nov 2026 03:39:01 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1793501157;
-	bh=3lDOY3CTHhVLbbzrwcEwNfwqpWEHKNOQe6ZB8zpFVOI=;
+	d=linux-foundation.org; s=korg; t=1793504341;
+	bh=8WvLBNywTRkBo6HPyt44/MH33Yh7FqpzZTb+4PBqLGM=;
 	h=Date:To:From:Subject;
-	b=0ycrfTV0Gqwy42Wvn+Ca2k8m7OTvX2PgQwsaoa13RFeUM9BpVACoDuJekooFN62Nn
-	 m8kAS4ZDMBWFJML9VNSNhfI5n/T51nlbJ5YWEwHolMqLWqqNhfENRK70KlLaVr2CoO
-	 az87ZyGjPNJ2FR8IbaW1gHoQF9QfshvHPuF3sXHo=
-Date: Sat, 31 Oct 2026 19:45:56 -0700
-To: mm-commits@vger.kernel.org,rppt@kernel.org,peterx@redhat.com,
-	azpijr@gmail.com,tz2294@columbia.edu,akpm@linux-foundation.org
+	b=AJQTtPUywdIrB6sRVgRiEPFum+U08RAfFo8avQNB+B1dLm+KTD+qYvl64HJQ1CPLp
+	 4xBSneuLqoq9/JeetqH+ISCvFGknf6sajjylpu7Aagkaj7cMwR9XwtdMSJzqJRAGVe
+	 YAwSBzrfB8vmhwFYo/UoAwyB5Ptsdus2JhOVUbD8=
+Date: Sat, 31 Oct 2026 20:39:01 -0700
+To: mm-commits@vger.kernel.org,yuantan098@gmail.com,yifanwucs@gmail.com,
+	tomapufckgml@gmail.com,stable@vger.kernel.org,
+	schuster.simon@siemens-energy.com,n05ec@lzu.edu.cn,manfred@colorfullife.com,
+	ljs@kernel.org,kees@kernel.org,enjou1224z@gmail.com,david@kernel.org,
+	dave@stgolabs.net,bird@lzu.edu.cn,arnd@arndb.de,caoruide123@gmail.com,
+	akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-userfaultfd-store-the-childs-new-uffd-context-in-the-wait-queue-entry.patch added to mm-new branch
-Message-Id: <20261101024557.3C3DF1F000C1@smtp.kernel.org>
+Subject: + ipc-sem-fix-used_sems-overflow-in-newary.patch added to mm-nonmm-unstable branch
+Message-Id: <20261101033901.7DFB61F000C1@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -52,26 +56,15 @@ Precedence: list
 
 
 The patch titled
-     Subject: mm/userfaultfd: store the child's new uffd context in the wait queue entry
-has been added to the -mm mm-new branch.  Its filename is
-     mm-userfaultfd-store-the-childs-new-uffd-context-in-the-wait-queue-entry.patch
+     Subject: ipc: sem: fix used_sems overflow in newary()
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     ipc-sem-fix-used_sems-overflow-in-newary.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-userfaultfd-store-the-childs-new-uffd-context-in-the-wait-queue-entry.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/ipc-sem-fix-used_sems-overflow-in-newary.patch
 
-This patch will later appear in the mm-new branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Note, mm-new is a provisional staging ground for work-in-progress
-patches, and acceptance into mm-new is a notification for others take
-notice and to finish up reviews.  Please do not hesitate to respond to
-review feedback and post updated versions to replace or incrementally
-fixup patches in mm-new.
-
-The mm-new branch of mm.git is not included in linux-next
-
-If a few days of testing in mm-new is successful, the patch will me moved
-into mm.git's mm-unstable branch, which is included in linux-next
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -86,101 +79,64 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Tal Zussman <tz2294@columbia.edu>
-Subject: mm/userfaultfd: store the child's new uffd context in the wait queue entry
-Date: Sat, 31 Oct 2026 11:47:48 -0400
+From: Ruide Cao <caoruide123@gmail.com>
+Subject: ipc: sem: fix used_sems overflow in newary()
+Date: Mon, 11 May 2026 18:42:53 +0800
 
-A UFFD_EVENT_FORK message cannot carry the child's fd when it is queued,
-because the fd has to be installed in the fd table of whichever task reads
-the event.  The forking task has to hand the reader the new context
-itself.  It does that by casting the child's userfaultfd_ctx pointer into
-the arg.reserved.reserved1 field of the UAPI struct uffd_msg, which the
-readers cast back.
+newary() checks namespace-wide semaphore usage before creating a new
+array, but the current accounting uses a plain signed addition.
 
-That temporarily puts a kernel pointer in a struct that is copied to
-userspace, and results in ugly casts when passing the uffd context around.
-While resolve_userfault_fork() currently zeroes reserved1 before it is
-exposed to userspace, this unnecessarily risks leaking a kernel pointer to
-userspace if future modifications are buggy.
+If the accumulated semaphore count overflows, the limit check can fail
+open and allow allocations past sc_semmns, breaking namespace semaphore
+resource enforcement and potentially leading to resource exhaustion.
 
-Store the fork_ctx pointer in struct userfaultfd_wait_queue instead, which
-is kernel-internal and passed around anyway.  The casts and the zeroing go
-away, at the (negligible) cost of 8 more bytes on the stack.
+Fix this by using check_add_overflow() before comparing the new total
+against sc_semmns, and reject overflow the same way as a true limit
+exceed.
 
-No functional change.
-
-Link: https://lore.kernel.org/20261031-uffd-fork-ctx-v1-1-a837fd576ffc@columbia.edu
-Signed-off-by: Tal Zussman <tz2294@columbia.edu>
+Link: https://lore.kernel.org/849fb1fdecd1cc241fd5b032602dbffa90f9dd93.1778477179.git.caoruide123@gmail.com
+Fixes: 1da177e4c3f4 ("Linux-2.6.12-rc2")
+Signed-off-by: Ruide Cao <caoruide123@gmail.com>
+Signed-off-by: Ren Wei <n05ec@lzu.edu.cn>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Reviewed-by: Jose A. Perez de Azpillaga <azpijr@gmail.com>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Peter Xu <peterx@redhat.com>
+Reported-by: Yuan Tan <yuantan098@gmail.com>
+Reported-by: Yifan Wu <yifanwucs@gmail.com>
+Reported-by: Juefei Pu <tomapufckgml@gmail.com>
+Reported-by: Xin Liu <bird@lzu.edu.cn>
+Tested-by: Ren Wei <enjou1224z@gmail.com>
+Cc: David Hildenbrand <david@kernel.org>
+Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: Lorenzo Stoakes <ljs@kernel.org>
+Cc: Kees Cook <kees@kernel.org>
+Cc: Simon Schuster <schuster.simon@siemens-energy.com>
+Cc: Davidlohr Bueso <dave@stgolabs.net>
+Cc: Manfred Spraul <manfred@colorfullife.com>
+Cc: <stable@vger.kernel.org>
 ---
 
- mm/userfaultfd.c |   19 ++++++-------------
- 1 file changed, 6 insertions(+), 13 deletions(-)
+ ipc/sem.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
---- a/mm/userfaultfd.c~mm-userfaultfd-store-the-childs-new-uffd-context-in-the-wait-queue-entry
-+++ a/mm/userfaultfd.c
-@@ -2443,6 +2443,8 @@ struct userfaultfd_wait_queue {
- 	struct uffd_msg msg;
- 	wait_queue_entry_t wq;
- 	struct userfaultfd_ctx *ctx;
-+	/* UFFD_EVENT_FORK: the context created for the child */
-+	struct userfaultfd_ctx *fork_ctx;
- 	bool waken;
- };
+--- a/ipc/sem.c~ipc-sem-fix-used_sems-overflow-in-newary
++++ a/ipc/sem.c
+@@ -535,11 +535,13 @@ static int newary(struct ipc_namespace *
+ 	key_t key = params->key;
+ 	int nsems = params->u.nsems;
+ 	int semflg = params->flg;
++	int total_sems;
+ 	int i;
  
-@@ -3019,14 +3021,8 @@ static void userfaultfd_event_wait_compl
- 			 * didn't.
- 			 */
- 			__remove_wait_queue(&ctx->event_wqh, &ewq->wq);
--			if (ewq->msg.event == UFFD_EVENT_FORK) {
--				struct userfaultfd_ctx *new;
--
--				new = (struct userfaultfd_ctx *)
--					(unsigned long)
--					ewq->msg.arg.reserved.reserved1;
--				release_new_ctx = new;
--			}
-+			if (ewq->msg.event == UFFD_EVENT_FORK)
-+				release_new_ctx = ewq->fork_ctx;
- 			break;
- 		}
+ 	if (!nsems)
+ 		return -EINVAL;
+-	if (ns->used_sems + nsems > ns->sc_semmns)
++	if (check_add_overflow(ns->used_sems, nsems, &total_sems) ||
++	    total_sems > ns->sc_semmns)
+ 		return -ENOSPC;
  
-@@ -3124,7 +3120,7 @@ static void dup_fctx(struct userfaultfd_
- 	msg_init(&ewq.msg);
- 
- 	ewq.msg.event = UFFD_EVENT_FORK;
--	ewq.msg.arg.reserved.reserved1 = (unsigned long)fctx->new;
-+	ewq.fork_ctx = fctx->new;
- 
- 	userfaultfd_event_wait_completion(ctx, &ewq);
- }
-@@ -3417,7 +3413,6 @@ static int resolve_userfault_fork(struct
- 	if (fd < 0)
- 		return fd;
- 
--	msg->arg.reserved.reserved1 = 0;
- 	msg->arg.fork.ufd = fd;
- 	return 0;
- }
-@@ -3495,9 +3490,7 @@ static ssize_t userfaultfd_ctx_read(stru
- 			*msg = uwq->msg;
- 
- 			if (uwq->msg.event == UFFD_EVENT_FORK) {
--				fork_nctx = (struct userfaultfd_ctx *)
--					(unsigned long)
--					uwq->msg.arg.reserved.reserved1;
-+				fork_nctx = uwq->fork_ctx;
- 				list_move(&uwq->wq.entry, &fork_event);
- 				/*
- 				 * fork_nctx can be freed as soon as
+ 	sma = sem_alloc(nsems);
 _
 
-Patches currently in -mm which might be from tz2294@columbia.edu are
+Patches currently in -mm which might be from caoruide123@gmail.com are
 
-mm-memcontrol-remove-mod_memcg_page_state.patch
-mm-memcontrol-remove-page_memcg_check.patch
-mm-userfaultfd-store-the-childs-new-uffd-context-in-the-wait-queue-entry.patch
+ipc-sem-fix-used_sems-overflow-in-newary.patch
 
