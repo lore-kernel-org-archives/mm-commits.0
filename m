@@ -1,48 +1,46 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793501060;
-	b=rIZ9l8FrnHSNg5L+SxD46BRCrb25e0Wg73Bc0eHl4rGHmTN9R2MvQ5FrsZYoiR2D5rvS
-	 1XbDrejzE8b/mG/6d8kz/n3Ry0MgpEScWjTgFWcAxeZH/jaQGpKTYSM5YH4+Lw4Lg58pv
-	 EAUFKhvuVqyTgk47JmcFsp3R4eSENZkAzLzi70VOtRPiMQ1BlGzLk+7dkWVUEVawdOVhs
-	 9jiiyaK4jznEQ+eoynAn0ey1E0N6n+0cMUqcI2Qvr2CGCOUJbs2b9mqb87yaoJ1QKAZGE
-	 h21XbecA9XY7rdiG8pbGhxHvHFkye4cFKR1WqkYgbBJpBbW4pDwAY/eDfQj4VMU4pyg==
+	t=1793501158;
+	b=DH+R2YJXBinHMPFLntZUIYZR0NEqK3S4lEEMHKH+T1kC3fHayni4qEfJWLfA7gNZNiz/
+	 WIqteoHsTVKTWIfTF/llnlq6yr10iotppoG/r9ulxxD6U6isqQxOAiQw1wIb5Ij6hfalw
+	 pHsICnaE3fX/UzJbRMbzzA2mgfOjCU0cA4hkEUs+9/i+sq5KyEF+x3Z57OOenbbFZe2BD
+	 /gJ3qKtwLsnuJZ+SWgTwuiYdGwatC68657MxC+wnIXQfHoYfsPUjr3eYPwBybJ4+q8KKU
+	 qE8Io30BpHhNmAO/b9gmrk2tCOJdNel1IUSd9q6YRgOhMfBl/mGbmGQGKUWW9ZR4DtA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793501060;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793501158;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=AQhsTj6J4VeJju9a4m1xsG9CxzpJTmjRdR5MN+DRV58=;
-	b=VdTLIUmDEQAfwWOE4Cw0mn0CvMG1RHvNhtPvfpsVFLIFJhOtTbEcIA5I0RL8iEagUQ71
-	 Z3F7rrb4O+1yxFgeEzDai8CNSn05Q235qPQIvq1F8XyQU6SExjpgELRG7eQGzBKm+1Qi6
-	 Ayd3IQyVO4PyJRJbVu7Vn5mW4trOeuh/Hn84zcqL4Ang0OU1+8uWkxgZP9wSR19dYyyzR
-	 Lpu7qvIiOIWvh3LwMk4hVgx+kgYqYxRQJlnLZ7u3YLTYTS/9U8/YXbGGGm8WKE4Kq8Ma8
-	 e6iCzpLqmy53i4Bo6QyG4lIver/hpwPKoJJ8TUW3M8snYpytg2INOQ5wFsLqyk9WcBw==
+	bh=3lDOY3CTHhVLbbzrwcEwNfwqpWEHKNOQe6ZB8zpFVOI=;
+	b=4JBdM9YK+LjfvS4i/wRXk2vf7aN2Ypd+hwbHpw3S+zNC1OzoAEWpLqiWvs4NVoI2CAEa
+	 ZZgfnO/bngvlRQ/2vSFiDo9ikCw5+yqzBu78I/XrgI5lDb8d2HxG5ZSFz4xPdFU8sTBSo
+	 qO1nKLtgspVGTMXJinhgzKSW8jDZ7BwrbGAVOgMpkjeWl2q9jdN+8nuxbs+X9KvpXHjqy
+	 U9ffvZYlMBF/wwAuz6+5cUWGsPQxgumcWVRABLV9hR0W5l9tVULcSEwd/gTQ1R1r6jWyd
+	 l/+Eznh6nSmdutIOrJ5THQHObrHNBlZ6u6hthUH+jfgq+rbN6E0/Xf9UMfTMIBWKOgQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=DoOCw5Sf;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=0ycrfTV0;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DEDF5606A324;
-	Sun,  1 Nov 2026 02:44:19 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A7685606A324
+	for <mm-commits@vger.kernel.org>; Sun,  1 Nov 2026 02:45:57 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=DoOCw5Sf
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 67A0D1F000C1;
-	Sun,  1 Nov 2026 02:44:19 +0000 (UTC)
+	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=0ycrfTV0
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3C3DF1F000C1;
+	Sun,  1 Nov 2026 02:45:57 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1793501059;
-	bh=AQhsTj6J4VeJju9a4m1xsG9CxzpJTmjRdR5MN+DRV58=;
+	d=linux-foundation.org; s=korg; t=1793501157;
+	bh=3lDOY3CTHhVLbbzrwcEwNfwqpWEHKNOQe6ZB8zpFVOI=;
 	h=Date:To:From:Subject;
-	b=DoOCw5SfDLN4qG/N5dQwMquZV0mw5+KxfqnAc45n6JNCRKj8mdF/gw80o3EBx2Yvn
-	 1yXYTGGZipFRWIx9Z8xuZGVjuTrCZHu/YkkItspTBFvGNaq6VemaQkj19BDmVyjk8S
-	 p7yfabWeUMqP1S/WI+tCwyrS+uPqCBNrCvU2U+78=
-Date: Sat, 31 Oct 2026 19:44:19 -0700
-To: mm-commits@vger.kernel.org,
-	syzbot+91e1fc35f51774c479b2@syzkaller.appspotmail.com,stable@vger.kernel.org,
-	osalvador@suse.de,muchun.song@linux.dev,lihongbo22@huawei.com,
-	david@kernel.org,joasantonio108@gmail.com,akpm@linux-foundation.org
+	b=0ycrfTV0Gqwy42Wvn+Ca2k8m7OTvX2PgQwsaoa13RFeUM9BpVACoDuJekooFN62Nn
+	 m8kAS4ZDMBWFJML9VNSNhfI5n/T51nlbJ5YWEwHolMqLWqqNhfENRK70KlLaVr2CoO
+	 az87ZyGjPNJ2FR8IbaW1gHoQF9QfshvHPuF3sXHo=
+Date: Sat, 31 Oct 2026 19:45:56 -0700
+To: mm-commits@vger.kernel.org,rppt@kernel.org,peterx@redhat.com,
+	azpijr@gmail.com,tz2294@columbia.edu,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + hugetlbfs-emit-hugetlbfs_free_inode-from-destroy_inode.patch added to mm-hotfixes-unstable branch
-Message-Id: <20261101024419.67A0D1F000C1@smtp.kernel.org>
+Subject: + mm-userfaultfd-store-the-childs-new-uffd-context-in-the-wait-queue-entry.patch added to mm-new branch
+Message-Id: <20261101024557.3C3DF1F000C1@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -54,15 +52,26 @@ Precedence: list
 
 
 The patch titled
-     Subject: hugetlbfs: emit hugetlbfs_free_inode from ->destroy_inode()
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     hugetlbfs-emit-hugetlbfs_free_inode-from-destroy_inode.patch
+     Subject: mm/userfaultfd: store the child's new uffd context in the wait queue entry
+has been added to the -mm mm-new branch.  Its filename is
+     mm-userfaultfd-store-the-childs-new-uffd-context-in-the-wait-queue-entry.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/hugetlbfs-emit-hugetlbfs_free_inode-from-destroy_inode.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-userfaultfd-store-the-childs-new-uffd-context-in-the-wait-queue-entry.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Note, mm-new is a provisional staging ground for work-in-progress
+patches, and acceptance into mm-new is a notification for others take
+notice and to finish up reviews.  Please do not hesitate to respond to
+review feedback and post updated versions to replace or incrementally
+fixup patches in mm-new.
+
+The mm-new branch of mm.git is not included in linux-next
+
+If a few days of testing in mm-new is successful, the patch will me moved
+into mm.git's mm-unstable branch, which is included in linux-next
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -77,79 +86,101 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Joas Antonio dos Santos <joasantonio108@gmail.com>
-Subject: hugetlbfs: emit hugetlbfs_free_inode from ->destroy_inode()
-Date: Sat, 31 Oct 2026 16:06:02 +0000
+From: Tal Zussman <tz2294@columbia.edu>
+Subject: mm/userfaultfd: store the child's new uffd context in the wait queue entry
+Date: Sat, 31 Oct 2026 11:47:48 -0400
 
-hugetlbfs_free_inode() calls trace_hugetlbfs_free_inode(), and the
-hugetlbfs__inode event class records inode->i_sb->s_dev.  ->free_inode()
-runs from an RCU callback (destroy_inode() queues i_callback() with
-call_rcu()), and Documentation/filesystems/porting.rst says that this
-callback "is *NOT* ordered wrt superblock destruction; as the matter of
-fact, the superblock and all associated structures might be already gone".
-put_super() frees the superblock with call_rcu() followed by a workqueue
-item (destroy_super_rcu() -> destroy_super_work()).  syzbot hit this with
-the event enabled:
+A UFFD_EVENT_FORK message cannot carry the child's fd when it is queued,
+because the fd has to be installed in the fd table of whichever task reads
+the event.  The forking task has to hand the reader the new context
+itself.  It does that by casting the child's userfaultfd_ctx pointer into
+the arg.reserved.reserved1 field of the UAPI struct uffd_msg, which the
+readers cast back.
 
-  BUG: KASAN: slab-use-after-free in trace_event_raw_event_hugetlbfs__inode+0x45b/0x4c0 include/trace/events/hugetlbfs.h:36
-  Read of size 4 at addr ffff888038850010 by task syz-executor952/6134
-   hugetlbfs_free_inode+0x15e/0x1f0 fs/hugetlbfs/inode.c:1182
-   i_callback+0x46/0x80 fs/inode.c:317
-   rcu_do_batch kernel/rcu/tree.c:2650 [inline]
-   rcu_core+0x5f0/0x1220 kernel/rcu/tree.c:2919
-  Allocated by task 6134:
-   alloc_super fs/super.c:326 [inline]
-   sget_fc+0x1ba/0x1f60 fs/super.c:874
-   hugetlbfs_get_tree+0x1e7/0x2b0 fs/hugetlbfs/inode.c:1431
-  Freed by task 855:
-   kfree+0x22b/0x6d0 mm/slub.c:6923
-   process_one_work+0xac7/0x1b10 kernel/workqueue.c:3495
+That temporarily puts a kernel pointer in a struct that is copied to
+userspace, and results in ugly casts when passing the uffd context around.
+While resolve_userfault_fork() currently zeroes reserved1 before it is
+exposed to userspace, this unnecessarily risks leaking a kernel pointer to
+userspace if future modifications are buggy.
 
-Emit the event from hugetlbfs_destroy_inode() instead.  destroy_inode()
-calls ->destroy_inode() synchronously, before it queues the RCU callback,
-while the superblock is still alive; hugetlbfs_destroy_inode() already
-dereferences inode->i_sb there.  ->free_inode() is left with only the
-kmem_cache_free().
+Store the fork_ctx pointer in struct userfaultfd_wait_queue instead, which
+is kernel-internal and passed around anyway.  The casts and the zeroing go
+away, at the (negligible) cost of 8 more bytes on the stack.
 
-Link: https://lore.kernel.org/20261031-b4-hugetlbfs-trace-v1-1-4ec8d02a30cc@gmail.com
-Fixes: 014ad7c42a69 ("hugetlbfs: use tracepoints in hugetlbfs functions.")
-Signed-off-by: Joas Antonio dos Santos <joasantonio108@gmail.com>
+No functional change.
+
+Link: https://lore.kernel.org/20261031-uffd-fork-ctx-v1-1-a837fd576ffc@columbia.edu
+Signed-off-by: Tal Zussman <tz2294@columbia.edu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Reported-by: <syzbot+91e1fc35f51774c479b2@syzkaller.appspotmail.com>
-Closes: https://lore.kernel.org/all/6ae27525.5451848c.f7707.0001.GAE@google.com/
-Cc: Muchun Song <muchun.song@linux.dev>
-Cc: Oscar Salvador <osalvador@suse.de>
-Cc: David Hildenbrand <david@kernel.org>
-Cc: Hongbo Li <lihongbo22@huawei.com>
-Cc: <stable@vger.kernel.org>
+Reviewed-by: Jose A. Perez de Azpillaga <azpijr@gmail.com>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Peter Xu <peterx@redhat.com>
 ---
 
- fs/hugetlbfs/inode.c |    6 +++++-
- 1 file changed, 5 insertions(+), 1 deletion(-)
+ mm/userfaultfd.c |   19 ++++++-------------
+ 1 file changed, 6 insertions(+), 13 deletions(-)
 
---- a/fs/hugetlbfs/inode.c~hugetlbfs-emit-hugetlbfs_free_inode-from-destroy_inode
-+++ a/fs/hugetlbfs/inode.c
-@@ -1179,12 +1179,16 @@ static struct inode *hugetlbfs_alloc_ino
+--- a/mm/userfaultfd.c~mm-userfaultfd-store-the-childs-new-uffd-context-in-the-wait-queue-entry
++++ a/mm/userfaultfd.c
+@@ -2443,6 +2443,8 @@ struct userfaultfd_wait_queue {
+ 	struct uffd_msg msg;
+ 	wait_queue_entry_t wq;
+ 	struct userfaultfd_ctx *ctx;
++	/* UFFD_EVENT_FORK: the context created for the child */
++	struct userfaultfd_ctx *fork_ctx;
+ 	bool waken;
+ };
  
- static void hugetlbfs_free_inode(struct inode *inode)
- {
--	trace_hugetlbfs_free_inode(inode);
- 	kmem_cache_free(hugetlbfs_inode_cachep, HUGETLBFS_I(inode));
+@@ -3019,14 +3021,8 @@ static void userfaultfd_event_wait_compl
+ 			 * didn't.
+ 			 */
+ 			__remove_wait_queue(&ctx->event_wqh, &ewq->wq);
+-			if (ewq->msg.event == UFFD_EVENT_FORK) {
+-				struct userfaultfd_ctx *new;
+-
+-				new = (struct userfaultfd_ctx *)
+-					(unsigned long)
+-					ewq->msg.arg.reserved.reserved1;
+-				release_new_ctx = new;
+-			}
++			if (ewq->msg.event == UFFD_EVENT_FORK)
++				release_new_ctx = ewq->fork_ctx;
+ 			break;
+ 		}
+ 
+@@ -3124,7 +3120,7 @@ static void dup_fctx(struct userfaultfd_
+ 	msg_init(&ewq.msg);
+ 
+ 	ewq.msg.event = UFFD_EVENT_FORK;
+-	ewq.msg.arg.reserved.reserved1 = (unsigned long)fctx->new;
++	ewq.fork_ctx = fctx->new;
+ 
+ 	userfaultfd_event_wait_completion(ctx, &ewq);
  }
+@@ -3417,7 +3413,6 @@ static int resolve_userfault_fork(struct
+ 	if (fd < 0)
+ 		return fd;
  
- static void hugetlbfs_destroy_inode(struct inode *inode)
- {
-+	/*
-+	 * Not in ->free_inode(): that runs from an RCU callback, when the
-+	 * superblock the event reads may already be freed.
-+	 */
-+	trace_hugetlbfs_free_inode(inode);
- 	hugetlbfs_inc_free_inodes(HUGETLBFS_SB(inode->i_sb));
+-	msg->arg.reserved.reserved1 = 0;
+ 	msg->arg.fork.ufd = fd;
+ 	return 0;
  }
+@@ -3495,9 +3490,7 @@ static ssize_t userfaultfd_ctx_read(stru
+ 			*msg = uwq->msg;
  
+ 			if (uwq->msg.event == UFFD_EVENT_FORK) {
+-				fork_nctx = (struct userfaultfd_ctx *)
+-					(unsigned long)
+-					uwq->msg.arg.reserved.reserved1;
++				fork_nctx = uwq->fork_ctx;
+ 				list_move(&uwq->wq.entry, &fork_event);
+ 				/*
+ 				 * fork_nctx can be freed as soon as
 _
 
-Patches currently in -mm which might be from joasantonio108@gmail.com are
+Patches currently in -mm which might be from tz2294@columbia.edu are
 
-hugetlbfs-emit-hugetlbfs_free_inode-from-destroy_inode.patch
+mm-memcontrol-remove-mod_memcg_page_state.patch
+mm-memcontrol-remove-page_memcg_check.patch
+mm-userfaultfd-store-the-childs-new-uffd-context-in-the-wait-queue-entry.patch
 
