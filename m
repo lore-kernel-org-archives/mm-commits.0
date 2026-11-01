@@ -1,47 +1,46 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793508943;
-	b=AGbgx/7ruYxx0Gw9+c+YmBqIBYxC+VDY2c/GOCx6WgjxJ59aOHxk5X4umwoXK2DwKu7/
-	 H0XQJSMhkT1dzAEkVSML5MkRVzPW1ziUvL3g7+qWcE+eHnj34CTxnIbssb/8YPletKgSb
-	 g5VpH21UYpjvDUvqJGLkmtaP3+q0qmPcUMV5xStr+fy4xxsq7Jd58yuYG6OgXtXJep+yG
-	 VKfJ209I0dUUHh71oNeKLnqtaM7OMajGHyFUGspk5q/AO5YSZ8MSf0PAiHY5ds9cmjo/I
-	 25NL7MK4AkyN9gc0IwUPTd/G+dzf101YAIKY9a8OKbhi96AGbVC/edesVzPQlw3cnUw==
+	t=1793560629;
+	b=iMIRV8cOgMIhhnBaBHMCsLN6A9QLdmWr0I7dO1PbHwmYlyUCUvViL2/CIcRnDFkkkJTu
+	 N4sRaYfbDPoTPVrKCxMqMBNuAkUoUhGZsqVRnododSX7c7q0PuqxwVIhOXukA/VAloR0X
+	 SNgxiyuR1zuuIGwlF1T25vXjI3X7PnCG8t6JyJaIFKmwcffdU7ThQJEZStlhgqbX5qkzn
+	 GWq5Yr1chwdtLKLWJeMNGlu15gYF0r4eI/9nZS0We2Yiryxg7oNxDqhmAq5d/iF/4nMb6
+	 ae6lJev+KYjt6X8F3fmcl+7ZHAltd2O+8rnsLAzYnRYLoKEFp+C23LqtihJ964v0MTg==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793508943;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793560629;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=VdKulzOV/Fr2zNPCgGSP1+ECDHmF/JgBj/VDvDdi1mw=;
-	b=1k8PzvEa3DLSq9ZTxeUDO6uuHnFxp+tp+FI0Zz0+r411HSMZunawG6AIONjPOQk0gx53
-	 ghOBZE2i17BfFsWJDPkyLMfHWF7SXreftopyEnSVcT42D2ArSVcQFt5ZELryjgsWvyPGh
-	 AFO2408vUkuwBdOzBEQAyI/Di4GkbOxTDorOddnHdsuS/rM5mv/85NJ0xBLFpvRmw2w8q
-	 sptsP3tefq2nZxVK5PwSW1oe1LNIgyrUJfyKdYhCl8uRtZdE/CLUC0njxaTVYxDfQghA2
-	 bjR1Nh20M+3YDs9hNKInQrhdQuhkT+6r7lHNbqE5JAiwjU36n585CghnbhozfL/c0Rw==
+	bh=3R8lEqHPutN8gVDBqld69oyt/Xg3TBni29NHa9yFLwM=;
+	b=4jN5QzmKuQtAMHTuzC3K3Z7QEsND+eqhsNUrfcraftzBPmD8OAOnO/e0lVFD524ofSMr
+	 n2SGv5bdmQM9ugQEr6wVpeQJbUE7cN4MRgXwDIF7Bde/hpMZFbjayvykKepnRC+9VOfpe
+	 AqIk8hK550Dt39B6UxVPoVF15Gn/bvh0vJXCeaH2P80zvoPydu6JlAHsB3caPxKOzjDBQ
+	 U47WYSikkJNORcoX5pt40yDh+AoRpBtuVqu7jZ1ZEW6jg8RtclYoY4NAG5MmozARbwWaE
+	 MdJ4N3uK4xd4+lZrkGMm6nctqhNj3ahyap22P82SXqSaxn49KG9k47+zY+TRBK4rG5Q==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=a6KalLao;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b="1el/aZZN";
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B8FFE606A324
-	for <mm-commits@vger.kernel.org>; Sun,  1 Nov 2026 04:55:42 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E6BEE606A324
+	for <mm-commits@vger.kernel.org>; Sun,  1 Nov 2026 19:17:08 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=a6KalLao
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 207321F000C1;
-	Sun,  1 Nov 2026 04:55:42 +0000 (UTC)
+	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=1el/aZZN
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3FBD81F000C1;
+	Sun,  1 Nov 2026 19:17:08 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1793508942;
-	bh=VdKulzOV/Fr2zNPCgGSP1+ECDHmF/JgBj/VDvDdi1mw=;
+	d=linux-foundation.org; s=korg; t=1793560628;
+	bh=3R8lEqHPutN8gVDBqld69oyt/Xg3TBni29NHa9yFLwM=;
 	h=Date:To:From:Subject;
-	b=a6KalLaos38w3T3sQWpNcUaCc349FSm0QcFg6ix7Lv1RD9/eGVZinw3bp4zerVIod
-	 +dVc38t1Go6Rp8rpLU57XOPCSVnMQjCZLXFLktkH9B10uT/sEzBoaVofyW9RmoldjG
-	 1f/VA3zEh9Z9wbDJKwdj5K73JDkBMr2pSTawgquQ=
-Date: Sat, 31 Oct 2026 21:55:41 -0700
-To: mm-commits@vger.kernel.org,med08elkadiri@gmail.com,hughd@google.com,
-	danielzgtg.opensource@gmail.com,baolin.wang@linux.alibaba.com,
-	krisman@suse.de,akpm@linux-foundation.org
+	b=1el/aZZNn2AfsAuYSFn1d+QGJG6qUUesmMYhuagA0HLaHnz1iaslCuf7g/m7G3Tl1
+	 5zbsU2Wv5e3uJ+xy0M2kkmy0aeJG6eKY92LHvHD4T4gxiO6mt7U+bGz7ilLfHa6Wyx
+	 kAQeLoUl8LUepQI0yCQHesVd7qoY68sXzwzAmlsU=
+Date: Sun, 01 Nov 2026 11:17:07 -0800
+To: mm-commits@vger.kernel.org,bp@alien8.de,joe@perches.com,
+	akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + shmem-report-casefold-setting-in-mount-options.patch added to mm-new branch
-Message-Id: <20261101045542.207321F000C1@smtp.kernel.org>
+Subject: + get_maintainerpl-fix-inexact-file-pattern-matching.patch added to mm-nonmm-unstable branch
+Message-Id: <20261101191708.3FBD81F000C1@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -53,26 +52,15 @@ Precedence: list
 
 
 The patch titled
-     Subject: shmem: report casefold setting in mount options
-has been added to the -mm mm-new branch.  Its filename is
-     shmem-report-casefold-setting-in-mount-options.patch
+     Subject: get_maintainer.pl: fix inexact file pattern matching
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     get_maintainerpl-fix-inexact-file-pattern-matching.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/shmem-report-casefold-setting-in-mount-options.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/get_maintainerpl-fix-inexact-file-pattern-matching.patch
 
-This patch will later appear in the mm-new branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Note, mm-new is a provisional staging ground for work-in-progress
-patches, and acceptance into mm-new is a notification for others take
-notice and to finish up reviews.  Please do not hesitate to respond to
-review feedback and post updated versions to replace or incrementally
-fixup patches in mm-new.
-
-The mm-new branch of mm.git is not included in linux-next
-
-If a few days of testing in mm-new is successful, the patch will me moved
-into mm.git's mm-unstable branch, which is included in linux-next
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -87,51 +75,58 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Gabriel Krisman Bertazi <krisman@suse.de>
-Subject: shmem: report casefold setting in mount options
-Date: Mon, 19 Oct 2026 23:59:17 -0400
+From: Joe Perches <joe@perches.com>
+Subject: get_maintainer.pl: fix inexact file pattern matching
+Date: Sun, 01 Nov 2026 10:36:27 -0800
 
-For shmem, casefolding is a mount option.  Report the current encoding and
-casefolding flags in /proc/mounts, so userspace can easily check if
-casefolding is supported withour relying on parsing dmesg or trying to set
-+F.
+The intent of file pattern matches is to exactly specify a file pattern
+with or without wildcard **, *, or ?  expansion.
 
-Link: https://lore.kernel.org/20261020035917.693478-1-krisman@suse.de
-Signed-off-by: Gabriel Krisman Bertazi <krisman@suse.de>
+The pattern match code failed to include a trailing $ to match the end of
+the pattern.
+
+A pattern like:
+
+F:	include/drm/drm
+
+would match files like include/drm/drm_<foo>
+
+Fix it and the self-test code too.
+
+Link: https://lore.kernel.org/9d9626b16393901994012fa59824a63e96acd6ab.camel@perches.com
+Signed-off-by: Joe Perches <joe@perches.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Reported-by: Daniel Tang <danielzgtg.opensource@gmail.com>
-Closes: https://lore.kernel.org/linux-fsdevel/5193732.31r3eYUQgx@daniel-desktop3/#R
-Tested-by: Mohammed EL Kadiri <med08elkadiri@gmail.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
+Cc: Borislav Petkov <bp@alien8.de>
 ---
 
- mm/shmem.c |   11 +++++++++++
- 1 file changed, 11 insertions(+)
+ scripts/get_maintainer.pl |    6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
 
---- a/mm/shmem.c~shmem-report-casefold-setting-in-mount-options
-+++ a/mm/shmem.c
-@@ -5137,6 +5137,17 @@ static int shmem_show_options(struct seq
- 		seq_printf(seq, ",grpquota_inode_hardlimit=%lld",
- 			   sbinfo->qlimits.grpquota_ihardlimit);
- #endif
-+#if IS_ENABLED(CONFIG_UNICODE)
-+	if (root->d_sb->s_encoding) {
-+		unsigned int version = root->d_sb->s_encoding->version;
+--- a/scripts/get_maintainer.pl~get_maintainerpl-fix-inexact-file-pattern-matching
++++ a/scripts/get_maintainer.pl
+@@ -768,6 +768,10 @@ sub self_test {
+ 	    if ((-d $value)) {
+ 		$value =~ s@([^/])$@$1/@;
+ 	    }
++	    if (substr($value, -1) ne "/") {
++		$value .= '$';
++	    }
 +
-+		seq_printf(seq, ",casefold=utf8-%u.%u.%u",
-+			   unicode_major(version), unicode_minor(version),
-+			   unicode_rev(version));
-+		if (sb_has_strict_encoding(root->d_sb))
-+			seq_puts(seq, ",strict_encoding");
-+	}
-+#endif
- 	return 0;
- }
- 
+ 	    if (!grep(m@^$value@, @lsfiles)) {
+ 		print("$x->{file}:$x->{linenr}: warning: no file matches\t$x->{line}\n");
+ 	    }
+@@ -1062,7 +1066,7 @@ sub file_match_pattern {
+ 	    return 1;
+ 	}
+     } else {
+-	if ($file =~ m@^$pattern@) {
++	if ($file =~ m@^$pattern$@) {
+ 	    my $s1 = ($file =~ tr@/@@);
+ 	    my $s2 = ($pattern =~ tr@/@@);
+ 	    if ($s1 == $s2 || $pattern =~ /\(\?:/) {
 _
 
-Patches currently in -mm which might be from krisman@suse.de are
+Patches currently in -mm which might be from joe@perches.com are
 
-shmem-report-casefold-setting-in-mount-options.patch
+get_maintainerpl-fix-inexact-file-pattern-matching.patch
 
