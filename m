@@ -1,46 +1,47 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793560629;
-	b=iMIRV8cOgMIhhnBaBHMCsLN6A9QLdmWr0I7dO1PbHwmYlyUCUvViL2/CIcRnDFkkkJTu
-	 N4sRaYfbDPoTPVrKCxMqMBNuAkUoUhGZsqVRnododSX7c7q0PuqxwVIhOXukA/VAloR0X
-	 SNgxiyuR1zuuIGwlF1T25vXjI3X7PnCG8t6JyJaIFKmwcffdU7ThQJEZStlhgqbX5qkzn
-	 GWq5Yr1chwdtLKLWJeMNGlu15gYF0r4eI/9nZS0We2Yiryxg7oNxDqhmAq5d/iF/4nMb6
-	 ae6lJev+KYjt6X8F3fmcl+7ZHAltd2O+8rnsLAzYnRYLoKEFp+C23LqtihJ964v0MTg==
+	t=1793560753;
+	b=1TGSa++pyAJduIQ6e0eMKuP77neott5hwlzF5oKO7zPYEYWKraLE6XGypkhXQa4Suc3f
+	 Obs3NUGqE2tURp43YKnQgNyIg0Q5+7XHG3VzODBseP/AycmqJEU4y/tHw1IbonN2TJfYl
+	 SlNg9zFui4Rftfvb4YzG+b0XgvhqtNrR2vZ7mO4WJ1wasNF6sXPjMAHXbrCnsoiwU7df6
+	 nXxI+leB/EHMnTq1ZV8vLw4hbP3dIQTWjLKjb2lRwp//Ha/9OPlBbRKr3fhxiHw/t6q7Z
+	 dPJDlPEc4SgIiuk3Gbi/Y/WQ5eCOGWWcZd7qdNQUcPZhiAfDaCa9w/y2bguaWRklwmA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793560629;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793560753;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=3R8lEqHPutN8gVDBqld69oyt/Xg3TBni29NHa9yFLwM=;
-	b=4jN5QzmKuQtAMHTuzC3K3Z7QEsND+eqhsNUrfcraftzBPmD8OAOnO/e0lVFD524ofSMr
-	 n2SGv5bdmQM9ugQEr6wVpeQJbUE7cN4MRgXwDIF7Bde/hpMZFbjayvykKepnRC+9VOfpe
-	 AqIk8hK550Dt39B6UxVPoVF15Gn/bvh0vJXCeaH2P80zvoPydu6JlAHsB3caPxKOzjDBQ
-	 U47WYSikkJNORcoX5pt40yDh+AoRpBtuVqu7jZ1ZEW6jg8RtclYoY4NAG5MmozARbwWaE
-	 MdJ4N3uK4xd4+lZrkGMm6nctqhNj3ahyap22P82SXqSaxn49KG9k47+zY+TRBK4rG5Q==
+	bh=ENEUPGo4j+nP1jMjyko3qpUNpyXi/BHhbNkFDvONJdM=;
+	b=ikeiZWpr9Szb+6WFBQt+5EsNKReBI3tg6NSp6VG63SkkD2YHQp97jR3Qh89CaTXXJ7Da
+	 1xUmQg/UeaPyOJpxzkFWrgf2Kh9aDgJSqR3KXVx69VY99nngQGX5aOA3N7vsRBzXDaMFV
+	 lyUwZu5FcQGUPsZcN8CBvV7sFm0b0Nwup6gOy+kVdl1EvnSpMNotZ0pahu5uZnAVn9a6R
+	 OJd8WJcD2dGNGDrAbgquaNoEsx3d0xzN7GaEpWylmzuhn6u7LEqSZ/6UUcA5UU14yGKAD
+	 Gs9Yzt+0QLaHkqt+t+gmbC2qUBfsKAGKwf8gfyr/9lUTKRUVfYUI84ES/iDvUi2EPCA==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b="1el/aZZN";
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=jgEbTCW6;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E6BEE606A324
-	for <mm-commits@vger.kernel.org>; Sun,  1 Nov 2026 19:17:08 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B9059606A324;
+	Sun,  1 Nov 2026 19:19:12 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=1el/aZZN
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3FBD81F000C1;
-	Sun,  1 Nov 2026 19:17:08 +0000 (UTC)
+	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=jgEbTCW6
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 413771F000C1;
+	Sun,  1 Nov 2026 19:19:12 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1793560628;
-	bh=3R8lEqHPutN8gVDBqld69oyt/Xg3TBni29NHa9yFLwM=;
+	d=linux-foundation.org; s=korg; t=1793560752;
+	bh=ENEUPGo4j+nP1jMjyko3qpUNpyXi/BHhbNkFDvONJdM=;
 	h=Date:To:From:Subject;
-	b=1el/aZZNn2AfsAuYSFn1d+QGJG6qUUesmMYhuagA0HLaHnz1iaslCuf7g/m7G3Tl1
-	 5zbsU2Wv5e3uJ+xy0M2kkmy0aeJG6eKY92LHvHD4T4gxiO6mt7U+bGz7ilLfHa6Wyx
-	 kAQeLoUl8LUepQI0yCQHesVd7qoY68sXzwzAmlsU=
-Date: Sun, 01 Nov 2026 11:17:07 -0800
-To: mm-commits@vger.kernel.org,bp@alien8.de,joe@perches.com,
-	akpm@linux-foundation.org
+	b=jgEbTCW6C5AofkkW3BEE8CZH20/T2perJkpRVN6lxf3878SZMnYMbKRFsyFLGlkzc
+	 fTxG+90oZnwQsIDGKdZHjarHM7VQw3piH64MDSIIDKICg/aCuiALfKHtkiLTndXU3u
+	 cSeVC1sf/cjMqkHHctUVNNkx2z4m9D/+4eYs6cpc=
+Date: Sun, 01 Nov 2026 11:19:11 -0800
+To: mm-commits@vger.kernel.org,stable@vger.kernel.org,peterx@redhat.com,
+	mason@kernel.org,luto@amacapital.net,jhubbard@nvidia.com,jgg@ziepe.ca,
+	david@kernel.org,skhawaja@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + get_maintainerpl-fix-inexact-file-pattern-matching.patch added to mm-nonmm-unstable branch
-Message-Id: <20261101191708.3FBD81F000C1@smtp.kernel.org>
+Subject: [to-be-updated] mm-gup-check-folio-mapping-under-folio-lock-in-memfd_pin_folios.patch removed from -mm tree
+Message-Id: <20261101191912.413771F000C1@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -51,82 +52,87 @@ List-Owner: <mailto:mm-commits+owner@vger.kernel.org>
 Precedence: list
 
 
-The patch titled
-     Subject: get_maintainer.pl: fix inexact file pattern matching
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     get_maintainerpl-fix-inexact-file-pattern-matching.patch
+The quilt patch titled
+     Subject: mm/gup: check folio->mapping under folio lock in memfd_pin_folios()
+has been removed from the -mm tree.  Its filename was
+     mm-gup-check-folio-mapping-under-folio-lock-in-memfd_pin_folios.patch
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/get_maintainerpl-fix-inexact-file-pattern-matching.patch
-
-This patch will later appear in the mm-nonmm-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via various
-branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there most days
+This patch was dropped because an updated version will be issued
 
 ------------------------------------------------------
-From: Joe Perches <joe@perches.com>
-Subject: get_maintainer.pl: fix inexact file pattern matching
-Date: Sun, 01 Nov 2026 10:36:27 -0800
+From: Samiullah Khawaja <skhawaja@google.com>
+Subject: mm/gup: check folio->mapping under folio lock in memfd_pin_folios()
+Date: Sat, 31 Oct 2026 20:35:40 +0000
 
-The intent of file pattern matches is to exactly specify a file pattern
-with or without wildcard **, *, or ?  expansion.
+memfd_pin_folios() pins folios from the page cache without taking the
+folio lock. So khugepaged or MADV_COLLAPSE can replace the folio after
+its refcount check while memfd_pin_folios() still pins the old folio,
+and the caller ends up with a folio that is no longer part of the memfd.
 
-The pattern match code failed to include a trailing $ to match the end of
-the pattern.
+Lock the folio and recheck folio->mapping before pinning it, like other
+page cache users do. If the folio was removed, retry the folio lookup
+from the index that was removed.
 
-A pattern like:
-
-F:	include/drm/drm
-
-would match files like include/drm/drm_<foo>
-
-Fix it and the self-test code too.
-
-Link: https://lore.kernel.org/9d9626b16393901994012fa59824a63e96acd6ab.camel@perches.com
-Signed-off-by: Joe Perches <joe@perches.com>
+Link: https://lore.kernel.org/20261031203540.2282507-1-skhawaja@google.com
+Fixes: 89c1905d9c14 ("mm/gup: introduce memfd_pin_folios() for pinning memfd folios")
+Signed-off-by: Samiullah Khawaja <skhawaja@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Cc: Borislav Petkov <bp@alien8.de>
+Reported-by: Andy Lutomirski <luto@amacapital.net>
+Closes: https://lore.kernel.org/all/CALCETrV5eqg6d9=+BQhCpRwBNe3aCQiut8vxPBs8b7PToqjaHg@mail.gmail.com/
+Cc: David Hildenbrand <david@kernel.org>
+Cc: Jason Gunthorpe <jgg@ziepe.ca>
+Cc: John Hubbard <jhubbard@nvidia.com>
+Cc: Peter Xu <peterx@redhat.com>
+Cc: Chris Mason <mason@kernel.org>
+Cc: <stable@vger.kernel.org>
 ---
 
- scripts/get_maintainer.pl |    6 +++++-
- 1 file changed, 5 insertions(+), 1 deletion(-)
+ mm/gup.c |   17 ++++++++++++++++-
+ 1 file changed, 16 insertions(+), 1 deletion(-)
 
---- a/scripts/get_maintainer.pl~get_maintainerpl-fix-inexact-file-pattern-matching
-+++ a/scripts/get_maintainer.pl
-@@ -768,6 +768,10 @@ sub self_test {
- 	    if ((-d $value)) {
- 		$value =~ s@([^/])$@$1/@;
- 	    }
-+	    if (substr($value, -1) ne "/") {
-+		$value .= '$';
-+	    }
+--- a/mm/gup.c~mm-gup-check-folio-mapping-under-folio-lock-in-memfd_pin_folios
++++ a/mm/gup.c
+@@ -3464,7 +3464,7 @@ long memfd_pin_folios(struct file *memfd
+ {
+ 	unsigned int flags, nr_folios, nr_found;
+ 	unsigned int i, pgshift = PAGE_SHIFT;
+-	pgoff_t start_idx, end_idx;
++	pgoff_t start_idx, end_idx, retry_idx;
+ 	struct folio *folio = NULL;
+ 	struct folio_batch fbatch;
+ 	struct hstate *h;
+@@ -3505,6 +3505,7 @@ long memfd_pin_folios(struct file *memfd
+ 			 * reason, we try to allocate them and add them to the
+ 			 * page cache.
+ 			 */
++			retry_idx = start_idx;
+ 			nr_found = filemap_get_folios_contig(memfd->f_mapping,
+ 							     &start_idx,
+ 							     end_idx,
+@@ -3517,7 +3518,21 @@ long memfd_pin_folios(struct file *memfd
+ 			for (i = 0; i < nr_found; i++) {
+ 				folio = fbatch.folios[i];
+ 
++				/*
++				 * The folio might have been removed from the
++				 * page cache (e.g., truncated or collapsed)
++				 * after the lookup. Recheck under the folio
++				 * lock.
++				 */
++				folio_lock(folio);
++				if (unlikely(folio->mapping != memfd->f_mapping)) {
++					folio_unlock(folio);
++					start_idx = retry_idx;
++					break;
++				}
 +
- 	    if (!grep(m@^$value@, @lsfiles)) {
- 		print("$x->{file}:$x->{linenr}: warning: no file matches\t$x->{line}\n");
- 	    }
-@@ -1062,7 +1066,7 @@ sub file_match_pattern {
- 	    return 1;
- 	}
-     } else {
--	if ($file =~ m@^$pattern@) {
-+	if ($file =~ m@^$pattern$@) {
- 	    my $s1 = ($file =~ tr@/@@);
- 	    my $s2 = ($pattern =~ tr@/@@);
- 	    if ($s1 == $s2 || $pattern =~ /\(\?:/) {
+ 				if (try_grab_folio(folio, 1, FOLL_PIN)) {
++					folio_unlock(folio);
+ 					folio_batch_release(&fbatch);
+ 					ret = -EINVAL;
+ 					goto err;
 _
 
-Patches currently in -mm which might be from joe@perches.com are
+Patches currently in -mm which might be from skhawaja@google.com are
 
-get_maintainerpl-fix-inexact-file-pattern-matching.patch
 
