@@ -1,46 +1,46 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793562276;
-	b=h/d3DJJ9a7BtHEjdUeYKBHT34LBqYv/y1CHWjrgAqFVNeFtIig5F/8ICsSkE1KXBipKb
-	 1l11NYbXmSe55xF8dKOxAWF+mPF23ELokG28V9x1zAOqEG+shc+MxkTSNNuWRHjFSgWC3
-	 UauzlxsQSpCYDARY12q5V11G/J0dStbVCvhTO2t65zJmMtcfoy0NIbNoZgcQKwCszQU61
-	 J8GtkISXEw479Y7erUI2yAbucVZFc3cwhWaxLeYSWZiGYTImhwcx79q9T3tKozthbPSlY
-	 iF6NaEJHSeozD69OvMWXIRtYEB9URWg8ITaQPOeeeMS0LC7tWHEZ1KwpvcBETEF5p3w==
+	t=1793562273;
+	b=M9VNwic4hhQsT/trR5C4tUOZ+eJvRqnH7bAXq4U9XQBdNxdQLBFlIKyfABGtSrRrNAVZ
+	 jcY91RU0NKudZrbMMfuQl0VBLnbT5OVyRiqx8phRAqK+dQ0GHpV0/5I8wjVf07BN2JMyJ
+	 oei/qdL3hHNXUMLiR69NLMHBPBhFUmOatnB2bfzsl1Wk5nj30YTcy4ThwHqefO2qlVjyY
+	 OWOZwPq5PRLT3/3R41GM0ziegSOWMsxi/2UWAEigVT6kGNjnmPeT9F8pdlwhG0vJrrk2d
+	 dOjSsy+8i4U0tSclhwDdzgWnkR28XTbAXBvXNGc+0hiXqnLQ3imrac0qfEwY8j2lZ3Q==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793562276;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793562273;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=rmho93q5k5CGNQGrj7mwLl44PkdMtkDSQUVhTi2u6B0=;
-	b=VqakwIG+yHLLVlH8CiRlo9T44s6gmrYP0HrcEi+4YrTg/FLNELgHCHDwJtxHekPaRaXc
-	 /JRCaK15MG2VA/9cwmag31PIBa+20uXhKUr1y4yx08Jy3jA81PoenYJHXMq9WVQwnUP3g
-	 sR67BXW46FRmpoL0qJCGeWNQcd4WuMpWNCm7+JvnHhcSTce2k3LGAR8XAGrFbmJtXxn2g
-	 vO+Wjcu6Km+zbiEyDG0KYxSBE7Zfr7O5+LDxxFXb0vXAsSM23neKOHzFPeEqkgGXR59HR
-	 eA8YqhrxLnt+dS77dJXc+CbYFbLOEUse+a4PCYxMlcyxKyPgIfmidGK/POHDpW13fjg==
+	bh=jbUZOtL+bnqi0wsW78gKfbZAxL9DT+qPzhxoGSOrgeA=;
+	b=QJAY5edpGjUB4GHxwa4yuwc+yxqKUIA3dMMegEdMWuBevRV860Gj5XOHLwBX7Kw2NhT+
+	 tVxp+n1OlBeEcvEWNb8dYAQLgd8/ItslAi6LlGCDF/cS5ohMrGrArx7KqVEZ1NdOH1Nh2
+	 rSp1Ds1wkweIHxHF3qxBet7YjMzzN6/bwbXXEsTFejwQhsHKk2Rct8CI61Ib+nOeNhVFj
+	 eE7V8gQzOj3JJSQcPktpXbcU8CgKJ83pg2YaNT7SwisNauAh36vt9nxysz5xyegGf6Xlx
+	 ghFtjB3rwxIoF1rMcPs4LG1qWxNB+Ynd2tQSG+bB63CpMhaj+fKB3eb2iCuB3I0XYnQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=z4jR1KPD;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=WTVOMybf;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8F4FE606A330
-	for <mm-commits@vger.kernel.org>; Sun,  1 Nov 2026 19:44:36 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4AA0D606A326
+	for <mm-commits@vger.kernel.org>; Sun,  1 Nov 2026 19:44:32 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=z4jR1KPD
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 199341F000C1;
-	Sun,  1 Nov 2026 19:44:36 +0000 (UTC)
+	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=WTVOMybf
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5F87C1F000C1;
+	Sun,  1 Nov 2026 19:44:32 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1793562276;
-	bh=rmho93q5k5CGNQGrj7mwLl44PkdMtkDSQUVhTi2u6B0=;
+	d=linux-foundation.org; s=korg; t=1793562272;
+	bh=jbUZOtL+bnqi0wsW78gKfbZAxL9DT+qPzhxoGSOrgeA=;
 	h=Date:To:From:Subject;
-	b=z4jR1KPDFTDNSiQRTgQJoo2uNH7gvEiX3RIO73AL39No+6PUulSPFWuLnXN1yqT3+
-	 gFKzx+ywisurp9dSe2ir83P6kgs7LMrRnGepMqdXZnuFCF4KCc7DMJ6GuIRgmCqw7W
-	 qlK6yt/a4YExzZitlL7CXuAwKJzLl1CIJwc1snBo=
-Date: Sun, 01 Nov 2026 11:44:35 -0800
+	b=WTVOMybfwiErOYiAG/7KagMVrV8Zn1zYdRGeZ8o++Jwb6YBYBskq3Wba3EjGZvBdA
+	 aADy90o/cer29lKWhT8rarH6UsB616jsOIp3Dyv88ln4S0GzxK0O23xpL8exlmOyA2
+	 NBC2KV48J39NawpkVsfIx6W36S13pBB/OyeBf3HA=
+Date: Sun, 01 Nov 2026 11:44:31 -0800
 To: mm-commits@vger.kernel.org,balbirs@nvidia.com,brads@mainlining.org,
 	akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + taskstats-use-div_u64-for-the-elapsed-time-in-tgid_stats_add_task.patch added to mm-nonmm-unstable branch
-Message-Id: <20261101194436.199341F000C1@smtp.kernel.org>
+Subject: + taskstats-take-the-inode-once-in-exe_add_tsk.patch added to mm-nonmm-unstable branch
+Message-Id: <20261101194432.5F87C1F000C1@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -52,12 +52,12 @@ Precedence: list
 
 
 The patch titled
-     Subject: taskstats: use div_u64() for the elapsed time in tgid_stats_add_task()
+     Subject: taskstats: take the inode once in exe_add_tsk()
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     taskstats-use-div_u64-for-the-elapsed-time-in-tgid_stats_add_task.patch
+     taskstats-take-the-inode-once-in-exe_add_tsk.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/taskstats-use-div_u64-for-the-elapsed-time-in-tgid_stats_add_task.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/taskstats-take-the-inode-once-in-exe_add_tsk.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -76,37 +76,40 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Bradley Morgan <brads@mainlining.org>
-Subject: taskstats: use div_u64() for the elapsed time in tgid_stats_add_task()
-Date: Sun, 01 Nov 2026 00:57:43 +0000
+Subject: taskstats: take the inode once in exe_add_tsk()
+Date: Sun, 01 Nov 2026 00:57:41 +0000
 
-tgid_stats_add_task() converts utime and stime with div_u64() and the
-elapsed time with do_div(), two ways of doing the same 64-bit divide four
-lines apart.  do_div() clobbers its first argument, which is the only
-reason delta needs a statement of its own.  Both end up at a native
-divide on 64-bit and at __div64_32() on 32-bit, so this is only about
-picking one.
+exe_add_tsk() walks exe_file->f_inode twice, once for the superblock
+device and once for the inode number.  file_inode() is the accessor for
+that field, and hoisting the inode out of the two assignments also gets
+stats->ac_exe_dev onto one line instead of a split continuation.
 
-Link: https://lore.kernel.org/20261101005743.3022780-4-brads@mainlining.org
+Link: https://lore.kernel.org/20261101005743.3022780-2-brads@mainlining.org
 Signed-off-by: Bradley Morgan <brads@mainlining.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 Cc: Balbir Singh <balbirs@nvidia.com>
 ---
 
- kernel/taskstats.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ kernel/taskstats.c |    7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
 
---- a/kernel/taskstats.c~taskstats-use-div_u64-for-the-elapsed-time-in-tgid_stats_add_task
+--- a/kernel/taskstats.c~taskstats-take-the-inode-once-in-exe_add_tsk
 +++ a/kernel/taskstats.c
-@@ -226,8 +226,7 @@ static void tgid_stats_add_task(struct t
- 	/* calculate task elapsed time in nsec */
- 	delta = now_ns - tsk->start_time;
- 	/* Convert to micro seconds */
--	do_div(delta, NSEC_PER_USEC);
--	stats->ac_etime += delta;
-+	stats->ac_etime += div_u64(delta, NSEC_PER_USEC);
+@@ -159,10 +159,11 @@ static void exe_add_tsk(struct taskstats
+ 	struct file *exe_file = get_task_exe_file(tsk);
  
- 	task_cputime(tsk, &utime, &stime);
- 	stats->ac_utime += div_u64(utime, NSEC_PER_USEC);
+ 	if (exe_file) {
++		struct inode *inode = file_inode(exe_file);
++
+ 		/* Following cp_new_stat64() in stat.c . */
+-		stats->ac_exe_dev =
+-			huge_encode_dev(exe_file->f_inode->i_sb->s_dev);
+-		stats->ac_exe_inode = exe_file->f_inode->i_ino;
++		stats->ac_exe_dev = huge_encode_dev(inode->i_sb->s_dev);
++		stats->ac_exe_inode = inode->i_ino;
+ 		fput(exe_file);
+ 	} else {
+ 		stats->ac_exe_dev = 0;
 _
 
 Patches currently in -mm which might be from brads@mainlining.org are
