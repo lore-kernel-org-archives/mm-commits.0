@@ -1,51 +1,46 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793464373;
-	b=uyWeBDCyWonLSnn9gtGJs/9rtu8eSIa3s2rd1tzhdEcooCR2rn1mNNs+Vnq0I5OAAah8
-	 D7dELEOfkArwwpbQ4GBnElG0oRVmgEITtdCc5yU8iSizoD0UtKWKZ6YL2clFuMUM8Fr/W
-	 yxKviPavkqLbPqh2FKTHZOlCxzF1T5m0oji8W6jA4o/9CCwLtR5Rc7MtBnCiNtu7U3fA1
-	 kd18exVoaSCRSnYaI8WM6JDmjvb6duI/mBdQ8wsMquiWfXPfasyhWyyI1qBpTJj8m3m7S
-	 A6PQTqNDfW+hImER/JlufVFNNdgih2Hl6mqBde21+TXkgXihMd5ANsMof/rq0n/IouQ==
+	t=1793500985;
+	b=xkj0jwgdzFvUbsLeDSoKthotMpixCR1EAs79lHtGz1S0RF0PjxCwR8ilAzrjcqQZ20dE
+	 wGFM58eynuOmu7aBJ8zAmgfQ/KOhj0jxc3Ygf83ulrpynKsFZmpxkCGarC7OgayZEx1RX
+	 S6wOOBGMogkM7xyE1O6oQraGPsSReGHZwpAmsGL2xli59fMRcD2G9sNtpDFFOwup9KiDX
+	 Tma/ExiK0q876+I6XiFHiAqrrweaDMcd/c7W8f7+paORl1za8LB2UsOu5kD8Lr4NOD7TW
+	 wyj6AwDXVjKq/L9W2B8sTpvQoeBH1YcxTvGgNshCLF5QRjw0uQCDWe0cobkE6621yrQ==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793464373;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793500985;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=zCxkmfFODESLWXQBcHiSuRVaTUfl2ZWp71It0aZzCFM=;
-	b=Ilwlbwx+f5kCxc9MXcSGKD1GNjSVl60UwGmfQviTY+LMso2FkpRu9ek2Tq0mEmJe1nAO
-	 IMG5UyjaMMepzDbhn7K64TJmj2Y8K/yJl/gqO8VYbQOKTW03x1DphyXMPdHQsC0M/j5jy
-	 1zu8G2y12Py+tTyS3pgDMYs3/RtLpOLuW6rcMAfBAJjZH28UBLD6rhS8lyKcbYlIX8omR
-	 bbuE5ExQq9PtpGmsB3qwEeWSf0cv0or9psnkaX9vNKVjr8dNHllg158LDyvBT0oHebJZ7
-	 pIefWsTlmc/5uTKF2Wj/8zMphtKmz/QyQenZB/TeOPP5biFKp2OKwgH47zZ0pS7bZgA==
+	bh=td/iMtOuYstq/gC3+MS2yZ7PQiaQQwgkuy5p24lBfvA=;
+	b=Oxfdq+3GPPP30AcuYzbZGBNgTdy10q/3pTa2e/6NdkI2xTnMhhdwamfYOGfN7LisXKJJ
+	 BTq8d9p02YOyPoQL0SL65nWl97zhM8/t94TSm7G1FpaKrIjM3s5U5yzZRMLFTyHcS28wz
+	 bJ9ScvUdMS7BvSDTIFzi7WDBrSaBOtDg3aHLtLS+xKchn8YVFc46pUZaSTYWywNxLEhnQ
+	 mCOET2Q8eJOVRpWxrHbqgGeSTcjP+vgJqDuh3n/q4HAcnqezv2iU0inNZw7gmwQBTptfB
+	 mytE8x2v3q0HjZwKbGxUfclMOldC65HzvqYefXAn2cZl2Awej10k0M3yh00LZMGWBEA==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=RSKCVPIU;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=vGG+FTf0;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BCAA8606A31A;
-	Sat, 31 Oct 2026 16:32:52 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C0D73606A324;
+	Sun,  1 Nov 2026 02:43:04 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=RSKCVPIU
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4BE0D1F000C1;
-	Sat, 31 Oct 2026 16:32:52 +0000 (UTC)
+	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=vGG+FTf0
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 32B8F1F000C1;
+	Sun,  1 Nov 2026 02:43:04 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1793464372;
-	bh=zCxkmfFODESLWXQBcHiSuRVaTUfl2ZWp71It0aZzCFM=;
+	d=linux-foundation.org; s=korg; t=1793500984;
+	bh=td/iMtOuYstq/gC3+MS2yZ7PQiaQQwgkuy5p24lBfvA=;
 	h=Date:To:From:Subject;
-	b=RSKCVPIU/moaF99yuRrViXq0MqD+rcl7P594PdN1lCHhV5AgcIQPgG8/kTv6xS3jW
-	 N/5qx1OD58PVWVU5+loL2LiXnQO1kSqpOIkm1GPsCWnOCAbmsqApMJQW+cGQmpGnHn
-	 TGeXSqoePvc86H/Gs1x3IdjyGbOhSfD6CBahz0D8=
-Date: Sat, 31 Oct 2026 09:32:51 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,usama.arif@linux.dev,
-	syzbot+16bf7cd0ebeb1de93aa5@syzkaller.appspotmail.com,stable@vger.kernel.org,
-	ryan.roberts@arm.com,pfalcato@suse.de,nico.pache@linux.dev,
-	ngocthang2710.1999@gmail.com,liam@infradead.org,kas@kernel.org,jack@suse.cz,
-	hch@lst.de,djwong@kernel.org,dev.jain@arm.com,david@kernel.org,
-	baolin.wang@linux.alibaba.com,baohua@kernel.org,lance.yang@linux.dev,
-	akpm@linux-foundation.org
+	b=vGG+FTf0gYXA18QOsaTkzYndpxyn//5Rd1MGS8hNHBLvm7jgHvuf45oZym91LAe0/
+	 4LUKmWAgbKHcYJ9ZfWr5JDEURxbN/2SIENY0nFzqKe7ohGGklJIDkyQrCl4bN1IC6i
+	 ydH+hxt2i3SAW7REl2WZ16g8favYAt6AGOi7FFxg=
+Date: Sat, 31 Oct 2026 19:43:03 -0700
+To: mm-commits@vger.kernel.org,tz2294@columbia.edu,stable@vger.kernel.org,
+	peterx@redhat.com,azpijr@gmail.com,rppt@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged] khugepaged-fix-readahead-lock-inversion-in-collapse_file.patch removed from -mm tree
-Message-Id: <20261031163252.4BE0D1F000C1@smtp.kernel.org>
+Subject: + userfaultfd-clear-uffd-state-in-child-ptes-if-uffd-is-released-during-fork.patch added to mm-hotfixes-unstable branch
+Message-Id: <20261101024304.32B8F1F000C1@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -56,140 +51,151 @@ List-Owner: <mailto:mm-commits+owner@vger.kernel.org>
 Precedence: list
 
 
-The quilt patch titled
-     Subject: khugepaged: fix readahead lock inversion in collapse_file()
-has been removed from the -mm tree.  Its filename was
-     khugepaged-fix-readahead-lock-inversion-in-collapse_file.patch
+The patch titled
+     Subject: userfaultfd: clear uffd state in child PTEs if uffd is released during fork
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     userfaultfd-clear-uffd-state-in-child-ptes-if-uffd-is-released-during-fork.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/userfaultfd-clear-uffd-state-in-child-ptes-if-uffd-is-released-during-fork.patch
+
+This patch will later appear in the mm-hotfixes-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via various
+branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there most days
 
 ------------------------------------------------------
-From: Lance Yang <lance.yang@linux.dev>
-Subject: khugepaged: fix readahead lock inversion in collapse_file()
-Date: Mon, 26 Oct 2026 23:20:13 +0800
+From: "Mike Rapoport (Microsoft)" <rppt@kernel.org>
+Subject: userfaultfd: clear uffd state in child PTEs if uffd is released during fork
+Date: Sat, 31 Oct 2026 20:14:03 +0200
 
-collapse_file() can call page_cache_sync_readahead() while still holding
-source folios locked. If truncate holds mapping->invalidate_lock
-exclusively and waits for one of those folios, readahead waits for
-invalidate_lock and neither side can make progress.
+With UFFD_FEATURE_EVENT_FORK the userfaultfd context is duplicated for the
+child process, the child VMAs are registered with the new context, and
+uffd protection state from the parent PTEs is copied into the child.
 
-We need to release those folio locks before starting readahead. On a page
-cache miss, roll back first, populate the collapse range, and retry once.
-Doing readahead after rollback avoids an extra pass when all folios are
-already present. If another miss occurs on retry, give up rather than keep
-retrying while truncate or reclaim removes folios.
+If the parent's userfaultfd is released before the fork event is read,
+userfaultfd_release_new() resets the VMA flags but keeps uffd state in the
+child PTEs.
 
-Keep page_cache_sync_readahead() and wait for read I/O with
-filemap_lock_folio(), releasing each folio before moving to the next. The
-existing uptodate check during collapse still handles read errors.
+This leaves the child's VMAs in an inconsistent state: they are not
+registered with userfaultfd but their mappings carry uffd protection
+state.
 
-Shmem uses shmem_get_folio() for swapin and fallocated folios without
-taking mapping->invalidate_lock, so it is unaffected.
+If the child registers the range with userfaultfd again, the stale state
+turns into protection the child never asked for.
 
-Link: https://lore.kernel.org/20261026152013.10511-1-lance.yang@linux.dev
-Fixes: 730633f0b7f9 ("mm: Protect operations adding pages to page cache with invalidate_lock")
-Signed-off-by: Lance Yang <lance.yang@linux.dev>
+When a write fault makes such a PTE writable without copying the page, the
+uffd bit remains set and page_table_check_pte_flags() warns about it.
+
+Split resolving of the uffd PTE state out of userfaultfd_clear_vma() and
+call it from userfaultfd_release_new() before resetting the VMA.
+
+Link: https://lore.kernel.org/20261031-uffd-prot-bits-fork-event-v2-1-c448e57df417@kernel.org
+Fixes: f369b07c8614 ("mm/uffd: reset write protection when unregister with wp-mode")
+Signed-off-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Reported-by: <syzbot+16bf7cd0ebeb1de93aa5@syzkaller.appspotmail.com>
-Closes: https://syzkaller.appspot.com/bug?extid=16bf7cd0ebeb1de93aa5
-Reviewed-by: Pedro Falcato <pfalcato@suse.de>
-Acked-by: David Hildenbrand (Arm) <david@kernel.org>
-Acked-by: Zi Yan <ziy@nvidia.com>
-Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: Liam R. Howlett <liam@infradead.org>
-Cc: Nico Pache <nico.pache@linux.dev>
-Cc: Ryan Roberts <ryan.roberts@arm.com>
-Cc: Dev Jain <dev.jain@arm.com>
-Cc: Barry Song <baohua@kernel.org>
-Cc: Usama Arif <usama.arif@linux.dev>
-Cc: Kiryl Shutsemau <kas@kernel.org>
-Cc: Jan Kara <jack@suse.cz>
-Cc: Darrick J. Wong <djwong@kernel.org>
-Cc: Christoph Hellwig <hch@lst.de>
-Cc: Nguyen Ngoc Thang <ngocthang2710.1999@gmail.com>
+Reviewed-by: Jose A. Perez de Azpillaga <azpijr@gmail.com>
+Tested-by: Jose A. Perez de Azpillaga <azpijr@gmail.com>
+Reviewed-by: Tal Zussman <tz2294@columbia.edu>
+Tested-by: Tal Zussman <tz2294@columbia.edu>
+Cc: Peter Xu <peterx@redhat.com>
 Cc: <stable@vger.kernel.org>
 ---
 
- mm/khugepaged.c |   44 +++++++++++++++++++++++++++++++++-----------
- 1 file changed, 33 insertions(+), 11 deletions(-)
+ mm/userfaultfd.c |   47 ++++++++++++++++++++++++++++-----------------
+ 1 file changed, 30 insertions(+), 17 deletions(-)
 
---- a/mm/khugepaged.c~khugepaged-fix-readahead-lock-inversion-in-collapse_file
-+++ a/mm/khugepaged.c
-@@ -2239,6 +2239,8 @@ static enum scan_result collapse_file(st
- 	enum scan_result result = SCAN_SUCCEED;
- 	int nr_none = 0;
- 	bool is_shmem = shmem_file(file);
-+	bool do_readahead = false;
-+	bool readahead_done = false;
+--- a/mm/userfaultfd.c~userfaultfd-clear-uffd-state-in-child-ptes-if-uffd-is-released-during-fork
++++ a/mm/userfaultfd.c
+@@ -2219,6 +2219,32 @@ static void userfaultfd_reset_ctx(struct
+ 	userfaultfd_set_ctx(vma, NULL, 0);
+ }
  
- 	/*
- 	 * MADV_COLLAPSE ignores shmem huge config, so do not check shmem
-@@ -2256,6 +2258,10 @@ static enum scan_result collapse_file(st
- 
- 	mapping_set_update(&xas, mapping);
- 
-+retry:
-+	result = SCAN_SUCCEED;
-+	do_readahead = false;
-+	xas_set_order(&xas, start, HPAGE_PMD_ORDER);
- 	__folio_set_locked(new_folio);
- 	if (is_shmem)
- 		__folio_set_swapbacked(new_folio);
-@@ -2320,17 +2326,9 @@ static enum scan_result collapse_file(st
- 			}
- 		} else {	/* !is_shmem */
- 			if (!folio || xa_is_value(folio)) {
--				xas_unlock_irq(&xas);
--				page_cache_sync_readahead(mapping, &file->f_ra,
--							  file, index,
--							  end - index);
--				/* drain lru cache to help folio_isolate_lru() */
--				lru_add_drain();
--				folio = filemap_lock_folio(mapping, index);
--				if (IS_ERR(folio)) {
--					result = SCAN_FAIL;
--					goto xa_unlocked;
--				}
-+				do_readahead = !readahead_done;
-+				result = SCAN_FAIL;
-+				goto xa_locked;
- 			} else if (folio_test_dirty(folio)) {
- 				/*
- 				 * This page is dirty because it hasn't
-@@ -2657,6 +2655,30 @@ rollback:
- 	new_folio->mapping = NULL;
- 
- 	folio_unlock(new_folio);
++/*
++ * Clear uffd state from a WP or RWP range: the uffd bit, WP markers and
++ * RWP PAGE_NONE entries. Call this before dropping the registration, as it
++ * needs the VMA flags to know what to resolve.
++ */
++static void userfaultfd_clear_ptes(struct vm_area_struct *vma,
++		unsigned long start, unsigned long end)
++{
++	unsigned int mm_cp_flags = 0;
++	struct mmu_gather tlb;
 +
-+	/* Readahead may take invalidate_lock; source folios are unlocked. */
-+	if (do_readahead) {
-+		for (index = start; index < end;) {
-+			folio = filemap_lock_folio(mapping, index);
-+			if (IS_ERR(folio)) {
-+				page_cache_sync_readahead(mapping, &file->f_ra,
-+							  file, index, end - index);
-+				folio = filemap_lock_folio(mapping, index);
-+				if (IS_ERR(folio)) {
-+					result = SCAN_FAIL;
-+					goto out_put;
-+				}
-+			}
-+			index = folio_next_index(folio);
-+			folio_unlock(folio);
-+			folio_put(folio);
++	if (!userfaultfd_protected(vma))
++		return;
++
++	if (userfaultfd_wp(vma))
++		mm_cp_flags |= MM_CP_UFFD_WP_RESOLVE;
++	if (userfaultfd_rwp(vma))
++		mm_cp_flags |= MM_CP_UFFD_RWP_RESOLVE;
++	if (vma_wants_manual_pte_write_upgrade(vma))
++		mm_cp_flags |= MM_CP_TRY_CHANGE_WRITABLE;
++
++	tlb_gather_mmu(&tlb, vma->vm_mm);
++	change_protection(&tlb, vma, start, end, mm_cp_flags);
++	tlb_finish_mmu(&tlb);
++}
++
+ static struct vm_area_struct *userfaultfd_clear_vma(struct vma_iterator *vmi,
+ 					     struct vm_area_struct *prev,
+ 					     struct vm_area_struct *vma,
+@@ -2238,22 +2264,7 @@ static struct vm_area_struct *userfaultf
+ 	if (start == vma->vm_start && end == vma->vm_end)
+ 		give_up_on_oom = true;
+ 
+-	/* Clear the uffd bit and/or restore protnone PTEs */
+-	if (userfaultfd_protected(vma)) {
+-		unsigned int mm_cp_flags = 0;
+-		struct mmu_gather tlb;
+-
+-		if (userfaultfd_wp(vma))
+-			mm_cp_flags |= MM_CP_UFFD_WP_RESOLVE;
+-		if (userfaultfd_rwp(vma))
+-			mm_cp_flags |= MM_CP_UFFD_RWP_RESOLVE;
+-		if (vma_wants_manual_pte_write_upgrade(vma))
+-			mm_cp_flags |= MM_CP_TRY_CHANGE_WRITABLE;
+-
+-		tlb_gather_mmu(&tlb, vma->vm_mm);
+-		change_protection(&tlb, vma, start, end, mm_cp_flags);
+-		tlb_finish_mmu(&tlb);
+-	}
++	userfaultfd_clear_ptes(vma, start, end);
+ 
+ 	ret = vma_modify_flags_uffd(vmi, prev, vma, start, end,
+ 				    &new_vma_flags, NULL_VM_UFFD_CTX,
+@@ -2352,8 +2363,10 @@ static void userfaultfd_release_new(stru
+ 	/* the various vma->vm_userfaultfd_ctx still points to it */
+ 	mmap_write_lock(mm);
+ 	for_each_vma(vmi, vma) {
+-		if (vma->vm_userfaultfd_ctx.ctx == ctx)
++		if (vma->vm_userfaultfd_ctx.ctx == ctx) {
++			userfaultfd_clear_ptes(vma, vma->vm_start, vma->vm_end);
+ 			userfaultfd_reset_ctx(vma);
 +		}
-+		/* Drain the local LRU batch before retrying isolation. */
-+		lru_add_drain();
-+		readahead_done = true;
-+		goto retry;
-+	}
-+out_put:
- 	folio_put(new_folio);
- out:
- 	VM_BUG_ON(!list_empty(&pagelist));
+ 	}
+ 	mmap_write_unlock(mm);
+ }
 _
 
-Patches currently in -mm which might be from lance.yang@linux.dev are
+Patches currently in -mm which might be from rppt@kernel.org are
 
-mm-ksm-fix-userfaultfd-protection-during-merge-and-unmerge.patch
+mm-cma-accept-memory-of-multi-range-cma-areas.patch
+mm-cma-accept-memory-of-cma-areas-reserved-at-a-fixed-address.patch
+userfaultfd-clear-uffd-state-in-child-ptes-if-uffd-is-released-during-fork.patch
+hibernation-make-swsusp_page-helpers-static.patch
+hibernation-ensure-secretmem-pages-dont-reach-a-snapshot.patch
+hibernate-handle-potential-errors-in-hibernate_mapunmap_page.patch
+hibernation-kfence-explicitly-map-unmap-kfence-pages.patch
+hibernation-make-hibernation-unavailable-when-debug_pagealloc-is-on.patch
 
