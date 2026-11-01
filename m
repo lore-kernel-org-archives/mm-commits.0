@@ -1,50 +1,47 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793504342;
-	b=ZK7yzklPBB9VLDb9y6WyHhPp5fEypYd71/9SJtCCYpHiBY3kqJObEKQlJ9koJbB3OzrZ
-	 /dBfeYRyriW/qRT/NexG5V4XDr6eLI73y+U7vPpPOVA7q+g4bgW1LM5rLrXL0x87s4kjM
-	 zVhXKtqrc0wxbITTIHVdH9o+BkKNWF8sejURuba/AOfi3lxuLYMtN9w02+Hvwx/mb9F1G
-	 7WvhYtX5o2iUotIGcbu+Xgdg+P30e7/JqTSYuYpcm/uJ3qg5Sw58v2RwTUV0nzlToEz9p
-	 Fp6W918wtpMcNLzMKtJ9xsSc3m1Tang8Dskqnf4K7D8u1KB1YqRtUC98i2pCDU/E7yw==
+	t=1793508943;
+	b=AGbgx/7ruYxx0Gw9+c+YmBqIBYxC+VDY2c/GOCx6WgjxJ59aOHxk5X4umwoXK2DwKu7/
+	 H0XQJSMhkT1dzAEkVSML5MkRVzPW1ziUvL3g7+qWcE+eHnj34CTxnIbssb/8YPletKgSb
+	 g5VpH21UYpjvDUvqJGLkmtaP3+q0qmPcUMV5xStr+fy4xxsq7Jd58yuYG6OgXtXJep+yG
+	 VKfJ209I0dUUHh71oNeKLnqtaM7OMajGHyFUGspk5q/AO5YSZ8MSf0PAiHY5ds9cmjo/I
+	 25NL7MK4AkyN9gc0IwUPTd/G+dzf101YAIKY9a8OKbhi96AGbVC/edesVzPQlw3cnUw==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793504342;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793508943;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=8WvLBNywTRkBo6HPyt44/MH33Yh7FqpzZTb+4PBqLGM=;
-	b=Bw2iFHY7ZXhEYNdbExvxxWVN8yz7q9TosFmoeI2VbDuAPNQCFnsVjRainf7qsuOfyyqs
-	 fXgatm4pPWDFp24/tY4yvYPqFjYI1QUP0GkYTobF+GpCfzb3KQTpiDcd1/XKN2El1bk5R
-	 xlqbbc9h01HCnbm1L36RSQm1n/FelBZnw3ilhbkSaz660NHvKLteiCyK5nPDnHMtKZsLq
-	 umV2Ls2ou5Aqs/LIEZYafjBOco79zegsj/tlYL8voudMY0rFOY8duLv4rHaftYbiFXzrx
-	 XGo9Ho4z/jX7fOQBstkeWTLYcetyKhUl7NPecr8YDlk9eMpDJbDB7X+ywDL3MfJZOYA==
+	bh=VdKulzOV/Fr2zNPCgGSP1+ECDHmF/JgBj/VDvDdi1mw=;
+	b=1k8PzvEa3DLSq9ZTxeUDO6uuHnFxp+tp+FI0Zz0+r411HSMZunawG6AIONjPOQk0gx53
+	 ghOBZE2i17BfFsWJDPkyLMfHWF7SXreftopyEnSVcT42D2ArSVcQFt5ZELryjgsWvyPGh
+	 AFO2408vUkuwBdOzBEQAyI/Di4GkbOxTDorOddnHdsuS/rM5mv/85NJ0xBLFpvRmw2w8q
+	 sptsP3tefq2nZxVK5PwSW1oe1LNIgyrUJfyKdYhCl8uRtZdE/CLUC0njxaTVYxDfQghA2
+	 bjR1Nh20M+3YDs9hNKInQrhdQuhkT+6r7lHNbqE5JAiwjU36n585CghnbhozfL/c0Rw==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=AJQTtPUy;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=a6KalLao;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0E8C9606A324;
-	Sun,  1 Nov 2026 03:39:01 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B8FFE606A324
+	for <mm-commits@vger.kernel.org>; Sun,  1 Nov 2026 04:55:42 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=AJQTtPUy
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7DFB61F000C1;
-	Sun,  1 Nov 2026 03:39:01 +0000 (UTC)
+	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=a6KalLao
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 207321F000C1;
+	Sun,  1 Nov 2026 04:55:42 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1793504341;
-	bh=8WvLBNywTRkBo6HPyt44/MH33Yh7FqpzZTb+4PBqLGM=;
+	d=linux-foundation.org; s=korg; t=1793508942;
+	bh=VdKulzOV/Fr2zNPCgGSP1+ECDHmF/JgBj/VDvDdi1mw=;
 	h=Date:To:From:Subject;
-	b=AJQTtPUywdIrB6sRVgRiEPFum+U08RAfFo8avQNB+B1dLm+KTD+qYvl64HJQ1CPLp
-	 4xBSneuLqoq9/JeetqH+ISCvFGknf6sajjylpu7Aagkaj7cMwR9XwtdMSJzqJRAGVe
-	 YAwSBzrfB8vmhwFYo/UoAwyB5Ptsdus2JhOVUbD8=
-Date: Sat, 31 Oct 2026 20:39:01 -0700
-To: mm-commits@vger.kernel.org,yuantan098@gmail.com,yifanwucs@gmail.com,
-	tomapufckgml@gmail.com,stable@vger.kernel.org,
-	schuster.simon@siemens-energy.com,n05ec@lzu.edu.cn,manfred@colorfullife.com,
-	ljs@kernel.org,kees@kernel.org,enjou1224z@gmail.com,david@kernel.org,
-	dave@stgolabs.net,bird@lzu.edu.cn,arnd@arndb.de,caoruide123@gmail.com,
-	akpm@linux-foundation.org
+	b=a6KalLaos38w3T3sQWpNcUaCc349FSm0QcFg6ix7Lv1RD9/eGVZinw3bp4zerVIod
+	 +dVc38t1Go6Rp8rpLU57XOPCSVnMQjCZLXFLktkH9B10uT/sEzBoaVofyW9RmoldjG
+	 1f/VA3zEh9Z9wbDJKwdj5K73JDkBMr2pSTawgquQ=
+Date: Sat, 31 Oct 2026 21:55:41 -0700
+To: mm-commits@vger.kernel.org,med08elkadiri@gmail.com,hughd@google.com,
+	danielzgtg.opensource@gmail.com,baolin.wang@linux.alibaba.com,
+	krisman@suse.de,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + ipc-sem-fix-used_sems-overflow-in-newary.patch added to mm-nonmm-unstable branch
-Message-Id: <20261101033901.7DFB61F000C1@smtp.kernel.org>
+Subject: + shmem-report-casefold-setting-in-mount-options.patch added to mm-new branch
+Message-Id: <20261101045542.207321F000C1@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -56,15 +53,26 @@ Precedence: list
 
 
 The patch titled
-     Subject: ipc: sem: fix used_sems overflow in newary()
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     ipc-sem-fix-used_sems-overflow-in-newary.patch
+     Subject: shmem: report casefold setting in mount options
+has been added to the -mm mm-new branch.  Its filename is
+     shmem-report-casefold-setting-in-mount-options.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/ipc-sem-fix-used_sems-overflow-in-newary.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/shmem-report-casefold-setting-in-mount-options.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Note, mm-new is a provisional staging ground for work-in-progress
+patches, and acceptance into mm-new is a notification for others take
+notice and to finish up reviews.  Please do not hesitate to respond to
+review feedback and post updated versions to replace or incrementally
+fixup patches in mm-new.
+
+The mm-new branch of mm.git is not included in linux-next
+
+If a few days of testing in mm-new is successful, the patch will me moved
+into mm.git's mm-unstable branch, which is included in linux-next
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -79,64 +87,51 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Ruide Cao <caoruide123@gmail.com>
-Subject: ipc: sem: fix used_sems overflow in newary()
-Date: Mon, 11 May 2026 18:42:53 +0800
+From: Gabriel Krisman Bertazi <krisman@suse.de>
+Subject: shmem: report casefold setting in mount options
+Date: Mon, 19 Oct 2026 23:59:17 -0400
 
-newary() checks namespace-wide semaphore usage before creating a new
-array, but the current accounting uses a plain signed addition.
+For shmem, casefolding is a mount option.  Report the current encoding and
+casefolding flags in /proc/mounts, so userspace can easily check if
+casefolding is supported withour relying on parsing dmesg or trying to set
++F.
 
-If the accumulated semaphore count overflows, the limit check can fail
-open and allow allocations past sc_semmns, breaking namespace semaphore
-resource enforcement and potentially leading to resource exhaustion.
-
-Fix this by using check_add_overflow() before comparing the new total
-against sc_semmns, and reject overflow the same way as a true limit
-exceed.
-
-Link: https://lore.kernel.org/849fb1fdecd1cc241fd5b032602dbffa90f9dd93.1778477179.git.caoruide123@gmail.com
-Fixes: 1da177e4c3f4 ("Linux-2.6.12-rc2")
-Signed-off-by: Ruide Cao <caoruide123@gmail.com>
-Signed-off-by: Ren Wei <n05ec@lzu.edu.cn>
+Link: https://lore.kernel.org/20261020035917.693478-1-krisman@suse.de
+Signed-off-by: Gabriel Krisman Bertazi <krisman@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Reported-by: Yuan Tan <yuantan098@gmail.com>
-Reported-by: Yifan Wu <yifanwucs@gmail.com>
-Reported-by: Juefei Pu <tomapufckgml@gmail.com>
-Reported-by: Xin Liu <bird@lzu.edu.cn>
-Tested-by: Ren Wei <enjou1224z@gmail.com>
-Cc: David Hildenbrand <david@kernel.org>
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: Lorenzo Stoakes <ljs@kernel.org>
-Cc: Kees Cook <kees@kernel.org>
-Cc: Simon Schuster <schuster.simon@siemens-energy.com>
-Cc: Davidlohr Bueso <dave@stgolabs.net>
-Cc: Manfred Spraul <manfred@colorfullife.com>
-Cc: <stable@vger.kernel.org>
+Reported-by: Daniel Tang <danielzgtg.opensource@gmail.com>
+Closes: https://lore.kernel.org/linux-fsdevel/5193732.31r3eYUQgx@daniel-desktop3/#R
+Tested-by: Mohammed EL Kadiri <med08elkadiri@gmail.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
 ---
 
- ipc/sem.c |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ mm/shmem.c |   11 +++++++++++
+ 1 file changed, 11 insertions(+)
 
---- a/ipc/sem.c~ipc-sem-fix-used_sems-overflow-in-newary
-+++ a/ipc/sem.c
-@@ -535,11 +535,13 @@ static int newary(struct ipc_namespace *
- 	key_t key = params->key;
- 	int nsems = params->u.nsems;
- 	int semflg = params->flg;
-+	int total_sems;
- 	int i;
+--- a/mm/shmem.c~shmem-report-casefold-setting-in-mount-options
++++ a/mm/shmem.c
+@@ -5137,6 +5137,17 @@ static int shmem_show_options(struct seq
+ 		seq_printf(seq, ",grpquota_inode_hardlimit=%lld",
+ 			   sbinfo->qlimits.grpquota_ihardlimit);
+ #endif
++#if IS_ENABLED(CONFIG_UNICODE)
++	if (root->d_sb->s_encoding) {
++		unsigned int version = root->d_sb->s_encoding->version;
++
++		seq_printf(seq, ",casefold=utf8-%u.%u.%u",
++			   unicode_major(version), unicode_minor(version),
++			   unicode_rev(version));
++		if (sb_has_strict_encoding(root->d_sb))
++			seq_puts(seq, ",strict_encoding");
++	}
++#endif
+ 	return 0;
+ }
  
- 	if (!nsems)
- 		return -EINVAL;
--	if (ns->used_sems + nsems > ns->sc_semmns)
-+	if (check_add_overflow(ns->used_sems, nsems, &total_sems) ||
-+	    total_sems > ns->sc_semmns)
- 		return -ENOSPC;
- 
- 	sma = sem_alloc(nsems);
 _
 
-Patches currently in -mm which might be from caoruide123@gmail.com are
+Patches currently in -mm which might be from krisman@suse.de are
 
-ipc-sem-fix-used_sems-overflow-in-newary.patch
+shmem-report-casefold-setting-in-mount-options.patch
 
