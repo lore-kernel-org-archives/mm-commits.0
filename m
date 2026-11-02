@@ -1,48 +1,49 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793640261;
-	b=B0nSuMgVf1E4YTVMs9mbWS9P2L1VfNAlDNr2Uy8tooc+W2y4QtCNoWDasyDCHKzovVmf
-	 L3wa6jQJJEJGIQNNecLEJjnFlSF7Ge0sHXlm/0+K00jggp5MRHd08a57iat6Vzp/K9xKk
-	 Ct2/Bpvbd5EJECwJbt479Z5LwkwXKDTkdI8eiyczOOLkFpn4MXKF7s5POoz2AwB8zLYl/
-	 HPROdJhv6oHl8xYK4DSFzLDhtlApEiuhzcKJce9KBzad8wW+z8RfMgFXPM8U7IFReZHpq
-	 j6G6Gqa99O/nOLy1zGnhi/M22unfXnyGRvi9Bi7WiKfJ5fsVKofq9zUfD13EnOqbteg==
+	t=1793640262;
+	b=qRI1Cv2ewFEE4YevraR0X34iVCbCa7VWBTiqjQnR6Ig484HsfJyZZGRAWiY7/J1lg8sM
+	 YUpMxuAXr8CVmNKHk6d28SiDYCsL96g+9iqoEhzCKKdnZnr/u90zDewAA2GCmXgOV0hwk
+	 MR/ePeFIHD472StDd+Maj+xxOw5kuszHUz2R76vrzBBxCBsBbKK5AFCsOlCaDdTeS/iPV
+	 DdXIl4eslg4vqHFj533poX6A9RFg/KG9qd0M9jcd/H1Hbm9ykfiVQ/PLPm+QeEO54yZjb
+	 K2QrsiT95DDxO+RL+z2Y/ZMSbfFoCaEF7GcXRdvG6K7HVVOCPs+JH0Ac0yU4X7ZNidg==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793640261;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793640262;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=V0y3pblMCGJB7OhfHnbp7uIOIWxIURz99gvb2tR2Xzg=;
-	b=MqDFVVPfYsFnTzG356iKSrkmyGBse+bgXLIVsjMwUaQoxuyGuwi+Hlnows276CWQf+Ax
-	 8bFvpRWb735qzWvVWJ76rnbpiRnwn5RbekDU6Q3XBtJuyW91viNrYrpGY5/5nZKyR9IFu
-	 bMAUlHnhAg7pf9fXfh/p225U4LeJ1jx3jA+mB8oc4XvDSZROadRfXKSk87rcbfWJS/wpt
-	 wHiPUnw/1eVCqKwJP3rriXc3dTRTUx0YcGoaIya2V03vTouxbGg89bO4PuluuKNButDLj
-	 eiaSg0ICWhkSNBIWT5hwHMcTQduzm+xZZwj3I8oeB3Xn2uyosv1wu5tG9T4raGcsl8A==
+	bh=TnP8R84OHs/pZi9TpOSeG+NCuAkBuG4nMPPAdbbk50U=;
+	b=3ZLY1KzkjNdz2UAdmdsDPwIEHKrpGDW3GGD5TnUjts75xEO89kQz7LJmLrwdAEx1i/VK
+	 qm3N7asi0RR9PJclQcVGQmv4kfoQmOX5EsiMSfIReARiEnyFrqriOX/E+QG9lh2w87CAQ
+	 GOqkynq6WfrnRld4isKK0xL9FRyi+MNE/NFrp54gHK2vCYr2hjC+apJv8gGmUJzSVin60
+	 kjlZCipIAJgkg4HP3gJxECExqbCoKl1UcIkcYaGejTUmCjQ7O1G/gfizoB1ds1mxP+Shv
+	 x1t2WSSXmHTpvrCvve8/tt00yHT9kqTbJ0x4Lpm+K83F53DxlK8aumFfFVMeQAAeqRw==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=GKIG590B;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=bY6mOesr;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CECF7606B1F1
-	for <mm-commits@vger.kernel.org>; Mon,  2 Nov 2026 17:24:20 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 70033606B929
+	for <mm-commits@vger.kernel.org>; Mon,  2 Nov 2026 17:24:22 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=GKIG590B
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 44A971F00A26;
-	Mon,  2 Nov 2026 17:24:20 +0000 (UTC)
+	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=bY6mOesr
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 279701F00A1A;
+	Mon,  2 Nov 2026 17:24:22 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1793640260;
-	bh=V0y3pblMCGJB7OhfHnbp7uIOIWxIURz99gvb2tR2Xzg=;
+	d=linux-foundation.org; s=korg; t=1793640262;
+	bh=TnP8R84OHs/pZi9TpOSeG+NCuAkBuG4nMPPAdbbk50U=;
 	h=Date:To:From:Subject;
-	b=GKIG590BvCIgaF9jxKpSNwYOXDZvWqaKn2vaNyESB5geWysiWlNcYLWzHIYeKx9kf
-	 w31AJjHRT+SnoTRFbUaB9NizMvpzUG1Ur8MVEoH55XcpiAG5g14YIwW0qEB5G5K2uH
-	 hmW4iM8l4t+ZPVaG6CMnYpPX2KzcilwyNgTEcgBQ=
-Date: Mon, 02 Nov 2026 09:24:18 -0800
-To: mm-commits@vger.kernel.org,sj@kernel.org,sh@gentwo.org,
-	ruanjinjie@huawei.com,manuelebnerli@mailbox.org,lienze@kylinos.cn,
-	jm5905938@gmail.com,jaeyeon.lee.dev@gmail.com,adrianhuang0701@gmail.com,
-	akpm@linux-foundation.org
+	b=bY6mOesr6ndurmXqEv5IdTL9MbZo5zxxdHpfTZc1QJZ/Gbs7Mbn51o5htXe468hEh
+	 yqSvkkhULdgnvkpHV7d6N130ntHo2+saI6eAz+dOrAjw4Fus1L9OZvbuzGVvQWzgo9
+	 9k40HxCJRcXmpOhAUcLVQkGCjDBqtteNT6HitE3M=
+Date: Mon, 02 Nov 2026 09:24:21 -0800
+To: mm-commits@vger.kernel.org,sjpark@amazon.de,sj@kernel.org,
+	sieberf@amazon.com,shakeel.butt@linux.dev,ruanjinjie@huawei.com,
+	manuelebnerli@mailbox.org,lienze@kylinos.cn,jm5905938@gmail.com,
+	jaeyeon.lee.dev@gmail.com,foersleo@amazon.de,adrianhuang0701@gmail.com,
+	sh@gentwo.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-damon-core-remove-unnecessary-zero-initialization-in-damon_new_ctx.patch added to mm-new branch
-Message-Id: <20261102172420.44A971F00A26@smtp.kernel.org>
+Subject: + mm-damon-ops-common-align-mmu-notifier-range-when-clearing-pte-young-bit.patch added to mm-new branch
+Message-Id: <20261102172422.279701F00A1A@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -54,12 +55,12 @@ Precedence: list
 
 
 The patch titled
-     Subject: mm/damon/core: remove unnecessary zero-initialization in damon_new_ctx()
+     Subject: mm/damon/ops-common: align MMU notifier range when clearing PTE young bit
 has been added to the -mm mm-new branch.  Its filename is
-     mm-damon-core-remove-unnecessary-zero-initialization-in-damon_new_ctx.patch
+     mm-damon-ops-common-align-mmu-notifier-range-when-clearing-pte-young-bit.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-core-remove-unnecessary-zero-initialization-in-damon_new_ctx.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-ops-common-align-mmu-notifier-range-when-clearing-pte-young-bit.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -88,81 +89,69 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: "Adrian Huang (Lenovo)" <adrianhuang0701@gmail.com>
-Subject: mm/damon/core: remove unnecessary zero-initialization in damon_new_ctx()
-Date: Mon, 02 Nov 2026 07:07:48 -0800
+From: "Shubhang Kaushik (Ampere)" <sh@gentwo.org>
+Subject: mm/damon/ops-common: align MMU notifier range when clearing PTE young bit
+Date: Mon, 02 Nov 2026 07:07:49 -0800
 
-Patch series "mm/damon: various fixes and cleanup of code, test, and docs".
+DAMON selects a byte-granular sampling address.  damon_ptep_mkold()
+clears the young bit of the PTE covering that address, but passes the
+unaligned range [addr, addr + PAGE_SIZE) to MMU notifiers.
 
-Fix and cleanup various parts of DAMON including its code, test, and
-documentation.
+For an unaligned address, that range extends into the following page.
+KVM ages every guest page intersecting the notifier range, so it can age
+a secondary mapping for the following page although DAMON cleared only
+the sampled page's primary PTE.
 
-Optimize the efficiency and monitoring accuracy of DAMON code with the
-first five patches.  Remove unnecessary initializations in
-damon_new_ctx() with patch 1 from Adrian Huang (Lenovo).  Align MMU
-notifier ranges when clearing PTE/PMD young bits with patches 2 and 3
-from Shubhang Kaushik (Ampere) and Aveline Noir.  Avoid DAMON_STAT idle
-time percentile overflow on 32-bit architectures, and optimize out
-unnecessary folio LRU isolation from DAMOS_MIGRATE action, with
-patches 4 and 5 from Aveline Noir, respectively.
+Align the address before both the primary PTE operation and the
+MMU notifier call so that they cover the same page.
 
-Fix and cleanup tests and documents with remaining four patches.  Let
-sysfs.py test does not hang when it is executed under interactive
-terminal with patch 6 from Jaeyeong Lee.  Fix typos, grammatical errors
-and styles in DAMON_RECLAIM comments and DAMON_LRU_SORT user documents
-with patches 7 and 8 from Manuel.  Finally, document how to disable
-watermarks of DAMON_RECLAIM with patch 9 from Jinjie Ruan.
-
-Reviewer notes.  This is a collection of DAMON patches that are posted
-by individual contributors and resposted as an mm.git merge request.
-Each patch has its own changelog.
-
-
-This patch (of 9):
-
-damon_new_ctx() allocates the context structure using kzalloc(),
-which already initializes all fields to zero.
-
-The explicit initialization of passed_sample_intervals,
-next_aggregation_sis, and next_ops_update_sis is therefore redundant.
-In addition, they are later initialized by kdamond_init_ctx() before use.
-
-Remove the unnecessary assignments to simplify the code.
-
-Link: https://lore.kernel.org/20261102150757.93058-1-sj@kernel.org
-Link: https://lore.kernel.org/20261102150757.93058-2-sj@kernel.org
-Signed-off-by: Adrian Huang (Lenovo) <adrianhuang0701@gmail.com>
+Link: https://lore.kernel.org/20261102150757.93058-3-sj@kernel.org
+Fixes: 3f49584b262c ("mm/damon: implement primitives for the virtual memory address spaces")
+Signed-off-by: Shubhang Kaushik (Ampere) <sh@gentwo.org>
 Signed-off-by: SJ Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+Reviewed-by: Aveline Noir <jm5905938@gmail.com>
+Tested-by: Aveline Noir <jm5905938@gmail.com>
 Reviewed-by: SJ Park <sj@kernel.org>
+Cc: Fernand Sieber <sieberf@amazon.com>
+Cc: Leonard Foerster <foersleo@amazon.de>
+Cc: SeongJae Park <sjpark@amazon.de>
+Cc: Shakeel Butt <shakeel.butt@linux.dev>
 Cc: Manuel Ebner <manuelebnerli@mailbox.org>
 Cc: Enze Li <lienze@kylinos.cn>
-Cc: Aveline Noir <jm5905938@gmail.com>
 Cc: Jaeyeon Lee <jaeyeon.lee.dev@gmail.com>
 Cc: Jinjie Ruan <ruanjinjie@huawei.com>
-Cc: "Shubhang Kaushik (Ampere)" <sh@gentwo.org>
+Cc: "Adrian Huang (Lenovo)" <adrianhuang0701@gmail.com>
 ---
 
- mm/damon/core.c |    5 -----
- 1 file changed, 5 deletions(-)
+ mm/damon/ops-common.c |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
---- a/mm/damon/core.c~mm-damon-core-remove-unnecessary-zero-initialization-in-damon_new_ctx
-+++ a/mm/damon/core.c
-@@ -918,11 +918,6 @@ struct damon_ctx *damon_new_ctx(void)
- 	ctx->attrs.aggr_interval = 100 * 1000;
- 	ctx->attrs.ops_update_interval = 60 * 1000 * 1000;
+--- a/mm/damon/ops-common.c~mm-damon-ops-common-align-mmu-notifier-range-when-clearing-pte-young-bit
++++ a/mm/damon/ops-common.c
+@@ -64,6 +64,8 @@ void damon_ptep_mkold(pte_t *pte, struct
+ 	bool young = false;
+ 	unsigned long pfn;
  
--	ctx->passed_sample_intervals = 0;
--	/* These will be set from kdamond_init_ctx() */
--	ctx->next_aggregation_sis = 0;
--	ctx->next_ops_update_sis = 0;
--
- 	mutex_init(&ctx->kdamond_lock);
- 	INIT_LIST_HEAD(&ctx->call_controls);
- 	mutex_init(&ctx->call_controls_lock);
++	addr = PAGE_ALIGN_DOWN(addr);
++
+ 	if (likely(pte_present(pteval)))
+ 		pfn = pte_pfn(pteval);
+ 	else
+@@ -83,8 +85,7 @@ void damon_ptep_mkold(pte_t *pte, struct
+ 		 * Arch implementation of ptep_test_and_clear_young() may
+ 		 * require aligned @addr
+ 		 */
+-		young |= ptep_test_and_clear_young(vma, PAGE_ALIGN_DOWN(addr),
+-				pte);
++		young |= ptep_test_and_clear_young(vma, addr, pte);
+ 	young |= mmu_notifier_clear_young(vma->vm_mm, addr, addr + PAGE_SIZE);
+ 	if (young)
+ 		folio_set_young(folio);
 _
 
-Patches currently in -mm which might be from adrianhuang0701@gmail.com are
+Patches currently in -mm which might be from sh@gentwo.org are
 
-mm-damon-core-remove-unnecessary-zero-initialization-in-damon_new_ctx.patch
+mm-damon-ops-common-align-mmu-notifier-range-when-clearing-pte-young-bit.patch
+ipc-msg-fix-msg_qbytes-truncation-in-ipc_set.patch
 
