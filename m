@@ -1,47 +1,46 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793596656;
-	b=LdV+9hBgTUbzjWEmMJrRkIQpaDrVlACKEPf/h5s/Gi26K0CQirbOzmSMSibjhbjLOVY1
-	 eGowWm/AH/DaRoAAnDqinlzDxPWE0c+ZVZmrF+WW8g1DReTUPGpAYhmKk87AZs3mkvUa8
-	 ITM8BSYZX7JtT5NMVIFDap2XzvWDiqCCCyOoakuHbzYjQ6K69fhINa+PA+v+3tyWLBa7O
-	 l9dxmvo7DumVHZsnbbmYTj0rXc8GAhrvcOLoZ1SD8ZVg8ePbfWvfdRxHLO6l5R+mJrEt2
-	 bsjD2fDoDOl26dU2oVVVOOSz63bSdJgDsggebWWUV7VCjllS8r4vC7RqcTTrKiGed6g==
+	t=1793597400;
+	b=pRlGwc6VeG41hP1quR1e4OkJLnTesS5ObBIq0anHcoCiDQ6Gymg/GilQzdSG1i+LLXbM
+	 ceIZJVNWXapHcywx1KZG/bM1tPVyOfGLHUeOyui6aGQNbJ2Dk5gOieSziyiUBu5/nMPpA
+	 18rKTNtsSbSjFcUHq1Np46e5Icim4RbEJMLwVHYWHuubaayVjdwd33Ndq3PnDQROYI13I
+	 gixyYv8reWXs1FTMR+zud16xd+ho2+H1TUGPhezSWqcLAXUfGKN57jlCyQgyJGNYwM1pj
+	 d6LRcKnB0Mml8J0zzPrypJK4qKxf3fdAcGAgkEFHkhFERkoFMB6y7thiElkOkXY3N3w==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793596656;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793597400;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=k2OW/L+2s6UQKv44UbDz1KeQIYIeeO7TemYvOkegiCc=;
-	b=Nt7MaIioemxTb4iGch3RuUptczI0WEvvUwjDgYoLz7i2TF3wyXwt4QdjGQVHF2F0oCTu
-	 qgqUE5GyMEm/q3oyYnPHiihKIkq82J/+HPddPjb6fa5LIE9jfpyT9XZ4iMPvts11IlQE+
-	 Jp02YrZF7zON5X2E5obdRoUai0z3ZPjMANtSMOVTXPEIsH/AnbyCGggrFMB+xH1gN0my0
-	 chd06L/fvMO98mmCKFLYJcvrXacysgi5LpnLRO1br8EzCTNq/UdrhrrHANs4m5DCTixwF
-	 spzomvq5OLhpALoo5ZDuuCmunxeAkMpW2dVHOtw0P/xsTHFpK0asNWGqi0JQ3jJGkpw==
+	bh=wEAqmDddHxdK7UYEmVNP2yyq0r1MkAxmwFiCsB9nPuM=;
+	b=W6y6XE2ZTh5JSGfSgbawCsxVYGgfGtTvY5JYdjGlOYueE3KNIlcKuxZbYOZm86YDPrPE
+	 0kY15l7xJCsohNCpQyTpOme+Dn6BdCejnjOYxKrldNEJdZsuYiv+ycRV7xK/LTg1RSQQQ
+	 +derR+PE4BorikGqO+97ZsscOgdtxiq1kMOmGOtLmSp84EossYzLdmKsNK73Yf9X8Xv5B
+	 h13esJfSiih8jOgtW7+vvXKAGrbN6xyvudPCFjs+3x6j+M61kHMCZQtUfxe4BC1JS0g49
+	 d+yk2HLVIhhfKMK1MjfIV2IEPaqtWlPtJQXlECS3ElSC5mNxnz0ykgCMIZp34gLp3ig==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=rFyQJeHB;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b="P3Ma2ik/";
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 13ABB606A326
-	for <mm-commits@vger.kernel.org>; Mon,  2 Nov 2026 05:17:35 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BCB48606A324
+	for <mm-commits@vger.kernel.org>; Mon,  2 Nov 2026 05:29:59 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=rFyQJeHB
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8C4411F000C1;
-	Mon,  2 Nov 2026 05:17:35 +0000 (UTC)
+	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=P3Ma2ik/
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 177631F00A02;
+	Mon,  2 Nov 2026 05:29:59 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1793596655;
-	bh=k2OW/L+2s6UQKv44UbDz1KeQIYIeeO7TemYvOkegiCc=;
+	d=linux-foundation.org; s=korg; t=1793597399;
+	bh=wEAqmDddHxdK7UYEmVNP2yyq0r1MkAxmwFiCsB9nPuM=;
 	h=Date:To:From:Subject;
-	b=rFyQJeHBoI9pF/n6oCuTrWxz/hHQTVpYoeQTtAGXZ8E0B5tbibUC6K5RcDLmQExO/
-	 OBYk5O6BH7ZHiRgzp5VDSov5IBpEWGxzPm12ANWmkxLN47JfvMmyQ4RFO30t2n+Ec+
-	 AGOWDa/c+VhQ4yqVGy5MT/8H14v/nhLRiS7d6Syg=
-Date: Sun, 01 Nov 2026 21:17:35 -0800
-To: mm-commits@vger.kernel.org,ryan.roberts@arm.com,david@kernel.org,
-	baolin.wang@linux.alibaba.com,tongweilin@linux.alibaba.com,
-	akpm@linux-foundation.org
+	b=P3Ma2ik/vnVe1IXVHIapsNximiJ5is35SNMRaGHIJy06JXsJ6zsDMHxIurbXmRl9/
+	 jbFcLLcOEbaC9noCZiFFGKksBLYPvzzJ2KmUKyHZfjUXYt4p4tcKVrfle1PFjipGQS
+	 vmyQoqkuyzpGhReviO5nr1hpgyY7H5djedOUzHfw=
+Date: Sun, 01 Nov 2026 21:29:58 -0800
+To: mm-commits@vger.kernel.org,tj@kernel.org,linux@rasmusvillemoes.dk,
+	arjan@linux.intel.com,teczm@foxmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + tools-mm-thpmaps-fix-missing-mapping-names.patch added to mm-new branch
-Message-Id: <20261102051735.8C4411F000C1@smtp.kernel.org>
+Subject: + async-use-ktime_us_delta-for-debug-timings.patch added to mm-nonmm-unstable branch
+Message-Id: <20261102052959.177631F00A02@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -53,26 +52,15 @@ Precedence: list
 
 
 The patch titled
-     Subject: tools/mm/thpmaps: fix missing mapping names
-has been added to the -mm mm-new branch.  Its filename is
-     tools-mm-thpmaps-fix-missing-mapping-names.patch
+     Subject: async: Use ktime_us_delta() for debug timings
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     async-use-ktime_us_delta-for-debug-timings.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/tools-mm-thpmaps-fix-missing-mapping-names.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/async-use-ktime_us_delta-for-debug-timings.patch
 
-This patch will later appear in the mm-new branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Note, mm-new is a provisional staging ground for work-in-progress
-patches, and acceptance into mm-new is a notification for others take
-notice and to finish up reviews.  Please do not hesitate to respond to
-review feedback and post updated versions to replace or incrementally
-fixup patches in mm-new.
-
-The mm-new branch of mm.git is not included in linux-next
-
-If a few days of testing in mm-new is successful, the patch will me moved
-into mm.git's mm-unstable branch, which is included in linux-next
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -87,45 +75,61 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Weilin Tong <tongweilin@linux.alibaba.com>
-Subject: tools/mm/thpmaps: fix missing mapping names
-Date: Tue, 27 Oct 2026 15:49:04 +0800
+From: zhoumin <teczm@foxmail.com>
+Subject: async: Use ktime_us_delta() for debug timings
+Date: Tue, 27 Oct 2026 20:01:12 +0800
 
-VMAList splits smaps lines on whitespace and only keeps the mapping
-name when there are exactly six fields. Names containing whitespace,
-including paths with a (deleted) suffix, are therefore lost.
+Replace microseconds_since() with ktime_us_delta() for accurate
+microsecond timings.
 
-Limit splitting to the five fixed fields and preserve the remaining
-name.
-
-Link: https://lore.kernel.org/20261027074904.3328878-4-tongweilin@linux.alibaba.com
-Fixes: 2444172cfde4 ("tools/mm: add thpmaps script to dump THP usage info")
-Signed-off-by: Weilin Tong <tongweilin@linux.alibaba.com>
+Link: https://lore.kernel.org/tencent_58D610F93574D60C9AE734253AF69A528506@qq.com
+Fixes: 22a9d645677f ("async: Asynchronous function calls to speed up kernel boot")
+Signed-off-by: zhoumin <teczm@foxmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Cc: Ryan Roberts <ryan.roberts@arm.com>
-Cc: David Hildenbrand <david@kernel.org>
-Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
+Reviewed-by: Arjan van de Ven <arjan@linux.intel.com>
+Cc: Tejun Heo <tj@kernel.org>
+Cc: Rasmus Villemoes <linux@rasmusvillemoes.dk>
 ---
 
- tools/mm/thpmaps |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ kernel/async.c |   10 ++--------
+ 1 file changed, 2 insertions(+), 8 deletions(-)
 
---- a/tools/mm/thpmaps~tools-mm-thpmaps-fix-missing-mapping-names
-+++ a/tools/mm/thpmaps
-@@ -198,7 +198,7 @@ class VMAList:
-         self.vmas = []
-         with open(f'/proc/{pid}/smaps', 'r') as file:
-             for line in file:
--                elements = line.split()
-+                elements = line.rstrip('\n').split(maxsplit=5)
-                 if '-' in elements[0]:
-                     start, end = map(lambda x: int(x, 16), elements[0].split('-'))
-                     major, minor = map(lambda x: int(x, 16), elements[3].split(':'))
+--- a/kernel/async.c~async-use-ktime_us_delta-for-debug-timings
++++ a/kernel/async.c
+@@ -80,12 +80,6 @@ static DECLARE_WAIT_QUEUE_HEAD(async_don
+ 
+ static atomic_t entry_count;
+ 
+-static long long microseconds_since(ktime_t start)
+-{
+-	ktime_t now = ktime_get();
+-	return ktime_to_ns(ktime_sub(now, start)) >> 10;
+-}
+-
+ static async_cookie_t lowest_in_progress(struct async_domain *domain)
+ {
+ 	struct async_entry *first = NULL;
+@@ -130,7 +124,7 @@ static void async_run_entry_fn(struct wo
+ 
+ 	pr_debug("initcall %lli_%pS returned after %lld usecs\n",
+ 		 (long long)entry->cookie, entry->func,
+-		 microseconds_since(calltime));
++		 ktime_us_delta(ktime_get(), calltime));
+ 
+ 	/* 2) remove self from the pending queues */
+ 	spin_lock_irqsave(&async_lock, flags);
+@@ -317,7 +311,7 @@ void async_synchronize_cookie_domain(asy
+ 	wait_event(async_done, lowest_in_progress(domain) >= cookie);
+ 
+ 	pr_debug("async_continuing @ %i after %lli usec\n", task_pid_nr(current),
+-		 microseconds_since(starttime));
++		 ktime_us_delta(ktime_get(), starttime));
+ }
+ EXPORT_SYMBOL_GPL(async_synchronize_cookie_domain);
+ 
 _
 
-Patches currently in -mm which might be from tongweilin@linux.alibaba.com are
+Patches currently in -mm which might be from teczm@foxmail.com are
 
-tools-mm-thpmaps-fix-partial-thp-anon-file-accounting.patch
-tools-mm-thpmaps-fix-missing-order-1-file-thp-statistics.patch
-tools-mm-thpmaps-fix-missing-mapping-names.patch
+async-use-ktime_us_delta-for-debug-timings.patch
 
