@@ -1,47 +1,47 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793640348;
-	b=t1rzvogzczuawRfoBfupAGDQofEIiWR+waC4iqAf4upz0DS4KW8+oPT8CfbbWCYKVGkQ
-	 hHQnAuJh/LseEeaU9EaINZf+2vXU0jWuAhYt55F40tpLpzFigO+mSRMMzIcBCLuiZe2FU
-	 IGhvCMxwShgbxvdpfYKoZYr63mXAtfM5m4OA9pYGLJZnhlEAB+EhYYUM3WwKHHzKnkySr
-	 UTV+YUZVydI1g7UyNBi4uXSlOa+LKe25zBm1t4xru9+XGBNgtPZTJ2Q9SbFlKGzHKBYpP
-	 t6shRhWebC4WejJ9pHqym9cYfh63usBFyP2GqTdH0Xy10Wqwtmupwc5G86W0yyv4mvg==
+	t=1793640350;
+	b=YciyRfnQlA5AMLNTKKV4sUhE6936XqSCJyIIYmgqmKej9ASsCZOubTT3PkV2q52aeRXG
+	 8fpaUMR2i9JMarvZEScf3JbzizQLxK3NwZ8JZpV6GdpN2DiBRLk20tOQAeXq5m2GAqgAY
+	 ubheN5M1/WphJyrt8MjKe9t9brQfM5CYEcwl49I79m00WqFsiw3Swm+PLvncl/QVJdrtU
+	 x1YMsYIPcBzHyZYH70lL4/vM8TVkEXgbF5sOPvqX9YMxAY/qfmTcpEd0ney2NjM5f9VfS
+	 gWTTX3NXYjjf0F+CnIuBzhbVSNZPPN1E3g57bGmfyvZAIGz2k5VvX3V0Xqw8glCrY4w==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793640348;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793640350;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=6u3mPeB7C7gaPneRpmXjwOK28suZdWcyKsP+wSJO7q0=;
-	b=Y5cQhkIvUFtxtoxmuTzTvLPfoEkgGtGrG1Rtoa3Cvo7G1XAqgUBYMvik9E3L+azDgyJm
-	 hROIZMCJJHAeQGvE6KIAPHs6HjDtDZK7Jh5yuqe1rYMgGAEl3pKZymEoc0yVC176vui01
-	 QI2fGYCwrM6N4o+Cn43RpSXHa7B6baO0H29cAkL2KRuaxWUUKFr06x9HYq9eKtZjt5xf2
-	 4o6Dr5/qzEEllDmRJnlQzaCZx0QQVlZ61Gd2ahzrjdUkd7fgL7H9OO97DplGSVA4SaMEi
-	 Vp3EAUF3xzi12FAYDetI1+3qsh6d6upvCaQTq9vz/J/C/578Bt16fZ4RYsSqyGC6KDg==
+	bh=gK2cd0iytFDyOGQSyjmNZe4zDRwemN4RkYmRuNumiv0=;
+	b=qY8RH9APDk0sYBAfYH+jOLjVYaUAuRsdktEavX3Vw2CDVFkW2U97ODZsa9eMZGuTtU76
+	 S7/Xe5LiXfZ59p+eKxqUf0Hy6dVgLGGOEBn0Zoi7TusQqaR9rE6F+lrC76SomIb6nurbh
+	 ouATL1se3sDKHGafG+KtBFpnqb01KVYl0VnA6MIHYxw4LQSe6y8mv4PTn7UoWK7jq+K8n
+	 d7TK42VT+/JcwGFCHq1x3PcQMkxLNgWMbjGi1CnUaROC+ySUntHNJ8RDYmzwNb6B9bgcl
+	 aXcGnfR4xt30rJ5rXbBOypOUT12t6MHI4QJrhsB/0jUctqn8KTyzJCoVpA6eqi2mZJA==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=zw8FwGZi;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=WLcjP4kb;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 44B83606A329
-	for <mm-commits@vger.kernel.org>; Mon,  2 Nov 2026 17:25:48 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 56DAD606A329
+	for <mm-commits@vger.kernel.org>; Mon,  2 Nov 2026 17:25:50 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=zw8FwGZi
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0E4BD1F00A1B;
-	Mon,  2 Nov 2026 17:25:48 +0000 (UTC)
+	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=WLcjP4kb
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id DD0031F00A18;
+	Mon,  2 Nov 2026 17:25:49 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1793640348;
-	bh=6u3mPeB7C7gaPneRpmXjwOK28suZdWcyKsP+wSJO7q0=;
+	d=linux-foundation.org; s=korg; t=1793640350;
+	bh=gK2cd0iytFDyOGQSyjmNZe4zDRwemN4RkYmRuNumiv0=;
 	h=Date:To:From:Subject;
-	b=zw8FwGZikurEeA0FHH2rqukFb3lxxZSMe7ASWZWHDxGbPzfMoKByxy6PuIIxT7S9B
-	 aR0fLdCHPs485gDQ4iXa55a/5cNWqnss3WIxWOfJLPzvOARDYPeWvJdimvkTGUV8NK
-	 RzPagtBuiKravaHT0qlnWfdZCeEwa81ywTIWlWgw=
-Date: Mon, 02 Nov 2026 09:25:47 -0800
+	b=WLcjP4kbNBZ1a9gGs7bmWkJWh2e1Y0FlGFm7eo3ZKYM64aAorcBXtacFJjm6PNeGE
+	 7+dZljUf4Aaw3v/WzPZ+ETC/9YffTET6BxTU8e4n1h1r0OTg5DxC/fQaz3+xshPAHt
+	 7ppxIj8K+puHBChqyOqPNc0tT1W3Aq3zb7M4ilrY=
+Date: Mon, 02 Nov 2026 09:25:49 -0800
 To: mm-commits@vger.kernel.org,skhan@linuxfoundation.org,sj@kernel.org,
 	rdunlap@infradead.org,corbet@lwn.net,adrianhuang0701@gmail.com,
 	akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + docs-admin-guide-mm-damon-lru_sort-fix-copy-paste-mistakes.patch added to mm-new branch
-Message-Id: <20261102172548.0E4BD1F00A1B@smtp.kernel.org>
+Subject: + docs-admin-guide-mm-damon-usage-fix-incorrect-option-syntax-in-perf-example.patch added to mm-new branch
+Message-Id: <20261102172549.DD0031F00A18@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -53,12 +53,12 @@ Precedence: list
 
 
 The patch titled
-     Subject: Docs/admin-guide/mm/damon/lru_sort: fix copy-paste mistakes
+     Subject: Docs/admin-guide/mm/damon/usage: fix incorrect option syntax in perf example
 has been added to the -mm mm-new branch.  Its filename is
-     docs-admin-guide-mm-damon-lru_sort-fix-copy-paste-mistakes.patch
+     docs-admin-guide-mm-damon-usage-fix-incorrect-option-syntax-in-perf-example.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/docs-admin-guide-mm-damon-lru_sort-fix-copy-paste-mistakes.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/docs-admin-guide-mm-damon-usage-fix-incorrect-option-syntax-in-perf-example.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -88,15 +88,16 @@ and is updated there most days
 
 ------------------------------------------------------
 From: "Adrian Huang (Lenovo)" <adrianhuang0701@gmail.com>
-Subject: Docs/admin-guide/mm/damon/lru_sort: fix copy-paste mistakes
-Date: Mon, 02 Nov 2026 07:28:46 -0800
+Subject: Docs/admin-guide/mm/damon/usage: fix incorrect option syntax in perf example
+Date: Mon, 02 Nov 2026 07:28:47 -0800
 
-The DAMON_LRU_SORT documentation mistakenly refers to DAMON_RECLAIM
-in a few places.
+The kill command in the DAMON documentation uses an incorrect
+option syntax in the perf example.
 
-Fix these copy-paste mistakes to correctly refer to DAMON_LRU_SORT.
+Use kill -9 instead of kill 9 to correctly send SIGKILL to
+the perf process.
 
-Link: https://lore.kernel.org/20261102152849.96057-3-sj@kernel.org
+Link: https://lore.kernel.org/20261102152849.96057-4-sj@kernel.org
 Signed-off-by: Adrian Huang (Lenovo) <adrianhuang0701@gmail.com>
 Signed-off-by: SJ Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
@@ -106,29 +107,20 @@ Cc: Shuah Khan <skhan@linuxfoundation.org>
 Cc: Randy Dunlap <rdunlap@infradead.org>
 ---
 
- Documentation/admin-guide/mm/damon/lru_sort.rst |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ Documentation/admin-guide/mm/damon/usage.rst |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/Documentation/admin-guide/mm/damon/lru_sort.rst~docs-admin-guide-mm-damon-lru_sort-fix-copy-paste-mistakes
-+++ a/Documentation/admin-guide/mm/damon/lru_sort.rst
-@@ -263,7 +263,7 @@ addr_unit
- A scale factor for memory addresses and bytes.
- 
- This parameter is for setting and getting the :ref:`address unit
--<damon_design_addr_unit>` parameter of the DAMON instance for DAMON_RECLAIM.
-+<damon_design_addr_unit>` parameter of the DAMON instance for DAMON_LRU_SORT.
- 
- ``monitor_region_start`` and ``monitor_region_end`` should be provided in this
- unit.  For example, let's suppose ``addr_unit``, ``monitor_region_start`` and
-@@ -346,7 +346,7 @@ memory regions that not accessed for 120
- deprioritization is limited to be done using only up to 1% CPU time to avoid
- DAMON_LRU_SORT consuming too much CPU time for the (de)prioritization.  It also
- asks DAMON_LRU_SORT to do nothing if the system's free memory rate is more than
--50%, but start the real works if it becomes lower than 40%.  If DAMON_RECLAIM
-+50%, but start the real works if it becomes lower than 40%.  If DAMON_LRU_SORT
- doesn't make progress and therefore the free memory rate becomes lower than
- 20%, it asks DAMON_LRU_SORT to do nothing again, so that we can fall back to
- the LRU-list based page granularity reclamation. ::
+--- a/Documentation/admin-guide/mm/damon/usage.rst~docs-admin-guide-mm-damon-usage-fix-incorrect-option-syntax-in-perf-example
++++ a/Documentation/admin-guide/mm/damon/usage.rst
+@@ -749,7 +749,7 @@ show results using tracepoint supporting
+     # echo on > kdamonds/0/state
+     # perf record -e damon:damon_aggregated &
+     # sleep 5
+-    # kill 9 $(pidof perf)
++    # kill -9 $(pidof perf)
+     # echo off > kdamonds/0/state
+     # perf script
+     kdamond.0 46568 [027] 79357.842179: damon:damon_aggregated: target_id=0 nr_regions=11 122509119488-135708762112: 0 864
 _
 
 Patches currently in -mm which might be from adrianhuang0701@gmail.com are
