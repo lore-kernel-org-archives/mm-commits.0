@@ -1,47 +1,48 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793597602;
-	b=uatrL8DIbjZhGNALf9a1+2jGqZhHuw3tCwzMOdh8lgOuQBP6L9gt1QmUeOwesnX3WnaT
-	 8a1u2cwD5hrklzJC2MxAkJxVS4K1pSmX/ufTI8SUmNp/HxwW0fEqachKG/BtSBnufjYqI
-	 xlumgrA5MZ4XIoUQXIv39VZhuEA0Bollx/7JgSsuzCNT+KEiRt3CUmwWM7lkg4eSdadIf
-	 nR5ZGmd6PjBOk+rViZ6mZZFmnl/Q2PVbJN1Px8VGo8jf+IKYhAeGZfhbUkL//EbuLWAR0
-	 R2oFo6KxIcVDs8dKlN8WWx0wLl1TsHYEWlfqcmPEAprFSmaYWtzZMY73nmq1qlLqgmQ==
+	t=1793597628;
+	b=MwldtqfbfuS+yU5ZEqWMZe04/Z0c2Kr+f87xxa3d8rRhRUQjQrKQTgw6ye0gg4W7lx7I
+	 r/yU0uRqYaCDXuobstGUGmvCVxSUrwKEelXcPMXIGMPSrxAooYbbxevcUtrV8fRZe1DLQ
+	 aGBlLFtY6uWRJvTo9ssi2u6+fVVuI5eu6jbmMveuVvW5J+c1XZHjTISGAUJCTTwH31RAi
+	 quc450ysdLUdPL3oxOSwwDn06qdYAtILnUTuhCEKawB1bD5k50Yi6oQIp4bpGraC8n9uB
+	 oeYFyN+S/i8gMbzVJZZm3KL+WZar088Uw3HtQM68W4sskUWgRqVInhuTrfi9vUjdlOA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793597602;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793597628;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=r88G5NBnMnmcfdv6fh8gE8hrTWNwkgndeIDVkATE0e8=;
-	b=tVZsdmVf1dVa4nZQNVBAkizKTw7v7VDSZy/wb9Zp1wjJ0+ImPh3lqmk/eUe6uYKnVHgY
-	 5KbsQj7F3kcaXytvC3Tz2RP7A3c9AOERgxbTXdTKbL3Oim5VhGB+PuMH1/3OAaY6eqbc8
-	 Xa6aSwIJA64XnUMlzKPss+t27l29M2nnAf1p8p4gRUAQzDQsHArePXR9G09CXrXA4K30a
-	 jjnpqO6VV4+kAMoaUcKZv79uX7EhB9yWYAb0tjAMxtZGxzEEicUUYfojlEB9tkafYN+sc
-	 nNTKEfwv9neSg0keULdhh9QxEjkqgpKfYD+wedWmLkH1FHXnSjD2jNzwgo1IUiFVRxQ==
+	bh=KZrr7dxDjC4+3eo6g2n9yj+6WYUVhDU5NWrI/qmnZ0Q=;
+	b=rqkeoEAbD6K9n+9ob05007cnfpv/EhCwmv8bBfLnsS/6cIWPGd7lG+57f9+/s3sga3Iy
+	 sv2lT92Nmbzgh24TfjcJreCDKJtK8RWfXvowL9FmBFX6h7jdV2aUV5gfC241cvHPj1JaK
+	 zLThj80k6Wg1nzq1+oTtvT6NriC6GCDYbRuV+vE6JzNSt8OeeWFQwZz97j9xWdx03pcZG
+	 VRUqBDTJKb2UX+SpMPC51Ue87Q4eRRoLXDRc9+84vW7SlXJaE7DBJM6TKYAaN4+4sXZ+7
+	 XT5+cMIw7m2D0tx302qUY9791kHuMLln8W8WraZ3upoWjklViOka6WT3reG19gy12qg==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=vF7PtJgM;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=mnTVVdsQ;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AD4D6606A324
-	for <mm-commits@vger.kernel.org>; Mon,  2 Nov 2026 05:33:21 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 35B71606A324;
+	Mon,  2 Nov 2026 05:33:47 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=vF7PtJgM
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1D2521F000C1;
-	Mon,  2 Nov 2026 05:33:21 +0000 (UTC)
+	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=mnTVVdsQ
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B161A1F000C1;
+	Mon,  2 Nov 2026 05:33:47 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1793597601;
-	bh=r88G5NBnMnmcfdv6fh8gE8hrTWNwkgndeIDVkATE0e8=;
+	d=linux-foundation.org; s=korg; t=1793597627;
+	bh=KZrr7dxDjC4+3eo6g2n9yj+6WYUVhDU5NWrI/qmnZ0Q=;
 	h=Date:To:From:Subject;
-	b=vF7PtJgMzHlDNtu9bxp0sJaWZqJ1g4FezprFGHzPNs8+eVnf4yBD498776rWP+9my
-	 fjrxV/uJSIFp6Tclrhi0KE+vgmuUu+xVYfpunlu+gxKboAAo4Yh7Rqde51My1+bqIA
-	 JhxMB/8/ztv1REF4sjsEVfFf9TMuBcZLmbqQ2dPw=
-Date: Sun, 01 Nov 2026 21:33:20 -0800
-To: mm-commits@vger.kernel.org,tim.c.chen@linux.intel.com,hughd@google.com,
-	david@kernel.org,baolin.wang@linux.alibaba.com,dennylin0707@gmail.com,
+	b=mnTVVdsQb1aXjUiUpJjbbaC3SpIyva+lY085Awc+6EKOjAiFHR79svuynYAOr782K
+	 zfsCZtRVj7jbUunvn/VPc0d5D2iCNkNJWHGReNG3qF+AXZDIT2dHTQc0GyVdddq3bX
+	 3rF/pX7vHWAnndfI1fYCyYC7WNOuJR4Bk4A5c04o=
+Date: Sun, 01 Nov 2026 21:33:47 -0800
+To: mm-commits@vger.kernel.org,tim.c.chen@linux.intel.com,
+	stable@vger.kernel.org,hughd@google.com,david@kernel.org,
+	baolin.wang@linux.alibaba.com,dennylin0707@gmail.com,
 	akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
 Subject: + shmem-clamp-negative-used-block-samples-in-statfs.patch added to mm-nonmm-unstable branch
-Message-Id: <20261102053321.1D2521F000C1@smtp.kernel.org>
+Message-Id: <20261102053347.B161A1F000C1@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -102,6 +103,7 @@ Reviewed-by: Tim Chen <tim.c.chen@linux.intel.com>
 Reviewed-by: Baolin Wang <baolin.wang@linux.alibaba.com>
 Cc: Hugh Dickins <hughd@google.com>
 Cc: David Hildenbrand <david@kernel.org>
+Cc: <stable@vger.kernel.org>
 ---
 
  mm/shmem.c |    2 +-
