@@ -1,47 +1,47 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793640345;
-	b=hVUfHhbnAgdsto/7POID+sYRhuthf0pMpR6NCGB/P7BjY+tpK9owFmeYFG3OqGMY2hHQ
-	 v+82Y9CtFj7MgbpOl350druCJ85cwRKChPPWjmTkvoM7bf1UIxZJQlF6M74grkYtWW1k4
-	 /eTeQXBpDSN8tN7ey2RS9laxscjVhMxi06QJuliDkc3ldJhV0rnWaASQXlE0/ceXJNNRf
-	 4iYtO8ODG8OSj+bzkOcE1owCJgnk34aS/DKJNBgNC9+YlXFdTBR1wEt+8RIeGwSdFaHJi
-	 gaT8OHJu7H5Hn4Jdb9ydZeT5oE3f072F++BcwAK19gZJt1Hebemtl78sU7vQlVZJ4JA==
+	t=1793640348;
+	b=t1rzvogzczuawRfoBfupAGDQofEIiWR+waC4iqAf4upz0DS4KW8+oPT8CfbbWCYKVGkQ
+	 hHQnAuJh/LseEeaU9EaINZf+2vXU0jWuAhYt55F40tpLpzFigO+mSRMMzIcBCLuiZe2FU
+	 IGhvCMxwShgbxvdpfYKoZYr63mXAtfM5m4OA9pYGLJZnhlEAB+EhYYUM3WwKHHzKnkySr
+	 UTV+YUZVydI1g7UyNBi4uXSlOa+LKe25zBm1t4xru9+XGBNgtPZTJ2Q9SbFlKGzHKBYpP
+	 t6shRhWebC4WejJ9pHqym9cYfh63usBFyP2GqTdH0Xy10Wqwtmupwc5G86W0yyv4mvg==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793640345;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793640348;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=7IDwUVs1CFTq6bF7VSijwKTlaTD6XaNkfkGwbRy2IW4=;
-	b=Su4f1s5IZH/JYXSyAgn/Zfxs2+s2s0KW7AVRBU9Qs5f/plo4TX/l9bn7VO1xqzjoluHq
-	 p5bMQcQQQ31idiSZSesnBlQxYn8smKEya6XNnaI3kehOMQ1uNdOvU3SB84g6wqnhK4gbK
-	 i96JoTM31YGVHQkfzcMDDR9WiYFszUXGy8eRCjxbAM1iPjAAuqXsTa2I5xttc/PUcfn0o
-	 wyCjCqVhp8RrBjAaiXYdCTsD0dEYYikiZEAHcf1TTKlePg3lW663KPrgYOy8AHC6rc6VQ
-	 xV/nvCTCcNz80npDl0ZrAPz3+5sqEYZg1P0rMpCC5jllgG0H4E8/anZIOP2uFqRKg/w==
+	bh=6u3mPeB7C7gaPneRpmXjwOK28suZdWcyKsP+wSJO7q0=;
+	b=Y5cQhkIvUFtxtoxmuTzTvLPfoEkgGtGrG1Rtoa3Cvo7G1XAqgUBYMvik9E3L+azDgyJm
+	 hROIZMCJJHAeQGvE6KIAPHs6HjDtDZK7Jh5yuqe1rYMgGAEl3pKZymEoc0yVC176vui01
+	 QI2fGYCwrM6N4o+Cn43RpSXHa7B6baO0H29cAkL2KRuaxWUUKFr06x9HYq9eKtZjt5xf2
+	 4o6Dr5/qzEEllDmRJnlQzaCZx0QQVlZ61Gd2ahzrjdUkd7fgL7H9OO97DplGSVA4SaMEi
+	 Vp3EAUF3xzi12FAYDetI1+3qsh6d6upvCaQTq9vz/J/C/578Bt16fZ4RYsSqyGC6KDg==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=QcINnQAg;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=zw8FwGZi;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EF256606A329
-	for <mm-commits@vger.kernel.org>; Mon,  2 Nov 2026 17:25:44 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 44B83606A329
+	for <mm-commits@vger.kernel.org>; Mon,  2 Nov 2026 17:25:48 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=QcINnQAg
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B9DFE1F00A17;
-	Mon,  2 Nov 2026 17:25:44 +0000 (UTC)
+	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=zw8FwGZi
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0E4BD1F00A1B;
+	Mon,  2 Nov 2026 17:25:48 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1793640344;
-	bh=7IDwUVs1CFTq6bF7VSijwKTlaTD6XaNkfkGwbRy2IW4=;
+	d=linux-foundation.org; s=korg; t=1793640348;
+	bh=6u3mPeB7C7gaPneRpmXjwOK28suZdWcyKsP+wSJO7q0=;
 	h=Date:To:From:Subject;
-	b=QcINnQAgNpUtzhZ1YsHDZZxqTffYbXjGTGjWfTvk4wNll6EUShM+YAtFGXLzWPr0I
-	 P3EVZ7EOo4ZlrzaCmWFetgH7q9amsKPnhO9spMh4uFxxuqCcL5P+aRtmOjF1VvYTEv
-	 UMWpSBiUo1hdRebgLyRvePjG/NJuNVJo+RrXnKjo=
-Date: Mon, 02 Nov 2026 09:25:38 -0800
+	b=zw8FwGZikurEeA0FHH2rqukFb3lxxZSMe7ASWZWHDxGbPzfMoKByxy6PuIIxT7S9B
+	 aR0fLdCHPs485gDQ4iXa55a/5cNWqnss3WIxWOfJLPzvOARDYPeWvJdimvkTGUV8NK
+	 RzPagtBuiKravaHT0qlnWfdZCeEwa81ywTIWlWgw=
+Date: Mon, 02 Nov 2026 09:25:47 -0800
 To: mm-commits@vger.kernel.org,skhan@linuxfoundation.org,sj@kernel.org,
 	rdunlap@infradead.org,corbet@lwn.net,adrianhuang0701@gmail.com,
 	akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + docs-admin-guide-mm-damon-fix-various-typos.patch added to mm-new branch
-Message-Id: <20261102172544.B9DFE1F00A17@smtp.kernel.org>
+Subject: + docs-admin-guide-mm-damon-lru_sort-fix-copy-paste-mistakes.patch added to mm-new branch
+Message-Id: <20261102172548.0E4BD1F00A1B@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -53,12 +53,12 @@ Precedence: list
 
 
 The patch titled
-     Subject: Docs/admin-guide/mm/damon: fix various typos
+     Subject: Docs/admin-guide/mm/damon/lru_sort: fix copy-paste mistakes
 has been added to the -mm mm-new branch.  Its filename is
-     docs-admin-guide-mm-damon-fix-various-typos.patch
+     docs-admin-guide-mm-damon-lru_sort-fix-copy-paste-mistakes.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/docs-admin-guide-mm-damon-fix-various-typos.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/docs-admin-guide-mm-damon-lru_sort-fix-copy-paste-mistakes.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -88,31 +88,15 @@ and is updated there most days
 
 ------------------------------------------------------
 From: "Adrian Huang (Lenovo)" <adrianhuang0701@gmail.com>
-Subject: Docs/admin-guide/mm/damon: fix various typos
-Date: Mon, 02 Nov 2026 07:28:45 -0800
+Subject: Docs/admin-guide/mm/damon/lru_sort: fix copy-paste mistakes
+Date: Mon, 02 Nov 2026 07:28:46 -0800
 
-Patch series "Docs/admin-guide/mm/damon: minor fixes", v2.
+The DAMON_LRU_SORT documentation mistakenly refers to DAMON_RECLAIM
+in a few places.
 
-Docs/admin-guide/mm/damon: minor fixes
+Fix these copy-paste mistakes to correctly refer to DAMON_LRU_SORT.
 
-This small patch series fixes various typos, copy-paste mistakes, and an
-incorrect command syntax in the DAMON documentation files.
-
-
-This patch (of 3):
-
-Fix several spelling mistakes found while reading the DAMON
-documentation:
-  * trusworthy -> trustworthy
-  * DAMON_RCLAIM -> DAMON_RECLAIM
-  * charget -> charge
-  * hetmap -> heatmap
-  * colun -> column
-  * evelenth -> eleventh
-  * idlee -> idle
-
-Link: https://lore.kernel.org/20261102152849.96057-1-sj@kernel.org
-Link: https://lore.kernel.org/20261102152849.96057-2-sj@kernel.org
+Link: https://lore.kernel.org/20261102152849.96057-3-sj@kernel.org
 Signed-off-by: Adrian Huang (Lenovo) <adrianhuang0701@gmail.com>
 Signed-off-by: SJ Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
@@ -122,76 +106,29 @@ Cc: Shuah Khan <skhan@linuxfoundation.org>
 Cc: Randy Dunlap <rdunlap@infradead.org>
 ---
 
- Documentation/admin-guide/mm/damon/lru_sort.rst |    2 +-
- Documentation/admin-guide/mm/damon/reclaim.rst  |    4 ++--
- Documentation/admin-guide/mm/damon/start.rst    |    6 +++---
- Documentation/admin-guide/mm/damon/stat.rst     |    2 +-
- 4 files changed, 7 insertions(+), 7 deletions(-)
+ Documentation/admin-guide/mm/damon/lru_sort.rst |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/Documentation/admin-guide/mm/damon/lru_sort.rst~docs-admin-guide-mm-damon-fix-various-typos
+--- a/Documentation/admin-guide/mm/damon/lru_sort.rst~docs-admin-guide-mm-damon-lru_sort-fix-copy-paste-mistakes
 +++ a/Documentation/admin-guide/mm/damon/lru_sort.rst
-@@ -7,7 +7,7 @@ DAMON-based LRU-lists Sorting
- DAMON-based LRU-lists Sorting (DAMON_LRU_SORT) is a static kernel module that
- aims to be used for proactive and lightweight data access pattern based
- (de)prioritization of pages on their LRU-lists for making LRU-lists a more
--trusworthy data access pattern source.
-+trustworthy data access pattern source.
+@@ -263,7 +263,7 @@ addr_unit
+ A scale factor for memory addresses and bytes.
  
- Where Proactive LRU-lists Sorting is Required?
- ==============================================
---- a/Documentation/admin-guide/mm/damon/reclaim.rst~docs-admin-guide-mm-damon-fix-various-typos
-+++ a/Documentation/admin-guide/mm/damon/reclaim.rst
-@@ -55,7 +55,7 @@ enabled
+ This parameter is for setting and getting the :ref:`address unit
+-<damon_design_addr_unit>` parameter of the DAMON instance for DAMON_RECLAIM.
++<damon_design_addr_unit>` parameter of the DAMON instance for DAMON_LRU_SORT.
  
- Enable or disable DAMON_RECLAIM.
- 
--You can enable DAMON_RCLAIM by setting the value of this parameter as ``Y``.
-+You can enable DAMON_RECLAIM by setting the value of this parameter as ``Y``.
- Setting it as ``N`` disables DAMON_RECLAIM.  Note that DAMON_RECLAIM could do
- no real monitoring and reclamation due to the watermarks-based activation
- condition.  Refer to below descriptions for the watermarks parameter for this.
-@@ -125,7 +125,7 @@ quota_reset_interval_ms
- 
- The time/size quota charge reset interval in milliseconds.
- 
--The charget reset interval for the quota of time (quota_ms) and size
-+The charge reset interval for the quota of time (quota_ms) and size
- (quota_sz).  That is, DAMON_RECLAIM does not try reclamation for more than
- quota_ms milliseconds or quota_sz bytes within quota_reset_interval_ms
- milliseconds.
---- a/Documentation/admin-guide/mm/damon/start.rst~docs-admin-guide-mm-damon-fix-various-typos
-+++ a/Documentation/admin-guide/mm/damon/start.rst
-@@ -69,16 +69,16 @@ monitored access pattern of the process
- human readable format.
- 
- The first line of the output shows the relative access temperature (hotness) of
--the regions in a single row hetmap format.  Each column on the heatmap
-+the regions in a single row heatmap format.  Each column on the heatmap
- represents regions of same size on the monitored virtual address space.  The
--position of the colun on the row and the number on the column represents the
-+position of the column on the row and the number on the column represents the
- relative location and access temperature of the region.  ``[...]`` means
- unmapped huge regions on the virtual address spaces.  The second line shows
- additional information for better understanding the heatmap.
- 
- Each line of the output from the third line shows which virtual address range
- (``addr XX size XX``) of the process is how frequently (``access XX %``)
--accessed for how long time (``age XX``).  For example, the evelenth region of
-+accessed for how long time (``age XX``).  For example, the eleventh region of
- ~9.5 MiB size is being most frequently accessed for last 3.7 seconds.  Finally,
- the fourth command stops DAMON.
- 
---- a/Documentation/admin-guide/mm/damon/stat.rst~docs-admin-guide-mm-damon-fix-various-typos
-+++ a/Documentation/admin-guide/mm/damon/stat.rst
-@@ -81,7 +81,7 @@ Per-byte idle time (milliseconds) percen
- DAMON_STAT calculates how long each byte of the memory was not accessed until
- now (idle time), based on the current DAMON results snapshot.  For regions
- having access frequency (nr_accesses) larger than zero, how long the current
--access frequency level was kept multiplied by ``-1`` becomes the idlee time of
-+access frequency level was kept multiplied by ``-1`` becomes the idle time of
- every byte of the region.  If a region has zero access frequency (nr_accesses),
- how long the region was keeping the zero access frequency (age) becomes the
- idle time of every byte of the region.  Then, DAMON_STAT exposes the
+ ``monitor_region_start`` and ``monitor_region_end`` should be provided in this
+ unit.  For example, let's suppose ``addr_unit``, ``monitor_region_start`` and
+@@ -346,7 +346,7 @@ memory regions that not accessed for 120
+ deprioritization is limited to be done using only up to 1% CPU time to avoid
+ DAMON_LRU_SORT consuming too much CPU time for the (de)prioritization.  It also
+ asks DAMON_LRU_SORT to do nothing if the system's free memory rate is more than
+-50%, but start the real works if it becomes lower than 40%.  If DAMON_RECLAIM
++50%, but start the real works if it becomes lower than 40%.  If DAMON_LRU_SORT
+ doesn't make progress and therefore the free memory rate becomes lower than
+ 20%, it asks DAMON_LRU_SORT to do nothing again, so that we can fall back to
+ the LRU-list based page granularity reclamation. ::
 _
 
 Patches currently in -mm which might be from adrianhuang0701@gmail.com are
