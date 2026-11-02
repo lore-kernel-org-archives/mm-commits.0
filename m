@@ -1,47 +1,48 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793646008;
-	b=1HvSXPmvjOW5EPGfXS5+OhdO+1v2jXvgarVjgjgWZHNcDXwbDWoe1twREAjzOMuYj/dM
-	 QLtbjJLZ4sMwcaOmR/c2Map+VVSv+5TzWDLjA3be352jP3GkNB4M8Gw4IXCINeSDiROjB
-	 +RMGkI0D51Bq7ZBZ7eckklM1Oz7TFgcSi5Ik0ETZlRBHpv2CAbNzdsXN19Bw+cp6rlPYG
-	 4er2yM3drz7Ofzi1h5Wle+VFrBzRU+sIL7Q3jKctxExYE7/qtL0lTrw8ez4mXSg5wsgbM
-	 NQxMnkhMM7DxwB7vpG7RsRJJ48hRjOqTIFxAx0Lx/lQ/MH6/nlNB8miRJRa/3Z+cizw==
+	t=1793646443;
+	b=tCiYtdkjLZyMaaxlsQNNHFw329v/GEl3B3DW+wXzpEneCqStQ4RdgQCu0Q/AKa3sf9N9
+	 dg6LHmhnayOUlHCrZugQCkp4ktz/izxeHdzcstq4ZNSWKB1M31B/B8FpqFPX+ufEm3PYX
+	 kk0UdgKHvKRmufXeP+UfBEMgfGaTpBCBOBoHXfV/76NuTuvmeQWEBYYW3qQ2tE1PRVCZV
+	 /jRyHojJ4jkInzjTtuSLxHEbud2wPdL/fK/QTUWKSr/1fU8zWvJ27nwS3Gnky+JIgA3Os
+	 +wnF7plJY9i3pQRER3uk6mCrm2mhnPqaKLGsyVOfQlmjgAbWSnMK1BYYv6wyKyMdZlg==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793646008;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793646443;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=bqMpyzuPyICDtSav4owPaTQB8zjioPQrXnEoMVHbcUE=;
-	b=sGqoTyWJ53rI3f3H3hTiUI88+Det5zBYcKRVY0bfNZvNsDjXj1aknX96ft5J9bWvUkRo
-	 /E/xyQzUhrqcylJ/6ZNuIrB3w5N5QSR0EQjLuwCXZiJkE4UWcEW/nymamX7rY/dDBQkLp
-	 D8Vh00f4DnKleJ5j4WK+OJA+D1tuZ+pkbI3XH6SBsE/Ygl+MlITJzVIJRvf+8C17tMjJH
-	 YxTUWq4CcBMVGs0Cmbf3kIckdbCKQTFKBFg2+3gqFeCXGMFeQtLlza7CoKi/EUsXu679t
-	 FjBlt+/69pK+dtn09CKCnwvZ77PkNviRw1blr9ao+UJcKEAzXmVGIs9OI13dfOJNQqQ==
+	bh=RtbW4FDNpuayij/Rdp3+zUcFoZ1lF+iD1jkd5vpTCqQ=;
+	b=Wm7ES9Dh5Q7u/JXn/oAZsfwJUo5LH/0YFd3dtsxOPDlRVxTLRwaYhsVC76crKJ7wStsK
+	 pUgJJnmetqjkk7iBL2w4rKpFtohaA+7VtmIXhllViYcO1xaxkE1kM4S1NxDYYCkYXCEy9
+	 /jH3MJFQHJMSs9AllLdQxx2ffB8WVUCOrCPM3gB6evCSRv1c3d/Xgkje83nqjOwNMKck2
+	 JAQzzx48K+kRmPApW+Myk6Yp8/Kpb65c0vp9q8dWK+gjZi2TktgHRFAwqEEQMRKsuM5vw
+	 l46KQv+rGNO8Vc/hQedfQBQjKKTvJgNd928EVW+3CQo9pRuxcKIEgqzD2ysGE8u7fFQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=ZAas+4hZ;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=hDwX57AP;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D7670606D81B;
-	Mon,  2 Nov 2026 19:00:07 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3FD61606A327
+	for <mm-commits@vger.kernel.org>; Mon,  2 Nov 2026 19:07:22 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=ZAas+4hZ
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 966911F00A18;
-	Mon,  2 Nov 2026 19:00:07 +0000 (UTC)
+	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=hDwX57AP
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 990AD1F00A16;
+	Mon,  2 Nov 2026 19:07:22 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1793646007;
-	bh=bqMpyzuPyICDtSav4owPaTQB8zjioPQrXnEoMVHbcUE=;
+	d=linux-foundation.org; s=korg; t=1793646442;
+	bh=RtbW4FDNpuayij/Rdp3+zUcFoZ1lF+iD1jkd5vpTCqQ=;
 	h=Date:To:From:Subject;
-	b=ZAas+4hZa3DNa4TH3eG5BdyC1KFAfKC+CZ0/e4jkSB036unzDMtPLdndC3zW6VkCe
-	 SLnjjZP/3myASuJNZfoeoLJ4T+4dJyFyB7mOlHEzS50p7kzXxbZHJ9Zlk/ksYLXG6Z
-	 eJOF1hfMgmsnzL7Q1qxz6VNvEXERDBOSAYte/xq4=
-Date: Mon, 02 Nov 2026 11:00:07 -0800
-To: mm-commits@vger.kernel.org,xiaoleiwangxiaolei@gmail.com,
-	stable@vger.kernel.org,shuah@kernel.org,jm5905938@gmail.com,sj@kernel.org,
-	akpm@linux-foundation.org
+	b=hDwX57APpz3iAodgxnl6yoNPgq/2hevuzQZwVbqE9j03P2D5Njqap/eT3qdBRRWS7
+	 gZBIjRrp5WTXuiSirutikvmYhojf5T52JoDEByulU0UbNvKhiIMd9E2JckUaWTy9mG
+	 kLHzoVjmx9xhLgDpVaELPPgOIKNKyqKtnKQsD6kI=
+Date: Mon, 02 Nov 2026 11:07:12 -0800
+To: mm-commits@vger.kernel.org,willy@infradead.org,vbabka@kernel.org,
+	surenb@google.com,rppt@kernel.org,mhocko@suse.com,ljs@kernel.org,
+	liam@infradead.org,jack@suse.cz,hughd@google.com,david@kernel.org,
+	baolin.wang@linux.alibaba.com,odys.yuan@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-damon-sysfs_memcg_path_leak-define-ksft_skip.patch added to mm-hotfixes-unstable branch
-Message-Id: <20261102190007.966911F00A18@smtp.kernel.org>
+Subject: + mm-shmem-remove-truncated-folios-from-the-page-cache-in-batches.patch added to mm-new branch
+Message-Id: <20261102190722.990AD1F00A16@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -53,15 +54,26 @@ Precedence: list
 
 
 The patch titled
-     Subject: selftests/damon/sysfs_memcg_path_leak: define ksft_skip
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     selftests-damon-sysfs_memcg_path_leak-define-ksft_skip.patch
+     Subject: mm/shmem: remove truncated folios from the page cache in batches
+has been added to the -mm mm-new branch.  Its filename is
+     mm-shmem-remove-truncated-folios-from-the-page-cache-in-batches.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-damon-sysfs_memcg_path_leak-define-ksft_skip.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-shmem-remove-truncated-folios-from-the-page-cache-in-batches.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Note, mm-new is a provisional staging ground for work-in-progress
+patches, and acceptance into mm-new is a notification for others take
+notice and to finish up reviews.  Please do not hesitate to respond to
+review feedback and post updated versions to replace or incrementally
+fixup patches in mm-new.
+
+The mm-new branch of mm.git is not included in linux-next
+
+If a few days of testing in mm-new is successful, the patch will me moved
+into mm.git's mm-unstable branch, which is included in linux-next
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -76,63 +88,115 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: SJ Park <sj@kernel.org>
-Subject: selftests/damon/sysfs_memcg_path_leak: define ksft_skip
-Date: Mon, 02 Nov 2026 06:46:26 -0800
+From: Qiliang Yuan <odys.yuan@gmail.com>
+Subject: mm/shmem: remove truncated folios from the page cache in batches
+Date: Thu, 29 Oct 2026 23:44:57 -0400
 
-sysfs_memcg_path_leak test uses $ksft_skip without defining it.  As a
-result, the test is marked as passed while it was skipped, like below.
+truncate_inode_pages_range() takes the folios it finds out of the page
+cache with delete_from_page_cache_batch(), which takes the inode's i_lock
+and the i_pages lock once for each batch of up to FOLIO_BATCH_SIZE folios.
 
-    $ ./sysfs_memcg_path_leak.sh
-    Run as root
-    $ echo $?
-    0
+shmem_undo_range() calls truncate_inode_folio() on each folio instead, so
+filemap_remove_folio() takes and drops both locks once per folio. 
+Truncating, punching or freeing a tmpfs file or memfd made of small
+folios, such as a large /dev/shm segment, pays for that on every page.
 
-Users who run the test could therefore wrongly believe the test was run
-and passed while it was skipped.
+Clean each folio up as truncate_inode_folio() does, collect the ones to
+remove and take them out with delete_from_page_cache_batch(), which needs
+truncate_cleanup_folio() outside mm/truncate.c.  Swap entries, and the
+folios kept when undoing a failed fallocate(), stay out of the batch. 
+Dropping an 8 GiB file of 4K folios, median of five runs, averaged over
+two boots of each kernel, in a 32 vCPU VM:
 
-Define the value at the beginning of the test.  After this patch, the
-exit code reflects the skip.
+                        before    after
+  ftruncate() to 0     1163 ms   913 ms
+  hole punch           1155 ms   914 ms
+  close() of a memfd   1161 ms   914 ms
+  unlink()             1162 ms   916 ms
 
-    $ ./sysfs_memcg_path_leak.sh
-    Run as root
-    $ echo $?
-    4
+Files of PMD-sized folios take 20-25 ms with or without this change.
 
-Link: https://lore.kernel.org/20261102144627.88843-4-sj@kernel.org
-Fixes: dfa3cf0bc018 ("selftets/damon: add a test for memcg_path leak")
-Signed-off-by: SJ Park <sj@kernel.org>
+Link: https://lore.kernel.org/20261029-bug-mm-shmem-undo-batch-v1-1-59b34212fe78@gmail.com
+Signed-off-by: Qiliang Yuan <odys.yuan@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Closes: https://sashiko.dev/#/bug/linux-a0456336-0608-4fec-ac22-0ee61d1d6a91
-Reviewed-by: Aveline Noir <jm5905938@gmail.com>
-Tested-by: Aveline Noir <jm5905938@gmail.com>
-Cc: Shuah Khan <shuah@kernel.org>
-Cc: Wang Xiaolei <xiaoleiwangxiaolei@gmail.com>
-Cc: <stable@vger.kernel.org> # 6.17.x
+Reviewed-by: Jan Kara <jack@suse.cz>
+Cc: David Hildenbrand <david@kernel.org>
+Cc: Lorenzo Stoakes <ljs@kernel.org>
+Cc: Liam R. Howlett <liam@infradead.org>
+Cc: Vlastimil Babka <vbabka@kernel.org>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
 ---
 
- tools/testing/selftests/damon/sysfs_memcg_path_leak.sh |    3 +++
- 1 file changed, 3 insertions(+)
+ mm/internal.h |    1 +
+ mm/shmem.c    |   16 +++++++++++++---
+ mm/truncate.c |    2 +-
+ 3 files changed, 15 insertions(+), 4 deletions(-)
 
---- a/tools/testing/selftests/damon/sysfs_memcg_path_leak.sh~selftests-damon-sysfs_memcg_path_leak-define-ksft_skip
-+++ a/tools/testing/selftests/damon/sysfs_memcg_path_leak.sh
-@@ -1,6 +1,9 @@
- #!/bin/bash
- # SPDX-License-Identifier: GPL-2.0
- 
-+# Kselftest framework requirement - SKIP code is 4.
-+ksft_skip=4
+--- a/mm/internal.h~mm-shmem-remove-truncated-folios-from-the-page-cache-in-batches
++++ a/mm/internal.h
+@@ -630,6 +630,7 @@ unsigned find_lock_entries(struct addres
+ 		pgoff_t end, struct folio_batch *fbatch, pgoff_t *indices);
+ unsigned find_get_entries(struct address_space *mapping, pgoff_t *start,
+ 		pgoff_t end, struct folio_batch *fbatch, pgoff_t *indices);
++void truncate_cleanup_folio(struct folio *folio);
+ int truncate_inode_folio(struct address_space *mapping, struct folio *folio);
+ bool truncate_inode_partial_folio(struct folio *folio, loff_t lstart,
+ 		loff_t lend, pgoff_t *pstart, pgoff_t *pend);
+--- a/mm/shmem.c~mm-shmem-remove-truncated-folios-from-the-page-cache-in-batches
++++ a/mm/shmem.c
+@@ -1352,6 +1352,9 @@ static void shmem_undo_range(struct inod
+ 	index = start;
+ 	while (index < end && find_lock_entries(mapping, &index, end - 1,
+ 			&fbatch, indices)) {
++		struct folio_batch remove;
 +
- if [ $EUID -ne 0 ]
- then
- 	echo "Run as root"
++		folio_batch_init(&remove);
+ 		for (i = 0; i < folio_batch_count(&fbatch); i++) {
+ 			folio = fbatch.folios[i];
+ 
+@@ -1363,9 +1366,16 @@ static void shmem_undo_range(struct inod
+ 				continue;
+ 			}
+ 
+-			if (!unfalloc || !folio_test_uptodate(folio))
+-				truncate_inode_folio(mapping, folio);
+-			folio_unlock(folio);
++			if (!unfalloc || !folio_test_uptodate(folio)) {
++				truncate_cleanup_folio(folio);
++				folio_batch_add(&remove, folio);
++			}
++		}
++		delete_from_page_cache_batch(mapping, &remove);
++		for (i = 0; i < folio_batch_count(&fbatch); i++) {
++			folio = fbatch.folios[i];
++			if (!xa_is_value(folio))
++				folio_unlock(folio);
+ 		}
+ 		folio_batch_remove_exceptionals(&fbatch);
+ 		folio_batch_release(&fbatch);
+--- a/mm/truncate.c~mm-shmem-remove-truncated-folios-from-the-page-cache-in-batches
++++ a/mm/truncate.c
+@@ -151,7 +151,7 @@ EXPORT_SYMBOL_GPL(folio_invalidate);
+  * its lock, b) when a concurrent invalidate_mapping_pages got there first and
+  * c) when tmpfs swizzles a page between a tmpfs inode and swapper_space.
+  */
+-static void truncate_cleanup_folio(struct folio *folio)
++void truncate_cleanup_folio(struct folio *folio)
+ {
+ 	if (folio_mapped(folio))
+ 		unmap_mapping_folio(folio);
 _
 
-Patches currently in -mm which might be from sj@kernel.org are
+Patches currently in -mm which might be from odys.yuan@gmail.com are
 
-mm-damon-sysfs-schemes-hold-damon_sysfs_lock-in-target_metric_store.patch
-mm-damon-core-move-static-variable-last_nr_regions-to-damon_ctx.patch
-mm-damon-core-move-static-variable-rotation-to-damon_ctx.patch
-selftests-damon-sysfs_memcg_path_leak-define-ksft_skip.patch
-mm-damon-core-copy-only-installed-probe-in-damon_split_region_at.patch
+selftests-mm-track-the-modules-run_vmtestssh-loads.patch
+selftests-mm-load-xfs-before-checking-for-it-in-run_vmtestssh.patch
+word-at-a-time-check-the-first-byte-in-load_unaligned_zeropad.patch
+kasan-test-cover-load_unaligned_zeropad.patch
+mm-shmem-remove-truncated-folios-from-the-page-cache-in-batches.patch
 
