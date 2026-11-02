@@ -1,46 +1,47 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793593553;
-	b=wqVxJIupGJxe4d/v+Wz4rxOERusRacvMqy0hAA+YuG2mjJnYFYJTcBQNvYZKgw5cYIDX
-	 EzlL9c0z8R48Kjh3fSZY2FvpOhtDx07CcAAK0hyKIqjX4E1V+T1EzRMt8uijl5M/c4r2r
-	 JCZSFn3Br+oO3W8hXphIyQLiUI5rkjn0iG7HF5AvfOl5auAetBKvJBnojf0Px9w+5H7yv
-	 3BbIYHUy2UGoVBi4eO+wc+BzTcW0koswHs1rUy1oQuyMUdGlLeDiou4Qv+BlsGkROaOze
-	 F7ssBG6oAHpRDxkTQXmMNTWQ8b38NQFQjDaopZawSeYzWfISHFl3rG6dE9/NlHFBM+A==
+	t=1793594259;
+	b=atONNYAdd1qNElk90sx2L5QKgHmWPmQmbuDwa6iYCSratC5X3t3Ne1hG/ufdHgiuusw5
+	 Cp2WjSqIztLsdkYTBmWAP+e8CxeEqlp4AFWwsz4+aEn7vs6b03bnx9fPvxYxvqkwUfEk9
+	 0epROC9EbuXouCYTql5jkrZ5vLIcO+ZwcXTcwQVolMoxUzp78vDpezV237TQ01j6E7WBZ
+	 gZvvWql/wUplYqzo25tMYpE+5/htzhrU5i9AwN1BM1IVSrx25EKS3AwhlucTO3APvm/pb
+	 QmUC68Sn19FSzk3Z4KXMPC5ZvhNQ5FHSpvy53Wg7qHVy+Q0gZRI1LCdACh5U+Q4jGfg==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793593553;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793594259;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=2MrpTyQAi82J9Dv1AAVRPe2HTsfG3NHrrr5R1hY1SXU=;
-	b=zzJ6tQ+wUh+6F6E0y/RgsPy04IRB9xEuRKpuxYtH7hqr5DP4XGhceSWpMwIYwk6Cce9k
-	 qF/p48s2HVOoaIBNrOVSs9oF7VQTU9jY+OERS1KTM3F5r/NQNld3Tcz3CY9s+24+kjwCR
-	 YEJOmwFLSNWA1wBdyM6nbMgfpYBkchrSA23rTeh/bgEdzeO1I8vEmcAIqrSKkV0Z5G0Af
-	 G3FU/WslxhrWS2KxQNtx01G2eMQf6JMcu/V6IqtwOiJBbtmrIgQ6ciBJ7VaBgUMzcVYSL
-	 38egNG0nAOq9YiW1h5iZ4uXD9Ivp7ECmgPZvUsENHXNIIlzhyVnnw8WrjygCsdfD94A==
+	bh=Ag0QmLBKOgk9VYZVmkElRg78WbSRQ61t7dBIRj1Cfdw=;
+	b=v2UmVMwF8NmxMNhhvyVylKX746kout+ywJvpBoB3AS2LIOxvf/Y3LKiIZyBOUvNBRz/c
+	 mvLP2U9eEJIuRIm0jz2bgZZoiGSjzU0slIF+FbcWjqZzsYHf8wKE0og+/5gGWxWVL7LMI
+	 MvAVzHYGzCjD0zjpNDhw1uOj4NVw5WisTisNbD+9v8LA3ifQl3jh/axwsW9wGvExb04R5
+	 ATpgzZZ2A/JHoJ9ZP22MG5ENN3/ou5KKJJVCR3iosGReY728HfL9aSl1qL/uURdoyJD3G
+	 LkIDlfuK5NGTEAkZwGS0Ir6sCZigXkv8plKo1xTMUN1JLqe3i4or8jXV+mFN9lOH2FQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=PjOzh7uq;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=AcZH3Cu7;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0A5D4606A324
-	for <mm-commits@vger.kernel.org>; Mon,  2 Nov 2026 04:25:52 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 53C43606A324
+	for <mm-commits@vger.kernel.org>; Mon,  2 Nov 2026 04:37:39 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=PjOzh7uq
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 736471F000C1;
-	Mon,  2 Nov 2026 04:25:52 +0000 (UTC)
+	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=AcZH3Cu7
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C160A1F000C1;
+	Mon,  2 Nov 2026 04:37:38 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1793593552;
-	bh=2MrpTyQAi82J9Dv1AAVRPe2HTsfG3NHrrr5R1hY1SXU=;
+	d=linux-foundation.org; s=korg; t=1793594258;
+	bh=Ag0QmLBKOgk9VYZVmkElRg78WbSRQ61t7dBIRj1Cfdw=;
 	h=Date:To:From:Subject;
-	b=PjOzh7uq99M9PDlO17m6QJIjORLSDcHo1sObcsCcAkQM4R51IwJyiasGG8dr2JRry
-	 TaycwZgbMLZUz9VINaWiaoeHjzGbV2wh1jmUmeMIrssqQoF3qNQys0MZGyijsske/O
-	 ZW4J4+CqIQhxcsNqruA5vW1WjmeldxBZGm6cPKRI=
-Date: Sun, 01 Nov 2026 20:25:51 -0800
-To: mm-commits@vger.kernel.org,shuah@kernel.org,adobriyan@gmail.com,
-	drifabdelmalekmohamedsaid@gmail.com,akpm@linux-foundation.org
+	b=AcZH3Cu7709n1tb3Dc10qfR8YLIiRUV8WK7TA0GdF84CaezaehW/RxvS1gflow/X9
+	 /d5eMMAG/g1O6DOY4CA/Wsn88M80FAdDcRkH7zGrKM6B/9ioSZU2eqv2063IBzFLEM
+	 bczyU1dyXBi4e0zMwVeM1Kp75C/PIbQ6IfKcK5CM=
+Date: Sun, 01 Nov 2026 20:37:38 -0800
+To: mm-commits@vger.kernel.org,shuah@kernel.org,lukas.bulwahn@gmail.com,
+	joe@perches.com,dwaipayanray1@gmail.com,apw@canonical.com,
+	kolyshkin@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-proc-proc-empty-vm-wait-for-childs-sigsegv-instead-of-sleep1.patch added to mm-nonmm-unstable branch
-Message-Id: <20261102042552.736471F000C1@smtp.kernel.org>
+Subject: + checkpatch-is_userspace-exclude-kernel-code-under-tools.patch added to mm-nonmm-unstable branch
+Message-Id: <20261102043738.C160A1F000C1@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -52,12 +53,12 @@ Precedence: list
 
 
 The patch titled
-     Subject: selftests/proc: proc-empty-vm: wait for child's SIGSEGV instead of sleep(1)
+     Subject: checkpatch: is_userspace: exclude kernel code under tools/
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     selftests-proc-proc-empty-vm-wait-for-childs-sigsegv-instead-of-sleep1.patch
+     checkpatch-is_userspace-exclude-kernel-code-under-tools.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-proc-proc-empty-vm-wait-for-childs-sigsegv-instead-of-sleep1.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/checkpatch-is_userspace-exclude-kernel-code-under-tools.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -75,83 +76,80 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Drif Abdelmalek Mohamed Said <drifabdelmalekmohamedsaid@gmail.com>
-Subject: selftests/proc: proc-empty-vm: wait for child's SIGSEGV instead of sleep(1)
-Date: Fri, 23 Oct 2026 19:34:33 +0100
+From: Kir Kolyshkin <kolyshkin@gmail.com>
+Subject: checkpatch: is_userspace: exclude kernel code under tools/
+Date: Thu, 22 Oct 2026 15:44:20 -0700
 
-The test had a TODO asking for a reliable way to know when the child's
-munmap() has finished, and used sleep(1) in the meantime.
+Patch series "checkpatch: skip more kernel-only checks for userspace code".
 
-Unmapping the whole address space leaves the child with no code to run, so
-it segfaults.  Since it is traced, the SIGSEGV stop is reported to the
-parent through waitpid(), which is exactly the signal the TODO wanted. 
-Wait for it there and drop the sleep and the TODO.
+Commit 99b70ece33d8 ("checkpatch: suppress strscpy warnings for
+userspace tools") added is_userspace() to skip checks which only make
+sense for the kernel. This series extends that to a few more checks
+which produce false positives for userspace code under tools/:
 
-The stop is now consumed up front, so SIGKILL the child before the final
-reap.
+ - ENOSYS: the "ENOSYS means invalid syscall nr" rule is about the
+   kernel ABI; in userspace, errno == ENOSYS is the standard way to
+   detect a missing syscall (e.g. to skip a selftest on older kernels);
+ - AVOID_BUG: "Do not crash the kernel" does not apply to userspace,
+   where BUG()/BUG_ON() are assert-like shims;
+ - SSCANF_TO_KSTRTO: kstrto<type> is not available in userspace.
 
-Link: https://lore.kernel.org/20261023183434.9109-1-drifabdelmalekmohamedsaid@gmail.com
-Fixes: 5bc73bb3451b ("proc: test how it holds up with mapping'less process")
-Signed-off-by: Drif Abdelmalek Mohamed Said <drifabdelmalekmohamedsaid@gmail.com>
+Running "checkpatch.pl -f" (with --strict for AVOID_BUG, which is
+a CHECK in file mode) on the files under tools/ that use ENOSYS, BUG()
+or sscanf() gives 699 such warnings before this series (ENOSYS: 188,
+AVOID_BUG: 491, SSCANF_TO_KSTRTO: 20), and none after.
+
+Since tools/ also contains some kernel code (test modules, Kbuild-built
+mocks, rvgen templates), patch 1 makes is_userspace() return false for
+those locations, so they are still subject to all the kernel checks
+(this also applies to the existing strcpy/strlcpy/strncpy checks).
+
+
+This patch (of 4):
+
+is_userspace() treats everything under tools/ as userspace code, and is
+used to skip checks that only make sense for the kernel. However, tools/
+also contains some kernel code: test modules, Kbuild-built mocks, and
+templates and golden outputs of the runtime verification monitor
+generator. Such code should be subject to the same checks as the rest
+of the kernel.
+
+Explicitly exclude the known locations of kernel code under tools/.
+
+Link: https://lore.kernel.org/20261022224426.2756960-1-kolyshkin@gmail.com
+Link: https://lore.kernel.org/20261022224426.2756960-2-kolyshkin@gmail.com
+Signed-off-by: Kir Kolyshkin <kolyshkin@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Reviewed-by: Alexey Dobriyan <adobriyan@gmail.com>
+Cc: Joe Perches <joe@perches.com>
+Cc: Andy Whitcroft <apw@canonical.com>
+Cc: Dwaipayan Ray <dwaipayanray1@gmail.com>
+Cc: Lukas Bulwahn <lukas.bulwahn@gmail.com>
 Cc: Shuah Khan <shuah@kernel.org>
 ---
 
- tools/testing/selftests/proc/proc-empty-vm.c |   24 +++++++++--------
- 1 file changed, 14 insertions(+), 10 deletions(-)
+ scripts/checkpatch.pl |    5 +++++
+ 1 file changed, 5 insertions(+)
 
---- a/tools/testing/selftests/proc/proc-empty-vm.c~selftests-proc-proc-empty-vm-wait-for-childs-sigsegv-instead-of-sleep1
-+++ a/tools/testing/selftests/proc/proc-empty-vm.c
-@@ -41,6 +41,7 @@
- #include <sys/types.h>
- #include <sys/wait.h>
- #include <unistd.h>
-+#include <signal.h>
+--- a/scripts/checkpatch.pl~checkpatch-is_userspace-exclude-kernel-code-under-tools
++++ a/scripts/checkpatch.pl
+@@ -2670,6 +2670,11 @@ sub exclude_global_initialisers {
+ sub is_userspace {
+     my ($realfile) = @_;
  
- #ifdef __amd64__
- #define TEST_VSYSCALL
-@@ -500,13 +501,18 @@ int main(void)
- #endif
- 		return EXIT_FAILURE;
- 	} else {
--		/*
--		 * TODO find reliable way to signal parent that munmap(2) completed.
--		 * Child can't do it directly because it effectively doesn't exist
--		 * anymore. Looking at child's VM files isn't 100% reliable either:
--		 * due to a bug they may not become empty or empty-like.
--		 */
--		sleep(1);
-+		int wstatus;
-+		pid_t p;
++    # Kernel code under tools/: test modules, mocks, code generator templates.
++    return 0 if ($realfile =~ m@^tools/testing/(?:cxl|nvdimm|crypto)/@ ||
++             $realfile =~ m@^tools/testing/selftests/(?:bpf/test_kmods|livepatch/test_modules|mm/page_frag|net/bench/page_pool)/@ ||
++             $realfile =~ m@^tools/(?:power/cpupower/debug/kernel|virtio/vhost_test|verification/rvgen)/@);
 +
-+		for (;;) {
-+			p = waitpid(pid, &wstatus, 0);
-+			if (p == -1 && errno == EINTR)
-+				continue;
-+			break;
-+		}
-+		assert(p == pid);
-+		assert(WIFSTOPPED(wstatus));
-+		assert(WSTOPSIG(wstatus) == SIGSEGV);
+     return $userspace if (defined $userspace);
  
- 		if (rv == EXIT_SUCCESS) {
- 			rv = test_proc_pid_maps(pid);
-@@ -525,10 +531,8 @@ int main(void)
- 		}
- 
- 		/* Cut the rope. */
--		int wstatus;
-+		kill(pid, SIGKILL);
- 		waitpid(pid, &wstatus, 0);
--		assert(WIFSTOPPED(wstatus));
--		assert(WSTOPSIG(wstatus) == SIGSEGV);
- 	}
- 
- 	return rv;
+     return ($realfile =~ m@^tools/@ ||
 _
 
-Patches currently in -mm which might be from drifabdelmalekmohamedsaid@gmail.com are
+Patches currently in -mm which might be from kolyshkin@gmail.com are
 
-selftests-proc-proc-empty-vm-wait-for-childs-sigsegv-instead-of-sleep1.patch
+checkpatch-is_userspace-exclude-kernel-code-under-tools.patch
+checkpatch-dont-warn-about-enosys-in-userspace-code.patch
+checkpatch-dont-warn-about-bug-in-userspace-code.patch
+checkpatch-dont-suggest-kstrtotype-in-userspace-code.patch
 
