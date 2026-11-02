@@ -1,47 +1,47 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793596652;
-	b=ZIbvnTyAbpt7WXuLYa4F9wjuAei9qHb+IiFugVAnb2KY9Hzi1qqmkJORjt5rhoCqOwUJ
-	 d9Zp+aXOWXRuoptjRRczpK0kjUCCEwN4Ho+nZtORJ4U3vIMFvVrAojNmJ4brAFqNnxR5j
-	 K82VLVyVJQk/n4CAK7g/qRvDIQJZwtSvMMmAGsmg4o01r0Yn1rGKkmtOVFp/iM0LEZ//c
-	 2kofs92j3tg2A/cfmX7+9M1ARJfrvlQ78e1QLgFgh18xi0ct/6uE6SkUIfGrLRcTpWvMQ
-	 A20N6DnbT3QfBC1L6B066RQHIseyAMbTAV2daS3klq6xGOmaVUy7lotKbv/pHya+SgQ==
+	t=1793596654;
+	b=nRK6e3x3ydu5uAOf/mYqhWvrYe6Dz/CMfIC2yn8C9x65/uYkfGBnSQuh8PZG9Rn/giaf
+	 RyoZSqjMn51pKV1dlwOjF+O18tKis5aO7McOdqwI+tnK6s1DQiz5qMikViv3lfcIHZTVA
+	 iQSa/udeGIcxmZzEz5YtmX2btSlXqHYbyU6xar6xQwSF0dTTepzVO0XtjY2h6J9RuwJks
+	 yrKXOgE+D1M74Zf0avNwmG9DLKQedC0yWkY2dh9Zl0qnfek8liRfJ8nwnvmJAkX6FeJ1L
+	 PopuM1dVvpxw8U1c4P9SsucFSmcKSme4Zeg1dmuF1jigBa+Obpw5H65Y4lsynetXB1g==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793596652;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793596654;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=dKRCXpIHtO5YO9KHJAEeiRJXElZ8a/sloEqNTLpoJ3I=;
-	b=gy7nzk//+xhlCIN6OaRhuAJdz/ErJ/r4nHFk2oxrWKkdeBoaD8swUR+3J/CZl24VHxxd
-	 YD7D2fjaLgjb8B0MrFmiULMlPVG0xjug6N55LVrCHz90HHsZhbcwk2gJahMSFJvKMtBvw
-	 vDVhjkf9qhVAR+taOlsC7ttgoRAbFMHv0wVtBu0jCdbs/FtTNmKZ+y7B3dGcZ/CcNTgBK
-	 4y20qF8/FIWLeldzPEIc7dv7PvFs9TLTZmubBgJlMCDifnOC36vLy+WftAHKSuTcoNSEc
-	 0wJIxCjj+3MrTasYdS4/SHc6m+6/eZRpHUT3S46J3U1AtdFQx10XCXWIpwijN3UjyQA==
+	bh=mM/fA7p5mq2aPk9ubyA2U1uaRFEHARxjnfZTzgcb0WQ=;
+	b=pp7OqEYlzzqGJXVbGl3kMflMd9uLau5Ir9qPlp62gOhZNPHubONjBh7c4peGgiYjrQKg
+	 20lh6gXZgmxdh1eox1WmqzF1kxgXuC84JRL551eHhpeUos45v51OoEqL8/3399fNoQIoV
+	 Xu6owWaz/hBowtQnp5NkctZQqEv66ZpSrbNXz0l7CR25XIwnVWfzhL9Hc+sXYq0BRTXMP
+	 3ohulGw0y0/0kwPsiBdba7/nNiw2w/czla0iTdCAbgMMRqZx2/FkwzPuY6S8PFsDnmrQv
+	 brq4444j3T768fPYV5s8n/748toJRAILs+w1+Doll1XZVbxNOaCCmW5qt3wvn9isIYg==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=DdISE3xA;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=ZeNVx4d8;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 921A0606A324
-	for <mm-commits@vger.kernel.org>; Mon,  2 Nov 2026 05:17:32 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 11EAE606A324
+	for <mm-commits@vger.kernel.org>; Mon,  2 Nov 2026 05:17:34 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=DdISE3xA
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 026E91F000C1;
-	Mon,  2 Nov 2026 05:17:31 +0000 (UTC)
+	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=ZeNVx4d8
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C3A601F000C1;
+	Mon,  2 Nov 2026 05:17:33 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1793596652;
-	bh=dKRCXpIHtO5YO9KHJAEeiRJXElZ8a/sloEqNTLpoJ3I=;
+	d=linux-foundation.org; s=korg; t=1793596653;
+	bh=mM/fA7p5mq2aPk9ubyA2U1uaRFEHARxjnfZTzgcb0WQ=;
 	h=Date:To:From:Subject;
-	b=DdISE3xAUvXvj/VabY23ViLsCrd4PT474OdetdD4vk+ZHbBLCAky77fFsdkUaNRqu
-	 KWR+T3MIv4bCSSHwcUnux0dC/acOKy13cyrID7i3lr5oevp3m2pjTny4WgcpQkQngy
-	 wfpnb4PnqSlAmnIttjw/fPPvvjrq1QFSYEm3kbaE=
-Date: Sun, 01 Nov 2026 21:17:31 -0800
+	b=ZeNVx4d8JqxoOsQu2S0GQwgEatfNZ0QjQVzqPKR4zTUHSQgnU4f5tES3cQh7bFh7W
+	 kqoaMk0JEm+PxktvKFRpmM+JCORi35WlQ6UfsTkJkkZf50mS8cCW8FljWv6NVy5wHt
+	 1IztuEiVMdTGxed22JlCUXcgBDSzuK2lfDb/Xx2Q=
+Date: Sun, 01 Nov 2026 21:17:33 -0800
 To: mm-commits@vger.kernel.org,ryan.roberts@arm.com,david@kernel.org,
 	baolin.wang@linux.alibaba.com,tongweilin@linux.alibaba.com,
 	akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + tools-mm-thpmaps-fix-partial-thp-anon-file-accounting.patch added to mm-new branch
-Message-Id: <20261102051732.026E91F000C1@smtp.kernel.org>
+Subject: + tools-mm-thpmaps-fix-missing-order-1-file-thp-statistics.patch added to mm-new branch
+Message-Id: <20261102051733.C3A601F000C1@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -53,12 +53,12 @@ Precedence: list
 
 
 The patch titled
-     Subject: tools/mm/thpmaps: fix partial THP anon/file accounting
+     Subject: tools/mm/thpmaps: fix missing order-1 file THP statistics
 has been added to the -mm mm-new branch.  Its filename is
-     tools-mm-thpmaps-fix-partial-thp-anon-file-accounting.patch
+     tools-mm-thpmaps-fix-missing-order-1-file-thp-statistics.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/tools-mm-thpmaps-fix-partial-thp-anon-file-accounting.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/tools-mm-thpmaps-fix-missing-order-1-file-thp-statistics.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -88,32 +88,16 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Weilin Tong <tongweilin@linux.alibaba.com>
-Subject: tools/mm/thpmaps: fix partial THP anon/file accounting
-Date: Tue, 27 Oct 2026 15:49:02 +0800
+Subject: tools/mm/thpmaps: fix missing order-1 file THP statistics
+Date: Tue, 27 Oct 2026 15:49:03 +0800
 
-Patch series "tools/mm/thpmaps: fix THP statistics and mapping names".
+File-backed THPs can have order 1, but the per-size counters are only
+emitted for order 2 and above. Fully and contiguously mapped order-1
+file THPs are therefore missing from the output.
 
-This series fixes three issues in thpmaps.
+Start emitting the per-size counters at order 1.
 
-Patch 1 corrects anon/file accounting for trailing partial THPs.
-Patch 2 includes order-1 file THPs in the per-size statistics.
-Patch 3 preserves mapping names containing whitespace, including
-paths with a (deleted) suffix.
-
-The three fixes are independent.
-
-
-This patch (of 3):
-
-thp_parse() reduces index_end before looking up the type of the
-trailing partially mapped THP. The lookup then uses the preceding
-page, or anons[-1] if the THP starts at index zero, so its pages can
-be charged to the wrong anon/file counter.
-
-Account the partial THP before reducing index_end.
-
-Link: https://lore.kernel.org/20261027074904.3328878-1-tongweilin@linux.alibaba.com
-Link: https://lore.kernel.org/20261027074904.3328878-2-tongweilin@linux.alibaba.com
+Link: https://lore.kernel.org/20261027074904.3328878-3-tongweilin@linux.alibaba.com
 Fixes: 2444172cfde4 ("tools/mm: add thpmaps script to dump THP usage info")
 Signed-off-by: Weilin Tong <tongweilin@linux.alibaba.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
@@ -125,18 +109,17 @@ Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
  tools/mm/thpmaps |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/tools/mm/thpmaps~tools-mm-thpmaps-fix-partial-thp-anon-file-accounting
+--- a/tools/mm/thpmaps~tools-mm-thpmaps-fix-missing-order-1-file-thp-statistics
 +++ a/tools/mm/thpmaps
-@@ -263,8 +263,8 @@ def thp_parse(vma, kpageflags, ranges, i
-             if flags & KPF_COMPOUND_TAIL:
-                 nr = index_end - int(folios[-1])
-                 folios = folios[:-1]
--                index_end -= nr
-                 stats['anon' if anons[index_end - 1] else 'file']['partial'] += nr
-+                index_end -= nr
+@@ -295,7 +295,7 @@ def thp_parse(vma, kpageflags, ranges, i
  
-         # Account fully mapped THPs in the middle of the range.
-         if len(folios):
+     def flatten_sub(type, subtype, stats):
+         param = f"{type}-thp-pte-{subtype}-{{}}kB"
+-        for od, nr in enumerate(stats[2:], 2):
++        for od, nr in enumerate(stats[1:], 1):
+             rstats[param.format(odkb(od))] = {'type': type, 'value': nrkb(nr)}
+ 
+     def flatten_type(type, stats):
 _
 
 Patches currently in -mm which might be from tongweilin@linux.alibaba.com are
