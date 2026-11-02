@@ -1,47 +1,47 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793640350;
-	b=YciyRfnQlA5AMLNTKKV4sUhE6936XqSCJyIIYmgqmKej9ASsCZOubTT3PkV2q52aeRXG
-	 8fpaUMR2i9JMarvZEScf3JbzizQLxK3NwZ8JZpV6GdpN2DiBRLk20tOQAeXq5m2GAqgAY
-	 ubheN5M1/WphJyrt8MjKe9t9brQfM5CYEcwl49I79m00WqFsiw3Swm+PLvncl/QVJdrtU
-	 x1YMsYIPcBzHyZYH70lL4/vM8TVkEXgbF5sOPvqX9YMxAY/qfmTcpEd0ney2NjM5f9VfS
-	 gWTTX3NXYjjf0F+CnIuBzhbVSNZPPN1E3g57bGmfyvZAIGz2k5VvX3V0Xqw8glCrY4w==
+	t=1793640416;
+	b=FrjDwexR2cZs8lgYnO+MhazpSCiEgHW1bJnLyaRezbZ6DOiqtuQ4oEA2KHIz9zaRGl5u
+	 qjsQUOVDRlWFW8wLV+neUfU114bi/LLNHqGWEaROAAofgOt3mMRa2ccIHixberm4R80zL
+	 w3kHr4eqsqM6zzPDsIA297xmQYm9ef1teLhklK6feiIMKcFFkYHELAcyqh3bODlNxWIb/
+	 Jo2tmUvC9zmQYagVs4BJlztPBTsPXOtuNpFaJ1eU/HtlOYAFPMT6qEmNf7VYxPL6aWy0/
+	 keUUBF0ApAj/fDgXTua2PbZMqLley1fUYv5Qnrrh+r4EtNa+YLgQj8P+bBfElE7yHjA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793640350;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793640416;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=gK2cd0iytFDyOGQSyjmNZe4zDRwemN4RkYmRuNumiv0=;
-	b=qY8RH9APDk0sYBAfYH+jOLjVYaUAuRsdktEavX3Vw2CDVFkW2U97ODZsa9eMZGuTtU76
-	 S7/Xe5LiXfZ59p+eKxqUf0Hy6dVgLGGOEBn0Zoi7TusQqaR9rE6F+lrC76SomIb6nurbh
-	 ouATL1se3sDKHGafG+KtBFpnqb01KVYl0VnA6MIHYxw4LQSe6y8mv4PTn7UoWK7jq+K8n
-	 d7TK42VT+/JcwGFCHq1x3PcQMkxLNgWMbjGi1CnUaROC+ySUntHNJ8RDYmzwNb6B9bgcl
-	 aXcGnfR4xt30rJ5rXbBOypOUT12t6MHI4QJrhsB/0jUctqn8KTyzJCoVpA6eqi2mZJA==
+	bh=tYfngvg7XT++PTXAkAj7iYdIkJ9HOL/wrOfCuyIiTzo=;
+	b=uZNbKFMlp2gZolAH2OPrhalR4SIFDHj7lI2k+7vuTwHv0ZNAj9yg+Qk/GeGEumQ6HDml
+	 0KZTxFY4CJhQPI0UyLG2A1DibBFY1wPEJ7Y0U4eLlM1a13TcesLrTznMzHs8vZ3knM1L/
+	 N4pbaJsJu2qcixmDKx2CLBREaRVCkxDWnSaZ1kbdY+rWOqeYnv6nXux4fd5YsGzs3stxY
+	 Zn57oZwYrWiH22afC8ke7y0C29YzuT0IinmnklxpJoLJa5xulN59k9Q8tbFgAn/YUut8s
+	 t5uZ4P/uI2FsiJTmMZ7ZuzA5zk5ZoVnzsySEZS+J0/2OKu5yCCSLgYJpmTEpkUXUX/g==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=WLcjP4kb;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=GNaz5Hhm;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 56DAD606A329
-	for <mm-commits@vger.kernel.org>; Mon,  2 Nov 2026 17:25:50 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9D90A606BA72;
+	Mon,  2 Nov 2026 17:26:56 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=WLcjP4kb
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id DD0031F00A18;
-	Mon,  2 Nov 2026 17:25:49 +0000 (UTC)
+	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=GNaz5Hhm
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 694BF1F00A17;
+	Mon,  2 Nov 2026 17:26:56 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1793640350;
-	bh=gK2cd0iytFDyOGQSyjmNZe4zDRwemN4RkYmRuNumiv0=;
+	d=linux-foundation.org; s=korg; t=1793640416;
+	bh=tYfngvg7XT++PTXAkAj7iYdIkJ9HOL/wrOfCuyIiTzo=;
 	h=Date:To:From:Subject;
-	b=WLcjP4kbNBZ1a9gGs7bmWkJWh2e1Y0FlGFm7eo3ZKYM64aAorcBXtacFJjm6PNeGE
-	 7+dZljUf4Aaw3v/WzPZ+ETC/9YffTET6BxTU8e4n1h1r0OTg5DxC/fQaz3+xshPAHt
-	 7ppxIj8K+puHBChqyOqPNc0tT1W3Aq3zb7M4ilrY=
-Date: Mon, 02 Nov 2026 09:25:49 -0800
-To: mm-commits@vger.kernel.org,skhan@linuxfoundation.org,sj@kernel.org,
-	rdunlap@infradead.org,corbet@lwn.net,adrianhuang0701@gmail.com,
-	akpm@linux-foundation.org
+	b=GNaz5HhmwDE1JItIUsfPm+ic7J+edAf3m8aaajVzpj/lnt0mDHInwzvcHoVDJwp9B
+	 ZYZnppwpNXSs26WC3KLr22XFa+hFIqgWuSI587YrNDua4abDpT+NvgNwCTfUm6tBFj
+	 6YbWbcq+mUSixzj4BpOC1on0GRe5WlELTq+HnANc=
+Date: Mon, 02 Nov 2026 09:26:53 -0800
+To: mm-commits@vger.kernel.org,willy@infradead.org,stable@vger.kernel.org,
+	krystianmkaniewski@gmail.com,jack@suse.cz,david@kernel.org,
+	jose.fernandez@linux.dev,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + docs-admin-guide-mm-damon-usage-fix-incorrect-option-syntax-in-perf-example.patch added to mm-new branch
-Message-Id: <20261102172549.DD0031F00A18@smtp.kernel.org>
+Subject: + mm-filemap-stop-fault-around-when-the-walk-steps-back.patch added to mm-hotfixes-unstable branch
+Message-Id: <20261102172656.694BF1F00A17@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -53,26 +53,15 @@ Precedence: list
 
 
 The patch titled
-     Subject: Docs/admin-guide/mm/damon/usage: fix incorrect option syntax in perf example
-has been added to the -mm mm-new branch.  Its filename is
-     docs-admin-guide-mm-damon-usage-fix-incorrect-option-syntax-in-perf-example.patch
+     Subject: mm/filemap: stop fault-around when the walk steps back
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     mm-filemap-stop-fault-around-when-the-walk-steps-back.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/docs-admin-guide-mm-damon-usage-fix-incorrect-option-syntax-in-perf-example.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-filemap-stop-fault-around-when-the-walk-steps-back.patch
 
-This patch will later appear in the mm-new branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Note, mm-new is a provisional staging ground for work-in-progress
-patches, and acceptance into mm-new is a notification for others take
-notice and to finish up reviews.  Please do not hesitate to respond to
-review feedback and post updated versions to replace or incrementally
-fixup patches in mm-new.
-
-The mm-new branch of mm.git is not included in linux-next
-
-If a few days of testing in mm-new is successful, the patch will me moved
-into mm.git's mm-unstable branch, which is included in linux-next
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -87,46 +76,57 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: "Adrian Huang (Lenovo)" <adrianhuang0701@gmail.com>
-Subject: Docs/admin-guide/mm/damon/usage: fix incorrect option syntax in perf example
-Date: Mon, 02 Nov 2026 07:28:47 -0800
+From: "Jose Fernandez (Anthropic)" <jose.fernandez@linux.dev>
+Subject: mm/filemap: stop fault-around when the walk steps back
+Date: Sat, 31 Oct 2026 04:33:59 +0000
 
-The kill command in the DAMON documentation uses an incorrect
-option syntax in the perf example.
+filemap_map_pages() can dereference a PTE pointer outside the page table
+it locked.  KASAN has reported this as a use-after-free read [1].  The
+same path can also write out of bounds.  When the stray entry reads as
+none, the fault-around loop maps a page there with set_pte_range().
 
-Use kill -9 instead of kill 9 to correctly send SIGKILL to
-the perf process.
+Its fault-around loop walks the page cache and moves vmf->pte by the
+change in index.  A lower index moves it back.  xas_find() can step back
+to a lower index when a multi-index entry is split during the walk.
 
-Link: https://lore.kernel.org/20261102152849.96057-4-sj@kernel.org
-Signed-off-by: Adrian Huang (Lenovo) <adrianhuang0701@gmail.com>
-Signed-off-by: SJ Park <sj@kernel.org>
+[1] fixes xas_find(), but the loop still relies on the walk never stepping
+back.  Stop the fault-around when the walk steps back.  ->fault() maps the
+faulting page if the loop did not.
+
+Link: https://lore.kernel.org/20261031-jf-mm-filemap-map-pages-lower-bound-v2-1-21029744e589@linux.dev
+Link: https://lore.kernel.org/20260904121301.200049-1-krystianmkaniewski@gmail.com [1]
+Fixes: 6b24ca4a1a8d ("mm: Use multi-index entries in the page cache")
+Signed-off-by: Jose Fernandez (Anthropic) <jose.fernandez@linux.dev>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Reviewed-by: SJ Park <sj@kernel.org>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Shuah Khan <skhan@linuxfoundation.org>
-Cc: Randy Dunlap <rdunlap@infradead.org>
+Reviewed-by: Jan Kara <jack@suse.cz>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: David Hildenbrand <david@kernel.org>
+Cc: Krystian Kaniewski <krystianmkaniewski@gmail.com>
+Cc: <stable@vger.kernel.org>
 ---
 
- Documentation/admin-guide/mm/damon/usage.rst |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/filemap.c |    7 +++++++
+ 1 file changed, 7 insertions(+)
 
---- a/Documentation/admin-guide/mm/damon/usage.rst~docs-admin-guide-mm-damon-usage-fix-incorrect-option-syntax-in-perf-example
-+++ a/Documentation/admin-guide/mm/damon/usage.rst
-@@ -749,7 +749,7 @@ show results using tracepoint supporting
-     # echo on > kdamonds/0/state
-     # perf record -e damon:damon_aggregated &
-     # sleep 5
--    # kill 9 $(pidof perf)
-+    # kill -9 $(pidof perf)
-     # echo off > kdamonds/0/state
-     # perf script
-     kdamond.0 46568 [027] 79357.842179: damon:damon_aggregated: target_id=0 nr_regions=11 122509119488-135708762112: 0 864
+--- a/mm/filemap.c~mm-filemap-stop-fault-around-when-the-walk-steps-back
++++ a/mm/filemap.c
+@@ -3968,6 +3968,13 @@ vm_fault_t filemap_map_pages(struct vm_f
+ 		unsigned long end;
+ 		vm_fault_t map_ret;
+ 
++		/* A lower index could move vmf->pte out of its page table. */
++		if (unlikely(xas.xa_index < last_pgoff)) {
++			folio_unlock(folio);
++			folio_put(folio);
++			break;
++		}
++
+ 		addr += (xas.xa_index - last_pgoff) << PAGE_SHIFT;
+ 		vmf->pte += xas.xa_index - last_pgoff;
+ 		last_pgoff = xas.xa_index;
 _
 
-Patches currently in -mm which might be from adrianhuang0701@gmail.com are
+Patches currently in -mm which might be from jose.fernandez@linux.dev are
 
-mm-damon-core-remove-unnecessary-zero-initialization-in-damon_new_ctx.patch
-docs-admin-guide-mm-damon-fix-various-typos.patch
-docs-admin-guide-mm-damon-lru_sort-fix-copy-paste-mistakes.patch
-docs-admin-guide-mm-damon-usage-fix-incorrect-option-syntax-in-perf-example.patch
+mm-filemap-stop-fault-around-when-the-walk-steps-back.patch
 
