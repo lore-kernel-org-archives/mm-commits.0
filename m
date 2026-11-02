@@ -1,49 +1,49 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793640262;
-	b=qRI1Cv2ewFEE4YevraR0X34iVCbCa7VWBTiqjQnR6Ig484HsfJyZZGRAWiY7/J1lg8sM
-	 YUpMxuAXr8CVmNKHk6d28SiDYCsL96g+9iqoEhzCKKdnZnr/u90zDewAA2GCmXgOV0hwk
-	 MR/ePeFIHD472StDd+Maj+xxOw5kuszHUz2R76vrzBBxCBsBbKK5AFCsOlCaDdTeS/iPV
-	 DdXIl4eslg4vqHFj533poX6A9RFg/KG9qd0M9jcd/H1Hbm9ykfiVQ/PLPm+QeEO54yZjb
-	 K2QrsiT95DDxO+RL+z2Y/ZMSbfFoCaEF7GcXRdvG6K7HVVOCPs+JH0Ac0yU4X7ZNidg==
+	t=1793640264;
+	b=dD9V8DUW6TZKonx00WwR5Zl44dRsG2Mx6ckI4ddBmdZsWJguPUqjcD6vymbFhatnVVNC
+	 GtoTvsMh5ekArPeFv4xemGUmEUC4Mog/KW9d9Tf/QZThox37Iuy4u6KFfsKAcUvyX0UiI
+	 ugzTF6l9TTxjbY7xdHSkuUoc4YBigKD4v/kkKuEPgj5QMyLzjnUU6pyzWi1oTXBKiaR/N
+	 o7VVuF+RUbZ3BFDJiwX9Aph/95Y1fKlouXwUGJWllVie6/u1xEwX8FIpuWDaFWYVsUK6p
+	 RBwXgUZqtcngt4m1TuhASY7rn/prEgPRB0ikODm2yjLUEuacfl7kRieQv65DwYtwTbw==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793640262;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793640264;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=TnP8R84OHs/pZi9TpOSeG+NCuAkBuG4nMPPAdbbk50U=;
-	b=3ZLY1KzkjNdz2UAdmdsDPwIEHKrpGDW3GGD5TnUjts75xEO89kQz7LJmLrwdAEx1i/VK
-	 qm3N7asi0RR9PJclQcVGQmv4kfoQmOX5EsiMSfIReARiEnyFrqriOX/E+QG9lh2w87CAQ
-	 GOqkynq6WfrnRld4isKK0xL9FRyi+MNE/NFrp54gHK2vCYr2hjC+apJv8gGmUJzSVin60
-	 kjlZCipIAJgkg4HP3gJxECExqbCoKl1UcIkcYaGejTUmCjQ7O1G/gfizoB1ds1mxP+Shv
-	 x1t2WSSXmHTpvrCvve8/tt00yHT9kqTbJ0x4Lpm+K83F53DxlK8aumFfFVMeQAAeqRw==
+	bh=poLPn8dex7MI6ZZhm+WOPYpI6C4wlZixUP63vOKZan8=;
+	b=erJN8WJgPbs822cJ9hyGKqPgeOneaihFr7q4sYhygLVtcnXQFsVLbUlYuU5OXBRlGv6k
+	 Zi+qT+693EyLOpMf6Kju2T/e6UrI6EM7N8++2kWCcrh9FhbvU/JvjAG1wjOprjZp3pfBs
+	 i/rsN66Roi+hGzA2QY+5y9H9RjOufnr0l4TWUHuzupQyrj0NJfWb/Bd2E0h4AtFpXkRVe
+	 IEEtbcDaX8DCmvOz5eoD86hbqOz0KFE3lQSZPwV9+2e/nt34IQlmnYGejXML6HFIYnXwJ
+	 lO+UcpUkgPq6zAWx6Uqv7kzpqxlNJJ9Tnn5Mg+B4JBDVnmZG5IRV/2YCEIH2pGc8Rog==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=bY6mOesr;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=pfOh5oh1;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 70033606B929
-	for <mm-commits@vger.kernel.org>; Mon,  2 Nov 2026 17:24:22 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 556D5606B922
+	for <mm-commits@vger.kernel.org>; Mon,  2 Nov 2026 17:24:24 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=bY6mOesr
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 279701F00A1A;
-	Mon,  2 Nov 2026 17:24:22 +0000 (UTC)
+	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=pfOh5oh1
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1F0CB1F00A17;
+	Mon,  2 Nov 2026 17:24:24 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1793640262;
-	bh=TnP8R84OHs/pZi9TpOSeG+NCuAkBuG4nMPPAdbbk50U=;
+	d=linux-foundation.org; s=korg; t=1793640264;
+	bh=poLPn8dex7MI6ZZhm+WOPYpI6C4wlZixUP63vOKZan8=;
 	h=Date:To:From:Subject;
-	b=bY6mOesr6ndurmXqEv5IdTL9MbZo5zxxdHpfTZc1QJZ/Gbs7Mbn51o5htXe468hEh
-	 yqSvkkhULdgnvkpHV7d6N130ntHo2+saI6eAz+dOrAjw4Fus1L9OZvbuzGVvQWzgo9
-	 9k40HxCJRcXmpOhAUcLVQkGCjDBqtteNT6HitE3M=
-Date: Mon, 02 Nov 2026 09:24:21 -0800
+	b=pfOh5oh1QnRGJ41Vpc7NMxc1VLVU53xsxRdqTeCb6i1IvnX0plewHsgoXW1Ke3JM1
+	 Z6Wt/ksKh3qsLi55yZZfDJvpDSc7FDX0Vnu1MrpR3XteQapMz4fV0Lig/jwio//LgG
+	 o7K1YGwlTm0Wbkq41Wqni/wMvSOeJPLMiS4SguS0=
+Date: Mon, 02 Nov 2026 09:24:23 -0800
 To: mm-commits@vger.kernel.org,sjpark@amazon.de,sj@kernel.org,
-	sieberf@amazon.com,shakeel.butt@linux.dev,ruanjinjie@huawei.com,
-	manuelebnerli@mailbox.org,lienze@kylinos.cn,jm5905938@gmail.com,
+	sieberf@amazon.com,sh@gentwo.org,shakeel.butt@linux.dev,
+	ruanjinjie@huawei.com,manuelebnerli@mailbox.org,lienze@kylinos.cn,
 	jaeyeon.lee.dev@gmail.com,foersleo@amazon.de,adrianhuang0701@gmail.com,
-	sh@gentwo.org,akpm@linux-foundation.org
+	jm5905938@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-damon-ops-common-align-mmu-notifier-range-when-clearing-pte-young-bit.patch added to mm-new branch
-Message-Id: <20261102172422.279701F00A1A@smtp.kernel.org>
+Subject: + mm-damon-ops-common-align-mmu-notifier-range-when-clearing-pmd-young-bit.patch added to mm-new branch
+Message-Id: <20261102172424.1F0CB1F00A17@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -55,12 +55,12 @@ Precedence: list
 
 
 The patch titled
-     Subject: mm/damon/ops-common: align MMU notifier range when clearing PTE young bit
+     Subject: mm/damon/ops-common: align MMU notifier range when clearing PMD young bit
 has been added to the -mm mm-new branch.  Its filename is
-     mm-damon-ops-common-align-mmu-notifier-range-when-clearing-pte-young-bit.patch
+     mm-damon-ops-common-align-mmu-notifier-range-when-clearing-pmd-young-bit.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-ops-common-align-mmu-notifier-range-when-clearing-pte-young-bit.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-ops-common-align-mmu-notifier-range-when-clearing-pmd-young-bit.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -89,30 +89,24 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: "Shubhang Kaushik (Ampere)" <sh@gentwo.org>
-Subject: mm/damon/ops-common: align MMU notifier range when clearing PTE young bit
-Date: Mon, 02 Nov 2026 07:07:49 -0800
+From: Aveline Noir <jm5905938@gmail.com>
+Subject: mm/damon/ops-common: align MMU notifier range when clearing PMD young bit
+Date: Mon, 02 Nov 2026 07:07:50 -0800
 
-DAMON selects a byte-granular sampling address.  damon_ptep_mkold()
-clears the young bit of the PTE covering that address, but passes the
-unaligned range [addr, addr + PAGE_SIZE) to MMU notifiers.
+damon_pmdp_mkold() clears the young bit of a PMD but notifies
+[addr, addr + HPAGE_PMD_SIZE), where addr can be an unaligned sampling
+address. This can miss part of the sampled huge page and age secondary
+mappings in the next one.
 
-For an unaligned address, that range extends into the following page.
-KVM ages every guest page intersecting the notifier range, so it can age
-a secondary mapping for the following page although DAMON cleared only
-the sampled page's primary PTE.
+Align addr to HPAGE_PMD_MASK so both operations cover the same huge page.
 
-Align the address before both the primary PTE operation and the
-MMU notifier call so that they cover the same page.
-
-Link: https://lore.kernel.org/20261102150757.93058-3-sj@kernel.org
+Link: https://lore.kernel.org/20261102150757.93058-4-sj@kernel.org
 Fixes: 3f49584b262c ("mm/damon: implement primitives for the virtual memory address spaces")
-Signed-off-by: Shubhang Kaushik (Ampere) <sh@gentwo.org>
+Signed-off-by: Aveline Noir <jm5905938@gmail.com>
 Signed-off-by: SJ Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Reviewed-by: Aveline Noir <jm5905938@gmail.com>
-Tested-by: Aveline Noir <jm5905938@gmail.com>
 Reviewed-by: SJ Park <sj@kernel.org>
+Cc: Shubhang Kaushik (Ampere) <sh@gentwo.org>
 Cc: Fernand Sieber <sieberf@amazon.com>
 Cc: Leonard Foerster <foersleo@amazon.de>
 Cc: SeongJae Park <sjpark@amazon.de>
@@ -124,34 +118,25 @@ Cc: Jinjie Ruan <ruanjinjie@huawei.com>
 Cc: "Adrian Huang (Lenovo)" <adrianhuang0701@gmail.com>
 ---
 
- mm/damon/ops-common.c |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ mm/damon/ops-common.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
---- a/mm/damon/ops-common.c~mm-damon-ops-common-align-mmu-notifier-range-when-clearing-pte-young-bit
+--- a/mm/damon/ops-common.c~mm-damon-ops-common-align-mmu-notifier-range-when-clearing-pmd-young-bit
 +++ a/mm/damon/ops-common.c
-@@ -64,6 +64,8 @@ void damon_ptep_mkold(pte_t *pte, struct
+@@ -102,6 +102,8 @@ void damon_pmdp_mkold(pmd_t *pmd, struct
  	bool young = false;
  	unsigned long pfn;
  
-+	addr = PAGE_ALIGN_DOWN(addr);
++	addr &= HPAGE_PMD_MASK;
 +
- 	if (likely(pte_present(pteval)))
- 		pfn = pte_pfn(pteval);
+ 	if (likely(pmd_present(pmdval)))
+ 		pfn = pmd_pfn(pmdval);
  	else
-@@ -83,8 +85,7 @@ void damon_ptep_mkold(pte_t *pte, struct
- 		 * Arch implementation of ptep_test_and_clear_young() may
- 		 * require aligned @addr
- 		 */
--		young |= ptep_test_and_clear_young(vma, PAGE_ALIGN_DOWN(addr),
--				pte);
-+		young |= ptep_test_and_clear_young(vma, addr, pte);
- 	young |= mmu_notifier_clear_young(vma->vm_mm, addr, addr + PAGE_SIZE);
- 	if (young)
- 		folio_set_young(folio);
 _
 
-Patches currently in -mm which might be from sh@gentwo.org are
+Patches currently in -mm which might be from jm5905938@gmail.com are
 
-mm-damon-ops-common-align-mmu-notifier-range-when-clearing-pte-young-bit.patch
-ipc-msg-fix-msg_qbytes-truncation-in-ipc_set.patch
+mm-damon-ops-common-align-mmu-notifier-range-when-clearing-pmd-young-bit.patch
+mm-damon-stat-avoid-32-bit-overflow-in-idle-percentiles.patch
+mm-damon-pvaddr-skip-folios-already-on-the-migration-target-node.patch
 
