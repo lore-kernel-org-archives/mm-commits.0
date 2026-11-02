@@ -1,47 +1,47 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793599525;
-	b=pl5o0Jxi31edOLKMcHDgqClt0cV7KaqoLdP931EXvhpnF3TxbZs8QuOkfJ79raCNphN/
-	 f61+2paaimf2Seuri6LooNKLnrUolte9Be1qjlCnDuCjToRB8uZbOita8VF3YE31qahqq
-	 s/aC0DrZCOg6+DzaAPbbiP6NtgBkBcU7lHN6ivo/YPoi0eCxoYZyjRUmht9QTfzmagdDa
-	 IKOc1u+Mj/D9NOMNvMXKxC103ZJvkTip6axmJrpaGzyGTVx7WVnmy468g3vxyV6P0X4UA
-	 VbrL8yKEsAGIV0fqHmGzIbmWuQO8aFWFJUGX0p8uCA1nLJFbUlFXksiLtt8u5gRzNeg==
+	t=1793599527;
+	b=Dru8k0nFnV6Q1WRKc/nDaU1MdDQtIAxlCxhulFuJtAgS5xaVr67eYdo18EwgVXDZaaA9
+	 h7GaFKKtvK0DZMHG/v8a/Zz9LDfsazq6QAg7Vpnr568mYoNwu/PzbOCRIPU5fH7CTiI6x
+	 fBqJ0ca7Nxa8YE6xwf6rchb2mbBu517Fvuz1QMn80XOJFCg2vOR+WQ21YcvDFa7ljtatt
+	 soWjkZI1D6THYHtQZQDBNeyh3fxWjGZmxJfaXeaHDRXZZzhyAR53w9FOknsLkl6c1hfQR
+	 wM3H49RsgwplQ1Wi7Hd5rqUV1t8/padWV5A2VwRiXF7IdRUI3QDIQWjhk/ou2Awl5AA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793599525;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793599527;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=EvRDLIyRukuEEEKW025QyKRU5VrvvC7QXba5R4Z6tjc=;
-	b=mkTRPJJ6zN34GFlET2VbFrPFUeQwD6kLnBCNPbpOhLxOhtGupxqlywIzUm4nK6uCFXWR
-	 p8cOETPkUmkvv04aJLXci6V+1tdy5o2ll9GJwCL+UYOORKWhflsmz161BsbhO6J948mUE
-	 +6dTzd8Vm23FyWrZqGB6GbCyOisqTuwQxXAoukG31Hr7rExGzkDnz38L9X/apHwGlBQ5s
-	 HDW74v0gwBKmNnGo4PDt6aFUyvyNkb74K3/rWexZJiGPqckNCydR4cQ4F4skk3zZHX2tl
-	 c87YqE01G2t8XrVCE4svf0ESodIN9pSrW8JzDtNSEgM2V0bxtDvA3gwmmPaSmB2q+1w==
+	bh=/DN0PPCkv7CjtvFRWVaN2QaxjHjJkzLOCyEcAic/ztI=;
+	b=QLG+IbQcUH+s5IZ1TZEWvNRh3KIJb+mPWkqaTrLU6SGEeCcs97HsxiqYi+WVnXz8L2k8
+	 vXm5ZJ7DC2/0n/C8xJqtg50/TVQf/ytnFV/OSoDgcuODwP87LzRWVsk/a2YxC+R6vhTf0
+	 coPWMydDKk/bsoim/gOzIjo2yk9G1e2c4R0yaHzWQPSx0GGEFzhlEmxHpgMGiq4OO9wDW
+	 nRso2Oka2PnC6H24HAJpd395b58EwkGUClAEEV8zVTPUQvK+vg9rFvrvjA5f0//pRgziH
+	 ymUAY6DnLvz9lzNeIDzvJFz1zGNej3zwm0bECgH65Na09YWV5FRvoX8Vm74+lNTsHzQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=ztAtrkjl;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=woWRVPnk;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5ADC5606A339
-	for <mm-commits@vger.kernel.org>; Mon,  2 Nov 2026 06:05:24 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 84A58606A327
+	for <mm-commits@vger.kernel.org>; Mon,  2 Nov 2026 06:05:27 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=ztAtrkjl
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id BA3071F000C1;
-	Mon,  2 Nov 2026 06:05:24 +0000 (UTC)
+	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=woWRVPnk
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 23C631F00A02;
+	Mon,  2 Nov 2026 06:05:27 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1793599524;
-	bh=EvRDLIyRukuEEEKW025QyKRU5VrvvC7QXba5R4Z6tjc=;
+	d=linux-foundation.org; s=korg; t=1793599527;
+	bh=/DN0PPCkv7CjtvFRWVaN2QaxjHjJkzLOCyEcAic/ztI=;
 	h=Date:To:From:Subject;
-	b=ztAtrkjlhrbejyC3lVjv69xv9W8j8rzX2eaIpkTe2wB47ImYVLtr/zwxoj6gOvr+2
-	 xTLSF6vUAF0j2vJxecpgN9XNbuxdB7ZWW4QzImF+zTYjMMw4FvOfdPt4n4HSMiv3OO
-	 yEhBrpoi2FS8p2fXQC75z4v8Z1y/Li1yfWZZ+zN0=
-Date: Sun, 01 Nov 2026 22:05:24 -0800
-To: mm-commits@vger.kernel.org,richardycc@google.com,minchan@kernel.org,
-	josef@toxicpanda.com,bgeffon@google.com,senozhatsky@chromium.org,
+	b=woWRVPnk/hcE8gBGjhax4RciIjirj1AQiZE2gGI3KzK5V29H6SEp9CQuDrhTldBlB
+	 MyLDwEXsJWXdvXQ0BxFRejWc1z+UbApBsHbhFxEC8pe/b0JpCcRxxAkG2cxzdBHBHD
+	 tSSoek2ZgqKX3Gi7Y/xj2TCi3Al5QVdFYdK+yIvI=
+Date: Sun, 01 Nov 2026 22:05:26 -0800
+To: mm-commits@vger.kernel.org,senozhatsky@chromium.org,richardycc@google.com,
+	minchan@kernel.org,bgeffon@google.com,axboe@kernel.dk,josef@toxicpanda.com,
 	akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + zram-fix-quadratic-writeback-bitmap-search.patch added to mm-nonmm-unstable branch
-Message-Id: <20261102060524.BA3071F000C1@smtp.kernel.org>
+Subject: + zram-lz4-lz4hc-accept-dictionaries-of-more-than-64-kib.patch added to mm-nonmm-unstable branch
+Message-Id: <20261102060527.23C631F00A02@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -53,12 +53,12 @@ Precedence: list
 
 
 The patch titled
-     Subject: zram: fix quadratic writeback bitmap search
+     Subject: zram: lz4/lz4hc: accept dictionaries of more than 64 KiB
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     zram-fix-quadratic-writeback-bitmap-search.patch
+     zram-lz4-lz4hc-accept-dictionaries-of-more-than-64-kib.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/zram-fix-quadratic-writeback-bitmap-search.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/zram-lz4-lz4hc-accept-dictionaries-of-more-than-64-kib.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -76,97 +76,71 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Sergey Senozhatsky <senozhatsky@chromium.org>
-Subject: zram: fix quadratic writeback bitmap search
-Date: Fri, 30 Oct 2026 13:16:49 +0900
+From: Josef Bacik <josef@toxicpanda.com>
+Subject: zram: lz4/lz4hc: accept dictionaries of more than 64 KiB
+Date: Fri, 30 Oct 2026 13:16:50 +0900
 
-zram_reserve_bdev_block() always scans writeback's bitmap from offset 0,
-which results in quadratic complexity.  Introduce per-device bitmap cursor
-member that is set to next to most recently allocated bit, so next time
-the bitmap scan starts from that offset.
+LZ4_loadDict() and LZ4_loadDictHC() only use the last 64KiB of a
+dictionary and return how much they used, which the zram backends take for
+an error.  Expect that instead.
 
-Link: https://lore.kernel.org/20da9e9a5ffefd1e6875e311d3740b9f3c1061f3.1793333729.git.senozhatsky@chromium.org
+Link: https://lore.kernel.org/f2ac22a731e507e90217a5e9cf29c987ec24e2b0.1793333729.git.senozhatsky@chromium.org
+Signed-off-by: Josef Bacik <josef@toxicpanda.com>
 Signed-off-by: Sergey Senozhatsky <senozhatsky@chromium.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+Cc: Jens Axboe <axboe@kernel.dk>
 Cc: Brian Geffon <bgeffon@google.com>
 Cc: Minchan Kim <minchan@kernel.org>
 Cc: Richard Chang <richardycc@google.com>
-Cc: Josef Bacik <josef@toxicpanda.com>
 ---
 
- drivers/block/zram/zram_drv.c |   17 ++++++++++++++---
- drivers/block/zram/zram_drv.h |    1 +
- 2 files changed, 15 insertions(+), 3 deletions(-)
+ drivers/block/zram/backend_lz4.c   |    4 +++-
+ drivers/block/zram/backend_lz4hc.c |    4 +++-
+ 2 files changed, 6 insertions(+), 2 deletions(-)
 
---- a/drivers/block/zram/zram_drv.c~zram-fix-quadratic-writeback-bitmap-search
-+++ a/drivers/block/zram/zram_drv.c
-@@ -694,6 +694,7 @@ static void reset_bdev(struct zram *zram
- 	zram->disk->fops = &zram_devops;
- 	kvfree(zram->bitmap);
- 	zram->bitmap = NULL;
-+	zram->bitmap_cursor = 0;
- 	zram->nr_pages = 0;
- }
+--- a/drivers/block/zram/backend_lz4.c~zram-lz4-lz4hc-accept-dictionaries-of-more-than-64-kib
++++ a/drivers/block/zram/backend_lz4.c
+@@ -4,6 +4,7 @@
  
-@@ -786,6 +787,7 @@ static ssize_t backing_dev_store(struct
- 	zram->bdev = I_BDEV(inode);
- 	zram->backing_dev = backing_dev;
- 	zram->bitmap = bitmap;
-+	zram->bitmap_cursor = 0;
- 	zram->nr_pages = nr_pages;
+ #include <linux/kernel.h>
+ #include <linux/lz4.h>
++#include <linux/sizes.h>
+ #include <linux/vmalloc.h>
  
- 	pr_info("setup backing device %s\n", file_name);
-@@ -807,10 +809,19 @@ static unsigned long zram_reserve_bdev_b
- {
- 	unsigned long blk_idx;
+ #include "backend_lz4.h"
+@@ -39,7 +40,8 @@ static int lz4_setup_params(struct zcomp
+ 		return -ENOMEM;
  
--	blk_idx = find_next_zero_bit(zram->bitmap, zram->nr_pages, 0);
--	if (blk_idx == zram->nr_pages)
--		return INVALID_BDEV_BLOCK;
-+	/* continue after the last allocated block */
-+	blk_idx = find_next_zero_bit(zram->bitmap, zram->nr_pages,
-+				     zram->bitmap_cursor);
-+	/* wrap */
-+	if (blk_idx == zram->nr_pages) {
-+		blk_idx = find_next_zero_bit(zram->bitmap, zram->bitmap_cursor,
-+					     0);
-+		/* bitmap is full */
-+		if (blk_idx == zram->bitmap_cursor)
-+			return INVALID_BDEV_BLOCK;
-+	}
+ 	ret = LZ4_loadDict(dict_stream, params->dict, params->dict_sz);
+-	if (ret != params->dict_sz) {
++	/* Only the last 64 KiB of a dictionary are of use */
++	if (ret != min_t(size_t, params->dict_sz, SZ_64K)) {
+ 		vfree(dict_stream);
+ 		return -EINVAL;
+ 	}
+--- a/drivers/block/zram/backend_lz4hc.c~zram-lz4-lz4hc-accept-dictionaries-of-more-than-64-kib
++++ a/drivers/block/zram/backend_lz4hc.c
+@@ -4,6 +4,7 @@
  
-+	zram->bitmap_cursor = blk_idx + 1;
- 	set_bit(blk_idx, zram->bitmap);
- 	atomic64_inc(&zram->stats.bd_count);
- 	return blk_idx;
---- a/drivers/block/zram/zram_drv.h~zram-fix-quadratic-writeback-bitmap-search
-+++ a/drivers/block/zram/zram_drv.h
-@@ -152,6 +152,7 @@ struct zram {
- 	u64 bd_wb_limit;
- 	struct block_device *bdev;
- 	unsigned long *bitmap;
-+	unsigned long bitmap_cursor;
- 	unsigned long nr_pages;
- #endif
- #ifdef CONFIG_ZRAM_MEMORY_TRACKING
+ #include <linux/kernel.h>
+ #include <linux/lz4.h>
++#include <linux/sizes.h>
+ #include <linux/vmalloc.h>
+ 
+ #include "backend_lz4hc.h"
+@@ -46,7 +47,8 @@ static int lz4hc_setup_params(struct zco
+ 
+ 	LZ4_resetStreamHC(dict_stream, params->level);
+ 	ret = LZ4_loadDictHC(dict_stream, params->dict, params->dict_sz);
+-	if (ret != params->dict_sz) {
++	/* Only the last 64 KiB of a dictionary are of use */
++	if (ret != min_t(size_t, params->dict_sz, SZ_64K)) {
+ 		vfree(dict_stream);
+ 		return -EINVAL;
+ 	}
 _
 
-Patches currently in -mm which might be from senozhatsky@chromium.org are
+Patches currently in -mm which might be from josef@toxicpanda.com are
 
-zram-prefix-backends-printk-s.patch
-zram-remove-debugfs-entry-on-init-failure.patch
-zram-reset-writeback-state-in-zram_reset_device.patch
-zram-move-mark_slot_accessed-under-existing-slot-lock-sections.patch
-zram-remove-stale-warn_on-from-zram_read_page.patch
-zram-zstd-do-not-allocate-empty-c-d-dictionaries.patch
-zram-lz4hc-pre-initialize-dictionary-stream-in-setup_params.patch
-zram-lz4-use-lz4_decompress_safe_usingdict.patch
-zram-lz4hc-use-lz4_decompress_safe_usingdict.patch
-zram-zstd-do-not-use-kvzalloc-for-zstd-allocations.patch
-zram-split-zcomp-into-separate-r-w-streams.patch
-zram-introduce-shared-decompression-streams.patch
-zram-allocate-bounce-buffer-for-spanning-objects.patch
-zram-borrow-idle-decompression-streams-in-exclusive-mode.patch
-zram-use-a-singleton-compression-context-for-recompression.patch
-zram-fix-quadratic-writeback-bitmap-search.patch
+zram-lz4-lz4hc-accept-dictionaries-of-more-than-64-kib.patch
 
