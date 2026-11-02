@@ -1,51 +1,51 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793641247;
-	b=dTH2LgrBSjlTRTiKNnS8qx2AfktI970Eak0xUb9+d/pxIk2TgtZveXdfesW8KqNc+khT
-	 TxWkInzp/Gb6GSu0nC5h51Flv99DjkROJNIL53CKv5MoaQ89s+RE/lCJN2z83vwoazcPO
-	 9CJeWbVxhkjuZqaB4LzKnCJhKe1wKHm3+L30btuDajHJZdWoFLLrDAjDBrqjbmOrtsyBi
-	 mo7oMdUwizjeKV8FKfvDhXZGhytnXbTqiHHl+f6xWAkPdYhY2c8xNx4S6tFtRHML1u3IB
-	 +2Jcm1Igf95ROGq+wY3ABjmzKyeYJ8bOTF5K0AeB6en7Xv+9qx7Ycs2VaSrU0Lbi2LQ==
+	t=1793644439;
+	b=j2T0phQ9Iq0PYuB4Bn6ivwqLna9rGXGdm7KUo9HsiPsVOOaKPlleb5meFfquim0TJWzd
+	 /eXcBvTjm8Aw2uFiq99VsLCADenYrS1CkxaTouGRNnvIhlgTrc0cFEqeCL6/Hy8N/5aIQ
+	 Zt23JLo10ZhnLHIsXZ0dK3kvo6KGV2QdwOgPHQSIuw7xm+0v0Y1UV56yMKllBF6cnbkPi
+	 S0K1Iws6sDh9E3Wn254/dXdgiYyq2d2IM/VsDb8p+qtThGc5yrU4LVOwI2WfMHWM9hvXw
+	 5DYF3XT+XihEWT2Z3YRDYHhPCSbFM0gORz8C7hF5qUvegvSC172bMRBLNgbu5DAW1Ag==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793641247;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793644439;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=uZpNgPXOVoRccifJpkzYv5udRdZKTjnypRgmMAsu1/o=;
-	b=TbxNvfcTbgTA6DgBKbiqtADbyp+ktfoiCvUfnlvHKFe45oYF/melt/8uRPqKrm9EbpYX
-	 zquL2CsxF9JTLu/PDpOrIq2b+5iJQOG2MPSZ5ZBbgjECAY/CAolh9iQ3GvpOUtvyeH9vN
-	 S7sQDJ578MqSYTN33+t+CxkZSpcVUz86qN6q62MPblXiQnrcT9nYr1hUsiMz5SaifzQF8
-	 VpIYX3n4tpg/WYj92ab0PPEY2Q8+azsA12637vdN3cWBXZYhKar9ZFS2uZ+7yLP5DN4I0
-	 F6gEdXIPvBzxqH7txWCpxlJHO4whYM34ep4c2J12LkeGpGRNTxiyaKtDUUZEUorWBZw==
+	bh=IM/xb5tUXmLVH9jODB5UIgicmCbx89dAv3Rw1oq2Kg4=;
+	b=GQQ1zBKBD7MFthsJoIT/8rGL8JhP1MQ9FfLMfezhzl3jcHIWUkzBLZJZuotgmSYHxWo2
+	 5y3EFAhYCeluBn4FGSq7xMenzlRQZ+K82TdT8Z/DHXD/3I7Zc7b2vbVEps/HknWrvTQQX
+	 yP9LQOssuzYXjwb0qEqBVd2sNZ64lUHURjIkAJr21a5Ea0OWOHCKaBRWVDQfIOZGwqzfg
+	 xwNjCwvL5kmmz/I6o0Pe3hljsfKw3x7e1Ov9XZ/MM1O6T+cHSiKjTl3wv/60apPyDjr4G
+	 MkXz2LK8cADNDbTp8wbGPlYAgke0FIX393hVRvw37XJ35idqQhsaH/ag5wg3alQtpvw==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=QqJZtHgK;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b="WWYbU/0d";
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
+	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D4833606B0C9
-	for <mm-commits@vger.kernel.org>; Mon,  2 Nov 2026 17:40:46 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 01F63606A324
+	for <mm-commits@vger.kernel.org>; Mon,  2 Nov 2026 18:33:58 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=QqJZtHgK
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5C6171F00A16;
-	Mon,  2 Nov 2026 17:40:46 +0000 (UTC)
+	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=WWYbU/0d
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1F4CA1F00A16;
+	Mon,  2 Nov 2026 18:33:58 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1793641246;
-	bh=uZpNgPXOVoRccifJpkzYv5udRdZKTjnypRgmMAsu1/o=;
+	d=linux-foundation.org; s=korg; t=1793644438;
+	bh=IM/xb5tUXmLVH9jODB5UIgicmCbx89dAv3Rw1oq2Kg4=;
 	h=Date:To:From:Subject;
-	b=QqJZtHgK2aImkrR2s9pEekc4dqVaIMyJGOMOmlstYyiAKstpwh32MoKBdCGj8bY2+
-	 6uoNn4q00jbgDLZm836a62lKr+MmTCbWSNug6LkjOwUSfReSZNnlva261ZP/P6YIvQ
-	 t6vipqU/HW5siMNcURSssJq3jPH+yIiSw6wlLRRQ=
-Date: Mon, 02 Nov 2026 09:40:44 -0800
-To: mm-commits@vger.kernel.org,youngjun.park@lge.com,yosry@kernel.org,
-	vbabka@kernel.org,usama.arif@linux.dev,surenb@google.com,
-	shikemeng@huaweicloud.com,ryncsn@gmail.com,rppt@kernel.org,nphamcs@gmail.com,
-	mhocko@suse.com,ljs@kernel.org,liam@infradead.org,kasong@tencent.com,
-	hannes@cmpxchg.org,david@kernel.org,chrisl@kernel.org,
-	chengming.zhou@linux.dev,baoquan.he@linux.dev,baohua@kernel.org,
-	alex@ghiti.fr,akpm@linux-foundation.org
+	b=WWYbU/0dqpuvj5hgEKq4iNb4VivRGTQdLpqiRAozMCm1PHS5rEho66rvpQSAu9SZ5
+	 INNl9hPYfPX9waa4crmuoAfc/CtiBgEhrHXs3oe/00YB4+OIzgwiie1m4J4nGzI1yZ
+	 FGxRSUKXmzZQL0m6toWl8v+oIefEfUK6gKcE0eIs=
+Date: Mon, 02 Nov 2026 10:33:51 -0800
+To: mm-commits@vger.kernel.org,yuanchu@google.com,weixugc@google.com,
+	vbabka@kernel.org,surenb@google.com,shakeel.butt@linux.dev,ryncsn@gmail.com,
+	rppt@kernel.org,roman.gushchin@linux.dev,qi.zheng@linux.dev,
+	muchun.song@linux.dev,mhocko@suse.com,ljs@kernel.org,liam@infradead.org,
+	kasong@tencent.com,hannes@cmpxchg.org,david@kernel.org,baoquan.he@linux.dev,
+	baolin.wang@linux.alibaba.com,baohua@kernel.org,balbirs@nvidia.com,
+	axelrasmussen@google.com,tjmercier@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-bypass-swap-readahead-for-zswap.patch added to mm-new branch
-Message-Id: <20261102174046.5C6171F00A16@smtp.kernel.org>
+Subject: + mm-vmscan-remove-redundant-mem_cgroup_online-checks.patch added to mm-new branch
+Message-Id: <20261102183358.1F4CA1F00A16@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -57,12 +57,12 @@ Precedence: list
 
 
 The patch titled
-     Subject: mm: bypass swap readahead for zswap
+     Subject: mm/vmscan: remove redundant !mem_cgroup_online() checks
 has been added to the -mm mm-new branch.  Its filename is
-     mm-bypass-swap-readahead-for-zswap.patch
+     mm-vmscan-remove-redundant-mem_cgroup_online-checks.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-bypass-swap-readahead-for-zswap.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vmscan-remove-redundant-mem_cgroup_online-checks.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -91,65 +91,63 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Alexandre Ghiti <alex@ghiti.fr>
-Subject: mm: bypass swap readahead for zswap
-Date: Mon,  2 Nov 2026 15:48:22 +0100
+From: "T.J. Mercier" <tjmercier@google.com>
+Subject: mm/vmscan: remove redundant !mem_cgroup_online() checks
+Date: Tue, 27 Oct 2026 18:06:05 -0700
 
-Commit 0bcac06f27d7 ("mm, swap: skip swapcache for swapin of synchronous
-device") made SWP_SYNCHRONOUS_IO devices (e.g.  zram) skip swap readahead.
+Patch series "mm/vmscan: remove obsolete offlined memcg reclaim handling".
 
-zswap is the same kind of in-memory, synchronous backend as zram, not a
-swap device flagged SWP_SYNCHRONOUS_IO so it still goes through
-swapin_readahead().
+Since commit f1cf8d2f36dc ("mm: memcontrol: eliminate the problem of
+dying memory cgroup for LRU folios") and commit 0e0ac326c511 ("memcg:
+move LRU size accounting on reparenting instead of copying it"), LRU
+folios and their size accounting are reparented to the parent memcg
+before a memcg is offlined, leaving the offlined memcg's lruvec
+permanently empty.
 
-Here are the results from bypassing readahead for zswap too: it was
-measured with a kernel build (make -j16) in a memcg, zswap=zstd, shrinker
-off, on Sapphire Rapids and 3 iterations.
+This series removes the remaining reclaim special-casing for offlined
+memcgs that assumed they could still hold LRU folios:
+    1. Remove redundant !mem_cgroup_online() checks in vmscan.c
+    2. Stop rotating offlined memcgs to the head of the old generation
+       (MEMCG_LRU_OLD) in MGLRU.
 
-  768M memcg (sustained swap thrash):
-    metric                 mm-new    + bypass    delta
-    build time (s)          405.0       341.7    -15.6%
-    zswap-in (GB)            79.5        53.0     -33%
-    zswap-out (GB)          144.8       115.6     -20%
-    swap readahead (pages)  6.79M       0.45M     -93%
-    swap_ra hit (%)          72.1        89.9     +18pp
 
-  1G memcg (light pressure, build not memory-bound):
-    metric                 mm-new    + bypass    delta
-    build time (s)          177.7       176.0    ~same (no regression)
-    zswap-in (GB)            10.2         7.5     -26%
-    zswap-out (GB)           27.7        25.1      -9%
-    swap readahead (pages)  1.07M       0.08M     -93%
-    swap_ra hit (%)          68.6        87.2     +19pp
+This patch (of 2):
 
-Similar gains were observed on an AMD EPYC 7D13 host.
+Since commit f1cf8d2f36dc ("mm: memcontrol: eliminate the problem of
+dying memory cgroup for LRU folios") and commit 0e0ac326c511 ("memcg:
+move LRU size accounting on reparenting instead of copying it"),
+mem_cgroup_css_offline() reparents all LRU folios to the parent memcg
+and zeroes the child's lrugen->nr_pages and lru_zone_size before the
+memcg is offlined. Nothing can repopulate the offlined memcg's lruvec
+afterwards. A folio that is off the LRU during reparenting looks up its
+lruvec through its objcg, which now points to the parent so it is put
+back on the parent's LRU.
 
-All the results above use the default page-cluster=3 and
-vma_ra_enabled=true.  Setting page-cluster to 0 gives the same gain on a
-zswap-only system, but page-cluster is global: it also disables readahead
-for the asynchronous swap backends that other tenants of the same host may
-use.
+As a result, lruvec_lru_size() and lruvec_evictable_size() are always 0
+when !mem_cgroup_online(memcg) is true, making the offlined memcg special
+cases in get_scan_count(), lruvec_is_sizable(), and shrink_one() dead
+code. Remove them.
 
-The gain is from no longer prefetching pages that are pointless for an
-in-memory backend: readahead inflates anon residency and thrashes the page
-cache (file pages get evicted and re-read), lengthens each fault by
-synchronously (de)compressing a cluster of neighbours, and adds
-compression traffic when those extra pages are reclaimed.
+With the get_nr_to_scan() special case removed, an offlined memcg that
+still has stale effective protection now has
+apply_proportional_protection() applied like get_scan_count() does, so
+the MGLRU and traditional LRU behavior is now the same.
 
-Bypassing swap readahead for zswap therefore makes sense.
-
-Link: https://lore.kernel.org/20261102144835.304017-1-alex@ghiti.fr
-Signed-off-by: Alexandre Ghiti <alex@ghiti.fr>
+Link: https://lore.kernel.org/20261028010611.3929937-1-tjmercier@google.com
+Link: https://lore.kernel.org/20261028010611.3929937-2-tjmercier@google.com
+Signed-off-by: T.J. Mercier <tjmercier@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Suggested-by: Usama Arif <usama.arif@linux.dev>
+Reviewed-by: Kairui Song <kasong@tencent.com>
+Acked-by: Balbir Singh <balbirs@nvidia.com>
+Acked-by: Shakeel Butt <shakeel.butt@linux.dev>
 Reviewed-by: Barry Song <baohua@kernel.org>
-Acked-by: Yosry Ahmed <yosry@kernel.org>
-Acked-by: Nhat Pham <nphamcs@gmail.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Kemeng Shi <shikemeng@huaweicloud.com>
+Reviewed-by: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Qi Zheng <qi.zheng@linux.dev>
+Cc: Axel Rasmussen <axelrasmussen@google.com>
+Cc: Yuanchu Xie <yuanchu@google.com>
+Cc: Wei Xu <weixugc@google.com>
 Cc: Baoquan He <baoquan.he@linux.dev>
-Cc: Youngjun Park <youngjun.park@lge.com>
-Cc: Chengming Zhou <chengming.zhou@linux.dev>
+Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
 Cc: David Hildenbrand <david@kernel.org>
 Cc: Lorenzo Stoakes <ljs@kernel.org>
 Cc: Liam R. Howlett <liam@infradead.org>
@@ -157,124 +155,111 @@ Cc: Vlastimil Babka <vbabka@kernel.org>
 Cc: Mike Rapoport <rppt@kernel.org>
 Cc: Suren Baghdasaryan <surenb@google.com>
 Cc: Michal Hocko <mhocko@suse.com>
-Cc: Kairui Song <kasong@tencent.com>
-Cc: <ryncsn@gmail.com>
-Cc: <chrisl@kernel.org>
+Cc: Roman Gushchin <roman.gushchin@linux.dev>
+Cc: Muchun Song <muchun.song@linux.dev>
+Cc: Kairui Song <ryncsn@gmail.com>
 ---
 
- include/linux/zswap.h |    6 ++++++
- mm/memory.c           |    4 ++--
- mm/swap.h             |   25 +++++++++++++++++++++++++
- mm/zswap.c            |    5 ++++-
- 4 files changed, 37 insertions(+), 3 deletions(-)
+ include/linux/mmzone.h |    8 ++++----
+ mm/vmscan.c            |   28 +++++-----------------------
+ 2 files changed, 9 insertions(+), 27 deletions(-)
 
---- a/include/linux/zswap.h~mm-bypass-swap-readahead-for-zswap
-+++ a/include/linux/zswap.h
-@@ -35,6 +35,7 @@ void zswap_lruvec_state_init(struct lruv
- void zswap_folio_swapin(struct folio *folio);
- bool zswap_is_enabled(void);
- bool zswap_never_enabled(void);
-+bool zswap_is_present(swp_entry_t entry, unsigned int nr);
- #else
+--- a/include/linux/mmzone.h~mm-vmscan-remove-redundant-mem_cgroup_online-checks
++++ a/include/linux/mmzone.h
+@@ -638,10 +638,10 @@ struct lru_gen_mm_walk {
+  * The events that trigger the above operations are:
+  * 1. The first attempt to reclaim a memcg below low, which triggers
+  *    MEMCG_LRU_TAIL;
+- * 2. The first attempt to reclaim a memcg offlined or below reclaimable size
+- *    threshold, which triggers MEMCG_LRU_TAIL;
+- * 3. The second attempt to reclaim a memcg offlined or below reclaimable size
+- *    threshold, which triggers MEMCG_LRU_YOUNG;
++ * 2. The first attempt to reclaim a memcg below reclaimable size threshold,
++ *    which triggers MEMCG_LRU_TAIL;
++ * 3. The second attempt to reclaim a memcg below reclaimable size threshold,
++ *    which triggers MEMCG_LRU_YOUNG;
+  * 4. Attempting to reclaim a memcg below min, which triggers MEMCG_LRU_YOUNG;
+  * 5. Finishing the aging on the eviction path, which triggers MEMCG_LRU_YOUNG;
+  * 6. Offlining a memcg, which triggers MEMCG_LRU_OLD.
+--- a/mm/vmscan.c~mm-vmscan-remove-redundant-mem_cgroup_online-checks
++++ a/mm/vmscan.c
+@@ -2755,13 +2755,6 @@ out:
+ 		scan = apply_proportional_protection(memcg, sc, lruvec_size);
+ 		scan >>= sc->priority;
  
- struct zswap_lruvec_state {};
-@@ -73,6 +74,11 @@ static inline bool zswap_never_enabled(v
- 	return true;
+-		/*
+-		 * If the cgroup's already been deleted, make sure to
+-		 * scrape out the remaining cache.
+-		 */
+-		if (!scan && !mem_cgroup_online(memcg))
+-			scan = min(lruvec_size, SWAP_CLUSTER_MAX);
+-
+ 		switch (scan_balance) {
+ 		case SCAN_EQUAL:
+ 			/* Scan lists relative to size */
+@@ -2770,14 +2763,8 @@ out:
+ 			/*
+ 			 * Scan types proportional to swappiness and
+ 			 * their relative recent reclaim efficiency.
+-			 * Make sure we don't miss the last page on
+-			 * the offlined memory cgroups because of a
+-			 * round-off error.
+ 			 */
+-			scan = mem_cgroup_online(memcg) ?
+-			       div64_u64(scan * fraction[file], denominator) :
+-			       DIV64_U64_ROUND_UP(scan * fraction[file],
+-						  denominator);
++			scan = div64_u64(scan * fraction[file], denominator);
+ 			break;
+ 		case SCAN_FILE:
+ 		case SCAN_ANON:
+@@ -4336,12 +4323,11 @@ static bool lruvec_is_sizable(struct lru
+ {
+ 	unsigned long total;
+ 	int swappiness = get_swappiness(lruvec, sc);
+-	struct mem_cgroup *memcg = lruvec_memcg(lruvec);
+ 
+ 	total = lruvec_evictable_size(lruvec, swappiness);
+ 
+ 	/* whether the size is big enough to be helpful */
+-	return mem_cgroup_online(memcg) ? (total >> sc->priority) : total;
++	return total >> sc->priority;
  }
  
-+static inline bool zswap_is_present(swp_entry_t entry, unsigned int nr)
-+{
-+	return false;
-+}
-+
- #endif
+ static bool lruvec_is_reclaimable(struct lruvec *lruvec, struct scan_control *sc,
+@@ -5180,10 +5166,6 @@ static long get_nr_to_scan(struct lruvec
  
- #endif /* _LINUX_ZSWAP_H */
---- a/mm/memory.c~mm-bypass-swap-readahead-for-zswap
-+++ a/mm/memory.c
-@@ -5034,8 +5034,8 @@ vm_fault_t do_swap_page(struct vm_fault
- 	if (folio)
- 		swap_update_readahead(folio, vma, vmf->address);
- 	if (!folio) {
--		/* Swapin bypasses readahead for SWP_SYNCHRONOUS_IO devices */
--		if (data_race(si->flags & SWP_SYNCHRONOUS_IO))
-+		/* Swapin bypasses readahead for SWP_SYNCHRONOUS_IO devices and zswap */
-+		if (swap_entry_synchronous(si, entry))
- 			folio = swapin_sync(entry, GFP_HIGHUSER_MOVABLE,
- 					    thp_swapin_suitable_orders(vmf) | BIT(0),
- 					    vmf, NULL, 0);
---- a/mm/swap.h~mm-bypass-swap-readahead-for-zswap
-+++ a/mm/swap.h
-@@ -94,6 +94,7 @@ static inline int mem_cgroup_swappiness(
+ 	evictable = lruvec_evictable_size(lruvec, swappiness);
  
- #ifdef CONFIG_SWAP
- #include <linux/swapops.h> /* for swp_offset */
-+#include <linux/zswap.h> /* for zswap_is_present */
- #include <linux/blk_types.h> /* for bio_end_io_t */
+-	/* try to scrape all its memory if this memcg was deleted */
+-	if (!mem_cgroup_online(memcg))
+-		return evictable;
+-
+ 	nr_to_scan = apply_proportional_protection(memcg, sc, evictable);
+ 	nr_to_scan >>= sc->priority;
  
- static inline unsigned int swp_cluster_offset(swp_entry_t entry)
-@@ -336,6 +337,24 @@ struct folio *swapin_sync(swp_entry_t en
- void swap_update_readahead(struct folio *folio, struct vm_area_struct *vma,
- 			   unsigned long addr);
+@@ -5306,13 +5288,13 @@ static int shrink_one(struct lruvec *lru
  
-+/**
-+ * swap_entry_synchronous - check if @entry is read synchronously
-+ * @si: the swap device of @entry
-+ * @entry: the swap entry
-+ *
-+ * SWP_SYNCHRONOUS_IO devices and zswap complete a read in the faulting
-+ * context, so swap readahead has no asynchronous I/O to overlap.
-+ *
-+ * Context: The caller must hold a reference on @si. The answer is a hint: the
-+ * entry can be written back from zswap or freed concurrently.
-+ */
-+static inline bool swap_entry_synchronous(struct swap_info_struct *si,
-+					  swp_entry_t entry)
-+{
-+	return data_race(si->flags & SWP_SYNCHRONOUS_IO) ||
-+	       zswap_is_present(entry, 1);
-+}
-+
- #else /* CONFIG_SWAP */
+ 	flush_reclaim_state(sc);
  
- static inline struct swap_cluster_info *swap_cluster_get_and_lock(
-@@ -423,6 +442,12 @@ static inline void swap_update_readahead
- {
+-	if (need_rotate && mem_cgroup_online(memcg))
++	if (need_rotate)
+ 		return MEMCG_LRU_YOUNG;
+ 
+-	if (!need_rotate && lruvec_is_sizable(lruvec, sc))
++	if (lruvec_is_sizable(lruvec, sc))
+ 		return 0;
+ 
+-	/* one retry if offlined or too small */
++	/* one retry if too small */
+ 	return READ_ONCE(lruvec->lrugen.seg) != MEMCG_LRU_TAIL ?
+ 	       MEMCG_LRU_TAIL : MEMCG_LRU_YOUNG;
  }
- 
-+static inline bool swap_entry_synchronous(struct swap_info_struct *si,
-+					  swp_entry_t entry)
-+{
-+	return false;
-+}
-+
- static inline int swap_writeout(struct swap_io_ctx *ctx, struct folio *folio)
- {
- 	return 0;
---- a/mm/zswap.c~mm-bypass-swap-readahead-for-zswap
-+++ a/mm/zswap.c
-@@ -1695,12 +1695,15 @@ check_old:
-  * change under it.
-  * Return: true if at least one slot in the range is in zswap.
-  */
--static bool zswap_is_present(swp_entry_t entry, unsigned int nr)
-+bool zswap_is_present(swp_entry_t entry, unsigned int nr)
- {
- 	pgoff_t offset = swp_offset(entry);
- 	struct xarray *tree = swap_zswap_tree(entry);
- 	unsigned long index = offset;
- 
-+	if (zswap_never_enabled() || xa_empty(tree))
-+		return false;
-+
- 	/*
- 	 * A pinned range is at most SWAPFILE_CLUSTER slots and is aligned to
- 	 * its own size, so one tree covers all of it and a single lookup is
 _
 
-Patches currently in -mm which might be from alex@ghiti.fr are
+Patches currently in -mm which might be from tjmercier@google.com are
 
-mm-zswap-batch-the-writeback-io-of-consecutive-entries.patch
-mm-zswap-plug-the-writeback-io-of-an-lru-walk.patch
-mm-bypass-swap-readahead-for-zswap.patch
+mm-memcontrol-fix-null-pointer-deref-and-uaf-from-high_work_func-on-dying-memcg.patch
+mm-vmscan-remove-redundant-mem_cgroup_online-checks.patch
+mm-mglru-stop-rotating-offlined-memcgs-to-the-old-generation.patch
 
