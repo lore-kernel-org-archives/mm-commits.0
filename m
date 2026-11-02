@@ -1,48 +1,48 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793640266;
-	b=i4OfkeHrNZGZbCvcAI3VXaKSeQJ8IAN4TIVFBW0lMRQWCiyiZNgKfpsKTRrRpjT4vZth
-	 9nCh0UsiLKbnPCxiXKsXIQev+48gRQtCgeHRxUyBr7y5ag5MK63p1aK+fuoKZ1Pg1XwTV
-	 WNvslfnsL46cuUfBVp1ZIOvdFioSY9yR4wgiLc/r+rKoXTS/n2R/1I100ZNPwkerBZyVc
-	 U5xpB26pGjW2ZaAGSXQqwJPFeiG5TlrbCx81HLgAUDzR0dnKQa7C8GxsGz7OvjJcuOXqU
-	 WGR6tQQhZxE64ckVpHt1+E9vE99YWRE9pW5U4eoE4MuNo1aDtverUV9l19HZDkEQ0Pw==
+	t=1793640268;
+	b=vl1O2ySbht3+5zffR5ncJEnVKCM7hBRGupXyP/6gRU0rC/i6FGPq7atSCQU4vv+LJ/9+
+	 zGVpCD3OVwKKp4g5XjGBrfNvqCnBWrpYxwfelgwFFXP9aXf/Z4PhWTNpLNiekS6cGtiyQ
+	 Y5SJhHZ7cIpx+tNFz4/sXYudb/+Gls2beXi6fuB4pBTXU/eOZBCoWAWpo3/6yL5qAvAlS
+	 Y/Gp1WJg/8i31xKUshlG2PIaRbprSbqOnGtWjPKzD/jdETgb3qrUB73A1sNaQDsB9VS/t
+	 J6/U8pfpECwvt16aw/sPkK7GCQBSkKO/lleFt8oha6MrDtx2ZVv9v3KQvBty9uv5zcg==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793640266;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793640268;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=Sd3dzq3mnppggMcQwv4IxmzTiMQsn1X+F2e0bjo5/W0=;
-	b=FRcIpAM3sFXZo0Ck8jEkjGc+Y6UFG0PAT//jelRsDnzH4NHPcjoge/micfTJOqKAjpYR
-	 6lRXZAqpQ7IsRYyOr02EZDOuAC1Bo+808lk3Oep/sYSoPdAY6akBbjbvysqNNAldDdAHx
-	 HXdcDeUpLDGHv8kio/aKa86gmPuru4r8MbhYn4Br+pV/63RjZ+99uY68+DFzm1Gx5jenz
-	 v5KTSgml5IR8jojJ7SAaePQMtnQJTUjMice1SKezKd/D0Fs27HfRQndUstvaJjS5Q70nk
-	 7fgxHdQeZZVn0Wlvm/dUw5s6hyLanh+aqhLOP/GhnL5YlLDcodt2krsevpDlo0DZSog==
+	bh=vGZDTFv9imuoh2FAgZMoqDe1n1dfImv5a+FLkKO3cVo=;
+	b=xKCYMmgB/o6mz9uFXntXTbnzvtSm7Y1igObOeyd7CkdEJpbuKodWqQt1PqKiSMDsC3gj
+	 zHXbUEPU5C2B+YYHy97Es0s/BxwIgx9kgUuceKDqbu0kF/Qvcev1TZ2IXFNB4WnFsHy+g
+	 zDovcqLNww5WZAgyzW3JtjwQOr1CZG3TdhKcXG5DOrjUm8pqCdGI5rjMv9fQ9xVzMcgvU
+	 vEPqIw4a3iYNRrB0zbzYDsVrk8CTsSsdoHr4jSPBI+4qbhSgkUTY97mcFDC0DgFvSuZLl
+	 /IdWkNbM/x5rhpe6MegqAL+9cfQMbqafzkSQZ+ZzpOdNjhXnESYXGcAoQVvs5QuAJag==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=xh7o1zWE;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=LxxUlFYY;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8A62B606B92E
-	for <mm-commits@vger.kernel.org>; Mon,  2 Nov 2026 17:24:26 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3B53F606B922
+	for <mm-commits@vger.kernel.org>; Mon,  2 Nov 2026 17:24:28 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=xh7o1zWE
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0C9B21F00A28;
-	Mon,  2 Nov 2026 17:24:26 +0000 (UTC)
+	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=LxxUlFYY
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 051391F00A16;
+	Mon,  2 Nov 2026 17:24:27 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1793640266;
-	bh=Sd3dzq3mnppggMcQwv4IxmzTiMQsn1X+F2e0bjo5/W0=;
+	d=linux-foundation.org; s=korg; t=1793640268;
+	bh=vGZDTFv9imuoh2FAgZMoqDe1n1dfImv5a+FLkKO3cVo=;
 	h=Date:To:From:Subject;
-	b=xh7o1zWEG/na3PwgX0l36fbxVQvEpuvQA+8tmQHjtdvgQsJZSDpFhEGALZ+NjVv3V
-	 yOJmZgHo4sutmEf9qT55RRaDh3XLfocn5R9sdgf1r1lYWDA1EM3eXsVLBAECMa68rx
-	 9xEdEWAzu24BBAS2sJKn1hG74/a+i0EsCd/INx60=
-Date: Mon, 02 Nov 2026 09:24:25 -0800
+	b=LxxUlFYYV/+A2cmchWm/RVNnOBxCE5GsRcxg8xxinP7iB6d3IMN9SWCJytyc/Q9nl
+	 GX46oCA+yr+yFktgF+EDa5OvVeiogpOFoKdSG19qWUj1O9xloR9wqaPOGZQE9VCbs8
+	 yOC4ZWJWj+ISCGw80MZDUpn/6LsNlzwIWvYS+ZtI=
+Date: Mon, 02 Nov 2026 09:24:27 -0800
 To: mm-commits@vger.kernel.org,sj@kernel.org,sh@gentwo.org,
 	ruanjinjie@huawei.com,manuelebnerli@mailbox.org,lienze@kylinos.cn,
-	jaeyeon.lee.dev@gmail.com,adrianhuang0701@gmail.com,jm5905938@gmail.com,
-	akpm@linux-foundation.org
+	jaeyeon.lee.dev@gmail.com,bijan311@gmail.com,adrianhuang0701@gmail.com,
+	jm5905938@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-damon-stat-avoid-32-bit-overflow-in-idle-percentiles.patch added to mm-new branch
-Message-Id: <20261102172426.0C9B21F00A28@smtp.kernel.org>
+Subject: + mm-damon-pvaddr-skip-folios-already-on-the-migration-target-node.patch added to mm-new branch
+Message-Id: <20261102172428.051391F00A16@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -54,12 +54,12 @@ Precedence: list
 
 
 The patch titled
-     Subject: mm/damon/stat: avoid 32-bit overflow in idle percentiles
+     Subject: mm/damon/{p,v}addr: skip folios already on the migration target node
 has been added to the -mm mm-new branch.  Its filename is
-     mm-damon-stat-avoid-32-bit-overflow-in-idle-percentiles.patch
+     mm-damon-pvaddr-skip-folios-already-on-the-migration-target-node.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-stat-avoid-32-bit-overflow-in-idle-percentiles.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-pvaddr-skip-folios-already-on-the-migration-target-node.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -89,26 +89,27 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Aveline Noir <jm5905938@gmail.com>
-Subject: mm/damon/stat: avoid 32-bit overflow in idle percentiles
-Date: Mon, 02 Nov 2026 07:07:51 -0800
+Subject: mm/damon/{p,v}addr: skip folios already on the migration target node
+Date: Mon, 02 Nov 2026 07:07:52 -0800
 
-On 32-bit, accounted_bytes * 100 can wrap before division by total_sz.
-Some entries in memory_idle_ms_percentiles then keep their old values
-instead of being updated.
+While measuring DAMOS migration overhead, I found that the target_nid
+path isolates folios already on the target node, then puts them back on
+the LRU without migrating them.
 
-For example, a 256 MiB i386 QEMU guest reported p0=19200 ms, but p50 and
-p100 were both zero.  The issue was also shared with another mail [1].
+Skip them before isolation in vaddr and paddr, as the vaddr explicit
+destinations path already does.
 
-Cast accounted_bytes to u64 before multiplying and use div64_ul() for
-the division. Compute the percentage once per region.
+In a synthetic same-node fvaddr test on a two-node x86-64 KVM guest (8
+interleaved runs per kernel), guest-kernel cycles fell by about 29% with
+4 KiB regions and 90% with 16 MiB regions. Median kdamond CPU time fell
+by about 76% with 16 MiB regions, with no clear change with 4 KiB
+regions.
 
-Link: https://lore.kernel.org/20261102150757.93058-5-sj@kernel.org
-Link: https://lore.kernel.org/r/CANOyQmHad1vamnZT12M5yPrJ69==Pt1U0+MGw6u0MuNtr-DRCw@mail.gmail.com [1]
-Link: https://lore.kernel.org/179207592479.3.11595453180868898703@gmail.com
+Link: https://lore.kernel.org/20261102150757.93058-6-sj@kernel.org
 Signed-off-by: Aveline Noir <jm5905938@gmail.com>
 Signed-off-by: SJ Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Reviewed-by: SJ Park <sj@kernel.org>
+Cc: Bijan Tabatabai <bijan311@gmail.com>
 Cc: Manuel Ebner <manuelebnerli@mailbox.org>
 Cc: Enze Li <lienze@kylinos.cn>
 Cc: Jaeyeon Lee <jaeyeon.lee.dev@gmail.com>
@@ -117,30 +118,93 @@ Cc: "Adrian Huang (Lenovo)" <adrianhuang0701@gmail.com>
 Cc: "Shubhang Kaushik (Ampere)" <sh@gentwo.org>
 ---
 
- mm/damon/stat.c |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ mm/damon/paddr.c |    2 ++
+ mm/damon/vaddr.c |   18 ++++++++++--------
+ 2 files changed, 12 insertions(+), 8 deletions(-)
 
---- a/mm/damon/stat.c~mm-damon-stat-avoid-32-bit-overflow-in-idle-percentiles
-+++ a/mm/damon/stat.c
-@@ -114,7 +114,7 @@ static void damon_stat_set_idletime_perc
- {
- 	struct damon_region **sorted_regions, *region;
- 	int nr_regions;
--	unsigned long total_sz, accounted_bytes = 0;
-+	unsigned long total_sz, accounted_bytes = 0, percentile;
- 	int err, i, next_percentile = 0;
+--- a/mm/damon/paddr.c~mm-damon-pvaddr-skip-folios-already-on-the-migration-target-node
++++ a/mm/damon/paddr.c
+@@ -368,6 +368,8 @@ static unsigned long damon_pa_migrate(st
+ 		else
+ 			*sz_filter_passed += folio_size(folio) / addr_unit;
  
- 	err = damon_stat_sort_regions(c, &sorted_regions, &nr_regions,
-@@ -124,7 +124,8 @@ static void damon_stat_set_idletime_perc
- 	for (i = 0; i < nr_regions; i++) {
- 		region = sorted_regions[i];
- 		accounted_bytes += region->ar.end - region->ar.start;
--		while (next_percentile <= accounted_bytes * 100 / total_sz)
-+		percentile = div64_ul((u64)accounted_bytes * 100, total_sz);
-+		while (next_percentile <= percentile)
- 			memory_idle_ms_percentiles[next_percentile++] =
- 				damon_stat_idletime(region) *
- 				(long)c->attrs.aggr_interval / USEC_PER_MSEC;
++		if (folio_nid(folio) == s->target_nid)
++			goto put_folio;
+ 		if (!folio_isolate_lru(folio))
+ 			goto put_folio;
+ 		node_stat_add_folio(folio, NR_ISOLATED_ANON +
+--- a/mm/damon/vaddr.c~mm-damon-pvaddr-skip-folios-already-on-the-migration-target-node
++++ a/mm/damon/vaddr.c
+@@ -786,14 +786,15 @@ struct damos_va_migrate_private {
+  */
+ static void damos_va_migrate_dests_add(struct folio *folio,
+ 		struct vm_area_struct *vma, unsigned long addr,
+-		struct damos_migrate_dests *dests,
++		struct damos *s,
+ 		struct list_head *migration_lists)
+ {
++	struct damos_migrate_dests *dests = &s->migrate_dests;
+ 	pgoff_t ilx;
+ 	int order;
+ 	unsigned int target;
+ 	unsigned int weight_total = 0;
+-	int i;
++	int i, nid;
+ 
+ 	/*
+ 	 * If dests is empty, there is only one migration list corresponding
+@@ -801,7 +802,8 @@ static void damos_va_migrate_dests_add(s
+ 	 */
+ 	if (!dests->nr_dests) {
+ 		i = 0;
+-		goto isolate;
++		nid = s->target_nid;
++		goto check_nid;
+ 	}
+ 
+ 	order = folio_order(folio);
+@@ -821,12 +823,13 @@ static void damos_va_migrate_dests_add(s
+ 			break;
+ 		target -= dests->weight_arr[i];
+ 	}
++	nid = dests->node_id_arr[i];
+ 
++check_nid:
+ 	/* If the folio is already in the right node, don't do anything */
+-	if (folio_nid(folio) == dests->node_id_arr[i])
++	if (folio_nid(folio) == nid)
+ 		return;
+ 
+-isolate:
+ 	if (!folio_isolate_lru(folio))
+ 		return;
+ 	node_stat_add_folio(folio, NR_ISOLATED_ANON +
+@@ -840,7 +843,6 @@ static int damos_va_migrate_pmd_entry(pm
+ 	struct damos_va_migrate_private *priv = walk->private;
+ 	struct list_head *migration_lists = priv->migration_lists;
+ 	struct damos *s = priv->scheme;
+-	struct damos_migrate_dests *dests = &s->migrate_dests;
+ 	struct folio *folio;
+ 	spinlock_t *ptl;
+ 	pte_t *start_pte, *pte, ptent;
+@@ -858,7 +860,7 @@ static int damos_va_migrate_pmd_entry(pm
+ 			goto huge_out;
+ 		if (damos_va_filter_out(s, folio, walk->vma, addr, NULL, pmd))
+ 			goto huge_out;
+-		damos_va_migrate_dests_add(folio, walk->vma, addr, dests,
++		damos_va_migrate_dests_add(folio, walk->vma, addr, s,
+ 				migration_lists);
+ huge_out:
+ 		spin_unlock(ptl);
+@@ -883,7 +885,7 @@ huge_out:
+ 			continue;
+ 		if (damos_va_filter_out(s, folio, walk->vma, addr, pte, NULL))
+ 			continue;
+-		damos_va_migrate_dests_add(folio, walk->vma, addr, dests,
++		damos_va_migrate_dests_add(folio, walk->vma, addr, s,
+ 				migration_lists);
+ 		page_idx = folio_page_idx(folio, pte_page(ptent));
+ 		nr = folio_nr_pages(folio) - page_idx;
 _
 
 Patches currently in -mm which might be from jm5905938@gmail.com are
