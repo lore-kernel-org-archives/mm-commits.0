@@ -1,49 +1,47 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793640277;
-	b=DfEfOklVJHgUwV2oeSjYYxID52368T7JJnBcKEIgH5MDwcJOlA1idu9BhX+Ou1LtEGN4
-	 vykFVE8mO6SwHf4DvyBRw6PxLrduInQ/soOadVpiP0m21c1EK9v62TBWdILejIVSvalPn
-	 SsU7YCvXumXh2tHR1apRKKHvREqnNmAp31Gbcbu01bxX+J7dh0y6OAVu5Rxab/AiO4DYr
-	 pXcKHQqTkuLbpXJREDUuJOv9Ri+yMA/c+8PCrs3c9ZVivk5eyoajdyUXsEMqDjda7RrAA
-	 ocB/gCpN2yBx9XoBI5IcBmG0e12aiqo+mgshCxyAjM86ZMTH4aI3He4shDHcgWYhcdA==
+	t=1793640345;
+	b=hVUfHhbnAgdsto/7POID+sYRhuthf0pMpR6NCGB/P7BjY+tpK9owFmeYFG3OqGMY2hHQ
+	 v+82Y9CtFj7MgbpOl350druCJ85cwRKChPPWjmTkvoM7bf1UIxZJQlF6M74grkYtWW1k4
+	 /eTeQXBpDSN8tN7ey2RS9laxscjVhMxi06QJuliDkc3ldJhV0rnWaASQXlE0/ceXJNNRf
+	 4iYtO8ODG8OSj+bzkOcE1owCJgnk34aS/DKJNBgNC9+YlXFdTBR1wEt+8RIeGwSdFaHJi
+	 gaT8OHJu7H5Hn4Jdb9ydZeT5oE3f072F++BcwAK19gZJt1Hebemtl78sU7vQlVZJ4JA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793640277;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793640345;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=01bCdiH3Hv8nhTVsDqtnHLwlifpBorAZWX9/XA4ahG8=;
-	b=kZpPvQws4zNI6JUL69JiLZJT/RV8OYhgqvUaN6wEkyVhxU/2C76hIRBoCXQVMe39oHc9
-	 bIvNgBqh+UJyCG1eJmmDtCnU4vvhZM07+HrDu/6CnvWBWa+KGLc6EipvkMdLjVhhG+dg3
-	 b/M8ivYrhmduQ735CbMJ9z1GebLumVh7cYdIkeMi3Gi/Vug/Ur4wuIexcbvNXh+Us1nDI
-	 3n3OGTj0PP2zfynjp6/8ncBZKICbnNntsHiRIk74n9GAVbaadhSrSsTH1pnK4jFzV/fyB
-	 idGYsythEOC86YnIfkhqHJGcjAemgdIaQ+14eBRJ6jIhF25FNsRekBk1My2/v/yIa3Q==
+	bh=7IDwUVs1CFTq6bF7VSijwKTlaTD6XaNkfkGwbRy2IW4=;
+	b=Su4f1s5IZH/JYXSyAgn/Zfxs2+s2s0KW7AVRBU9Qs5f/plo4TX/l9bn7VO1xqzjoluHq
+	 p5bMQcQQQ31idiSZSesnBlQxYn8smKEya6XNnaI3kehOMQ1uNdOvU3SB84g6wqnhK4gbK
+	 i96JoTM31YGVHQkfzcMDDR9WiYFszUXGy8eRCjxbAM1iPjAAuqXsTa2I5xttc/PUcfn0o
+	 wyCjCqVhp8RrBjAaiXYdCTsD0dEYYikiZEAHcf1TTKlePg3lW663KPrgYOy8AHC6rc6VQ
+	 xV/nvCTCcNz80npDl0ZrAPz3+5sqEYZg1P0rMpCC5jllgG0H4E8/anZIOP2uFqRKg/w==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=IveF1qko;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=QcINnQAg;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B32F2606B922
-	for <mm-commits@vger.kernel.org>; Mon,  2 Nov 2026 17:24:36 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EF256606A329
+	for <mm-commits@vger.kernel.org>; Mon,  2 Nov 2026 17:25:44 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=IveF1qko
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 248491F00A16;
-	Mon,  2 Nov 2026 17:24:36 +0000 (UTC)
+	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=QcINnQAg
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B9DFE1F00A17;
+	Mon,  2 Nov 2026 17:25:44 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1793640276;
-	bh=01bCdiH3Hv8nhTVsDqtnHLwlifpBorAZWX9/XA4ahG8=;
+	d=linux-foundation.org; s=korg; t=1793640344;
+	bh=7IDwUVs1CFTq6bF7VSijwKTlaTD6XaNkfkGwbRy2IW4=;
 	h=Date:To:From:Subject;
-	b=IveF1qko3dKJ+yVma6C+1NTyX/r3xS7fVImZ84/BLMJQF3VKR4xwIEkuhHGuDWbOo
-	 qdBkAYP1KmFtbuo1KoEyX80ZeG8e5lX6YXFSdgzsolQLXAHytHfmSDxvb+c+CaHLEJ
-	 VA2NJ1gCKtV9a5r2kbQpX3XFPzVT5JN9TB+GUzd0=
-Date: Mon, 02 Nov 2026 09:24:35 -0800
+	b=QcINnQAgNpUtzhZ1YsHDZZxqTffYbXjGTGjWfTvk4wNll6EUShM+YAtFGXLzWPr0I
+	 P3EVZ7EOo4ZlrzaCmWFetgH7q9amsKPnhO9spMh4uFxxuqCcL5P+aRtmOjF1VvYTEv
+	 UMWpSBiUo1hdRebgLyRvePjG/NJuNVJo+RrXnKjo=
+Date: Mon, 02 Nov 2026 09:25:38 -0800
 To: mm-commits@vger.kernel.org,skhan@linuxfoundation.org,sj@kernel.org,
-	sh@gentwo.org,rdunlap@infradead.org,manuelebnerli@mailbox.org,
-	lienze@kylinos.cn,jm5905938@gmail.com,jaeyeon.lee.dev@gmail.com,
-	corbet@lwn.net,adrianhuang0701@gmail.com,ruanjinjie@huawei.com,
+	rdunlap@infradead.org,corbet@lwn.net,adrianhuang0701@gmail.com,
 	akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + docs-admin-guide-mm-damon-reclaim-document-how-to-disable-watermarks.patch added to mm-new branch
-Message-Id: <20261102172436.248491F00A16@smtp.kernel.org>
+Subject: + docs-admin-guide-mm-damon-fix-various-typos.patch added to mm-new branch
+Message-Id: <20261102172544.B9DFE1F00A17@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -55,12 +53,12 @@ Precedence: list
 
 
 The patch titled
-     Subject: Docs/admin-guide/mm/damon/reclaim: document how to disable watermarks
+     Subject: Docs/admin-guide/mm/damon: fix various typos
 has been added to the -mm mm-new branch.  Its filename is
-     docs-admin-guide-mm-damon-reclaim-document-how-to-disable-watermarks.patch
+     docs-admin-guide-mm-damon-fix-various-typos.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/docs-admin-guide-mm-damon-reclaim-document-how-to-disable-watermarks.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/docs-admin-guide-mm-damon-fix-various-typos.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -89,52 +87,117 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Jinjie Ruan <ruanjinjie@huawei.com>
-Subject: Docs/admin-guide/mm/damon/reclaim: document how to disable watermarks
-Date: Mon, 02 Nov 2026 07:07:56 -0800
+From: "Adrian Huang (Lenovo)" <adrianhuang0701@gmail.com>
+Subject: Docs/admin-guide/mm/damon: fix various typos
+Date: Mon, 02 Nov 2026 07:28:45 -0800
 
-DAMON_RECLAIM runs its scheme only while the free memory rate is
-between `wmarks_low` and `wmarks_mid`.
+Patch series "Docs/admin-guide/mm/damon: minor fixes", v2.
 
-But some users want to reclaim cold pages even while the system has
-plenty of free memory, and it is not obvious that the existing
-watermarks parameters can already do that. So Document the setup.
+Docs/admin-guide/mm/damon: minor fixes
 
-Link: https://lore.kernel.org/20261102150757.93058-10-sj@kernel.org
-Signed-off-by: Jinjie Ruan <ruanjinjie@huawei.com>
+This small patch series fixes various typos, copy-paste mistakes, and an
+incorrect command syntax in the DAMON documentation files.
+
+
+This patch (of 3):
+
+Fix several spelling mistakes found while reading the DAMON
+documentation:
+  * trusworthy -> trustworthy
+  * DAMON_RCLAIM -> DAMON_RECLAIM
+  * charget -> charge
+  * hetmap -> heatmap
+  * colun -> column
+  * evelenth -> eleventh
+  * idlee -> idle
+
+Link: https://lore.kernel.org/20261102152849.96057-1-sj@kernel.org
+Link: https://lore.kernel.org/20261102152849.96057-2-sj@kernel.org
+Signed-off-by: Adrian Huang (Lenovo) <adrianhuang0701@gmail.com>
 Signed-off-by: SJ Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 Reviewed-by: SJ Park <sj@kernel.org>
 Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Randy Dunlap <rdunlap@infradead.org>
 Cc: Shuah Khan <skhan@linuxfoundation.org>
-Cc: Manuel Ebner <manuelebnerli@mailbox.org>
-Cc: Enze Li <lienze@kylinos.cn>
-Cc: Aveline Noir <jm5905938@gmail.com>
-Cc: Jaeyeon Lee <jaeyeon.lee.dev@gmail.com>
-Cc: "Adrian Huang (Lenovo)" <adrianhuang0701@gmail.com>
-Cc: "Shubhang Kaushik (Ampere)" <sh@gentwo.org>
+Cc: Randy Dunlap <rdunlap@infradead.org>
 ---
 
- Documentation/admin-guide/mm/damon/reclaim.rst |    4 ++++
- 1 file changed, 4 insertions(+)
+ Documentation/admin-guide/mm/damon/lru_sort.rst |    2 +-
+ Documentation/admin-guide/mm/damon/reclaim.rst  |    4 ++--
+ Documentation/admin-guide/mm/damon/start.rst    |    6 +++---
+ Documentation/admin-guide/mm/damon/stat.rst     |    2 +-
+ 4 files changed, 7 insertions(+), 7 deletions(-)
 
---- a/Documentation/admin-guide/mm/damon/reclaim.rst~docs-admin-guide-mm-damon-reclaim-document-how-to-disable-watermarks
+--- a/Documentation/admin-guide/mm/damon/lru_sort.rst~docs-admin-guide-mm-damon-fix-various-typos
++++ a/Documentation/admin-guide/mm/damon/lru_sort.rst
+@@ -7,7 +7,7 @@ DAMON-based LRU-lists Sorting
+ DAMON-based LRU-lists Sorting (DAMON_LRU_SORT) is a static kernel module that
+ aims to be used for proactive and lightweight data access pattern based
+ (de)prioritization of pages on their LRU-lists for making LRU-lists a more
+-trusworthy data access pattern source.
++trustworthy data access pattern source.
+ 
+ Where Proactive LRU-lists Sorting is Required?
+ ==============================================
+--- a/Documentation/admin-guide/mm/damon/reclaim.rst~docs-admin-guide-mm-damon-fix-various-typos
 +++ a/Documentation/admin-guide/mm/damon/reclaim.rst
-@@ -193,6 +193,10 @@ DAMON_RECLAIM becomes inactive, so it do
- watermarks.  In the case, the system falls back to the LRU-list based page
- granularity reclamation logic.
+@@ -55,7 +55,7 @@ enabled
  
-+To keep DAMON_RECLAIM always active regardless of the free memory rate, set
-+``wmarks_high``, ``wmarks_mid`` and ``wmarks_low`` to ``1000``, ``1000`` and
-+``0``, respectively.
-+
- sample_interval
- ---------------
+ Enable or disable DAMON_RECLAIM.
  
+-You can enable DAMON_RCLAIM by setting the value of this parameter as ``Y``.
++You can enable DAMON_RECLAIM by setting the value of this parameter as ``Y``.
+ Setting it as ``N`` disables DAMON_RECLAIM.  Note that DAMON_RECLAIM could do
+ no real monitoring and reclamation due to the watermarks-based activation
+ condition.  Refer to below descriptions for the watermarks parameter for this.
+@@ -125,7 +125,7 @@ quota_reset_interval_ms
+ 
+ The time/size quota charge reset interval in milliseconds.
+ 
+-The charget reset interval for the quota of time (quota_ms) and size
++The charge reset interval for the quota of time (quota_ms) and size
+ (quota_sz).  That is, DAMON_RECLAIM does not try reclamation for more than
+ quota_ms milliseconds or quota_sz bytes within quota_reset_interval_ms
+ milliseconds.
+--- a/Documentation/admin-guide/mm/damon/start.rst~docs-admin-guide-mm-damon-fix-various-typos
++++ a/Documentation/admin-guide/mm/damon/start.rst
+@@ -69,16 +69,16 @@ monitored access pattern of the process
+ human readable format.
+ 
+ The first line of the output shows the relative access temperature (hotness) of
+-the regions in a single row hetmap format.  Each column on the heatmap
++the regions in a single row heatmap format.  Each column on the heatmap
+ represents regions of same size on the monitored virtual address space.  The
+-position of the colun on the row and the number on the column represents the
++position of the column on the row and the number on the column represents the
+ relative location and access temperature of the region.  ``[...]`` means
+ unmapped huge regions on the virtual address spaces.  The second line shows
+ additional information for better understanding the heatmap.
+ 
+ Each line of the output from the third line shows which virtual address range
+ (``addr XX size XX``) of the process is how frequently (``access XX %``)
+-accessed for how long time (``age XX``).  For example, the evelenth region of
++accessed for how long time (``age XX``).  For example, the eleventh region of
+ ~9.5 MiB size is being most frequently accessed for last 3.7 seconds.  Finally,
+ the fourth command stops DAMON.
+ 
+--- a/Documentation/admin-guide/mm/damon/stat.rst~docs-admin-guide-mm-damon-fix-various-typos
++++ a/Documentation/admin-guide/mm/damon/stat.rst
+@@ -81,7 +81,7 @@ Per-byte idle time (milliseconds) percen
+ DAMON_STAT calculates how long each byte of the memory was not accessed until
+ now (idle time), based on the current DAMON results snapshot.  For regions
+ having access frequency (nr_accesses) larger than zero, how long the current
+-access frequency level was kept multiplied by ``-1`` becomes the idlee time of
++access frequency level was kept multiplied by ``-1`` becomes the idle time of
+ every byte of the region.  If a region has zero access frequency (nr_accesses),
+ how long the region was keeping the zero access frequency (age) becomes the
+ idle time of every byte of the region.  Then, DAMON_STAT exposes the
 _
 
-Patches currently in -mm which might be from ruanjinjie@huawei.com are
+Patches currently in -mm which might be from adrianhuang0701@gmail.com are
 
-docs-admin-guide-mm-damon-reclaim-document-how-to-disable-watermarks.patch
+mm-damon-core-remove-unnecessary-zero-initialization-in-damon_new_ctx.patch
+docs-admin-guide-mm-damon-fix-various-typos.patch
+docs-admin-guide-mm-damon-lru_sort-fix-copy-paste-mistakes.patch
+docs-admin-guide-mm-damon-usage-fix-incorrect-option-syntax-in-perf-example.patch
 
