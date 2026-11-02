@@ -1,48 +1,48 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793657418;
-	b=omWEmPoxQ5HCn16PsJ6/uPJ12oHHaAXKTnAS79KRbKDIy0eA62h8Q5GO1ykugZuazB6v
-	 MjPW61CG+Ca2HbqVrEHSt2wrEY0ySd/QiBLSRz4IKMuXjoiwrNKmwRs1Ek8lTA5lcJc/t
-	 3Q4MW5FT8h50qHvFbTuuCxKzCNfYDD8HKQHzFLBl/ldWTE08kmxBxI8gNgNrE7P2oSz+5
-	 QahsA5V+ZRJUWrY84XHJFwIArCZrpYBH2Eq5SC/68MtrVWknyu/EEkT94Jtdy33nn8Bvh
-	 k5ES/CwQsdvyfDUp4JukDTY06NjelIFghykneCk/gT2vHymVs7xLp5bliCDs+DYTQiQ==
+	t=1793657467;
+	b=sBuYayQbVPkNKTx/FVrtJZ6PsAzdwjwe1vdicDVSpsu2Y3C3vXNwjfzPC5wzccLy3ooM
+	 qkLNfn3zGu8sSyhrc0haOXNTpFCE3FnixFtLWVrBQK/SKFDAYqx4ChBGaTIVwr6OMEnMu
+	 WDte44dOzSM8usBuSfV4wx5AkN1ciBHG9ly3pGpSrqPL6p7hMR6p6JZbY01uiMSU0+Dop
+	 pBdXxo9bwacj/IcbZPMBolUVwjf57RGTeveW3xY7YJHUgnRNeb9Vzsuwahw7ONAnuC012
+	 cGunD8FIfh/7FNfE8kQb1i+xwPWlYtTv09+0LG6Oykrf82tAGRaplZdyIRmp6V3HqKw==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793657418;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793657467;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=sJDk4jq0gTVXe8Xppd48GDYZVKZEI3RAH86ke3Ob1iA=;
-	b=udtk/rk4wIyTsulHagbkMWYNThdMIMOb6OkK7jVZHPqFlSKxn4fKf1hd6zJJvhgbwL9T
-	 YagKTTBejwLtqAfb8j4gAXFVRnMBhsNJInlEfCWybb7MyHs58e2Ji7u4fuUaV18r39PtN
-	 mMIDlhKXJDwlzzBsDMqFK74m9cwdSVkHDIbzVW1KlC/dqnKoWED7jzJ0PfQ3t8BdNRc4t
-	 1/oCiPb9ogxr6SDFYucmf6h68QkcrTRP1ZSkW7NkRvl3yyop4TZv0QENUAMNL3lNs+IXp
-	 A6/n0VRwBsPGzuYObr47oK1NGRtvHOKvEhRGWU3NIhUeva3A84KCybI8lFGdTk4WdWg==
+	bh=KR6zQxxHdtJmOrqkhnFwnQayY24In2h9f/EFqcmkqmU=;
+	b=Efugl1F6BRzkqgLJy8g3uJZQIuGm3gQaWYPDY6PcOuLKRrw7MUFGJKehFgrHRXUsuI/+
+	 iaIr0lB536f3zbF0egWdH7awI4dYeO0P3UmwN7EoXYXHqXDFpazYLjDfpYDxCJ3d/M86J
+	 jPujfOI3xH/l/X72mqUCbHVVh/MoGssC9Xcj6WcABXGiTPLvZ70EwJmPrL1GaGbxrJGj3
+	 p54/zjLyaf/bGrXDDrgOgN3HOPI2fs7Kd/w5tAWjDZmgLXOsZDXzDfVbIKP7m30ZqMqEe
+	 pbXIgPuDJnHyBy3rhVG6FvujFfKo1XOj/ZxMtY9q/mRCZyH8fZ9AN1LyDBaU4YK9C6Q==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=UrT6XbUP;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=AH6uyvY9;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B31CE606A327
-	for <mm-commits@vger.kernel.org>; Mon,  2 Nov 2026 22:10:17 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 77DF2606A326
+	for <mm-commits@vger.kernel.org>; Mon,  2 Nov 2026 22:11:07 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=UrT6XbUP
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 33B9F1F00A16;
-	Mon,  2 Nov 2026 22:10:17 +0000 (UTC)
+	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=AH6uyvY9
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 199101F00A17;
+	Mon,  2 Nov 2026 22:11:07 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1793657417;
-	bh=sJDk4jq0gTVXe8Xppd48GDYZVKZEI3RAH86ke3Ob1iA=;
+	d=linux-foundation.org; s=korg; t=1793657467;
+	bh=KR6zQxxHdtJmOrqkhnFwnQayY24In2h9f/EFqcmkqmU=;
 	h=Date:To:From:Subject;
-	b=UrT6XbUP7LCVsnrQXnQ1TXSZtfmVjBmCAXKE5VTvM72kRad13J70TJrRYo8GUDf+7
-	 bh7S9WIaCK+I9wloEYTubCc0Mlo6kGxV6HKcE5zTPFuaVtQlrYz+qd74lNuKM0w9lG
-	 yF98/3OEtB9kLOBPIFrc/obErtdZXPzwCqmI91ZE=
-Date: Mon, 02 Nov 2026 14:10:16 -0800
+	b=AH6uyvY9bPoo8+9dFj23jV4e850rbOlyiTCm9dJ7g3oE7t9+as7fnDg+vOdVObjRm
+	 N8u66S8bq7ix+WUcdfU6sryILJto4mp+gMhetyVmoPnkHgL3GuXdNYBqWOAZJW5eMG
+	 8steW/8Qnoq13wEAIq4HXHt/GpbqkG1pxoiAYIuY=
+Date: Mon, 02 Nov 2026 14:11:06 -0800
 To: mm-commits@vger.kernel.org,ziy@nvidia.com,vbabka@kernel.org,
 	surenb@google.com,stable+noautosel@kernel.org,mhocko@suse.com,
-	hui.zhu@linux.dev,hannes@cmpxchg.org,dev.jain@arm.com,
-	brendan.jackman@linux.dev,zhuhui@kylinos.cn,akpm@linux-foundation.org
+	hannes@cmpxchg.org,dev.jain@arm.com,brendan.jackman@linux.dev,
+	zhuhui@kylinos.cn,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [to-be-updated] mm-compaction-annotate-data-race-for-zone-free_areanr_free.patch removed from -mm tree
-Message-Id: <20261102221017.33B9F1F00A16@smtp.kernel.org>
+Subject: + mm-compaction-annotate-data-race-for-zone-free_areanr_free.patch added to mm-new branch
+Message-Id: <20261102221107.199101F00A17@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -53,17 +53,44 @@ List-Owner: <mailto:mm-commits+owner@vger.kernel.org>
 Precedence: list
 
 
-The quilt patch titled
+The patch titled
      Subject: mm/compaction: annotate data race for zone->free_area[order].nr_free
-has been removed from the -mm tree.  Its filename was
+has been added to the -mm mm-new branch.  Its filename is
      mm-compaction-annotate-data-race-for-zone-free_areanr_free.patch
 
-This patch was dropped because an updated version will be issued
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-compaction-annotate-data-race-for-zone-free_areanr_free.patch
+
+This patch will later appear in the mm-new branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Note, mm-new is a provisional staging ground for work-in-progress
+patches, and acceptance into mm-new is a notification for others take
+notice and to finish up reviews.  Please do not hesitate to respond to
+review feedback and post updated versions to replace or incrementally
+fixup patches in mm-new.
+
+The mm-new branch of mm.git is not included in linux-next
+
+If a few days of testing in mm-new is successful, the patch will me moved
+into mm.git's mm-unstable branch, which is included in linux-next
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via various
+branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there most days
 
 ------------------------------------------------------
 From: Hui Zhu <zhuhui@kylinos.cn>
 Subject: mm/compaction: annotate data race for zone->free_area[order].nr_free
-Date: Fri, 30 Oct 2026 10:55:07 +0800
+Date: Mon,  2 Nov 2026 16:19:18 +0800
 
 KCSAN reports a data-race on nr_free which also exists on mainline:
 
@@ -108,53 +135,55 @@ instrumented and the report is of unknown origin.
 
 The race is benign: a stale zero only skips the order for this round, and
 a stale non-zero just finds an empty MIGRATE_MOVABLE freelist under the
-lock.  Annotate both reads with data_race(), following commit
-af1c31acc853 ("mm/vmstat: annotate data race for zone->free_area[order].nr_free").
+lock.  Annotate both reads with data_race(), following commit af1c31acc853
+("mm/vmstat: annotate data race for zone->free_area[order].nr_free"), and
+say at each site why both stale directions are harmless.
 
 No functional change intended.
 
-Link: https://lore.kernel.org/20261030025507.115248-1-hui.zhu@linux.dev
+Link: https://lore.kernel.org/20261102081919.80625-1-hui.zhu@linux.dev
 Fixes: 70b44595eafe ("mm, compaction: use free lists to quickly locate a migration source")
 Fixes: 5a811889de10 ("mm, compaction: use free lists to quickly locate a migration target")
 Signed-off-by: Hui Zhu <zhuhui@kylinos.cn>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 Reviewed-by: Dev Jain <dev.jain@arm.com>
 Acked-by: Zi Yan <ziy@nvidia.com>
-Cc: <stable+noautosel@kernel.org> # KCSAN annotation only, no functional change
 Cc: Vlastimil Babka <vbabka@kernel.org>
 Cc: Suren Baghdasaryan <surenb@google.com>
 Cc: Michal Hocko <mhocko@suse.com>
 Cc: Brendan Jackman <brendan.jackman@linux.dev>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Hui Zhu <hui.zhu@linux.dev>
+Cc: <stable+noautosel@kernel.org> # KCSAN annotation only, no functional change
 ---
 
- mm/compaction.c |   12 ++++++++++--
- 1 file changed, 10 insertions(+), 2 deletions(-)
+ mm/compaction.c |   14 ++++++++++++--
+ 1 file changed, 12 insertions(+), 2 deletions(-)
 
 --- a/mm/compaction.c~mm-compaction-annotate-data-race-for-zone-free_areanr_free
 +++ a/mm/compaction.c
-@@ -1601,7 +1601,11 @@ static void fast_isolate_freepages(struc
+@@ -1601,7 +1601,12 @@ static void fast_isolate_freepages(struc
  		unsigned int order_scanned = 0;
  		unsigned long high_pfn = 0;
  
 -		if (!area->nr_free)
 +		/*
-+		 * Access to nr_free is lockless as it is only a hint; a stale
-+		 * value is harmless. Use data_race to avoid KCSAN warning.
++		 * Opportunistic lockless check.  A false non-zero is fine, we
++		 * inspect the freelist under the lock.  A false zero is fine,
++		 * we just miss this order.
 +		 */
 +		if (!data_race(area->nr_free))
  			continue;
  
  		spin_lock_irqsave(&cc->zone->lock, flags);
-@@ -2031,7 +2035,11 @@ static unsigned long fast_find_migratebl
+@@ -2031,7 +2036,12 @@ static unsigned long fast_find_migratebl
  		unsigned long flags;
  		struct page *freepage;
  
 -		if (!area->nr_free)
 +		/*
-+		 * Access to nr_free is lockless as it is only a hint; a stale
-+		 * value is harmless. Use data_race to avoid KCSAN warning.
++		 * Opportunistic lockless check.  A false non-zero is fine, we
++		 * inspect the freelist under the lock.  A false zero is fine,
++		 * we just miss this order.
 +		 */
 +		if (!data_race(area->nr_free))
  			continue;
@@ -165,4 +194,5 @@ _
 Patches currently in -mm which might be from zhuhui@kylinos.cn are
 
 mm-vmstat-annotate-data-race-in-zone_page_state_snapshot.patch
+mm-compaction-annotate-data-race-for-zone-free_areanr_free.patch
 
