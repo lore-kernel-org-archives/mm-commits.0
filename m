@@ -1,48 +1,48 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793654689;
-	b=fi+1RPXCqxUF+75FH5v84RuwNUotgzcOPyiyQdA+62wAVXFCNmCjw1KJfLi8lMAqz7Ev
-	 c8ItXn1Hw8RDBXV2k9zKjBhOZJhUi//58EPKMdh4JF1a43PTD6JKVY8e83Sgssj3D2p9o
-	 u0nj3FvoiqIrhXhxmPLr2sShRj111QPNYkSdxNh8f+0uc4keYegvwKUg6xt35shY0Q/UW
-	 qHy84mW5+S6Lr9yMo2oPGiZis+Giyg1/cY0OlW9JFCMHtKmHRgTg5WkmawpMkKI2Nf+1q
-	 GiI4ViMa4KA3UdUDSQPhj/Z53sHmGv/VzB50/SYM5qTlBWwRA2ocJJdI/8CRs3aHqdg==
+	t=1793657418;
+	b=omWEmPoxQ5HCn16PsJ6/uPJ12oHHaAXKTnAS79KRbKDIy0eA62h8Q5GO1ykugZuazB6v
+	 MjPW61CG+Ca2HbqVrEHSt2wrEY0ySd/QiBLSRz4IKMuXjoiwrNKmwRs1Ek8lTA5lcJc/t
+	 3Q4MW5FT8h50qHvFbTuuCxKzCNfYDD8HKQHzFLBl/ldWTE08kmxBxI8gNgNrE7P2oSz+5
+	 QahsA5V+ZRJUWrY84XHJFwIArCZrpYBH2Eq5SC/68MtrVWknyu/EEkT94Jtdy33nn8Bvh
+	 k5ES/CwQsdvyfDUp4JukDTY06NjelIFghykneCk/gT2vHymVs7xLp5bliCDs+DYTQiQ==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793654689;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793657418;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=YY1Ls/mR90+K1A9VhlsjBm+3fZXSYQ/fZRtqMUmIZJQ=;
-	b=gmn0MGCmlQbssAkv+VcWb4NCM/0CJfylgkHNOvzHzxRnhHsZtzfrU4fi3d8rey6oiN6H
-	 gFj+VyYw88mr3hllXfI99tjKg1m6gKmsjesSt+QL+HHIHV/AYvGoUn5x8YuxWma338IBh
-	 66XMgcgUK1N01LKWC+gqfe4fWSOMnNziqpHU4IkvXAgp/HKpIaU6SCnafqtVeQTiERg9y
-	 9ESTv2lPkOLs3fnpSn8V4S65aJN4d/VL9jjhpZkpeTU1KJijPdzZgo9hGjh222wIT031I
-	 FSj3EyDByNONLx8tWUw4obh61b1WRvpWY7Vz/u+yyw+mXtQHWy+FuFNrOQJORGVB/Dw==
+	bh=sJDk4jq0gTVXe8Xppd48GDYZVKZEI3RAH86ke3Ob1iA=;
+	b=udtk/rk4wIyTsulHagbkMWYNThdMIMOb6OkK7jVZHPqFlSKxn4fKf1hd6zJJvhgbwL9T
+	 YagKTTBejwLtqAfb8j4gAXFVRnMBhsNJInlEfCWybb7MyHs58e2Ji7u4fuUaV18r39PtN
+	 mMIDlhKXJDwlzzBsDMqFK74m9cwdSVkHDIbzVW1KlC/dqnKoWED7jzJ0PfQ3t8BdNRc4t
+	 1/oCiPb9ogxr6SDFYucmf6h68QkcrTRP1ZSkW7NkRvl3yyop4TZv0QENUAMNL3lNs+IXp
+	 A6/n0VRwBsPGzuYObr47oK1NGRtvHOKvEhRGWU3NIhUeva3A84KCybI8lFGdTk4WdWg==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=ghRCbpUw;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=UrT6XbUP;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9617D606A331
-	for <mm-commits@vger.kernel.org>; Mon,  2 Nov 2026 21:24:49 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B31CE606A327
+	for <mm-commits@vger.kernel.org>; Mon,  2 Nov 2026 22:10:17 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=ghRCbpUw
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 167C91F00A18;
-	Mon,  2 Nov 2026 21:24:49 +0000 (UTC)
+	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=UrT6XbUP
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 33B9F1F00A16;
+	Mon,  2 Nov 2026 22:10:17 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1793654689;
-	bh=YY1Ls/mR90+K1A9VhlsjBm+3fZXSYQ/fZRtqMUmIZJQ=;
+	d=linux-foundation.org; s=korg; t=1793657417;
+	bh=sJDk4jq0gTVXe8Xppd48GDYZVKZEI3RAH86ke3Ob1iA=;
 	h=Date:To:From:Subject;
-	b=ghRCbpUw2T6ouJ4RgJ05GVsEKqrFNULFa68TOGSmSeesc55jpkqyM5xmkQTta2Q3B
-	 LSjIxSS7eP09QbjRln5MtPZB6yWG30iuZYmGQHC8NA0gkIAIWghfwdWWXqr7ZTEexm
-	 AZ+jIQsSfzBUTmf61A1DIlgiNuP9QsZrbwZoFPNY=
-Date: Mon, 02 Nov 2026 13:24:48 -0800
-To: mm-commits@vger.kernel.org,yangsongsen@insta360.com,vbabka@kernel.org,
-	syzbot+10e72ea5747737bcd2ad@syzkaller.appspotmail.com,pfalcato@suse.de,
-	ljs@kernel.org,liam@infradead.org,lance.yang@linux.dev,jannh@google.com,
-	david@kernel.org,kas@kernel.org,akpm@linux-foundation.org
+	b=UrT6XbUP7LCVsnrQXnQ1TXSZtfmVjBmCAXKE5VTvM72kRad13J70TJrRYo8GUDf+7
+	 bh7S9WIaCK+I9wloEYTubCc0Mlo6kGxV6HKcE5zTPFuaVtQlrYz+qd74lNuKM0w9lG
+	 yF98/3OEtB9kLOBPIFrc/obErtdZXPzwCqmI91ZE=
+Date: Mon, 02 Nov 2026 14:10:16 -0800
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,vbabka@kernel.org,
+	surenb@google.com,stable+noautosel@kernel.org,mhocko@suse.com,
+	hui.zhu@linux.dev,hannes@cmpxchg.org,dev.jain@arm.com,
+	brendan.jackman@linux.dev,zhuhui@kylinos.cn,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-vma-read-anon_vma-carefully-in-validate_mm-fix.patch added to mm-hotfixes-unstable branch
-Message-Id: <20261102212449.167C91F00A18@smtp.kernel.org>
+Subject: [to-be-updated] mm-compaction-annotate-data-race-for-zone-free_areanr_free.patch removed from -mm tree
+Message-Id: <20261102221017.33B9F1F00A16@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -53,104 +53,116 @@ List-Owner: <mailto:mm-commits+owner@vger.kernel.org>
 Precedence: list
 
 
-The patch titled
-     Subject: mm-vma-read-anon_vma-carefully-in-validate_mm-fix
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mm-vma-read-anon_vma-carefully-in-validate_mm-fix.patch
+The quilt patch titled
+     Subject: mm/compaction: annotate data race for zone->free_area[order].nr_free
+has been removed from the -mm tree.  Its filename was
+     mm-compaction-annotate-data-race-for-zone-free_areanr_free.patch
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vma-read-anon_vma-carefully-in-validate_mm-fix.patch
-
-This patch will later appear in the mm-hotfixes-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via various
-branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there most days
+This patch was dropped because an updated version will be issued
 
 ------------------------------------------------------
-From: Kiryl Shutsemau <kas@kernel.org>
-Subject: mm-vma-read-anon_vma-carefully-in-validate_mm-fix
-Date: Mon, 2 Nov 2026 10:48:45 +0000
+From: Hui Zhu <zhuhui@kylinos.cn>
+Subject: mm/compaction: annotate data race for zone->free_area[order].nr_free
+Date: Fri, 30 Oct 2026 10:55:07 +0800
 
-reduce ifdeffery
+KCSAN reports a data-race on nr_free which also exists on mainline:
 
-Link: https://lore.kernel.org/auhn01dpDzK47igy@thinkstation
-Signed-off-by: Kiryl Shutsemau <kas@kernel.org>
+  BUG: KCSAN: data-race in fast_isolate_freepages+0x284/0x1550 mm/compaction.c:1589
+
+  race at unknown origin, with read to 0xffff9894ff3dcb60 of 8 bytes by task 179078 on cpu 12:
+   fast_isolate_freepages+0x284/0x1550 mm/compaction.c:1589
+   isolate_freepages+0x52/0x650 mm/compaction.c:1722
+   compaction_alloc_noprof+0x36e/0x3e0 mm/compaction.c:1850
+   compaction_alloc+0x21/0x30 mm/compaction.c:1880
+   migrate_folio_unmap+0x7f/0x820 mm/migrate.c:1177
+   migrate_pages_batch+0x37e/0x1200 mm/migrate.c:1762
+   migrate_pages_sync+0xce/0x560 mm/migrate.c:1928
+   migrate_pages+0x8c6/0xc20 mm/migrate.c:2037
+   compact_zone+0x539/0x10b0 mm/compaction.c:2660
+   compact_zone_order+0x1b8/0x230 mm/compaction.c:2795
+   try_to_compact_pages+0x20b/0x630 mm/compaction.c:2851
+   __alloc_pages_direct_compact+0x98/0x2b0 mm/page_alloc.c:3722
+   __alloc_pages_slowpath.constprop.0+0x452/0xdf0 mm/page_alloc.c:4401
+   __alloc_pages_noprof+0x28a/0x2d0 mm/page_alloc.c:4794
+   alloc_pages_mpol_noprof+0x1b1/0x470 mm/mempolicy.c:2270
+   alloc_pages_noprof+0x7a/0xe0 mm/mempolicy.c:2347
+   io_mem_alloc_compound io_uring/io_uring.c:2848 [inline]
+   io_pages_map+0xb9/0x330 io_uring/io_uring.c:2892
+   io_allocate_scq_urings+0x231/0x300 io_uring/io_uring.c:3933
+   io_uring_create+0x29c/0x9c0 io_uring/io_uring.c:4091
+   io_uring_setup+0xb6/0x100 io_uring/io_uring.c:4203
+   __do_sys_io_uring_setup io_uring/io_uring.c:4230 [inline]
+   __se_sys_io_uring_setup io_uring/io_uring.c:4224 [inline]
+   __x64_sys_io_uring_setup+0x66/0xe0 io_uring/io_uring.c:4224
+   x64_sys_call+0x1816/0x1d90 arch/x86/include/generated/asm/syscalls_64.h:426
+   do_syscall_x64 arch/x86/entry/common.c:51 [inline]
+   do_syscall_64+0x70/0x2a0 arch/x86/entry/common.c:81
+   entry_SYSCALL_64_after_hwframe+0x76/0xe0
+
+  value changed: 0x00000000000002f4 -> 0x00000000000002f5
+
+nr_free is only updated with zone->lock held, but fast_isolate_freepages()
+and fast_find_migrateblock() read it locklessly to skip an order that has
+no free pages.  page_alloc.o is excluded from KCSAN, so the writer is not
+instrumented and the report is of unknown origin.
+
+The race is benign: a stale zero only skips the order for this round, and
+a stale non-zero just finds an empty MIGRATE_MOVABLE freelist under the
+lock.  Annotate both reads with data_race(), following commit
+af1c31acc853 ("mm/vmstat: annotate data race for zone->free_area[order].nr_free").
+
+No functional change intended.
+
+Link: https://lore.kernel.org/20261030025507.115248-1-hui.zhu@linux.dev
+Fixes: 70b44595eafe ("mm, compaction: use free lists to quickly locate a migration source")
+Fixes: 5a811889de10 ("mm, compaction: use free lists to quickly locate a migration target")
+Signed-off-by: Hui Zhu <zhuhui@kylinos.cn>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Cc: David Hildenbrand <david@kernel.org>
-Cc: Jann Horn <jannh@google.com>
-Cc: Lance Yang <lance.yang@linux.dev>
-Cc: Liam R. Howlett <liam@infradead.org>
-Cc: "Lorenzo Stoakes (ARM)" <ljs@kernel.org>
-Cc: Pedro Falcato <pfalcato@suse.de>
-Cc: Songsen Yang <yangsongsen@insta360.com>
-Cc: <syzbot+10e72ea5747737bcd2ad@syzkaller.appspotmail.com>
+Reviewed-by: Dev Jain <dev.jain@arm.com>
+Acked-by: Zi Yan <ziy@nvidia.com>
+Cc: <stable+noautosel@kernel.org> # KCSAN annotation only, no functional change
 Cc: Vlastimil Babka <vbabka@kernel.org>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Brendan Jackman <brendan.jackman@linux.dev>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Hui Zhu <hui.zhu@linux.dev>
 ---
 
- include/linux/mm.h |    2 --
- mm/vma.c           |   12 +++++-------
- 2 files changed, 5 insertions(+), 9 deletions(-)
+ mm/compaction.c |   12 ++++++++++--
+ 1 file changed, 10 insertions(+), 2 deletions(-)
 
---- a/include/linux/mm.h~mm-vma-read-anon_vma-carefully-in-validate_mm-fix
-+++ a/include/linux/mm.h
-@@ -4370,9 +4370,7 @@ anon_rmap_tree_iter_first(struct anon_vm
- struct anon_vma_chain *
- anon_rmap_tree_iter_next(struct anon_vma_chain *avc,
- 			 pgoff_t pgoff_start, pgoff_t pgoff_last);
--#ifdef CONFIG_DEBUG_VM_RB
- void anon_rmap_tree_verify(struct anon_vma_chain *avc);
--#endif
+--- a/mm/compaction.c~mm-compaction-annotate-data-race-for-zone-free_areanr_free
++++ a/mm/compaction.c
+@@ -1601,7 +1601,11 @@ static void fast_isolate_freepages(struc
+ 		unsigned int order_scanned = 0;
+ 		unsigned long high_pfn = 0;
  
- #define anon_rmap_tree_foreach(avc, anon_vma, pgoff_start, pgoff_last)		 \
- 	for (avc = anon_rmap_tree_iter_first(anon_vma, pgoff_start, pgoff_last); \
---- a/mm/vma.c~mm-vma-read-anon_vma-carefully-in-validate_mm-fix
-+++ a/mm/vma.c
-@@ -669,14 +669,17 @@ static int dup_anon_vma(struct vm_area_s
- }
+-		if (!area->nr_free)
++		/*
++		 * Access to nr_free is lockless as it is only a hint; a stale
++		 * value is harmless. Use data_race to avoid KCSAN warning.
++		 */
++		if (!data_race(area->nr_free))
+ 			continue;
  
- #ifdef CONFIG_DEBUG_VM_MAPLE_TREE
--#ifdef CONFIG_DEBUG_VM_RB
- static void validate_mm_anon_rmap(struct vm_area_struct *vma)
- {
--	struct anon_vma *anon_vma = READ_ONCE(vma->anon_vma);
-+	struct anon_vma *anon_vma;
- 	struct anon_vma_chain *avc;
+ 		spin_lock_irqsave(&cc->zone->lock, flags);
+@@ -2031,7 +2035,11 @@ static unsigned long fast_find_migratebl
+ 		unsigned long flags;
+ 		struct page *freepage;
  
-+	if (!IS_ENABLED(CONFIG_DEBUG_VM_RB))
-+		return;
-+
- 	vma_assert_stabilised(vma);
+-		if (!area->nr_free)
++		/*
++		 * Access to nr_free is lockless as it is only a hint; a stale
++		 * value is harmless. Use data_race to avoid KCSAN warning.
++		 */
++		if (!data_race(area->nr_free))
+ 			continue;
  
-+	anon_vma = READ_ONCE(vma->anon_vma);
- 	if (!anon_vma)
- 		return;
- 
-@@ -685,11 +688,6 @@ static void validate_mm_anon_rmap(struct
- 		anon_rmap_tree_verify(avc);
- 	anon_vma_unlock_read(anon_vma);
- }
--#else
--static void validate_mm_anon_rmap(struct vm_area_struct *vma)
--{
--}
--#endif
- 
- void validate_mm(struct mm_struct *mm)
- {
+ 		spin_lock_irqsave(&cc->zone->lock, flags);
 _
 
-Patches currently in -mm which might be from kas@kernel.org are
+Patches currently in -mm which might be from zhuhui@kylinos.cn are
 
-mm-hugetlb_vmemmap-map-the-shared-tail-page-writable.patch
-mm-vma-read-anon_vma-carefully-in-validate_mm-fix.patch
+mm-vmstat-annotate-data-race-in-zone_page_state_snapshot.patch
 
