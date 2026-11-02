@@ -1,47 +1,43 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793599527;
-	b=Dru8k0nFnV6Q1WRKc/nDaU1MdDQtIAxlCxhulFuJtAgS5xaVr67eYdo18EwgVXDZaaA9
-	 h7GaFKKtvK0DZMHG/v8a/Zz9LDfsazq6QAg7Vpnr568mYoNwu/PzbOCRIPU5fH7CTiI6x
-	 fBqJ0ca7Nxa8YE6xwf6rchb2mbBu517Fvuz1QMn80XOJFCg2vOR+WQ21YcvDFa7ljtatt
-	 soWjkZI1D6THYHtQZQDBNeyh3fxWjGZmxJfaXeaHDRXZZzhyAR53w9FOknsLkl6c1hfQR
-	 wM3H49RsgwplQ1Wi7Hd5rqUV1t8/padWV5A2VwRiXF7IdRUI3QDIQWjhk/ou2Awl5AA==
+	t=1793633364;
+	b=wY0/zJ01wlqy5qmDAMPYKHgeKnUUmmafYub6Rf/2k1meTOvtnm2jSbzvyO0ejXxKeA2s
+	 hs/s++ufq8Tgaedkk+osVg/ijHLpAtzdxIBiqol7mPgLIWgcePumN6RzaTfIHL+W9EhMN
+	 GcTtRUG0U3C1+np31orLDpkGB/gxtq5aE0sSQrGB2e86xD7q4ieA7wXp4Ho8tXJk3/FCq
+	 IiQkkVZHGxj+c0wqE8xdX+ZSANjgrJ1Zd317al8DordE7MHo0oFI5IvRBUHGSo/PxSFKe
+	 5qCcfxux8YGsyIVq/vf31DrQal3HEs6qAnUJDtXnQmeKAAOCpxNMAin7+6CfsWUHZLg==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793599527;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793633364;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=/DN0PPCkv7CjtvFRWVaN2QaxjHjJkzLOCyEcAic/ztI=;
-	b=QLG+IbQcUH+s5IZ1TZEWvNRh3KIJb+mPWkqaTrLU6SGEeCcs97HsxiqYi+WVnXz8L2k8
-	 vXm5ZJ7DC2/0n/C8xJqtg50/TVQf/ytnFV/OSoDgcuODwP87LzRWVsk/a2YxC+R6vhTf0
-	 coPWMydDKk/bsoim/gOzIjo2yk9G1e2c4R0yaHzWQPSx0GGEFzhlEmxHpgMGiq4OO9wDW
-	 nRso2Oka2PnC6H24HAJpd395b58EwkGUClAEEV8zVTPUQvK+vg9rFvrvjA5f0//pRgziH
-	 ymUAY6DnLvz9lzNeIDzvJFz1zGNej3zwm0bECgH65Na09YWV5FRvoX8Vm74+lNTsHzQ==
+	bh=bnCyI5uGFtn9RHe75cGgPIK8StUpPFt5c7ZKI1cHgPk=;
+	b=Hy1bi90AR8YSHobKlnFgAVvoGGnmTMDxKEJ3N1XWahmRoIPBqHHQPjls5iX7Foaw1Ic3
+	 ZiI9r1MjL7Z1lFgbSkcon2HeFp4AQOUIQuWbTKWdt5FbZwZ1juQhqKmVyBVuMxhDSQNUe
+	 j5qVhbx9PeTGXvtFFuDFtdNIkGt6v4mV2E/FyXIi70Wvhnt3/pCyGnMPfIyV80WZuJCPf
+	 FTzDbr7X01/jU9FkzDKLJe4pWfB0WuSLPJ3nIDxL/MhIHqoe4TtZhcpzgMG3BChmOSc5b
+	 VJRgfYT27ZzcHh/gCvqQT1ixQNWCXQrW9ZSzk8kjiEzD5SHmiCp6wutMRic4xFJ9KKg==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=woWRVPnk;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 84A58606A327
-	for <mm-commits@vger.kernel.org>; Mon,  2 Nov 2026 06:05:27 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=woWRVPnk
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 23C631F00A02;
-	Mon,  2 Nov 2026 06:05:27 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BAC29606AB8B;
+	Mon,  2 Nov 2026 15:29:23 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 502EF1F00A16;
+	Mon,  2 Nov 2026 15:29:23 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1793599527;
-	bh=/DN0PPCkv7CjtvFRWVaN2QaxjHjJkzLOCyEcAic/ztI=;
+	d=linux-foundation.org; s=korg; t=1793633363;
+	bh=bnCyI5uGFtn9RHe75cGgPIK8StUpPFt5c7ZKI1cHgPk=;
 	h=Date:To:From:Subject;
-	b=woWRVPnk/hcE8gBGjhax4RciIjirj1AQiZE2gGI3KzK5V29H6SEp9CQuDrhTldBlB
-	 MyLDwEXsJWXdvXQ0BxFRejWc1z+UbApBsHbhFxEC8pe/b0JpCcRxxAkG2cxzdBHBHD
-	 tSSoek2ZgqKX3Gi7Y/xj2TCi3Al5QVdFYdK+yIvI=
-Date: Sun, 01 Nov 2026 22:05:26 -0800
-To: mm-commits@vger.kernel.org,senozhatsky@chromium.org,richardycc@google.com,
-	minchan@kernel.org,bgeffon@google.com,axboe@kernel.dk,josef@toxicpanda.com,
-	akpm@linux-foundation.org
+	b=D81NOHqrDVGMSE0LVhQvFoY4UTCqN0h2r+X8dSNJmmUFoAefqhYasbCuU1sZFjNFf
+	 wO5qouFc9R9F4N9xKsAZ+kt9aIjt10lbP6H7PNIbX8uGso5seW4FlUZTr1TE3Y6bp1
+	 u5dqBsGKdFWgjZ187ntZoFWMRmy0MgKfgoK1XH68=
+Date: Mon, 02 Nov 2026 07:29:20 -0800
+To: mm-commits@vger.kernel.org,stable@vger.kernel.org,david@kernel.org,
+	baoquan.he@linux.dev,urezki@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + zram-lz4-lz4hc-accept-dictionaries-of-more-than-64-kib.patch added to mm-nonmm-unstable branch
-Message-Id: <20261102060527.23C631F00A02@smtp.kernel.org>
+Subject: [to-be-updated] mm-vmalloc-bail-out-if-in-softirq-context.patch removed from -mm tree
+Message-Id: <20261102152923.502EF1F00A16@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -52,95 +48,78 @@ List-Owner: <mailto:mm-commits+owner@vger.kernel.org>
 Precedence: list
 
 
-The patch titled
-     Subject: zram: lz4/lz4hc: accept dictionaries of more than 64 KiB
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     zram-lz4-lz4hc-accept-dictionaries-of-more-than-64-kib.patch
+The quilt patch titled
+     Subject: mm/vmalloc: bail out if in softirq context
+has been removed from the -mm tree.  Its filename was
+     mm-vmalloc-bail-out-if-in-softirq-context.patch
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/zram-lz4-lz4hc-accept-dictionaries-of-more-than-64-kib.patch
-
-This patch will later appear in the mm-nonmm-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via various
-branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there most days
+This patch was dropped because an updated version will be issued
 
 ------------------------------------------------------
-From: Josef Bacik <josef@toxicpanda.com>
-Subject: zram: lz4/lz4hc: accept dictionaries of more than 64 KiB
-Date: Fri, 30 Oct 2026 13:16:50 +0900
+From: "Uladzislau Rezki (Sony)" <urezki@gmail.com>
+Subject: mm/vmalloc: bail out if in softirq context
+Date: Mon, 26 Oct 2026 11:25:03 +0100
 
-LZ4_loadDict() and LZ4_loadDictHC() only use the last 64KiB of a
-dictionary and return how much they used, which the zram backends take for
-an error.  Expect that instead.
+vmalloc() is not allowed to be invoked from the NMI, hard-irq and softirq
+contexts because doing so may deadlock on internal locks.
 
-Link: https://lore.kernel.org/f2ac22a731e507e90217a5e9cf29c987ec24e2b0.1793333729.git.senozhatsky@chromium.org
-Signed-off-by: Josef Bacik <josef@toxicpanda.com>
-Signed-off-by: Sergey Senozhatsky <senozhatsky@chromium.org>
+Commit 04aa71da5f35 ("mm/vmalloc: do not trigger BUG() on BH disabled
+context") replaced the deprecated in_interrupt() macro with explicit
+in_nmi() and in_hardirq() checks, but unintentionally dropped the softirq
+context check.
+
+Example:
+
+<snip>
+vzalloc() in a task
+ spin_lock(&vn->busy.lock)
+  <------ Hard irq
+   irq_exit()
+    process softirq on the same CPU
+     vmalloc()
+      spin_lock(&vn->busy.lock)
+       spins forever
+<snip>
+
+Restore the check by checking the caller's context with the
+in_serving_softirq() helper.  Note that, it is still allowed to invoke
+vmalloc() with disabled bottom halves.
+
+Replace BUG_ON() with WARN_ON_ONCE() for in_nmi() and
+in_hardirq() case.
+
+Link: https://lore.kernel.org/20261026102503.30860-1-urezki@gmail.com
+Fixes: 04aa71da5f35 ("mm/vmalloc: do not trigger BUG() on BH disabled context")
+Signed-off-by: Uladzislau Rezki (Sony) <urezki@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Cc: Jens Axboe <axboe@kernel.dk>
-Cc: Brian Geffon <bgeffon@google.com>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: Richard Chang <richardycc@google.com>
+Reviewed-by: Baoquan He <baoquan.he@linux.dev>
+Cc: David Hildenbrand (Arm) <david@kernel.org>
+Cc: <stable@vger.kernel.org>
 ---
 
- drivers/block/zram/backend_lz4.c   |    4 +++-
- drivers/block/zram/backend_lz4hc.c |    4 +++-
- 2 files changed, 6 insertions(+), 2 deletions(-)
+ mm/vmalloc.c |    8 +++++++-
+ 1 file changed, 7 insertions(+), 1 deletion(-)
 
---- a/drivers/block/zram/backend_lz4.c~zram-lz4-lz4hc-accept-dictionaries-of-more-than-64-kib
-+++ a/drivers/block/zram/backend_lz4.c
-@@ -4,6 +4,7 @@
+--- a/mm/vmalloc.c~mm-vmalloc-bail-out-if-in-softirq-context
++++ a/mm/vmalloc.c
+@@ -3258,7 +3258,13 @@ struct vm_struct *__get_vm_area_node(uns
+ 	struct vm_struct *area;
+ 	unsigned long requested_size = size;
  
- #include <linux/kernel.h>
- #include <linux/lz4.h>
-+#include <linux/sizes.h>
- #include <linux/vmalloc.h>
- 
- #include "backend_lz4.h"
-@@ -39,7 +40,8 @@ static int lz4_setup_params(struct zcomp
- 		return -ENOMEM;
- 
- 	ret = LZ4_loadDict(dict_stream, params->dict, params->dict_sz);
--	if (ret != params->dict_sz) {
-+	/* Only the last 64 KiB of a dictionary are of use */
-+	if (ret != min_t(size_t, params->dict_sz, SZ_64K)) {
- 		vfree(dict_stream);
- 		return -EINVAL;
- 	}
---- a/drivers/block/zram/backend_lz4hc.c~zram-lz4-lz4hc-accept-dictionaries-of-more-than-64-kib
-+++ a/drivers/block/zram/backend_lz4hc.c
-@@ -4,6 +4,7 @@
- 
- #include <linux/kernel.h>
- #include <linux/lz4.h>
-+#include <linux/sizes.h>
- #include <linux/vmalloc.h>
- 
- #include "backend_lz4hc.h"
-@@ -46,7 +47,8 @@ static int lz4hc_setup_params(struct zco
- 
- 	LZ4_resetStreamHC(dict_stream, params->level);
- 	ret = LZ4_loadDictHC(dict_stream, params->dict, params->dict_sz);
--	if (ret != params->dict_sz) {
-+	/* Only the last 64 KiB of a dictionary are of use */
-+	if (ret != min_t(size_t, params->dict_sz, SZ_64K)) {
- 		vfree(dict_stream);
- 		return -EINVAL;
- 	}
+-	BUG_ON(in_nmi() || in_hardirq());
++	/* IRQ re-entrancy -> irq_exit() -> process softirq. */
++	if (in_serving_softirq())
++		return NULL;
++
++	if (WARN_ON_ONCE(in_nmi() || in_hardirq()))
++		return NULL;
++
+ 	size = ALIGN(size, 1ul << shift);
+ 	if (unlikely(!size))
+ 		return NULL;
 _
 
-Patches currently in -mm which might be from josef@toxicpanda.com are
+Patches currently in -mm which might be from urezki@gmail.com are
 
-zram-lz4-lz4hc-accept-dictionaries-of-more-than-64-kib.patch
+mm-vmalloc-use-dedicated-unbound-workqueues-for-vmap-drain.patch
 
