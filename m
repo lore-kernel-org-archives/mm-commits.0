@@ -1,48 +1,48 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793654687;
-	b=IxUjHlJUzRjcAjmrART51ckecsXckIjD97epXZwELg5EzqD12DOMkt/2Me7Sdj6dlE92
-	 i3aPlbn8AI5R4l0ezNcK/3xRFeyVAS9fw1mMvtgoPkix3mMRvEKeBaLw0ZmXRPd13mSCv
-	 1hOHWyJvm5UVtf3MvzM0Ogtj7UenPPwBSL8Kr3fpnIGa5QWNtUjcPT6r/543P95uRPBVv
-	 UkGCKFcdhFXYuH5SSCaq7yi3HcQQruzTc7efr+Ck/2a9C+H9/p2NfpLlKUfp24Z8ZPUof
-	 mYaAZzFBQTiesa0lpdkofYCTVUz8218VAtRaZRwl79OowuBodixhS7mSxjy6n6e0oBg==
+	t=1793654689;
+	b=fi+1RPXCqxUF+75FH5v84RuwNUotgzcOPyiyQdA+62wAVXFCNmCjw1KJfLi8lMAqz7Ev
+	 c8ItXn1Hw8RDBXV2k9zKjBhOZJhUi//58EPKMdh4JF1a43PTD6JKVY8e83Sgssj3D2p9o
+	 u0nj3FvoiqIrhXhxmPLr2sShRj111QPNYkSdxNh8f+0uc4keYegvwKUg6xt35shY0Q/UW
+	 qHy84mW5+S6Lr9yMo2oPGiZis+Giyg1/cY0OlW9JFCMHtKmHRgTg5WkmawpMkKI2Nf+1q
+	 GiI4ViMa4KA3UdUDSQPhj/Z53sHmGv/VzB50/SYM5qTlBWwRA2ocJJdI/8CRs3aHqdg==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793654687;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793654689;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=IuBwMgnRYny/hZl2zEgU/509z2Oyglvq+/AUq8vBnhI=;
-	b=GWIhGZs3WShooavphniNtJkayxHDPwRr3n5sPmMj23hFyiqxmZRE0BEQD8MG9x79MSFc
-	 9CYZFZkxaSuERPUJ8beDxih0MQElB48Lnjmf+68gMtgscWkaoijja4vaArooxeSqH5DfI
-	 wdoO3dds93jlSzG9P33k4Y3/bJCPpqax6uEMjAwZTE3wlv1kg9iYzoHaEqz3wNd3lIJff
-	 5clqMD50rcG49e5jfzffNg576ZIpHE38D67V2KwizyfXHWswzOUNKt8F03P6xnUIHPE+E
-	 4R66jsevSbiZ02H0vf2wHr8bR6KsLbR21YD0QdH3ey4LtZ5X88dFy0M7DMvswvDeuCQ==
+	bh=YY1Ls/mR90+K1A9VhlsjBm+3fZXSYQ/fZRtqMUmIZJQ=;
+	b=gmn0MGCmlQbssAkv+VcWb4NCM/0CJfylgkHNOvzHzxRnhHsZtzfrU4fi3d8rey6oiN6H
+	 gFj+VyYw88mr3hllXfI99tjKg1m6gKmsjesSt+QL+HHIHV/AYvGoUn5x8YuxWma338IBh
+	 66XMgcgUK1N01LKWC+gqfe4fWSOMnNziqpHU4IkvXAgp/HKpIaU6SCnafqtVeQTiERg9y
+	 9ESTv2lPkOLs3fnpSn8V4S65aJN4d/VL9jjhpZkpeTU1KJijPdzZgo9hGjh222wIT031I
+	 FSj3EyDByNONLx8tWUw4obh61b1WRvpWY7Vz/u+yyw+mXtQHWy+FuFNrOQJORGVB/Dw==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=Lo+AiVID;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=ghRCbpUw;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9940C606A32C
-	for <mm-commits@vger.kernel.org>; Mon,  2 Nov 2026 21:24:47 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9617D606A331
+	for <mm-commits@vger.kernel.org>; Mon,  2 Nov 2026 21:24:49 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=Lo+AiVID
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 21E231F00A1A;
-	Mon,  2 Nov 2026 21:24:47 +0000 (UTC)
+	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=ghRCbpUw
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 167C91F00A18;
+	Mon,  2 Nov 2026 21:24:49 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1793654687;
-	bh=IuBwMgnRYny/hZl2zEgU/509z2Oyglvq+/AUq8vBnhI=;
+	d=linux-foundation.org; s=korg; t=1793654689;
+	bh=YY1Ls/mR90+K1A9VhlsjBm+3fZXSYQ/fZRtqMUmIZJQ=;
 	h=Date:To:From:Subject;
-	b=Lo+AiVIDS0E/TZ2drs+OfI99ntvPup+2QoYMQDWPmHp7/o7Day7hZxn3Q5xepqU44
-	 By+LgUstv4QXdTNG+LAD8qAWF2GCZkw/TJj5+jLGQtajKIUIASS91WK4K4XGJOhHoy
-	 9rcAkaAeOuKVZ9+6ZxCMemX1EK/+X6XmEY32Wgyw=
-Date: Mon, 02 Nov 2026 13:24:46 -0800
+	b=ghRCbpUw2T6ouJ4RgJ05GVsEKqrFNULFa68TOGSmSeesc55jpkqyM5xmkQTta2Q3B
+	 LSjIxSS7eP09QbjRln5MtPZB6yWG30iuZYmGQHC8NA0gkIAIWghfwdWWXqr7ZTEexm
+	 AZ+jIQsSfzBUTmf61A1DIlgiNuP9QsZrbwZoFPNY=
+Date: Mon, 02 Nov 2026 13:24:48 -0800
 To: mm-commits@vger.kernel.org,yangsongsen@insta360.com,vbabka@kernel.org,
 	syzbot+10e72ea5747737bcd2ad@syzkaller.appspotmail.com,pfalcato@suse.de,
-	liam@infradead.org,lance.yang@linux.dev,kas@kernel.org,jannh@google.com,
-	david@kernel.org,ljs@kernel.org,akpm@linux-foundation.org
+	ljs@kernel.org,liam@infradead.org,lance.yang@linux.dev,jannh@google.com,
+	david@kernel.org,kas@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-vma-read-anon_vma-carefully-in-validate_mm.patch added to mm-hotfixes-unstable branch
-Message-Id: <20261102212447.21E231F00A1A@smtp.kernel.org>
+Subject: + mm-vma-read-anon_vma-carefully-in-validate_mm-fix.patch added to mm-hotfixes-unstable branch
+Message-Id: <20261102212449.167C91F00A18@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -54,12 +54,12 @@ Precedence: list
 
 
 The patch titled
-     Subject: mm/vma: read anon_vma carefully in validate_mm()
+     Subject: mm-vma-read-anon_vma-carefully-in-validate_mm-fix
 has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mm-vma-read-anon_vma-carefully-in-validate_mm.patch
+     mm-vma-read-anon_vma-carefully-in-validate_mm-fix.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vma-read-anon_vma-carefully-in-validate_mm.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vma-read-anon_vma-carefully-in-validate_mm-fix.patch
 
 This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -77,113 +77,80 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: "Lorenzo Stoakes (ARM)" <ljs@kernel.org>
-Subject: mm/vma: read anon_vma carefully in validate_mm()
-Date: Mon, 02 Nov 2026 10:25:20 +0000
+From: Kiryl Shutsemau <kas@kernel.org>
+Subject: mm-vma-read-anon_vma-carefully-in-validate_mm-fix
+Date: Mon, 2 Nov 2026 10:48:45 +0000
 
-Commit 38564710f443 ("mm: implement and use vma_has_anon_rmap(), silence
-KCSAN") rather clumsily converted the read of vma->anon_vma into a
-vma_has_anon_rmap() without accounting for the separation between
-assignment of anon_vma and later use of it.
+reduce ifdeffery
 
-vma_has_anon_rmap() is intended as an optimistic check, so doesn't need to
-protect against a torn read in vma->anon_vma. The caller is expected to
-take care of this themselves if they then in fact access the field.
-
-validate_mm() does indeed then reference the field, so resolve the issue
-via READ_ONCE(), and simplify the code by separating this into a new
-function validate_mm_anon_rmap().
-
-Finally, add a vma_assert_stabilised() to make it clear the required state
-of the VMA.
-
-Link: https://lore.kernel.org/20261102-fix-validate_mm-v1-1-5c309614ef15@kernel.org
-Fixes: 38564710f443 ("mm: implement and use vma_has_anon_rmap(), silence KCSAN")
-Signed-off-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
+Link: https://lore.kernel.org/auhn01dpDzK47igy@thinkstation
+Signed-off-by: Kiryl Shutsemau <kas@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Reported-by: <syzbot+10e72ea5747737bcd2ad@syzkaller.appspotmail.com>
-Closes: https://lore.kernel.org/all/6ae78418.6552420f.2a0efc.005c.GAE@google.com/
-Reported-by: Songsen Yang <yangsongsen@insta360.com>
-Closes: https://lore.kernel.org/all/20261102074414.10902-1-yangsongsen@insta360.com/
-Cc: Liam R. Howlett <liam@infradead.org>
-Cc: Vlastimil Babka <vbabka@kernel.org>
-Cc: Jann Horn <jannh@google.com>
-Cc: Pedro Falcato <pfalcato@suse.de>
-Cc: Kiryl Shutsemau <kas@kernel.org>
 Cc: David Hildenbrand <david@kernel.org>
+Cc: Jann Horn <jannh@google.com>
 Cc: Lance Yang <lance.yang@linux.dev>
+Cc: Liam R. Howlett <liam@infradead.org>
+Cc: "Lorenzo Stoakes (ARM)" <ljs@kernel.org>
+Cc: Pedro Falcato <pfalcato@suse.de>
+Cc: Songsen Yang <yangsongsen@insta360.com>
+Cc: <syzbot+10e72ea5747737bcd2ad@syzkaller.appspotmail.com>
+Cc: Vlastimil Babka <vbabka@kernel.org>
 ---
 
- mm/vma.c |   36 ++++++++++++++++++++++++------------
- 1 file changed, 24 insertions(+), 12 deletions(-)
+ include/linux/mm.h |    2 --
+ mm/vma.c           |   12 +++++-------
+ 2 files changed, 5 insertions(+), 9 deletions(-)
 
---- a/mm/vma.c~mm-vma-read-anon_vma-carefully-in-validate_mm
+--- a/include/linux/mm.h~mm-vma-read-anon_vma-carefully-in-validate_mm-fix
++++ a/include/linux/mm.h
+@@ -4370,9 +4370,7 @@ anon_rmap_tree_iter_first(struct anon_vm
+ struct anon_vma_chain *
+ anon_rmap_tree_iter_next(struct anon_vma_chain *avc,
+ 			 pgoff_t pgoff_start, pgoff_t pgoff_last);
+-#ifdef CONFIG_DEBUG_VM_RB
+ void anon_rmap_tree_verify(struct anon_vma_chain *avc);
+-#endif
+ 
+ #define anon_rmap_tree_foreach(avc, anon_vma, pgoff_start, pgoff_last)		 \
+ 	for (avc = anon_rmap_tree_iter_first(anon_vma, pgoff_start, pgoff_last); \
+--- a/mm/vma.c~mm-vma-read-anon_vma-carefully-in-validate_mm-fix
 +++ a/mm/vma.c
-@@ -669,6 +669,28 @@ static int dup_anon_vma(struct vm_area_s
+@@ -669,14 +669,17 @@ static int dup_anon_vma(struct vm_area_s
  }
  
  #ifdef CONFIG_DEBUG_VM_MAPLE_TREE
-+#ifdef CONFIG_DEBUG_VM_RB
-+static void validate_mm_anon_rmap(struct vm_area_struct *vma)
-+{
-+	struct anon_vma *anon_vma = READ_ONCE(vma->anon_vma);
-+	struct anon_vma_chain *avc;
-+
-+	vma_assert_stabilised(vma);
-+
-+	if (!anon_vma)
+-#ifdef CONFIG_DEBUG_VM_RB
+ static void validate_mm_anon_rmap(struct vm_area_struct *vma)
+ {
+-	struct anon_vma *anon_vma = READ_ONCE(vma->anon_vma);
++	struct anon_vma *anon_vma;
+ 	struct anon_vma_chain *avc;
+ 
++	if (!IS_ENABLED(CONFIG_DEBUG_VM_RB))
 +		return;
 +
-+	anon_vma_lock_read(anon_vma);
-+	list_for_each_entry(avc, &vma->anon_vma_chain, same_vma)
-+		anon_rmap_tree_verify(avc);
-+	anon_vma_unlock_read(anon_vma);
-+}
-+#else
-+static void validate_mm_anon_rmap(struct vm_area_struct *vma)
-+{
-+}
-+#endif
-+
+ 	vma_assert_stabilised(vma);
+ 
++	anon_vma = READ_ONCE(vma->anon_vma);
+ 	if (!anon_vma)
+ 		return;
+ 
+@@ -685,11 +688,6 @@ static void validate_mm_anon_rmap(struct
+ 		anon_rmap_tree_verify(avc);
+ 	anon_vma_unlock_read(anon_vma);
+ }
+-#else
+-static void validate_mm_anon_rmap(struct vm_area_struct *vma)
+-{
+-}
+-#endif
+ 
  void validate_mm(struct mm_struct *mm)
  {
- 	int bug = 0;
-@@ -678,10 +700,6 @@ void validate_mm(struct mm_struct *mm)
- 
- 	mt_validate(&mm->mm_mt);
- 	for_each_vma(vmi, vma) {
--#ifdef CONFIG_DEBUG_VM_RB
--		struct anon_vma *anon_vma = vma->anon_vma;
--		struct anon_vma_chain *avc;
--#endif
- 		unsigned long vmi_start, vmi_end;
- 		bool warn = 0;
- 
-@@ -702,14 +720,8 @@ void validate_mm(struct mm_struct *mm)
- 			vma_iter_dump_tree(&vmi);
- 		}
- 
--#ifdef CONFIG_DEBUG_VM_RB
--		if (vma_has_anon_rmap(vma)) {
--			anon_vma_lock_read(anon_vma);
--			list_for_each_entry(avc, &vma->anon_vma_chain, same_vma)
--				anon_rmap_tree_verify(avc);
--			anon_vma_unlock_read(anon_vma);
--		}
--#endif
-+		validate_mm_anon_rmap(vma);
-+
- 		/* Check for a infinite loop */
- 		if (++i > mm->map_count + 10) {
- 			i = -1;
 _
 
-Patches currently in -mm which might be from ljs@kernel.org are
+Patches currently in -mm which might be from kas@kernel.org are
 
-mm-vma-fix-expansion-of-vma_mixedmap_bit-vmas.patch
-mm-do-not-unintentionally-overwrite-atomic-vma-flags.patch
-mm-vma-avoid-losing-atomic-vma-flags-when-setting-sticky-vma-flags.patch
-mm-vma-update-vma-iterator-state-on-error-in-new-vma-merge.patch
-fs-proc-task_mmu-fix-missed-vmas-when-reading-proc-pid-maps-and-friends.patch
-mm-vma-read-anon_vma-carefully-in-validate_mm.patch
+mm-hugetlb_vmemmap-map-the-shared-tail-page-writable.patch
+mm-vma-read-anon_vma-carefully-in-validate_mm-fix.patch
 
