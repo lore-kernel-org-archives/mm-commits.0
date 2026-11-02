@@ -1,43 +1,46 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793633364;
-	b=wY0/zJ01wlqy5qmDAMPYKHgeKnUUmmafYub6Rf/2k1meTOvtnm2jSbzvyO0ejXxKeA2s
-	 hs/s++ufq8Tgaedkk+osVg/ijHLpAtzdxIBiqol7mPgLIWgcePumN6RzaTfIHL+W9EhMN
-	 GcTtRUG0U3C1+np31orLDpkGB/gxtq5aE0sSQrGB2e86xD7q4ieA7wXp4Ho8tXJk3/FCq
-	 IiQkkVZHGxj+c0wqE8xdX+ZSANjgrJ1Zd317al8DordE7MHo0oFI5IvRBUHGSo/PxSFKe
-	 5qCcfxux8YGsyIVq/vf31DrQal3HEs6qAnUJDtXnQmeKAAOCpxNMAin7+6CfsWUHZLg==
+	t=1793640154;
+	b=0g+MYQqrdXw2FRSigK5nZBqBFgmj6iSBiNRmuaY4K1NLoc4+eA9YVIUv8vECGrRTLXaB
+	 VDdT64pTGdDrnL8GKiA//wsTtCFXQG7a4GZ4/PnfOgoM9MOltlsQetnZGgmZLBXUS4fTs
+	 O0hXl7jWELk25a/SUJ6h5wVQiLTEd648kJFE2a3V46QYrw41LTQgnsmzigeY24dUX8Z+n
+	 fKopuaBFzrsv2dC6+ljwsC7f5yhoRvF57ekAQkoL2s11c8wXk5bbWfHhYtgvOdimlUYvg
+	 Ccj+nTSnCa00BZ3NIeGaUWWKdfmaF+pXPK7H8hKmkQs52KZ6LcaX91WarS/cRb+piGA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793633364;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793640154;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=bnCyI5uGFtn9RHe75cGgPIK8StUpPFt5c7ZKI1cHgPk=;
-	b=Hy1bi90AR8YSHobKlnFgAVvoGGnmTMDxKEJ3N1XWahmRoIPBqHHQPjls5iX7Foaw1Ic3
-	 ZiI9r1MjL7Z1lFgbSkcon2HeFp4AQOUIQuWbTKWdt5FbZwZ1juQhqKmVyBVuMxhDSQNUe
-	 j5qVhbx9PeTGXvtFFuDFtdNIkGt6v4mV2E/FyXIi70Wvhnt3/pCyGnMPfIyV80WZuJCPf
-	 FTzDbr7X01/jU9FkzDKLJe4pWfB0WuSLPJ3nIDxL/MhIHqoe4TtZhcpzgMG3BChmOSc5b
-	 VJRgfYT27ZzcHh/gCvqQT1ixQNWCXQrW9ZSzk8kjiEzD5SHmiCp6wutMRic4xFJ9KKg==
+	bh=WlX270F3npf3jYQyTbjXF7gI4rs8nokd2Stlv5Sa2ws=;
+	b=Cybtdo2l+FwiBBtGBk/W6ZO5JD9+9xbp6OhTorS5aWgsBIaSbUtJw7eL2BNNc1TnKYqp
+	 9bT07kMZjLgMzJLoiIK1e4JW7X2qMobMoCP61Pfa4+Iy7ySeKfuOf7qg9BfFTwo0qfPYq
+	 SqBjVfCwJtuX/5YoseBi3kHJwkrIEOvAp0U1Gwz/SZd2LZbiLHNgSRXLwC/IlTjBEOx1v
+	 IYJPs/Hb5PBrkSj6veGZaAuegHQJYSHle+6FPtDHYEfWdyoAehTeMGgcnjaccxF8VY4Ro
+	 pgI/6TIcZpqzSn4CDhQthJUvMRSac2v7wjutArFpTblqLc46K7L/ZCknayJxSLAYZ0g==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=WiY7u3pP;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BAC29606AB8B;
-	Mon,  2 Nov 2026 15:29:23 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 502EF1F00A16;
-	Mon,  2 Nov 2026 15:29:23 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 881BE606B1CD
+	for <mm-commits@vger.kernel.org>; Mon,  2 Nov 2026 17:22:34 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=WiY7u3pP
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id EC4CA1F00A16;
+	Mon,  2 Nov 2026 17:22:33 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1793633363;
-	bh=bnCyI5uGFtn9RHe75cGgPIK8StUpPFt5c7ZKI1cHgPk=;
+	d=linux-foundation.org; s=korg; t=1793640154;
+	bh=WlX270F3npf3jYQyTbjXF7gI4rs8nokd2Stlv5Sa2ws=;
 	h=Date:To:From:Subject;
-	b=D81NOHqrDVGMSE0LVhQvFoY4UTCqN0h2r+X8dSNJmmUFoAefqhYasbCuU1sZFjNFf
-	 wO5qouFc9R9F4N9xKsAZ+kt9aIjt10lbP6H7PNIbX8uGso5seW4FlUZTr1TE3Y6bp1
-	 u5dqBsGKdFWgjZ187ntZoFWMRmy0MgKfgoK1XH68=
-Date: Mon, 02 Nov 2026 07:29:20 -0800
-To: mm-commits@vger.kernel.org,stable@vger.kernel.org,david@kernel.org,
-	baoquan.he@linux.dev,urezki@gmail.com,akpm@linux-foundation.org
+	b=WiY7u3pPGNkhxQ87mw/XXVN0EkhFbNlw9nsP9gSs1kUCYF6aWU0EZRM3fYQrTGTOa
+	 rOVCMIeaahnn3tOWWtFexmVjl+Y5bpLruV+KRmo7kGYiNDLe7Y/oIJkQWEkhJpCSSW
+	 RR8jNU5CYVrov6vlQK9m8JVd8TxVLRSyEQsrNBZE=
+Date: Mon, 02 Nov 2026 09:22:23 -0800
+To: mm-commits@vger.kernel.org,sj@kernel.org,suhaas@s-joshi.in,
+	akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [to-be-updated] mm-vmalloc-bail-out-if-in-softirq-context.patch removed from -mm tree
-Message-Id: <20261102152923.502EF1F00A16@smtp.kernel.org>
+Subject: + mm-damon-core-use-only-installed-probe-in-damon_merge_two_regions.patch added to mm-new branch
+Message-Id: <20261102172233.EC4CA1F00A16@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -48,78 +51,180 @@ List-Owner: <mailto:mm-commits+owner@vger.kernel.org>
 Precedence: list
 
 
-The quilt patch titled
-     Subject: mm/vmalloc: bail out if in softirq context
-has been removed from the -mm tree.  Its filename was
-     mm-vmalloc-bail-out-if-in-softirq-context.patch
+The patch titled
+     Subject: mm/damon/core: use only installed probe in damon_merge_two_regions()
+has been added to the -mm mm-new branch.  Its filename is
+     mm-damon-core-use-only-installed-probe-in-damon_merge_two_regions.patch
 
-This patch was dropped because an updated version will be issued
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-core-use-only-installed-probe-in-damon_merge_two_regions.patch
+
+This patch will later appear in the mm-new branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Note, mm-new is a provisional staging ground for work-in-progress
+patches, and acceptance into mm-new is a notification for others take
+notice and to finish up reviews.  Please do not hesitate to respond to
+review feedback and post updated versions to replace or incrementally
+fixup patches in mm-new.
+
+The mm-new branch of mm.git is not included in linux-next
+
+If a few days of testing in mm-new is successful, the patch will me moved
+into mm.git's mm-unstable branch, which is included in linux-next
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via various
+branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there most days
 
 ------------------------------------------------------
-From: "Uladzislau Rezki (Sony)" <urezki@gmail.com>
-Subject: mm/vmalloc: bail out if in softirq context
-Date: Mon, 26 Oct 2026 11:25:03 +0100
+From: Suhaas Joshi <suhaas@s-joshi.in>
+Subject: mm/damon/core: use only installed probe in damon_merge_two_regions()
+Date: Mon, 02 Nov 2026 07:37:51 -0800
 
-vmalloc() is not allowed to be invoked from the NMI, hard-irq and softirq
-contexts because doing so may deadlock on internal locks.
+Patch series "mm/damon/core: iterate over installed probes instead of
+DAMON_MAX_PROBES", v5.
 
-Commit 04aa71da5f35 ("mm/vmalloc: do not trigger BUG() on BH disabled
-context") replaced the deprecated in_interrupt() macro with explicit
-in_nmi() and in_hardirq() checks, but unintentionally dropped the softirq
-context check.
+There were two "todo: " items of the same nature in mm/damon/core.c.
+Both of these suggested that we should iterate over only installed
+probes while updating (last_)probe_hits[] during merging/splitting
+regions, instead of iterating over the entire array, which may have
+empty/unused indices.
 
-Example:
+So this patch series does exactly that. It replaces the for-loop over
+[0, DAMON_MAX_PROBES) with a damon_for_each_probe() over the probe list
+of the context.
 
-<snip>
-vzalloc() in a task
- spin_lock(&vn->busy.lock)
-  <------ Hard irq
-   irq_exit()
-    process softirq on the same CPU
-     vmalloc()
-      spin_lock(&vn->busy.lock)
-       spins forever
-<snip>
+Reviewer note.
 
-Restore the check by checking the caller's context with the
-in_serving_softirq() helper.  Note that, it is still allowed to invoke
-vmalloc() with disabled bottom halves.
+These patches are based off mm-new. They pass all KUnit tests related to
+damon. I have boot tested (but nothing beyond) on qemu-x86_64. Please do
+let me know if I should do any specific tests and link the logs here.
 
-Replace BUG_ON() with WARN_ON_ONCE() for in_nmi() and
-in_hardirq() case.
+The series has been tested with mm-new fetched on Oct 14, 2026.
 
-Link: https://lore.kernel.org/20261026102503.30860-1-urezki@gmail.com
-Fixes: 04aa71da5f35 ("mm/vmalloc: do not trigger BUG() on BH disabled context")
-Signed-off-by: Uladzislau Rezki (Sony) <urezki@gmail.com>
+
+This patch (of 2):
+
+While merging 2 regions, we iterate over the entire probe_hits[] array,
+whose size is determined by the DAMON_MAX_PROBES macro. However, it is
+possible that we have fewer probes installed than DAMON_MAX_PROBES. In such
+cases, we end up making redundant iterations. Therefore, to remedy this,
+iterate over the list of installed probes instead of iterating over the
+entire array. For doing this, start accepting a struct damon_ctx in
+damon_merge_two_regions(), and update calling functions to pass this
+argument.
+
+Update the damon_test_merge_two() test to use this new signature for
+damon_merge_two_regions() as well.
+
+Link: https://lore.kernel.org/20261102153753.97769-1-sj@kernel.org
+Link: https://lore.kernel.org/20261102153753.97769-2-sj@kernel.org
+Signed-off-by: Suhaas Joshi <suhaas@s-joshi.in>
+Signed-off-by: SJ Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Reviewed-by: Baoquan He <baoquan.he@linux.dev>
-Cc: David Hildenbrand (Arm) <david@kernel.org>
-Cc: <stable@vger.kernel.org>
+Reviewed-by: SJ Park <sj@kernel.org>
 ---
 
- mm/vmalloc.c |    8 +++++++-
- 1 file changed, 7 insertions(+), 1 deletion(-)
+ mm/damon/core.c             |   15 ++++++++++-----
+ mm/damon/tests/core-kunit.h |   20 ++++++++++++++++++--
+ 2 files changed, 28 insertions(+), 7 deletions(-)
 
---- a/mm/vmalloc.c~mm-vmalloc-bail-out-if-in-softirq-context
-+++ a/mm/vmalloc.c
-@@ -3258,7 +3258,13 @@ struct vm_struct *__get_vm_area_node(uns
- 	struct vm_struct *area;
- 	unsigned long requested_size = size;
+--- a/mm/damon/core.c~mm-damon-core-use-only-installed-probe-in-damon_merge_two_regions
++++ a/mm/damon/core.c
+@@ -3554,20 +3554,25 @@ static void damon_verify_merge_two_regio
+ /*
+  * Merge two adjacent regions into one region
+  */
+-static void damon_merge_two_regions(struct damon_target *t,
+-		struct damon_region *l, struct damon_region *r)
++static void damon_merge_two_regions(struct damon_ctx *ctx,
++		struct damon_target *t, struct damon_region *l,
++		struct damon_region *r)
+ {
+ 	unsigned long sz_l = damon_sz_region(l), sz_r = damon_sz_region(r);
+ 	int i;
++	struct damon_probe *p;
  
--	BUG_ON(in_nmi() || in_hardirq());
-+	/* IRQ re-entrancy -> irq_exit() -> process softirq. */
-+	if (in_serving_softirq())
-+		return NULL;
+ 	l->nr_accesses = (l->nr_accesses * sz_l + r->nr_accesses * sz_r) /
+ 			(sz_l + sz_r);
+ 	l->age = (l->age * sz_l + r->age * sz_r) / (sz_l + sz_r);
+ 	l->ar.end = r->ar.end;
+-	/* todo: do this for only installed probes */
+-	for (i = 0; i < DAMON_MAX_PROBES; i++)
 +
-+	if (WARN_ON_ONCE(in_nmi() || in_hardirq()))
-+		return NULL;
++	i = 0;
++	damon_for_each_probe(p, ctx) {
+ 		l->probe_hits[i] = (l->probe_hits[i] * sz_l + r->probe_hits[i]
+ 				* sz_r) / (sz_l + sz_r);
++		++i;
++	}
+ 	damon_verify_merge_two_regions(l, r);
+ 	damon_destroy_region(r, t);
+ }
+@@ -3620,7 +3625,7 @@ static void damon_merge_regions_of(struc
+ 			goto set_prev_continue;
+ 		if (damon_sz_region(prev) + damon_sz_region(r) > sz_limit)
+ 			goto set_prev_continue;
+-		damon_merge_two_regions(t, prev, r);
++		damon_merge_two_regions(ctx, t, prev, r);
+ 		continue;
+ set_prev_continue:
+ 		prev = r;
+--- a/mm/damon/tests/core-kunit.h~mm-damon-core-use-only-installed-probe-in-damon_merge_two_regions
++++ a/mm/damon/tests/core-kunit.h
+@@ -182,6 +182,8 @@ static void damon_test_merge_two(struct
+ {
+ 	struct damon_target *t;
+ 	struct damon_region *r, *r2, *r3;
++	struct damon_probe *p;
++	struct damon_ctx *ctx;
+ 	int i;
+ 
+ 	t = damon_new_target();
+@@ -206,7 +208,21 @@ static void damon_test_merge_two(struct
+ 	r2->age = 21;
+ 	damon_add_region(r2, t);
+ 
+-	damon_merge_two_regions(t, r, r2);
++	p = damon_new_probe();
++	if (!p) {
++		damon_free_target(t);
++		kunit_skip(test, "probe alloc fail");
++	}
++	ctx = damon_new_ctx();
++	if (!ctx) {
++		damon_destroy_probe(p);
++		damon_free_target(t);
++		kunit_skip(test, "context alloc fail");
++	}
++	damon_add_probe(ctx, p);
++	damon_add_target(ctx, t);
 +
- 	size = ALIGN(size, 1ul << shift);
- 	if (unlikely(!size))
- 		return NULL;
++	damon_merge_two_regions(ctx, t, r, r2);
+ 	KUNIT_EXPECT_EQ(test, r->ar.start, 0ul);
+ 	KUNIT_EXPECT_EQ(test, r->ar.end, 300ul);
+ 	KUNIT_EXPECT_EQ(test, r->nr_accesses, 16u);
+@@ -220,7 +236,7 @@ static void damon_test_merge_two(struct
+ 	}
+ 	KUNIT_EXPECT_EQ(test, i, 1);
+ 
+-	damon_free_target(t);
++	damon_destroy_ctx(ctx);
+ }
+ 
+ static struct damon_region *__nth_region_of(struct damon_target *t, int idx)
 _
 
-Patches currently in -mm which might be from urezki@gmail.com are
+Patches currently in -mm which might be from suhaas@s-joshi.in are
 
-mm-vmalloc-use-dedicated-unbound-workqueues-for-vmap-drain.patch
+mm-damon-core-use-only-installed-probe-in-damon_merge_two_regions.patch
 
