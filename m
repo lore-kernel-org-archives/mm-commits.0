@@ -1,48 +1,48 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793646443;
-	b=tCiYtdkjLZyMaaxlsQNNHFw329v/GEl3B3DW+wXzpEneCqStQ4RdgQCu0Q/AKa3sf9N9
-	 dg6LHmhnayOUlHCrZugQCkp4ktz/izxeHdzcstq4ZNSWKB1M31B/B8FpqFPX+ufEm3PYX
-	 kk0UdgKHvKRmufXeP+UfBEMgfGaTpBCBOBoHXfV/76NuTuvmeQWEBYYW3qQ2tE1PRVCZV
-	 /jRyHojJ4jkInzjTtuSLxHEbud2wPdL/fK/QTUWKSr/1fU8zWvJ27nwS3Gnky+JIgA3Os
-	 +wnF7plJY9i3pQRER3uk6mCrm2mhnPqaKLGsyVOfQlmjgAbWSnMK1BYYv6wyKyMdZlg==
+	t=1793647420;
+	b=Uqg+/y+M51Utgc0/BuRGa9WnXdEZd1tLIW7iW1ibQuHq3bdUOIEMffgDKd14NCQLnoEQ
+	 Q8QAXGA49tltYs4zPx3FVdtoUf+ES3NPcn1dl4GnYbeAlwEpQlOBiAnl/+zNR4xNrhzmf
+	 dbJSfGz6Fochpgg6HpnByh7mbEec7gTfFYbYh3WSVS57MgfR2LvHATcEVeh0Ug2gGc4LC
+	 crbNcHupFiFweWUZGUaQK6oNBzetFrkOHIo+aftAVN2GQdOSkeFeWa6DwliINxii8x6KY
+	 BpF5/d/Osw+8PFg1XrSy+KQp6OHsTF+8TFS24DhSghvHd0tf5Sz9/Nv+NQcvXo11VXA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793646443;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793647420;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=RtbW4FDNpuayij/Rdp3+zUcFoZ1lF+iD1jkd5vpTCqQ=;
-	b=Wm7ES9Dh5Q7u/JXn/oAZsfwJUo5LH/0YFd3dtsxOPDlRVxTLRwaYhsVC76crKJ7wStsK
-	 pUgJJnmetqjkk7iBL2w4rKpFtohaA+7VtmIXhllViYcO1xaxkE1kM4S1NxDYYCkYXCEy9
-	 /jH3MJFQHJMSs9AllLdQxx2ffB8WVUCOrCPM3gB6evCSRv1c3d/Xgkje83nqjOwNMKck2
-	 JAQzzx48K+kRmPApW+Myk6Yp8/Kpb65c0vp9q8dWK+gjZi2TktgHRFAwqEEQMRKsuM5vw
-	 l46KQv+rGNO8Vc/hQedfQBQjKKTvJgNd928EVW+3CQo9pRuxcKIEgqzD2ysGE8u7fFQ==
+	bh=4x+2NVR8vDJua0RYV5Mmc+P9RL2MBDSKIkIdtd5VFAM=;
+	b=1kW9rCDfc5UOVZo1ISf+9xQ27V+FvL0fRKwhkCOqgVa8jhMkKC3dcVlxwT1VfKYDU3eu
+	 rWZyJSBF+5Yo2bXhBrUE3m5iN2jg1XA0ovEidzCdqwr5BNIhhgOAwG62NYwNJNsJmo0cY
+	 3+yIGADYxNleF2mucpPUg07gikwGUgRVSmjqmVDQQhXJJuVF9Zok9tA9wiuU8XkZ/ntQB
+	 MEvl1cNTcrOdZF8jom4FVZV52yTuoq+qTVt8gpNRPGO+h/NPDysMW6c9FYyKQtcKvUUri
+	 jN/r7mzoK4S1dDA1j3DQrFhuyoTkIWvgUCJUkBr+3kCEnsXLYtHYOiU7CeSy+lpJQtg==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=hDwX57AP;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=cdWsjqeD;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3FD61606A327
-	for <mm-commits@vger.kernel.org>; Mon,  2 Nov 2026 19:07:22 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 08491606A324;
+	Mon,  2 Nov 2026 19:23:39 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=hDwX57AP
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 990AD1F00A16;
-	Mon,  2 Nov 2026 19:07:22 +0000 (UTC)
+	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=cdWsjqeD
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7433F1F00A16;
+	Mon,  2 Nov 2026 19:23:39 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1793646442;
-	bh=RtbW4FDNpuayij/Rdp3+zUcFoZ1lF+iD1jkd5vpTCqQ=;
+	d=linux-foundation.org; s=korg; t=1793647419;
+	bh=4x+2NVR8vDJua0RYV5Mmc+P9RL2MBDSKIkIdtd5VFAM=;
 	h=Date:To:From:Subject;
-	b=hDwX57APpz3iAodgxnl6yoNPgq/2hevuzQZwVbqE9j03P2D5Njqap/eT3qdBRRWS7
-	 gZBIjRrp5WTXuiSirutikvmYhojf5T52JoDEByulU0UbNvKhiIMd9E2JckUaWTy9mG
-	 kLHzoVjmx9xhLgDpVaELPPgOIKNKyqKtnKQsD6kI=
-Date: Mon, 02 Nov 2026 11:07:12 -0800
-To: mm-commits@vger.kernel.org,willy@infradead.org,vbabka@kernel.org,
-	surenb@google.com,rppt@kernel.org,mhocko@suse.com,ljs@kernel.org,
-	liam@infradead.org,jack@suse.cz,hughd@google.com,david@kernel.org,
-	baolin.wang@linux.alibaba.com,odys.yuan@gmail.com,akpm@linux-foundation.org
+	b=cdWsjqeDbZY+afGIzNGuSWF9tcbeIbAye7cNgHJ/SMqK6tVa2yhhCFvIr3UUF3QAc
+	 MsERn4qGpSvMIn8g9Df3wre5IKlD4UpKjdriVZBxYUmM9hnfIb8SwayS4eahSxafNC
+	 xu3xKPml4F6/c2AnBpbtbeFptD1wKo8yyYm72g+M=
+Date: Mon, 02 Nov 2026 11:23:33 -0800
+To: mm-commits@vger.kernel.org,
+	syzbot+91e1fc35f51774c479b2@syzkaller.appspotmail.com,stable@vger.kernel.org,
+	osalvador@suse.de,muchun.song@linux.dev,lihongbo22@huawei.com,
+	david@kernel.org,joasantonio108@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-shmem-remove-truncated-folios-from-the-page-cache-in-batches.patch added to mm-new branch
-Message-Id: <20261102190722.990AD1F00A16@smtp.kernel.org>
+Subject: [to-be-updated] hugetlbfs-move-hugetlbfs_free_inode-tracepoint-to-destroy_inode.patch removed from -mm tree
+Message-Id: <20261102192339.7433F1F00A16@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -53,150 +53,106 @@ List-Owner: <mailto:mm-commits+owner@vger.kernel.org>
 Precedence: list
 
 
-The patch titled
-     Subject: mm/shmem: remove truncated folios from the page cache in batches
-has been added to the -mm mm-new branch.  Its filename is
-     mm-shmem-remove-truncated-folios-from-the-page-cache-in-batches.patch
+The quilt patch titled
+     Subject: hugetlbfs: move hugetlbfs_free_inode tracepoint to ->destroy_inode()
+has been removed from the -mm tree.  Its filename was
+     hugetlbfs-move-hugetlbfs_free_inode-tracepoint-to-destroy_inode.patch
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-shmem-remove-truncated-folios-from-the-page-cache-in-batches.patch
-
-This patch will later appear in the mm-new branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Note, mm-new is a provisional staging ground for work-in-progress
-patches, and acceptance into mm-new is a notification for others take
-notice and to finish up reviews.  Please do not hesitate to respond to
-review feedback and post updated versions to replace or incrementally
-fixup patches in mm-new.
-
-The mm-new branch of mm.git is not included in linux-next
-
-If a few days of testing in mm-new is successful, the patch will me moved
-into mm.git's mm-unstable branch, which is included in linux-next
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via various
-branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there most days
+This patch was dropped because an updated version will be issued
 
 ------------------------------------------------------
-From: Qiliang Yuan <odys.yuan@gmail.com>
-Subject: mm/shmem: remove truncated folios from the page cache in batches
-Date: Thu, 29 Oct 2026 23:44:57 -0400
+From: Joas Antonio dos Santos <joasantonio108@gmail.com>
+Subject: hugetlbfs: move hugetlbfs_free_inode tracepoint to ->destroy_inode()
+Date: Sun, 01 Nov 2026 13:48:55 +0000
 
-truncate_inode_pages_range() takes the folios it finds out of the page
-cache with delete_from_page_cache_batch(), which takes the inode's i_lock
-and the i_pages lock once for each batch of up to FOLIO_BATCH_SIZE folios.
+hugetlbfs_free_inode() calls trace_hugetlbfs_free_inode(), and the
+hugetlbfs__inode event class records inode->i_sb->s_dev.  ->free_inode()
+runs from an RCU callback (destroy_inode() queues i_callback() with
+call_rcu()), and Documentation/filesystems/porting.rst says that this
+callback "is *NOT* ordered wrt superblock destruction; as the matter of
+fact, the superblock and all associated structures might be already gone".
+put_super() frees the superblock with call_rcu() followed by a workqueue
+item (destroy_super_rcu() -> destroy_super_work()).  syzbot hit this with
+the event enabled:
 
-shmem_undo_range() calls truncate_inode_folio() on each folio instead, so
-filemap_remove_folio() takes and drops both locks once per folio. 
-Truncating, punching or freeing a tmpfs file or memfd made of small
-folios, such as a large /dev/shm segment, pays for that on every page.
+  BUG: KASAN: slab-use-after-free in trace_event_raw_event_hugetlbfs__inode+0x45b/0x4c0 include/trace/events/hugetlbfs.h:36
+  Read of size 4 at addr ffff888038850010 by task syz-executor952/6134
+   hugetlbfs_free_inode+0x15e/0x1f0 fs/hugetlbfs/inode.c:1182
+   i_callback+0x46/0x80 fs/inode.c:317
+   rcu_do_batch kernel/rcu/tree.c:2650 [inline]
+   rcu_core+0x5f0/0x1220 kernel/rcu/tree.c:2919
+  Allocated by task 6134:
+   alloc_super fs/super.c:326 [inline]
+   sget_fc+0x1ba/0x1f60 fs/super.c:874
+   hugetlbfs_get_tree+0x1e7/0x2b0 fs/hugetlbfs/inode.c:1431
+  Freed by task 855:
+   kfree+0x22b/0x6d0 mm/slub.c:6923
+   process_one_work+0xac7/0x1b10 kernel/workqueue.c:3495
 
-Clean each folio up as truncate_inode_folio() does, collect the ones to
-remove and take them out with delete_from_page_cache_batch(), which needs
-truncate_cleanup_folio() outside mm/truncate.c.  Swap entries, and the
-folios kept when undoing a failed fallocate(), stay out of the batch. 
-Dropping an 8 GiB file of 4K folios, median of five runs, averaged over
-two boots of each kernel, in a 32 vCPU VM:
+Emit the event from hugetlbfs_destroy_inode() instead.  destroy_inode()
+calls ->destroy_inode() synchronously, before it queues the RCU callback,
+while the superblock is still alive; hugetlbfs_destroy_inode() already
+dereferences inode->i_sb there.  ->free_inode() is left with only the
+kmem_cache_free().
 
-                        before    after
-  ftruncate() to 0     1163 ms   913 ms
-  hole punch           1155 ms   914 ms
-  close() of a memfd   1161 ms   914 ms
-  unlink()             1162 ms   916 ms
+Since the event no longer fires from ->free_inode(), rename it to
+hugetlbfs_destroy_inode so that its name matches where it is emitted, as
+suggested by David and Muchun.
 
-Files of PMD-sized folios take 20-25 ms with or without this change.
+Found by syzbot; analysed and tested with the syzbot C reproducer on an
+arm64 KASAN kernel.
 
-Link: https://lore.kernel.org/20261029-bug-mm-shmem-undo-batch-v1-1-59b34212fe78@gmail.com
-Signed-off-by: Qiliang Yuan <odys.yuan@gmail.com>
+Link: https://lore.kernel.org/20261101-b4-hugetlbfs-trace-v3-1-051b716f490f@gmail.com
+Fixes: 014ad7c42a69 ("hugetlbfs: use tracepoints in hugetlbfs functions.")
+Signed-off-by: Joas Antonio dos Santos <joasantonio108@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Reviewed-by: Jan Kara <jack@suse.cz>
-Cc: David Hildenbrand <david@kernel.org>
-Cc: Lorenzo Stoakes <ljs@kernel.org>
-Cc: Liam R. Howlett <liam@infradead.org>
-Cc: Vlastimil Babka <vbabka@kernel.org>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Reported-by: <syzbot+91e1fc35f51774c479b2@syzkaller.appspotmail.com>
+Closes: https://lore.kernel.org/all/6ae27525.5451848c.f7707.0001.GAE@google.com/
+Suggested-by: David Hildenbrand <david@kernel.org>
+Suggested-by: Muchun Song <muchun.song@linux.dev>
+Reviewed-by: Muchun Song <muchun.song@linux.dev>
+Cc: Oscar Salvador <osalvador@suse.de>
+Cc: Hongbo Li <lihongbo22@huawei.com>
+Cc: <stable@vger.kernel.org>
 ---
 
- mm/internal.h |    1 +
- mm/shmem.c    |   16 +++++++++++++---
- mm/truncate.c |    2 +-
- 3 files changed, 15 insertions(+), 4 deletions(-)
+ fs/hugetlbfs/inode.c             |    6 +++++-
+ include/trace/events/hugetlbfs.h |    2 +-
+ 2 files changed, 6 insertions(+), 2 deletions(-)
 
---- a/mm/internal.h~mm-shmem-remove-truncated-folios-from-the-page-cache-in-batches
-+++ a/mm/internal.h
-@@ -630,6 +630,7 @@ unsigned find_lock_entries(struct addres
- 		pgoff_t end, struct folio_batch *fbatch, pgoff_t *indices);
- unsigned find_get_entries(struct address_space *mapping, pgoff_t *start,
- 		pgoff_t end, struct folio_batch *fbatch, pgoff_t *indices);
-+void truncate_cleanup_folio(struct folio *folio);
- int truncate_inode_folio(struct address_space *mapping, struct folio *folio);
- bool truncate_inode_partial_folio(struct folio *folio, loff_t lstart,
- 		loff_t lend, pgoff_t *pstart, pgoff_t *pend);
---- a/mm/shmem.c~mm-shmem-remove-truncated-folios-from-the-page-cache-in-batches
-+++ a/mm/shmem.c
-@@ -1352,6 +1352,9 @@ static void shmem_undo_range(struct inod
- 	index = start;
- 	while (index < end && find_lock_entries(mapping, &index, end - 1,
- 			&fbatch, indices)) {
-+		struct folio_batch remove;
-+
-+		folio_batch_init(&remove);
- 		for (i = 0; i < folio_batch_count(&fbatch); i++) {
- 			folio = fbatch.folios[i];
+--- a/fs/hugetlbfs/inode.c~hugetlbfs-move-hugetlbfs_free_inode-tracepoint-to-destroy_inode
++++ a/fs/hugetlbfs/inode.c
+@@ -1179,12 +1179,16 @@ static struct inode *hugetlbfs_alloc_ino
  
-@@ -1363,9 +1366,16 @@ static void shmem_undo_range(struct inod
- 				continue;
- 			}
- 
--			if (!unfalloc || !folio_test_uptodate(folio))
--				truncate_inode_folio(mapping, folio);
--			folio_unlock(folio);
-+			if (!unfalloc || !folio_test_uptodate(folio)) {
-+				truncate_cleanup_folio(folio);
-+				folio_batch_add(&remove, folio);
-+			}
-+		}
-+		delete_from_page_cache_batch(mapping, &remove);
-+		for (i = 0; i < folio_batch_count(&fbatch); i++) {
-+			folio = fbatch.folios[i];
-+			if (!xa_is_value(folio))
-+				folio_unlock(folio);
- 		}
- 		folio_batch_remove_exceptionals(&fbatch);
- 		folio_batch_release(&fbatch);
---- a/mm/truncate.c~mm-shmem-remove-truncated-folios-from-the-page-cache-in-batches
-+++ a/mm/truncate.c
-@@ -151,7 +151,7 @@ EXPORT_SYMBOL_GPL(folio_invalidate);
-  * its lock, b) when a concurrent invalidate_mapping_pages got there first and
-  * c) when tmpfs swizzles a page between a tmpfs inode and swapper_space.
-  */
--static void truncate_cleanup_folio(struct folio *folio)
-+void truncate_cleanup_folio(struct folio *folio)
+ static void hugetlbfs_free_inode(struct inode *inode)
  {
- 	if (folio_mapped(folio))
- 		unmap_mapping_folio(folio);
+-	trace_hugetlbfs_free_inode(inode);
+ 	kmem_cache_free(hugetlbfs_inode_cachep, HUGETLBFS_I(inode));
+ }
+ 
+ static void hugetlbfs_destroy_inode(struct inode *inode)
+ {
++	/*
++	 * Not in ->free_inode(): that runs from an RCU callback, when the
++	 * superblock the event reads may already be freed.
++	 */
++	trace_hugetlbfs_destroy_inode(inode);
+ 	hugetlbfs_inc_free_inodes(HUGETLBFS_SB(inode->i_sb));
+ }
+ 
+--- a/include/trace/events/hugetlbfs.h~hugetlbfs-move-hugetlbfs_free_inode-tracepoint-to-destroy_inode
++++ a/include/trace/events/hugetlbfs.h
+@@ -72,7 +72,7 @@ DEFINE_EVENT(hugetlbfs__inode, hugetlbfs
+ 	TP_ARGS(inode)
+ );
+ 
+-DEFINE_EVENT(hugetlbfs__inode, hugetlbfs_free_inode,
++DEFINE_EVENT(hugetlbfs__inode, hugetlbfs_destroy_inode,
+ 
+ 	TP_PROTO(struct inode *inode),
+ 
 _
 
-Patches currently in -mm which might be from odys.yuan@gmail.com are
+Patches currently in -mm which might be from joasantonio108@gmail.com are
 
-selftests-mm-track-the-modules-run_vmtestssh-loads.patch
-selftests-mm-load-xfs-before-checking-for-it-in-run_vmtestssh.patch
-word-at-a-time-check-the-first-byte-in-load_unaligned_zeropad.patch
-kasan-test-cover-load_unaligned_zeropad.patch
-mm-shmem-remove-truncated-folios-from-the-page-cache-in-batches.patch
 
