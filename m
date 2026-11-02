@@ -1,47 +1,49 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793645952;
-	b=5I5cd1ay38O/D/jivWJ8KxlHFI7Q5asQQs61JCZ9tK60Ffsb7OIsXqTPQHoZYCLdgNBn
-	 tUhpyqnxpxAmlRRq3o0uTMA0Ccl86By4hypZbnu5Zp7RBfaN3OT+dFtOURf39QTA/CMjm
-	 VplOP3mMrdBiuLpA3Vik/yMlXgd6a22HAgTZG8owrHvDH+/eEaELXSN8Dn0lr5vUxWKC/
-	 /+Zm3+ueC6X+GZXLgR4djR+ufgVmriTe/RNrgRm5PFZz8eZhwL7azKzfHKkB3ZTTWxZNb
-	 2PYGWL0wQQ+0WG+eopkXGzI2PxBJ/YCSJGRZTvCmfDf4bP9/VPE2tnSElbh5YLZ3gVg==
+	t=1793645963;
+	b=pvTk6R5GE3A2F8KCr9/csvVyWa3USkp4XJeeWedzyckSfiPEe6VTTVZoQzu2954pz2MA
+	 ZrfB7XTbuoqAR5N3221kQI7G1SiuRZx6rQI7pcEO6AfVMu8mv+ytZ1yP4O8ddSc/PQ0ls
+	 ciOXy6mfFFXQ2hD0qd1Q7aFLaZPdZrykobX0xPAXHRwcxjSll7cKjnn+EeWBPiJK0UQwr
+	 LeOCVB3+QxrEoGcwk/ZJM0uK0t4KsS3WKCckjhuv8s2giSBcZywf0CQiBXScbujY7VRTS
+	 HYsyakzhc6PGmfhopt6tXU0em8adCa+tFKPvA4UNhZafxTydfnegcxw/wIxgQFLl4ng==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793645952;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793645963;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=96LKreaXMlntEzmtxkbqmsh2x2E8Jn1R2laoCZLdONY=;
-	b=I2VJ55ZcIcbG8QYjJAg9R0vnhBGQwiSdA4T2QRP+/osrQt8+1CkuK1DQxvbY58gn35eF
-	 y8rp8EB4TPImibNwB5dYCcudB6sf1AWoUPnF2vCwfsJxt+n1F6Ql1KkTR8yg9oHkHWup8
-	 f9gMmvqD6OGU+wp3DSNRvy53pBlSkkqSLQQfwHAkZOmcz8iCHQStm+9HRXDLgnKs1So0C
-	 gek48MEjSX01O6By+XDlB6tze6pAY9KB53AMqJX7buAsblqMS+g0gnRkHPYmNMVLxkwtS
-	 MGhF6Jjn4iSU/O/78o3K/iq9bSN40fHS4tKLFLIlAinNQjyFeNcFP/LAnQd/USg1qvw==
+	bh=5mRtPrKiTj1NJfBurVT+6eR+VCtcqV1JQpewnXNZ3cg=;
+	b=aESWaB5l78lUwQqLRPvHzVsrDOuzt88tLRVbnjnEiCcsdRYY46u9Z13Mq9PNDAgQVuZD
+	 Ouxm2BxWr673hmnUXHZegF67MyqC3cJy7cfM/zxvzgydvvPvhlXqfjdoR15jhJZXLw5Wm
+	 jjOGNdpnCXeVf9brwIZqB+5X/4S58LmYVD5wn+DxtxFzG3QX0oSb28Iw64iYk1yBuatGj
+	 kgd/VrYh1g35kxqmAFqdUGkWLGcP/fG1hWt5Cx14fmqW99NilkAMXn0NHvKoA96deQAGG
+	 gvGbSPp+29iyWaeQTIiHQD8tWYgcwgZx2MomJsBV3VPyB2PpFB2sXBNA9Ic6061Y2gQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=iAysOjIA;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=NOKZgW1s;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 94C06606A324;
-	Mon,  2 Nov 2026 18:59:11 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 46FE9606A32C;
+	Mon,  2 Nov 2026 18:59:22 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=iAysOjIA
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 162C11F00A16;
-	Mon,  2 Nov 2026 18:59:11 +0000 (UTC)
+	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=NOKZgW1s
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id BA7D61F00A17;
+	Mon,  2 Nov 2026 18:59:22 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1793645951;
-	bh=96LKreaXMlntEzmtxkbqmsh2x2E8Jn1R2laoCZLdONY=;
+	d=linux-foundation.org; s=korg; t=1793645962;
+	bh=5mRtPrKiTj1NJfBurVT+6eR+VCtcqV1JQpewnXNZ3cg=;
 	h=Date:To:From:Subject;
-	b=iAysOjIA6sObnkEWfBgXTdtqMcvuP7AgNv81zGCA2ELCf8kMs4VIMUuO+X6OyP3lI
-	 8OdqdTbljJJPOtt9mHfKfQDyx4Be36kXDTimaCWwlHCpeE/Ak3zHy1+MPvrWilrhsv
-	 Ee18fdRdKD77t/Vgcuu8SGe4CIIdnlh0JDceZ7J0=
-Date: Mon, 02 Nov 2026 10:59:00 -0800
-To: mm-commits@vger.kernel.org,xiaoleiwangxiaolei@gmail.com,
-	stable@vger.kernel.org,sj@kernel.org,jm5905938@gmail.com,
+	b=NOKZgW1sjkpQYKELqiWvyyrVt/mnJU8xdVOai76a9hvJqh3SFSz5Yjhu88L8JfDs6
+	 Vb0D+d10k9cq9kSYCOMf6ek1mt8A1/WEGoUxsOCB49yiVywqMTCKzMIBoBHIPz/XFw
+	 ZU+B2q55wwXk1+WhisgG5B1EASCMRys4G7Bb6UYk=
+Date: Mon, 02 Nov 2026 10:59:12 -0800
+To: mm-commits@vger.kernel.org,vbabka@kernel.org,surenb@google.com,
+	stable@vger.kernel.org,sj@kernel.org,rppt@kernel.org,mhocko@suse.com,
+	liam@infradead.org,jm5905938@gmail.com,davidgow@davidgow.net,
+	brendan.higgins@linux.dev,xiaoleiwangxiaolei@gmail.com,
 	akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-damon-core-reset-watermark-wait-state-on-each-iteration.patch added to mm-new branch
-Message-Id: <20261102185911.162C11F00A16@smtp.kernel.org>
+Subject: + mm-damon-tests-sysfs-kunit-fix-leaked-pid-reference-in-add_targets-test.patch added to mm-new branch
+Message-Id: <20261102185922.BA7D61F00A17@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -53,12 +55,12 @@ Precedence: list
 
 
 The patch titled
-     Subject: mm/damon/core: reset watermark wait state on each iteration
+     Subject: mm/damon/tests/sysfs-kunit: fix leaked pid reference in add_targets test
 has been added to the -mm mm-new branch.  Its filename is
-     mm-damon-core-reset-watermark-wait-state-on-each-iteration.patch
+     mm-damon-tests-sysfs-kunit-fix-leaked-pid-reference-in-add_targets-test.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-core-reset-watermark-wait-state-on-each-iteration.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-tests-sysfs-kunit-fix-leaked-pid-reference-in-add_targets-test.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -87,74 +89,73 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Aveline Noir <jm5905938@gmail.com>
-Subject: mm/damon/core: reset watermark wait state on each iteration
-Date: Mon, 02 Nov 2026 06:46:24 -0800
+From: Wang Xiaolei <xiaoleiwangxiaolei@gmail.com>
+Subject: mm/damon/tests/sysfs-kunit: fix leaked pid reference in add_targets test
+Date: Mon, 02 Nov 2026 06:46:25 -0800
 
-Patch series "mm/damon: fix watermark state, kunit pid leak and selftest
-fake pass".
+damon_sysfs_test_add_targets() creates its monitoring context with
+damon_new_ctx(), which leaves ctx->ops zero-initialized.  Since
+DAMON_OPS_VADDR is zero, damon_target_has_pid() returns true for the
+context, and damon_sysfs_add_targets() therefore calls
+damon_set_target_pid() for each target it adds.  That function grabs a
+reference to the target's struct pid via find_get_pid().
 
-Three hotfixes for core, kunit and selftest.  Fix kdamond deactivation
-from missed watermark reset with patch 1.  Fix pid leak in kunit test
-with patch 2.  Fix a selftest wrongly passing when it should skip, with
-patch 3.
+The test then tears the context down with damon_destroy_ctx(), which
+releases such a reference from ctx->ops.cleanup_target().  For the vaddr
+operations set that callback is damon_va_cleanup_target(), and it is the
+only place where the reference is put.  The test never selects an
+operations set, though, so cleanup_target is NULL and both references --
+one for each of the two damon_sysfs_add_targets() calls -- are leaked on
+every run of the test.  Running the test with CONFIG_DEBUG_KMEMLEAK
+enabled reports the leaked struct pid objects as unreferenced.
 
-Note for reviewers.  This series is a collection of fixes that were
-initially developed by different people.  Changelog is in each patch.
+Fix this by selecting the vaddr operations set for the context before
+adding the targets, mirroring what the sysfs interface does.
+damon_select_ops() fails if the vaddr operations set is not registered,
+in which case the test cannot exercise the pid handling and skips
+itself.
 
-
-This patch (of 3):
-
-Found while reviewing the DAMON source code that if an online commit
-removes all schemes while kdamond is waiting for watermark activation,
-the scheme loop becomes empty but min_wait_time keeps the previous
-positive value.  kdamond then keeps sleeping instead of resuming
-monitoring without schemes.
-
-The way to wake up the kdamond again without DAMON is bit complicated.
-Install a scheme having watermarks that can activate the kdamond again,
-and remove the scheme again.  Doable but cumbersome and complicated.
-
-Initialize min_wait_time and init_wait_time on each loop iteration so
-the wait is calculated from the current schemes and an empty scheme
-list resumes monitoring.
-
-Link: https://lore.kernel.org/20261102144627.88843-1-sj@kernel.org
-Link: https://lore.kernel.org/20261102144627.88843-2-sj@kernel.org
-Fixes: da87878010e5 ("mm/damon/sysfs: support online inputs update")
-Signed-off-by: Aveline Noir <jm5905938@gmail.com>
+Link: https://lore.kernel.org/20261102144627.88843-3-sj@kernel.org
+Fixes: b8ee5575f763 ("mm/damon/sysfs-test: add a unit test for damon_sysfs_set_targets()")
+Signed-off-by: Wang Xiaolei <xiaoleiwangxiaolei@gmail.com>
 Signed-off-by: SJ Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 Reviewed-by: SJ Park <sj@kernel.org>
-Cc: Wang Xiaolei <xiaoleiwangxiaolei@gmail.com>
-Cc: <stable@vger.kernel.org> # 5.19.x
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Vlastimil Babka <vbabka@kernel.org>
+Cc: "Liam R. Howlett" <liam@infradead.org>
+Cc: Brendan Higgins <brendan.higgins@linux.dev>
+Cc: David Gow <davidgow@davidgow.net>
+Cc: Aveline Noir <jm5905938@gmail.com>
+Cc: <stable@vger.kernel.org> # 6.7.x
 ---
 
- mm/damon/core.c |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ mm/damon/tests/sysfs-kunit.h |    9 +++++++++
+ 1 file changed, 9 insertions(+)
 
---- a/mm/damon/core.c~mm-damon-core-reset-watermark-wait-state-on-each-iteration
-+++ a/mm/damon/core.c
-@@ -3982,10 +3982,11 @@ static int kdamond_wait_activation(struc
- {
- 	struct damos *s;
- 	unsigned long wait_time;
--	unsigned long min_wait_time = 0;
--	bool init_wait_time = false;
+--- a/mm/damon/tests/sysfs-kunit.h~mm-damon-tests-sysfs-kunit-fix-leaked-pid-reference-in-add_targets-test
++++ a/mm/damon/tests/sysfs-kunit.h
+@@ -79,6 +79,15 @@ static void damon_sysfs_test_add_targets
+ 		kunit_skip(test, "ctx alloc fail");
+ 	}
  
- 	while (!kdamond_need_stop(ctx)) {
-+		unsigned long min_wait_time = 0;
-+		bool init_wait_time = false;
++	if (damon_select_ops(ctx, DAMON_OPS_VADDR)) {
++		damon_destroy_ctx(ctx);
++		kfree(sysfs_targets->targets_arr);
++		kfree(sysfs_targets);
++		kfree(sysfs_target->regions);
++		kfree(sysfs_target);
++		kunit_skip(test, "vaddr ops not registered");
++	}
 +
- 		damon_for_each_scheme(s, ctx) {
- 			wait_time = damos_wmark_wait_us(s);
- 			if (!init_wait_time || wait_time < min_wait_time) {
+ 	damon_sysfs_add_targets(ctx, sysfs_targets);
+ 	KUNIT_EXPECT_EQ(test, 1u, nr_damon_targets(ctx));
+ 
 _
 
-Patches currently in -mm which might be from jm5905938@gmail.com are
+Patches currently in -mm which might be from xiaoleiwangxiaolei@gmail.com are
 
-mm-damon-ops-common-align-mmu-notifier-range-when-clearing-pmd-young-bit.patch
-mm-damon-stat-avoid-32-bit-overflow-in-idle-percentiles.patch
-mm-damon-pvaddr-skip-folios-already-on-the-migration-target-node.patch
-mm-damon-core-reset-watermark-wait-state-on-each-iteration.patch
+mm-damon-tests-sysfs-kunit-fix-leaked-pid-reference-in-add_targets-test.patch
 
