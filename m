@@ -1,48 +1,63 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793672156;
-	b=fOnJQp8LhN92hmvrp+0GeFGLJT9p2+MkgTJMzmPVplv9T0QBcfi3IA8S84ZPIftwU6CR
-	 MJcOPw/3NIZC8oo7lJRSu4C/RHdI4RFP30BbXm/jY1A8gYfnpv2lHSrh5eZKvthWpRCuZ
-	 1io2ZSuSPgDvP7ROt7/NKQyQkOD2j9H3AQgq5DYyfNjkkrl4cruR9/FHPcyVu8XX1eu7X
-	 kHWfYhzGFk3sOuQ5CZQbGfaPkAwLqjIyzfTG5kq3BqyNOFHmjTBaAwaTjR4eQkrdWA1an
-	 ve1qzu9EKjnnukPjccfbTIgg2Z5r6XRcnBNYJnM/LhU1RLCJy8a6ObXP7dP/auacskA==
+	t=1793672162;
+	b=vrxc+wmk71aW9MXi8L4hp5VcADsPi3hO583LMdIxTOUSIHli9MWo6K88mljtZwkD4jP9
+	 ToCfkp8MNixRMSt//h9RyWNbqXSbmwa1812gAp8ZDo/dyDe/f47eqXvgeUUQ6jm04j1e3
+	 mi+R7dOBjmh2LdHu4ofvEwq0G0w0NynZ7e0oQzIrmC0xXo4qRvpU+rkJjVLBiwzcm1Dl2
+	 fHsPjd9Nk1yLA9SE7CtOhWgfd+ompB0VEoKnmERg0y9jtufozRou7fXZXZeWwNrSbmJuP
+	 Isko8tV/bDAR6ff/Z4D0NCa/R3dOkt5aYwdprWzJSUgeXT1l/ORzraer7tR44TjVN1A==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793672156;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793672162;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=BGYyPx1YuZJJaW3M9cOvIiHYHFUtkIs96uyQ7c9gMvU=;
-	b=TXY8ltSDfbjmd+jrz1L9NJSfwqf3MmK9Cfb/RFnNMTC2DvmgRodGFxnjURUxiat0EZW4
-	 3Za0FJfwZx8jH9tnqYskd2vHJuTbVFc4fU7cU6WGTZ4qJnBPOaVUFvwCfwGmTDB9Oi8LQ
-	 xKXUN+r7tbnCvgNwO62XkFnUuaHsdtzSy/HOFzB4WZJ/nNrHoEJtmve6PcfPPIvcSB6Mi
-	 SmBLXda1WHRlnJVieA74dDrfEAGOs4YMlVMYTTKGX3FWpCudka7LKhBGj8BTDKMZpb6G9
-	 NPrkZVn9foTAu1O5zj95Hz1Z5oRcV8eef2zbAmzoA4SK1ZNSwASVY/wGMqekNnyFu6Q==
+	bh=x/WbUb3nT0ycaBcbIBEajTefc1gQjkmCXXLaLZcM7/U=;
+	b=a/VITYkh+Fs70ocYWZPl8tmq0zeORdLAooJfOXwEUST6cv0BSTkg76HiiLP18e1U0Zkg
+	 r6S5uWo6tFEI49HPklU9+TfpvXNV1a3mR6cXfeko55svqzAem2zVIPV5jMyzrFTVMgi71
+	 CObVZvw8ywb3xAjauD26NHD8if+aUettDLQB0L53vREu5VerXBYF+Eo0PniaNmMqtLQbS
+	 6al59/Lzs0RdIIpC1WpWdJTfxukYSRPudsR343NmXpO35vEdLkOCu4jFaA4JPivD1yYLk
+	 4sxKZ1bb2Qek2cfs7mCuUAs+3gs51V2wjPUjPqX3aXodsUQOXDSL2RCkU5/nrgNNm4g==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=gT2Ltihi;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=PQwiW3GX;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 86793606A329;
-	Tue,  3 Nov 2026 02:15:56 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 87D41606A33D
+	for <mm-commits@vger.kernel.org>; Tue,  3 Nov 2026 02:16:02 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=gT2Ltihi
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 51D0F1F000C1;
-	Tue,  3 Nov 2026 02:15:56 +0000 (UTC)
+	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=PQwiW3GX
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3DFF41F000C1;
+	Tue,  3 Nov 2026 02:16:02 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1793672156;
-	bh=BGYyPx1YuZJJaW3M9cOvIiHYHFUtkIs96uyQ7c9gMvU=;
+	d=linux-foundation.org; s=korg; t=1793672162;
+	bh=x/WbUb3nT0ycaBcbIBEajTefc1gQjkmCXXLaLZcM7/U=;
 	h=Date:To:From:Subject;
-	b=gT2LtihiLJ/u1bUj3ncZsKb9jYLhkwDJl3ltQuXRpnjGmLJ1soA/SwVo03V+hSYnh
-	 NimekzUdA2lYw/OhsvOgLnYLnkKSzA3hpyDIR5kLmLk2kCTdHu5CRtJAvFs1W9QieS
-	 Jlxyl6BeBkYM5XNdbV4MNWz8UjJ+hLkPYxTw66KI=
-Date: Mon, 02 Nov 2026 18:15:55 -0800
-To: mm-commits@vger.kernel.org,vbabka@kernel.org,surenb@google.com,
-	stable@vger.kernel.org,pankaj.gupta@amd.com,mhocko@suse.com,ljs@kernel.org,
-	liam@infradead.org,kas@kernel.org,david@kernel.org,rppt@kernel.org,
-	akpm@linux-foundation.org
+	b=PQwiW3GXgdN3RiUsqhlNOQfAC19b4N0Kv7eNRKaUo63ANvYRaf2zXf67VJB3OlYP8
+	 00lhnYGoVe9vJz/ZPLPSgq3UCMdK6HvhMp1OnAjG0n8IktIh/34kKLEZRU/GO0qz8/
+	 2iMH2RZAq1cmYM6OyPcrEYDHDIOsROr37KfWo7nU=
+Date: Mon, 02 Nov 2026 18:16:01 -0800
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,youngjun.park@lge.com,
+	ying.huang@linux.alibaba.com,xu.xin@linux.dev,will@kernel.org,
+	vbabka@kernel.org,usama.arif@linux.dev,urezki@gmail.com,tj@kernel.org,
+	surenb@google.com,sj@kernel.org,shikemeng@huaweicloud.com,
+	shakeel.butt@linux.dev,ryan.roberts@arm.com,rppt@kernel.org,
+	roman.gushchin@linux.dev,rientjes@google.com,riel@surriel.com,
+	rakie.kim@sk.com,qi.zheng@linux.dev,pfalcato@suse.de,peterz@infradead.org,
+	peterx@redhat.com,osalvador@suse.de,npiggin@gmail.com,nphamcs@gmail.com,
+	nico.pache@linux.dev,nao.horiguchi@gmail.com,muchun.song@linux.dev,
+	mhocko@kernel.org,matthew.brost@intel.com,ljs@kernel.org,
+	linmiaohe@huawei.com,liam@infradead.org,lance.yang@linux.dev,
+	kasong@tencent.com,kas@kernel.org,joshua.hahnjy@gmail.com,
+	jhubbard@nvidia.com,jgg@ziepe.ca,jannh@google.com,hughd@google.com,
+	harry@kernel.org,hao.li@linux.dev,hannes@cmpxchg.org,gourry@gourry.net,
+	dev.jain@arm.com,dennis@kernel.org,david@fromorbit.com,cl@gentwo.org,
+	chrisl@kernel.org,chengming.zhou@linux.dev,byungchul@sk.com,
+	brendan.jackman@linux.dev,baoquan.he@linux.dev,baolin.wang@linux.alibaba.com,
+	baohua@kernel.org,apopple@nvidia.com,aneesh.kumar@kernel.org,
+	david@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] mm-cma-accept-memory-of-multi-range-cma-areas.patch removed from -mm tree
-Message-Id: <20261103021556.51D0F1F000C1@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] maintainers-mention-for-next-branch-in-memory-management-memory-map.patch removed from -mm tree
+Message-Id: <20261103021602.3DFF41F000C1@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -54,93 +69,149 @@ Precedence: list
 
 
 The quilt patch titled
-     Subject: mm/cma: accept memory of multi-range CMA areas
+     Subject: MAINTAINERS: mention for-next branch in MEMORY MANAGEMENT - MEMORY MAP
 has been removed from the -mm tree.  Its filename was
-     mm-cma-accept-memory-of-multi-range-cma-areas.patch
+     maintainers-mention-for-next-branch-in-memory-management-memory-map.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: "Mike Rapoport (Microsoft)" <rppt@kernel.org>
-Subject: mm/cma: accept memory of multi-range CMA areas
-Date: Thu, 29 Oct 2026 12:18:37 +0200
+From: "David Hildenbrand (Arm)" <david@kernel.org>
+Subject: MAINTAINERS: mention for-next branch in MEMORY MANAGEMENT - MEMORY MAP
+Date: Fri, 30 Oct 2026 22:34:25 +0100
 
-Patch series "mm/cma: accept memory of CMA areas reserved with
-memblock_reserve()", v1.
+Patch series "MAINTAINERS: MM updates".
 
-Pages of allocated CMA areas are released to the buddy allocator with
-__free_pages(), which does not check for unaccepted memory.
+Several MM updates:
 
-This usually works because memblock accepts the memory it allocates.
+Make Zi Yan a THP maintainer (thanks for all your hard work over
+the years and thanks for taking on this responsibility), and perform some
+MM MAINTAINERS cleanups.
 
-However, multi-range CMA areas, used by hugetlb_cma, and fixed CMA areas
-requested with cma=<size>@<base> are reserved with memblock_reserve() and
-their memory is never accepted.
+Then, start the next step of the transition from Andrew's MM tree to
+separate component trees that all get integrated into the mm-next
+integration tree.
 
-On TDX and SEV-SNP guests the first access to such a page is fatal.
+Start routing shmem through mm/core.git, adding me as a maintainer
+primarily to pick patches.
 
-To ease the backporting, each case is addressed by a separate patch:
-- patch 1 accepts the memory of multi-range CMA areas
-- patch 2 does the same for the fixed CMA areas
+Then, target the following components for the mm/core.git tree that I
+(co)maintain:
 
-The second patch won't apply cleanly to 6.6 and 6.12, but I believe the
-stable team LLMs will take care of that :)
+     - MEMORY MANAGEMENT - BALLOON
+     - MEMORY MANAGEMENT - CORE
+     - MEMORY MANAGEMENT - GUP (GET USER PAGES)
+     - MEMORY MANAGEMENT - KSM (Kernel Samepage Merging)
+     - MEMORY MANAGEMENT - MEMORY HOT(UN)PLUG
+     - MEMORY MANAGEMENT - MIGRATION
+     - MEMORY MANAGEMENT - NUMA PLACEMENT
+     - MEMORY MANAGEMENT - RMAP (REVERSE MAPPING)
+     - MEMORY MANAGEMENT - THP (TRANSPARENT HUGE PAGE)
+
+More details in the last patch.
+
+In the upcoming cycles we'll then route more of the other MM components
+through different trees.
+
+Let's see how this goes, in particular with the continuous stream of
+fixes. But getting these in in a controlled way has highest priority
+right now wither way.
 
 
-This patch (of 2):
+This patch (of 7):
 
-On systems with unaccepted memory, memblock allocations accept the
-allocated range, but when cma_declare_contiguous_multi() uses open coded
-allocation of multiple ranges, it reserves them with memblock_reserve()
-and they are never accepted.
+"memmap" will be used as a prefix for branches, but not as a branch
+itself. "for-next" is the integration for all these things against which
+people should ideally send patches.
 
-These pages are released to the buddy allocator by cma_activate_area()
-with __free_pages() that does not check for unaccepted memory, so the
-first access to such a page in a TDX or SEV-SNP guest is fatal.
+Not mentioning a branch makes them assume "master", which is wrong.
 
-Accept the memory of each range when it is reserved.
+So just mention the right thing, which is "for-next"
 
-Link: https://lore.kernel.org/20261029-cma-multi-v1-0-2cbced8b5cb7@kernel.org
-Link: https://lore.kernel.org/20261029-cma-multi-v1-1-2cbced8b5cb7@kernel.org
-Fixes: c009da4258f9 ("mm, cma: support multiple contiguous ranges, if requested")
-Signed-off-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
+Link: https://lore.kernel.org/20261030-maintainers-v1-0-97278f8a5f54@kernel.org
+Link: https://lore.kernel.org/20261030-maintainers-v1-1-97278f8a5f54@kernel.org
+Signed-off-by: David Hildenbrand (Arm) <david@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Reviewed-by: Kiryl Shutsemau (Meta) <kas@kernel.org>
-Reviewed-by: Pankaj Gupta <pankaj.gupta@amd.com>
-Tested-by: Pankaj Gupta <pankaj.gupta@amd.com>
-Cc: David Hildenbrand <david@kernel.org>
+Acked-by: Vlastimil Babka (SUSE) <vbabka@kernel.org>
+Acked-by: Qi Zheng <qi.zheng@linux.dev>
+Acked-by: Muchun Song <muchun.song@linux.dev>
+Acked-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
+Acked-by: Zi Yan <ziy@nvidia.com>
+Acked-by: SJ Park <sj@kernel.org>
+Acked-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
+Acked-by: Harry Yoo (Meta) <harry@kernel.org>
+Acked-by: Shakeel Butt <shakeel.butt@linux.dev>
+Acked-by: SJ Park <sj@kernel.org>
+Acked-by: Kiryl Shutsemau (Meta) <kas@kernel.org>
+Cc: Alistair Popple <apopple@nvidia.com>
+Cc: Aneesh Kumar K.V <aneesh.kumar@kernel.org>
+Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
+Cc: Baoquan He <baoquan.he@linux.dev>
+Cc: Barry Song <baohua@kernel.org>
+Cc: Brendan Jackman <brendan.jackman@linux.dev>
+Cc: Byungchul Park <byungchul@sk.com>
+Cc: Chengming Zhou <chengming.zhou@linux.dev>
+Cc: Chris Li <chrisl@kernel.org>
+Cc: Christoph Lameter <cl@gentwo.org>
+Cc: Dave Chinner <david@fromorbit.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Dennis Zhou <dennis@kernel.org>
+Cc: Dev Jain <dev.jain@arm.com>
+Cc: Gregory Price <gourry@gourry.net>
+Cc: Hao Li <hao.li@linux.dev>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Jann Horn <jannh@google.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: John Hubbard <jhubbard@nvidia.com>
+Cc: Joshua Hahn <joshua.hahnjy@gmail.com>
+Cc: Kairui Song <kasong@tencent.com>
+Cc: Kemeng Shi <shikemeng@huaweicloud.com>
+Cc: Lance Yang <lance.yang@linux.dev>
 Cc: Liam R. Howlett <liam@infradead.org>
-Cc: Lorenzo Stoakes <ljs@kernel.org>
-Cc: Michal Hocko <mhocko@suse.com>
+Cc: Matthew Brost <matthew.brost@intel.com>
+Cc: Miaohe Lin <linmiaohe@huawei.com>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Naoya Horiguchi <nao.horiguchi@gmail.com>
+Cc: Nhat Pham <nphamcs@gmail.com>
+Cc: Nicholas Piggin <npiggin@gmail.com>
+Cc: Nico Pache <nico.pache@linux.dev>
+Cc: Oscar Salvador <osalvador@suse.de>
+Cc: Pedro Falcato <pfalcato@suse.de>
+Cc: Peter Xu <peterx@redhat.com>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Rakie Kim <rakie.kim@sk.com>
+Cc: Rik van Riel <riel@surriel.com>
+Cc: Roman Gushchin <roman.gushchin@linux.dev>
+Cc: Ryan Roberts <ryan.roberts@arm.com>
 Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Vlastimil Babka <vbabka@kernel.org>
-Cc: <stable@vger.kernel.org>
+Cc: Tejun Heo <tj@kernel.org>
+Cc: Uladzislau Rezki (Sony) <urezki@gmail.com>
+Cc: Usama Arif <usama.arif@linux.dev>
+Cc: Will Deacon <will@kernel.org>
+Cc: Xu Xin <xu.xin@linux.dev>
+Cc: Ying Huang <ying.huang@linux.alibaba.com>
+Cc: Youngjun Park <youngjun.park@lge.com>
+Cc: Jason Gunthorpe <jgg@ziepe.ca>
 ---
 
- mm/cma.c |    2 ++
- 1 file changed, 2 insertions(+)
+ MAINTAINERS |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/cma.c~mm-cma-accept-memory-of-multi-range-cma-areas
-+++ a/mm/cma.c
-@@ -678,6 +678,8 @@ int __init cma_declare_contiguous_multi(
- 			break;
- 		}
- 
-+		accept_memory(mlp->base, size);
-+
- 		pr_debug("created region %d: %016llx - %016llx\n",
- 		    nr, (u64)mlp->base, (u64)mlp->base + size);
- 		cmrp = &cma->ranges[nr++];
+--- a/MAINTAINERS~maintainers-mention-for-next-branch-in-memory-management-memory-map
++++ a/MAINTAINERS
+@@ -17604,7 +17604,7 @@ M:	Mike Rapoport <rppt@kernel.org>
+ M:	David Hildenbrand <david@kernel.org>
+ L:	linux-mm@kvack.org
+ S:	Maintained
+-T:	git git://git.kernel.org/pub/scm/linux/kernel/git/mm/core.git memmap
++T:	git git://git.kernel.org/pub/scm/linux/kernel/git/mm/core.git for-next
+ F:	Documentation/mm/memory-model.rst
+ F:	arch/*/include/asm/sparsemem.h
+ F:	include/asm-generic/memory_model.h
 _
 
-Patches currently in -mm which might be from rppt@kernel.org are
+Patches currently in -mm which might be from david@kernel.org are
 
-userfaultfd-clear-uffd-state-in-child-ptes-if-uffd-is-released-during-fork.patch
-mm-vma-undo-userfaultfd-unmap-preparation-when-unmapping-fails.patch
-hibernation-make-swsusp_page-helpers-static.patch
-hibernation-ensure-secretmem-pages-dont-reach-a-snapshot.patch
-hibernate-handle-potential-errors-in-hibernate_mapunmap_page.patch
-hibernation-kfence-explicitly-map-unmap-kfence-pages.patch
-hibernation-make-hibernation-unavailable-when-debug_pagealloc-is-on.patch
+mm-memory-failure-fix-folio-refcount-leak-and-min_order_for_split-locking.patch
 
