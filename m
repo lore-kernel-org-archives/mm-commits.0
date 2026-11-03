@@ -1,41 +1,41 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793670989;
-	b=NNo7BBKj7HsLGl0ESJeDdQOHJXBMU+6yTcDCys3xNvLcwWxcvGUTaV+dIvPABW02oooJ
-	 Jc/hQ/tJbSI2GbcUcwLH+wL3D+sMpjyIxCEtgpYr5hFLH3NoWfR/UbgVhffde7QYseMY9
-	 M0TwjYHtd2o8uO52qkIfce0nd7KGvWfnZ2xzvfjQVIxwNyzh+szLsPEBBm3aeRLUSme6f
-	 kERglX3IIb42Fgx0tn4vYnNvhRsfRf6YW46QorOC7z5GPzwc5tu8dlH262t8uDhLcLBCV
-	 c5vpDiEHac+AOke2WyqgSTpNE5sXL9S3RZKcAYEzcOWp5QZUJwihvDHHJf+GDrzYYvg==
+	t=1793670993;
+	b=sqWjxUK1Eb12ihI1RuVaLPmDz2v9bkL16uZRYE35hgBzx1zs/HX5EnPj/bU4lSqFC6np
+	 Q22ebtArWDswHheoslE0VBJBP0NTuVh4pCzGUwrp3UvV7ZXWSKo6gAzLQ7yoGk3YsYigR
+	 NheuhBERyCaVPFWnGT5w/4q7wmDDbtXJqpbHQN0FGBpVbu2CVQlgrDbqVHMKzDeLLWqda
+	 8IBr74VbIJkuXDWT6vQ00pTdfHB+dFbLoEi1KSrR+ZoGPJf5tmzeG31pLaMjxaRWOf6V9
+	 nblU5T3V/sqOi7+nvMpvmXsuZ38B/Hfhvz2wc1y1wDkCEgUzF7gI6bEqj97J4IpqyPA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793670989;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793670993;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=b1XtlWqmsvpam3DgR3100a5MM8YO7iWoXvcfu6F/PG8=;
-	b=qVMcDDsQ+CJysYmpiPsKDLX26Q/37DglS37Z8EZNWguzeIiInRkpZixe/48iJIfiEVll
-	 +dl40mu9SobJwwjT0PFNgQQK11/2+cuuIM0mGLJAXOcLzIJp94BK2FjGzgkSDOcvYCHlQ
-	 XbOaQTpN7tH1Cb6O44a0DkghTlMgnDdPlT9dGfCXRi0R27DxHnOnUMbfiWlGXmtwc6Rr0
-	 3WZrw3FRXXTYgpxXIk32PfvQyydr9Fck1mSD8GdIMNk2E9SPkXpBeSVCfvixcot0UDiNg
-	 ksW+bafTfa/Eu6Lfne9T7l6aU28V/8gPHV56cUlq4aK7LHz6HrECekPqwkhEvFRSW9g==
+	bh=ttMDqZmFh1ACAwkOLfvMuhAIHjUWLzYWrsD0TPRPsGk=;
+	b=KPWa72nVm+fYpYWO3SJ/0ZRmSbjC8BGh2dpMdXxP3L04nlopeTTjry71FWfJGEJTcKrS
+	 xvy0Oj2Jfwy7iGvHjHWfCR44QQ7codD8runexzykE/lS+lPzAvh7jn3EW6zTy1Wm525Jp
+	 nizZVaj/mD9Kf8LPLRjKQkvDUyQWMpXHStRNTupiPKnWskZwwDwMNIb+uWpbr4Nvc79DO
+	 os1aktPw+GnxoVPe3osXbt3viSraRtmGYU8WvUkCxWswgmcUD53K65iq1UNxq24P3WaWZ
+	 3rJeWBh8cPESgoovz21zxmBB7riGQ70u4i4WKUxV4gFeoOje5mlOSPu/NKxyEFb1aQQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=iv6mrz1j;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=wHT7e9ZY;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7FB7F606A32F
-	for <mm-commits@vger.kernel.org>; Tue,  3 Nov 2026 01:56:29 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B9A5B606A324
+	for <mm-commits@vger.kernel.org>; Tue,  3 Nov 2026 01:56:32 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=iv6mrz1j
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0BFB01F000C1;
-	Tue,  3 Nov 2026 01:56:29 +0000 (UTC)
+	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=wHT7e9ZY
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 52BA91F000C1;
+	Tue,  3 Nov 2026 01:56:32 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1793670989;
-	bh=b1XtlWqmsvpam3DgR3100a5MM8YO7iWoXvcfu6F/PG8=;
+	d=linux-foundation.org; s=korg; t=1793670992;
+	bh=ttMDqZmFh1ACAwkOLfvMuhAIHjUWLzYWrsD0TPRPsGk=;
 	h=Date:To:From:Subject;
-	b=iv6mrz1jSRKOzN9uA9QZtnqB0OdLZyrG10BODLDmdFSLyseewodLThbM7BKU6z32K
-	 9qatnCepOw478mJyprfopMiUE8CfRSJwF/sMGEMDLGYzT1IF5isy52Ro4chJTZSLHh
-	 8HVdH2EcsGV9/hgtH8ckdPfol8ervm51KQi/ieIk=
-Date: Mon, 02 Nov 2026 17:56:28 -0800
+	b=wHT7e9ZYTziHcK5IIQ5hX5sCMgPpLGi4XLdgWjInnrzPQH9dRe3/MG5IDwsA4ghdn
+	 ho23zFJ1/s2HkUie91qhAuB7Jfm6g2Rtxb5DPo1I/EvwNveqMy36et8b7HYcnxYZ9o
+	 388WRQcXwCnChFHV16hgeMjaWqePCzjhkUEg0I0I=
+Date: Mon, 02 Nov 2026 17:56:31 -0800
 To: mm-commits@vger.kernel.org,ziy@nvidia.com,ying.huang@linux.alibaba.com,
 	willy@infradead.org,vbabka@kernel.org,surenb@google.com,sj@kernel.org,
 	rppt@kernel.org,peterx@redhat.com,mhocko@suse.com,matthew.brost@intel.com,
@@ -45,8 +45,8 @@ To: mm-commits@vger.kernel.org,ziy@nvidia.com,ying.huang@linux.alibaba.com,
 	baolin.wang@linux.alibaba.com,apopple@nvidia.com,tz2294@columbia.edu,
 	akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-remove-end_page_writeback.patch added to mm-new branch
-Message-Id: <20261103015629.0BFB01F000C1@smtp.kernel.org>
+Subject: + mm-remove-clear_page_dirty_for_io.patch added to mm-new branch
+Message-Id: <20261103015632.52BA91F000C1@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -58,12 +58,12 @@ Precedence: list
 
 
 The patch titled
-     Subject: mm: remove end_page_writeback()
+     Subject: mm: remove clear_page_dirty_for_io()
 has been added to the -mm mm-new branch.  Its filename is
-     mm-remove-end_page_writeback.patch
+     mm-remove-clear_page_dirty_for_io.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-remove-end_page_writeback.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-remove-clear_page_dirty_for_io.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -93,13 +93,13 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Tal Zussman <tz2294@columbia.edu>
-Subject: mm: remove end_page_writeback()
-Date: Mon, 02 Nov 2026 17:54:07 -0500
+Subject: mm: remove clear_page_dirty_for_io()
+Date: Mon, 02 Nov 2026 17:54:08 -0500
 
-There are no callers left. Update the two comments that still named
-it to refer to folio_end_writeback().
+There are no callers left. Point the comments that named it at
+folio_clear_dirty_for_io() instead.
 
-Link: https://lore.kernel.org/20261102-page-wrappers-v1-2-e7280bdb31f6@columbia.edu
+Link: https://lore.kernel.org/20261102-page-wrappers-v1-3-e7280bdb31f6@columbia.edu
 Signed-off-by: Tal Zussman <tz2294@columbia.edu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 Reviewed-by: SJ Park <sj@kernel.org>
@@ -126,59 +126,70 @@ Cc: Hugh Dickins <hughd@google.com>
 Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
 ---
 
- include/linux/pagemap.h   |    1 -
- include/linux/writeback.h |    2 +-
- mm/folio-compat.c         |    6 ------
- mm/migrate.c              |    2 +-
- 4 files changed, 2 insertions(+), 9 deletions(-)
+ include/linux/pagemap.h |    1 -
+ mm/folio-compat.c       |    6 ------
+ mm/gup.c                |    6 +++---
+ mm/page-writeback.c     |    2 +-
+ 4 files changed, 4 insertions(+), 11 deletions(-)
 
---- a/include/linux/pagemap.h~mm-remove-end_page_writeback
+--- a/include/linux/pagemap.h~mm-remove-clear_page_dirty_for_io
 +++ a/include/linux/pagemap.h
-@@ -1301,7 +1301,6 @@ static inline int folio_wait_locked_kill
- void folio_end_read(struct folio *folio, bool success);
- void folio_wait_writeback(struct folio *folio);
- int folio_wait_writeback_killable(struct folio *folio);
--void end_page_writeback(struct page *page);
- void folio_end_writeback(struct folio *folio);
- void folio_end_writeback_no_dropbehind(struct folio *folio);
- void folio_end_dropbehind(struct folio *folio);
---- a/include/linux/writeback.h~mm-remove-end_page_writeback
-+++ a/include/linux/writeback.h
-@@ -124,7 +124,7 @@ struct wb_domain {
- 	 * writeout speed.
- 	 *
- 	 * We do this by keeping a floating proportion between BDIs, based
--	 * on page writeback completions [end_page_writeback()]. Those
-+	 * on page writeback completions [folio_end_writeback()]. Those
- 	 * devices that write out pages fastest will get the larger share,
- 	 * while the slower will get a smaller share.
- 	 *
---- a/mm/folio-compat.c~mm-remove-end_page_writeback
-+++ a/mm/folio-compat.c
-@@ -17,12 +17,6 @@ void unlock_page(struct page *page)
+@@ -1315,7 +1315,6 @@ static inline void folio_cancel_dirty(st
+ 		__folio_cancel_dirty(folio);
  }
- EXPORT_SYMBOL(unlock_page);
+ bool folio_clear_dirty_for_io(struct folio *folio);
+-bool clear_page_dirty_for_io(struct page *page);
+ void folio_invalidate(struct folio *folio, size_t offset, size_t length);
+ bool noop_dirty_folio(struct address_space *mapping, struct folio *folio);
  
--void end_page_writeback(struct page *page)
+--- a/mm/folio-compat.c~mm-remove-clear_page_dirty_for_io
++++ a/mm/folio-compat.c
+@@ -42,12 +42,6 @@ int set_page_dirty_lock(struct page *pag
+ }
+ EXPORT_SYMBOL(set_page_dirty_lock);
+ 
+-bool clear_page_dirty_for_io(struct page *page)
 -{
--	return folio_end_writeback(page_folio(page));
+-	return folio_clear_dirty_for_io(page_folio(page));
 -}
--EXPORT_SYMBOL(end_page_writeback);
+-EXPORT_SYMBOL(clear_page_dirty_for_io);
 -
- void mark_page_accessed(struct page *page)
+ bool redirty_page_for_writepage(struct writeback_control *wbc,
+ 		struct page *page)
  {
- 	folio_mark_accessed(page_folio(page));
---- a/mm/migrate.c~mm-remove-end_page_writeback
-+++ a/mm/migrate.c
-@@ -859,7 +859,7 @@ void folio_migrate_flags(struct folio *n
- 
- 	/*
- 	 * PG_readahead shares the same bit with PG_reclaim.  The above
--	 * end_page_writeback() may clear PG_readahead mistakenly, so set the
-+	 * folio_end_writeback() may clear PG_readahead mistakenly, so set the
- 	 * bit after that.
- 	 */
- 	if (folio_test_readahead(folio))
+--- a/mm/gup.c~mm-remove-clear_page_dirty_for_io
++++ a/mm/gup.c
+@@ -298,16 +298,16 @@ void unpin_user_pages_dirty_lock(struct
+ 		folio = gup_folio_next(pages, npages, i, &nr);
+ 		/*
+ 		 * Checking PageDirty at this point may race with
+-		 * clear_page_dirty_for_io(), but that's OK. Two key
++		 * folio_clear_dirty_for_io(), but that's OK. Two key
+ 		 * cases:
+ 		 *
+ 		 * 1) This code sees the page as already dirty, so it
+ 		 * skips the call to set_page_dirty(). That could happen
+-		 * because clear_page_dirty_for_io() called
++		 * because folio_clear_dirty_for_io() called
+ 		 * folio_mkclean(), followed by set_page_dirty().
+ 		 * However, now the page is going to get written back,
+ 		 * which meets the original intention of setting it
+-		 * dirty, so all is well: clear_page_dirty_for_io() goes
++		 * dirty, so all is well: folio_clear_dirty_for_io() goes
+ 		 * on to call TestClearPageDirty(), and write the page
+ 		 * back.
+ 		 *
+--- a/mm/page-writeback.c~mm-remove-clear_page_dirty_for_io
++++ a/mm/page-writeback.c
+@@ -2821,7 +2821,7 @@ EXPORT_SYMBOL(folio_mark_dirty_lock);
+  * This cancels just the dirty bit on the kernel page itself, it does NOT
+  * actually remove dirty bits on any mmap's that may be around. It also
+  * leaves the page tagged dirty, so any sync activity will still find it on
+- * the dirty lists, and in particular, clear_page_dirty_for_io() will still
++ * the dirty lists, and in particular, folio_clear_dirty_for_io() will still
+  * look at the dirty bits in the VM.
+  *
+  * Doing this should *normally* only ever be done when a page is truncated,
 _
 
 Patches currently in -mm which might be from tz2294@columbia.edu are
