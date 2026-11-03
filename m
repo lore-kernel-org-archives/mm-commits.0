@@ -1,46 +1,46 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793675976;
-	b=5RA+pzPOSReZglCvxcUbzrHfkHHz6E3Y9cecfo13AL325qHTN4xB0TmrBC9FcCYEJOuw
-	 83L1pWD1vZD6bPLv+ntZn4PO31nbKLpbJo286X7gl0SZodv26YCkAYggZX/v5r3FbwtFo
-	 TAo2uKg+QEMcRWpyj4QPJQ65uNGR+hOzH+uzveqigg29jMD61TSw9HZseY5CxoxJSVhfb
-	 d/OGx8e0GkYu7vW1jkdqWhaCu8JNG/sup0f2Vkry0shT5QsdQMZyC7n2Jol/qR6NVC5AS
-	 Sk6x7tD+a6QWH1Lp4icM7XevQEGJndTWK0rz3ntPc+j5tomMjxEV7z0/rMirXz164Mw==
+	t=1793675983;
+	b=3yLzHooD5+KVBnSwD07ppulrmukG766xaaGepsXLGHJ2PTtudQRE+T51KBFl9ZuoBbIK
+	 Pn0E8h814KwPM4pvqtLpmiZouopVG5NJnRs5cRDQoMYwwd1Vv2biyb7LZRsXEIl4qhrIg
+	 gdrz4SElF6qaTOqcIhzM+Fu0njKVkTOBGZtMd6WitTDZhdd8X8TgrFG2ZZA0U2qQtpKLH
+	 JfRHhkLMkDoMtudmluoZA9Oj8b0KeTSXr024vZdZWz72ykwn2zBtKPxDpDU1HfvmY9uoy
+	 B2Ak/65baN8nn9QXzJF7ftvBrjsmZCsOv2u/ZRXy8rMp+10jkAbogqCoWC+puFl45Fw==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793675976;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793675983;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=RLKoVjVHETQ99hov+Wl4G9A2hMLEwsKYlPjJAMvIzss=;
-	b=Gv6dRHmPJzb4iG+qbuETQWwFFR7yqg28VCPg/SNRsPnFz1aYvh9qL8Y4a5o+q61QIAvh
-	 YUQ92MxVx7CidyY7y8nIzTdpyapHQp4VdTPf+yapdzY6oAxf+iaLNo6LQq3rSOwKmkUmy
-	 Vy0PNRivfO2OHvkozIq3mPwm5l+KSL1M3zljOZ/AtJg4W73e5nnYQjrgzGSDtAdX9terK
-	 t/TQSPWfY1QXgl28nvfc8DjKa+6iSIIDH6HYr/lYbOxCY5wPye1MpAkoiuzHrfpHfQYER
-	 jL0i4jNuZPhWm9YtEO+GePL9yK50fwU3GPbeUoEVswatIPnl4M+g8EFXplFo7qjjlGQ==
+	bh=SbHdv+jVLUvlIWvcScYO4fNAAfhscIKRLTbuDCUqRK0=;
+	b=uhXsJovK1YplcikPeiLcqnuv85+XPNZ6c9x0FDG8jdanxZbyavzPLCvwuTAj713I7o3F
+	 OcExepi7Psm9nX01jO8VpicC8kM/Wmza2qcaPcg1hxFNXW6Js6p61UGjNdssD5/e7FbOs
+	 yi5asB0mv0CXIAfNGc13QH/cfzrugOglyroOwmfppLkd3J1QqhxHDpjWWpBNZjAKvx3ux
+	 l2WolpKM3KeQI0zK6NbAC4MfP96DA1aIdGQQIueN6+YIrTRz7yQU5JzBoREGuxm6x60Tp
+	 mMz5MY1IMkUMziWorr0qbeon36f1RDoXKcg19RQD733qP0I7T59GZm2Ye0cZSdVNmzA==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=BXHi7Kdb;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=ratrCazd;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 81FDA606A337
-	for <mm-commits@vger.kernel.org>; Tue,  3 Nov 2026 03:19:36 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 795A4606A338
+	for <mm-commits@vger.kernel.org>; Tue,  3 Nov 2026 03:19:43 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=BXHi7Kdb
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0F5161F000C1;
-	Tue,  3 Nov 2026 03:19:36 +0000 (UTC)
+	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=ratrCazd
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 01AA21F000C1;
+	Tue,  3 Nov 2026 03:19:42 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1793675976;
-	bh=RLKoVjVHETQ99hov+Wl4G9A2hMLEwsKYlPjJAMvIzss=;
+	d=linux-foundation.org; s=korg; t=1793675983;
+	bh=SbHdv+jVLUvlIWvcScYO4fNAAfhscIKRLTbuDCUqRK0=;
 	h=Date:To:From:Subject;
-	b=BXHi7KdbmFssp2MJF1+E9vc859ypL8TXYBC4TULV4hqB3l+HG+ab9o6CPvAuzJfZ1
-	 aKChq7ovVXJ1JATeGqN3s9wj0MnzWc7d7//ivIPhKntdpb3+BEXyqjozbRJISjo6jZ
-	 tLCOmnEVYdM3BFMzuV+UHfvOTWAtxziOz3tTdqr8=
-Date: Mon, 02 Nov 2026 19:19:35 -0800
-To: mm-commits@vger.kernel.org,mark@fasheh.com,jlbec@evilplan.org,
-	heming.zhao@suse.com,joseph.qi@linux.alibaba.com,akpm@linux-foundation.org
+	b=ratrCazdbfBa2gRBxicTugMALbI42m3f9YOwChamBlQUz+Mbct1r9L8Hx+4i40zrd
+	 UA0MFSjjEVTfTPOfUU0qxHRuvZkzwFlxxZaITk0grktnb0PqsSzjX2o4a/vcvtIZ0Z
+	 GEEYzI8SMR2YdosZkRksFJCpz09GvisltVPwcd1c=
+Date: Mon, 02 Nov 2026 19:19:42 -0800
+To: mm-commits@vger.kernel.org,hirofumi@mail.parknet.co.jp,
+	matheus.aalmeida@inf.ufrgs.br,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-hotfixes-stable] ocfs2-read-the-xattr-entry-hash-before-defragmenting-the-bucket.patch removed from -mm tree
-Message-Id: <20261103031936.0F5161F000C1@smtp.kernel.org>
+Subject: [merged mm-nonmm-hotfixes-stable] fat-preallocate-space-before-expanding-in-fat_cont_expand.patch removed from -mm tree
+Message-Id: <20261103031943.01AA21F000C1@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -52,129 +52,177 @@ Precedence: list
 
 
 The quilt patch titled
-     Subject: ocfs2: read the xattr entry hash before defragmenting the bucket
+     Subject: fat: preallocate space before expanding in fat_cont_expand()
 has been removed from the -mm tree.  Its filename was
-     ocfs2-read-the-xattr-entry-hash-before-defragmenting-the-bucket.patch
+     fat-preallocate-space-before-expanding-in-fat_cont_expand.patch
 
 This patch was dropped because it was merged into the mm-nonmm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Joseph Qi <joseph.qi@linux.alibaba.com>
-Subject: ocfs2: read the xattr entry hash before defragmenting the bucket
-Date: Sat, 24 Oct 2026 23:10:07 +0800
+From: Matheus Alves de Almeida <matheus.aalmeida@inf.ufrgs.br>
+Subject: fat: preallocate space before expanding in fat_cont_expand()
+Date: Fri, 23 Oct 2026 22:30:20 -0300
 
-Patch series "ocfs2: fix stale xattr entry pointers and empty header
-reads", v1.
+The fat_cont_expand() implementation leaves allocation of new clusters
+to generic_cont_expand_simple(). This path does many small cluster
+allocations, harming performance.
 
-Five defects in the ocfs2 extended attribute code, plus one robustness
-measure that belongs with them, all on the paths that move entries
-between a block, a bucket and an index tree.  They fall into two groups.
+Preallocate cluster space in fat_cont_expand(). Move preallocation to
+a new fat_preallocate() helper used by both fat_cont_expand() and
+fat_fallocate(FALLOC_FL_KEEP_SIZE). Use a FAT-specific
+fat_cont_expand_simple() instead of generic_cont_expand_simple() to
+avoid rechecking the new size after clusters have been allocated.
 
-Stale entry pointers (patches 1 to 3)
+Benchmarking was done under QEMU/KVM with a virtio-blk device using
+cache=none. Each result is the arithmetic mean of the listed samples.
 
-ocfs2_xa_set() writes through a pointer into xh_entries[] that two of
-its callers invalidate first.  Defragmenting a bucket ends in a sort()
-on xe_name_hash, and lib/sort.c is an unstable heapsort, so entries that
-share a hash can trade slots.  Copying a block into a bucket changes the
-order outright, since a block holds its entries in insertion order while
-a bucket holds them by hash, yet ocfs2_xattr_update_xattr_search()
-relocates the search by the index the entry had in the block.  Neither
-path compares the entry's name with the one being set, so setxattr() can
-replace a neighbouring attribute's value and still report success, or
-trip ocfs2_xa_reuse_entry()'s BUG_ON.  Patch 1 takes the hash before the
-sort; patches 2 and 3 look the entry up again afterwards.
+start = now_ns();
+for (unsigned i = 0; i < count; i++) {
+    if (truncate_mode)
+        ftruncate(fds[i], bytes);
+    else
+        fallocate(fds[i], 0, 0, bytes);
+}
+elapsed = now_ns() - start;
 
-Reads of an empty entry array (patches 4 to 6)
+16 files, 512-byte clusters:
+length    mode      sync?    before    after    improvement    samples
+256MiB    ftruncate no       9.576s    5.345s   1.79x          10
+256MiB    fallocate no       9.634s    5.640s   1.71x          10
+1MiB      ftruncate yes      58.66s    0.362s   162.15x        5
+1MiB      fallocate yes      61.36s    0.390s   157.15x        5
 
-A block and a bucket may both hold no entries: ocfs2_xa_remove_entry()
-keeps the last slot when it removes the only one, so an empty bucket
-still carries the hash it is keyed by.  Three sites index xh_entries[]
-without checking xh_count and so read xh_entries[-1], which lands on the
-header and comes back as xh_count | xh_free_start << 16.  Nothing
-faults, but the value is acted on: the collision check reports no
-collision for an empty bucket, the divide commits a sentinel hash that
-hides part of the key space from ocfs2_xattr_bucket_find(), and the
-block to bucket copy claims storage the bucket does not hold.  Patches 4
-to 6 guard each site and keep the one read of xh_entries[0] that
-ocfs2_xa_remove_entry() documents as intentional.
+128 files, 512-byte clusters:
+length    mode      sync?    before    after    improvement    samples
+512KiB    ftruncate no       0.433s    0.352s   1.23x          10
+512KiB    fallocate no       0.446s    0.393s   1.13x          10
+64KiB     ftruncate yes      31.32s    0.429s   73.00x         10
+64KiB     fallocate yes      29.59s    0.410s   72.42x         10
 
+16 files, 4096-byte clusters:
+length    mode      sync?    before    after    improvement    samples
+256MiB    ftruncate no       5.181s    4.417s   1.17x          10
+256MiB    fallocate no       5.166s    4.442s   1.16x          10
+1MiB      ftruncate yes      9.294s    0.111s   84.06x         10
+1MiB      fallocate yes      8.710s    0.110s   79.36x         10
 
-This patch (of 6):
+The biggest improvement is on filesystems with a small cluster size and
+on synchronous mounts.
 
-ocfs2_xattr_set_entry_index_block() takes the hash a bucket split has to
-work with out of xs->here, but only after ocfs2_xattr_set_entry_bucket()
-has tried and failed to fit the entry.  That call defragments the bucket
-when it runs out of room, and ocfs2_defrag_xattr_bucket() finishes by
-sorting the entry array by name hash.  lib/sort.c is not stable, so two
-entries sharing a hash may trade slots and xs->here is left naming an
-entry other than the one the search found.
-
-The hash value itself survives the permutation -- the array is already
-sorted, so a slot can only exchange with an equal-hash neighbour -- but
-there is no reason to depend on that.  Pick the hash up before the set,
-where xs->here is unambiguously the entry the search landed on.
-
-No functional change intended.
-
-Link: https://lore.kernel.org/20261024151012.1059683-1-joseph.qi@linux.alibaba.com
-Link: https://lore.kernel.org/20261024151012.1059683-2-joseph.qi@linux.alibaba.com
-Fixes: e39baff18b85 ("ocfs2: use the stored hash when checking xattr bucket collision")
-Signed-off-by: Joseph Qi <joseph.qi@linux.alibaba.com>
+Link: https://lore.kernel.org/20261024013021.251898-1-matheus.aalmeida@inf.ufrgs.br
+Signed-off-by: Matheus Alves de Almeida <matheus.aalmeida@inf.ufrgs.br>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Cc: Heming Zhao <heming.zhao@suse.com>
-Cc: Mark Fasheh <mark@fasheh.com>
-Cc: Joel Becker <jlbec@evilplan.org>
+Acked-by: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
 ---
 
- fs/ocfs2/xattr.c |   26 ++++++++++++++++----------
- 1 file changed, 16 insertions(+), 10 deletions(-)
+ fs/fat/file.c |   70 ++++++++++++++++++++++++++++++++++--------------
+ 1 file changed, 51 insertions(+), 19 deletions(-)
 
---- a/fs/ocfs2/xattr.c~ocfs2-read-the-xattr-entry-hash-before-defragmenting-the-bucket
-+++ a/fs/ocfs2/xattr.c
-@@ -6100,6 +6100,22 @@ static int ocfs2_xattr_set_entry_index_b
+--- a/fs/fat/file.c~fat-preallocate-space-before-expanding-in-fat_cont_expand
++++ a/fs/fat/file.c
+@@ -217,13 +217,62 @@ const struct file_operations fat_file_op
+ 	.setlease	= generic_setlease,
+ };
  
- 	trace_ocfs2_xattr_set_entry_index_block(xi->xi_name);
- 
-+	/*
-+	 * An existing entry keeps the hash it was stored under, and that is
-+	 * the hash a split has to work with.  A new entry is stored under the
-+	 * unsigned one, which is what ocfs2_xa_add_entry() will write.
-+	 *
-+	 * Read it before the set below.  Filling the bucket may defragment it,
-+	 * and ocfs2_defrag_xattr_bucket() re-sorts the entry array, so
-+	 * afterwards xs->here only denotes whichever entry the sort left in
-+	 * that slot.
-+	 */
-+	if (xs->not_found)
-+		name_hash = ocfs2_xattr_name_hash(inode, xi->xi_name,
-+						  xi->xi_name_len);
-+	else
-+		name_hash = le32_to_cpu(xs->here->xe_name_hash);
++static int fat_preallocate(struct inode *inode, loff_t new_size)
++{
++	int nr_cluster; /* Number of clusters to be allocated */
++	loff_t mm_bytes; /* Number of bytes to be allocated for file */
++	loff_t ondisksize; /* block aligned on-disk size in bytes*/
++	struct super_block *sb = inode->i_sb;
++	struct msdos_sb_info *sbi = MSDOS_SB(sb);
 +
- 	ret = ocfs2_xattr_set_entry_bucket(inode, xi, xs, ctxt);
- 	if (!ret)
++	ondisksize = inode->i_blocks << 9;
++	if (new_size <= ondisksize)
++		return 0;
++
++	/* First compute the number of clusters to be allocated */
++	mm_bytes = new_size - ondisksize;
++	nr_cluster = (mm_bytes + (sbi->cluster_size - 1)) >>
++		     sbi->cluster_bits;
++
++	/* Allocate the clusters. We are not zeroing them out */
++	return fat_add_clusters(inode, nr_cluster);
++}
++
++static int fat_cont_expand_simple(struct inode *inode, loff_t size)
++{
++	struct address_space *mapping = inode->i_mapping;
++	const struct address_space_operations *aops = mapping->a_ops;
++	struct folio *folio;
++	void *fsdata = NULL;
++	int err;
++
++	err = aops->write_begin(NULL, mapping, size, 0, &folio, &fsdata);
++	if (err)
++		goto out;
++
++	err = aops->write_end(NULL, mapping, size, 0, 0, folio, fsdata);
++
++out:
++	return err;
++}
++
+ static int fat_cont_expand(struct inode *inode, loff_t size)
+ {
+ 	struct address_space *mapping = inode->i_mapping;
+ 	loff_t start = inode->i_size, count = size - inode->i_size;
+ 	int err;
+ 
+-	err = generic_cont_expand_simple(inode, size);
++	/*
++	 * Preallocating space here is more efficient than during
++	 * fat_cont_expand_simple() because of batching.
++	 */
++	err = inode_newsize_ok(inode, size);
++	if (err)
++		goto out;
++	err = fat_preallocate(inode, size);
++	if (err)
++		goto out;
++	err = fat_cont_expand_simple(inode, size);
+ 	if (err)
  		goto out;
-@@ -6115,17 +6131,7 @@ static int ocfs2_xattr_set_entry_index_b
- 	 * the maximum number of collisions we will allow for then is
- 	 * one bucket's worth, so check it here whether we need to
- 	 * add a new bucket for the insert.
--	 *
--	 * An existing entry keeps the hash it was stored under, and that is
--	 * the hash a split has to work with.  A new entry is stored under the
--	 * unsigned one, which is what ocfs2_xa_add_entry() will write.
- 	 */
--	if (xs->not_found)
--		name_hash = ocfs2_xattr_name_hash(inode, xi->xi_name,
--						  xi->xi_name_len);
--	else
--		name_hash = le32_to_cpu(xs->here->xe_name_hash);
+ 
+@@ -263,12 +312,7 @@ out:
+ static long fat_fallocate(struct file *file, int mode,
+ 			  loff_t offset, loff_t len)
+ {
+-	int nr_cluster; /* Number of clusters to be allocated */
+-	loff_t mm_bytes; /* Number of bytes to be allocated for file */
+-	loff_t ondisksize; /* block aligned on-disk size in bytes*/
+ 	struct inode *inode = file->f_mapping->host;
+-	struct super_block *sb = inode->i_sb;
+-	struct msdos_sb_info *sbi = MSDOS_SB(sb);
+ 	int err = 0;
+ 
+ 	/* No support for hole punch or other fallocate flags. */
+@@ -281,19 +325,7 @@ static long fat_fallocate(struct file *f
+ 
+ 	inode_lock(inode);
+ 	if (mode & FALLOC_FL_KEEP_SIZE) {
+-		ondisksize = inode->i_blocks << 9;
+-		if ((offset + len) <= ondisksize)
+-			goto error;
 -
- 	ret = ocfs2_check_xattr_bucket_collision(xs->bucket, name_hash);
- 	if (ret) {
- 		mlog_errno(ret);
+-		/* First compute the number of clusters to be allocated */
+-		mm_bytes = offset + len - ondisksize;
+-		nr_cluster = (mm_bytes + (sbi->cluster_size - 1)) >>
+-			sbi->cluster_bits;
+-
+-		/* Allocate the clusters. We are not zeroing them out */
+-		err = fat_add_clusters(inode, nr_cluster);
+-		if (err)
+-			goto error;
++		err = fat_preallocate(inode, offset + len);
+ 	} else {
+ 		if ((offset + len) <= i_size_read(inode))
+ 			goto error;
 _
 
-Patches currently in -mm which might be from joseph.qi@linux.alibaba.com are
+Patches currently in -mm which might be from matheus.aalmeida@inf.ufrgs.br are
 
+fat-batch-synchronous-mirror-writes.patch
+fat-improve-fat_sync_bhs-write-submission.patch
 
