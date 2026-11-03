@@ -1,47 +1,47 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793668688;
-	b=OP+suZ8DSL6ERXjwPaeiB7MxpGXaXEioKE/vyMFYC+EkjVNBPdzynZhXyrcBfml0YNFp
-	 yBzDr8sjGEsZiTjd3nz6F83y7nbmMMWb36H3c2ehj5At/cxdNU6opmRwvasyq9D5fRnaN
-	 oG/8idD6y2fEsjTdVzD7IdHmeYcMJUQFloP4vcQDKc5LoBd2U/L+jqaPHhlEHv9y1qb/M
-	 rlvcYg7DT0a6WzKWPt2h6qi0vUn0caBr8PH5W//uWHXR+EQkMiMQ7UNx9dlpsulGArap8
-	 DPB0g1arnec6z0Mnk0dRoU76kw2iro8ku8JfoVrFENIvUTLd3TkiMjTH0QISEOjhXEg==
+	t=1793668690;
+	b=ZB/2JtFBtQpBQNoP0p2a55TKBzSQAEZbPV8tYEsulAoME1oEFy3yc84S1hX42Oly/f5q
+	 tH+BHle6HcyTXM+chvOrkTUuSbUe9kZXyUP6dXhLiW9hpR5PDu8xwHYX09q7Ga6F8mr2H
+	 EwLXZiqU1SCYQBSxHxU3ibqm9PvIVuSJ57dn+Bb6nWpd58y8HZudujs6YHXuyX/MVx8I4
+	 JPZNl0Ipehgbj2yw405ohzF4Jtq+StqBvdEX6xAI2Wt7av4nLfiMlO1YmfcBVdrDopYeG
+	 VuwloUYt/+Ra36pYHRfssOCmep1oIXdJgzR59ZrjJspSA8fncXdmR6CQYlP4WbbOMBA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793668688;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793668690;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=F6nLFMMs4W2LO83sAhqfEvn9e8mHkyblXoSsJBaHfBA=;
-	b=Oy+4TYuu8FKVf+NjrNWju8FT54j4YLdD00taYmoH/Ey01a+cDVnnq34Marhzo5WzbySP
-	 t5/FXGVrxNZGv20bH1aZ2ECnQN8Ns3HT4bHeaEXvztL8p+xQNqET5C/pK3tRnT3N3jBy2
-	 nYk6l4hqIdtWNFia6XwPkZYaV6Mgf/eEFKp9B9ZZdMJGL7pRrmY7tlnpyR5IlOgoWozFZ
-	 rsEdRIhxWXkgklgvZiWDGrndINUdZ6zztPKtRH9Xsg6pmFlc1ULSARWjdS2EsgWVnR1Ea
-	 L0BSP2mgW4X0NDrvOYzrey4FUIEl1qFnbadWPx36vCwbV521NlQ4xg1bbsDUhFtfLSg==
+	bh=O11K+KUiqeqwrPGH1G4d0AbEXyg2fXehoMNkc6Z7uzI=;
+	b=p33uZPlRHMujMqlVKFTDdq6GmoOnrjYsWtIvHYrnqI1jics5MqTg0Q93kXKxCv1vBEtl
+	 1ZLfn5X2NEVvdlyKZO8sWpJ2Jltz4cjEnce5kxiUqb/8bAtXlbP//nDi30O4W1muS/jt5
+	 8NYiu2Y7EfCxRrYxjY3+Z6/qlQRy9WCrnbPzDb0K2r+hkGA13gJaCUU6H2RjQR4T2JibL
+	 ZMIA01E5wctomu9aCbJbEUchNKx+jbpJ+/kzCKPZ44kdWZPukvMdi8qBsFsE7JoyasbT5
+	 C9I6rXlNVpiHh7NOIJsr3rNmBX6Nr/49wHFT0/wolMVvdo2b0AY7xJvGG1UvUeiP0Pg==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=fgKJS7Ao;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b="Tl6U/Ohk";
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 06955606A324
-	for <mm-commits@vger.kernel.org>; Tue,  3 Nov 2026 01:18:07 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EF785606A327
+	for <mm-commits@vger.kernel.org>; Tue,  3 Nov 2026 01:18:09 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=fgKJS7Ao
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 92D181F000C1;
-	Tue,  3 Nov 2026 01:18:07 +0000 (UTC)
+	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=Tl6U/Ohk
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6722B1F000C1;
+	Tue,  3 Nov 2026 01:18:09 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1793668687;
-	bh=F6nLFMMs4W2LO83sAhqfEvn9e8mHkyblXoSsJBaHfBA=;
+	d=linux-foundation.org; s=korg; t=1793668689;
+	bh=O11K+KUiqeqwrPGH1G4d0AbEXyg2fXehoMNkc6Z7uzI=;
 	h=Date:To:From:Subject;
-	b=fgKJS7Ao0n5bjWNNqXMtYRXNya4X5vG1BzNGAxyiA5BwjiTMGwt+4ABHhqRhglmpR
-	 6qncbn1e1k5pWxI11rrmAW36e7WAeeKAbcQ7JxTj19HuHghj5ZTriX2gAg5Wn7P+0V
-	 C7dQ3dF3kKp8+rsqP6Yc9BTUkhN5GeI2oT+dk/Ro=
-Date: Mon, 02 Nov 2026 17:18:07 -0800
+	b=Tl6U/Ohk0BRyxuvPpKe3RUjjQ7Q/gFUimmVPWZ/nw4LcPaJenjPVAa8BIXJ6anhEy
+	 ftW4KkmPXC33AYlZ+q0BBGQRC6lvI1isg2VtTpNurmp2sVFYGNRslyk0K6+byD5F17
+	 2hh5INd2uc32LD8ESz6T8jRlgWCnHZxb9DbEXy+A=
+Date: Mon, 02 Nov 2026 17:18:09 -0800
 To: mm-commits@vger.kernel.org,skhan@linuxfoundation.org,sj@kernel.org,
 	rdunlap@infradead.org,manuelebnerli@mailbox.org,corbet@lwn.net,
 	jm5905938@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + docs-admin-guide-mm-damon-start-fix-grammar.patch added to mm-new branch
-Message-Id: <20261103011807.92D181F000C1@smtp.kernel.org>
+Subject: + docs-admin-guide-mm-damon-stat-fix-pronoun-agreement.patch added to mm-new branch
+Message-Id: <20261103011809.6722B1F000C1@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -53,12 +53,12 @@ Precedence: list
 
 
 The patch titled
-     Subject: Docs/admin-guide/mm/damon/start: fix grammar
+     Subject: Docs/admin-guide/mm/damon/stat: fix pronoun agreement
 has been added to the -mm mm-new branch.  Its filename is
-     docs-admin-guide-mm-damon-start-fix-grammar.patch
+     docs-admin-guide-mm-damon-stat-fix-pronoun-agreement.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/docs-admin-guide-mm-damon-start-fix-grammar.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/docs-admin-guide-mm-damon-stat-fix-pronoun-agreement.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -88,31 +88,13 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Aveline Noir <jm5905938@gmail.com>
-Subject: Docs/admin-guide/mm/damon/start: fix grammar
-Date: Mon, 02 Nov 2026 16:59:31 -0800
+Subject: Docs/admin-guide/mm/damon/stat: fix pronoun agreement
+Date: Mon, 02 Nov 2026 16:59:32 -0800
 
-Patch series "Docs: damon: fix grammar and typos", v2.
+"converts it" refers to the access events, so I think it should be
+"them".  Rewrap the paragraph while at it.
 
-I was reading the DAMON docs and kept running into small grammar
-mistakes and typos, so here is a series that tries to clean them up.
-There is one patch per document, and nothing beyond grammar was
-changed :)
-
-Some fixes pushed lines over 80 columns, so those paragraphs are
-rewrapped.  Patch 4 picks up what I think was left in lru_sort.rst
-after Manuel's recent fix.
-
-
-This patch (of 8):
-
-Fix a few grammar slips in the getting-started guide, like "make DAMON
-monitors" and a region "that has not accessed".
-
-"The line of the commands" used to be "The first two lines".  With only
-one masim line left, I make it "The first line".
-
-Link: https://lore.kernel.org/20261103005940.91432-1-sj@kernel.org
-Link: https://lore.kernel.org/20261103005940.91432-2-sj@kernel.org
+Link: https://lore.kernel.org/20261103005940.91432-3-sj@kernel.org
 Signed-off-by: Aveline Noir <jm5905938@gmail.com>
 Signed-off-by: SJ Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
@@ -124,61 +106,37 @@ Cc: Shuah Khan <skhan@linuxfoundation.org>
 Cc: Randy Dunlap <rdunlap@infradead.org>
 ---
 
- Documentation/admin-guide/mm/damon/start.rst |   16 ++++++++--------
- 1 file changed, 8 insertions(+), 8 deletions(-)
+ Documentation/admin-guide/mm/damon/stat.rst |   12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
 
---- a/Documentation/admin-guide/mm/damon/start.rst~docs-admin-guide-mm-damon-start-fix-grammar
-+++ a/Documentation/admin-guide/mm/damon/start.rst
-@@ -63,7 +63,7 @@ the execution. ::
+--- a/Documentation/admin-guide/mm/damon/stat.rst~docs-admin-guide-mm-damon-stat-fix-pronoun-agreement
++++ a/Documentation/admin-guide/mm/damon/stat.rst
+@@ -41,8 +41,8 @@ enabled
  
- The first command of the above example downloads and builds an artificial
- memory access generator program called ``masim``.  The second command asks DAMO
--to start the program via the given command and make DAMON monitors the newly
-+to start the program via the given command and make DAMON monitor the newly
- started process.  The third command retrieves the current snapshot of the
- monitored access pattern of the process from DAMON and shows the pattern in a
- human readable format.
-@@ -71,16 +71,16 @@ human readable format.
- The first line of the output shows the relative access temperature (hotness) of
- the regions in a single row heatmap format.  Each column on the heatmap
- represents regions of same size on the monitored virtual address space.  The
--position of the column on the row and the number on the column represents the
-+position of the column on the row and the number on the column represent the
- relative location and access temperature of the region.  ``[...]`` means
- unmapped huge regions on the virtual address spaces.  The second line shows
- additional information for better understanding the heatmap.
+ Enable or disable DAMON_STAT.
  
- Each line of the output from the third line shows which virtual address range
- (``addr XX size XX``) of the process is how frequently (``access XX %``)
--accessed for how long time (``age XX``).  For example, the eleventh region of
--~9.5 MiB size is being most frequently accessed for last 3.7 seconds.  Finally,
--the fourth command stops DAMON.
-+accessed for how long (``age XX``).  For example, the eleventh region of
-+~9.5 MiB size is being most frequently accessed for the last 3.7 seconds.
-+Finally, the fourth command stops DAMON.
+-You can enable DAMON_STAT by setting the value of this parameter as ``Y``.
+-Setting it as ``N`` disables DAMON_STAT.  The default value is set by
++You can enable DAMON_STAT by setting the value of this parameter to ``Y``.
++Setting it to ``N`` disables DAMON_STAT.  The default value is set by
+ ``CONFIG_DAMON_STAT_ENABLED_DEFAULT`` build config option.
  
- Note that DAMON can monitor not only virtual address spaces but multiple types
- of address spaces including the physical address space.
-@@ -95,7 +95,7 @@ monitoring results to a file. ::
-     $ ./masim ./configs/zigzag.cfg &
-     $ sudo damo record -o damon.data $(pidof masim)
+ Note that this module (damon_stat) cannot run simultaneously with other
+@@ -68,10 +68,10 @@ estimated_memory_bandwidth
+ Estimated memory bandwidth consumption (bytes per second) of the system.
  
--The line of the commands run the artificial memory access
-+The first line of the commands runs the artificial memory access
- generator program again.  The generator will repeatedly
- access two 100 MiB sized memory regions one by one.  You can substitute this
- with your real workload.  The last line asks ``damo`` to record the access
-@@ -170,8 +170,8 @@ set size has chronologically changed.::
- Data Access Pattern Aware Memory Management
- ===========================================
+ DAMON_STAT reads observed access events on the current DAMON results snapshot
+-and converts it to memory bandwidth consumption estimation in bytes per second.
+-The resulting metric is exposed to user via this read-only parameter.  Because
+-DAMON uses sampling, this is only an estimation of the access intensity rather
+-than accurate memory bandwidth.
++and converts them to memory bandwidth consumption estimation in bytes per
++second.  The resulting metric is exposed to user via this read-only parameter.
++Because DAMON uses sampling, this is only an estimation of the access intensity
++rather than accurate memory bandwidth.
  
--Below command makes every memory region of size >=4K that has not accessed for
-->=60 seconds in your workload to be swapped out. ::
-+Below command makes every memory region of size >=4K that has not been accessed
-+for >=60 seconds in your workload to be swapped out. ::
- 
-     $ sudo damo start --damos_access_rate 0 0 --damos_sz_region 4K max \
-                       --damos_age 60s max --damos_action pageout \
+ memory_idle_ms_percentiles
+ --------------------------
 _
 
 Patches currently in -mm which might be from jm5905938@gmail.com are
