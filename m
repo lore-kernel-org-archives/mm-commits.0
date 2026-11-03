@@ -1,48 +1,49 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793672150;
-	b=Njl7+K+YiY5XtzvfMGvnT+IDvELWKBRHc8rV9eBDeLncm2M6gjcXeGS3mOII3IcHAA1/
-	 rGo0DiT4lrukaAysFifB6dSe+uSmFqCLRKTlRagCiWWkTDNpFT+zVz4VZCIn7l7LtKoD9
-	 I23IakRm0B13LaGwgSEzIQJNvvEyyUwvr+LjhngIMS12jZpTNUO0n1lR3BlLmvS3gE7ho
-	 MlbnC2W09vbk7vb1MPOZOBLl2yGdA7urz4K9oofausBi25SElb7G7IFCXdI4BlcEpSKTu
-	 BGqNlPRD3JTPjSbGPoOrtrkGbIArvIN4Wx0hxCtWELP/MpFz5Jv2WcqRpTkaDudnA2g==
+	t=1793672146;
+	b=TDd0SdL6Sgk2OXsaYitEszSK1W/cuYOfmpw/L9VUjmuwKqYnzFPZ4ch5Dk5ZV7w3f3wL
+	 ud/DA8DmuZ3dsO4lSrzctJ0jOgiuBiSUavKwMb3AzOviiUNrgd/lKm0cOIgqCOMcr93Qn
+	 ik1+1gvJveshe64JWW3oYZquVCeS2pEF9l6HfXPZGqHNbrtv1jifR11xB2IeG2EtZ2XlW
+	 13+H30+PghCigfilOIAkvCUqQTnDPrv1lSMVMhTbBIUPONxnK2fXd7fPgXJrf0MxoeCdF
+	 wbv+AHNTdY/7wX/qFi6rackpU4e+ebtTfFTcL4EDChYV5WW10py/32MV0J249bMDtnw==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793672150;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793672146;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=SMwOVdcyEhwVdRsmiGe5SnDIrCqEo/zvuSYZoMvFTHw=;
-	b=lvzI55j5bNAlBUcYAKxgEyLwHXZ0AOqIwICez45qu0IANTaDszjI67jW4pI96YY8IpWM
-	 Pj4dSrmc+ZIQanmx6YPLKmvcu3klEMCX5OnmvQDWfkJgDulxRBSYQYcGLDOc1E3CAgYrS
-	 yrW5SxXdvEPiiBOYWoSYw55TktXVa3Wn2n+et5H/Hvk99ourrz4U0ddW3LAqujrZlNNH5
-	 58Zt3kIADGWK2RK9dFWfLdPMODeKrGsR1nrAVu8iH/Q0cYzu6mAXZBpAr7QIHdWW3EQzt
-	 Jf+er07a9+gkRY6ZepaaagCZkgYxcmG7lIxAteZdSAxTcDezsFH8zdI6hqr9k9XODmg==
+	bh=AhiHYgzV9FytEyi5cnCdcJDs04Q5yBfo9h7wiXr5MbM=;
+	b=fq9/1GuAYLbVRra2ilij+dw6xgeM3289jw3/dyAJW5ljstfOK4F1dzu1gJwr12e+3SDA
+	 dYTBRH+cW/thV3QQjelYdT8JGrn/3YrxXu0NTW9cpyuEhLqJe3kEp50Jx3j76SzV0seWg
+	 GlzCWN83m94ewFp4VLiup1DjNstpui0MJR7cMIQYuqW+PAqDLYfaBJcd+waSEv4Hl0W9H
+	 GO8TbCR7yeL/KdWZbzhholXBGZKdXswSdqXia6ffK+foSwIwHBiLsMitcP9GB8qYwXHiv
+	 iRJewUsjR9iW9UHwETWQWiqH0avvBhVBkPLr5Q+LnVqQByMfcDgT3ivdOJcY5YqIbrg==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=mZ78XZBz;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=R+rsMsnz;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DC5B7606A338
-	for <mm-commits@vger.kernel.org>; Tue,  3 Nov 2026 02:15:49 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A3C05606A324;
+	Tue,  3 Nov 2026 02:15:45 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=mZ78XZBz
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A76731F000C1;
-	Tue,  3 Nov 2026 02:15:49 +0000 (UTC)
+	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=R+rsMsnz
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6F02F1F00919;
+	Tue,  3 Nov 2026 02:15:45 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1793672149;
-	bh=SMwOVdcyEhwVdRsmiGe5SnDIrCqEo/zvuSYZoMvFTHw=;
+	d=linux-foundation.org; s=korg; t=1793672145;
+	bh=AhiHYgzV9FytEyi5cnCdcJDs04Q5yBfo9h7wiXr5MbM=;
 	h=Date:To:From:Subject;
-	b=mZ78XZBzd/1zN/J4LXwl0fS9vZ6pCa0EHXaKiuYHiD60WkagKRIX3mFNS23ldtBOC
-	 vUEdmnGQYzoCHovRjrCmJLST3WOgz1wWWvoZ49jfBGAHJ6TKAnJy6GDAP68BY8CM5d
-	 oilRYH3kYTk1PERw+z8ItrY/eQijIIYzMC0ZuyIw=
-Date: Mon, 02 Nov 2026 18:15:49 -0800
-To: mm-commits@vger.kernel.org,vbabka@kernel.org,surenb@google.com,
-	rppt@kernel.org,mhocko@suse.com,ljs@kernel.org,liam@infradead.org,
-	kas@kernel.org,david@kernel.org,zenghui.yu@linux.dev,
-	akpm@linux-foundation.org
+	b=R+rsMsnzQ/S54HoMgTaF+CSyGTe3/ru2cyJhxPOeZ6lk41gFvPcdwtiC/C1tMHAxg
+	 SO72wsVDs3g0kvtxsaQdRzqUYSTHBgRExGmqfTKt4FQ0AvBEszFy/iYSOuIhGuayI+
+	 l2EN5jGA3wXHuEHDV/mSr2BOxkDt/RGVNtpvH55k=
+Date: Mon, 02 Nov 2026 18:15:45 -0800
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,ying.huang@linux.alibaba.com,
+	vincenzo.frascino@arm.com,stable@vger.kernel.org,odys.yuan@gmail.com,
+	matthew.brost@intel.com,joshua.hahnjy@gmail.com,gourry@gourry.net,
+	david@kernel.org,catalin.marinas@arm.com,byungchul@sk.com,apopple@nvidia.com,
+	andreyknvl@gmail.com,dennylin0707@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] selftests-mm-fix-khugepaged_race-build-with-older-glibc.patch removed from -mm tree
-Message-Id: <20261103021549.A76731F000C1@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] mm-migrate-untag-addresses-when-querying-page-nodes.patch removed from -mm tree
+Message-Id: <20261103021545.6F02F1F00919@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -54,64 +55,67 @@ Precedence: list
 
 
 The quilt patch titled
-     Subject: selftests/mm: fix khugepaged_race build with older glibc
+     Subject: mm/migrate: untag addresses when querying page nodes
 has been removed from the -mm tree.  Its filename was
-     selftests-mm-fix-khugepaged_race-build-with-older-glibc.patch
+     mm-migrate-untag-addresses-when-querying-page-nodes.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: "Zenghui Yu (Huawei)" <zenghui.yu@linux.dev>
-Subject: selftests/mm: fix khugepaged_race build with older glibc
-Date: Tue, 27 Oct 2026 20:20:13 +0800
+From: Hungyu Lin <dennylin0707@gmail.com>
+Subject: mm/migrate: untag addresses when querying page nodes
+Date: Mon, 26 Oct 2026 19:53:29 +0000
 
-glibc versions before 2.37 do not define MADV_COLLAPSE in <sys/mman.h>, so
-khugepaged_race fails to build against them (e.g. glibc 2.34):
+When move_pages() is used with nodes == NULL, do_pages_stat_array() passes
+each page address directly to vma_lookup().  A valid tagged address
+therefore fails the VMA lookup and gets -EFAULT in its status entry,
+instead of the node reported for the corresponding untagged address.
 
-[root@localhost mm]# make
-  CC       khugepaged_race
-khugepaged_race.c: In function 'main':
-khugepaged_race.c:506:23: error: 'MADV_COLLAPSE' undeclared (first use in this function); did you mean 'MADV_COLD'?
-  506 |       hpage_pmd_size, MADV_COLLAPSE);
-      |                       ^~~~~~~~~~~~~
-      |                       MADV_COLD
-khugepaged_race.c:506:23: note: each undeclared identifier is reported only once for each function it appears in
-make: *** [../lib.mk:225: /data/code/mm/tools/testing/selftests/mm/khugepaged_race] Error 1
+The tagged address ABI permits these pointers, and the migration path
+already removes their tags.  Apply the target mm's untagging rules to the
+query path as well, while holding its mmap read lock.
 
-Include <linux/mman.h> to get the UAPI definition of MADV_COLLAPSE.
-
-Link: https://lore.kernel.org/20261027122013.4286-1-zenghui.yu@linux.dev
-Fixes: 66c374464438 ("selftests/mm: add khugepaged race harness")
-Signed-off-by: Zenghui Yu (Huawei) <zenghui.yu@linux.dev>
+Link: https://lore.kernel.org/20261026195330.46757-1-dennylin0707@gmail.com
+Fixes: 057d3389108e ("mm: untag user pointers passed to memory syscalls")
+Signed-off-by: Hungyu Lin <dennylin0707@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Acked-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
-Reviewed-by: Kiryl Shutsemau (Meta) <kas@kernel.org>
-Cc: David Hildenbrand <david@kernel.org>
-Cc: Liam R. Howlett <liam@infradead.org>
-Cc: Vlastimil Babka <vbabka@kernel.org>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Michal Hocko <mhocko@suse.com>
+Reported-by: Sashiko <sashiko-bot@kernel.org>
+Closes: https://lore.kernel.org/r/20260721183257.706661F000E9@smtp.kernel.org
+Acked-by: Zi Yan <ziy@nvidia.com>
+Acked-by: David Hildenbrand (Arm) <david@kernel.org>
+Reviewed-by: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Matthew Brost <matthew.brost@intel.com>
+Cc: Joshua Hahn <joshua.hahnjy@gmail.com>
+Cc: Byungchul Park <byungchul@sk.com>
+Cc: Gregory Price <gourry@gourry.net>
+Cc: Ying Huang <ying.huang@linux.alibaba.com>
+Cc: Alistair Popple <apopple@nvidia.com>
+Cc: Andrey Konovalov <andreyknvl@gmail.com>
+Cc: Vincenzo Frascino <vincenzo.frascino@arm.com>
+Cc: <odys.yuan@gmail.com>
+Cc: <stable@vger.kernel.org>
 ---
 
- tools/testing/selftests/mm/khugepaged_race.c |    1 +
- 1 file changed, 1 insertion(+)
+ mm/migrate.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/tools/testing/selftests/mm/khugepaged_race.c~selftests-mm-fix-khugepaged_race-build-with-older-glibc
-+++ a/tools/testing/selftests/mm/khugepaged_race.c
-@@ -8,6 +8,7 @@
- #define _GNU_SOURCE
- #include <errno.h>
- #include <fcntl.h>
-+#include <linux/mman.h>
- #include <pthread.h>
- #include <stdio.h>
- #include <stdlib.h>
+--- a/mm/migrate.c~mm-migrate-untag-addresses-when-querying-page-nodes
++++ a/mm/migrate.c
+@@ -2461,7 +2461,7 @@ static void do_pages_stat_array(struct m
+ 	mmap_read_lock(mm);
+ 
+ 	for (i = 0; i < nr_pages; i++) {
+-		unsigned long addr = (unsigned long)(*pages);
++		unsigned long addr = (unsigned long)untagged_addr_remote(mm, *pages);
+ 		struct vm_area_struct *vma;
+ 		struct folio_walk fw;
+ 		struct folio *folio;
 _
 
-Patches currently in -mm which might be from zenghui.yu@linux.dev are
+Patches currently in -mm which might be from dennylin0707@gmail.com are
 
-selftests-mm-skip-collapse_compound_extreme-on-thp-allocation-failure.patch
-mm-page_alloc-remove-unneeded-forward-declaration-of-__free_pages_ok.patch
+fat-fix-parent-link-count-when-replacing-a-sibling-directory.patch
+delayacct-preserve-delay-extrema-when-aggregating-taskstats.patch
+shmem-clamp-negative-used-block-samples-in-statfs.patch
 
