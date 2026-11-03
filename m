@@ -1,41 +1,41 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793671001;
-	b=3TSP0h5MjS5lZb2e5LUErkR1tWeXjW7FCL0Vri1juvPImzyo1L5l+orPRXNmkIAUJDqX
-	 OsGfcEUQg5eP2oMsD3pbzoPcdSUt3LHcFz3z+4mD8zz88k7KY7RpIygWmjXMHs0V6MYcM
-	 ct+uU63eBaDt5/7/vWGgkFnCaiCrhIZ+e9Kx+dzV7VJXi0hNA1GesOxQioiZd1+lKeH2A
-	 Mi1ll/fzSdEWu6XwFa4LMMd1M1xpGeiLU+1RUO3F+a20Bb87oo/WcKJbsFhnj13Ip7G6k
-	 jY73JxS3tAHq4oJiYWUuWl7I5ExQTCU250MB+hYfr0tAUfbCHCKsLx4809oLokHtjRw==
+	t=1793671004;
+	b=yCZSIcpO8k7T05fI1a45pyCSwVCprtCyuoWDSRBM0zhuh6BOKPH3Z4YgH183ivKToxod
+	 l/kadqOeQ6nOdo/oqejR6YtvBjc7875Vwj7IpKux/ywI3b4OmQHSit1RjMzSgU3TVGYjW
+	 J9kQruY46mW07JcCWKPdh6JwPvNRFiP2bV2WmmwsPJGikbQha+pyAn7tPtL0DQwOo0+27
+	 86/O1S1R6Itd4jGLSeMFbFDkMQsf0jTOfyxKSd3K4O6zW0LIrOweq9QLx5e7cFEdNy6Ev
+	 V1CocYatwsJJDUpFqN7tteGU8PV6Dbz2ubPltLmivwaHh/oDUZWjZBcnnvqsgGYY9lA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793671001;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793671004;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=pzxY/yBiyJ4sNgIQTA+3A/2yJOH+G1H8nStCyEP5rtw=;
-	b=MIClenuxMuQM7P5Rw+ZpGfvGJKJtDEZng92qobxNE3fJvkioLm2u4qGTtMIiiUMHUmqe
-	 1XW7k/qV5Ry402qyzihvEzrFofSkECto4ZqiRQATVZF/EuEtfynhDuKnLIbVtgsrBu0WE
-	 Vy2aB+iJ/OEGyaEhPQhGle+eEGvEUSDsZVhKqtERS7jqhMRfryIujUmBLQjvLYWJcELRX
-	 U2u+jLarySOL+QDgVoMqEnf+K/7aB1YS4Z7ntcniDk2YukUVIRO833sYe0LGBTGvPvz1X
-	 iqV4q4IOBM2pBAq1E/GTsrIYyQYLR35gbEhQ6/pncb8fX9SL74RDcoNLYJWpR5deijQ==
+	bh=mN2ARbKjJcTjUlWq9QSQ+QhBO+L2ipFKpD6yTfDAm+c=;
+	b=ZzTpH+6rQ/37S3/Ug4GPuLS0dTNZHU4Sn7Fu7VsWXOvB/Qg4KKLOeRym3zhluuDiwcgP
+	 wPegVHmCBSdE2+2YUTfC5jF53FUx2mFZDp610unUNUIL41MdyT9fTMy/leR5rXJKlZB1V
+	 XsnQwx1uSswQTY7ej5fWQVP/5UVWFlo8/9bhIMBx0t73R0jlfWgaLccvto1MeXCWPbLVG
+	 tK1HbsO3knBWNjXRM1YJXQo7j5w/bjI9OZDrV7kzQvBLVd6sNove386voAb8mGPc4/Hc+
+	 sXR0FAamn0ZHo37JgaubBjL2sMJKLhChpPRmmSdws7fh8L8vAl/DkQW6x1ruDu+drJQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=j9a7xPEX;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=AEqw0T+W;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 378CB606A32F
-	for <mm-commits@vger.kernel.org>; Tue,  3 Nov 2026 01:56:41 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 03B4B606A326
+	for <mm-commits@vger.kernel.org>; Tue,  3 Nov 2026 01:56:44 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=j9a7xPEX
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 05F1F1F000C1;
-	Tue,  3 Nov 2026 01:56:40 +0000 (UTC)
+	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=AEqw0T+W
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C6CFB1F000C1;
+	Tue,  3 Nov 2026 01:56:43 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1793671001;
-	bh=pzxY/yBiyJ4sNgIQTA+3A/2yJOH+G1H8nStCyEP5rtw=;
+	d=linux-foundation.org; s=korg; t=1793671003;
+	bh=mN2ARbKjJcTjUlWq9QSQ+QhBO+L2ipFKpD6yTfDAm+c=;
 	h=Date:To:From:Subject;
-	b=j9a7xPEXVFVkH2bnE4ic+G5F7PzsMLLtnCByTi1l2cElKAi/TOMlFLEqqzajfFZS1
-	 51hNnqCz9/yui+mnWa4I27BPZuYt/paPxNxTNVmM9UeKIpPpQTygrhqrgknK79N+/O
-	 kTtkl3C//MA7+AMcPrPRFo3IV1554HtY9mfiGgGw=
-Date: Mon, 02 Nov 2026 17:56:40 -0800
+	b=AEqw0T+WsQCJfNvOJUHyvRJe4LqVHYjufknW4b5I1ymMAMCwFS1cJPp9m1zadgF9F
+	 zR3NZwtxvqfbDAvo3z253PVYHveBhG3AQnhF4V9MfRdQ+cz+iaKKYDk+R66t8vLllT
+	 o8SEI62bqJ//yzCrH/U6WqdyKIDuJWNYYzY97IeM=
+Date: Mon, 02 Nov 2026 17:56:43 -0800
 To: mm-commits@vger.kernel.org,ziy@nvidia.com,ying.huang@linux.alibaba.com,
 	willy@infradead.org,vbabka@kernel.org,surenb@google.com,sj@kernel.org,
 	rppt@kernel.org,peterx@redhat.com,mhocko@suse.com,matthew.brost@intel.com,
@@ -45,8 +45,8 @@ To: mm-commits@vger.kernel.org,ziy@nvidia.com,ying.huang@linux.alibaba.com,
 	baolin.wang@linux.alibaba.com,apopple@nvidia.com,tz2294@columbia.edu,
 	akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-remove-read_cache_page_gfp.patch added to mm-new branch
-Message-Id: <20261103015641.05F1F1F000C1@smtp.kernel.org>
+Subject: + mm-remove-thp_size-and-thp_order.patch added to mm-new branch
+Message-Id: <20261103015643.C6CFB1F000C1@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -58,12 +58,12 @@ Precedence: list
 
 
 The patch titled
-     Subject: mm: remove read_cache_page_gfp()
+     Subject: mm: remove thp_size() and thp_order()
 has been added to the -mm mm-new branch.  Its filename is
-     mm-remove-read_cache_page_gfp.patch
+     mm-remove-thp_size-and-thp_order.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-remove-read_cache_page_gfp.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-remove-thp_size-and-thp_order.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -93,19 +93,20 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Tal Zussman <tz2294@columbia.edu>
-Subject: mm: remove read_cache_page_gfp()
-Date: Mon, 02 Nov 2026 17:54:12 -0500
+Subject: mm: remove thp_size() and thp_order()
+Date: Mon, 02 Nov 2026 17:54:13 -0500
 
-There are no callers left. Point the comment on shmem_read_folio_gfp()
-at mapping_read_folio_gfp() instead.
+The last callers of thp_size() have been converted to folio_size(), and
+thp_order()'s only remaining user was thp_size() itself, so remove
+both.
 
-Link: https://lore.kernel.org/20261102-page-wrappers-v1-7-e7280bdb31f6@columbia.edu
+Link: https://lore.kernel.org/20261102-page-wrappers-v1-8-e7280bdb31f6@columbia.edu
 Signed-off-by: Tal Zussman <tz2294@columbia.edu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+Acked-by: David Hildenbrand (Arm) <david@kernel.org>
 Reviewed-by: SJ Park <sj@kernel.org>
 Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
 Cc: Jan Kara <jack@suse.cz>
-Cc: David Hildenbrand <david@kernel.org>
 Cc: Lorenzo Stoakes <ljs@kernel.org>
 Cc: Liam R. Howlett <liam@infradead.org>
 Cc: Vlastimil Babka <vbabka@kernel.org>
@@ -126,68 +127,39 @@ Cc: Hugh Dickins <hughd@google.com>
 Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
 ---
 
- include/linux/pagemap.h |    2 --
- mm/filemap.c            |   23 -----------------------
- mm/shmem.c              |    4 ++--
- 3 files changed, 2 insertions(+), 27 deletions(-)
+ include/linux/mm.h |   21 ---------------------
+ 1 file changed, 21 deletions(-)
 
---- a/include/linux/pagemap.h~mm-remove-read_cache_page_gfp
-+++ a/include/linux/pagemap.h
-@@ -962,8 +962,6 @@ struct folio *mapping_read_folio_gfp(str
- 		gfp_t flags);
- struct page *read_cache_page(struct address_space *, pgoff_t index,
- 		filler_t *filler, struct file *file);
--extern struct page * read_cache_page_gfp(struct address_space *mapping,
--				pgoff_t index, gfp_t gfp_mask);
- 
- static inline struct page *read_mapping_page(struct address_space *mapping,
- 				pgoff_t index, struct file *file)
---- a/mm/filemap.c~mm-remove-read_cache_page_gfp
-+++ a/mm/filemap.c
-@@ -4260,29 +4260,6 @@ struct page *read_cache_page(struct addr
+--- a/include/linux/mm.h~mm-remove-thp_size-and-thp_order
++++ a/include/linux/mm.h
+@@ -2146,27 +2146,6 @@ static inline unsigned int page_shift(st
+ 	return PAGE_SHIFT + compound_order(page);
  }
- EXPORT_SYMBOL(read_cache_page);
  
 -/**
-- * read_cache_page_gfp - read into page cache, using specified page allocation flags.
-- * @mapping:	the page's address_space
-- * @index:	the page index
-- * @gfp:	the page allocator flags to use if allocating
-- *
-- * This is the same as "read_mapping_page(mapping, index, NULL)", but with
-- * any new page allocations done using the specified allocation flags.
-- *
-- * If the page does not get brought uptodate, return -EIO.
-- *
-- * The function expects mapping->invalidate_lock to be already held.
-- *
-- * Return: up to date page on success, ERR_PTR() on failure.
+- * thp_order - Order of a transparent huge page.
+- * @page: Head page of a transparent huge page.
 - */
--struct page *read_cache_page_gfp(struct address_space *mapping,
--				pgoff_t index,
--				gfp_t gfp)
+-static inline unsigned int thp_order(struct page *page)
 -{
--	return do_read_cache_page(mapping, index, NULL, NULL, gfp);
+-	VM_BUG_ON_PGFLAGS(PageTail(page), page);
+-	return compound_order(page);
 -}
--EXPORT_SYMBOL(read_cache_page_gfp);
 -
+-/**
+- * thp_size - Size of a transparent huge page.
+- * @page: Head page of a transparent huge page.
+- *
+- * Return: Number of bytes in this page.
+- */
+-static inline unsigned long thp_size(struct page *page)
+-{
+-	return PAGE_SIZE << thp_order(page);
+-}
+-
+ #ifdef CONFIG_MMU
  /*
-  * Warn about a page cache invalidation failure during a direct I/O write.
-  */
---- a/mm/shmem.c~mm-remove-read_cache_page_gfp
-+++ a/mm/shmem.c
-@@ -6200,9 +6200,9 @@ int shmem_zero_setup_desc(struct vm_area
-  * @index:	the folio index
-  * @gfp:	the page allocator flags to use if allocating
-  *
-- * This behaves as a tmpfs "read_cache_page_gfp(mapping, index, gfp)",
-+ * This behaves as a tmpfs "mapping_read_folio_gfp(mapping, index, gfp)",
-  * with any new page allocations done using the specified allocation flags.
-- * But read_cache_page_gfp() uses the ->read_folio() method: which does not
-+ * But mapping_read_folio_gfp() uses the ->read_folio() method: which does not
-  * suit tmpfs, since it may have pages in swapcache, and needs to find those
-  * for itself; although drivers/gpu/drm i915 and ttm rely upon this support.
-  *
+  * Do pte_mkwrite, but only if the vma says VM_WRITE.  We do this when
 _
 
 Patches currently in -mm which might be from tz2294@columbia.edu are
