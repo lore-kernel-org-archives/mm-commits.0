@@ -1,50 +1,49 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793672120;
-	b=i9rLIUsAA37y0darn2CJ0HmrEkpWXQtVAbmzi+bk15TIXd9LhH32K1+r08Ti/iGtiAqG
-	 g7UUTX21TQujH5seuYEwlG9sbuxr8yOLX0uzDWGjBXHlby8o/yRnJrW04K8PmELs8DNuy
-	 nndQv1/ckwiC0WnXhZck+DAnLU78PvIApJ3Mnx+WEWD4A0IE0j/b+pFESWdnFOlyZYnnx
-	 zMVsJR6rWyYpKwEAXgDSh0uzjWVPyV1+BrUUAgokR34W86KPir0QVZA3xKlXmHwqMBikJ
-	 9Daoc0dr2n+SMuF7isOJ0wQAzhSkvLtiuqRn8v+QRWMTy5zbzvoluxU+XtnbUjtQVvQ==
+	t=1793672132;
+	b=36GSo+CD6g1fx2Iddbw49gJ7CdJOOXYmfP9ipMUUUxQX6jrcI+frNc65SKnesz8DJzUV
+	 pPU3/e6+q2iUqyHoTI0zAeYFb9NJHNSoebKJWNE4ZW9dDwkNKBXzBeQDDHay4NLM+W3Kh
+	 TKiiuJ/V15vj/m+5xSyM7gz81OArf9YXsVvRAhXgwstsVwh+lO3ZUmbzeO6Aw4VfRDgOf
+	 Omhg4g6zTZEbGearOe2nGLucQ32Fq4B8mr7+nP0feLXmsCWLjkjvLprqZJOMhJ+ZTG4JX
+	 NJqTUjmyTNtl9Sl1YfZvkZB8SboPipjM1z7f8WZx6J5tg/tY6ENLVgaHGtla8FJuCBw==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793672120;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793672132;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=FnwpCVjwydqlOHCUe4nN3SvfJ8VJHqAKOvkEjUan0cw=;
-	b=FlDfVMiadvmrk9vQsDcBsaTeLHhCBPUua5gbefRTt8/O2Jm6boNVorYt1cq+7wa4jU6r
-	 kbimv4L+K0uzON0H4BNLq2VaL1r0e2mtpd+qL2IYjhOaEV/Y2l73VyKy/Vxbbg3ZiHArL
-	 XkoVkeVo3royLiKqLmkpz7TQMuDz4WfKWhNj29aYPLlgy4T0Emxe30kelSYiJAYVJ6hBm
-	 jjx52ZTqSOxzQNImG4f9iJI34t1pVo56HXmIhS0S7pX8LjFEeih169uHWfd8CIt6dX3gH
-	 T+PDmmkir7ArB+9DOTO00VrDCjGt68D7KVYmzXD0NhY+zS6cz51elRgRoX+4Y15+FOg==
+	bh=217H0WaVDJ/7BVgTwW404m10ZG358RViLdtD9bz8eL4=;
+	b=HdJTBriIAKOWLABDhSG3hkjnhE6G/KkqPqpgnjckFqovqDiqRvDWy9vIUiRr6pZ0FaVK
+	 s/CK9fKaXIfFXCWVGa4Tan58GYa9kJ2OAaXwVABNS5Z3mgVRp0aGE43LdtplrKVTzH9N+
+	 VvmRQwCpC1wViOI1uKSeWZhOia7BCv855mXSXIeldevhat9DUmSCFGPn1AzcWERS8bT8p
+	 hOqCBs8eC+H9CVdCCQsHgLVOPH2oCNNfaQkk6n4DFlmQcDB+k3YzBAdFOTnJG1Qb1WBmR
+	 h54pLqZA4hBk1yqCVOTl7p7Ym+V39I62TKdMPVEwGJfnEUp7WpcfJ/JUbjZznqz6QsQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b="d0qGcd/o";
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=QJVHiQgx;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C5484606A332;
-	Tue,  3 Nov 2026 02:15:19 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 93F74606A337;
+	Tue,  3 Nov 2026 02:15:32 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=d0qGcd/o
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 40CC21F000C1;
-	Tue,  3 Nov 2026 02:15:19 +0000 (UTC)
+	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=QJVHiQgx
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5F7CB1F000C1;
+	Tue,  3 Nov 2026 02:15:32 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1793672119;
-	bh=FnwpCVjwydqlOHCUe4nN3SvfJ8VJHqAKOvkEjUan0cw=;
+	d=linux-foundation.org; s=korg; t=1793672132;
+	bh=217H0WaVDJ/7BVgTwW404m10ZG358RViLdtD9bz8eL4=;
 	h=Date:To:From:Subject;
-	b=d0qGcd/ofpymRWcPis2xAdBhz7WvtI9O2hsMstCPOt3Orc1V5yFmqSfUJbcKsbZzw
-	 eU877UnRfiFT+AxEQlPo5a9kIgyAtbjKSwv/a+Pa1Afc0e3fmksKb0TAx/woFd+YTN
-	 MoMbLmUK9HGSfJHnUpAgLFwSKiKYBwosOeZWAwME=
-Date: Mon, 02 Nov 2026 18:15:18 -0800
+	b=QJVHiQgx4k+PpnxNBEf2L1T9av7/mC8AYvnliNvThDGCRFx5P5SFyjVcZ4LbsVTAg
+	 zy7/eH3CY7BB4sr7zIItp21Ana9WXHUG7PA1wzMUBRenPMrKqwwuIjj+lIpYt/3CM4
+	 eseW/5cj27aMcqF8hDZzdm64KIdewcELHDkHnj34=
+Date: Mon, 02 Nov 2026 18:15:31 -0800
 To: mm-commits@vger.kernel.org,vbabka@kernel.org,surenb@google.com,
-	stable@vger.kernel.org,ryan.roberts@arm.com,rppt@kernel.org,mhocko@suse.com,
-	ljs@kernel.org,liam@infradead.org,lance.yang@linux.dev,kylebot@openai.com,
-	kas@kernel.org,huang.ying.caritas@gmail.com,hanchuanhua@oppo.com,
-	baolin.wang@linux.alibaba.com,baohua@kernel.org,david@kernel.org,
-	akpm@linux-foundation.org
+	stable@vger.kernel.org,sj@kernel.org,rppt@kernel.org,pfalcato@suse.de,
+	mhocko@suse.com,ljs@kernel.org,liam@infradead.org,kees@kernel.org,
+	jannh@google.com,gourry@gourry.net,dave@stgolabs.net,ccross@google.com,
+	david@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] mm-fix-address-wraparound-when-scanning-large-folio-ptes.patch removed from -mm tree
-Message-Id: <20261103021519.40CC21F000C1@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] mm-vma-write-lock-source-vma-before-duplicating-it-in-__split_vma.patch removed from -mm tree
+Message-Id: <20261103021532.5F7CB1F000C1@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -56,138 +55,85 @@ Precedence: list
 
 
 The quilt patch titled
-     Subject: mm: fix address wraparound when scanning large folio PTEs
+     Subject: mm/vma: write lock source VMA before duplicating it in __split_vma()
 has been removed from the -mm tree.  Its filename was
-     mm-fix-address-wraparound-when-scanning-large-folio-ptes.patch
+     mm-vma-write-lock-source-vma-before-duplicating-it-in-__split_vma.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: "David Hildenbrand (Arm)" <david@kernel.org>
-Subject: mm: fix address wraparound when scanning large folio PTEs
-Date: Wed, 14 Oct 2026 20:34:28 +0200
+Subject: mm/vma: write lock source VMA before duplicating it in __split_vma()
+Date: Fri, 23 Oct 2026 14:47:28 +0100
 
-numa_rebuild_large_mapping() and do_swap_page() can be tricked into
-generating an address wraparound, crashing the kernel. All that's required
-is to map a tail page of a large folio close enough to the start/end of
-the address space to e.g., make
+__split_vma() duplicates the source VMA before taking its VMA write lock,
+and until the VMA is write-locked, a concurrent thread might set
+VMA_MAYBE_GUARD_BIT, resulting in the duplication missing the flag.
 
-	unsigned long addr_start = addr - (nr << PAGE_SHIFT);
+If this happens, then fork may fail to duplicate guard markers and, if a
+file-backed mapping, THP collapse may also discard the markers.
 
-to wrap around.
+Resolve this by taking the VMA write lock before vm_area_dup() and, since
+all callers of vm_area_dup() now hold the VMA write lock, assert that this
+is the case there, and add a comment to explain why it's needed.
 
-Let's fix it by providing a better helper, folio_scan_range(), that
-takes care of staying within VMA and page table boundaries while
-handling possible wraparounds.
-
-There are some nasty details, like not being able to use pmd_addr_end()
-in this context. Add some helpful comments for these cases.
-
-Link: https://lore.kernel.org/20261014-folio_pte_scan_range-v2-1-00cf9bbaa364@kernel.org
-Fixes: d2136d749d76 ("mm: support multi-size THP numa balancing")
-Fixes: 508758960b8d ("mm: swap: entirely map large folios found in swapcache")
+[ljs@kernel.org: add VMA write assert in vm_area_dup(), commit message touchup]
+Link: https://lore.kernel.org/20261023-fix-vma-atomic-v1-2-8ff4fae1fc85@kernel.org
+Fixes: 2ab7f1bbafc9 ("mm/madvise: allow guard page install/remove under VMA lock")
 Signed-off-by: David Hildenbrand (Arm) <david@kernel.org>
+Signed-off-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Reported-by: Kyle Zeng <kylebot@openai.com>
 Reviewed-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
-Reviewed-by: Kiryl Shutsemau (Meta) <kas@kernel.org>
-Reviewed-by: Baolin Wang <baolin.wang@linux.alibaba.com>
-Reviewed-by: Lance Yang <lance.yang@linux.dev>
-Reviewed-by: Barry Song <baohua@kernel.org>
+Reviewed-by: Davidlohr Bueso <dave@stgolabs.net>
+Reviewed-by: Pedro Falcato <pfalcato@suse.de> 
+Tested-by: Gregory Price (Meta) <gourry@gourry.net>
 Cc: Liam R. Howlett <liam@infradead.org>
 Cc: Vlastimil Babka <vbabka@kernel.org>
 Cc: Mike Rapoport <rppt@kernel.org>
 Cc: Suren Baghdasaryan <surenb@google.com>
 Cc: Michal Hocko <mhocko@suse.com>
-Cc: Ying Huang <huang.ying.caritas@gmail.com>
-Cc: Ryan Roberts <ryan.roberts@arm.com>
-Cc: Chuanhua Han <hanchuanhua@oppo.com>
+Cc: Jann Horn <jannh@google.com>
+Cc: SJ Park <sj@kernel.org>
+Cc: Kees Cook <kees@kernel.org>
+Cc: Colin Cross <ccross@google.com>
 Cc: <stable@vger.kernel.org>
 ---
 
- mm/memory.c |   50 ++++++++++++++++++++++++++++++++++++--------------
- 1 file changed, 36 insertions(+), 14 deletions(-)
+ mm/vma.c      |    2 +-
+ mm/vma_init.c |    3 +++
+ 2 files changed, 4 insertions(+), 1 deletion(-)
 
---- a/mm/memory.c~mm-fix-address-wraparound-when-scanning-large-folio-ptes
-+++ a/mm/memory.c
-@@ -4934,6 +4934,34 @@ static void check_swap_exclusive(struct
- }
+--- a/mm/vma.c~mm-vma-write-lock-source-vma-before-duplicating-it-in-__split_vma
++++ a/mm/vma.c
+@@ -538,6 +538,7 @@ __split_vma(struct vma_iterator *vmi, st
+ 			return err;
+ 	}
  
- /*
-+ * Get the address range in which a folio might be mapped, assuming its pages
-+ * are mapped consecutively and the folio page at the given idx is mapped at
-+ * the given address.
-+ */
-+static void folio_pte_range(const struct folio *folio,
-+		const struct vm_area_struct *vma, unsigned long addr,
-+		unsigned long idx, unsigned long *start, unsigned long *end)
-+{
-+	/* Stay within the page table and VMA boundaries. */
-+	const unsigned long pmd_start = addr & PMD_MASK;
-+	const unsigned long pmd_end = pmd_start + PMD_SIZE;
-+	const unsigned long lower = max(pmd_start, vma->vm_start);
-+	/*
-+	 * We cannot use pmd_addr_end(), as it does not clamp reliably. To
-+	 * avoid wraparounds, compute using the inclusive end.
-+	 */
-+	const unsigned long upper = min(pmd_end - 1, vma->vm_end - 1) + 1;
-+	const unsigned long offset = idx << PAGE_SHIFT;
-+
-+	/*
-+	 * Avoid start/end addresses wrapping by not adding/subtracting more
-+	 * than the lower/upper limits would allow.
-+	 */
-+	*start = addr - min(addr - lower, offset);
-+	*end = addr + min(upper - addr, folio_size(folio) - offset);
-+}
-+
-+/*
-  * We enter with either the VMA lock or the mmap_lock held (see
-  * FAULT_FLAG_VMA_LOCK), and pte mapped but not yet locked.
-  * We return with pte unmapped and unlocked.
-@@ -5121,16 +5149,15 @@ vm_fault_t do_swap_page(struct vm_fault
- 	address = vmf->address;
- 	ptep = vmf->pte;
- 	if (folio_test_large(folio) && folio_test_swapcache(folio)) {
--		int nr = folio_nr_pages(folio);
--		unsigned long idx = folio_page_idx(folio, page);
--		unsigned long folio_start = address - idx * PAGE_SIZE;
--		unsigned long folio_end = folio_start + nr * PAGE_SIZE;
-+		const int nr = folio_nr_pages(folio);
-+		const unsigned long idx = folio_page_idx(folio, page);
-+		unsigned long folio_start, folio_end;
- 		pte_t *folio_ptep;
- 		pte_t folio_pte;
++	vma_start_write(vma);
+ 	new = vm_area_dup(vma);
+ 	if (!new)
+ 		return -ENOMEM;
+@@ -568,7 +569,6 @@ __split_vma(struct vma_iterator *vmi, st
+ 	if (new->vm_ops && new->vm_ops->open)
+ 		new->vm_ops->open(new);
  
--		if (unlikely(folio_start < max(address & PMD_MASK, vma->vm_start)))
--			goto check_folio;
--		if (unlikely(folio_end > pmd_addr_end(address, vma->vm_end)))
-+		folio_pte_range(folio, vma, address, idx, &folio_start,
-+				&folio_end);
-+		if (unlikely((folio_end - folio_start) >> PAGE_SHIFT != nr))
- 			goto check_folio;
+-	vma_start_write(vma);
+ 	vma_start_write(new);
  
- 		folio_ptep = vmf->pte - idx;
-@@ -6280,16 +6307,11 @@ static void numa_rebuild_large_mapping(s
- 				       struct folio *folio, pte_t fault_pte,
- 				       bool ignore_writable, bool pte_write_upgrade)
+ 	init_vma_prep(&vp, vma);
+--- a/mm/vma_init.c~mm-vma-write-lock-source-vma-before-duplicating-it-in-__split_vma
++++ a/mm/vma_init.c
+@@ -127,6 +127,9 @@ struct vm_area_struct *vm_area_dup(struc
  {
--	int nr = pte_pfn(fault_pte) - folio_pfn(folio);
-+	const unsigned long idx = pte_pfn(fault_pte) - folio_pfn(folio);
- 	unsigned long start, end, addr = vmf->address;
--	unsigned long addr_start = addr - (nr << PAGE_SHIFT);
--	unsigned long pt_start = ALIGN_DOWN(addr, PMD_SIZE);
- 	pte_t *start_ptep;
+ 	struct vm_area_struct *new = kmem_cache_alloc(vm_area_cachep, GFP_KERNEL);
  
--	/* Stay within the VMA and within the page table. */
--	start = max3(addr_start, pt_start, vma->vm_start);
--	end = min3(addr_start + folio_size(folio), pt_start + PMD_SIZE,
--		   vma->vm_end);
-+	folio_pte_range(folio, vma, addr, idx, &start, &end);
- 	start_ptep = vmf->pte - ((addr - start) >> PAGE_SHIFT);
++	/* Must hold a write lock to stabilise atomic VMA flags. */
++	vma_assert_write_locked(orig);
++
+ 	if (!new)
+ 		return NULL;
  
- 	/* Restore all PTEs' mapping of the large folio */
 _
 
 Patches currently in -mm which might be from david@kernel.org are
