@@ -1,41 +1,41 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793670999;
-	b=4O2Ffr5vaLvgN9LJO0pCS7orZWhFWpjBBqihO0GOayNf6UrJwbtTKXenc9v2HIoNq96S
-	 QVVYo7my2TpxB3Gp4mKX0ZaKgGavQNslgJKqhH//SWZs0nRLWeb7qx7Hyd5Gq5rNdmvhR
-	 dDAs+DCgBfNSK41pPiudzEC0goGqG1PlPj5qFiDJ8EBQTOt/ESUkvGlPzbrtmFIMYs4nW
-	 LE2iFbhU1Orynzhzlm8WH1rLbkWoqpgSPoFmCQCmrGdjKBfDTOpGEioLxz5fXfV9wWay9
-	 ZROQ4sVYgllT0DgtPNuUIz2xdHvvDOjxNS5Dt1KQhRMFX4ngjhY0Abg8TUaDFdWT/FA==
+	t=1793671001;
+	b=3TSP0h5MjS5lZb2e5LUErkR1tWeXjW7FCL0Vri1juvPImzyo1L5l+orPRXNmkIAUJDqX
+	 OsGfcEUQg5eP2oMsD3pbzoPcdSUt3LHcFz3z+4mD8zz88k7KY7RpIygWmjXMHs0V6MYcM
+	 ct+uU63eBaDt5/7/vWGgkFnCaiCrhIZ+e9Kx+dzV7VJXi0hNA1GesOxQioiZd1+lKeH2A
+	 Mi1ll/fzSdEWu6XwFa4LMMd1M1xpGeiLU+1RUO3F+a20Bb87oo/WcKJbsFhnj13Ip7G6k
+	 jY73JxS3tAHq4oJiYWUuWl7I5ExQTCU250MB+hYfr0tAUfbCHCKsLx4809oLokHtjRw==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793670999;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793671001;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=IMWBjZh7i4+44ATRnNz9IUPksm6BbjdqQOc7Pot6YWY=;
-	b=LONTtDFF70ktwxLQsxg43TK9g3RGgc5tLzEnR8I/EvlzLgPT7wM98g5PYcFvNpCwkiNA
-	 9TpbyUa/tY7d4DtwQui9wuBRKohHj5FixYTTHihy40aFZOWAaO3B6sc0w7MvBgZlX7QcZ
-	 Pt3HG4HQni4igkft+nIh2X5TR7dgaTp7FHBJtx+SvyJ5iJ5ocUZt0QRoK/BUmfJgmkoeU
-	 8hyZQ71xqPqs4VbrxeQnDjhGaSqiX+Fd8v27edpXhNKgKgQOJe8MEUW03VlJKyXm5WAuZ
-	 aWcrUa9wBGts16ymJrbkDRjciwCjTCEIxHjB2UxOmOXFIJ1SQMLH35C6MYovqvgznBQ==
+	bh=pzxY/yBiyJ4sNgIQTA+3A/2yJOH+G1H8nStCyEP5rtw=;
+	b=MIClenuxMuQM7P5Rw+ZpGfvGJKJtDEZng92qobxNE3fJvkioLm2u4qGTtMIiiUMHUmqe
+	 1XW7k/qV5Ry402qyzihvEzrFofSkECto4ZqiRQATVZF/EuEtfynhDuKnLIbVtgsrBu0WE
+	 Vy2aB+iJ/OEGyaEhPQhGle+eEGvEUSDsZVhKqtERS7jqhMRfryIujUmBLQjvLYWJcELRX
+	 U2u+jLarySOL+QDgVoMqEnf+K/7aB1YS4Z7ntcniDk2YukUVIRO833sYe0LGBTGvPvz1X
+	 iqV4q4IOBM2pBAq1E/GTsrIYyQYLR35gbEhQ6/pncb8fX9SL74RDcoNLYJWpR5deijQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=nx3GzhG3;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=j9a7xPEX;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 64559606A324
-	for <mm-commits@vger.kernel.org>; Tue,  3 Nov 2026 01:56:39 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 378CB606A32F
+	for <mm-commits@vger.kernel.org>; Tue,  3 Nov 2026 01:56:41 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=nx3GzhG3
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2645B1F000C1;
-	Tue,  3 Nov 2026 01:56:39 +0000 (UTC)
+	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=j9a7xPEX
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 05F1F1F000C1;
+	Tue,  3 Nov 2026 01:56:40 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1793670999;
-	bh=IMWBjZh7i4+44ATRnNz9IUPksm6BbjdqQOc7Pot6YWY=;
+	d=linux-foundation.org; s=korg; t=1793671001;
+	bh=pzxY/yBiyJ4sNgIQTA+3A/2yJOH+G1H8nStCyEP5rtw=;
 	h=Date:To:From:Subject;
-	b=nx3GzhG36CfvOBEbnz09D+l9SaWtpzmmegER6GcmNmZYzDhTh+lbA2M0QY2OdMhSr
-	 kPawXDTg8d7vFYj3+AEgKs6HD+o9I2wA90U2jvW8Ry/K+Uf+JMl1uLXxEDFHSi8fi7
-	 5rhYjj5d04jy5qkuhT/aVEKi4dYWzAZk8F4lsW1U=
-Date: Mon, 02 Nov 2026 17:56:38 -0800
+	b=j9a7xPEXVFVkH2bnE4ic+G5F7PzsMLLtnCByTi1l2cElKAi/TOMlFLEqqzajfFZS1
+	 51hNnqCz9/yui+mnWa4I27BPZuYt/paPxNxTNVmM9UeKIpPpQTygrhqrgknK79N+/O
+	 kTtkl3C//MA7+AMcPrPRFo3IV1554HtY9mfiGgGw=
+Date: Mon, 02 Nov 2026 17:56:40 -0800
 To: mm-commits@vger.kernel.org,ziy@nvidia.com,ying.huang@linux.alibaba.com,
 	willy@infradead.org,vbabka@kernel.org,surenb@google.com,sj@kernel.org,
 	rppt@kernel.org,peterx@redhat.com,mhocko@suse.com,matthew.brost@intel.com,
@@ -45,8 +45,8 @@ To: mm-commits@vger.kernel.org,ziy@nvidia.com,ying.huang@linux.alibaba.com,
 	baolin.wang@linux.alibaba.com,apopple@nvidia.com,tz2294@columbia.edu,
 	akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-remove-find_lock_page.patch added to mm-new branch
-Message-Id: <20261103015639.2645B1F000C1@smtp.kernel.org>
+Subject: + mm-remove-read_cache_page_gfp.patch added to mm-new branch
+Message-Id: <20261103015641.05F1F1F000C1@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -58,12 +58,12 @@ Precedence: list
 
 
 The patch titled
-     Subject: mm: remove find_lock_page()
+     Subject: mm: remove read_cache_page_gfp()
 has been added to the -mm mm-new branch.  Its filename is
-     mm-remove-find_lock_page.patch
+     mm-remove-read_cache_page_gfp.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-remove-find_lock_page.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-remove-read_cache_page_gfp.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -93,14 +93,13 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Tal Zussman <tz2294@columbia.edu>
-Subject: mm: remove find_lock_page()
-Date: Mon, 02 Nov 2026 17:54:11 -0500
+Subject: mm: remove read_cache_page_gfp()
+Date: Mon, 02 Nov 2026 17:54:12 -0500
 
-There are no callers left. Remove it. The name still appears in a
-sample function graph trace in Documentation/trace/ftrace.rst, which
-is recorded output and is left as it is.
+There are no callers left. Point the comment on shmem_read_folio_gfp()
+at mapping_read_folio_gfp() instead.
 
-Link: https://lore.kernel.org/20261102-page-wrappers-v1-6-e7280bdb31f6@columbia.edu
+Link: https://lore.kernel.org/20261102-page-wrappers-v1-7-e7280bdb31f6@columbia.edu
 Signed-off-by: Tal Zussman <tz2294@columbia.edu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 Reviewed-by: SJ Park <sj@kernel.org>
@@ -127,37 +126,68 @@ Cc: Hugh Dickins <hughd@google.com>
 Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
 ---
 
- include/linux/pagemap.h |   19 -------------------
- 1 file changed, 19 deletions(-)
+ include/linux/pagemap.h |    2 --
+ mm/filemap.c            |   23 -----------------------
+ mm/shmem.c              |    4 ++--
+ 3 files changed, 2 insertions(+), 27 deletions(-)
 
---- a/include/linux/pagemap.h~mm-remove-find_lock_page
+--- a/include/linux/pagemap.h~mm-remove-read_cache_page_gfp
 +++ a/include/linux/pagemap.h
-@@ -847,25 +847,6 @@ static inline struct page *find_get_page
- }
+@@ -962,8 +962,6 @@ struct folio *mapping_read_folio_gfp(str
+ 		gfp_t flags);
+ struct page *read_cache_page(struct address_space *, pgoff_t index,
+ 		filler_t *filler, struct file *file);
+-extern struct page * read_cache_page_gfp(struct address_space *mapping,
+-				pgoff_t index, gfp_t gfp_mask);
  
- /**
-- * find_lock_page - locate, pin and lock a pagecache page
-- * @mapping: the address_space to search
-- * @index: the page index
-- *
-- * Looks up the page cache entry at @mapping & @index.  If there is a
-- * page cache page, it is returned locked and with an increased
-- * refcount.
-- *
-- * Context: May sleep.
-- * Return: A struct page or %NULL if there is no page in the cache for this
-- * index.
-- */
--static inline struct page *find_lock_page(struct address_space *mapping,
--					pgoff_t index)
--{
--	return pagecache_get_page(mapping, index, FGP_LOCK, 0);
--}
--
+ static inline struct page *read_mapping_page(struct address_space *mapping,
+ 				pgoff_t index, struct file *file)
+--- a/mm/filemap.c~mm-remove-read_cache_page_gfp
++++ a/mm/filemap.c
+@@ -4260,29 +4260,6 @@ struct page *read_cache_page(struct addr
+ }
+ EXPORT_SYMBOL(read_cache_page);
+ 
 -/**
-  * find_or_create_page - locate or add a pagecache page
-  * @mapping: the page's address_space
-  * @index: the page's index into the mapping
+- * read_cache_page_gfp - read into page cache, using specified page allocation flags.
+- * @mapping:	the page's address_space
+- * @index:	the page index
+- * @gfp:	the page allocator flags to use if allocating
+- *
+- * This is the same as "read_mapping_page(mapping, index, NULL)", but with
+- * any new page allocations done using the specified allocation flags.
+- *
+- * If the page does not get brought uptodate, return -EIO.
+- *
+- * The function expects mapping->invalidate_lock to be already held.
+- *
+- * Return: up to date page on success, ERR_PTR() on failure.
+- */
+-struct page *read_cache_page_gfp(struct address_space *mapping,
+-				pgoff_t index,
+-				gfp_t gfp)
+-{
+-	return do_read_cache_page(mapping, index, NULL, NULL, gfp);
+-}
+-EXPORT_SYMBOL(read_cache_page_gfp);
+-
+ /*
+  * Warn about a page cache invalidation failure during a direct I/O write.
+  */
+--- a/mm/shmem.c~mm-remove-read_cache_page_gfp
++++ a/mm/shmem.c
+@@ -6200,9 +6200,9 @@ int shmem_zero_setup_desc(struct vm_area
+  * @index:	the folio index
+  * @gfp:	the page allocator flags to use if allocating
+  *
+- * This behaves as a tmpfs "read_cache_page_gfp(mapping, index, gfp)",
++ * This behaves as a tmpfs "mapping_read_folio_gfp(mapping, index, gfp)",
+  * with any new page allocations done using the specified allocation flags.
+- * But read_cache_page_gfp() uses the ->read_folio() method: which does not
++ * But mapping_read_folio_gfp() uses the ->read_folio() method: which does not
+  * suit tmpfs, since it may have pages in swapcache, and needs to find those
+  * for itself; although drivers/gpu/drm i915 and ttm rely upon this support.
+  *
 _
 
 Patches currently in -mm which might be from tz2294@columbia.edu are
