@@ -1,47 +1,50 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793672130;
-	b=rdn7v15BXItPv+hSzOcY+BFF/yXSq8eZUGdKEdnKPQT8i55siapgN4ujSGyKWYU6Mt8z
-	 6ZigtmZncGnJ0KN8sOIX/vuSWs9UsOFjG0T//5jbIW+pL5eQiMo+dWozqSa2J1ikGUgj4
-	 4RC6qRCcSaYq3XlbY1/i6DQQ9MhNAjx/HnVRU18cQj81oj4khKxQ2iVt5OVabSt2SLGQ6
-	 DDIZMjKXa7/05fQmYGRAMwyvLWNGHOqt4GS3VHlv52eCVl0wLm2VD/nUlnlFNSAzuKtQ4
-	 xeYMnzC/kobT4tYT14+eLZhq8mpKL1iTX586Gc3Va1vfNbTp+KwdzOfRjh0ltQroDww==
+	t=1793672120;
+	b=i9rLIUsAA37y0darn2CJ0HmrEkpWXQtVAbmzi+bk15TIXd9LhH32K1+r08Ti/iGtiAqG
+	 g7UUTX21TQujH5seuYEwlG9sbuxr8yOLX0uzDWGjBXHlby8o/yRnJrW04K8PmELs8DNuy
+	 nndQv1/ckwiC0WnXhZck+DAnLU78PvIApJ3Mnx+WEWD4A0IE0j/b+pFESWdnFOlyZYnnx
+	 zMVsJR6rWyYpKwEAXgDSh0uzjWVPyV1+BrUUAgokR34W86KPir0QVZA3xKlXmHwqMBikJ
+	 9Daoc0dr2n+SMuF7isOJ0wQAzhSkvLtiuqRn8v+QRWMTy5zbzvoluxU+XtnbUjtQVvQ==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793672130;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793672120;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=MQ1HzEm2PQVD6xjtjV2vORDGvBlcpLWbJsj1oqJY6p4=;
-	b=PWdTC8IPGJjSNPwwoc28E/JzzXSMohq8UH6umjxGgxFGCAFfn36kbTgQXszesoBCNeMB
-	 Umkmo+FA2WstSDjbtdreIh9S49qWVYY4uC0m7neInpF7l/eiVqKDGKrir43CmUwnMcCCd
-	 ZAOOgNyOpAE4fRtMfeYzIE1MAscqYcUQaDfW6eXrNQg35zNcZ+CcM698xlaisTgUYY4w+
-	 92VF0KXBhkom8fkfXjnU5ybS9Ie+wYYf8aQRanodPug5TBU8/5dH1iAJbjBcUdCvrai4W
-	 oZQAI5+d7aEPR8+hoHJjATTxrLuiVd2sfhD8ilRmDwx4Wj2NiKqc/jAfdIN4XkCZZMg==
+	bh=FnwpCVjwydqlOHCUe4nN3SvfJ8VJHqAKOvkEjUan0cw=;
+	b=FlDfVMiadvmrk9vQsDcBsaTeLHhCBPUua5gbefRTt8/O2Jm6boNVorYt1cq+7wa4jU6r
+	 kbimv4L+K0uzON0H4BNLq2VaL1r0e2mtpd+qL2IYjhOaEV/Y2l73VyKy/Vxbbg3ZiHArL
+	 XkoVkeVo3royLiKqLmkpz7TQMuDz4WfKWhNj29aYPLlgy4T0Emxe30kelSYiJAYVJ6hBm
+	 jjx52ZTqSOxzQNImG4f9iJI34t1pVo56HXmIhS0S7pX8LjFEeih169uHWfd8CIt6dX3gH
+	 T+PDmmkir7ArB+9DOTO00VrDCjGt68D7KVYmzXD0NhY+zS6cz51elRgRoX+4Y15+FOg==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=swPCSfJ8;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b="d0qGcd/o";
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 48717606A324;
-	Tue,  3 Nov 2026 02:15:30 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C5484606A332;
+	Tue,  3 Nov 2026 02:15:19 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=swPCSfJ8
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1A9EE1F000C1;
-	Tue,  3 Nov 2026 02:15:30 +0000 (UTC)
+	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=d0qGcd/o
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 40CC21F000C1;
+	Tue,  3 Nov 2026 02:15:19 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1793672130;
-	bh=MQ1HzEm2PQVD6xjtjV2vORDGvBlcpLWbJsj1oqJY6p4=;
+	d=linux-foundation.org; s=korg; t=1793672119;
+	bh=FnwpCVjwydqlOHCUe4nN3SvfJ8VJHqAKOvkEjUan0cw=;
 	h=Date:To:From:Subject;
-	b=swPCSfJ8W7upaaQBgLPXsPpJVOUWS6WNnd3ipV377IgvC34mx6j/dyCRwOipYiAof
-	 ASTNkj2M6avHw9RY+Vfw/6pSh3UN1wA46rFJerC8TW06Uoby8A53qojdi0BzItL2nW
-	 fHcEGKVApqb3rAK1Fu3ZRuKSk2UzO9G6e+ZjJyng=
-Date: Mon, 02 Nov 2026 18:15:29 -0800
-To: mm-commits@vger.kernel.org,vbabka@kernel.org,stable@vger.kernel.org,
-	pfalcato@suse.de,matenajakub@gmail.com,luizcap@redhat.com,liam@infradead.org,
-	jannh@google.com,ljs@kernel.org,akpm@linux-foundation.org
+	b=d0qGcd/ofpymRWcPis2xAdBhz7WvtI9O2hsMstCPOt3Orc1V5yFmqSfUJbcKsbZzw
+	 eU877UnRfiFT+AxEQlPo5a9kIgyAtbjKSwv/a+Pa1Afc0e3fmksKb0TAx/woFd+YTN
+	 MoMbLmUK9HGSfJHnUpAgLFwSKiKYBwosOeZWAwME=
+Date: Mon, 02 Nov 2026 18:15:18 -0800
+To: mm-commits@vger.kernel.org,vbabka@kernel.org,surenb@google.com,
+	stable@vger.kernel.org,ryan.roberts@arm.com,rppt@kernel.org,mhocko@suse.com,
+	ljs@kernel.org,liam@infradead.org,lance.yang@linux.dev,kylebot@openai.com,
+	kas@kernel.org,huang.ying.caritas@gmail.com,hanchuanhua@oppo.com,
+	baolin.wang@linux.alibaba.com,baohua@kernel.org,david@kernel.org,
+	akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] mm-vma-fix-expansion-of-vma_mixedmap_bit-vmas.patch removed from -mm tree
-Message-Id: <20261103021530.1A9EE1F000C1@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] mm-fix-address-wraparound-when-scanning-large-folio-ptes.patch removed from -mm tree
+Message-Id: <20261103021519.40CC21F000C1@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -53,110 +56,141 @@ Precedence: list
 
 
 The quilt patch titled
-     Subject: mm/vma: fix expansion of VMA_MIXEDMAP_BIT VMAs
+     Subject: mm: fix address wraparound when scanning large folio PTEs
 has been removed from the -mm tree.  Its filename was
-     mm-vma-fix-expansion-of-vma_mixedmap_bit-vmas.patch
+     mm-fix-address-wraparound-when-scanning-large-folio-ptes.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: "Lorenzo Stoakes (ARM)" <ljs@kernel.org>
-Subject: mm/vma: fix expansion of VMA_MIXEDMAP_BIT VMAs
-Date: Fri, 23 Oct 2026 16:17:31 +0100
+From: "David Hildenbrand (Arm)" <david@kernel.org>
+Subject: mm: fix address wraparound when scanning large folio PTEs
+Date: Wed, 14 Oct 2026 20:34:28 +0200
 
-Commit ca3d76b0aa80 ("mm: add merging after mremap resize") combined
-merging with expansion of mremap()'d VMAs, however it also unintentionally
-disallowed the expansion of unmergeable VMAs.
+numa_rebuild_large_mapping() and do_swap_page() can be tricked into
+generating an address wraparound, crashing the kernel. All that's required
+is to map a tail page of a large folio close enough to the start/end of
+the address space to e.g., make
 
-Previously it was possible to expand a mixed mapping which mremap() had
-already ensured was a legal expansion.
+	unsigned long addr_start = addr - (nr << PAGE_SHIFT);
 
-This is clearly seen in the mremap() logic, as it checks
-vma_is_fixed_mapping() to determine legality of an expansion rather than
-vma_can_merge().
+to wrap around.
 
-Additionally, copy_vma() allows for a failed merge to result in a new VMA
-being instantiated if MREMAP_MAYMOVE is specified.
+Let's fix it by providing a better helper, folio_scan_range(), that
+takes care of staying within VMA and page table boundaries while
+handling possible wraparounds.
 
-However, this is not attempted, as a failure in vma_merge_extend() is
-assumed to be an -ENOMEM failure.
+There are some nasty details, like not being able to use pmd_addr_end()
+in this context. Add some helpful comments for these cases.
 
-Since vma_merge_extend() is used exclusively by mremap() to perform a merge
-and/or expansion, resolve the issue by invoking vma_expand() for
-unmergeable VMAs there.
-
-Explicitly assert that the VMA is both non-fixed and a mixed mapping.
-This provides double insurance against broken changes in future.
-
-Note that khugepaged_enter_vma() (which vma_merge_new_range() runs) is
-redundant in this case, as a mixed mapping is not subject to khugepaged.
-
-Also update the VMA userland tests to add a required predicate.
-
-Link: https://lore.kernel.org/20261023-vma-expansion-fix-v1-1-6142baf1f46b@kernel.org
-Fixes: ca3d76b0aa80 ("mm: add merging after mremap resize")
-Signed-off-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
+Link: https://lore.kernel.org/20261014-folio_pte_scan_range-v2-1-00cf9bbaa364@kernel.org
+Fixes: d2136d749d76 ("mm: support multi-size THP numa balancing")
+Fixes: 508758960b8d ("mm: swap: entirely map large folios found in swapcache")
+Signed-off-by: David Hildenbrand (Arm) <david@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Reported-by: Luiz Capitulino <luizcap@redhat.com>
-Closes: https://lore.kernel.org/all/20261023023106.515365-1-luizcap@redhat.com/
-Acked-by: Vlastimil Babka (SUSE) <vbabka@kernel.org>
-Reviewed-by: Pedro Falcato <pfalcato@suse.de>
+Reported-by: Kyle Zeng <kylebot@openai.com>
+Reviewed-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
+Reviewed-by: Kiryl Shutsemau (Meta) <kas@kernel.org>
+Reviewed-by: Baolin Wang <baolin.wang@linux.alibaba.com>
+Reviewed-by: Lance Yang <lance.yang@linux.dev>
+Reviewed-by: Barry Song <baohua@kernel.org>
 Cc: Liam R. Howlett <liam@infradead.org>
-Cc: Jann Horn <jannh@google.com>
-Cc: Jakub Matěna <matenajakub@gmail.com>
+Cc: Vlastimil Babka <vbabka@kernel.org>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Ying Huang <huang.ying.caritas@gmail.com>
+Cc: Ryan Roberts <ryan.roberts@arm.com>
+Cc: Chuanhua Han <hanchuanhua@oppo.com>
 Cc: <stable@vger.kernel.org>
 ---
 
- mm/vma.c                        |   19 ++++++++++++++++---
- tools/testing/vma/include/dup.h |    5 +++++
- 2 files changed, 21 insertions(+), 3 deletions(-)
+ mm/memory.c |   50 ++++++++++++++++++++++++++++++++++++--------------
+ 1 file changed, 36 insertions(+), 14 deletions(-)
 
---- a/mm/vma.c~mm-vma-fix-expansion-of-vma_mixedmap_bit-vmas
-+++ a/mm/vma.c
-@@ -1851,12 +1851,25 @@ struct vm_area_struct *vma_merge_extend(
- 					struct vm_area_struct *vma,
- 					unsigned long delta)
- {
--	VMG_VMA_STATE(vmg, vmi, vma, vma, vma->vm_end, vma->vm_end + delta);
-+	const unsigned long start =
-+		vma_can_merge(vma) ? vma->vm_end : vma->vm_start;
-+	VMG_VMA_STATE(vmg, vmi, vma, vma, start, vma->vm_end + delta);
- 
--	vmg.next = vma_iter_next_rewind(vmi, NULL);
- 	vmg.middle = NULL; /* We use the VMA to populate VMG fields only. */
- 
--	return vma_merge_new_range(&vmg);
-+	if (vma_can_merge(vma)) {
-+		vmg.next = vma_iter_next_rewind(vmi, NULL);
-+		return vma_merge_new_range(&vmg);
-+	}
-+
-+	/* Mixed mappings are permitted to be expanded, not merged. */
-+	VM_WARN_ON_ONCE(vma_is_fixed_mapping(vma));
-+	VM_WARN_ON_ONCE(!vma_test(vma, VMA_MIXEDMAP_BIT));
-+	vma_prev(vmi); /* Reposition to start of VMA. */
-+	vmg.target = vma;
-+	if (vma_expand(&vmg))
-+		return NULL;
-+	return vma;
+--- a/mm/memory.c~mm-fix-address-wraparound-when-scanning-large-folio-ptes
++++ a/mm/memory.c
+@@ -4934,6 +4934,34 @@ static void check_swap_exclusive(struct
  }
  
- void unlink_file_vma_batch_init(struct unlink_vma_file_batch *vb)
---- a/tools/testing/vma/include/dup.h~mm-vma-fix-expansion-of-vma_mixedmap_bit-vmas
-+++ a/tools/testing/vma/include/dup.h
-@@ -1727,3 +1727,8 @@ static inline bool vma_flags_can_merge(c
- 	 */
- 	return !vma_flags_is_hugetlb(flags);
- }
-+
-+static inline bool vma_can_merge(const struct vm_area_struct *vma)
+ /*
++ * Get the address range in which a folio might be mapped, assuming its pages
++ * are mapped consecutively and the folio page at the given idx is mapped at
++ * the given address.
++ */
++static void folio_pte_range(const struct folio *folio,
++		const struct vm_area_struct *vma, unsigned long addr,
++		unsigned long idx, unsigned long *start, unsigned long *end)
 +{
-+	return vma_flags_can_merge(&vma->flags);
++	/* Stay within the page table and VMA boundaries. */
++	const unsigned long pmd_start = addr & PMD_MASK;
++	const unsigned long pmd_end = pmd_start + PMD_SIZE;
++	const unsigned long lower = max(pmd_start, vma->vm_start);
++	/*
++	 * We cannot use pmd_addr_end(), as it does not clamp reliably. To
++	 * avoid wraparounds, compute using the inclusive end.
++	 */
++	const unsigned long upper = min(pmd_end - 1, vma->vm_end - 1) + 1;
++	const unsigned long offset = idx << PAGE_SHIFT;
++
++	/*
++	 * Avoid start/end addresses wrapping by not adding/subtracting more
++	 * than the lower/upper limits would allow.
++	 */
++	*start = addr - min(addr - lower, offset);
++	*end = addr + min(upper - addr, folio_size(folio) - offset);
 +}
++
++/*
+  * We enter with either the VMA lock or the mmap_lock held (see
+  * FAULT_FLAG_VMA_LOCK), and pte mapped but not yet locked.
+  * We return with pte unmapped and unlocked.
+@@ -5121,16 +5149,15 @@ vm_fault_t do_swap_page(struct vm_fault
+ 	address = vmf->address;
+ 	ptep = vmf->pte;
+ 	if (folio_test_large(folio) && folio_test_swapcache(folio)) {
+-		int nr = folio_nr_pages(folio);
+-		unsigned long idx = folio_page_idx(folio, page);
+-		unsigned long folio_start = address - idx * PAGE_SIZE;
+-		unsigned long folio_end = folio_start + nr * PAGE_SIZE;
++		const int nr = folio_nr_pages(folio);
++		const unsigned long idx = folio_page_idx(folio, page);
++		unsigned long folio_start, folio_end;
+ 		pte_t *folio_ptep;
+ 		pte_t folio_pte;
+ 
+-		if (unlikely(folio_start < max(address & PMD_MASK, vma->vm_start)))
+-			goto check_folio;
+-		if (unlikely(folio_end > pmd_addr_end(address, vma->vm_end)))
++		folio_pte_range(folio, vma, address, idx, &folio_start,
++				&folio_end);
++		if (unlikely((folio_end - folio_start) >> PAGE_SHIFT != nr))
+ 			goto check_folio;
+ 
+ 		folio_ptep = vmf->pte - idx;
+@@ -6280,16 +6307,11 @@ static void numa_rebuild_large_mapping(s
+ 				       struct folio *folio, pte_t fault_pte,
+ 				       bool ignore_writable, bool pte_write_upgrade)
+ {
+-	int nr = pte_pfn(fault_pte) - folio_pfn(folio);
++	const unsigned long idx = pte_pfn(fault_pte) - folio_pfn(folio);
+ 	unsigned long start, end, addr = vmf->address;
+-	unsigned long addr_start = addr - (nr << PAGE_SHIFT);
+-	unsigned long pt_start = ALIGN_DOWN(addr, PMD_SIZE);
+ 	pte_t *start_ptep;
+ 
+-	/* Stay within the VMA and within the page table. */
+-	start = max3(addr_start, pt_start, vma->vm_start);
+-	end = min3(addr_start + folio_size(folio), pt_start + PMD_SIZE,
+-		   vma->vm_end);
++	folio_pte_range(folio, vma, addr, idx, &start, &end);
+ 	start_ptep = vmf->pte - ((addr - start) >> PAGE_SHIFT);
+ 
+ 	/* Restore all PTEs' mapping of the large folio */
 _
 
-Patches currently in -mm which might be from ljs@kernel.org are
+Patches currently in -mm which might be from david@kernel.org are
 
-mm-vma-read-anon_vma-carefully-in-validate_mm.patch
+mm-memory-failure-fix-folio-refcount-leak-and-min_order_for_split-locking.patch
 
