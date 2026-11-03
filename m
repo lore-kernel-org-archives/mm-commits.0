@@ -1,49 +1,51 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793672154;
-	b=5lDnw53ij+uxSop1//oJ2a0RyR3S1H8ZRkSxerfMeGfm5W19cuXF3WeQ8wZDxIV8Bhvo
-	 mQZsNr1a7SV/ClsvnBI4Iwa0sItVUeUeoiEPjcQv23923t01pUxMhbpyn4+zPdceUqlSW
-	 zLHYRfz1rioGmPVDiQKdYXivkxBT2q8YX52eq6OifvC5PWzNJkX+q8mX+L3y/GoRXpg4W
-	 mxz39HDeTYteFf09w41X+g1815Mvojwv5+apmAQFAL0mmsZXocBNCdXwWeydWk9xMGxUN
-	 Eg38wgnq94y5pJU1+S5fFMpYPO2Sw2pQ35ixhGviJ21gnbHGqK1UJQBa4DtmYe76Y+w==
+	t=1793672155;
+	b=ICbcpW6bneZsAda979SSWp6tUds7trTqz/SIR8ypaX3lpUzr1p4YCd0td7hxJpYxPuYW
+	 wxckNIrhhlZB7c89C4Lr3n1ZdwnDGCqRNKTMwAVIodWpZacUVHv8MACwXbd6NyLTLpxti
+	 D48eeVhPRK5QdC4EeYrHov6/D7OANJ3royYjIu+e2WQIrTwtM3l1SALeL4SVZHh+MgiSF
+	 bJ6jx4meAdF/82b9hVCngT2ON+M0TvS+2t11xWTR4kcAAsZP8gTXg4uwNbREkgcPLuAQ6
+	 rPQoUoYHuzW8UudLo/BEtwgkUDSBLe1QTX4LNH/Z2QmE5+TS3AlWpY5Y2LIpNKcguZw==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793672154;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793672155;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=8zc82ypHzo61GO4HphwSBWFVY9RadgorQVLqlpKErQY=;
-	b=aCH6YDXvhnm1axVLjYPxNQ/8UoriI1sbnWLoyZeUOD66pQl85LzpkMMt+96f8lh/qnja
-	 YcWn7pIusIsYc6GguLCmqRn41w9roB4Pb3MpohR/ZrKRn8Lr+kPi7NfCc4/OfJ8qPeDe7
-	 roiDCWQ8XgcpO92JF/NLsyjR3qviXLdfnGqJtu7n4p+1nKEQVF51grrERcTjvLoLob41M
-	 UQEXjyhKrqDBz3aDhKrduepWW1nwkEZHGP1qy8RvSXKzXTp/CHivQcMmknEt/SdrR71lo
-	 ujSv4vbW4PEf+NhCuxRse8rL29538k1WLv8O180c0avdPOhywPyzNZB8Aep2bLv+WZA==
+	bh=93iug8tCHREjg7Dj+yIFiqs61s615qlHdMeG92XoR2w=;
+	b=AkWcgbSBbtLhbzDjqz+Yo3OMbEJL/OzaHHtP8ItDFMRgORqguqanFUFRZ3aWeKmmqk6X
+	 k7BZu62VnhvwYrvnQ2O+0bnf5xfOHuJu7WMmgimtUS8+qz3sCUMOVnODQbMcuW5WtoTWG
+	 CV15dcrH58wXVFLgznpCdQ27qTWh4uEV4hVOh/Uo1fAmgngOgCnbG2+5hz2TJkzj+VWh9
+	 ObmU6dLfA+0O+HYvocTaoeERD6zwHd/bdk9ZhduhbL1OiGSpc/LGla/pjGIy8SOhR2iy1
+	 ubo/2CNzh1TJSGoQoovE3m6h+iA8DADnOafCteAc79+eD2jsvyqbdZ1eBqnty/lLHDQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=TfVWb82H;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=e6Qs79ZG;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7636A606A333;
-	Tue,  3 Nov 2026 02:15:54 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 77CB3606A324
+	for <mm-commits@vger.kernel.org>; Tue,  3 Nov 2026 02:15:55 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=TfVWb82H
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 360061F0093A;
-	Tue,  3 Nov 2026 02:15:54 +0000 (UTC)
+	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=e6Qs79ZG
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 464801F000C1;
+	Tue,  3 Nov 2026 02:15:55 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1793672154;
-	bh=8zc82ypHzo61GO4HphwSBWFVY9RadgorQVLqlpKErQY=;
+	d=linux-foundation.org; s=korg; t=1793672155;
+	bh=93iug8tCHREjg7Dj+yIFiqs61s615qlHdMeG92XoR2w=;
 	h=Date:To:From:Subject;
-	b=TfVWb82H2IMiZvSnzVkT4SQlTKnIpnQY7PHvyQj0GdwWSfl/0FhN7VSH5HdsChwa7
-	 gKComxhAffPO6cAcEvt8wQu9/ukburB9UuILTsLsZeFWBwgRC1tFxokWJm5M9BIWds
-	 HVAe2ww/hp9NNFeuoqa3q54fe6OiM9yGnqQSMzCs=
-Date: Mon, 02 Nov 2026 18:15:53 -0800
+	b=e6Qs79ZG+hLGOsCRsE/BQWLhlllj7RZbRQ3U6M/Xyoi0gzKlcfhPMUMwOsl0goI91
+	 4eRbT32aR7qxRMVFIkgcyysMykHr1vLaAlyOlhNvH/QY3WoYa+Ukk7ArHDJqVk5uuY
+	 ba32YjekxM7JnX12y+TDL3Bhv54AA2rEUQC7m1CI=
+Date: Mon, 02 Nov 2026 18:15:54 -0800
 To: mm-commits@vger.kernel.org,ziy@nvidia.com,willy@infradead.org,
-	vbabka@kernel.org,surenb@google.com,stable@vger.kernel.org,mhocko@suse.com,
-	mgorman@techsingularity.net,matt@readmodwrite.com,hch@lst.de,
-	dipiets@amazon.it,dgc@kernel.org,brendan.jackman@linux.dev,
-	balbirs@nvidia.com,hannes@cmpxchg.org,akpm@linux-foundation.org
+	vbabka@kernel.org,surenb@google.com,shivankg@amd.com,rvvandan@amazon.com,
+	ritesh.list@gmail.com,mhocko@suse.com,hch@lst.de,hannes@cmpxchg.org,
+	djwong@kernel.org,dipietro.salvatore@gmail.com,d@ilvokhin.com,dgc@kernel.org,
+	david@kernel.org,brendan.jackman@linux.dev,brauner@kernel.org,
+	blakgeof@amazon.com,alisaidi@amazon.com,abuehaze@amazon.com,
+	dipiets@amazon.it,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] mm-page_alloc-remove-alloc_non_block-from-alloc_reserves.patch removed from -mm tree
-Message-Id: <20261103021554.360061F0093A@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] mm-page_alloc-avoid-direct-reclaim-and-compaction-for-costly-__gfp_noretry-allocations.patch removed from -mm tree
+Message-Id: <20261103021555.464801F000C1@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -55,117 +57,160 @@ Precedence: list
 
 
 The quilt patch titled
-     Subject: mm: page_alloc: remove ALLOC_NON_BLOCK from ALLOC_RESERVES
+     Subject: mm/page_alloc: avoid direct reclaim and compaction for costly __GFP_NORETRY allocations
 has been removed from the -mm tree.  Its filename was
-     mm-page_alloc-remove-alloc_non_block-from-alloc_reserves.patch
+     mm-page_alloc-avoid-direct-reclaim-and-compaction-for-costly-__gfp_noretry-allocations.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Johannes Weiner <hannes@cmpxchg.org>
-Subject: mm: page_alloc: remove ALLOC_NON_BLOCK from ALLOC_RESERVES
-Date: Wed, 28 Oct 2026 13:15:54 -0400
+From: Salvatore Dipietro <dipiets@amazon.it>
+Subject: mm/page_alloc: avoid direct reclaim and compaction for costly __GFP_NORETRY allocations
+Date: Thu, 1 Oct 2026 08:21:51 +0000
 
-1ebbb21811b7 ("mm/page_alloc: explicitly define how __GFP_HIGH
-non-blocking allocations accesses reserves") stopped handing out reserve
-access for ALLOC_NON_BLOCK on its own: the extra 25% below the min
-watermark is now only granted on top of ALLOC_MIN_RESERVE.  But the flag
-was left in ALLOC_RESERVES, which produces something odd:
+Commit 5d8edfb900d5 ("iomap: Copy larger chunks from userspace")
+introduced high-order folio allocations in the iomap buffered write path. 
+When memory is fragmented, each failed costly-order allocation enters
+__alloc_pages_slowpath() which runs direct reclaim, direct compaction and
+drain_all_pages(), causing a 0.38x throughput drop on PostgreSQL pgbench
+(simple-update) with 1024 clients on a 96-vCPU arm64 system.
 
-With the ALLOC_RESERVES match, __zone_watermark_unusable_free() doesn't
-subtract the free highatomic pages for them.  So in the slowpath, they get
-to consume regular blocks below the min watermark by the number of free
-highatomic pages.  The highatomic reserve is capped at 1% of the zone,
-which on any decently sized machine is a multiple of the min watermark:
-GFP_NOWAIT can drain regular memory to zero.
+The root issue is that direct reclaim and direct compaction are too
+expensive for hot allocation paths that have fallbacks to smaller
+allocations.  __filemap_get_folio_mpol() already marks higher-order
+allocations with __GFP_NORETRY | __GFP_NOWARN, signalling that the caller
+can handle failure.  However, the page allocator still enters the full
+blocking slowpath for costly orders with __GFP_NORETRY, which is
+unnecessarily aggressive when the caller will simply retry at a lower
+order.
 
-The user-visible result is brutal hiccups during bursts of GFP_NOWAIT
-allocations under memory pressure.  This was found in review and
-reproduced with a synthetic burst, not observed in production, but the
-sequence of events is a realistic one: On a 32G box with an anonymous
-working set, swap, and a filled 290M highatomic reserve, a GFP_NOWAIT
-burst drove regular free memory in the 28G Normal zone (min=60M) to 28M,
-0.8M and 0.6M in three runs.  Swapout failed to allocate its swap table,
-reclaim scanned 13M pages to reclaim 200k, page faults stalled for tens to
-hundreds of milliseconds.  The machine survives it, but not by design:
-direct reclaimers eventually fail and start unreserving highatomic blocks,
-until the allocation succeeds or the reserve is gone and the OOM killer
-runs.  That reserve exists for high-order atomic allocations; here it is
-destroyed to bail out a GFP_NOWAIT consumer that was never entitled to the
-memory.
+For costly-order allocations with __GFP_NORETRY, clear
+__GFP_DIRECT_RECLAIM at the very start of the slowpath, before
+can_direct_reclaim, can_compact and the nofail checks are evaluated.  This
+makes the entire slowpath treat the request as non-blocking: no direct
+reclaim, no direct compaction and no drain_all_pages() IPI across every
+CPU.  Reclaim and compaction move to the background instead: kswapd is
+still woken for reclaim, and it wakes kcompactd for defragmentation.  The
+system keeps its long-term health while the latency-critical direct
+allocation path no longer stalls.
 
-Remove ALLOC_NON_BLOCK from ALLOC_RESERVES.  With that, the GFP_NOWAIT
-burst is stopped short at the min watermark.  No direct reclaim, no
-stalls, no failed allocations, and the highatomic reserve stays intact for
-the requests it exists for.
+Allocations that also request __GFP_THISNODE are exempted.  That flag
+pairing identifies the local-node-first THP attempt issued by
+alloc_pages_mpol() (mempolicy.c), which relies on direct compaction to
+form transparent huge pages.
 
-__zone_watermark_ok() is unaffected, since everything it keys on
-ALLOC_NON_BLOCK is already nested under ALLOC_MIN_RESERVE.  Update the
-flag comments accordingly: ALLOC_NON_BLOCK just means the caller can't
-block; the reserve math belongs with ALLOC_MIN_RESERVE.
+Clearing __GFP_DIRECT_RECLAIM makes these allocations reach the
+!can_direct_reclaim bailout, which since commit 4c0ed883e051
+("mm/page_alloc: fix defrag_mode for non-reclaimable allocations") drops
+ALLOC_NOFRAGMENT and retries instead of failing when defrag_mode is on. 
+With vm.defrag_mode=1 a __GFP_NORETRY allocation could therefore succeed
+by fragmenting another migratetype's pageblock.  That is the wrong trade
+for a caller that has already communicated it can handle failure and has a
+cheap lower-order fallback, so exclude __GFP_NORETRY from the relaxation. 
+The exclusion is not restricted to costly orders: any __GFP_NORETRY caller
+has said it can cope with failure, so failing is preferable to fragmenting
+for all of them.
 
-GFP_ATOMIC order-0 requests have a milder version of the same problem. 
-Through ALLOC_MIN_RESERVE they also count the free highatomic pages in
-their watermark check, but rmqueue_buddy() serves them regular pages first
-and only falls back to the reserve once those are gone.  They can still
-push regular free memory to 37.5% of min minus the free highatomic pages
-before the reserve is touched.  Unlike GFP_NOWAIT they are entitled to the
-reserve, so this needs the watermark check and the freelist order reworked
-together, and is left to a separate patch.
+Test environment:
+  Hardware:  AWS EC2 m8g.24xlarge (96 vCPU, arm64)
+             12x 1TB IO2 32000 IOPS RAID0 XFS
+  OS:        AL2023
+  Kernel:    v7.3-rc1
+  Database:  PostgreSQL 18.4
+  Workload:  pgbench simple-update, 1024 clients, 96 threads, 1200s
 
-Link: https://lore.kernel.org/20261028171719.2043421-3-hannes@cmpxchg.org
-Fixes: 1ebbb21811b7 ("mm/page_alloc: explicitly define how __GFP_HIGH non-blocking allocations accesses reserves")
-Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
+Results (average of 3 runs, TPS):
+
+  Config                                       Avg TPS   % vs baseline
+  v7.3-rc1 baseline (vm.defrag_mode=0)          58,602               -
+  v7.3-rc1 + this patch (vm.defrag_mode=0)     157,246         +168.3%
+  v7.3-rc1 baseline (vm.defrag_mode=1)         109,012               -
+  v7.3-rc1 + this patch (vm.defrag_mode=1)     157,778          +44.7%
+
+Link: https://lore.kernel.org/20261001082152.2879289-1-dipiets@amazon.it
+Link: https://lore.kernel.org/all/20260403193535.9970-1-dipiets@amazon.it/T/#t [v1]
+Link: https://lore.kernel.org/linux-mm/20260420161404.642-1-dipiets@amazon.it/T/#u [v2]
+Link: https://lore.kernel.org/all/20260710143437.12379-1-dipiets@amazon.it/T/#u [v3]
+Link: https://lore.kernel.org/all/20260904115629.3993331-1-dipiets@amazon.it/T/#u [v4]
+Link: https://lore.kernel.org/all/20260911142102.2294202-1-dipiets@amazon.it/T/#u [v5]
+Fixes: 5d8edfb900d5 ("iomap: Copy larger chunks from userspace")
+Signed-off-by: Salvatore Dipietro <dipiets@amazon.it>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Acked-by: Balbir Singh <balbirs@nvidia.com>
-Reviewed-by: Vlastimil Babka (SUSE) <vbabka@kernel.org>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Salvatore Dipietro <dipiets@amazon.it>
-Cc: Christoph Hellwig <hch@lst.de>
-Cc: Dave Chinner <dgc@kernel.org>
-Cc: Matt Fleming <matt@readmodwrite.com>
-Cc: Mel Gorman <mgorman@techsingularity.net>
+Acked-by: Vlastimil Babka (SUSE) <vbabka@kernel.org>
+Acked-by: Zi Yan <ziy@nvidia.com>
+Reviewed-by: Johannes Weiner <hannes@cmpxchg.org>
+Reviewed-by: Christoph Hellwig <hch@lst.de>
+Cc: David Hildenbrand <david@kernel.org>
 Cc: Michal Hocko <mhocko@suse.com>
-Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Dave Chinner <dgc@kernel.org>
+Cc: Ritesh Harjani <ritesh.list@gmail.com>
+Cc: Dmitry Ilvokhin <d@ilvokhin.com>
+Cc: Hazem Mohamed Abuelfotoh <abuehaze@amazon.com>
+Cc: Ali Saidi <alisaidi@amazon.com>
+Cc: Geoff Blake <blakgeof@amazon.com>
+Cc: Christian Brauner <brauner@kernel.org>
+Cc: <dipietro.salvatore@gmail.com>
+Cc: Darrick J. Wong <djwong@kernel.org>
 Cc: Brendan Jackman <brendan.jackman@linux.dev>
-Cc: Zi Yan <ziy@nvidia.com>
-Cc: <stable@vger.kernel.org>
+Cc: <rvvandan@amazon.com>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: "Garg, Shivank" <shivankg@amd.com>
 ---
 
- mm/page_alloc.h |   11 +++++------
- 1 file changed, 5 insertions(+), 6 deletions(-)
+ mm/page_alloc.c |   21 ++++++++++++++++++---
+ 1 file changed, 18 insertions(+), 3 deletions(-)
 
---- a/mm/page_alloc.h~mm-page_alloc-remove-alloc_non_block-from-alloc_reserves
-+++ a/mm/page_alloc.h
-@@ -32,12 +32,11 @@
- #define ALLOC_OOM		ALLOC_NO_WATERMARKS
- #endif
+--- a/mm/page_alloc.c~mm-page_alloc-avoid-direct-reclaim-and-compaction-for-costly-__gfp_noretry-allocations
++++ a/mm/page_alloc.c
+@@ -4773,10 +4773,10 @@ static inline struct page *
+ __alloc_pages_slowpath(gfp_t gfp_mask, unsigned int order,
+ 						struct alloc_context *ac)
+ {
+-	bool can_direct_reclaim = gfp_mask & __GFP_DIRECT_RECLAIM;
+-	bool can_compact = can_direct_reclaim && gfp_compaction_allowed(gfp_mask);
+-	bool nofail = gfp_mask & __GFP_NOFAIL;
+ 	const bool costly_order = order > PAGE_ALLOC_COSTLY_ORDER;
++	bool can_direct_reclaim;
++	bool can_compact;
++	bool nofail;
+ 	struct page *page = NULL;
+ 	unsigned int alloc_flags;
+ 	unsigned long did_some_progress;
+@@ -4791,6 +4791,18 @@ __alloc_pages_slowpath(gfp_t gfp_mask, u
+ 	bool can_retry_reserves = true;
+ 	unsigned long alloc_start_time = jiffies;
  
--#define ALLOC_NON_BLOCK		 0x10 /* Caller cannot block. Allow access
--				       * to 25% of the min watermark or
--				       * 62.5% if __GFP_HIGH is set.
--				       */
-+#define ALLOC_NON_BLOCK		 0x10 /* Caller cannot block. */
- #define ALLOC_MIN_RESERVE	 0x20 /* __GFP_HIGH set. Allow access to 50%
--				       * of the min watermark.
-+				       * of the min watermark, or 62.5% if
-+				       * the caller cannot block either
-+				       * (ALLOC_NON_BLOCK).
- 				       */
- #define ALLOC_CPUSET		 0x40 /* check for correct cpuset */
- #define ALLOC_CMA		 0x80 /* allow allocations from CMA areas */
-@@ -58,7 +57,7 @@
- #define ALLOC_NO_CODETAG       0x1000
- 
- /* Flags that allow allocations below the min watermark. */
--#define ALLOC_RESERVES (ALLOC_NON_BLOCK|ALLOC_MIN_RESERVE|ALLOC_HIGHATOMIC|ALLOC_OOM)
-+#define ALLOC_RESERVES (ALLOC_MIN_RESERVE|ALLOC_HIGHATOMIC|ALLOC_OOM)
- 
- /* Flags that mean GFP_ATOMIC */
- #define ALLOC_MASK_ATOMIC (ALLOC_NON_BLOCK|ALLOC_MIN_RESERVE)
++	/*
++	 * Costly __GFP_NORETRY callers have a cheap fallback, so don't stall
++	 * them in reclaim or compaction. __GFP_THISNODE callers are exempt.
++	 */
++	if (costly_order && (gfp_mask & __GFP_NORETRY) &&
++	    !(gfp_mask & __GFP_THISNODE))
++		gfp_mask &= ~__GFP_DIRECT_RECLAIM;
++
++	can_direct_reclaim = gfp_mask & __GFP_DIRECT_RECLAIM;
++	can_compact = can_direct_reclaim && gfp_compaction_allowed(gfp_mask);
++	nofail = gfp_mask & __GFP_NOFAIL;
++
+ 	if (unlikely(nofail)) {
+ 		/*
+ 		 * We don't support __GFP_NOFAIL without __GFP_DIRECT_RECLAIM,
+@@ -4907,8 +4919,11 @@ retry:
+ 		 * Reclaim/compaction cannot run, so defrag_mode's strategy
+ 		 * of enforcing ALLOC_NOFRAGMENT cannot be fulfilled. Allow
+ 		 * fallbacks rather than failing the allocation outright.
++		 * Not for __GFP_NORETRY: those have a cheap lower order
++		 * fallback, so failing beats fragmenting.
+ 		 */
+ 		if (defrag_mode && (alloc_flags & ALLOC_NOFRAGMENT) &&
++		    !(gfp_mask & __GFP_NORETRY) &&
+ 		    (gfp_mask & __GFP_KSWAPD_RECLAIM)) {
+ 			alloc_flags &= ~ALLOC_NOFRAGMENT;
+ 			goto retry;
 _
 
-Patches currently in -mm which might be from hannes@cmpxchg.org are
+Patches currently in -mm which might be from dipiets@amazon.it are
 
 
