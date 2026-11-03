@@ -1,47 +1,47 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793672127;
-	b=QxvYFLf95cd2iPkPY0iOgmHorLdYyysJeY45eUoG37F5pmSVIytBhtJOY/Kzl4jy8C+Q
-	 ozVWiTywLz82G55PO8Ho591/BPmRhio1O5NrGLgatSpihwO6Qd/HoAy0IHvVMRY81dCJn
-	 j0qJaO9av4x9iGP2QzIAdZRFnJe82YW5wEejpXI9MiCwBsGCK6gGhnrdZwLNAU6aeApGi
-	 uJP2CxDNG2goGk4ePy2Jt0M9AwFt+fOxesi21b/zmFzL3KL/wNK16BYMqg1keQ67FgtIn
-	 pIc49R6v19tpw0+X9/hDSwhcdP5z4QljqbgESKuoaRaVY0hfQnI0axUqxUUOf7o8sjg==
+	t=1793672130;
+	b=rdn7v15BXItPv+hSzOcY+BFF/yXSq8eZUGdKEdnKPQT8i55siapgN4ujSGyKWYU6Mt8z
+	 6ZigtmZncGnJ0KN8sOIX/vuSWs9UsOFjG0T//5jbIW+pL5eQiMo+dWozqSa2J1ikGUgj4
+	 4RC6qRCcSaYq3XlbY1/i6DQQ9MhNAjx/HnVRU18cQj81oj4khKxQ2iVt5OVabSt2SLGQ6
+	 DDIZMjKXa7/05fQmYGRAMwyvLWNGHOqt4GS3VHlv52eCVl0wLm2VD/nUlnlFNSAzuKtQ4
+	 xeYMnzC/kobT4tYT14+eLZhq8mpKL1iTX586Gc3Va1vfNbTp+KwdzOfRjh0ltQroDww==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793672127;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793672130;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=oTF8QaOB4cRFamksKRcLhEEEJhAZ4Jr1ZHnY/JyIO90=;
-	b=i21zzZN9O5qcr/W1fvmsQt61d+sNXPNrKPS8iDkMhd+T81k09ZiwTVNkB8/c1Ssdr8A8
-	 9Tc2eOKH+eI7J/eqPnn34EnkRxwIl0OwmvH8AuTs05nWLMSdx0w/psZGAdM8krHT15qnI
-	 nnU574u+kxiPgg9J2ocscF7e1fd7qFm6XCqGSxCBLk1cdvrsIBigaq35GlVVLafPTJxS/
-	 U/3mP30Tjmap/dP8C7hOZLYyTbHBB5JTSTaqabusdCfSaTko/wyAdc9ye8ojW7izWdbBy
-	 F+Yiucvr3QhKq+0xYPtiKIT++EReGqT3VQ2LVKA5i1Tb5LwkrRyxRypJl5sEvQ6kIXQ==
+	bh=MQ1HzEm2PQVD6xjtjV2vORDGvBlcpLWbJsj1oqJY6p4=;
+	b=PWdTC8IPGJjSNPwwoc28E/JzzXSMohq8UH6umjxGgxFGCAFfn36kbTgQXszesoBCNeMB
+	 Umkmo+FA2WstSDjbtdreIh9S49qWVYY4uC0m7neInpF7l/eiVqKDGKrir43CmUwnMcCCd
+	 ZAOOgNyOpAE4fRtMfeYzIE1MAscqYcUQaDfW6eXrNQg35zNcZ+CcM698xlaisTgUYY4w+
+	 92VF0KXBhkom8fkfXjnU5ybS9Ie+wYYf8aQRanodPug5TBU8/5dH1iAJbjBcUdCvrai4W
+	 oZQAI5+d7aEPR8+hoHJjATTxrLuiVd2sfhD8ilRmDwx4Wj2NiKqc/jAfdIN4XkCZZMg==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=Knj0wGPh;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=swPCSfJ8;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 17D77606A32F
-	for <mm-commits@vger.kernel.org>; Tue,  3 Nov 2026 02:15:26 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 48717606A324;
+	Tue,  3 Nov 2026 02:15:30 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=Knj0wGPh
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 913F51F00919;
-	Tue,  3 Nov 2026 02:15:26 +0000 (UTC)
+	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=swPCSfJ8
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1A9EE1F000C1;
+	Tue,  3 Nov 2026 02:15:30 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1793672126;
-	bh=oTF8QaOB4cRFamksKRcLhEEEJhAZ4Jr1ZHnY/JyIO90=;
+	d=linux-foundation.org; s=korg; t=1793672130;
+	bh=MQ1HzEm2PQVD6xjtjV2vORDGvBlcpLWbJsj1oqJY6p4=;
 	h=Date:To:From:Subject;
-	b=Knj0wGPhVRtohUsya5Nuzy2DWCOzsciOfDikJnmtNSF1QG19oFnb3Mbi2z2e/9r+m
-	 +g2AndVFpBZ3/rUcuSk9AFFTOrfCPn3yD6pYI37KnUSG5JMGnvEdzEG6qv5uU8qhTm
-	 eqq4+vMGJBa3PYfTN83dDkmtbwYCq71XgeUP5EQs=
-Date: Mon, 02 Nov 2026 18:15:26 -0800
-To: mm-commits@vger.kernel.org,rppt@kernel.org,peterx@redhat.com,
-	osalvador@suse.de,muchun.song@linux.dev,lizhe.67@bytedance.com,
-	azpijr@gmail.com,david@kernel.org,akpm@linux-foundation.org
+	b=swPCSfJ8W7upaaQBgLPXsPpJVOUWS6WNnd3ipV377IgvC34mx6j/dyCRwOipYiAof
+	 ASTNkj2M6avHw9RY+Vfw/6pSh3UN1wA46rFJerC8TW06Uoby8A53qojdi0BzItL2nW
+	 fHcEGKVApqb3rAK1Fu3ZRuKSk2UzO9G6e+ZjJyng=
+Date: Mon, 02 Nov 2026 18:15:29 -0800
+To: mm-commits@vger.kernel.org,vbabka@kernel.org,stable@vger.kernel.org,
+	pfalcato@suse.de,matenajakub@gmail.com,luizcap@redhat.com,liam@infradead.org,
+	jannh@google.com,ljs@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] mm-hugetlb-disable-pmd-sharing-for-uffd-missing-mode.patch removed from -mm tree
-Message-Id: <20261103021526.913F51F00919@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] mm-vma-fix-expansion-of-vma_mixedmap_bit-vmas.patch removed from -mm tree
+Message-Id: <20261103021530.1A9EE1F000C1@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -53,102 +53,110 @@ Precedence: list
 
 
 The quilt patch titled
-     Subject: mm/hugetlb: disable PMD sharing for UFFD missing mode
+     Subject: mm/vma: fix expansion of VMA_MIXEDMAP_BIT VMAs
 has been removed from the -mm tree.  Its filename was
-     mm-hugetlb-disable-pmd-sharing-for-uffd-missing-mode.patch
+     mm-vma-fix-expansion-of-vma_mixedmap_bit-vmas.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: "David Hildenbrand (Arm)" <david@kernel.org>
-Subject: mm/hugetlb: disable PMD sharing for UFFD missing mode
-Date: Thu, 22 Oct 2026 11:45:42 +0800
+From: "Lorenzo Stoakes (ARM)" <ljs@kernel.org>
+Subject: mm/vma: fix expansion of VMA_MIXEDMAP_BIT VMAs
+Date: Fri, 23 Oct 2026 16:17:31 +0100
 
-For UFFDIO_POISON to install a poison marker in a hugetlb mapping, it is
-sufficient to have the VMA registered for missing mode.
+Commit ca3d76b0aa80 ("mm: add merging after mremap resize") combined
+merging with expansion of mremap()'d VMAs, however it also unintentionally
+disallowed the expansion of unmergeable VMAs.
 
-However, UFFD missing mode does currently not block PMD table sharing, so
-installing the marker will be visible to everyone using the shared PMD
-table, which is wrong as UFFDIO_POISON must stay local to the process.
+Previously it was possible to expand a mixed mapping which mremap() had
+already ensured was a legal expansion.
 
-To fix it, make uffd_disable_huge_pmd_share() cover VM_UFFD_MISSING as
-well. With missing mode covered, hugetlb PMD sharing is disabled for all
-userfaultfd registered VMAs, so the helper can simply return whether the
-VMA has a userfaultfd context instead of testing individual UFFD mode
-flags. Add a debug check on the marker installation path.
+This is clearly seen in the mremap() logic, as it checks
+vma_is_fixed_mapping() to determine legality of an expansion rather than
+vma_can_merge().
 
-The existing registration path will then unshare PMD tables, and
-subsequent faults will not share them while the mapping remains
-registered.
+Additionally, copy_vma() allows for a failed merge to result in a new VMA
+being instantiated if MREMAP_MAYMOVE is specified.
 
-The alternative would be to unshare PMD tables selectively when
-installing poison markers, which results in way more complexity. Or
-alternatively, simply failing the marker installation, which might break
-some use cases.
+However, this is not attempted, as a failure in vma_merge_extend() is
+assumed to be an -ENOMEM failure.
 
-This also disables PMD sharing for userfaultfd registrations that never
-use UFFDIO_POISON.
+Since vma_merge_extend() is used exclusively by mremap() to perform a merge
+and/or expansion, resolve the issue by invoking vma_expand() for
+unmergeable VMAs there.
 
-Link: https://lore.kernel.org/20261022034543.51226-3-lizhe.67@bytedance.com
-Fixes: 8a13897fb0da ("mm: userfaultfd: support UFFDIO_POISON for hugetlbfs")
-Signed-off-by: David Hildenbrand (Arm) <david@kernel.org>
-Signed-off-by: Li Zhe <lizhe.67@bytedance.com>
+Explicitly assert that the VMA is both non-fixed and a mixed mapping.
+This provides double insurance against broken changes in future.
+
+Note that khugepaged_enter_vma() (which vma_merge_new_range() runs) is
+redundant in this case, as a mixed mapping is not subject to khugepaged.
+
+Also update the VMA userland tests to add a required predicate.
+
+Link: https://lore.kernel.org/20261023-vma-expansion-fix-v1-1-6142baf1f46b@kernel.org
+Fixes: ca3d76b0aa80 ("mm: add merging after mremap resize")
+Signed-off-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Suggested-by: Li Zhe <lizhe.67@bytedance.com>
-Suggested-by: Mike Rapoport <rppt@kernel.org>
-Acked-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
-Cc: Muchun Song <muchun.song@linux.dev>
-Cc: Oscar Salvador <osalvador@suse.de>
-Cc: Peter Xu <peterx@redhat.com>
-Cc: Jose A. Perez de Azpillaga <azpijr@gmail.com>
+Reported-by: Luiz Capitulino <luizcap@redhat.com>
+Closes: https://lore.kernel.org/all/20261023023106.515365-1-luizcap@redhat.com/
+Acked-by: Vlastimil Babka (SUSE) <vbabka@kernel.org>
+Reviewed-by: Pedro Falcato <pfalcato@suse.de>
+Cc: Liam R. Howlett <liam@infradead.org>
+Cc: Jann Horn <jannh@google.com>
+Cc: Jakub Matěna <matenajakub@gmail.com>
+Cc: <stable@vger.kernel.org>
 ---
 
- include/linux/userfaultfd_k.h |   16 +++-------------
- mm/hugetlb.c                  |    1 +
- 2 files changed, 4 insertions(+), 13 deletions(-)
+ mm/vma.c                        |   19 ++++++++++++++++---
+ tools/testing/vma/include/dup.h |    5 +++++
+ 2 files changed, 21 insertions(+), 3 deletions(-)
 
---- a/include/linux/userfaultfd_k.h~mm-hugetlb-disable-pmd-sharing-for-uffd-missing-mode
-+++ a/include/linux/userfaultfd_k.h
-@@ -168,22 +168,12 @@ static inline bool is_mergeable_vm_userf
- }
- 
- /*
-- * Never enable huge pmd sharing on some uffd registered vmas:
-- *
-- * - VM_UFFD_WP and VM_UFFD_RWP VMAs, because the write protect / access
-- *   tracking information is per pgtable entry.
-- *
-- * - VM_UFFD_MINOR VMAs, because otherwise we would never get minor faults for
-- *   VMAs which share huge pmds. (If you have two mappings to the same
-- *   underlying pages, and fault in the non-UFFD-registered one with a write,
-- *   with huge pmd sharing this would *also* setup the second UFFD-registered
-- *   mapping, and we'd not get minor faults.)
-+ * Never enable huge pmd sharing on userfaultfd registered VMAs, because
-+ * userfaultfd state can be tracked per VMA or per page table entry.
-  */
- static inline bool uffd_disable_huge_pmd_share(struct vm_area_struct *vma)
+--- a/mm/vma.c~mm-vma-fix-expansion-of-vma_mixedmap_bit-vmas
++++ a/mm/vma.c
+@@ -1851,12 +1851,25 @@ struct vm_area_struct *vma_merge_extend(
+ 					struct vm_area_struct *vma,
+ 					unsigned long delta)
  {
--	return vma_test_any_mask(vma,
--		mk_vma_flags_from_masks(VMA_UFFD_WP, VMA_UFFD_RWP,
--					VMA_UFFD_MINOR));
-+	return vma->vm_userfaultfd_ctx.ctx;
+-	VMG_VMA_STATE(vmg, vmi, vma, vma, vma->vm_end, vma->vm_end + delta);
++	const unsigned long start =
++		vma_can_merge(vma) ? vma->vm_end : vma->vm_start;
++	VMG_VMA_STATE(vmg, vmi, vma, vma, start, vma->vm_end + delta);
+ 
+-	vmg.next = vma_iter_next_rewind(vmi, NULL);
+ 	vmg.middle = NULL; /* We use the VMA to populate VMG fields only. */
+ 
+-	return vma_merge_new_range(&vmg);
++	if (vma_can_merge(vma)) {
++		vmg.next = vma_iter_next_rewind(vmi, NULL);
++		return vma_merge_new_range(&vmg);
++	}
++
++	/* Mixed mappings are permitted to be expanded, not merged. */
++	VM_WARN_ON_ONCE(vma_is_fixed_mapping(vma));
++	VM_WARN_ON_ONCE(!vma_test(vma, VMA_MIXEDMAP_BIT));
++	vma_prev(vmi); /* Reposition to start of VMA. */
++	vmg.target = vma;
++	if (vma_expand(&vmg))
++		return NULL;
++	return vma;
  }
  
- /*
---- a/mm/hugetlb.c~mm-hugetlb-disable-pmd-sharing-for-uffd-missing-mode
-+++ a/mm/hugetlb.c
-@@ -6388,6 +6388,7 @@ int hugetlb_mfill_atomic_pte(pte_t *dst_
- 			return -EEXIST;
- 		}
- 
-+		VM_WARN_ON_ONCE(size == PMD_SIZE && hugetlb_pmd_shared(dst_pte));
- 		_dst_pte = make_pte_marker(PTE_MARKER_POISONED);
- 		set_huge_pte_at(dst_mm, dst_addr, dst_pte, _dst_pte, size);
- 
+ void unlink_file_vma_batch_init(struct unlink_vma_file_batch *vb)
+--- a/tools/testing/vma/include/dup.h~mm-vma-fix-expansion-of-vma_mixedmap_bit-vmas
++++ a/tools/testing/vma/include/dup.h
+@@ -1727,3 +1727,8 @@ static inline bool vma_flags_can_merge(c
+ 	 */
+ 	return !vma_flags_is_hugetlb(flags);
+ }
++
++static inline bool vma_can_merge(const struct vm_area_struct *vma)
++{
++	return vma_flags_can_merge(&vma->flags);
++}
 _
 
-Patches currently in -mm which might be from david@kernel.org are
+Patches currently in -mm which might be from ljs@kernel.org are
 
-mm-memory-failure-fix-folio-refcount-leak-and-min_order_for_split-locking.patch
+mm-vma-read-anon_vma-carefully-in-validate_mm.patch
 
