@@ -1,47 +1,52 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793668701;
-	b=G/G/mmEgpSKpwq6ImzV2W2Z/X66+EAqKi64NRH0+NezGnDYZfmyRs+ShWp1i/1nbbvQm
-	 +2Kai2L0Kf98OZoM/2l75hBBlY9E2KKHcDi6x8iDYReDlQNpmGL0C9rdTeVFNWm+iR7F/
-	 5Kh40vQHo0dRosnFABsQVO3fjLsvN/HC9MHllLEAMH4sARXFAsaN7+Ize9MWPkRB8O/W6
-	 VwOb776D/ZPimBkMZh0mAK79VtyeC/nrbNPBYbTlCLLtL4+ysm191a08505GpQrNbuDrc
-	 gzGhAN1XMSOz/kcbtsY1VGOgPgDHXgbPkmzXnDDYlZLuD+Sn9hPomzf0kR+9P/tCB8A==
+	t=1793670987;
+	b=ZSbjkaf3/WYCqdnd1qS7PZ1qAezFUnjd1j0hxukxOgv7ZlNiJbPBSuLq4GFA4jOuCAas
+	 oj/rLJg/FyhRvkrnt5IxIDDwitkCvXXl6Gg7Gf64oNAkrICo0guV5FrQ8jGj3ip8EyFcv
+	 n/qsUUmJHJwI6f93q4yZzEEwDfRtEjymjU4koZng4R2mmIuRM388s6jdrKha/JaXdFiJ3
+	 td0xXs9ovXGjH94DQesmUbzsk5Q6JQHALXUtEjoXw1cMMYlzGOxTz/v/icSV/DobJ+cgl
+	 fHOJEQNjKkKAzuIgQXpkQUOW1JJwktOTyGh9D3SEE2teB2AbiexV4ufK8wAqAz4AMwg==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793668701;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793670987;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=jkCjSvVgMhpE5JJ9kYqBP5/4uQXVGP5c+RkkzWH8NoM=;
-	b=3HM+lo5xxyUER4GALwMbfvsxLv3a7eu5yBon6S9PX2UcQcNzgWU1xhwG5tb8i6/IU1BB
-	 hTD/zQYQelF9P7qsX6cG1oUNVUtQoESds7TFk0ATdsCTMpWl8pXC9JxQeb6OU0/dFQFbL
-	 Zskj6i8rheeaChveFJqVGgjL8xQbVy9gaiM4gyJ/R9Yc1iZ6cbv/K/6XrQRA6611cn7pA
-	 /jkMFJC2lwTeVBSpaPXQVFicBA8xq5lwx8UjRvbgL1fai19apmf60IAuXig6kdR4Yx9Kv
-	 rKm4aRKKLaIQtrVN+VqiIklDXvIgMxmcXo4N+uBoWMyN7CgiXfcCK1/yGQL9A0lNang==
+	bh=WTlKf7MmDRYoLhoGaLxVViJOQduMLd1NRKZ8iknXCgo=;
+	b=M24egx5SQAz2WmwqFz3SWz7WwqFjjxZbjclzn4B2QYkprEQ3ILoKnf/mAteYQf0X7t9d
+	 8iEHbRQu7e3xCTiu3j1QoazbZUVMM7ZysTsRupu/Olg1+kRWfECcil5auK84rF9B/GHjh
+	 ADEKsrd6d2ferXd0/Qn9SKfpWQUfTA04nV85ImLngU47fUXm6SJm3s6YzAW9LAAg7I/Vj
+	 EaZYz2PJOsmpZ3tQu/8OC7rQPxZ4q0r0Txk2WuE1BYPg5mbzUkfIXb6xDNIo4lQFeirnZ
+	 wFFKeE0846skM/JXKAT8BURnlAXW/nBh7l8UBE799f+JHOwEU0Uf69rCQqjCN/viDYQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=YaRP5K7q;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=nyov6MOt;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B7F8A606A32E
-	for <mm-commits@vger.kernel.org>; Tue,  3 Nov 2026 01:18:20 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 322BD606A329
+	for <mm-commits@vger.kernel.org>; Tue,  3 Nov 2026 01:56:26 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=YaRP5K7q
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5946F1F000C1;
-	Tue,  3 Nov 2026 01:18:20 +0000 (UTC)
+	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=nyov6MOt
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A75461F00A02;
+	Tue,  3 Nov 2026 01:56:26 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1793668700;
-	bh=jkCjSvVgMhpE5JJ9kYqBP5/4uQXVGP5c+RkkzWH8NoM=;
+	d=linux-foundation.org; s=korg; t=1793670986;
+	bh=WTlKf7MmDRYoLhoGaLxVViJOQduMLd1NRKZ8iknXCgo=;
 	h=Date:To:From:Subject;
-	b=YaRP5K7qlM32ImW5bqD1ZYO6Tw1TGyJbtfizxl2fFufAOZJ5VQ2CYGCBu8QJEHV1S
-	 BkwO9JfhLyON9WlgI1odUUHmsOSw+1S9bRXPa/cQyHq0A0u0ywGXPTX+SoaGT9N0ut
-	 S6H37t7y40kwsTCn9e1ikILXoBRIDoTILc1A3pKs=
-Date: Mon, 02 Nov 2026 17:18:19 -0800
-To: mm-commits@vger.kernel.org,skhan@linuxfoundation.org,sj@kernel.org,
-	rdunlap@infradead.org,manuelebnerli@mailbox.org,corbet@lwn.net,
-	jm5905938@gmail.com,akpm@linux-foundation.org
+	b=nyov6MOtVXacKgX9oJ+dZt+7jVS8HCSYyx962mxCodqHDDlKlHLABDPt3lWyHE/zK
+	 UyHqEGriA0MU16DsQSh0RHw745Ezetuc/B9A4p8HqzY6lxHj3XdcX2np+Do7PB/QKQ
+	 EDLyjCnTD20zVR9bLmDv+PLJ/Nd2SZ5boBxAvVz4=
+Date: Mon, 02 Nov 2026 17:56:26 -0800
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,ying.huang@linux.alibaba.com,
+	willy@infradead.org,vbabka@kernel.org,surenb@google.com,sj@kernel.org,
+	rppt@kernel.org,peterx@redhat.com,mhocko@suse.com,matthew.brost@intel.com,
+	ljs@kernel.org,liam@infradead.org,joshua.hahnjy@gmail.com,
+	jhubbard@nvidia.com,jgg@ziepe.ca,jack@suse.cz,hughd@google.com,
+	gourry@gourry.net,david@kernel.org,byungchul@sk.com,
+	baolin.wang@linux.alibaba.com,apopple@nvidia.com,tz2294@columbia.edu,
+	akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + docs-mm-damon-monitoring_intervals_tuning_example-fix-grammar-and-typos.patch added to mm-new branch
-Message-Id: <20261103011820.5946F1F000C1@smtp.kernel.org>
+Subject: + mm-remove-wait_on_page_writeback.patch added to mm-new branch
+Message-Id: <20261103015626.A75461F00A02@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -53,12 +58,12 @@ Precedence: list
 
 
 The patch titled
-     Subject: Docs/mm/damon/monitoring_intervals_tuning_example: fix grammar and typos
+     Subject: mm: remove wait_on_page_writeback()
 has been added to the -mm mm-new branch.  Its filename is
-     docs-mm-damon-monitoring_intervals_tuning_example-fix-grammar-and-typos.patch
+     mm-remove-wait_on_page_writeback.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/docs-mm-damon-monitoring_intervals_tuning_example-fix-grammar-and-typos.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-remove-wait_on_page_writeback.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -87,127 +92,96 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Aveline Noir <jm5905938@gmail.com>
-Subject: Docs/mm/damon/monitoring_intervals_tuning_example: fix grammar and typos
-Date: Mon, 02 Nov 2026 16:59:38 -0800
+From: Tal Zussman <tz2294@columbia.edu>
+Subject: mm: remove wait_on_page_writeback()
+Date: Mon, 02 Nov 2026 17:54:06 -0500
 
-Fix a few typos, including "Moniting" in the title, and some grammar in
-the interval tuning example.
+Patch series "mm: remove newly-unused page wrapper APIs".
 
-"starts looking degrading" should be "start looking degraded for", as I
-think the sentence means the cold region detection starts to look worse.
-Rewrap where the lines got too long.
+After some folio conversions done last cycle (namely ceph, f2fs, btrfs,
+fuse, and page_io.c), there are a number of newly-unused page APIs.
+Let's remove them and update comments as necessary.
 
-Link: https://lore.kernel.org/20261103005940.91432-9-sj@kernel.org
-Signed-off-by: Aveline Noir <jm5905938@gmail.com>
-Signed-off-by: SJ Park <sj@kernel.org>
+Patches 1 and 8 are taken from the ceph writeback folio series [1],
+along with tags.
+
+
+This patch (of 8):
+
+The last caller was converted to folio_wait_writeback(), so drop the
+wait_on_page_writeback() compatibility wrapper and its declaration.
+
+Link: https://lore.kernel.org/20261102-page-wrappers-v1-0-e7280bdb31f6@columbia.edu
+Link: https://lore.kernel.org/20261102-page-wrappers-v1-1-e7280bdb31f6@columbia.edu
+Link: https://lore.kernel.org/r/20260810-remove-wait-on-page-writeback-v3-0-dd7531704f26@columbia.edu/ [1]
+Signed-off-by: Tal Zussman <tz2294@columbia.edu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+Reviewed-by: Matthew Wilcox (Oracle) <willy@infradead.org>
+Acked-by: David Hildenbrand (Arm) <david@kernel.org>
 Reviewed-by: SJ Park <sj@kernel.org>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Shuah Khan <skhan@linuxfoundation.org>
-Cc: Randy Dunlap <rdunlap@infradead.org>
-Cc: Manuel Ebner <manuelebnerli@mailbox.org>
+Cc: Jan Kara <jack@suse.cz>
+Cc: Lorenzo Stoakes <ljs@kernel.org>
+Cc: Liam R. Howlett <liam@infradead.org>
+Cc: Vlastimil Babka <vbabka@kernel.org>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Zi Yan <ziy@nvidia.com>
+Cc: Matthew Brost <matthew.brost@intel.com>
+Cc: Joshua Hahn <joshua.hahnjy@gmail.com>
+Cc: Byungchul Park <byungchul@sk.com>
+Cc: Gregory Price <gourry@gourry.net>
+Cc: Ying Huang <ying.huang@linux.alibaba.com>
+Cc: Alistair Popple <apopple@nvidia.com>
+Cc: Jason Gunthorpe <jgg@ziepe.ca>
+Cc: John Hubbard <jhubbard@nvidia.com>
+Cc: Peter Xu <peterx@redhat.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
 ---
 
- Documentation/mm/damon/monitoring_intervals_tuning_example.rst |   28 +++++-----
- 1 file changed, 14 insertions(+), 14 deletions(-)
+ include/linux/pagemap.h |    1 -
+ mm/folio-compat.c       |    6 ------
+ 2 files changed, 7 deletions(-)
 
---- a/Documentation/mm/damon/monitoring_intervals_tuning_example.rst~docs-mm-damon-monitoring_intervals_tuning_example-fix-grammar-and-typos
-+++ a/Documentation/mm/damon/monitoring_intervals_tuning_example.rst
-@@ -1,8 +1,8 @@
- .. SPDX-License-Identifier: GPL-2.0
+--- a/include/linux/pagemap.h~mm-remove-wait_on_page_writeback
++++ a/include/linux/pagemap.h
+@@ -1299,7 +1299,6 @@ static inline int folio_wait_locked_kill
+ }
  
--=================================================
--DAMON Moniting Interval Parameters Tuning Example
--=================================================
-+===================================================
-+DAMON Monitoring Interval Parameters Tuning Example
-+===================================================
+ void folio_end_read(struct folio *folio, bool success);
+-void wait_on_page_writeback(struct page *page);
+ void folio_wait_writeback(struct folio *folio);
+ int folio_wait_writeback_killable(struct folio *folio);
+ void end_page_writeback(struct page *page);
+--- a/mm/folio-compat.c~mm-remove-wait_on_page_writeback
++++ a/mm/folio-compat.c
+@@ -23,12 +23,6 @@ void end_page_writeback(struct page *pag
+ }
+ EXPORT_SYMBOL(end_page_writeback);
  
- DAMON's monitoring parameters need tuning based on given workload and the
- monitoring purpose.  There is a :ref:`tuning guide
-@@ -38,7 +38,7 @@ access-hotness of a region.  It is calcu
- frequency and the age of the region.  If the access frequency is 0 %, the
- temperature is multiplied by minus one.  That is, if a region is not accessed,
- it gets minus temperature and it gets lower as not accessed for longer time.
--The sorting is in temperature-ascendint order, so the region at the top of the
-+The sorting is in temperature-ascending order, so the region at the top of the
- list is the coldest, and the one at the bottom is the hottest one. ::
- 
-     # damo report access --sort_regions_by temperature
-@@ -56,7 +56,7 @@ list is the coldest, and the one at the
-     total size: 62.000 GiB
- 
- The list shows not seemingly hot regions, and only minimum access pattern
--diversity.  Every region has zero access frequency.  The number of region is
-+diversity.  Every region has zero access frequency.  The number of regions is
- 10, which is the default ``min_nr_regions value``.  Size of each region is also
- nearly identical.  We can suspect this is because “adaptive regions adjustment”
- mechanism was not well working.  As the guide suggested, we can get relative
-@@ -91,7 +91,7 @@ aggregation interval.
- 100ms/2s intervals: Starts Showing Small Hot Regions
- ====================================================
- 
--Following the guide, increase the interval 20 times (100 milliseocnds and 2
-+Following the guide, increase the interval 20 times (100 milliseconds and 2
- seconds for sampling and aggregation intervals, respectively). ::
- 
-     # damo start -s 100ms -a 2s
-@@ -129,17 +129,17 @@ seconds for sampling and aggregation int
-     [50,400,010,000, 59,720,011,000)   4.000 KiB  |*                   |
-     total size: 62.000 GiB
- 
--DAMON found two distinct 4 KiB regions that pretty hot.  The regions are also
--well aged.  The hottest 4 KiB region was keeping the access frequency for about
--8 minutes, and the coldest region was keeping no access for about 7 minutes.
--The distribution on the histogram also looks like having a pattern.
-+DAMON found two distinct 4 KiB regions that are pretty hot.  The regions are
-+also well aged.  The hottest 4 KiB region was keeping the access frequency for
-+about 8 minutes, and the coldest region was keeping no access for about 7
-+minutes.  The distribution on the histogram also looks like having a pattern.
- 
- Especially, the finding of the 4 KiB regions among the 62 GiB total memory
- shows DAMON’s adaptive regions adjustment is working as designed.
- 
- Still the number of regions is close to the ``min_nr_regions``, and sizes of
- cold regions are similar, though.  Apparently it is improved, but it still has
--rooms to improve.
-+room to improve.
- 
- 400ms/8s intervals: Pretty Improved Results
- ===========================================
-@@ -196,8 +196,8 @@ good enough to make some meaningful memo
- =================================
- 
- Further double the intervals (800 milliseconds and 16 seconds for sampling
--and aggregation intervals, respectively).  The results is more improved for the
--hot regions detection, but starts looking degrading cold regions detection. ::
-+and aggregation intervals, respectively).  The results are more improved for the
-+hot regions detection, but start looking degraded for cold regions detection. ::
- 
-     # damo start -s 800ms -a 16s
-     # sleep 600
-@@ -243,5 +243,5 @@ Conclusion
- ==========
- 
- With the above experimental tuning results, we can conclude the theory and the
--guide makes sense to at least this workload, and could be applied to similar
-+guide make sense to at least this workload, and could be applied to similar
- cases.
+-void wait_on_page_writeback(struct page *page)
+-{
+-	return folio_wait_writeback(page_folio(page));
+-}
+-EXPORT_SYMBOL_GPL(wait_on_page_writeback);
+-
+ void mark_page_accessed(struct page *page)
+ {
+ 	folio_mark_accessed(page_folio(page));
 _
 
-Patches currently in -mm which might be from jm5905938@gmail.com are
+Patches currently in -mm which might be from tz2294@columbia.edu are
 
-mm-damon-core-reset-watermark-wait-state-on-each-iteration.patch
-mm-damon-ops-common-align-mmu-notifier-range-when-clearing-pmd-young-bit.patch
-mm-damon-stat-avoid-32-bit-overflow-in-idle-percentiles.patch
-mm-damon-pvaddr-skip-folios-already-on-the-migration-target-node.patch
-docs-admin-guide-mm-damon-start-fix-grammar.patch
-docs-admin-guide-mm-damon-stat-fix-pronoun-agreement.patch
-docs-admin-guide-mm-damon-usage-fix-grammar.patch
-docs-admin-guide-mm-damon-lru_sort-fix-remaining-grammar.patch
-docs-mm-damon-design-fix-grammar-and-typos.patch
-docs-mm-damon-api-fix-verb-form.patch
-docs-mm-damon-maintainer-profile-fix-subject-verb-agreement.patch
-docs-mm-damon-monitoring_intervals_tuning_example-fix-grammar-and-typos.patch
+mm-memcontrol-remove-mod_memcg_page_state.patch
+mm-memcontrol-remove-page_memcg_check.patch
+mm-userfaultfd-store-the-childs-new-uffd-context-in-the-wait-queue-entry.patch
+mm-remove-wait_on_page_writeback.patch
+mm-remove-end_page_writeback.patch
+mm-remove-clear_page_dirty_for_io.patch
+mm-remove-attach_page_private-and-detach_page_private.patch
+mm-remove-find_get_page_flags.patch
+mm-remove-find_lock_page.patch
+mm-remove-read_cache_page_gfp.patch
+mm-remove-thp_size-and-thp_order.patch
 
