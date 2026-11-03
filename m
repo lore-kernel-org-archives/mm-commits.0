@@ -1,50 +1,48 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793672144;
-	b=Z+KfrRLI6a7ZIbvnZsGKcm5EAW306462CYuEMyW1wYes1ZxA4KBWZ2jYdN826bpUXb5A
-	 Mux5OHzzJPi1mMniy8c2gc+uEJzuERgpP5Cu392uP9y9cAWomqBopg7Beu6GTDRRd4sAw
-	 8WfmVBPZYQmlvtnTdPRciTHVK2EUqL576BqQqOsdJ49xp9upbse/5eM8HqrU/4GZqSx+n
-	 2C+Xfz3bDwcStZQ7qBsCv10v83SpMjYltAxfPQEqmI+BbD1mrcoIRHSuTkkdLS24uBCv2
-	 G8gJFFAcWARG3rl9GLbXenTSaML8jUgGk33dxMZMAmpL1s2F8S05BaYhT0nnpHeeiew==
+	t=1793672150;
+	b=Njl7+K+YiY5XtzvfMGvnT+IDvELWKBRHc8rV9eBDeLncm2M6gjcXeGS3mOII3IcHAA1/
+	 rGo0DiT4lrukaAysFifB6dSe+uSmFqCLRKTlRagCiWWkTDNpFT+zVz4VZCIn7l7LtKoD9
+	 I23IakRm0B13LaGwgSEzIQJNvvEyyUwvr+LjhngIMS12jZpTNUO0n1lR3BlLmvS3gE7ho
+	 MlbnC2W09vbk7vb1MPOZOBLl2yGdA7urz4K9oofausBi25SElb7G7IFCXdI4BlcEpSKTu
+	 BGqNlPRD3JTPjSbGPoOrtrkGbIArvIN4Wx0hxCtWELP/MpFz5Jv2WcqRpTkaDudnA2g==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793672144;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793672150;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=0hH4diZxkE9FYqMBlXHB0HpZuREEprMCduMPs/5JO+0=;
-	b=yELMDDMzJC3NcehzyjZDYa8vdejyGOImw3gtJc9T9vpybWB92BRel4A2iLq5iPEQvt5N
-	 sG+/ddizlvblrrJl7X+GujJGCaDoVSkSY//A+z1NNH4dIg+66AhIp8n0wt+/nnB26H3Wq
-	 RuBPHATrXcmgV6lCpRds7KgF9Hxo8YxWqeOLwKYfUwbUmiVAitRdoSttOZAhFNDrc5Y4M
-	 A7rbmB4DBnJH6aLeXMnyOu+GLVJ4bWcrVmzTRMjOlsHBZD9h0q9jpSyr0Ulx8cJZCWSj0
-	 tb5alsHXYciH7t7wEtiBlanQ4OeOiLvObFXpkpBr2pf7zges+v7svgjvgXVOO8r1bwQ==
+	bh=SMwOVdcyEhwVdRsmiGe5SnDIrCqEo/zvuSYZoMvFTHw=;
+	b=lvzI55j5bNAlBUcYAKxgEyLwHXZ0AOqIwICez45qu0IANTaDszjI67jW4pI96YY8IpWM
+	 Pj4dSrmc+ZIQanmx6YPLKmvcu3klEMCX5OnmvQDWfkJgDulxRBSYQYcGLDOc1E3CAgYrS
+	 yrW5SxXdvEPiiBOYWoSYw55TktXVa3Wn2n+et5H/Hvk99ourrz4U0ddW3LAqujrZlNNH5
+	 58Zt3kIADGWK2RK9dFWfLdPMODeKrGsR1nrAVu8iH/Q0cYzu6mAXZBpAr7QIHdWW3EQzt
+	 Jf+er07a9+gkRY6ZepaaagCZkgYxcmG7lIxAteZdSAxTcDezsFH8zdI6hqr9k9XODmg==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=zUsBBRll;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=mZ78XZBz;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 44760606A326;
-	Tue,  3 Nov 2026 02:15:44 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DC5B7606A338
+	for <mm-commits@vger.kernel.org>; Tue,  3 Nov 2026 02:15:49 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=zUsBBRll
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 00A0B1F00919;
-	Tue,  3 Nov 2026 02:15:43 +0000 (UTC)
+	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=mZ78XZBz
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A76731F000C1;
+	Tue,  3 Nov 2026 02:15:49 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1793672144;
-	bh=0hH4diZxkE9FYqMBlXHB0HpZuREEprMCduMPs/5JO+0=;
+	d=linux-foundation.org; s=korg; t=1793672149;
+	bh=SMwOVdcyEhwVdRsmiGe5SnDIrCqEo/zvuSYZoMvFTHw=;
 	h=Date:To:From:Subject;
-	b=zUsBBRllvN+l1ToWXDK2xF/7jMTJP+FrScis07yJS2ad7NlFrBaPrZPelGCd7omlB
-	 bpVz5N37bQLUxWMXNbdbnWQXVCmnuuXyIVGD38XXM4L00ufA24ov143n+7GL4HAwYC
-	 Mo3uvtPbwnYEde7ZPsFkra1U55aoMq8VZEYl+XhE=
-Date: Mon, 02 Nov 2026 18:15:43 -0800
-To: mm-commits@vger.kernel.org,youngjun.park@lge.com,vineeth@bitbyteword.org,
-	stable@vger.kernel.org,rafael.j.wysocki@intel.com,nphamcs@gmail.com,
-	kelleynnn@gmail.com,kasong@tencent.com,hughd@google.com,
-	huang.ying.caritas@gmail.com,chrisl@kernel.org,baoquan.he@linux.dev,
-	baolin.wang@linux.alibaba.com,baohua@kernel.org,chris@chrisdown.name,
+	b=mZ78XZBzd/1zN/J4LXwl0fS9vZ6pCa0EHXaKiuYHiD60WkagKRIX3mFNS23ldtBOC
+	 vUEdmnGQYzoCHovRjrCmJLST3WOgz1wWWvoZ49jfBGAHJ6TKAnJy6GDAP68BY8CM5d
+	 oilRYH3kYTk1PERw+z8ItrY/eQijIIYzMC0ZuyIw=
+Date: Mon, 02 Nov 2026 18:15:49 -0800
+To: mm-commits@vger.kernel.org,vbabka@kernel.org,surenb@google.com,
+	rppt@kernel.org,mhocko@suse.com,ljs@kernel.org,liam@infradead.org,
+	kas@kernel.org,david@kernel.org,zenghui.yu@linux.dev,
 	akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] mm-make-swapoff-interruptible-when-unusing-mms-shmem.patch removed from -mm tree
-Message-Id: <20261103021544.00A0B1F00919@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] selftests-mm-fix-khugepaged_race-build-with-older-glibc.patch removed from -mm tree
+Message-Id: <20261103021549.A76731F000C1@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -56,120 +54,64 @@ Precedence: list
 
 
 The quilt patch titled
-     Subject: mm: make swapoff interruptible when unusing mms/shmem
+     Subject: selftests/mm: fix khugepaged_race build with older glibc
 has been removed from the -mm tree.  Its filename was
-     mm-make-swapoff-interruptible-when-unusing-mms-shmem.patch
+     selftests-mm-fix-khugepaged_race-build-with-older-glibc.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Chris Down <chris@chrisdown.name>
-Subject: mm: make swapoff interruptible when unusing mms/shmem
-Date: Mon, 26 Oct 2026 22:31:03 +0800
+From: "Zenghui Yu (Huawei)" <zenghui.yu@linux.dev>
+Subject: selftests/mm: fix khugepaged_race build with older glibc
+Date: Tue, 27 Oct 2026 20:20:13 +0800
 
-try_to_unuse() only checks for a pending signal between mms, and
-shmem_unuse() doesn't check at all.  That means that once swapoff gets to
-a process or a shmem file with a lot swapped out, nothing can interrupt it
-until every last page of it has been read back in.
+glibc versions before 2.37 do not define MADV_COLLAPSE in <sys/mman.h>, so
+khugepaged_race fails to build against them (e.g. glibc 2.34):
 
-Just as one example of where this can concretely show up, freezing tasks
-for suspend or hibernation has to wait for swapoff to notice the freezer's
-fake signal, and gives up after freeze_timeout_msecs (20 seconds by
-default).
+[root@localhost mm]# make
+  CC       khugepaged_race
+khugepaged_race.c: In function 'main':
+khugepaged_race.c:506:23: error: 'MADV_COLLAPSE' undeclared (first use in this function); did you mean 'MADV_COLD'?
+  506 |       hpage_pmd_size, MADV_COLLAPSE);
+      |                       ^~~~~~~~~~~~~
+      |                       MADV_COLD
+khugepaged_race.c:506:23: note: each undeclared identifier is reported only once for each function it appears in
+make: *** [../lib.mk:225: /data/code/mm/tools/testing/selftests/mm/khugepaged_race] Error 1
 
-Here's a facetious example where one swaps out 2GiB of one process to a
-swap file on ext4, starts swapoff, and half a second later tries to freeze
-with pm_test=freezer.  Writing to /sys/power/state then fails with EBUSY
-and this in dmesg:
+Include <linux/mman.h> to get the UAPI definition of MADV_COLLAPSE.
 
-    Freezing user space processes failed after 20.003 seconds (1 tasks refusing to freeze, wq_busy=0):
-    task:swapoff         state:D stack:0     pid:3175  tgid:3175  ppid:2955   task_flags:0x400100 flags:0x00000419
-    Call trace:
-     [...]
-     io_schedule+0x44/0x70
-     folio_wait_bit_common+0x1ec/0x3d0
-     __folio_lock+0x24/0x40
-     unuse_pte_range+0x2d0/0x348
-     unuse_vma+0x158/0x248
-     unuse_mm+0xfc/0x150
-     try_to_unuse+0x104/0x3f8
-     __do_sys_swapoff+0x220/0x5d8
-     [...]
-
-The same goes for anything else that wants swapoff to stop, like an admin
-hitting ^C in a panic, of course.
-
-Prior to commit b56a2d8af914 ("mm: rid swapoff of quadratic complexity")
-try_to_unuse() was driven by find_next_to_unuse() which checks for a
-signal before every entry, so let's restore that behaviour.
-
-Just as an example of the improvements, here's how long freezing takes
-in the same test while swapoff is happening on my computer:
-
-                      before                  after
-    400MiB anon       8.925s                  0.028s
-    400MiB shmem      1.639s                  0.003s
-    2GiB anon         failed after 20.003s    0.011s
-
-Link: https://lore.kernel.org/at9kJwdGkHPsWwgG@chrisdown.name
-Fixes: b56a2d8af914 ("mm: rid swapoff of quadratic complexity")
-Signed-off-by: Chris Down <chris@chrisdown.name>
+Link: https://lore.kernel.org/20261027122013.4286-1-zenghui.yu@linux.dev
+Fixes: 66c374464438 ("selftests/mm: add khugepaged race harness")
+Signed-off-by: Zenghui Yu (Huawei) <zenghui.yu@linux.dev>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Acked-by: Vineeth Pillai (Google) <vineeth@bitbyteword.org>
-Reviewed-by: Baolin Wang <baolin.wang@linux.alibaba.com>
-Reviewed-by: Kairui Song <kasong@tencent.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Chris Li <chrisl@kernel.org>
-Cc: Nhat Pham <nphamcs@gmail.com>
-Cc: Baoquan He <baoquan.he@linux.dev>
-Cc: Barry Song <baohua@kernel.org>
-Cc: Youngjun Park <youngjun.park@lge.com>
-Cc: Ying Huang <huang.ying.caritas@gmail.com>
-Cc: Kelley Nielsen <kelleynnn@gmail.com>
-Cc: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-Cc: <stable@vger.kernel.org>
+Acked-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
+Reviewed-by: Kiryl Shutsemau (Meta) <kas@kernel.org>
+Cc: David Hildenbrand <david@kernel.org>
+Cc: Liam R. Howlett <liam@infradead.org>
+Cc: Vlastimil Babka <vbabka@kernel.org>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Michal Hocko <mhocko@suse.com>
 ---
 
- mm/shmem.c    |    4 ++++
- mm/swapfile.c |    4 +++-
- 2 files changed, 7 insertions(+), 1 deletion(-)
+ tools/testing/selftests/mm/khugepaged_race.c |    1 +
+ 1 file changed, 1 insertion(+)
 
---- a/mm/shmem.c~mm-make-swapoff-interruptible-when-unusing-mms-shmem
-+++ a/mm/shmem.c
-@@ -1742,6 +1742,10 @@ static int shmem_unuse_inode(struct inod
- 		if (ret < 0)
- 			break;
- 
-+		if (signal_pending(current)) {
-+			ret = -ERESTARTSYS;
-+			break;
-+		}
- 		start = indices[folio_batch_count(&fbatch) - 1];
- 	} while (true);
- 
---- a/mm/swapfile.c~mm-make-swapoff-interruptible-when-unusing-mms-shmem
-+++ a/mm/swapfile.c
-@@ -2689,6 +2689,8 @@ static inline int unuse_pmd_range(struct
- 	pmd = pmd_offset(pud, addr);
- 	do {
- 		cond_resched();
-+		if (signal_pending(current))
-+			return -ERESTARTSYS;
- 		next = pmd_addr_end(addr, end);
- 		ret = unuse_pte_range(vma, pmd, addr, next, type);
- 		if (ret)
-@@ -2922,7 +2924,7 @@ retry:
- 	if (swap_usage_in_pages(si)) {
- 		if (!signal_pending(current))
- 			goto retry;
--		return -EINTR;
-+		return -ERESTARTSYS;
- 	}
- 
- success:
+--- a/tools/testing/selftests/mm/khugepaged_race.c~selftests-mm-fix-khugepaged_race-build-with-older-glibc
++++ a/tools/testing/selftests/mm/khugepaged_race.c
+@@ -8,6 +8,7 @@
+ #define _GNU_SOURCE
+ #include <errno.h>
+ #include <fcntl.h>
++#include <linux/mman.h>
+ #include <pthread.h>
+ #include <stdio.h>
+ #include <stdlib.h>
 _
 
-Patches currently in -mm which might be from chris@chrisdown.name are
+Patches currently in -mm which might be from zenghui.yu@linux.dev are
 
+selftests-mm-skip-collapse_compound_extreme-on-thp-allocation-failure.patch
+mm-page_alloc-remove-unneeded-forward-declaration-of-__free_pages_ok.patch
 
