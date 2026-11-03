@@ -1,41 +1,41 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793670987;
-	b=ZSbjkaf3/WYCqdnd1qS7PZ1qAezFUnjd1j0hxukxOgv7ZlNiJbPBSuLq4GFA4jOuCAas
-	 oj/rLJg/FyhRvkrnt5IxIDDwitkCvXXl6Gg7Gf64oNAkrICo0guV5FrQ8jGj3ip8EyFcv
-	 n/qsUUmJHJwI6f93q4yZzEEwDfRtEjymjU4koZng4R2mmIuRM388s6jdrKha/JaXdFiJ3
-	 td0xXs9ovXGjH94DQesmUbzsk5Q6JQHALXUtEjoXw1cMMYlzGOxTz/v/icSV/DobJ+cgl
-	 fHOJEQNjKkKAzuIgQXpkQUOW1JJwktOTyGh9D3SEE2teB2AbiexV4ufK8wAqAz4AMwg==
+	t=1793670989;
+	b=NNo7BBKj7HsLGl0ESJeDdQOHJXBMU+6yTcDCys3xNvLcwWxcvGUTaV+dIvPABW02oooJ
+	 Jc/hQ/tJbSI2GbcUcwLH+wL3D+sMpjyIxCEtgpYr5hFLH3NoWfR/UbgVhffde7QYseMY9
+	 M0TwjYHtd2o8uO52qkIfce0nd7KGvWfnZ2xzvfjQVIxwNyzh+szLsPEBBm3aeRLUSme6f
+	 kERglX3IIb42Fgx0tn4vYnNvhRsfRf6YW46QorOC7z5GPzwc5tu8dlH262t8uDhLcLBCV
+	 c5vpDiEHac+AOke2WyqgSTpNE5sXL9S3RZKcAYEzcOWp5QZUJwihvDHHJf+GDrzYYvg==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793670987;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793670989;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=WTlKf7MmDRYoLhoGaLxVViJOQduMLd1NRKZ8iknXCgo=;
-	b=M24egx5SQAz2WmwqFz3SWz7WwqFjjxZbjclzn4B2QYkprEQ3ILoKnf/mAteYQf0X7t9d
-	 8iEHbRQu7e3xCTiu3j1QoazbZUVMM7ZysTsRupu/Olg1+kRWfECcil5auK84rF9B/GHjh
-	 ADEKsrd6d2ferXd0/Qn9SKfpWQUfTA04nV85ImLngU47fUXm6SJm3s6YzAW9LAAg7I/Vj
-	 EaZYz2PJOsmpZ3tQu/8OC7rQPxZ4q0r0Txk2WuE1BYPg5mbzUkfIXb6xDNIo4lQFeirnZ
-	 wFFKeE0846skM/JXKAT8BURnlAXW/nBh7l8UBE799f+JHOwEU0Uf69rCQqjCN/viDYQ==
+	bh=b1XtlWqmsvpam3DgR3100a5MM8YO7iWoXvcfu6F/PG8=;
+	b=qVMcDDsQ+CJysYmpiPsKDLX26Q/37DglS37Z8EZNWguzeIiInRkpZixe/48iJIfiEVll
+	 +dl40mu9SobJwwjT0PFNgQQK11/2+cuuIM0mGLJAXOcLzIJp94BK2FjGzgkSDOcvYCHlQ
+	 XbOaQTpN7tH1Cb6O44a0DkghTlMgnDdPlT9dGfCXRi0R27DxHnOnUMbfiWlGXmtwc6Rr0
+	 3WZrw3FRXXTYgpxXIk32PfvQyydr9Fck1mSD8GdIMNk2E9SPkXpBeSVCfvixcot0UDiNg
+	 ksW+bafTfa/Eu6Lfne9T7l6aU28V/8gPHV56cUlq4aK7LHz6HrECekPqwkhEvFRSW9g==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=nyov6MOt;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=iv6mrz1j;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 322BD606A329
-	for <mm-commits@vger.kernel.org>; Tue,  3 Nov 2026 01:56:26 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7FB7F606A32F
+	for <mm-commits@vger.kernel.org>; Tue,  3 Nov 2026 01:56:29 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=nyov6MOt
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A75461F00A02;
-	Tue,  3 Nov 2026 01:56:26 +0000 (UTC)
+	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=iv6mrz1j
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0BFB01F000C1;
+	Tue,  3 Nov 2026 01:56:29 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1793670986;
-	bh=WTlKf7MmDRYoLhoGaLxVViJOQduMLd1NRKZ8iknXCgo=;
+	d=linux-foundation.org; s=korg; t=1793670989;
+	bh=b1XtlWqmsvpam3DgR3100a5MM8YO7iWoXvcfu6F/PG8=;
 	h=Date:To:From:Subject;
-	b=nyov6MOtVXacKgX9oJ+dZt+7jVS8HCSYyx962mxCodqHDDlKlHLABDPt3lWyHE/zK
-	 UyHqEGriA0MU16DsQSh0RHw745Ezetuc/B9A4p8HqzY6lxHj3XdcX2np+Do7PB/QKQ
-	 EDLyjCnTD20zVR9bLmDv+PLJ/Nd2SZ5boBxAvVz4=
-Date: Mon, 02 Nov 2026 17:56:26 -0800
+	b=iv6mrz1jSRKOzN9uA9QZtnqB0OdLZyrG10BODLDmdFSLyseewodLThbM7BKU6z32K
+	 9qatnCepOw478mJyprfopMiUE8CfRSJwF/sMGEMDLGYzT1IF5isy52Ro4chJTZSLHh
+	 8HVdH2EcsGV9/hgtH8ckdPfol8ervm51KQi/ieIk=
+Date: Mon, 02 Nov 2026 17:56:28 -0800
 To: mm-commits@vger.kernel.org,ziy@nvidia.com,ying.huang@linux.alibaba.com,
 	willy@infradead.org,vbabka@kernel.org,surenb@google.com,sj@kernel.org,
 	rppt@kernel.org,peterx@redhat.com,mhocko@suse.com,matthew.brost@intel.com,
@@ -45,8 +45,8 @@ To: mm-commits@vger.kernel.org,ziy@nvidia.com,ying.huang@linux.alibaba.com,
 	baolin.wang@linux.alibaba.com,apopple@nvidia.com,tz2294@columbia.edu,
 	akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-remove-wait_on_page_writeback.patch added to mm-new branch
-Message-Id: <20261103015626.A75461F00A02@smtp.kernel.org>
+Subject: + mm-remove-end_page_writeback.patch added to mm-new branch
+Message-Id: <20261103015629.0BFB01F000C1@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -58,12 +58,12 @@ Precedence: list
 
 
 The patch titled
-     Subject: mm: remove wait_on_page_writeback()
+     Subject: mm: remove end_page_writeback()
 has been added to the -mm mm-new branch.  Its filename is
-     mm-remove-wait_on_page_writeback.patch
+     mm-remove-end_page_writeback.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-remove-wait_on_page_writeback.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-remove-end_page_writeback.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -93,33 +93,19 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Tal Zussman <tz2294@columbia.edu>
-Subject: mm: remove wait_on_page_writeback()
-Date: Mon, 02 Nov 2026 17:54:06 -0500
+Subject: mm: remove end_page_writeback()
+Date: Mon, 02 Nov 2026 17:54:07 -0500
 
-Patch series "mm: remove newly-unused page wrapper APIs".
+There are no callers left. Update the two comments that still named
+it to refer to folio_end_writeback().
 
-After some folio conversions done last cycle (namely ceph, f2fs, btrfs,
-fuse, and page_io.c), there are a number of newly-unused page APIs.
-Let's remove them and update comments as necessary.
-
-Patches 1 and 8 are taken from the ceph writeback folio series [1],
-along with tags.
-
-
-This patch (of 8):
-
-The last caller was converted to folio_wait_writeback(), so drop the
-wait_on_page_writeback() compatibility wrapper and its declaration.
-
-Link: https://lore.kernel.org/20261102-page-wrappers-v1-0-e7280bdb31f6@columbia.edu
-Link: https://lore.kernel.org/20261102-page-wrappers-v1-1-e7280bdb31f6@columbia.edu
-Link: https://lore.kernel.org/r/20260810-remove-wait-on-page-writeback-v3-0-dd7531704f26@columbia.edu/ [1]
+Link: https://lore.kernel.org/20261102-page-wrappers-v1-2-e7280bdb31f6@columbia.edu
 Signed-off-by: Tal Zussman <tz2294@columbia.edu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Reviewed-by: Matthew Wilcox (Oracle) <willy@infradead.org>
-Acked-by: David Hildenbrand (Arm) <david@kernel.org>
 Reviewed-by: SJ Park <sj@kernel.org>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
 Cc: Jan Kara <jack@suse.cz>
+Cc: David Hildenbrand <david@kernel.org>
 Cc: Lorenzo Stoakes <ljs@kernel.org>
 Cc: Liam R. Howlett <liam@infradead.org>
 Cc: Vlastimil Babka <vbabka@kernel.org>
@@ -140,35 +126,59 @@ Cc: Hugh Dickins <hughd@google.com>
 Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
 ---
 
- include/linux/pagemap.h |    1 -
- mm/folio-compat.c       |    6 ------
- 2 files changed, 7 deletions(-)
+ include/linux/pagemap.h   |    1 -
+ include/linux/writeback.h |    2 +-
+ mm/folio-compat.c         |    6 ------
+ mm/migrate.c              |    2 +-
+ 4 files changed, 2 insertions(+), 9 deletions(-)
 
---- a/include/linux/pagemap.h~mm-remove-wait_on_page_writeback
+--- a/include/linux/pagemap.h~mm-remove-end_page_writeback
 +++ a/include/linux/pagemap.h
-@@ -1299,7 +1299,6 @@ static inline int folio_wait_locked_kill
- }
- 
+@@ -1301,7 +1301,6 @@ static inline int folio_wait_locked_kill
  void folio_end_read(struct folio *folio, bool success);
--void wait_on_page_writeback(struct page *page);
  void folio_wait_writeback(struct folio *folio);
  int folio_wait_writeback_killable(struct folio *folio);
- void end_page_writeback(struct page *page);
---- a/mm/folio-compat.c~mm-remove-wait_on_page_writeback
+-void end_page_writeback(struct page *page);
+ void folio_end_writeback(struct folio *folio);
+ void folio_end_writeback_no_dropbehind(struct folio *folio);
+ void folio_end_dropbehind(struct folio *folio);
+--- a/include/linux/writeback.h~mm-remove-end_page_writeback
++++ a/include/linux/writeback.h
+@@ -124,7 +124,7 @@ struct wb_domain {
+ 	 * writeout speed.
+ 	 *
+ 	 * We do this by keeping a floating proportion between BDIs, based
+-	 * on page writeback completions [end_page_writeback()]. Those
++	 * on page writeback completions [folio_end_writeback()]. Those
+ 	 * devices that write out pages fastest will get the larger share,
+ 	 * while the slower will get a smaller share.
+ 	 *
+--- a/mm/folio-compat.c~mm-remove-end_page_writeback
 +++ a/mm/folio-compat.c
-@@ -23,12 +23,6 @@ void end_page_writeback(struct page *pag
+@@ -17,12 +17,6 @@ void unlock_page(struct page *page)
  }
- EXPORT_SYMBOL(end_page_writeback);
+ EXPORT_SYMBOL(unlock_page);
  
--void wait_on_page_writeback(struct page *page)
+-void end_page_writeback(struct page *page)
 -{
--	return folio_wait_writeback(page_folio(page));
+-	return folio_end_writeback(page_folio(page));
 -}
--EXPORT_SYMBOL_GPL(wait_on_page_writeback);
+-EXPORT_SYMBOL(end_page_writeback);
 -
  void mark_page_accessed(struct page *page)
  {
  	folio_mark_accessed(page_folio(page));
+--- a/mm/migrate.c~mm-remove-end_page_writeback
++++ a/mm/migrate.c
+@@ -859,7 +859,7 @@ void folio_migrate_flags(struct folio *n
+ 
+ 	/*
+ 	 * PG_readahead shares the same bit with PG_reclaim.  The above
+-	 * end_page_writeback() may clear PG_readahead mistakenly, so set the
++	 * folio_end_writeback() may clear PG_readahead mistakenly, so set the
+ 	 * bit after that.
+ 	 */
+ 	if (folio_test_readahead(folio))
 _
 
 Patches currently in -mm which might be from tz2294@columbia.edu are
