@@ -1,47 +1,46 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793675982;
-	b=pJDYi4IKYkKBxRhI39Uy8mHy/4a+EZ4xm+aofCEovWbC4BPzv2ISVFNZ8vwAHdmoQL7Z
-	 OcVs0fVtdeOR61dsMJpSU1GTkTBVLBtBDio08igOdBjgU5ptvWVwyNre4jZybjuUV+8YX
-	 BFQlQu51X9epAXV9rixgNZGOsPCrvIRY1Tk0Ly/ytRI+D7bwoBFQhhVQX0giSDfpgEwBK
-	 gDKvJX2M+ct4XD3sz9xQJ+XnIu5L1jEi5TjS+xhSnO4jAsmXRi4N35JvBt/myU4D2aARz
-	 fguE7e+MtNTWy0+KtVWVD7QejZP5RV0gM+g43hAblHHrwKQqNAwWAS5W2V2Tj4OKSWA==
+	t=1793675988;
+	b=3UBBfqP85gXM3uy6vDQV3QLczUwvuj6m9a3vNTgyn5Z6KzGWH6QFIDFMvgZlOZve+ThM
+	 JwSSroKxhoMCb2YLHI1nx8emxj7JOSfnrxkgZ/hxewg4fAtb3CB3XOMSrCKDcMzHMBvif
+	 Tr/5i1sMUicIC4pK8gKJbTTdRGUooGziQdaUDPLO9BL5AKz2pZctQI2nRflxjAPhwdvKz
+	 5apBmHnWPx/99uXUFTWuBRQB8nvygUxCIHOdzr32JDNC+cu+ykfnoxCekAsYj16k5ZkGj
+	 JJndHXU0eJaEpvVSPiJpvPDts/4xDLNCvs6XIP2wOXYewbRXleXzQy08tAzKmxK7IbA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793675982;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793675988;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=vlx9ThM+Vi20WjpWyaHCvOlfQT10gVNTdZ6aV4BY38E=;
-	b=GxPXn9CbHErz8uDnSEx3PHwX21w0MAH9bMqNJsOi4oBrUWFMz8HvRatRp45hfhVI3Qqm
-	 ey7EfwefT/vltlnD5Z0cSRg5hkABZRbzz9lL6p3FMOroJL1NM3VevDuGOQLwA8W574eny
-	 X+OFyClTCwa5/v2BmxDDCB8YWlFb8xgIxayZEXi30But6XHDg2ipikC36QM/F9nWPoBWf
-	 ra87NTyb3LaspbxC94CfO/R4q/4jVtwXiCDNRT2MSodhynXojrKosJk0uMBswRnIuK6Xq
-	 moICbWHGXdaoVnu5zGKwyIA0J55WPoyzASrHqE2o9sjFbDrCsqzizJW2OFHsbkjO64w==
+	bh=A5qD9mto1b8t7j570XUdQz0qEPjMxf2yjbv5ooP/DXo=;
+	b=whJdaexcTZe/hqdMvyHKjpMmcgQr1IVTA+q3VTkhRLT3261QCidRY0bZGRItfhlmWQCw
+	 nDJP4Wih72h+KL+2iddPmZc7reYlUY1VPvr5bPn4KJ9m63RHKfgUx46v4SiG//HV3ywFb
+	 w2CV1E8/oj6hOnDEjTn6lu7l3jnmuEbxilOfi+MS2XZ0MR4hSxTIUqEdWHv9TXlOnlX9T
+	 cO4W1bO3iiwUB+ncQTi+AtHwParKiCSbmjiGDzHMkPwxuYLsb1JkNj4ajAc5blLs8qBx1
+	 D6jSEp0oESPKpMMip9tn+naqxS7+WFhGqK5PF7b21DkROO7UqZTEv1VkQ3X7MqHxgoQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=mmFe+iFs;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b="RcyvQBh/";
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4A879606A329;
-	Tue,  3 Nov 2026 03:19:42 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 07330606A330
+	for <mm-commits@vger.kernel.org>; Tue,  3 Nov 2026 03:19:47 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=mmFe+iFs
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id CE6831F0093A;
-	Tue,  3 Nov 2026 03:19:41 +0000 (UTC)
+	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=RcyvQBh/
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 940AC1F000C1;
+	Tue,  3 Nov 2026 03:19:47 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1793675981;
-	bh=vlx9ThM+Vi20WjpWyaHCvOlfQT10gVNTdZ6aV4BY38E=;
+	d=linux-foundation.org; s=korg; t=1793675987;
+	bh=A5qD9mto1b8t7j570XUdQz0qEPjMxf2yjbv5ooP/DXo=;
 	h=Date:To:From:Subject;
-	b=mmFe+iFse06BuiIKxffT6p1DfHR2ixM6IUQC2cuwHBFUJTWeOzL/yVBxXAv92h+Lv
-	 yp7Q6cV5zo1ism8r5++F/HXQGB/MulpsjQwo99K5ZJIywt/+cipire1L+h/PTg/39q
-	 J9HdvwGb9CTYnr4TiPI6LpaBp1YLazND+7pb9E7k=
-Date: Mon, 02 Nov 2026 19:19:41 -0800
-To: mm-commits@vger.kernel.org,stable@vger.kernel.org,mark@fasheh.com,
-	jlbec@evilplan.org,heming.zhao@suse.com,joseph.qi@linux.alibaba.com,
+	b=RcyvQBh/ct3OF9PtRoWZ+N2DCKadYwN3v9V4AsAggqBxqU9y3HVR3zdGDPOMMrB2H
+	 Y6CfI2JtZjMQvuIrAfN+4suUSjpyZWF3Mfabd9euN51IfuLsVo1bovvgruHx5dXdyL
+	 1touAGeIEBX/hnc881+dq/tw+8rWZig1PmEvhwqw=
+Date: Mon, 02 Nov 2026 19:19:47 -0800
+To: mm-commits@vger.kernel.org,clement.leger@linux.dev,
 	akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-hotfixes-stable] ocfs2-do-not-read-the-entry-array-of-an-empty-xattr-block.patch removed from -mm tree
-Message-Id: <20261103031941.CE6831F0093A@smtp.kernel.org>
+Subject: [merged mm-nonmm-hotfixes-stable] maintainers-mailmap-use-clément-légers-linuxdev-mail-address.patch removed from -mm tree
+Message-Id: <20261103031947.940AC1F000C1@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -53,86 +52,63 @@ Precedence: list
 
 
 The quilt patch titled
-     Subject: ocfs2: do not read the entry array of an empty xattr block
+     Subject: MAINTAINERS: mailmap: use Clément Léger's linux.dev mail address
 has been removed from the -mm tree.  Its filename was
-     ocfs2-do-not-read-the-entry-array-of-an-empty-xattr-block.patch
+     maintainers-mailmap-use-clément-légers-linuxdev-mail-address.patch
 
 This patch was dropped because it was merged into the mm-nonmm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Joseph Qi <joseph.qi@linux.alibaba.com>
-Subject: ocfs2: do not read the entry array of an empty xattr block
-Date: Sat, 24 Oct 2026 23:10:12 +0800
+From: Clément Léger <clement.leger@linux.dev>
+Subject: MAINTAINERS: mailmap: use Clément Léger's linux.dev mail address
+Date: Thu, 29 Oct 2026 10:51:06 +0100
 
-ocfs2_cp_xattr_block_to_bucket() sizes the name and value area it has to
-carry over from the block's last entry, so an empty block makes it read
-xh_entries[-1].  That lands on the header, where xe_name_offset overlaps
-xh_name_value_len, and block storage never maintains that field, so it
-reads as 0 and the copy runs from the header to the end of the block.
+I recently requested a @linux.dev address so I can keep a consistent one
+throughout my contributions and use it for the upcoming ones.  Map my
+previously used email addresses to this new one.
 
-The bucket that comes out has xh_count 0 but a name_value_len of
-blocksize less the header, and a matching xh_free_start that claims
-those bytes are in use -- nearly the whole bucket with the common 4K
-block size -- while the last block of the bucket holds a copy of the old
-block's bytes.  Nothing but a trace event reads xh_name_value_len, the
-copied bytes came from the same inode and were wiped before the entry
-was removed, and ocfs2_defrag_xattr_bucket() recomputes xh_free_start,
-so this corrupts the header rather than leaking anything.
-
-Leave the bucket empty instead, carrying over the hash the block was
-keyed by, since ocfs2_add_new_xattr_bucket() and
-ocfs2_xattr_bucket_find() both read xh_entries[0] of an empty bucket.
-That read is the exception ocfs2_xa_remove_entry() documents rather than
-a new out of bounds access.
-
-A block reaches the conversion empty when truncating an external value
-back fails partway through: the "reusing" and "overwriting" callers of
-ocfs2_xa_cleanup_value_truncate() remove the entry without setting
-ctxt->set_abort, so ocfs2_xattr_block_set() sees a plain -ENOSPC and
-converts.  The "growing" caller does set it, and the block form makes a
-single attempt with no defragment and retry in between, so that is the
-only route here.
-
-Link: https://lore.kernel.org/20261024151012.1059683-7-joseph.qi@linux.alibaba.com
-Fixes: 012255961c9e ("ocfs2: Enable xattr set in index btree")
-Signed-off-by: Joseph Qi <joseph.qi@linux.alibaba.com>
+Link: https://lore.kernel.org/20261029095107.24985-1-clement.leger@linux.dev
+Signed-off-by: Clément Léger <clement.leger@linux.dev>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Cc: Heming Zhao <heming.zhao@suse.com>
-Cc: Mark Fasheh <mark@fasheh.com>
-Cc: Joel Becker <jlbec@evilplan.org>
-Cc: <stable@vger.kernel.org>
 ---
 
- fs/ocfs2/xattr.c |   15 +++++++++++++++
- 1 file changed, 15 insertions(+)
 
---- a/fs/ocfs2/xattr.c~ocfs2-do-not-read-the-entry-array-of-an-empty-xattr-block
-+++ a/fs/ocfs2/xattr.c
-@@ -4705,6 +4705,21 @@ static void ocfs2_cp_xattr_block_to_buck
- 		memset(bucket_block(bucket, i), 0, blocksize);
+--- a/.mailmap~maintainers-mailmap-use-clément-légers-linuxdev-mail-address
++++ a/.mailmap
+@@ -233,6 +233,10 @@ Chuck Lever <cel@kernel.org> <chuck.leve
+ Chuck Lever <cel@kernel.org> <cel@netapp.com>
+ Chuck Lever <cel@kernel.org> <cel@citi.umich.edu>
+ Claudiu Beznea <claudiu.beznea@tuxon.dev> <claudiu.beznea@microchip.com>
++Clément Léger <clement.leger@linux.dev> <cleger@kalray.eu>
++Clément Léger <clement.leger@linux.dev> <clement.leger@bootlin.com>
++Clément Léger <clement.leger@linux.dev> <cleger@rivosinc.com>
++Clément Léger <clement.leger@linux.dev> <cleger@meta.com>
+ Coiby Xu <coiby.xu@gmail.com> <coxu@redhat.com>
+ Colin Ian King <colin.i.king@gmail.com> <colin.king@canonical.com>
+ Corey Minyard <minyard@acm.org>
+--- a/MAINTAINERS~maintainers-mailmap-use-clément-légers-linuxdev-mail-address
++++ a/MAINTAINERS
+@@ -20934,7 +20934,7 @@ S:	Maintained
+ F:	drivers/char/hw_random/optee-rng.c
  
- 	/*
-+	 * An empty block has no names or values to carry over, and the
-+	 * xh_entries[count - 1] below would be xh_entries[-1].  Leave the
-+	 * bucket empty, but carry over the hash ocfs2_xa_remove_entry() left
-+	 * in the block's xh_entries[0] so that the bucket still holds the key
-+	 * it is looked up by.
-+	 */
-+	if (!count) {
-+		xh->xh_num_buckets = cpu_to_le16(1);
-+		xh->xh_free_start = cpu_to_le16(OCFS2_XATTR_BUCKET_SIZE);
-+		xh->xh_entries[0].xe_name_hash =
-+			xb_xh->xh_entries[0].xe_name_hash;
-+		return;
-+	}
-+
-+	/*
- 	 * Since the xe_name_offset is based on ocfs2_xattr_header,
- 	 * there is a offset change corresponding to the change of
- 	 * ocfs2_xattr_header's position.
+ OP-TEE RTC DRIVER
+-M:	Clément Léger <clement.leger@bootlin.com>
++M:	Clément Léger <clement.leger@linux.dev>
+ L:	linux-rtc@vger.kernel.org
+ S:	Maintained
+ F:	drivers/rtc/rtc-optee.c
+@@ -23833,7 +23833,7 @@ F:	Documentation/devicetree/bindings/rtc
+ F:	drivers/rtc/rtc-renesas-rtca3.c
+ 
+ RENESAS RZ/N1 A5PSW SWITCH DRIVER
+-M:	Clément Léger <clement.leger@bootlin.com>
++M:	Clément Léger <clement.leger@linux.dev>
+ L:	linux-renesas-soc@vger.kernel.org
+ L:	netdev@vger.kernel.org
+ S:	Maintained
 _
 
-Patches currently in -mm which might be from joseph.qi@linux.alibaba.com are
+Patches currently in -mm which might be from clement.leger@linux.dev are
 
 
