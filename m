@@ -1,48 +1,48 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793672136;
-	b=mcovWpfznWq3WMxQ8yT5RsOVPRXIjBmSUv74l50ZtZsrCxCHxorLoEcHImPZF14bpWt7
-	 5KbvUalL61jt/uuYrWM+PGvBl0l82ChwNDRZU0FJs7yagMhJLXseSioZKBAiJgtvkj9F+
-	 84njcCoSHcXdCRfgZnaIkDNHm98U91Esf+xyK0zlKs9z2WlYAe4WhNanmWRYTwWcBrdjs
-	 QDDI4rLvsEU1FcEuKQsezuOy9bM8gIAFmtubmYWhc5fu3RVS4RUYlEUEbzc++FFHmgiWl
-	 ZF2Cn97xYLjjN2ZJoxDTtd2p3LKMMfRrUIc59fMylTLuRTkIbCFjmgQ7g2nTz0VtNnQ==
+	t=1793672137;
+	b=4ErbJ+E2WbtCI3PqxyEZkoTeEX8HgoXRa/j2jlPbBnml8LTmj/ZozBqtq5Pm1N4I4yJn
+	 T3IYaz38wBLDrjbKmlLGKuD+/UyIKtIu6YZXJdQb+oWpYvJeI3eGBME6mqG99xxr4Vo5j
+	 6HtzVDI40hzKv87kOSJA9KgiYGZ63FyBoJevwnUezLIpXb+2XynyWE5S7CBYI2BtBWEkF
+	 HpYmawLI6zEXjDBzPN3emb0lmUxI/z4KGY0K0NEcZdGsMVk/jpopFSisT8VujQ5u22Eir
+	 KAV2sWRcyP4a1FEz2AauK35V9ekNQ4isXBTh+AyzQEDQ6fv0vn8MEUNiRi9OuvUSGlA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793672136;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793672137;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=81c/CIbeUI49AQeq8U0mWkFHFiq032kJ91gY7TvTAKQ=;
-	b=pmDU+6L/TAU53FGGUmvaVUVgIx6am2B2hD6CVl5yS7jMnzTYnu+ufUToF0HyayJpXhVb
-	 9WURhB04BUKdmRKJ58OQGcegCrOBqx8UMnpJzyRp75wq0dWYMPwKXdQqF1Ork+Fpbf419
-	 RSsIHjyk9O0wm0Ss2OqAIqMR1xFm6dc33x+N4yONHWnXhdVqXF2AIJW6qkls+uGlL2ja1
-	 NtdgpFHzlnjDR2l5e1V4TanO7X/ACxWwj2DwbUHgPXXe5esuWuRMn8XIcCBAk1P7VI2Tp
-	 b7LRqnUFAOkFf1S9vFB4yiUrtTyNI0eDO0Fr0f1pFEuQbHjKXfeWwhJlRjkcJ/jkiYw==
+	bh=IzQsRMFTLrvrQbCT5Whmhu2ZhM0dta6kir5kjC5DJL4=;
+	b=ADdHZ96K4sXsBwjCT5np1KM5nFSIQb7EOnDlLAR9ixy3r5OzO6izqjIc5524bH5zDz91
+	 PhaJH7wErxPn7zminAgXEF+DmAiElpnjoUlHneK0f+15tTujiR1HeT+pDW808oylCIn9U
+	 UkiMoAwvKqvMjgYByNJvjhb6rVJucNsxsyOzHx8qd8CdBXbuGfCliMW6rLdSa5vxoyOny
+	 2j4ratM/oTFboNDVLUuYY+N4S/SNNSq2CNJJwk65v0TECTDLtqY37T8KZNFrGHoO3nria
+	 2DKtkQeD7BLvlyap448KLQq3EDZNmdZrNtEJxyKT62AIT181928uCe6nsuHcbOKmmyw==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=EP5MTUec;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=cn6EcGQN;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 181AD606A332;
-	Tue,  3 Nov 2026 02:15:36 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4522A606A329;
+	Tue,  3 Nov 2026 02:15:37 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=EP5MTUec
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D65DB1F000C1;
-	Tue,  3 Nov 2026 02:15:35 +0000 (UTC)
+	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=cn6EcGQN
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 064411F000C1;
+	Tue,  3 Nov 2026 02:15:36 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1793672135;
-	bh=81c/CIbeUI49AQeq8U0mWkFHFiq032kJ91gY7TvTAKQ=;
+	d=linux-foundation.org; s=korg; t=1793672137;
+	bh=IzQsRMFTLrvrQbCT5Whmhu2ZhM0dta6kir5kjC5DJL4=;
 	h=Date:To:From:Subject;
-	b=EP5MTUeclPHUNixWDa9HtbONA0uf35oIr1HwvYb7KcOVGSm7E+NfXxn74UjeXPurs
-	 +zf4v+2dZP6jrvJ+K2H0VYquZ7izQHoXS0F/KIyyvIU8g0hQ/R4i5FCD/U2NS8v1nY
-	 0WOtx9S+cS/8fv+muiyZsq+YbRjc5Llxb8TQEmlc=
-Date: Mon, 02 Nov 2026 18:15:35 -0800
-To: mm-commits@vger.kernel.org,xu.xin@linux.dev,stable@vger.kernel.org,
-	rppt@kernel.org,peterx@redhat.com,lance.yang@linux.dev,kas@kernel.org,
-	david@kernel.org,chengming.zhou@linux.dev,samarth.colleges@gmail.com,
-	akpm@linux-foundation.org
+	b=cn6EcGQNpohiGm4jgnzeY41zbZLCtckMnQdhFZ264obKhMRE4D610MS5CYdOX5/Gk
+	 g2/dRS3FsYwpCXro13/VQzblBApCCl8dAYf955omyXcCq57ImtjRYaVeLOtB0anj4e
+	 MXY4AGLoARC05srB31DcsM3K08BdzGJwaGZUivgY=
+Date: Mon, 02 Nov 2026 18:15:36 -0800
+To: mm-commits@vger.kernel.org,vbabka@kernel.org,usama.anjum@arm.com,
+	stable@vger.kernel.org,pfalcato@suse.de,mirq-linux@rere.qmqm.pl,
+	ljs@kernel.org,liam@infradead.org,jannh@google.com,david@kernel.org,
+	avagin@gmail.com,arnd@arndb.de,hengyul@cs.unc.edu,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] mm-ksm-keep-soft-dirty-when-merging-a-page.patch removed from -mm tree
-Message-Id: <20261103021535.D65DB1F000C1@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] fs-proc-task_mmu-return-enotty-for-unknown-pagemap-ioctls.patch removed from -mm tree
+Message-Id: <20261103021537.064411F000C1@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -54,58 +54,89 @@ Precedence: list
 
 
 The quilt patch titled
-     Subject: mm/ksm: keep soft-dirty when merging a page
+     Subject: fs/proc/task_mmu: return -ENOTTY for unknown pagemap ioctls
 has been removed from the -mm tree.  Its filename was
-     mm-ksm-keep-soft-dirty-when-merging-a-page.patch
+     fs-proc-task_mmu-return-enotty-for-unknown-pagemap-ioctls.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Samarth Narang <samarth.colleges@gmail.com>
-Subject: mm/ksm: keep soft-dirty when merging a page
-Date: Wed, 21 Oct 2026 11:21:57 -0700
+From: Hengyu Liang <hengyul@cs.unc.edu>
+Subject: fs/proc/task_mmu: return -ENOTTY for unknown pagemap ioctls
+Date: Fri, 23 Oct 2026 14:13:00 -0400
 
-replace_page() maps the KSM page with a PTE built from scratch, so the
-soft-dirty bit of the PTE it replaces is lost.  A page written since
-"clear_refs 4" then no longer shows as soft-dirty once it is merged, and a
-soft-dirty based dumper treats it as unchanged.
+Commit 52526ca7fdb9 ("fs/proc/task_mmu: implement IOCTL to get and
+optionally clear info about PTEs") made do_pagemap_cmd() the ioctl
+handler of /proc/<pid>/pagemap.
 
-Copy the soft-dirty bit from the original PTE to the new PTE.
+However, do_pagemap_cmd() returns -EINVAL for every command other than
+PAGEMAP_SCAN. Before that commit, pagemap had no ioctl handler, and
+the VFS returned -ENOTTY for these commands. As of now, they fail with
+EINVAL, so tcgetattr() and isatty() on pagemap report EINVAL instead
+of ENOTTY.
 
-Link: https://lore.kernel.org/20261021182157.1873726-1-samarth.colleges@gmail.com
-Fixes: 0f8975ec4db2 ("mm: soft-dirty bits for user memory changes tracking")
-Signed-off-by: Samarth Narang <samarth.colleges@gmail.com>
+The issue can be reproduced with a simple C program:
+
+    #include <fcntl.h>
+    #include <stdio.h>
+    #include <termios.h>
+
+    int main(void)
+    {
+            struct termios t;
+            int fd = open("/proc/self/pagemap", O_RDONLY);
+
+            if (tcgetattr(fd, &t) < 0)
+                    perror("tcgetattr");
+            return 0;
+    }
+
+Before that commit, the result is:
+
+    tcgetattr: Inappropriate ioctl for device
+
+After that commit, the result is:
+
+    tcgetattr: Invalid argument
+
+This patch will return -ENOIOCTLCMD for unknown commands, as
+procfs_procmap_ioctl() in the same file does, so that the VFS turns it
+into -ENOTTY.
+
+Link: https://lore.kernel.org/20261023181300.3366487-1-hengyul@cs.unc.edu
+Fixes: 52526ca7fdb9 ("fs/proc/task_mmu: implement IOCTL to get and optionally clear info about PTEs")
+Signed-off-by: Hengyu Liang <hengyul@cs.unc.edu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Reviewed-by: Lance Yang <lance.yang@linux.dev>
 Acked-by: David Hildenbrand (Arm) <david@kernel.org>
-Assisted-by: LLM
-Cc: Xu Xin <xu.xin@linux.dev>
-Cc: Chengming Zhou <chengming.zhou@linux.dev>
-Cc: Peter Xu <peterx@redhat.com>
-Cc: Kiryl Shutsemau <kas@kernel.org>
-Cc: Mike Rapoport <rppt@kernel.org>
+Reviewed-by: Pedro Falcato <pfalcato@suse.de>
+Reviewed-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
+Cc: Liam R. Howlett <liam@infradead.org>
+Cc: Vlastimil Babka <vbabka@kernel.org>
+Cc: Jann Horn <jannh@google.com>
+Cc: Muhammad Usama Anjum <usama.anjum@arm.com>
+Cc: Andrei Vagin <avagin@gmail.com>
+Cc: Michał Mirosław <mirq-linux@rere.qmqm.pl>
+Cc: Arnd Bergmann <arnd@arndb.de>
 Cc: <stable@vger.kernel.org>
 ---
 
- mm/ksm.c |    4 ++++
- 1 file changed, 4 insertions(+)
+ fs/proc/task_mmu.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/ksm.c~mm-ksm-keep-soft-dirty-when-merging-a-page
-+++ a/mm/ksm.c
-@@ -1463,6 +1463,10 @@ static int replace_page(struct vm_area_s
- 		dec_mm_counter(mm, MM_ANONPAGES);
- 	}
+--- a/fs/proc/task_mmu.c~fs-proc-task_mmu-return-enotty-for-unknown-pagemap-ioctls
++++ a/fs/proc/task_mmu.c
+@@ -3201,7 +3201,7 @@ static long do_pagemap_cmd(struct file *
+ 		return do_pagemap_scan(mm, arg);
  
-+	/* Preserve soft-dirty when replacing the page. */
-+	if (pte_soft_dirty(orig_pte))
-+		newpte = pte_mksoft_dirty(newpte);
-+
- 	flush_cache_page(vma, addr, pte_pfn(ptep_get(ptep)));
- 	/*
- 	 * No need to notify as we are replacing a read only page with another
+ 	default:
+-		return -EINVAL;
++		return -ENOIOCTLCMD;
+ 	}
+ }
+ 
 _
 
-Patches currently in -mm which might be from samarth.colleges@gmail.com are
+Patches currently in -mm which might be from hengyul@cs.unc.edu are
 
 
