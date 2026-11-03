@@ -1,41 +1,41 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793672167;
-	b=w+lqLM9cn+akGhorJaT5g/H5PuRB++AD7pbJSIQbJK9G2A9ktQw4FDo/049P/s/Rm//A
-	 R+1Oedj5kExLbtI1nDuXjFUacEgPC3295EUJFjrCqyQvD4I7tKPa/NAF7yh12HuLfffPw
-	 HrJ/1yWx7x0lI5F0SryCXKW3VN0qO9mBZBFFEltaCqLFkidGWDiiHfcNuN29Lclyo2CIN
-	 KHMUG4XHL5P7xw1OTs2Q63jL/d+YLV0ASH6/8LOiG/56fK+6wparigm3yLvqNsPIlLs0F
-	 29n7eN00HkMiQ85v+Cl9PVzlZDlZzx2W5bdlwEVIk0gb/7XFSikF7uLmV+ICTPJuCCg==
+	t=1793672168;
+	b=uneMaFVoY/cgAqg9dXodnOmpnbNbuEAy8w8RF97o37ir3Fd9VdwhG6R9+NJjcAqqmxbu
+	 R5hEZU3YCAK5C39nTe44m7S1+TXL0c6bYsmgUJJwFdltuF6lSGQJnjs9WAJGFQkksgiSv
+	 5sI2/YjewA4e/Mg396x5u93h9JoA2J2Uq9QxMKTS07q71COJL1saafPGYUXclTsiKnHe1
+	 XGEi6LpXXa8k/0ofdx6A30rshr/eQd9Tqy7HEIazx3UIvvkrMAdcjwCe2A9ewoXbXoSk5
+	 F82a/lZFWyTAN6GodkgubjQPUHacc6n4FY0a45+ikwdowEnqEoYo9VyVlMlMwSvJ/5Q==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793672167;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793672168;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=YY4kcNvQqByLMKq/5Ki5Rt8jgZ8DBb1yLP0rWcPs0M8=;
-	b=cq+5pLX8XfnlVUSwVujze0zujr9aYPi7b8n9ovuevGFz0goS215XDohIIccuKmeA9+FG
-	 YGqqBDpry1LzCUWITWjWckt80HvoahkydJ+1H0maI47jVySN+XLiS0rEkKkJwhayObd4C
-	 I2XvpbewaVVIqLrWKVLczao80dk58s/6UEhhGA/I0KR4ICsXuRgkZL9Rb5BvkEnmsHQXg
-	 UAvWpUhE280I9DHQw76NWL+bdp9MH85mAHZh6HXQVYiTLRebDpnurvR0gdGGSlrVad7Jl
-	 mschCeiSB5Goqh5UFoAhfKYy7BfB+FXwJPqIUSHFZNT2xANC8IWQ70vbCEc/QZpv1SQ==
+	bh=ymBWhViXmd542zAj7gPkC5LIFtv9YrMGyhScF/T62wo=;
+	b=umFeRxJWGYWhp9vYNaCPLbgFcHlY/MuOfb4WPExHHPt6c9lIu2BzGo5dVL/WOBz6aQcj
+	 Glc/C6oWVwrLQonpjQLwdJObECT/3qTPBZoNGka9HFe+u6G4iZkf2FKnWqcRA/jqo1o+k
+	 qDvEZouFjpovQ+iZl7kv8XU1/F9XzWTt7rKDe+JlavQ8o8W+BVhdRBLWlC9/Khg9KE7X3
+	 94mxFkVevgJB+bToAHfsHxE78R5TIwuk28KFNvO+Qcpk525hWVJEq6XzDSW2owSvt+kx7
+	 WamAwK8l/FpNByjffmYcMjvb4hpekSDp/E4CT1LFWtbTQAL7hdEJ2KL70cigI8D7lMg==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=UdgM0N+M;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=lONxdWHY;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 40878606A338
-	for <mm-commits@vger.kernel.org>; Tue,  3 Nov 2026 02:16:07 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 84037606A32D
+	for <mm-commits@vger.kernel.org>; Tue,  3 Nov 2026 02:16:08 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=UdgM0N+M
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id DF6141F000C1;
-	Tue,  3 Nov 2026 02:16:06 +0000 (UTC)
+	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=lONxdWHY
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0969C1F000C1;
+	Tue,  3 Nov 2026 02:16:08 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1793672167;
-	bh=YY4kcNvQqByLMKq/5Ki5Rt8jgZ8DBb1yLP0rWcPs0M8=;
+	d=linux-foundation.org; s=korg; t=1793672168;
+	bh=ymBWhViXmd542zAj7gPkC5LIFtv9YrMGyhScF/T62wo=;
 	h=Date:To:From:Subject;
-	b=UdgM0N+MaZLl73Qr6uZ+eN5RzUg3DVXGqSOZMxDFeGEa98QUADuwQFBaLzQJjlMuN
-	 RukKFGs+rabWi7Okws38IW/p9TirhuazBe+e8eHopyaGBeFGK/vv31w1R97sX+oT/u
-	 pKU590yYQVO6oAv9WrghHurLOpUiBPOw4vW84ib0=
-Date: Mon, 02 Nov 2026 18:16:06 -0800
+	b=lONxdWHYiGHP+V4RQSiS3zU1RhSpDjRtcdhktKuxWkVfOV/Yh2ZKJ3JOKZRSLLMsB
+	 u8ojcrtCtJ9u2b97gylz56NfqTyMbY4ymX7mQKpPBcHwTSDGF/8eRf317Nfd34Yi5Y
+	 TVSmDGTlZTcP1IFyfXjCYxbz6qvjWkaI3mTZGL+s=
+Date: Mon, 02 Nov 2026 18:16:07 -0800
 To: mm-commits@vger.kernel.org,ziy@nvidia.com,youngjun.park@lge.com,
 	ying.huang@linux.alibaba.com,xu.xin@linux.dev,will@kernel.org,
 	vbabka@kernel.org,usama.arif@linux.dev,urezki@gmail.com,tj@kernel.org,
@@ -56,8 +56,8 @@ To: mm-commits@vger.kernel.org,ziy@nvidia.com,youngjun.park@lge.com,
 	baohua@kernel.org,apopple@nvidia.com,aneesh.kumar@kernel.org,
 	david@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] maintainers-add-missing-files-to-mm-component-sections.patch removed from -mm tree
-Message-Id: <20261103021606.DF6141F000C1@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] maintainers-rename-and-move-memory-hotunplug.patch removed from -mm tree
+Message-Id: <20261103021608.0969C1F000C1@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -69,40 +69,22 @@ Precedence: list
 
 
 The quilt patch titled
-     Subject: MAINTAINERS: add missing files to MM component sections
+     Subject: MAINTAINERS: rename and move MEMORY HOT(UN)PLUG
 has been removed from the -mm tree.  Its filename was
-     maintainers-add-missing-files-to-mm-component-sections.patch
+     maintainers-rename-and-move-memory-hotunplug.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: "David Hildenbrand (Arm)" <david@kernel.org>
-Subject: MAINTAINERS: add missing files to MM component sections
-Date: Fri, 30 Oct 2026 22:34:29 +0100
+Subject: MAINTAINERS: rename and move MEMORY HOT(UN)PLUG
+Date: Fri, 30 Oct 2026 22:34:30 +0100
 
-We want to make sure that MM components cover all relevant MM files. The
-generic "MEMORY MANAGEMENT" sections will probably go away at some
-point.
+Prefix "MEMORY HOT(UN)PLUG" with "MEMORY MANAGEMENT" and put it into the
+right spot in the MM component section list.
 
-We have a bunch of files that are not explicitly tracked under MM
-components. Let's add these missing files.
-
-Split up tools/mm to the appropriate components, but still add it also
-under MISC, similar to what we did with selftests.
-
-Don't split up selftests for now. They are covered by MISC and some
-sections name them separately.
-
-Some files like
-
- - include/linux/numa.h
- - include/trace/events/kmem.h
- - Documentation/admin-guide/numastat.rst
-
-are a bit fuzzy. Add them to the best fit for now.
-
-Link: https://lore.kernel.org/20261030-maintainers-v1-5-97278f8a5f54@kernel.org
+Link: https://lore.kernel.org/20261030-maintainers-v1-6-97278f8a5f54@kernel.org
 Signed-off-by: David Hildenbrand (Arm) <david@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 Acked-by: Vlastimil Babka (SUSE) <vbabka@kernel.org>
@@ -110,8 +92,8 @@ Acked-by: Qi Zheng <qi.zheng@linux.dev>
 Acked-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
 Acked-by: Zi Yan <ziy@nvidia.com>
 Acked-by: SJ Park <sj@kernel.org>
-Acked-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
 Acked-by: Muchun Song <muchun.song@linux.dev>
+Acked-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
 Acked-by: Shakeel Butt <shakeel.butt@linux.dev>
 Acked-by: SJ Park <sj@kernel.org>
 Acked-by: Kiryl Shutsemau (Meta) <kas@kernel.org>
@@ -167,262 +149,57 @@ Cc: Youngjun Park <youngjun.park@lge.com>
 Cc: Jason Gunthorpe <jgg@ziepe.ca>
 ---
 
- MAINTAINERS |   50 ++++++++++++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 50 insertions(+)
+ MAINTAINERS |   32 ++++++++++++++++----------------
+ 1 file changed, 16 insertions(+), 16 deletions(-)
 
---- a/MAINTAINERS~maintainers-add-missing-files-to-mm-component-sections
+--- a/MAINTAINERS~maintainers-rename-and-move-memory-hotunplug
 +++ a/MAINTAINERS
-@@ -6868,8 +6868,10 @@ R:	Muchun Song <muchun.song@linux.dev>
- L:	cgroups@vger.kernel.org
- L:	linux-mm@kvack.org
- S:	Maintained
-+F:	Documentation/admin-guide/cgroup-v1/memory.rst
- F:	include/linux/memcontrol.h
- F:	include/linux/page_counter.h
-+F:	include/trace/events/memcg.h
- F:	mm/memcontrol-v1.c
- F:	mm/memcontrol-v1.h
- F:	mm/memcontrol.c
-@@ -12376,6 +12378,7 @@ R:	David Hildenbrand <david@kernel.org>
- L:	linux-mm@kvack.org
- S:	Maintained
- F:	Documentation/ABI/testing/sysfs-kernel-mm-hugepages
-+F:	Documentation/admin-guide/cgroup-v1/hugetlb.rst
- F:	Documentation/admin-guide/mm/hugetlbpage.rst
- F:	Documentation/mm/hugetlbfs_reserv.rst
- F:	Documentation/mm/vmemmap_dedup.rst
-@@ -12387,6 +12390,7 @@ F:	mm/hugetlb.c
- F:	mm/hugetlb_cgroup.c
- F:	mm/hugetlb_cma.c
- F:	mm/hugetlb_cma.h
-+F:	mm/hugetlb_internal.h
- F:	mm/hugetlb_sysctl.c
- F:	mm/hugetlb_sysfs.c
- F:	mm/hugetlb_vmemmap.c
-@@ -12406,6 +12410,7 @@ M:	Miaohe Lin <linmiaohe@huawei.com>
- R:	Naoya Horiguchi <nao.horiguchi@gmail.com>
- L:	linux-mm@kvack.org
- S:	Maintained
-+F:	Documentation/ABI/testing/sysfs-memory-page-offline
- F:	include/linux/memory-failure.h
- F:	include/trace/events/memory-failure.h
- F:	mm/hwpoison-inject.c
-@@ -17462,6 +17467,7 @@ M:	Oscar Salvador <osalvador@suse.de>
- L:	linux-mm@kvack.org
- L:	linux-cxl@vger.kernel.org
- S:	Maintained
-+F:	Documentation/ABI/testing/sysfs-devices-memory
- F:	Documentation/admin-guide/mm/memory-hotplug.rst
- F:	Documentation/core-api/memory-hotplug.rst
- F:	drivers/base/memory.c
-@@ -17518,10 +17524,13 @@ S:	Maintained
- W:	http://www.linux-mm.org
- T:	git git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
- F:	Documentation/admin-guide/sysctl/vm.rst
-+F:	Documentation/core-api/gfp_mask-from-fs-io.rst
- F:	fs/proc/meminfo.c
-+F:	include/linux/cacheflush.h
- F:	include/linux/folio_batch.h
- F:	include/linux/gfp.h
- F:	include/linux/gfp_types.h
-+F:	include/linux/highmem-internal.h
- F:	include/linux/highmem.h
- F:	include/linux/leafops.h
- F:	include/linux/memory.h
-@@ -17531,11 +17540,16 @@ F:	include/linux/mmdebug.h
- F:	include/linux/mmu_notifier.h
- F:	include/linux/mmzone.h
- F:	include/linux/pagewalk.h
-+F:	include/linux/pfn.h
- F:	include/linux/pgalloc.h
- F:	include/linux/pgtable.h
- F:	include/linux/ptdump.h
-+F:	include/linux/sched/mm.h
-+F:	include/linux/vm_event_item.h
- F:	include/linux/vmpressure.h
- F:	include/linux/vmstat.h
-+F:	include/trace/events/mmflags.h
-+F:	include/trace/events/pagemap.h
- F:	kernel/fork.c
- F:	mm/Kconfig
- F:	mm/debug.c
-@@ -17554,6 +17568,7 @@ F:	mm/ptdump.c
- F:	mm/util.c
- F:	mm/vmpressure.c
- F:	mm/vmstat.c
-+F:	scripts/gdb/linux/mm.py
- N:	include\/linux\/page[-_][a-zA-Z]*
+@@ -17461,22 +17461,6 @@ S:	Maintained
+ T:	git git://git.kernel.org/pub/scm/linux/kernel/git/chanwoo/linux.git
+ F:	drivers/devfreq/tegra30-devfreq.c
  
- MEMORY MANAGEMENT - EXECMEM
-@@ -17574,6 +17589,7 @@ L:	linux-mm@kvack.org
- S:	Maintained
- W:	http://www.linux-mm.org
- T:	git git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-+F:	Documentation/core-api/pin_user_pages.rst
- F:	mm/gup.c
- F:	mm/gup_test.c
- F:	mm/gup_test.h
-@@ -17651,6 +17667,7 @@ W:	http://www.linux-mm.org
- T:	git git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
- F:	include/linux/migrate.h
- F:	include/linux/migrate_mode.h
-+F:	include/trace/events/migrate.h
- F:	mm/migrate.c
- F:	mm/migrate_device.c
- 
-@@ -17674,13 +17691,20 @@ F:	Documentation/admin-guide/mm/
- F:	Documentation/core-api/memory-allocation.rst
- F:	Documentation/core-api/mm-api.rst
- F:	Documentation/mm/
-+F:	fs/proc/page.c
-+F:	include/linux/backing-dev-defs.h
-+F:	include/linux/backing-dev.h
- F:	include/linux/cma.h
- F:	include/linux/dmapool.h
- F:	include/linux/ioremap.h
-+F:	include/linux/kernel-page-flags.h
- F:	include/linux/page_idle.h
-+F:	include/trace/events/cma.h
-+F:	include/uapi/linux/kernel-page-flags.h
- F:	mm/backing-dev.c
- F:	mm/char-mem.c
- F:	mm/cma.c
-+F:	mm/cma.h
- F:	mm/cma_debug.c
- F:	mm/cma_sysfs.c
- F:	mm/dmapool.c
-@@ -17693,7 +17717,9 @@ F:	mm/page_idle.c
- F:	mm/pgalloc-track.h
- F:	mm/process_vm_access.c
- F:	tools/lib/mm/
-+F:	tools/mm/
- F:	tools/testing/selftests/mm/
-+X:	Documentation/ABI/testing/sysfs-kernel-mm-damon
- X:	Documentation/admin-guide/mm/damon/
- X:	Documentation/mm/damon/
- 
-@@ -17703,6 +17729,7 @@ M:	Mike Rapoport <rppt@kernel.org>
- L:	linux-mm@kvack.org
- S:	Maintained
- T:	git git://git.kernel.org/pub/scm/linux/kernel/git/rppt/memblock.git
-+F:	include/linux/numa.h
- F:	include/linux/numa_memblks.h
- F:	mm/numa.c
- F:	mm/numa_emulation.c
-@@ -17723,6 +17750,7 @@ T:	git git://git.kernel.org/pub/scm/linu
- F:	Documentation/ABI/testing/sysfs-kernel-mm-memory-tiers
- F:	Documentation/ABI/testing/sysfs-kernel-mm-mempolicy
- F:	Documentation/ABI/testing/sysfs-kernel-mm-mempolicy-weighted-interleave
-+F:	Documentation/admin-guide/numastat.rst
- F:	include/linux/memory-tiers.h
- F:	include/linux/mempolicy.h
- F:	include/uapi/linux/mempolicy.h
-@@ -17754,6 +17782,9 @@ F:	include/linux/compaction.h
- F:	include/linux/gfp.h
- F:	include/linux/page-isolation.h
- F:	include/linux/pageblock-flags.h
-+F:	include/trace/events/compaction.h
-+F:	include/trace/events/page_isolation.h
-+F:	include/trace/events/page_ref.h
- F:	mm/compaction.c
- F:	mm/debug_page_alloc.c
- F:	mm/debug_page_ref.c
-@@ -17770,6 +17801,9 @@ F:	mm/page_reporting.h
- F:	mm/show_mem.c
- F:	mm/shuffle.c
- F:	mm/shuffle.h
-+F:	scripts/gdb/linux/page_owner.py
-+F:	tools/mm/page_owner_filter.c
-+F:	tools/mm/page_owner_sort.c
- 
- MEMORY MANAGEMENT - RECLAIM
+-MEMORY HOT(UN)PLUG
+-M:	David Hildenbrand <david@kernel.org>
+-M:	Oscar Salvador <osalvador@suse.de>
+-L:	linux-mm@kvack.org
+-L:	linux-cxl@vger.kernel.org
+-S:	Maintained
+-F:	Documentation/ABI/testing/sysfs-devices-memory
+-F:	Documentation/admin-guide/mm/memory-hotplug.rst
+-F:	Documentation/core-api/memory-hotplug.rst
+-F:	drivers/base/memory.c
+-F:	include/linux/memory_hotplug.h
+-F:	include/linux/memremap.h
+-F:	mm/memory_hotplug.c
+-F:	mm/memremap.c
+-F:	tools/testing/selftests/memory-hotplug/
+-
+ MEMORY MANAGEMENT
  M:	Andrew Morton <akpm@linux-foundation.org>
-@@ -17781,6 +17815,7 @@ R:	Shakeel Butt <shakeel.butt@linux.dev>
- R:	Lorenzo Stoakes <ljs@kernel.org>
  L:	linux-mm@kvack.org
- S:	Maintained
-+F:	include/trace/events/vmscan.h
- F:	mm/vmscan.c
- F:	mm/workingset.c
- 
-@@ -17874,10 +17909,12 @@ F:	Documentation/admin-guide/mm/transhug
- F:	include/linux/huge_mm.h
- F:	include/linux/khugepaged.h
- F:	include/trace/events/huge_memory.h
-+F:	include/trace/events/thp.h
- F:	mm/collapse.h
- F:	mm/huge_memory.c
- F:	mm/khugepaged.c
+@@ -17614,6 +17598,22 @@ F:	include/trace/events/ksm.h
+ F:	mm/ksm.c
  F:	mm/mm_slot.h
-+F:	tools/mm/thpmaps
- F:	tools/testing/selftests/mm/khugepaged.c
- F:	tools/testing/selftests/mm/split_huge_page_test.c
- F:	tools/testing/selftests/mm/transhuge-stress.c
-@@ -17921,9 +17958,15 @@ L:	linux-mm@kvack.org
- S:	Maintained
- W:	http://www.linux-mm.org
- T:	git git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-+F:	Documentation/core-api/protection-keys.rst
-+F:	Documentation/filesystems/mmap_prepare.rst
-+F:	Documentation/userspace-api/mseal.rst
- F:	fs/proc/task_mmu.c
- F:	fs/proc/task_nommu.c
-+F:	include/linux/mman.h
-+F:	include/linux/pkeys.h
- F:	include/trace/events/mmap.h
-+F:	include/uapi/linux/mman.h
- F:	mm/char-mem.c
- F:	mm/mincore.c
- F:	mm/mlock.c
-@@ -18762,6 +18805,7 @@ M:	Peter Zijlstra <peterz@infradead.org>
- L:	linux-arch@vger.kernel.org
- L:	linux-mm@kvack.org
- S:	Maintained
-+F:	Documentation/core-api/cachetlb.rst
- F:	arch/*/include/asm/tlb.h
- F:	include/asm-generic/tlb.h
- F:	include/trace/events/tlb.h
-@@ -21872,6 +21916,7 @@ S:	Maintained
- T:	git git://git.kernel.org/pub/scm/linux/kernel/git/dennis/percpu.git
- F:	arch/*/include/asm/percpu.h
- F:	include/linux/percpu*.h
-+F:	include/trace/events/percpu.h
- F:	lib/percpu*.c
- F:	mm/percpu*.c
- F:	mm/percpu-internal.h
-@@ -25598,6 +25643,7 @@ F:	include/linux/shrinker.h
- F:	mm/list_lru.c
- F:	mm/shrinker.c
- F:	mm/shrinker_debug.c
-+F:	tools/cgroup/memcg_shrinker.py
  
- SH_VOU V4L2 OUTPUT DRIVER
- L:	linux-media@vger.kernel.org
-@@ -25830,10 +25876,12 @@ R:	Roman Gushchin <roman.gushchin@linux.
- L:	linux-mm@kvack.org
- S:	Maintained
- T:	git git://git.kernel.org/pub/scm/linux/kernel/git/mm/slab.git
-+F:	Documentation/ABI/testing/sysfs-kernel-slab
- F:	Documentation/admin-guide/mm/slab.rst
- F:	Documentation/mm/slab.rst
- F:	include/linux/mempool.h
- F:	include/linux/slab.h
-+F:	include/trace/events/kmem.h
- F:	lib/tests/slub_kunit.c
- F:	mm/failslab.c
- F:	mm/mempool.c
-@@ -29887,9 +29935,11 @@ S:	Maintained
- W:	http://www.linux-mm.org
- T:	git git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
- F:	include/linux/vmalloc.h
-+F:	include/trace/events/vmalloc.h
- F:	lib/test_vmalloc.c
- F:	mm/vmalloc.c
- F:	mm/vmalloc.h
-+F:	scripts/gdb/linux/vmalloc.py
- 
- VME SUBSYSTEM
- L:	linux-kernel@vger.kernel.org
++MEMORY MANAGEMENT - MEMORY HOT(UN)PLUG
++M:	David Hildenbrand <david@kernel.org>
++M:	Oscar Salvador <osalvador@suse.de>
++L:	linux-mm@kvack.org
++L:	linux-cxl@vger.kernel.org
++S:	Maintained
++F:	Documentation/ABI/testing/sysfs-devices-memory
++F:	Documentation/admin-guide/mm/memory-hotplug.rst
++F:	Documentation/core-api/memory-hotplug.rst
++F:	drivers/base/memory.c
++F:	include/linux/memory_hotplug.h
++F:	include/linux/memremap.h
++F:	mm/memory_hotplug.c
++F:	mm/memremap.c
++F:	tools/testing/selftests/memory-hotplug/
++
+ MEMORY MANAGEMENT - MEMORY MAP
+ M:	Muchun Song <muchun.song@linux.dev>
+ M:	Mike Rapoport <rppt@kernel.org>
 _
 
 Patches currently in -mm which might be from david@kernel.org are
