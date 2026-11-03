@@ -1,48 +1,48 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793739852;
-	b=3DVdZ3uuggd3TWN2LguHFt2afE/4GrncOKFqABts7W9i6YvlEw0hkoGH3SnFNoqaGoTc
-	 MIZ4CrkK/mTMUl2NfuL0Iv2DhyCR/konE/W9xQlMhUdEsdRCctvHoAefyqEx/A5CWeZ3k
-	 O6J8B1UkolEIdqx3XslXfXcJSooayXXKf+vjCpx9y6n6eWD3A03JpToJULOAJSuZb+cPY
-	 UVwOwFTr5r5T/qMZQgKWBuV2sq3xXx6bNOU+/UVtxHyuG5DJkdC9B2NsR9Ok19wPwpcwG
-	 yNQynxmXiOj9+U+gxWAnHyJD29j/K6Z2xVwWklwLqm+f/PkOeJuUXtSH6SG4PmS8J9w==
+	t=1793739854;
+	b=nmXpnW+nJhg0/HRLcfJaIn/gJyCXdgR60EzhtVxTfhXA6T1xcrxAC8r2fWc7oafk9fY5
+	 Mu5PnPXy4ZvEytYyqLA50VDiaqwLvSnscq2eG8a6NGAnpXEXbfd8+DXxlAv878b+dPQ/9
+	 kRDt7lrs10V8WBheO8m0jmyFrJ5fJ0VhrWGTNIWLRsOHclxK6MhASQHS5wMkKbCbGTLjT
+	 p7R+e0OHlaX1nWl/csfQCJQCMbROSJStwpNcB+J4gZfhqkLvbIfwKUtQSFLesTmKPG0a5
+	 xhR1IJUMyTFtwulDj3Q/i8/yzl+859ffnTXygARLcZxhyiONR9DFH+qNZT2TAOkkxXQ==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793739852;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793739854;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=9DBbFu1rjRItaJfg0wCC3yeruOcT26lk3t8ydp8DCwM=;
-	b=nFHaX2HIGhy7Q9G2ispv59UKD05muW9CH+AB0FY0wnjKMd9s5TDRTcfbwlmqtqCKGBgh
-	 p9RS5ERT+RPn/6rYyYjot7obx74WonjS0f+3ItsONF/RA4s4t7xdS4Z7aaHUEtuKNNUxt
-	 uM5Lkss1UmrEFfM8r17ez9n7d/YeOZEI+LwGBxAz0eJ+Q1CU6wfwwvEuYTIMp0FhP6+kq
-	 yLLwxv5mGnZTHGbHICgBSqUd3p3GG4m0HfIxGlQqUQ9sBpFKZPAMSJIN7L6888HjRaPef
-	 rs6L0C7wABNOy4cGyfUf4ZhLljL2sXZsTcEbOPfiISZehFddIWU8jNoa5zaf3HPVdqQ==
+	bh=/uaqUW62RzKg4WOQ+BBl99ebPj0uKO/LO38X1nkcnXM=;
+	b=4uYijx/6yyaAaKex0b3PM+OcWijNaAxrGly4fIyfXF8h/MrCVjLmxVjSp9zJ7O/WEYyA
+	 TNe4qLqwYRQ7PRo/bvZJbRXpNC7IIJjkUAoVgWkCcVka0Am+jIwMmngO3jJKRo84dWtS9
+	 UkxAA3zLvjsdMXIGrniyI+JnlpFe8z7CyB6fDlEH8B1EJKxAxQHQ/jzePrv0xIrjuARzL
+	 qVWZPm0JAfPcKqPrbdJ1j3RcSFv0Ods4LMqWLmBLU+w14CA9XcAFWDHmRQtP2zog9Q56m
+	 /tHRV0eNqBjFsFVtmDnKb+vYcjQmEEDFFR4B2txzaH1P4TbO20oln9c4opMYOFK2srw==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=tnOUlXCJ;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=aLZNF39v;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CE68D606A31B
-	for <mm-commits@vger.kernel.org>; Tue,  3 Nov 2026 21:04:11 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D958E606A32C
+	for <mm-commits@vger.kernel.org>; Tue,  3 Nov 2026 21:04:13 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=tnOUlXCJ
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3CD5F1F000C1;
-	Tue,  3 Nov 2026 21:04:11 +0000 (UTC)
+	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=aLZNF39v
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4A8671F000C1;
+	Tue,  3 Nov 2026 21:04:13 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1793739851;
-	bh=9DBbFu1rjRItaJfg0wCC3yeruOcT26lk3t8ydp8DCwM=;
+	d=linux-foundation.org; s=korg; t=1793739853;
+	bh=/uaqUW62RzKg4WOQ+BBl99ebPj0uKO/LO38X1nkcnXM=;
 	h=Date:To:From:Subject;
-	b=tnOUlXCJChXenmRXc7MDP206j7wtkdx3l/1QQj8v6A5SIcaOi83+VzNxuJwQFc6/P
-	 xvRVdmjqqmI16smRJVMyK5RFNAtINOQ7k5WxaQZCMdy91VLReRW8FOwsqBtBBBei/L
-	 7GjmQ3mBIdrT3KXZcHdhB3aNJti4Fk4bfLJ6wy1M=
-Date: Tue, 03 Nov 2026 13:04:10 -0800
+	b=aLZNF39vEaPbklUC5C17nyEWWgpgiMTFEyXNl7H86AqaGEPVkIv3k8nvcnkvpUTWM
+	 WewoWLinhKim1F1LQ5l6nz8VMKYYkPpDN2J9DGJ3OHKiMtDcquxDuw9zCh3wRbiQki
+	 B284wwdIXTCeJr81Q2Sr/SPOYlqTKzTnZtVoLRCU=
+Date: Tue, 03 Nov 2026 13:04:12 -0800
 To: mm-commits@vger.kernel.org,wujianyue000@gmail.com,
 	shikemeng@huaweicloud.com,ryncsn@gmail.com,nphamcs@gmail.com,
 	kasong@tencent.com,david@kernel.org,chrisl@kernel.org,baoquan.he@linux.dev,
 	baohua@kernel.org,youngjun.park@lge.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-swap-only-allow-swapped-out-slots-into-the-swap-cache.patch added to mm-new branch
-Message-Id: <20261103210411.3CD5F1F000C1@smtp.kernel.org>
+Subject: + mm-swap-give-hibernation-swap-slots-their-own-swap-table-entry-type.patch added to mm-new branch
+Message-Id: <20261103210413.4A8671F000C1@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -54,12 +54,12 @@ Precedence: list
 
 
 The patch titled
-     Subject: mm, swap: only allow swapped-out slots into the swap cache
+     Subject: mm, swap: give hibernation swap slots their own swap table entry type
 has been added to the -mm mm-new branch.  Its filename is
-     mm-swap-only-allow-swapped-out-slots-into-the-swap-cache.patch
+     mm-swap-give-hibernation-swap-slots-their-own-swap-table-entry-type.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-swap-only-allow-swapped-out-slots-into-the-swap-cache.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-swap-give-hibernation-swap-slots-their-own-swap-table-entry-type.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -89,107 +89,35 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Youngjun Park <youngjun.park@lge.com>
-Subject: mm, swap: only allow swapped-out slots into the swap cache
-Date: Wed, 04 Nov 2026 00:25:45 +0800
+Subject: mm, swap: give hibernation swap slots their own swap table entry type
+Date: Wed, 04 Nov 2026 00:25:46 +0800
 
-Patch series "mm, swap: keep hibernation swap slots out of the swap cache",
-v4.
+swap_alloc_hibernation_slot() stores a fake shadow in the slot it hands
+out.  An anon slot swapped out with no workingset shadow looks exactly the
+same, so nothing in mm can tell the two apart.
 
-The original series is sent by YoungJun, now with a few nits fixed,
-rebased and re-send, dropping already merged one.  Especially recently
-there is LLM code inspecting suggesting patch 1/3 of this resent is needed
-as it avoids reading into bad slots.
+Give hibernation slots their own type.  Bit 4 and every bit above it are
+set, except the count field, which stays 0.  Bits 0 to 3 are taken by the
+shadow, PFN, pointer and bad marks, so bit 4 is the first free one.  The
+type holds no data, so the value alone says what it is.
 
-Cluster readahead walks a raw page_cluster sized window of offsets around
-the faulting entry.  A hibernation slot looks like an ordinary swapped out
-slot, so __swap_cache_add_check() lets it in.  Readahead reads the offset
-off the device into a folio and puts that folio in the swap table where
-the hibernation entry was.  This has been possible for a long time.  It
-only wasted a folio and a read.
+The entry has no swap count.  Hibernation only allocates and frees a slot,
+so a count would never change.  swap_free_hibernation_slot() frees the slot
+directly, there is no count to put first.
 
-That changed with commit 0d6af9bcf383 ("mm, swap: use the swap table to
-track the swap count").  A slot with a folio in the swap cache should only
-be freed when the folio leaves the cache.  swap_put_entries_cluster()
-still does that, but the conversion left swap_free_hibernation_slot()
-freeing the slot either way.  Nothing points at the folio after that, and
-when reclaim drops it later, it writes to the table entry at the old
-offset, which someone else may own by then.
+The slot is no longer a shadow, so the previous patch keeps it out of the
+swap cache.  The count field stays 0 as well, so code that reads the count
+without checking the type sees an unused slot instead of one at
+SWP_TB_COUNT_MAX, and a wrong put is caught by the existing underflow
+check.
 
-That one is fixed in v3 1/4, which is upstream as commit 10d9012e83ef
-("mm, swap: don't free a hibernation slot that is in the swap cache")
-already.
-
-What is left removes the cause.  Readahead should not touch these slots at
-all, so patch 1 lets only swapped out slots into the swap cache, which
-also puts back a bad slot check the swap cache rework dropped, patch 2
-gives hibernation slots their own swap table entry type so that check
-covers them too, and patch 3 drops the guard and the reclaim in
-swap_free_hibernation_slot(), since no such folio can exist any more.
-
-For any of this a task has to hold hibernation slots while the system is
-still running.  The in kernel path does not, it allocates, writes and
-frees the slots with everything frozen.  Userspace hibernation is
-different.  The process writing the image is not frozen, and
-SNAPSHOT_ALLOC_SWAP_PAGE does not check that anything is frozen.  The swap
-device must also not be SWP_SYNCHRONOUS_IO, or swapin takes the direct
-path and never reaches cluster readahead.
-
-Tested with a debug patch generated by AI that counts hibernation slots
-through the swap cache paths.  virtio-blk swap, page-cluster 3,
-SNAPSHOT_ALLOC_SWAP_PAGE interleaved with MADV_PAGEOUT of a shmem region
-so the hibernation slots land in the readahead windows.
-
-                                unpatched   fix only   this series
-  hibernation slots allocated       2732       2732         2732
-  readahead landed on the slot      2731       2731         2731
-  admitted to the swap cache        2731       2731            0
-  reclaim found the folio              0       2731            -
-  slot left unfreed                    0          0            0
-  VM_WARN in the free path          2731          0            0
-
-The VM_WARN is the existing assertion in __swap_cluster_free_entries(),
-not something the debug patch adds.
-
-
-This patch (of 3):
-
-__swap_cache_add_check() turns away folio entries and slots with no count
-and lets everything else in.  That is safe only when the caller owns the
-slot.  Cluster readahead owns nothing, it walks a raw page_cluster sized
-window of offsets around the faulting entry, so it can land on any slot.
-
-A bad slot gets in.  The check reads the count with __swp_tb_get_count(),
-which shifts the count bits out without looking at the type, and
-SWP_TB_BAD has all of them set, so the slot reads as SWP_TB_COUNT_MAX.
-Readahead then allocates a folio and reads the offset off the device for a
-slot nothing will ever swap in, and the folio entry that replaces it drops
-the bad marker.
-
-Readahead used to be guarded by swap_entry_swapped(), which goes through
-swp_tb_get_count() and gets -EINVAL for a bad slot.  That call went away
-when the swap cache checks moved into __swap_cache_add_check(), and the
-raw accessor there does not do the same type test.
-
-Require a shadow entry instead.  A slot dropped from the swap cache always
-gets one, empty if there is no workingset value.  The type test runs first,
-so the count is only read off a countable entry, and the check as a whole
-runs before the folio allocation in __swap_cache_alloc().
-
-The large folio walk in the same function does the same raw reads.  A bad
-slot cannot be in its range, but the range is not pinned, so a slot freed
-and then taken by hibernation still trips the countable assertion there.
-Give the walk the same shadow test, the folio check folds into it.
-
-Reproduced with a badpages list written into the swap header by hand.
-Readahead took over four bad slots before this patch and none after.  It
-needs a crafted header, so a normal setup will not hit it.
-
-Link: https://lore.kernel.org/20261104-swap-hibernation-slots-v4-0-0ba9393609e1@tencent.com
-Link: https://lore.kernel.org/20261104-swap-hibernation-slots-v4-1-0ba9393609e1@tencent.com
-Fixes: e1e6750df3b4 ("mm, swap: add support for stable large allocation in swap cache directly")
+[kasong@tencent.com: renamed the layout entry to HIB and reworded its doc]
+Link: https://lore.kernel.org/20261104-swap-hibernation-slots-v4-2-0ba9393609e1@tencent.com
 Signed-off-by: Youngjun Park <youngjun.park@lge.com>
 Signed-off-by: Kairui Song <kasong@tencent.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+Suggested-by: Kairui Song <kasong@tencent.com>
+Link: https://lore.kernel.org/linux-mm/abp7aDgYLrxF3Me8@KASONG-MC4/
 Acked-by: Kairui Song <kasong@tencent.com>
 Cc: Chris Li <chrisl@kernel.org>
 Cc: Kemeng Shi <shikemeng@huaweicloud.com>
@@ -199,39 +127,101 @@ Cc: Barry Song <baohua@kernel.org>
 Cc: Jianyue Wu <wujianyue000@gmail.com>
 Cc: David Hildenbrand <david@kernel.org>
 Cc: Kairui Song <ryncsn@gmail.com>
+
 ---
 
- mm/swap_state.c |   11 ++++++++---
- 1 file changed, 8 insertions(+), 3 deletions(-)
+ mm/swap_table.h |   14 ++++++++++++++
+ mm/swapfile.c   |   13 +++++++------
+ 2 files changed, 21 insertions(+), 6 deletions(-)
 
---- a/mm/swap_state.c~mm-swap-only-allow-swapped-out-slots-into-the-swap-cache
-+++ a/mm/swap_state.c
-@@ -191,9 +191,14 @@ static int __swap_cache_add_check(struct
- 	old_tb = __swap_table_get(ci, ci_off);
- 	if (swp_tb_is_folio(old_tb))
- 		return -EEXIST;
--	if (!__swp_tb_get_count(old_tb))
-+	/*
-+	 * Only a swapped-out slot may be brought into the swap cache.
-+	 * Cluster readahead walks raw offset ranges, so it can land on
-+	 * slots that are free, bad, or owned by hibernation.
-+	 */
-+	if (!swp_tb_is_shadow(old_tb) || !__swp_tb_get_count(old_tb))
- 		return -ENOENT;
--	if (shadowp && swp_tb_is_shadow(old_tb))
-+	if (shadowp)
- 		*shadowp = swp_tb_to_shadow(old_tb);
- 	if (memcg_id)
- 		*memcg_id = __swap_cgroup_get(ci, ci_off);
-@@ -206,7 +211,7 @@ static int __swap_cache_add_check(struct
- 	ci_end = ci_off + nr;
- 	do {
+--- a/mm/swapfile.c~mm-swap-give-hibernation-swap-slots-their-own-swap-table-entry-type
++++ a/mm/swapfile.c
+@@ -941,7 +941,7 @@ static bool __swap_cluster_alloc_entries
+ 	 * upon folio unmap.
+ 	 *
+ 	 * Else, it's a exclusive order 0 allocation for hibernation.
+-	 * The slot starts with count == 1 and never increases.
++	 * The slot carries no swap count and is freed by offset.
+ 	 */
+ 	if (likely(folio)) {
+ 		order = folio_order(folio);
+@@ -953,8 +953,8 @@ static bool __swap_cluster_alloc_entries
+ 		order = 0;
+ 		nr_pages = 1;
+ 		swap_cluster_assert_empty(ci, ci_off, 1, false);
+-		/* Fake shadow placeholder with no flag, hibernation does not use the zeromap */
+-		__swap_table_set(ci, ci_off, __swp_tb_mk_count(shadow_to_swp_tb(NULL, 0), 1));
++		/* Exclusively owned by hibernation, must never enter the swap cache */
++		__swap_table_set(ci, ci_off, SWP_TB_HIB);
+ 	} else {
+ 		/* Allocation without folio is only possible with hibernation */
+ 		WARN_ON_ONCE(1);
+@@ -1953,9 +1953,11 @@ void __swap_cluster_free_entries(struct
  		old_tb = __swap_table_get(ci, ci_off);
--		if (unlikely(swp_tb_is_folio(old_tb) ||
-+		if (unlikely(!swp_tb_is_shadow(old_tb) ||
- 			     !__swp_tb_get_count(old_tb) ||
- 			     is_zero != __swap_table_test_zero(ci, ci_off) ||
- 			     (memcg_id && *memcg_id != __swap_cgroup_get(ci, ci_off))))
+ 		/*
+ 		 * Freeing is done after release of the last swap count
+-		 * ref, or after swap cache is dropped
++		 * ref, or after swap cache is dropped. A hibernation slot
++		 * has no count and is freed directly by its owner.
+ 		 */
+-		VM_WARN_ON(!swp_tb_is_shadow(old_tb) || __swp_tb_get_count(old_tb) > 1);
++		VM_WARN_ON(!swp_tb_is_hibernation(old_tb) &&
++			   (!swp_tb_is_shadow(old_tb) || __swp_tb_get_count(old_tb) > 1));
+ 
+ 		/* Resetting the slot to NULL also clears the inline flags. */
+ 		__swap_table_set(ci, ci_off, null_to_swp_tb());
+@@ -2225,7 +2227,6 @@ void swap_free_hibernation_slot(swp_entr
+ 	pgoff_t offset = swp_offset(entry);
+ 
+ 	ci = swap_cluster_lock(si, offset);
+-	__swap_cluster_put_entry(ci, offset % SWAPFILE_CLUSTER);
+ 	/*
+ 	 * A slot with a folio in the swap cache is freed when the folio
+ 	 * leaves the cache, the same rule swap_put_entries_cluster() follows.
+--- a/mm/swap_table.h~mm-swap-give-hibernation-swap-slots-their-own-swap-table-entry-type
++++ a/mm/swap_table.h
+@@ -30,6 +30,7 @@ struct swap_memcg_table {
+  * PFN:      |SWAP_COUNT|Z|------ PFN -------|10| - Cached slot
+  * Pointer:  |----------- Pointer ----------|100| - (Unused)
+  * Bad:      |------------- 1 -------------|1000| - Bad slot
++ * HIB:      |    0     |------- 1 -------|10000| - Hibernation slot
+  *
+  * COUNT is `SWP_TB_COUNT_BITS` long, Z is the `SWP_TB_ZERO_FLAG` bit,
+  * and together they form the `SWP_TB_FLAGS_BITS` wide flags field.
+@@ -54,6 +55,11 @@ struct swap_memcg_table {
+  *   aligned pointers.
+  *
+  * - Bad: Swap slot is reserved, protects swap header or holes on swap devices.
++ *
++ * - HIB: Swap slot is reserved by hibernation for the suspend image. It is a
++ *   special pin, like the swap cache pin: the allocator treats the non-NULL
++ *   entry as in use, but the slot is never duplicated and never enters the
++ *   swap cache. The count stays 0, so a stray put trips the underflow check.
+  */
+ 
+ /* NULL Entry, all 0 */
+@@ -81,6 +87,9 @@ struct swap_memcg_table {
+ /* Bad slot: ends with 0b1000 and rests of bits are all 1 */
+ #define SWP_TB_BAD		((~0UL) << 3)
+ 
++/* Hibernation slot: ends with 0b10000, no count, rests of bits are all 1 */
++#define SWP_TB_HIB		(((~0UL) << 4) & ~SWP_TB_COUNT_MASK)
++
+ /* Macro for shadow offset calculation */
+ #define SWAP_COUNT_SHIFT	SWP_TB_FLAGS_BITS
+ 
+@@ -166,6 +175,11 @@ static inline bool swp_tb_is_bad(unsigne
+ 	return swp_tb == SWP_TB_BAD;
+ }
+ 
++static inline bool swp_tb_is_hibernation(unsigned long swp_tb)
++{
++	return swp_tb == SWP_TB_HIB;
++}
++
+ static inline bool swp_tb_is_countable(unsigned long swp_tb)
+ {
+ 	return (swp_tb_is_shadow(swp_tb) || swp_tb_is_folio(swp_tb) ||
 _
 
 Patches currently in -mm which might be from youngjun.park@lge.com are
