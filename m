@@ -1,48 +1,48 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793675985;
-	b=qL98vwC1r2BhvO+DCwYdG9L+5zBlNGIyjp595hvBqHUod63qjIo0IutTIumaZpBxqPL5
-	 sV3HHtVJ2gNtM7EU98uTwGjPqACqCd62n/4S5djWCwPvrV2eyZ9Wd0R1FaDFv76xM4rU1
-	 TQMqLMYakQImwJmhnyxX99cnJTHjcexYI0z4kIIRvEnUSVSMB5NCZ5gIvvASXjAsfnQzo
-	 oRIqT7EA6acconaHNwwFw7UN6wD/xK7SL6nXfA8gbwz7dUN8XYeCiqbEnJ/c3/yayFj30
-	 5YwpocB184K9anYLqj2v856oQZrL/sfOZp9QUDn9/6d9lTsxw8WzTR6pLECL+N1TGnQ==
+	t=1793675993;
+	b=YP9XtB4smgPk0cIILor3bbeUifDitkmaGETKGWOsGV/xl3cUmSgmAzKV+gILC2qAnxYr
+	 0eDEUHf+ze54baONC5zzytGqea/sTaQ0RJo1a1MEp9ZJd3OmmYSAkoLAwipY5SJYceQ2A
+	 Fkw1jyYsQ2kgHBq5zRXF2fIsQ+H95rLMCUbiE5kegUHHrTqhATiLS5w1Knbe3L42ogxMN
+	 HCiL2QmmmVgwTiMomgQQV2Kkumvxp9tkAvb3vr4zdcaufhQY+MXmszop+FukGDNrabjsY
+	 2lr1CFsEhDhUfqAQRstQEI/PZTWSFKr5GhugdazqWP+NAJDLE/Vhj0YRtiuOBWzhiBw==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793675985;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793675993;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=cD55soKBuVNeTqtBtw3fyWy6Zhcy6lphTDTzlA4jpgA=;
-	b=oqq7VIi4c/pe/GdQUwvIhwS+h5rxiLiLNMS+sXuMRRNn96rRV/gGEwpRk4Rylqr3/D1/
-	 0u9m6LAtnUrkN27W5CvOp7OGhc2QPpR9CBzvhGE9HxcqhBYwW+fTRvf2p4yPi0982vJmE
-	 b/hRBFkY9SL7QrX3kEQMd667a6v/7QHweTg7WXpSTDoT11Nr7POpACSCwTXYKE9gnj0gN
-	 t96sWbsRcBAYpiqsP3wf49d0AT4ERfmPK8wVgOVIFMOPcD2zHkIn2QEdE2dimxeJcqsTk
-	 ssnxOh1/fOqI1my1tu3k1XPtaJRhvmWOyyVUsSgCInMN5IjTwsib+lRHC45i6gph90Q==
+	bh=/pfn8J9yglEkfSO3l1mgUwqqvQXQbsXN+bDNoZY93sw=;
+	b=noBTrtL3W0ZxkvUVMkb++cJUTS9c2je8vE58KfKeimEucIN8odxe2K9qkyUDSI4fxH4x
+	 HJ8ooRfFzoqk4SMZa+SUX2WsCNO0KGJ/PsGKxTOkW2eUBKP0DhjfDod7aCq/6HNa2cjmm
+	 CvJ0astgas4xWKpbmBoaNDWv3ZQoFguuRX45Ekzuw6G4xqZdYMBAWDtZ+V0VDlJ8ow26Z
+	 xcR+ujYeEX6mMp4GZtcF1BcnILNPz1Pd2L+hK1Ueuz43hSByKyiCBGuNV41Im4WsLcXhO
+	 u9sTj9nyZ/c0xqsDuJ89ceh4FoxjVyy/f8ERrFQ37fc0HoQNXX6PdaYAiIaqagOGJHQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b="a/U5I71S";
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=s2WoBxiq;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 80D20606A324;
-	Tue,  3 Nov 2026 03:19:45 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A4C1C606A327;
+	Tue,  3 Nov 2026 03:19:52 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=a/U5I71S
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4C0591F0093A;
-	Tue,  3 Nov 2026 03:19:45 +0000 (UTC)
+	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=s2WoBxiq
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2C0AF1F000C1;
+	Tue,  3 Nov 2026 03:19:52 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1793675985;
-	bh=cD55soKBuVNeTqtBtw3fyWy6Zhcy6lphTDTzlA4jpgA=;
+	d=linux-foundation.org; s=korg; t=1793675992;
+	bh=/pfn8J9yglEkfSO3l1mgUwqqvQXQbsXN+bDNoZY93sw=;
 	h=Date:To:From:Subject;
-	b=a/U5I71SAR/NCmMFhPp346A1cST9z8GYK0XI3Ap2cXaPrnv3YEQ5rP66Q977Slgcn
-	 aD5S8cr8elBGwy0Iyxz/RnQeE9YquBQVz122AEE6Iz8MJFuK8Z6tt68VWarJNkMELD
-	 JIFjVau8iaOejl/U8PtPjKkfJYMpVMZdJT8hUHdg=
-Date: Mon, 02 Nov 2026 19:19:44 -0800
+	b=s2WoBxiqZqyAZVMZ36hNDnNpjG50zidFVQQBK1/kDS31o8LtsHXnSsi4SpNjzA8OO
+	 U8+RhHf3gH52bYzyLu9/ghazng9tw33UH8KU/J0lu5AbVkVMHec/n7+ZDMeNKNg6DE
+	 gvteJevyZwZBqd27WYDRCo6RNalpENMK253GhwRM=
+Date: Mon, 02 Nov 2026 19:19:51 -0800
 To: mm-commits@vger.kernel.org,stable@vger.kernel.org,mark@fasheh.com,
 	joseph.qi@linux.alibaba.com,jlbec@evilplan.org,jjzuming@gmail.com,
 	heming.zhao@suse.com,baijiaju1990@gmail.com,zzzccc427@gmail.com,
 	akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-hotfixes-stable] ocfs2-validate-move-extents-against-a-stable-eof.patch removed from -mm tree
-Message-Id: <20261103031945.4C0591F0093A@smtp.kernel.org>
+Subject: [merged mm-nonmm-hotfixes-stable] ocfs2-stop-recovery-before-shutting-down-local-allocators.patch removed from -mm tree
+Message-Id: <20261103031952.2C0AF1F000C1@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -54,62 +54,170 @@ Precedence: list
 
 
 The quilt patch titled
-     Subject: ocfs2: validate move extents against a stable EOF
+     Subject: ocfs2: stop recovery before shutting down local allocators
 has been removed from the -mm tree.  Its filename was
-     ocfs2-validate-move-extents-against-a-stable-eof.patch
+     ocfs2-stop-recovery-before-shutting-down-local-allocators.patch
 
 This patch was dropped because it was merged into the mm-nonmm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Cen Zhang <zzzccc427@gmail.com>
-Subject: ocfs2: validate move extents against a stable EOF
-Date: Mon, 26 Oct 2026 19:04:00 +0800
+Subject: ocfs2: stop recovery before shutting down local allocators
+Date: Thu, 29 Oct 2026 14:57:35 +0800
 
-The move-extents range must be bounded by the inode size used for extent
-movement.  ocfs2_ioctl_move_extents() checks and clamps the request before
-taking the local inode and cluster locks in ocfs2_move_extents().  It also
-uses separate i_size_read() calls for the range check and subtraction.
+Recovery completion needs the local allocators until it has finished
+reclaiming a failed node's allocation window and truncate log.  During
+unmount, quota recovery is stopped first, but that leaves recovery_state
+at OCFS2_REC_QUOTA_DISABLED.  New non-quota recovery can still start.
 
-A concurrent truncate can invalidate the first check and make the later
-unsigned subtraction underflow:
+ocfs2_truncate_log_shutdown() drains existing completion work and releases
+osb_tl_bh before ocfs2_recovery_exit() closes that publication path:
 
-  Move-extents ioctl                  Truncate
-  ------------------                  --------
-  check me_start <= i_size
-                                      take inode and cluster locks
-                                      shrink EOF below me_start
-                                      release locks
-  compare me_start + me_len with EOF
-  set me_len = EOF - me_start
-    [unsigned underflow]
-  acquire inode and cluster locks
-  select extents using the bad range
+  Unmount                             Recovery
+  -------                             --------
+  stop quota recovery; disable quotas
+  truncate_log_shutdown()
+    flush existing completion work
+                                      recover another failed node
+                                        queue completion
+    flush local log; release buffer
+                                      complete_truncate_log_recovery()
+                                        use released osb_tl_bh
+  recovery_exit(): disable and drain
 
-A truncate after clamping can also leave the range extending beyond EOF. 
-Conversely, the cached size may be smaller than the size refreshed when
-the cluster inode lock is acquired.  Early validation can then reject a
-valid start or permanently shorten the requested length and threshold. 
-The me_start + me_len comparison can also wrap for a large input length.
+An extra buffer reference alone would still let completion append new
+records after the final truncate-log flush.
 
-Validate and adjust the original request once, after inode_lock(), the
-exclusive rw lock and ocfs2_inode_lock() have stabilized and refreshed the
-size.  Read EOF once, reject a start beyond it, and bound the length by
-EOF minus start.  Normalize the threshold using the same EOF snapshot. 
-This keeps zero as the default-threshold sentinel until validation uses
-the size that will govern extent movement.
+Split stopping and draining recovery from freeing its state. Stop all
+recovery producers and drain completion work before shutting down either
+local allocator. Keep recovery-state release at its existing later point,
+so its lifetime relative to other teardown users stays unchanged. The
+second stop at recovery_exit() is harmless once recovery is disabled.
 
-Move goal validation after range adjustment as well.  Its allocation-group
-capacity check uses me_len and must see the EOF-clamped length.  Both
-validation failures use the existing inode-lock unwind path before any
-extent movement or transaction starts.
+KASAN report as below:
 
-Range errors now reach the ioctl's normal copyout path, as goal errors
-already did.  Unlike the old early rejection, a failed copyout can
-therefore override -EINVAL with -EFAULT.
+    BUG: KASAN: slab-use-after-free in ocfs2_truncate_log_needs_flush+0x23d/0x360
+    Read of size 8 at addr ffff8881093711e8 by task kworker/u16:3/53
+    
+    CPU: 0 UID: 0 PID: 53 Comm: kworker/u16:3 Not tainted 7.3.0-rc4-next-20260921-pmb-ocfs2-functional-v1+ #1 PREEMPT(lazy) 
+    Hardware name: QEMU Ubuntu 24.04 PC v2 (i440FX + PIIX, arch_caps fix, 1996), BIOS 1.16.3-debian-1.16.3-2 04/01/2014
+    Workqueue: ocfs2_wq ocfs2_complete_recovery
+    Call Trace:
+     <TASK>
+     dump_stack_lvl+0x93/0xd0
+     print_report+0xce/0x630
+     ? ocfs2_truncate_log_needs_flush+0x23d/0x360
+     ? srso_alias_return_thunk+0x5/0xfbef5
+     ? __virt_addr_valid+0x20e/0x420
+     ? ocfs2_truncate_log_needs_flush+0x23d/0x360
+     kasan_report+0xe0/0x110
+     ? ocfs2_truncate_log_needs_flush+0x23d/0x360
+     ocfs2_truncate_log_needs_flush+0x23d/0x360
+     ? __pfx_ocfs2_truncate_log_needs_flush+0x10/0x10
+     ? __pfx_down_write+0x10/0x10
+     ocfs2_complete_truncate_log_recovery+0x315/0x780
+     ? trace_hardirqs_on+0x18/0x160
+     ? __pfx_ocfs2_complete_truncate_log_recovery+0x10/0x10
+     ? ocfs2_complete_recovery+0x666/0x11b0
+     ? srso_alias_return_thunk+0x5/0xfbef5
+     ? kfree+0x308/0x580
+     ocfs2_complete_recovery+0x676/0x11b0
+     ? __pfx_ocfs2_complete_recovery+0x10/0x10
+     ? reacquire_held_locks+0xdd/0x200
+     ? process_one_work+0x7c8/0x1b40
+     ? srso_alias_return_thunk+0x5/0xfbef5
+     ? lock_acquire+0x190/0x300
+     ? __pfx_autoremove_wake_function+0x10/0x10
+     ? process_one_work+0x834/0x1b40
+     ? srso_alias_return_thunk+0x5/0xfbef5
+     ? lock_release+0xc8/0x290
+     ? srso_alias_return_thunk+0x5/0xfbef5
+     process_one_work+0x9a8/0x1b40
+     ? __pfx_process_one_work+0x10/0x10
+     ? lock_acquire+0x190/0x300
+     ? lock_is_held_type+0x8f/0x100
+     ? srso_alias_return_thunk+0x5/0xfbef5
+     worker_thread+0x65c/0xe40
+     ? srso_alias_return_thunk+0x5/0xfbef5
+     ? __kthread_parkme+0x177/0x220
+     ? srso_alias_return_thunk+0x5/0xfbef5
+     ? __pfx_worker_thread+0x10/0x10
+     kthread+0x351/0x460
+     ? srso_alias_return_thunk+0x5/0xfbef5
+     ? __pfx_kthread+0x10/0x10
+     ret_from_fork+0x659/0x940
+     ? __pfx_ret_from_fork+0x10/0x10
+     ? srso_alias_return_thunk+0x5/0xfbef5
+     ? __switch_to+0x74f/0xf70
+     ? __pfx_kthread+0x10/0x10
+     ret_from_fork_asm+0x1a/0x30
+     </TASK>
+    
+    Allocated by task 538:
+     kasan_save_stack+0x33/0x60
+     kasan_save_track+0x14/0x30
+     __kasan_slab_alloc+0x89/0x90
+     kmem_cache_alloc_noprof+0x20b/0x5c0
+     alloc_buffer_head+0x26/0x120
+     folio_alloc_buffers+0x122/0x1d0
+     bdev_getblk+0x299/0x4f0
+     ocfs2_read_blocks_sync+0x513/0xbc0
+     ocfs2_iget+0x9cd/0x1a00
+     ocfs2_get_system_file_inode+0x25e/0x7a0
+     ocfs2_fill_super+0x1b05/0x3930
+     get_tree_bdev_flags+0x35d/0x5f0
+     vfs_get_tree+0x93/0x320
+     fc_mount+0x1d/0x200
+     path_mount+0x592/0x1e00
+     __x64_sys_mount+0x24b/0x2d0
+     do_syscall_64+0x114/0x620
+     entry_SYSCALL_64_after_hwframe+0x77/0x7f
+    
+    Freed by task 553:
+     kasan_save_stack+0x33/0x60
+     kasan_save_track+0x14/0x30
+     kasan_save_free_info+0x3b/0x60
+     __kasan_slab_free+0x5f/0x80
+     kmem_cache_free+0x242/0x580
+     free_buffer_head+0x4b/0xc0
+     try_to_free_buffers+0x1dc/0x330
+     ocfs2_truncate_log_shutdown+0x789/0x1290
+     ocfs2_dismount_volume+0x1da/0x940
+     generic_shutdown_super+0x15f/0x490
+     kill_block_super+0x40/0xa0
+     deactivate_locked_super+0xae/0x120
+     deactivate_super+0xa2/0xc0
+     cleanup_mnt+0x217/0x450
+     task_work_run+0x144/0x230
+     exit_to_user_mode_loop+0x17d/0x570
+     do_syscall_64+0x4d1/0x620
+     entry_SYSCALL_64_after_hwframe+0x77/0x7f
+    
+    The buggy address belongs to the object at ffff8881093711c0
+     which belongs to the cache buffer_head of size 160
+    The buggy address is located 40 bytes inside of
+     freed 160-byte region [ffff8881093711c0, ffff888109371260)
+    
+    The buggy address belongs to the physical page:
+    page: refcount:0 mapcount:0 mapping:0000000000000000 index:0x0 pfn:0x109371
+    flags: 0x200000000000000(node=0|zone=2)
+    page_type: f5(slab)
+    raw: 0200000000000000 ffff8881008883c0 dead000000000100 dead000000000122
+    raw: 0000000000000000 0000000000120012 00000000f5000000 0000000000000000
+    page dumped because: kasan: bad access detected
+    
+    Memory state around the buggy address:
+     ffff888109371080: 00 00 00 00 fc fc fc fc fc fc fc fc 00 00 00 00
+     ffff888109371100: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+    >ffff888109371180: fc fc fc fc fc fc fc fc fa fb fb fb fb fb fb fb
+                                                              ^
+     ffff888109371200: fb fb fb fb fb fb fb fb fb fb fb fb fc fc fc fc
+     ffff888109371280: fc fc fc fc 00 00 00 00 00 00 00 00 00 00 00 00
+    ==================================================================
 
-Link: https://lore.kernel.org/pm-ocfs2-move-extents-isize-rrw-v6-395bdee84ea81149068e@gmail.com
-Fixes: 53069d4e7695 ("Ocfs2/move_extents: move/defrag extents within a certain range.")
+Link: https://lore.kernel.org/pm-ocfs2-objects-candidate-0019-v8-574dd69fd3f47f56348b@gmail.com
+Fixes: ccd979bdbce9 ("[PATCH] OCFS2: The Second Oracle Cluster Filesystem")
 Signed-off-by: Cen Zhang <zzzccc427@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 Suggested-by: Joseph Qi <joseph.qi@linux.alibaba.com>
@@ -123,116 +231,61 @@ Cc: <jjzuming@gmail.com>
 Cc: <stable@vger.kernel.org>
 ---
 
- fs/ocfs2/move_extents.c |   70 +++++++++++++++++++++-----------------
- 1 file changed, 39 insertions(+), 31 deletions(-)
+ fs/ocfs2/journal.c |   15 ++++++++++++---
+ fs/ocfs2/journal.h |    1 +
+ fs/ocfs2/super.c   |    3 +++
+ 3 files changed, 16 insertions(+), 3 deletions(-)
 
---- a/fs/ocfs2/move_extents.c~ocfs2-validate-move-extents-against-a-stable-eof
-+++ a/fs/ocfs2/move_extents.c
-@@ -907,6 +907,30 @@ out:
- 	return ret;
+--- a/fs/ocfs2/journal.c~ocfs2-stop-recovery-before-shutting-down-local-allocators
++++ a/fs/ocfs2/journal.c
+@@ -227,13 +227,22 @@ void ocfs2_recovery_disable_quota(struct
+ 	ocfs2_recovery_disable(osb, OCFS2_REC_QUOTA_WANT_DISABLE);
  }
  
-+static int ocfs2_validate_and_adjust_move_range(struct inode *inode,
-+						struct ocfs2_move_extents *range)
++/* Stop producers and drain completion work without freeing recovery state. */
++void ocfs2_recovery_stop(struct ocfs2_super *osb)
 +{
-+	u64 i_size = i_size_read(inode);
-+
-+	if (range->me_start > i_size)
-+		return -EINVAL;
-+
-+	if (range->me_len > i_size - range->me_start)
-+		range->me_len = i_size - range->me_start;
-+
-+	/*
-+	 * The default threshold for defragmentation is 1 MiB, which
-+	 * matches the maximum OCFS2 cluster size.
-+	 */
-+	if (!range->me_threshold)
-+		range->me_threshold = 1024 * 1024;
-+
-+	if (range->me_threshold > i_size)
-+		range->me_threshold = i_size;
-+
-+	return 0;
++	ocfs2_recovery_disable(osb, OCFS2_REC_WANT_DISABLE);
 +}
 +
- static int ocfs2_move_extents(struct ocfs2_move_extents_context *context)
+ void ocfs2_recovery_exit(struct ocfs2_super *osb)
  {
- 	int status;
-@@ -936,6 +960,21 @@ static int ocfs2_move_extents(struct ocf
- 		goto out_rw_unlock;
- 	}
+ 	struct ocfs2_recovery_map *rm;
  
-+	status = ocfs2_validate_and_adjust_move_range(inode, context->range);
-+	if (status) {
-+		mlog_errno(status);
-+		goto out_inode_unlock;
-+	}
-+
-+	/* The goal check depends on the adjusted range length. */
-+	if (!context->auto_defrag) {
-+		status = ocfs2_validate_and_adjust_move_goal(inode, context->range);
-+		if (status) {
-+			mlog_errno(status);
-+			goto out_inode_unlock;
-+		}
-+	}
-+
+-	/* disable any new recovery threads and wait for any currently
+-	 * running ones to exit. Do this before setting the vol_state. */
+-	ocfs2_recovery_disable(osb, OCFS2_REC_WANT_DISABLE);
++	/*
++	 * Disable producers and drain work before freeing recovery state.
++	 * Do this before setting vol_state to VOLUME_DISMOUNTED: completion
++	 * work may still be waiting in __ocfs2_wait_on_mount().
++	 */
++	ocfs2_recovery_stop(osb);
+ 
  	/*
- 	 * remember ip_xattr_sem also needs to be held if necessary
- 	 */
-@@ -1028,27 +1067,8 @@ int ocfs2_ioctl_move_extents(struct file
- 		goto out_free;
- 	}
+ 	 * Now that recovery is shut down, and the osb is about to be
+--- a/fs/ocfs2/journal.h~ocfs2-stop-recovery-before-shutting-down-local-allocators
++++ a/fs/ocfs2/journal.h
+@@ -147,6 +147,7 @@ void ocfs2_complete_recovery(struct work
+ void ocfs2_wait_for_recovery(struct ocfs2_super *osb);
  
--	if (range.me_start > i_size_read(inode)) {
--		status = -EINVAL;
--		goto out_free;
--	}
--
--	if (range.me_start + range.me_len > i_size_read(inode))
--			range.me_len = i_size_read(inode) - range.me_start;
--
- 	context->range = &range;
+ int ocfs2_recovery_init(struct ocfs2_super *osb);
++void ocfs2_recovery_stop(struct ocfs2_super *osb);
+ void ocfs2_recovery_exit(struct ocfs2_super *osb);
+ void ocfs2_recovery_disable_quota(struct ocfs2_super *osb);
  
--	/*
--	 * ok, the default threshold for the defragmentation
--	 * is 1M, since our maximum clustersize was 1M also.
--	 * any thought?
--	 */
--	if (!range.me_threshold)
--		range.me_threshold = 1024 * 1024;
--
--	if (range.me_threshold > i_size_read(inode))
--		range.me_threshold = i_size_read(inode);
--
- 	if (range.me_flags & ~(OCFS2_MOVE_EXT_FL_AUTO_DEFRAG |
- 			       OCFS2_MOVE_EXT_FL_PART_DEFRAG)) {
- 		status = -EINVAL;
-@@ -1060,23 +1080,11 @@ int ocfs2_ioctl_move_extents(struct file
+--- a/fs/ocfs2/super.c~ocfs2-stop-recovery-before-shutting-down-local-allocators
++++ a/fs/ocfs2/super.c
+@@ -1831,6 +1831,9 @@ static void ocfs2_dismount_volume(struct
+ 	/* Wait for worker to be done with the work structure in osb */
+ 	cancel_work_sync(&osb->dquot_drop_work);
  
- 		if (range.me_flags & OCFS2_MOVE_EXT_FL_PART_DEFRAG)
- 			context->partial = 1;
--	} else {
--		/*
--		 * first best-effort attempt to validate and adjust the goal
--		 * (physical address in block), while it can't guarantee later
--		 * operation can succeed all the time since global_bitmap may
--		 * change a bit over time.
--		 */
--
--		status = ocfs2_validate_and_adjust_move_goal(inode, &range);
--		if (status)
--			goto out_copy;
- 	}
++	/* Stop recovery producers before releasing their local allocators. */
++	ocfs2_recovery_stop(osb);
++
+ 	ocfs2_shutdown_local_alloc(osb);
  
- 	status = ocfs2_move_extents(context);
- 	if (status)
- 		mlog_errno(status);
--out_copy:
- 	/*
- 	 * movement/defragmentation may end up being partially completed,
- 	 * that's the reason why we need to return userspace the finished
+ 	ocfs2_truncate_log_shutdown(osb);
 _
 
 Patches currently in -mm which might be from zzzccc427@gmail.com are
