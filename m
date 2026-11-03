@@ -1,47 +1,47 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793672241;
-	b=ErIxhiWfc1z+Ao4tiUEV1mYTrdWcUDaWk+oRwev5P27TQpMKuaE8MLcHt/dOCVe0bSrB
-	 BM6gXtWMYXBCUKe9OA4WJ8OZXYclpU6SNeWbfRHp0+YXQpx3EyZ/KN5j79oC4OJi2ecA8
-	 PePJD4zintiXeYjy95actAqNRSe2ZerLj8yeSj0uqG6tInOgsqmcapOSYsoMRxdknVbh0
-	 lB9Ek9v+yAvN3lITLiLfosxkoHjS+8lcdQ5GnWXODt12aFFx0H5qTARZF0cCCSJnogFCW
-	 Qtn+lQNerZkTobOmJerthJYO0Dizba/1bkMJtCLgxXmbLI97Mwxm/uwXsw3L5zYYr/A==
+	t=1793672244;
+	b=hurHtRaJKBVVkBDxlcEtTs6EWToUG5JdGST2MAo8rKAig8+Qgc77Y8+obIpm6FZkltBH
+	 FT/N+2xMvjSXPxRKo2Zu5Y8H9qDEjH9MVHK5U503KPHMmNZ2GgHHqAH0k9ItvKMI7tj9h
+	 8hgI1NbBNaLZ1AlkosZlnZp0h/+sqiBpLPtUJzXMDTs2VvvTyJBpCL9nIHKDLqG0cdsIN
+	 hOiDlHttTV4Xpm1bJqMv5pjBvGyJzKQ1/oR2lRCUuOoZXD1wUr7RmCY7EVk7QBmywy+v5
+	 OouPYPzRjCid1kSG7xPuwgrzALQi3f3J6JSJ5+aV+Af7qhvc68SR6sZ7XU9jdqa0ORQ==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793672241;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793672244;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=+c3z4vIwouRb2z9inomDkiAWNOgz7WIKqN5Kb/Yjl20=;
-	b=csnVHW3Dx9pjq+xEsuNqQ0WisO7REpmhzzKcGLLoGgBFJtZme7XJOuEcuXeOIOOPEn1W
-	 eLKyDnJgkgVp0N/ZHkT4fRhJnZC2pnQlh0ZWCJ3NQiNu1MX0A92oKSs+01A2L9ZDIrqNn
-	 LPX0sIZgOfG4drXYS7RgFrO5ftNsTKPne/p278SIqg2p9NQAmzm0Ibt5mLsJdGunhSYvd
-	 RALteU0hzpZ/z3S+A0icxjUw2llw0+uFxVpyTRf7ktVKEA66vzBHB0DwRpu8Jif3R6sSE
-	 KVlkDDSrOeUKrsf0y0BGMlDZjIu2g5NnF5Xk9J0hLfshknIivQJ8JWPhRd1MJFJU6Ug==
+	bh=s5FOKQpcLnU18zz3u7tSrcFdl3Togb8v0Jo1MAUJyAc=;
+	b=cW2a6Pmhz+liV6NMs4qmif9CogkU9qGDK/3m0rmLu0eAYszk9R08++tPjsO+fOMzyK7P
+	 MaL41+pvMLmkjs2O9l6/ZAdGpMF+r0uE16cqhirwEVF+uEopZFTfSntxhGT8BJZagvACO
+	 zP//x14kqAonEFjIPMM1i1wW6hci960PZLDElAxDqI8Z6e4ogQmgTVncPt9yHGDFHk9Bo
+	 a200JgJoNi86Q/Ib/2UerMzR+WLjZtHNIGO8gZ/7HSsOkCwe/vf51V35euukCVaBNzTB5
+	 fjJYHt3dSGh9soxKR4kPB8gC9/Ns3C8Erq9EEMohdLp6XONab1iGTRdAu4XLAQ3N5MQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=StbF8fZd;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=PegqQlVd;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 38AF4606A335
-	for <mm-commits@vger.kernel.org>; Tue,  3 Nov 2026 02:17:21 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B016A606A327;
+	Tue,  3 Nov 2026 02:17:23 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=StbF8fZd
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 01F451F00A18;
-	Tue,  3 Nov 2026 02:17:20 +0000 (UTC)
+	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=PegqQlVd
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3791E1F00A18;
+	Tue,  3 Nov 2026 02:17:23 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1793672241;
-	bh=+c3z4vIwouRb2z9inomDkiAWNOgz7WIKqN5Kb/Yjl20=;
+	d=linux-foundation.org; s=korg; t=1793672243;
+	bh=s5FOKQpcLnU18zz3u7tSrcFdl3Togb8v0Jo1MAUJyAc=;
 	h=Date:To:From:Subject;
-	b=StbF8fZdkBwQYdaR0TqPrFwNO++vlICVYi9Yy1yfPrE0PoZ/IjqITgQuEENgMaxjV
-	 jJSexlciD8iKlWdFoXt7LTUTCE8P4QryfUNNygqLfXCJ51D30yCc1RDyAKZOx+BfTc
-	 Z+ouKF0en4fy2XhYRVU3X8/AoM286MqBiAZYHb/U=
-Date: Mon, 02 Nov 2026 18:17:20 -0800
-To: mm-commits@vger.kernel.org,mason@kernel.org,ljs@kernel.org,
-	andrewjballance@gmail.com,aliceryhl@google.com,liam@infradead.org,
-	akpm@linux-foundation.org
+	b=PegqQlVdilFkAfA6qdf63Mp1uK4lxUaX1cq28rv7ZgyWLJopZjHUQWOhZTHcZDZ3V
+	 dRiFgL16F9csaH5XqLNdUnojTsNRZ1NPIgdTtR9dil1wsu92KorDVguL1WXCGTx71u
+	 sSet4J6ZQoBPn9kWbVevzyAeb8Alk5jvrFhQbHYg=
+Date: Mon, 02 Nov 2026 18:17:22 -0800
+To: mm-commits@vger.kernel.org,stable@vger.kernel.org,mason@kernel.org,
+	ljs@kernel.org,andrewjballance@gmail.com,aliceryhl@google.com,
+	liam@infradead.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + maple_tree-test-emptying-tree-while-rcu-reading.patch added to mm-hotfixes-unstable branch
-Message-Id: <20261103021721.01F451F00A18@smtp.kernel.org>
+Subject: + maple_tree-update-internal-warning-and-bug_on-code.patch added to mm-hotfixes-unstable branch
+Message-Id: <20261103021723.3791E1F00A18@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -53,12 +53,12 @@ Precedence: list
 
 
 The patch titled
-     Subject: maple_tree: Test emptying tree while RCU reading
+     Subject: maple_tree: Update internal warning and bug_on code
 has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     maple_tree-test-emptying-tree-while-rcu-reading.patch
+     maple_tree-update-internal-warning-and-bug_on-code.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/maple_tree-test-emptying-tree-while-rcu-reading.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/maple_tree-update-internal-warning-and-bug_on-code.patch
 
 This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -77,205 +77,232 @@ and is updated there most days
 
 ------------------------------------------------------
 From: "Liam R. Howlett (Google)" <liam@infradead.org>
-Subject: maple_tree: Test emptying tree while RCU reading
-Date: Mon, 02 Nov 2026 21:07:23 -0500
+Subject: maple_tree: Update internal warning and bug_on code
+Date: Mon, 02 Nov 2026 21:07:24 -0500
 
-Add a test case for the rcu reader being restarted by emptying the tree.
-A reverse walk from index 0 must not return the new root entry.
+When CONFIG_DEBUG_MAPLE_TREE is set, call WARN_ON() once per site after
+the custom information is dumped about the tree.  Without using the
+kernel's WARN_ON calls, syzbot will not catch issues detected by this
+code.  The BUG_ON variants now stop instead of dumping and continuing.
 
-Link: https://lore.kernel.org/20261103020724.2614498-3-liam@infradead.org
+Update the non-debug code to call WARN_ON_ONCE() as well.
+
+The userspace tests asserted on dump_stack() but only print on
+WARN_ON(), so make WARN() fatal in maple-shared.h and have the maple
+test exit with the result of maple_tree_seed().
+
+Link: https://lore.kernel.org/20261103020724.2614498-4-liam@infradead.org
+Fixes: f0a1f866aba1 ("maple_tree: add debug BUG_ON and WARN_ON variants")
 Signed-off-by: Liam R. Howlett (Google) <liam@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Cc: Lorenzo Stoakes <ljs@kernel.org>
+Reported-by: Lorenzo Stoakes <ljs@kernel.org>
 Cc: Chris Mason <mason@kernel.org>
 Cc: Alice Ryhl <aliceryhl@google.com>
 Cc: Andrew Ballance <andrewjballance@gmail.com>
+Cc: <stable@vger.kernel.org>
 ---
 
- lib/test_maple_tree.c |  165 ++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 165 insertions(+)
+ include/linux/maple_tree.h          |   48 +++++++++++++-------------
+ tools/testing/radix-tree/maple.c    |   13 ++++---
+ tools/testing/shared/maple-shared.h |   33 +++++++++++++++++
+ 3 files changed, 66 insertions(+), 28 deletions(-)
 
---- a/lib/test_maple_tree.c~maple_tree-test-emptying-tree-while-rcu-reading
-+++ a/lib/test_maple_tree.c
-@@ -3740,6 +3740,170 @@ static noinline void __init check_range6
- 	rcu_barrier();
+--- a/include/linux/maple_tree.h~maple_tree-update-internal-warning-and-bug_on-code
++++ a/include/linux/maple_tree.h
+@@ -684,7 +684,7 @@ void mt_cache_shrink(void);
+ 		pr_info("Pass: %u Run:%u\n",				\
+ 			atomic_read(&maple_tree_tests_passed),		\
+ 			atomic_read(&maple_tree_tests_run));		\
+-		dump_stack();						\
++		BUG_ON(1);						\
+ 	} else {							\
+ 		atomic_inc(&maple_tree_tests_passed);			\
+ 	}								\
+@@ -700,7 +700,7 @@ void mt_cache_shrink(void);
+ 		pr_info("Pass: %u Run:%u\n",				\
+ 			atomic_read(&maple_tree_tests_passed),		\
+ 			atomic_read(&maple_tree_tests_run));		\
+-		dump_stack();						\
++		BUG_ON(1);						\
+ 	} else {							\
+ 		atomic_inc(&maple_tree_tests_passed);			\
+ 	}								\
+@@ -717,7 +717,7 @@ void mt_cache_shrink(void);
+ 		pr_info("Pass: %u Run:%u\n",				\
+ 			atomic_read(&maple_tree_tests_passed),		\
+ 			atomic_read(&maple_tree_tests_run));		\
+-		dump_stack();						\
++		BUG_ON(1);						\
+ 	} else {							\
+ 		atomic_inc(&maple_tree_tests_passed);			\
+ 	}								\
+@@ -726,16 +726,16 @@ void mt_cache_shrink(void);
+ #define MT_WARN_ON(__tree, __x)  ({					\
+ 	int ret = !!(__x);						\
+ 	atomic_inc(&maple_tree_tests_run);				\
+-	if (ret) {							\
+-		pr_info("WARN at %s:%d (%u)\n",				\
+-		__func__, __LINE__, __x);				\
++	if (!ret) {							\
++		atomic_inc(&maple_tree_tests_passed);			\
++	} else if (__ONCE_LITE_IF(ret)) {				\
++		pr_info("WARN at %s:%d\n",				\
++		__func__, __LINE__);					\
+ 		mt_dump(__tree, mt_dump_hex);				\
+ 		pr_info("Pass: %u Run:%u\n",				\
+ 			atomic_read(&maple_tree_tests_passed),		\
+ 			atomic_read(&maple_tree_tests_run));		\
+-		dump_stack();						\
+-	} else {							\
+-		atomic_inc(&maple_tree_tests_passed);			\
++		WARN_ON(1);						\
+ 	}								\
+ 	unlikely(ret);							\
+ })
+@@ -743,17 +743,17 @@ void mt_cache_shrink(void);
+ #define MAS_WARN_ON(__mas, __x) ({					\
+ 	int ret = !!(__x);						\
+ 	atomic_inc(&maple_tree_tests_run);				\
+-	if (ret) {							\
+-		pr_info("WARN at %s:%d (%u)\n",				\
+-		__func__, __LINE__, __x);				\
++	if (!ret) {							\
++		atomic_inc(&maple_tree_tests_passed);			\
++	} else if (__ONCE_LITE_IF(ret)) {				\
++		pr_info("WARN at %s:%d\n",				\
++		__func__, __LINE__);					\
+ 		mas_dump(__mas);					\
+ 		mt_dump((__mas)->tree, mt_dump_hex);			\
+ 		pr_info("Pass: %u Run:%u\n",				\
+ 			atomic_read(&maple_tree_tests_passed),		\
+ 			atomic_read(&maple_tree_tests_run));		\
+-		dump_stack();						\
+-	} else {							\
+-		atomic_inc(&maple_tree_tests_passed);			\
++		WARN_ON(1);						\
+ 	}								\
+ 	unlikely(ret);							\
+ })
+@@ -761,18 +761,18 @@ void mt_cache_shrink(void);
+ #define MAS_WR_WARN_ON(__wrmas, __x) ({					\
+ 	int ret = !!(__x);						\
+ 	atomic_inc(&maple_tree_tests_run);				\
+-	if (ret) {							\
+-		pr_info("WARN at %s:%d (%u)\n",				\
+-		__func__, __LINE__, __x);				\
++	if (!ret) {							\
++		atomic_inc(&maple_tree_tests_passed);			\
++	} else if (__ONCE_LITE_IF(ret)) {				\
++		pr_info("WARN at %s:%d\n",				\
++		__func__, __LINE__);					\
+ 		mas_wr_dump(__wrmas);					\
+ 		mas_dump((__wrmas)->mas);				\
+ 		mt_dump((__wrmas)->mas->tree, mt_dump_hex);		\
+ 		pr_info("Pass: %u Run:%u\n",				\
+ 			atomic_read(&maple_tree_tests_passed),		\
+ 			atomic_read(&maple_tree_tests_run));		\
+-		dump_stack();						\
+-	} else {							\
+-		atomic_inc(&maple_tree_tests_passed);			\
++		WARN_ON(1);						\
+ 	}								\
+ 	unlikely(ret);							\
+ })
+@@ -780,9 +780,9 @@ void mt_cache_shrink(void);
+ #define MT_BUG_ON(__tree, __x)		BUG_ON(__x)
+ #define MAS_BUG_ON(__mas, __x)		BUG_ON(__x)
+ #define MAS_WR_BUG_ON(__mas, __x)	BUG_ON(__x)
+-#define MT_WARN_ON(__tree, __x)		WARN_ON(__x)
+-#define MAS_WARN_ON(__mas, __x)		WARN_ON(__x)
+-#define MAS_WR_WARN_ON(__mas, __x)	WARN_ON(__x)
++#define MT_WARN_ON(__tree, __x)		WARN_ON_ONCE(__x)
++#define MAS_WARN_ON(__mas, __x)		WARN_ON_ONCE(__x)
++#define MAS_WR_WARN_ON(__mas, __x)	WARN_ON_ONCE(__x)
+ #endif /* CONFIG_DEBUG_MAPLE_TREE */
+ 
+ /**
+--- a/tools/testing/radix-tree/maple.c~maple_tree-update-internal-warning-and-bug_on-code
++++ a/tools/testing/radix-tree/maple.c
+@@ -36502,22 +36502,27 @@ static void regression_tests(void)
+ 	test_spanning_store_regression();
  }
  
-+/*
-+ * A reader that restarts after its leaf died may find a tree without nodes:
-+ * emptied, or emptied and then given a single entry at 0.  Each case starts
-+ * from a tree with nodes, built by check_seq().  The stores run while the
-+ * reader holds rcu_read_lock, so they use GFP_ATOMIC.
-+ */
-+static noinline void __init check_restart_no_node(struct maple_tree *mt)
-+{
-+	void *ptr = xa_mk_value(1234);
-+	void *entry;
-+	MA_STATE(mas, mt, 0, 0);
-+
-+	MT_BUG_ON(mt, !mtree_empty(mt));
-+	mt_set_non_kernel(99999);
-+
-+	/* find: the tree is emptied */
-+	mt_init_flags(mt, MT_FLAGS_USE_RCU);
-+	check_seq(mt, 100, false);
-+	rcu_read_lock();
-+	mas_set(&mas, 0);
-+	entry = mas_find(&mas, ULONG_MAX);
-+	MT_BUG_ON(mt, entry != xa_mk_value(0));
-+	MT_BUG_ON(mt, mtree_store_range(mt, 0, ULONG_MAX, NULL, GFP_ATOMIC));
-+	entry = mas_find(&mas, ULONG_MAX);
-+	MT_BUG_ON(mt, entry != NULL);
-+	MT_BUG_ON(mt, mas.status != ma_none);
-+	MT_BUG_ON(mt, mas.index != 0);
-+	MT_BUG_ON(mt, mas.last != ULONG_MAX);
-+	entry = mas_find(&mas, ULONG_MAX);
-+	MT_BUG_ON(mt, entry != NULL);
-+	MT_BUG_ON(mt, mas.status != ma_none);
-+	rcu_read_unlock();
-+	mtree_destroy(mt);
-+	rcu_barrier();
-+
-+	/* next: the tree is emptied */
-+	mt_init_flags(mt, MT_FLAGS_USE_RCU);
-+	check_seq(mt, 100, false);
-+	rcu_read_lock();
-+	mas_set(&mas, 0);
-+	entry = mas_find(&mas, ULONG_MAX);
-+	MT_BUG_ON(mt, entry != xa_mk_value(0));
-+	MT_BUG_ON(mt, mtree_store_range(mt, 0, ULONG_MAX, NULL, GFP_ATOMIC));
-+	entry = mas_next(&mas, ULONG_MAX);
-+	MT_BUG_ON(mt, entry != NULL);
-+	MT_BUG_ON(mt, mas.status != ma_none);
-+	MT_BUG_ON(mt, mas.index != 0);
-+	MT_BUG_ON(mt, mas.last != ULONG_MAX);
-+	rcu_read_unlock();
-+	mtree_destroy(mt);
-+	rcu_barrier();
-+
-+	/* find: the tree is emptied, then holds one entry at 0 */
-+	mt_init_flags(mt, MT_FLAGS_USE_RCU);
-+	check_seq(mt, 100, false);
-+	rcu_read_lock();
-+	mas_set(&mas, 0);
-+	entry = mas_find(&mas, ULONG_MAX);
-+	MT_BUG_ON(mt, entry != xa_mk_value(0));
-+	MT_BUG_ON(mt, mtree_store_range(mt, 0, ULONG_MAX, NULL, GFP_ATOMIC));
-+	MT_BUG_ON(mt, mtree_store(mt, 0, ptr, GFP_ATOMIC));
-+	entry = mas_find(&mas, ULONG_MAX);
-+	MT_BUG_ON(mt, entry != NULL);
-+	MT_BUG_ON(mt, mas.status != ma_none);
-+	MT_BUG_ON(mt, mas.index != 1);
-+	MT_BUG_ON(mt, mas.last != ULONG_MAX);
-+	rcu_read_unlock();
-+	mtree_destroy(mt);
-+	rcu_barrier();
-+
-+	/* find_rev: the tree is emptied */
-+	mt_init_flags(mt, MT_FLAGS_USE_RCU);
-+	check_seq(mt, 100, false);
-+	rcu_read_lock();
-+	mas_set(&mas, ULONG_MAX);
-+	entry = mas_find_rev(&mas, 0);
-+	MT_BUG_ON(mt, entry != xa_mk_value(100));
-+	MT_BUG_ON(mt, mtree_store_range(mt, 0, ULONG_MAX, NULL, GFP_ATOMIC));
-+	entry = mas_find_rev(&mas, 0);
-+	MT_BUG_ON(mt, entry != NULL);
-+	MT_BUG_ON(mt, mas.status != ma_none);
-+	MT_BUG_ON(mt, mas.index != 0);
-+	MT_BUG_ON(mt, mas.last != ULONG_MAX);
-+	entry = mas_find_rev(&mas, 0);
-+	MT_BUG_ON(mt, entry != NULL);
-+	MT_BUG_ON(mt, mas.status != ma_none);
-+	rcu_read_unlock();
-+	mtree_destroy(mt);
-+	rcu_barrier();
-+
-+	/* prev: the tree is emptied, then holds one entry at 0 */
-+	mt_init_flags(mt, MT_FLAGS_USE_RCU);
-+	check_seq(mt, 100, false);
-+	rcu_read_lock();
-+	mas_set(&mas, ULONG_MAX);
-+	entry = mas_find_rev(&mas, 0);
-+	MT_BUG_ON(mt, entry != xa_mk_value(100));
-+	MT_BUG_ON(mt, mtree_store_range(mt, 0, ULONG_MAX, NULL, GFP_ATOMIC));
-+	MT_BUG_ON(mt, mtree_store(mt, 0, ptr, GFP_ATOMIC));
-+	entry = mas_prev(&mas, 0);
-+	MT_BUG_ON(mt, entry != ptr);
-+	MT_BUG_ON(mt, mas.status != ma_root);
-+	MT_BUG_ON(mt, mas.index != 0);
-+	MT_BUG_ON(mt, mas.last != 0);
-+	rcu_read_unlock();
-+	mtree_destroy(mt);
-+	rcu_barrier();
-+
-+	/* find_rev: the entry at 0 is below the minimum */
-+	mt_init_flags(mt, MT_FLAGS_USE_RCU);
-+	check_seq(mt, 100, false);
-+	rcu_read_lock();
-+	mas_set(&mas, ULONG_MAX);
-+	entry = mas_find_rev(&mas, 1);
-+	MT_BUG_ON(mt, entry != xa_mk_value(100));
-+	MT_BUG_ON(mt, mtree_store_range(mt, 0, ULONG_MAX, NULL, GFP_ATOMIC));
-+	MT_BUG_ON(mt, mtree_store(mt, 0, ptr, GFP_ATOMIC));
-+	entry = mas_find_rev(&mas, 1);
-+	MT_BUG_ON(mt, entry != NULL);
-+	MT_BUG_ON(mt, mas.status != ma_root);
-+	MT_BUG_ON(mt, mas.index != 0);
-+	MT_BUG_ON(mt, mas.last != 0);
-+	rcu_read_unlock();
-+	mtree_destroy(mt);
-+	rcu_barrier();
-+
-+	/* find_rev: the reader is at 0 when the tree gets one entry at 0 */
-+	mt_init_flags(mt, MT_FLAGS_USE_RCU);
-+	check_seq(mt, 100, false);
-+	rcu_read_lock();
-+	mas_set(&mas, 0);
-+	entry = mas_find_rev(&mas, 0);
-+	MT_BUG_ON(mt, entry != xa_mk_value(0));
-+	MT_BUG_ON(mt, mtree_store_range(mt, 0, ULONG_MAX, NULL, GFP_ATOMIC));
-+	MT_BUG_ON(mt, mtree_store(mt, 0, ptr, GFP_ATOMIC));
-+	entry = mas_find_rev(&mas, 0);
-+	MT_BUG_ON(mt, entry != NULL);
-+	MT_BUG_ON(mt, mas.status != ma_root);
-+	MT_BUG_ON(mt, mas.index != 0);
-+	MT_BUG_ON(mt, mas.last != 0);
-+	rcu_read_unlock();
-+	mtree_destroy(mt);
-+	rcu_barrier();
-+
-+	/* find_range_rev: the reader is at 0 when the tree gets one entry at 0 */
-+	mt_init_flags(mt, MT_FLAGS_USE_RCU);
-+	check_seq(mt, 100, false);
-+	rcu_read_lock();
-+	mas_set(&mas, 0);
-+	entry = mas_find_range_rev(&mas, 0);
-+	MT_BUG_ON(mt, entry != xa_mk_value(0));
-+	MT_BUG_ON(mt, mtree_store_range(mt, 0, ULONG_MAX, NULL, GFP_ATOMIC));
-+	MT_BUG_ON(mt, mtree_store(mt, 0, ptr, GFP_ATOMIC));
-+	entry = mas_find_range_rev(&mas, 0);
-+	MT_BUG_ON(mt, entry != NULL);
-+	MT_BUG_ON(mt, mas.status != ma_root);
-+	MT_BUG_ON(mt, mas.index != 0);
-+	MT_BUG_ON(mt, mas.last != 0);
-+	rcu_read_unlock();
-+	mtree_destroy(mt);
-+	rcu_barrier();
-+	mt_set_non_kernel(0);
-+}
-+
- static DEFINE_MTREE(tree);
- static int __init maple_tree_seed(void)
+-void maple_tree_tests(void)
++int maple_tree_tests(void)
  {
-@@ -4031,6 +4195,7 @@ static int __init maple_tree_seed(void)
++	int ret;
++
+ #if !defined(BENCH)
+ 	regression_tests();
+ 	farmer_tests();
+ #endif
+-	maple_tree_seed();
++	ret = maple_tree_seed();
+ 	maple_tree_harvest();
++	return ret;
+ }
  
- 	check_range64_in_rcu(&tree);
+ int __weak main(void)
+ {
++	int ret;
++
+ 	maple_tree_init();
+-	maple_tree_tests();
++	ret = maple_tree_tests();
+ 	rcu_barrier();
+ 	if (nr_allocated)
+ 		printf("nr_allocated = %d\n", nr_allocated);
+-	return 0;
++	return ret ? EXIT_FAILURE : EXIT_SUCCESS;
+ }
+--- a/tools/testing/shared/maple-shared.h~maple_tree-update-internal-warning-and-bug_on-code
++++ a/tools/testing/shared/maple-shared.h
+@@ -8,6 +8,7 @@
+ #include "shared.h"
+ #include <stdlib.h>
+ #include <time.h>
++#include <assert.h>
+ #include "linux/init.h"
  
-+	check_restart_no_node(&tree);
+ void maple_rcu_cb(struct rcu_head *head);
+@@ -20,5 +21,37 @@ do {
+     call_rcu(&((_p_struct)->_memb), rcu_cb);    \
+ } while(0);
  
- #if defined(BENCH)
- skip:
++/* Make WARN() fatal */
++#undef WARN
++#undef WARN_ON
++#undef WARN_ONCE
++#undef WARN_ON_ONCE
++#define WARN(condition, format...) ({				\
++	int __ret_warn_on = !!(condition);			\
++	if (unlikely(__ret_warn_on)) {				\
++		__WARN_printf(format);				\
++		assert(0);					\
++	}							\
++	unlikely(__ret_warn_on);				\
++})
++#define WARN_ON(condition)					\
++	WARN(condition, "assertion failed at %s:%d\n", __FILE__, __LINE__)
++#define WARN_ONCE(condition, format...)	WARN(condition, format)
++#define WARN_ON_ONCE(condition)		WARN_ON(condition)
++
++/* Once state for the debug macros */
++#ifndef __ONCE_LITE_IF
++#define __ONCE_LITE_IF(condition)				\
++	({							\
++		static bool __already_done;			\
++		bool __ret_once = false;			\
++								\
++		if ((condition) && !__already_done) {		\
++			__already_done = true;			\
++			__ret_once = true;			\
++		}						\
++		__ret_once;					\
++	})
++#endif
+ 
+ #endif /* __MAPLE_SHARED_H__ */
 _
 
 Patches currently in -mm which might be from liam@infradead.org are
