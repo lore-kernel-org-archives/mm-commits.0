@@ -1,49 +1,47 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793672153;
-	b=zJjaGi3iZWYw1eortFF0RwUOeYTfVlyHnApkkXTPFviiBb48h2ftqbOFY286WI2UwRsH
-	 6ct63KOBNwTuBnnfa7wSq6fWfKU9rtj+FV41g3+pzfCcbQVS4RDBoIQvGiT/zdrsbZPfA
-	 DSCYxbQMK6QfggydMoDx561Wd+3IiobXP6OB3ThIUibdtQ7eP4DaEA1zqu7bx6ItFwpi0
-	 G69T+INzUzAxdVj6ogbBMAzws/1uDJUy4+vaP+1a1nRkVcLY6j33uWubq6lUTfbAFsIr+
-	 ash9Vu74sVWX+PPoxEUKWCXFHiJcqYhSXF/Ak/lRxUuW+xqkuihq76Si1OANtWDhigA==
+	t=1793672149;
+	b=0hHC6KnpA0Xpur/p1n8jqzU+DJUCzfMlqHamGPNsjtBOl8kiT6nY+Xa7lH/C3WRuIRIP
+	 Ys8KBOSuuGZrFvPqF8KYUSzbVJd7xXrj2Rp6Piv4DzUMuHtCu31fZx7Jc6eceTimoojYG
+	 7R/LSXVjZimHzmfQsc2fITq4ADM5GfGZnD4kDPFeOlikSu1tquIktF643bBl37zoxc+Mv
+	 eMkwCwn+uxk+e30M/kwOYKO6s8DVwR2jLc7yPwOijYfwNjBV1SUrGf70UacckR+FIvaRl
+	 Zp32AreRrXzywLJfKpb17NojgCo2g+SnJ37o3lmTlnvBYS3SzaC9hPWlvRwkkMVR+sg==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793672153;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793672149;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=k1o7p4J7sgEdfTOjYlivc7GUu4SngMQukxvGtidKIQQ=;
-	b=m55hIgTgPi62DmBzhGRxZ2jm50JYL2yxR+E5qecME9YPOXZHLeGTNFbNHWwF4UIqjEe9
-	 0dpmnn8B/JgCa9JHhXX39s1jcfo2HtyWlDkwzsihI+5sglT8IM+xf946gPcH/NGYfpwIi
-	 1hfYSAUneDx4ayB8z8wQS70cICTTGHG1ID4CtkE6aLV3EIvNNoYxBQHYBx7Z7S1wRrdVB
-	 ohp/vLqzcSaG3fzu2WTUX9cyf8kp9qieSETFtgumHMP/A9NRxDHl2VgkCeM5DcAr0kQ0w
-	 N9brk0jwhKjy7yuGUzIu8MtpDp2AOMbDYMITiTEP0G8GFpEevox6aZGEEsJUIS6nRSQ==
+	bh=GSvchxImhsRADPyNd+fzKJyoCxm4mWzX2q0i13yjFgk=;
+	b=uje911wlP/E7uaOWrf/FyxgChgYc1SeV9an9+n02dZkk4fxDpoPOq7XEB0vlBkkKIKu3
+	 kysHqENJq5jo7BSyqN+YueF7zDjs5vx7/XdcMOa+x+1sOe7MnzcOo+vdX6FjKg4i2XItz
+	 +BWg241arLZr5UKgVVtjtiRzT5pgohE87uf6095B5kF0yNou4eW+JizxWDnTode3r79sh
+	 xBNb4RyPP6pAbmuQkqUF4Pz8//4mDgLm7Bgxs7dokNfXjQfGQK4yGGtIakK7ywuqydNm1
+	 8qA5RP73dPQt+fh4nR53rcD/IefCJ3IjnCaO507kqNpTvBcIPDOWpBmuQzZ1LqcgSrg==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=1331iTxy;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=ZsU29Ya8;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6C86B606A330;
-	Tue,  3 Nov 2026 02:15:53 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E0D67606A33F;
+	Tue,  3 Nov 2026 02:15:48 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=1331iTxy
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2980A1F00919;
-	Tue,  3 Nov 2026 02:15:53 +0000 (UTC)
+	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=ZsU29Ya8
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9883A1F00919;
+	Tue,  3 Nov 2026 02:15:48 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1793672153;
-	bh=k1o7p4J7sgEdfTOjYlivc7GUu4SngMQukxvGtidKIQQ=;
+	d=linux-foundation.org; s=korg; t=1793672148;
+	bh=GSvchxImhsRADPyNd+fzKJyoCxm4mWzX2q0i13yjFgk=;
 	h=Date:To:From:Subject;
-	b=1331iTxyaWyX8fySFdbukc+iwm3JSxSBZEJUfet3XD/CeoFyeBT/ZP9Ow4olx2th4
-	 QDTot4MINLmd5hqQjy6ogEJwsm6tPOGh7jRV+Z82a0bPm3u/U6+sddWCcOBctq1Mu3
-	 vIkyvsHpvHY5SqdhnIm1iUvuRmYMZK3rheeJlG6k=
-Date: Mon, 02 Nov 2026 18:15:52 -0800
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,willy@infradead.org,
-	vbabka@kernel.org,surenb@google.com,stable@vger.kernel.org,mhocko@suse.com,
-	mgorman@techsingularity.net,matt@readmodwrite.com,hch@lst.de,
-	dipiets@amazon.it,dgc@kernel.org,brendan.jackman@linux.dev,
-	balbirs@nvidia.com,hannes@cmpxchg.org,akpm@linux-foundation.org
+	b=ZsU29Ya8wjBcqKvSbKGu8QzAqKT9tBHHPzoTkCzOyAN2nOE6T4jjkjvyULwIGm88j
+	 xa5Tgga58TelBFjIogEwirerF4CZdf8seXSrxgJJeqhElKJPUMHb2Q4cogY9MGWe27
+	 GmKy77UQsWU84KWfrWrOLB5h/JGRhCO+c4FOwB8o=
+Date: Mon, 02 Nov 2026 18:15:48 -0800
+To: mm-commits@vger.kernel.org,vbabka@kernel.org,stable@vger.kernel.org,
+	pfalcato@suse.de,liam@infradead.org,jinyue.li@linux.alibaba.com,
+	jannh@google.com,ljs@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] mm-page_alloc-do-not-give-all-non-blocking-requests-reserve-access.patch removed from -mm tree
-Message-Id: <20261103021553.2980A1F00919@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] mm-vma-update-vma-iterator-state-on-error-in-new-vma-merge.patch removed from -mm tree
+Message-Id: <20261103021548.9883A1F00919@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -55,134 +53,133 @@ Precedence: list
 
 
 The quilt patch titled
-     Subject: mm: page_alloc: do not give all non-blocking requests reserve access
+     Subject: mm/vma: update VMA iterator state on error in new VMA merge
 has been removed from the -mm tree.  Its filename was
-     mm-page_alloc-do-not-give-all-non-blocking-requests-reserve-access.patch
+     mm-vma-update-vma-iterator-state-on-error-in-new-vma-merge.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Johannes Weiner <hannes@cmpxchg.org>
-Subject: mm: page_alloc: do not give all non-blocking requests reserve access
-Date: Wed, 28 Oct 2026 13:15:53 -0400
+From: "Lorenzo Stoakes (ARM)" <ljs@kernel.org>
+Subject: mm/vma: update VMA iterator state on error in new VMA merge
+Date: Tue, 27 Oct 2026 11:25:20 +0000
 
-Patch series "mm: page_alloc: fix reserve access for non-blocking
-requests", v2.
+Commit cacded5e42b9 ("mm: avoid using vma_merge() for new VMAs") shared
+code between vma_merge_new_range() and vma_expand().
 
-Two fixes for how non-blocking allocations interact with the highatomic
-reserve.  There are prerequisites for Salvatore's "mm/page_alloc: avoid
-direct reclaim and compaction for costly __GFP_NORETRY allocations" [0].
+However in doing so, it failed to correctly restore the VMA iterator when
+vma_expand() errors out.
 
-Patch 1 narrows which requests may physically take highatomic pages,
-patch 2 narrows which requests may count them in their watermark check.
+This is a problem when the immediately preceding VMA is mergeable and
+vmg->just_expand isn't specified, at which point the VMA iterator is moved
+to the previous VMA.
 
-Both are prerequisites for Salvatore's patch: it clears
-__GFP_DIRECT_RECLAIM for costly __GFP_NORETRY requests, which turns every
-large page cache folio allocation that reaches the slowpath into a
-non-blocking one.  Without patch 1, those requests may fall back to the
-highatomic freelists reserved for atomic requests.  Without patch 2, they
-count the free highatomic pages in their watermark check while being
-served from regular memory, so they can consume regular high-order blocks
-below the min watermark by the size of the reserve.  GFP_NOWAIT requests
-hit both paths today, so these are existing problems worthy of their own
-stable backports; but Salvatore's patch would widen them significantly.
+(Note that vmg->just_expand is a special case for brk(), where the
+iterator will already be positioned at the VMA to be expanded.)
 
-Patch 2 reproduction: a GFP_NOWAIT burst under memory pressure can drain
-regular free memory to zero while the highatomic reserve sits idle. 
-Measured on a 32G box with an anonymous working set, swap, and a full 290M
-reserve, three synthetic bursts drove the 28G Normal zone's regular free
-memory to 28M, 0.8M and 0.6M against a 60M min watermark.  Swapout failed
-its swap table allocation inside reclaim, reclaim scanned 13M pages to
-free 200k, and page faults stalled for tens to hundreds of milliseconds. 
-With the fix the burst stops at the min watermark and nothing else
-happens.  This was found in review and reproduced synthetically; it has
-not been observed in production.
+Resolve things by restoring the VMA iterator on error. Use
+vma_iter_next_range() to do this, so it will correctly stop on the gap
+after the previous VMA, rather than skip to the next VMA after it (this is
+a new VMA merge, so is being applied at a gap).
 
-GFP_ATOMIC order-0 requests have a milder version of the same problem:
-They are entitled to the reserve but are served regular memory first, so
-the fix there has to change the watermark check and the freelist order
-together.  Salvatore's change doesn't interact with this, though; fixing
-that is left for a separate patch.
+To isolate the error handling, return early when a merge isn't
+possible (what the vmg->target check was doing before), then handle the
+merge success/failure case explicitly.
 
+While here, update vma_expand() to jump to the nomem case when
+dup_anon_vma() fails, so vmg->state is correctly updated.
 
-This patch (of 2):
+This doesn't impact anything in practice, but is the correct course and
+since it's part of the error path that this patch addresses, it makes sense
+to update it also.
 
-281dd25c1a01 ("mm/page_alloc: let GFP_ATOMIC order-0 allocs access
-highatomic reserves") accidentally gave all non-blocking allocation
-requests access to highatomic reserves, which includes GFP_NOWAIT and
-other sites clearing __GFP_DIRECT_RECLAIM.
+Users are very unlikely to have observed the issue this patch addresses in
+practice, as it is near-impossible to fail an allocation for an anon_vma,
+but a process under memory pressure that receives a fatal signal could
+trigger it.
 
-While this improved atomic request success rate, it's unintentionally
-broad and can actually worsen highatomic requests by squandering the
-reserves on requests that don't need it.
+This issue was originally reported by Li Jinyue for which I am grateful. He
+indicated this was uncovered by a private syzkaller instance.
 
-There are concurrent efforts to clear __GFP_DIRECT_RECLAIM altogether
-for costly order __GFP_NORETRY requests, which would then also fall
-into this exemption and deplete reserves even faster.
-
-What GFP_ATOMIC has over the others is __GFP_HIGH, which
-alloc_flags_slowpath() translates to ALLOC_MIN_RESERVE.
-
-Narrow the exemption to contexts that have both ALLOC_NON_BLOCK |
-ALLOC_MIN_RESERVE.
-
-Link: https://lore.kernel.org/20261001082152.2879289-1-dipiets@amazon.it [0]
-Link: https://lore.kernel.org/linux-mm/arFBWvzXPYrKuIYi@cmpxchg.org/ [1]
-Link: https://lore.kernel.org/linux-mm/20261001082152.2879289-1-dipiets@amazon.it/ [2]
-Link: https://lore.kernel.org/20261028171719.2043421-1-hannes@cmpxchg.org
-Link: https://lore.kernel.org/20261028171719.2043421-2-hannes@cmpxchg.org
-Fixes: 281dd25c1a01 ("mm/page_alloc: let GFP_ATOMIC order-0 allocs access highatomic reserves")
-Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
+Link: https://lore.kernel.org/20261027-fix-new-merge-bug-v1-1-7023a787e6b9@kernel.org
+Fixes: cacded5e42b9 ("mm: avoid using vma_merge() for new VMAs")
+Signed-off-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Reported-by: Sashiko <sashiko-bot@kernel.org>
-Closes: https://sashiko.dev/#/patchset/20260904115629.3993331-1-dipiets@amazon.it
-Acked-by: Balbir Singh <balbirs@nvidia.com>
-Reviewed-by: Vlastimil Babka (SUSE) <vbabka@kernel.org>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Salvatore Dipietro <dipiets@amazon.it>
-Cc: Christoph Hellwig <hch@lst.de>
-Cc: Dave Chinner <dgc@kernel.org>
-Cc: Matt Fleming <matt@readmodwrite.com>
-Cc: Mel Gorman <mgorman@techsingularity.net>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Brendan Jackman <brendan.jackman@linux.dev>
-Cc: Zi Yan <ziy@nvidia.com>
+Reported-by: Li Jinyue <jinyue.li@linux.alibaba.com>
+Closes: https://lore.kernel.org/all/20261025093921.1011927-1-jinyue.li@linux.alibaba.com/
+Cc: Liam R. Howlett <liam@infradead.org>
+Cc: Vlastimil Babka <vbabka@kernel.org>
+Cc: Jann Horn <jannh@google.com>
+Cc: Pedro Falcato <pfalcato@suse.de>
 Cc: <stable@vger.kernel.org>
 ---
 
- mm/page_alloc.c |    4 +++-
- mm/page_alloc.h |    3 +++
- 2 files changed, 6 insertions(+), 1 deletion(-)
+ mm/vma.c |   28 ++++++++++++++++++----------
+ 1 file changed, 18 insertions(+), 10 deletions(-)
 
---- a/mm/page_alloc.c~mm-page_alloc-do-not-give-all-non-blocking-requests-reserve-access
-+++ a/mm/page_alloc.c
-@@ -3241,7 +3241,9 @@ struct page *rmqueue_buddy(struct zone *
- 			 * reserves as failing now is worse than failing a
- 			 * high-order atomic allocation in the future.
- 			 */
--			if (!page && (alloc_flags & (ALLOC_OOM|ALLOC_NON_BLOCK)))
-+			if (!page &&
-+			    ((alloc_flags & ALLOC_OOM) ||
-+			     (alloc_flags & ALLOC_MASK_ATOMIC) == ALLOC_MASK_ATOMIC))
- 				page = __rmqueue_smallest(zone, order, MIGRATE_HIGHATOMIC);
+--- a/mm/vma.c~mm-vma-update-vma-iterator-state-on-error-in-new-vma-merge
++++ a/mm/vma.c
+@@ -1141,6 +1141,7 @@ struct vm_area_struct *vma_merge_new_ran
+ 	struct vm_area_struct *next = vmg->next;
+ 	unsigned long end = vmg->end;
+ 	bool can_merge_left, can_merge_right;
++	bool move_iter_back = false;
  
- 			if (!page) {
---- a/mm/page_alloc.h~mm-page_alloc-do-not-give-all-non-blocking-requests-reserve-access
-+++ a/mm/page_alloc.h
-@@ -60,6 +60,9 @@
- /* Flags that allow allocations below the min watermark. */
- #define ALLOC_RESERVES (ALLOC_NON_BLOCK|ALLOC_MIN_RESERVE|ALLOC_HIGHATOMIC|ALLOC_OOM)
+ 	mmap_assert_write_locked(vmg->mm);
+ 	VM_WARN_ON_VMG(vmg->middle, vmg);
+@@ -1182,23 +1183,30 @@ struct vm_area_struct *vma_merge_new_ran
+ 			vmg->end = end;
  
-+/* Flags that mean GFP_ATOMIC */
-+#define ALLOC_MASK_ATOMIC (ALLOC_NON_BLOCK|ALLOC_MIN_RESERVE)
+ 		/* In expand-only case we are already positioned at prev. */
+-		if (!vmg->just_expand) {
+-			/* Equivalent to going to the previous range. */
+-			vma_prev(vmg->vmi);
+-		}
++		if (!vmg->just_expand)
++			move_iter_back = true;
+ 	}
+ 
++	if (!can_merge_left && !can_merge_right)
++		return NULL;
 +
++	if (move_iter_back)
++		vma_prev(vmg->vmi);
++
+ 	/*
+ 	 * Now try to expand adjacent VMA(s). This takes care of removing the
+ 	 * following VMA if we have VMAs on both sides.
+ 	 */
+-	if (vmg->target && !vma_expand(vmg)) {
+-		khugepaged_enter_vma(vmg->target, vmg->vm_flags);
+-		vmg->state = VMA_MERGE_SUCCESS;
+-		return vmg->target;
++	if (vma_expand(vmg)) {
++		/* Error occurred, restore iterator. */
++		if (move_iter_back)
++			vma_iter_next_range(vmg->vmi);
++		return NULL;
+ 	}
+ 
+-	return NULL;
++	khugepaged_enter_vma(vmg->target, vmg->vm_flags);
++	vmg->state = VMA_MERGE_SUCCESS;
++	return vmg->target;
+ }
+ 
  /*
-  * Structure for holding the mostly immutable allocation parameters passed
-  * between functions involved in allocations, including the alloc_pages*
+@@ -1288,7 +1296,7 @@ int vma_expand(struct vma_merge_struct *
+ 	if (!ret && vmg->copied_from)
+ 		ret = dup_anon_vma(target, vmg->copied_from, &anon_dup);
+ 	if (ret)
+-		return ret;
++		goto nomem;
+ 
+ 	if (remove_next) {
+ 		vma_start_write(next);
 _
 
-Patches currently in -mm which might be from hannes@cmpxchg.org are
+Patches currently in -mm which might be from ljs@kernel.org are
 
+mm-vma-read-anon_vma-carefully-in-validate_mm.patch
 
