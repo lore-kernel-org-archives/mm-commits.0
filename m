@@ -1,48 +1,48 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793672123;
-	b=rrOdnPbLNStARr0/BHVzV4bWYYlPlnRWdV4ubsB5dtpA9jhQIj0bEeqf87FE+xJTnoKU
-	 maggxoiJ2FKo1FQZ8KheWL+K1x2VnNQjKFVvV9rigGC+yibm2idgJkjhvVsMqaousdyXn
-	 9u+dwh8r5xOauX0ZwuskBSXo8GlR9ZAyTnmPuZhIDeJ1Ujd4zp+8mucr1y9tS0snxHQXx
-	 Nolohn+b5U4wpSd5VB1AAaZwAVKIYkkO5rv2eYj5DbjOHohcTMTPK78x0+UR8IT6aiRE2
-	 cK4z4lZoaa0r0ln298nc9Z/5CJ45yxQZ4Nkjwj1VXUI06aP1A1CLRaKtT9lRFaNYIMw==
+	t=1793672124;
+	b=sLmGnEDYdQcoJY/55INCCre+1E+63xbX5BNRQ6v7/StaSXzcTIAOazhjRkqQO3iRue75
+	 mWYX313w9oLAObg3M1UuZM6oeSsYMDSYjAWK1vvcHudXVkv02UOHxDludeIUEwopR6+Pg
+	 8BpjiSCuAM01GitXSJPi4aYjfNSHPFir7J5CjCJefT57l6mt4jyoH8MCUS5rLD9AfIqBw
+	 2OzFiRNdWD8v/Z3xJZYlQhnRl2IJ+4Srl0jJkSkbzHkZFyVz8PTrs97sZ3Micl/TTyPtt
+	 9PVljkEHZ7nQ5jGVU4dTFwHlXie8AP1ylklvYR2gUVPnyTyb0rZebrvXvrXlTwSxHog==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793672123;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793672124;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=KYWa9rawTKCkbGVevRXJgC4JC17yFSMEHpQPam5+TDk=;
-	b=rjYYbijmetx0hdwah2b9PdyBYCc6Xu2NKhoUnATRWiNRSDwtCT5rtZzOAZpSKyhZrcJA
-	 Gzm3YBea6HRerVASELiyB0ao5LFB18riEfecP1+za3PObIThiPVkeGM+279aRv1wA4ymx
-	 yR+RkBa28xFGts+FTwHvjd5GiGesbSBoCN2TKCam8cNwcvVULwkgj81CFK+QiwyHNzI/g
-	 uUDEHbDlf+FaBw3U0Z6zcqZRKijY7K8BwyLsxrlDdb8t1JN+h7YlkZqZyXG2Ij8L+2MHf
-	 SaTXM+eKgLaTl1t1FJsfQp1l9wmAiaj1W+L/w389wMmM5IzU/CP7gIxOD3wGE7KPZyg==
+	bh=neVt8XK40l5Spl2SLbYgOLOq4vMo7oZBDGOXGzyxpzA=;
+	b=LDn+D0EtEPVq7jY0+n6F+7ZHF5F+ma+X2VvFK2nw1viLR8KvQCOORJC6ZAK1cvWbHzbH
+	 hIRL67IhuKy2U1usZesqyDePQVRA2z+lwZu+GsOfnPSrQCcgFHH7kv2pU/Wtj13dP5iLF
+	 yK5qMz37dhb7qHiAJwlnCfAK01y0ITFsd4iPNRa8l407KC6ppwfHMr7TMfuQDlZ6Vfj5I
+	 huiQlq6oW1BWyIPBDNk4xWgQUseud1+eJRUm26oP3k7dJQA/1w6N9iVkQySwl2j5QRZ+u
+	 GCbpUFXXt1OGpBNivt1/nRLGL+gYrpp2ePDYrg+3LpGdbKAcB9bnvIFerPsL59t8Dkw==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=BdB2VyCG;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=n1zphTnq;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7FB34606D817
-	for <mm-commits@vger.kernel.org>; Tue,  3 Nov 2026 02:15:23 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 89B66606D803;
+	Tue,  3 Nov 2026 02:15:24 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=BdB2VyCG
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1FA7C1F00A1D;
-	Tue,  3 Nov 2026 02:15:23 +0000 (UTC)
+	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=n1zphTnq
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 44BF71F00A1C;
+	Tue,  3 Nov 2026 02:15:24 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1793672123;
-	bh=KYWa9rawTKCkbGVevRXJgC4JC17yFSMEHpQPam5+TDk=;
+	d=linux-foundation.org; s=korg; t=1793672124;
+	bh=neVt8XK40l5Spl2SLbYgOLOq4vMo7oZBDGOXGzyxpzA=;
 	h=Date:To:From:Subject;
-	b=BdB2VyCGS8Na8G260bDoEMD42NaDHPIWyc1EvDlvTsakrSctIKZqAWLWtrqs6/ruX
-	 44veDzziLX7tbsqhvMTp/fy4VgAaQSoCR6MCoK+OGHHZmpHmsxWD4eK9jQRwj1oFN3
-	 RBrhA139A9Gka/GtS9pCYpiZtjEPToqvatoWgPM4=
-Date: Mon, 02 Nov 2026 18:15:22 -0800
-To: mm-commits@vger.kernel.org,vbabka@kernel.org,surenb@google.com,
-	shuah@kernel.org,rppt@kernel.org,pfalcato@suse.de,mhocko@suse.com,
-	ljs@kernel.org,liam@infradead.org,jannh@google.com,gourry@gourry.net,
-	david@kernel.org,danishkhateeb03@gmail.com,akpm@linux-foundation.org
+	b=n1zphTnq/6bO96Fy9uHpCnKgW947XM1eYmhG5HyIwm7C3YnqONVHqJpfsvFWPvd68
+	 COVmuZYuN9857y3TvGTCOW81Vcznw/clmqc4v364rDjC4iDmMiGxNXAzdoCcwfX0tm
+	 2yRN8aQC8WzJtY4ywv49lIXrtcrRM1dC5IOF0SSE=
+Date: Mon, 02 Nov 2026 18:15:23 -0800
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,vbabka@kernel.org,
+	surenb@google.com,stable@vger.kernel.org,mhocko@suse.com,hannes@cmpxchg.org,
+	flyinrm@gmail.com,brendan.jackman@linux.dev,gourry@gourry.net,
+	akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] selftests-mm-merge-keep-the-far-mremap-targets-in-the-carveout.patch removed from -mm tree
-Message-Id: <20261103021523.1FA7C1F00A1D@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] mm-page_alloc-let-the-highest-memory-node-recover-from-hopeless-state.patch removed from -mm tree
+Message-Id: <20261103021524.44BF71F00A1C@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -54,195 +54,79 @@ Precedence: list
 
 
 The quilt patch titled
-     Subject: selftests/mm: merge: keep the far mremap() targets in the carveout
+     Subject: mm/page_alloc: let the highest memory node recover from hopeless state
 has been removed from the -mm tree.  Its filename was
-     selftests-mm-merge-keep-the-far-mremap-targets-in-the-carveout.patch
+     mm-page_alloc-let-the-highest-memory-node-recover-from-hopeless-state.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Danish Khateeb <danishkhateeb03@gmail.com>
-Subject: selftests/mm: merge: keep the far mremap() targets in the carveout
-Date: Thu, 22 Oct 2026 07:18:37 -0500
+From: "Gregory Price (Meta)" <gourry@gourry.net>
+Subject: mm/page_alloc: let the highest memory node recover from hopeless state
+Date: Mon, 19 Oct 2026 14:48:50 -0400
 
-The merge tests map their areas at fixed addresses within a 30-page
-PROT_NONE carveout. Several mremap() tests move an area 1000 or 2000
-pages away to separate it from the others, but those targets are outside
-the carveout, and MREMAP_FIXED unmaps whatever is mapped there.
+free_frozen_page_commit() clears a hopeless node's kswapd failures once
+its zone recovers above the high watermark, but only if another memory
+node exists for allocations to fall back to.
 
-Under virtme-ng, the shared libraries are packed right above the
-carveout and the dynamic linker starts about 4 MiB above it. The moves
-then replace part of its text with an anonymous mapping, and the test
-crashes in its next lazily bound call:
+The test `next_memory_node(nid) < MAX_NUMNODES` finds only memory nodes
+with a higher id.  The highest-numbered memory node therefore never
+recovers on this path, and its kswapd stays disabled until reclaim on that
+node makes progress and balances it, or demotion is re-enabled.
 
-  merge[6980]: segfault at 7f7ebb3c1e60 ip 00007f7ebb3c1e60 sp 00007ffd35fbaec8 error 14
+In many cases, direct reclaim many never fully run against a lower node
+(CXL/kmem), and that means its kswapd can end up full disabled in rare
+situations.
 
-Two to four of the mremap() tests then fail with "Test terminated
-unexpectedly by signal 11", depending on the exact layout. On a host
-where libc is mapped at a 2 MiB aligned address, the targets happen to
-land above the dynamic linker and the tests pass.
+To reproduce, fill the highest memory node with bound, non-THP anonymous
+memory and no swap until kswapd gives up, then free it: /proc/zoneinfo
+keeps showing node_unreclaimable 1 for that node.  A lower node recovers.
 
-Since the areas are all within the first 30 pages, moving one by 30
-pages is enough to keep it apart from the others. Add FAR_PAGES for
-that distance, move areas by FAR_PAGES or 2 * FAR_PAGES pages, and make
-the carveout 3 * FAR_PAGES pages so that it covers every target.
+Count the memory nodes instead.  Adding first_memory_node != nid to the
+existing test would also work, but a count says directly what the check
+means: some other memory node exists.
 
-Link: https://lore.kernel.org/20261022121837.28723-1-danishkhateeb03@gmail.com
-Fixes: 4e25f85b9f85 ("tools/testing/selftests: add mremap() unfaulted/faulted test cases")
-Signed-off-by: Danish Khateeb <danishkhateeb03@gmail.com>
+Link: https://lore.kernel.org/20261019184850.3427905-1-gourry@gourry.net
+Fixes: e7a5f249e6db ("mm: re-enable kswapd when memory pressure subsides or demotion is toggled")
+Signed-off-by: Gregory Price (Meta) <gourry@gourry.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Reviewed-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
-Reviewed-by: Gregory Price (Meta) <gourry@gourry.net>
-Cc: Liam R. Howlett <liam@infradead.org>
-Cc: Vlastimil Babka <vbabka@kernel.org>
-Cc: Jann Horn <jannh@google.com>
-Cc: Pedro Falcato <pfalcato@suse.de>
-Cc: David Hildenbrand <david@kernel.org>
-Cc: Mike Rapoport <rppt@kernel.org>
+Acked-by: Zi Yan <ziy@nvidia.com>
+Acked-by: Vlastimil Babka (SUSE) <vbabka@kernel.org>
 Cc: Suren Baghdasaryan <surenb@google.com>
 Cc: Michal Hocko <mhocko@suse.com>
-Cc: Shuah Khan <shuah@kernel.org>
+Cc: Brendan Jackman <brendan.jackman@linux.dev>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Chanwon Park <flyinrm@gmail.com>
+Cc: <stable@vger.kernel.org>
 ---
 
- tools/testing/selftests/mm/merge.c |   33 ++++++++++++++-------------
- 1 file changed, 18 insertions(+), 15 deletions(-)
+ mm/page_alloc.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/tools/testing/selftests/mm/merge.c~selftests-mm-merge-keep-the-far-mremap-targets-in-the-carveout
-+++ a/tools/testing/selftests/mm/merge.c
-@@ -22,9 +22,12 @@ FIXTURE(merge)
- 	struct procmap_fd procmap;
- };
- 
-+#define FAR_PAGES	30
-+#define CARVEOUT_PAGES	(3 * FAR_PAGES)
-+
- static char *map_carveout(unsigned int page_size)
- {
--	return mmap(NULL, 30 * page_size, PROT_NONE,
-+	return mmap(NULL, CARVEOUT_PAGES * page_size, PROT_NONE,
- 		    MAP_ANON | MAP_PRIVATE, -1, 0);
- }
- 
-@@ -73,7 +76,7 @@ FIXTURE_SETUP(merge)
- 
- FIXTURE_TEARDOWN(merge)
- {
--	ASSERT_EQ(munmap(self->carveout, 30 * self->page_size), 0);
-+	ASSERT_EQ(munmap(self->carveout, CARVEOUT_PAGES * self->page_size), 0);
- 	/* May fail for parent of forked process. */
- 	close_procmap(&self->procmap);
- 	/*
-@@ -115,7 +118,7 @@ FIXTURE_SETUP(merge_with_fork)
- 
- FIXTURE_TEARDOWN(merge_with_fork)
- {
--	ASSERT_EQ(munmap(self->carveout, 30 * self->page_size), 0);
-+	ASSERT_EQ(munmap(self->carveout, CARVEOUT_PAGES * self->page_size), 0);
- 	ASSERT_EQ(close_procmap(&self->procmap), 0);
- 	/* See above. */
- 	prctl(PR_SET_MEMORY_MERGE, 0, 0, 0, 0);
-@@ -660,7 +663,7 @@ TEST_F(merge, mremap_unfaulted_to_faulte
- 
- 	/* Offset ptr2 further away. */
- 	ptr2 = sys_mremap(ptr2, 5 * page_size, 5 * page_size,
--			  MREMAP_MAYMOVE | MREMAP_FIXED, ptr2 + page_size * 1000);
-+			  MREMAP_MAYMOVE | MREMAP_FIXED, ptr2 + FAR_PAGES * page_size);
- 	ASSERT_NE(ptr2, MAP_FAILED);
- 
- 	/*
-@@ -721,7 +724,7 @@ TEST_F(merge, mremap_unfaulted_behind_fa
- 
- 	/* Offset ptr2 further away. */
- 	ptr2 = sys_mremap(ptr2, 5 * page_size, 5 * page_size,
--			  MREMAP_MAYMOVE | MREMAP_FIXED, ptr2 + page_size * 1000);
-+			  MREMAP_MAYMOVE | MREMAP_FIXED, ptr2 + FAR_PAGES * page_size);
- 	ASSERT_NE(ptr2, MAP_FAILED);
- 
- 	/*
-@@ -785,12 +788,12 @@ TEST_F(merge, mremap_unfaulted_between_f
- 
- 	/* Offset ptr3 further away. */
- 	ptr3 = sys_mremap(ptr3, 5 * page_size, 5 * page_size,
--			  MREMAP_MAYMOVE | MREMAP_FIXED, ptr3 + page_size * 2000);
-+			  MREMAP_MAYMOVE | MREMAP_FIXED, ptr3 + 2 * FAR_PAGES * page_size);
- 	ASSERT_NE(ptr3, MAP_FAILED);
- 
- 	/* Offset ptr2 further away. */
- 	ptr2 = sys_mremap(ptr2, 5 * page_size, 5 * page_size,
--			  MREMAP_MAYMOVE | MREMAP_FIXED, ptr2 + page_size * 1000);
-+			  MREMAP_MAYMOVE | MREMAP_FIXED, ptr2 + FAR_PAGES * page_size);
- 	ASSERT_NE(ptr2, MAP_FAILED);
- 
- 	/*
-@@ -870,13 +873,13 @@ TEST_F(merge, mremap_unfaulted_between_f
- 
- 	/* Offset ptr3 further away. */
- 	ptr3 = sys_mremap(ptr3, 5 * page_size, 5 * page_size,
--			  MREMAP_MAYMOVE | MREMAP_FIXED, ptr3 + page_size * 2000);
-+			  MREMAP_MAYMOVE | MREMAP_FIXED, ptr3 + 2 * FAR_PAGES * page_size);
- 	ASSERT_NE(ptr3, MAP_FAILED);
- 
- 
- 	/* Offset ptr2 further away. */
- 	ptr2 = sys_mremap(ptr2, 5 * page_size, 5 * page_size,
--			  MREMAP_MAYMOVE | MREMAP_FIXED, ptr2 + page_size * 1000);
-+			  MREMAP_MAYMOVE | MREMAP_FIXED, ptr2 + FAR_PAGES * page_size);
- 	ASSERT_NE(ptr2, MAP_FAILED);
- 
- 	/*
-@@ -1035,11 +1038,11 @@ TEST_F(merge, mremap_correct_placed_faul
- 	 */
- 	ptr3 = &ptr[10 * page_size];
- 	ptr3 = sys_mremap(ptr3, 5 * page_size, 5 * page_size,
--			  MREMAP_MAYMOVE | MREMAP_FIXED, ptr3 + page_size * 2000);
-+			  MREMAP_MAYMOVE | MREMAP_FIXED, ptr3 + 2 * FAR_PAGES * page_size);
- 	ASSERT_NE(ptr3, MAP_FAILED);
- 	ptr2 = &ptr[5 * page_size];
- 	ptr2 = sys_mremap(ptr2, 5 * page_size, 5 * page_size,
--			  MREMAP_MAYMOVE | MREMAP_FIXED, ptr2 + page_size * 1000);
-+			  MREMAP_MAYMOVE | MREMAP_FIXED, ptr2 + FAR_PAGES * page_size);
- 	ASSERT_NE(ptr2, MAP_FAILED);
- 
- 	/*
-@@ -1075,7 +1078,7 @@ TEST_F(merge, mremap_correct_placed_faul
- 	 *                  ptr2      \       ptr       \       ptr3
- 	 */
- 	ptr = sys_mremap(ptr, 5 * page_size, 5 * page_size,
--			 MREMAP_MAYMOVE | MREMAP_FIXED, ptr + page_size * 1000);
-+			 MREMAP_MAYMOVE | MREMAP_FIXED, ptr + FAR_PAGES * page_size);
- 	ASSERT_NE(ptr, MAP_FAILED);
- 
- 	/*
-@@ -1110,7 +1113,7 @@ TEST_F(merge, mremap_correct_placed_faul
- 	 *                  ptr2      \       ptr       \       ptr3
- 	 */
- 	ptr = sys_mremap(ptr, 5 * page_size, 5 * page_size,
--			 MREMAP_MAYMOVE | MREMAP_FIXED, ptr + page_size * 1000);
-+			 MREMAP_MAYMOVE | MREMAP_FIXED, ptr + FAR_PAGES * page_size);
- 	ASSERT_NE(ptr, MAP_FAILED);
- 
- 	/*
-@@ -1168,7 +1171,7 @@ TEST_F(merge, mremap_correct_placed_faul
- 	 *      ptr                     ptr3      \       ptr2
- 	 */
- 	ptr2 = sys_mremap(ptr2, 5 * page_size, 5 * page_size,
--			  MREMAP_MAYMOVE | MREMAP_FIXED, ptr2 + page_size * 1000);
-+			  MREMAP_MAYMOVE | MREMAP_FIXED, ptr2 + FAR_PAGES * page_size);
- 	ASSERT_NE(ptr2, MAP_FAILED);
- 
- 	/*
-@@ -1203,7 +1206,7 @@ TEST_F(merge, mremap_correct_placed_faul
- 	 *            ptr                         \       ptr3
- 	 */
- 	ptr3 = sys_mremap(ptr3, 5 * page_size, 5 * page_size,
--			  MREMAP_MAYMOVE | MREMAP_FIXED, ptr3 + page_size * 1000);
-+			  MREMAP_MAYMOVE | MREMAP_FIXED, ptr3 + FAR_PAGES * page_size);
- 	ASSERT_NE(ptr3, MAP_FAILED);
- 
- 	/*
+--- a/mm/page_alloc.c~mm-page_alloc-let-the-highest-memory-node-recover-from-hopeless-state
++++ a/mm/page_alloc.c
+@@ -2929,7 +2929,7 @@ static bool free_frozen_page_commit(stru
+ 		 * kswapd work again by resetting kswapd_failures.
+ 		 */
+ 		if (kswapd_test_hopeless(pgdat) &&
+-		    next_memory_node(pgdat->node_id) < MAX_NUMNODES)
++		    num_node_state(N_MEMORY) > 1)
+ 			kswapd_clear_hopeless(pgdat, KSWAPD_CLEAR_HOPELESS_PCP);
+ 	}
+ 	return ret;
 _
 
-Patches currently in -mm which might be from danishkhateeb03@gmail.com are
+Patches currently in -mm which might be from gourry@gourry.net are
 
+mm-mempolicy-recompute-automatic-interleave-weights-on-memory-hotplug.patch
+mm-memory-tiers-reset-demotion-targets-of-nodes-without-memory.patch
+mm-mempolicy-convert-mempolicy-refcnt-to-refcount_t.patch
+selftests-mm-add-madv_cold-and-madv_pageout-contract-tests.patch
+selftests-mm-check-madv_cold-and-madv_pageout-range-handling.patch
+selftests-mm-check-that-madv_cold-and-madv_pageout-reject-hugetlb.patch
+selftests-mm-check-that-madv_cold-and-madv_pageout-preserve-shared-memory.patch
+selftests-mm-check-madv_cold-and-madv_pageout-on-partly-advised-thps.patch
+selftests-mm-check-madv_pageout-file-permissions.patch
+selftests-mm-check-that-unauthorized-madv_pageout-skips-large-file-folios.patch
 
