@@ -1,48 +1,50 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793672148;
-	b=4cHGGA6OwRdCQOKbMwllHGRC/TD9BdTXTm9DkKY95qxLc/p/G/urGvrU/91Ro1htOalZ
-	 thp/cuASFHVgjy4R5UNPGjmXJW2vnTMJayFdbTVnKDADwwJJQfORXZ6H+2CpY2uA6c6wE
-	 FgkZVf9Pz5bClY3Hil66MJMyqZGM2c4cbGQpC4luDoqggzE80HM1gXnQqP/0jYgYbtMOn
-	 1iZ+NoVTLc6ckFlo19cw3SqmK/YJfrPkNx1bIV1cvk1ZaqI3KiyhuWli/OsnDfhMwRT/K
-	 Rh1LC7G+R21LoHJY07D0vUsNDd9ijB9tw80AmJzppyUp8To0ON+Too5DyFZlyDHgW8Q==
+	t=1793672144;
+	b=Z+KfrRLI6a7ZIbvnZsGKcm5EAW306462CYuEMyW1wYes1ZxA4KBWZ2jYdN826bpUXb5A
+	 Mux5OHzzJPi1mMniy8c2gc+uEJzuERgpP5Cu392uP9y9cAWomqBopg7Beu6GTDRRd4sAw
+	 8WfmVBPZYQmlvtnTdPRciTHVK2EUqL576BqQqOsdJ49xp9upbse/5eM8HqrU/4GZqSx+n
+	 2C+Xfz3bDwcStZQ7qBsCv10v83SpMjYltAxfPQEqmI+BbD1mrcoIRHSuTkkdLS24uBCv2
+	 G8gJFFAcWARG3rl9GLbXenTSaML8jUgGk33dxMZMAmpL1s2F8S05BaYhT0nnpHeeiew==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793672148;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793672144;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=ieqF8KJ7YD2uenPGC1WgamZRdSnLRXEr4jbCdmRURPM=;
-	b=s5lxcfewDsUsS5DPpj1sgFWCYBGyi+lSbKpgyCcYJh2ZilNAgsVnB2Lm05qOgko7ObY2
-	 3tuhcXv8LQTp2FHSZNNMSnYo98Iy/ii3zEKw9bq35FFKjmCsUXr8bCctYhoe2LGZ/51GM
-	 IAaDXUFa+AUAB8xxttb+RbnpfRPXBOxDfqnMvhd6qAAYcPLs6H7ik1yGClw1Vv+unynQX
-	 36bcQLdMrqXsRaJ/0kiGJnc9h5lGwQqPtW2FKjojjE56oGbkbbHozyJs4YcThdynjTpox
-	 YCoENC6PmPDfp/JTH3wKDd0FHFn/hCXfAeVbRs6qJQBJd2AAI/oytFJWbigEfcEStSA==
+	bh=0hH4diZxkE9FYqMBlXHB0HpZuREEprMCduMPs/5JO+0=;
+	b=yELMDDMzJC3NcehzyjZDYa8vdejyGOImw3gtJc9T9vpybWB92BRel4A2iLq5iPEQvt5N
+	 sG+/ddizlvblrrJl7X+GujJGCaDoVSkSY//A+z1NNH4dIg+66AhIp8n0wt+/nnB26H3Wq
+	 RuBPHATrXcmgV6lCpRds7KgF9Hxo8YxWqeOLwKYfUwbUmiVAitRdoSttOZAhFNDrc5Y4M
+	 A7rbmB4DBnJH6aLeXMnyOu+GLVJ4bWcrVmzTRMjOlsHBZD9h0q9jpSyr0Ulx8cJZCWSj0
+	 tb5alsHXYciH7t7wEtiBlanQ4OeOiLvObFXpkpBr2pf7zges+v7svgjvgXVOO8r1bwQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=xqmBzKtf;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=zUsBBRll;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 16A1F606A337;
-	Tue,  3 Nov 2026 02:15:47 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 44760606A326;
+	Tue,  3 Nov 2026 02:15:44 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=xqmBzKtf
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8BD861F00919;
-	Tue,  3 Nov 2026 02:15:47 +0000 (UTC)
+	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=zUsBBRll
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 00A0B1F00919;
+	Tue,  3 Nov 2026 02:15:43 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1793672147;
-	bh=ieqF8KJ7YD2uenPGC1WgamZRdSnLRXEr4jbCdmRURPM=;
+	d=linux-foundation.org; s=korg; t=1793672144;
+	bh=0hH4diZxkE9FYqMBlXHB0HpZuREEprMCduMPs/5JO+0=;
 	h=Date:To:From:Subject;
-	b=xqmBzKtfcgwf196MycRSediNeT4kSd7cKsBr0hbeO2DRxBM94D6uRRNxmhGyGr+4F
-	 UIn9o8+3mD+aETUOtqy360bLp0ilEUwU5Z+P9fkEpF7wn3BxLx/j8VXq9ACXZjHbw4
-	 kv07MwazwyZpLDtYy13Wc6gOZjk6XotEGr62+nHQ=
-Date: Mon, 02 Nov 2026 18:15:47 -0800
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,ying.huang@linux.alibaba.com,
-	willy@infradead.org,stable@vger.kernel.org,matthew.brost@intel.com,
-	joshua.hahnjy@gmail.com,gourry@gourry.net,david@kernel.org,byungchul@sk.com,
-	apopple@nvidia.com,akpm@linux-foundation.org,laoar.shao@gmail.com
+	b=zUsBBRllvN+l1ToWXDK2xF/7jMTJP+FrScis07yJS2ad7NlFrBaPrZPelGCd7omlB
+	 bpVz5N37bQLUxWMXNbdbnWQXVCmnuuXyIVGD38XXM4L00ufA24ov143n+7GL4HAwYC
+	 Mo3uvtPbwnYEde7ZPsFkra1U55aoMq8VZEYl+XhE=
+Date: Mon, 02 Nov 2026 18:15:43 -0800
+To: mm-commits@vger.kernel.org,youngjun.park@lge.com,vineeth@bitbyteword.org,
+	stable@vger.kernel.org,rafael.j.wysocki@intel.com,nphamcs@gmail.com,
+	kelleynnn@gmail.com,kasong@tencent.com,hughd@google.com,
+	huang.ying.caritas@gmail.com,chrisl@kernel.org,baoquan.he@linux.dev,
+	baolin.wang@linux.alibaba.com,baohua@kernel.org,chris@chrisdown.name,
+	akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] mm-migrate-snapshot-the-source-nid-before-the-misplaced-migration.patch removed from -mm tree
-Message-Id: <20261103021547.8BD861F00919@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] mm-make-swapoff-interruptible-when-unusing-mms-shmem.patch removed from -mm tree
+Message-Id: <20261103021544.00A0B1F00919@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -54,89 +56,120 @@ Precedence: list
 
 
 The quilt patch titled
-     Subject: mm/migrate: snapshot the source nid before the misplaced migration
+     Subject: mm: make swapoff interruptible when unusing mms/shmem
 has been removed from the -mm tree.  Its filename was
-     mm-migrate-snapshot-the-source-nid-before-the-misplaced-migration.patch
+     mm-make-swapoff-interruptible-when-unusing-mms-shmem.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Yafang Shao <laoar.shao@gmail.com>
-Subject: mm/migrate: snapshot the source nid before the misplaced migration
-Date: Tue, 27 Oct 2026 10:17:20 +0800
+From: Chris Down <chris@chrisdown.name>
+Subject: mm: make swapoff interruptible when unusing mms/shmem
+Date: Mon, 26 Oct 2026 22:31:03 +0800
 
-A successful migration frees the source folio before the promotion
-counter update, so the folio_nid() read there operates on a freed
-folio — which may already have been reallocated. It happens to work
-today, as Zi explained:
+try_to_unuse() only checks for a pending signal between mms, and
+shmem_unuse() doesn't check at all.  That means that once swapoff gets to
+a process or a shmem file with a lot swapped out, nothing can interrupt it
+until every last page of it has been read back in.
 
-  : Strictly speaking, it can be seen as a benign UAF. It works, because
-  : 1. folio->flags happens to be the same as page->flags,
-  : 2. folio/page nid is stored in the ->flags and never changed.
-  :
-  : In memdesc world, after a folio is freed, I assume folio->flags would be
-  : zeroed since struct folio is freed and calling folio_nid() on a freed
-  : folio would give a bogus result (yeah, it can be mitigated by not
-  : zeroing node field and each node has its own struct folio pool, but that
-  : makes folio_nid() implementation dependent).
+Just as one example of where this can concretely show up, freezing tasks
+for suspend or hibernation has to wait for swapoff to notice the freezer's
+fake signal, and gives up after freeze_timeout_msecs (20 seconds by
+default).
 
-and Matthew explained further:
+Here's a facetious example where one swaps out 2GiB of one process to a
+swap file on ext4, starts swapoff, and half a second later tries to freeze
+with pm_test=freezer.  Writing to /sys/power/state then fails with EBUSY
+and this in dmesg:
 
-  : once struct folio is separately allocated, it's a UAF.  It could be
-  : recycled to a different NID or maybe the slab containing the folio could
-  : be freed (assuming we're not holding the RCU read lock at this point in
-  : migration, and I don't see why we would be).
+    Freezing user space processes failed after 20.003 seconds (1 tasks refusing to freeze, wq_busy=0):
+    task:swapoff         state:D stack:0     pid:3175  tgid:3175  ppid:2955   task_flags:0x400100 flags:0x00000419
+    Call trace:
+     [...]
+     io_schedule+0x44/0x70
+     folio_wait_bit_common+0x1ec/0x3d0
+     __folio_lock+0x24/0x40
+     unuse_pte_range+0x2d0/0x348
+     unuse_vma+0x158/0x248
+     unuse_mm+0xfc/0x150
+     try_to_unuse+0x104/0x3f8
+     __do_sys_swapoff+0x220/0x5d8
+     [...]
 
-A separate concern is memory hot-removal.  With memory-tiering mode
-enabled, successful migration can release the source before the
-promotion-accounting folio_nid() read.  If the task is preempted there,
-an otherwise-free source block can be offlined and removed first.  On
-the x86 path, removal can unmap the source's vmemmap, so the later read
-can fault.  The snapshot avoids that read.
+The same goes for anything else that wants swapoff to stop, like an admin
+hitting ^C in a panic, of course.
 
-Link: https://lore.kernel.org/20261027021721.95781-1-laoar.shao@gmail.com
-Fixes: e39bb6be9f2b ("NUMA Balancing: add page promotion counter")
-Signed-off-by: Yafang Shao <laoar.shao@gmail.com>
+Prior to commit b56a2d8af914 ("mm: rid swapoff of quadratic complexity")
+try_to_unuse() was driven by find_next_to_unuse() which checks for a
+signal before every entry, so let's restore that behaviour.
+
+Just as an example of the improvements, here's how long freezing takes
+in the same test while swapoff is happening on my computer:
+
+                      before                  after
+    400MiB anon       8.925s                  0.028s
+    400MiB shmem      1.639s                  0.003s
+    2GiB anon         failed after 20.003s    0.011s
+
+Link: https://lore.kernel.org/at9kJwdGkHPsWwgG@chrisdown.name
+Fixes: b56a2d8af914 ("mm: rid swapoff of quadratic complexity")
+Signed-off-by: Chris Down <chris@chrisdown.name>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Suggested-by: Zi Yan <ziy@nvidia.com>
-Suggested-by: Andrew Morton <akpm@linux-foundation.org>
-Acked-by: Zi Yan <ziy@nvidia.com>
-Acked-by: David Hildenbrand (Arm) <david@kernel.org>
-Cc: Ying Huang <ying.huang@linux.alibaba.com>
-Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Matthew Brost <matthew.brost@intel.com>
-Cc: Joshua Hahn <joshua.hahnjy@gmail.com>
-Cc: Byungchul Park <byungchul@sk.com>
-Cc: Gregory Price <gourry@gourry.net>
-Cc: Alistair Popple <apopple@nvidia.com>
+Acked-by: Vineeth Pillai (Google) <vineeth@bitbyteword.org>
+Reviewed-by: Baolin Wang <baolin.wang@linux.alibaba.com>
+Reviewed-by: Kairui Song <kasong@tencent.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Chris Li <chrisl@kernel.org>
+Cc: Nhat Pham <nphamcs@gmail.com>
+Cc: Baoquan He <baoquan.he@linux.dev>
+Cc: Barry Song <baohua@kernel.org>
+Cc: Youngjun Park <youngjun.park@lge.com>
+Cc: Ying Huang <huang.ying.caritas@gmail.com>
+Cc: Kelley Nielsen <kelleynnn@gmail.com>
+Cc: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 Cc: <stable@vger.kernel.org>
 ---
 
- mm/migrate.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ mm/shmem.c    |    4 ++++
+ mm/swapfile.c |    4 +++-
+ 2 files changed, 7 insertions(+), 1 deletion(-)
 
---- a/mm/migrate.c~mm-migrate-snapshot-the-source-nid-before-the-misplaced-migration
-+++ a/mm/migrate.c
-@@ -2756,6 +2756,7 @@ int migrate_misplaced_folio(struct folio
- 	pg_data_t *pgdat = NODE_DATA(node);
- 	int nr_remaining;
- 	unsigned int nr_succeeded;
-+	int src_node = folio_nid(folio);
- 	LIST_HEAD(migratepages);
- 	struct mem_cgroup *memcg = get_mem_cgroup_from_folio(folio);
- 	struct lruvec *lruvec = mem_cgroup_lruvec(memcg, pgdat);
-@@ -2770,7 +2771,7 @@ int migrate_misplaced_folio(struct folio
- 		count_vm_numa_events(NUMA_PAGE_MIGRATE, nr_succeeded);
- 		count_memcg_events(memcg, NUMA_PAGE_MIGRATE, nr_succeeded);
- 		if ((sysctl_numa_balancing_mode & NUMA_BALANCING_MEMORY_TIERING)
--		    && !node_is_toptier(folio_nid(folio))
-+		    && !node_is_toptier(src_node)
- 		    && node_is_toptier(node))
- 			mod_lruvec_state(lruvec, PGPROMOTE_SUCCESS, nr_succeeded);
+--- a/mm/shmem.c~mm-make-swapoff-interruptible-when-unusing-mms-shmem
++++ a/mm/shmem.c
+@@ -1742,6 +1742,10 @@ static int shmem_unuse_inode(struct inod
+ 		if (ret < 0)
+ 			break;
+ 
++		if (signal_pending(current)) {
++			ret = -ERESTARTSYS;
++			break;
++		}
+ 		start = indices[folio_batch_count(&fbatch) - 1];
+ 	} while (true);
+ 
+--- a/mm/swapfile.c~mm-make-swapoff-interruptible-when-unusing-mms-shmem
++++ a/mm/swapfile.c
+@@ -2689,6 +2689,8 @@ static inline int unuse_pmd_range(struct
+ 	pmd = pmd_offset(pud, addr);
+ 	do {
+ 		cond_resched();
++		if (signal_pending(current))
++			return -ERESTARTSYS;
+ 		next = pmd_addr_end(addr, end);
+ 		ret = unuse_pte_range(vma, pmd, addr, next, type);
+ 		if (ret)
+@@ -2922,7 +2924,7 @@ retry:
+ 	if (swap_usage_in_pages(si)) {
+ 		if (!signal_pending(current))
+ 			goto retry;
+-		return -EINTR;
++		return -ERESTARTSYS;
  	}
+ 
+ success:
 _
 
-Patches currently in -mm which might be from laoar.shao@gmail.com are
+Patches currently in -mm which might be from chris@chrisdown.name are
 
 
