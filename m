@@ -1,46 +1,55 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793672138;
-	b=YNQfXrC6nunb+r5w8ShoH7xGR4wPuBAkl5J4e2/LAJoN3nYHQvOk/J0HgzUdve+2uYeZ
-	 /fOc8mLq6rWlmlKKedJZxB+0hAzFY9+fz52dfz0OlOOwLlITeX4UUKjm0Gc6ZMqviVl2U
-	 F64COXKeGeHFpWSlEJybKkhuPlalg7CwLt5/GZfbH9VGLdvXqeX2/QpMYrDUrR5gdZh4H
-	 AgXQXgY0poaMQXwFXi4j+gam2eQ8VnnozRJzsaAWDktU39JhwL65XeoR+rMw+kDR1CtHM
-	 l69GyuGeBfbDs3yY6ffIW7V53vVp6d0/eLvQwoVM0VpnpRp4X15L5m/skEJaoaztUXg==
+	t=1793672147;
+	b=WatryqmN7pqR2zJhKf1jn6/+p5TCZyr3BCIfGokQwZpkpcRLvzOjweKyWqQq4SmqWuKw
+	 Qn5+cZDF3MJSb6NlElBoaR3OyT2gBKWqk9uLf909/2xkcq9eK339NlZAe+kAUxNXKl3rT
+	 as93KgY96dVOlDhlNn/9XW8invfPSZKvuyrTkLlVO4YwlNtDexvJntnTSvszK06CadUwQ
+	 KsY/SF3lwXCz9TindBM8ERhLb6WSic0zYQI1UNPpPw3AsE6OdfbepR+0M95KToZ51DcGc
+	 fVy1yKIjHcwC15aDO/up0Fb9O9CWo1BFg0Ok47Dg9FUtu+MKYEt0cZ176BdFT97BD6w==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793672138;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793672147;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=B/z1lwWxA0RiwoCiTJ44ffWE0gFTZnlCs7lzt0VbmmM=;
-	b=sXQiDn/ytHcbS9cc5YfkKqCZYbL37y962qZ6yp+d1/dl4MziSANjXBC8wA6wq3aQBNvn
-	 Caj5gW5bMnT+WEC/d2IQoScRLorZXtU/2CzHI1u63VxL86MhIU5COOPzXLimH2mYC7tH4
-	 7htpN9ZDeNYDp1hm10KKntiaWvaFkOFqRbeYpHJcc+pz86/kdtJ22PGEZ0gUceWH0Fhu0
-	 7iMiVOFwd45nvppV7zfuendUU67o7epCqPeu60iUUYSpLrYYcH5CL6t6MGuaOoUjVK6sm
-	 lkBtqtnNjyuZ2MTsk5Hr/PAj8Gq3h1voRQD2SGe8n2B9fLfStq0LZ5wAPiyn4ddlMEA==
+	bh=APoOSE3eQiTpI/a8/7eMeTk/q6sS/mBd5YfCvBguydo=;
+	b=HmPJAWR3wDdwRAAGgXNR1b0+3m42uaD+D2DXgoMWQwyZ6hrZnM5Tq9G24P3CeLwXKtop
+	 fcJZVif1h/Chl8K2WlFBee7/8BMKDY7lvzdS+SW/Vg4Dpa+TcHcn0WORo9TAmmIyTl4lv
+	 J20UQoWJtLUWKi11FQnNohnKJdAzdWjFsVP4wLpyIHeMVG21clqMEm4v/bqEBbzBlAjZF
+	 OPI0CEY3ZHA3b1lfuW9LCxDxzpDcvvq3etd0klZVv59vaL0rPgGWAxzAo9p5dZF2U6JLk
+	 pAiIummi5MO9KfsJUmusVmmWSDzGiogV12lUZBGD24kljNMlj0h5GUHDbiIw/OTo/YQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b="o7/PzE9y";
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=rL7fMwcq;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 730F5606A324;
-	Tue,  3 Nov 2026 02:15:38 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BC2B3606A32E;
+	Tue,  3 Nov 2026 02:15:46 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=o7/PzE9y
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2F4071F000C1;
-	Tue,  3 Nov 2026 02:15:38 +0000 (UTC)
+	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=rL7fMwcq
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7D8B81F000C1;
+	Tue,  3 Nov 2026 02:15:46 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1793672138;
-	bh=B/z1lwWxA0RiwoCiTJ44ffWE0gFTZnlCs7lzt0VbmmM=;
+	d=linux-foundation.org; s=korg; t=1793672146;
+	bh=APoOSE3eQiTpI/a8/7eMeTk/q6sS/mBd5YfCvBguydo=;
 	h=Date:To:From:Subject;
-	b=o7/PzE9y+ZSieywWfmSDbFxUPIqxIr2U4EQwwVe85p7XaD5wcAyxyCeF7J4t94shG
-	 Sn6BA5h0gzt8C4iPhzYwTP2btR/9wgTMi8Ijgkz185H7mgLzcb1dnNPhkRPd1RNFyb
-	 h2xBkceeZdNzSeUQT/7a4A8p8P5llbdHZsHfKMac=
-Date: Mon, 02 Nov 2026 18:15:37 -0800
-To: mm-commits@vger.kernel.org,stable@vger.kernel.org,sj@kernel.org,
-	akpm@linux-foundation.org
+	b=rL7fMwcqn+ckPFbur97k19MzPOh9wBs5FNbqbx1l0RgHKrT+wS7mbhvHRBlljbSTH
+	 eQ0p/CAoPKZtd2pPhD1Q8b7mn5xdAAGZNe65rLpNSVy6yNViDyr+uJ/HqWRTyBfHcd
+	 eYpjAQdh6cHj8tvej35qP2Ikz15R14xXt5hUlcPU=
+Date: Mon, 02 Nov 2026 18:15:46 -0800
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,xu.xin@linux.dev,
+	xemul@openvz.org,vbabka@kernel.org,surenb@google.com,stable@vger.kernel.org,
+	sj@kernel.org,shli@fb.com,seanjc@google.com,samarth.colleges@gmail.com,
+	rppt@kernel.org,riel@surriel.com,peterx@redhat.com,pbonzini@redhat.com,
+	mhocko@suse.com,mgorman@techsingularity.net,med08elkadiri@gmail.com,
+	mcfadden8@llnl.gov,ljs@kernel.org,liam@infradead.org,kas@kernel.org,
+	jthoughton@google.com,jglisse@redhat.com,hughd@google.com,hannes@cmpxchg.org,
+	gokhale2@llnl.gov,dplotnikov@virtuozzo.com,dgilbert@interlog.com,
+	david@kernel.org,cracauer@cons.org,corbet@lwn.net,chengming.zhou@linux.dev,
+	bobbypowers@gmail.com,bgeffon@google.com,aarcange@redhat.com,
+	lance.yang@linux.dev,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] mm-damon-sysfs-schemes-hold-damon_sysfs_lock-in-target_metric_store.patch removed from -mm tree
-Message-Id: <20261103021538.2F4071F000C1@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] mm-ksm-fix-userfaultfd-protection-during-merge-and-unmerge.patch removed from -mm tree
+Message-Id: <20261103021546.7D8B81F000C1@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -52,96 +61,151 @@ Precedence: list
 
 
 The quilt patch titled
-     Subject: mm/damon/sysfs-schemes: hold damon_sysfs_lock in target_metric_store()
+     Subject: mm/ksm: fix userfaultfd protection during merge and unmerge
 has been removed from the -mm tree.  Its filename was
-     mm-damon-sysfs-schemes-hold-damon_sysfs_lock-in-target_metric_store.patch
+     mm-ksm-fix-userfaultfd-protection-during-merge-and-unmerge.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: SJ Park <sj@kernel.org>
-Subject: mm/damon/sysfs-schemes: hold damon_sysfs_lock in target_metric_store()
-Date: Sun, 25 Oct 2026 09:48:04 -0700
+From: Lance Yang <lance.yang@linux.dev>
+Subject: mm/ksm: fix userfaultfd protection during merge and unmerge
+Date: Mon, 26 Oct 2026 21:00:54 +0800
 
-Patch series "mm/damon: fix three race bugs in sysfs and core", v1.
+KSM loses userfaultfd protection when replace_page() builds a new PTE from
+vma->vm_page_prot.  Dropping its uffd bit lets a subsequent write go
+through ordinary COW instead of userfaultfd write protection handling. 
+For RWP, a merged page also becomes readable without faulting.
 
-There are three race condition bugs in DAMON sysfs interface and the
-core layer.  User impacts are not critical but better to fix sooner than
-later.
+Keeping the uffd bit and restoring PAGE_NONE fixes merging, but we also
+have to handle unmerging.  An existing KSM page can be protected with RWP
+before MADV_UNMERGEABLE, so unmerging already needs fixing independently
+of preserving RWP during merging.
 
-Patch 1 fixes a toctou bug in DAMON sysfs interface that can mess up
-DAMOS auto-tuning.  Patches 2 and 3 move static variables that can be
-wrongly shared with multiple kdamonds and therefore make DAMON
-monitoring results be a little more indeterministic.
+Unsharing replaces a shared page with a private one and should leave
+userfaultfd protection in place, as do_wp_page() already does for write
+protection.  Currently, an unshare fault reaches do_uffd_rwp() before it
+can proceed to do_wp_page().
 
+- With synchronous RWP, handle_userfault() returns VM_FAULT_SIGBUS.
+  break_ksm() then reports success with a KSM page still merged.
 
-This patch (of 3):
+- With asynchronous RWP, protection is cleared before unsharing.
 
-damon_sysfs_add_quota_score() reads damos_sysfs_quota_goal->metric
-twice, once to set damos_quota_goal->metric to the value, and once again
-to set the metric-dependent damos_quota_goal unions based on the value.
+Preserve the uffd bit when merging, and restore PAGE_NONE for RWP.  Let
+FAULT_FLAG_UNSHARE skip RWP fault handling and keep PAGE_NONE on each
+private copy as well.  Unsharing can then complete with RWP still armed
+for a subsequent access.
 
-target_metrics_score() can update damos_sysfs_quota_goal->metric between
-the two reads.  This time-of-check to time-of-use (toctou) race can make
-the union fields incorrectly set.  The incorrect damos_quota_goal will
-be passed to the core layer and make DAMOS incorrectly behave.
-
-Users could reproduce the race by writing a new value to the
-target_metric sysfs file while DAMON is starting, or online parameters
-update is ongoing.  The issue will only rarely happen in the real use
-cases.  It requires sysfs write permission.  The race window is short.
-Sane users wouldn't do such writes while DAMON enablement and/or online
-parameters update is ongoing.
-
-The user impact is not very critical.  The race is not easy to
-unintentionally trigger.  No leak or crash happens.  Nonetheless, DAMOS
-could be unexpectedly more or less aggressive and does not achieve the
-auto-tune goal.  Because of the nature of races, investigating will be
-difficult.  Users can control the impact from unexpected aggressiveness
-using additional quotas and resolve the issue in runtime by
-re-installing the quota goal, though.
-
-Avoid the race by protecting damos_sysfs_quota_goal->metric write in
-target_metric_store() with damon_sysfs_lock.  Because
-damon_sysfs_add_quota_score() is called while holding the same lock, the
-race is removed.
-
-The issue was discovered as a part of a bug report [1] from Sashiko,
-which is partially outdated.  In more detail, the Sashiko report [1] was
-mainly for an outdated bug [2].  But it was also mentioning the issue of
-this patch as a similar class bug.
-
-Link: https://lore.kernel.org/20261025164808.152048-1-sj@kernel.org
-Link: https://lore.kernel.org/20261025164808.152048-2-sj@kernel.org
-Link: https://sashiko.dev/#/bug/linux-7f814c9a-986f-4103-a55a-ef9537dcf62b [1]
-Link: https://lore.kernel.org/20261021005234.94107-1-sj@kernel.org [2]
-Fixes: 85fcf0ffc460 ("mm/damon/sysfs-schemes: connect damos_quota_goal nid with core layer")
-Signed-off-by: SJ Park <sj@kernel.org>
+Link: https://lore.kernel.org/20261026130054.91461-1-lance.yang@linux.dev
+Link: https://lore.kernel.org/all/20261019010934.697895-1-samarth.colleges@gmail.com/
+Link: https://lore.kernel.org/all/20261020055518.36087-1-lance.yang@linux.dev/
+Fixes: 63b2d4174c4a ("userfaultfd: wp: add the writeprotect API to userfaultfd ioctl")
+Fixes: 2d427bb01639 ("mm/userfaultfd: add RWP fault delivery and expose UFFDIO_REGISTER_MODE_RWP")
+Signed-off-by: Samarth Narang <samarth.colleges@gmail.com>
+Signed-off-by: Lance Yang <lance.yang@linux.dev>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Cc: <stable@vger.kernel.org> # 6.16.x
+Co-developed-by: Samarth Narang <samarth.colleges@gmail.com>
+Acked-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
+Reviewed-by: Kiryl Shutsemau (Meta) <kas@kernel.org>
+Acked-by: David Hildenbrand (Arm) <david@kernel.org>
+Cc: Mel Gorman <mgorman@techsingularity.net>
+Cc: Xu Xin <xu.xin@linux.dev>"
+Cc: Chengming Zhou <chengming.zhou@linux.dev>
+Cc: Liam R. Howlett <liam@infradead.org>
+Cc: Vlastimil Babka <vbabka@kernel.org>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Jérôme Glisse <jglisse@redhat.com>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Peter Xu <peterx@redhat.com>
+Cc: Bobby Powers <bobbypowers@gmail.com>
+Cc: Brian Geffon <bgeffon@google.com>
+Cc: Denis Plotnikov <dplotnikov@virtuozzo.com>
+Cc: Doug Gilbert <dgilbert@interlog.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Martin Cracauer <cracauer@cons.org>
+Cc: Marty McFadden <mcfadden8@llnl.gov>
+Cc: Maya Gokhale <gokhale2@llnl.gov>
+Cc: Pavel Emelyanov <xemul@openvz.org>
+Cc: Rik van Riel <riel@surriel.com>
+Cc: Shaohua Li <shli@fb.com>
+Cc: James Houghton <jthoughton@google.com>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: Paolo Bonzini <pbonzini@redhat.com>
+Cc: Sean Christopherson <seanjc@google.com>
+Cc: SJ Park <sj@kernel.org>
+Cc: Zi Yan <ziy@nvidia.com>
+Cc: Mohammed EL Kadiri <med08elkadiri@gmail.com>
+Cc: <stable@vger.kernel.org>
 ---
 
- mm/damon/sysfs-schemes.c |    3 +++
- 1 file changed, 3 insertions(+)
+ mm/ksm.c    |    8 +++++++-
+ mm/memory.c |   14 ++++++++++----
+ 2 files changed, 17 insertions(+), 5 deletions(-)
 
---- a/mm/damon/sysfs-schemes.c~mm-damon-sysfs-schemes-hold-damon_sysfs_lock-in-target_metric_store
-+++ a/mm/damon/sysfs-schemes.c
-@@ -1310,7 +1310,10 @@ static ssize_t target_metric_store(struc
- 
- 		metric_name = &damos_sysfs_qgoal_metric_names[i];
- 		if (sysfs_streq(buf, metric_name->name)) {
-+			if (!mutex_trylock(&damon_sysfs_lock))
-+				return -EBUSY;
- 			goal->metric = metric_name->metric;
-+			mutex_unlock(&damon_sysfs_lock);
- 			return count;
- 		}
+--- a/mm/ksm.c~mm-ksm-fix-userfaultfd-protection-during-merge-and-unmerge
++++ a/mm/ksm.c
+@@ -34,6 +34,7 @@
+ #include <linux/memory.h>
+ #include <linux/mmu_notifier.h>
+ #include <linux/swap.h>
++#include <linux/userfaultfd_k.h>
+ #include <linux/ksm.h>
+ #include <linux/hashtable.h>
+ #include <linux/freezer.h>
+@@ -1463,9 +1464,14 @@ static int replace_page(struct vm_area_s
+ 		dec_mm_counter(mm, MM_ANONPAGES);
  	}
+ 
+-	/* Preserve soft-dirty when replacing the page. */
++	/* Preserve soft-dirty and uffd protection when replacing the page. */
+ 	if (pte_soft_dirty(orig_pte))
+ 		newpte = pte_mksoft_dirty(newpte);
++	if (pte_uffd(orig_pte)) {
++		newpte = pte_mkuffd(newpte);
++		if (userfaultfd_rwp(vma))
++			newpte = pte_modify(newpte, PAGE_NONE);
++	}
+ 
+ 	flush_cache_page(vma, addr, pte_pfn(ptep_get(ptep)));
+ 	/*
+--- a/mm/memory.c~mm-ksm-fix-userfaultfd-protection-during-merge-and-unmerge
++++ a/mm/memory.c
+@@ -4125,8 +4125,11 @@ static vm_fault_t wp_page_copy(struct vm
+ 		if (unlikely(unshare)) {
+ 			if (pte_soft_dirty(vmf->orig_pte))
+ 				entry = pte_mksoft_dirty(entry);
+-			if (pte_uffd(vmf->orig_pte))
++			if (pte_uffd(vmf->orig_pte)) {
+ 				entry = pte_mkuffd(entry);
++				if (userfaultfd_rwp(vma))
++					entry = pte_modify(entry, PAGE_NONE);
++			}
+ 		} else {
+ 			entry = maybe_mkwrite(pte_mkdirty(entry), vma);
+ 		}
+@@ -6662,9 +6665,12 @@ static vm_fault_t handle_pte_fault(struc
+ 		 * VM_UFFD_RWP VMA, a protnone PTE without the uffd bit is
+ 		 * NUMA hinting and must still fall through to do_numa_page().
+ 		 */
+-		if (userfaultfd_pte_rwp(vmf->vma, vmf->orig_pte))
+-			return do_uffd_rwp(vmf);
+-		return do_numa_page(vmf);
++		if (userfaultfd_pte_rwp(vmf->vma, vmf->orig_pte)) {
++			if (!(vmf->flags & FAULT_FLAG_UNSHARE))
++				return do_uffd_rwp(vmf);
++		} else {
++			return do_numa_page(vmf);
++		}
+ 	}
+ 
+ 	spin_lock(vmf->ptl);
 _
 
-Patches currently in -mm which might be from sj@kernel.org are
+Patches currently in -mm which might be from lance.yang@linux.dev are
 
-selftests-damon-sysfs_memcg_path_leak-define-ksft_skip.patch
-mm-damon-core-copy-only-installed-probe-in-damon_split_region_at.patch
 
