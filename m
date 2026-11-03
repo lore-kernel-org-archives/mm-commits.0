@@ -1,47 +1,47 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793668697;
-	b=cdWQeqR175Dnapp8wig5wUj88SyPH5xK/Yqaz87zZI9q1UgBwidcFggnrWjwIdO+6GMX
-	 FhFWr6+Pmgs8VPezxvpYQZ84a7b8gVhBVQxbaFZz/byASRWq92iHWqBXcDgmJGBxAlTxf
-	 yxlmdxWNFGNZJWoWJ6T750LFRBl9ipGu577qWpyqElmd5jcfk4xPW9N0nB7lM65LjOwpx
-	 qWpWMS4HFAcIu96Usgng8vztc7rnigxAZ6LzcWJfAYy1IQ2x5KNtg8VCmd5dfVK/ws4z4
-	 GNpX8Kgd5Zz0tJjMQHyYWi9gFhtKSk1y1tGzPTeGryZT3f8891B6PhkwrofteMnml6Q==
+	t=1793668699;
+	b=VCDqBN1E1r//AsM7OQXFdRN5vgUuxxpwD3GGDOjE8qHkEpqhTWB8MKZ4zHx19kl/NMYy
+	 5yAhCej1VUveE6sMIiYRKmpLRgp02P47ng5QD5oH5bvn9sXOWRZ87ft2mRcfvyrWA89Y8
+	 FharliBvAlRJmpxJ5nCz5DGaioK7pgEuQZ/TMpfiN6hQARX7KU1XC0ZAvVlIavmH1ibV/
+	 Cp6w0LWU1hRxB15e0Yqfd+c5f7YeLlS70nU4pIVWqPIVCKLfzNh84L1MXheFqkc6b9p/x
+	 dJ9WW0+pkBTvz0ZMBsNl/CDOAHQc5b609yH3MZCDgrADwqQ4eRQMxpRZBames7GPZGA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793668697;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793668699;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=Q68aMWqPm/ah49wjaM0eMF/lE//xYsSl2boipRkdKtU=;
-	b=OPFsT2y53CCRwewLjMkKcRTOWcWP+L/8tQfXnZaKckt3fwSDaB3MpzWUDaGtJK/RpajW
-	 zS4vsGL1i6JfC8iVqYfpJla1dF+A8O/zBNLXjSN720s5H1RQZEgVrZOnKIkK+Rb8zb0g+
-	 DS/75OIbHgwRWP7WtRZ2LA4If6fqNMOkl+vNThrP9v7t1YkMeGgimMS14Eaw4baoe1yDR
-	 t0a0G2XweeNAEnm3lFnFxmBVvw5KuCd1gTHX4508KRkHkSdoLF31LSskQdHGGUC5Mt27M
-	 8c3Is1aZZTEJKC2Jq7atd50zWGoB+IidVU44INZvtelDtucAQQFohlyWoHq/uIh2XHg==
+	bh=IknChGHvyCqfMJpLDK2eXNgrFr/lSmYClOt2MdbAf8Y=;
+	b=bHD9Ezt7cr3vYk5PWkzhnNoww2AIUehwj6Apok2fdu5VsRjqzFcRRD7GdiVTVM44++NT
+	 TeM199uknyUD1QPWi2/zN/7Y0KwClaEWAtwBHmS7LmxVId0tMNRw48HfdKNm5uU+PcyF6
+	 iSOrQioncM7W80xjecvxhntL18r8NFM3NcxJVZSVtG5ccbzAqgpeaXCbc4LrSEF2TXEKZ
+	 U4thr81IIuV/MZkXf1bCzMluQE0YRYB4bZvDAngZfwrtloC/gnQcCpyrBcZLOQ91peMjj
+	 BYgy/S4K1CrMTBF//SCpanuMScXOGZEEmbFCbDBHjYUX4NqiyZIK1Ubvpo6rh5Bd6pA==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=A5bbX9aK;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b="Xp/oR/H4";
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F3112606A33D
-	for <mm-commits@vger.kernel.org>; Tue,  3 Nov 2026 01:18:16 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0AF2F606A32C
+	for <mm-commits@vger.kernel.org>; Tue,  3 Nov 2026 01:18:18 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=A5bbX9aK
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id BE97E1F000C1;
-	Tue,  3 Nov 2026 01:18:16 +0000 (UTC)
+	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=Xp/oR/H4
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 92E9F1F000C1;
+	Tue,  3 Nov 2026 01:18:18 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1793668696;
-	bh=Q68aMWqPm/ah49wjaM0eMF/lE//xYsSl2boipRkdKtU=;
+	d=linux-foundation.org; s=korg; t=1793668698;
+	bh=IknChGHvyCqfMJpLDK2eXNgrFr/lSmYClOt2MdbAf8Y=;
 	h=Date:To:From:Subject;
-	b=A5bbX9aKOH91SDlk/Aw3brdeNKk4Pee9Ya/eMG8bfQtZjWcAbtNXyfHso7eHklXp9
-	 q2CFskpItRJSjBLaV8CyFH5N1iUu7FxIkdVCR0bFlnHgndve48EgxE6O9tG8vETQCd
-	 8ZeaE2h2yePEMHYEyR8wI1BNxKPZFe10FwZg9rX0=
-Date: Mon, 02 Nov 2026 17:18:16 -0800
+	b=Xp/oR/H4cNnqQCue5t52XCf7Tf8LmWeSezxyz0MLe7DXHLQOEaTFUxJSLjomv8zqp
+	 bSbt3YsDKiFAcmdXbu3TUYLhWdDAomkhk9xeCZ9yvm6sklOkZvYlX39D85S3LKMPbE
+	 CY9dOeyS1OjZwc4a/lYgiRWGx1cM2foHCz4LUagE=
+Date: Mon, 02 Nov 2026 17:18:18 -0800
 To: mm-commits@vger.kernel.org,skhan@linuxfoundation.org,sj@kernel.org,
 	rdunlap@infradead.org,manuelebnerli@mailbox.org,corbet@lwn.net,
 	jm5905938@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + docs-mm-damon-api-fix-verb-form.patch added to mm-new branch
-Message-Id: <20261103011816.BE97E1F000C1@smtp.kernel.org>
+Subject: + docs-mm-damon-maintainer-profile-fix-subject-verb-agreement.patch added to mm-new branch
+Message-Id: <20261103011818.92E9F1F000C1@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -53,12 +53,12 @@ Precedence: list
 
 
 The patch titled
-     Subject: Docs/mm/damon/api: fix verb form
+     Subject: Docs/mm/damon/maintainer-profile: fix subject-verb agreement
 has been added to the -mm mm-new branch.  Its filename is
-     docs-mm-damon-api-fix-verb-form.patch
+     docs-mm-damon-maintainer-profile-fix-subject-verb-agreement.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/docs-mm-damon-api-fix-verb-form.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/docs-mm-damon-maintainer-profile-fix-subject-verb-agreement.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -88,12 +88,12 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Aveline Noir <jm5905938@gmail.com>
-Subject: Docs/mm/damon/api: fix verb form
-Date: Mon, 02 Nov 2026 16:59:36 -0800
+Subject: Docs/mm/damon/maintainer-profile: fix subject-verb agreement
+Date: Mon, 02 Nov 2026 16:59:37 -0800
 
-It should be "All you need to do is include", not "including".
+"The DAMON maintainer usually work" should be "works".
 
-Link: https://lore.kernel.org/20261103005940.91432-7-sj@kernel.org
+Link: https://lore.kernel.org/20261103005940.91432-8-sj@kernel.org
 Signed-off-by: Aveline Noir <jm5905938@gmail.com>
 Signed-off-by: SJ Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
@@ -104,20 +104,20 @@ Cc: Randy Dunlap <rdunlap@infradead.org>
 Cc: Manuel Ebner <manuelebnerli@mailbox.org>
 ---
 
- Documentation/mm/damon/api.rst |    2 +-
+ Documentation/mm/damon/maintainer-profile.rst |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/Documentation/mm/damon/api.rst~docs-mm-damon-api-fix-verb-form
-+++ a/Documentation/mm/damon/api.rst
-@@ -5,7 +5,7 @@ API Reference
- =============
+--- a/Documentation/mm/damon/maintainer-profile.rst~docs-mm-damon-maintainer-profile-fix-subject-verb-agreement
++++ a/Documentation/mm/damon/maintainer-profile.rst
+@@ -63,7 +63,7 @@ management subsystem maintainer.
+ Review cadence
+ --------------
  
- Kernel space programs can use every feature of DAMON using below APIs.  All you
--need to do is including ``damon.h``, which is located in ``include/linux/`` of
-+need to do is include ``damon.h``, which is located in ``include/linux/`` of
- the source tree.
- 
- Structures
+-The DAMON maintainer usually work in a flexible way, except early morning in PT
++The DAMON maintainer usually works in a flexible way, except early morning in PT
+ (Pacific Time).  The response to patches will occasionally be slow.  Do not
+ hesitate to send a ping if you have not heard back within a week of sending a
+ patch.
 _
 
 Patches currently in -mm which might be from jm5905938@gmail.com are
