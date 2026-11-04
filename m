@@ -1,48 +1,53 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793768287;
-	b=XTuUGD31oS9yCejoe9qrXNfgEF1eudtMONNrJ/UMDh9bEZDC5nll+aaD09uMY/GE8QJz
-	 4N3MoyLTfhZBFGot1sqVJai1QucZvYfGyCP6bsg8YgNCBkg0n4lLVrdkMY3iUq267V0nK
-	 8FYKgnqlqRKOqBTUFW/93ZmZtlluy4TRMep7qHQSfJPTLGGMsFSYtXx/nycQsvHMFpzO3
-	 3+R6OfbKy9sZEm987h7zBLf/o0Nn7BHRrjdvkM/0m04Z+g2U3F4gyeVJk56VUihqADY0f
-	 KTeDOaLb96u/m288TGXzT8tfxBSOTcG3Qm3sZKdjkKMzXJw/ec3QTmrE2A3O5C/CKog==
+	t=1793777177;
+	b=KQTaux32xUANoef+XbLT3Y/g2EU/KrtxCXu9hmbXyUZ6tbc/n9LckLPq3HXmxgaB5MVY
+	 krV2U/zXlP090WMdgoDKooAj9L3QumtcXS0AYefq7gzMlaoBl9zpE6o/vOUYVkYG4fx5D
+	 /8zbydu22MMlrRWRRU9YAuaWaSu9i0sidicHHLJ4du+3eWZ1hZ5iaMx2gukLs6m5QiWn7
+	 8B0GkPZPfr1QuWGMsf7DqR4e1UBJluOoTppsTJuRUp55OSL906xLX7ZEgE3V9maMh0STq
+	 hg64e0ObvSxQ38RPELouBMlZ5PZmoEfz10hrLAlpU8+rB8N2E4rHKb44K4lTqLWkp+Q==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793768287;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793777177;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=pfxqTZxWaTXPAgRORo/o/py2wqD2NNSVilDzZ+VmzAg=;
-	b=if9m7+vgc4XSnBVit4MAOw0D3nffRnoxzcvU6hSwGXo9KRtBiEOMhUMJYzGPe1OAehyS
-	 LkdsFiY48IaMUaJRMwahjRez818uKKmL0+kiBxXoitytV5ASoQPe/qLPQWJyxnnfLGFtW
-	 SmizWH1dSvIbKCaGyPogtM68XakMjuSmSpU/QTD+p/6iGBIMVYXNYJjbwwZlRFVkGtdfk
-	 9U23BZmO9RjA0smlUTCLuWtSmEvVPiqZag4ImDpbiSPlnYbMneoFN2n9063VYmTVYDTz3
-	 7Kf8xPw3ypmKdOdppx1YWfEyl+grGPwdhrJOOdUfSGm05kmtiEtsANKR2TLk5j53GNw==
+	bh=gqkOltD+7V4gOjDgNlHaUe0A1OssjIMRfOG7zDyJv8g=;
+	b=s3aAcSVGf62UmErKEmaMgSNvftFvQNiJUt742MqoFqUUEkzcfzrhZ7d8LLhkx6rOoRRg
+	 bP7XBDyL7LF5akdLSDkaBE8kVV3igqc0Aip6lPxzg+mYoNrJvKTWlICgnCf1tiV2H/KGf
+	 MUev34ogbXFrSyRe7Sq5R5ApWWCX1CMSGnCA0FJjKsZ8HMwy7mqixxxZyLxBjnqPZnikV
+	 RAfvo26EPnnPEVAbNtBDYdleDpFsvxLOUm0KDV0xgzMIF6mRweHm5p764tkk/FaG8XgIv
+	 8CJFmjOWOEqUYoOujRCX9OveYRt9h8LEdm9U9NdAYOr2HWh0t1+oohclO0/2CRVN2Fg==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=d3t+VJ5A;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=Z2vYunQb;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2A166606A32D
-	for <mm-commits@vger.kernel.org>; Wed,  4 Nov 2026 04:58:07 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 12FED606A31B;
+	Wed,  4 Nov 2026 07:26:16 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=d3t+VJ5A
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E8DFC1F00A02;
-	Wed,  4 Nov 2026 04:58:06 +0000 (UTC)
+	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=Z2vYunQb
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 88D721F000C1;
+	Wed,  4 Nov 2026 07:26:16 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1793768287;
-	bh=pfxqTZxWaTXPAgRORo/o/py2wqD2NNSVilDzZ+VmzAg=;
+	d=linux-foundation.org; s=korg; t=1793777176;
+	bh=gqkOltD+7V4gOjDgNlHaUe0A1OssjIMRfOG7zDyJv8g=;
 	h=Date:To:From:Subject;
-	b=d3t+VJ5AtNf4I8dvPNY8dKkx5F+3Lb7fvUuCNpbPBdlnKYVRstOEQoQ/jK+VBERFj
-	 mc7UHmy10f0Vp6IOSNd5kn3HFOpq5LAlqKFgEqfvyy75gV5IqHmCWydRhTsBW/VOgj
-	 jzm+yTp5eVd49UJCbtGuE7IZ/jgWZlTX2J2jalVk=
-Date: Tue, 03 Nov 2026 20:58:06 -0800
-To: mm-commits@vger.kernel.org,rppt@kernel.org,qi.zheng@linux.dev,
-	osalvador@suse.de,lance.yang@linux.dev,jthoughton@google.com,
-	david@kernel.org,chenhuacai@kernel.org,muchun.song@linux.dev,
+	b=Z2vYunQburGadqvNll6uBDXPO/jgorzLQzzTJrDOxCuEWAQ1pw+y2iV7evLUD5AN9
+	 KTWFxfIcWSClKodAYsXxUhI8wXQNUeyaaAa2MMx1iCIaYlE+/U5k8fLdCbiZfaedA8
+	 Dxk9BdDxytc+mbmFezBzXIU+tg69mi6wbxqqu6Pw=
+Date: Tue, 03 Nov 2026 23:26:16 -0800
+To: mm-commits@vger.kernel.org,youngjun.park@lge.com,yosry@kernel.org,
+	vbabka@kernel.org,usamaarif642@gmail.com,surenb@google.com,
+	stable@vger.kernel.org,shikemeng@huaweicloud.com,ryncsn@gmail.com,
+	rppt@kernel.org,nphamcs@gmail.com,neil@brown.name,mt4022@columbia.edu,
+	mhocko@suse.com,mason@kernel.org,ljs@kernel.org,liam@infradead.org,
+	kasong@tencent.com,hch@lst.de,hannes@cmpxchg.org,hanchuanhua@oppo.com,
+	david@kernel.org,chrisl@kernel.org,chengming.zhou@linux.dev,
+	baoquan.he@linux.dev,baohua@kernel.org,josef@toxicpanda.com,
 	akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-hugetlb_vmemmap-make-vmemmap-pte-conversion-folio-oriented.patch added to mm-new branch
-Message-Id: <20261104045806.E8DFC1F00A02@smtp.kernel.org>
+Subject: + mm-zswap-drop-the-stale-zswap-entry-of-a-zero-folio.patch added to mm-new branch
+Message-Id: <20261104072616.88D721F000C1@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -54,12 +59,12 @@ Precedence: list
 
 
 The patch titled
-     Subject: mm: hugetlb_vmemmap: make vmemmap PTE conversion folio-oriented
+     Subject: mm/zswap: drop the stale zswap entry of a zero folio
 has been added to the -mm mm-new branch.  Its filename is
-     mm-hugetlb_vmemmap-make-vmemmap-pte-conversion-folio-oriented.patch
+     mm-zswap-drop-the-stale-zswap-entry-of-a-zero-folio.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-hugetlb_vmemmap-make-vmemmap-pte-conversion-folio-oriented.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-zswap-drop-the-stale-zswap-entry-of-a-zero-folio.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -88,135 +93,132 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Muchun Song <muchun.song@linux.dev>
-Subject: mm: hugetlb_vmemmap: make vmemmap PTE conversion folio-oriented
-Date: Wed, 04 Nov 2026 10:35:10 +0800
+From: Josef Bacik <josef@toxicpanda.com>
+Subject: mm/zswap: drop the stale zswap entry of a zero folio
+Date: Wed, 04 Nov 2026 00:18:14 +0800
 
-Converting a folio's vmemmap mappings from PMDs to PTEs is a per-folio
-operation, but the current interface exposes a raw address range and
-hardcodes deferred TLB flushing.  This splits the common mechanism across
-layers and couples it to the HugeTLB batching policy.
+Patch series "mm/swap, zswap: fix stale zswap data and swap-in bugs", v2.
 
-Make the folio the unit of PTE conversion and let callers select the TLB
-flush policy through the folio-oriented interface.  This keeps
-HugeTLB-specific eligibility and batching outside the common operation.
+There are some bug fixes found by AI and collected by David, mostly
+originally from Anthropic.  After filtering and dropping a few that are
+already being patched up by the community [1] [2], these are the 3 we
+kept.  The accounting fix is in two patches now, the second one from
+Johannes to cover asynchronous devices too.
 
-No functional change intended.
+Patches 1 and 2 are marked for stable, they affect v6.12 and later.
+Patches 3 and 4 only affect v7.3 and later, so they are not marked for
+stable.
 
-Link: https://lore.kernel.org/20261104023510.260766-13-songmuchun@bytedance.com
-Signed-off-by: Muchun Song <muchun.song@linux.dev>
+The zswap bug in patch 1 can return stale data instead of the zeroes that
+were written, so it is data corruption and seems critical.  The extent
+fix in patch 2 is more urgent than it might look, as it can also read in
+unexpected data, but the setup could be really rare.
+
+For the extent fix, in the long term we might actually want to detect
+extent contiguity and allow mTHP swap-in for single-extent swap files.
+We already disable mTHP allocation for swap files, so the current fix is
+trivial. It seems the most minimal and correct one for now.
+Optimization and cleanups can come later.
+
+Patch 3 gives up readahead batching for synchronous devices, as its
+
+
+This patch (of 4):
+
+A folio can stay in the swap cache after zswap_store() has stored it,
+when a swapin fault gets a reference on it before reclaim can remove it.
+do_swap_page() maps an exclusive folio writable and, for a read fault,
+keeps it in the swap cache, so it can be modified and swapped out again
+to the same slot. zswap_store() handles this, it replaces the old entry,
+or drops it if the store fails or zswap got disabled, "otherwise,
+writeback could overwrite the new data in the swapfile".
+
+swap_writeout() does not get as far as zswap_store() if the folio is
+zero-filled now. It only sets the zero flag of the slot, and the zswap
+entry with the previous contents stays in the tree and on the LRU:
+
+  reclaim            fault              zswap shrinker
+  zswap_store(D1)
+                     swap cache hit,
+                     map, write zeroes
+  swap_writeout()
+    zero flag set
+  folio reclaimed
+                                        zswap_writeback_entry()
+                                          swap_cache_alloc_folio()
+                                          decompress D1, uptodate
+                     swap cache hit:
+                     maps D1
+
+Swapin looks at the zero flag first, but only when it has to read the
+folio. The folio that zswap writeback leaves in the swap cache is up to
+date as far as anybody can tell, so the process gets its old data back
+instead of the zeroes it has written, until that folio is reclaimed.
+
+Invalidate the zswap entries in the zero-filled case as well. The folio
+is locked and in the swap cache, which keeps zswap writeback away.
+
+[kasong@tencent.com: fix zswap_invalidate() arguments]
+Link: https://lore.kernel.org/20261104-swap-fixes-v2-0-204be064be5b@tencent.com
+Link: https://lore.kernel.org/20261104-swap-fixes-v2-1-204be064be5b@tencent.com
+Fixes: 0ca0c24e3211 ("mm: store zero pages to be swapped out in a bitmap")
+Signed-off-by: Josef Bacik <josef@toxicpanda.com>
+Signed-off-by: Kairui Song <kasong@tencent.com>
+Signed-off-by: David Hildenbrand (Arm) <david@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Reviewed-by: Lance Yang <lance.yang@linux.dev>
-Reviewed-by: Qi Zheng <qi.zheng@linux.dev>
-Reviewed-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
-Cc: Oscar Salvador <osalvador@suse.de>
-Cc: James Houghton <jthoughton@google.com>
-Cc: David Hildenbrand <david@kernel.org>
-Cc: Huacai Chen <chenhuacai@kernel.org>
+Reviewed-by: Johannes Weiner <hannes@cmpxchg.org>
+Reviewed-by: Nhat Pham <nphamcs@gmail.com>
+Reviewed-by: Yosry Ahmed <yosry@kernel.org>
+Cc: Chris Li <chrisl@kernel.org>
+Cc: Kemeng Shi <shikemeng@huaweicloud.com>
+Cc: Baoquan He <baoquan.he@linux.dev>
+Cc: Barry Song <baohua@kernel.org>
+Cc: Youngjun Park <youngjun.park@lge.com>
+Cc: Usama Arif <usamaarif642@gmail.com>
+Cc: Chengming Zhou <chengming.zhou@linux.dev>
+Cc: Lorenzo Stoakes <ljs@kernel.org>
+Cc: Liam R. Howlett <liam@infradead.org>
+Cc: Vlastimil Babka <vbabka@kernel.org>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Chuanhua Han <hanchuanhua@oppo.com>
+Cc: Mani Tofigh <mt4022@columbia.edu>
+Cc: NeilBrown <neil@brown.name>
+Cc: Christoph Hellwig <hch@lst.de>
+Cc: Chris Mason <mason@kernel.org>
+Cc: Kairui Song <ryncsn@gmail.com>
+Cc: <stable@vger.kernel.org>
 ---
 
- mm/hugetlb_vmemmap.c |   40 +++++++++++++++++++---------------------
- 1 file changed, 19 insertions(+), 21 deletions(-)
+ mm/page_io.c |   10 ++++++++++
+ 1 file changed, 10 insertions(+)
 
---- a/mm/hugetlb_vmemmap.c~mm-hugetlb_vmemmap-make-vmemmap-pte-conversion-folio-oriented
-+++ a/mm/hugetlb_vmemmap.c
-@@ -300,20 +300,26 @@ static inline int vmemmap_restore_range(
- }
- 
- /**
-- * vmemmap_remap_split - split the vmemmap virtual address range [@start, @end)
-- *                      backing PMDs of the directmap into PTEs
-- * @start:     start address of the vmemmap virtual address range that we want
-- *             to remap.
-- * @end:       end address of the vmemmap virtual address range that we want to
-- *             remap.
-+ * vmemmap_pteify_folio - convert the vmemmap backing of a folio to PTE mappings
-+ * @folio:	folio whose vmemmap range should be converted to PTE mappings.
-+ * @flags:	vmemmap remap control flags passed to vmemmap_remap_walk.
-+ *
-+ * Convert mappings covering @folio's vmemmap into PTE mappings. If TLB flushing
-+ * is skipped, the caller must flush TLBs after all pteify operations are complete
-+ * before remapping the folio's vmemmap pages.
-+ *
-  * Return: %0 on success, negative error code otherwise.
-  */
--static int vmemmap_remap_split(unsigned long start, unsigned long end)
-+static int vmemmap_pteify_folio(const struct folio *folio, unsigned long flags)
- {
- 	struct vmemmap_remap_walk walk = {
--		.remap_pte	= NULL,
--		.flags		= VMEMMAP_DEFER_TLB_FLUSH,
-+		.flags		= flags,
- 	};
-+	unsigned long start = (unsigned long)folio_page(folio, 0);
-+	unsigned long end = start + folio_vmemmap_size(folio);
+--- a/mm/page_io.c~mm-zswap-drop-the-stale-zswap-entry-of-a-zero-folio
++++ a/mm/page_io.c
+@@ -224,7 +224,17 @@ int swap_writeout(struct swap_io_ctx *ct
+ 	 * acquired internally by swap_zeromap_folio_set/clear.
+ 	 */
+ 	if (is_folio_zero_filled(folio)) {
++		swp_entry_t entry = folio->swap;
 +
-+	if (!vmemmap_optimizable_order(folio_order(folio)))
-+		return -EOPNOTSUPP;
+ 		swap_zeromap_folio_set(folio);
++
++		/*
++		 * The folio may have been stored in zswap before and dirtied
++		 * again while it stayed in the swap cache. Drop the old copy,
++		 * or zswap writeback would bring it back into the swap cache.
++		 */
++		zswap_invalidate(swp_type(entry), swp_offset(entry),
++				 folio_nr_pages(folio));
+ 		goto out_unlock;
+ 	}
  
- 	return vmemmap_remap_range(start, end, &walk);
- }
-@@ -532,21 +538,13 @@ void hugetlb_vmemmap_optimize_folio(cons
- 	free_vmemmap_page_list(&vmemmap_pages);
- }
- 
--static int hugetlb_vmemmap_split_folio(const struct hstate *h, struct folio *folio)
-+static int hugetlb_vmemmap_pteify_folio(const struct hstate *h, struct folio *folio,
-+		unsigned long flags)
- {
--	unsigned long vmemmap_start, vmemmap_end;
--
- 	if (!vmemmap_should_optimize_folio(h, folio))
- 		return 0;
- 
--	vmemmap_start	= (unsigned long)&folio->page;
--	vmemmap_end	= vmemmap_start + hugetlb_vmemmap_size(h);
--
--	/*
--	 * Split PMDs on the vmemmap virtual address range [@vmemmap_start,
--	 * @vmemmap_end]
--	 */
--	return vmemmap_remap_split(vmemmap_start, vmemmap_end);
-+	return vmemmap_pteify_folio(folio, flags);
- }
- 
- void hugetlb_vmemmap_optimize_folios(struct hstate *h, struct list_head *folio_list)
-@@ -571,7 +569,7 @@ void hugetlb_vmemmap_optimize_folios(str
- 
- 		nr_to_optimize++;
- 
--		ret = hugetlb_vmemmap_split_folio(h, folio);
-+		ret = hugetlb_vmemmap_pteify_folio(h, folio, flags);
- 
- 		/*
- 		 * Splitting the PMD requires allocating a page, thus let's fail
 _
 
-Patches currently in -mm which might be from muchun.song@linux.dev are
+Patches currently in -mm which might be from josef@toxicpanda.com are
 
-mm-fix-missing-page-table-destructor-in-pagetable_free.patch
-riscv-mm-fix-hotplug-page-table-destructor-handling.patch
-riscv-mm-fix-missing-destructor-for-hotplug-pud-tables.patch
-arm64-mm-fix-destructor-for-unconstructed-hotplug-page-tables.patch
-mm-sparse-vmemmap-map-shared-vmemmap-tail-pages-as-read-only.patch
-powerpc-mm-map-shared-vmemmap-tail-pages-as-read-only.patch
-mm-hugetlb_vmemmap-remove-vmemmap_wrprotect_hvo.patch
-mm-hugetlb_vmemmap-remove-hugetlb_vmemmap_optimize_bootmem_folios.patch
-mm-generalize-kernel-pte-table-allocation.patch
-mm-generalize-pmd-page-table-allocation.patch
-mm-generalize-pud-page-table-allocation.patch
-mm-remove-pagetable_dtor_free.patch
-mm-remove-redundant-pagetable_dtor-calls.patch
-mm-hugetlb_vmemmap-remove-hugetlb-specific-vmemmap-optimization-macros.patch
-mm-hugetlb_vmemmap-unify-vmemmap_splitremap_no_tlb_flush.patch
-mm-hugetlb_vmemmap-simplify-vmemmap-head-page-handling.patch
-mm-hugetlb_vmemmap-generalize-vmemmap-page-allocation.patch
-mm-hugetlb_vmemmap-unify-writable-vmemmap-page-preparation.patch
-mm-hugetlb_vmemmap-rename-vmemmap_remap_pte-to-vmemmap_optimize_pte.patch
-mm-hugetlb_vmemmap-simplify-shared-tail-page-handling.patch
-mm-hugetlb_vmemmap-move-alloc_vmemmap_page_list-next-to-its-free-helper.patch
-mm-hugetlb_vmemmap-make-vmemmap-optimization-folio-oriented.patch
-mm-hugetlb_vmemmap-make-vmemmap-restoration-folio-oriented.patch
-mm-hugetlb_vmemmap-unify-vmemmap-range-restoration.patch
-mm-hugetlb_vmemmap-make-vmemmap-pte-conversion-folio-oriented.patch
+mm-zswap-drop-the-stale-zswap-entry-of-a-zero-folio.patch
+mm-swap-account-synchronous-swap-reads-as-memory-stall.patch
+zram-lz4-lz4hc-accept-dictionaries-of-more-than-64-kib.patch
 
