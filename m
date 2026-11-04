@@ -1,48 +1,48 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793810760;
-	b=WgtN8FE5yzHqjFAq4qbF/jg+Jd66trpV6jYxyX8TFDYo6l/twR+cWUv41xSgW5ChCmBq
-	 qvDhOPSQDkhxGIaJEmb6+GEQ8i7fQn6io2Fr/emur6mrHVv/JPBC+r/J6ZOoH2VZfSjLO
-	 8XXaqf2kXkhNNa02A2IApDqnD2fDt8TLIHQ+IeQeYo+mBveDSrT7AuTfPEslfET/CCqkq
-	 9GPdFgCEvA/jMnfPu7JQakGbRVWZy4OTI4JwdPc0azW+l5tmbPTpGfpAy1N5DsP2wOj/Q
-	 sXGzqZP8Tr8bo2YcRTU+LHQ/tAr6IqA4Ul3EfTgoyFIWO4A4bhotX0Xd4lwct/KYIGA==
+	t=1793811421;
+	b=rqx2jXlZLcBQAymfceysu8T8vpFtyxThYmxWuVUdobvphqXy80ffdgtvDJDGlwo9wbYU
+	 XT0Uq0oD5AVfcPJqSfGtJ8+GXlglDFoYcWf8RV1eUeIhH1KZ37YwiP3jx1inRqif1/xrO
+	 KSlwUlHurRQzJW7kZqS9oAGgL1LewqUyO5eJYjQaqCQiZ9iGrYdjGTD+fzXNA/o+g3UGH
+	 4CIzruSmyjz71Kj34MlByijwlCiCqr/fUWYowdRc1UFPW9z8sArp8bIx4iDR0DS+QRqlF
+	 31BPazlnO7fx7W+E1t9Cdr3IgL19DxWBv43cKT01vZ1BIOg6e4m4/hRQHRK41tqvVbw==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793810760;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793811421;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=1FSm8Gv9bwuRlSD/vabxSLZgWODES4Hxzg8A0KwQyec=;
-	b=dKB+L+lgFlsAEQgey0COs6XubhL2KBsPpEFuYwWvnImntVpNANIdLx0ofYkVyaRELoHg
-	 rok1lxJJKtLEDtvJjAZhMVxGhYeU8NPTcGXgALeB721T3d15uz6PZNw5EFAvIaZAJE9ex
-	 vYWy3p/hwdL1QvZSzPbrewUMzHKRrGyP1q4jr8eDjChEfqWTo3lACLUdFvPdKKMnkC2vK
-	 c8P5LY7z5qFUA/ip/u9cLoSSflocXePjfoGze9EG9dDtK4XnLeg6KgLeyoqekI2pg4TtK
-	 TeUCKQ0hSd13S2wbjxD51BYtwSIrotPXMIdE+BP+X6xoPLqgh3wQPNxwRsNaI4guEjg==
+	bh=Q0SU5qa8XjkjTtbCwcsvIub6I6ugYQ/ytk/yzSfRIXo=;
+	b=WIiel+2r9Ab/5DmMsAEQjvN1ti59Vi94ct8+tjUd6RAEeUMlqD66YZZj+nDS5+wSoM/g
+	 nT0mmgv09wfh3P5s6CnhVfRzrmknlymf7F6iCIH8nLgGiWCkIKnU/4SbvYHwt3zXQTz2F
+	 /o3nroq1sAODOlrpBdRtJ+zGO/ugx+BWno3jV7grfDNMUUO34syMrA1xU6NmJ7q4FhYgM
+	 PvNHkUptwkIokTBMRCaGYeKMPL5YOKmhBkQigudCdeywxkJQnOS0sa6ul6aBsGWTwl1Al
+	 jwdUT46K+ti8mw8ZMpEaQFf4Nre3V7MgPaG4fvwS2tTHsCWPk5badOldEN5ce3q8rAg==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=csolbHwH;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=1hxo+iut;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5F22A606A328;
-	Wed,  4 Nov 2026 16:46:00 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5F63C606A335;
+	Wed,  4 Nov 2026 16:57:01 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=csolbHwH
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id BC3ED1F000C1;
-	Wed,  4 Nov 2026 16:45:59 +0000 (UTC)
+	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=1hxo+iut
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0B9151F000C1;
+	Wed,  4 Nov 2026 16:57:01 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1793810759;
-	bh=1FSm8Gv9bwuRlSD/vabxSLZgWODES4Hxzg8A0KwQyec=;
+	d=linux-foundation.org; s=korg; t=1793811421;
+	bh=Q0SU5qa8XjkjTtbCwcsvIub6I6ugYQ/ytk/yzSfRIXo=;
 	h=Date:To:From:Subject;
-	b=csolbHwHo1Vzev+HxRLDXJw67cJXcgIcdGqS29dkyoHW+4ckChuEHZd5afwrgwBy9
-	 YkrGGb8dBIOGF5HVz+faGfgJEuuIwXYwv+8NAAWlhcw5HKllsHmBA14UuA6wFVAJFb
-	 4+M1zVnzUpCygRRyhgXXAhfSTtJMj2Ji0+6lPb3s=
-Date: Wed, 04 Nov 2026 08:45:59 -0800
-To: mm-commits@vger.kernel.org,stable@vger.kernel.org,mark@fasheh.com,
-	joseph.qi@linux.alibaba.com,jlbec@evilplan.org,jjzuming@gmail.com,
-	heming.zhao@suse.com,baijiaju1990@gmail.com,zzzccc427@gmail.com,
+	b=1hxo+iutKJ312bOBznBd0g2+iEzycMpnoJjuN/Zv8aO4BWfDNo2wRQR6B4R4UEADk
+	 2jl4FGtgRpGT34owuCvj1EysXw33u8qTEa6adsoxzp13fb3+DlcGONsBjswTd0YI+n
+	 xCPJwS2EFjLc0PiL/KozpS5bm2HoeWeBZApfs9bQ=
+Date: Wed, 04 Nov 2026 08:57:00 -0800
+To: mm-commits@vger.kernel.org,vbabka@kernel.org,surenb@google.com,
+	stable@vger.kernel.org,rppt@kernel.org,peterx@redhat.com,mhocko@suse.com,
+	ljs@kernel.org,liam@infradead.org,david@kernel.org,umangpokhriyall@gmail.com,
 	akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + ocfs2-serialize-inode-journal-access-with-shutdown.patch added to mm-nonmm-hotfixes-unstable branch
-Message-Id: <20261104164559.BC3ED1F000C1@smtp.kernel.org>
+Subject: + userfaultfd-validate-the-whole-range-before-changing-write-protection.patch added to mm-hotfixes-unstable branch
+Message-Id: <20261104165701.0B9151F000C1@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -54,14 +54,14 @@ Precedence: list
 
 
 The patch titled
-     Subject: ocfs2: serialize inode journal access with shutdown
-has been added to the -mm mm-nonmm-hotfixes-unstable branch.  Its filename is
-     ocfs2-serialize-inode-journal-access-with-shutdown.patch
+     Subject: userfaultfd: validate the whole range before changing write protection
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     userfaultfd-validate-the-whole-range-before-changing-write-protection.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/ocfs2-serialize-inode-journal-access-with-shutdown.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/userfaultfd-validate-the-whole-range-before-changing-write-protection.patch
 
-This patch will later appear in the mm-nonmm-hotfixes-unstable branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -77,312 +77,81 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Cen Zhang <zzzccc427@gmail.com>
-Subject: ocfs2: serialize inode journal access with shutdown
-Date: Fri, 30 Oct 2026 12:48:56 +0800
+From: Umang Pokhriyal <umangpokhriyall@gmail.com>
+Subject: userfaultfd: validate the whole range before changing write protection
+Date: Wed, 04 Nov 2026 15:04:57 +0530
 
-The downconvert thread can run inode cleanup until ocfs2_dlm_shutdown()
-stops it, but unmount shuts down the journal earlier. A final dentry
-post-unlock put can therefore enter ocfs2_clear_inode() while the journal
-is being destroyed.
+mwriteprotect_range() checks each VMA as it walks the range.  When a later
+VMA is not registered for write protection, or is a hugetlb VMA the range
+is not aligned to, the call fails after the earlier VMAs were already
+changed.  When unprotecting, userfaultfd_writeprotect() then skips
+wake_userfault(), so threads blocked on those pages are not woken although
+the pages are writable again.
 
-ocfs2_ci_fully_checkpointed() loads osb->journal before taking
-trans_inc_lock. Journal shutdown neither takes that lock for removal
-nor waits for the downconvert thread before freeing the journal:
+An unprivileged process can trigger this with a range that spans an
+unregistered VMA.  It hasn't been seen in practice; it was found while
+reviewing the userfaultfd range ioctls with an LLM.
 
-  Downconvert thread                    Unmount
-  ------------------                    -------
-  dentry post-unlock; final iput()
-    ocfs2_checkpoint_inode()
-      load osb->journal
-                                        ocfs2_journal_shutdown()
-                                          free journal; clear pointer
-      read the transaction ID
+Validate the whole range first, as mrwprotect_range() already does.
 
-The checkpoint wait queue is embedded in that journal, and the final
-jbd2_journal_release_jbd_inode() also needs its JBD2 journal to remain
-alive for the whole call. Protecting only the pointer load would leave
-those longer uses unprotected.
-
-Read and clear osb->journal under trans_inc_lock when checking checkpoint
-progress. Treat a removed journal as checkpointed. Move checkpoint
-waiters to the existing mount-owned checkpoint_event and wake it after
-checkpoint progress and journal removal, so the queue outlives the
-journal. The commit thread also waits there and rechecks its condition
-when woken.
-
-Serialize the final JBD2 inode release against JBD2 destruction and the
-journal free with a mount-owned rw_semaphore. Take the write side only
-after stopping the commit thread, and drop it before the journal inode's
-final iput(), whose cleanup can take the read side. Inode cleanup holds
-the read side only around the JBD2 release, outside checkpoint waits and
-DLM lock teardown.
-
-KASAN report as below:
-
-    Oops: general protection fault, probably for non-canonical address 0xdffffc000000000e: 0000 [#1] SMP KASAN NOPTI
-    KASAN: null-ptr-deref in range [0x0000000000000070-0x0000000000000077]
-    CPU: 0 UID: 0 PID: 587 Comm: ocfs2dc-33CAF04 Not tainted 7.3.0-rc4-next-20260921-pmb-ocfs2-functional-v1+ #1 PREEMPT(lazy) 
-    Hardware name: QEMU Ubuntu 24.04 PC v2 (i440FX + PIIX, arch_caps fix, 1996), BIOS 1.16.3-debian-1.16.3-2 04/01/2014
-    RIP: 0010:ocfs2_clear_inode+0x8ae/0x1630
-    Code: fc ff df 48 c1 ea 03 80 3c 02 00 0f 85 27 0c 00 00 49 8d 7d 70 48 8b 43 c8 48 ba 00 00 00 00 00 fc ff df 48 89 f9 48 c1 e9 03 <80> 3c 11 00 0f 85 f0 0b 00 00 49 3b 45 70 0f 88 62 03 00 00 e8 49
-    RSP: 0018:ffff888118d3f878 EFLAGS: 00010212
-    RAX: 0000000000000001 RBX: ffff88811a5edc60 RCX: 000000000000000e
-    RDX: dffffc0000000000 RSI: 0000000000000001 RDI: 0000000000000070
-    RBP: ffff888116134000 R08: 0000000000000001 R09: 0000000000000001
-    R10: ffffffff8965765f R11: 0000000000000001 R12: ffff88811a5ed400
-    R13: 0000000000000000 R14: ffff88811a5edbf8 R15: ffff88811a5ed408
-    FS:  0000000000000000(0000) GS:ffff8881fd4dc000(0000) knlGS:0000000000000000
-    CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
-    CR2: 00007ff35b66f2c0 CR3: 00000001092ae005 CR4: 0000000000770ef0
-    PKRU: 55555554
-    Call Trace:
-     <TASK>
-     ? __pfx_ocfs2_clear_inode+0x10/0x10
-     ? __pfx_ocfs2_inode_is_valid_to_delete+0x10/0x10
-     ? srso_alias_return_thunk+0x5/0xfbef5
-     ? __lock_acquire+0x5a3/0x2140
-     ocfs2_evict_inode+0x1ed/0x11e0
-     ? inode_wait_for_writeback+0x14c/0x330
-     ? __pfx_ocfs2_evict_inode+0x10/0x10
-     ? lock_acquire+0x190/0x300
-     ? srso_alias_return_thunk+0x5/0xfbef5
-     ? find_held_lock+0x2b/0x80
-     ? evict+0x347/0x9f0
-     ? srso_alias_return_thunk+0x5/0xfbef5
-     ? lock_release+0xc8/0x290
-     ? _raw_spin_unlock+0x23/0x40
-     ? __pfx_ocfs2_evict_inode+0x10/0x10
-     evict+0x38b/0x9f0
-     ? __pfx_evict+0x10/0x10
-     ? lock_acquire+0x190/0x300
-     ? srso_alias_return_thunk+0x5/0xfbef5
-     ? lock_release+0xc8/0x290
-     ? __pfx_inode_just_drop+0x10/0x10
-     iput+0x680/0xb80
-     ocfs2_dentry_lock_put+0xc2/0x110
-     ? __pfx_ocfs2_dentry_post_unlock+0x10/0x10
-     ocfs2_process_blocked_lock+0x1fb/0x420
-     ? __pfx_ocfs2_process_blocked_lock+0x10/0x10
-     ? __pfx_pmbd_probe_hit_cookie+0x10/0x10
-     ? lock_release+0xc8/0x290
-     ? srso_alias_return_thunk+0x5/0xfbef5
-     ? lockdep_hardirqs_on_prepare+0xeb/0x1a0
-     ? srso_alias_return_thunk+0x5/0xfbef5
-     ocfs2_downconvert_thread+0x32b/0x780
-     ? do_raw_spin_lock+0x130/0x270
-     ? __pfx_ocfs2_downconvert_thread+0x10/0x10
-     ? __kthread_parkme+0xc1/0x220
-     ? srso_alias_return_thunk+0x5/0xfbef5
-     ? lock_release+0xc8/0x290
-     ? __pfx_autoremove_wake_function+0x10/0x10
-     ? srso_alias_return_thunk+0x5/0xfbef5
-     ? srso_alias_return_thunk+0x5/0xfbef5
-     ? __kthread_parkme+0x177/0x220
-     ? __pfx_ocfs2_downconvert_thread+0x10/0x10
-     kthread+0x351/0x460
-     ? srso_alias_return_thunk+0x5/0xfbef5
-     ? __pfx_kthread+0x10/0x10
-     ret_from_fork+0x659/0x940
-     ? __pfx_ret_from_fork+0x10/0x10
-     ? srso_alias_return_thunk+0x5/0xfbef5
-     ? __switch_to+0x74f/0xf70
-     ? __pfx_kthread+0x10/0x10
-     ret_from_fork_asm+0x1a/0x30
-     </TASK>
-    Modules linked in:
-    ---[ end trace 0000000000000000 ]---
-
-Link: https://lore.kernel.org/pm-ocfs2-objects-candidate-0004-v8-dbcb8f80b8df476084d6@gmail.com
-Fixes: da5e7c87827e ("ocfs2: cleanup journal init and shutdown")
-Signed-off-by: Cen Zhang <zzzccc427@gmail.com>
+Link: https://lore.kernel.org/20261104093457.152245-1-umangpokhriyall@gmail.com
+Fixes: a1b92a3f1498 ("mm/userfaultfd: support WP on multiple VMAs")
+Signed-off-by: Umang Pokhriyal <umangpokhriyall@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Reviewed-by: Joseph Qi <joseph.qi@linux.alibaba.com> 
-Cc: Mark Fasheh <mark@fasheh.com>
-Cc: Joel Becker <jlbec@evilplan.org>
-Cc: Heming Zhao <heming.zhao@suse.com>
-Cc: Jia-Ju Bai <baijiaju1990@gmail.com>
-Cc: <jjzuming@gmail.com>
+Reviewed-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
+Cc: Peter Xu <peterx@redhat.com>
+Cc: David Hildenbrand <david@kernel.org>
+Cc: Lorenzo Stoakes <ljs@kernel.org>
+Cc: Liam R. Howlett <liam@infradead.org>
+Cc: Vlastimil Babka <vbabka@kernel.org>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Michal Hocko <mhocko@suse.com>
 Cc: <stable@vger.kernel.org>
 ---
 
- fs/ocfs2/inode.c   |   17 +++++++++--------
- fs/ocfs2/journal.c |   30 ++++++++++++++++++++++--------
- fs/ocfs2/journal.h |   17 +++++++++--------
- fs/ocfs2/ocfs2.h   |    1 +
- fs/ocfs2/super.c   |    1 +
- 5 files changed, 42 insertions(+), 24 deletions(-)
+ mm/userfaultfd.c |   21 +++++++++++++--------
+ 1 file changed, 13 insertions(+), 8 deletions(-)
 
---- a/fs/ocfs2/inode.c~ocfs2-serialize-inode-journal-access-with-shutdown
-+++ a/fs/ocfs2/inode.c
-@@ -1318,15 +1318,16 @@ static void ocfs2_clear_inode(struct ino
- 	oi->ip_blkno = 0ULL;
- 
- 	/*
--	 * ip_jinode is used to track txns against this inode. We ensure that
--	 * the journal is flushed before journal shutdown. Thus it is safe to
--	 * have inodes get cleaned up after journal shutdown.
-+	 * ip_jinode is used to track txns against this inode. The journal is
-+	 * flushed before it is shut down, so an inode cleaned up after that
-+	 * has nothing left to release. Hold the shutdown lock so a journal
-+	 * found here stays allocated until the release has finished.
- 	 */
--	if (!osb->journal)
--		return;
--
--	jbd2_journal_release_jbd_inode(osb->journal->j_journal,
--				       &oi->ip_jinode);
-+	down_read(&osb->journal_shutdown_sem);
-+	if (osb->journal)
-+		jbd2_journal_release_jbd_inode(osb->journal->j_journal,
-+					       &oi->ip_jinode);
-+	up_read(&osb->journal_shutdown_sem);
- }
- 
- void ocfs2_evict_inode(struct inode *inode)
---- a/fs/ocfs2/journal.c~ocfs2-serialize-inode-journal-access-with-shutdown
-+++ a/fs/ocfs2/journal.c
-@@ -352,7 +352,7 @@ static int ocfs2_commit_cache(struct ocf
- 	trace_ocfs2_commit_cache_end(journal->j_trans_id, flushed);
- 
- 	ocfs2_wake_downconvert_thread(osb);
--	wake_up(&journal->j_checkpointed);
-+	wake_up(&osb->checkpoint_event);
- finally:
- 	return status;
- }
-@@ -901,7 +901,6 @@ int ocfs2_journal_alloc(struct ocfs2_sup
- 
- 	atomic_set(&journal->j_num_trans, 0);
- 	init_rwsem(&journal->j_trans_barrier);
--	init_waitqueue_head(&journal->j_checkpointed);
- 	spin_lock_init(&journal->j_lock);
- 	journal->j_trans_id = 1UL;
- 	INIT_LIST_HEAD(&journal->j_la_cleanups);
-@@ -1073,12 +1072,14 @@ void ocfs2_journal_shutdown(struct ocfs2
- 
- 	journal = osb->journal;
- 	if (!journal)
--		goto done;
-+		return;
- 
- 	inode = journal->j_inode;
- 
--	if (journal->j_state != OCFS2_JOURNAL_LOADED)
--		goto done;
-+	if (journal->j_state != OCFS2_JOURNAL_LOADED) {
-+		down_write(&osb->journal_shutdown_sem);
-+		goto free;
-+	}
- 
- 	/* need to inc inode use count - jbd2_journal_destroy will iput. */
- 	if (!igrab(inode))
-@@ -1114,6 +1115,12 @@ void ocfs2_journal_shutdown(struct ocfs2
- 			mlog_errno(status);
- 	}
+--- a/mm/userfaultfd.c~userfaultfd-validate-the-whole-range-before-changing-write-protection
++++ a/mm/userfaultfd.c
+@@ -1105,21 +1105,26 @@ static int mwriteprotect_range(struct us
+ 	if (atomic_read(&ctx->mmap_changing))
+ 		goto out_unlock;
  
 +	/*
-+	 * Exclude the final JBD2 inode cleanup in ocfs2_clear_inode() while
-+	 * the journal is destroyed and freed.
++	 * Validate every spanned VMA before changing any of them, so an
++	 * invalid range is rejected without changing part of it.
 +	 */
-+	down_write(&osb->journal_shutdown_sem);
-+
- 	/* Shutdown the kernel journal system */
- 	if (!jbd2_journal_destroy(journal->j_journal) && !status) {
- 		/*
-@@ -1136,10 +1143,17 @@ void ocfs2_journal_shutdown(struct ocfs2
- 
- 	journal->j_state = OCFS2_JOURNAL_FREE;
- 
--done:
--	iput(inode);
--	kfree(journal);
-+free:
-+	/* Serialize the removal with ocfs2_ci_fully_checkpointed(). */
-+	spin_lock(&trans_inc_lock);
- 	osb->journal = NULL;
-+	spin_unlock(&trans_inc_lock);
-+	wake_up(&osb->checkpoint_event);
-+	kfree(journal);
-+	up_write(&osb->journal_shutdown_sem);
-+
-+	/* The journal inode's own cleanup takes the read side. */
-+	iput(inode);
- }
- 
- static void ocfs2_clear_journal_error(struct super_block *sb,
---- a/fs/ocfs2/journal.h~ocfs2-serialize-inode-journal-access-with-shutdown
-+++ a/fs/ocfs2/journal.h
-@@ -54,7 +54,6 @@ struct ocfs2_journal {
- 	spinlock_t                j_lock;
- 	unsigned long             j_trans_id;
- 	struct rw_semaphore       j_trans_barrier;
--	wait_queue_head_t         j_checkpointed;
- 
- 	/* both fields protected by j_lock*/
- 	struct list_head          j_la_cleanups;
-@@ -91,11 +90,15 @@ static inline void ocfs2_set_ci_lock_tra
- static inline int ocfs2_ci_fully_checkpointed(struct ocfs2_caching_info *ci)
- {
- 	int ret;
--	struct ocfs2_journal *journal =
--		OCFS2_SB(ocfs2_metadata_cache_get_super(ci))->journal;
-+	struct ocfs2_super *osb =
-+		OCFS2_SB(ocfs2_metadata_cache_get_super(ci));
-+	struct ocfs2_journal *journal;
- 
- 	spin_lock(&trans_inc_lock);
--	ret = time_after(journal->j_trans_id, ci->ci_last_trans);
-+	journal = osb->journal;
-+	/* A NULL journal has already completed checkpointing. */
-+	ret = !journal ||
-+		time_after(journal->j_trans_id, ci->ci_last_trans);
- 	spin_unlock(&trans_inc_lock);
- 	return ret;
- }
-@@ -196,9 +199,6 @@ static inline void ocfs2_checkpoint_inod
- 	if (ocfs2_mount_local(osb))
- 		return;
- 
--	if (!osb->journal)
--		return;
+ 	err = -ENOENT;
+ 	for_each_vma_range(vmi, dst_vma, end) {
 -
- 	if (!ocfs2_ci_fully_checkpointed(INODE_CACHE(inode))) {
- 		/* WARNING: This only kicks off a single
- 		 * checkpoint. If someone races you and adds more
-@@ -208,7 +208,8 @@ static inline void ocfs2_checkpoint_inod
- 		 * OK. */
- 		ocfs2_start_checkpoint(osb);
+-		if (!userfaultfd_wp(dst_vma)) {
+-			err = -ENOENT;
+-			break;
+-		}
++		if (!userfaultfd_wp(dst_vma))
++			goto out_unlock;
  
--		wait_event(osb->journal->j_checkpointed,
-+		/* The wait queue must outlive journal shutdown. */
-+		wait_event(osb->checkpoint_event,
- 			   ocfs2_ci_fully_checkpointed(INODE_CACHE(inode)));
- 	}
- }
---- a/fs/ocfs2/ocfs2.h~ocfs2-serialize-inode-journal-access-with-shutdown
-+++ a/fs/ocfs2/ocfs2.h
-@@ -388,6 +388,7 @@ struct ocfs2_super
- 	enum ocfs2_recovery_state recovery_state;
- 	wait_queue_head_t checkpoint_event;
- 	struct ocfs2_journal *journal;
-+	struct rw_semaphore journal_shutdown_sem;
- 	unsigned long osb_commit_interval;
+ 		if (vma_is_hugetlb(dst_vma)) {
+-			err = -EINVAL;
+ 			page_mask = vma_kernel_pagesize(dst_vma) - 1;
+-			if ((start & page_mask) || (len & page_mask))
+-				break;
++			if ((start & page_mask) || (len & page_mask)) {
++				err = -EINVAL;
++				goto out_unlock;
++			}
+ 		}
++	}
  
- 	/* Journal triggers for checksum */
---- a/fs/ocfs2/super.c~ocfs2-serialize-inode-journal-access-with-shutdown
-+++ a/fs/ocfs2/super.c
-@@ -2048,6 +2048,7 @@ static int ocfs2_initialize_super(struct
- 	}
- 
- 	init_waitqueue_head(&osb->checkpoint_event);
-+	init_rwsem(&osb->journal_shutdown_sem);
- 
- 	osb->s_atime_quantum = OCFS2_DEFAULT_ATIME_QUANTUM;
++	vma_iter_set(&vmi, start);
++	for_each_vma_range(vmi, dst_vma, end) {
+ 		_start = max(dst_vma->vm_start, start);
+ 		_end = min(dst_vma->vm_end, end);
  
 _
 
-Patches currently in -mm which might be from zzzccc427@gmail.com are
+Patches currently in -mm which might be from umangpokhriyall@gmail.com are
 
-ocfs2-serialize-inode-journal-access-with-shutdown.patch
+userfaultfd-validate-the-whole-range-before-changing-write-protection.patch
 
