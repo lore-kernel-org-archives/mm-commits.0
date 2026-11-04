@@ -1,48 +1,48 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793768282;
-	b=W/iGOO0sQuyisi0oVU4cO8v2/QYKnFXfyOjskxeShINNpK45rYA0z9VxhevMwGaOnVXV
-	 iWjybhrsxNw+u+1F9V/wU7VyHjBzSffMwuzfxiZG9/45Op37znSnhRgyYXSI+75K0Bbz5
-	 +6lrPs2LRg3/9qw9LJS3RlbV+StCa2AMdQ+VNVbDS36k92SGgoqumcjvIOTls0j5gJhN0
-	 V4stfDi1I9n0jOTUOk1y6OXLRgUzEm9uRHStRsImDBwKR5WDuwfySXBFrpu78L6p452Pq
-	 D1duV7x7fvwWn0KBLUkgRfrTMYALer+5MxAC61+nmAkW66tKeFSp7wWm2lw/9oi34tA==
+	t=1793768284;
+	b=SGzkcxFh7gRHirxh8QHCj8idMDpWWMM42yA3Xpok0ZWP/Og3L2Sz4zQxefl6nJSpX+a7
+	 Io79GkaZJQtvwKPDlWCrNyebJ71CATFU2eMGIz35bNQMToPkWbZDUsh8jEbuB+sK87JfV
+	 64je8m5vumAdr0jAwqT9a0XuJR5CE9n0SfPOJt7ILD5peMCLrf/J8shGf3GpGIeSm9eDt
+	 VrUTuF2JpAJNvCV8geHeR8iXGIGMQbjiqsDKNnVmyA2u7rpqg7jZY2yOn6USoaaSvvBnh
+	 iq8ERqA1Em5gUjb4oGhapSKAgelR6BIYXFkNm8W8eSVCDS9iYDPME1q0SU8Hpo4aRcA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793768282;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793768284;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=QeFV3/OJ2/h37sF91/rTXHQJeGom5Dhlh0/JfVN53no=;
-	b=x+H9dvV1hbnvs4bZqL6PedKeaC5xEktNuCZW1AYzGv3SiyH0pHWtWMCgYF5V7YSrNbuD
-	 0BrtjlWr9cQx3rvt6d+yvEbDSt5YGdqCiIDiz26FDB0lghDDIm+YgI4k4Q6v/2Ip8GoU1
-	 i18sRkISpQvVTbelW0l33YA+yIwZDyjKXQyEcRxyo5c8ideGX37kVLQiHfOSXAtMRZbVI
-	 8Ddej0PJRHK54KXAgNe2VkRRLcFqMrlOvPYCz79ELcBW5ey3RARflElN4Z6VQAyl69qMM
-	 W4uzQ/Pzrv+fo9dnNVQ86+6qpTHN/K/90kt79xEbekQ7LnFAZT/NUrK4aabXh1Fs9Tw==
+	bh=+m6f89Gyk9rODUfCWmzimL1bnQ6ZChXXxmvlRV/1eOc=;
+	b=wnV9ZKwdQoyXucWVJk/j2sIjd01oz//MTCuDRx/6YRCSx11C765tEtpYhuPNX2799RNZ
+	 /yEz9uVAemXnLSB49rvEu4iSnud4Bvay5MIIVH/AjY5sCl8H3Jn/VopBe84nzZJ433ZLc
+	 9rvxRGrKgNHgm5XXxshCrkuAS/EfDYw/DqVPXzDvjoLSjFM7pbnsXwaVdpMgHG5TuZXh0
+	 7SW2/pj64G5Dc79GhWUjxLWuzax/vfjH59sPCf7Rr1+mIsqHfW+wrpMeFrLkW7fwvyKL6
+	 82R/Gr9Z57v1TSHwldN0eQ1TZmKbbMLNc5pjtpI52tCH60XeL2lPVaSJGgHWcaFqIVA==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=ujd9z7wo;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=2JRMDVNa;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4E8A1606A31B
-	for <mm-commits@vger.kernel.org>; Wed,  4 Nov 2026 04:58:02 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CDF73606A31B
+	for <mm-commits@vger.kernel.org>; Wed,  4 Nov 2026 04:58:03 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=ujd9z7wo
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C91441F000C1;
-	Wed,  4 Nov 2026 04:58:01 +0000 (UTC)
+	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=2JRMDVNa
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 960441F000C1;
+	Wed,  4 Nov 2026 04:58:03 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1793768281;
-	bh=QeFV3/OJ2/h37sF91/rTXHQJeGom5Dhlh0/JfVN53no=;
+	d=linux-foundation.org; s=korg; t=1793768283;
+	bh=+m6f89Gyk9rODUfCWmzimL1bnQ6ZChXXxmvlRV/1eOc=;
 	h=Date:To:From:Subject;
-	b=ujd9z7wosF2fOFkhXwJOS1szl1xtG99GgArXuFo1qStyrLZsS8OibVhdzgBB9veqH
-	 aNgW3rWrvRE0cvZIChJDcp9/nXU9imcy2Dc9UPzIvsUpsgJDpt7+pQLzvMIEw7T5CQ
-	 9kAsFXPSU5rU2hwqsIKaMAQGdc4NKnsnHOGPE3aA=
-Date: Tue, 03 Nov 2026 20:58:01 -0800
+	b=2JRMDVNajRhgRgDxmIgvj28hnVRA3VcaOHFJUApR2VUq6c0hN3n44GHHYz/8+YbN0
+	 m5GtVJgqb+36YCJlNgB/4IoO0kuN7pNjpvRQgn2cNew1PaZcmV8LIoh0k5KazzrHn5
+	 4lTp1RHD9dWEiNVSv5FjOdl0ofMJcZ+rJYc1YuJI=
+Date: Tue, 03 Nov 2026 20:58:03 -0800
 To: mm-commits@vger.kernel.org,rppt@kernel.org,qi.zheng@linux.dev,
 	osalvador@suse.de,lance.yang@linux.dev,jthoughton@google.com,
 	david@kernel.org,chenhuacai@kernel.org,muchun.song@linux.dev,
 	akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-hugetlb_vmemmap-make-vmemmap-optimization-folio-oriented.patch added to mm-new branch
-Message-Id: <20261104045801.C91441F000C1@smtp.kernel.org>
+Subject: + mm-hugetlb_vmemmap-make-vmemmap-restoration-folio-oriented.patch added to mm-new branch
+Message-Id: <20261104045803.960441F000C1@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -54,12 +54,12 @@ Precedence: list
 
 
 The patch titled
-     Subject: mm: hugetlb_vmemmap: make vmemmap optimization folio-oriented
+     Subject: mm: hugetlb_vmemmap: make vmemmap restoration folio-oriented
 has been added to the -mm mm-new branch.  Its filename is
-     mm-hugetlb_vmemmap-make-vmemmap-optimization-folio-oriented.patch
+     mm-hugetlb_vmemmap-make-vmemmap-restoration-folio-oriented.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-hugetlb_vmemmap-make-vmemmap-optimization-folio-oriented.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-hugetlb_vmemmap-make-vmemmap-restoration-folio-oriented.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -89,22 +89,22 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Muchun Song <muchun.song@linux.dev>
-Subject: mm: hugetlb_vmemmap: make vmemmap optimization folio-oriented
-Date: Wed, 04 Nov 2026 10:35:07 +0800
+Subject: mm: hugetlb_vmemmap: make vmemmap restoration folio-oriented
+Date: Wed, 04 Nov 2026 10:35:08 +0800
 
-Vmemmap optimization operates on one folio at a time, but the current
-interface exposes a raw address range and requires the HugeTLB caller to
-prepare part of the operation.  This splits the common mechanism across
-layers and obscures its natural unit of work.
+Like optimization, vmemmap restoration operates on one folio at a time,
+but the current interface exposes a raw address range and requires the
+HugeTLB caller to prepare part of the operation.  This splits the common
+mechanism across layers and obscures its natural unit of work.
 
-Make the folio the unit of vmemmap optimization and move the common
+Make the folio the unit of vmemmap restoration and move the common
 mechanics behind a folio-oriented interface.  This keeps HugeTLB-specific
-eligibility and state in the caller while making the remapping code
-applicable to any eligible folio.
+eligibility and state in the caller and gives both directions of HVO
+consistent folio-level interfaces.
 
 No functional change intended.
 
-Link: https://lore.kernel.org/20261104023510.260766-10-songmuchun@bytedance.com
+Link: https://lore.kernel.org/20261104023510.260766-11-songmuchun@bytedance.com
 Signed-off-by: Muchun Song <muchun.song@linux.dev>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 Reviewed-by: Lance Yang <lance.yang@linux.dev>
@@ -116,116 +116,78 @@ Cc: David Hildenbrand <david@kernel.org>
 Cc: Huacai Chen <chenhuacai@kernel.org>
 ---
 
- mm/hugetlb_vmemmap.c |   64 +++++++++++++++++++----------------------
- 1 file changed, 30 insertions(+), 34 deletions(-)
+ mm/hugetlb_vmemmap.c |   37 +++++++++++++------------------------
+ 1 file changed, 13 insertions(+), 24 deletions(-)
 
---- a/mm/hugetlb_vmemmap.c~mm-hugetlb_vmemmap-make-vmemmap-optimization-folio-oriented
+--- a/mm/hugetlb_vmemmap.c~mm-hugetlb_vmemmap-make-vmemmap-restoration-folio-oriented
 +++ a/mm/hugetlb_vmemmap.c
-@@ -233,6 +233,11 @@ static struct page *vmemmap_dup_page_fro
- 	return dst;
- }
- 
-+static inline unsigned long folio_vmemmap_size(const struct folio *folio)
-+{
-+	return folio_nr_pages(folio) * sizeof(struct page);
-+}
-+
- static inline struct page *folio_vmemmap_shared_tail_page(const struct folio *folio)
- {
- 	return vmemmap_shared_tail_page(folio_order(folio), folio_zone(folio));
-@@ -302,28 +307,39 @@ static int vmemmap_remap_split(unsigned
+@@ -363,28 +363,29 @@ static int vmemmap_optimize_folio(const
  }
  
  /**
-- * vmemmap_remap_free - remap a vmemmap range and collect old backing pages
+- * vmemmap_remap_alloc - remap the vmemmap virtual address range [@start, end)
+- *			 to the page which is from the @vmemmap_pages
+- *			 respectively.
 - * @start:	start address of the vmemmap virtual address range that we want
 - *		to remap.
 - * @end:	end address of the vmemmap virtual address range that we want to
 - *		remap.
-- * @vmemmap_pages: input/output list whose first entry supplies the new backing
-- *		page for @start; replaced backing pages are added to the list for
-- *		the caller to free.
 - * @flags:	modifications to vmemmap_remap_walk flags
-+ * vmemmap_optimize_folio - optimize the vmemmap backing of a folio
-+ * @folio:	folio whose vmemmap pages should be optimized.
-+ * @vmemmap_pages: list holding replacement pages for the remap and displaced
-+ *		backing pages for the caller to free.
++ * vmemmap_restore_folio - restore the vmemmap backing of a folio
++ * @folio:	folio whose vmemmap pages should be restored.
 + * @flags:	vmemmap remap control flags passed to vmemmap_remap_walk.
 + *
-+ * Remap @folio's vmemmap so optimizable entries point at the shared tail page
-+ * while non-optimizable entries are copied into replacement pages. Caller is
-+ * responsible for freeing the pages left on the @vmemmap_pages list, even on
-+ * failure.
++ * Remap @folio's vmemmap so optimizable entries are restored from the shared
++ * tail page back to distinct backing pages allocated for @folio, while
++ * non-optimizable entries remain unchanged.
   *
   * Return: %0 on success, negative error code otherwise.
   */
--static int vmemmap_remap_free(unsigned long start, unsigned long end,
-+static int vmemmap_optimize_folio(const struct folio *folio,
- 		struct list_head *vmemmap_pages, unsigned long flags)
+-static int vmemmap_remap_alloc(unsigned long start, unsigned long end,
+-			       unsigned long flags)
++static int vmemmap_restore_folio(const struct folio *folio, unsigned long flags)
  {
--	int ret;
-+	int ret, nid = folio_nid(folio);
+ 	LIST_HEAD(vmemmap_pages);
+-	int nid = page_to_nid((struct page *)start);
++	int nid = folio_nid(folio);
 +	unsigned long start = (unsigned long)folio_page(folio, 0);
 +	unsigned long end = start + folio_vmemmap_size(folio);
  	struct vmemmap_remap_walk walk = {
- 		.remap_pte	= vmemmap_optimize_pte,
- 		.vmemmap_pages	= vmemmap_pages,
+ 		.remap_pte	= vmemmap_restore_pte,
+ 		.vmemmap_pages	= &vmemmap_pages,
  		.flags		= flags,
  	};
  
-+	VM_WARN_ON_ONCE_FOLIO(folio_ref_count(folio), folio);
-+
-+	if (!vmemmap_optimizable_order(folio_order(folio)))
-+		return -EOPNOTSUPP;
-+
-+	if (alloc_vmemmap_page_list(vmemmap_pages, VMEMMAP_OPTIMIZATION_PAGES, nid))
-+		return -ENOMEM;
-+
- 	ret = vmemmap_remap_range(start, end, &walk);
- 	if (!ret || !walk.nr_walked)
- 		return ret;
-@@ -488,16 +504,12 @@ static int __hugetlb_vmemmap_optimize_fo
- 					    struct list_head *vmemmap_pages,
- 					    unsigned long flags)
++	start += VMEMMAP_OPTIMIZATION_SIZE;
+ 	if (alloc_vmemmap_page_list(&vmemmap_pages, (end - start) / PAGE_SIZE, nid))
+ 		return -ENOMEM;
+ 
+@@ -402,7 +403,6 @@ static int __hugetlb_vmemmap_restore_fol
+ 					   struct folio *folio, unsigned long flags)
  {
+ 	int ret;
 -	unsigned long vmemmap_start, vmemmap_end;
--	int nid, ret = 0;
-+	int ret;
  
  	VM_WARN_ON_ONCE_FOLIO(!folio_test_hugetlb(folio), folio);
--	VM_WARN_ON_ONCE_FOLIO(folio_ref_count(folio), folio);
+ 	VM_WARN_ON_ONCE_FOLIO(folio_ref_count(folio), folio);
+@@ -410,18 +410,7 @@ static int __hugetlb_vmemmap_restore_fol
+ 	if (!folio_test_hugetlb_vmemmap_optimized(folio))
+ 		return 0;
  
- 	if (!vmemmap_should_optimize_folio(h, folio))
--		return ret;
--
--	nid = folio_nid(folio);
-+		return 0;
- 
- 	/*
- 	 * Very Subtle
-@@ -511,23 +523,7 @@ static int __hugetlb_vmemmap_optimize_fo
- 	 * the TLB and clear the flag below.
- 	 */
- 	folio_set_hugetlb_vmemmap_optimized(folio);
--
--	if (alloc_vmemmap_page_list(vmemmap_pages, VMEMMAP_OPTIMIZATION_PAGES, nid)) {
--		ret = -ENOMEM;
--		goto out;
--	}
--
 -	vmemmap_start	= (unsigned long)&folio->page;
 -	vmemmap_end	= vmemmap_start + hugetlb_vmemmap_size(h);
 -
+-	vmemmap_start	+= VMEMMAP_OPTIMIZATION_SIZE;
+-
 -	/*
--	 * Remap the vmemmap virtual address range [@vmemmap_start, @vmemmap_end).
--	 * Add pages previously mapping the range to vmemmap_pages list so that
--	 * they can be freed by the caller.
+-	 * The pages which the vmemmap virtual address range [@vmemmap_start,
+-	 * @vmemmap_end) are mapped to are freed to the buddy allocator.
+-	 * When a HugeTLB page is freed to the buddy allocator, previously
+-	 * discarded vmemmap pages must be allocated and remapping.
 -	 */
--	ret = vmemmap_remap_free(vmemmap_start, vmemmap_end,
--				 vmemmap_pages, flags);
--out:
-+	ret = vmemmap_optimize_folio(folio, vmemmap_pages, flags);
- 	if (ret)
+-	ret = vmemmap_remap_alloc(vmemmap_start, vmemmap_end, flags);
++	ret = vmemmap_restore_folio(folio, flags);
+ 	if (!ret)
  		folio_clear_hugetlb_vmemmap_optimized(folio);
  
 _
