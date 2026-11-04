@@ -1,46 +1,48 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793812759;
-	b=I4JeaY+1pn6IdljZMukH4rARpIF345SIbaD0MV4c81veXR+6B3jBrS+9fSwkgB6hEdVl
-	 mgrUfH9Ywy5e2fY3+arw2hTQjITFPkx1bWmd0PbVA5IdSiRfpxAAC0AKRicx3zV7SF8Ec
-	 ZN3inoDn4MI7om/NYx9oTyI5nYk25XPp00sUFvhpK+GmZi3/ES5wdpw1/EuTJzixIruMP
-	 Za+bPFSSgxq4AO+OFSF24SC1fbgWv2jt9Iz8u8Xoge+TyW7OoNNr5I5aCyLVfUZpUWSwr
-	 ZhuzC92LHTvX8Slo8mUIwY1y6rMb2UkgHi4nwHGEE3R73aC/HXJncT1caZVmwT0u1Wg==
+	t=1793813039;
+	b=YuoC3yd41s63e++WQSqO+zQok+c5FAPcP6xkJ+Y4gbdja1SalRC1jn/t5e4d/0B5DgP9
+	 pzpiA/VSfAy7j3s6INm+oNgrFzI0rdpAg3vS9Lr6X6/ecWGKrMylbSZoh97CLlaRzxcW9
+	 E+TpDDlK7eRt7xhqxsJm8ZgVLsy1KLrfmuwF5E5VN0eXS3w/kbJQXJF1IigAD/mO6lnso
+	 STS1LcHbGPjfbOf3A20n3T3o23Nuz9QtN2O6gecn1URp+pDqcDWXGb60IGWRGb+LLjRY8
+	 M3g5pvODfDbgTMZ4kOLByw3kvhhtoD4KQ28CcC7msk9BnEQG/1JnCwarAyXLBiKqTLw==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793812759;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793813039;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=iGtPnHmxDTu/sylp4m/nmDcZVLkuEEM53Rc9Gy9kIIU=;
-	b=Ljy42tvQDGAbsUlAEp6sgATaD4A45qpFaro3nbKxD+EaYnkiCOS2Ne+KsfNzuKwfLRD3
-	 1GhNJaj3qwUGqq7ZbTmAAcfh+yTq1C8KkzPx2UTJueu+7IPa1fEnnIR9VoqEKXLfijkWg
-	 ryLMubukEy+NzYxKiGSVbsKEsxk4m/9UulmpJpYFyheG2w4zPn9jtLZA1LnXlvVNR4D9u
-	 3rhLf3VC3RugNmTubHXTTJDMtUwERE2zn2poeYi/3YQ2uA4l83zKOly1Nh+FWtuY+/8zr
-	 wfO8XhtSs9Vt2QZdHyYxvCuNuEGiP/yR9eNqCdNA5UipCmszfg8uPaRtbpzcH0wsLiw==
+	bh=IdTT5JG103JB9Z+HqWvs3AuYAAXRJtN3EEU2MOO6944=;
+	b=TDlBpNQ1VpQMKUKGTDVGasFF05RUykWN5zMzWFIVKHR7nUmYO+ZlPUAqye08biI3sPdv
+	 wJgGHy48HUIHfFP0zZJ9nFFIY1EDdBz63YVeH3Hbt0ap82GTIppslb8JF18UUjqo4ifjz
+	 wiu2W/pYim7Bo5nBWDqJBMMsExV39371hLoV9NeJ6NLpm1KsFeF4lEqIrbCyWDBhnRP8t
+	 5kPidQrINWph/kbJYqhzC4iIyGnjyeEkIRKP87oNPp/K5DkI+UlrFzeIKIhtUVncbQYaw
+	 bKyJ0+BXxaMm3DfJEoDR5kxVl9gxWQM5SuJiYAflxT4FVRO2w+/EUHAvOv/a7U0hqGw==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b="Hc/tYWTy";
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=MJoSmopS;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D57AE606A328
-	for <mm-commits@vger.kernel.org>; Wed,  4 Nov 2026 17:19:18 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 87E8B606A326
+	for <mm-commits@vger.kernel.org>; Wed,  4 Nov 2026 17:23:59 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=Hc/tYWTy
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 47F5B1F000C1;
-	Wed,  4 Nov 2026 17:19:18 +0000 (UTC)
+	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=MJoSmopS
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E55C91F000C1;
+	Wed,  4 Nov 2026 17:23:58 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1793812758;
-	bh=iGtPnHmxDTu/sylp4m/nmDcZVLkuEEM53Rc9Gy9kIIU=;
+	d=linux-foundation.org; s=korg; t=1793813039;
+	bh=IdTT5JG103JB9Z+HqWvs3AuYAAXRJtN3EEU2MOO6944=;
 	h=Date:To:From:Subject;
-	b=Hc/tYWTySYkl45K0PTOs1sSR4nM62n9CizSaZH63Gr6QOTuvA+q9ULApeRosHUXQE
-	 ziO1XluudWnsN+72/7rxaVUyVt19CoC6Ojj5LKimSSfIyj4kSWidC4fZ1Uowehhv7x
-	 5gT41RX+qGdUwni8ENsUgZmc0zuOPLFijGjOGKSA=
-Date: Wed, 04 Nov 2026 09:19:17 -0800
-To: mm-commits@vger.kernel.org,rdunlap@infradead.org,
-	akpm@linux-foundation.org,gubin@cmss.chinamobile.com
+	b=MJoSmopS7oZwkYkR/9NoOQD4R7lAEvXdC1X1H3pfnwshRzwN941sWv/Tn7RVP/i7x
+	 VCgPfInLFJo2N4qnjVLer7r1zPFlHCk03KdcsRFkhT9MQNO/exG1VVwo0Jws0adI7K
+	 uaURsW1ItI8xDGmp1505qcrLlnw69uxMmTUHVq0M=
+Date: Wed, 04 Nov 2026 09:23:58 -0800
+To: mm-commits@vger.kernel.org,vbabka@kernel.org,surenb@google.com,
+	shuah@kernel.org,rppt@kernel.org,mhocko@suse.com,ljs@kernel.org,
+	liam@infradead.org,david@kernel.org,akpm@linux-foundation.org,
+	lihongfu@kylinos.cn
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + tools-laptop-dslm-fix-inverted-open-error-check.patch added to mm-nonmm-unstable branch
-Message-Id: <20261104171918.47F5B1F000C1@smtp.kernel.org>
+Subject: + selftests-mm-mlock2-tests-fix-fclosenull-in-is_vmflag_set.patch added to mm-new branch
+Message-Id: <20261104172358.E55C91F000C1@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -52,15 +54,26 @@ Precedence: list
 
 
 The patch titled
-     Subject: tools/laptop/dslm: fix inverted open() error check
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     tools-laptop-dslm-fix-inverted-open-error-check.patch
+     Subject: selftests/mm: mlock2-tests: fix fclose(NULL) in is_vmflag_set()
+has been added to the -mm mm-new branch.  Its filename is
+     selftests-mm-mlock2-tests-fix-fclosenull-in-is_vmflag_set.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/tools-laptop-dslm-fix-inverted-open-error-check.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-mlock2-tests-fix-fclosenull-in-is_vmflag_set.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Note, mm-new is a provisional staging ground for work-in-progress
+patches, and acceptance into mm-new is a notification for others take
+notice and to finish up reviews.  Please do not hesitate to respond to
+review feedback and post updated versions to replace or incrementally
+fixup patches in mm-new.
+
+The mm-new branch of mm.git is not included in linux-next
+
+If a few days of testing in mm-new is successful, the patch will me moved
+into mm.git's mm-unstable branch, which is included in linux-next
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -75,54 +88,46 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Gu Bin <gubin@cmss.chinamobile.com>
-Subject: tools/laptop/dslm: fix inverted open() error check
-Date: Wed,  4 Nov 2026 14:48:37 +0800
+From: Hongfu Li <lihongfu@kylinos.cn>
+Subject: selftests/mm: mlock2-tests: fix fclose(NULL) in is_vmflag_set()
+Date: Wed, 04 Nov 2026 16:49:10 +0800
 
-open() returns -1 on failure and a non-negative fd on success, but the
-check
+is_vmflag_set() jumps to the shared 'out' label when seek_to_smaps_entry()
+fails.  smaps is NULL on that path, and the code at the 'out' label calls
+fclose(smaps) unconditionally.  fclose(NULL) is undefined behaviour, so
+the test crashes before it can report a test result.
 
-	if (!(fd = open(disk, O_RDONLY|O_NONBLOCK)))
-
-treats only fd == 0 as an error, which is wrong in both directions:
-
-  - on a real failure (fd == -1) the condition is false, so the
-    program continues with fd = -1: measure() runs check_powermode()
-    on the invalid fd, ioctl() fails with EBADF, and the tool reports
-    the drive state as "unknown" instead of printing the intended
-    "Can't open" message.
-  - when open() succeeds and returns fd 0 (e.g. stdin was closed, so
-    the lowest free descriptor is 0), the condition is true and the
-    tool wrongly prints "Can't open" and exits.
-
-Test with fd < 0 instead, which handles both cases correctly.
-
-Link: https://lore.kernel.org/20261104064839.1790-1-gubin@cmss.chinamobile.com
-Fixes: d49129accc21 ("Documentation/laptop/: split txt and source files")
-Signed-off-by: Gu Bin <gubin@cmss.chinamobile.com>
+Link: https://lore.kernel.org/20261104-for-mlock2-v1-1-57e6dd74c2bd@kylinos.cn
+Signed-off-by: Hongfu Li <lihongfu@kylinos.cn>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
-Cc: Randy Dunlap <rdunlap@infradead.org>
+Cc: David Hildenbrand <david@kernel.org>
+Cc: Lorenzo Stoakes <ljs@kernel.org>
+Cc: Liam R. Howlett <liam@infradead.org>
+Cc: Vlastimil Babka <vbabka@kernel.org>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Shuah Khan <shuah@kernel.org>
 ---
 
- tools/laptop/dslm/dslm.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ tools/testing/selftests/mm/mlock2-tests.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/tools/laptop/dslm/dslm.c~tools-laptop-dslm-fix-inverted-open-error-check
-+++ a/tools/laptop/dslm/dslm.c
-@@ -144,7 +144,8 @@ int main(int argc, char **argv)
-     } else
- 	usage();
+--- a/tools/testing/selftests/mm/mlock2-tests.c~selftests-mm-mlock2-tests-fix-fclosenull-in-is_vmflag_set
++++ a/tools/testing/selftests/mm/mlock2-tests.c
+@@ -66,7 +66,7 @@ static bool is_vmflag_set(unsigned long
+ 	smaps = seek_to_smaps_entry(addr);
+ 	if (!smaps) {
+ 		ksft_print_msg("Unable to parse /proc/self/smaps\n");
+-		goto out;
++		return false;
+ 	}
  
--    if (!(fd = open(disk, O_RDONLY|O_NONBLOCK))) {
-+    fd = open(disk, O_RDONLY|O_NONBLOCK);
-+    if (fd < 0) {
- 	printf("Can't open %s, because: %s\n", disk, strerror(errno));
- 	exit(-1);
-     }
+ 	while (getline(&line, &size, smaps) > 0) {
 _
 
-Patches currently in -mm which might be from gubin@cmss.chinamobile.com are
+Patches currently in -mm which might be from lihongfu@kylinos.cn are
 
-tools-laptop-dslm-fix-inverted-open-error-check.patch
+selftests-mm-mlock2-tests-fix-fclosenull-in-is_vmflag_set.patch
 
