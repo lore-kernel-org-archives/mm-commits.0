@@ -1,46 +1,46 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793814429;
-	b=HNNP47dZ67CQ+08qwHNrN0Zwo/WGq0iIYUqe6+tmItGryjAsaGTm7LFMD+n+0tDSMaQL
-	 4Uz4uumYrguDC3WQyH9OkZYVJGuCGCyi02SRueGGyskRGWtPhFrTfeyeBDchIx5cPAz6C
-	 Y1dNsntAHCnmKwyFChr/vqGATxXQq7i4hXPldBgzLwHipekOkloCfPZ7Lsy2w+uW2XrQb
-	 naX/3LKaj9xLBjEQRh8+pWFme5EvA9mecWDX8M9328PzA10oRNStxGJIsbKdabSK9ko6s
-	 Swc/AQY9n9gaWywpVoTP0KvY8OavPPufCHyfLqsFV3O1Ku0fx/0cNGQwuWD2UGv9vVQ==
+	t=1793814895;
+	b=gYEGu10Ndr/0aN7Su2cQEChlLOaUFCLdECMIE3PHOkTbq7/UqpK329HKxXidd6PNJ4nx
+	 C7cJ7tjZvUe39jW6g9OzqU7Df5xGIvqfWe/NxPOex9xANeJY+CYkT06pzTKPDYKde1KV2
+	 4bX40JQ2/dvAelACG6Ky/JedNlyWTQkbvpib3iiq7zNIMVt50KsC6kxqUzxUpJlRdpADb
+	 tfJzXmmwaqTZRDV/wNvrQVHR5Cpw/V3VM74mOmq05F2zM0JIZv7GMj9VxaTz74dRx4S7R
+	 FLqA3zx/20F8A4bBKJfelC3Xt9FXWRZzRvs3sEm5amOmv9GwN4PqqFDuLpYdwjS0Tng==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793814429;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793814895;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=+DHKlqUvVJ7TvH3Q9DU3zWTgpLL9texYCQkCyxYluCk=;
-	b=CvyFWTbapyQzDNoYsHFzY6XqynE37RD3jE9LcxXQQpcmD3DUkQFcqu1NVQ+4enfDQ2PM
-	 IPXVp5NPAZ6VEB3zljKM9ACnW9R+PbLbeEO25lrxIIlpKllUsIMYEtX+xxtwM2FOaOwCA
-	 nN776UXKjVI6wYvtgwWkBoyJoV+aDd11a6+2kkAIi5Z9N+8ADv8chTpFaXsxAR1TS7Ko8
-	 XtrLsxsCj6wOYebO8DV2BIyspeZpw+6nuVa/DP3uBc3J80Q6Wd3ivbwyyNXWSXQSbVr/k
-	 ZKOqlUXnKDOBwtKH2Gv2fiD8zntpazOhVpm1LBddc7AJybxHF7KbDbt6DAeOP09qdfA==
+	bh=eWtBQtpXoso6m6iuDHIkfeGyFZBBHVp9Xdx4A1bieXQ=;
+	b=a5wHCOjRnHx0XoOzKEnEaMH2Q2trKaj3pJy3d/uQ2VxZFa1rVF+J7OqBkCp6k1kOWqII
+	 GQhTJf4q82uV7lYtYA/QramKxOI3DN2+fcQuxDbtslOQY1EL0+nN379EiSjLKD+yb48CB
+	 MbElDQoGD6GLnzYWnKmurbM/p6lUDERJjpgxxF1cqJTgMwCFJJ5Pl3BkPi5dkEdSP6XeW
+	 sWoRJVHyhS97ftXNWIuqjmidA3fVZ2FGO7wcC/htWLSpQfz4NmNAbELrgr4NM72cTB4r3
+	 KCL6NHZz9/gm+RbzkfQrifHRosNgt9eENfZH7IGhbwc6WrAiJ0/BXj1QH6GUuuFWnUg==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=clwkpsxs;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=rw3jnBS4;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 30ADD606A328
-	for <mm-commits@vger.kernel.org>; Wed,  4 Nov 2026 17:47:08 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8408C606C903
+	for <mm-commits@vger.kernel.org>; Wed,  4 Nov 2026 17:54:55 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=clwkpsxs
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9909A1F000C1;
-	Wed,  4 Nov 2026 17:47:08 +0000 (UTC)
+	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=rw3jnBS4
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id EDA571F00A02;
+	Wed,  4 Nov 2026 17:54:54 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1793814428;
-	bh=+DHKlqUvVJ7TvH3Q9DU3zWTgpLL9texYCQkCyxYluCk=;
+	d=linux-foundation.org; s=korg; t=1793814895;
+	bh=eWtBQtpXoso6m6iuDHIkfeGyFZBBHVp9Xdx4A1bieXQ=;
 	h=Date:To:From:Subject;
-	b=clwkpsxsT+ZHYAQDLZE1GXPaG4hPiIQ21PzwirD/DIHlo028AC7f721Amn3zNtBzz
-	 J9uKeWB6hBgu8xliH9hvsTLMgRUXLz8NyUqSz/9AHDMZsrCtGP5iKPYnWhzekhRTRX
-	 yay7zMfh7lJWSollVV1p3T7Ht915hU+uSgN3VT54=
-Date: Wed, 04 Nov 2026 09:47:08 -0800
-To: mm-commits@vger.kernel.org,surenb@google.com,shuah@kernel.org,
-	andrii@kernel.org,sashal@kernel.org,akpm@linux-foundation.org
+	b=rw3jnBS4NLguo3Lu9SgSw7TpoQ3m+DSau4jEnWeTLFjVJ+upNQFdX1Nb3nXUA4Knk
+	 9K3EhOQZmgLNcoRsnavbBrhBm3o5NTab1bhke/CxSVRWez7L9f+Ic/A6Jf+cntV6QV
+	 5YzuDaso9qcsdG+PHaRqEBW0PbTg80PaSKzJRJbI=
+Date: Wed, 04 Nov 2026 09:54:54 -0800
+To: mm-commits@vger.kernel.org,pmladek@suse.com,paulmck@kernel.org,
+	kuniyu@google.com,akpm@linux-foundation.org,leitao@debian.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-proc-search-the-kernel-headers-before-the-tools-copies.patch added to mm-nonmm-unstable branch
-Message-Id: <20261104174708.9909A1F000C1@smtp.kernel.org>
+Subject: + ratelimit-fix-data-race-on-burst-in-___ratelimit.patch added to mm-nonmm-unstable branch
+Message-Id: <20261104175454.EDA571F00A02@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -52,12 +52,12 @@ Precedence: list
 
 
 The patch titled
-     Subject: selftests/proc: search the kernel headers before the tools copies
+     Subject: ratelimit: Fix data race on ->burst in ___ratelimit()
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     selftests-proc-search-the-kernel-headers-before-the-tools-copies.patch
+     ratelimit-fix-data-race-on-burst-in-___ratelimit.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-proc-search-the-kernel-headers-before-the-tools-copies.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/ratelimit-fix-data-race-on-burst-in-___ratelimit.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -75,51 +75,80 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Sasha Levin <sashal@kernel.org>
-Subject: selftests/proc: search the kernel headers before the tools copies
-Date: Tue, 03 Nov 2026 09:23:04 -0500
+From: Breno Leitao <leitao@debian.org>
+Subject: ratelimit: Fix data race on ->burst in ___ratelimit()
+Date: Tue, 03 Nov 2026 04:29:54 -0800
 
-The proc tests are the only selftests that add $(TOOLS_INCLUDES) without
-$(KHDR_INCLUDES) in front of it.  The <linux/types.h> in
-tools/include/uapi then replaces the real one, and unlike the real one it
-does not include <asm/types.h>.  On powerpc and s390, <signal.h> pulls in
-the kernel's asm/sigcontext.h, which needs __vector128 from asm/types.h,
-so eight proc tests fail to build on powerpc and six on s390:
+I am seeing the following race on my debug kernels:
 
-  /usr/lib/linux/uapi/s390/asm/sigcontext.h:73:9: error: unknown type name '__vector128'
+  BUG: KCSAN: data-race in ___ratelimit / do_proc_int_conv
 
-Put $(KHDR_INCLUDES) before $(TOOLS_INCLUDES), as the other selftests that
-use TOOLS_INCLUDES do, so that <linux/types.h> comes from the headers of
-the kernel under test.
+  write (marked) to 0xffffffff83084544 of 4 bytes by task 186 on cpu 3:
+   do_proc_int_conv+0x94/0xa0
+   proc_vec+0x48a/0x8d0
+   proc_dointvec+0x16/0x20
+   proc_sys_call_handler+0x263/0x3b0
+   proc_sys_write+0x13/0x20
+   vfs_write+0x559/0x610
+   __x64_sys_pwrite64+0xce/0x110
 
-Link: https://lore.kernel.org/20261103142304.122564-1-sashal@kernel.org
-Fixes: 81510a0eaa69 ("selftests/proc: add PROCMAP_QUERY ioctl tests")
-Signed-off-by: Sasha Levin <sashal@kernel.org>
+  read to 0xffffffff83084544 of 4 bytes by task 185 on cpu 1:
+   ___ratelimit+0x137/0x3b0
+   __printk_ratelimit+0x18/0x20
+
+  value changed: 0x00000001 -> 0x00000000
+
+This could be reproduced by flipping kernel.printk_ratelimit_burst
+between 0 and 1 while a kthread calls __printk_ratelimit() in a loop
+makes KCSAN report:
+
+___ratelimit() reads ->interval and ->burst once, with READ_ONCE(),
+because sysctl writes like the one above change them without taking
+rs->lock. Commit 6bae8ceb90ba ("ratelimit: Fix data-races in
+___ratelimit().") added those snapshots.
+
+Refill rs_n_left from the snapshot instead, which is also the value
+the function has already checked to be positive.
+
+Link: https://lore.kernel.org/20261103-ratelimit_race-v1-1-07486c49ec12@debian.org
+Fixes: cf8cfa8a9978 ("ratelimit: Reduce ___ratelimit() false-positive rate limiting")
+Signed-off-by: Breno Leitao <leitao@debian.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Cc: Shuah Khan <shuah@kernel.org>
-Cc: Andrii Nakryiko <andrii@kernel.org>
-Cc: Suren Baghdasaryan <surenb@google.com>
+Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
+Cc: Paul E. McKenney <paulmck@kernel.org>
+Cc: Petr Mladek <pmladek@suse.com>
+Cc: Kuniyuki Iwashima <kuniyu@google.com>
 ---
 
- tools/testing/selftests/proc/Makefile |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ lib/ratelimit.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/tools/testing/selftests/proc/Makefile~selftests-proc-search-the-kernel-headers-before-the-tools-copies
-+++ a/tools/testing/selftests/proc/Makefile
-@@ -1,6 +1,6 @@
- # SPDX-License-Identifier: GPL-2.0-only
- CFLAGS += -Wall -O2 -Wno-unused-function
--CFLAGS += $(TOOLS_INCLUDES)
-+CFLAGS += $(KHDR_INCLUDES) $(TOOLS_INCLUDES)
- LDFLAGS += -pthread
+--- a/lib/ratelimit.c~ratelimit-fix-data-race-on-burst-in-___ratelimit
++++ a/lib/ratelimit.c
+@@ -67,7 +67,7 @@ int ___ratelimit(struct ratelimit_state
+ 	if (!(rs->flags & RATELIMIT_INITIALIZED)) {
+ 		rs->begin = jiffies;
+ 		rs->flags |= RATELIMIT_INITIALIZED;
+-		atomic_set(&rs->rs_n_left, rs->burst);
++		atomic_set(&rs->rs_n_left, burst);
+ 	}
  
- TEST_GEN_PROGS :=
+ 	if (time_is_before_jiffies(rs->begin + interval)) {
+@@ -77,7 +77,7 @@ int ___ratelimit(struct ratelimit_state
+ 		 * Reset rs_n_left ASAP to reduce false positives
+ 		 * in parallel calls, see above.
+ 		 */
+-		atomic_set(&rs->rs_n_left, rs->burst);
++		atomic_set(&rs->rs_n_left, burst);
+ 		rs->begin = jiffies;
+ 
+ 		if (!(rs->flags & RATELIMIT_MSG_ON_RELEASE)) {
 _
 
-Patches currently in -mm which might be from sashal@kernel.org are
+Patches currently in -mm which might be from leitao@debian.org are
 
-selftests-proc-cast-the-procmap_query-address-through-uintptr_t.patch
-selftests-mm-fix-pointer-width-warnings-on-32-bit-architectures.patch
-selftests-mm-uffd-wp-mremap-keep-the-thp-sizes-in-unsigned-long.patch
-selftests-proc-search-the-kernel-headers-before-the-tools-copies.patch
+mm-kmemleak-scan-modified-objects-as-soon-as-they-are-grayed.patch
+tools-mm-add-hwpoison-panic-tool.patch
+mm-split-out-memory-failure-declarations-from-internalh.patch
+ratelimit-fix-data-race-on-burst-in-___ratelimit.patch
 
