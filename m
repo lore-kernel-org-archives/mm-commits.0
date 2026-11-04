@@ -1,46 +1,46 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793833817;
-	b=fFdhehD/Kunove6Outk22dhfyCcpafCy7qkORsYzkDS6BvdZoGbnytUG8lvthnw3RSyq
-	 gb7GreTZrynr0gn3zpNWfKtib46s5jZW+mFSOQkVHYvLAMKp08eCgDDEwBYIOFxwxdODN
-	 t6JrojqBCIyHHwijRlfVrD7sJod2tyaH2fnGXYyymZf7LjHQ9Xs9PI9pE3K1K4hIHdmV0
-	 YB38Tn/kIJZKNLPbg88ZJegkT+Q7dO5mNRsknwJnlefNcx8v5Wbs2MjrkTBjRvHrAM/0G
-	 bVUTDR/pdQsig7ijb83oZ1en8PQTJ7RcGcB6cFy0wmIwF3mOljrc1dYUrDosrGIX4/g==
+	t=1793836798;
+	b=hv7stdAzQYctGJB68xfwEpCo6k1vOxWrPz4bGvWUm+XdRtdBz/EPEe/6mKiWzl9cT3M5
+	 Vm+kv7AnnMI3V3HKyb18mre2w4+yLZT1SRwxbMah0MhYPSngandDYE4eQLxuwF8z2HRWA
+	 7Nmha8OkxFVPJp9d5C39L/GAYaDfd161c4zrdacGm0wJDfOYZWvEOa5u/nUNlsrqJ8hzI
+	 MbSvUI8Lcsf9lG8w6P9uS+J6UuOJK8r7UUqE/ElDGk4EOGtEsDTQDrkQgjb1jBil0oYdc
+	 TkzxixWUBwg9Fc7UVACDTLlvuNS3IgmOJ16O19q/LIMP84wZQ4IQ5E0kCaHCGo9luDA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793833817;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793836798;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=YScgbNZBSMgqbf5wuxLRkBmwdAw3qjKG7/4OhnNc1tE=;
-	b=hT0pS+CJdLjhsX9IVBsxcQjadxc0zNrIafokaOT1jtefv01cPsI/hTS0uayt73vxvqSM
-	 piHj+LJ4SVe1CSyk2Pck0mkwRnPV/bd0DgrAHP9SkglAUs+AYbdFN/lhnWbE/hkTaFPPb
-	 endPyM8toPrqHGwFp05CJufc54ofgS+v0S7IApkhbjSRMiqsa1ek52hPkPCtF2j4Hr8+0
-	 pTex9hUyk2XOttXfX6fwdQ16o3NHhzwpD47ChqKGDYau8ehCmZIDqLSVXKVKYMgLupWMD
-	 CnJ6KO+5Rix72v03eQ73LdshSesC6xc8PaYlhDn8uc6I9gmxKnw+GjwitQf2pBKZgQQ==
+	bh=PMR6db9NH2TQuoo1DGJ75xBjO+8fBDprfppk6KfNb9M=;
+	b=CLCRLI9Lo9AnAWvoFDqNnCQieAWTlXM+us5aHm8X8OJEOarGqss29oWubtXnkv9s+lgQ
+	 ZtqHQKMO6kK5MdpPX/RvuyPdiFw+6Dsna3hJ1nDECKbOeG5NEu1gZq8goCgi92mVbqmUZ
+	 o1oJ1j5moAkPk++qsX6moXPNEtS5TmUhTK53ZewZD0jmZMZyPXPubndX2ijTCTQUdglUy
+	 UDbcezcK7TtadlLQDgpfzcUVgkCQn7rxia2+AzU0KjpkNdW5HtazRV0nRzMUxzlY0WcrD
+	 +9kEotuW5rIBQPYhFApLV68lgpbHxz1Fn5ZKlo5efWJ5nLdFuLexMPxISMzDPJPKxXA==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=hrwtkDW7;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=ScYmRwWT;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 410CA606A326
-	for <mm-commits@vger.kernel.org>; Wed,  4 Nov 2026 23:10:17 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 50ECC606A326
+	for <mm-commits@vger.kernel.org>; Wed,  4 Nov 2026 23:59:57 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=hrwtkDW7
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id EDA561F000C1;
-	Wed,  4 Nov 2026 23:10:16 +0000 (UTC)
+	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=ScYmRwWT
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B71CC1F000C1;
+	Wed,  4 Nov 2026 23:59:57 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1793833817;
-	bh=YScgbNZBSMgqbf5wuxLRkBmwdAw3qjKG7/4OhnNc1tE=;
+	d=linux-foundation.org; s=korg; t=1793836797;
+	bh=PMR6db9NH2TQuoo1DGJ75xBjO+8fBDprfppk6KfNb9M=;
 	h=Date:To:From:Subject;
-	b=hrwtkDW7lzsHkrPSSfMe5tfIyOGUmF0cCE2BO5cMED9hRDUUXuKlKCRLQukKprbKt
-	 LoB8SNOcAEMG0ghdqvAcL+kbK9NTkp/YOm62EzFVqzhYQjKcPLoonFEjsWT1e0GsDM
-	 86VBFcAKQEJ+GEiPzAnYCfqdg5Gok2BkXbqf7TSM=
-Date: Wed, 04 Nov 2026 15:10:16 -0800
-To: mm-commits@vger.kernel.org,surenb@google.com,hao.ge@linux.dev,
-	akpm@linux-foundation.org,abhishekbapat@google.com
+	b=ScYmRwWTcdLV9rxTnn17eLpBNwiPvkmMHySwiV+J0xLkdW0IBjLvGusV5KBn8XqqU
+	 jH8Uyb0wJK89sxIb3C2CwiK70W8LMcWs67VEtJd9B1e5Myj7SNv0SwjjHNTFuLiux6
+	 /iFT1rN3Pj3ptPSYnoJZBxz4bPzMo/FzLU7XmpQI=
+Date: Wed, 04 Nov 2026 15:59:57 -0800
+To: mm-commits@vger.kernel.org,shuah@kernel.org,aleksey.oladko@virtuozzo.com,
+	sashal@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + alloc_tag-add-a-test-for-trace-state-toggle-and-filtering.patch added to mm-new branch
-Message-Id: <20261104231016.EDA561F000C1@smtp.kernel.org>
+Subject: + selftests-prctl-select-the-tests-by-arch-alone.patch added to mm-nonmm-unstable branch
+Message-Id: <20261104235957.B71CC1F000C1@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -52,26 +52,15 @@ Precedence: list
 
 
 The patch titled
-     Subject: alloc_tag: add a test for trace state toggle and filtering
-has been added to the -mm mm-new branch.  Its filename is
-     alloc_tag-add-a-test-for-trace-state-toggle-and-filtering.patch
+     Subject: selftests/prctl: select the tests by ARCH alone
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     selftests-prctl-select-the-tests-by-arch-alone.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/alloc_tag-add-a-test-for-trace-state-toggle-and-filtering.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-prctl-select-the-tests-by-arch-alone.patch
 
-This patch will later appear in the mm-new branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Note, mm-new is a provisional staging ground for work-in-progress
-patches, and acceptance into mm-new is a notification for others take
-notice and to finish up reviews.  Please do not hesitate to respond to
-review feedback and post updated versions to replace or incrementally
-fixup patches in mm-new.
-
-The mm-new branch of mm.git is not included in linux-next
-
-If a few days of testing in mm-new is successful, the patch will me moved
-into mm.git's mm-unstable branch, which is included in linux-next
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -86,202 +75,61 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Abhishek Bapat <abhishekbapat@google.com>
-Subject: alloc_tag: add a test for trace state toggle and filtering
-Date: Wed, 04 Nov 2026 19:03:40 +0000
+From: Sasha Levin <sashal@kernel.org>
+Subject: selftests/prctl: select the tests by ARCH alone
+Date: Wed,  4 Nov 2026 14:36:39 -0500
 
-Following the introduction of the ALLOCINFO_IOC_TOGGLE_TRACE IOCTL and
-ALLOCINFO_FILTER_MASK_TRACE_ON filters for selective memory allocation
-tracing, update the kselftests to validate this behaviour.
+The prctl tests are only built for x86, and only when CROSS_COMPILE is not
+set.  In every other case the Makefile defines no rules, so building or
+installing the suite fails:
 
-Introduce `test_tracing_toggle_and_filter`, which validates the
-architecture by:
-1. Dynamically flipping trace execution state for a designated allocation.
-2. Query the same tag again, and check that the returned tag reports the
-   new state in its `trace_on` field.
-3. Restore the tag's original trace state, also on failure, so the test
-   does not leave tracing changed on the system.
+  make[1]: *** No targets.  Stop.
 
-The test uses `dup_mm()` function name with the function filter in the
-IOCTL to run the above steps.  If the `dup_mm()` tag is not found, the
-test is skipped.
+TuxMake sets CROSS_COMPILE for every build, native x86_64 ones included,
+so CI systems that use it, such as KernelCI, see prctl fail on every
+architecture and never build its tests.
 
-Link: https://lore.kernel.org/14ace814ca8c05196ebecb150cf710399a040b59.1793818636.git.abhishekbapat@google.com
-Signed-off-by: Abhishek Bapat <abhishekbapat@google.com>
+Like breakpoints, ipc and x86, decide by ARCH alone whether the tests are
+built, and give the Makefile empty targets on other architectures, as
+sparc64 and drivers/s390x/uvdevice do, so that the suite builds and
+installs nothing there.
+
+Link: https://lore.kernel.org/20261104193639.333186-1-sashal@kernel.org
+Fixes: 92dd8dd4d07f ("selftests: move prctl tests from Documentation/prctl")
+Signed-off-by: Sasha Levin <sashal@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Acked-by: Suren Baghdasaryan <surenb@google.com>
-Tested-by: Andrew Morton <akpm@linux-foundation.org>
-Cc: Hao Ge <hao.ge@linux.dev>
+Cc: Shuah Khan <shuah@kernel.org>
+Cc: Aleksei Oladko <aleksey.oladko@virtuozzo.com>
 ---
 
- tools/testing/selftests/alloc_tag/allocinfo_ioctl_test.c |  114 +++++++++-
- 1 file changed, 111 insertions(+), 3 deletions(-)
+ tools/testing/selftests/prctl/Makefile |    6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
---- a/tools/testing/selftests/alloc_tag/allocinfo_ioctl_test.c~alloc_tag-add-a-test-for-trace-state-toggle-and-filtering
-+++ a/tools/testing/selftests/alloc_tag/allocinfo_ioctl_test.c
-@@ -48,6 +48,11 @@ static inline int __allocinfo_get_next(i
- 	return ioctl(dev_fd, ALLOCINFO_IOC_GET_NEXT, params);
- }
+--- a/tools/testing/selftests/prctl/Makefile~selftests-prctl-select-the-tests-by-arch-alone
++++ a/tools/testing/selftests/prctl/Makefile
+@@ -1,5 +1,4 @@
+ # SPDX-License-Identifier: GPL-2.0
+-ifndef CROSS_COMPILE
+ ARCH ?= $(shell uname -m 2>/dev/null || echo not)
+ override ARCH := $(shell echo $(ARCH) | sed -e s/i.86/x86/ -e s/x86_64/x86/)
  
-+static inline int __allocinfo_toggle_trace(int dev_fd, struct allocinfo_toggle_traces *params)
-+{
-+	return ioctl(dev_fd, ALLOCINFO_IOC_TOGGLE_TRACE, params);
-+}
-+
- static bool match_entry(const struct allocinfo_tag_data *procfs_entry,
- 			const struct allocinfo_tag_data *tag_data,
- 			bool match_bytes, bool match_calls, bool match_lineno,
-@@ -289,6 +294,8 @@ exit:
- 	return ret;
- }
+@@ -10,5 +9,8 @@ all: $(TEST_PROGS)
  
-+static const char *target_test_function = "dup_mm";
-+
- static int test_filename_filter(void)
- {
- 	struct allocinfo_filter filter;
-@@ -304,11 +311,10 @@ static int test_filename_filter(void)
- static int test_function_filter(void)
- {
- 	struct allocinfo_filter filter;
--	const char *target_function = "dup_mm";
+ include ../lib.mk
  
- 	memset(&filter, 0, sizeof(filter));
- 	filter.mask |= ALLOCINFO_FILTER_MASK_FUNCTION;
--	strncpy(filter.fields.function, target_function, ALLOCINFO_STR_SIZE);
-+	strncpy(filter.fields.function, target_test_function, ALLOCINFO_STR_SIZE);
- 
- 	return run_filter_test(&filter);
- }
-@@ -514,11 +520,107 @@ exit:
- 	return ret;
- }
- 
-+static enum ioctl_ret toggle_trace(struct allocinfo_tag *target_tag,
-+				   bool enable)
-+{
-+	int fd;
-+	struct allocinfo_toggle_traces toggle_params;
-+
-+	fd = open(ALLOCINFO_PROC, O_RDONLY);
-+	if (fd < 0) {
-+		ksft_print_msg("Failed to open " ALLOCINFO_PROC ": %s\n", strerror(errno));
-+		return IOCTL_FAILURE;
-+	}
-+
-+	memset(&toggle_params, 0, sizeof(toggle_params));
-+	toggle_params.filter.mask = ALLOCINFO_FILTER_MASK_MODNAME | ALLOCINFO_FILTER_MASK_FUNCTION |
-+				    ALLOCINFO_FILTER_MASK_FILENAME | ALLOCINFO_FILTER_MASK_LINENO;
-+	toggle_params.filter.fields = *target_tag;
-+	toggle_params.enable = enable;
-+
-+	if (__allocinfo_toggle_trace(fd, &toggle_params)) {
-+		close(fd);
-+		return IOCTL_FAILURE;
-+	}
-+
-+	close(fd);
-+	return IOCTL_SUCCESS;
-+}
-+
-+static int test_tracing_toggle_and_filter(void)
-+{
-+	struct allocinfo_filter filter = { 0 };
-+	enum ioctl_ret ioctl_status;
-+	int ret = KSFT_PASS;
-+	bool initial_state, target_state;
-+	struct allocinfo_tag target_tag;
-+	struct allocinfo_tag_data_vec *tags = calloc(1, sizeof(*tags));
-+
-+	if (!tags) {
-+		ksft_print_msg("Memory allocation failed.\n");
-+		return KSFT_FAIL;
-+	}
-+
-+	filter.mask |= ALLOCINFO_FILTER_MASK_FUNCTION;
-+	strncpy(filter.fields.function, target_test_function, ALLOCINFO_STR_SIZE);
-+
-+	ioctl_status = get_filtered_ioctl_entries(tags, &filter, 0);
-+	if (ioctl_status != IOCTL_SUCCESS || tags->count == 0) {
-+		ksft_print_msg("Could not retrieve IOCTL entries for %s\n", target_test_function);
-+		ret = KSFT_SKIP;
-+		goto exit;
-+	}
-+
-+	target_tag = tags->tag[0].tag;
-+	initial_state = tags->tag[0].counter.trace_on;
-+	target_state = !initial_state;
-+
-+	ioctl_status = toggle_trace(&target_tag, target_state);
-+	if (ioctl_status != IOCTL_SUCCESS) {
-+		ksft_print_msg("Failed to toggle tracing\n");
-+		ret = KSFT_FAIL;
-+		goto exit;
-+	}
-+
-+	filter.mask |= ALLOCINFO_FILTER_MASK_TRACE_ON;
-+	if (target_state)
-+		filter.flags |= ALLOCINFO_FILTER_FLAG_TRACE_ON;
-+
-+	ioctl_status = get_filtered_ioctl_entries(tags, &filter, 0);
-+	if (ioctl_status != IOCTL_SUCCESS) {
-+		ksft_print_msg("Error retrieving IOCTL entries with trace filter.\n");
-+		ret = KSFT_FAIL;
-+		goto exit_revert;
-+	}
-+
-+	if (tags->count != 1) {
-+		ksft_print_msg("Expected exactly 1 entry, but got %llu\n", tags->count);
-+		ret = KSFT_FAIL;
-+		goto exit_revert;
-+	}
-+
-+	if (tags->tag[0].counter.trace_on != target_state) {
-+		ksft_print_msg("Entry returned by trace filter does not match target state\n");
-+		ret = KSFT_FAIL;
-+	}
-+
-+exit_revert:
-+	ioctl_status = toggle_trace(&target_tag, initial_state);
-+	if (ioctl_status != IOCTL_SUCCESS) {
-+		ksft_print_msg("Failed to revert tracing to initial state\n");
-+		ret = KSFT_FAIL;
-+	}
-+
-+exit:
-+	free(tags);
-+	return ret;
-+}
-+
- int main(int argc, char *argv[])
- {
- 	int ret;
- 
--	ksft_set_plan(4);
-+	ksft_set_plan(5);
- 
- 	ret = test_filename_filter();
- 	if (ret == KSFT_SKIP)
-@@ -526,6 +628,12 @@ int main(int argc, char *argv[])
- 	else
- 		ksft_test_result(ret == KSFT_PASS, "test_filename_filter\n");
- 
-+	ret = test_tracing_toggle_and_filter();
-+	if (ret == KSFT_SKIP)
-+		ksft_test_result_skip("Skipping test_tracing_toggle_and_filter\n");
-+	else
-+		ksft_test_result(ret == KSFT_PASS, "test_tracing_toggle_and_filter\n");
-+
- 	ret = test_function_filter();
- 	if (ret == KSFT_SKIP)
- 		ksft_test_result_skip("Skipping test_function_filter\n");
+-endif
++else
++nothing:
++.PHONY: all clean run_tests install
++.SILENT:
+ endif
 _
 
-Patches currently in -mm which might be from abhishekbapat@google.com are
+Patches currently in -mm which might be from sashal@kernel.org are
 
-alloc_tag-add-trace-events-for-tracing-allocations.patch
-alloc_tag-introduce-ioctls-to-toggle-allocation-tracepoints.patch
-alloc_tag-add-a-flags-field-to-allocinfo_filter.patch
-alloc_tag-extend-allocinfo_filter-to-support-tracing-queries.patch
-alloc_tag-add-a-test-for-trace-state-toggle-and-filtering.patch
+selftests-proc-cast-the-procmap_query-address-through-uintptr_t.patch
+selftests-mm-fix-pointer-width-warnings-on-32-bit-architectures.patch
+selftests-mm-uffd-wp-mremap-keep-the-thp-sizes-in-unsigned-long.patch
+selftests-proc-search-the-kernel-headers-before-the-tools-copies.patch
+selftests-prctl-select-the-tests-by-arch-alone.patch
 
