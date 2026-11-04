@@ -1,48 +1,48 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793768277;
-	b=FXiUL4Ufle++11v0jHPaM2H3AV9u5NRoLJpnDcb/TSy6tarT5waZDZ8AzfmSltESBhaU
-	 lBZVqkd/QGqMlVJjFVMSamlJkKUvjAmFj7HnIOsWyBvHp/nt52dhW03Sinuw1hey9QHnm
-	 lPqabRnyPePekOEh4Sq96SnusDV8qMdUAIjek9jizX9w8l5pkBwSKyEoggMHSmv4JGDiE
-	 0WjeoQ8AukfhT2W3zUmGefhQmhkpE6cvk+Z5POebS3makxpEU23Y9sZZwKSztpP60QloZ
-	 8kUs+TJbm1opMIrZC4609vcvSunEv2j45gv/EGpHU47k5MqIq6WCJKSIIMy+sZERloQ==
+	t=1793768280;
+	b=WL/3VqJQ7y1knz7Da4L2mVvs6wE6x7bus/vLqJnfZ7ULZFCkJGfnwpDQTKVroMY7lv72
+	 ydfX4sw3YNH6mLc+l574sRtW+NrDjpE4zeSBVn/r/CBGlgtk5JQ0MyovJWkuwafAwWZp7
+	 5x0J1w+vY05LKJ4sGQ0yR7A4wySfqqen0jPrjEYc97sp9tv0WPDI7siaQlTJOWO5EMmZm
+	 +58b6vng0DMLIABWD4Bk2y3Q8DxJmc2c3O8BnKgTci7mwPSNIjP9BR/kPGma2uI7uomQr
+	 gt2u0deCx5dR0QRjZOncFT8jGwZn35e4QeudIh1WSC+v2c9KhW6yFvu95sApnpUBG9A==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793768277;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793768280;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=OcF4oyKelhXMUCr+22EWGW6eRfmuVm5UtQeAoOguR70=;
-	b=lM5A7vgzt6ioD5LixzW54oj36E2lDHAAvRq5Q87Z2tN6Eu0q0Op7821Igr25/PAUCswR
-	 kTUZZwNocMok9RtIBTJLDH1ekokNEn+kpu02YJVDy5G0/2G7KvG71gY7ATP4dnxkFVrqw
-	 6fEPfU7P+lIBAurVkUZzrefSJdsuft0x84yoQD62KWLvaFUUGv7/KCmqU5QMhxW7bpgoV
-	 wye9XqV3D9Koq2JjwAV2IGRWVcBTv0HLeHL77vjAaXP1gAIEJPhUOUB+hOVVq7pCHyGJ8
-	 R3gs6F/+hYsotjDxe980h1XLXV4+xn0kT03nrOAvOSaOaQV9DViB16VccuswUDextiQ==
+	bh=lxL/NdYz8BO7AkXkGoNIy7RQaFVMc9yudnRVauvFIpk=;
+	b=mmO/gX5dW8+4XdBBOyPg+lICX6Guyp2nQb0XDUCVCPi8cVlfX9smmNt3ZcE8m0ejUr8F
+	 Vuwy0PKJdwxkhC/qBHAniUZMJx4KY1gPZU3FSrZZogXYiSe6TFx5A2jytSUEP60BJSefN
+	 lKVI9LUamk6Yz6yA/3tBSDRXoFIONV/clYV4gcPVhbn1WSIPIylALid6Z+fpfQHtA5LzK
+	 Tzzal59oDomz9W8zB1wdLHJsWsm4TlShbNED3E9p1mg8szJZ/XPCcbGHk+DqSgND2NCk+
+	 Iw+WnO+PLJaoh42r6/F5Y+B8Nl9zzu1VwOKX+T0I5MIaFbyZ/iEu+4U9PxsN1hhPCZw==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=Xrf6ySsP;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=UjzlVySY;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 15953606A31B
-	for <mm-commits@vger.kernel.org>; Wed,  4 Nov 2026 04:57:57 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 52605606A31B
+	for <mm-commits@vger.kernel.org>; Wed,  4 Nov 2026 04:58:00 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=Xrf6ySsP
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C7BB01F000C1;
-	Wed,  4 Nov 2026 04:57:56 +0000 (UTC)
+	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=UjzlVySY
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0CE781F000C1;
+	Wed,  4 Nov 2026 04:58:00 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1793768276;
-	bh=OcF4oyKelhXMUCr+22EWGW6eRfmuVm5UtQeAoOguR70=;
+	d=linux-foundation.org; s=korg; t=1793768280;
+	bh=lxL/NdYz8BO7AkXkGoNIy7RQaFVMc9yudnRVauvFIpk=;
 	h=Date:To:From:Subject;
-	b=Xrf6ySsPcCiOFd5Z7jEjsa5OWkFk6jqcBJCqiW8o6As5RUUmZmox9RgfG6vlk7B38
-	 ogHBh1NKsaPmyj3DN729Pk5qYxejHfnJ4PhknsZjd66q4ThUe3TcuZz9xUEZKSdD/7
-	 coCunqtUsSdWfNWzFAaHzaaYDuwrBjiZAYjmtodE=
-Date: Tue, 03 Nov 2026 20:57:56 -0800
+	b=UjzlVySY0VEiW2lBfafXczfRJWvfGFdZ30frFO7+8oNaBJUTR8KUbFgIHtMuhFVIf
+	 QmnOcloWaF6tkV2tvSheXIktupeUEcex+zdpauqTjoe4EPc0eAyxA9sCZ8xYYWRTaF
+	 dDygVjO134jvwzSg4Ka7ct8Mo12nH9EuAQChabI0=
+Date: Tue, 03 Nov 2026 20:57:59 -0800
 To: mm-commits@vger.kernel.org,rppt@kernel.org,qi.zheng@linux.dev,
 	osalvador@suse.de,lance.yang@linux.dev,jthoughton@google.com,
 	david@kernel.org,chenhuacai@kernel.org,muchun.song@linux.dev,
 	akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-hugetlb_vmemmap-simplify-shared-tail-page-handling.patch added to mm-new branch
-Message-Id: <20261104045756.C7BB01F000C1@smtp.kernel.org>
+Subject: + mm-hugetlb_vmemmap-move-alloc_vmemmap_page_list-next-to-its-free-helper.patch added to mm-new branch
+Message-Id: <20261104045800.0CE781F000C1@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -54,12 +54,12 @@ Precedence: list
 
 
 The patch titled
-     Subject: mm: hugetlb_vmemmap: simplify shared tail page handling
+     Subject: mm: hugetlb_vmemmap: move alloc_vmemmap_page_list() next to its free helper
 has been added to the -mm mm-new branch.  Its filename is
-     mm-hugetlb_vmemmap-simplify-shared-tail-page-handling.patch
+     mm-hugetlb_vmemmap-move-alloc_vmemmap_page_list-next-to-its-free-helper.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-hugetlb_vmemmap-simplify-shared-tail-page-handling.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-hugetlb_vmemmap-move-alloc_vmemmap_page_list-next-to-its-free-helper.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -89,21 +89,16 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Muchun Song <muchun.song@linux.dev>
-Subject: mm: hugetlb_vmemmap: simplify shared tail page handling
-Date: Wed, 04 Nov 2026 10:35:05 +0800
+Subject: mm: hugetlb_vmemmap: move alloc_vmemmap_page_list() next to its free helper
+Date: Wed, 04 Nov 2026 10:35:06 +0800
 
-The remap walker currently carries a shared tail page selected by its
-caller, even though the optimize and restore callbacks can derive the same
-information from the folio being processed.  This adds redundant state to
-the walker and couples its interface to caller-side preparation.
-
-Derive the shared mapping state in the callbacks instead, keeping the
-mapping policy with the PTE being processed and simplifying the remap
-interface.
+Keep alloc_vmemmap_page_list() together with free_vmemmap_page_list(). 
+This also allows the folio-oriented optimization helper introduced in a
+subsequent change to reuse the allocator without a forward declaration.
 
 No functional change intended.
 
-Link: https://lore.kernel.org/20261104023510.260766-8-songmuchun@bytedance.com
+Link: https://lore.kernel.org/20261104023510.260766-9-songmuchun@bytedance.com
 Signed-off-by: Muchun Song <muchun.song@linux.dev>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 Reviewed-by: Lance Yang <lance.yang@linux.dev>
@@ -115,273 +110,69 @@ Cc: David Hildenbrand <david@kernel.org>
 Cc: Huacai Chen <chenhuacai@kernel.org>
 ---
 
- include/linux/vmemmap-optimization.h |    6 +
- mm/hugetlb_vmemmap.c                 |   93 +++++++++++--------------
- mm/mm_init.c                         |    6 -
- mm/sparse-vmemmap.c                  |    7 +
- 4 files changed, 52 insertions(+), 60 deletions(-)
+ mm/hugetlb_vmemmap.c |   44 ++++++++++++++++++++---------------------
+ 1 file changed, 22 insertions(+), 22 deletions(-)
 
---- a/include/linux/vmemmap-optimization.h~mm-hugetlb_vmemmap-simplify-shared-tail-page-handling
-+++ a/include/linux/vmemmap-optimization.h
-@@ -91,11 +91,13 @@ static inline struct page *vmemmap_share
- }
- #endif /* CONFIG_VMEMMAP_OPTIMIZATION */
- 
--static inline bool vmemmap_optimizable_pfn(unsigned long pfn)
-+static inline bool vmemmap_optimizable_pfn(unsigned long pfn, unsigned int order)
- {
--	const unsigned int order = pfn_to_section_compound_order(pfn);
- 	const unsigned long nr_pages = 1UL << order;
- 
-+	if (!IS_ENABLED(CONFIG_VMEMMAP_OPTIMIZATION))
-+		return false;
-+
- 	if (!is_power_of_2(sizeof(struct page)))
- 		return false;
- 
---- a/mm/hugetlb_vmemmap.c~mm-hugetlb_vmemmap-simplify-shared-tail-page-handling
+--- a/mm/hugetlb_vmemmap.c~mm-hugetlb_vmemmap-move-alloc_vmemmap_page_list-next-to-its-free-helper
 +++ a/mm/hugetlb_vmemmap.c
-@@ -25,21 +25,17 @@
-  *
-  * @remap_pte:		called for each lowest-level entry (PTE).
-  * @nr_walked:		the number of walked pte.
-- * @vmemmap_tail:	the page to be installed as non-first in the vmemmap range
-  * @vmemmap_pages:	list supplying replacement pages for the remap and
-  *			receiving displaced backing pages for the caller to free.
-  * @flags:		used to modify behavior in vmemmap page table walking
-  *			operations.
-  */
- struct vmemmap_remap_walk {
--	void			(*remap_pte)(pte_t *pte, unsigned long addr,
-+	int			(*remap_pte)(pte_t *pte, unsigned long addr,
- 					     struct vmemmap_remap_walk *walk);
--
- 	unsigned long		nr_walked;
--	struct page		*vmemmap_tail;
- 	struct list_head	*vmemmap_pages;
- 
--
- /* Defer safely batchable TLB flushes to the caller. */
- #define VMEMMAP_DEFER_TLB_FLUSH	BIT(0)
- 	unsigned long		flags;
-@@ -140,12 +136,14 @@ static int vmemmap_pmd_entry(pmd_t *pmd,
- static int vmemmap_pte_entry(pte_t *pte, unsigned long addr,
- 			     unsigned long next, struct mm_walk *walk)
- {
-+	int ret;
- 	struct vmemmap_remap_walk *vmemmap_walk = walk->private;
- 
--	vmemmap_walk->remap_pte(pte, addr, vmemmap_walk);
--	vmemmap_walk->nr_walked++;
-+	ret = vmemmap_walk->remap_pte(pte, addr, vmemmap_walk);
-+	if (!ret)
-+		vmemmap_walk->nr_walked++;
- 
--	return 0;
-+	return ret;
+@@ -197,6 +197,28 @@ static void free_vmemmap_page_list(struc
+ 		free_vmemmap_page(page);
  }
  
- static const struct mm_walk_ops vmemmap_remap_ops = {
-@@ -213,53 +211,53 @@ static struct page *vmemmap_dup_page_fro
- 	return dst;
- }
- 
--static void vmemmap_optimize_pte(pte_t *pte, unsigned long addr,
--		struct vmemmap_remap_walk *walk)
-+static inline struct page *folio_vmemmap_shared_tail_page(const struct folio *folio)
- {
--	struct page *page = pte_page(ptep_get(pte));
--	pte_t entry;
--
--	/* Remapping the head page requires r/w */
--	if (unlikely(walk->nr_walked == 0)) {
--		struct page *head;
-+	return vmemmap_shared_tail_page(folio_order(folio), folio_zone(folio));
-+}
- 
--		VM_WARN_ON_ONCE(!PageHead((const struct page *)addr));
-+static int vmemmap_optimize_pte(pte_t *pte, unsigned long addr,
-+		struct vmemmap_remap_walk *walk)
++static int alloc_vmemmap_page_list(struct list_head *head,
++		unsigned int nr_pages, int nid)
 +{
-+	const struct page *page = (const struct page *)addr;
-+	const struct folio *folio = page_folio(page);
-+	struct page *src = pte_page(ptep_get(pte)), *dst;
- 
--		head = vmemmap_dup_page_from_list(page, walk->vmemmap_pages);
--		entry = mk_pte(head, PAGE_KERNEL);
-+	if (likely(vmemmap_optimizable_pfn(page_to_pfn(page), folio_order(folio)))) {
-+		dst = folio_vmemmap_shared_tail_page(folio);
-+		if (!dst)
-+			return -ENOMEM;
- 	} else {
--		VM_WARN_ON_ONCE(!PageTail((const struct page *)addr));
--
--		/*
--		 * Map the shared tail page writable. A lockless get that read
--		 * a non-zero refcount before the remap can still do its
--		 * cmpxchg after it. The refcount is zero, so the cmpxchg
--		 * fails and leaves the page unchanged.
--		 */
--		entry = mk_pte(walk->vmemmap_tail, PAGE_KERNEL);
-+		dst = vmemmap_dup_page_from_list(src, walk->vmemmap_pages);
- 	}
- 
--	list_add(&page->lru, walk->vmemmap_pages);
--	set_pte_at(&init_mm, addr, pte, entry);
-+	list_add(&src->lru, walk->vmemmap_pages);
-+	/*
-+	 * Map the shared tail page writable intentionally. A lockless get that
-+	 * read a non-zero refcount before the remap can still do its cmpxchg
-+	 * after it. The refcount is zero, so the cmpxchg fails and leaves the
-+	 * page unchanged.
-+	 */
-+	set_pte_at(&init_mm, addr, pte, mk_pte(dst, PAGE_KERNEL));
++	LIST_HEAD(new_pages);
++	struct page *page, *next;
++
++	for (unsigned int i = 0; i < nr_pages; i++) {
++		page = alloc_pages_node(nid, GFP_KERNEL | __GFP_RETRY_MAYFAIL, 0);
++		if (!page)
++			goto free_pages;
++		list_add(&page->lru, &new_pages);
++	}
++	list_splice(&new_pages, head);
++	memmap_pages_add(nr_pages);
 +
 +	return 0;
- }
- 
--static void vmemmap_restore_pte(pte_t *pte, unsigned long addr,
--				struct vmemmap_remap_walk *walk)
-+static int vmemmap_restore_pte(pte_t *pte, unsigned long addr,
-+		struct vmemmap_remap_walk *walk)
++free_pages:
++	list_for_each_entry_safe(page, next, &new_pages, lru)
++		__free_page(page);
++	return -ENOMEM;
++}
++
+ static struct page *vmemmap_dup_page_from_list(const struct page *src,
+ 		struct list_head *vmemmap_pages)
  {
-+	const struct page *page = (const struct page *)addr;
-+	const struct folio *folio = page_folio(page);
- 	struct page *src = pte_page(ptep_get(pte)), *dst;
- 
--	/*
--	 * When rolling back vmemmap_remap_free(), keep the copied head page
--	 * mapping and restore only PTEs currently pointing at the shared tail
--	 * page.
--	 */
--	if (walk->vmemmap_tail && walk->vmemmap_tail != src)
--		return;
--
--	VM_WARN_ON_ONCE(PageHead((const struct page *)addr));
-+	if (unlikely(!vmemmap_optimizable_pfn(page_to_pfn(page), folio_order(folio))))
-+		return 0;
- 
-+	VM_WARN_ON_ONCE(folio_vmemmap_shared_tail_page(folio) != src);
- 	dst = vmemmap_dup_page_from_list(src, walk->vmemmap_pages);
- 	set_pte_at(&init_mm, addr, pte, mk_pte(dst, PAGE_KERNEL));
-+
-+	return 0;
+@@ -324,28 +346,6 @@ static int vmemmap_remap_free(unsigned l
+ 	return ret;
  }
  
+-static int alloc_vmemmap_page_list(struct list_head *head,
+-		unsigned int nr_pages, int nid)
+-{
+-	LIST_HEAD(new_pages);
+-	struct page *page, *next;
+-
+-	for (unsigned int i = 0; i < nr_pages; i++) {
+-		page = alloc_pages_node(nid, GFP_KERNEL | __GFP_RETRY_MAYFAIL, 0);
+-		if (!page)
+-			goto free_pages;
+-		list_add(&page->lru, &new_pages);
+-	}
+-	list_splice(&new_pages, head);
+-	memmap_pages_add(nr_pages);
+-
+-	return 0;
+-free_pages:
+-	list_for_each_entry_safe(page, next, &new_pages, lru)
+-		__free_page(page);
+-	return -ENOMEM;
+-}
+-
  /**
-@@ -287,7 +285,6 @@ static int vmemmap_remap_split(unsigned
-  *		to remap.
-  * @end:	end address of the vmemmap virtual address range that we want to
-  *		remap.
-- * @vmemmap_tail: the page to be installed as non-first in the vmemmap range
-  * @vmemmap_pages: input/output list whose first entry supplies the new backing
-  *		page for @start; replaced backing pages are added to the list for
-  *		the caller to free.
-@@ -296,14 +293,11 @@ static int vmemmap_remap_split(unsigned
-  * Return: %0 on success, negative error code otherwise.
-  */
- static int vmemmap_remap_free(unsigned long start, unsigned long end,
--			      struct page *vmemmap_tail,
--			      struct list_head *vmemmap_pages,
--			      unsigned long flags)
-+		struct list_head *vmemmap_pages, unsigned long flags)
- {
- 	int ret;
- 	struct vmemmap_remap_walk walk = {
- 		.remap_pte	= vmemmap_optimize_pte,
--		.vmemmap_tail	= vmemmap_tail,
- 		.vmemmap_pages	= vmemmap_pages,
- 		.flags		= flags,
- 	};
-@@ -321,7 +315,6 @@ static int vmemmap_remap_free(unsigned l
- 	 */
- 	walk = (struct vmemmap_remap_walk) {
- 		.remap_pte	= vmemmap_restore_pte,
--		.vmemmap_tail	= vmemmap_tail,
- 		.vmemmap_pages	= vmemmap_pages,
- 		.flags		= 0,
- 	};
-@@ -496,7 +489,6 @@ static int __hugetlb_vmemmap_optimize_fo
- 					    unsigned long flags)
- {
- 	unsigned long vmemmap_start, vmemmap_end;
--	struct page *vmemmap_tail;
- 	int nid, ret = 0;
- 
- 	VM_WARN_ON_ONCE_FOLIO(!folio_test_hugetlb(folio), folio);
-@@ -506,9 +498,6 @@ static int __hugetlb_vmemmap_optimize_fo
- 		return ret;
- 
- 	nid = folio_nid(folio);
--	vmemmap_tail = vmemmap_shared_tail_page(h->order, folio_zone(folio));
--	if (!vmemmap_tail)
--		return -ENOMEM;
- 
- 	/*
- 	 * Very Subtle
-@@ -537,7 +526,7 @@ static int __hugetlb_vmemmap_optimize_fo
- 	 * they can be freed by the caller.
- 	 */
- 	ret = vmemmap_remap_free(vmemmap_start, vmemmap_end,
--				 vmemmap_tail, vmemmap_pages, flags);
-+				 vmemmap_pages, flags);
- out:
- 	if (ret)
- 		folio_clear_hugetlb_vmemmap_optimized(folio);
---- a/mm/mm_init.c~mm-hugetlb_vmemmap-simplify-shared-tail-page-handling
-+++ a/mm/mm_init.c
-@@ -914,6 +914,8 @@ void __meminit memmap_init_range(unsigne
- #endif
- 
- 	for (pfn = start_pfn; pfn < end_pfn; ) {
-+		const unsigned int order = pfn_to_section_compound_order(pfn);
-+
- 		/*
- 		 * There can be holes in boot-time mem_map[]s handed to this
- 		 * function.  They do not exist on hotplugged memory.
-@@ -929,9 +931,7 @@ void __meminit memmap_init_range(unsigne
- 		 * Vmemmap-optimizable PFNs are backed by shared tail struct pages,
- 		 * which have already been initialized during vmemmap population.
- 		 */
--		if (vmemmap_optimizable_pfn(pfn)) {
--			const unsigned int order = pfn_to_section_compound_order(pfn);
--
-+		if (vmemmap_optimizable_pfn(pfn, order)) {
- 			pfn = min(ALIGN(pfn, 1UL << order), end_pfn);
- 			continue;
- 		}
---- a/mm/sparse-vmemmap.c~mm-hugetlb_vmemmap-simplify-shared-tail-page-handling
-+++ a/mm/sparse-vmemmap.c
-@@ -241,7 +241,7 @@ static __meminit void *vmemmap_alloc_pte
- 	struct page *page;
- 	const unsigned int order = pfn_to_section_compound_order(pfn);
- 
--	if (!vmemmap_optimizable_pfn(pfn))
-+	if (!vmemmap_optimizable_pfn(pfn, order))
- 		return vmemmap_alloc_block_buf(PAGE_SIZE, node, altmap);
- 
- 	/*
-@@ -286,6 +286,7 @@ static pte_t * __meminit vmemmap_pte_pop
- {
- 	pte_t *pte = pte_offset_kernel(pmd, addr);
- 	unsigned long pfn = page_to_pfn((struct page *)addr);
-+	const unsigned int order = pfn_to_section_compound_order(pfn);
- 
- 	if (pte_none(ptep_get(pte))) {
- 		pte_t entry;
-@@ -296,10 +297,10 @@ static pte_t * __meminit vmemmap_pte_pop
- 
- 		entry = pfn_pte(PHYS_PFN(__pa(p)), PAGE_KERNEL);
- 		/* Map the shared tail page as read-only to catch illegal writes. */
--		if (vmemmap_optimizable_pfn(pfn))
-+		if (vmemmap_optimizable_pfn(pfn, order))
- 			entry = pte_wrprotect(entry);
- 		set_pte_at(&init_mm, addr, pte, entry);
--	} else if (WARN_ON_ONCE(vmemmap_optimizable_pfn(pfn)))
-+	} else if (WARN_ON_ONCE(vmemmap_optimizable_pfn(pfn, order)))
- 		return NULL;
- 	return pte;
- }
+  * vmemmap_remap_alloc - remap the vmemmap virtual address range [@start, end)
+  *			 to the page which is from the @vmemmap_pages
 _
 
 Patches currently in -mm which might be from muchun.song@linux.dev are
