@@ -1,48 +1,47 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793814063;
-	b=JjlwqJeSisDdQyg2TBW65U1sQGPWWMz99c0qF9R1WlPXntMRWNn7R/mXqjn2+YhL3Hm5
-	 Ot0o+iUDlcWEsOO/5ix7LOKkTJm4xPinp5sUZQiYk633V9Z6i6nfywVkAqvkj55KY3xRz
-	 fvVu0bb56WMm9NK0lr8QM6r97rG2/fknQ3UxxNrsDXaA0L1P2zc5c4jz8y8abkycfCZHk
-	 sENACcCfsjZZVkgb0LTu3ed1kmKxQB+4Z33BuGeqVHGg909cemthg81u2Rma6HaUR0+Dj
-	 QVtgQG6YZedxtIpjVxldClhrfHp1jIdxRDvBIjCQUoeHLjY0Me/9h0l2rTsPecuW1vA==
+	t=1793814266;
+	b=p7aw8l56pLb6mncOpmGBBpwGaYkNgZBHarM8po3OtAz3VeFSvetFiArjjYRmAIWEfsZw
+	 aN2G5npS3VGn+MVORFvwgSadlHMdj2qgPCaijsuigbgh7zaLL63teVnmAK/2DRwpdaxHB
+	 PcKiqViLXFIgpT6bA0BzpFW6lRrGrA/l305MG9zUpm2ryU7LfaycI7cBoEYdv6sDR1pWM
+	 nlvMN7KcMzd/CdZ+Np1LNwI9X+Pwb+w0gonsF2u64nP/Bptmg+5swO0w3xmxo3QxZyt7W
+	 nBU7kGgQ3t6Pcg0bqgNDGHvjKZahyY0AVDBFF2shM6cfBYpx4N/bPYIq2QMkrCPg7uA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793814063;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793814266;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=lvFB2zXv/Pc1I526FlR+uoxjswbGD/Ek4hoUgDKxfFM=;
-	b=L15+MKfNLWqwlJWXlMlne4FcYoqVKz23UasfpeDGy/NHDfRNabsP228rDgiBvs9MK44U
-	 8/vgk84ffueqiEUwZJ02xt1uCfeollw0oHR9uVyo8j9O/MmjkctA4mYV/viZRnh4Fk3Z+
-	 lIibac6scRzjy/O3byVxx4FpNaZdm0AnjGHFvsS8iTLX9ympQu9IOjMGHYz8B8KPOis+j
-	 UeprU8iKayX2N16e+DrJlo9A35TTpUrdLzP2u36gz96w921UWcAFw/zlpKjAAi7AWPyEq
-	 FfGTNW8h9TYMNqy27ulfg5Tx10xMGrOxiTHXgGpy6TK/9LS3HJuiHae0Lui+dPs3ovg==
+	bh=4u7yojq4C1piyWEYM+yThKRcbhPJxFCab8WOg6awpn0=;
+	b=z38qVXgk3kLlxDXnZ27oPdMZD7YWpuKAyDyeo7755Dh5LPl4j8Zy0t2ldHMs7BAp32Vi
+	 uK3Yz3zbzICHfnS2+PvOtR4i3wIuuhxrqqFqzIsmMG8AY1ct8a/8KT4sTsqmcYOjU0iuP
+	 VUVUhbesX2OTKLTeqwKQ5jlhbgURNnZWUV9E9ykLFXjjesg9S1obTrv4VQ4IzUHBtIMJ6
+	 bhKvd+aU9pKoc++gcmQu9+gLWPR7nXKJeJTYdewx2aCCcAKgYbIwLCWEwU+2+P9O3oOM+
+	 VvEQtsolS/W5v4wLEX183EMby5ZMw18sn3joCkjSbqkhGDYkx6upiPhHd2EmAaZebrw==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=zGfRpTqw;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=Ehcuh4eV;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B668A606A331
-	for <mm-commits@vger.kernel.org>; Wed,  4 Nov 2026 17:41:02 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 39408606A31B
+	for <mm-commits@vger.kernel.org>; Wed,  4 Nov 2026 17:44:25 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=zGfRpTqw
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 35D051F000C1;
-	Wed,  4 Nov 2026 17:41:02 +0000 (UTC)
+	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=Ehcuh4eV
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id AA6231F000C1;
+	Wed,  4 Nov 2026 17:44:25 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1793814062;
-	bh=lvFB2zXv/Pc1I526FlR+uoxjswbGD/Ek4hoUgDKxfFM=;
+	d=linux-foundation.org; s=korg; t=1793814265;
+	bh=4u7yojq4C1piyWEYM+yThKRcbhPJxFCab8WOg6awpn0=;
 	h=Date:To:From:Subject;
-	b=zGfRpTqwrTlJUK/isTbTE0j+3soCVd1A20ZLH3WXpQVENYPU+1whf9Jr9Xd+EwNyp
-	 JXV6IjJfV3CcZEwZUZ+QR7KaQ5fuMFK/efaYwNLChwYv+mrwMHFfLa+PjtyLfLY76c
-	 DiEna2QDfNUhiu7XLPkrYyqTXSvbfzsK2MIDwuw0=
-Date: Wed, 04 Nov 2026 09:41:01 -0800
-To: mm-commits@vger.kernel.org,vbabka@kernel.org,surenb@google.com,
-	shuah@kernel.org,rppt@kernel.org,peterx@redhat.com,mhocko@suse.com,
-	ljs@kernel.org,liam@infradead.org,david@kernel.org,sashal@kernel.org,
-	akpm@linux-foundation.org
+	b=Ehcuh4eVYmdmjC3YXnt/F+sqK15bIgH5mMo/el9FL0Fqopk5tDA2CDbjOCD2HHGL/
+	 1kcfoQVA+/V93zy0ByDDmci9TN+Hd3A4mFkvhtsCYzlaouPTuPfZkxPiaGeHlxWi0U
+	 LZ8uvHGJQdwpszGQRBjxeYCcXXd5zlT1Ks+Vi16E=
+Date: Wed, 04 Nov 2026 09:44:25 -0800
+To: mm-commits@vger.kernel.org,mporter@kernel.crashing.org,
+	james010kim@gmail.com,error27@gmail.com,alex.bou9@gmail.com,
+	akpm@linux-foundation.org,Frank.Li@nxp.com
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-mm-uffd-wp-mremap-keep-the-thp-sizes-in-unsigned-long.patch added to mm-new branch
-Message-Id: <20261104174102.35D051F000C1@smtp.kernel.org>
+Subject: + rapidio-use-dmaengine_desc_set_callback.patch added to mm-nonmm-unstable branch
+Message-Id: <20261104174425.AA6231F000C1@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -54,26 +53,15 @@ Precedence: list
 
 
 The patch titled
-     Subject: selftests/mm: uffd-wp-mremap: keep the THP sizes in unsigned long
-has been added to the -mm mm-new branch.  Its filename is
-     selftests-mm-uffd-wp-mremap-keep-the-thp-sizes-in-unsigned-long.patch
+     Subject: rapidio: use dmaengine_desc_set_callback()
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     rapidio-use-dmaengine_desc_set_callback.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-uffd-wp-mremap-keep-the-thp-sizes-in-unsigned-long.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/rapidio-use-dmaengine_desc_set_callback.patch
 
-This patch will later appear in the mm-new branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Note, mm-new is a provisional staging ground for work-in-progress
-patches, and acceptance into mm-new is a notification for others take
-notice and to finish up reviews.  Please do not hesitate to respond to
-review feedback and post updated versions to replace or incrementally
-fixup patches in mm-new.
-
-The mm-new branch of mm.git is not included in linux-next
-
-If a few days of testing in mm-new is successful, the patch will me moved
-into mm.git's mm-unstable branch, which is included in linux-next
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -88,63 +76,45 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Sasha Levin <sashal@kernel.org>
-Subject: selftests/mm: uffd-wp-mremap: keep the THP sizes in unsigned long
-Date: Tue, 03 Nov 2026 10:02:32 -0500
+From: Frank Li <Frank.Li@nxp.com>
+Subject: rapidio: use dmaengine_desc_set_callback()
+Date: Tue,  3 Nov 2026 09:37:56 -0500
 
-Commit 0020a1f5ca36 ("selftests/mm: hugepage_settings: use unsigned long
-in detect_hugetlb_page_size") changed the sizes of the test cases to
-unsigned long, but left thpsizes and detect_thp_sizes() with size_t.  On
-32-bit architectures size_t is unsigned int, and gcc 14 rejects the test
-cases that point at thpsizes:
+Replace open-coded assignments to callback and callback_param fields of
+struct dma_async_tx_descriptor with calls to the
+dmaengine_desc_set_callback() helper in rio_mport_cdev driver.
 
-  uffd-wp-mremap.c:299:26: error: initialization of 'long unsigned int *' from incompatible pointer type 'size_t *' {aka 'unsigned int *'} [-Wincompatible-pointer-types]
+No functional change intended. Prepare to make struct
+dma_async_tx_descriptor private to the DMA engine.
 
-Use unsigned long for the THP sizes as well.
-
-Link: https://lore.kernel.org/20261103150232.291827-1-sashal@kernel.org
-Fixes: 0020a1f5ca36 ("selftests/mm: hugepage_settings: use unsigned long in detect_hugetlb_page_size")
-Signed-off-by: Sasha Levin <sashal@kernel.org>
+Link: https://lore.kernel.org/20261103143759.1168880-1-Frank.Li@oss.nxp.com
+Signed-off-by: Frank Li <Frank.Li@nxp.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Reviewed-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
-Reviewed-by: David Hildenbrand (Arm) <david@kernel.org>
-Reviewed-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
-Cc: Peter Xu <peterx@redhat.com>
-Cc: Liam R. Howlett <liam@infradead.org>
-Cc: Vlastimil Babka <vbabka@kernel.org>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Shuah Khan <shuah@kernel.org>
+Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
+Cc: Matt Porter <mporter@kernel.crashing.org>
+Cc: Alexandre Bounine <alex.bou9@gmail.com>
+Cc: James Kim <james010kim@gmail.com>
+Cc: Dan Carpenter <error27@gmail.com>
 ---
 
- tools/testing/selftests/mm/uffd-wp-mremap.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/rapidio/devices/rio_mport_cdev.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
---- a/tools/testing/selftests/mm/uffd-wp-mremap.c~selftests-mm-uffd-wp-mremap-keep-the-thp-sizes-in-unsigned-long
-+++ a/tools/testing/selftests/mm/uffd-wp-mremap.c
-@@ -15,7 +15,7 @@ static int pagemap_fd;
- static int nr_pagesizes = 1;
- static unsigned long pagesize;
- static int nr_thpsizes;
--static size_t thpsizes[20];
-+static unsigned long thpsizes[20];
- static int nr_hugetlbsizes;
- static unsigned long hugetlbsizes[10];
+--- a/drivers/rapidio/devices/rio_mport_cdev.c~rapidio-use-dmaengine_desc_set_callback
++++ a/drivers/rapidio/devices/rio_mport_cdev.c
+@@ -717,8 +717,7 @@ static int do_dma_request(struct mport_d
+ 		goto err_out;
+ 	}
  
-@@ -30,7 +30,7 @@ static void check_uffd_wp_feature_suppor
- 		ksft_exit_skip("uffd-wp feature not supported\n");
- }
+-	tx->callback = dma_xfer_callback;
+-	tx->callback_param = req;
++	dmaengine_desc_set_callback(tx, dma_xfer_callback, NULL, req);
  
--static int detect_thp_sizes(size_t sizes[], int max)
-+static int detect_thp_sizes(unsigned long sizes[], int max)
- {
- 	int count = 0;
- 	unsigned long orders;
+ 	req->status = DMA_IN_PROGRESS;
+ 	kref_get(&req->refcount);
 _
 
-Patches currently in -mm which might be from sashal@kernel.org are
+Patches currently in -mm which might be from Frank.Li@nxp.com are
 
-selftests-proc-cast-the-procmap_query-address-through-uintptr_t.patch
-selftests-mm-fix-pointer-width-warnings-on-32-bit-architectures.patch
-selftests-mm-uffd-wp-mremap-keep-the-thp-sizes-in-unsigned-long.patch
+rapidio-use-dmaengine_desc_set_callback.patch
 
