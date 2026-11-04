@@ -1,41 +1,41 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793818465;
-	b=uvsRBpgyZwdVe42D+x+3KAALG8p37BATClzs1mOoCbL3pXwgIXM8XVH9uWds4EIsyivB
-	 r1MlLJImiVwCNi7/hGQFQUm3H0NckWYQ81bgaCEwEhdutubSJtV6R5Miys8go+Jv4jvU1
-	 ZjZsoOIHPWueWfdHNhKux2EUKs9Vo3uk3aoCwSE/CJjhfbWPiP8rXFEvy1zgYB/s4btFA
-	 xr1orSLgXd2DB7fekzCnccb1oiFf+Pj6ecsE6cDHKwnh92+0h4TN5C854X9dmW/I3IGVH
-	 ZCYtA+my1vRPQHFfICUn3mz2SAGrE4jMMHDGCw7l6kmeBe1waVdVF7kyS+jRGJ4AekA==
+	t=1793818467;
+	b=xsUne05AlDmFfzV9FTWAu7B5dnNWdFehXn5IgUWuuJI2Dbb/bl63s5z9aDd1r+rDFuSA
+	 Mg+cJzlk0Qlej6mRrFnLGXQUrPR447+/998xfSEbW/0Eu6nj5Ah/9kFxuna07QsyLZe/I
+	 pOHBr71QSl7PbLSW0X6D8S2xBo+aMzY9DKgRb7+Dh59LphQt0nRovtsSLXYy4djzfWr7s
+	 MEAHRkXmmhQxVIcl/gZq1czu5vyzw70gv2eIwGlMYxAT/jBc1qRGgUlYJszXFXw2mK3EK
+	 DgjIeo37wIsekv7DBr9F6wsir9N/Jv7OSB8x5hO3D2PUHy08kHPz0vHZ58XBEWMEFMw==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793818465;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793818467;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=gVoe6DIpxxjln2wr9bMjZKf9eyAb4fxeyCFugtHPADQ=;
-	b=dbdF1Nbn5BJIVDJH7EeVSvsG0GhKEvoDQn2lyb3Pe3vpLcx3XNrjPkXbTjEC/p+MXrL2
-	 OXrMuGt+fH9n/w6Ayrwxl1I2r7woSgG1K1qYXXqJ2F/fvyN+QZD6Dr3gmKFK5dcKkE4tA
-	 UM0UrsQtn2SYxLKnY/WhmZNw2nnu/KYc/hTygc7WnTRI7EqytsbCbWA44S0uXCxpYQDXX
-	 lGfReIw0slSM2V8K8RL7mZx/fz2FUV5Rw3P3pQ8pO8BP7r3D6gZxerSWvnoyzv5qCpXp3
-	 q55QSg2mvxyVDzCe0nEfwXP8CvK85KJR9oF6a1NJJmTCsMo//7swu7miQLB/wJmlRLw==
+	bh=NtcFl4XBNxKjzeAZmeHKbtb7pA8baTp09Aqxur0PD1I=;
+	b=QEWh3rVgj198Tdji8xyZFUOmi3Mz6A+d/+P2JjcKWPpRA5A3S1DAaIJXH0FSA+JytWPu
+	 YhOGV59cf04BikKGCEcC9tBZLXUtrqGoJSn8XRmEC3O0yKeCSKlGKW8XWvQabYD4OQc2o
+	 tWDqWixRpT8zPvClvCVTvGOzPnJcol8XlqCgU/ZmBXJdYon+xO92nhIVvEbbWQyPjQtz6
+	 chCViJ2Gontt6NxhswvLvrcs+Ftrip7C+9oVi9qAc20DSVfZhB92njDayAgQ46zQhgf+f
+	 AbUg/DohV7IOzWKU2uZLwrwyFN31hL3AcYY2BXKgP5H1lhFnXMYv7Hlh/DyHPRMaqoA==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=IL4180+U;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b="T/NDHZW1";
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D5CBD606D810
-	for <mm-commits@vger.kernel.org>; Wed,  4 Nov 2026 18:54:24 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8A521606A337
+	for <mm-commits@vger.kernel.org>; Wed,  4 Nov 2026 18:54:26 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=IL4180+U
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 42BAC1F000C1;
-	Wed,  4 Nov 2026 18:54:24 +0000 (UTC)
+	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=T/NDHZW1
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3A30C1F0093A;
+	Wed,  4 Nov 2026 18:54:26 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1793818464;
-	bh=gVoe6DIpxxjln2wr9bMjZKf9eyAb4fxeyCFugtHPADQ=;
+	d=linux-foundation.org; s=korg; t=1793818466;
+	bh=NtcFl4XBNxKjzeAZmeHKbtb7pA8baTp09Aqxur0PD1I=;
 	h=Date:To:From:Subject;
-	b=IL4180+Uri2jVZdQN8UxqHSSk9ZLOQbP6eawhJxR0/ptn/GaQ8LXu6XnEDbYuQgI6
-	 3otua206ufcNMrgtZWVcNiT5B5LpSM9d9l1wOJLtqfHi3I42GuUwzNZj/p4fTBsHE0
-	 Uz/BSh2BkrNXhkTpZxCnM7O+IzlruyU8wT0vVSaA=
-Date: Wed, 04 Nov 2026 10:54:23 -0800
+	b=T/NDHZW18Hz+MKh7/IvkHmfYb5L5OY8+HH9MYydXvGui9ii14uTuRDQodSN5Cm4im
+	 IObxIpUbfUl0h8irMmacs/2YBdCoja/cuDqjcCT4u71jEcq2hhYTLMH2shef/7ixTU
+	 QJZ/DNxmDIISGUgf2Xd4v1yoRZc9mx8nI4nG+WSY=
+Date: Wed, 04 Nov 2026 10:54:25 -0800
 To: mm-commits@vger.kernel.org,yuanchu@google.com,weixugc@google.com,
 	shakeel.butt@linux.dev,rostedt@goodmis.org,roman.gushchin@linux.dev,
 	ridong.chen@linux.dev,qi.zheng@linux.dev,muchun.song@linux.dev,
@@ -45,8 +45,8 @@ To: mm-commits@vger.kernel.org,yuanchu@google.com,weixugc@google.com,
 	baohua@kernel.org,axelrasmussen@google.com,chenridong@xiaomi.com,
 	akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-memcontrol-drop-unused-vmscan-tracepoint-include.patch added to mm-new branch
-Message-Id: <20261104185424.42BAC1F000C1@smtp.kernel.org>
+Subject: + mm-vmscan-move-vmscan-tracepoints-to-a-local-header.patch added to mm-new branch
+Message-Id: <20261104185426.3A30C1F0093A@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -58,12 +58,12 @@ Precedence: list
 
 
 The patch titled
-     Subject: mm/memcontrol: drop unused vmscan tracepoint include
+     Subject: mm/vmscan: move vmscan tracepoints to a local header
 has been added to the -mm mm-new branch.  Its filename is
-     mm-memcontrol-drop-unused-vmscan-tracepoint-include.patch
+     mm-vmscan-move-vmscan-tracepoints-to-a-local-header.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memcontrol-drop-unused-vmscan-tracepoint-include.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vmscan-move-vmscan-tracepoints-to-a-local-header.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -93,162 +93,25 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Ridong Chen <chenridong@xiaomi.com>
-Subject: mm/memcontrol: drop unused vmscan tracepoint include
-Date: Wed, 04 Nov 2026 21:08:11 +0800
+Subject: mm/vmscan: move vmscan tracepoints to a local header
+Date: Wed, 04 Nov 2026 21:08:12 +0800
 
-Patch series "mm/vmscan: move tracepoints to mm/ and add MGLRU
-tracepoints", v7.
-
-Background
-==========
-
-MGLRU currently has no tracepoints of its own. The scan and evict paths
-reuse the classic-LRU tracepoints (trace_mm_vmscan_lru_isolate() and
-trace_mm_vmscan_lru_shrink_inactive()), which predate MGLRU and carry no
-generation, sequence or memcg context. A trace of a running system
-therefore cannot tell which memcg a given scan belongs to, how far
-reclaim has progressed through the generations, or when a new generation
-is created.
-
-While reviewing an earlier version that added two MGLRU tracepoints,
-Steven suggested moving include/trace/events/vmscan.h to
-mm/trace_vmscan.h [1], as several other subsystems already do. Once the
-header lives under mm/, struct scan_control can be moved there too,
-letting the trace events access its fields directly instead of having
-each callsite copy the scalars out by hand. This version merges the two
-efforts into one series: the restructuring first, then the two new
-tracepoints built on top of it.
-
-Implementation
-==============
-
-Part 1, restructuring (patches 1-4):
-
-  1) drop the unused vmscan trace include from memcontrol.c;
-  2) move include/trace/events/vmscan.h to mm/trace_vmscan.h, setting
-     TRACE_INCLUDE_PATH to "." and adding -I$(src) for vmscan.o;
-  3) move struct scan_control into a dedicated mm/vmscan.h with an
-     ordinary include guard, which trace_vmscan.h pulls in;
-  4) pass scan_control to the vmscan tracepoints and pick the fields
-     out in TP_fast_assign: the reclaim-begin events, the LRU
-     isolate/shrink events, mm_vmscan_reclaim_pages and
-     mm_vmscan_balance_pgdat_end.
-
-Part 2, MGLRU tracepoints (patches 5-7):
-
-  5) add mm_mglru_scan_folios on the scan path, next to the classic
-     mm_vmscan_lru_isolate, reporting the same counters plus nr_sorted
-     and the nid, memcg id, max_seq, tier and min_seq of the lruvec;
-  6) add lruvec_gen_size() to mm/vmscan.h, returning the number of
-     pages of one type in the generation of a given seq, and convert
-     the two open-coded users in vmscan.c;
-  7) add mm_mglru_aging where aging is triggered in
-     try_to_shrink_lruvec(), reporting the nid, memcg id,
-     sc->priority, swappiness, max_seq, the anon/file min_seq and the
-     per-generation page counts of both types before aging, from the
-     oldest generation to the newest as in the debugfs lru_gen file.
-
-Both new events only take pointers (lruvec, sc) plus a few local
-values, and derive everything else in TP_fast_assign(), so the reclaim
-paths do no extra work when they are disabled.
-
-Effect
-======
-
-Part 1 moves the loads of the tracepoint arguments out of the reclaim
-paths and into the trace event callbacks, which only run when the event
-is enabled. On x86_64 with gcc 11.4, the callers in mm/vmscan.o shrink
-accordingly (bytes), e.g.:
-
-  isolate_lru_folios    4499 -> 4335 (-164)
-  __node_reclaim        2402 -> 2220 (-182)
-  isolate_folios        8706 -> 8577 (-129)
-  shrink_active_list    3669 -> 3544 (-125)
-  evict_folios          4858 -> 4769  (-89)
-
-There is no functional change in part 1. TP_STRUCT__entry and TP_printk
-of the existing events are untouched, so their tracefs format is
-identical. This was confirmed by diffing the tracefs format files before
-and after, and by capturing the direct/memcg/node reclaim-begin events
-under load in a QEMU guest (order, gfp_flags and memcg_id all match).
-BPF programs attached via raw_tp/tp_btf do see the new TP_PROTO and need
-to be adjusted; tracepoints are not a stable ABI (see
-Documentation/bpf/bpf_design_QA.rst).
-
-highest_zoneidx and nr_reclaimed stay separate arguments: the former is
-a balance_pgdat() parameter (sc.reclaim_idx may differ from it by the
-time the end event fires), and the latter is the return value of
-shrink_folio_list(), which does not update sc->nr_reclaimed.
-
-Part 2 makes the full aging-to-eviction window observable per memcg:
-aging advances max_seq (the leading edge), scanning consumes the oldest
-generations, and the min_seq/max_seq pair on each event shows how the
-generation window moves over time. A sample trace, captured under
-memory.reclaim of a test memcg, with the classic-LRU tracepoints left
-enabled to show how they interleave:
-
-  mm_vmscan_lru_isolate: classzone=4 order=0 nr_requested=64 nr_scanned=36 nr_skipped=0 nr_taken=36 lru=inactive_file
-  mm_mglru_scan_folios: nid=0 memcg_id=1833 classzone=4 order=0 nr_requested=64 nr_scanned=36 nr_sorted=0 nr_skipped=0 nr_taken=36 lru=inactive_file max_seq=3 tier=3 min_seq=0
-  mm_vmscan_lru_shrink_inactive: nid=0 nr_scanned=36 nr_reclaimed=31 nr_dirty=1 nr_writeback=0 nr_congested=0 nr_immediate=0 nr_activate_anon=0 nr_activate_file=1 nr_ref_keep=4 nr_unmap_fail=0 priority=2 flags=RECLAIM_WB_FILE|RECLAIM_WB_ASYNC
-  mm_mglru_aging: nid=0 memcg_id=1833 priority=2 swappiness=0 max_seq=3 anon_min_seq=0 file_min_seq=2 nr_anon={0x0,0x0,0x802,0x0} nr_file={0x0,0x0,0x357,0x0}
-  mm_vmscan_lru_isolate: classzone=4 order=0 nr_requested=64 nr_scanned=64 nr_skipped=0 nr_taken=64 lru=inactive_file
-  mm_mglru_scan_folios: nid=0 memcg_id=1833 classzone=4 order=0 nr_requested=64 nr_scanned=64 nr_sorted=0 nr_skipped=0 nr_taken=64 lru=inactive_file max_seq=4 tier=3 min_seq=2
-  mm_vmscan_lru_shrink_inactive: nid=0 nr_scanned=64 nr_reclaimed=64 nr_dirty=0 nr_writeback=0 nr_congested=0 nr_immediate=0 nr_activate_anon=0 nr_activate_file=0 nr_ref_keep=0 nr_unmap_fail=0 priority=2 flags=RECLAIM_WB_FILE|RECLAIM_WB_ASYNC
-  mm_mglru_aging: nid=0 memcg_id=1833 priority=2 swappiness=0 max_seq=4 anon_min_seq=1 file_min_seq=2 nr_anon={0x0,0x802,0x0,0x0} nr_file={0x0,0x317,0x0,0x0}
-
-The mm_mglru_scan_folios lines carry the node, memcg id and the
-generation window (max_seq/min_seq) that the bare mm_vmscan_lru_isolate
-lines above them cannot - those cannot even say which memcg they came
-from. The mm_mglru_aging lines show when and why aging is triggered:
-the first one has only two file generations left (file_min_seq=2,
-max_seq=3, swappiness=0), so eviction is not possible anymore; the
-second one has three left, and aging runs again as the priority is
-below DEF_PRIORITY. The scans in between already report the new window
-(max_seq=4 min_seq=2).
-
-Testing
-=======
-
-The output of mm_mglru_aging matches the debugfs lru_gen_full file
-dumped right before the aging. As the sizes are taken before aging, the
-youngest generation is populated too, e.g. for a test memcg whose anon
-pages are being accessed while it is aged:
-
-  mm_mglru_aging: nid=0 memcg_id=1833 priority=11 swappiness=60 max_seq=13 anon_min_seq=12 file_min_seq=12 nr_anon={0x0,0x0,0x1925,0x15ef} nr_file={0x0,0x0,0x411,0x0}
-
-  # cat /sys/kernel/debug/lru_gen_full    (generation lines only)
-  memcg 1833 /tpy
-   node     0
-           10       4539          0           0x
-           11       2904          0           0x
-           12       2757       6437        1041
-           13       1564       5615           0
-
-
-
-This series was developed with the assistance of an LLM-based coding
-assistant.
-
-
-This patch (of 7):
-
-memcontrol.c includes <trace/events/vmscan.h> but does not use any of
-the tracepoints or macros it defines: all tracepoints invoked here come
-from memcg.h and writeback.h.
-
-Drop it ahead of moving the vmscan trace header under mm/, after which
-<trace/events/vmscan.h> will no longer exist.
+Move include/trace/events/vmscan.h to mm/trace_vmscan.h so that the
+tracepoints can be extended to reference vmscan-internal structures such
+as struct scan_control, which is not visible outside mm/.  This mirrors
+what several other subsystems already do with their trace headers (e.g.
+fs/fuse/fuse_trace.h, fs/gfs2/trace_gfs2.h, fs/lockd/trace.h).  As they
+do, set TRACE_INCLUDE_PATH to "." and add mm/ to the include path of
+vmscan.o, the only user that defines CREATE_TRACE_POINTS.
 
 No functional change.
 
-Link: https://lore.kernel.org/20261104130817.849089-1-ridong.chen@linux.dev
-Link: https://lore.kernel.org/20261104130817.849089-2-ridong.chen@linux.dev
-Link: https://lore.kernel.org/linux-mm/20260916095122.50cbb620@robin/ [1]
+Link: https://lore.kernel.org/20261104130817.849089-3-ridong.chen@linux.dev
 Signed-off-by: Ridong Chen <chenridong@xiaomi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Acked-by: Muchun Song <muchun.song@linux.dev>
 Reviewed-by: Barry Song <baohua@kernel.org>
 Reviewed-by: Baoquan He <baoquan.he@linux.dev>
+Acked-by: Muchun Song <muchun.song@linux.dev>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Steven Rostedt <rostedt@goodmis.org>
 Cc: Masami Hiramatsu <mhiramat@kernel.org>
@@ -268,20 +131,1381 @@ Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
 Cc: Ridong Chen <ridong.chen@linux.dev>
 ---
 
- mm/memcontrol.c |    2 --
- 1 file changed, 2 deletions(-)
+ MAINTAINERS                   |    3 
+ include/trace/events/vmscan.h |  651 -------------------------------
+ mm/Makefile                   |    1 
+ mm/shrinker.c                 |    2 
+ mm/trace_vmscan.h             |  655 ++++++++++++++++++++++++++++++++
+ mm/vmscan.c                   |    2 
+ 6 files changed, 660 insertions(+), 654 deletions(-)
 
---- a/mm/memcontrol.c~mm-memcontrol-drop-unused-vmscan-tracepoint-include
-+++ a/mm/memcontrol.c
-@@ -77,8 +77,6 @@
- #include <trace/events/memcg.h>
- #undef CREATE_TRACE_POINTS
- 
--#include <trace/events/vmscan.h>
+diff --git a/include/trace/events/vmscan.h a/include/trace/events/vmscan.h
+deleted file mode 100644
+--- a/include/trace/events/vmscan.h
++++ /dev/null
+@@ -1,651 +0,0 @@
+-/* SPDX-License-Identifier: GPL-2.0 */
+-#undef TRACE_SYSTEM
+-#define TRACE_SYSTEM vmscan
 -
- struct cgroup_subsys memory_cgrp_subsys __read_mostly;
- EXPORT_SYMBOL(memory_cgrp_subsys);
+-#if !defined(_TRACE_VMSCAN_H) || defined(TRACE_HEADER_MULTI_READ)
+-#define _TRACE_VMSCAN_H
+-
+-#include <linux/types.h>
+-#include <linux/tracepoint.h>
+-#include <linux/mm.h>
+-#include <linux/memcontrol.h>
+-#include <trace/events/mmflags.h>
+-
+-#define RECLAIM_WB_ANON		0x0001u
+-#define RECLAIM_WB_FILE		0x0002u
+-#define RECLAIM_WB_MIXED	0x0010u
+-#define RECLAIM_WB_SYNC		0x0004u /* Unused, all reclaim async */
+-#define RECLAIM_WB_ASYNC	0x0008u
+-#define RECLAIM_WB_LRU		(RECLAIM_WB_ANON|RECLAIM_WB_FILE)
+-
+-#define show_reclaim_flags(flags)				\
+-	(flags) ? __print_flags(flags, "|",			\
+-		{RECLAIM_WB_ANON,	"RECLAIM_WB_ANON"},	\
+-		{RECLAIM_WB_FILE,	"RECLAIM_WB_FILE"},	\
+-		{RECLAIM_WB_MIXED,	"RECLAIM_WB_MIXED"},	\
+-		{RECLAIM_WB_SYNC,	"RECLAIM_WB_SYNC"},	\
+-		{RECLAIM_WB_ASYNC,	"RECLAIM_WB_ASYNC"}	\
+-		) : "RECLAIM_WB_NONE"
+-
+-#define _VMSCAN_THROTTLE_WRITEBACK	(1 << VMSCAN_THROTTLE_WRITEBACK)
+-#define _VMSCAN_THROTTLE_ISOLATED	(1 << VMSCAN_THROTTLE_ISOLATED)
+-#define _VMSCAN_THROTTLE_NOPROGRESS	(1 << VMSCAN_THROTTLE_NOPROGRESS)
+-#define _VMSCAN_THROTTLE_CONGESTED	(1 << VMSCAN_THROTTLE_CONGESTED)
+-
+-#define show_throttle_flags(flags)						\
+-	(flags) ? __print_flags(flags, "|",					\
+-		{_VMSCAN_THROTTLE_WRITEBACK,	"VMSCAN_THROTTLE_WRITEBACK"},	\
+-		{_VMSCAN_THROTTLE_ISOLATED,	"VMSCAN_THROTTLE_ISOLATED"},	\
+-		{_VMSCAN_THROTTLE_NOPROGRESS,	"VMSCAN_THROTTLE_NOPROGRESS"},	\
+-		{_VMSCAN_THROTTLE_CONGESTED,	"VMSCAN_THROTTLE_CONGESTED"}	\
+-		) : "VMSCAN_THROTTLE_NONE"
+-
+-TRACE_DEFINE_ENUM(KSWAPD_CLEAR_HOPELESS_OTHER);
+-TRACE_DEFINE_ENUM(KSWAPD_CLEAR_HOPELESS_KSWAPD);
+-TRACE_DEFINE_ENUM(KSWAPD_CLEAR_HOPELESS_DIRECT);
+-TRACE_DEFINE_ENUM(KSWAPD_CLEAR_HOPELESS_PCP);
+-
+-#define kswapd_clear_hopeless_reason_ops		\
+-	{KSWAPD_CLEAR_HOPELESS_KSWAPD,	"KSWAPD"},	\
+-	{KSWAPD_CLEAR_HOPELESS_DIRECT,	"DIRECT"},	\
+-	{KSWAPD_CLEAR_HOPELESS_PCP,	"PCP"},		\
+-	{KSWAPD_CLEAR_HOPELESS_OTHER,	"OTHER"}
+-
+-#define trace_reclaim_flags(file) ( \
+-	(file ? RECLAIM_WB_FILE : RECLAIM_WB_ANON) | \
+-	(RECLAIM_WB_ASYNC) \
+-	)
+-
+-TRACE_EVENT(mm_vmscan_kswapd_sleep,
+-
+-	TP_PROTO(int nid),
+-
+-	TP_ARGS(nid),
+-
+-	TP_STRUCT__entry(
+-		__field(	int,	nid	)
+-	),
+-
+-	TP_fast_assign(
+-		__entry->nid	= nid;
+-	),
+-
+-	TP_printk("nid=%d", __entry->nid)
+-);
+-
+-TRACE_EVENT(mm_vmscan_kswapd_wake,
+-
+-	TP_PROTO(int nid, int zid, int order),
+-
+-	TP_ARGS(nid, zid, order),
+-
+-	TP_STRUCT__entry(
+-		__field(	int,	nid	)
+-		__field(	int,	zid	)
+-		__field(	int,	order	)
+-	),
+-
+-	TP_fast_assign(
+-		__entry->nid	= nid;
+-		__entry->zid    = zid;
+-		__entry->order	= order;
+-	),
+-
+-	TP_printk("nid=%d order=%d",
+-		__entry->nid,
+-		__entry->order)
+-);
+-
+-TRACE_EVENT(mm_vmscan_balance_pgdat_begin,
+-
+-	TP_PROTO(int nid, int order, int highest_zoneidx),
+-
+-	TP_ARGS(nid, order, highest_zoneidx),
+-
+-	TP_STRUCT__entry(
+-		__field(int, nid)
+-		__field(int, order)
+-		__field(int, highest_zoneidx)
+-	),
+-
+-	TP_fast_assign(
+-		__entry->nid = nid;
+-		__entry->order = order;
+-		__entry->highest_zoneidx = highest_zoneidx;
+-	),
+-
+-	TP_printk("nid=%d order=%d highest_zoneidx=%-8s",
+-		__entry->nid,
+-		__entry->order,
+-		__print_symbolic(__entry->highest_zoneidx, ZONE_TYPE))
+-);
+-
+-TRACE_EVENT(mm_vmscan_balance_pgdat_end,
+-
+-	TP_PROTO(int nid, int order, int highest_zoneidx,
+-		 unsigned long nr_reclaimed),
+-
+-	TP_ARGS(nid, order, highest_zoneidx, nr_reclaimed),
+-
+-	TP_STRUCT__entry(
+-		__field(int, nid)
+-		__field(int, order)
+-		__field(int, highest_zoneidx)
+-		__field(unsigned long, nr_reclaimed)
+-	),
+-
+-	TP_fast_assign(
+-		__entry->nid = nid;
+-		__entry->order = order;
+-		__entry->highest_zoneidx = highest_zoneidx;
+-		__entry->nr_reclaimed = nr_reclaimed;
+-	),
+-
+-	TP_printk("nid=%d order=%d highest_zoneidx=%-8s nr_reclaimed=%lu",
+-		__entry->nid,
+-		__entry->order,
+-		__print_symbolic(__entry->highest_zoneidx, ZONE_TYPE),
+-		__entry->nr_reclaimed)
+-);
+-
+-TRACE_EVENT(mm_vmscan_wakeup_kswapd,
+-
+-	TP_PROTO(int nid, int zid, int order, gfp_t gfp_flags),
+-
+-	TP_ARGS(nid, zid, order, gfp_flags),
+-
+-	TP_STRUCT__entry(
+-		__field(	int,	nid		)
+-		__field(	int,	zid		)
+-		__field(	int,	order		)
+-		__field(	unsigned long,	gfp_flags	)
+-	),
+-
+-	TP_fast_assign(
+-		__entry->nid		= nid;
+-		__entry->zid		= zid;
+-		__entry->order		= order;
+-		__entry->gfp_flags	= (__force unsigned long)gfp_flags;
+-	),
+-
+-	TP_printk("nid=%d order=%d gfp_flags=%s",
+-		__entry->nid,
+-		__entry->order,
+-		show_gfp_flags(__entry->gfp_flags))
+-);
+-
+-DECLARE_EVENT_CLASS(mm_vmscan_direct_reclaim_begin_template,
+-
+-	TP_PROTO(gfp_t gfp_flags, int order, struct mem_cgroup *memcg),
+-
+-	TP_ARGS(gfp_flags, order, memcg),
+-
+-	TP_STRUCT__entry(
+-		__field(	unsigned long,	gfp_flags	)
+-		__field(	u64,	memcg_id	)
+-		__field(	int,	order		)
+-	),
+-
+-	TP_fast_assign(
+-		__entry->gfp_flags	= (__force unsigned long)gfp_flags;
+-		__entry->order		= order;
+-		__entry->memcg_id	= mem_cgroup_id(memcg);
+-	),
+-
+-	TP_printk("order=%d gfp_flags=%s pid=%d memcg_id=%llu %s",
+-		__entry->order,
+-		show_gfp_flags(__entry->gfp_flags),
+-		__entry->ent.pid,
+-		__entry->memcg_id,
+-		__event_in_irq() ? "(in-irq)" : "")
+-);
+-
+-DEFINE_EVENT(mm_vmscan_direct_reclaim_begin_template, mm_vmscan_direct_reclaim_begin,
+-
+-	TP_PROTO(gfp_t gfp_flags, int order, struct mem_cgroup *memcg),
+-
+-	TP_ARGS(gfp_flags, order, memcg)
+-);
+-
+-#ifdef CONFIG_MEMCG
+-DEFINE_EVENT(mm_vmscan_direct_reclaim_begin_template, mm_vmscan_memcg_reclaim_begin,
+-
+-	TP_PROTO(gfp_t gfp_flags, int order, struct mem_cgroup *memcg),
+-
+-	TP_ARGS(gfp_flags, order, memcg)
+-);
+-#endif /* CONFIG_MEMCG */
+-
+-DECLARE_EVENT_CLASS(mm_vmscan_direct_reclaim_end_template,
+-
+-	TP_PROTO(unsigned long nr_reclaimed, struct mem_cgroup *memcg),
+-
+-	TP_ARGS(nr_reclaimed, memcg),
+-
+-	TP_STRUCT__entry(
+-		__field(	unsigned long,	nr_reclaimed	)
+-		__field(	u64,	memcg_id	)
+-	),
+-
+-	TP_fast_assign(
+-		__entry->nr_reclaimed	= nr_reclaimed;
+-		__entry->memcg_id	= mem_cgroup_id(memcg);
+-	),
+-
+-	TP_printk("nr_reclaimed=%lu pid=%d memcg_id=%llu %s",
+-		__entry->nr_reclaimed,
+-		__entry->ent.pid,
+-		__entry->memcg_id,
+-		__event_in_irq() ? "(in-irq)" : "")
+-);
+-
+-DEFINE_EVENT(mm_vmscan_direct_reclaim_end_template, mm_vmscan_direct_reclaim_end,
+-
+-	TP_PROTO(unsigned long nr_reclaimed, struct mem_cgroup *memcg),
+-
+-	TP_ARGS(nr_reclaimed, memcg)
+-);
+-
+-#ifdef CONFIG_MEMCG
+-DEFINE_EVENT(mm_vmscan_direct_reclaim_end_template, mm_vmscan_memcg_reclaim_end,
+-
+-	TP_PROTO(unsigned long nr_reclaimed, struct mem_cgroup *memcg),
+-
+-	TP_ARGS(nr_reclaimed, memcg)
+-);
+-#endif /* CONFIG_MEMCG */
+-
+-TRACE_EVENT(mm_shrink_slab_start,
+-	TP_PROTO(struct shrinker *shr, struct shrink_control *sc,
+-		long nr_objects_to_shrink, unsigned long cache_items,
+-		unsigned long long delta, unsigned long total_scan,
+-		int priority, struct mem_cgroup *memcg),
+-
+-	TP_ARGS(shr, sc, nr_objects_to_shrink, cache_items, delta, total_scan,
+-		priority, memcg),
+-
+-	TP_STRUCT__entry(
+-		__field(struct shrinker *, shr)
+-		__field(void *, shrink)
+-		__field(long, nr_objects_to_shrink)
+-		__field(unsigned long, gfp_flags)
+-		__field(unsigned long, cache_items)
+-		__field(unsigned long long, delta)
+-		__field(unsigned long, total_scan)
+-		__field(int, priority)
+-		__field(int, nid)
+-		__field(u64, memcg_id)
+-	),
+-
+-	TP_fast_assign(
+-		__entry->shr = shr;
+-		__entry->shrink = shr->scan_objects;
+-		__entry->nr_objects_to_shrink = nr_objects_to_shrink;
+-		__entry->gfp_flags = (__force unsigned long)sc->gfp_mask;
+-		__entry->cache_items = cache_items;
+-		__entry->delta = delta;
+-		__entry->total_scan = total_scan;
+-		__entry->priority = priority;
+-		__entry->nid = sc->nid;
+-		__entry->memcg_id = mem_cgroup_id(memcg);
+-	),
+-
+-	TP_printk("%pS %p: nid: %d pid: %d memcg_id: %llu objects to shrink %ld gfp_flags %s cache items %ld delta %lld total_scan %ld priority %d %s",
+-		__entry->shrink,
+-		__entry->shr,
+-		__entry->nid,
+-		__entry->ent.pid,
+-		__entry->memcg_id,
+-		__entry->nr_objects_to_shrink,
+-		show_gfp_flags(__entry->gfp_flags),
+-		__entry->cache_items,
+-		__entry->delta,
+-		__entry->total_scan,
+-		__entry->priority,
+-		__event_in_irq() ? "(in-irq)" : "")
+-);
+-
+-TRACE_EVENT(mm_shrink_slab_end,
+-	TP_PROTO(struct shrinker *shr, int nid, int shrinker_retval,
+-		long unused_scan_cnt, long new_scan_cnt, long total_scan, struct mem_cgroup *memcg),
+-
+-	TP_ARGS(shr, nid, shrinker_retval, unused_scan_cnt, new_scan_cnt,
+-		total_scan, memcg),
+-
+-	TP_STRUCT__entry(
+-		__field(struct shrinker *, shr)
+-		__field(void *, shrink)
+-		__field(long, unused_scan)
+-		__field(long, new_scan)
+-		__field(long, total_scan)
+-		__field(int, nid)
+-		__field(int, retval)
+-		__field(u64, memcg_id)
+-	),
+-
+-	TP_fast_assign(
+-		__entry->shr = shr;
+-		__entry->shrink = shr->scan_objects;
+-		__entry->unused_scan = unused_scan_cnt;
+-		__entry->new_scan = new_scan_cnt;
+-		__entry->total_scan = total_scan;
+-		__entry->nid = nid;
+-		__entry->retval = shrinker_retval;
+-		__entry->memcg_id = mem_cgroup_id(memcg);
+-	),
+-
+-	TP_printk("%pS %p: nid: %d pid: %d memcg_id: %llu unused scan count %ld new scan count %ld total_scan %ld last shrinker return val %d %s",
+-		__entry->shrink,
+-		__entry->shr,
+-		__entry->nid,
+-		__entry->ent.pid,
+-		__entry->memcg_id,
+-		__entry->unused_scan,
+-		__entry->new_scan,
+-		__entry->total_scan,
+-		__entry->retval,
+-		__event_in_irq() ? "(in-irq)" : "")
+-);
+-
+-TRACE_EVENT(mm_vmscan_lru_isolate,
+-	TP_PROTO(int highest_zoneidx,
+-		int order,
+-		unsigned long nr_requested,
+-		unsigned long nr_scanned,
+-		unsigned long nr_skipped,
+-		unsigned long nr_taken,
+-		int lru),
+-
+-	TP_ARGS(highest_zoneidx, order, nr_requested, nr_scanned, nr_skipped, nr_taken, lru),
+-
+-	TP_STRUCT__entry(
+-		__field(int, highest_zoneidx)
+-		__field(int, order)
+-		__field(unsigned long, nr_requested)
+-		__field(unsigned long, nr_scanned)
+-		__field(unsigned long, nr_skipped)
+-		__field(unsigned long, nr_taken)
+-		__field(int, lru)
+-	),
+-
+-	TP_fast_assign(
+-		__entry->highest_zoneidx = highest_zoneidx;
+-		__entry->order = order;
+-		__entry->nr_requested = nr_requested;
+-		__entry->nr_scanned = nr_scanned;
+-		__entry->nr_skipped = nr_skipped;
+-		__entry->nr_taken = nr_taken;
+-		__entry->lru = lru;
+-	),
+-
+-	/*
+-	 * classzone is previous name of the highest_zoneidx.
+-	 * Reason not to change it is the ABI requirement of the tracepoint.
+-	 */
+-	TP_printk("classzone=%d order=%d nr_requested=%lu nr_scanned=%lu nr_skipped=%lu nr_taken=%lu lru=%s",
+-		__entry->highest_zoneidx,
+-		__entry->order,
+-		__entry->nr_requested,
+-		__entry->nr_scanned,
+-		__entry->nr_skipped,
+-		__entry->nr_taken,
+-		__print_symbolic(__entry->lru, LRU_NAMES))
+-);
+-
+-TRACE_EVENT(mm_vmscan_write_folio,
+-
+-	TP_PROTO(struct folio *folio),
+-
+-	TP_ARGS(folio),
+-
+-	TP_STRUCT__entry(
+-		__field(unsigned long, pfn)
+-		__field(int, reclaim_flags)
+-	),
+-
+-	TP_fast_assign(
+-		__entry->pfn = folio_pfn(folio);
+-		__entry->reclaim_flags = trace_reclaim_flags(
+-						folio_is_file_lru(folio));
+-	),
+-
+-	TP_printk("page=%p pfn=0x%lx flags=%s",
+-		pfn_to_page(__entry->pfn),
+-		__entry->pfn,
+-		show_reclaim_flags(__entry->reclaim_flags))
+-);
+-
+-TRACE_EVENT(mm_vmscan_reclaim_pages,
+-
+-	TP_PROTO(int nid,
+-		unsigned long nr_scanned, unsigned long nr_reclaimed,
+-		struct reclaim_stat *stat),
+-
+-	TP_ARGS(nid, nr_scanned, nr_reclaimed, stat),
+-
+-	TP_STRUCT__entry(
+-		__field(int, nid)
+-		__field(unsigned long, nr_scanned)
+-		__field(unsigned long, nr_reclaimed)
+-		__field(unsigned long, nr_dirty)
+-		__field(unsigned long, nr_writeback)
+-		__field(unsigned long, nr_congested)
+-		__field(unsigned long, nr_immediate)
+-		__field(unsigned int, nr_activate0)
+-		__field(unsigned int, nr_activate1)
+-		__field(unsigned long, nr_ref_keep)
+-		__field(unsigned long, nr_unmap_fail)
+-	),
+-
+-	TP_fast_assign(
+-		__entry->nid = nid;
+-		__entry->nr_scanned = nr_scanned;
+-		__entry->nr_reclaimed = nr_reclaimed;
+-		__entry->nr_dirty = stat->nr_dirty;
+-		__entry->nr_writeback = stat->nr_writeback;
+-		__entry->nr_congested = stat->nr_congested;
+-		__entry->nr_immediate = stat->nr_immediate;
+-		__entry->nr_activate0 = stat->nr_activate[0];
+-		__entry->nr_activate1 = stat->nr_activate[1];
+-		__entry->nr_ref_keep = stat->nr_ref_keep;
+-		__entry->nr_unmap_fail = stat->nr_unmap_fail;
+-	),
+-
+-	TP_printk("nid=%d nr_scanned=%ld nr_reclaimed=%ld nr_dirty=%ld nr_writeback=%ld nr_congested=%ld nr_immediate=%ld nr_activate_anon=%d nr_activate_file=%d nr_ref_keep=%ld nr_unmap_fail=%ld",
+-		__entry->nid,
+-		__entry->nr_scanned, __entry->nr_reclaimed,
+-		__entry->nr_dirty, __entry->nr_writeback,
+-		__entry->nr_congested, __entry->nr_immediate,
+-		__entry->nr_activate0, __entry->nr_activate1,
+-		__entry->nr_ref_keep, __entry->nr_unmap_fail)
+-);
+-
+-TRACE_EVENT(mm_vmscan_lru_shrink_inactive,
+-
+-	TP_PROTO(int nid,
+-		unsigned long nr_scanned, unsigned long nr_reclaimed,
+-		struct reclaim_stat *stat, int priority, int file),
+-
+-	TP_ARGS(nid, nr_scanned, nr_reclaimed, stat, priority, file),
+-
+-	TP_STRUCT__entry(
+-		__field(int, nid)
+-		__field(unsigned long, nr_scanned)
+-		__field(unsigned long, nr_reclaimed)
+-		__field(unsigned long, nr_dirty)
+-		__field(unsigned long, nr_writeback)
+-		__field(unsigned long, nr_congested)
+-		__field(unsigned long, nr_immediate)
+-		__field(unsigned int, nr_activate0)
+-		__field(unsigned int, nr_activate1)
+-		__field(unsigned long, nr_ref_keep)
+-		__field(unsigned long, nr_unmap_fail)
+-		__field(int, priority)
+-		__field(int, reclaim_flags)
+-	),
+-
+-	TP_fast_assign(
+-		__entry->nid = nid;
+-		__entry->nr_scanned = nr_scanned;
+-		__entry->nr_reclaimed = nr_reclaimed;
+-		__entry->nr_dirty = stat->nr_dirty;
+-		__entry->nr_writeback = stat->nr_writeback;
+-		__entry->nr_congested = stat->nr_congested;
+-		__entry->nr_immediate = stat->nr_immediate;
+-		__entry->nr_activate0 = stat->nr_activate[0];
+-		__entry->nr_activate1 = stat->nr_activate[1];
+-		__entry->nr_ref_keep = stat->nr_ref_keep;
+-		__entry->nr_unmap_fail = stat->nr_unmap_fail;
+-		__entry->priority = priority;
+-		__entry->reclaim_flags = trace_reclaim_flags(file);
+-	),
+-
+-	TP_printk("nid=%d nr_scanned=%ld nr_reclaimed=%ld nr_dirty=%ld nr_writeback=%ld nr_congested=%ld nr_immediate=%ld nr_activate_anon=%d nr_activate_file=%d nr_ref_keep=%ld nr_unmap_fail=%ld priority=%d flags=%s",
+-		__entry->nid,
+-		__entry->nr_scanned, __entry->nr_reclaimed,
+-		__entry->nr_dirty, __entry->nr_writeback,
+-		__entry->nr_congested, __entry->nr_immediate,
+-		__entry->nr_activate0, __entry->nr_activate1,
+-		__entry->nr_ref_keep, __entry->nr_unmap_fail,
+-		__entry->priority,
+-		show_reclaim_flags(__entry->reclaim_flags))
+-);
+-
+-TRACE_EVENT(mm_vmscan_lru_shrink_active,
+-
+-	TP_PROTO(int nid, unsigned long nr_taken,
+-		unsigned long nr_active, unsigned long nr_deactivated,
+-		unsigned long nr_referenced, int priority, int file),
+-
+-	TP_ARGS(nid, nr_taken, nr_active, nr_deactivated, nr_referenced, priority, file),
+-
+-	TP_STRUCT__entry(
+-		__field(int, nid)
+-		__field(unsigned long, nr_taken)
+-		__field(unsigned long, nr_active)
+-		__field(unsigned long, nr_deactivated)
+-		__field(unsigned long, nr_referenced)
+-		__field(int, priority)
+-		__field(int, reclaim_flags)
+-	),
+-
+-	TP_fast_assign(
+-		__entry->nid = nid;
+-		__entry->nr_taken = nr_taken;
+-		__entry->nr_active = nr_active;
+-		__entry->nr_deactivated = nr_deactivated;
+-		__entry->nr_referenced = nr_referenced;
+-		__entry->priority = priority;
+-		__entry->reclaim_flags = trace_reclaim_flags(file);
+-	),
+-
+-	TP_printk("nid=%d nr_taken=%ld nr_active=%ld nr_deactivated=%ld nr_referenced=%ld priority=%d flags=%s",
+-		__entry->nid,
+-		__entry->nr_taken,
+-		__entry->nr_active, __entry->nr_deactivated, __entry->nr_referenced,
+-		__entry->priority,
+-		show_reclaim_flags(__entry->reclaim_flags))
+-);
+-
+-TRACE_EVENT(mm_vmscan_node_reclaim_begin,
+-
+-	TP_PROTO(int nid, int order, gfp_t gfp_flags),
+-
+-	TP_ARGS(nid, order, gfp_flags),
+-
+-	TP_STRUCT__entry(
+-		__field(int, nid)
+-		__field(int, order)
+-		__field(unsigned long, gfp_flags)
+-	),
+-
+-	TP_fast_assign(
+-		__entry->nid = nid;
+-		__entry->order = order;
+-		__entry->gfp_flags = (__force unsigned long)gfp_flags;
+-	),
+-
+-	TP_printk("nid=%d order=%d gfp_flags=%s",
+-		__entry->nid,
+-		__entry->order,
+-		show_gfp_flags(__entry->gfp_flags))
+-);
+-
+-DEFINE_EVENT(mm_vmscan_direct_reclaim_end_template, mm_vmscan_node_reclaim_end,
+-
+-	TP_PROTO(unsigned long nr_reclaimed, struct mem_cgroup *memcg),
+-
+-	TP_ARGS(nr_reclaimed, memcg)
+-);
+-
+-TRACE_EVENT(mm_vmscan_throttled,
+-
+-	TP_PROTO(int nid, int usec_timeout, int usec_delayed, int reason),
+-
+-	TP_ARGS(nid, usec_timeout, usec_delayed, reason),
+-
+-	TP_STRUCT__entry(
+-		__field(int, nid)
+-		__field(int, usec_timeout)
+-		__field(int, usec_delayed)
+-		__field(int, reason)
+-	),
+-
+-	TP_fast_assign(
+-		__entry->nid = nid;
+-		__entry->usec_timeout = usec_timeout;
+-		__entry->usec_delayed = usec_delayed;
+-		__entry->reason = 1U << reason;
+-	),
+-
+-	TP_printk("nid=%d usec_timeout=%d usect_delayed=%d reason=%s",
+-		__entry->nid,
+-		__entry->usec_timeout,
+-		__entry->usec_delayed,
+-		show_throttle_flags(__entry->reason))
+-);
+-
+-TRACE_EVENT(mm_vmscan_kswapd_reclaim_fail,
+-
+-	TP_PROTO(int nid, int failures),
+-
+-	TP_ARGS(nid, failures),
+-
+-	TP_STRUCT__entry(
+-		__field(int, nid)
+-		__field(int, failures)
+-	),
+-
+-	TP_fast_assign(
+-		__entry->nid = nid;
+-		__entry->failures = failures;
+-	),
+-
+-	TP_printk("nid=%d failures=%d",
+-		__entry->nid, __entry->failures)
+-);
+-
+-TRACE_EVENT(mm_vmscan_kswapd_clear_hopeless,
+-
+-	TP_PROTO(int nid, int reason),
+-
+-	TP_ARGS(nid, reason),
+-
+-	TP_STRUCT__entry(
+-		__field(int, nid)
+-		__field(int, reason)
+-	),
+-
+-	TP_fast_assign(
+-		__entry->nid = nid;
+-		__entry->reason = reason;
+-	),
+-
+-	TP_printk("nid=%d reason=%s",
+-		__entry->nid,
+-		__print_symbolic(__entry->reason, kswapd_clear_hopeless_reason_ops))
+-);
+-#endif /* _TRACE_VMSCAN_H */
+-
+-/* This part must be outside protection */
+-#include <trace/define_trace.h>
+--- a/MAINTAINERS~mm-vmscan-move-vmscan-tracepoints-to-a-local-header
++++ a/MAINTAINERS
+@@ -17643,6 +17643,7 @@ F:	Documentation/admin-guide/mm/multigen
+ F:	Documentation/mm/multigen_lru.rst
+ F:	include/linux/mm_inline.h
+ F:	include/linux/mmzone.h
++F:	mm/trace_vmscan.h
+ F:	mm/vmscan.c
+ F:	mm/workingset.c
  
+@@ -17806,7 +17807,7 @@ R:	Shakeel Butt <shakeel.butt@linux.dev>
+ R:	Lorenzo Stoakes <ljs@kernel.org>
+ L:	linux-mm@kvack.org
+ S:	Maintained
+-F:	include/trace/events/vmscan.h
++F:	mm/trace_vmscan.h
+ F:	mm/vmscan.c
+ F:	mm/workingset.c
+ 
+--- a/mm/Makefile~mm-vmscan-move-vmscan-tracepoints-to-a-local-header
++++ a/mm/Makefile
+@@ -32,6 +32,7 @@ KCOV_INSTRUMENT_vmstat.o := n
+ KCOV_INSTRUMENT_failslab.o := n
+ 
+ CFLAGS_init-mm.o += -Wno-override-init
++CFLAGS_vmscan.o += -I$(src)
+ 
+ mmu-y			:= nommu.o
+ mmu-$(CONFIG_MMU)	:= highmem.o memory.o mincore.o \
+--- a/mm/shrinker.c~mm-vmscan-move-vmscan-tracepoints-to-a-local-header
++++ a/mm/shrinker.c
+@@ -3,7 +3,7 @@
+ #include <linux/rwsem.h>
+ #include <linux/shrinker.h>
+ #include <linux/rculist.h>
+-#include <trace/events/vmscan.h>
++#include "trace_vmscan.h"
+ 
+ #include "internal.h"
+ 
+diff --git a/mm/trace_vmscan.h a/mm/trace_vmscan.h
+new file mode 100644
+--- /dev/null
++++ a/mm/trace_vmscan.h
+@@ -0,0 +1,655 @@
++/* SPDX-License-Identifier: GPL-2.0 */
++#undef TRACE_SYSTEM
++#define TRACE_SYSTEM vmscan
++
++#if !defined(_TRACE_VMSCAN_H) || defined(TRACE_HEADER_MULTI_READ)
++#define _TRACE_VMSCAN_H
++
++#include <linux/types.h>
++#include <linux/tracepoint.h>
++#include <linux/mm.h>
++#include <linux/memcontrol.h>
++#include <trace/events/mmflags.h>
++
++#define RECLAIM_WB_ANON		0x0001u
++#define RECLAIM_WB_FILE		0x0002u
++#define RECLAIM_WB_MIXED	0x0010u
++#define RECLAIM_WB_SYNC		0x0004u /* Unused, all reclaim async */
++#define RECLAIM_WB_ASYNC	0x0008u
++#define RECLAIM_WB_LRU		(RECLAIM_WB_ANON|RECLAIM_WB_FILE)
++
++#define show_reclaim_flags(flags)				\
++	(flags) ? __print_flags(flags, "|",			\
++		{RECLAIM_WB_ANON,	"RECLAIM_WB_ANON"},	\
++		{RECLAIM_WB_FILE,	"RECLAIM_WB_FILE"},	\
++		{RECLAIM_WB_MIXED,	"RECLAIM_WB_MIXED"},	\
++		{RECLAIM_WB_SYNC,	"RECLAIM_WB_SYNC"},	\
++		{RECLAIM_WB_ASYNC,	"RECLAIM_WB_ASYNC"}	\
++		) : "RECLAIM_WB_NONE"
++
++#define _VMSCAN_THROTTLE_WRITEBACK	(1 << VMSCAN_THROTTLE_WRITEBACK)
++#define _VMSCAN_THROTTLE_ISOLATED	(1 << VMSCAN_THROTTLE_ISOLATED)
++#define _VMSCAN_THROTTLE_NOPROGRESS	(1 << VMSCAN_THROTTLE_NOPROGRESS)
++#define _VMSCAN_THROTTLE_CONGESTED	(1 << VMSCAN_THROTTLE_CONGESTED)
++
++#define show_throttle_flags(flags)						\
++	(flags) ? __print_flags(flags, "|",					\
++		{_VMSCAN_THROTTLE_WRITEBACK,	"VMSCAN_THROTTLE_WRITEBACK"},	\
++		{_VMSCAN_THROTTLE_ISOLATED,	"VMSCAN_THROTTLE_ISOLATED"},	\
++		{_VMSCAN_THROTTLE_NOPROGRESS,	"VMSCAN_THROTTLE_NOPROGRESS"},	\
++		{_VMSCAN_THROTTLE_CONGESTED,	"VMSCAN_THROTTLE_CONGESTED"}	\
++		) : "VMSCAN_THROTTLE_NONE"
++
++TRACE_DEFINE_ENUM(KSWAPD_CLEAR_HOPELESS_OTHER);
++TRACE_DEFINE_ENUM(KSWAPD_CLEAR_HOPELESS_KSWAPD);
++TRACE_DEFINE_ENUM(KSWAPD_CLEAR_HOPELESS_DIRECT);
++TRACE_DEFINE_ENUM(KSWAPD_CLEAR_HOPELESS_PCP);
++
++#define kswapd_clear_hopeless_reason_ops		\
++	{KSWAPD_CLEAR_HOPELESS_KSWAPD,	"KSWAPD"},	\
++	{KSWAPD_CLEAR_HOPELESS_DIRECT,	"DIRECT"},	\
++	{KSWAPD_CLEAR_HOPELESS_PCP,	"PCP"},		\
++	{KSWAPD_CLEAR_HOPELESS_OTHER,	"OTHER"}
++
++#define trace_reclaim_flags(file) ( \
++	(file ? RECLAIM_WB_FILE : RECLAIM_WB_ANON) | \
++	(RECLAIM_WB_ASYNC) \
++	)
++
++TRACE_EVENT(mm_vmscan_kswapd_sleep,
++
++	TP_PROTO(int nid),
++
++	TP_ARGS(nid),
++
++	TP_STRUCT__entry(
++		__field(	int,	nid	)
++	),
++
++	TP_fast_assign(
++		__entry->nid	= nid;
++	),
++
++	TP_printk("nid=%d", __entry->nid)
++);
++
++TRACE_EVENT(mm_vmscan_kswapd_wake,
++
++	TP_PROTO(int nid, int zid, int order),
++
++	TP_ARGS(nid, zid, order),
++
++	TP_STRUCT__entry(
++		__field(	int,	nid	)
++		__field(	int,	zid	)
++		__field(	int,	order	)
++	),
++
++	TP_fast_assign(
++		__entry->nid	= nid;
++		__entry->zid    = zid;
++		__entry->order	= order;
++	),
++
++	TP_printk("nid=%d order=%d",
++		__entry->nid,
++		__entry->order)
++);
++
++TRACE_EVENT(mm_vmscan_balance_pgdat_begin,
++
++	TP_PROTO(int nid, int order, int highest_zoneidx),
++
++	TP_ARGS(nid, order, highest_zoneidx),
++
++	TP_STRUCT__entry(
++		__field(int, nid)
++		__field(int, order)
++		__field(int, highest_zoneidx)
++	),
++
++	TP_fast_assign(
++		__entry->nid = nid;
++		__entry->order = order;
++		__entry->highest_zoneidx = highest_zoneidx;
++	),
++
++	TP_printk("nid=%d order=%d highest_zoneidx=%-8s",
++		__entry->nid,
++		__entry->order,
++		__print_symbolic(__entry->highest_zoneidx, ZONE_TYPE))
++);
++
++TRACE_EVENT(mm_vmscan_balance_pgdat_end,
++
++	TP_PROTO(int nid, int order, int highest_zoneidx,
++		 unsigned long nr_reclaimed),
++
++	TP_ARGS(nid, order, highest_zoneidx, nr_reclaimed),
++
++	TP_STRUCT__entry(
++		__field(int, nid)
++		__field(int, order)
++		__field(int, highest_zoneidx)
++		__field(unsigned long, nr_reclaimed)
++	),
++
++	TP_fast_assign(
++		__entry->nid = nid;
++		__entry->order = order;
++		__entry->highest_zoneidx = highest_zoneidx;
++		__entry->nr_reclaimed = nr_reclaimed;
++	),
++
++	TP_printk("nid=%d order=%d highest_zoneidx=%-8s nr_reclaimed=%lu",
++		__entry->nid,
++		__entry->order,
++		__print_symbolic(__entry->highest_zoneidx, ZONE_TYPE),
++		__entry->nr_reclaimed)
++);
++
++TRACE_EVENT(mm_vmscan_wakeup_kswapd,
++
++	TP_PROTO(int nid, int zid, int order, gfp_t gfp_flags),
++
++	TP_ARGS(nid, zid, order, gfp_flags),
++
++	TP_STRUCT__entry(
++		__field(	int,	nid		)
++		__field(	int,	zid		)
++		__field(	int,	order		)
++		__field(	unsigned long,	gfp_flags	)
++	),
++
++	TP_fast_assign(
++		__entry->nid		= nid;
++		__entry->zid		= zid;
++		__entry->order		= order;
++		__entry->gfp_flags	= (__force unsigned long)gfp_flags;
++	),
++
++	TP_printk("nid=%d order=%d gfp_flags=%s",
++		__entry->nid,
++		__entry->order,
++		show_gfp_flags(__entry->gfp_flags))
++);
++
++DECLARE_EVENT_CLASS(mm_vmscan_direct_reclaim_begin_template,
++
++	TP_PROTO(gfp_t gfp_flags, int order, struct mem_cgroup *memcg),
++
++	TP_ARGS(gfp_flags, order, memcg),
++
++	TP_STRUCT__entry(
++		__field(	unsigned long,	gfp_flags	)
++		__field(	u64,	memcg_id	)
++		__field(	int,	order		)
++	),
++
++	TP_fast_assign(
++		__entry->gfp_flags	= (__force unsigned long)gfp_flags;
++		__entry->order		= order;
++		__entry->memcg_id	= mem_cgroup_id(memcg);
++	),
++
++	TP_printk("order=%d gfp_flags=%s pid=%d memcg_id=%llu %s",
++		__entry->order,
++		show_gfp_flags(__entry->gfp_flags),
++		__entry->ent.pid,
++		__entry->memcg_id,
++		__event_in_irq() ? "(in-irq)" : "")
++);
++
++DEFINE_EVENT(mm_vmscan_direct_reclaim_begin_template, mm_vmscan_direct_reclaim_begin,
++
++	TP_PROTO(gfp_t gfp_flags, int order, struct mem_cgroup *memcg),
++
++	TP_ARGS(gfp_flags, order, memcg)
++);
++
++#ifdef CONFIG_MEMCG
++DEFINE_EVENT(mm_vmscan_direct_reclaim_begin_template, mm_vmscan_memcg_reclaim_begin,
++
++	TP_PROTO(gfp_t gfp_flags, int order, struct mem_cgroup *memcg),
++
++	TP_ARGS(gfp_flags, order, memcg)
++);
++#endif /* CONFIG_MEMCG */
++
++DECLARE_EVENT_CLASS(mm_vmscan_direct_reclaim_end_template,
++
++	TP_PROTO(unsigned long nr_reclaimed, struct mem_cgroup *memcg),
++
++	TP_ARGS(nr_reclaimed, memcg),
++
++	TP_STRUCT__entry(
++		__field(	unsigned long,	nr_reclaimed	)
++		__field(	u64,	memcg_id	)
++	),
++
++	TP_fast_assign(
++		__entry->nr_reclaimed	= nr_reclaimed;
++		__entry->memcg_id	= mem_cgroup_id(memcg);
++	),
++
++	TP_printk("nr_reclaimed=%lu pid=%d memcg_id=%llu %s",
++		__entry->nr_reclaimed,
++		__entry->ent.pid,
++		__entry->memcg_id,
++		__event_in_irq() ? "(in-irq)" : "")
++);
++
++DEFINE_EVENT(mm_vmscan_direct_reclaim_end_template, mm_vmscan_direct_reclaim_end,
++
++	TP_PROTO(unsigned long nr_reclaimed, struct mem_cgroup *memcg),
++
++	TP_ARGS(nr_reclaimed, memcg)
++);
++
++#ifdef CONFIG_MEMCG
++DEFINE_EVENT(mm_vmscan_direct_reclaim_end_template, mm_vmscan_memcg_reclaim_end,
++
++	TP_PROTO(unsigned long nr_reclaimed, struct mem_cgroup *memcg),
++
++	TP_ARGS(nr_reclaimed, memcg)
++);
++#endif /* CONFIG_MEMCG */
++
++TRACE_EVENT(mm_shrink_slab_start,
++	TP_PROTO(struct shrinker *shr, struct shrink_control *sc,
++		long nr_objects_to_shrink, unsigned long cache_items,
++		unsigned long long delta, unsigned long total_scan,
++		int priority, struct mem_cgroup *memcg),
++
++	TP_ARGS(shr, sc, nr_objects_to_shrink, cache_items, delta, total_scan,
++		priority, memcg),
++
++	TP_STRUCT__entry(
++		__field(struct shrinker *, shr)
++		__field(void *, shrink)
++		__field(long, nr_objects_to_shrink)
++		__field(unsigned long, gfp_flags)
++		__field(unsigned long, cache_items)
++		__field(unsigned long long, delta)
++		__field(unsigned long, total_scan)
++		__field(int, priority)
++		__field(int, nid)
++		__field(u64, memcg_id)
++	),
++
++	TP_fast_assign(
++		__entry->shr = shr;
++		__entry->shrink = shr->scan_objects;
++		__entry->nr_objects_to_shrink = nr_objects_to_shrink;
++		__entry->gfp_flags = (__force unsigned long)sc->gfp_mask;
++		__entry->cache_items = cache_items;
++		__entry->delta = delta;
++		__entry->total_scan = total_scan;
++		__entry->priority = priority;
++		__entry->nid = sc->nid;
++		__entry->memcg_id = mem_cgroup_id(memcg);
++	),
++
++	TP_printk("%pS %p: nid: %d pid: %d memcg_id: %llu objects to shrink %ld gfp_flags %s cache items %ld delta %lld total_scan %ld priority %d %s",
++		__entry->shrink,
++		__entry->shr,
++		__entry->nid,
++		__entry->ent.pid,
++		__entry->memcg_id,
++		__entry->nr_objects_to_shrink,
++		show_gfp_flags(__entry->gfp_flags),
++		__entry->cache_items,
++		__entry->delta,
++		__entry->total_scan,
++		__entry->priority,
++		__event_in_irq() ? "(in-irq)" : "")
++);
++
++TRACE_EVENT(mm_shrink_slab_end,
++	TP_PROTO(struct shrinker *shr, int nid, int shrinker_retval,
++		long unused_scan_cnt, long new_scan_cnt, long total_scan, struct mem_cgroup *memcg),
++
++	TP_ARGS(shr, nid, shrinker_retval, unused_scan_cnt, new_scan_cnt,
++		total_scan, memcg),
++
++	TP_STRUCT__entry(
++		__field(struct shrinker *, shr)
++		__field(void *, shrink)
++		__field(long, unused_scan)
++		__field(long, new_scan)
++		__field(long, total_scan)
++		__field(int, nid)
++		__field(int, retval)
++		__field(u64, memcg_id)
++	),
++
++	TP_fast_assign(
++		__entry->shr = shr;
++		__entry->shrink = shr->scan_objects;
++		__entry->unused_scan = unused_scan_cnt;
++		__entry->new_scan = new_scan_cnt;
++		__entry->total_scan = total_scan;
++		__entry->nid = nid;
++		__entry->retval = shrinker_retval;
++		__entry->memcg_id = mem_cgroup_id(memcg);
++	),
++
++	TP_printk("%pS %p: nid: %d pid: %d memcg_id: %llu unused scan count %ld new scan count %ld total_scan %ld last shrinker return val %d %s",
++		__entry->shrink,
++		__entry->shr,
++		__entry->nid,
++		__entry->ent.pid,
++		__entry->memcg_id,
++		__entry->unused_scan,
++		__entry->new_scan,
++		__entry->total_scan,
++		__entry->retval,
++		__event_in_irq() ? "(in-irq)" : "")
++);
++
++TRACE_EVENT(mm_vmscan_lru_isolate,
++	TP_PROTO(int highest_zoneidx,
++		int order,
++		unsigned long nr_requested,
++		unsigned long nr_scanned,
++		unsigned long nr_skipped,
++		unsigned long nr_taken,
++		int lru),
++
++	TP_ARGS(highest_zoneidx, order, nr_requested, nr_scanned, nr_skipped, nr_taken, lru),
++
++	TP_STRUCT__entry(
++		__field(int, highest_zoneidx)
++		__field(int, order)
++		__field(unsigned long, nr_requested)
++		__field(unsigned long, nr_scanned)
++		__field(unsigned long, nr_skipped)
++		__field(unsigned long, nr_taken)
++		__field(int, lru)
++	),
++
++	TP_fast_assign(
++		__entry->highest_zoneidx = highest_zoneidx;
++		__entry->order = order;
++		__entry->nr_requested = nr_requested;
++		__entry->nr_scanned = nr_scanned;
++		__entry->nr_skipped = nr_skipped;
++		__entry->nr_taken = nr_taken;
++		__entry->lru = lru;
++	),
++
++	/*
++	 * classzone is previous name of the highest_zoneidx.
++	 * Reason not to change it is the ABI requirement of the tracepoint.
++	 */
++	TP_printk("classzone=%d order=%d nr_requested=%lu nr_scanned=%lu nr_skipped=%lu nr_taken=%lu lru=%s",
++		__entry->highest_zoneidx,
++		__entry->order,
++		__entry->nr_requested,
++		__entry->nr_scanned,
++		__entry->nr_skipped,
++		__entry->nr_taken,
++		__print_symbolic(__entry->lru, LRU_NAMES))
++);
++
++TRACE_EVENT(mm_vmscan_write_folio,
++
++	TP_PROTO(struct folio *folio),
++
++	TP_ARGS(folio),
++
++	TP_STRUCT__entry(
++		__field(unsigned long, pfn)
++		__field(int, reclaim_flags)
++	),
++
++	TP_fast_assign(
++		__entry->pfn = folio_pfn(folio);
++		__entry->reclaim_flags = trace_reclaim_flags(
++						folio_is_file_lru(folio));
++	),
++
++	TP_printk("page=%p pfn=0x%lx flags=%s",
++		pfn_to_page(__entry->pfn),
++		__entry->pfn,
++		show_reclaim_flags(__entry->reclaim_flags))
++);
++
++TRACE_EVENT(mm_vmscan_reclaim_pages,
++
++	TP_PROTO(int nid,
++		unsigned long nr_scanned, unsigned long nr_reclaimed,
++		struct reclaim_stat *stat),
++
++	TP_ARGS(nid, nr_scanned, nr_reclaimed, stat),
++
++	TP_STRUCT__entry(
++		__field(int, nid)
++		__field(unsigned long, nr_scanned)
++		__field(unsigned long, nr_reclaimed)
++		__field(unsigned long, nr_dirty)
++		__field(unsigned long, nr_writeback)
++		__field(unsigned long, nr_congested)
++		__field(unsigned long, nr_immediate)
++		__field(unsigned int, nr_activate0)
++		__field(unsigned int, nr_activate1)
++		__field(unsigned long, nr_ref_keep)
++		__field(unsigned long, nr_unmap_fail)
++	),
++
++	TP_fast_assign(
++		__entry->nid = nid;
++		__entry->nr_scanned = nr_scanned;
++		__entry->nr_reclaimed = nr_reclaimed;
++		__entry->nr_dirty = stat->nr_dirty;
++		__entry->nr_writeback = stat->nr_writeback;
++		__entry->nr_congested = stat->nr_congested;
++		__entry->nr_immediate = stat->nr_immediate;
++		__entry->nr_activate0 = stat->nr_activate[0];
++		__entry->nr_activate1 = stat->nr_activate[1];
++		__entry->nr_ref_keep = stat->nr_ref_keep;
++		__entry->nr_unmap_fail = stat->nr_unmap_fail;
++	),
++
++	TP_printk("nid=%d nr_scanned=%ld nr_reclaimed=%ld nr_dirty=%ld nr_writeback=%ld nr_congested=%ld nr_immediate=%ld nr_activate_anon=%d nr_activate_file=%d nr_ref_keep=%ld nr_unmap_fail=%ld",
++		__entry->nid,
++		__entry->nr_scanned, __entry->nr_reclaimed,
++		__entry->nr_dirty, __entry->nr_writeback,
++		__entry->nr_congested, __entry->nr_immediate,
++		__entry->nr_activate0, __entry->nr_activate1,
++		__entry->nr_ref_keep, __entry->nr_unmap_fail)
++);
++
++TRACE_EVENT(mm_vmscan_lru_shrink_inactive,
++
++	TP_PROTO(int nid,
++		unsigned long nr_scanned, unsigned long nr_reclaimed,
++		struct reclaim_stat *stat, int priority, int file),
++
++	TP_ARGS(nid, nr_scanned, nr_reclaimed, stat, priority, file),
++
++	TP_STRUCT__entry(
++		__field(int, nid)
++		__field(unsigned long, nr_scanned)
++		__field(unsigned long, nr_reclaimed)
++		__field(unsigned long, nr_dirty)
++		__field(unsigned long, nr_writeback)
++		__field(unsigned long, nr_congested)
++		__field(unsigned long, nr_immediate)
++		__field(unsigned int, nr_activate0)
++		__field(unsigned int, nr_activate1)
++		__field(unsigned long, nr_ref_keep)
++		__field(unsigned long, nr_unmap_fail)
++		__field(int, priority)
++		__field(int, reclaim_flags)
++	),
++
++	TP_fast_assign(
++		__entry->nid = nid;
++		__entry->nr_scanned = nr_scanned;
++		__entry->nr_reclaimed = nr_reclaimed;
++		__entry->nr_dirty = stat->nr_dirty;
++		__entry->nr_writeback = stat->nr_writeback;
++		__entry->nr_congested = stat->nr_congested;
++		__entry->nr_immediate = stat->nr_immediate;
++		__entry->nr_activate0 = stat->nr_activate[0];
++		__entry->nr_activate1 = stat->nr_activate[1];
++		__entry->nr_ref_keep = stat->nr_ref_keep;
++		__entry->nr_unmap_fail = stat->nr_unmap_fail;
++		__entry->priority = priority;
++		__entry->reclaim_flags = trace_reclaim_flags(file);
++	),
++
++	TP_printk("nid=%d nr_scanned=%ld nr_reclaimed=%ld nr_dirty=%ld nr_writeback=%ld nr_congested=%ld nr_immediate=%ld nr_activate_anon=%d nr_activate_file=%d nr_ref_keep=%ld nr_unmap_fail=%ld priority=%d flags=%s",
++		__entry->nid,
++		__entry->nr_scanned, __entry->nr_reclaimed,
++		__entry->nr_dirty, __entry->nr_writeback,
++		__entry->nr_congested, __entry->nr_immediate,
++		__entry->nr_activate0, __entry->nr_activate1,
++		__entry->nr_ref_keep, __entry->nr_unmap_fail,
++		__entry->priority,
++		show_reclaim_flags(__entry->reclaim_flags))
++);
++
++TRACE_EVENT(mm_vmscan_lru_shrink_active,
++
++	TP_PROTO(int nid, unsigned long nr_taken,
++		unsigned long nr_active, unsigned long nr_deactivated,
++		unsigned long nr_referenced, int priority, int file),
++
++	TP_ARGS(nid, nr_taken, nr_active, nr_deactivated, nr_referenced, priority, file),
++
++	TP_STRUCT__entry(
++		__field(int, nid)
++		__field(unsigned long, nr_taken)
++		__field(unsigned long, nr_active)
++		__field(unsigned long, nr_deactivated)
++		__field(unsigned long, nr_referenced)
++		__field(int, priority)
++		__field(int, reclaim_flags)
++	),
++
++	TP_fast_assign(
++		__entry->nid = nid;
++		__entry->nr_taken = nr_taken;
++		__entry->nr_active = nr_active;
++		__entry->nr_deactivated = nr_deactivated;
++		__entry->nr_referenced = nr_referenced;
++		__entry->priority = priority;
++		__entry->reclaim_flags = trace_reclaim_flags(file);
++	),
++
++	TP_printk("nid=%d nr_taken=%ld nr_active=%ld nr_deactivated=%ld nr_referenced=%ld priority=%d flags=%s",
++		__entry->nid,
++		__entry->nr_taken,
++		__entry->nr_active, __entry->nr_deactivated, __entry->nr_referenced,
++		__entry->priority,
++		show_reclaim_flags(__entry->reclaim_flags))
++);
++
++TRACE_EVENT(mm_vmscan_node_reclaim_begin,
++
++	TP_PROTO(int nid, int order, gfp_t gfp_flags),
++
++	TP_ARGS(nid, order, gfp_flags),
++
++	TP_STRUCT__entry(
++		__field(int, nid)
++		__field(int, order)
++		__field(unsigned long, gfp_flags)
++	),
++
++	TP_fast_assign(
++		__entry->nid = nid;
++		__entry->order = order;
++		__entry->gfp_flags = (__force unsigned long)gfp_flags;
++	),
++
++	TP_printk("nid=%d order=%d gfp_flags=%s",
++		__entry->nid,
++		__entry->order,
++		show_gfp_flags(__entry->gfp_flags))
++);
++
++DEFINE_EVENT(mm_vmscan_direct_reclaim_end_template, mm_vmscan_node_reclaim_end,
++
++	TP_PROTO(unsigned long nr_reclaimed, struct mem_cgroup *memcg),
++
++	TP_ARGS(nr_reclaimed, memcg)
++);
++
++TRACE_EVENT(mm_vmscan_throttled,
++
++	TP_PROTO(int nid, int usec_timeout, int usec_delayed, int reason),
++
++	TP_ARGS(nid, usec_timeout, usec_delayed, reason),
++
++	TP_STRUCT__entry(
++		__field(int, nid)
++		__field(int, usec_timeout)
++		__field(int, usec_delayed)
++		__field(int, reason)
++	),
++
++	TP_fast_assign(
++		__entry->nid = nid;
++		__entry->usec_timeout = usec_timeout;
++		__entry->usec_delayed = usec_delayed;
++		__entry->reason = 1U << reason;
++	),
++
++	TP_printk("nid=%d usec_timeout=%d usect_delayed=%d reason=%s",
++		__entry->nid,
++		__entry->usec_timeout,
++		__entry->usec_delayed,
++		show_throttle_flags(__entry->reason))
++);
++
++TRACE_EVENT(mm_vmscan_kswapd_reclaim_fail,
++
++	TP_PROTO(int nid, int failures),
++
++	TP_ARGS(nid, failures),
++
++	TP_STRUCT__entry(
++		__field(int, nid)
++		__field(int, failures)
++	),
++
++	TP_fast_assign(
++		__entry->nid = nid;
++		__entry->failures = failures;
++	),
++
++	TP_printk("nid=%d failures=%d",
++		__entry->nid, __entry->failures)
++);
++
++TRACE_EVENT(mm_vmscan_kswapd_clear_hopeless,
++
++	TP_PROTO(int nid, int reason),
++
++	TP_ARGS(nid, reason),
++
++	TP_STRUCT__entry(
++		__field(int, nid)
++		__field(int, reason)
++	),
++
++	TP_fast_assign(
++		__entry->nid = nid;
++		__entry->reason = reason;
++	),
++
++	TP_printk("nid=%d reason=%s",
++		__entry->nid,
++		__print_symbolic(__entry->reason, kswapd_clear_hopeless_reason_ops))
++);
++#endif /* _TRACE_VMSCAN_H */
++
++/* This part must be outside protection */
++#undef TRACE_INCLUDE_FILE
++#undef TRACE_INCLUDE_PATH
++#define TRACE_INCLUDE_PATH .
++#define TRACE_INCLUDE_FILE trace_vmscan
++#include <trace/define_trace.h>
+--- a/mm/vmscan.c~mm-vmscan-move-vmscan-tracepoints-to-a-local-header
++++ a/mm/vmscan.c
+@@ -72,7 +72,7 @@
+ #include "swap.h"
+ 
+ #define CREATE_TRACE_POINTS
+-#include <trace/events/vmscan.h>
++#include "trace_vmscan.h"
+ 
+ struct scan_control {
+ 	/* How many pages shrink_list() should reclaim */
 _
 
 Patches currently in -mm which might be from chenridong@xiaomi.com are
