@@ -1,46 +1,46 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793833813;
-	b=HcOrNl3TXV0oMbPEZN9zNAhvDSW8ftB2oTJ5J0ku77TA02bypqnZTkeJ9byiz8fDtKiA
-	 PeHOOvgz+5twaKMTw/NM6MRqXHg5ieRbkUi2LtrojBiRdq8XKZVUEU8K4a4x/BYB+8/f7
-	 Uu6w4ETDtYwcsoAqYYtWdjEo1wmXo6EyuTJktJmevFY/81NIxfK2cH7eM8AYA6Vwk5mIT
-	 2mPyumM6BqjlGokMsfE53G8+K7x/Gx8M7H8Hy4WzV8PTOoNyX6MF501oixJ6UEi/rdKk8
-	 QryZO4CdFIi3C48clKegjJC+oSnO6RJSw1/XgnP62tZ1R4gGbeeM48XsAgTDsLiu/TA==
+	t=1793833815;
+	b=u2LSp5z/5LZSrMG2R30FtrvlSJ1V8hKvm82SmJMhmxmdaL2KPjtoIrmnlNohl+/wW9XA
+	 0CR3qhpVF3MQvnYR4lqBFpUs062otfqOwe8LYj52DXHxbFnLluliQDIcmNBINjjOTV65I
+	 KWJApMoVUZkAROOSXYi4kH7c2F0T1yzOY3zR8UDlp/Uj2ZqRKKE8trONSpxI1qP27JqeQ
+	 yqQ65+Y2uLykTxW2tWZNtxjyBmXD8+N3ElXFSYid+t9/xAxldvW5CKaoeJn8aMxK3AfPI
+	 5zOb7LSij2rHans4Q+DymGJ52ivh4oeUIZItUsyyNYtKRmZW8Ml8mV2DgpVPijMlCrA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793833813;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793833815;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=2uGCNdPT9dEJ62eROeO4s4jQqgZyi/3svCZ3YKRDc4c=;
-	b=1Zwh50a+xZ7QLOKj650VvAu556uj/tv1q1lm0uaEC5otwAV95WmByDTYGi5/wpwaLFY8
-	 NZ3Bq35/2dqbYBU7k7Df8uFwjF4OXsbkGaEuTUBIVsCd74ezHpnasny4/W1VBaupfjUhe
-	 TaznT88F5rsT1E0bclVv0ymM6pL5pDpvnN6NwoDbiJ8KvSuZuy3F5r3hJsYUeu/q96GQJ
-	 RSy2MtXoUl/jG8ld5IVuhah3WDs7y1Dzaidt0IaJ7I7/07zb3tKpzI/OG01q6LZkpe5vb
-	 vOmp5nw7GwSpMxJUH0BF6Ea3WPi2QNF+vhqOG73PvApcW5w7+DSPmMmhv1mdT1RqmqA==
+	bh=7q3WB05zn8X+IG2o8XapS8+YWEEKKa9sTaWxYpR02iA=;
+	b=D1dierOvtLbxP0UkFJqCFoWqLEQiSGHRc3nLv8sxSXNQq9+t3BxVPOWhBGDhsZoIHCef
+	 EhIqs2qTJ/oOffCANCAiCO73IGKo0JZU+KBINthMeGK05IIURS6XnX3fmZaeRLdCiHZJz
+	 Aj5KG/LNQndKyLxiUQQWjfK4Ok6HWSWyIDgoxhaFAObP45kiiIsZmR07qB5hfeIbrdLyj
+	 TtNvTn8K2VMXLvv4NKlckjInXZuhmsN35u4KRl5Q5JyGZ1Pgskr3uhQKHV6owTQxg4JHy
+	 PyzOPmsNtOTMj1teLJO1ngxylrqI+4MWPEA6458K1oalLXHH2pMBuZxRZEdt/AljxBg==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b="qjfaWi/8";
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=tkUxu6k3;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1E308606A31B
-	for <mm-commits@vger.kernel.org>; Wed,  4 Nov 2026 23:10:12 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1B853606A31B
+	for <mm-commits@vger.kernel.org>; Wed,  4 Nov 2026 23:10:14 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=qjfaWi/8
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 38B5A1F000C1;
-	Wed,  4 Nov 2026 23:10:12 +0000 (UTC)
+	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=tkUxu6k3
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 96A741F000C1;
+	Wed,  4 Nov 2026 23:10:14 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1793833812;
-	bh=2uGCNdPT9dEJ62eROeO4s4jQqgZyi/3svCZ3YKRDc4c=;
+	d=linux-foundation.org; s=korg; t=1793833814;
+	bh=7q3WB05zn8X+IG2o8XapS8+YWEEKKa9sTaWxYpR02iA=;
 	h=Date:To:From:Subject;
-	b=qjfaWi/86MM58oS1bJQ68Ou1VCezdMkmY8T8+XUputmftvIr2wd2vMDvgF05A3BLj
-	 vVg50kTI5UsQUPNEx3AJ2HGgEb8TPuUiayqGLeqbPEx5a3di6F3Ncas3uKIZ6Sz4i1
-	 Tikjdhlg3SnrT3qUSlrZ9fs5tL9whOIknqgglnF8=
-Date: Wed, 04 Nov 2026 15:10:11 -0800
+	b=tkUxu6k36Czk9gbG3aZr/cIIWX+Oywaw8h59YRvM3klIqC4WsdsTgQ5cvHWFhtw8o
+	 cEB3Hcjy6g5A4iJ4QGIkXRYb5+nrtx5khSqq5z40kZHBU4KBXtWzPYlFr8VIYRdUGz
+	 f+nuU1Yf2OD8UufJWYBky4AFYIZ4hF81M7x6K3B4=
+Date: Wed, 04 Nov 2026 15:10:14 -0800
 To: mm-commits@vger.kernel.org,surenb@google.com,hao.ge@linux.dev,
 	akpm@linux-foundation.org,abhishekbapat@google.com
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + alloc_tag-add-a-flags-field-to-allocinfo_filter.patch added to mm-new branch
-Message-Id: <20261104231012.38B5A1F000C1@smtp.kernel.org>
+Subject: + alloc_tag-extend-allocinfo_filter-to-support-tracing-queries.patch added to mm-new branch
+Message-Id: <20261104231014.96A741F000C1@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -52,12 +52,12 @@ Precedence: list
 
 
 The patch titled
-     Subject: alloc_tag: add a flags field to allocinfo_filter
+     Subject: alloc_tag: extend allocinfo_filter to support tracing queries
 has been added to the -mm mm-new branch.  Its filename is
-     alloc_tag-add-a-flags-field-to-allocinfo_filter.patch
+     alloc_tag-extend-allocinfo_filter-to-support-tracing-queries.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/alloc_tag-add-a-flags-field-to-allocinfo_filter.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/alloc_tag-extend-allocinfo_filter-to-support-tracing-queries.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -87,76 +87,83 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Abhishek Bapat <abhishekbapat@google.com>
-Subject: alloc_tag: add a flags field to allocinfo_filter
-Date: Wed, 04 Nov 2026 19:03:38 +0000
+Subject: alloc_tag: extend allocinfo_filter to support tracing queries
+Date: Wed, 04 Nov 2026 19:03:39 +0000
 
-struct allocinfo_filter uses a whole __u64 to hold the single boolean
-used by the accuracy filter. Adding another boolean criterion the same
-way would grow struct allocinfo_get_at, which changes the
-ALLOCINFO_IOC_GET_AT ioctl number and breaks the UAPI.
+Extend the allocinfo filtering mechanism to allow users to filter tags
+based on their trace state.
 
-Add a `flags` field that shares storage with `inaccurate` through an
-anonymous union, and use bit 0, ALLOCINFO_FILTER_FLAG_INACCURATE, for
-the accuracy criterion. New boolean criteria can take the remaining
-bits without changing the struct layout.
-
-Keeping `inaccurate` in the union means userspace built against the
-older API still compiles, and the values 0 and 1 keep their meaning.
-Previously any non-zero value selected inaccurate tags; now only bit 0
-is checked, so a value such as 2 selects accurate tags instead.
-
-Link: https://lore.kernel.org/64ce5ba6eedf0950c22d1416b794e83afbab8ea8.1793818636.git.abhishekbapat@google.com
+Link: https://lore.kernel.org/1cb54b7e6ffe2e7a0890815c3072d8a3819b48d9.1793818636.git.abhishekbapat@google.com
 Signed-off-by: Abhishek Bapat <abhishekbapat@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+Acked-by: Suren Baghdasaryan <surenb@google.com>
+Acked-by: Hao Ge <hao.ge@linux.dev>
 Tested-by: Andrew Morton <akpm@linux-foundation.org>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Hao Ge <hao.ge@linux.dev>
 ---
 
- include/uapi/linux/alloc_tag.h |   16 ++++++++++++++--
- mm/alloc_tag.c                 |    2 +-
- 2 files changed, 15 insertions(+), 3 deletions(-)
+ include/uapi/linux/alloc_tag.h |    8 ++++++--
+ mm/alloc_tag.c                 |    8 ++++++++
+ 2 files changed, 14 insertions(+), 2 deletions(-)
 
---- a/include/uapi/linux/alloc_tag.h~alloc_tag-add-a-flags-field-to-allocinfo_filter
+--- a/include/uapi/linux/alloc_tag.h~alloc_tag-extend-allocinfo_filter-to-support-tracing-queries
 +++ a/include/uapi/linux/alloc_tag.h
-@@ -68,13 +68,25 @@ enum {
+@@ -38,7 +38,8 @@ struct allocinfo_counter {
+ 	__u64 bytes;
+ 	__u64 calls;
+ 	__u8 accurate;
+-	__u8 pad[7];
++	__u8 trace_on;
++	__u8 pad[6];
+ } __attribute__((aligned(8)));
+ 
+ struct allocinfo_tag_data {
+@@ -54,7 +55,8 @@ enum {
+ 	ALLOCINFO_FILTER_INACCURATE,
+ 	ALLOCINFO_FILTER_MIN_SIZE,
+ 	ALLOCINFO_FILTER_MAX_SIZE,
+-	__ALLOCINFO_FILTER_LAST = ALLOCINFO_FILTER_MAX_SIZE
++	ALLOCINFO_FILTER_TRACE_ON,
++	__ALLOCINFO_FILTER_LAST = ALLOCINFO_FILTER_TRACE_ON
+ };
+ 
+ #define ALLOCINFO_FILTER_MASK_MODNAME		(1 << ALLOCINFO_FILTER_MODNAME)
+@@ -64,11 +66,13 @@ enum {
+ #define ALLOCINFO_FILTER_MASK_INACCURATE	(1 << ALLOCINFO_FILTER_INACCURATE)
+ #define ALLOCINFO_FILTER_MASK_MIN_SIZE		(1 << ALLOCINFO_FILTER_MIN_SIZE)
+ #define ALLOCINFO_FILTER_MASK_MAX_SIZE		(1 << ALLOCINFO_FILTER_MAX_SIZE)
++#define ALLOCINFO_FILTER_MASK_TRACE_ON		(1 << ALLOCINFO_FILTER_TRACE_ON)
+ 
  #define ALLOCINFO_FILTER_MASKS \
  	((1 << (__ALLOCINFO_FILTER_LAST + 1)) - 1)
  
-+#define ALLOCINFO_FILTER_FLAG_INACCURATE	(1ULL << 0)
-+
+ #define ALLOCINFO_FILTER_FLAG_INACCURATE	(1ULL << 0)
++#define ALLOCINFO_FILTER_FLAG_TRACE_ON		(1ULL << 1)
+ 
  struct allocinfo_filter {
  	__u64 mask; /* bitmask of the filter fields used */
- 	struct allocinfo_tag fields;
- 	__u64 min_size;
- 	__u64 max_size;
--	/* filter criteria only; see allocinfo_counter.accurate for actual accuracy */
--	__u64 inaccurate;
-+	/*
-+	 * Filter criteria only; see allocinfo_counter for the actual state.
-+	 * Set ALLOCINFO_FILTER_FLAG_* bits in flags for the criteria selected
-+	 * in mask. inaccurate is kept as an alias of flags so that userspace
-+	 * built against the older API still compiles. Note that only
-+	 * ALLOCINFO_FILTER_FLAG_INACCURATE is checked, so a non-zero value
-+	 * with bit 0 clear no longer selects inaccurate tags.
-+	 */
-+	union {
-+		__u64 inaccurate;
-+		__u64 flags;
-+	};
- };
- 
- struct allocinfo_get_at {
---- a/mm/alloc_tag.c~alloc_tag-add-a-flags-field-to-allocinfo_filter
+--- a/mm/alloc_tag.c~alloc_tag-extend-allocinfo_filter-to-support-tracing-queries
 +++ a/mm/alloc_tag.c
-@@ -306,7 +306,7 @@ static bool matches_filter(struct codeta
+@@ -250,6 +250,7 @@ static void allocinfo_to_params(struct c
+ 	data->counter.bytes = counters->bytes;
+ 	data->counter.calls = counters->calls;
+ 	data->counter.accurate = !alloc_tag_is_inaccurate(ct_to_alloc_tag(ct));
++	data->counter.trace_on = alloc_tag_is_traced(ct_to_alloc_tag(ct));
+ }
  
- 	if (filter->mask & ALLOCINFO_FILTER_MASK_INACCURATE) {
- 		inaccurate = alloc_tag_is_inaccurate(ct_to_alloc_tag(ct));
--		if (inaccurate != !!(filter->inaccurate))
-+		if (inaccurate != !!(filter->flags & ALLOCINFO_FILTER_FLAG_INACCURATE))
+ /*
+@@ -323,6 +324,13 @@ static bool matches_filter(struct codeta
  			return false;
  	}
+ 
++	if (filter->mask & ALLOCINFO_FILTER_MASK_TRACE_ON) {
++		bool tracing = alloc_tag_is_traced(ct_to_alloc_tag(ct));
++
++		if (tracing != !!(filter->flags & ALLOCINFO_FILTER_FLAG_TRACE_ON))
++			return false;
++	}
++
+ 	return true;
+ }
  
 _
 
