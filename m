@@ -1,48 +1,48 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793811610;
-	b=3+FaotfV4/Ed4O2Zq+JI7c+3G1w0KKXCWCHa0Q14ij1zTs6KKbKpMBtfgXleEaQKAYfH
-	 iiCkMkbH0cfCCVHLFuaZhyFO7Xfi4+RlBArahVD5VIpIUHAOLisJrt464udr0B2t4DROC
-	 Z/IagCMV1Xiry7Bb2URqC6gqyusWRNANIHcr1htr4gr1N37WjozZfM2x48omer3hzEyfT
-	 AMtFCNM0ZOnHBJnDx6jkT4WHgTDeaD+zomoEOBO6wW/96nhpQzow9Bz3SJLIj/eyB4Nnp
-	 ttoQ5+DnyH9VnAEv3edKBqczN1FVXDC6bZ0YrlVvCaELx688gxKo/N5/yoy2JR5mX2Q==
+	t=1793811845;
+	b=aDAiaIjokKWDvLDXprgQPChto4+7LKI79eh7RPiGXxih8wPr+yix35pYHkPcKF8I7TCO
+	 fJUc2rs/KrSZjhdprpwYZICrBYi0ycpTBpUsJ2Kq5OdTCp1j57mcN1X8mT7sDkCBuEGK9
+	 PZWYc7Gcp1yeoQ4igIxk++cKYcoM3r0RrURQvEJ4PXcVvxt3mytM87jTqQsiUDKj2vDZY
+	 NBixd0bY55mCigM2KjF0KAOYDw6/5NROSdcMTrViWtdlkVnuf4/uBYZhoDzK7qAheLVtR
+	 MBAkPMUNna6ndaRjL6TMeIgaLkGMgkHPdOXvk6Q4CY7Znhlt51eI0EFhVwkPJrn2s5Q==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793811610;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793811845;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=zQbRPgCQjmiqPHgqXIMU+69nlTOr4hhylTHONgjuS0Q=;
-	b=DJQ4ipEUYO8jvPRFXrl4dqh00xmrld0sS8vqmJik0Jx3yi/4+oRzJTESM3GlGV0a8fYO
-	 km+qhm+/mFpVjyl7QMWjn3qgOmidx5IIkEVMjAvnrbzJuNs48VMDfcWVe0AUaIFoIyFs+
-	 2c0UdnrQ5ulGsvb5KYPerMAIjbIbSWmTa1r53YNvbl/26sdrLhgwwW1UMnMeQRiGXkDRW
-	 ItodkQXB54YUBbO1UlaiwbohjiZx/eZ3w+IhVtzmYz2T94BpyHqUccSruURyHDjZEq7yq
-	 j9M26DAEcleM698daqSxnF/VrdBoIYzJMOFLe/RZW0NtqEjLFJkLfJyGR4Oj/vrv9nQ==
+	bh=FDju3qBsmuEoe6qkaXsJ5LB/zywH6Uyq0xHvxrUuqck=;
+	b=jKNbUH5ultdhjv2IOh9oRHXQRAFNbnoMXSgROIMew9rsDYmgT+n4/MSUu0TWYqyosSk5
+	 MonkSB/lamP7PtSCgkn9Sd/MHxFFeG8v8zmsDGaicMZrx55D0x62uKDWCb3VbOB3VuWvq
+	 B7/rHFg6eefKnFn3v2E5c8WsvTKfXPIQWaU6k8QLz7w2Vj5BeA3i71G1ptmYH8GlsdU4V
+	 bj8BbXHDu+IsQokPZSpgec24UVjCbEKhlNzn+6/YKsabbJc0+1ZSQrnzuWJTkif6JO/rA
+	 N5IHWQrkeOIsAUfzcwQ8W3fpeAScTyCOTt++Ek8yLCHl0GfISvcUhMgwe5cXHkqxJrw==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=GiDPqE8S;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=Bez5TzcV;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EC793606A326;
-	Wed,  4 Nov 2026 17:00:09 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 84415606A31B;
+	Wed,  4 Nov 2026 17:04:04 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=GiDPqE8S
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8402A1F000C1;
-	Wed,  4 Nov 2026 17:00:09 +0000 (UTC)
+	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=Bez5TzcV
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D33571F000C1;
+	Wed,  4 Nov 2026 17:04:03 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1793811609;
-	bh=zQbRPgCQjmiqPHgqXIMU+69nlTOr4hhylTHONgjuS0Q=;
+	d=linux-foundation.org; s=korg; t=1793811843;
+	bh=FDju3qBsmuEoe6qkaXsJ5LB/zywH6Uyq0xHvxrUuqck=;
 	h=Date:To:From:Subject;
-	b=GiDPqE8S4CC2tjrxur4L2kbUaD8qCWKnM7w9bdBrbgt5bwemn92YMtALe6sP0+CQP
-	 WStyqbBblbeheAasJQz0PGJyK8XDPEO8ucTwaQUbgYytai46T5wwxI7u2umrQYzqJh
-	 3cC7EVFAzh77nNieTa6FI3X5710Gvss6NfQjwDHc=
-Date: Wed, 04 Nov 2026 09:00:09 -0800
+	b=Bez5TzcVgGkbNHGsZX+eKQUNMXbvpyUZWS2x8ZOgidc0Fq2xtIVGa1YptKU6e6h62
+	 qOuhv82RLPLTXx7q7nT7WP2QEEcXiGSbXBkH6nCmJDFhLFYJlXmNQetP968hZfJXql
+	 sUr1cwP4NvVgk5e7tx4kZcSaO/zHLpsVsirHaOGU=
+Date: Wed, 04 Nov 2026 09:04:03 -0800
 To: mm-commits@vger.kernel.org,stable@vger.kernel.org,mark@fasheh.com,
 	joseph.qi@linux.alibaba.com,jlbec@evilplan.org,jjzuming@gmail.com,
 	heming.zhao@suse.com,baijiaju1990@gmail.com,zzzccc427@gmail.com,
 	akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + ocfs2-dlmfs-keep-the-superblock-alive-during-lock-work.patch added to mm-nonmm-hotfixes-unstable branch
-Message-Id: <20261104170009.8402A1F000C1@smtp.kernel.org>
+Subject: + ocfs2-advance-locking_state-through-the-live-cursor.patch added to mm-nonmm-hotfixes-unstable branch
+Message-Id: <20261104170403.D33571F000C1@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -54,12 +54,12 @@ Precedence: list
 
 
 The patch titled
-     Subject: ocfs2/dlmfs: keep the superblock alive during lock work
+     Subject: ocfs2: advance locking_state through the live cursor
 has been added to the -mm mm-nonmm-hotfixes-unstable branch.  Its filename is
-     ocfs2-dlmfs-keep-the-superblock-alive-during-lock-work.patch
+     ocfs2-advance-locking_state-through-the-live-cursor.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/ocfs2-dlmfs-keep-the-superblock-alive-during-lock-work.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/ocfs2-advance-locking_state-through-the-live-cursor.patch
 
 This patch will later appear in the mm-nonmm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -78,59 +78,159 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Cen Zhang <zzzccc427@gmail.com>
-Subject: ocfs2/dlmfs: keep the superblock alive during lock work
-Date: Thu, 29 Oct 2026 15:00:13 +0800
+Subject: ocfs2: advance locking_state through the live cursor
+Date: Thu, 29 Oct 2026 14:56:48 +0800
 
-Queued dlmfs lock work holds an inode reference, but no active reference
-to its superblock.  The workqueue is drained on module exit rather than on
-each dlmfs unmount, and an inode reference does not stop superblock
-shutdown: generic_shutdown_super() reports the busy inode and goes on.
+locking_state copies each lock resource under ocfs2_dlm_tracking_lock so
+its containing inode or quota object can be freed during the dump.  The
+copied l_debug_list pointers do not have that lifetime protection.  Yet
+ocfs2_dlm_seq_next() follows them to find the next record.
 
-  DLM callback / worker               Unmount
-  ---------------------               -------
-  queue lock work; igrab(inode)
-  worker delayed
-                                      drop last active superblock ref
-                                      kill_anon_super()
-                                        report the busy inode
-                                        free the superblock
-  finish lock work
-  iput(inode)
-    access the inode's freed superblock
+Remounting read-only can free a quota-info object while a debugfs read is
+between the snapshot and the next iterator callback:
 
-Flushing the workqueue from a dlmfs kill_sb would not be enough: a
-blocking AST can queue new work for an inode that is still alive after the
-flush and before eviction, and that work again holds only an inode
-reference.
+  locking_state reader                Quota suspension
+  --------------------                ----------------
+  snapshot current lock resource
+    copy l_debug_list.next
+                                      remove next resource from live list
+                                      free quota-info object
+  seq_next(): follow copied link
+    read freed lock resource
 
-Take an active superblock reference before acquiring the queued inode
-reference, with the atomic_inc_not_zero() on s_active that grab_super()
-and the NFS and procfs superblock walkers use.  Decline to queue if the
-superblock is already shutting down; the inode is then being evicted and
-user_dlm_destroy_lock() tears the lock down.  The existing l_lock and
-USER_LOCK_QUEUED flag serialize this with other queue attempts.  Each
-execution drops its inode reference before releasing the active superblock
-reference, outside l_lock.  If that releases the last active reference,
-the unmount completes on the worker; it only waits for DLM replies and
-never for this workqueue.
+Advance through the live dummy cursor instead.  List removal updates its
+links under the tracking lock.  Position it after the resource being
+copied before releasing the lock, and never walk the snapshot's links. 
+Reuse the per-open snapshot for a nonzero seq_start() position, including
+read continuation and buffer retries.  Rewind the live cursor only when
+seq_file starts at index zero; seq_lseek() traverses from there through
+seq_next().  Clear the snapshot's l_ops marker at end of list so later
+reads remain at EOF.  This avoids replaying the list prefix under the
+tracking lock on each read, without adding a new cursor or position field.
 
-Only the relevant frames of the report are kept:
+KASAN report as below:
 
-Oops: general protection fault, probably for non-canonical address 0xfbd59c0000000026: 0000 [#1] SMP KASAN NOPTI
-KASAN: maybe wild-memory-access in range [0xdead000000000130-0xdead000000000137]
-Workqueue: user_dlm user_dlm_unblock_lock
-RIP: 0010:iput+0x246/0xc10
-Call Trace:
- <TASK>
- user_dlm_unblock_lock+0x503/0xa50
- process_one_work+0x9a8/0x1b40
- worker_thread+0x65c/0xe40
- </TASK>
+    BUG: KASAN: slab-use-after-free in ocfs2_dlm_next_res.isra.0+0x1b1/0x1d0
+    Read of size 8 at addr ffff888117ea9838 by task python3/489
+    
+    CPU: 3 UID: 0 PID: 489 Comm: python3 Not tainted 7.3.0-rc4-next-20260921-pmb-bt-functional-v1+ #1 PREEMPT(lazy) 
+    Hardware name: QEMU Ubuntu 24.04 PC v2 (i440FX + PIIX, arch_caps fix, 1996), BIOS 1.16.3-debian-1.16.3-2 04/01/2014
+    Call Trace:
+     <TASK>
+     dump_stack_lvl+0x93/0xd0
+     print_report+0xce/0x630
+     ? ocfs2_dlm_next_res.isra.0+0x1b1/0x1d0
+     ? srso_alias_return_thunk+0x5/0xfbef5
+     ? __virt_addr_valid+0x20e/0x420
+     ? ocfs2_dlm_next_res.isra.0+0x1b1/0x1d0
+     kasan_report+0xe0/0x110
+     ? ocfs2_dlm_next_res.isra.0+0x1b1/0x1d0
+     ocfs2_dlm_next_res.isra.0+0x1b1/0x1d0
+     ? __pfx_ocfs2_dlm_next_res.isra.0+0x10/0x10
+     ? __pfx_do_raw_spin_lock+0x10/0x10
+     ocfs2_dlm_seq_next+0xb8/0x4c0
+     ? srso_alias_return_thunk+0x5/0xfbef5
+     seq_read_iter+0x92f/0x1110
+     ? srso_alias_return_thunk+0x5/0xfbef5
+     seq_read+0x362/0x5a0
+     ? __pfx_seq_read+0x10/0x10
+     ? srso_alias_return_thunk+0x5/0xfbef5
+     ? srso_alias_return_thunk+0x5/0xfbef5
+     ? selinux_file_permission+0x11d/0x540
+     full_proxy_read+0x11f/0x180
+     ? __pfx_full_proxy_read+0x10/0x10
+     vfs_read+0x1a0/0xc20
+     ? srso_alias_return_thunk+0x5/0xfbef5
+     ? kmem_cache_free+0x242/0x580
+     ? __pfx_vfs_read+0x10/0x10
+     ? srso_alias_return_thunk+0x5/0xfbef5
+     ? putname+0x93/0xe0
+     ? srso_alias_return_thunk+0x5/0xfbef5
+     ? do_sys_openat2+0x12a/0x1b0
+     ? __pfx_do_sys_openat2+0x10/0x10
+     ksys_read+0x111/0x200
+     ? __pfx_ksys_read+0x10/0x10
+     ? irqentry_exit+0xbe/0x820
+     ? srso_alias_return_thunk+0x5/0xfbef5
+     ? trace_hardirqs_on_prepare+0x11d/0x150
+     do_syscall_64+0x114/0x620
+     entry_SYSCALL_64_after_hwframe+0x77/0x7f
+    RIP: 0033:0x7f0266dbb687
+    Code: 48 89 fa 4c 89 df e8 58 b3 00 00 8b 93 08 03 00 00 59 5e 48 83 f8 fc 74 1a 5b c3 0f 1f 84 00 00 00 00 00 48 8b 44 24 10 0f 05 <5b> c3 0f 1f 80 00 00 00 00 83 e2 39 83 fa 08 75 de e8 23 ff ff ff
+    RSP: 002b:00007ffccf76fc40 EFLAGS: 00000202 ORIG_RAX: 0000000000000000
+    RAX: ffffffffffffffda RBX: 00007f0266d27780 RCX: 00007f0266dbb687
+    RDX: 0000000000000001 RSI: 00007f0266a53200 RDI: 0000000000000004
+    RBP: 00007f0266d27700 R08: 0000000000000000 R09: 0000000000000000
+    R10: 0000000000000000 R11: 0000000000000202 R12: 0000000000000001
+    R13: 00007f0266a53200 R14: 0000000000000004 R15: 00007f0266b651e0
+     </TASK>
+    
+    Allocated by task 547:
+     kasan_save_stack+0x33/0x60
+     kasan_save_track+0x14/0x30
+     __kasan_kmalloc+0xaa/0xb0
+     __kmalloc_cache_noprof+0x28d/0x610
+     ocfs2_local_read_info+0x181/0x1580
+     dquot_load_quota_sb+0x68b/0x1000
+     dquot_load_quota_inode+0x227/0x3e0
+     ocfs2_enable_quotas+0x27c/0x520
+     ocfs2_fill_super+0x21f9/0x38f0
+     get_tree_bdev_flags+0x35d/0x5f0
+     vfs_get_tree+0x93/0x320
+     fc_mount+0x1d/0x200
+     path_mount+0x592/0x1e00
+     __x64_sys_mount+0x24b/0x2d0
+     do_syscall_64+0x114/0x620
+     entry_SYSCALL_64_after_hwframe+0x77/0x7f
+    
+    Freed by task 577:
+     kasan_save_stack+0x33/0x60
+     kasan_save_track+0x14/0x30
+     kasan_save_free_info+0x3b/0x60
+     __kasan_slab_free+0x5f/0x80
+     kfree+0x308/0x580
+     ocfs2_local_free_info+0x47b/0x800
+     dquot_disable+0x5d9/0x17a0
+     ocfs2_susp_quotas.isra.0+0x22c/0x2b0
+     ocfs2_reconfigure+0x284/0xd00
+     reconfigure_super+0x3ca/0xa70
+     path_mount+0x16ae/0x1e00
+     __x64_sys_mount+0x24b/0x2d0
+     do_syscall_64+0x114/0x620
+     entry_SYSCALL_64_after_hwframe+0x77/0x7f
+    
+    The buggy address belongs to the object at ffff888117ea9800
+     which belongs to the cache kmalloc-1k of size 1024
+    The buggy address is located 56 bytes inside of
+     freed 1024-byte region [ffff888117ea9800, ffff888117ea9c00)
+    
+    The buggy address belongs to the physical page:
+    page: refcount:0 mapcount:0 mapping:0000000000000000 index:0x0 pfn:0x117ea8
+    head: order:3 mapcount:0 entire_mapcount:0 nr_pages_mapped:0 pincount:0
+    flags: 0x200000000000040(head|node=0|zone=2)
+    page_type: f5(slab)
+    raw: 0200000000000040 ffff888100042dc0 dead000000000100 dead000000000122
+    raw: 0000000000000000 0000000000100010 00000000f5000000 0000000000000000
+    head: 0200000000000040 ffff888100042dc0 dead000000000100 dead000000000122
+    head: 0000000000000000 0000000000100010 00000000f5000000 0000000000000000
+    head: 0200000000000003 fffffffffffffe01 00000000ffffffff 00000000ffffffff
+    head: 0000000000000000 0000000000000000 00000000ffffffff 0000000000000000
+    page dumped because: kasan: bad access detected
+    
+    Memory state around the buggy address:
+     ffff888117ea9700: fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc
+     ffff888117ea9780: fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc
+    >ffff888117ea9800: fa fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+                                            ^
+     ffff888117ea9880: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+     ffff888117ea9900: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+    ==================================================================
 
-Link: https://lore.kernel.org/pm-ocfs2-objects-candidate-0054-v6-c3887cceae3b039e591e@gmail.com
-Fixes: 8df08c89c668 ("[PATCH] OCFS2: The Second Oracle Cluster Filesystem")
+Link: https://lore.kernel.org/pm-ocfs2-objects-candidate-0053-v7-ec41d4bbd38bb4d795a8@gmail.com
+Fixes: ccd979bdbce9 ("[PATCH] OCFS2: The Second Oracle Cluster Filesystem")
 Signed-off-by: Cen Zhang <zzzccc427@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+Suggested-by: Joseph Qi <joseph.qi@linux.alibaba.com>
 Reviewed-by: Joseph Qi <joseph.qi@linux.alibaba.com>
 Cc: Mark Fasheh <mark@fasheh.com>
 Cc: Joel Becker <jlbec@evilplan.org>
@@ -140,43 +240,69 @@ Cc: <jjzuming@gmail.com>
 Cc: <stable@vger.kernel.org>
 ---
 
- fs/ocfs2/dlmfs/userdlm.c |   12 ++++++++++--
- 1 file changed, 10 insertions(+), 2 deletions(-)
+ fs/ocfs2/dlmglue.c |   19 ++++++++++++++++---
+ 1 file changed, 16 insertions(+), 3 deletions(-)
 
---- a/fs/ocfs2/dlmfs/userdlm.c~ocfs2-dlmfs-keep-the-superblock-alive-during-lock-work
-+++ a/fs/ocfs2/dlmfs/userdlm.c
-@@ -162,7 +162,13 @@ static void user_dlm_unblock_lock(struct
- 
- static void __user_dlm_queue_lockres(struct user_lock_res *lockres)
+--- a/fs/ocfs2/dlmglue.c~ocfs2-advance-locking_state-through-the-live-cursor
++++ a/fs/ocfs2/dlmglue.c
+@@ -3094,9 +3094,17 @@ static void *ocfs2_dlm_seq_start(struct
  {
-+	struct inode *inode = user_dlm_inode_from_user_lockres(lockres);
+ 	struct ocfs2_dlm_seq_priv *priv = m->private;
+ 	struct ocfs2_lock_res *iter;
++	struct ocfs2_lock_res *dummy = &priv->p_iter_res;
 +
- 	if (!(lockres->l_flags & USER_LOCK_QUEUED)) {
-+		/* Pin the superblock through the worker's iput(). */
-+		if (!atomic_inc_not_zero(&inode->i_sb->s_active))
-+			return;
-+
- 		user_dlm_grab_inode_ref(lockres);
++	/* Continue or retry the snapshot left by ->next(). */
++	if (*pos)
++		return priv->p_tmp_res.l_ops ? &priv->p_tmp_res : NULL;
  
- 		INIT_WORK(&lockres->l_work, user_dlm_unblock_lock);
-@@ -275,9 +281,11 @@ static struct ocfs2_locking_protocol use
++	/* Reads from zero and seek traversal start at the list head. */
+ 	spin_lock(&ocfs2_dlm_tracking_lock);
+-	iter = ocfs2_dlm_next_res(&priv->p_iter_res, priv);
++	list_move(&dummy->l_debug_list,
++		  &priv->p_dlm_debug->d_lockres_tracking);
++	iter = ocfs2_dlm_next_res(dummy, priv);
+ 	if (iter) {
+ 		/* Since lockres' have the lifetime of their container
+ 		 * (which can be inodes, ocfs2_supers, etc) we want to
+@@ -3105,8 +3113,11 @@ static void *ocfs2_dlm_seq_start(struct
+ 		 * trust any pointers on the copy returned, but that's
+ 		 * ok as the information we want isn't typically held
+ 		 * in them. */
++		list_move(&dummy->l_debug_list, &iter->l_debug_list);
+ 		priv->p_tmp_res = *iter;
+ 		iter = &priv->p_tmp_res;
++	} else {
++		priv->p_tmp_res.l_ops = NULL;
+ 	}
+ 	spin_unlock(&ocfs2_dlm_tracking_lock);
  
- static inline void user_dlm_drop_inode_ref(struct user_lock_res *lockres)
+@@ -3120,17 +3131,19 @@ static void ocfs2_dlm_seq_stop(struct se
+ static void *ocfs2_dlm_seq_next(struct seq_file *m, void *v, loff_t *pos)
  {
--	struct inode *inode;
--	inode = user_dlm_inode_from_user_lockres(lockres);
-+	struct inode *inode = user_dlm_inode_from_user_lockres(lockres);
-+	struct super_block *sb = inode->i_sb;
-+
- 	iput(inode);
-+	deactivate_super(sb);
- }
+ 	struct ocfs2_dlm_seq_priv *priv = m->private;
+-	struct ocfs2_lock_res *iter = v;
++	struct ocfs2_lock_res *iter;
+ 	struct ocfs2_lock_res *dummy = &priv->p_iter_res;
  
- static void user_dlm_unblock_lock(struct work_struct *work)
+ 	(*pos)++;
+ 	spin_lock(&ocfs2_dlm_tracking_lock);
+-	iter = ocfs2_dlm_next_res(iter, priv);
++	iter = ocfs2_dlm_next_res(dummy, priv);
+ 	list_del_init(&dummy->l_debug_list);
+ 	if (iter) {
+ 		list_add(&dummy->l_debug_list, &iter->l_debug_list);
+ 		priv->p_tmp_res = *iter;
+ 		iter = &priv->p_tmp_res;
++	} else {
++		priv->p_tmp_res.l_ops = NULL;
+ 	}
+ 	spin_unlock(&ocfs2_dlm_tracking_lock);
+ 
 _
 
 Patches currently in -mm which might be from zzzccc427@gmail.com are
 
 ocfs2-serialize-inode-journal-access-with-shutdown.patch
 ocfs2-dlmfs-keep-the-superblock-alive-during-lock-work.patch
+ocfs2-advance-locking_state-through-the-live-cursor.patch
 
