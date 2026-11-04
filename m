@@ -1,47 +1,46 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793814266;
-	b=p7aw8l56pLb6mncOpmGBBpwGaYkNgZBHarM8po3OtAz3VeFSvetFiArjjYRmAIWEfsZw
-	 aN2G5npS3VGn+MVORFvwgSadlHMdj2qgPCaijsuigbgh7zaLL63teVnmAK/2DRwpdaxHB
-	 PcKiqViLXFIgpT6bA0BzpFW6lRrGrA/l305MG9zUpm2ryU7LfaycI7cBoEYdv6sDR1pWM
-	 nlvMN7KcMzd/CdZ+Np1LNwI9X+Pwb+w0gonsF2u64nP/Bptmg+5swO0w3xmxo3QxZyt7W
-	 nBU7kGgQ3t6Pcg0bqgNDGHvjKZahyY0AVDBFF2shM6cfBYpx4N/bPYIq2QMkrCPg7uA==
+	t=1793814429;
+	b=HNNP47dZ67CQ+08qwHNrN0Zwo/WGq0iIYUqe6+tmItGryjAsaGTm7LFMD+n+0tDSMaQL
+	 4Uz4uumYrguDC3WQyH9OkZYVJGuCGCyi02SRueGGyskRGWtPhFrTfeyeBDchIx5cPAz6C
+	 Y1dNsntAHCnmKwyFChr/vqGATxXQq7i4hXPldBgzLwHipekOkloCfPZ7Lsy2w+uW2XrQb
+	 naX/3LKaj9xLBjEQRh8+pWFme5EvA9mecWDX8M9328PzA10oRNStxGJIsbKdabSK9ko6s
+	 Swc/AQY9n9gaWywpVoTP0KvY8OavPPufCHyfLqsFV3O1Ku0fx/0cNGQwuWD2UGv9vVQ==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793814266;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793814429;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=4u7yojq4C1piyWEYM+yThKRcbhPJxFCab8WOg6awpn0=;
-	b=z38qVXgk3kLlxDXnZ27oPdMZD7YWpuKAyDyeo7755Dh5LPl4j8Zy0t2ldHMs7BAp32Vi
-	 uK3Yz3zbzICHfnS2+PvOtR4i3wIuuhxrqqFqzIsmMG8AY1ct8a/8KT4sTsqmcYOjU0iuP
-	 VUVUhbesX2OTKLTeqwKQ5jlhbgURNnZWUV9E9ykLFXjjesg9S1obTrv4VQ4IzUHBtIMJ6
-	 bhKvd+aU9pKoc++gcmQu9+gLWPR7nXKJeJTYdewx2aCCcAKgYbIwLCWEwU+2+P9O3oOM+
-	 VvEQtsolS/W5v4wLEX183EMby5ZMw18sn3joCkjSbqkhGDYkx6upiPhHd2EmAaZebrw==
+	bh=+DHKlqUvVJ7TvH3Q9DU3zWTgpLL9texYCQkCyxYluCk=;
+	b=CvyFWTbapyQzDNoYsHFzY6XqynE37RD3jE9LcxXQQpcmD3DUkQFcqu1NVQ+4enfDQ2PM
+	 IPXVp5NPAZ6VEB3zljKM9ACnW9R+PbLbeEO25lrxIIlpKllUsIMYEtX+xxtwM2FOaOwCA
+	 nN776UXKjVI6wYvtgwWkBoyJoV+aDd11a6+2kkAIi5Z9N+8ADv8chTpFaXsxAR1TS7Ko8
+	 XtrLsxsCj6wOYebO8DV2BIyspeZpw+6nuVa/DP3uBc3J80Q6Wd3ivbwyyNXWSXQSbVr/k
+	 ZKOqlUXnKDOBwtKH2Gv2fiD8zntpazOhVpm1LBddc7AJybxHF7KbDbt6DAeOP09qdfA==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=Ehcuh4eV;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=clwkpsxs;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 39408606A31B
-	for <mm-commits@vger.kernel.org>; Wed,  4 Nov 2026 17:44:25 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 30ADD606A328
+	for <mm-commits@vger.kernel.org>; Wed,  4 Nov 2026 17:47:08 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=Ehcuh4eV
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id AA6231F000C1;
-	Wed,  4 Nov 2026 17:44:25 +0000 (UTC)
+	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=clwkpsxs
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9909A1F000C1;
+	Wed,  4 Nov 2026 17:47:08 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1793814265;
-	bh=4u7yojq4C1piyWEYM+yThKRcbhPJxFCab8WOg6awpn0=;
+	d=linux-foundation.org; s=korg; t=1793814428;
+	bh=+DHKlqUvVJ7TvH3Q9DU3zWTgpLL9texYCQkCyxYluCk=;
 	h=Date:To:From:Subject;
-	b=Ehcuh4eVYmdmjC3YXnt/F+sqK15bIgH5mMo/el9FL0Fqopk5tDA2CDbjOCD2HHGL/
-	 1kcfoQVA+/V93zy0ByDDmci9TN+Hd3A4mFkvhtsCYzlaouPTuPfZkxPiaGeHlxWi0U
-	 LZ8uvHGJQdwpszGQRBjxeYCcXXd5zlT1Ks+Vi16E=
-Date: Wed, 04 Nov 2026 09:44:25 -0800
-To: mm-commits@vger.kernel.org,mporter@kernel.crashing.org,
-	james010kim@gmail.com,error27@gmail.com,alex.bou9@gmail.com,
-	akpm@linux-foundation.org,Frank.Li@nxp.com
+	b=clwkpsxsT+ZHYAQDLZE1GXPaG4hPiIQ21PzwirD/DIHlo028AC7f721Amn3zNtBzz
+	 J9uKeWB6hBgu8xliH9hvsTLMgRUXLz8NyUqSz/9AHDMZsrCtGP5iKPYnWhzekhRTRX
+	 yay7zMfh7lJWSollVV1p3T7Ht915hU+uSgN3VT54=
+Date: Wed, 04 Nov 2026 09:47:08 -0800
+To: mm-commits@vger.kernel.org,surenb@google.com,shuah@kernel.org,
+	andrii@kernel.org,sashal@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + rapidio-use-dmaengine_desc_set_callback.patch added to mm-nonmm-unstable branch
-Message-Id: <20261104174425.AA6231F000C1@smtp.kernel.org>
+Subject: + selftests-proc-search-the-kernel-headers-before-the-tools-copies.patch added to mm-nonmm-unstable branch
+Message-Id: <20261104174708.9909A1F000C1@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -53,12 +52,12 @@ Precedence: list
 
 
 The patch titled
-     Subject: rapidio: use dmaengine_desc_set_callback()
+     Subject: selftests/proc: search the kernel headers before the tools copies
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     rapidio-use-dmaengine_desc_set_callback.patch
+     selftests-proc-search-the-kernel-headers-before-the-tools-copies.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/rapidio-use-dmaengine_desc_set_callback.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-proc-search-the-kernel-headers-before-the-tools-copies.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -76,45 +75,51 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Frank Li <Frank.Li@nxp.com>
-Subject: rapidio: use dmaengine_desc_set_callback()
-Date: Tue,  3 Nov 2026 09:37:56 -0500
+From: Sasha Levin <sashal@kernel.org>
+Subject: selftests/proc: search the kernel headers before the tools copies
+Date: Tue, 03 Nov 2026 09:23:04 -0500
 
-Replace open-coded assignments to callback and callback_param fields of
-struct dma_async_tx_descriptor with calls to the
-dmaengine_desc_set_callback() helper in rio_mport_cdev driver.
+The proc tests are the only selftests that add $(TOOLS_INCLUDES) without
+$(KHDR_INCLUDES) in front of it.  The <linux/types.h> in
+tools/include/uapi then replaces the real one, and unlike the real one it
+does not include <asm/types.h>.  On powerpc and s390, <signal.h> pulls in
+the kernel's asm/sigcontext.h, which needs __vector128 from asm/types.h,
+so eight proc tests fail to build on powerpc and six on s390:
 
-No functional change intended. Prepare to make struct
-dma_async_tx_descriptor private to the DMA engine.
+  /usr/lib/linux/uapi/s390/asm/sigcontext.h:73:9: error: unknown type name '__vector128'
 
-Link: https://lore.kernel.org/20261103143759.1168880-1-Frank.Li@oss.nxp.com
-Signed-off-by: Frank Li <Frank.Li@nxp.com>
+Put $(KHDR_INCLUDES) before $(TOOLS_INCLUDES), as the other selftests that
+use TOOLS_INCLUDES do, so that <linux/types.h> comes from the headers of
+the kernel under test.
+
+Link: https://lore.kernel.org/20261103142304.122564-1-sashal@kernel.org
+Fixes: 81510a0eaa69 ("selftests/proc: add PROCMAP_QUERY ioctl tests")
+Signed-off-by: Sasha Levin <sashal@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
-Cc: Matt Porter <mporter@kernel.crashing.org>
-Cc: Alexandre Bounine <alex.bou9@gmail.com>
-Cc: James Kim <james010kim@gmail.com>
-Cc: Dan Carpenter <error27@gmail.com>
+Cc: Shuah Khan <shuah@kernel.org>
+Cc: Andrii Nakryiko <andrii@kernel.org>
+Cc: Suren Baghdasaryan <surenb@google.com>
 ---
 
- drivers/rapidio/devices/rio_mport_cdev.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ tools/testing/selftests/proc/Makefile |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/drivers/rapidio/devices/rio_mport_cdev.c~rapidio-use-dmaengine_desc_set_callback
-+++ a/drivers/rapidio/devices/rio_mport_cdev.c
-@@ -717,8 +717,7 @@ static int do_dma_request(struct mport_d
- 		goto err_out;
- 	}
+--- a/tools/testing/selftests/proc/Makefile~selftests-proc-search-the-kernel-headers-before-the-tools-copies
++++ a/tools/testing/selftests/proc/Makefile
+@@ -1,6 +1,6 @@
+ # SPDX-License-Identifier: GPL-2.0-only
+ CFLAGS += -Wall -O2 -Wno-unused-function
+-CFLAGS += $(TOOLS_INCLUDES)
++CFLAGS += $(KHDR_INCLUDES) $(TOOLS_INCLUDES)
+ LDFLAGS += -pthread
  
--	tx->callback = dma_xfer_callback;
--	tx->callback_param = req;
-+	dmaengine_desc_set_callback(tx, dma_xfer_callback, NULL, req);
- 
- 	req->status = DMA_IN_PROGRESS;
- 	kref_get(&req->refcount);
+ TEST_GEN_PROGS :=
 _
 
-Patches currently in -mm which might be from Frank.Li@nxp.com are
+Patches currently in -mm which might be from sashal@kernel.org are
 
-rapidio-use-dmaengine_desc_set_callback.patch
+selftests-proc-cast-the-procmap_query-address-through-uintptr_t.patch
+selftests-mm-fix-pointer-width-warnings-on-32-bit-architectures.patch
+selftests-mm-uffd-wp-mremap-keep-the-thp-sizes-in-unsigned-long.patch
+selftests-proc-search-the-kernel-headers-before-the-tools-copies.patch
 
