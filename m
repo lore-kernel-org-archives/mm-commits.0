@@ -1,48 +1,46 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793811845;
-	b=aDAiaIjokKWDvLDXprgQPChto4+7LKI79eh7RPiGXxih8wPr+yix35pYHkPcKF8I7TCO
-	 fJUc2rs/KrSZjhdprpwYZICrBYi0ycpTBpUsJ2Kq5OdTCp1j57mcN1X8mT7sDkCBuEGK9
-	 PZWYc7Gcp1yeoQ4igIxk++cKYcoM3r0RrURQvEJ4PXcVvxt3mytM87jTqQsiUDKj2vDZY
-	 NBixd0bY55mCigM2KjF0KAOYDw6/5NROSdcMTrViWtdlkVnuf4/uBYZhoDzK7qAheLVtR
-	 MBAkPMUNna6ndaRjL6TMeIgaLkGMgkHPdOXvk6Q4CY7Znhlt51eI0EFhVwkPJrn2s5Q==
+	t=1793812759;
+	b=I4JeaY+1pn6IdljZMukH4rARpIF345SIbaD0MV4c81veXR+6B3jBrS+9fSwkgB6hEdVl
+	 mgrUfH9Ywy5e2fY3+arw2hTQjITFPkx1bWmd0PbVA5IdSiRfpxAAC0AKRicx3zV7SF8Ec
+	 ZN3inoDn4MI7om/NYx9oTyI5nYk25XPp00sUFvhpK+GmZi3/ES5wdpw1/EuTJzixIruMP
+	 Za+bPFSSgxq4AO+OFSF24SC1fbgWv2jt9Iz8u8Xoge+TyW7OoNNr5I5aCyLVfUZpUWSwr
+	 ZhuzC92LHTvX8Slo8mUIwY1y6rMb2UkgHi4nwHGEE3R73aC/HXJncT1caZVmwT0u1Wg==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793811845;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793812759;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=FDju3qBsmuEoe6qkaXsJ5LB/zywH6Uyq0xHvxrUuqck=;
-	b=jKNbUH5ultdhjv2IOh9oRHXQRAFNbnoMXSgROIMew9rsDYmgT+n4/MSUu0TWYqyosSk5
-	 MonkSB/lamP7PtSCgkn9Sd/MHxFFeG8v8zmsDGaicMZrx55D0x62uKDWCb3VbOB3VuWvq
-	 B7/rHFg6eefKnFn3v2E5c8WsvTKfXPIQWaU6k8QLz7w2Vj5BeA3i71G1ptmYH8GlsdU4V
-	 bj8BbXHDu+IsQokPZSpgec24UVjCbEKhlNzn+6/YKsabbJc0+1ZSQrnzuWJTkif6JO/rA
-	 N5IHWQrkeOIsAUfzcwQ8W3fpeAScTyCOTt++Ek8yLCHl0GfISvcUhMgwe5cXHkqxJrw==
+	bh=iGtPnHmxDTu/sylp4m/nmDcZVLkuEEM53Rc9Gy9kIIU=;
+	b=Ljy42tvQDGAbsUlAEp6sgATaD4A45qpFaro3nbKxD+EaYnkiCOS2Ne+KsfNzuKwfLRD3
+	 1GhNJaj3qwUGqq7ZbTmAAcfh+yTq1C8KkzPx2UTJueu+7IPa1fEnnIR9VoqEKXLfijkWg
+	 ryLMubukEy+NzYxKiGSVbsKEsxk4m/9UulmpJpYFyheG2w4zPn9jtLZA1LnXlvVNR4D9u
+	 3rhLf3VC3RugNmTubHXTTJDMtUwERE2zn2poeYi/3YQ2uA4l83zKOly1Nh+FWtuY+/8zr
+	 wfO8XhtSs9Vt2QZdHyYxvCuNuEGiP/yR9eNqCdNA5UipCmszfg8uPaRtbpzcH0wsLiw==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=Bez5TzcV;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b="Hc/tYWTy";
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 84415606A31B;
-	Wed,  4 Nov 2026 17:04:04 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D57AE606A328
+	for <mm-commits@vger.kernel.org>; Wed,  4 Nov 2026 17:19:18 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=Bez5TzcV
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D33571F000C1;
-	Wed,  4 Nov 2026 17:04:03 +0000 (UTC)
+	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=Hc/tYWTy
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 47F5B1F000C1;
+	Wed,  4 Nov 2026 17:19:18 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1793811843;
-	bh=FDju3qBsmuEoe6qkaXsJ5LB/zywH6Uyq0xHvxrUuqck=;
+	d=linux-foundation.org; s=korg; t=1793812758;
+	bh=iGtPnHmxDTu/sylp4m/nmDcZVLkuEEM53Rc9Gy9kIIU=;
 	h=Date:To:From:Subject;
-	b=Bez5TzcVgGkbNHGsZX+eKQUNMXbvpyUZWS2x8ZOgidc0Fq2xtIVGa1YptKU6e6h62
-	 qOuhv82RLPLTXx7q7nT7WP2QEEcXiGSbXBkH6nCmJDFhLFYJlXmNQetP968hZfJXql
-	 sUr1cwP4NvVgk5e7tx4kZcSaO/zHLpsVsirHaOGU=
-Date: Wed, 04 Nov 2026 09:04:03 -0800
-To: mm-commits@vger.kernel.org,stable@vger.kernel.org,mark@fasheh.com,
-	joseph.qi@linux.alibaba.com,jlbec@evilplan.org,jjzuming@gmail.com,
-	heming.zhao@suse.com,baijiaju1990@gmail.com,zzzccc427@gmail.com,
-	akpm@linux-foundation.org
+	b=Hc/tYWTySYkl45K0PTOs1sSR4nM62n9CizSaZH63Gr6QOTuvA+q9ULApeRosHUXQE
+	 ziO1XluudWnsN+72/7rxaVUyVt19CoC6Ojj5LKimSSfIyj4kSWidC4fZ1Uowehhv7x
+	 5gT41RX+qGdUwni8ENsUgZmc0zuOPLFijGjOGKSA=
+Date: Wed, 04 Nov 2026 09:19:17 -0800
+To: mm-commits@vger.kernel.org,rdunlap@infradead.org,
+	akpm@linux-foundation.org,gubin@cmss.chinamobile.com
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + ocfs2-advance-locking_state-through-the-live-cursor.patch added to mm-nonmm-hotfixes-unstable branch
-Message-Id: <20261104170403.D33571F000C1@smtp.kernel.org>
+Subject: + tools-laptop-dslm-fix-inverted-open-error-check.patch added to mm-nonmm-unstable branch
+Message-Id: <20261104171918.47F5B1F000C1@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -54,14 +52,14 @@ Precedence: list
 
 
 The patch titled
-     Subject: ocfs2: advance locking_state through the live cursor
-has been added to the -mm mm-nonmm-hotfixes-unstable branch.  Its filename is
-     ocfs2-advance-locking_state-through-the-live-cursor.patch
+     Subject: tools/laptop/dslm: fix inverted open() error check
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     tools-laptop-dslm-fix-inverted-open-error-check.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/ocfs2-advance-locking_state-through-the-live-cursor.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/tools-laptop-dslm-fix-inverted-open-error-check.patch
 
-This patch will later appear in the mm-nonmm-hotfixes-unstable branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -77,232 +75,54 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Cen Zhang <zzzccc427@gmail.com>
-Subject: ocfs2: advance locking_state through the live cursor
-Date: Thu, 29 Oct 2026 14:56:48 +0800
+From: Gu Bin <gubin@cmss.chinamobile.com>
+Subject: tools/laptop/dslm: fix inverted open() error check
+Date: Wed,  4 Nov 2026 14:48:37 +0800
 
-locking_state copies each lock resource under ocfs2_dlm_tracking_lock so
-its containing inode or quota object can be freed during the dump.  The
-copied l_debug_list pointers do not have that lifetime protection.  Yet
-ocfs2_dlm_seq_next() follows them to find the next record.
+open() returns -1 on failure and a non-negative fd on success, but the
+check
 
-Remounting read-only can free a quota-info object while a debugfs read is
-between the snapshot and the next iterator callback:
+	if (!(fd = open(disk, O_RDONLY|O_NONBLOCK)))
 
-  locking_state reader                Quota suspension
-  --------------------                ----------------
-  snapshot current lock resource
-    copy l_debug_list.next
-                                      remove next resource from live list
-                                      free quota-info object
-  seq_next(): follow copied link
-    read freed lock resource
+treats only fd == 0 as an error, which is wrong in both directions:
 
-Advance through the live dummy cursor instead.  List removal updates its
-links under the tracking lock.  Position it after the resource being
-copied before releasing the lock, and never walk the snapshot's links. 
-Reuse the per-open snapshot for a nonzero seq_start() position, including
-read continuation and buffer retries.  Rewind the live cursor only when
-seq_file starts at index zero; seq_lseek() traverses from there through
-seq_next().  Clear the snapshot's l_ops marker at end of list so later
-reads remain at EOF.  This avoids replaying the list prefix under the
-tracking lock on each read, without adding a new cursor or position field.
+  - on a real failure (fd == -1) the condition is false, so the
+    program continues with fd = -1: measure() runs check_powermode()
+    on the invalid fd, ioctl() fails with EBADF, and the tool reports
+    the drive state as "unknown" instead of printing the intended
+    "Can't open" message.
+  - when open() succeeds and returns fd 0 (e.g. stdin was closed, so
+    the lowest free descriptor is 0), the condition is true and the
+    tool wrongly prints "Can't open" and exits.
 
-KASAN report as below:
+Test with fd < 0 instead, which handles both cases correctly.
 
-    BUG: KASAN: slab-use-after-free in ocfs2_dlm_next_res.isra.0+0x1b1/0x1d0
-    Read of size 8 at addr ffff888117ea9838 by task python3/489
-    
-    CPU: 3 UID: 0 PID: 489 Comm: python3 Not tainted 7.3.0-rc4-next-20260921-pmb-bt-functional-v1+ #1 PREEMPT(lazy) 
-    Hardware name: QEMU Ubuntu 24.04 PC v2 (i440FX + PIIX, arch_caps fix, 1996), BIOS 1.16.3-debian-1.16.3-2 04/01/2014
-    Call Trace:
-     <TASK>
-     dump_stack_lvl+0x93/0xd0
-     print_report+0xce/0x630
-     ? ocfs2_dlm_next_res.isra.0+0x1b1/0x1d0
-     ? srso_alias_return_thunk+0x5/0xfbef5
-     ? __virt_addr_valid+0x20e/0x420
-     ? ocfs2_dlm_next_res.isra.0+0x1b1/0x1d0
-     kasan_report+0xe0/0x110
-     ? ocfs2_dlm_next_res.isra.0+0x1b1/0x1d0
-     ocfs2_dlm_next_res.isra.0+0x1b1/0x1d0
-     ? __pfx_ocfs2_dlm_next_res.isra.0+0x10/0x10
-     ? __pfx_do_raw_spin_lock+0x10/0x10
-     ocfs2_dlm_seq_next+0xb8/0x4c0
-     ? srso_alias_return_thunk+0x5/0xfbef5
-     seq_read_iter+0x92f/0x1110
-     ? srso_alias_return_thunk+0x5/0xfbef5
-     seq_read+0x362/0x5a0
-     ? __pfx_seq_read+0x10/0x10
-     ? srso_alias_return_thunk+0x5/0xfbef5
-     ? srso_alias_return_thunk+0x5/0xfbef5
-     ? selinux_file_permission+0x11d/0x540
-     full_proxy_read+0x11f/0x180
-     ? __pfx_full_proxy_read+0x10/0x10
-     vfs_read+0x1a0/0xc20
-     ? srso_alias_return_thunk+0x5/0xfbef5
-     ? kmem_cache_free+0x242/0x580
-     ? __pfx_vfs_read+0x10/0x10
-     ? srso_alias_return_thunk+0x5/0xfbef5
-     ? putname+0x93/0xe0
-     ? srso_alias_return_thunk+0x5/0xfbef5
-     ? do_sys_openat2+0x12a/0x1b0
-     ? __pfx_do_sys_openat2+0x10/0x10
-     ksys_read+0x111/0x200
-     ? __pfx_ksys_read+0x10/0x10
-     ? irqentry_exit+0xbe/0x820
-     ? srso_alias_return_thunk+0x5/0xfbef5
-     ? trace_hardirqs_on_prepare+0x11d/0x150
-     do_syscall_64+0x114/0x620
-     entry_SYSCALL_64_after_hwframe+0x77/0x7f
-    RIP: 0033:0x7f0266dbb687
-    Code: 48 89 fa 4c 89 df e8 58 b3 00 00 8b 93 08 03 00 00 59 5e 48 83 f8 fc 74 1a 5b c3 0f 1f 84 00 00 00 00 00 48 8b 44 24 10 0f 05 <5b> c3 0f 1f 80 00 00 00 00 83 e2 39 83 fa 08 75 de e8 23 ff ff ff
-    RSP: 002b:00007ffccf76fc40 EFLAGS: 00000202 ORIG_RAX: 0000000000000000
-    RAX: ffffffffffffffda RBX: 00007f0266d27780 RCX: 00007f0266dbb687
-    RDX: 0000000000000001 RSI: 00007f0266a53200 RDI: 0000000000000004
-    RBP: 00007f0266d27700 R08: 0000000000000000 R09: 0000000000000000
-    R10: 0000000000000000 R11: 0000000000000202 R12: 0000000000000001
-    R13: 00007f0266a53200 R14: 0000000000000004 R15: 00007f0266b651e0
-     </TASK>
-    
-    Allocated by task 547:
-     kasan_save_stack+0x33/0x60
-     kasan_save_track+0x14/0x30
-     __kasan_kmalloc+0xaa/0xb0
-     __kmalloc_cache_noprof+0x28d/0x610
-     ocfs2_local_read_info+0x181/0x1580
-     dquot_load_quota_sb+0x68b/0x1000
-     dquot_load_quota_inode+0x227/0x3e0
-     ocfs2_enable_quotas+0x27c/0x520
-     ocfs2_fill_super+0x21f9/0x38f0
-     get_tree_bdev_flags+0x35d/0x5f0
-     vfs_get_tree+0x93/0x320
-     fc_mount+0x1d/0x200
-     path_mount+0x592/0x1e00
-     __x64_sys_mount+0x24b/0x2d0
-     do_syscall_64+0x114/0x620
-     entry_SYSCALL_64_after_hwframe+0x77/0x7f
-    
-    Freed by task 577:
-     kasan_save_stack+0x33/0x60
-     kasan_save_track+0x14/0x30
-     kasan_save_free_info+0x3b/0x60
-     __kasan_slab_free+0x5f/0x80
-     kfree+0x308/0x580
-     ocfs2_local_free_info+0x47b/0x800
-     dquot_disable+0x5d9/0x17a0
-     ocfs2_susp_quotas.isra.0+0x22c/0x2b0
-     ocfs2_reconfigure+0x284/0xd00
-     reconfigure_super+0x3ca/0xa70
-     path_mount+0x16ae/0x1e00
-     __x64_sys_mount+0x24b/0x2d0
-     do_syscall_64+0x114/0x620
-     entry_SYSCALL_64_after_hwframe+0x77/0x7f
-    
-    The buggy address belongs to the object at ffff888117ea9800
-     which belongs to the cache kmalloc-1k of size 1024
-    The buggy address is located 56 bytes inside of
-     freed 1024-byte region [ffff888117ea9800, ffff888117ea9c00)
-    
-    The buggy address belongs to the physical page:
-    page: refcount:0 mapcount:0 mapping:0000000000000000 index:0x0 pfn:0x117ea8
-    head: order:3 mapcount:0 entire_mapcount:0 nr_pages_mapped:0 pincount:0
-    flags: 0x200000000000040(head|node=0|zone=2)
-    page_type: f5(slab)
-    raw: 0200000000000040 ffff888100042dc0 dead000000000100 dead000000000122
-    raw: 0000000000000000 0000000000100010 00000000f5000000 0000000000000000
-    head: 0200000000000040 ffff888100042dc0 dead000000000100 dead000000000122
-    head: 0000000000000000 0000000000100010 00000000f5000000 0000000000000000
-    head: 0200000000000003 fffffffffffffe01 00000000ffffffff 00000000ffffffff
-    head: 0000000000000000 0000000000000000 00000000ffffffff 0000000000000000
-    page dumped because: kasan: bad access detected
-    
-    Memory state around the buggy address:
-     ffff888117ea9700: fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc
-     ffff888117ea9780: fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc
-    >ffff888117ea9800: fa fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
-                                            ^
-     ffff888117ea9880: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
-     ffff888117ea9900: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
-    ==================================================================
-
-Link: https://lore.kernel.org/pm-ocfs2-objects-candidate-0053-v7-ec41d4bbd38bb4d795a8@gmail.com
-Fixes: ccd979bdbce9 ("[PATCH] OCFS2: The Second Oracle Cluster Filesystem")
-Signed-off-by: Cen Zhang <zzzccc427@gmail.com>
+Link: https://lore.kernel.org/20261104064839.1790-1-gubin@cmss.chinamobile.com
+Fixes: d49129accc21 ("Documentation/laptop/: split txt and source files")
+Signed-off-by: Gu Bin <gubin@cmss.chinamobile.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Suggested-by: Joseph Qi <joseph.qi@linux.alibaba.com>
-Reviewed-by: Joseph Qi <joseph.qi@linux.alibaba.com>
-Cc: Mark Fasheh <mark@fasheh.com>
-Cc: Joel Becker <jlbec@evilplan.org>
-Cc: Heming Zhao <heming.zhao@suse.com>
-Cc: Jia-Ju Bai <baijiaju1990@gmail.com>
-Cc: <jjzuming@gmail.com>
-Cc: <stable@vger.kernel.org>
+Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
+Cc: Randy Dunlap <rdunlap@infradead.org>
 ---
 
- fs/ocfs2/dlmglue.c |   19 ++++++++++++++++---
- 1 file changed, 16 insertions(+), 3 deletions(-)
+ tools/laptop/dslm/dslm.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
---- a/fs/ocfs2/dlmglue.c~ocfs2-advance-locking_state-through-the-live-cursor
-+++ a/fs/ocfs2/dlmglue.c
-@@ -3094,9 +3094,17 @@ static void *ocfs2_dlm_seq_start(struct
- {
- 	struct ocfs2_dlm_seq_priv *priv = m->private;
- 	struct ocfs2_lock_res *iter;
-+	struct ocfs2_lock_res *dummy = &priv->p_iter_res;
-+
-+	/* Continue or retry the snapshot left by ->next(). */
-+	if (*pos)
-+		return priv->p_tmp_res.l_ops ? &priv->p_tmp_res : NULL;
+--- a/tools/laptop/dslm/dslm.c~tools-laptop-dslm-fix-inverted-open-error-check
++++ a/tools/laptop/dslm/dslm.c
+@@ -144,7 +144,8 @@ int main(int argc, char **argv)
+     } else
+ 	usage();
  
-+	/* Reads from zero and seek traversal start at the list head. */
- 	spin_lock(&ocfs2_dlm_tracking_lock);
--	iter = ocfs2_dlm_next_res(&priv->p_iter_res, priv);
-+	list_move(&dummy->l_debug_list,
-+		  &priv->p_dlm_debug->d_lockres_tracking);
-+	iter = ocfs2_dlm_next_res(dummy, priv);
- 	if (iter) {
- 		/* Since lockres' have the lifetime of their container
- 		 * (which can be inodes, ocfs2_supers, etc) we want to
-@@ -3105,8 +3113,11 @@ static void *ocfs2_dlm_seq_start(struct
- 		 * trust any pointers on the copy returned, but that's
- 		 * ok as the information we want isn't typically held
- 		 * in them. */
-+		list_move(&dummy->l_debug_list, &iter->l_debug_list);
- 		priv->p_tmp_res = *iter;
- 		iter = &priv->p_tmp_res;
-+	} else {
-+		priv->p_tmp_res.l_ops = NULL;
- 	}
- 	spin_unlock(&ocfs2_dlm_tracking_lock);
- 
-@@ -3120,17 +3131,19 @@ static void ocfs2_dlm_seq_stop(struct se
- static void *ocfs2_dlm_seq_next(struct seq_file *m, void *v, loff_t *pos)
- {
- 	struct ocfs2_dlm_seq_priv *priv = m->private;
--	struct ocfs2_lock_res *iter = v;
-+	struct ocfs2_lock_res *iter;
- 	struct ocfs2_lock_res *dummy = &priv->p_iter_res;
- 
- 	(*pos)++;
- 	spin_lock(&ocfs2_dlm_tracking_lock);
--	iter = ocfs2_dlm_next_res(iter, priv);
-+	iter = ocfs2_dlm_next_res(dummy, priv);
- 	list_del_init(&dummy->l_debug_list);
- 	if (iter) {
- 		list_add(&dummy->l_debug_list, &iter->l_debug_list);
- 		priv->p_tmp_res = *iter;
- 		iter = &priv->p_tmp_res;
-+	} else {
-+		priv->p_tmp_res.l_ops = NULL;
- 	}
- 	spin_unlock(&ocfs2_dlm_tracking_lock);
- 
+-    if (!(fd = open(disk, O_RDONLY|O_NONBLOCK))) {
++    fd = open(disk, O_RDONLY|O_NONBLOCK);
++    if (fd < 0) {
+ 	printf("Can't open %s, because: %s\n", disk, strerror(errno));
+ 	exit(-1);
+     }
 _
 
-Patches currently in -mm which might be from zzzccc427@gmail.com are
+Patches currently in -mm which might be from gubin@cmss.chinamobile.com are
 
-ocfs2-serialize-inode-journal-access-with-shutdown.patch
-ocfs2-dlmfs-keep-the-superblock-alive-during-lock-work.patch
-ocfs2-advance-locking_state-through-the-live-cursor.patch
+tools-laptop-dslm-fix-inverted-open-error-check.patch
 
