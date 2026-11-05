@@ -1,45 +1,45 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793894090;
-	b=s4ydd/kmkt2nomvLEYDsIGy4/Ukd0Np986VlZ5kc5YxzNYoBw0CSV2wL4Kay0jhsieRA
-	 bfgXANTo2qHRXxiic4+Cxz2Ptceqz8bImf1kehvSJUxnje3DxdpAp+kAakgyCjIMjcROk
-	 Y/AMnQiMS3XCT0id7h2V+zbRK3NqbAgV8YQPKvDcNTXMzSSqSRunU3NhKmZvO27aytecO
-	 /Zjkz+kfHfutB9wZb4de+fFwsTQ7Snd4LSUcTGlmlJXR8eIRIjmr8ko4Tx/HimS81PIdI
-	 +LTTxMm5Yavurqk06wFgSacagGKIyaEuE6oqtV83WEX74onkQKGOC/hOrx2Z8qsHaSw==
+	t=1793894091;
+	b=m/GNYX+VMY0jzMS7lZnWGCgd+WzKJGbiTD+PMRS0Hhb5UdZ/iXySmCTeqXc2SMXWt0JQ
+	 g4/JlEFXLfOm8jRGjAqcgLGNaoqFZeQR2BGXndD8eg1qqkTVXkc18YZmXuWCYUWLAkDHW
+	 U6Zyz3F6Ns3LUzGHsv90VPc4ePppeGfE9QIYOJyFzZFZtuZQovBzyCxbQ/O1rU2R73wuq
+	 vYf+od07ejtzv4GspBhJ7i0i2BXULoYgPr+t9MhiPqfEylXpSRLgve0ao4X7iK3QIWtm0
+	 BXsI4ZWY2ivAdmVZxD4yPlO1IfOq1WFvEePLMx9n+/BjtPN91c3UihUl7FEK+ULwj1A==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793894090;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793894091;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=64YMqBz7chW961kql7jvvOGlVAONZ8VVY6pRuAySItQ=;
-	b=oCDrFOKpFA5j5Ik0exfgHxUO1svlBUdFt/sD9JhquTq6gmPKUVb3h0XL8sSG+wagP9/B
-	 DOpaCboYYudszzDD3N8MNMN5u5MvigBzSk21HrqtLWSqER4a4KmWgKSYkk+1rr89xZh43
-	 TOUF1P1ju9yRz/f2FvdUx1c/1CzXz7nr8GYMQCgyFmPxMKxgLQHq3N6tTBr9FA3a3MKNA
-	 JK7Rt+MUnfB1GG82egRmma7JUace3PhPFcTG9yBWY7FRkrpdk8oiZiDfBXiV6N7qCOb+v
-	 4NEsQucJaMzPbq9pI1pMijXq/m4/z0WhZeOU55AG8m7Xh+PH/+a6KQKSVS70YxVjo/Q==
+	bh=BMfzGjK1M8KPOc0N/SSy4QRKsqgSi84hxYac8JkGTJw=;
+	b=rlBGtxh/1wxGqo1UZWNsKB6hEAmfCa7bhrgb7u/EkeCsXRwiilE1h/8RvE4QIbxmVdbQ
+	 zih5GGEZRQt7vBmvCN4tu2xPHR/oSDZA6JWsglzDPNDL2EAljRjdhXV0vWmwQH3WgGwEM
+	 I2Sshs0n7w6c19sY7I40Iw/uBu6i7iXXIIH0xgwKPUoRnbgeDuw9reNEFz8SuP94I8Je8
+	 ekfDT+mrKe172QR7MazLCWbsF32fwNUJCSLOxX0A1mKB6MWhjUf4bCE4ZTnlKHcqaVWR8
+	 qKpunzQN6vn0Er5R3xEIXM5AZXvytWnP7BuVTzclnvz28Q3KU9f6ljoD3Zym7N6ZPPQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=LoMvHbZb;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b="UGJ9t/f0";
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D8C26606CF9E
-	for <mm-commits@vger.kernel.org>; Thu,  5 Nov 2026 15:54:49 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 03D06606CF9E
+	for <mm-commits@vger.kernel.org>; Thu,  5 Nov 2026 15:54:50 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=LoMvHbZb
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 70E2D1F00A17;
-	Thu,  5 Nov 2026 15:54:49 +0000 (UTC)
+	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=UGJ9t/f0
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 83FD41F00A02;
+	Thu,  5 Nov 2026 15:54:50 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1793894089;
-	bh=64YMqBz7chW961kql7jvvOGlVAONZ8VVY6pRuAySItQ=;
+	d=linux-foundation.org; s=korg; t=1793894090;
+	bh=BMfzGjK1M8KPOc0N/SSy4QRKsqgSi84hxYac8JkGTJw=;
 	h=Date:To:From:Subject;
-	b=LoMvHbZb6GEuOTGm1JL1Ra0F3jfe2db+2qZ4WK9K6yGJPH5uAVA0VtanJHTAhappC
-	 AAnPo/mfn9D38GyqljiO6V3P/ITjoKx15W58d9SCQ8YgMlToatYS8yGs4kohaR7Jwy
-	 Nup3TqlHNuhdnIuNMiFYHkJsi7ZTkz2I+jGXEoPM=
-Date: Thu, 05 Nov 2026 07:54:49 -0800
+	b=UGJ9t/f0lKFFMgdOZRorqSnQIXLJwhYdbq3L1zZNq08AlfNLxyDkzHBNEuphwHK+h
+	 q6u1Pc09JDN5RZVQxVDth+zOD534VKEX1o/gWunNXxB4kl+Y76iaDvy59ut1bFndcl
+	 9amggHTuMKpUBKQXyBXGPnDTNgALlgwkBC8hOEtg=
+Date: Thu, 05 Nov 2026 07:54:50 -0800
 To: mm-commits@vger.kernel.org,tz2294@columbia.edu,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [to-be-updated] mm-remove-read_cache_page_gfp.patch removed from -mm tree
-Message-Id: <20261105155449.70E2D1F00A17@smtp.kernel.org>
+Subject: [to-be-updated] mm-remove-thp_size-and-thp_order.patch removed from -mm tree
+Message-Id: <20261105155450.83FD41F00A02@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -51,30 +51,31 @@ Precedence: list
 
 
 The quilt patch titled
-     Subject: mm: remove read_cache_page_gfp()
+     Subject: mm: remove thp_size() and thp_order()
 has been removed from the -mm tree.  Its filename was
-     mm-remove-read_cache_page_gfp.patch
+     mm-remove-thp_size-and-thp_order.patch
 
 This patch was dropped because an updated version will be issued
 
 ------------------------------------------------------
 From: Tal Zussman <tz2294@columbia.edu>
-Subject: mm: remove read_cache_page_gfp()
-Date: Mon, 02 Nov 2026 17:54:12 -0500
+Subject: mm: remove thp_size() and thp_order()
+Date: Mon, 02 Nov 2026 17:54:13 -0500
 
-There are no callers left. Point the comment on shmem_read_folio_gfp()
-at mapping_read_folio_gfp() instead.
+The last callers of thp_size() have been converted to folio_size(), and
+thp_order()'s only remaining user was thp_size() itself, so remove
+both.
 
-Link: https://lore.kernel.org/20261102-page-wrappers-v1-7-e7280bdb31f6@columbia.edu
+Link: https://lore.kernel.org/20261102-page-wrappers-v1-8-e7280bdb31f6@columbia.edu
 Signed-off-by: Tal Zussman <tz2294@columbia.edu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+Acked-by: David Hildenbrand (Arm) <david@kernel.org>
 Reviewed-by: SJ Park <sj@kernel.org>
 Acked-by: Zi Yan <ziy@nvidia.com>
 Reviewed-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
 Reviewed-by: Vishal Moola (Fractile) <vishal.moola@gmail.com>
 Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
 Cc: Jan Kara <jack@suse.cz>
-Cc: David Hildenbrand <david@kernel.org>
 Cc: Liam R. Howlett <liam@infradead.org>
 Cc: Vlastimil Babka <vbabka@kernel.org>
 Cc: Mike Rapoport <rppt@kernel.org>
@@ -93,68 +94,39 @@ Cc: Hugh Dickins <hughd@google.com>
 Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
 ---
 
- include/linux/pagemap.h |    2 --
- mm/filemap.c            |   23 -----------------------
- mm/shmem.c              |    4 ++--
- 3 files changed, 2 insertions(+), 27 deletions(-)
+ include/linux/mm.h |   21 ---------------------
+ 1 file changed, 21 deletions(-)
 
---- a/include/linux/pagemap.h~mm-remove-read_cache_page_gfp
-+++ a/include/linux/pagemap.h
-@@ -962,8 +962,6 @@ struct folio *mapping_read_folio_gfp(str
- 		gfp_t flags);
- struct page *read_cache_page(struct address_space *, pgoff_t index,
- 		filler_t *filler, struct file *file);
--extern struct page * read_cache_page_gfp(struct address_space *mapping,
--				pgoff_t index, gfp_t gfp_mask);
- 
- static inline struct page *read_mapping_page(struct address_space *mapping,
- 				pgoff_t index, struct file *file)
---- a/mm/filemap.c~mm-remove-read_cache_page_gfp
-+++ a/mm/filemap.c
-@@ -4260,29 +4260,6 @@ struct page *read_cache_page(struct addr
+--- a/include/linux/mm.h~mm-remove-thp_size-and-thp_order
++++ a/include/linux/mm.h
+@@ -2146,27 +2146,6 @@ static inline unsigned int page_shift(st
+ 	return PAGE_SHIFT + compound_order(page);
  }
- EXPORT_SYMBOL(read_cache_page);
  
 -/**
-- * read_cache_page_gfp - read into page cache, using specified page allocation flags.
-- * @mapping:	the page's address_space
-- * @index:	the page index
-- * @gfp:	the page allocator flags to use if allocating
-- *
-- * This is the same as "read_mapping_page(mapping, index, NULL)", but with
-- * any new page allocations done using the specified allocation flags.
-- *
-- * If the page does not get brought uptodate, return -EIO.
-- *
-- * The function expects mapping->invalidate_lock to be already held.
-- *
-- * Return: up to date page on success, ERR_PTR() on failure.
+- * thp_order - Order of a transparent huge page.
+- * @page: Head page of a transparent huge page.
 - */
--struct page *read_cache_page_gfp(struct address_space *mapping,
--				pgoff_t index,
--				gfp_t gfp)
+-static inline unsigned int thp_order(struct page *page)
 -{
--	return do_read_cache_page(mapping, index, NULL, NULL, gfp);
+-	VM_BUG_ON_PGFLAGS(PageTail(page), page);
+-	return compound_order(page);
 -}
--EXPORT_SYMBOL(read_cache_page_gfp);
 -
+-/**
+- * thp_size - Size of a transparent huge page.
+- * @page: Head page of a transparent huge page.
+- *
+- * Return: Number of bytes in this page.
+- */
+-static inline unsigned long thp_size(struct page *page)
+-{
+-	return PAGE_SIZE << thp_order(page);
+-}
+-
+ #ifdef CONFIG_MMU
  /*
-  * Warn about a page cache invalidation failure during a direct I/O write.
-  */
---- a/mm/shmem.c~mm-remove-read_cache_page_gfp
-+++ a/mm/shmem.c
-@@ -6190,9 +6190,9 @@ int shmem_zero_setup_desc(struct vm_area
-  * @index:	the folio index
-  * @gfp:	the page allocator flags to use if allocating
-  *
-- * This behaves as a tmpfs "read_cache_page_gfp(mapping, index, gfp)",
-+ * This behaves as a tmpfs "mapping_read_folio_gfp(mapping, index, gfp)",
-  * with any new page allocations done using the specified allocation flags.
-- * But read_cache_page_gfp() uses the ->read_folio() method: which does not
-+ * But mapping_read_folio_gfp() uses the ->read_folio() method: which does not
-  * suit tmpfs, since it may have pages in swapcache, and needs to find those
-  * for itself; although drivers/gpu/drm i915 and ttm rely upon this support.
-  *
+  * Do pte_mkwrite, but only if the vma says VM_WRITE.  We do this when
 _
 
 Patches currently in -mm which might be from tz2294@columbia.edu are
@@ -162,5 +134,4 @@ Patches currently in -mm which might be from tz2294@columbia.edu are
 mm-memcontrol-remove-mod_memcg_page_state.patch
 mm-memcontrol-remove-page_memcg_check.patch
 mm-userfaultfd-store-the-childs-new-uffd-context-in-the-wait-queue-entry.patch
-mm-remove-thp_size-and-thp_order.patch
 
