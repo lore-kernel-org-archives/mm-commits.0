@@ -1,48 +1,47 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793843032;
-	b=VW1p7TUOthvimnTW+iMI6d5IpM9dT/IjYFC2zd/WqrqJJtgjtbm8S9S31o3CqCixsxx8
-	 IfGgT76FGhEaD9uC2CUuhzvl4hIjY0IjRYfTXLFOoxiUDVNnk5bgUHzckLfn+azXxlK/l
-	 iuQsmwwKnvxF7BF8bLgKlE1VSAYdGW9+lI6gjv9vcjgobYP0bd+TG/yC3A+ohYQR6qtjt
-	 f3JzXzac4dGJ424K6epyr4AYRjswxxVAwvJjbQTWpiSFVEGFn5u9Qt/Xjai3IBavBVXaB
-	 hVz/fh9ywYrS0n7GeKgyjQu/F3jC8sJfBflSqSpkCMNQaynNkoE8p44zPfH5Bal2vHg==
+	t=1793843138;
+	b=BTg+F7gFE1Yq1ihHENk/3ULQ9LpcAzaN0T6GsYsvOvRuElrPF9ar9th0Dw079ZHCPP3E
+	 4SLX6u+LAsdGF8MCvo5ce2g4MtHkiVWqqT0JDkaDSyNNXpHkeHvDgYygtK/F0Icah78VH
+	 X93x3Ds1JojKyPhcCVP1KYuIzKVrO9vE834OZII9O817y/4tQsq9wvfA83J5g+F6dAnBd
+	 /UEpT8GMYrIML1HSZZmnbVdWzbg/hzudYUWnC+zVyvbMjG4vHqdE2bk3EYPxA5m4dO40z
+	 Jbp2UY9BzTCEtPoymqDM3Ko4gRZ7q9ejtWi8uTvUBnjiVkj8OxxpYSu8fimMT87AoAg==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793843032;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793843138;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=wfu5QKF+YxKLZyaVUOfKpggTLISJLGgjItyH9LoXjTw=;
-	b=IAUzGZSi81g7JrIT/LQsdS/oRZyoIK3Gvc45wa1qfZBe+rBOB1Ci9sWEFAfGj9MoYy7I
-	 WT7IDCuv44AC8OXDYHwk/81KdGEIEArR8/w6t4EIpXs8dh5ZoQeawYzuWZ4ZsLX76S6yZ
-	 eXjQpN4w/o/7lcd9TCkaTDBaUafLsUsHZlSOFteXGWseej3G94Pezd9xNu4OhIScSK6sT
-	 AqEkJvONylTEUw5cnzsZbATQ0MzKhchMm2oofPwa83j0si9f02vSY5mAWU1maPUxq05eR
-	 /V0bwtdI63TuvgrRXqzp3cCzz0ReMSqxoIdG8mXpdpEk9kebTquTaXWHbAGL2ZzeDXQ==
+	bh=4G5gK11EUZPs2seAuFoJItUroAag8/NYEttCCoRQd10=;
+	b=x7tHwDG0W3bg58dgySYVV/Odr1Q8exzwychBAMgpbBQSQVeVpy1Y57lSvRa3gQ4NClAt
+	 TCIgmqtd90M4LmBXbPLN9SfcAaczQCRbJFA+FthvOlqA7/v81VHcuZFYD+Bug0ZZPZJ4Z
+	 +xRh/lDCo2cQleGgiN9IsiRBkTy/MiGH2uALKwwzawAQGNXQ5FefevKf2jTLP9uSZxIGA
+	 FOUDhCSTlo3IxkTjjHVMLnA6k1mJ0kNq4Qn1FYxYROW46c9MQkcw4w+XGlT/++abHMu58
+	 WpQomCmhvPQWhh67eKM7s6UYzsS2nZET55I/kuA+MnqW8Shz8xWSi88GZubOURYKG5g==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=JAlLX2Ed;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=hy+ER4ro;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
+	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0D2DD606A31B
-	for <mm-commits@vger.kernel.org>; Thu,  5 Nov 2026 01:43:51 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2E661606A326
+	for <mm-commits@vger.kernel.org>; Thu,  5 Nov 2026 01:45:37 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=JAlLX2Ed
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 757E21F000C1;
-	Thu,  5 Nov 2026 01:43:51 +0000 (UTC)
+	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=hy+ER4ro
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 93B101F00A18;
+	Thu,  5 Nov 2026 01:45:37 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1793843031;
-	bh=wfu5QKF+YxKLZyaVUOfKpggTLISJLGgjItyH9LoXjTw=;
+	d=linux-foundation.org; s=korg; t=1793843137;
+	bh=4G5gK11EUZPs2seAuFoJItUroAag8/NYEttCCoRQd10=;
 	h=Date:To:From:Subject;
-	b=JAlLX2EdjM37UPpNfwPa4ZLHc19BEq3h5KI3B++xA6dIh+U62j/y1i0SwMpYO6OS3
-	 HlL3Jpxlvhj1D+Ca3tz9HJQM9LD1dA+Vc/b/ebDpsHdJImPRuzT14DRNzopHfsGvoi
-	 P350SOXbo/jqoeb/n014Wq2zLVYhOcIBKSqgv6Jc=
-Date: Wed, 04 Nov 2026 17:43:50 -0800
+	b=hy+ER4roMd5UsqTOH6Ay5KJdlnnjkpKMQ+4HcDtO6DRjgy8L1easPscL4KH7QIyPN
+	 /rcpE58p5DzBl1kReoOKz7UsAbZGWt0O4f/lyEfp06tSIU45mJ4DKs8geC3Hsz5fg7
+	 7hWC6ch2+7nujVIXhWSqCpiMTdHG4lKn8tKrMCxU=
+Date: Wed, 04 Nov 2026 17:45:37 -0800
 To: mm-commits@vger.kernel.org,skhan@linuxfoundation.org,sj@kernel.org,
-	sh@gentwo.org,ruanjinjie@huawei.com,rdunlap@infradead.org,lienze@kylinos.cn,
-	jm5905938@gmail.com,jaeyeon.lee.dev@gmail.com,corbet@lwn.net,
-	adrianhuang0701@gmail.com,manuelebnerli@mailbox.org,akpm@linux-foundation.org
+	rdunlap@infradead.org,danielmaraboo@gmail.com,corbet@lwn.net,
+	manuelebnerli@mailbox.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [to-be-updated] docs-admin-guide-mm-damon-lru_sort-fix-grammar-and-stlye.patch removed from -mm tree
-Message-Id: <20261105014351.757E21F000C1@smtp.kernel.org>
+Subject: + docs-admin-guide-mm-damon-lru_sort-fix-grammar-and-style.patch added to mm-unstable branch
+Message-Id: <20261105014537.93B101F00A18@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -53,41 +52,51 @@ List-Owner: <mailto:mm-commits+owner@vger.kernel.org>
 Precedence: list
 
 
-The quilt patch titled
-     Subject: Docs/admin-guide/mm/damon/lru_sort: fix grammar and stlye
-has been removed from the -mm tree.  Its filename was
-     docs-admin-guide-mm-damon-lru_sort-fix-grammar-and-stlye.patch
+The patch titled
+     Subject: Docs/admin-guide/mm/damon/lru_sort: fix grammar and style
+has been added to the -mm mm-unstable branch.  Its filename is
+     docs-admin-guide-mm-damon-lru_sort-fix-grammar-and-style.patch
 
-This patch was dropped because an updated version will be issued
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/docs-admin-guide-mm-damon-lru_sort-fix-grammar-and-style.patch
+
+This patch will later appear in the mm-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via various
+branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there most days
 
 ------------------------------------------------------
 From: Manuel Ebner <manuelebnerli@mailbox.org>
-Subject: Docs/admin-guide/mm/damon/lru_sort: fix grammar and stlye
-Date: Mon, 02 Nov 2026 07:07:55 -0800
+Subject: Docs/admin-guide/mm/damon/lru_sort: fix grammar and style
+Date: Wed,  4 Nov 2026 21:29:58 +0100
 
-Fix tenses. Split long sentences thereby imporove readability.  Replace
-'set as' with 'set to'. Replace [] with () to make the file uniform.
+Fix tenses.  Split long sentences thereby improve readability.  Replace
+'set as' with 'set to'.  Replace [] with () to make the file uniform.
 
-Link: https://lore.kernel.org/20261102150757.93058-9-sj@kernel.org
+Link: https://lore.kernel.org/20261104202959.128646-2-manuelebnerli@mailbox.org
 Signed-off-by: Manuel Ebner <manuelebnerli@mailbox.org>
-Signed-off-by: SJ Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 Reviewed-by: SJ Park <sj@kernel.org>
+Cc: Daniel Pereira <danielmaraboo@gmail.com>
 Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Randy Dunlap <rdunlap@infradead.org>
 Cc: Shuah Khan <skhan@linuxfoundation.org>
-Cc: Enze Li <lienze@kylinos.cn>
-Cc: Aveline Noir <jm5905938@gmail.com>
-Cc: Jaeyeon Lee <jaeyeon.lee.dev@gmail.com>
-Cc: Jinjie Ruan <ruanjinjie@huawei.com>
-Cc: "Adrian Huang (Lenovo)" <adrianhuang0701@gmail.com>
-Cc: "Shubhang Kaushik (Ampere)" <sh@gentwo.org>
+Cc: Randy Dunlap <rdunlap@infradead.org>
 ---
 
- Documentation/admin-guide/mm/damon/lru_sort.rst |   61 ++++++--------
- 1 file changed, 30 insertions(+), 31 deletions(-)
+ Documentation/admin-guide/mm/damon/lru_sort.rst |   63 ++++++--------
+ 1 file changed, 31 insertions(+), 32 deletions(-)
 
---- a/Documentation/admin-guide/mm/damon/lru_sort.rst~docs-admin-guide-mm-damon-lru_sort-fix-grammar-and-stlye
+--- a/Documentation/admin-guide/mm/damon/lru_sort.rst~docs-admin-guide-mm-damon-lru_sort-fix-grammar-and-style
 +++ a/Documentation/admin-guide/mm/damon/lru_sort.rst
 @@ -5,20 +5,19 @@ DAMON-based LRU-lists Sorting
  =============================
@@ -96,7 +105,8 @@ Cc: "Shubhang Kaushik (Ampere)" <sh@gentwo.org>
 -aimed to be used for proactive and lightweight data access pattern based
 +aims to be used for proactive and lightweight data access pattern based
  (de)prioritization of pages on their LRU-lists for making LRU-lists a more
- trusworthy data access pattern source.
+-trusworthy data access pattern source.
++trustworthy data access pattern source.
  
  Where Proactive LRU-lists Sorting is Required?
  ==============================================
@@ -113,7 +123,7 @@ Cc: "Shubhang Kaushik (Ampere)" <sh@gentwo.org>
 +and reactively sorted for special events.  These events include specific user requests,
 +system calls and memory pressure.  As a result, LRU lists are sometimes not
 +suitable to be used as a trustworthy access pattern source.  These situations
-+including reclamation target page selection under sudden memory pressure.
++include reclamation target page selection under sudden memory pressure.
  
  Because DAMON can identify access patterns of best-effort accuracy while
  inducing only user-specified range of overhead, proactively running
