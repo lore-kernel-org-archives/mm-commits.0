@@ -1,46 +1,48 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793836798;
-	b=hv7stdAzQYctGJB68xfwEpCo6k1vOxWrPz4bGvWUm+XdRtdBz/EPEe/6mKiWzl9cT3M5
-	 Vm+kv7AnnMI3V3HKyb18mre2w4+yLZT1SRwxbMah0MhYPSngandDYE4eQLxuwF8z2HRWA
-	 7Nmha8OkxFVPJp9d5C39L/GAYaDfd161c4zrdacGm0wJDfOYZWvEOa5u/nUNlsrqJ8hzI
-	 MbSvUI8Lcsf9lG8w6P9uS+J6UuOJK8r7UUqE/ElDGk4EOGtEsDTQDrkQgjb1jBil0oYdc
-	 TkzxixWUBwg9Fc7UVACDTLlvuNS3IgmOJ16O19q/LIMP84wZQ4IQ5E0kCaHCGo9luDA==
+	t=1793843032;
+	b=VW1p7TUOthvimnTW+iMI6d5IpM9dT/IjYFC2zd/WqrqJJtgjtbm8S9S31o3CqCixsxx8
+	 IfGgT76FGhEaD9uC2CUuhzvl4hIjY0IjRYfTXLFOoxiUDVNnk5bgUHzckLfn+azXxlK/l
+	 iuQsmwwKnvxF7BF8bLgKlE1VSAYdGW9+lI6gjv9vcjgobYP0bd+TG/yC3A+ohYQR6qtjt
+	 f3JzXzac4dGJ424K6epyr4AYRjswxxVAwvJjbQTWpiSFVEGFn5u9Qt/Xjai3IBavBVXaB
+	 hVz/fh9ywYrS0n7GeKgyjQu/F3jC8sJfBflSqSpkCMNQaynNkoE8p44zPfH5Bal2vHg==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793836798;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793843032;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=PMR6db9NH2TQuoo1DGJ75xBjO+8fBDprfppk6KfNb9M=;
-	b=CLCRLI9Lo9AnAWvoFDqNnCQieAWTlXM+us5aHm8X8OJEOarGqss29oWubtXnkv9s+lgQ
-	 ZtqHQKMO6kK5MdpPX/RvuyPdiFw+6Dsna3hJ1nDECKbOeG5NEu1gZq8goCgi92mVbqmUZ
-	 o1oJ1j5moAkPk++qsX6moXPNEtS5TmUhTK53ZewZD0jmZMZyPXPubndX2ijTCTQUdglUy
-	 UDbcezcK7TtadlLQDgpfzcUVgkCQn7rxia2+AzU0KjpkNdW5HtazRV0nRzMUxzlY0WcrD
-	 +9kEotuW5rIBQPYhFApLV68lgpbHxz1Fn5ZKlo5efWJ5nLdFuLexMPxISMzDPJPKxXA==
+	bh=wfu5QKF+YxKLZyaVUOfKpggTLISJLGgjItyH9LoXjTw=;
+	b=IAUzGZSi81g7JrIT/LQsdS/oRZyoIK3Gvc45wa1qfZBe+rBOB1Ci9sWEFAfGj9MoYy7I
+	 WT7IDCuv44AC8OXDYHwk/81KdGEIEArR8/w6t4EIpXs8dh5ZoQeawYzuWZ4ZsLX76S6yZ
+	 eXjQpN4w/o/7lcd9TCkaTDBaUafLsUsHZlSOFteXGWseej3G94Pezd9xNu4OhIScSK6sT
+	 AqEkJvONylTEUw5cnzsZbATQ0MzKhchMm2oofPwa83j0si9f02vSY5mAWU1maPUxq05eR
+	 /V0bwtdI63TuvgrRXqzp3cCzz0ReMSqxoIdG8mXpdpEk9kebTquTaXWHbAGL2ZzeDXQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=ScYmRwWT;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=JAlLX2Ed;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1))
+	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 50ECC606A326
-	for <mm-commits@vger.kernel.org>; Wed,  4 Nov 2026 23:59:57 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0D2DD606A31B
+	for <mm-commits@vger.kernel.org>; Thu,  5 Nov 2026 01:43:51 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=ScYmRwWT
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B71CC1F000C1;
-	Wed,  4 Nov 2026 23:59:57 +0000 (UTC)
+	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=JAlLX2Ed
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 757E21F000C1;
+	Thu,  5 Nov 2026 01:43:51 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1793836797;
-	bh=PMR6db9NH2TQuoo1DGJ75xBjO+8fBDprfppk6KfNb9M=;
+	d=linux-foundation.org; s=korg; t=1793843031;
+	bh=wfu5QKF+YxKLZyaVUOfKpggTLISJLGgjItyH9LoXjTw=;
 	h=Date:To:From:Subject;
-	b=ScYmRwWTcdLV9rxTnn17eLpBNwiPvkmMHySwiV+J0xLkdW0IBjLvGusV5KBn8XqqU
-	 jH8Uyb0wJK89sxIb3C2CwiK70W8LMcWs67VEtJd9B1e5Myj7SNv0SwjjHNTFuLiux6
-	 /iFT1rN3Pj3ptPSYnoJZBxz4bPzMo/FzLU7XmpQI=
-Date: Wed, 04 Nov 2026 15:59:57 -0800
-To: mm-commits@vger.kernel.org,shuah@kernel.org,aleksey.oladko@virtuozzo.com,
-	sashal@kernel.org,akpm@linux-foundation.org
+	b=JAlLX2EdjM37UPpNfwPa4ZLHc19BEq3h5KI3B++xA6dIh+U62j/y1i0SwMpYO6OS3
+	 HlL3Jpxlvhj1D+Ca3tz9HJQM9LD1dA+Vc/b/ebDpsHdJImPRuzT14DRNzopHfsGvoi
+	 P350SOXbo/jqoeb/n014Wq2zLVYhOcIBKSqgv6Jc=
+Date: Wed, 04 Nov 2026 17:43:50 -0800
+To: mm-commits@vger.kernel.org,skhan@linuxfoundation.org,sj@kernel.org,
+	sh@gentwo.org,ruanjinjie@huawei.com,rdunlap@infradead.org,lienze@kylinos.cn,
+	jm5905938@gmail.com,jaeyeon.lee.dev@gmail.com,corbet@lwn.net,
+	adrianhuang0701@gmail.com,manuelebnerli@mailbox.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-prctl-select-the-tests-by-arch-alone.patch added to mm-nonmm-unstable branch
-Message-Id: <20261104235957.B71CC1F000C1@smtp.kernel.org>
+Subject: [to-be-updated] docs-admin-guide-mm-damon-lru_sort-fix-grammar-and-stlye.patch removed from -mm tree
+Message-Id: <20261105014351.757E21F000C1@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -51,85 +53,205 @@ List-Owner: <mailto:mm-commits+owner@vger.kernel.org>
 Precedence: list
 
 
-The patch titled
-     Subject: selftests/prctl: select the tests by ARCH alone
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     selftests-prctl-select-the-tests-by-arch-alone.patch
+The quilt patch titled
+     Subject: Docs/admin-guide/mm/damon/lru_sort: fix grammar and stlye
+has been removed from the -mm tree.  Its filename was
+     docs-admin-guide-mm-damon-lru_sort-fix-grammar-and-stlye.patch
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-prctl-select-the-tests-by-arch-alone.patch
-
-This patch will later appear in the mm-nonmm-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via various
-branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there most days
+This patch was dropped because an updated version will be issued
 
 ------------------------------------------------------
-From: Sasha Levin <sashal@kernel.org>
-Subject: selftests/prctl: select the tests by ARCH alone
-Date: Wed,  4 Nov 2026 14:36:39 -0500
+From: Manuel Ebner <manuelebnerli@mailbox.org>
+Subject: Docs/admin-guide/mm/damon/lru_sort: fix grammar and stlye
+Date: Mon, 02 Nov 2026 07:07:55 -0800
 
-The prctl tests are only built for x86, and only when CROSS_COMPILE is not
-set.  In every other case the Makefile defines no rules, so building or
-installing the suite fails:
+Fix tenses. Split long sentences thereby imporove readability.  Replace
+'set as' with 'set to'. Replace [] with () to make the file uniform.
 
-  make[1]: *** No targets.  Stop.
-
-TuxMake sets CROSS_COMPILE for every build, native x86_64 ones included,
-so CI systems that use it, such as KernelCI, see prctl fail on every
-architecture and never build its tests.
-
-Like breakpoints, ipc and x86, decide by ARCH alone whether the tests are
-built, and give the Makefile empty targets on other architectures, as
-sparc64 and drivers/s390x/uvdevice do, so that the suite builds and
-installs nothing there.
-
-Link: https://lore.kernel.org/20261104193639.333186-1-sashal@kernel.org
-Fixes: 92dd8dd4d07f ("selftests: move prctl tests from Documentation/prctl")
-Signed-off-by: Sasha Levin <sashal@kernel.org>
+Link: https://lore.kernel.org/20261102150757.93058-9-sj@kernel.org
+Signed-off-by: Manuel Ebner <manuelebnerli@mailbox.org>
+Signed-off-by: SJ Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Cc: Shuah Khan <shuah@kernel.org>
-Cc: Aleksei Oladko <aleksey.oladko@virtuozzo.com>
+Reviewed-by: SJ Park <sj@kernel.org>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: Randy Dunlap <rdunlap@infradead.org>
+Cc: Shuah Khan <skhan@linuxfoundation.org>
+Cc: Enze Li <lienze@kylinos.cn>
+Cc: Aveline Noir <jm5905938@gmail.com>
+Cc: Jaeyeon Lee <jaeyeon.lee.dev@gmail.com>
+Cc: Jinjie Ruan <ruanjinjie@huawei.com>
+Cc: "Adrian Huang (Lenovo)" <adrianhuang0701@gmail.com>
+Cc: "Shubhang Kaushik (Ampere)" <sh@gentwo.org>
 ---
 
- tools/testing/selftests/prctl/Makefile |    6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ Documentation/admin-guide/mm/damon/lru_sort.rst |   61 ++++++--------
+ 1 file changed, 30 insertions(+), 31 deletions(-)
 
---- a/tools/testing/selftests/prctl/Makefile~selftests-prctl-select-the-tests-by-arch-alone
-+++ a/tools/testing/selftests/prctl/Makefile
-@@ -1,5 +1,4 @@
- # SPDX-License-Identifier: GPL-2.0
--ifndef CROSS_COMPILE
- ARCH ?= $(shell uname -m 2>/dev/null || echo not)
- override ARCH := $(shell echo $(ARCH) | sed -e s/i.86/x86/ -e s/x86_64/x86/)
+--- a/Documentation/admin-guide/mm/damon/lru_sort.rst~docs-admin-guide-mm-damon-lru_sort-fix-grammar-and-stlye
++++ a/Documentation/admin-guide/mm/damon/lru_sort.rst
+@@ -5,20 +5,19 @@ DAMON-based LRU-lists Sorting
+ =============================
  
-@@ -10,5 +9,8 @@ all: $(TEST_PROGS)
+ DAMON-based LRU-lists Sorting (DAMON_LRU_SORT) is a static kernel module that
+-aimed to be used for proactive and lightweight data access pattern based
++aims to be used for proactive and lightweight data access pattern based
+ (de)prioritization of pages on their LRU-lists for making LRU-lists a more
+ trusworthy data access pattern source.
  
- include ../lib.mk
+ Where Proactive LRU-lists Sorting is Required?
+ ==============================================
  
--endif
-+else
-+nothing:
-+.PHONY: all clean run_tests install
-+.SILENT:
- endif
+-As page-granularity access checking overhead could be significant on huge
+-systems, LRU lists are normally not proactively sorted but partially and
+-reactively sorted for special events including specific user requests, system
+-calls and memory pressure.  As a result, LRU lists are sometimes not so
+-perfectly prepared to be used as a trustworthy access pattern source for some
+-situations including reclamation target pages selection under sudden memory
+-pressure.
++As page-granularity access checking overhead could be significant on huge systems,
++LRU lists are normally not fully nor proactively sorted but rather partially
++and reactively sorted for special events.  These events include specific user requests,
++system calls and memory pressure.  As a result, LRU lists are sometimes not
++suitable to be used as a trustworthy access pattern source.  These situations
++including reclamation target page selection under sudden memory pressure.
+ 
+ Because DAMON can identify access patterns of best-effort accuracy while
+ inducing only user-specified range of overhead, proactively running
+@@ -28,9 +27,9 @@ pattern source with low and controlled o
+ How It Works?
+ =============
+ 
+-DAMON_LRU_SORT finds hot pages (pages of memory regions that showing access
+-rates that higher than a user-specified threshold) and cold pages (pages of
+-memory regions that showing no access for a time that longer than a
++DAMON_LRU_SORT finds hot pages (pages of memory regions that show access
++rates that are higher than a user-specified threshold) and cold pages (pages of
++memory regions that show no access for a duration that is longer than a
+ user-specified threshold) using DAMON, and prioritizes hot pages while
+ deprioritizing cold pages on their LRU-lists.  To avoid it consuming too much
+ CPU for the prioritizations, a CPU time usage limit can be configured.  Under
+@@ -63,10 +62,10 @@ enabled
+ 
+ Enable or disable DAMON_LRU_SORT.
+ 
+-You can enable DAMON_LRU_SORT by setting the value of this parameter as ``Y``.
+-Setting it as ``N`` disables DAMON_LRU_SORT.  Note that DAMON_LRU_SORT could do
++You can enable DAMON_LRU_SORT by setting the value of this parameter to ``Y``.
++Setting it to ``N`` disables DAMON_LRU_SORT.  Note that DAMON_LRU_SORT could do
+ no real monitoring and LRU-lists sorting due to the watermarks-based activation
+-condition.  Refer to below descriptions for the watermarks parameter for this.
++condition.  Refer to below descriptions of the watermarks parameter for this.
+ 
+ commit_inputs
+ -------------
+@@ -74,9 +73,9 @@ commit_inputs
+ Make DAMON_LRU_SORT reads the input parameters again, except ``enabled``.
+ 
+ Input parameters that updated while DAMON_LRU_SORT is running are not applied
+-by default.  Once this parameter is set as ``Y``, DAMON_LRU_SORT reads values
++by default.  Once this parameter is set to ``Y``, DAMON_LRU_SORT reads values
+ of parameters except ``enabled`` again.  Once the re-reading is done, this
+-parameter is set as ``N``.  If invalid parameters are found while the
++parameter is set to ``N``.  If invalid parameters are found while the
+ re-reading, DAMON_LRU_SORT will be disabled.
+ 
+ Once ``Y`` is written to this parameter, the user must not write to any
+@@ -86,37 +85,37 @@ violate this rule, the kernel may exhibi
+ active_mem_bp
+ -------------
+ 
+-Desired active to [in]active memory ratio in bp (1/10,000).
++Desired active to (in)active memory ratio in bp (1/10,000).
+ 
+ While keeping the caps that set by other quotas, DAMON_LRU_SORT automatically
+ increases and decreases the effective level of the quota aiming the LRU
+-[de]prioritizations of the hot and cold memory resulting in this active to
+-[in]active memory ratio.  Value zero means disabling this auto-tuning feature.
++(de)prioritizations of the hot and cold memory resulting in this active to
++(in)active memory ratio.  Value zero means disabling this auto-tuning feature.
+ 
+ Disabled by default.
+ 
+ autotune_monitoring_intervals
+ -----------------------------
+ 
+-If this parameter is set as ``Y``, DAMON_LRU_SORT automatically tunes DAMON's
++If this parameter is set to ``Y``, DAMON_LRU_SORT automatically tunes DAMON's
+ sampling and aggregation intervals.  The auto-tuning aims to capture meaningful
+ amount of access events in each DAMON-snapshot, while keeping the sampling
+-interval 5 milliseconds in minimum, and 10 seconds in maximum.  Setting this as
+-``N`` disables the auto-tuning.
++interval to 5 milliseconds in minimum, and to 10 seconds in maximum.  Setting this
++to ``N`` disables the auto-tuning.
+ 
+ Disabled by default.
+ 
+ filter_young_pages
+ ------------------
+ 
+-Filter [non-]young pages accordingly for LRU [de]prioritizations.
++Filter (non-)young pages accordingly for LRU (de)prioritizations.
+ 
+ If this is set, check page level access (youngness) once again before each
+-LRU [de]prioritization operation.  LRU prioritization operation is skipped
++LRU (de)prioritization operation.  LRU prioritization operation is skipped
+ if the page has not accessed since the last check (not young).  LRU
+ deprioritization operation is skipped if the page has accessed since the
+ last check (young).  The feature is enabled or disabled if this parameter is
+-set as ``Y`` or ``N``, respectively.
++set to ``Y`` or ``N``, respectively.
+ 
+ Disabled by default.
+ 
+@@ -235,7 +234,7 @@ max_nr_regions
+ Maximum number of monitoring regions.
+ 
+ The maximum number of monitoring regions of DAMON for the cold memory
+-monitoring.  This can be used to set upper-bound of the monitoring overhead.
++monitoring.  This can be used to set the upper-bound of the monitoring overhead.
+ However, setting this too low could result in bad monitoring quality.  Please
+ refer to the DAMON documentation (:doc:`usage`) for more detail.  1000 by
+ defaults.
+@@ -268,7 +267,7 @@ This parameter is for setting and gettin
+ 
+ ``monitor_region_start`` and ``monitor_region_end`` should be provided in this
+ unit.  For example, let's suppose ``addr_unit``, ``monitor_region_start`` and
+-``monitor_region_end`` are set as ``1024``, ``0`` and ``10``, respectively.
++``monitor_region_end`` are set to ``1024``, ``0`` and ``10``, respectively.
+ Then DAMON_LRU_SORT will work for 10 KiB length of physical address range that
+ starts from address zero (``[0 * 1024, 10 * 1024)`` in bytes).
+ 
+@@ -291,22 +290,22 @@ If DAMON_LRU_SORT is enabled, this becom
+ nr_lru_sort_tried_hot_regions
+ -----------------------------
+ 
+-Number of hot memory regions that tried to be LRU-sorted.
++Number of hot memory regions that were tried to be LRU-sorted.
+ 
+ bytes_lru_sort_tried_hot_regions
+ --------------------------------
+ 
+-Total bytes of hot memory regions that tried to be LRU-sorted.
++Total bytes of hot memory regions that were tried to be LRU-sorted.
+ 
+ nr_lru_sorted_hot_regions
+ -------------------------
+ 
+-Number of hot memory regions that successfully be LRU-sorted.
++Number of hot memory regions that were successfully LRU-sorted.
+ 
+ bytes_lru_sorted_hot_regions
+ ----------------------------
+ 
+-Total bytes of hot memory regions that successfully be LRU-sorted.
++Total bytes of hot memory regions that were successfully LRU-sorted.
+ 
+ nr_hot_quota_exceeds
+ --------------------
 _
 
-Patches currently in -mm which might be from sashal@kernel.org are
+Patches currently in -mm which might be from manuelebnerli@mailbox.org are
 
-selftests-proc-cast-the-procmap_query-address-through-uintptr_t.patch
-selftests-mm-fix-pointer-width-warnings-on-32-bit-architectures.patch
-selftests-mm-uffd-wp-mremap-keep-the-thp-sizes-in-unsigned-long.patch
-selftests-proc-search-the-kernel-headers-before-the-tools-copies.patch
-selftests-prctl-select-the-tests-by-arch-alone.patch
+mm-damon-reclaim-fix-typo-and-grammar.patch
+docs-admin-guide-mm-damon-lru_sort-fix-grammar-and-style.patch
 
