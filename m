@@ -1,46 +1,46 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793896914;
-	b=BF9ovWeQyuCSefH1X/L3wBKSDW5bMLHn8cfv4Z6Dgexe8eRbS/OQuOaeAA47n85Ub3i0
-	 qOv9YSZ+iW8a+NgM42ipVzrAA7LEgXuBIvrslRy5ZDJSDPGcoL3OZpxoun+ihduoQbm+3
-	 uJl/1p2wsXBaz+xxdl0AIbiAUzuBS6buzlM+FNq9/x9CvUz9Smj6B7hjLYUb++MasfVQE
-	 U/3KnfX4w5ViDIOKPWH1O8mZaGyx/9zsAmICcvzC6AWKgKWvtzbG/f18n+TvRytDaE8Xu
-	 8arDVorlixKPV7fmVwxcckMYkGtrqEPyBGzIvGV673XAD1sUE72W0aBR4/MiA2nCHKA==
+	t=1793899170;
+	b=yyJibi/ahuklp/t0f4yzBFwYlZ2TaREdc5fS8BYKH0iZc4m3gPF7w6GVtk8zgkasAcdf
+	 9Kt1m86xrlMKq60rq+AvAtbwMXb/EaiqFLn/XiGgGQYiHT+fusJAU7GmMJK2vMuIpwUWn
+	 Lbe/feQ1nuySfaGnSgho6nWySww83L2IJYgQpjGmj9hOJ3aLsG6jTlrYcwDKlH4HVeqaT
+	 FXjTZgk2kmhfqOynU9cn5oTWk8NQ6oYXD0VyDIuUkYGd6JpM71qWiKhS+gGC2tPMqKw79
+	 b/4FYy42Rse/KrxPye8XizuuXsG5pSX34rdJ4em4DQchMzwod1mSNyV9iJHD6RzaKew==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793896914;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793899170;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=uve9CrjeruoROm0DH7vsX/tvv8UkL4yJLlYEyWJ6ppQ=;
-	b=hV26jGTMfT4BueHolNn2WD8V/XzitDgCSAH1zIo5tMeSJKh83kjfJqa5+s3c80EE8gIZ
-	 07rCmfuA/cNkZ0hL9ktbqeVLrOv5bWAPrdFvV/e9VyFqSpBtFecyOnhoQkzFcyqwkmnVB
-	 1/7GZHJxiuHKgYVfguW+/BA+b/v4i25oiwxNLql6yRqqUaRWhwvOCtqKCRcn7Jr39G2VN
-	 ZzK5nBDJT8/HKXokEA2sXEOJZWL17cfNAcjjwj2F0tkawDQLXPZ+3uEwwkPNI/0+2daGf
-	 NgxhmFbH0pcnGL04tKj0jwqWSmFv3NVbT4MLT9OjUdoX717yHf39sMYPslt+PKLMTZQ==
+	bh=W+nNccDp268JIC0BhTvaKbToCLbCGRj8XbTak0dCb7g=;
+	b=bhg4jwFLJyVa2qQYeHH+L6XDWi/2WPpPjNAKWpGE7gC7mkF4B52LAhj4ShMCpBaFo1OL
+	 8keq2+hKDUpoEwkXvH+9PDORsbi3q3wRYxNUx+u0LPQg6pVLlnXJa89vvA9LjUWPWIVvK
+	 JjsRgE5gHIeqiSNkAftBqxYW4bwCmlI1eVEZkBendY6/2s/WX/QoNvpmfQTxrwvvQRjeX
+	 /1OQz66WNKUnNc1uAk0a0yYf3T0nIMZcjvM4dcGJraixaNx2626hWNCcDzh/tDzbPOO/C
+	 OCq8TVYg69eGOD8UZLeP3jOskyfte6Zsrgh0q+YmOV5mmq4goOyz+lM5NWu8CMsoMTw==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=u4PPLmNA;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=1eg+5eBj;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6B926606A31B
-	for <mm-commits@vger.kernel.org>; Thu,  5 Nov 2026 16:41:54 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 31715606EE96
+	for <mm-commits@vger.kernel.org>; Thu,  5 Nov 2026 17:19:29 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=u4PPLmNA
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id CCE8A1F000C1;
-	Thu,  5 Nov 2026 16:41:53 +0000 (UTC)
+	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=1eg+5eBj
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9BD271F00A28;
+	Thu,  5 Nov 2026 17:19:29 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1793896913;
-	bh=uve9CrjeruoROm0DH7vsX/tvv8UkL4yJLlYEyWJ6ppQ=;
+	d=linux-foundation.org; s=korg; t=1793899169;
+	bh=W+nNccDp268JIC0BhTvaKbToCLbCGRj8XbTak0dCb7g=;
 	h=Date:To:From:Subject;
-	b=u4PPLmNAmP15aH1bBaExNVDQGXI0I6gMmTJYmOGLTZFoFoLXELEfBeXJvhG19iS20
-	 QNJ+5/U1iHbqJAbKydhJ/Pl+xGRUaq07GBV6X38v4YloZ6ARupsQqto1XcN+Lhi2Lz
-	 k4mfCPh7jSgx6YpfKz30mOUUMSkNCbqbPD+tFcCM=
-Date: Thu, 05 Nov 2026 08:41:53 -0800
-To: mm-commits@vger.kernel.org,viro@zeniv.linux.org.uk,jack@suse.cz,
-	brauner@kernel.org,parri.andrea@gmail.com,akpm@linux-foundation.org
+	b=1eg+5eBjBkR/IHyLFYvu+VocyRkxp2JR48pEvlq8iyuxLnXTrdAJIy4DWvgO3g0/8
+	 q4X75MPeXAggqI0ijV7FSki+j91jrFG15BhcrGAivYvp+m3xjlH+VIEFdJsapkGqzA
+	 vbQSTpzNhbnqNI0HVugLF5Yii7ymIBlv3tJ1V/Jo=
+Date: Thu, 05 Nov 2026 09:19:29 -0800
+To: mm-commits@vger.kernel.org,arnd@arndb.de,brads@mainlining.org,
+	akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged] iov_iter-take-an-unsigned-long-segment-count-in-import_iovec.patch removed from -mm tree
-Message-Id: <20261105164153.CCE8A1F000C1@smtp.kernel.org>
+Subject: + compat-make-compat_sysinfo-scale-far-enough-to-actually-fit.patch added to mm-nonmm-unstable branch
+Message-Id: <20261105171929.9BD271F00A28@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -51,96 +51,117 @@ List-Owner: <mailto:mm-commits+owner@vger.kernel.org>
 Precedence: list
 
 
-The quilt patch titled
-     Subject: iov_iter: take an unsigned long segment count in import_iovec()
-has been removed from the -mm tree.  Its filename was
-     iov_iter-take-an-unsigned-long-segment-count-in-import_iovec.patch
+The patch titled
+     Subject: compat: make compat_sysinfo() scale far enough to actually fit
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     compat-make-compat_sysinfo-scale-far-enough-to-actually-fit.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/compat-make-compat_sysinfo-scale-far-enough-to-actually-fit.patch
+
+This patch will later appear in the mm-nonmm-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via various
+branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there most days
 
 ------------------------------------------------------
-From: Andrea Parri <parri.andrea@gmail.com>
-Subject: iov_iter: take an unsigned long segment count in import_iovec()
-Date: Mon, 26 Oct 2026 19:06:18 +0100
+From: Bradley Morgan <brads@mainlining.org>
+Subject: compat: make compat_sysinfo() scale far enough to actually fit
+Date: Thu,  5 Nov 2026 00:31:29 +0000
 
-readv(), writev() and their positional variants, process_vm_readv(),
-process_vm_writev(), vmsplice(), process_madvise(), vectored aio and the
-btrfs encoded I/O ioctls all take a full-width segment count, and all of
-them hand it to import_iovec() or __import_iovec().  Those take an
-unsigned int count, so on 64-bit kernels the upper 32 bits are dropped
-before iovec_from_user() checks the count against UIO_MAXIOV.
+compat_sysinfo() checks whether totalram or totalswap is too big for the
+compat struct and scales the values down to fit, but the loop stops as
+soon as s.mem_unit reaches PAGE_SIZE.  That caps the compression at one
+page, 12 bits with 4K pages.  On a 64 bit kernel do_sysinfo() always hands
+it values in bytes with mem_unit == 1, its own overflow math runs on
+unsigned long so it does not bail until 16 EiB, so the loop runs its 12
+turns, the values come back out as a page count, and anything past 2^32
+pages still does not fit.  Storing that into the u32 field then just drops
+the top bits.
 
-A count of 0x100000001 is therefore imported as one segment: writev() on a
-pipe writes a byte and readv() reads it back, instead of both failing with
-EINVAL.  A count of 0x100000000 returns 0 as an empty vector.
+So a 32 bit process on a box past 2^32 pages gets a wrapped number instead
+of a coarse one, with 4K pages that starts at 16 TiB:
 
-import_iovec() was added with an unsigned int count, but the helper it
-wrapped, rw_copy_check_uvector(), took an unsigned long, as does
-iovec_from_user() today.  Until v4.1, readv(), writev(), preadv(),
-pwritev(), process_vm_readv(), process_vm_writev() and vectored aio
-therefore failed these counts with EINVAL, as did vmsplice() until v4.18.
+  ram      old                  new
+  8 TiB    2147483648 x 4096    unchanged
+  16 TiB   0 x 4096             2147483648 x 8192
+  17 TiB   268435456 x 4096     2281701376 x 8192
+  32 TiB   0 x 4096             2147483648 x 16384
 
-Widen nr_segs in both import helpers so the UIO_MAXIOV check sees the
-count the caller passed.  Callers with 32-bit counts are unaffected.
+The 17 TiB row is the nasty one, a 32 bit process is told the box has 1
+TiB of ram.  Keep scaling until the values fit instead of until the unit
+reaches a page, the unit then says how coarse the number is, which is what
+mem_unit is for.
 
-AI assistance was used to find the bug, develop the fix, and run the
-reproducers.
+Nothing that works today changes.  I ran both loops side by side over ram
+from 1 MiB to 2^56 with 4K and 64K pages, they disagree on exactly the
+inputs where the old one dropped bits and agree on every one it got right.
 
-Link: https://lore.kernel.org/20261026180619.4147910-1-parri.andrea@gmail.com
-Fixes: bc917be81059 ("saner iov_iter initialization primitives")
-Signed-off-by: Andrea Parri <parri.andrea@gmail.com>
+Link: https://lore.kernel.org/20261105003129.3130709-4-brads@mainlining.org
+Signed-off-by: Bradley Morgan <brads@mainlining.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Reviewed-by: Jan Kara <jack@suse.cz>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Christian Brauner <brauner@kernel.org>
+Reviewed-by: Arnd Bergmann <arnd@arndb.de>
 ---
 
- include/linux/uio.h |    8 ++++----
- lib/iov_iter.c      |    6 +++---
- 2 files changed, 7 insertions(+), 7 deletions(-)
+ kernel/sys.c |   26 ++++++++++++--------------
+ 1 file changed, 12 insertions(+), 14 deletions(-)
 
---- a/include/linux/uio.h~iov_iter-take-an-unsigned-long-segment-count-in-import_iovec
-+++ a/include/linux/uio.h
-@@ -373,11 +373,11 @@ struct iovec *iovec_from_user(const stru
- 		unsigned long nr_segs, unsigned long fast_segs,
- 		struct iovec *fast_iov, bool compat);
- ssize_t import_iovec(int type, const struct iovec __user *uvec,
--		 unsigned nr_segs, unsigned fast_segs, struct iovec **iovp,
--		 struct iov_iter *i);
-+		 unsigned long nr_segs, unsigned int fast_segs,
-+		 struct iovec **iovp, struct iov_iter *i);
- ssize_t __import_iovec(int type, const struct iovec __user *uvec,
--		 unsigned nr_segs, unsigned fast_segs, struct iovec **iovp,
--		 struct iov_iter *i, bool compat);
-+		 unsigned long nr_segs, unsigned int fast_segs,
-+		 struct iovec **iovp, struct iov_iter *i, bool compat);
- int import_ubuf(int type, void __user *buf, size_t len, struct iov_iter *i);
+--- a/kernel/sys.c~compat-make-compat_sysinfo-scale-far-enough-to-actually-fit
++++ a/kernel/sys.c
+@@ -3035,24 +3035,22 @@ COMPAT_SYSCALL_DEFINE1(sysinfo, struct c
+ 	do_sysinfo(&s);
  
- static inline void iov_iter_ubuf(struct iov_iter *i, unsigned int direction,
---- a/lib/iov_iter.c~iov_iter-take-an-unsigned-long-segment-count-in-import_iovec
-+++ a/lib/iov_iter.c
-@@ -1382,8 +1382,8 @@ static ssize_t __import_iovec_ubuf(int t
- }
+ 	/* Check to see if any memory value is too large for 32-bit and scale
+-	 *  down if needed
++	 * down if needed.  Keep going until the values fit, not just until the
++	 * unit reaches a page.  The values halve each turn, so this ends.
+ 	 */
+ 	if (upper_32_bits(s.totalram) || upper_32_bits(s.totalswap)) {
+-		int bitcount = 0;
+-
+-		while (s.mem_unit < PAGE_SIZE) {
++		while (s.mem_unit < PAGE_SIZE || upper_32_bits(s.totalram) ||
++		       upper_32_bits(s.totalswap)) {
+ 			s.mem_unit <<= 1;
+-			bitcount++;
++			s.totalram >>= 1;
++			s.freeram >>= 1;
++			s.sharedram >>= 1;
++			s.bufferram >>= 1;
++			s.totalswap >>= 1;
++			s.freeswap >>= 1;
++			s.totalhigh >>= 1;
++			s.freehigh >>= 1;
+ 		}
+-
+-		s.totalram >>= bitcount;
+-		s.freeram >>= bitcount;
+-		s.sharedram >>= bitcount;
+-		s.bufferram >>= bitcount;
+-		s.totalswap >>= bitcount;
+-		s.freeswap >>= bitcount;
+-		s.totalhigh >>= bitcount;
+-		s.freehigh >>= bitcount;
+ 	}
  
- ssize_t __import_iovec(int type, const struct iovec __user *uvec,
--		 unsigned nr_segs, unsigned fast_segs, struct iovec **iovp,
--		 struct iov_iter *i, bool compat)
-+		 unsigned long nr_segs, unsigned int fast_segs,
-+		 struct iovec **iovp, struct iov_iter *i, bool compat)
- {
- 	ssize_t total_len = 0;
- 	unsigned long seg;
-@@ -1454,7 +1454,7 @@ ssize_t __import_iovec(int type, const s
-  * Return: Negative error code on error, bytes imported on success
-  */
- ssize_t import_iovec(int type, const struct iovec __user *uvec,
--		 unsigned nr_segs, unsigned fast_segs,
-+		 unsigned long nr_segs, unsigned int fast_segs,
- 		 struct iovec **iovp, struct iov_iter *i)
- {
- 	return __import_iovec(type, uvec, nr_segs, fast_segs, iovp, i,
+ 	memset(&s_32, 0, sizeof(s_32));
 _
 
-Patches currently in -mm which might be from parri.andrea@gmail.com are
+Patches currently in -mm which might be from brads@mainlining.org are
 
+taskstats-use-nla_put_u32-in-mk_reply.patch
+taskstats-take-the-inode-once-in-exe_add_tsk.patch
+taskstats-reuse-na-in-cgroupstats_user_cmd.patch
+taskstats-use-div_u64-for-the-elapsed-time-in-tgid_stats_add_task.patch
+compat-make-compat_sysinfo-scale-far-enough-to-actually-fit.patch
 
