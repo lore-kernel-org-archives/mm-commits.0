@@ -1,46 +1,50 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793899170;
-	b=yyJibi/ahuklp/t0f4yzBFwYlZ2TaREdc5fS8BYKH0iZc4m3gPF7w6GVtk8zgkasAcdf
-	 9Kt1m86xrlMKq60rq+AvAtbwMXb/EaiqFLn/XiGgGQYiHT+fusJAU7GmMJK2vMuIpwUWn
-	 Lbe/feQ1nuySfaGnSgho6nWySww83L2IJYgQpjGmj9hOJ3aLsG6jTlrYcwDKlH4HVeqaT
-	 FXjTZgk2kmhfqOynU9cn5oTWk8NQ6oYXD0VyDIuUkYGd6JpM71qWiKhS+gGC2tPMqKw79
-	 b/4FYy42Rse/KrxPye8XizuuXsG5pSX34rdJ4em4DQchMzwod1mSNyV9iJHD6RzaKew==
+	t=1793899296;
+	b=POFTa7TUdtuZYVnGcwCa8Rdw8CnUBTNXlAjPI7mqAsT0xK7FxcSkZeorqHu+8v/bpK2R
+	 xagFpH2hIFP/ilVAea2G3lP46EY8XZrWLwrt/RTeBUcIS/Srgj+Z0vAgPlW0i2U1zausu
+	 cCbwvqlbiFuwACqZZrFErzModlt5A7S7jvGG0ca3kqwZzwILTmJL7Kdk/CwT6MqJp34Ex
+	 xIAeQ1dhPRE0PF0pYojy+mln6glfxaD8zfetGm9daMa5nWF3pqw6QdCQDw1Gx5BaxGnB7
+	 5a7P2MC0PbPW9iicGKweIQMjBSHBr2rhlklCE8Zp2Rd/ln2vp3lWgIch07fXQ69xXZg==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793899170;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793899296;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=W+nNccDp268JIC0BhTvaKbToCLbCGRj8XbTak0dCb7g=;
-	b=bhg4jwFLJyVa2qQYeHH+L6XDWi/2WPpPjNAKWpGE7gC7mkF4B52LAhj4ShMCpBaFo1OL
-	 8keq2+hKDUpoEwkXvH+9PDORsbi3q3wRYxNUx+u0LPQg6pVLlnXJa89vvA9LjUWPWIVvK
-	 JjsRgE5gHIeqiSNkAftBqxYW4bwCmlI1eVEZkBendY6/2s/WX/QoNvpmfQTxrwvvQRjeX
-	 /1OQz66WNKUnNc1uAk0a0yYf3T0nIMZcjvM4dcGJraixaNx2626hWNCcDzh/tDzbPOO/C
-	 OCq8TVYg69eGOD8UZLeP3jOskyfte6Zsrgh0q+YmOV5mmq4goOyz+lM5NWu8CMsoMTw==
+	bh=0sALZF7VsKCy9ZVmB/AwQasdXrzHkU89nDNmepM8XAw=;
+	b=R1TB61T2zY/cPckVj3Ok0tNp6YDaTwqFOFKg5HKKcieHsADis2y5554P/ChUtA9/V/wU
+	 FnNuq/1O/XIIxm06kf1uxs/ByE84WBPu8TKj2oWzlMTMQri8m1oTqkDgUMAZivl9R5bcJ
+	 i82Pxf7KaLIM0zUEgQvX56J3d4tTKv5RH7orG6ovRUnktvu884dEAkwmuD0yYCYX/eirv
+	 GeKhqBO4iM67srKbTUBgVQZ8Z4IZdW88JyE2WPhgQpEgXBYtanDW0Xr6i7ozdDsSv7cLV
+	 qrqX5Td6kxlHSku02KarxG7Zjv1CazLc0146jy+YtabIDwPedEabkJVmR5th5ptP3lg==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=1eg+5eBj;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=Ed0eD3F3;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 31715606EE96
-	for <mm-commits@vger.kernel.org>; Thu,  5 Nov 2026 17:19:29 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3591D60703CC
+	for <mm-commits@vger.kernel.org>; Thu,  5 Nov 2026 17:21:35 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=1eg+5eBj
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9BD271F00A28;
-	Thu,  5 Nov 2026 17:19:29 +0000 (UTC)
+	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=Ed0eD3F3
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A29221F000C1;
+	Thu,  5 Nov 2026 17:21:35 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1793899169;
-	bh=W+nNccDp268JIC0BhTvaKbToCLbCGRj8XbTak0dCb7g=;
+	d=linux-foundation.org; s=korg; t=1793899295;
+	bh=0sALZF7VsKCy9ZVmB/AwQasdXrzHkU89nDNmepM8XAw=;
 	h=Date:To:From:Subject;
-	b=1eg+5eBjBkR/IHyLFYvu+VocyRkxp2JR48pEvlq8iyuxLnXTrdAJIy4DWvgO3g0/8
-	 q4X75MPeXAggqI0ijV7FSki+j91jrFG15BhcrGAivYvp+m3xjlH+VIEFdJsapkGqzA
-	 vbQSTpzNhbnqNI0HVugLF5Yii7ymIBlv3tJ1V/Jo=
-Date: Thu, 05 Nov 2026 09:19:29 -0800
-To: mm-commits@vger.kernel.org,arnd@arndb.de,brads@mainlining.org,
-	akpm@linux-foundation.org
+	b=Ed0eD3F3q2EE1Tclqgw7DU8XJVjiiqhTSvcSQbnppiu/3Tf7XehQRl4N01e1l7/Po
+	 9RyFgB/f7LNdYNiMxrGt+JfOVnouIEAi1RJrbkJ7i1ewGOK9/hjLnO1Rt975efoc38
+	 a7Li3jnKRx+YshaNDQy9AqC2s1iWtwRlbxn4wIQU=
+Date: Thu, 05 Nov 2026 09:21:35 -0800
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,vbabka@kernel.org,
+	usama.arif@linux.dev,surenb@google.com,shuah@kernel.org,ryan.roberts@arm.com,
+	rppt@kernel.org,nico.pache@linux.dev,mhocko@suse.com,ljs@kernel.org,
+	liam@infradead.org,lance.yang@linux.dev,kas@kernel.org,dev.jain@arm.com,
+	david@kernel.org,baolin.wang@linux.alibaba.com,baohua@kernel.org,
+	sashal@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + compat-make-compat_sysinfo-scale-far-enough-to-actually-fit.patch added to mm-nonmm-unstable branch
-Message-Id: <20261105171929.9BD271F00A28@smtp.kernel.org>
+Subject: + selftests-mm-add-config_debug_fs-to-the-config-fragment.patch added to mm-new branch
+Message-Id: <20261105172135.A29221F000C1@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -52,15 +56,26 @@ Precedence: list
 
 
 The patch titled
-     Subject: compat: make compat_sysinfo() scale far enough to actually fit
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     compat-make-compat_sysinfo-scale-far-enough-to-actually-fit.patch
+     Subject: selftests/mm: add CONFIG_DEBUG_FS to the config fragment
+has been added to the -mm mm-new branch.  Its filename is
+     selftests-mm-add-config_debug_fs-to-the-config-fragment.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/compat-make-compat_sysinfo-scale-far-enough-to-actually-fit.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-add-config_debug_fs-to-the-config-fragment.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Note, mm-new is a provisional staging ground for work-in-progress
+patches, and acceptance into mm-new is a notification for others take
+notice and to finish up reviews.  Please do not hesitate to respond to
+review feedback and post updated versions to replace or incrementally
+fixup patches in mm-new.
+
+The mm-new branch of mm.git is not included in linux-next
+
+If a few days of testing in mm-new is successful, the patch will me moved
+into mm.git's mm-unstable branch, which is included in linux-next
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -75,93 +90,57 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Bradley Morgan <brads@mainlining.org>
-Subject: compat: make compat_sysinfo() scale far enough to actually fit
-Date: Thu,  5 Nov 2026 00:31:29 +0000
+From: Sasha Levin <sashal@kernel.org>
+Subject: selftests/mm: add CONFIG_DEBUG_FS to the config fragment
+Date: Thu,  5 Nov 2026 12:18:01 -0500
 
-compat_sysinfo() checks whether totalram or totalswap is too big for the
-compat struct and scales the values down to fit, but the loop stops as
-soon as s.mem_unit reaches PAGE_SIZE.  That caps the compression at one
-page, 12 bits with 4K pages.  On a 64 bit kernel do_sysinfo() always hands
-it values in bytes with mem_unit == 1, its own overflow math runs on
-unsigned long so it does not bail until 16 EiB, so the loop runs its 12
-turns, the values come back out as a page count, and anything past 2^32
-pages still does not fit.  Storing that into the u32 field then just drops
-the top bits.
+The split_huge_page and gup tests need debugfs, and CONFIG_GUP_TEST
+depends on it. Add CONFIG_DEBUG_FS=y to the fragment.
 
-So a 32 bit process on a box past 2^32 pages gets a wrapped number instead
-of a coarse one, with 4K pages that starts at 16 TiB:
-
-  ram      old                  new
-  8 TiB    2147483648 x 4096    unchanged
-  16 TiB   0 x 4096             2147483648 x 8192
-  17 TiB   268435456 x 4096     2281701376 x 8192
-  32 TiB   0 x 4096             2147483648 x 16384
-
-The 17 TiB row is the nasty one, a 32 bit process is told the box has 1
-TiB of ram.  Keep scaling until the values fit instead of until the unit
-reaches a page, the unit then says how coarse the number is, which is what
-mem_unit is for.
-
-Nothing that works today changes.  I ran both loops side by side over ram
-from 1 MiB to 2^56 with 4K and 64K pages, they disagree on exactly the
-inputs where the old one dropped bits and agree on every one it got right.
-
-Link: https://lore.kernel.org/20261105003129.3130709-4-brads@mainlining.org
-Signed-off-by: Bradley Morgan <brads@mainlining.org>
+Link: https://lore.kernel.org/20261105171801.2189772-1-sashal@kernel.org
+Signed-off-by: Sasha Levin <sashal@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Reviewed-by: Arnd Bergmann <arnd@arndb.de>
+Suggested-by: Zi Yan <ziy@nvidia.com>
+Cc: David Hildenbrand <david@kernel.org>
+Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
+Cc: Lorenzo Stoakes <ljs@kernel.org>
+Cc: Liam R. Howlett <liam@infradead.org>
+Cc: Nico Pache <nico.pache@linux.dev>
+Cc: Ryan Roberts <ryan.roberts@arm.com>
+Cc: Dev Jain <dev.jain@arm.com>
+Cc: Barry Song <baohua@kernel.org>
+Cc: Lance Yang <lance.yang@linux.dev>
+Cc: Usama Arif <usama.arif@linux.dev>
+Cc: Kiryl Shutsemau <kas@kernel.org>
+Cc: Vlastimil Babka <vbabka@kernel.org>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Shuah Khan <shuah@kernel.org>
 ---
 
- kernel/sys.c |   26 ++++++++++++--------------
- 1 file changed, 12 insertions(+), 14 deletions(-)
+ tools/testing/selftests/mm/config |    1 +
+ 1 file changed, 1 insertion(+)
 
---- a/kernel/sys.c~compat-make-compat_sysinfo-scale-far-enough-to-actually-fit
-+++ a/kernel/sys.c
-@@ -3035,24 +3035,22 @@ COMPAT_SYSCALL_DEFINE1(sysinfo, struct c
- 	do_sysinfo(&s);
- 
- 	/* Check to see if any memory value is too large for 32-bit and scale
--	 *  down if needed
-+	 * down if needed.  Keep going until the values fit, not just until the
-+	 * unit reaches a page.  The values halve each turn, so this ends.
- 	 */
- 	if (upper_32_bits(s.totalram) || upper_32_bits(s.totalswap)) {
--		int bitcount = 0;
--
--		while (s.mem_unit < PAGE_SIZE) {
-+		while (s.mem_unit < PAGE_SIZE || upper_32_bits(s.totalram) ||
-+		       upper_32_bits(s.totalswap)) {
- 			s.mem_unit <<= 1;
--			bitcount++;
-+			s.totalram >>= 1;
-+			s.freeram >>= 1;
-+			s.sharedram >>= 1;
-+			s.bufferram >>= 1;
-+			s.totalswap >>= 1;
-+			s.freeswap >>= 1;
-+			s.totalhigh >>= 1;
-+			s.freehigh >>= 1;
- 		}
--
--		s.totalram >>= bitcount;
--		s.freeram >>= bitcount;
--		s.sharedram >>= bitcount;
--		s.bufferram >>= bitcount;
--		s.totalswap >>= bitcount;
--		s.freeswap >>= bitcount;
--		s.totalhigh >>= bitcount;
--		s.freehigh >>= bitcount;
- 	}
- 
- 	memset(&s_32, 0, sizeof(s_32));
+--- a/tools/testing/selftests/mm/config~selftests-mm-add-config_debug_fs-to-the-config-fragment
++++ a/tools/testing/selftests/mm/config
+@@ -4,6 +4,7 @@ CONFIG_PTE_MARKER_UFFD_WP=y
+ CONFIG_TEST_VMALLOC=m
+ CONFIG_DEVICE_PRIVATE=y
+ CONFIG_TEST_HMM=m
++CONFIG_DEBUG_FS=y
+ CONFIG_GUP_TEST=y
+ CONFIG_TRANSPARENT_HUGEPAGE=y
+ CONFIG_MEM_SOFT_DIRTY=y
 _
 
-Patches currently in -mm which might be from brads@mainlining.org are
+Patches currently in -mm which might be from sashal@kernel.org are
 
-taskstats-use-nla_put_u32-in-mk_reply.patch
-taskstats-take-the-inode-once-in-exe_add_tsk.patch
-taskstats-reuse-na-in-cgroupstats_user_cmd.patch
-taskstats-use-div_u64-for-the-elapsed-time-in-tgid_stats_add_task.patch
-compat-make-compat_sysinfo-scale-far-enough-to-actually-fit.patch
+selftests-proc-cast-the-procmap_query-address-through-uintptr_t.patch
+selftests-mm-fix-pointer-width-warnings-on-32-bit-architectures.patch
+selftests-mm-uffd-wp-mremap-keep-the-thp-sizes-in-unsigned-long.patch
+selftests-mm-skip-split_huge_page_test-without-the-split_huge_pages-file.patch
+selftests-mm-add-config_debug_fs-to-the-config-fragment.patch
+selftests-proc-search-the-kernel-headers-before-the-tools-copies.patch
+selftests-prctl-select-the-tests-by-arch-alone.patch
 
