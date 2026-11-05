@@ -1,47 +1,49 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793843138;
-	b=BTg+F7gFE1Yq1ihHENk/3ULQ9LpcAzaN0T6GsYsvOvRuElrPF9ar9th0Dw079ZHCPP3E
-	 4SLX6u+LAsdGF8MCvo5ce2g4MtHkiVWqqT0JDkaDSyNNXpHkeHvDgYygtK/F0Icah78VH
-	 X93x3Ds1JojKyPhcCVP1KYuIzKVrO9vE834OZII9O817y/4tQsq9wvfA83J5g+F6dAnBd
-	 /UEpT8GMYrIML1HSZZmnbVdWzbg/hzudYUWnC+zVyvbMjG4vHqdE2bk3EYPxA5m4dO40z
-	 Jbp2UY9BzTCEtPoymqDM3Ko4gRZ7q9ejtWi8uTvUBnjiVkj8OxxpYSu8fimMT87AoAg==
+	t=1793849867;
+	b=m0c5ela0jDYfxEoaDPrbuPB/EF72nKXDR1XjQ/rJrRP+s/JLhmTfeUT1p6VTv8Dj6SM2
+	 KlyE1QAGk89paRZERtXeweRDY5CbM9T0HNEAzhT3B0s12sVtikZLZxjAsx48mvxrrOrGb
+	 qIMG1zRViUPiQn3jVf3+GX2YY6ir0VEixsGegXoPgP9dTSMIoOXErxf9eQ38xyYB6Tch7
+	 I6Dvgnqmvum3M2vq2XyXNUCK9AcZM1Ehz0zZ2f9sMaH3ES0Dt5QpuJ3iwOuvT0wMhmxIy
+	 xlujAfTCYlxvFGbfpRRM+mVwwyJ2IFPemLhVZoMn910rYhrMEc0LLFhyauLxUO/ZR/w==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793843138;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793849867;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=4G5gK11EUZPs2seAuFoJItUroAag8/NYEttCCoRQd10=;
-	b=x7tHwDG0W3bg58dgySYVV/Odr1Q8exzwychBAMgpbBQSQVeVpy1Y57lSvRa3gQ4NClAt
-	 TCIgmqtd90M4LmBXbPLN9SfcAaczQCRbJFA+FthvOlqA7/v81VHcuZFYD+Bug0ZZPZJ4Z
-	 +xRh/lDCo2cQleGgiN9IsiRBkTy/MiGH2uALKwwzawAQGNXQ5FefevKf2jTLP9uSZxIGA
-	 FOUDhCSTlo3IxkTjjHVMLnA6k1mJ0kNq4Qn1FYxYROW46c9MQkcw4w+XGlT/++abHMu58
-	 WpQomCmhvPQWhh67eKM7s6UYzsS2nZET55I/kuA+MnqW8Shz8xWSi88GZubOURYKG5g==
+	bh=+KZnt+f2oqpJPZc0tZvtGJKRpbyVhyLAHw1OzXj/ej8=;
+	b=kvthxo7Y32GM93zpI9oDOukeZJI6+NZGov7OIbOzbYrLGnYYhyW0iwecfmSDoGJQesXh
+	 vEPbVeBVHNhxAUJ/iwGlhDua97jCelC92j0e1COYLRCMe+/3ltD3ItbIEPsoOQN+ddVtt
+	 WrlyrfxG8xOZBo8yUEQb7+o4kbFCxBGHVvbhsrFpWat6jDLbB1i5+M2R1Ai228CDqtC7K
+	 Vu6qRXa0pMO4o/R8LvcdrGCIYXhGasEWKOZNOk1EvC/7GcR9lzun65swyQJjASoXH0FWT
+	 t8rukYKVKEbixMQSvuBZFzc/sUe1y/3Et+vQu7+kRVgqYAsOS3khcDyijilxHm0Cycg==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=hy+ER4ro;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=w4CUlKUi;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2E661606A326
-	for <mm-commits@vger.kernel.org>; Thu,  5 Nov 2026 01:45:37 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7B293606A331
+	for <mm-commits@vger.kernel.org>; Thu,  5 Nov 2026 03:37:47 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=hy+ER4ro
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 93B101F00A18;
-	Thu,  5 Nov 2026 01:45:37 +0000 (UTC)
+	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=w4CUlKUi
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E13B51F00919;
+	Thu,  5 Nov 2026 03:37:46 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1793843137;
-	bh=4G5gK11EUZPs2seAuFoJItUroAag8/NYEttCCoRQd10=;
+	d=linux-foundation.org; s=korg; t=1793849867;
+	bh=+KZnt+f2oqpJPZc0tZvtGJKRpbyVhyLAHw1OzXj/ej8=;
 	h=Date:To:From:Subject;
-	b=hy+ER4roMd5UsqTOH6Ay5KJdlnnjkpKMQ+4HcDtO6DRjgy8L1easPscL4KH7QIyPN
-	 /rcpE58p5DzBl1kReoOKz7UsAbZGWt0O4f/lyEfp06tSIU45mJ4DKs8geC3Hsz5fg7
-	 7hWC6ch2+7nujVIXhWSqCpiMTdHG4lKn8tKrMCxU=
-Date: Wed, 04 Nov 2026 17:45:37 -0800
-To: mm-commits@vger.kernel.org,skhan@linuxfoundation.org,sj@kernel.org,
-	rdunlap@infradead.org,danielmaraboo@gmail.com,corbet@lwn.net,
-	manuelebnerli@mailbox.org,akpm@linux-foundation.org
+	b=w4CUlKUi6o/WxoWtSXkesbuAGGHE20rAEguoaxjBlcT2z5UhYp/KUmuwfKcZLI8fR
+	 eqlBYi7WwrEUGlqVmlNfcyJnYMRepPuLm6ApsUW5kMWgS4QtC0ObHb22a0EgfAyY6B
+	 D5RrxM3ChCu1zO8ymJTw0qxT2bUHQ4swFa0L22pE=
+Date: Wed, 04 Nov 2026 19:37:46 -0800
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,usama.arif@linux.dev,
+	shuah@kernel.org,ryan.roberts@arm.com,nico.pache@linux.dev,ljs@kernel.org,
+	liam@infradead.org,lance.yang@linux.dev,kas@kernel.org,dev.jain@arm.com,
+	david@kernel.org,baolin.wang@linux.alibaba.com,baohua@kernel.org,
+	sashal@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + docs-admin-guide-mm-damon-lru_sort-fix-grammar-and-style.patch added to mm-unstable branch
-Message-Id: <20261105014537.93B101F00A18@smtp.kernel.org>
+Subject: + selftests-mm-skip-split_huge_page_test-without-the-split_huge_pages-file.patch added to mm-new branch
+Message-Id: <20261105033746.E13B51F00919@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -53,15 +55,26 @@ Precedence: list
 
 
 The patch titled
-     Subject: Docs/admin-guide/mm/damon/lru_sort: fix grammar and style
-has been added to the -mm mm-unstable branch.  Its filename is
-     docs-admin-guide-mm-damon-lru_sort-fix-grammar-and-style.patch
+     Subject: selftests/mm: skip split_huge_page_test without the split_huge_pages file
+has been added to the -mm mm-new branch.  Its filename is
+     selftests-mm-skip-split_huge_page_test-without-the-split_huge_pages-file.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/docs-admin-guide-mm-damon-lru_sort-fix-grammar-and-style.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-skip-split_huge_page_test-without-the-split_huge_pages-file.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Note, mm-new is a provisional staging ground for work-in-progress
+patches, and acceptance into mm-new is a notification for others take
+notice and to finish up reviews.  Please do not hesitate to respond to
+review feedback and post updated versions to replace or incrementally
+fixup patches in mm-new.
+
+The mm-new branch of mm.git is not included in linux-next
+
+If a few days of testing in mm-new is successful, the patch will me moved
+into mm.git's mm-unstable branch, which is included in linux-next
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -76,192 +89,61 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Manuel Ebner <manuelebnerli@mailbox.org>
-Subject: Docs/admin-guide/mm/damon/lru_sort: fix grammar and style
-Date: Wed,  4 Nov 2026 21:29:58 +0100
+From: Sasha Levin <sashal@kernel.org>
+Subject: selftests/mm: skip split_huge_page_test without the split_huge_pages file
+Date: Wed,  4 Nov 2026 22:02:42 -0500
 
-Fix tenses.  Split long sentences thereby improve readability.  Replace
-'set as' with 'set to'.  Replace [] with () to make the file uniform.
+Every case in split_huge_page_test goes through
+/sys/kernel/debug/split_huge_pages.  When that file does not exist,
+because debugfs is not mounted or the kernel has no CONFIG_DEBUG_FS, the
+first write bails out of the whole test and it is reported as a failure:
 
-Link: https://lore.kernel.org/20261104202959.128646-2-manuelebnerli@mailbox.org
-Signed-off-by: Manuel Ebner <manuelebnerli@mailbox.org>
+  Bail out! write_file(/sys/kernel/debug/split_huge_pages): No such file or directory
+
+Skip the test in that case.
+
+Link: https://lore.kernel.org/20261105030242.1241448-1-sashal@kernel.org
+Fixes: fa6c02315f74 ("mm: huge_memory: a new debugfs interface for splitting THP tests")
+Signed-off-by: Sasha Levin <sashal@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Reviewed-by: SJ Park <sj@kernel.org>
-Cc: Daniel Pereira <danielmaraboo@gmail.com>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Shuah Khan <skhan@linuxfoundation.org>
-Cc: Randy Dunlap <rdunlap@infradead.org>
+Cc: David Hildenbrand <david@kernel.org>
+Cc: Zi Yan <ziy@nvidia.com>
+Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
+Cc: Lorenzo Stoakes <ljs@kernel.org>
+Cc: Liam R. Howlett <liam@infradead.org>
+Cc: Nico Pache <nico.pache@linux.dev>
+Cc: Ryan Roberts <ryan.roberts@arm.com>
+Cc: Dev Jain <dev.jain@arm.com>
+Cc: Barry Song <baohua@kernel.org>
+Cc: Lance Yang <lance.yang@linux.dev>
+Cc: Usama Arif <usama.arif@linux.dev>
+Cc: Kiryl Shutsemau <kas@kernel.org>
+Cc: Shuah Khan <shuah@kernel.org>
 ---
 
- Documentation/admin-guide/mm/damon/lru_sort.rst |   63 ++++++--------
- 1 file changed, 31 insertions(+), 32 deletions(-)
+ tools/testing/selftests/mm/split_huge_page_test.c |    3 +++
+ 1 file changed, 3 insertions(+)
 
---- a/Documentation/admin-guide/mm/damon/lru_sort.rst~docs-admin-guide-mm-damon-lru_sort-fix-grammar-and-style
-+++ a/Documentation/admin-guide/mm/damon/lru_sort.rst
-@@ -5,20 +5,19 @@ DAMON-based LRU-lists Sorting
- =============================
+--- a/tools/testing/selftests/mm/split_huge_page_test.c~selftests-mm-skip-split_huge_page_test-without-the-split_huge_pages-file
++++ a/tools/testing/selftests/mm/split_huge_page_test.c
+@@ -610,6 +610,9 @@ int main(int argc, char **argv)
+ 	if (!thp_is_enabled())
+ 		ksft_exit_skip("Transparent Hugepages not available\n");
  
- DAMON-based LRU-lists Sorting (DAMON_LRU_SORT) is a static kernel module that
--aimed to be used for proactive and lightweight data access pattern based
-+aims to be used for proactive and lightweight data access pattern based
- (de)prioritization of pages on their LRU-lists for making LRU-lists a more
--trusworthy data access pattern source.
-+trustworthy data access pattern source.
++	if (access(SPLIT_DEBUGFS, W_OK))
++		ksft_exit_skip("%s: %s\n", SPLIT_DEBUGFS, strerror(errno));
++
+ 	if (argc > 1)
+ 		optional_xfs_path = argv[1];
  
- Where Proactive LRU-lists Sorting is Required?
- ==============================================
- 
--As page-granularity access checking overhead could be significant on huge
--systems, LRU lists are normally not proactively sorted but partially and
--reactively sorted for special events including specific user requests, system
--calls and memory pressure.  As a result, LRU lists are sometimes not so
--perfectly prepared to be used as a trustworthy access pattern source for some
--situations including reclamation target pages selection under sudden memory
--pressure.
-+As page-granularity access checking overhead could be significant on huge systems,
-+LRU lists are normally not fully nor proactively sorted but rather partially
-+and reactively sorted for special events.  These events include specific user requests,
-+system calls and memory pressure.  As a result, LRU lists are sometimes not
-+suitable to be used as a trustworthy access pattern source.  These situations
-+include reclamation target page selection under sudden memory pressure.
- 
- Because DAMON can identify access patterns of best-effort accuracy while
- inducing only user-specified range of overhead, proactively running
-@@ -28,9 +27,9 @@ pattern source with low and controlled o
- How It Works?
- =============
- 
--DAMON_LRU_SORT finds hot pages (pages of memory regions that showing access
--rates that higher than a user-specified threshold) and cold pages (pages of
--memory regions that showing no access for a time that longer than a
-+DAMON_LRU_SORT finds hot pages (pages of memory regions that show access
-+rates that are higher than a user-specified threshold) and cold pages (pages of
-+memory regions that show no access for a duration that is longer than a
- user-specified threshold) using DAMON, and prioritizes hot pages while
- deprioritizing cold pages on their LRU-lists.  To avoid it consuming too much
- CPU for the prioritizations, a CPU time usage limit can be configured.  Under
-@@ -63,10 +62,10 @@ enabled
- 
- Enable or disable DAMON_LRU_SORT.
- 
--You can enable DAMON_LRU_SORT by setting the value of this parameter as ``Y``.
--Setting it as ``N`` disables DAMON_LRU_SORT.  Note that DAMON_LRU_SORT could do
-+You can enable DAMON_LRU_SORT by setting the value of this parameter to ``Y``.
-+Setting it to ``N`` disables DAMON_LRU_SORT.  Note that DAMON_LRU_SORT could do
- no real monitoring and LRU-lists sorting due to the watermarks-based activation
--condition.  Refer to below descriptions for the watermarks parameter for this.
-+condition.  Refer to below descriptions of the watermarks parameter for this.
- 
- commit_inputs
- -------------
-@@ -74,9 +73,9 @@ commit_inputs
- Make DAMON_LRU_SORT reads the input parameters again, except ``enabled``.
- 
- Input parameters that updated while DAMON_LRU_SORT is running are not applied
--by default.  Once this parameter is set as ``Y``, DAMON_LRU_SORT reads values
-+by default.  Once this parameter is set to ``Y``, DAMON_LRU_SORT reads values
- of parameters except ``enabled`` again.  Once the re-reading is done, this
--parameter is set as ``N``.  If invalid parameters are found while the
-+parameter is set to ``N``.  If invalid parameters are found while the
- re-reading, DAMON_LRU_SORT will be disabled.
- 
- Once ``Y`` is written to this parameter, the user must not write to any
-@@ -86,37 +85,37 @@ violate this rule, the kernel may exhibi
- active_mem_bp
- -------------
- 
--Desired active to [in]active memory ratio in bp (1/10,000).
-+Desired active to (in)active memory ratio in bp (1/10,000).
- 
- While keeping the caps that set by other quotas, DAMON_LRU_SORT automatically
- increases and decreases the effective level of the quota aiming the LRU
--[de]prioritizations of the hot and cold memory resulting in this active to
--[in]active memory ratio.  Value zero means disabling this auto-tuning feature.
-+(de)prioritizations of the hot and cold memory resulting in this active to
-+(in)active memory ratio.  Value zero means disabling this auto-tuning feature.
- 
- Disabled by default.
- 
- autotune_monitoring_intervals
- -----------------------------
- 
--If this parameter is set as ``Y``, DAMON_LRU_SORT automatically tunes DAMON's
-+If this parameter is set to ``Y``, DAMON_LRU_SORT automatically tunes DAMON's
- sampling and aggregation intervals.  The auto-tuning aims to capture meaningful
- amount of access events in each DAMON-snapshot, while keeping the sampling
--interval 5 milliseconds in minimum, and 10 seconds in maximum.  Setting this as
--``N`` disables the auto-tuning.
-+interval to 5 milliseconds in minimum, and to 10 seconds in maximum.  Setting this
-+to ``N`` disables the auto-tuning.
- 
- Disabled by default.
- 
- filter_young_pages
- ------------------
- 
--Filter [non-]young pages accordingly for LRU [de]prioritizations.
-+Filter (non-)young pages accordingly for LRU (de)prioritizations.
- 
- If this is set, check page level access (youngness) once again before each
--LRU [de]prioritization operation.  LRU prioritization operation is skipped
-+LRU (de)prioritization operation.  LRU prioritization operation is skipped
- if the page has not accessed since the last check (not young).  LRU
- deprioritization operation is skipped if the page has accessed since the
- last check (young).  The feature is enabled or disabled if this parameter is
--set as ``Y`` or ``N``, respectively.
-+set to ``Y`` or ``N``, respectively.
- 
- Disabled by default.
- 
-@@ -235,7 +234,7 @@ max_nr_regions
- Maximum number of monitoring regions.
- 
- The maximum number of monitoring regions of DAMON for the cold memory
--monitoring.  This can be used to set upper-bound of the monitoring overhead.
-+monitoring.  This can be used to set the upper-bound of the monitoring overhead.
- However, setting this too low could result in bad monitoring quality.  Please
- refer to the DAMON documentation (:doc:`usage`) for more detail.  1000 by
- defaults.
-@@ -268,7 +267,7 @@ This parameter is for setting and gettin
- 
- ``monitor_region_start`` and ``monitor_region_end`` should be provided in this
- unit.  For example, let's suppose ``addr_unit``, ``monitor_region_start`` and
--``monitor_region_end`` are set as ``1024``, ``0`` and ``10``, respectively.
-+``monitor_region_end`` are set to ``1024``, ``0`` and ``10``, respectively.
- Then DAMON_LRU_SORT will work for 10 KiB length of physical address range that
- starts from address zero (``[0 * 1024, 10 * 1024)`` in bytes).
- 
-@@ -291,22 +290,22 @@ If DAMON_LRU_SORT is enabled, this becom
- nr_lru_sort_tried_hot_regions
- -----------------------------
- 
--Number of hot memory regions that tried to be LRU-sorted.
-+Number of hot memory regions that were tried to be LRU-sorted.
- 
- bytes_lru_sort_tried_hot_regions
- --------------------------------
- 
--Total bytes of hot memory regions that tried to be LRU-sorted.
-+Total bytes of hot memory regions that were tried to be LRU-sorted.
- 
- nr_lru_sorted_hot_regions
- -------------------------
- 
--Number of hot memory regions that successfully be LRU-sorted.
-+Number of hot memory regions that were successfully LRU-sorted.
- 
- bytes_lru_sorted_hot_regions
- ----------------------------
- 
--Total bytes of hot memory regions that successfully be LRU-sorted.
-+Total bytes of hot memory regions that were successfully LRU-sorted.
- 
- nr_hot_quota_exceeds
- --------------------
 _
 
-Patches currently in -mm which might be from manuelebnerli@mailbox.org are
+Patches currently in -mm which might be from sashal@kernel.org are
 
-mm-damon-reclaim-fix-typo-and-grammar.patch
-docs-admin-guide-mm-damon-lru_sort-fix-grammar-and-style.patch
+selftests-proc-cast-the-procmap_query-address-through-uintptr_t.patch
+selftests-mm-fix-pointer-width-warnings-on-32-bit-architectures.patch
+selftests-mm-uffd-wp-mremap-keep-the-thp-sizes-in-unsigned-long.patch
+selftests-mm-skip-split_huge_page_test-without-the-split_huge_pages-file.patch
+selftests-proc-search-the-kernel-headers-before-the-tools-copies.patch
+selftests-prctl-select-the-tests-by-arch-alone.patch
 
