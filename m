@@ -1,49 +1,49 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793852871;
-	b=oBcRXDgXVsqVjeqgFPWm20lJaMdCc6xwa5Fp/dMcaQUnec8pwzA1pX4X+7oD1CwASw7a
-	 SX0E/eY5E9xkkV1vSleQsgA9EAb5OTTctGgFnF1PdQ1pzGDJG6onUiYrALM81lR14wUWw
-	 UeQufXGuljIoyF5AHIIpx2ATDhaEFzE+6379YLJQ7M10Elq165Q2VnP/mp/ucxjWWdFNY
-	 CHl+4T76Lcs4bKPEme/NQQcCFDVUxarYG37vUUN7A8VFICIbmzg2St524NrX9y/5JlYmr
-	 OViB9kNErHhSFll4m5YmXwcE2TfWrZFb2NI2iETP5geXm8xP7rmB85w7te8w7sqIoAw==
+	t=1793854866;
+	b=GjgcCGylzFMoyH2xwMYdgiRd4kvmh+rwkA2C1lNXN6jLTZJlR4F3r/2h1lTg2wq/kydc
+	 GJBje261l8YUu8olBhjKBkZqJ+Sae698r8EYf7h06MAjDRIBXMxIUGKntkWshW2aJ6J30
+	 YeXs9rZXss2wP+LNwrI+WUIckTUFJp3CJEjbiVIYC0S525mBUxaVlKX9wW189usK3vdMl
+	 lO78JcDOD0xNslRYs5ZEX/x35GObygQRC28kU3Yw2G9H7vH8XSfucFGk1It3JL2FIPAyn
+	 hecNyYgqYelDcOsHaAbqMEu74tSvTAKtMZEnxGmchlsP4x5qTEDjGbL+8e+yUBBY0jw==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793852871;
-	h=Received:DKIM-Signature:Date:From:To:Cc:Subject:Message-Id:X-Mailer:
-	 Mime-Version:Content-Type:Content-Transfer-Encoding;
-	bh=u6F4KDCYBUQmf5Ux75AdWla2t2dBWZcV4odDQlEP7Vs=;
-	b=QG3dLfAlvOSOEo3bV1XK68fD4o2CO5hcSIJAR2mLf+EOm+UYfCrk9LJ41hGX+iN+lA6A
-	 Hu96AZFpmMGn11ZYzE7vWWRvl8fJphQ11fJICNpJilGU25tiV9S1CweTIcI4gyxhQuPC/
-	 K5k3PAkLYTR5o8FaUYcBGGsZOabmjii1yN3gVg9KcSDDoTrGlEghi2FO0IjQFDdeWWnTf
-	 lhFdOoaqm3SB+9qqX5Yiw17JapRSb0y6N/DSq57h0+D1ZjBCyMf0QDxHm1kms5zkrnWdU
-	 2GwqZAuI+7+QvpQgh0gqw64/VaoSmXhX4MUSsAraIWwHfJZXWRmODtQNRFXhoEkG5yA==
+	a=rsa-sha256; c=relaxed/relaxed; t=1793854866;
+	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
+	bh=RCWd2BjyL96l4KEXy518EvYimMhdF2AEZ/SyU9k+auA=;
+	b=5bV91XsBvhHdLgJDEZwI/zRKKjo0K4ndllYHEtywM8t+ifN3G8NZYv1G2+EqSnetUfv4
+	 3JJgilX7+C2P7WEYKysA1zfsEgT32U8H2DyUAioOvq3Q0mNx7zZB8dsqQztUuySiA1mfc
+	 UK9/nb6O7KdURi/1wC4ZopPl2eCuZO1ny33+lo5Db+zHVTtEOanCTrAa7yyrZfnjk38GN
+	 gKjZkaYrrNhMu+b9CB86BrjDydPYNmJNsUlRrse2wNWq5mV6aTkxK90jHVbQp88pvzmy8
+	 51VOTGqymwbZ8f2YULKV26MKrY9srfrfVqPsBqhbTaHV+6UMVK/E2h8chd/5hKwzUEQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=FhLoRdgv;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=EjcRrUNH;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 475F2606A328;
-	Thu,  5 Nov 2026 04:27:51 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7730F606D803;
+	Thu,  5 Nov 2026 05:01:05 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=FhLoRdgv
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id CDD1C1F000C1;
-	Thu,  5 Nov 2026 04:27:50 +0000 (UTC)
+	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=EjcRrUNH
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D5F211F000C1;
+	Thu,  5 Nov 2026 05:01:04 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1793852871;
-	bh=u6F4KDCYBUQmf5Ux75AdWla2t2dBWZcV4odDQlEP7Vs=;
-	h=Date:From:To:Cc:Subject;
-	b=FhLoRdgvhjhC76otaNKgvCnBlh7dz3VLrlFogfXeqxUzmIo8dzKfgv7TUuJgHfCuQ
-	 yHBB4WIA1dCoWMDJSn1Yim2MmriTEV8tEPmmNiz2WJ8Plj+XcwpiMXA+FZFKZnJvAW
-	 V1DGCzvuWmHm13mO+Jx4tyThJtjt/yPeXQ5XAFXk=
-Date: Wed, 4 Nov 2026 20:27:49 -0800
+	d=linux-foundation.org; s=korg; t=1793854864;
+	bh=RCWd2BjyL96l4KEXy518EvYimMhdF2AEZ/SyU9k+auA=;
+	h=Date:To:From:Subject;
+	b=EjcRrUNHmAabaaYJusU14ro8ljEcmYplvbkNA37SSEaB7feI+S4XFCOqH63uiuSGK
+	 t0xLG4rVs0N9lc4ayc/y8njfdDibSLkBbht2bBFus+5+UUuYMATQTC6EZi282RZ4ih
+	 oZ2ar2C+mI/6TxhHWEQEmUdx/xL9SHAPrz799XCM=
+Date: Wed, 04 Nov 2026 21:01:04 -0800
+To: mm-commits@vger.kernel.org,vbabka@kernel.org,stable@vger.kernel.org,
+	riel@surriel.com,qi.zheng@linux.dev,pfalcato@suse.de,ljs@kernel.org,
+	liam@infradead.org,lance.yang@linux.dev,jannh@google.com,harry@kernel.org,
+	david@kernel.org,ayushr@modal.com,baolin.wang@linux.alibaba.com,
+	akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: linux-mm@kvack.org, mm-commits@vger.kernel.org,
- linux-kernel@vger.kernel.org
-Subject: [GIT PULL] non-MM hotfixes for 7.4-rc2
-Message-Id: <20261104202749.a5b9ab39d3169f80b5089a14@linux-foundation.org>
-X-Mailer: Sylpheed 3.8.0beta1 (GTK+ 2.24.33; x86_64-pc-linux-gnu)
+Subject: + mm-synchronize-with-pte-table-reclaim-for-all-folio-sizes.patch added to mm-hotfixes-unstable branch
+Message-Id: <20261105050104.D5F211F000C1@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -52,120 +52,123 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:mm-commits+owner@vger.kernel.org>
 Precedence: list
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
 
 
-Linus, please merge this batch of others-than-MM hotfixes, thanks.
+The patch titled
+     Subject: mm: synchronize with PTE table reclaim for all folio sizes
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     mm-synchronize-with-pte-table-reclaim-for-all-folio-sizes.patch
 
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-synchronize-with-pte-table-reclaim-for-all-folio-sizes.patch
 
-The following changes since commit 6628e7d4c6b25c8d18f1345e3a20d21829aae7e4:
+This patch will later appear in the mm-hotfixes-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
-  Linux 7.4-rc1 (2026-11-01 13:26:31 -0800)
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
 
-are available in the Git repository at:
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm tags/mm-nonmm-hotfi=
-xes-stable-2026-11-04-20-26
+The -mm tree is included into linux-next via various
+branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there most days
 
-for you to fetch changes up to 5b4696e0bfc358619adaeab25ad35b4979af8331:
+------------------------------------------------------
+From: Baolin Wang <baolin.wang@linux.alibaba.com>
+Subject: mm: synchronize with PTE table reclaim for all folio sizes
+Date: Thu, 05 Nov 2026 10:56:28 +0800
 
-  ocfs2: cache the mount context for dentry lock callbacks (2026-11-02 19:1=
-8:59 -0800)
+Similar to commit 243cf1f67b36 ("mm: memory: fix truncation removing
+mapped folios"), the '!pmd_present()' check in page_vma_mapped_walk() can
+also race with concurrent page table reclamation via
+zap_empty_pte_table().
 
-----------------------------------------------------------------
-mm.git review status for linus..mm-nonmm-hotfixes-stable
+page_vma_mapped_walk() is used by many functions including try_to_unmap(),
+try_to_migrate(), folio_mkclean(), pfn_mkclean_range(),
+remove_migration_ptes(), page_mapped_in_vma(), and
+mapping_wrprotect_range().  Except for try_to_unmap() and
+try_to_migrate(), the other callers do not perform post-walk accounting
+checks, so the race has no observable impact on them.
 
-Everything:
+For migration, the race can cause unnecessary retries.  For reclaim via
+try_to_unmap(), the race can cause failure to reclaim a folio that is in
+fact already unmapped (as shown below), which may lead to unexpected OOM
+or increased refaults.
 
-Total patches:       22
-Fixes: tags:         19
-cc:stable patches:   17
-Reviews/patch:       0.77
-Reviewed rate:       68%
+CPU 0 (reclaim)                      CPU 1 (MADV_DONTNEED)
+--------------------------------    --------------------------------
+folio_lock(F)
+try_to_unmap(F, TTU_SYNC)
+                                    zap_pte_range(full PMD range)
+                                      spin_lock(ptl)
+                                      clear PTEs
+                                      zap_empty_pte_table()
+                                        spin_trylock(pml)
+                                        pmd_clear()
+                                        spin_unlock(pml)
 
-22 patches. 17 are cc:stable.
+  page_vma_mapped_walk()
+    observe !pmd_present(pmde)
+    nr_pages < HPAGE_PMD_NR
+    skip synchronization
+    return false
 
-Most are OCFS2 fixes. These address extended-attribute corruption,
-missing attributes and kernel BUGs, along with crashes during cluster
-configuration, lock migration, recovery and unmount. Extent movement
-is also fixed to validate its range against a stable file size.
+try_to_unmap() returns
+folio_mapped(F) == true
+nr_unmap_fail += folio_nr_pages(F)
+                                    tlb_flush_mmu_tlbonly()
+                                    tlb_flush_rmaps()
+                                      remove F's rmaps
+                                    spin_unlock(ptl)
 
-Three FAT changes prevent a failed-write/FIBMAP race from spuriously
-making the filesystem read-only, correct directory link counts after
-rename, and speed up file expansion. The reported QEMU benchmarks show
-particularly large improvements on synchronous mounts.
+Commit 243cf1f67b36 ("mm: memory: fix truncation removing mapped folios")
+has already moved the PMD clear operation (via zap_empty_pte_table()) to
+after tlb_flush_rmaps().  Similarly, page_vma_mapped_walk() also needs to
+use sync_with_folio_pmd_zap() to synchronize and avoid memory ordering
+issues on weakly ordered CPUs.
 
-A taint-string fix prevents an out-of-bounds read which can expose slab
-contents in the kernel log. There are also build fixes for OpenRISC
-modules on CPUs without hardware multiply and for Clang 24.
+Link: https://lore.kernel.org/affd6da4e8d0de1424a4e0b3bafcd1324dfb6c97.1793847060.git.baolin.wang@linux.alibaba.com
+Fixes: 6375e95f381e ("mm: pgtable: reclaim empty PTE page in madvise(MADV_DONTNEED)")
+Signed-off-by: Baolin Wang <baolin.wang@linux.alibaba.com>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+Suggested-by: David Hildenbrand (Arm) <david@kernel.org>
+Reviewed-by: Lance Yang <lance.yang@linux.dev>
+Acked-by: Qi Zheng <qi.zheng@linux.dev>
+Cc: Lorenzo Stoakes <ljs@kernel.org>
+Cc: Rik van Riel <riel@surriel.com>
+Cc: Liam R. Howlett <liam@infradead.org>
+Cc: Vlastimil Babka <vbabka@kernel.org>
+Cc: Harry Yoo <harry@kernel.org>
+Cc: Jann Horn <jannh@google.com>
+Cc: Pedro Falcato <pfalcato@suse.de>
+Cc: <ayushr@modal.com>
+Cc: <stable@vger.kernel.org>
+---
 
-----------------------------------------------------------------
-Andrew Morton (2):
-      openrisc: export __mulsi3 for modules
-      MAINTAINERS: add an IPC entry
+ mm/page_vma_mapped.c |    5 +----
+ 1 file changed, 1 insertion(+), 4 deletions(-)
 
-Cen Zhang (7):
-      ocfs2: validate move extents against a stable EOF
-      ocfs2: keep locking_state within the cluster connection lifetime
-      ocfs2/dlm: serialize migration MLE cleanup on failure
-      ocfs2: stop recovery before shutting down local allocators
-      ocfs2/cluster: unlink socket containers before releasing resources
-      ocfs2: wait for filecheck kobject release after a failed add
-      ocfs2: cache the mount context for dentry lock callbacks
+--- a/mm/page_vma_mapped.c~mm-synchronize-with-pte-table-reclaim-for-all-folio-sizes
++++ a/mm/page_vma_mapped.c
+@@ -293,10 +293,7 @@ restart:
+ 			spin_unlock(pvmw->ptl);
+ 			pvmw->ptl = NULL;
+ 		} else if (!pmd_present(pmde)) {
+-			if ((pvmw->flags & PVMW_SYNC) &&
+-			    thp_vma_suitable_order(vma, pvmw->address,
+-						   PMD_ORDER) &&
+-			    (pvmw->nr_pages >= HPAGE_PMD_NR))
++			if (pvmw->flags & PVMW_SYNC)
+ 				sync_with_folio_pmd_zap(mm, pvmw->pmd);
+ 
+ 			goto next_pmd;
+_
 
-Cl=E9ment L=E9ger (1):
-      MAINTAINERS: mailmap: use Cl=E9ment L=E9ger's linux.dev mail address
+Patches currently in -mm which might be from baolin.wang@linux.alibaba.com are
 
-Eklavya Singh (1):
-      ocfs2/heartbeat: serialize concurrent writes to a region's dev attrib=
-ute
-
-Hungyu Lin (1):
-      fat: fix parent link count when replacing a sibling directory
-
-Joseph Qi (6):
-      ocfs2: read the xattr entry hash before defragmenting the bucket
-      ocfs2: find the xattr entry again after defragmenting a bucket
-      ocfs2: find the xattr entry again after converting a block to a bucket
-      ocfs2: do not read the entry array of an empty xattr bucket
-      ocfs2: do not index before the entry array when dividing an empty buc=
-ket
-      ocfs2: do not read the entry array of an empty xattr block
-
-Matheus Alves de Almeida (2):
-      fat: preallocate space before expanding in fat_cont_expand()
-      fat: hold truncate_lock in fat_write_failed()
-
-Nathan Chancellor (1):
-      lib/base64: silence clang-24 -Wconstant-conversion with diag pragmas
-
-Nickolai Zeldovich (1):
-      panic: zero the dynamically allocated taint buffer
-
- .mailmap                          |   4 ++
- MAINTAINERS                       |  14 +++-
- arch/openrisc/kernel/or32_ksyms.c |   1 +
- fs/fat/dir.c                      |  10 +++
- fs/fat/fat.h                      |   1 +
- fs/fat/file.c                     |  70 +++++++++++++-----
- fs/fat/inode.c                    |   2 +
- fs/fat/namei_msdos.c              |   9 +--
- fs/fat/namei_vfat.c               |   9 +--
- fs/ocfs2/cluster/heartbeat.c      |  40 +++++++++--
- fs/ocfs2/cluster/tcp.c            |   5 +-
- fs/ocfs2/dcache.h                 |   5 +-
- fs/ocfs2/dlm/dlmmaster.c          |  70 +++++++++++++++---
- fs/ocfs2/dlmglue.c                |  34 ++++-----
- fs/ocfs2/filecheck.c              |   2 +
- fs/ocfs2/journal.c                |  15 +++-
- fs/ocfs2/journal.h                |   1 +
- fs/ocfs2/move_extents.c           |  70 ++++++++++--------
- fs/ocfs2/super.c                  |   3 +
- fs/ocfs2/xattr.c                  | 146 ++++++++++++++++++++++++++++++++--=
-----
- kernel/panic.c                    |   2 +-
- lib/base64.c                      |   3 +
- 22 files changed, 388 insertions(+), 128 deletions(-)
+mm-synchronize-with-pte-table-reclaim-for-all-folio-sizes.patch
 
