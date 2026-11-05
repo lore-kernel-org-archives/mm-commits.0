@@ -1,45 +1,45 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793894086;
-	b=OmWq3Z9Itw/dnyfZkVmeIic4kTnMoJkFHMnjBUtnUPxmb8CuCxpbJ0JqYwW3DWn/82Zm
-	 IUNheNi1B+/ESU54Y4gwbxa2l5uPVCxv8mng9U6cG7FH/Skwa0aJDv43Viv0G7gku5JLZ
-	 bcnA9g4u3SF3jTOkGXTHHUgzZYJ1MO5C9gnKROWRXDWqVMPkJCw66j+XKMBSbMfP56jmS
-	 XbyCM/fCl36xSyITnV2SPmNM911DxDPGOf6cIgThr+8E44ym0gsyBsbSpnUWEThwEOfFM
-	 SxXmKhrZ3GRNuCYf982oMfQ6JG8GoO+hMWUS6i72kBHZSJX775atgUtGxxMbAO83sbw==
+	t=1793894087;
+	b=vNCkni5v6SQRMJT7wZXFZuubp/GEG5NLUVGGr1GgpSkTiVnhYkReIboJi4WG8nhTfE3i
+	 /G2JICEY6yLwJQnTEy3qlr4ASBohpq9SlznbOTK5C116p0kLt39AMK0OgZpsvrciP5R2G
+	 YEnLAb4yIB/qM3Nu2NZS6jfNDAZvKSGSWPnHJvsHYOymZSslGGb8dbRa4BWyEVdWXKuZV
+	 sBew0xN9p8dhRCWtAfHWtpQN5BXMYNqQBHyR1VFgx1/Y5EnHuW+AsKIvj5edqAgxJL5He
+	 fbYTxrFQP7tNsV/NanAYSqpdIJphATblEFoNpudSj4wOTYP4UDskh7g/r/pQqnNyj7w==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793894086;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793894087;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=dJjPYRk00p2n14nDC77fcZhRqR4DEmx9LIXfIV/qK0s=;
-	b=gCyyNbDJcWeoVMvE/wGYjVs3y685ogPOVZn6yKMmXcwD59Au3NdPANk69p8NfeXHpD6a
-	 B8QD6as/dGMoS8DQCazTS5Q10DlHp19j+K9TVS12T/nZSPkJA2IjXMKKayUDZ8/GiBeXs
-	 56hQFvHPD0txCxkoIXVUVQcazA4Qs75fV4DggRS0DJykK2Q2hzD9KWgD1TaTcurS0n2HT
-	 u6+5pCPGrozgh2RKdyL1BZ+edPwfLlw5G/R1qzVOAwHjg8ZAOjWOC2z/HJWKwSmed4tOd
-	 y6asRL14ePiPpvlp/0iIBBxJITPkj8wDN6Hsj1c85IBzoohDYB+SBPdVlopQY5PiVIA==
+	bh=CO7cXFAzcz9GOhtMhNJOZGva6duZlNHqXQXpWUY60Zs=;
+	b=DOLAbGUv7eb0Mx5op/ztNKxNHoMWz7J4RXMeftSnOoP1b524QE1wLtuVjPsiLEgHJJCb
+	 qc/Z7r4f6i2ZC0uP5CScC+NqYTwpk/dKMJE66r4yE7Cqb8W8sEgpr0pdmAUTP+XlO+nlc
+	 o8SEtwmamuVdPJVHXz8xADeb031fpoX5qI7lUvfpO3IiFpDDGQY9bYJRRJF9elmuCFP7u
+	 +EY6X7VPyap06MgADmFBNEbyPo6g4FnDsJfk60Bdpl3HmWaPiJrXvnI+N4Xe58/5adIXA
+	 z1jYzUxq9YB5oMFYvicCZJ6vSuZdgWl/4oEGBhHZLkXT6HVn7JGzioMaYawGkwA6tpg==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=Sm45+7UN;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=dGtYk3cc;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AFC6A606BE83
-	for <mm-commits@vger.kernel.org>; Thu,  5 Nov 2026 15:54:45 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 78024606CF9D
+	for <mm-commits@vger.kernel.org>; Thu,  5 Nov 2026 15:54:46 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=Sm45+7UN
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 27A6A1F00A18;
-	Thu,  5 Nov 2026 15:54:45 +0000 (UTC)
+	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=dGtYk3cc
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 382791F00A02;
+	Thu,  5 Nov 2026 15:54:46 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1793894085;
-	bh=dJjPYRk00p2n14nDC77fcZhRqR4DEmx9LIXfIV/qK0s=;
+	d=linux-foundation.org; s=korg; t=1793894086;
+	bh=CO7cXFAzcz9GOhtMhNJOZGva6duZlNHqXQXpWUY60Zs=;
 	h=Date:To:From:Subject;
-	b=Sm45+7UNPa0tx+CQkfNS32HfHmVVssa9Hnn4nGuiuDKxJFsKVgp11ntG1SFGb9XA6
-	 MFKSSVlPcw9S5hZIFqhm7tbotzeTxhCfjVvzeeJzSayVz9HHOEWMVuJQBnXMuL8LqY
-	 7wqmmPcGeC/DIS4KsmtwLeT5OyX+dU5oTeSbky8k=
-Date: Thu, 05 Nov 2026 07:54:44 -0800
+	b=dGtYk3cc9Pv/zySPBqfxkYK9Ea+7aNkFxCC+fFvDAUTVlrctUp1O6pFEQRRsRve9k
+	 qXMRp7p3LVv1iscT0Rfsu4h9TmtqmmAMLjRmzbtZU9fPla/++KW3KyeIwifYo0Sgkl
+	 OWSD/HJBGGvPfBHFgv7+KTUnRXBh1hcXkwAn6gss=
+Date: Thu, 05 Nov 2026 07:54:45 -0800
 To: mm-commits@vger.kernel.org,tz2294@columbia.edu,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [to-be-updated] mm-remove-clear_page_dirty_for_io.patch removed from -mm tree
-Message-Id: <20261105155445.27A6A1F00A18@smtp.kernel.org>
+Subject: [to-be-updated] mm-remove-attach_page_private-and-detach_page_private.patch removed from -mm tree
+Message-Id: <20261105155446.382791F00A02@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -51,21 +51,20 @@ Precedence: list
 
 
 The quilt patch titled
-     Subject: mm: remove clear_page_dirty_for_io()
+     Subject: mm: remove attach_page_private() and detach_page_private()
 has been removed from the -mm tree.  Its filename was
-     mm-remove-clear_page_dirty_for_io.patch
+     mm-remove-attach_page_private-and-detach_page_private.patch
 
 This patch was dropped because an updated version will be issued
 
 ------------------------------------------------------
 From: Tal Zussman <tz2294@columbia.edu>
-Subject: mm: remove clear_page_dirty_for_io()
-Date: Mon, 02 Nov 2026 17:54:08 -0500
+Subject: mm: remove attach_page_private() and detach_page_private()
+Date: Mon, 02 Nov 2026 17:54:09 -0500
 
-There are no callers left. Point the comments that named it at
-folio_clear_dirty_for_io() instead.
+There are no callers left of either wrapper. Remove them.
 
-Link: https://lore.kernel.org/20261102-page-wrappers-v1-3-e7280bdb31f6@columbia.edu
+Link: https://lore.kernel.org/20261102-page-wrappers-v1-4-e7280bdb31f6@columbia.edu
 Signed-off-by: Tal Zussman <tz2294@columbia.edu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 Reviewed-by: SJ Park <sj@kernel.org>
@@ -93,70 +92,28 @@ Cc: Hugh Dickins <hughd@google.com>
 Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
 ---
 
- include/linux/pagemap.h |    1 -
- mm/folio-compat.c       |    6 ------
- mm/gup.c                |    6 +++---
- mm/page-writeback.c     |    2 +-
- 4 files changed, 4 insertions(+), 11 deletions(-)
+ include/linux/pagemap.h |   10 ----------
+ 1 file changed, 10 deletions(-)
 
---- a/include/linux/pagemap.h~mm-remove-clear_page_dirty_for_io
+--- a/include/linux/pagemap.h~mm-remove-attach_page_private-and-detach_page_private
 +++ a/include/linux/pagemap.h
-@@ -1315,7 +1315,6 @@ static inline void folio_cancel_dirty(st
- 		__folio_cancel_dirty(folio);
+@@ -635,16 +635,6 @@ static inline void *folio_detach_private
+ 	return data;
  }
- bool folio_clear_dirty_for_io(struct folio *folio);
--bool clear_page_dirty_for_io(struct page *page);
- void folio_invalidate(struct folio *folio, size_t offset, size_t length);
- bool noop_dirty_folio(struct address_space *mapping, struct folio *folio);
  
---- a/mm/folio-compat.c~mm-remove-clear_page_dirty_for_io
-+++ a/mm/folio-compat.c
-@@ -42,12 +42,6 @@ int set_page_dirty_lock(struct page *pag
- }
- EXPORT_SYMBOL(set_page_dirty_lock);
- 
--bool clear_page_dirty_for_io(struct page *page)
+-static inline void attach_page_private(struct page *page, void *data)
 -{
--	return folio_clear_dirty_for_io(page_folio(page));
+-	folio_attach_private(page_folio(page), data);
 -}
--EXPORT_SYMBOL(clear_page_dirty_for_io);
 -
- bool redirty_page_for_writepage(struct writeback_control *wbc,
- 		struct page *page)
- {
---- a/mm/gup.c~mm-remove-clear_page_dirty_for_io
-+++ a/mm/gup.c
-@@ -298,16 +298,16 @@ void unpin_user_pages_dirty_lock(struct
- 		folio = gup_folio_next(pages, npages, i, &nr);
- 		/*
- 		 * Checking PageDirty at this point may race with
--		 * clear_page_dirty_for_io(), but that's OK. Two key
-+		 * folio_clear_dirty_for_io(), but that's OK. Two key
- 		 * cases:
- 		 *
- 		 * 1) This code sees the page as already dirty, so it
- 		 * skips the call to set_page_dirty(). That could happen
--		 * because clear_page_dirty_for_io() called
-+		 * because folio_clear_dirty_for_io() called
- 		 * folio_mkclean(), followed by set_page_dirty().
- 		 * However, now the page is going to get written back,
- 		 * which meets the original intention of setting it
--		 * dirty, so all is well: clear_page_dirty_for_io() goes
-+		 * dirty, so all is well: folio_clear_dirty_for_io() goes
- 		 * on to call TestClearPageDirty(), and write the page
- 		 * back.
- 		 *
---- a/mm/page-writeback.c~mm-remove-clear_page_dirty_for_io
-+++ a/mm/page-writeback.c
-@@ -2821,7 +2821,7 @@ EXPORT_SYMBOL(folio_mark_dirty_lock);
-  * This cancels just the dirty bit on the kernel page itself, it does NOT
-  * actually remove dirty bits on any mmap's that may be around. It also
-  * leaves the page tagged dirty, so any sync activity will still find it on
-- * the dirty lists, and in particular, clear_page_dirty_for_io() will still
-+ * the dirty lists, and in particular, folio_clear_dirty_for_io() will still
-  * look at the dirty bits in the VM.
-  *
-  * Doing this should *normally* only ever be done when a page is truncated,
+-static inline void *detach_page_private(struct page *page)
+-{
+-	return folio_detach_private(page_folio(page));
+-}
+-
+ #ifdef CONFIG_NUMA
+ struct folio *filemap_alloc_folio_noprof(gfp_t gfp, unsigned int order,
+ 		struct mempolicy *policy);
 _
 
 Patches currently in -mm which might be from tz2294@columbia.edu are
@@ -164,7 +121,6 @@ Patches currently in -mm which might be from tz2294@columbia.edu are
 mm-memcontrol-remove-mod_memcg_page_state.patch
 mm-memcontrol-remove-page_memcg_check.patch
 mm-userfaultfd-store-the-childs-new-uffd-context-in-the-wait-queue-entry.patch
-mm-remove-attach_page_private-and-detach_page_private.patch
 mm-remove-find_get_page_flags.patch
 mm-remove-find_lock_page.patch
 mm-remove-read_cache_page_gfp.patch
