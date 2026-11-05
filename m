@@ -1,45 +1,45 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793894088;
-	b=MWxLb1wdANmoAAGn9m/1OZDeRCM2qre/MrfOULotzXxxRZfBS19u/i5brRT2sQbDaKEB
-	 ul0KPf6OM+Tod34Z6979tcGb65J3hBstHcqV1DmKrM2hx5dO1PiNFxOyehQ0cyW0XZADV
-	 pxUpRAIKJB7665v8a/q22fA7OOKu6XrHY5JZjw94+P4ByB6OBbhTbjGWhSLS4R3eidHJA
-	 JkIajFfwEx5p0RSWoc/tStP1VRRKe+PDt0f5V7v82yaU6Jq4YS6hFhxQuJZd4bpqUh15j
-	 afHDhObqYFOz0Fa58RH9ui8bImQzQ/CoXOISWV/QFYjFkfS2X5S2EczBRKlFiXJ2YhQ==
+	t=1793894089;
+	b=mcmUVSKch3RhY+mH9U8ekuC02os2qnHnh1RENjggk/JF3/t/qWe30j3bHRXN5WLnQ2Sc
+	 ZhxFRAjGA6iLH8nP5jSMRKTxVRrLYHXQkO9BdwzJw2wqJ9//99gdaEMnvtvxoGb9mOf8t
+	 VQZYqsXFpWEVQVLfrNLtJIM2Ywk9ID7jIgBWDkw/CH3e5JQ2ZOSSf0q2HjvmeGSgD+ucA
+	 yUfAmHccSEO5BujUjvO3lyKH+jOFw++DhnNdMQV/iTxPUES++7HYfdjnQRPKSDJTJ33+1
+	 nRBL1a5RrGJx5lPogyk6SuxTfCI8s6sN9qxyfVN9Hnwtal9/Qd2xT/T3pJF/nYZqCyA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793894088;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793894089;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=SyeuW0v1edLG9+y0XOeXm1zhLvni72RagtW+Pj7DuWI=;
-	b=OO/F+BTKTFnqftiR2ZDnijhJ5DS5C/blIFplxgzsWcJZfRNKE7Qko4Y5ds3uENcEP0uA
-	 +khJJBWU8qSb1nKxBW89P8ZQJtAYMeGrHcI0qdpaqqpQJQO5xGngmzjNLDJ8LzXx1j0aj
-	 Je6aGyb1OuYMhVcWlNxBzSIpkPFkyTGx4T2zUEG/28piU/ZADfmv87dLmhnK3vr0aC0kF
-	 Z3bvOhc9vuXdfE2xth7zSw1pYKmLHvxoLXiwEz/6EyhldEsoEHwQ2eKnSjXw6/c7YhyjK
-	 6dZRZJyW/6+ZSo73acKNliJ2tFgi0mbqKEzIqVASACfRV/Od2MqmUWw4x/3fWo+6rwQ==
+	bh=xmFyKgcmrHzGSi8fvDUfEzi/uJRWsh3D1MCdCGUQtQ4=;
+	b=bGTy5zzqqPGzRa5dqgoiv/rc4OUVn5bHRMAJmZXi/stWthV/syXiM02zJnelfc1lIEUX
+	 oUffigPZBhR+Z+HyjDV8ee3Y91a0umqPNuZ9721I9I2uLXx1/71+w6RFXwWOzMT7dWSAi
+	 cJ93U1KKu588uJuj5FkgRO0e/b4QOyhqM8iZP6rC+SjzCzrHEcUS8bG0y3n5SCYvpj0dB
+	 cjXvOSIevhUr9VjZ0UGer8Cj65f20GJvmOxEQ0G6R8mxPiOFYbpXgw5W79KaiNBQB/+1d
+	 6pj9bLZlNs3UEWiVuxNuvnAybftuDdA/1Z5I9kieQDnYUMnYevnCwHqAtjfTzMBzA9Q==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=BrVAH2YZ;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=Uwblp6qT;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AAD87606BE83
-	for <mm-commits@vger.kernel.org>; Thu,  5 Nov 2026 15:54:47 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C60E2606BE83
+	for <mm-commits@vger.kernel.org>; Thu,  5 Nov 2026 15:54:48 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=BrVAH2YZ
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4A48C1F00A1B;
-	Thu,  5 Nov 2026 15:54:47 +0000 (UTC)
+	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=Uwblp6qT
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5FD4B1F00A18;
+	Thu,  5 Nov 2026 15:54:48 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1793894087;
-	bh=SyeuW0v1edLG9+y0XOeXm1zhLvni72RagtW+Pj7DuWI=;
+	d=linux-foundation.org; s=korg; t=1793894088;
+	bh=xmFyKgcmrHzGSi8fvDUfEzi/uJRWsh3D1MCdCGUQtQ4=;
 	h=Date:To:From:Subject;
-	b=BrVAH2YZhbUj/2OOIDD60I9nRNmlItxm1Cx3O78bWs3qfmOlVgKDVfE3nlep90MSP
-	 PFS2pv6dhdaZhrTX8HmS0TnPHSXauJs7tSCvIjwu2tfNhCBSa1ydX9NFfpxIym8b37
-	 31n1le1KjB7JP0MpWa+lW/hO6FMPCut1VsuR/meo=
-Date: Thu, 05 Nov 2026 07:54:46 -0800
+	b=Uwblp6qTDzF6vY0k10jn1DKIYwoyNljeJCUBOKgIstihX4poNcAjgwXl2EXjltyVN
+	 9FjlLQOcUEOuTg9+gkCU593r+dJy542mcjZnTl51Yh666cW+cKAWClv9IUxL+8vYmx
+	 rk+rmC/1rRgPA6Hv2E6rALIk+SptiBlk+igKzAeY=
+Date: Thu, 05 Nov 2026 07:54:47 -0800
 To: mm-commits@vger.kernel.org,tz2294@columbia.edu,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [to-be-updated] mm-remove-find_get_page_flags.patch removed from -mm tree
-Message-Id: <20261105155447.4A48C1F00A1B@smtp.kernel.org>
+Subject: [to-be-updated] mm-remove-find_lock_page.patch removed from -mm tree
+Message-Id: <20261105155448.5FD4B1F00A18@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -51,20 +51,22 @@ Precedence: list
 
 
 The quilt patch titled
-     Subject: mm: remove find_get_page_flags()
+     Subject: mm: remove find_lock_page()
 has been removed from the -mm tree.  Its filename was
-     mm-remove-find_get_page_flags.patch
+     mm-remove-find_lock_page.patch
 
 This patch was dropped because an updated version will be issued
 
 ------------------------------------------------------
 From: Tal Zussman <tz2294@columbia.edu>
-Subject: mm: remove find_get_page_flags()
-Date: Mon, 02 Nov 2026 17:54:10 -0500
+Subject: mm: remove find_lock_page()
+Date: Mon, 02 Nov 2026 17:54:11 -0500
 
-There are no callers left. Remove it.
+There are no callers left. Remove it. The name still appears in a
+sample function graph trace in Documentation/trace/ftrace.rst, which
+is recorded output and is left as it is.
 
-Link: https://lore.kernel.org/20261102-page-wrappers-v1-5-e7280bdb31f6@columbia.edu
+Link: https://lore.kernel.org/20261102-page-wrappers-v1-6-e7280bdb31f6@columbia.edu
 Signed-off-by: Tal Zussman <tz2294@columbia.edu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 Reviewed-by: SJ Park <sj@kernel.org>
@@ -92,24 +94,37 @@ Cc: Hugh Dickins <hughd@google.com>
 Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
 ---
 
- include/linux/pagemap.h |    6 ------
- 1 file changed, 6 deletions(-)
+ include/linux/pagemap.h |   19 -------------------
+ 1 file changed, 19 deletions(-)
 
---- a/include/linux/pagemap.h~mm-remove-find_get_page_flags
+--- a/include/linux/pagemap.h~mm-remove-find_lock_page
 +++ a/include/linux/pagemap.h
-@@ -846,12 +846,6 @@ static inline struct page *find_get_page
- 	return pagecache_get_page(mapping, offset, 0, 0);
+@@ -847,25 +847,6 @@ static inline struct page *find_get_page
  }
  
--static inline struct page *find_get_page_flags(struct address_space *mapping,
--					pgoff_t offset, fgf_t fgp_flags)
+ /**
+- * find_lock_page - locate, pin and lock a pagecache page
+- * @mapping: the address_space to search
+- * @index: the page index
+- *
+- * Looks up the page cache entry at @mapping & @index.  If there is a
+- * page cache page, it is returned locked and with an increased
+- * refcount.
+- *
+- * Context: May sleep.
+- * Return: A struct page or %NULL if there is no page in the cache for this
+- * index.
+- */
+-static inline struct page *find_lock_page(struct address_space *mapping,
+-					pgoff_t index)
 -{
--	return pagecache_get_page(mapping, offset, fgp_flags, 0);
+-	return pagecache_get_page(mapping, index, FGP_LOCK, 0);
 -}
 -
- /**
-  * find_lock_page - locate, pin and lock a pagecache page
-  * @mapping: the address_space to search
+-/**
+  * find_or_create_page - locate or add a pagecache page
+  * @mapping: the page's address_space
+  * @index: the page's index into the mapping
 _
 
 Patches currently in -mm which might be from tz2294@columbia.edu are
@@ -117,7 +132,6 @@ Patches currently in -mm which might be from tz2294@columbia.edu are
 mm-memcontrol-remove-mod_memcg_page_state.patch
 mm-memcontrol-remove-page_memcg_check.patch
 mm-userfaultfd-store-the-childs-new-uffd-context-in-the-wait-queue-entry.patch
-mm-remove-find_lock_page.patch
 mm-remove-read_cache_page_gfp.patch
 mm-remove-thp_size-and-thp_order.patch
 
