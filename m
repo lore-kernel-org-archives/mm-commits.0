@@ -1,49 +1,45 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793854866;
-	b=GjgcCGylzFMoyH2xwMYdgiRd4kvmh+rwkA2C1lNXN6jLTZJlR4F3r/2h1lTg2wq/kydc
-	 GJBje261l8YUu8olBhjKBkZqJ+Sae698r8EYf7h06MAjDRIBXMxIUGKntkWshW2aJ6J30
-	 YeXs9rZXss2wP+LNwrI+WUIckTUFJp3CJEjbiVIYC0S525mBUxaVlKX9wW189usK3vdMl
-	 lO78JcDOD0xNslRYs5ZEX/x35GObygQRC28kU3Yw2G9H7vH8XSfucFGk1It3JL2FIPAyn
-	 hecNyYgqYelDcOsHaAbqMEu74tSvTAKtMZEnxGmchlsP4x5qTEDjGbL+8e+yUBBY0jw==
+	t=1793894084;
+	b=VXgrxgy2EA+3aw+0ULoluA6Ubx7UMHb2aa0WNZv/ppjx9Fd8XG9m7gBBdih+iJgvr1Nl
+	 SH2Be6zsNB04FXMCLHpjRT+kFf5JyieQNiYCMcJaZf3Xbltg+h2Nb1OcfQn3a2sZPWq7u
+	 6l5c2TDzYrfYA3FqnaIcjgKv3gMCPkW2r7SVvpZaBqdnNoKaLE2gU3iFKdmrwX5uhyOi5
+	 wunb4rFlY5l0AOid++bkncSQvJ10M5WYPnDBbWrb1MHTVSPGqBYnuQvkbcpSrfUUTIAR/
+	 B25/ccgVZUNcx+xU53fsWjE+oTz6XxvJTTn4veuceiohRl94kmIaqJC1Awn+ac1Ak5g==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793854866;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793894084;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=RCWd2BjyL96l4KEXy518EvYimMhdF2AEZ/SyU9k+auA=;
-	b=5bV91XsBvhHdLgJDEZwI/zRKKjo0K4ndllYHEtywM8t+ifN3G8NZYv1G2+EqSnetUfv4
-	 3JJgilX7+C2P7WEYKysA1zfsEgT32U8H2DyUAioOvq3Q0mNx7zZB8dsqQztUuySiA1mfc
-	 UK9/nb6O7KdURi/1wC4ZopPl2eCuZO1ny33+lo5Db+zHVTtEOanCTrAa7yyrZfnjk38GN
-	 gKjZkaYrrNhMu+b9CB86BrjDydPYNmJNsUlRrse2wNWq5mV6aTkxK90jHVbQp88pvzmy8
-	 51VOTGqymwbZ8f2YULKV26MKrY9srfrfVqPsBqhbTaHV+6UMVK/E2h8chd/5hKwzUEQ==
+	bh=FRkWUIYuAxs/jdcuHToebFx1r3MC++mX34bB1Ptclmk=;
+	b=WSBeEVjDx1r3eYdU+U+ORikYWmU1/S6B29smdaBUqn+YPZrf+YKFeDoIJMYszXBFkVrc
+	 jeYq/8OobBVZCKROIKLaxaZ3PuRfRzd5+m/iJQ4w6nI88Su+At4x9yK7XseX4mQ0Mkgkv
+	 tIC5r0XP3pwxp64Ft81XaqPrCjpugv9D+EfGhsd5S7uRn8sPyojZAhxBI6stLfPBldv/O
+	 lSJx5J0zKf4Bd3CvZlMtF/kauuEJ9bX8hlwyGWE6QbI4NKnbXiOiQFBigeMXB6qpLEKFB
+	 Ez/WBQ2gLJF4EZiYoZddD/idX9NuJgQtYV0icFkjOu5xR0I4SNo3NNjDbRSoXozsbnw==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=EjcRrUNH;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=m8F8hzi0;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7730F606D803;
-	Thu,  5 Nov 2026 05:01:05 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A8195606B476
+	for <mm-commits@vger.kernel.org>; Thu,  5 Nov 2026 15:54:43 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=EjcRrUNH
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D5F211F000C1;
-	Thu,  5 Nov 2026 05:01:04 +0000 (UTC)
+	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=m8F8hzi0
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 103C11F00A02;
+	Thu,  5 Nov 2026 15:54:43 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1793854864;
-	bh=RCWd2BjyL96l4KEXy518EvYimMhdF2AEZ/SyU9k+auA=;
+	d=linux-foundation.org; s=korg; t=1793894083;
+	bh=FRkWUIYuAxs/jdcuHToebFx1r3MC++mX34bB1Ptclmk=;
 	h=Date:To:From:Subject;
-	b=EjcRrUNHmAabaaYJusU14ro8ljEcmYplvbkNA37SSEaB7feI+S4XFCOqH63uiuSGK
-	 t0xLG4rVs0N9lc4ayc/y8njfdDibSLkBbht2bBFus+5+UUuYMATQTC6EZi282RZ4ih
-	 oZ2ar2C+mI/6TxhHWEQEmUdx/xL9SHAPrz799XCM=
-Date: Wed, 04 Nov 2026 21:01:04 -0800
-To: mm-commits@vger.kernel.org,vbabka@kernel.org,stable@vger.kernel.org,
-	riel@surriel.com,qi.zheng@linux.dev,pfalcato@suse.de,ljs@kernel.org,
-	liam@infradead.org,lance.yang@linux.dev,jannh@google.com,harry@kernel.org,
-	david@kernel.org,ayushr@modal.com,baolin.wang@linux.alibaba.com,
-	akpm@linux-foundation.org
+	b=m8F8hzi0Epj2dkuWXf0FtkSHKeAEq/veTdVS2VK5ijvOT+UbieyC4enQ8txD7YxhZ
+	 0FbVJKr5h5KOeu8H9GNuMfSdbqYocGsHpY0ZjVPIXF5y2rHN0ck3HbT6rjx3sO+kyS
+	 Ge8JKSKOXLfPrwm/+Jj2+ISQwURY6FIak6XOb5Hw=
+Date: Thu, 05 Nov 2026 07:54:42 -0800
+To: mm-commits@vger.kernel.org,tz2294@columbia.edu,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-synchronize-with-pte-table-reclaim-for-all-folio-sizes.patch added to mm-hotfixes-unstable branch
-Message-Id: <20261105050104.D5F211F000C1@smtp.kernel.org>
+Subject: [to-be-updated] mm-remove-wait_on_page_writeback.patch removed from -mm tree
+Message-Id: <20261105155443.103C11F00A02@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -54,121 +50,104 @@ List-Owner: <mailto:mm-commits+owner@vger.kernel.org>
 Precedence: list
 
 
-The patch titled
-     Subject: mm: synchronize with PTE table reclaim for all folio sizes
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mm-synchronize-with-pte-table-reclaim-for-all-folio-sizes.patch
+The quilt patch titled
+     Subject: mm: remove wait_on_page_writeback()
+has been removed from the -mm tree.  Its filename was
+     mm-remove-wait_on_page_writeback.patch
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-synchronize-with-pte-table-reclaim-for-all-folio-sizes.patch
-
-This patch will later appear in the mm-hotfixes-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via various
-branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there most days
+This patch was dropped because an updated version will be issued
 
 ------------------------------------------------------
-From: Baolin Wang <baolin.wang@linux.alibaba.com>
-Subject: mm: synchronize with PTE table reclaim for all folio sizes
-Date: Thu, 05 Nov 2026 10:56:28 +0800
+From: Tal Zussman <tz2294@columbia.edu>
+Subject: mm: remove wait_on_page_writeback()
+Date: Mon, 02 Nov 2026 17:54:06 -0500
 
-Similar to commit 243cf1f67b36 ("mm: memory: fix truncation removing
-mapped folios"), the '!pmd_present()' check in page_vma_mapped_walk() can
-also race with concurrent page table reclamation via
-zap_empty_pte_table().
+Patch series "mm: remove newly-unused page wrapper APIs".
 
-page_vma_mapped_walk() is used by many functions including try_to_unmap(),
-try_to_migrate(), folio_mkclean(), pfn_mkclean_range(),
-remove_migration_ptes(), page_mapped_in_vma(), and
-mapping_wrprotect_range().  Except for try_to_unmap() and
-try_to_migrate(), the other callers do not perform post-walk accounting
-checks, so the race has no observable impact on them.
+After some folio conversions done last cycle (namely ceph, f2fs, btrfs,
+fuse, and page_io.c), there are a number of newly-unused page APIs.
+Let's remove them and update comments as necessary.
 
-For migration, the race can cause unnecessary retries.  For reclaim via
-try_to_unmap(), the race can cause failure to reclaim a folio that is in
-fact already unmapped (as shown below), which may lead to unexpected OOM
-or increased refaults.
+Patches 1 and 8 are taken from the ceph writeback folio series [1],
+along with tags.
 
-CPU 0 (reclaim)                      CPU 1 (MADV_DONTNEED)
---------------------------------    --------------------------------
-folio_lock(F)
-try_to_unmap(F, TTU_SYNC)
-                                    zap_pte_range(full PMD range)
-                                      spin_lock(ptl)
-                                      clear PTEs
-                                      zap_empty_pte_table()
-                                        spin_trylock(pml)
-                                        pmd_clear()
-                                        spin_unlock(pml)
 
-  page_vma_mapped_walk()
-    observe !pmd_present(pmde)
-    nr_pages < HPAGE_PMD_NR
-    skip synchronization
-    return false
+This patch (of 8):
 
-try_to_unmap() returns
-folio_mapped(F) == true
-nr_unmap_fail += folio_nr_pages(F)
-                                    tlb_flush_mmu_tlbonly()
-                                    tlb_flush_rmaps()
-                                      remove F's rmaps
-                                    spin_unlock(ptl)
+The last caller was converted to folio_wait_writeback(), so drop the
+wait_on_page_writeback() compatibility wrapper and its declaration.
 
-Commit 243cf1f67b36 ("mm: memory: fix truncation removing mapped folios")
-has already moved the PMD clear operation (via zap_empty_pte_table()) to
-after tlb_flush_rmaps().  Similarly, page_vma_mapped_walk() also needs to
-use sync_with_folio_pmd_zap() to synchronize and avoid memory ordering
-issues on weakly ordered CPUs.
-
-Link: https://lore.kernel.org/affd6da4e8d0de1424a4e0b3bafcd1324dfb6c97.1793847060.git.baolin.wang@linux.alibaba.com
-Fixes: 6375e95f381e ("mm: pgtable: reclaim empty PTE page in madvise(MADV_DONTNEED)")
-Signed-off-by: Baolin Wang <baolin.wang@linux.alibaba.com>
+Link: https://lore.kernel.org/20261102-page-wrappers-v1-0-e7280bdb31f6@columbia.edu
+Link: https://lore.kernel.org/20261102-page-wrappers-v1-1-e7280bdb31f6@columbia.edu
+Link: https://lore.kernel.org/r/20260810-remove-wait-on-page-writeback-v3-0-dd7531704f26@columbia.edu/ [1]
+Signed-off-by: Tal Zussman <tz2294@columbia.edu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Suggested-by: David Hildenbrand (Arm) <david@kernel.org>
-Reviewed-by: Lance Yang <lance.yang@linux.dev>
-Acked-by: Qi Zheng <qi.zheng@linux.dev>
-Cc: Lorenzo Stoakes <ljs@kernel.org>
-Cc: Rik van Riel <riel@surriel.com>
+Reviewed-by: Matthew Wilcox (Oracle) <willy@infradead.org>
+Acked-by: David Hildenbrand (Arm) <david@kernel.org>
+Reviewed-by: SJ Park <sj@kernel.org>
+Acked-by: Zi Yan <ziy@nvidia.com>
+Reviewed-by: Vishal Moola (Fractile) <vishal.moola@gmail.com>
+Reviewed-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
+Cc: Jan Kara <jack@suse.cz>
 Cc: Liam R. Howlett <liam@infradead.org>
 Cc: Vlastimil Babka <vbabka@kernel.org>
-Cc: Harry Yoo <harry@kernel.org>
-Cc: Jann Horn <jannh@google.com>
-Cc: Pedro Falcato <pfalcato@suse.de>
-Cc: <ayushr@modal.com>
-Cc: <stable@vger.kernel.org>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Matthew Brost <matthew.brost@intel.com>
+Cc: Joshua Hahn <joshua.hahnjy@gmail.com>
+Cc: Byungchul Park <byungchul@sk.com>
+Cc: Gregory Price <gourry@gourry.net>
+Cc: Ying Huang <ying.huang@linux.alibaba.com>
+Cc: Alistair Popple <apopple@nvidia.com>
+Cc: Jason Gunthorpe <jgg@ziepe.ca>
+Cc: John Hubbard <jhubbard@nvidia.com>
+Cc: Peter Xu <peterx@redhat.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
 ---
 
- mm/page_vma_mapped.c |    5 +----
- 1 file changed, 1 insertion(+), 4 deletions(-)
+ include/linux/pagemap.h |    1 -
+ mm/folio-compat.c       |    6 ------
+ 2 files changed, 7 deletions(-)
 
---- a/mm/page_vma_mapped.c~mm-synchronize-with-pte-table-reclaim-for-all-folio-sizes
-+++ a/mm/page_vma_mapped.c
-@@ -293,10 +293,7 @@ restart:
- 			spin_unlock(pvmw->ptl);
- 			pvmw->ptl = NULL;
- 		} else if (!pmd_present(pmde)) {
--			if ((pvmw->flags & PVMW_SYNC) &&
--			    thp_vma_suitable_order(vma, pvmw->address,
--						   PMD_ORDER) &&
--			    (pvmw->nr_pages >= HPAGE_PMD_NR))
-+			if (pvmw->flags & PVMW_SYNC)
- 				sync_with_folio_pmd_zap(mm, pvmw->pmd);
+--- a/include/linux/pagemap.h~mm-remove-wait_on_page_writeback
++++ a/include/linux/pagemap.h
+@@ -1299,7 +1299,6 @@ static inline int folio_wait_locked_kill
+ }
  
- 			goto next_pmd;
+ void folio_end_read(struct folio *folio, bool success);
+-void wait_on_page_writeback(struct page *page);
+ void folio_wait_writeback(struct folio *folio);
+ int folio_wait_writeback_killable(struct folio *folio);
+ void end_page_writeback(struct page *page);
+--- a/mm/folio-compat.c~mm-remove-wait_on_page_writeback
++++ a/mm/folio-compat.c
+@@ -23,12 +23,6 @@ void end_page_writeback(struct page *pag
+ }
+ EXPORT_SYMBOL(end_page_writeback);
+ 
+-void wait_on_page_writeback(struct page *page)
+-{
+-	return folio_wait_writeback(page_folio(page));
+-}
+-EXPORT_SYMBOL_GPL(wait_on_page_writeback);
+-
+ void mark_page_accessed(struct page *page)
+ {
+ 	folio_mark_accessed(page_folio(page));
 _
 
-Patches currently in -mm which might be from baolin.wang@linux.alibaba.com are
+Patches currently in -mm which might be from tz2294@columbia.edu are
 
-mm-synchronize-with-pte-table-reclaim-for-all-folio-sizes.patch
+mm-memcontrol-remove-mod_memcg_page_state.patch
+mm-memcontrol-remove-page_memcg_check.patch
+mm-userfaultfd-store-the-childs-new-uffd-context-in-the-wait-queue-entry.patch
+mm-remove-end_page_writeback.patch
+mm-remove-clear_page_dirty_for_io.patch
+mm-remove-attach_page_private-and-detach_page_private.patch
+mm-remove-find_get_page_flags.patch
+mm-remove-find_lock_page.patch
+mm-remove-read_cache_page_gfp.patch
+mm-remove-thp_size-and-thp_order.patch
 
