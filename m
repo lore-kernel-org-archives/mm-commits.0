@@ -1,46 +1,45 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793978809;
-	b=1ToYrGHBbAZerBi3vYK8t7Lfl7CW6imsxxUa7HgAD20hJ9hrubDWpayu90+BLf8SMkUx
-	 se5dgUVjCIhHl6yfV8ROe944U9dQXuYs2Ol1g6W37KnsxpWa47RAGt3hrhEuqq/2WYW7u
-	 NEBETjHjNyq887WA3H8BfwrwqUqeCXripusvZ3o4CwRWmWfWpQY8CQ4Mngt7n0kmZ2sVa
-	 clYVAky1Y9qogyrltVHMx+HOQ9JzZYVSHdtoB/PumKbA/C7IYJrdOprg4/WvCiAxtsux5
-	 c7Y+4RqWbs16go3/dT8S0KSpa9H/N7jt8vJSDRqy5irvVXm/aU1feyxbhAatg2L2Ptw==
+	t=1793980797;
+	b=34A/N8trMsXEn53O4OijKaWe+Gdpn9OdzbG8p9E6HVP1IHkiJkNxIRKG90vZCpp3nnYi
+	 LFvAxvS0hNOdCJAOdrr19Cq2h1BrF2N9useVzhlwWr2pfc6lATFzwYHpudGEnE+/Hl4bA
+	 7GllRU0LSz3cr1MRRlj/cY1LLFsaGFOOos6LJqqg1PGXSPnA9fLIAF6pgtW0v9pAVy0Cc
+	 7sWQmkRon8HbJrX3MxtRgHwqLSJiETbL9k54oLqz81iLAIkoVbILxtnLlLPJYpaEc6N6s
+	 G5VXvobEoo35MsLjMKD2IZoeoPijVC1A210ArgdBPCZt0Q92HAY+c695ky35dPSQefg==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793978809;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793980797;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=GnKKImVWnHBTT7XwkW/AeAFy7UwYRiHgOA6TjHfD23I=;
-	b=RfSdUI35jwgM2Y8QyWvHU4gQMIuCNz4gkhgm4BNCqedmcB78ct8NMtv5+2kF2oE09nJZ
-	 iYIqYelQWMZC1Ll7VFuXjrpq1nKoVUDlOjoTGWRRy2eoi/nD566LKOFke8Y7IYQFoW1CJ
-	 nLRIPlGmB2fVzPg26EjqI67QoGgSOR0JVVpCONTnbBG4C5IRV6bAc+Xr3C4OSLvrX/bDO
-	 1BTkEMasdUibP6QPH+paRUeOWFeL43pL+cc+BDujsY4kbN8ahRUZrikff1eYsmy58ctl/
-	 U46tnoDcWRbuVFOMDFdr9IGmXN146lNIv5nqtO9mw8Mgjxg+OokGCTan74dVcmNymEg==
+	bh=eMEJ9SREcRD1R8e1DNCPLSbqp99GVSSd2HggQ6Dzkw8=;
+	b=z7ML1AMQIQxYBpDL+4ahaFF3NaPBwoMw+VWdwpZXo2GyzfNgDRx1VZDSq6CisB0wmDYE
+	 oWFnBfz5e7WD1oIH48shP23uuXNYxBTygsTnR84ZzIXZEHeCnUk5YWPSPF9tAMEEYYnzJ
+	 RM2djOR2SbOpvYZ3Fh8HYrHGDZlhlyS/xz7HQqCYr/I5e9NEX+NsAxBHYlGN0XTgzFcmK
+	 DY5DBcrtbSF3epZAhga1KH50P3KiIr8oFPvrP+3BE3jDKkp0+cSO3RibFVzGJQw/xeuko
+	 aUJWzUsSS9V0gxpvKCoCNFLd3/8BtO1T4Y/uPLdpeDBnxm5gZeMKwycnn+h4N9bkzVQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=i31ukq3l;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b="0/5TQtkw";
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 53863606EE86
-	for <mm-commits@vger.kernel.org>; Fri,  6 Nov 2026 15:26:49 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 26D23606A326
+	for <mm-commits@vger.kernel.org>; Fri,  6 Nov 2026 15:59:56 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=i31ukq3l
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C2EB61F008A7;
-	Fri,  6 Nov 2026 15:26:48 +0000 (UTC)
+	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=0/5TQtkw
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 986651F008A1;
+	Fri,  6 Nov 2026 15:59:56 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1793978808;
-	bh=GnKKImVWnHBTT7XwkW/AeAFy7UwYRiHgOA6TjHfD23I=;
+	d=linux-foundation.org; s=korg; t=1793980796;
+	bh=eMEJ9SREcRD1R8e1DNCPLSbqp99GVSSd2HggQ6Dzkw8=;
 	h=Date:To:From:Subject;
-	b=i31ukq3lHPi7xwou/lVRc855LammWscNEM+i/BxjJ6PZR4nn3RRGDnzNnWgsulzEA
-	 sAUcUrx6628whvTM5lpDcLTtc0xZrHqEBXy7bfrtDaUoqNew+rFsJXWN+BtPRnRY6B
-	 QwG5ihQ3gXAhtCdnOTUGVct+u74eoAR3Lj0L4aiI=
-Date: Fri, 06 Nov 2026 07:26:48 -0800
-To: mm-commits@vger.kernel.org,surenb@google.com,hao.ge@linux.dev,
-	abhishekbapat@google.com,akpm@linux-foundation.org
+	b=0/5TQtkwSg+0d1rDOldYdDFf9tZMbrZKn/3D4qglLvV3tJ7r6gCAja/lZtQt8GHZ6
+	 q4ZJE/O1X2GoWwpQ51Ypc8OnommolLiZlEMm/Kr0FJTz+nxiZrop5vwvv461XuXc8e
+	 JAXFgrz5CGeWjmmfa5qDgl+jHsSMgR9LxuZnBQAM=
+Date: Fri, 06 Nov 2026 07:59:56 -0800
+To: mm-commits@vger.kernel.org,ljs@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + alloc_tag-introduce-ioctls-to-toggle-allocation-tracepoints-fix-fix.patch added to mm-new branch
-Message-Id: <20261106152648.C2EB61F008A7@smtp.kernel.org>
+Subject: + mm-filemap-convert-fault-and-readahead-logic-to-use-vma_flags_t-fix-fix.patch added to mm-new branch
+Message-Id: <20261106155956.986651F008A1@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -52,12 +51,12 @@ Precedence: list
 
 
 The patch titled
-     Subject: alloc_tag-introduce-ioctls-to-toggle-allocation-tracepoints-fix-fix
+     Subject: mm-filemap-convert-fault-and-readahead-logic-to-use-vma_flags_t-fix-fix
 has been added to the -mm mm-new branch.  Its filename is
-     alloc_tag-introduce-ioctls-to-toggle-allocation-tracepoints-fix-fix.patch
+     mm-filemap-convert-fault-and-readahead-logic-to-use-vma_flags_t-fix-fix.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/alloc_tag-introduce-ioctls-to-toggle-allocation-tracepoints-fix-fix.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-filemap-convert-fault-and-readahead-logic-to-use-vma_flags_t-fix-fix.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -87,31 +86,29 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: alloc_tag-introduce-ioctls-to-toggle-allocation-tracepoints-fix-fix
-Date: Fri Nov  6 07:24:18 AM PST 2026
+Subject: mm-filemap-convert-fault-and-readahead-logic-to-use-vma_flags_t-fix-fix
+Date: Fri Nov  6 07:58:08 AM PST 2026
 
-mark alloc_tag_is_traced __always_inline also, per Hao Ge
+make random_read const, per Lorenzo
 
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Cc: Abhishek Bapat <abhishekbapat@google.com>
-Cc: Hao Ge <hao.ge@linux.dev>
-Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Lorenzo Stoakes (ARM) <ljs@kernel.org>
 ---
 
- include/linux/alloc_tag.h |    2 +-
+ mm/filemap.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/include/linux/alloc_tag.h~alloc_tag-introduce-ioctls-to-toggle-allocation-tracepoints-fix-fix
-+++ a/include/linux/alloc_tag.h
-@@ -156,7 +156,7 @@ static inline void alloc_tag_clear_trace
- 	atomic_andnot(CODETAG_FLAG_TRACE_ON, &tag->ct.flags);
- }
+--- a/mm/filemap.c~mm-filemap-convert-fault-and-readahead-logic-to-use-vma_flags_t-fix-fix
++++ a/mm/filemap.c
+@@ -3410,7 +3410,7 @@ static struct file *do_sync_mmap_readahe
  
--static inline bool alloc_tag_is_traced(const struct alloc_tag *tag)
-+static __always_inline inline bool alloc_tag_is_traced(const struct alloc_tag *tag)
- {
- 	return !!(atomic_read(&tag->ct.flags) & CODETAG_FLAG_TRACE_ON);
- }
+ 	if (force_thp_readahead) {
+ 		unsigned long folio_nr_pages = 1UL << thp_order;
+-		bool random_read = vma_test(vma, VMA_RAND_READ_BIT);
++		const bool random_read = vma_test(vma, VMA_RAND_READ_BIT);
+ 
+ 		fpin = maybe_unlock_mmap_for_io(vmf, fpin);
+ 		ractl._index &= ~(folio_nr_pages - 1);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -123,6 +120,7 @@ selftests-mm-check-madv_cold-and-madv_pageout-on-partly-advised-thps-fix.patch
 alloc_tag-introduce-ioctls-to-toggle-allocation-tracepoints-fix-fix.patch
 alloc_tag-introduce-ioctls-to-toggle-allocation-tracepoints-fix.patch
 mm-filemap-convert-fault-and-readahead-logic-to-use-vma_flags_t-fix.patch
+mm-filemap-convert-fault-and-readahead-logic-to-use-vma_flags_t-fix-fix.patch
 selftests-mm-test-fork-of-pmd-mapped-shmem-thps-fix.patch
 iommufd-enforce-memfd-write-seals-for-file-mappings.patch
 profile-account-for-partial-proc-profile-reads.patch
