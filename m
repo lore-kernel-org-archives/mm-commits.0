@@ -1,46 +1,49 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793928078;
-	b=IeoXZjoUQyYa0RBDovKwxZMFhjb3U8UXjmeU3KYSTNV/atayUeLZTxf781irW651djKZ
-	 imkrW8hd5NK2+s3VFlv5o4ShQBOgN3J3F9ERjSs36KTaN7t0N7OJi440mgZSSkxu3SmjE
-	 SgmqUKWOvdR72an+mlmuQG76g3FzQHnYznyRR1VC5p9lWY8B/irKmVw6C77DoTf8jkFMe
-	 z4tKaZscG011W7AnXOFFxI/DJ4tDzvM4pR/EJJd5cFndyhjsXJEuaXna5fnD2TPCWVEPr
-	 V5byB/XQP1nWF92T6+mqCjkkpgUJb5wX2zVjf3CPRZ5nbSCOrEHZTHK9VBJHK+xaj0A==
+	t=1793928453;
+	b=oClcgdThynBWlVcXqgPzFmXKx5rpJ3t6v4wb9jWYpHkuLliHAtHRMw1dOsPNUzHDdBMA
+	 NXm/nwxYQa2QBthnonJMxAzsxMIGCFokaHYdn++qNMOahjDLR5WG5UTOn4tkFCd2pQVT3
+	 nDtRkCSLWOwBwJIwSHWtwidEmwbZqbIiSkJn1RJqTUwChpfkrFWbmnVx9HmKDuVjstK9p
+	 3hTCUZHct6qR8X9uIo8Xcr2HxmTSXmWBaUFPVWIOpLqzwZQNiwymx5/zS2vCnXr4piWBC
+	 JMW/Y6bA+dVbjL5mUtrWBIFJtbJKhYXb3d50AGIeS5HZlfURcPgMleY72HBGGJH97Sg==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793928078;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793928453;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=uGvkXJwqimlx/KgXYXRSDWpYEOZcolxmrwQUpCD9U6M=;
-	b=VWegXHnyEKOockkgtkAuwEF6K7x1X8l9075EX7J81KG3zezJU4cnY7CUOpm1ghMqKVpi
-	 jDkXFnhMzzeAMMypLT0Jti/08A/+OvRrTGsaDIW3sZ9eg6tpfTDghsDaGfH4U9/+7RDTi
-	 7KBLawmejlKXPCNnufj1CUCVraYxGwJeTPL8NraKEQQmCoP0xyzKfPIYjUeS61t8DOP3o
-	 uwl9gkHB2JVr48B9WRl0CVmVh+S3BbXEDBx/Fiwata7yromMOjxsFdUGnSDU8ZfXbIy9m
-	 J3r3/RmDSSUWQkU74nkQBi1IPzfSS9xZzWCwffKbVDedI1cueFQmuXCmAuu3rhGxswQ==
+	bh=Ggexvz+DRBtx3a3Vl/nT0GwYPhBHbH2HXrv6jdI2Fj8=;
+	b=SMvK+woAMRmKJRXV1y05mraqjlR42f2aTnusfT4/JtgV/DUSa7RNnAlMVpLRl0bth14O
+	 WkrUBIFom8MJwBU5cs6QVJntKwGh64lTV0DFjxYthVQQzqHJgjDdmiEMbPxjNrOYl/mx7
+	 auGYXeHE4tooiRZwLuMR7gRwDDcfvpaGAQ5K/aFnGbQIPviLdbyYIM5OeqXNtqwgItvxH
+	 lEkRNllc40NKn2DnFYfiW+r98Uv0p/EyCP5rDQ2ZHsS3Hg97Bw0Yv70Y7Rfp4dBBlcuvl
+	 HkT6LjfLvCN+hVjOM0b5WFv8nrfaNc6HeTe8EN3MAjMkS2EZyqNOddFSCrNQWf72x5w==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=AUI3jpOC;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=eYN+GB9N;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 268F5606A31B
-	for <mm-commits@vger.kernel.org>; Fri,  6 Nov 2026 01:21:17 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4D872606A31B;
+	Fri,  6 Nov 2026 01:27:33 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=AUI3jpOC
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 919541F0089F;
-	Fri,  6 Nov 2026 01:21:17 +0000 (UTC)
+	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=eYN+GB9N
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E234C1F0089F;
+	Fri,  6 Nov 2026 01:27:32 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1793928077;
-	bh=uGvkXJwqimlx/KgXYXRSDWpYEOZcolxmrwQUpCD9U6M=;
+	d=linux-foundation.org; s=korg; t=1793928453;
+	bh=Ggexvz+DRBtx3a3Vl/nT0GwYPhBHbH2HXrv6jdI2Fj8=;
 	h=Date:To:From:Subject;
-	b=AUI3jpOCCmES7FoLU7qmDCH7KgZXm5hWUMiirEp3GGz6foS+tH0kdqQwWv3RPf37H
-	 M16RjlSvyBbduSUVjZ0YML1sGpdqWQbrEdX+XYRCrunDmv5otN+o4o+IPCbGloYk49
-	 kOpt6q8L826UavmAw+Phk47gBZ7agT0pgHI52kG8=
-Date: Thu, 05 Nov 2026 17:21:17 -0800
-To: mm-commits@vger.kernel.org,surenb@google.com,lkp@intel.com,
-	hao.ge@linux.dev,abhishekbapat@google.com,akpm@linux-foundation.org
+	b=eYN+GB9NCVGDJg4IFBd+Jr5EjLWAkPTbMmIvnlrvzwhdBlmGvC2csIo+SpByAXDOP
+	 hUhsPhQb3tHtVMHfXRt1Qz9s9GjkzJkysIAP4339f773bRsFekvWDT7BSRVSyNEvFL
+	 K7V4bDF6VCEZ5STnY0fMlZI0lDCb29sFyfHq5FAU=
+Date: Thu, 05 Nov 2026 17:27:32 -0800
+To: mm-commits@vger.kernel.org,vbabka@kernel.org,stable@vger.kernel.org,
+	sarthak.sharma@arm.com,pfalcato@suse.de,osalvador@suse.de,
+	muchun.song@linux.dev,ljs@kernel.org,liam@infradead.org,jannh@google.com,
+	david@kernel.org,azpijr@gmail.com,josef@toxicpanda.com,
+	akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + alloc_tag-introduce-ioctls-to-toggle-allocation-tracepoints-fix.patch added to mm-new branch
-Message-Id: <20261106012117.919541F0089F@smtp.kernel.org>
+Subject: + mm-mremap-fix-hugetlb-reservation-leak-on-partial-move.patch added to mm-new branch
+Message-Id: <20261106012732.E234C1F0089F@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -52,12 +55,12 @@ Precedence: list
 
 
 The patch titled
-     Subject: alloc_tag: force inline the allocation tracing check
+     Subject: mm/mremap: fix hugetlb reservation leak on partial move
 has been added to the -mm mm-new branch.  Its filename is
-     alloc_tag-introduce-ioctls-to-toggle-allocation-tracepoints-fix.patch
+     mm-mremap-fix-hugetlb-reservation-leak-on-partial-move.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/alloc_tag-introduce-ioctls-to-toggle-allocation-tracepoints-fix.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mremap-fix-hugetlb-reservation-leak-on-partial-move.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -86,49 +89,133 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: alloc_tag: force inline the allocation tracing check
-Date: Thu, 05 Nov 2026 17:18:09 -0800
+From: Josef Bacik <josef@toxicpanda.com>
+Subject: mm/mremap: fix hugetlb reservation leak on partial move
+Date: Thu, 05 Nov 2026 14:02:03 +0000
 
-alloc_tag_trace_enabled() is declared inline, but the compiler can
-still emit an out-of-line copy. Force it inline,
+Patch series "mm/mremap: fix accounting on a partial move", v3.
 
+
+This patch (of 5):
+
+Moving a part of a private hugetlb mapping with mremap() leaks the huge
+page reservations of the parts that stay.  They are not returned when the
+mapping is unmapped, when the process exits or when the pool is resized.
+
+fixup_hugetlb_reservations() takes the reservation map away from the old
+VMA while that VMA still spans its whole range, because the moved part is
+only split off by the unmap at the end of the move.  hugetlb_vm_op_close()
+then finds no map in the parts that remain and returns nothing for them:
+
+    mmap() of 4 pages, MAP_PRIVATE | MAP_HUGETLB    HugePages_Rsvd: 4
+    mremap() of the second page to a new address    HugePages_Rsvd: 4
+    munmap() of all of it                           HugePages_Rsvd: 3
+
+The source is unmapped in this case, so the number of VMAs ends up where
+it did before and the check against sysctl_max_map_count stays as it is.
+
+Fix by splitting a hugetlb VMA in prep_move_vma() before a part of it is
+moved, as commit 597e4b9ab48a ("mm/mremap: fix locked_vm leak by splitting
+VMA for MREMAP_DONTUNMAP") does for an mlock()'d VMA.  A backport needs
+that commit, which is tagged for stable itself.
+
+Link: https://lore.kernel.org/20261105-b4-mremap-pre-split-v3-0-f8789de76849@toxicpanda.com
+Link: https://lore.kernel.org/20261105-b4-mremap-pre-split-v3-1-f8789de76849@toxicpanda.com
+Fixes: 550a7d60bd5e ("mm, hugepages: add mremap() support for hugepage backed vma")
+Signed-off-by: Josef Bacik <josef@toxicpanda.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Reported-by: kernel test robot <lkp@intel.com>
-Closes: https://lore.kernel.org/oe-kbuild-all/202611052344.mDV2DB89-lkp@intel.com/
-Cc: Abhishek Bapat <abhishekbapat@google.com>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Hao Ge <hao.ge@linux.dev>
+Reviewed-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
+Reviewed-by: Jose A. Perez de Azpillaga <azpijr@gmail.com>
+Cc: Liam R. Howlett <liam@infradead.org>
+Cc: David Hildenbrand <david@kernel.org>
+Cc: Vlastimil Babka <vbabka@kernel.org>
+Cc: Jann Horn <jannh@google.com>
+Cc: Pedro Falcato <pfalcato@suse.de>
+Cc: Muchun Song <muchun.song@linux.dev>
+Cc: Oscar Salvador <osalvador@suse.de>
+Cc: Sarthak Sharma <sarthak.sharma@arm.com>
+Cc: <stable@vger.kernel.org>
 ---
 
- include/linux/alloc_tag.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/mremap.c |   27 ++++++++++++++++++---------
+ 1 file changed, 18 insertions(+), 9 deletions(-)
 
---- a/include/linux/alloc_tag.h~alloc_tag-introduce-ioctls-to-toggle-allocation-tracepoints-fix
-+++ a/include/linux/alloc_tag.h
-@@ -161,7 +161,7 @@ static inline bool alloc_tag_is_traced(c
- 	return !!(atomic_read(&tag->ct.flags) & CODETAG_FLAG_TRACE_ON);
+--- a/mm/mremap.c~mm-mremap-fix-hugetlb-reservation-leak-on-partial-move
++++ a/mm/mremap.c
+@@ -1038,7 +1038,7 @@ static void vrm_stat_account(struct vma_
  }
  
--static inline bool alloc_tag_trace_enabled(const struct alloc_tag *tag)
-+static __always_inline bool alloc_tag_trace_enabled(const struct alloc_tag *tag)
+ static bool __check_map_count_against_split(struct mm_struct *mm,
+-					    bool pre_split,
++					    bool source_stays,
+ 					    bool before_unmaps)
  {
- 	if (static_branch_unlikely(&alloc_tag_trace_key))
- 		return tag && alloc_tag_is_traced(tag);
+ 	const int sys_map_count = get_sysctl_max_map_count();
+@@ -1092,14 +1092,14 @@ static bool __check_map_count_against_sp
+ 	 */
+ 	map_count += 2;
+ 
+-	/* If pre-split, the -1 observed above doesn't apply. */
+-	if (pre_split)
++	/* If the split off source stays, the -1 observed above doesn't apply. */
++	if (source_stays)
+ 		map_count++;
+ 
+ 	return map_count <= sys_map_count;
+ }
+ 
+-static bool needs_pre_split(struct vma_remap_struct *vrm)
++static bool split_source_stays(struct vma_remap_struct *vrm)
+ {
+ 	/*
+ 	 * An MREMAP_DONTUNMAP of a mlock()'d VMA needs to unlock the
+@@ -1109,11 +1109,23 @@ static bool needs_pre_split(struct vma_r
+ 		vma_test(vrm->vma, VMA_LOCKED_BIT);
+ }
+ 
++static bool needs_pre_split(struct vma_remap_struct *vrm)
++{
++	/*
++	 * fixup_hugetlb_reservations() takes the reservations away from the
++	 * source VMA.  The parts of it that do not move have to keep theirs.
++	 */
++	if (vma_is_hugetlb(vrm->vma))
++		return true;
++
++	return split_source_stays(vrm);
++}
++
+ /* Do we violate the map count limit if we split VMAs when moving the VMA? */
+ static bool check_map_count_against_split(struct vma_remap_struct *vrm)
+ {
+ 	return __check_map_count_against_split(current->mm,
+-		needs_pre_split(vrm), /*before_unmaps=*/false);
++		split_source_stays(vrm), /*before_unmaps=*/false);
+ }
+ 
+ /* Do we violate the map count limit if we split VMAs prior to early unmaps? */
+@@ -1162,10 +1174,7 @@ static unsigned long prep_move_vma(struc
+ 	if (err)
+ 		return err;
+ 
+-	/*
+-	 * To account mlock()'d pages correctly in the MREMAP_DONTUNMAP
+-	 * case perform any split ahead of time for an mlock()'d VMA.
+-	 */
++	/* Perform any split ahead of time if the source VMA has to be distinct. */
+ 	if (needs_pre_split(vrm)) {
+ 		VMA_ITERATOR(vmi, vma->vm_mm, old_addr);
+ 
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from josef@toxicpanda.com are
 
-mm-mempolicy-use-one-node-set-for-interleave-weights.patch
-maple_tree-fix-reverse-iterator-state-when-the-root-disappears.patch
-shmem-consume-the-reserved-xattr-space-despite-remount.patch
-selftests-mm-check-madv_cold-and-madv_pageout-on-partly-advised-thps-fix.patch
-alloc_tag-introduce-ioctls-to-toggle-allocation-tracepoints-fix.patch
-mm-filemap-convert-fault-and-readahead-logic-to-use-vma_flags_t-fix.patch
-iommufd-enforce-memfd-write-seals-for-file-mappings.patch
-fault-inject-initialize-random-state-on-first-use.patch
-profile-account-for-partial-proc-profile-reads.patch
-profile-simplify-proc-profile-read-layout.patch
-ipc-msg-clamp-negative-msg_info-usage-counts.patch
-drivers-media-v4l2-core-v4l2-vp9c-reduce-inlining.patch
+mm-zswap-drop-the-stale-zswap-entry-of-a-zero-folio.patch
+mm-swap-account-synchronous-swap-reads-as-memory-stall.patch
+mm-mremap-fix-hugetlb-reservation-leak-on-partial-move.patch
+selftests-mm-test-a-partial-mremap-of-hugetlb-memory.patch
+mm-mremap-reaccount-on-unmap-failure-only-if-accounted.patch
+mm-mremap-restore-vma_account_bit-if-the-unmap-fails.patch
+selftests-mm-test-mremap-with-an-old-size-of-0.patch
+zram-lz4-lz4hc-accept-dictionaries-of-more-than-64-kib.patch
 
