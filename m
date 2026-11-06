@@ -1,130 +1,52 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.remote-ip=192.198.163.16
-ARC-Seal: i=2; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=fail;
-	t=1793937398;
-	b=e+Xp6gsAvL3J3JvdfDCbmBXqM1fq6NP8m1LXxJETuQMDykaffQjMI61UpcAzk4FHzNxN
-	 wVg9KK1o+4ruGpl5LP4/HJdL9JeP24SlgGlHVK9V/We3FYvidJyYB5xpRCJQDG85eWk07
-	 A/ZFkrP/8DALpX/JeIxXApc7RcRAo6ZSNlBallfNciVB8zoOCrec1eueG1pD58CGIWcfL
-	 7e3A+XhIZoUpBZuzOu8Wc75/TnpxDJkgowCJji0YqL3zEn9gEy+uiN7ik2IpZ6jfFB9mo
-	 LGCUBrr0PPHLaLcptF42gqj2g6vFKr1+tcWSMBtZw3bbKMqb29OES4zwZfLVg9Aknug==
-ARC-Message-Signature: i=2; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793937398;
-	h=DMARC-Filter:DKIM-Signature:X-CSE-ConnectionGUID:X-CSE-MsgGUID:
-	 X-IronPort-AV:X-IronPort-AV:Received:X-CSE-ConnectionGUID:
-	 X-CSE-MsgGUID:X-ExtLoop1:X-IronPort-AV:Received:Received:Received:
-	 Received:Received:Received:Date:From:To:CC:Subject:Message-ID:
-	 References:Content-Type:Content-Disposition:In-Reply-To:
-	 X-ClientProxiedBy:MIME-Version:X-MS-PublicTrafficType:
-	 X-MS-TrafficTypeDiagnostic:X-MS-Office365-Filtering-Correlation-Id:
-	 X-MS-Exchange-SenderADCheck:X-MS-Exchange-AntiSpam-Relay:
-	 X-Microsoft-Antispam:X-Microsoft-Antispam-Message-Info:
-	 X-Forefront-Antispam-Report:
-	 X-MS-Exchange-AntiSpam-MessageData-ChunkCount:
-	 X-MS-Exchange-AntiSpam-MessageData-0:X-Exchange-RoutingPolicyChecked:
-	 X-MS-Exchange-CrossTenant-Network-Message-Id:
-	 X-MS-Exchange-CrossTenant-AuthSource:X-MS-Exchange-CrossTenant-AuthAs:
-	 X-MS-Exchange-CrossTenant-OriginalArrivalTime:
-	 X-MS-Exchange-CrossTenant-FromEntityHeader:
-	 X-MS-Exchange-CrossTenant-Id:X-MS-Exchange-CrossTenant-MailboxType:
-	 X-MS-Exchange-CrossTenant-UserPrincipalName:
-	 X-MS-Exchange-Transport-CrossTenantHeadersStamped:X-OriginatorOrg;
-	bh=YJ5iynLB+JozSVhACX1w19eM3zBt27WYLLNbFDwB8vw=;
-	b=pH3NRNX7UTmZF4osS9v9PUTPgAoSv1R3wvMYfGYiZQ8qnTcIneo8bswrSuA2VhCwEmi+
-	 tbdiPGDq49jAkkW22AB3lfwLjO2wZMiuKbSlFTLuyB2jfJ+IdnAYDdMcaujnv1QREwnaC
-	 H3SNAN4NFoAyLvXTN1mPguQgQODWNCjPaF83KxFoiuVv4YdESC6McZzruqMAAEJNNplUE
-	 Fak5oAmn4reVY8a2DufHDkM5lL0jtQb5tD1Gpgq51rziVle43Cs5sJ1q310FR6wI0jKWm
-	 67xLywx4AB8eJyj3anlhAj4aAGuzzcdBJFd7WI3RCVqOcMlaHckfTYpWydp7tZiICQg==
-ARC-Authentication-Results: i=2; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=intel.com;
-	spf=pass smtp.mailfrom=intel.com;
-	dkim=pass header.d=intel.com header.i=@intel.com header.a=rsa-sha256 header.s=Intel header.b=Uq9+uKN7;
-	arc=fail smtp.remote-ip=192.198.163.16
-Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.16])
-	(using TLSv1.2 with cipher ECDHE-ECDSA-AES256-GCM-SHA384 (256/256 bits))
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
+ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
+	t=1793942356;
+	b=wYONQJ1HQc0cvD0cE/bi5Yzyna/niepPVJoghrW+qW5KelFjPVeVH6um3faNQEybHsrm
+	 8pAopqE3S2wSxo4kXmYvGDk7if235ioYNynL8b3BoiBydHssvRkuAgxlWCJa8YyjbCcSU
+	 CVjR9K8kJ3CEk34/u5bTyGWsgtF/V/Dqx8NSCXrl46M2WhKZtoxKXOmyMBAl7XA2PCWZm
+	 FhzbTsLJOlu3fm4qQhK2diDr0EwwAmn0fALOU96UDBXodAJ1DWwRCHzG57dx6VGvzpggC
+	 3m1pHW8ImcHhUhJg5hcY1CTK8mXBmq6A7nk6HKe0/zXYPUstYR5ROaKMK3UqvwC9LDA==
+ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793942356;
+	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
+	bh=nAK6LGKRKBd83Hx2JnQO4RqJZRvrZOFsjR48iSi/oFA=;
+	b=hnJekPcMz+/18F1/C3rlQ5/LWKPlkeYzSpczJMEJbnHazB96hy56GtN+gLdoTTbaN3DI
+	 Uso3fLgZ8s6K96kiHDrN7OoYDdGS+4sBLl0TSHh1cFsEov6a0t28sphJ7c9+CCv/97Ly8
+	 9BPljFXMMuFZ13au3E0MnKny167iPG86dwdjqCiLYlF5rh+E0eAryGAbdXkHw3HYbVjjf
+	 GRwnthfmBoHpPymtl7pyQeZ7aYLF4FtZUmknAVWQ0S+Ix1AFM/gw5e7N7ton3Quc3CLqM
+	 RCT2j9btS7QmLN5n633oxrjpsXY+NXRTH1hhhpVNu7kdKab9FFc4l/YFpwwpZf0Mwqw==
+ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=BSFOekUe;
+	arc=none smtp.remote-ip=100.103.45.18
+Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 18F06606A31B
-	for <mm-commits@vger.kernel.org>; Fri,  6 Nov 2026 03:56:35 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 18F06606A31B
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B55B8606A31B;
+	Fri,  6 Nov 2026 05:19:15 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=intel.com header.i=@intel.com header.a=rsa-sha256 header.s=Intel header.b=Uq9+uKN7
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1793937397; x=1825473397;
-  h=date:from:to:cc:subject:message-id:references:
-   in-reply-to:mime-version;
-  bh=R4NC/CsHTqQ5ipyBYAroIpb3JKXMNVwvDgqLZsFvpN8=;
-  b=Uq9+uKN7uZn8QBwztO8GgvADgnUkY4Fwwq4KlZoQUswJpvtAy4Y+2CXM
-   wDenIzwuTbGFqf6hK/LXCWdJhUv9QqYuFePYeC8+NMKbd8WBexSVXAdj+
-   LkNCCWPY27ypeRXOS5KQAfTSasmKDaVQ+/TKHYo4Sd9qZUrjygYB76uDo
-   r+vXWPQ7UMk30mX5OPqL4wggQ3RYuEKUHZM6lRXW0tA3Sl9wd78UvKSvM
-   V9cr9h6BfKa8PRZZzuSs2WVpNtvsHbgYlW+bIc6YKADZRbS01fFd/HNrE
-   DlY4UjtCVJiOqMkPFMIL+4EuPerfkU+qr/qaXEhm7aHHeRPb5e+YoPn6q
-   A==;
-X-CSE-ConnectionGUID: Apjht8pAS4SL9mu1x5oNGw==
-X-CSE-MsgGUID: Sk3yrhv8TvCMpjV08LFw2A==
-X-IronPort-AV: E=McAfee;i="6800,10657,11957"; a="2769459"
-X-IronPort-AV: E=Sophos;i="6.27,197,1787036400"; 
-   d="scan'208";a="2769459"
-Received: from orviesa002.jf.intel.com ([10.64.159.142])
-  by fmvoesa110.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 05 Nov 2026 19:56:36 -0800
-X-CSE-ConnectionGUID: GSUMbV6MRiC29KRdBLqN5g==
-X-CSE-MsgGUID: fmJA/DHESFeAR3Mof9CngA==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="6.27,197,1787036400"; 
-   d="scan'208";a="7210156"
-Received: from fmsmsx901.amr.corp.intel.com ([10.18.126.90])
-  by orviesa002.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 05 Nov 2026 19:56:35 -0800
-Received: from FMSMSX902.amr.corp.intel.com (10.18.126.91) by
- fmsmsx901.amr.corp.intel.com (10.18.126.90) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.2.2562.56; Thu, 5 Nov 2026 19:56:34 -0800
-Received: from fmsedg903.ED.cps.intel.com (10.1.192.145) by
- FMSMSX902.amr.corp.intel.com (10.18.126.91) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.2.2562.56 via Frontend Transport; Thu, 5 Nov 2026 19:56:34 -0800
-Received: from CO1PR03CU002.outbound.protection.outlook.com (52.101.46.13) by
- edgegateway.intel.com (192.55.55.83) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.2.2562.56; Thu, 5 Nov 2026 19:56:34 -0800
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=VqVY6a4lx/Irb6DezewTD0WdaxLQ9KjfE7T945y5GqC9EV2gSA1DjHm1zP/Yi2sHLhldZ5OpiNymlsQHXjBSaowHHLSfDPc1Yk+9pI3LzZNWgBMPkHii5ieruGUvbR6/WUqdngCqSvLr8ghXsH7Rc/pL0BOEY5SGkGN3Yp/EytKU9CKqMakwEyCy53Xnp990ai5nebVNZemiuIz8WHyQRSdh6uKJvMZHTypcopCclUFIcjRNtzVeJiUSpIH1d7GxOk+v9KzYi21q/HDQbwDuXgvQPwkT9w9phonncWFZcnHyxpD5FKUAmhPeSF3Pd7pJ6YSiNt3hwilDeeiUW0rFMA==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector10001;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=YJ5iynLB+JozSVhACX1w19eM3zBt27WYLLNbFDwB8vw=;
- b=fA6KUI+0b6Oiy+ueLbQw+aYRVMLoI0WgJ5ydwFoPOAqxcpCIQI/7qFT5uEZctZvQTS/mkVfO7RG6eFPrFKqSobhN18VDnyqDMdZ4crXo602jX3feF/At1h3WWdkvhsZ3yyg7IlI2eEZPnkLA5e5sm2oTw9WBHN/lbti+3criuHC6h3d4OjDFntpVkpsow4IH0Od9B3uaY4yxBpxwBwWNiDNkb0l+PmLKrCsMR+WbqoRMxJu01JgeWUsHyewCmurrsCVHhkt5dmfea5RvlYpD1FO1p0T0/ykWPJygaRNju7zUHw5oYlPAsd+VAZp1FAwFl8syxT19R4bnz5J/fEh9Fw==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=intel.com; dmarc=pass action=none header.from=intel.com;
- dkim=pass header.d=intel.com; arc=none
-Authentication-Results: mx.microsoft.com 1; dkim=none (message not signed)
- header.d=none;dmarc=none action=none header.from=intel.com;
-Received: from DS6PR11MB362586.namprd11.prod.outlook.com (2603:10b6:8:4c4::14)
- by PH3PPFF1A08ABF9.namprd11.prod.outlook.com (2603:10b6:518:1::d5f) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.569.12; Fri, 6 Nov
- 2026 03:56:26 +0000
-Received: from DS6PR11MB362586.namprd11.prod.outlook.com
- ([fe80::71a6:38f9:43ed:8f8a]) by DS6PR11MB362586.namprd11.prod.outlook.com
- ([fe80::71a6:38f9:43ed:8f8a%6]) with mapi id 15.21.0592.009; Fri, 6 Nov 2026
- 03:56:26 +0000
-Date: Fri, 6 Nov 2026 11:56:15 +0800
-From: Philip Li <philip.li@intel.com>
-To: Andrew Morton <akpm@linux-foundation.org>
-CC: kernel test robot <lkp@intel.com>, David Hildenbrand <david@kernel.org>,
-	Linux Memory Management List <linux-mm@kvack.org>,
-	<mm-commits@vger.kernel.org>
-Subject: Re: [akpm-mm:mm-new] BUILD REGRESSION
- dba8aba0a9a00ff781c03d82ae534fc6f8c2e263
-Message-ID: <au1P3+HYvy4uiJMQ@rli9-mobl>
-References: <20261106095340.lgMcCHGK-lkp@intel.com>
- <20261105190559.5656444f0cb52cbf888427a6@linux-foundation.org>
-Content-Type: text/plain; charset="us-ascii"
-Content-Disposition: inline
-In-Reply-To: <20261105190559.5656444f0cb52cbf888427a6@linux-foundation.org>
-X-ClientProxiedBy: SI2PR02CA0004.apcprd02.prod.outlook.com
- (2603:1096:4:194::14) To DS6PR11MB362586.namprd11.prod.outlook.com
- (2603:10b6:8:4c4::14)
+	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=BSFOekUe
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3FCA01F0089F;
+	Fri,  6 Nov 2026 05:19:15 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+	d=linux-foundation.org; s=korg; t=1793942355;
+	bh=nAK6LGKRKBd83Hx2JnQO4RqJZRvrZOFsjR48iSi/oFA=;
+	h=Date:To:From:Subject;
+	b=BSFOekUeLKZGXXsB5SGviw++3zDq7euKpG2jB5SbUlLaZKeHXlasWrFJWoDduNgY/
+	 7qH1bWvI+Xaz2mHbM0K5aNfcafnhZ+86XEfdAtpXl3xX0cQihenReUdRMEdsp9xuCS
+	 lgGKBkP94FF/GGXNLGc7cOJnA4x1vB1UgCb9eZO8=
+Date: Thu, 05 Nov 2026 21:19:14 -0800
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,usama.arif@linux.dev,
+	stable@vger.kernel.org,shuah@kernel.org,ryan.roberts@arm.com,
+	ritesh.list@gmail.com,peterx@redhat.com,nico.pache@linux.dev,
+	maddy@linux.ibm.com,loic.molinari@collabora.com,ljs@kernel.org,
+	liam@infradead.org,lance.yang@linux.dev,kas@kernel.org,jgg@ziepe.ca,
+	dev.jain@arm.com,david@kernel.org,baolin.wang@linux.alibaba.com,
+	baohua@kernel.org,azpijr@gmail.com,alex@shazbot.org,khorenko@virtuozzo.com,
+	akpm@linux-foundation.org
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: + mm-huge_memory-copy-file-thps-at-fork-like-copy_present_ptes-does.patch added to mm-new branch
+Message-Id: <20261106051915.3FCA01F0089F@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -133,80 +55,258 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:mm-commits+owner@vger.kernel.org>
 Precedence: list
-MIME-Version: 1.0
-X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: DS6PR11MB362586:EE_|PH3PPFF1A08ABF9:EE_
-X-MS-Office365-Filtering-Correlation-Id: 7e6ecec2-4612-48bd-51b9-08df3bb9ee61
-X-MS-Exchange-SenderADCheck: 1
-X-MS-Exchange-AntiSpam-Relay: 0
-X-Microsoft-Antispam: BCL:0;ARA:13230040|366016|23010399003|1800799024|376014|4143699003|11063799006|56012099006|261022075727099003|261009223027099003|18002099003|22082099003|10067099003;
-X-Microsoft-Antispam-Message-Info: XPkYvCuHir1PA7Vj0Q3uJ4bhHerEQPne4vp9y9AOjjUbcbOpe6BvLjRiE8/38zNX0e7RhqYZRUornSm+Piwf0bywnIIRwMX1hRoRT3hj2uxpHpMb//tqztFfHP4VthWwENHz5KcddXe6TI6/gY5OX6LI8jXrlI1rZRycXbkSgR9bB/j3eOYYoRlPOEFuEC/Ok1YmnyPiR1PEsi+ZKEOoGV+s1QNfI1p98b+bklBKKi8ENeez1ChmNmED2InWHTRIvXjaF+t8SveAnSx2XhITm2nGRPzdNMRbVyKSp999mUTRJEoEOtW19wgB4l/NKNsNFf8nYxA9PmNpoco3c/1llKyJ4z+Q3udQPjVHvIuUJ47HpCzphgBNQiMN8cwEqX/QYVZtFWtK4l3onsTOsUUWODXX2sBS8NQ39TJnt/GgkenEw/ifVFKIwHcRnbsbZ00kFhxVHqjUMyY2/NZxz5IaKiKYZ8FAsXw0rACNJUjg9HjHWdf6DamrMHiD1zS3m2ZTp7eKwgB53I7k933+zPQUata4ej4DJ2prTUCfArsC6imlkCyI4TKyP+y5yAyyR+HwNT9ZHl8faRHwD8VAxNO2SdB3K+x5MGCPwb6A9eUEHnAN1nEa5tgtbpopVy0v98YA
-X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:DS6PR11MB362586.namprd11.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(366016)(23010399003)(1800799024)(376014)(4143699003)(11063799006)(56012099006)(261022075727099003)(261009223027099003)(18002099003)(22082099003)(10067099003);DIR:OUT;SFP:1101;
-X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
-X-MS-Exchange-AntiSpam-MessageData-0: =?us-ascii?Q?UIf8cG5dJnH1v6r1gjvNf2eL9mDGTm4MLPg8luSJSIwR2kQxGdV0LoCVDPJd?=
- =?us-ascii?Q?J99WIRFpmFWo/mR/OYxVhFLGP8Mg7SejQj3MlLK2D8rliHVdVyaP5ygHf9dK?=
- =?us-ascii?Q?D5FNL+hSPPnOfey9IrtIAMtZJPzKKxQ7Qr3azjcNp6qKH3Ghvgp3FjXJtXLn?=
- =?us-ascii?Q?qD7R71R1sh6zVAa3UfKUH1ljOifsabuy1Qtk3nQskqynqooyeVIC6Dui/csT?=
- =?us-ascii?Q?v5HzSIXGtfYq3GX+6RJr263oF8q2zPoORDF1Be4hxoQoWsbrR9Xlr6XQX0ZR?=
- =?us-ascii?Q?2IxbIPEgh3uX8iTymji/XTr8uqB4++lgxAztHQOPHtw5Q9LTr00qSgtP0pq9?=
- =?us-ascii?Q?g68qNaGHvyeCE7GHsKZaiXMm7uysuCF1YIFPstGcnLwnnlx/AJ8CzEkA2yuc?=
- =?us-ascii?Q?mJXZPdLVUrkyFkx21dWK/q29KYpDis25H8uSHSsUDrmoCRx6Do/5cXnPVGxH?=
- =?us-ascii?Q?HDb7nBkBbdw/t13hQ0igEZrl2+gLQB9Zjq/XULAzLGawEG9WVc6fLw4zZ8Lj?=
- =?us-ascii?Q?1JTDANJ63mKyYfQVNODQ+jnH6U+5Ba3CPup3UAvWPyp00i3JmpannSLe/5gi?=
- =?us-ascii?Q?FfdV0r3/AmzrJ+EzLEhGLqdBmUy5/SEcBa7wh7bPHkzT9tGLeDBiWPKJKeFR?=
- =?us-ascii?Q?9kKMMyOHqEPql7s8Q2HIn02xxlQgBqjqIi5GYvmqYda8xp2u4uYKEXIBxQCE?=
- =?us-ascii?Q?rIG0/HTLzMce+MiMbVPsMZSekVI5ghT0zLjpSOd5CQLazgbTkXdZRtCot27a?=
- =?us-ascii?Q?0EJFBZCt79q8BZRL8EkwQe5yxS6TD2HiS30wtGWxDyMQtcrO6pcW4ck/qwHj?=
- =?us-ascii?Q?JLtcZmaagaAOMHOlsvTpoMvyMNcsl4m7Y4Xv5xdzgq+3HFL8lHl/ru4bLnhk?=
- =?us-ascii?Q?PKbVZrfaObFAhbouc0rXKJ9fZ4rjnyDO+Fs3hWl4LRF+0C2iPluJADn0tBG2?=
- =?us-ascii?Q?hb2kkBZTS11KanBHzmEwzwVkuwsX7FqGcwVOtJz/N41OTEmuzr4gJdV/w0DH?=
- =?us-ascii?Q?nrUo6WxUtcWycpuoFi6Di3OEbHQOAFSsae1LgKPvrTpBjjl0y2GwBNjIODKJ?=
- =?us-ascii?Q?nXJwYNmqA58sxdrdn4uPtWNcEJW9tqVYQW2OIhNqlgak2zRLz67S1Ap7tpiD?=
- =?us-ascii?Q?tvfxbXtSdzA4/Ak/Z2b7vRBfPsQBV3CWqAXBHZVTo56cpgl2a6v/VCo6TR8s?=
- =?us-ascii?Q?0VDnfPZcauc6d3rMSc6sag3KjLPqUrmfRHuOiRgyH4ZYMWw4+3OuLldwtafx?=
- =?us-ascii?Q?5XcTlAeTaPXmjmsLHlhgNzkX9VvUEggt74qtDFQlKoqaSlbLPTKVjzOZ5hPn?=
- =?us-ascii?Q?keZ2E5VsJUccofYWqjjBGHwCN9JgVlWYoWuxCX6jm59tHS6NnbeNBpsp01kF?=
- =?us-ascii?Q?KLaOPXaIx2zdy/3sWzbQ2jWno5Pw3bnIfM52vHpYkZBtEOfvZvTxfQpM+ogu?=
- =?us-ascii?Q?uYB8GIxuYOz/VH4vwJp5l4y2C7LOX+mm9Du+psDeqjR+X/hzLkycUOLy671A?=
- =?us-ascii?Q?4kyjK/OVbSEDAGNWWcPjaOx5oskhtFL2w6rVBEUaQz3RFZ0nsUiH+skANrAB?=
- =?us-ascii?Q?wZxXOn00Qfy7zUcDHYzV2TcxhBuUYCW+VAE4cfUgaoPXRdhA6q8fS2VySQxi?=
- =?us-ascii?Q?Dqc5TalCorQLDSIRnV4FV1B3n684gJUOG5fwnZ2opk/MYx8iadc2PGG7afXE?=
- =?us-ascii?Q?1yNDn6vNZkDm9G0eBXNgdoyHx8BiZTDWy/ikUUa2Sdw4q6Y+4P4gbn6Qabl7?=
- =?us-ascii?Q?NJte/mqjmw=3D=3D?=
-X-Exchange-RoutingPolicyChecked: dh47GA3mmTTWfVs1wnFTUHORyZRyem1tks15IUUy4b7hFxTGMKFZ0R0q+0VV3mX6KMXR/gDIuflrRnln1Sczkl79R790AlbbKpZU5rjWe04ho1Y1Dl+RK4zRIj3gu+4e6rf7vYQ2uMx5sm/ZPKj93k1+KE6CIkS22mZrnbtvD4sKjBuIJhjbS9EYUJIxWZA2tyMpUJW8udVoZbcvleTRXi/3bYvXHIR0T8hV8t0VA62fEZ3C3I7qaY+5nUOCj6l6HSpn7ZELW67rtvGt9hjbCUMucxNw/vxV/UzLfxT8KI2W65uYNul4k1zVXvStSWJknpDK3yG7IP2pRvmVbeh5xA==
-X-MS-Exchange-CrossTenant-Network-Message-Id: 7e6ecec2-4612-48bd-51b9-08df3bb9ee61
-X-MS-Exchange-CrossTenant-AuthSource: DS6PR11MB362586.namprd11.prod.outlook.com
-X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 06 Nov 2026 03:56:26.7385
- (UTC)
-X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
-X-MS-Exchange-CrossTenant-Id: 46c98d88-e344-4ed4-8496-4ed7712e255d
-X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: cZCa5PP6M7Y0Y4vLuFEnG/tB1i663ZW8VXLNV/yWRNsNfj85g152cj9bMX/NE0FaOqyc73EaJ2tqT7ACOLL/FQ==
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: PH3PPFF1A08ABF9
-X-OriginatorOrg: intel.com
 
-On Thu, Nov 05, 2026 at 07:05:59PM -0800, Andrew Morton wrote:
-> On Fri, 06 Nov 2026 09:53:40 +0800 kernel test robot <lkp@intel.com> wrote:
-> 
-> > tree/branch: https://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm.git mm-new
-> > branch HEAD: dba8aba0a9a00ff781c03d82ae534fc6f8c2e263  riscv: mm: fix concurrency in mark_new_valid_map()
-> > 
-> > Error/Warning ids grouped by kconfigs:
-> > 
-> > recent_errors
-> > `-- csky-allmodconfig
-> >     `-- drivers-net-wireless-ath-ath11k-dbring.c:internal-compiler-error:in-final_scan_insn_1-at-final.cc
-> > 
-> 
-> Thanks.
-> 
-> Am I being dumb here.  I can't find any error report other than this.
 
-Sorry, kindly ignore this issue, it is "internal compiler error", thus there's no
-public report for this. And I will config bot to avoid including such compiler issue
-in the status report, that also wrongly judges the status as regression.
+The patch titled
+     Subject: mm/huge_memory: copy file THPs at fork like copy_present_ptes() does
+has been added to the -mm mm-new branch.  Its filename is
+     mm-huge_memory-copy-file-thps-at-fork-like-copy_present_ptes-does.patch
 
-> 
-> And I'm not going to lose much sleep about a CSKY gcc ICE in ath11k ;)
-> 
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-huge_memory-copy-file-thps-at-fork-like-copy_present_ptes-does.patch
+
+This patch will later appear in the mm-new branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Note, mm-new is a provisional staging ground for work-in-progress
+patches, and acceptance into mm-new is a notification for others take
+notice and to finish up reviews.  Please do not hesitate to respond to
+review feedback and post updated versions to replace or incrementally
+fixup patches in mm-new.
+
+The mm-new branch of mm.git is not included in linux-next
+
+If a few days of testing in mm-new is successful, the patch will me moved
+into mm.git's mm-unstable branch, which is included in linux-next
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via various
+branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there most days
+
+------------------------------------------------------
+From: Konstantin Khorenko <khorenko@virtuozzo.com>
+Subject: mm/huge_memory: copy file THPs at fork like copy_present_ptes() does
+Date: Wed, 04 Nov 2026 21:40:56 +0100
+
+This fixes no bug: it makes fork copy a PMD the way copy_present_ptes()
+copies a PTE. Until now copy_huge_pmd() skipped every folio PMD of a
+non-anonymous VMA and left the child to fault them in again, while the
+PTEs of the same VMA are copied.
+
+Treat file folios as the PTE path does: take a reference, duplicate the
+rmap and account them. fork then pays a reference and an rmap update
+per PMD, and saves the child a fault per PMD it touches. The next patch
+sends PFN mappings through the same tail.
+
+That covers the VMAs vma_needs_copy() sends here:
+
+- private file mappings with an anon_vma;
+- VM_COPY_ON_FORK ones: uffd-wp and uffd-rwp, VM_MIXEDMAP, and
+  VM_MAYBE_GUARD, which shared shmem, file and DAX mappings get from a
+  guard region.
+
+The DAX huge zero PMD is copied too, with a reference taken by
+mm_get_huge_zero_folio() as for anonymous VMAs. A migration entry of a
+file folio is copied and accounted like copy_nonpresent_pte() does, and
+made read-only in both processes only in a CoW mapping. A device
+private entry gets the same CoW check, as in copy_nonpresent_pte().
+
+The copy then gets the same tail as __copy_present_ptes(): write
+protect both sides in a CoW mapping, mark the child's copy clean in a
+shared one, and drop the uffd-wp bit where the child is not armed. An
+anonymous THP is now write protected only when its PMD is writable, as
+a PTE is.
+
+A page table is deposited under the copy where the fault paths deposit
+one: in anonymous VMAs, and wherever the architecture needs one.
+
+Link: https://lore.kernel.org/20261104-b4-prep-vstor-149847-copy_huge_pmd-recheck-special-pmd-v5-2-c56d0d26f970@virtuozzo.com
+Signed-off-by: Konstantin Khorenko <khorenko@virtuozzo.com>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+Suggested-by: David Hildenbrand (Arm) <david@kernel.org>
+Reviewed-by: Kiryl Shutsemau (Meta) <kas@kernel.org>
+Reviewed-by: Zi Yan <ziy@nvidia.com>
+Reviewed-by: Jose A. Perez de Azpillaga <azpijr@gmail.com>
+Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
+Cc: Liam R. Howlett <liam@infradead.org>
+Cc: Nico Pache <nico.pache@linux.dev>
+Cc: Ryan Roberts <ryan.roberts@arm.com>
+Cc: Dev Jain <dev.jain@arm.com>
+Cc: Barry Song <baohua@kernel.org>
+Cc: Lance Yang <lance.yang@linux.dev>
+Cc: Usama Arif <usama.arif@linux.dev>
+Cc: Peter Xu <peterx@redhat.com>
+Cc: Alex Williamson <alex@shazbot.org>
+Cc: Loïc Molinari <loic.molinari@collabora.com>
+Cc: Lorenzo Stoakes <ljs@kernel.org>
+Cc: Shuah Khan <shuah@kernel.org>
+Cc: Madhavan Srinivasan <maddy@linux.ibm.com>
+Cc: Ritesh Harjani (IBM) <ritesh.list@gmail.com>
+Cc: Jason Gunthorpe <jgg@ziepe.ca>
+Cc: <stable@vger.kernel.org> # needed by the next patch
+---
+
+ mm/huge_memory.c |   63 +++++++++++++++++++++++++++------------------
+ 1 file changed, 39 insertions(+), 24 deletions(-)
+
+--- a/mm/huge_memory.c~mm-huge_memory-copy-file-thps-at-fork-like-copy_present_ptes-does
++++ a/mm/huge_memory.c
+@@ -1897,12 +1897,13 @@ static void copy_huge_non_present_pmd(
+ 		pmd_t pmd, pgtable_t pgtable)
+ {
+ 	softleaf_t entry = softleaf_from_pmd(pmd);
+-	struct folio *src_folio;
++	struct folio *src_folio = softleaf_to_folio(entry);
+ 
+ 	VM_WARN_ON_ONCE(!pmd_is_valid_softleaf(pmd));
+ 
+-	if (softleaf_is_migration_write(entry) ||
+-	    softleaf_is_migration_read_exclusive(entry)) {
++	if ((softleaf_is_migration_write(entry) ||
++	     softleaf_is_migration_read_exclusive(entry)) &&
++	    vma_is_cow_mapping(src_vma)) {
+ 		entry = make_readable_migration_entry(swp_offset(entry));
+ 		pmd = softleaf_to_pmd(entry);
+ 		if (pmd_swp_soft_dirty(*src_pmd))
+@@ -1915,7 +1916,8 @@ static void copy_huge_non_present_pmd(
+ 		 * For device private entries, since there are no
+ 		 * read exclusive entries, writable = !readable
+ 		 */
+-		if (softleaf_is_device_private_write(entry)) {
++		if (softleaf_is_device_private_write(entry) &&
++		    vma_is_cow_mapping(src_vma)) {
+ 			entry = make_readable_device_private_entry(swp_offset(entry));
+ 			pmd = softleaf_to_pmd(entry);
+ 
+@@ -1926,7 +1928,6 @@ static void copy_huge_non_present_pmd(
+ 			set_pmd_at(src_mm, addr, src_pmd, pmd);
+ 		}
+ 
+-		src_folio = softleaf_to_folio(entry);
+ 		VM_WARN_ON(!folio_test_large(src_folio));
+ 
+ 		folio_get(src_folio);
+@@ -1938,9 +1939,11 @@ static void copy_huge_non_present_pmd(
+ 					    dst_vma, src_vma);
+ 	}
+ 
+-	add_mm_counter(dst_mm, MM_ANONPAGES, HPAGE_PMD_NR);
+-	mm_inc_nr_ptes(dst_mm);
+-	pgtable_trans_huge_deposit(dst_mm, dst_pmd, pgtable);
++	add_mm_counter(dst_mm, mm_counter(src_folio), HPAGE_PMD_NR);
++	if (pgtable) {
++		mm_inc_nr_ptes(dst_mm);
++		pgtable_trans_huge_deposit(dst_mm, dst_pmd, pgtable);
++	}
+ 	if (!userfaultfd_protected(dst_vma))
+ 		pmd = pmd_swp_clear_uffd(pmd);
+ 	set_pmd_at(dst_mm, addr, dst_pmd, pmd);
+@@ -1956,6 +1959,7 @@ int copy_huge_pmd(struct mm_struct *dst_
+ 	pmd_t pmd;
+ 	pgtable_t pgtable = NULL;
+ 	int ret = -ENOMEM;
++	bool writable;
+ 
+ 	pmd = pmdp_get_lockless(src_pmd);
+ 	if (unlikely(pmd_present(pmd) && pmd_special(pmd) &&
+@@ -1976,13 +1980,11 @@ int copy_huge_pmd(struct mm_struct *dst_
+ 		goto set_pmd;
+ 	}
+ 
+-	/* Skip if can be re-fill on fault */
+-	if (!vma_is_anonymous(dst_vma))
+-		return 0;
+-
+-	pgtable = pte_alloc_one(dst_mm);
+-	if (unlikely(!pgtable))
+-		goto out;
++	if (vma_is_anonymous(dst_vma) || arch_needs_pgtable_deposit()) {
++		pgtable = pte_alloc_one(dst_mm);
++		if (unlikely(!pgtable))
++			goto out;
++	}
+ 
+ 	dst_ptl = pmd_lock(dst_mm, dst_pmd);
+ 	src_ptl = pmd_lockptr(src_mm, src_pmd);
+@@ -2000,7 +2002,8 @@ int copy_huge_pmd(struct mm_struct *dst_
+ 	}
+ 
+ 	if (unlikely(!pmd_trans_huge(pmd))) {
+-		pte_free(dst_mm, pgtable);
++		if (pgtable)
++			pte_free(dst_mm, pgtable);
+ 		goto out_unlock;
+ 	}
+ 	/*
+@@ -2015,7 +2018,7 @@ int copy_huge_pmd(struct mm_struct *dst_
+ 		 * copy. It just takes a reference.
+ 		 */
+ 		mm_get_huge_zero_folio(dst_mm);
+-		goto out_zero_page;
++		goto copy_pmd;
+ 	}
+ 
+ 	src_page = pmd_page(pmd);
+@@ -2023,6 +2026,12 @@ int copy_huge_pmd(struct mm_struct *dst_
+ 	src_folio = page_folio(src_page);
+ 
+ 	folio_get(src_folio);
++	if (!folio_test_anon(src_folio)) {
++		folio_dup_file_rmap_pmd(src_folio, src_page, dst_vma);
++		add_mm_counter(dst_mm, mm_counter_file(src_folio),
++			       HPAGE_PMD_NR);
++		goto copy_pmd;
++	}
+ 	if (unlikely(folio_try_dup_anon_rmap_pmd(src_folio, src_page, dst_vma, src_vma))) {
+ 		/* Page maybe pinned: split and retry the fault on PTEs. */
+ 		folio_put(src_folio);
+@@ -2033,19 +2042,25 @@ int copy_huge_pmd(struct mm_struct *dst_
+ 		return -EAGAIN;
+ 	}
+ 	add_mm_counter(dst_mm, MM_ANONPAGES, HPAGE_PMD_NR);
+-out_zero_page:
+-	mm_inc_nr_ptes(dst_mm);
+-	pgtable_trans_huge_deposit(dst_mm, dst_pmd, pgtable);
++copy_pmd:
++	if (pgtable) {
++		mm_inc_nr_ptes(dst_mm);
++		pgtable_trans_huge_deposit(dst_mm, dst_pmd, pgtable);
++	}
+ 
+-	/* See __copy_present_ptes(): restore accessible protection. */
++	/* See __copy_present_ptes(). */
++	writable = pmd_write(pmd);
+ 	if (!userfaultfd_protected(dst_vma)) {
+ 		if (userfaultfd_rwp(src_vma) && pmd_uffd(pmd))
+ 			pmd = pmd_modify(pmd, dst_vma->vm_page_prot);
+ 		pmd = pmd_clear_uffd(pmd);
+ 	}
+-
+-	pmdp_set_wrprotect(src_mm, addr, src_pmd);
+-	pmd = pmd_wrprotect(pmd);
++	if (vma_is_cow_mapping(src_vma) && writable) {
++		pmdp_set_wrprotect(src_mm, addr, src_pmd);
++		pmd = pmd_wrprotect(pmd);
++	}
++	if (src_vma->vm_flags & VM_SHARED)
++		pmd = pmd_mkclean(pmd);
+ set_pmd:
+ 	pmd = pmd_mkold(pmd);
+ 	set_pmd_at(dst_mm, addr, dst_pmd, pmd);
+_
+
+Patches currently in -mm which might be from khorenko@virtuozzo.com are
+
+mm-rmap-duplicate-a-pmd-mapping-as-one-in-folio_dup_file_rmap_pmd.patch
+mm-huge_memory-copy-file-thps-at-fork-like-copy_present_ptes-does.patch
+mm-huge_memory-read-a-special-pmd-under-the-lock-in-copy_huge_pmd.patch
+selftests-mm-test-fork-of-pmd-mapped-shmem-thps.patch
+
