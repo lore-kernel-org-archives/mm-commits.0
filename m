@@ -1,52 +1,53 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794004961;
-	b=h9CrYXLfAJ9rlx5a6q3DG9QKg4X5t4p6+Z1AP9+KVVAw86towtzorZQ0Wm5awZmfPUcz
-	 WnMkihCZCRGeoQdQ+Dke7PRE+dblBjdZaRPnvfqBtHflwgB5NTQvp3ymKTYIRkPGPysxH
-	 2xam040CzSOuH9L7Y8Vgjqs9biawIW96gdJcg+4u+rr9KA/4LoJOEejrzyfXNQhOm7ZVE
-	 Reiif6wMi4Gf1a90ShzhkxjZydXUCE7MWKEOThC8ePtHJxqGM5LCc1ESBmZx+1zySRys7
-	 TvtaZ5am9UUsDysv0MO9Dik8mxtgJ/DANhiNb8YHAVX+bvaB66Ur+KhJfojhceMzcAg==
+	t=1794004957;
+	b=pOKji7UoNw1yTt6U0w1fzDQQnS3MoSGY7/q3ORZ/2wUceGlPlGYRLk9gfBBf0Ty37ITF
+	 4AmZGGespTta1a52/X/Uom7VJVma7zqC4C8hY6GgC9cEZhzHN9fhS77KcRlcMw+3UdBJZ
+	 s40GoTGt4uHDacClNfnp6O2uZBCloJ4olo4l1dSMPxNaewdWouc8Dtq3BPClSc/4JRQ7C
+	 2SDWDR1hly0Os4ZqkQsZ0kiYbZybT3ADWytPi+5YPgcrmJbJamY5ACnCLr92VJYW4X0os
+	 Ke/1TFV7eiyKtDwdZGTWGahWI+APAv0kXEZnL1hpALCav3JymuKtn/jAr4BPcbPfd+w==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794004961;
+	a=rsa-sha256; c=relaxed/relaxed; t=1794004957;
 	h=Received:DKIM-Signature:Date:To:Cc:From:Subject:Message-Id;
-	bh=KDMCk4/nFam4vXhmb5RBBlIvTMQ+yYfNljLK17kD7P8=;
-	b=X+kkB4X1F0zc+6PvMCtG9hMbK1ChRMjsLmVXvXxLEKMdMWqJ2ruKy6SOcbqxfCXHh0g5
-	 TCzsKAM3qa2ImtvDMjhxyM54WL2mpqNYAmd/TbvbTFvlMFe/C1ECITN6gRP75NoJ7M0VP
-	 MjTNqowRB0YybH0129Lyum5ah4LR9uXAGmu3CnPLGLrVyiFOduOg+ZlVtx4BbVdzGVp+e
-	 6vBP3zHTaM3bXyaCpNiZjyC8HOLpTajrGua16frCcWJ4L83CZ4f0nt+n9xX5edMByp2F1
-	 w47nGy2/gk+zmQfmB3FAENLwxZ1LP0wH3bLZ/EV2X154N9CZu0OVXC0DYnktEwoRI5A==
+	bh=Wu5QSCeeWEbc5SWADeD5o7TpwIb80eoQ0aGlQNpP1dc=;
+	b=vBAWeCwAsSuXrAB6fmbIElCY/vqixvt+BJcxu54yN+p7FnOY/zdEIdi1ssxju7YRIU9N
+	 bfkXGdDAJwbxOR++dSUpujV5je1QSD7o57MAeAA8XBhGsttTuJC4szZ1lesCzCFELbl4+
+	 TGPPLN5BOqddidFF+oBKXu/V6UtvepGNNh3UPrh7Xd+BXmJEnesmvlfSgPJZxIjTlKLNy
+	 zGunGmGDF+7xqERLF0zKKXs4JUmSEKzSMs77PTi1Cut1RTNIcsw6+rjNmwjErSS0G8VYE
+	 2H7atvuEbDNdMbM0AE3PT+mWGSxyP6xkrrGCLo10mEIXiMsknuaAMcudOPHdRNjLeBA==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=y1sTsdyw;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=f4pqdlX5;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2AE7E606D802
-	for <mm-commits@vger.kernel.org>; Fri,  6 Nov 2026 22:42:40 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B92D6606A335;
+	Fri,  6 Nov 2026 22:42:36 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=y1sTsdyw
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B32351F00900;
-	Fri,  6 Nov 2026 22:42:40 +0000 (UTC)
+	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=f4pqdlX5
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 389E21F0089F;
+	Fri,  6 Nov 2026 22:42:36 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1794004960;
-	bh=KDMCk4/nFam4vXhmb5RBBlIvTMQ+yYfNljLK17kD7P8=;
+	d=linux-foundation.org; s=korg; t=1794004956;
+	bh=Wu5QSCeeWEbc5SWADeD5o7TpwIb80eoQ0aGlQNpP1dc=;
 	h=Date:To:Cc:From:Subject;
-	b=y1sTsdywHPqstUcwacHHQYsmid+gqbJw6+62U5vrWJ4BRUSQ2/+f0ByEe0fL/QRl9
-	 xuD3r3bM+UYIQ1EsMzw/PQ6rZMzvM8hIhn2gnsATL2HsK4aZXaGTsxPdC03OaQ6YVB
-	 1CilnTr0Da8jCniHjemRv1a2dAlrflfVn7aOC5Jc=
-Date: Fri, 06 Nov 2026 14:42:40 -0800
+	b=f4pqdlX56lfzso2loPsG0AqqIzTVTA3iYuGsBBkluGJK421BHKbLvGCJ85G521aw4
+	 iHLe/cERULslMJ2PcnTG9r/1rW7llVoj+EXyHY+LGdkIYTArpXRzEPKDPuqNUpqWoQ
+	 06+yGnHCMCy0kM/Xnz5U4d4rvjkZWgIvLMtgf9T8=
+Date: Fri, 06 Nov 2026 14:42:35 -0800
 To: mm-commits@vger.kernel.org, ziy@nvidia.com, usama.arif@linux.dev,
- shuah@kernel.org, ryan.roberts@arm.com, ritesh.list@gmail.com,
- peterx@redhat.com, nico.pache@linux.dev, maddy@linux.ibm.com,
- loic.molinari@collabora.com, ljs@kernel.org, liam@infradead.org,
- lance.yang@linux.dev, khorenko@virtuozzo.com, kas@kernel.org, jgg@ziepe.ca,
+ stable@vger.kernel.org, shuah@kernel.org, ryan.roberts@arm.com,
+ ritesh.list@gmail.com, peterx@redhat.com, nico.pache@linux.dev,
+ maddy@linux.ibm.com, loic.molinari@collabora.com, ljs@kernel.org,
+ liam@infradead.org, lance.yang@linux.dev, kas@kernel.org, jgg@ziepe.ca,
  dev.jain@arm.com, baolin.wang@linux.alibaba.com, baohua@kernel.org,
- azpijr@gmail.com, alex@shazbot.org, akpm@linux-foundation.org
+ azpijr@gmail.com, alex@shazbot.org, akpm@linux-foundation.org,
+ khorenko@virtuozzo.com
 Cc: David Hildenbrand <david@kernel.org>
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged] selftests-mm-test-fork-of-pmd-mapped-shmem-thps-fix.patch removed from -mm tree
-Message-Id: <20261106224240.B32351F00900@smtp.kernel.org>
+Subject: [merged] mm-rmap-duplicate-a-pmd-mapping-as-one-in-folio_dup_file_rmap_pmd.patch removed from -mm tree
+Message-Id: <20261106224236.389E21F0089F@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -58,71 +59,178 @@ Precedence: list
 
 
 The quilt patch titled
-     Subject: selftests-mm-test-fork-of-pmd-mapped-shmem-thps-fix
+     Subject: mm/rmap: duplicate a PMD mapping as one in folio_dup_file_rmap_pmd()
 has been removed from the -mm tree.  Its filename was
-     selftests-mm-test-fork-of-pmd-mapped-shmem-thps-fix.patch
+     mm-rmap-duplicate-a-pmd-mapping-as-one-in-folio_dup_file_rmap_pmd.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: selftests-mm-test-fork-of-pmd-mapped-shmem-thps-fix
-Date: Thu Nov  5 07:51:02 PM PST 2026
+From: Konstantin Khorenko <khorenko@virtuozzo.com>
+Subject: mm/rmap: duplicate a PMD mapping as one in folio_dup_file_rmap_pmd()
+Date: Wed, 04 Nov 2026 21:40:55 +0100
 
-s/read_pmd_pagesize/pmd_size/
+Patch series "mm/huge_memory: copy PMDs at fork like the PTE path does",
+v5.
 
+copy_huge_pmd() decides what to copy at fork by its own rules, apart
+from copy_present_ptes(): a lockless check for special PMDs, and a skip
+of every file THP. Following David's review of v3, this series makes it
+decide the way the PTE path does, under the page table lock, with
+vm_normal_page_pmd(). That fixes the two bugs v1-v3 were about. The
+patches:
+
+1. folio_dup_file_rmap_pmd() duplicated a PMD mapping as HPAGE_PMD_NR
+   PTE mappings. It had no caller until patch 2.
+2. File THPs are copied at fork instead of being refaulted by the
+   child, as their PTEs would be.
+3. The special-PMD read moves under the lock. That closes the race with
+   a driver zap (vfio-pci, panthor) and the missing page table deposit
+   on ppc64 hash that Sashiko found in v1.
+4. A selftest for 1 and 2.
+
+Stable
+======
+
+The race (since v6.12) and the ppc64 hash NULL deref (since v7.1) are
+fixed in patch 3, which only works on top of the copy rework in patch
+2, and patch 2 is the first caller of the helper patch 1 fixes. So
+patches 1-3 carry Cc: stable, as David suggested on v4. They will not
+apply to 6.12 as they are, I will do the backports.
+
+A related refcount bug in copy_huge_pud() for device DAX is fixed in
+a separate series, as it does not depend on this one:
+https://patch.msgid.link/20261021-vstor-150143-copy_huge_pud-folio-refcount-v1-0-8bd88551f9be@virtuozzo.com
+
+Testing
+=======
+
+v5 on v7.4-rc1, x86_64 with 4 NUMA nodes, the series with
+CONFIG_DEBUG_VM, KASAN and lockdep:
+
+- fork_file_thp (patch 4) skips on v7.4-rc1, where fork leaves file
+  THPs to a refault, and fails in both cases without patch 1, where
+  ShmemPmdMapped drops when the child exits and the kernel reports
+  "Bad page cache";
+- with the series it passes, also under migrate_pages() of the parent
+  and under reclaim in a small memcg, where some runs skip; with other
+  processes churning PMD-mapped shmem it passes or skips, never fails;
+- cow, guard-regions, uffd-unit-tests, uffd-wp-mremap,
+  split_huge_page_test, mremap_test, soft-dirty, pagemap_ioctl,
+  migration, madv_populate, transhuge-stress and khugepaged pass as on
+  v7.4-rc1.
+
+The runs below are from v4, on v7.3-rc7 in a KVM guest with 4 vCPUs,
+x86_64. Patches 1-3 changed since only by the device private CoW check.
+
+Race with a driver zap. The guest's QXL device is bound to vfio-pci in
+no-IOMMU mode, BAR0 of 64 MB mapped with PMDs. The reproducer below
+forks while a second thread clears PCI_COMMAND_MEMORY through the vfio
+config region after a random delay of up to 1 ms; the child waits for
+the write to finish and reads one byte of each 2 MB of the BAR. A child
+that reads anything without SIGBUS kept a stale mapping. I have not hit
+it without help, so a test-only debugfs knob adds an mdelay(2) between
+copy_pmd_range()'s lockless pmd_is_huge() and the PMD locks:
+
+  +-----------------------+-------+-------+----------------+
+  | kernel                | delay | forks | stale children |
+  +-----------------------+-------+-------+----------------+
+  | 7.3-rc7               | none  | 20900 | 0              |
+  | 7.3-rc7               | 2 ms  | 150   | 128            |
+  | 7.3-rc7 + this series | none  | 3000  | 0              |
+  | 7.3-rc7 + this series | 2 ms  | 400   | 0              |
+  +-----------------------+-------+-------+----------------+
+
+ppc64 hash is not tested on hardware. On x86 a test-only hack makes
+arch_needs_pgtable_deposit() true and mremap move the table, as on
+ppc64 hash. Without the series the first child of the reproducer oopses
+at exit in pgtable_trans_huge_withdraw(); with it the reproducer and
+the mm selftests pass.
+
+Cost
+====
+
+fork() now copies file THPs instead of leaving them to a refault, which
+costs fork() a reference, an rmap update and a counter per huge PMD and
+saves the child a fault per huge PMD it touches. fork() of a process
+with 4 GB of shmem THPs mapped MAP_PRIVATE and an anon_vma on the VMA,
+medians of 2000 forks:
+
+  +-----------------------+------------+-------------------------+
+  | kernel                | fork()     | fork(), child reads all |
+  +-----------------------+------------+-------------------------+
+  | 7.3-rc7               | 86-129 us  | 2380-2620 us            |
+  | 7.3-rc7 + this series | 230-355 us | 820-930 us              |
+  +-----------------------+------------+-------------------------+
+
+Notes
+=====
+
+- drm_gem_shmem and mshv_vtl map special PMDs with
+  vmf_insert_pfn_pmd() as well.
+- copy_huge_pud() still differs from the PMD tail in that it does not
+  mark a shared PUD clean in the child or handle uffd bits.
+- A reproducer is at the Link:
+
+
+This patch (of 4):
+
+folio_dup_file_rmap_pmd() passes PGTABLE_LEVEL_PTE to
+__folio_dup_file_rmap() for HPAGE_PMD_NR pages, so it adds HPAGE_PMD_NR
+PTE mappings to the folio instead of one PMD mapping.
+
+The helper has no caller yet, the next patch adds the first one. Pass
+PGTABLE_LEVEL_PMD, as folio_try_dup_anon_rmap_pmd() does.
+
+Link: https://lore.kernel.org/20261104-b4-prep-vstor-149847-copy_huge_pmd-recheck-special-pmd-v5-0-c56d0d26f970@virtuozzo.com
+Link: https://lore.kernel.org/20261104-b4-prep-vstor-149847-copy_huge_pmd-recheck-special-pmd-v5-1-c56d0d26f970@virtuozzo.com
+Fixes: d8ef5e311d7b ("mm/rmap: convert page_dup_file_rmap() to folio_dup_file_rmap_[pte|ptes|pmd]()")
+Signed-off-by: Konstantin Khorenko <khorenko@virtuozzo.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Cc: Alex Williamson <alex@shazbot.org>
+Reviewed-by: Zi Yan <ziy@nvidia.com>
+Reviewed-by: Kiryl Shutsemau (Meta) <kas@kernel.org>
+Acked-by: David Hildenbrand (Arm) <david@kernel.org>
+Reviewed-by: Jose A. Perez de Azpillaga <azpijr@gmail.com>
+Tested-by: Andrew Morton <akpm@linux-foundation.org>
+  Link: https://lore.kernel.org/20261106084856.4b254c973694345ee58a9b63@linux-foundation.org
 Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: Barry Song <baohua@kernel.org>
-Cc: David Hildenbrand <david@kernel.org>
-Cc: Dev Jain <dev.jain@arm.com>
-Cc: Jason Gunthorpe <jgg@ziepe.ca>
-Cc: "Jose A. Perez de Azpillaga" <azpijr@gmail.com>
-Cc: Kiryl Shutsemau <kas@kernel.org>
-Cc: Konstantin Khorenko <khorenko@virtuozzo.com>
-Cc: Lance Yang <lance.yang@linux.dev>
 Cc: Liam R. Howlett <liam@infradead.org>
+Cc: Nico Pache <nico.pache@linux.dev>
+Cc: Ryan Roberts <ryan.roberts@arm.com>
+Cc: Dev Jain <dev.jain@arm.com>
+Cc: Barry Song <baohua@kernel.org>
+Cc: Lance Yang <lance.yang@linux.dev>
+Cc: Usama Arif <usama.arif@linux.dev>
+Cc: Peter Xu <peterx@redhat.com>
+Cc: Alex Williamson <alex@shazbot.org>
 Cc: Loïc Molinari <loic.molinari@collabora.com>
 Cc: Lorenzo Stoakes <ljs@kernel.org>
-Cc: Madhavan Srinivasan <maddy@linux.ibm.com>
-Cc: Nico Pache <nico.pache@linux.dev>
-Cc: Peter Xu <peterx@redhat.com>
-Cc: Ritesh Harjani (IBM) <ritesh.list@gmail.com>
-Cc: Ryan Roberts <ryan.roberts@arm.com>
 Cc: Shuah Khan <shuah@kernel.org>
-Cc: Usama Arif <usama.arif@linux.dev>
-Cc: Zi Yan <ziy@nvidia.com>
+Cc: Madhavan Srinivasan <maddy@linux.ibm.com>
+Cc: Ritesh Harjani (IBM) <ritesh.list@gmail.com>
+Cc: Jason Gunthorpe <jgg@ziepe.ca>
+Cc: <stable@vger.kernel.org>
 ---
 
- tools/testing/selftests/mm/fork_file_thp.c |    2 +-
+ include/linux/rmap.h |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/tools/testing/selftests/mm/fork_file_thp.c~selftests-mm-test-fork-of-pmd-mapped-shmem-thps-fix
-+++ a/tools/testing/selftests/mm/fork_file_thp.c
-@@ -235,7 +235,7 @@ int main(void)
+--- a/include/linux/rmap.h~mm-rmap-duplicate-a-pmd-mapping-as-one-in-folio_dup_file_rmap_pmd
++++ a/include/linux/rmap.h
+@@ -558,7 +558,7 @@ static inline void folio_dup_file_rmap_p
+ 		struct page *page, struct vm_area_struct *dst_vma)
  {
- 	ksft_print_header();
- 	pagesize = getpagesize();
--	pmdsize = read_pmd_pagesize();
-+	pmdsize = pmd_psize();
- 	if (!pmdsize)
- 		ksft_exit_skip("THP is not supported\n");
- 	if (pmdsize > MAX_PMDSIZE)
+ #ifdef CONFIG_TRANSPARENT_HUGEPAGE
+-	__folio_dup_file_rmap(folio, page, HPAGE_PMD_NR, dst_vma, PGTABLE_LEVEL_PTE);
++	__folio_dup_file_rmap(folio, page, HPAGE_PMD_NR, dst_vma, PGTABLE_LEVEL_PMD);
+ #else
+ 	WARN_ON_ONCE(true);
+ #endif
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from khorenko@virtuozzo.com are
 
-mm-mempolicy-use-one-node-set-for-interleave-weights.patch
-maple_tree-fix-reverse-iterator-state-when-the-root-disappears.patch
-shmem-consume-the-reserved-xattr-space-despite-remount.patch
-selftests-mm-check-madv_cold-and-madv_pageout-on-partly-advised-thps-fix.patch
-alloc_tag-introduce-ioctls-to-toggle-allocation-tracepoints-fix-fix.patch
-alloc_tag-introduce-ioctls-to-toggle-allocation-tracepoints-fix.patch
-mm-filemap-convert-fault-and-readahead-logic-to-use-vma_flags_t-fix.patch
-mm-filemap-convert-fault-and-readahead-logic-to-use-vma_flags_t-fix-fix.patch
-profile-account-for-partial-proc-profile-reads.patch
-profile-simplify-proc-profile-read-layout.patch
-ipc-msg-clamp-negative-msg_info-usage-counts.patch
-drivers-media-v4l2-core-v4l2-vp9c-reduce-inlining.patch
+mm-huge_memory-copy-file-thps-at-fork-like-copy_present_ptes-does.patch
+mm-huge_memory-read-a-special-pmd-under-the-lock-in-copy_huge_pmd.patch
+selftests-mm-test-fork-of-pmd-mapped-shmem-thps.patch
 
