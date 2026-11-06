@@ -1,46 +1,47 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793999620;
-	b=oPHdXQwTXMpBXN2SSVT1Vo9vNEQfzNAfq6RQRT5bCPagHG9W7n66O7su18YTrI2TUqsM
-	 IKqXFbqGh2mwSyu5YROx7i/ezXITEnrhvL7BvXh++VVbQ9+2UzhvA8LM8+Gi+gMHMcY0y
-	 dxAsD1dMUA1TWQXFyYKFH5LnF4yFcGRs4PIB4oLgBg44SZ5Cplr/1HXk01UfjQ1QP8tVP
-	 IB5dN09suZJQJoYpkJP58b41xFAHplyDpqXhxuA1eB9jZ32JJjc+9fdpk6sp9+4a7YOl8
-	 wgy30JigwpRtb7ufnLD0lHy8CCE6e9PYv8uGYIkSgZJIaOjI83FD0h0oxbHUoCLVn0Q==
+	t=1793999758;
+	b=HVLgDdrylVax5gEU7MyB9h0QAptix3wvdkn0mArB0a79x0K3p2lleZ4LGFozzpiHxFu5
+	 ttgqE7aOpTlZCFNitJaK4KveTJIPvz9+LfuqCP641ZjbdfHest2wOhrO7oivGVjrGbJzD
+	 DshnRRDnm4Tjx2wtJWlUfkTq4b0NPaPLw8aPQbOXfdq8PO8jO1W4VRMkOxEYBZT//MhPm
+	 2g8RejXi1Pp5luxdkgePbmPdJDgwl64jOCSxj0l6S4PydlK1cXggrDQXyNLvk7KTm9q9o
+	 FonHkG4OV6C8mMzQLObWJWQembCvl0Wc4rI23e1RwbTVDNEBMTvD/UOr86sU/2bW1tA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793999620;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793999758;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=3jG4w/FSxEGHSeTqiXDVDOfwVPdsi+WOjBRLAo0iVng=;
-	b=uu7tuw+pmBJ7DTtYiKUhiNNPuxCbf3h34+xIRmJzE8mLbVF8JatxM1sye67Q5hPGf/2f
-	 AYqKMUAGG69LJGGJhY/PnrLuToitb6HJ4Jx2EDCO+sdB6hfJA+bJKAzitlXw2rb+AdkL2
-	 +LercoTGeibjne982cueI54ITU6yNKO1FFr0skiB6omoW84gbz1FjnDv3H6AEPV745leE
-	 E4V2c57Ot+ewIpH5VGu22DkYLpddtXft3Y90tMbGI4pyFT2NxPtazKMICtSpZDLJ0li20
-	 KBzfasvOCIzjQreypH0mhbuLw4fF8R0wJ/yc77o0LdM8kr+0ppBE/qkN2uYTdnlcfdA==
+	bh=OvLAo/H5kT6MahZiDkx5vk1iX5DjECO8Qk2LI/uJU+Y=;
+	b=LsJ8xcqyVfryO1+i2xK/IHo3BpRm6TGLce1h7ggHCpaLIiUz6ZZtTZhwqTnsIxAWFl3W
+	 WoEdRA5xsc/2rGX19Mvp9LKK+Y3gJxt8i1pmpBJEhQ1YxhnY15BCSQ2e50y7y5N7GFU4+
+	 ffUHZHoBoSbFgAp8aa027xrvd+YPtalCAPA2rQLiigtb+L1TVCbCWdoHEaHZFIB7abTkq
+	 ONOpyypFPctTjirOgEmpEhAGVqzTuOgwoRhH/quQiNxgkPUo+SVrxI1bdhXjOslGqy/qL
+	 rjzM2dHA9/+s1sJDdh8IoopjaQSkvwBLcfrlck1srs7T5F2lDG0FC6C+octdlYTeM1g==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=Zg1XesU7;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=oEcdu+aF;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CADF6606A332
-	for <mm-commits@vger.kernel.org>; Fri,  6 Nov 2026 21:13:39 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5AD9B606A326;
+	Fri,  6 Nov 2026 21:15:58 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=Zg1XesU7
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5C0FF1F008A5;
-	Fri,  6 Nov 2026 21:13:39 +0000 (UTC)
+	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=oEcdu+aF
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id EB6CC1F008BE;
+	Fri,  6 Nov 2026 21:15:57 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1793999619;
-	bh=3jG4w/FSxEGHSeTqiXDVDOfwVPdsi+WOjBRLAo0iVng=;
+	d=linux-foundation.org; s=korg; t=1793999758;
+	bh=OvLAo/H5kT6MahZiDkx5vk1iX5DjECO8Qk2LI/uJU+Y=;
 	h=Date:To:From:Subject;
-	b=Zg1XesU7GM38yEgnneuFlOnn2TkdrD7IvLpMixQ+j+Qbw7OjH4x73/m2w+x9uIQbP
-	 dcgmgQFM8Hkh71kmnoppKTQ8s4HLM6MAZTqIo0Nxiaqq3OwgzyMKL+HtMrLyQmgkQZ
-	 Rj+q9VWB2AOHRDFWJ58lpCjYB+xPy7eoaYRk4BnY=
-Date: Fri, 06 Nov 2026 13:13:38 -0800
-To: mm-commits@vger.kernel.org,phillip@squashfs.org.uk,
-	christian.loehle@arm.com,akpm@linux-foundation.org
+	b=oEcdu+aFkO6Pbwda6MHoTFtNFRl9XxHC5qUv5n4W1pSPsd6OlGzHwRGlBFEAyRSPO
+	 8Q/lEoPqGPhtY4sEdseAPt68M/vnj3dKsmqyucpT6TS0A5rYFjEInaPCr+c1C0kvN0
+	 sgtCrzV2jzdf5ljqCOikTaBoPXoolfNxD2ig7qXI=
+Date: Fri, 06 Nov 2026 13:15:57 -0800
+To: mm-commits@vger.kernel.org,
+	syzbot+65b1e2d8f2d618a93e96@syzkaller.appspotmail.com,stable@vger.kernel.org,
+	ngocthang2710.1999@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + squashfs-identify-device-in-mount-errors.patch added to mm-nonmm-unstable branch
-Message-Id: <20261106211339.5C0FF1F008A5@smtp.kernel.org>
+Subject: + squashfs-fix-leaked-page-locks-when-page-actor-allocation-fails.patch added to mm-nonmm-unstable branch
+Message-Id: <20261106211557.EB6CC1F008BE@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -52,12 +53,12 @@ Precedence: list
 
 
 The patch titled
-     Subject: squashfs: identify device in mount errors
+     Subject: squashfs: fix leaked page locks when page actor allocation fails
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     squashfs-identify-device-in-mount-errors.patch
+     squashfs-fix-leaked-page-locks-when-page-actor-allocation-fails.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/squashfs-identify-device-in-mount-errors.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/squashfs-fix-leaked-page-locks-when-page-actor-allocation-fails.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -75,162 +76,48 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Christian Loehle <christian.loehle@arm.com>
-Subject: squashfs: identify device in mount errors
-Date: Sat, 12 Sep 2026 15:53:14 +0100
+From: Nguyen Ngoc Thang <ngocthang2710.1999@gmail.com>
+Subject: squashfs: fix leaked page locks when page actor allocation fails
+Date: Sun, 27 Sep 2026 12:40:12 +0700
 
-Squashfs mount failures reported through fs_context do not identify the
-backing device, fix this by printing the block device.
+squashfs_readpage_block() grabs and locks the sibling pages of the target
+block before it allocates the page actor.  If that allocation fails it
+jumps to "out", which only frees the page array, so the locked pages are
+never unlocked or released.
 
-Repeated automount failures used to be ambiguous, for example:
-  Filesystem uses "xz" compression. This is not supported
+A later truncate_inode_pages_range() on the inode, e.g.  from evict() at
+umount, then waits forever on the leaked folio lock and the task hangs.
 
-All of the affected errors occur after get_tree_bdev() has opened the
-block device and setup_bdev_super() has assigned sb->s_bdev.  Use it to
-identify the failing Squashfs image even when the mount is retried.  For
-example, the error above now reads:
-  Filesystem on loop0 uses "xz" compression. This is not supported
+Go through mark_errored instead, which unlocks and puts every page
+except the target, which the caller handles.
 
-Link: https://lore.kernel.org/20260912145314.788588-1-christian.loehle@arm.com
-Signed-off-by: Christian Loehle <christian.loehle@arm.com>
+Link: https://lore.kernel.org/20260927060541.45780-1-ngocthang2710.1999@gmail.com
+Fixes: f268eedddf35 ("squashfs: extend "page actor" to handle missing pages")
+Signed-off-by: Nguyen Ngoc Thang <ngocthang2710.1999@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Reviewed-by: Phillip Lougher <phillip@squashfs.org.uk>
+Reported-by: <syzbot+65b1e2d8f2d618a93e96@syzkaller.appspotmail.com>
+Closes: https://syzkaller.appspot.com/bug?extid=65b1e2d8f2d618a93e96
+Reviewed-by: Phillip Lougher <squashfs.org.uk>
+Cc: <stable@vger.kernel.org>
 ---
 
- fs/squashfs/super.c |   36 ++++++++++++++++++------------------
- 1 file changed, 18 insertions(+), 18 deletions(-)
+ fs/squashfs/file_direct.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/fs/squashfs/super.c~squashfs-identify-device-in-mount-errors
-+++ a/fs/squashfs/super.c
-@@ -150,26 +150,26 @@ static int squashfs_parse_param(struct f
- }
+--- a/fs/squashfs/file_direct.c~squashfs-fix-leaked-page-locks-when-page-actor-allocation-fails
++++ a/fs/squashfs/file_direct.c
+@@ -70,7 +70,7 @@ int squashfs_readpage_block(struct folio
+ 	actor = squashfs_page_actor_init_special(msblk, page, pages, expected,
+ 						start_index << PAGE_SHIFT);
+ 	if (actor == NULL)
+-		goto out;
++		goto mark_errored;
  
- static const struct squashfs_decompressor *supported_squashfs_filesystem(
--	struct fs_context *fc,
-+	struct super_block *sb, struct fs_context *fc,
- 	short major, short minor, short id)
- {
- 	const struct squashfs_decompressor *decompressor;
- 
- 	if (major < SQUASHFS_MAJOR) {
--		errorf(fc, "Major/Minor mismatch, older Squashfs %d.%d "
--		       "filesystems are unsupported", major, minor);
-+		errorf(fc, "Unsupported older Squashfs %d.%d filesystem on %pg",
-+		       major, minor, sb->s_bdev);
- 		return NULL;
- 	} else if (major > SQUASHFS_MAJOR || minor > SQUASHFS_MINOR) {
--		errorf(fc, "Major/Minor mismatch, trying to mount newer "
--		       "%d.%d filesystem", major, minor);
-+		errorf(fc, "Major/Minor mismatch, trying to mount newer %d.%d filesystem on %pg",
-+		       major, minor, sb->s_bdev);
- 		errorf(fc, "Please update your kernel");
- 		return NULL;
- 	}
- 
- 	decompressor = squashfs_lookup_decompressor(id);
- 	if (!decompressor->supported) {
--		errorf(fc, "Filesystem uses \"%s\" compression. This is not supported",
--		       decompressor->name);
-+		errorf(fc, "Filesystem on %pg uses \"%s\" compression. This is not supported",
-+		       sb->s_bdev, decompressor->name);
- 		return NULL;
- 	}
- 
-@@ -192,7 +192,7 @@ static int squashfs_fill_super(struct su
- 	TRACE("Entered squashfs_fill_superblock\n");
- 
- 	if (!devblksize) {
--		errorf(fc, "squashfs: unable to set blocksize\n");
-+		errorf(fc, "squashfs: unable to set blocksize on %pg\n", sb->s_bdev);
- 		return -EINVAL;
- 	}
- 
-@@ -221,7 +221,7 @@ static int squashfs_fill_super(struct su
- 	sblk = squashfs_read_table(sb, SQUASHFS_START, sizeof(*sblk));
- 
- 	if (IS_ERR(sblk)) {
--		errorf(fc, "unable to read squashfs_super_block");
-+		errorf(fc, "unable to read squashfs_super_block on %pg", sb->s_bdev);
- 		err = PTR_ERR(sblk);
- 		sblk = NULL;
- 		goto failed_mount;
-@@ -246,7 +246,7 @@ static int squashfs_fill_super(struct su
- 
- 	/* Check the MAJOR & MINOR versions and lookup compression type */
- 	msblk->decompressor = supported_squashfs_filesystem(
--			fc,
-+			sb, fc,
- 			le16_to_cpu(sblk->s_major),
- 			le16_to_cpu(sblk->s_minor),
- 			le16_to_cpu(sblk->compression));
-@@ -270,8 +270,8 @@ static int squashfs_fill_super(struct su
- 	 * block size (by default 128K).  This is currently not supported.
- 	 */
- 	if (PAGE_SIZE > msblk->block_size) {
--		errorf(fc, "Page size > filesystem block size (%d).  This is "
--		       "currently not supported!", msblk->block_size);
-+		errorf(fc, "Page size > filesystem block size (%d) on %pg is not supported",
-+		       msblk->block_size, sb->s_bdev);
- 		goto failed_mount;
- 	}
- 
-@@ -330,7 +330,7 @@ static int squashfs_fill_super(struct su
- 	msblk->read_page = squashfs_cache_init("data",
- 		SQUASHFS_READ_PAGES, msblk->block_size);
- 	if (IS_ERR(msblk->read_page)) {
--		errorf(fc, "Failed to allocate read_page block");
-+		errorf(fc, "Failed to allocate read_page block for %pg", sb->s_bdev);
- 		err = PTR_ERR(msblk->read_page);
- 		goto failed_mount;
- 	}
-@@ -369,7 +369,7 @@ static int squashfs_fill_super(struct su
- 	msblk->xattr_id_table = squashfs_read_xattr_id_table(sb,
- 		xattr_id_table_start, &msblk->xattr_table, &msblk->xattr_ids);
- 	if (IS_ERR(msblk->xattr_id_table)) {
--		errorf(fc, "unable to read xattr id index table");
-+		errorf(fc, "unable to read xattr id index table on %pg", sb->s_bdev);
- 		err = PTR_ERR(msblk->xattr_id_table);
- 		msblk->xattr_id_table = NULL;
- 		if (err != -ENOTSUPP)
-@@ -382,7 +382,7 @@ allocate_id_index_table:
- 	msblk->id_table = squashfs_read_id_index_table(sb,
- 		le64_to_cpu(sblk->id_table_start), next_table, msblk->ids);
- 	if (IS_ERR(msblk->id_table)) {
--		errorf(fc, "unable to read id index table");
-+		errorf(fc, "unable to read id index table on %pg", sb->s_bdev);
- 		err = PTR_ERR(msblk->id_table);
- 		msblk->id_table = NULL;
- 		goto failed_mount;
-@@ -398,7 +398,7 @@ allocate_id_index_table:
- 	msblk->inode_lookup_table = squashfs_read_inode_lookup_table(sb,
- 		lookup_table_start, next_table, msblk->inodes);
- 	if (IS_ERR(msblk->inode_lookup_table)) {
--		errorf(fc, "unable to read inode lookup table");
-+		errorf(fc, "unable to read inode lookup table on %pg", sb->s_bdev);
- 		err = PTR_ERR(msblk->inode_lookup_table);
- 		msblk->inode_lookup_table = NULL;
- 		goto failed_mount;
-@@ -423,7 +423,7 @@ handle_fragments:
- 	msblk->fragment_index = squashfs_read_fragment_index_table(sb,
- 		le64_to_cpu(sblk->fragment_table_start), next_table, fragments);
- 	if (IS_ERR(msblk->fragment_index)) {
--		errorf(fc, "unable to read fragment index table");
-+		errorf(fc, "unable to read fragment index table on %pg", sb->s_bdev);
- 		err = PTR_ERR(msblk->fragment_index);
- 		msblk->fragment_index = NULL;
- 		goto failed_mount;
-@@ -470,7 +470,7 @@ check_directory_table:
- 	return 0;
- 
- insanity:
--	errorf(fc, "squashfs image failed sanity check");
-+	errorf(fc, "squashfs image on %pg failed sanity check", sb->s_bdev);
- failed_mount:
- 	squashfs_cache_delete(msblk->block_cache);
- 	squashfs_cache_delete(msblk->fragment_cache);
+ 	/* Decompress directly into the page cache buffers */
+ 	res = squashfs_read_data(inode->i_sb, block, bsize, NULL, actor);
 _
 
-Patches currently in -mm which might be from christian.loehle@arm.com are
+Patches currently in -mm which might be from ngocthang2710.1999@gmail.com are
 
-squashfs-identify-device-in-mount-errors.patch
+squashfs-fix-leaked-page-locks-when-page-actor-allocation-fails.patch
 
