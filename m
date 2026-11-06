@@ -1,50 +1,50 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793920970;
-	b=Ga6exo5gu9b8S2lJhiri8wnWIEODDJh06lEiExMGzoExuGGDITQz9P8IFfkKD+YI2AkU
-	 sOy7HrAUjlil6WvNFVDvMHuxtCxGMEjRiEJsAI8amQTHs6AE2P+scv9eKTixwJVwOKu+y
-	 EaKvi3TspUyfdECbD1+wui8bEzAvtjJ/PlguLlwuiplPwPTCLzvunMMB7vRbxpbezpW1S
-	 hngI+lxwZ5N2nxZ6EWyGOvN3Z8fi/Oxe8aHB9SI8cO6k2wASa/qN/5FKBsev37ZosJpoY
-	 H/ISznCopLSM0MFV/dfPOXuDzq3zseKL3/HHBm0PFrlZ6w3V14TXsv/O5npt3av71DA==
+	t=1793926594;
+	b=UcmEs+rKgk3Yyi0hBy+doPxjNaLacx/x295+8jaJu6ITBCAxWXCQn2DiUv5+VZRerRpO
+	 beQR7WuI0xzcw2ZaJiZzL6sNeXCYuiagtHOnKtwYBoOcBW7CvHzT6jFtvuHOQYAjfO/xZ
+	 9vdFVwKSIaPJp6F2pwisycEFZcynW4cZMsft2pZCca9XHScjiDJbBFRpZTZhg6n26HBSo
+	 wv/+gojkDarIt6t+6+R91F68sZ9bNSDbnhXtOfhUa0KpEG7zHPt5Mm3D78XLBHjqPcdfW
+	 V6AZ2DegGBI5YXzGLCJC6P3VNf19NjU3PNbYtoT2WmRyx9Z0i5WmfLcGjKY/ftGJLxg==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793920970;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793926594;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=H3H7UT4Tn3COQJGrzcVKHJgk9QoJZBEP6lc08YTHFng=;
-	b=INWPLzLmyMvf7Xq9xZueaJ1bb3NnuD4/qU9x0BGf1ln3Cp1XpMpTdRGkLkox5khbzQ9W
-	 wggkzJqrPO/jssF7L/nb8GKfppdpnADJLQD4Xu9oo9d7ZehmgY+Qi0/jQOWT23Gl1GiS+
-	 e9PIG8BPbAlmC5Kvvppk6UqDv+2B0BqeUMzbOQ3ZP0n8XV9BXVLHYB/JIKZZT//5Uhkse
-	 EDdTVNfBKXnvGZFuI2WuZfB6zetcWxnW/OLv5ry9TjmEtwtVGbnsCIDlUEAGoAQMnBNGL
-	 O5QhwdLrUPOSOSXFgAwZ1g892kYgeOKDBqUbK78vUmLK9ek4RVbV3UXzVO0JOqBgS2Q==
+	bh=EKWa2TMCCz3OL2O52vHTa8wSAka2bAVG/T551beGLN8=;
+	b=bGxw209QrjpmIFTXbrh2duk9STkoZD4xYuc9GPrELc6+6SXJxobiOybO/yvE+CCz4GfP
+	 9sCJ+gzR6K36fykYETco1BGpQSSEkJateE3TzoNNm2NIZUbrKWQQefM9psByEp56FgFz5
+	 HHmM1OFNxj0L9wm7Iy4h4r/CD2AfTGir0FTJmYaSnwODUanM+yFjOGZU25B59OOAfjeC1
+	 5hudCiO4yv4Bdwcs2s0pncJIwUzY2IdIZSf/O9apITAjQ4ZaSuFVcA2WUlJB+O1p28VmL
+	 2EuDoBlHpwNHzbuFI2samiG9UWX4bb5S4GBfW0/T+7C1yBDw3t11t1wGL5sSgZBuDcg==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=1c3gaekP;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=YU66+k4V;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 34BF6606A31B;
-	Thu,  5 Nov 2026 23:22:49 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CB012606A31B;
+	Fri,  6 Nov 2026 00:56:33 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=1c3gaekP
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8E45B1F008A2;
-	Thu,  5 Nov 2026 23:22:49 +0000 (UTC)
+	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=YU66+k4V
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2F3751F0089F;
+	Fri,  6 Nov 2026 00:56:33 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1793920969;
-	bh=H3H7UT4Tn3COQJGrzcVKHJgk9QoJZBEP6lc08YTHFng=;
+	d=linux-foundation.org; s=korg; t=1793926593;
+	bh=EKWa2TMCCz3OL2O52vHTa8wSAka2bAVG/T551beGLN8=;
 	h=Date:To:From:Subject;
-	b=1c3gaekP6OPEjledXniFOpTKvfWGMgNDUpRSwtPGVjMS9oOAMjYvQnI3UwT0m+Cb9
-	 bDOYBaMZfj04jhgjSpnGuuxzkjmO7m0iJ5qDi0YorP/TEoyK7z+qcxkpq+d/gDvKxX
-	 wN5ienSFhnLfFA52rWu4sRh4e6fxPlUpmMKYeUbM=
-Date: Thu, 05 Nov 2026 15:22:49 -0800
-To: mm-commits@vger.kernel.org,youngjun.park@lge.com,vbabka@kernel.org,
-	tz2294@columbia.edu,surenb@google.com,stable@vger.kernel.org,
-	shikemeng@huaweicloud.com,ryncsn@gmail.com,rppt@kernel.org,nphamcs@gmail.com,
-	mhocko@suse.com,ljs@kernel.org,liam@infradead.org,kasong@tencent.com,
-	david@kernel.org,chrisl@kernel.org,baoquan.he@linux.dev,baohua@kernel.org,
-	mt4022@columbia.edu,akpm@linux-foundation.org
+	b=YU66+k4V46VecmFCwH4NCQ95aNoWN3uvElLN0CtUNsx3lpdCozltn+ES12KfTil4I
+	 dOKb3C0MRTDc13Fln15fo2qej3efoCIj2daJmMWFLGr17VAB5P7y5JHTbLFP8LtbYW
+	 hC6St9A1KClRVMcQ2FU8lnnC3GdQOkNGkpkpUO/I=
+Date: Thu, 05 Nov 2026 16:56:32 -0800
+To: mm-commits@vger.kernel.org,zokeefe@google.com,ziy@nvidia.com,
+	usama.arif@linux.dev,stable@vger.kernel.org,ryan.roberts@arm.com,
+	nico.pache@linux.dev,mason@kernel.org,ljs@kernel.org,liam@infradead.org,
+	lance.yang@linux.dev,kas@kernel.org,hughd@google.com,dev.jain@arm.com,
+	baolin.wang@linux.alibaba.com,baohua@kernel.org,david@kernel.org,
+	akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-swapfile-drop-a-large-unmapped-swap-in-folio-in-unuse_pte.patch added to mm-hotfixes-unstable branch
-Message-Id: <20261105232249.8E45B1F008A2@smtp.kernel.org>
+Subject: + mm-khugepaged-dont-map-folios-that-are-not-uptodate-in-madv_collapse.patch added to mm-hotfixes-unstable branch
+Message-Id: <20261106005633.2F3751F0089F@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -56,12 +56,12 @@ Precedence: list
 
 
 The patch titled
-     Subject: mm/swapfile: drop a large unmapped swap-in folio in unuse_pte()
+     Subject: mm/khugepaged: don't map folios that are not uptodate in MADV_COLLAPSE
 has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mm-swapfile-drop-a-large-unmapped-swap-in-folio-in-unuse_pte.patch
+     mm-khugepaged-dont-map-folios-that-are-not-uptodate-in-madv_collapse.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-swapfile-drop-a-large-unmapped-swap-in-folio-in-unuse_pte.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-khugepaged-dont-map-folios-that-are-not-uptodate-in-madv_collapse.patch
 
 This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -79,144 +79,65 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Mani Tofigh <mt4022@columbia.edu>
-Subject: mm/swapfile: drop a large unmapped swap-in folio in unuse_pte()
-Date: Thu, 05 Nov 2026 12:19:27 -0500
+From: "David Hildenbrand (Arm)" <david@kernel.org>
+Subject: mm/khugepaged: don't map folios that are not uptodate in MADV_COLLAPSE
+Date: Thu, 05 Nov 2026 19:16:44 +0100
 
-Since commit f1879e8a0c60 ("mm, swap: never bypass the swap cache even for
-SWP_SYNCHRONOUS_IO"), a fault can read a swapped-out mTHP range into one
-large folio in the swap cache.  The folio only becomes anon once
-do_swap_page() maps all of it, so if the faulting PTE changes in the
-meantime the folio stays in the swap cache while not being mapped or anon:
+madvise(MADV_COLLAPSE) can map PMD-sized pagecache folios that are not
+uptodate.  For example, shmem fallocate() can put such folios into the
+page cache.
 
-  Task A (fault)                       Task B
-  do_swap_page()
-    /* swaps in large folio F */
-                                       madvise(MADV_DONTNEED)
-                                         /* zaps the faulting PTE */
-    /* PTE changed (F not mapped) */
+collapse_file() already refuses to proceed with folios that are not
+uptodate.  Let's just do the same in try_collapse_pte_mapped_thp() and
+skip such folios, leaving handling to the page faults.
 
-swapoff then maps it, which marks all of its pages as mapped and
-exclusive, and the next fault on one of the other PTEs crashes in
-do_swap_page():
+Note that collapse_file() effectively clears shmem folios through
+shmem_get_folio(); let's keep this fix simple and simply let the page
+fault path deal with that.
 
-  [    6.424485] kernel BUG at mm/memory.c:5195!
-  [    6.424503] Oops: invalid opcode: 0000 [#1] SMP KASAN NOPTI
-  [    6.427654] CPU: 0 UID: 0 PID: 67 Comm: swapmthp Tainted: G        W            7.3.0-17087-gd865f2677c44 #1 PREEMPT
-  [    6.432665] RIP: 0010:do_swap_page+0x24eb/0x2fa0
-  [    6.451035] Call Trace:
-  [    6.451567]  <TASK>
-  [    6.453841]  __handle_mm_fault+0x13b5/0x3b40
-  [    6.458525]  handle_mm_fault+0x16f/0x480
-  [    6.461143]  do_user_addr_fault+0x312/0xa30
-  [    6.462044]  exc_page_fault+0x66/0xc0
-  [    6.462846]  asm_exc_page_fault+0x26/0x30
-  [    6.476708]  </TASK>
-
-do_swap_page() already drops such a folio from the swap cache when it
-can't map all of it.  We move that check into a helper and use it in
-unuse_pte() too, so swapoff drops the folio and swaps the entries in again
-as small folios.  With the fix, the next fault doesn't crash anymore.
-
-This bug was identified and confirmed with the help of a deterministic
-hypervisor currently under development.  The C reproducer below however
-hits it within about 1s.
-
-Link: https://lore.kernel.org/20261105-swapin-large-unmapped-v3-1-d5906e4cf18d@columbia.edu
-Fixes: f1879e8a0c60 ("mm, swap: never bypass the swap cache even for SWP_SYNCHRONOUS_IO")
-Signed-off-by: Mani Tofigh <mt4022@columbia.edu>
+Link: https://lore.kernel.org/20261105-set_huge_pmd_uptodate-v1-1-a78d8a1b7117@kernel.org
+Fixes: 34488399fa08 ("mm/madvise: add file and shmem support to MADV_COLLAPSE")
+Signed-off-by: David Hildenbrand (Arm) <david@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Reviewed-by: Nhat Pham <nphamcs@gmail.com>
-Acked-by: David Hildenbrand (Arm) <david@kernel.org>
-Cc: Chris Li <chrisl@kernel.org>
-Cc: Kairui Song <kasong@tencent.com>
-Cc: Kemeng Shi <shikemeng@huaweicloud.com>
-Cc: Baoquan He <baoquan.he@linux.dev>
-Cc: Barry Song <baohua@kernel.org>
-Cc: Youngjun Park <youngjun.park@lge.com>
-Cc: Lorenzo Stoakes <ljs@kernel.org>
+Reported-by: Chris Mason <mason@kernel.org>
+Acked-by: Zi Yan <ziy@nvidia.com>
+Reviewed-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
+Acked-by: Hugh Dickins <hughd@google.com>
+Reviewed-by: Zach O'Keefe <zokeefe@google.com>
+Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
 Cc: Liam R. Howlett <liam@infradead.org>
-Cc: Vlastimil Babka <vbabka@kernel.org>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Tal Zussman <tz2294@columbia.edu>
-Cc: Kairui Song <ryncsn@gmail.com>
+Cc: Nico Pache <nico.pache@linux.dev>
+Cc: Ryan Roberts <ryan.roberts@arm.com>
+Cc: Dev Jain <dev.jain@arm.com>
+Cc: Barry Song <baohua@kernel.org>
+Cc: Lance Yang <lance.yang@linux.dev>
+Cc: Usama Arif <usama.arif@linux.dev>
+Cc: Kiryl Shutsemau <kas@kernel.org>
 Cc: <stable@vger.kernel.org>
 ---
 
- mm/memory.c   |   13 ++++---------
- mm/swap.h     |   10 ++++++++++
- mm/swapfile.c |    9 +++++++++
- 3 files changed, 23 insertions(+), 9 deletions(-)
+ mm/khugepaged.c |    6 ++++++
+ 1 file changed, 6 insertions(+)
 
---- a/mm/memory.c~mm-swapfile-drop-a-large-unmapped-swap-in-folio-in-unuse_pte
-+++ a/mm/memory.c
-@@ -5198,18 +5198,13 @@ check_folio:
- 	 * If a large folio already belongs to anon mapping, then we
- 	 * can just go on and map it partially.
- 	 * If not, with the large swapin check above failing, the page table
--	 * have changed, so sub pages might got charged to the wrong cgroup,
--	 * or even should be shmem. So we have to free it and fallback.
-+	 * have changed, so some folio pages might be charged to the wrong
-+	 * cgroup, or even should be shmem. So we have to free it and fallback.
- 	 * Nothing should have touched it, both anon and shmem checks if a
- 	 * large folio is fully applicable before use.
--	 *
--	 * This will be removed once we unify folio allocation in the swap cache
--	 * layer, where allocation of a folio stabilizes the swap entries.
- 	 */
--	if (!folio_test_anon(folio) && folio_test_large(folio) &&
--	    nr_pages != folio_nr_pages(folio)) {
--		if (!WARN_ON_ONCE(folio_test_dirty(folio)))
--			swap_cache_del_folio(folio);
-+	if (!swap_cache_folio_mappable(folio, nr_pages)) {
-+		swap_cache_del_folio(folio);
- 		goto out_nomap;
+--- a/mm/khugepaged.c~mm-khugepaged-dont-map-folios-that-are-not-uptodate-in-madv_collapse
++++ a/mm/khugepaged.c
+@@ -1888,6 +1888,12 @@ static enum scan_result try_collapse_pte
+ 		goto drop_folio;
  	}
  
---- a/mm/swapfile.c~mm-swapfile-drop-a-large-unmapped-swap-in-folio-in-unuse_pte
-+++ a/mm/swapfile.c
-@@ -2518,6 +2518,15 @@ static int unuse_pte(struct vm_area_stru
- 	if (!folio_matches_swap_entry(folio, entry))
- 		return 0;
- 
-+	/*
-+	 * A large folio that a fault didn't map can't be mapped one PTE at a
-+	 * time here, so drop it and swap in small folios instead.
-+	 */
-+	if (unlikely(!swap_cache_folio_mappable(folio, 1))) {
-+		swap_cache_del_folio(folio);
-+		return 0;
++	/* Leave any uninitialized folios to the page fault path. */
++	if (!folio_test_uptodate(folio)) {
++		result = SCAN_FAIL;
++		goto drop_folio;
 +	}
 +
- 	swapcache = folio;
- 	folio = ksm_might_need_to_copy(folio, vma, addr);
- 	if (unlikely(!folio))
---- a/mm/swap.h~mm-swapfile-drop-a-large-unmapped-swap-in-folio-in-unuse_pte
-+++ a/mm/swap.h
-@@ -464,6 +464,16 @@ static inline void __swap_cache_replace_
- }
- #endif /* CONFIG_SWAP */
- 
-+static inline bool swap_cache_folio_mappable(struct folio *folio,
-+		unsigned int nr_pages)
-+{
-+	if (folio_test_anon(folio) || !folio_test_large(folio) ||
-+	    nr_pages == folio_nr_pages(folio))
-+		return true;
-+	VM_WARN_ON_ONCE_FOLIO(folio_test_dirty(folio), folio);
-+	return false;
-+}
-+
- extern const struct swap_ops swap_bdev_ops;
- 
- int shmem_writeout(struct swap_io_ctx *ctx, struct folio *folio,
+ 	result = find_pmd_or_thp_or_none(mm, haddr, &pmd);
+ 	switch (result) {
+ 	case SCAN_SUCCEED:
 _
 
-Patches currently in -mm which might be from mt4022@columbia.edu are
+Patches currently in -mm which might be from david@kernel.org are
 
-mm-swap-stop-cluster-list-scans-once-swapoff-clears-swp_writeok.patch
-mm-shmem-fix-swapin-livelock-on-a-mismatched-large-swap-cache-folio.patch
-mm-swapfile-drop-a-large-unmapped-swap-in-folio-in-unuse_pte.patch
+mm-memory-failure-fix-folio-refcount-leak-and-min_order_for_split-locking.patch
+mm-khugepaged-dont-map-folios-that-are-not-uptodate-in-madv_collapse.patch
 
