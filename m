@@ -1,49 +1,48 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793928453;
-	b=oClcgdThynBWlVcXqgPzFmXKx5rpJ3t6v4wb9jWYpHkuLliHAtHRMw1dOsPNUzHDdBMA
-	 NXm/nwxYQa2QBthnonJMxAzsxMIGCFokaHYdn++qNMOahjDLR5WG5UTOn4tkFCd2pQVT3
-	 nDtRkCSLWOwBwJIwSHWtwidEmwbZqbIiSkJn1RJqTUwChpfkrFWbmnVx9HmKDuVjstK9p
-	 3hTCUZHct6qR8X9uIo8Xcr2HxmTSXmWBaUFPVWIOpLqzwZQNiwymx5/zS2vCnXr4piWBC
-	 JMW/Y6bA+dVbjL5mUtrWBIFJtbJKhYXb3d50AGIeS5HZlfURcPgMleY72HBGGJH97Sg==
+	t=1793928455;
+	b=3gDdUlgRXJ0Dnw/Jmc9x60cyrENaOiCf6R2GTH1NCFEsn6ecxeGzyWOnOY0mfHs+7DBe
+	 aEI+nh9wyiX09AUproJbv4IAeWCb25U+IPuZMiJePSfM1mEu+mXYjZ5UYc5Owp4Kf8l6A
+	 2HDwKyPK1Eb0KWzKmF7CRkLENgj5clLkllDEvj+oMz+FME1lnbhvsImFiu7/UcYm2AjyO
+	 nP/OpkOe1du6CtViCV91JJ5lHHFLLfguRhBa+P2yoZC8A6EOXb9RcIUslNPU1opydFTMQ
+	 5sAa//tMm7wmHiEU+xMtnjv6p3FJMUYUOyIuoJ/5Y7Cvs5akEy+NCEiywygJTxg7+kw==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793928453;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793928455;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=Ggexvz+DRBtx3a3Vl/nT0GwYPhBHbH2HXrv6jdI2Fj8=;
-	b=SMvK+woAMRmKJRXV1y05mraqjlR42f2aTnusfT4/JtgV/DUSa7RNnAlMVpLRl0bth14O
-	 WkrUBIFom8MJwBU5cs6QVJntKwGh64lTV0DFjxYthVQQzqHJgjDdmiEMbPxjNrOYl/mx7
-	 auGYXeHE4tooiRZwLuMR7gRwDDcfvpaGAQ5K/aFnGbQIPviLdbyYIM5OeqXNtqwgItvxH
-	 lEkRNllc40NKn2DnFYfiW+r98Uv0p/EyCP5rDQ2ZHsS3Hg97Bw0Yv70Y7Rfp4dBBlcuvl
-	 HkT6LjfLvCN+hVjOM0b5WFv8nrfaNc6HeTe8EN3MAjMkS2EZyqNOddFSCrNQWf72x5w==
+	bh=NaqG/3AxA1nrwpZ+hKhOXwxGYPE1n+mhYAZPwMvmZxA=;
+	b=buJiFHpEDIg0kLG0v/GEAHnnEjJSX4yBkMa3uhBSS6tZHDU6BNv4jXw3CdU/siOg7JtP
+	 nz96eKOftOahVIZnomFWIHcbRzICSzGMz94RZ/NqBFhds1sZjgC+yurijQgLVO4if4atn
+	 tOtJdE6UQP0AKJq7QzN6SRhQHrtHDfftm9hWnzxrQOv3dmLDV+SrqhR3KnNdNNXs8Edjm
+	 z9lkUcGCPqIHD7SUslYxl/GT19r03v1xP+tpRtMbuPVwW0JZ/pajQ73QKOF2d1qqlEJ3f
+	 fQ4ioQVTgl7ZclfoOKG8XubEB+Oc/yP5TJE+W7lTybVe/XEUN9EiX5tyBP5pA7yGkaA==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=eYN+GB9N;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=SwfHJK7Z;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4D872606A31B;
-	Fri,  6 Nov 2026 01:27:33 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 515C2606A334
+	for <mm-commits@vger.kernel.org>; Fri,  6 Nov 2026 01:27:35 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=eYN+GB9N
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E234C1F0089F;
-	Fri,  6 Nov 2026 01:27:32 +0000 (UTC)
+	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=SwfHJK7Z
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id CE4191F008A1;
+	Fri,  6 Nov 2026 01:27:34 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1793928453;
-	bh=Ggexvz+DRBtx3a3Vl/nT0GwYPhBHbH2HXrv6jdI2Fj8=;
+	d=linux-foundation.org; s=korg; t=1793928454;
+	bh=NaqG/3AxA1nrwpZ+hKhOXwxGYPE1n+mhYAZPwMvmZxA=;
 	h=Date:To:From:Subject;
-	b=eYN+GB9NCVGDJg4IFBd+Jr5EjLWAkPTbMmIvnlrvzwhdBlmGvC2csIo+SpByAXDOP
-	 hUhsPhQb3tHtVMHfXRt1Qz9s9GjkzJkysIAP4339f773bRsFekvWDT7BSRVSyNEvFL
-	 K7V4bDF6VCEZ5STnY0fMlZI0lDCb29sFyfHq5FAU=
-Date: Thu, 05 Nov 2026 17:27:32 -0800
-To: mm-commits@vger.kernel.org,vbabka@kernel.org,stable@vger.kernel.org,
-	sarthak.sharma@arm.com,pfalcato@suse.de,osalvador@suse.de,
-	muchun.song@linux.dev,ljs@kernel.org,liam@infradead.org,jannh@google.com,
-	david@kernel.org,azpijr@gmail.com,josef@toxicpanda.com,
-	akpm@linux-foundation.org
+	b=SwfHJK7ZDBZejgt3FeTnMoQoG78CtB4eXycvPig2DNaHmoLnkyiFvH7XBofDNeG7d
+	 Z9fSo9WkuquwdqjAanTTUjMly4zjxdMaO3vliTCsLOQD31ALGf3G3mAF5SOQi7wHKH
+	 2xX4PHsgnuUk7QM0s6zVlDtI6NdH8UksTwsoqNw0=
+Date: Thu, 05 Nov 2026 17:27:34 -0800
+To: mm-commits@vger.kernel.org,vbabka@kernel.org,sarthak.sharma@arm.com,
+	pfalcato@suse.de,osalvador@suse.de,muchun.song@linux.dev,ljs@kernel.org,
+	liam@infradead.org,jannh@google.com,david@kernel.org,azpijr@gmail.com,
+	josef@toxicpanda.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-mremap-fix-hugetlb-reservation-leak-on-partial-move.patch added to mm-new branch
-Message-Id: <20261106012732.E234C1F0089F@smtp.kernel.org>
+Subject: + selftests-mm-test-a-partial-mremap-of-hugetlb-memory.patch added to mm-new branch
+Message-Id: <20261106012734.CE4191F008A1@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -55,12 +54,12 @@ Precedence: list
 
 
 The patch titled
-     Subject: mm/mremap: fix hugetlb reservation leak on partial move
+     Subject: selftests/mm: test a partial mremap() of hugetlb memory
 has been added to the -mm mm-new branch.  Its filename is
-     mm-mremap-fix-hugetlb-reservation-leak-on-partial-move.patch
+     selftests-mm-test-a-partial-mremap-of-hugetlb-memory.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mremap-fix-hugetlb-reservation-leak-on-partial-move.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-test-a-partial-mremap-of-hugetlb-memory.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -90,41 +89,20 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Josef Bacik <josef@toxicpanda.com>
-Subject: mm/mremap: fix hugetlb reservation leak on partial move
-Date: Thu, 05 Nov 2026 14:02:03 +0000
+Subject: selftests/mm: test a partial mremap() of hugetlb memory
+Date: Thu, 05 Nov 2026 14:02:04 +0000
 
-Patch series "mm/mremap: fix accounting on a partial move", v3.
+hugetlb-mremap only moves whole mappings, so it did not catch the
+reservation leak of a partial move.
 
+Map four private huge pages without touching them, move the second one,
+unmap everything, and check that the number of reserved huge pages is back
+where it was.
 
-This patch (of 5):
-
-Moving a part of a private hugetlb mapping with mremap() leaks the huge
-page reservations of the parts that stay.  They are not returned when the
-mapping is unmapped, when the process exits or when the pool is resized.
-
-fixup_hugetlb_reservations() takes the reservation map away from the old
-VMA while that VMA still spans its whole range, because the moved part is
-only split off by the unmap at the end of the move.  hugetlb_vm_op_close()
-then finds no map in the parts that remain and returns nothing for them:
-
-    mmap() of 4 pages, MAP_PRIVATE | MAP_HUGETLB    HugePages_Rsvd: 4
-    mremap() of the second page to a new address    HugePages_Rsvd: 4
-    munmap() of all of it                           HugePages_Rsvd: 3
-
-The source is unmapped in this case, so the number of VMAs ends up where
-it did before and the check against sysctl_max_map_count stays as it is.
-
-Fix by splitting a hugetlb VMA in prep_move_vma() before a part of it is
-moved, as commit 597e4b9ab48a ("mm/mremap: fix locked_vm leak by splitting
-VMA for MREMAP_DONTUNMAP") does for an mlock()'d VMA.  A backport needs
-that commit, which is tagged for stable itself.
-
-Link: https://lore.kernel.org/20261105-b4-mremap-pre-split-v3-0-f8789de76849@toxicpanda.com
-Link: https://lore.kernel.org/20261105-b4-mremap-pre-split-v3-1-f8789de76849@toxicpanda.com
-Fixes: 550a7d60bd5e ("mm, hugepages: add mremap() support for hugepage backed vma")
+Link: https://lore.kernel.org/20261105-b4-mremap-pre-split-v3-2-f8789de76849@toxicpanda.com
 Signed-off-by: Josef Bacik <josef@toxicpanda.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Reviewed-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
+Acked-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
 Reviewed-by: Jose A. Perez de Azpillaga <azpijr@gmail.com>
 Cc: Liam R. Howlett <liam@infradead.org>
 Cc: David Hildenbrand <david@kernel.org>
@@ -134,78 +112,84 @@ Cc: Pedro Falcato <pfalcato@suse.de>
 Cc: Muchun Song <muchun.song@linux.dev>
 Cc: Oscar Salvador <osalvador@suse.de>
 Cc: Sarthak Sharma <sarthak.sharma@arm.com>
-Cc: <stable@vger.kernel.org>
 ---
 
- mm/mremap.c |   27 ++++++++++++++++++---------
- 1 file changed, 18 insertions(+), 9 deletions(-)
+ tools/testing/selftests/mm/hugetlb-mremap.c |   52 +++++++++++++++++-
+ 1 file changed, 50 insertions(+), 2 deletions(-)
 
---- a/mm/mremap.c~mm-mremap-fix-hugetlb-reservation-leak-on-partial-move
-+++ a/mm/mremap.c
-@@ -1038,7 +1038,7 @@ static void vrm_stat_account(struct vma_
+--- a/tools/testing/selftests/mm/hugetlb-mremap.c~selftests-mm-test-a-partial-mremap-of-hugetlb-memory
++++ a/tools/testing/selftests/mm/hugetlb-mremap.c
+@@ -100,6 +100,51 @@ static void register_region_with_uffd(ch
+ 	ksft_print_msg("Registered memory at address %p with userfaultfd\n", addr);
  }
  
- static bool __check_map_count_against_split(struct mm_struct *mm,
--					    bool pre_split,
-+					    bool source_stays,
- 					    bool before_unmaps)
- {
- 	const int sys_map_count = get_sysctl_max_map_count();
-@@ -1092,14 +1092,14 @@ static bool __check_map_count_against_sp
- 	 */
- 	map_count += 2;
- 
--	/* If pre-split, the -1 observed above doesn't apply. */
--	if (pre_split)
-+	/* If the split off source stays, the -1 observed above doesn't apply. */
-+	if (source_stays)
- 		map_count++;
- 
- 	return map_count <= sys_map_count;
- }
- 
--static bool needs_pre_split(struct vma_remap_struct *vrm)
-+static bool split_source_stays(struct vma_remap_struct *vrm)
- {
- 	/*
- 	 * An MREMAP_DONTUNMAP of a mlock()'d VMA needs to unlock the
-@@ -1109,11 +1109,23 @@ static bool needs_pre_split(struct vma_r
- 		vma_test(vrm->vma, VMA_LOCKED_BIT);
- }
- 
-+static bool needs_pre_split(struct vma_remap_struct *vrm)
++/*
++ * Move one page out of the middle of a private mapping that has not been
++ * touched, so that every page of it still holds its reservation.  Once all of
++ * it is unmapped, all of the reservations have to be back in the pool.
++ */
++static void test_partial_move(unsigned long hugepage_size)
 +{
-+	/*
-+	 * fixup_hugetlb_reservations() takes the reservations away from the
-+	 * source VMA.  The parts of it that do not move have to keep theirs.
-+	 */
-+	if (vma_is_hugetlb(vrm->vma))
-+		return true;
++	const int flags = MAP_PRIVATE | MAP_ANONYMOUS | MAP_HUGETLB;
++	const int prot = PROT_READ | PROT_WRITE;
++	const unsigned long nr = 4;
++	unsigned long resv = hugetlb_nr_resv_pages(hugepage_size);
++	unsigned long resv_after;
++	char *src, *dst, *addr;
 +
-+	return split_source_stays(vrm);
++	/* The pages of the test before this one can still be in use. */
++	if (!hugetlb_setup_default(resv + nr + 1)) {
++		ksft_test_result_skip("Partial move: not enough free huge pages\n");
++		return;
++	}
++
++	src = mmap(NULL, nr * hugepage_size, prot, flags, -1, 0);
++	if (src == MAP_FAILED)
++		ksft_exit_fail_msg("mmap src: %s\n", strerror(errno));
++
++	/* The destination has to be hugetlb-backed, mremap() replaces it. */
++	dst = mmap(NULL, hugepage_size, prot, flags, -1, 0);
++	if (dst == MAP_FAILED)
++		ksft_exit_fail_msg("mmap dst: %s\n", strerror(errno));
++
++	addr = mremap(src + hugepage_size, hugepage_size, hugepage_size,
++		      MREMAP_MAYMOVE | MREMAP_FIXED, dst);
++	if (addr == MAP_FAILED)
++		ksft_exit_fail_msg("partial mremap: %s\n", strerror(errno));
++
++	munmap(addr, hugepage_size);
++	munmap(src, nr * hugepage_size);
++
++	resv_after = hugetlb_nr_resv_pages(hugepage_size);
++	if (resv_after != resv)
++		ksft_print_msg("Reserved huge pages: %lu before, %lu after\n",
++			       resv, resv_after);
++	ksft_test_result(resv_after == resv,
++			 "Partial move returns all reservations\n");
 +}
 +
- /* Do we violate the map count limit if we split VMAs when moving the VMA? */
- static bool check_map_count_against_split(struct vma_remap_struct *vrm)
+ int main(int argc, char *argv[])
  {
- 	return __check_map_count_against_split(current->mm,
--		needs_pre_split(vrm), /*before_unmaps=*/false);
-+		split_source_stays(vrm), /*before_unmaps=*/false);
+ 	unsigned long hugepage_size;
+@@ -107,7 +152,7 @@ int main(int argc, char *argv[])
+ 	size_t length = 0;
+ 
+ 	ksft_print_header();
+-	ksft_set_plan(1);
++	ksft_set_plan(2);
+ 
+ 	if (argc >= 2 && !strcmp(argv[1], "-h"))
+ 		ksft_exit_fail_msg("Usage: %s [length_in_MB]\n", argv[0]);
+@@ -175,5 +220,8 @@ int main(int argc, char *argv[])
+ 	close(fd);
+ 
+ 	ksft_test_result(!ret, "Read same data\n");
+-	ksft_exit(!ret);
++
++	test_partial_move(hugepage_size);
++
++	ksft_finished();
  }
- 
- /* Do we violate the map count limit if we split VMAs prior to early unmaps? */
-@@ -1162,10 +1174,7 @@ static unsigned long prep_move_vma(struc
- 	if (err)
- 		return err;
- 
--	/*
--	 * To account mlock()'d pages correctly in the MREMAP_DONTUNMAP
--	 * case perform any split ahead of time for an mlock()'d VMA.
--	 */
-+	/* Perform any split ahead of time if the source VMA has to be distinct. */
- 	if (needs_pre_split(vrm)) {
- 		VMA_ITERATOR(vmi, vma->vm_mm, old_addr);
- 
 _
 
 Patches currently in -mm which might be from josef@toxicpanda.com are
