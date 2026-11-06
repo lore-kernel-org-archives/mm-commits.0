@@ -1,41 +1,41 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793995565;
-	b=ouCL0FzARNn4LWrXP9fGcLLWVb6Wa3u7IYQAJqNKHL1RJmXhWqxMC+lKLE3kQbY5FY9H
-	 mS/ja56wbsW7UETkxPFQlxUUq2WO+TRsqYprczWtTWKGK3BHqGvLVZX5Gyx6uiIxLbdb3
-	 N75pl+97BFdULZe9Lue1bbz1G54IG1RpPyV8/m9XYWBhJOAgoRnX70GtYR7LqLXlchmsQ
-	 KTqFRmfegIFxOjtuyfov/4ecBK/Q4a8wxLJox6sBRZ0oQR1xtPXMwO6mDUNmWzvvMPWGd
-	 s00zfTMqQFQbWg7ziN1GrqfjaOhbdTCQ9tMSMiHuVOaBBnspZzm7saqWpak7+qT/HWw==
+	t=1793995625;
+	b=X9U6dQ/ng6TuhNK8Cne4ixS379VkFykXoCKhyRWMc6+ESbsrluj7ADAo3EEaQnRqw55Q
+	 Qx6NbhxWOGewVl5n3fGYH37QR9IFX+DbdL4UXnz+pNGIDBEUZbYQRUky/xR1mRWNOpgiy
+	 uFbefrJKtDvrAdbpwrNsA+qkL0+7IJKo3BQXlOqs6VNXLKc+duOJW+BaX1rFo2RnftZ8V
+	 ju8yUtiGKHqjUuklbDzw80HIvwBeWIGqYEuMOkKXYe+oOTAf9u9AHe5NpZqyjCKW2gBk/
+	 TIZPUhAzBA9t1weNVIYdW3d7+IDqqv0HdFdf4UlyAN8zeLqrF4MabKGJZnFwQdnjuNg==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793995565;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793995625;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=hpCUfloWogEwq5QmDUmP+vM69BIi5ayktNcjrQ0ddFI=;
-	b=vO1ReGL26NoFK3jZLBM85AmHN/IXBWzlnk5fG67+rP+VIKOs6POLfn00gioRZPaCpNWS
-	 B8Ajsik7EchhkNwxnHNEEVwI/1xj0eFtkOBQD21rwi2fvCI5JQf2mehqjUUZpdqdKCVaP
-	 jnnln/D5fRAjN9UEijkha4ALE20qXdAgUc20W8Dfc0U3aRkfbH3oynM7SyrqHK7PUbmyk
-	 RHwnVyC8U4EwFI+kDz9S0gBdyGS79g0pX8AEzY7x+Abv8yDi5pOLluz666PMFXWtcCOhY
-	 75X7LeIwmgwKoZL9t5Al1roIxk89UJnZKAI+M3KI5GsWXQLP3AF2yq4mYnkMB/yYNHQ==
+	bh=5YfMCE0NELWM1gOUXuzYnN6G6sObVq+lQ1wbKPHVx8g=;
+	b=TYlw6Um5ycSg3ysDQvQhdUfoy0BBjM4Lo7j3wYC1bswaWJqKO7akwFGF03Vcx+nj/4kO
+	 dPJc8LFsiGxNRNCeBLNTU2Ag3glDcMQS7rDiNz1CPbu2o+HOPsjsAcAjLVXID8eoQZg24
+	 47SYmbl2SByr9KIWnMqw+SStn7Lufey+XVmH8tKK/9DRCz+zCktzzsgHStQsdL8BxWZ2t
+	 4+znxlmMKrprxXPLCHs8+Ixb3999U86TgHbtABSQmRFKNYm4eLEhVeRfbgfrkV9YcEIQ4
+	 7nkPhXAs4cGus3KhlX0HXnQJwEjXBFjLGWRXvxSb19aIVExd8GUYTfIXiB5KwQVNHNA==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=re8jX0W9;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=NIkA+WMB;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D93D9606A326;
-	Fri,  6 Nov 2026 20:06:04 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7D251606A326;
+	Fri,  6 Nov 2026 20:07:05 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=re8jX0W9
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 806121F008A1;
-	Fri,  6 Nov 2026 20:06:04 +0000 (UTC)
+	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=NIkA+WMB
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E24BB1F0089F;
+	Fri,  6 Nov 2026 20:07:04 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1793995564;
-	bh=hpCUfloWogEwq5QmDUmP+vM69BIi5ayktNcjrQ0ddFI=;
+	d=linux-foundation.org; s=korg; t=1793995625;
+	bh=5YfMCE0NELWM1gOUXuzYnN6G6sObVq+lQ1wbKPHVx8g=;
 	h=Date:To:From:Subject;
-	b=re8jX0W9MxORIyy1L0pTzTZ9K49z39EOePl3NWtGb9sr3M7Vt7Tl37CGlVmEieCGk
-	 1lkHD3BgkOuJ9AHUPqH0nCicjz6/lEC2v4NWuJTzCmz8P89lWPCSkKZuwts92hAoYq
-	 HUpBmebPOzfQXd6z0vHX4DmFIeoe3vykEsk8OJ/k=
-Date: Fri, 06 Nov 2026 12:06:04 -0800
+	b=NIkA+WMB2y86BWwst6YXHykC17p/ZQiC8X3psXfwUXz1rV7skTLfOeBxmxzUoA5Ax
+	 TtNRFzLHxvexxIOVU5jUgXBOIBsRn7nfVmjn8V6oKXPulv68qW0VLi0mQX1679udUM
+	 qjILsyjbvvdO+/YfnpGxq+4gPTeHf7HKT8OOwD0Q=
+Date: Fri, 06 Nov 2026 12:07:04 -0800
 To: mm-commits@vger.kernel.org,ye.liu@linux.dev,vbabka@kernel.org,
 	usama.arif@linux.dev,surenb@google.com,stable@vger.kernel.org,
 	ryan.roberts@arm.com,rppt@kernel.org,nico.pache@linux.dev,mhocko@suse.com,
@@ -44,8 +44,8 @@ To: mm-commits@vger.kernel.org,ye.liu@linux.dev,vbabka@kernel.org,
 	brendan.jackman@linux.dev,baolin.wang@linux.alibaba.com,baohua@kernel.org,
 	ziy@nvidia.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [to-be-updated] mm-huge_memory-prevent-losing-pg_waiters-in-__split_folio_to_order.patch removed from -mm tree
-Message-Id: <20261106200604.806121F008A1@smtp.kernel.org>
+Subject: + mm-huge_memory-prevent-losing-pg_waiters-in-__split_folio_to_order.patch added to mm-hotfixes-unstable branch
+Message-Id: <20261106200704.E24BB1F0089F@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -56,17 +56,33 @@ List-Owner: <mailto:mm-commits+owner@vger.kernel.org>
 Precedence: list
 
 
-The quilt patch titled
+The patch titled
      Subject: mm/huge_memory: prevent losing PG_waiters in __split_folio_to_order()
-has been removed from the -mm tree.  Its filename was
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
      mm-huge_memory-prevent-losing-pg_waiters-in-__split_folio_to_order.patch
 
-This patch was dropped because an updated version will be issued
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-huge_memory-prevent-losing-pg_waiters-in-__split_folio_to_order.patch
+
+This patch will later appear in the mm-hotfixes-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via various
+branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there most days
 
 ------------------------------------------------------
 From: Zi Yan <ziy@nvidia.com>
 Subject: mm/huge_memory: prevent losing PG_waiters in __split_folio_to_order()
-Date: Thu, 29 Oct 2026 22:08:44 -0400
+Date: Fri, 06 Nov 2026 13:28:46 -0500
 
 __split_folio_to_order() calls prep_compound_page() on each new head page
 to create a compound page after clear_compound_head(). 
@@ -114,7 +130,7 @@ prep_compound_page_atomic() using it.  __split_folio_to_order() uses
 prep_compound_page_atomic() to avoid the issue without adding an atomic
 ops to other prep_compound_page() users.
 
-Link: https://lore.kernel.org/20261029-fix-split_folio_to_order-race-v1-1-a483c7451b0d@nvidia.com
+Link: https://lore.kernel.org/20261106-fix-split_folio_to_order-race-v2-1-1b59c67b8af3@nvidia.com
 Fixes: c010d47f107f ("mm: thp: split huge page to any lower order pages")
 Signed-off-by: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
@@ -143,8 +159,8 @@ Cc: <stable@vger.kernel.org>
  include/linux/page-flags.h |    1 +
  mm/huge_memory.c           |   10 +++++++++-
  mm/internal.h              |    2 ++
- mm/page_alloc.c            |   20 ++++++++++++++++++--
- 4 files changed, 30 insertions(+), 3 deletions(-)
+ mm/page_alloc.c            |   25 +++++++++++++++++++++++--
+ 4 files changed, 35 insertions(+), 3 deletions(-)
 
 --- a/include/linux/page-flags.h~mm-huge_memory-prevent-losing-pg_waiters-in-__split_folio_to_order
 +++ a/include/linux/page-flags.h
@@ -188,12 +204,13 @@ Cc: <stable@vger.kernel.org>
  /*
 --- a/mm/page_alloc.c~mm-huge_memory-prevent-losing-pg_waiters-in-__split_folio_to_order
 +++ a/mm/page_alloc.c
-@@ -682,18 +682,34 @@ static inline bool pcp_allowed_order(uns
+@@ -682,18 +682,39 @@ static inline bool pcp_allowed_order(uns
   * This usage means that zero-order pages may not be compound.
   */
  
 -void prep_compound_page(struct page *page, unsigned int order)
-+static void __prep_compound_head_and_tail(struct page *page, unsigned int order)
++/* Set up the metadata on head page and tail pages. */
++static void __prep_compound_page(struct page *page, unsigned int order)
  {
  	int i;
  	int nr_pages = 1 << order;
@@ -205,21 +222,25 @@ Cc: <stable@vger.kernel.org>
  	prep_compound_head(page, order);
  }
  
++/*
++ * PG_head is set non-atomically. It should be used when no one else can modify
++ * @page's flags.
++ */
 +void prep_compound_page(struct page *page, unsigned int order)
 +{
 +	__SetPageHead(page);
-+	__prep_compound_head_and_tail(page, order);
++	__prep_compound_page(page, order);
 +}
 +
 +/*
-+ * PG_head is set atomically whereas the other metadata is set with plain stores.
-+ * It should be used when @page's flags can be modified concurrently,
++ * PG_head is set atomically whereas the other metadata is set with plain
++ * stores. It should be used when @page's flags can be modified concurrently,
 + * e.g., in __split_folio_to_order().
 + */
 +void prep_compound_page_atomic(struct page *page, unsigned int order)
 +{
 +	SetPageHead(page);
-+	__prep_compound_head_and_tail(page, order);
++	__prep_compound_page(page, order);
 +}
 +
  static inline void set_buddy_order(struct page *page, unsigned int order)
@@ -229,4 +250,5 @@ _
 
 Patches currently in -mm which might be from ziy@nvidia.com are
 
+mm-huge_memory-prevent-losing-pg_waiters-in-__split_folio_to_order.patch
 
