@@ -1,50 +1,46 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793926594;
-	b=UcmEs+rKgk3Yyi0hBy+doPxjNaLacx/x295+8jaJu6ITBCAxWXCQn2DiUv5+VZRerRpO
-	 beQR7WuI0xzcw2ZaJiZzL6sNeXCYuiagtHOnKtwYBoOcBW7CvHzT6jFtvuHOQYAjfO/xZ
-	 9vdFVwKSIaPJp6F2pwisycEFZcynW4cZMsft2pZCca9XHScjiDJbBFRpZTZhg6n26HBSo
-	 wv/+gojkDarIt6t+6+R91F68sZ9bNSDbnhXtOfhUa0KpEG7zHPt5Mm3D78XLBHjqPcdfW
-	 V6AZ2DegGBI5YXzGLCJC6P3VNf19NjU3PNbYtoT2WmRyx9Z0i5WmfLcGjKY/ftGJLxg==
+	t=1793928078;
+	b=IeoXZjoUQyYa0RBDovKwxZMFhjb3U8UXjmeU3KYSTNV/atayUeLZTxf781irW651djKZ
+	 imkrW8hd5NK2+s3VFlv5o4ShQBOgN3J3F9ERjSs36KTaN7t0N7OJi440mgZSSkxu3SmjE
+	 SgmqUKWOvdR72an+mlmuQG76g3FzQHnYznyRR1VC5p9lWY8B/irKmVw6C77DoTf8jkFMe
+	 z4tKaZscG011W7AnXOFFxI/DJ4tDzvM4pR/EJJd5cFndyhjsXJEuaXna5fnD2TPCWVEPr
+	 V5byB/XQP1nWF92T6+mqCjkkpgUJb5wX2zVjf3CPRZ5nbSCOrEHZTHK9VBJHK+xaj0A==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793926594;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793928078;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=EKWa2TMCCz3OL2O52vHTa8wSAka2bAVG/T551beGLN8=;
-	b=bGxw209QrjpmIFTXbrh2duk9STkoZD4xYuc9GPrELc6+6SXJxobiOybO/yvE+CCz4GfP
-	 9sCJ+gzR6K36fykYETco1BGpQSSEkJateE3TzoNNm2NIZUbrKWQQefM9psByEp56FgFz5
-	 HHmM1OFNxj0L9wm7Iy4h4r/CD2AfTGir0FTJmYaSnwODUanM+yFjOGZU25B59OOAfjeC1
-	 5hudCiO4yv4Bdwcs2s0pncJIwUzY2IdIZSf/O9apITAjQ4ZaSuFVcA2WUlJB+O1p28VmL
-	 2EuDoBlHpwNHzbuFI2samiG9UWX4bb5S4GBfW0/T+7C1yBDw3t11t1wGL5sSgZBuDcg==
+	bh=uGvkXJwqimlx/KgXYXRSDWpYEOZcolxmrwQUpCD9U6M=;
+	b=VWegXHnyEKOockkgtkAuwEF6K7x1X8l9075EX7J81KG3zezJU4cnY7CUOpm1ghMqKVpi
+	 jDkXFnhMzzeAMMypLT0Jti/08A/+OvRrTGsaDIW3sZ9eg6tpfTDghsDaGfH4U9/+7RDTi
+	 7KBLawmejlKXPCNnufj1CUCVraYxGwJeTPL8NraKEQQmCoP0xyzKfPIYjUeS61t8DOP3o
+	 uwl9gkHB2JVr48B9WRl0CVmVh+S3BbXEDBx/Fiwata7yromMOjxsFdUGnSDU8ZfXbIy9m
+	 J3r3/RmDSSUWQkU74nkQBi1IPzfSS9xZzWCwffKbVDedI1cueFQmuXCmAuu3rhGxswQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=YU66+k4V;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=AUI3jpOC;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CB012606A31B;
-	Fri,  6 Nov 2026 00:56:33 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 268F5606A31B
+	for <mm-commits@vger.kernel.org>; Fri,  6 Nov 2026 01:21:17 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=YU66+k4V
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2F3751F0089F;
-	Fri,  6 Nov 2026 00:56:33 +0000 (UTC)
+	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=AUI3jpOC
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 919541F0089F;
+	Fri,  6 Nov 2026 01:21:17 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1793926593;
-	bh=EKWa2TMCCz3OL2O52vHTa8wSAka2bAVG/T551beGLN8=;
+	d=linux-foundation.org; s=korg; t=1793928077;
+	bh=uGvkXJwqimlx/KgXYXRSDWpYEOZcolxmrwQUpCD9U6M=;
 	h=Date:To:From:Subject;
-	b=YU66+k4V46VecmFCwH4NCQ95aNoWN3uvElLN0CtUNsx3lpdCozltn+ES12KfTil4I
-	 dOKb3C0MRTDc13Fln15fo2qej3efoCIj2daJmMWFLGr17VAB5P7y5JHTbLFP8LtbYW
-	 hC6St9A1KClRVMcQ2FU8lnnC3GdQOkNGkpkpUO/I=
-Date: Thu, 05 Nov 2026 16:56:32 -0800
-To: mm-commits@vger.kernel.org,zokeefe@google.com,ziy@nvidia.com,
-	usama.arif@linux.dev,stable@vger.kernel.org,ryan.roberts@arm.com,
-	nico.pache@linux.dev,mason@kernel.org,ljs@kernel.org,liam@infradead.org,
-	lance.yang@linux.dev,kas@kernel.org,hughd@google.com,dev.jain@arm.com,
-	baolin.wang@linux.alibaba.com,baohua@kernel.org,david@kernel.org,
-	akpm@linux-foundation.org
+	b=AUI3jpOCCmES7FoLU7qmDCH7KgZXm5hWUMiirEp3GGz6foS+tH0kdqQwWv3RPf37H
+	 M16RjlSvyBbduSUVjZ0YML1sGpdqWQbrEdX+XYRCrunDmv5otN+o4o+IPCbGloYk49
+	 kOpt6q8L826UavmAw+Phk47gBZ7agT0pgHI52kG8=
+Date: Thu, 05 Nov 2026 17:21:17 -0800
+To: mm-commits@vger.kernel.org,surenb@google.com,lkp@intel.com,
+	hao.ge@linux.dev,abhishekbapat@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-khugepaged-dont-map-folios-that-are-not-uptodate-in-madv_collapse.patch added to mm-hotfixes-unstable branch
-Message-Id: <20261106005633.2F3751F0089F@smtp.kernel.org>
+Subject: + alloc_tag-introduce-ioctls-to-toggle-allocation-tracepoints-fix.patch added to mm-new branch
+Message-Id: <20261106012117.919541F0089F@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -56,15 +52,26 @@ Precedence: list
 
 
 The patch titled
-     Subject: mm/khugepaged: don't map folios that are not uptodate in MADV_COLLAPSE
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mm-khugepaged-dont-map-folios-that-are-not-uptodate-in-madv_collapse.patch
+     Subject: alloc_tag: force inline the allocation tracing check
+has been added to the -mm mm-new branch.  Its filename is
+     alloc_tag-introduce-ioctls-to-toggle-allocation-tracepoints-fix.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-khugepaged-dont-map-folios-that-are-not-uptodate-in-madv_collapse.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/alloc_tag-introduce-ioctls-to-toggle-allocation-tracepoints-fix.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Note, mm-new is a provisional staging ground for work-in-progress
+patches, and acceptance into mm-new is a notification for others take
+notice and to finish up reviews.  Please do not hesitate to respond to
+review feedback and post updated versions to replace or incrementally
+fixup patches in mm-new.
+
+The mm-new branch of mm.git is not included in linux-next
+
+If a few days of testing in mm-new is successful, the patch will me moved
+into mm.git's mm-unstable branch, which is included in linux-next
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -79,65 +86,49 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: "David Hildenbrand (Arm)" <david@kernel.org>
-Subject: mm/khugepaged: don't map folios that are not uptodate in MADV_COLLAPSE
-Date: Thu, 05 Nov 2026 19:16:44 +0100
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: alloc_tag: force inline the allocation tracing check
+Date: Thu, 05 Nov 2026 17:18:09 -0800
 
-madvise(MADV_COLLAPSE) can map PMD-sized pagecache folios that are not
-uptodate.  For example, shmem fallocate() can put such folios into the
-page cache.
+alloc_tag_trace_enabled() is declared inline, but the compiler can
+still emit an out-of-line copy. Force it inline,
 
-collapse_file() already refuses to proceed with folios that are not
-uptodate.  Let's just do the same in try_collapse_pte_mapped_thp() and
-skip such folios, leaving handling to the page faults.
-
-Note that collapse_file() effectively clears shmem folios through
-shmem_get_folio(); let's keep this fix simple and simply let the page
-fault path deal with that.
-
-Link: https://lore.kernel.org/20261105-set_huge_pmd_uptodate-v1-1-a78d8a1b7117@kernel.org
-Fixes: 34488399fa08 ("mm/madvise: add file and shmem support to MADV_COLLAPSE")
-Signed-off-by: David Hildenbrand (Arm) <david@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Reported-by: Chris Mason <mason@kernel.org>
-Acked-by: Zi Yan <ziy@nvidia.com>
-Reviewed-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
-Acked-by: Hugh Dickins <hughd@google.com>
-Reviewed-by: Zach O'Keefe <zokeefe@google.com>
-Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: Liam R. Howlett <liam@infradead.org>
-Cc: Nico Pache <nico.pache@linux.dev>
-Cc: Ryan Roberts <ryan.roberts@arm.com>
-Cc: Dev Jain <dev.jain@arm.com>
-Cc: Barry Song <baohua@kernel.org>
-Cc: Lance Yang <lance.yang@linux.dev>
-Cc: Usama Arif <usama.arif@linux.dev>
-Cc: Kiryl Shutsemau <kas@kernel.org>
-Cc: <stable@vger.kernel.org>
+Reported-by: kernel test robot <lkp@intel.com>
+Closes: https://lore.kernel.org/oe-kbuild-all/202611052344.mDV2DB89-lkp@intel.com/
+Cc: Abhishek Bapat <abhishekbapat@google.com>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Hao Ge <hao.ge@linux.dev>
 ---
 
- mm/khugepaged.c |    6 ++++++
- 1 file changed, 6 insertions(+)
+ include/linux/alloc_tag.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/khugepaged.c~mm-khugepaged-dont-map-folios-that-are-not-uptodate-in-madv_collapse
-+++ a/mm/khugepaged.c
-@@ -1888,6 +1888,12 @@ static enum scan_result try_collapse_pte
- 		goto drop_folio;
- 	}
+--- a/include/linux/alloc_tag.h~alloc_tag-introduce-ioctls-to-toggle-allocation-tracepoints-fix
++++ a/include/linux/alloc_tag.h
+@@ -161,7 +161,7 @@ static inline bool alloc_tag_is_traced(c
+ 	return !!(atomic_read(&tag->ct.flags) & CODETAG_FLAG_TRACE_ON);
+ }
  
-+	/* Leave any uninitialized folios to the page fault path. */
-+	if (!folio_test_uptodate(folio)) {
-+		result = SCAN_FAIL;
-+		goto drop_folio;
-+	}
-+
- 	result = find_pmd_or_thp_or_none(mm, haddr, &pmd);
- 	switch (result) {
- 	case SCAN_SUCCEED:
+-static inline bool alloc_tag_trace_enabled(const struct alloc_tag *tag)
++static __always_inline bool alloc_tag_trace_enabled(const struct alloc_tag *tag)
+ {
+ 	if (static_branch_unlikely(&alloc_tag_trace_key))
+ 		return tag && alloc_tag_is_traced(tag);
 _
 
-Patches currently in -mm which might be from david@kernel.org are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-mm-memory-failure-fix-folio-refcount-leak-and-min_order_for_split-locking.patch
-mm-khugepaged-dont-map-folios-that-are-not-uptodate-in-madv_collapse.patch
+mm-mempolicy-use-one-node-set-for-interleave-weights.patch
+maple_tree-fix-reverse-iterator-state-when-the-root-disappears.patch
+shmem-consume-the-reserved-xattr-space-despite-remount.patch
+selftests-mm-check-madv_cold-and-madv_pageout-on-partly-advised-thps-fix.patch
+alloc_tag-introduce-ioctls-to-toggle-allocation-tracepoints-fix.patch
+mm-filemap-convert-fault-and-readahead-logic-to-use-vma_flags_t-fix.patch
+iommufd-enforce-memfd-write-seals-for-file-mappings.patch
+fault-inject-initialize-random-state-on-first-use.patch
+profile-account-for-partial-proc-profile-reads.patch
+profile-simplify-proc-profile-read-layout.patch
+ipc-msg-clamp-negative-msg_info-usage-counts.patch
+drivers-media-v4l2-core-v4l2-vp9c-reduce-inlining.patch
 
