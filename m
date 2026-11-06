@@ -1,45 +1,47 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793980797;
-	b=34A/N8trMsXEn53O4OijKaWe+Gdpn9OdzbG8p9E6HVP1IHkiJkNxIRKG90vZCpp3nnYi
-	 LFvAxvS0hNOdCJAOdrr19Cq2h1BrF2N9useVzhlwWr2pfc6lATFzwYHpudGEnE+/Hl4bA
-	 7GllRU0LSz3cr1MRRlj/cY1LLFsaGFOOos6LJqqg1PGXSPnA9fLIAF6pgtW0v9pAVy0Cc
-	 7sWQmkRon8HbJrX3MxtRgHwqLSJiETbL9k54oLqz81iLAIkoVbILxtnLlLPJYpaEc6N6s
-	 G5VXvobEoo35MsLjMKD2IZoeoPijVC1A210ArgdBPCZt0Q92HAY+c695ky35dPSQefg==
+	t=1793983045;
+	b=OGJQXK3LhKeGcjzGApKmozaWb+yBQz10R/Y3/6jF4t5+OtfYSa0XWkmihiP5hLny4TYm
+	 Hf7HbqGEc1M/qiaWLZr8ascKRSyQ/zaM1Tv+R2gXY8GFFKaVaYZPvSvbIXisJPQt23CMI
+	 J9EMoHh8GT6KD7DDyM+HnDu4eJVWiBj0nU6/Xeksg1xH8DHzfZ0Cw53G/3T44YyflinVO
+	 f1m6rmrgadz0oEW4R4NfTKAb8wWpzHv0Xq2n5CAlFgiC/ueSka/GCOD61g1RdRptB7VBQ
+	 P8am0RvXjj/ERPwN/wfj3bq5bNPyb7WLHE9v0WfN268VY9RhiTrp9jVM3y4VpOwL4bQ==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793980797;
-	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=eMEJ9SREcRD1R8e1DNCPLSbqp99GVSSd2HggQ6Dzkw8=;
-	b=z7ML1AMQIQxYBpDL+4ahaFF3NaPBwoMw+VWdwpZXo2GyzfNgDRx1VZDSq6CisB0wmDYE
-	 oWFnBfz5e7WD1oIH48shP23uuXNYxBTygsTnR84ZzIXZEHeCnUk5YWPSPF9tAMEEYYnzJ
-	 RM2djOR2SbOpvYZ3Fh8HYrHGDZlhlyS/xz7HQqCYr/I5e9NEX+NsAxBHYlGN0XTgzFcmK
-	 DY5DBcrtbSF3epZAhga1KH50P3KiIr8oFPvrP+3BE3jDKkp0+cSO3RibFVzGJQw/xeuko
-	 aUJWzUsSS9V0gxpvKCoCNFLd3/8BtO1T4Y/uPLdpeDBnxm5gZeMKwycnn+h4N9bkzVQ==
+	a=rsa-sha256; c=relaxed/relaxed; t=1793983045;
+	h=Received:DKIM-Signature:Date:To:Cc:From:Subject:Message-Id;
+	bh=3neURukXL0dLGBItdCPze8tD2TGY9hXdPheEplOL17w=;
+	b=JsLcT4tIpL9NObheBycc/m53Vc6F1Nn/vAVr50Sc1xFw3F4lAfgLcpzy55ivCP4N7S4A
+	 Jo2/8ngxSQux0gBPKVr6t/ANPkQOL0awo1edRFPyASUMyGAKVdE70C06XEI3u9vn1psa2
+	 Gg/4VgMGeK4tnD/iiewsqT1/Y7uG4HKojIaoXtfLLhsQyU+NPR+s/qXUX8j4oLWxkxdGZ
+	 sHbrUbRLjLVSctIzc6rBLqVcDe+AAa5AYWmLdrFMc2GCxxht2nfPy7FdE0DMfN/0KjSjq
+	 4QwjzDq/BeaYuw3uX2J4wr3xpQcY4HSN2Vt+NNL+zaYBj4I6TaVFjyalECE55oDX1sQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b="0/5TQtkw";
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=2nFlUMpR;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 26D23606A326
-	for <mm-commits@vger.kernel.org>; Fri,  6 Nov 2026 15:59:56 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 36FB7606A326
+	for <mm-commits@vger.kernel.org>; Fri,  6 Nov 2026 16:37:25 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=0/5TQtkw
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 986651F008A1;
-	Fri,  6 Nov 2026 15:59:56 +0000 (UTC)
+	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=2nFlUMpR
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id CC53A1F008A1;
+	Fri,  6 Nov 2026 16:37:24 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1793980796;
-	bh=eMEJ9SREcRD1R8e1DNCPLSbqp99GVSSd2HggQ6Dzkw8=;
-	h=Date:To:From:Subject;
-	b=0/5TQtkwSg+0d1rDOldYdDFf9tZMbrZKn/3D4qglLvV3tJ7r6gCAja/lZtQt8GHZ6
-	 q4ZJE/O1X2GoWwpQ51Ypc8OnommolLiZlEMm/Kr0FJTz+nxiZrop5vwvv461XuXc8e
-	 JAXFgrz5CGeWjmmfa5qDgl+jHsSMgR9LxuZnBQAM=
-Date: Fri, 06 Nov 2026 07:59:56 -0800
-To: mm-commits@vger.kernel.org,ljs@kernel.org,akpm@linux-foundation.org
+	d=linux-foundation.org; s=korg; t=1793983044;
+	bh=3neURukXL0dLGBItdCPze8tD2TGY9hXdPheEplOL17w=;
+	h=Date:To:Cc:From:Subject;
+	b=2nFlUMpRFUlg7UnN/09FXFsNaAp58yqR/JEudAp1WZezK6oTfs2XOq/ayoiuVfpWo
+	 eP4GLph71GzOsJ9ffQ3yOys05dSmMceLiMw/wsQO3Z3oSoF4CsKmdSvmBUSM4VRN6D
+	 fe98vxNNQ+qG0rjNmbQhhTO4Zn0n5XJggPiF2UVw=
+Date: Fri, 06 Nov 2026 08:37:24 -0800
+To:
+ mm-commits@vger.kernel.org, joannelkoong@gmail.com, akpm@linux-foundation.org
+Cc: David Hildenbrand <david@kernel.org>
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-filemap-convert-fault-and-readahead-logic-to-use-vma_flags_t-fix-fix.patch added to mm-new branch
-Message-Id: <20261106155956.986651F008A1@smtp.kernel.org>
+Subject: [merged] mm-unqueue-deferred-split-folios-outside-the-lruvec-lock.patch removed from -mm tree
+Message-Id: <20261106163724.CC53A1F008A1@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -50,81 +52,194 @@ List-Owner: <mailto:mm-commits+owner@vger.kernel.org>
 Precedence: list
 
 
-The patch titled
-     Subject: mm-filemap-convert-fault-and-readahead-logic-to-use-vma_flags_t-fix-fix
-has been added to the -mm mm-new branch.  Its filename is
-     mm-filemap-convert-fault-and-readahead-logic-to-use-vma_flags_t-fix-fix.patch
+The quilt patch titled
+     Subject: mm: unqueue deferred split folios outside the lruvec lock
+has been removed from the -mm tree.  Its filename was
+     mm-unqueue-deferred-split-folios-outside-the-lruvec-lock.patch
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-filemap-convert-fault-and-readahead-logic-to-use-vma_flags_t-fix-fix.patch
-
-This patch will later appear in the mm-new branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Note, mm-new is a provisional staging ground for work-in-progress
-patches, and acceptance into mm-new is a notification for others take
-notice and to finish up reviews.  Please do not hesitate to respond to
-review feedback and post updated versions to replace or incrementally
-fixup patches in mm-new.
-
-The mm-new branch of mm.git is not included in linux-next
-
-If a few days of testing in mm-new is successful, the patch will me moved
-into mm.git's mm-unstable branch, which is included in linux-next
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via various
-branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there most days
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-filemap-convert-fault-and-readahead-logic-to-use-vma_flags_t-fix-fix
-Date: Fri Nov  6 07:58:08 AM PST 2026
+From: Joanne Koong <joannelkoong@gmail.com>
+Subject: mm: unqueue deferred split folios outside the lruvec lock
+Date: Mon, 19 Oct 2026 16:06:46 -0700
 
-make random_read const, per Lorenzo
+move_folios_to_lru(), folio_batch_move_lru() and folios_put_refs() call
+folio_unqueue_deferred_split() on folios where the refcount has dropped to
+zero.  In these paths, folio_unqueue_deferred_split() is called with the
+lruvec lock often held (move_folios_to_lru() always holds it and
+folio_batch_move_lru()/folios_put_refs() usually hold it for every folio
+in the batch except the first).  However, it's not needed to hold the
+lruvec lock.
 
+The lruvec lock protects folio->lru and the reclaim LRU lists whereas the
+deferred split queue lives on folio->_deferred_list in deferred_split_lru.
+The deferred_split_lru is a list_lru with its own per-memcg per-node
+lock.
+
+There are already other existing callers that call
+folio_unqueue_deferred_split() without holding the lruvec lock (eg
+__folio_put(), shrink_folio_list(), __folio_migrate_mapping(), ...).
+
+Add folio_batch_unqueue_deferred_split() and use it in
+move_folios_to_lru(), folio_batch_move_lru(), and folios_put_refs() to
+unqueue each batch of zero-refcount folios from the deferred split list
+after the lruvec lock is released and before mem_cgroup_uncharge_folios().
+This helps shorten the lruvec lock's critical sections, which run with
+IRQs disabled and are highly contended.
+
+This came out of the discussion on v2 of the mTHP shrinker series [1],
+where queueing small mTHP folios on the deferred split queue was found to
+regress Barry's fault microbenchmark.  With [1] applied and
+khugepaged/max_ptes_none=0 so that every folio is queued, perf lock
+contention showed that the extra cost came from waiting on the lruvec lock
+in the free path.
+
+Test setup: 2-socket Intel Skylake, 40 cores / 80 threads, memory bound to
+node 0 so that all threads contend on one lruvec, with each of 80 threads
+faulting in and unmapping 16 MB of anonymous memory 200 times.  With only
+16K mTHP enabled, this patch reduces the queueing cost from 15% runtime to
+noise, and lruvec lock wait time (summed across threads) drops from 491
+seconds to 38 seconds.  Most of the remaining contention moves to the
+deferred split list_lru lock, but runtime still drops back to the unqueued
+baseline.  This test uses a worst-case configuration ([1] is expected to
+only queue folios of 2M and larger).
+
+Link: https://lore.kernel.org/20261019230646.3510790-1-joannelkoong@gmail.com
+Link: https://lore.kernel.org/linux-mm/CAJnrk1a2PpUGTsCgS7jct2KET4K2zAL+_h+te8G1MaU9bXs99w@mail.gmail.com/ [1]
+Signed-off-by: Joanne Koong <joannelkoong@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Cc: Lorenzo Stoakes (ARM) <ljs@kernel.org>
+Reviewed-by: Lance Yang <lance.yang@linux.dev>
+Reviewed-by: Barry Song <baohua@kernel.org>
+Acked-by: David Hildenbrand (Arm) <david@kernel.org>
+Acked-by: Shakeel Butt <shakeel.butt@linux.dev>
+Acked-by: Muchun Song <muchun.song@linux.dev>
+Reviewed-by: Zi Yan <ziy@nvidia.com>
+Reviewed-by: Baolin Wang <baolin.wang@linux.alibaba.com>
+Cc: Lorenzo Stoakes <ljs@kernel.org>
+Cc: Liam R. Howlett <liam@infradead.org>
+Cc: Vlastimil Babka <vbabka@kernel.org>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Qi Zheng <qi.zheng@linux.dev>
+Cc: Roman Gushchin <roman.gushchin@linux.dev>
+Cc: Ryan Roberts <ryan.roberts@arm.com>
+Cc: Usama Arif <usama.arif@linux.dev>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: "Garg, Shivank" <shivankg@amd.com>
 ---
 
- mm/filemap.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/folio.c    |   24 +++++++++++++++++++-----
+ mm/internal.h |    1 +
+ mm/vmscan.c   |    3 ++-
+ 3 files changed, 22 insertions(+), 6 deletions(-)
 
---- a/mm/filemap.c~mm-filemap-convert-fault-and-readahead-logic-to-use-vma_flags_t-fix-fix
-+++ a/mm/filemap.c
-@@ -3410,7 +3410,7 @@ static struct file *do_sync_mmap_readahe
+--- a/mm/folio.c~mm-unqueue-deferred-split-folios-outside-the-lruvec-lock
++++ a/mm/folio.c
+@@ -109,6 +109,19 @@ EXPORT_SYMBOL(__folio_put);
  
- 	if (force_thp_readahead) {
- 		unsigned long folio_nr_pages = 1UL << thp_order;
--		bool random_read = vma_test(vma, VMA_RAND_READ_BIT);
-+		const bool random_read = vma_test(vma, VMA_RAND_READ_BIT);
+ typedef void (*move_fn_t)(struct lruvec *lruvec, struct folio *folio);
  
- 		fpin = maybe_unlock_mmap_for_io(vmf, fpin);
- 		ractl._index &= ~(folio_nr_pages - 1);
++/*
++ * Unqueue a batch of folios from the deferred split queue. This must be
++ * called after the folios' refcounts have dropped to zero and before they
++ * are uncharged (see comment above __folio_unqueue_deferred_split() for why).
++ */
++void folio_batch_unqueue_deferred_split(struct folio_batch *fbatch)
++{
++	unsigned int i;
++
++	for (i = 0; i < folio_batch_count(fbatch); i++)
++		folio_unqueue_deferred_split(fbatch->folios[i]);
++}
++
+ static void lru_add(struct lruvec *lruvec, struct folio *folio)
+ {
+ 	int was_unevictable = folio_test_clear_unevictable(folio);
+@@ -177,14 +190,10 @@ static void folio_batch_move_lru(struct
+ 		 *
+ 		 * We're bypassing normal cleanup. Clear flags that are not
+ 		 * applicable to dead folios.
+-		 *
+-		 * Since the folio may be part of a huge page, unqueue from
+-		 * deferred split list to avoid a dangling list entry.
+ 		 */
+ 		if (is_lru_add && folio_ref_freeze(folio, 1)) {
+ 			__folio_clear_active(folio);
+ 			__folio_clear_unevictable(folio);
+-			folio_unqueue_deferred_split(folio);
+ 			fbatch->folios[i] = NULL;
+ 			folio_batch_add(&free_fbatch, folio);
+ 			continue;
+@@ -201,6 +210,11 @@ static void folio_batch_move_lru(struct
+ 
+ 	/* Cleanup filtered dead folios. */
+ 	if (is_lru_add) {
++		/*
++		 * Unqueue any large folios from the deferred split queue to
++		 * avoid a dangling list entry once the folios are freed.
++		 */
++		folio_batch_unqueue_deferred_split(&free_fbatch);
+ 		mem_cgroup_uncharge_folios(&free_fbatch);
+ 		free_unref_folios(&free_fbatch);
+ 	}
+@@ -1020,7 +1034,6 @@ void folios_put_refs(struct folio_batch
+ 			free_huge_folio(folio);
+ 			continue;
+ 		}
+-		folio_unqueue_deferred_split(folio);
+ 		__page_cache_release(folio, &lruvec, &flags);
+ 
+ 		if (j != i)
+@@ -1035,6 +1048,7 @@ void folios_put_refs(struct folio_batch
+ 	}
+ 
+ 	folios->nr = j;
++	folio_batch_unqueue_deferred_split(folios);
+ 	mem_cgroup_uncharge_folios(folios);
+ 	free_unref_folios(folios);
+ }
+--- a/mm/internal.h~mm-unqueue-deferred-split-folios-outside-the-lruvec-lock
++++ a/mm/internal.h
+@@ -767,6 +767,7 @@ static inline bool folio_unqueue_deferre
+ 
+ 	return __folio_unqueue_deferred_split(folio);
+ }
++void folio_batch_unqueue_deferred_split(struct folio_batch *fbatch);
+ 
+ static inline struct folio *page_rmappable_folio(struct page *page)
+ {
+--- a/mm/vmscan.c~mm-unqueue-deferred-split-folios-outside-the-lruvec-lock
++++ a/mm/vmscan.c
+@@ -2007,9 +2007,9 @@ static unsigned int move_folios_to_lru(s
+ 		if (unlikely(folio_put_testzero(folio))) {
+ 			__folio_clear_lru_flags(folio);
+ 
+-			folio_unqueue_deferred_split(folio);
+ 			if (folio_batch_add(&free_folios, folio) == 0) {
+ 				lruvec_unlock_irq(lruvec);
++				folio_batch_unqueue_deferred_split(&free_folios);
+ 				mem_cgroup_uncharge_folios(&free_folios);
+ 				free_unref_folios(&free_folios);
+ 				lruvec = NULL;
+@@ -2041,6 +2041,7 @@ static unsigned int move_folios_to_lru(s
+ 		lruvec_unlock_irq(lruvec);
+ 
+ 	if (free_folios.nr) {
++		folio_batch_unqueue_deferred_split(&free_folios);
+ 		mem_cgroup_uncharge_folios(&free_folios);
+ 		free_unref_folios(&free_folios);
+ 	}
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from joannelkoong@gmail.com are
 
-mm-mempolicy-use-one-node-set-for-interleave-weights.patch
-maple_tree-fix-reverse-iterator-state-when-the-root-disappears.patch
-shmem-consume-the-reserved-xattr-space-despite-remount.patch
-selftests-mm-check-madv_cold-and-madv_pageout-on-partly-advised-thps-fix.patch
-alloc_tag-introduce-ioctls-to-toggle-allocation-tracepoints-fix-fix.patch
-alloc_tag-introduce-ioctls-to-toggle-allocation-tracepoints-fix.patch
-mm-filemap-convert-fault-and-readahead-logic-to-use-vma_flags_t-fix.patch
-mm-filemap-convert-fault-and-readahead-logic-to-use-vma_flags_t-fix-fix.patch
-selftests-mm-test-fork-of-pmd-mapped-shmem-thps-fix.patch
-iommufd-enforce-memfd-write-seals-for-file-mappings.patch
-profile-account-for-partial-proc-profile-reads.patch
-profile-simplify-proc-profile-read-layout.patch
-ipc-msg-clamp-negative-msg_info-usage-counts.patch
-drivers-media-v4l2-core-v4l2-vp9c-reduce-inlining.patch
+memcg-reduce-cacheline-contention-between-lruvec-stat-updates-and-lru-lists.patch
+memcg-dont-go-through-the-lruvec-for-folio-and-kmem-lruvec-stat-updates.patch
+mm-huge_memory-scale-thp_underused-to-the-folio-size.patch
+mm-huge_memory-dont-queue-folios-when-underused-splitting-is-inactive.patch
+mm-huge_memory-add-a-per-order-counter-for-underused-splits.patch
+mm-add-anonymous-mthp-folios-to-the-deferred-split-list.patch
 
