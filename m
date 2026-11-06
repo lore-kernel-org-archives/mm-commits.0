@@ -1,47 +1,51 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793983045;
-	b=OGJQXK3LhKeGcjzGApKmozaWb+yBQz10R/Y3/6jF4t5+OtfYSa0XWkmihiP5hLny4TYm
-	 Hf7HbqGEc1M/qiaWLZr8ascKRSyQ/zaM1Tv+R2gXY8GFFKaVaYZPvSvbIXisJPQt23CMI
-	 J9EMoHh8GT6KD7DDyM+HnDu4eJVWiBj0nU6/Xeksg1xH8DHzfZ0Cw53G/3T44YyflinVO
-	 f1m6rmrgadz0oEW4R4NfTKAb8wWpzHv0Xq2n5CAlFgiC/ueSka/GCOD61g1RdRptB7VBQ
-	 P8am0RvXjj/ERPwN/wfj3bq5bNPyb7WLHE9v0WfN268VY9RhiTrp9jVM3y4VpOwL4bQ==
+	t=1793995565;
+	b=ouCL0FzARNn4LWrXP9fGcLLWVb6Wa3u7IYQAJqNKHL1RJmXhWqxMC+lKLE3kQbY5FY9H
+	 mS/ja56wbsW7UETkxPFQlxUUq2WO+TRsqYprczWtTWKGK3BHqGvLVZX5Gyx6uiIxLbdb3
+	 N75pl+97BFdULZe9Lue1bbz1G54IG1RpPyV8/m9XYWBhJOAgoRnX70GtYR7LqLXlchmsQ
+	 KTqFRmfegIFxOjtuyfov/4ecBK/Q4a8wxLJox6sBRZ0oQR1xtPXMwO6mDUNmWzvvMPWGd
+	 s00zfTMqQFQbWg7ziN1GrqfjaOhbdTCQ9tMSMiHuVOaBBnspZzm7saqWpak7+qT/HWw==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793983045;
-	h=Received:DKIM-Signature:Date:To:Cc:From:Subject:Message-Id;
-	bh=3neURukXL0dLGBItdCPze8tD2TGY9hXdPheEplOL17w=;
-	b=JsLcT4tIpL9NObheBycc/m53Vc6F1Nn/vAVr50Sc1xFw3F4lAfgLcpzy55ivCP4N7S4A
-	 Jo2/8ngxSQux0gBPKVr6t/ANPkQOL0awo1edRFPyASUMyGAKVdE70C06XEI3u9vn1psa2
-	 Gg/4VgMGeK4tnD/iiewsqT1/Y7uG4HKojIaoXtfLLhsQyU+NPR+s/qXUX8j4oLWxkxdGZ
-	 sHbrUbRLjLVSctIzc6rBLqVcDe+AAa5AYWmLdrFMc2GCxxht2nfPy7FdE0DMfN/0KjSjq
-	 4QwjzDq/BeaYuw3uX2J4wr3xpQcY4HSN2Vt+NNL+zaYBj4I6TaVFjyalECE55oDX1sQ==
+	a=rsa-sha256; c=relaxed/relaxed; t=1793995565;
+	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
+	bh=hpCUfloWogEwq5QmDUmP+vM69BIi5ayktNcjrQ0ddFI=;
+	b=vO1ReGL26NoFK3jZLBM85AmHN/IXBWzlnk5fG67+rP+VIKOs6POLfn00gioRZPaCpNWS
+	 B8Ajsik7EchhkNwxnHNEEVwI/1xj0eFtkOBQD21rwi2fvCI5JQf2mehqjUUZpdqdKCVaP
+	 jnnln/D5fRAjN9UEijkha4ALE20qXdAgUc20W8Dfc0U3aRkfbH3oynM7SyrqHK7PUbmyk
+	 RHwnVyC8U4EwFI+kDz9S0gBdyGS79g0pX8AEzY7x+Abv8yDi5pOLluz666PMFXWtcCOhY
+	 75X7LeIwmgwKoZL9t5Al1roIxk89UJnZKAI+M3KI5GsWXQLP3AF2yq4mYnkMB/yYNHQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=2nFlUMpR;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=re8jX0W9;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 36FB7606A326
-	for <mm-commits@vger.kernel.org>; Fri,  6 Nov 2026 16:37:25 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D93D9606A326;
+	Fri,  6 Nov 2026 20:06:04 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=2nFlUMpR
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id CC53A1F008A1;
-	Fri,  6 Nov 2026 16:37:24 +0000 (UTC)
+	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=re8jX0W9
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 806121F008A1;
+	Fri,  6 Nov 2026 20:06:04 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1793983044;
-	bh=3neURukXL0dLGBItdCPze8tD2TGY9hXdPheEplOL17w=;
-	h=Date:To:Cc:From:Subject;
-	b=2nFlUMpRFUlg7UnN/09FXFsNaAp58yqR/JEudAp1WZezK6oTfs2XOq/ayoiuVfpWo
-	 eP4GLph71GzOsJ9ffQ3yOys05dSmMceLiMw/wsQO3Z3oSoF4CsKmdSvmBUSM4VRN6D
-	 fe98vxNNQ+qG0rjNmbQhhTO4Zn0n5XJggPiF2UVw=
-Date: Fri, 06 Nov 2026 08:37:24 -0800
-To:
- mm-commits@vger.kernel.org, joannelkoong@gmail.com, akpm@linux-foundation.org
-Cc: David Hildenbrand <david@kernel.org>
+	d=linux-foundation.org; s=korg; t=1793995564;
+	bh=hpCUfloWogEwq5QmDUmP+vM69BIi5ayktNcjrQ0ddFI=;
+	h=Date:To:From:Subject;
+	b=re8jX0W9MxORIyy1L0pTzTZ9K49z39EOePl3NWtGb9sr3M7Vt7Tl37CGlVmEieCGk
+	 1lkHD3BgkOuJ9AHUPqH0nCicjz6/lEC2v4NWuJTzCmz8P89lWPCSkKZuwts92hAoYq
+	 HUpBmebPOzfQXd6z0vHX4DmFIeoe3vykEsk8OJ/k=
+Date: Fri, 06 Nov 2026 12:06:04 -0800
+To: mm-commits@vger.kernel.org,ye.liu@linux.dev,vbabka@kernel.org,
+	usama.arif@linux.dev,surenb@google.com,stable@vger.kernel.org,
+	ryan.roberts@arm.com,rppt@kernel.org,nico.pache@linux.dev,mhocko@suse.com,
+	ljs@kernel.org,liam@infradead.org,lance.yang@linux.dev,kas@kernel.org,
+	hannes@cmpxchg.org,dev.jain@arm.com,david@kernel.org,
+	brendan.jackman@linux.dev,baolin.wang@linux.alibaba.com,baohua@kernel.org,
+	ziy@nvidia.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged] mm-unqueue-deferred-split-folios-outside-the-lruvec-lock.patch removed from -mm tree
-Message-Id: <20261106163724.CC53A1F008A1@smtp.kernel.org>
+Subject: [to-be-updated] mm-huge_memory-prevent-losing-pg_waiters-in-__split_folio_to_order.patch removed from -mm tree
+Message-Id: <20261106200604.806121F008A1@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -53,193 +57,176 @@ Precedence: list
 
 
 The quilt patch titled
-     Subject: mm: unqueue deferred split folios outside the lruvec lock
+     Subject: mm/huge_memory: prevent losing PG_waiters in __split_folio_to_order()
 has been removed from the -mm tree.  Its filename was
-     mm-unqueue-deferred-split-folios-outside-the-lruvec-lock.patch
+     mm-huge_memory-prevent-losing-pg_waiters-in-__split_folio_to_order.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch was dropped because an updated version will be issued
 
 ------------------------------------------------------
-From: Joanne Koong <joannelkoong@gmail.com>
-Subject: mm: unqueue deferred split folios outside the lruvec lock
-Date: Mon, 19 Oct 2026 16:06:46 -0700
+From: Zi Yan <ziy@nvidia.com>
+Subject: mm/huge_memory: prevent losing PG_waiters in __split_folio_to_order()
+Date: Thu, 29 Oct 2026 22:08:44 -0400
 
-move_folios_to_lru(), folio_batch_move_lru() and folios_put_refs() call
-folio_unqueue_deferred_split() on folios where the refcount has dropped to
-zero.  In these paths, folio_unqueue_deferred_split() is called with the
-lruvec lock often held (move_folios_to_lru() always holds it and
-folio_batch_move_lru()/folios_put_refs() usually hold it for every folio
-in the batch except the first).  However, it's not needed to hold the
-lruvec lock.
+__split_folio_to_order() calls prep_compound_page() on each new head page
+to create a compound page after clear_compound_head(). 
+prep_compound_page() uses non atomic __SetPageHead().  It is mostly OK,
+since the folio is locked and frozen and no one else is supposed to modify
+the folio's flags.
 
-The lruvec lock protects folio->lru and the reclaim LRU lists whereas the
-deferred split queue lives on folio->_deferred_list in deferred_split_lru.
-The deferred_split_lru is a list_lru with its own per-memcg per-node
-lock.
+However, code calling migration_entry_wait() can reach the folio by PFN,
+then access its flags.  It is because softleaf_entry_wait_on_locked() used
+by migration_entry_wait() sets PG_waiters concurrently without taking a
+reference and the frozen refcount during split cannot block it. 
+Meanwhile, __SetPageHead() does a plain read and write, so PG_waiters
+atomically set by softleaf_entry_wait_on_locked() will be lost if the set
+happens after __SetPageHead()'s read and before its write.
 
-There are already other existing callers that call
-folio_unqueue_deferred_split() without holding the lruvec lock (eg
-__folio_put(), shrink_folio_list(), __folio_migrate_mapping(), ...).
+One example code interleaving:
 
-Add folio_batch_unqueue_deferred_split() and use it in
-move_folios_to_lru(), folio_batch_move_lru(), and folios_put_refs() to
-unqueue each batch of zero-refcount folios from the deferred split list
-after the lruvec lock is released and before mem_cgroup_uncharge_folios().
-This helps shorten the lruvec lock's critical sections, which run with
-IRQs disabled and are highly contended.
+CPU0: __split_folio_to_order(new_order>0)  CPU1: do_swap_page()
 
-This came out of the discussion on v2 of the mTHP shrinker series [1],
-where queueing small mTHP folios on the deferred split queue was found to
-regress Barry's fault microbenchmark.  With [1] applied and
-khugepaged/max_ptes_none=0 so that every folio is queued, perf lock
-contention showed that the extra cost came from waiting on the lruvec lock
-in the free path.
+1. clear_compound_head(new_head)
+   new_head->compound_info = 0
+   (page_folio(new_head) == new_head now)
 
-Test setup: 2-socket Intel Skylake, 40 cores / 80 threads, memory bound to
-node 0 so that all threads contend on one lruvec, with each of 80 threads
-faulting in and unmapping 16 MB of anonymous memory 200 times.  With only
-16K mTHP enabled, this patch reduces the queueing cost from 15% runtime to
-noise, and lruvec lock wait time (summed across threads) drops from 491
-seconds to 38 seconds.  Most of the remaining contention moves to the
-deferred split list_lru lock, but runtime still drops back to the unqueued
-baseline.  This test uses a worst-case configuration ([1] is expected to
-only queue folios of 2M and larger).
+                                           2. migration_entry_wait()
+                                             softleaf_to_folio(entry)
+                                             page_folio() -> new_head
+                                             (not the old head any more)
 
-Link: https://lore.kernel.org/20261019230646.3510790-1-joannelkoong@gmail.com
-Link: https://lore.kernel.org/linux-mm/CAJnrk1a2PpUGTsCgS7jct2KET4K2zAL+_h+te8G1MaU9bXs99w@mail.gmail.com/ [1]
-Signed-off-by: Joanne Koong <joannelkoong@gmail.com>
+3. prep_compound_page(new_head, new_order)
+     __SetPageHead(new_head)
+       tmp = new_head->flags.f  <-- load; PG_waiters == 0 in tmp
+
+                                           4. folio_set_waiters(new_head)
+                                             set_bit(PG_waiters, &flags.f)
+                                             enqueue on waitqueue, sleep
+
+5.     new_head->flags.f = tmp | (1UL << PG_head)
+       <-- store; overwrites step 4, PG_waiters == 0 again
+
+Later, folio_unlock(new_folio) sees no PG_waiters, skips folio_wake_bit(),
+and CPU1 can remain blocked indefinitely.
+
+Fix it by adding the atomic version SetPageHead() and
+prep_compound_page_atomic() using it.  __split_folio_to_order() uses
+prep_compound_page_atomic() to avoid the issue without adding an atomic
+ops to other prep_compound_page() users.
+
+Link: https://lore.kernel.org/20261029-fix-split_folio_to_order-race-v1-1-a483c7451b0d@nvidia.com
+Fixes: c010d47f107f ("mm: thp: split huge page to any lower order pages")
+Signed-off-by: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Reviewed-by: Lance Yang <lance.yang@linux.dev>
-Reviewed-by: Barry Song <baohua@kernel.org>
-Acked-by: David Hildenbrand (Arm) <david@kernel.org>
-Acked-by: Shakeel Butt <shakeel.butt@linux.dev>
-Acked-by: Muchun Song <muchun.song@linux.dev>
-Reviewed-by: Zi Yan <ziy@nvidia.com>
-Reviewed-by: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: Lorenzo Stoakes <ljs@kernel.org>
+Reported-by: David Hildenbrand <david@kernel.org>
+Closes: https://lore.kernel.org/all/DMHE8BEEER1H.2BIY52NXATPIA@nvidia.com/
+Acked-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
 Cc: Liam R. Howlett <liam@infradead.org>
 Cc: Vlastimil Babka <vbabka@kernel.org>
 Cc: Mike Rapoport <rppt@kernel.org>
 Cc: Suren Baghdasaryan <surenb@google.com>
 Cc: Michal Hocko <mhocko@suse.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Qi Zheng <qi.zheng@linux.dev>
-Cc: Roman Gushchin <roman.gushchin@linux.dev>
+Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
+Cc: Nico Pache <nico.pache@linux.dev>
 Cc: Ryan Roberts <ryan.roberts@arm.com>
+Cc: Dev Jain <dev.jain@arm.com>
+Cc: Barry Song <baohua@kernel.org>
+Cc: Lance Yang <lance.yang@linux.dev>
 Cc: Usama Arif <usama.arif@linux.dev>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: "Garg, Shivank" <shivankg@amd.com>
+Cc: Kiryl Shutsemau <kas@kernel.org>
+Cc: Brendan Jackman <brendan.jackman@linux.dev>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Ye Liu <ye.liu@linux.dev>
+Cc: <stable@vger.kernel.org>
 ---
 
- mm/folio.c    |   24 +++++++++++++++++++-----
- mm/internal.h |    1 +
- mm/vmscan.c   |    3 ++-
- 3 files changed, 22 insertions(+), 6 deletions(-)
+ include/linux/page-flags.h |    1 +
+ mm/huge_memory.c           |   10 +++++++++-
+ mm/internal.h              |    2 ++
+ mm/page_alloc.c            |   20 ++++++++++++++++++--
+ 4 files changed, 30 insertions(+), 3 deletions(-)
 
---- a/mm/folio.c~mm-unqueue-deferred-split-folios-outside-the-lruvec-lock
-+++ a/mm/folio.c
-@@ -109,6 +109,19 @@ EXPORT_SYMBOL(__folio_put);
+--- a/include/linux/page-flags.h~mm-huge_memory-prevent-losing-pg_waiters-in-__split_folio_to_order
++++ a/include/linux/page-flags.h
+@@ -854,6 +854,7 @@ static __always_inline int PageHead(cons
+ 	return test_bit(PG_head, &page->flags.f);
+ }
  
- typedef void (*move_fn_t)(struct lruvec *lruvec, struct folio *folio);
++SETPAGEFLAG(Head, head, PF_ANY)
+ __SETPAGEFLAG(Head, head, PF_ANY)
+ __CLEARPAGEFLAG(Head, head, PF_ANY)
+ CLEARPAGEFLAG(Head, head, PF_ANY)
+--- a/mm/huge_memory.c~mm-huge_memory-prevent-losing-pg_waiters-in-__split_folio_to_order
++++ a/mm/huge_memory.c
+@@ -3779,7 +3779,15 @@ static void __split_folio_to_order(struc
+ 		 */
+ 		clear_compound_head(new_head);
+ 		if (new_order) {
+-			prep_compound_page(new_head, new_order);
++			/*
++			 * new_head is recognized as a folio after
++			 * clear_compound_head().
++			 * softleaf_entry_wait_on_locked() can set PG_waiters
++			 * on it without taking a reference, so its frozen state
++			 * cannot prevent it. Use the atomic version to avoid
++			 * losing a concurrently set PG_waiters.
++			 */
++			prep_compound_page_atomic(new_head, new_order);
+ 			folio_set_large_rmappable(new_folio);
+ 		}
  
-+/*
-+ * Unqueue a batch of folios from the deferred split queue. This must be
-+ * called after the folios' refcounts have dropped to zero and before they
-+ * are uncharged (see comment above __folio_unqueue_deferred_split() for why).
-+ */
-+void folio_batch_unqueue_deferred_split(struct folio_batch *fbatch)
-+{
-+	unsigned int i;
+--- a/mm/internal.h~mm-huge_memory-prevent-losing-pg_waiters-in-__split_folio_to_order
++++ a/mm/internal.h
+@@ -806,6 +806,8 @@ static inline void prep_compound_tail(st
+ 	VM_WARN_ON_ONCE(tail->private);
+ }
+ 
++void prep_compound_page_atomic(struct page *page, unsigned int order);
 +
-+	for (i = 0; i < folio_batch_count(fbatch); i++)
-+		folio_unqueue_deferred_split(fbatch->folios[i]);
+ #if defined CONFIG_COMPACTION || defined CONFIG_CMA
+ 
+ /*
+--- a/mm/page_alloc.c~mm-huge_memory-prevent-losing-pg_waiters-in-__split_folio_to_order
++++ a/mm/page_alloc.c
+@@ -682,18 +682,34 @@ static inline bool pcp_allowed_order(uns
+  * This usage means that zero-order pages may not be compound.
+  */
+ 
+-void prep_compound_page(struct page *page, unsigned int order)
++static void __prep_compound_head_and_tail(struct page *page, unsigned int order)
+ {
+ 	int i;
+ 	int nr_pages = 1 << order;
+ 
+-	__SetPageHead(page);
+ 	for (i = 1; i < nr_pages; i++)
+ 		prep_compound_tail(page + i, page, order);
+ 
+ 	prep_compound_head(page, order);
+ }
+ 
++void prep_compound_page(struct page *page, unsigned int order)
++{
++	__SetPageHead(page);
++	__prep_compound_head_and_tail(page, order);
 +}
 +
- static void lru_add(struct lruvec *lruvec, struct folio *folio)
++/*
++ * PG_head is set atomically whereas the other metadata is set with plain stores.
++ * It should be used when @page's flags can be modified concurrently,
++ * e.g., in __split_folio_to_order().
++ */
++void prep_compound_page_atomic(struct page *page, unsigned int order)
++{
++	SetPageHead(page);
++	__prep_compound_head_and_tail(page, order);
++}
++
+ static inline void set_buddy_order(struct page *page, unsigned int order)
  {
- 	int was_unevictable = folio_test_clear_unevictable(folio);
-@@ -177,14 +190,10 @@ static void folio_batch_move_lru(struct
- 		 *
- 		 * We're bypassing normal cleanup. Clear flags that are not
- 		 * applicable to dead folios.
--		 *
--		 * Since the folio may be part of a huge page, unqueue from
--		 * deferred split list to avoid a dangling list entry.
- 		 */
- 		if (is_lru_add && folio_ref_freeze(folio, 1)) {
- 			__folio_clear_active(folio);
- 			__folio_clear_unevictable(folio);
--			folio_unqueue_deferred_split(folio);
- 			fbatch->folios[i] = NULL;
- 			folio_batch_add(&free_fbatch, folio);
- 			continue;
-@@ -201,6 +210,11 @@ static void folio_batch_move_lru(struct
- 
- 	/* Cleanup filtered dead folios. */
- 	if (is_lru_add) {
-+		/*
-+		 * Unqueue any large folios from the deferred split queue to
-+		 * avoid a dangling list entry once the folios are freed.
-+		 */
-+		folio_batch_unqueue_deferred_split(&free_fbatch);
- 		mem_cgroup_uncharge_folios(&free_fbatch);
- 		free_unref_folios(&free_fbatch);
- 	}
-@@ -1020,7 +1034,6 @@ void folios_put_refs(struct folio_batch
- 			free_huge_folio(folio);
- 			continue;
- 		}
--		folio_unqueue_deferred_split(folio);
- 		__page_cache_release(folio, &lruvec, &flags);
- 
- 		if (j != i)
-@@ -1035,6 +1048,7 @@ void folios_put_refs(struct folio_batch
- 	}
- 
- 	folios->nr = j;
-+	folio_batch_unqueue_deferred_split(folios);
- 	mem_cgroup_uncharge_folios(folios);
- 	free_unref_folios(folios);
- }
---- a/mm/internal.h~mm-unqueue-deferred-split-folios-outside-the-lruvec-lock
-+++ a/mm/internal.h
-@@ -767,6 +767,7 @@ static inline bool folio_unqueue_deferre
- 
- 	return __folio_unqueue_deferred_split(folio);
- }
-+void folio_batch_unqueue_deferred_split(struct folio_batch *fbatch);
- 
- static inline struct folio *page_rmappable_folio(struct page *page)
- {
---- a/mm/vmscan.c~mm-unqueue-deferred-split-folios-outside-the-lruvec-lock
-+++ a/mm/vmscan.c
-@@ -2007,9 +2007,9 @@ static unsigned int move_folios_to_lru(s
- 		if (unlikely(folio_put_testzero(folio))) {
- 			__folio_clear_lru_flags(folio);
- 
--			folio_unqueue_deferred_split(folio);
- 			if (folio_batch_add(&free_folios, folio) == 0) {
- 				lruvec_unlock_irq(lruvec);
-+				folio_batch_unqueue_deferred_split(&free_folios);
- 				mem_cgroup_uncharge_folios(&free_folios);
- 				free_unref_folios(&free_folios);
- 				lruvec = NULL;
-@@ -2041,6 +2041,7 @@ static unsigned int move_folios_to_lru(s
- 		lruvec_unlock_irq(lruvec);
- 
- 	if (free_folios.nr) {
-+		folio_batch_unqueue_deferred_split(&free_folios);
- 		mem_cgroup_uncharge_folios(&free_folios);
- 		free_unref_folios(&free_folios);
- 	}
+ 	set_page_private(page, order);
 _
 
-Patches currently in -mm which might be from joannelkoong@gmail.com are
+Patches currently in -mm which might be from ziy@nvidia.com are
 
-memcg-reduce-cacheline-contention-between-lruvec-stat-updates-and-lru-lists.patch
-memcg-dont-go-through-the-lruvec-for-folio-and-kmem-lruvec-stat-updates.patch
-mm-huge_memory-scale-thp_underused-to-the-folio-size.patch
-mm-huge_memory-dont-queue-folios-when-underused-splitting-is-inactive.patch
-mm-huge_memory-add-a-per-order-counter-for-underused-splits.patch
-mm-add-anonymous-mthp-folios-to-the-deferred-split-list.patch
 
