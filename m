@@ -1,41 +1,41 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793942356;
-	b=wYONQJ1HQc0cvD0cE/bi5Yzyna/niepPVJoghrW+qW5KelFjPVeVH6um3faNQEybHsrm
-	 8pAopqE3S2wSxo4kXmYvGDk7if235ioYNynL8b3BoiBydHssvRkuAgxlWCJa8YyjbCcSU
-	 CVjR9K8kJ3CEk34/u5bTyGWsgtF/V/Dqx8NSCXrl46M2WhKZtoxKXOmyMBAl7XA2PCWZm
-	 FhzbTsLJOlu3fm4qQhK2diDr0EwwAmn0fALOU96UDBXodAJ1DWwRCHzG57dx6VGvzpggC
-	 3m1pHW8ImcHhUhJg5hcY1CTK8mXBmq6A7nk6HKe0/zXYPUstYR5ROaKMK3UqvwC9LDA==
+	t=1793942354;
+	b=toF34xCwhfSL0qHhOg8msQdKdIrsUSi8sRyPkL9fM8nMLKH3HQpYFj/+TrmMGdDOQuW0
+	 4CwKy32XvuSVCitnqvEixldT3ogkHk2RQ7Yr55cuLdFBOyyMTIiwgDAwqIBfbA+FmRrwO
+	 3Td0Ed9Zf/BEnO/Q9FoBeOJlBlkohF8Sezs99cPkR1zoI0F1oJdD+KDsaWCNWZPJ0aFXA
+	 cjAwFNtbaF3N7qcEWMcC4ISbC5prfs6qle3eSKamY30WTi/JqFDLcXc/D1yGPM+UOC0Jd
+	 o33Upsb7JkkvMtu7R8Blx8C7KxOWEyd3+iXwdNJd47vS+kqmHkThlzIG2OVlhunMi3Q==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793942356;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793942354;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=nAK6LGKRKBd83Hx2JnQO4RqJZRvrZOFsjR48iSi/oFA=;
-	b=hnJekPcMz+/18F1/C3rlQ5/LWKPlkeYzSpczJMEJbnHazB96hy56GtN+gLdoTTbaN3DI
-	 Uso3fLgZ8s6K96kiHDrN7OoYDdGS+4sBLl0TSHh1cFsEov6a0t28sphJ7c9+CCv/97Ly8
-	 9BPljFXMMuFZ13au3E0MnKny167iPG86dwdjqCiLYlF5rh+E0eAryGAbdXkHw3HYbVjjf
-	 GRwnthfmBoHpPymtl7pyQeZ7aYLF4FtZUmknAVWQ0S+Ix1AFM/gw5e7N7ton3Quc3CLqM
-	 RCT2j9btS7QmLN5n633oxrjpsXY+NXRTH1hhhpVNu7kdKab9FFc4l/YFpwwpZf0Mwqw==
+	bh=nXXC+tjsY1SdNmnYJ6WgbJiCyu7W3eFSoZriTkmcOzk=;
+	b=IKVk/v3IAo6pz72BYKnnHIzF0rMvZzP5sRK385zc8sc1u/quD+dQOF++yQDhz6HnDKGO
+	 S2R8JqZVTCH48bCkmljak4Jq7s5PsgRDaYAnLqDeG/KQl7AUbAq3DKOHp7MMdLHoPAJpq
+	 GBkeUnIChGjkSTTFFxfmHFEXhi7CKcTeRVq6o3pY4Gzy18BjIHOFncD5fVYakVNSag3BB
+	 NScP0y4eKGFNlymjFmrGvYNJ5kmIU18l3yAQz2DYwHpOVyhLczHQUhc+Gx8kbv23CHAHj
+	 Xntp8KF9wZIk0uxuzkLF4nIvysMgSptO4Y7tHIj7NlCanfwN6rLXcaH9PPnIOSirC0w==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=BSFOekUe;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=npIXRMJ6;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B55B8606A31B;
-	Fri,  6 Nov 2026 05:19:15 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 27627606A326;
+	Fri,  6 Nov 2026 05:19:13 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=BSFOekUe
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3FCA01F0089F;
-	Fri,  6 Nov 2026 05:19:15 +0000 (UTC)
+	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=npIXRMJ6
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 912241F0089F;
+	Fri,  6 Nov 2026 05:19:13 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1793942355;
-	bh=nAK6LGKRKBd83Hx2JnQO4RqJZRvrZOFsjR48iSi/oFA=;
+	d=linux-foundation.org; s=korg; t=1793942353;
+	bh=nXXC+tjsY1SdNmnYJ6WgbJiCyu7W3eFSoZriTkmcOzk=;
 	h=Date:To:From:Subject;
-	b=BSFOekUeLKZGXXsB5SGviw++3zDq7euKpG2jB5SbUlLaZKeHXlasWrFJWoDduNgY/
-	 7qH1bWvI+Xaz2mHbM0K5aNfcafnhZ+86XEfdAtpXl3xX0cQihenReUdRMEdsp9xuCS
-	 lgGKBkP94FF/GGXNLGc7cOJnA4x1vB1UgCb9eZO8=
-Date: Thu, 05 Nov 2026 21:19:14 -0800
+	b=npIXRMJ60hTIZXJX39Ukrhi4a7IlE/zuRO3JegPJAydlKJaVbDHvhoifzWy2NlW30
+	 dvI3G21Nd7WWD+d4773HQdYpgsfQdP2LLsstrZavMkSCngeNMcn7+8q+QhW3v0hiqc
+	 b2QFNu+vv+Ol0haRRY1nVf6LzudrX2PhLHMRiLIk=
+Date: Thu, 05 Nov 2026 21:19:13 -0800
 To: mm-commits@vger.kernel.org,ziy@nvidia.com,usama.arif@linux.dev,
 	stable@vger.kernel.org,shuah@kernel.org,ryan.roberts@arm.com,
 	ritesh.list@gmail.com,peterx@redhat.com,nico.pache@linux.dev,
@@ -45,8 +45,8 @@ To: mm-commits@vger.kernel.org,ziy@nvidia.com,usama.arif@linux.dev,
 	baohua@kernel.org,azpijr@gmail.com,alex@shazbot.org,khorenko@virtuozzo.com,
 	akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-huge_memory-copy-file-thps-at-fork-like-copy_present_ptes-does.patch added to mm-new branch
-Message-Id: <20261106051915.3FCA01F0089F@smtp.kernel.org>
+Subject: + mm-rmap-duplicate-a-pmd-mapping-as-one-in-folio_dup_file_rmap_pmd.patch added to mm-new branch
+Message-Id: <20261106051913.912241F0089F@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -58,12 +58,12 @@ Precedence: list
 
 
 The patch titled
-     Subject: mm/huge_memory: copy file THPs at fork like copy_present_ptes() does
+     Subject: mm/rmap: duplicate a PMD mapping as one in folio_dup_file_rmap_pmd()
 has been added to the -mm mm-new branch.  Its filename is
-     mm-huge_memory-copy-file-thps-at-fork-like-copy_present_ptes-does.patch
+     mm-rmap-duplicate-a-pmd-mapping-as-one-in-folio_dup_file_rmap_pmd.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-huge_memory-copy-file-thps-at-fork-like-copy_present_ptes-does.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-rmap-duplicate-a-pmd-mapping-as-one-in-folio_dup_file_rmap_pmd.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -93,47 +93,129 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Konstantin Khorenko <khorenko@virtuozzo.com>
-Subject: mm/huge_memory: copy file THPs at fork like copy_present_ptes() does
-Date: Wed, 04 Nov 2026 21:40:56 +0100
+Subject: mm/rmap: duplicate a PMD mapping as one in folio_dup_file_rmap_pmd()
+Date: Wed, 04 Nov 2026 21:40:55 +0100
 
-This fixes no bug: it makes fork copy a PMD the way copy_present_ptes()
-copies a PTE. Until now copy_huge_pmd() skipped every folio PMD of a
-non-anonymous VMA and left the child to fault them in again, while the
-PTEs of the same VMA are copied.
+Patch series "mm/huge_memory: copy PMDs at fork like the PTE path does",
+v5.
 
-Treat file folios as the PTE path does: take a reference, duplicate the
-rmap and account them. fork then pays a reference and an rmap update
-per PMD, and saves the child a fault per PMD it touches. The next patch
-sends PFN mappings through the same tail.
+copy_huge_pmd() decides what to copy at fork by its own rules, apart
+from copy_present_ptes(): a lockless check for special PMDs, and a skip
+of every file THP. Following David's review of v3, this series makes it
+decide the way the PTE path does, under the page table lock, with
+vm_normal_page_pmd(). That fixes the two bugs v1-v3 were about. The
+patches:
 
-That covers the VMAs vma_needs_copy() sends here:
+1. folio_dup_file_rmap_pmd() duplicated a PMD mapping as HPAGE_PMD_NR
+   PTE mappings. It had no caller until patch 2.
+2. File THPs are copied at fork instead of being refaulted by the
+   child, as their PTEs would be.
+3. The special-PMD read moves under the lock. That closes the race with
+   a driver zap (vfio-pci, panthor) and the missing page table deposit
+   on ppc64 hash that Sashiko found in v1.
+4. A selftest for 1 and 2.
 
-- private file mappings with an anon_vma;
-- VM_COPY_ON_FORK ones: uffd-wp and uffd-rwp, VM_MIXEDMAP, and
-  VM_MAYBE_GUARD, which shared shmem, file and DAX mappings get from a
-  guard region.
+Stable
+======
 
-The DAX huge zero PMD is copied too, with a reference taken by
-mm_get_huge_zero_folio() as for anonymous VMAs. A migration entry of a
-file folio is copied and accounted like copy_nonpresent_pte() does, and
-made read-only in both processes only in a CoW mapping. A device
-private entry gets the same CoW check, as in copy_nonpresent_pte().
+The race (since v6.12) and the ppc64 hash NULL deref (since v7.1) are
+fixed in patch 3, which only works on top of the copy rework in patch
+2, and patch 2 is the first caller of the helper patch 1 fixes. So
+patches 1-3 carry Cc: stable, as David suggested on v4. They will not
+apply to 6.12 as they are, I will do the backports.
 
-The copy then gets the same tail as __copy_present_ptes(): write
-protect both sides in a CoW mapping, mark the child's copy clean in a
-shared one, and drop the uffd-wp bit where the child is not armed. An
-anonymous THP is now write protected only when its PMD is writable, as
-a PTE is.
+A related refcount bug in copy_huge_pud() for device DAX is fixed in
+a separate series, as it does not depend on this one:
+https://patch.msgid.link/20261021-vstor-150143-copy_huge_pud-folio-refcount-v1-0-8bd88551f9be@virtuozzo.com
 
-A page table is deposited under the copy where the fault paths deposit
-one: in anonymous VMAs, and wherever the architecture needs one.
+Testing
+=======
 
-Link: https://lore.kernel.org/20261104-b4-prep-vstor-149847-copy_huge_pmd-recheck-special-pmd-v5-2-c56d0d26f970@virtuozzo.com
+v5 on v7.4-rc1, x86_64 with 4 NUMA nodes, the series with
+CONFIG_DEBUG_VM, KASAN and lockdep:
+
+- fork_file_thp (patch 4) skips on v7.4-rc1, where fork leaves file
+  THPs to a refault, and fails in both cases without patch 1, where
+  ShmemPmdMapped drops when the child exits and the kernel reports
+  "Bad page cache";
+- with the series it passes, also under migrate_pages() of the parent
+  and under reclaim in a small memcg, where some runs skip; with other
+  processes churning PMD-mapped shmem it passes or skips, never fails;
+- cow, guard-regions, uffd-unit-tests, uffd-wp-mremap,
+  split_huge_page_test, mremap_test, soft-dirty, pagemap_ioctl,
+  migration, madv_populate, transhuge-stress and khugepaged pass as on
+  v7.4-rc1.
+
+The runs below are from v4, on v7.3-rc7 in a KVM guest with 4 vCPUs,
+x86_64. Patches 1-3 changed since only by the device private CoW check.
+
+Race with a driver zap. The guest's QXL device is bound to vfio-pci in
+no-IOMMU mode, BAR0 of 64 MB mapped with PMDs. The reproducer below
+forks while a second thread clears PCI_COMMAND_MEMORY through the vfio
+config region after a random delay of up to 1 ms; the child waits for
+the write to finish and reads one byte of each 2 MB of the BAR. A child
+that reads anything without SIGBUS kept a stale mapping. I have not hit
+it without help, so a test-only debugfs knob adds an mdelay(2) between
+copy_pmd_range()'s lockless pmd_is_huge() and the PMD locks:
+
+  +-----------------------+-------+-------+----------------+
+  | kernel                | delay | forks | stale children |
+  +-----------------------+-------+-------+----------------+
+  | 7.3-rc7               | none  | 20900 | 0              |
+  | 7.3-rc7               | 2 ms  | 150   | 128            |
+  | 7.3-rc7 + this series | none  | 3000  | 0              |
+  | 7.3-rc7 + this series | 2 ms  | 400   | 0              |
+  +-----------------------+-------+-------+----------------+
+
+ppc64 hash is not tested on hardware. On x86 a test-only hack makes
+arch_needs_pgtable_deposit() true and mremap move the table, as on
+ppc64 hash. Without the series the first child of the reproducer oopses
+at exit in pgtable_trans_huge_withdraw(); with it the reproducer and
+the mm selftests pass.
+
+Cost
+====
+
+fork() now copies file THPs instead of leaving them to a refault, which
+costs fork() a reference, an rmap update and a counter per huge PMD and
+saves the child a fault per huge PMD it touches. fork() of a process
+with 4 GB of shmem THPs mapped MAP_PRIVATE and an anon_vma on the VMA,
+medians of 2000 forks:
+
+  +-----------------------+------------+-------------------------+
+  | kernel                | fork()     | fork(), child reads all |
+  +-----------------------+------------+-------------------------+
+  | 7.3-rc7               | 86-129 us  | 2380-2620 us            |
+  | 7.3-rc7 + this series | 230-355 us | 820-930 us              |
+  +-----------------------+------------+-------------------------+
+
+Notes
+=====
+
+- drm_gem_shmem and mshv_vtl map special PMDs with
+  vmf_insert_pfn_pmd() as well.
+- copy_huge_pud() still differs from the PMD tail in that it does not
+  mark a shared PUD clean in the child or handle uffd bits.
+- A reproducer is at the Link:
+
+
+This patch (of 4):
+
+folio_dup_file_rmap_pmd() passes PGTABLE_LEVEL_PTE to
+__folio_dup_file_rmap() for HPAGE_PMD_NR pages, so it adds HPAGE_PMD_NR
+PTE mappings to the folio instead of one PMD mapping.
+
+The helper has no caller yet, the next patch adds the first one. Pass
+PGTABLE_LEVEL_PMD, as folio_try_dup_anon_rmap_pmd() does.
+
+Link: https://lore.kernel.org/20261104-b4-prep-vstor-149847-copy_huge_pmd-recheck-special-pmd-v5-0-c56d0d26f970@virtuozzo.com
+Link: https://lore.kernel.org/20261104-b4-prep-vstor-149847-copy_huge_pmd-recheck-special-pmd-v5-1-c56d0d26f970@virtuozzo.com
+Fixes: d8ef5e311d7b ("mm/rmap: convert page_dup_file_rmap() to folio_dup_file_rmap_[pte|ptes|pmd]()")
 Signed-off-by: Konstantin Khorenko <khorenko@virtuozzo.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Suggested-by: David Hildenbrand (Arm) <david@kernel.org>
-Reviewed-by: Kiryl Shutsemau (Meta) <kas@kernel.org>
 Reviewed-by: Zi Yan <ziy@nvidia.com>
+Reviewed-by: Kiryl Shutsemau (Meta) <kas@kernel.org>
+Acked-by: David Hildenbrand (Arm) <david@kernel.org>
 Reviewed-by: Jose A. Perez de Azpillaga <azpijr@gmail.com>
 Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
 Cc: Liam R. Howlett <liam@infradead.org>
@@ -151,156 +233,23 @@ Cc: Shuah Khan <shuah@kernel.org>
 Cc: Madhavan Srinivasan <maddy@linux.ibm.com>
 Cc: Ritesh Harjani (IBM) <ritesh.list@gmail.com>
 Cc: Jason Gunthorpe <jgg@ziepe.ca>
-Cc: <stable@vger.kernel.org> # needed by the next patch
+Cc: <stable@vger.kernel.org>
 ---
 
- mm/huge_memory.c |   63 +++++++++++++++++++++++++++------------------
- 1 file changed, 39 insertions(+), 24 deletions(-)
+ include/linux/rmap.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/huge_memory.c~mm-huge_memory-copy-file-thps-at-fork-like-copy_present_ptes-does
-+++ a/mm/huge_memory.c
-@@ -1897,12 +1897,13 @@ static void copy_huge_non_present_pmd(
- 		pmd_t pmd, pgtable_t pgtable)
+--- a/include/linux/rmap.h~mm-rmap-duplicate-a-pmd-mapping-as-one-in-folio_dup_file_rmap_pmd
++++ a/include/linux/rmap.h
+@@ -558,7 +558,7 @@ static inline void folio_dup_file_rmap_p
+ 		struct page *page, struct vm_area_struct *dst_vma)
  {
- 	softleaf_t entry = softleaf_from_pmd(pmd);
--	struct folio *src_folio;
-+	struct folio *src_folio = softleaf_to_folio(entry);
- 
- 	VM_WARN_ON_ONCE(!pmd_is_valid_softleaf(pmd));
- 
--	if (softleaf_is_migration_write(entry) ||
--	    softleaf_is_migration_read_exclusive(entry)) {
-+	if ((softleaf_is_migration_write(entry) ||
-+	     softleaf_is_migration_read_exclusive(entry)) &&
-+	    vma_is_cow_mapping(src_vma)) {
- 		entry = make_readable_migration_entry(swp_offset(entry));
- 		pmd = softleaf_to_pmd(entry);
- 		if (pmd_swp_soft_dirty(*src_pmd))
-@@ -1915,7 +1916,8 @@ static void copy_huge_non_present_pmd(
- 		 * For device private entries, since there are no
- 		 * read exclusive entries, writable = !readable
- 		 */
--		if (softleaf_is_device_private_write(entry)) {
-+		if (softleaf_is_device_private_write(entry) &&
-+		    vma_is_cow_mapping(src_vma)) {
- 			entry = make_readable_device_private_entry(swp_offset(entry));
- 			pmd = softleaf_to_pmd(entry);
- 
-@@ -1926,7 +1928,6 @@ static void copy_huge_non_present_pmd(
- 			set_pmd_at(src_mm, addr, src_pmd, pmd);
- 		}
- 
--		src_folio = softleaf_to_folio(entry);
- 		VM_WARN_ON(!folio_test_large(src_folio));
- 
- 		folio_get(src_folio);
-@@ -1938,9 +1939,11 @@ static void copy_huge_non_present_pmd(
- 					    dst_vma, src_vma);
- 	}
- 
--	add_mm_counter(dst_mm, MM_ANONPAGES, HPAGE_PMD_NR);
--	mm_inc_nr_ptes(dst_mm);
--	pgtable_trans_huge_deposit(dst_mm, dst_pmd, pgtable);
-+	add_mm_counter(dst_mm, mm_counter(src_folio), HPAGE_PMD_NR);
-+	if (pgtable) {
-+		mm_inc_nr_ptes(dst_mm);
-+		pgtable_trans_huge_deposit(dst_mm, dst_pmd, pgtable);
-+	}
- 	if (!userfaultfd_protected(dst_vma))
- 		pmd = pmd_swp_clear_uffd(pmd);
- 	set_pmd_at(dst_mm, addr, dst_pmd, pmd);
-@@ -1956,6 +1959,7 @@ int copy_huge_pmd(struct mm_struct *dst_
- 	pmd_t pmd;
- 	pgtable_t pgtable = NULL;
- 	int ret = -ENOMEM;
-+	bool writable;
- 
- 	pmd = pmdp_get_lockless(src_pmd);
- 	if (unlikely(pmd_present(pmd) && pmd_special(pmd) &&
-@@ -1976,13 +1980,11 @@ int copy_huge_pmd(struct mm_struct *dst_
- 		goto set_pmd;
- 	}
- 
--	/* Skip if can be re-fill on fault */
--	if (!vma_is_anonymous(dst_vma))
--		return 0;
--
--	pgtable = pte_alloc_one(dst_mm);
--	if (unlikely(!pgtable))
--		goto out;
-+	if (vma_is_anonymous(dst_vma) || arch_needs_pgtable_deposit()) {
-+		pgtable = pte_alloc_one(dst_mm);
-+		if (unlikely(!pgtable))
-+			goto out;
-+	}
- 
- 	dst_ptl = pmd_lock(dst_mm, dst_pmd);
- 	src_ptl = pmd_lockptr(src_mm, src_pmd);
-@@ -2000,7 +2002,8 @@ int copy_huge_pmd(struct mm_struct *dst_
- 	}
- 
- 	if (unlikely(!pmd_trans_huge(pmd))) {
--		pte_free(dst_mm, pgtable);
-+		if (pgtable)
-+			pte_free(dst_mm, pgtable);
- 		goto out_unlock;
- 	}
- 	/*
-@@ -2015,7 +2018,7 @@ int copy_huge_pmd(struct mm_struct *dst_
- 		 * copy. It just takes a reference.
- 		 */
- 		mm_get_huge_zero_folio(dst_mm);
--		goto out_zero_page;
-+		goto copy_pmd;
- 	}
- 
- 	src_page = pmd_page(pmd);
-@@ -2023,6 +2026,12 @@ int copy_huge_pmd(struct mm_struct *dst_
- 	src_folio = page_folio(src_page);
- 
- 	folio_get(src_folio);
-+	if (!folio_test_anon(src_folio)) {
-+		folio_dup_file_rmap_pmd(src_folio, src_page, dst_vma);
-+		add_mm_counter(dst_mm, mm_counter_file(src_folio),
-+			       HPAGE_PMD_NR);
-+		goto copy_pmd;
-+	}
- 	if (unlikely(folio_try_dup_anon_rmap_pmd(src_folio, src_page, dst_vma, src_vma))) {
- 		/* Page maybe pinned: split and retry the fault on PTEs. */
- 		folio_put(src_folio);
-@@ -2033,19 +2042,25 @@ int copy_huge_pmd(struct mm_struct *dst_
- 		return -EAGAIN;
- 	}
- 	add_mm_counter(dst_mm, MM_ANONPAGES, HPAGE_PMD_NR);
--out_zero_page:
--	mm_inc_nr_ptes(dst_mm);
--	pgtable_trans_huge_deposit(dst_mm, dst_pmd, pgtable);
-+copy_pmd:
-+	if (pgtable) {
-+		mm_inc_nr_ptes(dst_mm);
-+		pgtable_trans_huge_deposit(dst_mm, dst_pmd, pgtable);
-+	}
- 
--	/* See __copy_present_ptes(): restore accessible protection. */
-+	/* See __copy_present_ptes(). */
-+	writable = pmd_write(pmd);
- 	if (!userfaultfd_protected(dst_vma)) {
- 		if (userfaultfd_rwp(src_vma) && pmd_uffd(pmd))
- 			pmd = pmd_modify(pmd, dst_vma->vm_page_prot);
- 		pmd = pmd_clear_uffd(pmd);
- 	}
--
--	pmdp_set_wrprotect(src_mm, addr, src_pmd);
--	pmd = pmd_wrprotect(pmd);
-+	if (vma_is_cow_mapping(src_vma) && writable) {
-+		pmdp_set_wrprotect(src_mm, addr, src_pmd);
-+		pmd = pmd_wrprotect(pmd);
-+	}
-+	if (src_vma->vm_flags & VM_SHARED)
-+		pmd = pmd_mkclean(pmd);
- set_pmd:
- 	pmd = pmd_mkold(pmd);
- 	set_pmd_at(dst_mm, addr, dst_pmd, pmd);
+ #ifdef CONFIG_TRANSPARENT_HUGEPAGE
+-	__folio_dup_file_rmap(folio, page, HPAGE_PMD_NR, dst_vma, PGTABLE_LEVEL_PTE);
++	__folio_dup_file_rmap(folio, page, HPAGE_PMD_NR, dst_vma, PGTABLE_LEVEL_PMD);
+ #else
+ 	WARN_ON_ONCE(true);
+ #endif
 _
 
 Patches currently in -mm which might be from khorenko@virtuozzo.com are
