@@ -1,51 +1,79 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=192.198.163.15
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793995625;
-	b=X9U6dQ/ng6TuhNK8Cne4ixS379VkFykXoCKhyRWMc6+ESbsrluj7ADAo3EEaQnRqw55Q
-	 Qx6NbhxWOGewVl5n3fGYH37QR9IFX+DbdL4UXnz+pNGIDBEUZbYQRUky/xR1mRWNOpgiy
-	 uFbefrJKtDvrAdbpwrNsA+qkL0+7IJKo3BQXlOqs6VNXLKc+duOJW+BaX1rFo2RnftZ8V
-	 ju8yUtiGKHqjUuklbDzw80HIvwBeWIGqYEuMOkKXYe+oOTAf9u9AHe5NpZqyjCKW2gBk/
-	 TIZPUhAzBA9t1weNVIYdW3d7+IDqqv0HdFdf4UlyAN8zeLqrF4MabKGJZnFwQdnjuNg==
+	t=1793998007;
+	b=NnOfGEkjnsYnnDuut+LD6IQNr/SA4/PjyKhYeMVQAs6mROqGisenGuBlC30+2y47OsMa
+	 GEEmud/9OdgZczxf5T2se9miilJfSa0V/4weTuVc/wFWqjJadPuz3VbAqfJD2Yypl5qhy
+	 jujYxfQ8ar34SYOJpOSeWYqCrRuxtGt+6xFemD9YX2wLYA7BgUq5jaUBjlX/24EFWpiZB
+	 zPc+cwhwXvfKi04IDnr4ywDqpk4DzOH6VT0Gdxgeez2kho0ryDkxIqaODAL5HD3NUlJKH
+	 CFl3iV4MjMshj/SDiCipmZS/x78FWnkv283dEGKYgX+HWPBELhKV9IOBiU14AjgeDZg==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793995625;
-	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=5YfMCE0NELWM1gOUXuzYnN6G6sObVq+lQ1wbKPHVx8g=;
-	b=TYlw6Um5ycSg3ysDQvQhdUfoy0BBjM4Lo7j3wYC1bswaWJqKO7akwFGF03Vcx+nj/4kO
-	 dPJc8LFsiGxNRNCeBLNTU2Ag3glDcMQS7rDiNz1CPbu2o+HOPsjsAcAjLVXID8eoQZg24
-	 47SYmbl2SByr9KIWnMqw+SStn7Lufey+XVmH8tKK/9DRCz+zCktzzsgHStQsdL8BxWZ2t
-	 4+znxlmMKrprxXPLCHs8+Ixb3999U86TgHbtABSQmRFKNYm4eLEhVeRfbgfrkV9YcEIQ4
-	 7nkPhXAs4cGus3KhlX0HXnQJwEjXBFjLGWRXvxSb19aIVExd8GUYTfIXiB5KwQVNHNA==
+	a=rsa-sha256; c=relaxed/relaxed; t=1793998007;
+	h=DMARC-Filter:DKIM-Signature:X-CSE-ConnectionGUID:X-CSE-MsgGUID:
+	 X-IronPort-AV:X-IronPort-AV:Received:X-CSE-ConnectionGUID:
+	 X-CSE-MsgGUID:X-ExtLoop1:X-IronPort-AV:Received:Received:Date:From:To:
+	 Cc:Subject:Message-ID:User-Agent;
+	bh=jIADSJVPuQfL5gsl75hN5umXlpPdcC0mAOe4mGJ7x+I=;
+	b=Buet4ZIcnTFopVmwIBkkYJDXJprF+L3Ly36uRwzZv5iZNFvx+0t9wIeRf5yDP+qvEEie
+	 tK5DlqWCHifWmTIP6LTPl1cYdDzU1yRfHz5+PaPUjkHs3BVFV6npen68emt7ACLhEpLcb
+	 MxeEdhpMcLw0PvsYT71uCFq2digsrfcO/18PpOQdEThanPRWlqLrAfTuD+MBNMlaGWBlI
+	 lWy7LL3to6dTqsBU0ENfeJNg5OxEQ/NYaxAGFABTKcXUxjjoP5LyLVXalSIilViNkirEm
+	 ubkuY55A7svoouD0kdzOAW7QAYaPlVPLudoU90MHtw++0K1g5ze2TZl08SXw40Xp3Yg==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=NIkA+WMB;
-	arc=none smtp.remote-ip=100.103.45.18
-Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1))
+	dmarc=pass header.from=intel.com;
+	spf=pass smtp.mailfrom=intel.com;
+	dkim=pass header.d=intel.com header.i=@intel.com header.a=rsa-sha256 header.s=Intel header.b=TlwOujbp;
+	arc=none smtp.remote-ip=192.198.163.15
+Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.15])
+	(using TLSv1.2 with cipher ECDHE-ECDSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7D251606A326;
-	Fri,  6 Nov 2026 20:07:05 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 25FC8606A32C
+	for <mm-commits@vger.kernel.org>; Fri,  6 Nov 2026 20:46:44 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 25FC8606A32C
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=NIkA+WMB
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E24BB1F0089F;
-	Fri,  6 Nov 2026 20:07:04 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1793995625;
-	bh=5YfMCE0NELWM1gOUXuzYnN6G6sObVq+lQ1wbKPHVx8g=;
-	h=Date:To:From:Subject;
-	b=NIkA+WMB2y86BWwst6YXHykC17p/ZQiC8X3psXfwUXz1rV7skTLfOeBxmxzUoA5Ax
-	 TtNRFzLHxvexxIOVU5jUgXBOIBsRn7nfVmjn8V6oKXPulv68qW0VLi0mQX1679udUM
-	 qjILsyjbvvdO+/YfnpGxq+4gPTeHf7HKT8OOwD0Q=
-Date: Fri, 06 Nov 2026 12:07:04 -0800
-To: mm-commits@vger.kernel.org,ye.liu@linux.dev,vbabka@kernel.org,
-	usama.arif@linux.dev,surenb@google.com,stable@vger.kernel.org,
-	ryan.roberts@arm.com,rppt@kernel.org,nico.pache@linux.dev,mhocko@suse.com,
-	ljs@kernel.org,liam@infradead.org,lance.yang@linux.dev,kas@kernel.org,
-	hannes@cmpxchg.org,dev.jain@arm.com,david@kernel.org,
-	brendan.jackman@linux.dev,baolin.wang@linux.alibaba.com,baohua@kernel.org,
-	ziy@nvidia.com,akpm@linux-foundation.org
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-huge_memory-prevent-losing-pg_waiters-in-__split_folio_to_order.patch added to mm-hotfixes-unstable branch
-Message-Id: <20261106200704.E24BB1F0089F@smtp.kernel.org>
+	dkim=pass (2048-bit key, unprotected) header.d=intel.com header.i=@intel.com header.a=rsa-sha256 header.s=Intel header.b=TlwOujbp
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1793998005; x=1825534005;
+  h=date:from:to:cc:subject:message-id;
+  bh=Sn7im5GOD3/X9wwaDEsBsmyh+uQ16veT7IBG7auDrGY=;
+  b=TlwOujbp+d5hR5nziJFpovgE8YD+5VkzBwg25Qvah7d+d5cwlzVV4xcr
+   4eY1Aoe1x7bk8ni4B2h851pw9TngITh7MdR2+TR43cTRDKgy0xRo3sgO9
+   6i8Jb6Xxp744TZTjyEzHrw82Gbwyovu/U47z9yXQbTkJREjP35ANBe+I0
+   FnjDKTlre9a9zgSwGLh87XdkjuKN/p2I9GI3SP+alk/e6pHhHJyxViA1S
+   4TUXLLcGLeA4EumqxwyAptgfrCo439I5Tgu/7TBSC39NuiM0YMsKGDdzm
+   xPXN4bJ/zEAH3TvmYbkoxKem3gBd6bj1Ov4OVtiKxd9Debt+yjhWLJ3a1
+   w==;
+X-CSE-ConnectionGUID: 2KpG2eLhR1WOaQHwxJvsjA==
+X-CSE-MsgGUID: Hj8bicy1S/S85n1iSjRLUA==
+X-IronPort-AV: E=McAfee;i="6800,10657,11958"; a="2814867"
+X-IronPort-AV: E=Sophos;i="6.27,199,1787036400"; 
+   d="scan'208";a="2814867"
+Received: from orviesa005.jf.intel.com ([10.64.159.145])
+  by fmvoesa109.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 06 Nov 2026 12:46:44 -0800
+X-CSE-ConnectionGUID: RmYHFKgPTAK/HmYv62iIjA==
+X-CSE-MsgGUID: K015T0MIQVeqNBldG5g6hQ==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="6.27,199,1787036400"; 
+   d="scan'208";a="7259002"
+Received: from igk-lkp-server01.igk.intel.com (HELO 58ca8a381a5c) ([10.211.93.152])
+  by orviesa005.jf.intel.com with ESMTP; 06 Nov 2026 12:46:42 -0800
+Received: from kbuild by 58ca8a381a5c with local (Exim 4.98.2)
+	(envelope-from <lkp@intel.com>)
+	id 1xPQpb-00000000AM7-2c1b;
+	Fri, 06 Nov 2026 20:46:39 +0000
+Date: Fri, 06 Nov 2026 21:46:08 +0100
+From: kernel test robot <lkp@intel.com>
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: oe-kbuild-all@lists.linux.dev, David Hildenbrand <david@kernel.org>,
+ Linux Memory Management List <linux-mm@kvack.org>,
+ mm-commits@vger.kernel.org, Abhishek Bapat <abhishekbapat@google.com>
+Subject: [akpm-mm:mm-unstable 225/232]
+ include/linux/alloc_tag.h:159:24: error: duplicate 'inline' declaration
+ specifier
+Message-ID: <202611062117.gKtstiMc-lkp@intel.com>
+User-Agent: s-nail v14.9.25
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -55,200 +83,377 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:mm-commits+owner@vger.kernel.org>
 Precedence: list
 
+tree:   https://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm.git mm-unstable
+head:   a3d27154a205f6b32000e7e2734b2a6a4d22c65b
+commit: cb335644ac2611749ab17d3eb6f29c8f77450fa6 [225/232] alloc_tag-introduce-ioctls-to-toggle-allocation-tracepoints-fix-fix
+config: x86_64-allmodconfig (https://download.01.org/0day-ci/archive/20261106/202611062117.gKtstiMc-lkp@intel.com/config)
+compiler: clang version 22.1.8 (https://github.com/llvm/llvm-project ca7933e47d3a3451d81e72ac174dcb5aa28b59d1)
+rustc: rustc 1.96.0 (ac68faa20 2026-05-25)
+reproduce (this is a W=1 build): (https://download.01.org/0day-ci/archive/20261106/202611062117.gKtstiMc-lkp@intel.com/reproduce)
 
-The patch titled
-     Subject: mm/huge_memory: prevent losing PG_waiters in __split_folio_to_order()
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mm-huge_memory-prevent-losing-pg_waiters-in-__split_folio_to_order.patch
+If you fix the issue in a separate patch/commit (i.e. not just a new version of
+the same patch/commit), kindly add following tags
+| Reported-by: kernel test robot <lkp@intel.com>
+| Closes: https://lore.kernel.org/oe-kbuild-all/202611062117.gKtstiMc-lkp@intel.com/
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-huge_memory-prevent-losing-pg_waiters-in-__split_folio_to_order.patch
+All error/warnings (new ones prefixed by >>):
 
-This patch will later appear in the mm-hotfixes-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+   In file included from arch/x86/kernel/asm-offsets.c:9:
+   In file included from include/linux/crypto.h:18:
+   In file included from include/linux/slab.h:17:
+   In file included from include/linux/gfp.h:7:
+   In file included from include/linux/mmzone.h:22:
+   In file included from include/linux/mm_types.h:16:
+   In file included from include/linux/uprobes.h:18:
+   In file included from include/linux/timer.h:6:
+   In file included from include/linux/ktime.h:25:
+   In file included from include/linux/jiffies.h:10:
+   In file included from include/linux/time.h:60:
+   In file included from include/linux/time32.h:13:
+   In file included from include/linux/timex.h:67:
+   In file included from arch/x86/include/asm/timex.h:6:
+   In file included from arch/x86/include/asm/tsc.h:11:
+   In file included from arch/x86/include/asm/msr.h:16:
+   In file included from include/linux/percpu.h:5:
+>> include/linux/alloc_tag.h:159:24: warning: duplicate 'inline' declaration specifier [-Wduplicate-decl-specifier]
+     159 | static __always_inline inline bool alloc_tag_is_traced(const struct alloc_tag *tag)
+         |                        ^
+   include/linux/compiler_types.h:235:16: note: expanded from macro 'inline'
+     235 | #define inline inline __gnu_inline __inline_maybe_unused notrace
+         |                ^
+   1 warning generated.
+--
+>> clang diag: include/linux/compiler_types.h:235:16: warning: duplicate 'inline' declaration specifier [-Wduplicate-decl-specifier]
+--
+   In file included from lib/test_bitops.c:10:
+   In file included from include/linux/module.h:13:
+   In file included from include/linux/stat.h:19:
+   In file included from include/linux/time.h:60:
+   In file included from include/linux/time32.h:13:
+   In file included from include/linux/timex.h:67:
+   In file included from arch/x86/include/asm/timex.h:6:
+   In file included from arch/x86/include/asm/tsc.h:11:
+   In file included from arch/x86/include/asm/msr.h:16:
+   In file included from include/linux/percpu.h:5:
+>> include/linux/alloc_tag.h:159:24: error: duplicate 'inline' declaration specifier [-Werror,-Wduplicate-decl-specifier]
+     159 | static __always_inline inline bool alloc_tag_is_traced(const struct alloc_tag *tag)
+         |                        ^
+   include/linux/compiler_types.h:235:16: note: expanded from macro 'inline'
+     235 | #define inline inline __gnu_inline __inline_maybe_unused notrace
+         |                ^
+   1 error generated.
+--
+   In file included from lib/tests/stackinit_kunit.c:14:
+   In file included from include/kunit/test.h:24:
+   In file included from include/linux/module.h:13:
+   In file included from include/linux/stat.h:19:
+   In file included from include/linux/time.h:60:
+   In file included from include/linux/time32.h:13:
+   In file included from include/linux/timex.h:67:
+   In file included from arch/x86/include/asm/timex.h:6:
+   In file included from arch/x86/include/asm/tsc.h:11:
+   In file included from arch/x86/include/asm/msr.h:16:
+   In file included from include/linux/percpu.h:5:
+>> include/linux/alloc_tag.h:159:24: warning: duplicate 'inline' declaration specifier [-Wduplicate-decl-specifier]
+     159 | static __always_inline inline bool alloc_tag_is_traced(const struct alloc_tag *tag)
+         |                        ^
+   include/linux/compiler_types.h:235:16: note: expanded from macro 'inline'
+     235 | #define inline inline __gnu_inline __inline_maybe_unused notrace
+         |                ^
+   lib/tests/stackinit_kunit.c:448:1: warning: initializer overrides prior initialization of this subobject [-Winitializer-overrides]
+     448 | DEFINE_UNION_INITIALIZER_TESTS(static, INSTRUMENTED_PASS);
+         | ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   lib/tests/stackinit_kunit.c:428:3: note: expanded from macro 'DEFINE_UNION_INITIALIZER_TESTS'
+     428 |                 DEFINE_UNION_TESTS(base ## _ ## all, xfail)
+         |                 ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   lib/tests/stackinit_kunit.c:431:3: note: expanded from macro 'DEFINE_UNION_TESTS'
+     431 |                 DEFINE_UNION_TEST(same_sizes, init, xfail);     \
+         |                 ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   lib/tests/stackinit_kunit.c:410:3: note: expanded from macro 'DEFINE_UNION_TEST'
+     410 |                 DEFINE_TEST(name ## _ ## init,                  \
+         |                 ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+     411 |                             union test_ ## name, STRUCT, init,  \
+         |                             ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+     412 |                             xfail)
+         |                             ~~~~~~
+   note: (skipping 1 expansions in backtrace; use -fmacro-backtrace-limit=0 to see all)
+   <scratch space>:189:1: note: expanded from here
+     189 | INIT_STRUCT_static_all
+         | ^
+   lib/tests/stackinit_kunit.c:137:8: note: expanded from macro 'INIT_STRUCT_static_all'
+     137 |                                         = __static_all
+         |                                           ^~~~~~~~~~~~
+   lib/tests/stackinit_kunit.c:118:8: note: expanded from macro '__static_all'
+     118 |                                           .two = 0,                     \
+         |                                           ^~~~~~~~
+   lib/tests/stackinit_kunit.c:448:1: note: previous initialization is here
+     448 | DEFINE_UNION_INITIALIZER_TESTS(static, INSTRUMENTED_PASS);
+         | ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   lib/tests/stackinit_kunit.c:428:3: note: expanded from macro 'DEFINE_UNION_INITIALIZER_TESTS'
+     428 |                 DEFINE_UNION_TESTS(base ## _ ## all, xfail)
+         |                 ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   lib/tests/stackinit_kunit.c:431:3: note: expanded from macro 'DEFINE_UNION_TESTS'
+     431 |                 DEFINE_UNION_TEST(same_sizes, init, xfail);     \
+         |                 ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   lib/tests/stackinit_kunit.c:410:3: note: expanded from macro 'DEFINE_UNION_TEST'
+     410 |                 DEFINE_TEST(name ## _ ## init,                  \
+         |                 ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+     411 |                             union test_ ## name, STRUCT, init,  \
+         |                             ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+     412 |                             xfail)
+         |                             ~~~~~~
+   note: (skipping 1 expansions in backtrace; use -fmacro-backtrace-limit=0 to see all)
+   <scratch space>:189:1: note: expanded from here
+     189 | INIT_STRUCT_static_all
+         | ^
+   lib/tests/stackinit_kunit.c:137:8: note: expanded from macro 'INIT_STRUCT_static_all'
+     137 |                                         = __static_all
+         |                                           ^~~~~~~~~~~~
+   lib/tests/stackinit_kunit.c:117:33: note: expanded from macro '__static_all'
+     117 | #define __static_all                    { .one = 0,                     \
+         |                                                  ^
+   lib/tests/stackinit_kunit.c:448:1: warning: initializer overrides prior initialization of this subobject [-Winitializer-overrides]
+     448 | DEFINE_UNION_INITIALIZER_TESTS(static, INSTRUMENTED_PASS);
+         | ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   lib/tests/stackinit_kunit.c:428:3: note: expanded from macro 'DEFINE_UNION_INITIALIZER_TESTS'
+     428 |                 DEFINE_UNION_TESTS(base ## _ ## all, xfail)
+         |                 ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   lib/tests/stackinit_kunit.c:431:3: note: expanded from macro 'DEFINE_UNION_TESTS'
+     431 |                 DEFINE_UNION_TEST(same_sizes, init, xfail);     \
+         |                 ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   lib/tests/stackinit_kunit.c:410:3: note: expanded from macro 'DEFINE_UNION_TEST'
+     410 |                 DEFINE_TEST(name ## _ ## init,                  \
+         |                 ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+     411 |                             union test_ ## name, STRUCT, init,  \
+         |                             ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+     412 |                             xfail)
+         |                             ~~~~~~
+   note: (skipping 1 expansions in backtrace; use -fmacro-backtrace-limit=0 to see all)
+   <scratch space>:189:1: note: expanded from here
+     189 | INIT_STRUCT_static_all
+         | ^
+   lib/tests/stackinit_kunit.c:137:8: note: expanded from macro 'INIT_STRUCT_static_all'
+     137 |                                         = __static_all
+         |                                           ^~~~~~~~~~~~
+   lib/tests/stackinit_kunit.c:119:8: note: expanded from macro '__static_all'
+     119 |                                           .three = 0,                   \
+         |                                           ^~~~~~~~~~
+   lib/tests/stackinit_kunit.c:448:1: note: previous initialization is here
+     448 | DEFINE_UNION_INITIALIZER_TESTS(static, INSTRUMENTED_PASS);
+         | ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   lib/tests/stackinit_kunit.c:428:3: note: expanded from macro 'DEFINE_UNION_INITIALIZER_TESTS'
+     428 |                 DEFINE_UNION_TESTS(base ## _ ## all, xfail)
+         |                 ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   lib/tests/stackinit_kunit.c:431:3: note: expanded from macro 'DEFINE_UNION_TESTS'
+     431 |                 DEFINE_UNION_TEST(same_sizes, init, xfail);     \
+         |                 ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   lib/tests/stackinit_kunit.c:410:3: note: expanded from macro 'DEFINE_UNION_TEST'
+     410 |                 DEFINE_TEST(name ## _ ## init,                  \
+         |                 ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+     411 |                             union test_ ## name, STRUCT, init,  \
+         |                             ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+     412 |                             xfail)
+         |                             ~~~~~~
+   note: (skipping 1 expansions in backtrace; use -fmacro-backtrace-limit=0 to see all)
+--
+   In file included from tests/stackinit_kunit.c:14:
+   In file included from include/kunit/test.h:24:
+   In file included from include/linux/module.h:13:
+   In file included from include/linux/stat.h:19:
+   In file included from include/linux/time.h:60:
+   In file included from include/linux/time32.h:13:
+   In file included from include/linux/timex.h:67:
+   In file included from arch/x86/include/asm/timex.h:6:
+   In file included from arch/x86/include/asm/tsc.h:11:
+   In file included from arch/x86/include/asm/msr.h:16:
+   In file included from include/linux/percpu.h:5:
+>> include/linux/alloc_tag.h:159:24: warning: duplicate 'inline' declaration specifier [-Wduplicate-decl-specifier]
+     159 | static __always_inline inline bool alloc_tag_is_traced(const struct alloc_tag *tag)
+         |                        ^
+   include/linux/compiler_types.h:235:16: note: expanded from macro 'inline'
+     235 | #define inline inline __gnu_inline __inline_maybe_unused notrace
+         |                ^
+   tests/stackinit_kunit.c:448:1: warning: initializer overrides prior initialization of this subobject [-Winitializer-overrides]
+     448 | DEFINE_UNION_INITIALIZER_TESTS(static, INSTRUMENTED_PASS);
+         | ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   tests/stackinit_kunit.c:428:3: note: expanded from macro 'DEFINE_UNION_INITIALIZER_TESTS'
+     428 |                 DEFINE_UNION_TESTS(base ## _ ## all, xfail)
+         |                 ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   tests/stackinit_kunit.c:431:3: note: expanded from macro 'DEFINE_UNION_TESTS'
+     431 |                 DEFINE_UNION_TEST(same_sizes, init, xfail);     \
+         |                 ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   tests/stackinit_kunit.c:410:3: note: expanded from macro 'DEFINE_UNION_TEST'
+     410 |                 DEFINE_TEST(name ## _ ## init,                  \
+         |                 ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+     411 |                             union test_ ## name, STRUCT, init,  \
+         |                             ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+     412 |                             xfail)
+         |                             ~~~~~~
+   note: (skipping 1 expansions in backtrace; use -fmacro-backtrace-limit=0 to see all)
+   <scratch space>:65:1: note: expanded from here
+      65 | INIT_STRUCT_static_all
+         | ^
+   tests/stackinit_kunit.c:137:8: note: expanded from macro 'INIT_STRUCT_static_all'
+     137 |                                         = __static_all
+         |                                           ^~~~~~~~~~~~
+   tests/stackinit_kunit.c:118:8: note: expanded from macro '__static_all'
+     118 |                                           .two = 0,                     \
+         |                                           ^~~~~~~~
+   tests/stackinit_kunit.c:448:1: note: previous initialization is here
+     448 | DEFINE_UNION_INITIALIZER_TESTS(static, INSTRUMENTED_PASS);
+         | ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   tests/stackinit_kunit.c:428:3: note: expanded from macro 'DEFINE_UNION_INITIALIZER_TESTS'
+     428 |                 DEFINE_UNION_TESTS(base ## _ ## all, xfail)
+         |                 ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   tests/stackinit_kunit.c:431:3: note: expanded from macro 'DEFINE_UNION_TESTS'
+     431 |                 DEFINE_UNION_TEST(same_sizes, init, xfail);     \
+         |                 ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   tests/stackinit_kunit.c:410:3: note: expanded from macro 'DEFINE_UNION_TEST'
+     410 |                 DEFINE_TEST(name ## _ ## init,                  \
+         |                 ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+     411 |                             union test_ ## name, STRUCT, init,  \
+         |                             ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+     412 |                             xfail)
+         |                             ~~~~~~
+   note: (skipping 1 expansions in backtrace; use -fmacro-backtrace-limit=0 to see all)
+   <scratch space>:65:1: note: expanded from here
+      65 | INIT_STRUCT_static_all
+         | ^
+   tests/stackinit_kunit.c:137:8: note: expanded from macro 'INIT_STRUCT_static_all'
+     137 |                                         = __static_all
+         |                                           ^~~~~~~~~~~~
+   tests/stackinit_kunit.c:117:33: note: expanded from macro '__static_all'
+     117 | #define __static_all                    { .one = 0,                     \
+         |                                                  ^
+   tests/stackinit_kunit.c:448:1: warning: initializer overrides prior initialization of this subobject [-Winitializer-overrides]
+     448 | DEFINE_UNION_INITIALIZER_TESTS(static, INSTRUMENTED_PASS);
+         | ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   tests/stackinit_kunit.c:428:3: note: expanded from macro 'DEFINE_UNION_INITIALIZER_TESTS'
+     428 |                 DEFINE_UNION_TESTS(base ## _ ## all, xfail)
+         |                 ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   tests/stackinit_kunit.c:431:3: note: expanded from macro 'DEFINE_UNION_TESTS'
+     431 |                 DEFINE_UNION_TEST(same_sizes, init, xfail);     \
+         |                 ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   tests/stackinit_kunit.c:410:3: note: expanded from macro 'DEFINE_UNION_TEST'
+     410 |                 DEFINE_TEST(name ## _ ## init,                  \
+         |                 ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+     411 |                             union test_ ## name, STRUCT, init,  \
+         |                             ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+     412 |                             xfail)
+         |                             ~~~~~~
+   note: (skipping 1 expansions in backtrace; use -fmacro-backtrace-limit=0 to see all)
+   <scratch space>:65:1: note: expanded from here
+      65 | INIT_STRUCT_static_all
+         | ^
+   tests/stackinit_kunit.c:137:8: note: expanded from macro 'INIT_STRUCT_static_all'
+     137 |                                         = __static_all
+         |                                           ^~~~~~~~~~~~
+   tests/stackinit_kunit.c:119:8: note: expanded from macro '__static_all'
+     119 |                                           .three = 0,                   \
+         |                                           ^~~~~~~~~~
+   tests/stackinit_kunit.c:448:1: note: previous initialization is here
+     448 | DEFINE_UNION_INITIALIZER_TESTS(static, INSTRUMENTED_PASS);
+         | ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   tests/stackinit_kunit.c:428:3: note: expanded from macro 'DEFINE_UNION_INITIALIZER_TESTS'
+     428 |                 DEFINE_UNION_TESTS(base ## _ ## all, xfail)
+         |                 ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   tests/stackinit_kunit.c:431:3: note: expanded from macro 'DEFINE_UNION_TESTS'
+     431 |                 DEFINE_UNION_TEST(same_sizes, init, xfail);     \
+         |                 ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   tests/stackinit_kunit.c:410:3: note: expanded from macro 'DEFINE_UNION_TEST'
+     410 |                 DEFINE_TEST(name ## _ ## init,                  \
+         |                 ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+     411 |                             union test_ ## name, STRUCT, init,  \
+         |                             ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+     412 |                             xfail)
+         |                             ~~~~~~
+   note: (skipping 1 expansions in backtrace; use -fmacro-backtrace-limit=0 to see all)
+--
+   In file included from arch/x86/kernel/asm-offsets.c:9:
+   In file included from include/linux/crypto.h:18:
+   In file included from include/linux/slab.h:17:
+   In file included from include/linux/gfp.h:7:
+   In file included from include/linux/mmzone.h:22:
+   In file included from include/linux/mm_types.h:16:
+   In file included from include/linux/uprobes.h:18:
+   In file included from include/linux/timer.h:6:
+   In file included from include/linux/ktime.h:25:
+   In file included from include/linux/jiffies.h:10:
+   In file included from include/linux/time.h:60:
+   In file included from include/linux/time32.h:13:
+   In file included from include/linux/timex.h:67:
+   In file included from arch/x86/include/asm/timex.h:6:
+   In file included from arch/x86/include/asm/tsc.h:11:
+   In file included from arch/x86/include/asm/msr.h:16:
+   In file included from include/linux/percpu.h:5:
+>> include/linux/alloc_tag.h:159:24: warning: duplicate 'inline' declaration specifier [-Wduplicate-decl-specifier]
+     159 | static __always_inline inline bool alloc_tag_is_traced(const struct alloc_tag *tag)
+         |                        ^
+   include/linux/compiler_types.h:235:16: note: expanded from macro 'inline'
+     235 | #define inline inline __gnu_inline __inline_maybe_unused notrace
+         |                ^
+   1 warning generated.
+   In file included from kernel/sched/rq-offsets.c:5:
+   In file included from kernel/sched/sched.h:8:
+   In file included from include/linux/prandom.h:13:
+   In file included from include/linux/percpu.h:5:
+>> include/linux/alloc_tag.h:159:24: warning: duplicate 'inline' declaration specifier [-Wduplicate-decl-specifier]
+     159 | static __always_inline inline bool alloc_tag_is_traced(const struct alloc_tag *tag)
+         |                        ^
+   include/linux/compiler_types.h:235:16: note: expanded from macro 'inline'
+     235 | #define inline inline __gnu_inline __inline_maybe_unused notrace
+         |                ^
+   1 warning generated.
+   In file included from rust/helpers/helpers.c:43:
+   In file included from rust/helpers/auxiliary.c:3:
+   In file included from include/linux/auxiliary_bus.h:11:
+   In file included from include/linux/device.h:16:
+   In file included from include/linux/energy_model.h:7:
+   In file included from include/linux/kobject.h:20:
+   In file included from include/linux/sysfs.h:16:
+   In file included from include/linux/kernfs.h:12:
+   In file included from include/linux/idr.h:15:
+   In file included from include/linux/radix-tree.h:16:
+   In file included from include/linux/percpu.h:5:
+>> include/linux/alloc_tag.h:159:24: warning: duplicate 'inline' declaration specifier [-Wduplicate-decl-specifier]
+     159 | static __always_inline inline bool alloc_tag_is_traced(const struct alloc_tag *tag)
+         |                        ^
+   include/linux/compiler_types.h:235:16: note: expanded from macro 'inline'
+     235 | #define inline inline __gnu_inline __inline_maybe_unused notrace
+         |                ^
+   In file included from rust/helpers/helpers.c:43:
+   In file included from rust/helpers/auxiliary.c:3:
+   In file included from include/linux/auxiliary_bus.h:11:
+   In file included from include/linux/device.h:16:
+   In file included from include/linux/energy_model.h:7:
+   In file included from include/linux/kobject.h:20:
+   In file included from include/linux/sysfs.h:16:
+   In file included from include/linux/kernfs.h:12:
+   In file included from include/linux/idr.h:15:
+   In file included from include/linux/radix-tree.h:16:
+   In file included from include/linux/percpu.h:5:
+>> include/linux/alloc_tag.h:159:24: warning: duplicate 'inline' declaration specifier [-Wduplicate-decl-specifier]
+     159 | static __always_inline inline bool alloc_tag_is_traced(const struct alloc_tag *tag)
+         |                        ^
+   include/linux/compiler_types.h:235:16: note: expanded from macro 'inline'
+     235 | #define inline inline __gnu_inline __inline_maybe_unused notrace
+         |                ^
+>> clang diag: include/linux/compiler_types.h:235:16: warning: duplicate 'inline' declaration specifier [-Wduplicate-decl-specifier]
+>> clang diag: include/linux/compiler_types.h:235:16: warning: duplicate 'inline' declaration specifier [-Wduplicate-decl-specifier]
+>> clang diag: include/linux/compiler_types.h:235:16: warning: duplicate 'inline' declaration specifier [-Wduplicate-decl-specifier]
+   1 warning generated.
+   1 warning generated.
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
 
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+vim +/inline +159 include/linux/alloc_tag.h
 
-The -mm tree is included into linux-next via various
-branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there most days
+   158	
+ > 159	static __always_inline inline bool alloc_tag_is_traced(const struct alloc_tag *tag)
+   160	{
+   161		return !!(atomic_read(&tag->ct.flags) & CODETAG_FLAG_TRACE_ON);
+   162	}
+   163	
 
-------------------------------------------------------
-From: Zi Yan <ziy@nvidia.com>
-Subject: mm/huge_memory: prevent losing PG_waiters in __split_folio_to_order()
-Date: Fri, 06 Nov 2026 13:28:46 -0500
-
-__split_folio_to_order() calls prep_compound_page() on each new head page
-to create a compound page after clear_compound_head(). 
-prep_compound_page() uses non atomic __SetPageHead().  It is mostly OK,
-since the folio is locked and frozen and no one else is supposed to modify
-the folio's flags.
-
-However, code calling migration_entry_wait() can reach the folio by PFN,
-then access its flags.  It is because softleaf_entry_wait_on_locked() used
-by migration_entry_wait() sets PG_waiters concurrently without taking a
-reference and the frozen refcount during split cannot block it. 
-Meanwhile, __SetPageHead() does a plain read and write, so PG_waiters
-atomically set by softleaf_entry_wait_on_locked() will be lost if the set
-happens after __SetPageHead()'s read and before its write.
-
-One example code interleaving:
-
-CPU0: __split_folio_to_order(new_order>0)  CPU1: do_swap_page()
-
-1. clear_compound_head(new_head)
-   new_head->compound_info = 0
-   (page_folio(new_head) == new_head now)
-
-                                           2. migration_entry_wait()
-                                             softleaf_to_folio(entry)
-                                             page_folio() -> new_head
-                                             (not the old head any more)
-
-3. prep_compound_page(new_head, new_order)
-     __SetPageHead(new_head)
-       tmp = new_head->flags.f  <-- load; PG_waiters == 0 in tmp
-
-                                           4. folio_set_waiters(new_head)
-                                             set_bit(PG_waiters, &flags.f)
-                                             enqueue on waitqueue, sleep
-
-5.     new_head->flags.f = tmp | (1UL << PG_head)
-       <-- store; overwrites step 4, PG_waiters == 0 again
-
-Later, folio_unlock(new_folio) sees no PG_waiters, skips folio_wake_bit(),
-and CPU1 can remain blocked indefinitely.
-
-Fix it by adding the atomic version SetPageHead() and
-prep_compound_page_atomic() using it.  __split_folio_to_order() uses
-prep_compound_page_atomic() to avoid the issue without adding an atomic
-ops to other prep_compound_page() users.
-
-Link: https://lore.kernel.org/20261106-fix-split_folio_to_order-race-v2-1-1b59c67b8af3@nvidia.com
-Fixes: c010d47f107f ("mm: thp: split huge page to any lower order pages")
-Signed-off-by: Zi Yan <ziy@nvidia.com>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Reported-by: David Hildenbrand <david@kernel.org>
-Closes: https://lore.kernel.org/all/DMHE8BEEER1H.2BIY52NXATPIA@nvidia.com/
-Acked-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
-Cc: Liam R. Howlett <liam@infradead.org>
-Cc: Vlastimil Babka <vbabka@kernel.org>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: Nico Pache <nico.pache@linux.dev>
-Cc: Ryan Roberts <ryan.roberts@arm.com>
-Cc: Dev Jain <dev.jain@arm.com>
-Cc: Barry Song <baohua@kernel.org>
-Cc: Lance Yang <lance.yang@linux.dev>
-Cc: Usama Arif <usama.arif@linux.dev>
-Cc: Kiryl Shutsemau <kas@kernel.org>
-Cc: Brendan Jackman <brendan.jackman@linux.dev>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Ye Liu <ye.liu@linux.dev>
-Cc: <stable@vger.kernel.org>
----
-
- include/linux/page-flags.h |    1 +
- mm/huge_memory.c           |   10 +++++++++-
- mm/internal.h              |    2 ++
- mm/page_alloc.c            |   25 +++++++++++++++++++++++--
- 4 files changed, 35 insertions(+), 3 deletions(-)
-
---- a/include/linux/page-flags.h~mm-huge_memory-prevent-losing-pg_waiters-in-__split_folio_to_order
-+++ a/include/linux/page-flags.h
-@@ -854,6 +854,7 @@ static __always_inline int PageHead(cons
- 	return test_bit(PG_head, &page->flags.f);
- }
- 
-+SETPAGEFLAG(Head, head, PF_ANY)
- __SETPAGEFLAG(Head, head, PF_ANY)
- __CLEARPAGEFLAG(Head, head, PF_ANY)
- CLEARPAGEFLAG(Head, head, PF_ANY)
---- a/mm/huge_memory.c~mm-huge_memory-prevent-losing-pg_waiters-in-__split_folio_to_order
-+++ a/mm/huge_memory.c
-@@ -3779,7 +3779,15 @@ static void __split_folio_to_order(struc
- 		 */
- 		clear_compound_head(new_head);
- 		if (new_order) {
--			prep_compound_page(new_head, new_order);
-+			/*
-+			 * new_head is recognized as a folio after
-+			 * clear_compound_head().
-+			 * softleaf_entry_wait_on_locked() can set PG_waiters
-+			 * on it without taking a reference, so its frozen state
-+			 * cannot prevent it. Use the atomic version to avoid
-+			 * losing a concurrently set PG_waiters.
-+			 */
-+			prep_compound_page_atomic(new_head, new_order);
- 			folio_set_large_rmappable(new_folio);
- 		}
- 
---- a/mm/internal.h~mm-huge_memory-prevent-losing-pg_waiters-in-__split_folio_to_order
-+++ a/mm/internal.h
-@@ -806,6 +806,8 @@ static inline void prep_compound_tail(st
- 	VM_WARN_ON_ONCE(tail->private);
- }
- 
-+void prep_compound_page_atomic(struct page *page, unsigned int order);
-+
- #if defined CONFIG_COMPACTION || defined CONFIG_CMA
- 
- /*
---- a/mm/page_alloc.c~mm-huge_memory-prevent-losing-pg_waiters-in-__split_folio_to_order
-+++ a/mm/page_alloc.c
-@@ -682,18 +682,39 @@ static inline bool pcp_allowed_order(uns
-  * This usage means that zero-order pages may not be compound.
-  */
- 
--void prep_compound_page(struct page *page, unsigned int order)
-+/* Set up the metadata on head page and tail pages. */
-+static void __prep_compound_page(struct page *page, unsigned int order)
- {
- 	int i;
- 	int nr_pages = 1 << order;
- 
--	__SetPageHead(page);
- 	for (i = 1; i < nr_pages; i++)
- 		prep_compound_tail(page + i, page, order);
- 
- 	prep_compound_head(page, order);
- }
- 
-+/*
-+ * PG_head is set non-atomically. It should be used when no one else can modify
-+ * @page's flags.
-+ */
-+void prep_compound_page(struct page *page, unsigned int order)
-+{
-+	__SetPageHead(page);
-+	__prep_compound_page(page, order);
-+}
-+
-+/*
-+ * PG_head is set atomically whereas the other metadata is set with plain
-+ * stores. It should be used when @page's flags can be modified concurrently,
-+ * e.g., in __split_folio_to_order().
-+ */
-+void prep_compound_page_atomic(struct page *page, unsigned int order)
-+{
-+	SetPageHead(page);
-+	__prep_compound_page(page, order);
-+}
-+
- static inline void set_buddy_order(struct page *page, unsigned int order)
- {
- 	set_page_private(page, order);
-_
-
-Patches currently in -mm which might be from ziy@nvidia.com are
-
-mm-huge_memory-prevent-losing-pg_waiters-in-__split_folio_to_order.patch
-
+--
+0-DAY CI Kernel Test Service
+https://github.com/intel/lkp-tests/wiki
