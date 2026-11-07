@@ -1,45 +1,45 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794023621;
-	b=BwW3DKdwBrlMOytlWFW95OYQHwy0G8KOPiemsb90X8q+Amhfzmj+QUDXnZqePPFbJWik
-	 CLqrSMaeuW/xZUsK/3Hu4/YIs6Bwec8xQJJXFt5ZWjYkWlR2RazopOYuPxJW989tGT+Y5
-	 uTgqv5eaOcSgN2fvc4ba0RpBPYvtxOY06SOMSSlQA1SHyZgxQbrq33sI/1Xs9iQ8BhPw2
-	 o3+2corOfE6lPDSKr4qr0ovcd+t+PxIlE3oJVpokQEn30EWiBiBhsq2r0l1wtwQKXiDeo
-	 2Iwm8lZk79z3L8Dyz5G7JjQDqXIyjiKVdrceg+SuzgQAsT+Q7yUje1wmvkvLim3g0xg==
+	t=1794023623;
+	b=K3EhMVUgcBDb2mxOZVP4UuUAuIeqD56FfQ410lFwv7Oz/QimzGkEDSWJdsHizlDEzT+D
+	 BHO5r6DljpCz6rNjeCOa59hCE/qY/1TQz3HZX0RM6+3p5HKq7xCnLGPWwsSQDjSHbHz0b
+	 j1XPJGTrp8Uq1iQPMbk9XTVlB4vpTr6HkfYN8wcmGTOKLorYpE1yXIyPUyFdOFuNLrAxA
+	 lso8lZVTa1z4NgDt40G2hs2+kyMGvLemqDIcjIDmv5HBfntnhBeeXEk6yVGv34d9aMNfY
+	 Fl+LFpdpQNrhrCKdEir4olVvysARddlkQxlQlm8HFggvyZYq7ISb17SKA3vn9a9JT1g==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794023621;
+	a=rsa-sha256; c=relaxed/relaxed; t=1794023623;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=S74esSGPa4kabNAhhEIx7Y9uTEoDVCm3sPq/0RTIa4c=;
-	b=djbLpuw81B0SDTJ5+g1WPhTRRLG9F9kOfx6cIvcC44mzcCDHJcQvWHGjDz4EbFMmXuTs
-	 ZaJoVA/VGj7FAAJc9W1mOwACHt6uIuZhYqBDCkI+nVMJf9PD3+hwOGCy8z8jmawFWa/+N
-	 nmZsRXMERvMGEJZ5+SZuUxUeGTA0pbJJnvLJnrp7JrVWqWGTulbemTsbrFjWUlFAp+NCj
-	 PY3nzFARQFgevdGvRfoFrq7YlYMOfTeXgRT0YSCbduoILE/+Fxs0r9p+qCKCtz5VHLyT4
-	 tNA8GzgWmB20LoosdDA3tQLnXdp6D3+8pFhRu86uSb37hbotwVDHvMy6jf92y+cOgjA==
+	bh=SmL6VgxMithCD/GGAtzvYTS8MsIGGzH2gcifu9Cp42o=;
+	b=vNBmaR8qP8/D66gzLRIQtQhh/byFDDhJRkW1HIiJyES4m6s2v1UBryy4cE1n2Tc3/7v4
+	 iSCuqvU4gb9kEbB/JSC7SaHckgHjChPwWfyoF3yzxuK/tQ8tc0A5ZQF9C0WNfdZq3eWV3
+	 2tUWFxvUdUc5acrRImz4IAEB0yAZFUTIoxL/R91xTstyQG+3vjYlQw15Q0rs1+kWpipAr
+	 kW84Kt3W7//wKbu7BR54jyCTS6B59CJ+7TUjYO3L9OI/An7o9JHo6mxh9kdBQde0kkbJt
+	 dOpmpl4LzuLUXlXaFteiLv4Mp5/cXgo4wbusP2HiirGj4P55LigEszskzDLfkoB55OA==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=qyfzmRtS;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=N1YYwV+z;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8EBF3606A333
-	for <mm-commits@vger.kernel.org>; Sat,  7 Nov 2026 03:53:41 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 76BF9606A32E
+	for <mm-commits@vger.kernel.org>; Sat,  7 Nov 2026 03:53:43 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=qyfzmRtS
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5A88A1F008A2;
-	Sat,  7 Nov 2026 03:53:41 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=N1YYwV+z
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 41E631F0089F;
+	Sat,  7 Nov 2026 03:53:43 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1794023621;
-	bh=S74esSGPa4kabNAhhEIx7Y9uTEoDVCm3sPq/0RTIa4c=;
+	d=linux-foundation.org; s=korg; t=1794023623;
+	bh=SmL6VgxMithCD/GGAtzvYTS8MsIGGzH2gcifu9Cp42o=;
 	h=Date:To:From:Subject;
-	b=qyfzmRtSgsm+2Nle0AdxZUS7m10G01rTl/Ezx239whDOAK6GymJ26Tvw1qsrt6Atc
-	 JV2FxZEZQVbQGhQcpcu7M6oaSRi+m2OMvRvJ/LQrsXFHMKVAv3F2m50E9TzryL2amd
-	 NRkDgbc0CqBENftvKUtPOg4nlh+sXeUdlD6BNDP4=
-Date: Fri, 06 Nov 2026 19:53:40 -0800
+	b=N1YYwV+zq0ofw6lMRL9hmFfzBupy6K8RC7vs4AWUUp4rHL7CLNHnemLV5fXcKMhdN
+	 QBdTg6nB8+izRrQSfnjr9+6JegFfKtnxqLMSQkQkfPu3eoHbpzy0GgG4tpsXqAOuxY
+	 ssXYQQ/VnIgQ5CSAjhKcY6Tp1w0nV40e54GfFlyQ=
+Date: Fri, 06 Nov 2026 19:53:42 -0800
 To: mm-commits@vger.kernel.org,muchun.song@linux.dev,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-hugetlb_vmemmap-generalize-vmemmap-page-allocation.patch added to mm-unstable branch
-Message-Id: <20261107035341.5A88A1F008A2@smtp.kernel.org>
+Subject: + mm-hugetlb_vmemmap-unify-writable-vmemmap-page-preparation.patch added to mm-unstable branch
+Message-Id: <20261107035343.41E631F0089F@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -51,12 +51,12 @@ Precedence: list
 
 
 The patch titled
-     Subject: mm: hugetlb_vmemmap: generalize vmemmap page allocation
+     Subject: mm: hugetlb_vmemmap: unify writable vmemmap page preparation
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-hugetlb_vmemmap-generalize-vmemmap-page-allocation.patch
+     mm-hugetlb_vmemmap-unify-writable-vmemmap-page-preparation.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-hugetlb_vmemmap-generalize-vmemmap-page-allocation.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-hugetlb_vmemmap-unify-writable-vmemmap-page-preparation.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -75,24 +75,28 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Muchun Song <muchun.song@linux.dev>
-Subject: mm: hugetlb_vmemmap: generalize vmemmap page allocation
-Date: Sat, 07 Nov 2026 10:27:48 +0800
+Subject: mm: hugetlb_vmemmap: unify writable vmemmap page preparation
+Date: Sat, 07 Nov 2026 10:27:49 +0800
 
-Vmemmap page allocation is currently tied to restoring a virtual range
-and assumes an empty destination list.  These constraints prevent it from
-being reused when pages are requested independently of a vmemmap range or
-appended to an existing list.
+Installing a writable vmemmap page requires consuming a replacement page,
+copying the current contents into it and making the copy visible before
+publishing the new mapping.  HVO currently splits this sequence between
+the page-table walker and its caller depending on the remap path.
 
-Generalize the allocator and give it an all-or-nothing list contract so
-the restore and optimization paths can share the same helper.
+Centralize the sequence in the walker so all writable replacements follow
+the same copy-and-publish protocol.  This keeps page preparation with the
+mapping update and removes path-specific handling from higher-level HVO
+code.
 
-Link: https://lore.kernel.org/20261107022756.77731-6-songmuchun@bytedance.com
+No functional change intended.
+
+Link: https://lore.kernel.org/20261107022756.77731-7-songmuchun@bytedance.com
 Signed-off-by: Muchun Song <muchun.song@linux.dev>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 Reviewed-by: Lance Yang <lance.yang@linux.dev>
 Reviewed-by: Qi Zheng <qi.zheng@linux.dev>
-Reviewed-by: Oscar Salvador <osalvador@suse.de>
 Reviewed-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
+Reviewed-by: Oscar Salvador <osalvador@suse.de>
 Tested-by: Andrew Morton <akpm@linux-foundation.org>
 Cc: James Houghton <jthoughton@google.com>
 Cc: David Hildenbrand <david@kernel.org>
@@ -102,98 +106,86 @@ Cc: "Oscar Salvador (SUSE)" <osalvador@kernel.org>
 Cc: Huacai Chen <chenhuacai@kernel.org>
 ---
 
- mm/hugetlb_vmemmap.c |   41 ++++++++++++++++++++---------------------
- 1 file changed, 20 insertions(+), 21 deletions(-)
+ mm/hugetlb_vmemmap.c |   40 +++++++++++++++++-----------------------
+ 1 file changed, 17 insertions(+), 23 deletions(-)
 
---- a/mm/hugetlb_vmemmap.c~mm-hugetlb_vmemmap-generalize-vmemmap-page-allocation
+--- a/mm/hugetlb_vmemmap.c~mm-hugetlb_vmemmap-unify-writable-vmemmap-page-preparation
 +++ a/mm/hugetlb_vmemmap.c
-@@ -334,26 +334,24 @@ static int vmemmap_remap_free(unsigned l
- 	return ret;
+@@ -199,6 +199,20 @@ static void free_vmemmap_page_list(struc
+ 		free_vmemmap_page(page);
  }
  
--static int alloc_vmemmap_page_list(unsigned long start, unsigned long end,
--				   struct list_head *list)
-+static int alloc_vmemmap_page_list(struct list_head *head,
-+		unsigned int nr_pages, int nid, gfp_t gfp_mask)
++static struct page *vmemmap_dup_page_from_list(const struct page *src,
++		struct list_head *vmemmap_pages)
++{
++	struct page *dst = list_first_entry(vmemmap_pages, struct page, lru);
++
++	list_del(&dst->lru);
++	copy_page(page_address(dst), page_address(src));
++
++	/* Ensure updates to @dst page are visible before set_pte_at(). */
++	smp_wmb();
++
++	return dst;
++}
++
+ static void vmemmap_remap_pte(pte_t *pte, unsigned long addr,
+ 			      struct vmemmap_remap_walk *walk)
  {
--	gfp_t gfp_mask = GFP_KERNEL | __GFP_RETRY_MAYFAIL;
--	unsigned long nr_pages = (end - start) >> PAGE_SHIFT;
--	int nid = page_to_nid((struct page *)start);
- 	struct page *page, *next;
--	int i;
-+	LIST_HEAD(new_pages);
+@@ -211,16 +225,7 @@ static void vmemmap_remap_pte(pte_t *pte
  
--	for (i = 0; i < nr_pages; i++) {
--		page = alloc_pages_node(nid, gfp_mask, 0);
-+	for (unsigned int i = 0; i < nr_pages; i++) {
-+		page = alloc_pages_node(nid, gfp_mask | __GFP_RETRY_MAYFAIL, 0);
- 		if (!page)
--			goto out;
--		list_add(&page->lru, list);
-+			goto free_pages;
-+		list_add(&page->lru, &new_pages);
- 	}
-+	list_splice(&new_pages, head);
- 	memmap_pages_add(nr_pages);
+ 		VM_WARN_ON_ONCE(!PageHead((const struct page *)addr));
  
- 	return 0;
--out:
--	list_for_each_entry_safe(page, next, list, lru)
-+free_pages:
-+	list_for_each_entry_safe(page, next, &new_pages, lru)
- 		__free_page(page);
- 	return -ENOMEM;
+-		head = list_first_entry(walk->vmemmap_pages, struct page, lru);
+-		list_del(&head->lru);
+-
+-		/*
+-		 * Makes sure that preceding stores to the page contents from
+-		 * vmemmap_remap_free() become visible before the set_pte_at()
+-		 * write.
+-		 */
+-		smp_wmb();
+-
++		head = vmemmap_dup_page_from_list(page, walk->vmemmap_pages);
+ 		entry = mk_pte(head, PAGE_KERNEL);
+ 	} else {
+ 		VM_WARN_ON_ONCE(!PageTail((const struct page *)addr));
+@@ -253,15 +258,7 @@ static void vmemmap_restore_pte(pte_t *p
+ 
+ 	VM_WARN_ON_ONCE(PageHead((const struct page *)addr));
+ 
+-	dst = list_first_entry(walk->vmemmap_pages, struct page, lru);
+-	list_del(&dst->lru);
+-	copy_page(page_to_virt(dst), page_to_virt(src));
+-
+-	/*
+-	 * Makes sure that preceding stores to the page contents become visible
+-	 * before the set_pte_at() write.
+-	 */
+-	smp_wmb();
++	dst = vmemmap_dup_page_from_list(src, walk->vmemmap_pages);
+ 	set_pte_at(&init_mm, addr, pte, mk_pte(dst, PAGE_KERNEL));
  }
-@@ -373,6 +371,7 @@ out:
- static int vmemmap_remap_alloc(unsigned long start, unsigned long end,
- 			       unsigned long flags)
- {
-+	int ret, nid = page_to_nid((struct page *)start);
- 	LIST_HEAD(vmemmap_pages);
- 	struct vmemmap_remap_walk walk = {
- 		.remap_pte	= vmemmap_restore_pte,
-@@ -380,8 +379,10 @@ static int vmemmap_remap_alloc(unsigned
- 		.flags		= flags,
- 	};
  
--	if (alloc_vmemmap_page_list(start, end, &vmemmap_pages))
--		return -ENOMEM;
-+	ret = alloc_vmemmap_page_list(&vmemmap_pages, (end - start) / PAGE_SIZE,
-+				      nid, GFP_KERNEL);
-+	if (ret)
-+		return ret;
- 
- 	return vmemmap_remap_range(start, end, &walk);
- }
-@@ -501,7 +502,7 @@ static int __hugetlb_vmemmap_optimize_fo
+@@ -501,7 +498,7 @@ static int __hugetlb_vmemmap_optimize_fo
+ 					    unsigned long flags)
  {
  	unsigned long vmemmap_start, vmemmap_end;
- 	struct page *vmemmap_head, *vmemmap_tail;
--	gfp_t gfp_mask = GFP_KERNEL | __GFP_NOWARN | __GFP_RETRY_MAYFAIL;
-+	gfp_t gfp_mask = GFP_KERNEL | __GFP_NOWARN;
+-	struct page *vmemmap_head, *vmemmap_tail;
++	struct page *vmemmap_tail;
+ 	gfp_t gfp_mask = GFP_KERNEL | __GFP_NOWARN;
  	int nid, ret = 0;
  
- 	VM_WARN_ON_ONCE_FOLIO(!folio_test_hugetlb(folio), folio);
-@@ -528,15 +529,13 @@ static int __hugetlb_vmemmap_optimize_fo
- 	 */
- 	folio_set_hugetlb_vmemmap_optimized(folio);
- 
--	vmemmap_head = alloc_pages_node(nid, gfp_mask, 0);
--	if (!vmemmap_head) {
--		ret = -ENOMEM;
-+	ret = alloc_vmemmap_page_list(vmemmap_pages, VMEMMAP_OPTIMIZATION_PAGES,
-+				      nid, gfp_mask);
-+	if (ret)
+@@ -534,9 +531,6 @@ static int __hugetlb_vmemmap_optimize_fo
+ 	if (ret)
  		goto out;
--	}
  
-+	vmemmap_head = list_first_entry(vmemmap_pages, struct page, lru);
- 	copy_page(page_to_virt(vmemmap_head), folio);
--	list_add(&vmemmap_head->lru, vmemmap_pages);
--	memmap_pages_add(1);
- 
+-	vmemmap_head = list_first_entry(vmemmap_pages, struct page, lru);
+-	copy_page(page_to_virt(vmemmap_head), folio);
+-
  	vmemmap_start	= (unsigned long)&folio->page;
  	vmemmap_end	= vmemmap_start + hugetlb_vmemmap_size(h);
+ 
 _
 
 Patches currently in -mm which might be from muchun.song@linux.dev are
