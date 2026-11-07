@@ -1,45 +1,45 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794023612;
-	b=SD4yG0ylEAeAda5PGytRGhyf/bdYWtDwhrK5qaqjIoFw7GirfzaeR4YNPLTdb0v8NHH/
-	 3IQTyFgMAO1tSaFoDr3L/VsSfw1wbTWpGb831l8yJ03gXzcVkFqmrbg8Uvvhzzv00WgrO
-	 3RKbMc6QicdhHFKJrNCzjWIMr5b+a4odd/D9GEMk9JI3gaOiMgbk3LzZGkoa0xjPkGTxM
-	 osycAlIe7by8sw2cPJUENeY/RMz/UVL4yMWAofJeTqGQghfvJBMSsQ5Q/69IMw1HRU7Hz
-	 R2LElIVSX8YzEZZRuq9cxJTBce3GcpcekKxfc+zkjcifyiZG1xpGaePIi6PvhTCCtlw==
+	t=1794023614;
+	b=g5z/6Qrx3bMy4Y2oF6zymrJqMQv1uQwj+dvmZu8OBDDXm8kC5kGnHSITmxwNVLxOjRZB
+	 qJtXEwFayeXVcle5EFw4/rJw8YlYwDZ93lkr80LMyA7QwdyaMSdclRQGuAbEh8QkQaaGZ
+	 OMGC3fZ3b3bFxYlwnM17n5bbXmnFkRGdaOeNAc/gdyAYP5smDkjFBaEiE1ghSuEEew6eU
+	 3PR/HQGeUPXE1DxPhu0H1sOgJAtiKRbQeCZxchzLYF7SzgU6FWN5pwM2VXWqx1RFC+l9m
+	 B9iXH5aMDEW+wYJ+JQ6rZQ/lDgn02eaFMUH1PXbKbI1IHnnr4eGADle0DzjZQBlcU4g==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794023612;
+	a=rsa-sha256; c=relaxed/relaxed; t=1794023614;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=5KKjel5lPbIjooWZMc1qxp/DL4KD4h9GdDTyx0CGaas=;
-	b=jgkOKbfRy5Svz1j6t7+4thEd0ZNeaghxBJpWoaW6WhO4qW7ElPZIHRFWT/HSpAzKbWXt
-	 tymWZchfa1ziV8m5xP1pvMGSEtfeLj/JHf7bPlQQtCK9vbOyLbg41uT56UT73aZEHdtWW
-	 rtrPp6a5pepo+40KONimB6VCswX8K5+i4LbtsId7E7NhpBPrS0UragRuMNCW9VFy80Rqj
-	 8aCuGGVOwYL74Z3VZnmtmEIK4r7enNHu1cAzolBiLIrpWLyRfJA3SzeijR3zgado7DI1N
-	 uyxbhTyqi5xMn4pCVD41LcZZ96KVdUi3DxSFQNcbQiDXlrfVZ9C12ON3gyr/m/ETgYQ==
+	bh=o4DwnkoAsfaMPUxLyKpWTn3LdejqmaAxd58lzuVbQ0w=;
+	b=Fv4MhSPS/ktzxUHJvn6FGhUKyGgJYBgIbBlsH+wO5DCwfGwMOWC6hIdikFazXob40+qa
+	 9s8Ua3f3XHD1wHSDgIpSLsE3P9AehIrAuHrkKmc40r1wMYmdCFl7aSsEgbQcf4ESQYJ3A
+	 vtVyaVwWpNgPvjL1CfcZD0unGTj64s/8MOpZSHhXWXk8ifxC8l290RpMFvF+HkK0Lihry
+	 EFm6j/hAATVpUWe7U+qEBYUsHl9H/92o7wRygOT1LAqaZD9veypmwkJx4fIrrex0Li47C
+	 GR4M7dvhYaG9Y/6VFOKvgTRZKXD4nJQcDmplAeaVc4VtrDKNNMqdMQG+lwdcxOewWow==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=lPTrfqGW;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=zBprfGpa;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8E8F4606A32C
-	for <mm-commits@vger.kernel.org>; Sat,  7 Nov 2026 03:53:32 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 90476606A326
+	for <mm-commits@vger.kernel.org>; Sat,  7 Nov 2026 03:53:34 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=lPTrfqGW
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 57C1C1F0089F;
-	Sat,  7 Nov 2026 03:53:32 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=zBprfGpa
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4A7D61F0089F;
+	Sat,  7 Nov 2026 03:53:34 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1794023612;
-	bh=5KKjel5lPbIjooWZMc1qxp/DL4KD4h9GdDTyx0CGaas=;
+	d=linux-foundation.org; s=korg; t=1794023614;
+	bh=o4DwnkoAsfaMPUxLyKpWTn3LdejqmaAxd58lzuVbQ0w=;
 	h=Date:To:From:Subject;
-	b=lPTrfqGWIJ26evXd22gOMVzMcFoZZyPKTtMvakRUGNbpNfJRE2gefMxSMUNYlx4RH
-	 wB3KyK7bqOr3SJvz2sOeGADBhuc0bAJGc82+dmC+ECLnDTQi54PhMo0iDEaTdBVEIt
-	 wl/Z1GCYESEUK8Lg84VCDuL5ZMu5sgwGBhI+hIEE=
-Date: Fri, 06 Nov 2026 19:53:31 -0800
-To: mm-commits@vger.kernel.org,zhangyili01@baidu.com,akpm@linux-foundation.org
+	b=zBprfGpaSTcDe8f0T2MOQrdyIZsGsLlIQfM4DS0jFtEoM7FTaXYO9/OuTVe/ZE1m8
+	 xQln/kGBGK4bQAfO0Cv1NC5wzg9DgLIQa6mMokb+uhFp7Hr7lTG4ACJaS9DqJOhTRi
+	 Hki3mDOR8rSAzXdQ1BOSLh3ek8/A4zkSWdjbVbjI=
+Date: Fri, 06 Nov 2026 19:53:33 -0800
+To: mm-commits@vger.kernel.org,muchun.song@linux.dev,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-hugetlb_vmemmap-fix-oom-during-head-page-allocation.patch added to mm-unstable branch
-Message-Id: <20261107035332.57C1C1F0089F@smtp.kernel.org>
+Subject: + mm-hugetlb_vmemmap-remove-hugetlb-specific-vmemmap-optimization-macros.patch added to mm-unstable branch
+Message-Id: <20261107035334.4A7D61F0089F@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -51,12 +51,12 @@ Precedence: list
 
 
 The patch titled
-     Subject: mm: hugetlb_vmemmap: fix OOM during head page allocation
+     Subject: mm: hugetlb_vmemmap: remove HugeTLB-specific vmemmap optimization macros
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-hugetlb_vmemmap-fix-oom-during-head-page-allocation.patch
+     mm-hugetlb_vmemmap-remove-hugetlb-specific-vmemmap-optimization-macros.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-hugetlb_vmemmap-fix-oom-during-head-page-allocation.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-hugetlb_vmemmap-remove-hugetlb-specific-vmemmap-optimization-macros.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -74,110 +74,147 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Yili Zhang <zhangyili01@baidu.com>
-Subject: mm: hugetlb_vmemmap: fix OOM during head page allocation
-Date: Sat, 07 Nov 2026 10:27:44 +0800
+From: Muchun Song <muchun.song@linux.dev>
+Subject: mm: hugetlb_vmemmap: remove HugeTLB-specific vmemmap optimization macros
+Date: Sat, 07 Nov 2026 10:27:45 +0800
 
-Patch series "mm: Decouple folio-based vmemmap optimization from HugeTLB",
-v4.
+Vmemmap optimization is no longer HugeTLB-specific, so the remaining
+HugeTLB-local reserve macros are redundant.
 
-Section-based vmemmap optimization is implemented in sparse-vmemmap.c,
-while folio-based optimization currently lives in hugetlb_vmemmap.c.
-The latter is tightly coupled to HugeTLB-specific state even though the
-underlying page-table remapping operates on one folio at a time.
+Replace them with the generic definitions to remove duplication and keep
+the HugeTLB vmemmap code aligned with the common optimization macros.
 
-To make these interfaces easier to maintain, the folio-based remapping
-mechanics first need a boundary that is independent of HugeTLB-specific
-state and raw address ranges. This will allow the mechanics to be moved
-into a common vmemmap optimization layer alongside the section-based
-interface.
-
-This series establishes that boundary through three folio-oriented
-operations, each with a distinct role:
-
-  - vmemmap_optimize_folio() optimizes the vmemmap backing of a folio;
-  - vmemmap_restore_folio() restores the vmemmap backing of a folio; and
-  - vmemmap_pteify_folio() converts the vmemmap backing of a folio to
-    PTE mappings.
-
-Together, these operations encapsulate the address-range calculation and
-remapping mechanics for a folio. HugeTLB wrappers retain policy decisions
-such as eligibility, optimized state, batching and TLB flush handling.
-
-Patch 1 is a standalone prerequisite fix for best-effort HVO head-page
-allocation. Patches 2-9 generalize the underlying vmemmap remapping
-infrastructure by removing HugeTLB-specific assumptions and simplifying
-remap control and resource handling. Patches 10-13 then establish
-folio-oriented operations for optimization, restoration and PTE
-conversion.
-
-The implementation remains in hugetlb_vmemmap.c for now. A follow-up can
-move the folio-based operations into the common vmemmap optimization layer
-once the interface boundary is in place.
-
-
-This patch (of 13):
-
-The head page used during HugeTLB vmemmap optimization is allocated with
-a bare GFP_KERNEL mask. When boot-time hugepage allocation drains free
-memory, parallel optimization workers can enter OOM handling before
-userspace exists, leaving the kernel with no killable process and causing
-a panic.
-
-hugetlb_pages_alloc_boot_node() invokes HVO on the folios accumulated so
-far when available memory reaches zero, allowing the released vmemmap pages
-to support further hugepage allocations. If allocating the HVO head page
-returns -ENOMEM, the bulk HVO path frees any vmemmap pages it has already
-accumulated and retries, while callers can continue with an unoptimized
-folio if the retry still fails. Therefore, neither an allocation warning
-nor OOM handling helps this best-effort allocation. Use GFP_KERNEL |
-__GFP_NOWARN | __GFP_RETRY_MAYFAIL to allow reclaim retries while avoiding
-both.
-
-Link: https://lore.kernel.org/20261107022756.77731-1-songmuchun@bytedance.com
-Link: https://lore.kernel.org/20261107022756.77731-2-songmuchun@bytedance.com
-Fixes: c0b495b91a47 ("mm/hugetlb: refactor code around vmemmap_walk")
-Signed-off-by: Yili Zhang <zhangyili01@baidu.com>
+Link: https://lore.kernel.org/20261107022756.77731-3-songmuchun@bytedance.com
 Signed-off-by: Muchun Song <muchun.song@linux.dev>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Co-developed-by: Muchun Song <muchun.song@linux.dev>
-Cc: Oscar Salvador <osalvador@suse.de>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Qi Zheng <qi.zheng@linux.dev>
-Cc: Lance Yang <lance.yang@linux.dev>
+Reviewed-by: Lance Yang <lance.yang@linux.dev>
+Reviewed-by: Qi Zheng <qi.zheng@linux.dev>
+Reviewed-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
+Reviewed-by: Oscar Salvador <osalvador@suse.de>
+Tested-by: Andrew Morton <akpm@linux-foundation.org>
 Cc: James Houghton <jthoughton@google.com>
 Cc: David Hildenbrand <david@kernel.org>
+Cc: Yili Zhang <zhangyili01@baidu.com>
 Cc: Kiryl Shutsemau <kas@kernel.org>
 Cc: "Oscar Salvador (SUSE)" <osalvador@kernel.org>
 Cc: Huacai Chen <chenhuacai@kernel.org>
-Cc: <stable@vger.kernel.org>
 ---
 
- mm/hugetlb_vmemmap.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ include/linux/vmemmap-optimization.h |    4 ++--
+ mm/hugetlb.c                         |    4 ++--
+ mm/hugetlb_vmemmap.c                 |    6 +++---
+ mm/hugetlb_vmemmap.h                 |   10 ++--------
+ 4 files changed, 9 insertions(+), 15 deletions(-)
 
---- a/mm/hugetlb_vmemmap.c~mm-hugetlb_vmemmap-fix-oom-during-head-page-allocation
+--- a/include/linux/vmemmap-optimization.h~mm-hugetlb_vmemmap-remove-hugetlb-specific-vmemmap-optimization-macros
++++ a/include/linux/vmemmap-optimization.h
+@@ -27,8 +27,8 @@
+ 
+ /* The number of retained vmemmap pages with HVO enabled. */
+ #define VMEMMAP_OPTIMIZATION_PAGES		1
+-#define VMEMMAP_OPTIMIZATION_NR_STRUCT_PAGES	\
+-	(VMEMMAP_OPTIMIZATION_PAGES * PAGE_SIZE / sizeof(struct page))
++#define VMEMMAP_OPTIMIZATION_SIZE		(VMEMMAP_OPTIMIZATION_PAGES * PAGE_SIZE)
++#define VMEMMAP_OPTIMIZATION_NR_STRUCT_PAGES	(VMEMMAP_OPTIMIZATION_SIZE / sizeof(struct page))
+ #define VMEMMAP_OPTIMIZATION_MIN_ORDER		(ilog2(VMEMMAP_OPTIMIZATION_NR_STRUCT_PAGES) + 1)
+ 
+ #ifdef CONFIG_VMEMMAP_OPTIMIZATION
+--- a/mm/hugetlb.c~mm-hugetlb_vmemmap-remove-hugetlb-specific-vmemmap-optimization-macros
++++ a/mm/hugetlb.c
+@@ -3317,7 +3317,7 @@ static void __init prep_and_add_bootmem_
+ 			 * be no contention.
+ 			 */
+ 			hugetlb_folio_init_tail_vmemmap(folio, h,
+-					HUGETLB_VMEMMAP_RESERVE_PAGES,
++					VMEMMAP_OPTIMIZATION_NR_STRUCT_PAGES,
+ 					pages_per_huge_page(h));
+ 		}
+ 		hugetlb_bootmem_init_migratetype(folio, h);
+@@ -3357,7 +3357,7 @@ static void __init gather_bootmem_preall
+ 		WARN_ON(folio_ref_count(folio) != 1);
+ 
+ 		hugetlb_folio_init_vmemmap(folio, h,
+-					   HUGETLB_VMEMMAP_RESERVE_PAGES);
++					   VMEMMAP_OPTIMIZATION_NR_STRUCT_PAGES);
+ 		init_new_hugetlb_folio(folio);
+ 
+ 		if (vmemmap_optimizable_order(pfn_to_section_compound_order(pfn)))
+--- a/mm/hugetlb_vmemmap.c~mm-hugetlb_vmemmap-remove-hugetlb-specific-vmemmap-optimization-macros
 +++ a/mm/hugetlb_vmemmap.c
-@@ -501,6 +501,7 @@ static int __hugetlb_vmemmap_optimize_fo
+@@ -408,7 +408,7 @@ static int __hugetlb_vmemmap_restore_fol
+ 	vmemmap_start	= (unsigned long)&folio->page;
+ 	vmemmap_end	= vmemmap_start + hugetlb_vmemmap_size(h);
+ 
+-	vmemmap_start	+= HUGETLB_VMEMMAP_RESERVE_SIZE;
++	vmemmap_start	+= VMEMMAP_OPTIMIZATION_SIZE;
+ 
+ 	/*
+ 	 * The pages which the vmemmap virtual address range [@vmemmap_start,
+@@ -677,8 +677,8 @@ static int __init hugetlb_vmemmap_init(v
  {
- 	unsigned long vmemmap_start, vmemmap_end;
- 	struct page *vmemmap_head, *vmemmap_tail;
-+	gfp_t gfp_mask = GFP_KERNEL | __GFP_NOWARN | __GFP_RETRY_MAYFAIL;
- 	int nid, ret = 0;
+ 	const struct hstate *h;
  
- 	VM_WARN_ON_ONCE_FOLIO(!folio_test_hugetlb(folio), folio);
-@@ -527,7 +528,7 @@ static int __hugetlb_vmemmap_optimize_fo
- 	 */
- 	folio_set_hugetlb_vmemmap_optimized(folio);
+-	/* HUGETLB_VMEMMAP_RESERVE_SIZE should cover all used struct pages */
+-	BUILD_BUG_ON(__NR_USED_SUBPAGE > HUGETLB_VMEMMAP_RESERVE_PAGES);
++	/* VMEMMAP_OPTIMIZATION_NR_STRUCT_PAGES should cover all used struct pages */
++	BUILD_BUG_ON(__NR_USED_SUBPAGE > VMEMMAP_OPTIMIZATION_NR_STRUCT_PAGES);
  
--	vmemmap_head = alloc_pages_node(nid, GFP_KERNEL, 0);
-+	vmemmap_head = alloc_pages_node(nid, gfp_mask, 0);
- 	if (!vmemmap_head) {
- 		ret = -ENOMEM;
- 		goto out;
+ 	for_each_hstate(h) {
+ 		if (hugetlb_vmemmap_optimizable(h)) {
+--- a/mm/hugetlb_vmemmap.h~mm-hugetlb_vmemmap-remove-hugetlb-specific-vmemmap-optimization-macros
++++ a/mm/hugetlb_vmemmap.h
+@@ -9,13 +9,7 @@
+ #ifndef _LINUX_HUGETLB_VMEMMAP_H
+ #define _LINUX_HUGETLB_VMEMMAP_H
+ #include <linux/hugetlb.h>
+-
+-/*
+- * Reserve one vmemmap page, all vmemmap addresses are mapped to it. See
+- * Documentation/mm/vmemmap_dedup.rst.
+- */
+-#define HUGETLB_VMEMMAP_RESERVE_SIZE	PAGE_SIZE
+-#define HUGETLB_VMEMMAP_RESERVE_PAGES	(HUGETLB_VMEMMAP_RESERVE_SIZE / sizeof(struct page))
++#include <linux/vmemmap-optimization.h>
+ 
+ #ifdef CONFIG_HUGETLB_PAGE_OPTIMIZE_VMEMMAP
+ int hugetlb_vmemmap_restore_folio(const struct hstate *h, struct folio *folio);
+@@ -37,7 +31,7 @@ static inline unsigned int hugetlb_vmemm
+  */
+ static inline unsigned int hugetlb_vmemmap_optimizable_size(const struct hstate *h)
+ {
+-	int size = hugetlb_vmemmap_size(h) - HUGETLB_VMEMMAP_RESERVE_SIZE;
++	int size = hugetlb_vmemmap_size(h) - VMEMMAP_OPTIMIZATION_SIZE;
+ 
+ 	if (!is_power_of_2(sizeof(struct page)))
+ 		return 0;
 _
 
-Patches currently in -mm which might be from zhangyili01@baidu.com are
+Patches currently in -mm which might be from muchun.song@linux.dev are
 
-mm-hugetlb_vmemmap-fix-oom-during-head-page-allocation.patch
+mm-fix-missing-page-table-destructor-in-pagetable_free.patch
+riscv-mm-fix-hotplug-page-table-destructor-handling.patch
+riscv-mm-fix-missing-destructor-for-hotplug-pud-tables.patch
+arm64-mm-fix-destructor-for-unconstructed-hotplug-page-tables.patch
+mm-sparse-vmemmap-map-shared-vmemmap-tail-pages-as-read-only.patch
+powerpc-mm-map-shared-vmemmap-tail-pages-as-read-only.patch
+mm-hugetlb_vmemmap-remove-vmemmap_wrprotect_hvo.patch
+mm-hugetlb_vmemmap-remove-hugetlb_vmemmap_optimize_bootmem_folios.patch
+mm-generalize-kernel-pte-table-allocation.patch
+mm-generalize-pmd-page-table-allocation.patch
+mm-generalize-pud-page-table-allocation.patch
+mm-remove-pagetable_dtor_free.patch
+mm-remove-redundant-pagetable_dtor-calls.patch
+mm-hugetlb_vmemmap-remove-hugetlb-specific-vmemmap-optimization-macros.patch
+mm-hugetlb_vmemmap-unify-vmemmap_splitremap_no_tlb_flush.patch
+mm-hugetlb_vmemmap-simplify-vmemmap-head-page-handling.patch
+mm-hugetlb_vmemmap-generalize-vmemmap-page-allocation.patch
+mm-hugetlb_vmemmap-unify-writable-vmemmap-page-preparation.patch
+mm-hugetlb_vmemmap-rename-vmemmap_remap_pte-to-vmemmap_optimize_pte.patch
+mm-hugetlb_vmemmap-simplify-shared-tail-page-handling.patch
+mm-hugetlb_vmemmap-move-alloc_vmemmap_page_list-next-to-its-free-helper.patch
+mm-hugetlb_vmemmap-make-vmemmap-optimization-folio-oriented.patch
+mm-hugetlb_vmemmap-make-vmemmap-restoration-folio-oriented.patch
+mm-hugetlb_vmemmap-unify-vmemmap-range-restoration.patch
+mm-hugetlb_vmemmap-make-vmemmap-pte-conversion-folio-oriented.patch
+mm-hugetlb-fix-validation-of-unsupported-hugetlb-orders.patch
 
