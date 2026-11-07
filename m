@@ -1,53 +1,45 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794004959;
-	b=rlkfNPDU3mUJA54E5zTpeFBEBvq4GP1rDbIedwpgNEo2ze/9hrihLq8aJddkJxK9A+cg
-	 B5i3T3wasAUPXYsghwgByOSai4Yv5QF95eqUorUF4nTNdv6Rns65luYseXH0mF8QwEE1H
-	 oyUfKxQd+ervDC8oLERsKo+fZcg/j9t+6jLNfTfnfuqM4ygHGOGcSdctgVOZJmSYlRP0E
-	 KsryoDWBYJBOZPC1pK3SlvDkJrmXWn4+M+uFee+EYeYMD2y3jDkSa57m/OYvjJq4F1brb
-	 Q6UMJFsjYsTTY6+m4hzPeaOyoQJ2DowBg04yR3ymqwBEYsOTPfgaNnUHnB4bT864f4w==
+	t=1794023387;
+	b=1eZwB42p0GZAf6I2mWc6yCB/0xZT/v/T1JYsu+hQ4h12n09ku5dG/dIaz9zjSG4YqfLE
+	 bPcrkGgT3O1DtxBRL+4C5cXiv0Af+FbZPkPYErJBTDm5tQ6fJCO58+5Mka9noXrChb+iQ
+	 14rTpflUZzt4hYk6rO+mFCOoaNyFsOXPFO2knYapWAFqZZM6cp09ETPSMLNDju4hWfTed
+	 Z/Er7nXsDbvchyeEE0tUe2oGf1aA7O+Gwyv86ECX5608YFO/xCN2jo0MV8ImgclqYhKnI
+	 cRmEmD1AjrB5VqAmh3AwywYNVBxMmVzj06XcW+hKFQuepTz4VWsN5glXkqOKeiELX5w==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794004959;
-	h=Received:DKIM-Signature:Date:To:Cc:From:Subject:Message-Id;
-	bh=uy7G0J05d1+Rnl287UaXHLqos2bJpuNnKgqCSHKAiN0=;
-	b=mlOzjHws48z98HXa4usvxL8wvr0Bf97dFlFg5VmSBVvGIrXSgiIrk9OPXBKDtmk21fIy
-	 r/VIKepA1rKsR74TZlZRaVnfGocwvSzfr2VjVAEyISW9KNCqqKMeCXnAPtrMZYcyXA4q8
-	 e8QXvvG06RGuL1AJ7avqjHaR3Q6I+dzj4PWTFT+Y49eXCD7TVGmWO33Mrkgw5pIxrL47V
-	 q8+pD25Yla0P/HGrH+1arPTC+viave+pbuVthQSCYPWX6FJgx7UOyzXUejoEGTfbkJie2
-	 SMIl28m1emr+1tNFMnU8L5Uq954/l8c5RSyT7MqpJBNaEfxcQ03oRXe3Xfe5LCItZIQ==
+	a=rsa-sha256; c=relaxed/relaxed; t=1794023387;
+	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
+	bh=1C3oNTy5Fxu43mSjKT3X6/o+769pWMCiywpZq6alkqQ=;
+	b=dxzYlcaUe6xOj9DYpYeNyhFDm0u14FiV0UpJ9OQsPGYMn0tMGzk99HzEUvXSv/peIsLA
+	 u+0l5OMzIAZwRRqXr5gmjS+jcaD3bjeLjyP3POfFpny5giMa1ONZHOfRhqChqho7UlTok
+	 5jY9nYxVrFzL55NVc8Xx2jH0tGPTNNlWhdDR5J0f3l3eORnFSSc1qf7NRCWhbbtSzmhYr
+	 UQ8ROUPwUJ/xcsuONS+7IzRLwYdS7OgGUNaQI0Jr7NmG9MWmMhkyC+o3hl2Ka1DMcjNlP
+	 oP8A5MyRgAlJemyDAutrQ2rdvEzmOtrOF7vneqzwnSttQOp5PAhv86zYHeZ9d7edOgw==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=roS7C58n;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=v5Lcn6uO;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A67E9606A33C;
-	Fri,  6 Nov 2026 22:42:38 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 68F6B606A326
+	for <mm-commits@vger.kernel.org>; Sat,  7 Nov 2026 03:49:46 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=roS7C58n
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 767DD1F00904;
-	Fri,  6 Nov 2026 22:42:38 +0000 (UTC)
+	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=v5Lcn6uO
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C8FF51F0089F;
+	Sat,  7 Nov 2026 03:49:45 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1794004958;
-	bh=uy7G0J05d1+Rnl287UaXHLqos2bJpuNnKgqCSHKAiN0=;
-	h=Date:To:Cc:From:Subject;
-	b=roS7C58nnp/qeQZs3hei9dvBYPhjpStxidu7+ydkKB9j5Q538GeGmzRCm/PxinrIq
-	 6LhdyEe1Vim8+FIOygB42h4gCwVLgOuGRVEHUvwWYmZrmEe/hnKSJTRGxaiq32R7rm
-	 QC14dkhzuYd8Cva7Vy4uscFaiCk2lzaKIuRcgQ/c=
-Date: Fri, 06 Nov 2026 14:42:38 -0800
-To: mm-commits@vger.kernel.org, ziy@nvidia.com, usama.arif@linux.dev,
- stable@vger.kernel.org, shuah@kernel.org, ryan.roberts@arm.com,
- ritesh.list@gmail.com, peterx@redhat.com, nico.pache@linux.dev,
- maddy@linux.ibm.com, loic.molinari@collabora.com, ljs@kernel.org,
- liam@infradead.org, lance.yang@linux.dev, kas@kernel.org, jgg@ziepe.ca,
- dev.jain@arm.com, baolin.wang@linux.alibaba.com, baohua@kernel.org,
- azpijr@gmail.com, alex@shazbot.org, akpm@linux-foundation.org,
- khorenko@virtuozzo.com
-Cc: David Hildenbrand <david@kernel.org>
+	d=linux-foundation.org; s=korg; t=1794023385;
+	bh=1C3oNTy5Fxu43mSjKT3X6/o+769pWMCiywpZq6alkqQ=;
+	h=Date:To:From:Subject;
+	b=v5Lcn6uOgDDfIhic9648LnycBf6mW05wNzxftZkCuWFdGsiRRIuicQWyi6Pz+i2cR
+	 4it5LJ8b12TXrAfV+uGQuyIrTXQY9cBx15eXPAbg2E/CwiCHAYvLm+rRttN0kuLv/J
+	 1NlAcZGmD70YnJdWbc45UnEQXdV5GSPQ44Zvjizs=
+Date: Fri, 06 Nov 2026 19:49:45 -0800
+To: mm-commits@vger.kernel.org,muchun.song@linux.dev,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged] mm-huge_memory-read-a-special-pmd-under-the-lock-in-copy_huge_pmd.patch removed from -mm tree
-Message-Id: <20261106224238.767DD1F00904@smtp.kernel.org>
+Subject: [to-be-updated] mm-hugetlb_vmemmap-remove-hugetlb-specific-vmemmap-optimization-macros.patch removed from -mm tree
+Message-Id: <20261107034945.C8FF51F0089F@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -59,136 +51,192 @@ Precedence: list
 
 
 The quilt patch titled
-     Subject: mm/huge_memory: read a special PMD under the lock in copy_huge_pmd()
+     Subject: mm: hugetlb_vmemmap: remove HugeTLB-specific vmemmap optimization macros
 has been removed from the -mm tree.  Its filename was
-     mm-huge_memory-read-a-special-pmd-under-the-lock-in-copy_huge_pmd.patch
+     mm-hugetlb_vmemmap-remove-hugetlb-specific-vmemmap-optimization-macros.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch was dropped because an updated version will be issued
 
 ------------------------------------------------------
-From: Konstantin Khorenko <khorenko@virtuozzo.com>
-Subject: mm/huge_memory: read a special PMD under the lock in copy_huge_pmd()
-Date: Wed, 04 Nov 2026 21:40:57 +0100
+From: Muchun Song <muchun.song@linux.dev>
+Subject: mm: hugetlb_vmemmap: remove HugeTLB-specific vmemmap optimization macros
+Date: Wed, 04 Nov 2026 10:34:59 +0800
 
-copy_huge_pmd() reads a special PMD without the page table lock and
-copies that value to the child. The mmap write lock held by fork does
-not stop unmap_mapping_range(): it zaps under i_mmap_rwsem and the PMD
-lock.
+Patch series "mm: Decouple folio-based vmemmap optimization from HugeTLB",
+v3.
 
-The zap visits the parent VMA before the child's, as dup_mmap() links
-the child right after the parent in i_mmap. If it clears the parent PMD
-after fork has read it, and passes the child before fork copies it, the
-child keeps a mapping the driver has revoked, for example:
+Hi,
 
-- vfio-pci: the child reaches the BAR after the device memory was
-  disabled or the device was reset, instead of getting SIGBUS;
-- panthor: the child maps the pages of an evicted buffer object after
-  the driver has released them.
+Section-based vmemmap optimization is implemented in sparse-vmemmap.c,
+while folio-based optimization currently lives in hugetlb_vmemmap.c.  The
+latter is tightly coupled to HugeTLB-specific state even though the
+underlying page-table remapping operates on one folio at a time.
 
-The same branch deposits no page table under the copy. ppc64 in hash
-mode keeps the hash slot array of every huge PMD in that table, so the
-child dereferences a NULL table on the first hash fault, in
-__hash_page_thp(), and on the zap, in hash__pmdp_huge_get_and_clear().
+To make these interfaces easier to maintain, the folio-based remapping
+mechanics first need a boundary that is independent of HugeTLB-specific
+state and raw address ranges.  This will allow the mechanics to be moved
+into a common vmemmap optimization layer alongside the section-based
+interface.
 
-Take the locks first and let vm_normal_page_pmd() tell a PFN mapping
-from a folio under them, as copy_present_ptes() does with
-vm_normal_page(). The zap clears the parent PMD under the same lock, so
-either fork finds it none and skips it, or the copy is in place before
-the zap reaches the child.
+This series establishes that boundary through three folio-oriented
+operations, each with a distinct role:
 
-The copy of a PFN mapping then goes through the same tail as a folio:
+  - vmemmap_optimize_folio() optimizes the vmemmap backing of a folio;
+  - vmemmap_restore_folio() restores the vmemmap backing of a folio; and
+  - vmemmap_pteify_folio() converts the vmemmap backing of a folio to
+    PTE mappings.
 
-- it gets a page table where the architecture needs one;
-- in a shared mapping it is marked clean in the child, as a PTE is;
-- in a CoW mapping, which only VM_MIXEDMAP allows, both sides are write
-  protected instead of a warning being printed.
+Together, these operations encapsulate the address-range calculation and
+remapping mechanics for a folio.  HugeTLB wrappers retain policy decisions
+such as eligibility, optimized state, batching and TLB flush handling.
 
-Link: https://lore.kernel.org/20261104-b4-prep-vstor-149847-copy_huge_pmd-recheck-special-pmd-v5-3-c56d0d26f970@virtuozzo.com
-Fixes: bc02afbd4d73 ("mm/fork: accept huge pfnmap entries")
-Fixes: d1503aa9ab80 ("powerpc/64s: Add support for huge pfnmaps")
-Signed-off-by: Konstantin Khorenko <khorenko@virtuozzo.com>
+Patches 1-8 generalize the underlying vmemmap remapping infrastructure by
+removing HugeTLB-specific assumptions and simplifying remap control and
+resource handling.  Patches 9-12 then establish folio-oriented operations
+for optimization, restoration and PTE conversion.
+
+The implementation remains in hugetlb_vmemmap.c for now.  A follow-up can
+move the folio-based operations into the common vmemmap optimization layer
+once the interface boundary is in place.
+
+
+This patch (of 12):
+
+Vmemmap optimization is no longer HugeTLB-specific, so the remaining
+HugeTLB-local reserve macros are redundant.
+
+Replace them with the generic definitions to remove duplication and keep
+the HugeTLB vmemmap code aligned with the common optimization macros.
+
+Link: https://lore.kernel.org/20261104023510.260766-1-songmuchun@bytedance.com
+Link: https://lore.kernel.org/20261104023510.260766-2-songmuchun@bytedance.com
+Signed-off-by: Muchun Song <muchun.song@linux.dev>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Reported-by: Sashiko <sashiko-bot@kernel.org>
-Closes: https://sashiko.dev/#/patchset/20261014-b4-prep-vstor-149847-copy_huge_pmd-recheck-special-pmd-v1-1-d225c60bc316@virtuozzo.com?part=1
-Suggested-by: David Hildenbrand (Arm) <david@kernel.org>
-Acked-by: Kiryl Shutsemau (Meta) <kas@kernel.org>
-Acked-by: David Hildenbrand (Arm) <david@kernel.org>
-Reviewed-by: Jose A. Perez de Azpillaga <azpijr@gmail.com>
-Acked-by: Zi Yan <ziy@nvidia.com>
+Reviewed-by: Lance Yang <lance.yang@linux.dev>
+Reviewed-by: Qi Zheng <qi.zheng@linux.dev>
+Reviewed-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
 Tested-by: Andrew Morton <akpm@linux-foundation.org>
-  Link: https://lore.kernel.org/20261106084856.4b254c973694345ee58a9b63@linux-foundation.org
-Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: Liam R. Howlett <liam@infradead.org>
-Cc: Nico Pache <nico.pache@linux.dev>
-Cc: Ryan Roberts <ryan.roberts@arm.com>
-Cc: Dev Jain <dev.jain@arm.com>
-Cc: Barry Song <baohua@kernel.org>
-Cc: Lance Yang <lance.yang@linux.dev>
-Cc: Usama Arif <usama.arif@linux.dev>
-Cc: Peter Xu <peterx@redhat.com>
-Cc: Alex Williamson <alex@shazbot.org>
-Cc: Loïc Molinari <loic.molinari@collabora.com>
-Cc: Lorenzo Stoakes <ljs@kernel.org>
-Cc: Shuah Khan <shuah@kernel.org>
-Cc: Madhavan Srinivasan <maddy@linux.ibm.com>
-Cc: Ritesh Harjani (IBM) <ritesh.list@gmail.com>
-Cc: Jason Gunthorpe <jgg@ziepe.ca>
-Cc: <stable@vger.kernel.org>
+  Link: https://lore.kernel.org/20261103224659.2865b9ff27d09994949edd78@linux-foundation.org
+Reviewed-by: Oscar Salvador <osalvador@suse.de>
+Cc: James Houghton <jthoughton@google.com>
+Cc: David Hildenbrand <david@kernel.org>
+Cc: Huacai Chen <chenhuacai@kernel.org>
 ---
 
- mm/huge_memory.c |   24 +++---------------------
- 1 file changed, 3 insertions(+), 21 deletions(-)
+ include/linux/vmemmap-optimization.h |    4 ++--
+ mm/hugetlb.c                         |    4 ++--
+ mm/hugetlb_vmemmap.c                 |    6 +++---
+ mm/hugetlb_vmemmap.h                 |   10 ++--------
+ 4 files changed, 9 insertions(+), 15 deletions(-)
 
---- a/mm/huge_memory.c~mm-huge_memory-read-a-special-pmd-under-the-lock-in-copy_huge_pmd
-+++ a/mm/huge_memory.c
-@@ -1961,25 +1961,6 @@ int copy_huge_pmd(struct mm_struct *dst_
- 	int ret = -ENOMEM;
- 	bool writable;
+--- a/include/linux/vmemmap-optimization.h~mm-hugetlb_vmemmap-remove-hugetlb-specific-vmemmap-optimization-macros
++++ a/include/linux/vmemmap-optimization.h
+@@ -27,8 +27,8 @@
  
--	pmd = pmdp_get_lockless(src_pmd);
--	if (unlikely(pmd_present(pmd) && pmd_special(pmd) &&
--		     !is_huge_zero_pmd(pmd))) {
--		dst_ptl = pmd_lock(dst_mm, dst_pmd);
--		src_ptl = pmd_lockptr(src_mm, src_pmd);
--		spin_lock_nested(src_ptl, SINGLE_DEPTH_NESTING);
--		/*
--		 * No need to recheck the pmd, it can't change with write
--		 * mmap lock held here.
--		 *
--		 * Meanwhile, making sure it's not a CoW VMA with writable
--		 * mapping, otherwise it means either the anon page wrongly
--		 * applied special bit, or we made the PRIVATE mapping be
--		 * able to wrongly write to the backend MMIO.
--		 */
--		VM_WARN_ON_ONCE(vma_is_cow_mapping(src_vma) && pmd_write(pmd));
--		goto set_pmd;
--	}
+ /* The number of retained vmemmap pages with HVO enabled. */
+ #define VMEMMAP_OPTIMIZATION_PAGES		1
+-#define VMEMMAP_OPTIMIZATION_NR_STRUCT_PAGES	\
+-	(VMEMMAP_OPTIMIZATION_PAGES * PAGE_SIZE / sizeof(struct page))
++#define VMEMMAP_OPTIMIZATION_SIZE		(VMEMMAP_OPTIMIZATION_PAGES * PAGE_SIZE)
++#define VMEMMAP_OPTIMIZATION_NR_STRUCT_PAGES	(VMEMMAP_OPTIMIZATION_SIZE / sizeof(struct page))
+ #define VMEMMAP_OPTIMIZATION_MIN_ORDER		(ilog2(VMEMMAP_OPTIMIZATION_NR_STRUCT_PAGES) + 1)
+ 
+ #ifdef CONFIG_VMEMMAP_OPTIMIZATION
+--- a/mm/hugetlb.c~mm-hugetlb_vmemmap-remove-hugetlb-specific-vmemmap-optimization-macros
++++ a/mm/hugetlb.c
+@@ -3317,7 +3317,7 @@ static void __init prep_and_add_bootmem_
+ 			 * be no contention.
+ 			 */
+ 			hugetlb_folio_init_tail_vmemmap(folio, h,
+-					HUGETLB_VMEMMAP_RESERVE_PAGES,
++					VMEMMAP_OPTIMIZATION_NR_STRUCT_PAGES,
+ 					pages_per_huge_page(h));
+ 		}
+ 		hugetlb_bootmem_init_migratetype(folio, h);
+@@ -3357,7 +3357,7 @@ static void __init gather_bootmem_preall
+ 		WARN_ON(folio_ref_count(folio) != 1);
+ 
+ 		hugetlb_folio_init_vmemmap(folio, h,
+-					   HUGETLB_VMEMMAP_RESERVE_PAGES);
++					   VMEMMAP_OPTIMIZATION_NR_STRUCT_PAGES);
+ 		init_new_hugetlb_folio(folio);
+ 
+ 		if (vmemmap_optimizable_order(pfn_to_section_compound_order(pfn)))
+--- a/mm/hugetlb_vmemmap.c~mm-hugetlb_vmemmap-remove-hugetlb-specific-vmemmap-optimization-macros
++++ a/mm/hugetlb_vmemmap.c
+@@ -408,7 +408,7 @@ static int __hugetlb_vmemmap_restore_fol
+ 	vmemmap_start	= (unsigned long)&folio->page;
+ 	vmemmap_end	= vmemmap_start + hugetlb_vmemmap_size(h);
+ 
+-	vmemmap_start	+= HUGETLB_VMEMMAP_RESERVE_SIZE;
++	vmemmap_start	+= VMEMMAP_OPTIMIZATION_SIZE;
+ 
+ 	/*
+ 	 * The pages which the vmemmap virtual address range [@vmemmap_start,
+@@ -676,8 +676,8 @@ static int __init hugetlb_vmemmap_init(v
+ {
+ 	const struct hstate *h;
+ 
+-	/* HUGETLB_VMEMMAP_RESERVE_SIZE should cover all used struct pages */
+-	BUILD_BUG_ON(__NR_USED_SUBPAGE > HUGETLB_VMEMMAP_RESERVE_PAGES);
++	/* VMEMMAP_OPTIMIZATION_NR_STRUCT_PAGES should cover all used struct pages */
++	BUILD_BUG_ON(__NR_USED_SUBPAGE > VMEMMAP_OPTIMIZATION_NR_STRUCT_PAGES);
+ 
+ 	for_each_hstate(h) {
+ 		if (hugetlb_vmemmap_optimizable(h)) {
+--- a/mm/hugetlb_vmemmap.h~mm-hugetlb_vmemmap-remove-hugetlb-specific-vmemmap-optimization-macros
++++ a/mm/hugetlb_vmemmap.h
+@@ -9,13 +9,7 @@
+ #ifndef _LINUX_HUGETLB_VMEMMAP_H
+ #define _LINUX_HUGETLB_VMEMMAP_H
+ #include <linux/hugetlb.h>
 -
- 	if (vma_is_anonymous(dst_vma) || arch_needs_pgtable_deposit()) {
- 		pgtable = pte_alloc_one(dst_mm);
- 		if (unlikely(!pgtable))
-@@ -2021,7 +2002,9 @@ int copy_huge_pmd(struct mm_struct *dst_
- 		goto copy_pmd;
- 	}
+-/*
+- * Reserve one vmemmap page, all vmemmap addresses are mapped to it. See
+- * Documentation/mm/vmemmap_dedup.rst.
+- */
+-#define HUGETLB_VMEMMAP_RESERVE_SIZE	PAGE_SIZE
+-#define HUGETLB_VMEMMAP_RESERVE_PAGES	(HUGETLB_VMEMMAP_RESERVE_SIZE / sizeof(struct page))
++#include <linux/vmemmap-optimization.h>
  
--	src_page = pmd_page(pmd);
-+	src_page = vm_normal_page_pmd(src_vma, addr, pmd);
-+	if (!src_page)
-+		goto copy_pmd;
- 	VM_BUG_ON_PAGE(!PageHead(src_page), src_page);
- 	src_folio = page_folio(src_page);
+ #ifdef CONFIG_HUGETLB_PAGE_OPTIMIZE_VMEMMAP
+ int hugetlb_vmemmap_restore_folio(const struct hstate *h, struct folio *folio);
+@@ -37,7 +31,7 @@ static inline unsigned int hugetlb_vmemm
+  */
+ static inline unsigned int hugetlb_vmemmap_optimizable_size(const struct hstate *h)
+ {
+-	int size = hugetlb_vmemmap_size(h) - HUGETLB_VMEMMAP_RESERVE_SIZE;
++	int size = hugetlb_vmemmap_size(h) - VMEMMAP_OPTIMIZATION_SIZE;
  
-@@ -2061,7 +2044,6 @@ copy_pmd:
- 	}
- 	if (src_vma->vm_flags & VM_SHARED)
- 		pmd = pmd_mkclean(pmd);
--set_pmd:
- 	pmd = pmd_mkold(pmd);
- 	set_pmd_at(dst_mm, addr, dst_pmd, pmd);
- 
+ 	if (!is_power_of_2(sizeof(struct page)))
+ 		return 0;
 _
 
-Patches currently in -mm which might be from khorenko@virtuozzo.com are
+Patches currently in -mm which might be from muchun.song@linux.dev are
 
-selftests-mm-test-fork-of-pmd-mapped-shmem-thps.patch
+mm-fix-missing-page-table-destructor-in-pagetable_free.patch
+riscv-mm-fix-hotplug-page-table-destructor-handling.patch
+riscv-mm-fix-missing-destructor-for-hotplug-pud-tables.patch
+arm64-mm-fix-destructor-for-unconstructed-hotplug-page-tables.patch
+mm-sparse-vmemmap-map-shared-vmemmap-tail-pages-as-read-only.patch
+powerpc-mm-map-shared-vmemmap-tail-pages-as-read-only.patch
+mm-hugetlb_vmemmap-remove-vmemmap_wrprotect_hvo.patch
+mm-hugetlb_vmemmap-remove-hugetlb_vmemmap_optimize_bootmem_folios.patch
+mm-generalize-kernel-pte-table-allocation.patch
+mm-generalize-pmd-page-table-allocation.patch
+mm-generalize-pud-page-table-allocation.patch
+mm-remove-pagetable_dtor_free.patch
+mm-remove-redundant-pagetable_dtor-calls.patch
+mm-hugetlb_vmemmap-unify-vmemmap_splitremap_no_tlb_flush.patch
+mm-hugetlb_vmemmap-simplify-vmemmap-head-page-handling.patch
+mm-hugetlb_vmemmap-generalize-vmemmap-page-allocation.patch
+mm-hugetlb_vmemmap-unify-writable-vmemmap-page-preparation.patch
+mm-hugetlb_vmemmap-rename-vmemmap_remap_pte-to-vmemmap_optimize_pte.patch
+mm-hugetlb_vmemmap-simplify-shared-tail-page-handling.patch
+mm-hugetlb_vmemmap-move-alloc_vmemmap_page_list-next-to-its-free-helper.patch
+mm-hugetlb_vmemmap-make-vmemmap-optimization-folio-oriented.patch
+mm-hugetlb_vmemmap-make-vmemmap-restoration-folio-oriented.patch
+mm-hugetlb_vmemmap-unify-vmemmap-range-restoration.patch
+mm-hugetlb_vmemmap-make-vmemmap-pte-conversion-folio-oriented.patch
+mm-hugetlb-fix-validation-of-unsupported-hugetlb-orders.patch
 
