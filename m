@@ -1,49 +1,52 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794034448;
-	b=pDiAhPKjpqr/91wN+riFTUZzHvRrSXSHmS7P/9AYFuv2naYiDzPBzjNzH8ZnwZaq3nUL
-	 uUgNwUltpCcGbkENpXHvlyAyRCh0ESWa2tEw2WXwj/nEwvDauELj1BasPltECVUCBrtxU
-	 6ty2OmpsmDEQLvu1UkRS0l0005K+MhpTybNCF/1bF8syD965CyYik7I/Pi/dDolrvtzFy
-	 tG0wSUT1gvSDKLmGzLPMjWGtoirXLM8B5SfkXnz631VWRam3p9EPx0rkSZUU/8oH2DXWi
-	 X8HOGQv9ZlLlKAdMLMgPmMI41j6kn7XFc1XMs/AFRcOpp/yiGEFsJXHaeSzZ+M5bNfw==
+	t=1794035259;
+	b=PJBWeuFkIrfXYTQ83LOpYIFOqvOXnNsAu1V8A1hAos8m6RxNQK4ZEZBin90xlXj6Eew2
+	 pUMMdNVdjO0cbmkEax7+7Dion9nnXX/5Qh322z2p0tOJbJck9tIgKkkQb54LnWLCKqArl
+	 rxxvfoPeT/GkewPTHzIM4+c5Gr5EqLIk9VuvrX60Ssq32w7zYFQvDqGhLFu1FNqxC/XDm
+	 xtJ4i5SuczSIQCqGefNw8ooNyizH/Pu/1jxt4TUgsJu6BVFfW9GkRtShlXOJvQRHGTtK9
+	 iiQDPDp4b6rnsp1ZXAZQzbjzGs7+gwuNkVeMDmsYcNXCeGV3GwaYofLhMCDwgQbhw2Q==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794034448;
+	a=rsa-sha256; c=relaxed/relaxed; t=1794035259;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=QrX9uYZspa2Af83ZjQcRqxOlVOP0yMK6XaLdlTAxTNE=;
-	b=W8HEXDRixIswxTG9VmOzrnVQOA51DKk10AbBhy9bu5JMB/foLmrK84wG4N2i80cp/HEC
-	 tcJjRaMSITpqSjaDeAtIuaqEzg5ISo55rGHPPGhYk+GFOaJhNhjfT+4rffI9Hjoimdado
-	 LGs03wv2lUNNHJLRV7BBJDaGvv5IjpfIuACBaELqtjteU9bzd6b6YRhSFtxC/XxHVhCf/
-	 qa5F4SzUWg0gzpxnsZJrgCVgLtuq3bPOJrXSHBbQOyYXOpMoEy1Tpxn0wHWLfy3hdpk2s
-	 QSTAOmpV+m6T9va9u0/MKUotUqSpH/URawgqByyMPhYjC0d2IpFwl4FsCxrGFzXoqUw==
+	bh=FyZlrJihy+vH1x97ItkMq/msI3IdoaYXV4+20jyg2yM=;
+	b=JRgHq4eu/MOnGlAH3E7gnYXa0cfJZ6tua/f401cctfRYp3NuSwlYBbYDZ/EuxJSdk4hX
+	 yVVJ5illqNE8f2hMLrzNS3lUWmHRpo0oSlKDh6YY96z/nFw2sfZbbB4ai7mZZSxmjPiZB
+	 +BT4sK/6jDyLZGIsbbi83mtJLUMA8CPIrrniFjbajSu+v/T+yQDC41DukdRxEXnvCCfxA
+	 objI93XNdZtNP6R39zDOSl8eGRwnV77C+0E37pFXJF8fLwdcLcKZcbHplNg08OyLC5CXT
+	 wxZD3BkpVJ4+iQSikSitbr49ZlepEpDNGvmk1IAQ8oeiXBkQW/hXggOyU/Jlrv/Sjxg==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=mF6NhrNF;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=DXWpCl8c;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EF007606A326
-	for <mm-commits@vger.kernel.org>; Sat,  7 Nov 2026 06:54:07 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D6180606A326
+	for <mm-commits@vger.kernel.org>; Sat,  7 Nov 2026 07:07:38 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=mF6NhrNF
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8651D1F0089F;
-	Sat,  7 Nov 2026 06:54:07 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=DXWpCl8c
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 449F31F0089F;
+	Sat,  7 Nov 2026 07:07:38 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1794034447;
-	bh=QrX9uYZspa2Af83ZjQcRqxOlVOP0yMK6XaLdlTAxTNE=;
+	d=linux-foundation.org; s=korg; t=1794035258;
+	bh=FyZlrJihy+vH1x97ItkMq/msI3IdoaYXV4+20jyg2yM=;
 	h=Date:To:From:Subject;
-	b=mF6NhrNFzMbEWiNC+klsXSqbCM3PFZjAyQB/gPNcU7xjTVNZ5/vKuB8SFBtLyOmZ4
-	 Q/h9KABTmNm347HuctM1Dovmk6DiP2sg4I0SXQTzxAVhtJqT6p6w02KT9Kn8SOSpH3
-	 DHcosmTj4hx+8qUgdC6yZWk/QA5wh6vKrkJlhoQw=
-Date: Fri, 06 Nov 2026 22:54:07 -0800
-To: mm-commits@vger.kernel.org,sshegde@linux.ibm.com,rppt@kernel.org,
-	ritesh.list@gmail.com,qi.zheng@linux.dev,osalvador@suse.de,npiggin@gmail.com,
-	mpe@ellerman.id.au,maddy@linux.ibm.com,lance.yang@linux.dev,
-	kernel@xen0n.name,david@kernel.org,chleroy@kernel.org,chenhuacai@kernel.org,
-	muchun.song@linux.dev,akpm@linux-foundation.org
+	b=DXWpCl8cQyGXN7NVVE3PXAW7A6mUFIUO34iDvpayUq/mmBWm0pPHo36+qVR6kSQ4G
+	 8D821GPbnLSPBnA3ywX8EZ7B79cLb3IZ2qA+iwr2mzBeYzePoLTWeIhi4cQBEfRroK
+	 py6RUFap0u68SbEOGTMcA+pAGe2SdfUKB2/5HhyA=
+Date: Fri, 06 Nov 2026 23:07:37 -0800
+To: mm-commits@vger.kernel.org,visitorckw@gmail.com,tj@kernel.org,
+	tglx@kernel.org,sakamo.ryota@gmail.com,pmladek@suse.com,peterz@infradead.org,
+	pasha.tatashin@soleen.com,note351@hotmail.com,nickolai@csail.mit.edu,
+	maarseveent@gmail.com,lkp@intel.com,ljs@kernel.org,leitao@debian.org,
+	kmehltretter@gmail.com,handyhandyman.adam@gmail.com,geert@linux-m68k.org,
+	elver@google.com,ebiggers@kernel.org,dmantipov@yandex.ru,david@davidgow.net,
+	bp@alien8.de,andriy.shevchenko@intel.com,409411716@gms.tku.edu.tw,
+	wuyuehong@cmss.chinamobile.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-sparse-vmemmap-drop-pgmap-from-vmemmap-population-apis.patch added to mm-new branch
-Message-Id: <20261107065407.8651D1F0089F@smtp.kernel.org>
+Subject: + lib-tests-add-kunit-tests-for-the-priority-sorted-list-plist.patch added to mm-nonmm-unstable branch
+Message-Id: <20261107070738.449F31F0089F@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -55,26 +58,15 @@ Precedence: list
 
 
 The patch titled
-     Subject: mm/sparse-vmemmap: drop @pgmap from vmemmap population APIs
-has been added to the -mm mm-new branch.  Its filename is
-     mm-sparse-vmemmap-drop-pgmap-from-vmemmap-population-apis.patch
+     Subject: lib/tests: add KUnit tests for the priority sorted list (plist)
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     lib-tests-add-kunit-tests-for-the-priority-sorted-list-plist.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-sparse-vmemmap-drop-pgmap-from-vmemmap-population-apis.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/lib-tests-add-kunit-tests-for-the-priority-sorted-list-plist.patch
 
-This patch will later appear in the mm-new branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Note, mm-new is a provisional staging ground for work-in-progress
-patches, and acceptance into mm-new is a notification for others take
-notice and to finish up reviews.  Please do not hesitate to respond to
-review feedback and post updated versions to replace or incrementally
-fixup patches in mm-new.
-
-The mm-new branch of mm.git is not included in linux-next
-
-If a few days of testing in mm-new is successful, the patch will me moved
-into mm.git's mm-unstable branch, which is included in linux-next
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -89,429 +81,906 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Muchun Song <muchun.song@linux.dev>
-Subject: mm/sparse-vmemmap: drop @pgmap from vmemmap population APIs
-Date: Sat, 07 Nov 2026 12:31:22 +0800
+From: Yuehong Wu <wuyuehong@cmss.chinamobile.com>
+Subject: lib/tests: add KUnit tests for the priority sorted list (plist)
+Date: Sat, 07 Nov 2026 12:45:00 +0800
 
-The vmemmap population and memory hotplug paths no longer need @pgmap
-to decide whether a mapping can be optimized. That state is now carried
-in mem_section, and the architecture-specific population code can make
-the remaining decisions internally.
+lib/plist.c has no KUnit coverage; its only test is the in-module
+plist_test() under CONFIG_DEBUG_PLIST, which BUG_ON()s on the first
+violation and does not report results in KTAP format.  The
+ordering-sensitive code paths have been changed three times since
+mid-2024:
 
-Drop the @pgmap parameter from the vmemmap population helpers and the
-related memory hotplug interfaces, and remove the remaining
-dev_pagemap-specific coupling from those call chains.
+  commit c8dab79f9eef ("lib/plist.c: avoid worst case scenario in
+  plist_add")
+  commit 95d4b3450ebe ("lib/plist.c: add shortcut for plist_requeue()")
+  commit 43c91b152243 ("lib/plist: fix plist_requeue() corrupting order
+  in the last bucket")
 
-Link: https://lore.kernel.org/20261107043122.25650-6-songmuchun@bytedance.com
-Signed-off-by: Muchun Song <muchun.song@linux.dev>
+The first two are performance optimizations; the third one fixes a real
+ordering bug.  A deterministic case for that wrap-around now lives in the
+CONFIG_DEBUG_PLIST self-test, which only runs when that debug option is
+enabled by hand and stops at the first BUG_ON(). 
+plist_kunit_requeue_last_bucket() covers the same shape here, and the
+other cases pin down the ordering invariants the two optimizations rely
+on.  KUnit coverage makes such regressions visible wherever KUnit is
+enabled, which CONFIG_DEBUG_PLIST is not.
+
+Add lib/tests/plist_kunit.c, a KUnit suite that exercises plist_add(),
+plist_del() and plist_requeue() and validates the invariants documented in
+include/linux/plist.h after every operation:
+
+  - node_list stays sorted by ascending numeric priority (descending
+    priority order), and its prev links agree with its next links;
+
+  - exactly the first node of each bucket is linked on prio_list, the
+    ring's prev links agree with its next links, and the headless ring
+    visits the bucket heads in node_list order before wrapping back to
+    the first bucket (a single bucket degenerates to a self loop on the
+    first node).
+
+The fixed cases cover bucket head handover on delete (first, middle and
+last bucket), the plist_requeue() shortcut with and without a following
+bucket, requeueing the head of the first and of the last bucket where the
+ring wraps around, requeueing inside a single bucket, the INT_MIN/INT_MAX
+extremes, and plist_first_entry()/plist_last_entry().
+
+A deterministic pseudo-random add/del/requeue churn test mirrors the
+in-module test, but draws priorities from a small range, so that
+multi-node buckets actually occur with the 24 nodes it uses, and every
+requeue in the loop moves a node (a requeue without a same-priority
+successor is a no-op).  The in-module test stays: it also carries the
+plist_add() worst-case timing benchmark, and CONFIG_DEBUG_PLIST keeps
+plist_check_head() in the fast path.
+
+The suite is wired up as CONFIG_PLIST_KUNIT_TEST next to the other library
+KUnit tests and is enabled by default with KUNIT_ALL_TESTS.  lib/plist.c
+is built into the kernel, so export plist_add(), plist_del() and
+plist_requeue() for KUnit with EXPORT_SYMBOL_IF_KUNIT() and let the test
+import EXPORTED_FOR_KUNIT_TESTING; that keeps the test tristate like the
+other library KUnit tests.
+
+The tests build both as a module and into the kernel.  Built into the
+kernel, with kunit.enable=1 kunit.filter_glob=plist*, all 18 tests pass
+under QEMU/KVM.  Reverting the last fix above makes three of them fail
+(plist_kunit_requeue_basic, plist_kunit_requeue_last_bucket and
+plist_kunit_random), all with the list coming out unsorted, so the suite
+does catch the bug it was written for.
+
+Link: https://lore.kernel.org/20261107-plist-kunit-v3-1-yuehongwu@cmss.chinamobile.com
+Signed-off-by: Yuehong Wu <wuyuehong@cmss.chinamobile.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Cc: David Hildenbrand <david@kernel.org>
-Cc: Madhavan Srinivasan <maddy@linux.ibm.com>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Lance Yang <lance.yang@linux.dev>
-Cc: Michael Ellerman <mpe@ellerman.id.au>
-Cc: Nicholas Piggin <npiggin@gmail.com>
-Cc: Christophe Leroy <chleroy@kernel.org>
-Cc: Ritesh Harjani (IBM) <ritesh.list@gmail.com>
-Cc: Shrikanth Hegde <sshegde@linux.ibm.com>
-Cc: Oscar Salvador <osalvador@suse.de>
-Cc: Qi Zheng <qi.zheng@linux.dev>
-Cc: Huacai Chen <chenhuacai@kernel.org>
-Cc: WANG Xuerui <kernel@xen0n.name>
+Reported-by: kernel test robot <lkp@intel.com>
+Closes: https://lore.kernel.org/oe-kbuild-all/202611052109.GqbzRkv1-lkp@intel.com/
+Suggested-by: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Breno Leitao <leitao@debian.org>
+Cc: David Gow <david@davidgow.net>
+Cc: Tejun Heo <tj@kernel.org>
+Cc: Ryota Sakamoto <sakamo.ryota@gmail.com>
+Cc: Karl Mehltretter <kmehltretter@gmail.com>
+Cc: Marco Elver <elver@google.com>
+Cc: Pasha Tatashin <pasha.tatashin@soleen.com>
+Cc: Kir Chou <note351@hotmail.com>
+Cc: Lorenzo Stoakes <ljs@kernel.org>
+Cc: Borislav Petkov <bp@alien8.de>
+Cc: Kuan-Wei Chiu <visitorckw@gmail.com>
+Cc: Petr Mladek <pmladek@suse.com>
+Cc: Eric Biggers <ebiggers@kernel.org>
+Cc: Guan-Chun Wu <409411716@gms.tku.edu.tw>
+Cc: Andy Shevchenko <andriy.shevchenko@intel.com>
+Cc: Dmitry Antipov <dmantipov@yandex.ru>
+Cc: Thomas Maarseveen <maarseveent@gmail.com>
+Cc: Nickolai Zeldovich <nickolai@csail.mit.edu>
+Cc: Thomas Gleixner <tglx@kernel.org>
+Cc: Adam Harshbarger <handyhandyman.adam@gmail.com>
 ---
 
- arch/arm64/mm/mmu.c                        |    5 +---
- arch/loongarch/mm/init.c                   |    5 +---
- arch/powerpc/include/asm/book3s/64/radix.h |    1 
- arch/powerpc/mm/mem.c                      |    5 +---
- arch/riscv/mm/init.c                       |    5 +---
- arch/s390/mm/init.c                        |    5 +---
- arch/x86/mm/init_64.c                      |    5 +---
- include/linux/memory_hotplug.h             |    8 ++----
- include/linux/mm.h                         |    3 --
- mm/memory_hotplug.c                        |   16 +++++--------
- mm/memremap.c                              |    4 +--
- mm/sparse-vmemmap.c                        |   23 ++++++++-----------
- mm/sparse.c                                |    6 +---
- 13 files changed, 37 insertions(+), 54 deletions(-)
+ lib/Kconfig.debug       |   19 +
+ lib/plist.c             |    4 
+ lib/tests/Makefile      |    1 
+ lib/tests/plist_kunit.c |  719 ++++++++++++++++++++++++++++++++++++++
+ 4 files changed, 743 insertions(+)
 
---- a/arch/arm64/mm/mmu.c~mm-sparse-vmemmap-drop-pgmap-from-vmemmap-population-apis
-+++ a/arch/arm64/mm/mmu.c
-@@ -2038,13 +2038,12 @@ err:
- 	return ret;
- }
+--- a/lib/Kconfig.debug~lib-tests-add-kunit-tests-for-the-priority-sorted-list-plist
++++ a/lib/Kconfig.debug
+@@ -3078,6 +3078,25 @@ config MIN_HEAP_KUNIT_TEST
  
--void arch_remove_memory(u64 start, u64 size, struct vmem_altmap *altmap,
--			struct dev_pagemap *pgmap)
-+void arch_remove_memory(u64 start, u64 size, struct vmem_altmap *altmap)
- {
- 	unsigned long start_pfn = start >> PAGE_SHIFT;
- 	unsigned long nr_pages = size >> PAGE_SHIFT;
+ 	  If unsure, say N
  
--	__remove_pages(start_pfn, nr_pages, altmap, pgmap);
-+	__remove_pages(start_pfn, nr_pages, altmap);
- 	__remove_pgd_mapping(swapper_pg_dir, __phys_to_virt(start), size);
- }
- 
---- a/arch/loongarch/mm/init.c~mm-sparse-vmemmap-drop-pgmap-from-vmemmap-population-apis
-+++ a/arch/loongarch/mm/init.c
-@@ -120,13 +120,12 @@ int arch_add_memory(int nid, u64 start,
- 	return ret;
- }
- 
--void arch_remove_memory(u64 start, u64 size, struct vmem_altmap *altmap,
--			struct dev_pagemap *pgmap)
-+void arch_remove_memory(u64 start, u64 size, struct vmem_altmap *altmap)
- {
- 	unsigned long start_pfn = start >> PAGE_SHIFT;
- 	unsigned long nr_pages = size >> PAGE_SHIFT;
- 
--	__remove_pages(start_pfn, nr_pages, altmap, pgmap);
-+	__remove_pages(start_pfn, nr_pages, altmap);
- }
- #endif
- 
---- a/arch/powerpc/include/asm/book3s/64/radix.h~mm-sparse-vmemmap-drop-pgmap-from-vmemmap-population-apis
-+++ a/arch/powerpc/include/asm/book3s/64/radix.h
-@@ -316,7 +316,6 @@ static inline int radix__has_transparent
- #endif
- 
- struct vmem_altmap;
--struct dev_pagemap;
- extern int __meminit radix__vmemmap_create_mapping(unsigned long start,
- 					     unsigned long page_size,
- 					     unsigned long phys);
---- a/arch/powerpc/mm/mem.c~mm-sparse-vmemmap-drop-pgmap-from-vmemmap-population-apis
-+++ a/arch/powerpc/mm/mem.c
-@@ -158,13 +158,12 @@ int __ref arch_add_memory(int nid, u64 s
- 	return rc;
- }
- 
--void __ref arch_remove_memory(u64 start, u64 size, struct vmem_altmap *altmap,
--			      struct dev_pagemap *pgmap)
-+void __ref arch_remove_memory(u64 start, u64 size, struct vmem_altmap *altmap)
- {
- 	unsigned long start_pfn = start >> PAGE_SHIFT;
- 	unsigned long nr_pages = size >> PAGE_SHIFT;
- 
--	__remove_pages(start_pfn, nr_pages, altmap, pgmap);
-+	__remove_pages(start_pfn, nr_pages, altmap);
- 	arch_remove_linear_mapping(start, size);
- }
- #endif
---- a/arch/riscv/mm/init.c~mm-sparse-vmemmap-drop-pgmap-from-vmemmap-population-apis
-+++ a/arch/riscv/mm/init.c
-@@ -1749,10 +1749,9 @@ int __ref arch_add_memory(int nid, u64 s
- 	return ret;
- }
- 
--void __ref arch_remove_memory(u64 start, u64 size, struct vmem_altmap *altmap,
--			      struct dev_pagemap *pgmap)
-+void __ref arch_remove_memory(u64 start, u64 size, struct vmem_altmap *altmap)
- {
--	__remove_pages(start >> PAGE_SHIFT, size >> PAGE_SHIFT, altmap, pgmap);
-+	__remove_pages(start >> PAGE_SHIFT, size >> PAGE_SHIFT, altmap);
- 	remove_linear_mapping(start, size);
- 	flush_tlb_all();
- }
---- a/arch/s390/mm/init.c~mm-sparse-vmemmap-drop-pgmap-from-vmemmap-population-apis
-+++ a/arch/s390/mm/init.c
-@@ -293,13 +293,12 @@ int arch_add_memory(int nid, u64 start,
- 	return rc;
- }
- 
--void arch_remove_memory(u64 start, u64 size, struct vmem_altmap *altmap,
--			struct dev_pagemap *pgmap)
-+void arch_remove_memory(u64 start, u64 size, struct vmem_altmap *altmap)
- {
- 	unsigned long start_pfn = start >> PAGE_SHIFT;
- 	unsigned long nr_pages = size >> PAGE_SHIFT;
- 
--	__remove_pages(start_pfn, nr_pages, altmap, pgmap);
-+	__remove_pages(start_pfn, nr_pages, altmap);
- 	vmem_remove_mapping(start, size);
- }
- #endif /* CONFIG_MEMORY_HOTPLUG */
---- a/arch/x86/mm/init_64.c~mm-sparse-vmemmap-drop-pgmap-from-vmemmap-population-apis
-+++ a/arch/x86/mm/init_64.c
-@@ -1273,13 +1273,12 @@ kernel_physical_mapping_remove(unsigned
- 	remove_pagetable(start, end, true, NULL);
- }
- 
--void __ref arch_remove_memory(u64 start, u64 size, struct vmem_altmap *altmap,
--			      struct dev_pagemap *pgmap)
-+void __ref arch_remove_memory(u64 start, u64 size, struct vmem_altmap *altmap)
- {
- 	unsigned long start_pfn = start >> PAGE_SHIFT;
- 	unsigned long nr_pages = size >> PAGE_SHIFT;
- 
--	__remove_pages(start_pfn, nr_pages, altmap, pgmap);
-+	__remove_pages(start_pfn, nr_pages, altmap);
- 	kernel_physical_mapping_remove(start, start + size);
- }
- #endif /* CONFIG_MEMORY_HOTPLUG */
---- a/include/linux/memory_hotplug.h~mm-sparse-vmemmap-drop-pgmap-from-vmemmap-population-apis
-+++ a/include/linux/memory_hotplug.h
-@@ -136,10 +136,9 @@ static inline bool movable_node_is_enabl
- 	return movable_node_enabled;
- }
- 
--extern void arch_remove_memory(u64 start, u64 size, struct vmem_altmap *altmap,
--			       struct dev_pagemap *pgmap);
-+extern void arch_remove_memory(u64 start, u64 size, struct vmem_altmap *altmap);
- extern void __remove_pages(unsigned long start_pfn, unsigned long nr_pages,
--			   struct vmem_altmap *altmap, struct dev_pagemap *pgmap);
-+			   struct vmem_altmap *altmap);
- 
- /* reasonably generic interface to expand the physical pages */
- extern int __add_pages(int nid, unsigned long start_pfn, unsigned long nr_pages,
-@@ -320,8 +319,7 @@ extern int sparse_add_section(int nid, u
- 		unsigned long nr_pages, struct vmem_altmap *altmap,
- 		struct dev_pagemap *pgmap);
- extern void sparse_remove_section(unsigned long pfn, unsigned long nr_pages,
--				  struct vmem_altmap *altmap,
--				  struct dev_pagemap *pgmap);
-+				  struct vmem_altmap *altmap);
- extern struct zone *zone_for_pfn_range(enum mmop online_type,
- 		int nid, struct memory_group *group, unsigned long start_pfn,
- 		unsigned long nr_pages);
---- a/include/linux/mm.h~mm-sparse-vmemmap-drop-pgmap-from-vmemmap-population-apis
-+++ a/include/linux/mm.h
-@@ -5335,8 +5335,7 @@ static inline void print_vma_addr(char *
- #endif
- 
- struct page * __populate_section_memmap(unsigned long pfn,
--		unsigned long nr_pages, int nid, struct vmem_altmap *altmap,
--		struct dev_pagemap *pgmap);
-+		unsigned long nr_pages, int nid, struct vmem_altmap *altmap);
- void *vmemmap_alloc_block(unsigned long size, int node);
- struct vmem_altmap;
- void *vmemmap_alloc_block_buf(unsigned long size, int node,
---- a/mm/memory_hotplug.c~mm-sparse-vmemmap-drop-pgmap-from-vmemmap-population-apis
-+++ a/mm/memory_hotplug.c
-@@ -416,8 +416,7 @@ int __add_pages(int nid, unsigned long p
- 		err = sparse_add_section(nid, pfn, cur_nr_pages, altmap,
- 					 params->pgmap);
- 		if (err) {
--			__remove_pages(start_pfn, pfn - start_pfn, altmap,
--				       params->pgmap);
-+			__remove_pages(start_pfn, pfn - start_pfn, altmap);
- 			break;
- 		}
- 		cond_resched();
-@@ -565,7 +564,6 @@ void remove_pfn_range_from_zone(struct z
-  * @pfn: starting pageframe (must be aligned to start of a section)
-  * @nr_pages: number of pages to remove (must be multiple of section size)
-  * @altmap: alternative device page map or %NULL if default memmap is used
-- * @pgmap: device page map or %NULL if not ZONE_DEVICE
-  *
-  * Generic helper function to remove section mappings and sysfs entries
-  * for the section of the memory we are removing. Caller needs to make
-@@ -573,7 +571,7 @@ void remove_pfn_range_from_zone(struct z
-  * calling offline_pages().
++config PLIST_KUNIT_TEST
++	tristate "KUnit test for priority sorted list (plist)" if !KUNIT_ALL_TESTS
++	depends on KUNIT
++	default KUNIT_ALL_TESTS
++	help
++	  This builds the priority sorted list (plist) KUnit test suite.
++	  It checks that plist_add(), plist_del() and plist_requeue()
++	  maintain the ordering invariants of the two-level list, including
++	  the priority bucket boundary cases.
++
++	  KUnit tests run during boot and print their results in KTAP format.
++	  Only useful for kernel developers running the KUnit test harness,
++	  not for production builds.
++
++	  For more information on KUnit and unit tests in general please refer
++	  to the KUnit documentation in Documentation/dev-tools/kunit/.
++
++	  If unsure, say N.
++
+ config IS_SIGNED_TYPE_KUNIT_TEST
+ 	tristate "Test is_signed_type() macro" if !KUNIT_ALL_TESTS
+ 	depends on KUNIT
+--- a/lib/plist.c~lib-tests-add-kunit-tests-for-the-priority-sorted-list-plist
++++ a/lib/plist.c
+@@ -22,6 +22,7 @@
+  * information.
   */
- void __remove_pages(unsigned long pfn, unsigned long nr_pages,
--		    struct vmem_altmap *altmap, struct dev_pagemap *pgmap)
-+		    struct vmem_altmap *altmap)
- {
- 	const unsigned long end_pfn = pfn + nr_pages;
- 	unsigned long cur_nr_pages;
-@@ -588,7 +586,7 @@ void __remove_pages(unsigned long pfn, u
- 		/* Select all remaining pages up to the next section boundary */
- 		cur_nr_pages = min(end_pfn - pfn,
- 				   SECTION_ALIGN_UP(pfn + 1) - pfn);
--		sparse_remove_section(pfn, cur_nr_pages, altmap, pgmap);
-+		sparse_remove_section(pfn, cur_nr_pages, altmap);
- 	}
+ 
++#include <kunit/visibility.h>
+ #include <linux/bug.h>
+ #include <linux/plist.h>
+ 
+@@ -112,6 +113,7 @@ ins_node:
+ 
+ 	plist_check_head(head);
  }
++EXPORT_SYMBOL_IF_KUNIT(plist_add);
  
-@@ -1421,7 +1419,7 @@ static void remove_memory_blocks_and_alt
- 		memory_block_put(mem);
+ /**
+  * plist_del - Remove a @node from plist.
+@@ -141,6 +143,7 @@ void plist_del(struct plist_node *node,
  
- 		remove_memory_block_devices(cur_start, memblock_size);
--		arch_remove_memory(cur_start, memblock_size, altmap, NULL);
-+		arch_remove_memory(cur_start, memblock_size, altmap);
- 		altmap_free(altmap);
- 	}
+ 	plist_check_head(head);
  }
-@@ -1461,7 +1459,7 @@ static int create_altmaps_and_memory_blo
- 		ret = create_memory_block_devices(cur_start, memblock_size, nid,
- 						  params.altmap, group);
- 		if (ret) {
--			arch_remove_memory(cur_start, memblock_size, params.altmap, NULL);
-+			arch_remove_memory(cur_start, memblock_size, params.altmap);
- 			altmap_free(params.altmap);
- 			goto out;
- 		}
-@@ -1548,7 +1546,7 @@ static int __add_memory_resource(int nid
- 		/* create memory block devices after memory was added */
- 		ret = create_memory_block_devices(start, size, nid, NULL, group);
- 		if (ret) {
--			arch_remove_memory(start, size, params.altmap, NULL);
-+			arch_remove_memory(start, size, params.altmap);
- 			goto error;
- 		}
- 	}
-@@ -2309,7 +2307,7 @@ static int try_remove_memory(u64 start,
- 		 * No altmaps present, do the removal directly
- 		 */
- 		remove_memory_block_devices(start, size);
--		arch_remove_memory(start, size, NULL, NULL);
-+		arch_remove_memory(start, size, NULL);
- 	} else {
- 		/* all memblocks in the range have altmaps */
- 		remove_memory_blocks_and_altmaps(start, size);
---- a/mm/memremap.c~mm-sparse-vmemmap-drop-pgmap-from-vmemmap-population-apis
-+++ a/mm/memremap.c
-@@ -97,10 +97,10 @@ static void pageunmap_range(struct dev_p
- 				   PHYS_PFN(range_len(range)));
- 	if (pgmap->type == MEMORY_DEVICE_PRIVATE) {
- 		__remove_pages(PHYS_PFN(range->start),
--			       PHYS_PFN(range_len(range)), NULL, pgmap);
-+			       PHYS_PFN(range_len(range)), NULL);
- 	} else {
- 		arch_remove_memory(range->start, range_len(range),
--				pgmap_altmap(pgmap), pgmap);
-+				pgmap_altmap(pgmap));
- 		kasan_remove_zero_shadow(__va(range->start), range_len(range));
- 	}
- 	mem_hotplug_done();
---- a/mm/sparse.c~mm-sparse-vmemmap-drop-pgmap-from-vmemmap-population-apis
-+++ a/mm/sparse.c
-@@ -204,8 +204,7 @@ void __init sparse_sections_init(void)
++EXPORT_SYMBOL_IF_KUNIT(plist_del);
+ 
+ /**
+  * plist_requeue - Requeue @node at end of same-prio entries.
+@@ -200,6 +203,7 @@ queue:
+ 
+ 	plist_check_head(head);
  }
- #ifndef CONFIG_SPARSEMEM_VMEMMAP
- struct page __init *__populate_section_memmap(unsigned long pfn,
--		unsigned long nr_pages, int nid, struct vmem_altmap *altmap,
--		struct dev_pagemap *pgmap)
-+		unsigned long nr_pages, int nid, struct vmem_altmap *altmap)
- {
- 	const unsigned long size = PAGE_ALIGN(sizeof(struct page) * PAGES_PER_SECTION);
++EXPORT_SYMBOL_IF_KUNIT(plist_requeue);
  
-@@ -236,8 +235,7 @@ static void __init sparse_metadata_init_
- 		if (section_nr >= end_section_nr)
- 			break;
- 
--		mem_map = __populate_section_memmap(pfn, PAGES_PER_SECTION, nid,
--						    NULL, NULL);
-+		mem_map = __populate_section_memmap(pfn, PAGES_PER_SECTION, nid, NULL);
- 		if (!mem_map)
- 			panic("Failed to allocate memmap for section %lu\n",
- 			      section_nr);
---- a/mm/sparse-vmemmap.c~mm-sparse-vmemmap-drop-pgmap-from-vmemmap-population-apis
-+++ a/mm/sparse-vmemmap.c
-@@ -479,8 +479,7 @@ int __meminit vmemmap_populate_hugepages
- }
- 
- struct page * __meminit __populate_section_memmap(unsigned long pfn,
--		unsigned long nr_pages, int nid, struct vmem_altmap *altmap,
--		struct dev_pagemap *pgmap)
-+		unsigned long nr_pages, int nid, struct vmem_altmap *altmap)
- {
- 	unsigned long start = (unsigned long) pfn_to_page(pfn);
- 	unsigned long end = start + nr_pages * sizeof(struct page);
-@@ -572,11 +571,9 @@ void offline_mem_sections(unsigned long
- }
- 
- static struct page * __meminit populate_section_memmap(unsigned long pfn,
--		unsigned long nr_pages, int nid, struct vmem_altmap *altmap,
--		struct dev_pagemap *pgmap)
-+		unsigned long nr_pages, int nid, struct vmem_altmap *altmap)
- {
--	struct page *page = __populate_section_memmap(pfn, nr_pages, nid, altmap,
--						      pgmap);
-+	struct page *page = __populate_section_memmap(pfn, nr_pages, nid, altmap);
- 
- 	memmap_pages_add(section_nr_vmemmap_pages(pfn, nr_pages));
- 
-@@ -584,7 +581,7 @@ static struct page * __meminit populate_
- }
- 
- static void depopulate_section_memmap(unsigned long pfn, unsigned long nr_pages,
--		struct vmem_altmap *altmap, struct dev_pagemap *pgmap)
-+		struct vmem_altmap *altmap)
- {
- 	unsigned long start = (unsigned long) pfn_to_page(pfn);
- 	unsigned long end = start + nr_pages * sizeof(struct page);
-@@ -665,7 +662,7 @@ static int fill_subsection_map(unsigned
-  * usage map, but still need to free the vmemmap range.
-  */
- static void section_deactivate(unsigned long pfn, unsigned long nr_pages,
--		struct vmem_altmap *altmap, struct dev_pagemap *pgmap)
-+		struct vmem_altmap *altmap)
- {
- 	struct mem_section *ms = __pfn_to_section(pfn);
- 	bool section_is_early = early_section(ms);
-@@ -703,7 +700,7 @@ static void section_deactivate(unsigned
- 	 * section_activate() and pfn_valid() .
- 	 */
- 	if (!section_is_early)
--		depopulate_section_memmap(pfn, nr_pages, altmap, pgmap);
-+		depopulate_section_memmap(pfn, nr_pages, altmap);
- 	else if (memmap)
- 		free_map_bootmem(memmap);
- 
-@@ -752,9 +749,9 @@ static struct page * __meminit section_a
- 		return pfn_to_page(pfn);
- 
- 	section_set_compound_order_range(pfn, nr_pages, order);
--	memmap = populate_section_memmap(pfn, nr_pages, nid, altmap, pgmap);
-+	memmap = populate_section_memmap(pfn, nr_pages, nid, altmap);
- 	if (!memmap) {
--		section_deactivate(pfn, nr_pages, altmap, pgmap);
-+		section_deactivate(pfn, nr_pages, altmap);
- 		return ERR_PTR(-ENOMEM);
- 	}
- 
-@@ -818,13 +815,13 @@ int __meminit sparse_add_section(int nid
- }
- 
- void sparse_remove_section(unsigned long pfn, unsigned long nr_pages,
--		struct vmem_altmap *altmap, struct dev_pagemap *pgmap)
-+		struct vmem_altmap *altmap)
- {
- 	struct mem_section *ms = __pfn_to_section(pfn);
- 
- 	if (WARN_ON_ONCE(!valid_section(ms)))
- 		return;
- 
--	section_deactivate(pfn, nr_pages, altmap, pgmap);
-+	section_deactivate(pfn, nr_pages, altmap);
- }
- #endif /* CONFIG_MEMORY_HOTPLUG */
+ #ifdef CONFIG_DEBUG_PLIST
+ #include <linux/sched.h>
+--- a/lib/tests/Makefile~lib-tests-add-kunit-tests-for-the-priority-sorted-list-plist
++++ a/lib/tests/Makefile
+@@ -43,6 +43,7 @@ obj-$(CONFIG_MEMCPY_KUNIT_TEST) += memcp
+ obj-$(CONFIG_MIN_HEAP_KUNIT_TEST) += min_heap_kunit.o
+ CFLAGS_overflow_kunit.o = $(call cc-disable-warning, tautological-constant-out-of-range-compare)
+ obj-$(CONFIG_OVERFLOW_KUNIT_TEST) += overflow_kunit.o
++obj-$(CONFIG_PLIST_KUNIT_TEST) += plist_kunit.o
+ obj-$(CONFIG_PRANDOM_KUNIT_TEST) += random32_kunit.o
+ obj-$(CONFIG_PRINTF_KUNIT_TEST) += printf_kunit.o
+ obj-$(CONFIG_RANDSTRUCT_KUNIT_TEST) += randstruct_kunit.o
+diff --git a/lib/tests/plist_kunit.c a/lib/tests/plist_kunit.c
+new file mode 100644
+--- /dev/null
++++ a/lib/tests/plist_kunit.c
+@@ -0,0 +1,719 @@
++// SPDX-License-Identifier: GPL-2.0-only
++/*
++ * KUnit tests for the priority sorted list (plist) structures.
++ *
++ * Checks that plist_add(), plist_del() and plist_requeue() maintain the
++ * ordering invariants documented in include/linux/plist.h, with extra
++ * attention to the priority bucket boundary cases of the prio_list ring.
++ */
++
++#include <kunit/test.h>
++
++#include <linux/limits.h>
++#include <linux/list.h>
++#include <linux/module.h>
++#include <linux/plist.h>
++
++/*
++ * Upper bound for the node_list walk, so a corrupted list fails instead
++ * of hanging the boot.
++ */
++#define PLIST_KUNIT_MAX_NODES	4096
++
++struct plist_kunit_item {
++	int			id;
++	struct plist_node	node;
++};
++
++/*
++ * Walk both the node_list and the prio_list ring and check the invariants
++ * of a plist:
++ *
++ *  - node_list is sorted by ascending numeric priority (i.e. descending
++ *    priority order), and its prev links agree with its next links;
++ *  - exactly the first node of every priority bucket is linked on the
++ *    prio_list ring, the ring's prev links agree with its next links, and
++ *    the headless ring visits the bucket heads in node_list order before
++ *    wrapping back to the first bucket;
++ *  - when the list holds a single bucket the ring degenerates to a self
++ *    loop on the first node, which list_empty() reports as empty.
++ *
++ * Same-priority FIFO order is not checked here, as it needs the expected
++ * sequence; the individual test cases assert it explicitly.
++ *
++ * Returns the number of nodes on the list.
++ */
++static int plist_kunit_verify(struct kunit *test, struct plist_head *head)
++{
++	struct plist_node *pos, *prev = NULL, *first, *ring, *next;
++	int nr_nodes = 0, nr_heads = 0, nr_ring = 0;
++
++	if (plist_head_empty(head)) {
++		/* Same predicate on the other half of the head node. */
++		KUNIT_ASSERT_PTR_EQ(test, head->node_list.prev,
++				    &head->node_list);
++		return 0;
++	}
++
++	first = plist_first(head);
++
++	plist_for_each(pos, head) {
++		if (++nr_nodes > PLIST_KUNIT_MAX_NODES) {
++			KUNIT_FAIL(test, "node_list does not terminate");
++			return nr_nodes;
++		}
++
++		if (prev)
++			KUNIT_ASSERT_PTR_EQ(test, pos->node_list.prev,
++					    &prev->node_list);
++		else
++			KUNIT_ASSERT_PTR_EQ(test, pos->node_list.prev,
++					    &head->node_list);
++
++		if (prev) {
++			KUNIT_ASSERT_LE(test, prev->prio, pos->prio);
++			/*
++			 * A node sharing its predecessor's priority is a
++			 * bucket follower and must not be linked on the
++			 * prio_list ring; a node starting a new bucket must.
++			 */
++			if (prev->prio == pos->prio) {
++				KUNIT_ASSERT_TRUE(test,
++						  list_empty(&pos->prio_list));
++			} else {
++				KUNIT_ASSERT_FALSE(test,
++						   list_empty(&pos->prio_list));
++				nr_heads++;
++			}
++		} else {
++			nr_heads++;
++		}
++		prev = pos;
++	}
++
++	KUNIT_ASSERT_PTR_EQ(test, prev, plist_last(head));
++
++	if (nr_heads == 1) {
++		/* Single bucket: the ring is a self loop on the first node. */
++		KUNIT_ASSERT_TRUE(test, list_empty(&first->prio_list));
++		KUNIT_ASSERT_PTR_EQ(test, first->prio_list.prev,
++				    &first->prio_list);
++		return nr_nodes;
++	}
++
++	KUNIT_ASSERT_FALSE(test, list_empty(&first->prio_list));
++
++	ring = first;
++	do {
++		if (++nr_ring > nr_heads) {
++			KUNIT_FAIL(test, "prio_list ring does not close");
++			return nr_nodes;
++		}
++		KUNIT_ASSERT_FALSE(test, list_empty(&ring->prio_list));
++		next = list_entry(ring->prio_list.next, struct plist_node,
++				  prio_list);
++		KUNIT_ASSERT_PTR_EQ(test, next->prio_list.prev,
++				    &ring->prio_list);
++		if (next != first)
++			KUNIT_ASSERT_LT(test, ring->prio, next->prio);
++		ring = next;
++	} while (ring != first);
++
++	KUNIT_ASSERT_EQ(test, nr_ring, nr_heads);
++
++	return nr_nodes;
++}
++
++static void plist_kunit_add_empty(struct kunit *test)
++{
++	PLIST_HEAD(head);
++	struct plist_node a;
++
++	plist_node_init(&a, 10);
++
++	KUNIT_EXPECT_TRUE(test, plist_head_empty(&head));
++	KUNIT_EXPECT_TRUE(test, plist_node_empty(&a));
++
++	plist_add(&a, &head);
++
++	KUNIT_EXPECT_EQ(test, plist_kunit_verify(test, &head), 1);
++	KUNIT_EXPECT_FALSE(test, plist_head_empty(&head));
++	KUNIT_EXPECT_FALSE(test, plist_node_empty(&a));
++	KUNIT_EXPECT_PTR_EQ(test, plist_first(&head), &a);
++	KUNIT_EXPECT_PTR_EQ(test, plist_last(&head), &a);
++}
++
++static void plist_kunit_add_order(struct kunit *test)
++{
++	PLIST_HEAD(head);
++	struct plist_node n[4];
++	int i;
++
++	plist_node_init(&n[0], 30);
++	plist_node_init(&n[1], 10);
++	plist_node_init(&n[2], 40);
++	plist_node_init(&n[3], 20);
++
++	/* Insert the nodes out of order. */
++	for (i = 0; i < ARRAY_SIZE(n); i++)
++		plist_add(&n[i], &head);
++
++	KUNIT_EXPECT_EQ(test, plist_kunit_verify(test, &head), 4);
++	KUNIT_EXPECT_PTR_EQ(test, plist_first(&head), &n[1]);
++	KUNIT_EXPECT_PTR_EQ(test, plist_next(&n[1]), &n[3]);
++	KUNIT_EXPECT_PTR_EQ(test, plist_next(&n[3]), &n[0]);
++	KUNIT_EXPECT_PTR_EQ(test, plist_next(&n[0]), &n[2]);
++	KUNIT_EXPECT_PTR_EQ(test, plist_last(&head), &n[2]);
++}
++
++static void plist_kunit_add_duplicates(struct kunit *test)
++{
++	PLIST_HEAD(head);
++	struct plist_node a, b, c, d, e;
++
++	plist_node_init(&a, 5);
++	plist_node_init(&b, 5);
++	plist_node_init(&c, 9);
++	plist_node_init(&d, 5);
++	plist_node_init(&e, 7);
++
++	plist_add(&a, &head);
++	plist_add(&b, &head);
++	plist_add(&c, &head);
++	plist_add(&d, &head);
++	plist_add(&e, &head);
++
++	/* node_list: a(5), b(5), d(5), e(7), c(9) -- FIFO in a bucket. */
++	KUNIT_EXPECT_EQ(test, plist_kunit_verify(test, &head), 5);
++	KUNIT_EXPECT_PTR_EQ(test, plist_first(&head), &a);
++	KUNIT_EXPECT_PTR_EQ(test, plist_next(&a), &b);
++	KUNIT_EXPECT_PTR_EQ(test, plist_next(&b), &d);
++	KUNIT_EXPECT_PTR_EQ(test, plist_next(&d), &e);
++	KUNIT_EXPECT_PTR_EQ(test, plist_last(&head), &c);
++
++	/* Only the first node of each bucket leads the prio_list ring. */
++	KUNIT_EXPECT_FALSE(test, list_empty(&a.prio_list));
++	KUNIT_EXPECT_TRUE(test, list_empty(&b.prio_list));
++	KUNIT_EXPECT_TRUE(test, list_empty(&d.prio_list));
++	KUNIT_EXPECT_FALSE(test, list_empty(&e.prio_list));
++	KUNIT_EXPECT_FALSE(test, list_empty(&c.prio_list));
++
++	KUNIT_EXPECT_PTR_EQ(test, a.prio_list.next, &e.prio_list);
++	KUNIT_EXPECT_PTR_EQ(test, e.prio_list.next, &c.prio_list);
++	KUNIT_EXPECT_PTR_EQ(test, c.prio_list.next, &a.prio_list);
++}
++
++/*
++ * Adding ascending priorities makes every node the new last bucket, the
++ * case the reverse walk in plist_add() is meant to short-circuit.
++ */
++static void plist_kunit_add_ascending(struct kunit *test)
++{
++	PLIST_HEAD(head);
++	struct plist_node n[16];
++	int i;
++
++	for (i = 0; i < ARRAY_SIZE(n); i++) {
++		plist_node_init(&n[i], i);
++		plist_add(&n[i], &head);
++		KUNIT_ASSERT_EQ(test, plist_kunit_verify(test, &head), i + 1);
++	}
++
++	KUNIT_EXPECT_PTR_EQ(test, plist_first(&head), &n[0]);
++	KUNIT_EXPECT_PTR_EQ(test, plist_last(&head), &n[15]);
++}
++
++/* Adding descending priorities makes every node the new first bucket. */
++static void plist_kunit_add_descending(struct kunit *test)
++{
++	PLIST_HEAD(head);
++	struct plist_node n[16];
++	int i;
++
++	for (i = 0; i < ARRAY_SIZE(n); i++) {
++		plist_node_init(&n[i], ARRAY_SIZE(n) - i);
++		plist_add(&n[i], &head);
++		KUNIT_ASSERT_EQ(test, plist_kunit_verify(test, &head), i + 1);
++	}
++
++	KUNIT_EXPECT_PTR_EQ(test, plist_first(&head), &n[15]);
++	KUNIT_EXPECT_PTR_EQ(test, plist_last(&head), &n[0]);
++}
++
++static void plist_kunit_add_extremes(struct kunit *test)
++{
++	PLIST_HEAD(head);
++	struct plist_node a, b, c;
++
++	plist_node_init(&a, 0);
++	plist_node_init(&b, INT_MAX);
++	plist_node_init(&c, INT_MIN);
++
++	plist_add(&a, &head);
++	plist_add(&b, &head);
++	plist_add(&c, &head);
++
++	/* INT_MIN is the highest priority, INT_MAX the lowest. */
++	KUNIT_EXPECT_EQ(test, plist_kunit_verify(test, &head), 3);
++	KUNIT_EXPECT_PTR_EQ(test, plist_first(&head), &c);
++	KUNIT_EXPECT_PTR_EQ(test, plist_next(&c), &a);
++	KUNIT_EXPECT_PTR_EQ(test, plist_last(&head), &b);
++}
++
++static void plist_kunit_del_bucket_head(struct kunit *test)
++{
++	PLIST_HEAD(head);
++	struct plist_node a, b, c;
++
++	plist_node_init(&a, 1);
++	plist_node_init(&b, 1);
++	plist_node_init(&c, 2);
++
++	plist_add(&a, &head);
++	plist_add(&b, &head);
++	plist_add(&c, &head);
++
++	/* Removing the bucket head hands prio_list over to the successor. */
++	plist_del(&a, &head);
++	KUNIT_EXPECT_EQ(test, plist_kunit_verify(test, &head), 2);
++	KUNIT_EXPECT_TRUE(test, plist_node_empty(&a));
++	KUNIT_EXPECT_FALSE(test, list_empty(&b.prio_list));
++	KUNIT_EXPECT_PTR_EQ(test, plist_first(&head), &b);
++
++	/* Removing the last node of the last bucket empties the list. */
++	plist_del(&c, &head);
++	plist_del(&b, &head);
++	KUNIT_EXPECT_EQ(test, plist_kunit_verify(test, &head), 0);
++	KUNIT_EXPECT_TRUE(test, plist_head_empty(&head));
++
++	/* A removed node can be added back. */
++	plist_add(&a, &head);
++	KUNIT_EXPECT_EQ(test, plist_kunit_verify(test, &head), 1);
++	KUNIT_EXPECT_PTR_EQ(test, plist_first(&head), &a);
++}
++
++static void plist_kunit_del_bucket_follower(struct kunit *test)
++{
++	PLIST_HEAD(head);
++	struct plist_node a, b, c;
++
++	plist_node_init(&a, 1);
++	plist_node_init(&b, 1);
++	plist_node_init(&c, 2);
++
++	plist_add(&a, &head);
++	plist_add(&b, &head);
++	plist_add(&c, &head);
++
++	/* Removing a bucket follower must not disturb the prio_list ring. */
++	plist_del(&b, &head);
++	KUNIT_EXPECT_EQ(test, plist_kunit_verify(test, &head), 2);
++	KUNIT_EXPECT_FALSE(test, list_empty(&a.prio_list));
++	KUNIT_EXPECT_FALSE(test, list_empty(&c.prio_list));
++	KUNIT_EXPECT_PTR_EQ(test, plist_next(&a), &c);
++	KUNIT_EXPECT_PTR_EQ(test, a.prio_list.next, &c.prio_list);
++	KUNIT_EXPECT_PTR_EQ(test, c.prio_list.next, &a.prio_list);
++}
++
++static void plist_kunit_del_middle_bucket(struct kunit *test)
++{
++	PLIST_HEAD(head);
++	struct plist_node a, b, c;
++
++	plist_node_init(&a, 1);
++	plist_node_init(&b, 2);
++	plist_node_init(&c, 3);
++
++	plist_add(&a, &head);
++	plist_add(&b, &head);
++	plist_add(&c, &head);
++
++	/* Removing the only node of a middle bucket splices the ring. */
++	plist_del(&b, &head);
++	KUNIT_EXPECT_EQ(test, plist_kunit_verify(test, &head), 2);
++	KUNIT_EXPECT_TRUE(test, plist_node_empty(&b));
++	KUNIT_EXPECT_PTR_EQ(test, plist_next(&a), &c);
++	KUNIT_EXPECT_PTR_EQ(test, a.prio_list.next, &c.prio_list);
++	KUNIT_EXPECT_PTR_EQ(test, c.prio_list.next, &a.prio_list);
++}
++
++/*
++ * Deleting the head of the last priority bucket: its follower takes over
++ * the prio_list entry, and the ring of bucket heads has to wrap round to
++ * the first bucket.
++ */
++static void plist_kunit_del_last_bucket_head(struct kunit *test)
++{
++	PLIST_HEAD(head);
++	struct plist_node a, b, c;
++
++	plist_node_init(&a, 1);
++	plist_node_init(&b, 2);
++	plist_node_init(&c, 2);
++
++	plist_add(&a, &head);
++	plist_add(&b, &head);
++	plist_add(&c, &head);
++
++	plist_del(&b, &head);
++	KUNIT_EXPECT_EQ(test, plist_kunit_verify(test, &head), 2);
++	KUNIT_EXPECT_TRUE(test, plist_node_empty(&b));
++	KUNIT_EXPECT_PTR_EQ(test, plist_next(&a), &c);
++	KUNIT_EXPECT_FALSE(test, list_empty(&c.prio_list));
++	KUNIT_EXPECT_PTR_EQ(test, a.prio_list.next, &c.prio_list);
++	KUNIT_EXPECT_PTR_EQ(test, c.prio_list.next, &a.prio_list);
++}
++
++static void plist_kunit_requeue_basic(struct kunit *test)
++{
++	PLIST_HEAD(head);
++	struct plist_node a, b, c;
++
++	plist_node_init(&a, 1);
++	plist_node_init(&b, 2);
++	plist_node_init(&c, 2);
++
++	plist_add(&a, &head);
++	plist_add(&b, &head);
++	plist_add(&c, &head);
++
++	/* A node whose successor has a different priority is left alone. */
++	plist_requeue(&a, &head);
++	KUNIT_EXPECT_EQ(test, plist_kunit_verify(test, &head), 3);
++	KUNIT_EXPECT_PTR_EQ(test, plist_first(&head), &a);
++
++	/* Requeueing moves a node after its same-priority peers. */
++	plist_requeue(&b, &head);
++	KUNIT_EXPECT_EQ(test, plist_kunit_verify(test, &head), 3);
++	KUNIT_EXPECT_PTR_EQ(test, plist_next(&a), &c);
++	KUNIT_EXPECT_PTR_EQ(test, plist_next(&c), &b);
++
++	/* Requeueing the last node of the list is a no-op. */
++	plist_requeue(&b, &head);
++	KUNIT_EXPECT_EQ(test, plist_kunit_verify(test, &head), 3);
++	KUNIT_EXPECT_PTR_EQ(test, plist_last(&head), &b);
++
++	/* ...and the peers rotate back. */
++	plist_requeue(&c, &head);
++	KUNIT_EXPECT_EQ(test, plist_kunit_verify(test, &head), 3);
++	KUNIT_EXPECT_PTR_EQ(test, plist_next(&a), &b);
++	KUNIT_EXPECT_PTR_EQ(test, plist_next(&b), &c);
++}
++
++/*
++ * The plist_requeue() shortcut: after plist_del() the node's same-priority
++ * successor took over the prio_list entry, so the node can be inserted
++ * directly before the next bucket instead of walking the node_list.
++ */
++static void plist_kunit_requeue_shortcut(struct kunit *test)
++{
++	PLIST_HEAD(head);
++	struct plist_node a, b, c, d;
++
++	plist_node_init(&a, 1);
++	plist_node_init(&b, 2);
++	plist_node_init(&c, 2);
++	plist_node_init(&d, 3);
++
++	plist_add(&a, &head);
++	plist_add(&b, &head);
++	plist_add(&c, &head);
++	plist_add(&d, &head);
++
++	plist_requeue(&b, &head);
++	KUNIT_EXPECT_EQ(test, plist_kunit_verify(test, &head), 4);
++	KUNIT_EXPECT_PTR_EQ(test, plist_next(&a), &c);
++	KUNIT_EXPECT_PTR_EQ(test, plist_next(&c), &b);
++	KUNIT_EXPECT_PTR_EQ(test, plist_next(&b), &d);
++
++	/* The tail of its bucket has a different priority: no-op. */
++	plist_requeue(&b, &head);
++	KUNIT_EXPECT_EQ(test, plist_kunit_verify(test, &head), 4);
++	KUNIT_EXPECT_PTR_EQ(test, plist_next(&c), &b);
++	KUNIT_EXPECT_PTR_EQ(test, plist_next(&b), &d);
++}
++
++/*
++ * Regression test for commit 43c91b152243 ("lib/plist: fix
++ * plist_requeue() corrupting order in the last bucket"): when the
++ * requeued node heads the last priority bucket, the prio_list ring of the
++ * bucket heads wraps round to the first bucket, and the node must end up
++ * at the very end of the list instead of jumping to its front.
++ */
++static void plist_kunit_requeue_last_bucket(struct kunit *test)
++{
++	PLIST_HEAD(head);
++	struct plist_node a, b, c, d, e;
++
++	plist_node_init(&a, 0);
++	plist_node_init(&b, 1);
++	plist_node_init(&c, 1);
++
++	plist_add(&a, &head);
++	plist_add(&b, &head);
++	plist_add(&c, &head);
++
++	plist_requeue(&b, &head);
++	KUNIT_EXPECT_EQ(test, plist_kunit_verify(test, &head), 3);
++	KUNIT_EXPECT_PTR_EQ(test, plist_first(&head), &a);
++	KUNIT_EXPECT_PTR_EQ(test, plist_next(&a), &c);
++	KUNIT_EXPECT_PTR_EQ(test, plist_last(&head), &b);
++
++	/* The same wrap with an intermediate bucket before the last one. */
++	plist_node_init(&d, 2);
++	plist_node_init(&e, 2);
++	plist_add(&d, &head);
++	plist_add(&e, &head);
++
++	plist_requeue(&d, &head);
++	KUNIT_EXPECT_EQ(test, plist_kunit_verify(test, &head), 5);
++	KUNIT_EXPECT_PTR_EQ(test, plist_next(&b), &e);
++	KUNIT_EXPECT_PTR_EQ(test, plist_last(&head), &d);
++}
++
++/*
++ * Requeueing the head of the first priority bucket: its follower takes
++ * over the bucket, so the node moves behind it and the new first bucket
++ * has to be linked in the prio_list ring instead.
++ */
++static void plist_kunit_requeue_first_bucket_head(struct kunit *test)
++{
++	PLIST_HEAD(head);
++	struct plist_node a, b, c;
++
++	plist_node_init(&a, 1);
++	plist_node_init(&b, 1);
++	plist_node_init(&c, 2);
++
++	plist_add(&a, &head);
++	plist_add(&b, &head);
++	plist_add(&c, &head);
++
++	plist_requeue(&a, &head);
++	KUNIT_EXPECT_EQ(test, plist_kunit_verify(test, &head), 3);
++	KUNIT_EXPECT_PTR_EQ(test, plist_first(&head), &b);
++	KUNIT_EXPECT_PTR_EQ(test, plist_next(&b), &a);
++	KUNIT_EXPECT_PTR_EQ(test, plist_next(&a), &c);
++	KUNIT_EXPECT_TRUE(test, list_empty(&a.prio_list));
++	KUNIT_EXPECT_FALSE(test, list_empty(&b.prio_list));
++	KUNIT_EXPECT_PTR_EQ(test, b.prio_list.next, &c.prio_list);
++	KUNIT_EXPECT_PTR_EQ(test, c.prio_list.next, &b.prio_list);
++}
++
++static void plist_kunit_first_last_entry(struct kunit *test)
++{
++	PLIST_HEAD(head);
++	struct plist_kunit_item items[3];
++	struct plist_kunit_item *first, *last;
++	int i;
++
++	for (i = 0; i < ARRAY_SIZE(items); i++) {
++		items[i].id = i;
++		plist_node_init(&items[i].node, i + 1);
++		plist_add(&items[i].node, &head);
++	}
++
++	KUNIT_EXPECT_EQ(test, plist_kunit_verify(test, &head), 3);
++
++	first = plist_first_entry(&head, struct plist_kunit_item, node);
++	last = plist_last_entry(&head, struct plist_kunit_item, node);
++	KUNIT_EXPECT_EQ(test, first->id, 0);
++	KUNIT_EXPECT_EQ(test, last->id, 2);
++
++	KUNIT_EXPECT_EQ(test, plist_next(&items[0].node)->prio, 2);
++	KUNIT_EXPECT_EQ(test, plist_prev(&items[2].node)->prio, 2);
++}
++
++/*
++ * Deleting and requeueing the priority extremes, including handing the
++ * prio_list ring over when the INT_MIN bucket head goes away.
++ */
++static void plist_kunit_extremes_ops(struct kunit *test)
++{
++	PLIST_HEAD(head);
++	struct plist_node a, b, c;
++
++	plist_node_init(&a, 0);
++	plist_node_init(&b, INT_MAX);
++	plist_node_init(&c, INT_MIN);
++
++	plist_add(&c, &head);
++	plist_add(&a, &head);
++	plist_add(&b, &head);
++
++	/* Deleting the INT_MIN head hands the ring over to the next bucket. */
++	plist_del(&c, &head);
++	KUNIT_EXPECT_EQ(test, plist_kunit_verify(test, &head), 2);
++	KUNIT_EXPECT_TRUE(test, plist_node_empty(&c));
++	KUNIT_EXPECT_PTR_EQ(test, plist_first(&head), &a);
++
++	/* Requeueing the INT_MAX tail node is a no-op. */
++	plist_requeue(&b, &head);
++	KUNIT_EXPECT_EQ(test, plist_kunit_verify(test, &head), 2);
++	KUNIT_EXPECT_PTR_EQ(test, plist_last(&head), &b);
++
++	/* Deleting the last bucket leaves a single-bucket list. */
++	plist_del(&b, &head);
++	KUNIT_EXPECT_EQ(test, plist_kunit_verify(test, &head), 1);
++	KUNIT_EXPECT_PTR_EQ(test, plist_first(&head), &a);
++	KUNIT_EXPECT_TRUE(test, list_empty(&a.prio_list));
++}
++
++/*
++ * Deterministic pseudo-random add/del/requeue churn, mirroring the
++ * in-module test under CONFIG_DEBUG_PLIST but checking the invariants
++ * after every operation with KUnit assertions instead of BUG_ON().
++ *
++ * Priorities are drawn from a small range so that the list actually
++ * contains multi-node priority buckets, and the requeue step picks a node
++ * that has a same-priority successor -- only such a node moves, so every
++ * requeue in the loop is a real move and its result is checked.
++ */
++static void plist_kunit_random(struct kunit *test)
++{
++	struct plist_node nodes[24];
++	PLIST_HEAD(head);
++	unsigned int r = 12345;
++	int i, loop, nr_expect = 0, nr_requeued = 0;
++
++	for (i = 0; i < ARRAY_SIZE(nodes); i++)
++		plist_node_init(&nodes[i], 0);
++
++	for (loop = 0; loop < 1000; loop++) {
++		r = r * 193939u % 47629u;
++		i = r % ARRAY_SIZE(nodes);
++		if (plist_node_empty(&nodes[i])) {
++			r = r * 193939u % 47629u;
++			plist_node_init(&nodes[i], r % 8);
++			plist_add(&nodes[i], &head);
++			nr_expect++;
++		} else {
++			plist_del(&nodes[i], &head);
++			nr_expect--;
++		}
++
++		KUNIT_ASSERT_EQ(test, plist_kunit_verify(test, &head),
++				nr_expect);
++
++		for (i = 0; i < ARRAY_SIZE(nodes); i++) {
++			struct plist_node *next;
++
++			if (plist_node_empty(&nodes[i]) ||
++			    &nodes[i] == plist_last(&head))
++				continue;
++			next = plist_next(&nodes[i]);
++			if (next->prio != nodes[i].prio)
++				continue;
++
++			plist_requeue(&nodes[i], &head);
++			nr_requeued++;
++
++			KUNIT_ASSERT_EQ(test,
++					plist_kunit_verify(test, &head),
++					nr_expect);
++			/* A requeued node is now the tail of its bucket. */
++			if (&nodes[i] != plist_last(&head))
++				KUNIT_EXPECT_NE(test, nodes[i].prio,
++						plist_next(&nodes[i])->prio);
++			break;
++		}
++	}
++
++	/* The requeue part of the churn must actually have run. */
++	KUNIT_EXPECT_GT(test, nr_requeued, 0);
++
++	for (i = 0; i < ARRAY_SIZE(nodes); i++) {
++		if (plist_node_empty(&nodes[i]))
++			continue;
++		plist_del(&nodes[i], &head);
++		nr_expect--;
++		KUNIT_ASSERT_EQ(test, plist_kunit_verify(test, &head),
++				nr_expect);
++	}
++
++	KUNIT_EXPECT_TRUE(test, plist_head_empty(&head));
++}
++
++/*
++ * Requeueing inside a single priority bucket exercises the degenerate
++ * prio_list ring (a self loop on the first node), and requeueing a bucket
++ * follower walks to the end of its bucket but not past the next one.
++ */
++static void plist_kunit_requeue_bucket_edges(struct kunit *test)
++{
++	PLIST_HEAD(head);
++	struct plist_node a, b, c, d, e;
++
++	plist_node_init(&a, 1);
++	plist_node_init(&b, 1);
++	plist_node_init(&c, 1);
++	plist_add(&a, &head);
++	plist_add(&b, &head);
++	plist_add(&c, &head);
++
++	/* Single bucket: the ring is a self loop on the first node. */
++	plist_requeue(&a, &head);
++	KUNIT_EXPECT_EQ(test, plist_kunit_verify(test, &head), 3);
++	KUNIT_EXPECT_PTR_EQ(test, plist_first(&head), &b);
++	KUNIT_EXPECT_PTR_EQ(test, plist_next(&b), &c);
++	KUNIT_EXPECT_PTR_EQ(test, plist_last(&head), &a);
++	/*
++	 * b heads the bucket now, but a single bucket never links onto
++	 * the ring: after the handover in plist_del() the entry is a self
++	 * loop, which list_empty() reports as empty.
++	 */
++	KUNIT_EXPECT_TRUE(test, list_empty(&b.prio_list));
++
++	plist_requeue(&b, &head);
++	KUNIT_EXPECT_EQ(test, plist_kunit_verify(test, &head), 3);
++	KUNIT_EXPECT_PTR_EQ(test, plist_first(&head), &c);
++	KUNIT_EXPECT_PTR_EQ(test, plist_last(&head), &b);
++
++	/* A follower requeue walks to the end of its bucket, not past it. */
++	plist_node_init(&d, 1);
++	plist_node_init(&e, 2);
++	plist_add(&d, &head);
++	plist_add(&e, &head);
++
++	plist_requeue(&b, &head);
++	KUNIT_EXPECT_EQ(test, plist_kunit_verify(test, &head), 5);
++	KUNIT_EXPECT_PTR_EQ(test, plist_next(&c), &a);
++	KUNIT_EXPECT_PTR_EQ(test, plist_next(&a), &d);
++	KUNIT_EXPECT_PTR_EQ(test, plist_next(&d), &b);
++	KUNIT_EXPECT_PTR_EQ(test, plist_next(&b), &e);
++	KUNIT_EXPECT_PTR_EQ(test, plist_last(&head), &e);
++}
++
++static struct kunit_case plist_kunit_test_cases[] = {
++	KUNIT_CASE(plist_kunit_add_empty),
++	KUNIT_CASE(plist_kunit_add_order),
++	KUNIT_CASE(plist_kunit_add_duplicates),
++	KUNIT_CASE(plist_kunit_add_ascending),
++	KUNIT_CASE(plist_kunit_add_descending),
++	KUNIT_CASE(plist_kunit_add_extremes),
++	KUNIT_CASE(plist_kunit_del_bucket_head),
++	KUNIT_CASE(plist_kunit_del_bucket_follower),
++	KUNIT_CASE(plist_kunit_del_middle_bucket),
++	KUNIT_CASE(plist_kunit_del_last_bucket_head),
++	KUNIT_CASE(plist_kunit_requeue_basic),
++	KUNIT_CASE(plist_kunit_requeue_shortcut),
++	KUNIT_CASE(plist_kunit_requeue_last_bucket),
++	KUNIT_CASE(plist_kunit_requeue_first_bucket_head),
++	KUNIT_CASE(plist_kunit_requeue_bucket_edges),
++	KUNIT_CASE(plist_kunit_first_last_entry),
++	KUNIT_CASE(plist_kunit_extremes_ops),
++	KUNIT_CASE(plist_kunit_random),
++	{}
++};
++
++static struct kunit_suite plist_kunit_test_suite = {
++	.name = "plist",
++	.test_cases = plist_kunit_test_cases,
++};
++
++kunit_test_suite(plist_kunit_test_suite);
++
++MODULE_IMPORT_NS("EXPORTED_FOR_KUNIT_TESTING");
++
++MODULE_DESCRIPTION("KUnit tests for the priority sorted list (plist)");
++MODULE_LICENSE("GPL");
 _
 
-Patches currently in -mm which might be from muchun.song@linux.dev are
+Patches currently in -mm which might be from wuyuehong@cmss.chinamobile.com are
 
-mm-fix-missing-page-table-destructor-in-pagetable_free.patch
-riscv-mm-fix-hotplug-page-table-destructor-handling.patch
-riscv-mm-fix-missing-destructor-for-hotplug-pud-tables.patch
-arm64-mm-fix-destructor-for-unconstructed-hotplug-page-tables.patch
-mm-sparse-vmemmap-map-shared-vmemmap-tail-pages-as-read-only.patch
-powerpc-mm-map-shared-vmemmap-tail-pages-as-read-only.patch
-mm-hugetlb_vmemmap-remove-vmemmap_wrprotect_hvo.patch
-mm-hugetlb_vmemmap-remove-hugetlb_vmemmap_optimize_bootmem_folios.patch
-mm-generalize-kernel-pte-table-allocation.patch
-mm-generalize-pmd-page-table-allocation.patch
-mm-generalize-pud-page-table-allocation.patch
-mm-remove-pagetable_dtor_free.patch
-mm-remove-redundant-pagetable_dtor-calls.patch
-mm-hugetlb_vmemmap-remove-hugetlb-specific-vmemmap-optimization-macros.patch
-mm-hugetlb_vmemmap-unify-vmemmap_splitremap_no_tlb_flush.patch
-mm-hugetlb_vmemmap-simplify-vmemmap-head-page-handling.patch
-mm-hugetlb_vmemmap-generalize-vmemmap-page-allocation.patch
-mm-hugetlb_vmemmap-unify-writable-vmemmap-page-preparation.patch
-mm-hugetlb_vmemmap-rename-vmemmap_remap_pte-to-vmemmap_optimize_pte.patch
-mm-hugetlb_vmemmap-simplify-shared-tail-page-handling.patch
-mm-hugetlb_vmemmap-move-alloc_vmemmap_page_list-next-to-its-free-helper.patch
-mm-hugetlb_vmemmap-make-vmemmap-optimization-folio-oriented.patch
-mm-hugetlb_vmemmap-make-vmemmap-restoration-folio-oriented.patch
-mm-hugetlb_vmemmap-unify-vmemmap-range-restoration.patch
-mm-hugetlb_vmemmap-make-vmemmap-pte-conversion-folio-oriented.patch
-mm-hugetlb-fix-validation-of-unsupported-hugetlb-orders.patch
-powerpc-mm-make-vmemmap_populate_compound_pages-static.patch
-powerpc-mm-drop-powerpc-vmemmap_can_optimize.patch
-loongarch-mm-disable-device-dax-vmemmap-optimization.patch
-mm-sparse-vmemmap-drop-vmemmap_can_optimize.patch
-mm-sparse-vmemmap-drop-pgmap-from-vmemmap-population-apis.patch
+lib-tests-add-kunit-tests-for-the-priority-sorted-list-plist.patch
 
