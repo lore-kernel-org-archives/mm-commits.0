@@ -1,45 +1,45 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794023614;
-	b=g5z/6Qrx3bMy4Y2oF6zymrJqMQv1uQwj+dvmZu8OBDDXm8kC5kGnHSITmxwNVLxOjRZB
-	 qJtXEwFayeXVcle5EFw4/rJw8YlYwDZ93lkr80LMyA7QwdyaMSdclRQGuAbEh8QkQaaGZ
-	 OMGC3fZ3b3bFxYlwnM17n5bbXmnFkRGdaOeNAc/gdyAYP5smDkjFBaEiE1ghSuEEew6eU
-	 3PR/HQGeUPXE1DxPhu0H1sOgJAtiKRbQeCZxchzLYF7SzgU6FWN5pwM2VXWqx1RFC+l9m
-	 B9iXH5aMDEW+wYJ+JQ6rZQ/lDgn02eaFMUH1PXbKbI1IHnnr4eGADle0DzjZQBlcU4g==
+	t=1794023618;
+	b=349+QzEnc9ZZUwmqthUYmJSTYBReb7IivxgWe143Kdjpm4CoIXHLKCuTMGaO+sEUq9lT
+	 PEdXstZSChNhMA1godNPatMZ0/j+wYV62qo7nXR0b/kM4aJDHwywe8P05UdpuK8Z6WG/+
+	 bHzUNrT1yFFkxLFJ3IRbBkq9EJ3K2yA+yLD2L1fILj75wKLs2w5AjXsFU/SyX7gM18nr9
+	 NjicIKXJkA6yfYzspck42s1HyOQdw83zPqYbJQU6VF4+BXVtXaWhaEWc/xC7dEOYq11fr
+	 ggAwqeGJSL4eYB8pMydmt1tRnnjL8IOU5DTWxB0KarG/W4KX39BMIpr61uN07jxEObA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794023614;
+	a=rsa-sha256; c=relaxed/relaxed; t=1794023618;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=o4DwnkoAsfaMPUxLyKpWTn3LdejqmaAxd58lzuVbQ0w=;
-	b=Fv4MhSPS/ktzxUHJvn6FGhUKyGgJYBgIbBlsH+wO5DCwfGwMOWC6hIdikFazXob40+qa
-	 9s8Ua3f3XHD1wHSDgIpSLsE3P9AehIrAuHrkKmc40r1wMYmdCFl7aSsEgbQcf4ESQYJ3A
-	 vtVyaVwWpNgPvjL1CfcZD0unGTj64s/8MOpZSHhXWXk8ifxC8l290RpMFvF+HkK0Lihry
-	 EFm6j/hAATVpUWe7U+qEBYUsHl9H/92o7wRygOT1LAqaZD9veypmwkJx4fIrrex0Li47C
-	 GR4M7dvhYaG9Y/6VFOKvgTRZKXD4nJQcDmplAeaVc4VtrDKNNMqdMQG+lwdcxOewWow==
+	bh=/xAqQBzrIakAeK5K1saayY1CZPMWeyom1RzOwRlsYAI=;
+	b=GJslPqBswJuO9Th8Prq3jJ6jfP4Fsp5CG6OK7kVqoqqnIUCkbSsXr3ZML865z6an0+T2
+	 JrDICsIkOm5yqzv8qmbDoovGhSoPgFIKrga5lJ0pm1iFBv8kM5bRNO8rhi8omRJWCr7Bx
+	 mEeNPO87zX9AJlLtg48yNJh52F0Rg/cCC+MvNsVhwbQR65WH4xi4dy5XvEaREc8NNjHzm
+	 z4qO65OSR3APGi8Xc5Muf1u6tK6Rd0/++QMM8dpYFpbYJ1MyV19sLPQ7gprTCXUjsxr+c
+	 qe2PNwUV7Py2ER9fACSrMR3Y62f9/fUFdA3cZI1Eu2EPYwImflF0h12YG7knTGHN/oQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=zBprfGpa;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=iOw0DYWf;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 90476606A326
-	for <mm-commits@vger.kernel.org>; Sat,  7 Nov 2026 03:53:34 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 14839606A326
+	for <mm-commits@vger.kernel.org>; Sat,  7 Nov 2026 03:53:37 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=zBprfGpa
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4A7D61F0089F;
-	Sat,  7 Nov 2026 03:53:34 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=iOw0DYWf
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 915FA1F0089F;
+	Sat,  7 Nov 2026 03:53:37 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1794023614;
-	bh=o4DwnkoAsfaMPUxLyKpWTn3LdejqmaAxd58lzuVbQ0w=;
+	d=linux-foundation.org; s=korg; t=1794023617;
+	bh=/xAqQBzrIakAeK5K1saayY1CZPMWeyom1RzOwRlsYAI=;
 	h=Date:To:From:Subject;
-	b=zBprfGpaSTcDe8f0T2MOQrdyIZsGsLlIQfM4DS0jFtEoM7FTaXYO9/OuTVe/ZE1m8
-	 xQln/kGBGK4bQAfO0Cv1NC5wzg9DgLIQa6mMokb+uhFp7Hr7lTG4ACJaS9DqJOhTRi
-	 Hki3mDOR8rSAzXdQ1BOSLh3ek8/A4zkSWdjbVbjI=
-Date: Fri, 06 Nov 2026 19:53:33 -0800
+	b=iOw0DYWfL2oVto/17iOJeuBc2anW4HTq06yJTRQyDindHSxuJezpdaVWZJq+c/Tf7
+	 L2kQ56tpwI+PJT//bH9kyezSvReEHR8qty6Caa5cbuDMdEWaMb2E29HpX+EW0HoqdD
+	 5Kkcb8XYvhsCKMhxVvZR4GfN7lTOAhG4wUmQpNsw=
+Date: Fri, 06 Nov 2026 19:53:37 -0800
 To: mm-commits@vger.kernel.org,muchun.song@linux.dev,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-hugetlb_vmemmap-remove-hugetlb-specific-vmemmap-optimization-macros.patch added to mm-unstable branch
-Message-Id: <20261107035334.4A7D61F0089F@smtp.kernel.org>
+Subject: + mm-hugetlb_vmemmap-unify-vmemmap_splitremap_no_tlb_flush.patch added to mm-unstable branch
+Message-Id: <20261107035337.915FA1F0089F@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -51,12 +51,12 @@ Precedence: list
 
 
 The patch titled
-     Subject: mm: hugetlb_vmemmap: remove HugeTLB-specific vmemmap optimization macros
+     Subject: mm: hugetlb_vmemmap: unify VMEMMAP_{SPLIT,REMAP}_NO_TLB_FLUSH
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-hugetlb_vmemmap-remove-hugetlb-specific-vmemmap-optimization-macros.patch
+     mm-hugetlb_vmemmap-unify-vmemmap_splitremap_no_tlb_flush.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-hugetlb_vmemmap-remove-hugetlb-specific-vmemmap-optimization-macros.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-hugetlb_vmemmap-unify-vmemmap_splitremap_no_tlb_flush.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -75,22 +75,32 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Muchun Song <muchun.song@linux.dev>
-Subject: mm: hugetlb_vmemmap: remove HugeTLB-specific vmemmap optimization macros
-Date: Sat, 07 Nov 2026 10:27:45 +0800
+Subject: mm: hugetlb_vmemmap: unify VMEMMAP_{SPLIT,REMAP}_NO_TLB_FLUSH
+Date: Sat, 07 Nov 2026 10:27:46 +0800
 
-Vmemmap optimization is no longer HugeTLB-specific, so the remaining
-HugeTLB-local reserve macros are redundant.
+VMEMMAP_SPLIT_NO_TLB_FLUSH and VMEMMAP_REMAP_NO_TLB_FLUSH do not
+describe fully independent choices. A split-only walk can defer the
+PMD-split flush to a later global flush, and a remap-only walk can
+defer the final remap flush. However, when a PMD split is followed
+by PTE remapping, the split flush must happen before the PTEs are
+changed, because stale large-page translations must not overlap with
+new small-page translations that map different physical pages.
 
-Replace them with the generic definitions to remove duplication and keep
-the HugeTLB vmemmap code aligned with the common optimization macros.
+Replace the two flags with a single VMEMMAP_DEFER_TLB_FLUSH flag. The
+new name reflects that only safely batchable flushes are deferred. Keep
+split-only walks able to defer the flush, but force the split flush
+whenever a remap_pte callback is present. Callers that batch HVO work
+can still defer the final remap flush and issue their own global flush.
 
-Link: https://lore.kernel.org/20261107022756.77731-3-songmuchun@bytedance.com
+Current callers keep the same flushing behavior.
+
+Link: https://lore.kernel.org/20261107022756.77731-4-songmuchun@bytedance.com
 Signed-off-by: Muchun Song <muchun.song@linux.dev>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 Reviewed-by: Lance Yang <lance.yang@linux.dev>
 Reviewed-by: Qi Zheng <qi.zheng@linux.dev>
-Reviewed-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
 Reviewed-by: Oscar Salvador <osalvador@suse.de>
+Reviewed-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
 Tested-by: Andrew Morton <akpm@linux-foundation.org>
 Cc: James Houghton <jthoughton@google.com>
 Cc: David Hildenbrand <david@kernel.org>
@@ -100,93 +110,83 @@ Cc: "Oscar Salvador (SUSE)" <osalvador@kernel.org>
 Cc: Huacai Chen <chenhuacai@kernel.org>
 ---
 
- include/linux/vmemmap-optimization.h |    4 ++--
- mm/hugetlb.c                         |    4 ++--
- mm/hugetlb_vmemmap.c                 |    6 +++---
- mm/hugetlb_vmemmap.h                 |   10 ++--------
- 4 files changed, 9 insertions(+), 15 deletions(-)
+ mm/hugetlb_vmemmap.c |   23 +++++++++++++----------
+ 1 file changed, 13 insertions(+), 10 deletions(-)
 
---- a/include/linux/vmemmap-optimization.h~mm-hugetlb_vmemmap-remove-hugetlb-specific-vmemmap-optimization-macros
-+++ a/include/linux/vmemmap-optimization.h
-@@ -27,8 +27,8 @@
- 
- /* The number of retained vmemmap pages with HVO enabled. */
- #define VMEMMAP_OPTIMIZATION_PAGES		1
--#define VMEMMAP_OPTIMIZATION_NR_STRUCT_PAGES	\
--	(VMEMMAP_OPTIMIZATION_PAGES * PAGE_SIZE / sizeof(struct page))
-+#define VMEMMAP_OPTIMIZATION_SIZE		(VMEMMAP_OPTIMIZATION_PAGES * PAGE_SIZE)
-+#define VMEMMAP_OPTIMIZATION_NR_STRUCT_PAGES	(VMEMMAP_OPTIMIZATION_SIZE / sizeof(struct page))
- #define VMEMMAP_OPTIMIZATION_MIN_ORDER		(ilog2(VMEMMAP_OPTIMIZATION_NR_STRUCT_PAGES) + 1)
- 
- #ifdef CONFIG_VMEMMAP_OPTIMIZATION
---- a/mm/hugetlb.c~mm-hugetlb_vmemmap-remove-hugetlb-specific-vmemmap-optimization-macros
-+++ a/mm/hugetlb.c
-@@ -3317,7 +3317,7 @@ static void __init prep_and_add_bootmem_
- 			 * be no contention.
- 			 */
- 			hugetlb_folio_init_tail_vmemmap(folio, h,
--					HUGETLB_VMEMMAP_RESERVE_PAGES,
-+					VMEMMAP_OPTIMIZATION_NR_STRUCT_PAGES,
- 					pages_per_huge_page(h));
- 		}
- 		hugetlb_bootmem_init_migratetype(folio, h);
-@@ -3357,7 +3357,7 @@ static void __init gather_bootmem_preall
- 		WARN_ON(folio_ref_count(folio) != 1);
- 
- 		hugetlb_folio_init_vmemmap(folio, h,
--					   HUGETLB_VMEMMAP_RESERVE_PAGES);
-+					   VMEMMAP_OPTIMIZATION_NR_STRUCT_PAGES);
- 		init_new_hugetlb_folio(folio);
- 
- 		if (vmemmap_optimizable_order(pfn_to_section_compound_order(pfn)))
---- a/mm/hugetlb_vmemmap.c~mm-hugetlb_vmemmap-remove-hugetlb-specific-vmemmap-optimization-macros
+--- a/mm/hugetlb_vmemmap.c~mm-hugetlb_vmemmap-unify-vmemmap_splitremap_no_tlb_flush
 +++ a/mm/hugetlb_vmemmap.c
-@@ -408,7 +408,7 @@ static int __hugetlb_vmemmap_restore_fol
- 	vmemmap_start	= (unsigned long)&folio->page;
- 	vmemmap_end	= vmemmap_start + hugetlb_vmemmap_size(h);
+@@ -42,10 +42,8 @@ struct vmemmap_remap_walk {
+ 	struct list_head	*vmemmap_pages;
  
--	vmemmap_start	+= HUGETLB_VMEMMAP_RESERVE_SIZE;
-+	vmemmap_start	+= VMEMMAP_OPTIMIZATION_SIZE;
+ 
+-/* Skip the TLB flush when we split the PMD */
+-#define VMEMMAP_SPLIT_NO_TLB_FLUSH	BIT(0)
+-/* Skip the TLB flush when we remap the PTE */
+-#define VMEMMAP_REMAP_NO_TLB_FLUSH	BIT(1)
++/* Defer safely batchable TLB flushes to the caller. */
++#define VMEMMAP_DEFER_TLB_FLUSH	BIT(0)
+ 	unsigned long		flags;
+ };
+ 
+@@ -85,7 +83,12 @@ static int vmemmap_split_pmd(pmd_t *pmd,
+ 		/* Make pte visible before pmd. See comment in pmd_install(). */
+ 		smp_wmb();
+ 		pmd_populate_kernel(&init_mm, pmd, pgtable);
+-		if (!(walk->flags & VMEMMAP_SPLIT_NO_TLB_FLUSH))
++		/*
++		 * Modern MMUs allow overlapping TLB entries with different mapping
++		 * granularities only if they map the same physical address. So
++		 * remapping must not proceed without first flushing the TLB.
++		 */
++		if (walk->remap_pte || !(walk->flags & VMEMMAP_DEFER_TLB_FLUSH))
+ 			flush_tlb_kernel_range(start, start + PMD_SIZE);
+ 	} else {
+ 		pte_free_kernel(&init_mm, pgtable);
+@@ -166,7 +169,7 @@ static int vmemmap_remap_range(unsigned
+ 	if (ret)
+ 		return ret;
+ 
+-	if (walk->remap_pte && !(walk->flags & VMEMMAP_REMAP_NO_TLB_FLUSH))
++	if (walk->remap_pte && !(walk->flags & VMEMMAP_DEFER_TLB_FLUSH))
+ 		flush_tlb_kernel_range(start, end);
+ 
+ 	return 0;
+@@ -274,7 +277,7 @@ static int vmemmap_remap_split(unsigned
+ {
+ 	struct vmemmap_remap_walk walk = {
+ 		.remap_pte	= NULL,
+-		.flags		= VMEMMAP_SPLIT_NO_TLB_FLUSH,
++		.flags		= VMEMMAP_DEFER_TLB_FLUSH,
+ 	};
+ 
+ 	return vmemmap_remap_range(start, end, &walk);
+@@ -458,7 +461,7 @@ long hugetlb_vmemmap_restore_folios(cons
+ 	struct folio *folio, *t_folio;
+ 	long restored = 0;
+ 	long ret = 0;
+-	unsigned long flags = VMEMMAP_REMAP_NO_TLB_FLUSH;
++	unsigned long flags = VMEMMAP_DEFER_TLB_FLUSH;
+ 
+ 	list_for_each_entry_safe(folio, t_folio, folio_list, lru) {
+ 		if (folio_test_hugetlb_vmemmap_optimized(folio)) {
+@@ -517,7 +520,7 @@ static int __hugetlb_vmemmap_optimize_fo
  
  	/*
- 	 * The pages which the vmemmap virtual address range [@vmemmap_start,
-@@ -677,8 +677,8 @@ static int __init hugetlb_vmemmap_init(v
- {
- 	const struct hstate *h;
+ 	 * Very Subtle
+-	 * If VMEMMAP_REMAP_NO_TLB_FLUSH is set, TLB flushing is not performed
++	 * If VMEMMAP_DEFER_TLB_FLUSH is set, TLB flushing is not performed
+ 	 * immediately after remapping.  As a result, subsequent accesses
+ 	 * and modifications to struct pages associated with the hugetlb
+ 	 * page could be to the OLD struct pages.  Set the vmemmap optimized
+@@ -596,7 +599,7 @@ void hugetlb_vmemmap_optimize_folios(str
+ 	struct folio *folio;
+ 	unsigned long nr_to_optimize = 0;
+ 	LIST_HEAD(vmemmap_pages);
+-	unsigned long flags = VMEMMAP_REMAP_NO_TLB_FLUSH;
++	unsigned long flags = VMEMMAP_DEFER_TLB_FLUSH;
  
--	/* HUGETLB_VMEMMAP_RESERVE_SIZE should cover all used struct pages */
--	BUILD_BUG_ON(__NR_USED_SUBPAGE > HUGETLB_VMEMMAP_RESERVE_PAGES);
-+	/* VMEMMAP_OPTIMIZATION_NR_STRUCT_PAGES should cover all used struct pages */
-+	BUILD_BUG_ON(__NR_USED_SUBPAGE > VMEMMAP_OPTIMIZATION_NR_STRUCT_PAGES);
- 
- 	for_each_hstate(h) {
- 		if (hugetlb_vmemmap_optimizable(h)) {
---- a/mm/hugetlb_vmemmap.h~mm-hugetlb_vmemmap-remove-hugetlb-specific-vmemmap-optimization-macros
-+++ a/mm/hugetlb_vmemmap.h
-@@ -9,13 +9,7 @@
- #ifndef _LINUX_HUGETLB_VMEMMAP_H
- #define _LINUX_HUGETLB_VMEMMAP_H
- #include <linux/hugetlb.h>
--
--/*
-- * Reserve one vmemmap page, all vmemmap addresses are mapped to it. See
-- * Documentation/mm/vmemmap_dedup.rst.
-- */
--#define HUGETLB_VMEMMAP_RESERVE_SIZE	PAGE_SIZE
--#define HUGETLB_VMEMMAP_RESERVE_PAGES	(HUGETLB_VMEMMAP_RESERVE_SIZE / sizeof(struct page))
-+#include <linux/vmemmap-optimization.h>
- 
- #ifdef CONFIG_HUGETLB_PAGE_OPTIMIZE_VMEMMAP
- int hugetlb_vmemmap_restore_folio(const struct hstate *h, struct folio *folio);
-@@ -37,7 +31,7 @@ static inline unsigned int hugetlb_vmemm
-  */
- static inline unsigned int hugetlb_vmemmap_optimizable_size(const struct hstate *h)
- {
--	int size = hugetlb_vmemmap_size(h) - HUGETLB_VMEMMAP_RESERVE_SIZE;
-+	int size = hugetlb_vmemmap_size(h) - VMEMMAP_OPTIMIZATION_SIZE;
- 
- 	if (!is_power_of_2(sizeof(struct page)))
- 		return 0;
+ 	if (list_empty(folio_list))
+ 		return;
 _
 
 Patches currently in -mm which might be from muchun.song@linux.dev are
