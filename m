@@ -1,45 +1,45 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794023625;
-	b=kZ8kMAMT72WL+GmdUddp28sd+eE33JLKMHEe/MkFiT1KSHinLWecpzIMbY5hhqex4108
-	 VZUigO+6HxYBYFevQJ7GSDYlXnoqzH0SobKU7/8+Vw6KebbWc3HyHzNQc79gLqWlJXUjY
-	 hao3KB6fY5beDCkWtWo0zW6bm7VAeRgSmo1AiMC3X0Uu/QrX56mAMBmN4+VbsQlNUDOtl
-	 8IUr7xao5/yYR8FuBMUwI5h8+sH38EuZuLwjx3KGJT6l7xk7cKY1pQfM76GH8YTUq+xDb
-	 JyQys688r/NOBsxghd4gFqhTdDzKsyuJvKwI/GSfUXVLF7Wvw4infCdIy0M7ynwzw7w==
+	t=1794023631;
+	b=IdTI5GzogRLJRR2OPJ/loTDVZqJHqhhU1cynBtotH2r2sMcDJdX/YZ8dJKHBTaTp/XuU
+	 YPjGjOgxUil7GXkGZb2lQt6vW+szJU0n0ljyxm3DcP9bP6pnIBs151upBfZByqGhF9Hnr
+	 ZSexETgI2sU9MiTdr3W+oDV43zJ8g2vYnC9K3llcImtd2D2pVnO6abtLCvZyR8oznkSMu
+	 L/TJASSH8UcC7H2RIMgTNym8SAPW9N7s2afE7EvbubHg4L6HEanxbYehV4T8vd8RO2nk5
+	 H/8nRBAsHCCI2wPiAHwdphzHiJrLuDRZBF8r0g11GsHcCZ5C8JZoAaP0ozgVW2x/QWQ==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794023625;
+	a=rsa-sha256; c=relaxed/relaxed; t=1794023631;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=qdLxYF2ls1degQjDdPkTsxPE9AtNw/KkL5su9SVT4vU=;
-	b=WZm/fYku4SRvTtomuaq30PyiRFZ/K6RA6uL2lpdM5yJaIbp7MStgwGUsCAgOxg9cuw2y
-	 SJg3V4y9PgB5+0M22ursQXBaJkNYOzXufArGMyiWvHmLjRX7x7Aod1PboMvTCkE9+M6pQ
-	 HNgbzTJeV89naJdy/LsoVuNHDg+AU52deqF3OHgY3N3E8VrHxzJxaCnp2sJOvBEVyGTgs
-	 JAXFhFK+gFyKIqHicuAJg2fV4Dnb1S1gFXvyblBQHrzCoVy/58cu/UgrSMeISjtfPiGHd
-	 qWWUxuDt5fSPi07T1+r2U/ttjqhs/vT2DTxswVYJb6B27/9VrAZKCUt//HeuiiAidyA==
+	bh=HEKXK+YMh0DJ2vZbMLis9jWW3TypKn7aT/H7ThOqKtc=;
+	b=kcZuTdq6Byj4/rtCzRXwgZG0qjGMoz0MMEcQdRyK1x1mgkcTECGQumsPM2rcbnc1WPPA
+	 zldtmvcEMptTJ+ktcZfAEXDkdTiXTFbR8+tKigCbRudELQ5ETB33jDFmIfxiDHapOylsm
+	 5CsxbGnKb7p41EDYVsVmrZradDoBTgp+uPY+L1VU1gJGGNQZtf8eCqeJ5Wp4iquY5B/hE
+	 ytEp3tBOpXjyypbg+etUkXbD5Aj4Fzfi+KCeAMnVv8qO5c+luDgPZf0tLVcXEzPEMrRvI
+	 7cxSYeQb2pN1J2TEUaUjlB7nt93tn3rymDRL7+gPeC1RXgxYjyNXGIJTzp3SNesB71w==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b="uIMQQ/Ax";
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=JMuQ1cH5;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 505D2606A333
-	for <mm-commits@vger.kernel.org>; Sat,  7 Nov 2026 03:53:45 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A8240606A326
+	for <mm-commits@vger.kernel.org>; Sat,  7 Nov 2026 03:53:50 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=uIMQQ/Ax
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1B9801F0089F;
-	Sat,  7 Nov 2026 03:53:45 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=JMuQ1cH5
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 727481F008A1;
+	Sat,  7 Nov 2026 03:53:50 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1794023625;
-	bh=qdLxYF2ls1degQjDdPkTsxPE9AtNw/KkL5su9SVT4vU=;
+	d=linux-foundation.org; s=korg; t=1794023630;
+	bh=HEKXK+YMh0DJ2vZbMLis9jWW3TypKn7aT/H7ThOqKtc=;
 	h=Date:To:From:Subject;
-	b=uIMQQ/Axan/2tf9RN0VFfRPzNHfieIZhxeh0y0h+fl3eW08F4aIhsuQ1OGBU0U8SX
-	 RP5njh6dkXBgdkHTDizEWfk/CbFZC1LdfUy6DT15xyKfrGWtZCsa5ScPUmqM0DwqBQ
-	 vbBvqkJsDY7rUGGiLTlGnO0fY+Q3i87HZ/N0pXVc=
-Date: Fri, 06 Nov 2026 19:53:44 -0800
+	b=JMuQ1cH5LZiwXUQgaH9V3FtDTKXEKSP5QowHuVqDUizr8UbbNFbxa2vqE24A2cH5K
+	 AcO17dJSTzfgZ1wAWYWlH53CH0SBrpDYWPYNvmoKonZEo5lXlrwZJ1FXfppJtTVYvr
+	 Zolxh1TZZxgpo2qev2BRwK5P+7ECfXMxm7lPj42o=
+Date: Fri, 06 Nov 2026 19:53:50 -0800
 To: mm-commits@vger.kernel.org,muchun.song@linux.dev,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-hugetlb_vmemmap-rename-vmemmap_remap_pte-to-vmemmap_optimize_pte.patch added to mm-unstable branch
-Message-Id: <20261107035345.1B9801F0089F@smtp.kernel.org>
+Subject: + mm-hugetlb_vmemmap-move-alloc_vmemmap_page_list-next-to-its-free-helper.patch added to mm-unstable branch
+Message-Id: <20261107035350.727481F008A1@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -51,12 +51,12 @@ Precedence: list
 
 
 The patch titled
-     Subject: mm: hugetlb_vmemmap: rename vmemmap_remap_pte() to vmemmap_optimize_pte()
+     Subject: mm: hugetlb_vmemmap: move alloc_vmemmap_page_list() next to its free helper
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-hugetlb_vmemmap-rename-vmemmap_remap_pte-to-vmemmap_optimize_pte.patch
+     mm-hugetlb_vmemmap-move-alloc_vmemmap_page_list-next-to-its-free-helper.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-hugetlb_vmemmap-rename-vmemmap_remap_pte-to-vmemmap_optimize_pte.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-hugetlb_vmemmap-move-alloc_vmemmap_page_list-next-to-its-free-helper.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -75,17 +75,17 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Muchun Song <muchun.song@linux.dev>
-Subject: mm: hugetlb_vmemmap: rename vmemmap_remap_pte() to vmemmap_optimize_pte()
-Date: Sat, 07 Nov 2026 10:27:50 +0800
+Subject: mm: hugetlb_vmemmap: move alloc_vmemmap_page_list() next to its free helper
+Date: Sat, 07 Nov 2026 10:27:52 +0800
 
-Both optimization and restoration update vmemmap PTEs by remapping them,
-so "remap" does not identify the callback's role.  Use "optimize" for the
-optimization callback to match "restore" and make the two directions
-explicit and consistent.
+Keep alloc_vmemmap_page_list() together with
+free_vmemmap_page_list(). This also allows the folio-oriented
+optimization helper introduced in a subsequent change to reuse the
+allocator without a forward declaration.
 
 No functional change intended.
 
-Link: https://lore.kernel.org/20261107022756.77731-8-songmuchun@bytedance.com
+Link: https://lore.kernel.org/20261107022756.77731-10-songmuchun@bytedance.com
 Signed-off-by: Muchun Song <muchun.song@linux.dev>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 Reviewed-by: Lance Yang <lance.yang@linux.dev>
@@ -101,31 +101,69 @@ Cc: "Oscar Salvador (SUSE)" <osalvador@kernel.org>
 Cc: Huacai Chen <chenhuacai@kernel.org>
 ---
 
- mm/hugetlb_vmemmap.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ mm/hugetlb_vmemmap.c |   44 ++++++++++++++++++++---------------------
+ 1 file changed, 22 insertions(+), 22 deletions(-)
 
---- a/mm/hugetlb_vmemmap.c~mm-hugetlb_vmemmap-rename-vmemmap_remap_pte-to-vmemmap_optimize_pte
+--- a/mm/hugetlb_vmemmap.c~mm-hugetlb_vmemmap-move-alloc_vmemmap_page_list-next-to-its-free-helper
 +++ a/mm/hugetlb_vmemmap.c
-@@ -213,8 +213,8 @@ static struct page *vmemmap_dup_page_fro
- 	return dst;
+@@ -197,6 +197,28 @@ static void free_vmemmap_page_list(struc
+ 		free_vmemmap_page(page);
  }
  
--static void vmemmap_remap_pte(pte_t *pte, unsigned long addr,
--			      struct vmemmap_remap_walk *walk)
-+static void vmemmap_optimize_pte(pte_t *pte, unsigned long addr,
-+		struct vmemmap_remap_walk *walk)
++static int alloc_vmemmap_page_list(struct list_head *head,
++		unsigned int nr_pages, int nid, gfp_t gfp_mask)
++{
++	struct page *page, *next;
++	LIST_HEAD(new_pages);
++
++	for (unsigned int i = 0; i < nr_pages; i++) {
++		page = alloc_pages_node(nid, gfp_mask | __GFP_RETRY_MAYFAIL, 0);
++		if (!page)
++			goto free_pages;
++		list_add(&page->lru, &new_pages);
++	}
++	list_splice(&new_pages, head);
++	memmap_pages_add(nr_pages);
++
++	return 0;
++free_pages:
++	list_for_each_entry_safe(page, next, &new_pages, lru)
++		__free_page(page);
++	return -ENOMEM;
++}
++
+ static struct page *vmemmap_dup_page_from_list(const struct page *src,
+ 		struct list_head *vmemmap_pages)
  {
- 	struct page *page = pte_page(ptep_get(pte));
- 	pte_t entry;
-@@ -302,7 +302,7 @@ static int vmemmap_remap_free(unsigned l
- {
- 	int ret;
- 	struct vmemmap_remap_walk walk = {
--		.remap_pte	= vmemmap_remap_pte,
-+		.remap_pte	= vmemmap_optimize_pte,
- 		.vmemmap_tail	= vmemmap_tail,
- 		.vmemmap_pages	= vmemmap_pages,
- 		.flags		= flags,
+@@ -324,28 +346,6 @@ static int vmemmap_remap_free(unsigned l
+ 	return ret;
+ }
+ 
+-static int alloc_vmemmap_page_list(struct list_head *head,
+-		unsigned int nr_pages, int nid, gfp_t gfp_mask)
+-{
+-	struct page *page, *next;
+-	LIST_HEAD(new_pages);
+-
+-	for (unsigned int i = 0; i < nr_pages; i++) {
+-		page = alloc_pages_node(nid, gfp_mask | __GFP_RETRY_MAYFAIL, 0);
+-		if (!page)
+-			goto free_pages;
+-		list_add(&page->lru, &new_pages);
+-	}
+-	list_splice(&new_pages, head);
+-	memmap_pages_add(nr_pages);
+-
+-	return 0;
+-free_pages:
+-	list_for_each_entry_safe(page, next, &new_pages, lru)
+-		__free_page(page);
+-	return -ENOMEM;
+-}
+-
+ /**
+  * vmemmap_remap_alloc - remap the vmemmap virtual address range [@start, end)
+  *			 to the page which is from the @vmemmap_pages
 _
 
 Patches currently in -mm which might be from muchun.song@linux.dev are
