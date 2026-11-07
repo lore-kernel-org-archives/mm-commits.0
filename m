@@ -1,46 +1,46 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794080397;
-	b=WshpPYGGCO6w+lcbZgK2NjTQsHM6lB+qVbPjqnU+owpR2PrABFrFJuMg3Kt/K3o3rGZk
-	 Aj+FBDoLODgDoIbLAamn4zw0pbY2TN+dblwgtPlqCus3bNDOp3V87NfR/M8SYhK7ATPcC
-	 n8VvvEjfFUAJ2ClG/r5Ac76KZ4OYdVNfSn4ccP4pvDrW4+S4RPaoBMY+vjCRTQy7nqwbY
-	 I7KK6ET4u6LW2FPKdJ2RDPlPfFkXSc3WTLtJTgFToLtxIccm2NyQAKO8rWfgGgKD+cGWZ
-	 eKMtKBS+QvR22eetxmP4x1q6LHegQFzTIkL5qAb9nHulgb6mdBGTP7A2cwkxIiVgzOA==
+	t=1794080423;
+	b=TJxIYXSgp4tEnW/RhiGpE+3PrcnytCoTS0J5fW/Vi7TJxo8rcA9QaGMTY338H7LxaTpF
+	 ee+Q5kGS6zDzccp4stFSij9TtWY6lMe11lYzKoaBHh5oHkm+W/t+9aXLfIPu8iPQ3WWUU
+	 IKJ6bUhNOKu1VLP124PEfyLG7P0WsXuQQhWz+aoOhMFrKuz1jCWR4GwR+7mqc7skE9VoC
+	 uUSachnLg6KTBwNaKiHSa7lAYdv7eU59MsHFuObah7NViyFcnNWeTPZjFGgqnmA8ldxRC
+	 j8BIQ6T05rQO01rd0aPRnPkggKh9Ovs+/71VPvHT0f2hUpRB+nz1WEvVWISU6dryvig==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794080397;
+	a=rsa-sha256; c=relaxed/relaxed; t=1794080423;
 	h=Received:DKIM-Signature:Date:To:Cc:From:Subject:Message-Id;
-	bh=tW04A6ZT+mlwmfgrCBwYs9YUkFFT90YwsNxtJj64G3o=;
-	b=DUbVEFC0w89Pxmv0HzrWv+Gl5rrP3EEIbcIlNZWJcLKeqQyZejp8/hcg1xrInTolXMWH
-	 0yusCMr8DV4u6Ieu5hcLkhP0R9/zwwHSejfI8RXonawj6/YVcpaSfDkzq5yCczfEcWKnj
-	 98ioC3sADMI6F7cH6fY4DRz91GfmroczqoX058GAH4Rg4e6FsQ1ZZgZrlZ2yy6MbljeRQ
-	 NkR7hzXqrDI+ASEW8ehDx9aG9OWK8ZLrPnkDOmPDnamST3jel5KH7YuqzU2mLIR82eFnq
-	 hsJXohDxkI2mp8anZjQ8WxYKPaZhmud8MGl0RyCg5BNoSUZH2atjDFbmSbqk28zn6pQ==
+	bh=sgONjXBdkplxuYm+4rP6wlRdbw0lVtfMOkpWPwEd+9M=;
+	b=CsjIZDpOtkiz/aq1wurzer1UG5TvZthAPSe9RLokfm1wJ2C2cXKR2qf/lGluBz7lkXDO
+	 yhs0Qtpr1iLlATiyY3MCcbosaBUhOjQBstTHTmguWBaa7qKoyBlgd2kFb4/BnYREz0/I8
+	 07xX84JRON4QOAWAl2aTxNyQFZpUzHBs1yz5Jw1av9eqYoX6hFSLosC1wyhGZkLO8/Pfp
+	 v4DEQbKYGOcYuCUzPNeYIyk83+wmlvWC25jW903frBVYXK2nX1r5hmkFOg6arx1+IFWsY
+	 dIRB07Qo6uYQ19O01sGA3ExcZ8bi5DPKd4NZYoCaRiEZpjml6kXdixMibHJLMOB8HVQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=XXoAxkgc;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b="PzgL/I07";
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4F5E8606A326
-	for <mm-commits@vger.kernel.org>; Sat,  7 Nov 2026 19:39:57 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1F8D2606A326
+	for <mm-commits@vger.kernel.org>; Sat,  7 Nov 2026 19:40:22 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=XXoAxkgc
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C154C1F0089F;
-	Sat,  7 Nov 2026 19:39:56 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=PzgL/I07
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7C8DF1F0089F;
+	Sat,  7 Nov 2026 19:40:22 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1794080396;
-	bh=tW04A6ZT+mlwmfgrCBwYs9YUkFFT90YwsNxtJj64G3o=;
+	d=linux-foundation.org; s=korg; t=1794080422;
+	bh=sgONjXBdkplxuYm+4rP6wlRdbw0lVtfMOkpWPwEd+9M=;
 	h=Date:To:Cc:From:Subject;
-	b=XXoAxkgcfTnSZ2kzmgjKvoHDEiXh7kpD/XHH4RNVXgpzG6ZZwKsCWoLFVmihHsYq+
-	 w2OIYpY8nrJMUxTe8h/MZpsFokh5EV27y0SCagkvgSgNfZlmRYHu+gxd+mb21kjzcF
-	 FIbG+clIrX1MIHV6TMKcJuZgi9+7U6nGAEK+fSws=
-Date: Sat, 07 Nov 2026 11:39:56 -0800
-To: mm-commits@vger.kernel.org, akpm@linux-foundation.org
+	b=PzgL/I07uSWeKyOqETBSqy+65o2poAgSRqVeuj+5ThBHoAEoOwWumMstpOnBHkDiV
+	 lTyXpDFcQjch4bXMQSUpMucHBSBnEhjpYyaLtADGCzilbrwcoKRVpAQ5XrIP5ui/9x
+	 yRgT7O5PAmBLavHl6SRImChXYUEYk8YmUvTxohKk=
+Date: Sat, 07 Nov 2026 11:40:22 -0800
+To: mm-commits@vger.kernel.org, ziy@nvidia.com, akpm@linux-foundation.org
 Cc: David Hildenbrand <david@kernel.org>
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged] mm-khugepaged-dont-map-folios-that-are-not-uptodate-in-madv_collapse.patch removed from -mm tree
-Message-Id: <20261107193956.C154C1F0089F@smtp.kernel.org>
+Subject: [merged] mm-huge_memory-prevent-losing-pg_waiters-in-__split_folio_to_order.patch removed from -mm tree
+Message-Id: <20261107194022.7C8DF1F0089F@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -52,72 +52,181 @@ Precedence: list
 
 
 The quilt patch titled
-     Subject: mm/khugepaged: don't map folios that are not uptodate in MADV_COLLAPSE
+     Subject: mm/huge_memory: prevent losing PG_waiters in __split_folio_to_order()
 has been removed from the -mm tree.  Its filename was
-     mm-khugepaged-dont-map-folios-that-are-not-uptodate-in-madv_collapse.patch
+     mm-huge_memory-prevent-losing-pg_waiters-in-__split_folio_to_order.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: "David Hildenbrand (Arm)" <david@kernel.org>
-Subject: mm/khugepaged: don't map folios that are not uptodate in MADV_COLLAPSE
-Date: Thu, 05 Nov 2026 19:16:44 +0100
+From: Zi Yan <ziy@nvidia.com>
+Subject: mm/huge_memory: prevent losing PG_waiters in __split_folio_to_order()
+Date: Fri, 06 Nov 2026 13:28:46 -0500
 
-madvise(MADV_COLLAPSE) can map PMD-sized pagecache folios that are not
-uptodate.  For example, shmem fallocate() can put such folios into the
-page cache.
+__split_folio_to_order() calls prep_compound_page() on each new head page
+to create a compound page after clear_compound_head(). 
+prep_compound_page() uses non atomic __SetPageHead().  It is mostly OK,
+since the folio is locked and frozen and no one else is supposed to modify
+the folio's flags.
 
-collapse_file() already refuses to proceed with folios that are not
-uptodate.  Let's just do the same in try_collapse_pte_mapped_thp() and
-skip such folios, leaving handling to the page faults.
+However, code calling migration_entry_wait() can reach the folio by PFN,
+then access its flags.  It is because softleaf_entry_wait_on_locked() used
+by migration_entry_wait() sets PG_waiters concurrently without taking a
+reference and the frozen refcount during split cannot block it. 
+Meanwhile, __SetPageHead() does a plain read and write, so PG_waiters
+atomically set by softleaf_entry_wait_on_locked() will be lost if the set
+happens after __SetPageHead()'s read and before its write.
 
-Note that collapse_file() effectively clears shmem folios through
-shmem_get_folio(); let's keep this fix simple and simply let the page
-fault path deal with that.
+One example code interleaving:
 
-Link: https://lore.kernel.org/20261105-set_huge_pmd_uptodate-v1-1-a78d8a1b7117@kernel.org
-Fixes: 34488399fa08 ("mm/madvise: add file and shmem support to MADV_COLLAPSE")
-Signed-off-by: David Hildenbrand (Arm) <david@kernel.org>
+CPU0: __split_folio_to_order(new_order>0)  CPU1: do_swap_page()
+
+1. clear_compound_head(new_head)
+   new_head->compound_info = 0
+   (page_folio(new_head) == new_head now)
+
+                                           2. migration_entry_wait()
+                                             softleaf_to_folio(entry)
+                                             page_folio() -> new_head
+                                             (not the old head any more)
+
+3. prep_compound_page(new_head, new_order)
+     __SetPageHead(new_head)
+       tmp = new_head->flags.f  <-- load; PG_waiters == 0 in tmp
+
+                                           4. folio_set_waiters(new_head)
+                                             set_bit(PG_waiters, &flags.f)
+                                             enqueue on waitqueue, sleep
+
+5.     new_head->flags.f = tmp | (1UL << PG_head)
+       <-- store; overwrites step 4, PG_waiters == 0 again
+
+Later, folio_unlock(new_folio) sees no PG_waiters, skips folio_wake_bit(),
+and CPU1 can remain blocked indefinitely.
+
+Fix it by adding the atomic version SetPageHead() and
+prep_compound_page_atomic() using it.  __split_folio_to_order() uses
+prep_compound_page_atomic() to avoid the issue without adding an atomic
+ops to other prep_compound_page() users.
+
+Link: https://lore.kernel.org/20261106-fix-split_folio_to_order-race-v2-1-1b59c67b8af3@nvidia.com
+Fixes: c010d47f107f ("mm: thp: split huge page to any lower order pages")
+Signed-off-by: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Reported-by: Chris Mason <mason@kernel.org>
-Acked-by: Zi Yan <ziy@nvidia.com>
-Reviewed-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
-Acked-by: Hugh Dickins <hughd@google.com>
-Reviewed-by: Zach O'Keefe <zokeefe@google.com>
-Reviewed-by: SJ Park <sj@kernel.org>
-Reviewed-by: Baolin Wang <baolin.wang@linux.alibaba.com>
-Reviewed-by: Lance Yang <lance.yang@linux.dev>
+Reported-by: David Hildenbrand <david@kernel.org>
+Closes: https://lore.kernel.org/all/DMHE8BEEER1H.2BIY52NXATPIA@nvidia.com/
+Acked-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
 Cc: Liam R. Howlett <liam@infradead.org>
+Cc: Vlastimil Babka <vbabka@kernel.org>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
 Cc: Nico Pache <nico.pache@linux.dev>
 Cc: Ryan Roberts <ryan.roberts@arm.com>
 Cc: Dev Jain <dev.jain@arm.com>
 Cc: Barry Song <baohua@kernel.org>
+Cc: Lance Yang <lance.yang@linux.dev>
 Cc: Usama Arif <usama.arif@linux.dev>
 Cc: Kiryl Shutsemau <kas@kernel.org>
+Cc: Brendan Jackman <brendan.jackman@linux.dev>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Ye Liu <ye.liu@linux.dev>
 Cc: <stable@vger.kernel.org>
 ---
 
- mm/khugepaged.c |    6 ++++++
- 1 file changed, 6 insertions(+)
+ include/linux/page-flags.h |    1 +
+ mm/huge_memory.c           |   10 +++++++++-
+ mm/internal.h              |    2 ++
+ mm/page_alloc.c            |   25 +++++++++++++++++++++++--
+ 4 files changed, 35 insertions(+), 3 deletions(-)
 
---- a/mm/khugepaged.c~mm-khugepaged-dont-map-folios-that-are-not-uptodate-in-madv_collapse
-+++ a/mm/khugepaged.c
-@@ -1888,6 +1888,12 @@ static enum scan_result try_collapse_pte
- 		goto drop_folio;
- 	}
+--- a/include/linux/page-flags.h~mm-huge_memory-prevent-losing-pg_waiters-in-__split_folio_to_order
++++ a/include/linux/page-flags.h
+@@ -854,6 +854,7 @@ static __always_inline int PageHead(cons
+ 	return test_bit(PG_head, &page->flags.f);
+ }
  
-+	/* Leave any uninitialized folios to the page fault path. */
-+	if (!folio_test_uptodate(folio)) {
-+		result = SCAN_FAIL;
-+		goto drop_folio;
-+	}
++SETPAGEFLAG(Head, head, PF_ANY)
+ __SETPAGEFLAG(Head, head, PF_ANY)
+ __CLEARPAGEFLAG(Head, head, PF_ANY)
+ CLEARPAGEFLAG(Head, head, PF_ANY)
+--- a/mm/huge_memory.c~mm-huge_memory-prevent-losing-pg_waiters-in-__split_folio_to_order
++++ a/mm/huge_memory.c
+@@ -3779,7 +3779,15 @@ static void __split_folio_to_order(struc
+ 		 */
+ 		clear_compound_head(new_head);
+ 		if (new_order) {
+-			prep_compound_page(new_head, new_order);
++			/*
++			 * new_head is recognized as a folio after
++			 * clear_compound_head().
++			 * softleaf_entry_wait_on_locked() can set PG_waiters
++			 * on it without taking a reference, so its frozen state
++			 * cannot prevent it. Use the atomic version to avoid
++			 * losing a concurrently set PG_waiters.
++			 */
++			prep_compound_page_atomic(new_head, new_order);
+ 			folio_set_large_rmappable(new_folio);
+ 		}
+ 
+--- a/mm/internal.h~mm-huge_memory-prevent-losing-pg_waiters-in-__split_folio_to_order
++++ a/mm/internal.h
+@@ -806,6 +806,8 @@ static inline void prep_compound_tail(st
+ 	VM_WARN_ON_ONCE(tail->private);
+ }
+ 
++void prep_compound_page_atomic(struct page *page, unsigned int order);
 +
- 	result = find_pmd_or_thp_or_none(mm, haddr, &pmd);
- 	switch (result) {
- 	case SCAN_SUCCEED:
+ #if defined CONFIG_COMPACTION || defined CONFIG_CMA
+ 
+ /*
+--- a/mm/page_alloc.c~mm-huge_memory-prevent-losing-pg_waiters-in-__split_folio_to_order
++++ a/mm/page_alloc.c
+@@ -682,18 +682,39 @@ static inline bool pcp_allowed_order(uns
+  * This usage means that zero-order pages may not be compound.
+  */
+ 
+-void prep_compound_page(struct page *page, unsigned int order)
++/* Set up the metadata on head page and tail pages. */
++static void __prep_compound_page(struct page *page, unsigned int order)
+ {
+ 	int i;
+ 	int nr_pages = 1 << order;
+ 
+-	__SetPageHead(page);
+ 	for (i = 1; i < nr_pages; i++)
+ 		prep_compound_tail(page + i, page, order);
+ 
+ 	prep_compound_head(page, order);
+ }
+ 
++/*
++ * PG_head is set non-atomically. It should be used when no one else can modify
++ * @page's flags.
++ */
++void prep_compound_page(struct page *page, unsigned int order)
++{
++	__SetPageHead(page);
++	__prep_compound_page(page, order);
++}
++
++/*
++ * PG_head is set atomically whereas the other metadata is set with plain
++ * stores. It should be used when @page's flags can be modified concurrently,
++ * e.g., in __split_folio_to_order().
++ */
++void prep_compound_page_atomic(struct page *page, unsigned int order)
++{
++	SetPageHead(page);
++	__prep_compound_page(page, order);
++}
++
+ static inline void set_buddy_order(struct page *page, unsigned int order)
+ {
+ 	set_page_private(page, order);
 _
 
-Patches currently in -mm which might be from david@kernel.org are
+Patches currently in -mm which might be from ziy@nvidia.com are
 
-mm-memory-failure-fix-folio-refcount-leak-and-min_order_for_split-locking.patch
 
