@@ -1,49 +1,49 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794034443;
-	b=yFHFfcxI8gFJ9/QYP4BdkmwZu47oddw1O6/+1sXJKgcOsSAKsr0apL/53ZeJTugv7Rap
-	 p5J6Cv+QXBpl0MeyZJprfy3st+yFivxVwy8NwOOnu7wNUlY9WZEOA+iiKXXmaidGIscke
-	 8Y1Nx8Wmk+rbrKbdVVim5PhPcOfINN4gH6QMJD06k6tXYimXvagrAa2g0HOwwOFLjiknz
-	 JWr2NvZAE9QrFMCu4Kjg7UXHck65xYWSMMKPXY/E23ZxXjZwzkNHA3y2oGL6720CoQolZ
-	 l8wf9Mwy8O0GkuNbDxF5LOg9nNgcePx1KS60Za8UJoMoAkbhp6G8qCwaqImhRNxp9xg==
+	t=1794034445;
+	b=5mYCLzfa/rCeeXTN4NOcIiEZIurcyMyp5p/B+XHEVbAbD90o0GutDXx2/YxkV3Xu56JE
+	 x6/nENUgnjgN/ohPh2m8tBclk0Oz+YqLcYfU7mlOrjVJH7F1srhGFoDGeRaKrsQZFnTLh
+	 HqWtJ24QwFUfPsjFxdcNa5rK6Jt0hX2uYZorme00KCvBztvDoOS4QAfYdVa7ZRo1Hhsm8
+	 vGKhMs6jdGf+Y/Yinl17ZavP9tESFfBm64Zr2PHI/Hw4l+IhzB9xsE7kX53Cg9igH0CQ8
+	 EFZ3Dcnng/FXyT25xudMUjFkAlJdMHB+3W1s+42vQk9A+rmDi7xGzzAuErtie1MWc/Q==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794034443;
+	a=rsa-sha256; c=relaxed/relaxed; t=1794034445;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=+Q/oq7pF0tZFp5MMVXv2LB1heS4RFoyMBj44gApFHZY=;
-	b=m0dOLu+MK/mZCyH1PYy04Ds8xI5TsgktjycPe2CqYkL/RcHAnT3JjJEF4LGRb+/QWog2
-	 AZyshKAF001O22D+nlyvS2rmdfncTBMM8+t4PHdaK43wDQloV0RgO9s7xte540FyKVswY
-	 1uHe/wjJtwV+hKt+LopjorfLEhJrq1BX68CT90n1IjfmGpz/Od0T/CGAYV1ZI54elRnEz
-	 ZtLXn6mnjJsUIQavA+kwRYxfY59Weqmh0YrMGRSiz06wHfTBvmWBl9NkKtPlCQn84W88L
-	 rprRMA95kzGuzTCnuJt7wvpDi7s9vsPH5+do1K2y3v8Xu8s98/kqw5rw/n4YY0z7rlA==
+	bh=kUGhiF6J90gZuK5kjHHMjSdxrE0mHoL9Dzod314IJEk=;
+	b=nnc30GvPVnTMSabPqjOENwIAMnEV5+8iVWXV58dT6hzCKEGP3MMT9DdSTcqshouCaIPe
+	 FquMKxg9fSEpO0hkrUmlj0Nwp4vz7AoxcBDey5JQKfOjNTQp5d0HFS/B8lZdvDvY35q48
+	 X42cjH6VxzIe9bSlKG1SThsgCNtb3YGMZU58XKeblTzr+GAfMhxpJvdyov/WPJNACReJk
+	 vUaheJ9FEiOvsYQjKdbKil9Z9acuQTHBfMcAY19y/DpXkfniQs2bKAUapTECt5lXGDcEn
+	 kbEsBlsP95hqRWw20YxGXjv6TYYsPzEH/SR2hbKbVEyhcAZSTO0bGDNfSLFLCXkouJA==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=LFpflY0s;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=F9wMtgtl;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3FE0A606A32C
-	for <mm-commits@vger.kernel.org>; Sat,  7 Nov 2026 06:54:02 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0F204606A326
+	for <mm-commits@vger.kernel.org>; Sat,  7 Nov 2026 06:54:04 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=LFpflY0s
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A3A651F0089F;
-	Sat,  7 Nov 2026 06:54:02 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=F9wMtgtl
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9129E1F0089F;
+	Sat,  7 Nov 2026 06:54:04 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1794034442;
-	bh=+Q/oq7pF0tZFp5MMVXv2LB1heS4RFoyMBj44gApFHZY=;
+	d=linux-foundation.org; s=korg; t=1794034444;
+	bh=kUGhiF6J90gZuK5kjHHMjSdxrE0mHoL9Dzod314IJEk=;
 	h=Date:To:From:Subject;
-	b=LFpflY0sZvHgHdhSKfPIs+GdUa0Qupta6uKQUZyoSqxnzmeYnuxI+gAPar31hMBLy
-	 2KIAloes7BeonJwOY2GoA6oRT5q3nxgypuMnGJr0+IT0xsThkB2InaK42o82/2k/JZ
-	 AWHX++sArdHvpSuNKySQxAZIRo8uIKkAARgtRads=
-Date: Fri, 06 Nov 2026 22:54:02 -0800
+	b=F9wMtgtlCW10MujQ7ynt96Dn2sjOBIDsxnxPkwgjBJN+4Nk5OSdLSmQsaq76c3V/P
+	 lqOwQKiY2DiYvbypJF7ntDJvBdCZlekLYgRxB0w4mVXQHR3o2TfMMa3n0HuJB3EpYS
+	 luYNFmJ964wMvxxc4CxhDleSEl8BX/dO52kIrD+Q=
+Date: Fri, 06 Nov 2026 22:54:04 -0800
 To: mm-commits@vger.kernel.org,sshegde@linux.ibm.com,rppt@kernel.org,
 	ritesh.list@gmail.com,qi.zheng@linux.dev,osalvador@suse.de,npiggin@gmail.com,
 	mpe@ellerman.id.au,maddy@linux.ibm.com,lance.yang@linux.dev,
 	kernel@xen0n.name,david@kernel.org,chleroy@kernel.org,chenhuacai@kernel.org,
 	muchun.song@linux.dev,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + loongarch-mm-disable-device-dax-vmemmap-optimization.patch added to mm-new branch
-Message-Id: <20261107065402.A3A651F0089F@smtp.kernel.org>
+Subject: + mm-sparse-vmemmap-drop-vmemmap_can_optimize.patch added to mm-new branch
+Message-Id: <20261107065404.9129E1F0089F@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -55,12 +55,12 @@ Precedence: list
 
 
 The patch titled
-     Subject: loongarch/mm: disable device DAX vmemmap optimization
+     Subject: mm/sparse-vmemmap: drop vmemmap_can_optimize()
 has been added to the -mm mm-new branch.  Its filename is
-     loongarch-mm-disable-device-dax-vmemmap-optimization.patch
+     mm-sparse-vmemmap-drop-vmemmap_can_optimize.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/loongarch-mm-disable-device-dax-vmemmap-optimization.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-sparse-vmemmap-drop-vmemmap_can_optimize.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -90,22 +90,15 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Muchun Song <muchun.song@linux.dev>
-Subject: loongarch/mm: disable device DAX vmemmap optimization
-Date: Sat, 07 Nov 2026 12:31:20 +0800
+Subject: mm/sparse-vmemmap: drop vmemmap_can_optimize()
+Date: Sat, 07 Nov 2026 12:31:21 +0800
 
-LoongArch selects ARCH_WANT_OPTIMIZE_HUGETLB_VMEMMAP but not
-ARCH_WANT_OPTIMIZE_DAX_VMEMMAP. Its vmemmap_free() implementation is also
-empty, so it cannot tear down optimized Device DAX mappings.
+section_vmemmap_optimizable() can already decide whether a section uses
+vmemmap optimization based on the section compound order. The DAX-specific
+vmemmap_can_optimize() helper duplicates that policy, so remove it to
+simplify the code.
 
-A later change removes the generic Device DAX architecture gate and lets
-vmemmap_populate() decide whether a section can use optimization. Clear the
-section compound order in the LoongArch path so Device DAX keeps using
-unoptimized mappings.
-
-This does not affect HugeTLB HVO: LoongArch does not support gigantic
-pages, so HugeTLB does not use section-based vmemmap optimization there.
-
-Link: https://lore.kernel.org/20261107043122.25650-4-songmuchun@bytedance.com
+Link: https://lore.kernel.org/20261107043122.25650-5-songmuchun@bytedance.com
 Signed-off-by: Muchun Song <muchun.song@linux.dev>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 Cc: David Hildenbrand <david@kernel.org>
@@ -123,27 +116,134 @@ Cc: Huacai Chen <chenhuacai@kernel.org>
 Cc: WANG Xuerui <kernel@xen0n.name>
 ---
 
- arch/loongarch/mm/init.c |    2 ++
- 1 file changed, 2 insertions(+)
+ include/linux/mm.h                   |   37 -------------------------
+ include/linux/vmemmap-optimization.h |   25 +++++++++-------
+ mm/sparse-vmemmap.c                  |    6 ++--
+ 3 files changed, 18 insertions(+), 50 deletions(-)
 
---- a/arch/loongarch/mm/init.c~loongarch-mm-disable-device-dax-vmemmap-optimization
-+++ a/arch/loongarch/mm/init.c
-@@ -15,6 +15,7 @@
- #include <linux/memblock.h>
- #include <linux/memremap.h>
- #include <linux/mm.h>
-+#include <linux/vmemmap-optimization.h>
- #include <linux/mman.h>
- #include <linux/highmem.h>
- #include <linux/swap.h>
-@@ -143,6 +144,7 @@ void __meminit vmemmap_set_pmd(pmd_t *pm
- int __meminit vmemmap_populate(unsigned long start, unsigned long end,
- 			       int node, struct vmem_altmap *altmap)
+--- a/include/linux/mm.h~mm-sparse-vmemmap-drop-vmemmap_can_optimize
++++ a/include/linux/mm.h
+@@ -38,7 +38,6 @@
+ #include <linux/bitops.h>
+ #include <linux/iommu-debug-pagealloc.h>
+ #include <linux/kcsan-checks.h>
+-#include <linux/vmemmap-optimization.h>
+ 
+ struct mempolicy;
+ struct anon_vma;
+@@ -5385,42 +5384,6 @@ static inline void vmem_altmap_free(stru
+ }
+ #endif
+ 
+-#ifdef CONFIG_ARCH_WANT_OPTIMIZE_DAX_VMEMMAP
+-static inline bool __vmemmap_can_optimize(struct vmem_altmap *altmap,
+-					  struct dev_pagemap *pgmap)
+-{
+-	unsigned long nr_pages;
+-	unsigned long nr_vmemmap_pages;
+-
+-	if (!IS_ENABLED(CONFIG_VMEMMAP_OPTIMIZATION))
+-		return false;
+-
+-	if (!pgmap || !is_power_of_2(sizeof(struct page)))
+-		return false;
+-
+-	nr_pages = pgmap_vmemmap_nr(pgmap);
+-	nr_vmemmap_pages = ((nr_pages * sizeof(struct page)) >> PAGE_SHIFT);
+-	/*
+-	 * For vmemmap optimization with DAX we need minimum 2 vmemmap
+-	 * pages. See layout diagram in Documentation/mm/vmemmap_dedup.rst
+-	 */
+-	return !altmap && (nr_vmemmap_pages > VMEMMAP_OPTIMIZATION_PAGES);
+-}
+-/*
+- * If we don't have an architecture override, use the generic rule
+- */
+-#ifndef vmemmap_can_optimize
+-#define vmemmap_can_optimize __vmemmap_can_optimize
+-#endif
+-
+-#else
+-static inline bool vmemmap_can_optimize(struct vmem_altmap *altmap,
+-					   struct dev_pagemap *pgmap)
+-{
+-	return false;
+-}
+-#endif
+-
+ enum mf_flags {
+ 	MF_COUNT_INCREASED = 1 << 0,
+ 	MF_ACTION_REQUIRED = 1 << 1,
+--- a/include/linux/vmemmap-optimization.h~mm-sparse-vmemmap-drop-vmemmap_can_optimize
++++ a/include/linux/vmemmap-optimization.h
+@@ -31,6 +31,17 @@
+ #define VMEMMAP_OPTIMIZATION_NR_STRUCT_PAGES	(VMEMMAP_OPTIMIZATION_SIZE / sizeof(struct page))
+ #define VMEMMAP_OPTIMIZATION_MIN_ORDER		(ilog2(VMEMMAP_OPTIMIZATION_NR_STRUCT_PAGES) + 1)
+ 
++static inline bool vmemmap_optimizable_order(unsigned int order)
++{
++	if (!IS_ENABLED(CONFIG_VMEMMAP_OPTIMIZATION))
++		return false;
++
++	if (!is_power_of_2(sizeof(struct page)))
++		return false;
++
++	return order >= VMEMMAP_OPTIMIZATION_MIN_ORDER;
++}
++
+ #ifdef CONFIG_VMEMMAP_OPTIMIZATION
+ static inline unsigned int section_compound_order(const struct mem_section *section)
  {
-+	section_vmemmap_optimization_disable(start, end);
- #if CONFIG_PGTABLE_LEVELS == 2
- 	return vmemmap_populate_basepages(start, end, node, NULL);
- #else
+@@ -40,6 +51,9 @@ static inline unsigned int section_compo
+ static inline void section_set_compound_order(struct mem_section *section,
+ 					      unsigned int order)
+ {
++	if (order && !vmemmap_optimizable_order(order))
++		return;
++
+ 	VM_WARN_ON(section_compound_order(section) && order &&
+ 		   section_compound_order(section) != order);
+ 	section->compound_page_order = order;
+@@ -109,15 +123,4 @@ static inline bool vmemmap_optimizable_p
+ 
+ 	return (pfn & (nr_pages - 1)) >= VMEMMAP_OPTIMIZATION_NR_STRUCT_PAGES;
+ }
+-
+-static inline bool vmemmap_optimizable_order(unsigned int order)
+-{
+-	if (!IS_ENABLED(CONFIG_VMEMMAP_OPTIMIZATION))
+-		return false;
+-
+-	if (!is_power_of_2(sizeof(struct page)))
+-		return false;
+-
+-	return order >= VMEMMAP_OPTIMIZATION_MIN_ORDER;
+-}
+ #endif /* _LINUX_VMEMMAP_OPTIMIZATION_H */
+--- a/mm/sparse-vmemmap.c~mm-sparse-vmemmap-drop-vmemmap_can_optimize
++++ a/mm/sparse-vmemmap.c
+@@ -490,6 +490,9 @@ struct page * __meminit __populate_secti
+ 		!IS_ALIGNED(nr_pages, PAGES_PER_SUBSECTION)))
+ 		return NULL;
+ 
++	/* Altmap-backed vmemmap pages cannot be optimized. */
++	if (altmap)
++		section_vmemmap_optimization_disable(start, end);
+ 	r = vmemmap_populate(start, end, nid, altmap);
+ 	if (r < 0)
+ 		return NULL;
+@@ -717,10 +720,9 @@ static struct page * __meminit section_a
+ 	struct mem_section *ms = __pfn_to_section(pfn);
+ 	struct mem_section_usage *usage = NULL;
+ 	struct page *memmap;
+-	unsigned int order;
++	unsigned int order = pgmap ? pgmap->vmemmap_shift : 0;
+ 	int rc;
+ 
+-	order = vmemmap_can_optimize(altmap, pgmap) ? pgmap->vmemmap_shift : 0;
+ 	if (nr_pages < PAGES_PER_SECTION && section_compound_order(ms))
+ 		return ERR_PTR(-EOPNOTSUPP);
+ 
 _
 
 Patches currently in -mm which might be from muchun.song@linux.dev are
