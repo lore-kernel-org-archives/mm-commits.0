@@ -1,46 +1,47 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794101970;
-	b=Z30TuH5uc7PMVTtm3kUuak8poKiOvhYhJJzLJ46fQau/HNhvWBb79YdurE++bD2WtkIb
-	 CFwccHis/jAaVb84oY/I/vLN1E9krENTZCNJJqW6xhvVw4v7Y79Kod8KJ2DPjG/UOzaEp
-	 AMeim1w/+J4yISS4mXyGl/DKCW0BR1BHhfqdxW/x/ZpCaL32nn9ZDP1y+6ZCF19z8m6Aq
-	 IovQOAC/ejtfAuuNlbO8H91EntJLXBpQ4GKhwIUspTIGLur60ucHPJTK9E8/0LIjP44AI
-	 HwAPYlSoJz00v05Mtu3oHGge+1RM7zu+igAbINQe8oFmRnj1k38/KWJf9hwoJ+YscSw==
+	t=1794102568;
+	b=WwhnQdHr9M4mQkbPGRF8l4YPXyiKgJyMESR59mrV+SsyrOtctvKOe0MCNXCD++8nfvdS
+	 66hU9sUHnOcQI3gKLoQoiEL6e+3R10p1YK/fS5ObR6IdGgLcVtBLgEezZ2TE+fubh0EYs
+	 VlbnweZ1ro8JXzDjgcM5XMmf7cjuiWY1KqDYvafUfk/oKvK+rG0zHxsx56fX9lRenVPaf
+	 J8hlik3rdvr2gU1lPDde++O8kGTHe4Kk+WosLdHChgO4WL64I8+UJOEIseH7uMPjzm8x/
+	 B6PralU8eyFHKAkeArKVdMPefEjF8c4eLi6k8xvfCaOMwn1F5KNH3OFkVlYt05n0Nvw==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794101970;
-	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=rM9OLcq6xIbwIW732XxG0TxQWzeqvLWK011IfvsNK/0=;
-	b=WeCvD5zpktk7Wz6QOAQBbrqN/8pGMO6rDIqC40QEM3ABxAiFWVFF+kocxq49nIOgogHr
-	 eleKovRah0xM4TBAHQNWRVFt/4fsTZKFP6O9voaispQmA3E+KQfBYruMXNLGe9sHNTi6x
-	 GMhxkclQj9W7TzzShrvBRNDrr1+/aiKJ8U2qOMtcEtowQ9P0FhtIDC8v3+CdOdn/dLk4t
-	 rsSabua5ZtqT/PZnjNnlo2KuUUATZryLSbZ570bOzNlYMF6nQryZshu835x0dIsXi2P1O
-	 C1mXoNhNMr/XnvLhNhSJIEjNnnYZ8mqukzvP/rclDqFwwVqbKbPciTlDWiSenlAtzPQ==
+	a=rsa-sha256; c=relaxed/relaxed; t=1794102568;
+	h=Received:DKIM-Signature:Date:To:Cc:From:Subject:Message-Id;
+	bh=ePcctJCGDaQhlk+vHIsOwERuOvZ0TmfgRQxfSTAqvD4=;
+	b=Wo8++0GWVqyY9tf1nyKpaeYyBhrNRKed5DVKSSc1MrdrgY45JlQXlZjpwpvpWhGpShQi
+	 Kn74NWpj26eVRei5DE5UfGq0awfj1WCepDhwvbq4BYBC2ZaXJqxXE+5VV+THiBoO0ARbG
+	 Q/AAFinECcg0F2gpw5A+wAkD0blvb3zfssbg25hBr+R3KkVFEgab8IQ46pUvQWZI7rjPN
+	 4txxJpbhG5m5eESaKoGzgA//IwHXGGNfscuzVjIhLnzhFQk7vsCFZfkGGekDrkQ8Mpo0m
+	 xwwzhogc/gUheTtZSjgX1rNGC+mECaCdPIJJ3bBHfGNTZwkHDbEfchtQSco+JNioYIQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b="hNihAi/T";
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=hzai4kAC;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 309E1606A326
-	for <mm-commits@vger.kernel.org>; Sun,  8 Nov 2026 01:39:29 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 06DCE606A31C
+	for <mm-commits@vger.kernel.org>; Sun,  8 Nov 2026 01:49:27 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=hNihAi/T
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 91BE21F0089F;
-	Sun,  8 Nov 2026 01:39:29 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=hzai4kAC
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6CB6A1F0089F;
+	Sun,  8 Nov 2026 01:49:27 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1794101969;
-	bh=rM9OLcq6xIbwIW732XxG0TxQWzeqvLWK011IfvsNK/0=;
-	h=Date:To:From:Subject;
-	b=hNihAi/T1UB/CQpDHJH+JVd6YjbvuQ41yBWhyHYj8XJNOed6n7cw5twW0/CHhzLiR
-	 O9swsqkxXNnuzJhQpQ3ilMm2XgSx1NctjqmC6cFncnrXTiTa29yjZzK0p7rKFy0pwz
-	 EYJ4ii658PV4aAjoeyYkwIz0oyaOmXGsbhKD9/ac=
-Date: Sat, 07 Nov 2026 17:39:28 -0800
-To: mm-commits@vger.kernel.org,phillip@squashfs.org.uk,
-	ngocthang2710.1999@gmail.com,akpm@linux-foundation.org
+	d=linux-foundation.org; s=korg; t=1794102567;
+	bh=ePcctJCGDaQhlk+vHIsOwERuOvZ0TmfgRQxfSTAqvD4=;
+	h=Date:To:Cc:From:Subject;
+	b=hzai4kACrCviT/4say4rGgir+R6/aSoza2amacxAoHTw8femNuiiKSoibhAS3mXtn
+	 3r5mT8D+wB06w/yxxvSD8p7SbNXNRDi7X6049VjmfOXWj/RHnqtkb/e7gFIiW5KQgW
+	 HTZhSh1SOZ8Q78X+pK/j07UOhhKIMt6R4633NdIk=
+Date: Sat, 07 Nov 2026 17:49:27 -0800
+To:
+ mm-commits@vger.kernel.org, joannelkoong@gmail.com, akpm@linux-foundation.org
+Cc: David Hildenbrand <david@kernel.org>
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + squashfs-fix-leaked-page-locks-when-page-actor-allocation-fails-fix.patch added to mm-nonmm-unstable branch
-Message-Id: <20261108013929.91BE21F0089F@smtp.kernel.org>
+Subject: [to-be-updated] mm-huge_memory-scale-thp_underused-to-the-folio-size.patch removed from -mm tree
+Message-Id: <20261108014927.6CB6A1F0089F@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -51,69 +52,158 @@ List-Owner: <mailto:mm-commits+owner@vger.kernel.org>
 Precedence: list
 
 
-The patch titled
-     Subject: squashfs-fix-leaked-page-locks-when-page-actor-allocation-fails-fix
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     squashfs-fix-leaked-page-locks-when-page-actor-allocation-fails-fix.patch
+The quilt patch titled
+     Subject: mm/huge_memory: scale thp_underused() to the folio size
+has been removed from the -mm tree.  Its filename was
+     mm-huge_memory-scale-thp_underused-to-the-folio-size.patch
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/squashfs-fix-leaked-page-locks-when-page-actor-allocation-fails-fix.patch
-
-This patch will later appear in the mm-nonmm-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via various
-branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there most days
+This patch was dropped because an updated version will be issued
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: squashfs-fix-leaked-page-locks-when-page-actor-allocation-fails-fix
-Date: Sat Nov  7 05:37:42 PM PST 2026
+From: Joanne Koong <joannelkoong@gmail.com>
+Subject: mm/huge_memory: scale thp_underused() to the folio size
+Date: Tue, 03 Nov 2026 13:20:01 -0800
 
-build fix
+Patch series "mm: split underused anonymous mTHP folios", v4.
 
+PMD-sized THPs that are mostly zero-filled are reclaimed under memory
+pressure by the deferred split shrinker, but this is not done for mTHP
+folios. At Meta we would like to deploy 2M THP=always on arm64 with 64k
+base pages, as 2M provides the contpte benefits while the PMD size there
+(512M) is too big to use. However, 2M THP=always causes memory regressions
+unless the unused portions of those folios can be broken down and
+reclaimed.
+
+This series lets the underused shrinker handle anonymous mTHP folios. It has
+four patches:
+
+Patch 1 makes thp_underused() folio-size-aware. It scales
+khugepaged/max_ptes_none to the folio size, so every folio tolerates the same
+fraction of zero-filled pages.
+
+Patch 2 stops queueing folios for underused splitting when
+khugepaged/max_ptes_none is at its default maximum, where the shrinker
+would never split them anyway. This applies to PMD-sized folios too,
+which are unconditionally queued today.
+
+Patch 3 keeps thp_underused_split_page counting only PMD-sized folios and
+adds a per-order split_underused counter, matching how thp_split_page and
+thp_deferred_split_page are handled.
+
+Patch 4 queues anonymous mTHP folios on the deferred split list, with a
+hard-coded 2M minimum folio size as suggested by Barry. PMD-sized folios are
+exempt from the minimum, since on s390 the PMD size is 1M.
+
+At the default khugepaged/max_ptes_none, no folio is queued for underused
+splitting. Once it's lowered, mTHP folios of at least 2M are queued along with
+PMD-sized folios.
+
+
+This patch (of 4):
+
+thp_underused() decides whether a large folio on the deferred split list
+is underused and should be split so that its zero-filled subpages can be
+reclaimed.
+
+Today it only ever runs on PMD-sized folios, so it assumes that the
+folio has HPAGE_PMD_NR pages and compares the zero-filled page count
+directly against khugepaged_max_ptes_none. A later patch will queue
+anonymous mTHP folios onto the deferred split list as well, at which
+point that assumption will no longer hold.
+
+Make thp_underused() folio-size-aware, and scale
+khugepaged_max_ptes_none proportionally to the number of pages in the
+folio (eg every folio tolerates the same fraction of zero-filled pages
+the user configured for a PMD-sized folio).
+
+khugepaged deliberately doesn't scale intermediate values when
+collapsing to mTHP orders (to avoid the memory footprint creeping up
+through repeated collapses), but if/when collapse later gains support
+for intermediate values, a folio that khugepaged collapses won't then be
+split right back by the shrinker (and vice versa) since both collapse
+and split would use the same threshold for a given folio size.
+
+There is no functional change for PMD-sized folios, as for those,
+nr_pages is HPAGE_PMD_NR.
+
+Link: https://lore.kernel.org/20261103212004.1356327-1-joannelkoong@gmail.com
+Link: https://lore.kernel.org/20261103212004.1356327-2-joannelkoong@gmail.com
+Signed-off-by: Joanne Koong <joannelkoong@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Cc: Nguyen Ngoc Thang <ngocthang2710.1999@gmail.com>
-Cc: Phillip Lougher <phillip@squashfs.org.uk>
+Suggested-by: Usama Arif <usama.arif@linux.dev>
+Tested-by: Andrew Morton <akpm@linux-foundation.org>
+Cc: David Hildenbrand <david@kernel.org>
+Cc: Lorenzo Stoakes <ljs@kernel.org>
+Cc: Barry Song <baohua@kernel.org>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Kiryl Shutsemau <kas@kernel.org>
+Cc: Alexandre Ghiti <alex@ghiti.fr>
+Cc: Zi Yan <ziy@nvidia.com>
+Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
+Cc: Liam R. Howlett <liam@infradead.org>
+Cc: Nico Pache <nico.pache@linux.dev>
+Cc: Ryan Roberts <ryan.roberts@arm.com>
+Cc: Dev Jain <dev.jain@arm.com>
+Cc: Lance Yang <lance.yang@linux.dev>
+Cc: Vlastimil Babka <vbabka@kernel.org>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
 ---
 
- fs/squashfs/file_direct.c |    1 -
- 1 file changed, 1 deletion(-)
+ mm/huge_memory.c |   20 ++++++++++++++------
+ 1 file changed, 14 insertions(+), 6 deletions(-)
 
---- a/fs/squashfs/file_direct.c~squashfs-fix-leaked-page-locks-when-page-actor-allocation-fails-fix
-+++ a/fs/squashfs/file_direct.c
-@@ -118,7 +118,6 @@ mark_errored:
- 		put_page(page[i]);
- 	}
+--- a/mm/huge_memory.c~mm-huge_memory-scale-thp_underused-to-the-folio-size
++++ a/mm/huge_memory.c
+@@ -4617,25 +4617,33 @@ static unsigned long deferred_split_coun
  
--out:
- 	kfree(page);
- 	return res;
- }
+ static bool thp_underused(struct folio *folio)
+ {
+-	int num_zero_pages = 0, num_filled_pages = 0;
+-	int i;
++	const unsigned long nr_pages = folio_nr_pages(folio);
++	unsigned long num_zero_pages = 0, num_filled_pages = 0;
++	unsigned long max_ptes_none = khugepaged_max_ptes_none;
++	unsigned long i;
+ 
+-	if (khugepaged_max_ptes_none == HPAGE_PMD_NR - 1)
++	if (max_ptes_none == HPAGE_PMD_NR - 1)
+ 		return false;
+ 
+ 	if (folio_contain_hwpoisoned_page(folio))
+ 		return false;
+ 
+-	for (i = 0; i < folio_nr_pages(folio); i++) {
++	/*
++	 * khugepaged_max_ptes_none is a number of pages out of HPAGE_PMD_NR.
++	 * Scale it to this folio's size.
++	 */
++	max_ptes_none = max_ptes_none * nr_pages / HPAGE_PMD_NR;
++
++	for (i = 0; i < nr_pages; i++) {
+ 		if (pages_identical(folio_page(folio, i), ZERO_PAGE(0))) {
+-			if (++num_zero_pages > khugepaged_max_ptes_none)
++			if (++num_zero_pages > max_ptes_none)
+ 				return true;
+ 		} else {
+ 			/*
+ 			 * Another path for early exit once the number
+ 			 * of non-zero filled pages exceeds threshold.
+ 			 */
+-			if (++num_filled_pages >= HPAGE_PMD_NR - khugepaged_max_ptes_none)
++			if (++num_filled_pages >= nr_pages - max_ptes_none)
+ 				return false;
+ 		}
+ 	}
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from joannelkoong@gmail.com are
 
-mm-mempolicy-use-one-node-set-for-interleave-weights.patch
-maple_tree-fix-reverse-iterator-state-when-the-root-disappears.patch
-shmem-consume-the-reserved-xattr-space-despite-remount.patch
-selftests-mm-check-madv_cold-and-madv_pageout-on-partly-advised-thps-fix.patch
-alloc_tag-introduce-ioctls-to-toggle-allocation-tracepoints-fix-fix.patch
-alloc_tag-introduce-ioctls-to-toggle-allocation-tracepoints-fix.patch
-mm-filemap-convert-fault-and-readahead-logic-to-use-vma_flags_t-fix.patch
-mm-filemap-convert-fault-and-readahead-logic-to-use-vma_flags_t-fix-fix.patch
-profile-account-for-partial-proc-profile-reads.patch
-profile-simplify-proc-profile-read-layout.patch
-ipc-msg-clamp-negative-msg_info-usage-counts.patch
-squashfs-fix-leaked-page-locks-when-page-actor-allocation-fails-fix.patch
-drivers-media-v4l2-core-v4l2-vp9c-reduce-inlining.patch
+memcg-reduce-cacheline-contention-between-lruvec-stat-updates-and-lru-lists.patch
+memcg-dont-go-through-the-lruvec-for-folio-and-kmem-lruvec-stat-updates.patch
+mm-huge_memory-dont-queue-folios-when-underused-splitting-is-inactive.patch
+mm-huge_memory-add-a-per-order-counter-for-underused-splits.patch
+mm-add-anonymous-mthp-folios-to-the-deferred-split-list.patch
 
