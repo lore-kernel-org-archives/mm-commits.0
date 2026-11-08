@@ -1,47 +1,47 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794102568;
-	b=WwhnQdHr9M4mQkbPGRF8l4YPXyiKgJyMESR59mrV+SsyrOtctvKOe0MCNXCD++8nfvdS
-	 66hU9sUHnOcQI3gKLoQoiEL6e+3R10p1YK/fS5ObR6IdGgLcVtBLgEezZ2TE+fubh0EYs
-	 VlbnweZ1ro8JXzDjgcM5XMmf7cjuiWY1KqDYvafUfk/oKvK+rG0zHxsx56fX9lRenVPaf
-	 J8hlik3rdvr2gU1lPDde++O8kGTHe4Kk+WosLdHChgO4WL64I8+UJOEIseH7uMPjzm8x/
-	 B6PralU8eyFHKAkeArKVdMPefEjF8c4eLi6k8xvfCaOMwn1F5KNH3OFkVlYt05n0Nvw==
+	t=1794102569;
+	b=Trzs3o/j1nrhsBeaSUkgIvcZT324Q0mxu90fxmSha22UpyKKhxicCpicbJ36EkQZUoXx
+	 nKXnjSBaMt3KZIjs2kJr+b88vFuxbzVXHfltArZSgLCfIeUeqFLqVLGeS0ptUXhCmN8Ae
+	 ftbdU6bKxOxsyTsa43z8+bxDgwcIBm8DChQE3cE+Wnls+lkm1DoeTIplISFiBRiUJwITB
+	 4Nd7TYjV2PUDg6POEzPlheu9KMP9Sgxt4DCmfIpsq/U5GzbHkVSa5Ac9DiUnipSoUYWTE
+	 xWAH3MTuzoueWiLff4Nwi05EgdBPu5ruYBFaid3R02JTcNjakjNxh777uNx/PJfqEHA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794102568;
+	a=rsa-sha256; c=relaxed/relaxed; t=1794102569;
 	h=Received:DKIM-Signature:Date:To:Cc:From:Subject:Message-Id;
-	bh=ePcctJCGDaQhlk+vHIsOwERuOvZ0TmfgRQxfSTAqvD4=;
-	b=Wo8++0GWVqyY9tf1nyKpaeYyBhrNRKed5DVKSSc1MrdrgY45JlQXlZjpwpvpWhGpShQi
-	 Kn74NWpj26eVRei5DE5UfGq0awfj1WCepDhwvbq4BYBC2ZaXJqxXE+5VV+THiBoO0ARbG
-	 Q/AAFinECcg0F2gpw5A+wAkD0blvb3zfssbg25hBr+R3KkVFEgab8IQ46pUvQWZI7rjPN
-	 4txxJpbhG5m5eESaKoGzgA//IwHXGGNfscuzVjIhLnzhFQk7vsCFZfkGGekDrkQ8Mpo0m
-	 xwwzhogc/gUheTtZSjgX1rNGC+mECaCdPIJJ3bBHfGNTZwkHDbEfchtQSco+JNioYIQ==
+	bh=PzH5O1Rq8jtMw3afyS/aAZhR1XNqFicLFkiQPIsEBak=;
+	b=fHsx3jT2r8d3Bv+NJJbRlJTB4Pll/9KpXV0uFI7tbeI6LKXjtfMzFRH+nUyursovWgmg
+	 c2FeNmk9D4qUR8bzhxx/9jdi4mivqKtCEL9Pwj/lJYaVBTZJY2HExBdaldQ5VIRwMtbKq
+	 7RI2qzE0KkLrzWUom9nR77YX3lGPwQTGGcAd7mBAqgzMbLcRnqrIsWW9dFz5F4cTUVaNU
+	 Wgt2E+Lh71KfYpQLkTOJKuRIdmLPM7iECeWA9CBdmpEyKHS4BhocnVEjepLaDru2Sjwe0
+	 OyZYQfyJPV5Jl0pP1hN/f9fgAVTkuHvtJnJZEfkVLLcNrif61m+6wJYjVUn/oqLmUnQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=hzai4kAC;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=wuQLIrid;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 06DCE606A31C
-	for <mm-commits@vger.kernel.org>; Sun,  8 Nov 2026 01:49:27 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5249D606A31C
+	for <mm-commits@vger.kernel.org>; Sun,  8 Nov 2026 01:49:29 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=hzai4kAC
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6CB6A1F0089F;
-	Sun,  8 Nov 2026 01:49:27 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=wuQLIrid
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 049021F0089F;
+	Sun,  8 Nov 2026 01:49:28 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1794102567;
-	bh=ePcctJCGDaQhlk+vHIsOwERuOvZ0TmfgRQxfSTAqvD4=;
+	d=linux-foundation.org; s=korg; t=1794102569;
+	bh=PzH5O1Rq8jtMw3afyS/aAZhR1XNqFicLFkiQPIsEBak=;
 	h=Date:To:Cc:From:Subject;
-	b=hzai4kACrCviT/4say4rGgir+R6/aSoza2amacxAoHTw8femNuiiKSoibhAS3mXtn
-	 3r5mT8D+wB06w/yxxvSD8p7SbNXNRDi7X6049VjmfOXWj/RHnqtkb/e7gFIiW5KQgW
-	 HTZhSh1SOZ8Q78X+pK/j07UOhhKIMt6R4633NdIk=
-Date: Sat, 07 Nov 2026 17:49:27 -0800
+	b=wuQLIridhwfjt+GXUPJvafo3Brf2MKZNVcwR9SCXGH9vrtQm1H4SbLzZSz8iitTFc
+	 ZEHkaxFp8KVRne3xhzlIcSXwxUw9YJnfM9lhhgVkC2cj/NnKk/cEjNgYsP7kQyyOd4
+	 CT8a0hs5gx4tZ2lNFrkL/tv5q3OgPBjd4DwA2opw=
+Date: Sat, 07 Nov 2026 17:49:28 -0800
 To:
  mm-commits@vger.kernel.org, joannelkoong@gmail.com, akpm@linux-foundation.org
 Cc: David Hildenbrand <david@kernel.org>
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [to-be-updated] mm-huge_memory-scale-thp_underused-to-the-folio-size.patch removed from -mm tree
-Message-Id: <20261108014927.6CB6A1F0089F@smtp.kernel.org>
+Subject: [to-be-updated] mm-huge_memory-dont-queue-folios-when-underused-splitting-is-inactive.patch removed from -mm tree
+Message-Id: <20261108014929.049021F0089F@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -53,89 +53,55 @@ Precedence: list
 
 
 The quilt patch titled
-     Subject: mm/huge_memory: scale thp_underused() to the folio size
+     Subject: mm/huge_memory: don't queue folios when underused splitting is inactive
 has been removed from the -mm tree.  Its filename was
-     mm-huge_memory-scale-thp_underused-to-the-folio-size.patch
+     mm-huge_memory-dont-queue-folios-when-underused-splitting-is-inactive.patch
 
 This patch was dropped because an updated version will be issued
 
 ------------------------------------------------------
 From: Joanne Koong <joannelkoong@gmail.com>
-Subject: mm/huge_memory: scale thp_underused() to the folio size
-Date: Tue, 03 Nov 2026 13:20:01 -0800
+Subject: mm/huge_memory: don't queue folios when underused splitting is inactive
+Date: Tue, 03 Nov 2026 13:20:02 -0800
 
-Patch series "mm: split underused anonymous mTHP folios", v4.
+Every anonymous PMD-sized folio is put on the deferred split queue when
+it is first mapped, so that the shrinker can find it under memory
+pressure and split it if it turns out to be mostly zero-filled.
 
-PMD-sized THPs that are mostly zero-filled are reclaimed under memory
-pressure by the deferred split shrinker, but this is not done for mTHP
-folios. At Meta we would like to deploy 2M THP=always on arm64 with 64k
-base pages, as 2M provides the contpte benefits while the PMD size there
-(512M) is too big to use. However, 2M THP=always causes memory regressions
-unless the unused portions of those folios can be broken down and
-reclaimed.
+With the default khugepaged/max_ptes_none this is wasted work. The
+default is HPAGE_PMD_NR - 1, which tells thp_underused() that any number
+of zero-filled pages is tolerable, which means the shrinker will never
+split any of these folios for being underused. They take the list_lru
+lock at fault time, inflate the object count the shrinker reports, and
+are then walked and dropped when they're first scanned.
 
-This series lets the underused shrinker handle anonymous mTHP folios. It has
-four patches:
+Skip the queueing when khugepaged/max_ptes_none is at its maximum, and
+factor that check out into thp_underused_never() so that
+deferred_split_folio() and thp_underused() share it. Since the default
+is the maximum, out of the box no folio is queued for underused
+splitting at all, PMD-sized ones included. Partially mapped folios are
+still queued as before.
 
-Patch 1 makes thp_underused() folio-size-aware. It scales
-khugepaged/max_ptes_none to the folio size, so every folio tolerates the same
-fraction of zero-filled pages.
+This also matters for a subsequent patch that adds anonymous mTHP folios
+to the deferred split list, as it keeps systems running the default from
+paying for that on every anonymous fault.
 
-Patch 2 stops queueing folios for underused splitting when
-khugepaged/max_ptes_none is at its default maximum, where the shrinker
-would never split them anyway. This applies to PMD-sized folios too,
-which are unconditionally queued today.
+Please note that the queue has always been best-effort. A folio that was
+queued before khugepaged/max_ptes_none is lowered gets dropped from the
+queue by the first scan that finds it's not underused, so changing the
+sysctl has never retroactively applied to folios that were already
+scanned. Requeueing eligible folios when the sysctl changes will be
+addressed in a separate patch.
 
-Patch 3 keeps thp_underused_split_page counting only PMD-sized folios and
-adds a per-order split_underused counter, matching how thp_split_page and
-thp_deferred_split_page are handled.
-
-Patch 4 queues anonymous mTHP folios on the deferred split list, with a
-hard-coded 2M minimum folio size as suggested by Barry. PMD-sized folios are
-exempt from the minimum, since on s390 the PMD size is 1M.
-
-At the default khugepaged/max_ptes_none, no folio is queued for underused
-splitting. Once it's lowered, mTHP folios of at least 2M are queued along with
-PMD-sized folios.
-
-
-This patch (of 4):
-
-thp_underused() decides whether a large folio on the deferred split list
-is underused and should be split so that its zero-filled subpages can be
-reclaimed.
-
-Today it only ever runs on PMD-sized folios, so it assumes that the
-folio has HPAGE_PMD_NR pages and compares the zero-filled page count
-directly against khugepaged_max_ptes_none. A later patch will queue
-anonymous mTHP folios onto the deferred split list as well, at which
-point that assumption will no longer hold.
-
-Make thp_underused() folio-size-aware, and scale
-khugepaged_max_ptes_none proportionally to the number of pages in the
-folio (eg every folio tolerates the same fraction of zero-filled pages
-the user configured for a PMD-sized folio).
-
-khugepaged deliberately doesn't scale intermediate values when
-collapsing to mTHP orders (to avoid the memory footprint creeping up
-through repeated collapses), but if/when collapse later gains support
-for intermediate values, a folio that khugepaged collapses won't then be
-split right back by the shrinker (and vice versa) since both collapse
-and split would use the same threshold for a given folio size.
-
-There is no functional change for PMD-sized folios, as for those,
-nr_pages is HPAGE_PMD_NR.
-
-Link: https://lore.kernel.org/20261103212004.1356327-1-joannelkoong@gmail.com
-Link: https://lore.kernel.org/20261103212004.1356327-2-joannelkoong@gmail.com
+Link: https://lore.kernel.org/20261103212004.1356327-3-joannelkoong@gmail.com
 Signed-off-by: Joanne Koong <joannelkoong@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Suggested-by: Usama Arif <usama.arif@linux.dev>
+Suggested-by: Johannes Weiner <hannes@cmpxchg.org>
+Suggested-by: David Hildenbrand <david@kernel.org>
+Acked-by: Usama Arif <usama.arif@linux.dev>
 Tested-by: Andrew Morton <akpm@linux-foundation.org>
-Cc: David Hildenbrand <david@kernel.org>
 Cc: Lorenzo Stoakes <ljs@kernel.org>
 Cc: Barry Song <baohua@kernel.org>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Kiryl Shutsemau <kas@kernel.org>
 Cc: Alexandre Ghiti <alex@ghiti.fr>
 Cc: Zi Yan <ziy@nvidia.com>
@@ -152,58 +118,62 @@ Cc: Michal Hocko <mhocko@suse.com>
 Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
 ---
 
- mm/huge_memory.c |   20 ++++++++++++++------
- 1 file changed, 14 insertions(+), 6 deletions(-)
+ mm/huge_memory.c |   24 +++++++++++++++++++++---
+ 1 file changed, 21 insertions(+), 3 deletions(-)
 
---- a/mm/huge_memory.c~mm-huge_memory-scale-thp_underused-to-the-folio-size
+--- a/mm/huge_memory.c~mm-huge_memory-dont-queue-folios-when-underused-splitting-is-inactive
 +++ a/mm/huge_memory.c
-@@ -4617,25 +4617,33 @@ static unsigned long deferred_split_coun
+@@ -4556,6 +4556,15 @@ bool __folio_unqueue_deferred_split(stru
+ 	return unqueued;	/* useful for debug warnings */
+ }
  
- static bool thp_underused(struct folio *folio)
++/*
++ * At the sysctl maximum the user tolerates any number of zero-filled pages,
++ * so no folio is ever underused.
++ */
++static bool thp_underused_never(unsigned long max_ptes_none)
++{
++	return max_ptes_none == HPAGE_PMD_NR - 1;
++}
++
+ /* partially_mapped=false won't clear PG_partially_mapped folio flag */
+ void deferred_split_folio(struct folio *folio, bool partially_mapped)
  {
--	int num_zero_pages = 0, num_filled_pages = 0;
--	int i;
-+	const unsigned long nr_pages = folio_nr_pages(folio);
-+	unsigned long num_zero_pages = 0, num_filled_pages = 0;
-+	unsigned long max_ptes_none = khugepaged_max_ptes_none;
-+	unsigned long i;
+@@ -4571,8 +4580,17 @@ void deferred_split_folio(struct folio *
+ 	if (folio_order(folio) <= 1)
+ 		return;
  
--	if (khugepaged_max_ptes_none == HPAGE_PMD_NR - 1)
-+	if (max_ptes_none == HPAGE_PMD_NR - 1)
+-	if (!partially_mapped && !split_underused_thp)
+-		return;
++	if (!partially_mapped) {
++		if (!split_underused_thp)
++			return;
++		/*
++		 * Nothing will ever split this folio for being underused, so
++		 * keep it off the queue entirely rather than paying for the
++		 * list_lru lock here and a shrinker scan later.
++		 */
++		if (thp_underused_never(khugepaged_max_ptes_none))
++			return;
++	}
+ 
+ 	/*
+ 	 * Exclude swapcache: originally to avoid a corrupt deferred split
+@@ -4622,7 +4640,7 @@ static bool thp_underused(struct folio *
+ 	unsigned long max_ptes_none = khugepaged_max_ptes_none;
+ 	unsigned long i;
+ 
+-	if (max_ptes_none == HPAGE_PMD_NR - 1)
++	if (thp_underused_never(max_ptes_none))
  		return false;
  
  	if (folio_contain_hwpoisoned_page(folio))
- 		return false;
- 
--	for (i = 0; i < folio_nr_pages(folio); i++) {
-+	/*
-+	 * khugepaged_max_ptes_none is a number of pages out of HPAGE_PMD_NR.
-+	 * Scale it to this folio's size.
-+	 */
-+	max_ptes_none = max_ptes_none * nr_pages / HPAGE_PMD_NR;
-+
-+	for (i = 0; i < nr_pages; i++) {
- 		if (pages_identical(folio_page(folio, i), ZERO_PAGE(0))) {
--			if (++num_zero_pages > khugepaged_max_ptes_none)
-+			if (++num_zero_pages > max_ptes_none)
- 				return true;
- 		} else {
- 			/*
- 			 * Another path for early exit once the number
- 			 * of non-zero filled pages exceeds threshold.
- 			 */
--			if (++num_filled_pages >= HPAGE_PMD_NR - khugepaged_max_ptes_none)
-+			if (++num_filled_pages >= nr_pages - max_ptes_none)
- 				return false;
- 		}
- 	}
 _
 
 Patches currently in -mm which might be from joannelkoong@gmail.com are
 
 memcg-reduce-cacheline-contention-between-lruvec-stat-updates-and-lru-lists.patch
 memcg-dont-go-through-the-lruvec-for-folio-and-kmem-lruvec-stat-updates.patch
-mm-huge_memory-dont-queue-folios-when-underused-splitting-is-inactive.patch
 mm-huge_memory-add-a-per-order-counter-for-underused-splits.patch
 mm-add-anonymous-mthp-folios-to-the-deferred-split-list.patch
 
