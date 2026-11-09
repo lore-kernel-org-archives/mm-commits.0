@@ -1,46 +1,46 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794257586;
-	b=XNAFAOdNvAHK+v8UFhAh4dTv6zZ+XUtlg5VzVN7FcLVcTzZGAESPZSg2MsUvOmz8hAnK
-	 9vH5MbvrLMk4NW63v6YShDhRdGCyb1TJAvFOQFDksCeXFe8pUYijeAOQXe8sld1GdblA/
-	 uz5GP8ogLnCQ3C4KfluJhQKbquRpkzl71uDmU8+wDoYERbszADSAGNjjbkNh4z18v0Q2g
-	 yuBJEgKfKhfnx1UUVK/MmD2xju8e9IeolPWv0pDKMs78n2r39Se4xbiCFlG31yRFKD/TW
-	 oDX1/d6j9+NXp2jrda0OiAZQ2XCZ7TWgLLu8edT9/UYDIDjPV/FQ6Btko2wITmoJnHA==
+	t=1794257588;
+	b=zOGu1hn+Jf38MC6+oDfBhuCKyz7cjymjwmLPDWF467o0jUSNlErWCdL8hQjEosLGMjT6
+	 Tat6RlrncgSxqZuMmnjloAY01J+PZtC84LSWC83dnX8ZxTDdD4IIo0/yosGmHm7786WnL
+	 3zaQWjOGownnGHzrgZlKaSQMmwi129W32crjhvbXj13TOIEWG41Y75yeYg5XP9izwRi+F
+	 LmpAQYpgXBGzoQIlmspG/FfyFt/pDwsKf26hlf2IEwdi9vdZVaGzJ+dBmyPdxAkA4iG1b
+	 D1KGaZJevoXMElpbtB3H6232z96B/bME4mUNo7d53GtM/RSds3jugUSWI+jqEKkeN7A==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794257586;
+	a=rsa-sha256; c=relaxed/relaxed; t=1794257588;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=nZNEINyIH8cDcULhln3XVyUQbCLXTS2Yar5dXagrJvg=;
-	b=by0TWNKY5XuY2aFLoVn9ZUcP+sMsdgWQAD3ck2uhFhNlDl8uTh/l2QLVZFiXajKpdMwW
-	 W/YGkqqldrKXoHg8NZSI9lI+d9l1ke8AIC4P3LIRbUsEHnz2OiaEMAkZklRqv82ncl+R0
-	 94deZR1M2RsK/4Jnz8j0oTRpuhzYqAVO93A6LTh50nkgWsqp142fM26z+ptzVzKDFoeEL
-	 o7ue4fqsLQy/RKd4mD91A9X03j+YbVgGAeB5LL4d619WCZYtGAgu8Ce5G5qQSgwVrTqQS
-	 K92IDo67j5AoVLkwcP+CeGmTGxqMSQ1G0/1uMcNJzIP//0p8lKmsO1GcxPxoCxHoerA==
+	bh=6xSZyJqfmr9qcq9xMKGfnf0uIWKvjSgQUm3lGE9whEg=;
+	b=xBTl8Dczzz7YPqEUKkV5qPfK7Mn9tMwf34L175mrPyGXyrMYCgLyDkI31Wi3cqv4pBBs
+	 u5tjXFtUFet77yqQB84FHmQFjsGVU8qjiR58omXB2JcFaz5Ef6QFEe7Q7CImDsFXDVZX0
+	 76ztGjUW9CJH2UkRX/HnTzSzsS/8rOneKWD47mnU5iAoIhjnYFpIminJ0kPWoeo8cZH0z
+	 JcUO16PEYCRwsT0aSWaWm0EitLz/Gv2Dg1Jue4nwWU3ILWiKEDnonk0IdGwV4eyrfOkAo
+	 CcT9ila/ybI7sXA/kSNOlWVeg5mN7EV0tATFw3sxVizOSlqBhGB9kX5dRfiiGWc5DKA==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=F4o+xDRp;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=rqUTGfgG;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D5D42606A321
-	for <mm-commits@vger.kernel.org>; Mon,  9 Nov 2026 20:53:05 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5531B606A31C
+	for <mm-commits@vger.kernel.org>; Mon,  9 Nov 2026 20:53:08 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=F4o+xDRp
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A089E1F0089F;
-	Mon,  9 Nov 2026 20:53:05 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=rqUTGfgG
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id DA5A81F0089F;
+	Mon,  9 Nov 2026 20:53:07 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1794257585;
-	bh=nZNEINyIH8cDcULhln3XVyUQbCLXTS2Yar5dXagrJvg=;
+	d=linux-foundation.org; s=korg; t=1794257588;
+	bh=6xSZyJqfmr9qcq9xMKGfnf0uIWKvjSgQUm3lGE9whEg=;
 	h=Date:To:From:Subject;
-	b=F4o+xDRplbGBExSC6qQ4mXTKGS59BAAJpOEb7ZaXlqkce48xXkcDZJR87xvAZc8hl
-	 SWN89c/r/zHPvOCLWxOT8gCNHRpn7AaD37tnYBpGXM4AnQBBUVrO8Djmv3A0VreF/B
-	 q/tRHhJmIfT07uKgwr3fr3bMm55SyfXO4katDAu4=
-Date: Mon, 09 Nov 2026 12:53:05 -0800
+	b=rqUTGfgG8e83e2QdrqilGKhSx51C90oPzfEbG978j297wjPClB4biIQ9LW+fZTm6z
+	 Cp797Sk7KbZ8OjtTHd+bT+2srHbyTho0Ld+vLHc3m6pvYLgCQqyZFuVdN7j/UWcakb
+	 lTbER0K0s2dGhqWP4TQh7/xULgy15BcOs/iAvhFw=
+Date: Mon, 09 Nov 2026 12:53:07 -0800
 To: mm-commits@vger.kernel.org,joseph.qi@linux.alibaba.com,
 	akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + ocfs2-abstract-the-fast-symlink-nul-termination-check.patch added to mm-nonmm-unstable branch
-Message-Id: <20261109205305.A089E1F0089F@smtp.kernel.org>
+Subject: + ocfs2-abstract-the-chain-list-dinode-guard-and-count-check.patch added to mm-nonmm-unstable branch
+Message-Id: <20261109205307.DA5A81F0089F@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -52,12 +52,12 @@ Precedence: list
 
 
 The patch titled
-     Subject: ocfs2: abstract the fast symlink NUL-termination check
+     Subject: ocfs2: abstract the chain list dinode guard and count check
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     ocfs2-abstract-the-fast-symlink-nul-termination-check.patch
+     ocfs2-abstract-the-chain-list-dinode-guard-and-count-check.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/ocfs2-abstract-the-fast-symlink-nul-termination-check.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/ocfs2-abstract-the-chain-list-dinode-guard-and-count-check.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -76,27 +76,20 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Joseph Qi <joseph.qi@linux.alibaba.com>
-Subject: ocfs2: abstract the fast symlink NUL-termination check
-Date: Mon, 09 Nov 2026 20:21:04 +0800
+Subject: ocfs2: abstract the chain list dinode guard and count check
+Date: Mon, 09 Nov 2026 20:21:05 +0800
 
-Fold the strnlen() test into a predicate that bounds the read itself
-against ocfs2_fast_symlink_chars(), which is exactly the space available
-for id2.i_symlink in the inode block.
+Introduce ocfs2_dinode_has_chain_list() for the OCFS2_CHAIN_FL test that
+selects the id2.i_chain union arm, and ocfs2_dinode_has_bad_chain_count()
+for the cl_count against ocfs2_chain_recs_per_inode() test.
 
-The open-coded version was only safe because the preceding i_size check
-had already bailed: i_size comes from disk, so an unbounded strnlen() on
-i_size + 1 bytes can run past the end of the buffer.  Keeping that
-ordering dependency implicit in a helper would be fragile, especially
-once the filecheck variant starts calling it, so the predicate returns
-false for an oversized i_size and leaves that case to
-ocfs2_dinode_has_oversized_fast_symlink().
-
-At the existing call site the size check still runs first, so behaviour
-is unchanged.
+This mirrors the guard predicates already used for the inline-data and
+fast symlink groups, and ocfs2_dinode_has_extents() for the extent list
+group.
 
 No functional change intended.
 
-Link: https://lore.kernel.org/20261109122121.21473-15-joseph.qi@linux.alibaba.com
+Link: https://lore.kernel.org/20261109122121.21473-16-joseph.qi@linux.alibaba.com
 Signed-off-by: Joseph Qi <joseph.qi@linux.alibaba.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 Cc: Heming Zhao <heming.zhao@suse.com>
@@ -104,46 +97,45 @@ Cc: Mark Fasheh <mark@fasheh.com>
 Cc: Joel Becker <jlbec@evilplan.org>
 ---
 
- fs/ocfs2/inode.c |   21 ++++++++++++++++++++-
- 1 file changed, 20 insertions(+), 1 deletion(-)
+ fs/ocfs2/inode.c |   16 ++++++++++++++--
+ 1 file changed, 14 insertions(+), 2 deletions(-)
 
---- a/fs/ocfs2/inode.c~ocfs2-abstract-the-fast-symlink-nul-termination-check
+--- a/fs/ocfs2/inode.c~ocfs2-abstract-the-chain-list-dinode-guard-and-count-check
 +++ a/fs/ocfs2/inode.c
-@@ -207,6 +207,25 @@ static bool ocfs2_dinode_has_oversized_f
- 	return le64_to_cpu(di->i_size) >= ocfs2_fast_symlink_chars(sb);
+@@ -226,6 +226,18 @@ static bool ocfs2_dinode_has_unterminate
+ 	return strnlen((char *)di->id2.i_symlink, i_size + 1) != i_size;
  }
  
-+static bool ocfs2_dinode_has_unterminated_fast_symlink(struct super_block *sb,
-+						       struct ocfs2_dinode *di)
++static bool ocfs2_dinode_has_chain_list(struct ocfs2_dinode *di)
 +{
-+	u64 i_size = le64_to_cpu(di->i_size);
++	return le32_to_cpu(di->i_flags) & OCFS2_CHAIN_FL;
++}
 +
-+	/*
-+	 * Bound the strnlen() here rather than relying on the caller having
-+	 * rejected an oversized i_size first.  i_size comes from disk, and
-+	 * ocfs2_fast_symlink_chars() is exactly the space available in the
-+	 * inode block, so without this bound the read can run past it.
-+	 * An oversized i_size is reported by
-+	 * ocfs2_dinode_has_oversized_fast_symlink() instead.
-+	 */
-+	if (i_size >= ocfs2_fast_symlink_chars(sb))
-+		return false;
-+
-+	return strnlen((char *)di->id2.i_symlink, i_size + 1) != i_size;
++static bool ocfs2_dinode_has_bad_chain_count(struct super_block *sb,
++					     struct ocfs2_dinode *di)
++{
++	return le16_to_cpu(di->id2.i_chain.cl_count) !=
++		ocfs2_chain_recs_per_inode(sb);
 +}
 +
  void ocfs2_set_inode_flags(struct inode *inode)
  {
  	unsigned int flags = OCFS2_I(inode)->ip_attr;
-@@ -1812,7 +1831,7 @@ int ocfs2_validate_inode_block(struct su
- 			goto bail;
+@@ -1840,12 +1852,12 @@ int ocfs2_validate_inode_block(struct su
  		}
+ 	}
  
--		if (strnlen((char *)di->id2.i_symlink, i_size + 1) != i_size) {
-+		if (ocfs2_dinode_has_unterminated_fast_symlink(sb, di)) {
- 			rc = ocfs2_error(sb,
- 					 "Invalid dinode #%llu: fast symlink is not NUL-terminated at i_size %llu\n",
+-	if (le32_to_cpu(di->i_flags) & OCFS2_CHAIN_FL) {
++	if (ocfs2_dinode_has_chain_list(di)) {
+ 		struct ocfs2_chain_list *cl = &di->id2.i_chain;
+ 		u16 bpc = 1 << (OCFS2_SB(sb)->s_clustersize_bits -
+ 				sb->s_blocksize_bits);
+ 
+-		if (le16_to_cpu(cl->cl_count) != ocfs2_chain_recs_per_inode(sb)) {
++		if (ocfs2_dinode_has_bad_chain_count(sb, di)) {
+ 			rc = ocfs2_error(sb, "Invalid dinode %llu: chain list count %u\n",
  					 (unsigned long long)bh->b_blocknr,
+ 					 le16_to_cpu(cl->cl_count));
 _
 
 Patches currently in -mm which might be from joseph.qi@linux.alibaba.com are
