@@ -1,78 +1,46 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=198.175.65.16
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794236113;
-	b=fRe2aiwDNJI1nBq6YAih4Hodk6OQLvgIHdLJYu5CIR/JXwlteeUeQlFu74jsKPQOUtCy
-	 gYHqcTeX+WWvpXSiGueanmzz3ZmMC7vFYPG0OIfuQrUgE29jtkWZyRiTXiMRh93XoJfS7
-	 5amaTDzx/CAb4LNUOwI8oJsBW+ZY/MVM42LbyyQdXq5br22gkPjhvBUoOzFvZ5nEpB0Vg
-	 VGjT9BYxDDNj3e5MoJQLc31bKYlg7omM/XZ0neyRC7o1xZkBA+htuqlP02RfmLu+vFjei
-	 hUqkpvLakNz7Sl/WJaZeED1CTm7aesjO6SYzCMd9jqBUr3Unnxr77/JNe9I3HzbGzKQ==
+	t=1794245567;
+	b=UI3PUpGbmT5WHtIKCSyoLbv8cKQ44wCGItr+pMDFMqoFPOXRAprepu3B6Yi22yULOywc
+	 vqLkJvavfdJW9DcoavrLYn3XOEXr8IJgsrcCPwVSfYvh8f22L1SEBArPlQLySZICiadAn
+	 6MSyoPXxfT7woLLZfcYgxmIQoUN2bZY9rt48MEXXjkFkju7k/kqbKY2f6WCR1njydKUMU
+	 7GagFbznTvCwYXFxINiB+0rtzZQSYx+T0ZvTuw63K28dt93cOqTSadWA8LBfdI7gco1xQ
+	 Zbmcqad+FRdFt3yzVV7GTKS+kyN4BQd7GH29GvnVaKNGpjFENHlRvctVaWdhIH9BuAA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794236113;
-	h=DMARC-Filter:DKIM-Signature:X-CSE-ConnectionGUID:X-CSE-MsgGUID:
-	 X-IronPort-AV:X-IronPort-AV:Received:X-CSE-ConnectionGUID:
-	 X-CSE-MsgGUID:X-ExtLoop1:X-IronPort-AV:Received:Received:Date:From:To:
-	 Cc:Subject:Message-ID:User-Agent;
-	bh=ZCl+mkow6+RCbuttuNKbn/B0QKOEOsshATrGc/XDs3s=;
-	b=uqjCvviAgZRGXLvLqB+z0oXandm84TxLuaHIMQ/peGjfV4g5CoGt98YazE/Q9myrkwmW
-	 NtLZotIktGIwuTdc09BoqjAZea0OHAgwVqnLjQSB1Ce/HPIvv1zIV9CiaGlrn5DBF4H4k
-	 3o/A/cMpFyw/mXJe01D5GXKDEl1UQFIKm3ZagVzmhl/wCsn6UifejZt1llLjWWmw2CBsb
-	 YIHNxYGhnFwnzMjvcrEeD5fWzqshHOUCBtIRQ4sB1zKtN8B07wsrTdjiFwEK1brnnZf4c
-	 /GEoffgWbQE2NhvQawX+yi9qsaZMlwxKWN7rl5EoULvcxM8sKa9W3oAJJHu4jVWcXcg==
+	a=rsa-sha256; c=relaxed/relaxed; t=1794245567;
+	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
+	bh=b1Q4RphqPpL0ABKOLfwzKjea9PUjfhburkyzX5PF8Rc=;
+	b=o2vUbbLNKkkAR/r8IQQmQhAOYg8w2OeGjxBqJOxvMv0whle83BNImysoo1t6fMaAOxml
+	 c8Ucf/O9acmYG1QOeb1JYzrZxfedD1paI/VXU68/pajJgZB0lvyGiM7fgMv6qlhxnWKfJ
+	 jH+RPO5n89mfFM86ZUr2dX4rvmBnCwZHbUKO8vWSMfxgg61IqD7W9Q59f5d4OLsmtgqQm
+	 IiGomwsCLj7+vkwaDltugubDnwwTFuN+UacEDhl7zGwvf5RO4VwpCElFIWiuvPeBeyNYj
+	 9RyWi/+1K3uuZJ+eTTELRfYDPir9VjuqNbB5dfVPtfWJpnET/+wJ09efJhSz0MhlN4w==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=intel.com;
-	spf=pass smtp.mailfrom=intel.com;
-	dkim=pass header.d=intel.com header.i=@intel.com header.a=rsa-sha256 header.s=Intel header.b="EqW44/09";
-	arc=none smtp.remote-ip=198.175.65.16
-Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.16])
-	(using TLSv1.2 with cipher ECDHE-ECDSA-AES256-GCM-SHA384 (256/256 bits))
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=LpJJD2l5;
+	arc=none smtp.remote-ip=100.103.45.18
+Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 673B3606A321
-	for <mm-commits@vger.kernel.org>; Mon,  9 Nov 2026 14:55:12 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 673B3606A321
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3E7C5606A333;
+	Mon,  9 Nov 2026 17:32:46 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.a=rsa-sha256 header.s=Intel header.b=EqW44/09
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1794236112; x=1825772112;
-  h=date:from:to:cc:subject:message-id;
-  bh=sIuT5Ifn3MDZmMAGE1tMEVn+nuUHaTEO7Qqt0YR+YBE=;
-  b=EqW44/09Ek2aaaiid1fCf+NxaXkoo9o/L/sx4JiXwyt+8LWfE7iGmlGq
-   uuqA+ysSX+Ig2H/ZjnJ5U6rlCPCyivN1TsAFXV5UeBJ+pFmgrLwN4X4Pp
-   E4SdGPCsNx7y5yhU8rfv27A19peJ4N+IXBRCK0THKIaVevpqgNiavt/hp
-   H9SVNcItHlMp6/BdKy4labIx1JER2buFxeL0oksFg9hBnY0a0Aq6LGYum
-   HZe+445bbYZtaU614Uxg44rs49D9fBX3Ase8RKKWEjlfVGQaFXjG/Hqtg
-   W/JMU13LHxM0rVfb0Ww6fZNDu0+dd/hUg8OU7+imP84+hUEndXnrs03K+
-   g==;
-X-CSE-ConnectionGUID: B2AKgS+YRWCx4InF4fvFQQ==
-X-CSE-MsgGUID: oTfgCfMcTZKrfYYubev+dw==
-X-IronPort-AV: E=McAfee;i="6800,10657,11961"; a="2947601"
-X-IronPort-AV: E=Sophos;i="6.27,204,1787036400"; 
-   d="scan'208";a="2947601"
-Received: from fmviesa004.fm.intel.com ([10.60.135.144])
-  by orvoesa108.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 09 Nov 2026 06:55:12 -0800
-X-CSE-ConnectionGUID: GWJgpn/iQgClmZQZ3+x+zQ==
-X-CSE-MsgGUID: 6lTrG5IsS5qZmxWMex9PBg==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="6.27,204,1787036400"; 
-   d="scan'208";a="7895183"
-Received: from lkp-server01.sh.intel.com (HELO 0caa9d2d175c) ([10.239.97.150])
-  by fmviesa004.fm.intel.com with ESMTP; 09 Nov 2026 06:55:10 -0800
-Received: from kbuild by 0caa9d2d175c with local (Exim 4.98.2)
-	(envelope-from <lkp@intel.com>)
-	id 1xQQm3-00000000uhT-2iOX;
-	Mon, 09 Nov 2026 14:55:07 +0000
-Date: Mon, 09 Nov 2026 22:54:19 +0800
-From: kernel test robot <lkp@intel.com>
-To: David Hildenbrand <david@kernel.org>
-Cc: Andrew Morton <akpm@linux-foundation.org>,
- Linux Memory Management List <linux-mm@kvack.org>,
- mm-commits@vger.kernel.org
-Subject: [akpm-mm:mm-new] BUILD SUCCESS
- b95f8bb86713c860ce8536d22a988b949b884d5f
-Message-ID: <20261109225419.Lrln0N7v-lkp@intel.com>
-User-Agent: s-nail v14.9.25
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=LpJJD2l5
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A559D1F008A1;
+	Mon,  9 Nov 2026 17:32:46 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+	d=linux-foundation.org; s=korg; t=1794245566;
+	bh=b1Q4RphqPpL0ABKOLfwzKjea9PUjfhburkyzX5PF8Rc=;
+	h=Date:To:From:Subject;
+	b=LpJJD2l55ceQ/HId13hO7+flZMvX6MSHYeJjdlzk602YSHwZBGFCrSEpyww3+N+Zy
+	 fT+9NiNP51MyKCx+xViNG0emgrLZrYo7vVNPZWyuxh58IKOZeiX4LEfXlOWW5s4iM5
+	 EFFVPsyZ7bLTdnj5gipqMH63yC39arH/yTM0UjvM=
+Date: Mon, 09 Nov 2026 09:32:46 -0800
+To: mm-commits@vger.kernel.org,stable@vger.kernel.org,david@kernel.org,
+	baoquan.he@linux.dev,urezki@gmail.com,akpm@linux-foundation.org
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: + mm-vmalloc-bail-out-if-in-softirq-context.patch added to mm-hotfixes-unstable branch
+Message-Id: <20261109173246.A559D1F008A1@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -82,233 +50,96 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:mm-commits+owner@vger.kernel.org>
 Precedence: list
 
-tree/branch: https://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm.git mm-new
-branch HEAD: b95f8bb86713c860ce8536d22a988b949b884d5f  riscv: mm: fix concurrency in mark_new_valid_map()
 
-elapsed time: 910m
+The patch titled
+     Subject: mm/vmalloc: bail out if in softirq context
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     mm-vmalloc-bail-out-if-in-softirq-context.patch
 
-configs tested: 214
-configs skipped: 15
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vmalloc-bail-out-if-in-softirq-context.patch
 
-The following configs have been built successfully.
-More configs may be tested in the coming days.
+This patch will later appear in the mm-hotfixes-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
-tested configs:
-alpha                              allnoconfig    gcc-16.2.0
-alpha                             allyesconfig    gcc-16.2.0
-alpha                                defconfig    gcc-16.2.0
-alpha                                defconfig    gcc-16.2.0
-arc                               allmodconfig    clang-24
-arc                               allmodconfig    gcc-16.2.0
-arc                                allnoconfig    gcc-16.2.0
-arc                               allyesconfig    clang-24
-arc                               allyesconfig    gcc-16.2.0
-arc                                  defconfig    gcc-16.2.0
-arc                      haps_hs_smp_defconfig    gcc-16.2.0
-arc                   randconfig-1000-20261109    clang-24
-arc                   randconfig-1001-20261109    clang-24
-arm                                allnoconfig    gcc-16.2.0
-arm                               allyesconfig    clang-24
-arm                               allyesconfig    gcc-16.2.0
-arm                        aspeed_g5_defconfig    clang-24
-arm                          bcm2835_defconfig    clang-24
-arm                                  defconfig    gcc-16.2.0
-arm                        imx_v4_v5_defconfig    gcc-16.2.0
-arm                             mps2_defconfig    clang-24
-arm                         multi_v7_defconfig    gcc-16.2.0
-arm                   randconfig-1000-20261109    clang-24
-arm                   randconfig-1001-20261109    clang-24
-arm                   randconfig-1002-20261109    clang-24
-arm                   randconfig-1003-20261109    clang-24
-arm64                             allmodconfig    clang-24
-arm64                              allnoconfig    gcc-16.2.0
-arm64                                defconfig    gcc-16.2.0
-arm64                 randconfig-1000-20261109    gcc-13.5.0
-arm64                 randconfig-1001-20261109    gcc-13.5.0
-arm64                 randconfig-1002-20261109    gcc-13.5.0
-arm64                 randconfig-1003-20261109    gcc-13.5.0
-csky                              allmodconfig    gcc-16.2.0
-csky                               allnoconfig    gcc-16.2.0
-csky                                 defconfig    gcc-16.2.0
-csky                  randconfig-1000-20261109    gcc-13.5.0
-csky                  randconfig-1001-20261109    gcc-13.5.0
-hexagon                           allmodconfig    clang-24
-hexagon                           allmodconfig    gcc-16.2.0
-hexagon                            allnoconfig    gcc-16.2.0
-hexagon                              defconfig    gcc-16.2.0
-hexagon               randconfig-1000-20261109    clang-19
-hexagon               randconfig-1001-20261109    clang-19
-i386                              allmodconfig    gcc-14
-i386                               allnoconfig    gcc-16.2.0
-i386        buildonly-randconfig-1000-20261109    clang-22
-i386        buildonly-randconfig-1001-20261109    clang-22
-i386        buildonly-randconfig-1002-20261109    clang-22
-i386        buildonly-randconfig-1003-20261109    clang-22
-i386        buildonly-randconfig-1004-20261109    clang-22
-i386        buildonly-randconfig-1005-20261109    clang-22
-i386                                 defconfig    gcc-16.2.0
-i386                  randconfig-1007-20261109    gcc-12
-i386                  randconfig-1008-20261109    gcc-12
-i386                  randconfig-1009-20261109    gcc-12
-i386                  randconfig-1010-20261109    gcc-12
-i386                  randconfig-1011-20261109    gcc-12
-i386                  randconfig-1012-20261109    gcc-12
-i386                  randconfig-1013-20261109    gcc-12
-loongarch                         allmodconfig    clang-24
-loongarch                          allnoconfig    gcc-16.2.0
-loongarch                            defconfig    clang-24
-loongarch             randconfig-1000-20261109    clang-19
-loongarch             randconfig-1001-20261109    clang-19
-m68k                              allmodconfig    gcc-16.2.0
-m68k                               allnoconfig    gcc-16.2.0
-m68k                              allyesconfig    clang-24
-m68k                              allyesconfig    gcc-16.2.0
-m68k                           amiga_defconfig    clang-24
-m68k                                 defconfig    clang-24
-m68k                         m5307c3_defconfig    clang-24
-m68k                        m5329evb_defconfig    gcc-16.2.0
-m68k                          nettel_defconfig    clang-24
-microblaze                         allnoconfig    gcc-16.2.0
-microblaze                        allyesconfig    gcc-16.2.0
-microblaze                           defconfig    clang-24
-mips                              allmodconfig    gcc-16.2.0
-mips                               allnoconfig    gcc-16.2.0
-mips                              allyesconfig    gcc-16.2.0
-mips                           ath79_defconfig    clang-24
-mips                       bmips_stb_defconfig    gcc-16.2.0
-mips                          db1xxx_defconfig    gcc-16.2.0
-mips                       fuloong2e_defconfig    gcc-16.2.0
-mips                            gcw0_defconfig    gcc-16.2.0
-mips                             gpr_defconfig    clang-24
-mips                             gpr_defconfig    gcc-16.2.0
-mips                            ip27_defconfig    gcc-16.2.0
-mips                       loongson3_defconfig    gcc-16.2.0
-nios2                             allmodconfig    clang-20
-nios2                             allmodconfig    gcc-11.5.0
-nios2                              allnoconfig    clang-24
-nios2                                defconfig    clang-24
-nios2                 randconfig-1000-20261109    clang-19
-nios2                 randconfig-1001-20261109    clang-19
-openrisc                          allmodconfig    clang-20
-openrisc                          allmodconfig    gcc-11.5.0
-openrisc                          allmodconfig    gcc-16.2.0
-openrisc                           allnoconfig    clang-24
-openrisc                             defconfig    gcc-16.2.0
-openrisc                   or1klitex_defconfig    gcc-16.2.0
-openrisc                        virt_defconfig    gcc-16.2.0
-parisc                            allmodconfig    gcc-16.2.0
-parisc                             allnoconfig    clang-24
-parisc                            allyesconfig    clang-17
-parisc                            allyesconfig    gcc-16.2.0
-parisc                               defconfig    gcc-16.2.0
-parisc                randconfig-1000-20261109    gcc-8.5.0
-parisc                randconfig-1001-20261109    gcc-8.5.0
-parisc64                             defconfig    clang-24
-powerpc                           allmodconfig    gcc-16.2.0
-powerpc                            allnoconfig    clang-24
-powerpc                        ebony_defconfig    clang-24
-powerpc                           g5_defconfig    gcc-16.2.0
-powerpc                  mpc837x_rdb_defconfig    clang-24
-powerpc                       pmac32_defconfig    gcc-16.2.0
-powerpc               randconfig-1000-20261109    gcc-8.5.0
-powerpc               randconfig-1001-20261109    gcc-8.5.0
-powerpc                      redwood_defconfig    gcc-16.2.0
-powerpc                      taishan_defconfig    gcc-16.2.0
-powerpc64             randconfig-1000-20261109    gcc-8.5.0
-powerpc64             randconfig-1001-20261109    gcc-8.5.0
-riscv                             allmodconfig    clang-24
-riscv                              allnoconfig    clang-24
-riscv                             allyesconfig    clang-24
-riscv                                defconfig    gcc-16.2.0
-riscv                                defconfig    gcc-16.2.0
-riscv                 randconfig-1000-20261109    gcc-8.5.0
-riscv                 randconfig-1001-20261109    gcc-8.5.0
-s390                              allmodconfig    clang-17
-s390                               allnoconfig    clang-24
-s390                              allyesconfig    gcc-16.2.0
-s390                                 defconfig    clang-24
-s390                                 defconfig    gcc-16.2.0
-s390                  randconfig-1000-20261109    gcc-8.5.0
-s390                  randconfig-1001-20261109    gcc-8.5.0
-sh                                allmodconfig    gcc-16.2.0
-sh                                 allnoconfig    clang-24
-sh                                allyesconfig    clang-17
-sh                                allyesconfig    gcc-16.2.0
-sh                         apsh4ad0a_defconfig    clang-24
-sh                                   defconfig    gcc-14
-sh                           lboxre2_defconfig    gcc-16.2.0
-sh                             migor_defconfig    gcc-16.2.0
-sh                    randconfig-1000-20261109    gcc-8.5.0
-sh                    randconfig-1001-20261109    gcc-8.5.0
-sh                           rsk7201_defconfig    clang-24
-sh                       rts7751r2d1_defconfig    gcc-16.2.0
-sh                           sdk7780_defconfig    clang-24
-sh                           sdk7786_defconfig    gcc-16.2.0
-sh                            se7751_defconfig    gcc-16.2.0
-sh                              sh03_defconfig    gcc-16.2.0
-sh                    sh7770_generic_defconfig    gcc-16.2.0
-sparc                             alldefconfig    gcc-16.2.0
-sparc                              allnoconfig    clang-24
-sparc                                defconfig    gcc-16.2.0
-sparc                 randconfig-1000-20261109    gcc-8.5.0
-sparc                 randconfig-1001-20261109    gcc-8.5.0
-sparc                        sparc32_defconfig    gcc-16.2.0
-sparc                        sparc64_defconfig    gcc-16.2.0
-sparc64                           allmodconfig    clang-20
-sparc64                              defconfig    gcc-14
-sparc64               randconfig-1000-20261109    gcc-8.5.0
-sparc64               randconfig-1001-20261109    gcc-8.5.0
-um                                allmodconfig    clang-17
-um                                 allnoconfig    clang-24
-um                                allyesconfig    gcc-14
-um                                allyesconfig    gcc-16.2.0
-um                                   defconfig    gcc-14
-um                              i386_defconfig    gcc-14
-um                    randconfig-1000-20261109    gcc-8.5.0
-um                    randconfig-1001-20261109    gcc-8.5.0
-um                            x86_64_defconfig    gcc-14
-x86_64                             allnoconfig    clang-24
-x86_64      buildonly-randconfig-1000-20261109    clang-22
-x86_64      buildonly-randconfig-1001-20261109    clang-22
-x86_64      buildonly-randconfig-1002-20261109    clang-22
-x86_64      buildonly-randconfig-1003-20261109    clang-22
-x86_64      buildonly-randconfig-1004-20261109    clang-22
-x86_64      buildonly-randconfig-1005-20261109    clang-22
-x86_64                               defconfig    gcc-14
-x86_64                                   kexec    clang-22
-x86_64                randconfig-1000-20261109    clang-22
-x86_64                randconfig-1001-20261109    clang-22
-x86_64                randconfig-1002-20261109    clang-22
-x86_64                randconfig-1003-20261109    clang-22
-x86_64                randconfig-1004-20261109    clang-22
-x86_64                randconfig-1005-20261109    clang-22
-x86_64                randconfig-1006-20261109    gcc-14
-x86_64                randconfig-1007-20261109    gcc-14
-x86_64                randconfig-1008-20261109    gcc-14
-x86_64                randconfig-1009-20261109    gcc-14
-x86_64                randconfig-1010-20261109    gcc-14
-x86_64                randconfig-1011-20261109    gcc-14
-x86_64                randconfig-1012-20261109    clang-22
-x86_64                randconfig-1013-20261109    clang-22
-x86_64                randconfig-1014-20261109    clang-22
-x86_64                randconfig-1015-20261109    clang-22
-x86_64                randconfig-1016-20261109    clang-22
-x86_64                randconfig-1017-20261109    clang-22
-x86_64                                rhel-9.4    clang-22
-x86_64                            rhel-9.4-bpf    gcc-14
-x86_64                           rhel-9.4-func    clang-22
-x86_64                     rhel-9.4-kselftests    clang-22
-x86_64                          rhel-9.4-kunit    gcc-14
-x86_64                            rhel-9.4-ltp    gcc-14
-x86_64                           rhel-9.4-rust    clang-22
-xtensa                             allnoconfig    clang-24
-xtensa                            allyesconfig    clang-20
-xtensa                            allyesconfig    gcc-16.2.0
-xtensa                   audio_kc705_defconfig    gcc-16.2.0
-xtensa                 generic_kc705_defconfig    gcc-16.2.0
-xtensa                randconfig-1000-20261109    gcc-8.5.0
-xtensa                randconfig-1001-20261109    gcc-8.5.0
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
 
---
-0-DAY CI Kernel Test Service
-https://github.com/intel/lkp-tests/wiki
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via various
+branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there most days
+
+------------------------------------------------------
+From: "Uladzislau Rezki (Sony)" <urezki@gmail.com>
+Subject: mm/vmalloc: bail out if in softirq context
+Date: Mon, 26 Oct 2026 11:25:03 +0100
+
+vmalloc() is not allowed to be invoked from the NMI, hard-irq and softirq
+contexts because doing so may deadlock on internal locks.
+
+Commit 04aa71da5f35 ("mm/vmalloc: do not trigger BUG() on BH disabled
+context") replaced the deprecated in_interrupt() macro with explicit
+in_nmi() and in_hardirq() checks, but unintentionally dropped the softirq
+context check.
+
+Example:
+
+<snip>
+vzalloc() in a task
+ spin_lock(&vn->busy.lock)
+  <------ Hard irq
+   irq_exit()
+    process softirq on the same CPU
+     vmalloc()
+      spin_lock(&vn->busy.lock)
+       spins forever
+<snip>
+
+Restore the check by checking the caller's context with the
+in_serving_softirq() helper.  Note that, it is still allowed to invoke
+vmalloc() with disabled bottom halves.
+
+Replace BUG_ON() with WARN_ON_ONCE() for in_nmi() and
+in_hardirq() case.
+
+Link: https://lore.kernel.org/20261026102503.30860-1-urezki@gmail.com
+Fixes: 04aa71da5f35 ("mm/vmalloc: do not trigger BUG() on BH disabled context")
+Signed-off-by: Uladzislau Rezki (Sony) <urezki@gmail.com>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+Reviewed-by: Baoquan He <baoquan.he@linux.dev>
+Cc: David Hildenbrand (Arm) <david@kernel.org>
+Cc: <stable@vger.kernel.org>
+---
+
+ mm/vmalloc.c |    8 +++++++-
+ 1 file changed, 7 insertions(+), 1 deletion(-)
+
+--- a/mm/vmalloc.c~mm-vmalloc-bail-out-if-in-softirq-context
++++ a/mm/vmalloc.c
+@@ -3258,7 +3258,13 @@ struct vm_struct *__get_vm_area_node(uns
+ 	struct vm_struct *area;
+ 	unsigned long requested_size = size;
+ 
+-	BUG_ON(in_nmi() || in_hardirq());
++	/* IRQ re-entrancy -> irq_exit() -> process softirq. */
++	if (in_serving_softirq())
++		return NULL;
++
++	if (WARN_ON_ONCE(in_nmi() || in_hardirq()))
++		return NULL;
++
+ 	size = ALIGN(size, 1ul << shift);
+ 	if (unlikely(!size))
+ 		return NULL;
+_
+
+Patches currently in -mm which might be from urezki@gmail.com are
+
+mm-vmalloc-bail-out-if-in-softirq-context.patch
+mm-vmalloc-use-dedicated-unbound-workqueues-for-vmap-drain.patch
+
