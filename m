@@ -1,46 +1,46 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794257617;
-	b=Z8ab1qHLrnqXQvo/2N9q3LXco+Z9TPqeQIU8WxiHeD2/yMNTWAy+7oigL5FF4ORLj6hl
-	 k9mxAEkdhYQSpOxxKtGo/WBwDrDPSV/SAPALS5peagKUMJKABFT0M148bRFpdBayqrfyS
-	 ZU8klEKMaWmusHTf7hfzdtRWHXX4P5gI+Y4b2A92H3zdxBQij9FyLWDnZGLkFK1CaxEmm
-	 tzvZ0Woc2UgfFXpt3nKzIfcxqAQOtaZGpnl8nC8nyYMK0JRsTdplK0joX2FLUoE6v6nRq
-	 Ep6QivW2xScyzCb7kYY75S3mh7rzPgzim+0QKex0+rvoivSxVlSPehSs5J0dkyhSyyQ==
+	t=1794257619;
+	b=g1PxRrDPHUvD7pPOYG5zOfhFRARey+F8eno+36gApC/fIYXbgUhq2ksX8+R1VoUJaHjX
+	 5j9RD22C1UNVoe3/ML58V3SueupgPqZMPQ6/ZpUQVswWKNrlXyJZJMWkZ50OK2gxfxfXr
+	 hYtja+scJJxqXGEylAfu39IoYxFed7e8hWDLTbnFrld/vawRoPG3Q3m4eVjr3DcNSKlSy
+	 FrQHT246oOmPWrARn416pqlViSMEs90U7+2d/KXcSpwRCIxB7Px+ynRM7k/wZ4buRZhK3
+	 DOSByrjgF4YXDkNGoLFYC8Mt89XfvKNzn/oyoDWCDk59XChSP3pqkAv9KyXWxTArUgQ==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794257617;
+	a=rsa-sha256; c=relaxed/relaxed; t=1794257619;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=NEttv7d2hTq6vy1UnUljgJnKaxVXIgNKINj2Pg1E0Rk=;
-	b=hiHNzYFL2AkcrOZgCzjVnQkUDtub58ruO7suT6nPOKAU8m+z0IP4m8McT6x8qVMAd8Zs
-	 qRlUEVtu5Gtkg+5yE6G+ghLcXUYL1w9HK/GhKc2n6ncuZTNPRoLmZw3NYjkRWTCJjXeZ7
-	 mNwzYBHroX4CbXkWDSA8Ixk9Su+08l+R2exdu7+zVNFOFEB7ixS1dmxltAMaQPxbhX/2k
-	 f3l/zLy5DYnYXP3rVQQd1kzurfokdLO2XgJAx41//T6JLMzMD522FcoF4/qkyLs3uDYAy
-	 yjFvrxeduMRlFzuf2pxZzBXRKxJbF0J/w67IWpYWz9CDYMjq6T4eGFM5N8WPT6CSflg==
+	bh=FhDBRqCmXm8gOp8Dx4eRM+6+3icdJrJSRvnc6dy0BVM=;
+	b=f/qa/wZ68FSr1csBC+GfXwDwmvbeWW1nfVYzeAtD0w0n6TSBGOvyfBSwc1ZJ3XHhpM2p
+	 tOkBWboC8+TXo1t/kUfjlR6ffq1mXbG2eQUmqHMCXI3Q/Z3pXL1qlHwsSYNY9Edu20tQE
+	 EvjL0yOK8xqfCO0bdaHrgpPEia+hMrRV7MHNmnMK6LUPhnkpwTRDrYKmhGV9cJ5NyRjW+
+	 Pth7bNs2dao3bTK4rEOPcMtHuqwTCdxFPiVQeZnUxgP/xSpYZgYlRZvNLmc0uScF0hSRG
+	 BzbZ9KUYXCpX0JnDRLPtRhMhnAqMF39DR/FnVqfKj0bKSdCGUNDBU7hpMNDNWYmiNpQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=Pgrq7Reg;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=lPVNi5IZ;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 21529606A31C
-	for <mm-commits@vger.kernel.org>; Mon,  9 Nov 2026 20:53:37 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5FF0B606A31C
+	for <mm-commits@vger.kernel.org>; Mon,  9 Nov 2026 20:53:39 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=Pgrq7Reg
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id DF93E1F0089F;
-	Mon,  9 Nov 2026 20:53:36 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=lPVNi5IZ
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 298CA1F0089F;
+	Mon,  9 Nov 2026 20:53:39 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1794257617;
-	bh=NEttv7d2hTq6vy1UnUljgJnKaxVXIgNKINj2Pg1E0Rk=;
+	d=linux-foundation.org; s=korg; t=1794257619;
+	bh=FhDBRqCmXm8gOp8Dx4eRM+6+3icdJrJSRvnc6dy0BVM=;
 	h=Date:To:From:Subject;
-	b=Pgrq7Reg2ui3rbBSAMKdRldcPBzfeoHspXYPzkzv0JPVUDoYHVXZO1mb1OoFF7QtY
-	 vPDfXhCuUu+cg9npXCcWohksW909n3T3SyobIHQECxYUukqN/GiiyQrQAV0L7mkQYf
-	 0AO3/ogN3401658IIihkPLq7DNCW0/WfQl2c+Y8M=
-Date: Mon, 09 Nov 2026 12:53:36 -0800
+	b=lPVNi5IZHXLqeyuiMfwENbq09QNOThQsNrbTgWfMrezNMniyH+SJRNyA9AAV5Qa77
+	 +R1LSH3P3JUg2cBmm2nSFfnxq2HgbyJBrxJVcPlFK8rLRr+NMFr/5vtbWrcJ9/MS1J
+	 3h8SagjpWzzlDkZNE5hVTJlovl20DFFBrNplHHgI=
+Date: Mon, 09 Nov 2026 12:53:38 -0800
 To: mm-commits@vger.kernel.org,joseph.qi@linux.alibaba.com,
 	akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + ocfs2-check-fast-symlink-dinodes-in-online-filecheck.patch added to mm-nonmm-unstable branch
-Message-Id: <20261109205336.DF93E1F0089F@smtp.kernel.org>
+Subject: + ocfs2-check-chain-list-dinodes-in-online-filecheck.patch added to mm-nonmm-unstable branch
+Message-Id: <20261109205339.298CA1F0089F@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -52,12 +52,12 @@ Precedence: list
 
 
 The patch titled
-     Subject: ocfs2: check fast symlink dinodes in online filecheck
+     Subject: ocfs2: check chain list dinodes in online filecheck
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     ocfs2-check-fast-symlink-dinodes-in-online-filecheck.patch
+     ocfs2-check-chain-list-dinodes-in-online-filecheck.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/ocfs2-check-fast-symlink-dinodes-in-online-filecheck.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/ocfs2-check-chain-list-dinodes-in-online-filecheck.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -76,18 +76,18 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Joseph Qi <joseph.qi@linux.alibaba.com>
-Subject: ocfs2: check fast symlink dinodes in online filecheck
-Date: Mon, 09 Nov 2026 20:21:18 +0800
+Subject: ocfs2: check chain list dinodes in online filecheck
+Date: Mon, 09 Nov 2026 20:21:19 +0800
 
-Wire the fast symlink guard and its two sub-checks into the filecheck
-validator: an i_size beyond the space available for id2.i_symlink, and a
-target that is not NUL-terminated at i_size.
+Wire the chain-list guard and its three sub-checks into the filecheck
+validator: cl_count against ocfs2_chain_recs_per_inode(),
+cl_next_free_rec against cl_count, and cl_bpc against the cluster to
+block size ratio.
 
-ocfs2_dinode_has_unterminated_fast_symlink() bounds its own strnlen()
-against ocfs2_fast_symlink_chars(), so this caller does not have to rely
-on the size check having run first to stay inside the inode block.
+The bits-per-cluster predicate keeps the two bitmap_blkno conditions, so
+the global bitmap inode itself remains exempt.
 
-Link: https://lore.kernel.org/20261109122121.21473-29-joseph.qi@linux.alibaba.com
+Link: https://lore.kernel.org/20261109122121.21473-30-joseph.qi@linux.alibaba.com
 Signed-off-by: Joseph Qi <joseph.qi@linux.alibaba.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 Cc: Heming Zhao <heming.zhao@suse.com>
@@ -95,34 +95,41 @@ Cc: Mark Fasheh <mark@fasheh.com>
 Cc: Joel Becker <jlbec@evilplan.org>
 ---
 
- fs/ocfs2/inode.c |   24 ++++++++++++++++++++++++
- 1 file changed, 24 insertions(+)
+ fs/ocfs2/inode.c |   31 +++++++++++++++++++++++++++++++
+ 1 file changed, 31 insertions(+)
 
---- a/fs/ocfs2/inode.c~ocfs2-check-fast-symlink-dinodes-in-online-filecheck
+--- a/fs/ocfs2/inode.c~ocfs2-check-chain-list-dinodes-in-online-filecheck
 +++ a/fs/ocfs2/inode.c
-@@ -2141,6 +2141,30 @@ static int ocfs2_filecheck_validate_inod
+@@ -2165,6 +2165,37 @@ static int ocfs2_filecheck_validate_inod
  		}
  	}
  
-+	if (ocfs2_dinode_is_fast_symlink(di)) {
-+		int max_inline = ocfs2_fast_symlink_chars(sb);
-+		u64 i_size = le64_to_cpu(di->i_size);
++	if (ocfs2_dinode_has_chain_list(di)) {
++		struct ocfs2_chain_list *cl = &di->id2.i_chain;
 +
-+		if (ocfs2_dinode_has_oversized_fast_symlink(sb, di)) {
++		if (ocfs2_dinode_has_bad_chain_count(sb, di)) {
 +			mlog(ML_ERROR,
-+			     "Filecheck: invalid dinode #%llu: fast symlink i_size %llu exceeds max %d\n",
++			     "Filecheck: invalid dinode #%llu: chain list count %u\n",
 +			     (unsigned long long)bh->b_blocknr,
-+			     (unsigned long long)i_size,
-+			     max_inline - 1);
++			     le16_to_cpu(cl->cl_count));
 +			rc = -OCFS2_FILECHECK_ERR_INVALIDINO;
 +			goto bail;
 +		}
 +
-+		if (ocfs2_dinode_has_unterminated_fast_symlink(sb, di)) {
++		if (ocfs2_dinode_has_bad_chain_next_free(di)) {
 +			mlog(ML_ERROR,
-+			     "Filecheck: invalid dinode #%llu: fast symlink is not NUL-terminated at i_size %llu\n",
++			     "Filecheck: invalid dinode #%llu: chain list index %u\n",
 +			     (unsigned long long)bh->b_blocknr,
-+			     (unsigned long long)i_size);
++			     le16_to_cpu(cl->cl_next_free_rec));
++			rc = -OCFS2_FILECHECK_ERR_INVALIDINO;
++			goto bail;
++		}
++
++		if (ocfs2_dinode_has_bad_chain_bpc(sb, di)) {
++			mlog(ML_ERROR,
++			     "Filecheck: invalid dinode #%llu: bits per cluster %u\n",
++			     (unsigned long long)bh->b_blocknr,
++			     le16_to_cpu(cl->cl_bpc));
 +			rc = -OCFS2_FILECHECK_ERR_INVALIDINO;
 +			goto bail;
 +		}
