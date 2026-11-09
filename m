@@ -1,51 +1,78 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=198.175.65.16
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794207857;
-	b=uCECLCWY2eZLhHgt57gDj0DLfJDqdQuiNQfzptB8XmT3+o8nRPQP3+9FsU0+BbglHCYn
-	 qoJpXgcWVmm9bloXXsoBCJDqsZYCiLj5HoIH1GhSgjHJiHVOk81sEwAqwireUlxgj3SUh
-	 4uJuQ6sKfUDQWXDiFlmpbWwftxlHXGaZKfSikSIrXZVq19wGLaO+HJbCNrMPQjdX/rro4
-	 pS6mY3zNQJ2XuG1M+RAo6285aJyPABx6B8hOD1n+E9iK4ZSO00+HztF/WFsOAgcw93jwf
-	 iJOn9IA8kFCw5Ye/x3o437WRcZ06I8MSFsTBIzHnMS66xMsfqbqiNVt4B0ZuC1A6TTQ==
+	t=1794236113;
+	b=fRe2aiwDNJI1nBq6YAih4Hodk6OQLvgIHdLJYu5CIR/JXwlteeUeQlFu74jsKPQOUtCy
+	 gYHqcTeX+WWvpXSiGueanmzz3ZmMC7vFYPG0OIfuQrUgE29jtkWZyRiTXiMRh93XoJfS7
+	 5amaTDzx/CAb4LNUOwI8oJsBW+ZY/MVM42LbyyQdXq5br22gkPjhvBUoOzFvZ5nEpB0Vg
+	 VGjT9BYxDDNj3e5MoJQLc31bKYlg7omM/XZ0neyRC7o1xZkBA+htuqlP02RfmLu+vFjei
+	 hUqkpvLakNz7Sl/WJaZeED1CTm7aesjO6SYzCMd9jqBUr3Unnxr77/JNe9I3HzbGzKQ==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794207857;
-	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=nSFWaAlE8SKb5FosouPDIMVFxAmsLnJPGScxTMwTNMM=;
-	b=z9gNn89w/WO5Nmp3+o/wuQ5LsR1wKfxDYo4zgwLPXst8LI3ue2+SNI76xLS3voXWP/KI
-	 tMvOjKZJcdBCx0q2+37i6j10DZwF0Wru7L5+9bFoqm1y/MNBmUGRSFvmrP0BbvSI4tRSF
-	 OEG9rf3NuzJJKn1qD/8Jt0rr0bvDd/K0/mNz9yhZ82Un7d/VuQM7Rz00vGMyOncv60ptV
-	 R1lwNhabTKL2J+6RiWGOSsTNv1MumdHj5c1Tw0MM3J72QGjanWJ/Vl+cc4RvnRXydnejr
-	 KcJ45ztJPmNnKwlVTw5NzqvZC8cOnYtNnFUqPpaI9S411kkbbClDcjhX258+hqXaSnw==
+	a=rsa-sha256; c=relaxed/relaxed; t=1794236113;
+	h=DMARC-Filter:DKIM-Signature:X-CSE-ConnectionGUID:X-CSE-MsgGUID:
+	 X-IronPort-AV:X-IronPort-AV:Received:X-CSE-ConnectionGUID:
+	 X-CSE-MsgGUID:X-ExtLoop1:X-IronPort-AV:Received:Received:Date:From:To:
+	 Cc:Subject:Message-ID:User-Agent;
+	bh=ZCl+mkow6+RCbuttuNKbn/B0QKOEOsshATrGc/XDs3s=;
+	b=uqjCvviAgZRGXLvLqB+z0oXandm84TxLuaHIMQ/peGjfV4g5CoGt98YazE/Q9myrkwmW
+	 NtLZotIktGIwuTdc09BoqjAZea0OHAgwVqnLjQSB1Ce/HPIvv1zIV9CiaGlrn5DBF4H4k
+	 3o/A/cMpFyw/mXJe01D5GXKDEl1UQFIKm3ZagVzmhl/wCsn6UifejZt1llLjWWmw2CBsb
+	 YIHNxYGhnFwnzMjvcrEeD5fWzqshHOUCBtIRQ4sB1zKtN8B07wsrTdjiFwEK1brnnZf4c
+	 /GEoffgWbQE2NhvQawX+yi9qsaZMlwxKWN7rl5EoULvcxM8sKa9W3oAJJHu4jVWcXcg==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=yADR6j6S;
-	arc=none smtp.remote-ip=100.103.45.18
-Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1))
+	dmarc=pass header.from=intel.com;
+	spf=pass smtp.mailfrom=intel.com;
+	dkim=pass header.d=intel.com header.i=@intel.com header.a=rsa-sha256 header.s=Intel header.b="EqW44/09";
+	arc=none smtp.remote-ip=198.175.65.16
+Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.16])
+	(using TLSv1.2 with cipher ECDHE-ECDSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 16573606A31C
-	for <mm-commits@vger.kernel.org>; Mon,  9 Nov 2026 07:04:17 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 673B3606A321
+	for <mm-commits@vger.kernel.org>; Mon,  9 Nov 2026 14:55:12 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 673B3606A321
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=yADR6j6S
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D7F4C1F0089F;
-	Mon,  9 Nov 2026 07:04:16 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1794207856;
-	bh=nSFWaAlE8SKb5FosouPDIMVFxAmsLnJPGScxTMwTNMM=;
-	h=Date:To:From:Subject;
-	b=yADR6j6SdN/OtkCSVdIqqY4tzJh2rJ9vYLVrlHoB0H6GLm4OWEYBx4QKPgFrccBPE
-	 ZBeg+c0DvNZWsfpKHQ9vLzYJMbZmk/xkFKOVQs38MBoSzi8NcCqgF+gBObCXt5yfGL
-	 H5QwfnqsButkr3WwQrki3SMbHcHrpFjq+47V5/hY=
-Date: Sun, 08 Nov 2026 23:04:16 -0800
-To: mm-commits@vger.kernel.org,xueyuan.chen21@gmail.com,will@kernel.org,
-	urezki@gmail.com,ryan.roberts@arm.com,rppt@kernel.org,npiggin@gmail.com,
-	mpe@ellerman.id.au,maddy@linux.ibm.com,leo.yan@arm.com,
-	jiangwenxiaomi@gmail.com,jiangwen6@xiaomi.com,dev.jain@arm.com,
-	david@kernel.org,chleroy@kernel.org,catalin.marinas@arm.com,
-	anshuman.khandual@arm.com,andrew+kernel@donnellan.id.au,baohua@kernel.org,
-	akpm@linux-foundation.org
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-vmalloc-align-vm_area-so-vmap-can-batch-mappings.patch added to mm-new branch
-Message-Id: <20261109070416.D7F4C1F0089F@smtp.kernel.org>
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.a=rsa-sha256 header.s=Intel header.b=EqW44/09
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1794236112; x=1825772112;
+  h=date:from:to:cc:subject:message-id;
+  bh=sIuT5Ifn3MDZmMAGE1tMEVn+nuUHaTEO7Qqt0YR+YBE=;
+  b=EqW44/09Ek2aaaiid1fCf+NxaXkoo9o/L/sx4JiXwyt+8LWfE7iGmlGq
+   uuqA+ysSX+Ig2H/ZjnJ5U6rlCPCyivN1TsAFXV5UeBJ+pFmgrLwN4X4Pp
+   E4SdGPCsNx7y5yhU8rfv27A19peJ4N+IXBRCK0THKIaVevpqgNiavt/hp
+   H9SVNcItHlMp6/BdKy4labIx1JER2buFxeL0oksFg9hBnY0a0Aq6LGYum
+   HZe+445bbYZtaU614Uxg44rs49D9fBX3Ase8RKKWEjlfVGQaFXjG/Hqtg
+   W/JMU13LHxM0rVfb0Ww6fZNDu0+dd/hUg8OU7+imP84+hUEndXnrs03K+
+   g==;
+X-CSE-ConnectionGUID: B2AKgS+YRWCx4InF4fvFQQ==
+X-CSE-MsgGUID: oTfgCfMcTZKrfYYubev+dw==
+X-IronPort-AV: E=McAfee;i="6800,10657,11961"; a="2947601"
+X-IronPort-AV: E=Sophos;i="6.27,204,1787036400"; 
+   d="scan'208";a="2947601"
+Received: from fmviesa004.fm.intel.com ([10.60.135.144])
+  by orvoesa108.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 09 Nov 2026 06:55:12 -0800
+X-CSE-ConnectionGUID: GWJgpn/iQgClmZQZ3+x+zQ==
+X-CSE-MsgGUID: 6lTrG5IsS5qZmxWMex9PBg==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="6.27,204,1787036400"; 
+   d="scan'208";a="7895183"
+Received: from lkp-server01.sh.intel.com (HELO 0caa9d2d175c) ([10.239.97.150])
+  by fmviesa004.fm.intel.com with ESMTP; 09 Nov 2026 06:55:10 -0800
+Received: from kbuild by 0caa9d2d175c with local (Exim 4.98.2)
+	(envelope-from <lkp@intel.com>)
+	id 1xQQm3-00000000uhT-2iOX;
+	Mon, 09 Nov 2026 14:55:07 +0000
+Date: Mon, 09 Nov 2026 22:54:19 +0800
+From: kernel test robot <lkp@intel.com>
+To: David Hildenbrand <david@kernel.org>
+Cc: Andrew Morton <akpm@linux-foundation.org>,
+ Linux Memory Management List <linux-mm@kvack.org>,
+ mm-commits@vger.kernel.org
+Subject: [akpm-mm:mm-new] BUILD SUCCESS
+ b95f8bb86713c860ce8536d22a988b949b884d5f
+Message-ID: <20261109225419.Lrln0N7v-lkp@intel.com>
+User-Agent: s-nail v14.9.25
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -55,146 +82,233 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:mm-commits+owner@vger.kernel.org>
 Precedence: list
 
+tree/branch: https://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm.git mm-new
+branch HEAD: b95f8bb86713c860ce8536d22a988b949b884d5f  riscv: mm: fix concurrency in mark_new_valid_map()
 
-The patch titled
-     Subject: mm/vmalloc: align vm_area so vmap() can batch mappings
-has been added to the -mm mm-new branch.  Its filename is
-     mm-vmalloc-align-vm_area-so-vmap-can-batch-mappings.patch
+elapsed time: 910m
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vmalloc-align-vm_area-so-vmap-can-batch-mappings.patch
+configs tested: 214
+configs skipped: 15
 
-This patch will later appear in the mm-new branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+The following configs have been built successfully.
+More configs may be tested in the coming days.
 
-Note, mm-new is a provisional staging ground for work-in-progress
-patches, and acceptance into mm-new is a notification for others take
-notice and to finish up reviews.  Please do not hesitate to respond to
-review feedback and post updated versions to replace or incrementally
-fixup patches in mm-new.
+tested configs:
+alpha                              allnoconfig    gcc-16.2.0
+alpha                             allyesconfig    gcc-16.2.0
+alpha                                defconfig    gcc-16.2.0
+alpha                                defconfig    gcc-16.2.0
+arc                               allmodconfig    clang-24
+arc                               allmodconfig    gcc-16.2.0
+arc                                allnoconfig    gcc-16.2.0
+arc                               allyesconfig    clang-24
+arc                               allyesconfig    gcc-16.2.0
+arc                                  defconfig    gcc-16.2.0
+arc                      haps_hs_smp_defconfig    gcc-16.2.0
+arc                   randconfig-1000-20261109    clang-24
+arc                   randconfig-1001-20261109    clang-24
+arm                                allnoconfig    gcc-16.2.0
+arm                               allyesconfig    clang-24
+arm                               allyesconfig    gcc-16.2.0
+arm                        aspeed_g5_defconfig    clang-24
+arm                          bcm2835_defconfig    clang-24
+arm                                  defconfig    gcc-16.2.0
+arm                        imx_v4_v5_defconfig    gcc-16.2.0
+arm                             mps2_defconfig    clang-24
+arm                         multi_v7_defconfig    gcc-16.2.0
+arm                   randconfig-1000-20261109    clang-24
+arm                   randconfig-1001-20261109    clang-24
+arm                   randconfig-1002-20261109    clang-24
+arm                   randconfig-1003-20261109    clang-24
+arm64                             allmodconfig    clang-24
+arm64                              allnoconfig    gcc-16.2.0
+arm64                                defconfig    gcc-16.2.0
+arm64                 randconfig-1000-20261109    gcc-13.5.0
+arm64                 randconfig-1001-20261109    gcc-13.5.0
+arm64                 randconfig-1002-20261109    gcc-13.5.0
+arm64                 randconfig-1003-20261109    gcc-13.5.0
+csky                              allmodconfig    gcc-16.2.0
+csky                               allnoconfig    gcc-16.2.0
+csky                                 defconfig    gcc-16.2.0
+csky                  randconfig-1000-20261109    gcc-13.5.0
+csky                  randconfig-1001-20261109    gcc-13.5.0
+hexagon                           allmodconfig    clang-24
+hexagon                           allmodconfig    gcc-16.2.0
+hexagon                            allnoconfig    gcc-16.2.0
+hexagon                              defconfig    gcc-16.2.0
+hexagon               randconfig-1000-20261109    clang-19
+hexagon               randconfig-1001-20261109    clang-19
+i386                              allmodconfig    gcc-14
+i386                               allnoconfig    gcc-16.2.0
+i386        buildonly-randconfig-1000-20261109    clang-22
+i386        buildonly-randconfig-1001-20261109    clang-22
+i386        buildonly-randconfig-1002-20261109    clang-22
+i386        buildonly-randconfig-1003-20261109    clang-22
+i386        buildonly-randconfig-1004-20261109    clang-22
+i386        buildonly-randconfig-1005-20261109    clang-22
+i386                                 defconfig    gcc-16.2.0
+i386                  randconfig-1007-20261109    gcc-12
+i386                  randconfig-1008-20261109    gcc-12
+i386                  randconfig-1009-20261109    gcc-12
+i386                  randconfig-1010-20261109    gcc-12
+i386                  randconfig-1011-20261109    gcc-12
+i386                  randconfig-1012-20261109    gcc-12
+i386                  randconfig-1013-20261109    gcc-12
+loongarch                         allmodconfig    clang-24
+loongarch                          allnoconfig    gcc-16.2.0
+loongarch                            defconfig    clang-24
+loongarch             randconfig-1000-20261109    clang-19
+loongarch             randconfig-1001-20261109    clang-19
+m68k                              allmodconfig    gcc-16.2.0
+m68k                               allnoconfig    gcc-16.2.0
+m68k                              allyesconfig    clang-24
+m68k                              allyesconfig    gcc-16.2.0
+m68k                           amiga_defconfig    clang-24
+m68k                                 defconfig    clang-24
+m68k                         m5307c3_defconfig    clang-24
+m68k                        m5329evb_defconfig    gcc-16.2.0
+m68k                          nettel_defconfig    clang-24
+microblaze                         allnoconfig    gcc-16.2.0
+microblaze                        allyesconfig    gcc-16.2.0
+microblaze                           defconfig    clang-24
+mips                              allmodconfig    gcc-16.2.0
+mips                               allnoconfig    gcc-16.2.0
+mips                              allyesconfig    gcc-16.2.0
+mips                           ath79_defconfig    clang-24
+mips                       bmips_stb_defconfig    gcc-16.2.0
+mips                          db1xxx_defconfig    gcc-16.2.0
+mips                       fuloong2e_defconfig    gcc-16.2.0
+mips                            gcw0_defconfig    gcc-16.2.0
+mips                             gpr_defconfig    clang-24
+mips                             gpr_defconfig    gcc-16.2.0
+mips                            ip27_defconfig    gcc-16.2.0
+mips                       loongson3_defconfig    gcc-16.2.0
+nios2                             allmodconfig    clang-20
+nios2                             allmodconfig    gcc-11.5.0
+nios2                              allnoconfig    clang-24
+nios2                                defconfig    clang-24
+nios2                 randconfig-1000-20261109    clang-19
+nios2                 randconfig-1001-20261109    clang-19
+openrisc                          allmodconfig    clang-20
+openrisc                          allmodconfig    gcc-11.5.0
+openrisc                          allmodconfig    gcc-16.2.0
+openrisc                           allnoconfig    clang-24
+openrisc                             defconfig    gcc-16.2.0
+openrisc                   or1klitex_defconfig    gcc-16.2.0
+openrisc                        virt_defconfig    gcc-16.2.0
+parisc                            allmodconfig    gcc-16.2.0
+parisc                             allnoconfig    clang-24
+parisc                            allyesconfig    clang-17
+parisc                            allyesconfig    gcc-16.2.0
+parisc                               defconfig    gcc-16.2.0
+parisc                randconfig-1000-20261109    gcc-8.5.0
+parisc                randconfig-1001-20261109    gcc-8.5.0
+parisc64                             defconfig    clang-24
+powerpc                           allmodconfig    gcc-16.2.0
+powerpc                            allnoconfig    clang-24
+powerpc                        ebony_defconfig    clang-24
+powerpc                           g5_defconfig    gcc-16.2.0
+powerpc                  mpc837x_rdb_defconfig    clang-24
+powerpc                       pmac32_defconfig    gcc-16.2.0
+powerpc               randconfig-1000-20261109    gcc-8.5.0
+powerpc               randconfig-1001-20261109    gcc-8.5.0
+powerpc                      redwood_defconfig    gcc-16.2.0
+powerpc                      taishan_defconfig    gcc-16.2.0
+powerpc64             randconfig-1000-20261109    gcc-8.5.0
+powerpc64             randconfig-1001-20261109    gcc-8.5.0
+riscv                             allmodconfig    clang-24
+riscv                              allnoconfig    clang-24
+riscv                             allyesconfig    clang-24
+riscv                                defconfig    gcc-16.2.0
+riscv                                defconfig    gcc-16.2.0
+riscv                 randconfig-1000-20261109    gcc-8.5.0
+riscv                 randconfig-1001-20261109    gcc-8.5.0
+s390                              allmodconfig    clang-17
+s390                               allnoconfig    clang-24
+s390                              allyesconfig    gcc-16.2.0
+s390                                 defconfig    clang-24
+s390                                 defconfig    gcc-16.2.0
+s390                  randconfig-1000-20261109    gcc-8.5.0
+s390                  randconfig-1001-20261109    gcc-8.5.0
+sh                                allmodconfig    gcc-16.2.0
+sh                                 allnoconfig    clang-24
+sh                                allyesconfig    clang-17
+sh                                allyesconfig    gcc-16.2.0
+sh                         apsh4ad0a_defconfig    clang-24
+sh                                   defconfig    gcc-14
+sh                           lboxre2_defconfig    gcc-16.2.0
+sh                             migor_defconfig    gcc-16.2.0
+sh                    randconfig-1000-20261109    gcc-8.5.0
+sh                    randconfig-1001-20261109    gcc-8.5.0
+sh                           rsk7201_defconfig    clang-24
+sh                       rts7751r2d1_defconfig    gcc-16.2.0
+sh                           sdk7780_defconfig    clang-24
+sh                           sdk7786_defconfig    gcc-16.2.0
+sh                            se7751_defconfig    gcc-16.2.0
+sh                              sh03_defconfig    gcc-16.2.0
+sh                    sh7770_generic_defconfig    gcc-16.2.0
+sparc                             alldefconfig    gcc-16.2.0
+sparc                              allnoconfig    clang-24
+sparc                                defconfig    gcc-16.2.0
+sparc                 randconfig-1000-20261109    gcc-8.5.0
+sparc                 randconfig-1001-20261109    gcc-8.5.0
+sparc                        sparc32_defconfig    gcc-16.2.0
+sparc                        sparc64_defconfig    gcc-16.2.0
+sparc64                           allmodconfig    clang-20
+sparc64                              defconfig    gcc-14
+sparc64               randconfig-1000-20261109    gcc-8.5.0
+sparc64               randconfig-1001-20261109    gcc-8.5.0
+um                                allmodconfig    clang-17
+um                                 allnoconfig    clang-24
+um                                allyesconfig    gcc-14
+um                                allyesconfig    gcc-16.2.0
+um                                   defconfig    gcc-14
+um                              i386_defconfig    gcc-14
+um                    randconfig-1000-20261109    gcc-8.5.0
+um                    randconfig-1001-20261109    gcc-8.5.0
+um                            x86_64_defconfig    gcc-14
+x86_64                             allnoconfig    clang-24
+x86_64      buildonly-randconfig-1000-20261109    clang-22
+x86_64      buildonly-randconfig-1001-20261109    clang-22
+x86_64      buildonly-randconfig-1002-20261109    clang-22
+x86_64      buildonly-randconfig-1003-20261109    clang-22
+x86_64      buildonly-randconfig-1004-20261109    clang-22
+x86_64      buildonly-randconfig-1005-20261109    clang-22
+x86_64                               defconfig    gcc-14
+x86_64                                   kexec    clang-22
+x86_64                randconfig-1000-20261109    clang-22
+x86_64                randconfig-1001-20261109    clang-22
+x86_64                randconfig-1002-20261109    clang-22
+x86_64                randconfig-1003-20261109    clang-22
+x86_64                randconfig-1004-20261109    clang-22
+x86_64                randconfig-1005-20261109    clang-22
+x86_64                randconfig-1006-20261109    gcc-14
+x86_64                randconfig-1007-20261109    gcc-14
+x86_64                randconfig-1008-20261109    gcc-14
+x86_64                randconfig-1009-20261109    gcc-14
+x86_64                randconfig-1010-20261109    gcc-14
+x86_64                randconfig-1011-20261109    gcc-14
+x86_64                randconfig-1012-20261109    clang-22
+x86_64                randconfig-1013-20261109    clang-22
+x86_64                randconfig-1014-20261109    clang-22
+x86_64                randconfig-1015-20261109    clang-22
+x86_64                randconfig-1016-20261109    clang-22
+x86_64                randconfig-1017-20261109    clang-22
+x86_64                                rhel-9.4    clang-22
+x86_64                            rhel-9.4-bpf    gcc-14
+x86_64                           rhel-9.4-func    clang-22
+x86_64                     rhel-9.4-kselftests    clang-22
+x86_64                          rhel-9.4-kunit    gcc-14
+x86_64                            rhel-9.4-ltp    gcc-14
+x86_64                           rhel-9.4-rust    clang-22
+xtensa                             allnoconfig    clang-24
+xtensa                            allyesconfig    clang-20
+xtensa                            allyesconfig    gcc-16.2.0
+xtensa                   audio_kc705_defconfig    gcc-16.2.0
+xtensa                 generic_kc705_defconfig    gcc-16.2.0
+xtensa                randconfig-1000-20261109    gcc-8.5.0
+xtensa                randconfig-1001-20261109    gcc-8.5.0
 
-The mm-new branch of mm.git is not included in linux-next
-
-If a few days of testing in mm-new is successful, the patch will me moved
-into mm.git's mm-unstable branch, which is included in linux-next
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via various
-branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there most days
-
-------------------------------------------------------
-From: "Barry Song (Xiaomi)" <baohua@kernel.org>
-Subject: mm/vmalloc: align vm_area so vmap() can batch mappings
-Date: Sat, 07 Nov 2026 21:49:53 +0800
-
-Try to align the vmap virtual address to PMD_SHIFT or a
-larger PTE mapping size hinted by the architecture, so
-contiguous pages can be batch-mapped when setting PMD or
-PTE entries. We do not expect any significant overhead for
-this.
-
-Add __get_vm_area_node_aligned_caller() as a wrapper over
-__get_vm_area_node() to simplify repeated calls with fixed
-arguments.
-
-Link: https://lore.kernel.org/20261107134953.748622-11-jiangwenxiaomi@gmail.com
-Signed-off-by: Barry Song (Xiaomi) <baohua@kernel.org>
-Signed-off-by: Wen Jiang <jiangwen6@xiaomi.com>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Tested-by: Xueyuan Chen <xueyuan.chen21@gmail.com>
-Tested-by: Leo Yan <leo.yan@arm.com>
-Reviewed-by: Uladzislau Rezki (Sony) <urezki@gmail.com>
-Reviewed-by: Dev Jain <dev.jain@arm.com>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Will Deacon <will@kernel.org>
-Cc: Ryan Roberts <ryan.roberts@arm.com>
-Cc: Anshuman Khandual <anshuman.khandual@arm.com>
-Cc: David Hildenbrand <david@kernel.org>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Christophe Leroy <chleroy@kernel.org>
-Cc: Madhavan Srinivasan <maddy@linux.ibm.com>
-Cc: Michael Ellerman <mpe@ellerman.id.au>
-Cc: Nicholas Piggin <npiggin@gmail.com>
-Cc: Andrew Donnellan <andrew+kernel@donnellan.id.au>
-Cc: Wen Jiang <jiangwenxiaomi@gmail.com>
----
-
- mm/vmalloc.c |   36 ++++++++++++++++++++++++++++++++++--
- 1 file changed, 34 insertions(+), 2 deletions(-)
-
---- a/mm/vmalloc.c~mm-vmalloc-align-vm_area-so-vmap-can-batch-mappings
-+++ a/mm/vmalloc.c
-@@ -3378,6 +3378,14 @@ struct vm_struct *get_vm_area_caller(uns
- 				  NUMA_NO_NODE, GFP_KERNEL, caller);
- }
- 
-+static struct vm_struct *__get_vm_area_node_aligned_caller(unsigned long size,
-+		unsigned long align, unsigned long flags, const void *caller)
-+{
-+	return __get_vm_area_node(size, align, PAGE_SHIFT, flags,
-+				  VMALLOC_START, VMALLOC_END,
-+				  NUMA_NO_NODE, GFP_KERNEL, caller);
-+}
-+
- /**
-  * find_vm_area - find a continuous kernel virtual area
-  * @addr:	  base address
-@@ -3709,6 +3717,30 @@ out:
- 	return err;
- }
- 
-+static struct vm_struct *vmap_get_aligned_vm_area(unsigned long size,
-+		unsigned long flags, pgprot_t prot, const void *caller)
-+{
-+	struct vm_struct *vm_area;
-+	unsigned int shift;
-+
-+	if (arch_vmap_pmd_supported(prot) && size >= PMD_SIZE) {
-+		vm_area = __get_vm_area_node_aligned_caller(size, PMD_SIZE,
-+				flags, caller);
-+		if (vm_area)
-+			return vm_area;
-+	}
-+
-+	shift = arch_vmap_pte_supported_shift(size);
-+	if (shift > PAGE_SHIFT) {
-+		vm_area = __get_vm_area_node_aligned_caller(size, 1UL << shift,
-+				flags, caller);
-+		if (vm_area)
-+			return vm_area;
-+	}
-+
-+	return __get_vm_area_node_aligned_caller(size, PAGE_SIZE, flags, caller);
-+}
-+
- /**
-  * vmap - map an array of pages into virtually contiguous space
-  * @pages: array of page pointers
-@@ -3747,8 +3779,8 @@ void *vmap(struct page **pages, unsigned
- 		return NULL;
- 
- 	size = (unsigned long)count << PAGE_SHIFT;
--	area = get_vm_area_caller(size, flags | VM_UNINITIALIZED,
--				  __builtin_return_address(0));
-+	area = vmap_get_aligned_vm_area(size, flags | VM_UNINITIALIZED, prot,
-+					__builtin_return_address(0));
- 	if (!area)
- 		return NULL;
- 
-_
-
-Patches currently in -mm which might be from baohua@kernel.org are
-
-arm64-vmalloc-allow-arch_vmap_pte_range_map_size-to-batch-multiple-cont_pte.patch
-mm-vmalloc-extend-page-table-walk-to-support-larger-page_shift-sizes-and-eliminate-page-table-rewalk.patch
-mm-vmalloc-map-contiguous-pages-in-batches-for-vmap-if-possible.patch
-mm-vmalloc-align-vm_area-so-vmap-can-batch-mappings.patch
-
+--
+0-DAY CI Kernel Test Service
+https://github.com/intel/lkp-tests/wiki
