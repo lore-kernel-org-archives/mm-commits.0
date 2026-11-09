@@ -1,46 +1,46 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794257577;
-	b=qCt0yzBOPORpRQiuFBFfdXACSoJuohOm7gbg6jLfMWBtVQpmHVQYNPhtbIg2qWcsaew1
-	 VmlAbYdJK5lzP/pTvQHXqkwBMc8b1sEJNNYXKAr+k3rwVPCtszNE6MXNQkxEmF42nNYP5
-	 F6ma3AfMGWdQaTrMdeTH90jhVctEFlfIFhAxTW7oXqJKeEMStw51NZ/yHQxWzQh6Tin3/
-	 K7c7KjpcxExCwENm8KIngoAoHwDA0z05USDezciofejoyY0DHCIXGWJbOG7g47XUv8Nkg
-	 dD+X+GqjUjDYwg3Mt8QRb2lCrSob1gQhbTH3CLxi7v2VnT/iPxCjANtRNOpRgM+0IzQ==
+	t=1794257579;
+	b=ZHO+IPp0yy26PDFYqPTp1JTisxTsolCMr8Uf/QooTDiAXU6ESXq8rGjo+jt7cXnuC9Ir
+	 YwSSah7SF581RMQCJ79erYbKIqu9/DW9ZfQOQVyilgO6bJXBWbDMwuqBcRSJovFY71294
+	 nHzsf3NtXUN5I0jJ1QHYSWyGHfJ0V8CZ4ewjcApmsgQ/hiVdgRv8PTjJ1qJEWQh+hhyMo
+	 D6baHAvU8s5mKQdDDsTnvKs8i8zcxlpL0SwOb4CokfiyIbIN5PtkM/q67GYgwNnEIYo38
+	 4wenysIHOFm1Bf2fVER9+6ZtXdjao2YTW+QBEXFtF37yUI71+F/CydwlC3R3YS2ri3Q==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794257577;
+	a=rsa-sha256; c=relaxed/relaxed; t=1794257579;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=zW7jYhKl7onqUgtT7FskFAHVXPQ5lMgl3nXDiwrNGMw=;
-	b=UZl0kfz4TB07Xck7Um+VwgwRLCa2dOs+h3mPx+cu7D8trWXLkBscx3K7RVm/R2zrcG7K
-	 vUM7n1VfQ4qOLi4xerBo39E3oiyBoKEIEydY4sjeQdcTYc97NWA9icoJ1ChO4InePVQDI
-	 p2PINB6XEEsg2TDoccS2H1xN5uFmLTJGl4YoY1pHgZuLB8hJ8RJfQdGxZcfIfAAnywrcn
-	 EWXu+q+FWh1pNZi753HxR8mIJwiLDDu2ET9J0K3PnfaVRdjt4K8vQ/ZbLhTx+0pOdHv7o
-	 mBNZ6Dt+edifZNYmlkTInftptFHF+e8RPIJO5JG1/nhAJrloWtIzJveY0kv/9x/xVGA==
+	bh=Xum0ddfKnRtrM+lppVzZFmN6GX6QHhCimlILj+VQo28=;
+	b=s4wRvDRMWoADWX4CbW486jmDyI5A4rfE7R5tgXCIyz1vY+BgbK0uVfWW5BhUcdQOh9z/
+	 SPTbJYQx9wUcKvWMJokG+rpepuNF5tce6moorWF3EQhfhdSaAm5bm9GkV6rnAgwjPoRLF
+	 KKflNVHBteirlIVOf1u4W+lA36cUEfZoqYyhkdWXo80p7j5dNqDL0eQEfdlpwJxYl5W0s
+	 SJz01glTtAG1nZRFxKS60NaoguxQGdzPIIZFOP1ftlzLvhWBpwuY9P2XUOmUbyBJN+f81
+	 fNSgsf7uO9O9tT1yI2CiUmfPSCComUA5jYeQHmKGNdeC0fB9dW/m3qAc6l0ZMMuiRig==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=upi6seSE;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=fZN5qG4M;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 05E0E606A326
-	for <mm-commits@vger.kernel.org>; Mon,  9 Nov 2026 20:52:57 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 80306606A31C
+	for <mm-commits@vger.kernel.org>; Mon,  9 Nov 2026 20:52:59 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=upi6seSE
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C44321F0089F;
-	Mon,  9 Nov 2026 20:52:56 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=fZN5qG4M
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 145191F0089F;
+	Mon,  9 Nov 2026 20:52:59 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1794257576;
-	bh=zW7jYhKl7onqUgtT7FskFAHVXPQ5lMgl3nXDiwrNGMw=;
+	d=linux-foundation.org; s=korg; t=1794257579;
+	bh=Xum0ddfKnRtrM+lppVzZFmN6GX6QHhCimlILj+VQo28=;
 	h=Date:To:From:Subject;
-	b=upi6seSE8H9jX+LJpkt58fkhsj9KFMffRdBqqszaosPlay9Mfd2Mep7KfXetB3KH0
-	 YGnkcDsClxGvL17pfGZJj9TFz1eYcN44e9DcWb1sh4Hf5ZkT9X4dKrfZp445hSxt2D
-	 sZzxmq/4iP/eOjr+ElmD6GN132ZZqTSRUdNU/UjY=
-Date: Mon, 09 Nov 2026 12:52:56 -0800
+	b=fZN5qG4MNnIpgxJ8hKZ3DRedmIp96w7aTQVqc0p6RrwepRJVOtcIL+2JTnpl/TlnP
+	 3ZKl5rBmsDdkaADyUKN6v+YIjKBOrhadgOcOMVsoF9w8tbHBm/TMa85F7FghAvnIkm
+	 4/ceZCS0BlJYfdRiE8aSnqbmqVHLBOzBL00Kc+w0=
+Date: Mon, 09 Nov 2026 12:52:58 -0800
 To: mm-commits@vger.kernel.org,joseph.qi@linux.alibaba.com,
 	akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + ocfs2-abstract-the-inline-data-dinode-guard-and-cluster-check.patch added to mm-nonmm-unstable branch
-Message-Id: <20261109205256.C44321F0089F@smtp.kernel.org>
+Subject: + ocfs2-abstract-the-inline-data-id_count-bound-check.patch added to mm-nonmm-unstable branch
+Message-Id: <20261109205259.145191F0089F@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -52,12 +52,12 @@ Precedence: list
 
 
 The patch titled
-     Subject: ocfs2: abstract the inline data dinode guard and cluster check
+     Subject: ocfs2: abstract the inline data id_count bound check
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     ocfs2-abstract-the-inline-data-dinode-guard-and-cluster-check.patch
+     ocfs2-abstract-the-inline-data-id_count-bound-check.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/ocfs2-abstract-the-inline-data-dinode-guard-and-cluster-check.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/ocfs2-abstract-the-inline-data-id_count-bound-check.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -76,20 +76,22 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Joseph Qi <joseph.qi@linux.alibaba.com>
-Subject: ocfs2: abstract the inline data dinode guard and cluster check
-Date: Mon, 09 Nov 2026 20:21:00 +0800
+Subject: ocfs2: abstract the inline data id_count bound check
+Date: Mon, 09 Nov 2026 20:21:01 +0800
 
-Introduce ocfs2_dinode_has_inline_data() for the OCFS2_INLINE_DATA_FL
-test that selects the id2.i_data union arm, and
-ocfs2_dinode_has_inline_clusters() for the rule that an inline-data
-inode must not also have allocated clusters.
+Fold the id_count against ocfs2_max_inline_data_with_xattr() test into a
+predicate.
 
-The guard stays above the sub-checks: reading id_count or i_clusters
-against the wrong id2 arm would produce false positives on valid inodes.
+The comparison stays signed.  ocfs2_max_inline_data_with_xattr() returns
+int and subtracts the unvalidated on-disk i_xattr_inline_size from the
+space available in the inode block, so it can go negative on small block
+sizes.  Caching it in an unsigned local would turn a negative maximum
+into a huge bound and silently accept the oversized id_count.  The
+message keeps its %d for the same reason.
 
 No functional change intended.
 
-Link: https://lore.kernel.org/20261109122121.21473-11-joseph.qi@linux.alibaba.com
+Link: https://lore.kernel.org/20261109122121.21473-12-joseph.qi@linux.alibaba.com
 Signed-off-by: Joseph Qi <joseph.qi@linux.alibaba.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 Cc: Heming Zhao <heming.zhao@suse.com>
@@ -97,40 +99,40 @@ Cc: Mark Fasheh <mark@fasheh.com>
 Cc: Joel Becker <jlbec@evilplan.org>
 ---
 
- fs/ocfs2/inode.c |   14 ++++++++++++--
- 1 file changed, 12 insertions(+), 2 deletions(-)
+ fs/ocfs2/inode.c |   16 ++++++++++++++--
+ 1 file changed, 14 insertions(+), 2 deletions(-)
 
---- a/fs/ocfs2/inode.c~ocfs2-abstract-the-inline-data-dinode-guard-and-cluster-check
+--- a/fs/ocfs2/inode.c~ocfs2-abstract-the-inline-data-id_count-bound-check
 +++ a/fs/ocfs2/inode.c
-@@ -164,6 +164,16 @@ static bool ocfs2_dinode_has_size_withou
- 	return !ocfs2_sparse_alloc(OCFS2_SB(sb)) && S_ISREG(mode);
+@@ -174,6 +174,19 @@ static bool ocfs2_dinode_has_inline_clus
+ 	return le32_to_cpu(di->i_clusters) != 0;
  }
  
-+static bool ocfs2_dinode_has_inline_data(struct ocfs2_dinode *di)
++static bool ocfs2_dinode_has_oversized_inline_data(struct super_block *sb,
++						   struct ocfs2_dinode *di)
 +{
-+	return le16_to_cpu(di->i_dyn_features) & OCFS2_INLINE_DATA_FL;
-+}
-+
-+static bool ocfs2_dinode_has_inline_clusters(struct ocfs2_dinode *di)
-+{
-+	return le32_to_cpu(di->i_clusters) != 0;
++	/*
++	 * The maximum is a signed int and can go negative, because
++	 * i_xattr_inline_size is itself unvalidated.  Keep the comparison
++	 * signed: an unsigned bound would turn a negative maximum into a
++	 * huge one and let the oversized id_count through.
++	 */
++	return le16_to_cpu(di->id2.i_data.id_count) >
++		ocfs2_max_inline_data_with_xattr(sb, di);
 +}
 +
  void ocfs2_set_inode_flags(struct inode *inode)
  {
  	unsigned int flags = OCFS2_I(inode)->ip_attr;
-@@ -1726,10 +1736,10 @@ int ocfs2_validate_inode_block(struct su
- 	if (rc)
- 		goto bail;
+@@ -1747,8 +1760,7 @@ int ocfs2_validate_inode_block(struct su
+ 			goto bail;
+ 		}
  
--	if (le16_to_cpu(di->i_dyn_features) & OCFS2_INLINE_DATA_FL) {
-+	if (ocfs2_dinode_has_inline_data(di)) {
- 		struct ocfs2_inline_data *data = &di->id2.i_data;
- 
--		if (le32_to_cpu(di->i_clusters)) {
-+		if (ocfs2_dinode_has_inline_clusters(di)) {
+-		if (le16_to_cpu(data->id_count) >
+-		    ocfs2_max_inline_data_with_xattr(sb, di)) {
++		if (ocfs2_dinode_has_oversized_inline_data(sb, di)) {
  			rc = ocfs2_error(sb,
- 					 "Invalid dinode %llu: %u clusters\n",
+ 					 "Invalid dinode #%llu: inline data id_count %u exceeds max %d\n",
  					 (unsigned long long)bh->b_blocknr,
 _
 
