@@ -1,41 +1,41 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794207839;
-	b=JFJGfmYrEcqo+SmLK3aNnveEVXuCAyBVus+4GcJRisEPdiC3/TfW7C1qQ0hVzqZwexOE
-	 BgCaZdERocCROAWWMWKHKwwyOuRr/26sF6zv5LpQTFN3MLbQfRER+LO1V2ollTWhjmdOc
-	 ipaBoBRezeW/w3dhil6qaPdHYhd0/WFmmRohiWv9+Lhgdy5NvllOE47euJWa3qAcEPqI1
-	 JY9d5whH5fqpkeCCYq2V80rguvP7LbkhqeXD8tnaob/PNEPKbvnDBQGuMBDKlpdXqJ9mg
-	 iK5uAh6uye8/Fr8q3HU8Fg6mESQuglbwK+loZbl9geAX+YdoRSFfrCgprsnf4nqbuYg==
+	t=1794207841;
+	b=0s737jls6u8dyMQgCsU/NG15aSrnp4lvbnx6yBnkEuwdHDSPC8G7HdTvRqHTbPCqQT8y
+	 qIcUPnBwZF82S7rasfQibibZuO6V0KuFlJwWT6epvIO4nnYgNtrtrK9nRM5sPbRSEjE1+
+	 4yzngXmaGK/OAgr06gfhFqtYFHvi+bEscmh+VmNolvTtVDkv5rLG4o2TOwX0BvjCuqc2B
+	 jRF7bNG6Z48mwOyNzcaLWgJ8SgHWXOnCRNQlO3qHBi3ZSV2bmrFal24cnlkXc9+xuHvih
+	 2tJ69I9E0u1Psk49oKX5fOKAhsWoLG8MX66xH2PV0NwTbfpng1rX1qnsM/AwiciGdwg==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794207839;
+	a=rsa-sha256; c=relaxed/relaxed; t=1794207841;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=eVkJY437LeurHNM3t6S+iPH96RXg+ZldzF7l4zXUF3U=;
-	b=0pOfvTRGG0Rl/Df3MT4+hJ302XwEqJa+QAPlL3RWfNrKunJ6yWb0VtNurJjKB7oJj3qn
-	 9SATym6L1cFOCRE8GbWNpYru5bcFcVAssjZPAN7pY3vjngJvif30ZjSakKyim1dXdDv0u
-	 SSaMEtcglMJ2kb5famc/NWljIVJVZYwVXSC7ODDL+ul3j9q441bsjV+mRpZ6KR4nytIzm
-	 pnOiZi1DzZNKtcluFPGZ4A8ALQKuIclyWzAzsGorJxXMquZ5429Kon67g+DxUtd2OKDP3
-	 uKHb1N3cdhS5yjAlAR7ivA1oLd0rxS0O6r0+7yCGi/Gn3myKvBqvyHszGi0yaPnecRA==
+	bh=qi21K/1NQZ2583tUSKSS/RuaQn061a+iGhqKzs0mXrA=;
+	b=ALgp2rSYkDg/FaER9QkxvkzkxmRsOa9gRjiCNsZGBEVosL9WskLl88MVzmRRZPZZHNyb
+	 1/lorDsn6DZUCJ1B43qCSQpbaqvwRfy4bDYDb9jd14zSfl2cOO1PNcyrn2PLiS0RYY38K
+	 NdrGaj5dOmagL+Hma3x+ohldciA20+btK3GzssnGFMazFurtQvmd0m0vKJJ49ChmPRJTj
+	 VSJvhBI/7lH52ijzVH3s8UUYKCkBFGziYFtSy7sSiFpKtdebVtuqpBVJ48pk7wzicnWa9
+	 4XuT9+6fpePshglnXJ3eWPJkR0ZooKW26ZBcyIMsqr4z3eOKfuUaA/cY60tfeFikKPg==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=X8Qmxs07;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=nzoKnA9B;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C19F7606A31C
-	for <mm-commits@vger.kernel.org>; Mon,  9 Nov 2026 07:03:58 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8180B606A31C
+	for <mm-commits@vger.kernel.org>; Mon,  9 Nov 2026 07:04:01 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=X8Qmxs07
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4AFC51F0089F;
-	Mon,  9 Nov 2026 07:03:58 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=nzoKnA9B
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 00E9A1F0089F;
+	Mon,  9 Nov 2026 07:04:00 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1794207838;
-	bh=eVkJY437LeurHNM3t6S+iPH96RXg+ZldzF7l4zXUF3U=;
+	d=linux-foundation.org; s=korg; t=1794207841;
+	bh=qi21K/1NQZ2583tUSKSS/RuaQn061a+iGhqKzs0mXrA=;
 	h=Date:To:From:Subject;
-	b=X8Qmxs07Y+77oLvNkVBo3iQDo463vlM2ufOz+UhSZEzzq2NUARMzeZwh5PbqM9ad5
-	 BwbCX3Y6LDfHpncY3FDG49qxDQXd7LXw6qB4sxTMAVvSHsktm7iTSkPHgMEWHXN81o
-	 Q5F4mEqq0uhZIxx6/f5R8cU+wV2ej99ZMMyw8XsQ=
-Date: Sun, 08 Nov 2026 23:03:57 -0800
+	b=nzoKnA9BfiiyHWFBEvjsyF1M+7KCn+kAoBDv/Z7nrUgVaWgX3t4Upk2BDi1idK3EQ
+	 GfCP29aoxo6FavNTkg8prw0TDNbm6mcwyy+UsV8RMamZ8yOhUtlsLzOzsATHKD6ZqS
+	 b6dVhSxEOueSHi7+8iTpsviPid0pMLRQ/E2EbLpw=
+Date: Sun, 08 Nov 2026 23:04:00 -0800
 To: mm-commits@vger.kernel.org,xueyuan.chen21@gmail.com,will@kernel.org,
 	urezki@gmail.com,ryan.roberts@arm.com,rppt@kernel.org,npiggin@gmail.com,
 	mpe@ellerman.id.au,maddy@linux.ibm.com,leo.yan@arm.com,
@@ -44,8 +44,8 @@ To: mm-commits@vger.kernel.org,xueyuan.chen21@gmail.com,will@kernel.org,
 	anshuman.khandual@arm.com,andrew+kernel@donnellan.id.au,jiangwen6@xiaomi.com,
 	akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + powerpc-8xx-add-vmap_pte_set_huge.patch added to mm-new branch
-Message-Id: <20261109070358.4AFC51F0089F@smtp.kernel.org>
+Subject: + mm-vmalloc-use-vmap_pte_set_huge-vmap_pte_clear_huge-for-pte-level-block-mappings.patch added to mm-new branch
+Message-Id: <20261109070401.00E9A1F0089F@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -57,12 +57,12 @@ Precedence: list
 
 
 The patch titled
-     Subject: powerpc/8xx: add vmap_pte_set_huge()
+     Subject: mm/vmalloc: use vmap_pte_set_huge()/vmap_pte_clear_huge() for PTE-level block mappings
 has been added to the -mm mm-new branch.  Its filename is
-     powerpc-8xx-add-vmap_pte_set_huge.patch
+     mm-vmalloc-use-vmap_pte_set_huge-vmap_pte_clear_huge-for-pte-level-block-mappings.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/powerpc-8xx-add-vmap_pte_set_huge.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vmalloc-use-vmap_pte_set_huge-vmap_pte_clear_huge-for-pte-level-block-mappings.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -92,39 +92,36 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Wen Jiang <jiangwen6@xiaomi.com>
-Subject: powerpc/8xx: add vmap_pte_set_huge()
-Date: Sat, 07 Nov 2026 21:49:45 +0800
+Subject: mm/vmalloc: use vmap_pte_set_huge()/vmap_pte_clear_huge() for PTE-level block mappings
+Date: Sat, 07 Nov 2026 21:49:46 +0800
 
-vmap installs PTE-level block mappings (SZ_16K/SZ_512K on powerpc/8xx)
-by reusing set_huge_pte_at(), a HugeTLB helper gated by
-CONFIG_HUGETLB_PAGE. This makes the feature silently unavailable on
-CONFIG_HUGETLB_PAGE=n kernels and couples mm/vmalloc.c to HugeTLB
-internals it does not otherwise need.
+vmap installs PTE-level block mappings by reusing set_huge_pte_at() and
+huge_ptep_get_and_clear() under #ifdef CONFIG_HUGETLB_PAGE. This makes
+the feature silently unavailable on CONFIG_HUGETLB_PAGE=n kernels and
+couples mm/vmalloc.c to HugeTLB internals it does not otherwise need.
 
-Add vmap_pte_set_huge() to powerpc/8xx, next to the existing
-pmd_clear_huge()/pud_clear_huge() in mm/nohash/8xx.c. It builds the huge
-PTE and writes it into the backing cells directly, without going through
-set_huge_pte_at(), so it does not depend on CONFIG_HUGETLB_PAGE.
+Now that arm64 and powerpc/8xx provide vmap_pte_set_huge() and
+vmap_pte_clear_huge(), add the generic fallbacks next to the existing
+pmd/pud_set_huge() family and convert vmap_pte_range() and
+vunmap_pte_range() to the new helpers. The CONFIG_HUGETLB_PAGE guards
+around the block-mapping paths are dropped, so PTE-level block mappings
+now also work on CONFIG_HUGETLB_PAGE=n kernels, and mm/vmalloc.c no
+longer includes <linux/hugetlb.h>.
 
-No vmap_pte_clear_huge() is needed: 8xx does not implement
-arch_vmap_pte_range_unmap_size(), so the vmap unmap path never takes the
-PTE-clearing branch.
+The fallbacks exist only to keep the build working on architectures
+without PTE-level block mapping support. They are unreachable there:
+the callers only run when arch_vmap_pte_range_map_size() or
+arch_vmap_pte_range_unmap_size() return a size other than PAGE_SIZE,
+which requires an arch implementation. BUILD_BUG() makes that
+explicit rather than silently doing nothing.
 
-In practice PPC_8xx selects HUGETLBFS unconditionally, so
-CONFIG_HUGETLB_PAGE=n does not occur there today; this is a decoupling
-cleanup rather than a new configuration.
-
-There is no caller yet: mm/vmalloc.c is converted later in this series,
-once the generic fallbacks are in place.
-
-Link: https://lore.kernel.org/20261107134953.748622-3-jiangwenxiaomi@gmail.com
+Link: https://lore.kernel.org/20261107134953.748622-4-jiangwenxiaomi@gmail.com
 Signed-off-by: Wen Jiang <jiangwen6@xiaomi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Reviewed-by: Christophe Leroy (CS GROUP) <chleroy@kernel.org>
+Reviewed-by: Barry Song <baohua@kernel.org>
+Reviewed-by: Uladzislau Rezki (Sony) <urezki@gmail.com>
 Cc: Catalin Marinas <catalin.marinas@arm.com>
 Cc: Will Deacon <will@kernel.org>
-Cc: Uladzislau Rezki (Sony) <urezki@gmail.com>
-Cc: Barry Song <baohua@kernel.org>
 Cc: Dev Jain <dev.jain@arm.com>
 Cc: Ryan Roberts <ryan.roberts@arm.com>
 Cc: Anshuman Khandual <anshuman.khandual@arm.com>
@@ -132,6 +129,7 @@ Cc: David Hildenbrand <david@kernel.org>
 Cc: Mike Rapoport <rppt@kernel.org>
 Cc: <leo.yan@arm.com>
 Cc: Xueyuan Chen <xueyuan.chen21@gmail.com>
+Cc: Christophe Leroy <chleroy@kernel.org>
 Cc: Madhavan Srinivasan <maddy@linux.ibm.com>
 Cc: Michael Ellerman <mpe@ellerman.id.au>
 Cc: Nicholas Piggin <npiggin@gmail.com>
@@ -139,58 +137,116 @@ Cc: Andrew Donnellan <andrew+kernel@donnellan.id.au>
 Cc: Wen Jiang <jiangwenxiaomi@gmail.com>
 ---
 
- arch/powerpc/include/asm/nohash/32/pte-8xx.h |    4 ++
- arch/powerpc/mm/nohash/8xx.c                 |   29 +++++++++++++++++
- 2 files changed, 33 insertions(+)
+ include/linux/pgtable.h |   29 +++++++++++++++++++++++++++++
+ mm/vmalloc.c            |   19 ++++++-------------
+ 2 files changed, 35 insertions(+), 13 deletions(-)
 
---- a/arch/powerpc/include/asm/nohash/32/pte-8xx.h~powerpc-8xx-add-vmap_pte_set_huge
-+++ a/arch/powerpc/include/asm/nohash/32/pte-8xx.h
-@@ -235,6 +235,10 @@ static inline pte_t ptep_get(pte_t *ptep
+--- a/include/linux/pgtable.h~mm-vmalloc-use-vmap_pte_set_huge-vmap_pte_clear_huge-for-pte-level-block-mappings
++++ a/include/linux/pgtable.h
+@@ -2204,6 +2204,35 @@ static inline int pmd_free_pte_page(pmd_
  }
- #endif /* CONFIG_PPC_16K_PAGES */
+ #endif	/* CONFIG_HAVE_ARCH_HUGE_VMAP */
  
-+#define __HAVE_ARCH_VMAP_PTE_SET_HUGE
-+void vmap_pte_set_huge(pte_t *ptep, unsigned long addr, phys_addr_t phys,
-+		       pgprot_t prot, unsigned long size);
-+
- #endif
- 
- #endif /* __KERNEL__ */
---- a/arch/powerpc/mm/nohash/8xx.c~powerpc-8xx-add-vmap_pte_set_huge
-+++ a/arch/powerpc/mm/nohash/8xx.c
-@@ -220,3 +220,32 @@ int pmd_clear_huge(pmd_t *pmd)
- {
- 	 return 0;
- }
++/*
++ * PTE-level block mappings for vmap.
++ *
++ * vmap_pte_set_huge() only has to be implemented by architectures whose
++ * arch_vmap_pte_range_map_size() can return a size other than PAGE_SIZE.
++ */
++#ifndef __HAVE_ARCH_VMAP_PTE_SET_HUGE
++static inline void vmap_pte_set_huge(pte_t *ptep, unsigned long addr,
++				     phys_addr_t phys, pgprot_t prot,
++				     unsigned long size)
++{
++	BUILD_BUG();
++}
++#endif
 +
 +/*
-+ * vmap PTE-level block mapping. Sets a present kernel mapping directly,
-+ * so unlike set_huge_pte_at() it needs neither CONFIG_HUGETLB_PAGE nor
-+ * set_pte_filter() (a no-op for non-exec kernel mappings).
++ * Likewise, vmap_pte_clear_huge() only has to be implemented by architectures
++ * whose arch_vmap_pte_range_unmap_size() can return a size other than
++ * PAGE_SIZE.
 + */
-+void vmap_pte_set_huge(pte_t *ptep, unsigned long addr, phys_addr_t phys,
-+		       pgprot_t prot, unsigned long size)
++#ifndef __HAVE_ARCH_VMAP_PTE_CLEAR_HUGE
++static inline pte_t vmap_pte_clear_huge(pte_t *ptep, unsigned long addr,
++					unsigned long size)
 +{
-+	pmd_t *pmdp = pmd_off(&init_mm, addr);
-+	pte_t pte = pfn_pte(PHYS_PFN(phys), prot);
-+	pte_basic_t val;
-+	pte_basic_t *entry = (pte_basic_t *)ptep;
-+	int num, i;
-+
-+	pte = arch_make_huge_pte(pte, ilog2(size), 0);
-+	val = pte_val(pte);
-+
-+	/*
-+	 * Make sure hardware valid bit is not set. We don't do
-+	 * tlb flush for this update.
-+	 */
-+	VM_WARN_ON(pte_hw_valid(*ptep) && !pte_protnone(*ptep));
-+
-+	num = number_of_cells_per_pte(pmdp, val, 1);
-+
-+	for (i = 0; i < num; i++, entry++, val += SZ_4K)
-+		*entry = val;
++	BUILD_BUG();
++	return __pte(0);
 +}
++#endif
++
+ #ifndef __HAVE_ARCH_FLUSH_PMD_TLB_RANGE
+ #ifdef CONFIG_TRANSPARENT_HUGEPAGE
+ /*
+--- a/mm/vmalloc.c~mm-vmalloc-use-vmap_pte_set_huge-vmap_pte_clear_huge-for-pte-level-block-mappings
++++ a/mm/vmalloc.c
+@@ -38,7 +38,6 @@
+ #include <linux/rbtree_augmented.h>
+ #include <linux/overflow.h>
+ #include <linux/pgtable.h>
+-#include <linux/hugetlb.h>
+ #include <linux/sched/mm.h>
+ #include <asm/tlbflush.h>
+ #include <asm/shmparam.h>
+@@ -100,7 +99,7 @@ static int vmap_pte_range(pmd_t *pmd, un
+ 	pte_t *pte;
+ 	u64 pfn;
+ 	struct page *page;
+-	unsigned long size = PAGE_SIZE;
++	unsigned long size;
+ 
+ 	if (WARN_ON_ONCE(!PAGE_ALIGNED(end - addr)))
+ 		return -EINVAL;
+@@ -121,17 +120,12 @@ static int vmap_pte_range(pmd_t *pmd, un
+ 			BUG();
+ 		}
+ 
+-#ifdef CONFIG_HUGETLB_PAGE
+ 		size = arch_vmap_pte_range_map_size(addr, end, pfn, max_page_shift);
+ 		if (size != PAGE_SIZE) {
+-			pte_t entry = pfn_pte(pfn, prot);
+-
+-			entry = arch_make_huge_pte(entry, ilog2(size), 0);
+-			set_huge_pte_at(&init_mm, addr, pte, entry, size);
++			vmap_pte_set_huge(pte, addr, PFN_PHYS(pfn), prot, size);
+ 			pfn += PFN_DOWN(size);
+ 			continue;
+ 		}
+-#endif
+ 		set_pte_at(&init_mm, addr, pte, pfn_pte(pfn, prot));
+ 		pfn++;
+ 	} while (pte += PFN_DOWN(size), addr += size, addr != end);
+@@ -391,25 +385,24 @@ static void vunmap_pte_range(pmd_t *pmd,
+ {
+ 	pte_t *pte;
+ 	pte_t ptent;
+-	unsigned long size = PAGE_SIZE;
++	unsigned long size;
+ 
+ 	pte = pte_offset_kernel(pmd, addr);
+ 	lazy_mmu_mode_enable();
+ 
+ 	do {
+-#ifdef CONFIG_HUGETLB_PAGE
+ 		size = arch_vmap_pte_range_unmap_size(addr, pte);
+ 		if (size != PAGE_SIZE) {
+ 			if (WARN_ON(!IS_ALIGNED(addr, size))) {
+ 				addr = ALIGN_DOWN(addr, size);
+ 				pte = PTR_ALIGN_DOWN(pte, sizeof(*pte) * (size >> PAGE_SHIFT));
+ 			}
+-			ptent = huge_ptep_get_and_clear(&init_mm, addr, pte, size);
++			ptent = vmap_pte_clear_huge(pte, addr, size);
+ 			if (WARN_ON(end - addr < size))
+ 				size = end - addr;
+-		} else
+-#endif
++		} else {
+ 			ptent = ptep_get_and_clear(&init_mm, addr, pte);
++		}
+ 		WARN_ON(!pte_none(ptent) && !pte_present(ptent));
+ 	} while (pte += (size >> PAGE_SHIFT), addr += size, addr != end);
+ 
 _
 
 Patches currently in -mm which might be from jiangwen6@xiaomi.com are
