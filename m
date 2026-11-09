@@ -1,46 +1,46 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794246370;
-	b=JCjoiDo4SsXHsTiDdTG/JqMbPkuAcSa6OSgwfTW5J9KdJ/zZXib08HkNpJ8k5nEJN0ln
-	 QjLYTQOY+OCX96yx1A0jnFJCiz5cs1N9UnX3oIW+Hp/4MRh7iAYegtIxTnZlk0GFh9dLU
-	 Wj9UWvy7YN+aUfEwkfy+f+PNNUW3TCqMDyV9HkOLloN8DoxDwrl0i5z8qToINExUqtz4v
-	 D4DCM70OK0jMHklkMebYB87cImdK5yscUIW42QqQ7nezAAPOubCDlPvCDaq6XRMHVUqEB
-	 LKWrzjm/QzxfMCjucGKTF/byove5PU7tVv9gUlxyj8ZuSLmxr9/L0O6Ehocf+v/X+IA==
+	t=1794246372;
+	b=YkfSoKcW4W6HSBoe/1WtNBT4QSjmOX4pwi9vjIfMvwhdBU2hs5ArTywtSoAg/8t1NI8b
+	 s82nWjOuCPKZDotA1GPBD4JsNlil1BzAh4q76xm+eabsx61w3/jMhI4NVfHTRaFdm877Z
+	 vL2YTeD9S7hnV6e6M+nLZ5FUOlr5BUiqHtju1/FtxplfagwOHOCYn6PYjxi9NBp5xYfAQ
+	 a0+ckrQ8nr3SZthIMvmgHNZFhXuexEIS64x/I7yiggAHFYdQNZ/VfpWSe7lVhUB+ssh5C
+	 l8ngs0tz3gDI0x6QLs0o2c88GXKJ8W2oTO8BY0wRPDmP+OPp/fKIec4CYgNZyYKlVkQ==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794246370;
+	a=rsa-sha256; c=relaxed/relaxed; t=1794246372;
 	h=Received:DKIM-Signature:Date:To:Cc:From:Subject:Message-Id;
-	bh=E87/P1JtfDc1gxFOd1ggA/N99y7LvuBKHk7jdxQ93L0=;
-	b=zdgySe2YccSH+9yy1FsPqvMEL/1QIjy6op0NBhvCQNlIBN/knEWEVXMx5zx9geRr3Pl5
-	 p08aYVon7omRfS7xBVjxByELPj6/CHBT1sa4AYbl4Fx/KUOIN8BcvUbDZydTBIMxqy52L
-	 vRc0yz4D4T8sfvoSWpX5mjiyAsnMCO6OiButEkpyBLL8nsfK9OMHIQqP6QWIjjPPw/Xtb
-	 lLXfWdxc8afKlixsRFyi7BAr8d0Wblxa3/tCl/HdX+cJbxQcJCrb8u17v/4dsyAAmOo2g
-	 TJXIBVtu8M/PoJo5HvkiZMb4a0cKiuzCR1c9T+gtKQWkXtHY/2tkundphV0FlxVCnUw==
+	bh=oMU8TE+NJRUKA5MtcEGciXeMedfaN5ozJjZk6CzMlTs=;
+	b=IglFNDTvQOT+nlAONSO0dUUzjSYYZ8gE9luAURujT6h58zZSGt6rLHC1YXmqZqX3xZSa
+	 9dzjS0741ES+GD3HsV33hjoEn523MNp4evgi3LliP2a1QxW2fLyOidrXsW3hnRRhtCy06
+	 NOI4gWZ5A1QJvDDoiAtyEGgubNNb64wm6GcTDQz8hp/+xRx6HdvSheut7GYcqNs/ulZqg
+	 Tcu/sivftnkxgTRpb8IIEMnRIskvDIEbaaVadLFLegI5CN9ng3GxxJwaPZTO+k7R+465p
+	 mSYZ1chNln6q9t1n+UNvssEdHiVxqy2K+UfQIAJaARjCMAkZLHVmlCXjSlmYIaQbaGg==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b="uh/4txGm";
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=Yfr3nWVm;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 98A43606A326
-	for <mm-commits@vger.kernel.org>; Mon,  9 Nov 2026 17:46:10 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 12A15606A31C
+	for <mm-commits@vger.kernel.org>; Mon,  9 Nov 2026 17:46:12 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=uh/4txGm
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 29FFC1F008A1;
-	Mon,  9 Nov 2026 17:46:10 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=Yfr3nWVm
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id CD9BD1F0089F;
+	Mon,  9 Nov 2026 17:46:11 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1794246370;
-	bh=E87/P1JtfDc1gxFOd1ggA/N99y7LvuBKHk7jdxQ93L0=;
+	d=linux-foundation.org; s=korg; t=1794246371;
+	bh=oMU8TE+NJRUKA5MtcEGciXeMedfaN5ozJjZk6CzMlTs=;
 	h=Date:To:Cc:From:Subject;
-	b=uh/4txGmwbWrcitaY5IXNkCP6255zz9k5umGLtljC1riJ511M+sZ6a0BdDcFyIPYA
-	 y1DzXDt1JP9nfHmixtTLlEyg64cXFqxj81rVomkQFu77KsUNssiJZgvMQdmYrdfHgm
-	 evxUJmawtA/QFeAXMj85gQ4SEIs6cnn/4N/FwJqY=
-Date: Mon, 09 Nov 2026 09:46:09 -0800
+	b=Yfr3nWVmsjK62KLAfGdbT4pWb4R1ru3CIkVgEYuIPWAkw+3Jq3DdvXI9t8rwypzfl
+	 GLDEYc2YXFZrarXvn2t0iMh7DYo8fxeFRg7BiXasyA2UEBh5rZ7yQoG5FjTDiPogRu
+	 +/vOWJUCQECMec+VOdaiBwjWyZuJKQmQ5Xkg0qiw=
+Date: Mon, 09 Nov 2026 09:46:11 -0800
 To: mm-commits@vger.kernel.org, ljs@kernel.org, akpm@linux-foundation.org
 Cc: David Hildenbrand <david@kernel.org>
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [to-be-updated] perf-convert-vma-flag-tests-to-use-vma_flags_t.patch removed from -mm tree
-Message-Id: <20261109174610.29FFC1F008A1@smtp.kernel.org>
+Subject: [to-be-updated] security-convert-vma-flag-tests-to-use-vma_flags_t.patch removed from -mm tree
+Message-Id: <20261109174611.CD9BD1F0089F@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -52,25 +52,27 @@ Precedence: list
 
 
 The quilt patch titled
-     Subject: perf: convert VMA flag tests to use vma_flags_t
+     Subject: security: convert VMA flag tests to use vma_flags_t
 has been removed from the -mm tree.  Its filename was
-     perf-convert-vma-flag-tests-to-use-vma_flags_t.patch
+     security-convert-vma-flag-tests-to-use-vma_flags_t.patch
 
 This patch was dropped because an updated version will be issued
 
 ------------------------------------------------------
 From: "Lorenzo Stoakes (ARM)" <ljs@kernel.org>
-Subject: perf: convert VMA flag tests to use vma_flags_t
-Date: Thu, 05 Nov 2026 21:31:03 +0000
+Subject: security: convert VMA flag tests to use vma_flags_t
+Date: Thu, 05 Nov 2026 21:31:04 +0000
 
 Replace use of the legacy vm_flags_t flags with vma_flags_t values in the
-perf mmap and mmap event logic.
+mmap and mprotect LSM hooks of SELinux, AppArmor, IMA and IPE.
 
 No functional change intended.
 
-Link: https://lore.kernel.org/20261105-late-2026-vma-flags-v1-12-0d3cd15ab75f@kernel.org
+Link: https://lore.kernel.org/20261105-late-2026-vma-flags-v1-13-0d3cd15ab75f@kernel.org
 Signed-off-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+Acked-by: Paul Moore <paul@paul-moore.com>
+Acked-by: Fan Wu <wufan@kernel.org>  # for the IPE part
 Reviewed-by: Lance Yang <lance.yang@linux.dev>
 Cc: David Hildenbrand <david@kernel.org>
 Cc: Jason Gunthorpe <jgg@ziepe.ca>
@@ -136,92 +138,64 @@ Cc: Masami Hiramatsu <mhiramat@kernel.org>
 Cc: Oleg Nesterov <oleg@redhat.com>
 Cc: John Johansen <john.johansen@canonical.com>
 Cc: Georgia Garcia <georgia.garcia@canonical.com>
-Cc: Paul Moore <paul@paul-moore.com>
 Cc: James Morris <jmorris@namei.org>
 Cc: Serge E. Hallyn <serge@hallyn.com>
 Cc: Mimi Zohar <zohar@linux.ibm.com>
 Cc: Roberto Sassu <roberto.sassu@huawei.com>
 Cc: Dmitry Kasatkin <dmitry.kasatkin@gmail.com>
 Cc: Eric Snowberg <eric.snowberg@oracle.com>
-Cc: Fan Wu <wufan@kernel.org>
 Cc: Stephen Smalley <stephen.smalley.work@gmail.com>
 Cc: Ondrej Mosnáček <omosnacek@gmail.com>
 ---
 
- kernel/events/core.c |   26 ++++++++++++++------------
- 1 file changed, 14 insertions(+), 12 deletions(-)
+ security/apparmor/lsm.c           |    2 +-
+ security/integrity/ima/ima_main.c |    2 +-
+ security/ipe/hooks.c              |    2 +-
+ security/selinux/hooks.c          |   14 +++++++-------
+ 4 files changed, 10 insertions(+), 10 deletions(-)
 
---- a/kernel/events/core.c~perf-convert-vma-flag-tests-to-use-vma_flags_t
-+++ a/kernel/events/core.c
-@@ -7224,6 +7224,7 @@ static int map_range(struct perf_buffer
- 		unsigned long va = vma->vm_start + PAGE_SIZE * pagenum;
- 		struct page *page = perf_mmap_to_page(rb,
- 				vma_start_pgoff(vma) + pagenum);
-+		vma_flags_t vma_flags = vma->flags;
- 
- 		if (page == NULL) {
- 			err = -EINVAL;
-@@ -7231,8 +7232,9 @@ static int map_range(struct perf_buffer
- 		}
- 
- 		/* Map readonly, perf_mmap_pfn_mkwrite() called on write fault. */
-+		vma_flags_clear(&vma_flags, VMA_SHARED_BIT);
- 		err = remap_pfn_range(vma, va, page_to_pfn(page), PAGE_SIZE,
--				      vm_get_page_prot(vma->vm_flags & ~VM_SHARED));
-+				      vma_flags_to_page_prot(vma_flags));
- 		if (err)
- 			break;
- 	}
-@@ -7350,7 +7352,7 @@ static int perf_mmap_rb(struct vm_area_s
- 	if (!perf_mmap_calc_limits(vma, &user_extra, &extra))
- 		return -EPERM;
- 
--	if (vma->vm_flags & VM_WRITE)
-+	if (vma_test(vma, VMA_WRITE_BIT))
- 		rb_flags |= RING_BUFFER_WRITABLE;
- 
- 	rb = rb_alloc(nr_pages,
-@@ -7431,7 +7433,7 @@ static int perf_mmap_aux(struct vm_area_
- 
- 		WARN_ON(!rb && event->rb);
- 
--		if (vma->vm_flags & VM_WRITE)
-+		if (vma_test(vma, VMA_WRITE_BIT))
- 			rb_flags |= RING_BUFFER_WRITABLE;
- 
- 		ret = rb_alloc_aux(rb, event, pgoff_start, nr_pages,
-@@ -7466,7 +7468,7 @@ static int perf_mmap(struct file *file,
- 	if (event->cpu == -1 && event->attr.inherit)
- 		return -EINVAL;
- 
--	if (!(vma->vm_flags & VM_SHARED))
-+	if (!vma_test(vma, VMA_SHARED_BIT))
- 		return -EINVAL;
- 
- 	ret = security_perf_event_read(event);
-@@ -9829,7 +9831,7 @@ static int perf_event_mmap_match(struct
+--- a/security/apparmor/lsm.c~security-convert-vma-flag-tests-to-use-vma_flags_t
++++ a/security/apparmor/lsm.c
+@@ -591,7 +591,7 @@ static int apparmor_file_mprotect(struct
+ 				  unsigned long reqprot, unsigned long prot)
  {
- 	struct perf_mmap_event *mmap_event = data;
- 	struct vm_area_struct *vma = mmap_event->vma;
--	int executable = vma->vm_flags & VM_EXEC;
-+	bool executable = vma_test(vma, VMA_EXEC_BIT);
+ 	return common_mmap(OP_FMPROT, vma->vm_file, prot,
+-			   !(vma->vm_flags & VM_SHARED) ? MAP_PRIVATE : 0);
++			   !vma_test(vma, VMA_SHARED_BIT) ? MAP_PRIVATE : 0);
+ }
  
- 	return (!executable && event->attr.mmap_data) ||
- 	       (executable && (event->attr.mmap || event->attr.mmap2));
-@@ -9862,7 +9864,7 @@ static void perf_event_mmap_output(struc
- 		if (use_build_id)
- 			misc |= PERF_RECORD_MISC_MMAP_BUILD_ID;
- 	}
--	if (!(mmap_event->vma->vm_flags & VM_EXEC))
-+	if (!vma_test(mmap_event->vma, VMA_EXEC_BIT))
- 		misc |= PERF_RECORD_MISC_MMAP_DATA;
+ #ifdef CONFIG_IO_URING
+--- a/security/integrity/ima/ima_main.c~security-convert-vma-flag-tests-to-use-vma_flags_t
++++ a/security/integrity/ima/ima_main.c
+@@ -556,7 +556,7 @@ static int ima_file_mprotect(struct vm_a
  
- 	perf_event_header__init(&mmap_event->event_id.header, &sample,
-@@ -9913,19 +9915,19 @@ static void perf_event_mmap_event(struct
- 	char *buf = NULL;
- 	char *name = NULL;
+ 	/* Is mprotect making an mmap'ed file executable? */
+ 	if (!(ima_policy_flag & IMA_APPRAISE) || !vma->vm_file ||
+-	    !(prot & PROT_EXEC) || (vma->vm_flags & VM_EXEC))
++	    !(prot & PROT_EXEC) || vma_test(vma, VMA_EXEC_BIT))
+ 		return 0;
  
+ 	security_current_getlsmprop_subj(&prop);
+--- a/security/ipe/hooks.c~security-convert-vma-flag-tests-to-use-vma_flags_t
++++ a/security/ipe/hooks.c
+@@ -112,7 +112,7 @@ int ipe_file_mprotect(struct vm_area_str
+ 	struct ipe_eval_ctx ctx = IPE_EVAL_CTX_INIT;
+ 
+ 	/* Already Executable */
+-	if (vma->vm_flags & VM_EXEC)
++	if (vma_test(vma, VMA_EXEC_BIT))
+ 		return 0;
+ 
+ 	if (prot & PROT_EXEC) {
+--- a/security/selinux/hooks.c~security-convert-vma-flag-tests-to-use-vma_flags_t
++++ a/security/selinux/hooks.c
+@@ -4206,16 +4206,16 @@ static int selinux_mmap_backing_file(str
+ {
+ 	unsigned long prot = 0;
+ 
+-	/* translate vma->vm_flags perms into PROT perms */
 -	if (vma->vm_flags & VM_READ)
++	/* translate VMA flag perms into PROT perms */
 +	if (vma_test(vma, VMA_READ_BIT))
  		prot |= PROT_READ;
 -	if (vma->vm_flags & VM_WRITE)
@@ -231,30 +205,31 @@ Cc: Ondrej Mosnáček <omosnacek@gmail.com>
 +	if (vma_test(vma, VMA_EXEC_BIT))
  		prot |= PROT_EXEC;
  
--	if (vma->vm_flags & VM_MAYSHARE)
-+	if (vma_test(vma, VMA_MAYSHARE_BIT))
- 		flags = MAP_SHARED;
- 	else
- 		flags = MAP_PRIVATE;
+ 	return selinux_mmap_file_common(backing_file, prot,
+-					vma->vm_flags & VM_SHARED,
++					vma_test(vma, VMA_SHARED_BIT),
+ 					true);
+ }
  
--	if (vma->vm_flags & VM_LOCKED)
-+	if (vma_test(vma, VMA_LOCKED_BIT))
- 		flags |= MAP_LOCKED;
- 	if (vma_is_hugetlb(vma))
- 		flags |= MAP_HUGETLB;
-@@ -10091,7 +10093,7 @@ static void perf_addr_filters_adjust(str
- 	 * Data tracing isn't supported yet and as such there is no need
- 	 * to keep track of anything that isn't related to executable code:
- 	 */
--	if (!(vma->vm_flags & VM_EXEC))
-+	if (!vma_test(vma, VMA_EXEC_BIT))
- 		return;
+@@ -4229,13 +4229,13 @@ static int selinux_file_mprotect(struct
+ 	u32 av;
+ 	const struct file *file = vma->vm_file;
+ 	bool backing_file;
+-	bool shared = vma->vm_flags & VM_SHARED;
++	bool shared = vma_test(vma, VMA_SHARED_BIT);
  
- 	rcu_read_lock();
+ 	/* check if we need to trigger the "backing files are awful" mode */
+ 	backing_file = file && (file->f_mode & FMODE_BACKING);
+ 
+ 	if (default_noexec &&
+-	    (prot & PROT_EXEC) && !(vma->vm_flags & VM_EXEC)) {
++	    (prot & PROT_EXEC) && !vma_test(vma, VMA_EXEC_BIT)) {
+ 		/*
+ 		 * We don't use the vma_is_initial_heap() helper as it has
+ 		 * a history of problems and is currently broken on systems
 _
 
 Patches currently in -mm which might be from ljs@kernel.org are
 
 mm-vma-read-anon_vma-carefully-in-validate_mm.patch
-security-convert-vma-flag-tests-to-use-vma_flags_t.patch
 
