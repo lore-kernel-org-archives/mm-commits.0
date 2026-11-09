@@ -1,46 +1,46 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794246359;
-	b=hGVlCVrNzVieSWEQqjtvg74gs+8L2tbmSwF68L0u+5bBmvjWEt6rd2SP/UeynyKU5wcT
-	 SRMJgSppGmrYjoDA8GSBsjJ8131As74GnQ0zAJfxQ80EBcU7Q4xwx9VqQUWYThaSxvVRr
-	 gUj5v14qb5xSrDSfkw39gEJRlskxkd/Xy/g45wJIZbo4WazR34J1C0e94jkV7bvLlQn3p
-	 bHFzeYlb/9vUr5vsG5wvLxl3F21xB3XwpMM5tgNDxvkWdK+1y5em5peV5vKJvvuI1guPL
-	 UzrtLa2GTgEq1H6TLg3wJDsULBEwWcrx1lUvk7MJpbDGsuG8tzlk4a9tgRV+fNox82A==
+	t=1794246361;
+	b=fvA+XwU+Yhe0jRAvGXy8RYoZuM2X/T6RBOuDzKFn4K4nIjayYwIFmQAjR5r1APxxQmAJ
+	 ox2vXu6tCo8wdIZcwO251AQxuYyXwTHmN318tG9qDEkXyT37qoSeBvlIM6/rMOjcCrZCc
+	 Tcl5+Xvf3/tXjSjeDzhOU/O/NgZhjaV+G6c0fdtCjTul4HQy8KJXqztjCEIq8UCCuVFiQ
+	 Ssc/j8CEkrYysC7DYAB/+nbO6CL5ZIVFXHk1oeC9LjkFdztg0wdrimKuFDrdSLaCO3KxG
+	 M78IIh3IynZt9/mc7VxYaNnaYPfZjrEj2vf6LXFTqmFDto8R5NVuFrdH5rmRq1DaQbw==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794246359;
+	a=rsa-sha256; c=relaxed/relaxed; t=1794246361;
 	h=Received:DKIM-Signature:Date:To:Cc:From:Subject:Message-Id;
-	bh=FXDKOv8kjQ/PZgGLIEsMsG3iNuc4Otp1FGE1taZIiDM=;
-	b=MKANkLt7Dqh5ak2fZTGhls9Q907qFR5GXI3/b/h4jizQF5Zrtm+cM+TFRij8Mi7aPKSS
-	 +3EbrowsjomPfVv2d6WXzJqy0MHvyF/VsUYPssNC1CJs0CSeSRzZfiZyW92QwCiCztHdG
-	 AjTiDAdi2eZIpb+37rdGcdvd4BICmlBpklb5dVtwA+0/ytBEV4QxFO5rSWY9X4ry4pfh6
-	 F0+uI5w8rbqC+Tn3EDqZH90JIbGRwlfFgkY189IslBzjpFUeh+QGkuyQQhA9Uq/Alg0ax
-	 jSzpO8Ki9Z0kUiEANS2+cdHx6FUNgRwSx05mEHJsL/aVR7tv6Y/VBJwuYD/aRWVpqFg==
+	bh=/Is03Ts2xR+RrpO4+h9WsHmP6tCaCtiEJL9pr8naUMI=;
+	b=a35OcICJjICs6XNTQ1zC2DVoqM1LVAMSRQIA8OtucRk80YY7W+/T4RzRcpA/6SmkDQSD
+	 ewHu4ddqStERb7c1ysOfCD4jj4mLm9CLTFFix8Rw9ZEEWTAAwfsMVS10enXGl6YfnGOp6
+	 D6zK55D4hsXpHUy9w1qZO5wAn/03Q1n0fwf13YkQpWj5WvjZvrG0fNiNT3M0ZTA8tqEtZ
+	 g8iknoZ1cWRwGVsMpsvoR5DaI8A7rYbKMNDxQgHZn9QY3WUIzQ1z/RlkXa0iQRHnX6IUw
+	 L3GoRU8wi8oy/yZtooaJhHpX5tqfSPFjBnK7Z5hTrvoKKph6ycC4UXKFXczTYD54QBA==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=xGMDthMf;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=UO9v1P3S;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 94BCC606A338
-	for <mm-commits@vger.kernel.org>; Mon,  9 Nov 2026 17:45:58 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AB13D606A31C
+	for <mm-commits@vger.kernel.org>; Mon,  9 Nov 2026 17:46:00 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=xGMDthMf
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5CB781F0089F;
-	Mon,  9 Nov 2026 17:45:58 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=UO9v1P3S
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 22ED11F008A2;
+	Mon,  9 Nov 2026 17:45:59 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1794246358;
-	bh=FXDKOv8kjQ/PZgGLIEsMsG3iNuc4Otp1FGE1taZIiDM=;
+	d=linux-foundation.org; s=korg; t=1794246360;
+	bh=/Is03Ts2xR+RrpO4+h9WsHmP6tCaCtiEJL9pr8naUMI=;
 	h=Date:To:Cc:From:Subject;
-	b=xGMDthMfryg2VOjlZzC3EjGeXtlPlrL7qE278ngyl5s8LtKi4R3Xbykqop+vA1aKC
-	 mow6T6UlxQZ83pXmig6glYXDc4hzBMBPxlrBPBuxr56OOgO49dvTLo3ttQyWQGTNNg
-	 YI7CX+V/o/rR0pWtm/WK4gUOgmaNTCu3ihI8nyng=
-Date: Mon, 09 Nov 2026 09:45:57 -0800
+	b=UO9v1P3SK4f4pNoabdyod7/FjXlgb8xq0GLMHeyRYuIahHbDiQ9vUFctOgr6Ev+Ws
+	 EwBfz0/w9ayTkmwBF/u6BJFABtWKBgEInodluoYFaraVT2mYGl6yNBPeiSa4rSQfsJ
+	 nKgbmeK1yvwSuONMnsWupir1efiPpjwJbsAFrF9s=
+Date: Mon, 09 Nov 2026 09:45:59 -0800
 To: mm-commits@vger.kernel.org, ljs@kernel.org, akpm@linux-foundation.org
 Cc: David Hildenbrand <david@kernel.org>
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [to-be-updated] mm-convert-thp-vma-flag-tests-to-use-vma_flags_t.patch removed from -mm tree
-Message-Id: <20261109174558.5CB781F0089F@smtp.kernel.org>
+Subject: [to-be-updated] mm-ksm-convert-vma-flag-tests-to-use-vma_flags_t.patch removed from -mm tree
+Message-Id: <20261109174600.22ED11F008A2@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -52,33 +52,30 @@ Precedence: list
 
 
 The quilt patch titled
-     Subject: mm: convert THP VMA flag tests to use vma_flags_t
+     Subject: mm/ksm: convert VMA flag tests to use vma_flags_t
 has been removed from the -mm tree.  Its filename was
-     mm-convert-thp-vma-flag-tests-to-use-vma_flags_t.patch
+     mm-ksm-convert-vma-flag-tests-to-use-vma_flags_t.patch
 
 This patch was dropped because an updated version will be issued
 
 ------------------------------------------------------
 From: "Lorenzo Stoakes (ARM)" <ljs@kernel.org>
-Subject: mm: convert THP VMA flag tests to use vma_flags_t
-Date: Thu, 05 Nov 2026 21:30:56 +0000
+Subject: mm/ksm: convert VMA flag tests to use vma_flags_t
+Date: Thu, 05 Nov 2026 21:30:57 +0000
 
 Replace use of the legacy vm_flags_t flags with vma_flags_t values where
-VMA flags are tested directly in the THP and khugepaged logic.
+KSM tests VMA flags directly.
 
-The thp_vma_allowable_orders() family of functions, hugepage_madvise() and
-khugepaged_enter_vma() continue to take legacy flags for the time being.
-
-Also update BUG_ON()'s to VM_WARN_ON_ONCE() while here.
+The ksm_madvise() interface continues to take legacy flags for the time
+being.
 
 No functional change intended.
 
-Link: https://lore.kernel.org/20261105-late-2026-vma-flags-v1-5-0d3cd15ab75f@kernel.org
+Link: https://lore.kernel.org/20261105-late-2026-vma-flags-v1-6-0d3cd15ab75f@kernel.org
 Signed-off-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Reviewed-by: Baolin Wang <baolin.wang@linux.alibaba.com>
-Reviewed-by: Barry Song <baohua@kernel.org>
 Reviewed-by: Lance Yang <lance.yang@linux.dev>
+Reviewed-by: Xu Xin (vivo) <xu.xin@linux.dev>
 Cc: David Hildenbrand <david@kernel.org>
 Cc: Jason Gunthorpe <jgg@ziepe.ca>
 Cc: John Hubbard <jhubbard@nvidia.com>
@@ -97,12 +94,13 @@ Cc: Byungchul Park <byungchul@sk.com>
 Cc: Gregory Price <gourry@gourry.net>
 Cc: Ying Huang <ying.huang@linux.alibaba.com>
 Cc: Alistair Popple <apopple@nvidia.com>
+Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
 Cc: Nico Pache <nico.pache@linux.dev>
 Cc: Ryan Roberts <ryan.roberts@arm.com>
 Cc: Dev Jain <dev.jain@arm.com>
+Cc: Barry Song <baohua@kernel.org>
 Cc: Usama Arif <usama.arif@linux.dev>
 Cc: Kiryl Shutsemau <kas@kernel.org>
-Cc: Xu Xin <xu.xin@linux.dev>
 Cc: Chengming Zhou <chengming.zhou@linux.dev>
 Cc: Madhavan Srinivasan <maddy@linux.ibm.com>
 Cc: Nicholas Piggin <npiggin@gmail.com>
@@ -153,151 +151,71 @@ Cc: Stephen Smalley <stephen.smalley.work@gmail.com>
 Cc: Ondrej Mosnáček <omosnacek@gmail.com>
 ---
 
- mm/huge_memory.c |   32 ++++++++++++++++----------------
- mm/khugepaged.c  |    8 +++++---
- 2 files changed, 21 insertions(+), 19 deletions(-)
+ mm/ksm.c |   13 +++++++------
+ 1 file changed, 7 insertions(+), 6 deletions(-)
 
---- a/mm/huge_memory.c~mm-convert-thp-vma-flag-tests-to-use-vma_flags_t
-+++ a/mm/huge_memory.c
-@@ -1257,7 +1257,7 @@ __setup("thp_anon=", setup_thp_anon);
- 
- pmd_t maybe_pmd_mkwrite(pmd_t pmd, struct vm_area_struct *vma)
- {
--	if (likely(vma->vm_flags & VM_WRITE))
-+	if (likely(vma_test(vma, VMA_WRITE_BIT)))
- 		pmd = pmd_mkwrite(pmd, vma);
- 	return pmd;
+--- a/mm/ksm.c~mm-ksm-convert-vma-flag-tests-to-use-vma_flags_t
++++ a/mm/ksm.c
+@@ -781,7 +781,7 @@ static struct vm_area_struct *find_merge
+ 	if (ksm_test_exit(mm))
+ 		return NULL;
+ 	vma = vma_lookup(mm, addr);
+-	if (!vma || !(vma->vm_flags & VM_MERGEABLE) || !vma_has_anon_rmap(vma))
++	if (!vma || !vma_test(vma, VMA_MERGEABLE_BIT) || !vma_has_anon_rmap(vma))
+ 		return NULL;
+ 	return vma;
  }
-@@ -1517,7 +1517,7 @@ vm_fault_t do_huge_pmd_device_private(st
-  */
- gfp_t vma_thp_gfp_mask(struct vm_area_struct *vma)
+@@ -1245,7 +1245,8 @@ static int unmerge_and_remove_all_rmap_i
+ 			goto mm_exiting;
+ 
+ 		for_each_vma(vmi, vma) {
+-			if (!(vma->vm_flags & VM_MERGEABLE) || !vma_has_anon_rmap(vma))
++			if (!vma_test(vma, VMA_MERGEABLE_BIT) ||
++			    !vma_has_anon_rmap(vma))
+ 				continue;
+ 			err = break_ksm(vma, vma->vm_start, vma->vm_end, false);
+ 			if (err)
+@@ -2700,7 +2701,7 @@ next_mm:
+ 		goto no_vmas;
+ 
+ 	for_each_vma(vmi, vma) {
+-		if (!(vma->vm_flags & VM_MERGEABLE))
++		if (!vma_test(vma, VMA_MERGEABLE_BIT))
+ 			continue;
+ 		if (ksm_scan.address < vma->vm_start)
+ 			ksm_scan.address = vma->vm_start;
+@@ -2892,7 +2893,7 @@ static int __ksm_del_vma(struct vm_area_
  {
--	const bool vma_madvised = vma && (vma->vm_flags & VM_HUGEPAGE);
-+	const bool vma_madvised = vma && vma_test(vma, VMA_HUGEPAGE_BIT);
+ 	int err;
  
- 	/* Always do synchronous compaction */
- 	if (test_bit(TRANSPARENT_HUGEPAGE_DEFRAG_DIRECT_FLAG, &transparent_hugepage_flags))
-@@ -1716,10 +1716,9 @@ vm_fault_t vmf_insert_pfn_pmd(struct vm_
- 	 * but we need to be consistent with PTEs and architectures that
- 	 * can't support a 'special' bit.
- 	 */
--	BUG_ON(!(vma->vm_flags & (VM_PFNMAP|VM_MIXEDMAP)));
--	BUG_ON((vma->vm_flags & (VM_PFNMAP|VM_MIXEDMAP)) ==
--						(VM_PFNMAP|VM_MIXEDMAP));
--	BUG_ON((vma->vm_flags & VM_PFNMAP) && vma_is_cow_mapping(vma));
-+	VM_WARN_ON_ONCE(!vma_test_any(vma, VMA_PFNMAP_BIT, VMA_MIXEDMAP_BIT));
-+	VM_WARN_ON_ONCE(vma_test_all(vma, VMA_PFNMAP_BIT, VMA_MIXEDMAP_BIT));
-+	VM_WARN_ON_ONCE(vma_test(vma, VMA_PFNMAP_BIT) && vma_is_cow_mapping(vma));
+-	if (!(vma->vm_flags & VM_MERGEABLE))
++	if (!vma_test(vma, VMA_MERGEABLE_BIT))
+ 		return 0;
  
- 	if (unlikely(is_huge_zero_pfn(pfn)))
- 		return VM_FAULT_SIGBUS;
-@@ -1750,7 +1749,7 @@ EXPORT_SYMBOL_GPL(vmf_insert_folio_pmd);
- #ifdef CONFIG_HAVE_ARCH_TRANSPARENT_HUGEPAGE_PUD
- static pud_t maybe_pud_mkwrite(pud_t pud, struct vm_area_struct *vma)
- {
--	if (likely(vma->vm_flags & VM_WRITE))
-+	if (likely(vma_test(vma, VMA_WRITE_BIT)))
- 		pud = pud_mkwrite(pud);
- 	return pud;
- }
-@@ -1827,10 +1826,9 @@ vm_fault_t vmf_insert_pfn_pud(struct vm_
- 	 * but we need to be consistent with PTEs and architectures that
- 	 * can't support a 'special' bit.
- 	 */
--	BUG_ON(!(vma->vm_flags & (VM_PFNMAP|VM_MIXEDMAP)));
--	BUG_ON((vma->vm_flags & (VM_PFNMAP|VM_MIXEDMAP)) ==
--						(VM_PFNMAP|VM_MIXEDMAP));
--	BUG_ON((vma->vm_flags & VM_PFNMAP) && vma_is_cow_mapping(vma));
-+	VM_WARN_ON_ONCE(!vma_test_any(vma, VMA_PFNMAP_BIT, VMA_MIXEDMAP_BIT));
-+	VM_WARN_ON_ONCE(vma_test_all(vma, VMA_PFNMAP_BIT, VMA_MIXEDMAP_BIT));
-+	VM_WARN_ON_ONCE(vma_test(vma, VMA_PFNMAP_BIT) && vma_is_cow_mapping(vma));
+ 	if (vma_has_anon_rmap(vma)) {
+@@ -3029,7 +3030,7 @@ int ksm_madvise(struct vm_area_struct *v
  
- 	pfnmap_setup_cachemode_pfn(pfn, &pgprot);
+ 	switch (advice) {
+ 	case MADV_MERGEABLE:
+-		if (vma->vm_flags & VM_MERGEABLE)
++		if (vma_test(vma, VMA_MERGEABLE_BIT))
+ 			return 0;
+ 		if (!vma_ksm_compatible(vma))
+ 			return 0;
+@@ -3514,7 +3515,7 @@ bool ksm_process_mergeable(struct mm_str
+ 	mmap_assert_locked(mm);
+ 	VMA_ITERATOR(vmi, mm, 0);
+ 	for_each_vma(vmi, vma)
+-		if (vma->vm_flags & VM_MERGEABLE)
++		if (vma_test(vma, VMA_MERGEABLE_BIT))
+ 			return true;
  
-@@ -2273,7 +2271,7 @@ static inline bool can_change_pmd_writab
- {
- 	struct page *page;
- 
--	if (WARN_ON_ONCE(!(vma->vm_flags & VM_WRITE)))
-+	if (WARN_ON_ONCE(!vma_test(vma, VMA_WRITE_BIT)))
- 		return false;
- 
- 	/* Don't touch entries that are not even readable (NUMA hinting). */
-@@ -2288,7 +2286,7 @@ static inline bool can_change_pmd_writab
- 	if (userfaultfd_huge_pmd_wp(vma, pmd))
- 		return false;
- 
--	if (!(vma->vm_flags & VM_SHARED)) {
-+	if (!vma_test(vma, VMA_SHARED_BIT)) {
- 		/* See can_change_pte_writable(). */
- 		page = vm_normal_page_pmd(vma, addr, pmd);
- 		return page && PageAnon(page) && PageAnonExclusive(page);
-@@ -3627,7 +3625,8 @@ static bool __discard_anon_folio_pmd_loc
- 
- 	if (pmd_dirty(orig_pmd))
- 		folio_set_dirty(folio);
--	if (folio_test_dirty(folio) && !(vma->vm_flags & VM_DROPPABLE)) {
-+	if (folio_test_dirty(folio) &&
-+	    !vma_test_single_mask(vma, VMA_DROPPABLE)) {
- 		folio_set_swapbacked(folio);
- 		return false;
- 	}
-@@ -3659,7 +3658,8 @@ static bool __discard_anon_folio_pmd_loc
- 	 */
- 	if (pmd_dirty(orig_pmd))
- 		folio_set_dirty(folio);
--	if (folio_test_dirty(folio) && !(vma->vm_flags & VM_DROPPABLE)) {
-+	if (folio_test_dirty(folio) &&
-+	    !vma_test_single_mask(vma, VMA_DROPPABLE)) {
- 		folio_set_swapbacked(folio);
- 		set_pmd_at(mm, addr, pmdp, orig_pmd);
- 		return false;
-@@ -3673,7 +3673,7 @@ static bool __discard_anon_folio_pmd_loc
- 	folio_remove_rmap_pmd(folio, pmd_page(orig_pmd), vma);
- 	zap_deposited_table(mm, pmdp);
- 	add_mm_counter(mm, MM_ANONPAGES, -HPAGE_PMD_NR);
--	if (vma->vm_flags & VM_LOCKED)
-+	if (vma_test(vma, VMA_LOCKED_BIT))
- 		mlock_drain_local();
- 	folio_put(folio);
- 
---- a/mm/khugepaged.c~mm-convert-thp-vma-flag-tests-to-use-vma_flags_t
-+++ a/mm/khugepaged.c
-@@ -640,7 +640,8 @@ static enum scan_result __collapse_huge_
- 		 * If the vma has the VM_DROPPABLE flag, the collapse will
- 		 * preserve the lazyfree property without needing to skip.
- 		 */
--		if (cc->policy.anon_skip_lazyfree && !(vma->vm_flags & VM_DROPPABLE) &&
-+		if (cc->policy.anon_skip_lazyfree &&
-+		    !vma_test_single_mask(vma, VMA_DROPPABLE) &&
- 		    folio_test_lazyfree(folio) && !pte_dirty(pteval)) {
- 			result = SCAN_PAGE_LAZYFREE;
- 			goto out;
-@@ -1683,7 +1684,8 @@ static enum scan_result collapse_scan_an
- 		 * If the vma has the VM_DROPPABLE flag, the collapse will
- 		 * preserve the lazyfree property without needing to skip.
- 		 */
--		if (cc->policy.anon_skip_lazyfree && !(vma->vm_flags & VM_DROPPABLE) &&
-+		if (cc->policy.anon_skip_lazyfree &&
-+		    !vma_test_single_mask(vma, VMA_DROPPABLE) &&
- 		    folio_test_lazyfree(folio) && !pte_dirty(pteval)) {
- 			result = SCAN_PAGE_LAZYFREE;
- 			failed_pfn = folio_pfn(folio);
-@@ -1949,7 +1951,7 @@ static enum scan_result try_collapse_pte
- 	 * So page lock of folio does not protect from it, so we must not drop
- 	 * ptl before pgt_pmd is removed, so uffd private needs pml taken now.
- 	 */
--	if (userfaultfd_armed(vma) && !(vma->vm_flags & VM_SHARED))
-+	if (userfaultfd_armed(vma) && !vma_test(vma, VMA_SHARED_BIT))
- 		pml = pmd_lock(mm, pmd);
- 
- 	start_pte = pte_offset_map_rw_nolock(mm, pmd, haddr, &pgt_pmd, &ptl);
+ 	return false;
 _
 
 Patches currently in -mm which might be from ljs@kernel.org are
 
 mm-vma-read-anon_vma-carefully-in-validate_mm.patch
-mm-ksm-convert-vma-flag-tests-to-use-vma_flags_t.patch
 mm-madvise-convert-madvise_vma_behavior-to-use-vma_flags_t.patch
 mm-convert-miscellaneous-vma-flag-tests-to-use-vma_flags_t.patch
 fs-proc-task_mmu-convert-vma-flag-tests-to-use-vma_flags_t.patch
