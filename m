@@ -1,46 +1,47 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794252359;
-	b=KinKkFJgJeSVNRR+klC7UkdoJe5N7hh/YCGDvno7DagxdQZQr146K9do9cg42+/MhCrB
-	 oLJlpBeom+zb2VKXmock4B8kJw4fD/YjfN+hVqJY0PfGzseNPuUBpfizniAv+UiGtIucp
-	 YnzHkTFtwEZQyHVqZrLnAoq1MP0les8P0inTFCpN/MktAAuFSaC63mPBPoUqkrFYlmpbk
-	 Uige8QpeAJZT66b9y5ZRuqXbnxXVHq0a/sLMicaDFJQWne81hcr36/FwZg+yQSBPwHD8d
-	 98NuSH4e4C+KsO4+4U/wwRZcFgBy0prMeSq4yjvhu5dMuatd2nUl4mEENuptlVww/lA==
+	t=1794254898;
+	b=rsVuTEyV/Zi8YiBmChVprTbovJdU4QPjmrV7XL312XaTKsbO5AW+D8FDIycRR4zpPGN/
+	 oANr+h8WaXLGUtCN9bBZLNplONdL6oUxl29eT9wYVJRdJdXsmv6UFc/xP0tkmlBT3tVwY
+	 DIdvcWz5kAwNbuwBi5Xj0SMAHuaeQY59qtFk/36mAxMLL0PcrHkw6/n/6P1oy6r1HW/rU
+	 UvFaN5qnKn+h8TIKMqz+zo597q5eXOrE4PfmFCW7mW59L9qJgHQ7Em5LHU/PrESJ+Ck55
+	 RIswiuJyuX4yCyxbIJoDxnqRRsfTOkzjoU+noAMXP/1YDhj11QqRM1SMomKwiLmDKhw==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794252359;
+	a=rsa-sha256; c=relaxed/relaxed; t=1794254898;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=y+mm9RCwokP3BvMRB9sMGvTrOCc8VGfvO4b2vUpxwxc=;
-	b=4A7xgTwa+E3LO/HYdGbOP+rXOWUwrWMlWXFGKp7bRaeSdQNd0KOji3jDenjb0sMlKZ5p
-	 uTaNdH+AmssLQfVxuF8RREEpPVT0XvKnh08E8V18Y/3VVq0sA4Gm+jqpT+Sgz5snAk76u
-	 7xGUFhEJxXoHcShua7LaKt8b0/D4X9V83ZyAt46xhTJeC3xHcMTbRbILXy8FIDuQTEyIE
-	 8th055NEn7ShVYaLJbY0sAv8w1pNeZdXnGBZ6vWe5EOdNkKW9i9+kJYXB+7XmZ0XsFW0d
-	 cymGXFYk2bZswZ8K8sBgU4A8ZNW7/yRHSI/kVVxCFMbaThjMy+epiQRCHUlJGXg+SxQ==
+	bh=54PUVSCFqeUsNzedYgTE7q6vcx7/2xJEcki4qnKngVE=;
+	b=K/kngetqwHOyvvkC505zTbNHVpb+0HcamOBfz/da6drY/jz64hxjMxItQG6W3kbfM0pm
+	 NoBoGD/UbTJl9wMAr0IZTtfmgckhqLZHtNjrPN0zMzZkqAPDd/K1Cff7m3QgGUUlO4nfv
+	 AJ/asaHUQYoszHaRodZTk3LqU/rYs0tSsvMw8v1qSb1q+kvql5AKaJhlsHYJ4invZ/kn/
+	 mw7YTSWoRf0MHa4haHJdaunBAs7uxJdco9y/9YW0OHJDKx0I5vRMFkapTLqnNuu47cqju
+	 O9JjY3B9rHvxknnq9IxtxqI/ddGRXzdltERgBTgyHrDi/J+y9ofdpbzDVTOt6NykwBg==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=WKQ+Qdo0;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=GGLYrNc6;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 43342606A31C
-	for <mm-commits@vger.kernel.org>; Mon,  9 Nov 2026 19:25:59 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6C539606A32A
+	for <mm-commits@vger.kernel.org>; Mon,  9 Nov 2026 20:08:18 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=WKQ+Qdo0
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C9EB71F0089F;
-	Mon,  9 Nov 2026 19:25:58 +0000 (UTC)
+	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=GGLYrNc6
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C83DD1F0089F;
+	Mon,  9 Nov 2026 20:08:17 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1794252358;
-	bh=y+mm9RCwokP3BvMRB9sMGvTrOCc8VGfvO4b2vUpxwxc=;
+	d=linux-foundation.org; s=korg; t=1794254897;
+	bh=54PUVSCFqeUsNzedYgTE7q6vcx7/2xJEcki4qnKngVE=;
 	h=Date:To:From:Subject;
-	b=WKQ+Qdo0quWgPfZDVohsgC1Q7dmm4q3fmGFP3173LvW6SBeP5TqvJg1pfnZZx4lzx
-	 jC5ubikt61AzHVLfOjHPxlKtRq9KF8BgtxHKjutTt334H2ecPTRHr9BqwGJZKoq2qX
-	 1wOnH5kkI5vvSTTbyUuQqCz7UFLwJHOWSyPlnJOc=
-Date: Mon, 09 Nov 2026 11:25:58 -0800
-To: mm-commits@vger.kernel.org,brads@mainlining.org,bradley.morgan@linux.dev,
+	b=GGLYrNc6uCzcK9py92hX1ZaBct6qMVEJp64Kq5G8IuU+xH/EcIm7K0aM14+3hzRPk
+	 2CFa/CktVQEck4wdPV5+ONzTgz8qkNRynp9Whx+FFb+kENAzQRuI9h6a4pMbHweTY5
+	 r+X/MjvlGhND2hxJ9V8WLzCPxiHc8ERhHJitqWFQ=
+Date: Mon, 09 Nov 2026 12:08:17 -0800
+To: mm-commits@vger.kernel.org,swarupkotikalapudi@gmail.com,shuah@kernel.org,
+	kevin.brodsky@arm.com,clopez@suse.de,adobriyan@gmail.com,lylin1023@gmail.com,
 	akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mailmap-update-email-address-for-bradley-morgan.patch added to mm-nonmm-unstable branch
-Message-Id: <20261109192558.C9EB71F0089F@smtp.kernel.org>
+Subject: + selftests-proc-proc-empty-vm-handle-cpus-without-protection-keys.patch added to mm-nonmm-unstable branch
+Message-Id: <20261109200817.C83DD1F0089F@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -52,12 +53,12 @@ Precedence: list
 
 
 The patch titled
-     Subject: mailmap: update email address for Bradley Morgan
+     Subject: selftests/proc: proc-empty-vm: handle CPUs without protection keys
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     mailmap-update-email-address-for-bradley-morgan.patch
+     selftests-proc-proc-empty-vm-handle-cpus-without-protection-keys.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mailmap-update-email-address-for-bradley-morgan.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-proc-proc-empty-vm-handle-cpus-without-protection-keys.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -75,38 +76,52 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Bradley Morgan <bradley.morgan@linux.dev>
-Subject: mailmap: update email address for Bradley Morgan
-Date: Mon,  9 Nov 2026 19:19:28 +0000
+From: Kurt Lin <lylin1023@gmail.com>
+Subject: selftests/proc: proc-empty-vm: handle CPUs without protection keys
+Date: Mon,  9 Nov 2026 23:19:12 +0800
 
-I switched to bradley.morgan@linux.dev for kernel work, so map the
-brads@mainlining.org and include@grrlz.net addresses over to keep shortlog
-and blame from splitting commits between them.
+On x86 CPUs without protection keys, pkey_alloc() fails with ENOSPC,
+as documented in pkey_alloc(2). protection_key_support() only expects
+ENOSYS or EINVAL, so the test fails on such machines, e.g. an Intel
+Core i5-7200U:
 
-Link: https://lore.kernel.org/20261109191928.3222846-1-bradley.morgan@linux.dev
-Signed-off-by: Bradley Morgan <bradley.morgan@linux.dev>
+  protection_key_support: error: rv -1, errno 28
+
+Treat ENOSPC as "no protection key support" as well.
+
+An AI coding assistant (Claude) was used to analyze the failure and to
+draft the fix and this changelog. Tested on v7.4-rc1 on the machine
+above; the test now passes.
+
+Link: https://lore.kernel.org/20261109151912.156518-1-lylin1023@gmail.com
+Fixes: bf5add391eeb ("proc: test ProtectionKey in proc-empty-vm test")
+Signed-off-by: Kurt Lin <lylin1023@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Cc: Bradley Morgan <brads@mainlining.org>
+Cc: Shuah Khan <shuah@kernel.org>
+Cc: Alexey Dobriyan <adobriyan@gmail.com>
+Cc: Swarup Laxman Kotiaklapudi <swarupkotikalapudi@gmail.com>
+Cc: Carlos López <clopez@suse.de>
+Cc: Kevin Brodsky <kevin.brodsky@arm.com>
 ---
 
- .mailmap |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ tools/testing/selftests/proc/proc-empty-vm.c |    3 +++
+ 1 file changed, 3 insertions(+)
 
---- a/.mailmap~mailmap-update-email-address-for-bradley-morgan
-+++ a/.mailmap
-@@ -182,7 +182,8 @@ Boris Brezillon <bbrezillon@kernel.org>
- Boris Brezillon <bbrezillon@kernel.org> <b.brezillon@overkiz.com>
- Boris Brezillon <bbrezillon@kernel.org> <boris.brezillon@bootlin.com>
- Boris Brezillon <bbrezillon@kernel.org> <boris.brezillon@free-electrons.com>
--Bradley Morgan <brads@mainlining.org> <include@grrlz.net>
-+Bradley Morgan <bradley.morgan@linux.dev> <brads@mainlining.org>
-+Bradley Morgan <bradley.morgan@linux.dev> <include@grrlz.net>
- Brendan Higgins <brendan.higgins@linux.dev> <brendanhiggins@google.com>
- Brendan Jackman <brendan.jackman@linux.dev> <jackmanb@google.com>
- Brian Avery <b.avery@hp.com>
+--- a/tools/testing/selftests/proc/proc-empty-vm.c~selftests-proc-proc-empty-vm-handle-cpus-without-protection-keys
++++ a/tools/testing/selftests/proc/proc-empty-vm.c
+@@ -78,6 +78,9 @@ static int protection_key_support(void)
+ 	} else if (rv == -1 && errno == EINVAL) {
+ 		// ospke=n
+ 		return 0;
++	} else if (rv == -1 && errno == ENOSPC) {
++		// CPU without protection keys
++		return 0;
+ 	} else {
+ 		fprintf(stderr, "%s: error: rv %ld, errno %d\n", __func__, rv, errno);
+ 		exit(EXIT_FAILURE);
 _
 
-Patches currently in -mm which might be from bradley.morgan@linux.dev are
+Patches currently in -mm which might be from lylin1023@gmail.com are
 
-mailmap-update-email-address-for-bradley-morgan.patch
+selftests-proc-proc-empty-vm-handle-cpus-without-protection-keys.patch
 
