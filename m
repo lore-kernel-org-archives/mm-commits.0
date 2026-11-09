@@ -1,46 +1,46 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794245567;
-	b=UI3PUpGbmT5WHtIKCSyoLbv8cKQ44wCGItr+pMDFMqoFPOXRAprepu3B6Yi22yULOywc
-	 vqLkJvavfdJW9DcoavrLYn3XOEXr8IJgsrcCPwVSfYvh8f22L1SEBArPlQLySZICiadAn
-	 6MSyoPXxfT7woLLZfcYgxmIQoUN2bZY9rt48MEXXjkFkju7k/kqbKY2f6WCR1njydKUMU
-	 7GagFbznTvCwYXFxINiB+0rtzZQSYx+T0ZvTuw63K28dt93cOqTSadWA8LBfdI7gco1xQ
-	 Zbmcqad+FRdFt3yzVV7GTKS+kyN4BQd7GH29GvnVaKNGpjFENHlRvctVaWdhIH9BuAA==
+	t=1794246349;
+	b=cn9wEZTa8BvbHMbAgRvSx4dPbDuzpTQpT3LTHZ9syiiXmsTFXjpZa+G/XFNiqE6uAd1F
+	 RRCRbt1pJm0uSO3K7hIlX6/8zOu4mlWRunmLp5PihX1wXXPnpnCNmVV6PCE+4dR6wdbLW
+	 X3dNekk7tfs6NmHmKCZ8VsSuJdN3F5lvasJ9JVOhiZXLjYfiL4j3NrefMD8+ppUaGSHyp
+	 cWLlY+SrcBTd9GLOtwBszt8MO+/m6nH+msC/ogjEw9ZqGYMO7MIHoY78L4g8xoRmQEoVQ
+	 AugRuBFK6mkm+S0VkyE+EAhIzudlZIqNBlQzgXwJJkTl1O6iXzotXjdyACY3rHBrKkg==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794245567;
-	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=b1Q4RphqPpL0ABKOLfwzKjea9PUjfhburkyzX5PF8Rc=;
-	b=o2vUbbLNKkkAR/r8IQQmQhAOYg8w2OeGjxBqJOxvMv0whle83BNImysoo1t6fMaAOxml
-	 c8Ucf/O9acmYG1QOeb1JYzrZxfedD1paI/VXU68/pajJgZB0lvyGiM7fgMv6qlhxnWKfJ
-	 jH+RPO5n89mfFM86ZUr2dX4rvmBnCwZHbUKO8vWSMfxgg61IqD7W9Q59f5d4OLsmtgqQm
-	 IiGomwsCLj7+vkwaDltugubDnwwTFuN+UacEDhl7zGwvf5RO4VwpCElFIWiuvPeBeyNYj
-	 9RyWi/+1K3uuZJ+eTTELRfYDPir9VjuqNbB5dfVPtfWJpnET/+wJ09efJhSz0MhlN4w==
+	a=rsa-sha256; c=relaxed/relaxed; t=1794246349;
+	h=Received:DKIM-Signature:Date:To:Cc:From:Subject:Message-Id;
+	bh=0l3vEVbwo7Vbw0kIWsrGZp1ZxH7bzS5Y/hmp/yJw4Yo=;
+	b=U0dP8WRutqWVg1GZjFoF9gO4pYe+RJC3RJsD07hMzBXXo3DbDjmQA8aJyTSPM0mLWOkH
+	 xDkn2MzYBW5NykFOiXgIgPxg0RVXAr6UhMjoi9RAJiSpqpNH1L8tv60+jvZV4VqMqee0J
+	 ZLRjNvRd0AIeccPUlI1N2cqiGpA0jbziPFVD2LAlejBrCOINv9pZgINE6eXYWEvlR1x1d
+	 /M7/C0YoFySuFHRIk5Qb7fL2wtrcI/SOFnpIApBt7o3LX8JENdTaPCq1RxJPyzozm8irB
+	 7RC2L98ChvmigJbts75kqVLsXkPzg7hKbCRTV9xErzZ+hrsAuLsyH/LtaVx5tRp0lew==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=LpJJD2l5;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b="Nqt/qHm5";
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3E7C5606A333;
-	Mon,  9 Nov 2026 17:32:46 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1EA54606A31C
+	for <mm-commits@vger.kernel.org>; Mon,  9 Nov 2026 17:45:48 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=LpJJD2l5
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A559D1F008A1;
-	Mon,  9 Nov 2026 17:32:46 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=Nqt/qHm5
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id AA55D1F0089F;
+	Mon,  9 Nov 2026 17:45:48 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1794245566;
-	bh=b1Q4RphqPpL0ABKOLfwzKjea9PUjfhburkyzX5PF8Rc=;
-	h=Date:To:From:Subject;
-	b=LpJJD2l55ceQ/HId13hO7+flZMvX6MSHYeJjdlzk602YSHwZBGFCrSEpyww3+N+Zy
-	 fT+9NiNP51MyKCx+xViNG0emgrLZrYo7vVNPZWyuxh58IKOZeiX4LEfXlOWW5s4iM5
-	 EFFVPsyZ7bLTdnj5gipqMH63yC39arH/yTM0UjvM=
-Date: Mon, 09 Nov 2026 09:32:46 -0800
-To: mm-commits@vger.kernel.org,stable@vger.kernel.org,david@kernel.org,
-	baoquan.he@linux.dev,urezki@gmail.com,akpm@linux-foundation.org
+	d=linux-foundation.org; s=korg; t=1794246348;
+	bh=0l3vEVbwo7Vbw0kIWsrGZp1ZxH7bzS5Y/hmp/yJw4Yo=;
+	h=Date:To:Cc:From:Subject;
+	b=Nqt/qHm5Yk8w05SxPWSauiUi8idjdliZwZTdSWa28W/4rY5k+Bnm6lRr9vo8DcS9h
+	 w0jGjzeDEirWwOsMcmHJVjJYQtlb58QuySAJo4EeJncGCBG7y40eCeq9fcpm1nl3MC
+	 UoEG53iwU1t3JnkbLwtl+8wQIepkmF/Xluy6lDQg=
+Date: Mon, 09 Nov 2026 09:45:48 -0800
+To: mm-commits@vger.kernel.org, ljs@kernel.org, akpm@linux-foundation.org
+Cc: David Hildenbrand <david@kernel.org>
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-vmalloc-bail-out-if-in-softirq-context.patch added to mm-hotfixes-unstable branch
-Message-Id: <20261109173246.A559D1F008A1@smtp.kernel.org>
+Subject: [to-be-updated] mm-gup-convert-gup-code-to-use-vma_flags_t.patch removed from -mm tree
+Message-Id: <20261109174548.AA55D1F0089F@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -51,95 +51,291 @@ List-Owner: <mailto:mm-commits+owner@vger.kernel.org>
 Precedence: list
 
 
-The patch titled
-     Subject: mm/vmalloc: bail out if in softirq context
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mm-vmalloc-bail-out-if-in-softirq-context.patch
+The quilt patch titled
+     Subject: mm/gup: convert GUP code to use vma_flags_t
+has been removed from the -mm tree.  Its filename was
+     mm-gup-convert-gup-code-to-use-vma_flags_t.patch
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vmalloc-bail-out-if-in-softirq-context.patch
-
-This patch will later appear in the mm-hotfixes-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via various
-branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there most days
+This patch was dropped because an updated version will be issued
 
 ------------------------------------------------------
-From: "Uladzislau Rezki (Sony)" <urezki@gmail.com>
-Subject: mm/vmalloc: bail out if in softirq context
-Date: Mon, 26 Oct 2026 11:25:03 +0100
+From: "Lorenzo Stoakes (ARM)" <ljs@kernel.org>
+Subject: mm/gup: convert GUP code to use vma_flags_t
+Date: Thu, 05 Nov 2026 21:30:52 +0000
 
-vmalloc() is not allowed to be invoked from the NMI, hard-irq and softirq
-contexts because doing so may deadlock on internal locks.
+Patch series "mm: continue vma_flags_t conversion".
 
-Commit 04aa71da5f35 ("mm/vmalloc: do not trigger BUG() on BH disabled
-context") replaced the deprecated in_interrupt() macro with explicit
-in_nmi() and in_hardirq() checks, but unintentionally dropped the softirq
-context check.
+Continue the conversion of legacy vm_flags_t flags to the new vma_flags_t
+bitmap type.
 
-Example:
+Do some more core mm conversion (we really should be the first to
+completely move to the new scheme :), but also update some mm-adjacent and
+otherwise straightforward cases - /proc/$pid/maps and friends, the coredump
+VMA dump size logic, uprobes, perf and LSM mmap/mprotect hooks.
 
-<snip>
-vzalloc() in a task
- spin_lock(&vn->busy.lock)
-  <------ Hard irq
-   irq_exit()
-    process softirq on the same CPU
-     vmalloc()
-      spin_lock(&vn->busy.lock)
-       spins forever
-<snip>
+This series only makes strictly mechanical changes to keep things gentle
+during this very busy cycle.
 
-Restore the check by checking the caller's context with the
-in_serving_softirq() helper.  Note that, it is still allowed to invoke
-vmalloc() with disabled bottom halves.
+No functional change intended.
 
-Replace BUG_ON() with WARN_ON_ONCE() for in_nmi() and
-in_hardirq() case.
+Build tested on x86-64 (allmodconfig, each patch individually), i386,
+arm64, riscv nommu and ppc64le.
 
-Link: https://lore.kernel.org/20261026102503.30860-1-urezki@gmail.com
-Fixes: 04aa71da5f35 ("mm/vmalloc: do not trigger BUG() on BH disabled context")
-Signed-off-by: Uladzislau Rezki (Sony) <urezki@gmail.com>
+
+This patch (of 13):
+
+Replace use of the legacy vm_flags_t flags with vma_flags_t values
+throughout the GUP logic, both for the MMU and nommu variants.
+
+No functional change intended.
+
+Link: https://lore.kernel.org/20261105-late-2026-vma-flags-v1-0-0d3cd15ab75f@kernel.org
+Link: https://lore.kernel.org/20261105-late-2026-vma-flags-v1-1-0d3cd15ab75f@kernel.org
+Signed-off-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Reviewed-by: Baoquan He <baoquan.he@linux.dev>
-Cc: David Hildenbrand (Arm) <david@kernel.org>
-Cc: <stable@vger.kernel.org>
+Reviewed-by: Barry Song <baohua@kernel.org>
+Reviewed-by: Lance Yang <lance.yang@linux.dev>
+Cc: David Hildenbrand <david@kernel.org>
+Cc: Jason Gunthorpe <jgg@ziepe.ca>
+Cc: John Hubbard <jhubbard@nvidia.com>
+Cc: Peter Xu <peterx@redhat.com>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Jan Kara <jack@suse.cz>
+Cc: Rik van Riel <riel@surriel.com>
+Cc: Liam R. Howlett <liam@infradead.org>
+Cc: Vlastimil Babka <vbabka@kernel.org>
+Cc: Harry Yoo <harry@kernel.org>
+Cc: Jann Horn <jannh@google.com>
+Cc: Zi Yan <ziy@nvidia.com>
+Cc: Matthew Brost <matthew.brost@intel.com>
+Cc: Joshua Hahn <joshua.hahnjy@gmail.com>
+Cc: Byungchul Park <byungchul@sk.com>
+Cc: Gregory Price <gourry@gourry.net>
+Cc: Ying Huang <ying.huang@linux.alibaba.com>
+Cc: Alistair Popple <apopple@nvidia.com>
+Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
+Cc: Nico Pache <nico.pache@linux.dev>
+Cc: Ryan Roberts <ryan.roberts@arm.com>
+Cc: Dev Jain <dev.jain@arm.com>
+Cc: Usama Arif <usama.arif@linux.dev>
+Cc: Kiryl Shutsemau <kas@kernel.org>
+Cc: Xu Xin <xu.xin@linux.dev>
+Cc: Chengming Zhou <chengming.zhou@linux.dev>
+Cc: Madhavan Srinivasan <maddy@linux.ibm.com>
+Cc: Nicholas Piggin <npiggin@gmail.com>
+Cc: Michael Ellerman <mpe@ellerman.id.au>
+Cc: Christophe Leroy <chleroy@kernel.org>
+Cc: Ritesh Harjani (IBM) <ritesh.list@gmail.com>
+Cc: Shrikanth Hegde <sshegde@linux.ibm.com>
+Cc: Pedro Falcato <pfalcato@suse.de>
+Cc: Kairui Song <kasong@tencent.com>
+Cc: Qi Zheng <qi.zheng@linux.dev>
+Cc: Shakeel Butt <shakeel.butt@linux.dev>
+Cc: Axel Rasmussen <axelrasmussen@google.com>
+Cc: Yuanchu Xie <yuanchu@google.com>
+Cc: Wei Xu <weixugc@google.com>
+Cc: Baoquan He <baoquan.he@linux.dev>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Leon Romanovsky <leon@kernel.org>
+Cc: SJ Park <sj@kernel.org>
+Cc: Rakie Kim <rakie.kim@sk.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Christian Brauner <brauner@kernel.org>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Arnaldo Carvalho de Melo <acme@kernel.org>
+Cc: Namhyung Kim <namhyung@kernel.org>
+Cc: Mark Rutland <mark.rutland@arm.com>
+Cc: Alexander Shishkin <alexander.shishkin@linux.intel.com>
+Cc: Jiri Olsa <jolsa@kernel.org>
+Cc: Ian Rogers <irogers@google.com>
+Cc: Adrian Hunter <adrian.hunter@intel.com>
+Cc: James Clark <james.clark@linaro.org>
+Cc: Masami Hiramatsu <mhiramat@kernel.org>
+Cc: Oleg Nesterov <oleg@redhat.com>
+Cc: John Johansen <john.johansen@canonical.com>
+Cc: Georgia Garcia <georgia.garcia@canonical.com>
+Cc: Paul Moore <paul@paul-moore.com>
+Cc: James Morris <jmorris@namei.org>
+Cc: Serge E. Hallyn <serge@hallyn.com>
+Cc: Mimi Zohar <zohar@linux.ibm.com>
+Cc: Roberto Sassu <roberto.sassu@huawei.com>
+Cc: Dmitry Kasatkin <dmitry.kasatkin@gmail.com>
+Cc: Eric Snowberg <eric.snowberg@oracle.com>
+Cc: Fan Wu <wufan@kernel.org>
+Cc: Stephen Smalley <stephen.smalley.work@gmail.com>
+Cc: Ondrej Mosnáček <omosnacek@gmail.com>
 ---
 
- mm/vmalloc.c |    8 +++++++-
- 1 file changed, 7 insertions(+), 1 deletion(-)
+ mm/gup.c |   45 ++++++++++++++++++++++++---------------------
+ 1 file changed, 24 insertions(+), 21 deletions(-)
 
---- a/mm/vmalloc.c~mm-vmalloc-bail-out-if-in-softirq-context
-+++ a/mm/vmalloc.c
-@@ -3258,7 +3258,13 @@ struct vm_struct *__get_vm_area_node(uns
- 	struct vm_struct *area;
- 	unsigned long requested_size = size;
+--- a/mm/gup.c~mm-gup-convert-gup-code-to-use-vma_flags_t
++++ a/mm/gup.c
+@@ -590,15 +590,15 @@ static inline bool can_follow_write_comm
+ 		return false;
  
--	BUG_ON(in_nmi() || in_hardirq());
-+	/* IRQ re-entrancy -> irq_exit() -> process softirq. */
-+	if (in_serving_softirq())
-+		return NULL;
-+
-+	if (WARN_ON_ONCE(in_nmi() || in_hardirq()))
-+		return NULL;
-+
- 	size = ALIGN(size, 1ul << shift);
- 	if (unlikely(!size))
+ 	/* But FOLL_FORCE has no effect on shared mappings */
+-	if (vma->vm_flags & (VM_MAYSHARE | VM_SHARED))
++	if (vma_test_any(vma, VMA_MAYSHARE_BIT, VMA_SHARED_BIT))
+ 		return false;
+ 
+ 	/* ... or read-only private ones */
+-	if (!(vma->vm_flags & VM_MAYWRITE))
++	if (!vma_test(vma, VMA_MAYWRITE_BIT))
+ 		return false;
+ 
+ 	/* ... or already writable ones that just need to take a write fault */
+-	if (vma->vm_flags & VM_WRITE)
++	if (vma_test(vma, VMA_WRITE_BIT))
+ 		return false;
+ 
+ 	/*
+@@ -1203,12 +1203,11 @@ static bool writable_file_mapping_allowe
+ 
+ static int check_vma_flags(struct vm_area_struct *vma, unsigned long gup_flags)
+ {
+-	vm_flags_t vm_flags = vma->vm_flags;
+ 	int write = (gup_flags & FOLL_WRITE);
+ 	int foreign = (gup_flags & FOLL_REMOTE);
+ 	bool vma_anon = vma_is_anonymous(vma);
+ 
+-	if (vm_flags & (VM_IO | VM_PFNMAP))
++	if (vma_test_any(vma, VMA_IO_BIT, VMA_PFNMAP_BIT))
+ 		return -EFAULT;
+ 
+ 	if ((gup_flags & FOLL_ANON) && !vma_anon)
+@@ -1228,7 +1227,8 @@ static int check_vma_flags(struct vm_are
+ 		    !writable_file_mapping_allowed(vma, gup_flags))
+ 			return -EFAULT;
+ 
+-		if (!(vm_flags & VM_WRITE) || (vm_flags & VM_SHADOW_STACK)) {
++		if (!vma_test(vma, VMA_WRITE_BIT) ||
++		    vma_test_single_mask(vma, VMA_SHADOW_STACK)) {
+ 			if (!(gup_flags & FOLL_FORCE))
+ 				return -EFAULT;
+ 			/*
+@@ -1243,14 +1243,14 @@ static int check_vma_flags(struct vm_are
+ 			if (!vma_is_cow_mapping(vma))
+ 				return -EFAULT;
+ 		}
+-	} else if (!(vm_flags & VM_READ)) {
++	} else if (!vma_test(vma, VMA_READ_BIT)) {
+ 		if (!(gup_flags & FOLL_FORCE))
+ 			return -EFAULT;
+ 		/*
+ 		 * Is there actually any vma we can reach here which does not
+ 		 * have VM_MAYREAD set?
+ 		 */
+-		if (!(vm_flags & VM_MAYREAD))
++		if (!vma_test(vma, VMA_MAYREAD_BIT))
+ 			return -EFAULT;
+ 	}
+ 	/*
+@@ -1281,7 +1281,7 @@ static struct vm_area_struct *gup_vma_lo
+ 		return vma;
+ 
+ 	/* Only warn for half-way relevant accesses */
+-	if (!(vma->vm_flags & VM_GROWSDOWN))
++	if (!vma_test(vma, VMA_GROWSDOWN_BIT))
  		return NULL;
+ 	if (vma->vm_start - addr > 65536)
+ 		return NULL;
+@@ -1518,9 +1518,8 @@ static bool vma_permits_fault(struct vm_
+ {
+ 	bool write   = !!(fault_flags & FAULT_FLAG_WRITE);
+ 	bool foreign = !!(fault_flags & FAULT_FLAG_REMOTE);
+-	vm_flags_t vm_flags = write ? VM_WRITE : VM_READ;
+ 
+-	if (!(vm_flags & vma->vm_flags))
++	if (!vma_test(vma, write ? VMA_WRITE_BIT : VMA_READ_BIT))
+ 		return false;
+ 
+ 	/*
+@@ -1833,7 +1832,7 @@ long populate_vma_page_range(struct vm_a
+ 	 * Rightly or wrongly, the VM_LOCKONFAULT case has never used
+ 	 * faultin_page() to break COW, so it has no work to do here.
+ 	 */
+-	if (vma->vm_flags & VM_LOCKONFAULT)
++	if (vma_test(vma, VMA_LOCKONFAULT_BIT))
+ 		return nr_pages;
+ 
+ 	/* ... similarly, we've never faulted in PROT_NONE pages */
+@@ -1853,7 +1852,7 @@ long populate_vma_page_range(struct vm_a
+ 	 * Otherwise, do a read fault, and use FOLL_FORCE in case it's not
+ 	 * readable (ie write-only or executable).
+ 	 */
+-	if ((vma->vm_flags & (VM_WRITE | VM_SHARED)) == VM_WRITE)
++	if (vma_test(vma, VMA_WRITE_BIT) && !vma_test(vma, VMA_SHARED_BIT))
+ 		gup_flags |= FOLL_WRITE;
+ 	else
+ 		gup_flags |= FOLL_FORCE;
+@@ -1959,7 +1958,7 @@ int __mm_populate(unsigned long start, u
+ 		 * range with the first VMA. Also, skip undesirable VMA types.
+ 		 */
+ 		nend = min(end, vma->vm_end);
+-		if (vma->vm_flags & (VM_IO | VM_PFNMAP))
++		if (vma_test_any(vma, VMA_IO_BIT, VMA_PFNMAP_BIT))
+ 			continue;
+ 		if (nstart < vma->vm_start)
+ 			nstart = vma->vm_start;
+@@ -1990,7 +1989,7 @@ static long __get_user_pages_locked(stru
+ {
+ 	struct vm_area_struct *vma;
+ 	bool must_unlock = false;
+-	vm_flags_t vm_flags;
++	vma_flags_t vma_flags;
+ 	int ret, err = -EFAULT;
+ 	long i;
+ 
+@@ -2015,10 +2014,14 @@ static long __get_user_pages_locked(stru
+ 	/* calculate required read or write permissions.
+ 	 * If FOLL_FORCE is set, we only require the "MAY" flags.
+ 	 */
+-	vm_flags  = (foll_flags & FOLL_WRITE) ?
+-			(VM_WRITE | VM_MAYWRITE) : (VM_READ | VM_MAYREAD);
+-	vm_flags &= (foll_flags & FOLL_FORCE) ?
+-			(VM_MAYREAD | VM_MAYWRITE) : (VM_READ | VM_WRITE);
++	if (foll_flags & FOLL_WRITE)
++		vma_flags = mk_vma_flags(VMA_WRITE_BIT, VMA_MAYWRITE_BIT);
++	else
++		vma_flags = mk_vma_flags(VMA_READ_BIT, VMA_MAYREAD_BIT);
++	if (foll_flags & FOLL_FORCE)
++		vma_flags_clear(&vma_flags, VMA_READ_BIT, VMA_WRITE_BIT);
++	else
++		vma_flags_clear(&vma_flags, VMA_MAYREAD_BIT, VMA_MAYWRITE_BIT);
+ 
+ 	for (i = 0; i < nr_pages; i++) {
+ 		vma = find_vma(mm, start);
+@@ -2026,8 +2029,8 @@ static long __get_user_pages_locked(stru
+ 			break;
+ 
+ 		/* protect what we can, including chardevs */
+-		if ((vma->vm_flags & (VM_IO | VM_PFNMAP)) ||
+-		    !(vm_flags & vma->vm_flags))
++		if (vma_test_any(vma, VMA_IO_BIT, VMA_PFNMAP_BIT) ||
++		    !vma_test_any_mask(vma, vma_flags))
+ 			break;
+ 
+ 		if (pages) {
 _
 
-Patches currently in -mm which might be from urezki@gmail.com are
+Patches currently in -mm which might be from ljs@kernel.org are
 
-mm-vmalloc-bail-out-if-in-softirq-context.patch
-mm-vmalloc-use-dedicated-unbound-workqueues-for-vmap-drain.patch
+mm-vma-read-anon_vma-carefully-in-validate_mm.patch
+mm-filemap-convert-fault-and-readahead-logic-to-use-vma_flags_t.patch
+mm-rmap-convert-remaining-vma-flag-tests-to-use-vma_flags_t.patch
+mm-migrate-convert-vma-flag-tests-to-use-vma_flags_t.patch
+mm-convert-thp-vma-flag-tests-to-use-vma_flags_t.patch
+mm-ksm-convert-vma-flag-tests-to-use-vma_flags_t.patch
+mm-madvise-convert-madvise_vma_behavior-to-use-vma_flags_t.patch
+mm-convert-miscellaneous-vma-flag-tests-to-use-vma_flags_t.patch
+fs-proc-task_mmu-convert-vma-flag-tests-to-use-vma_flags_t.patch
+fs-coredump-convert-vma_dump_size-to-use-vma_flags_t.patch
+uprobes-convert-vma-flag-tests-to-use-vma_flags_t.patch
+perf-convert-vma-flag-tests-to-use-vma_flags_t.patch
+security-convert-vma-flag-tests-to-use-vma_flags_t.patch
 
