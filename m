@@ -1,46 +1,47 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794261940;
-	b=u0FsbHnGqK3IPZEchANv5lZ0yQbgsflJls8M/iPTSwBZd1JrzWLOdwHvwtFSe+kYJVKG
-	 aUIpvXu3xEzwcNgxz0WeRCCCPTE5V7Ogd27hvcjg8m3AqHJzFxt1HjJWUELo8UhhF+ERj
-	 HEMYz4Pa9gkOm4jOPM+SFVLtTHo+sn/iTAnKjcrqGMaAo+WHB23Av3q0g/5id2K8XE/oh
-	 3So2kwT8yMSSjGOyG2cpdETroLc1V9oauPDYRhoyhZmWZHHq6IyR2reSKi0reypfeyOyB
-	 bY1555Wrhbeii0K6Kx9SSMtU8c57T5+ewXhzI3YijT/CTdpuP/mYSs+1vu0LrhMiqMQ==
+	t=1794262668;
+	b=08+WeC0G/lOYw8YkIKi3bYQsbhO+P5hMEgSzxcV27eVLmNGTB5bpEv4WicxDuWaEJazp
+	 Fct6N5VkKotXtQTi0D9B8yQHHOrVWSgRdbTr30O9eyysS+yq5iBffAKoT2PpcjVcArKMx
+	 FwZVcozAgA/DikWyFuxTLTAxCZTRDUKf3bewnfBI/S3oSfQj0/Ns7K5iI40mTyFqt1CsU
+	 bIlUqKrAh7yts/XzG/bql6hFi8o067gLd0cs5ONfNvwGgOHzK4wiubogAlIpmjI2kgP/g
+	 ugycdmOjjrrpTIMHVfE1HEMtiiWpqSytopWn9R/LG1UVOqryvBI5vQ3y1OyPdb6FKNg==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794261940;
+	a=rsa-sha256; c=relaxed/relaxed; t=1794262668;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=RQlb7QwUZ4/sQeRTFoyxh+yA9GdtCGC1ii8UuQaZ7YA=;
-	b=XPHvfMCAcFUVpnABrSX5VgQh9xS+jEgecsQlQExMHsMobA9wgTRCp3Qddsg10ha6MzNU
-	 spZTN/E+W9eSe2XnebIrA4T49QlVt4sMbRDE00tBC4Ccwqdu+VemxKmc8rRsHsPW9vY7f
-	 ZJGCnDvWbyfqYya62JefEMx8Q++X/Sjk12BYIkBh23RCuDk2dlPmcFUejq9ntiwpaByeT
-	 1UvZ2bmUbLdIGdfqV0wkawbJJZKl8pSRXG6PLRZ3xuvsUmxPiPSn6iVIlc6q7RML35U7W
-	 O/0R9woH6wEWT01HVVPisuZIoB1gSnlyODLVN7mbzD0NzvbF5IKYB87r7BTpF72AkEg==
+	bh=7e8QoEp4/GYJQs8vWI8rkLnzzIcnq/HTu+WfPbWgp6s=;
+	b=CayOT+U/j38j/ZN5eXe18dAYtZ3X80ubFEAPyxqZQKm97fowV4Er/x1UKhibDwtJEgkw
+	 nWc0hQDE/wRTABQTJoqak6FmMuTzX8p4PbZb08+0JmpzhhBSX4ni0fgF2xX/vGW6aU3/D
+	 A1uNt7lL+IQnsmXRu8YbwbeLeIiKjqbhElQUhAZLSe+B9zcdPA0u4nxO9NJnApp4AUE3k
+	 t7I5C/atDO0/zPop1T/wicNdP+s6LFJ7UZc9Zh51HRvz6zmuYgnkVOHC87izFrlNcwD2l
+	 p4EyCg128AqX+3wvRjsHiLNEYxIbewO+7Eb9er7OY1Ecop1L1HYffChIoX8zVivusjg==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=fv4NGruR;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b="pg1d/EkD";
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2E365606A31C
-	for <mm-commits@vger.kernel.org>; Mon,  9 Nov 2026 22:05:39 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9F045606A31C;
+	Mon,  9 Nov 2026 22:17:47 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=fv4NGruR
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 87C1A1F0089F;
-	Mon,  9 Nov 2026 22:05:39 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=pg1d/EkD
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1295F1F0089F;
+	Mon,  9 Nov 2026 22:17:47 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1794261939;
-	bh=RQlb7QwUZ4/sQeRTFoyxh+yA9GdtCGC1ii8UuQaZ7YA=;
+	d=linux-foundation.org; s=korg; t=1794262667;
+	bh=7e8QoEp4/GYJQs8vWI8rkLnzzIcnq/HTu+WfPbWgp6s=;
 	h=Date:To:From:Subject;
-	b=fv4NGruRkXEcdc7z3eua6ykiTy9DzEb3QNIzY7ArFhX/gDavYdbnaYxWY9IKTCUUp
-	 D6VM7cPhDEbby80QhPSzInCD2YhZwLiekqJIsQ2jParfT9FjSFm5lgvSZ3q3oDw0wG
-	 RFT6SO2zEAGMpyeeudf8BCZZEfmUzPQwbugKS6no=
-Date: Mon, 09 Nov 2026 14:05:39 -0800
-To: mm-commits@vger.kernel.org,zhen.ni@easystack.cn,sarthak.sharma@arm.com,
-	akpm@linux-foundation.org
+	b=pg1d/EkDwO1u3BFW2l9dy7hqOgEWOlN6oa348DqHrwQQFz5by3UoaverDFgwpXy4P
+	 P7nj6x69HNExOGkoKLAyhwRF3ZqXK0uWtR+tjf7tm6+51pzs5sBVRqpEpkP69nDygg
+	 q4zKuAB0vQW/xrzeSj4KmQcegswivDnv2wLI64T4=
+Date: Mon, 09 Nov 2026 14:17:46 -0800
+To: mm-commits@vger.kernel.org,willy@infradead.org,stable@vger.kernel.org,
+	pfalcato@suse.de,kas@kernel.org,jack@suse.cz,dave.hansen@linux.intel.com,
+	dennylin0707@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + tools-mm-add-page_owner_filter-to-gitignore.patch added to mm-new branch
-Message-Id: <20261109220539.87C1A1F0089F@smtp.kernel.org>
+Subject: + filemap-prefault-writes-starting-beyond-eof.patch added to mm-hotfixes-unstable branch
+Message-Id: <20261109221747.1295F1F0089F@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -52,26 +53,15 @@ Precedence: list
 
 
 The patch titled
-     Subject: tools/mm: add page_owner_filter to .gitignore
-has been added to the -mm mm-new branch.  Its filename is
-     tools-mm-add-page_owner_filter-to-gitignore.patch
+     Subject: filemap: prefault writes starting beyond EOF
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     filemap-prefault-writes-starting-beyond-eof.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/tools-mm-add-page_owner_filter-to-gitignore.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/filemap-prefault-writes-starting-beyond-eof.patch
 
-This patch will later appear in the mm-new branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Note, mm-new is a provisional staging ground for work-in-progress
-patches, and acceptance into mm-new is a notification for others take
-notice and to finish up reviews.  Please do not hesitate to respond to
-review feedback and post updated versions to replace or incrementally
-fixup patches in mm-new.
-
-The mm-new branch of mm.git is not included in linux-next
-
-If a few days of testing in mm-new is successful, the patch will me moved
-into mm.git's mm-unstable branch, which is included in linux-next
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -86,34 +76,69 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Sarthak Sharma <sarthak.sharma@arm.com>
-Subject: tools/mm: add page_owner_filter to .gitignore
-Date: Mon,  9 Nov 2026 16:31:39 +0530
+From: Hungyu Lin <dennylin0707@gmail.com>
+Subject: filemap: prefault writes starting beyond EOF
+Date: Wed, 04 Nov 2026 07:10:02 +0000
 
-Add the missing page_owner_filter to .gitignore in tools/mm.
+Since prefaulting moved to the slow write path, a buffered write can reach
+->write_begin() and ->write_end() before discovering that its source
+buffer is unreadable.  Several filesystems can extend i_size in these
+callbacks even when no data was copied.  For example, a one-byte pwrite()
+at offset 4096 into an empty file can fail with EFAULT but leave a
+4096-byte file.
 
-Link: https://lore.kernel.org/20261109110139.216653-1-sarthak.sharma@arm.com
-Signed-off-by: Sarthak Sharma <sarthak.sharma@arm.com>
+Prefault the source before ->write_begin() when the write position is
+beyond EOF, and return EFAULT if no source bytes can be made readable. 
+Overwrites and appends continue to skip this prefault.  Keep the existing
+slow-path faulting for forward progress after a failed atomic copy.
+
+This also leaves intentional zero-length ->write_end() calls used by
+generic_cont_expand_simple() unchanged.  As with the previous prefaulting
+behavior, a concurrent userspace unmap can still race with the later copy.
+
+Link: https://lore.kernel.org/20261104071002.49693-1-dennylin0707@gmail.com
+Fixes: 665575cff098 ("filemap: move prefaulting out of hot write path")
+Signed-off-by: Hungyu Lin <dennylin0707@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Cc: Zhen Ni <zhen.ni@easystack.cn>
+Suggested-by: Kiryl Shutsemau <kas@kernel.org>
+Link: https://lore.kernel.org/all/at-XtWBQg3jv3H8Z@thinkstation/
+Reviewed-by: Jan Kara <jack@suse.cz>
+Reviewed-by: Kiryl Shutsemau (Meta) <kas@kernel.org>.
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Dave Hansen <dave.hansen@linux.intel.com>
+Cc: Pedro Falcato <pfalcato@suse.de>
+Cc: <stable@vger.kernel.org>
 ---
 
- tools/mm/.gitignore |    1 +
- 1 file changed, 1 insertion(+)
+ mm/filemap.c |   10 ++++++++++
+ 1 file changed, 10 insertions(+)
 
---- a/tools/mm/.gitignore~tools-mm-add-page_owner_filter-to-gitignore
-+++ a/tools/mm/.gitignore
-@@ -2,6 +2,7 @@
- slabinfo
- page-types
- page_owner_sort
-+page_owner_filter
- thp_swap_allocator_test
- gup_bench
- memory-failure/hwpoison-panic
+--- a/mm/filemap.c~filemap-prefault-writes-starting-beyond-eof
++++ a/mm/filemap.c
+@@ -4396,6 +4396,16 @@ retry:
+ 			break;
+ 		}
+ 
++		/*
++		 * Some filesystems can extend i_size even when nothing was copied.
++		 * Prefault writes beyond EOF to catch unreadable source buffers.
++		 */
++		if (unlikely(pos > i_size_read(mapping->host)) &&
++		    fault_in_iov_iter_readable(i, bytes) == bytes) {
++			status = -EFAULT;
++			break;
++		}
++
+ 		status = a_ops->write_begin(iocb, mapping, pos, bytes,
+ 						&folio, &fsdata);
+ 		if (unlikely(status < 0))
 _
 
-Patches currently in -mm which might be from sarthak.sharma@arm.com are
+Patches currently in -mm which might be from dennylin0707@gmail.com are
 
-tools-mm-add-page_owner_filter-to-gitignore.patch
+filemap-prefault-writes-starting-beyond-eof.patch
+mm-page-writeback-avoid-overflow-when-reporting-bdi-byte-limits.patch
+mm-skip-empty-finite-ranges-in-truncate_pagecache_range.patch
+delayacct-preserve-delay-extrema-when-aggregating-taskstats.patch
+shmem-clamp-negative-used-block-samples-in-statfs.patch
 
