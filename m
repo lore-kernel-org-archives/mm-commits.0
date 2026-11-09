@@ -1,46 +1,46 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794257599;
-	b=VdL/B5MuDNXmOE71ksQlAkKsCXi5KvDWIoE277QBff0uJxysAITyL5IriVdzNVbGFqGB
-	 nBQtp7w+TdQxf2YXOJxLbtXbJ3DQ5XbDkN4rKZ4O33Noo4k8AcxKifAD+NZIXpUgMmPaa
-	 2l9i3aHvuNJFlsGoNMFhtn7ZOPR5h1zJbU8KeFuqPkX02hm3Kwu4tSD4c0VNzhkO4rI2O
-	 60QLE3gqeG8ibXHvu+mi0GwwLdeZxfBI+i8tMq4Gr4gVs7wMa3dvnqw7nMhTkRsCWqV/0
-	 D0JuL/STg6pVbVK27FJjcvYcBatmoLQIb1gCTqiwfMcQWQS3/bpWwUbTqapGJirkDfg==
+	t=1794257601;
+	b=49GT8TPH7woG+kioC0s3qu4R1bBnPYWRwqW+Mi/+X68zpNHl4HJsBZ2PpTjBo1XJvfAI
+	 DEtPXy3mheekLs8LP/kiiELhfohRaBXMUa8LXjmC+uehFLi6rFwTychktnQAYgF0oC1Bk
+	 NVLE1Uxf/dYN6zirgGT9QRjKbpzJhTN+hPmq7FCLwkKkiNuXZYXmbJG1wptlB5kqGXdlr
+	 00jGpo6GDpVtKqtK5MyDaRNOUoWmUA+VY9ZOX4HGOyx2KGttjpgXSArMvadmxSJ09ZwJe
+	 7VP7Ua3EQvGMtyTPeYdt6sF2JqHCrP+ajCA/2Goo1yIaafdiwXstKGjBF79zJRXs3Cw==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794257599;
+	a=rsa-sha256; c=relaxed/relaxed; t=1794257601;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=tlNPFGPSo6enJ7s4OeEuAtdqhMSbgXH2w6kY8yOIzZE=;
-	b=Cm/l1l9xk5kM/17USHVMLThnszySRVd8tp88hF5HEr35Mb5aKC7JmaVTXWg9w1NTAFe6
-	 69hzMhatcozi0oMI54IEHSEFu1Fz5QPnS427H5iX+AnzHCs35lqiJUOgRHTanaU9cTYUW
-	 0Az1ZCAQUiBwOpqp/mpbyw4X6sg2WAAX6Vs3Gl67dkADoGTNKo/ZL8yZLxIb467YsEd/f
-	 L16C2/PHg0tAh5lzB8nJHDbU4H+5GAtDyykJJWCn+0ruZOwyEbEhQwcBgA1xp/AJjXjFS
-	 x62LshN7tgRhYQyk2KqhDWcEcuDVBrCD8WZ7/DDDNFfBYOfAg58w/46QzX/jDYouY+g==
+	bh=7BmBQo5RSKa9JMH0IGOHdUyGB65Xu+KErC8Bco0pfCM=;
+	b=MgbQMjw57cGk4/zXPukFtI4yTHLkDMRyJuhSO6csjZCo/mfdzlOMEVns3KJTVwJMPoL7
+	 nLNnJknyxSz230rXBP+vyV0oPX7cSDRKbXLcd5mNwmulZ5NO2Ab4KFZIqxx6fAueH1mq+
+	 99B0zklE+X5LJVjpm0o9CH8V5e4OT+I3ClhqsCuAByAcxl1kp0RowD/dzOr/zDPMNAHAF
+	 ARO7FFtglQcxz1PKtkP0ZS/nIxglqhjvkMY8sFMqnpz+TuHY9QCBhr2UweiUPnxJU7X7V
+	 m1blTUe0Wyg2wb9H0tlSeljgdRF0HGkOJt3KoqP4EiFYiyo7PBnI/IyNGFK2bfQEMQw==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=SeIxFWUM;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=TOsahtm+;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 64595606A321
-	for <mm-commits@vger.kernel.org>; Mon,  9 Nov 2026 20:53:19 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 97DC3606A31C
+	for <mm-commits@vger.kernel.org>; Mon,  9 Nov 2026 20:53:21 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=SeIxFWUM
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id DE8AA1F0089F;
-	Mon,  9 Nov 2026 20:53:18 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=TOsahtm+
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1CC1E1F0089F;
+	Mon,  9 Nov 2026 20:53:21 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1794257599;
-	bh=tlNPFGPSo6enJ7s4OeEuAtdqhMSbgXH2w6kY8yOIzZE=;
+	d=linux-foundation.org; s=korg; t=1794257601;
+	bh=7BmBQo5RSKa9JMH0IGOHdUyGB65Xu+KErC8Bco0pfCM=;
 	h=Date:To:From:Subject;
-	b=SeIxFWUMcy6Ix4I7c6roM7FBeqwgJooFyoVmXZ0lkrqjzX4XerxaNdApwCFyj2eWZ
-	 6qEWir05LdhrA6RFiXuoEZqqipPTVPu6tilG8iHqodQhnaWWS2EJaXtLdkyXrP2JK7
-	 CYyqLYue/mng7wYGInSMxzwC5C6/z3x3hl5at5Sg=
-Date: Mon, 09 Nov 2026 12:53:18 -0800
+	b=TOsahtm+Tb1Y5lGhqlXtWKvX3UUWZymplEe8vn9sPgJuuUjFoiYJjD/cNmhvC1J7X
+	 Yfvfjm8FK0vs94k4amA8HKfFL165Zq9TwJ1aeVMZUDPeO4tmpfrkgwl4p/us4L18Vn
+	 i3J7biydN5DbfENzPj0M7j0QSjJuRHwPVwQ0iDBs=
+Date: Mon, 09 Nov 2026 12:53:20 -0800
 To: mm-commits@vger.kernel.org,joseph.qi@linux.alibaba.com,
 	akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + ocfs2-abstract-the-oversized-extent-list-count-check.patch added to mm-nonmm-unstable branch
-Message-Id: <20261109205318.DE8AA1F0089F@smtp.kernel.org>
+Subject: + ocfs2-abstract-the-extent-list-next-free-record-check.patch added to mm-nonmm-unstable branch
+Message-Id: <20261109205321.1CC1E1F0089F@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -52,12 +52,12 @@ Precedence: list
 
 
 The patch titled
-     Subject: ocfs2: abstract the oversized extent list count check
+     Subject: ocfs2: abstract the extent list next free record check
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     ocfs2-abstract-the-oversized-extent-list-count-check.patch
+     ocfs2-abstract-the-extent-list-next-free-record-check.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/ocfs2-abstract-the-oversized-extent-list-count-check.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/ocfs2-abstract-the-extent-list-next-free-record-check.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -76,19 +76,24 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Joseph Qi <joseph.qi@linux.alibaba.com>
-Subject: ocfs2: abstract the oversized extent list count check
-Date: Mon, 09 Nov 2026 20:21:10 +0800
+Subject: ocfs2: abstract the extent list next free record check
+Date: Mon, 09 Nov 2026 20:21:11 +0800
 
-Fold the l_count against ocfs2_extent_recs_per_inode() test into a
-predicate.
+Fold the l_next_free_rec against l_count test into a predicate and use it
+in both ocfs2_validate_inode_block() and
+ocfs2_filecheck_repair_inode_block(), which open-coded the same
+comparison.  Repair keeps its ocfs2_dinode_has_extents() guard, which
+selects the id2.i_list union arm.
 
-Move the rationale for using the no-xattr maximum into the predicate,
-next to the bound it explains, rather than leaving it at the call site
-where the bound is no longer computed.
+This completes the split of ocfs2_validate_inode_block()'s open-coded
+conditions into ocfs2_dinode_has_*() predicates.  Every return code and
+log message stayed at its call site, so the normal validator still
+escalates through ocfs2_error() while filecheck reports its own
+OCFS2_FILECHECK_ERR_* codes without touching the error handling state.
 
 No functional change intended.
 
-Link: https://lore.kernel.org/20261109122121.21473-21-joseph.qi@linux.alibaba.com
+Link: https://lore.kernel.org/20261109122121.21473-22-joseph.qi@linux.alibaba.com
 Signed-off-by: Joseph Qi <joseph.qi@linux.alibaba.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 Cc: Heming Zhao <heming.zhao@suse.com>
@@ -96,46 +101,42 @@ Cc: Mark Fasheh <mark@fasheh.com>
 Cc: Joel Becker <jlbec@evilplan.org>
 ---
 
- fs/ocfs2/inode.c |   21 ++++++++++++++-------
- 1 file changed, 14 insertions(+), 7 deletions(-)
+ fs/ocfs2/inode.c |   10 ++++++++--
+ 1 file changed, 8 insertions(+), 2 deletions(-)
 
---- a/fs/ocfs2/inode.c~ocfs2-abstract-the-oversized-extent-list-count-check
+--- a/fs/ocfs2/inode.c~ocfs2-abstract-the-extent-list-next-free-record-check
 +++ a/fs/ocfs2/inode.c
-@@ -265,6 +265,19 @@ static bool ocfs2_dinode_has_zero_extent
- 	return le16_to_cpu(di->id2.i_list.l_count) == 0;
+@@ -278,6 +278,12 @@ static bool ocfs2_dinode_has_oversized_e
+ 		ocfs2_extent_recs_per_inode(sb);
  }
  
-+static bool ocfs2_dinode_has_oversized_extent_count(struct super_block *sb,
-+						    struct ocfs2_dinode *di)
++static bool ocfs2_dinode_has_bad_extent_next_free(struct ocfs2_dinode *di)
 +{
-+	/*
-+	 * The exact capacity depends on i_xattr_inline_size, another
-+	 * unvalidated on-disk field. Inline xattrs only shrink the list, so
-+	 * the no-xattr maximum is a safe upper bound that a valid l_count
-+	 * never exceeds.
-+	 */
-+	return le16_to_cpu(di->id2.i_list.l_count) >
-+		ocfs2_extent_recs_per_inode(sb);
++	return le16_to_cpu(di->id2.i_list.l_next_free_rec) >
++		le16_to_cpu(di->id2.i_list.l_count);
 +}
 +
  void ocfs2_set_inode_flags(struct inode *inode)
  {
  	unsigned int flags = OCFS2_I(inode)->ip_attr;
-@@ -1919,13 +1932,7 @@ int ocfs2_validate_inode_block(struct su
- 					 (unsigned long long)bh->b_blocknr);
+@@ -1939,7 +1945,7 @@ int ocfs2_validate_inode_block(struct su
+ 					 ocfs2_extent_recs_per_inode(sb));
  			goto bail;
  		}
--		/*
--		 * The exact capacity depends on i_xattr_inline_size, another
--		 * unvalidated on-disk field. Inline xattrs only shrink the
--		 * list, so the no-xattr maximum is a safe upper bound that a
--		 * valid l_count never exceeds.
--		 */
--		if (count > ocfs2_extent_recs_per_inode(sb)) {
-+		if (ocfs2_dinode_has_oversized_extent_count(sb, di)) {
+-		if (next_free > count) {
++		if (ocfs2_dinode_has_bad_extent_next_free(di)) {
  			rc = ocfs2_error(sb,
- 					 "Invalid dinode %llu: extent list l_count %u exceeds max %u\n",
- 					 (unsigned long long)bh->b_blocknr, count,
+ 					 "Invalid dinode %llu: extent list l_next_free_rec %u exceeds l_count %u\n",
+ 					 (unsigned long long)bh->b_blocknr, next_free, count);
+@@ -2110,7 +2116,7 @@ static int ocfs2_filecheck_repair_inode_
+ 	}
+ 
+ 	if (ocfs2_dinode_has_extents(di) &&
+-	    le16_to_cpu(di->id2.i_list.l_next_free_rec) > le16_to_cpu(di->id2.i_list.l_count)) {
++	    ocfs2_dinode_has_bad_extent_next_free(di)) {
+ 		di->id2.i_list.l_next_free_rec = di->id2.i_list.l_count;
+ 		changed = 1;
+ 		mlog(ML_ERROR,
 _
 
 Patches currently in -mm which might be from joseph.qi@linux.alibaba.com are
