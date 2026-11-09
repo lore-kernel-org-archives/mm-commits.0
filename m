@@ -1,46 +1,46 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794257573;
-	b=kpPSFhwhsmb0AWW/wOBQcgL5UZaK+Aivcx+c+MREYoAz+gmaQsX+qSOUBiCJS6jgpMiS
-	 GBCFP2ANdZKFZmsP07vDW4R0y1v5SyKNWOcxyOfW4pONV6vAZkLHyPB6lnfh3nkuYmRCb
-	 ywIDPTkhz5qHqzycpwYdI3Ks+xwL33cm9ZDkDrfjDmgi0WkzNHTGJeR2hOFah5rKp3RBL
-	 K+2Rlc+lko/UBSI9XI/B4OLytZP3rmtCAaSad8E0tSpkDwqNPMFe9fYxafVgCPetrhnS1
-	 ezddPHUZLub2fjmSN9Ssefau4YrqPv2YF+hwLN/cPWOsgx2O23kwOWT42rkySHEFPWA==
+	t=1794257575;
+	b=aefLVO0rRLSO2rDJSB+sj3PTKE1x8MJ3M4EfVOa79Yt8AO+K+oTL45rwzZ92oVFSSNFB
+	 9tq4hcr1LPJfLjqeEC6qXoxUr1LpcwAiUOlJzVSnuPcGFWO3qmP0hP33EgtZtFJV9rRor
+	 6W51jZWHZKSvM3/BfTvpMeEH0xA7hvLgVebLD4nO55YB/Bl1fcNwJMG+rMLKY1CeMnwoG
+	 eYUM1WLET2QE4xZUPhFndu0E5KwpDE6zYWcKjof4tydLqz4r7jgh0aC4gMO/w/rQ7HmsK
+	 e3RrqeF9pjQ4Td5F2jc+j3CilVcyTFmTZVefwK6qUIAAK2XXVjMBjHYSe2yS2whLyHw==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794257573;
+	a=rsa-sha256; c=relaxed/relaxed; t=1794257575;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=joI3V5eZl3/z+JFBIO5gHa1Q7KzgLkLn54OxEJmtCAk=;
-	b=rnMbUlL6uPkvX6jP+hpS7BO74heNIm1495VfSY/DiwkswK3MD7BpDQsodNF5zf7iEHNl
-	 QF4WZnRkrS4psIoJrHp3YlWfLkv1xEer9qigetVWeRwYqNK4b5kHlrl7sBoQSaI7KDC3x
-	 s9ExAsYQyy7kNMpozdfM1NzSeJpsSx/KCDyh7oVZXUpbteV8bUbeWhaUxn87HaxlNPQ7O
-	 vXzNRXX3j7FzcEG8ptNJGU5DRCkpSzcHE1a1zPR0SkvtgZgORdLPWLacYq7pfjVFHvxQq
-	 y6CuHkr64xy4m29+O6Y+sIV4y8OITty6kA/2vr9nbgUsIvUud73w0QusuBBB6xWT6IA==
+	bh=9oU+I/FNUpmA/gTKq1lGugoFkTbyOC5qufwx1L6xnn0=;
+	b=At7nskaDUiBgCCH2Bw1yPzEKu3UnmCKxZnhqKWQiGFZAvOaNuIQhfBJI2BLR3OJlvjDI
+	 DKsF2v6G4URBHyIW/yCG/FKUMKKn3pMpOEGW9ZBRpweNytCq7Ns0gsb3l0ngBDE5Fm3/z
+	 EsVm3nVh/yGJyd19OSRfYxyYs2uHHnDIHdx0+tjIfOT9fUWHBJeKxOFeSAi3TYWKcfDEd
+	 xTY3qgdzpdwOvmipX/zPHKyPe7ozCniZvMdFP1jx79f6nKENPJLNISo6fGEdAHSqz1YKh
+	 iOlaUz5YjT/dCCLGTyFbxonYNEv7yUPlZNAhgjCNibP1RLQIa+dbUrBO6uL/7ywax1A==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=WcDXGACK;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=GIJDlwM5;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E6064606A31C
-	for <mm-commits@vger.kernel.org>; Mon,  9 Nov 2026 20:52:52 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 16654606A31C
+	for <mm-commits@vger.kernel.org>; Mon,  9 Nov 2026 20:52:54 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=WcDXGACK
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 688E41F0089F;
-	Mon,  9 Nov 2026 20:52:52 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=GIJDlwM5
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9CDDC1F0089F;
+	Mon,  9 Nov 2026 20:52:54 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1794257572;
-	bh=joI3V5eZl3/z+JFBIO5gHa1Q7KzgLkLn54OxEJmtCAk=;
+	d=linux-foundation.org; s=korg; t=1794257574;
+	bh=9oU+I/FNUpmA/gTKq1lGugoFkTbyOC5qufwx1L6xnn0=;
 	h=Date:To:From:Subject;
-	b=WcDXGACKYJsPaNmxN72iBgxdZtSznMp0L/ScZm6Dl/UrQsgaLhVLH763+gpTm+nhv
-	 /oFGiui3iWjbZydUEhTkWQifdOp6B2o8PLUB5sL68kWBWQfaUCln7NL86aQOkU4kIx
-	 f0iXDBrIIq8Ai5WRkzStL9dzjT4AJAaamiryWGi4=
-Date: Mon, 09 Nov 2026 12:52:52 -0800
+	b=GIJDlwM5M9RSRmKH/2G6KC1Th3fjLa6rQxClomXG9VTwj28MO/uDgt246o8EmdLr5
+	 LyIRju+vjSq786rG2LnwzbHsjEp/CLdYyOG/2+/YcG6/GzY8Mn2CGoLPjKtGpTJ43q
+	 DGWyP/pv//vwRajixgxajAsac8zsK74mHxViq7Fk=
+Date: Mon, 09 Nov 2026 12:52:54 -0800
 To: mm-commits@vger.kernel.org,joseph.qi@linux.alibaba.com,
 	akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + ocfs2-abstract-the-dinode-orphaned-slot-check.patch added to mm-nonmm-unstable branch
-Message-Id: <20261109205252.688E41F0089F@smtp.kernel.org>
+Subject: + ocfs2-abstract-the-dinode-dio-orphaned-slot-check.patch added to mm-nonmm-unstable branch
+Message-Id: <20261109205254.9CDDC1F0089F@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -52,12 +52,12 @@ Precedence: list
 
 
 The patch titled
-     Subject: ocfs2: abstract the dinode orphaned slot check
+     Subject: ocfs2: abstract the dinode DIO orphaned slot check
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     ocfs2-abstract-the-dinode-orphaned-slot-check.patch
+     ocfs2-abstract-the-dinode-dio-orphaned-slot-check.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/ocfs2-abstract-the-dinode-orphaned-slot-check.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/ocfs2-abstract-the-dinode-dio-orphaned-slot-check.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -76,17 +76,17 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Joseph Qi <joseph.qi@linux.alibaba.com>
-Subject: ocfs2: abstract the dinode orphaned slot check
-Date: Mon, 09 Nov 2026 20:20:58 +0800
+Subject: ocfs2: abstract the dinode DIO orphaned slot check
+Date: Mon, 09 Nov 2026 20:20:59 +0800
 
-Fold the OCFS2_ORPHANED_FL guarded i_orphaned_slot range test into a
-predicate.  The flag test stays inside it: i_orphaned_slot is only
-meaningful when the inode is actually orphaned, so a bare range test
-would reject valid inodes whose orphaned slot field is stale.
+Fold the OCFS2_DIO_ORPHANED_FL guarded i_dio_orphaned_slot range test
+into a predicate, mirroring the orphaned slot one.  The flag test stays
+inside it for the same reason: the slot field is only meaningful while
+the inode is DIO orphaned.
 
 No functional change intended.
 
-Link: https://lore.kernel.org/20261109122121.21473-9-joseph.qi@linux.alibaba.com
+Link: https://lore.kernel.org/20261109122121.21473-10-joseph.qi@linux.alibaba.com
 Signed-off-by: Joseph Qi <joseph.qi@linux.alibaba.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 Cc: Heming Zhao <heming.zhao@suse.com>
@@ -97,32 +97,32 @@ Cc: Joel Becker <jlbec@evilplan.org>
  fs/ocfs2/inode.c |   10 ++++++++--
  1 file changed, 8 insertions(+), 2 deletions(-)
 
---- a/fs/ocfs2/inode.c~ocfs2-abstract-the-dinode-orphaned-slot-check
+--- a/fs/ocfs2/inode.c~ocfs2-abstract-the-dinode-dio-orphaned-slot-check
 +++ a/fs/ocfs2/inode.c
-@@ -117,6 +117,13 @@ static bool ocfs2_dinode_has_bad_suballo
- 	return le16_to_cpu(di->i_suballoc_bit) >= ocfs2_suballoc_bits_per_block(sb);
+@@ -124,6 +124,13 @@ static bool ocfs2_dinode_has_bad_orphane
+ 		le16_to_cpu(di->i_orphaned_slot) >= OCFS2_SB(sb)->max_slots;
  }
  
-+static bool ocfs2_dinode_has_bad_orphaned_slot(struct super_block *sb,
-+					       struct ocfs2_dinode *di)
++static bool ocfs2_dinode_has_bad_dio_orphaned_slot(struct super_block *sb,
++						   struct ocfs2_dinode *di)
 +{
-+	return (le32_to_cpu(di->i_flags) & OCFS2_ORPHANED_FL) &&
-+		le16_to_cpu(di->i_orphaned_slot) >= OCFS2_SB(sb)->max_slots;
++	return (le32_to_cpu(di->i_flags) & OCFS2_DIO_ORPHANED_FL) &&
++		le16_to_cpu(di->i_dio_orphaned_slot) >= OCFS2_SB(sb)->max_slots;
 +}
 +
  static bool ocfs2_valid_inode_mode(umode_t mode)
  {
  	return fs_umode_to_ftype(mode) != FT_UNKNOWN;
-@@ -1614,8 +1621,7 @@ int ocfs2_validate_inode_block(struct su
+@@ -1628,8 +1635,7 @@ int ocfs2_validate_inode_block(struct su
  		goto bail;
  	}
  
--	if ((le32_to_cpu(di->i_flags) & OCFS2_ORPHANED_FL) &&
--	    le16_to_cpu(di->i_orphaned_slot) >= OCFS2_SB(sb)->max_slots) {
-+	if (ocfs2_dinode_has_bad_orphaned_slot(sb, di)) {
- 		rc = ocfs2_error(sb, "Invalid dinode %llu: orphaned slot %u\n",
+-	if ((le32_to_cpu(di->i_flags) & OCFS2_DIO_ORPHANED_FL) &&
+-	    le16_to_cpu(di->i_dio_orphaned_slot) >= OCFS2_SB(sb)->max_slots) {
++	if (ocfs2_dinode_has_bad_dio_orphaned_slot(sb, di)) {
+ 		rc = ocfs2_error(sb, "Invalid dinode %llu: DIO orphaned slot %u\n",
  				 (unsigned long long)bh->b_blocknr,
- 				 le16_to_cpu(di->i_orphaned_slot));
+ 				 le16_to_cpu(di->i_dio_orphaned_slot));
 _
 
 Patches currently in -mm which might be from joseph.qi@linux.alibaba.com are
