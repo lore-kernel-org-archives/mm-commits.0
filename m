@@ -1,46 +1,46 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794257562;
-	b=hFsV6ZlKEjq8YCKUE9gkp/0HVcPOKP4SAQjDTXtvDC7oGha6aczjDcPZxY2k++aQW/uW
-	 0YETdH47yFOpoWvzzudYHEhhWlFWWQDPfFuwQ2He0zvC7MjS4YApS0BJKaivfBNDN+h6O
-	 Q/cCLa47UxBX9jyoZSmy9s+6RzkgwgLYyq7UPXMDKrhHJ6OYu2j8uXqpbnqw5HkfZbl0d
-	 q5wp3AdAfGdv3IRUo4/LCUEGUJqRsbyoez6XLW8u0HYr/vgIpAehH8sCAEcfJQgGhFxGi
-	 kKIJfwEGtfaNkgmDlDxBN6vNDlo8pPbBPVjetZ+Vq38XsLiK1cq5PEQyCDOLByri6eg==
+	t=1794257564;
+	b=oFnGBxobS5AAgkiqVEP854VXG7L1S9qZmYlznH3AgbYMGGezGZvnB4p3LVxZ7sM0IDyx
+	 6D8QhOUGkYKzQFG1Aa9eB2leKQqeteENTrUpNd8XRZAaTdXOI3WNyggxDr4qJL6zx6b6m
+	 9yORfBtFPqN5z8Omp59r919v/3TFsB+xG50jqNHtUpGb8mGN/IjbqrcYKIOkRx3tXcLaQ
+	 AcyQBjmqYwfBFbAjalMy5fiJY/HKY3dLGNs1MPxsPojPelT4uZ+u9g3fpDkr4xr6RAG4i
+	 aH4vmhSm/wELhVPSk9PRSExScEYDCqsvRPezo1aOmr7/6PIzlSfpkHiKpZvEmVhlSTA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794257562;
+	a=rsa-sha256; c=relaxed/relaxed; t=1794257564;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=ywElBmq9amRK/NR6jHg8TOn1E2Mb+/+6KFykPMfvnvA=;
-	b=L1LrWFXamRLWDnsiQXHGiPKd9d33jA7uMBgWcr3BWP76yiOTutPnZcuAtPg1Q9C5kGJ4
-	 VZkxmYyhMhlAyzPeyxu3wVDi0MjHSefhCqpbmFHf5pHiXAXiSJskNQRiSHOnQzJu+fwQu
-	 jke55Ma+xEm9DtJ99sjRsley1EdJXAOWLkBpE14J6RWwYthcx30YR8d2pOBRxhZurXann
-	 RmxNR4xp3Y64qcv67Ap60D4FNzMAZm+fxF6Va5VZesu8x+uaCHhObNCWMtlSwnX7M1/5p
-	 ZhnBwm4MHZ6Gb4je2W68FE1XbQ+wS2M8VQITMkgw7L/zWHdpHZf/4ea7nz6NJy4w9Yw==
+	bh=GWyNdH/2xGc8m19kiO8qhkdxiV2oZ1MTckfgg0eXMfQ=;
+	b=3Stpq1E3Fyav6elT0xEJjahwjITAEcuL4aTiah78Qisu50Y02wvc6AHDAPkob2NWtuVD
+	 k6JS+aS0rDo8NQKJwGzni/C/9tDjkSbi7vBgtEaoJesajcKCD/cmVe7V6uu0XeOpsZnt4
+	 Et1F87yqIsIZTjSB9pe/TD82s+0com/uH2dVO+DmqNcZ2I3tZgvbmljZmfB/hA6POypZd
+	 BX0naLdM7rD5lulCTViiHYqMR+Zfp5wKTotWN/gVtkF4ZgKyjbcj/anl5dmH5cfqpgLYn
+	 Es1oVzRGtw+3h0tI5NZ6taoKs9VE56mtUi5M89+4pfRPq39pvl2SmjFIxGacGH/hXGw==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=lEngVLsD;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=q5n+9Fxp;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B3FB6606A31C
-	for <mm-commits@vger.kernel.org>; Mon,  9 Nov 2026 20:52:41 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3EAEE606A31C
+	for <mm-commits@vger.kernel.org>; Mon,  9 Nov 2026 20:52:43 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=lEngVLsD
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 519DE1F0089F;
-	Mon,  9 Nov 2026 20:52:41 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=q5n+9Fxp
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7E2AE1F0089F;
+	Mon,  9 Nov 2026 20:52:43 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1794257561;
-	bh=ywElBmq9amRK/NR6jHg8TOn1E2Mb+/+6KFykPMfvnvA=;
+	d=linux-foundation.org; s=korg; t=1794257563;
+	bh=GWyNdH/2xGc8m19kiO8qhkdxiV2oZ1MTckfgg0eXMfQ=;
 	h=Date:To:From:Subject;
-	b=lEngVLsDmRtwGoyv+6w8YooOKQ43Hvwk2mboqnvrgiuI0U+Rnx1y2bTzg68cy+SJq
-	 qdJXV05cU5/DpDohQ1kD7s5axtNHPefGfzVNCMFsFKJfWMVlfVZKnQbLx0+I01+Vno
-	 iShJ0nZJSBoPrFkDTVCXaxBfQT7VJk9d9WykwlDU=
-Date: Mon, 09 Nov 2026 12:52:40 -0800
+	b=q5n+9Fxpc2qhPbUBEuh+bylVGtkgnEeDG9kWIrunJsrnokJ35RAtJ95Fh4koaRFcd
+	 qYkoGvsCv7GqaIcXAd6Z9ONU/HyFWNUbyS41dzZ2RSj7rnrqlkPk6ov52JUDigS2Tb
+	 Do+yZ/wOtwDIEM8bBg2eQQuw7uGiIakJYtGfwijw=
+Date: Mon, 09 Nov 2026 12:52:43 -0800
 To: mm-commits@vger.kernel.org,joseph.qi@linux.alibaba.com,
 	akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + ocfs2-abstract-the-dinode-i_blkno-mismatch-check.patch added to mm-nonmm-unstable branch
-Message-Id: <20261109205241.519DE1F0089F@smtp.kernel.org>
+Subject: + ocfs2-abstract-the-dinode-ocfs2_valid_fl-check.patch added to mm-nonmm-unstable branch
+Message-Id: <20261109205243.7E2AE1F0089F@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -52,12 +52,12 @@ Precedence: list
 
 
 The patch titled
-     Subject: ocfs2: abstract the dinode i_blkno mismatch check
+     Subject: ocfs2: abstract the dinode OCFS2_VALID_FL check
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     ocfs2-abstract-the-dinode-i_blkno-mismatch-check.patch
+     ocfs2-abstract-the-dinode-ocfs2_valid_fl-check.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/ocfs2-abstract-the-dinode-i_blkno-mismatch-check.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/ocfs2-abstract-the-dinode-ocfs2_valid_fl-check.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -76,20 +76,23 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Joseph Qi <joseph.qi@linux.alibaba.com>
-Subject: ocfs2: abstract the dinode i_blkno mismatch check
-Date: Mon, 09 Nov 2026 20:20:53 +0800
+Subject: ocfs2: abstract the dinode OCFS2_VALID_FL check
+Date: Mon, 09 Nov 2026 20:20:54 +0800
 
-The same i_blkno against b_blocknr comparison is open-coded in
-ocfs2_validate_inode_block(), ocfs2_filecheck_validate_inode_block() and
-ocfs2_filecheck_repair_inode_block().  Fold it into a shared predicate.
+The test for a dinode without OCFS2_VALID_FL is open-coded three times,
+and the two spellings have already drifted apart: the normal validator
+uses le32_to_cpu(di->i_flags) & OCFS2_VALID_FL while filecheck and repair
+use di->i_flags & cpu_to_le32(OCFS2_VALID_FL).  Fold them into one
+predicate using the le32_to_cpu() form.
 
-Each call site keeps its own log message and return code: the normal
-validator escalates through ocfs2_error(), filecheck reports
-OCFS2_FILECHECK_ERR_BLOCKNO, and repair rewrites the field.
+Byteswapping is a bit permutation, so both spellings test the same
+on-disk bit on either endianness.  The BUG_ON() in ocfs2_populate_inode()
+is left alone; it asserts an invariant the validator has already
+established rather than validating on-disk state.
 
 No functional change intended.
 
-Link: https://lore.kernel.org/20261109122121.21473-4-joseph.qi@linux.alibaba.com
+Link: https://lore.kernel.org/20261109122121.21473-5-joseph.qi@linux.alibaba.com
 Signed-off-by: Joseph Qi <joseph.qi@linux.alibaba.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 Cc: Heming Zhao <heming.zhao@suse.com>
@@ -100,47 +103,47 @@ Cc: Joel Becker <jlbec@evilplan.org>
  fs/ocfs2/inode.c |   11 ++++++++---
  1 file changed, 8 insertions(+), 3 deletions(-)
 
---- a/fs/ocfs2/inode.c~ocfs2-abstract-the-dinode-i_blkno-mismatch-check
+--- a/fs/ocfs2/inode.c~ocfs2-abstract-the-dinode-ocfs2_valid_fl-check
 +++ a/fs/ocfs2/inode.c
-@@ -82,6 +82,11 @@ static bool ocfs2_dinode_has_zero_nlink_
- 	return !ocfs2_read_links_count(di) || !di->i_mode;
+@@ -87,6 +87,11 @@ static bool ocfs2_dinode_has_wrong_blkno
+ 	return le64_to_cpu(di->i_blkno) != blkno;
  }
  
-+static bool ocfs2_dinode_has_wrong_blkno(struct ocfs2_dinode *di, u64 blkno)
++static bool ocfs2_dinode_has_no_valid_flag(struct ocfs2_dinode *di)
 +{
-+	return le64_to_cpu(di->i_blkno) != blkno;
++	return !(le32_to_cpu(di->i_flags) & OCFS2_VALID_FL);
 +}
 +
  static bool ocfs2_valid_inode_mode(umode_t mode)
  {
  	return fs_umode_to_ftype(mode) != FT_UNKNOWN;
-@@ -1518,7 +1523,7 @@ int ocfs2_validate_inode_block(struct su
+@@ -1530,7 +1535,7 @@ int ocfs2_validate_inode_block(struct su
  		goto bail;
  	}
  
--	if (le64_to_cpu(di->i_blkno) != bh->b_blocknr) {
-+	if (ocfs2_dinode_has_wrong_blkno(di, bh->b_blocknr)) {
- 		rc = ocfs2_error(sb, "Invalid dinode #%llu: i_blkno is %llu\n",
- 				 (unsigned long long)bh->b_blocknr,
- 				 (unsigned long long)le64_to_cpu(di->i_blkno));
-@@ -1840,7 +1845,7 @@ static int ocfs2_filecheck_validate_inod
- 	} else if (rc)
+-	if (!(le32_to_cpu(di->i_flags) & OCFS2_VALID_FL)) {
++	if (ocfs2_dinode_has_no_valid_flag(di)) {
+ 		rc = ocfs2_error(sb,
+ 				 "Invalid dinode #%llu: OCFS2_VALID_FL not set\n",
+ 				 (unsigned long long)bh->b_blocknr);
+@@ -1854,7 +1859,7 @@ static int ocfs2_filecheck_validate_inod
  		goto bail;
- 
--	if (le64_to_cpu(di->i_blkno) != bh->b_blocknr) {
-+	if (ocfs2_dinode_has_wrong_blkno(di, bh->b_blocknr)) {
- 		mlog(ML_ERROR,
- 		     "Filecheck: invalid dinode #%llu: i_blkno is %llu\n",
- 		     (unsigned long long)bh->b_blocknr,
-@@ -1945,7 +1950,7 @@ static int ocfs2_filecheck_repair_inode_
- 		return -OCFS2_FILECHECK_ERR_VALIDFLAG;
  	}
  
--	if (le64_to_cpu(di->i_blkno) != bh->b_blocknr) {
-+	if (ocfs2_dinode_has_wrong_blkno(di, bh->b_blocknr)) {
- 		di->i_blkno = cpu_to_le64(bh->b_blocknr);
- 		changed = 1;
+-	if (!(di->i_flags & cpu_to_le32(OCFS2_VALID_FL))) {
++	if (ocfs2_dinode_has_no_valid_flag(di)) {
  		mlog(ML_ERROR,
+ 		     "Filecheck: invalid dinode #%llu: OCFS2_VALID_FL "
+ 		     "not set\n",
+@@ -1943,7 +1948,7 @@ static int ocfs2_filecheck_repair_inode_
+ 		return -OCFS2_FILECHECK_ERR_INVALIDINO;
+ 	}
+ 
+-	if (!(di->i_flags & cpu_to_le32(OCFS2_VALID_FL))) {
++	if (ocfs2_dinode_has_no_valid_flag(di)) {
+ 		/* Cannot just add VALID_FL flag back as a fix,
+ 		 * need more things to check here.
+ 		 */
 _
 
 Patches currently in -mm which might be from joseph.qi@linux.alibaba.com are
