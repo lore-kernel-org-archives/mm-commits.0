@@ -1,46 +1,46 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794246357;
-	b=WQbNrFBGkIfph5BosIlzOENOq/CBW8QricaMQOU+2eOCXVLe5V3FUhi4Oshk6/dOPzR8
-	 49FGiPqBxzJNPw0Xv218LIC4VFb/sFz6ITdlmjIrBwNLRyuKH1XjfxPispk4eiuytxLp5
-	 ikGH2qQoWvUOanbzOJL+i2VUtoMCKSgNGrWjN5sVja/t72ZbBBU6oTA3Th0G/J0JNUbBY
-	 BG4xxLkCfLGhTZylA4THWcLwlcOYj4DAgxENBuIFEeryuY0Ywbx+3r8kzheiKgldGNKxY
-	 69V0ThAm7ShK4nKhcWPzqiVJ5xsBXnx5s5AIzAYUqOQd1e4REbuGQY7cp/3mwPKgsdA==
+	t=1794246359;
+	b=hGVlCVrNzVieSWEQqjtvg74gs+8L2tbmSwF68L0u+5bBmvjWEt6rd2SP/UeynyKU5wcT
+	 SRMJgSppGmrYjoDA8GSBsjJ8131As74GnQ0zAJfxQ80EBcU7Q4xwx9VqQUWYThaSxvVRr
+	 gUj5v14qb5xSrDSfkw39gEJRlskxkd/Xy/g45wJIZbo4WazR34J1C0e94jkV7bvLlQn3p
+	 bHFzeYlb/9vUr5vsG5wvLxl3F21xB3XwpMM5tgNDxvkWdK+1y5em5peV5vKJvvuI1guPL
+	 UzrtLa2GTgEq1H6TLg3wJDsULBEwWcrx1lUvk7MJpbDGsuG8tzlk4a9tgRV+fNox82A==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794246357;
+	a=rsa-sha256; c=relaxed/relaxed; t=1794246359;
 	h=Received:DKIM-Signature:Date:To:Cc:From:Subject:Message-Id;
-	bh=p60lsRdxGnfPzx7eEjGEWUH3Au1CpPJ9/jbH8zguKG4=;
-	b=aRU1xkt/442LzEegqM0YF7IGvQfonVW3oqAYgdK81DZHkp6QVWou1pqkmawg903S/4JQ
-	 4OdwHyYRHtNviTkO7051ZIydkMxlrq2UTFLHqBdqiXOMTQ01onyYiWJTgSTe/heUHKmLn
-	 0Di4uACt1S6wd6hhjTb1VIFjiN0V2GM+HfKwhUt7514BrwlsbpAFGrIUafo8mK43yGzY4
-	 p62zHvzj4QmFuP8GXayCWeZy3u9ntF1qhZwEre3z0TRShIgfW/nUUUI/PzcYOyCd4JnYw
-	 fJxP6wigMs9bLXx3oYI8npFQSgMwpWMYdC/xmYvVegCC+gv+4Zbjf5nJjuHpRuVRjNg==
+	bh=FXDKOv8kjQ/PZgGLIEsMsG3iNuc4Otp1FGE1taZIiDM=;
+	b=MKANkLt7Dqh5ak2fZTGhls9Q907qFR5GXI3/b/h4jizQF5Zrtm+cM+TFRij8Mi7aPKSS
+	 +3EbrowsjomPfVv2d6WXzJqy0MHvyF/VsUYPssNC1CJs0CSeSRzZfiZyW92QwCiCztHdG
+	 AjTiDAdi2eZIpb+37rdGcdvd4BICmlBpklb5dVtwA+0/ytBEV4QxFO5rSWY9X4ry4pfh6
+	 F0+uI5w8rbqC+Tn3EDqZH90JIbGRwlfFgkY189IslBzjpFUeh+QGkuyQQhA9Uq/Alg0ax
+	 jSzpO8Ki9Z0kUiEANS2+cdHx6FUNgRwSx05mEHJsL/aVR7tv6Y/VBJwuYD/aRWVpqFg==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=UMkdGhbU;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=xGMDthMf;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2FADB606A321
-	for <mm-commits@vger.kernel.org>; Mon,  9 Nov 2026 17:45:56 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 94BCC606A338
+	for <mm-commits@vger.kernel.org>; Mon,  9 Nov 2026 17:45:58 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=UMkdGhbU
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B46B01F008A4;
-	Mon,  9 Nov 2026 17:45:56 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=xGMDthMf
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5CB781F0089F;
+	Mon,  9 Nov 2026 17:45:58 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1794246356;
-	bh=p60lsRdxGnfPzx7eEjGEWUH3Au1CpPJ9/jbH8zguKG4=;
+	d=linux-foundation.org; s=korg; t=1794246358;
+	bh=FXDKOv8kjQ/PZgGLIEsMsG3iNuc4Otp1FGE1taZIiDM=;
 	h=Date:To:Cc:From:Subject;
-	b=UMkdGhbUw1BBqpNCMfQfTJUU7z7jVSB3bbYC4m58HAvxkiDO6td2hQsFOQX0hWz/U
-	 ZOGN6glluhKtIU31VTUGKnhpc0sGzwiaqPQridSpEytcZ0tFCHbA5jqQL4B550cFtP
-	 PjeKiFFkIR6xes8fvpVDaWCE8s55P+bOh2v0EWeU=
-Date: Mon, 09 Nov 2026 09:45:56 -0800
+	b=xGMDthMfryg2VOjlZzC3EjGeXtlPlrL7qE278ngyl5s8LtKi4R3Xbykqop+vA1aKC
+	 mow6T6UlxQZ83pXmig6glYXDc4hzBMBPxlrBPBuxr56OOgO49dvTLo3ttQyWQGTNNg
+	 YI7CX+V/o/rR0pWtm/WK4gUOgmaNTCu3ihI8nyng=
+Date: Mon, 09 Nov 2026 09:45:57 -0800
 To: mm-commits@vger.kernel.org, ljs@kernel.org, akpm@linux-foundation.org
 Cc: David Hildenbrand <david@kernel.org>
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [to-be-updated] mm-migrate-convert-vma-flag-tests-to-use-vma_flags_t.patch removed from -mm tree
-Message-Id: <20261109174556.B46B01F008A4@smtp.kernel.org>
+Subject: [to-be-updated] mm-convert-thp-vma-flag-tests-to-use-vma_flags_t.patch removed from -mm tree
+Message-Id: <20261109174558.5CB781F0089F@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -52,27 +52,28 @@ Precedence: list
 
 
 The quilt patch titled
-     Subject: mm/migrate: convert VMA flag tests to use vma_flags_t
+     Subject: mm: convert THP VMA flag tests to use vma_flags_t
 has been removed from the -mm tree.  Its filename was
-     mm-migrate-convert-vma-flag-tests-to-use-vma_flags_t.patch
+     mm-convert-thp-vma-flag-tests-to-use-vma_flags_t.patch
 
 This patch was dropped because an updated version will be issued
 
 ------------------------------------------------------
 From: "Lorenzo Stoakes (ARM)" <ljs@kernel.org>
-Subject: mm/migrate: convert VMA flag tests to use vma_flags_t
-Date: Thu, 05 Nov 2026 21:30:55 +0000
+Subject: mm: convert THP VMA flag tests to use vma_flags_t
+Date: Thu, 05 Nov 2026 21:30:56 +0000
 
-Replace use of the legacy vm_flags_t flags with vma_flags_t values in the
-migration logic.
+Replace use of the legacy vm_flags_t flags with vma_flags_t values where
+VMA flags are tested directly in the THP and khugepaged logic.
 
-We retain the READ_ONCE() of vma->vm_flags in remove_migration_pte(), as
-there is no vma_flags_t equivalent, and arch_make_huge_pte() continues to
-take legacy flags for the time being.
+The thp_vma_allowable_orders() family of functions, hugepage_madvise() and
+khugepaged_enter_vma() continue to take legacy flags for the time being.
+
+Also update BUG_ON()'s to VM_WARN_ON_ONCE() while here.
 
 No functional change intended.
 
-Link: https://lore.kernel.org/20261105-late-2026-vma-flags-v1-4-0d3cd15ab75f@kernel.org
+Link: https://lore.kernel.org/20261105-late-2026-vma-flags-v1-5-0d3cd15ab75f@kernel.org
 Signed-off-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 Reviewed-by: Baolin Wang <baolin.wang@linux.alibaba.com>
@@ -152,75 +153,150 @@ Cc: Stephen Smalley <stephen.smalley.work@gmail.com>
 Cc: Ondrej Mosnáček <omosnacek@gmail.com>
 ---
 
- mm/migrate.c        |    5 +++--
- mm/migrate_device.c |    8 ++++----
- 2 files changed, 7 insertions(+), 6 deletions(-)
+ mm/huge_memory.c |   32 ++++++++++++++++----------------
+ mm/khugepaged.c  |    8 +++++---
+ 2 files changed, 21 insertions(+), 19 deletions(-)
 
---- a/mm/migrate.c~mm-migrate-convert-vma-flag-tests-to-use-vma_flags_t
-+++ a/mm/migrate.c
-@@ -310,7 +310,7 @@ static bool try_to_map_unused_to_zeropag
- 	VM_BUG_ON_PAGE(pte_present(old_pte), page);
- 	VM_WARN_ON_ONCE_FOLIO(folio_is_device_private(folio), folio);
+--- a/mm/huge_memory.c~mm-convert-thp-vma-flag-tests-to-use-vma_flags_t
++++ a/mm/huge_memory.c
+@@ -1257,7 +1257,7 @@ __setup("thp_anon=", setup_thp_anon);
  
--	if (folio_test_mlocked(folio) || (pvmw->vma->vm_flags & VM_LOCKED) ||
-+	if (folio_test_mlocked(folio) || vma_test(pvmw->vma, VMA_LOCKED_BIT) ||
- 	    mm_forbids_zeropage(pvmw->vma->vm_mm))
+ pmd_t maybe_pmd_mkwrite(pmd_t pmd, struct vm_area_struct *vma)
+ {
+-	if (likely(vma->vm_flags & VM_WRITE))
++	if (likely(vma_test(vma, VMA_WRITE_BIT)))
+ 		pmd = pmd_mkwrite(pmd, vma);
+ 	return pmd;
+ }
+@@ -1517,7 +1517,7 @@ vm_fault_t do_huge_pmd_device_private(st
+  */
+ gfp_t vma_thp_gfp_mask(struct vm_area_struct *vma)
+ {
+-	const bool vma_madvised = vma && (vma->vm_flags & VM_HUGEPAGE);
++	const bool vma_madvised = vma && vma_test(vma, VMA_HUGEPAGE_BIT);
+ 
+ 	/* Always do synchronous compaction */
+ 	if (test_bit(TRANSPARENT_HUGEPAGE_DEFRAG_DIRECT_FLAG, &transparent_hugepage_flags))
+@@ -1716,10 +1716,9 @@ vm_fault_t vmf_insert_pfn_pmd(struct vm_
+ 	 * but we need to be consistent with PTEs and architectures that
+ 	 * can't support a 'special' bit.
+ 	 */
+-	BUG_ON(!(vma->vm_flags & (VM_PFNMAP|VM_MIXEDMAP)));
+-	BUG_ON((vma->vm_flags & (VM_PFNMAP|VM_MIXEDMAP)) ==
+-						(VM_PFNMAP|VM_MIXEDMAP));
+-	BUG_ON((vma->vm_flags & VM_PFNMAP) && vma_is_cow_mapping(vma));
++	VM_WARN_ON_ONCE(!vma_test_any(vma, VMA_PFNMAP_BIT, VMA_MIXEDMAP_BIT));
++	VM_WARN_ON_ONCE(vma_test_all(vma, VMA_PFNMAP_BIT, VMA_MIXEDMAP_BIT));
++	VM_WARN_ON_ONCE(vma_test(vma, VMA_PFNMAP_BIT) && vma_is_cow_mapping(vma));
+ 
+ 	if (unlikely(is_huge_zero_pfn(pfn)))
+ 		return VM_FAULT_SIGBUS;
+@@ -1750,7 +1749,7 @@ EXPORT_SYMBOL_GPL(vmf_insert_folio_pmd);
+ #ifdef CONFIG_HAVE_ARCH_TRANSPARENT_HUGEPAGE_PUD
+ static pud_t maybe_pud_mkwrite(pud_t pud, struct vm_area_struct *vma)
+ {
+-	if (likely(vma->vm_flags & VM_WRITE))
++	if (likely(vma_test(vma, VMA_WRITE_BIT)))
+ 		pud = pud_mkwrite(pud);
+ 	return pud;
+ }
+@@ -1827,10 +1826,9 @@ vm_fault_t vmf_insert_pfn_pud(struct vm_
+ 	 * but we need to be consistent with PTEs and architectures that
+ 	 * can't support a 'special' bit.
+ 	 */
+-	BUG_ON(!(vma->vm_flags & (VM_PFNMAP|VM_MIXEDMAP)));
+-	BUG_ON((vma->vm_flags & (VM_PFNMAP|VM_MIXEDMAP)) ==
+-						(VM_PFNMAP|VM_MIXEDMAP));
+-	BUG_ON((vma->vm_flags & VM_PFNMAP) && vma_is_cow_mapping(vma));
++	VM_WARN_ON_ONCE(!vma_test_any(vma, VMA_PFNMAP_BIT, VMA_MIXEDMAP_BIT));
++	VM_WARN_ON_ONCE(vma_test_all(vma, VMA_PFNMAP_BIT, VMA_MIXEDMAP_BIT));
++	VM_WARN_ON_ONCE(vma_test(vma, VMA_PFNMAP_BIT) && vma_is_cow_mapping(vma));
+ 
+ 	pfnmap_setup_cachemode_pfn(pfn, &pgprot);
+ 
+@@ -2273,7 +2271,7 @@ static inline bool can_change_pmd_writab
+ {
+ 	struct page *page;
+ 
+-	if (WARN_ON_ONCE(!(vma->vm_flags & VM_WRITE)))
++	if (WARN_ON_ONCE(!vma_test(vma, VMA_WRITE_BIT)))
  		return false;
  
-@@ -2711,7 +2711,8 @@ int migrate_misplaced_folio_prepare(stru
- 		 * See folio_maybe_mapped_shared() on possible imprecision
- 		 * when we cannot easily detect if a folio is shared.
+ 	/* Don't touch entries that are not even readable (NUMA hinting). */
+@@ -2288,7 +2286,7 @@ static inline bool can_change_pmd_writab
+ 	if (userfaultfd_huge_pmd_wp(vma, pmd))
+ 		return false;
+ 
+-	if (!(vma->vm_flags & VM_SHARED)) {
++	if (!vma_test(vma, VMA_SHARED_BIT)) {
+ 		/* See can_change_pte_writable(). */
+ 		page = vm_normal_page_pmd(vma, addr, pmd);
+ 		return page && PageAnon(page) && PageAnonExclusive(page);
+@@ -3627,7 +3625,8 @@ static bool __discard_anon_folio_pmd_loc
+ 
+ 	if (pmd_dirty(orig_pmd))
+ 		folio_set_dirty(folio);
+-	if (folio_test_dirty(folio) && !(vma->vm_flags & VM_DROPPABLE)) {
++	if (folio_test_dirty(folio) &&
++	    !vma_test_single_mask(vma, VMA_DROPPABLE)) {
+ 		folio_set_swapbacked(folio);
+ 		return false;
+ 	}
+@@ -3659,7 +3658,8 @@ static bool __discard_anon_folio_pmd_loc
+ 	 */
+ 	if (pmd_dirty(orig_pmd))
+ 		folio_set_dirty(folio);
+-	if (folio_test_dirty(folio) && !(vma->vm_flags & VM_DROPPABLE)) {
++	if (folio_test_dirty(folio) &&
++	    !vma_test_single_mask(vma, VMA_DROPPABLE)) {
+ 		folio_set_swapbacked(folio);
+ 		set_pmd_at(mm, addr, pmdp, orig_pmd);
+ 		return false;
+@@ -3673,7 +3673,7 @@ static bool __discard_anon_folio_pmd_loc
+ 	folio_remove_rmap_pmd(folio, pmd_page(orig_pmd), vma);
+ 	zap_deposited_table(mm, pmdp);
+ 	add_mm_counter(mm, MM_ANONPAGES, -HPAGE_PMD_NR);
+-	if (vma->vm_flags & VM_LOCKED)
++	if (vma_test(vma, VMA_LOCKED_BIT))
+ 		mlock_drain_local();
+ 	folio_put(folio);
+ 
+--- a/mm/khugepaged.c~mm-convert-thp-vma-flag-tests-to-use-vma_flags_t
++++ a/mm/khugepaged.c
+@@ -640,7 +640,8 @@ static enum scan_result __collapse_huge_
+ 		 * If the vma has the VM_DROPPABLE flag, the collapse will
+ 		 * preserve the lazyfree property without needing to skip.
  		 */
--		if ((vma->vm_flags & VM_EXEC) && folio_maybe_mapped_shared(folio))
-+		if (vma_test(vma, VMA_EXEC_BIT) &&
-+		    folio_maybe_mapped_shared(folio))
- 			return -EACCES;
+-		if (cc->policy.anon_skip_lazyfree && !(vma->vm_flags & VM_DROPPABLE) &&
++		if (cc->policy.anon_skip_lazyfree &&
++		    !vma_test_single_mask(vma, VMA_DROPPABLE) &&
+ 		    folio_test_lazyfree(folio) && !pte_dirty(pteval)) {
+ 			result = SCAN_PAGE_LAZYFREE;
+ 			goto out;
+@@ -1683,7 +1684,8 @@ static enum scan_result collapse_scan_an
+ 		 * If the vma has the VM_DROPPABLE flag, the collapse will
+ 		 * preserve the lazyfree property without needing to skip.
+ 		 */
+-		if (cc->policy.anon_skip_lazyfree && !(vma->vm_flags & VM_DROPPABLE) &&
++		if (cc->policy.anon_skip_lazyfree &&
++		    !vma_test_single_mask(vma, VMA_DROPPABLE) &&
+ 		    folio_test_lazyfree(folio) && !pte_dirty(pteval)) {
+ 			result = SCAN_PAGE_LAZYFREE;
+ 			failed_pfn = folio_pfn(folio);
+@@ -1949,7 +1951,7 @@ static enum scan_result try_collapse_pte
+ 	 * So page lock of folio does not protect from it, so we must not drop
+ 	 * ptl before pgt_pmd is removed, so uffd private needs pml taken now.
+ 	 */
+-	if (userfaultfd_armed(vma) && !(vma->vm_flags & VM_SHARED))
++	if (userfaultfd_armed(vma) && !vma_test(vma, VMA_SHARED_BIT))
+ 		pml = pmd_lock(mm, pmd);
  
- 		/*
---- a/mm/migrate_device.c~mm-migrate-convert-vma-flag-tests-to-use-vma_flags_t
-+++ a/mm/migrate_device.c
-@@ -842,7 +842,7 @@ static int migrate_vma_insert_huge_pmd_p
- 	if (folio_is_device_private(folio)) {
- 		swp_entry_t swp_entry;
- 
--		if (vma->vm_flags & VM_WRITE)
-+		if (vma_test(vma, VMA_WRITE_BIT))
- 			swp_entry = make_writable_device_private_entry(
- 						page_to_pfn(page));
- 		else
-@@ -855,7 +855,7 @@ static int migrate_vma_insert_huge_pmd_p
- 			goto free_abort;
- 		}
- 		entry = folio_mk_pmd(folio, vma->vm_page_prot);
--		if (vma->vm_flags & VM_WRITE)
-+		if (vma_test(vma, VMA_WRITE_BIT))
- 			entry = pmd_mkwrite(pmd_mkdirty(entry), vma);
- 	}
- 
-@@ -1043,7 +1043,7 @@ static void migrate_vma_insert_page(stru
- 	if (folio_is_device_private(folio)) {
- 		swp_entry_t swp_entry;
- 
--		if (vma->vm_flags & VM_WRITE)
-+		if (vma_test(vma, VMA_WRITE_BIT))
- 			swp_entry = make_writable_device_private_entry(
- 						page_to_pfn(page));
- 		else
-@@ -1057,7 +1057,7 @@ static void migrate_vma_insert_page(stru
- 			goto abort;
- 		}
- 		entry = mk_pte(page, vma->vm_page_prot);
--		if (vma->vm_flags & VM_WRITE)
-+		if (vma_test(vma, VMA_WRITE_BIT))
- 			entry = pte_mkwrite(pte_mkdirty(entry), vma);
- 	}
- 
+ 	start_pte = pte_offset_map_rw_nolock(mm, pmd, haddr, &pgt_pmd, &ptl);
 _
 
 Patches currently in -mm which might be from ljs@kernel.org are
 
 mm-vma-read-anon_vma-carefully-in-validate_mm.patch
-mm-convert-thp-vma-flag-tests-to-use-vma_flags_t.patch
 mm-ksm-convert-vma-flag-tests-to-use-vma_flags_t.patch
 mm-madvise-convert-madvise_vma_behavior-to-use-vma_flags_t.patch
 mm-convert-miscellaneous-vma-flag-tests-to-use-vma_flags_t.patch
