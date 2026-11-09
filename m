@@ -1,47 +1,49 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794254898;
-	b=rsVuTEyV/Zi8YiBmChVprTbovJdU4QPjmrV7XL312XaTKsbO5AW+D8FDIycRR4zpPGN/
-	 oANr+h8WaXLGUtCN9bBZLNplONdL6oUxl29eT9wYVJRdJdXsmv6UFc/xP0tkmlBT3tVwY
-	 DIdvcWz5kAwNbuwBi5Xj0SMAHuaeQY59qtFk/36mAxMLL0PcrHkw6/n/6P1oy6r1HW/rU
-	 UvFaN5qnKn+h8TIKMqz+zo597q5eXOrE4PfmFCW7mW59L9qJgHQ7Em5LHU/PrESJ+Ck55
-	 RIswiuJyuX4yCyxbIJoDxnqRRsfTOkzjoU+noAMXP/1YDhj11QqRM1SMomKwiLmDKhw==
+	t=1794255070;
+	b=0gVVuPlaeMFPYzaNinauYGopAtXKswoGdxvSLsDreDArpGdY2ZLiExrM/zG5oDCo1GsL
+	 gRXELP0Q65HryEK77YY343x+okE0dVjePnAZVzWgmFWhRIgYY0fmrDbbDyPv15ImXgZWt
+	 Dx6qtBc1hlAml5WeaxBUv3v/qBYvMvWI263fUCCRY1BqyeJ/8erQOVb+7ysQBHX7pN2U5
+	 oKKdZr9y3FlePC7MXVHahD1Gaey8oqwmPqCTTiS+cihJDv72scoS+2CGtzb4kUy8e/Cmo
+	 jA3EaoiTePUa7ODV2AxkeFRiCUZM0su5NqCeiGDymfctaD4JRi6xxNy0HyrWESJPXRg==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794254898;
+	a=rsa-sha256; c=relaxed/relaxed; t=1794255070;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=54PUVSCFqeUsNzedYgTE7q6vcx7/2xJEcki4qnKngVE=;
-	b=K/kngetqwHOyvvkC505zTbNHVpb+0HcamOBfz/da6drY/jz64hxjMxItQG6W3kbfM0pm
-	 NoBoGD/UbTJl9wMAr0IZTtfmgckhqLZHtNjrPN0zMzZkqAPDd/K1Cff7m3QgGUUlO4nfv
-	 AJ/asaHUQYoszHaRodZTk3LqU/rYs0tSsvMw8v1qSb1q+kvql5AKaJhlsHYJ4invZ/kn/
-	 mw7YTSWoRf0MHa4haHJdaunBAs7uxJdco9y/9YW0OHJDKx0I5vRMFkapTLqnNuu47cqju
-	 O9JjY3B9rHvxknnq9IxtxqI/ddGRXzdltERgBTgyHrDi/J+y9ofdpbzDVTOt6NykwBg==
+	bh=Fx4s1z13P92VnOyrby5wrsCNngXGwLDXYMxGP/UfWZU=;
+	b=JHUj4rXNoWT7fuUMCKI7gizY38+Rv7RQYg3iSW+yIbcZBBS4n7oSE4nT5nVvutCqrtpA
+	 GhPe5tO4I1+3hsMWXLp1g+0w9dZ33GbMXu2dU3XrnCmvfg2RcFXvHh089hJYseeCFY2aS
+	 KaJmUiSUXuUBKSNppJOBX+b7yhNsmsVHOmT6SlPSTbmB2kfnv+n3d60T3lGiIv17sYYxV
+	 gm1yf4nKebx1JKAT9VI1/HIMtufSshJkqOFamUgraSloWvqNONjasmXVFc+0NqHNKjzRV
+	 5hPGVCPXbdMbBsCB7kbUCWnR7xaHPODwSLpItlpz5Lt4S8cC3tW8+7om6fpJIBo+/2g==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=GGLYrNc6;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=yUeI93vf;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6C539606A32A
-	for <mm-commits@vger.kernel.org>; Mon,  9 Nov 2026 20:08:18 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CE594606A31C;
+	Mon,  9 Nov 2026 20:11:09 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=GGLYrNc6
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C83DD1F0089F;
-	Mon,  9 Nov 2026 20:08:17 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=yUeI93vf
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4C34B1F0089F;
+	Mon,  9 Nov 2026 20:11:09 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1794254897;
-	bh=54PUVSCFqeUsNzedYgTE7q6vcx7/2xJEcki4qnKngVE=;
+	d=linux-foundation.org; s=korg; t=1794255069;
+	bh=Fx4s1z13P92VnOyrby5wrsCNngXGwLDXYMxGP/UfWZU=;
 	h=Date:To:From:Subject;
-	b=GGLYrNc6uCzcK9py92hX1ZaBct6qMVEJp64Kq5G8IuU+xH/EcIm7K0aM14+3hzRPk
-	 2CFa/CktVQEck4wdPV5+ONzTgz8qkNRynp9Whx+FFb+kENAzQRuI9h6a4pMbHweTY5
-	 r+X/MjvlGhND2hxJ9V8WLzCPxiHc8ERhHJitqWFQ=
-Date: Mon, 09 Nov 2026 12:08:17 -0800
-To: mm-commits@vger.kernel.org,swarupkotikalapudi@gmail.com,shuah@kernel.org,
-	kevin.brodsky@arm.com,clopez@suse.de,adobriyan@gmail.com,lylin1023@gmail.com,
-	akpm@linux-foundation.org
+	b=yUeI93vfME0HdWCfAK85vSot3rnaSQ52d7Q1F3Znu59EGiVw4QbVN77DL68FtMQVr
+	 YjtZp3DkfnnQoTrglGRhGl2bIAex5+Ta52nCd0K0UsGScpfF3FUyF6d2DfQXqgPBb+
+	 SCFhVEWd0ESl87RNWZGC77yuNVPDIdSuSTf//0NI=
+Date: Mon, 09 Nov 2026 12:11:08 -0800
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,usama.arif@linux.dev,
+	stable@vger.kernel.org,ryan.roberts@arm.com,qi.zheng@linux.dev,
+	nico.pache@linux.dev,liam@infradead.org,lance.yang@linux.dev,kas@kernel.org,
+	hughd@google.com,dev.jain@arm.com,baolin.wang@linux.alibaba.com,
+	baohua@kernel.org,david@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-proc-proc-empty-vm-handle-cpus-without-protection-keys.patch added to mm-nonmm-unstable branch
-Message-Id: <20261109200817.C83DD1F0089F@smtp.kernel.org>
+Subject: [merged] mm-free-unused-page-table-allocated-by-do_set_pmd.patch removed from -mm tree
+Message-Id: <20261109201109.4C34B1F0089F@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -52,76 +54,99 @@ List-Owner: <mailto:mm-commits+owner@vger.kernel.org>
 Precedence: list
 
 
-The patch titled
-     Subject: selftests/proc: proc-empty-vm: handle CPUs without protection keys
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     selftests-proc-proc-empty-vm-handle-cpus-without-protection-keys.patch
+The quilt patch titled
+     Subject: mm: free unused page table allocated by do_set_pmd()
+has been removed from the -mm tree.  Its filename was
+     mm-free-unused-page-table-allocated-by-do_set_pmd.patch
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-proc-proc-empty-vm-handle-cpus-without-protection-keys.patch
-
-This patch will later appear in the mm-nonmm-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via various
-branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there most days
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Kurt Lin <lylin1023@gmail.com>
-Subject: selftests/proc: proc-empty-vm: handle CPUs without protection keys
-Date: Mon,  9 Nov 2026 23:19:12 +0800
+From: "David Hildenbrand (Arm)" <david@kernel.org>
+Subject: mm: free unused page table allocated by do_set_pmd()
+Date: Fri, 06 Nov 2026 13:36:12 +0100
 
-On x86 CPUs without protection keys, pkey_alloc() fails with ENOSPC,
-as documented in pkey_alloc(2). protection_key_support() only expects
-ENOSYS or EINVAL, so the test fails on such machines, e.g. an Intel
-Core i5-7200U:
+Patch series "mm: free unused page table allocated by do_set_pmd()", v2.
 
-  protection_key_support: error: rv -1, errno 28
 
-Treat ENOSPC as "no protection key support" as well.
+This patch (of 2):
 
-An AI coding assistant (Claude) was used to analyze the failure and to
-draft the fix and this changelog. Tested on v7.4-rc1 on the machine
-above; the test now passes.
+do_set_pmd() can allocate vmf->prealloc_pte on architectures that need a
+deposited page table, such as PowerPC with the hash MMU. If the PMD is
+no longer empty when it takes the PMD lock, it returns VM_FAULT_FALLBACK
+without consuming that table.
 
-Link: https://lore.kernel.org/20261109151912.156518-1-lylin1023@gmail.com
-Fixes: bf5add391eeb ("proc: test ProtectionKey in proc-empty-vm test")
-Signed-off-by: Kurt Lin <lylin1023@gmail.com>
+Since collapse_pte_mapped_thp() uses mmap_read_lock(), a concurrent
+userfaultfd operation can install a PTE table before taking the folio
+lock. If that races with set_huge_pmd(), the unused preallocated table
+is lost when its local vm_fault goes out of scope.
+
+Track whether do_set_pmd() allocated the table and free it after dropping
+the PMD lock if it was not consumed. Preserve any preallocated table
+supplied by the caller for PTE fallback. Successful PMD installation
+consumes the table and clears the pointer.
+
+Returning without a preallocated table matches the existing behavior on
+architectures that do not need a deposited table. All callers
+already handle that case.
+
+Link: https://lore.kernel.org/20261106-khugepaged_set_pmd-v2-0-d2457b5e377a@kernel.org
+Link: https://lore.kernel.org/20261106-khugepaged_set_pmd-v2-1-d2457b5e377a@kernel.org
+Fixes: 1043173eb5eb ("mm/khugepaged: collapse_pte_mapped_thp() with mmap_read_lock()")
+Signed-off-by: David Hildenbrand (Arm) <david@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Cc: Shuah Khan <shuah@kernel.org>
-Cc: Alexey Dobriyan <adobriyan@gmail.com>
-Cc: Swarup Laxman Kotiaklapudi <swarupkotikalapudi@gmail.com>
-Cc: Carlos López <clopez@suse.de>
-Cc: Kevin Brodsky <kevin.brodsky@arm.com>
+Reviewed-by: Kiryl Shutsemau (Meta) <kas@kernel.org>
+Reviewed-by: Lance Yang <lance.yang@linux.dev>
+Acked-by: Usama Arif <usama.arif@linux.dev>
+Cc: Zi Yan <ziy@nvidia.com>
+Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
+Cc: Liam R. Howlett <liam@infradead.org>
+Cc: Nico Pache <nico.pache@linux.dev>
+Cc: Ryan Roberts <ryan.roberts@arm.com>
+Cc: Dev Jain <dev.jain@arm.com>
+Cc: Barry Song <baohua@kernel.org>
+Cc: Qi Zheng <qi.zheng@linux.dev>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: <stable@vger.kernel.org>
 ---
 
- tools/testing/selftests/proc/proc-empty-vm.c |    3 +++
- 1 file changed, 3 insertions(+)
+ mm/memory.c |    6 ++++++
+ 1 file changed, 6 insertions(+)
 
---- a/tools/testing/selftests/proc/proc-empty-vm.c~selftests-proc-proc-empty-vm-handle-cpus-without-protection-keys
-+++ a/tools/testing/selftests/proc/proc-empty-vm.c
-@@ -78,6 +78,9 @@ static int protection_key_support(void)
- 	} else if (rv == -1 && errno == EINVAL) {
- 		// ospke=n
- 		return 0;
-+	} else if (rv == -1 && errno == ENOSPC) {
-+		// CPU without protection keys
-+		return 0;
- 	} else {
- 		fprintf(stderr, "%s: error: rv %ld, errno %d\n", __func__, rv, errno);
- 		exit(EXIT_FAILURE);
+--- a/mm/memory.c~mm-free-unused-page-table-allocated-by-do_set_pmd
++++ a/mm/memory.c
+@@ -5694,6 +5694,7 @@ vm_fault_t do_set_pmd(struct vm_fault *v
+ 	struct vm_area_struct *vma = vmf->vma;
+ 	bool write = vmf->flags & FAULT_FLAG_WRITE;
+ 	unsigned long haddr = vmf->address & HPAGE_PMD_MASK;
++	bool pgtable_allocated = false;
+ 	pmd_t entry;
+ 	vm_fault_t ret = VM_FAULT_FALLBACK;
+ 
+@@ -5732,6 +5733,7 @@ vm_fault_t do_set_pmd(struct vm_fault *v
+ 		vmf->prealloc_pte = pte_alloc_one(vma->vm_mm);
+ 		if (!vmf->prealloc_pte)
+ 			return VM_FAULT_OOM;
++		pgtable_allocated = true;
+ 	}
+ 
+ 	vmf->ptl = pmd_lock(vma->vm_mm, vmf->pmd);
+@@ -5762,6 +5764,10 @@ vm_fault_t do_set_pmd(struct vm_fault *v
+ 	count_vm_event(THP_FILE_MAPPED);
+ out:
+ 	spin_unlock(vmf->ptl);
++	if (pgtable_allocated && vmf->prealloc_pte) {
++		pte_free(vma->vm_mm, vmf->prealloc_pte);
++		vmf->prealloc_pte = NULL;
++	}
+ 	return ret;
+ }
+ #else
 _
 
-Patches currently in -mm which might be from lylin1023@gmail.com are
+Patches currently in -mm which might be from david@kernel.org are
 
-selftests-proc-proc-empty-vm-handle-cpus-without-protection-keys.patch
+mm-memory-failure-fix-folio-refcount-leak-and-min_order_for_split-locking.patch
+mm-dont-allocate-a-page-table-under-rcu-in-do_set_pmd.patch
+mm-mprotect-dont-skip-uffd-marker-install-when-racing-with-pte-table-reclaim.patch
 
