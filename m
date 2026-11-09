@@ -1,49 +1,46 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794255071;
-	b=d/3Bf7ZeRafade4ejQ3Q0AE2xys2Y8t5rZETS9sUViiKv4vFxWvPlUS0V6tGe7kdfZE4
-	 kkPUczx0ofDxnMbTBSx0JCsFw3g065fE0Yu1uJB3AQF/lF13qZOhJBV5x9KMwU9piepDs
-	 B1MkZjwWJ0dfN3TZe/h1bAA/AfMvj1XzFb1vf2gTxebxsRPVdDnsc6Ooj0XER/E6IqUkJ
-	 F+5MZL1qFrmk/MQ47OMlFUHdc0aBDofrjG82Cz9wHjntPhJI4IeCTcKCa3xEZ7Esf6lxj
-	 jC9ePASAeAILzo6IdFFBgLj2U4nRlqmZgE9kTIhCTNrNtEEPkeOJ62fsUb0RdKl/TtQ==
+	t=1794257557;
+	b=sOK/cUkd7BsIEiqX4hpxPVPnPceAdqNbBwweJPTGUfFiwAkkro5o9lTxRKStvVVWdc8x
+	 zMG3nILgbS0euTKuUABekk6ObrUVWcPgIM1JwllUewq+sebYUgpFiKFh0/rhPE71yLZDW
+	 V8JSvPiqiUrjpyLLd5aQp1OyyB9G0NdZ8dZnQDnhcU4Kp69afvgBWyn0Gl/TyXf5tu38y
+	 MkbQLc8npYmB81+ykpE6DErZsz6YBHC8ii5rhIAO8hBFsNn3Vy5vH7zyjhtU/YI+EuU0B
+	 0a04xYaKTRH0WGo5zx6xYRybeMGBgvJl7WgUkMA+6Rhd3erotSwYxxLHY8au6P+bnnA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794255071;
+	a=rsa-sha256; c=relaxed/relaxed; t=1794257557;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=1nYRFZEc5Zk/CqC6RYJ964332nRTekCoBJXDzcsnpWI=;
-	b=G9FVKdkhtUspmveAqjvjNU5bN+BSIQOOaM5xYdgzWK6g9Jb8vZCplTPokUpzBkFQwbMF
-	 bqhlCrBBTPTkpBuwwsW/Bz4MgoT2hk4h83GhSvlkCAjFpf1tN3XntYwB0LaIDkCS17rxY
-	 XXGjCWS5IQ2f0n0b4AN7cQw0bdLg/fjri4fj14UO276BSAeGxTrRKfcjndkY8cYX+ew2C
-	 23tJKW95XyyIYgvywPB27Hozn/fq07EjgTHVYAfoWUjeSkZZqS+HbovCnEcXwssiDeDdC
-	 fFnzWLZl+cD4iPh11Hgeb+4XXeMVZ6TA/CRO2IusQehOy+OQQVQAfJsj2vMtrAtoaKw==
+	bh=jK3gW96S1wGDoHyQsd45k8iH1p1JFzQBS6eGY30RdsY=;
+	b=fXwmwyZ5x5xh1B1AOQwYmSJIO2vfQr3nnAKmzTyziFfxPQhNWl1gkm0XqdSWE7xU1a21
+	 2SzvxUIyZlG1z5YVdo6rJC1ENNJWFDnyUXWskj9A7dxFIHvMXe9+Ra7uRzf17bYdbgqIv
+	 41DIRmCvAN+nr33mn6ZI4E6SlXlWFCwrV06+BX6MdZ62LlQ+ihAThOu0VuLDeCORW9jIR
+	 DXnVpnntoKZgnVEGJmgzxWOdaeOM7+LHORMbMu9jMoqdh8UQrBmXlA6o+wQJrAo5V4VTq
+	 4/N5u5k6ro4QdkZrZVG1Qi7F1MvtwfN0cg/rkT34woeK+m4M4Zu6kfObZ48R7tOfJAw==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=uQxAxZho;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=E5Jdy7h5;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B4FA6606A330;
-	Mon,  9 Nov 2026 20:11:10 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6D108606A321
+	for <mm-commits@vger.kernel.org>; Mon,  9 Nov 2026 20:52:37 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=uQxAxZho
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6D07D1F0089F;
-	Mon,  9 Nov 2026 20:11:10 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=E5Jdy7h5
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C86E01F0089F;
+	Mon,  9 Nov 2026 20:52:36 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1794255070;
-	bh=1nYRFZEc5Zk/CqC6RYJ964332nRTekCoBJXDzcsnpWI=;
+	d=linux-foundation.org; s=korg; t=1794257556;
+	bh=jK3gW96S1wGDoHyQsd45k8iH1p1JFzQBS6eGY30RdsY=;
 	h=Date:To:From:Subject;
-	b=uQxAxZhoD4MFengtdUkyNQHHfkl/h8mmVTfuXqH7sPOIbkxQOa/dq0KrvXtAVM8vZ
-	 QEy1qkHlfvHas+xbCFhqJZrzPOEL4MMn/eZw+ngRD/pTXW5BZxEo2ETUzQaTxKH+Ld
-	 u8gu1akB0QXzQlekcU45zVt4lILWwYeUcj+fNBuI=
-Date: Mon, 09 Nov 2026 12:11:10 -0800
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,usama.arif@linux.dev,
-	stable@vger.kernel.org,ryan.roberts@arm.com,qi.zheng@linux.dev,
-	nico.pache@linux.dev,liam@infradead.org,lance.yang@linux.dev,kas@kernel.org,
-	hughd@google.com,dev.jain@arm.com,baolin.wang@linux.alibaba.com,
-	baohua@kernel.org,david@kernel.org,akpm@linux-foundation.org
+	b=E5Jdy7h5piIhy/Rwdq7srM+6RpcE7e0WUOWR4TyVOxAPuVJyP2Ot5XYF/0S2I+JpT
+	 jGkwtxtIagV08U/h5GNIsVAaBeMzlypaJp7rNhJdW+AEU/5Cyv4AqQ3JHUWgbvSQfn
+	 PcwSG8OVL4YxL6Gjxqt3V85Q+jcOL1dnxVYc6g40=
+Date: Mon, 09 Nov 2026 12:52:36 -0800
+To: mm-commits@vger.kernel.org,joseph.qi@linux.alibaba.com,
+	akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged] mm-dont-allocate-a-page-table-under-rcu-in-do_set_pmd.patch removed from -mm tree
-Message-Id: <20261109201110.6D07D1F0089F@smtp.kernel.org>
+Subject: + ocfs2-exempt-orphaned-dinodes-from-the-zero-nlink-check.patch added to mm-nonmm-unstable branch
+Message-Id: <20261109205236.C86E01F0089F@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -54,141 +51,227 @@ List-Owner: <mailto:mm-commits+owner@vger.kernel.org>
 Precedence: list
 
 
-The quilt patch titled
-     Subject: mm: don't allocate a page table under RCU in do_set_pmd()
-has been removed from the -mm tree.  Its filename was
-     mm-dont-allocate-a-page-table-under-rcu-in-do_set_pmd.patch
+The patch titled
+     Subject: ocfs2: exempt orphaned dinodes from the zero nlink check
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     ocfs2-exempt-orphaned-dinodes-from-the-zero-nlink-check.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/ocfs2-exempt-orphaned-dinodes-from-the-zero-nlink-check.patch
+
+This patch will later appear in the mm-nonmm-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via various
+branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there most days
 
 ------------------------------------------------------
-From: "David Hildenbrand (Arm)" <david@kernel.org>
-Subject: mm: don't allocate a page table under RCU in do_set_pmd()
-Date: Fri, 06 Nov 2026 13:36:13 +0100
+From: Joseph Qi <joseph.qi@linux.alibaba.com>
+Subject: ocfs2: exempt orphaned dinodes from the zero nlink check
+Date: Mon, 09 Nov 2026 20:20:51 +0800
 
-do_fault_around() skips PTE table preallocation when the PMD already
-points to a PTE table.  A concurrent collapse can then retract that table
-and clear the PMD before filemap_map_pages() locks the new PMD-sized
-folio.
+Patch series "ocfs2: split dinode validation into shared predicates", v3.
 
-filemap_map_pmd() can then call do_set_pmd() with an empty PMD and no
-preallocated table.  On PowerPC hash MMU, do_set_pmd() then tries
-allocating a PTE table to deposit.  But filemap_map_pmd() calls
-do_set_pmd() under RCU, so allocating from that context is not good.
+ocfs2_validate_inode_block() is a flat sequence of about twenty open-coded
+dinode checks.  The filecheck variant duplicates eight of them but reports
+differently: mlog() plus an OCFS2_FILECHECK_ERR_* code instead of
+ocfs2_error(), which can force the filesystem read-only.  The duplicated
+conditions had drifted apart, and filecheck silently skipped the rest.
 
-This race became possible when retract_page_tables() stopped taking the
-mmap and VMA locks.  Previously, those locks excluded retraction while the
-fault was in progress.
+Patch series summary
 
-Add a may_alloc argument to do_set_pmd() and pass false from
-filemap_map_pmd(), so we can fail with VM_FAULT_FALLBACK instead of trying
-to allocate.
+  01      Bug fix.  Exempt orphaned dinodes from the zero nlink check.
+          An open-unlinked inode legitimately has nlink 0 on disk with
+          OCFS2_VALID_FL still set, so the check rejects valid inodes.
+          Orphan recovery then skips the resulting bad inode, so the
+          orphan is never wiped and its space leaks.  Fixed at the root
+          first, so the refactor stays behaviour preserving.
 
-This issue should be fairly hard to hit in practice.
+  02-21   Pure refactor, one check per commit.  Each condition becomes a
+          static bool ocfs2_dinode_has_*() predicate, following the four
+          helpers already in inode.c.  Return codes and log messages stay
+          at the call sites, so no ocfs2_error() call site moves and the
+          two reporting paths remain distinct.
 
-Link: https://lore.kernel.org/20261106-khugepaged_set_pmd-v2-2-d2457b5e377a@kernel.org
-Fixes: 1d65b771bc08 ("mm/khugepaged: retract_page_tables() without mmap or vma lock")
-Signed-off-by: David Hildenbrand (Arm) <david@kernel.org>
+  22      Bug fix.  filecheck fix reported SUCCESS on corruption it cannot
+          repair.  Revalidate and return the residual code, snapshotting
+          the block before validation so a failed repair rolls back to
+          what was read from disk instead of leaving a dirty buffer or a
+          stray ecc fixup behind.
+
+  23-31   Wire the remaining predicates into filecheck.  All reuse
+          OCFS2_FILECHECK_ERR_INVALIDINO, so no new error code and no
+          change to the userspace-visible names in ocfs2_filecheck_errs[].
+
+The inline xattr check is still not shared: ocfs2_validate_inode_xattr()
+calls ocfs2_error() through its helpers in xattr.c, so reusing it needs a
+reporting flag threaded into that file.  Left for a follow-up.
+
+Testing
+
+linux-next 20261105, in a QEMU guest running the series.  Block device
+buffers are flushed and caches dropped before each remount and before
+each on-disk comparison, otherwise a corruption test can read a stale
+buffer and appear to pass.
+
+  - Refactor is behaviour preserving: all 27 messages, all return codes
+    and all ocfs2_error()/mlog() call sites in the normal validator are
+    unchanged, each predicate body was compared against the condition it
+    replaced, and filecheck's disassembly is instruction identical apart
+    from __LINE__.  The normal validator's disassembly also shows block
+    rescheduling, so equivalence there rests on the source comparison
+    rather than an instruction by instruction proof.
+
+  - No false positives on 4K blocks with inline-data, refcount, sparse,
+    usrquota, grpquota, xattr and indexed-dirs, over seventeen inode types
+    plus all system inodes during mount and I/O; and on 512-byte blocks
+    over five types.  Forcing i_xattr_inline_size up on 512-byte blocks
+    drove the inline maximum negative and gave "id_count 312 exceeds max
+    -88", confirming the comparison stayed signed.
+
+  - Seven corrupted dinodes on a nometaecc volume were each detected with
+    the expected message, with no escalation and the filesystem still
+    read-write.
+
+  - With metaecc on: a repairable field alone gives SUCCESS and is really
+    written to disk; an unrepairable field alone, and a repairable plus
+    unrepairable pair, both give INVALIDINO with the on-disk block byte
+    identical afterwards and repeated checks reporting a real filecheck
+    code rather than FAILED.  An orphaned dinode with nlink 0 reports
+    SUCCESS, while the same dinode without OCFS2_ORPHANED_FL still reports
+    INVALIDINO, so the exemption did not disable the check.
+
+  - The stray bit ocfs2_block_check_validate() leaves behind when its
+    hamming fixup fails was tested with a python model of that fixup,
+    validated by checking it predicts the exact bit and the exact restored
+    block for 99 single bit corruptions.  With the flip aimed at an
+    unchecked timestamp byte, fix gives SUCCESS and the on-disk block
+    matches the predicted repair byte for byte, differing from the input
+    image only in i_blkno and i_check.  With the flip aimed at
+    i_suballoc_slot, fix gives SUCCESS and repairs the ecc.  A recoverable
+    single bit gives SUCCESS, increments ecc_recoveries and writes nothing
+    back, so the legitimate in-place fixup is kept rather than rolled
+    back.
+
+The ocfs2 testsuite and xfstests were not run.
+
+Link to v1: https://lore.kernel.org/ocfs2-devel/20261105094926.3203416-1-joseph.qi@linux.alibaba.com/
+Link to v2: https://lore.kernel.org/ocfs2-devel/20261106111458.1467464-1-joseph.qi@linux.alibaba.com/
+
+
+This patch (of 31):
+
+An open-unlinked inode legitimately has a zero link count on disk.
+ocfs2_unlink() drops the last link and writes it out with
+ocfs2_set_links_count(), ocfs2_orphan_add() then sets OCFS2_ORPHANED_FL,
+and OCFS2_VALID_FL is only cleared much later by ocfs2_remove_inode().
+The zero nlink check added by the commit below rejects such an inode as
+-EFSCORRUPTED even though it is perfectly valid.
+
+That commit describes its own change as a check for "(i_mode == 0,
+i_nlink == 0, non-orphan)", but the code it added has no orphan exemption
+and ORs the two conditions rather than ANDing them, so a zero link count
+alone is enough to fail even when i_mode is valid.  Add the exemption the
+changelog describes.
+
+Orphan recovery hits this on every pass.  OCFS2_FI_FLAG_ORPHAN_RECOVERY
+clears can_lock in ocfs2_read_locked_inode(), so the block is read with
+ocfs2_read_blocks_sync() and then validated by the explicit
+ocfs2_validate_inode_block() call in that branch.  The read helper having
+no validate callback of its own does not mean the path skips validation.
+ocfs2_orphan_filldir() then ignores the resulting ocfs2_iget() failure
+("Skip bad inodes so that recovery can continue"), so the orphan is never
+wiped: its space is leaked permanently and the "Corrupt state" message is
+logged again on every mount.
+
+The same applies to an orphaned dinode read through
+ocfs2_read_inode_block(), for example from ocfs2_delete_inode() once the
+buffer has been evicted.
+
+Note that a zero i_mode is already rejected by the later
+ocfs2_valid_inode_mode() check, since fs_umode_to_ftype(0) is FT_UNKNOWN,
+so the nlink arm was not what protected against the zombie inode the
+original commit was fixing.
+
+DIO orphans need no exemption: ocfs2_add_inode_to_orphan() is the only
+caller that passes dio=true to ocfs2_orphan_add(), and it never drops a
+link, so those inodes keep a positive link count.
+
+Link: https://lore.kernel.org/20261109122121.21473-1-joseph.qi@linux.alibaba.com
+Link: https://lore.kernel.org/20261109122121.21473-2-joseph.qi@linux.alibaba.com
+Fixes: 7efb45f9685f ("ocfs2: invalidate inode if i_mode is zero after block read")
+Signed-off-by: Joseph Qi <joseph.qi@linux.alibaba.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Reviewed-by: Lance Yang <lance.yang@linux.dev>
-Acked-by: Usama Arif <usama.arif@linux.dev>
-Cc: Zi Yan <ziy@nvidia.com>
-Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: Liam R. Howlett <liam@infradead.org>
-Cc: Nico Pache <nico.pache@linux.dev>
-Cc: Ryan Roberts <ryan.roberts@arm.com>
-Cc: Dev Jain <dev.jain@arm.com>
-Cc: Barry Song <baohua@kernel.org>
-Cc: Kiryl Shutsemau <kas@kernel.org>
-Cc: Qi Zheng <qi.zheng@linux.dev>
-Cc: Hugh Dickins <hughd@google.com>
+Cc: Heming Zhao <heming.zhao@suse.com>
+Cc: Mark Fasheh <mark@fasheh.com>
+Cc: Joel Becker <jlbec@evilplan.org>
 Cc: <stable@vger.kernel.org>
 ---
 
- include/linux/mm.h |    3 ++-
- mm/filemap.c       |    2 +-
- mm/khugepaged.c    |    2 +-
- mm/memory.c        |   10 +++++++---
- 4 files changed, 11 insertions(+), 6 deletions(-)
+ fs/ocfs2/inode.c |   10 +++++++++-
+ 1 file changed, 9 insertions(+), 1 deletion(-)
 
---- a/include/linux/mm.h~mm-dont-allocate-a-page-table-under-rcu-in-do_set_pmd
-+++ a/include/linux/mm.h
-@@ -2180,7 +2180,8 @@ static inline pte_t maybe_mkwrite(pte_t
- 	return pte;
- }
- 
--vm_fault_t do_set_pmd(struct vm_fault *vmf, struct folio *folio, struct page *page);
-+vm_fault_t do_set_pmd(struct vm_fault *vmf, struct folio *folio, struct page *page,
-+		bool may_alloc);
- void set_pte_range(struct vm_fault *vmf, struct folio *folio,
- 		struct page *page, unsigned int nr, unsigned long addr);
- 
---- a/mm/filemap.c~mm-dont-allocate-a-page-table-under-rcu-in-do_set_pmd
-+++ a/mm/filemap.c
-@@ -3749,7 +3749,7 @@ static bool filemap_map_pmd(struct vm_fa
- 
- 	if (pmd_none(*vmf->pmd) && folio_test_pmd_mappable(folio)) {
- 		struct page *page = folio_file_page(folio, start);
--		vm_fault_t ret = do_set_pmd(vmf, folio, page);
-+		vm_fault_t ret = do_set_pmd(vmf, folio, page, /* may_alloc= */ false);
- 		if (!ret) {
- 			/* The page is mapped successfully, reference consumed. */
- 			folio_unlock(folio);
---- a/mm/khugepaged.c~mm-dont-allocate-a-page-table-under-rcu-in-do_set_pmd
-+++ a/mm/khugepaged.c
-@@ -1827,7 +1827,7 @@ static enum scan_result set_huge_pmd(str
+--- a/fs/ocfs2/inode.c~ocfs2-exempt-orphaned-dinodes-from-the-zero-nlink-check
++++ a/fs/ocfs2/inode.c
+@@ -1482,7 +1482,15 @@ int ocfs2_validate_inode_block(struct su
+ 		goto bail;
  	}
  
- 	vmf.pmd = pmdp;
--	if (do_set_pmd(&vmf, folio, page))
-+	if (do_set_pmd(&vmf, folio, page, /* may_alloc= */ true))
- 		return SCAN_FAIL;
- 
- 	folio_get(folio);
---- a/mm/memory.c~mm-dont-allocate-a-page-table-under-rcu-in-do_set_pmd
-+++ a/mm/memory.c
-@@ -5689,7 +5689,8 @@ static void deposit_prealloc_pte(struct
- 	vmf->prealloc_pte = NULL;
- }
- 
--vm_fault_t do_set_pmd(struct vm_fault *vmf, struct folio *folio, struct page *page)
-+vm_fault_t do_set_pmd(struct vm_fault *vmf, struct folio *folio, struct page *page,
-+		bool may_alloc)
- {
- 	struct vm_area_struct *vma = vmf->vma;
- 	bool write = vmf->flags & FAULT_FLAG_WRITE;
-@@ -5730,6 +5731,8 @@ vm_fault_t do_set_pmd(struct vm_fault *v
- 	 * related to pte entry. Use the preallocated table for that.
- 	 */
- 	if (arch_needs_pgtable_deposit() && !vmf->prealloc_pte) {
-+		if (!may_alloc)
-+			return VM_FAULT_FALLBACK;
- 		vmf->prealloc_pte = pte_alloc_one(vma->vm_mm);
- 		if (!vmf->prealloc_pte)
- 			return VM_FAULT_OOM;
-@@ -5771,7 +5774,8 @@ out:
- 	return ret;
- }
- #else
--vm_fault_t do_set_pmd(struct vm_fault *vmf, struct folio *folio, struct page *page)
-+vm_fault_t do_set_pmd(struct vm_fault *vmf, struct folio *folio, struct page *page,
-+		bool may_alloc)
- {
- 	return VM_FAULT_FALLBACK;
- }
-@@ -5895,7 +5899,7 @@ fallback:
- 
- 	if (pmd_none(*vmf->pmd)) {
- 		if (!needs_fallback && folio_test_pmd_mappable(folio)) {
--			ret = do_set_pmd(vmf, folio, page);
-+			ret = do_set_pmd(vmf, folio, page, /* may_alloc= */ true);
- 			if (ret != VM_FAULT_FALLBACK)
- 				return ret;
- 		}
+-	if ((!di->i_links_count && !di->i_links_count_hi) || !di->i_mode) {
++	/*
++	 * An open-unlinked inode legitimately has a zero link count on disk:
++	 * ocfs2_unlink() drops the last link and ocfs2_orphan_add() sets
++	 * OCFS2_ORPHANED_FL, while OCFS2_VALID_FL is only cleared later by
++	 * ocfs2_remove_inode().  DIO orphans keep their link count, so they
++	 * need no exemption here.
++	 */
++	if (!(le32_to_cpu(di->i_flags) & OCFS2_ORPHANED_FL) &&
++	    ((!di->i_links_count && !di->i_links_count_hi) || !di->i_mode)) {
+ 		mlog(ML_ERROR, "Invalid dinode #%llu: "
+ 			"Corrupt state (nlink = %u or mode = %u) detected!\n",
+ 		        (unsigned long long)bh->b_blocknr,
 _
 
-Patches currently in -mm which might be from david@kernel.org are
+Patches currently in -mm which might be from joseph.qi@linux.alibaba.com are
 
-mm-memory-failure-fix-folio-refcount-leak-and-min_order_for_split-locking.patch
-mm-mprotect-dont-skip-uffd-marker-install-when-racing-with-pte-table-reclaim.patch
+ocfs2-exempt-orphaned-dinodes-from-the-zero-nlink-check.patch
+ocfs2-abstract-the-zero-nlink-or-mode-dinode-check.patch
+ocfs2-abstract-the-dinode-i_blkno-mismatch-check.patch
+ocfs2-abstract-the-dinode-ocfs2_valid_fl-check.patch
+ocfs2-abstract-the-dinode-fs_generation-mismatch-check.patch
+ocfs2-abstract-the-dinode-suballoc-slot-checks.patch
+ocfs2-abstract-the-dinode-suballoc-bit-check.patch
+ocfs2-abstract-the-dinode-orphaned-slot-check.patch
+ocfs2-abstract-the-dinode-dio-orphaned-slot-check.patch
+ocfs2-abstract-the-inline-data-dinode-guard-and-cluster-check.patch
+ocfs2-abstract-the-inline-data-id_count-bound-check.patch
+ocfs2-abstract-the-inline-data-i_size-bound-check.patch
+ocfs2-abstract-the-fast-symlink-dinode-guard-and-size-check.patch
+ocfs2-abstract-the-fast-symlink-nul-termination-check.patch
+ocfs2-abstract-the-chain-list-dinode-guard-and-count-check.patch
+ocfs2-abstract-the-chain-list-next-free-record-check.patch
+ocfs2-abstract-the-chain-list-bits-per-cluster-check.patch
+ocfs2-abstract-the-dinode-refcount-location-check.patch
+ocfs2-abstract-the-zero-extent-list-count-check.patch
+ocfs2-abstract-the-oversized-extent-list-count-check.patch
+ocfs2-abstract-the-extent-list-next-free-record-check.patch
+ocfs2-report-unrepairable-corruption-from-online-filecheck-fix.patch
+ocfs2-check-dinode-nlink-and-mode-in-online-filecheck.patch
+ocfs2-check-dinode-suballoc-slot-in-online-filecheck.patch
+ocfs2-check-dinode-suballoc-bit-in-online-filecheck.patch
+ocfs2-check-dinode-orphaned-slots-in-online-filecheck.patch
+ocfs2-check-inline-data-dinodes-in-online-filecheck.patch
+ocfs2-check-fast-symlink-dinodes-in-online-filecheck.patch
+ocfs2-check-chain-list-dinodes-in-online-filecheck.patch
+ocfs2-check-dinode-refcount-location-in-online-filecheck.patch
+ocfs2-check-extent-list-dinodes-in-online-filecheck.patch
 
