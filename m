@@ -1,46 +1,46 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794246349;
-	b=cn9wEZTa8BvbHMbAgRvSx4dPbDuzpTQpT3LTHZ9syiiXmsTFXjpZa+G/XFNiqE6uAd1F
-	 RRCRbt1pJm0uSO3K7hIlX6/8zOu4mlWRunmLp5PihX1wXXPnpnCNmVV6PCE+4dR6wdbLW
-	 X3dNekk7tfs6NmHmKCZ8VsSuJdN3F5lvasJ9JVOhiZXLjYfiL4j3NrefMD8+ppUaGSHyp
-	 cWLlY+SrcBTd9GLOtwBszt8MO+/m6nH+msC/ogjEw9ZqGYMO7MIHoY78L4g8xoRmQEoVQ
-	 AugRuBFK6mkm+S0VkyE+EAhIzudlZIqNBlQzgXwJJkTl1O6iXzotXjdyACY3rHBrKkg==
+	t=1794246351;
+	b=ZbJv1nIhxqbbMlb61qwdgI+iA7/FjGJULnqtGqyYpRiByXyb8VMgQSB7z9M6XC/h+NrY
+	 wcm4E4fxMi5QR00iLkbwi100948UClYsLK9wBrFH6YiYeXikR4/BxC5xsDOSIC/E5uv+1
+	 Trnn6R+fbXAx+nFK2z1B8PgFKQlCU94oG5gcSkO3C4lRTUzOEgkiJHKbISREmU84bpzt7
+	 PT7hwnXzPrI16lJfP55pUsfsIAWQ9wDP1HY0gAJNQnM0hkqX2YBCu4s2VK/VwQpdgV2IN
+	 S5ijG55FRqn3tVDTkILtaBSOrGymcsxT90BumlJCDZTXwaEYOL69XYfkqgbUZEjOTyw==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794246349;
+	a=rsa-sha256; c=relaxed/relaxed; t=1794246351;
 	h=Received:DKIM-Signature:Date:To:Cc:From:Subject:Message-Id;
-	bh=0l3vEVbwo7Vbw0kIWsrGZp1ZxH7bzS5Y/hmp/yJw4Yo=;
-	b=U0dP8WRutqWVg1GZjFoF9gO4pYe+RJC3RJsD07hMzBXXo3DbDjmQA8aJyTSPM0mLWOkH
-	 xDkn2MzYBW5NykFOiXgIgPxg0RVXAr6UhMjoi9RAJiSpqpNH1L8tv60+jvZV4VqMqee0J
-	 ZLRjNvRd0AIeccPUlI1N2cqiGpA0jbziPFVD2LAlejBrCOINv9pZgINE6eXYWEvlR1x1d
-	 /M7/C0YoFySuFHRIk5Qb7fL2wtrcI/SOFnpIApBt7o3LX8JENdTaPCq1RxJPyzozm8irB
-	 7RC2L98ChvmigJbts75kqVLsXkPzg7hKbCRTV9xErzZ+hrsAuLsyH/LtaVx5tRp0lew==
+	bh=eQ+loYI/zlz5gIIIYuPGoZEvZYztGsVVaRLbNdOaUdE=;
+	b=xLM1EMrhebJkT48//Tyxw7ni2MPAIwDgncqpN4+YKnv9xurdfYwlDRlvAvUF+0lvie/u
+	 SXDcaqexMEbWfZT/RozYRcKihsLsWXnEp3hK2xGQF3JzrftMwFstkz27O9Hdc/IoSpuR9
+	 jnqr6NEc51cONQgEVOzQOHPOz7ZM/jWygnzzRbb81VT++iT6cY2O4jKTO4GLdG9/tUgJS
+	 8t5vTKT8Jf+CeWMoAx+oO/8oBb3WXMf3RI2c3E4W/DoPmTh9Dau0UZQoIMGgnqIOwNB1k
+	 UWnFD5rP1L/LnMVX4pE9tbTnlTrgQCTHE9UsElHBNHvx+8Kqtur2gPepV9jVglLi0mw==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b="Nqt/qHm5";
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=G9vdq8gy;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1EA54606A31C
-	for <mm-commits@vger.kernel.org>; Mon,  9 Nov 2026 17:45:48 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9EE61606A31C
+	for <mm-commits@vger.kernel.org>; Mon,  9 Nov 2026 17:45:50 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=Nqt/qHm5
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id AA55D1F0089F;
-	Mon,  9 Nov 2026 17:45:48 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=G9vdq8gy
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 57A9D1F0089F;
+	Mon,  9 Nov 2026 17:45:50 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1794246348;
-	bh=0l3vEVbwo7Vbw0kIWsrGZp1ZxH7bzS5Y/hmp/yJw4Yo=;
+	d=linux-foundation.org; s=korg; t=1794246350;
+	bh=eQ+loYI/zlz5gIIIYuPGoZEvZYztGsVVaRLbNdOaUdE=;
 	h=Date:To:Cc:From:Subject;
-	b=Nqt/qHm5Yk8w05SxPWSauiUi8idjdliZwZTdSWa28W/4rY5k+Bnm6lRr9vo8DcS9h
-	 w0jGjzeDEirWwOsMcmHJVjJYQtlb58QuySAJo4EeJncGCBG7y40eCeq9fcpm1nl3MC
-	 UoEG53iwU1t3JnkbLwtl+8wQIepkmF/Xluy6lDQg=
-Date: Mon, 09 Nov 2026 09:45:48 -0800
+	b=G9vdq8gy+67QEsedHdp+H93kgnm/A8jFtsZm6oirR+6AwXy5WJ3tOKkqJ+/LrljjQ
+	 cBG+yEgy5xyKokk2hGcCi+eLVR5j5gVf8yw25nhOotTsMcjBMssQbdq+r9mkJ0TzjG
+	 ndit8ZiRebkyazooL/Ew0XqlSBpVS6sCWXcwWhks=
+Date: Mon, 09 Nov 2026 09:45:49 -0800
 To: mm-commits@vger.kernel.org, ljs@kernel.org, akpm@linux-foundation.org
 Cc: David Hildenbrand <david@kernel.org>
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [to-be-updated] mm-gup-convert-gup-code-to-use-vma_flags_t.patch removed from -mm tree
-Message-Id: <20261109174548.AA55D1F0089F@smtp.kernel.org>
+Subject: [to-be-updated] mm-filemap-convert-fault-and-readahead-logic-to-use-vma_flags_t.patch removed from -mm tree
+Message-Id: <20261109174550.57A9D1F0089F@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -52,49 +52,26 @@ Precedence: list
 
 
 The quilt patch titled
-     Subject: mm/gup: convert GUP code to use vma_flags_t
+     Subject: mm/filemap: convert fault and readahead logic to use vma_flags_t
 has been removed from the -mm tree.  Its filename was
-     mm-gup-convert-gup-code-to-use-vma_flags_t.patch
+     mm-filemap-convert-fault-and-readahead-logic-to-use-vma_flags_t.patch
 
 This patch was dropped because an updated version will be issued
 
 ------------------------------------------------------
 From: "Lorenzo Stoakes (ARM)" <ljs@kernel.org>
-Subject: mm/gup: convert GUP code to use vma_flags_t
-Date: Thu, 05 Nov 2026 21:30:52 +0000
+Subject: mm/filemap: convert fault and readahead logic to use vma_flags_t
+Date: Thu, 05 Nov 2026 21:30:53 +0000
 
-Patch series "mm: continue vma_flags_t conversion".
-
-Continue the conversion of legacy vm_flags_t flags to the new vma_flags_t
-bitmap type.
-
-Do some more core mm conversion (we really should be the first to
-completely move to the new scheme :), but also update some mm-adjacent and
-otherwise straightforward cases - /proc/$pid/maps and friends, the coredump
-VMA dump size logic, uprobes, perf and LSM mmap/mprotect hooks.
-
-This series only makes strictly mechanical changes to keep things gentle
-during this very busy cycle.
+Replace use of the legacy vm_flags_t flags with vma_flags_t values in the
+file fault and mmap readahead logic.
 
 No functional change intended.
 
-Build tested on x86-64 (allmodconfig, each patch individually), i386,
-arm64, riscv nommu and ppc64le.
-
-
-This patch (of 13):
-
-Replace use of the legacy vm_flags_t flags with vma_flags_t values
-throughout the GUP logic, both for the MMU and nommu variants.
-
-No functional change intended.
-
-Link: https://lore.kernel.org/20261105-late-2026-vma-flags-v1-0-0d3cd15ab75f@kernel.org
-Link: https://lore.kernel.org/20261105-late-2026-vma-flags-v1-1-0d3cd15ab75f@kernel.org
+Link: https://lore.kernel.org/20261105-late-2026-vma-flags-v1-2-0d3cd15ab75f@kernel.org
 Signed-off-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 Reviewed-by: Barry Song <baohua@kernel.org>
-Reviewed-by: Lance Yang <lance.yang@linux.dev>
 Cc: David Hildenbrand <david@kernel.org>
 Cc: Jason Gunthorpe <jgg@ziepe.ca>
 Cc: John Hubbard <jhubbard@nvidia.com>
@@ -106,6 +83,7 @@ Cc: Liam R. Howlett <liam@infradead.org>
 Cc: Vlastimil Babka <vbabka@kernel.org>
 Cc: Harry Yoo <harry@kernel.org>
 Cc: Jann Horn <jannh@google.com>
+Cc: Lance Yang <lance.yang@linux.dev>
 Cc: Zi Yan <ziy@nvidia.com>
 Cc: Matthew Brost <matthew.brost@intel.com>
 Cc: Joshua Hahn <joshua.hahnjy@gmail.com>
@@ -170,163 +148,112 @@ Cc: Stephen Smalley <stephen.smalley.work@gmail.com>
 Cc: Ondrej Mosnáček <omosnacek@gmail.com>
 ---
 
- mm/gup.c |   45 ++++++++++++++++++++++++---------------------
- 1 file changed, 24 insertions(+), 21 deletions(-)
+ mm/filemap.c |   24 +++++++++++++-----------
+ 1 file changed, 13 insertions(+), 11 deletions(-)
 
---- a/mm/gup.c~mm-gup-convert-gup-code-to-use-vma_flags_t
-+++ a/mm/gup.c
-@@ -590,15 +590,15 @@ static inline bool can_follow_write_comm
- 		return false;
+--- a/mm/filemap.c~mm-filemap-convert-fault-and-readahead-logic-to-use-vma_flags_t
++++ a/mm/filemap.c
+@@ -3352,13 +3352,14 @@ static struct file *do_sync_mmap_readahe
+ 	struct address_space *mapping = file->f_mapping;
+ 	DEFINE_READAHEAD(ractl, file, ra, mapping, vmf->pgoff);
+ 	struct file *fpin = NULL;
+-	vm_flags_t vm_flags = vmf->vma->vm_flags;
++	struct vm_area_struct *vma = vmf->vma;
+ 	bool force_thp_readahead = false;
+ 	unsigned int thp_order = 0;
+ 	unsigned short mmap_miss;
  
- 	/* But FOLL_FORCE has no effect on shared mappings */
--	if (vma->vm_flags & (VM_MAYSHARE | VM_SHARED))
-+	if (vma_test_any(vma, VMA_MAYSHARE_BIT, VMA_SHARED_BIT))
- 		return false;
- 
- 	/* ... or read-only private ones */
--	if (!(vma->vm_flags & VM_MAYWRITE))
-+	if (!vma_test(vma, VMA_MAYWRITE_BIT))
- 		return false;
- 
- 	/* ... or already writable ones that just need to take a write fault */
--	if (vma->vm_flags & VM_WRITE)
-+	if (vma_test(vma, VMA_WRITE_BIT))
- 		return false;
- 
- 	/*
-@@ -1203,12 +1203,11 @@ static bool writable_file_mapping_allowe
- 
- static int check_vma_flags(struct vm_area_struct *vma, unsigned long gup_flags)
- {
--	vm_flags_t vm_flags = vma->vm_flags;
- 	int write = (gup_flags & FOLL_WRITE);
- 	int foreign = (gup_flags & FOLL_REMOTE);
- 	bool vma_anon = vma_is_anonymous(vma);
- 
--	if (vm_flags & (VM_IO | VM_PFNMAP))
-+	if (vma_test_any(vma, VMA_IO_BIT, VMA_PFNMAP_BIT))
- 		return -EFAULT;
- 
- 	if ((gup_flags & FOLL_ANON) && !vma_anon)
-@@ -1228,7 +1227,8 @@ static int check_vma_flags(struct vm_are
- 		    !writable_file_mapping_allowed(vma, gup_flags))
- 			return -EFAULT;
- 
--		if (!(vm_flags & VM_WRITE) || (vm_flags & VM_SHADOW_STACK)) {
-+		if (!vma_test(vma, VMA_WRITE_BIT) ||
-+		    vma_test_single_mask(vma, VMA_SHADOW_STACK)) {
- 			if (!(gup_flags & FOLL_FORCE))
- 				return -EFAULT;
- 			/*
-@@ -1243,14 +1243,14 @@ static int check_vma_flags(struct vm_are
- 			if (!vma_is_cow_mapping(vma))
- 				return -EFAULT;
- 		}
--	} else if (!(vm_flags & VM_READ)) {
-+	} else if (!vma_test(vma, VMA_READ_BIT)) {
- 		if (!(gup_flags & FOLL_FORCE))
- 			return -EFAULT;
+ 	/* Use the readahead code, even if readahead is disabled */
+-	if (IS_ENABLED(CONFIG_TRANSPARENT_HUGEPAGE) && (vm_flags & VM_HUGEPAGE)) {
++	if (IS_ENABLED(CONFIG_TRANSPARENT_HUGEPAGE) &&
++	    vma_test(vma, VMA_HUGEPAGE_BIT)) {
  		/*
- 		 * Is there actually any vma we can reach here which does not
- 		 * have VM_MAYREAD set?
+ 		 * Cap max THP order at 2MB: this is the common PMD-sized
+ 		 * hugepage size, and it avoids memory pressure from very
+@@ -3378,20 +3379,21 @@ static struct file *do_sync_mmap_readahe
+ 		 * If we don't want any read-ahead, don't bother.
+ 		 * VM_EXEC case below is already intended for random access.
  		 */
--		if (!(vm_flags & VM_MAYREAD))
-+		if (!vma_test(vma, VMA_MAYREAD_BIT))
- 			return -EFAULT;
+-		if ((vm_flags & (VM_RAND_READ | VM_EXEC)) == VM_RAND_READ)
++		if (vma_test(vma, VMA_RAND_READ_BIT) &&
++		    !vma_test(vma, VMA_EXEC_BIT))
+ 			return fpin;
+ 
+ 		if (!ra->ra_pages)
+ 			return fpin;
+ 
+-		if (vm_flags & VM_SEQ_READ) {
++		if (vma_test(vma, VMA_SEQ_READ_BIT)) {
+ 			fpin = maybe_unlock_mmap_for_io(vmf, fpin);
+ 			page_cache_sync_ra(&ractl, ra->ra_pages);
+ 			return fpin;
+ 		}
  	}
- 	/*
-@@ -1281,7 +1281,7 @@ static struct vm_area_struct *gup_vma_lo
- 		return vma;
  
- 	/* Only warn for half-way relevant accesses */
--	if (!(vma->vm_flags & VM_GROWSDOWN))
-+	if (!vma_test(vma, VMA_GROWSDOWN_BIT))
- 		return NULL;
- 	if (vma->vm_start - addr > 65536)
- 		return NULL;
-@@ -1518,9 +1518,8 @@ static bool vma_permits_fault(struct vm_
- {
- 	bool write   = !!(fault_flags & FAULT_FLAG_WRITE);
- 	bool foreign = !!(fault_flags & FAULT_FLAG_REMOTE);
--	vm_flags_t vm_flags = write ? VM_WRITE : VM_READ;
- 
--	if (!(vm_flags & vma->vm_flags))
-+	if (!vma_test(vma, write ? VMA_WRITE_BIT : VMA_READ_BIT))
- 		return false;
- 
- 	/*
-@@ -1833,7 +1832,7 @@ long populate_vma_page_range(struct vm_a
- 	 * Rightly or wrongly, the VM_LOCKONFAULT case has never used
- 	 * faultin_page() to break COW, so it has no work to do here.
- 	 */
--	if (vma->vm_flags & VM_LOCKONFAULT)
-+	if (vma_test(vma, VMA_LOCKONFAULT_BIT))
- 		return nr_pages;
- 
- 	/* ... similarly, we've never faulted in PROT_NONE pages */
-@@ -1853,7 +1852,7 @@ long populate_vma_page_range(struct vm_a
- 	 * Otherwise, do a read fault, and use FOLL_FORCE in case it's not
- 	 * readable (ie write-only or executable).
- 	 */
--	if ((vma->vm_flags & (VM_WRITE | VM_SHARED)) == VM_WRITE)
-+	if (vma_test(vma, VMA_WRITE_BIT) && !vma_test(vma, VMA_SHARED_BIT))
- 		gup_flags |= FOLL_WRITE;
- 	else
- 		gup_flags |= FOLL_FORCE;
-@@ -1959,7 +1958,7 @@ int __mm_populate(unsigned long start, u
- 		 * range with the first VMA. Also, skip undesirable VMA types.
+-	if (!(vm_flags & (VM_SEQ_READ | VM_EXEC))) {
++	if (!vma_test_any(vma, VMA_SEQ_READ_BIT, VMA_EXEC_BIT)) {
+ 		/* Avoid banging the cache line if not needed */
+ 		mmap_miss = READ_ONCE(ra->mmap_miss);
+ 		if (mmap_miss < MMAP_LOTSAMISS * 10)
+@@ -3415,7 +3417,7 @@ static struct file *do_sync_mmap_readahe
+ 		 * Fetch two folios so we get the chance to actually
+ 		 * readahead, unless we've been told not to.
  		 */
- 		nend = min(end, vma->vm_end);
--		if (vma->vm_flags & (VM_IO | VM_PFNMAP))
-+		if (vma_test_any(vma, VMA_IO_BIT, VMA_PFNMAP_BIT))
- 			continue;
- 		if (nstart < vma->vm_start)
- 			nstart = vma->vm_start;
-@@ -1990,7 +1989,7 @@ static long __get_user_pages_locked(stru
- {
- 	struct vm_area_struct *vma;
- 	bool must_unlock = false;
--	vm_flags_t vm_flags;
-+	vma_flags_t vma_flags;
- 	int ret, err = -EFAULT;
- 	long i;
+-		if (!(vm_flags & VM_RAND_READ))
++		if (!vma_test(vma, VMA_RAND_READ_BIT))
+ 			ra->size *= 2;
+ 		ra->async_size = folio_nr_pages;
+ 		ra->order = thp_order;
+@@ -3423,7 +3425,7 @@ static struct file *do_sync_mmap_readahe
+ 		return fpin;
+ 	}
  
-@@ -2015,10 +2014,14 @@ static long __get_user_pages_locked(stru
- 	/* calculate required read or write permissions.
- 	 * If FOLL_FORCE is set, we only require the "MAY" flags.
+-	if (vm_flags & VM_EXEC) {
++	if (vma_test(vma, VMA_EXEC_BIT)) {
+ 		/*
+ 		 * Allow arch to request a preferred minimum folio order for
+ 		 * executable memory. This can often be beneficial to
+@@ -3478,7 +3480,7 @@ static struct file *do_async_mmap_readah
+ 	unsigned short mmap_miss;
+ 
+ 	/* If we don't want any read-ahead, don't bother */
+-	if (vmf->vma->vm_flags & VM_RAND_READ || !ra->ra_pages)
++	if (vma_test(vmf->vma, VMA_RAND_READ_BIT) || !ra->ra_pages)
+ 		return fpin;
+ 
+ 	/*
+@@ -3492,7 +3494,7 @@ static struct file *do_async_mmap_readah
+ 	 * keep the counter symmetric.
  	 */
--	vm_flags  = (foll_flags & FOLL_WRITE) ?
--			(VM_WRITE | VM_MAYWRITE) : (VM_READ | VM_MAYREAD);
--	vm_flags &= (foll_flags & FOLL_FORCE) ?
--			(VM_MAYREAD | VM_MAYWRITE) : (VM_READ | VM_WRITE);
-+	if (foll_flags & FOLL_WRITE)
-+		vma_flags = mk_vma_flags(VMA_WRITE_BIT, VMA_MAYWRITE_BIT);
-+	else
-+		vma_flags = mk_vma_flags(VMA_READ_BIT, VMA_MAYREAD_BIT);
-+	if (foll_flags & FOLL_FORCE)
-+		vma_flags_clear(&vma_flags, VMA_READ_BIT, VMA_WRITE_BIT);
-+	else
-+		vma_flags_clear(&vma_flags, VMA_MAYREAD_BIT, VMA_MAYWRITE_BIT);
+ 	if (likely(!folio_test_locked(folio)) &&
+-	    !(vmf->vma->vm_flags & (VM_SEQ_READ | VM_EXEC))) {
++	    !vma_test_any(vmf->vma, VMA_SEQ_READ_BIT, VMA_EXEC_BIT)) {
+ 		mmap_miss = READ_ONCE(ra->mmap_miss);
+ 		if (mmap_miss)
+ 			WRITE_ONCE(ra->mmap_miss, --mmap_miss);
+@@ -3525,7 +3527,7 @@ static vm_fault_t filemap_fault_recheck_
+ 	 * scenarios. Recheck the PTE without PT lock firstly, thereby reducing
+ 	 * the number of times we hold PT lock.
+ 	 */
+-	if (!(vma->vm_flags & VM_LOCKED))
++	if (!vma_test(vma, VMA_LOCKED_BIT))
+ 		return 0;
  
- 	for (i = 0; i < nr_pages; i++) {
- 		vma = find_vma(mm, start);
-@@ -2026,8 +2029,8 @@ static long __get_user_pages_locked(stru
- 			break;
+ 	if (!(vmf->flags & FAULT_FLAG_ORIG_PTE_VALID))
+@@ -4009,7 +4011,7 @@ vm_fault_t filemap_map_pages(struct vm_f
+ 		if ((map_ret & VM_FAULT_NOPAGE) &&
+ 		    !(vmf->flags & FAULT_FLAG_TRIED) &&
+ 		    !folio_test_workingset(folio) &&
+-		    !(vma->vm_flags & (VM_SEQ_READ | VM_EXEC))) {
++		    !vma_test_any(vma, VMA_SEQ_READ_BIT, VMA_EXEC_BIT)) {
+ 			unsigned short mmap_miss;
  
- 		/* protect what we can, including chardevs */
--		if ((vma->vm_flags & (VM_IO | VM_PFNMAP)) ||
--		    !(vm_flags & vma->vm_flags))
-+		if (vma_test_any(vma, VMA_IO_BIT, VMA_PFNMAP_BIT) ||
-+		    !vma_test_any_mask(vma, vma_flags))
- 			break;
- 
- 		if (pages) {
+ 			mmap_miss = READ_ONCE(file->f_ra.mmap_miss);
 _
 
 Patches currently in -mm which might be from ljs@kernel.org are
 
 mm-vma-read-anon_vma-carefully-in-validate_mm.patch
-mm-filemap-convert-fault-and-readahead-logic-to-use-vma_flags_t.patch
 mm-rmap-convert-remaining-vma-flag-tests-to-use-vma_flags_t.patch
 mm-migrate-convert-vma-flag-tests-to-use-vma_flags_t.patch
 mm-convert-thp-vma-flag-tests-to-use-vma_flags_t.patch
