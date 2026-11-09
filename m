@@ -1,45 +1,45 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794202153;
-	b=JIRc4fiiMCaSVYch3MQdUfV7Y3od6e+kfp/EVFtVC8dJ5D1FJGnQ0wgOk9Cojaf7yeP/
-	 HFcA4IccQfHc1l9OPc2arLDCl4Ru9i0EEuB7nEPQrcv884HFFSH6hGXt+TCdfqf95ypM8
-	 rHttbqoQo9hiSQvQkNdEwYYtoZv186A3xng5nReoZXQtkBqnDV1tKsOkEqFxnxSzVwIIk
-	 1ZYQ9PAzfpU4faXM5ioqCN2KjIcSNoCLRJnIB+PhpTQVYzAOgIKoEuf5IWxueh1mBbBtR
-	 +ykCB7/TqtuTaEGNqOwmvAYWBYKW76UTRuZUOj1wr6tEgI8u6gc+gzrbA1GqiRiIEaQ==
+	t=1794202155;
+	b=adQQ9hw2d0mD911g411e0m2IH8ACgV2qWbzIcDowIWnYNn23hKMGkdy3s0JCJuohgz6U
+	 oWNm6GTvfWmVQQwNjm7h7TR5UyhT3+ddPldABbX23bXVikGlcyxHXHbCwsHkDatrXMJp+
+	 fBkhZyzWIX91HLuh4Kjqcwib0oDKl54Hx9b/zRO4qzZQLMOmiAQitRx193wHrGJG3IIur
+	 wmo85dScgtDA/XWfG7+8sqlY9T56Qr9Znp1MI934adl2bjqDqKMwjoMSOCHgQL1ikpiLQ
+	 TtS/8KTT5Pgad/SkyxzgoXGz3+T0jE9/UjgO970eFutsQn+Tm6j6V2Gv05aEJpcoVdA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794202153;
+	a=rsa-sha256; c=relaxed/relaxed; t=1794202155;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=zqzhNh28hKgArtz7i37m9IzvG0SNhkOY9blsKLIqszI=;
-	b=cqlo0GEj6ggbkAM6mhjQRxx/LdOeO5xzFdK74UsCROPq7bVNOrair2KPEJ6AVtUZTFR0
-	 eFlACG4wNvP3cI0IFi7xB+4nOk2Y4RHtrhAahqggftBQeXhPZKv1fEhiH64dPssyC3/0c
-	 khAeHJAz4oOQwAWmyNOCE/pKH9fzw4NTcDrxSp5vXnrxIZv9luje267C9lzWDAi0T1YpU
-	 P7g8B543NmZzQtuou+xlCQxDtbx+SW3GhTJNuRhJ9cdVbdwH1yu16AFxmlQVoPIzuuZs7
-	 AUQgRECnbAVWDhUmDhFcPbY5mLmP9UKwvq+M+fBYPQvDTMzCH59PCnAfSMnHTeCQjwA==
+	bh=EOX9LAzavzVpsX22YGIPAELP9uxAyKI/oOy53oWQ+sQ=;
+	b=L0NWiwFt0vgKPj0H4mSFaGVq2Qc2FPgUQFM3X/OYomBiOU+Dqdfi3DdowM8Tltx+VR3X
+	 hvA0bAXVuyU/uKCfxtyiSfnhcrNNal3JktRx7vmWrNjuW0mPjZin9fQBWFJ23iJaILLOY
+	 ri/1AelmKkdGgWvcdzTMpwHKRMTEqDTIqU3pK+J1v7sS5YPeiDESN+Tkltcme4EFAjuRL
+	 9/8CJL7PL3nvestIAwD4IW9lfV3bb+nrdI8tlrvL9ao7mlAJkejuZjFm5Pko7G4Ecx00z
+	 n7vBw3ICfeF0G7MIljcvG1VFyxZvNJFKN1xuR60wI2WZp4qqDEiZW9zIUehvNBj5o/g==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=q9D5ZeWN;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=cxuZNxu8;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 79B19606D838
-	for <mm-commits@vger.kernel.org>; Mon,  9 Nov 2026 05:29:13 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6DA47606EE8C
+	for <mm-commits@vger.kernel.org>; Mon,  9 Nov 2026 05:29:15 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=q9D5ZeWN
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id DDE361F00903;
-	Mon,  9 Nov 2026 05:29:12 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=cxuZNxu8
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id F155F1F008A6;
+	Mon,  9 Nov 2026 05:29:14 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1794202153;
-	bh=zqzhNh28hKgArtz7i37m9IzvG0SNhkOY9blsKLIqszI=;
+	d=linux-foundation.org; s=korg; t=1794202155;
+	bh=EOX9LAzavzVpsX22YGIPAELP9uxAyKI/oOy53oWQ+sQ=;
 	h=Date:To:From:Subject;
-	b=q9D5ZeWN5/h5ymOvbVQsN/JA8473KDqbTNaxPNWIXJ5j/xVvBJohYH64bz0qxGTvA
-	 ihIwUWe+AIcpTpFwgNvbYMYGAGoocY30CoQ43ajFxSnqYUQOfm8xXlhdaWlEjup/8a
-	 c/q5K4ZV+EietZRKo6yu57Bz4Fbrdq7sOq+N5zCI=
-Date: Sun, 08 Nov 2026 21:29:12 -0800
-To: mm-commits@vger.kernel.org,wangyibo@kylinos.cn,akpm@linux-foundation.org
+	b=cxuZNxu8rqHgvbLz/bCm6rOTSW4Yg1OwSigRaMG1TGicquDGZNU2gspXjJ49Oo85P
+	 YA+2g9Wh+Hjg0UxmHinHomncIwl3tfNjcAeRHCVkpLwJc9ySiuykp7jaraKbl45RGT
+	 Pnbrmt6mxNi+VoEVEUSFNYix0o1dLYKEoz7xIJ+g=
+Date: Sun, 08 Nov 2026 21:29:14 -0800
+To: mm-commits@vger.kernel.org,chenridong@xiaomi.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mailmap-add-wang-yibos-work-email-address.patch added to mm-nonmm-unstable branch
-Message-Id: <20261109052912.DDE361F00903@smtp.kernel.org>
+Subject: + mailmap-add-entries-for-ridong-chen.patch added to mm-nonmm-unstable branch
+Message-Id: <20261109052914.F155F1F008A6@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -51,12 +51,12 @@ Precedence: list
 
 
 The patch titled
-     Subject: mailmap: add Wang Yibo's work email address
+     Subject: mailmap: add entries for Ridong Chen
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     mailmap-add-wang-yibos-work-email-address.patch
+     mailmap-add-entries-for-ridong-chen.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mailmap-add-wang-yibos-work-email-address.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mailmap-add-entries-for-ridong-chen.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -74,35 +74,45 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Wang Yibo <wangyibo@kylinos.cn>
-Subject: mailmap: add Wang Yibo's work email address
-Date: Mon,  9 Nov 2026 11:06:51 +0800
+From: Ridong Chen <chenridong@xiaomi.com>
+Subject: mailmap: add entries for Ridong Chen
+Date: Sun,  8 Nov 2026 20:35:09 +0800
 
-My kernel work will be signed off with my company address from now on.
-Add it to .mailmap and map the personal address I used before to it, so
-that both resolve to the same author in git log and git shortlog.
+Map my former Huawei address and my current Xiaomi address to my
+personal address, so that all my contributions are attributed to a
+single identity.
 
-Link: https://lore.kernel.org/20261109030651.2289573-1-wangyibo@kylinos.cn
-Signed-off-by: Wang Yibo <wangyibo@kylinos.cn>
+Link: https://lore.kernel.org/20261108123509.214127-1-ridong.chen@linux.dev
+Signed-off-by: Ridong Chen <chenridong@xiaomi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- .mailmap |    1 +
- 1 file changed, 1 insertion(+)
+ .mailmap |    2 ++
+ 1 file changed, 2 insertions(+)
 
---- a/.mailmap~mailmap-add-wang-yibos-work-email-address
+--- a/.mailmap~mailmap-add-entries-for-ridong-chen
 +++ a/.mailmap
-@@ -1006,6 +1006,7 @@ Vlad Dogaru <ddvlad@gmail.com> <vlad.dog
- Vladimir Davydov <vdavydov.dev@gmail.com> <vdavydov@parallels.com>
- Vladimir Davydov <vdavydov.dev@gmail.com> <vdavydov@virtuozzo.com>
- Vlastimil Babka <vbabka@kernel.org> <vbabka@suse.cz>
-+Wang Yibo <wangyibo@kylinos.cn> <szwyb123@gmail.com>
- WangYuli <wangyuli@aosc.io> <wangyl5933@chinaunicom.cn>
- WangYuli <wangyuli@aosc.io> <wangyuli@deepin.org>
- Wei Wang <weiwan@google.com> <weibunny@fb.com>
+@@ -809,6 +809,8 @@ Richard Genoud <richard.genoud@bootlin.c
+ Richard Leitner <richard.leitner@linux.dev> <dev@g0hl1n.net>
+ Richard Leitner <richard.leitner@linux.dev> <me@g0hl1n.net>
+ Richard Leitner <richard.leitner@linux.dev> <richard.leitner@skidata.com>
++Ridong Chen <ridong.chen@linux.dev> <chenridong@huawei.com>
++Ridong Chen <ridong.chen@linux.dev> <chenridong@xiaomi.com>
+ Rob Clark <robin.clark@oss.qualcomm.com> <robdclark@chromium.org>
+ Rob Clark <robin.clark@oss.qualcomm.com> <robdclark@gmail.com>
+ Robert Foss <rfoss@kernel.org> <robert.foss@linaro.org>
 _
 
-Patches currently in -mm which might be from wangyibo@kylinos.cn are
+Patches currently in -mm which might be from chenridong@xiaomi.com are
 
-mailmap-add-wang-yibos-work-email-address.patch
+mm-migrate-move-nr_file_thps-on-cross-node-migration.patch
+mm-migrate-move-nr_kernel_file_pages-on-cross-node-migration.patch
+mm-memcontrol-drop-unused-vmscan-tracepoint-include.patch
+mm-vmscan-move-vmscan-tracepoints-to-a-local-header.patch
+mm-vmscan-move-struct-scan_control-to-a-dedicated-header.patch
+mm-vmscan-pass-scan_control-to-the-vmscan-tracepoints.patch
+mm-mglru-add-tracepoint-for-scan_folios.patch
+mm-mglru-add-lruvec_gen_size-helper.patch
+mm-mglru-add-tracepoint-for-aging.patch
+mailmap-add-entries-for-ridong-chen.patch
 
