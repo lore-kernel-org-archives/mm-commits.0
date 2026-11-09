@@ -1,46 +1,46 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794246352;
-	b=LswOGnLGsm5gRhw/gjIVFj8lH5JC2BYWShGSk/ySfDwMOSRXtnZUcqRYLvelVP95OQBI
-	 Owgw14XS7x2687PxDcXHu8XNy0B852qbgSue7hwV8Alld6ipDPNm6R4UlqJACPVOGcf8l
-	 kgj1UMYyO8uFThgOmeJaxQ7q0qT1SR1+0j4gnIw34RJnDzav7U1cxFoqg2cK0orS0jvwT
-	 v+rLzmBAJ4W3IEv15XRB1rGz6w6kv4q2m0DWoNbtW0rLRTrO1iBSfoltD4HsmRqoBruxC
-	 vaXIbkxtQBAv/YbFxx/yjtyjet9UNXM6X2YRbYUNiYuta5+KEZzaI+EvPRLPlt6rsTw==
+	t=1794246354;
+	b=FO4sIAliRj2ctVRV3vxgk89eakc8FbNUwiz+UB7wnADYl4ZAHg+yQVzRFRK8g+33BQ0G
+	 H293aBGXwPlBeJBGpnpMaQ0s0QfB6d0loCHHTUuodVEVXQJHCDebQloj9i6NxJOr5A/zg
+	 s1Tm6jsRUKN8g4I+1MihyQas7konopklNPwF8YiFgAQtH9dYvy0Kh/TGxmsWlF9bmdkYu
+	 WAHa/l60V9N+eVB6lyLjBJYpJ7maPy09SIvKyI1SZFYKIHsw+5+zo2OCjtFR0otZX2T5C
+	 A1TWild1biYsUJQPkufTSI2Zq7Kh81zcPFxeny4Gh6lGoO0Ltqw+6IHQADTEloqniig==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794246352;
+	a=rsa-sha256; c=relaxed/relaxed; t=1794246354;
 	h=Received:DKIM-Signature:Date:To:Cc:From:Subject:Message-Id;
-	bh=uPSckW132yFmqX9aFe81cvv51iJcJfP2e3T5DkwR5nY=;
-	b=Sb1jBWDbRWmy8z8RsA6PvJQoSiHZZBHZymehtnGWAVlCZohI1AFzQSXPYHybcw/MfEPt
-	 uxe81U3Bmc0vvSK9TSuNtxtVh+bnoo8G+A1zhk8TbTzaTZ67QsqhhzLMvOYJC9i/RSBxi
-	 O56xyYdNVeYgDdXXq69sUmqdbvEz7y7FAWm3mWSsPO0L5jkwkbKc4lTinRewc0k7zsSPa
-	 N9sFGlSR9DBjGzH1qD3FzPRqhktF9a3K0saV48tFn9gCXMGYdQoTGt/LQ/DGVyYZvb28W
-	 +NTxOY7z/Eczqv0TI6sXF8I4GWzeOFBAAKmRPbSDsus/9KJS7tbWjisTWiIGcPwyatg==
+	bh=tnPqpmiDB8oCkSMtGspKn4/AcfxoonYozNYFBBign1w=;
+	b=OrKpnzujB2mc0VsFM35isIKlko450b/eV4EzSChBUVtVTGqTx+iHZJ5WJPXSFZyYboZv
+	 kmyMKwAWkU8fRo0JKL8fAoiqu8gMfmV1TNz88gtl2TOJKuNdyjfklIg71Fqtjrf0owA9L
+	 SAZb6BK1291sve3U1mXK6Ld2ekoV5ajs6DA4bYRj6ybcZNAuM3r7njdy4Vpqv/8IC9RB7
+	 NNLDXg5oy4M+nw3Pf5Wa6CqxuC1Y/a01i8e0+9p3SnvbhlgBYlYnf+iSf1gHv4To+lmql
+	 XpUVjDL3YGJyp3rCAL0gCtp3RU9MdmHUR0dxdLL3djWTzvr3/Okk57UpJPYh30Wl5tQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=AJMnwxx4;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=iitKX14J;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5061B606A326
-	for <mm-commits@vger.kernel.org>; Mon,  9 Nov 2026 17:45:52 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AF05A606A339
+	for <mm-commits@vger.kernel.org>; Mon,  9 Nov 2026 17:45:53 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=AJMnwxx4
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E6ADE1F0089F;
-	Mon,  9 Nov 2026 17:45:51 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=iitKX14J
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 762221F008A1;
+	Mon,  9 Nov 2026 17:45:53 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1794246352;
-	bh=uPSckW132yFmqX9aFe81cvv51iJcJfP2e3T5DkwR5nY=;
+	d=linux-foundation.org; s=korg; t=1794246353;
+	bh=tnPqpmiDB8oCkSMtGspKn4/AcfxoonYozNYFBBign1w=;
 	h=Date:To:Cc:From:Subject;
-	b=AJMnwxx45sxit2HzTAUeAlgtRyOK43ASvloUiIae0m8uLYZaRDO3RdiK3dHCsnJGp
-	 oE06u1M3gvHQsDnIhVeyMHaeBVFAOUIav8OdELH5OGaXO1Db8cO9Lh4GQrUxxQ69TD
-	 Vocfe2E50a7I5aKPTtZ1oG1D0r1Pr7iXtka8T5lI=
-Date: Mon, 09 Nov 2026 09:45:51 -0800
+	b=iitKX14JTNfDJXRUHKaHY0ukIrUczlXxPmXW4Wd811X/msQPITk3r1rO6gEuRf0YQ
+	 GQlUUwGxASU0dqWLB73vCS6B8FE1lH2OFpamVyeUP3vlr2UdaG/BKor7wDkdrJgsFu
+	 kbHAUV0FFOQP4+KNC/PmCpQNQZ3gr13uqFMOygsM=
+Date: Mon, 09 Nov 2026 09:45:53 -0800
 To: mm-commits@vger.kernel.org, akpm@linux-foundation.org
 Cc: David Hildenbrand <david@kernel.org>
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [to-be-updated] mm-filemap-convert-fault-and-readahead-logic-to-use-vma_flags_t-fix.patch removed from -mm tree
-Message-Id: <20261109174551.E6ADE1F0089F@smtp.kernel.org>
+Subject: [to-be-updated] mm-filemap-convert-fault-and-readahead-logic-to-use-vma_flags_t-fix-fix.patch removed from -mm tree
+Message-Id: <20261109174553.762221F008A1@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -52,66 +52,37 @@ Precedence: list
 
 
 The quilt patch titled
-     Subject: mm/filemap: cache random-read flag before dropping fault lock
+     Subject: mm-filemap-convert-fault-and-readahead-logic-to-use-vma_flags_t-fix-fix
 has been removed from the -mm tree.  Its filename was
-     mm-filemap-convert-fault-and-readahead-logic-to-use-vma_flags_t-fix.patch
+     mm-filemap-convert-fault-and-readahead-logic-to-use-vma_flags_t-fix-fix.patch
 
 This patch was dropped because an updated version will be issued
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm/filemap: cache random-read flag before dropping fault lock
-Date: Thu, 05 Nov 2026 14:52:01 -0800
+Subject: mm-filemap-convert-fault-and-readahead-logic-to-use-vma_flags_t-fix-fix
+Date: Fri Nov  6 07:58:08 AM PST 2026
 
-An unprivileged process racing a file-backed fault against munmap()
-can potentially trigger a kernel oops in the forced-THP readahead path.
+make random_read const, per Lorenzo
 
-The conversion of do_sync_mmap_readahead() to vma_flags_t replaced its
-saved vm_flags value with accesses through a VMA pointer. The random-read
-flag is now tested after maybe_unlock_mmap_for_io() can release the
-fault lock. That helper pins the file, not the VMA, so a concurrent
-munmap() can free the VMA before the flag test.
-
-Save the random-read flag before releasing the lock. Also remove the
-redundant inner VMA declaration in the executable-mapping block.
-
-Link: https://lore.kernel.org/au2_PPpdAMgRJZtX@gremlin
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Reported-by: Sashiko <sashiko-bot@kernel.org>
-Closes: https://lore.kernel.org/r/sashiko-outbox-200257@kernel.org
 Cc: Lorenzo Stoakes (ARM) <ljs@kernel.org>
 ---
 
- mm/filemap.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ mm/filemap.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/filemap.c~mm-filemap-convert-fault-and-readahead-logic-to-use-vma_flags_t-fix
+--- a/mm/filemap.c~mm-filemap-convert-fault-and-readahead-logic-to-use-vma_flags_t-fix-fix
 +++ a/mm/filemap.c
-@@ -3409,6 +3409,7 @@ static struct file *do_sync_mmap_readahe
+@@ -3409,7 +3409,7 @@ static struct file *do_sync_mmap_readahe
  
  	if (force_thp_readahead) {
  		unsigned long folio_nr_pages = 1UL << thp_order;
-+		bool random_read = vma_test(vma, VMA_RAND_READ_BIT);
+-		bool random_read = vma_test(vma, VMA_RAND_READ_BIT);
++		const bool random_read = vma_test(vma, VMA_RAND_READ_BIT);
  
  		fpin = maybe_unlock_mmap_for_io(vmf, fpin);
  		ractl._index &= ~(folio_nr_pages - 1);
-@@ -3417,7 +3418,7 @@ static struct file *do_sync_mmap_readahe
- 		 * Fetch two folios so we get the chance to actually
- 		 * readahead, unless we've been told not to.
- 		 */
--		if (!vma_test(vma, VMA_RAND_READ_BIT))
-+		if (!random_read)
- 			ra->size *= 2;
- 		ra->async_size = folio_nr_pages;
- 		ra->order = thp_order;
-@@ -3437,7 +3438,6 @@ static struct file *do_sync_mmap_readahe
- 		 * pad that might exist between sections, which would be a waste
- 		 * of memory.
- 		 */
--		struct vm_area_struct *vma = vmf->vma;
- 		const unsigned long start = vma_start_pgoff(vma);
- 		const unsigned long end = vma_end_pgoff(vma);
- 		unsigned long ra_end;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -122,7 +93,6 @@ shmem-consume-the-reserved-xattr-space-despite-remount.patch
 selftests-mm-check-madv_cold-and-madv_pageout-on-partly-advised-thps-fix.patch
 alloc_tag-introduce-ioctls-to-toggle-allocation-tracepoints-fix-fix.patch
 alloc_tag-introduce-ioctls-to-toggle-allocation-tracepoints-fix.patch
-mm-filemap-convert-fault-and-readahead-logic-to-use-vma_flags_t-fix-fix.patch
 profile-account-for-partial-proc-profile-reads.patch
 profile-simplify-proc-profile-read-layout.patch
 ipc-msg-clamp-negative-msg_info-usage-counts.patch
