@@ -1,46 +1,46 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794257568;
-	b=S6+EZ9Kcs3Gdr/4iPpCm5mGhdzYpohSsVFJQqjSsBsCst/ZyzkES7pmyA5BAxxu2IsvM
-	 9DyAaXi88UjC0sFkH3calzFqcgJ10CNNwkWMax/7n1TjgJekW1VIKYp4v4KSUJZTcc8R+
-	 Vm8xeS3IvtTgL6jn5INj+MVM1mSFBcZyj8r2MimKsAPNFCo79feGJUZdSt1ECNn4gxJtg
-	 JXvBvVaY3JS4oFem+hx9QnyQZhxpev9ichrtMAYzaCDJGPUa7N0dS3PvIDfrocZ8xG7Dk
-	 UJo3LL8kQx9vL3z9X/ddpFFp3UCN8wMatvwF7FCaiw47LAIhFwRCkkxND/hhEOeTjlw==
+	t=1794257570;
+	b=wAK/heVNURlMLXAUbz6B3bAj1doP6KIafHCROlERXXlE7HsRN9xEVEcU06WGL0IVRff9
+	 R+xOpAGY/P3ifD/ir7K27PcI+DjKdqi4SNhEz3oUyOFZt9jgTNzxZ4YTEjVg9D1bLA+tV
+	 ewqGB+0Lw8r6qGXp9DzV7IPWg2ZICGl+bubFsf8rpWsrn6zrgBvEVHTOs/4Ka5NMtCD8F
+	 ZYzzzl47n4J9HcPvUQojemCb6ESeL8OktLbuekO1j74rfF7yvU8ON9wwcSz/c/xcJHPz7
+	 tD6KlUD0Fuz/0iuMgbnpc8YKX20R4stus+WsjRmwRa4Kt1vpkICjtwVhFxj3o8d2w9A==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794257568;
+	a=rsa-sha256; c=relaxed/relaxed; t=1794257570;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=58R8jGZ6rg7wwBhajyBcChNLzXBRoqspM19x3+DTpOg=;
-	b=BmYBPsK/t3QQqH8d7MsPQXoirnDJHOeQCwI4JHH1LIdrhUIe6gDiq40H9Reb6U1W0ewX
-	 mmAz7Xw8ALEgcPpw6x7cvdMZVoGJnU38SforHIAm0s9VJL5FNO8wkP4J6SO4QuLXo3okD
-	 2yoDtido0AVrWmSLrDPVClFQDh03XJO9VYlIFg777kqBQAQBt6BciqvlVaYAPwK/pwllD
-	 sQa4pxCjQdR4G5lQiQPGKfqG3/kZym1bhdmx1zJUAOgvFfSuxUZfIjMkzVP9ky1/nhafs
-	 TKEIzQ2/LcD8o90W0ggiMRQii3oaSnclpIXwB2nP3e7/Hv36BjmhUVtS329WTDeeJeQ==
+	bh=ty9cCmHoHG2AMz4PyrSbgUzXErm4Ky/QzNIu3+BY4Zw=;
+	b=VZf3LP8Q5nuLVM35B8AGk/3j6I2v0zKtEOXgtadQOPuzmoKEYKSV625dXjl+0zbSGGK9
+	 ofs1oktPGd74g1VEKKJyy6tvBmVgdkddL5mFLBzUpJuLDabE+QFTeJPbytVM7VhfwF8Gp
+	 unBrJDcNlp6y8coe3PKhrayAmzIfNq+Yu7ZQMZ6lCG063YXMSWoNzeP1H1owsxLQA5XNk
+	 cKgnOkExRXIKQ3CviCUestaIjQsnvySTF8PBtwWtaZQGiy0FnuHUpZ/DXoABlIRZpqFPF
+	 35A+gs+LU43yXUzNc/LtGPoePhYQEQsk4NiRSbJkfxW7pwQQ3ndo4sKOqjf+QG7Elpw==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=bxHC+YdA;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=SBOBwHpH;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6F5D4606A31C
-	for <mm-commits@vger.kernel.org>; Mon,  9 Nov 2026 20:52:48 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 778FA606A321
+	for <mm-commits@vger.kernel.org>; Mon,  9 Nov 2026 20:52:50 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=bxHC+YdA
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id EF16B1F0089F;
-	Mon,  9 Nov 2026 20:52:47 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=SBOBwHpH
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 312AA1F0089F;
+	Mon,  9 Nov 2026 20:52:50 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1794257568;
-	bh=58R8jGZ6rg7wwBhajyBcChNLzXBRoqspM19x3+DTpOg=;
+	d=linux-foundation.org; s=korg; t=1794257570;
+	bh=ty9cCmHoHG2AMz4PyrSbgUzXErm4Ky/QzNIu3+BY4Zw=;
 	h=Date:To:From:Subject;
-	b=bxHC+YdAf4BeTBGH/S8K1tpQQ8DZdTO+GewiHxgLEKDpxeYs+hiowA6WfCFmeQkt9
-	 Kftv/Aq4JbUJPA68EEz0Lav/0Uf4dMgGP8wdcmL3JlTWbEqo/OcDqDQavTQ3jrqnZ+
-	 p6JlBLTuNGXELqF4jpPa1qwB39NPg65ovUnfx6WQ=
-Date: Mon, 09 Nov 2026 12:52:47 -0800
+	b=SBOBwHpHqkKBw0R69sCgr36Th07dO0J9XfIRtNH205yprInaH7uIMQGy35gM0CSZa
+	 Ozt/hjVgx/43KGccUZUqGxVHfwDvi55mqX5NuhYVcIIhFSaWLQWXkOoqDd2MdwQ8lo
+	 FYDbK1Bh8dTaJA5A1CVDlvZFGM3ODvHmPEsQskWw=
+Date: Mon, 09 Nov 2026 12:52:49 -0800
 To: mm-commits@vger.kernel.org,joseph.qi@linux.alibaba.com,
 	akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + ocfs2-abstract-the-dinode-suballoc-slot-checks.patch added to mm-nonmm-unstable branch
-Message-Id: <20261109205247.EF16B1F0089F@smtp.kernel.org>
+Subject: + ocfs2-abstract-the-dinode-suballoc-bit-check.patch added to mm-nonmm-unstable branch
+Message-Id: <20261109205250.312AA1F0089F@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -52,12 +52,12 @@ Precedence: list
 
 
 The patch titled
-     Subject: ocfs2: abstract the dinode suballoc slot checks
+     Subject: ocfs2: abstract the dinode suballoc bit check
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     ocfs2-abstract-the-dinode-suballoc-slot-checks.patch
+     ocfs2-abstract-the-dinode-suballoc-bit-check.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/ocfs2-abstract-the-dinode-suballoc-slot-checks.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/ocfs2-abstract-the-dinode-suballoc-bit-check.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -76,32 +76,16 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Joseph Qi <joseph.qi@linux.alibaba.com>
-Subject: ocfs2: abstract the dinode suballoc slot checks
-Date: Mon, 09 Nov 2026 20:20:56 +0800
+Subject: ocfs2: abstract the dinode suballoc bit check
+Date: Mon, 09 Nov 2026 20:20:57 +0800
 
-The suballoc slot validation is a nested if/else-if whose two arms carry
-different error messages.  Split it into two predicates so each message
-stays at its own call site without having to re-test the slot value to
-work out which arm fired.
-
-The arms were already mutually exclusive, so two sequential tests are
-equivalent to the if/else-if.
-
-Keep the OCFS2_INVALID_SLOT exclusion in the range predicate.
-OCFS2_INVALID_SLOT is 65535, which is greater than max_slots - 1, so
-without it every system inode mkfs.ocfs2 creates from the global
-allocator would be rejected.
-
-ocfs2_get_suballoc_slot_bit() in suballoc.c open-codes an identical range
-test, and is deliberately not converted.  The dinode validator pairs the
-range predicate with ocfs2_dinode_has_invalid_suballoc_slot(), which also
-rejects OCFS2_INVALID_SLOT on a non-system inode, so that pair is stricter
-than what ocfs2_get_suballoc_slot_bit() accepts.  The range predicate on
-its own is not stricter, it is the same test.
+Fold the i_suballoc_bit against ocfs2_suballoc_bits_per_block() test into
+a predicate.  The rationale comment stays at the call site, next to the
+error it explains.
 
 No functional change intended.
 
-Link: https://lore.kernel.org/20261109122121.21473-7-joseph.qi@linux.alibaba.com
+Link: https://lore.kernel.org/20261109122121.21473-8-joseph.qi@linux.alibaba.com
 Signed-off-by: Joseph Qi <joseph.qi@linux.alibaba.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 Cc: Heming Zhao <heming.zhao@suse.com>
@@ -109,56 +93,33 @@ Cc: Mark Fasheh <mark@fasheh.com>
 Cc: Joel Becker <jlbec@evilplan.org>
 ---
 
- fs/ocfs2/inode.c |   31 ++++++++++++++++++++++---------
- 1 file changed, 22 insertions(+), 9 deletions(-)
+ fs/ocfs2/inode.c |    8 +++++++-
+ 1 file changed, 7 insertions(+), 1 deletion(-)
 
---- a/fs/ocfs2/inode.c~ocfs2-abstract-the-dinode-suballoc-slot-checks
+--- a/fs/ocfs2/inode.c~ocfs2-abstract-the-dinode-suballoc-bit-check
 +++ a/fs/ocfs2/inode.c
-@@ -98,6 +98,19 @@ static bool ocfs2_dinode_has_wrong_fs_ge
- 	return le32_to_cpu(di->i_fs_generation) != OCFS2_SB(sb)->fs_generation;
+@@ -111,6 +111,12 @@ static bool ocfs2_dinode_has_out_of_rang
+ 		(u32)le16_to_cpu(di->i_suballoc_slot) > OCFS2_SB(sb)->max_slots - 1;
  }
  
-+static bool ocfs2_dinode_has_invalid_suballoc_slot(struct ocfs2_dinode *di)
++static bool ocfs2_dinode_has_bad_suballoc_bit(struct super_block *sb,
++					      struct ocfs2_dinode *di)
 +{
-+	return le16_to_cpu(di->i_suballoc_slot) == (u16)OCFS2_INVALID_SLOT &&
-+		!(le32_to_cpu(di->i_flags) & OCFS2_SYSTEM_FL);
-+}
-+
-+static bool ocfs2_dinode_has_out_of_range_suballoc_slot(struct super_block *sb,
-+							struct ocfs2_dinode *di)
-+{
-+	return le16_to_cpu(di->i_suballoc_slot) != (u16)OCFS2_INVALID_SLOT &&
-+		(u32)le16_to_cpu(di->i_suballoc_slot) > OCFS2_SB(sb)->max_slots - 1;
++	return le16_to_cpu(di->i_suballoc_bit) >= ocfs2_suballoc_bits_per_block(sb);
 +}
 +
  static bool ocfs2_valid_inode_mode(umode_t mode)
  {
  	return fs_umode_to_ftype(mode) != FT_UNKNOWN;
-@@ -1564,15 +1577,15 @@ int ocfs2_validate_inode_block(struct su
- 	 * deleting it would pass the slot to get_local_system_inode() via
- 	 * ocfs2_remove_inode() and trigger BUG_ON(slot == OCFS2_INVALID_SLOT).
+@@ -1601,7 +1607,7 @@ int ocfs2_validate_inode_block(struct su
+ 	 * BUG_ON((count + start_bit) > ocfs2_bits_per_group(cl)), since any
+ 	 * group holds at most ocfs2_suballoc_bits_per_block() bits.
  	 */
--	if (le16_to_cpu(di->i_suballoc_slot) == (u16)OCFS2_INVALID_SLOT) {
--		if (!(le32_to_cpu(di->i_flags) & OCFS2_SYSTEM_FL)) {
--			rc = ocfs2_error(sb,
--					 "Invalid dinode %llu: suballoc slot %u for non-system inode\n",
--					 (unsigned long long)bh->b_blocknr,
--					 le16_to_cpu(di->i_suballoc_slot));
--			goto bail;
--		}
--	} else if ((u32)le16_to_cpu(di->i_suballoc_slot) > OCFS2_SB(sb)->max_slots - 1) {
-+	if (ocfs2_dinode_has_invalid_suballoc_slot(di)) {
-+		rc = ocfs2_error(sb,
-+				 "Invalid dinode %llu: suballoc slot %u for non-system inode\n",
-+				 (unsigned long long)bh->b_blocknr,
-+				 le16_to_cpu(di->i_suballoc_slot));
-+		goto bail;
-+	}
-+
-+	if (ocfs2_dinode_has_out_of_range_suballoc_slot(sb, di)) {
- 		rc = ocfs2_error(sb, "Invalid dinode %llu: suballoc slot %u\n",
+-	if (le16_to_cpu(di->i_suballoc_bit) >= ocfs2_suballoc_bits_per_block(sb)) {
++	if (ocfs2_dinode_has_bad_suballoc_bit(sb, di)) {
+ 		rc = ocfs2_error(sb, "Invalid dinode %llu: suballoc bit %u\n",
  				 (unsigned long long)bh->b_blocknr,
- 				 le16_to_cpu(di->i_suballoc_slot));
+ 				 le16_to_cpu(di->i_suballoc_bit));
 _
 
 Patches currently in -mm which might be from joseph.qi@linux.alibaba.com are
