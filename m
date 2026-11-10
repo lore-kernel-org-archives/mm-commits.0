@@ -1,52 +1,51 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794338579;
-	b=aoZtlTIHFfiJyMwJ4YNTa4R1Lbqd/2TtxAKCYofJfjnX2wGzFmPkhu15XVvp7HwT8hVH
-	 U9n67QmLV8s6XhXWt9cfIalE1AP8biBIv84xI7rYPEwaGSoyN1qrZwzOas602zZLi6Ngd
-	 JaIKA4oAcz75NaqjPtRu5rCHrG/dnWVMg0OhvPLPV0/z2DjSKJFS/OQCWUVrM6fokqTA4
-	 2ZzG0dTyEbine3mznsgnUXbRq8pwEG6lTzrcBQqKeyVNhE5WdN+wgRf8G49MOu9iseYgw
-	 OItPvAgc+tX1I0z0jhp3e/oX31WY00lpB84WzSnLVATT9E9id2JSBPMjaetyvXkTMbA==
+	t=1794339382;
+	b=ooT8r+dW6gki0HwF6z+qtHV16CHPicLjPSddEtPhby/iNHwSUBRhJirsjl/gpDHHMCKt
+	 DhYsjzuiOg7+6Ogi9yWbzHjxvbZF4lgNzM1G3lFxNgKcFvZzQmlEuXzxl3Aa2OlRI+6Jl
+	 qDWisbnWeqOLTwV3lWFTZNFDM6J9mlxnOISYjAy6YWsyH9xD02NzlVgJ/uv9zQ8m6M/V1
+	 ZG8YD0GntAM4Hvj2aJz89g09tvKDHv3wOGeG8CaK7McVzL8NKVweOr14qe37Kxu3V8zek
+	 ZhoC+agbWDcZIusWQSb7GxPqZ3A/U+dJBL8/S1eAryTFokclum1NfW2DljXHad+yWOA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794338579;
+	a=rsa-sha256; c=relaxed/relaxed; t=1794339382;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=4NU71z7voU4BMIZ5UxeE0bcG991VxrR2jmOlvCN5vVU=;
-	b=2f994/SpyFp0hy3ORvgwpz50rpDvnq9Ej/xNIruFN1hF0i3jBQw/56FZpsfOgey4XfOe
-	 dukqzaYtaFqWe2iQ8+jKK1XESyjj7p9mjw8/4k4maJxphZvgoq9Z6RTq7f9MicVxqxXjV
-	 rGriU0CnjbK86baXdLUuhc2ComV3BT+KINDaxm4r21VX3otJQK3EjJCopm8Auf210qsYK
-	 gvoZt13PYeBtnVP/4EWqNDTigEMvlR2iO3dEYDcVlOc08OgCQnHhnz99xwWYm3Rilo3g1
-	 qygHIYpt3MNEZlce90S+ExsbHmuuVpRJ9Os3G7qWNJzJDiD+3GLPMdvwZT2w5YZhVHQ==
+	bh=bvbz4Nv3zjSZTC1L/5EJpsYTHE0e3Tvg+GRHWYYg8UE=;
+	b=k54HDdmIH1GfBfVqyzRmVyQjU07xCzt0Csit0ilWnYoG3iKNbtoZtQ5TDEPUN9nNMTb7
+	 5gEZSTS57YOsR1ZxCAhrKG6Q+oZtmOlrl7SBcfIgav5f2Mh0PueVZ0B4GdNKU7MR5834m
+	 KKEFNplpehbMjXoyD5f9KJf5s6AE/dxLU+FCO94xV0MdIbuZdYz+al/Y3TY8y0uDVq2lX
+	 ocxdn3vxzQCZpG7VaoGlu5bV1YE5X95Gd41m4TKYe1qKF/9JvfONObV7gjXzDsO/jM6iM
+	 wcqZr+U4Eq3pFtHiduYkCFqHDoNd1ey90kDtfLqU3wQAK3LyeK3h83jN5Q/xD0wUJDA==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b="yXtbN/Sa";
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=2UQbaMAK;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 77FA2606A31C
-	for <mm-commits@vger.kernel.org>; Tue, 10 Nov 2026 19:22:58 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 42EBC606A323;
+	Tue, 10 Nov 2026 19:36:21 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=yXtbN/Sa
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E81371F0089F;
-	Tue, 10 Nov 2026 19:22:57 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=2UQbaMAK
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A9EEB1F0089F;
+	Tue, 10 Nov 2026 19:36:21 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1794338578;
-	bh=4NU71z7voU4BMIZ5UxeE0bcG991VxrR2jmOlvCN5vVU=;
+	d=linux-foundation.org; s=korg; t=1794339381;
+	bh=bvbz4Nv3zjSZTC1L/5EJpsYTHE0e3Tvg+GRHWYYg8UE=;
 	h=Date:To:From:Subject;
-	b=yXtbN/Sada208RhHj+a4yC1FoqVDMBE/umsQrwyk0bKhsk+afkbvTH3THqOIws+9E
-	 B/ffMrSE9mCQXdQD3ZqfYQ37BL0Z/+nszrqPlJg4B0XsBD64gcnC/4EB8QrNnSUUtf
-	 LB5WBfIOsw1ypoIQ8hejo63OVmc5WoZdC/wCQQ1E=
-Date: Tue, 10 Nov 2026 11:22:57 -0800
-To: mm-commits@vger.kernel.org,zaslonko@linux.ibm.com,
-	sourabhjain@linux.ibm.com,skhan@linuxfoundation.org,shakeel.butt@linux.dev,
-	ruirui.yang@linux.dev,ruanjinjie@huawei.com,rppt@kernel.org,riel@surriel.com,
-	rdunlap@infradead.org,pratyush@kernel.org,pasha.tatashin@soleen.com,
-	osalvador@suse.de,muchun.song@linux.dev,leitao@debian.org,kas@kernel.org,
-	jbohac@suse.cz,hannes@cmpxchg.org,david@kernel.org,corbet@lwn.net,
-	bradley.morgan@linux.dev,baoquan.he@linux.dev,usama.arif@linux.dev,
-	akpm@linux-foundation.org
+	b=2UQbaMAKaF5lKHikBVfiv3IegnmaOc0GIWAojYYsSD8VCk8DAVIrASSrVojlLAwO5
+	 LyZMaaJ8wGihFtnia5CyGoxQfOziCA0bVbuYvhVvnuLsGsaDJevecBI44M9+/UTWLB
+	 0Xuk4Ohwd4ZcMuq2Jt/HOLxdtiOWpL+cDnziQ7rY=
+Date: Tue, 10 Nov 2026 11:36:21 -0800
+To: mm-commits@vger.kernel.org,yuanchu@google.com,youngjun.park@lge.com,
+	willy@infradead.org,weixugc@google.com,stable@vger.kernel.org,
+	shikemeng@huaweicloud.com,shakeel.butt@linux.dev,ryncsn@gmail.com,
+	qi.zheng@linux.dev,mhocko@kernel.org,ljs@kernel.org,kasong@tencent.com,
+	hannes@cmpxchg.org,david@kernel.org,chrisl@kernel.org,brauner@kernel.org,
+	baoquan.he@linux.dev,baolin.wang@linux.alibaba.com,baohua@kernel.org,
+	axelrasmussen@google.com,nphamcs@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-hugetlb-allow-crashkernel-to-reuse-hugetlb-cma-memory.patch added to mm-new branch
-Message-Id: <20261110192257.E81371F0089F@smtp.kernel.org>
+Subject: + mm-swap-publish-cluster-tables-after-reacquiring-allocator-locks.patch added to mm-hotfixes-unstable branch
+Message-Id: <20261110193621.A9EEB1F0089F@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -58,26 +57,15 @@ Precedence: list
 
 
 The patch titled
-     Subject: mm/hugetlb: allow crashkernel to reuse hugetlb CMA memory
-has been added to the -mm mm-new branch.  Its filename is
-     mm-hugetlb-allow-crashkernel-to-reuse-hugetlb-cma-memory.patch
+     Subject: mm/swap: publish cluster tables after reacquiring allocator locks
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     mm-swap-publish-cluster-tables-after-reacquiring-allocator-locks.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-hugetlb-allow-crashkernel-to-reuse-hugetlb-cma-memory.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-swap-publish-cluster-tables-after-reacquiring-allocator-locks.patch
 
-This patch will later appear in the mm-new branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Note, mm-new is a provisional staging ground for work-in-progress
-patches, and acceptance into mm-new is a notification for others take
-notice and to finish up reviews.  Please do not hesitate to respond to
-review feedback and post updated versions to replace or incrementally
-fixup patches in mm-new.
-
-The mm-new branch of mm.git is not included in linux-next
-
-If a few days of testing in mm-new is successful, the patch will me moved
-into mm.git's mm-unstable branch, which is included in linux-next
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -92,502 +80,266 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Usama Arif <usama.arif@linux.dev>
-Subject: mm/hugetlb: allow crashkernel to reuse hugetlb CMA memory
-Date: Fri, 06 Nov 2026 08:51:42 -0800
+From: Nhat Pham <nphamcs@gmail.com>
+Subject: mm/swap: publish cluster tables after reacquiring allocator locks
+Date: Tue, 10 Nov 2026 07:14:06 -0800
 
-crashkernel=size,cma reserves a separate CMA pool.  On systems that
-already reserve several gigabytes with hugetlb_cma= (which is common in
-the Meta fleet), the crash kernel cannot use that existing memory as part
-of its working set.  With hugetlb_cma=6G, requesting another 2G with
-crashkernel=2G,cma brings the total CMA reservation to 8G, none of which
-can serve unmovable kernel allocations.
+Under memory pressure, swap_cluster_populate() can publish a table
+while its locks are dropped for a sleeping allocation. A cached
+allocator can consume and free that table before the populating
+allocator resumes, leaving the resumed scan with a NULL table.
 
-Use existing HugeTLB CMA memory first for crashkernel=size,cma and reserve
-dedicated CMA areas only for the remainder.  With hugetlb_cma=6G, a 2G
-request reuses 2G without reserving more CMA.  With hugetlb_cma=2G, a 4G
-request reuses 2G and reserves another 2G.
+    CPU0                           CPU1
+    alloc_swap_scan_list()
+      isolate_lock_cluster()
+        swap_cluster_populate()
+          drop local/global/ci locks
+          swap_cluster_alloc_table()
+            rcu_assign_pointer(ci->table, table)
+                                   folio_alloc_swap()
+                                     swap_alloc_fast()
+                                       alloc_swap_scan_cluster()
+                                         __swap_cluster_alloc_entries()
+                                     mem_cgroup_try_charge_swap()
+                                       return -ENOMEM
+                                     swap_cache_del_folio()
+                                       __swap_cache_del_folio()
+                                         __swap_cache_do_del_folio()
+                                           __swap_cluster_free_entries()
+                                             free_cluster()
+                                               __free_cluster()
+                                                 swap_cluster_free_table()
+          reacquire local/global/ci locks
+          return ci
+      alloc_swap_scan_cluster()
+        cluster_scan_range()
+          __swap_table_get()  /* NULL table */
 
-The full HugeTLB CMA pool remains available to HugeTLB and movable
-allocations during normal operation.  After a crash, the capture kernel
-can use the selected ranges as working memory.  The conventional
-reservation is still required to hold the kernel image and initrd.
+Keep the count table, cgroup table and zero bitmap private until
+swap_cluster_alloc_table() restores all allocator locks. Install them
+under the cluster lock and retain it through the scan. Initial bad-slot
+setup takes only the cluster lock because the device is unpublished.
 
-The ,cma option already opts into excluding userspace memory from the
-vmcore.  This includes allocated HugeTLB pages in the selected ranges,
-which the capture kernel can overwrite.  The existing dump completeness
-and pending DMA risks apply to these ranges as well.
+The allocator releases its locks before the sleeping allocation. A
+reclaimer that dropped ci->lock earlier can then resume and put the
+cluster back on the free list. Abandon installation if the list state
+changes or a table appears, freeing only private allocations. Restore
+locks on allocation failure too, so the caller can return a still-isolated
+cluster to its free list.
 
-Have architecture code record the requested CMA size and perform the
-reservation in mm_core_init_early(), immediately after
-hugetlb_cma_reserve().  The HugeTLB CMA areas are then available for reuse
-while memblock can still reserve any remainder.
-
-Use the existing four range slots for both reused and dedicated memory. 
-Limit reused memory to the page-aligned request, account for dedicated CMA
-alignment, and report any shortfall.  Ignore malformed optional sizes and
-reject requests that would overflow page rounding.
-
-Link: https://lore.kernel.org/20261106165142.2847916-1-usama.arif@linux.dev
-Signed-off-by: Usama Arif <usama.arif@linux.dev>
+Link: https://lore.kernel.org/20261110151407.789960-3-nphamcs@gmail.com
+Link: https://lore.kernel.org/all/sashiko-outbox-181086@kernel.org/
+Fixes: cdd77f84d966 ("mm, swap: consolidate cluster allocation helpers")
+Signed-off-by: Nhat Pham <nphamcs@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Suggested-by: Breno Leitao <leitao@debian.org>
-Reviewed-by: Bradley Morgan <bradley.morgan@linux.dev>
-Acked-by: Kiryl Shutsemau (Meta) <kas@kernel.org>
-Cc: Baoquan He <baoquan.he@linux.dev>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Pasha Tatashin <pasha.tatashin@soleen.com>
-Cc: Pratyush Yadav <pratyush@kernel.org>
-Cc: <ruirui.yang@linux.dev>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: <skhan@linuxfoundation.org>
-Cc: Randy Dunlap <rdunlap@infradead.org>
-Cc: Muchun Song <muchun.song@linux.dev>
-Cc: Oscar Salvador <osalvador@suse.de>
-Cc: David Hildenbrand <david@kernel.org>
-Cc: Jiri Bohac <jbohac@suse.cz>
-Cc: Sourabh Jain <sourabhjain@linux.ibm.com>
-Cc: Jinjie Ruan <ruanjinjie@huawei.com>
+Reported-by: Sashiko <sashiko-bot@kernel.org>
+Closes: https://lore.kernel.org/all/sashiko-outbox-181084@kernel.org/
+Suggested-by: Kairui Song <ryncsn@gmail.com>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Rik van Riel <riel@surriel.com>
+Cc: David Hildenbrand <david@kernel.org>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Qi Zheng <qi.zheng@linux.dev>
 Cc: Shakeel Butt <shakeel.butt@linux.dev>
-Cc: Mikhail Zaslonko <zaslonko@linux.ibm.com>
+Cc: Lorenzo Stoakes <ljs@kernel.org>
+Cc: Kairui Song <kasong@tencent.com>
+Cc: Barry Song <baohua@kernel.org>
+Cc: Axel Rasmussen <axelrasmussen@google.com>
+Cc: Yuanchu Xie <yuanchu@google.com>
+Cc: Wei Xu <weixugc@google.com>
+Cc: Baoquan He <baoquan.he@linux.dev>
+Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Christian Brauner <brauner@kernel.org>
+Cc: Christopher Li <chrisl@kernel.org>
+Cc: Kemeng Shi <shikemeng@huaweicloud.com>
+Cc: Youngjun Park <youngjun.park@lge.com>
+Cc: <stable@vger.kernel.org>
 ---
 
- Documentation/ABI/testing/sysfs-kernel-kexec-kdump |    3 
- Documentation/admin-guide/kdump/kdump.rst          |   22 ++++
- Documentation/admin-guide/kernel-parameters.txt    |   16 +++
- arch/arm64/mm/init.c                               |    2 
- arch/powerpc/include/asm/kexec.h                   |    2 
- arch/powerpc/kexec/core.c                          |   12 --
- arch/powerpc/mm/mem.c                              |    6 -
- arch/riscv/mm/init.c                               |    2 
- arch/x86/kernel/setup.c                            |    2 
- include/linux/crash_reserve.h                      |   14 ++-
- include/linux/hugetlb.h                            |   12 ++
- kernel/crash_reserve.c                             |   51 +++++++----
- mm/hugetlb_cma.c                                   |   50 ++++++++++
- mm/mm_init.c                                       |    2 
- 14 files changed, 159 insertions(+), 37 deletions(-)
+ mm/swapfile.c |  106 +++++++++++++++++++++++++++++++++---------------
+ 1 file changed, 74 insertions(+), 32 deletions(-)
 
---- a/arch/arm64/mm/init.c~mm-hugetlb-allow-crashkernel-to-reuse-hugetlb-cma-memory
-+++ a/arch/arm64/mm/init.c
-@@ -114,7 +114,7 @@ static void __init arch_reserve_crashker
- 		return;
- 
- 	reserve_crashkernel_generic(crash_size, crash_base, low_size, high);
--	reserve_crashkernel_cma(cma_size);
-+	crashkernel_cma_set_size(cma_size);
+--- a/mm/swapfile.c~mm-swap-publish-cluster-tables-after-reacquiring-allocator-locks
++++ a/mm/swapfile.c
+@@ -449,15 +449,23 @@ static void swap_cluster_free_table(stru
+ 	swap_cluster_free_count_table(table);
  }
  
- static phys_addr_t __init max_zone_phys(phys_addr_t zone_limit)
---- a/arch/powerpc/include/asm/kexec.h~mm-hugetlb-allow-crashkernel-to-reuse-hugetlb-cma-memory
-+++ a/arch/powerpc/include/asm/kexec.h
-@@ -117,11 +117,9 @@ int setup_new_fdt_ppc64(const struct kim
- #ifdef CONFIG_CRASH_RESERVE
- int __init overlaps_crashkernel(unsigned long start, unsigned long size);
- extern void arch_reserve_crashkernel(void);
--extern void kdump_cma_reserve(void);
- #else
- static inline void arch_reserve_crashkernel(void) {}
- static inline int overlaps_crashkernel(unsigned long start, unsigned long size) { return 0; }
--static inline void kdump_cma_reserve(void) { }
- #endif
- 
- #if defined(CONFIG_CRASH_DUMP)
---- a/arch/powerpc/kexec/core.c~mm-hugetlb-allow-crashkernel-to-reuse-hugetlb-cma-memory
-+++ a/arch/powerpc/kexec/core.c
-@@ -62,8 +62,6 @@ void machine_kexec(struct kimage *image)
- 
- #ifdef CONFIG_CRASH_RESERVE
- 
--static unsigned long long crashk_cma_size;
--
- static unsigned long long __init get_crash_base(unsigned long long crash_base)
- {
- 
-@@ -107,6 +105,7 @@ static unsigned long long __init get_cra
- void __init arch_reserve_crashkernel(void)
- {
- 	unsigned long long crash_size, crash_base, crash_end;
-+	unsigned long long cma_size = 0;
- 	unsigned long long kernel_start, kernel_size;
- 	unsigned long long total_mem_sz;
- 	int ret;
-@@ -115,7 +114,7 @@ void __init arch_reserve_crashkernel(voi
- 
- 	/* use common parsing */
- 	ret = parse_crashkernel(boot_command_line, total_mem_sz, &crash_size,
--				&crash_base, NULL, &crashk_cma_size, NULL);
-+				&crash_base, NULL, &cma_size, NULL);
- 
- 	if (ret)
- 		return;
-@@ -133,12 +132,7 @@ void __init arch_reserve_crashkernel(voi
- 	}
- 
- 	reserve_crashkernel_generic(crash_size, crash_base, 0, false);
--}
--
--void __init kdump_cma_reserve(void)
--{
--	if (crashk_cma_size)
--		reserve_crashkernel_cma(crashk_cma_size);
-+	crashkernel_cma_set_size(cma_size);
- }
- 
- int __init overlaps_crashkernel(unsigned long start, unsigned long size)
---- a/arch/powerpc/mm/mem.c~mm-hugetlb-allow-crashkernel-to-reuse-hugetlb-cma-memory
-+++ a/arch/powerpc/mm/mem.c
-@@ -271,12 +271,10 @@ void __init arch_mm_preinit(void)
- {
- 
- 	/*
--	 * Reserve large chunks of memory for use by CMA for kdump, fadump, KVM
--	 * and hugetlb. These must be called after pageblock_order is
--	 * initialised.
-+	 * Reserve large chunks of memory for use by CMA for fadump and KVM.
-+	 * These must be called after pageblock_order is initialised.
- 	 */
- 	fadump_cma_init();
--	kdump_cma_reserve();
- 	kvm_cma_reserve();
- 
- 	/*
---- a/arch/riscv/mm/init.c~mm-hugetlb-allow-crashkernel-to-reuse-hugetlb-cma-memory
-+++ a/arch/riscv/mm/init.c
-@@ -1357,7 +1357,7 @@ static void __init arch_reserve_crashker
- 		return;
- 
- 	reserve_crashkernel_generic(crash_size, crash_base, low_size, high);
--	reserve_crashkernel_cma(cma_size);
-+	crashkernel_cma_set_size(cma_size);
- }
- 
- void __init paging_init(void)
---- a/arch/x86/kernel/setup.c~mm-hugetlb-allow-crashkernel-to-reuse-hugetlb-cma-memory
-+++ a/arch/x86/kernel/setup.c
-@@ -627,7 +627,7 @@ static void __init arch_reserve_crashker
- 	}
- 
- 	reserve_crashkernel_generic(crash_size, crash_base, low_size, high);
--	reserve_crashkernel_cma(cma_size);
-+	crashkernel_cma_set_size(cma_size);
- }
- 
- static struct resource standard_io_resources[] = {
---- a/Documentation/ABI/testing/sysfs-kernel-kexec-kdump~mm-hugetlb-allow-crashkernel-to-reuse-hugetlb-cma-memory
-+++ a/Documentation/ABI/testing/sysfs-kernel-kexec-kdump
-@@ -58,4 +58,7 @@ Description:	read only
- 		the Contiguous Memory Allocator (CMA) area that are allocated
- 		to the crash (kdump) kernel. It lists the start and end physical
- 		addresses of CMA regions assigned for crashkernel use.
-+		This includes existing HugeTLB CMA memory selected with
-+		crashkernel=size,cma. These ranges remain usable
-+		by the running kernel and are excluded from the vmcore.
- User:		kdump service
---- a/Documentation/admin-guide/kdump/kdump.rst~mm-hugetlb-allow-crashkernel-to-reuse-hugetlb-cma-memory
-+++ a/Documentation/admin-guide/kdump/kdump.rst
-@@ -313,9 +313,25 @@ crashkernel syntax
- 
- 4) crashkernel=size,cma
- 
--	Reserve additional crash kernel memory from CMA. This reservation is
--	usable by the first system's userspace memory and kernel movable
--	allocations (memory balloon, zswap). Pages allocated from this memory
-+	Reserve additional crash kernel memory from CMA. Existing HugeTLB CMA
-+	memory is used first, and dedicated CMA areas are reserved for any
-+	remaining amount. For example, this reuses 2G from the existing 6G pool
-+	without reserving additional CMA memory::
-+
-+	    hugetlb_cma=6G crashkernel=256M crashkernel=2G,cma
-+
-+	With a smaller HugeTLB CMA pool, the remainder is reserved separately::
-+
-+	    hugetlb_cma=2G crashkernel=256M crashkernel=4G,cma
-+
-+	This reuses the existing 2G and reserves another 2G of dedicated CMA.
-+	Both kinds of area use the same limit of four physical ranges. If there
-+	is insufficient memory or too few range slots, the kernel reports the
-+	shortfall. Normal CMA alignment applies to dedicated reservations.
-+
-+	The selected memory remains usable by the first system's userspace,
-+	including HugeTLB allocations, and kernel movable allocations
-+	(memory balloon, zswap). Pages allocated from this memory
- 	range will not be included in the vmcore so this should not be used if
- 	dumping of userspace memory is intended and it has to be expected that
- 	some movable kernel pages may be missing from the dump.
---- a/Documentation/admin-guide/kernel-parameters.txt~mm-hugetlb-allow-crashkernel-to-reuse-hugetlb-cma-memory
-+++ a/Documentation/admin-guide/kernel-parameters.txt
-@@ -1100,7 +1100,21 @@ Kernel parameters
- 			or memory reserved is below 4G.
- 	crashkernel=size[KMG],cma
- 			[KNL, X86, ARM64, RISCV, PPC] Reserve additional crash
--			kernel memory from CMA. This reservation is usable by
-+			kernel memory from CMA. Existing hugetlb_cma memory is
-+			used first, and dedicated CMA areas are reserved for any
-+			remaining amount. For example:
-+			  hugetlb_cma=6G crashkernel=256M crashkernel=2G,cma
-+			reuses 2G without reserving more CMA, while:
-+			  hugetlb_cma=2G crashkernel=256M crashkernel=4G,cma
-+			reuses 2G and reserves another 2G of dedicated CMA.
-+
-+			Both kinds of area use the same limit of four physical
-+			ranges. If the available memory or range slots cannot
-+			cover the requested size, the kernel reports the
-+			shortfall. Normal CMA alignment applies to dedicated
-+			reservations.
-+
-+			The selected memory remains usable by
- 			the first system's userspace memory and kernel movable
- 			allocations (memory balloon, zswap). Pages allocated
- 			from this memory range will not be included in the vmcore
---- a/include/linux/crash_reserve.h~mm-hugetlb-allow-crashkernel-to-reuse-hugetlb-cma-memory
-+++ a/include/linux/crash_reserve.h
-@@ -5,6 +5,7 @@
- #include <linux/linkage.h>
- #include <linux/elfcore.h>
- #include <linux/elf.h>
-+#include <linux/range.h>
- #ifdef CONFIG_ARCH_HAS_GENERIC_CRASHKERNEL_RESERVATION
- #include <asm/crash_reserve.h>
- #endif
-@@ -31,7 +32,18 @@ int __init parse_crashkernel(char *cmdli
- 		unsigned long long *low_size, unsigned long long *cma_size,
- 		bool *high);
- 
--void __init reserve_crashkernel_cma(unsigned long long cma_size);
-+#if defined(CONFIG_CRASH_RESERVE) && defined(CONFIG_ARCH_HAS_GENERIC_CRASHKERNEL_RESERVATION)
-+void __init crashkernel_cma_set_size(unsigned long long size);
-+void __init reserve_crashkernel_cma(void);
-+#else
-+static inline void __init crashkernel_cma_set_size(unsigned long long size)
-+{
-+}
-+
-+static inline void __init reserve_crashkernel_cma(void)
-+{
-+}
-+#endif
- 
- #ifdef CONFIG_ARCH_HAS_GENERIC_CRASHKERNEL_RESERVATION
- #ifndef arch_add_crash_res_to_iomem
---- a/include/linux/hugetlb.h~mm-hugetlb-allow-crashkernel-to-reuse-hugetlb-cma-memory
-+++ a/include/linux/hugetlb.h
-@@ -1349,12 +1349,24 @@ static inline spinlock_t *huge_pte_lock(
- 	return ptl;
- }
- 
-+struct range;
-+
- #if defined(CONFIG_HUGETLB_PAGE) && defined(CONFIG_CMA)
- extern void __init hugetlb_cma_reserve(void);
-+unsigned long long __init
-+hugetlb_cma_add_crashkernel_ranges(unsigned long long size, struct range *ranges,
-+				   int *nr_ranges, int max_ranges);
- #else
- static inline __init void hugetlb_cma_reserve(void)
- {
- }
-+
-+static inline unsigned long long
-+hugetlb_cma_add_crashkernel_ranges(unsigned long long size, struct range *ranges,
-+				   int *nr_ranges, int max_ranges)
-+{
-+	return 0;
-+}
- #endif
- 
- #ifdef CONFIG_HUGETLB_PMD_PAGE_TABLE_SHARING
---- a/kernel/crash_reserve.c~mm-hugetlb-allow-crashkernel-to-reuse-hugetlb-cma-memory
-+++ a/kernel/crash_reserve.c
-@@ -16,6 +16,7 @@
- #include <linux/kmemleak.h>
- #include <linux/cma.h>
- #include <linux/crash_reserve.h>
-+#include <linux/hugetlb.h>
- 
- #include <asm/page.h>
- #include <asm/sections.h>
-@@ -340,9 +341,9 @@ int __init parse_crashkernel(char *cmdli
- 	 * optional CMA reservation
- 	 * cma_base is ignored
- 	 */
--	if (cma_size)
--		__parse_crashkernel(cmdline, 0, cma_size,
--			&cma_base, suffix_tbl[SUFFIX_CMA]);
-+	if (cma_size && __parse_crashkernel(cmdline, 0, cma_size,
-+					    &cma_base, suffix_tbl[SUFFIX_CMA]))
-+		*cma_size = 0;
- #endif
- 	if (!*crash_size)
- 		ret = -EINVAL;
-@@ -470,21 +471,41 @@ retry:
- }
- 
- struct range crashk_cma_ranges[CRASHKERNEL_CMA_RANGES_MAX];
-+static unsigned long long crashkernel_cma_size __initdata;
-+
-+void __init crashkernel_cma_set_size(unsigned long long cma_size)
-+{
-+	crashkernel_cma_size = cma_size;
-+}
-+
- #ifdef CRASHKERNEL_CMA
- int crashk_cma_cnt;
--void __init reserve_crashkernel_cma(unsigned long long cma_size)
-+void __init reserve_crashkernel_cma(void)
- {
--	unsigned long long request_size = roundup(cma_size, PAGE_SIZE);
--	unsigned long long reserved_size = 0;
-+	unsigned long long cma_size = crashkernel_cma_size;
-+	unsigned long long request_size, reserved_size, reused_size;
- 
--	if (!cma_size)
-+	if (!cma_size || crashk_res.start >= crashk_res.end)
- 		return;
- 
-+	if (cma_size > ULLONG_MAX - (PAGE_SIZE - 1)) {
-+		pr_warn("crashkernel CMA size is too large\n");
-+		return;
-+	}
-+	cma_size = roundup(cma_size, PAGE_SIZE);
-+	reused_size = hugetlb_cma_add_crashkernel_ranges(cma_size,
-+							 crashk_cma_ranges,
-+							 &crashk_cma_cnt,
-+							 CRASHKERNEL_CMA_RANGES_MAX);
-+	reserved_size = reused_size;
-+	request_size = cma_size - reused_size;
-+
- 	while (cma_size > reserved_size &&
- 	       crashk_cma_cnt < CRASHKERNEL_CMA_RANGES_MAX) {
- 
- 		struct cma *res;
- 
-+		request_size = min(request_size, cma_size - reserved_size);
- 		if (cma_declare_contiguous(0, request_size, 0, 0, 0, false,
- 				       "crashkernel", &res)) {
- 			/* reservation failed, try half-sized blocks */
-@@ -500,21 +521,23 @@ void __init reserve_crashkernel_cma(unsi
- 			crashk_cma_ranges[crashk_cma_cnt].start +
- 			cma_get_size(res) - 1;
- 		++crashk_cma_cnt;
--		reserved_size += request_size;
-+		reserved_size += cma_get_size(res);
- 	}
- 
- 	if (cma_size > reserved_size)
--		pr_warn("crashkernel CMA reservation failed: %lld MB requested, %lld MB reserved in %d ranges\n",
--			cma_size >> 20, reserved_size >> 20, crashk_cma_cnt);
-+		pr_warn("crashkernel CMA reservation failed: %llu MB requested, %llu MB reused, %llu MB newly reserved in %d ranges\n",
-+			cma_size >> 20, reused_size >> 20,
-+			(reserved_size - reused_size) >> 20, crashk_cma_cnt);
- 	else
--		pr_info("crashkernel CMA reserved: %lld MB in %d ranges\n",
--			reserved_size >> 20, crashk_cma_cnt);
-+		pr_info("crashkernel CMA: %llu MB reused, %llu MB newly reserved in %d ranges\n",
-+			reused_size >> 20, (reserved_size - reused_size) >> 20,
-+			crashk_cma_cnt);
- }
- 
- #else /* CRASHKERNEL_CMA */
--void __init reserve_crashkernel_cma(unsigned long long cma_size)
-+void __init reserve_crashkernel_cma(void)
- {
--	if (cma_size)
-+	if (crashkernel_cma_size)
- 		pr_warn("crashkernel CMA reservation not supported\n");
- }
- #endif
---- a/mm/hugetlb_cma.c~mm-hugetlb-allow-crashkernel-to-reuse-hugetlb-cma-memory
-+++ a/mm/hugetlb_cma.c
-@@ -11,6 +11,8 @@
- #include <linux/memblock.h>
- #include <linux/math.h>
- #include <linux/math64.h>
-+#include <linux/range.h>
-+#include "cma.h"
- #include "internal.h"
- #include "hugetlb_cma.h"
- 
-@@ -387,6 +389,54 @@ void __init hugetlb_cma_reserve(void)
- 		hugetlb_cma_size = 0;
- }
- 
-+/**
-+ * hugetlb_cma_add_crashkernel_ranges - share HugeTLB CMA with the crash kernel
-+ * @size: maximum number of bytes to share, aligned to PAGE_SIZE
-+ * @ranges: crash kernel memory ranges
-+ * @nr_ranges: number of entries already in @ranges, updated on return
-+ * @max_ranges: capacity of @ranges
-+ *
-+ * The shared memory remains available to the HugeTLB allocator until a crash.
-+ * Only physical ranges belonging to successfully reserved CMA areas are added.
-+ *
-+ * Return: number of bytes shared.
+-static int swap_cluster_alloc_table(struct swap_cluster_info *ci, gfp_t gfp)
++/*
++ * Return with ci locked. An unlocked allocator also needs si's outer locks;
++ * initial bad-slot setup passes NULL because the device is not published.
 + */
-+unsigned long long __init
-+hugetlb_cma_add_crashkernel_ranges(unsigned long long size, struct range *ranges,
-+				   int *nr_ranges, int max_ranges)
-+{
-+	unsigned long long shared_size = 0;
-+	int nid, i;
-+
-+	for_each_node_mask(nid, hugetlb_bootmem_nodes) {
-+		struct cma *cma = hugetlb_cma[nid];
-+
-+		if (!cma)
-+			continue;
-+
-+		for (i = 0; i < cma->nranges; i++) {
-+			struct cma_memrange *cmr = &cma->ranges[i];
-+			unsigned long long range_size;
-+			struct range *range;
-+
-+			if (shared_size == size || *nr_ranges == max_ranges)
-+				return shared_size;
-+
-+			range_size = min_t(unsigned long long,
-+					   PFN_PHYS(cmr->count), size - shared_size);
-+			range = &ranges[(*nr_ranges)++];
-+			range->start = PFN_PHYS(cmr->base_pfn);
-+			range->end = range->start + range_size - 1;
-+			shared_size += range_size;
-+
-+			/* Keep shared pages reserved if CMA activation fails. */
-+			cma_reserve_pages_on_error(cma);
-+		}
-+	}
-+
-+	return shared_size;
-+}
-+
- bool hugetlb_cma_exclusive_alloc(void)
++static int swap_cluster_alloc_table(struct swap_info_struct *si,
++				    struct swap_cluster_info *ci,
++				    gfp_t gfp, bool locked)
  {
- 	return hugetlb_cma_only;
---- a/mm/mm_init.c~mm-hugetlb-allow-crashkernel-to-reuse-hugetlb-cma-memory
-+++ a/mm/mm_init.c
-@@ -28,6 +28,7 @@
- #include <linux/swap.h>
- #include <linux/cma.h>
- #include <linux/crash_dump.h>
-+#include <linux/crash_reserve.h>
- #include <linux/execmem.h>
- #include <linux/sizes.h>
- #include <linux/vmstat.h>
-@@ -2686,6 +2687,7 @@ void __init mm_core_init_early(void)
- 	free_area_init();
+ 	struct swap_table *table = NULL;
++#ifdef CONFIG_MEMCG
++	struct swap_memcg_table *memcg_table = NULL;
++#endif
++#if !SWAP_TABLE_HAS_ZEROFLAG
++	unsigned long *zero_bitmap = NULL;
++#endif
+ 	struct folio *folio;
+-
+-	/* The cluster must be empty and not on any list during allocation. */
+-	VM_WARN_ON_ONCE(ci->flags || !cluster_is_empty(ci));
+-	if (rcu_access_pointer(ci->table))
+-		return 0;
++	int ret = -ENOMEM;
  
- 	hugetlb_cma_reserve();
-+	reserve_crashkernel_cma();
- 	hugetlb_bootmem_alloc();
+ 	if (SWP_TABLE_USE_PAGE) {
+ 		folio = folio_alloc(gfp | __GFP_ZERO, 0);
+@@ -467,27 +475,49 @@ static int swap_cluster_alloc_table(stru
+ 		table = kmem_cache_zalloc(swap_table_cachep, gfp);
+ 	}
+ 	if (!table)
+-		return -ENOMEM;
++		goto lock;
  
- 	sparse_init();
+ #ifdef CONFIG_MEMCG
+ 	if (!mem_cgroup_disabled()) {
+-		VM_WARN_ON_ONCE(ci->memcg_table);
+-		ci->memcg_table = kzalloc_obj(*ci->memcg_table, gfp);
+-		if (!ci->memcg_table) {
+-			swap_cluster_free_count_table(table);
+-			return -ENOMEM;
+-		}
++		memcg_table = kzalloc_obj(*ci->memcg_table, gfp);
++		if (!memcg_table)
++			goto lock;
+ 	}
+ #endif
+ 
+ #if !SWAP_TABLE_HAS_ZEROFLAG
+-	VM_WARN_ON_ONCE(ci->zero_bitmap);
+-	ci->zero_bitmap = bitmap_zalloc(SWAPFILE_CLUSTER, gfp);
+-	if (!ci->zero_bitmap) {
+-		swap_cluster_free_table(ci);
+-		swap_cluster_free_count_table(table);
+-		return -ENOMEM;
++	zero_bitmap = bitmap_zalloc(SWAPFILE_CLUSTER, gfp);
++	if (!zero_bitmap)
++		goto lock;
++#endif
++	ret = 0;
++
++lock:
++	if (!locked) {
++		if (si) {
++			local_lock(&percpu_swap_cluster.lock);
++			if (!(si->flags & SWP_SOLIDSTATE))
++				spin_lock(&si->global_cluster_lock);
++		}
++		spin_lock(&ci->lock);
+ 	}
++	lockdep_assert_held(&ci->lock);
++
++	/* A stale reclaimer may have returned the cluster to the free list. */
++	if (ci->flags != CLUSTER_FLAG_NONE || cluster_table_is_alloced(ci))
++		ret = -EAGAIN;
++	if (ret)
++		goto free;
++
++	/* The cluster must be empty and not on any list during allocation. */
++	VM_WARN_ON_ONCE(!cluster_is_empty(ci));
++#ifdef CONFIG_MEMCG
++	VM_WARN_ON_ONCE(ci->memcg_table);
++	ci->memcg_table = memcg_table;
++#endif
++#if !SWAP_TABLE_HAS_ZEROFLAG
++	VM_WARN_ON_ONCE(ci->zero_bitmap);
++	ci->zero_bitmap = zero_bitmap;
+ #endif
+ 
+ 	/*
+@@ -496,6 +526,17 @@ static int swap_cluster_alloc_table(stru
+ 	 */
+ 	rcu_assign_pointer(ci->table, table);
+ 	return 0;
++
++free:
++#ifdef CONFIG_MEMCG
++	kfree(memcg_table);
++#endif
++#if !SWAP_TABLE_HAS_ZEROFLAG
++	bitmap_free(zero_bitmap);
++#endif
++	if (table)
++		swap_cluster_free_count_table(table);
++	return ret;
+ }
+ 
+ /*
+@@ -546,8 +587,8 @@ swap_cluster_populate(struct swap_info_s
+ 		lockdep_assert_held(&si->global_cluster_lock);
+ 	lockdep_assert_held(&ci->lock);
+ 
+-	if (!swap_cluster_alloc_table(ci, __GFP_HIGH | __GFP_NOMEMALLOC |
+-					  __GFP_NOWARN))
++	if (!swap_cluster_alloc_table(si, ci, __GFP_HIGH | __GFP_NOMEMALLOC |
++					      __GFP_NOWARN, true))
+ 		return ci;
+ 
+ 	/*
+@@ -560,8 +601,8 @@ swap_cluster_populate(struct swap_info_s
+ 		spin_unlock(&si->global_cluster_lock);
+ 	local_unlock(&percpu_swap_cluster.lock);
+ 
+-	ret = swap_cluster_alloc_table(ci, __GFP_HIGH | __GFP_NOMEMALLOC |
+-					   GFP_KERNEL);
++	ret = swap_cluster_alloc_table(si, ci, __GFP_HIGH | __GFP_NOMEMALLOC |
++					     GFP_KERNEL, false);
+ 
+ 	/*
+ 	 * Back to atomic context. We might have migrated to a new CPU with a
+@@ -571,13 +612,9 @@ swap_cluster_populate(struct swap_info_s
+ 	 * could happen with ignoring the percpu cluster is fragmentation,
+ 	 * which is acceptable since this fallback and race is rare.
+ 	 */
+-	local_lock(&percpu_swap_cluster.lock);
+-	if (!(si->flags & SWP_SOLIDSTATE))
+-		spin_lock(&si->global_cluster_lock);
+-	spin_lock(&ci->lock);
+-
+ 	if (ret) {
+-		move_cluster(si, ci, &si->free_clusters, CLUSTER_FLAG_FREE);
++		if (ret != -EAGAIN)
++			move_cluster(si, ci, &si->free_clusters, CLUSTER_FLAG_FREE);
+ 		spin_unlock(&ci->lock);
+ 		return NULL;
+ 	}
+@@ -825,9 +862,13 @@ static int swap_cluster_setup_bad_slot(s
+ 
+ 	ci = cluster_info + idx;
+ 	/* Need to allocate swap table first for initial bad slot marking. */
+-	if (!ci->count && swap_cluster_alloc_table(ci, GFP_KERNEL))
+-		return -ENOMEM;
+-	spin_lock(&ci->lock);
++	if (!ci->count) {
++		ret = swap_cluster_alloc_table(NULL, ci, GFP_KERNEL, false);
++		if (ret)
++			goto out;
++	} else {
++		spin_lock(&ci->lock);
++	}
+ 	/* Check for duplicated bad swap slots. */
+ 	if (__swap_table_xchg(ci, ci_off, SWP_TB_BAD) != SWP_TB_NULL) {
+ 		pr_warn("Duplicated bad slot offset %d\n", offset);
+@@ -835,6 +876,7 @@ static int swap_cluster_setup_bad_slot(s
+ 	} else {
+ 		ci->count++;
+ 	}
++out:
+ 	spin_unlock(&ci->lock);
+ 
+ 	WARN_ON(ci->count > SWAPFILE_CLUSTER);
 _
 
-Patches currently in -mm which might be from usama.arif@linux.dev are
+Patches currently in -mm which might be from nphamcs@gmail.com are
 
-mm-zswap-use-separate-compression-and-decompression-requests.patch
-mm-zswap-use-stack-requests-for-synchronous-decompression.patch
-mm-hugetlb-allow-crashkernel-to-reuse-hugetlb-cma-memory.patch
+mm-vmscan-allow-writeout-of-swapcache-folios-without-anon-mappings.patch
+mm-swap-publish-cluster-tables-after-reacquiring-allocator-locks.patch
+mm-swap-skip-relocation-of-tableless-clusters.patch
 
