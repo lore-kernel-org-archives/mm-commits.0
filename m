@@ -1,46 +1,46 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794270034;
-	b=RVw4uoZkWeyJOCdvRsKM4cp/qIZvHHTS57/893HS/UYqBSBd0C6jIJTjyfBCc4BBaHJu
-	 RIh19izDEgNzGtbhCa3XkNk5WYjAoJSVvBqkY1/LBC0IC7Xn3WNKtVyUgNawLm9jcIUhZ
-	 EPTVkfVaEqyO+zZBi3n04OGm7e51zfIWkhpE6hg/0vVoi87Z3Ct1CLIiHXWkl6kCoaTyF
-	 qaTYGpAZRn6vHh2wKCEVSfmxsRyUoVtjBH0Eqq9aOYyVVi+KBRjDvQXCRjMzB07floMcl
-	 sNtiVNg2gHlIRkLOicm+rf3T2Blx0PEGTqKCS+l9v7ilYmba7UPQETTR83Ep3xIz2kg==
+	t=1794270035;
+	b=eOD1sCyq1KvPIBMyss5SwrBcjJrGpcJqVvFlSb+shnUrl+tRVQ2FnKkc2XPkZHWxIwUJ
+	 J97LZXs0xf4oAHmEjKHlVR7iA0C/925MgrTGyqMC2x8KY+MVL3RDM5xJtSoyN1p+bGOLx
+	 Q7Ee6llBcdooGNPdUVLQWwV4NFKfhizksUb1WrMit2wxYigY85oHOL1BILuKw4tCHxaU1
+	 Rvgy4VaDDRyAetWYq8aTr0ezotC4D+60D7Qwmo1OJyXy3kB0Iv3AEdh5mXFPi3al5V0R5
+	 uDE5Ougwjs4ElGNHr5YwJn2fD9BkAIm2XW81p4pZnOXw0RgeejLH1DToZVLCOOi5fvg==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794270034;
+	a=rsa-sha256; c=relaxed/relaxed; t=1794270035;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=KpKHN5Z7MGRDxG3fCOFqOt25TPdOaWXh/T9jw6mjTnM=;
-	b=2QP0yF09OC3XwuNR3/C+1skDGKk0OhMGpYjTY6i7/ChXgji40y5Ny7dSLmPsJ2jYQwWd
-	 lntzhFebXZemUmAe3//qQT9knbldd3dUeGEpe3vnQTQbQgaOlX2Ybo1SeP9D9QBpFDKYq
-	 CpuLZkkIlkxa/cNss3hQ74tbW7kGp/q4W4Dbieru+7pf3670iepP/E6t3/HS9A29X/gXA
-	 Nmk+GE1SBotHJBXZY2GAjPHI6j+IvF75qEKZ4hJNNmuFM77SpGk3xhfCKcUlWOkMqlLSi
-	 7Um/lEtZez5xI71Gemia46Mzvn0DfqTNHR65XEtIleyeOiyVEf15GUjzXdSxz+ZYicw==
+	bh=vNNx/8wUToSdhYA7ZX2whOn7PJQXw/7TxqowMlheq38=;
+	b=X7Q3CiahDEmkDNyzR4ysK7R6XqyyDophyHKnA5C0A/kmP7gueyw8eFKlUwJ1R6cM2z6l
+	 01URxrRZBmpW3/cs4btv48SYUzSgNETDs5psOc5RK3m8XR126MHpR2EJzAFlpfBXstkmm
+	 kJoM2KMVFgHruF6udw8n+Dp+6mdZg8v0+urgdRRYexFem1EoeFTVTxIzjsG55hugMu8br
+	 V1TQlTS/scv1lrdpQR/PP/aV3X13LlNG94bFmQMvZFkoCOke6Ojp9sLvrQN0iUPyJIfkw
+	 Xb1zE3JPiRZIsc4HXOl3bPFLVwpFZPBk2pFQyFQoXNMyC8kvqqTEYSlDVttXEI3Hg4Q==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=MYQ7kg1f;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=dD2LaXtx;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0158F606A335
-	for <mm-commits@vger.kernel.org>; Tue, 10 Nov 2026 00:20:33 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 751FF606A335
+	for <mm-commits@vger.kernel.org>; Tue, 10 Nov 2026 00:20:35 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=MYQ7kg1f
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9AF441F0089F;
-	Tue, 10 Nov 2026 00:20:33 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=dD2LaXtx
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 26AED1F0089F;
+	Tue, 10 Nov 2026 00:20:35 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1794270033;
-	bh=KpKHN5Z7MGRDxG3fCOFqOt25TPdOaWXh/T9jw6mjTnM=;
+	d=linux-foundation.org; s=korg; t=1794270035;
+	bh=vNNx/8wUToSdhYA7ZX2whOn7PJQXw/7TxqowMlheq38=;
 	h=Date:To:From:Subject;
-	b=MYQ7kg1fQPibwpELPj3TfTf/B/noHaOsEvGItdLari7cwAooxnh4lLqAagNZen1Fx
-	 WAPY8NpZhztoBa5T1JnDhv47n6J+UVO9QQJRL0Y/C6G1kPTliELXf9dgHmCh+7wyxT
-	 XHE5HdgRsZH3TnG7dR9oDRLVGl0cdkqEKUUX/xdw=
-Date: Mon, 09 Nov 2026 16:20:33 -0800
+	b=dD2LaXtxHIEr1GYr0bUIL1HaJRQKRGqDKG88Xx6OQXE0zQSUMJzD2OkrAFskX7B8y
+	 IxdtIi8GpbdnppEMtzN9AMd2Oo20WvN2/lZYaH4ZARUKImEmBR5eCOWljEPUGpkfKk
+	 pwtICG68WGruCTcsGtZTn/a00lmXnp2x8xoal+kU=
+Date: Mon, 09 Nov 2026 16:20:34 -0800
 To: mm-commits@vger.kernel.org,chengkaitao@kylinos.cn,
 	akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [to-be-updated] mm-hugetlb_cma-fix-incorrect-hugetlb_cma_size-assignment-on-malformed-input.patch removed from -mm tree
-Message-Id: <20261110002033.9AF441F0089F@smtp.kernel.org>
+Subject: [to-be-updated] mm-hugetlb-preserve-persistent-flags-when-returning-folios-to-the-pool.patch removed from -mm tree
+Message-Id: <20261110002035.26AED1F0089F@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -52,95 +52,102 @@ Precedence: list
 
 
 The quilt patch titled
-     Subject: mm/hugetlb_cma: fix incorrect hugetlb_cma_size assignment on malformed input
+     Subject: mm/hugetlb: preserve persistent flags when returning folios to the pool
 has been removed from the -mm tree.  Its filename was
-     mm-hugetlb_cma-fix-incorrect-hugetlb_cma_size-assignment-on-malformed-input.patch
+     mm-hugetlb-preserve-persistent-flags-when-returning-folios-to-the-pool.patch
 
 This patch was dropped because an updated version will be issued
 
 ------------------------------------------------------
 From: Kaitao Cheng <chengkaitao@kylinos.cn>
-Subject: mm/hugetlb_cma: fix incorrect hugetlb_cma_size assignment on malformed input
-Date: Mon, 02 Nov 2026 10:49:08 +0800
+Subject: mm/hugetlb: preserve persistent flags when returning folios to the pool
+Date: Mon, 02 Nov 2026 10:49:09 +0800
 
-Patch series "mm/hugetlb: Fix CMA parsing, flags and usage accounting", v2.
+add_hugetlb_folio() returns a folio to the HugeTLB pool when vmemmap
+restoration fails. It clears folio->private and restores only
+HPG_vmemmap_optimized, losing other flags that must survive the rollback.
 
-This series fixes three independent HugeTLB issues reported by Sashiko,
-covering CMA parameter parsing, persistent folio flags, and NR_HUGETLB
-accounting on allocation rollback.
+Clearing HPG_cma causes a later free to bypass the CMA release path,
+leaving the CMA allocation bitmap set. Clearing HPG_raw_hwp_unreliable
+loses the indication that the locations of poisoned subpages are unknown,
+undermining the checks that prevent freeing or unpoisoning such folios.
 
-Patch 1 rejects a global hugetlb_cma size following node-specific entries.
-This prevents malformed input from overwriting valid per-node reservations
-with an incorrectly parsed global size.
+Preserve the existing flags instead of resetting folio->private. Callers
+already clear HPG_restore_reserve, HPG_migratable and HPG_freed before
+returning a folio to the pool. Clear HPG_temporary in free_huge_folio()
+before attempting to free a temporary folio, so a failed vmemmap restore
+does not leave that flag set on a folio returned as surplus.
 
-Patch 2 preserves persistent folio flags when a failed vmemmap restore
-returns a folio to the pool. This retains CMA allocation tracking and
-raw hardware poison information, while ensuring transient flags are
-cleared before returning the folio.
+Add a VM_WARN_ON_ONCE_FOLIO() check for flags other than
+HPG_vmemmap_optimized, HPG_raw_hwp_unreliable and HPG_cma to detect
+incomplete transient flag cleanup.
 
-Patch 3 moves NR_HUGETLB node accounting to the underlying folio state
-transitions and separates it from memcg statistics. This keeps the
-counter balanced when surplus folios are freed during reservation
-gathering or after a failed overcommit recheck.
-
-
-This patch (of 3):
-
-When hugetlb_cma contains a global size after node-specific entries,
-cmdline_parse_hugetlb_cma() enters the global branch and reparses the
-original parameter string. For hugetlb_cma=1:2G,4G, this interprets the
-initial node ID as a one-byte global size and clears the 2 GiB reservation
-recorded for node 1.
-
-Global and node-specific formats cannot be mixed. Return -EINVAL when a
-global entry follows a node-specific entry, before updating any settings.
-This preserves the valid prefix, so the example retains node 1's 2 GiB
-reservation and reports the malformed option.
-
-Link: https://lore.kernel.org/20261102024910.31486-1-kaitao.cheng@linux.dev
-Link: https://lore.kernel.org/20261102024910.31486-2-kaitao.cheng@linux.dev
-Fixes: 38e719ab2673 ("hugetlb: support node specified when using cma for gigantic hugepages")
+Link: https://lore.kernel.org/20261102024910.31486-3-kaitao.cheng@linux.dev
+Fixes: 161df60e9e89 ("mm, hwpoison, hugetlb: support saving mechanism of raw error pages")
+Fixes: d2d786714080 ("mm/hugetlb: enable bootmem allocation from CMA areas")
 Signed-off-by: Kaitao Cheng <chengkaitao@kylinos.cn>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Closes: https://sashiko.dev/#/bug/linux-10f40d3e-3feb-4622-9da8-1fedecb2d0e2
+Closes: https://sashiko.dev/#/bug/linux-5363eb09-9c3c-4f8b-9f3c-a998a8c4b258
+Suggested-by: David Hildenbrand <david@kernel.org>
+Suggested-by: Muchun Song <muchun.song@linux.dev>
+Suggested-by: Zi Yan <ziy@nvidia.com>
+Acked-by: Qi Zheng <qi.zheng@linux.dev>
+Acked-by: Zi Yan <ziy@nvidia.com>
 Acked-by: Muchun Song <muchun.song@linux.dev>
-Reviewed-by: Oscar Salvador <osalvador@suse.de>
-Cc: David Hildenbrand <david@kernel.org>
+Cc: Oscar Salvador <osalvador@suse.de>
 Cc: Mike Rapoport <rppt@kernel.org>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Michal Hocko <mhocko@kernel.org>
 Cc: Roman Gushchin <roman.gushchin@linux.dev>
 Cc: Shakeel Butt <shakeel.butt@linux.dev>
 Cc: Mani Tofigh <mt4022@columbia.edu>
-Cc: Zi Yan <ziy@nvidia.com>
 Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
 Cc: Miaohe Lin <linmiaohe@huawei.com>
 Cc: Naoya Horiguchi <nao.horiguchi@gmail.com>
 Cc: Frank van der Linden <fvdl@google.com>
 Cc: Chris Down <chris@chrisdown.name>
 Cc: Joshua Hahn <joshua.hahnjy@gmail.com>
-Cc: Qi Zheng <qi.zheng@linux.dev>
 ---
 
- mm/hugetlb_cma.c |    3 +++
- 1 file changed, 3 insertions(+)
+ mm/hugetlb.c |   10 +++++++---
+ 1 file changed, 7 insertions(+), 3 deletions(-)
 
---- a/mm/hugetlb_cma.c~mm-hugetlb_cma-fix-incorrect-hugetlb_cma_size-assignment-on-malformed-input
-+++ a/mm/hugetlb_cma.c
-@@ -165,6 +165,9 @@ static int __init cmdline_parse_hugetlb_
- 		} else {
- 			char *next;
+--- a/mm/hugetlb.c~mm-hugetlb-preserve-persistent-flags-when-returning-folios-to-the-pool
++++ a/mm/hugetlb.c
+@@ -1443,6 +1443,12 @@ void add_hugetlb_folio(struct hstate *h,
  
-+			if (s != p)
-+				return -EINVAL;
+ 	lockdep_assert_held(&hugetlb_lock);
+ 
++	/* Callers must clear transient flags before returning to the pool. */
++	VM_WARN_ON_ONCE_FOLIO((unsigned long)folio->private &
++			     ~(BIT(HPG_vmemmap_optimized) |
++			       BIT(HPG_raw_hwp_unreliable) |
++			       BIT(HPG_cma)), folio);
 +
- 			tmp = memparse(p, &next);
- 			if (*next == '%') {
- 				if (tmp > 100) {
+ 	INIT_LIST_HEAD(&folio->lru);
+ 	h->nr_huge_pages++;
+ 	h->nr_huge_pages_node[nid]++;
+@@ -1453,9 +1459,6 @@ void add_hugetlb_folio(struct hstate *h,
+ 	}
+ 
+ 	__folio_set_hugetlb(folio);
+-	/* Clear all folio->private flags except hugetlb_vmemmap_optimized. */
+-	folio->private = NULL;
+-	folio_set_hugetlb_vmemmap_optimized(folio);
+ 
+ 	arch_clear_hugetlb_flags(folio);
+ 	enqueue_hugetlb_folio(h, folio);
+@@ -1743,6 +1746,7 @@ void free_huge_folio(struct folio *folio
+ 		h->resv_huge_pages++;
+ 
+ 	if (folio_test_hugetlb_temporary(folio)) {
++		folio_clear_hugetlb_temporary(folio);
+ 		remove_hugetlb_folio(h, folio, false);
+ 		spin_unlock_irqrestore(&hugetlb_lock, flags);
+ 		update_and_free_hugetlb_folio(h, folio, true);
 _
 
 Patches currently in -mm which might be from chengkaitao@kylinos.cn are
 
-mm-hugetlb-preserve-persistent-flags-when-returning-folios-to-the-pool.patch
 mm-hugetlb-fix-nr_hugetlb-accounting-for-surplus-folios.patch
 
