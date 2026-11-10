@@ -1,48 +1,49 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794293105;
-	b=COyRds/3fAElQ8A8XgujWgOAEqxuQ0OtcDbgf//HTczlzok/9Iv7yB5PbdAsx00bJosh
-	 AxBlf6a50jmfWC94i16AIS6cnd033EKnwkFoHrxWYkT5wQtJpbUWmugQxG8DRh/8tqaOg
-	 uultZt4m8YdW9Rvx3+Cf3h3oxxSQwrbFdjP7nwlaxJya9T3xo/kY1QzJZmOwmgCzy6eWH
-	 oGJbL/MbNoKM6Pk5KICyNvWdENJzTai0TeVAy7ZFzGw/m9wQhp0FWDx3eDwIFsHNgo/G7
-	 3cZe2air0SJ+rlIms9yLIwAvVrNTwudbM3iAy7LddIb58/s6cguoyhEObQAws3D4hdA==
+	t=1794293107;
+	b=qwHVHkOCa4xuc38c5eNlZi6V3ZoUvAoxv7D14G1CHe13kjQnd7dkhJlcTK269/R3gkO2
+	 QRZmToAQLfNTE7LseF39nAeLA8CrU8qmV4+VUh81iHH5LYWfnXI/Y9fJdYjySTR3LRtfV
+	 xbTKAR9JLC1Z84SZULoc6BTFDffGD0h1hqqPA8CL4naVKxO8BeNnywETfHPsPLZFY1VYb
+	 NYCrrQb0qBhAkHYtlWdxZR9e2jxSsddJk6NpkN7FxUq8v16MP31NdTcJJuK0DQ5sxdv5d
+	 lOV3GGk9ASSXdpB4nXejFOZRlrUfs+DJHrsUtPY9pOS47xPfWJ14J0I+u3+n3UWE/MA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794293105;
+	a=rsa-sha256; c=relaxed/relaxed; t=1794293107;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=S58tf/jAxFi+VXZl7vSQovGhIoE4bWl4uFVFcrKkgJE=;
-	b=ovKGK5IQosQMHVFCsCEZ2GRw5ekAMMRInUnxbpVkhvnqPVwWr/vAhdJU2SAhixDJfhXr
-	 XaRAbkCuJrrhqWEvWgXWU3VFLyFBYy0NaMwSo9o0hEHvv+M2Etmmlvo4RlGG9HUqDmTrq
-	 +rBKVm79yqUMoa2Oj1hNWVVuFgQcrdXG6E1inivBlbH9EFvl7wyzb7+rwtF9qgqSqXBoM
-	 pp6vBvMN2KJ0zVoMYw/DAPnXUUlQCdNyWGifwNWPUCZTCxTYYfXBwhfSGmWFLEq9FFE+5
-	 9xoVqk3ig0xwyXEzjoofjOQw061fqJbFgNX+wth/lZsmiSkyKVe/HTaLWbumExBH9wA==
+	bh=8SPIuC7JNmyFrwJK+NGl1yIa0CNge/s333PngePxXaQ=;
+	b=VYkn3LyC5AxLOwGb4X9LXveN85xd4gY0SZss4OElnq2doX1FtDkRXwXxvu6/ZHL1wYfb
+	 T35rNGVznPGzH7nITi38fWF4KNFPgHLFGm89lyIQez/r25kBobZeCbKEzzdh5Z5wRG3/S
+	 av1snZkfnj+tlrSgJHytBK4OfYKzIMBN7dLv4cpgDoO9Q/0qrlBF3mW7cdj9CkBwEqC4N
+	 VuE+/qQa10umqkP+ciWG1KhBth0QTSDbWlVqDaMu3fpJ4+goNUkCJUlgj9zdwFYIlgCDg
+	 NY1m/oHmmJ806EodCB/c7+NCmNRndQ9TWtkMij0OLFr0HwmtFi9ZrEi/WWBUaTCKRIw==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=i+ekGCXv;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=Cc6ONljU;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 89632606BD58;
-	Tue, 10 Nov 2026 06:45:05 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D13E8606BD72;
+	Tue, 10 Nov 2026 06:45:06 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=i+ekGCXv
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 51DBD1F008A5;
-	Tue, 10 Nov 2026 06:45:05 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=Cc6ONljU
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8B75A1F00A05;
+	Tue, 10 Nov 2026 06:45:06 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1794293105;
-	bh=S58tf/jAxFi+VXZl7vSQovGhIoE4bWl4uFVFcrKkgJE=;
+	d=linux-foundation.org; s=korg; t=1794293106;
+	bh=8SPIuC7JNmyFrwJK+NGl1yIa0CNge/s333PngePxXaQ=;
 	h=Date:To:From:Subject;
-	b=i+ekGCXvd3cPayxkc7yueIB5n6nPm/c46Enp/tGPdCOFQa6DngOWnjfqw5rCRowcO
-	 /H1T+Po54UZ13y3KFs8a0T4G2szKo3Euc4VyThzcKcayO0Xh+P/mbb+vTYTQPxEubm
-	 GkFj9DYY4vYgBxLz9eiwDLh6fkfg5cG7esjUMDaY=
-Date: Mon, 09 Nov 2026 22:45:04 -0800
-To: mm-commits@vger.kernel.org,youngjun.park@lge.com,tz2294@columbia.edu,
-	stable@vger.kernel.org,shikemeng@huaweicloud.com,ryncsn@gmail.com,
-	nphamcs@gmail.com,kasong@tencent.com,chrisl@kernel.org,baoquan.he@linux.dev,
-	baohua@kernel.org,mt4022@columbia.edu,akpm@linux-foundation.org
+	b=Cc6ONljUz422Wy0yqXGlK58i5LVQeossdco8Bt5zbiY1kXaIf0T0sdptAEcfsLx5R
+	 YzPtwLlBFZuEfzbnoc/4+7kU07CkDAoVzV4g93rYDWCX+5KsPekbUykF9UolTRm8g9
+	 iQidPg4HGjFWOq0NvxzL29OOOJRgDAVX/JUQj6RE=
+Date: Mon, 09 Nov 2026 22:45:06 -0800
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,ying.huang@linux.alibaba.com,
+	willy@infradead.org,stable@vger.kernel.org,shivankg@amd.com,
+	matthew.brost@intel.com,joshua.hahnjy@gmail.com,gourry@gourry.net,
+	david@kernel.org,byungchul@sk.com,apopple@nvidia.com,chenridong@xiaomi.com,
+	akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] mm-swap-stop-cluster-list-scans-once-swapoff-clears-swp_writeok.patch removed from -mm tree
-Message-Id: <20261110064505.51DBD1F008A5@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] mm-migrate-move-nr_file_thps-on-cross-node-migration.patch removed from -mm tree
+Message-Id: <20261110064506.8B75A1F00A05@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -54,118 +55,107 @@ Precedence: list
 
 
 The quilt patch titled
-     Subject: mm, swap: stop cluster list scans once swapoff clears SWP_WRITEOK
+     Subject: mm/migrate: move NR_FILE_THPS on cross-node migration
 has been removed from the -mm tree.  Its filename was
-     mm-swap-stop-cluster-list-scans-once-swapoff-clears-swp_writeok.patch
+     mm-migrate-move-nr_file_thps-on-cross-node-migration.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Mani Tofigh <mt4022@columbia.edu>
-Subject: mm, swap: stop cluster list scans once swapoff clears SWP_WRITEOK
-Date: Mon, 26 Oct 2026 11:19:22 -0400
+From: Ridong Chen <chenridong@xiaomi.com>
+Subject: mm/migrate: move NR_FILE_THPS on cross-node migration
+Date: Sun, 25 Oct 2026 19:02:09 +0800
 
-SWP_WRITEOK is cleared under si->lock when swapoff starts so that no
-new swap entries are allocated from the device, and try_to_unuse()
-then waits for writeback of the folios that still use the device.
+When a page cache folio is migrated to another node,
+__folio_migrate_mapping() moves the per-node and per-memcg counters
+that are keyed off the folio's node: NR_FILE_PAGES, NR_SHMEM,
+NR_SHMEM_THPS, NR_SWAPCACHE and NR_FILE_DIRTY.  NR_FILE_THPS is not
+moved, although __filemap_add_folio() charges it to the source node and
+filemap_unaccount_folio() takes it off whatever node the folio lives on
+when it is removed.
 
-However, an order-0 allocation that chose the device can race with
-swapoff clearing the flag and then loop forever.  It takes a cluster
-from the fragment cluster list of a higher order with
-isolate_lock_cluster(), the allocation from that cluster fails because
-SWP_WRITEOK is clear, and relocate_cluster() puts the cluster back on
-the same list, so the loop keeps finding clusters on it.
+Commit 0b52c420350e ("mm: fix shmem THP counters on migration") added
+the NR_SHMEM_THPS case but not its file-backed counterpart.  Now that
+ext4, xfs, btrfs and erofs can all have PMD-sized page cache folios,
+migrating them via NUMA balancing, mbind(), migratepages, demotion or
+memory offlining leaks FileHugePages on the source node and underflows
+it on the destination, in both /sys/devices/system/node/nodeN/meminfo
+and memory.numa_stat.  The global value is unaffected, which is why this
+went unnoticed.
 
-The looping task is in reclaim, and it may have set writeback on a
-folio whose write has been queued but not yet submitted.  swapoff then
-waits for that folio, while the reclaiming task, stuck in the loop,
-never reaches the point where it submits the write:
+Reproducer, on a 2-node QEMU guest with THP set to "always":
 
-  CPU0 (reclaim)                          CPU1 (swapoff)
-  --------------                          --------------
-  shrink_folio_list()
-    pageout(F)
-      /* F under writeback,
-         write not submitted */
-    folio_alloc_swap(G)  /* order 0 */
-      swap_alloc_slow()
-                                          del_from_avail_list(si, true)
-                                            si->flags &= ~SWP_WRITEOK
-                                          try_to_unuse()
-                                            folio_wait_writeback(F)
-        cluster_alloc_swap_entry()
-          isolate_lock_cluster()
-          /* allocation fails:
-             !SWP_WRITEOK */
-          relocate_cluster()
-          /* repeats forever */
-    swap_write_submit()
-    /* never reached */
+  1. read a 256M ext4 file through a MADV_HUGEPAGE mapping while bound
+     to node 0, so its page cache is 128 PMD-sized folios on node 0;
+  2. move the mapping to node 1 with mbind(MPOL_MF_MOVE);
+  3. unmap the file and drop its page cache.
 
-This results in a soft lockup on CPU0 and a swapoff that never returns.
+nr_file_hugepages in /sys/devices/system/node/nodeN/vmstat after each
+step (in units of PMD-sized folios):
 
-isolate_lock_cluster() used to check SWP_WRITEOK under si->lock until
-commit 07adc4cf1ecd ("mm, swap: implement dynamic allocation of swap
-table") removed that check.  Restore the check.  Since swapoff clears
-the flag under the same lock, isolate_lock_cluster() then returns NULL,
-which ends the scan; the swap slot allocation for G fails, and reclaim
-goes on to submit the write of F.
+                    without this patch     with this patch
+                     node0     node1       node0     node1
+  1. cached           128         0         128         0
+  2. migrated         128         0           0       128
+  3. dropped          128         0 (*)       0         0
 
-Given that this is a race, its reproducibility is non-deterministic.
-We reproduce it by using a non-rotational swap device that is not
-synchronous, with 64K mTHP enabled, where one CPU repeatedly pages out
-two 64K folios and a 4K page with madvise(MADV_PAGEOUT), while other
-CPUs run swapoff and swapon on the same device.  In my tests it
-triggers within 20s in each run, and with the fix applied, it runs for
-300s without any hang/kernel report.  This bug was found and
-reproduced deterministically using a deterministic hypervisor that is
-currently under development.
+  (*) the counter has underflowed to -128; negative values read as 0.
 
-Link: https://lore.kernel.org/20261026-swapoff-writeok-v1-1-4f4cd420aa33@columbia.edu
-Fixes: 07adc4cf1ecd ("mm, swap: implement dynamic allocation of swap table")
-Signed-off-by: Mani Tofigh <mt4022@columbia.edu>
+Without the patch the 128 folios stay accounted to node 0 forever, and
+every further round adds another 128.  The same happens to the per-memcg
+per-node counter: after step 3, memory.stat of the cgroup shows
+"file_thp 0", while memory.numa_stat still shows
+"file_thp N0=268435456 N1=0".  With the patch both are 0.
+
+Move NR_FILE_THPS together with NR_FILE_PAGES, using the same condition
+filemap_unaccount_folio() uses to take it off, so that THPs in the swap
+cache are left alone.
+
+Link: https://lore.kernel.org/20261025110209.4105994-1-ridong.chen@linux.dev
+Fixes: d68eccad3706 ("mm/filemap: Allow large folios to be added to the page cache")
+Signed-off-by: Ridong Chen <chenridong@xiaomi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Acked-by: Kairui Song <kasong@tencent.com>
-Cc: Chris Li <chrisl@kernel.org>
-Cc: Kemeng Shi <shikemeng@huaweicloud.com>
-Cc: Nhat Pham <nphamcs@gmail.com>
-Cc: Baoquan He <baoquan.he@linux.dev>
-Cc: Barry Song <baohua@kernel.org>
-Cc: Youngjun Park <youngjun.park@lge.com>
-Cc: Tal Zussman <tz2294@columbia.edu>
-Cc: Kairui Song <ryncsn@gmail.com>
+Acked-by: David Hildenbrand (Arm) <david@kernel.org>
+Cc: Zi Yan <ziy@nvidia.com>
+Cc: Matthew Brost <matthew.brost@intel.com>
+Cc: Joshua Hahn <joshua.hahnjy@gmail.com>
+Cc: Byungchul Park <byungchul@sk.com>
+Cc: Gregory Price <gourry@gourry.net>
+Cc: Ying Huang <ying.huang@linux.alibaba.com>
+Cc: Alistair Popple <apopple@nvidia.com>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: "Garg, Shivank" <shivankg@amd.com>
 Cc: <stable@vger.kernel.org>
 ---
 
- mm/swapfile.c |    5 +++++
- 1 file changed, 5 insertions(+)
+ mm/migrate.c |    4 ++++
+ 1 file changed, 4 insertions(+)
 
---- a/mm/swapfile.c~mm-swap-stop-cluster-list-scans-once-swapoff-clears-swp_writeok
-+++ a/mm/swapfile.c
-@@ -635,6 +635,10 @@ static struct swap_cluster_info *isolate
- 	u8 flags = CLUSTER_FLAG_NONE;
- 
- 	spin_lock(&si->lock);
-+
-+	if (unlikely(!(si->flags & SWP_WRITEOK)))
-+		goto out;
-+
- 	list_for_each_entry(ci, list, list) {
- 		if (!spin_trylock(&ci->lock))
- 			continue;
-@@ -650,6 +654,7 @@ static struct swap_cluster_info *isolate
- 		found = ci;
- 		break;
- 	}
-+out:
- 	spin_unlock(&si->lock);
- 
- 	/* Cluster's table is freed when and only when it's on the free list. */
+--- a/mm/migrate.c~mm-migrate-move-nr_file_thps-on-cross-node-migration
++++ a/mm/migrate.c
+@@ -700,6 +700,10 @@ static int __folio_migrate_mapping(struc
+ 				mod_lruvec_state(old_lruvec, NR_SHMEM_THPS, -nr);
+ 				mod_lruvec_state(new_lruvec, NR_SHMEM_THPS, nr);
+ 			}
++		} else if (!folio_test_swapbacked(folio) &&
++			   folio_test_pmd_mappable(folio)) {
++			mod_lruvec_state(old_lruvec, NR_FILE_THPS, -nr);
++			mod_lruvec_state(new_lruvec, NR_FILE_THPS, nr);
+ 		}
+ #ifdef CONFIG_SWAP
+ 		if (folio_test_swapcache(folio)) {
 _
 
-Patches currently in -mm which might be from mt4022@columbia.edu are
+Patches currently in -mm which might be from chenridong@xiaomi.com are
 
-mm-shmem-fix-swapin-livelock-on-a-mismatched-large-swap-cache-folio.patch
-mm-swapfile-drop-a-large-unmapped-swap-in-folio-in-unuse_pte.patch
+mm-migrate-move-nr_kernel_file_pages-on-cross-node-migration.patch
+mm-memcontrol-drop-unused-vmscan-tracepoint-include.patch
+mm-vmscan-move-vmscan-tracepoints-to-a-local-header.patch
+mm-vmscan-move-struct-scan_control-to-a-dedicated-header.patch
+mm-vmscan-pass-scan_control-to-the-vmscan-tracepoints.patch
+mm-mglru-add-tracepoint-for-scan_folios.patch
+mm-mglru-add-lruvec_gen_size-helper.patch
+mm-mglru-add-tracepoint-for-aging.patch
+mailmap-add-entries-for-ridong-chen.patch
 
