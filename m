@@ -1,46 +1,49 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794270255;
-	b=zqqSTazJ6xsBsjzjbpnaNPa4Iy1ZWX8smncRw9EIysKjqHxnEeTUXbacxbszY/VI/weR
-	 XMbBvt2Ecm0RZV/kFX48EABIHQyRzkogbFXSVTv/iX8A/qK6x6jSqoCnhOk7b0d3ymbRB
-	 ThThaHE47YvJMNOPp9leavlkeus98uuFbW4X9u32OCIIp2UZgBQr+nG28RieNXpLUMj3g
-	 ZLURJ4QatBvfGsfCCvyvdgdVgMSYSia6A14nwU7PsLMAzHjrLnZM2Q+TS3DC/l7KmPu1k
-	 Q8NDklCWG16DfyI08e3/zalMbOU8RhkN7pJhv82aS/k4fgxm+UchTC+NsbVHmF3OV/Q==
+	t=1794270391;
+	b=H9k7/TShK+tcCtvlaTonKoPnXCqhdslNZIjFu6xARryfcITuWVKC90iyK9rRggnZzpZ3
+	 j9rFvpxwai9uHSwSomOlPvxeAxMYADqaezBubrvW04WY9vJiBqYr9HnkH8/yfS4AmjvE2
+	 hl4ZDGUAZXEbUCS8ategzE1dtAj/mAECMNWsdo8Z7QvwBzz7gIq9Ki7O98IqQZtNzJA3m
+	 Aw8w74aSe+X2uxay9msTZEsn9vStRUBnOF7OepywauzMZgM+F7oMM8U2do2KJEJWkruh6
+	 Dfxul+Xc78ZvyA08+iZCWyloUFbBPyT8iUXgFgRCeNSTrIc9CRq3aYTrEgYnYVeJi2g==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794270255;
+	a=rsa-sha256; c=relaxed/relaxed; t=1794270391;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=xaKRDKSXvaZSyGhHnsuhRYXfI36n7pDHVHOh0Dx/XN8=;
-	b=jyOYPopHMHiAJ6qVYbWf0Z5sKOJIf3vUUIevnbpw/K7CfYECHcDs8MC8ZEsplOHdVKF2
-	 eZYvHGYyuwZRQMf+3N00oVZ16gHngjJFylZEI7H01WxXQTs8XxmA2dAdsJGmJAcMGa8uP
-	 k5bbYyfFU6q7hl8UUc0hhP5gp33utTUYpzlTqzj2z0hmgLJ7FXxaF4AEx3USW+rwjXWbQ
-	 VWhbw8EEYfW4tNLBYpFkFNFFD2CN+Xe2H1+5ho9PVpflvd2MUKxvenqLHHDeY5RsFBlsS
-	 5L9D6X70i1/C+NfLcjImLDVxKrtzmB4ZQcoeTqxM34utJSzBwLWMvxziyqnfMmainZA==
+	bh=qabSgjJUBX2Oz+uaRG2lMApO+AcZr478dEqj1/UW1bs=;
+	b=lkALOVvB8U22JzcJR3idAWMBgXCnYPgJuZV4A8U6UUrdh+9Dobbn7TVS27ryngTTWMyD
+	 DmD95la7RlOSWNvsJ/S4FtFZDPtmQLpX0lM0hr7IO/v099hp+8MuUAGDYvDzC1zkin2b4
+	 aa2/iitnibEOWCPv1J4aprHOChe/zgtNQp0o3AJ20Dy5f+154lYuSt0biNi6oc8ZA3klG
+	 0WNkJw3YzKKVSo/EfTIwCqa+TlfSX/zbquFUJdGcCPy0+GY38Ba/It+RHK38DSkh/84wF
+	 PhRv4nTcSGks6TbFM+EnZBW29kaIzpYE9RtfU/YI2OIaxi+klXqn3yXx50wP2F8Xn0A==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=SRqcsDz7;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=NvCMMsZb;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AFAC6606A32A
-	for <mm-commits@vger.kernel.org>; Tue, 10 Nov 2026 00:24:14 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CADDA606A31C;
+	Tue, 10 Nov 2026 00:26:30 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=SRqcsDz7
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 650151F008A1;
-	Tue, 10 Nov 2026 00:24:14 +0000 (UTC)
+	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=NvCMMsZb
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 808701F008A1;
+	Tue, 10 Nov 2026 00:26:30 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1794270254;
-	bh=xaKRDKSXvaZSyGhHnsuhRYXfI36n7pDHVHOh0Dx/XN8=;
+	d=linux-foundation.org; s=korg; t=1794270390;
+	bh=qabSgjJUBX2Oz+uaRG2lMApO+AcZr478dEqj1/UW1bs=;
 	h=Date:To:From:Subject;
-	b=SRqcsDz7hSXk7C+IoZCHLsD8DtsdyL+ZSiqap2Vbw5qPDq8J0RA8+BuGsYnT1EX7U
-	 MchV66Jh9Jwg9LQzgfEVIKRUwu8UJIV0QdHl5uL4PG+Ij45dsaE2SKN+LeyWdKSAfL
-	 gvdGVuUslpNgAHQlLhHEtZaaLgmfYT1UfNne6nw8=
-Date: Mon, 09 Nov 2026 16:24:14 -0800
-To: mm-commits@vger.kernel.org,chengkaitao@kylinos.cn,
-	akpm@linux-foundation.org
+	b=NvCMMsZbzl+EBG755hIjTSf6wZY+yVzkKTvhdFjpruPeHr8Dc5UUllvYLlPWmMZdL
+	 XxhQ9xfOgdUchp+wzsSvdLGha6vx/cmI5meWyS2ODtoBExk3jBrDXta29FUHKUFGDQ
+	 bMZWWmoeOXjbdtp9WzNO77ZR//Evc1V9tgUz1+ZY=
+Date: Mon, 09 Nov 2026 16:26:30 -0800
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,usama.arif@linux.dev,
+	stable@vger.kernel.org,ryan.roberts@arm.com,qi.zheng@linux.dev,
+	nico.pache@linux.dev,liam@infradead.org,lance.yang@linux.dev,kas@kernel.org,
+	hughd@google.com,dev.jain@arm.com,baolin.wang@linux.alibaba.com,
+	baohua@kernel.org,david@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-hugetlb-account-nr_hugetlb-at-folio-state-transitions.patch added to mm-unstable branch
-Message-Id: <20261110002414.650151F008A1@smtp.kernel.org>
+Subject: + mm-khugepaged-free-unused-page-table-when-setting-a-huge-pmd-fails.patch added to mm-new branch
+Message-Id: <20261110002630.808701F008A1@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -52,15 +55,26 @@ Precedence: list
 
 
 The patch titled
-     Subject: mm/hugetlb: account NR_HUGETLB at folio state transitions
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-hugetlb-account-nr_hugetlb-at-folio-state-transitions.patch
+     Subject: mm: free unused page table allocated by do_set_pmd()
+has been added to the -mm mm-new branch.  Its filename is
+     mm-khugepaged-free-unused-page-table-when-setting-a-huge-pmd-fails.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-hugetlb-account-nr_hugetlb-at-folio-state-transitions.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-khugepaged-free-unused-page-table-when-setting-a-huge-pmd-fails.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Note, mm-new is a provisional staging ground for work-in-progress
+patches, and acceptance into mm-new is a notification for others take
+notice and to finish up reviews.  Please do not hesitate to respond to
+review feedback and post updated versions to replace or incrementally
+fixup patches in mm-new.
+
+The mm-new branch of mm.git is not included in linux-next
+
+If a few days of testing in mm-new is successful, the patch will me moved
+into mm.git's mm-unstable branch, which is included in linux-next
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -75,226 +89,85 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Kaitao Cheng <chengkaitao@kylinos.cn>
-Subject: mm/hugetlb: account NR_HUGETLB at folio state transitions
-Date: Fri, 06 Nov 2026 18:05:21 +0800
+From: "David Hildenbrand (Arm)" <david@kernel.org>
+Subject: mm: free unused page table allocated by do_set_pmd()
+Date: Wed, 4 Nov 2026 20:56:37 +0100
 
-NR_HUGETLB updates are spread across allocation entry points and freeing
-paths, mixing node accounting with memcg statistics.  This makes the
-accounting harder to follow and requires compensating updates when freeing
-unused surplus folios.
+do_set_pmd() can allocate vmf->prealloc_pte on architectures that need a
+deposited page table, such as PowerPC with the hash MMU.  If the PMD is no
+longer empty when it takes the PMD lock, it returns VM_FAULT_FALLBACK
+without consuming that table.
 
-Consolidate node accounting around folio state transitions.  Increment
-NR_HUGETLB when taking a folio from the free pool or allocating a fresh
-surplus or migration folio, and decrement it when returning the folio to
-the pool or removing it from use.
+Since collapse_pte_mapped_thp() uses mmap_read_lock(), a concurrent
+userfaultfd operation can install a PTE table before taking the folio
+lock.  If that races with set_huge_pmd(), the unused preallocated table is
+lost when its local vm_fault goes out of scope.
 
-Separate memcg statistics into mod_hugetlb_memcg_state(), updating them
-after a successful charge and before uncharging.  This keeps node
-accounting independent of memcg charging and removes redundant updates
-from the allocation entry points and surplus cleanup paths.
+Track whether do_set_pmd() allocated the table and free it after dropping
+the PMD lock if it was not consumed.  Preserve any preallocated table
+supplied by the caller for PTE fallback.  Successful PMD installation
+consumes the table and clears the pointer.
 
-Link: https://lore.kernel.org/20261106100521.30099-5-kaitao.cheng@linux.dev
-Signed-off-by: Kaitao Cheng <chengkaitao@kylinos.cn>
+Returning without a preallocated table matches the existing behavior on
+architectures that do not need a deposited table.  All callers already
+handle that case.
+
+Link: https://lore.kernel.org/c13cdd25-7d7b-4059-a22d-af0a48fabaac@kernel.org
+Fixes: 1043173eb5eb ("mm/khugepaged: collapse_pte_mapped_thp() with mmap_read_lock()")
+Signed-off-by: David Hildenbrand (Arm) <david@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Suggested-by: Muchun Song <muchun.song@linux.dev>
-Suggested-by: Oscar Salvador <osalvador@suse.de>
-Cc: David Hildenbrand <david@kernel.org>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Roman Gushchin <roman.gushchin@linux.dev>
-Cc: Shakeel Butt <shakeel.butt@linux.dev>
-Cc: Mani Tofigh <mt4022@columbia.edu>
+Reviewed-by: Kiryl Shutsemau (Meta) <kas@kernel.org>
 Cc: Zi Yan <ziy@nvidia.com>
-Cc: Mike Kravetz <mike.kravetz@oracle.com>
 Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: Miaohe Lin <linmiaohe@huawei.com>
-Cc: Naoya Horiguchi <nao.horiguchi@gmail.com>
-Cc: Frank van der Linden <fvdl@google.com>
-Cc: Chris Down <chris@chrisdown.name>
-Cc: Joshua Hahn <joshua.hahnjy@gmail.com>
+Cc: Liam R. Howlett <liam@infradead.org>
+Cc: Nico Pache <nico.pache@linux.dev>
+Cc: Ryan Roberts <ryan.roberts@arm.com>
+Cc: Dev Jain <dev.jain@arm.com>
+Cc: Barry Song <baohua@kernel.org>
+Cc: Lance Yang <lance.yang@linux.dev>
+Cc: Usama Arif <usama.arif@linux.dev>
 Cc: Qi Zheng <qi.zheng@linux.dev>
-Cc: "Oscar Salvador (SUSE)" <osalvador@kernel.org>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: <stable@vger.kernel.org>
 ---
 
- mm/hugetlb.c    |   50 +++++++++++++++++++++++++---------------------
- mm/memcontrol.c |    6 -----
- 2 files changed, 29 insertions(+), 27 deletions(-)
+ mm/memory.c |    6 ++++++
+ 1 file changed, 6 insertions(+)
 
---- a/mm/hugetlb.c~mm-hugetlb-account-nr_hugetlb-at-folio-state-transitions
-+++ a/mm/hugetlb.c
-@@ -1288,6 +1288,8 @@ static struct folio *dequeue_hugetlb_fol
- 		folio_clear_hugetlb_freed(folio);
- 		h->free_huge_pages--;
- 		h->free_huge_pages_node[nid]--;
-+		mod_node_page_state(folio_pgdat(folio), NR_HUGETLB,
-+				    pages_per_huge_page(h));
- 		return folio;
+--- a/mm/memory.c~mm-khugepaged-free-unused-page-table-when-setting-a-huge-pmd-fails
++++ a/mm/memory.c
+@@ -5694,6 +5694,7 @@ vm_fault_t do_set_pmd(struct vm_fault *v
+ 	struct vm_area_struct *vma = vmf->vma;
+ 	bool write = vmf->flags & FAULT_FLAG_WRITE;
+ 	unsigned long haddr = vmf->address & HPAGE_PMD_MASK;
++	bool pgtable_allocated = false;
+ 	pmd_t entry;
+ 	vm_fault_t ret = VM_FAULT_FALLBACK;
+ 
+@@ -5732,6 +5733,7 @@ vm_fault_t do_set_pmd(struct vm_fault *v
+ 		vmf->prealloc_pte = pte_alloc_one(vma->vm_mm);
+ 		if (!vmf->prealloc_pte)
+ 			return VM_FAULT_OOM;
++		pgtable_allocated = true;
  	}
  
-@@ -1416,6 +1418,9 @@ void remove_hugetlb_folio(struct hstate
- 		folio_clear_hugetlb_freed(folio);
- 		h->free_huge_pages--;
- 		h->free_huge_pages_node[nid]--;
-+	} else {
-+		mod_node_page_state(folio_pgdat(folio), NR_HUGETLB,
-+				    -(long)pages_per_huge_page(h));
- 	}
- 	if (adjust_surplus) {
- 		h->surplus_huge_pages--;
-@@ -1693,6 +1698,17 @@ struct hstate *size_to_hstate(unsigned l
- 	return NULL;
- }
- 
-+static void mod_hugetlb_memcg_state(struct folio *folio, int nr_pages)
-+{
-+	struct mem_cgroup *memcg;
-+
-+	guard(rcu)();
-+	memcg = folio_memcg(folio);
-+	if (memcg)
-+		mod_memcg_lruvec_state(mem_cgroup_lruvec(memcg, folio_pgdat(folio)),
-+				       NR_HUGETLB, nr_pages);
-+}
-+
- void free_huge_folio(struct folio *folio)
- {
- 	/*
-@@ -1740,7 +1756,7 @@ void free_huge_folio(struct folio *folio
- 				     pages_per_huge_page(h), folio);
- 	hugetlb_cgroup_uncharge_folio_rsvd(hstate_index(h),
- 					  pages_per_huge_page(h), folio);
--	lruvec_stat_mod_folio(folio, NR_HUGETLB, -pages_per_huge_page(h));
-+	mod_hugetlb_memcg_state(folio, -pages_per_huge_page(h));
- 	mem_cgroup_uncharge(folio);
- 	if (restore_reserve)
- 		h->resv_huge_pages++;
-@@ -1756,6 +1772,8 @@ void free_huge_folio(struct folio *folio
- 		spin_unlock_irqrestore(&hugetlb_lock, flags);
- 		update_and_free_hugetlb_folio(h, folio, true);
- 	} else {
-+		mod_node_page_state(folio_pgdat(folio), NR_HUGETLB,
-+				    -(long)pages_per_huge_page(h));
- 		arch_clear_hugetlb_flags(folio);
- 		enqueue_hugetlb_folio(h, folio);
- 		spin_unlock_irqrestore(&hugetlb_lock, flags);
-@@ -2123,6 +2141,9 @@ static struct folio *alloc_surplus_huget
- 	 */
- 	account_new_hugetlb_folio(h, folio);
- 
-+	/* The overcommit recheck below can free this folio. */
-+	mod_node_page_state(folio_pgdat(folio), NR_HUGETLB, pages_per_huge_page(h));
-+
- 	/*
- 	 * We could have raced with the pool size change.
- 	 * Double check that and simply deallocate the new page
-@@ -2133,8 +2154,6 @@ static struct folio *alloc_surplus_huget
- 	if (h->surplus_huge_pages >= h->nr_overcommit_huge_pages) {
- 		folio_set_hugetlb_temporary(folio);
- 		spin_unlock_irq(&hugetlb_lock);
--		/* Balance the NR_HUGETLB decrement in free_huge_folio(). */
--		lruvec_stat_mod_folio(folio, NR_HUGETLB, pages_per_huge_page(h));
- 		free_huge_folio(folio);
- 		return NULL;
- 	}
-@@ -2162,6 +2181,7 @@ static struct folio *alloc_migrate_huget
- 
- 	spin_lock_irq(&hugetlb_lock);
- 	account_new_hugetlb_folio(h, folio);
-+	mod_node_page_state(folio_pgdat(folio), NR_HUGETLB, pages_per_huge_page(h));
- 	spin_unlock_irq(&hugetlb_lock);
- 
- 	/* fresh huge pages are frozen */
-@@ -2220,10 +2240,6 @@ struct folio *alloc_hugetlb_folio_reserv
- 
- 	spin_unlock_irq(&hugetlb_lock);
- 
--	if (folio)
--		lruvec_stat_mod_folio(folio, NR_HUGETLB,
--				      folio_nr_pages(folio));
--
- 	return folio;
- }
- 
-@@ -2251,9 +2267,6 @@ struct folio *alloc_hugetlb_folio_nodema
- 						    nmask);
- 	}
- 
--	if (folio)
--		lruvec_stat_mod_folio(folio, NR_HUGETLB, folio_nr_pages(folio));
--
- 	return folio;
- }
- 
-@@ -2371,6 +2384,8 @@ retry:
- 		if ((--needed) < 0)
- 			break;
- 		/* Add the page to the hugetlb allocator */
-+		mod_node_page_state(folio_pgdat(folio), NR_HUGETLB,
-+				    -(long)pages_per_huge_page(h));
- 		enqueue_hugetlb_folio(h, folio);
- 	}
- free:
-@@ -2379,13 +2394,9 @@ free:
- 	/*
- 	 * Free unnecessary surplus pages to the buddy allocator.
- 	 * Pages have no ref count, call free_huge_folio directly.
--	 * These pages were not accounted in NR_HUGETLB, so balance the
--	 * decrement in free_huge_folio().
- 	 */
--	list_for_each_entry_safe(folio, tmp, &surplus_list, lru) {
--		lruvec_stat_mod_folio(folio, NR_HUGETLB, pages_per_huge_page(h));
-+	list_for_each_entry_safe(folio, tmp, &surplus_list, lru)
- 		free_huge_folio(folio);
--	}
- 	spin_lock_irq(&hugetlb_lock);
- 
+ 	vmf->ptl = pmd_lock(vma->vm_mm, vmf->pmd);
+@@ -5762,6 +5764,10 @@ vm_fault_t do_set_pmd(struct vm_fault *v
+ 	count_vm_event(THP_FILE_MAPPED);
+ out:
+ 	spin_unlock(vmf->ptl);
++	if (pgtable_allocated && vmf->prealloc_pte) {
++		pte_free(vma->vm_mm, vmf->prealloc_pte);
++		vmf->prealloc_pte = NULL;
++	}
  	return ret;
-@@ -2950,13 +2961,6 @@ struct folio *hugetlb_alloc_folio(struct
- 
- 	ret = mem_cgroup_charge_hugetlb(folio, mm,
- 					gfp | __GFP_RETRY_MAYFAIL);
--	/*
--	 * Unconditionally increment NR_HUGETLB here because if
--	 * mem_cgroup_charge_hugetlb failed, freeing the page will
--	 * decrement NR_HUGETLB.
--	 */
--	lruvec_stat_mod_folio(folio, NR_HUGETLB, nr_pages);
--
- 	if (ret == -ENOMEM) {
- 		folio_put(folio);
- 		/*
-@@ -2971,6 +2975,8 @@ struct folio *hugetlb_alloc_folio(struct
- 		return ERR_PTR(-ENOSPC);
- 	}
- 
-+	mod_hugetlb_memcg_state(folio, nr_pages);
-+
- 	return folio;
- 
-  err_uncharge_hugetlb_cgroup:
---- a/mm/memcontrol.c~mm-hugetlb-account-nr_hugetlb-at-folio-state-transitions
-+++ a/mm/memcontrol.c
-@@ -5445,11 +5445,7 @@ int mem_cgroup_charge_hugetlb(struct fol
- 	struct mem_cgroup *memcg = get_mem_cgroup_from_mm(mm);
- 	int ret = 0;
- 
--	/*
--	 * Even memcg does not account for hugetlb, we still want to update
--	 * system-level stats via lruvec_stat_mod_folio. Return 0, and skip
--	 * charging the memcg.
--	 */
-+	/* Skip charging unless hugetlb accounting is enabled for cgroup v2. */
- 	if (mem_cgroup_disabled() || !memcg_accounts_hugetlb() ||
- 		!memcg || !cgroup_subsys_on_dfl(memory_cgrp_subsys))
- 		goto out;
+ }
+ #else
 _
 
-Patches currently in -mm which might be from chengkaitao@kylinos.cn are
+Patches currently in -mm which might be from david@kernel.org are
 
-mm-hugetlb_cma-fix-incorrect-hugetlb_cma_size-assignment-on-malformed-input.patch
-mm-hugetlb-preserve-persistent-flags-when-returning-folios-to-the-pool.patch
-mm-hugetlb-fix-nr_hugetlb-accounting-for-unused-surplus-folios.patch
-mm-hugetlb-account-nr_hugetlb-at-folio-state-transitions.patch
+mm-memory-failure-fix-folio-refcount-leak-and-min_order_for_split-locking.patch
+mm-mprotect-dont-skip-uffd-marker-install-when-racing-with-pte-table-reclaim.patch
+mm-khugepaged-free-unused-page-table-when-setting-a-huge-pmd-fails.patch
 
