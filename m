@@ -1,51 +1,50 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794293112;
-	b=Fd2/eZ1jBGOsehxsmlObaeHTolkCBDHhW+19eOVWZg4kJ4XDLCCSwTSWMXGKOaXW/H/G
-	 lADF/TzxqLplO2yfq5I40yyFUuANUTFt5VW+Y6iFuNnHJav4xluSJSryxRA2LjaFnfzLh
-	 vV3fBeguJ8jeP76nTybgjL23q/YnNQnP35gtA821Z2xtpWc2jka62C1dW8+F9p+hwnvtA
-	 5Pp2AkK9egAPHsJkhyavyrVkBaekYIFQ3nk34Cj4ZjEwHQmbhQDzAYN45+PFzAQxYEIU0
-	 qHOpmD7KpPRf4Ax+MLu268NlCT12W1plZtbb0UN7oOKH51NxhXiJ5I2V7qBavQ9emWA==
+	t=1794293115;
+	b=nnx8RcJ6fDI4W5nAIL6AqaVy+sdyIEisvPLjZb48CDNI2X/bqH1js+65TIdukeJsncuM
+	 issZqNHE3KvrrxIfG6kEltc8XbfvvHeyuIJIRdEGkVj1HPN7VWYZa3+0KX2Qvx3HVfqIA
+	 e4zZt3AaKWhnYJ7JEtGnp9MTN8G7PMzmaRTvh6972gtG5XX/mWv1Y33kJZDtnze2b+zit
+	 2NnXgYbOoyITYkDNpRcxItxYHfDTL1RNbb5g04jZ6c0LAgk4ELwNPAg9PG+GN0G2XXqjs
+	 0xvatA82oZxkywZI+O+/b8FnWo/CQd8KZPEmSTVkZy+XP7fxRR8t6sMm3f2GW0NdvPA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794293112;
+	a=rsa-sha256; c=relaxed/relaxed; t=1794293115;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=FPfmpBvk2G45uhiys+1Km7Pzml9rAJHDpzmmZ6HBn40=;
-	b=YDA68RQkibHqqYMrLP5KDrfAegu3a/7qFlpVUqkZQk6v+6l8Wf3CxbX74m031z27IVRl
-	 nVqwid+Z6TC9ZMyW92oFV7HZdYvjWDqZKJFn/Vz0tCOKqMHDvtQ/pQxVk1RiVpidXZhyR
-	 pRIFkMlqBF+35ZS6GNzfvm0RBjbl0PpY5xTvifYknvBY3a0pmjD8WLtmN01fC1Dxq60Mn
-	 JgXlyDMAOD0UR3j1lHwy3CjnB79A1kZZpoC6fhZSpPq4aE80LhkABwPkM7LZphIMOLNPH
-	 Z1kbonUgwkl9DXNQAsIUWVtRFadh8lpSvYrGZ9QzDSXk5m2sQH4nY9+seR6M3cAMl0g==
+	bh=x0pg1ZSD2VK0yA5MmV6R9bMjgrhzjbCuT0KFvY/z3/Y=;
+	b=16CBRxy99x7OpPyMAElNK1MRRKREmKX5k1oCNkuGExQBYaykb7DypwrSzPnC5drpy6wV
+	 xgpRW9zGCQlgjSiNBq0e6VEKw4iNaOrDoLb6ywJKeCkEw0wiJokZsr3/2EQMSfmsoVW0M
+	 Yn1KAuHkaEg9lFoa5PlFwW7cnkec0DhTFNpfaukQkfSjq7IDe/f9ebeXysDfDzX1v5n7F
+	 9HYG/UxXqps1sf8SsS5fKA8PR9LqE3O4vPQknOidrCp2CF8QTwvBlV9KKdwH0GmmX9GJ0
+	 1Qh6dcrpL+BTQuxvQz7wGSymxdy9kIsr/j0kOhZGLfH811yivqfduZvixLBlyNAtzlw==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=Q7ID1WlA;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=OrMKWSDC;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C0C0D606BD69;
-	Tue, 10 Nov 2026 06:45:11 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D6225606BD76;
+	Tue, 10 Nov 2026 06:45:14 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=Q7ID1WlA
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id EEDD91F008A3;
-	Tue, 10 Nov 2026 06:45:10 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=OrMKWSDC
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 896531F008A3;
+	Tue, 10 Nov 2026 06:45:14 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1794293111;
-	bh=FPfmpBvk2G45uhiys+1Km7Pzml9rAJHDpzmmZ6HBn40=;
+	d=linux-foundation.org; s=korg; t=1794293114;
+	bh=x0pg1ZSD2VK0yA5MmV6R9bMjgrhzjbCuT0KFvY/z3/Y=;
 	h=Date:To:From:Subject;
-	b=Q7ID1WlAUxo1za5aaBTsoE1w57AcdfeoCBptM40uMOgdnb1yyRHOQIbdA9rmcybQ5
-	 H+T+sgUIgSXpn0Jst204lEPImU+2MM+Bcoe1Hg4whwqfIZIqzUFB6IEVIitllOrbP+
-	 AJSZtg2HmxcTxTfttDPHzKlSXe9qjm1dmdZ4M6ww=
-Date: Mon, 09 Nov 2026 22:45:10 -0800
+	b=OrMKWSDCPSghZrL08FtygmwEzYOngWAJjSJLtHS5p4PZ3eZOlhDlGG3JmIiKGa3Di
+	 BRed5KR3COmDGYj1zILXz8pI95xd/yc5xZhSVEYQbEtRg5SB15TXZkmgjIQ6pEzyOM
+	 LGWTCCueOgvu/G4sI0oMjOKV6OnoRgcP5JgN2It4=
+Date: Mon, 09 Nov 2026 22:45:14 -0800
 To: mm-commits@vger.kernel.org,will@kernel.org,stable@vger.kernel.org,
 	pjw@kernel.org,palmer@dabbelt.com,osalvador@suse.de,mark.rutland@arm.com,
 	kevin.brodsky@arm.com,david@kernel.org,dave.hansen@intel.com,
-	catalin.marinas@arm.com,bjorn@rivosinc.com,azpijr@gmail.com,
-	apopple@nvidia.com,aou@eecs.berkeley.edu,anshuman.khandual@arm.com,
-	alex@ghiti.fr,agordeev@linux.ibm.com,muchun.song@linux.dev,
-	akpm@linux-foundation.org
+	catalin.marinas@arm.com,bjorn@rivosinc.com,bjorn@kernel.org,
+	apopple@nvidia.com,aou@eecs.berkeley.edu,alex@ghiti.fr,
+	agordeev@linux.ibm.com,muchun.song@linux.dev,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] mm-fix-missing-page-table-destructor-in-pagetable_free.patch removed from -mm tree
-Message-Id: <20261110064510.EEDD91F008A3@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] riscv-mm-fix-hotplug-page-table-destructor-handling.patch removed from -mm tree
+Message-Id: <20261110064514.896531F008A3@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -57,66 +56,42 @@ Precedence: list
 
 
 The quilt patch titled
-     Subject: mm: fix missing page-table destructor in pagetable_free()
+     Subject: riscv/mm: fix hotplug page-table destructor handling
 has been removed from the -mm tree.  Its filename was
-     mm-fix-missing-page-table-destructor-in-pagetable_free.patch
+     riscv-mm-fix-hotplug-page-table-destructor-handling.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Muchun Song <muchun.song@linux.dev>
-Subject: mm: fix missing page-table destructor in pagetable_free()
-Date: Fri, 23 Oct 2026 14:34:25 +0800
+Subject: riscv/mm: fix hotplug page-table destructor handling
+Date: Fri, 23 Oct 2026 14:34:26 +0800
 
-Patch series "mm: Fix page-table teardown during memory hot-remove", v3.
+RISC-V uses the same memory-hotplug teardown code for linear-map and
+vmemmap page tables. Late linear-map allocations run page-table
+constructors, while vmemmap and early allocations may not.
 
-Memory hot-remove can free page-table pages allocated through paths with
-different constructor state. Some paths run the page-table constructor,
-while generic sparse-vmemmap population may not. The x86, RISC-V, and
-arm64 teardown paths did not handle that distinction consistently,
-leaving constructor/destructor accounting unbalanced.
+free_pte_table() unconditionally calls pagetable_dtor(), corrupting
+NR_PAGETABLE accounting for constructor-free tables. free_pmd_table()
+avoids that for vmemmap using is_vmemmap, but mapping type is not a
+reliable proxy for constructor state. In particular, it becomes invalid
+once runtime vmemmap tables use the normal pgalloc helpers.
 
-Make pagetable_free() handle any remaining constructor state before
-freeing a page-table page. Callers that already ran pagetable_dtor()
-have cleared that state, so the destructor is not run twice. The RISC-V
-and arm64 fixes then use this common helper for their memory-hot-remove
-paths.
+Introduce free_pgtable_page() to select free_reserved_page() for reserved
+pages and pagetable_free() otherwise. The latter runs the destructor only
+when PageTable() is set, handling both constructor-backed and
+constructor-free tables.
 
-The architecture fixes depend on the common MM change in patch 1, so
-this remains a single series. I expect it to go through the MM tree,
-with review or acks from the relevant architecture maintainers.
-
-
-This patch (of 4):
-
-Since commit 49f599666420 ("mm: call ctor/dtor for kernel PTEs"),
-pte_alloc_one_kernel() runs the page-table constructor for kernel PTE
-tables.
-
-HVO (HugeTLB Vmemmap Optimization) uses pte_alloc_one_kernel() when
-splitting a PMD. Restoring the vmemmap backing pages does not collapse
-the PTE table, so a later memory hot-remove eventually frees it through
-pagetable_free() on x86-64. That releases the page without running the
-matching destructor and leaves NR_PAGETABLE elevated.
-
-Make pagetable_free() the common free-side primitive for page-table
-pages. It checks PageTable() and runs the destructor only when the
-constructor state is still present. Callers that explicitly ran
-pagetable_dtor() have already cleared PageTable(), so they are not
-destructed twice; pages that never ran a constructor are freed directly.
-
-Link: https://lore.kernel.org/20261023063428.3658761-1-songmuchun@bytedance.com
-Link: https://lore.kernel.org/20261023063428.3658761-2-songmuchun@bytedance.com
-Fixes: 49f599666420 ("mm: call ctor/dtor for kernel PTEs")
+Link: https://lore.kernel.org/20261023063428.3658761-3-songmuchun@bytedance.com
+Fixes: c75a74f4ba19 ("riscv: mm: Add memory hotplugging support")
 Signed-off-by: Muchun Song <muchun.song@linux.dev>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Reviewed-by: Jose A. Perez de Azpillaga <azpijr@gmail.com>
+Reviewed-by: Björn Töpel <bjorn@kernel.org>
 Reviewed-by: Kevin Brodsky <kevin.brodsky@arm.com>
-Acked-by: Dave Hansen <dave.hansen@intel.com>
 Acked-by: David Hildenbrand (Arm) <david@kernel.org>
-Reviewed-by: Anshuman Khandual <anshuman.khandual@arm.com>
 Cc: Oscar Salvador <osalvador@suse.de>
+Cc: Dave Hansen <dave.hansen@intel.com>
 Cc: Paul Walmsley <pjw@kernel.org>
 Cc: Palmer Dabbelt <palmer@dabbelt.com>
 Cc: Albert Ou <aou@eecs.berkeley.edu>
@@ -127,70 +102,81 @@ Cc: Will Deacon <will@kernel.org>
 Cc: Mark Rutland <mark.rutland@arm.com>
 Cc: Alexander Gordeev <agordeev@linux.ibm.com>
 Cc: Alistair Popple <apopple@nvidia.com>
-Cc: <stable@vger.kernel.org> # bf9e4e30f353: x86/mm: use pagetable_free()
+Cc: <stable@vger.kernel.org>
 ---
 
- include/linux/mm.h |   37 ++++++++++++++++++++-----------------
- 1 file changed, 20 insertions(+), 17 deletions(-)
+ arch/riscv/mm/init.c |   27 ++++++++++++---------------
+ 1 file changed, 12 insertions(+), 15 deletions(-)
 
---- a/include/linux/mm.h~mm-fix-missing-page-table-destructor-in-pagetable_free
-+++ a/include/linux/mm.h
-@@ -3971,23 +3971,6 @@ static inline void pagetable_free_kernel
- 	__pagetable_free(pt);
- }
- #endif
--/**
-- * pagetable_free - Free pagetables
-- * @pt:	The page table descriptor
-- *
-- * pagetable_free frees the memory of all page tables described by a page
-- * table descriptor and the memory for the descriptor itself.
-- */
--static inline void pagetable_free(struct ptdesc *pt)
--{
--	if (ptdesc_test_kernel(pt)) {
--		ptdesc_clear_kernel(pt);
--		pagetable_free_kernel(pt);
--	} else {
--		__pagetable_free(pt);
--	}
--}
--
- #if defined(CONFIG_SPLIT_PTE_PTLOCKS)
- #if ALLOC_SPLIT_PTLOCKS
- void __init ptlock_cache_init(void);
-@@ -4080,6 +4063,26 @@ static inline void pagetable_dtor(struct
- 	lruvec_stat_sub_folio(folio, NR_PAGETABLE);
- }
+--- a/arch/riscv/mm/init.c~riscv-mm-fix-hotplug-page-table-destructor-handling
++++ a/arch/riscv/mm/init.c
+@@ -1501,10 +1501,17 @@ struct execmem_info __init *execmem_arch
+ #endif /* CONFIG_EXECMEM */
  
-+/**
-+ * pagetable_free - Free pagetables
-+ * @pt:	The page table descriptor
-+ *
-+ * pagetable_free frees the memory of all page tables described by a page
-+ * table descriptor and the memory for the descriptor itself.
-+ */
-+static inline void pagetable_free(struct ptdesc *pt)
+ #ifdef CONFIG_MEMORY_HOTPLUG
++static void __meminit free_pgtable_page(struct page *page)
 +{
-+	if (PageTable(ptdesc_page(pt)))
-+		pagetable_dtor(pt);
-+
-+	if (ptdesc_test_kernel(pt)) {
-+		ptdesc_clear_kernel(pt);
-+		pagetable_free_kernel(pt);
-+	} else {
-+		__pagetable_free(pt);
-+	}
++	if (PageReserved(page))
++		free_reserved_page(page);
++	else
++		pagetable_free(page_ptdesc(page));
 +}
 +
- static inline void pagetable_dtor_free(struct ptdesc *ptdesc)
+ static void __meminit free_pte_table(pte_t *pte_start, pmd_t *pmd)
  {
- 	pagetable_dtor(ptdesc);
+ 	struct page *page = pmd_page(*pmd);
+-	struct ptdesc *ptdesc = page_ptdesc(page);
+ 	pte_t *pte;
+ 	int i;
+ 
+@@ -1514,18 +1521,13 @@ static void __meminit free_pte_table(pte
+ 			return;
+ 	}
+ 
+-	pagetable_dtor(ptdesc);
+-	if (PageReserved(page))
+-		free_reserved_page(page);
+-	else
+-		pagetable_free(ptdesc);
++	free_pgtable_page(page);
+ 	pmd_clear(pmd);
+ }
+ 
+-static void __meminit free_pmd_table(pmd_t *pmd_start, pud_t *pud, bool is_vmemmap)
++static void __meminit free_pmd_table(pmd_t *pmd_start, pud_t *pud)
+ {
+ 	struct page *page = pud_page(*pud);
+-	struct ptdesc *ptdesc = page_ptdesc(page);
+ 	pmd_t *pmd;
+ 	int i;
+ 
+@@ -1535,12 +1537,7 @@ static void __meminit free_pmd_table(pmd
+ 			return;
+ 	}
+ 
+-	if (!is_vmemmap)
+-		pagetable_dtor(ptdesc);
+-	if (PageReserved(page))
+-		free_reserved_page(page);
+-	else
+-		pagetable_free(ptdesc);
++	free_pgtable_page(page);
+ 	pud_clear(pud);
+ }
+ 
+@@ -1660,7 +1657,7 @@ static void __meminit remove_pud_mapping
+ 		remove_pmd_mapping(pmd_base, addr, next, is_vmemmap, altmap);
+ 
+ 		if (pgtable_l4_enabled())
+-			free_pmd_table(pmd_base, pudp, is_vmemmap);
++			free_pmd_table(pmd_base, pudp);
+ 	}
+ }
+ 
 _
 
 Patches currently in -mm which might be from muchun.song@linux.dev are
 
-riscv-mm-fix-hotplug-page-table-destructor-handling.patch
 riscv-mm-fix-missing-destructor-for-hotplug-pud-tables.patch
 arm64-mm-fix-destructor-for-unconstructed-hotplug-page-tables.patch
 mm-sparse-vmemmap-map-shared-vmemmap-tail-pages-as-read-only.patch
