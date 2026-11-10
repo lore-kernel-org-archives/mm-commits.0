@@ -1,41 +1,41 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794336777;
-	b=KyE7D9PEiSHtOzr6AwuP0e/ihoZi92ia7BDi48s3YkGjqeCGC3IxvoMEI8hnf1GorDSK
-	 pDrDK7GcrqeWhMn3sv/JenI8a/a2mithh1mRGdTUdyIrlFxrsT3P88s7dU3hflyCDvf3C
-	 RYieC4x0phQJe8HdTY/ayCSrA0G3FQ24W7cqt0YqbT4juQLE4FI7HwTFd7x8av24FOXwF
-	 Xu/Dk9KoKluxcafe4T/7iIfXCaYv3Q1oAnrSvO/+XQCnG6Tgxm9/ZbD5lQoYxRzLOmpd4
-	 wa9PNVv0kmzbf1Md67FBrKHOfVHMw8+zRA/zeMgx62SM7eXuzsWCgVw0oCB81p1A0KQ==
+	t=1794336779;
+	b=5V0DGkwbkbu+9lKMaRFu3g6AXs0a7sNXglOS+ShCmZD493J20+u8Q0eeu21LKfWDrLP7
+	 /TQCSn2UrBpFzCX8bVMxL+4cW2gZK+F8uVeQznjIBxyFvcjXtzOaHa/J7Zxt+pl/VKdtp
+	 FACRgyCQsGBaOq182nRmTrMJQyajT/URqv9XOOKdaFnRe2bAymSqVPgCvjPRrUs3APHMx
+	 B1CCMyGwEzYcD5ZZKhgF1inJMQ6YDTgnCcv8BiJ//fjyUHc+3qi4N7jjshuoWowqUESoT
+	 q+Y8xEsB8zuk9uKLv8RWezXWvC0bCgQm5JzXw1/f1wt+OQORMlRYN91umO4QyAJpswg==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794336777;
+	a=rsa-sha256; c=relaxed/relaxed; t=1794336779;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=FFvy0IV09PTcwAMOuJt3YrshzO2lHxfzaEk04rk0diY=;
-	b=rjP5hSJX7RKH9lpTzsFVvLrjWi5gQKPnvzhzbq3QzhawC29X0/0eiGRRB13+q4NROaYG
-	 WRR1+mgkbq3l53ttv5+CeSblCyUh/BKr/Tk4l1X0AqTNzLfRqJStJEMjr+lrZZCLNiPCY
-	 4JXqVsPrFeTwzhciGr6Yrpf/ApAYeni9T5FQMAdXQ9RPnm46HPUcbhEFJheTpgPjkQYqf
-	 8HV7/Dep8XoUQIR8BoE6YA7yk2/NlrZgG8MQY4b7ypOx+17uYqLp+j9TLd1i3nHYB05Ns
-	 g8z3b4fTUP3EnKiSeTzs7TGN5kfoLVZNsDQpqqvvFpuklf0T2Afp6F1iewjICeLDRUw==
+	bh=3cQHLNCYQrEuFduTCAneanlU/jHnnzNxEQyU9+I/94c=;
+	b=oGICqxHaYIXBD7n5UlRuxiw763pYDvrmc/PKqvd+/9i7gXRNuDqSbW6gFEKaUKNMs/Y+
+	 kzNe8Ju7IgD4L54+7eqtFc+Dlbna3IwcO8OX2qKfjaLPKoWvdFF365VvRlE7BmhIdHJ+w
+	 exOei2UgB/DylMFvA0PFj92f0FNUQr2LBVWhNQ3jrxYNvoUECzchbMGq3mNWqvkuKi2nL
+	 allNZ2ZVwQUt/EclOQAxGW5u2im196Y9NCm0RtXBpjrTl63rW9nueFsYo1o2lOS5IVF6O
+	 c3GSPBq5j+PHUDVZ2eM82uzjbp78IHnqIcP42YmU5mfBR05a5VHZDyJFD47oPKJBVCQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=Dq6ojMzJ;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=K79fJ9HR;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id ECB69606A321
-	for <mm-commits@vger.kernel.org>; Tue, 10 Nov 2026 18:52:56 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 77C5D606A320
+	for <mm-commits@vger.kernel.org>; Tue, 10 Nov 2026 18:52:59 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=Dq6ojMzJ
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9A4041F0089F;
-	Tue, 10 Nov 2026 18:52:56 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=K79fJ9HR
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D853D1F0089F;
+	Tue, 10 Nov 2026 18:52:58 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1794336776;
-	bh=FFvy0IV09PTcwAMOuJt3YrshzO2lHxfzaEk04rk0diY=;
+	d=linux-foundation.org; s=korg; t=1794336779;
+	bh=3cQHLNCYQrEuFduTCAneanlU/jHnnzNxEQyU9+I/94c=;
 	h=Date:To:From:Subject;
-	b=Dq6ojMzJXW+VzHQQkJtF8L+acdMtkwqCLdtvGzW1SN6yjSzvClTFXoDrle49uTjfu
-	 14NR3pCLF1BIsOgZiXNZ+giTA2NKUbFpf9wOkCP9xWn2jjLN12bH66P3S5n8VWKq6j
-	 8SLwxrIUlHhKE4Q3Z1Hh50H8829NPyNv+Q5SAAKg=
-Date: Tue, 10 Nov 2026 10:52:56 -0800
+	b=K79fJ9HRoJlteDpk2UyRIexDlQ3WTAXSaWov1QjJmH/EerVEMvlkORaYC6Bhwm4HT
+	 8GuL2HYDxnIh694oM8cbxJvWRe0SaosO0uwNBLq3qO7bM+3o0jXZdvdh/1khJgGAlg
+	 wXaT/UanXZK7g+Mvy2tQELWemdo0IIxEusscmeNs=
+Date: Tue, 10 Nov 2026 10:52:58 -0800
 To: mm-commits@vger.kernel.org,ziy@nvidia.com,work@onurozkan.dev,
 	vbabka@kernel.org,usama.arif@linux.dev,urezki@gmail.com,tmgross@umich.edu,
 	tamird@kernel.org,surenb@google.com,shakeel.butt@linux.dev,
@@ -48,8 +48,8 @@ To: mm-commits@vger.kernel.org,ziy@nvidia.com,work@onurozkan.dev,
 	a.hindborg@kernel.org,acourbot@nvidia.com,ljs@kernel.org,
 	akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + maintainers-remove-myself-from-mm-rust-reviewerships.patch added to mm-hotfixes-unstable branch
-Message-Id: <20261110185256.9A4041F0089F@smtp.kernel.org>
+Subject: + credits-add-entry-for-thp-maintenance.patch added to mm-hotfixes-unstable branch
+Message-Id: <20261110185258.D853D1F0089F@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -61,12 +61,12 @@ Precedence: list
 
 
 The patch titled
-     Subject: MAINTAINERS: remove myself from MM rust reviewerships
+     Subject: CREDITS: add entry for THP maintenance
 has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     maintainers-remove-myself-from-mm-rust-reviewerships.patch
+     credits-add-entry-for-thp-maintenance.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/maintainers-remove-myself-from-mm-rust-reviewerships.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/credits-add-entry-for-thp-maintenance.patch
 
 This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -85,16 +85,19 @@ and is updated there most days
 
 ------------------------------------------------------
 From: "Lorenzo Stoakes (ARM)" <ljs@kernel.org>
-Subject: MAINTAINERS: remove myself from MM rust reviewerships
-Date: Tue, 10 Nov 2026 12:03:09 +0000
+Subject: CREDITS: add entry for THP maintenance
+Date: Tue, 10 Nov 2026 12:03:10 +0000
 
-Given the current throughput in the kernel resulting from AI-generated
-series, I unfortunately lack the bandwidth to generally be able to offer
-review except in those areas I maintain.
+Given my workload and current areas of focus, I think it's unlikely I will
+return to THP, so add a CREDITS entry to reflect my time as co-maintainer
+there.
 
-Therefore, remove myself as a reviewer.
+With Zi being appointed as an absolutely worthy successor as THP
+co-maintainer I am confident in its success, and this additionally makes me
+feel that it is unnecessary for me to return (for the best possible
+reasons!)
 
-Link: https://lore.kernel.org/20261110-drop-reviewerships-v1-3-07c2f06e8dfa@kernel.org
+Link: https://lore.kernel.org/20261110-drop-reviewerships-v1-4-07c2f06e8dfa@kernel.org
 Signed-off-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 Acked-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
@@ -131,27 +134,24 @@ Cc: Barry Song <baohua@kernel.org>
 Cc: Usama Arif <usama.arif@linux.dev>
 ---
 
- MAINTAINERS |    2 --
- 1 file changed, 2 deletions(-)
+ CREDITS |    6 ++++++
+ 1 file changed, 6 insertions(+)
 
---- a/MAINTAINERS~maintainers-remove-myself-from-mm-rust-reviewerships
-+++ a/MAINTAINERS
-@@ -17957,7 +17957,6 @@ F:	tools/testing/selftests/mm/uffd-*.[ch
+--- a/CREDITS~credits-add-entry-for-thp-maintenance
++++ a/CREDITS
+@@ -3939,6 +3939,12 @@ D: mandocs and mandocs_install build tar
+ S: (Email me and ask)
+ S: Australia
  
- MEMORY MANAGEMENT - RUST
- M:	Alice Ryhl <aliceryhl@google.com>
--R:	Lorenzo Stoakes <ljs@kernel.org>
- R:	Liam R. Howlett <liam@infradead.org>
- L:	linux-mm@kvack.org
- L:	rust-for-linux@vger.kernel.org
-@@ -24652,7 +24651,6 @@ K:	\b(?i:rust)\b
- RUST [ALLOC]
- M:	Danilo Krummrich <dakr@kernel.org>
- M:	Alice Ryhl <aliceryhl@google.com>
--R:	Lorenzo Stoakes <ljs@kernel.org>
- R:	Vlastimil Babka <vbabka@kernel.org>
- R:	Liam R. Howlett <liam@infradead.org>
- R:	Uladzislau Rezki <urezki@gmail.com>
++N: Lorenzo Stoakes
++E: ljs@kernel.org
++W: https://ljs.io
++D: THP co-maintainer
++S: UK
++
+ N: Henrik Storner
+ E: storner@image.dk
+ W: http://www.image.dk/~storner/
 _
 
 Patches currently in -mm which might be from ljs@kernel.org are
