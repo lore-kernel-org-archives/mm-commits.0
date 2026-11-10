@@ -1,49 +1,47 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794267041;
-	b=4Wl2wBOvD2oQcpW3rTEyYDBfWWwP1/0Ht0bZTc5aqpyvp8z/cHw/FltK7ZeT3d1ryvzk
-	 zla6yB43Fpcwjgmzdf8Z13HR03fnlfGHTthPE0weszchLRAmE/PrUM8/aUobMLTCZIrvp
-	 U5AdbORdYMIA9Uxe79vRR+2TXyAfv9tcHLTuGCA4z6SdctFgP8HAUj7jUK3g2ZOqg+Swt
-	 cNA1mA+Dq7F4e3ANSZCQCbHId4bOfMHlC+mDIu5mCD98PeC+JEFqmPqYWsj+dh065CnVV
-	 6h6YZ8ShNGDBLc2AeeB8Az0l5XvLh0Q5otM8VXXzI44Yh2GQz/fRB0NdN7JJLwWpk6g==
+	t=1794268965;
+	b=Q4QNx0qLypMQitw37XYNq0p0buODfdQXDibWWcJWCnYNiqJfY59k2Dmgg4Wl5Xgm3LF1
+	 HhOPfOBoaeZUZPkB0KgjdCp0mHrkM2izNGcLmukowUMJahtBa8UFH1mBCid+HwvPcqQO9
+	 9REpEed3WkXfsMt5GeGENv8E1Nw9jINkXe9CqyiN/XN1BktPO1zE6jx/Y63GsIw/UVV9U
+	 irgNGPV1RJRU6sP6UzDluwlZLhcUuLYva4LnSnvkty40f+Gvhao6l1jyaQ7syXbSK0SZh
+	 Ohz9NCj1jv1iFo+aYu2igV2wn8FzaO07rzuSubLwbO7DqxLDyJrGeA4GT+vp/qjydUw==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794267041;
+	a=rsa-sha256; c=relaxed/relaxed; t=1794268965;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=4Rk1++tOoZw4yWTUJhl0H8A5DmdQ20mfJOv8gBfyZGE=;
-	b=Dnvn4o9jdK0g5/fAKNtvoPLwmSPoSGsQyEwIbJSR/CvDUBHDXeGYY64OvJnZD8mYsXpa
-	 amft831UbWYzsVssQYUA5o+qgUjcrFoUFmcQ8Cs/rKkZGyl9YOAgYhjEYC2H3GXXIEkHL
-	 IFigQFcIk0AYFl/NATDXp5MFh//oDnLCtcKS+yx2KF0ZlIiCf8Ehas84j7ICB1s2YJXUi
-	 OlUnzEXsSDS92+ZmOvqkyt8rArj4FSyt+jj+qgcEEU1fbzyuPAO8LS9Rh+kJzs3pDiTlk
-	 Pu2bJTKpL5GFvIO4ljSxg7MWqOgCPj6ck8P9sIuei92qJUJjpQPnGpY7DK9/tsBwWOQ==
+	bh=JzGZndN7+ezPEbLpvpUAMIU+A/uxXSSY/M5gMLpHZy4=;
+	b=Fm/l+iQVri07ftnLU6bNQSndPdLwfgGIGwzkr+NFsMpFix9NjNNGATWvuIA8GI0ZsimN
+	 nXfyX5pnwOwZPZP9afolqHfyc/0DTA9zfmoSOR730/g2AUtO30HyVK9jC2xGi48QtEo/9
+	 BoY51P5oU+b26CS5uezSsKzL02tPP2CWeC1Lp6CRRFkoRnI0zuuNAheznb2D12yTszSqu
+	 856NOO/0vmpkDd3yaDkruzy3LkEsfPC3u3/rj3V+n6WeM/YL/PugCsEqR/sLRGthStUYo
+	 9QMPjGGcJ491uilml/2EZYaHxWqEdTtBI4fiRjyb6FDnDvAwyJ0871cESlfvAThqgdg==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=E+R+Rb1i;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=Y0ebXSPQ;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9A8CB606A333
-	for <mm-commits@vger.kernel.org>; Mon,  9 Nov 2026 23:30:40 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2FEBB606A334
+	for <mm-commits@vger.kernel.org>; Tue, 10 Nov 2026 00:02:45 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=E+R+Rb1i
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 174121F008A3;
-	Mon,  9 Nov 2026 23:30:40 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=Y0ebXSPQ
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id CFF531F008A1;
+	Tue, 10 Nov 2026 00:02:44 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1794267040;
-	bh=4Rk1++tOoZw4yWTUJhl0H8A5DmdQ20mfJOv8gBfyZGE=;
+	d=linux-foundation.org; s=korg; t=1794268964;
+	bh=JzGZndN7+ezPEbLpvpUAMIU+A/uxXSSY/M5gMLpHZy4=;
 	h=Date:To:From:Subject;
-	b=E+R+Rb1i8PbNXKmFUpuN3NkqD0KmwEXCAvl9xBjcOoUBIKHqi0xY7nX//R9VEC2cN
-	 RUSVJYPgREc4vevnnEzlQtlQTl12kl1nViKhoCwukSfPC/n7mZD15AmEc+3UxW0Mbt
-	 8H5cWPdtavfGZ3ggM87Lu/dCiWk+DjoWa/iTL+ts=
-Date: Mon, 09 Nov 2026 15:30:39 -0800
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,usama.arif@linux.dev,
-	shuah@kernel.org,ryan.roberts@arm.com,nico.pache@linux.dev,ljs@kernel.org,
-	liam@infradead.org,lance.yang@linux.dev,kas@kernel.org,dev.jain@arm.com,
-	david@kernel.org,baolin.wang@linux.alibaba.com,baohua@kernel.org,
-	sashal@kernel.org,akpm@linux-foundation.org
+	b=Y0ebXSPQ6QnA75MOX+ZaIawSSr3gTtFmME8paCvdbL+1HYWZgqp38dUIqd2dDJx/H
+	 5EgxvxeH+9813VXCRBdEOfpaHcyLJjRSZfnypznSP0FrnAT+/hg04nSqeCsdM1JwfE
+	 6E7IaPGFXwxlHrGgzQ43dEGUrmK9+osNJMG/QDa8=
+Date: Mon, 09 Nov 2026 16:02:44 -0800
+To: mm-commits@vger.kernel.org,raemoar63@gmail.com,noring@nocrew.org,
+	hch@lst.de,fredrik.noring@gmail.com,david@davidgow.net,
+	brendan.higgins@linux.dev,amit.patole@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [to-be-updated] selftests-mm-skip-split_huge_page_test-without-the-split_huge_pages-file.patch removed from -mm tree
-Message-Id: <20261109233040.174121F008A3@smtp.kernel.org>
+Subject: + lib-genalloc-dont-dereference-a-null-pool-in-gen_pool_dma_alloc.patch added to mm-nonmm-unstable branch
+Message-Id: <20261110000244.CFF531F008A1@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -54,68 +52,108 @@ List-Owner: <mailto:mm-commits+owner@vger.kernel.org>
 Precedence: list
 
 
-The quilt patch titled
-     Subject: selftests/mm: skip split_huge_page_test without the split_huge_pages file
-has been removed from the -mm tree.  Its filename was
-     selftests-mm-skip-split_huge_page_test-without-the-split_huge_pages-file.patch
+The patch titled
+     Subject: lib/genalloc: don't dereference a NULL pool in gen_pool_dma_[z]alloc()
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     lib-genalloc-dont-dereference-a-null-pool-in-gen_pool_dma_alloc.patch
 
-This patch was dropped because an updated version will be issued
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/lib-genalloc-dont-dereference-a-null-pool-in-gen_pool_dma_alloc.patch
+
+This patch will later appear in the mm-nonmm-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via various
+branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there most days
 
 ------------------------------------------------------
-From: Sasha Levin <sashal@kernel.org>
-Subject: selftests/mm: skip split_huge_page_test without the split_huge_pages file
-Date: Wed,  4 Nov 2026 22:02:42 -0500
+From: Amit Patole <amit.patole@gmail.com>
+Subject: lib/genalloc: don't dereference a NULL pool in gen_pool_dma_[z]alloc()
+Date: Fri, 06 Nov 2026 09:02:32 -0500
 
-Every case in split_huge_page_test goes through
-/sys/kernel/debug/split_huge_pages.  When that file does not exist,
-because debugfs is not mounted or the kernel has no CONFIG_DEBUG_FS, the
-first write bails out of the whole test and it is reported as a failure:
+Patch series "lib/genalloc: fix a NULL pool check and add KUnit tests".
 
-  Bail out! write_file(/sys/kernel/debug/split_huge_pages): No such file or directory
+genalloc has no unit tests, so patch 2 adds a KUnit suite.  Writing it
+turned up that gen_pool_dma_alloc() and gen_pool_dma_zalloc() crash on a
+NULL pool, while the other DMA helpers return NULL as gen_pool_dma_alloc()
+originally did.  Patch 1 restores the check; no in-tree caller passes a
+NULL pool, so it is not marked for stable.
 
-Skip the test in that case.
+Tested on UML with a kunitconfig of CONFIG_KUNIT=y and
+CONFIG_GENALLOC_KUNIT_TEST=y: 12/12 pass with patch 1, and
+genalloc_dma_test crashes without it.
 
-Link: https://lore.kernel.org/20261105030242.1241448-1-sashal@kernel.org
-Fixes: fa6c02315f74 ("mm: huge_memory: a new debugfs interface for splitting THP tests")
-Signed-off-by: Sasha Levin <sashal@kernel.org>
+
+This patch (of 2):
+
+gen_pool_dma_alloc() returned NULL for a NULL pool since it was added. 
+Commit cf394fc5f715 ("lib/genalloc.c: Add algorithm, align and zeroed
+family of DMA allocators") moved that check into
+gen_pool_dma_alloc_algo(), but gen_pool_dma_alloc() now reads pool->algo
+and pool->data before calling it, so a NULL pool is dereferenced instead. 
+gen_pool_dma_zalloc(), added by the same commit, has the same problem. 
+The _algo() and _align() variants still return NULL.
+
+All in-tree callers check the pool before calling, so this is not known to
+be reachable today, but the four entry points disagree and the original
+behaviour is easy to restore.  Check for a NULL pool before dereferencing
+it.
+
+Found by a KUnit test for lib/genalloc.c, which crashed in
+gen_pool_dma_alloc(NULL, ...) on UML.  An AI coding assistant (Claude Opus
+5.5) was used to write that test and this change; with it the test passes.
+
+Link: https://lore.kernel.org/20261106-kunit-genalloc-v1-0-ba1ea397dfd8@gmail.com
+Link: https://lore.kernel.org/20261106-kunit-genalloc-v1-1-ba1ea397dfd8@gmail.com
+Fixes: cf394fc5f715 ("lib/genalloc.c: Add algorithm, align and zeroed family of DMA allocators")
+Signed-off-by: Amit Patole <amit.patole@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Acked-by: Kiryl Shutsemau (Meta) <kas@kernel.org>
-Reviewed-by: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: David Hildenbrand <david@kernel.org>
-Cc: Zi Yan <ziy@nvidia.com>
-Cc: Lorenzo Stoakes <ljs@kernel.org>
-Cc: Liam R. Howlett <liam@infradead.org>
-Cc: Nico Pache <nico.pache@linux.dev>
-Cc: Ryan Roberts <ryan.roberts@arm.com>
-Cc: Dev Jain <dev.jain@arm.com>
-Cc: Barry Song <baohua@kernel.org>
-Cc: Lance Yang <lance.yang@linux.dev>
-Cc: Usama Arif <usama.arif@linux.dev>
-Cc: Shuah Khan <shuah@kernel.org>
+Cc: Fredrik Noring <noring@nocrew.org>
+Cc: Christoph Hellwig <hch@lst.de>
+Cc: Brendan Higgins <brendan.higgins@linux.dev>
+Cc: David Gow <david@davidgow.net>
+Cc: Rae Moar <raemoar63@gmail.com>
+Cc: Fredrik Noring <fredrik.noring@gmail.com>
 ---
 
- tools/testing/selftests/mm/split_huge_page_test.c |    3 +++
- 1 file changed, 3 insertions(+)
+ lib/genalloc.c |    6 ++++++
+ 1 file changed, 6 insertions(+)
 
---- a/tools/testing/selftests/mm/split_huge_page_test.c~selftests-mm-skip-split_huge_page_test-without-the-split_huge_pages-file
-+++ a/tools/testing/selftests/mm/split_huge_page_test.c
-@@ -610,6 +610,9 @@ int main(int argc, char **argv)
- 	if (!thp_is_enabled())
- 		ksft_exit_skip("Transparent Hugepages not available\n");
- 
-+	if (access(SPLIT_DEBUGFS, W_OK))
-+		ksft_exit_skip("%s: %s\n", SPLIT_DEBUGFS, strerror(errno));
+--- a/lib/genalloc.c~lib-genalloc-dont-dereference-a-null-pool-in-gen_pool_dma_alloc
++++ a/lib/genalloc.c
+@@ -340,6 +340,9 @@ EXPORT_SYMBOL(gen_pool_alloc_algo_owner)
+  */
+ void *gen_pool_dma_alloc(struct gen_pool *pool, size_t size, dma_addr_t *dma)
+ {
++	if (!pool)
++		return NULL;
 +
- 	if (argc > 1)
- 		optional_xfs_path = argv[1];
- 
+ 	return gen_pool_dma_alloc_algo(pool, size, dma, pool->algo, pool->data);
+ }
+ EXPORT_SYMBOL(gen_pool_dma_alloc);
+@@ -418,6 +421,9 @@ EXPORT_SYMBOL(gen_pool_dma_alloc_align);
+  */
+ void *gen_pool_dma_zalloc(struct gen_pool *pool, size_t size, dma_addr_t *dma)
+ {
++	if (!pool)
++		return NULL;
++
+ 	return gen_pool_dma_zalloc_algo(pool, size, dma, pool->algo, pool->data);
+ }
+ EXPORT_SYMBOL(gen_pool_dma_zalloc);
 _
 
-Patches currently in -mm which might be from sashal@kernel.org are
+Patches currently in -mm which might be from amit.patole@gmail.com are
 
-selftests-proc-cast-the-procmap_query-address-through-uintptr_t.patch
-selftests-mm-fix-pointer-width-warnings-on-32-bit-architectures.patch
-selftests-mm-uffd-wp-mremap-keep-the-thp-sizes-in-unsigned-long.patch
-selftests-proc-search-the-kernel-headers-before-the-tools-copies.patch
-selftests-prctl-select-the-tests-by-arch-alone.patch
+lib-genalloc-dont-dereference-a-null-pool-in-gen_pool_dma_alloc.patch
+lib-tests-add-kunit-tests-for-genalloc.patch
 
