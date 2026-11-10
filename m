@@ -1,46 +1,46 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794270037;
-	b=SsDgXwYGTrhMnBoHQhcWD8cBtTSp5WR7Gkzlql/a6n0Q0QCzq+mHKNLoBzAXzTzLlbI9
-	 PCWlHVUFx6L2S0x505m0vibd3YzKoJrQR/XvdYWg2SOUaEQVZAT9QlcGcbFrQgCNjlz3V
-	 CVKoKuRBGRs8mWcuxfnooNvLrzL9K7snT4Wq0iCMmAHi0YMgbM+4mDaOYMuQJYmNpPM0V
-	 2zxXUabhx0PnR5MNTsERJphdesUPQRFbPhI76shT/kZPPlye9lTN8R0R9A87HxE1w5ZO3
-	 vAC2D3wHnQ7Am570233AlAl7IZI4a8xD/1pW0vVxWYlz0SwIebSPvXcXUcHfg1SXTPg==
+	t=1794270248;
+	b=bL92n82rvwJpqbz4QLIE/V1mdx18N2XJ6kMmOjK7Z8SK3Ud4cgJM+4NrsqwbQUYbXNJK
+	 Xdf2brdgqkieg78bVsZNN0CmoTuZyxY+A3RPrAwj2NJbJn9iQlHdjzdFNRE0vZmkW3ShC
+	 Q+SPmy9N1mZgCryFElCy6l61zpYNfcoD7NSNRBsMjbj9NdQ58AoQZUwr8PIvrtuLxwRY0
+	 ZJODWQVzoK0GV/llskLonTNhkhNrOXDvVr/AgyJ4ZDGDWhBZeZ2PY2k+UvEvP/sZRiNGT
+	 4hhYtQY8YvCN1mPMd3mpWsJX7XuXCWXVCriW8gJ5Tjmp6ZoXyOTezp5JAzd+DLIPqpQ==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794270037;
+	a=rsa-sha256; c=relaxed/relaxed; t=1794270248;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=6BMvH39CHetNODs8PuT95mQZbNEKK/BNaG54V6GhxsA=;
-	b=scMvtxmHU0AKTVxvL6eMxUByY0lEOj0HRJlPw3KC1UmF42FMXHxBA8Nr4y7Gie9GXzdo
-	 tv/jF5l67Jls3ITLxfb8087OM5BtY7bmmRihSruz6mHwVoJ1F1OMDy+6PFojzdDx5y5nZ
-	 +bzqGt/DTa5jCA7ZWbZom7m0c50YC1H4VSbo90GvoErU6eJtdKhHZG1o45ORAOZkYwBit
-	 KxzqPbRJ47N9EjK6CkU66tGIqlfGuU3pK/SyFcccSBor0YIDBhun0FchtOhHgIxpVt5NN
-	 qcCQsEc14nOo8AIaQdYEALQj4w/o71TtabjpPjUzO3B7G8pvlMF9nMz5Ah/pmTYrDEg==
+	bh=RhTXBzJoznNMTjuymEfT3rfzmTwoiqOH4EBdnBJRiTk=;
+	b=aYfzpYT0YrH4W/auu0oq2RYeFjIx81ORmyjfHTxTyAkQ6hPYfYBmqGqTYiNIZIzwFQEn
+	 8lzZdac227w3+ir7N9MpwRx1btxJsV3j4z02WsXfTXt/BN+PHWUKvAl5G9o2uakdzzNvU
+	 Ncmx3GAfAo2ZjJNRgRCWxgETBhiKds0vB5R93nzBE/Wgc07VDBDJMH7RnQJU3lKy7xHhL
+	 DvEA1YgaIry1DbCK06dTjr11T+Y6Kf7SQWdY3OWsVCHV7w8FG18QeChwiMBF6DF7odCPH
+	 FRFn/R2fF94c7pdCYA2NmZG02w7C9KsIXd6zh/TtesO+1xJazliBJDbEXkYsalezAGA==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=div81HGD;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=tp+Z8Q70;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9D989606A335
-	for <mm-commits@vger.kernel.org>; Tue, 10 Nov 2026 00:20:36 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F175F606A325
+	for <mm-commits@vger.kernel.org>; Tue, 10 Nov 2026 00:24:07 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=div81HGD
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 444B41F008A2;
-	Tue, 10 Nov 2026 00:20:36 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=tp+Z8Q70
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A84E91F008A1;
+	Tue, 10 Nov 2026 00:24:07 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1794270036;
-	bh=6BMvH39CHetNODs8PuT95mQZbNEKK/BNaG54V6GhxsA=;
+	d=linux-foundation.org; s=korg; t=1794270247;
+	bh=RhTXBzJoznNMTjuymEfT3rfzmTwoiqOH4EBdnBJRiTk=;
 	h=Date:To:From:Subject;
-	b=div81HGDS3k/8pC9euqmv6mPc6t++Z545kw1EEYIinwk+7/qDzQBwjeBsdKs/pRT9
-	 rzl7QxVn9016AdOTbUb2VlAG+nWax+9Aq6t6gCuanVgATjhuadP2aYZlPwSJj7gvGa
-	 g3jCjH8zj0vPw7Rx6J8gwqTKf/F+Y5i//AXF0loc=
-Date: Mon, 09 Nov 2026 16:20:35 -0800
+	b=tp+Z8Q70ewgBEaaf9nHpKmFXkqrzPz46s9EpuvDkyLbMCbkm+0oCwxBmvdXVS9DpH
+	 ki7rhlol92+M7Il8CtyY/EuGblqwx1DY+wCBWM8Ttiln5VDDWZjIawDnDEcogtxDfh
+	 4SOGQvc4RSEEjHpfsFuXDl2TbFkaQ0TTmgMom9mc=
+Date: Mon, 09 Nov 2026 16:24:07 -0800
 To: mm-commits@vger.kernel.org,chengkaitao@kylinos.cn,
 	akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [to-be-updated] mm-hugetlb-fix-nr_hugetlb-accounting-for-surplus-folios.patch removed from -mm tree
-Message-Id: <20261110002036.444B41F008A2@smtp.kernel.org>
+Subject: + mm-hugetlb_cma-fix-incorrect-hugetlb_cma_size-assignment-on-malformed-input.patch added to mm-unstable branch
+Message-Id: <20261110002407.A84E91F008A1@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -51,45 +51,80 @@ List-Owner: <mailto:mm-commits+owner@vger.kernel.org>
 Precedence: list
 
 
-The quilt patch titled
-     Subject: mm/hugetlb: fix NR_HUGETLB accounting for surplus folios
-has been removed from the -mm tree.  Its filename was
-     mm-hugetlb-fix-nr_hugetlb-accounting-for-surplus-folios.patch
+The patch titled
+     Subject: mm/hugetlb_cma: fix incorrect hugetlb_cma_size assignment on malformed input
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-hugetlb_cma-fix-incorrect-hugetlb_cma_size-assignment-on-malformed-input.patch
 
-This patch was dropped because an updated version will be issued
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-hugetlb_cma-fix-incorrect-hugetlb_cma_size-assignment-on-malformed-input.patch
+
+This patch will later appear in the mm-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via various
+branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there most days
 
 ------------------------------------------------------
 From: Kaitao Cheng <chengkaitao@kylinos.cn>
-Subject: mm/hugetlb: fix NR_HUGETLB accounting for surplus folios
-Date: Mon, 02 Nov 2026 10:49:10 +0800
+Subject: mm/hugetlb_cma: fix incorrect hugetlb_cma_size assignment on malformed input
+Date: Fri, 06 Nov 2026 18:05:18 +0800
 
-NR_HUGETLB is incremented in the allocation entry points, but decremented
-unconditionally in free_huge_folio(). Surplus folios allocated while
-gathering reservations can be freed without passing through those entry
-points, leaving an unmatched decrement in the per-node counter.
+Patch series "Subject: [PATCH v3 0/4] mm/hugetlb: Fix CMA parsing, flags
+and usage accounting", v3.
 
-This happens when reservation gathering fails or allocates more folios
-than needed, or when the overcommit recheck rejects a newly allocated
-surplus folio. These paths cause nr_hugetlb in /proc/vmstat to underreport
-usage.
+This series fixes three independent HugeTLB issues reported by Sashiko
+and includes a follow-up cleanup of NR_HUGETLB accounting.
 
-Move node accounting to the underlying folio state transitions. Increment
-NR_HUGETLB when dequeuing a free folio or allocating a fresh surplus or
-migration folio, and decrement it when returning the folio to the pool or
-removing it from active use. Balance the temporary increment when surplus
-folios gathered for reservations are added to the free pool.
+Patch 1 rejects a global hugetlb_cma size following node-specific entries.
+This prevents malformed input from overwriting valid per-node reservations
+with an incorrectly parsed global size.
 
-Separate memcg statistics from node accounting, updating them after a
-successful charge and before uncharging. This keeps node accounting
-balanced independently of whether the folio is charged to a memcg.
+Patch 2 preserves persistent folio flags when a failed vmemmap restore
+returns a folio to the pool. This retains CMA allocation tracking and
+raw hardware poison information, while ensuring transient flags are
+cleared before returning the folio.
 
-Link: https://lore.kernel.org/20261102024910.31486-4-kaitao.cheng@linux.dev
-Fixes: 05d4532b60e3 ("memcg/hugetlb: add hugeTLB counters to memcg")
+Patch 3 retains the minimal NR_HUGETLB accounting fix, as suggested by
+Muchun Song, to keep it straightforward to backport. It balances the
+counter before freeing unused surplus folios during reservation
+gathering or after a failed overcommit recheck.
+
+Patch 4 moves NR_HUGETLB node accounting to the underlying folio state
+transitions and separates it from memcg statistics. This cleans up
+the accounting in the allocation and surplus cleanup paths.
+
+
+This patch (of 4):
+
+When hugetlb_cma contains a global size after node-specific entries,
+cmdline_parse_hugetlb_cma() enters the global branch and reparses the
+original parameter string. For hugetlb_cma=1:2G,4G, this interprets the
+initial node ID as a one-byte global size and clears the 2 GiB reservation
+recorded for node 1.
+
+Global and node-specific formats cannot be mixed. Return -EINVAL when a
+global entry follows a node-specific entry, before updating any settings.
+This preserves the valid prefix, so the example retains node 1's 2 GiB
+reservation and reports the malformed option.
+
+Link: https://lore.kernel.org/20261106100521.30099-1-kaitao.cheng@linux.dev
+Link: https://lore.kernel.org/20261106100521.30099-2-kaitao.cheng@linux.dev
+Fixes: 38e719ab2673 ("hugetlb: support node specified when using cma for gigantic hugepages")
 Signed-off-by: Kaitao Cheng <chengkaitao@kylinos.cn>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Closes: https://sashiko.dev/#/bug/linux-860a3b8f-0b07-4cd5-a122-aa2288463bee
-Suggested-by: Muchun Song <muchun.song@linux.dev>
-Suggested-by: Oscar Salvador <osalvador@suse.de>
+Closes: https://sashiko.dev/#/bug/linux-10f40d3e-3feb-4622-9da8-1fedecb2d0e2
+Acked-by: Muchun Song <muchun.song@linux.dev>
+Reviewed-by: Oscar Salvador <osalvador@suse.de>
 Cc: David Hildenbrand <david@kernel.org>
 Cc: Mike Rapoport <rppt@kernel.org>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
@@ -98,6 +133,7 @@ Cc: Roman Gushchin <roman.gushchin@linux.dev>
 Cc: Shakeel Butt <shakeel.butt@linux.dev>
 Cc: Mani Tofigh <mt4022@columbia.edu>
 Cc: Zi Yan <ziy@nvidia.com>
+Cc: Mike Kravetz <mike.kravetz@oracle.com>
 Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
 Cc: Miaohe Lin <linmiaohe@huawei.com>
 Cc: Naoya Horiguchi <nao.horiguchi@gmail.com>
@@ -105,157 +141,30 @@ Cc: Frank van der Linden <fvdl@google.com>
 Cc: Chris Down <chris@chrisdown.name>
 Cc: Joshua Hahn <joshua.hahnjy@gmail.com>
 Cc: Qi Zheng <qi.zheng@linux.dev>
+Cc: "Oscar Salvador (SUSE)" <osalvador@kernel.org>
 ---
 
- mm/hugetlb.c    |   42 +++++++++++++++++++++++++++---------------
- mm/memcontrol.c |    6 +-----
- 2 files changed, 28 insertions(+), 20 deletions(-)
+ mm/hugetlb_cma.c |    3 +++
+ 1 file changed, 3 insertions(+)
 
---- a/mm/hugetlb.c~mm-hugetlb-fix-nr_hugetlb-accounting-for-surplus-folios
-+++ a/mm/hugetlb.c
-@@ -1288,6 +1288,8 @@ static struct folio *dequeue_hugetlb_fol
- 		folio_clear_hugetlb_freed(folio);
- 		h->free_huge_pages--;
- 		h->free_huge_pages_node[nid]--;
-+		mod_node_page_state(folio_pgdat(folio), NR_HUGETLB,
-+				    pages_per_huge_page(h));
- 		return folio;
- 	}
+--- a/mm/hugetlb_cma.c~mm-hugetlb_cma-fix-incorrect-hugetlb_cma_size-assignment-on-malformed-input
++++ a/mm/hugetlb_cma.c
+@@ -165,6 +165,9 @@ static int __init cmdline_parse_hugetlb_
+ 		} else {
+ 			char *next;
  
-@@ -1416,6 +1418,9 @@ void remove_hugetlb_folio(struct hstate
- 		folio_clear_hugetlb_freed(folio);
- 		h->free_huge_pages--;
- 		h->free_huge_pages_node[nid]--;
-+	} else {
-+		mod_node_page_state(folio_pgdat(folio), NR_HUGETLB,
-+				    -(long)pages_per_huge_page(h));
- 	}
- 	if (adjust_surplus) {
- 		h->surplus_huge_pages--;
-@@ -1693,6 +1698,17 @@ struct hstate *size_to_hstate(unsigned l
- 	return NULL;
- }
- 
-+static void mod_hugetlb_memcg_state(struct folio *folio, int nr_pages)
-+{
-+	struct mem_cgroup *memcg;
++			if (s != p)
++				return -EINVAL;
 +
-+	guard(rcu)();
-+	memcg = folio_memcg(folio);
-+	if (memcg)
-+		mod_memcg_lruvec_state(mem_cgroup_lruvec(memcg, folio_pgdat(folio)),
-+				       NR_HUGETLB, nr_pages);
-+}
-+
- void free_huge_folio(struct folio *folio)
- {
- 	/*
-@@ -1740,7 +1756,7 @@ void free_huge_folio(struct folio *folio
- 				     pages_per_huge_page(h), folio);
- 	hugetlb_cgroup_uncharge_folio_rsvd(hstate_index(h),
- 					  pages_per_huge_page(h), folio);
--	lruvec_stat_mod_folio(folio, NR_HUGETLB, -pages_per_huge_page(h));
-+	mod_hugetlb_memcg_state(folio, -pages_per_huge_page(h));
- 	mem_cgroup_uncharge(folio);
- 	if (restore_reserve)
- 		h->resv_huge_pages++;
-@@ -1756,6 +1772,8 @@ void free_huge_folio(struct folio *folio
- 		spin_unlock_irqrestore(&hugetlb_lock, flags);
- 		update_and_free_hugetlb_folio(h, folio, true);
- 	} else {
-+		mod_node_page_state(folio_pgdat(folio), NR_HUGETLB,
-+				    -(long)pages_per_huge_page(h));
- 		arch_clear_hugetlb_flags(folio);
- 		enqueue_hugetlb_folio(h, folio);
- 		spin_unlock_irqrestore(&hugetlb_lock, flags);
-@@ -2123,6 +2141,9 @@ static struct folio *alloc_surplus_huget
- 	 */
- 	account_new_hugetlb_folio(h, folio);
- 
-+	/* The overcommit recheck below can free this folio. */
-+	mod_node_page_state(folio_pgdat(folio), NR_HUGETLB, pages_per_huge_page(h));
-+
- 	/*
- 	 * We could have raced with the pool size change.
- 	 * Double check that and simply deallocate the new page
-@@ -2160,6 +2181,7 @@ static struct folio *alloc_migrate_huget
- 
- 	spin_lock_irq(&hugetlb_lock);
- 	account_new_hugetlb_folio(h, folio);
-+	mod_node_page_state(folio_pgdat(folio), NR_HUGETLB, pages_per_huge_page(h));
- 	spin_unlock_irq(&hugetlb_lock);
- 
- 	/* fresh huge pages are frozen */
-@@ -2218,10 +2240,6 @@ struct folio *alloc_hugetlb_folio_reserv
- 
- 	spin_unlock_irq(&hugetlb_lock);
- 
--	if (folio)
--		lruvec_stat_mod_folio(folio, NR_HUGETLB,
--				      folio_nr_pages(folio));
--
- 	return folio;
- }
- 
-@@ -2249,9 +2267,6 @@ struct folio *alloc_hugetlb_folio_nodema
- 						    nmask);
- 	}
- 
--	if (folio)
--		lruvec_stat_mod_folio(folio, NR_HUGETLB, folio_nr_pages(folio));
--
- 	return folio;
- }
- 
-@@ -2369,6 +2384,8 @@ retry:
- 		if ((--needed) < 0)
- 			break;
- 		/* Add the page to the hugetlb allocator */
-+		mod_node_page_state(folio_pgdat(folio), NR_HUGETLB,
-+				    -(long)pages_per_huge_page(h));
- 		enqueue_hugetlb_folio(h, folio);
- 	}
- free:
-@@ -2944,13 +2961,6 @@ struct folio *hugetlb_alloc_folio(struct
- 
- 	ret = mem_cgroup_charge_hugetlb(folio, mm,
- 					gfp | __GFP_RETRY_MAYFAIL);
--	/*
--	 * Unconditionally increment NR_HUGETLB here because if
--	 * mem_cgroup_charge_hugetlb failed, freeing the page will
--	 * decrement NR_HUGETLB.
--	 */
--	lruvec_stat_mod_folio(folio, NR_HUGETLB, nr_pages);
--
- 	if (ret == -ENOMEM) {
- 		folio_put(folio);
- 		/*
-@@ -2965,6 +2975,8 @@ struct folio *hugetlb_alloc_folio(struct
- 		return ERR_PTR(-ENOSPC);
- 	}
- 
-+	mod_hugetlb_memcg_state(folio, nr_pages);
-+
- 	return folio;
- 
-  err_uncharge_hugetlb_cgroup:
---- a/mm/memcontrol.c~mm-hugetlb-fix-nr_hugetlb-accounting-for-surplus-folios
-+++ a/mm/memcontrol.c
-@@ -5439,11 +5439,7 @@ int mem_cgroup_charge_hugetlb(struct fol
- 	struct mem_cgroup *memcg = get_mem_cgroup_from_mm(mm);
- 	int ret = 0;
- 
--	/*
--	 * Even memcg does not account for hugetlb, we still want to update
--	 * system-level stats via lruvec_stat_mod_folio. Return 0, and skip
--	 * charging the memcg.
--	 */
-+	/* Skip charging unless hugetlb accounting is enabled for cgroup v2. */
- 	if (mem_cgroup_disabled() || !memcg_accounts_hugetlb() ||
- 		!memcg || !cgroup_subsys_on_dfl(memory_cgrp_subsys))
- 		goto out;
+ 			tmp = memparse(p, &next);
+ 			if (*next == '%') {
+ 				if (tmp > 100) {
 _
 
 Patches currently in -mm which might be from chengkaitao@kylinos.cn are
 
+mm-hugetlb_cma-fix-incorrect-hugetlb_cma_size-assignment-on-malformed-input.patch
+mm-hugetlb-preserve-persistent-flags-when-returning-folios-to-the-pool.patch
+mm-hugetlb-fix-nr_hugetlb-accounting-for-unused-surplus-folios.patch
+mm-hugetlb-account-nr_hugetlb-at-folio-state-transitions.patch
 
