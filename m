@@ -1,47 +1,48 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794293137;
-	b=MvhACkdGRA1VLZvYAUjdA4fpcRSjYDdf/KdlV/GoMgFA8lM0B3rJ+yf5LRnv0x3MifNU
-	 1iOHCI30vdy485gWgLJj8eh+cUi1cTc2bz19oZrA/T89TZPii8om0qPH/xSH/abg1JGBk
-	 Z5Iod70wEBDch/KUQ6Z+z+2imE0AAOjAuTjaZujL+ZcQaJ39Ek6uOG8TYKxgsBl7wlSXM
-	 CfINSvQ63d9HwlyVIsy87a+ATtnIP/wbl1/9eldEyr+rIH3to4MYSPNUiYUuEAqKkemWr
-	 lhMWgxObhbYK4elBzDIcnzVwZh7+AEvFZNck4vproKquhpucLsw53etaxCmRTjpG1kw==
+	t=1794293149;
+	b=buCM02q3pgaSOUENaMd8Nrq4BNX89LDnP3dCCYNQqLSYmGfoU3YdegmXz4JO3eDX/ywH
+	 3++X+GWM+cFOpZJ09YbpwXCQ78It9aWaNvaiy7NLFYK3Eyj3ah3iQrE90Lcj3KMgTkzqM
+	 +dgCxUbeTjqfAbVANJA99ZMA73ajLEv9CepAMhyb1OL3+9jI5u9GmzYyi22GbriD6RUe4
+	 6fN+WoQFmjcDYibqnmeO77zDy1lQpfMJAJ8TGJfyPIq8I5PUm6U7j+Kre+7YTNe9zvEOA
+	 XmGJ2FYlzXtLjFLO7koMGaMZBZQaApmldnOImBr5xyN8XfIEvqvtrljTpo7xroevtTQ==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794293137;
+	a=rsa-sha256; c=relaxed/relaxed; t=1794293149;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=rcB4w2OeFL9QwrJnpScwYDFe02N+HdX+VjYuzdDMku8=;
-	b=bpqgB8b3BozmpKkGjM+iYC6XSFAI84eilQyovfgsHc3qyNoZWsmYUYXnzBYwHH+vy541
-	 Qn6B/ouyCO+8oRodiEpiHiPB4sUYXMBD6ueEpdt1EAtBvjkMzgpHu5uOWZAZ6ML7F5Rwx
-	 4bbliLefOED4jIGcZMAIr4GOzG02T7HPMdS+s6dsa6+GqI+3Diunt7vfKjzXKEYidXo0L
-	 vpP+nxaYIoSF0NHbdIC9EzpyNnbHaw+E0kCCK5OfsQzCDR6uQnWxyMWIaIC0qnI1PAJn8
-	 5Amv7sdWu7X/J+EGxNF8cqK74fQQRPj9+uh+fwU8N1Ei0O1T0Bl5eNd9e1PV4B60jig==
+	bh=HrcEhmc8ghf3ySCV6L/INMIv7TmNoQ+d4qyjcxN7ArQ=;
+	b=zFWbkn8rcWvdKOWFeE9FbkFHskBO/qqi8Hl3Bnq+mXYIe+7HzuZoilHftj0PvwNHff0A
+	 wKBaawDz9gYXWYRgsAKmDMd0D2/NHS0slOnhL6K+O+YHOHsLPac0/ZXlFiKvU6edtMGxk
+	 +98GtUJa6WemzTiLnBE3Bez27oh2i5quVFbP/r9Wguc6L2sauxfPN6Jo4FjOdL12V9d3I
+	 OgoATTQBUpoNGvZrSLYvYWXkYLtwvGRUyDmQoBwxYsAB0qlyy4pHubsrjuN4PAep1WF96
+	 h0yqMqbHs6YIseFIh5V4G/AK1E91TW1VIA5OcGTVTL9WVprxrfh7odP9NefbJMsstuQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=zXYyEGXW;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=tCZxxuoJ;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 355C46070341;
-	Tue, 10 Nov 2026 06:45:37 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EBD64606A335;
+	Tue, 10 Nov 2026 06:45:48 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=zXYyEGXW
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E43AD1F0089F;
-	Tue, 10 Nov 2026 06:45:36 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=tCZxxuoJ
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B318C1F0089F;
+	Tue, 10 Nov 2026 06:45:48 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1794293137;
-	bh=rcB4w2OeFL9QwrJnpScwYDFe02N+HdX+VjYuzdDMku8=;
+	d=linux-foundation.org; s=korg; t=1794293148;
+	bh=HrcEhmc8ghf3ySCV6L/INMIv7TmNoQ+d4qyjcxN7ArQ=;
 	h=Date:To:From:Subject;
-	b=zXYyEGXW/b/v+uERu7FGqetHmeqbvZjbeJn0h4U8sc87VpYtRmhOWngrlK11xiWrO
-	 5qePesp6hr9ZlYG6UfylGJEkAXOYzV8xPbXy1S4gBZuHCBYYPBOVgFUVTUSg09ceAM
-	 fa4KMW2z97oc7OzbCw6rsxvHeaHIL3gb5J15TUOg=
-Date: Mon, 09 Nov 2026 22:45:36 -0800
-To: mm-commits@vger.kernel.org,xiaoleiwangxiaolei@gmail.com,
-	stable@vger.kernel.org,shuah@kernel.org,jm5905938@gmail.com,sj@kernel.org,
+	b=tCZxxuoJn6XX0IXc0X1bOc10UThWk2XxEZg5O+fu3hl8GfzzzMP2npCzTtQ5zzbh0
+	 dBg5Vo48m9oH1CsxNkCmbXJDp5pUyvN9VaIBnN88bk3lqI9Dt4Dvb/WVBpc/ruBHju
+	 1JcygGv87aT7r/k9y1ngPIEUzpmoGEx1RdbPirdc=
+Date: Mon, 09 Nov 2026 22:45:48 -0800
+To: mm-commits@vger.kernel.org,vbabka@kernel.org,surenb@google.com,
+	stable@vger.kernel.org,rppt@kernel.org,peterx@redhat.com,mhocko@suse.com,
+	ljs@kernel.org,liam@infradead.org,david@kernel.org,umangpokhriyall@gmail.com,
 	akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] selftests-damon-sysfs_memcg_path_leak-define-ksft_skip.patch removed from -mm tree
-Message-Id: <20261110064536.E43AD1F0089F@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] userfaultfd-validate-the-whole-range-before-changing-write-protection.patch removed from -mm tree
+Message-Id: <20261110064548.B318C1F0089F@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -53,71 +54,88 @@ Precedence: list
 
 
 The quilt patch titled
-     Subject: selftests/damon/sysfs_memcg_path_leak: define ksft_skip
+     Subject: userfaultfd: validate the whole range before changing write protection
 has been removed from the -mm tree.  Its filename was
-     selftests-damon-sysfs_memcg_path_leak-define-ksft_skip.patch
+     userfaultfd-validate-the-whole-range-before-changing-write-protection.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: SJ Park <sj@kernel.org>
-Subject: selftests/damon/sysfs_memcg_path_leak: define ksft_skip
-Date: Mon, 02 Nov 2026 06:46:26 -0800
+From: Umang Pokhriyal <umangpokhriyall@gmail.com>
+Subject: userfaultfd: validate the whole range before changing write protection
+Date: Wed, 04 Nov 2026 15:04:57 +0530
 
-sysfs_memcg_path_leak test uses $ksft_skip without defining it.  As a
-result, the test is marked as passed while it was skipped, like below.
+mwriteprotect_range() checks each VMA as it walks the range.  When a later
+VMA is not registered for write protection, or is a hugetlb VMA the range
+is not aligned to, the call fails after the earlier VMAs were already
+changed.  When unprotecting, userfaultfd_writeprotect() then skips
+wake_userfault(), so threads blocked on those pages are not woken although
+the pages are writable again.
 
-    $ ./sysfs_memcg_path_leak.sh
-    Run as root
-    $ echo $?
-    0
+An unprivileged process can trigger this with a range that spans an
+unregistered VMA.  It hasn't been seen in practice; it was found while
+reviewing the userfaultfd range ioctls with an LLM.
 
-Users who run the test could therefore wrongly believe the test was run
-and passed while it was skipped.
+Validate the whole range first, as mrwprotect_range() already does.
 
-Define the value at the beginning of the test.  After this patch, the
-exit code reflects the skip.
-
-    $ ./sysfs_memcg_path_leak.sh
-    Run as root
-    $ echo $?
-    4
-
-Link: https://lore.kernel.org/20261102144627.88843-4-sj@kernel.org
-Fixes: dfa3cf0bc018 ("selftets/damon: add a test for memcg_path leak")
-Signed-off-by: SJ Park <sj@kernel.org>
+Link: https://lore.kernel.org/20261104093457.152245-1-umangpokhriyall@gmail.com
+Fixes: a1b92a3f1498 ("mm/userfaultfd: support WP on multiple VMAs")
+Signed-off-by: Umang Pokhriyal <umangpokhriyall@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Closes: https://sashiko.dev/#/bug/linux-a0456336-0608-4fec-ac22-0ee61d1d6a91
-Reviewed-by: Aveline Noir <jm5905938@gmail.com>
-Tested-by: Aveline Noir <jm5905938@gmail.com>
-Cc: Shuah Khan <shuah@kernel.org>
-Cc: Wang Xiaolei <xiaoleiwangxiaolei@gmail.com>
-Cc: <stable@vger.kernel.org> # 6.17.x
+Reviewed-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
+Cc: Peter Xu <peterx@redhat.com>
+Cc: David Hildenbrand <david@kernel.org>
+Cc: Lorenzo Stoakes <ljs@kernel.org>
+Cc: Liam R. Howlett <liam@infradead.org>
+Cc: Vlastimil Babka <vbabka@kernel.org>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: <stable@vger.kernel.org>
 ---
 
- tools/testing/selftests/damon/sysfs_memcg_path_leak.sh |    3 +++
- 1 file changed, 3 insertions(+)
+ mm/userfaultfd.c |   21 +++++++++++++--------
+ 1 file changed, 13 insertions(+), 8 deletions(-)
 
---- a/tools/testing/selftests/damon/sysfs_memcg_path_leak.sh~selftests-damon-sysfs_memcg_path_leak-define-ksft_skip
-+++ a/tools/testing/selftests/damon/sysfs_memcg_path_leak.sh
-@@ -1,6 +1,9 @@
- #!/bin/bash
- # SPDX-License-Identifier: GPL-2.0
+--- a/mm/userfaultfd.c~userfaultfd-validate-the-whole-range-before-changing-write-protection
++++ a/mm/userfaultfd.c
+@@ -1105,21 +1105,26 @@ static int mwriteprotect_range(struct us
+ 	if (atomic_read(&ctx->mmap_changing))
+ 		goto out_unlock;
  
-+# Kselftest framework requirement - SKIP code is 4.
-+ksft_skip=4
-+
- if [ $EUID -ne 0 ]
- then
- 	echo "Run as root"
++	/*
++	 * Validate every spanned VMA before changing any of them, so an
++	 * invalid range is rejected without changing part of it.
++	 */
+ 	err = -ENOENT;
+ 	for_each_vma_range(vmi, dst_vma, end) {
+-
+-		if (!userfaultfd_wp(dst_vma)) {
+-			err = -ENOENT;
+-			break;
+-		}
++		if (!userfaultfd_wp(dst_vma))
++			goto out_unlock;
+ 
+ 		if (vma_is_hugetlb(dst_vma)) {
+-			err = -EINVAL;
+ 			page_mask = vma_kernel_pagesize(dst_vma) - 1;
+-			if ((start & page_mask) || (len & page_mask))
+-				break;
++			if ((start & page_mask) || (len & page_mask)) {
++				err = -EINVAL;
++				goto out_unlock;
++			}
+ 		}
++	}
+ 
++	vma_iter_set(&vmi, start);
++	for_each_vma_range(vmi, dst_vma, end) {
+ 		_start = max(dst_vma->vm_start, start);
+ 		_end = min(dst_vma->vm_end, end);
+ 
 _
 
-Patches currently in -mm which might be from sj@kernel.org are
+Patches currently in -mm which might be from umangpokhriyall@gmail.com are
 
-mm-damon-core-copy-only-installed-probe-in-damon_split_region_at.patch
-mm-damon-core-add-damos_filter_type_age_ms.patch
-mm-damon-sysfs-schemes-support-damos_filter_type_age_ms.patch
-docs-mm-damon-design-update-for-age_ms-damos-core-filter-type.patch
-docs-admin-guide-mm-damon-usage-update-for-age_ms-damos-core-filter.patch
 
