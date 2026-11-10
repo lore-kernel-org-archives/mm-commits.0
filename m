@@ -1,49 +1,48 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794293103;
-	b=XBuWBIwUDy7OMgYRSJvCsO+vSzyvzOftUMHPmiH/aiFM0kpF6Z0NFbeiOtLJFf9lIAiz
-	 SU5E2DpQ1ChCjFZuvCG6qMU8sM7dTL9vstWVgqyAwu/zF8eou3M+5+yRik/t1ZW/hSjvX
-	 YD+fTjVO3UHyUIaee7bhMMuVlzeoZUFhtAvFezZVrObGs2E/9488fooSJTLE5DQReGsmi
-	 +vjJ0m01wICdoIPnnM+A0SoUHIDRBh7rh/m4m0WqHD3bNsmS/DFoi2Pd1Hpdd70y0YixK
-	 oyOsDfs80xklUDMzpAf8e97JLl2GwqApfiUSIf0jbmEw4e9Fdmb8HLaUKDhGyNPzl6w==
+	t=1794293105;
+	b=COyRds/3fAElQ8A8XgujWgOAEqxuQ0OtcDbgf//HTczlzok/9Iv7yB5PbdAsx00bJosh
+	 AxBlf6a50jmfWC94i16AIS6cnd033EKnwkFoHrxWYkT5wQtJpbUWmugQxG8DRh/8tqaOg
+	 uultZt4m8YdW9Rvx3+Cf3h3oxxSQwrbFdjP7nwlaxJya9T3xo/kY1QzJZmOwmgCzy6eWH
+	 oGJbL/MbNoKM6Pk5KICyNvWdENJzTai0TeVAy7ZFzGw/m9wQhp0FWDx3eDwIFsHNgo/G7
+	 3cZe2air0SJ+rlIms9yLIwAvVrNTwudbM3iAy7LddIb58/s6cguoyhEObQAws3D4hdA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794293103;
+	a=rsa-sha256; c=relaxed/relaxed; t=1794293105;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=pkQPWvgk8Ow4VmlICoX0YXCNX88M3B2R6w7pyTjpIdc=;
-	b=J4r8Mfg+CicL6699jATt+CXmLvVjXWaBL4j3g5oO9Te+neOWncnZbmeNO4yEMyESEt1L
-	 vs2G0A6+fup77tkkNjmQOcPf1BU9KC/clVJoUaTTf1idlSpHabU+zSnOne1BVqQmvuZXn
-	 Cxlek3NekjaNTSBmn9vJFR3Wev19FevHtOhwRzsKNE5pVLkSJOxx914dhKSpCq2ZGUZbL
-	 K7MUijqaIBxhfMBMOzKICj0/ve+AprUWR2Qyo7aVCQSqFImEt84gWADEGu4GM3DLzOkty
-	 fpujze0hEfjRY6pitd/SvK2m7cWMvGDUaJhUWuOLdNFOP3fDK4YYWJPhg5ihamuvtag==
+	bh=S58tf/jAxFi+VXZl7vSQovGhIoE4bWl4uFVFcrKkgJE=;
+	b=ovKGK5IQosQMHVFCsCEZ2GRw5ekAMMRInUnxbpVkhvnqPVwWr/vAhdJU2SAhixDJfhXr
+	 XaRAbkCuJrrhqWEvWgXWU3VFLyFBYy0NaMwSo9o0hEHvv+M2Etmmlvo4RlGG9HUqDmTrq
+	 +rBKVm79yqUMoa2Oj1hNWVVuFgQcrdXG6E1inivBlbH9EFvl7wyzb7+rwtF9qgqSqXBoM
+	 pp6vBvMN2KJ0zVoMYw/DAPnXUUlQCdNyWGifwNWPUCZTCxTYYfXBwhfSGmWFLEq9FFE+5
+	 9xoVqk3ig0xwyXEzjoofjOQw061fqJbFgNX+wth/lZsmiSkyKVe/HTaLWbumExBH9wA==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=ZB9WVlSb;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=i+ekGCXv;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6D64E606BD76;
-	Tue, 10 Nov 2026 06:45:03 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 89632606BD58;
+	Tue, 10 Nov 2026 06:45:05 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=ZB9WVlSb
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E17071F0089F;
-	Tue, 10 Nov 2026 06:45:02 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=i+ekGCXv
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 51DBD1F008A5;
+	Tue, 10 Nov 2026 06:45:05 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1794293103;
-	bh=pkQPWvgk8Ow4VmlICoX0YXCNX88M3B2R6w7pyTjpIdc=;
+	d=linux-foundation.org; s=korg; t=1794293105;
+	bh=S58tf/jAxFi+VXZl7vSQovGhIoE4bWl4uFVFcrKkgJE=;
 	h=Date:To:From:Subject;
-	b=ZB9WVlSb9jVDQeBlgn6551W2o7cSiBdmpqaXKw9l+r/prjMBJr4CutJaCjJRrRfqG
-	 vaEBPdm/TSOHgAQoVjwqUe3n0VGt4JOw28yOB6otGDuY1EcigDtkZUo8dVCYMIjO9U
-	 GGbA8QVZNNG35w3V15UoIxBgfY9tR4MEey7r2Z68=
-Date: Mon, 09 Nov 2026 22:45:01 -0800
-To: mm-commits@vger.kernel.org,vincenzo.frascino@arm.com,vbabka@kernel.org,
-	stable@vger.kernel.org,ryabinin.a.a@gmail.com,roman.gushchin@linux.dev,
-	rientjes@google.com,harry@kernel.org,hao.li@linux.dev,glider@google.com,
-	dvyukov@google.com,cl@gentwo.org,andreyknvl@gmail.com,kuniyu@google.com,
-	akpm@linux-foundation.org
+	b=i+ekGCXvd3cPayxkc7yueIB5n6nPm/c46Enp/tGPdCOFQa6DngOWnjfqw5rCRowcO
+	 /H1T+Po54UZ13y3KFs8a0T4G2szKo3Euc4VyThzcKcayO0Xh+P/mbb+vTYTQPxEubm
+	 GkFj9DYY4vYgBxLz9eiwDLh6fkfg5cG7esjUMDaY=
+Date: Mon, 09 Nov 2026 22:45:04 -0800
+To: mm-commits@vger.kernel.org,youngjun.park@lge.com,tz2294@columbia.edu,
+	stable@vger.kernel.org,shikemeng@huaweicloud.com,ryncsn@gmail.com,
+	nphamcs@gmail.com,kasong@tencent.com,chrisl@kernel.org,baoquan.he@linux.dev,
+	baohua@kernel.org,mt4022@columbia.edu,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] mm-kasan-detect-double-free-involving-kfree_rcu_sheaf.patch removed from -mm tree
-Message-Id: <20261110064502.E17071F0089F@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] mm-swap-stop-cluster-list-scans-once-swapoff-clears-swp_writeok.patch removed from -mm tree
+Message-Id: <20261110064505.51DBD1F008A5@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -55,384 +54,118 @@ Precedence: list
 
 
 The quilt patch titled
-     Subject: mm/kasan: detect double-free involving kfree_rcu_sheaf()
+     Subject: mm, swap: stop cluster list scans once swapoff clears SWP_WRITEOK
 has been removed from the -mm tree.  Its filename was
-     mm-kasan-detect-double-free-involving-kfree_rcu_sheaf.patch
+     mm-swap-stop-cluster-list-scans-once-swapoff-clears-swp_writeok.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Kuniyuki Iwashima <kuniyu@google.com>
-Subject: mm/kasan: detect double-free involving kfree_rcu_sheaf()
-Date: Wed, 28 Oct 2026 19:39:19 +0000
+From: Mani Tofigh <mt4022@columbia.edu>
+Subject: mm, swap: stop cluster list scans once swapoff clears SWP_WRITEOK
+Date: Mon, 26 Oct 2026 11:19:22 -0400
 
-Patch series "mm/kasan: Detect double-free involving kfree_rcu_sheaf().",
-v3.
+SWP_WRITEOK is cleared under si->lock when swapoff starts so that no
+new swap entries are allocated from the device, and try_to_unuse()
+then waits for writeback of the folios that still use the device.
 
-Recently, syzbot has reported several weird use-after-free splats.
+However, an order-0 allocation that chose the device can race with
+swapoff clearing the flag and then loop forever.  It takes a cluster
+from the fragment cluster list of a higher order with
+isolate_lock_cluster(), the allocation from that cluster fails because
+SWP_WRITEOK is clear, and relocate_cluster() puts the cluster back on
+the same list, so the loop keeps finding clusters on it.
 
-What they have in common is that "Freed by" points to rcu_free_sheaf(),
-whereas the object shown in "Call Trace:" and "Allocated by" is never
-supposed to be freed via kfree_rcu().
+The looping task is in reclaim, and it may have set writeback on a
+folio whose write has been queued but not yet submitted.  swapoff then
+waits for that folio, while the reclaiming task, stuck in the loop,
+never reaches the point where it submits the write:
 
-This means the object was a victim of a double-free somewhere else and
-was silently poisoned by rcu_free_sheaf() after being reallocated.
+  CPU0 (reclaim)                          CPU1 (swapoff)
+  --------------                          --------------
+  shrink_folio_list()
+    pageout(F)
+      /* F under writeback,
+         write not submitted */
+    folio_alloc_swap(G)  /* order 0 */
+      swap_alloc_slow()
+                                          del_from_avail_list(si, true)
+                                            si->flags &= ~SWP_WRITEOK
+                                          try_to_unuse()
+                                            folio_wait_writeback(F)
+        cluster_alloc_swap_entry()
+          isolate_lock_cluster()
+          /* allocation fails:
+             !SWP_WRITEOK */
+          relocate_cluster()
+          /* repeats forever */
+    swap_write_submit()
+    /* never reached */
 
-This happens because kfree_rcu_sheaf() queues an object into the RCU
-sheaf without invoking any KASAN hooks.
+This results in a soft lockup on CPU0 and a swapoff that never returns.
 
-This series enables KASAN to detect double-free involving
-kfree_rcu_sheaf() immediately and adds KUnit tests for it.
+isolate_lock_cluster() used to check SWP_WRITEOK under si->lock until
+commit 07adc4cf1ecd ("mm, swap: implement dynamic allocation of swap
+table") removed that check.  Restore the check.  Since swapoff clears
+the flag under the same lock, isolate_lock_cluster() then returns NULL,
+which ends the scan; the swap slot allocation for G fails, and reclaim
+goes on to submit the write of F.
 
+Given that this is a race, its reproducibility is non-deterministic.
+We reproduce it by using a non-rotational swap device that is not
+synchronous, with 64K mTHP enabled, where one CPU repeatedly pages out
+two 64K folios and a 4K page with madvise(MADV_PAGEOUT), while other
+CPUs run swapoff and swapon on the same device.  In my tests it
+triggers within 20s in each run, and with the fix applied, it runs for
+300s without any hang/kernel report.  This bug was found and
+reproduced deterministically using a deterministic hypervisor that is
+currently under development.
 
-This patch (of 2):
-
-syzbot reported a weird use-after-free splat. [0]
-
-In the report, an object in the kmalloc-64 cache was freed via
-rcu_free_sheaf() while it was still in use, even though the
-object should always be freed with kfree() (in xfrm_hash_free()),
-implying that the object was a victim of a double-free involving
-kfree_rcu() somewhere else.
-
-When kvfree_call_rcu() frees an object via kfree_rcu_sheaf() and
-queues it into pcs->rcu_free, debug facilities are skipped, e.g.,
-kasan_slab_pre_free(), kasan_record_aux_stack(),
-debug_rcu_head_queue(), etc.
-
-As a result, KASAN cannot detect the double-free at the call site.
-
-If the object is still in the KASAN quarantine when the sheaf is
-flushed, KASAN can detect the double-free in rcu_free_sheaf(), but
-with no trace of the suspect.
-
-Worse yet, once the object is evicted from the quarantine and
-reallocated before the sheaf is flushed, rcu_free_sheaf() silently
-poisons the live object, resulting in a false-positive use-after-free
-report on the new user.
-
-If __kfree_rcu_sheaf() simply calls kasan_slab_pre_free(), we
-can detect the second kfree_rcu(), but only while the object is
-poisoned in the KASAN quarantine after the first free:
-
-  kfree()     --(poisoned)--------------------> kfree_rcu()
-  kfree_rcu() -> rcu_free_sheaf() -(poisoned)-> kfree_rcu()
-
-An object queued in pcs->rcu_free remains unpoisoned until the
-sheaf becomes full and rcu_free_sheaf() runs after the RCU
-grace period, so a subsequent kfree_rcu() or kfree() before
-rcu_free_sheaf() cannot be detected by shadow bytes alone:
-
-  kfree_rcu() -(unpoisoned)-> kfree_rcu() -> rcu_free_sheaf() (too late!)
-  kfree_rcu() -(unpoisoned)-> kfree()     -> rcu_free_sheaf() (too late!)
-
-These cases can be detected if we call debug_rcu_head_queue()
-before kfree_rcu_sheaf(), but ODEBUG splat only shows the second
-free.
-
-To detect these cases with KASAN, we just need a 1-bit flag
-to indicate the state, which can reuse an unused bit in struct
-kasan_track.pid. (PID_MAX_LIMIT is 1<<22)
-
-The bit is marked along with recording the stack trace when
-deferring slab frees in kfree_rcu_sheaf() and checked in
-check_slab_allocation() so that any double-free pattern above
-can be detected immediately.
-
-Link: https://lore.kernel.org/20261028194014.3671161-1-kuniyu@google.com
-Link: https://lore.kernel.org/20261028194014.3671161-2-kuniyu@google.com
-Link: https://lore.kernel.org/all/6ac959ee.70ed5d86.2ac85.007d.GAE@google.com/ #[0]
-Fixes: ec66e0d59952 ("slab: add sheaf support for batching kfree_rcu() operations")
-Signed-off-by: Kuniyuki Iwashima <kuniyu@google.com>
+Link: https://lore.kernel.org/20261026-swapoff-writeok-v1-1-4f4cd420aa33@columbia.edu
+Fixes: 07adc4cf1ecd ("mm, swap: implement dynamic allocation of swap table")
+Signed-off-by: Mani Tofigh <mt4022@columbia.edu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Acked-by: Vlastimil Babka (SUSE) <vbabka@kernel.org>
-Tested-by: Alexander Potapenko <glider@google.com>
-Reviewed-by: Alexander Potapenko <glider@google.com>
-Reviewed-by: Andrey Ryabinin <ryabinin.a.a@gmail.com>
-Cc: Harry Yoo <harry@kernel.org>
-Cc: Andrey Konovalov <andreyknvl@gmail.com>
-Cc: Dmitry Vyukov <dvyukov@google.com>
-Cc: Vincenzo Frascino <vincenzo.frascino@arm.com>
-Cc: Hao Li <hao.li@linux.dev>
-Cc: Christoph Lameter <cl@gentwo.org>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Roman Gushchin <roman.gushchin@linux.dev>
+Acked-by: Kairui Song <kasong@tencent.com>
+Cc: Chris Li <chrisl@kernel.org>
+Cc: Kemeng Shi <shikemeng@huaweicloud.com>
+Cc: Nhat Pham <nphamcs@gmail.com>
+Cc: Baoquan He <baoquan.he@linux.dev>
+Cc: Barry Song <baohua@kernel.org>
+Cc: Youngjun Park <youngjun.park@lge.com>
+Cc: Tal Zussman <tz2294@columbia.edu>
+Cc: Kairui Song <ryncsn@gmail.com>
 Cc: <stable@vger.kernel.org>
 ---
 
- include/linux/kasan.h |   15 +++++++++++----
- mm/kasan/common.c     |   13 ++++++++-----
- mm/kasan/generic.c    |   17 ++++++++++++++++-
- mm/kasan/kasan.h      |   34 +++++++++++++++++++++++++++++++++-
- mm/slub.c             |   13 ++++++++++---
- 5 files changed, 78 insertions(+), 14 deletions(-)
+ mm/swapfile.c |    5 +++++
+ 1 file changed, 5 insertions(+)
 
---- a/include/linux/kasan.h~mm-kasan-detect-double-free-involving-kfree_rcu_sheaf
-+++ a/include/linux/kasan.h
-@@ -180,10 +180,12 @@ static __always_inline void * __must_che
- }
+--- a/mm/swapfile.c~mm-swap-stop-cluster-list-scans-once-swapoff-clears-swp_writeok
++++ a/mm/swapfile.c
+@@ -635,6 +635,10 @@ static struct swap_cluster_info *isolate
+ 	u8 flags = CLUSTER_FLAG_NONE;
  
- bool __kasan_slab_pre_free(struct kmem_cache *s, void *object,
--			unsigned long ip);
-+			   unsigned long ip, bool after_rcu_delay);
- /**
-  * kasan_slab_pre_free - Check whether freeing a slab object is safe.
-+ * @s: Cache the object belongs to.
-  * @object: Object to be freed.
-+ * @after_rcu_delay: Whether the free follows an RCU grace period.
-  *
-  * This function checks whether freeing the given object is safe. It may
-  * check for double-free and invalid-free bugs and report them.
-@@ -193,10 +195,12 @@ bool __kasan_slab_pre_free(struct kmem_c
-  * @Return true if freeing the object is unsafe; false otherwise.
-  */
- static __always_inline bool kasan_slab_pre_free(struct kmem_cache *s,
--						void *object)
-+						void *object,
-+						bool after_rcu_delay)
- {
- 	if (kasan_enabled())
--		return __kasan_slab_pre_free(s, object, _RET_IP_);
-+		return __kasan_slab_pre_free(s, object, _RET_IP_,
-+					     after_rcu_delay);
- 	return false;
- }
- 
-@@ -424,7 +428,8 @@ static inline void *kasan_init_slab_obj(
- 	return (void *)object;
- }
- 
--static inline bool kasan_slab_pre_free(struct kmem_cache *s, void *object)
-+static inline bool kasan_slab_pre_free(struct kmem_cache *s, void *object,
-+				       bool after_rcu_delay)
- {
- 	return false;
- }
-@@ -495,6 +500,7 @@ void kasan_cache_create(struct kmem_cach
- void kasan_cache_shrink(struct kmem_cache *cache);
- void kasan_cache_shutdown(struct kmem_cache *cache);
- void kasan_record_aux_stack(void *ptr);
-+void kasan_mark_rcu_free_pending(void *ptr);
- 
- #else /* CONFIG_KASAN_GENERIC */
- 
-@@ -512,6 +518,7 @@ static inline void kasan_cache_create(st
- static inline void kasan_cache_shrink(struct kmem_cache *cache) {}
- static inline void kasan_cache_shutdown(struct kmem_cache *cache) {}
- static inline void kasan_record_aux_stack(void *ptr) {}
-+static inline void kasan_mark_rcu_free_pending(void *ptr) {}
- 
- #endif /* CONFIG_KASAN_GENERIC */
- 
---- a/mm/kasan/common.c~mm-kasan-detect-double-free-involving-kfree_rcu_sheaf
-+++ a/mm/kasan/common.c
-@@ -68,6 +68,7 @@ void kasan_set_track(struct kasan_track
- 	track->timestamp = ts_nsec >> 9;
- #endif /* CONFIG_KASAN_EXTRA_INFO */
- 	track->pid = current->pid;
-+	track->rcu_free = 0;
- 	track->stack = stack;
- }
- 
-@@ -231,7 +232,7 @@ void * __must_check __kasan_init_slab_ob
- 
- /* Returns true when freeing the object is not safe. */
- static bool check_slab_allocation(struct kmem_cache *cache, void *object,
--				  unsigned long ip)
-+				  unsigned long ip, bool after_rcu_delay)
- {
- 	void *tagged_object = object;
- 
-@@ -242,7 +243,8 @@ static bool check_slab_allocation(struct
- 		return true;
- 	}
- 
--	if (!kasan_byte_accessible(tagged_object)) {
-+	if (!kasan_byte_accessible(tagged_object) ||
-+	    kasan_check_rcu_free(cache, object, after_rcu_delay)) {
- 		kasan_report_invalid_free(tagged_object, ip, KASAN_REPORT_DOUBLE_FREE);
- 		return true;
- 	}
-@@ -259,17 +261,18 @@ static inline void poison_slab_object(st
- 
- 	kasan_poison(object, round_up(cache->object_size, KASAN_GRANULE_SIZE),
- 			KASAN_SLAB_FREE, init);
-+	kasan_clear_rcu_free(cache, object);
- 
- 	if (kasan_stack_collection_enabled())
- 		kasan_save_free_info(cache, tagged_object);
- }
- 
- bool __kasan_slab_pre_free(struct kmem_cache *cache, void *object,
--				unsigned long ip)
-+			   unsigned long ip, bool after_rcu_delay)
- {
- 	if (is_kfence_address(object))
- 		return false;
--	return check_slab_allocation(cache, object, ip);
-+	return check_slab_allocation(cache, object, ip, after_rcu_delay);
- }
- 
- bool __kasan_slab_free(struct kmem_cache *cache, void *object, bool init,
-@@ -544,7 +547,7 @@ bool __kasan_mempool_poison_object(void
- 
- 	slab = page_slab(page);
- 
--	if (check_slab_allocation(slab->slab_cache, ptr, ip))
-+	if (check_slab_allocation(slab->slab_cache, ptr, ip, false))
- 		return false;
- 
- 	poison_slab_object(slab->slab_cache, ptr, false);
---- a/mm/kasan/generic.c~mm-kasan-detect-double-free-involving-kfree_rcu_sheaf
-+++ a/mm/kasan/generic.c
-@@ -533,10 +533,13 @@ size_t kasan_metadata_size(struct kmem_c
- }
- 
- /*
-+ * Records an auxiliary stack trace for the object at @addr and, if @rcu_free
-+ * is set, marks the object as pending an RCU-delayed free.
-+ *
-  * This function avoids dynamic memory allocations and thus can be called from
-  * contexts that do not allow allocating memory.
-  */
--void kasan_record_aux_stack(void *addr)
-+static void __kasan_record_aux_stack(void *addr, bool rcu_free)
- {
- 	struct slab *slab = kasan_addr_to_slab(addr);
- 	struct kmem_cache *cache;
-@@ -552,10 +555,22 @@ void kasan_record_aux_stack(void *addr)
- 	if (!alloc_meta)
- 		return;
- 
-+	if (rcu_free)
-+		alloc_meta->alloc_track.rcu_free = 1;
- 	alloc_meta->aux_stack[1] = alloc_meta->aux_stack[0];
- 	alloc_meta->aux_stack[0] = kasan_save_stack(0, 0);
- }
- 
-+void kasan_record_aux_stack(void *addr)
-+{
-+	__kasan_record_aux_stack(addr, false);
-+}
+ 	spin_lock(&si->lock);
 +
-+void kasan_mark_rcu_free_pending(void *addr)
-+{
-+	__kasan_record_aux_stack(addr, true);
-+}
-+
- void kasan_save_alloc_info(struct kmem_cache *cache, void *object, gfp_t flags)
- {
- 	struct kasan_alloc_meta *alloc_meta;
---- a/mm/kasan/kasan.h~mm-kasan-detect-double-free-involving-kfree_rcu_sheaf
-+++ a/mm/kasan/kasan.h
-@@ -191,7 +191,10 @@ static inline bool kasan_requires_meta(v
- #define KASAN_STACK_DEPTH 64
- 
- struct kasan_track {
--	u32 pid;
-+#define KASAN_PID_BITS const_ilog2(PID_MAX_LIMIT)
-+	u32 pid:KASAN_PID_BITS;
-+	u32 rcu_free:1;
-+	u32 unused:32 - (KASAN_PID_BITS + 1);
- 	depot_stack_handle_t stack;
- #ifdef CONFIG_KASAN_EXTRA_INFO
- 	u64 cpu:20;
-@@ -390,8 +393,37 @@ struct kasan_alloc_meta *kasan_get_alloc
- struct kasan_free_meta *kasan_get_free_meta(struct kmem_cache *cache,
- 						const void *object);
- void kasan_init_object_meta(struct kmem_cache *cache, const void *object);
-+
-+static inline bool kasan_check_rcu_free(struct kmem_cache *cache,
-+					const void *object,
-+					bool after_rcu_delay)
-+{
-+	struct kasan_alloc_meta *alloc_meta;
-+
-+	alloc_meta = kasan_get_alloc_meta(cache, object);
-+	if (!alloc_meta)
-+		return false;
-+
-+	return alloc_meta->alloc_track.rcu_free != after_rcu_delay;
-+}
-+
-+static inline void kasan_clear_rcu_free(struct kmem_cache *cache,
-+					const void *object)
-+{
-+	struct kasan_alloc_meta *alloc_meta;
-+
-+	alloc_meta = kasan_get_alloc_meta(cache, object);
-+	if (alloc_meta)
-+		alloc_meta->alloc_track.rcu_free = 0;
-+}
- #else
- static inline void kasan_init_object_meta(struct kmem_cache *cache, const void *object) { }
-+static inline bool kasan_check_rcu_free(struct kmem_cache *cache, const void *object,
-+					bool after_rcu_delay)
-+{
-+	return false;
-+}
-+static inline void kasan_clear_rcu_free(struct kmem_cache *cache, const void *object) { }
- #endif
- 
- depot_stack_handle_t kasan_save_stack(gfp_t flags, depot_flags_t depot_flags);
---- a/mm/slub.c~mm-kasan-detect-double-free-involving-kfree_rcu_sheaf
-+++ a/mm/slub.c
-@@ -2722,7 +2722,7 @@ bool slab_free_hook(struct kmem_cache *s
- 	 * Give KASAN a chance to notice an invalid free operation before we
- 	 * modify the object.
- 	 */
--	if (kasan_slab_pre_free(s, x))
-+	if (kasan_slab_pre_free(s, x, after_rcu_delay))
- 		return false;
- 
- #ifdef CONFIG_SLUB_RCU_DEBUG
-@@ -2738,7 +2738,7 @@ bool slab_free_hook(struct kmem_cache *s
- 			 * We have to do this manually because the rcu_head is
- 			 * not located inside the object.
- 			 */
--			kasan_record_aux_stack(x);
-+			kasan_mark_rcu_free_pending(x);
- 
- 			delayed_free->object = x;
- 			call_rcu(&delayed_free->head, slab_free_after_rcu_debug);
-@@ -6298,6 +6298,12 @@ bool __kfree_rcu_sheaf(struct kmem_cache
- 	}
- 
- do_free:
-+	if (unlikely(kasan_slab_pre_free(s, obj, false))) {
-+		local_unlock(&s->cpu_sheaves->lock);
++	if (unlikely(!(si->flags & SWP_WRITEOK)))
 +		goto out;
-+	}
 +
-+	kasan_mark_rcu_free_pending(obj);
- 
- 	rcu_sheaf = pcs->rcu_free;
- 
-@@ -6338,6 +6344,7 @@ do_free:
- 	local_unlock(&s->cpu_sheaves->lock);
- 
- 	stat(s, FREE_RCU_SHEAF);
+ 	list_for_each_entry(ci, list, list) {
+ 		if (!spin_trylock(&ci->lock))
+ 			continue;
+@@ -650,6 +654,7 @@ static struct swap_cluster_info *isolate
+ 		found = ci;
+ 		break;
+ 	}
 +out:
- 	if (!IS_ENABLED(CONFIG_PREEMPT_RT))
- 		lock_map_release(&kfree_rcu_sheaf_map);
- 	return true;
-@@ -6971,7 +6978,7 @@ void kfree_nolock(const void *object)
- 	 *  -> kfree_nolock() -> kasan_report_invalid_free() on the same CPU
- 	 * is double buggy and deserves to deadlock.
- 	 */
--	if (kasan_slab_pre_free(s, x))
-+	if (kasan_slab_pre_free(s, x, false))
- 		return;
- 	/*
- 	 * memcg, kasan_slab_pre_free are done for 'x'.
+ 	spin_unlock(&si->lock);
+ 
+ 	/* Cluster's table is freed when and only when it's on the free list. */
 _
 
-Patches currently in -mm which might be from kuniyu@google.com are
+Patches currently in -mm which might be from mt4022@columbia.edu are
 
-mm-kasan-kunit-add-double-free-tests-involving-kfree_rcu_sheaf.patch
-memcg-remove-unnecessary-read_once-under-memcg_stocklock.patch
-memcg-reduce-nesting-in-consume_stock-and-refill_stock.patch
-memcg-annotate-slow-paths-in-consume_stock-and-refill_stock.patch
-memcg-uncharge-pages-outside-memcg_stocklock-in-refill_stock.patch
+mm-shmem-fix-swapin-livelock-on-a-mismatched-large-swap-cache-folio.patch
+mm-swapfile-drop-a-large-unmapped-swap-in-folio-in-unuse_pte.patch
 
