@@ -1,51 +1,49 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794293130;
-	b=pc8hJHxDgg+ORGlhYHLBuBg+WyFNB+hLpssHj9+qPaXojduf5yDh6Si8NtKcKfLdBewJ
-	 ExRUSg6hWKNy1Q0U/mvEttBabOlp3+CV3Ru9wkgEsao7YKUXCq1jfqRL3bmayPFE65mS7
-	 BaBnNnYCu/33TPxSpMuYP5gDvYtpjP5E/QU26KAi/f1sFEw9xKcDJDlitEa+PuHs0s5L/
-	 b9+9YjGgYJv4bESyfy5pMUUXeCBcVaC5m1rcoCI5NA4c8Z80Ho4xeyjSZM8CCdlqSGH5D
-	 1NJumy4lADPjp1ZQIc27Uaqw5m+etUAJjDkQpgyVfdAAQbHayYs4eEYcn2OG9UeA/5A==
+	t=1794293136;
+	b=d6pzbPidmZrKvNtbzl6zw5Wfz78M7R93qMMX5oDzuusLPF0ks0exmJKx0la3nUZwk306
+	 8eNjWe6PmPzmRJtqJuznxRHxRaFfli45cRNz06w8xrhTFzhGRsAgmv6FxGS/D670bWBk2
+	 o3VMaEAOO/EjRsK8jqfZg4VmVWtGZCyRdAoyXrXw9ExwiJU/t10Df/oNo2o6Sgdmy3FBY
+	 pE4fw5+++eextwq0c8I7melpnnzxM5c+7S/C45ZMxTgTJvnYDgrfia8wSh8wW1Puhi9ls
+	 U+zyVigIDP2DHknaXN6jw5BCQW1Z13x/AuB+h/VhJzLBJLum0cdljARlfDrnQa7TefQ==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794293130;
+	a=rsa-sha256; c=relaxed/relaxed; t=1794293136;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=PEvTXFY+gGzq/B6LumOWpO4at3M4hiYgB/BM4iAura8=;
-	b=Bi9Flje4ZP7Y/AOVEjHpll3SIVY8745dIUeKXCdKuzELXnDbcDJg91xnmO4CDCwPbSdZ
-	 g7gfPmuwgIXs/+tnu31SwM7qDJwDTG8ZiIrOALRJDMQjCsnLj73vaEawNab+pbcXbsV3Z
-	 K0QmGW9icmcYg/zVV68v07WoHFVRHMvLY4dNxeLZRliSafxHHIR+HiOjHVJkO8QTSyOMt
-	 pN0d0vx2XBHRr7Ui2NroYShsCRttriWIVf43I08Dg8kI9fFRYCRN8WKaYXLNko8jQogOr
-	 C7YEt0xJSoqf5LyYdXh8Ss/VbFCzPRtnURKh6BoAID4Iu3oG7lTrIrZwMXLfPyI7MAw==
+	bh=go8SxZcqB/2A1594xHyqs4oEq/LjPrko7SvXzyhAcsI=;
+	b=N1B2zNbFesMfQch7962O65jELf/pcwn94o/QLvK9ODxdw5nswUM34rd3FEQh1RpgPsXb
+	 CwvGaOTkXcNEmXVN4vqzOSErCX0NAa1+OrQrXzPA+ijVCguUw8asJyz0zqJ6i4kGrtmfp
+	 /Ka1tQbJZHOMMAKGkmYQkMEWWS+A5ZhQSnflP33xP9tH5fYpQy1yPF3exeSx8oTKDBj0M
+	 iHCnChtcyd3PY9pzivGikavuMduXCf8OTUb7UuaL3xt4uoUc2JNrdC3ePHF3e4jJ6dgj2
+	 5BcMb4xfgRKejm5shwZSdW/R+wpHRw1qNagtP6tVu5TnA7f8AhzR+7tfVe/IU5yhA3w==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b="a/mKqXdw";
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=k9wYJy4a;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C6E3A606CB17;
-	Tue, 10 Nov 2026 06:45:29 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2745F606CB3E;
+	Tue, 10 Nov 2026 06:45:36 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=a/mKqXdw
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5D7921F0089F;
-	Tue, 10 Nov 2026 06:45:29 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=k9wYJy4a
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D1A821F008A2;
+	Tue, 10 Nov 2026 06:45:35 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1794293129;
-	bh=PEvTXFY+gGzq/B6LumOWpO4at3M4hiYgB/BM4iAura8=;
+	d=linux-foundation.org; s=korg; t=1794293135;
+	bh=go8SxZcqB/2A1594xHyqs4oEq/LjPrko7SvXzyhAcsI=;
 	h=Date:To:From:Subject;
-	b=a/mKqXdwRWwExfEXAkv5XrRaBtRaw2TxYcq8SzQ49aKH1/bXb42FxlE0KmQ5ASjRF
-	 vemAUoUuVamBu824ANxPT3I1Vr9/KPTofagMwYCwFPt6LrQWvUqKEh9Teoiow0f1en
-	 K28T9tjb3YTQlQL8JbJ/wZoYMVDJS0GU0PwrCvpc=
-Date: Mon, 09 Nov 2026 22:45:28 -0800
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,usama.arif@linux.dev,
-	tz2294@columbia.edu,stable@vger.kernel.org,ryan.roberts@arm.com,
-	richard.weiyang@gmail.com,nico.pache@linux.dev,nao.horiguchi@gmail.com,
-	mcgrof@kernel.org,ljs@kernel.org,liyouhong@kylinos.cn,linmiaohe@huawei.com,
-	liam@infradead.org,lance.yang@linux.dev,dev.jain@arm.com,
-	baolin.wang@linux.alibaba.com,baohua@kernel.org,david@kernel.org,
+	b=k9wYJy4ap21RStHUYMHkZmXuvSUu94Xm8b5/AMjQRDS52Jk+B905A66L2rLAVZKzH
+	 Ma+5+TyruZaEK2v0Vb74PTNu6mCbjopBKLpmusMWc9a8LNCyaWprC27SgwII9uBzCd
+	 C+D7Ha5pEExV8HZQaARDFGKDlTg8s2AvbHQiZVoM=
+Date: Mon, 09 Nov 2026 22:45:35 -0800
+To: mm-commits@vger.kernel.org,vbabka@kernel.org,surenb@google.com,
+	stable@vger.kernel.org,sj@kernel.org,rppt@kernel.org,mhocko@suse.com,
+	liam@infradead.org,jm5905938@gmail.com,davidgow@davidgow.net,
+	brendan.higgins@linux.dev,xiaoleiwangxiaolei@gmail.com,
 	akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] mm-memory-failure-fix-folio-refcount-leak-and-min_order_for_split-locking.patch removed from -mm tree
-Message-Id: <20261110064529.5D7921F0089F@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] mm-damon-tests-sysfs-kunit-fix-leaked-pid-reference-in-add_targets-test.patch removed from -mm tree
+Message-Id: <20261110064535.D1A821F008A2@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -57,210 +55,80 @@ Precedence: list
 
 
 The quilt patch titled
-     Subject: mm/memory-failure: fix folio refcount leak and min_order_for_split() locking
+     Subject: mm/damon/tests/sysfs-kunit: fix leaked pid reference in add_targets test
 has been removed from the -mm tree.  Its filename was
-     mm-memory-failure-fix-folio-refcount-leak-and-min_order_for_split-locking.patch
+     mm-damon-tests-sysfs-kunit-fix-leaked-pid-reference-in-add_targets-test.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: "David Hildenbrand (Arm)" <david@kernel.org>
-Subject: mm/memory-failure: fix folio refcount leak and min_order_for_split() locking
-Date: Fri, 30 Oct 2026 23:29:13 +0100
+From: Wang Xiaolei <xiaoleiwangxiaolei@gmail.com>
+Subject: mm/damon/tests/sysfs-kunit: fix leaked pid reference in add_targets test
+Date: Mon, 02 Nov 2026 06:46:25 -0800
 
-hwpoison code can end up calling min_order_for_split() without holding the
-folio lock.  There isn't really something that would prevent concurrent
-truncation.  Consequently folio->mapping can get set to NULL after
-checking for "!folio->mapping", and if the compiler reloads
-folio->mapping, mapping_min_folio_order() would try to dereference NULL.
+damon_sysfs_test_add_targets() creates its monitoring context with
+damon_new_ctx(), which leaves ctx->ops zero-initialized.  Since
+DAMON_OPS_VADDR is zero, damon_target_has_pid() returns true for the
+context, and damon_sysfs_add_targets() therefore calls
+damon_set_target_pid() for each target it adds.  That function grabs a
+reference to the target's struct pid via find_get_pid().
 
-While very unlikely to happen in practice, let's just enforce that
-min_order_for_split() is called with the folio lock held.  We can
-significantly cleanup the calling hwpoison code, and just get rid of
-try_to_split_thp_page() to hold the folio lock for a bit longer.
+The test then tears the context down with damon_destroy_ctx(), which
+releases such a reference from ctx->ops.cleanup_target().  For the vaddr
+operations set that callback is damon_va_cleanup_target(), and it is the
+only place where the reference is put.  The test never selects an
+operations set, though, so cleanup_target is NULL and both references --
+one for each of the two damon_sysfs_add_targets() calls -- are leaked on
+every run of the test.  Running the test with CONFIG_DEBUG_KMEMLEAK
+enabled reports the leaked struct pid objects as unreferenced.
 
-Just work on folios now, which further cleans up the code.  We just have
-to be careful about doing the page_folio() after splitting, which we have
-to do already either way.  Do not change the way we split for now, this
-needs more thought and should be done separately.
+Fix this by selecting the vaddr operations set for the context before
+adding the targets, mirroring what the sysfs interface does.
+damon_select_ops() fails if the vaddr operations set is not registered,
+in which case the test cannot exercise the pid handling and skips
+itself.
 
-Cleaning this up we fix another issue: in soft_offline_in_use_page(), we
-would currently have leaked a folio reference.
-
-In min_order_for_split(), document and assert that we need the folio lock.
-Drop the questionable VM_BUG_ON_PAGE(!page_count(p), p) check entirely.
-
-While updating the comment in soft_offline_in_use_page(), just drop the
-"NOTE" part that does not add any value to current code.
-
-The folio->mapping problem was identified by Sashiko, and Li Youhong
-reported it by sending a proposal fix.
-
-This likely does not really warrant CCing stable, but I expect little
-conflicts when doing the backport, so let's just CC stable because of the
-refcount leak.
-
-Link: https://lore.kernel.org/20261030-try_to_split_thp_page-v2-1-c957c9b42eab@kernel.org
-Fixes: 689b8986776c ("mm/memory-failure: improve large block size folio handling")
-Signed-off-by: David Hildenbrand (Arm) <david@kernel.org>
+Link: https://lore.kernel.org/20261102144627.88843-3-sj@kernel.org
+Fixes: b8ee5575f763 ("mm/damon/sysfs-test: add a unit test for damon_sysfs_set_targets()")
+Signed-off-by: Wang Xiaolei <xiaoleiwangxiaolei@gmail.com>
+Signed-off-by: SJ Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Reported-by: Li Youhong <liyouhong@kylinos.cn>
-Closes: https://lore.kernel.org/r/20260804035828.2684059-1-dayou5941@163.com
-Acked-by: Usama Arif <usama.arif@linux.dev>
-Reviewed-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
-Reviewed-by: Zi Yan <ziy@nvidia.com>
-Reviewed-by: Baolin Wang <baolin.wang@linux.alibaba.com>
-Acked-by: Miaohe Lin <linmiaohe@huawei.com>
-Cc: Liam R. Howlett <liam@infradead.org>
-Cc: Ryan Roberts <ryan.roberts@arm.com>
-Cc: Dev Jain <dev.jain@arm.com>
-Cc: Barry Song <baohua@kernel.org>
-Cc: Lance Yang <lance.yang@linux.dev>
-Cc: Naoya Horiguchi <nao.horiguchi@gmail.com>
-Cc: Wei Yang <richard.weiyang@gmail.com>
-Cc: Nico Pache <nico.pache@linux.dev>
-Cc: Luis Chamberlain <mcgrof@kernel.org>
-Cc: Tal Zussman <tz2294@columbia.edu>
-Cc: <stable@vger.kernel.org>
+Reviewed-by: SJ Park <sj@kernel.org>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Vlastimil Babka <vbabka@kernel.org>
+Cc: "Liam R. Howlett" <liam@infradead.org>
+Cc: Brendan Higgins <brendan.higgins@linux.dev>
+Cc: David Gow <davidgow@davidgow.net>
+Cc: Aveline Noir <jm5905938@gmail.com>
+Cc: <stable@vger.kernel.org> # 6.7.x
 ---
 
- mm/huge_memory.c    |    4 ++
- mm/memory-failure.c |   63 ++++++++++++++----------------------------
- 2 files changed, 25 insertions(+), 42 deletions(-)
+ mm/damon/tests/sysfs-kunit.h |    9 +++++++++
+ 1 file changed, 9 insertions(+)
 
---- a/mm/huge_memory.c~mm-memory-failure-fix-folio-refcount-leak-and-min_order_for_split-locking
-+++ a/mm/huge_memory.c
-@@ -4551,10 +4551,14 @@ int folio_split(struct folio *folio, uns
-  * If a file-backed folio is truncated, 0 will be returned. Any subsequent
-  * split attempt should get -EBUSY from split checking code.
-  *
-+ * Context: @folio must be locked.
-+ *
-  * Return: @folio's minimum order for split
-  */
- unsigned int min_order_for_split(struct folio *folio)
- {
-+	VM_WARN_ON_ONCE_FOLIO(!folio_test_locked(folio), folio);
-+
- 	if (folio_test_anon(folio))
- 		return 0;
- 
---- a/mm/memory-failure.c~mm-memory-failure-fix-folio-refcount-leak-and-min_order_for_split-locking
-+++ a/mm/memory-failure.c
-@@ -1744,26 +1744,6 @@ static int identify_page_state(unsigned
- 	return page_action(ps, p, pfn);
- }
- 
--/*
-- * When 'release' is 'false', it means that if thp split has failed,
-- * there is still more to do, hence the page refcount we took earlier
-- * is still needed.
-- */
--static int try_to_split_thp_page(struct page *page, unsigned int new_order,
--		bool release)
--{
--	int ret;
--
--	lock_page(page);
--	ret = split_huge_page_to_order(page, new_order);
--	unlock_page(page);
--
--	if (ret && release)
--		put_page(page);
--
--	return ret;
--}
--
- static void unmap_and_kill(struct list_head *to_kill, unsigned long pfn,
- 		struct address_space *mapping, pgoff_t index, int flags)
- {
-@@ -2548,9 +2528,6 @@ try_again:
- 	folio_unlock(folio);
- 
- 	if (folio_test_large(folio)) {
--		const int new_order = min_order_for_split(folio);
--		int err;
--
- 		/*
- 		 * The flag must be set after the refcount is bumped
- 		 * otherwise it may race with THP split.
-@@ -2565,24 +2542,25 @@ try_again:
- 		 * page is a valid handlable page.
- 		 */
- 		folio_set_has_hwpoisoned(folio);
--		err = try_to_split_thp_page(p, new_order, /* release= */ false);
-+
-+		folio_lock(folio);
-+		split_huge_page_to_order(p, min_order_for_split(folio));
-+		folio = page_folio(p);
-+		folio_unlock(folio);
-+
- 		/*
- 		 * If splitting a folio to order-0 fails, kill the process.
- 		 * Split the folio regardless to minimize unusable pages.
- 		 * Because the memory failure code cannot handle large
- 		 * folios, this split is always treated as if it failed.
- 		 */
--		if (err || new_order) {
--			/* get folio again in case the original one is split */
--			folio = page_folio(p);
-+		if (folio_test_large(folio)) {
- 			res = -EHWPOISON;
- 			kill_procs_now(p, pfn, flags, folio);
--			put_page(p);
-+			folio_put(folio);
- 			action_result(pfn, MF_MSG_UNSPLIT_THP, MF_FAILED);
- 			goto unlock_mutex;
- 		}
--		VM_BUG_ON_PAGE(!page_count(p), p);
--		folio = page_folio(p);
+--- a/mm/damon/tests/sysfs-kunit.h~mm-damon-tests-sysfs-kunit-fix-leaked-pid-reference-in-add_targets-test
++++ a/mm/damon/tests/sysfs-kunit.h
+@@ -79,6 +79,15 @@ static void damon_sysfs_test_add_targets
+ 		kunit_skip(test, "ctx alloc fail");
  	}
  
- 	/*
-@@ -2900,25 +2878,26 @@ static int soft_offline_in_use_page(stru
- 		.reason = MR_MEMORY_FAILURE,
- 	};
- 
-+	folio_lock(folio);
- 	if (!huge && folio_test_large(folio)) {
--		const int new_order = min_order_for_split(folio);
--
- 		/*
--		 * If new_order (target split order) is not 0, do not split the
--		 * folio at all to retain the still accessible large folio.
--		 * NOTE: if minimizing the number of soft offline pages is
--		 * preferred, split it to non-zero new_order like it is done in
--		 * memory_failure().
-+		 * If we cannot split to order-0, do not split the folio at all
-+		 * to retain the still accessible large folio.
- 		 */
--		if (new_order || try_to_split_thp_page(page, /* new_order= */ 0,
--						       /* release= */ true)) {
-+		if (!min_order_for_split(folio))
-+			ret = split_huge_page_to_order(page, 0) ? -EBUSY : 0;
-+		else
-+			ret = -EBUSY;
-+		folio = page_folio(page);
++	if (damon_select_ops(ctx, DAMON_OPS_VADDR)) {
++		damon_destroy_ctx(ctx);
++		kfree(sysfs_targets->targets_arr);
++		kfree(sysfs_targets);
++		kfree(sysfs_target->regions);
++		kfree(sysfs_target);
++		kunit_skip(test, "vaddr ops not registered");
++	}
 +
-+		if (ret) {
-+			folio_unlock(folio);
-+			folio_put(folio);
- 			pr_info("%#lx: thp split failed\n", pfn);
--			return -EBUSY;
-+			return ret;
- 		}
--		folio = page_folio(page);
- 	}
+ 	damon_sysfs_add_targets(ctx, sysfs_targets);
+ 	KUNIT_EXPECT_EQ(test, 1u, nr_damon_targets(ctx));
  
--	folio_lock(folio);
- 	if (!huge)
- 		folio_wait_writeback(folio);
- 	if (PageHWPoison(page)) {
 _
 
-Patches currently in -mm which might be from david@kernel.org are
+Patches currently in -mm which might be from xiaoleiwangxiaolei@gmail.com are
 
-mm-mprotect-dont-skip-uffd-marker-install-when-racing-with-pte-table-reclaim.patch
-mm-khugepaged-free-unused-page-table-when-setting-a-huge-pmd-fails.patch
 
