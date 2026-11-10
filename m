@@ -1,47 +1,47 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794268965;
-	b=Q4QNx0qLypMQitw37XYNq0p0buODfdQXDibWWcJWCnYNiqJfY59k2Dmgg4Wl5Xgm3LF1
-	 HhOPfOBoaeZUZPkB0KgjdCp0mHrkM2izNGcLmukowUMJahtBa8UFH1mBCid+HwvPcqQO9
-	 9REpEed3WkXfsMt5GeGENv8E1Nw9jINkXe9CqyiN/XN1BktPO1zE6jx/Y63GsIw/UVV9U
-	 irgNGPV1RJRU6sP6UzDluwlZLhcUuLYva4LnSnvkty40f+Gvhao6l1jyaQ7syXbSK0SZh
-	 Ohz9NCj1jv1iFo+aYu2igV2wn8FzaO07rzuSubLwbO7DqxLDyJrGeA4GT+vp/qjydUw==
+	t=1794268968;
+	b=icZc/tFUMfl+mLKAxxw3ghGeuEP90ooiccZ865HaPwt0EQMAnV853UWNipmFFngOrvF+
+	 2xdc3NMhvCYL79Smcj4o5bqHl3KG8IGTwgXAUN6B8pB6kkcgodd6dzAzGVXTgp08PODYX
+	 UyVoNNZSzdlprH+TfeW7G7aeJe47+1iCYxTn2WimsuUZIvI9ROdBH8YdEr1MsTmMhAAqC
+	 +9THgMa6zhI6tHlUZr9Y7IyQxDGX5hnmJyHWRl1qmlQArdWXomppVBVpON4BDHsaVlTXo
+	 fqyl2CtBAtphkHkq9Kdkt5/mS4X1IzWdWf1wbdbEe4gnMSmLUwGAWqLF2h0YXIdX5MA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794268965;
+	a=rsa-sha256; c=relaxed/relaxed; t=1794268968;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=JzGZndN7+ezPEbLpvpUAMIU+A/uxXSSY/M5gMLpHZy4=;
-	b=Fm/l+iQVri07ftnLU6bNQSndPdLwfgGIGwzkr+NFsMpFix9NjNNGATWvuIA8GI0ZsimN
-	 nXfyX5pnwOwZPZP9afolqHfyc/0DTA9zfmoSOR730/g2AUtO30HyVK9jC2xGi48QtEo/9
-	 BoY51P5oU+b26CS5uezSsKzL02tPP2CWeC1Lp6CRRFkoRnI0zuuNAheznb2D12yTszSqu
-	 856NOO/0vmpkDd3yaDkruzy3LkEsfPC3u3/rj3V+n6WeM/YL/PugCsEqR/sLRGthStUYo
-	 9QMPjGGcJ491uilml/2EZYaHxWqEdTtBI4fiRjyb6FDnDvAwyJ0871cESlfvAThqgdg==
+	bh=Sqn0+JtqLmccM9T3HVAdhXRkE2XzrUxE0MJWx44sXnM=;
+	b=aR+lohmcJ6faUimBU6mqUvvki7l8Y67sCqJItqn/8DIOMMAx5plmj/UQbnEANiD9shhn
+	 9y2DzdPqL4zAxk3indilwCFfCa8xXx3qB+NoXyyeudjWKE4kS4UiPK0KyU94PA4ZUcpyF
+	 lLozq+SLZf3QH+gEtGu416vamhv80PocQZFgQ05YnzQsb2dzQFDhJGaX9Z3W5oy6fWIZX
+	 Q/vWtZEP3ZjNxMBlV2VYURRoeTHox1tKjgJ+8FfmU956SNvRp1I8BIOwvRmN00FAgnY2u
+	 EKrWxN6iu9E0DILnSxVj5uVC79fugRA/jBurOZuhwZkwX9mAWn1OExEo6Jg40lgpn3Q==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=Y0ebXSPQ;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=Yeeo5y2K;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2FEBB606A334
-	for <mm-commits@vger.kernel.org>; Tue, 10 Nov 2026 00:02:45 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7B496606A31C
+	for <mm-commits@vger.kernel.org>; Tue, 10 Nov 2026 00:02:47 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=Y0ebXSPQ
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id CFF531F008A1;
-	Tue, 10 Nov 2026 00:02:44 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=Yeeo5y2K
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 17A561F008A1;
+	Tue, 10 Nov 2026 00:02:47 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1794268964;
-	bh=JzGZndN7+ezPEbLpvpUAMIU+A/uxXSSY/M5gMLpHZy4=;
+	d=linux-foundation.org; s=korg; t=1794268967;
+	bh=Sqn0+JtqLmccM9T3HVAdhXRkE2XzrUxE0MJWx44sXnM=;
 	h=Date:To:From:Subject;
-	b=Y0ebXSPQ6QnA75MOX+ZaIawSSr3gTtFmME8paCvdbL+1HYWZgqp38dUIqd2dDJx/H
-	 5EgxvxeH+9813VXCRBdEOfpaHcyLJjRSZfnypznSP0FrnAT+/hg04nSqeCsdM1JwfE
-	 6E7IaPGFXwxlHrGgzQ43dEGUrmK9+osNJMG/QDa8=
-Date: Mon, 09 Nov 2026 16:02:44 -0800
+	b=Yeeo5y2KBQIB2aIxG4NenZRkicdznntPRThbiFYuEIXPDdDnuZg3JC3zr0rSFOfZm
+	 HV9GP7+Z9mqxqP2DtWe2ScrMtYyXlINIhNqtgHStQ4xOvBb/2GXaQDEgephsNXnUiN
+	 lqGlvfH6vWgHYzcXVwoN1FFLQHyDbaOuDq6wI2SM=
+Date: Mon, 09 Nov 2026 16:02:46 -0800
 To: mm-commits@vger.kernel.org,raemoar63@gmail.com,noring@nocrew.org,
 	hch@lst.de,fredrik.noring@gmail.com,david@davidgow.net,
 	brendan.higgins@linux.dev,amit.patole@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + lib-genalloc-dont-dereference-a-null-pool-in-gen_pool_dma_alloc.patch added to mm-nonmm-unstable branch
-Message-Id: <20261110000244.CFF531F008A1@smtp.kernel.org>
+Subject: + lib-tests-add-kunit-tests-for-genalloc.patch added to mm-nonmm-unstable branch
+Message-Id: <20261110000247.17A561F008A1@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -53,12 +53,12 @@ Precedence: list
 
 
 The patch titled
-     Subject: lib/genalloc: don't dereference a NULL pool in gen_pool_dma_[z]alloc()
+     Subject: lib/tests: add KUnit tests for genalloc
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     lib-genalloc-dont-dereference-a-null-pool-in-gen_pool_dma_alloc.patch
+     lib-tests-add-kunit-tests-for-genalloc.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/lib-genalloc-dont-dereference-a-null-pool-in-gen_pool_dma_alloc.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/lib-tests-add-kunit-tests-for-genalloc.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -77,44 +77,42 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Amit Patole <amit.patole@gmail.com>
-Subject: lib/genalloc: don't dereference a NULL pool in gen_pool_dma_[z]alloc()
-Date: Fri, 06 Nov 2026 09:02:32 -0500
+Subject: lib/tests: add KUnit tests for genalloc
+Date: Fri, 06 Nov 2026 09:02:33 -0500
 
-Patch series "lib/genalloc: fix a NULL pool check and add KUnit tests".
+lib/genalloc.c is the allocator that drivers use for on-chip SRAM, IRAM
+and other special memory (i.MX SDMA, CODA, Tegra BPMP, s390 CIO, USB local
+memory and others), but it has no unit tests.
 
-genalloc has no unit tests, so patch 2 adds a KUnit suite.  Writing it
-turned up that gen_pool_dma_alloc() and gen_pool_dma_zalloc() crash on a
-NULL pool, while the other DMA helpers return NULL as gen_pool_dma_alloc()
-originally did.  Patch 1 restores the check; no in-tree caller passes a
-NULL pool, so it is not marked for stable.
+Add a KUnit suite that covers:
 
-Tested on UML with a kunitconfig of CONFIG_KUNIT=y and
-CONFIG_GENALLOC_KUNIT_TEST=y: 12/12 pass with patch 1, and
-genalloc_dma_test crashes without it.
+- gen_pool_size(), gen_pool_avail() and gen_pool_has_addr();
+- allocation and freeing, rounding to the allocation granule, zero
+  and oversized requests, and an exact fit;
+- the first fit, best fit (including the tie-break between equal
+  holes), first fit aligned, first fit order aligned and fixed
+  offset algorithms, and gen_pool_set_algo(pool, NULL, NULL);
+- aligned allocation from a chunk that does not start on the
+  alignment boundary;
+- pools with several chunks, gen_pool_virt_to_phys() and
+  gen_pool_for_each_chunk();
+- chunk owners;
+- the DMA helpers, including zeroing, alignment and a NULL pool;
+- devm_gen_pool_create() and gen_pool_get() with named and unnamed
+  pools on a KUnit device.
 
+gen_pool_destroy() BUGs on outstanding allocations, so the cleanup clears
+the chunk bitmaps first, and allocation results that are freed later are
+checked with assertions; a failing test then fails cleanly instead of
+crashing the kernel.
 
-This patch (of 2):
+An AI coding assistant (Claude Opus 5.5) was used to draft the tests. 
+They were run with "tools/testing/kunit/kunit.py run" on UML (12/12 pass),
+built with W=1 without warnings, and checked against deliberately broken
+versions of gen_pool_best_fit(), gen_pool_first_fit_align() and the
+accounting in gen_pool_free_owner(), each of which makes one test fail.
 
-gen_pool_dma_alloc() returned NULL for a NULL pool since it was added. 
-Commit cf394fc5f715 ("lib/genalloc.c: Add algorithm, align and zeroed
-family of DMA allocators") moved that check into
-gen_pool_dma_alloc_algo(), but gen_pool_dma_alloc() now reads pool->algo
-and pool->data before calling it, so a NULL pool is dereferenced instead. 
-gen_pool_dma_zalloc(), added by the same commit, has the same problem. 
-The _algo() and _align() variants still return NULL.
-
-All in-tree callers check the pool before calling, so this is not known to
-be reachable today, but the four entry points disagree and the original
-behaviour is easy to restore.  Check for a NULL pool before dereferencing
-it.
-
-Found by a KUnit test for lib/genalloc.c, which crashed in
-gen_pool_dma_alloc(NULL, ...) on UML.  An AI coding assistant (Claude Opus
-5.5) was used to write that test and this change; with it the test passes.
-
-Link: https://lore.kernel.org/20261106-kunit-genalloc-v1-0-ba1ea397dfd8@gmail.com
-Link: https://lore.kernel.org/20261106-kunit-genalloc-v1-1-ba1ea397dfd8@gmail.com
-Fixes: cf394fc5f715 ("lib/genalloc.c: Add algorithm, align and zeroed family of DMA allocators")
+Link: https://lore.kernel.org/20261106-kunit-genalloc-v1-2-ba1ea397dfd8@gmail.com
 Signed-off-by: Amit Patole <amit.patole@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 Cc: Fredrik Noring <noring@nocrew.org>
@@ -125,31 +123,558 @@ Cc: Rae Moar <raemoar63@gmail.com>
 Cc: Fredrik Noring <fredrik.noring@gmail.com>
 ---
 
- lib/genalloc.c |    6 ++++++
- 1 file changed, 6 insertions(+)
+ lib/Kconfig.debug          |   15 +
+ lib/tests/Makefile         |    1 
+ lib/tests/genalloc_kunit.c |  508 +++++++++++++++++++++++++++++++++++
+ 3 files changed, 524 insertions(+)
 
---- a/lib/genalloc.c~lib-genalloc-dont-dereference-a-null-pool-in-gen_pool_dma_alloc
-+++ a/lib/genalloc.c
-@@ -340,6 +340,9 @@ EXPORT_SYMBOL(gen_pool_alloc_algo_owner)
-  */
- void *gen_pool_dma_alloc(struct gen_pool *pool, size_t size, dma_addr_t *dma)
- {
-+	if (!pool)
-+		return NULL;
+--- a/lib/Kconfig.debug~lib-tests-add-kunit-tests-for-genalloc
++++ a/lib/Kconfig.debug
+@@ -3590,6 +3590,21 @@ config PRIME_NUMBERS_KUNIT_TEST
+ 
+ 	  If unsure, say N
+ 
++config GENALLOC_KUNIT_TEST
++	tristate "KUnit test for the general purpose allocator" if !KUNIT_ALL_TESTS
++	depends on KUNIT
++	select GENERIC_ALLOCATOR
++	default KUNIT_ALL_TESTS
++	help
++	  This option enables the KUnit test suite for lib/genalloc.c, the
++	  allocator drivers use to manage on-chip SRAM and other special
++	  memory regions. The tests cover allocation and freeing, the
++	  first fit, best fit, aligned, order aligned and fixed offset
++	  algorithms, multiple chunks, virtual to physical translation,
++	  the DMA helpers and the device-managed pools.
 +
- 	return gen_pool_dma_alloc_algo(pool, size, dma, pool->algo, pool->data);
- }
- EXPORT_SYMBOL(gen_pool_dma_alloc);
-@@ -418,6 +421,9 @@ EXPORT_SYMBOL(gen_pool_dma_alloc_align);
-  */
- void *gen_pool_dma_zalloc(struct gen_pool *pool, size_t size, dma_addr_t *dma)
- {
-+	if (!pool)
-+		return NULL;
++	  If unsure, say N.
 +
- 	return gen_pool_dma_zalloc_algo(pool, size, dma, pool->algo, pool->data);
- }
- EXPORT_SYMBOL(gen_pool_dma_zalloc);
+ config GLOB_KUNIT_TEST
+ 	tristate "Glob matching test" if !KUNIT_ALL_TESTS
+ 	depends on GLOB
+diff --git a/lib/tests/genalloc_kunit.c a/lib/tests/genalloc_kunit.c
+new file mode 100644
+--- /dev/null
++++ a/lib/tests/genalloc_kunit.c
+@@ -0,0 +1,508 @@
++// SPDX-License-Identifier: GPL-2.0
++/*
++ * KUnit tests for the general purpose allocator in lib/genalloc.c
++ */
++
++#include <kunit/device.h>
++#include <kunit/test.h>
++#include <linux/bitmap.h>
++#include <linux/err.h>
++#include <linux/genalloc.h>
++#include <linux/module.h>
++#include <linux/numa.h>
++#include <linux/string.h>
++
++/* Allocation granule used by most tests: 16 bytes. */
++#define GP_ORDER	4
++#define GP_UNIT		BIT(GP_ORDER)
++#define GP_CHUNK	1024
++
++static void gp_clear_chunk(struct gen_pool *pool, struct gen_pool_chunk *chunk,
++			   void *data)
++{
++	size_t size = chunk->end_addr - chunk->start_addr + 1;
++
++	bitmap_zero(chunk->bits, size >> pool->min_alloc_order);
++}
++
++/*
++ * gen_pool_destroy() BUGs on outstanding allocations. Clear them first so
++ * that a test which fails half way does not take the whole run down.
++ */
++static void gp_destroy(void *data)
++{
++	struct gen_pool *pool = data;
++
++	gen_pool_for_each_chunk(pool, gp_clear_chunk, NULL);
++	gen_pool_destroy(pool);
++}
++
++static struct gen_pool *gp_create(struct kunit *test, int order)
++{
++	struct gen_pool *pool = gen_pool_create(order, NUMA_NO_NODE);
++
++	KUNIT_ASSERT_NOT_NULL(test, pool);
++	KUNIT_ASSERT_EQ(test, kunit_add_action_or_reset(test, gp_destroy, pool),
++			0);
++	return pool;
++}
++
++/* Backing memory for a chunk, aligned to @size (a power of two). */
++static unsigned long gp_mem(struct kunit *test, size_t size)
++{
++	void *mem = kunit_kzalloc(test, size, GFP_KERNEL);
++
++	KUNIT_ASSERT_NOT_NULL(test, mem);
++	return (unsigned long)mem;
++}
++
++static void genalloc_size_avail_test(struct kunit *test)
++{
++	struct gen_pool *pool = gp_create(test, GP_ORDER);
++	unsigned long base = gp_mem(test, GP_CHUNK);
++
++	KUNIT_EXPECT_EQ(test, gen_pool_size(pool), 0);
++	KUNIT_EXPECT_EQ(test, gen_pool_avail(pool), 0);
++	KUNIT_EXPECT_EQ(test, gen_pool_alloc(pool, GP_UNIT), 0);
++
++	KUNIT_ASSERT_EQ(test, gen_pool_add(pool, base, GP_CHUNK, NUMA_NO_NODE),
++			0);
++	KUNIT_EXPECT_EQ(test, gen_pool_size(pool), GP_CHUNK);
++	KUNIT_EXPECT_EQ(test, gen_pool_avail(pool), GP_CHUNK);
++
++	KUNIT_EXPECT_TRUE(test, gen_pool_has_addr(pool, base, GP_CHUNK));
++	KUNIT_EXPECT_TRUE(test, gen_pool_has_addr(pool, base + GP_CHUNK - 1, 1));
++	KUNIT_EXPECT_FALSE(test, gen_pool_has_addr(pool, base + GP_CHUNK - 4, 8));
++	KUNIT_EXPECT_FALSE(test, gen_pool_has_addr(pool, base + GP_CHUNK, 1));
++	KUNIT_EXPECT_FALSE(test, gen_pool_has_addr(pool, base - 1, 2));
++}
++
++static void genalloc_alloc_free_test(struct kunit *test)
++{
++	struct gen_pool *pool = gp_create(test, GP_ORDER);
++	unsigned long base = gp_mem(test, GP_CHUNK);
++	unsigned long a, b, c;
++
++	KUNIT_ASSERT_EQ(test, gen_pool_add(pool, base, GP_CHUNK, NUMA_NO_NODE),
++			0);
++
++	/* A zero-sized request fails. */
++	KUNIT_EXPECT_EQ(test, gen_pool_alloc(pool, 0), 0);
++
++	a = gen_pool_alloc(pool, GP_UNIT);
++	KUNIT_ASSERT_EQ(test, a, base);
++
++	/* Sizes are rounded up to whole granules. */
++	b = gen_pool_alloc(pool, 1);
++	KUNIT_ASSERT_EQ(test, b, base + GP_UNIT);
++	KUNIT_EXPECT_EQ(test, gen_pool_avail(pool), GP_CHUNK - 2 * GP_UNIT);
++
++	c = gen_pool_alloc(pool, GP_UNIT + 1);
++	KUNIT_ASSERT_EQ(test, c, base + 2 * GP_UNIT);
++	KUNIT_EXPECT_EQ(test, gen_pool_avail(pool), GP_CHUNK - 4 * GP_UNIT);
++
++	/* The pool size never changes. */
++	KUNIT_EXPECT_EQ(test, gen_pool_size(pool), GP_CHUNK);
++
++	/* Freeing with the size used to allocate returns the whole granules. */
++	gen_pool_free(pool, b, 1);
++	gen_pool_free(pool, c, GP_UNIT + 1);
++	gen_pool_free(pool, a, GP_UNIT);
++	KUNIT_EXPECT_EQ(test, gen_pool_avail(pool), GP_CHUNK);
++
++	/* Too large a request fails; an exact fit succeeds. */
++	KUNIT_EXPECT_EQ(test, gen_pool_alloc(pool, GP_CHUNK + 1), 0);
++	a = gen_pool_alloc(pool, GP_CHUNK);
++	KUNIT_ASSERT_EQ(test, a, base);
++	KUNIT_EXPECT_EQ(test, gen_pool_avail(pool), 0);
++	KUNIT_EXPECT_EQ(test, gen_pool_alloc(pool, 1), 0);
++	gen_pool_free(pool, a, GP_CHUNK);
++	KUNIT_EXPECT_EQ(test, gen_pool_avail(pool), GP_CHUNK);
++}
++
++static void genalloc_first_fit_test(struct kunit *test)
++{
++	struct gen_pool *pool = gp_create(test, GP_ORDER);
++	unsigned long base = gp_mem(test, GP_CHUNK);
++	unsigned long a, b, c, d;
++
++	KUNIT_ASSERT_EQ(test, gen_pool_add(pool, base, GP_CHUNK, NUMA_NO_NODE),
++			0);
++
++	a = gen_pool_alloc(pool, 4 * GP_UNIT);
++	b = gen_pool_alloc(pool, 4 * GP_UNIT);
++	c = gen_pool_alloc(pool, 4 * GP_UNIT);
++	KUNIT_ASSERT_EQ(test, a, base);
++	KUNIT_ASSERT_EQ(test, b, base + 4 * GP_UNIT);
++	KUNIT_ASSERT_EQ(test, c, base + 8 * GP_UNIT);
++
++	/* A hole left by a free is reused by the next request that fits. */
++	gen_pool_free(pool, b, 4 * GP_UNIT);
++	d = gen_pool_alloc(pool, 2 * GP_UNIT);
++	KUNIT_ASSERT_EQ(test, d, b);
++
++	/* A request too large for the hole goes after the last allocation. */
++	b = gen_pool_alloc(pool, 3 * GP_UNIT);
++	KUNIT_ASSERT_EQ(test, b, base + 12 * GP_UNIT);
++
++	gen_pool_free(pool, a, 4 * GP_UNIT);
++	gen_pool_free(pool, b, 3 * GP_UNIT);
++	gen_pool_free(pool, c, 4 * GP_UNIT);
++	gen_pool_free(pool, d, 2 * GP_UNIT);
++	KUNIT_EXPECT_EQ(test, gen_pool_avail(pool), GP_CHUNK);
++}
++
++static void genalloc_best_fit_test(struct kunit *test)
++{
++	struct gen_pool *pool = gp_create(test, GP_ORDER);
++	unsigned long base = gp_mem(test, GP_CHUNK);
++	unsigned long big, sep, small, rest, addr;
++	size_t rest_size = GP_CHUNK - 14 * GP_UNIT;
++
++	KUNIT_ASSERT_EQ(test, gen_pool_add(pool, base, GP_CHUNK, NUMA_NO_NODE),
++			0);
++
++	/* Leave an 8 granule hole at the start and a 2 granule hole later. */
++	big = gen_pool_alloc(pool, 8 * GP_UNIT);
++	sep = gen_pool_alloc(pool, 4 * GP_UNIT);
++	small = gen_pool_alloc(pool, 2 * GP_UNIT);
++	rest = gen_pool_alloc(pool, rest_size);
++	KUNIT_ASSERT_EQ(test, small, base + 12 * GP_UNIT);
++	KUNIT_ASSERT_EQ(test, rest, base + 14 * GP_UNIT);
++	gen_pool_free(pool, big, 8 * GP_UNIT);
++	gen_pool_free(pool, small, 2 * GP_UNIT);
++
++	/* First fit takes the first hole... */
++	addr = gen_pool_alloc(pool, 2 * GP_UNIT);
++	KUNIT_ASSERT_EQ(test, addr, big);
++	gen_pool_free(pool, addr, 2 * GP_UNIT);
++
++	/* ...best fit takes the smallest hole that is large enough. */
++	gen_pool_set_algo(pool, gen_pool_best_fit, NULL);
++	addr = gen_pool_alloc(pool, 2 * GP_UNIT);
++	KUNIT_ASSERT_EQ(test, addr, small);
++
++	/* With that hole used, best fit falls back to the larger one. */
++	KUNIT_ASSERT_EQ(test, gen_pool_alloc(pool, GP_UNIT), big);
++
++	gen_pool_free(pool, addr, 2 * GP_UNIT);
++	gen_pool_free(pool, big, GP_UNIT);
++
++	/*
++	 * Of two equally good holes, best fit takes the first. Free the
++	 * separator so granules 0-13 are free, then carve them into two
++	 * three granule holes (0-2 and 4-6) with allocations in between.
++	 */
++	gen_pool_free(pool, sep, 4 * GP_UNIT);
++	big = gen_pool_alloc(pool, 3 * GP_UNIT);
++	sep = gen_pool_alloc(pool, GP_UNIT);
++	small = gen_pool_alloc(pool, 3 * GP_UNIT);
++	addr = gen_pool_alloc(pool, 7 * GP_UNIT);
++	KUNIT_ASSERT_EQ(test, big, base);
++	KUNIT_ASSERT_EQ(test, sep, base + 3 * GP_UNIT);
++	KUNIT_ASSERT_EQ(test, small, base + 4 * GP_UNIT);
++	KUNIT_ASSERT_EQ(test, addr, base + 7 * GP_UNIT);
++	gen_pool_free(pool, big, 3 * GP_UNIT);
++	gen_pool_free(pool, small, 3 * GP_UNIT);
++
++	small = gen_pool_alloc(pool, 2 * GP_UNIT);
++	KUNIT_ASSERT_EQ(test, small, base);
++
++	gen_pool_free(pool, small, 2 * GP_UNIT);
++	gen_pool_free(pool, sep, GP_UNIT);
++	gen_pool_free(pool, addr, 7 * GP_UNIT);
++	gen_pool_free(pool, rest, rest_size);
++	KUNIT_EXPECT_EQ(test, gen_pool_avail(pool), GP_CHUNK);
++
++	/* Setting a NULL algorithm restores first fit. */
++	gen_pool_set_algo(pool, NULL, NULL);
++	KUNIT_EXPECT_TRUE(test, pool->algo == gen_pool_first_fit);
++}
++
++static void genalloc_first_fit_align_test(struct kunit *test)
++{
++	struct gen_pool *pool = gp_create(test, GP_ORDER);
++	unsigned long mem = gp_mem(test, 2 * GP_CHUNK);
++	/* A chunk that starts one granule past a 256 byte boundary. */
++	unsigned long base = mem + GP_UNIT;
++	struct genpool_data_align align = { .align = 256 };
++	unsigned long a, b;
++
++	KUNIT_ASSERT_EQ(test, mem & 255, 0);
++	KUNIT_ASSERT_EQ(test, gen_pool_add(pool, base, GP_CHUNK, NUMA_NO_NODE),
++			0);
++
++	/* Alignment is of the address, not of the offset in the chunk. */
++	a = gen_pool_alloc_algo(pool, GP_UNIT, gen_pool_first_fit_align,
++				&align);
++	KUNIT_ASSERT_EQ(test, a, mem + 256);
++
++	b = gen_pool_alloc_algo(pool, GP_UNIT, gen_pool_first_fit_align,
++				&align);
++	KUNIT_ASSERT_EQ(test, b, mem + 512);
++
++	/* The space skipped for alignment is still free for plain requests. */
++	KUNIT_ASSERT_EQ(test, gen_pool_alloc(pool, GP_UNIT), base);
++
++	gen_pool_free(pool, a, GP_UNIT);
++	gen_pool_free(pool, b, GP_UNIT);
++	gen_pool_free(pool, base, GP_UNIT);
++}
++
++static void genalloc_order_align_test(struct kunit *test)
++{
++	struct gen_pool *pool = gp_create(test, GP_ORDER);
++	unsigned long base = gp_mem(test, GP_CHUNK);
++	unsigned long a, b, c;
++
++	KUNIT_ASSERT_EQ(test, gen_pool_add(pool, base, GP_CHUNK, NUMA_NO_NODE),
++			0);
++	gen_pool_set_algo(pool, gen_pool_first_fit_order_align, NULL);
++
++	a = gen_pool_alloc(pool, GP_UNIT);
++	KUNIT_ASSERT_EQ(test, a, base);
++
++	/* Three granules round up to an alignment of four granules. */
++	b = gen_pool_alloc(pool, 3 * GP_UNIT);
++	KUNIT_ASSERT_EQ(test, b, base + 4 * GP_UNIT);
++
++	/* A single granule needs no alignment and fills the first gap. */
++	c = gen_pool_alloc(pool, GP_UNIT);
++	KUNIT_ASSERT_EQ(test, c, base + GP_UNIT);
++
++	gen_pool_free(pool, a, GP_UNIT);
++	gen_pool_free(pool, b, 3 * GP_UNIT);
++	gen_pool_free(pool, c, GP_UNIT);
++}
++
++static void genalloc_fixed_alloc_test(struct kunit *test)
++{
++	struct gen_pool *pool = gp_create(test, GP_ORDER);
++	unsigned long base = gp_mem(test, GP_CHUNK);
++	struct genpool_data_fixed fixed = { .offset = 8 * GP_UNIT };
++	unsigned long a;
++
++	KUNIT_ASSERT_EQ(test, gen_pool_add(pool, base, GP_CHUNK, NUMA_NO_NODE),
++			0);
++
++	a = gen_pool_alloc_algo(pool, 2 * GP_UNIT, gen_pool_fixed_alloc, &fixed);
++	KUNIT_ASSERT_EQ(test, a, base + 8 * GP_UNIT);
++
++	/* The same offset cannot be handed out twice... */
++	KUNIT_EXPECT_EQ(test, gen_pool_alloc_algo(pool, GP_UNIT,
++						  gen_pool_fixed_alloc, &fixed),
++			0);
++
++	/* ...nor an offset whose range overlaps it. */
++	fixed.offset = 7 * GP_UNIT;
++	KUNIT_EXPECT_EQ(test, gen_pool_alloc_algo(pool, 2 * GP_UNIT,
++						  gen_pool_fixed_alloc, &fixed),
++			0);
++
++	/* An offset just before it, that fits, works. */
++	KUNIT_ASSERT_EQ(test, gen_pool_alloc_algo(pool, GP_UNIT,
++						  gen_pool_fixed_alloc, &fixed),
++			base + 7 * GP_UNIT);
++
++	gen_pool_free(pool, a, 2 * GP_UNIT);
++	gen_pool_free(pool, base + 7 * GP_UNIT, GP_UNIT);
++}
++
++static void genalloc_chunks_test(struct kunit *test)
++{
++	struct gen_pool *pool = gp_create(test, GP_ORDER);
++	unsigned long m1 = gp_mem(test, GP_CHUNK);
++	unsigned long m2 = gp_mem(test, GP_CHUNK / 4);
++	const phys_addr_t p1 = 0x100000, p2 = 0x200000;
++	unsigned long a;
++
++	KUNIT_ASSERT_EQ(test, gen_pool_add_virt(pool, m1, p1, GP_CHUNK,
++						NUMA_NO_NODE), 0);
++	KUNIT_ASSERT_EQ(test, gen_pool_add_virt(pool, m2, p2, GP_CHUNK / 4,
++						NUMA_NO_NODE), 0);
++
++	KUNIT_EXPECT_EQ(test, gen_pool_size(pool), GP_CHUNK + GP_CHUNK / 4);
++	KUNIT_EXPECT_EQ(test, gen_pool_avail(pool), GP_CHUNK + GP_CHUNK / 4);
++
++	KUNIT_EXPECT_EQ(test, gen_pool_virt_to_phys(pool, m1), p1);
++	KUNIT_EXPECT_EQ(test, gen_pool_virt_to_phys(pool, m1 + 100), p1 + 100);
++	KUNIT_EXPECT_EQ(test, gen_pool_virt_to_phys(pool, m2 + GP_CHUNK / 4 - 1),
++			p2 + GP_CHUNK / 4 - 1);
++	KUNIT_EXPECT_EQ(test, gen_pool_virt_to_phys(pool, m2 + GP_CHUNK / 4),
++			(phys_addr_t)-1);
++
++	/* A request that only fits in the larger chunk is served from it. */
++	a = gen_pool_alloc(pool, GP_CHUNK / 2);
++	KUNIT_ASSERT_EQ(test, a, m1);
++	KUNIT_EXPECT_EQ(test, gen_pool_avail(pool), GP_CHUNK / 2 + GP_CHUNK / 4);
++
++	KUNIT_EXPECT_TRUE(test, gen_pool_has_addr(pool, m2, GP_CHUNK / 4));
++	/* A range spanning two chunks is not in the pool. */
++	KUNIT_EXPECT_FALSE(test, gen_pool_has_addr(pool, m1, 2 * GP_CHUNK));
++
++	gen_pool_free(pool, a, GP_CHUNK / 2);
++	KUNIT_EXPECT_EQ(test, gen_pool_avail(pool), GP_CHUNK + GP_CHUNK / 4);
++}
++
++static void genalloc_count_chunk(struct gen_pool *pool,
++				 struct gen_pool_chunk *chunk, void *data)
++{
++	int *count = data;
++
++	(*count)++;
++}
++
++static void genalloc_chunk_walk_test(struct kunit *test)
++{
++	struct gen_pool *pool = gp_create(test, GP_ORDER);
++	int i, count = 0;
++
++	for (i = 0; i < 3; i++)
++		KUNIT_ASSERT_EQ(test, gen_pool_add(pool, gp_mem(test, GP_CHUNK),
++						   GP_CHUNK, NUMA_NO_NODE), 0);
++
++	gen_pool_for_each_chunk(pool, genalloc_count_chunk, &count);
++	KUNIT_EXPECT_EQ(test, count, 3);
++}
++
++static void genalloc_owner_test(struct kunit *test)
++{
++	struct gen_pool *pool = gp_create(test, GP_ORDER);
++	unsigned long base = gp_mem(test, GP_CHUNK);
++	int token;
++	void *owner = NULL;
++	unsigned long a;
++
++	KUNIT_ASSERT_EQ(test, gen_pool_add_owner(pool, base, -1, GP_CHUNK,
++						 NUMA_NO_NODE, &token), 0);
++
++	a = gen_pool_alloc_owner(pool, GP_UNIT, &owner);
++	KUNIT_ASSERT_EQ(test, a, base);
++	KUNIT_EXPECT_PTR_EQ(test, owner, (void *)&token);
++
++	owner = NULL;
++	gen_pool_free_owner(pool, a, GP_UNIT, &owner);
++	KUNIT_EXPECT_PTR_EQ(test, owner, (void *)&token);
++
++	/* A failed allocation reports no owner. */
++	owner = &owner;
++	KUNIT_EXPECT_EQ(test, gen_pool_alloc_owner(pool, 2 * GP_CHUNK, &owner),
++			0);
++	KUNIT_EXPECT_NULL(test, owner);
++}
++
++static void genalloc_dma_test(struct kunit *test)
++{
++	struct gen_pool *pool = gp_create(test, GP_ORDER);
++	unsigned long base = gp_mem(test, GP_CHUNK);
++	const phys_addr_t phys = 0x40000000;
++	dma_addr_t dma = 0;
++	u8 *a, *b;
++	int i;
++
++	memset((void *)base, 0xa5, GP_CHUNK);
++	KUNIT_ASSERT_EQ(test, gen_pool_add_virt(pool, base, phys, GP_CHUNK,
++						NUMA_NO_NODE), 0);
++
++	a = gen_pool_dma_alloc(pool, 2 * GP_UNIT, &dma);
++	KUNIT_ASSERT_PTR_EQ(test, a, (u8 *)base);
++	KUNIT_EXPECT_EQ(test, dma, (dma_addr_t)phys);
++	/* gen_pool_dma_alloc() does not clear the memory. */
++	KUNIT_EXPECT_EQ(test, a[0], 0xa5);
++
++	b = gen_pool_dma_zalloc(pool, 2 * GP_UNIT, &dma);
++	KUNIT_ASSERT_PTR_EQ(test, b, (u8 *)base + 2 * GP_UNIT);
++	KUNIT_EXPECT_EQ(test, dma, (dma_addr_t)(phys + 2 * GP_UNIT));
++	for (i = 0; i < 2 * GP_UNIT; i++)
++		KUNIT_EXPECT_EQ(test, b[i], 0);
++	/* Only the requested memory is cleared. */
++	KUNIT_EXPECT_EQ(test, b[2 * GP_UNIT], 0xa5);
++
++	gen_pool_free(pool, (unsigned long)a, 2 * GP_UNIT);
++	gen_pool_free(pool, (unsigned long)b, 2 * GP_UNIT);
++
++	/* With the start in use, the aligned variant skips to 128 bytes. */
++	a = gen_pool_dma_alloc(pool, GP_UNIT, NULL);
++	KUNIT_ASSERT_PTR_EQ(test, a, (u8 *)base);
++	b = gen_pool_dma_alloc_align(pool, GP_UNIT, &dma, 128);
++	KUNIT_ASSERT_PTR_EQ(test, b, (u8 *)base + 128);
++	KUNIT_EXPECT_EQ(test, dma, (dma_addr_t)(phys + 128));
++	gen_pool_free(pool, (unsigned long)a, GP_UNIT);
++	gen_pool_free(pool, (unsigned long)b, GP_UNIT);
++
++	/* A NULL @dma is allowed, and so is a NULL pool. */
++	a = gen_pool_dma_alloc(pool, GP_UNIT, NULL);
++	KUNIT_ASSERT_PTR_EQ(test, a, (u8 *)base);
++	gen_pool_free(pool, (unsigned long)a, GP_UNIT);
++	KUNIT_EXPECT_NULL(test, gen_pool_dma_alloc(NULL, GP_UNIT, &dma));
++	KUNIT_EXPECT_NULL(test, gen_pool_dma_zalloc(NULL, GP_UNIT, &dma));
++	KUNIT_EXPECT_NULL(test, gen_pool_dma_alloc_align(NULL, GP_UNIT, &dma,
++							 128));
++
++	/* Exhaustion returns NULL. */
++	KUNIT_EXPECT_NULL(test, gen_pool_dma_zalloc(pool, 2 * GP_CHUNK, &dma));
++}
++
++static void genalloc_devm_test(struct kunit *test)
++{
++	struct gen_pool *named, *unnamed;
++	struct device *dev;
++
++	dev = kunit_device_register(test, "genalloc-kunit");
++	KUNIT_ASSERT_FALSE(test, IS_ERR(dev));
++
++	KUNIT_EXPECT_NULL(test, gen_pool_get(dev, NULL));
++	KUNIT_EXPECT_NULL(test, gen_pool_get(dev, "sram"));
++
++	named = devm_gen_pool_create(dev, GP_ORDER, NUMA_NO_NODE, "sram");
++	KUNIT_ASSERT_FALSE(test, IS_ERR(named));
++	KUNIT_EXPECT_STREQ(test, named->name, "sram");
++	KUNIT_EXPECT_EQ(test, named->min_alloc_order, GP_ORDER);
++	KUNIT_EXPECT_PTR_EQ(test, gen_pool_get(dev, "sram"), named);
++
++	/* An unnamed lookup does not match a named pool, nor the reverse. */
++	KUNIT_EXPECT_NULL(test, gen_pool_get(dev, NULL));
++	KUNIT_EXPECT_NULL(test, gen_pool_get(dev, "other"));
++
++	unnamed = devm_gen_pool_create(dev, GP_ORDER, NUMA_NO_NODE, NULL);
++	KUNIT_ASSERT_FALSE(test, IS_ERR(unnamed));
++	KUNIT_EXPECT_PTR_EQ(test, gen_pool_get(dev, NULL), unnamed);
++	KUNIT_EXPECT_PTR_EQ(test, gen_pool_get(dev, "sram"), named);
++
++	/* Each name, including no name, can only be used once per device. */
++	KUNIT_EXPECT_EQ(test, PTR_ERR(devm_gen_pool_create(dev, GP_ORDER,
++							   NUMA_NO_NODE,
++							   "sram")),
++			-EINVAL);
++	KUNIT_EXPECT_EQ(test, PTR_ERR(devm_gen_pool_create(dev, GP_ORDER,
++							   NUMA_NO_NODE, NULL)),
++			-EINVAL);
++
++	/* Both pools are destroyed when the device goes away. */
++}
++
++static struct kunit_case genalloc_test_cases[] = {
++	KUNIT_CASE(genalloc_size_avail_test),
++	KUNIT_CASE(genalloc_alloc_free_test),
++	KUNIT_CASE(genalloc_first_fit_test),
++	KUNIT_CASE(genalloc_best_fit_test),
++	KUNIT_CASE(genalloc_first_fit_align_test),
++	KUNIT_CASE(genalloc_order_align_test),
++	KUNIT_CASE(genalloc_fixed_alloc_test),
++	KUNIT_CASE(genalloc_chunks_test),
++	KUNIT_CASE(genalloc_chunk_walk_test),
++	KUNIT_CASE(genalloc_owner_test),
++	KUNIT_CASE(genalloc_dma_test),
++	KUNIT_CASE(genalloc_devm_test),
++	{}
++};
++
++static struct kunit_suite genalloc_test_suite = {
++	.name = "genalloc",
++	.test_cases = genalloc_test_cases,
++};
++
++kunit_test_suite(genalloc_test_suite);
++
++MODULE_DESCRIPTION("KUnit tests for the general purpose allocator");
++MODULE_LICENSE("GPL");
+--- a/lib/tests/Makefile~lib-tests-add-kunit-tests-for-genalloc
++++ a/lib/tests/Makefile
+@@ -23,6 +23,7 @@ CFLAGS_fortify_kunit.o += $(DISABLE_STRU
+ obj-$(CONFIG_FORTIFY_KUNIT_TEST) += fortify_kunit.o
+ CFLAGS_test_fprobe.o += $(CC_FLAGS_FTRACE)
+ obj-$(CONFIG_FPROBE_SANITY_TEST) += test_fprobe.o
++obj-$(CONFIG_GENALLOC_KUNIT_TEST) += genalloc_kunit.o
+ obj-$(CONFIG_GLOB_KUNIT_TEST) += glob_kunit.o
+ obj-$(CONFIG_HASHTABLE_KUNIT_TEST) += hashtable_test.o
+ obj-$(CONFIG_HASH_KUNIT_TEST) += test_hash.o
 _
 
 Patches currently in -mm which might be from amit.patole@gmail.com are
