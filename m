@@ -1,49 +1,49 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794293104;
-	b=PyuVYNJH994HPERTRgePbSmUWGxuVfQ6DGQOw9v+XZ+ah190ylqc4YaMIQjPT2TRY4w8
-	 cTOhU5xStbVnvR0pRFWIq0cbyBEmqZT242xnUiAZFJeYQg02sUCVqtQsxjkg2Zrk4ypnF
-	 YQTmt7pJVHsVAKEWKUKzyfD45PmWbn9B6qUXV4z1HEEVS2d5eUrpko+2dE4zQ41NEbhyE
-	 kAcXgUJtiIAGR7PkQKokOubBIBFjB3zmWekbQXDjadzz/7skgkoI7MijfgO6cP5K/5tKp
-	 0AazuGsQUvCdcclY/FWA3TN9AgrXePWeRqondYd3gl9/TSWRJk7Q69mdczOs2wsd80w==
+	t=1794293108;
+	b=l/FadmYFxXWCJa0z1gFd4VMBBtdXfCba81pC5sznqzaL8hpWbtAvwLWJ8GK02G+wxsav
+	 JwN+dWN/SDQFLV/iBssGH1pPJlntBBIjhhvYWWaZMFdS+c7U1GpZy6sBJpI75RPX7awhr
+	 iiK8we95mcpd7MUIipGKMh/KI0qREvRL61P0LOY6agNTnhlaYDvHJyPRBLbPpiEDY6ytV
+	 17XKtYxeLVF8kDr11tacLgf6ca89UT7UOe1F9+AFd0B6v6M3RCmsjzOBXvU3nbxc9i85d
+	 vN4vPF+PM1AxjXBB1Rmq+FJ/sQ+5JGYKs/morXP9i+CckqeYlmurTO0ZWg3QBwCgtQA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794293104;
+	a=rsa-sha256; c=relaxed/relaxed; t=1794293108;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=403xIM+g6Pawp0jRTik3Wfra3U/e5ShvSLB3nL09Cqc=;
-	b=108OYiH9ZpehnCHnXFE6+klHPmgo1YE+fV7diSR61K3iTd+XDpcXzjCqZ31mp57ZDBDh
-	 G/iOLbRvioa3ncUFiXvCBEd+8sTLiSSk8KcrzjHi+3ps+TW17fOeudCWRC+cQSDMF+Nm3
-	 NJL/MP/dLa8uE710XrT0fqfaKF0iI/mnVVZBDuZ0IOB0hn4TD7PoaChSxgQWONt0dCnZ+
-	 FsDgJEmKz9sv91pKW4jWlptlDIryQJhqdG0401c3wxkhE7dB+UQQNNOqDk2lktchxjJ/J
-	 5c6DXTv6zJ2VVZ9xnE7aw1MBgcrOKlzCMiNyyJ7BB5SfryvnvRN+2k4oVrjlN2RZqLg==
+	bh=1+EWMG1s4PtNLGMTM7gtsLhW6vrqjRkE1/MQE+IymZA=;
+	b=Gg6jUWBS+o3wBfmZidfT0N6PCKRwKb9gc3ZiL49rG0UeO92wFTt/FPUMjb6L2hylzYjU
+	 EBKuTVsReoxbqgnLwEogxat8eeBXSZ2J6iMnm7482naVpZFTviSkbU/Hm+Notr2CI3sXk
+	 Db57UO79qK/9WFopnyEjzvxR9sJRBh9RONz2WVEzYtrUvuxjf2MEv03B5BF9VLtccKRWP
+	 tLdXqb2//WFCagAUzXzyla/xivR8TgTYJ/l/l1zWY/RP0iOEzszSJgls8OSCsQbV+Wdhn
+	 r+SldzOi9WscsjaDMANEsWpuBdyNWYa0QACL4VReHRZZKZgRV1aoipjzDQuHSUFo7cA==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=uxEUC+Xj;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=0ss6A5T5;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 65C24606BD69;
-	Tue, 10 Nov 2026 06:45:04 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 07FAE606CB02;
+	Tue, 10 Nov 2026 06:45:08 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=uxEUC+Xj
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1F7981F0089F;
-	Tue, 10 Nov 2026 06:45:04 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=0ss6A5T5
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C32C61F008A3;
+	Tue, 10 Nov 2026 06:45:07 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1794293104;
-	bh=403xIM+g6Pawp0jRTik3Wfra3U/e5ShvSLB3nL09Cqc=;
+	d=linux-foundation.org; s=korg; t=1794293107;
+	bh=1+EWMG1s4PtNLGMTM7gtsLhW6vrqjRkE1/MQE+IymZA=;
 	h=Date:To:From:Subject;
-	b=uxEUC+XjkXHEV6/dUEz/+e57BKYFLNsb0iLOwkS68UTeIhHbjwYPhYhwOO+wX9HK9
-	 BF0IkxIiNShA3RlQtn4Bf+E+mYMs+cHxTxi7AJ5zdjo0L4FG8hutR///XX2OZXn8qS
-	 Rbah1i0CcNfhtqBFYL0QQ2mzz9Zh2OGkbARsxpkY=
-Date: Mon, 09 Nov 2026 22:45:03 -0800
-To: mm-commits@vger.kernel.org,vincenzo.frascino@arm.com,vbabka@kernel.org,
-	stable@vger.kernel.org,ryabinin.a.a@gmail.com,roman.gushchin@linux.dev,
-	rientjes@google.com,harry@kernel.org,hao.li@linux.dev,glider@google.com,
-	dvyukov@google.com,cl@gentwo.org,andreyknvl@gmail.com,kuniyu@google.com,
-	akpm@linux-foundation.org
+	b=0ss6A5T5OJa/842uN05Dof3gh2G0GChIP+yvamq8rOzY4lRAvoCJS4Lx+V8TPpgJA
+	 7cy31gwUe+o82gawlNsVsXiHojKb2HG5eCaRg938aGGd1V9VVKQ95jlrQtknEWPPmW
+	 FXGzvIPya4Wai05kw44377yrtB/92kWwP6BBFwy4=
+Date: Mon, 09 Nov 2026 22:45:07 -0800
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,ying.huang@linux.alibaba.com,
+	stable@vger.kernel.org,shivankg@amd.com,shakeel.butt@linux.dev,
+	matthew.brost@intel.com,joshua.hahnjy@gmail.com,gourry@gourry.net,
+	david@kernel.org,byungchul@sk.com,boris@bur.io,apopple@nvidia.com,
+	chenridong@xiaomi.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] mm-kasan-kunit-add-double-free-tests-involving-kfree_rcu_sheaf.patch removed from -mm tree
-Message-Id: <20261110064504.1F7981F0089F@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] mm-migrate-move-nr_kernel_file_pages-on-cross-node-migration.patch removed from -mm tree
+Message-Id: <20261110064507.C32C61F008A3@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -55,292 +55,109 @@ Precedence: list
 
 
 The quilt patch titled
-     Subject: mm/kasan/kunit: add double-free tests involving kfree_rcu_sheaf()
+     Subject: mm/migrate: move NR_KERNEL_FILE_PAGES on cross-node migration
 has been removed from the -mm tree.  Its filename was
-     mm-kasan-kunit-add-double-free-tests-involving-kfree_rcu_sheaf.patch
+     mm-migrate-move-nr_kernel_file_pages-on-cross-node-migration.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Kuniyuki Iwashima <kuniyu@google.com>
-Subject: mm/kasan/kunit: add double-free tests involving kfree_rcu_sheaf()
-Date: Wed, 28 Oct 2026 19:39:20 +0000
+From: Ridong Chen <chenridong@xiaomi.com>
+Subject: mm/migrate: move NR_KERNEL_FILE_PAGES on cross-node migration
+Date: Tue, 27 Oct 2026 12:32:14 +0800
 
-The new test cases verify that KASAN immediately detects all
-three combinations of double-free involving kfree_rcu_sheaf():
+NR_KERNEL_FILE_PAGES counts page cache folios of mappings flagged
+AS_KERNEL_FILE (currently the btrfs btree inode).  It is a per-node
+counter: filemap_add_folio() adds to folio_pgdat() of the new folio and
+filemap_unaccount_folio() subtracts from folio_pgdat() of the folio
+being removed.
 
-  1. kmem_cache_free() -> kfree_rcu()
-  2. kfree_rcu()       -> kmem_cache_free()
-  3. kfree_rcu()       -> kfree_rcu()
+__folio_migrate_mapping() does not move it when such a folio is
+migrated to another node, so the source node keeps the count forever
+and the destination node underflows once the folio is freed.  btree
+folios are migratable through btree_migrate_folio(), so demotion,
+DAMON-based migration (DAMOS_MIGRATE_{HOT,COLD}) or memory offlining
+all hit this.
 
-Each test also evicts the object from the KASAN quarantine and
-reallocates it as a victim object before flushing the RCU sheaf
-to ensure the live victim object is not poisoned by the rejected
-double-free.
+Reproducer, on a QEMU guest with two memory tiers (node0 is DRAM with
+all CPUs, node1 is a CPU-less slower node described via HMAT) and
+/sys/kernel/mm/numa/demotion_enabled set:
 
-Without the patch, all tests fail to detect the 2nd free, and
-the victim is poisoned:
+  1. mount a btrfs and create 20000 empty files, so that btree folios
+     are cached on node0;
+  2. echo 2G > /sys/devices/system/node/node0/reclaim, which demotes
+     them to node1;
+  3. umount and drop caches.
 
-  # kmem_cache_double_free_rcu_1: EXPECTATION FAILED at mm/kasan/kasan_test_c.c:1096
-  KASAN failure expected in "kfree_rcu(p, rcu)", but none occurred
-  ... <splat below is logged here>
-  # kmem_cache_double_free_rcu_1: EXPECTATION FAILED at mm/kasan/kasan_test_c.c:1156
-  Expected (<...snipped READ_ONCE()...>&(victim->i)); }) == 42, but
-      <...snipped READ_ONCE()...>victim->i == 117729280 (0x7046800)
+nr_kernel_file_pages in /sys/devices/system/node/nodeN/vmstat after
+each step:
 
-  # kasan: pass:0 fail:3 skip:0 total:3
-  # Totals: pass:0 fail:3 skip:0 total:3
-  not ok 1 kasan
+                  without this patch     with this patch
+                   node0     node1       node0     node1
+  1. cached         1868         0        1868         0
+  2. demoted        1868         0          36      1832
+  3. dropped        1832         0 (*)       0         0
 
-In all cases, KASAN logs a false-positive use-after-free splat at
-READ_ONCE(victim->i), and it has no information about the suspect;
-the two stack traces ("Call Trace:" and "Allocated by") are of the
-live victim, and "Freed by" is of the RCU task.
+  (*) the counter has underflowed to -1832; negative values read as 0.
 
-  BUG: KASAN: slab-use-after-free in __kmem_cache_double_free_rcu+0x9ee/0xaf0
-  Read of size 4 at addr ffff8881076c2938 by task kunit_try_catch/513
-  ...
-  Freed by task 0:
-   ...
-   __rcu_free_sheaf_prepare+0xf6/0x240
-   rcu_free_sheaf_nobarn+0x31/0xe0
-   rcu_core+0x75e/0x16b0
+The global value in /proc/vmstat is 0 after step 3 in both cases.
 
-With the patch, all tests can detect the 2nd free immediately and
-prevent the victim from being poisoned:
+Move it together with the other node-keyed page cache counters.  It is
+a node-only counter, so use the node accessor, matching how it is
+accounted elsewhere.  Interrupts are disabled here, as for the zone
+counters below.
 
-  # kasan: pass:3 fail:0 skip:0 total:3
-  # Totals: pass:3 fail:0 skip:0 total:3
-  ok 1 kasan
+This was pointed out by Shivank while reviewing the NR_FILE_THPS fix
+for the same function.
 
-All the stack traces point to the same object for double-free,
-and the two free traces are shown in "Call Trace:" and "Freed by"
-(or "Last potentially related work creation:" in the 2nd/3rd test
-cases).
-
-  BUG: KASAN: double-free in kvfree_call_rcu+0xb6/0x3c0
-  Free of addr ffff888108495938 by task kunit_try_catch/511
-  ...
-  Call Trace:
-   <TASK>
-   ...
-   check_slab_allocation+0x10d/0x120
-   __kfree_rcu_sheaf+0x1c/0x2d0
-   kvfree_call_rcu+0xb6/0x3c0
-   __kmem_cache_double_free_rcu+0x310/0xaf0
-
-  Allocated by task 511:
-   ...
-   kmem_cache_alloc_noprof+0x14f/0x3c0
-   __kmem_cache_double_free_rcu+0x152/0xaf0
-
-  Freed by task 511:
-   ...
-   kmem_cache_free+0x14f/0x3c0
-   __kmem_cache_double_free_rcu+0x2c6/0xaf0
-
-Notably, in the 2nd/3rd test cases, we can detect the 2nd free
-before the object is poisoned:
-
-  Memory state around the buggy address:
-   ffff888106dc7800: fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc
-   ffff888106dc7880: fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc
-  >ffff888106dc7900: fc fc fc fc fc fc fc 00 00 00 fc fc fc fc fc fc
-                                          ^
-  ...
-      ok 2 kmem_cache_double_free_rcu_2
-
-Link: https://lore.kernel.org/20261028194014.3671161-3-kuniyu@google.com
-Fixes: ec66e0d59952 ("slab: add sheaf support for batching kfree_rcu() operations")
-Signed-off-by: Kuniyuki Iwashima <kuniyu@google.com>
+Link: https://lore.kernel.org/20261027043214.2248986-1-ridong.chen@linux.dev
+Fixes: e3a9ac4e866e ("mm: add vmstat for kernel_file pages")
+Signed-off-by: Ridong Chen <chenridong@xiaomi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Reviewed-by: Alexander Potapenko <glider@google.com>
-Cc: Harry Yoo <harry@kernel.org>
-Cc: Andrey Ryabinin <ryabinin.a.a@gmail.com>
-Cc: Vlastimil Babka <vbabka@kernel.org>
-Cc: Harry Yoo <harry@kernel.org>
-Cc: Andrey Konovalov <andreyknvl@gmail.com>
-Cc: Dmitry Vyukov <dvyukov@google.com>
-Cc: Vincenzo Frascino <vincenzo.frascino@arm.com>
-Cc: Hao Li <hao.li@linux.dev>
-Cc: Christoph Lameter <cl@gentwo.org>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Roman Gushchin <roman.gushchin@linux.dev>
+Suggested-by: Shivank Garg <shivankg@amd.com>
+Acked-by: David Hildenbrand (Arm) <david@kernel.org>
+Reviewed-by: Shivank Garg <shivankg@amd.com>
+Acked-by: Zi Yan <ziy@nvidia.com>
+Acked-by: Shakeel Butt <shakeel.butt@linux.dev>
+Cc: Matthew Brost <matthew.brost@intel.com>
+Cc: Joshua Hahn <joshua.hahnjy@gmail.com>
+Cc: Byungchul Park <byungchul@sk.com>
+Cc: Gregory Price <gourry@gourry.net>
+Cc: Ying Huang <ying.huang@linux.alibaba.com>
+Cc: Alistair Popple <apopple@nvidia.com>
+Cc: Boris Burkov <boris@bur.io>
 Cc: <stable@vger.kernel.org>
 ---
 
- mm/kasan/kasan_test_c.c |  139 ++++++++++++++++++++++++++++++++++++++
- 1 file changed, 139 insertions(+)
+ mm/migrate.c |    6 ++++++
+ 1 file changed, 6 insertions(+)
 
---- a/mm/kasan/kasan_test_c.c~mm-kasan-kunit-add-double-free-tests-involving-kfree_rcu_sheaf
-+++ a/mm/kasan/kasan_test_c.c
-@@ -30,6 +30,7 @@
- #include <asm/page.h>
- 
- #include "kasan.h"
-+#include "../slab.h"
- 
- #define OOB_TAG_OFF (IS_ENABLED(CONFIG_KASAN_GENERIC) ? 0 : KASAN_GRANULE_SIZE)
- 
-@@ -1070,6 +1071,139 @@ static void kmem_cache_double_free(struc
- 	kmem_cache_destroy(cache);
- }
- 
-+#ifndef MODULE
-+static void __kmem_cache_double_free_rcu(struct kunit *test, int mode)
-+{
-+	struct kasan_rcu_info *p, *victim = NULL, **objs;
-+	struct kmem_cache *cache;
-+	int i, n = 0;
-+
-+	KASAN_TEST_NEEDS_CONFIG_ON(test, CONFIG_KASAN_GENERIC);
-+	KASAN_TEST_NEEDS_CONFIG_OFF(test, CONFIG_PREEMPT_RT);
-+
-+	cache = kmem_cache_create("test_cache", sizeof(*p), 0, SLAB_NO_MERGE,
-+				  NULL);
-+	KUNIT_ASSERT_NOT_ERR_OR_NULL(test, cache);
-+
-+	if (!cache->sheaf_capacity) {
-+		kmem_cache_destroy(cache);
-+		kunit_skip(test, "Test requires sheaves");
-+	}
-+
-+	objs = kunit_kcalloc(test, cache->sheaf_capacity * 2, sizeof(*objs),
-+			     GFP_KERNEL);
-+	if (!objs) {
-+		kunit_err(test, "Allocation failed: %s\n", __func__);
-+		goto out;
-+	}
-+
-+	migrate_disable();
-+
-+	p = kmem_cache_alloc(cache, GFP_KERNEL);
-+	if (!p) {
-+		migrate_enable();
-+		kunit_err(test, "Allocation failed: %s\n", __func__);
-+		goto out;
-+	}
-+
-+	switch (mode) {
-+	case 1:
-+		kmem_cache_free(cache, p);
-+		/* p is already in quarantine. */
-+		KUNIT_EXPECT_KASAN_FAIL(test, kfree_rcu(p, rcu));
-+		migrate_enable();
-+		break;
-+	case 2:
-+		/* The actual free order is inverse. */
-+		kfree_rcu(p, rcu);
-+		KUNIT_EXPECT_KASAN_FAIL(test, kmem_cache_free(cache, p));
-+		migrate_enable();
-+		break;
-+	case 3:
-+		kfree_rcu(p, rcu);
-+
-+		for (i = 0; i < cache->sheaf_capacity - 1; i++) {
-+			objs[i] = kmem_cache_alloc(cache, GFP_KERNEL);
-+			kfree_rcu(objs[i], rcu);
+--- a/mm/migrate.c~mm-migrate-move-nr_kernel_file_pages-on-cross-node-migration
++++ a/mm/migrate.c
+@@ -705,6 +705,12 @@ static int __folio_migrate_mapping(struc
+ 			mod_lruvec_state(old_lruvec, NR_FILE_THPS, -nr);
+ 			mod_lruvec_state(new_lruvec, NR_FILE_THPS, nr);
+ 		}
++		if (test_bit(AS_KERNEL_FILE, &mapping->flags)) {
++			__mod_node_page_state(oldzone->zone_pgdat,
++					      NR_KERNEL_FILE_PAGES, -nr);
++			__mod_node_page_state(newzone->zone_pgdat,
++					      NR_KERNEL_FILE_PAGES, nr);
 +		}
-+
-+		KUNIT_EXPECT_KASAN_FAIL(test, kfree_rcu(p, rcu));
-+		migrate_enable();
-+
-+		/*
-+		 * Move the 1st full sheaf to quarantine, keeping the
-+		 * 2nd in pcs->rcu_free.
-+		 */
-+		rcu_barrier();
-+		break;
-+	}
-+
-+	/*
-+	 * Move p to quarantine if not poisoned yet (case 2,
-+	 * or fallback in case 3).
-+	 */
-+	if (kasan_byte_accessible(p))
-+		kvfree_rcu_barrier_on_cache(cache);
-+
-+	/*
-+	 * Evict p from quarantine and reallocate it as a live victim object
-+	 * before the RCU sheaf is flushed.
-+	 */
-+	kasan_quarantine_remove_cache(cache);
-+
-+	for (i = 0; i < cache->sheaf_capacity * 2; i++) {
-+		objs[n] = kmem_cache_alloc(cache, GFP_KERNEL);
-+		if (!objs[n])
-+			break;
-+		if (objs[n] == p) {
-+			victim = objs[n];
-+			break;
-+		}
-+		n++;
-+	}
-+
-+	for (i = 0; i < n; i++)
-+		kmem_cache_free(cache, objs[i]);
-+
-+	KUNIT_EXPECT_PTR_EQ(test, victim, p);
-+	if (victim != p)
-+		goto out;
-+
-+	WRITE_ONCE(victim->i, 42);
-+
-+	/*
-+	 * If kfree_rcu() failed to reject the double-free above,
-+	 * flushing the RCU sheaf will silently poison the live
-+	 * victim and cause a false-positive UAF on victim->i.
-+	 */
-+	kvfree_rcu_barrier_on_cache(cache);
-+	KUNIT_EXPECT_EQ(test, READ_ONCE(victim->i), 42);
-+
-+	if (!READ_ONCE(test_status.report_found))
-+		kmem_cache_free(cache, victim);
-+out:
-+	kmem_cache_destroy(cache);
-+}
-+
-+static void kmem_cache_double_free_rcu_1(struct kunit *test)
-+{
-+	/* kmem_cache_free() -> kfree_rcu() */
-+	__kmem_cache_double_free_rcu(test, 1);
-+}
-+
-+static void kmem_cache_double_free_rcu_2(struct kunit *test)
-+{
-+	/* kfree_rcu() -> kmem_cache_free() */
-+	__kmem_cache_double_free_rcu(test, 2);
-+}
-+
-+static void kmem_cache_double_free_rcu_3(struct kunit *test)
-+{
-+	/* kfree_rcu() -> kfree_rcu() */
-+	__kmem_cache_double_free_rcu(test, 3);
-+}
-+#endif
-+
- static void kmem_cache_invalid_free(struct kunit *test)
- {
- 	char *p;
-@@ -2239,6 +2373,11 @@ static struct kunit_case kasan_kunit_tes
- 	KUNIT_CASE(kfree_via_phys),
- 	KUNIT_CASE(kmem_cache_oob),
- 	KUNIT_CASE(kmem_cache_double_free),
-+#ifndef MODULE
-+	KUNIT_CASE(kmem_cache_double_free_rcu_1),
-+	KUNIT_CASE(kmem_cache_double_free_rcu_2),
-+	KUNIT_CASE(kmem_cache_double_free_rcu_3),
-+#endif
- 	KUNIT_CASE(kmem_cache_invalid_free),
- 	KUNIT_CASE(kmem_cache_rcu_uaf),
- 	KUNIT_CASE(kmem_cache_rcu_reuse),
+ #ifdef CONFIG_SWAP
+ 		if (folio_test_swapcache(folio)) {
+ 			mod_lruvec_state(old_lruvec, NR_SWAPCACHE, -nr);
 _
 
-Patches currently in -mm which might be from kuniyu@google.com are
+Patches currently in -mm which might be from chenridong@xiaomi.com are
 
-memcg-remove-unnecessary-read_once-under-memcg_stocklock.patch
-memcg-reduce-nesting-in-consume_stock-and-refill_stock.patch
-memcg-annotate-slow-paths-in-consume_stock-and-refill_stock.patch
-memcg-uncharge-pages-outside-memcg_stocklock-in-refill_stock.patch
+mm-memcontrol-drop-unused-vmscan-tracepoint-include.patch
+mm-vmscan-move-vmscan-tracepoints-to-a-local-header.patch
+mm-vmscan-move-struct-scan_control-to-a-dedicated-header.patch
+mm-vmscan-pass-scan_control-to-the-vmscan-tracepoints.patch
+mm-mglru-add-tracepoint-for-scan_folios.patch
+mm-mglru-add-lruvec_gen_size-helper.patch
+mm-mglru-add-tracepoint-for-aging.patch
+mailmap-add-entries-for-ridong-chen.patch
 
