@@ -1,46 +1,46 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794272539;
-	b=UenVcQKuXtyUEg0oVTmCtRyoqKdcKxQT9ziWysdwT7VCmkggqyc/ftZrOxChDPtHpgV7
-	 55n0125fNDJ4/xlBzzNEwQa0msFjul12xisxeQ/udU7ZanXSbxO4sKzuufr92hyetiL2K
-	 Yq7Cu5oThoMS5IKG1EzQRSy8+wfgcFmyBSvI+GUqqRQE9uNOMxra2upxK9ik7lsm+1cCd
-	 J4VSKAnQjj//QtWbeTQAP9e2/h1Lxd1hQNAaJ0HjigbIBPzoyf+Brb45gAcAVrLGh7sYT
-	 bXt8wScXTHnuAW+f7LSgDPt0YbSqsIILq8HTRx5edcVIHy8eZrWvQmT3hzmQM+MizCg==
+	t=1794275588;
+	b=20jMZW96asw7E1ExJ/F0HYA/CFz+ar3xUplql8P1q9L3qE04GuD6+2BxXrl+msoSBWZp
+	 17+xoefoA/o3skFxb+CYRIxDitpFjBGjjnCB+q8FBiQWyflVQa1TrdCKvoOkT39q24OsN
+	 IIt7jy1P4tf5/kNpl2aXUUXToHTSlF8IaEvbxHFjspG1ERhkXlSBDxvLwnqCJTx4Ua1of
+	 Ksy1RvGOIS/NCVOE5Mha+rBI0676L74sdmRU2ptWRJcS2NlFHQd9WXI3AplqBy3PVLyXy
+	 e2+bDVUrU/szCbwjUfa+oaHk+1mGoj/TtmYVHrqjrW9CVJDiwYTARLVmKMdVYfStMLQ==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794272539;
+	a=rsa-sha256; c=relaxed/relaxed; t=1794275588;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=20hEICLil4kCUjTHTP5j0xVG6xrZnV5pk0kULcwM08M=;
-	b=LlIWOuGBO2+PgnXuqaVGaZPx/LCPZgne5wA6xTJ3Tus6NeAqeGvD+KBwsIWsnZnkflzk
-	 Qfgvoc6waAg2vdDMVjoslEAEO2x7E6rVOJny1Yyq3YROh93khNqAtY7oJ6bRtWUCbelkZ
-	 F5ofbjlWGJlvjSzlvrXlv2P5P9OgcN8EcxsRXK7WgwB5tm4A81Fwz6g/VcetZ7PtvN1bS
-	 FDg+nS9Xfyjsmmh2r40h7uZ45JE2TWPMti2agTHR2CYMnE9OOt61hXFbzkq9IBuQqofkp
-	 YuMeMCIK/16ydLbbEhRkLzcOhCP3vZTkCmVI9Tuz81/1wyZUg5v0+qbySKpF7PPgCEA==
+	bh=1/g/MfUV3OJlVmpCgQkJ7HDA7Jwin4jF5iq9XHLLmAo=;
+	b=2OtNu/QnXvxM6fyToKC9U22rPT+wIWEbgAEeIduDCBiJWofV8Bo1Ih/CQyoZe/t7Eud1
+	 lcrrrLc5g42SOw8LsPQJhTm6viX8j/7v3Y2L1yvgkYLdRuhorVIaQrPSUSt3sH/XrzmZg
+	 MB1W4k5bqASuqh47gfAc/EMFa345XdRnGHRvj/lMFwveoL3lTBY5vFgPOVWkapn0bAZnm
+	 Xnp+P/TIPOGpQczFmNL039ZRC32vhCtMW0HyBYXO9fnCkRwgBiUvGP2VB0ECIszd01TMM
+	 pxTMAoJ2I3hP2IGR42IzujGPgh/CGxbd2IczaN8RQ4wIMcB1YCiTGGYdTKDBJSlX9Ww==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=M53apsbw;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=wENXKlPA;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 84654606A32A;
-	Tue, 10 Nov 2026 01:02:19 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5C272606A31C
+	for <mm-commits@vger.kernel.org>; Tue, 10 Nov 2026 01:53:07 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=M53apsbw
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1D8AE1F0089F;
-	Tue, 10 Nov 2026 01:02:19 +0000 (UTC)
+	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=wENXKlPA
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id BC7201F0089F;
+	Tue, 10 Nov 2026 01:53:07 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1794272539;
-	bh=20hEICLil4kCUjTHTP5j0xVG6xrZnV5pk0kULcwM08M=;
+	d=linux-foundation.org; s=korg; t=1794275587;
+	bh=1/g/MfUV3OJlVmpCgQkJ7HDA7Jwin4jF5iq9XHLLmAo=;
 	h=Date:To:From:Subject;
-	b=M53apsbwRQ1KxcaxC6OLKxtLt+9QCDxH2uz0DmtHag8ss9TSm7Y+nUUlaw8dG8gKU
-	 KCeYRih8r9QDDeOQIqaTfVjGV1oCEBCvJ8quRadGACIuFJP+8fI4iO9T1QwocIxBPD
-	 FZkbulQQT0kss14K1KUeeTRBNfx/wNphLUOCuMXk=
-Date: Mon, 09 Nov 2026 17:02:18 -0800
-To: mm-commits@vger.kernel.org,stable@vger.kernel.org,sj@kernel.org,
-	gkwang@linx-info.com,akpm@linux-foundation.org
+	b=wENXKlPAgqtQYo7bYWtNsr/1/QkNwjtEkPXmtED0a5E/OlSLKcQa7rc5GIuc08eA6
+	 rxm0zctLKxvPwZLd9ZO2H1DP2q7SSnzH9ZPzr8bvuhBIN0LFjIom4BpjK8LHcuTtZd
+	 4baQHJYivFUozN+hnmjZAFzPJ1rvdJrutGRwl4D4=
+Date: Mon, 09 Nov 2026 17:53:07 -0800
+To: mm-commits@vger.kernel.org,sj@kernel.org,manuelebnerli@mailbox.org,
+	jm5905938@gmail.com,lienze@kylinos.cn,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-damon-stat-avoid-overflow-in-estimated_memory_bandwidth-calculation.patch added to mm-hotfixes-unstable branch
-Message-Id: <20261110010219.1D8AE1F0089F@smtp.kernel.org>
+Subject: + mm-damon-core-use-list_nextprev_entry-in-damon_nextprev_region.patch added to mm-new branch
+Message-Id: <20261110015307.BC7201F0089F@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -52,15 +52,26 @@ Precedence: list
 
 
 The patch titled
-     Subject: mm/damon/stat: avoid overflow in estimated_memory_bandwidth calculation
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mm-damon-stat-avoid-overflow-in-estimated_memory_bandwidth-calculation.patch
+     Subject: mm/damon/core: use list_{next,prev}_entry() in damon_{next,prev}_region()
+has been added to the -mm mm-new branch.  Its filename is
+     mm-damon-core-use-list_nextprev_entry-in-damon_nextprev_region.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-stat-avoid-overflow-in-estimated_memory_bandwidth-calculation.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-core-use-list_nextprev_entry-in-damon_nextprev_region.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Note, mm-new is a provisional staging ground for work-in-progress
+patches, and acceptance into mm-new is a notification for others take
+notice and to finish up reviews.  Please do not hesitate to respond to
+review feedback and post updated versions to replace or incrementally
+fixup patches in mm-new.
+
+The mm-new branch of mm.git is not included in linux-next
+
+If a few days of testing in mm-new is successful, the patch will me moved
+into mm.git's mm-unstable branch, which is included in linux-next
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -75,76 +86,62 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Wang Guangke <gkwang@linx-info.com>
-Subject: mm/damon/stat: avoid overflow in estimated_memory_bandwidth calculation
-Date: Mon,  9 Nov 2026 16:48:14 -0800
+From: Enze Li <lienze@kylinos.cn>
+Subject: mm/damon/core: use list_{next,prev}_entry() in damon_{next,prev}_region()
+Date: Mon, 09 Nov 2026 17:05:56 -0800
 
-estimated_memory_bandwidth is calculated by access_bytes * USEC_PER_MSEC *
-MSEC_PER_SEC (= USEC_PER_SEC) / aggr_interval, and users read it via
-/sys/module/damon_stat/parameters/estimated_memory_bandwidth.
+Patch series "mm/damon: cleanup region iterator and damon_reclaim user
+doc".
 
-On 32-bit systems, access_bytes * USEC_PER_SEC overflows unsigned long
-once access_bytes exceeds about 4294 (U32_MAX / USEC_PER_SEC), so users
-get a wrong value.
+Two simple cleanups.  Use dedicated next/prev list entry accessors in
+damon_{next,prev}_region() for code maintainability (patch 1, Enze Li). 
+Fix typos, grammars and improve overall readability of DAMON_RECLAIM user
+document (patch 2, Manuel Ebner).
 
-Fix it by doing the calculation in 64-bit and splitting the division into
-quotient and remainder.
 
-The issue was reproduced on a 32-bit system (qemu-system-i386): the
-parameter estimated_memory_bandwidth reported 362 instead of the expected
-1926150; with the fix, the value matches the expectation.
+This patch (of 2):
 
-Link: https://lore.kernel.org/20261110004816.100066-1-sj@kernel.org
-Fixes: fabdd1e911da ("mm/damon/stat: calculate and expose estimated memory bandwidth")
-Signed-off-by: Wang Guangke <gkwang@linx-info.com>
+damon_next_region() and damon_prev_region() manually do container_of()
+type casting to fetch the next and previous region from the linked
+list.  Use the dedicated list.h helpers, list_next_entry() and
+list_prev_entry(), as damon_first_region() and damon_last_region() do.
+
+Link: https://lore.kernel.org/20261110010558.104905-1-sj@kernel.org
+Link: https://lore.kernel.org/20261110010558.104905-2-sj@kernel.org
+Signed-off-by: Enze Li <lienze@kylinos.cn>
 Signed-off-by: SJ Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 Reviewed-by: SJ Park <sj@kernel.org>
-Cc: <stable@vger.kernel.org>
+Cc: Manuel Ebner <manuelebnerli@mailbox.org>
+Cc: Aveline Noir <jm5905938@gmail.com>
 ---
 
- mm/damon/stat.c |   15 +++++++++------
- 1 file changed, 9 insertions(+), 6 deletions(-)
+ include/linux/damon.h |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/mm/damon/stat.c~mm-damon-stat-avoid-overflow-in-estimated_memory_bandwidth-calculation
-+++ a/mm/damon/stat.c
-@@ -32,8 +32,8 @@ static bool enabled __read_mostly = IS_E
- module_param_cb(enabled, &enabled_param_ops, NULL, 0600);
- MODULE_PARM_DESC(enabled, "Enable of disable DAMON_STAT");
+--- a/include/linux/damon.h~mm-damon-core-use-list_nextprev_entry-in-damon_nextprev_region
++++ a/include/linux/damon.h
+@@ -992,12 +992,12 @@ static inline unsigned long damon_rand(s
  
--static unsigned long estimated_memory_bandwidth __read_mostly;
--module_param(estimated_memory_bandwidth, ulong, 0400);
-+static u64 estimated_memory_bandwidth __read_mostly;
-+module_param(estimated_memory_bandwidth, ullong, 0400);
- MODULE_PARM_DESC(estimated_memory_bandwidth,
- 		"Estimated memory bandwidth usage in bytes per second");
- 
-@@ -55,15 +55,18 @@ static void damon_stat_set_estimated_mem
+ static inline struct damon_region *damon_next_region(struct damon_region *r)
  {
- 	struct damon_target *t;
- 	struct damon_region *r;
--	unsigned long access_bytes = 0;
-+	u64 access_bytes = 0;
-+	u64 remainder, bytes_per_us;
- 
- 	damon_for_each_target(t, c) {
- 		damon_for_each_region(r, t)
--			access_bytes += (r->ar.end - r->ar.start) *
-+			access_bytes += (u64)(r->ar.end - r->ar.start) *
- 				r->nr_accesses;
- 	}
--	estimated_memory_bandwidth = access_bytes * USEC_PER_MSEC *
--		MSEC_PER_SEC / c->attrs.aggr_interval;
-+	bytes_per_us = div64_u64_rem(access_bytes,
-+			c->attrs.aggr_interval, &remainder);
-+	estimated_memory_bandwidth = bytes_per_us * USEC_PER_SEC +
-+		div64_u64(remainder * USEC_PER_SEC, c->attrs.aggr_interval);
+-	return container_of(r->list.next, struct damon_region, list);
++	return list_next_entry(r, list);
  }
  
- static int damon_stat_idletime(const struct damon_region *r)
+ static inline struct damon_region *damon_prev_region(struct damon_region *r)
+ {
+-	return container_of(r->list.prev, struct damon_region, list);
++	return list_prev_entry(r, list);
+ }
+ 
+ static inline struct damon_region *damon_last_region(struct damon_target *t)
 _
 
-Patches currently in -mm which might be from gkwang@linx-info.com are
+Patches currently in -mm which might be from lienze@kylinos.cn are
 
-mm-damon-stat-avoid-overflow-in-estimated_memory_bandwidth-calculation.patch
+docs-hugetlbpagerst-clarify-hugepages_total-in-hugetlbpagerst.patch
+mm-hugetlb-drop-unused-mm-parameter-from-unmap_ref_private.patch
+mm-hugetlb_cma-remove-two-unused-include-files.patch
+mm-damon-core-use-list_nextprev_entry-in-damon_nextprev_region.patch
 
