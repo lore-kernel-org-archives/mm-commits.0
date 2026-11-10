@@ -1,48 +1,46 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794293150;
-	b=OAijdSa9f05GWmEBaVJoMjmZn5jIdmKsynjHEoYmLnzsEDTY/FsyRiZ5JWGpTBc6CuQ+
-	 k9SRXkbdWqu6ta4vDbqyUdVgO0z+gso7pGhjPN4abszaGsPT7ev3w7sRvqGoiaA1oGRZp
-	 EayGFEnzLRQBVncSNqoafQtNtUDunsNXSIHZ/fMZVLOPSpGYTWc6VCEfGfVRQKzxJIF+v
-	 t1mIE3YfiPZQIRnZ62Js2oFr7bRvf7DtY150pbTp22UZA7PNWVTmALFQOy3qyP73F7rsC
-	 7ZdClP1sH8JxK/gdfFhyEqK8dsOf4Z9a3zP6IQRjlYaIWm1QaCvhKEv2MbdR/ZJXhhw==
+	t=1794293151;
+	b=g8gUfKe4VADQMSH+dziv+QJQPXfVoftKj3vFoZb804jobzNerEH3Pl+2QcE2/PSWkTXH
+	 hlQ7aISYZeSQCmUC1TKE4O7RQcPrn8d1zZl083kyfkip/qzN2Cz3uaG4f0H2zULoioJyT
+	 Laq0DCjWMxOgiXWL9bNO/73HKPyI6feSLvH/fSb355smpwl7Ted2p4bZOxewHIfymDYYg
+	 sr0nsd7W8GADzdzZcGEmylW1V6lnMDE7gKaIqKnL4RySXFlq8+uiOCFybzcKSwJd0wy43
+	 xg5gmWHtPXPVjkgDih0RCkkFJRCbyv5DWeL2hGmUj1ZpA/W06txRyXhDjGxcDi+Zfzw==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794293150;
+	a=rsa-sha256; c=relaxed/relaxed; t=1794293151;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=PNLKcWUha+JxcIEEd1NXMITrvwxwhq9sUaHV9y3fNCY=;
-	b=ZJjjO6TzurOupitkA3jKpYKu7op6qLCFbhKkEGJW6ueByzYcUGoZ+cMHj45Trqh2bHI5
-	 VMBHjuLI1mwnqU9FaUrCB6UeKvyxEJAMagCU2bcdQs+AxPtih9KZMsN7CMNxjN43QAyxg
-	 GzsG1JpLeZDI0Q0hNoOoAKo9gFug4xHjhg/V7b6Og4lSqOYe1O1b03fVZ/3cuhmWR0l/+
-	 jkiCJeuCnhRCCgTXttVTBRwkvzbPsuhqobTrpnviq+GT25sgeHJaXvd2wxaidhsW7E6FF
-	 X0btkkyl81II89OM1R8+z5Q74C0E5HfSVWp7qtdKjSQ9Bi8H6VTJfoCRd8PJiKftqTg==
+	bh=E6jPraanYRH6KymZKaaGm8aI2CRRm7B6mbiacqnWKxY=;
+	b=H5ZTdc0ojAuB4S2AGjq6VCXtvnin4y3Al/vEQ2Mw3a6pOyEWgosJk4klIuNpaIPKLRyH
+	 BDi2tXCV3u/je/fYwgvwRCZBcGmAmzXOrI4ZSijvCO+FxtU1h3T+ddQRCHMzPlWnKKxbs
+	 DF8gTFv0EjgsSut45o3AftO+yZQ0Au5Wp4RrIvSkjvaRfCp4EgoIESwvAx4LPrsY6T9hz
+	 OiNP2tsYkTk8xzAGab4mOxmeco9YxxYPJJFazepPFd7znYDNH+zzt7vU8PQ4vutqsPkt3
+	 PaJHRWdGhovjnCpij2g36p2ozzRyeMiusEOF/YSjDms7SZnKx7ecaD14tWjA5TG4ctA==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=NCKbpNeZ;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=wtCvdhzk;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4EA8F606A64D;
-	Tue, 10 Nov 2026 06:45:50 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 84B03606A649;
+	Tue, 10 Nov 2026 06:45:51 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=NCKbpNeZ
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C6E331F0089F;
-	Tue, 10 Nov 2026 06:45:49 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=wtCvdhzk
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3EA5D1F008A1;
+	Tue, 10 Nov 2026 06:45:51 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1794293149;
-	bh=PNLKcWUha+JxcIEEd1NXMITrvwxwhq9sUaHV9y3fNCY=;
+	d=linux-foundation.org; s=korg; t=1794293151;
+	bh=E6jPraanYRH6KymZKaaGm8aI2CRRm7B6mbiacqnWKxY=;
 	h=Date:To:From:Subject;
-	b=NCKbpNeZUbS/ARjGGCU92p+9vFOka3OLTr+oqSy8zlWMQmFAm0q/RPMQ2wr3pSDL9
-	 CC1WxIATd4e1Rn+NfAzVaWrlRJOuN26Ie65Km/eZ3wC1a/sVYwAY4LNtpOpz8e3ugn
-	 yl54xnP+20LhyfDBE0VHnV7aDhKYrP5GhwLw9LoI=
-Date: Mon, 09 Nov 2026 22:45:49 -0800
-To: mm-commits@vger.kernel.org,willy@infradead.org,
-	syzbot+b72767277f29b6407083@syzkaller.appspotmail.com,stable@vger.kernel.org,
-	rppt@kernel.org,jose.fernandez@linux.dev,krystianmkaniewski@gmail.com,
-	akpm@linux-foundation.org
+	b=wtCvdhzkQ5Z4inIGYbJFSSpR5cKm/f7gT87ORWpfFLyGKqi9U+FsyD+EfI6HSxaze
+	 x0nckCo30kPYFSDU3mXyxduux2YiFNI7MI5oFwhRSMFg0YGsUS5arOyoBerLHnhMUn
+	 qRVl3oMxutYkzFxmG9QfgLWis0qQFsp+MvY+30Z8=
+Date: Mon, 09 Nov 2026 22:45:50 -0800
+To: mm-commits@vger.kernel.org,stable@vger.kernel.org,jarkko@kernel.org,
+	dhowells@redhat.com,4ncienth@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] xarray-fix-index-jumping-backwards-in-xas_find.patch removed from -mm tree
-Message-Id: <20261110064549.C6E331F0089F@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] assoc_array-discard-shortcut-when-collapsing-a-leaf-only-node.patch removed from -mm tree
+Message-Id: <20261110064551.3EA5D1F008A1@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -54,174 +52,125 @@ Precedence: list
 
 
 The quilt patch titled
-     Subject: xarray: fix index jumping backwards in xas_find()
+     Subject: assoc_array: discard shortcut when collapsing a leaf-only node
 has been removed from the -mm tree.  Its filename was
-     xarray-fix-index-jumping-backwards-in-xas_find.patch
+     assoc_array-discard-shortcut-when-collapsing-a-leaf-only-node.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Krystian Kaniewski <krystianmkaniewski@gmail.com>
-Subject: xarray: fix index jumping backwards in xas_find()
-Date: Fri, 4 Sep 2026 14:12:59 +0200
+From: Daehyeon Ko <4ncienth@gmail.com>
+Subject: assoc_array: discard shortcut when collapsing a leaf-only node
+Date: Fri, 25 Sep 2026 17:05:48 +0900
 
-A bug in the XArray iterator xas_find() causes the iterator's index
-(xas->xa_index) to jump backwards when iterating over a multi-index entry
-(like a THP) that resides in a non-leaf node and is concurrently split.
+assoc_array_delete() can collapse a subtree into a node that contains only
+leaves while retaining the shortcut that led to it.  If that node later
+fills, all_leaves_cluster_together replaces it with another shortcut.  The
+first shortcut then points directly to the second one.
 
-When iterating over a multi-index entry in a non-leaf node, xas_load()
-sets xas->xa_offset to the base offset of the entry, but leaves
-xas->xa_index at the requested index.  When the caller subsequently wants
-to advance to the next entry, xas_find() is called.  xas_find() attempts
-to synchronize xas->xa_offset with xas->xa_index before advancing. 
-However, the fixup logic was incorrectly restricted to leaf nodes
-(!xas->xa_node->shift).  Because the THP resides in a non-leaf node, the
-fixup is skipped.
+assoc_array_apply_edit() publishes this topology and propagates branch
+counts from the new child node.  It skips the inner shortcut, encounters
+the outer shortcut where it requires a node and triggers the BUG_ON().
 
-As a result, xas_find() simply increments xas->xa_offset and recalculates
-xas->xa_index based on this new offset.  This causes xas->xa_index to jump
-backwards.  If the THP was concurrently split, the entry at the new offset
-is a node pointer, so xas_find() descends into it and returns the folio at
-the backwards index.  The caller (filemap_map_pages()) then calculates the
-PTE pointer based on this backwards index, resulting in an invalid memory
-access such as an out-of-bounds read or use-after-free on a page-table
-page freed via tlb_remove_table_rcu().
+Linux v7.2 and v6.12.105 are affected.  The same root remains at the
+base-commit below and in every supported stable branch checked down to
+5.10.  It requires CONFIG_KEYS, but no capability, user namespace or race.
+A UID/GID 1000 process produced:
 
-A userspace access that faults in a file-backed mapping can trigger this
-path.  When the index moves backwards, filemap_map_pages() can calculate a
-PTE outside the page locked for fault-around and dereference a freed
-page-table page, resulting in a KASAN-detected use-after-free read.
+  CONTROL_BEGIN mode=exact uid=1000 gid=1000
+  CONTROL_CapEff: 0000000000000000
+  kernel BUG at lib/assoc_array.c:1388!
+  Oops: invalid opcode: 0000 [#1] SMP KASAN NOPTI
+  CPU: 0 UID: 1000 PID: 154 Comm: exploit
+  RIP: assoc_array_apply_edit+0x4aa/0x690
+  Call Trace:
+   __key_link
+   __key_instantiate_and_link
+   __key_create_or_update
+   __do_sys_add_key
+  Kernel panic - not syncing: Fatal exception
 
-To fix this, check if xas->xa_offset matches get_offset(xas->xa_index,
-xas->xa_node).  If it does not and the node is a non-leaf node, set
-xas->xa_offset to get_offset(xas->xa_index, xas->xa_node) before
-advancing.  Also add test cases in test_xarray to verify xas_find()
-behavior when iterating over and splitting multi-index entries.
+When deletion produces a leaf-only node, bypass its preceding shortcut as
+garbage collection already does.  Retire the shortcut and old node
+together after an RCU grace period; reused leaves keep their references
+and the deleted leaf is still freed separately.
 
-Link: https://lore.kernel.org/20260904121301.200049-1-krystianmkaniewski@gmail.com
-Fixes: b803b42823d0 ("xarray: Add XArray iterators")
-Reported-by: syzbot+b72767277f29b6407083@syzkaller.appspotmail.com
-Closes: https://syzkaller.appspot.com/bug?extid=b72767277f29b6407083
-Closes: https://syzkaller.appspot.com/ai_job?id=a01c56bd-74d0-411c-afb4-ee6f0cb6cb61
-Signed-off-by: Krystian Kaniewski <krystianmkaniewski@gmail.com>
+The exact trigger reached the BUG in 3/3 unmodified v7.2 KASAN boots and
+completed cleanly in 3/3 fixed boots.  Fixed v6.12.105 also passed 3/3.  A
+source reproducer is available privately on request.
+
+Link: https://lore.kernel.org/20260925080548.2505640-1-4ncienth@gmail.com
+Fixes: 3cb989501c26 ("Add a generic associative array implementation.")
+Signed-off-by: Daehyeon Ko <4ncienth@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Tested-by: Jose Fernandez (Anthropic) <jose.fernandez@linux.dev>
-  Link: https://lore.kernel.org/20261104-jf-filemap-v2-pedro-reply-r2-74c87c6fbcf@linux.dev
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Mike Rapoport <rppt@kernel.org>
+Reviewed-by: Jarkko Sakkinen <jarkko@kernel.org>
+Cc: David Howells <dhowells@redhat.com>
 Cc: <stable@vger.kernel.org>
 ---
 
- lib/test_xarray.c |   70 ++++++++++++++++++++++++++++++++++++++++++++
- lib/xarray.c      |    8 +++--
- 2 files changed, 75 insertions(+), 3 deletions(-)
+ lib/assoc_array.c |   36 ++++++++++++++++++++++--------------
+ 1 file changed, 22 insertions(+), 14 deletions(-)
 
---- a/lib/test_xarray.c~xarray-fix-index-jumping-backwards-in-xas_find
-+++ a/lib/test_xarray.c
-@@ -1247,6 +1247,75 @@ static noinline void check_multi_find_3(
- 	}
- }
+--- a/lib/assoc_array.c~assoc_array-discard-shortcut-when-collapsing-a-leaf-only-node
++++ a/lib/assoc_array.c
+@@ -1210,8 +1210,22 @@ found_leaf:
+ 				goto enomem;
+ 			edit->new_meta[0] = assoc_array_node_to_ptr(new_n0);
  
-+static noinline void check_multi_find_4(struct xarray *xa)
-+{
-+#ifdef CONFIG_XARRAY_MULTI
-+	unsigned int order = XA_CHUNK_SHIFT + 1;
-+	unsigned long next = 1UL << order;
-+	unsigned long start = next - 1;
-+	XA_STATE(xas, xa, start);
-+	XA_STATE_ORDER(split, xa, 0, 0);
-+	void *entry;
-+	unsigned long i;
+-			new_n0->back_pointer = node->back_pointer;
+-			new_n0->parent_slot = node->parent_slot;
++			/* A shortcut above a leaf-only node is redundant.  Drop it as
++			 * GC does so that a later split can't create two shortcuts in a row.
++			 */
++			ptr = node->back_pointer;
++			if (assoc_array_ptr_is_shortcut(ptr)) {
++				struct assoc_array_shortcut *s =
++					assoc_array_ptr_to_shortcut(ptr);
 +
-+	/* Multi-index entry in two slots of a non-leaf node. */
-+	xa_store_order(xa, 0, order, xa_mk_index(0), GFP_KERNEL);
-+	XA_BUG_ON(xa, xa_store_index(xa, next, GFP_KERNEL) != NULL);
-+
-+	rcu_read_lock();
-+	entry = xas_find(&xas, ULONG_MAX);
-+	XA_BUG_ON(xa, entry != xa_mk_index(0));
-+	XA_BUG_ON(xa, xas.xa_index != start);
-+
-+	entry = xas_find(&xas, ULONG_MAX);
-+	XA_BUG_ON(xa, entry != xa_mk_index(next));
-+	XA_BUG_ON(xa, xas.xa_index != next);
-+
-+	entry = xas_find(&xas, ULONG_MAX);
-+	XA_BUG_ON(xa, entry != NULL);
-+	rcu_read_unlock();
-+
-+	xa_erase_index(xa, next);
-+	xa_erase_index(xa, 0);
-+	XA_BUG_ON(xa, !xa_empty(xa));
-+
-+	/* Split the multi-index entry after a lookup begins inside it. */
-+	xa_store_order(xa, 0, order, xa_mk_index(0), GFP_KERNEL);
-+	XA_BUG_ON(xa, xa_store_index(xa, next, GFP_KERNEL) != NULL);
-+
-+	xas_set(&xas, start);
-+	rcu_read_lock();
-+	entry = xas_find(&xas, ULONG_MAX);
-+	XA_BUG_ON(xa, entry != xa_mk_index(0));
-+	XA_BUG_ON(xa, xas.xa_index != start);
-+	rcu_read_unlock();
-+
-+	xas_split_alloc(&split, xa_mk_index(0), order, GFP_KERNEL);
-+	if (xas_error(&split)) {
-+		XA_BUG_ON(xa, true);
-+		goto out;
-+	}
-+	xas_lock(&split);
-+	xas_split(&split, xa_mk_index(0), order);
-+	for (i = 0; i < next; i++)
-+		__xa_store(xa, i, xa_mk_index(i), 0);
-+	xas_unlock(&split);
-+
-+	rcu_read_lock();
-+	entry = xas_find(&xas, ULONG_MAX);
-+	XA_BUG_ON(xa, entry != xa_mk_index(next));
-+	XA_BUG_ON(xa, xas.xa_index != next);
-+
-+	entry = xas_find(&xas, ULONG_MAX);
-+	XA_BUG_ON(xa, entry != NULL);
-+	rcu_read_unlock();
-+
-+out:
-+	xa_destroy(xa);
-+	XA_BUG_ON(xa, !xa_empty(xa));
-+#endif
-+}
-+
- static noinline void check_find_1(struct xarray *xa)
- {
- 	unsigned long i, j, k;
-@@ -1370,6 +1439,7 @@ static noinline void check_find(struct x
- 		check_multi_find_1(xa, i);
- 	check_multi_find_2(xa);
- 	check_multi_find_3(xa);
-+	check_multi_find_4(xa);
- }
++				new_n0->back_pointer = s->back_pointer;
++				new_n0->parent_slot = s->parent_slot;
++				edit->excised_subtree = ptr;
++			} else {
++				new_n0->back_pointer = ptr;
++				new_n0->parent_slot = node->parent_slot;
++				edit->excised_subtree = assoc_array_node_to_ptr(node);
++			}
+ 			new_n0->nr_leaves_on_branch = node->nr_leaves_on_branch;
+ 			edit->adjust_count_on = new_n0;
  
- /* See find_swap_entry() in mm/shmem.c */
---- a/lib/xarray.c~xarray-fix-index-jumping-backwards-in-xas_find
-+++ a/lib/xarray.c
-@@ -1410,9 +1410,11 @@ void *xas_find(struct xa_state *xas, uns
- 		entry = xas_load(xas);
- 		if (entry || xas_not_node(xas->xa_node))
- 			return entry;
--	} else if (!xas->xa_node->shift &&
--		    xas->xa_offset != (xas->xa_index & XA_CHUNK_MASK)) {
--		xas->xa_offset = ((xas->xa_index - 1) & XA_CHUNK_MASK) + 1;
-+	} else if (xas->xa_offset != get_offset(xas->xa_index, xas->xa_node)) {
-+		if (!xas->xa_node->shift)
-+			xas->xa_offset = ((xas->xa_index - 1) & XA_CHUNK_MASK) + 1;
-+		else
-+			xas->xa_offset = get_offset(xas->xa_index, xas->xa_node);
+@@ -1225,21 +1239,15 @@ found_leaf:
+ 			pr_devel("collapsed %d,%lu\n", collapse.slot, new_n0->nr_leaves_on_branch);
+ 			BUG_ON(collapse.slot != new_n0->nr_leaves_on_branch - 1);
+ 
+-			if (!node->back_pointer) {
++			if (!new_n0->back_pointer) {
+ 				edit->set[1].ptr = &array->root;
+-			} else if (assoc_array_ptr_is_leaf(node->back_pointer)) {
+-				BUG();
+-			} else if (assoc_array_ptr_is_node(node->back_pointer)) {
+-				struct assoc_array_node *p =
+-					assoc_array_ptr_to_node(node->back_pointer);
+-				edit->set[1].ptr = &p->slots[node->parent_slot];
+-			} else if (assoc_array_ptr_is_shortcut(node->back_pointer)) {
+-				struct assoc_array_shortcut *s =
+-					assoc_array_ptr_to_shortcut(node->back_pointer);
+-				edit->set[1].ptr = &s->next_node;
++			} else {
++				struct assoc_array_node *p;
++
++				p = assoc_array_ptr_to_node(new_n0->back_pointer);
++				edit->set[1].ptr = &p->slots[new_n0->parent_slot];
+ 			}
+ 			edit->set[1].to = assoc_array_node_to_ptr(new_n0);
+-			edit->excised_subtree = assoc_array_node_to_ptr(node);
+ 		}
  	}
  
- 	xas_next_offset(xas);
 _
 
-Patches currently in -mm which might be from krystianmkaniewski@gmail.com are
+Patches currently in -mm which might be from 4ncienth@gmail.com are
 
+iov_iter-validate-extracted-segment-for-bvec-alignment.patch
+mm-hugetlb_cgroup-prevent-use-after-free-during-cgroup-offlining.patch
 
