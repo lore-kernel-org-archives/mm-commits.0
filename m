@@ -1,50 +1,55 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794336371;
-	b=HSAjqRlXI3lYC39bSAMzPow2yULNFgrhLUyhNTAzSXWruiYMfktLHq902HAeHqw7pC8k
-	 lF9/fVUakEfTOnhY5pFxCIxGCZ7MzQnHmPX4lavLimLMyhq5mNmMT3YaJngR33wmwPYkS
-	 JKrgYVYiZMZxF0LSslulqIiUBUYyy/anDOupSX66dMpJqadghvjn3J6fGy0DtB1vEwlVR
-	 myJTW3Ab+v9c4PnV9KAryl+Pj5qJvZoGLNybTU1NSIULPh1UDvmjJUCW1VPxi5EiuH6Fj
-	 PrUzaSDXeceeeiKUiYbUEhyoDA2sCjNyWUcKiJjVc7+cRZ465ncGgaYIadV5XuhxLKw==
+	t=1794336773;
+	b=3vlrhDfIYVmKIARGu167kZ8xBCe6LO8qioIGGICpR/bYC2Ns1ef/NNCs4HueMBzsqCkf
+	 qfkmTHw9q93+YZ5aWG61nlh1PsUENQv/QaQsd0xTfS2e/u3SVaDmcC/bOLqM6b7oJmPRt
+	 79rsseQNB6/+YYMGqXpeZ9WgWxl4lqKD4nFtcjTFwijQHbSVjmdSUalIahMG6RuLP0mg/
+	 A9sxGMrL7TOJQWaEy1CQE6IVNZPCrgPxi1I7QmPm5uFPXqxM1QqVP81mbLNrLS/n5AlXH
+	 XQL3pZYsCf0jORsq5fZOqBeF/m0LG6AihCPUMGi2zxPtzi8ecLVhSIyDNfwwMFZCYTg==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794336371;
+	a=rsa-sha256; c=relaxed/relaxed; t=1794336773;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=2sIgpqexoevo3CDu8Vf4OuWOKB4TRDf/K02nuu284lU=;
-	b=OAiplqKUyrOE6UzVKNIteyrKL8PqplCWfRvVKeyFjUrVvMHqBv/7gnb5KjdusLVskjOO
-	 hoKluRCLmMwOHlQdF0N1nfFPxCPPtpNuH5RCGWpQLOuSbO4y+xlsMC5C4VYDtIaa/8Wbe
-	 ilgeWrJ9CH9uB6vO1AAwW3yijAOrMEWc8VVWiD2eASycxCsoZJGEdSeotXINpf/P2o2KK
-	 wnUSflYKeVRaIsOZuhbFX+p9QFPzNy6MGr+TiEYh+a62IoGDRvc4li+q5vh6M2BmKapoH
-	 ckCVGbAtUtOOkylLx8omJVO/Yx7hhWXz/OvhQuTJNw7yOv0iAdUHueO7NxZisvQPHnw==
+	bh=XeselqazL82FweMPGouRRop170ykhFWE8WuKEh2JlDI=;
+	b=0TgAx1XecggPeHoJal8IR6hPIFZZAWxiTEpaRj7NwsuntrdBWwrV/jAlHNNRERZzld9t
+	 YKfpy/VliL0bfeHCvvhC9j9lEPrprFCi4znGuc3gqgzNwhPEI1iQwY9YY3wrOLb+EJjeW
+	 cDqig5dtx3qYq4xENBW2DYe23g2cXsBVAsahUAGM8oCl/8q6d9yKEnO0pZYbJrLJX2yxy
+	 TIfysMqFEBLS+VUy8Wig5hXJELC9KqNmFVvSFYbSKRxB+3Z4BAsh9FJi5GAx9dsXz7RCr
+	 H9e+NgdCo723Cxi9bwXrNouKu3MjaiSRYLb7gjad3rHxDm+2dGZRBi4pFfDW37rsZ5Q==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b="Njt/YB+V";
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=NMzg28na;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A16A0606B580
-	for <mm-commits@vger.kernel.org>; Tue, 10 Nov 2026 18:46:10 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 03BBE606A31C
+	for <mm-commits@vger.kernel.org>; Tue, 10 Nov 2026 18:52:52 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=Njt/YB+V
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 255D91F0089F;
-	Tue, 10 Nov 2026 18:46:10 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=NMzg28na
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 644AC1F0089F;
+	Tue, 10 Nov 2026 18:52:52 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1794336370;
-	bh=2sIgpqexoevo3CDu8Vf4OuWOKB4TRDf/K02nuu284lU=;
+	d=linux-foundation.org; s=korg; t=1794336772;
+	bh=XeselqazL82FweMPGouRRop170ykhFWE8WuKEh2JlDI=;
 	h=Date:To:From:Subject;
-	b=Njt/YB+VxQIdj4PvfebqIUMkHITLXrjpkDccrxwDJTg+Hwt1r76FuXEb0fce9W/Lj
-	 c0zBU0XVtTbyh9cMfRsGJ+KXSKxT6m9yg9OU2b4CwLYrUcNcsTDURQav5lkptKyDbx
-	 /r/4/cac1Eawn+IjaL7edyHGc2mqZWU20iuBRbEI=
-Date: Tue, 10 Nov 2026 10:46:09 -0800
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,vernon2gm@gmail.com,
-	usama.arif@linux.dev,ryan.roberts@arm.com,peterz@infradead.org,
-	nico.pache@linux.dev,liam@infradead.org,lance.yang@linux.dev,kas@kernel.org,
-	dev.jain@arm.com,david@kernel.org,baolin.wang@linux.alibaba.com,
-	baohua@kernel.org,azpijr@gmail.com,ast@kernel.org,ljs@kernel.org,
+	b=NMzg28nadSBYCJDFBeH/jD6MPp2oQZksKvKOj4n+QAzMwjE1l2A1RD9KYUHB14S0h
+	 yt0okSjgfipqjrUsUJaSsBh6t9udnXtm8u5t9UPU3V2yJdVK6BoXlRfdLe/6J6mtgD
+	 K/uiatp3V3+iGbk5KrW41sI9H6pvDvUZSxWkX9X4=
+Date: Tue, 10 Nov 2026 10:52:51 -0800
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,work@onurozkan.dev,
+	vbabka@kernel.org,usama.arif@linux.dev,urezki@gmail.com,tmgross@umich.edu,
+	tamird@kernel.org,surenb@google.com,shakeel.butt@linux.dev,
+	ryan.roberts@arm.com,rppt@kernel.org,qi.zheng@linux.dev,ojeda@kernel.org,
+	nico.pache@linux.dev,mhocko@suse.com,lossin@kernel.org,liam@infradead.org,
+	lance.yang@linux.dev,kas@kernel.org,hannes@cmpxchg.org,gary@garyguo.net,
+	dev.jain@arm.com,david@kernel.org,daniel.almeida@collabora.com,
+	dakr@kernel.org,boqun@kernel.org,bjorn3_gh@protonmail.com,
+	baolin.wang@linux.alibaba.com,baohua@kernel.org,aliceryhl@google.com,
+	a.hindborg@kernel.org,acourbot@nvidia.com,ljs@kernel.org,
 	akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-khugepaged-release-contended-mmap-read-lock-after-scanning-enough-vmas.patch added to mm-new branch
-Message-Id: <20261110184610.255D91F0089F@smtp.kernel.org>
+Subject: + maintainers-remove-myself-from-mm-core-reviewership.patch added to mm-hotfixes-unstable branch
+Message-Id: <20261110185252.644AC1F0089F@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -56,26 +61,15 @@ Precedence: list
 
 
 The patch titled
-     Subject: mm/khugepaged: release contended mmap read lock after scanning enough VMAs
-has been added to the -mm mm-new branch.  Its filename is
-     mm-khugepaged-release-contended-mmap-read-lock-after-scanning-enough-vmas.patch
+     Subject: MAINTAINERS: remove myself from MM core reviewership
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     maintainers-remove-myself-from-mm-core-reviewership.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-khugepaged-release-contended-mmap-read-lock-after-scanning-enough-vmas.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/maintainers-remove-myself-from-mm-core-reviewership.patch
 
-This patch will later appear in the mm-new branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Note, mm-new is a provisional staging ground for work-in-progress
-patches, and acceptance into mm-new is a notification for others take
-notice and to finish up reviews.  Please do not hesitate to respond to
-review feedback and post updated versions to replace or incrementally
-fixup patches in mm-new.
-
-The mm-new branch of mm.git is not included in linux-next
-
-If a few days of testing in mm-new is successful, the patch will me moved
-into mm.git's mm-unstable branch, which is included in linux-next
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -91,115 +85,95 @@ and is updated there most days
 
 ------------------------------------------------------
 From: "Lorenzo Stoakes (ARM)" <ljs@kernel.org>
-Subject: mm/khugepaged: release contended mmap read lock after scanning enough VMAs
-Date: Tue, 10 Nov 2026 17:19:13 +0000
+Subject: MAINTAINERS: remove myself from MM core reviewership
+Date: Tue, 10 Nov 2026 12:03:07 +0000
 
-khugepaged walks an mm's VMAs under the mmap read lock in
-collapse_scan_mm_slot(), checking for ineligible VMAs first, and skipping
-them if encountered.
+Patch series "MAINTAINERS: remove my reviewerships, add CREDITS entry for
+THP".
 
-It charges cc->progress 1 page against the /sys/.../pages_to_scan budget
-when these are encountered, however only checking this budget once an
-eligible PMD-spanning VMA is encountered.
+Given the current throughput in the kernel resulting from AI-generated
+series, I unfortunately lack the bandwidth to generally be able to offer
+review except in those areas I maintain.
 
-It can therefore hold the mmap read lock for a long time if there are a
-large number of ineligible VMAs present in an mm, over which time no mmap
-write locks (and thus no VMA write locks) can be acquired.
+I have separated the patches into areas maintained by David, Andrew, and
+Alice + Danilo, so each can take the patches relevant to the subsystems,
+for convenience.
 
-Address this by checking whether the mmap lock is contended after 1-10
-ms (depending on CONFIG_HZ), i.e. the granularity of jiffies. This is a
-long time for a lock to be held, so is a reasonable compromise for
-determining when best to do this.
+Apologies for doing this, but given the current trends I'd like to do
+something to make my inbox a little more manageable :)
 
-Skipping an ineligible VMA costs ~100 ns on tested hardware (x86 server),
-so a batch of 1024 bounds the lock hold to ~100 us without expensive
-high-grained timer checks.
+Also add a CREDITS entry for THP, as, since Zi's rightful and well-earned
+appointment as co-maintainer there, I have no fear of needing to step in
+there, and so would like to record my time in that role.
 
-This scales for large numbers of VMAs, and tests with ~1M ineligible VMAs
-reduced the maximum mmap read lock hold time from ~93ms to ~110us.
 
-This was also observed to reduce mmap_lock stalls in concurrent threads of
-a similar duration. Note that a reader re-acquiring the lock can currently
-steal it from a writer that is queued but not yet running, so the full
-benefit to writers depends on the linked rwsem change.
+This patch (of 4):
 
-Local measurements indicated no change for ordinary use cases, so this is
-all upside.
+Given the current throughput in the kernel resulting from AI-generated
+series, I unfortunately lack the bandwidth to generally be able to offer
+review except in those areas I maintain.
 
-This work came out of investigations into mmap stalls when getting latency
-numbers for an unrelated patch series.
+Therefore, remove myself as a reviewer.
 
-Link: https://lore.kernel.org/20261110-khugepaged-latency-fix-v3-3-6eea743cf9a3@kernel.org
-Link: https://lore.kernel.org/all/20261105-rwsem-dont-steal-from-queued-writer-v1-1-275e070f426f@kernel.org/
+Link: https://lore.kernel.org/20261110-drop-reviewerships-v1-0-07c2f06e8dfa@kernel.org
+Link: https://lore.kernel.org/20261110-drop-reviewerships-v1-1-07c2f06e8dfa@kernel.org
 Signed-off-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Cc: David Hildenbrand <david@kernel.org>
-Cc: Zi Yan <ziy@nvidia.com>
-Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
+Acked-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
+Acked-by: Zi Yan <ziy@nvidia.com>
+Acked-by: Lance Yang <lance.yang@linux.dev>
+Acked-by: David Hildenbrand (Arm) <david@kernel.org>
+Acked-by: Kiryl Shutsemau (Meta) <kas@kernel.org>
+Acked-by: Danilo Krummrich <dakr@kernel.org>
+Cc: Miguel Ojeda <ojeda@kernel.org>
+Cc: Alice Ryhl <aliceryhl@google.com>
+Cc: Boqun Feng <boqun@kernel.org>
+Cc: Gary Guo <gary@garyguo.net>
+Cc: Björn Roy Baron <bjorn3_gh@protonmail.com>
+Cc: Benno Lossin <lossin@kernel.org>
+Cc: Andreas Hindborg <a.hindborg@kernel.org>
+Cc: Trevor Gross <tmgross@umich.edu>
+Cc: Daniel Almeida <daniel.almeida@collabora.com>
+Cc: Tamir Duberstein <tamird@kernel.org>
+Cc: Alexandre Courbot <acourbot@nvidia.com>
+Cc: Onur Özkan <work@onurozkan.dev>
 Cc: Liam R. Howlett <liam@infradead.org>
+Cc: Vlastimil Babka <vbabka@kernel.org>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Qi Zheng <qi.zheng@linux.dev>
+Cc: Shakeel Butt <shakeel.butt@linux.dev>
+Cc: Uladzislau Rezki (Sony) <urezki@gmail.com>
+Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
 Cc: Nico Pache <nico.pache@linux.dev>
 Cc: Ryan Roberts <ryan.roberts@arm.com>
 Cc: Dev Jain <dev.jain@arm.com>
 Cc: Barry Song <baohua@kernel.org>
-Cc: Lance Yang <lance.yang@linux.dev>
 Cc: Usama Arif <usama.arif@linux.dev>
-Cc: Kiryl Shutsemau <kas@kernel.org>
-Cc: "Jose A. Perez de Azpillaga" <azpijr@gmail.com>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Alexei Starovoitov <ast@kernel.org>
-Cc: Vernon Yang <vernon2gm@gmail.com>
 ---
 
- mm/khugepaged.c |   20 ++++++++++++++++++++
- 1 file changed, 20 insertions(+)
+ MAINTAINERS |    1 -
+ 1 file changed, 1 deletion(-)
 
---- a/mm/khugepaged.c~mm-khugepaged-release-contended-mmap-read-lock-after-scanning-enough-vmas
-+++ a/mm/khugepaged.c
-@@ -66,6 +66,13 @@ static DEFINE_READ_MOSTLY_HASHTABLE(mm_s
+--- a/MAINTAINERS~maintainers-remove-myself-from-mm-core-reviewership
++++ a/MAINTAINERS
+@@ -17504,7 +17504,6 @@ F:	mm/balloon.c
  
- static struct kmem_cache *mm_slot_cache __ro_after_init;
- 
-+/*
-+ * The number of VMAs to walk before checking for, and relieving, mmap lock
-+ * contention. This bounds the maximum mmap read lock to an estimated ~100 -
-+ * 300us depending on hardware.
-+ */
-+#define KHUGEPAGED_MAX_VMA_SCAN_BATCH 1024
-+
- /**
-  * struct khugepaged_mm_slot - khugepaged information per mm that is being scanned
-  * @slot: hash lookup from mm to mm_slot
-@@ -2933,6 +2940,7 @@ static void collapse_scan_mm_slot(unsign
- 	struct mm_struct *mm;
- 	struct vm_area_struct *vma;
- 	unsigned int progress_prev = cc->progress;
-+	unsigned int nr_vmas_batch = 0;
- 
- 	lockdep_assert_held(&khugepaged_mm_lock);
- 	*result = SCAN_FAIL;
-@@ -2965,6 +2973,18 @@ static void collapse_scan_mm_slot(unsign
- 	for_each_vma(vmi, vma) {
- 		unsigned long hstart, hend;
- 
-+		/* Relieve mmap lock contention after walking a batch of VMAs. */
-+		if (nr_vmas_batch++ >= KHUGEPAGED_MAX_VMA_SCAN_BATCH) {
-+			nr_vmas_batch = 0;
-+			if (mmap_lock_is_contended(mm)) {
-+				mmap_read_unlock(mm);
-+				cond_resched();
-+				mmap_read_lock(mm);
-+				vma_iter_set(&vmi, mm_slot->address);
-+				continue;
-+			}
-+		}
-+
- 		cond_resched();
- 		if (unlikely(collapse_test_exit_or_disable(mm))) {
- 			cc->progress++;
+ MEMORY MANAGEMENT - CORE
+ M:	David Hildenbrand <david@kernel.org>
+-R:	Lorenzo Stoakes <ljs@kernel.org>
+ R:	Liam R. Howlett <liam@infradead.org>
+ R:	Vlastimil Babka <vbabka@kernel.org>
+ R:	Mike Rapoport <rppt@kernel.org>
 _
 
 Patches currently in -mm which might be from ljs@kernel.org are
 
+maintainers-remove-myself-from-mm-core-reviewership.patch
+maintainers-remove-myself-from-mm-misc-reclaim-reviewership.patch
+maintainers-remove-myself-from-mm-rust-reviewerships.patch
+credits-add-entry-for-thp-maintenance.patch
 mm-vma-predicate-vma_assert_stabilised-on-config_debug_vm.patch
 revert-mm-khugepaged-remove-definition-of-struct-khugepaged_mm_slot.patch
 mm-khugepaged-scan-mms-more-efficiently-under-mmap_lock-contention.patch
