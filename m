@@ -1,47 +1,48 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794292674;
-	b=ieYCEZ4b80hCPp4W3oeoq72SOCYoQ1YUue8CwXL1mpqVRAcJKanNGNAVriqkePR72a1h
-	 gpqCHlmtUoF4RKngYG1q2m5IUhT7r/iY71xh+uGja+ph9d/VuA7pxx0qvztjy8570Ly7q
-	 leqbDZN+W2c84xEYom9p+tEDMnO2jZpmqf0syAq3fS0D2yIMdC/nWSsHosSVjFX3bWpED
-	 bx+Ng+2fcDsnl0PM7CHjPYNlYwy1vVVi9C4tZgFjw74NUQE7dAwKn3DqXLHB86eIkAYiw
-	 0Pz1XzQ8GABiZNZDrbAVUPsLnvgz7LJFxvjoWhMa3jEi38r/9ut18Eq1GARa0OYojUA==
+	t=1794292883;
+	b=QYVUXBeoVVzg7HZdwh6baYyme8mf1BLtG8GxX8viN15Ch7vW5Jhw3Uc9GelLD5RZZ/yD
+	 KlFlT8Nw/F58yhSrVLH6gGqU+jgOIikW4LalzZA5XrlxNJ+NYVcS0QoMK/jeSmycF/mmi
+	 JQ1vPaeUIcZDpToahY05dlb2pd27r49pX1XCp0dGoubJ8wSR3N19ECLRDFa4wcAFrlf5X
+	 /dVVBxOd25AMtJfLk1F0N+KuZHqbHule0nV8iakZRDMHpmqhDGjeFd3+xu6yzu/I4fbRt
+	 B7M6VbXDfxc/p+8tHZ0PKwcUBpWO7YKDU8X22bVNtMAZVHYbHy0Wzdm78S7GE0cZKVw==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794292674;
+	a=rsa-sha256; c=relaxed/relaxed; t=1794292883;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=auMC/qwKOxZoYEgxdsCmkn9y7e9YRUdPtOSfDkxeAvw=;
-	b=nt7ERxoQvXB33RgP5hMZkq+DW5J9PTXQp86X/B7se+wypoyIQ1KVTc2Fq4aaUngfVBVY
-	 l6Y0ajcRCOhN9g4b9En7QxUSsLDGbIW1syNuCJaGTPFGrGTAG/1U4TFS+ovvg9gkf6GgZ
-	 y3l5MPf+NtAiz7f31Yiq6sKLQUeqSk0DQQopMsbz4+pxgQPm+WApcmOz6nrcObmdw+u2G
-	 bKKfKBRnRMLGVYqFcZdA2zIjUrWT4JiymIrT0gaNj0BT9eYVcSWpKmOT7eO9B1FN8sqk2
-	 DAwGUbO6KqbDH4+ZDbk2FxeE5xoKlmoL1pnLL4Hr/mHY5SomiFl1mHUUIyDtNMahrOw==
+	bh=dW2Ol3QhjS7Jy8Ejjkz9LDnSIISpjfswgystIeE0q68=;
+	b=qmE6Wz8YxSUuIs0Ns0Gyh3v70ApTZgHZqxI1eIuuWdXb53mm+EXUlR/T5J3HE1Oni5SF
+	 c4Kph2QKaGRiqNYwkzZvfswhjHT/rzHGJGZMmzb9E5D5tXlRvGq9ucEnkL+18ct/ErE/6
+	 TRHEzle7pF5C7FpE5FTpl7lcwvr1lSK2/qvBGNJA16fMM+g+iUK0zBvwHpmLMduqa5UkE
+	 DYqHjKNC4QFL8uprT0CA+q5RTkrsqwptSx7vbvSY5k8983DXZXak4OxmXecSS7pbu+Uw1
+	 qrh2+73kbMp/BVrRbvLScz6jo9scHydzU2Im9W/F3FeQlgdwJZZvuPI6Qiutm9tmYEQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=DDfOjFd+;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=ODuFZGjP;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CCCA0606A31C
-	for <mm-commits@vger.kernel.org>; Tue, 10 Nov 2026 06:37:53 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5F57B60A6F4E
+	for <mm-commits@vger.kernel.org>; Tue, 10 Nov 2026 06:41:23 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=DDfOjFd+
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 35B2F1F0089F;
-	Tue, 10 Nov 2026 06:37:53 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=ODuFZGjP
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C01851F008BC;
+	Tue, 10 Nov 2026 06:41:22 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1794292673;
-	bh=auMC/qwKOxZoYEgxdsCmkn9y7e9YRUdPtOSfDkxeAvw=;
+	d=linux-foundation.org; s=korg; t=1794292882;
+	bh=dW2Ol3QhjS7Jy8Ejjkz9LDnSIISpjfswgystIeE0q68=;
 	h=Date:To:From:Subject;
-	b=DDfOjFd+fJxBVJLCxpEuOvsQRTyoMq1r03lxdFlHleIdZSLJfdfAqfq7nAhebsIDj
-	 4JvQ3jq2bUXnbIhShqpxnnYQGDSL1EdIcQubSBcI7dieAPOFiBmmikKMkgJLfGmNWM
-	 eOqqdUUHqa+GkEqQZ4KmjS/0SxwoBBSt+se3YjGY=
-Date: Mon, 09 Nov 2026 22:37:52 -0800
-To: mm-commits@vger.kernel.org,mason@kernel.org,ljs@kernel.org,
-	liam@infradead.org,andrewjballance@gmail.com,aliceryhl@google.com,
-	akpm@linux-foundation.org
+	b=ODuFZGjPmfyZFQM2QwOOnaN17oDzIUbTKYM3ZcSb73rpgC3/PCmlbu+/vnXxgScot
+	 NRIuyWqpJ21CSyWQnUDdrrUP8LOhRBaOALGRuo0pfrVr5ZN+1U7JgP2V9XofNaOlCw
+	 utVAmzfhcV+oigQnyy1N3oSIS7sXkGz39U6lLRZs=
+Date: Mon, 09 Nov 2026 22:41:22 -0800
+To: mm-commits@vger.kernel.org,yangsongsen@insta360.com,vbabka@kernel.org,
+	syzbot+10e72ea5747737bcd2ad@syzkaller.appspotmail.com,pfalcato@suse.de,
+	ljs@kernel.org,liam@infradead.org,lance.yang@linux.dev,jannh@google.com,
+	david@kernel.org,kas@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [folded-merged] maple_tree-fix-reverse-iterator-state-when-the-root-disappears.patch removed from -mm tree
-Message-Id: <20261110063753.35B2F1F0089F@smtp.kernel.org>
+Subject: [folded-merged] mm-vma-read-anon_vma-carefully-in-validate_mm-fix.patch removed from -mm tree
+Message-Id: <20261110064122.C01851F008BC@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -53,88 +54,86 @@ Precedence: list
 
 
 The quilt patch titled
-     Subject: maple_tree: fix reverse iterator state when the root disappears
+     Subject: mm-vma-read-anon_vma-carefully-in-validate_mm-fix
 has been removed from the -mm tree.  Its filename was
-     maple_tree-fix-reverse-iterator-state-when-the-root-disappears.patch
+     mm-vma-read-anon_vma-carefully-in-validate_mm-fix.patch
 
-This patch was dropped because it was folded into maple_tree-fix-rcu-reader-null-dereference-after-the-tree-is-emptied.patch
+This patch was dropped because it was folded into mm-vma-read-anon_vma-carefully-in-validate_mm.patch
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: maple_tree: fix reverse iterator state when the root disappears
-Date: Tue, 03 Nov 2026 04:28:56 +0000
+From: Kiryl Shutsemau <kas@kernel.org>
+Subject: mm-vma-read-anon_vma-carefully-in-validate_mm-fix
+Date: Mon, 2 Nov 2026 10:48:45 +0000
 
-A reverse walk restarting from a dead node can observe a direct root entry
-in mas_rewalk() and then an empty root in mas_prev_no_node().  The second
-root read returns NULL, but leaves the iterator in ma_root with index and
-last both zero.
+reduce ifdeffery
 
-Consequently, mas_prev_range() and mas_find_range_rev() can report an
-empty range of [0, 0] instead of [0, ULONG_MAX].  A subsequent forward
-range walk starts at index 1, omitting index 0 from the empty range.
-
-Set ma_none and extend last to ULONG_MAX when the second root read returns
-NULL.  Keep the existing encoded-node retry in mas_prev_slot() for a root
-that has grown into a node again.
-
-A deterministic userspace Maple test reproduces the stale state through
-both reverse range APIs before this change and checks the full empty range
-afterwards, including a subsequent forward walk.
-
-Link: https://lore.kernel.org/20261104104137.2058705ac29734a7ab5666c1@linux-foundation.org
+Link: https://lore.kernel.org/auhn01dpDzK47igy@thinkstation
+Signed-off-by: Kiryl Shutsemau <kas@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Reported-by: <sashiko-bot@kernel.org>
-Closes: https://lore.kernel.org/sashiko-outbox-194509@kernel.org
-Reviewed-by: Liam R. Howlett (Google) <liam@infradead.org>
-Cc: Alice Ryhl <aliceryhl@google.com>
-Cc: Andrew Ballance <andrewjballance@gmail.com>
-Cc: Chris Mason <mason@kernel.org>
-Cc: Lorenzo Stoakes <ljs@kernel.org>
+Cc: David Hildenbrand <david@kernel.org>
+Cc: Jann Horn <jannh@google.com>
+Cc: Lance Yang <lance.yang@linux.dev>
+Cc: Liam R. Howlett <liam@infradead.org>
+Cc: "Lorenzo Stoakes (ARM)" <ljs@kernel.org>
+Cc: Pedro Falcato <pfalcato@suse.de>
+Cc: Songsen Yang <yangsongsen@insta360.com>
+Cc: <syzbot+10e72ea5747737bcd2ad@syzkaller.appspotmail.com>
+Cc: Vlastimil Babka <vbabka@kernel.org>
 ---
 
- lib/maple_tree.c |   10 +++++++++-
- 1 file changed, 9 insertions(+), 1 deletion(-)
+ include/linux/mm.h |    2 --
+ mm/vma.c           |   12 +++++-------
+ 2 files changed, 5 insertions(+), 9 deletions(-)
 
---- a/lib/maple_tree.c~maple_tree-fix-reverse-iterator-state-when-the-root-disappears
-+++ a/lib/maple_tree.c
-@@ -3930,6 +3930,8 @@ static inline void *mas_next_no_node(str
- static inline void *mas_prev_no_node(struct ma_state *mas, unsigned long index,
- 		unsigned long min)
- {
-+	void *entry;
-+
- 	mas->index = 0;
- 	if (mas_is_none(mas)) {
- 		mas->last = ULONG_MAX;
-@@ -3940,7 +3942,13 @@ static inline void *mas_prev_no_node(str
- 	if (!index || min)
- 		return NULL;
+--- a/include/linux/mm.h~mm-vma-read-anon_vma-carefully-in-validate_mm-fix
++++ a/include/linux/mm.h
+@@ -4370,9 +4370,7 @@ anon_rmap_tree_iter_first(struct anon_vm
+ struct anon_vma_chain *
+ anon_rmap_tree_iter_next(struct anon_vma_chain *avc,
+ 			 pgoff_t pgoff_start, pgoff_t pgoff_last);
+-#ifdef CONFIG_DEBUG_VM_RB
+ void anon_rmap_tree_verify(struct anon_vma_chain *avc);
+-#endif
  
--	return mas_root(mas);
-+	entry = mas_root(mas);
-+	if (!entry) {
-+		mas->status = ma_none;
-+		mas->last = ULONG_MAX;
-+	}
-+
-+	return entry;
+ #define anon_rmap_tree_foreach(avc, anon_vma, pgoff_start, pgoff_last)		 \
+ 	for (avc = anon_rmap_tree_iter_first(anon_vma, pgoff_start, pgoff_last); \
+--- a/mm/vma.c~mm-vma-read-anon_vma-carefully-in-validate_mm-fix
++++ a/mm/vma.c
+@@ -676,14 +676,17 @@ static int dup_anon_vma(struct vm_area_s
  }
  
- /*
+ #ifdef CONFIG_DEBUG_VM_MAPLE_TREE
+-#ifdef CONFIG_DEBUG_VM_RB
+ static void validate_mm_anon_rmap(struct vm_area_struct *vma)
+ {
+-	struct anon_vma *anon_vma = READ_ONCE(vma->anon_vma);
++	struct anon_vma *anon_vma;
+ 	struct anon_vma_chain *avc;
+ 
++	if (!IS_ENABLED(CONFIG_DEBUG_VM_RB))
++		return;
++
+ 	vma_assert_stabilised(vma);
+ 
++	anon_vma = READ_ONCE(vma->anon_vma);
+ 	if (!anon_vma)
+ 		return;
+ 
+@@ -692,11 +695,6 @@ static void validate_mm_anon_rmap(struct
+ 		anon_rmap_tree_verify(avc);
+ 	anon_vma_unlock_read(anon_vma);
+ }
+-#else
+-static void validate_mm_anon_rmap(struct vm_area_struct *vma)
+-{
+-}
+-#endif
+ 
+ void validate_mm(struct mm_struct *mm)
+ {
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from kas@kernel.org are
 
-mm-mempolicy-use-one-node-set-for-interleave-weights.patch
-maple_tree-fix-rcu-reader-null-dereference-after-the-tree-is-emptied.patch
-shmem-consume-the-reserved-xattr-space-despite-remount.patch
-selftests-mm-check-madv_cold-and-madv_pageout-on-partly-advised-thps-fix.patch
-alloc_tag-introduce-ioctls-to-toggle-allocation-tracepoints-fix-fix.patch
-alloc_tag-introduce-ioctls-to-toggle-allocation-tracepoints-fix.patch
-mm-migrate_device-allocate-deferred-split-sublists-for-new-huge-folios.patch
-profile-account-for-partial-proc-profile-reads.patch
-profile-simplify-proc-profile-read-layout.patch
-ipc-msg-clamp-negative-msg_info-usage-counts.patch
-squashfs-fix-leaked-page-locks-when-page-actor-allocation-fails-fix.patch
-drivers-media-v4l2-core-v4l2-vp9c-reduce-inlining.patch
+mm-vma-read-anon_vma-carefully-in-validate_mm.patch
 
