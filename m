@@ -1,41 +1,41 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794336368;
-	b=Tr7qzL8lKQIZxtM8414dSmP0dRizjn55V0cqPxFQjEXiluP6Jr4pXdny3bTkZERfocBm
-	 /OjvC1IsCEJykjfr8lQMtJ8we0mK7TlZK1yjDBrQ0CWmhvRKZJfc6EFb9EaifjImA3Aao
-	 MiHeO1qMUSkjbths8qAQcgCsynveCHxIy5WiW9+IlUeHQK7rn1YNQ3AM1xapmiJcNm72F
-	 XXUj7Iu5euCkbF8rXeFXej4/nOxZRh799padyoLb2Xct7oaUf10oEdZv0ETCpjISR/82O
-	 yrFRpSeNC0/Jvm8auh6WHunyPj+MNt4MzAflExSCiub2RJVMaD2P/XkjjBZzGIDQ1cw==
+	t=1794336371;
+	b=HSAjqRlXI3lYC39bSAMzPow2yULNFgrhLUyhNTAzSXWruiYMfktLHq902HAeHqw7pC8k
+	 lF9/fVUakEfTOnhY5pFxCIxGCZ7MzQnHmPX4lavLimLMyhq5mNmMT3YaJngR33wmwPYkS
+	 JKrgYVYiZMZxF0LSslulqIiUBUYyy/anDOupSX66dMpJqadghvjn3J6fGy0DtB1vEwlVR
+	 myJTW3Ab+v9c4PnV9KAryl+Pj5qJvZoGLNybTU1NSIULPh1UDvmjJUCW1VPxi5EiuH6Fj
+	 PrUzaSDXeceeeiKUiYbUEhyoDA2sCjNyWUcKiJjVc7+cRZ465ncGgaYIadV5XuhxLKw==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794336368;
+	a=rsa-sha256; c=relaxed/relaxed; t=1794336371;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=XdaFX//QDgywM/KenWTOqacPegFgs3d4e6CraWVMo68=;
-	b=MagSArzorDs0EWcy9MmbhQx2N0fl+sGS+cqhSfHAvy65S6AYN7ImOZe8p547jomXzHnA
-	 xLgvDIufLGoF1UTFMd2OBWYSYwP2yapIBrVRCsG7TFZeQmKOBpBhtMnkfKw/bKTrYAf9t
-	 A+fku3Ctk/AFWheRPRFt0sBE0VkKy9UI0MagwtjoyYvK5HF3Ij+vfLhxKjvNiNpYkTmSA
-	 5/Ip+dS4Kdght0G8c2OB2rpsmFKX23GJv6iDExd0/Wso0QcjUGYzNq9yhugpiHILnXT8O
-	 FAKre9lYDXCY0OUb+iymgr78aDir8W0lHnsJRR9x2hJWMFrYdWtZO0PR/tgGvAWcsGg==
+	bh=2sIgpqexoevo3CDu8Vf4OuWOKB4TRDf/K02nuu284lU=;
+	b=OAiplqKUyrOE6UzVKNIteyrKL8PqplCWfRvVKeyFjUrVvMHqBv/7gnb5KjdusLVskjOO
+	 hoKluRCLmMwOHlQdF0N1nfFPxCPPtpNuH5RCGWpQLOuSbO4y+xlsMC5C4VYDtIaa/8Wbe
+	 ilgeWrJ9CH9uB6vO1AAwW3yijAOrMEWc8VVWiD2eASycxCsoZJGEdSeotXINpf/P2o2KK
+	 wnUSflYKeVRaIsOZuhbFX+p9QFPzNy6MGr+TiEYh+a62IoGDRvc4li+q5vh6M2BmKapoH
+	 ckCVGbAtUtOOkylLx8omJVO/Yx7hhWXz/OvhQuTJNw7yOv0iAdUHueO7NxZisvQPHnw==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=bf+PfZ+Y;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b="Njt/YB+V";
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 59F15606A32D
-	for <mm-commits@vger.kernel.org>; Tue, 10 Nov 2026 18:46:08 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A16A0606B580
+	for <mm-commits@vger.kernel.org>; Tue, 10 Nov 2026 18:46:10 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=bf+PfZ+Y
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id CD29F1F0089F;
-	Tue, 10 Nov 2026 18:46:07 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=Njt/YB+V
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 255D91F0089F;
+	Tue, 10 Nov 2026 18:46:10 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1794336367;
-	bh=XdaFX//QDgywM/KenWTOqacPegFgs3d4e6CraWVMo68=;
+	d=linux-foundation.org; s=korg; t=1794336370;
+	bh=2sIgpqexoevo3CDu8Vf4OuWOKB4TRDf/K02nuu284lU=;
 	h=Date:To:From:Subject;
-	b=bf+PfZ+YZEt7BUzVF5M+6HZC41mAdiX90P5M/U539aHOqrK/sSfJi8noz2KME2wUK
-	 zBlQhZVdb5W7Crm0hy9BUIf4SSoHEnryA+8X3VzZLFckhwgZllktXxsFfrFo96OU1N
-	 hw668+WgJAnIl+ykUU4vxjAF8q9LOwUt9p9rBfyk=
-Date: Tue, 10 Nov 2026 10:46:07 -0800
+	b=Njt/YB+VxQIdj4PvfebqIUMkHITLXrjpkDccrxwDJTg+Hwt1r76FuXEb0fce9W/Lj
+	 c0zBU0XVtTbyh9cMfRsGJ+KXSKxT6m9yg9OU2b4CwLYrUcNcsTDURQav5lkptKyDbx
+	 /r/4/cac1Eawn+IjaL7edyHGc2mqZWU20iuBRbEI=
+Date: Tue, 10 Nov 2026 10:46:09 -0800
 To: mm-commits@vger.kernel.org,ziy@nvidia.com,vernon2gm@gmail.com,
 	usama.arif@linux.dev,ryan.roberts@arm.com,peterz@infradead.org,
 	nico.pache@linux.dev,liam@infradead.org,lance.yang@linux.dev,kas@kernel.org,
@@ -43,8 +43,8 @@ To: mm-commits@vger.kernel.org,ziy@nvidia.com,vernon2gm@gmail.com,
 	baohua@kernel.org,azpijr@gmail.com,ast@kernel.org,ljs@kernel.org,
 	akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-khugepaged-scan-mms-more-efficiently-under-mmap_lock-contention.patch added to mm-new branch
-Message-Id: <20261110184607.CD29F1F0089F@smtp.kernel.org>
+Subject: + mm-khugepaged-release-contended-mmap-read-lock-after-scanning-enough-vmas.patch added to mm-new branch
+Message-Id: <20261110184610.255D91F0089F@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -56,12 +56,12 @@ Precedence: list
 
 
 The patch titled
-     Subject: mm/khugepaged: scan mm's more efficiently under mmap_lock contention
+     Subject: mm/khugepaged: release contended mmap read lock after scanning enough VMAs
 has been added to the -mm mm-new branch.  Its filename is
-     mm-khugepaged-scan-mms-more-efficiently-under-mmap_lock-contention.patch
+     mm-khugepaged-release-contended-mmap-read-lock-after-scanning-enough-vmas.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-khugepaged-scan-mms-more-efficiently-under-mmap_lock-contention.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-khugepaged-release-contended-mmap-read-lock-after-scanning-enough-vmas.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -91,201 +91,111 @@ and is updated there most days
 
 ------------------------------------------------------
 From: "Lorenzo Stoakes (ARM)" <ljs@kernel.org>
-Subject: mm/khugepaged: scan mm's more efficiently under mmap_lock contention
-Date: Tue, 10 Nov 2026 17:19:12 +0000
+Subject: mm/khugepaged: release contended mmap read lock after scanning enough VMAs
+Date: Tue, 10 Nov 2026 17:19:13 +0000
 
-khugepaged scans VMAs in collapse_scan_mm_slot() in the same mm until it is
-about to be torn down, prctl(PR_SET_THP_DISABLE) disables THP for it,
-mm->mmap_lock contention occurs, or all its VMAs have been scanned.
+khugepaged walks an mm's VMAs under the mmap read lock in
+collapse_scan_mm_slot(), checking for ineligible VMAs first, and skipping
+them if encountered.
 
-When lock contention causes the function to bail out, khugepaged doesn't
-keep track of where it left off, so when the mm is next scanned, it starts
-from address 0 again.
+It charges cc->progress 1 page against the /sys/.../pages_to_scan budget
+when these are encountered, however only checking this budget once an
+eligible PMD-spanning VMA is encountered.
 
-If there's a lot of mmap_lock contention this can significantly slow down
-collapse later in the mm, since the /sys/.../pages_to_scan budget can run
-out before the end of the mm is reached.
+It can therefore hold the mmap read lock for a long time if there are a
+large number of ineligible VMAs present in an mm, over which time no mmap
+write locks (and thus no VMA write locks) can be acquired.
 
-The budget is incremented (as tracked in cc->progress) at a rate of 1 page
-per ineligible VMA, but the budget is only checked once eligible VMAs are
-encountered.
+Address this by checking whether the mmap lock is contended after 1-10
+ms (depending on CONFIG_HZ), i.e. the granularity of jiffies. This is a
+long time for a lock to be held, so is a reasonable compromise for
+determining when best to do this.
 
-Then, it only takes the combined total of ineligible VMAs and eligible but
-non-collapsible pages to exceed the /sys/.../pages_to_scan budget for the
-rest of the mm to be skipped.
+Skipping an ineligible VMA costs ~100 ns on tested hardware (x86 server),
+so a batch of 1024 bounds the lock hold to ~100 us without expensive
+high-grained timer checks.
 
-For a system with 4 KiB page size and default sysctl settings this only
-requires 4096 ineligible VMAs/uncollapsible pages to be skipped before this
-happens.
+This scales for large numbers of VMAs, and tests with ~1M ineligible VMAs
+reduced the maximum mmap read lock hold time from ~93ms to ~110us.
 
-Resolve the issue by simply tracking the last examined address in the
-khugepaged_mm_slot object, so when the mm is resumed, the scan starts from
-where it left off.
+This was also observed to reduce mmap_lock stalls in concurrent threads of
+a similar duration. Note that a reader re-acquiring the lock can currently
+steal it from a writer that is queued but not yet running, so the full
+benefit to writers depends on the linked rwsem change.
 
-Additionally, skip to the next candidate if a VMA cannot be collapsed.
+Local measurements indicated no change for ordinary use cases, so this is
+all upside.
 
-This issue was noticed during some work in which an mm was instantiated
-with a large number of small VMAs under significant mmap_lock contention,
-during which collapse was observed to take 10.8s. With this patch applied
-it took 3.6s to collapse the same mm.
+This work came out of investigations into mmap stalls when getting latency
+numbers for an unrelated patch series.
 
-Also, while here, update a couple VM_BUG_ON()'s to VM_WARN_ON_ONCE()'s.
-
-This patch is also a prerequisite for the next patch in the series.
-
-Link: https://lore.kernel.org/20261110-khugepaged-latency-fix-v3-2-6eea743cf9a3@kernel.org
+Link: https://lore.kernel.org/20261110-khugepaged-latency-fix-v3-3-6eea743cf9a3@kernel.org
+Link: https://lore.kernel.org/all/20261105-rwsem-dont-steal-from-queued-writer-v1-1-275e070f426f@kernel.org/
 Signed-off-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Reviewed-by: David Hildenbrand (Arm) <david@kernel.org>
-Reviewed-by: Lance Yang <lance.yang@linux.dev>
-Reviewed-by: Baolin Wang <baolin.wang@linux.alibaba.com>
-Reviewed-by: Jose A. Perez de Azpillaga <azpijr@gmail.com>
+Cc: David Hildenbrand <david@kernel.org>
 Cc: Zi Yan <ziy@nvidia.com>
+Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
 Cc: Liam R. Howlett <liam@infradead.org>
 Cc: Nico Pache <nico.pache@linux.dev>
 Cc: Ryan Roberts <ryan.roberts@arm.com>
 Cc: Dev Jain <dev.jain@arm.com>
 Cc: Barry Song <baohua@kernel.org>
+Cc: Lance Yang <lance.yang@linux.dev>
 Cc: Usama Arif <usama.arif@linux.dev>
 Cc: Kiryl Shutsemau <kas@kernel.org>
+Cc: "Jose A. Perez de Azpillaga" <azpijr@gmail.com>
 Cc: Peter Zijlstra <peterz@infradead.org>
 Cc: Alexei Starovoitov <ast@kernel.org>
 Cc: Vernon Yang <vernon2gm@gmail.com>
 ---
 
- mm/khugepaged.c |   46 ++++++++++++++++++++++++++++------------------
- 1 file changed, 28 insertions(+), 18 deletions(-)
+ mm/khugepaged.c |   20 ++++++++++++++++++++
+ 1 file changed, 20 insertions(+)
 
---- a/mm/khugepaged.c~mm-khugepaged-scan-mms-more-efficiently-under-mmap_lock-contention
+--- a/mm/khugepaged.c~mm-khugepaged-release-contended-mmap-read-lock-after-scanning-enough-vmas
 +++ a/mm/khugepaged.c
-@@ -69,23 +69,23 @@ static struct kmem_cache *mm_slot_cache
+@@ -66,6 +66,13 @@ static DEFINE_READ_MOSTLY_HASHTABLE(mm_s
+ 
+ static struct kmem_cache *mm_slot_cache __ro_after_init;
+ 
++/*
++ * The number of VMAs to walk before checking for, and relieving, mmap lock
++ * contention. This bounds the maximum mmap read lock to an estimated ~100 -
++ * 300us depending on hardware.
++ */
++#define KHUGEPAGED_MAX_VMA_SCAN_BATCH 1024
++
  /**
   * struct khugepaged_mm_slot - khugepaged information per mm that is being scanned
   * @slot: hash lookup from mm to mm_slot
-+ * @address: the next address inside that to be scanned
-  */
- struct khugepaged_mm_slot {
- 	struct mm_slot slot;
-+	unsigned long address;
- };
+@@ -2933,6 +2940,7 @@ static void collapse_scan_mm_slot(unsign
+ 	struct mm_struct *mm;
+ 	struct vm_area_struct *vma;
+ 	unsigned int progress_prev = cc->progress;
++	unsigned int nr_vmas_batch = 0;
  
- /**
-  * struct khugepaged_scan - cursor for scanning
-  * @mm_head: the head of the mm list to scan
-  * @mm_slot: the current mm_slot we are scanning
-- * @address: the next address inside that to be scanned
-  *
-  * There is only the one khugepaged_scan instance of this cursor structure.
-  */
- struct khugepaged_scan {
- 	struct list_head mm_head;
- 	struct khugepaged_mm_slot *mm_slot;
--	unsigned long address;
- };
- 
- static struct khugepaged_scan khugepaged_scan = {
-@@ -2944,7 +2944,6 @@ static void collapse_scan_mm_slot(unsign
- 		slot = list_first_entry(&khugepaged_scan.mm_head,
- 				     struct mm_slot, mm_node);
- 		mm_slot = mm_slot_entry(slot, struct khugepaged_mm_slot, slot);
--		khugepaged_scan.address = 0;
- 		khugepaged_scan.mm_slot = mm_slot;
- 	}
- 	spin_unlock(&khugepaged_mm_lock);
-@@ -2962,7 +2961,7 @@ static void collapse_scan_mm_slot(unsign
- 	if (unlikely(collapse_test_exit_or_disable(mm)))
- 		goto breakouterloop;
- 
--	vma_iter_init(&vmi, mm, khugepaged_scan.address);
-+	vma_iter_init(&vmi, mm, mm_slot->address);
+ 	lockdep_assert_held(&khugepaged_mm_lock);
+ 	*result = SCAN_FAIL;
+@@ -2965,6 +2973,18 @@ static void collapse_scan_mm_slot(unsign
  	for_each_vma(vmi, vma) {
  		unsigned long hstart, hend;
  
-@@ -2971,38 +2970,46 @@ static void collapse_scan_mm_slot(unsign
- 			cc->progress++;
- 			break;
- 		}
--		if (!collapse_possible_orders(vma, vma->vm_flags,
--					      TVA_KHUGEPAGED)) {
-+		if (!collapse_possible_orders(vma, vma->vm_flags, TVA_KHUGEPAGED)) {
-+			const unsigned long next =
-+				ALIGN(vma->vm_end, HPAGE_PMD_SIZE);
-+
- 			cc->progress++;
-+			/* Check for overflow. */
-+			if (unlikely(next < vma->vm_end)) {
-+				vma = NULL;
-+				break;
++		/* Relieve mmap lock contention after walking a batch of VMAs. */
++		if (nr_vmas_batch++ >= KHUGEPAGED_MAX_VMA_SCAN_BATCH) {
++			nr_vmas_batch = 0;
++			if (mmap_lock_is_contended(mm)) {
++				mmap_read_unlock(mm);
++				cond_resched();
++				mmap_read_lock(mm);
++				vma_iter_set(&vmi, mm_slot->address);
++				continue;
 +			}
-+			/* Unable to collapse, skip to the next candidate. */
-+			mm_slot->address = next;
- 			continue;
- 		}
- 		hstart = ALIGN(vma->vm_start, HPAGE_PMD_SIZE);
- 		hend = ALIGN_DOWN(vma->vm_end, HPAGE_PMD_SIZE);
--		if (khugepaged_scan.address > hend) {
-+		if (mm_slot->address > hend) {
- 			cc->progress++;
- 			continue;
- 		}
--		if (khugepaged_scan.address < hstart)
--			khugepaged_scan.address = hstart;
--		VM_BUG_ON(khugepaged_scan.address & ~HPAGE_PMD_MASK);
-+		if (mm_slot->address < hstart)
-+			mm_slot->address = hstart;
-+		VM_WARN_ON_ONCE(mm_slot->address & ~HPAGE_PMD_MASK);
- 
--		while (khugepaged_scan.address < hend) {
-+		while (mm_slot->address < hend) {
- 			bool lock_dropped = false;
- 
- 			cond_resched();
- 			if (unlikely(collapse_test_exit_or_disable(mm)))
- 				goto breakouterloop;
- 
--			VM_WARN_ON_ONCE(khugepaged_scan.address < hstart ||
--				  khugepaged_scan.address + HPAGE_PMD_SIZE >
--				  hend);
-+			VM_WARN_ON_ONCE(mm_slot->address < hstart ||
-+					mm_slot->address + HPAGE_PMD_SIZE > hend);
- 
--			*result = collapse_single_pmd(khugepaged_scan.address,
-+			*result = collapse_single_pmd(mm_slot->address,
- 						      vma, &lock_dropped, cc);
- 			if (*result == SCAN_SUCCEED)
- 				khugepaged_pages_collapsed++;
- 			/* move to next address */
--			khugepaged_scan.address += HPAGE_PMD_SIZE;
-+			mm_slot->address += HPAGE_PMD_SIZE;
- 			if (lock_dropped)
- 				/*
- 				 * We released mmap_lock so break loop.  Note
-@@ -3016,12 +3023,16 @@ static void collapse_scan_mm_slot(unsign
- 				goto breakouterloop;
- 		}
- 	}
-+	/* Every VMA has been examined, so reset. */
-+	if (!vma)
-+		mm_slot->address = 0;
++		}
 +
- breakouterloop:
- 	mmap_read_unlock(mm); /* exit_mmap will destroy ptes after this */
- breakouterloop_mmap_lock:
- 
- 	spin_lock(&khugepaged_mm_lock);
--	VM_BUG_ON(khugepaged_scan.mm_slot != mm_slot);
-+	VM_WARN_ON_ONCE(khugepaged_scan.mm_slot != mm_slot);
- 	/*
- 	 * Release the current mm_slot if this mm is about to die, or
- 	 * if we scanned all vmas of this mm, or THP got disabled.
-@@ -3036,7 +3047,6 @@ breakouterloop_mmap_lock:
- 			slot = list_next_entry(slot, mm_node);
- 			khugepaged_scan.mm_slot =
- 				mm_slot_entry(slot, struct khugepaged_mm_slot, slot);
--			khugepaged_scan.address = 0;
- 		} else {
- 			khugepaged_scan.mm_slot = NULL;
- 			khugepaged_full_scans++;
+ 		cond_resched();
+ 		if (unlikely(collapse_test_exit_or_disable(mm))) {
+ 			cc->progress++;
 _
 
 Patches currently in -mm which might be from ljs@kernel.org are
