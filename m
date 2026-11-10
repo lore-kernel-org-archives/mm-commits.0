@@ -1,48 +1,46 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794283583;
-	b=yvzwEuvGc5aeT0oMWVvOJcQq2arh1tpV5ZFNgnRPLu8jWOCuD9IeYZEgb15xUMhliDZl
-	 xnVv6L3PiEtz5K1P8G5rnz7w3n/uUIW0fRU0ujVn+QEVdn0NuF5wOQgOH9Yy9QxZT8Jik
-	 KTd6Jg2lo+t26QsjOdGnWh167SfuMLJz0MjKb75i8HqcGEsPSTS5aHny03qDzut6vJpIu
-	 C0fcHbwvpifl6ga12vJ+NRmTmkLzNwjcNuEer18VnwQVhDQU9uOKprU66Fxv6d4kfUcc8
-	 hD6QV3vfjm9BHuBtaeiL9Srtc2YY2VoxtQFFFwpwuNOy9Hx4vHR7gNV32QRGOxwVuQg==
+	t=1794288888;
+	b=Nd13833F+KVRkiTIwWNfWGHOGOcY3ROZTZXIe/GhVnAfyIu7pZbCtB38HExGu7bSaCQb
+	 on6GmFUs7QYl3mH6ybzPmftvMqZYpxFgo64WV6937O9EaK1OSrU1f9thbKriAkfo0eLjS
+	 mtv2NCCzlpJQJfIomyDF+/YHy2b7WLPRhJ/ZdtGlDKswDU2Yh57so46gcnVuByMvIUH4e
+	 FECYujOk4omewtOAky3WH6NnJO4n7B5sdTl8Mcx/Gz1fvTXknmsAchJKC+KTAfIqUf/W3
+	 G2HMkeZ0Z6JV1d09IsH4YRfpFL6Hp4ALo8pnzRcd1wLnCOJ7LA26eLYyeMYoe710D9g==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794283583;
+	a=rsa-sha256; c=relaxed/relaxed; t=1794288888;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=Q4GUwGEdmLJ8KIH9FDp7ZR9keVwntaHQNsdJ6T2X/FM=;
-	b=PoqYKvwiGYcEXiAnT4QNj2gBz9Rlygr+5hc3gffP1lsmzLut8Q+Ur+fkvrBR3yi+Pqg3
-	 dgV5wVtQD3qvUQ5BN7c4SGCrb6jTgry3LdWHb/bRiCt+4STnD6NCEL0Xu63lXN/D9mzHf
-	 iKNPczA9KzRARVxF53xr5+5j6zZInDI5fatdBZDviOISdVJTUWwgKyWdNizrTTCd+71u2
-	 kmJesWWFlmWAp+dele8oK4ZvFadyNz4VyvA+8uzJGqa8CWO2Dt/Niy4nsSuPyMnO8S/zy
-	 AYseJnlKoJ6FuNkvfOKvmG1HbLl6xDgVlEJa2Pj/lngXed8AcOCflMX0U6ciWI4QzWg==
+	bh=7AHbqx+LqfndjOy85OP3aVA6YZzRbTvpOJ0Pv2ulMRE=;
+	b=Ufer/zcvEntRthI+87Ickvjlstx1/3oJSHZ0lJdKqE1Q/b+pMZvugStZZ1Inu+8VChrS
+	 BG5BI5S6Ma8a2kjVIICWaKTcVy44XsQ73F7+mcB8Br9D14lbJSXMPqASc6ew46fwr8z9J
+	 lDDAT4awaFIBUBa1Wz7s++CAAwcb6eoPd1A0jbIOCKEr3S65RdgD+LkkttRxnENAJp07d
+	 GjXCYulIFnSUyUkZprkrUt8543hWqQIp+InL44tqCrskKfcJrEXuanX+n21KBkDvMO0sG
+	 p6tKgdXyXQHUEgnLMJvW3dqoJlc3GogytRXP9cpF5s1kNkxMVySW3iA3eGH8QW7HSJA==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=itR2wpnX;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=O2Sy9Zkb;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E18C1606A31C;
-	Tue, 10 Nov 2026 04:06:22 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 469C7606A330;
+	Tue, 10 Nov 2026 05:34:48 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=itR2wpnX
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5A7A01F0089F;
-	Tue, 10 Nov 2026 04:06:22 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=O2Sy9Zkb
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C72271F0089F;
+	Tue, 10 Nov 2026 05:34:47 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1794283582;
-	bh=Q4GUwGEdmLJ8KIH9FDp7ZR9keVwntaHQNsdJ6T2X/FM=;
+	d=linux-foundation.org; s=korg; t=1794288887;
+	bh=7AHbqx+LqfndjOy85OP3aVA6YZzRbTvpOJ0Pv2ulMRE=;
 	h=Date:To:From:Subject;
-	b=itR2wpnXu5qoC/pP5GxkV5mcg5WJ9+JghFyjztfC/zQ2qVJ/A3iMsc47njARxbDdQ
-	 0MEe2OxxhIL66JS6KKm4k+7r2GhQS+Rpc3PmNF+Bra1XZfhv8HwZC2dMyx4i5Fz/rK
-	 mr2lJsjO0LNEO7gLTi0WDLmne8HSVS/VEYQXd6G4=
-Date: Mon, 09 Nov 2026 20:06:21 -0800
-To: mm-commits@vger.kernel.org,urezki@gmail.com,stable@vger.kernel.org,
-	shubhang@os.amperecomputing.com,npiggin@gmail.com,dev.jain@arm.com,
-	cl@gentwo.org,anshuman.khandual@arm.com,sh@gentwo.org,
-	akpm@linux-foundation.org
+	b=O2Sy9ZkbOhIWxOjm1EmvKhcQoGHRd39IBYAq6RoutCnX26N51kMd5OnyyJZMQPclg
+	 HCILq8sBXqNzFSX3bzm/XkYfRenNLjhh/YlodrHNqBw9ryMUqHKFAgHIwFrYGRXoe2
+	 ygqtcbN+KjbmowSljRnG/BmsiL/kGKKSxxR/vDFc=
+Date: Mon, 09 Nov 2026 21:34:47 -0800
+To: mm-commits@vger.kernel.org,stable@vger.kernel.org,akinobu.mita@gmail.com,
+	ekffu200098@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-vmalloc-reject-overflowing-vm_map_ram-page-counts.patch added to mm-new branch
-Message-Id: <20261110040622.5A7A01F0089F@smtp.kernel.org>
+Subject: + fault-inject-fix-boot-failure-with-fault-injection-boot-parameters.patch added to mm-nonmm-hotfixes-unstable branch
+Message-Id: <20261110053447.C72271F0089F@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -54,26 +52,15 @@ Precedence: list
 
 
 The patch titled
-     Subject: mm/vmalloc: reject overflowing vm_map_ram page counts
-has been added to the -mm mm-new branch.  Its filename is
-     mm-vmalloc-reject-overflowing-vm_map_ram-page-counts.patch
+     Subject: fault-inject: fix boot failure with fault injection boot parameters
+has been added to the -mm mm-nonmm-hotfixes-unstable branch.  Its filename is
+     fault-inject-fix-boot-failure-with-fault-injection-boot-parameters.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vmalloc-reject-overflowing-vm_map_ram-page-counts.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/fault-inject-fix-boot-failure-with-fault-injection-boot-parameters.patch
 
-This patch will later appear in the mm-new branch at
+This patch will later appear in the mm-nonmm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Note, mm-new is a provisional staging ground for work-in-progress
-patches, and acceptance into mm-new is a notification for others take
-notice and to finish up reviews.  Please do not hesitate to respond to
-review feedback and post updated versions to replace or incrementally
-fixup patches in mm-new.
-
-The mm-new branch of mm.git is not included in linux-next
-
-If a few days of testing in mm-new is successful, the patch will me moved
-into mm.git's mm-unstable branch, which is included in linux-next
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -88,71 +75,61 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: "Shubhang Kaushik (Ampere)" <sh@gentwo.org>
-Subject: mm/vmalloc: reject overflowing vm_map_ram page counts
-Date: Thu, 22 Oct 2026 23:43:47 -0700
+From: Sang-Heon Jeon <ekffu200098@gmail.com>
+Subject: fault-inject: fix boot failure with fault injection boot parameters
+Date: Fri,  6 Nov 2026 01:01:58 +0900
 
-vm_map_ram() accepts a page count and must either map that many pages or
-fail.  It currently converts the count to a byte size with:
+Since commit e9bc360b105c ("fault-inject: use prandom where
+cryptographically secure randomness is not needed"), setup_fault_attr()
+calls prandom_init_once(), which calls kmalloc() and schedule_work().
 
-        (unsigned long)count << PAGE_SHIFT
+But setup_fault_attr() can be called from __setup handlers before slab and
+workqueues are initialized, so any fault injection boot parameter leads to
+boot failure.
 
-On 32-bit kernels, this conversion overflows when count is greater than
-ULONG_MAX >> PAGE_SHIFT.  vm_map_ram() then allocates and maps only the
-wrapped byte size, but returns a non-NULL address to its caller.
+So use DO_ONCE_LITE() instead.
 
-For example, with 4 KiB pages, a count of 1048577 wraps to PAGE_SIZE. 
-vm_map_ram() therefore returns a mapping containing one page instead of
-the requested 1048577 pages.
-
-If a caller uses the successful result as a mapping of all requested
-pages, it can access beyond the allocated mapping.  Such an access can
-fault.  If the accessed virtual address is occupied by another vmalloc
-mapping, it can instead access and corrupt unrelated kernel memory.  In a
-userspace-reachable call path, this can result in a failed operation, a
-kernel oops or panic, or the effects of corrupted kernel data.
-
-Return NULL before allocating or mapping anything when count * PAGE_SIZE
-cannot be represented in an unsigned long.
-
-Link: https://lore.kernel.org/20261022-vmalloc-reject-overflow-v2-1-0db7a20c53f0@gentwo.org
-Fixes: db64fe02258f ("mm: rewrite vmap layer")
-Signed-off-by: Shubhang Kaushik (Ampere) <sh@gentwo.org>
+Link: https://lore.kernel.org/20261105160209.1504867-1-ekffu200098@gmail.com
+Fixes: e9bc360b105c ("fault-inject: use prandom where cryptographically secure randomness is not needed")
+Signed-off-by: Sang-Heon Jeon <ekffu200098@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Reviewed-by: Dev Jain <dev.jain@arm.com>
-Cc: Uladzislau Rezki (Sony) <urezki@gmail.com>
-Cc: Nicholas Piggin <npiggin@gmail.com>
-Cc: Shubhang Kaushik <shubhang@os.amperecomputing.com>
-Cc: Christoph Lameter (Ampere) <cl@gentwo.org>
-Cc: Anshuman Khandual <anshuman.khandual@arm.com>
+Reviewed-by: Akinobu Mita <akinobu.mita@gmail.com>
 Cc: <stable@vger.kernel.org>
 ---
 
- mm/vmalloc.c |    5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+ lib/fault-inject.c |    8 +++++++-
+ 1 file changed, 7 insertions(+), 1 deletion(-)
 
---- a/mm/vmalloc.c~mm-vmalloc-reject-overflowing-vm_map_ram-page-counts
-+++ a/mm/vmalloc.c
-@@ -3160,10 +3160,13 @@ EXPORT_SYMBOL(vm_unmap_ram);
-  */
- void *vm_map_ram(struct page **pages, unsigned int count, int node)
- {
--	unsigned long size = (unsigned long)count << PAGE_SHIFT;
-+	unsigned long size;
- 	unsigned long addr;
- 	void *mem;
+--- a/lib/fault-inject.c~fault-inject-fix-boot-failure-with-fault-injection-boot-parameters
++++ a/lib/fault-inject.c
+@@ -1,6 +1,7 @@
+ // SPDX-License-Identifier: GPL-2.0-only
+ #include <linux/kernel.h>
+ #include <linux/init.h>
++#include <linux/once_lite.h>
+ #include <linux/prandom.h>
+ #include <linux/debugfs.h>
+ #include <linux/sched.h>
+@@ -50,7 +51,12 @@ int setup_fault_attr(struct fault_attr *
+ 		return 0;
+ 	}
  
-+	if (check_mul_overflow((unsigned long)count, PAGE_SIZE, &size))
-+		return NULL;
-+
- 	if (likely(count <= VMAP_MAX_ALLOC)) {
- 		mem = vb_alloc(size, GFP_KERNEL);
- 		if (IS_ERR(mem))
+-	prandom_init_once(&fault_rnd_state);
++	/*
++	 * __setup handlers run before slab and workqueues are initialized,
++	 * but prandom_init_once() calls kmalloc() and schedule_work(). So use
++	 * DO_ONCE_LITE() instead.
++	 */
++	DO_ONCE_LITE(prandom_seed_full_state, &fault_rnd_state);
+ 
+ 	attr->probability = probability;
+ 	attr->interval = interval;
 _
 
-Patches currently in -mm which might be from sh@gentwo.org are
+Patches currently in -mm which might be from ekffu200098@gmail.com are
 
-mm-damon-ops-common-align-mmu-notifier-range-when-clearing-pte-young-bit.patch
-mm-vmalloc-reject-overflowing-vm_map_ram-page-counts.patch
-ipc-msg-fix-msg_qbytes-truncation-in-ipc_set.patch
+mm-memory-remove-unused-vmf_insert_mixed_mkwrite.patch
+mm-memory-remove-the-mkwrite-argument-from-__vm_insert_mixed.patch
+mm-memory-merge-__vm_insert_mixed-into-vmf_insert_mixed.patch
+fault-inject-fix-boot-failure-with-fault-injection-boot-parameters.patch
 
