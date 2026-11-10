@@ -1,41 +1,41 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794336775;
-	b=vhPc3GbakeajU1t3lyqNRIxK4bknQ1KGCw3B12PAERLuLoP7tycOd5CXLGcp+GJ0ihsc
-	 vUN2y8rxDO9tHwJU7pSJlzoYscF92GLY/i41UvcXNyFJzjGskhIzdMwIXt5F3zb4GYuzR
-	 uX+QCgrngd5TTMRcfBCJopIzHotj8igxXyP9UM4hILL//BsaVBZdAjqbwyo+dHlWbZTDB
-	 1OAeYNhdj3FyR5kXdmp23jTRIVrJEomOswBOhSL5RBL7sPyRoDDSc/9uERExiCtws/y+8
-	 wnd9qaaNo3QMM3106C0r3GNMa6TqQeA5JoXOoZIsCM62c2ZSQjbufudj9epuReojb1A==
+	t=1794336777;
+	b=KyE7D9PEiSHtOzr6AwuP0e/ihoZi92ia7BDi48s3YkGjqeCGC3IxvoMEI8hnf1GorDSK
+	 pDrDK7GcrqeWhMn3sv/JenI8a/a2mithh1mRGdTUdyIrlFxrsT3P88s7dU3hflyCDvf3C
+	 RYieC4x0phQJe8HdTY/ayCSrA0G3FQ24W7cqt0YqbT4juQLE4FI7HwTFd7x8av24FOXwF
+	 Xu/Dk9KoKluxcafe4T/7iIfXCaYv3Q1oAnrSvO/+XQCnG6Tgxm9/ZbD5lQoYxRzLOmpd4
+	 wa9PNVv0kmzbf1Md67FBrKHOfVHMw8+zRA/zeMgx62SM7eXuzsWCgVw0oCB81p1A0KQ==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794336775;
+	a=rsa-sha256; c=relaxed/relaxed; t=1794336777;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=FyYRKqyjit6kqOpgo3Sg4tVEg2xgxbh46RYiHPpWbkY=;
-	b=Eyz3xsnBwD+J0Gv0aWqOZmeqMGtEMHLBVZpUNeOnyt3fiThjVhiLvS/yEtcGn1wzEkgl
-	 SB7n318ndzBETqfdfxvWYOAcPDvKFbfgVTlUU07JKf35KX5wDRXEjt7YsJFNhGMssci9Y
-	 gYK8cCimL54m2EgPKlcLb6OlsarfZdPeOpDcB1wWS6Z8HD41hQInbnAaGo7QV/VhUYCAL
-	 ZBqSkhZ5QkBoVRoxr3zL7aFQGU5KZARNMcPh32p2YPs3tlxIl69DnEPcgf4qYVry+iBlI
-	 oaIrfEgAQKAB5Zx+G0eFHB2V9NCBICr97JTY3AT4478aGOoiEA7JTndUj9h13nTXj4g==
+	bh=FFvy0IV09PTcwAMOuJt3YrshzO2lHxfzaEk04rk0diY=;
+	b=rjP5hSJX7RKH9lpTzsFVvLrjWi5gQKPnvzhzbq3QzhawC29X0/0eiGRRB13+q4NROaYG
+	 WRR1+mgkbq3l53ttv5+CeSblCyUh/BKr/Tk4l1X0AqTNzLfRqJStJEMjr+lrZZCLNiPCY
+	 4JXqVsPrFeTwzhciGr6Yrpf/ApAYeni9T5FQMAdXQ9RPnm46HPUcbhEFJheTpgPjkQYqf
+	 8HV7/Dep8XoUQIR8BoE6YA7yk2/NlrZgG8MQY4b7ypOx+17uYqLp+j9TLd1i3nHYB05Ns
+	 g8z3b4fTUP3EnKiSeTzs7TGN5kfoLVZNsDQpqqvvFpuklf0T2Afp6F1iewjICeLDRUw==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=awJ7QRIL;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=Dq6ojMzJ;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C7C31606A326
-	for <mm-commits@vger.kernel.org>; Tue, 10 Nov 2026 18:52:54 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id ECB69606A321
+	for <mm-commits@vger.kernel.org>; Tue, 10 Nov 2026 18:52:56 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=awJ7QRIL
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7E9FA1F0089F;
-	Tue, 10 Nov 2026 18:52:54 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=Dq6ojMzJ
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9A4041F0089F;
+	Tue, 10 Nov 2026 18:52:56 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1794336774;
-	bh=FyYRKqyjit6kqOpgo3Sg4tVEg2xgxbh46RYiHPpWbkY=;
+	d=linux-foundation.org; s=korg; t=1794336776;
+	bh=FFvy0IV09PTcwAMOuJt3YrshzO2lHxfzaEk04rk0diY=;
 	h=Date:To:From:Subject;
-	b=awJ7QRILQJV2iyvcUK0357z3eWDBWKqMpNVtAtJsOHpjOEA7SCAx6V/q1R3rYhpaD
-	 G1L8E8FclyzVdbHCUr2BMI3eccIHQuioCKdkmrIYb1MdJDng24J5/0+iu6NldavBu8
-	 AaagCoovapzSKeQkhEEcVkmTIXj4be2LeJu1ybSc=
-Date: Tue, 10 Nov 2026 10:52:54 -0800
+	b=Dq6ojMzJXW+VzHQQkJtF8L+acdMtkwqCLdtvGzW1SN6yjSzvClTFXoDrle49uTjfu
+	 14NR3pCLF1BIsOgZiXNZ+giTA2NKUbFpf9wOkCP9xWn2jjLN12bH66P3S5n8VWKq6j
+	 8SLwxrIUlHhKE4Q3Z1Hh50H8829NPyNv+Q5SAAKg=
+Date: Tue, 10 Nov 2026 10:52:56 -0800
 To: mm-commits@vger.kernel.org,ziy@nvidia.com,work@onurozkan.dev,
 	vbabka@kernel.org,usama.arif@linux.dev,urezki@gmail.com,tmgross@umich.edu,
 	tamird@kernel.org,surenb@google.com,shakeel.butt@linux.dev,
@@ -48,8 +48,8 @@ To: mm-commits@vger.kernel.org,ziy@nvidia.com,work@onurozkan.dev,
 	a.hindborg@kernel.org,acourbot@nvidia.com,ljs@kernel.org,
 	akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + maintainers-remove-myself-from-mm-misc-reclaim-reviewership.patch added to mm-hotfixes-unstable branch
-Message-Id: <20261110185254.7E9FA1F0089F@smtp.kernel.org>
+Subject: + maintainers-remove-myself-from-mm-rust-reviewerships.patch added to mm-hotfixes-unstable branch
+Message-Id: <20261110185256.9A4041F0089F@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -61,12 +61,12 @@ Precedence: list
 
 
 The patch titled
-     Subject: MAINTAINERS: remove myself from MM misc, reclaim reviewership
+     Subject: MAINTAINERS: remove myself from MM rust reviewerships
 has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     maintainers-remove-myself-from-mm-misc-reclaim-reviewership.patch
+     maintainers-remove-myself-from-mm-rust-reviewerships.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/maintainers-remove-myself-from-mm-misc-reclaim-reviewership.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/maintainers-remove-myself-from-mm-rust-reviewerships.patch
 
 This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -85,8 +85,8 @@ and is updated there most days
 
 ------------------------------------------------------
 From: "Lorenzo Stoakes (ARM)" <ljs@kernel.org>
-Subject: MAINTAINERS: remove myself from MM misc, reclaim reviewership
-Date: Tue, 10 Nov 2026 12:03:08 +0000
+Subject: MAINTAINERS: remove myself from MM rust reviewerships
+Date: Tue, 10 Nov 2026 12:03:09 +0000
 
 Given the current throughput in the kernel resulting from AI-generated
 series, I unfortunately lack the bandwidth to generally be able to offer
@@ -94,7 +94,7 @@ review except in those areas I maintain.
 
 Therefore, remove myself as a reviewer.
 
-Link: https://lore.kernel.org/20261110-drop-reviewerships-v1-2-07c2f06e8dfa@kernel.org
+Link: https://lore.kernel.org/20261110-drop-reviewerships-v1-3-07c2f06e8dfa@kernel.org
 Signed-off-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 Acked-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
@@ -134,24 +134,24 @@ Cc: Usama Arif <usama.arif@linux.dev>
  MAINTAINERS |    2 --
  1 file changed, 2 deletions(-)
 
---- a/MAINTAINERS~maintainers-remove-myself-from-mm-misc-reclaim-reviewership
+--- a/MAINTAINERS~maintainers-remove-myself-from-mm-rust-reviewerships
 +++ a/MAINTAINERS
-@@ -17674,7 +17674,6 @@ F:	mm/migrate_device.c
- MEMORY MANAGEMENT - MISC
- M:	Andrew Morton <akpm@linux-foundation.org>
- M:	David Hildenbrand <david@kernel.org>
+@@ -17957,7 +17957,6 @@ F:	tools/testing/selftests/mm/uffd-*.[ch
+ 
+ MEMORY MANAGEMENT - RUST
+ M:	Alice Ryhl <aliceryhl@google.com>
 -R:	Lorenzo Stoakes <ljs@kernel.org>
  R:	Liam R. Howlett <liam@infradead.org>
- R:	Vlastimil Babka <vbabka@kernel.org>
- R:	Mike Rapoport <rppt@kernel.org>
-@@ -17810,7 +17809,6 @@ R:	David Hildenbrand <david@kernel.org>
- R:	Michal Hocko <mhocko@kernel.org>
- R:	Qi Zheng <qi.zheng@linux.dev>
- R:	Shakeel Butt <shakeel.butt@linux.dev>
--R:	Lorenzo Stoakes <ljs@kernel.org>
  L:	linux-mm@kvack.org
- S:	Maintained
- F:	include/trace/events/vmscan.h
+ L:	rust-for-linux@vger.kernel.org
+@@ -24652,7 +24651,6 @@ K:	\b(?i:rust)\b
+ RUST [ALLOC]
+ M:	Danilo Krummrich <dakr@kernel.org>
+ M:	Alice Ryhl <aliceryhl@google.com>
+-R:	Lorenzo Stoakes <ljs@kernel.org>
+ R:	Vlastimil Babka <vbabka@kernel.org>
+ R:	Liam R. Howlett <liam@infradead.org>
+ R:	Uladzislau Rezki <urezki@gmail.com>
 _
 
 Patches currently in -mm which might be from ljs@kernel.org are
