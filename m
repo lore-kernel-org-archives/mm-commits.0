@@ -1,47 +1,47 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794293127;
-	b=iXgdbtlO9UJFzs4Lh/xeY+Seq0w7tES6Ihq+UJnkdKaMtl2aq13E6Yuo6qS1cA+oUVm9
-	 /TOWNUEqwgmkbbUro+hoOM4q2yWbQ3dBzH/2Kjr+eST3NVcdAaqM4iKT/4pYJbh1QHTBq
-	 4FJM+lCYWWCVFa3jeooMWRj+tWa/l55+2nFMJ/sH2cw2lW9imVYbCxTqAMRp5p+XC94IM
-	 zfhlAJ26zFCTfwWA6d/26fabsfOALCuz3rSgdgbk0oOSXEWtFPwMZ4rTAoShUJV/PWCUf
-	 p8aH2Sn850RCrK/aKUkyRfDsdnaOCZvm+gvwlZJ0gxsz+fZc8fCB80zK1hUV9HjzTKA==
+	t=1794293133;
+	b=kt1lpcdl1p93n3Kerwps3tPdI6ePeDKAYgnthCwTt8cfEWvPM0R/WWiN3OpSDDUbbfQn
+	 EJWnTzB95x+NC9RfLMeioXtUAFRa9bwDm/DUNvLqoV3arjiWrx94LOWibcQl9mNwOGgE1
+	 agSYfiZB2mOpcV/2Euz4LGmcLr+UpWvipeROSlDn4q6rjPV9j0/QyzPSA2LkSmT7ekAkg
+	 /V/V77zHmzJ+KvmFIExqUDXAjsGMj/B6Qh8uT5vPFdf6rs82m/yr7K4ufpnQs2UP/bwYb
+	 v4NJhUlrCK5woJNYqJVDFTIM65OgexHBrg5thuMWx/3aeGB1Vhpg0j06KiGyQ0x9k3g==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794293127;
+	a=rsa-sha256; c=relaxed/relaxed; t=1794293133;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=ru3BcMbgmxRIR6sxTtfSKZKs8T3zqxXSXaUeuypHz4I=;
-	b=kQHWYyjlrVrlPZT9F9JD50ung0kI2OFnsk8qaz4siPbGHvhGtK0sTPVby2aDGTrhhgHP
-	 fsq1AJRlwF/dw/Iy/Yexd+BdNXVfarc56vjRA9a2RByJ9Px8Rq5YmOUQhoUKp5a8vm4Iz
-	 5cHtBRh72MQiapiwok5J3qmSQyDGX+fTI/++ecIR11HwrSTjydC7cP/qRpI25XsSmi/i3
-	 s12T2RAYpt1sZ4tfYeYu0SabY55WK+l61IZ9waFRwWj/EdC3QOqUqy7TQRuFjiUY+BwsA
-	 Ir8w5b1fcuB+Fzy4GySVIRJOLK+XvazF6Boe4sCZLg+ksG5O93hPlSwuVkfG8f7jYSg==
+	bh=v73rjsZ52oh84OVAHd0hhLfTyWwxgFrGuKwXT1yjHA0=;
+	b=qDxgfAAs1Z4kdUPiy0qHt+rdWnVMTjmFcwcBYXAJpLCdNm/sUGADyAkT9pFqUEbEGqd5
+	 d4BmCq3RWao1o7VK/X6vtP1Y/gWad/opuiAq72tDQzvxRvpx9QL/E258UHJkLHnZL0cYo
+	 Z2pFfyNetX8AfglaYuiHhJ7WIN4Y4DRfoXhMJiDidTrZGFvQliwOvfkGLCJqW5/Do4UeX
+	 kW5nEw+Pe6ehDvLpaIFNkpCS155bNeDlB15zW4Y3bTp0fg5NQhWb0XIeFxfwcPsf+dyzc
+	 rU4guAQBCiUP1Aw75DoPigQgkmaBSVOa7RaGgfBEJE10FthKsqCqURMYKxGlK86I+Bg==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=WRRaO+VJ;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=eb5SwEBZ;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1683D606A326;
-	Tue, 10 Nov 2026 06:45:27 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C98BE606CB30
+	for <mm-commits@vger.kernel.org>; Tue, 10 Nov 2026 06:45:32 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=WRRaO+VJ
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C0FF21F0089F;
-	Tue, 10 Nov 2026 06:45:26 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=eb5SwEBZ
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 93D3B1F008A2;
+	Tue, 10 Nov 2026 06:45:32 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1794293126;
-	bh=ru3BcMbgmxRIR6sxTtfSKZKs8T3zqxXSXaUeuypHz4I=;
+	d=linux-foundation.org; s=korg; t=1794293132;
+	bh=v73rjsZ52oh84OVAHd0hhLfTyWwxgFrGuKwXT1yjHA0=;
 	h=Date:To:From:Subject;
-	b=WRRaO+VJ6wmNBvttB4Bx4Ao+Cugl0L4kTTGimQc4NxqzzoDgIzPglm7TmYiHP3e7p
-	 SwpST0K7/CKa+1/OEHU1edzHRCMvdIPDVsGzB9mN+4MbnZvOKj5CqeJitwWGtS1HOt
-	 MQDgT3eU+rnAJ10hOdv0IY6EroemjyHHVwMnBhs4=
-Date: Mon, 09 Nov 2026 22:45:26 -0800
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,ying.huang@linux.alibaba.com,
-	stable@vger.kernel.org,rakie.kim@sk.com,joshua.hahnjy@gmail.com,
-	harry@kernel.org,gourry@gourry.net,david@kernel.org,akpm@linux-foundation.org
+	b=eb5SwEBZyfSdaJ1K9pqsfPcz8163xJ7iJsUdTGWb3Tj3+ZVF586zBIyDiIkzjIsWN
+	 31+l6R4zDlhwtAPlykRR8zQXZHLlARLqSbbAYeGDT7/0eIczRhWTZCZb8PWQmeLfYZ
+	 oKa1oV11Fs7pyH7aA7gQ+jXbd4ar03jEm0MYxjtI=
+Date: Mon, 09 Nov 2026 22:45:32 -0800
+To: mm-commits@vger.kernel.org,pizhenwei@bytedance.com,
+	nao.horiguchi@gmail.com,mchehab+huawei@kernel.org,linmiaohe@huawei.com,
+	m.chehab@huawei.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] mm-mempolicy-use-one-node-set-for-interleave-weights.patch removed from -mm tree
-Message-Id: <20261110064526.C0FF21F0089F@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] mm-memory-failure-update-statistics-before-emitting-the-trace-event.patch removed from -mm tree
+Message-Id: <20261110064532.93D3B1F008A2@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -53,95 +53,77 @@ Precedence: list
 
 
 The quilt patch titled
-     Subject: mm/mempolicy: use one node set for interleave weights
+     Subject: mm: memory-failure: update statistics before emitting the trace event
 has been removed from the -mm tree.  Its filename was
-     mm-mempolicy-use-one-node-set-for-interleave-weights.patch
+     mm-memory-failure-update-statistics-before-emitting-the-trace-event.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm/mempolicy: use one node set for interleave weights
-Date: Fri, 30 Oct 2026 12:10:46 -0400
+From: Mauro Carvalho Chehab <m.chehab@huawei.com>
+Subject: mm: memory-failure: update statistics before emitting the trace event
+Date: Wed, 28 Oct 2026 09:09:57 +0100
 
-Switching weighted interleave back to automatic mode while memory is being
-onlined can cause a kernel divide error on x86, and a panic if
-panic_on_oops is set.
+Today's rasdaemon-ci run showed a race condition at the page poison logic
+affecting userspace (rasdaemon): action_result() emits a
+memory_failure_event before incrementing num_poisoned_pages and updating
+the per-node memory failure statistics.
 
-reduce_interleave_weights() scans N_MEMORY three times, but hotplug can
-cause N_MEMORY to change at runtime - and torn reads on that nodemask can
-cause a total sum of zero bandwidth.  A node that was hot-unplugged and
-then hotplugged back can then cause this loop to generate a div/0.
+That causes userspace to read /proc/meminfo to detect HardwareCorrupted
+trace events to warn if the value exceeds POISON_STAT_THRESHOLD.  This
+works most of the cases, but there is a chance that the value not being
+updated in time before libtraceevent notification is handled.
 
-Record the nodes visited while summing their bandwidth, then use that same
-set when scaling and reducing the weights.  This gives us a consistent
-state even if N_MEMORY changes.
+Root cause is commit e240ac52f7da ("mm/memory-failure.c: simplify
+num_poisoned_pages_inc/dec") which changed the order of updates.
 
-Link: https://lore.kernel.org/20261030161046.1497894-1-gourry@gourry.net
-Fixes: e341f9c3c841 ("mm/mempolicy: Weighted Interleave Auto-tuning")
+Rasdaemod-ci run up to Oct 27 worked properly, but on today's run, it
+failed to get the HardwareCorrupted data from /proc/meminfo because
+it was updated only after trigging the hardware error event:
+	https://mchehab.github.io/rasdaemon-ci/failures/20261028T035110Z-40629018388/daily/aarch64/consumer-poison-page-stat.html
+
+E.g. it failed to log this:
+	rasdaemon: Poison page statistics exceeded threshold: 4 kB (threshold: 0 kB)
+
+This is important for rasdaemon, as the consumer's action monitors a
+failed threshold before poisoning pages.  So, if the counter doesn't
+update properly, it will end not poisoning pages at the expected
+threshold.
+
+Link: https://lore.kernel.org/d472a9a3ccfa8c0359d7d7acabed92c8927d8e47.1793174996.git.mchehab+huawei@kernel.org
+Fixes: e240ac52f7da ("mm/memory-failure.c: simplify num_poisoned_pages_inc/dec")
+Signed-off-by: Mauro Carvalho Chehab <mchehab+huawei@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Signed-off-by: Gregory Price (Meta) <gourry@gourry.net>
-Reviewed-by: Joshua Hahn <joshua.hahnjy@gmail.com>
-Cc: David Hildenbrand <david@kernel.org>
-Cc: Zi Yan <ziy@nvidia.com>
-Cc: Rakie Kim <rakie.kim@sk.com>
-Cc: Ying Huang <ying.huang@linux.alibaba.com>
-Cc: Harry Yoo <harry@kernel.org>
-Cc: <stable@vger.kernel.org>
+Closes: https://github.com/mchehab/rasdaemon-ci/actions/runs/40629018388
+Acked-by: Miaohe Lin <linmiaohe@huawei.com>
+Cc: Naoya Horiguchi <nao.horiguchi@gmail.com>
+Cc: zhenwei pi <pizhenwei@bytedance.com>
 ---
 
- mm/mempolicy.c |   13 ++++++++++---
- 1 file changed, 10 insertions(+), 3 deletions(-)
+ mm/memory-failure.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/mm/mempolicy.c~mm-mempolicy-use-one-node-set-for-interleave-weights
-+++ a/mm/mempolicy.c
-@@ -207,15 +207,22 @@ static u8 get_il_weight(int node)
-  */
- static void reduce_interleave_weights(unsigned int *bw, u8 *new_iw)
+--- a/mm/memory-failure.c~mm-memory-failure-update-statistics-before-emitting-the-trace-event
++++ a/mm/memory-failure.c
+@@ -1320,13 +1320,13 @@ static bool panic_on_unrecoverable_mf(en
+ static int action_result(unsigned long pfn, enum mf_action_page_type type,
+ 			 enum mf_result result)
  {
-+	nodemask_t nodes = NODE_MASK_NONE;
- 	u64 sum_bw = 0;
- 	unsigned int cast_sum_bw, scaling_factor = 1, iw_gcd = 0;
- 	int nid;
- 
--	for_each_node_state(nid, N_MEMORY)
-+	/*
-+	 * N_MEMORY can change while wi_state_lock is held. Remember the
-+	 * nodes contributing to sum_bw so all passes use the same set.
-+	 */
-+	for_each_node_state(nid, N_MEMORY) {
-+		node_set(nid, nodes);
- 		sum_bw += bw[nid];
-+	}
- 
- 	/* Scale bandwidths to whole numbers in the range [1, weightiness] */
--	for_each_node_state(nid, N_MEMORY) {
-+	for_each_node_mask(nid, nodes) {
- 		/*
- 		 * Try not to perform 64-bit division.
- 		 * If sum_bw < scaling_factor, then sum_bw < U32_MAX.
-@@ -234,7 +241,7 @@ static void reduce_interleave_weights(un
+-	trace_memory_failure_event(pfn, type, result);
+-
+ 	if (type != MF_MSG_ALREADY_POISONED && type != MF_MSG_PFN_MAP) {
+ 		num_poisoned_pages_inc(pfn);
+ 		update_per_node_mf_stats(pfn, result);
  	}
  
- 	/* 1:2 is strictly better than 16:32. Reduce by the weights' GCD. */
--	for_each_node_state(nid, N_MEMORY)
-+	for_each_node_mask(nid, nodes)
- 		new_iw[nid] /= iw_gcd;
- }
++	trace_memory_failure_event(pfn, type, result);
++
+ 	pr_err("%#lx: recovery action for %s: %s\n",
+ 		pfn, action_page_types[type], action_name[result]);
  
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from m.chehab@huawei.com are
 
-shmem-consume-the-reserved-xattr-space-despite-remount.patch
-selftests-mm-check-madv_cold-and-madv_pageout-on-partly-advised-thps-fix.patch
-alloc_tag-introduce-ioctls-to-toggle-allocation-tracepoints-fix-fix.patch
-alloc_tag-introduce-ioctls-to-toggle-allocation-tracepoints-fix.patch
-mm-migrate_device-allocate-deferred-split-sublists-for-new-huge-folios.patch
-profile-account-for-partial-proc-profile-reads.patch
-profile-simplify-proc-profile-read-layout.patch
-ipc-msg-clamp-negative-msg_info-usage-counts.patch
-squashfs-fix-leaked-page-locks-when-page-actor-allocation-fails-fix.patch
-drivers-media-v4l2-core-v4l2-vp9c-reduce-inlining.patch
 
