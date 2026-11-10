@@ -1,49 +1,46 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794270391;
-	b=H9k7/TShK+tcCtvlaTonKoPnXCqhdslNZIjFu6xARryfcITuWVKC90iyK9rRggnZzpZ3
-	 j9rFvpxwai9uHSwSomOlPvxeAxMYADqaezBubrvW04WY9vJiBqYr9HnkH8/yfS4AmjvE2
-	 hl4ZDGUAZXEbUCS8ategzE1dtAj/mAECMNWsdo8Z7QvwBzz7gIq9Ki7O98IqQZtNzJA3m
-	 Aw8w74aSe+X2uxay9msTZEsn9vStRUBnOF7OepywauzMZgM+F7oMM8U2do2KJEJWkruh6
-	 Dfxul+Xc78ZvyA08+iZCWyloUFbBPyT8iUXgFgRCeNSTrIc9CRq3aYTrEgYnYVeJi2g==
+	t=1794272539;
+	b=UenVcQKuXtyUEg0oVTmCtRyoqKdcKxQT9ziWysdwT7VCmkggqyc/ftZrOxChDPtHpgV7
+	 55n0125fNDJ4/xlBzzNEwQa0msFjul12xisxeQ/udU7ZanXSbxO4sKzuufr92hyetiL2K
+	 Yq7Cu5oThoMS5IKG1EzQRSy8+wfgcFmyBSvI+GUqqRQE9uNOMxra2upxK9ik7lsm+1cCd
+	 J4VSKAnQjj//QtWbeTQAP9e2/h1Lxd1hQNAaJ0HjigbIBPzoyf+Brb45gAcAVrLGh7sYT
+	 bXt8wScXTHnuAW+f7LSgDPt0YbSqsIILq8HTRx5edcVIHy8eZrWvQmT3hzmQM+MizCg==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794270391;
+	a=rsa-sha256; c=relaxed/relaxed; t=1794272539;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=qabSgjJUBX2Oz+uaRG2lMApO+AcZr478dEqj1/UW1bs=;
-	b=lkALOVvB8U22JzcJR3idAWMBgXCnYPgJuZV4A8U6UUrdh+9Dobbn7TVS27ryngTTWMyD
-	 DmD95la7RlOSWNvsJ/S4FtFZDPtmQLpX0lM0hr7IO/v099hp+8MuUAGDYvDzC1zkin2b4
-	 aa2/iitnibEOWCPv1J4aprHOChe/zgtNQp0o3AJ20Dy5f+154lYuSt0biNi6oc8ZA3klG
-	 0WNkJw3YzKKVSo/EfTIwCqa+TlfSX/zbquFUJdGcCPy0+GY38Ba/It+RHK38DSkh/84wF
-	 PhRv4nTcSGks6TbFM+EnZBW29kaIzpYE9RtfU/YI2OIaxi+klXqn3yXx50wP2F8Xn0A==
+	bh=20hEICLil4kCUjTHTP5j0xVG6xrZnV5pk0kULcwM08M=;
+	b=LlIWOuGBO2+PgnXuqaVGaZPx/LCPZgne5wA6xTJ3Tus6NeAqeGvD+KBwsIWsnZnkflzk
+	 Qfgvoc6waAg2vdDMVjoslEAEO2x7E6rVOJny1Yyq3YROh93khNqAtY7oJ6bRtWUCbelkZ
+	 F5ofbjlWGJlvjSzlvrXlv2P5P9OgcN8EcxsRXK7WgwB5tm4A81Fwz6g/VcetZ7PtvN1bS
+	 FDg+nS9Xfyjsmmh2r40h7uZ45JE2TWPMti2agTHR2CYMnE9OOt61hXFbzkq9IBuQqofkp
+	 YuMeMCIK/16ydLbbEhRkLzcOhCP3vZTkCmVI9Tuz81/1wyZUg5v0+qbySKpF7PPgCEA==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=NvCMMsZb;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=M53apsbw;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CADDA606A31C;
-	Tue, 10 Nov 2026 00:26:30 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 84654606A32A;
+	Tue, 10 Nov 2026 01:02:19 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=NvCMMsZb
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 808701F008A1;
-	Tue, 10 Nov 2026 00:26:30 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=M53apsbw
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1D8AE1F0089F;
+	Tue, 10 Nov 2026 01:02:19 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1794270390;
-	bh=qabSgjJUBX2Oz+uaRG2lMApO+AcZr478dEqj1/UW1bs=;
+	d=linux-foundation.org; s=korg; t=1794272539;
+	bh=20hEICLil4kCUjTHTP5j0xVG6xrZnV5pk0kULcwM08M=;
 	h=Date:To:From:Subject;
-	b=NvCMMsZbzl+EBG755hIjTSf6wZY+yVzkKTvhdFjpruPeHr8Dc5UUllvYLlPWmMZdL
-	 XxhQ9xfOgdUchp+wzsSvdLGha6vx/cmI5meWyS2ODtoBExk3jBrDXta29FUHKUFGDQ
-	 bMZWWmoeOXjbdtp9WzNO77ZR//Evc1V9tgUz1+ZY=
-Date: Mon, 09 Nov 2026 16:26:30 -0800
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,usama.arif@linux.dev,
-	stable@vger.kernel.org,ryan.roberts@arm.com,qi.zheng@linux.dev,
-	nico.pache@linux.dev,liam@infradead.org,lance.yang@linux.dev,kas@kernel.org,
-	hughd@google.com,dev.jain@arm.com,baolin.wang@linux.alibaba.com,
-	baohua@kernel.org,david@kernel.org,akpm@linux-foundation.org
+	b=M53apsbwRQ1KxcaxC6OLKxtLt+9QCDxH2uz0DmtHag8ss9TSm7Y+nUUlaw8dG8gKU
+	 KCeYRih8r9QDDeOQIqaTfVjGV1oCEBCvJ8quRadGACIuFJP+8fI4iO9T1QwocIxBPD
+	 FZkbulQQT0kss14K1KUeeTRBNfx/wNphLUOCuMXk=
+Date: Mon, 09 Nov 2026 17:02:18 -0800
+To: mm-commits@vger.kernel.org,stable@vger.kernel.org,sj@kernel.org,
+	gkwang@linx-info.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-khugepaged-free-unused-page-table-when-setting-a-huge-pmd-fails.patch added to mm-new branch
-Message-Id: <20261110002630.808701F008A1@smtp.kernel.org>
+Subject: + mm-damon-stat-avoid-overflow-in-estimated_memory_bandwidth-calculation.patch added to mm-hotfixes-unstable branch
+Message-Id: <20261110010219.1D8AE1F0089F@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -55,26 +52,15 @@ Precedence: list
 
 
 The patch titled
-     Subject: mm: free unused page table allocated by do_set_pmd()
-has been added to the -mm mm-new branch.  Its filename is
-     mm-khugepaged-free-unused-page-table-when-setting-a-huge-pmd-fails.patch
+     Subject: mm/damon/stat: avoid overflow in estimated_memory_bandwidth calculation
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     mm-damon-stat-avoid-overflow-in-estimated_memory_bandwidth-calculation.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-khugepaged-free-unused-page-table-when-setting-a-huge-pmd-fails.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-stat-avoid-overflow-in-estimated_memory_bandwidth-calculation.patch
 
-This patch will later appear in the mm-new branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Note, mm-new is a provisional staging ground for work-in-progress
-patches, and acceptance into mm-new is a notification for others take
-notice and to finish up reviews.  Please do not hesitate to respond to
-review feedback and post updated versions to replace or incrementally
-fixup patches in mm-new.
-
-The mm-new branch of mm.git is not included in linux-next
-
-If a few days of testing in mm-new is successful, the patch will me moved
-into mm.git's mm-unstable branch, which is included in linux-next
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -89,85 +75,76 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: "David Hildenbrand (Arm)" <david@kernel.org>
-Subject: mm: free unused page table allocated by do_set_pmd()
-Date: Wed, 4 Nov 2026 20:56:37 +0100
+From: Wang Guangke <gkwang@linx-info.com>
+Subject: mm/damon/stat: avoid overflow in estimated_memory_bandwidth calculation
+Date: Mon,  9 Nov 2026 16:48:14 -0800
 
-do_set_pmd() can allocate vmf->prealloc_pte on architectures that need a
-deposited page table, such as PowerPC with the hash MMU.  If the PMD is no
-longer empty when it takes the PMD lock, it returns VM_FAULT_FALLBACK
-without consuming that table.
+estimated_memory_bandwidth is calculated by access_bytes * USEC_PER_MSEC *
+MSEC_PER_SEC (= USEC_PER_SEC) / aggr_interval, and users read it via
+/sys/module/damon_stat/parameters/estimated_memory_bandwidth.
 
-Since collapse_pte_mapped_thp() uses mmap_read_lock(), a concurrent
-userfaultfd operation can install a PTE table before taking the folio
-lock.  If that races with set_huge_pmd(), the unused preallocated table is
-lost when its local vm_fault goes out of scope.
+On 32-bit systems, access_bytes * USEC_PER_SEC overflows unsigned long
+once access_bytes exceeds about 4294 (U32_MAX / USEC_PER_SEC), so users
+get a wrong value.
 
-Track whether do_set_pmd() allocated the table and free it after dropping
-the PMD lock if it was not consumed.  Preserve any preallocated table
-supplied by the caller for PTE fallback.  Successful PMD installation
-consumes the table and clears the pointer.
+Fix it by doing the calculation in 64-bit and splitting the division into
+quotient and remainder.
 
-Returning without a preallocated table matches the existing behavior on
-architectures that do not need a deposited table.  All callers already
-handle that case.
+The issue was reproduced on a 32-bit system (qemu-system-i386): the
+parameter estimated_memory_bandwidth reported 362 instead of the expected
+1926150; with the fix, the value matches the expectation.
 
-Link: https://lore.kernel.org/c13cdd25-7d7b-4059-a22d-af0a48fabaac@kernel.org
-Fixes: 1043173eb5eb ("mm/khugepaged: collapse_pte_mapped_thp() with mmap_read_lock()")
-Signed-off-by: David Hildenbrand (Arm) <david@kernel.org>
+Link: https://lore.kernel.org/20261110004816.100066-1-sj@kernel.org
+Fixes: fabdd1e911da ("mm/damon/stat: calculate and expose estimated memory bandwidth")
+Signed-off-by: Wang Guangke <gkwang@linx-info.com>
+Signed-off-by: SJ Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Reviewed-by: Kiryl Shutsemau (Meta) <kas@kernel.org>
-Cc: Zi Yan <ziy@nvidia.com>
-Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: Liam R. Howlett <liam@infradead.org>
-Cc: Nico Pache <nico.pache@linux.dev>
-Cc: Ryan Roberts <ryan.roberts@arm.com>
-Cc: Dev Jain <dev.jain@arm.com>
-Cc: Barry Song <baohua@kernel.org>
-Cc: Lance Yang <lance.yang@linux.dev>
-Cc: Usama Arif <usama.arif@linux.dev>
-Cc: Qi Zheng <qi.zheng@linux.dev>
-Cc: Hugh Dickins <hughd@google.com>
+Reviewed-by: SJ Park <sj@kernel.org>
 Cc: <stable@vger.kernel.org>
 ---
 
- mm/memory.c |    6 ++++++
- 1 file changed, 6 insertions(+)
+ mm/damon/stat.c |   15 +++++++++------
+ 1 file changed, 9 insertions(+), 6 deletions(-)
 
---- a/mm/memory.c~mm-khugepaged-free-unused-page-table-when-setting-a-huge-pmd-fails
-+++ a/mm/memory.c
-@@ -5694,6 +5694,7 @@ vm_fault_t do_set_pmd(struct vm_fault *v
- 	struct vm_area_struct *vma = vmf->vma;
- 	bool write = vmf->flags & FAULT_FLAG_WRITE;
- 	unsigned long haddr = vmf->address & HPAGE_PMD_MASK;
-+	bool pgtable_allocated = false;
- 	pmd_t entry;
- 	vm_fault_t ret = VM_FAULT_FALLBACK;
+--- a/mm/damon/stat.c~mm-damon-stat-avoid-overflow-in-estimated_memory_bandwidth-calculation
++++ a/mm/damon/stat.c
+@@ -32,8 +32,8 @@ static bool enabled __read_mostly = IS_E
+ module_param_cb(enabled, &enabled_param_ops, NULL, 0600);
+ MODULE_PARM_DESC(enabled, "Enable of disable DAMON_STAT");
  
-@@ -5732,6 +5733,7 @@ vm_fault_t do_set_pmd(struct vm_fault *v
- 		vmf->prealloc_pte = pte_alloc_one(vma->vm_mm);
- 		if (!vmf->prealloc_pte)
- 			return VM_FAULT_OOM;
-+		pgtable_allocated = true;
+-static unsigned long estimated_memory_bandwidth __read_mostly;
+-module_param(estimated_memory_bandwidth, ulong, 0400);
++static u64 estimated_memory_bandwidth __read_mostly;
++module_param(estimated_memory_bandwidth, ullong, 0400);
+ MODULE_PARM_DESC(estimated_memory_bandwidth,
+ 		"Estimated memory bandwidth usage in bytes per second");
+ 
+@@ -55,15 +55,18 @@ static void damon_stat_set_estimated_mem
+ {
+ 	struct damon_target *t;
+ 	struct damon_region *r;
+-	unsigned long access_bytes = 0;
++	u64 access_bytes = 0;
++	u64 remainder, bytes_per_us;
+ 
+ 	damon_for_each_target(t, c) {
+ 		damon_for_each_region(r, t)
+-			access_bytes += (r->ar.end - r->ar.start) *
++			access_bytes += (u64)(r->ar.end - r->ar.start) *
+ 				r->nr_accesses;
  	}
- 
- 	vmf->ptl = pmd_lock(vma->vm_mm, vmf->pmd);
-@@ -5762,6 +5764,10 @@ vm_fault_t do_set_pmd(struct vm_fault *v
- 	count_vm_event(THP_FILE_MAPPED);
- out:
- 	spin_unlock(vmf->ptl);
-+	if (pgtable_allocated && vmf->prealloc_pte) {
-+		pte_free(vma->vm_mm, vmf->prealloc_pte);
-+		vmf->prealloc_pte = NULL;
-+	}
- 	return ret;
+-	estimated_memory_bandwidth = access_bytes * USEC_PER_MSEC *
+-		MSEC_PER_SEC / c->attrs.aggr_interval;
++	bytes_per_us = div64_u64_rem(access_bytes,
++			c->attrs.aggr_interval, &remainder);
++	estimated_memory_bandwidth = bytes_per_us * USEC_PER_SEC +
++		div64_u64(remainder * USEC_PER_SEC, c->attrs.aggr_interval);
  }
- #else
+ 
+ static int damon_stat_idletime(const struct damon_region *r)
 _
 
-Patches currently in -mm which might be from david@kernel.org are
+Patches currently in -mm which might be from gkwang@linx-info.com are
 
-mm-memory-failure-fix-folio-refcount-leak-and-min_order_for_split-locking.patch
-mm-mprotect-dont-skip-uffd-marker-install-when-racing-with-pte-table-reclaim.patch
-mm-khugepaged-free-unused-page-table-when-setting-a-huge-pmd-fails.patch
+mm-damon-stat-avoid-overflow-in-estimated_memory_bandwidth-calculation.patch
 
