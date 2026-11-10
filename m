@@ -1,47 +1,47 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794269056;
-	b=UrkUHt/fBEJKqWYNxeAn6g4Kzr8l6VxzZJ6os0+/XdPgnuCbZA2GK0jlxrfcAP7R6jAs
-	 zneBPaEYfXfMgRDuLkZyTUJvv9ye6+1DxZ+1jjox5jq0Lm1S6M9NbhZnXftS1cdcMqVFk
-	 juiEHSJQWpI3jsiWioeUsHSsi5B5O7x9cARtLeT3SNmz6LQb/7VOq3B4lomEpWOS7Zb5T
-	 yQ+oidyNYLY+UYkD1K7tbG31nX/1/OgjLJNycYv4ru+ksD7/YTy8+QUAp4SYn/PNW+MEc
-	 Kgpo41vdsqZvW03N7YjixVVjyQ2aQqQaa/lnh2JhE7eLLk9iAGpxEjSI6DRUbu8Fp8g==
+	t=1794269353;
+	b=t2PaBCzu/tDR6fNLzAmdH2XBYIugQhKjhHC3SxiK7SzFCWpGpFkAxjYaj2PL//8mKVrk
+	 iIcARDkN48VueFOoLfSkxe3p3lR/jVsfRjjq0/4NA/t0CpWXylyABpedHf5grqZGayDt8
+	 vrhp6Mj+ISomkR8xZoBllvsZg8vt29PsJEyRGFdmD0SO9LQ7YZTaJyZ9Uv5obd7urnzIg
+	 QlRZTO4hYm4LOQE3t0ec2vQQXeh0ljeFOtvckuR61wQ9w6/zdSCqbCm/P2UMnkD0Zz9gG
+	 YyqC3D+AaKdX4ZRojKDJVM+ngYV7O3r/P/EHm0z/bwrETYtxA6AWhgNa3gcrA3+SZpg==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794269056;
+	a=rsa-sha256; c=relaxed/relaxed; t=1794269353;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=fqQwualGEp5X/tGOCi/HaXQzrAh2/5lnaKsV3+VJDsI=;
-	b=EpqeNnNOCIEYrHvuL4SmjX59yI/ql9o/5pjvseQpDTfns/Zqt2E1idTNSJofTtWL3t37
-	 Y9cstN90q0gQCDoFdmsnyk4QswoEfEMGjQ7fELb2zQB6EXS/E7Zemg+cwJc4nq3+O3AM4
-	 gFrsy810VGqZpl0VwYHyoVY4lxl1zdjL99H2N/U2U4FxPdRJnaxMMkjdxL3WAjYIHprNj
-	 vCFmASXrQulnKtmduoVbWde/sts4jj+gOPkoB9ggXW7xkvY+GKdgTAMVl+Qqq0cg97+hl
-	 cPOKGa/dUryymnaq5GJ4ezAU9LTHnqkK2Yh0S79n34uGbpLThAuqVQi98qCcx1R9Idg==
+	bh=2sADtvR8xRruKhbTehK05Ksdl+O9CyvkErm6+5ZybOw=;
+	b=2bOJRP/UvLjNmeuMt0+J6yhRlPaexvRGsmMdmxUVfbVKEbTbQ9SMEwYvWPu24G1QZdq+
+	 24493jdaOvaCRN8eMoJAQzNUCuj2vdFIgBMWuLiG1gKvJdXeqy1/c24xwzD2srF+iimJO
+	 sdxOI088upDdeTsSBGD5KA6SI7Z8TMy/bUR3Hl2WBOsndpNxpptbIZvIl89BR1wMGrxk6
+	 M1iqP+BIFmCPmIkCklDpUBMVXbYjHv9hXsVC9nJ7b4vjGxCdOiopns3afkalmF8niFFRG
+	 RTgdEXeOXUZm1INw7cOBal8WrzyqgAZp1SHoKGgM4xbMQO4X5oy/Y5q7r5lGqdMFkew==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=ETeDJbNa;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=tVJsxRxD;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B323E606A330
-	for <mm-commits@vger.kernel.org>; Tue, 10 Nov 2026 00:04:15 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0D5E8606A31C
+	for <mm-commits@vger.kernel.org>; Tue, 10 Nov 2026 00:09:12 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=ETeDJbNa
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5899F1F0089F;
-	Tue, 10 Nov 2026 00:04:15 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=tVJsxRxD
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A86F41F0089F;
+	Tue, 10 Nov 2026 00:09:12 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1794269055;
-	bh=fqQwualGEp5X/tGOCi/HaXQzrAh2/5lnaKsV3+VJDsI=;
+	d=linux-foundation.org; s=korg; t=1794269352;
+	bh=2sADtvR8xRruKhbTehK05Ksdl+O9CyvkErm6+5ZybOw=;
 	h=Date:To:From:Subject;
-	b=ETeDJbNa0tApSB8oxSlWLBJaq7lNxv+98OnLoJ/Z7h/Jjp/8i7QCi0bDHVHM8Gwty
-	 IBp/YN68fsrNp2B+Cxv+8LLU/87b2yTe4UQQHAyWnyAcB7zV1Kk/3rHtxTg6ZOj3AG
-	 OeJPAmUcn1SMxEofZRiafWNbVBpInxXl0C/lXpog=
-Date: Mon, 09 Nov 2026 16:04:14 -0800
-To: mm-commits@vger.kernel.org,terrelln@fb.com,raemoar63@gmail.com,
-	dsterba@suse.com,david@davidgow.net,brendan.higgins@linux.dev,
-	amit.patole@gmail.com,akpm@linux-foundation.org
+	b=tVJsxRxDdar3hSB484mS79VTscCLSg1um9aa0c3IW8qOk+VMy5ezEDVnL9Wf88/KO
+	 8srWJ91FlQoja3qBGXLfCPs8afVX1XPKFQUempNMVPrR36OjA+qrhfin3CzUe87KI9
+	 SYyjkaoD7HlpQxVHemkW+tyu/hqcl8r8LJFKpjH8=
+Date: Mon, 09 Nov 2026 16:09:12 -0800
+To: mm-commits@vger.kernel.org,raemoar63@gmail.com,
+	ilias.apalodimas@linaro.org,david@davidgow.net,brendan.higgins@linux.dev,
+	ardb@kernel.org,amit.patole@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + lib-tests-add-kunit-tests-for-xxhash.patch added to mm-nonmm-unstable branch
-Message-Id: <20261110000415.5899F1F0089F@smtp.kernel.org>
+Subject: + lib-tests-add-kunit-tests-for-the-ucs-2-string-helpers.patch added to mm-nonmm-unstable branch
+Message-Id: <20261110000912.A86F41F0089F@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -53,12 +53,12 @@ Precedence: list
 
 
 The patch titled
-     Subject: lib/tests: add KUnit tests for xxHash
+     Subject: lib/tests: add KUnit tests for the UCS-2 string helpers
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     lib-tests-add-kunit-tests-for-xxhash.patch
+     lib-tests-add-kunit-tests-for-the-ucs-2-string-helpers.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/lib-tests-add-kunit-tests-for-xxhash.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/lib-tests-add-kunit-tests-for-the-ucs-2-string-helpers.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -77,347 +77,374 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Amit Patole <amit.patole@gmail.com>
-Subject: lib/tests: add KUnit tests for xxHash
-Date: Fri, 06 Nov 2026 09:02:11 -0500
+Subject: lib/tests: add KUnit tests for the UCS-2 string helpers
+Date: Fri, 06 Nov 2026 08:12:31 -0500
 
-lib/xxhash.c provides xxh32() and xxh64(), used by zstd (frame checksums
-and long-distance matching), btrfs and erofs, where the values end up on
-disk.  The crypto self-tests cover xxh64() through the "xxhash64" shash,
-but nothing tests xxh32() or the library interface directly.
+lib/ucs2_string.c is used for EFI variable names (efivarfs, efi-pstore),
+Apple device properties, the EFI stub's load options and Hyper-V interface
+aliases, but has no unit tests.
 
-Add a KUnit suite with known answers from the reference xxHash
-implementation.  The input is generated the same way as in xxHash's own
-sanity check, so the lengths 1, 14 and 222 reproduce the values published
-there.  It covers:
+Add a KUnit suite that covers:
 
-- xxh32() with two seeds and xxh64() with three, for lengths around
-  the 4, 8, 16 and 32 byte boundaries of the algorithms;
-- the xxh64 streaming interface, split into two updates at every
-  possible point and fed one byte at a time, and repeated
-  xxh64_digest() calls;
-- xxh64_update() rejecting a NULL input with -EINVAL;
-- input at every offset from 1 to 7 bytes, which must not change
-  the result.
+- ucs2_strnlen(), ucs2_strlen() and ucs2_strsize(), including a
+  byte limit that is not a whole number of characters;
+- ucs2_strscpy(): exact fit, truncation with -E2BIG and NUL
+  termination, and the zero-sized and oversized buffer checks;
+- ucs2_strncmp(): ordering, the length limit, prefixes and unsigned
+  comparison of characters above 0x7fff;
+- ucs2_utf8size() and ucs2_as_utf8() for the one, two and three byte
+  UTF-8 boundaries (U+007F/U+0080, U+07FF/U+0800, U+FFFF);
+- truncation in ucs2_as_utf8(): a multi-byte character is never
+  split, and the terminator is written only when there is room;
+- ucs2_as_utf8_l() on a source that is not NUL terminated, which is
+  why it was split out of ucs2_as_utf8().
 
-An AI coding assistant (Claude Opus 5.5) was used to draft the tests, and
-the expected values were generated with the reference implementation
-(python-xxhash 3.7.0) after checking it against the published sanity
-values.  The tests were run with "tools/testing/kunit/kunit.py run" on UML
-(146/146 pass), built with W=1 without warnings, and checked against
-off-by-one changes to the length checks in xxh32(), xxh64() and
-xxh64_update(), which the suite catches.
+An AI coding assistant (Claude Opus 5.5) was used to pick the untested
+helpers and draft the tests.  They were run with
+"tools/testing/kunit/kunit.py run" on UML (19/19 pass), built with W=1
+without warnings, and checked against deliberately broken versions of
+ucs2_strscpy() and ucs2_as_utf8_l(), which the suite catches.
 
-Link: https://lore.kernel.org/20261106-kunit-xxhash-v1-1-7b79cb6a8998@gmail.com
+Link: https://lore.kernel.org/20261106-kunit-ucs2-string-v1-1-28d8e134ba1f@gmail.com
 Signed-off-by: Amit Patole <amit.patole@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Cc: Nick Terrell <terrelln@fb.com>
-Cc: David Sterba <dsterba@suse.com>
+Cc: Ard Biesheuvel <ardb@kernel.org>
+Cc: Ilias Apalodimas <ilias.apalodimas@linaro.org>
 Cc: Brendan Higgins <brendan.higgins@linux.dev>
 Cc: David Gow <david@davidgow.net>
 Cc: Rae Moar <raemoar63@gmail.com>
 ---
 
- lib/Kconfig.debug        |   14 +
- lib/tests/Makefile       |    1 
- lib/tests/xxhash_kunit.c |  260 +++++++++++++++++++++++++++++++++++++
- 3 files changed, 275 insertions(+)
+ lib/Kconfig.debug             |   14 +
+ lib/tests/Makefile            |    1 
+ lib/tests/ucs2_string_kunit.c |  288 ++++++++++++++++++++++++++++++++
+ 3 files changed, 303 insertions(+)
 
---- a/lib/Kconfig.debug~lib-tests-add-kunit-tests-for-xxhash
+--- a/lib/Kconfig.debug~lib-tests-add-kunit-tests-for-the-ucs-2-string-helpers
 +++ a/lib/Kconfig.debug
-@@ -3493,6 +3493,20 @@ config RATELIMIT_KUNIT_TEST
+@@ -3507,6 +3507,20 @@ config XXHASH_KUNIT_TEST
  
  	  If unsure, say N.
  
-+config XXHASH_KUNIT_TEST
-+	tristate "KUnit test for xxHash" if !KUNIT_ALL_TESTS
++config UCS2_STRING_KUNIT_TEST
++	tristate "KUnit test for UCS-2 string helpers" if !KUNIT_ALL_TESTS
 +	depends on KUNIT
-+	select XXHASH
++	select UCS2_STRING
 +	default KUNIT_ALL_TESTS
 +	help
-+	  This option enables the KUnit test suite for lib/xxhash.c, the
-+	  xxh32() and xxh64() hashes used by zstd, btrfs and erofs. The
-+	  tests check known answers from the reference xxHash
-+	  implementation, the xxh64 streaming interface and unaligned
-+	  input.
++	  This option enables the KUnit test suite for the UCS-2 string
++	  helpers in lib/ucs2_string.c, which are used for EFI variable
++	  names and other firmware strings. The tests cover length,
++	  copy and compare helpers and the UCS-2 to UTF-8 conversion,
++	  including truncation at the destination buffer size.
 +
 +	  If unsure, say N.
 +
  config UUID_KUNIT_TEST
  	tristate "KUnit test for UUID" if !KUNIT_ALL_TESTS
  	depends on KUNIT
---- a/lib/tests/Makefile~lib-tests-add-kunit-tests-for-xxhash
+--- a/lib/tests/Makefile~lib-tests-add-kunit-tests-for-the-ucs-2-string-helpers
 +++ a/lib/tests/Makefile
-@@ -61,5 +61,6 @@ obj-$(CONFIG_USERCOPY_KUNIT_TEST) += use
+@@ -57,6 +57,7 @@ CFLAGS_stackinit_kunit.o += $(call cc-di
+ obj-$(CONFIG_STACKINIT_KUNIT_TEST) += stackinit_kunit.o
+ obj-$(CONFIG_STRING_KUNIT_TEST) += string_kunit.o
+ obj-$(CONFIG_STRING_HELPERS_KUNIT_TEST) += string_helpers_kunit.o
++obj-$(CONFIG_UCS2_STRING_KUNIT_TEST) += ucs2_string_kunit.o
+ obj-$(CONFIG_USERCOPY_KUNIT_TEST) += usercopy_kunit.o
  obj-$(CONFIG_UTIL_MACROS_KUNIT) += util_macros_kunit.o
  obj-$(CONFIG_RATELIMIT_KUNIT_TEST) += test_ratelimit.o
- obj-$(CONFIG_UUID_KUNIT_TEST) += uuid_kunit.o
-+obj-$(CONFIG_XXHASH_KUNIT_TEST) += xxhash_kunit.o
- 
- obj-$(CONFIG_TEST_RUNTIME_MODULE)		+= module/
-diff --git a/lib/tests/xxhash_kunit.c a/lib/tests/xxhash_kunit.c
+diff --git a/lib/tests/ucs2_string_kunit.c a/lib/tests/ucs2_string_kunit.c
 new file mode 100644
 --- /dev/null
-+++ a/lib/tests/xxhash_kunit.c
-@@ -0,0 +1,260 @@
++++ a/lib/tests/ucs2_string_kunit.c
+@@ -0,0 +1,288 @@
 +// SPDX-License-Identifier: GPL-2.0
 +/*
-+ * KUnit tests for the xxHash implementation in lib/xxhash.c
-+ *
-+ * The expected values come from the reference xxHash implementation. The
-+ * input is generated the same way as in xxHash's own sanity check, so the
-+ * entries for lengths 1, 14 and 222 match the values published there.
++ * KUnit tests for the UCS-2 string helpers in lib/ucs2_string.c
 + */
 +
 +#include <kunit/test.h>
 +#include <linux/module.h>
 +#include <linux/string.h>
-+#include <linux/xxhash.h>
++#include <linux/ucs2_string.h>
 +
-+#define XXH_TEST_LEN	222
++/* "abc" */
++static const ucs2_char_t abc[] = { 'a', 'b', 'c', 0 };
++/* "a", U+00E9 (e acute), U+20AC (euro sign) */
++static const ucs2_char_t mixed[] = { 'a', 0x00e9, 0x20ac, 0 };
++static const ucs2_char_t empty[] = { 0 };
 +
-+static const u32 xxh_prime32 = 2654435761U;
-+static const u64 xxh_prime64 = 11400714785074694797ULL;
++static void ucs2_strnlen_test(struct kunit *test)
++{
++	KUNIT_EXPECT_EQ(test, ucs2_strnlen(empty, 10), 0);
++	KUNIT_EXPECT_EQ(test, ucs2_strnlen(abc, 10), 3);
++	KUNIT_EXPECT_EQ(test, ucs2_strnlen(abc, 3), 3);
++	KUNIT_EXPECT_EQ(test, ucs2_strnlen(abc, 2), 2);
++	KUNIT_EXPECT_EQ(test, ucs2_strnlen(abc, 0), 0);
++	KUNIT_EXPECT_EQ(test, ucs2_strnlen(mixed, 10), 3);
++}
 +
-+struct xxh32_case {
++static void ucs2_strlen_test(struct kunit *test)
++{
++	KUNIT_EXPECT_EQ(test, ucs2_strlen(empty), 0);
++	KUNIT_EXPECT_EQ(test, ucs2_strlen(abc), 3);
++	KUNIT_EXPECT_EQ(test, ucs2_strlen(mixed), 3);
++}
++
++static void ucs2_strsize_test(struct kunit *test)
++{
++	/* The result is in bytes, and @maxlength is in bytes too. */
++	KUNIT_EXPECT_EQ(test, ucs2_strsize(abc, 100), 6);
++	KUNIT_EXPECT_EQ(test, ucs2_strsize(abc, 4), 4);
++	/* An odd byte limit is rounded down to whole characters. */
++	KUNIT_EXPECT_EQ(test, ucs2_strsize(abc, 5), 4);
++	KUNIT_EXPECT_EQ(test, ucs2_strsize(abc, 1), 0);
++	KUNIT_EXPECT_EQ(test, ucs2_strsize(empty, 100), 0);
++}
++
++static void ucs2_strscpy_test(struct kunit *test)
++{
++	ucs2_char_t dst[8];
++
++	/* Plenty of room. */
++	memset(dst, 0xff, sizeof(dst));
++	KUNIT_EXPECT_EQ(test, ucs2_strscpy(dst, abc, ARRAY_SIZE(dst)), 3);
++	KUNIT_EXPECT_EQ(test, ucs2_strncmp(dst, abc, ARRAY_SIZE(dst)), 0);
++	/* Nothing is written past the terminator. */
++	KUNIT_EXPECT_EQ(test, dst[4], 0xffff);
++
++	/* Exact fit: three characters plus the terminator. */
++	memset(dst, 0xff, sizeof(dst));
++	KUNIT_EXPECT_EQ(test, ucs2_strscpy(dst, abc, 4), 3);
++	KUNIT_EXPECT_EQ(test, dst[3], 0);
++
++	/* One short: truncated, still terminated, -E2BIG. */
++	memset(dst, 0xff, sizeof(dst));
++	KUNIT_EXPECT_EQ(test, ucs2_strscpy(dst, abc, 3), -E2BIG);
++	KUNIT_EXPECT_EQ(test, dst[0], 'a');
++	KUNIT_EXPECT_EQ(test, dst[1], 'b');
++	KUNIT_EXPECT_EQ(test, dst[2], 0);
++	KUNIT_EXPECT_EQ(test, dst[3], 0xffff);
++
++	/* Room for the terminator only. */
++	memset(dst, 0xff, sizeof(dst));
++	KUNIT_EXPECT_EQ(test, ucs2_strscpy(dst, abc, 1), -E2BIG);
++	KUNIT_EXPECT_EQ(test, dst[0], 0);
++	KUNIT_EXPECT_EQ(test, dst[1], 0xffff);
++
++	/* A zero-sized buffer is rejected and left untouched. */
++	memset(dst, 0xff, sizeof(dst));
++	KUNIT_EXPECT_EQ(test, ucs2_strscpy(dst, abc, 0), -E2BIG);
++	KUNIT_EXPECT_EQ(test, dst[0], 0xffff);
++
++	/* So is a size that does not fit in the ssize_t return value. */
++	KUNIT_EXPECT_EQ(test, ucs2_strscpy(dst, abc, (size_t)SSIZE_MAX + 1),
++			-E2BIG);
++	KUNIT_EXPECT_EQ(test, dst[0], 0xffff);
++
++	/* Empty source. */
++	KUNIT_EXPECT_EQ(test, ucs2_strscpy(dst, empty, ARRAY_SIZE(dst)), 0);
++	KUNIT_EXPECT_EQ(test, dst[0], 0);
++}
++
++static void ucs2_strncmp_test(struct kunit *test)
++{
++	static const ucs2_char_t abd[] = { 'a', 'b', 'd', 0 };
++	static const ucs2_char_t ab[] = { 'a', 'b', 0 };
++	static const ucs2_char_t lo[] = { 0x0001, 0 };
++	static const ucs2_char_t hi[] = { 0xffff, 0 };
++
++	KUNIT_EXPECT_EQ(test, ucs2_strncmp(abc, abc, 10), 0);
++	KUNIT_EXPECT_EQ(test, ucs2_strncmp(abc, abd, 10), -1);
++	KUNIT_EXPECT_EQ(test, ucs2_strncmp(abd, abc, 10), 1);
++	/* Only the first @len characters are compared. */
++	KUNIT_EXPECT_EQ(test, ucs2_strncmp(abc, abd, 2), 0);
++	KUNIT_EXPECT_EQ(test, ucs2_strncmp(abc, abd, 0), 0);
++	/* A prefix sorts first, because its terminator is the smaller value. */
++	KUNIT_EXPECT_EQ(test, ucs2_strncmp(ab, abc, 10), -1);
++	KUNIT_EXPECT_EQ(test, ucs2_strncmp(abc, ab, 10), 1);
++	KUNIT_EXPECT_EQ(test, ucs2_strncmp(empty, empty, 10), 0);
++	/* Characters compare as unsigned 16-bit values. */
++	KUNIT_EXPECT_EQ(test, ucs2_strncmp(lo, hi, 10), -1);
++	KUNIT_EXPECT_EQ(test, ucs2_strncmp(hi, lo, 10), 1);
++}
++
++/* One UCS-2 character and its expected UTF-8 encoding. */
++struct ucs2_utf8_case {
++	ucs2_char_t c;
++	u8 utf8[3];
 +	unsigned int len;
-+	u32 seed;
-+	u32 hash;
 +};
 +
-+struct xxh64_case {
-+	unsigned int len;
-+	u64 seed;
-+	u64 hash;
++static const struct ucs2_utf8_case utf8_cases[] = {
++	{ 0x0001, { 0x01 }, 1 },
++	{ 0x0041, { 0x41 }, 1 },
++	{ 0x007f, { 0x7f }, 1 },
++	{ 0x0080, { 0xc2, 0x80 }, 2 },
++	{ 0x00e9, { 0xc3, 0xa9 }, 2 },
++	{ 0x07ff, { 0xdf, 0xbf }, 2 },
++	{ 0x0800, { 0xe0, 0xa0, 0x80 }, 3 },
++	{ 0x20ac, { 0xe2, 0x82, 0xac }, 3 },
++	{ 0xfffd, { 0xef, 0xbf, 0xbd }, 3 },
++	{ 0xffff, { 0xef, 0xbf, 0xbf }, 3 },
 +};
 +
-+static const struct xxh32_case xxh32_cases[] = {
-+	{   0, 0x00000000, 0x02cc5d05 },
-+	{   1, 0x00000000, 0xcf65b03e },
-+	{   3, 0x00000000, 0xc23884f5 },
-+	{   4, 0x00000000, 0xa9de7ce9 },
-+	{   5, 0x00000000, 0xeb1734bb },
-+	{   8, 0x00000000, 0xa3f6f44b },
-+	{  14, 0x00000000, 0x1208e7e2 },
-+	{  15, 0x00000000, 0x6b859e14 },
-+	{  16, 0x00000000, 0x93ba3759 },
-+	{  17, 0x00000000, 0x89fdc23e },
-+	{  31, 0x00000000, 0x5f40e562 },
-+	{  32, 0x00000000, 0xd89829ec },
-+	{  33, 0x00000000, 0x31a427e5 },
-+	{  63, 0x00000000, 0xf1d48fdb },
-+	{  64, 0x00000000, 0x02e95dbb },
-+	{  65, 0x00000000, 0x16992b3d },
-+	{ 100, 0x00000000, 0x96ad8143 },
-+	{ 222, 0x00000000, 0x5bd11dbd },
-+	{   0, 0x9e3779b1, 0x36b78ae7 },
-+	{   1, 0x9e3779b1, 0xb4545aa4 },
-+	{   3, 0x9e3779b1, 0x1a269947 },
-+	{   4, 0x9e3779b1, 0x2baafe83 },
-+	{   5, 0x9e3779b1, 0x5874dab0 },
-+	{   8, 0x9e3779b1, 0xc2a8e239 },
-+	{  14, 0x9e3779b1, 0x6af1d1fe },
-+	{  15, 0x9e3779b1, 0xad53090d },
-+	{  16, 0x9e3779b1, 0xa94fc1e1 },
-+	{  17, 0x9e3779b1, 0xc9910739 },
-+	{  31, 0x9e3779b1, 0x5c0c3350 },
-+	{  32, 0x9e3779b1, 0xa5c44467 },
-+	{  33, 0x9e3779b1, 0x0de5b1f9 },
-+	{  63, 0x9e3779b1, 0x956b3d77 },
-+	{  64, 0x9e3779b1, 0xcf82f830 },
-+	{  65, 0x9e3779b1, 0x428eec5f },
-+	{ 100, 0x9e3779b1, 0x83d48124 },
-+	{ 222, 0x9e3779b1, 0x58803c5f },
-+};
-+
-+static const struct xxh64_case xxh64_cases[] = {
-+	{   0, 0x0000000000000000ULL, 0xef46db3751d8e999ULL },
-+	{   1, 0x0000000000000000ULL, 0xe934a84adb052768ULL },
-+	{   3, 0x0000000000000000ULL, 0xff7e1959cb50794aULL },
-+	{   4, 0x0000000000000000ULL, 0x9136a0dca57457eeULL },
-+	{   5, 0x0000000000000000ULL, 0x9b046fb1397f09a5ULL },
-+	{   8, 0x0000000000000000ULL, 0xcdbcf538e71d1348ULL },
-+	{  14, 0x0000000000000000ULL, 0x8282dcc4994e35c8ULL },
-+	{  15, 0x0000000000000000ULL, 0x180719316d622d84ULL },
-+	{  16, 0x0000000000000000ULL, 0x98c90b57fdfcb55cULL },
-+	{  17, 0x0000000000000000ULL, 0x0d39a2d051a30c2cULL },
-+	{  31, 0x0000000000000000ULL, 0x299b39a290e6d783ULL },
-+	{  32, 0x0000000000000000ULL, 0x18b216492bb44b70ULL },
-+	{  33, 0x0000000000000000ULL, 0x55c8dc3e578f5b59ULL },
-+	{  63, 0x0000000000000000ULL, 0xa9efbe0fa0f3f4e7ULL },
-+	{  64, 0x0000000000000000ULL, 0xef558f8acac2b5cdULL },
-+	{  65, 0x0000000000000000ULL, 0xde0f20dc2631af7aULL },
-+	{ 100, 0x0000000000000000ULL, 0x4bfe019cd91d9ea4ULL },
-+	{ 222, 0x0000000000000000ULL, 0xb641ae8cb691c174ULL },
-+	{   0, 0x000000009e3779b1ULL, 0xac75fda2929b17efULL },
-+	{   1, 0x000000009e3779b1ULL, 0x5014607643a9b4c3ULL },
-+	{   3, 0x000000009e3779b1ULL, 0xaa8584e83660f7d1ULL },
-+	{   4, 0x000000009e3779b1ULL, 0xcaab286bd8e9fdb5ULL },
-+	{   5, 0x000000009e3779b1ULL, 0x2af5249930f984ecULL },
-+	{   8, 0x000000009e3779b1ULL, 0xfe0c047a5353cdacULL },
-+	{  14, 0x000000009e3779b1ULL, 0xc3bd6bf63deb6df0ULL },
-+	{  15, 0x000000009e3779b1ULL, 0xd61105c20e91f99fULL },
-+	{  16, 0x000000009e3779b1ULL, 0xc900ad2d536b607eULL },
-+	{  17, 0x000000009e3779b1ULL, 0x495cd68a647c7a22ULL },
-+	{  31, 0x000000009e3779b1ULL, 0xda673d5feb5c1d79ULL },
-+	{  32, 0x000000009e3779b1ULL, 0xb3f33bdf93ade409ULL },
-+	{  33, 0x000000009e3779b1ULL, 0xe92c292f64bc3071ULL },
-+	{  63, 0x000000009e3779b1ULL, 0x6c911fadb05b6fc2ULL },
-+	{  64, 0x000000009e3779b1ULL, 0xb5eeba99264cc44fULL },
-+	{  65, 0x000000009e3779b1ULL, 0xd3f6ff3941e310caULL },
-+	{ 100, 0x000000009e3779b1ULL, 0x4853706dc9625caeULL },
-+	{ 222, 0x000000009e3779b1ULL, 0x20cb8ab7ae10c14aULL },
-+	{   0, 0x9e3779b97f4a7c15ULL, 0xc4349fc93c010000ULL },
-+	{   1, 0x9e3779b97f4a7c15ULL, 0x126bb57a12364aa5ULL },
-+	{   3, 0x9e3779b97f4a7c15ULL, 0xe23f055f9113033dULL },
-+	{   4, 0x9e3779b97f4a7c15ULL, 0xf6337e5fb526b92eULL },
-+	{   5, 0x9e3779b97f4a7c15ULL, 0x3fe27fb9d0eb8e4cULL },
-+	{   8, 0x9e3779b97f4a7c15ULL, 0x4fe88e05b3a5bfd8ULL },
-+	{  14, 0x9e3779b97f4a7c15ULL, 0xbdd0f167d252e0bbULL },
-+	{  15, 0x9e3779b97f4a7c15ULL, 0xb0298e00622d8613ULL },
-+	{  16, 0x9e3779b97f4a7c15ULL, 0xb37a43269a32566aULL },
-+	{  17, 0x9e3779b97f4a7c15ULL, 0xfd7e04ed256c9413ULL },
-+	{  31, 0x9e3779b97f4a7c15ULL, 0xb9fa34ecbf9b57ffULL },
-+	{  32, 0x9e3779b97f4a7c15ULL, 0xe65ea5f4eff5d5deULL },
-+	{  33, 0x9e3779b97f4a7c15ULL, 0xf166a3272cadc4abULL },
-+	{  63, 0x9e3779b97f4a7c15ULL, 0x0a36d884436efe01ULL },
-+	{  64, 0x9e3779b97f4a7c15ULL, 0xe7bd5052c0d2145eULL },
-+	{  65, 0x9e3779b97f4a7c15ULL, 0xfea9a8f0561339ddULL },
-+	{ 100, 0x9e3779b97f4a7c15ULL, 0x8dd80a6ef6296bf7ULL },
-+	{ 222, 0x9e3779b97f4a7c15ULL, 0x8cdf13ba7f241d67ULL },
-+};
-+
-+static u8 *xxh_test_buf(struct kunit *test)
++static void ucs2_utf8_case_desc(const struct ucs2_utf8_case *t, char *desc)
 +{
-+	u64 gen = xxh_prime32;
-+	u8 *buf;
-+	int i;
-+
-+	buf = kunit_kmalloc(test, XXH_TEST_LEN, GFP_KERNEL);
-+	KUNIT_ASSERT_NOT_NULL(test, buf);
-+
-+	for (i = 0; i < XXH_TEST_LEN; i++) {
-+		buf[i] = gen >> 56;
-+		gen *= xxh_prime64;
-+	}
-+	return buf;
++	snprintf(desc, KUNIT_PARAM_DESC_SIZE, "U+%04X", t->c);
 +}
 +
-+static void xxh32_case_desc(const struct xxh32_case *t, char *desc)
++KUNIT_ARRAY_PARAM(ucs2_utf8, utf8_cases, ucs2_utf8_case_desc);
++
++static void ucs2_as_utf8_char_test(struct kunit *test)
 +{
-+	snprintf(desc, KUNIT_PARAM_DESC_SIZE, "len %u seed %#x",
-+		 t->len, t->seed);
++	const struct ucs2_utf8_case *t = test->param_value;
++	const ucs2_char_t src[] = { t->c, 0 };
++	u8 dst[8];
++
++	KUNIT_EXPECT_EQ(test, ucs2_utf8size(src), t->len);
++
++	memset(dst, 0xff, sizeof(dst));
++	KUNIT_ASSERT_EQ(test, ucs2_as_utf8(dst, src, sizeof(dst)), t->len);
++	KUNIT_EXPECT_MEMEQ(test, dst, t->utf8, t->len);
++	KUNIT_EXPECT_EQ(test, dst[t->len], 0);
 +}
 +
-+static void xxh64_case_desc(const struct xxh64_case *t, char *desc)
++static void ucs2_utf8size_test(struct kunit *test)
 +{
-+	snprintf(desc, KUNIT_PARAM_DESC_SIZE, "len %u seed %#llx",
-+		 t->len, t->seed);
++	KUNIT_EXPECT_EQ(test, ucs2_utf8size(empty), 0);
++	KUNIT_EXPECT_EQ(test, ucs2_utf8size(abc), 3);
++	KUNIT_EXPECT_EQ(test, ucs2_utf8size(mixed), 1 + 2 + 3);
 +}
 +
-+KUNIT_ARRAY_PARAM(xxh32, xxh32_cases, xxh32_case_desc);
-+KUNIT_ARRAY_PARAM(xxh64, xxh64_cases, xxh64_case_desc);
-+
-+static void xxh32_test(struct kunit *test)
++static void ucs2_as_utf8_string_test(struct kunit *test)
 +{
-+	const struct xxh32_case *t = test->param_value;
-+	u8 *buf = xxh_test_buf(test);
++	static const u8 mixed_utf8[] = { 'a', 0xc3, 0xa9, 0xe2, 0x82, 0xac };
++	u8 dst[16];
 +
-+	KUNIT_EXPECT_EQ(test, xxh32(buf, t->len, t->seed), t->hash);
++	memset(dst, 0xff, sizeof(dst));
++	KUNIT_ASSERT_EQ(test, ucs2_as_utf8(dst, mixed, sizeof(dst)),
++			sizeof(mixed_utf8));
++	KUNIT_EXPECT_MEMEQ(test, dst, mixed_utf8, sizeof(mixed_utf8));
++	KUNIT_EXPECT_EQ(test, dst[sizeof(mixed_utf8)], 0);
++
++	/* The output length matches what ucs2_utf8size() predicts. */
++	KUNIT_EXPECT_EQ(test, ucs2_as_utf8(dst, mixed, sizeof(dst)),
++			ucs2_utf8size(mixed));
++
++	memset(dst, 0xff, sizeof(dst));
++	KUNIT_EXPECT_EQ(test, ucs2_as_utf8(dst, empty, sizeof(dst)), 0);
++	KUNIT_EXPECT_EQ(test, dst[0], 0);
 +}
 +
-+static void xxh64_test(struct kunit *test)
++static void ucs2_as_utf8_truncate_test(struct kunit *test)
 +{
-+	const struct xxh64_case *t = test->param_value;
-+	u8 *buf = xxh_test_buf(test);
++	u8 dst[16];
 +
-+	KUNIT_EXPECT_EQ(test, xxh64(buf, t->len, t->seed), t->hash);
++	/*
++	 * Output that exactly fills @maxlength is not NUL terminated, and
++	 * nothing is written past it.
++	 */
++	memset(dst, 0xff, sizeof(dst));
++	KUNIT_EXPECT_EQ(test, ucs2_as_utf8(dst, abc, 3), 3);
++	KUNIT_EXPECT_MEMEQ(test, dst, "abc", 3);
++	KUNIT_EXPECT_EQ(test, dst[3], 0xff);
++
++	/* A shorter buffer truncates, with no terminator. */
++	memset(dst, 0xff, sizeof(dst));
++	KUNIT_EXPECT_EQ(test, ucs2_as_utf8(dst, abc, 2), 2);
++	KUNIT_EXPECT_MEMEQ(test, dst, "ab", 2);
++	KUNIT_EXPECT_EQ(test, dst[2], 0xff);
++
++	/*
++	 * A multi-byte character is never split: "a" + U+00E9 + U+20AC needs
++	 * 6 bytes; with 4 the euro sign is dropped whole and the spare byte
++	 * holds the terminator.
++	 */
++	memset(dst, 0xff, sizeof(dst));
++	KUNIT_EXPECT_EQ(test, ucs2_as_utf8(dst, mixed, 4), 3);
++	KUNIT_EXPECT_MEMEQ(test, dst, "a\xc3\xa9", 3);
++	KUNIT_EXPECT_EQ(test, dst[3], 0);
++	KUNIT_EXPECT_EQ(test, dst[4], 0xff);
++
++	/* Likewise when two bytes are left for the three-byte euro sign. */
++	memset(dst, 0xff, sizeof(dst));
++	KUNIT_EXPECT_EQ(test, ucs2_as_utf8(dst, mixed, 5), 3);
++	KUNIT_EXPECT_MEMEQ(test, dst, "a\xc3\xa9", 3);
++	KUNIT_EXPECT_EQ(test, dst[3], 0);
++	KUNIT_EXPECT_EQ(test, dst[4], 0xff);
++
++	/* No room for even the first two-byte character. */
++	memset(dst, 0xff, sizeof(dst));
++	KUNIT_EXPECT_EQ(test, ucs2_as_utf8(dst, &mixed[1], 1), 0);
++	KUNIT_EXPECT_EQ(test, dst[0], 0);
++	KUNIT_EXPECT_EQ(test, dst[1], 0xff);
++
++	/* A zero-sized buffer is not written at all. */
++	memset(dst, 0xff, sizeof(dst));
++	KUNIT_EXPECT_EQ(test, ucs2_as_utf8(dst, abc, 0), 0);
++	KUNIT_EXPECT_EQ(test, dst[0], 0xff);
 +}
 +
-+/*
-+ * The streaming interface must give the same result as xxh64() however the
-+ * input is split. Try every split into two updates, and one byte at a time.
-+ */
-+static void xxh64_streaming_test(struct kunit *test)
++static void ucs2_as_utf8_l_test(struct kunit *test)
 +{
-+	const struct xxh64_case *t = test->param_value;
-+	u8 *buf = xxh_test_buf(test);
-+	struct xxh64_state state;
-+	unsigned int split, i;
++	/* Deliberately not NUL terminated. */
++	static const ucs2_char_t unterminated[] = { 'x', 0x00e9, 'y' };
++	static const u8 expected[] = { 'x', 0xc3, 0xa9, 'y' };
++	u8 dst[16];
 +
-+	for (split = 0; split <= t->len; split++) {
-+		xxh64_reset(&state, t->seed);
-+		KUNIT_ASSERT_EQ(test, xxh64_update(&state, buf, split), 0);
-+		KUNIT_ASSERT_EQ(test, xxh64_update(&state, buf + split,
-+						   t->len - split), 0);
-+		KUNIT_EXPECT_EQ_MSG(test, xxh64_digest(&state), t->hash,
-+				    "split at %u", split);
-+	}
++	/* @limit bounds the source, so it may lack a terminator. */
++	memset(dst, 0xff, sizeof(dst));
++	KUNIT_EXPECT_EQ(test, ucs2_as_utf8_l(dst, unterminated,
++					     ARRAY_SIZE(unterminated),
++					     sizeof(dst)), sizeof(expected));
++	KUNIT_EXPECT_MEMEQ(test, dst, expected, sizeof(expected));
++	KUNIT_EXPECT_EQ(test, dst[sizeof(expected)], 0);
 +
-+	xxh64_reset(&state, t->seed);
-+	for (i = 0; i < t->len; i++)
-+		KUNIT_ASSERT_EQ(test, xxh64_update(&state, buf + i, 1), 0);
-+	KUNIT_EXPECT_EQ(test, xxh64_digest(&state), t->hash);
++	/* A smaller @limit stops early, on a character boundary. */
++	memset(dst, 0xff, sizeof(dst));
++	KUNIT_EXPECT_EQ(test, ucs2_as_utf8_l(dst, unterminated, 2,
++					     sizeof(dst)), 3);
++	KUNIT_EXPECT_MEMEQ(test, dst, expected, 3);
++	KUNIT_EXPECT_EQ(test, dst[3], 0);
 +
-+	/* xxh64_digest() does not change the state, so it can be repeated. */
-+	KUNIT_EXPECT_EQ(test, xxh64_digest(&state), t->hash);
++	/* @maxlength still applies when @limit allows more. */
++	memset(dst, 0xff, sizeof(dst));
++	KUNIT_EXPECT_EQ(test, ucs2_as_utf8_l(dst, unterminated,
++					     ARRAY_SIZE(unterminated), 2), 1);
++	KUNIT_EXPECT_EQ(test, dst[0], 'x');
++	KUNIT_EXPECT_EQ(test, dst[1], 0);
++	KUNIT_EXPECT_EQ(test, dst[2], 0xff);
++
++	/* A zero @limit converts nothing but still terminates. */
++	memset(dst, 0xff, sizeof(dst));
++	KUNIT_EXPECT_EQ(test, ucs2_as_utf8_l(dst, unterminated, 0,
++					     sizeof(dst)), 0);
++	KUNIT_EXPECT_EQ(test, dst[0], 0);
 +}
 +
-+static void xxh64_update_null_test(struct kunit *test)
-+{
-+	struct xxh64_state state;
-+
-+	xxh64_reset(&state, 0);
-+	KUNIT_EXPECT_EQ(test, xxh64_update(&state, NULL, 0), -EINVAL);
-+	/* A rejected update leaves the state as it was. */
-+	KUNIT_EXPECT_EQ(test, xxh64_digest(&state), xxh64(NULL, 0, 0));
-+}
-+
-+/* The result does not depend on the alignment of the input. */
-+static void xxh_unaligned_test(struct kunit *test)
-+{
-+	u8 *buf = xxh_test_buf(test);
-+	u32 h32 = xxh32(buf, XXH_TEST_LEN, 0);
-+	u64 h64 = xxh64(buf, XXH_TEST_LEN, 0);
-+	u8 *copy;
-+	int off;
-+
-+	copy = kunit_kmalloc(test, XXH_TEST_LEN + 8, GFP_KERNEL);
-+	KUNIT_ASSERT_NOT_NULL(test, copy);
-+
-+	for (off = 1; off < 8; off++) {
-+		struct xxh64_state state;
-+
-+		memcpy(copy + off, buf, XXH_TEST_LEN);
-+		KUNIT_EXPECT_EQ_MSG(test, xxh32(copy + off, XXH_TEST_LEN, 0),
-+				    h32, "offset %d", off);
-+		KUNIT_EXPECT_EQ_MSG(test, xxh64(copy + off, XXH_TEST_LEN, 0),
-+				    h64, "offset %d", off);
-+
-+		xxh64_reset(&state, 0);
-+		xxh64_update(&state, copy + off, 5);
-+		xxh64_update(&state, copy + off + 5, XXH_TEST_LEN - 5);
-+		KUNIT_EXPECT_EQ_MSG(test, xxh64_digest(&state), h64,
-+				    "offset %d", off);
-+	}
-+}
-+
-+static struct kunit_case xxhash_test_cases[] = {
-+	KUNIT_CASE_PARAM(xxh32_test, xxh32_gen_params),
-+	KUNIT_CASE_PARAM(xxh64_test, xxh64_gen_params),
-+	KUNIT_CASE_PARAM(xxh64_streaming_test, xxh64_gen_params),
-+	KUNIT_CASE(xxh64_update_null_test),
-+	KUNIT_CASE(xxh_unaligned_test),
++static struct kunit_case ucs2_string_test_cases[] = {
++	KUNIT_CASE(ucs2_strnlen_test),
++	KUNIT_CASE(ucs2_strlen_test),
++	KUNIT_CASE(ucs2_strsize_test),
++	KUNIT_CASE(ucs2_strscpy_test),
++	KUNIT_CASE(ucs2_strncmp_test),
++	KUNIT_CASE(ucs2_utf8size_test),
++	KUNIT_CASE_PARAM(ucs2_as_utf8_char_test, ucs2_utf8_gen_params),
++	KUNIT_CASE(ucs2_as_utf8_string_test),
++	KUNIT_CASE(ucs2_as_utf8_truncate_test),
++	KUNIT_CASE(ucs2_as_utf8_l_test),
 +	{}
 +};
 +
-+static struct kunit_suite xxhash_test_suite = {
-+	.name = "xxhash",
-+	.test_cases = xxhash_test_cases,
++static struct kunit_suite ucs2_string_test_suite = {
++	.name = "ucs2_string",
++	.test_cases = ucs2_string_test_cases,
 +};
 +
-+kunit_test_suite(xxhash_test_suite);
++kunit_test_suite(ucs2_string_test_suite);
 +
-+MODULE_DESCRIPTION("KUnit tests for xxHash");
++MODULE_DESCRIPTION("KUnit tests for the UCS-2 string helpers");
 +MODULE_LICENSE("GPL");
 _
 
@@ -426,4 +453,5 @@ Patches currently in -mm which might be from amit.patole@gmail.com are
 lib-genalloc-dont-dereference-a-null-pool-in-gen_pool_dma_alloc.patch
 lib-tests-add-kunit-tests-for-genalloc.patch
 lib-tests-add-kunit-tests-for-xxhash.patch
+lib-tests-add-kunit-tests-for-the-ucs-2-string-helpers.patch
 
