@@ -1,47 +1,46 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794290902;
-	b=j7LIEwlx61fp8cFUJtz/6ihZGL4ccXVgT1ZTSyKbD424ri+pFtMedfCoKAO1ZjYVCvgb
-	 wZ3gP2zelBkAoHou3wouNYgba27qHFSH5VNqEDB24Pveb5Z2efDe8T9Y/haGLnmq6pan/
-	 OPpbW+jdJUrRbzROlTQFKiU12xlqjTUn6oH9d557B7M59JPeunMtCZ2BAs6RHhC1Q4ocC
-	 nbaUiOQeUShUOzAZ0Vru2ALMbbu4adrobwoWsBF/Ggi/LWGsoBGBV8vDBZOcfrRlPqLTq
-	 BySwU89Us5TlLAq82kamHRZgI35v+d5/CEgNnhIMEZ6wL24YZ9IaRZdOkkqQMxAy2JQ==
+	t=1794291212;
+	b=EF6A2+gl2Z87rCRInmFdxFAvoyfLuUW98WiIHJ7Ff0+T0L4SEqnyeNQeYlp/nwIiKTGL
+	 XtPH20kf7Y0fmpAd0iui04p1Mq2eZD0OhR+M4/HYiNCGcJtzxQ/VkrUqsiHWJEirMH9pq
+	 hjiK2JpQRNIJReG9B9jILGxk9fQGxK+8PHtIVDtP5y6rmNL4c8z+w9PhowCyUeJykyDQb
+	 MVhLgefrzt+fNdoUL/WQP7bd0rW6o9gkU/gb5C6Ee+b60tP/7jVh/NBjeegmtJHxfTUwh
+	 MikQKAnEsgfW+ZU4xReBp+70h2d2kZ/1DtRZYAcPRbRL2DE2vm6k15IQR7hv6yLPiBA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794290902;
+	a=rsa-sha256; c=relaxed/relaxed; t=1794291212;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=VM+nubyeDrc+R8pzhug2p/kYs48Rvv1dN+OpHOXziKs=;
-	b=FPQ7cbg7JG/jBQebio3J6z7sfbfWIlfIPqK87FebCrR8RpbIdwxTkom8y4zJudxDXjRt
-	 s3g3G0lZ2e/XX8XuZv/beOIL2duDHCsN9hUW8uQfnt8Oomr8knldQdTPGzRl0qM3QWYs5
-	 jIATDywkkLIiXeD9k7o7UDiy3SQhHgNtqXn+ga1i1vk9ug3j0lqog1Ba5FtIuLGgkEs6C
-	 DNMy/DvN+QvMMBdhV/JU9p2CEGlTsSEEZNLd4tw99HXSmy9bz7Qxy6wfOHHUNah4Ud7lK
-	 1rvZml2QIRbu9q0pglk75VOAz115meA8ryA4al+EUxL50SVtz5dNTUstdRW9Eqb+/FQ==
+	bh=Hqy+b+2cF/6PTIVSqoSueApn/tAkn+baxF9FzOb1P3E=;
+	b=jL5CzVEwnx2K+Z48O68MbBuxybV9ylNyK4GWxvUiykXrI2fjdz/kBUEZ5+ZbZSdjFEEy
+	 Xa9Y9+NO9yg9GavESPL7TNLzkfZHL9Q1b5R5NUoX0kYDIkwxKQ88c/LgWP8lun/lnSOKV
+	 7K/icDtoVxxbOoePqhZEDAPgRg3Sg2+Ygys6zpItwfmhJrh5nTRJih4R+PJnasLQhzFJf
+	 dGdWz7vSpUdZqwKSg5zH25h2KPhJMXX5s/rK6KRRGLKINua8vE6PWQUBbwlKnAWSHayXA
+	 5okuCEVh/Ed+o0tcM0GxgE4NljqJdaEURIueZ2MakrELQyO4pcvtN13zk55iFs26ygQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b="G/pkNNYS";
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=2GZN0r54;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E5591606A31C
-	for <mm-commits@vger.kernel.org>; Tue, 10 Nov 2026 06:08:21 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B7419606A325
+	for <mm-commits@vger.kernel.org>; Tue, 10 Nov 2026 06:13:31 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=G/pkNNYS
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 705B31F0089F;
-	Tue, 10 Nov 2026 06:08:21 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=2GZN0r54
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 132911F008A1;
+	Tue, 10 Nov 2026 06:13:31 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1794290901;
-	bh=VM+nubyeDrc+R8pzhug2p/kYs48Rvv1dN+OpHOXziKs=;
+	d=linux-foundation.org; s=korg; t=1794291211;
+	bh=Hqy+b+2cF/6PTIVSqoSueApn/tAkn+baxF9FzOb1P3E=;
 	h=Date:To:From:Subject;
-	b=G/pkNNYSrbuvyVRo9EH3dtuebZ9eiNVpbzj0rG8a5BVcYBGerN3xC5HvCLUIZ4DLP
-	 P5BCEtM8lLs/oTw24666NSthMoQX7nOnR8KGhengZBXa7Sar5sbpNbAjp+koUckFJb
-	 lhuzgy4xsYBO7xJBFDXcQC2Y1US/pfKZch9Hf0mI=
-Date: Mon, 09 Nov 2026 22:08:21 -0800
-To: mm-commits@vger.kernel.org,yosry@kernel.org,nphamcs@gmail.com,
-	hannes@cmpxchg.org,chengming.zhou@linux.dev,zhangchujun@cmss.chinamobile.com,
-	akpm@linux-foundation.org
+	b=2GZN0r54YHJPU6hnDz0B+CPT3/2oKgC/NA9rcVVA/HA9brZgcn9/Bh590yyGe2VUA
+	 o+8Kx378JycCAjBitn4dnuZM1NArNdVUQQoMF48O5IzfHQp1lYFoydV7bMRb1T5323
+	 wpvJNcjfWYmBvxBMG7tnbztrYiFF6rWoiXGbDNS4=
+Date: Mon, 09 Nov 2026 22:13:30 -0800
+To: mm-commits@vger.kernel.org,surenb@google.com,shuah@kernel.org,
+	hao.ge@linux.dev,sashal@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-cgroup-test_zswap-check-malloc-return-value.patch added to mm-unstable branch
-Message-Id: <20261110060821.705B31F0089F@smtp.kernel.org>
+Subject: + kselftest-alloc_tag-use-the-ll64-types-on-powerpc64.patch added to mm-unstable branch
+Message-Id: <20261110061331.132911F008A1@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -53,12 +52,12 @@ Precedence: list
 
 
 The patch titled
-     Subject: selftests/cgroup: test_zswap: check malloc() return value
+     Subject: kselftest: alloc_tag: use the ll64 types on powerpc64
 has been added to the -mm mm-unstable branch.  Its filename is
-     selftests-cgroup-test_zswap-check-malloc-return-value.patch
+     kselftest-alloc_tag-use-the-ll64-types-on-powerpc64.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-cgroup-test_zswap-check-malloc-return-value.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kselftest-alloc_tag-use-the-ll64-types-on-powerpc64.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -76,44 +75,44 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: zhangchujun <zhangchujun@cmss.chinamobile.com>
-Subject: selftests/cgroup: test_zswap: check malloc() return value
-Date: Wed, 04 Nov 2026 17:53:15 +0800
+From: Sasha Levin <sashal@kernel.org>
+Subject: kselftest: alloc_tag: use the ll64 types on powerpc64
+Date: Tue, 03 Nov 2026 10:54:54 -0500
 
-test_no_invasive_cgroup_shrink() uses zw_allocation immediately after
-malloc() without checking for allocation failure.
+On powerpc64 __u64 is an unsigned long unless __SANE_USERSPACE_TYPES__ is
+defined, so printing and scanning the __u64 fields with %llu warns:
 
-Check for NULL before accessing the buffer and use the existing cleanup
-path to report test failure, matching the handling of wb_allocation later
-in the function.
+  allocinfo_ioctl_test.c:93:73: warning: format '%llu' expects argument of type 'long long unsigned int', but argument 2 has type '__u64' {aka 'long unsigned int'} [-Wformat=]
 
-Link: https://lore.kernel.org/20261104095315.2326-1-zhangchujun@cmss.chinamobile.com
-Signed-off-by: zhangchujun <zhangchujun@cmss.chinamobile.com>
+Define __SANE_USERSPACE_TYPES__, as other selftests do.
+
+Link: https://lore.kernel.org/20261103155454.534649-1-sashal@kernel.org
+Signed-off-by: Sasha Levin <sashal@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Acked-by: Nhat Pham <nphamcs@gmail.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Yosry Ahmed <yosry@kernel.org>
-Cc: Chengming Zhou <chengming.zhou@linux.dev>
+Acked-by: Suren Baghdasaryan <surenb@google.com>
+Acked-by: Hao Ge <hao.ge@linux.dev>
+Cc: Shuah Khan <shuah@kernel.org>
 ---
 
- tools/testing/selftests/cgroup/test_zswap.c |    2 ++
- 1 file changed, 2 insertions(+)
+ tools/testing/selftests/alloc_tag/allocinfo_ioctl_test.c |    1 +
+ 1 file changed, 1 insertion(+)
 
---- a/tools/testing/selftests/cgroup/test_zswap.c~selftests-cgroup-test_zswap-check-malloc-return-value
-+++ a/tools/testing/selftests/cgroup/test_zswap.c
-@@ -503,6 +503,8 @@ static int test_no_invasive_cgroup_shrin
- 	if (cg_enter_current(zw_group))
- 		goto out;
- 	zw_allocation = malloc(allocation_size);
-+	if (!zw_allocation)
-+		goto out;
- 	for (int i = 0; i < nr_pages; i++) {
- 		off = (unsigned long)i * page_size;
- 		memset(&zw_allocation[off], 0, page_size);
+--- a/tools/testing/selftests/alloc_tag/allocinfo_ioctl_test.c~kselftest-alloc_tag-use-the-ll64-types-on-powerpc64
++++ a/tools/testing/selftests/alloc_tag/allocinfo_ioctl_test.c
+@@ -1,4 +1,5 @@
+ // SPDX-License-Identifier: GPL-2.0-only
++#define __SANE_USERSPACE_TYPES__
+ 
+ /* kselftest for allocinfo ioctl
+  * allocinfo ioctl retrieves allocinfo data through ioctl
 _
 
-Patches currently in -mm which might be from zhangchujun@cmss.chinamobile.com are
+Patches currently in -mm which might be from sashal@kernel.org are
 
-mm-page_owner-use-%u-to-print-the-stack-depot-handle.patch
-selftests-cgroup-test_zswap-check-malloc-return-value.patch
+selftests-proc-cast-the-procmap_query-address-through-uintptr_t.patch
+selftests-mm-fix-pointer-width-warnings-on-32-bit-architectures.patch
+selftests-mm-uffd-wp-mremap-keep-the-thp-sizes-in-unsigned-long.patch
+kselftest-alloc_tag-use-the-ll64-types-on-powerpc64.patch
+selftests-proc-search-the-kernel-headers-before-the-tools-copies.patch
+selftests-prctl-select-the-tests-by-arch-alone.patch
 
