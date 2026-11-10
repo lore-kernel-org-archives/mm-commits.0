@@ -1,48 +1,48 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794293138;
-	b=gr2ZlyATQDymt0HzW9HjeWIvCa8N+GpU/w6DQubsjUZf5/5hsqwG1PpfBJelSlbDe8aA
-	 WefGFZr3024G0kDmN+oew8jI43B3Psi90uxKlkyhk9xineiuxPktqKHVpf9GXEW7MNgdZ
-	 UQg3rldUvj7OAo9HZd3T2sioNGNHYrE8ybJ+xquJUy7RuaLuBT94ppI+GUrN6Zb8Zl4GI
-	 jrhwylgIKnaN6yUiBy/Pq/KqlyneJ5XSYj17q8ysOES2hHyADLg6JrFkS1KXa/BluMlfi
-	 3w4h8elvVMvv/qNPwDSkpyFauJi0462kqkY16pLOF0UePXqkoQIK5VxqDC+vCFUiCoA==
+	t=1794293140;
+	b=3v5Naq53Yt0ni7faGVVRvJZGc+cCdmL4JX8ElwYSm8A5PtNA3+62f4PYfO4BsC+ymdgn
+	 AzynNf94vKPzC6trNWaH9mYkE3LBSPDIFVPhj711yPDtYLbJBbXl9j4AwMK8fzYh03QHJ
+	 cr1zYwVKNc5uQsBC0Z69z7gl1yPt+GngqaWww9pmSc3HiAskflDG/UUKN9trJFpNFtyeE
+	 sNWdajp4W7k6CLnPwTlnAjE96ifIfGIxzuBgPTqZk82qRJ+xh2KpL3X2JHJZwguQVPxIA
+	 pdnQxFh/aQmTy0KkaRPYz8CqQo/TzpUo0pPgYpswqFUFAwllNlYs5VD+OpHAUXXjKdA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794293138;
+	a=rsa-sha256; c=relaxed/relaxed; t=1794293140;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=HOYLQBuxQ2Bn0y8VKqkeifxH9V/1nz0VJYgLoAp65Y4=;
-	b=M2g9zDQ/+RdUQd4eCGdjx5mnuIar37cl+qLZcwm9lxbJWbgycG7Pdt50ja1RRvfiLsjm
-	 JmLFSKK4HDdO3YdMErpshBJoWasP/DadH0LtqB+dLCZbVY6V1VPSrUcDCeXwzXXl2Rje2
-	 ptJpSkL2mf7Ro3tQnhzzkYp/7iNGk2NClovmdvphdlFonbiALd9K7pPLCiF1yX0aHhfLA
-	 6UPj3pAZ6gSi5Xy8++j8lkzmVRuN74bu1sB9c96FEU/JWl+HQ3D/AYcCeuoeVSxgdZAzT
-	 m4gqH1SWkUpXYnXhnDkw/3j69Ne/cV0QVzP+u/vad1oSBPxF6QQtZNKY8aF0z+VzQ/g==
+	bh=X0gvjBTrkdv88HScD0hpGWp7lUBapUqep7QtHNNihtI=;
+	b=36Ueoyrt7Epk2WLervy3XLy6c74xGfQShUs2AwN4GLq5PPjQ07OToFqe24BKXHhnPfgg
+	 MAmIMqdZAOoUBOkAYoVu4Jw8GIWB+ljcjKd81W30yyFz5IbQAhDo40h8AWg/7FcZgki3b
+	 /8K988qV6ZUEgP5Ui020Y3JTkvi1gAgqSuT8QOzimvNQGVQE8lKNWQVrff5GYYbSdceKG
+	 +e7auqtBfLNDX5t1oWmes/OMwDTWhzYoGC+8GgtxMlXmyMPA5Qy/oGP7+UN6V6Fo6k7T6
+	 FS56DrGrP1KSMi18eODgSWYKEiwVY3Wy+BoonW03+OETbcMeeJDeOgvMzYuI0ughGwg==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=1s75sSW2;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=H9CGLtZE;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 30AF7606A325;
-	Tue, 10 Nov 2026 06:45:38 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B55ED606CB1D
+	for <mm-commits@vger.kernel.org>; Tue, 10 Nov 2026 06:45:39 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=1s75sSW2
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 00D931F008A1;
-	Tue, 10 Nov 2026 06:45:37 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=H9CGLtZE
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 710471F0089F;
+	Tue, 10 Nov 2026 06:45:39 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1794293138;
-	bh=HOYLQBuxQ2Bn0y8VKqkeifxH9V/1nz0VJYgLoAp65Y4=;
+	d=linux-foundation.org; s=korg; t=1794293139;
+	bh=X0gvjBTrkdv88HScD0hpGWp7lUBapUqep7QtHNNihtI=;
 	h=Date:To:From:Subject;
-	b=1s75sSW2Ky85XeWGxDOvWvcGOD28D4HeY3gTf1mouxjTQWTXmS6VavySkDviuQrAw
-	 SAatJf8rvWVqNcEXXPK719O6UHVnhCGaNTFX9wT+1/k9pH+hU129t81TuehRfnmr7T
-	 9tEgoQj4ghnQsqTBUhwgAEw1q2Av7KSRcIOzW0MA=
-Date: Mon, 09 Nov 2026 22:45:37 -0800
-To: mm-commits@vger.kernel.org,
-	syzbot+91e1fc35f51774c479b2@syzkaller.appspotmail.com,stable@vger.kernel.org,
-	osalvador@suse.de,muchun.song@linux.dev,lihongbo22@huawei.com,
-	david@kernel.org,joasantonio108@gmail.com,akpm@linux-foundation.org
+	b=H9CGLtZEsTN7546gPkRgb0wDUgaAfNhJ5MO8LuNJlTqHDmcS3bVCszE8mzmD2KIXO
+	 yP6iRfdGSpxPPu2SCqvLYvjDGnXTaiMS48gmMa1oPg9rzLgJFgF8K0TVl/+nVUdFHU
+	 pdQnvpSad6B1vcZaL0yzzklWISYPiL6+CCAv+Tjk=
+Date: Mon, 09 Nov 2026 22:45:39 -0800
+To: mm-commits@vger.kernel.org,yangsongsen@insta360.com,vbabka@kernel.org,
+	syzbot+10e72ea5747737bcd2ad@syzkaller.appspotmail.com,pfalcato@suse.de,
+	liam@infradead.org,lance.yang@linux.dev,kas@kernel.org,jannh@google.com,
+	david@kernel.org,ljs@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] hugetlbfs-move-hugetlbfs_free_inode-tracepoint-to-destroy_inode.patch removed from -mm tree
-Message-Id: <20261110064538.00D931F008A1@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] mm-vma-read-anon_vma-carefully-in-validate_mm.patch removed from -mm tree
+Message-Id: <20261110064539.710471F0089F@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -54,103 +54,128 @@ Precedence: list
 
 
 The quilt patch titled
-     Subject: hugetlbfs: move hugetlbfs_free_inode tracepoint to ->destroy_inode()
+     Subject: mm/vma: read anon_vma carefully in validate_mm()
 has been removed from the -mm tree.  Its filename was
-     hugetlbfs-move-hugetlbfs_free_inode-tracepoint-to-destroy_inode.patch
+     mm-vma-read-anon_vma-carefully-in-validate_mm.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Joas Antonio dos Santos <joasantonio108@gmail.com>
-Subject: hugetlbfs: move hugetlbfs_free_inode tracepoint to ->destroy_inode()
-Date: Mon, 02 Nov 2026 13:03:56 +0000
+From: "Lorenzo Stoakes (ARM)" <ljs@kernel.org>
+Subject: mm/vma: read anon_vma carefully in validate_mm()
+Date: Mon, 02 Nov 2026 10:25:20 +0000
 
-hugetlbfs_free_inode() calls trace_hugetlbfs_free_inode(), and the
-hugetlbfs__inode event class records inode->i_sb->s_dev.  ->free_inode()
-runs from an RCU callback (destroy_inode() queues i_callback() with
-call_rcu()), and Documentation/filesystems/porting.rst says that this
-callback "is *NOT* ordered wrt superblock destruction; as the matter of
-fact, the superblock and all associated structures might be already gone".
-put_super() frees the superblock with call_rcu() followed by a workqueue
-item (destroy_super_rcu() -> destroy_super_work()).  syzbot hit this with
-the event enabled:
+Commit 38564710f443 ("mm: implement and use vma_has_anon_rmap(), silence
+KCSAN") rather clumsily converted the read of vma->anon_vma into a
+vma_has_anon_rmap() without accounting for the separation between
+assignment of anon_vma and later use of it.
 
-  BUG: KASAN: slab-use-after-free in trace_event_raw_event_hugetlbfs__inode+0x45b/0x4c0 include/trace/events/hugetlbfs.h:36
-  Read of size 4 at addr ffff888038850010 by task syz-executor952/6134
-   hugetlbfs_free_inode+0x15e/0x1f0 fs/hugetlbfs/inode.c:1182
-   i_callback+0x46/0x80 fs/inode.c:317
-   rcu_do_batch kernel/rcu/tree.c:2650 [inline]
-   rcu_core+0x5f0/0x1220 kernel/rcu/tree.c:2919
-  Allocated by task 6134:
-   alloc_super fs/super.c:326 [inline]
-   sget_fc+0x1ba/0x1f60 fs/super.c:874
-   hugetlbfs_get_tree+0x1e7/0x2b0 fs/hugetlbfs/inode.c:1431
-  Freed by task 855:
-   kfree+0x22b/0x6d0 mm/slub.c:6923
-   process_one_work+0xac7/0x1b10 kernel/workqueue.c:3495
+vma_has_anon_rmap() is intended as an optimistic check, so doesn't need to
+protect against a torn read in vma->anon_vma. The caller is expected to
+take care of this themselves if they then in fact access the field.
 
-Emit the event from hugetlbfs_destroy_inode() instead.  destroy_inode()
-calls ->destroy_inode() synchronously, before it queues the RCU callback,
-while the superblock is still alive; hugetlbfs_destroy_inode() already
-dereferences inode->i_sb there.  ->free_inode() is left with only the
-kmem_cache_free().
+validate_mm() does indeed then reference the field, so resolve the issue
+via READ_ONCE(), and simplify the code by separating this into a new
+function validate_mm_anon_rmap().
 
-Since the event no longer fires from ->free_inode(), rename it to
-hugetlbfs_destroy_inode so that its name matches where it is emitted, as
-suggested by David and Muchun.
+Finally, add a vma_assert_stabilised() to make it clear the required state
+of the VMA.
 
-Found by syzbot; analysed and tested with the syzbot C reproducer on an
-arm64 KASAN kernel.
-
-Link: https://lore.kernel.org/20261102-b4-hugetlbfs-trace-v4-1-72371825bb5e@gmail.com
-Fixes: 014ad7c42a69 ("hugetlbfs: use tracepoints in hugetlbfs functions.")
-Signed-off-by: Joas Antonio dos Santos <joasantonio108@gmail.com>
+[kas@kernel.org: reduce ifdeffery]
+  Link: https://lore.kernel.org/auhn01dpDzK47igy@thinkstation
+Link: https://lore.kernel.org/20261102-fix-validate_mm-v1-1-5c309614ef15@kernel.org
+Fixes: 38564710f443 ("mm: implement and use vma_has_anon_rmap(), silence KCSAN")
+Signed-off-by: Lorenzo Stoakes (ARM) <ljs@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Reported-by: <syzbot+91e1fc35f51774c479b2@syzkaller.appspotmail.com>
-Closes: https://lore.kernel.org/all/6ae27525.5451848c.f7707.0001.GAE@google.com/
-Suggested-by: David Hildenbrand <david@kernel.org>
-Suggested-by: Muchun Song <muchun.song@linux.dev>
-Reviewed-by: Muchun Song <muchun.song@linux.dev>
-Acked-by: David Hildenbrand (Arm) <david@kernel.org>
-Cc: Oscar Salvador <osalvador@suse.de>
-Cc: Hongbo Li <lihongbo22@huawei.com>
-Cc: <stable@vger.kernel.org>
+Reported-by: <syzbot+10e72ea5747737bcd2ad@syzkaller.appspotmail.com>
+Closes: https://lore.kernel.org/all/6ae78418.6552420f.2a0efc.005c.GAE@google.com/
+Reported-by: Songsen Yang <yangsongsen@insta360.com>
+Closes: https://lore.kernel.org/all/20261102074414.10902-1-yangsongsen@insta360.com/
+Cc: Liam R. Howlett <liam@infradead.org>
+Cc: Vlastimil Babka <vbabka@kernel.org>
+Cc: Jann Horn <jannh@google.com>
+Cc: Pedro Falcato <pfalcato@suse.de>
+Cc: Kiryl Shutsemau <kas@kernel.org>
+Cc: David Hildenbrand <david@kernel.org>
+Cc: Lance Yang <lance.yang@linux.dev>
 ---
 
- fs/hugetlbfs/inode.c             |    2 +-
- include/trace/events/hugetlbfs.h |    2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+ include/linux/mm.h |    2 --
+ mm/vma.c           |   34 ++++++++++++++++++++++------------
+ 2 files changed, 22 insertions(+), 14 deletions(-)
 
---- a/fs/hugetlbfs/inode.c~hugetlbfs-move-hugetlbfs_free_inode-tracepoint-to-destroy_inode
-+++ a/fs/hugetlbfs/inode.c
-@@ -1187,12 +1187,12 @@ static struct inode *hugetlbfs_alloc_ino
+--- a/include/linux/mm.h~mm-vma-read-anon_vma-carefully-in-validate_mm
++++ a/include/linux/mm.h
+@@ -4370,9 +4370,7 @@ anon_rmap_tree_iter_first(struct anon_vm
+ struct anon_vma_chain *
+ anon_rmap_tree_iter_next(struct anon_vma_chain *avc,
+ 			 pgoff_t pgoff_start, pgoff_t pgoff_last);
+-#ifdef CONFIG_DEBUG_VM_RB
+ void anon_rmap_tree_verify(struct anon_vma_chain *avc);
+-#endif
  
- static void hugetlbfs_free_inode(struct inode *inode)
- {
--	trace_hugetlbfs_free_inode(inode);
- 	kmem_cache_free(hugetlbfs_inode_cachep, HUGETLBFS_I(inode));
+ #define anon_rmap_tree_foreach(avc, anon_vma, pgoff_start, pgoff_last)		 \
+ 	for (avc = anon_rmap_tree_iter_first(anon_vma, pgoff_start, pgoff_last); \
+--- a/mm/vma.c~mm-vma-read-anon_vma-carefully-in-validate_mm
++++ a/mm/vma.c
+@@ -676,6 +676,26 @@ static int dup_anon_vma(struct vm_area_s
  }
  
- static void hugetlbfs_destroy_inode(struct inode *inode)
+ #ifdef CONFIG_DEBUG_VM_MAPLE_TREE
++static void validate_mm_anon_rmap(struct vm_area_struct *vma)
++{
++	struct anon_vma *anon_vma;
++	struct anon_vma_chain *avc;
++
++	if (!IS_ENABLED(CONFIG_DEBUG_VM_RB))
++		return;
++
++	vma_assert_stabilised(vma);
++
++	anon_vma = READ_ONCE(vma->anon_vma);
++	if (!anon_vma)
++		return;
++
++	anon_vma_lock_read(anon_vma);
++	list_for_each_entry(avc, &vma->anon_vma_chain, same_vma)
++		anon_rmap_tree_verify(avc);
++	anon_vma_unlock_read(anon_vma);
++}
++
+ void validate_mm(struct mm_struct *mm)
  {
-+	trace_hugetlbfs_destroy_inode(inode);
- 	hugetlbfs_inc_free_inodes(HUGETLBFS_SB(inode->i_sb));
- }
+ 	int bug = 0;
+@@ -685,10 +705,6 @@ void validate_mm(struct mm_struct *mm)
  
---- a/include/trace/events/hugetlbfs.h~hugetlbfs-move-hugetlbfs_free_inode-tracepoint-to-destroy_inode
-+++ a/include/trace/events/hugetlbfs.h
-@@ -72,7 +72,7 @@ DEFINE_EVENT(hugetlbfs__inode, hugetlbfs
- 	TP_ARGS(inode)
- );
+ 	mt_validate(&mm->mm_mt);
+ 	for_each_vma(vmi, vma) {
+-#ifdef CONFIG_DEBUG_VM_RB
+-		struct anon_vma *anon_vma = vma->anon_vma;
+-		struct anon_vma_chain *avc;
+-#endif
+ 		unsigned long vmi_start, vmi_end;
+ 		bool warn = 0;
  
--DEFINE_EVENT(hugetlbfs__inode, hugetlbfs_free_inode,
-+DEFINE_EVENT(hugetlbfs__inode, hugetlbfs_destroy_inode,
+@@ -709,14 +725,8 @@ void validate_mm(struct mm_struct *mm)
+ 			vma_iter_dump_tree(&vmi);
+ 		}
  
- 	TP_PROTO(struct inode *inode),
- 
+-#ifdef CONFIG_DEBUG_VM_RB
+-		if (vma_has_anon_rmap(vma)) {
+-			anon_vma_lock_read(anon_vma);
+-			list_for_each_entry(avc, &vma->anon_vma_chain, same_vma)
+-				anon_rmap_tree_verify(avc);
+-			anon_vma_unlock_read(anon_vma);
+-		}
+-#endif
++		validate_mm_anon_rmap(vma);
++
+ 		/* Check for a infinite loop */
+ 		if (++i > mm->map_count + 10) {
+ 			i = -1;
 _
 
-Patches currently in -mm which might be from joasantonio108@gmail.com are
+Patches currently in -mm which might be from ljs@kernel.org are
 
 
