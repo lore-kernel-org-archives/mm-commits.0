@@ -1,50 +1,46 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794293122;
-	b=Ek9qjZl8aQiGuJ2CrS503F5CpZkAuYeeieLHrsxoRc8QDqPwbZmuxL+LwL9e0reIZcmK
-	 btPOlWxqcCnZBqfIYfRpUn46/aUFi/oZJe3JKkbvuriUpdhlxEUnlWaHVcTbFHwP3FZ8a
-	 TpjKa7NLAbMZd7248Vcl8emoqe9vhkvmjH+gnPzv8DVUIfNqzoba+Majm+QdOVPnzZfSd
-	 rUUfeKe5eJp40D92Qi4gR/2rJ7+iITyFF6ijwk3Bzg+SH5bLV+gGhonhN66R7byplFZNs
-	 6hDEZUwsX7EwUVe/cc5sLcMsmHcl4TL/qisUruecgBMbJoiKxI8MFwVswn0JMnxlpXg==
+	t=1794293126;
+	b=Wz1iZQHo+OP6UD9lD0UCE+rK5ejgzMQiaZroZjbx75tjhFKXshZiMDadPxFmitOIBGi7
+	 Acs7qtTh6zl/QFSNDV6+55fYNfsvj/WaRPdtvL7QJjHTWH1ARgePkqFcfg+qkv9aQ33Nv
+	 EJQZj3CVOStGyGK0/xHcnevLG59q35sjyFYXOiYNNb6eQUmCHwsrkZh1GPtNve2HCMt+v
+	 4EJKGyO6olaAt8kk1e6vl8qYxgAk36t921aOplztZuiq8tbYTttHQozubtjZEtcQC7WCT
+	 CgvbSjUkQ8qw6F6QS7/p5z8Y3HU6e4fdjHBcuAyV5T+1h7jKMbqA0f/w5HJ4WC1mz0A==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794293122;
+	a=rsa-sha256; c=relaxed/relaxed; t=1794293126;
 	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id;
-	bh=5C/Dt0omSofHasNhSwji9hwqILOVkgmTX5ilJiy6Nio=;
-	b=ULTmNlPMq21HTsBKpHRvTLEM/Fb5YiOPmkwwN4NdhDwKxe8czLvOwgZDp1mc/eSoBTyE
-	 IJq+TaMJugTSb+SM5Nq/1n8HoeHHzJR/TOWSk6muHvFxQJgFhs/FttUqqygIIkwEYpVas
-	 fdb9EHTpcKHECnR8lBhPc7xxTln8qJXuy/CBPZM4NKTz8rHwQOKUJ2oqcOzaxjAGyz8xM
-	 BtI0tL4Tr9lkxVv4A7maM+EVilpLECP7NTf2QVs6en4/6cur4mjYHyMYdEc9qxdmcLpw8
-	 ImmmMz35hZDWiJ2Fwy0eNSjkBdr9HyghNwBTk65nNzQJtsFOdzycHtv6fHqRxm5ibLA==
+	bh=7IRsvSa2I9bYDfi+ENZbUikfq15T4BiMR0cK+ITJNZ4=;
+	b=Fg49ZzECtNohKlepxvxgAUUoWfk8JJVgdmji24z32KzQnHDJo9BaJba3C919vcfKEhGH
+	 cLmzXX7djhyYjvOqgUcDwdUx4hfQ2wqk0k5ufQ5e7N77HK4/2FVKjevqopGUFABAKFmX8
+	 UfYQeFLZSQao9sVxlcd9ANzrZV32Q3++bgaUXduKufvKgoYRfeUZqMY3awW8WaLxIJQ/3
+	 vBHDF0gi+sY+QtbRUBvc5FEahx0lSHkt3Y5YcfYfaIZ4tDJreJx5OhohIPvbm1SckioTw
+	 v8izso0bxvaq6QhW2Ns4t8s7OwEj+W6X7p5LoJIZKPtrRmrUIbm8PsFSwjkG5Apbcfw==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=h6nB08i5;
+	dkim=pass header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=uLLBkD3o;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 45741606CB19;
-	Tue, 10 Nov 2026 06:45:21 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C0FEC606A326
+	for <mm-commits@vger.kernel.org>; Tue, 10 Nov 2026 06:45:25 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=h6nB08i5
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id BDBA51F008A1;
-	Tue, 10 Nov 2026 06:45:21 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.a=rsa-sha256 header.s=korg header.b=uLLBkD3o
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 594571F008A1;
+	Tue, 10 Nov 2026 06:45:25 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1794293121;
-	bh=5C/Dt0omSofHasNhSwji9hwqILOVkgmTX5ilJiy6Nio=;
+	d=linux-foundation.org; s=korg; t=1794293125;
+	bh=7IRsvSa2I9bYDfi+ENZbUikfq15T4BiMR0cK+ITJNZ4=;
 	h=Date:To:From:Subject;
-	b=h6nB08i5PJmHEYYYQnSELQd6ojuivh2l13I0iNABYalks/TKBxYCSKvpEM1+Uez9W
-	 7jMC5luKhySuKOS4mggf0C7TsBXbxts2e0yyOxZ++oWs22iTD5NaBsohf31PSzFTB5
-	 cwSm6HTs1kAX8F4l+fH8DLXKYm347MSCueDnB+hQ=
-Date: Mon, 09 Nov 2026 22:45:21 -0800
-To: mm-commits@vger.kernel.org,will@kernel.org,stable@vger.kernel.org,
-	pjw@kernel.org,palmer@dabbelt.com,osalvador@suse.de,mark.rutland@arm.com,
-	kevin.brodsky@arm.com,david@kernel.org,dave.hansen@intel.com,
-	catalin.marinas@arm.com,bjorn@rivosinc.com,apopple@nvidia.com,
-	aou@eecs.berkeley.edu,anshuman.khandual@arm.com,alex@ghiti.fr,
-	agordeev@linux.ibm.com,muchun.song@linux.dev,akpm@linux-foundation.org
+	b=uLLBkD3oAe75y3HPVGhndUrlmZO8V3ewONxRQCkcSNXSR6tp7rQRw6GxB/hjnNxQE
+	 zfvMfqa5e4Hdj2hx7oPp3w3OwtF7MKs59GepsRmHEplNyEA4N4mBH8VyG51YCx9gJ6
+	 QaJjYIMPVoXJ+MraDUSbYMySPb88jm7e8DK0TTMI=
+Date: Mon, 09 Nov 2026 22:45:24 -0800
+To: mm-commits@vger.kernel.org,willy@infradead.org,nickolai@csail.mit.edu,
+	akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] arm64-mm-fix-destructor-for-unconstructed-hotplug-page-tables.patch removed from -mm tree
-Message-Id: <20261110064521.BDBA51F008A1@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] xarray-clear-the-new-heads-parent-before-freeing-the-old-head.patch removed from -mm tree
+Message-Id: <20261110064525.594571F008A1@smtp.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Post: <mailto:mm-commits@vger.kernel.org>
@@ -56,100 +52,60 @@ Precedence: list
 
 
 The quilt patch titled
-     Subject: arm64/mm: fix destructor for unconstructed hotplug page tables
+     Subject: xarray: clear the new head's parent before freeing the old head
 has been removed from the -mm tree.  Its filename was
-     arm64-mm-fix-destructor-for-unconstructed-hotplug-page-tables.patch
+     xarray-clear-the-new-heads-parent-before-freeing-the-old-head.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Muchun Song <muchun.song@linux.dev>
-Subject: arm64/mm: fix destructor for unconstructed hotplug page tables
-Date: Fri, 23 Oct 2026 14:34:28 +0800
+From: Nickolai Zeldovich <nickolai@csail.mit.edu>
+Subject: xarray: clear the new head's parent before freeing the old head
+Date: Tue, 27 Oct 2026 15:20:14 -0400
 
-Commit c594b83457cc ("arm64: mm: call pagetable dtor when freeing
-hot-removed page tables") made free_hotplug_pgtable_page()
-unconditionally run the page-table destructor. This matches page tables
-allocated by the arm64 mapping code, which runs the corresponding
-constructors.
+xas_shrink() passes the old head to xa_node_free(), which queues it with
+call_rcu(), before it clears the new head's parent pointer.  A lockless
+walker that loads the new head after the grace period has started can
+still climb from it into the old head through xa_parent(), as xas_find(),
+xas_find_marked(), xas_next() and xas_prev() do when they step past the
+end of a node, and read the old head after it is freed.
 
-However, arm64 also uses the generic sparse-vmemmap population code.
-Runtime intermediate page tables allocated by that code do not run a
-page-table constructor. Freeing one during memory hot-remove therefore
-runs a destructor without a matching constructor and corrupts
-NR_PAGETABLE accounting.
+Clear the parent pointer before freeing the old head, as
+radix_tree_shrink() does.
 
-Free intermediate page-table pages through pagetable_free(). It runs the
-destructor only for constructor-backed pages and then releases the page
-through the page-table freeing path.
+With a delay injected after xa_node_free() in xas_shrink(), KASAN reports
+a slab-use-after-free in the walker; with this patch it does not.
 
-Link: https://lore.kernel.org/20261023063428.3658761-5-songmuchun@bytedance.com
-Fixes: c594b83457cc ("arm64: mm: call pagetable dtor when freeing hot-removed page tables")
-Signed-off-by: Muchun Song <muchun.song@linux.dev>
+Link: https://lore.kernel.org/20261027192014.844878-1-nickolai@csail.mit.edu
+Fixes: 58d6ea3085f2 ("xarray: Add XArray unconditional store operations")
+Signed-off-by: Nickolai Zeldovich <nickolai@csail.mit.edu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Reviewed-by: Kevin Brodsky <kevin.brodsky@arm.com>
-Acked-by: David Hildenbrand (Arm) <david@kernel.org>
-Reviewed-by: Anshuman Khandual <anshuman.khandual@arm.com>
-Reviewed-by: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Oscar Salvador <osalvador@suse.de>
-Cc: Dave Hansen <dave.hansen@intel.com>
-Cc: Paul Walmsley <pjw@kernel.org>
-Cc: Palmer Dabbelt <palmer@dabbelt.com>
-Cc: Albert Ou <aou@eecs.berkeley.edu>
-Cc: Alexandre Ghiti <alex@ghiti.fr>
-Cc: Björn Töpel <bjorn@rivosinc.com>
-Cc: Will Deacon <will@kernel.org>
-Cc: Mark Rutland <mark.rutland@arm.com>
-Cc: Alexander Gordeev <agordeev@linux.ibm.com>
-Cc: Alistair Popple <apopple@nvidia.com>
-Cc: <stable@vger.kernel.org>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
 ---
 
- arch/arm64/mm/mmu.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ lib/xarray.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
---- a/arch/arm64/mm/mmu.c~arm64-mm-fix-destructor-for-unconstructed-hotplug-page-tables
-+++ a/arch/arm64/mm/mmu.c
-@@ -1495,8 +1495,7 @@ static void free_hotplug_page_range(stru
- 
- static void free_hotplug_pgtable_page(struct page *page)
- {
--	pagetable_dtor(page_ptdesc(page));
--	free_hotplug_page_range(page, PAGE_SIZE, NULL);
-+	pagetable_free(page_ptdesc(page));
+--- a/lib/xarray.c~xarray-clear-the-new-heads-parent-before-freeing-the-old-head
++++ a/lib/xarray.c
+@@ -471,11 +471,12 @@ static void xas_shrink(struct xa_state *
+ 		if (!xa_is_node(entry))
+ 			RCU_INIT_POINTER(node->slots[0], XA_RETRY_ENTRY);
+ 		xas_update(xas, node);
++		if (xa_is_node(entry))
++			xa_to_node(entry)->parent = NULL;
+ 		xa_node_free(node);
+ 		if (!xa_is_node(entry))
+ 			break;
+ 		node = xa_to_node(entry);
+-		node->parent = NULL;
+ 	}
  }
  
- static bool pgtable_range_aligned(unsigned long start, unsigned long end,
 _
 
-Patches currently in -mm which might be from muchun.song@linux.dev are
+Patches currently in -mm which might be from nickolai@csail.mit.edu are
 
-mm-sparse-vmemmap-map-shared-vmemmap-tail-pages-as-read-only.patch
-powerpc-mm-map-shared-vmemmap-tail-pages-as-read-only.patch
-mm-hugetlb_vmemmap-remove-vmemmap_wrprotect_hvo.patch
-mm-hugetlb_vmemmap-remove-hugetlb_vmemmap_optimize_bootmem_folios.patch
-mm-generalize-kernel-pte-table-allocation.patch
-mm-generalize-pmd-page-table-allocation.patch
-mm-generalize-pud-page-table-allocation.patch
-mm-remove-pagetable_dtor_free.patch
-mm-remove-redundant-pagetable_dtor-calls.patch
-mm-hugetlb_vmemmap-remove-hugetlb-specific-vmemmap-optimization-macros.patch
-mm-hugetlb_vmemmap-unify-vmemmap_splitremap_no_tlb_flush.patch
-mm-hugetlb_vmemmap-simplify-vmemmap-head-page-handling.patch
-mm-hugetlb_vmemmap-generalize-vmemmap-page-allocation.patch
-mm-hugetlb_vmemmap-unify-writable-vmemmap-page-preparation.patch
-mm-hugetlb_vmemmap-rename-vmemmap_remap_pte-to-vmemmap_optimize_pte.patch
-mm-hugetlb_vmemmap-simplify-shared-tail-page-handling.patch
-mm-hugetlb_vmemmap-move-alloc_vmemmap_page_list-next-to-its-free-helper.patch
-mm-hugetlb_vmemmap-make-vmemmap-optimization-folio-oriented.patch
-mm-hugetlb_vmemmap-make-vmemmap-restoration-folio-oriented.patch
-mm-hugetlb_vmemmap-unify-vmemmap-range-restoration.patch
-mm-hugetlb_vmemmap-make-vmemmap-pte-conversion-folio-oriented.patch
-mm-hugetlb-fix-validation-of-unsupported-hugetlb-orders.patch
-powerpc-mm-make-vmemmap_populate_compound_pages-static.patch
-powerpc-mm-drop-powerpc-vmemmap_can_optimize.patch
-loongarch-mm-disable-device-dax-vmemmap-optimization.patch
-mm-sparse-vmemmap-drop-vmemmap_can_optimize.patch
-mm-sparse-vmemmap-drop-pgmap-from-vmemmap-population-apis.patch
+lib-plist-add-a-plist_test-case-for-plist_requeue-on-the-last-priority-bucket.patch
 
